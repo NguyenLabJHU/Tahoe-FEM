@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.26 2005-04-28 23:57:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.24 2005-04-05 16:06:37 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -149,7 +149,7 @@ public:
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
 	void InitProjection(const StringT& field, CommManagerT& comm, const iArrayT& nodes,
-		NodeManagerT& node_manager, bool make_inactive, bool node_to_node);
+		NodeManagerT& node_manager, bool make_inactive);
 
 	/** indicate whether image nodes should be included in the projection */
 	virtual bool ProjectImagePoints(void) const;
@@ -257,9 +257,6 @@ public:
 		const dArray2DT& values, const ArrayT<StringT>& labels) const;
 	/*@}*/
 
-	/** the bridging scale element group */
-	BridgingScaleT& BridgingScale(void) const;
-
 protected:
 
 	/** initialize solver information */
@@ -269,6 +266,9 @@ protected:
 	 * within a single element block */
 	void MaptoCells(const iArrayT& nodes, const dArray2DT& coords, iArrayT& cell_num,
 		dArray2DT& cell_coords) const;
+
+	/** the bridging scale element group */
+	BridgingScaleT& BridgingScale(void) const;
 
 	/** the EAMT element group */
 	EAMT& EAM(void) const;

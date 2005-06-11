@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.46 2005-05-05 16:39:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.45 2005-02-13 22:12:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -364,11 +364,11 @@ protected: /* for derived classes only */
 	/*@{*/
 	/** nodes defining the geometry. Collect node in local ordering
 	 * using the connectivities from the current element. */
-	const LocalArrayT& SetLocalX(LocalArrayT& localarray) const;
+	const LocalArrayT& SetLocalX(LocalArrayT& localarray);
 
 	/** nodes defining the field. Collect node in local ordering
 	 * using the connectivities from the current element. */
-	const LocalArrayT& SetLocalU(LocalArrayT& localarray) const;
+	const LocalArrayT& SetLocalU(LocalArrayT& localarray);
 	/*@}*/
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */

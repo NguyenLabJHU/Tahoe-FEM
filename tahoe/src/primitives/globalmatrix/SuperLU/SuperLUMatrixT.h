@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.h,v 1.5 2005-06-01 15:45:25 jwfoulk Exp $ */
+/* $Id: SuperLUMatrixT.h,v 1.3 2005-02-25 15:41:41 paklein Exp $ */
 #ifndef _SUPER_LU_MATRIX_T_H_
 #define _SUPER_LU_MATRIX_T_H_
 
@@ -10,7 +10,6 @@
 
 /* direct members */
 #include "LinkedListT.h"
-#include "AutoArrayT.h"
 
 /* SuperLU type definitions */
 #include "dsp_defs.h"
@@ -23,7 +22,7 @@ class SuperLUMatrixT: public GlobalMatrixT
 public:
 
 	/** constructor */
-	SuperLUMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm);
+	SuperLUMatrixT(ostream& out, int check_code, bool symmetric);
 
 	/** destructor */
 	~SuperLUMatrixT(void);

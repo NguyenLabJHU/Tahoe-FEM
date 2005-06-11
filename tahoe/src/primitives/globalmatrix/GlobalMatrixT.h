@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.20 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.18 2005-02-25 15:41:04 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -17,7 +17,6 @@ template <class nTYPE> class nArrayT;
 class dArrayT;
 class iArray2DT;
 template <class TYPE> class RaggedArray2DT;
-class CommunicatorT;
 
 /** virtual base class for global matrix objects */
 class GlobalMatrixT
@@ -39,7 +38,7 @@ public:
 		kGlobal = 1}; // for parallel solvers
 
 	/** constructor */
-	GlobalMatrixT(ostream& out, int check_code, const CommunicatorT& comm);
+	GlobalMatrixT(ostream& out, int check_code);
 
 	/** copy constructor */
 	GlobalMatrixT(const GlobalMatrixT& source);
@@ -192,9 +191,6 @@ protected:
 	/** output stream */
 	ostream& fOut;
 
-	/** the MP layer */
-	const CommunicatorT& fComm;
-
 	/** \name parameters */
 	/*@{*/
 	int fCheckCode;  	
@@ -202,9 +198,6 @@ protected:
 	int	fLocNumEQ;
 	int fStartEQ; //1,...
 	/*@}*/
-	
-	/** number output counts */
-	static int sOutputCount;
 };
 
 /* return the check code */

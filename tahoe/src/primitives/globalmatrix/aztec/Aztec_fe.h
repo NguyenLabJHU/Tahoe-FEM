@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.h,v 1.7 2005-04-13 21:50:27 paklein Exp $ */
+/* $Id: Aztec_fe.h,v 1.6 2005-04-05 16:07:07 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 #ifndef _AZTEC_FE_H_
 #define _AZTEC_FE_H_
@@ -28,7 +28,7 @@ public:
 	/** constuctor 
 	 * \param in stream to read input parameters 
 	 * \param msg output stream for logging messages */
-	Aztec_fe(const ParameterListT& parameters, ostream& msg, const CommunicatorT& comm);
+	Aztec_fe(const ParameterListT& parameters, ostream& msg, CommunicatorT& comm);
 
 	/* destructor */
 	virtual ~Aztec_fe(void);

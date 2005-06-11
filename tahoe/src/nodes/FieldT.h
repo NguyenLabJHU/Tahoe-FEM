@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.24 2005-05-24 22:09:43 paklein Exp $ */
+/* $Id: FieldT.h,v 1.23 2005-02-04 22:03:55 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -128,7 +128,7 @@ public:
 	void InitialCondition(void);
 	
 	/** apply predictor to all degrees of freedom */
-//	void InitStep(void);
+	void InitStep(void);
 	
 	/** apply predictor to all degrees of freedom */
 	void InitStep(int fieldstart, int fieldend);

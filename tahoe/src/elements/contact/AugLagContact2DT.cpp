@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.20 2005-04-13 17:37:50 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.19 2005-03-12 08:38:08 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
@@ -55,8 +55,11 @@ iArrayT& AugLagContact2DT::DOFTags(int tag_set)
 #if __option(extended_errorcheck)
 	/* check */
 	if (tag_set != 0)
-		ExceptionT::OutOfRange("ugLagContact2DT::DOFTags",
-			"group only has 1 tag set: %d", tag_set);
+	{
+		cout << "\n AugLagContact2DT::DOFTags: group only has 1 tag set: " 
+		     << tag_set << endl;
+		throw ExceptionT::kOutOfRange;
+	}
 #endif
 	
 	return fContactDOFtags;
@@ -95,8 +98,11 @@ const iArray2DT& AugLagContact2DT::DOFConnects(int tag_set) const
 #if __option(extended_errorcheck)
 	/* check */
 	if (tag_set != 0)
-		ExceptionT::OutOfRange("ugLagContact2DT::DOFConnects",
-			"group only has 1 tag set: %d", tag_set);
+	{
+		cout << "\n AugLagContact2DT::DOFConnects: group only has 1 tag set: " 
+		     << tag_set << endl;
+		throw ExceptionT::kOutOfRange;
+	}
 #endif
 
 	return fXDOFConnectivities;
@@ -109,8 +115,11 @@ void AugLagContact2DT::ResetDOF(dArray2DT& DOF, int tag_set) const
 #if __option(extended_errorcheck)
 	/* check */
 	if (tag_set != 0)
-		ExceptionT::OutOfRange("ugLagContact2DT::ResetDOF",
-			"group only has 1 tag set: %d", tag_set);
+	{
+		cout << "\n AugLagContact2DT::ResetDOF: group only has 1 tag set: " 
+		     << tag_set << endl;
+		throw ExceptionT::kOutOfRange;
+	}
 #endif
 
 	/* alias */
@@ -169,13 +178,15 @@ void AugLagContact2DT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 void AugLagContact2DT::ReadRestart(istream& in)
 {
 #pragma unused(in)
-	ExceptionT::GeneralFail("AugLagContact2DT::ReadRestart", "not tested");
+	cout << "\n AugLagContact2DT::ReadRestart: has not been tested" << endl;
+	throw ExceptionT::kGeneralFail;
 }
 
 void AugLagContact2DT::WriteRestart(ostream& out) const
 {
 #pragma unused(out)
-	ExceptionT::GeneralFail("AugLagContact2DT::WriteRestart", "not tested");
+	cout << "\n AugLagContact2DT::WriteRestart: has not been tested" << endl;
+	throw ExceptionT::kGeneralFail;
 }
 //TEMP - restarts have not been tested. these functions
 //       throw ExceptionT::xceptions

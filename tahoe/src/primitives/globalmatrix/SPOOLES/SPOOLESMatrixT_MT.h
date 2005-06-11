@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_MT.h,v 1.3 2005-04-13 21:50:13 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_MT.h,v 1.1 2005-04-05 16:08:59 paklein Exp $ */
 #ifndef _SPOOLES_MATRIX_T_MT_H_
 #define _SPOOLES_MATRIX_T_MT_H_
 
@@ -30,7 +30,7 @@ public:
 
 	/* constuctor */
 	SPOOLESMatrixT_MT(ostream& out, int check_code, bool symmetric,
-		bool pivoting, int message_level, int num_threads, const CommunicatorT& comm);
+		bool pivoting, int num_threads);
 
 	/* copy constructor */
 	SPOOLESMatrixT_MT(const SPOOLESMatrixT_MT& source);
@@ -65,9 +65,6 @@ protected:
 
 	/** parameters */
 	bool fPivoting;	
-
-	/** information output */
-	int fMessageLevel;
 
 	/** data for repeated solves with the same matrix (not for MT) */
 	void* pLU_dat;

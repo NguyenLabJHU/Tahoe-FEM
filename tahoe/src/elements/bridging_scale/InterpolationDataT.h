@@ -1,4 +1,4 @@
-/* $Id: InterpolationDataT.h,v 1.5 2005-04-28 23:54:17 paklein Exp $ */
+/* $Id: InterpolationDataT.h,v 1.3 2004-06-26 05:53:19 paklein Exp $ */
 #ifndef _INTERPOLATION_DATA_T_H_
 #define _INTERPOLATION_DATA_T_H_
 
@@ -21,9 +21,6 @@ public:
 	/** constructor */
 	InterpolationDataT(void) { };
 
-	/** clear all data */
-	void Free(void);
-
 	/** \name accessors */
 	/*@{*/
 	/** neighbors for each entry in InterpolationDataT::Map */
@@ -39,9 +36,6 @@ public:
 	InverseMapT& Map(void) { return fMap; };
 	const InverseMapT& Map(void) const { return fMap; };
 	/*@}*/
-
-	/** return the interpolation data in {row, column, value} (RCV) format */
-	void GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v) const;
 
 	/** \name transpose the given interpolation data 
 	 * \param map map from global id of interpolation point to the row in the

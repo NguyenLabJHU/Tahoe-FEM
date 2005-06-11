@@ -1,7 +1,8 @@
-/* $Id: DetCheckT.cpp,v 1.47 2005-04-28 17:51:43 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.43 2005-03-16 00:32:11 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
+#include "ofstreamT.h"
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "dMatrixEXT.h"
@@ -16,7 +17,6 @@ using namespace Tahoe;
 
 /* initialize static variables */
 bool DetCheckT::fFirstPass = true;
-bool DetCheckT::fDeBug = false;
 
 /* constants */
 const double Pi = acos(-1.0);
@@ -164,28 +164,7 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 				}
 					 
 				//find slip direction
-
-				//A.Eigenvector(lambda_min, slipdir); 
-				//Above was giving Rich some problems, closed form below
-				if (fabs(A(0,1)/(A(0,0)-lambda_min)) <kSmall)
-				{
-					//avoid division by zero or v.small number
-					slipdir[0] = 0.0;
-					slipdir[1] = 1.0;
-				}
-				else
-				{
-					slipdir[0] = 1.0;
-					slipdir[1] = -1.0 *(A(0,0) - lambda_min)/A(0,1); //*slipdir[0]
-					slipdir.UnitVector();
-				}
-				//cout << "normal = \n" << normal << endl;
-				//cout << "slipdir = \n" << slipdir <<
-				//endl; 
-
-				// make sure angle between normal and slipdir is acute
-				double nm = dArrayT::Dot(normal, slipdir);
-				if (nm < 0.0) slipdir.SetToScaled(-1.0,slipdir);
+				A.Eigenvector(lambda_min, slipdir);
 				slipdirs.Append(slipdir);
 			}
 
@@ -360,28 +339,25 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
   
 	/* Set up output file */
 	normalSet.Free();
-	if (fDeBug)
+	ofstreamT normal_out;
+	if (fFirstPass) 
 	{
-		if (fFirstPass) 
-		{
-			normal_out.open("normal.info");
-			fFirstPass = false;
-		}
-		else normal_out.open_append("normal.info");
-	  
-		normal_out << "\n\n time step    element #    ip# \n"
-				<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) 
-				<< setw(outputFileWidth) 
-				<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) 
-				<< setw(outputFileWidth) 
-				<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) 
-				<< "\n\n"
-				<< setw(outputFileWidth) << "approx normal0" << setw(outputFileWidth) << "approx normal1" 
-				<< setw(outputFileWidth) << "approx normal2" <<  setw(outputFileWidth) << "normal0" 
-				<< setw(outputFileWidth) << "normal1" <<  setw(outputFileWidth) << "normal2" 
-				<< setw(outputFileWidth) << "detA" <<  setw(outputFileWidth) << "in normalSet?" << endl;
+		normal_out.open("normal.info");
+		fFirstPass = false;
 	}
-	
+	else normal_out.open_append("normal.info");
+  
+	normal_out << "\n\n time step    element #    ip# \n"
+			<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) 
+			<< setw(outputFileWidth) 
+			<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) 
+			<< setw(outputFileWidth) 
+			<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) 
+			<< "\n\n"
+			<< setw(outputFileWidth) << "approx normal0" << setw(outputFileWidth) << "approx normal1" 
+			<< setw(outputFileWidth) << "approx normal2" <<  setw(outputFileWidth) << "normal0" 
+			<< setw(outputFileWidth) << "normal1" <<  setw(outputFileWidth) << "normal2" 
+			<< setw(outputFileWidth) << "detA" <<  setw(outputFileWidth) << "in normalSet?" << endl;
   
 	// initialize variables
 	normal=0.0;
@@ -432,12 +408,9 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 				normal[2]=sin(phi);
 	     
 				/* output to normal.info */
-				if (fDeBug) 
-				{
-					normal_out << setprecision(outputPrecision) << endl << setw(outputFileWidth) 
+				normal_out << setprecision(outputPrecision) << endl << setw(outputFileWidth) 
 						<< normal[0] << setw(outputFileWidth) << normal[1] << setw(outputFileWidth) << normal[2];
-				}
-				
+
 				/* Iteration to refine normal */
 				newtoncounter=0;	    
 				prevnormal = 0.0;
@@ -450,7 +423,7 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 					if (newtoncounter > maxcount)
 					{
 						cout << "Warning: Bifurcation check failed. Newton refinement did not converge after 100 iterations. \n"; 
-						if (fDeBug) normal_out << setw(2*outputFileWidth) << "Did not converge";
+						normal_out << setw(2*outputFileWidth) << "Did not converge";
 						//return 8;
 						//normal=0.0;
 						//return 0;
@@ -484,11 +457,8 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 				} //end while statement
 
 				/* output info to normal.info */
-				if (fDeBug) 
-				{
-					normal_out << setw(outputFileWidth) <<  normal[0] << setw(outputFileWidth) << normal [1] 
+				normal_out << setw(outputFileWidth) <<  normal[0] << setw(outputFileWidth) << normal [1] 
 						<< setw(outputFileWidth) << normal[2] << setw(outputFileWidth) << detA [i] [j];
-				}
 
 				/* Determine which normals have least value of DetA and record
 				 * them. Typically, there are two distinct normals which produce
@@ -509,12 +479,12 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 						leastdetAe = detAe [i] [j];
 
 						/* output to normal.info */
-						if (fDeBug) normal_out << setw(outputFileWidth) << "Yes - 1st";	
+						normal_out << setw(outputFileWidth) << "Yes - 1st";	
 					}
 					else
 					{
 						/* output to normal.info */
-						if (fDeBug) normal_out << setw(outputFileWidth) << "No";
+						normal_out << setw(outputFileWidth) << "No";
 					}
 				}
 				else if ( fabs(leastmin) > 3.0*setTol )
@@ -528,10 +498,10 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 							leastmin = detA [i] [j];
 							detASet.Append(leastmin);
 							leastdetAe = detAe [i] [j];
-							if (fDeBug) normal_out << setw(outputFileWidth) << " Yes - not 1st - but is now least min detA";							
+							normal_out << setw(outputFileWidth) << " Yes - not 1st - but is now least min detA";							
 						}
 						else
-							if (fDeBug) normal_out << setw(outputFileWidth) << "Already Exists";
+							normal_out << setw(outputFileWidth) << "Already Exists";
 					}
 					else if ( detA [i] [j] < setTol || fabs( (detA [i] [j])/(detAe [i] [j]) ) < setTol )
 					{
@@ -539,10 +509,10 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 						if (normalSet.AppendUnique(normal, NormalCompare))
 						{
 							detASet.Append(detA [i] [j]);
-							if (fDeBug) normal_out << setw(outputFileWidth) << "Yes - Added";
+							normal_out << setw(outputFileWidth) << "Yes - Added";
 						}
 						else
-							if (fDeBug) normal_out << setw(outputFileWidth) << "Already Exists";
+							normal_out << setw(outputFileWidth) << "Already Exists";
 					}
 				}
 
@@ -577,11 +547,8 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 		{
 			normal_curr = normalSet.Current();
 			normals.Append(normal_curr);
-			if (fDeBug) 
-			{
-				normal_out << endl << setw(outputFileWidth) <<  normal_curr[0] << setw(outputFileWidth) << normal_curr[1] 
+			normal_out << endl << setw(outputFileWidth) <<  normal_curr[0] << setw(outputFileWidth) << normal_curr[1] 
 					<< setw(outputFileWidth) << normal_curr[2];
-			}
 			
 			detASet.Next();	
 			detA_curr = detASet.Current();
@@ -598,11 +565,8 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 			double nm = dArrayT::Dot(normal_curr, slipdir);
 			if (nm < 0.0) slipdir.SetToScaled(-1.0,slipdir);
 			slipdirs.Append(slipdir);
-			if (fDeBug) 
-			{
-				normal_out << setw(outputFileWidth) <<  slipdir[0] << setw(outputFileWidth) << slipdir[1] 
+			normal_out << setw(outputFileWidth) <<  slipdir[0] << setw(outputFileWidth) << slipdir[1] 
 					<< setw(outputFileWidth) << slipdir[2];
-			}
 		}	
 		return true;
 	}

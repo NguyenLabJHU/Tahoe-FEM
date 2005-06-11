@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.cpp,v 1.7 2005-04-13 21:50:20 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.cpp,v 1.6 2005-02-25 15:41:41 paklein Exp $ */
 #include "SuperLU_DISTMatrixT.h"
 
 /* library support options */
@@ -21,8 +21,9 @@
 using namespace Tahoe;
 
 /* constructor */
-SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
+SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, CommunicatorT& comm):
+	GlobalMatrixT(out, check_code),
+	fComm(comm),
 	fBuilder(NULL),
 	fIsSymFactorized(false),
 	fIsNumFactorized(false)
@@ -92,6 +93,7 @@ SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, const Com
 /* copy constructor */
 SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(const SuperLU_DISTMatrixT& rhs):
 	GlobalMatrixT(rhs),
+	fComm(rhs.fComm),
 	fBuilder(NULL)
 {
 	SuperLU_DISTMatrixT::operator=(rhs);

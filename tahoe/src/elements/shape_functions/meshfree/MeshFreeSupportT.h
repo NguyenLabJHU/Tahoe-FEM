@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.15 2005-04-22 00:53:04 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.14 2004-07-22 08:24:11 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #ifndef _MF_SUPPORT_T_H_
 #define _MF_SUPPORT_T_H_
@@ -204,8 +204,7 @@ public:
 	/** construct a new MLSSolverT with the given parameter list. The
 	 * MLSSolverT is constructed but MLSSolverT::Initialize still needs to
 	 * be called. Host is responsible for freeing the object that is returned. */
-	static MLSSolverT* New_MLSSolverT(int nsd, int completeness, bool cross_terms,
-		const ParameterListT& params);
+	static MLSSolverT* New_MLSSolverT(int nsd, int completeness, const ParameterListT& params);
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.22 2005-04-12 15:32:29 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.21 2005-03-11 20:32:15 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -24,7 +24,6 @@ SolidMaterialT::ConstraintT SolidMaterialT::int2ConstraintT(int i)
 	else
 		ExceptionT::GeneralFail("SolidMaterialT::int2ConstraintT",
 			"could not translate %d", i);
-	return kNoConstraint;
 }
 
 /* constructor */

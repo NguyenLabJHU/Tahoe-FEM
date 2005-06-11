@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.14 2005-04-28 23:57:15 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.10 2005-03-11 20:41:46 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -158,9 +158,9 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 
 	/* works space that changes for each bond family */
 #ifdef __SPOOLES__
-	SPOOLESMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, true, true, 0, fComm);
+	SPOOLESMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, true, true);
 #else
-	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, fComm);
+	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots);
 #endif	
 
 	dArray2DT p_i, dp_i, df_dp_i;
@@ -234,8 +234,6 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 			fMainOut << tmp.wrap(5) << endl;
 			tmp--;
 		}
-		else if (fLogging != GlobalT::kSilent)
-			fMainOut << i+1 << '/' << bonds.MajorDim() << ": " << ghost_neighbors_i.Length() << " bonds\n";
 		
 		/* collect list of cells not containing any active bonds */
 		BondFreeElements(ghost_neighbors_i, bondfree_cell_i);
@@ -308,7 +306,7 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 		/* compute contribution from bonds terminating at "ghost" atoms */
 		ComputeSum_signR_Na(R_i, ghost_neighbors_i, point_coords, overlap_node_i_map, sum_R_N);
 		if (fLogging == GlobalT::kVerbose) {
-			fMainOut << "ghost bond contribution:\n";
+			fMainOut << "ghost bond contritbution:\n";
 			fMainOut << "R.sum_R_N =\n" << sum_R_N << endl;
 		}
 
@@ -341,38 +339,6 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 			Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
 				bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
 				p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
-
-//DEBUGGING - check df_dp_i using finite difference
-#if 0
-int prec = fMainOut.precision();
-fMainOut.precision(12);
-fMainOut << "(1) df_dp =\n" << df_dp_i << '\n';
-double p_eps = 1.0e-08;
-double fa2 = dArrayT::Dot(f_a, f_a);
-dArray2DT df_dp_i_tmp = df_dp_i;
-for (int ii = 0; ii < p_i.Length(); ii++)
-{
-	/* compute overlap */
-	p_i[ii] += p_eps;
-	f_a = sum_R_N;
-	Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
-		bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
-		p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
-	p_i[ii] -= p_eps;
-
-	/* compute */
-	df_dp_i_tmp[ii] = (dArrayT::Dot(f_a, f_a) - fa2)/p_eps;
-}
-fMainOut << "(2) df_dp =\n" << df_dp_i << '\n';
-
-/* restore residual */
-f_a = sum_R_N;
-Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
-	bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
-	p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
-fMainOut.precision(prec);
-#endif
-//DEBUGGING - check df_dp_i using finite difference
 
 			/* assemble residual */
 			rhs = 0.0;
@@ -951,16 +917,6 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 	ShapeFunctionT shapes = ShapeFunctionT(coarse->GeometryCode(), nip, element_coords);
 	shapes.Initialize();
 
-	/* B_hat_U_U */
-	InterpolationDataT& B_hatU_U = const_cast<InterpolationDataT&>(fDrivenCellData.NodeToNode());
-	const RaggedArray2DT<int>& B_hatU_U_neighbors = B_hatU_U.Neighbors();	
-	const RaggedArray2DT<double>& B_hatU_U_weights = B_hatU_U.NeighborWeights();	
-	InverseMapT& B_hatU_U_row_map = B_hatU_U.Map();
-	InverseMapT::SettingT old_out_of_range = B_hatU_U_row_map.OutOfRange();
-	B_hatU_U_row_map.SetOutOfRange(InverseMapT::MinusOne); /* need this to differentiate free/prescribed nodes */
-	iArrayT hatU_U_neighbors;
-	dArrayT hatU_U_weights;
-
 	/* integrate bond density term */
 	dArrayT rho_1(nip);
 	rho_1 = 1.0;
@@ -1013,34 +969,9 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 				}
 			}
 		}
-
-	/* add B_hatU_U to free nodes from prescribed nodes */
-	if (B_hatU_U_weights.Length() > 0) /* have hatU-U contributions */
-	{
-		for (int i = 0; i < overlap_node.Length(); i++)
-		{
-			int hatU_node = overlap_node[i];
-			int hatU_row = B_hatU_U_row_map.Map(hatU_node);
-			if (hatU_row != -1) /* is prescribed */
-			{
-				/* row of B_hatU_U */
-				B_hatU_U_neighbors.RowAlias(hatU_row, hatU_U_neighbors);
-				B_hatU_U_weights.RowAlias(hatU_row, hatU_U_weights);
-				
-				/* add contributions to U nodes */
-				for (int j = 0; j < hatU_U_neighbors.Length(); j++)
-				{
-					int U_node = hatU_U_neighbors[j];
-					int U_node_index = overlap_node_map.Map(U_node);
-					if (U_node_index > -1) /* allowed to be -1? */
-						f_a[U_node_index] += f_a[i]*hatU_U_weights[j]; /* add B_hatU_U contribution */
-				}
-			}
-		}
+	if (fLogging == GlobalT::kVerbose) {
+		fMainOut << "f_a =\n" << f_a << endl;
 	}
-
-	/* output */
-	if (0 && fLogging == GlobalT::kVerbose) fMainOut << "f_a =\n" << f_a << '\n';
 
 	/* gradient work space */
 	const ParentDomainT& parent_domain = shapes.ParentDomain();	
@@ -1058,6 +989,7 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 	ddf_dpdp.Clear();
 
 	/* regularization contributions to the force and stiffness matrix */
+	dArray2DT df(nen, nip);
 	dMatrixT ddp_i_dpdp(nip);
 	dArrayT element_rho;
 	dArrayT element_force;
@@ -1184,9 +1116,6 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 			}		
 		}
 
-		/* output */
-		if (0 && fLogging == GlobalT::kVerbose) fMainOut << "df_a_dp =\n" << df_a_dp << '\n';
-
 		/* assemble stiffness */
 		df_a_dp_2_man.SetDimensions(inv_equations_active_i.MinorDim(i));
 		df_a_dp_2.Outer(df_a_dp, df_a_dp);
@@ -1195,38 +1124,10 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 		
 		/* force contribution */
 		inv_equations_all_i.RowAlias(i, eqnos);
-		for (int j = 0; j < eqnos.Length(); j++)
+		for (int j = 0; j < eqnos.Length(); j++) {
 			df_dp[eqnos[j]-1] += f_a[node_index]*df_a_dp[j];
-
-		if (B_hatU_U_weights.Length() > 0) /* have hatU-U contributions */
-		{
-			int hatU_row = B_hatU_U_row_map.Map(node);
-			if (hatU_row != -1) /* is prescribed */
-			{
-				/* row of B_hatU_U */
-				B_hatU_U_neighbors.RowAlias(hatU_row, hatU_U_neighbors);
-				B_hatU_U_weights.RowAlias(hatU_row, hatU_U_weights);
-			
-				/* sum over U nodes */
-				double Bxf = 0.0;
-				for (int k = 0; k < hatU_U_neighbors.Length(); k++) {
-					int U_node_index = overlap_node_map.Map(hatU_U_neighbors[k]);
-					if (U_node_index > -1) /* allowed to be -1? */
-						Bxf += hatU_U_weights[k]*f_a[U_node_index];
-				}
-			
-				/* assemble */
-				for (int j = 0; j < eqnos.Length(); j++)
-					df_dp[eqnos[j]-1] += Bxf*df_a_dp[j];
-			}
 		}
 	}
-
-	/* output */
-	if (0 && fLogging == GlobalT::kVerbose) fMainOut << "df_dp =\n" << df_dp << '\n';
-
-	/* restore map behavior */
-	B_hatU_U_row_map.SetOutOfRange(old_out_of_range);
 }
 
 #endif  /* BRIDGING_ELEMENT */

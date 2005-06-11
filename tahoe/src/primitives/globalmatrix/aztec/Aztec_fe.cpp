@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.13 2005-04-13 21:50:27 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.12 2005-04-05 16:07:07 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 #include "Aztec_fe.h"
 
@@ -20,7 +20,7 @@
 using namespace Tahoe;
 
 /* constructor */
-Aztec_fe::Aztec_fe(const ParameterListT& parameters, ostream& msg, const CommunicatorT& comm):
+Aztec_fe::Aztec_fe(const ParameterListT& parameters, ostream& msg, CommunicatorT& comm):
 	AztecBaseT(msg, comm),
 	fMSRBuilder(NULL),
 	fMSRSet(0)

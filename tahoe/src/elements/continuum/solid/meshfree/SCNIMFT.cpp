@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.59 2005-04-13 17:37:04 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.57 2005-04-06 17:55:23 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -38,9 +38,6 @@
 #include "SSSolidMatList2DT.h"
 #include "SSSolidMatList3DT.h"
 
-/* for manufactured solutions */
-#include "IsotropicT.h"
-
 using namespace Tahoe;
 
 const int kNoTractionVector = -1;
@@ -61,8 +58,7 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	fMaterialList(NULL),
 	fNodalShapes(NULL),
 	fCellGeometry(NULL),
-	qIsAxisymmetric(false),
-	fBodySchedule(NULL)
+	qIsAxisymmetric(false)
 {
 #pragma unused(field)
 
@@ -77,8 +73,7 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	fMaterialList(NULL),
 	fNodalShapes(NULL),
 	fCellGeometry(NULL),
-	qIsAxisymmetric(false),
-	fBodySchedule(NULL)
+	qIsAxisymmetric(false)
 {
 	SetName("mfparticle");
 
@@ -89,6 +84,7 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 /* destructor */
 SCNIMFT::~SCNIMFT(void)
 {
+	
 	delete fCellGeometry;
 	delete fMaterialList;
 	delete fNodalShapes;
@@ -154,6 +150,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* construct shape functions */
+	// see what to pass in place of fNodalCoordinates
 	fNodalShapes = new MeshFreeNodalShapeFunctionT(nsd,
 		ElementSupport().InitialCoordinates(), *fElementConnectivities[0], 
 		fNodalCoordinates, *fMeshfreeParameters);
@@ -164,6 +161,11 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 
 	/* MLS stuff */
 	fNodalShapes->SetSupportSize();
+
+	/* construct meshfree support before calling inherited method because
+	 * support class needed to construct shape functions */
+	//	fMFSupport = new MeshFreeSupport2DT;
+	//      fMFSupport->TakeParameterList(list.GetList("meshfree_support_2D"));
 
 	/* exchange nodal parameters (only Dmax for now) */
 	const ArrayT<int>* p_nodes_in = ElementSupport().ExternalNodes();
@@ -200,6 +202,8 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	fCellGeometry->SetNodesAndShapes(&fNodes, &fNodalCoordinates, fNodalShapes);
 	fCellGeometry->ComputeBMatrices(nodalCellSupports, bVectorArray, fCellVolumes, 
 									fCellCentroids, circumferential_B);	
+
+#pragma message("could convert cell volumes to axisymmetric here")
 
 	/* store shape functions at nodes */
 	int nNodes = fNodes.Length();
@@ -739,11 +743,9 @@ void SCNIMFT::RHSDriver(void)
 {
 	const char caller[] = "SCNIMFT::RHSDriver";
 
-	int nsd = NumSD();
-	fForce = 0.0;
-
 	if (fTractionVectors.MajorDim()) {
 		int nsd = NumSD();
+		fForce = 0.;
 		int numBoundaryFacets = fBoundaryFacetNormals.MajorDim();
 		dArrayT traction_vector(nsd), normal_vector;
 		dSymMatrixT workspace(nsd); 
@@ -766,108 +768,44 @@ void SCNIMFT::RHSDriver(void)
 			}
 
 		// fForce gets multiplied by constKd?
-	}
-	
-	double constMa = 0.0;
-	int formMa = fIntegrator->FormMa(constMa); 
-	ContinuumMaterialT *mat;
-	SolidMaterialT* solid_material = NULL;
-	IsotropicT* iso_material = NULL;
-	int nnd;
-	if (fBodySchedule || formMa)
-	{
-		/* just one material for now */
-		mat = (*fMaterialList)[0];
-		solid_material = TB_DYNAMIC_CAST(SolidMaterialT*, mat);
-		if (!solid_material) ExceptionT::GeneralFail(caller, "cannot get material");
-		nnd = fNodes.Length();
 
-		/* cast to isotropic class */
-		iso_material = TB_DYNAMIC_CAST(IsotropicT*, mat);
+		ElementSupport().AssembleRHS(Group(),fForce,Field().Equations());	
 	}
 
 	/* contribution from body force source */
 	bool body_force_source = false;
-	if (fBodySchedule || body_force_source) {
+	if (body_force_source) {
 
-		/* nodal coordinates */
-		const dArray2DT& initial_coordinates = ElementSupport().InitialCoordinates();
+		/* just one material for now */
+		ContinuumMaterialT *mat = (*fMaterialList)[0];
+		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
+		if (!fCurrMaterial) ExceptionT::GeneralFail(caller, "cannot get material");
 
 		/* work space */	
-		double load_factor = fBodySchedule->Value();
+		int nsd = NumSD();
+		int nnd = fNodes.Length();
 		dArrayT bf_source(nsd);
 		bf_source = 0.0;
 
 		/* compute body force */
-		double *f, *phi_i;
-		int* supp_i, n_supp;
+		fForce = 0.0; /* [nNodes] x [nsd] */
+		double* f = fLHS.Pointer();
 		int* nodes = fNodes.Pointer();
 		double* volume = fCellVolumes.Pointer();
-		double density = solid_material->Density();
-		double twoPi = 2.0*acos(-1.0);
+		double density = fCurrMaterial->Density();
 		for (int i = 0; i < nnd; i++) {
 		
-			bf_source = 0.0;
-		
 			/* compute body force at node i */
-			if (fBodySchedule) bf_source = fBody;
-			
-			//add additional contribution to the body force
-			
-			bf_source *= load_factor*density*(*volume++);
-			if (qIsAxisymmetric) 
-				bf_source *= twoPi*fCellCentroids(i,0);
+			//bf_source = ???
 		
-			supp_i = nodalCellSupports(i);
-			n_supp = nodalCellSupports.MinorDim(i);
-			phi_i = fNodalPhi(i);
-			for (int j = 0; j < n_supp; j++) { 
-				f = fForce(*supp_i++);
-				for (int k = 0; k < nsd; k++) 
-					*f++ -= bf_source[k]*(*phi_i);
-				phi_i++;
-			}
+			for (int j = 0; j < nsd; j++)
+				*f++ = density*(*volume)*bf_source[j];
+			volume++;
 		}	
+
+		/* assemble */
+		ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
 	}
-	
-	if (fIntegrator->FormMa(constMa)) {
-		if (Field().Order() < 2)
-			ExceptionT::GeneralFail(caller,"Field's Order does not have accelerations\n");
-	
-		const dArray2DT& a = Field()(0,2); 
-		double* ma = fForce.Pointer();
-		const double* acc;
-		int* nodes = fNodes.Pointer();
-		double* volume = fCellVolumes.Pointer();
-		double density = solid_material->Density();
-		if (!qIsAxisymmetric) {
-			for (int i = 0; i < nnd; i++)
-			{
-				acc = a(*nodes++);
-				for (int j = 0; j < nsd; j++)
-					*ma++ += density*(*volume)*(*acc++);
-				volume++;
-			}
-		} else {
-			double twoPi = 2.0*acos(-1.0);
-			double w_i;
-			for (int i = 0; i < nnd; i++)
-			{
-				acc = a(*nodes++);
-				w_i = density*(*volume)*twoPi*fCellCentroids(i,0);
-				for (int j = 0; j < nsd; j++)
-					*ma++ += w_i*(*acc++);
-				volume++;
-			}
-		}
-				
-	}
-	
-	if (fTractionVectors.MajorDim() || fBodySchedule || formMa) {
-		/* Assemble */
-		ElementSupport().AssembleRHS(Group(),fForce,Field().Equations());	
-	}
-	
 }
 
 int SCNIMFT::GlobalToLocalNumbering(ArrayT<int>& nodes) const

@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.33 2005-05-28 18:08:44 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.30 2005-04-05 18:25:40 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -18,7 +18,6 @@
 #include "FullMatrixT.h"
 #include "CCNSMatrixT.h"
 #include "SuperLUMatrixT.h"
-#include "SuperLU_MTMatrixT.h"
 #include "SuperLU_DISTMatrixT.h"
 #include "SPOOLESMatrixT.h"
 #include "PSPASESMatrixT.h"
@@ -220,7 +219,6 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	ParameterT check_code(ParameterT::Enumeration, "check_code");
 	check_code.AddEnumeration("no_check", GlobalMatrixT::kNoCheck);
 	check_code.AddEnumeration("small_pivots", GlobalMatrixT::kZeroPivots);
-	check_code.AddEnumeration("all_pivots", GlobalMatrixT::kAllPivots);
 	check_code.AddEnumeration("print_LHS", GlobalMatrixT::kPrintLHS);
 	check_code.AddEnumeration("print_RHS", GlobalMatrixT::kPrintRHS);
 	check_code.AddEnumeration("print_solution", GlobalMatrixT::kPrintSolution);
@@ -264,12 +262,6 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 
 #ifdef __SPOOLES__
 		ParameterContainerT SPOOLES("SPOOLES_matrix");
-		ParameterT message_level(ParameterT::Enumeration, "message_level");
-		message_level.AddEnumeration("silent", 0);
-		message_level.AddEnumeration("timing", 1);
-		message_level.AddEnumeration("verbose", 99);
-		message_level.SetDefault(0);
-		SPOOLES.AddParameter(message_level);
 		ParameterT enable_pivoting(ParameterT::Boolean, "enable_pivoting");
 		enable_pivoting.SetDefault(true);
 		SPOOLES.AddParameter(enable_pivoting);
@@ -295,14 +287,6 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 #ifdef __SUPERLU__
 		choice->AddSub(ParameterContainerT("SuperLU_matrix"));
 #endif	
-
-#ifdef __SUPERLU_MT__
-		ParameterContainerT SuperLU_MT("SuperLU_MT_matrix");
-		ParameterT slu_num_threads(ParameterT::Integer, "num_threads");
-		slu_num_threads.AddLimit(1, LimitT::LowerInclusive);
-		SuperLU_MT.AddParameter(slu_num_threads);
-		choice->AddSub(SuperLU_MT);
-#endif /* __SUPERLU_MT__ */
 
 		return choice;
 	}
@@ -547,14 +531,11 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 
 	/* streams */
 	ofstreamT& out = fFEManager.Output();
-	
-	/* MP support */
-	const CommunicatorT& comm = fFEManager.Communicator();
 
 	/* resolve matrix type */
 	if (params.Name() == "diagonal_matrix")
 	{
-		DiagonalMatrixT* diag = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly, comm);
+		DiagonalMatrixT* diag = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly);
 		diag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
 		fLHS = diag;
 	}
@@ -564,14 +545,14 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 		GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 		
 		if (type == GlobalT::kNonSymmetric)
-			fLHS = new CCNSMatrixT(out, check_code, comm);
+			fLHS = new CCNSMatrixT(out, check_code);
 		else if (type == GlobalT::kSymmetric)
-			fLHS = new CCSMatrixT(out, check_code, comm);
+			fLHS = new CCSMatrixT(out, check_code);
 		else
 			ExceptionT::GeneralFail(caller, "system type %d not compatible with matrix %d", type, kProfileSolver);
 	}
 	else if (params.Name() == "full_matrix")
-		fLHS = new FullMatrixT(out, check_code, comm);
+		fLHS = new FullMatrixT(out, check_code);
 	else if (params.Name() == "SPOOLES_matrix" || params.Name() == "SPOOLES_MT_matrix")
 	{
 #ifdef __SPOOLES__
@@ -579,7 +560,6 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 		GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 
 		/* solver options */
-		int message_level = params.GetParameter("message_level");
 		bool pivoting = params.GetParameter("enable_pivoting");
 		bool always_symmetric = params.GetParameter("always_symmetric");
 		bool symmetric;
@@ -605,7 +585,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 			int num_threads = params.GetParameter("num_threads");
 		
 #ifdef __SPOOLES_MT__
-				fLHS = new SPOOLESMatrixT_MT(out, check_code, symmetric, pivoting, message_level, num_threads, comm);
+				fLHS = new SPOOLESMatrixT_MT(out, check_code, symmetric, pivoting, num_threads);
 #else /* __SPOOLES_MT__ */
 				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
 #endif /* __SPOOLES_MT__ */
@@ -616,16 +596,16 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 			if (fFEManager.Size() > 1)
 			{
 #ifdef __SPOOLES_MPI__
-				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, message_level, comm);
+				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, fFEManager.Communicator());
 #else /* __SPOOLES_MPI__ */
 				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
 #endif /* __SPOOLES_MPI__ */
 			}
 			else /* single processor with MPI-enabled code */
-				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting, message_level, comm);
+				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
 #else /* __TAHOE_MPI__ */
 			/* constuctor */
-			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting, message_level, comm);
+			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
 #endif /* __TAHOE_MPI__ */
 		}
 #else /* __SPOOLES__ */
@@ -649,7 +629,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 				ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
 
 			/* construct */
-			fLHS = new SuperLUMatrixT(out, check_code, symmetric, comm);
+			fLHS = new SuperLUMatrixT(out, check_code, symmetric);
 #else /* no __SUPERLU__ */
 			ExceptionT::GeneralFail(caller, "SuperLU not installed");
 #endif /* __SUPERLU__*/
@@ -658,26 +638,17 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 		{
 #ifdef __SUPERLU_DIST__
 			/* construct */
-			fLHS = new SuperLU_DISTMatrixT(out, check_code, comm);
+			fLHS = new SuperLU_DISTMatrixT(out, check_code, fFEManager.Communicator());
 #else /* no __SUPERLU_DIST__ */
 			ExceptionT::GeneralFail(caller, "SuperLU_DIST not installed");
 #endif /* __SUPERLU_DIST__*/
 		}
 	}
-	else if (params.Name() == "SuperLU_MT_matrix")
-	{
-#ifdef __SUPERLU_MT__
-		int num_threads = params.GetParameter("num_threads");
-		fLHS = new SuperLU_MTMatrixT(out, check_code, num_threads, comm);
-#else
-		ExceptionT::GeneralFail(caller, "SuperLU_MT not installed");
-#endif	
-	}
 	else if (params.Name() == "PSPASES_matrix")
 	{
 #ifdef __PSPASES__
 		/* construct */
-		fLHS = new PSPASESMatrixT(out, check_code, comm);
+		fLHS = new PSPASESMatrixT(out, check_code, fFEManager.Communicator());
 #else
 		ExceptionT::GeneralFail(caller, " PSPASES solver not installed");
 #endif /* __PSPASES__ */
@@ -686,7 +657,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 	{
 #ifdef __AZTEC__
 			/* construct */
-			fLHS = new AztecMatrixT(out, check_code, comm, params);
+			fLHS = new AztecMatrixT(out, check_code, fFEManager.Communicator(), params);
 #else
 			ExceptionT::GeneralFail(caller, "Aztec solver not installed: %d", fMatrixType);
 #endif /* __AZTEC__ */

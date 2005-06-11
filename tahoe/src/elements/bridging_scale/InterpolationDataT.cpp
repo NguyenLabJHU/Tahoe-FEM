@@ -1,18 +1,10 @@
-/* $Id: InterpolationDataT.cpp,v 1.6 2005-04-28 23:54:17 paklein Exp $ */
+/* $Id: InterpolationDataT.cpp,v 1.4 2004-06-26 05:53:19 paklein Exp $ */
 #include "InterpolationDataT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
 using namespace Tahoe;
-
-/* clear all data */
-void InterpolationDataT::Free(void)
-{
-	fMap.Free();
-	fNeighbors.Free();
-	fNeighborWeights.Free();
-}
 
 /* transpose the given interpolation data */
 void InterpolationDataT::Transpose(const InverseMapT& map, const RaggedArray2DT<int>& neighbors,
@@ -61,35 +53,6 @@ void InterpolationDataT::Transpose(const InverseMapT& map, const RaggedArray2DT<
 			dex++;
 		}
 	}	
-}
-
-/* return the interpolation data in {row, column, value} (RCV) format */
-void InterpolationDataT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v) const
-{
-	/* dimensions */
-	int num_values = fNeighborWeights.Length();
-	r.Dimension(num_values);
-	c.Dimension(num_values);
-	v.Dimension(num_values);
-
-	/* global row id's */
-	iArrayT rows;
-	fMap.Forward(rows);
-
-	/* collect values */
-	int index = 0;
-	iArrayT cols;
-	dArrayT vals;
-	for (int i = 0; i < fNeighborWeights.MajorDim(); i++) {
-		fNeighborWeights.RowAlias(i, vals);
-		fNeighbors.RowAlias(i, cols);
-		for (int j = 0; j < vals.Length(); j++) {
-			r[index] = rows[i];
-			c[index] = cols[j];
-			v[index] = vals[j];
-			index++;
-		}
-	}
 }
 
 /* transpose the given interpolation data */

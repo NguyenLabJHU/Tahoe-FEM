@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.14 2005-04-28 23:57:15 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.11 2005-03-11 20:41:46 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -163,9 +163,9 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 
 	/* works space that changes for each bond family */
 #ifdef __SPOOLES__
-	SPOOLESMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, true, true, 0, fComm);
+	SPOOLESMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, true, true);
 #else
-	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, fComm);
+	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots);
 #endif	
 
 	dArray2DT p_i, dp_i, df_dp_i;
@@ -245,10 +245,8 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 			tmp++;
 			fMainOut << tmp.wrap(5) << endl;
 			tmp--;
-		} 
-		else if (fLogging != GlobalT::kSilent)
-			fMainOut << i+1 << '/' << bonds.MajorDim() << ": " << ghost_neighbors_i.Length() << " bonds\n";
-
+		}
+		
 		/* collect list of cells not containing any active bonds */
 		BondFreeElements(ghost_neighbors_i, bondfree_cell_i);
 

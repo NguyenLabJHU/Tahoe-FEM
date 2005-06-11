@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.38 2005-04-28 23:57:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.35 2005-04-08 16:41:55 d-farrell2 Exp $ */
  
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
@@ -454,39 +454,6 @@ void FEManagerT_bridging::InitInterpolation(const StringT& field, const iArrayT&
 
 	/* compute interpolation data */
 	BridgingScale().InitInterpolation(nodes, &coordinates, NULL, fFollowerCellData);
-
-	/* output interpolation matrix */
-	if (fLogging == GlobalT::kVerbose)
-	{
-		/* interpolation data */
-		iArrayT r, c;
-		dArrayT v;
-		fFollowerCellData.InterpolationDataToMatrix(r, c, v);
-		
-		/* output stream */
-		StringT file;
-		ofstreamT out;
-		out.precision(12);
-		
-		/* write interpolation matrix */
-		file.Root(fInputFile);
-		file.Append(".N_hatQ_U.rcv");
-		out.open(file);
-		for (int i = 0; i < r.Length(); i++)
-			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
-		out.close();
-
-		/* interpolation points */
-		iArrayT tmp;
-		tmp.Alias(nodes);
-		file.Root(fInputFile);
-		file.Append(".hatQ");
-		out.open(file);
-		tmp++;
-		out << tmp.wrap_tight(5);
-		tmp--;
-		out.close();
-	}
 }
 
 /* field interpolations */
@@ -676,7 +643,7 @@ void FEManagerT_bridging::MultNTf(const InterpolationDataT& N, const dArray2DT& 
 
 /* initialize data for the driving field */
 void FEManagerT_bridging::InitProjection(const StringT& field, CommManagerT& comm, const iArrayT& nodes, 
-	NodeManagerT& node_manager, bool make_inactive, bool node_to_node)
+	NodeManagerT& node_manager, bool make_inactive)
 {
 	const char caller[] = "FEManagerT_bridging::InitProjection";
 	fMainOut << "\n Number of projection points . . . . . . . . . . = " << nodes.Length() << '\n';
@@ -684,69 +651,6 @@ void FEManagerT_bridging::InitProjection(const StringT& field, CommManagerT& com
 	/* initialize the projection (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
 	BridgingScale().InitProjection(comm, nodes, &init_coords, NULL, fDrivenCellData);
-
-	/* clear node-to-node data */
-	if (!node_to_node) fDrivenCellData.NodeToNode().Free();
-
-	/* output matricies used for the projection */
-	if (fLogging == GlobalT::kVerbose)
-	{
-		/* output stream */
-		StringT file;
-		ofstreamT out;
-		out.precision(12);
-
-		/* interpolation data */
-		iArrayT r, c;
-		dArrayT v;
-
-		/* N_Q_U */		
-		fDrivenCellData.InterpolationDataToMatrix(r, c, v);
-		file.Root(fInputFile);
-		file.Append(".N_Q_U.rcv");
-		out.open(file);
-		for (int i = 0; i < r.Length(); i++)
-			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
-		out.close();
-		
-		/* B_hatU_Q */
-		fDrivenCellData.PointToNode().GenerateRCV(r, c, v);
-		file.Root(fInputFile);
-		file.Append(".B_hatU_Q.rcv");
-		out.open(file);
-		for (int i = 0; i < r.Length(); i++)
-			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
-		out.close();
-
-		/* B_barQ_Q */
-		fDrivenCellData.PointToPoint().GenerateRCV(r, c, v);
-		file.Root(fInputFile);
-		file.Append(".B_barQ_Q.rcv");
-		out.open(file);
-		for (int i = 0; i < r.Length(); i++)
-			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
-		out.close();
-
-		/* B_hatU_U */
-		fDrivenCellData.NodeToNode().GenerateRCV(r, c, v);
-		file.Root(fInputFile);
-		file.Append(".B_hatU_U.rcv");
-		out.open(file);
-		for (int i = 0; i < r.Length(); i++)
-			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
-		out.close();
-
-		/* prescribed nodes */
-		iArrayT tmp;
-		fDrivenCellData.PointToNode().Map().Forward(tmp);
-		file.Root(fInputFile);
-		file.Append(".hatU");
-		out.open(file);
-		tmp++;
-		out << tmp.wrap_tight(5);
-		tmp--;
-		out.close();		
-	}
 
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
@@ -1060,36 +964,6 @@ void FEManagerT_bridging::SetExternalEmbedForce(const dArray2DT& embforce, const
 	EAM().SetExternalEmbedForce(embforce, ghostatoms);
 }
 
-/* the bridging scale element group */
-BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
-{
-	/* find bridging scale group */
-	if (!fBridgingScale) {
-	
-		/* search through element groups */
-		for (int i = 0; !fBridgingScale && i < fElementGroups->Length(); i++)
-		{
-			/* try cast */
-			ElementBaseT* element_base = (*fElementGroups)[i];
-			
-			/* need non-const pointer to this */
-			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
-#ifndef __NO_RTTI__
-			fe->fBridgingScale = dynamic_cast<BridgingScaleT*>(element_base);
-#else
-			fe->fBridgingScale = element_base->dynamic_cast_BridgingScaleT();
-#endif
-		}
-		
-		/* not found */
-		if (!fBridgingScale)
-			ExceptionT::GeneralFail("FEManagerT_bridging::BridgingScale",
-				"did not find BridgingScaleT element group");
-	}
-	
-	return *fBridgingScale;
-}
-
 /*************************************************************************
  * Protected
  *************************************************************************/
@@ -1240,6 +1114,36 @@ const ParticlePairT* FEManagerT_bridging::ParticlePair(int instance) const
 /*************************************************************************
  * Private
  *************************************************************************/
+
+/* the bridging scale element group */
+BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
+{
+	/* find bridging scale group */
+	if (!fBridgingScale) {
+	
+		/* search through element groups */
+		for (int i = 0; !fBridgingScale && i < fElementGroups->Length(); i++)
+		{
+			/* try cast */
+			ElementBaseT* element_base = (*fElementGroups)[i];
+			
+			/* need non-const pointer to this */
+			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
+#ifndef __NO_RTTI__
+			fe->fBridgingScale = dynamic_cast<BridgingScaleT*>(element_base);
+#else
+			fe->fBridgingScale = element_base->dynamic_cast_BridgingScaleT();
+#endif
+		}
+		
+		/* not found */
+		if (!fBridgingScale)
+			ExceptionT::GeneralFail("FEManagerT_bridging::BridgingScale",
+				"did not find BridgingScaleT element group");
+	}
+	
+	return *fBridgingScale;
+}
 
 /* the EAMT element group */
 EAMT& FEManagerT_bridging::EAM(void) const

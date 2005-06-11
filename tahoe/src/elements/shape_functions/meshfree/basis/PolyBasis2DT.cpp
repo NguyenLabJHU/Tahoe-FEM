@@ -1,18 +1,20 @@
-/* $Id: PolyBasis2DT.cpp,v 1.8 2005-04-22 00:33:40 paklein Exp $ */
-/* created: paklein (12/13/1999) */
+/* $Id: PolyBasis2DT.cpp,v 1.7 2004-11-03 16:09:48 raregue Exp $ */
+/* created: paklein (12/13/1999)                                          */
+
 #include "PolyBasis2DT.h"
+
+/* constructor */
 
 using namespace Tahoe;
 
-/* constructor */
-PolyBasis2DT::PolyBasis2DT(int complete, bool cross_terms):
-	BasisT(complete, 2),
-	fCrossTerms(cross_terms)
+PolyBasis2DT::PolyBasis2DT(int complete):
+	BasisT(complete, 2)
 {
-	/* check */
 	if (fComplete < 0 || fComplete > 1)
-		ExceptionT::OutOfRange("PolyBasis2DT::PolyBasis2DT",
-			"completeness must be [0,1]: %d", complete);
+	{
+		cout << "\n PolyBasis2DT::PolyBasis2DT: completeness must be [0,1]" << endl;
+		throw ExceptionT::kBadInputValue;	
+	}
 }
 	
 /* return the number of basis functions */
@@ -23,22 +25,13 @@ int PolyBasis2DT::BasisDimension(void) const
 		case 0:			
 			return 1;
 		case 1:
-			if (!fCrossTerms)
-				return 3;
-			else
-				return 4;
+			return 3;
 		case 2:
-			if (!fCrossTerms)
-				return 6;
-			else
-				return 9;
+			return 6;
 		case 3:
-			if (!fCrossTerms)
-				return 10;
-			else
-				return 16;
+			return 10;
 		default:
-			ExceptionT::OutOfRange("PolyBasis2DT::BasisDimension");
+			throw ExceptionT::kOutOfRange;
 	}
 	
 	return 0;
@@ -49,9 +42,8 @@ void PolyBasis2DT::SetBasis(const dArray2DT& coords, int order)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
-	const char caller[] = "PolyBasis2DT::SetBasis";
-	if (coords.MinorDim() != fNumSD) ExceptionT::GeneralFail(caller);
-	if (order > 3) ExceptionT::OutOfRange(caller); //kyonten (order increase to 3)
+	if (coords.MinorDim() != fNumSD) throw ExceptionT::kGeneralFail;
+	if (order > 3) throw ExceptionT::kOutOfRange; //kyonten (order increase to 3)
 #endif
 
 	/* dimensions */
@@ -91,33 +83,19 @@ void PolyBasis2DT::SetBasis(const dArray2DT& coords, int order)
 			double*  pP0 = fP(0);
 			double*  pP1 = fP(1);
 			double*  pP2 = fP(2);
-			double*  pP3 = NULL;
 			
 			double* pD0P0 = (fDP[0])(0);
 			double* pD0P1 = (fDP[0])(1);
 			double* pD0P2 = (fDP[0])(2);
-			double* pD0P3 = NULL;
 
 			double* pD1P0 = (fDP[1])(0);
 			double* pD1P1 = (fDP[1])(1);
 			double* pD1P2 = (fDP[1])(2);
-			double* pD1P3 = NULL;
-
-			if (fCrossTerms) {
-				pP3   = (fCrossTerms) ?       fP(3) : NULL;
-				pD0P3 = (fCrossTerms) ? (fDP[0])(3) : NULL;
-				pD1P3 = (fCrossTerms) ? (fDP[1])(3) : NULL;
-			}
-
 			for (int i = 0; i < nnd; i++)
 			{
-				double x = *px++;
-				double y = *px++;
-			
 				*pP0++ = 1.0;
-				*pP1++ = x;
-				*pP2++ = y;
-				if (fCrossTerms) *pP3++ = x*y;
+				*pP1++ = *px++;
+				*pP2++ = *px++;
 				
 				if (order > 0)
 				{
@@ -128,31 +106,22 @@ void PolyBasis2DT::SetBasis(const dArray2DT& coords, int order)
 					*pD1P0++ = 0.0;
 					*pD1P1++ = 0.0;
 					*pD1P2++ = 1.0;
-					
-					if (fCrossTerms) {
-						*pD0P3++ = y;
-						*pD1P3++ = x;
-					}
-
-					if (order > 1)
-					{
-						fDDP[0] = 0.0;
-						fDDP[1] = 0.0;
-						fDDP[2] = 0.0;
-						
-						if (fCrossTerms)
-							(fDDP[2])(3,i) = 1.0;
-						
-						if (order > 2)
-						{
-							fDDDP[0] = 0.0;
-							fDDDP[1] = 0.0;
-							fDDDP[2] = 0.0;
-							fDDDP[3] = 0.0;
-						}
-					}
 				}
-			}			
+			}
+			
+			if (order > 1)
+			{
+				fDDP[0] = 0.0;
+				fDDP[1] = 0.0;
+				fDDP[2] = 0.0;
+			}
+			if (order > 2) // kyonten
+			{
+				fDDDP[0] = 0.0;
+				fDDDP[1] = 0.0;
+				fDDDP[2] = 0.0;
+				fDDDP[3] = 0.0;
+			}
 			break;
 		}
 	}

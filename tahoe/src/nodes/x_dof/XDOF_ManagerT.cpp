@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.15 2005-04-12 15:33:30 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.14 2004-07-15 08:31:27 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -117,8 +117,6 @@ void XDOF_ManagerT::ResetState(int group)
 /* prompt element groups to reset tags */
 GlobalT::RelaxCodeT XDOF_ManagerT::ResetTags(int group)
 {
-	const char caller[] = "XDOF_ManagerT::ResetTags";
-
 	if (fDOFElements.Length() > 0)
 	{
 		/* query (all) groups to reconfigure */
@@ -131,34 +129,11 @@ GlobalT::RelaxCodeT XDOF_ManagerT::ResetTags(int group)
 			    fDOFElements[j]->Reconfigure() == 1)
 				relax = 1;
 
-		/* check */
-		if (fStartTag == -1)
-			ExceptionT::GeneralFail(caller, "start tag has not been set: %d", fStartTag);
-	
-		/* reset */
-		fNumTags = fStartTag;
-	
-		/* loop over DOF element groups */
-		for (int i = 0; i < fDOFElements.Length(); i++)
-			if (fDOFElements[i]->Group() == group)
-			{
-				/* reset contact configs */
-				if (relax) ConfigureElementGroup(i, fNumTags);
-
-				/* restore values */
-				/* loop over tag sets */
-				for (int j = 0; j < fNumTagSets[i]; j++)
-					fDOFElements[i]->ResetDOF(*fXDOFs[index++], j);
-			}
-			
-		/* signal equation need to be reset */
-		return (relax) ? GlobalT::kReEQ : GlobalT::kNoRelax;
-
 		if (relax)
 		{
 			/* check */
 			if (fStartTag == -1)
-				ExceptionT::GeneralFail(caller, "start tag has not been set: %d", fStartTag);
+				ExceptionT::GeneralFail("XDOF_ManagerT::ResetTags", "start tag has not been set: %d", fStartTag);
 		
 			/* reset */
 			fNumTags = fStartTag;

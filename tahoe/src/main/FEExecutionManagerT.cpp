@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.80 2005-05-25 00:32:48 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.77 2005-04-06 15:43:39 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -56,6 +56,7 @@
 #include "FieldT.h"
 #include "IntegratorT.h"
 #include "ElementBaseT.h"
+#include "EAMFCC3D.h"
 #endif /* BRIDGING_ELEMENT */
 
 using namespace Tahoe;
@@ -454,10 +455,8 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 			const PartitionT* partition = tahoe->Partition();
 		
 			/* external IO */
-			bool do_split_io = CommandLineOption("-split_io");
-			PartitionT::DecompTypeT decomp = (partition) ? partition->DecompType() : PartitionT::kUndefined;
 			token = 1;
-			if (decomp == PartitionT::kGraph && !do_split_io)
+			if (partition && partition->DecompType() == PartitionT::kGraph && !CommandLineOption("-split_io"))
 			{
 				try {
 
@@ -480,8 +479,6 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 				    	   << " setting the external IO" << endl;
 				}
 			}
-			else if (!do_split_io)
-				status << "\n " << caller << ": decomposition method only supports -split_io" << endl;
 		}
 		if (fComm.Sum(token) != size && size > 1)
 		{
@@ -713,8 +710,6 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 		/* name translation */
 		model_file.ToNativePathName();      
 		model_file.Prepend(path);
-		if (format == IOBaseT::kAutomatic)
-			format = IOBaseT::name_to_FileTypeT(model_file);
 
 		/* more parameters for spatial decomposition */
 		if (decomp_method.Name() == "spatial_decomposition")
@@ -797,22 +792,13 @@ void FEExecutionManagerT::RunJoin_serial(const StringT& input_file, ostream& sta
 		i_format = valid_list.GetParameter("output_format");
 		IOBaseT::FileTypeT results_format = IOBaseT::int_to_FileTypeT(i_format);
 		StringT model_file = valid_list.GetParameter("geometry_file");
+		if (results_format == IOBaseT::kTahoe ||
+		    results_format == IOBaseT::kTahoeII)
+			results_format = IOBaseT::kTahoeResults;
 
 		/* name translation */
 		model_file.ToNativePathName();      
 		model_file.Prepend(path);
-
-		/* resolve file types */
-		if (model_format == IOBaseT::kAutomatic)
-			model_format = IOBaseT::name_to_FileTypeT(model_file);
-
-		if (results_format == IOBaseT::kAutomatic && model_format == IOBaseT::kExodusII)
-			results_format = IOBaseT::kExodusII;
-		else if (
-			results_format == IOBaseT::kTahoe ||
-			results_format == IOBaseT::kTahoeII || 
-			results_format == IOBaseT::kAutomatic)
-		results_format = IOBaseT::kTahoeResults;
 
 		int index;
 		if (CommandLineOption("-join", index) && fCommandLineOptions.Length() > index+1) {

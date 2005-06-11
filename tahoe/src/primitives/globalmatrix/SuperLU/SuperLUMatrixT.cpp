@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.9 2005-06-08 17:24:31 jwfoulk Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.4 2005-02-25 15:41:41 paklein Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -23,8 +23,8 @@
 using namespace Tahoe;
 
 /* constructor */
-SuperLUMatrixT::SuperLUMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
+SuperLUMatrixT::SuperLUMatrixT(ostream& out, int check_code, bool symmetric):
+	GlobalMatrixT(out, check_code),
 	fIsSymFactorized(false),
 	fIsNumFactorized(false)
 {
@@ -100,17 +100,12 @@ SuperLUMatrixT::~SuperLUMatrixT(void)
 {
 	/* free the matrix */
 	Destroy_CompCol_Matrix(&fA);
-        Destroy_Dense_Matrix(&fX);
-        free(fB.Store);
 
 	/* free upper and lower factors */
-        /*                                                 */
-        /* Always destroying L & U to prevent memory leaks */
-        /*                                                 */
-/*	if (fIsNumFactorized) { */
+	if (fIsNumFactorized) {
 		Destroy_SuperNode_Matrix(&fL);
 		Destroy_CompCol_Matrix(&fU);
-/*	} */
+	}
 }
 
 /* set the internal matrix structure.
@@ -133,7 +128,6 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	/* solution vector */
 	fX.nrow = fLocNumEQ;
-
 	DNformat* XStore = (DNformat*) fX.Store;
 	XStore->lda = fLocNumEQ;
 	free(XStore->nzval);
@@ -339,9 +333,7 @@ SuperLUMatrixT& SuperLUMatrixT::operator=(const SuperLUMatrixT&)
 
 /* return a clone of self */
 GlobalMatrixT* SuperLUMatrixT::Clone(void) const {
-
-	ExceptionT::GeneralFail("SuperLUMatrixT::operator=", "not implemented");
-	return NULL;
+	return new SuperLUMatrixT(*this);
 }
 
 /***********************************************************************
@@ -380,7 +372,6 @@ void SuperLUMatrixT::BackSubstitute(dArrayT& result)
 	double rcond;
 	double ferr;
 	double berr;
-
 	dgssvx(&foptions, &fA, fperm_c.Pointer(), fperm_r.Pointer(), fetree.Pointer(), &fequed,
 		fR.Pointer(), fC.Pointer(), &fL, &fU, work, lwork,
 		&fB, &fX, &recip_pivot_growth, &rcond, &ferr, &berr, &mem_usage, &stat, &info);

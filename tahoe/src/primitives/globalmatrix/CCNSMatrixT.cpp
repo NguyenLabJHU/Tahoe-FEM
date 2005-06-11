@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.28 2005-05-08 15:33:38 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.25 2005-02-25 15:41:34 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -14,15 +14,12 @@
 #include "iArray2DT.h"
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
-#include "StringT.h"
-#include "ofstreamT.h"
-#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
+CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code):
+	GlobalMatrixT(out, check_code),
 	famax(NULL),
 	fNumberOfTerms(0),
 	fMatrix(NULL),
@@ -516,26 +513,11 @@ void CCNSMatrixT::PrintAllPivots(void) const
 
 void CCNSMatrixT::PrintLHS(bool force) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
-
-	/* output stream */
-	StringT file = fstreamT::Root();
-	file.Append("CCNSMatrixT.LHS.", sOutputCount);
-	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());	
-	ofstreamT out(file);
-	out.precision(14);
-
-	/* write non-zero values in RCV format */
-	for (int r = 0; r < fLocNumEQ; r++)
-		for (int c = 0; c < fLocNumEQ; c++)
-		{
-			double value = Element(r,c);
-			if (value != 0.0)
-				out << r+1 << " " << c+1 << " " << value << '\n';
-		}
-
-	/* increment count */
-	sOutputCount++;
+	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS)
+		return;
+		
+	fOut << "\nLHS matrix:\n\n";
+	fOut << (*this) << "\n\n";
 }
 
 /* test if {row,col} is within the skyline */
@@ -613,6 +595,7 @@ double& CCNSMatrixT::operator()(int row, int col) const
 void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwidth)
 {
 	/* clear diags/columns heights */
+	fNumberOfTerms = 0;
 	for (int i = 0; i < fLocNumEQ; i++)
 		famax[i] = 0;
 		
@@ -628,7 +611,6 @@ void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwi
 		SetSkylineHeights(*prageq);		
 
 	/* skyline indices */
-	num_nonzero = 0;
 	mean_bandwidth = 0;
 	bandwidth = 0;
 	famax[0]  = 0; //first equation has no elements in fKU or fKS
@@ -652,11 +634,6 @@ void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwi
 		/* final dimensions */
 		mean_bandwidth = int(ceil(double(num_nonzero)/fLocNumEQ));
 		bandwidth += 1;
-	}
-	else if (fLocNumEQ == 1) {
-		num_nonzero = 1;
-		mean_bandwidth = 1;
-		bandwidth = 1;
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.76 2005-05-10 19:34:12 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.73 2005-03-17 21:23:11 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -13,7 +13,6 @@
 #include "iAutoArrayT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
-#include "OutputSetT.h"
 
 /* materials */
 #include "SolidMaterialT.h"
@@ -404,11 +403,6 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ContinuumElementT::TakeParameterList(list);
 
-	/* check order of the time integrator */
-	int order = fIntegrator->Order();
-	if (order != 0 && order != 2)
-		ExceptionT::GeneralFail(caller, "expecting time integrator order 0 or 2 not %d", order);
-
 	/* resolve mass type */
 	if (fMassType == kAutomaticMass) {
 		if (fIntegrator->ImplicitExplicit() == IntegratorT::kImplicit)
@@ -538,7 +532,7 @@ double SolidElementT::MaxEigenvalue(void)
 		ExceptionT::GeneralFail("SolidElementT::MaxEigenvalue", "mass matrix must be lumped");
 
 	/* set up K */
-	CCSMatrixT K(ElementSupport().Output(), CCSMatrixT::kNoCheck, ElementSupport().Communicator());
+	CCSMatrixT K(ElementSupport().Output(), CCSMatrixT::kNoCheck);
 	
 	/* collection equation numbers */
 	AutoArrayT<const iArray2DT*> eq_1;
@@ -1656,10 +1650,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		}
 
 	/* get nodally averaged values */
-	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
-	const iArrayT& nodes_used = output_set.NodesUsed();
-	dArray2DT extrap_values(nodes_used.Length(), n_extrap);
-	extrap_values.RowCollect(nodes_used, ElementSupport().OutputAverage());
+	dArray2DT extrap_values;
+	ElementSupport().OutputUsedAverage(extrap_values);
 
 	int tmpDim = extrap_values.MajorDim();
 	n_values.Dimension(tmpDim,n_out);
@@ -1667,11 +1659,11 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	if (qUseSimo)
 	{        
 		int rowNum = 0;
-//		iArrayT nodes_used(tmpDim);
+		iArrayT nodes_used(tmpDim);
 		dArray2DT tmp_simo(tmpDim, n_simo);
 		for (int i = 0; i < simo_force.MajorDim(); i++)
 			if (simo_counts[i] > 0) {
-//				nodes_used[rowNum] = i;
+				nodes_used[rowNum] = i;
 				simo_force.ScaleRow(i, 1./simo_mass(i,0));
 				tmp_simo.SetRow(rowNum, simo_force(i));
 				rowNum++;

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.95 2005-05-26 20:08:36 cfoster Exp $ */
+/* $Id: FEManagerT.cpp,v 1.91 2005-03-12 08:41:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -496,15 +496,15 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 	if (fTimeManager->WriteOutput())
 		WriteOutput(Time());
 
-	/* elements */
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		(*fElementGroups)[i]->CloseStep();
-
 	/* nodes - loop over all groups */
 	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
 	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
 		fNodeManager->CloseStep(fCurrentGroup);
 	fCurrentGroup = -1;
+
+	/* elements */
+	for (int i = 0 ; i < fElementGroups->Length(); i++)
+		(*fElementGroups)[i]->CloseStep();
 
 	/* write restart file */
 	WriteRestart();
@@ -1205,12 +1205,11 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 
 	/* geometry file format */
 	ParameterT geometry_format(ParameterT::Enumeration, "geometry_format");
-	geometry_format.AddEnumeration("automatic", IOBaseT::kAutomatic);
 	geometry_format.AddEnumeration("TahoeII", IOBaseT::kTahoeII);
 #ifdef __ACCESS__ 
 	geometry_format.AddEnumeration("ExodusII", IOBaseT::kExodusII);
 #endif
-	geometry_format.SetDefault(IOBaseT::kAutomatic);
+	geometry_format.SetDefault(IOBaseT::kTahoeII);
 	list.AddParameter(geometry_format);
 
 	/* geometry file */
@@ -1218,14 +1217,13 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 
 	/* output format */
 	ParameterT output_format(ParameterT::Enumeration, "output_format");
-	output_format.AddEnumeration("automatic", IOBaseT::kAutomatic);
 	output_format.AddEnumeration("Tahoe", IOBaseT::kTahoe);
 	output_format.AddEnumeration("TecPlot", IOBaseT::kTecPlot);
 	output_format.AddEnumeration("EnSight", IOBaseT::kEnSight);
 #ifdef __ACCESS__ 
 	output_format.AddEnumeration("ExodusII", IOBaseT::kExodusII);
 #endif
-	output_format.SetDefault(IOBaseT::kAutomatic);
+	output_format.SetDefault(IOBaseT::kTahoe);
 	list.AddParameter(output_format);
 
 	/* restart file name */
@@ -1267,10 +1265,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
-	/* title */
-	const ParameterT* title = list.Parameter("title");
-	if (title) fTitle = *title;
-
 	/* path to parameters file */
 	StringT path;
 	path.FilePath(fInputFile);
@@ -1283,8 +1277,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue(caller, "\"geometry_file\" is empty");
 	database.ToNativePathName();      
 	database.Prepend(path);
-	if (format == IOBaseT::kAutomatic)
-		format = IOBaseT::name_to_FileTypeT(database);
 
 	/* multiprocessor calculation */
 	if (Size() > 1) {
@@ -1401,12 +1393,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 
 	/* output format */
 	fOutputFormat = IOBaseT::int_to_FileTypeT(list.GetParameter("output_format"));
-	if (fOutputFormat == IOBaseT::kAutomatic) {
-		if (format == IOBaseT::kExodusII)
-			fOutputFormat = IOBaseT::kExodusII;
-		else
-			fOutputFormat = IOBaseT::kTahoe;
-	}
 	
 	/* restart files */
 	const ParameterT* restart_file = list.Parameter("restart_file");
@@ -2051,9 +2037,9 @@ void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 
 			/* renumber equations */
 			try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
-			catch (ExceptionT::CodeT exc) {
+			catch (ExceptionT::CodeT exception) {
 				cout << "\n FEManagerT::SetEquationSystem: could not renumber equations: exception: " 
-				     << exc << endl;
+				     << exception << endl;
 			}
 		}
 		else /* renumbering does not support multiple fields in the same group

@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.cpp,v 1.13 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.12 2005-02-25 15:41:34 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 #include "SLUMatrix.h"
 
@@ -28,8 +28,8 @@
 using namespace Tahoe;
 
 /* constructor */
-SLUMatrix::SLUMatrix(ostream& out, int check_code, const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
+SLUMatrix::SLUMatrix(ostream& out, int check_code):
+	GlobalMatrixT(out, check_code),
 	fperm_c(NULL),
 	fperm_r(NULL),
 	fetree(NULL)

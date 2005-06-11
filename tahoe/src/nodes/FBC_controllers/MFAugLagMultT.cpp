@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.9 2005-04-14 00:35:32 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.6 2004-11-18 16:36:40 paklein Exp $ */
 #include "MFAugLagMultT.h"
 
 #ifdef CONTINUUM_ELEMENT
@@ -24,7 +24,16 @@ using namespace Tahoe;
 const int kMFAugLagDOF = 1;
 
 /* constructor */
+//MFAugLagMultT::MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
+//	const FieldT& field, const dArray2DT& coords, const dArray2DT& disp):
+//	FBC_ControllerT(fe_manager, field.Group()),
 MFAugLagMultT::MFAugLagMultT(void):
+
+	/* references to NodeManagerT data */
+//	rEqnos(field.Equations()),
+//	rDisp(disp),
+//	fXDOF_Nodes(XDOF_nodes),
+//	fField(field),
 
 	fNumConstrainedDOFs(0),
 	
@@ -74,8 +83,8 @@ void MFAugLagMultT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	/* collect displacement DOF's */
 	iArrayT dofs(fNumConstrainedDOFs);
 	
-	fConstraintEqnos.Dimension(2*(fNumEqs+fNumConstrainedDOFs));
-	fConstraintEqnos2D.Set(fNumEqs+fNumConstrainedDOFs, 2, fConstraintEqnos.Pointer());
+	fConstraintEqnos.Dimension(2*fNumEqs);
+	fConstraintEqnos2D.Set(fNumEqs, 2, fConstraintEqnos.Pointer());
 	
 	fEqNos.Configure(fSupportSizes, 1);
 	
@@ -94,15 +103,12 @@ void MFAugLagMultT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	int* iptr = fConstraintEqnos.Pointer();
 	ctr = 0;
 	for (int i = 0; i < fNodeSets.MajorDim(); i++) {
+		int* rowptr = fEqNos(i);
 		for (int j = 0; j < fNodeSets.MinorDim(i); j++) {
-			int* rowptr = fEqNos(ctr);
 			for (int k = 0; k < fSupportSizes[ctr]; k++) { 	
 				*iptr++ = *rowptr++;
 				*iptr++ = *lagMultEqs;
 			}
-		// try explicitly telling the solver about the XDOF diagonal entries
-		*iptr++ = *lagMultEqs;
-		*iptr++ = *lagMultEqs;
 		ctr++;
 		lagMultEqs++;
 		}
@@ -197,6 +203,7 @@ void MFAugLagMultT::ApplyRHS(void)
 		eqNos.Set(fSupportSizes[i], fEqNos(i));
 		field_support.AssembleRHS(fGroup, fRHS, eqNos);
 	}
+	
 }
 
 /* tangent term */
@@ -304,7 +311,8 @@ void MFAugLagMultT::RegisterOutput(void)
 
 void MFAugLagMultT::WriteOutput(ostream& out) const
 {
-#pragma unused(out)
+	out << "\n M F  A u g  L a g  M u l t   D a t a :\n\n";
+	
 	const FieldT& field = Field();
 	int ndof = field.NumDOF();
 	int num_output = 2*ndof;

@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.29 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.27 2005-02-25 15:41:34 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -16,15 +16,12 @@
 #include "iArray2DT.h"
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
-#include "StringT.h"
-#include "ofstreamT.h"
-#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-CCSMatrixT::CCSMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
+CCSMatrixT::CCSMatrixT(ostream& out, int check_code):
+	GlobalMatrixT(out, check_code),
 	fDiags(NULL),
 	fNumberOfTerms(0),
 	fMatrix(NULL),
@@ -775,28 +772,19 @@ void CCSMatrixT::PrintAllPivots(void) const
 void CCSMatrixT::PrintLHS(bool force) const
 {
 	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
-
-	/* output stream */
-	StringT file = fstreamT::Root();
-	file.Append("CCSMatrixT.LHS.", sOutputCount);
-	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());	
-	ofstreamT out(file);
-	out.precision(14);
-
-	/* write non-zero values in RCV format */
-	for (int r = 0; r < fLocNumEQ; r++)
-		for (int c = r; c < fLocNumEQ; c++)
-		{
-			double value = (*this)(r,c);
-			if (value != 0.0) {
-				out << r+1 << " " << c+1 << " " << value << '\n';
-				if (r != c) out << c+1 << " " << r+1 << " " << value << '\n';
-			}
-		}
-
-	/* increment count */
-	sOutputCount++;
+	
+	fOut << "\nLHS matrix:\n\n";
+	fOut << (*this) << "\n\n";
+	
+//TEMP - write to Aztec format	
+//cout << "\n Writing Aztec output file: .data" << endl;
+//ofstream az_out(".data");
+//az_out.setf(ios::showpoint);
+//az_out.setf(ios::right, ios::adjustfield);
+//az_out.setf(ios::scientific, ios::floatfield);
+//WriteAztecFormat(az_out);
 }
+
 
 /* matrix-vector product */
 void CCSMatrixT::Multx(const dArrayT& d, dArrayT& Kd) const

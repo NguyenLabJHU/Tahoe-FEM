@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.29 2005-05-24 22:12:13 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.28 2005-02-04 22:03:55 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -354,6 +354,9 @@ protected:
 
 	/** ID for the field exchange obtained from NodeManagerT::fCommManager */
 	iArrayT fMessageID;
+	
+	/** ID for the Current Coordinate Exchange */
+	int fMessageCurrCoordsID;
 	/*@}*/
 
 	/** \name history nodes information */
@@ -372,12 +375,10 @@ protected:
 	iArray2DT fHistoryOutputID;
 	/*@}*/
 	
-	/** \name section of field update by this processor */
-	/*@{*/
-	int fCoordUpdateIndex;
-	iArrayT fFieldStart;
-	iArrayT fFieldEnd;
-	/*@}*/
+	// some more information, needed for the index decomposition
+	int fCommSize;
+	int fDecomp_Type; // this will be the integer, have to check it against PartitionT::kInex
+	int fPartFieldStart, fPartFieldEnd ;
 	
 private:
 

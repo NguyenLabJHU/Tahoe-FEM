@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT_factory.cpp,v 1.3 2005-05-25 08:28:59 paklein Exp $ */
+/* $Id: SurfacePotentialT_factory.cpp,v 1.2 2004-07-15 08:26:02 paklein Exp $ */
 #include "SurfacePotentialT.h"
 
 #include "XuNeedleman2DT.h"
@@ -10,7 +10,6 @@
 #include "RateDep2DT.h"
 #include "YoonAllen2DT.h"
 #include "YoonAllen3DT.h"
-#include "SIMOD_2DT.h"
 
 #include <string.h>
 
@@ -37,12 +36,6 @@ SurfacePotentialT* SurfacePotentialT::New(const char* name)
 		return new YoonAllen2DT;
 	else if (strcmp(name, "Yoon-Allen_3D") == 0)
 		return new YoonAllen3DT;
-
-#ifdef __SIMOD__
-	else if (strcmp(name, "SIMOD_2D") == 0)
-		return new SIMOD_2DT;
-#endif
-
 	else
 		return NULL;
 }

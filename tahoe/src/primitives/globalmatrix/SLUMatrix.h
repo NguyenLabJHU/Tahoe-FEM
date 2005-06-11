@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.h,v 1.14 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: SLUMatrix.h,v 1.13 2005-02-25 15:41:34 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 #ifndef _SLU_MATRIX_H_
 #define _SLU_MATRIX_H_
@@ -29,7 +29,7 @@ class SLUMatrix: public GlobalMatrixT
 public:
 
 	/** constructor */
-	SLUMatrix(ostream& out, int check_code, const CommunicatorT& comm);
+	SLUMatrix(ostream& out, int check_code);
 
 	/** destructor */
 	~SLUMatrix(void);

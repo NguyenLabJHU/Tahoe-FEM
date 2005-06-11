@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.h,v 1.7 2005-04-13 17:10:20 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.5 2004-11-18 16:36:40 paklein Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
 
@@ -29,7 +29,8 @@ class FieldT;
 class StringT;
 class SCNIMFT;
 
-/** augmented Lagrangian enforcement of KBC's */
+/** rigid barrier with augmented Lagrangian enforcement of
+ * non-interpenetration */
 class MFAugLagMultT: public FBC_ControllerT, public DOFElementT
 {
 public:
@@ -101,7 +102,7 @@ public:
 	virtual int Reconfigure(void);
 
 	/** restore any state data to the previous converged state */
-	virtual void ResetState(void) {};
+	virtual void ResetState(void) { };
 
 	/** return the equation group to which the generate degrees of
 	 * freedom belong. */
@@ -130,13 +131,22 @@ private:
 	/** initialize data structures and communicate with meshfree elements */
 	void ChatWithElementGroup(void);
 
-protected:
+private:
 
+	/** nodemanager */
+//	XDOF_ManagerT* fXDOF_Nodes;
 	
 	int fNumConstrainedDOFs; // This the number of LaGrange multipliers
 	
-	/** \name constraint force node and equation numbers */
+	/** \name references to NodeManagerT data */
 	/*@{*/
+//	const iArray2DT& rEqnos;  /**< nodal equation numbers */
+//	const dArray2DT& rDisp;   /**< nodal displacement */
+	/*@}*/
+	
+	/** \name contact force node and equation numbers */
+	/*@{*/
+	//iArrayT fConstraintNodes, fLocallyNumberedConstraintNodes;
 	iArrayT fConstraintEqnos;
 	int fNumEqs;
 
@@ -205,7 +215,9 @@ protected:
 	/*@{*/	
 	/** output ID */
 	int fOutputID;
-		
+	
+	/** "connectivities" for output, just alias of PenaltyRegionT::fContactNodes */
+	
 	/*@}*/	
 };
 

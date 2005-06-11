@@ -1,4 +1,4 @@
-/* $Id: J2_C0HardeningT.h,v 1.3 2005-04-11 19:41:18 thao Exp $ */
+/* $Id: J2_C0HardeningT.h,v 1.2 2004-07-15 08:28:54 paklein Exp $ */
 #ifndef _J2_C0_HARD_T_H_
 #define _J2_C0_HARD_T_H_
 
@@ -60,8 +60,6 @@ protected:
 
 	/** true if the hardening function is linear */
 	bool fIsLinear;
-
-	double fYield;
 };
 
 /* hardening functions and their 1st derivatives */

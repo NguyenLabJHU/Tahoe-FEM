@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.23 2005-05-21 06:43:30 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.22 2005-03-15 07:15:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -110,17 +110,6 @@ public:
 	
 protected:
 
-	/** \name pre-crack enums */
-	/*@{*/
-	enum AndOrT {kAND, kOR};
-	enum OpT {kEqual, kLess, kGreater};
-	enum CoordinateT {kX = 0, kY = 1, kZ = 2};
-	
-	static AndOrT int2AndOrT(int i);
-	static OpT int2OpT(int i);
-	static CoordinateT int2CoordinateT(int i);
-	/*@}*/
-
 	/** \name construction of connectivities */
 	/*@{*/
 	/** extract element block info from parameter list to be used. Method is
@@ -207,15 +196,7 @@ protected:
 	 * different if the connectivities needed for the element calculations
 	 * is not compatible with the element topologies supported by
 	 * most database types or post-processors */
-	ArrayT<StringT> fOutputBlockID;
-	
-	/** \name pre-crack rules */
-	/*@{*/	
-	AndOrT fpc_AndOr;
-	ArrayT<CoordinateT> fpc_coordinate;
-	ArrayT<OpT> fpc_op;
-	dArrayT fpc_value;
-	/*@}*/	 
+	ArrayT<StringT> fOutputBlockID;	 
 };
 
 } // namespace Tahoe 

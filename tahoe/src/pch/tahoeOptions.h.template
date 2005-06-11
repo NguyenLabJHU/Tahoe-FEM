@@ -1,4 +1,4 @@
-/* $Id: tahoeOptions.h.template,v 1.5 2005-04-18 05:47:48 paklein Exp $ */
+/* $Id: tahoeOptions.h.template,v 1.4 2004-10-21 18:49:18 paklein Exp $ */
 /* optional libraries - enabled from command line with -D[symbol] declarations */
 #ifndef _TAHOE_OPTIONS_H_
 #define _TAHOE_OPTIONS_H_
@@ -22,9 +22,6 @@
 
 /* SPOOLES: sparse, direct solver */
 //#define __SPOOLES__
-
-/* SPOOLES MT: multihreaded version of SPOOLES. Requires SPOOLES as well */
-//#define __SPOOLES_MT__
 
 /* ACME: contact library */
 //#define __ACME__

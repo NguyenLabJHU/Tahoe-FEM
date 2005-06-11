@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.h,v 1.9 2005-04-13 21:50:06 paklein Exp $ */
+/* $Id: PSPASESMatrixT.h,v 1.8 2005-01-07 21:22:56 paklein Exp $ */
 #ifndef _PSPASES_MATRIX_T_H_
 #define _PSPASES_MATRIX_T_H_
 
@@ -23,6 +23,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class MSRBuilderT;
+class CommunicatorT;
 
 /** interface to PSPASES (1.0.3) sparse, direct linear solver. See 
  * http://www-users.cs.umn.edu/~mjoshi/pspases for more information.
@@ -36,7 +37,7 @@ class PSPASESMatrixT: public GlobalMatrixT
 public:
 
 	/** constuctor */
-	PSPASESMatrixT(ostream& out, int check_code, const CommunicatorT& comm);
+	PSPASESMatrixT(ostream& out, int check_code, CommunicatorT& comm);
 
 	/** copy constructor */
 	PSPASESMatrixT(const PSPASESMatrixT& source);
@@ -108,6 +109,9 @@ private:
 	double* operator()(int row, int col);
 
 protected:
+
+	/** MP environment */
+	CommunicatorT& fComm;	
 
 	/** matrix structure builder */
 	MSRBuilderT* fBuilder;

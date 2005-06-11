@@ -1,8 +1,6 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.11 2005-05-01 20:28:59 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.10 2004-08-08 02:02:57 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

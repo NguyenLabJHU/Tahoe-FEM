@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.cpp,v 1.9 2005-04-13 21:50:27 paklein Exp $ */
+/* $Id: AztecBaseT.cpp,v 1.8 2003-02-28 20:22:27 paklein Exp $ */
 /* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
@@ -21,7 +21,7 @@
 using namespace Tahoe;
 
 /* constructor */
-AztecBaseT::AztecBaseT(ostream& msg, const CommunicatorT& comm): 
+AztecBaseT::AztecBaseT(ostream& msg, CommunicatorT& comm): 
 	fMessage(msg),
 	fCommunicator(comm),
 	N_update(0), update_index(NULL),

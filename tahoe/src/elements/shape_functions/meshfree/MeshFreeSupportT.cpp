@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.34 2005-04-22 00:53:04 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.33 2005-01-27 17:48:56 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -799,10 +799,6 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& name) const
 		completeness.AddLimit(1, LimitT::LowerInclusive);
 		completeness.SetDefault(1);
 		rkpm->AddParameter(completeness);
-
-		ParameterT cross_terms(ParameterT::Boolean, "cross_terms");
-		cross_terms.SetDefault(false);
-		rkpm->AddParameter(cross_terms);
 	
 		/* window function choice */
 		rkpm->AddSub("window_function_choice", ParameterListT::Once, true);
@@ -921,9 +917,8 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 
 		/* construct MLS solver */
 		int completeness = formulation.GetParameter("completeness");
-		bool cross_terms = formulation.GetParameter("cross_terms");
 		const ParameterListT& window = formulation.GetListChoice(*this, "window_function_choice");		
-		fRKPM = New_MLSSolverT(nsd, completeness, cross_terms, window);
+		fRKPM = New_MLSSolverT(nsd, completeness, window);
 
 		/* initialize */
 		fRKPM->Initialize();
@@ -947,8 +942,7 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 }
 
 /* construct a new MLSSolverT with the given parameters */
-MLSSolverT* MeshFreeSupportT::New_MLSSolverT(int nsd, int completeness, bool cross_terms,
-	const ParameterListT& window)
+MLSSolverT* MeshFreeSupportT::New_MLSSolverT(int nsd, int completeness, const ParameterListT& window)
 {
 	const char caller[] = "MeshFreeSupportT::New_MLSSolverT";
 
@@ -1002,7 +996,7 @@ MLSSolverT* MeshFreeSupportT::New_MLSSolverT(int nsd, int completeness, bool cro
 			window.Name().Pointer());
 
 	/* construct MLS solver */
-	return new MLSSolverT(nsd, completeness, cross_terms, window_type, window_params);
+	return new MLSSolverT(nsd, completeness, window_type, window_params);
 }
 
 /*************************************************************************

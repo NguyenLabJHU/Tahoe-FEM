@@ -1,17 +1,14 @@
-/* $Id: MSRMatrixT.cpp,v 1.10 2005-04-15 16:50:15 paklein Exp $ */
+/* $Id: MSRMatrixT.cpp,v 1.7 2005-01-07 21:22:49 paklein Exp $ */
 #include "MSRMatrixT.h"
 
 #include "MSRBuilderT.h"
 #include "ElementMatrixT.h"
-#include "StringT.h"
-#include "ofstreamT.h"
-#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constuctor */
-MSRMatrixT::MSRMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
+MSRMatrixT::MSRMatrixT(ostream& out, int check_code, bool symmetric):
+	GlobalMatrixT(out, check_code),
 	fSymmetric(symmetric),
 	fMSRBuilder(NULL),
 	fActiveBlkMan(0, fActiveBlk)
@@ -234,39 +231,7 @@ void MSRMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eq
 	{
 		/* assembly mode */
 		if (fSymmetric)
-		{
-			/* equation number limit */
-			int end_update = fStartEQ + fLocNumEQ - 1;
-
-			/* equation numbers -> active element row numbers */
-			int status = 1;
-			for (int j = 0; j < row_eqnos.Length() && status; j++) 
-			{
-				int req = row_eqnos[j];
-				if (req >= fStartEQ && req <= end_update)
-				{
-					/* collect values in upper triangle */
-					fColDexVec.Dimension(0);
-					fValVec.Dimension(0);
-					for (int k = 0; k < col_eqnos.Length(); k++) 
-					{
-						int ceq = col_eqnos[k];
-						if (ceq >= req) {
-							fColDexVec.Append(ceq - 1); //OFFSET
-							fValVec.Append(elMat(j,k));
-						}
-					}
-
-					/* assemble into matrix */
-					if (fColDexVec.Length() > 0)
-						AssembleRow(req - 1, //OFFSET 
-							fColDexVec.Length(), fColDexVec.Pointer(), fValVec.Pointer(), status);
-				}
-			}
-
-			/* check completion */
-			if (!status) ExceptionT::GeneralFail(caller, "symmetric assembly error");
-		}
+			ExceptionT::GeneralFail(caller, "cannot assemble symmetric matrix");
 		else
 		{
 			/* equation number limit */
@@ -408,24 +373,16 @@ void MSRMatrixT::PrintLHS(bool force) const
 {
 	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
 
-	/* output stream */
-	StringT file = fstreamT::Root();
-	file.Append("MSRMatrixT.LHS.", sOutputCount);
-	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());
-	ofstreamT out(file);
-	out.precision(14);
-
 	/* convert to RCV */
 	iArrayT r, c;
 	dArrayT v;
 	GenerateRCV(r, c, v, 0.0);
 	r++;
 	c++;
+	fOut << "LHS: {r, c, v}: \n";
 	for (int i = 0; i < r.Length(); i++)
-		out << r[i] << " " << c[i] << " " << v[i] << '\n';
-
-	/* increment count */
-	sOutputCount++;
+		fOut << r[i] << " " << c[i] << " " << v[i] << '\n';
+	fOut << endl;
 }
 
 /* copy MSR data to RCV */

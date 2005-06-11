@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.9 2005-04-16 01:59:37 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.8 2005-03-11 20:36:48 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
@@ -55,16 +55,21 @@ public:
 
 	/** return list of projected nodes */
 	virtual void CollectProjectedNodes(const PointInCellDataT& cell_data, iArrayT& nodes) const;
-
-	/** compute \f$ B_{\hat{U}U} \f$. Compute the matrix defining the projection of data from free cell
-	 * nodes to driven cell nodes which arises because some projection source points lie in cells containing
-	 * both free and projection nodes
-	 * \param projection projection data containing both information about the projection from source points
-	 *        to driven cell nodes \f$ B_{\hat{U}Q} \f$ and interpolation from free cell nodes to the projection 
-	 *        source points \f$ N_{QU} \f$.
-	 * \param B_hatU_U destination for the projection matrix \f$ B_{\hat{U}U} \f$ */
-	virtual void Compute_B_hatU_U(const PointInCellDataT& projection, InterpolationDataT& B_hatU_U) const;
 	/*@}*/
+
+	/** write projection-interpolation matrix from projection_data into cell_data
+	 * \param cell_data result written into PointInCellDataT::fPointToPoint
+	 * \param projection_data data initialized such that PointInCellDataT::fPointToNode contains
+	 *        the projection weights, while PointInCellDataT::fInterpolationWeights containts
+	 *        weights for interpolating from the 
+	 * \param projection_source list of points acting as source for the projection
+	 * \param projection_dest list of points onto which the projection is computed
+	 */
+	virtual void ComputeProjectionInterpolation(
+		const PointInCellDataT& cell_data,
+		const PointInCellDataT& projection_data,
+		const iArrayT& projection_source,
+		const iArrayT& projection_dest) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

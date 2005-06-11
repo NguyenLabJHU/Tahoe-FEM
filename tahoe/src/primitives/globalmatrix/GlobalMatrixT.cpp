@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.23 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.21 2005-02-25 15:41:04 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -9,13 +9,9 @@
 
 using namespace Tahoe;
 
-/* initialize static data */
-int GlobalMatrixT::sOutputCount = 0;
-
 /* cconstructor */
-GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
+GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code):
 	fOut(out),
-	fComm(comm),
 	fCheckCode(check_code),
 	fLocNumEQ(0),	
 	fTotNumEQ(0),
@@ -26,7 +22,6 @@ GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code, const CommunicatorT& 
 
 GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
 	fOut(source.fOut),
-	fComm(source.fComm),
 	fCheckCode(kNoCheck),
 	fLocNumEQ(0),	
 	fTotNumEQ(0),

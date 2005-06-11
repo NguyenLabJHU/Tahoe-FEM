@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.45 2005-05-24 22:09:43 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.43.4.2 2005-06-11 15:36:45 d-farrell2 Exp $ */
 
 #include "FieldT.h"
 
@@ -18,6 +18,7 @@
 #include "ModelManagerT.h"
 #include "OutputSetT.h"
 #include "GlobalMatrixT.h"
+#include "FEManagerT.h"
 
 using namespace Tahoe;
 
@@ -221,7 +222,6 @@ void FieldT::InitialCondition(void)
 	fField_last = fField;
 }
 
-#if 0
 /* apply predictor to all degrees of freedom */
 void FieldT::InitStep(void)
 {
@@ -285,48 +285,15 @@ void FieldT::InitStep(void)
 			integrator.ConsistentKBC(*this, cards[i]);
 	}
 }
-#endif
-
-/* apply predictor to all degrees of freedom */
+#pragma message("Roll up the redundancy after it works")
+// apply predictor to all owned degrees of freedom 
 void FieldT::InitStep(int fieldstart, int fieldend)
 {
 	/* integrator */
 	nIntegratorT& integrator = nIntegrator();
-
-	/* predict  DOF's owned by this proc */
+///////// This here is what I want to do only for the owned nodes
+	// predictor to all DOF's owned by this proc 
 	integrator.Predictor(*this, fieldstart, fieldend);
-
-	/* integrate work */
-	if (fTrackTotalEnergy)
-	{
-		/* array of active velocities */
-		fActiveVel.Dimension(fNumEquations);
-
-		/* sum nodal work */
-		double& w_pred = fWork[1];
-		w_pred = fWork[0];
-		double dt_by_2 = FieldSupport().TimeStep()/2.0;
-		const int* eq = fEqnos.Pointer();
-		const double* v = fField[1].Pointer();
-		int length = fEqnos.Length();
-		for (int i = 0; i < length; i++)
-		{
-			/* active equation */
-			if (*eq > -1 && *eq < fNumEquations) {
-			
-				int index = (*eq) - 1;
-
-				/* work */
-				w_pred += dt_by_2*fActiveForce[(*eq)-1]*(*v);
-		
-				/* store velocity predictor */
-				fActiveVel[index] = *v;
-			}
-		
-			/* next */
-			eq++; v++;
-		}
-	}
 
 	/* KBC controllers */
 	for (int i = 0; i < fKBC_Controllers.Length(); i++)
@@ -349,6 +316,7 @@ void FieldT::InitStep(int fieldstart, int fieldend)
 		for (int i = 0; i < cards.Length(); i++)
 			integrator.ConsistentKBC(*this, cards[i]);
 	}
+///////// 
 }
 
 /* assemble contributions to the residual */
@@ -1066,7 +1034,6 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 		sub_lists.AddSub("wall_penalty");
 #ifdef CONTINUUM_ELEMENT
 		sub_lists.AddSub("augmented_Lagrangian_KBC_meshfree");
-		sub_lists.AddSub("field_augmented_Lagrangian_KBC_meshfree");
 #endif
 		sub_lists.AddSub("wall_augmented_Lagrangian");
 		sub_lists.AddSub("cylinder_penalty");
@@ -1134,6 +1101,8 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& name) const
 		ParameterT value(ParameterT::Double, "value");
 		value.SetDefault(0.0);
 		ic->AddParameter(value);
+		ParameterT ic_file(ParameterT::Word, "ic_file");
+		ic->AddParameter(ic_file, ParameterListT::ZeroOrOnce);
 	
 		return ic;	
 	}
@@ -1333,15 +1302,42 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 				/* look for node set ID - exclusive choice checked above */
 				const ParameterT* node_ID = sub.Parameter("node_ID");
 				const ParameterT* all_nodes = sub.Parameter("all_nodes");
-				if (node_ID) /* set cards */ {
+				
+				if (node_ID && sub.FindParameter("ic_file") && value == 0.0) // Do the IC for sets from file
+				{
+					StringT ic_file = sub.GetParameter("ic_file");
+					ic_file.ToNativePathName();
+					StringT filepath;
+					const FEManagerT& fe_manager = fFieldSupport.FEManager();
+					filepath.FilePath(fe_manager.InputFile());
+					ic_file.Prepend(filepath);
+					ifstreamT data(ic_file);
+					if (!data.is_open())
+						ExceptionT::GeneralFail(caller, "file not found: %s", ic_file.Pointer());
+					
 					const StringT& ID = *node_ID;
 					const iArrayT& set = model_manager.NodeSet(ID);
 					for (int i = 0; i < set.Length(); i++)
+					{
+						int temp;	// first column is node number, second is value
+						data >> temp >> value;
 						fIC[num_IC++].SetValues(set[i], dof, order, value);
+					}
 				}
-				else /* all nodes */ {
+				else if (node_ID) // set cards for set
+				{
+					const StringT& ID = *node_ID;
+					const iArrayT& set = model_manager.NodeSet(ID);
+					for (int i = 0; i < set.Length(); i++)
+					{
+						fIC[num_IC++].SetValues(set[i], dof, order, value);
+					}
+						
+				}
+				else // all nodes
+				{
 					bool all = *all_nodes;
-					if (all) fIC[num_IC++].SetValues(-1, dof, order, value); /* -1 => "all" */
+					if (all)fIC[num_IC++].SetValues(-1, dof, order, value); // -1 => "all", single value
 				}
 			}
 			else if (name == "kinematic_BC") {

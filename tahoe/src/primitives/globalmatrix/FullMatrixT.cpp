@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.22 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.20 2005-02-25 15:41:34 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -7,15 +7,12 @@
 #include "dArrayT.h"
 #include "iArrayT.h"
 #include "ElementMatrixT.h"
-#include "StringT.h"
-#include "ofstreamT.h"
-#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-FullMatrixT::FullMatrixT(ostream& out,int check_code, const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
+FullMatrixT::FullMatrixT(ostream& out,int check_code):
+	GlobalMatrixT(out, check_code),
 	fIsFactorized(false)
 {
 
@@ -370,20 +367,7 @@ void FullMatrixT::PrintZeroPivots(void) const
 void FullMatrixT::PrintLHS(bool force) const
 {
 	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
-
-	/* output stream */
-	StringT file = fstreamT::Root();
-	file.Append("FullMatrixT.LHS.", sOutputCount);
-	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());	
-	ofstreamT out(file);
-	out.precision(14);
-
-	/* write non-zero values in RCV format */
-	for (int r = 0; r < fMatrix.Rows(); r++)
-		for (int c = 0; c < fMatrix.Cols(); c++)
-			if (fMatrix(r,c) != 0.0)
-				out << r+1 << " " << c+1 << " " << fMatrix(r,c) << '\n';
-	
-	/* increment count */
-	sOutputCount++;
+		
+	fOut << "\nLHS matrix:\n\n";
+	fOut << fMatrix << "\n\n";
 }

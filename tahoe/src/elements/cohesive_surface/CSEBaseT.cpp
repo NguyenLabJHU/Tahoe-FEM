@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.37 2005-05-21 06:43:30 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.36 2005-03-15 07:15:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -30,27 +30,6 @@ static const char* ElementOutputNames[3] = {
 	"cohesive_energy",
 	"avg_traction"};
 
-CSEBaseT::AndOrT CSEBaseT::int2AndOrT(int i) {
-	if (i == kAND) return kAND;
-	else if (i == kOR) return kOR;
-	else ExceptionT::GeneralFail("CSEBaseT::int2AndOrT", "%d out of range", i);
-	return kAND; /* dummy */
-}
-CSEBaseT::OpT CSEBaseT::int2OpT(int i) {
-	if (i == kEqual) return kEqual;
-	else if (i == kLess) return kLess;
-	else if (i == kGreater) return kGreater;
-	else ExceptionT::GeneralFail("CSEBaseT::int2OpT", "%d out of range", i);
-	return kEqual; /* dummy */
-}
-CSEBaseT::CoordinateT CSEBaseT::int2CoordinateT(int i) {
-	if (i == kX) return kX;
-	else if (i == kY) return kY;
-	else if (i == kZ) return kZ;
-	else ExceptionT::GeneralFail("CSEBaseT::int2CoordinateT", "%d out of range", i);
-	return kX; /* dummy */
-}
-
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
 CSEBaseT::CSEBaseT(const ElementSupportT& support):
@@ -64,8 +43,7 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fOutputGlobalTractions(false),
-	fpc_AndOr(kAND)
+	fOutputGlobalTractions(false)
 {
 	SetName("CSE_base");	
 }
@@ -82,8 +60,7 @@ CSEBaseT::CSEBaseT(ElementSupportT& support):
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fOutputGlobalTractions(false),
-	fpc_AndOr(kAND)
+	fOutputGlobalTractions(false)	
 {
 	SetName("CSE_base");
 
@@ -122,8 +99,6 @@ CSEBaseT::~CSEBaseT(void)
 /* initial condition/restart functions (per time sequence) */
 void CSEBaseT::InitialCondition(void)
 {
-	const char caller[] = "CSEBaseT::InitialCondition";
-
 	/* inherited */
 	ElementBaseT::InitialCondition();
 
@@ -131,66 +106,6 @@ void CSEBaseT::InitialCondition(void)
 	int nel = NumElements();
 	for (int i = 0; i < nel; i++)
 		fElementCards[i].Flag() = ElementCardT::kON;
-
-	/* create pre-crack */
-	if (fpc_coordinate.Length() > 0)
-	{
-		/* node map of facet 1 */
-		iArrayT facet1;
-		(fShapes->NodesOnFacets()).RowAlias(0, facet1);
-
-		/* loop over elements */
-		dArrayT ip_X(NumSD());
-		Top();
-		while (NextElement())
-		{
-			/* current element */
-			ElementCardT& element = CurrentElement();
-		
-			/* get ref geometry (1st facet only) */
-			fNodes1.Collect(facet1, element.NodesX());
-			fLocInitCoords1.SetLocal(fNodes1);
-		
-			/* loop over integration points */
-			bool all_ip_off = true;
-			fShapes->TopIP();
-			while (all_ip_off && fShapes->NextIP())
-			{
-				/* integration point coordinates */
-				fShapes->Interpolate(fLocInitCoords1, ip_X);
-
-				/* test the integration point */
-				bool ip_off = (fpc_AndOr == kAND) ? true : false;
-				for (int i = 0; i < fpc_coordinate.Length(); i++)
-				{
-					/* evaluate test */
-					bool off = true;
-					double value = fpc_value[i];
-					double coord = ip_X[fpc_coordinate[i]];
-					if (fpc_op[i] == kEqual)
-						off = (fabs(coord - value) < kSmall);
-					else if (fpc_op[i] == kLess)
-						off = (coord < value);
-					else if (fpc_op[i] == kGreater)
-						off = (coord > value);
-					else
-						ExceptionT::GeneralFail(caller, "unrecognized operator %d", fpc_op[i]);
-				
-					/* accumulate test */
-					if (fpc_AndOr == kAND)
-						ip_off = (off && ip_off);
-					else /* or */
-						ip_off = (off || ip_off);					
-				}
-				
-				/* accumulate integration point */
-				all_ip_off = (all_ip_off && ip_off);
-			}
-			
-			/* turn element off */
-			if (all_ip_off) element.Flag() = ElementCardT::kOFF;
-		}
-	}
 }
 
 #ifdef _FRACTURE_INTERFACE_LIBRARY_	
@@ -404,9 +319,6 @@ void CSEBaseT::DefineSubs(SubListT& sub_list) const
 	/* geometry and integration rule (inline) */
 	sub_list.AddSub("surface_geometry", ParameterListT::Once, true);
 
-	/* define pre-crack region */
-	sub_list.AddSub("pre_crack", ParameterListT::ZeroOrOnce);
-
 	/* nodal output codes (optional) */
 	sub_list.AddSub("surface_element_nodal_output", ParameterListT::ZeroOrOnce);
 	sub_list.AddSub("surface_element_element_output", ParameterListT::ZeroOrOnce);
@@ -464,46 +376,6 @@ ParameterInterfaceT* CSEBaseT::NewSub(const StringT& name) const
 
 		return element_output;	
 	}
-	else if (name == "pre_crack")
-	{
-		ParameterContainerT* pre_crack = new ParameterContainerT(name);
-		pre_crack->SetDescription("rules defining the pre-crack");
-		pre_crack->SetSubSource(this);
-		
-		/* how to apply the rules */
-		ParameterT and_or(ParameterT::Enumeration, "and_or");
-		and_or.AddEnumeration("AND", kAND);
-		and_or.AddEnumeration( "OR", kOR);
-		and_or.SetDefault(fpc_AndOr);
-		pre_crack->AddParameter(and_or);
-	
-		/* must have at least one rule */
-		pre_crack->AddSub("pre_crack_rule", ParameterListT::OnePlus);
-	
-		return pre_crack;
-	}
-	else if (name == "pre_crack_rule")
-	{
-		ParameterContainerT* pre_crack_rule = new ParameterContainerT(name);
-	
-		ParameterT direction(ParameterT::Enumeration, "coordinate");
-		direction.AddEnumeration("x", 0);
-		direction.AddEnumeration("y", 1);
-		direction.AddEnumeration("z", 2);
-		direction.SetDefault(0);
-		pre_crack_rule->AddParameter(direction);
-
-		ParameterT op(ParameterT::Enumeration, "op");
-		op.AddEnumeration(  "equal", 0);
-		op.AddEnumeration(   "less", 1);
-		op.AddEnumeration("greater", 2);
-		op.SetDefault(0);
-		pre_crack_rule->AddParameter(op);	
-	
-		pre_crack_rule->AddParameter(ParameterT::Double, "value");
-
-		return pre_crack_rule;
-	}
 	else /* inherited */
 		return ElementBaseT::NewSub(name);
 }
@@ -529,22 +401,6 @@ void CSEBaseT::TakeParameterList(const ParameterListT& list)
 	/* take parameters */
 	fCloseSurfaces = list.GetParameter("close_surfaces");
 	fOutputArea = list.GetParameter("output_area");
-
-	/* pre-crack */
-	const ParameterListT* pre_crack = list.List("pre_crack");
-	if (pre_crack) {
-		fpc_AndOr = int2AndOrT(pre_crack->GetParameter("and_or"));
-		int num_rules = pre_crack->NumLists("pre_crack_rule");
-		fpc_coordinate.Dimension(num_rules);
-		fpc_op.Dimension(num_rules);
-		fpc_value.Dimension(num_rules);
-		for (int i = 0; i < num_rules; i++) {
-			const ParameterListT& pre_crack_rule = pre_crack->GetList("pre_crack_rule", i);
-			fpc_coordinate[i] = int2CoordinateT(pre_crack_rule.GetParameter("coordinate"));
-			fpc_op[i] = int2OpT(pre_crack_rule.GetParameter("op"));
-			fpc_value[i] = pre_crack_rule.GetParameter("value");
-		}
-	}
 
 	/* nodal output codes */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);

@@ -1,4 +1,4 @@
-/* $Id: J2_C0HardeningT.cpp,v 1.3 2005-04-11 19:41:18 thao Exp $ */
+/* $Id: J2_C0HardeningT.cpp,v 1.2 2004-07-15 08:28:54 paklein Exp $ */
 #include "J2_C0HardeningT.h"
 
 #include "dSymMatrixT.h"
@@ -78,8 +78,6 @@ void J2_C0HardeningT::TakeParameterList(const ParameterListT& list)
 	/* set flag */
 	if (hardening.Name() == "linear_function") 
 		fIsLinear = true;
-
-	fYield = K(0.0);
 }
 
 double J2_C0HardeningT::YieldCondition(const dSymMatrixT& relstress, double alpha) const 
