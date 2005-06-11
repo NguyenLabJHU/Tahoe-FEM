@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.43.4.1 2005-06-11 13:56:24 d-farrell2 Exp $ */
+/* $Id: FieldT.cpp,v 1.43.4.2 2005-06-11 15:36:45 d-farrell2 Exp $ */
 
 #include "FieldT.h"
 
@@ -1298,13 +1298,14 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 				int dof = sub.GetParameter("dof"); dof--;
 				int order = sub.GetParameter("type");
 				double value = sub.GetParameter("value");
+
+				/* look for node set ID - exclusive choice checked above */
+				const ParameterT* node_ID = sub.Parameter("node_ID");
+				const ParameterT* all_nodes = sub.Parameter("all_nodes");
 				
-				// check if IC is given in file
-				StringT ic_file;
-				ifstreamT data(ic_file);
-				if (value == 0.0 && sub.GetParameter("ic_file"))
+				if (node_ID && sub.FindParameter("ic_file") && value == 0.0) // Do the IC for sets from file
 				{
-					ic_file = sub.GetParameter("ic_file");
+					StringT ic_file = sub.GetParameter("ic_file");
 					ic_file.ToNativePathName();
 					StringT filepath;
 					const FEManagerT& fe_manager = fFieldSupport.FEManager();
@@ -1312,40 +1313,31 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 					ic_file.Prepend(filepath);
 					ifstreamT data(ic_file);
 					if (!data.is_open())
-						ExceptionT::GeneralFail(caller, "file not found: %s", ic_file.Pointer());					
+						ExceptionT::GeneralFail(caller, "file not found: %s", ic_file.Pointer());
+					
+					const StringT& ID = *node_ID;
+					const iArrayT& set = model_manager.NodeSet(ID);
+					for (int i = 0; i < set.Length(); i++)
+					{
+						int temp;	// first column is node number, second is value
+						data >> temp >> value;
+						fIC[num_IC++].SetValues(set[i], dof, order, value);
+					}
 				}
-
-				/* look for node set ID - exclusive choice checked above */
-				const ParameterT* node_ID = sub.Parameter("node_ID");
-				const ParameterT* all_nodes = sub.Parameter("all_nodes");
-				if (node_ID) // set cards for set
+				else if (node_ID) // set cards for set
 				{
 					const StringT& ID = *node_ID;
 					const iArrayT& set = model_manager.NodeSet(ID);
 					for (int i = 0; i < set.Length(); i++)
 					{
-						if (ic_file) // if file is present, get proper value of IC
-						{
-							int temp;	// first column is node number, second is value
-							data >> temp >> value;
-						}
 						fIC[num_IC++].SetValues(set[i], dof, order, value);
 					}
 						
 				}
-/////////////////////////////
 				else // all nodes
 				{
 					bool all = *all_nodes;
-					if (all && ic_file)
-					{
-						
-					}
-#pragma message("redundant check in if statement??")
-					else if (all) // This check needed?
-					{
-						fIC[num_IC++].SetValues(-1, dof, order, value); // -1 => "all", single value
-					}
+					if (all)fIC[num_IC++].SetValues(-1, dof, order, value); // -1 => "all", single value
 				}
 			}
 			else if (name == "kinematic_BC") {
