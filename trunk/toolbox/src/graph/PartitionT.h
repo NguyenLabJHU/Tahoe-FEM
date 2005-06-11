@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.12 2004-11-17 23:21:29 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.13 2005-06-11 01:12:49 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #ifndef _PARTITION_T_H_
 #define _PARTITION_T_H_
@@ -6,6 +6,7 @@
 /* direct members */
 #include "iArrayT.h"
 #include "StringT.h"
+#include "VariArrayT.h"
 
 namespace Tahoe {
 
@@ -126,13 +127,13 @@ public:
 	 * of the global model. Method also determines which partitions
 	 * provide the information for all external nodes and sets the list
 	 * of partitions returned by PartitionT::CommID. */
-	void Set(int num_parts, int id, const iArrayT& part_map, const GraphT& graph);
+	void Set(int num_parts, int id, const ArrayT<int>& part_map, const GraphT& graph);
 
 	/** labels nodes as internal, border, and external using the connectivities
 	 * of the global model. Method also determines which partitions
 	 * provide the information for all external nodes and sets the list
 	 * of partitions returned by PartitionT::CommID. */
-	void Set(int num_parts, int id, const iArrayT& part_map, const ArrayT<const iArray2DT*>& connects_1,
+	void Set(int num_parts, int id, const ArrayT<int>& part_map, const ArrayT<const iArray2DT*>& connects_1,
 		const ArrayT<const RaggedArray2DT<int>*>& connects_2);
 
 	/** set the lists of nodes communicated to other partitions. Each partition could
@@ -247,13 +248,13 @@ private:
 
 	/** classify set nodes as label nodes as internal, external, or border */
 	/*@{*/
-	void ClassifyNodes(const iArrayT& part_map, const GraphT& graph);
-	void ClassifyNodes(const iArrayT& part_map, const ArrayT<const iArray2DT*>& connects_1,
+	void ClassifyNodes(const ArrayT<int>& part_map, const GraphT& graph);
+	void ClassifyNodes(const ArrayT<int>& part_map, const ArrayT<const iArray2DT*>& connects_1,
 		const ArrayT<const RaggedArray2DT<int>*>& connects_2);
 	/*@}*/
 
 	/* set receiving nodes/partition information */
-	void SetReceive(const iArrayT& part_map);
+	void SetReceive(const ArrayT<int>& part_map);
 
 	/** map status of (in range) parts into status_map */
 	void MapStatus(StatusT status, const iArrayT& part, ArrayT<StatusT>& status_map,
@@ -280,6 +281,10 @@ private:
 	iArrayT fNodes_i; /**< internal nodes */
 	iArrayT fNodes_b; /**< border nodes	  */
 	iArrayT fNodes_e; /**< external nodes */
+
+	VariArrayT<int> fNodes_i_man; /**< internal nodes */
+	VariArrayT<int> fNodes_b_man; /**< border nodes	  */
+	VariArrayT<int> fNodes_e_man; /**< external nodes */
 	/*@}*/
 	
 	/** \name receive/send information */
@@ -300,7 +305,8 @@ private:
 	/*@{*/
 	/** map from local to global node numbers
 	 * global[local] for all _i, _b, _e nodes */
-	iArrayT fNodeMap; 
+	iArrayT fNodeMap;
+	VariArrayT<int> fNodeMap_man;
 	int fNodeMapShift;
 	iArrayT fInvNodeMap;
 	/*@}*/
