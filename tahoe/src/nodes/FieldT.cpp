@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.43 2005-02-06 18:27:30 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.43.4.1 2005-06-11 13:56:24 d-farrell2 Exp $ */
 
 #include "FieldT.h"
 
@@ -18,6 +18,7 @@
 #include "ModelManagerT.h"
 #include "OutputSetT.h"
 #include "GlobalMatrixT.h"
+#include "FEManagerT.h"
 
 using namespace Tahoe;
 
@@ -1100,6 +1101,8 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& name) const
 		ParameterT value(ParameterT::Double, "value");
 		value.SetDefault(0.0);
 		ic->AddParameter(value);
+		ParameterT ic_file(ParameterT::Word, "ic_file");
+		ic->AddParameter(ic_file, ParameterListT::ZeroOrOnce);
 	
 		return ic;	
 	}
@@ -1295,19 +1298,54 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 				int dof = sub.GetParameter("dof"); dof--;
 				int order = sub.GetParameter("type");
 				double value = sub.GetParameter("value");
+				
+				// check if IC is given in file
+				StringT ic_file;
+				ifstreamT data(ic_file);
+				if (value == 0.0 && sub.GetParameter("ic_file"))
+				{
+					ic_file = sub.GetParameter("ic_file");
+					ic_file.ToNativePathName();
+					StringT filepath;
+					const FEManagerT& fe_manager = fFieldSupport.FEManager();
+					filepath.FilePath(fe_manager.InputFile());
+					ic_file.Prepend(filepath);
+					ifstreamT data(ic_file);
+					if (!data.is_open())
+						ExceptionT::GeneralFail(caller, "file not found: %s", ic_file.Pointer());					
+				}
 
 				/* look for node set ID - exclusive choice checked above */
 				const ParameterT* node_ID = sub.Parameter("node_ID");
 				const ParameterT* all_nodes = sub.Parameter("all_nodes");
-				if (node_ID) /* set cards */ {
+				if (node_ID) // set cards for set
+				{
 					const StringT& ID = *node_ID;
 					const iArrayT& set = model_manager.NodeSet(ID);
 					for (int i = 0; i < set.Length(); i++)
+					{
+						if (ic_file) // if file is present, get proper value of IC
+						{
+							int temp;	// first column is node number, second is value
+							data >> temp >> value;
+						}
 						fIC[num_IC++].SetValues(set[i], dof, order, value);
+					}
+						
 				}
-				else /* all nodes */ {
+/////////////////////////////
+				else // all nodes
+				{
 					bool all = *all_nodes;
-					if (all) fIC[num_IC++].SetValues(-1, dof, order, value); /* -1 => "all" */
+					if (all && ic_file)
+					{
+						
+					}
+#pragma message("redundant check in if statement??")
+					else if (all) // This check needed?
+					{
+						fIC[num_IC++].SetValues(-1, dof, order, value); // -1 => "all", single value
+					}
 				}
 			}
 			else if (name == "kinematic_BC") {
