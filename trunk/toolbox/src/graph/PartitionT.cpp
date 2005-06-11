@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.16 2005-06-11 01:12:49 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.17 2005-06-11 17:53:58 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #include "PartitionT.h"
 
@@ -122,6 +122,48 @@ void PartitionT::Set(int num_parts, int id, const ArrayT<int>& part_map, const A
 		fInvElementMap.Free();
 }
 
+void PartitionT::Set(int num_parts, int id, const ArrayT<int>& part_map,
+	const ArrayT<int>& node_map,
+	const ArrayT<const iArray2DT*>& connects_1,
+	const ArrayT<const RaggedArray2DT<int>*>& connects_2)
+{
+	const char caller[] = "PartitionT::Set";
+
+	/* check */
+	if (part_map.Length() != node_map.Length())
+		ExceptionT::SizeMismatch(caller, "part map length %d must equal node map length %d",
+			part_map.Length(), node_map.Length());
+
+	/* total number of partitions */
+	fNumPartitions = num_parts;
+	if (fNumPartitions < 1) ExceptionT::GeneralFail(caller, "bad size %d", fNumPartitions);
+
+	/* set ID */
+	fID = id;
+	if (fID < 0 || fID >= fNumPartitions) ExceptionT::OutOfRange(caller, "bad id %d", fID);
+		
+	/* numbering is global */
+	fScope = kLocal;
+
+	/* resolve internal/boundary nodes */
+	ClassifyNodes(part_map, connects_1, connects_2);
+
+	/* set node map */
+	fNodeMap_man.SetLength(node_map.Length(), false);
+	int nnd = fNodes_i.Length() + fNodes_b.Length() + fNodes_e.Length();
+	if (fNodeMap.Length() != nnd)
+		ExceptionT::GeneralFail(caller, "expecting %d entries in node map %d", nnd, fNodeMap.Length());
+	fNodeMap.Copy(node_map.Pointer());
+
+	/* set send information */
+	SetReceive(part_map);
+	
+	/* clear inverse maps */
+	fInvNodeMap.Free();
+	for (int i = 0; i < fInvElementMap.Length(); i++)
+		fInvElementMap.Free();
+}
+
 /* store outgoing data (count maps onto fCommID) */
 void PartitionT::SetOutgoing(const ArrayT<iArrayT>& nodes_out)
 {
@@ -196,18 +238,23 @@ void PartitionT::InitElementBlocks(const ArrayT<StringT>& blockID)
 	fElementMap.Dimension(n);
 	fElementMapShift.Dimension(n);
 	fInvElementMap.Dimension(n);
+	
+	/* initialize */
+	fElementMapShift = 0;
+	for (int i = 0; i < n; i++) {
+		fElements_i[i].Free();
+		fElements_b[i].Free();
+		fElementMap[i].Free();
+		fInvElementMap[i].Free();
+	}
 }
 
 /* collect internal and border elements */
 void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
 {
-	/* only at global scope for now */
+	/* quick fix for local scope */
 	if (fScope != kGlobal)
-	{
-		cout << "\n PartitionT::SetElements: number scope must be global"
-		     << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("PartitionT::SetElements", "number scope must be global");
 
 	/* resolve ID */
 	int dex = ElementBlockIndex(blockID, "SetElements");
@@ -555,6 +602,11 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 		fElementMap[m].Dimension(dim);
 		in >> fElementMap[m];
 	}
+
+	/* clear inverse maps */
+	fInvNodeMap.Free();
+	for (int i = 0; i < fInvElementMap.Length(); i++)
+		fInvElementMap.Free();
 
 	/* restore comment marker */
 	if (in.skip_comments())
