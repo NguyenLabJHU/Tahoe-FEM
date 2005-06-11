@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.15 2004-11-17 23:21:29 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.16 2005-06-11 01:12:49 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #include "PartitionT.h"
 
@@ -21,7 +21,11 @@ PartitionT::PartitionT(void):
 	fNumPartitions(0),
 	fID(-1),
 	fScope(kUnSet),
-	fDecompType(kUndefined)
+	fDecompType(kUndefined),
+	fNodes_i_man(0, fNodes_i),
+	fNodes_b_man(0, fNodes_b),
+	fNodes_e_man(0, fNodes_e),
+	fNodeMap_man(0, fNodeMap)
 {
 
 }
@@ -66,7 +70,7 @@ const iArrayT* PartitionT::NodesOut(int ID) const
 }
 
 /* set node info */
-void PartitionT::Set(int num_parts, int id, const iArrayT& part_map, 
+void PartitionT::Set(int num_parts, int id, const ArrayT<int>& part_map, 
 	const GraphT& graph)
 {
 	/* total number of partitions */
@@ -92,7 +96,7 @@ void PartitionT::Set(int num_parts, int id, const iArrayT& part_map,
 		fInvElementMap.Free();
 }
 
-void PartitionT::Set(int num_parts, int id, const iArrayT& part_map, const ArrayT<const iArray2DT*>& connects_1,
+void PartitionT::Set(int num_parts, int id, const ArrayT<int>& part_map, const ArrayT<const iArray2DT*>& connects_1,
 	const ArrayT<const RaggedArray2DT<int>*>& connects_2)
 {
 	/* total number of partitions */
@@ -218,9 +222,7 @@ void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
 	node_map = kExternal;
 	MapStatus(kInternal, fNodes_i, node_map, min);
 	MapStatus(  kBorder, fNodes_b, node_map, min);
-	
-	//TEMP
-	MapStatus(  kBorder, fNodes_e, node_map, min); // temp fix 1
+	MapStatus(  kBorder, fNodes_e, node_map, min); // TEMP: fix 1
 	
 	AutoArrayT<int> elements_i(20);
 	AutoArrayT<int> elements_b(20);
@@ -480,15 +482,15 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	
 	// nodal information
 	in >> length;
-	fNodes_i.Dimension(length);
+	fNodes_i_man.SetLength(length, false);
 	in >> fNodes_i; // internal nodes	
 	
 	in >> length;
-	fNodes_b.Dimension(length);
+	fNodes_b_man.SetLength(length, false);
 	in >> fNodes_b; // border nodes	
 
 	in >> length;
-	fNodes_e.Dimension(length);
+	fNodes_e_man.SetLength(length, false);
 	in >> fNodes_e; // external nodes
 	
 	// receive/send information
@@ -539,7 +541,7 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	
 	// global node map
 	in >> length;
-	fNodeMap.Dimension(length);
+	fNodeMap_man.SetLength(length, false);
 	in >> fNodeMap; // global[local]
 	if (length != (fNodes_i.Length() +
 	               fNodes_b.Length() +
@@ -792,7 +794,7 @@ void PartitionT::MakeInverseMap(const iArrayT& map, iArrayT& inv_map,
 }
 
 /* set node info */
-void PartitionT::ClassifyNodes(const iArrayT& part_map,
+void PartitionT::ClassifyNodes(const ArrayT<int>& part_map,
 	const GraphT& graph)
 {
 	/* work space */
@@ -835,13 +837,13 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map,
 	}
 	
 	/* store */
-	fNodes_i.Dimension(nodes_i.Length());
+	fNodes_i_man.SetLength(nodes_i.Length(), false);
 	nodes_i.CopyInto(fNodes_i);
 
-	fNodes_b.Dimension(nodes_b.Length());
+	fNodes_b_man.SetLength(nodes_b.Length(), false);
 	nodes_b.CopyInto(fNodes_b);	
 
-	fNodes_e.Dimension(nodes_e.Length());
+	fNodes_e_man.SetLength(nodes_e.Length(), false);
 	nodes_e.CopyInto(fNodes_e);
 
 	fCommID.Dimension(commID.Length());
@@ -859,10 +861,8 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map,
 #endif
 	
 	/* generate node map (just number sequentially through _i, _b, _e) */
-	fNodeMap.Dimension(fNodes_i.Length() +
-	                  fNodes_b.Length() +
-	                  fNodes_e.Length()); // sets sequence for local node
-	                                      // numbers - DO NOT CHANGE
+	fNodeMap_man.SetLength(fNodes_i.Length() + fNodes_b.Length() + fNodes_e.Length(), false); 
+	// sets sequence for local node numbers - DO NOT CHANGE
 	
 	/* copy in (with no resequencing) */
 	fNodeMap.CopyPart(0, fNodes_i, 0, fNodes_i.Length());
@@ -870,7 +870,7 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map,
 	fNodeMap.CopyPart(fNodes_i.Length() + fNodes_b.Length(), fNodes_e, 0, fNodes_e.Length());
 }
 
-void PartitionT::ClassifyNodes(const iArrayT& part_map, const ArrayT<const iArray2DT*>& connects_1,
+void PartitionT::ClassifyNodes(const ArrayT<int>& part_map, const ArrayT<const iArray2DT*>& connects_1,
 	const ArrayT<const RaggedArray2DT<int>*>& connects_2)
 {
 	/* node classification */
@@ -994,9 +994,9 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map, const ArrayT<const iArra
 			fCommID[dex++] = ll;
 
 	/* allocate node lists */
-	fNodes_i.Dimension(n_i);
-	fNodes_b.Dimension(n_b);
-	fNodes_e.Dimension(n_e);
+	fNodes_i_man.SetLength(n_i, false);
+	fNodes_b_man.SetLength(n_b, false);
+	fNodes_e_man.SetLength(n_e, false);
 
 	/* sort-em out */
 	n_i = n_b = n_e = 0;
@@ -1013,10 +1013,8 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map, const ArrayT<const iArra
 	}
 	
 	/* generate node map (just number sequentially through _i, _b, _e) */
-	fNodeMap.Dimension(fNodes_i.Length() +
-	                  fNodes_b.Length() +
-	                  fNodes_e.Length()); // sets sequence for local node
-	                                      // numbers - DO NOT CHANGE
+	fNodeMap_man.SetLength(fNodes_i.Length() + fNodes_b.Length() + fNodes_e.Length(), false); 
+	// sets sequence for local node numbers - DO NOT CHANGE
 	
 	/* copy in (with no resequencing) */
 	fNodeMap.CopyPart(0, fNodes_i, 0, fNodes_i.Length());
@@ -1039,7 +1037,7 @@ void PartitionT::MapStatus(StatusT status, const iArrayT& part,
 }
 
 /* set send nodes/partition information */
-void PartitionT::SetReceive(const iArrayT& part_map)
+void PartitionT::SetReceive(const ArrayT<int>& part_map)
 {
 	/* (partition - min) -> index in fCommID */
 	int min;
