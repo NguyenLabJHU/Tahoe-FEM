@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.13.2.5 2005-06-10 23:03:34 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.13.2.6 2005-06-11 01:15:07 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -173,7 +173,7 @@ public:
 	int RegisterNodalAttribute(nArrayT<int>& array);
 
 	/** send output data for writing */
-	void WriteOutput(void);
+	void WriteOutput(int print_step);
 
 private:
 
@@ -259,8 +259,11 @@ private:
 	/** processor bounds */
 	dArray2DT fBounds;
 
-	/** partition information */
+	/** \name partition information */
+	/*@{*/
+	StringT fPartFile;
 	PartitionT* fPartition;
+	/*@}*/
 
 	/** node manager */
 	NodeManagerT* fNodeManager;

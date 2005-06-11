@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.8 2005-06-10 23:03:34 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.9 2005-06-11 01:15:07 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -9,6 +9,7 @@
 #include "SpatialGridT.h"
 #include <float.h>
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 
 /* message types */
 #include "AllGatherT.h"
@@ -40,17 +41,6 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 {
 	/* dimension the attributes array group */
 	fNodalAttributes.Dimension(fModelManager.NumNodes(), false);
-	
-//no map needed for serial calculations
-#if 0
-	//TEMP - with inline coordinate information (serial) this map
-	//       need to be set ASAP
-	if (fComm.Size() == 1)
-	{
-		fProcessor.Dimension(fModelManager.NumNodes());
-		fProcessor = fComm.Rank();
-	}
-#endif
 }
 
 CommManagerT::~CommManagerT(void)
@@ -75,9 +65,10 @@ void CommManagerT::ReadPartition(const StringT& part_file)
 	int token = 1;
 
 	/* check file */
-	ifstreamT part_in('#', part_file);
+	fPartFile = part_file;
+	ifstreamT part_in('#', fPartFile);
 	if (!part_in.is_open()) {
-		cout << "\n " << caller << ": could not open file: " << part_file << endl;
+		cout << "\n " << caller << ": could not open file: " << fPartFile << endl;
 		token = 0;	
 	}
 	if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error reading parition files");
@@ -666,11 +657,26 @@ int CommManagerT::RegisterNodalAttribute(nArrayT<int>& array) {
 }
 
 /* send output data for writing */
-void CommManagerT::WriteOutput(void)
+void CommManagerT::WriteOutput(int print_step)
 {
+	const char caller[] = "CommManagerT::WriteOutput";
+
 	/* write changing part file */
-	if (DecompType() == PartitionT::kSpatial) {
-cout << "CommManagerT::WriteOutput: write changing partition file" << endl;
+	if (PartitionNodesChanging() && fPartition) {
+
+		//TEMP
+		if (DecompType() != PartitionT::kSpatial)
+			ExceptionT::GeneralFail(caller, "changing partition not supported with decomp type %d", DecompType());
+
+		/* open stream */
+		StringT file = fPartFile;
+		file.Append(".ps", print_step, 4);
+		ofstreamT out(file);
+		if (!out.is_open())
+			ExceptionT::GeneralFail(caller, "could not open file \"%s\"", file.Pointer());
+
+		/* write partition information */
+		out << *fPartition << '\n';
 	}
 }
 
@@ -1008,6 +1014,17 @@ cout << "types: AFTER\n" << tmp.wrap(10) << '\n';
 	/* reset partition nodes */
 	CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
 	fPartitionNodes_inv.ClearMap();
+
+	/* update partition */
+	if (fPartition) {
+		iArrayT list(fProcessor.Length());
+		list.SetValueToPosition();
+		iArray2DT connects(list.Length(), 1, list.Pointer());
+		ArrayT<const iArray2DT* > connects_1(1);
+		connects_1[0] = &connects;
+		ArrayT<const RaggedArray2DT<int>* > connects_2;
+		fPartition->Set(fComm.Size(), fPartition->ID(), fProcessor, connects_1, connects_2);
+	}
 
 	/* reset node sets */
 	AutoArrayT<int> ns_tmp;
