@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.h,v 1.6 2005-06-09 00:03:09 paklein Exp $ */
+/* $Id: JoinOutputT.h,v 1.7 2005-06-11 17:57:36 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #ifndef _JOIN_OUTPUT_T_H_
@@ -34,6 +34,9 @@ public:
 	void Join(void);
 
 private:
+
+	/** read partition information */
+	void ReadPartitions(int print_step = -1);
 
 	/* set output */
 	void SetOutput(void);
