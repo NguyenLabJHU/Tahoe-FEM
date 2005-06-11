@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.9 2005-06-11 01:15:07 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.10 2005-06-11 17:53:20 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -983,6 +983,8 @@ void CommManagerT::InitConfigure(iArray2DT& i_values, nVariArray2DT<int>& i_valu
 /* finalize configuration */
 void CommManagerT::CloseConfigure(iArray2DT& i_values, dArray2DT& new_init_coords)
 {
+	const char caller[] = "CommManagerT::CloseConfigure";
+
 	/* dimensions */
 	int npn = new_init_coords.MajorDim();
 	int nns = fModelManager.NumNodeSets();
@@ -1017,13 +1019,26 @@ cout << "types: AFTER\n" << tmp.wrap(10) << '\n';
 
 	/* update partition */
 	if (fPartition) {
-		iArrayT list(fProcessor.Length());
-		list.SetValueToPosition();
-		iArray2DT connects(list.Length(), 1, list.Pointer());
+
+		/* gather info */
+		iArrayT part_processor(fPartitionNodes.Length(), fProcessor.Pointer());
+		iArrayT part_node_map(fPartitionNodes.Length(), fNodeMap.Pointer());
+		iArrayT tmp(fPartitionNodes.Length());
+		tmp.SetValueToPosition();
+		iArray2DT connects(tmp.Length(), 1, tmp.Pointer());
 		ArrayT<const iArray2DT* > connects_1(1);
 		connects_1[0] = &connects;
 		ArrayT<const RaggedArray2DT<int>* > connects_2;
-		fPartition->Set(fComm.Size(), fPartition->ID(), fProcessor, connects_1, connects_2);
+
+		/* update nodes */
+		fPartition->Set(fComm.Size(), fPartition->ID(), part_processor, part_node_map, 
+			connects_1, connects_2);
+			
+		/* update elements */
+		const ArrayT<StringT>& block_ID = fPartition->BlockID();
+		if (block_ID.Length() > 1)
+			ExceptionT::GeneralFail(caller, "expecting only 1 element block %d", block_ID.Length());
+		fPartition->InitElementBlocks(block_ID); /* wipe it */
 	}
 
 	/* reset node sets */
