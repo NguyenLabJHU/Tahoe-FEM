@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.25 2005-06-09 16:59:54 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.26 2005-06-11 17:57:36 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -30,28 +30,6 @@ JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
 	if (!fModel->Initialize(model_file_type, model_file, true))
 		ExceptionT::DatabaseFail(caller, "error opening model file: %s",
 			fModel->DatabaseName().Pointer());
-
-	/* read partition data */
-	for (int i = 0; i < fPartitions.Length(); i++)
-	{
-		/* file name */
-		StringT file;
-		file.Root(model_file);
-		file.Append(".n", fPartitions.Length());
-		file.Append(".part", i);
-
-		/* open stream */
-		ifstreamT part_in(file);
-		if (!part_in.is_open())
-			ExceptionT::GeneralFail(caller, "could not open decomposition file: %s",
-				part_in.filename());
-
-		/* read data */
-		part_in >> fPartitions[i];
-		
-		/* set numbering scope */
-		fPartitions[i].SetScope(PartitionT::kLocal);
-	}
 	
 	/* set output */
 	SetOutput();
@@ -112,6 +90,12 @@ void JoinOutputT::Join(void)
 			{
 				/* output step index */
 				int step_index = (output_set.Changing()) ? 0 : j;
+			
+				/* changing geometry */
+				if (output_set.Changing()) {
+					ReadPartitions(j);
+					SetMaps();
+				}
 			
 				/* initialize */
 				StringT filename;
@@ -249,6 +233,36 @@ void JoinOutputT::Join(void)
 * Private
 *************************************************************************/
 
+/* read partition information */
+void JoinOutputT::ReadPartitions(int print_step)
+{
+	const char caller[] = "JoinOutputT::ReadPartitions";
+
+	/* read partition data */
+	for (int i = 0; i < fPartitions.Length(); i++)
+	{
+		/* file name */
+		StringT file;
+		file.Root(fModel->DatabaseName());
+		file.Append(".n", fPartitions.Length());
+		file.Append(".part", i);
+		if (print_step != -1)
+			file.Append(".ps", print_step, 4);
+
+		/* open stream */
+		ifstreamT part_in(file);
+		if (!part_in.is_open())
+			ExceptionT::GeneralFail(caller, "could not open decomposition file: %s",
+				part_in.filename());
+
+		/* read data */
+		part_in >> fPartitions[i];
+		
+		/* set numbering scope */
+		fPartitions[i].SetScope(PartitionT::kLocal);
+	}
+}
+
 /* set output */
 void JoinOutputT::SetOutput(void)
 {
@@ -274,8 +288,13 @@ tmp.GetLineFromStream(io); // second comment line
 bool has_changing_info = (tmp.StringMatch("[changing]") != NULL);
 io.set_marker('#');
 
+	/* read partition information */
+	int print_step = -1; /* initial decomposition */
+	ReadPartitions(print_step);
+
 	/* construct output sets for each ID */
 	int ID;
+
 	io >> ID;
 	while (io.good())
 	{
@@ -293,6 +312,12 @@ io.set_marker('#');
 		ArrayT<StringT> n_labels;
 		ArrayT<StringT> e_labels;
 		OutputLabels(ID, changing, n_labels, e_labels);
+
+		/* re-read partition information */
+		if (changing && print_step == -1) {
+			print_step = 0;
+			ReadPartitions(print_step);
+		}
 
 		/* no block ID's implies a "free set" otherwise the set
 		 * is tied to element blocks in the geometry file */
@@ -371,10 +396,8 @@ io.set_marker('#');
 				sID.Append(block_ID[0]);
 
 				/* store connectivities in the model manager */
-				if (!fModel->RegisterElementGroup(sID, all_connects, geometry_code, true)) {
-					cout << "\n JoinOutputT::SetOutput: error registering free set with the model manager: " << sID << endl;
-					throw ExceptionT::kDatabaseFail;	
-				}
+				if (!fModel->RegisterElementGroup(sID, all_connects, geometry_code, true))
+					ExceptionT::DatabaseFail(caller, "error registering free set \"%s\" with the model manager", sID.Pointer());
 	
 				/* construct output set */
 				const iArray2DT& connects = fModel->ElementGroup(sID);
@@ -441,8 +464,10 @@ io.set_marker('#');
  * elements: ??? */
 void JoinOutputT::SetMaps(void)
 {
+	const char caller[] = "JoinOutputT::SetMaps";
+
 	/* check */
-	if (!fOutput) throw ExceptionT::kGeneralFail;
+	if (!fOutput) ExceptionT::GeneralFail(caller, "output not set");
 
 	/* output sets data */
 	const ArrayT<OutputSetT*>& element_sets = fOutput->ElementSets();
@@ -533,13 +558,8 @@ void JoinOutputT::SetMaps(void)
 
 				/* check total against output size */
 				if (block_size.Sum() != output_set.NumElements())
-				{
-					cout << "\n JoinOutputT::SetMaps: expecting " << output_set.NumElements() 
-					     << " elements for output ID " << i << ",\n" 
-					     << "     found " << block_size.Sum() 
-					     << " counting by block in partitions" << endl;
-					throw ExceptionT::kSizeMismatch;
-				}
+					ExceptionT::SizeMismatch(caller, "expecting %d elements in output ID %d, found %d counting by block in partitions",
+						output_set.NumElements(), i, block_size.Sum());
 				
 				/* loop over partitions */
 				for (int n = 0; n < num_parts; n++)
@@ -581,6 +601,8 @@ void JoinOutputT::SetMaps(void)
 /* resident partition for each node */
 void JoinOutputT::SetNodePartitionMap(iArrayT& node_partition)
 {
+	const char caller[] = "JoinOutputT::SetNodePartitionMap";
+
 	/* initialize */
 	node_partition.Dimension(fModel->NumNodes());
 	node_partition = -1;
@@ -596,11 +618,7 @@ void JoinOutputT::SetNodePartitionMap(iArrayT& node_partition)
 		{
 			int node = partition_nodes[j];
 			if (node_partition[node] != -1)
-			{
-				cout << "\n JoinOutputT::SetNodePartitionMap: node already assigned "
-				     << node << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+				ExceptionT::GeneralFail(caller, "node %d already assigned", node);
 			else
 				node_partition[node] = i;
 		}
@@ -609,11 +627,7 @@ void JoinOutputT::SetNodePartitionMap(iArrayT& node_partition)
 	/* check map is complete */
 	int count = node_partition.Count(-1);
 	if (count != 0)
-	{
-		cout << "\n JoinOutputT::SetNodePartitionMap: " << count
-		     << " nodes are unassigned" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "%d nodes not assigned", count);
 }
 
 /* determine map from local nodes into global array, such that:
