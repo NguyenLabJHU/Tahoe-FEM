@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.50.8.3 2005-06-10 23:04:23 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.50.8.4 2005-06-11 01:13:24 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -520,6 +520,7 @@ protected:
 	/*@{*/
 	GlobalT::StateT fStatus; /**< state */
 	int fCurrentGroup;       /**< current group being operated on */
+	int fPrintStep;
 	/*@}*/
 	
 	/** \name equation system

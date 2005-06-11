@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.95.2.6 2005-06-10 23:04:23 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.95.2.7 2005-06-11 01:13:24 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -65,6 +65,7 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
+	fPrintStep(-1),
 	fTask(task),
 	fExternIOManager(NULL)
 {
@@ -668,6 +669,7 @@ void FEManagerT::WriteOutput(double time)
 	{
 		/* state */
 		SetStatus(GlobalT::kWriteOutput);
+		fPrintStep++;
 		
 		/* set output time for the external IO manager -> from parallel */
 		if (fExternIOManager) fExternIOManager->SetOutputTime(time);
@@ -681,7 +683,7 @@ void FEManagerT::WriteOutput(double time)
 		out << " Step " << fTimeManager->StepNumber() << " of " << fTimeManager->NumberOfSteps() << '\n';
 
 		/* multi-processor information */
-		fCommManager->WriteOutput();
+		fCommManager->WriteOutput(fPrintStep);
 
 		/* nodes */
 		fNodeManager->WriteOutput();
