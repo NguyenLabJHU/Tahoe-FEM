@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 #
+#
 # Usage:  log.pl [-u user] [[-m mailto] ...] [-s] -f logfile 'dirname file ...'
 #
 #	-u user		- $USER passed from loginfo
@@ -128,7 +129,7 @@ if ($users) {
 
 if (MAIL) {
 #	print MAIL "\n";
-	print MAIL '$Id: log.pl,v 1.4 2005-06-14 18:22:30 paklein Exp $' . "\n";
+	print MAIL '$Id: log.pl,v 1.5 2005-06-14 18:23:09 paklein Exp $' . "\n";
 	print MAIL "===================================================================\n";
 	print MAIL "  Date: $days[$wday] $mos[$mon] $mday, $year @ $hour:" . sprintf("%02d", $min) . "\n";
 	print MAIL "Author: $login\n\n";
