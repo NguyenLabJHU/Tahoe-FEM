@@ -57,7 +57,7 @@ $dostatus = 1;
 # strings to replace repository name with URL to CVSWeb link:
 # searches for $repo_name and replaces it with $cvsweb_URL:
 $repo_short_name = "Sourceforge";
-$repo_name = "/cvs/protected/tahoe";
+$repo_name = "/cvsroot/tahoe";
 $cvsweb_URL = "http://cvs.sourceforge.net/viewcvs.py/tahoe";
 
 # parse command line arguments
@@ -128,7 +128,7 @@ if ($users) {
 
 if (MAIL) {
 #	print MAIL "\n";
-	print MAIL '$Id: log.pl,v 1.3 2005-06-14 18:18:15 paklein Exp $' . "\n";
+	print MAIL '$Id: log.pl,v 1.4 2005-06-14 18:22:30 paklein Exp $' . "\n";
 	print MAIL "===================================================================\n";
 	print MAIL "  Date: $days[$wday] $mos[$mon] $mday, $year @ $hour:" . sprintf("%02d", $min) . "\n";
 	print MAIL "Author: $login\n\n";
