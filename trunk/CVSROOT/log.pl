@@ -111,7 +111,7 @@ $year += 1900;
 
 # open log file for appending
 #
-open(OUT, ">>" . $logfile) || die "Could not open(" . $logfile . "): $!\n";
+#open(OUT, ">>" . $logfile) || die "Could not open(" . $logfile . "): $!\n";
 
 # send mail, if there's anyone to send to!
 #
@@ -122,14 +122,14 @@ if ($users) {
 
 # print out the log Header
 # 
-print OUT "\n";
-print OUT "****************************************\n";
-print OUT "  Date: $days[$wday] $mos[$mon] $mday, $year @ $hour:" . sprintf("%02d", $min) . "\n";
-print OUT "Author: $login\n\n";
+#print OUT "\n";
+#print OUT "****************************************\n";
+#print OUT "  Date: $days[$wday] $mos[$mon] $mday, $year @ $hour:" . sprintf("%02d", $min) . "\n";
+#print OUT "Author: $login\n\n";
 
 if (MAIL) {
 #	print MAIL "\n";
-	print MAIL '$Id: log.pl,v 1.1 2005-06-14 18:12:54 paklein Exp $' . "\n";
+	print MAIL '$Id: log.pl,v 1.2 2005-06-14 18:17:38 paklein Exp $' . "\n";
 	print MAIL "===================================================================\n";
 	print MAIL "  Date: $days[$wday] $mos[$mon] $mday, $year @ $hour:" . sprintf("%02d", $min) . "\n";
 	print MAIL "Author: $login\n\n";
@@ -179,7 +179,7 @@ while (<IN>) {
 		}
 	}
 
-	print OUT $_;
+	#print OUT $_;
 	if (MAIL && $file_info != 2) {
 		print MAIL $_;
 	}
@@ -189,7 +189,7 @@ while (<IN>) {
 }
 close(IN);
 
-print OUT "\n";
+#print OUT "\n";
 if (MAIL) {
 print MAIL "\n";
 }
@@ -200,7 +200,7 @@ if ($dostatus != 0) {
 	while (@files) {
 		$file = shift @files;
 		if ($file eq "-") {
-			print OUT "[input file was '-']\n";
+			#print OUT "[input file was '-']\n";
 			if (MAIL) {
 				print MAIL "[input file was '-']\n";
 			}
@@ -217,7 +217,7 @@ if ($dostatus != 0) {
 			die "cvs exec failed: $!";
 		}
 		while (<RCS>) {
-			print OUT;
+			#print OUT;
 			if (MAIL) {
 				print MAIL;
 			}
@@ -226,8 +226,8 @@ if ($dostatus != 0) {
 	}
 }
 
-close(OUT);
-die "Write to $logfile failed" if $?;
+#close(OUT);
+#die "Write to $logfile failed" if $?;
 
 close(MAIL);
 die "Pipe to $mailcmd failed" if $?;
