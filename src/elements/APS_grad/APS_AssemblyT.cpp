@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.65 2005-06-08 21:40:27 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.66 2005-06-15 00:06:15 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -265,6 +265,26 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_3, 	fMaterial_Data[kkappa0_3] 	); 	
 			break;
 
+		case PlastT::kAPS_kappa_alpha_mac :
+			fEquation_eps	= new APS_kappa_alpha_macT;
+			fPlastMaterial	= new APS_MatlT;		
+			fPlastMaterial->Assign (	APS_MatlT::kMu, 		fMaterial_Data[kMu] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[km_rate] 	); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_1, fMaterial_Data[kgamma0_dot_1]); 
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_2, fMaterial_Data[kgamma0_dot_2]);
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_3, fMaterial_Data[kgamma0_dot_3]); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km1_x, 		fMaterial_Data[km1_x] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km1_y, 		fMaterial_Data[km1_y] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km2_x, 		fMaterial_Data[km2_x] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km2_y, 		fMaterial_Data[km2_y] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km3_x, 		fMaterial_Data[km3_x] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km3_y, 		fMaterial_Data[km3_y] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kl, 			fMaterial_Data[kl] 			); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kH, 			fMaterial_Data[kH] 			);
+			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_1, 	fMaterial_Data[kkappa0_1] 	); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_2, 	fMaterial_Data[kkappa0_2] 	); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_3, 	fMaterial_Data[kkappa0_3] 	); 	
+			break;
 			
 		default :
 			cout << "APS_AssemblyT::Select_Equations() .. ERROR >> bad iPlastScale \n";

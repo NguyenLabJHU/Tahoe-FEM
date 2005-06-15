@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.32 2005-05-03 15:54:40 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.33 2005-06-15 00:06:15 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -32,6 +32,7 @@
 #include "APS_EnumT.h"
 #include "APS_VariableT.h"
 #include "APS_Bal_EqT.h"
+#include "APS_kappa_alpha_macT.h"
 #include "APS_kappa_alphaT.h"
 #include "APS_kappa_gpT.h"
 #include "FEA_FormatT.h"

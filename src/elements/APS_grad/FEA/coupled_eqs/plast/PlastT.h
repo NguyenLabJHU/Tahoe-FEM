@@ -1,4 +1,4 @@
-// $Id: PlastT.h,v 1.6 2004-02-17 19:48:47 raregue Exp $
+// $Id: PlastT.h,v 1.7 2005-06-15 00:06:19 raregue Exp $
 #ifndef _PLAST_T_H_ 
 #define _PLAST_T_H_ 
 
@@ -17,7 +17,7 @@ class PlastT
 {
 public:
 
-	enum Eqn_TypeT 	{ kAPS_kappa_alpha, kAPS_kappa_gp };
+	enum Eqn_TypeT 	{ kAPS_kappa_alpha, kAPS_kappa_gp, kAPS_kappa_alpha_mac };
 
 	PlastT ( void ) { };
 	virtual ~PlastT ( void ) { };
