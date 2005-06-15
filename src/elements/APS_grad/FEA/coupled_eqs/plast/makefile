@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2004-03-03 06:39:26 paklein Exp $
+# $Id: makefile,v 1.5 2005-06-15 20:06:10 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,6 +21,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	APS_kappa_alphaT.o \
+	APS_kappa_alpha_macT.o \
 	APS_kappa_gpT.o
 
 OBJ_LINK = $(OBJ)
@@ -42,6 +43,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	APS_kappa_alphaT.cpp \
+	APS_kappa_alpha_macT.cpp \
 	APS_kappa_gpT.cpp
 
 ##################### (3) headers
@@ -55,6 +57,7 @@ SRC = \
 #
 HDR = \
 	APS_kappa_alphaT.h \
+	APS_kappa_alpha_macT.h \
 	APS_kappa_gpT.h \
 	PlastT.h
 

@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alpha_macT.cpp,v 1.1 2005-06-15 00:06:19 raregue Exp $
+// $Id: APS_kappa_alpha_macT.cpp,v 1.2 2005-06-15 20:06:10 raregue Exp $
 #include "APS_kappa_alpha_macT.h"
 
 using namespace Tahoe;
@@ -221,11 +221,8 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kxi_1] = S[kS_1];
 	S[kxi_1] *= S[kxi_curl_term];
 	//S[kxi].Macaulay( S[kxi] );
-	//if (S[kxi_1]<0.0) S[kxi_1] = 0.0;
-	S[ksignxi_1] = S[kxi_1];
-	S[kabs_xi_1].Abs( S[kxi_1] );
-	if ( S[kabs_xi_1] > C[ksmall]) S[ksignxi_1] /= S[kabs_xi_1];
-	
+	if (S[kxi_1]<0.0) S[kxi_1] = 0.0;
+		
 	// save relative stress
 	V_state[kstate](0) = S[kxi_1];
 	
@@ -241,20 +238,19 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp10] = S[kdel_gamma1_n];
 	S[kS_Temp9] = C[kkappa0_1];
 	S[kS_Temp9] += S[kIV_kappa1_n];
-	S[kS_Temp1] = S[kabs_xi_1];
+	S[kS_Temp1] = S[kxi_1];
 	S[kS_Temp1] /= S[kS_Temp9];
 	S[kS_Temp12].Pow(S[kS_Temp1],C[km_rate]);
 	S[kS_Temp12] *= C[kgamma0_dot_1];
 	S[kS_Temp12] *= delta_t;
-	S[kS_Temp12] *= S[ksignxi_1];
 	S[kS_Temp10] -= S[kS_Temp12];
-	S[kS_Temp11].Abs( S[kS_Temp10] );
 	
 	//initialize deldel_gamma1 and del_gamma1 before iteration
 	S[kdeldel_gamma1] = 0.0;
 	S[kdel_gamma1] = S[kdel_gamma1_n];
 	
 	/* iterate to solve for del_gamma1 */
+	S[kS_Temp11].Abs( S[kS_Temp10] );
 	while (S[kS_Temp11] > C[ksmall]) {
 
 	//calculate jacobian of Newton-Raphson iteration
@@ -291,12 +287,11 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp10] = S[kdel_gamma1];
 	S[kS_Temp9] = C[kkappa0_1];
 	S[kS_Temp9] += S[kIV_kappa1];
-	S[kS_Temp1] = S[kabs_xi_1];
+	S[kS_Temp1] = S[kxi_1];
 	S[kS_Temp1] /= S[kS_Temp9];
 	S[kS_Temp12].Pow(S[kS_Temp1],C[km_rate]);
 	S[kS_Temp12] *= C[kgamma0_dot_1];
 	S[kS_Temp12] *= delta_t;
-	S[kS_Temp12] *= S[ksignxi_1];
 	S[kS_Temp10] -= S[kS_Temp12];
 	S[kS_Temp11].Abs( S[kS_Temp10] );
 	
@@ -336,10 +331,7 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kxi_2] = S[kS_2];
 	S[kxi_2] *= S[kxi_curl_term];
 	//S[kxi].Macaulay( S[kxi] );
-	//if (S[kxi_2]<0.0) S[kxi_2] = 0.0;
-	S[ksignxi_2] = S[kxi_2];
-	S[kabs_xi_2].Abs( S[kxi_2] );
-	if ( S[kabs_xi_2] > C[ksmall]) S[ksignxi_2] /= S[kabs_xi_2];
+	if (S[kxi_2]<0.0) S[kxi_2] = 0.0;
 	
 	// save relative stress
 	V_state[kstate](3) = S[kxi_2];
@@ -356,12 +348,11 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp10] = S[kdel_gamma2_n];
 	S[kS_Temp9] = C[kkappa0_2];
 	S[kS_Temp9] += S[kIV_kappa2_n];
-	S[kS_Temp1] = S[kabs_xi_2];
+	S[kS_Temp1] = S[kxi_2];
 	S[kS_Temp1] /= S[kS_Temp9];
 	S[kS_Temp12].Pow(S[kS_Temp1],C[km_rate]);
 	S[kS_Temp12] *= C[kgamma0_dot_2];
 	S[kS_Temp12] *= delta_t;
-	S[kS_Temp12] *= S[ksignxi_2];
 	S[kS_Temp10] -= S[kS_Temp12];
 	S[kS_Temp11].Abs( S[kS_Temp10] );
 	
@@ -406,12 +397,11 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp10] = S[kdel_gamma2];
 	S[kS_Temp9] = C[kkappa0_2];
 	S[kS_Temp9] += S[kIV_kappa2];
-	S[kS_Temp1] = S[kabs_xi_2];
+	S[kS_Temp1] = S[kxi_2];
 	S[kS_Temp1] /= S[kS_Temp9];
 	S[kS_Temp12].Pow(S[kS_Temp1],C[km_rate]);
 	S[kS_Temp12] *= C[kgamma0_dot_2];
 	S[kS_Temp12] *= delta_t;
-	S[kS_Temp12] *= S[ksignxi_2];
 	S[kS_Temp10] -= S[kS_Temp12];
 	S[kS_Temp11].Abs( S[kS_Temp10] );
 	
@@ -453,10 +443,7 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kxi_3] = S[kS_3];
 	S[kxi_3] *= S[kxi_curl_term];
 	//S[kxi].Macaulay( S[kxi] );
-	//if (S[kxi_3]<0.0) S[kxi_3] = 0.0;
-	S[ksignxi_3] = S[kxi_3];
-	S[kabs_xi_3].Abs( S[kxi_3] );
-	if ( S[kabs_xi_3] > C[ksmall]) S[ksignxi_3] /= S[kabs_xi_3];
+	if (S[kxi_3]<0.0) S[kxi_3] = 0.0;
 	
 	// save relative stress
 	V_state[kstate](6) = S[kxi_3];
@@ -473,12 +460,11 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp10] = S[kdel_gamma3_n];
 	S[kS_Temp9] = C[kkappa0_3];
 	S[kS_Temp9] += S[kIV_kappa3_n];
-	S[kS_Temp1] = S[kabs_xi_3];
+	S[kS_Temp1] = S[kxi_3];
 	S[kS_Temp1] /= S[kS_Temp9];
 	S[kS_Temp12].Pow(S[kS_Temp1],C[km_rate]);
 	S[kS_Temp12] *= C[kgamma0_dot_3];
 	S[kS_Temp12] *= delta_t;
-	S[kS_Temp12] *= S[ksignxi_3];
 	S[kS_Temp10] -= S[kS_Temp12];
 	S[kS_Temp11].Abs( S[kS_Temp10] );
 	
@@ -523,12 +509,11 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp10] = S[kdel_gamma3];
 	S[kS_Temp9] = C[kkappa0_3];
 	S[kS_Temp9] += S[kIV_kappa3];
-	S[kS_Temp1] = S[kabs_xi_3];
+	S[kS_Temp1] = S[kxi_3];
 	S[kS_Temp1] /= S[kS_Temp9];
 	S[kS_Temp12].Pow(S[kS_Temp1],C[km_rate]);
 	S[kS_Temp12] *= C[kgamma0_dot_3];
 	S[kS_Temp12] *= delta_t;
-	S[kS_Temp12] *= S[ksignxi_3];
 	S[kS_Temp10] -= S[kS_Temp12];
 	S[kS_Temp11].Abs( S[kS_Temp10] );
 	
@@ -574,7 +559,7 @@ void APS_kappa_alpha_macT::Form_VB_List (void)
 	
 		/* slip system 1 */
 		// calculate contributions to stiffness matricies
-		S[kS_Temp8].Abs( S[kxi_1] );
+		S[kS_Temp8] = S[kxi_1];
 		S[kS_Temp11] = C[kkappa0_1];
 		S[kS_Temp11] += S[kIV_kappa1];
 		S[kS_Temp8] /= S[kS_Temp11];
@@ -622,7 +607,7 @@ void APS_kappa_alpha_macT::Form_VB_List (void)
  		
  		/* slip system 2 */
  		// calculate contributions to stiffness matricies
-		S[kS_Temp8].Abs( S[kxi_2] );
+		S[kS_Temp8] = S[kxi_2];
 		S[kS_Temp11] = C[kkappa0_2];
 		S[kS_Temp11] += S[kIV_kappa2];
 		S[kS_Temp8] /= S[kS_Temp11];
@@ -670,7 +655,7 @@ void APS_kappa_alpha_macT::Form_VB_List (void)
  		 		
  		/* slip system 3 */
  		// calculate contributions to stiffness matricies
-		S[kS_Temp8].Abs( S[kxi_3] );
+		S[kS_Temp8] = S[kxi_3];
 		S[kS_Temp11] = C[kkappa0_3];
 		S[kS_Temp11] += S[kIV_kappa3];
 		S[kS_Temp8] /= S[kS_Temp11];
