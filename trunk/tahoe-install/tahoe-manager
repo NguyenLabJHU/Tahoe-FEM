@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.47 2005-05-25 17:00:13 paklein Exp $
+# $Id: tahoe-manager,v 1.48 2005-06-17 22:47:18 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -9,6 +9,12 @@
 #------------------------------------------------------------------------------
 
 use Cwd; # $home = cwd();
+
+# tahoe server
+$tahoe = "tahoe.ca.sandia.gov"; 
+
+# Sourceforge server
+$tahoe_sf = "cvs.sourceforge.net"; 
 
 # prefix on macros in the makefiles
 %module2define = qw(
@@ -30,27 +36,29 @@ qhull  QHULL_
 contrib NODEFINE
 benchmark_XML NODEFINE
 SIMOD SIMOD_
+bravais BRAVAIS_
 );
 
 # location of module on the server
 %module2repo = qw(
-expat /cvs/protected/tahoe
-toolbox /cvs/protected/tahoe
-tahoe /cvs/protected/tahoe
-macros /cvs/protected/tahoe
-spooles /cvs/protected/tahoe
-spoolesMPI /cvs/protected/tahoe
-spoolesMT /cvs/protected/tahoe
-metis /cvs/protected/tahoe
-aztec /cvs/protected/tahoe
-f2c /cvs/protected/tahoe
-CBLAS /cvs/protected/tahoe
-access /cvs/protected/tahoe
-development /cvs/private/tahoe
-Sierra /cvs/private/tahoe
-qhull /cvs/private/tahoe
-benchmark_XML /cvs/protected/tahoe
-contrib /cvs/protected/tahoe
+expat		cvs.sourceforge.net:/cvsroot/tahoe
+toolbox		cvs.sourceforge.net:/cvsroot/tahoe
+tahoe		cvs.sourceforge.net:/cvsroot/tahoe
+macros		cvs.sourceforge.net:/cvsroot/tahoe
+spooles		cvs.sourceforge.net:/cvsroot/tahoe
+spoolesMPI	cvs.sourceforge.net:/cvsroot/tahoe
+spoolesMT	cvs.sourceforge.net:/cvsroot/tahoe
+metis		cvs.sourceforge.net:/cvsroot/tahoe
+aztec		cvs.sourceforge.net:/cvsroot/tahoe
+f2c			cvs.sourceforge.net:/cvsroot/tahoe
+CBLAS		cvs.sourceforge.net:/cvsroot/tahoe
+access		cvs.sourceforge.net:/cvsroot/tahoe
+development	tahoe.ca.sandia.gov:/cvs/private/tahoe
+Sierra		tahoe.ca.sandia.gov:/cvs/private/tahoe
+qhull		tahoe.ca.sandia.gov:/cvs/private/tahoe
+benchmark_XML	cvs.sourceforge.net:/cvsroot/tahoe
+contrib		cvs.sourceforge.net:/cvsroot/tahoe
+bravais		cvs.sourceforge.net:/cvsroot/tahoe
 );
 
 # "touch" targets
@@ -108,9 +116,6 @@ SIMOD  SIMOD_HOME
 cvs     cvs
 http	curl
 );
-
-# tahoe server
-$tahoe = "tahoe.ca.sandia.gov"; 
 
 # default configuration file
 $config_file = "./.tahoe_config";
@@ -170,7 +175,7 @@ foreach my $key (sort(keys %ENV)) {
 		if ($key =~ /$lib/ ) { 
 			my $loc = $ENV{$key};
 			print "* found system library $lib \@ $loc \n"; 
-			push(@syslibs,$lib);
+#			push(@syslibs,$lib);
 		}
 	}
 }
@@ -279,6 +284,7 @@ while(<CONFIG>) {
         	if (/^\#/ ){ 
 			if ($type  =~ /CONNECTION/) {$connection = $tmp_list[0];}
 			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_name = $tmp_list[0]; }
+			elsif ($type =~ /TAHOE_SF_LOGIN/) { $tahoe_sf_name = $tmp_list[0]; }
 			elsif  ($type  =~ /PROXY/){$proxy = $tmp_list[0];}
 			elsif  ($type  =~ /ARCH/){$arch = $tmp_list[0];}
 			elsif  ($type  =~ /USE_DEFAULT/){$use_default_arch = $tmp_list[0];}
@@ -333,21 +339,25 @@ foreach my $key (sort(keys %ENV)) {
 # connection type
 $proxy = "NONE";
 unless(defined($connection)) { 
-	@connections = ("cvs", "http");
-	my $i=0;
-	foreach my $choice (@connections) { 
-		print "$i $choice\n"; 
-		$i++; 
-	}
-	my $connect_default = 1;
-	$connect_default = 0 if (defined($cvs_rsh));
-	print "connection type [$connect_default]: ";
-	$i = <STDIN>; 
-	chomp($i);
-	if (length($i) == 0) { # default
-		$i = $connect_default;
-	}
-	$connection = $connections[$i];
+
+# all connections are cvs now
+#	@connections = ("cvs", "http");
+#	my $i=0;
+#	foreach my $choice (@connections) { 
+#		print "$i $choice\n"; 
+#		$i++; 
+#	}
+#	my $connect_default = 1;
+#	$connect_default = 0 if (defined($cvs_rsh));
+#	print "connection type [$connect_default]: ";
+#	$i = <STDIN>; 
+#	chomp($i);
+#	if (length($i) == 0) { # default
+#		$i = $connect_default;
+#	}
+#	$connection = $connections[$i];
+	$connection = "cvs";
+
 	if ($connection =~ "http") { # ask for proxy
 		print "http proxy (proxyhost:port) [NONE]:";
 		$proxy = <STDIN>;
@@ -368,10 +378,27 @@ unless(defined($connection)) {
 	}
 }
 
-# Tahoe server login name
+# server login names
 if ($connection =~ "cvs") {
-	print "Tahoe server username [$tahoe_name]: ";
+
+	# Sourceforge 
+	$tahoe_sf_name = "anonymous";
+	print "Sourceforge server username [$tahoe_sf_name]: ";
 	my $name = <STDIN>; chomp($name);
+	if (length($name) > 0) {
+		$tahoe_sf_name = $name;
+	}
+	if ($tahoe_sf_name eq "anonymous") { # do anonymous login once now
+		print "\nAccess as \"anonymous\" to Sourceforge requires you to login once.\n";
+		print "Press [ENTER] at the prompt to login using an empty password.\n";
+		system("cvs -d :pserver:$tahoe_sf_name\@$tahoe_sf:/cvsroot/tahoe login");
+		print "\n";
+	}
+
+	# tahoe server
+	$tahoe_name = "NONE";
+	print "Tahoe server username [NONE]: ";
+	$name = <STDIN>; chomp($name);
 	if (length($name) > 0) {
 		$tahoe_name = $name;
 	}
@@ -477,6 +504,7 @@ sub update_cvs {
 		@run_modules = @modules;
 	}
 
+	my $logged_in = 0;
 	unlink("cvs.log");
 	foreach my $dir (@run_modules) {
 
@@ -486,14 +514,22 @@ sub update_cvs {
 			my $cwd = cwd();
 			print "\tupdating $dir...";
 			chdir($dir);
-			#system("cvs update -Pd > ../cvs.log 2>&1");
 			system("cvs -q update -Pd > $cwd/cvs.log");
 			chdir($cwd);
 		} else {
 			print "\tchecking out $dir...";
 			my $repo = $module2repo{$dir};
-			#system("cvs -d $tahoe_name\@$tahoe:$repo checkout $dir > cvs.log 2>&1");
-			system("cvs -d $tahoe_name\@$tahoe:$repo -q checkout $dir > cvs.log");
+			if ($repo =~ /$tahoe/) { # on Tahoe server
+				if ($tahoe_name !~ /NONE/) { # must have an account
+					system("cvs -d $tahoe_name\@$repo -q checkout $dir > cvs.log");
+				}
+			} else { # on Sourceforge
+				if ($tahoe_sf_name =~ /anonymous/) { # anonymous access
+					system("cvs -d :pserver:$tahoe_sf_name\@$repo -q checkout $dir >> cvs.log");
+				} else { # developer account
+					system("cvs -d $tahoe_sf_name\@$repo -q checkout $dir > cvs.log");
+				}
+			}
 		}
 		# check for failures
 		my ($errors, $patches, $updates, $merges) = (0, 0, 0, 0);
@@ -1017,6 +1053,7 @@ sub my_which{
 sub write_config {
 	open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
 	print CONFIG  "# TAHOE_LOGIN\n$tahoe_name\n\n";
+	print CONFIG  "# TAHOE_SF_LOGIN\n$tahoe_sf_name\n\n";
 	print CONFIG  "# CONNECTION\n$connection\n\n";
 	print CONFIG  "# PROXY\n$proxy\n\n";
 	print CONFIG  "# ARCHITECTURE\n$arch\n\n";
@@ -1030,10 +1067,20 @@ sub write_config {
 ##############################################################################
 sub config_optional_modules {
 
+	# private modules on Tahoe server
+	my @myoptionalmodules = ();
+	if ($tahoe_name !~ /NONE/) {
+		@myoptionalmodules = @optionalmodules;
+	} else { # filter out
+		foreach my $module (@optionalmodules) {
+			push (@myoptionalmodules, $module) if ($module2repo{$module} !~ /$tahoe/);
+		}
+	}
+
 	# collect current status of optional modules
-	my @opt_mod_off = complement(\@optionalmodules, \@modules);	
+	my @opt_mod_off = complement(\@myoptionalmodules, \@modules);	
 	my @status = ();
-	foreach my $module (@optionalmodules) {
+	foreach my $module (@myoptionalmodules) {
 		my @tmp = ($module);
 		my @inter = intersection(\@opt_mod_off, \@tmp);
 		if (scalar(@inter) == 1) {
@@ -1049,9 +1096,9 @@ sub config_optional_modules {
 	while ($done == 0) {
 		print "\nOptional modules:\n";
 		my $i = 0;
-		while ($i < scalar(@optionalmodules)) {
+		while ($i < scalar(@myoptionalmodules)) {
 			print " " if ($i < 10);
-			print "$i $status[$i] $optionalmodules[$i]\n";
+			print "$i $status[$i] $myoptionalmodules[$i]\n";
 			$i++;
 		}
 		print "\n";
@@ -1096,8 +1143,8 @@ sub config_optional_modules {
 	my @addmodules = ();
 	@modules = @defaultmodules; # reset
 	my $i = 0;
-	while ($i < scalar(@optionalmodules)) {
-		my $module = $optionalmodules[$i];
+	while ($i < scalar(@myoptionalmodules)) {
+		my $module = $myoptionalmodules[$i];
 		if ($status[$i] eq " ON") {
 			push(@modules, $module);
 			push(@addmodules, $module) if ($oldstatus[$i] eq "OFF");
@@ -1119,7 +1166,7 @@ sub config_optional_modules {
 				push(@modules, $mod);
 				update($mod) if (! -d $mod && !defined($module2syslib{$mod})); # fetch new modules to determine dependencies
 			}
-			@opt_mod_off = complement(\@optionalmodules, \@modules);
+			@opt_mod_off = complement(\@myoptionalmodules, \@modules);
 		}
 	
 		# optional modules not included
@@ -1145,15 +1192,15 @@ sub config_optional_modules {
 					push (@modules, $module);
 					update($module) if (! -d $module); # fetch new modules to determine dependencies
 				}
-				@opt_mod_off = complement(\@optionalmodules, \@modules);
+				@opt_mod_off = complement(\@myoptionalmodules, \@modules);
 			} else { $done = 1; }
 		} else { $done = 1; }
 	}	
 
 	# collect current final status of optional modules
-	@opt_mod_off = complement(\@optionalmodules, \@modules);	
+	@opt_mod_off = complement(\@myoptionalmodules, \@modules);	
 	@status = ();
-	foreach my $module (@optionalmodules) {
+	foreach my $module (@myoptionalmodules) {
 		my @tmp = ($module);
 		my @inter = intersection(\@opt_mod_off, \@tmp);
 		if (scalar(@inter) == 1) {
@@ -1166,8 +1213,8 @@ sub config_optional_modules {
 	# collect list of settings that have changed
 	my @changedmodules = ();
 	my $j = 0;
-	while ($j < scalar(@optionalmodules)) {
-		push(@changedmodules, $optionalmodules[$j]) if ($status[$j] ne $oldstatus[$j]);
+	while ($j < scalar(@myoptionalmodules)) {
+		push(@changedmodules, $myoptionalmodules[$j]) if ($status[$j] ne $oldstatus[$j]);
 		$j++;
 	}
 
