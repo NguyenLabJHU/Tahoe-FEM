@@ -1,4 +1,4 @@
-#! /tools/ns/bin/perl5
+#! /usr/bin/perl
 # -*- Mode: perl; indent-tabs-mode: nil -*-
 #
 # The contents of this file are subject to the Netscape Public
@@ -92,7 +92,7 @@ if ($flag_debug) {
 }
 
 if ($output2mail) {
-    &mail_notification;
+    &my_mail_notification;
 } else {
     &stdout_notification;
 }
@@ -311,6 +311,36 @@ sub process_tag_command {
 
 
 sub do_commitinfo {
+}
+
+sub my_mail_notification {
+
+	# tag of commit
+	my $mailcmd = "";
+    if ($flag_tagcmd) {
+		$mailcmd = "| mail -s 'cvs tag in $repository' @mailto";
+    } else {
+		$mailcmd = "| mail -s 'cvs commit $repository' @mailto";
+    }
+
+	# open stream
+	open(MAIL, $mailcmd) || die "Could not Exec($mailcmd): $!\n";
+
+	# compose message
+    print MAIL "MAIL FROM: bonsai-daemon\@$hostname\n";
+    print MAIL "RCPT TO: root\@localhost\n";
+    print MAIL "DATA\n";
+    if ($flag_tagcmd) {
+        print MAIL "Subject:  cvs tag in $repository\n";
+    } else {
+        print MAIL "Subject:  cvs commit to $repository\n";
+    }
+    print MAIL "\n";
+    print MAIL @outlist, "\n";
+    print MAIL ".\n";
+
+	# send it
+	close(MAIL);	
 }
 
 sub mail_notification {
