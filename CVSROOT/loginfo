@@ -25,6 +25,6 @@
 #DEFAULT (echo ""; id; echo %s; date; cat) >> $CVSROOT/CVSROOT/commitlog
 # or
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
-ALL /cvsroot/sitedocs/CVSROOT/cvstools/syncmail %{sVv} paklein@sandia.gov tahoe-cvs_mail@lists.sourceforge.net
-ALL perl $CVSROOT/CVSROOT/log.pl %s -f $CVSROOT/CVSROOT/commitlog -m paklein@sandia.gov -m tahoe-cvs_mail@lists.sourceforge.net
+#ALL /cvsroot/sitedocs/CVSROOT/cvstools/syncmail %{sVv} paklein@sandia.gov tahoe-cvs_mail@lists.sourceforge.net
+ALL perl $CVSROOT/CVSROOT/log.pl %s -f $CVSROOT/CVSROOT/commitlog -m paklein@sandia.gov -m tahoe-cvs_mail@lists.sourceforge.net -m lists@tahoe.ca.sandia.gov
 ALL perl $CVSROOT/CVSROOT/dolog.pl -r /cvsroot/tahoe paklein@sandia.gov
