@@ -38,7 +38,7 @@
 # "bonsai-checkin-daemon" will get piped to handleCheckinMail.pl.
 
 use bytes;
-use Mail::Mailer;
+#use Mail::Mailer;
 
 $username = $ENV{"CVS_USER"} || getlogin || (getpwuid($<))[0] || "nobody";
 $envcvsroot = $ENV{'CVSROOT'};
@@ -343,23 +343,23 @@ sub my_mail_notification {
 	close(MAIL);	
 }
 
-sub mail_notification {
-    chop(my $hostname = `hostname`);
-    my $mailer = Mail::Mailer->new("smtp", Server => $mailhost) ||
-        die("Failed to send mail notification\n");
-    my %headers;
-
-    $headers{'From'} = "bonsai-daemon\@$hostname";
-    $headers{'To'} = \@mailto;
-    if ($flag_tagcmd) {
-        $headers{'Subject'} = "cvs tag in $repository";
-    } else {
-        $headers{'Subject'} = "cvs commit to $repository";
-    }
-    $mailer->open(\%headers);
-    print $mailer @outlist;
-    $mailer->close;
-}
+#sub mail_notification {
+#    chop(my $hostname = `hostname`);
+#    my $mailer = Mail::Mailer->new("smtp", Server => $mailhost) ||
+#        die("Failed to send mail notification\n");
+#    my %headers;
+#
+#    $headers{'From'} = "bonsai-daemon\@$hostname";
+#    $headers{'To'} = \@mailto;
+#    if ($flag_tagcmd) {
+#        $headers{'Subject'} = "cvs tag in $repository";
+#    } else {
+#        $headers{'Subject'} = "cvs commit to $repository";
+#    }
+#    $mailer->open(\%headers);
+#    print $mailer @outlist;
+#    $mailer->close;
+#}
 
 sub stdout_notification { 
     chop(my $hostname = `hostname`);
