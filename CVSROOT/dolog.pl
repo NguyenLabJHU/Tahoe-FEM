@@ -315,6 +315,8 @@ sub do_commitinfo {
 
 sub my_mail_notification {
 
+	chop(my $hostname = `hostname`);
+
 	# tag of commit
 	my $mailcmd = "";
     if ($flag_tagcmd) {
