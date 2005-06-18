@@ -89,7 +89,7 @@ $modulepath = shift @files;
 # get a login name for the guy doing the commit....
 #
 if ($login eq '') {
-	$login = getlogin || (getpwuid($<))[0] || "nobody";
+	$login = getlogin || (getpwuid($<))[0] || "paklein";
       }
 #
 # bounce mail off sourceforge server forwarding
@@ -129,7 +129,7 @@ if ($users) {
 
 if (MAIL) {
 #	print MAIL "\n";
-	print MAIL '$Id: log.pl,v 1.6 2005-06-18 15:36:53 paklein Exp $' . "\n";
+	print MAIL '$Id: log.pl,v 1.7 2005-06-18 15:53:23 paklein Exp $' . "\n";
 	print MAIL "===================================================================\n";
 	print MAIL "  Date: $days[$wday] $mos[$mon] $mday, $year @ $hour:" . sprintf("%02d", $min) . "\n";
 	print MAIL "Author: $login\n\n";
@@ -173,7 +173,7 @@ while (<IN>) {
 			
 			if ($one_file =~ /[a-zA-Z\.0-9_]+/) {
 				if (MAIL) {
-					print MAIL "    $one_file: <$mod_dir/$one_file >\n";
+					print MAIL "    $one_file: <$mod_dir/$one_file>\n";
 				}
 			}
 		}
