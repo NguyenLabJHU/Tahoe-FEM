@@ -26,22 +26,5 @@
 # spread out over the entire source repository.
 #tahoeAll -a CBLAS PSPASES aztec benchmark_XML bravais contrib expat f2c guide.user macros metis spooles spoolesMPI spoolesMT tahoe tahoe-install toolbox
 tahoeAll -a tahoe-install toolbox
-CBLAS CBLAS
-PSPASES PSPASES
-aztec aztec
-benchmark_XML benchmark_XML
-bravais bravais
-contrib contrib
-expat expat
-f2c f2c
-guide.user guide.user
-macros macros
-metis metis
-spooles spooles
-spoolesMPI spoolesMPI
-spoolesMT spoolesMT
-tahoe tahoe
 tahoe-install tahoe-install
 toolbox toolbox
-tahoe_fracture -a tahoe/src/elements tahoe/src/main tahoe/src/primitives !tahoe/src/elements/continuum !tahoe/src/elements/contact !tahoe/src/elements/particle !tahoe/src/elements/spring !tahoe/src/elements/bridging_scale !tahoe/src/elements/adhesion 
-fracture_interface_release -a tahoe_fracture toolbox macros
