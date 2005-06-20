@@ -2,7 +2,7 @@
 # GNU
 #
 MAKE        = make
-DEFINES     = -DNON_UNIX_STDIO 
+DEFINES     = -DNON_UNIX_STDIO -DEIGHT_BYTE_REAL
 COMP_C      = /usr/local/gcc-3.1/bin/gcc
 COMP_CC     = /usr/local/gcc-3.1/bin/g++
 COMP_F      = /usr/local/gcc-3.1/bin/g77

@@ -1,8 +1,8 @@
-# $Id: GNU-GCC3.2.mpi.macros,v 1.1 2005-05-06 20:53:23 raregue Exp $
+# $Id: GNU-GCC3.2.mpi.macros,v 1.2 2005-06-20 23:02:30 paklein Exp $
 # GNU
 #
 MAKE        = make
-DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__POSIX_THREADS__
+DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
 COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
