@@ -1,8 +1,8 @@
-# $Id: GNU-GCC3.2.macros,v 1.12 2005-04-18 07:10:13 paklein Exp $
+# $Id: GNU-GCC3.2.macros,v 1.13 2005-06-20 23:02:30 paklein Exp $
 # GNU
 #
 MAKE        = make
-DEFINES     = -DNON_UNIX_STDIO -D__POSIX_THREADS__
+DEFINES     = -DNON_UNIX_STDIO -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
