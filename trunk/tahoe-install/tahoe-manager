@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.49 2005-06-19 07:58:50 paklein Exp $
+# $Id: tahoe-manager,v 1.50 2005-06-21 06:13:58 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -478,11 +478,13 @@ sub update{
 	if ($connection =~ "cvs") {
 
 		# check if tahoe-manager is out of date
-		unlink("cvs.log");
-		system("cvs -q -n update tahoe-manager > cvs.log");
-		open(IN, "cvs.log"); my @lines = <IN>; my $file = "@lines"; close(IN);
-		if ($file =~ /tahoe-manager/) {
-			print STDOUT "*\n* NOTE: \"tahoe-manager\" has changed. Run \"selfupdate\" to update.\n*\n";
+		if (-e "CVS/Root") {
+			unlink("cvs.log");
+			system("cvs -q -n update tahoe-manager > cvs.log");
+			open(IN, "cvs.log"); my @lines = <IN>; my $file = "@lines"; close(IN);
+			if ($file =~ /tahoe-manager/) {
+				print STDOUT "*\n* NOTE: \"tahoe-manager\" has changed. Run \"selfupdate\" to update.\n*\n";
+			}
 		}
 
 		# update
