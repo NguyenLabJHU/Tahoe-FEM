@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.23 2005-05-21 06:43:30 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.24 2005-06-23 20:17:12 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -78,8 +78,11 @@ public:
 	virtual void RegisterOutput(void);
 	virtual void WriteOutput(void);
 
-	/* compute specified output parameter and send for smoothing */
+	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
+
+	/** resolve the output variable label into the output code and offset within the output. */
+	virtual void ResolveOutputVariable(const StringT& variable, int& code, int& offset);
 
 #ifdef _FRACTURE_INTERFACE_LIBRARY_	
 	/* Initialize fields passed in from the outside */
