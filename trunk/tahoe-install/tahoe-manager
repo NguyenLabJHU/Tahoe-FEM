@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.50 2005-06-21 06:13:58 paklein Exp $
+# $Id: tahoe-manager,v 1.51 2005-06-23 16:39:01 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -747,7 +747,7 @@ sub init {
 
 				# generate makefile
 				print "\tcreating makefile in $dir...";
-				fillin_makefile();
+				fillin_makefile($dir);
 				print " ok\n";
 			}
 			chdir $cwd; 
@@ -835,7 +835,7 @@ sub test{
 	my $cwd = cwd();
 	chdir("benchmark_XML/comparator");
 	print("\tbuilding comparator...");
-	fillin_makefile(); system("make init build > build.log 2>&1");
+	fillin_makefile("comparator"); system("make init build > build.log 2>&1");
 	die "error building compare\n" if (! -x "compare");
 	print(" ok\n");
 	chdir("$cwd/benchmark_XML");
@@ -945,6 +945,9 @@ sub by_depend {
 ##############################################################################
 sub fillin_makefile{
 
+	# working directory
+	my $dir = shift(@_);
+
 	# no config file in this module
 	my $mod_arch = $arch;	
 	if (! -e ".tahoe_config") {
@@ -1023,7 +1026,7 @@ sub fillin_makefile{
 		}
 
 		# UP_TO_DATE modules - tahoe module only
-		if ($path =~ /tahoe-install\/tahoe/ && $line =~ /UP_TO_DATE\ =\ NONE/) {
+		if ($dir eq "tahoe" && $line =~ /UP_TO_DATE\ =\ NONE/) {
 			$up_to_date = "";
 			foreach $module (@modules) {
 				if (defined($up_to_date_modules{$module})) {
