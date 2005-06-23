@@ -1,0 +1,21 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 3
+ Labels:
+	D_X
+	D_Y
+	Tmag
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 3
+ Number of nodes . . . . . . . . . . . . . . . . = 8
+ Number of elements. . . . . . . . . . . . . . . = 3
+
+ O U T P U T   D A T A :  T O C
+K.1.iso.io1.run.ps0000
+K.1.iso.io1.run.ps0001
