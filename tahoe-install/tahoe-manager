@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.51 2005-06-23 16:39:01 paklein Exp $
+# $Id: tahoe-manager,v 1.52 2005-06-23 19:46:02 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -528,9 +528,9 @@ sub update_cvs {
 				}
 			} else { # on Sourceforge
 				if ($tahoe_sf_name =~ /anonymous/) { # anonymous access
-					system("cvs -d :pserver:$tahoe_sf_name\@$repo -q checkout $dir >> cvs.log");
+					system("cvs -z3 -d :pserver:$tahoe_sf_name\@$repo -q checkout $dir >> cvs.log");
 				} else { # developer account
-					system("cvs -d $tahoe_sf_name\@$repo -q checkout $dir > cvs.log");
+					system("cvs -z3 -d $tahoe_sf_name\@$repo -q checkout $dir > cvs.log");
 				}
 			}
 		}
@@ -1440,7 +1440,7 @@ sub configure_module {
 	# regenerate the configuration headers
 	my $cwd = cwd();
 	chdir $module;
-	fillin_makefile();
+	fillin_makefile($module);
 	system("make update_config > build.log 2>&1");
 	
 	# find configuration headers
