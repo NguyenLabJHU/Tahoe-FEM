@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.52 2005-06-23 19:46:02 paklein Exp $
+# $Id: tahoe-manager,v 1.53 2005-06-23 20:26:16 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -36,8 +36,9 @@ Sierra SIERRA_
 qhull  QHULL_
 contrib NODEFINE
 benchmark_XML NODEFINE
+development_benchmark_XML NODEFINE
 SIMOD SIMOD_
-bravais BRAVAIS_
+bravais NODEFINE
 );
 
 # location of module on the server
@@ -58,6 +59,7 @@ development	tahoe.ca.sandia.gov:/cvs/private/tahoe
 Sierra		tahoe.ca.sandia.gov:/cvs/private/tahoe
 qhull		tahoe.ca.sandia.gov:/cvs/private/tahoe
 benchmark_XML	cvs.sourceforge.net:/cvsroot/tahoe
+development_benchmark_XML tahoe.ca.sandia.gov:/cvs/private/tahoe
 contrib		cvs.sourceforge.net:/cvsroot/tahoe
 bravais		cvs.sourceforge.net:/cvsroot/tahoe
 );
