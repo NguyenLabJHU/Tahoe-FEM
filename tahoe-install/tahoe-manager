@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.54 2005-06-24 01:29:18 paklein Exp $
+# $Id: tahoe-manager,v 1.55 2005-06-24 02:30:47 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -16,6 +16,29 @@ $tahoe = "tahoe.ca.sandia.gov";
 
 # Sourceforge server
 $tahoe_sf = "cvs.sourceforge.net"; 
+
+# modules in order of dependency
+@modulebydepend = (
+"access",
+"SIMOD",
+"macros", 
+"expat", 
+"f2c",
+"CBLAS",
+"aztec",
+"metis",
+"spoolesMPI",
+"spoolesMT",
+"spooles",
+"qhull",
+"toolbox",
+"Sierra",
+"development",
+"tahoe",
+"contrib",
+"benchmark_XML",
+"development_benchmark_XML",
+"bravais");
 
 # prefix on macros in the makefiles
 %module2define = qw(
@@ -904,7 +927,25 @@ sub a_depends_on_b {
 
 ##############################################################################
 sub by_depend {
+	my $rank_a = -1;
+	my $rank_b = -1;
+	my $rank = 0;
+	MOD: foreach my $module (@modulebydepend) {
+		if ($module eq $a) { $rank_a = $rank; }
+		elsif ($module eq $b) { $rank_b = $rank; }
+		last MOD if ($rank_a != -1 && $rank_b != -1);
+		$rank++;
+	}
 
+	my $comp = ($rank_a <=> $rank_b);
+	#print " $a ($rank_a) $b ($rank_b) : $comp\n";
+	return $comp;	
+}
+
+
+# NOTE: this version never quite worked right because the order could not be
+#       determine unabiguously just by the macros defined in the top-level makefiles
+sub by_depend_old {
 	my $filename = "$a/makefile.template";
 	my $a_on_b = -1;
 	if (-e $filename) {
@@ -937,10 +978,8 @@ sub by_depend {
 	}
 
 	my $comp = ($a_on_b <=> $b_on_a) || ($a cmp $b);
-#	print " $a $a_on_b $b $b_on_a : $comp\n";
-# this still has problems
-
-        return $comp;	
+	#print " $a $a_on_b $b $b_on_a : $comp\n";
+	return $comp;	
 }
 
 ##############################################################################
