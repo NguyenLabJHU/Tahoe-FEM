@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.53 2005-06-23 20:26:16 paklein Exp $
+# $Id: tahoe-manager,v 1.54 2005-06-24 01:29:18 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -833,7 +833,6 @@ sub clean {
 sub test{
 	$time = (split(/ +/,localtime()))[3];
 	print "($count) running tests at $time\n";
-	update("benchmark_XML");
 	my $cwd = cwd();
 	chdir("benchmark_XML/comparator");
 	print("\tbuilding comparator...");
