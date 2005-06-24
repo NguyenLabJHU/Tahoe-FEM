@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.55 2005-06-24 02:30:47 paklein Exp $
+# $Id: tahoe-manager,v 1.56 2005-06-24 18:08:38 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -27,9 +27,9 @@ $tahoe_sf = "cvs.sourceforge.net";
 "CBLAS",
 "aztec",
 "metis",
+"spooles",
 "spoolesMPI",
 "spoolesMT",
-"spooles",
 "qhull",
 "toolbox",
 "Sierra",
@@ -316,12 +316,23 @@ while(<CONFIG>) {
 			elsif  ($type  =~ /USE_DEFAULT/){$use_default_arch = $tmp_list[0];}
 			elsif  ($type  =~ /VERBOSE/){ $verbose = $tmp_list[0]; }
  			elsif  ($type  =~ /MODU/){@modules = @tmp_list;}
+ 			elsif ($type =~ /TAHOE_HOME/) { $tahoe_home = $tmp_list[0]; }
  			$type = $list[1]; @tmp_list =();
  		} 
  		else { push(@tmp_list,@list);}
  	}
 }
 close(CONFIG);
+
+# make sure nothing has moved
+my $cwd = cwd();
+if ($cwd ne $tahoe_home) {
+	print "\nERROR: installation directory has moved:\n";
+	print "ERROR: old $tahoe_home\n";
+	print "ERROR: now $cwd\n";
+	print "ERROR: execute \"tahoe-manager clean\" to reinitialize\n\n";
+	exit;
+}
 
 # need to make sure the core modules exist
 my @missing_core = complement(\@defaultmodules, \@modules);
@@ -816,6 +827,11 @@ sub init {
 ##############################################################################
 sub clean {
 
+	# double-check
+	print "Are you sure you want to remove all objects and project settings (y/n) [n]: ";
+	my $ans = <STDIN>;
+	exit if ($ans !~ /y/);
+
 	# run all unless specified
 	my @run_modules = @_;
 	if (scalar(@run_modules) == 0) {
@@ -850,6 +866,9 @@ sub clean {
 		}
 	}
 
+	# move configuration file
+	print "moving .tahoe_config to tahoe_config.BAK\n";
+	system("mv -f .tahoe_config tahoe_config.BAK");
 }
 
 ##############################################################################
@@ -1106,6 +1125,7 @@ sub write_config {
 	print CONFIG  "# USE_DEFAULT\n$use_default_arch\n\n";
 	print CONFIG  "# MODULES\n@modules\n\n";
 	print CONFIG  "# VERBOSE\n$verbose\n\n";
+	print CONFIG  "# TAHOE_HOME\n$tahoe_home\n\n";
 	print CONFIG  "# EOF";
 	close(CONFIG);
 }
