@@ -1,7 +1,0 @@
-# $Id: ReadMe,v 1.1 2005-04-29 00:14:10 paklein Exp $
-The bridging scale example in this directory is run twice in order to
-verify that the overlap cell is properly written and read from the
-.overlap file. During the first run, the overlap region is calculated
-and written to the .overlap file. During the second run, the overlap
-information is read from the .overlap instead of being calculated.
-The reference results were calculated without the .overlap file.
