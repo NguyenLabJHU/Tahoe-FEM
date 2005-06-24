@@ -1,4 +1,4 @@
-/* $Id: Environment.h,v 1.12 2005-04-30 21:14:46 paklein Exp $ */
+/* $Id: Environment.h,v 1.13 2005-06-24 16:35:10 paklein Exp $ */
 /* created: paklein (02/10/1997)                                          */
 /* Environment.h                                                          */
 /* defining environment-specific preprocessor symbols and options         */
@@ -93,6 +93,11 @@ using namespace std;
 #if (__GNUC__ == 3) /* GCC predefined macro */
 #define __GCC_3__
 using namespace std;
+#if (__GNUC_MINOR__ > 3) /* must use new static template syntax for 3.4 and later */
+#ifndef NEW_STATIC_TEMPLATE_SYNTAX
+#define NEW_STATIC_TEMPLATE_SYNTAX
+#endif
+#endif
 #endif
 
 /* version 4.x */
