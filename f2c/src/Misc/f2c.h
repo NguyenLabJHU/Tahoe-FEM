@@ -7,11 +7,11 @@
 #ifndef F2C_INCLUDE
 #define F2C_INCLUDE
 
-#if defined(CW_F2C_MAC) || defined(CW_F2C_WIN32) || defined(__AIX__)
+#if defined(CW_F2C_MAC) || defined(CW_F2C_WIN32) || defined(__AIX__) || defined(__SGI__)
 #include <math.h>					
 /* Need to include this for Metrowerks compilers */
-/* IBM's vacpp defines abs, so the math header needs to be read first */
-#endif	/* Metrowerks compilers */
+/* Some platforms define abs, so the math header needs to be read first */
+#endif
 
 /* IMT 9Sep95  Prototypes for functions that add multitasking to CW, SPM, TPM */
 #ifdef CW_F2C_MAC
