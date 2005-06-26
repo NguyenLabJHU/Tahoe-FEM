@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.19 2005-06-26 03:37:55 paklein Exp $
+# $Id: regression.csh.template,v 1.20 2005-06-26 03:51:02 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -129,4 +129,4 @@ scp ${BENCHMARK}/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/incoming/benchmark/
 #
 # run additional tests
 #
-cd ${BENCHMARK}/scripts; csh -f parallel.csh ${REQUESTOR} >& parallel.LOG
+#cd ${BENCHMARK}/scripts; csh -f parallel.csh ${REQUESTOR} >& parallel.LOG
