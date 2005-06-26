@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.18 2004-07-24 18:10:28 paklein Exp $
+# $Id: regression.csh.template,v 1.19 2005-06-26 03:37:55 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -43,8 +43,8 @@ set BUILD_MODULES = (toolbox tahoe)
 ###################### regression test ########################
 # clear log files
 cd ${W_DIR}
-if (-e make.stderr) rm make.stderr
-if (-e make.stdout) rm make.stdout
+if (-e update.log) rm update.log
+if (-e build.log) rm build.log
 #
 # resolve test requestor - first command line argument of $TAHOE_USER
 #
@@ -58,32 +58,15 @@ echo "running regression requested by: ${REQUESTOR}"
 # get latest files from the CVS repository
 #
 ${ECHO} "updating source from CVS repository..."
-foreach mod ($MODULES)
-	${ECHO} "updating macros $mod..."
-	cd ${W_DIR}/$mod
-	(cvs -q update -Pd >>! ${W_DIR}/make.stdout) >>&! ${W_DIR}/make.stderr
-end
-#
-# remove libraries and executables
-#
-${ECHO} "removing object code..."
-foreach mod ($BUILD_MODULES)
-	cd ${W_DIR}/$mod
-	if (-e ./lib/lib$mod.a) then
-		rm ./lib/lib$mod.a
-	endif
-end
-if (-e ${W_DIR}/tahoe/${TAHOE}) then
-	rm ${W_DIR}/tahoe/${TAHOE}
-endif
+cd ${W_DIR}
+./tahoe-manager selfupdate >>&! ${W_DIR}/update.log
+./tahoe-manager update >>&! ${W_DIR}/update.log
 #
 # rebuild libraries and executables
 #
 ${ECHO} "rebuilding object code..."
-foreach mod ($BUILD_MODULES)
-	cd ${W_DIR}/$mod
-	(make -s init build >>! ${W_DIR}/make.stdout) >>&! ${W_DIR}/make.stderr
-end
+cd ${W_DIR}
+./tahoe-manager build >>&! ${W_DIR}/build.log
 #
 # update comparator
 #
@@ -137,7 +120,7 @@ else
 	${ECHO} "Subject: TAHOE: build FAIL ${HOST}" > ${BENCHMARK}/tmp
 	${ECHO} "TAHOE build FAIL:" `date` >> ${BENCHMARK}/tmp
 	${ECHO} "test requested by: ${REQUESTOR}" >> ${BENCHMARK}/tmp
-	cat ${BENCHMARK}/tmp ${W_DIR}/make.stderr > ${BENCHMARK}/tmp_mail
+	cat ${BENCHMARK}/tmp > ${BENCHMARK}/tmp_mail
 endif
 #
 # send it
@@ -146,4 +129,4 @@ scp ${BENCHMARK}/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/incoming/benchmark/
 #
 # run additional tests
 #
-#cd ${BENCHMARK}/scripts; csh -f parallel.csh ${REQUESTOR} >& parallel.LOG
+cd ${BENCHMARK}/scripts; csh -f parallel.csh ${REQUESTOR} >& parallel.LOG
