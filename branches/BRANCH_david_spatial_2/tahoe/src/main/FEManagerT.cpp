@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.95.2.7 2005-06-11 01:13:24 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.95.2.8 2005-06-27 16:52:38 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1404,6 +1404,8 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	fCommManager = new CommManagerT(fComm, *fModelManager);
 	if (Size() > 1 && fTask != kDecompose) {
 		StringT part_file = list.GetParameter("geometry_file");
+		part_file.ToNativePathName();
+		part_file.Prepend(path);
 		part_file.Root(); /* drop extension */
 		part_file.Append(".n", Size());
 		part_file.Append(".part", Rank());
