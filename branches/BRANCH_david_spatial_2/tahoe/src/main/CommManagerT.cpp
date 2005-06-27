@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.10 2005-06-11 17:53:20 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.11 2005-06-27 16:53:54 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -1124,8 +1124,9 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 				int k = 0;
 				while (k < npn)
 				{
-					double dx = new_curr_coords(k,dir) - bound;
-					if (dx*normal[sgn] > 0) /* out of bounds */
+					double dxn = (new_curr_coords(k,dir) - bound)*normal[sgn];
+					bool out = (sgn == 0) ? (dxn > 0.0) : (dxn >= 0.0); /* on upper boundary is "out" */
+					if (out) /* out of bounds */
 					{
 						/* copy into send buffers */
 						n_s++;
@@ -1302,8 +1303,9 @@ void CommManagerT::SetExchange(iArray2DT& i_values, nVariArray2DT<int>& i_values
 			double bound = fBounds(dir,sgn);
 			for (int k = 0; k < npn; k++)
 			{
-				double dx = -(new_curr_coords(k,dir) - bound)*normal[sgn];
-				if (dx > 0.0 && dx < fSkin)
+				double dxn = -(new_curr_coords(k,dir) - bound)*normal[sgn];
+				bool out_low = (sgn == 0) ? (dxn >= 0.0) : (dxn > 0.0); /* on lower boundary is "sent" */
+				if (out_low && dxn < fSkin)
 				{
 					/* copy into send buffers */
 					n_s++;
