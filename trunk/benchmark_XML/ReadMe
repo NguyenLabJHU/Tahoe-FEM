@@ -1,0 +1,91 @@
+$Id: ReadMe,v 1.1 2005-06-28 21:23:51 paklein Exp $
+
+INSTRUCTIONS
+-----------------------------------------------------------------------
+Pointing Tahoe at any "run.batch" file in this directory structure will
+run all simulations in that branch of the tree. Each test includes ref-
+erence results in the local "benchmark" sub-directories.
+
+The benchmarks are organized into levels by the following criteria:
+
+level.0:
+These tests exercise the basic capabilities of Tahoe. Code should not 
+be checked into the repository until these tests, if not all others
+that apply, are passed successfully.
+
+level.1:
+These tests verify the constitutive models in Tahoe under simple load-
+ing conditions. These include bulk constitutive models as well as
+cohesive surface relations, and atomistic potentials.
+
+level.2:
+These tests exercise the extended capabilities of Tahoe, but do not
+require any of the optional modules. These tests may involve larger
+systems and longer execution times.
+
+level.3:
+These tests exercise the optional modules supported by Tahoe. Optional
+modules will differ by installation and by machine-supported capabili-
+ties.
+
+
+"make clean" to remove existing test results.
+
+
+comparator
+-----------------------------------------------------------------------
+The benchmark module includes a small program to perform quantitative
+analysis of how well the computed results agree with the benchmarks.
+This program must be built using the sources in the "comparator" direct-
+ory. The build procedure is identical to all of the other Tahoe code
+modules. By default, the resulting executable is called "compare".
+
+On execution, compare will prompt for an input file. Giving compare the
+path to any "run.batch" file in the benchmark tree will cause all results
+in that branch of the tree to be compared to their respective benchmarks. 
+The summary results of the comparison appear in a "compare.summary" file 
+in the directory of the root "run.batch" file. More detailed results of 
+the comparisons are written to console output.
+
+compare determines PASS/FAIL based in the magnitude of the difference
+between the computed and the benchmark results. By default, this differ-
+ence cannot exceed 1.0e-10. This tolerance can be adjusted in 2 ways:
+
+(1) command line arguments
+Executing compare with the command line argument
+
+	> compare -abs_tol 2.5e-5
+
+adjusts the tolerance to the value given.
+
+(2) local "compare.tol" files
+The comparison tolerance, either taken as default or specified as in (1),
+can be adjusted on a per directory basis by providing a file called
+"compare.tol". The format of the tolerance specification is
+
+	abs_tol 2.5e-5
+	
+This tolerance will apply only to the benchmarks in the particular
+directory.
+
+The comparison tolerance file can also be used to set whether an absolute
+or relative tolerance is used. The relative error is defined as
+
+	e = (a - a_benchmark)/a_benchmark
+
+The relative tolerance is useful assessing the error associated with numbers
+that have large magnitudes, where an absolute tolerance on the order of
+1.0e-10 could represent an error nearly 20 orders of magnitude smaller than
+the values being compared. A relative tolerance is selected by including
+a definition of rel_tol in the "compare.tol" file, as in
+
+	rel_tol 1.0e-6
+
+Specifying rel_tol disables comparison with the abs_tol.
+
+Additionally, variables can be ignored during the comparison by adding a
+skip declaration in the "compare.tol" file. The line
+
+	skip s12
+	
+causes the variable with label "s12" to be ignored.
