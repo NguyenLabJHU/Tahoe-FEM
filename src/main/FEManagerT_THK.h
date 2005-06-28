@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.15 2005-04-09 18:27:33 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.16 2005-06-28 14:45:39 d-farrell2 Exp $ */
 
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
@@ -37,10 +37,13 @@ public:
 	void BAPredictAndCorrect(double timestep, dArray2DT& badisp, dArray2DT& bavel, dArray2DT& baacc);
 	
 	/** calculate THK force on boundary atoms for 2D disp/force formulation **/
-	const dArray2DT& THKForce2D(const StringT& bridging_field, const dArray2DT& badisp); // was THKForce
+	const dArray2DT& THKForce2D(const StringT& bridging_field, const dArray2DT& badisp);
 
-	/** calculate THK force for ghost atoms for 3D disp/disp formulation **/
-	const dArray2DT& THKForce3D(const StringT& bridging_field, const dArray2DT& badisp); // was THKDisp
+	/** calculate THK force on boundary atoms for 3D disp/force formulation **/
+	const dArray2DT& THKForce3D(const StringT& bridging_field, const dArray2DT& badisp);
+	
+	/** calculate THK displacement for ghost atoms for 2/3D disp formulation **/
+	const dArray2DT& THKDisp(const StringT& bridging_field, const dArray2DT& badisp);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -55,37 +58,48 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
-	// accessor for the ghostoffmapping
-	const nMatrixT<int> GetGhostMap(void) { return fghostoffmap;};
-
-private:
-
+	
 	/** 2D Bridging Scale Initialization */
 	void Initialize2D(void);
 
 	/** 3D Bridging Scale Initialization */
 	void Initialize3D(void);
+	
+	/** 2D/3D MD/THK Initialization */
+	void InitializeMDTHK(void);
+	
+	/** accessor for the ghostoffmapping */
+	const nMatrixT<int> GetGhostMap(void) { return fghostoffmap;};
+	/*@}*/
 
-	/** compute theta tables for 2D disp/force formulation */
-	void ComputeThetaTables2D(void);
-	                
-	/** compute theta tables for 3D disp/disp formulation */
-	void ComputeThetaTables3D(void);
+	
+
+private:
+	
+	/** perform neighbor search for THK boundary atoms, 2D */
+	void DoNeighSearch2D(void);
+	
+	/** perform neighbor search for THK boundary atoms, 3D */
+	void DoNeighSearch3D(void);
+	
+	/** find the ghost atom properties map */
+	void DoGhostMap(void);
+	
+	/** compute theta tables for 2D/3D disp/disp or disp/force formulation (doesn't matter, its all the same) */
+	void ComputeThetaTables(void);
 
 private:
 
 	/** \name input parameters */
 	/*@{*/
 	int fNcrit;
-	double fTcrit, fLatticeParameter;
+	double fTcrit, fLatticeParameter, fSearchParameter;
 	StringT fThetaFile, fGhostMapFile;
-	ArrayT<StringT> fTHKNodes;
+	ArrayT<StringT> fTHKNodes, fTHKGhostNodes;
 	/*@}*/
 
 	int fN_times, fNumstep_crit, fNeighbors;
-	dArray2DT fTHKforce;
+	dArray2DT fTHKforce, fTHKdisp;
 	iArrayT fShift;
 
 	/** interpolation points */
@@ -105,7 +119,10 @@ private:
 	// array of THK BC plane normals
 	ArrayT<dArrayT> fTHK_normals; 
 	
-	/** atoms in each node set: [boundary_n] x [n_boundary_atoms]  (has repeats) */
+	/** atoms in each node set (ghost atoms): [boundary_n] x [n_boundary_atoms]  (no repeats) */
+	ArrayT<iArrayT> fghost_set_atoms;
+	
+	/** atoms in each node set (real atoms): [boundary_n] x [n_boundary_atoms]  (has repeats) */
 	ArrayT<iArrayT> fbound_set_atoms;
 	
 	/** displacement history: [boundary_n] x [[n_boundary_atoms] x [time x ndof]] (has repeats) */
@@ -126,6 +143,11 @@ private:
 	int fnum_spec_atoms; // number of special atoms
 	ArrayT<iArrayT> fSpecAtomInfo; // special atom information array size: [# spec atoms] x [# sets atom is in + 2]
 	iArrayT fSpecAtomID; // array of the atom number of the special atoms
+	
+	// parameter which allows the scaling of Tcrit and the Bn's for the sine series (defaults to 1)
+	// This allows fourier sine coeffs calculated for k,m = 1 to be used for any k, m it is sqrt(k/m) for the desired values
+	double fOmega_sys;
+	
 };
 
 } /* namespace Tahoe */
