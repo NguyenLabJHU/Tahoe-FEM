@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.13 2005-04-28 23:58:14 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.14 2005-06-28 14:46:44 d-farrell2 Exp $ */
 
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
@@ -167,7 +167,7 @@ protected:
 	bool fCoarseToFine; /**< coarse scale contribution to fine scale equations */ 
 	bool fCoarseToCoarse; /**< coupling between free and prescribed coarse scale */ 
 	/*@}*/
-	
+
 	// Dave Added these
 	bool fignore;	// ignore continuum (true, false)
 };
