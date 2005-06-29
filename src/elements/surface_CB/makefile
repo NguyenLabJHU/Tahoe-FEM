@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2005-06-29 17:39:46 paklein Exp $
+# $Id: makefile,v 1.2 2005-06-29 22:39:13 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,11 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-TotalLagrangianCBSurfaceT.o
+TotalLagrangianCBSurfaceT.o \
+BondLatticeT_Surf.o \
+CBLatticeT_Surf.o \
+FCC3D_Surf.o \
+FCCLatticeT_Surf.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,7 +45,11 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-TotalLagrangianCBSurfaceT.cpp
+TotalLagrangianCBSurfaceT.cpp \
+BondLatticeT_Surf.cpp \
+CBLatticeT_Surf.cpp \
+FCC3D_Surf.cpp \
+FCCLatticeT_Surf.cpp 
 
 ##################### (3) headers
 #
@@ -53,7 +61,11 @@ TotalLagrangianCBSurfaceT.cpp
 # HDR and HDR_LINK macro   
 #
 HDR = \
-TotalLagrangianCBSurfaceT.h
+TotalLagrangianCBSurfaceT.h \
+BondLatticeT_Surf.h \
+CBLatticeT_Surf.h \
+FCC3D_Surf.h \
+FCCLatticeT_Surf.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
