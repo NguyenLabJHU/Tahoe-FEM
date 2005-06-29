@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.3 2004-12-09 09:21:49 paklein Exp $
+# $Id: run.batch,v 1.4 2005-06-29 02:36:38 d-farrell2 Exp $
 Newton.0.xml
 Newton.0a.xml
 Newton.1.xml
@@ -11,4 +11,4 @@ md.PCG.1.xml
 periodic.stretch.1.xml
 periodicBC.0.xml
 periodicBC.1/run.batch
-
+md.initfile.xml
