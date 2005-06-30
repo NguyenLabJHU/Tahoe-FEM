@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.9 2005-04-14 00:35:32 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.10 2005-06-30 21:49:36 jcmach Exp $ */
 #include "MFAugLagMultT.h"
 
 #ifdef CONTINUUM_ELEMENT
@@ -235,7 +235,7 @@ void MFAugLagMultT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 		fOtherLHS.SetBlock(supp,0,fLHS);
 		fOtherLHS *= constK;
 		fRowEqs.Copy(fEqNos(i));
-		fRowEqs_wrapper.SetLength(supp+1, false);
+		fRowEqs_wrapper.SetLength(supp+1, true);
 		fRowEqs.Last() = augLagEqnos[i];
 		
 		field_support.AssembleLHS(fGroup, fOtherLHS, fRowEqs);
@@ -501,7 +501,6 @@ void MFAugLagMultT::TakeParameterList(const ParameterListT& list)
 void MFAugLagMultT::ComputeConstraintValues(double kforce)
 {
  	const char caller[] = "MFAugLagMultT::ComputeConstraintValues";
- 	
  	dArray2DT us(fLocalFlatNodes.Length(), Field().NumDOF());
 	mfElemGroup->InterpolatedFieldAtNodes(fLocalFlatNodes, us);
 	
