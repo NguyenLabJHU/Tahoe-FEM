@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.5 2005-06-30 18:37:19 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.6 2005-06-30 21:57:43 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -69,7 +69,9 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	if (num_blocks > 1)
 		ExceptionT::GeneralFail(caller, "expecting only 1 not %d element blocks", num_blocks);
 	const ParameterListT& block = list.GetList("large_strain_element_block");
-	const ParameterListT& bulk_params = block.GetListChoice(*this, "large_strain_material_choice");
+	const ParameterListT& mat_list = block.GetListChoice(*this, "large_strain_material_choice");
+	const ArrayT<ParameterListT>& mat = mat_list.Lists();
+	const ParameterListT& bulk_params = mat[0];
 	if (bulk_params.Name() != "FCC_3D")
 		ExceptionT::GeneralFail(caller, "expecting \"FCC_3D\" not \"%s\"", bulk_params.Name().Pointer());
 
