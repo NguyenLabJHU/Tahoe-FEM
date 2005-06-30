@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.1 2005-06-29 17:39:46 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.2 2005-06-30 01:40:35 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -7,14 +7,19 @@
 
 namespace Tahoe {
 
+class FCC3D_Surf;
+
 /** total Lagrangian, finite strain element for working with Cauchy-Born approach
  * for modeling surface effects */
 class TotalLagrangianCBSurfaceT: public TotalLagrangianT
 {
 public:
 
-	/** constructors */
+	/** constructor */
 	TotalLagrangianCBSurfaceT(const ElementSupportT& support);
+
+	/** destructor */
+	virtual ~TotalLagrangianCBSurfaceT(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -29,6 +34,21 @@ protected:
 
 	/** elements neighbors */
 	iArray2DT fSurfaceElementNeighbors;
+
+	/** surface model number */
+	iArray2DT fSurfaceElementFacesType;
+
+	/** surface normals */
+	ArrayT<dArrayT> fNormal;
+
+	/** surface Cauch-Born models */
+	ArrayT<FCC3D_Surf*> fSurfaceCB;
+
+	/** support for the surface models */
+	FSMatSupportT* fSurfaceCBSupport;
+
+	/** deformation gradients at the surface integration points */
+	ArrayT<dMatrixT> fF_Surf_List;
 };
 
 } /* namespace Tahoe */
