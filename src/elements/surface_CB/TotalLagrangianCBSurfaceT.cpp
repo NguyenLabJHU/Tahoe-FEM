@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.2 2005-06-30 01:40:35 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.3 2005-06-30 16:52:58 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -28,16 +28,16 @@ TotalLagrangianCBSurfaceT::~TotalLagrangianCBSurfaceT(void)
 void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "TotalLagrangianCBSurfaceT::TakeParameterList";
-
+	
 	/* inherited */
 	TotalLagrangianT::TakeParameterList(list);
 
 	/* the shape functions */
 	const ShapeFunctionT& shape = ShapeFunction();
-	int nsd = shape.NumSD();
-	int nfs = shape.NumFacets();
-	int nsi = shape.FacetShapeFunction(0).NumIP();
-	int nfn = shape.FacetShapeFunction(0).NumNodes();
+	int nsd = shape.NumSD();	// # of spatial dimensions in problem
+	int nfs = shape.NumFacets();	// # of total possible surface facets?
+	int nsi = shape.FacetShapeFunction(0).NumIP();		// # IPs per what?
+	int nfn = shape.FacetShapeFunction(0).NumNodes();	// # nodes on each surface face?
 
 	/* support for the surface model */
 	fF_Surf_List.Dimension(nsi);
@@ -60,7 +60,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	};
 	dArray2DT normals(6, 3, normals_dat);
 
-	/* initialize surface information */
+	/* initialize surface information create all possible (12) surface clusters */
 	fNormal.Dimension(nfs);
 	fSurfaceCB.Dimension(nfs);
 	fSurfaceCB = NULL;
@@ -74,7 +74,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 		fSurfaceCB[i] = new FCC3D_Surf;
 		fSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
 		
-		/* pass parameters to the surface model */
+		/* pass parameters to the surface model */ // initialize surface material here
 		//fSurfaceCB[i]->TakeParameterList
 	}
 
@@ -83,7 +83,8 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	ElementBlockIDs(block_ID);
 	ModelManagerT& model_manager = ElementSupport().ModelManager();
 	model_manager.BoundingElements(block_ID, fSurfaceElements, fSurfaceElementNeighbors);
-
+	// One element (0), and all faces on the surface
+	
 	/* determine normal type of each face */
 	dMatrixT Q(nsd);
 	dMatrixT jacobian(nsd, nsd-1);
@@ -102,24 +103,27 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 
 				/* collect coordinates of face nodes */
 				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
-				shape.NodesOnFacet(j, face_nodes_index);
+				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
 				face_nodes.Collect(face_nodes_index, element_card.NodesX());
 				face_coords.SetLocal(face_nodes);
 
-				/* face normal (using 1st integration point */
+				/* face normal (using 1st integration point) */
 				surf_shape.DomainJacobian(face_coords, 0, jacobian);
-				surf_shape.SurfaceJacobian(jacobian, Q);
-
-				/* match to face normal types */
+				surf_shape.SurfaceJacobian(jacobian, Q);	// Q is matrix of normals and tangents
+				
+				/* match to face normal types - match to normals_dat.  normal_type between 0 and 5 */
 				int normal_type = -1;
 				for (int k = 0; normal_type == -1 && k < fNormal.Length(); k++)
-					if ((Q.DotRow(nsd-1, fNormal[k]) - 1.0) < kSmall) /* 
-						normal_type = 0;
-				
+				{
+					if ((Q.DotCol(nsd-1, fNormal[k]) - 1.0) < -kSmall) 
+						normal_type = -1;
+					else
+						normal_type = k;	
+				}
 				/* no match */
-				if (normal_type == -1)
-					ExceptionT::GeneralFail(caller, "could not classify normal on face %d of element %d",
-						j+1, fSurfaceElements[i]+1);
+				//if (normal_type == -1)
+				//	ExceptionT::GeneralFail(caller, "could not classify normal on face %d of element %d",
+				// 		j+1, fSurfaceElements[i]+1);
 
 				/* store */
 				fSurfaceElementFacesType(i,j) = normal_type;
