@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.1 2005-06-29 22:38:16 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.2 2005-06-30 18:36:42 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -50,6 +50,12 @@ void FCC3D_Surf::DefineParameters(ParameterListT& list) const
 	ParameterT n_shells(ParameterT::Integer, "shells");
 	n_shells.AddLimit(1, LimitT::LowerInclusive);
 	list.AddParameter(n_shells);
+	
+	/* surface normal */
+	ParameterT normal(ParameterT::Integer, "normal_code");
+	normal.AddLimit(0, LimitT::LowerInclusive);
+	normal.AddLimit(0, LimitT::UpperInclusive);
+	list.AddParameter(normal);
 }
 
 /* information about subordinate parameter lists */
