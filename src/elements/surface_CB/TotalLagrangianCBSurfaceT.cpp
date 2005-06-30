@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.3 2005-06-30 16:52:58 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.4 2005-06-30 18:16:45 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -36,11 +36,13 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	const ShapeFunctionT& shape = ShapeFunction();
 	int nsd = shape.NumSD();	// # of spatial dimensions in problem
 	int nfs = shape.NumFacets();	// # of total possible surface facets?
-	int nsi = shape.FacetShapeFunction(0).NumIP();		// # IPs per what?
+	int nsi = shape.FacetShapeFunction(0).NumIP();		// # IPs per surface face (2x2 for 2D surface)
 	int nfn = shape.FacetShapeFunction(0).NumNodes();	// # nodes on each surface face?
 
 	/* support for the surface model */
 	fF_Surf_List.Dimension(nsi);
+	
+	/* Need to actually place values into fF_Surf_List when testing (identity) */
 	for (int i = 0; i < fF_Surf_List.Length(); i++)
 		fF_Surf_List[i].Dimension(nsd);
 	fSurfaceCBSupport = new FSMatSupportT(nsd, nsi);
@@ -50,6 +52,8 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	/* hard coded for hex's with faces parallel to the coordinate axes */
 	if (GeometryCode() != GeometryT::kHexahedron)
 		ExceptionT::GeneralFail(caller, "only implemented for hex elements");
+	
+	/* Do we need to redefine this in "canonical" normal order? */
 	double normals_dat[6*3] = {
         1.0, 0.0, 0.0,
        -1.0, 0.0, 0.0,
@@ -64,6 +68,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	fNormal.Dimension(nfs);
 	fSurfaceCB.Dimension(nfs);
 	fSurfaceCB = NULL;
+	/* May need to loop over nfs * 2 since have 2 layers of surface clusters */
 	for (int i = 0; i < nfs; i++)
 	{
 		/* face normal */
@@ -74,7 +79,8 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 		fSurfaceCB[i] = new FCC3D_Surf;
 		fSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
 		
-		/* pass parameters to the surface model */ // initialize surface material here
+		/* pass parameters to the surface model - initialize surface materials here */
+		/* Will TakeParameterList include the normal orientation, i.e normals_dat? */
 		//fSurfaceCB[i]->TakeParameterList
 	}
 
@@ -83,7 +89,6 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	ElementBlockIDs(block_ID);
 	ModelManagerT& model_manager = ElementSupport().ModelManager();
 	model_manager.BoundingElements(block_ID, fSurfaceElements, fSurfaceElementNeighbors);
-	// One element (0), and all faces on the surface
 	
 	/* determine normal type of each face */
 	dMatrixT Q(nsd);
@@ -109,9 +114,9 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 
 				/* face normal (using 1st integration point) */
 				surf_shape.DomainJacobian(face_coords, 0, jacobian);
-				surf_shape.SurfaceJacobian(jacobian, Q);	// Q is matrix of normals and tangents
+				surf_shape.SurfaceJacobian(jacobian, Q);	// Last column of Q is normal vector to surface face
 				
-				/* match to face normal types - match to normals_dat.  normal_type between 0 and 5 */
+				/* match to face normal types - match to normals_dat - is this right? */
 				int normal_type = -1;
 				for (int k = 0; normal_type == -1 && k < fNormal.Length(); k++)
 				{
@@ -121,9 +126,9 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 						normal_type = k;	
 				}
 				/* no match */
-				//if (normal_type == -1)
-				//	ExceptionT::GeneralFail(caller, "could not classify normal on face %d of element %d",
-				// 		j+1, fSurfaceElements[i]+1);
+				if (normal_type == -1)
+					ExceptionT::GeneralFail(caller, "could not classify normal on face %d of element %d",
+				 		j+1, fSurfaceElements[i]+1);
 
 				/* store */
 				fSurfaceElementFacesType(i,j) = normal_type;
