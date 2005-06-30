@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.4 2005-06-30 18:16:45 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.5 2005-06-30 18:37:19 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -60,9 +60,18 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
         0.0, 1.0, 0.0,
         0.0,-1.0, 0.0,
         0.0, 0.0, 1.0,
-        0.0, 0.0,-1.0,
+        0.0, 0.0,-1.0
 	};
 	dArray2DT normals(6, 3, normals_dat);
+
+	/* find parameter list for the bulk material */
+	int num_blocks = list.NumLists("large_strain_element_block");
+	if (num_blocks > 1)
+		ExceptionT::GeneralFail(caller, "expecting only 1 not %d element blocks", num_blocks);
+	const ParameterListT& block = list.GetList("large_strain_element_block");
+	const ParameterListT& bulk_params = block.GetListChoice(*this, "large_strain_material_choice");
+	if (bulk_params.Name() != "FCC_3D")
+		ExceptionT::GeneralFail(caller, "expecting \"FCC_3D\" not \"%s\"", bulk_params.Name().Pointer());
 
 	/* initialize surface information create all possible (12) surface clusters */
 	fNormal.Dimension(nfs);
@@ -80,8 +89,12 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 		fSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
 		
 		/* pass parameters to the surface model - initialize surface materials here */
+		ParameterListT surf_params = bulk_params;
+		surf_params.SetName("FCC_3D_Surf");
+		surf_params.AddParameter(i, "normal_code");
+
 		/* Will TakeParameterList include the normal orientation, i.e normals_dat? */
-		//fSurfaceCB[i]->TakeParameterList
+		fSurfaceCB[i]->TakeParameterList(surf_params);
 	}
 
 	/* collect surface element information */
