@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.26 2005-05-04 06:40:38 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.27 2005-07-01 07:14:37 paklein Exp $ */
 #include "ComparatorT.h"
 
 #include <iostream.h>
@@ -343,6 +343,8 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 	int count = -1;
 	int found_count = 0;
 	while (OK) {
+
+#pragma message ("restore me")
 	
 		/* look for results file in current directory */
 		StringT current = path;
@@ -363,8 +365,13 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 		if (count != -1) benchmark.Append(".io", count);
 		benchmark.Append(".run");
 		
+		/* potential changing geometry */
+		StringT benchmark_changing = benchmark;
+		benchmark_changing.Root();
+		benchmark_changing.Append(".ps0000", ".run");
+		
 		/* do compare */
-		if (fstreamT::Exists(benchmark))
+		if (fstreamT::Exists(benchmark) || fstreamT::Exists(benchmark_changing))
 		{
 			found_count++;
 			pass_or_fail = pass_or_fail && PassOrFail(current, benchmark, do_relative, do_absolute);
@@ -530,6 +537,21 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 	cout << "\n file 1: " << file_1 << '\n'
 	     <<   " file 2: " << file_2 << " (reference)" << endl;
 
+	/* check for changing geometry */
+	bool changing = false;
+	if (!fstreamT::Exists(file_1)) {
+		StringT file, ext;
+		file.Root(file_1);
+		ext.Suffix(file_1);
+		file.Append(".ps0000", ext);
+		if (fstreamT::Exists(file))
+			return PassOrFail_changing(file_1, file_2, do_rel, do_abs);
+		else {
+			cout << "\n ComparatorT::PassOrFail: could not initialize file \"" << file_1 << '\"' << endl;	
+			return false;
+		}	
+	}
+
 	/* open file_1 -> "current" */
 	ModelManagerT res_1(cout);
 	try {
@@ -659,124 +681,169 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 	return true;
 }
 
-bool ComparatorT::PassOrFail_old(const StringT& file_1, const StringT& file_2,
+/* compare results */
+bool ComparatorT::PassOrFail_changing(const StringT& file_1, const StringT& file_2,
 	bool do_rel, bool do_abs)
 {
-	/* open file_1 -> "current" */
-	ifstreamT current_in(file_1);
-	cout << "looking for current results: " << file_1 << ": "
-	     << ((current_in.is_open()) ? "found" : "not found") << '\n';
-	if (!current_in.is_open()) return false;
+	/* header */
+	cout << "\n file 1: " << file_1 << '\n'
+	     <<   " file 2: " << file_2 << " (reference)" << '\n';
+	cout << " CHANGING GEOMETRY" << endl;
 
-	/* open file_2 -> "benchmark" */
-	ifstreamT bench_in(file_2);
-	cout << "looking for benchmark results: " << file_2 << ": "
-	     << ((bench_in.is_open()) ? "found" : "not found") << '\n';
-	if (!bench_in.is_open()) return false;
-
-	/* init */
-	StringT b_str, c_str;
-	if (!bench_in.FindString("O U T P U T", b_str)) return false;
-	if (!current_in.FindString("O U T P U T", c_str)) return false;
+	/* run through time steps */
+	StringT ext1, ext2;
+	ext1.Suffix(file_1);
+	ext2.Suffix(file_2);
+	int step = 0;
+	StringT file_1_changing;
+	file_1_changing.Root(file_1);
+	file_1_changing.Append(".ps", step, 4);
+	file_1_changing.Append(ext1);
+	StringT file_2_changing;
+	file_2_changing.Root(file_2);
+	file_2_changing.Append(".ps", step, 4);
+	file_2_changing.Append(ext2);
+	while (fstreamT::Exists(file_1_changing) && fstreamT::Exists(file_2_changing)) {
 	
-	/* block info */
-	int b_num_block, c_num_block;
-	double b_time, c_time;
-	bool b_OK = ReadDataBlockInfo(bench_in, b_time, b_num_block);
-	bool c_OK = ReadDataBlockInfo(current_in, c_time, c_num_block);
-
-	/* compare blocks */
-	while (b_OK && c_OK)
-	{
-		/* verify time */
-		if (fabs(b_time - c_time) > kSmall) {
-			cout << "time mismatch: " << b_time << " != " << c_time << '\n';
+		/* open file_1 -> "current" */
+		ModelManagerT res_1(cout);
+		try {
+			/* file format */
+			IOBaseT::FileTypeT format = IOBaseT::name_to_FileTypeT(file_1_changing);
+			if (!res_1.Initialize(format, file_1_changing, true)) throw ExceptionT::kDatabaseFail;			
+		}
+		catch (ExceptionT::CodeT error) {
+			cout << "\n ComparatorT::PassOrFail: could not initialize file \"" << file_1_changing << '\"' << endl;	
 			return false;
 		}
-		else
-			cout << "time: " << b_time << '\n';
-
-		/* verify number of element blocks */
-		if (b_num_block != c_num_block) {
-			cout << "block count mismatch: " << b_num_block << " != " << c_num_block << '\n';
-			return false;
-		}
-		else
-			cout << "number of blocks: " << b_num_block << '\n';		
 	
-		/* read nodal data */
-		ArrayT<StringT> b_node_labels;
-		dArray2DT b_node_data;
-		if (!ReadNodalData(bench_in, b_node_labels, b_node_data)) {
-			cout << "error reading node data from: " << bench_in.filename() << '\n';
+		/* open file_2 -> "benchmark" */
+		ModelManagerT res_2(cout);
+		try {
+			/* file format */
+			IOBaseT::FileTypeT format = IOBaseT::name_to_FileTypeT(file_2_changing);
+			if (!res_2.Initialize(format, file_2_changing, true)) throw ExceptionT::kDatabaseFail;			
+		}
+		catch (ExceptionT::CodeT error) {
+			cout << "\n ComparatorT::PassOrFail: could not initialize file \"" << file_2_changing << '\"' << endl;	
 			return false;
 		}
 
-		ArrayT<StringT> c_node_labels;
-		dArray2DT c_node_data;
-		if (!ReadNodalData(current_in, c_node_labels, c_node_data)) {
-			cout << "error reading node data from: " << current_in.filename() << '\n';
+		/* verify node dimensions */
+		if (res_1.NumNodes() != res_2.NumNodes() ||
+		    res_1.NumDimensions() != res_2.NumDimensions()) {
+			cout << "\n ComparatorT::PassOrFail: node dimension mismatch" << endl;	    
+		    return false;
+		}
+		if (res_1.NumNodeVariables() != res_2.NumNodeVariables()) {
+			cout << "\n ComparatorT::PassOrFail: node variable dimension mismatch" << endl;	    
+		    return false;
+		}
+
+		/* verify block IDs and dimensions */
+		if (res_1.NumElementVariables() != res_2.NumElementVariables()) {
+			cout << "\n ComparatorT::PassOrFail: element variable dimension mismatch" << endl;	    
+		    return false;
+		}
+		const ArrayT<StringT>& block_1 = res_1.ElementGroupIDs();
+		const ArrayT<StringT>& block_2 = res_2.ElementGroupIDs();
+		if (block_1.Length() != block_2.Length()) {
+			cout << "\n ComparatorT::PassOrFail: number of element block ID's don't match" << endl;	    
+		    return false;		
+		}
+		for (int i = 0; i < block_1.Length(); i++) {
+			if (block_1[i] != block_2[i]) {
+				cout << "\n ComparatorT::PassOrFail: block ID mismatch" << endl;	    
+		    	return false;		
+			}
+			else {
+				int nel_1, nen_1;
+				res_1.ElementGroupDimensions(block_1[i], nel_1, nen_1);
+				int nel_2, nen_2;
+				res_2.ElementGroupDimensions(block_2[i], nel_2, nen_2);
+				if (nel_1 != nel_2 || nen_1 != nen_2) {
+					cout << "\n ComparatorT::PassOrFail: block dimension mismatch" << endl;
+			    		return false;		
+				}
+			}
+		}
+		
+		/* verify number of results */
+		dArrayT time_1, time_2;
+		res_1.TimeSteps(time_1);
+		res_2.TimeSteps(time_2);
+		if (time_1.Length() != time_2.Length()) {
+			cout << "\n ComparatorT::PassOrFail: number of output steps don't match" << endl;
 			return false;
 		}
+		for (int i = 0; i < time_1.Length(); i++)
+			if (fabs(time_1[i] - time_2[i]) > 1.0e-12) {
+				cout << "\n ComparatorT::PassOrFail: output step time mismatch" << endl;
+				return false;
+			}
+		
+		/* verify node ids */
+		iArrayT ids_1, ids_2;
+		res_1.AllNodeIDs(ids_1);
+		res_2.AllNodeIDs(ids_2);
+		for (int i = 0; i < ids_1.Length(); i++)
+			if (ids_1[i] != ids_2[i]) {
+				cout << "\n ComparatorT::PassOrFail: node id mismatch" << endl;
+				return false;
+			}
+	
+		/* output labels */
+		ArrayT<StringT> n_labels_1, n_labels_2;
+		res_1.NodeLabels(n_labels_1);
+		res_2.NodeLabels(n_labels_2);
+		ArrayT<StringT> e_labels_1, e_labels_2;
+		res_1.ElementLabels(e_labels_1);
+		res_2.ElementLabels(e_labels_2);
+
+		/* nodal values */
+		dArray2DT n_values_1(res_1.NumNodes(), res_1.NumNodeVariables());
+		dArray2DT n_values_2(res_2.NumNodes(), res_2.NumNodeVariables());
+		res_1.AllNodeVariables(0, n_values_1);
+		res_2.AllNodeVariables(0, n_values_2);
 
 		/* compare nodal blocks */
-		if (!CompareDataBlocks(b_node_labels, b_node_data, c_node_labels, c_node_data, 
-			do_rel, do_abs)) {
+		if (!CompareDataBlocks(n_labels_1, n_values_1, n_labels_2, n_values_2, do_rel, do_abs)) {
 			cout << "nodal data check: FAIL" << '\n';
 			return false;
 		}
 		else cout << "nodal data check: PASS" << '\n';
 
-		/* loop over element blocks */
-		for (int i = 0; i < b_num_block; i++)
-		{
-			/* read element data */
-			ArrayT<StringT> b_element_labels;
-			dArray2DT b_element_data;
-			StringT b_block_ID;
-			if (!ReadElementData(bench_in, b_element_labels, b_element_data, b_block_ID)) {
-				cout << "error reading element data from: " << bench_in.filename() << '\n';
-				return false;
-			}
-
-			ArrayT<StringT> c_element_labels;
-			dArray2DT c_element_data;
-			StringT c_block_ID;
-			if (!ReadElementData(current_in, c_element_labels, c_element_data, c_block_ID)) {
-				cout << "error reading element data from: " << current_in.filename() << '\n';
-				return false;
-			}
-
-			/* verify block ID's */
-			if (b_block_ID != c_block_ID) {
-				cout << "block ID mismatch: " << b_block_ID << " != " << c_block_ID << '\n';
-				return false;
-			}
-			else
-				cout << "block ID: " << b_block_ID << '\n';		
-
-			/* compare element blocks */
-			if (!CompareDataBlocks(b_element_labels, b_element_data, c_element_labels, c_element_data, 
-				do_rel, do_abs)) {
-				cout << "element data check: FAIL" << '\n';
-				return false;
-			}
-			else cout << "element data check: PASS" << '\n';
+		/* element values */
+		dArray2DT e_values_1(res_1.NumElements(), res_1.NumElementVariables());
+		dArray2DT e_values_2(res_2.NumElements(), res_2.NumElementVariables());
+		res_1.AllElementVariables(0, e_values_1);
+		res_2.AllElementVariables(0, e_values_2);
+		
+		/* compare element blocks */
+		if (!CompareDataBlocks(e_labels_1, e_values_1, e_labels_2, e_values_2, do_rel, do_abs)) {
+			cout << "element data check: FAIL" << '\n';
+			return false;
 		}
+		else cout << "element data check: PASS" << '\n';	
 
-		/* next block */
-		b_OK = ReadDataBlockInfo(bench_in, b_time, b_num_block);
-		c_OK = ReadDataBlockInfo(current_in, c_time, c_num_block);
+		/* next file */
+		step++;
+		file_1_changing.Root(file_1);
+		file_1_changing.Append(".ps", step, 4);
+		file_1_changing.Append(ext1);
+		file_2_changing.Root(file_2);
+		file_2_changing.Append(".ps", step, 4);
+		file_2_changing.Append(ext2);
 	}
 
-	/* termination */
-	if (b_OK == c_OK) 
-		return true;
-	else { 
-		if (!b_OK) 	cout << "error reading block data from: " << bench_in.filename() << '\n';
-		if (!c_OK) 	cout << "error reading block data from: " << current_in.filename() << '\n';
-		return false;	
-	}
+	/* both should fail */
+	if (fstreamT::Exists(file_1_changing) || fstreamT::Exists(file_2_changing)) {
+		cout << "\n ComparatorT::PassOrFail: number of output steps don't match" << endl;
+		return false;
+	}	
+
+	/* pass if fails through */
+	return true;
 }
 
 /* read data block header */
