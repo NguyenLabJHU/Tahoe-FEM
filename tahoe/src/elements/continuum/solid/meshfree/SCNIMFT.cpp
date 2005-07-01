@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.60 2005-06-30 21:51:52 jcmach Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.61 2005-07-01 00:14:15 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -476,8 +476,8 @@ void SCNIMFT::CloseStep(void)
  	  L2v += ev*ev;
  	  L1u += eu;
  	  L1v += ev;
- 	  Linfu = max(eu,Linfu);
- 	  Linfv = max(ev,Linfv);
+ 	  Linfu = (eu > Linfu) ? eu : Linfu; // max(eu,Linfu);
+ 	  Linfv = (ev > Linfv) ? ev : Linfv; // max(ev,Linfv);
  	}
  	unorm = sqrt(unorm/nNodes);
  	vnorm = sqrt(vnorm/nNodes);
