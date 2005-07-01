@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.22 2005-04-15 18:55:45 paklein Exp $
+# $Id: run.batch,v 1.23 2005-07-01 15:41:20 paklein Exp $
 RKPM.2D.0.xml
 RKPM.2D.0.tri.xml
 #RKPM.2D.1.xml
@@ -18,7 +18,7 @@ RKPM.2D.contact.1.rs.xml
 fd_mfparticle.xml
 fd_mfparticle.cell.xml
 mfnodal_patchtest.xml
-mfnodal_prescribed.xml
+#mfnodal_prescribed.xml
 mfnodal_axi.xml
 RKPM.3D.0.xml
 SCNI.cell.2D.0.tri.xml
