@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.6 2005-06-30 21:57:43 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.7 2005-07-01 03:20:09 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -74,12 +74,20 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	const ParameterListT& bulk_params = mat[0];
 	if (bulk_params.Name() != "FCC_3D")
 		ExceptionT::GeneralFail(caller, "expecting \"FCC_3D\" not \"%s\"", bulk_params.Name().Pointer());
-
-	/* initialize surface information create all possible (12) surface clusters */
+	
+	/* initialize surface information & create all possible (12) surface clusters */
 	fNormal.Dimension(nfs);
 	fSurfaceCB.Dimension(nfs);
 	fSurfaceCB = NULL;
+	
 	/* May need to loop over nfs * 2 since have 2 layers of surface clusters */
+	/* Or can make the additional surface cluster in FCCLatticeT? */
+	/* 2 ISSUES..  1) each fSurfaceCB represents one FCC3D_Surf - do I explicitly need to 
+	send in the "normal_code" for each one to create 6 (12) unique FCC3D_Surfs? 2)  How
+	will I call these fSurfaceCB[i] later on to calculate stress? */
+	/* Next thing to do:  create bond tables based on rotation based on normal in FCC3D_Surf */
+	/* Put all bonds (cluster 1 & cluster 2) into same bond table because F is similar as is B
+	between the surface clusters */
 	for (int i = 0; i < nfs; i++)
 	{
 		/* face normal */
@@ -100,6 +108,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* collect surface element information */
+	/* DO WE NEED TO MOVE THIS ENTIRE SECTION UP BEFORE fSurfaceCB[i] ARE INITIALIZED? */
 	ArrayT<StringT> block_ID;
 	ElementBlockIDs(block_ID);
 	ModelManagerT& model_manager = ElementSupport().ModelManager();

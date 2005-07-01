@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.h,v 1.1 2005-06-29 22:38:16 hspark Exp $ */
+/* $Id: FCC3D_Surf.h,v 1.2 2005-07-01 03:20:09 hspark Exp $ */
 #ifndef _FCC_3D_SURF_H_
 #define _FCC_3D_SURF_H_
 
@@ -90,6 +90,7 @@ private:
 	double fAtomicVolume;
 
 	/** dummy full bond density array */
+	/* THIS IS THE REFERENCE VOLUME/AREA */
 	dArrayT fFullDensity;
 	
 	/** flag to indicate whether stress calculation for output should include

@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT_Surf.cpp,v 1.1 2005-06-29 22:38:16 hspark Exp $ */
+/* $Id: FCCLatticeT_Surf.cpp,v 1.2 2005-07-01 03:20:09 hspark Exp $ */
 #include "FCCLatticeT_Surf.h"
 #include "ParameterContainerT.h"
 
@@ -6,9 +6,11 @@ using namespace Tahoe;
 
 /* number of atoms per shell */
 /* Construct shells corresponding to atoms exactly on free surface */
+/* Are combining bonds from surface and second surface clusters into the same bond
+tables due to explanation give below */
 /* Are actually counting ALL bonds; need to split energy in half for surface clusters */
-const int atoms_per_shell[] = {8, 5, 12};
-const int atoms_in_shells[] = {8, 13, 25};
+const int atoms_per_shell[] = {20, 10, 32};
+const int atoms_in_shells[] = {20, 30, 62};
 static int AtomsInShells(int nshells) {
 	if (nshells < 0 || nshells > 3) ExceptionT::OutOfRange();
 	return atoms_in_shells[nshells-1];
@@ -168,8 +170,11 @@ void FCCLatticeT_Surf::SetQ(const ParameterListT& list, dMatrixT& Q)
  *************************************************************************/
 
 /* initialize bond table values */
-/* For surface cluster corresponding to atoms exactly on a free surface */
-/* Free surface corresponds to "left" surface */
+/* Bond tables may repeat bonds; are combining bonds for free surface and one layer
+in because assuming (1) deformation gradient F changes minimally between two atomic layers, and
+(2) thus are using the same deformation gradient F to deform the bonds on the surface and one layer into
+the bulk */
+/* Surface clusters correspond to "left" surface, i.e. with normal [-1,0,0] */
 void FCCLatticeT_Surf::LoadBondTable(void)
 {
 	/* dimension work space */
@@ -182,25 +187,42 @@ void FCCLatticeT_Surf::LoadBondTable(void)
   	fBondCounts = 1;
   	fDefLength = 0.0; 
 
-  	double bonddata1[8*3] =
-	{ 1.0/sqrt2, 1.0/sqrt2,       0.0,
+  	double bonddata1[20*3] =
+	{ 1.0/sqrt2, 1.0/sqrt2,       0.0, // Surface cluster (8 nearest neighbors)
 	  1.0/sqrt2,-1.0/sqrt2,       0.0,
 	  1.0/sqrt2,       0.0, 1.0/sqrt2,
 	  1.0/sqrt2,       0.0,-1.0/sqrt2,
 	        0.0, 1.0/sqrt2, 1.0/sqrt2,
 	        0.0,-1.0/sqrt2, 1.0/sqrt2,
 	        0.0, 1.0/sqrt2,-1.0/sqrt2,
-			0.0,-1.0/sqrt2,-1.0/sqrt2};
+			0.0,-1.0/sqrt2,-1.0/sqrt2,
+	  1.0/sqrt2, 1.0/sqrt2,       0.0, // Repeat cluster here - one atomic thickness into bulk
+	  1.0/sqrt2,-1.0/sqrt2,       0.0, // Total of 12 nearest neighbors 
+	  1.0/sqrt2,       0.0, 1.0/sqrt2,
+	  1.0/sqrt2,       0.0,-1.0/sqrt2,
+	        0.0, 1.0/sqrt2, 1.0/sqrt2,
+	        0.0,-1.0/sqrt2, 1.0/sqrt2,
+	        0.0, 1.0/sqrt2,-1.0/sqrt2,
+			0.0,-1.0/sqrt2,-1.0/sqrt2,
+	 -1.0/sqrt2,-1.0/sqrt2,       0.0, // New bonds for second surface cluster begin here
+	 -1.0/sqrt2, 1.0/sqrt2,       0.0,
+	 -1.0/sqrt2,       0.0, 1.0/sqrt2,
+	 -1.0/sqrt2,       0.0,-1.0/sqrt2};
 
-  	double bonddata2[5*3] =
-	{sqrt2,   0.0,   0.0,
+  	double bonddata2[10*3] =
+	{sqrt2,   0.0,   0.0, // Surface cluster (5 2nd shell neighbors)
 	   0.0, sqrt2,   0.0,
+	   0.0,   0.0, sqrt2,
+	   0.0,-sqrt2,   0.0,
+	   0.0,   0.0,-sqrt2,
+	 sqrt2,   0.0,   0.0, // Repeat cluster here - one atomic thickness into bulk
+	   0.0, sqrt2,   0.0, // Total of 5 2nd shell neighbors
 	   0.0,   0.0, sqrt2,
 	   0.0,-sqrt2,   0.0,
 	   0.0,   0.0,-sqrt2};
 
-  	double bonddata3[12*3] =
-	{     sqrt2, 1.0/sqrt2, 1.0/sqrt2,
+  	double bonddata3[32*3] =
+	{     sqrt2, 1.0/sqrt2, 1.0/sqrt2, // Surface cluster (12 3rd shell neighbors)
       1.0/sqrt2,     sqrt2, 1.0/sqrt2,
       1.0/sqrt2, 1.0/sqrt2,     sqrt2,
           sqrt2, 1.0/sqrt2,-1.0/sqrt2,
@@ -211,7 +233,27 @@ void FCCLatticeT_Surf::LoadBondTable(void)
       1.0/sqrt2,-1.0/sqrt2,     sqrt2,
           sqrt2,-1.0/sqrt2,-1.0/sqrt2,
       1.0/sqrt2,    -sqrt2,-1.0/sqrt2,
-      1.0/sqrt2,-1.0/sqrt2,    -sqrt2};
+      1.0/sqrt2,-1.0/sqrt2,    -sqrt2,
+		  sqrt2, 1.0/sqrt2, 1.0/sqrt2, // Repeat cluster here - one atomic thickness into bulk
+      1.0/sqrt2,     sqrt2, 1.0/sqrt2, // Total of 20 3rd shell neighbors
+      1.0/sqrt2, 1.0/sqrt2,     sqrt2,
+          sqrt2, 1.0/sqrt2,-1.0/sqrt2,
+      1.0/sqrt2,     sqrt2,-1.0/sqrt2,
+      1.0/sqrt2, 1.0/sqrt2,    -sqrt2,
+          sqrt2,-1.0/sqrt2, 1.0/sqrt2,
+      1.0/sqrt2,    -sqrt2, 1.0/sqrt2,
+      1.0/sqrt2,-1.0/sqrt2,     sqrt2,
+          sqrt2,-1.0/sqrt2,-1.0/sqrt2,
+      1.0/sqrt2,    -sqrt2,-1.0/sqrt2,
+      1.0/sqrt2,-1.0/sqrt2,    -sqrt2,
+	 -1.0/sqrt2,     sqrt2, 1.0/sqrt2, // New bonds for second surface cluster begin here
+	 -1.0/sqrt2,     sqrt2,-1.0/sqrt2,
+	 -1.0/sqrt2, 1.0/sqrt2,     sqrt2,
+	 -1.0/sqrt2, 1.0/sqrt2,    -sqrt2,
+	 -1.0/sqrt2,-1.0/sqrt2,     sqrt2,
+	 -1.0/sqrt2,-1.0/sqrt2,    -sqrt2,
+	 -1.0/sqrt2,    -sqrt2, 1.0/sqrt2,
+	 -1.0/sqrt2,    -sqrt2,-1.0/sqrt2};
 
 	double* shells[3];
 	shells[0] = bonddata1;

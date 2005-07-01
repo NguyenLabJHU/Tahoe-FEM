@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.3 2005-07-01 00:02:18 paklein Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.4 2005-07-01 03:20:09 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -113,6 +113,8 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	/* number of shells */
 	int nshells = list.GetParameter("shells");
 
+	/* GET NORMAL CODE THE SAME WAY AS ABOVE COMMAND */
+
 	/* construct pair property */
 	const ParameterListT& pair_prop = list.GetListChoice(*this, "FCC_3D_potential_choice");
 	fPairProperty = PairPropertyT::New(pair_prop.Name(), &(MaterialSupport()));
@@ -129,6 +131,7 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	fFCCLattice_Surf->TakeParameterList(list.GetList("CB_lattice_FCC"));
 	
 	/* construct default bond density array */
+	/* THIS IS AREA/VOLUME NORMALIZATION FACTOR, i.e. fFullDensity */
 	fFullDensity.Dimension(fFCCLattice_Surf->NumberOfBonds());
 	fFullDensity = 1.0;
 		
@@ -137,6 +140,7 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
 
 	/* compute stress-free dilatation */
+	/* SOMEHOW NEED TO GET BULK STRESS-FREE DILATATION FOR SURFACE CLUSTERS */
 	double stretch = ZeroStressStretch();
 	fNearestNeighbor *= stretch;
 	cube_edge = fNearestNeighbor*sqrt(2.0);
