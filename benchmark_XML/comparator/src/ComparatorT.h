@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.13 2004-02-26 08:54:34 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.14 2005-07-01 07:14:37 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -72,8 +72,8 @@ private:
 	bool PassOrFail(const StringT& file_1, const StringT& file_2, 
 		bool do_rel, bool do_abs);
 
-	/** deprecated version not using the ModelManagerT class to read data */
-	bool PassOrFail_old(const StringT& file_1, const StringT& file_2, 
+	/** compare results for changing geometry files */
+	bool PassOrFail_changing(const StringT& file_1, const StringT& file_2, 
 		bool do_rel, bool do_abs);
 
 	/* read data block header */
