@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.1 2005-06-06 06:45:23 paklein Exp $
+# $Id: run.batch,v 1.2 2005-07-01 07:13:22 paklein Exp $
 -run
 pcg.0.xml
 -join
@@ -10,10 +10,10 @@ md.0.xml
 -join
 -4
 md.0.xml
--run
-md.0.rs.xml
--join
--4
-md.0.rs.xml
--run
+#-run
+#md.0.rs.xml
+#-join
+#-4
+#md.0.rs.xml
+#-run
 
