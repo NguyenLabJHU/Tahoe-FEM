@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT_Surf.h,v 1.1 2005-06-29 22:38:16 hspark Exp $ */
+/* $Id: FCCLatticeT_Surf.h,v 1.2 2005-07-01 22:08:10 hspark Exp $ */
 #ifndef _FCC_LATTICE_T_SURF_H_
 #define _FCC_LATTICE_T_SURF_H_
 
@@ -27,7 +27,7 @@ public:
 	  kEulerAngles = 4};
 
 	/** constructor */
-	FCCLatticeT_Surf(int nshells);
+	FCCLatticeT_Surf(int nshells,int normal);
 
 	/** number of shells */
 	int NumShells(void) const { return fNumShells; };
@@ -64,6 +64,15 @@ private:
 
 	/** number of shells of neighbors */
 	int fNumShells;
+	
+	/** normal code to do bond table rotation */
+	int fNormalCode;
+	
+	/** Return rotation matrix for bond table */
+	dMatrixT RotationMatrixA(const double angle);
+	
+	/** Reeturn other rotation matrix for bond table */
+	dMatrixT RotationMatrixB(const double angle);
 };
 
 } /* namespace Tahoe */

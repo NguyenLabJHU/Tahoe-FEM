@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.4 2005-07-01 03:20:09 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.5 2005-07-01 22:08:10 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -97,7 +97,7 @@ ParameterInterfaceT* FCC3D_Surf::NewSub(const StringT& name) const
 	if (pair_prop)
 		return pair_prop;
 	else if (name == "CB_lattice_FCC")	
-		return new FCCLatticeT_Surf(0);
+		return new FCCLatticeT_Surf(0,0);
 	else /* inherited */
 		return NL_E_MatT::NewSub(name);
 }
@@ -113,8 +113,6 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	/* number of shells */
 	int nshells = list.GetParameter("shells");
 
-	/* GET NORMAL CODE THE SAME WAY AS ABOVE COMMAND */
-
 	/* construct pair property */
 	const ParameterListT& pair_prop = list.GetListChoice(*this, "FCC_3D_potential_choice");
 	fPairProperty = PairPropertyT::New(pair_prop.Name(), &(MaterialSupport()));
@@ -126,8 +124,12 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	if (fNearestNeighbor < kSmall)
 		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
 
+	/* Obtain surface normal, use it to rotate Bond Table to correct orientation */
+	/* Pass normal in as input to new FCCLatticeT_Surf(nshells,normal) */
+	int normal = list.GetParameter("normal_code");
+
 	/* construct lattice */
-	fFCCLattice_Surf = new FCCLatticeT_Surf(nshells);
+	fFCCLattice_Surf = new FCCLatticeT_Surf(nshells,normal);
 	fFCCLattice_Surf->TakeParameterList(list.GetList("CB_lattice_FCC"));
 	
 	/* construct default bond density array */

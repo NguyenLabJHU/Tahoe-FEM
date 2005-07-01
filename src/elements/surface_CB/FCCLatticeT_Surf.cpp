@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT_Surf.cpp,v 1.2 2005-07-01 03:20:09 hspark Exp $ */
+/* $Id: FCCLatticeT_Surf.cpp,v 1.3 2005-07-01 22:08:10 hspark Exp $ */
 #include "FCCLatticeT_Surf.h"
 #include "ParameterContainerT.h"
 
@@ -17,11 +17,13 @@ static int AtomsInShells(int nshells) {
 };
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
+const double piby2 = 4.0 * atan(1.0) / 2.0;
 
 /* constructor */
-FCCLatticeT_Surf::FCCLatticeT_Surf(int nshells):
+FCCLatticeT_Surf::FCCLatticeT_Surf(int nshells,int normal):
 	ParameterInterfaceT("CB_lattice_FCC"),
-	fNumShells(nshells)
+	fNumShells(nshells),
+	fNormalCode(normal)
 {
 
 }
@@ -183,6 +185,10 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 	fDefLength.Dimension(num_bonds);
 	fBonds.Dimension(num_bonds, 3);
 
+	dArray2DT temp_bonds, temp_bonds2;
+	temp_bonds.Dimension(num_bonds, 3);	// temporary bond table before rotation
+	temp_bonds2.Dimension(num_bonds, 3);
+	
 	/* initialize */
   	fBondCounts = 1;
   	fDefLength = 0.0; 
@@ -255,6 +261,8 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 	 -1.0/sqrt2,    -sqrt2, 1.0/sqrt2,
 	 -1.0/sqrt2,    -sqrt2,-1.0/sqrt2};
 
+	/* Rotate Bond Tables based on fNormalCode and rotation matrices */
+	/* Create temporary bond table temp_bonds */
 	double* shells[3];
 	shells[0] = bonddata1;
 	shells[1] = bonddata2;
@@ -266,10 +274,123 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 		dArray2DT bonds(atoms_per_shell[i], 3, shells[i]);
 		for (int j = 0; j < bonds.MajorDim(); j++)
 		{
-			fBonds(bond,0) = bonds(j,0);
-			fBonds(bond,1) = bonds(j,1);
-			fBonds(bond,2) = bonds(j,2);
+			temp_bonds(bond,0) = bonds(j,0);
+			temp_bonds(bond,1) = bonds(j,1);
+			temp_bonds(bond,2) = bonds(j,2);
 			bond++;
 		}
 	}
+	
+	/* Now manipulate temp_bonds */
+	dMatrixT blah1(3);
+	dArrayT asdf(3), prod(3);
+	if (fNormalCode == 0)	// normal is [1,0,0]
+	{
+		temp_bonds2 = temp_bonds;
+		fBonds = temp_bonds2;
+		fBonds *= -1.0;
+	}
+	else if (fNormalCode == 1)
+		fBonds = temp_bonds;	// this table is the default, i.e. [-1,0,0]
+	else if (fNormalCode == 2)	// rotate [-1,0,0] to [0,1,0]
+	{
+		temp_bonds2 = temp_bonds;
+		blah1 = RotationMatrixA(-piby2);
+		for (int i = 0; i < num_bonds; i++)
+		{
+			temp_bonds2.RowCopy(i,asdf);	// take bond
+			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
+			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
+		}
+		fBonds = temp_bonds2;
+	}
+	else if (fNormalCode == 3)	// rotate [-1,0,0] to [0,-1,0]
+	{
+		temp_bonds2 = temp_bonds;
+		blah1 = RotationMatrixA(piby2);
+		for (int i = 0; i < num_bonds; i++)
+		{
+			temp_bonds2.RowCopy(i,asdf);	// take bond
+			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
+			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
+		}	
+		fBonds = temp_bonds2;
+	}
+	else if (fNormalCode == 4)	// rotate [-1,0,0] to [0,0,1]
+	{
+		temp_bonds2 = temp_bonds;
+		blah1 = RotationMatrixB(piby2);
+		for (int i = 0; i < num_bonds; i++)
+		{
+			temp_bonds2.RowCopy(i,asdf);	// take bond
+			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
+			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
+		}	
+		fBonds = temp_bonds2;
+	}	
+	else if (fNormalCode == 5)	// rotate [-1,0,0] to [0,0,-1]
+	{
+		temp_bonds2 = temp_bonds;
+		blah1 = RotationMatrixB(-piby2);
+		for (int i = 0; i < num_bonds; i++)
+		{
+			temp_bonds2.RowCopy(i,asdf);	// take bond
+			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
+			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
+		}	
+		fBonds = temp_bonds2;
+	}	
+
+	cout << "fBonds = " << fBonds << endl;
+	
+	/* Copy bonds into official bond table */
+//	double* shells[3];
+//	shells[0] = bonddata1;
+//	shells[1] = bonddata2;
+//	shells[2] = bonddata3;
+
+//	int bond = 0;
+//	for (int i = 0; i < fNumShells; i++)
+//	{
+//		dArray2DT bonds(atoms_per_shell[i], 3, shells[i]);
+//		for (int j = 0; j < bonds.MajorDim(); j++)
+//		{
+//			fBonds(bond,0) = bonds(j,0);
+//			fBonds(bond,1) = bonds(j,1);
+//			fBonds(bond,2) = bonds(j,2);
+//			bond++;
+//		}
+//	}
+}
+
+/*************************************************************************
+ * Private
+ *************************************************************************/
+ 
+ /* Rotate bonds with [-1,0,0] normal to bonds with [0,1,0]-type normals */
+dMatrixT FCCLatticeT_Surf::RotationMatrixA(const double angle)
+ {
+	dMatrixT rmatrix(3);
+	rmatrix = 0.0;
+    rmatrix(0,0) = cos(angle);
+	rmatrix(0,1) = sin(angle);
+	rmatrix(1,0) = -sin(angle);
+	rmatrix(1,1) = cos(angle);
+	rmatrix(2,2) = 1.0;
+	
+	return rmatrix;
+ }
+ 
+/* Rotate bonds with [-1,0,0] normal to bonds with [0,0,1]-type normals */
+dMatrixT FCCLatticeT_Surf::RotationMatrixB(const double angle)
+{
+	dMatrixT rmatrix(3);
+	rmatrix = 0.0;
+    rmatrix(0,0) = cos(angle);
+	rmatrix(0,2) = -sin(angle);
+	rmatrix(1,1) = 1.0;
+	rmatrix(2,0) = sin(angle);
+	rmatrix(2,2) = cos(angle);
+	
+	return rmatrix;
 }
