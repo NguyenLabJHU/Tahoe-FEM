@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.61 2005-07-01 00:14:15 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.62 2005-07-01 22:16:43 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -914,8 +914,10 @@ void SCNIMFT::RHSDriver(void)
 			if (qIsAxisymmetric) 
 				bf_source *= twoPi*fCellCentroids(i,0);
 		
-			supp_i = nodalCellSupports(i);
-			n_supp = nodalCellSupports.MinorDim(i);
+//			supp_i = nodalCellSupports(i);
+//			n_supp = nodalCellSupports.MinorDim(i);
+			supp_i = fNodalSupports(i);
+			n_supp = fNodalSupports.MinorDim(i);
 			phi_i = fNodalPhi(i);
 			for (int j = 0; j < n_supp; j++) {
 			  f = fForce(*supp_i++);
