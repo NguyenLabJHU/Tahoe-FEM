@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.9 2005-06-08 17:24:31 jwfoulk Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.10 2005-07-01 16:10:14 jwfoulk Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -102,15 +102,11 @@ SuperLUMatrixT::~SuperLUMatrixT(void)
 	Destroy_CompCol_Matrix(&fA);
         Destroy_Dense_Matrix(&fX);
         free(fB.Store);
-
 	/* free upper and lower factors */
-        /*                                                 */
-        /* Always destroying L & U to prevent memory leaks */
-        /*                                                 */
-/*	if (fIsNumFactorized) { */
+	if (fIsSymFactorized) { 
 		Destroy_SuperNode_Matrix(&fL);
 		Destroy_CompCol_Matrix(&fU);
-/*	} */
+	} 
 }
 
 /* set the internal matrix structure.
@@ -146,7 +142,7 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	fetree.Dimension(fLocNumEQ);
 
 	/* structure could be changing, so get rid of old factors etc. */
-	if (fIsNumFactorized) {
+	if (fIsSymFactorized) {
 		Destroy_SuperNode_Matrix(&fL);
 		fL.nrow = 0;
 		fL.ncol = 0;
@@ -155,7 +151,7 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		fU.nrow = 0;
 		fU.ncol = 0;
 		fU.Store = NULL;
-		fIsNumFactorized = false;
+		fIsSymFactorized = false;
 	}
 
 	/* configure A */
