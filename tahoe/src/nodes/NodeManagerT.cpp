@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.62.2.5 2005-06-10 23:02:01 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.62.2.6 2005-07-02 22:49:09 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -324,8 +324,11 @@ GlobalT::InitStatusT NodeManagerT::UpdateConfiguration(int group)
 //      a repeat of the loop. Here we are saying equations need to be re-assigned, but
 //      not because we have changed the number of unknowns.
 
-#pragma message("UpdateConfiguration for FBC and KBC controllers?")
-	
+	/* loop over fields */
+	for (int i = 0; i < fFields.Length(); i++)
+		if (fFields[i]->Group() == group)
+			status = GlobalT::MaxPrecedence(fFields[i]->UpdateConfiguration(), status);
+
 	return status;
 }
 
