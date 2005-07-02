@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT_Surf.cpp,v 1.3 2005-07-01 22:08:10 hspark Exp $ */
+/* $Id: FCCLatticeT_Surf.cpp,v 1.4 2005-07-02 20:16:12 hspark Exp $ */
 #include "FCCLatticeT_Surf.h"
 #include "ParameterContainerT.h"
 
@@ -295,7 +295,7 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 	else if (fNormalCode == 2)	// rotate [-1,0,0] to [0,1,0]
 	{
 		temp_bonds2 = temp_bonds;
-		blah1 = RotationMatrixA(-piby2);
+		blah1 = RotationMatrixA(piby2);
 		for (int i = 0; i < num_bonds; i++)
 		{
 			temp_bonds2.RowCopy(i,asdf);	// take bond
@@ -307,7 +307,7 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 	else if (fNormalCode == 3)	// rotate [-1,0,0] to [0,-1,0]
 	{
 		temp_bonds2 = temp_bonds;
-		blah1 = RotationMatrixA(piby2);
+		blah1 = RotationMatrixA(-piby2);
 		for (int i = 0; i < num_bonds; i++)
 		{
 			temp_bonds2.RowCopy(i,asdf);	// take bond
@@ -319,7 +319,7 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 	else if (fNormalCode == 4)	// rotate [-1,0,0] to [0,0,1]
 	{
 		temp_bonds2 = temp_bonds;
-		blah1 = RotationMatrixB(piby2);
+		blah1 = RotationMatrixB(-piby2);
 		for (int i = 0; i < num_bonds; i++)
 		{
 			temp_bonds2.RowCopy(i,asdf);	// take bond
@@ -331,7 +331,7 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 	else if (fNormalCode == 5)	// rotate [-1,0,0] to [0,0,-1]
 	{
 		temp_bonds2 = temp_bonds;
-		blah1 = RotationMatrixB(-piby2);
+		blah1 = RotationMatrixB(piby2);
 		for (int i = 0; i < num_bonds; i++)
 		{
 			temp_bonds2.RowCopy(i,asdf);	// take bond
@@ -340,8 +340,6 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 		}	
 		fBonds = temp_bonds2;
 	}	
-
-	cout << "fBonds = " << fBonds << endl;
 	
 	/* Copy bonds into official bond table */
 //	double* shells[3];
