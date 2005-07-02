@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.45.2.5 2005-07-02 00:45:28 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.45.2.6 2005-07-02 17:19:02 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ElementsConfig.h"
@@ -1347,6 +1347,8 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 		if (!resolved) {
 			if (name == "initial_condition") {			
 
+#pragma message("clean up")
+#if 0
 				/* node set or all nodes */				
 				const ParameterT* node_ID = subs[i].Parameter("node_ID");
 				const ParameterT* all_nodes = subs[i].Parameter("all_nodes");
@@ -1361,6 +1363,8 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 					bool all = *all_nodes;
 					if (all) num_IC++;
 				}
+#endif
+				num_IC++;
 			}
 			else if (name == "kinematic_BC") {
 #pragma message("clean up")
@@ -1401,15 +1405,20 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 				/* look for node set ID - exclusive choice checked above */
 				const ParameterT* node_ID = sub.Parameter("node_ID");
 				const ParameterT* all_nodes = sub.Parameter("all_nodes");
-				if (node_ID) /* set cards */ {
+				if ((node_ID && all_nodes) || (!node_ID && !all_nodes))
+					ExceptionT::GeneralFail(caller, "expecting either \"node_ID\" or \"all_nodes\" in \"initial_condition\"");
+
+				/* set card */
+				if (node_ID) {
 					const StringT& ID = *node_ID;
-					const iArrayT& set = model_manager.NodeSet(ID);
-					for (int i = 0; i < set.Length(); i++)
-						fIC[num_IC++].SetValues(set[i], dof, order, value);
+					fIC[num_IC++].SetValues(ID, dof, order, value);
 				}
 				else /* all nodes */ {
 					bool all = *all_nodes;
-					if (all) fIC[num_IC++].SetValues(-1, dof, order, value); /* -1 => "all" */
+					if (all)
+						fIC[num_IC++].SetValues(-1, dof, order, value); /* -1 => "all" */
+					else
+						ExceptionT::GeneralFail(caller, "expecting all_nodes true");
 				}
 			}
 			else if (name == "kinematic_BC") {
@@ -1473,31 +1482,47 @@ bool FieldT::Apply_IC(const IC_CardT& card)
 			Order()-1, card.Order());
 
 	/* decode */
-	int node     = card.Node();
-	int dof      = card.DOF();
+	int dof = card.DOF();
 	double value = card.Value();
+	IC_CardT::ModeT mode = card.Mode();
 
 	/* set */
 	bool active = true;
 	dArray2DT& field = fField[card.Order()];
-	if (node == -1)
-	{
-		/* must all be free */
-		iArrayT tmp(fEqnos.MajorDim());
-		fEqnos.ColumnCopy(dof,tmp);
-		if (tmp.Min() < 1) active = false;
-
-		/* set value */
-		field.SetColumn(dof, value);
+	if (mode == IC_CardT::kNode)
+	{	
+		int node = card.Node();
+		if (node == -1)
+		{
+			/* must all be free */
+			iArrayT tmp(fEqnos.MajorDim());
+			fEqnos.ColumnCopy(dof,tmp);
+			if (tmp.Min() < 1) active = false;
+	
+			/* set value */
+			field.SetColumn(dof, value);
+		}
+		else
+		{
+			/* must be free DOF */
+			if (node != -1 && EquationNumber(node,dof) < 1) active = false;
+	
+			/* set value */
+			field(node, dof) = value;		
+		}
 	}
-	else
+	else if (mode == IC_CardT::kSet)
 	{
-		/* must be free DOF */
-		if (node != -1 && EquationNumber(node,dof) < 1) active = false;
-
-		/* set value */
-		field(node, dof) = value;		
+		/* collect nodes */
+		ModelManagerT& model_manager = FieldSupport().ModelManager();
+		const iArrayT& nodes = model_manager.NodeSet(card.ID());
+		for (int i = 0; i < nodes.Length(); i++) {
+			int node = nodes[i];
+			if (EquationNumber(node,dof) < 1) active = false; /* must be free DOF */
+			field(node, dof) = value; /* set value */
+		}
 	}
+	else ExceptionT::GeneralFail(caller, "unknown mode %d", mode);
 	
 	return active;
 }
