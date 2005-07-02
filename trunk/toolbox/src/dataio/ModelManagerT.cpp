@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.53 2005-04-30 21:11:00 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.54 2005-07-02 22:44:40 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -1223,6 +1223,51 @@ void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
 	else if (ID.Length() == 1) {
 		nodes = NodeSet(ID[0]);
 	        nodes.SortAscending();
+	}
+	else
+	{
+		ArrayT<char> flag(NumNodes());
+		flag = 0;
+
+		/* mark included nodes */		
+		for (int i = 0; i < ID.Length(); i++)
+		{
+			const iArrayT& node_set = NodeSet(ID[i]);
+
+			const int* p = node_set.Pointer();
+			int len = node_set.Length();
+			for (int j = 0; j < len; j++)
+				flag[*p++] = 1;
+		}
+		
+		/* count included nodes */
+		int count = 0;
+		char* p = flag.Pointer();
+		int len = flag.Length();
+		for (int j = 0; j < len; j++)
+			if (*p++ == 1)
+				count++;
+		
+		/* gather included nodes */
+		nodes.Dimension(count);
+		count = 0;
+		p = flag.Pointer();
+		for (int j = 0; j < len; j++)
+			if (*p++ == 1)
+				nodes[count++] = j;
+	}
+}
+
+void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, AutoArrayT<int>& nodes)
+{
+	/* quick exits */
+	if (ID.Length() == 0)
+		nodes.Dimension(0);
+	else if (ID.Length() == 1) {
+		nodes = NodeSet(ID[0]);
+		iArrayT nodes_alias;
+		nodes_alias.Alias(nodes);
+		nodes_alias.SortAscending();
 	}
 	else
 	{
