@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.36 2005-06-09 16:19:12 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.37 2005-07-02 22:44:41 paklein Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -298,6 +298,11 @@ class ModelManagerT
 	 * compile the set of node sets indicated by indexes into one sorted array called nodes
 	 * \note node numbering is global, continuous, and offset to zero */
 	void ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes);
+
+	/** return mapped node set array.
+	 * compile the set of node sets indicated by indexes into one sorted array called nodes
+	 * \note node numbering is global, continuous, and offset to zero */
+	void ManyNodeSets (const ArrayT<StringT>& ID, AutoArrayT<int>& nodes);
 	/*@}*/
 
 	/** \name side set information */
