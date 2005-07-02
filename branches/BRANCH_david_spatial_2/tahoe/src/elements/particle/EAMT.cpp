@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.66.6.2 2005-06-09 03:32:45 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.66.6.3 2005-07-02 22:48:35 paklein Exp $ */
 #include "EAMT.h"
 
 #include "ifstreamT.h"
@@ -891,6 +891,15 @@ void EAMT::TakeParameterList(const ParameterListT& list)
 				int do_write = *value;
 				if (do_write)
 					fOutputFlags[i] = 1;
+//TEMP
+if (do_write && ElementSupport().CommManager().DecompType() == PartitionT::kSpatial)
+{
+	if (OutputNames[i] == "stress" || OutputNames[i] == "strain" || OutputNames[i] == "slip_vector") {
+		cout << "\n EAMT::TakeParameterList:\"" << OutputNames[i] << "\" output not supported with spatial decomposition" << endl;
+		fOutputFlags[i] = 0; //disable
+	}
+}
+//TEMP					
 			}
 		}
 	}
