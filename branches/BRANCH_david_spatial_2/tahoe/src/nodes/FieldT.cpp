@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.45.2.6 2005-07-02 17:19:02 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.45.2.7 2005-07-02 22:50:20 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ElementsConfig.h"
@@ -233,6 +233,22 @@ void FieldT::InitialCondition(void)
 
 	/* initial history */
 	fField_last = fField;
+}
+
+/* (re-)set the configuration */
+GlobalT::InitStatusT FieldT::UpdateConfiguration(void)
+{
+	GlobalT::InitStatusT status = GlobalT::kContinue;
+
+	/* KBC controllers */
+	for (int i = 0; i < fKBC_Controllers.Length(); i++)
+		status = GlobalT::MaxPrecedence(fKBC_Controllers[i]->UpdateConfiguration(), status);
+
+	/* FBC controllers */
+	for (int j = 0; j < fFBC_Controllers.Length(); j++)
+		status = GlobalT::MaxPrecedence(fFBC_Controllers[j]->UpdateConfiguration(), status);
+
+	return status;
 }
 
 #if 0

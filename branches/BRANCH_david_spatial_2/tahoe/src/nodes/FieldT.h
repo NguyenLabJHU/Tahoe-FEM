@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.24.2.1 2005-07-02 00:45:28 paklein Exp $ */
+/* $Id: FieldT.h,v 1.24.2.2 2005-07-02 22:50:20 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -127,6 +127,9 @@ public:
 	/*@{*/
 	/** beginning of time series */
 	void InitialCondition(void);
+
+	/** (re-)set the configuration */
+	GlobalT::InitStatusT UpdateConfiguration(void);
 	
 	/** apply predictor to all degrees of freedom */
 //	void InitStep(void);
