@@ -1,0 +1,24 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 7
+ Labels:
+	D_X
+	D_Y
+	D_Z
+	F_X
+	F_Y
+	F_Z
+	h
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 1
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 216
+ Number of elements. . . . . . . . . . . . . . . = 216
+
+ O U T P U T   D A T A :  T O C
+indent.EAM.io1.ps0001.run.ps0001
