@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.45.2.4 2005-06-09 02:44:02 d-farrell2 Exp $ */
+/* $Id: FieldT.cpp,v 1.45.2.5 2005-07-02 00:45:28 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ElementsConfig.h"
@@ -32,7 +32,9 @@ FieldT::FieldT(const FieldSupportT& field_support):
 	fActiveMass(NULL),
 	fTrackTotalEnergy(false),
 	fTotalEnergyOutputInc(0),
-	fTotalEnergyOutputID(-1)	
+	fTotalEnergyOutputID(-1),
+	fFBCValues_man(10, fFBCValues),
+	fFBCEqnos_man(10, fFBCEqnos)
 {
 
 }
@@ -378,13 +380,48 @@ void FieldT::InitStep(int fieldstart, int fieldend)
 /* assemble contributions to the residual */
 void FieldT::FormRHS(void)
 {
-	/* has force bpundary conditions */
-	if (fFBC.Length() > 0)
-	{
-		/* collect nodal forces */
-		for (int i = 0; i < fFBC.Length(); i++)
-			fFBCValues[i] = fFBC[i].CurrentValue();	
-	
+	const char caller[] = "FieldT::FormRHS";
+
+	/* apply force bpundary conditions */
+	int bad_count = 0;
+	for (int i = 0; i < fFBC.Length(); i++) {
+		const FBC_CardT& card = fFBC[i];
+		if (card.Mode() == FBC_CardT::kNode) /* node-by-node */
+		{
+			/* dimension workspace */
+			fFBCValues_man.SetLength(1,false);
+			fFBCEqnos_man.SetLength(1,false);
+			
+			/* set values */
+			int nodenum, dofnum;
+			card.Destination(nodenum, dofnum);
+			int eq = fEqnos(nodenum, dofnum);
+			if (eq == kPrescribed) bad_count++;
+			fFBCValues[0] = card.CurrentValue();
+			fFBCEqnos[0] = eq;
+		}
+		else if (card.Mode() == FBC_CardT::kSet) /* by nodeset */
+		{
+			/* collect nodes */
+			ModelManagerT& model_manager = FieldSupport().ModelManager();
+			const iArrayT& nodes = model_manager.NodeSet(card.ID());
+
+			/* dimension workspace */
+			fFBCValues_man.SetLength(nodes.Length(),false);
+			fFBCEqnos_man.SetLength(nodes.Length(),false);
+			
+			/* set values */
+			int dofnum = card.DOF();
+			double value = card.CurrentValue();
+			for (int j = 0; j < nodes.Length(); j++) {
+				int eq = fEqnos(nodes[j], dofnum);
+				if (eq == kPrescribed) bad_count++;
+				fFBCValues[j] = value;
+				fFBCEqnos[j] = eq;		
+			}
+		}
+		else ExceptionT::GeneralFail(caller);
+		
 		/* assemble */
 		fFieldSupport.AssembleRHS(Group(), fFBCValues, fFBCEqnos);
 	}
@@ -647,8 +684,9 @@ void FieldT::FinalizeEquations(int eq_start, int num_eq)
 		}
 	}
 
+#pragma message("delete me")
 	/* set force boundary condition destinations */
-	SetFBCEquations();
+//	SetFBCEquations();
 
 	/* run through KBC controllers */
 	for (int j = 0; j < fKBC_Controllers.Length(); j++)
@@ -1332,9 +1370,11 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 				num_KBC++;
 			}
 			else if (name == "force_BC") {
-				const StringT& node_ID = subs[i].GetParameter("node_ID");
-				ModelManagerT& model_manager = fFieldSupport.ModelManager();
-				num_FBC += model_manager.NodeSet(node_ID).Length();
+#pragma message("clean up")
+//				const StringT& node_ID = subs[i].GetParameter("node_ID");
+//				ModelManagerT& model_manager = fFieldSupport.ModelManager();
+//				num_FBC += model_manager.NodeSet(node_ID).Length();
+				num_FBC++;
 			}
 		}
 	}
@@ -1392,7 +1432,6 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 		
 				/* extract values */
 				const StringT& node_ID = sub.GetParameter("node_ID");
-				int node = atoi(node_ID);
 				int dof = sub.GetParameter("dof"); dof--;
 				int schedule_no = sub.GetParameter("schedule"); schedule_no--;
 				double value = sub.GetParameter("value");
@@ -1401,10 +1440,7 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 				const ScheduleT* schedule = (schedule_no > -1) ? fFieldSupport.Schedule(schedule_no) : NULL;
 		
 				/* set card */
-				const NodeManagerT& node_man = fFieldSupport.NodeManager();
-				const iArrayT& set = model_manager.NodeSet(node_ID);
-				for (int i = 0; i < set.Length(); i++)
-					fFBC[num_FBC++].SetValues(set[i], dof, schedule, value);
+				fFBC[num_FBC++].SetValues(node_ID, dof, schedule, value);
 			}
 		}
 	}
@@ -1489,6 +1525,8 @@ void FieldT::SetBCCode(const KBC_CardT& card)
 	else ExceptionT::GeneralFail(caller);
 }
 
+#pragma message("dwlete me")
+#if 0
 /* resolve destinations for force BC's */
 void FieldT::SetFBCEquations(void)
 {
@@ -1515,3 +1553,4 @@ void FieldT::SetFBCEquations(void)
 		     << bad_count << " prescribed forces\n"
 		     <<   "     on equations with prescribed values" << endl;
 }
+#endif
