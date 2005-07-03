@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.10.8.1 2005-07-02 22:50:38 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.10.8.2 2005-07-03 05:39:53 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #ifndef _PENALTY_REGION_T_H_
 #define _PENALTY_REGION_T_H_
@@ -141,6 +141,7 @@ protected:
 	iArrayT fContactNodes;
 	AutoArrayT<int> fContactNodes_man;
 	AutoArrayT<int> fContactNodes_last;
+	AutoArrayT<int> fContactNodes_space;
 	iArrayT fContactEqnos;
 	VariArrayT<int> fContactEqnos_man;
 
