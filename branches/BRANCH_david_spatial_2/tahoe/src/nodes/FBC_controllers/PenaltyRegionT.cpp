@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.21.8.1 2005-07-02 22:50:38 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.21.8.2 2005-07-03 05:39:52 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -35,6 +35,7 @@ PenaltyRegionT::PenaltyRegionT(void):
 	fk(-1.0),
 	fRollerDirection(-1),
 	fSecantSearch(NULL),
+	fContactNodes_space(25),
 	fContactArea(0.0),
 	fContactEqnos_man(10, fContactEqnos),
 	fdContactNodesGroup2D(10, false, 0),
@@ -118,7 +119,6 @@ GlobalT::InitStatusT PenaltyRegionT::UpdateConfiguration(void)
 	fContactNodes.Alias(fContactNodes_man);
 
 	/* remove "external" nodes */
-	ofstreamT& out = FieldSupport().Output();
 	CommManagerT& comm = FieldSupport().CommManager();
 	const ArrayT<int>* p_map = comm.ProcessorMap();
 	if (fContactNodes.Length() > 0 && p_map)
@@ -126,33 +126,27 @@ GlobalT::InitStatusT PenaltyRegionT::UpdateConfiguration(void)
 		/* wrap it */
 		iArrayT processor;
 		processor.Alias(*p_map);
-	
-		/* count processor nodes */
+
+		/* collect processor nodes */
+		fContactNodes_space.Dimension(0);
 		int nnd = fContactNodes.Length();
 		int rank = comm.Rank();
-		int num_local_nodes = 0;
 		for (int i = 0; i < nnd; i++)
 			if (processor[fContactNodes[i]] == rank)
-				num_local_nodes++;
-		
-		/* remove off-processor nodes */
-		if (num_local_nodes != nnd)
-		{
-			/* report */
-			out << " Number of external contact nodes (removed). . . = "
-			    << nnd - num_local_nodes << '\n';
+				fContactNodes_space.Append(fContactNodes[i]);
 
-			/* collect processor nodes */
-			iArrayT nodes_temp(num_local_nodes);
-			int index = 0;
-			for (int i = 0; i < nnd; i++)
-				if (processor[fContactNodes[i]] == rank)
-					nodes_temp[index++] = fContactNodes[i];
-		
-			/* reset values */
-			fContactNodes = nodes_temp;
+		/* reset list */
+		if (fContactNodes_space.Length() != nnd) {
+			fContactNodes_man = fContactNodes_space;
+			fContactNodes.Alias(fContactNodes_man);
 		}
 	}
+
+	/* no changes */
+	if (fContactNodes == fContactNodes_last) 
+		return status;
+	else
+		fContactNodes_last = fContactNodes;
 	
 	/* dimension workspace */
 	int nnd = fContactNodes.Length();
@@ -161,6 +155,7 @@ GlobalT::InitStatusT PenaltyRegionT::UpdateConfiguration(void)
 	fdContactNodesGroup2D.Dimension(nnd, ndof);
 	
 	/* write contact nodes */
+	ofstreamT& out = FieldSupport().Output();
 	out << " Number of contact nodes . . . . . . . . . . . . = "
 	    << fContactNodes.Length() << endl;	
 	if (FieldSupport().PrintInput()) {
@@ -199,13 +194,8 @@ GlobalT::InitStatusT PenaltyRegionT::UpdateConfiguration(void)
 	/* initialize gaps */
 	fGap = 0.0;
 
-	/* changes? */
-	bool same = (fContactNodes_last == fContactNodes);
-	fContactNodes_last = fContactNodes;
-	if (same)
-		return status;
-	else
-		return GlobalT::MaxPrecedence(status, GlobalT::kNewInteractions);
+	/* return */
+	return GlobalT::MaxPrecedence(status, GlobalT::kNewInteractions);
 }
 
 /* compute the nodal contribution to the residual force vector */
@@ -565,4 +555,8 @@ void PenaltyRegionT::TakeParameterList(const ParameterListT& list)
 	fv.Dimension(nsd);
 	fxlast.Dimension(nsd);
 	fvlast.Dimension(nsd);
+
+	/* contact nodes need to be set ASAP is geometry is not changing */
+	if (!FieldSupport().CommManager().PartitionNodesChanging())
+		UpdateConfiguration();
 }
