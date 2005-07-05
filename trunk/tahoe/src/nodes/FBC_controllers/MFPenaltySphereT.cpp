@@ -1,4 +1,4 @@
-/* $Id: MFPenaltySphereT.cpp,v 1.8 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: MFPenaltySphereT.cpp,v 1.9 2005-07-05 07:13:24 paklein Exp $ */
 /* created: paklein (04/17/2000) */
 #include "MFPenaltySphereT.h"
 #include "FieldT.h"
@@ -48,7 +48,7 @@ void MFPenaltySphereT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::GeneralFail(caller, "element group %d has interpolant DOF's. Use PenaltySphereT", group+1);
 
 	/* allocate workspace */
-	const dArray2DT& coords = FieldSupport().CurrentCoordinates();
+	const dArray2DT& coords = FieldSupport().InitialCoordinates();
 	fCoords.Dimension(fNumContactNodes, coords.MinorDim());
 	fCurrCoords.Dimension(fNumContactNodes, Field().NumDOF());
 	
