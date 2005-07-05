@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49.6.6 2005-06-09 03:31:36 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.49.6.7 2005-07-05 23:13:34 d-farrell2 Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -1094,84 +1094,86 @@ int ParticleT::Combination(int n,int k)
 void ParticleT::Calc_CSP(const RaggedArray2DT<int> &NearestNeighbors, dArrayT& csp)
 {
 	const char caller[] = "ParticleT::Calc_CSP";
+	int ndof = NumDOF();
+  	iArrayT neighbors;
+  	dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), rvec(ndof);  
+  	int ncspairs;
+  	
+  	// multi-processor information
+  	CommManagerT& comm_manager = ElementSupport().CommManager();
+  	const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+  	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
-  int ndof = NumDOF();
-  iArrayT neighbors;
-  dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), rvec(ndof);  
-  int ncspairs;
-
-  /* set number of centrosymmetry pairs to be added up
-   * according to the number of spatial dimensions */
-
-  if (NumSD()==1)
-   ncspairs = 2; 
-  else if (NumSD()==2)
-   ncspairs = 3; 
-  else if (NumSD()==3)
-   ncspairs = 6;
-  else
-   ExceptionT::BadInputValue(caller);
-
-  /* multi-processor information */
-  CommManagerT& comm_manager = ElementSupport().CommManager();
-  const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
-  const dArray2DT& coords = ElementSupport().CurrentCoordinates();
-
-  /* row of neighbor list */
-  for (int i = 0; i < NearestNeighbors.MajorDim(); i++)
-  {
-   NearestNeighbors.RowAlias(i,neighbors);
-   int tag_i = neighbors[0];
-   int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-
-   int nlen = neighbors.Length();
-   dArray2DT neighdisp(nlen,ndof);
-   int ncombos = Combination(nlen-1,2); 
-   dArrayT ndsum(ncombos);
-
-   coords.RowAlias(tag_i,x_i);
-   for (int j = 1; j < nlen; j++)
-   {
-    int tag_j = neighbors[j];
-    coords.RowAlias(tag_j,x_j);
-    r_ij.DiffOf(x_j,x_i);
-    if (fhas_periodic && (r_ij.Magnitude() > 0.5*fPeriodicLengths.Max()))
-    {
-     for (int m = 0; m < ndof; m++)
-     {
-      if (r_ij[m] > 0.5*fPeriodicLengths[m]) r_ij[m] -=fPeriodicLengths[m]; 
-      if (r_ij[m] < -0.5*fPeriodicLengths[m]) r_ij[m] +=fPeriodicLengths[m]; 
-     }
-    }
-    for (int m = 0; m < ndof; m++)
-	{
-	 neighdisp(j,m) = r_ij[m];
-	}
-   }  /* end of j loop */
-
-   int icombos = 0;
-   for (int j = 1; j < nlen-1; j++)
-   {
-	for (int k = j+1; k < nlen; k++)
-	{
-	  for (int m = 0; m < ndof; m++) 
-	  {
-	   rvec[m] = neighdisp(j,m) + neighdisp(k,m);
-	  } /* end of m loop */
-	  ndsum[icombos++] = pow(rvec.Magnitude(),2);
-	} /* end of k loop */
-   } /* end of j looop */
-   if (icombos != ncombos) ExceptionT::SizeMismatch(caller);
-   ndsum.SortAscending();
-   double csp_i = 0.0;
-   if (ncspairs >= ncombos) ncspairs = ncombos;
-   for (int m = 0; m < ncspairs; m++) csp_i += ndsum[m];
-   if (fabs(fLatticeParameter) > kSmall) csp_i /= fLatticeParameter*fLatticeParameter;  
-
-   /* put centrosymmetry parameter into global s_values array */
-   csp[local_i] = csp_i;
-  //cout << i << "   " << csp << endl;
-  } /* end of i loop */
+  	// row of neighbor list (for each atom)
+  	for (int i = 0; i < NearestNeighbors.MajorDim(); i++)
+  	{
+   		// set number of centrosymmetry pairs to be added up
+  		if (NumSD()==1)
+   			ncspairs = 2; 
+  		else if (NumSD()==2)
+   			ncspairs = 3; 
+  		else if (NumSD()==3)
+   			ncspairs = 6;
+  		else
+   			ExceptionT::BadInputValue(caller);
+		
+   		// Get neighbor and self information
+   		NearestNeighbors.RowAlias(i,neighbors);
+   		int tag_i = neighbors[0];
+   		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+		
+   		int nlen = neighbors.Length();
+   		dArray2DT neighdisp(nlen,ndof);
+   		int ncombos = Combination(nlen-1,2); 
+   		dArrayT ndsum(ncombos);
+		
+   		coords.RowAlias(tag_i,x_i);
+   		for (int j = 1; j < nlen; j++)
+   		{
+    		// figure out the interatomic distance
+    		int tag_j = neighbors[j];
+    		coords.RowAlias(tag_j,x_j);
+    		r_ij.DiffOf(x_j,x_i);
+    		if (fhas_periodic && (r_ij.Magnitude() > 0.5*fPeriodicLengths.Max()))
+    		{
+     			for (int m = 0; m < ndof; m++)
+     			{
+      				if (r_ij[m] > 0.5*fPeriodicLengths[m]) r_ij[m] -=fPeriodicLengths[m]; 
+      				if (r_ij[m] < -0.5*fPeriodicLengths[m]) r_ij[m] +=fPeriodicLengths[m]; 
+     			}
+    		}
+    		
+    		for (int m = 0; m < ndof; m++)
+			{
+	 			neighdisp(j,m) = r_ij[m];
+			}
+   		}  // end of j loop
+		
+   		int icombos = 0;
+   		for (int j = 1; j < nlen-1; j++)
+   		{
+			for (int k = j+1; k < nlen; k++)
+			{
+	  			for (int m = 0; m < ndof; m++) 
+	  			{
+	   				rvec[m] = neighdisp(j,m) + neighdisp(k,m);
+	  			}
+	  			ndsum[icombos++] = pow(rvec.Magnitude(),2);
+			}
+   		}
+   		
+   		// figure out the centrosymmetry parameter and store
+   		if (icombos != ncombos) ExceptionT::SizeMismatch(caller);
+   		ndsum.SortAscending();
+   		double csp_i = 0.0;
+   		if (ncspairs >= ncombos) ncspairs = ncombos;
+   		for (int m = 0; m < ncspairs; m++) csp_i += ndsum[m];
+   		if (fabs(fLatticeParameter) > kSmall) csp_i /= fLatticeParameter*fLatticeParameter;  
+		
+   		// put centrosymmetry parameter into global s_values array
+   		csp[local_i] = csp_i;
+//		cout << i << "   " << csp << endl;
+  	} // end of i loop
 }
 
 void ParticleT::Calc_CN(const RaggedArray2DT<int>& NearestNeighbors, iArrayT& cnarray)
