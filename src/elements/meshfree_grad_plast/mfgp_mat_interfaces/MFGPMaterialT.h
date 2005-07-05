@@ -1,4 +1,4 @@
-/* $Id: MFGPMaterialT.h,v 1.2 2005-05-11 23:10:05 kyonten Exp $  */
+/* $Id: MFGPMaterialT.h,v 1.3 2005-07-05 07:14:32 paklein Exp $  */
 #ifndef _MFGP_MATERIAL_T_H_
 #define _MFGP_MATERIAL_T_H_
 
@@ -186,7 +186,7 @@ public:
 	/*@}*/
 	
 	/** pass to the material model */
-	virtual const void Initialize(ElementCardT element, int ip, int n_ip, dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
+	virtual void Initialize(ElementCardT element, int ip, int n_ip, dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
 					dArrayT lambdaPM_ip, dArrayT lambdaPM_lap_ip) = 0;
 	
 	/** yield function */

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2005-07-05 07:14:18 paklein Exp $
+# $Id: makefile,v 1.1 2005-07-05 07:14:26 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,9 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-MFGPElementSupportT.o \
-MFGPFractureSupportT.o \
-MFGP_AssemblyT.o
+Coupled_EqsT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,9 +40,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-MFGPElementSupportT.cpp \
-MFGPFractureSupportT.cpp \
-MFGP_AssemblyT.cpp
+Coupled_EqsT.cpp
 
 ##################### (3) headers
 #
@@ -56,10 +52,8 @@ MFGP_AssemblyT.cpp
 # HDR and HDR_LINK macro   
 #
 HDR = \
-MFGPElementSupportT.h \
-MFGPFractureSupportT.h \
-MFGP_AssemblyT.h
- 
+Coupled_EqsT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 ##################### (4) sub-directories
@@ -69,16 +63,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = mfgp_mat_interfaces coupled_equations
-subdir_driver: subdir_loop
+#SUB_DIR =
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 
