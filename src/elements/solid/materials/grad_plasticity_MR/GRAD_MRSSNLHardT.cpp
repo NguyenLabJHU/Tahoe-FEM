@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.8 2005-05-13 22:01:16 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.9 2005-07-06 14:07:48 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.
@@ -256,7 +256,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
       
     else 
     {
-      state[39] = ff;
+      state[38] = ff;
       kk = 0;
       iplastic = 1;
       while (ff > fTol_1) 
