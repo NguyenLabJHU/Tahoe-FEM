@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49.6.7 2005-07-05 23:13:34 d-farrell2 Exp $ */
+/* $Id: ParticleT.cpp,v 1.49.6.8 2005-07-06 00:26:15 d-farrell2 Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -1108,6 +1108,7 @@ void ParticleT::Calc_CSP(const RaggedArray2DT<int> &NearestNeighbors, dArrayT& c
   	for (int i = 0; i < NearestNeighbors.MajorDim(); i++)
   	{
    		// set number of centrosymmetry pairs to be added up
+   		// assumes hexagonal lattice in 2d and FCC in 3D
   		if (NumSD()==1)
    			ncspairs = 2; 
   		else if (NumSD()==2)
