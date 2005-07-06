@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.5 2005-07-01 22:08:10 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.6 2005-07-06 02:52:04 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -26,6 +26,7 @@ FCC3D_Surf::FCC3D_Surf(void):
 	fFCCLattice_Surf(NULL),
 	fPairProperty(NULL),
 	fAtomicVolume(0),
+	fAtomicArea(0),
 	fBondTensor4(dSymMatrixT::NumValues(3)),
 	fBondTensor2(dSymMatrixT::NumValues(3)),
 	fFullDensityForStressOutput(true)	
@@ -138,8 +139,10 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	fFullDensity = 1.0;
 		
 	/* compute the (approx) cell volume */
+	/* DOES THIS NEED TO BE CHANGED? */
 	double cube_edge = fNearestNeighbor*sqrt(2.0);
 	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
+	fAtomicArea = .5*cube_edge*cube_edge;	// area normalization same for all surface cluster atoms
 
 	/* compute stress-free dilatation */
 	/* SOMEHOW NEED TO GET BULK STRESS-FREE DILATATION FOR SURFACE CLUSTERS */
@@ -147,8 +150,10 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	fNearestNeighbor *= stretch;
 	cube_edge = fNearestNeighbor*sqrt(2.0);
 	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
+	fAtomicArea = .5*cube_edge*cube_edge;	// need to get zero stress stretch from bulk
 
 	/* reset the continuum density (4 atoms per unit cell) */
+	/* DOES THIS NEED TO BE CHANGED? */
 	fDensity = fPairProperty->Mass()/fAtomicVolume;
 }
 
@@ -221,7 +226,9 @@ void FCC3D_Surf::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 	/* lattice properties */
 	dArrayT& bond_length = fFCCLattice_Surf->DeformedLengths();
 	const dArray2DT& bonds = fFCCLattice_Surf->Bonds();
-	double R2byV = fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
+	
+	/* NORMALIZE BY AREA INSTEAD OF VOLUME FOR SURFACE CB */
+	double R2byV = fNearestNeighbor*fNearestNeighbor/fAtomicArea;
 
 	double* pC = fFCCLattice_Surf->Stretch().Pointer();
 	const double* pE = E.Pointer();
@@ -335,7 +342,8 @@ double FCC3D_Surf::ComputeEnergyDensity(const dSymMatrixT& E)
 		double r = bond_length[i]*fNearestNeighbor;
 		tmpSum += (*density++)*energy(r, NULL, NULL);
 	}
-	tmpSum /= fAtomicVolume;
+	/* MODIFIED FOR SURFACE CB CALCULATIONS */
+	tmpSum /= fAtomicArea;
 	
 	return tmpSum;
 }

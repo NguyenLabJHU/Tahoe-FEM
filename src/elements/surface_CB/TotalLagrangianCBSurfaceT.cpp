@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.8 2005-07-01 22:08:10 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.9 2005-07-06 02:52:04 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -75,17 +75,12 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	if (bulk_params.Name() != "FCC_3D")
 		ExceptionT::GeneralFail(caller, "expecting \"FCC_3D\" not \"%s\"", bulk_params.Name().Pointer());
 	
-	/* initialize surface information & create all possible (12) surface clusters */
+	/* initialize surface information & create all possible (6) surface clusters */
 	fNormal.Dimension(nfs);
 	fSurfaceCB.Dimension(nfs);
 	fSurfaceCB = NULL;
 	
-	/* 2 ISSUES..  1) each fSurfaceCB represents one FCC3D_Surf - do I explicitly need to 
-	send in the "normal_code" for each one to create 6 (12) unique FCC3D_Surfs? 2)  How
-	will I call these fSurfaceCB[i] later on to calculate stress? */
-	/* Next thing to do:  create bond tables based on rotation based on normal in FCC3D_Surf */
-	/* Put all bonds (cluster 1 & cluster 2) into same bond table because F is similar as is B
-	between the surface clusters */
+	/* Update parameter list for FCC3D_Surf to include the surface normal codes */
 	for (int i = 0; i < nfs; i++)
 	{
 		/* face normal */
@@ -96,17 +91,16 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 		fSurfaceCB[i] = new FCC3D_Surf;
 		fSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
 		
-		/* pass parameters to the surface model - initialize surface materials here */
+		/* pass parameters to the surface model, including surface normal code */
 		ParameterListT surf_params = bulk_params;
 		surf_params.SetName("FCC_3D_Surf");
 		surf_params.AddParameter(i, "normal_code");
 
-		/* Will TakeParameterList include the normal orientation, i.e normals_dat? */
+		/* Initialize a different FCC3D_Surf for each different surface normal type (6 total) */
 		fSurfaceCB[i]->TakeParameterList(surf_params);
 	}
 
 	/* collect surface element information */
-	/* DO WE NEED TO MOVE THIS ENTIRE SECTION UP BEFORE fSurfaceCB[i] ARE INITIALIZED? */
 	ArrayT<StringT> block_ID;
 	ElementBlockIDs(block_ID);
 	ModelManagerT& model_manager = ElementSupport().ModelManager();
@@ -138,7 +132,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 				surf_shape.DomainJacobian(face_coords, 0, jacobian);
 				surf_shape.SurfaceJacobian(jacobian, Q);	// Last column of Q is normal vector to surface face
 				
-				/* match to face normal types - match to normals_dat - is this right? */
+				/* match to face normal types, i.e. normals_dat */
 				int normal_type = -1;
 				for (int k = 0; normal_type == -1 && k < fNormal.Length(); k++)
 				{
@@ -157,3 +151,9 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 			}
 	}
 }
+
+/* TO DO LIST */
+// (1) Add reference areas for surface clusters into FCC3D_Surf.cpp
+// (2) Check stress/modulus calculations in FCC3D_Surf.cpp, see what modifications need
+// to be made for surface cluster calculations
+// (3) Obtain "bulk" zero stress stretch, space surface clusters according to that value

@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.h,v 1.2 2005-07-01 03:20:09 hspark Exp $ */
+/* $Id: FCC3D_Surf.h,v 1.3 2005-07-06 02:52:04 hspark Exp $ */
 #ifndef _FCC_3D_SURF_H_
 #define _FCC_3D_SURF_H_
 
@@ -88,6 +88,9 @@ private:
 
 	/** atomic volume */
 	double fAtomicVolume;
+
+	/** atomic area for surface cauchy-born */
+	double fAtomicArea;
 
 	/** dummy full bond density array */
 	/* THIS IS THE REFERENCE VOLUME/AREA */
