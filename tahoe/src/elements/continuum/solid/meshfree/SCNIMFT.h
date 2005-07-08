@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.30 2005-03-01 08:26:29 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.31 2005-07-08 23:38:51 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -30,7 +30,6 @@ class dSPMatrixT; //TEMP
 class InverseMapT;
 class ifstreamT;
 class ofstreamT;
-class MeshFreeSupportT;
 class Traction_CardT;
 class CellGeometryT;
 
@@ -124,9 +123,6 @@ public:
 	
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -175,8 +171,6 @@ protected: /* for derived classes only */
 
 protected:
 
-	MeshFreeSupportT* fMFSupport;
-	
 	/** pointer to list parameters needed to construct shape functions */
 	const ParameterListT* fMeshfreeParameters;
 

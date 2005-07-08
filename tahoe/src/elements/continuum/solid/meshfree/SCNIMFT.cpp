@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.62 2005-07-01 22:16:43 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.63 2005-07-08 23:38:50 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -245,7 +245,30 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 			*drow_i++ = *(dlist.CurrentValue());
 		}
 	}
-	
+
+	/* output nodal shape function information */
+	if (ElementSupport().Logging() == GlobalT::kVerbose)
+	{
+		/* output file root */
+		StringT root;
+		root.Root(ElementSupport().InputFile());
+		ofstreamT out;
+
+		/* nodal neighbors */
+		StringT neighbor_file = root;
+		neighbor_file.Append(".", Name(), ".nodal_neighbors");
+		out.open(neighbor_file);
+		fNodalShapes->MeshFreeSupport().WriteNodalNeighbors(out);
+		out.close();
+
+		/* nodal shape functions */
+		StringT shape_file = root;
+		shape_file.Append(".", Name(), ".nodal_phi");
+		out.open(shape_file);
+		fNodalShapes->MeshFreeSupport().WriteNodalShapes(out);
+		out.close();
+	}
+
 	// store shape function information for boundary integration
 	fCellGeometry->BoundaryShapeFunctions(fBoundaryPhi, fBoundarySupports, fBoundaryFacetNormals);
 	
@@ -1039,14 +1062,6 @@ int SCNIMFT::SupportSize(int localNode) const {
 }
 
 // XML stuff below
-
-/* describe the parameters needed by the interface */
-void SCNIMFT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ElementBaseT::DefineParameters(list);
-
-}
 
 /* information about subordinate parameter lists */
 void SCNIMFT::DefineSubs(SubListT& sub_list) const
