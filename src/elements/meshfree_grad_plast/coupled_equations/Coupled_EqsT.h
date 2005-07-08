@@ -1,4 +1,4 @@
-// $Id: Coupled_EqsT.h,v 1.2 2005-05-19 13:08:19 kyonten Exp $
+// $Id: Coupled_EqsT.h,v 1.3 2005-07-08 01:13:27 kyonten Exp $
 #ifndef _COUPLED_EQS_T_H_ 
 #define _COUPLED_EQS_T_H_ 
 
@@ -10,7 +10,7 @@
 namespace Tahoe 
 {
 
-/** This class contains methods which build stiffness matricies 
+/** this class contains methods which build stiffness matricies 
  *  and formulate the non-linear Newton-Raphson equations Kd = -R
  *  for a coupled approach to implementation of 
  *  the Balance of Linear Momentum and Consistency Condition in weak form 
@@ -45,10 +45,10 @@ public:
   	void Form_FLambda_int(dArrayT& Flambda_int);
 	
 	/** form B matrices */
-	void Form_B_List(void);  // Strain Displacement Matricies
+	void Form_B_List(void);  // strain displacement matricies
  	
  	/** form C matrices */
- 	void Form_C_List(void);  // Constants List
+ 	void Form_C_List(void);  // C matrices
  	
  	/** set the \e B1 matrix using the given shape function derivatives
 	 * \param first derivatives of shape function derivatives: [nsd] x [nen]

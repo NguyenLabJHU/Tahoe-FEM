@@ -1,4 +1,4 @@
-// $Id: Coupled_EqsT.cpp,v 1.3 2005-05-19 13:08:19 kyonten Exp $
+// $Id: Coupled_EqsT.cpp,v 1.4 2005-07-08 01:13:27 kyonten Exp $
 #include "Coupled_EqsT.h" 
 
 using namespace Tahoe;
@@ -32,6 +32,7 @@ void Coupled_EqsT::Initialize(int& curr_ip, D3MeshFreeShapeFunctionT* Shapes_dis
 	Form_B_List();
 }
 
+/* form LHS stiffness matrices: Kuu and Kulam */
 void Coupled_EqsT::Form_KUU_KULam(dMatrixT& Kuu, dMatrixT& Kulam)  
 {		
 #if __option(extended_errorcheck)
@@ -51,6 +52,7 @@ void Coupled_EqsT::Form_KUU_KULam(dMatrixT& Kuu, dMatrixT& Kulam)
 	Kulam += Ktemp2;	// Kulambda: [nsd*nnd]x[nnd] 
 }
 
+/* form RHS fore vector: Fu */
 void Coupled_EqsT::Form_FU_int(dArrayT& Fu_int) 
 {
 #if __option(extended_errorcheck)
@@ -61,6 +63,7 @@ void Coupled_EqsT::Form_FU_int(dArrayT& Fu_int)
 	B1.MultTx(CurrMat->s_ij(), Fu_int); // Fu_int: [nsd*nnd]
 }
 
+/* form LHS stiffness matrices: Klamu and Klamlam */
 void Coupled_EqsT::Form_KLamU_KLamLam(dMatrixT& Klamu, dMatrixT& Klamlam)  
 {
 #if __option(extended_errorcheck)
@@ -80,6 +83,7 @@ void Coupled_EqsT::Form_KLamU_KLamLam(dMatrixT& Klamu, dMatrixT& Klamlam)
 	Klamu += Ktemp2;	// Klamu :[nnd]x[nsd*nnd]
 }
 
+/* form RHS force-like vector: Flambda */
 void Coupled_EqsT::Form_FLambda_int(dArrayT& Flambda_int) 
 {
 #if __option(extended_errorcheck)
@@ -87,10 +91,12 @@ void Coupled_EqsT::Form_FLambda_int(dArrayT& Flambda_int)
 #endif
 		
 	//pass column of phi_lam to F_int
+	CurrMat->s_ij();
 	Flambda_int = psi_lam[0];
 	Flambda_int *= CurrMat->YieldF(); // Flambda_int: [nnd]
 }
 
+/* form B matrices */
 void Coupled_EqsT::Form_B_List(void)
 {
 	/* dimension */
@@ -101,6 +107,7 @@ void Coupled_EqsT::Form_B_List(void)
 	B4.Dimension(dum, n_en_plast); 
 }
 
+/* form C matrices */
 void Coupled_EqsT::Form_C_List()
 {
 	/* dimensions */
@@ -114,6 +121,7 @@ void Coupled_EqsT::Form_C_List()
 	Clamlam2.Dimension(1,1);
 		
 	/* C matrices */
+	CurrMat->c_ijkl(); // call c_ijkl first
 	Cuu1 = CurrMat->c_UU1_ijkl(); 
 	Cuu2 = CurrMat->c_UU2_ijkl();
 	Culam1 = CurrMat->c_ULam1_ij(); 
@@ -311,9 +319,7 @@ void Coupled_EqsT::Set_B4(dMatrixT& B4)
 		const double* pNaxx = DDN(0);
 		const double* pNayy = DDN(1);
 		for (int i = 0; i < nnd; i++)
-		{
 			*pB4++ = *pNaxx + (*pNayy);
-		}
 	}
 	/* 3D */
 	else		
@@ -323,9 +329,7 @@ void Coupled_EqsT::Set_B4(dMatrixT& B4)
 		const double* pNazz = DDN(2);
 		
 		for (int i = 0; i < nnd; i++)
-		{
 			*pB4++ = *pNaxx + (*pNayy) + (*pNazz);
-		}
 	}
 }
 
