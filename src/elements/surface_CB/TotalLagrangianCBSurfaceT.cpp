@@ -1,9 +1,11 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.9 2005-07-06 02:52:04 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.10 2005-07-08 05:31:06 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
 #include "ShapeFunctionT.h"
 #include "FCC3D_Surf.h"
+#include "FCC3D.h"
+#include "MaterialListT.h"
 
 using namespace Tahoe;
 
@@ -79,7 +81,15 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	fNormal.Dimension(nfs);
 	fSurfaceCB.Dimension(nfs);
 	fSurfaceCB = NULL;
-	
+
+	/* get pointer to the bulk model */
+	FCC3D* fcc_3D = NULL;
+	if (fMaterialList->Length() != 1) {
+		ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
+		fcc_3D = TB_DYNAMIC_CAST(FCC3D*, pcont_mat);
+		if (!fcc_3D) ExceptionT::GeneralFail(caller, "could not resolve FCC3D material");
+	} else ExceptionT::GeneralFail(caller, "expecting 1 not %d materials", fMaterialList->Length());
+
 	/* Update parameter list for FCC3D_Surf to include the surface normal codes */
 	for (int i = 0; i < nfs; i++)
 	{
@@ -95,6 +105,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 		ParameterListT surf_params = bulk_params;
 		surf_params.SetName("FCC_3D_Surf");
 		surf_params.AddParameter(i, "normal_code");
+		surf_params.AddParameter(fcc_3D->NearestNeighbor(), "bulk_nearest_neighbor");
 
 		/* Initialize a different FCC3D_Surf for each different surface normal type (6 total) */
 		fSurfaceCB[i]->TakeParameterList(surf_params);
