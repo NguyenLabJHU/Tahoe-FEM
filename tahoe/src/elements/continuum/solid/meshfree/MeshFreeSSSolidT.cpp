@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.20.8.1 2005-05-27 19:55:14 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.20.8.2 2005-07-08 06:19:15 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -172,12 +172,11 @@ void MeshFreeSSSolidT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const {
 }
 
 /* initialize/finalize time increment */
-GlobalT::InitStatusT MeshFreeSSSolidT::InitStep(void)
+void MeshFreeSSSolidT::InitStep(void)
 {
 	/* inherited */
-	GlobalT::InitStatusT status = SmallStrainT::InitStep();
+	SmallStrainT::InitStep();
 	fMFFractureSupport->InitStep();
-	return status;
 }
 
 void MeshFreeSSSolidT::CloseStep(void)

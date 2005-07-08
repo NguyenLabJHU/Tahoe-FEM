@@ -1,6 +1,8 @@
-/* $Id: SimoQ1P0_inv.cpp,v 1.3 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SimoQ1P0_inv.cpp,v 1.3.20.1 2005-07-08 06:19:14 paklein Exp $ */
 #include "SimoQ1P0_inv.h"
 
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ShapeFunctionT.h"
 #include "SolidMaterialT.h"
 #include "SolidMatListT.h"
@@ -37,7 +39,7 @@ GlobalT::RelaxCodeT SimoQ1P0_inv::ResetStep(void)
 }
 
 /* read restart information from stream */
-void SimoQ1P0_inv::ReadRestart(istream& in)
+void SimoQ1P0_inv::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	UpdatedLagrangianT::ReadRestart(in);
@@ -50,7 +52,7 @@ void SimoQ1P0_inv::ReadRestart(istream& in)
 }
 
 /* write restart information from stream */
-void SimoQ1P0_inv::WriteRestart(ostream& out) const
+void SimoQ1P0_inv::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	UpdatedLagrangianT::WriteRestart(out);

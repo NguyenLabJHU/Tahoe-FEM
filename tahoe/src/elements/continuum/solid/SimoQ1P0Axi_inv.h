@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi_inv.h,v 1.3 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SimoQ1P0Axi_inv.h,v 1.3.20.1 2005-07-08 06:19:14 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_AXI_INV_H_
 #define _SIMO_Q1_P0_AXI_INV_H_
 
@@ -23,10 +23,10 @@ public:
 	virtual GlobalT::RelaxCodeT ResetStep(void);
 
 	/** read restart information from stream */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 
 	/** write restart information from stream */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.13 2005-01-29 01:30:45 raregue Exp $ */
+/* $Id: LocalizerT.cpp,v 1.13.10.1 2005-07-08 06:19:12 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 #include "LocalizerT.h"
 
@@ -7,6 +7,7 @@
 #include <iomanip.h>
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
 #include "EdgeFinderT.h"
@@ -259,7 +260,7 @@ void LocalizerT::InitialCondition(void)
 	fElementMonitor.AllToON();
 }
 
-void LocalizerT::ReadRestart(istream& in)
+void LocalizerT::ReadRestart(ifstreamT& in)
 {
 	in >> fLocCheckCount;
 
@@ -301,7 +302,7 @@ void LocalizerT::ReadRestart(istream& in)
 	}
 }
 
-void LocalizerT::WriteRestart(ostream& out) const
+void LocalizerT::WriteRestart(ofstreamT& out) const
 {
 	out << fLocCheckCount << '\n';
 

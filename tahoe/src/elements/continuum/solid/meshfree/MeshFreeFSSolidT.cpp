@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.21.8.1 2005-05-27 19:55:14 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.21.8.2 2005-07-08 06:19:15 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -172,12 +172,11 @@ void MeshFreeFSSolidT::WeightNodalCost(iArrayT& weight) const {
 }
 
 /* initialize/finalize time increment */
-GlobalT::InitStatusT MeshFreeFSSolidT::InitStep(void)
+void MeshFreeFSSolidT::InitStep(void)
 {
 	/* inherited */
-	GlobalT::InitStatusT status = TotalLagrangianT::InitStep();
+	TotalLagrangianT::InitStep();
 	fMFFractureSupport->InitStep();
-	return status;
 }
 
 void MeshFreeFSSolidT::CloseStep(void)

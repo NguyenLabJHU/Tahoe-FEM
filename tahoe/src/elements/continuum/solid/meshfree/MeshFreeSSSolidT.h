@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.9.20.1 2005-05-27 19:55:14 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.9.20.2 2005-07-08 06:19:15 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #ifndef _MF_SMALLSTRAIN_T_H_
 #define _MF_SMALLSTRAIN_T_H_
@@ -55,7 +55,7 @@ public:
 	virtual void WeightNodalCost(iArrayT& weight) const;
 
 	/* initialize/finalize time increment */
-	virtual GlobalT::InitStatusT InitStep(void);
+	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 

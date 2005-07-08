@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.50.8.1 2005-05-27 19:55:11 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.50.8.2 2005-07-08 06:19:11 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -6,6 +6,7 @@
 #include <iomanip.h>
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ModelManagerT.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
@@ -135,15 +136,13 @@ GlobalT::SystemTypeT ContinuumElementT::TangentType(void) const
 }
 
 /* initialize/finalize step */
-GlobalT::InitStatusT ContinuumElementT::InitStep(void)
+void ContinuumElementT::InitStep(void)
 {
 	/* inherited */
-	GlobalT::InitStatusT status = ElementBaseT::InitStep();
+	ElementBaseT::InitStep();
 
 	/* set material variables */
 	if (fMaterialList)  fMaterialList->InitStep();
-
-	return status;
 }
 
 /* initialize/finalize step */
@@ -203,7 +202,7 @@ GlobalT::RelaxCodeT ContinuumElementT::ResetStep(void)
 }
 
 /* restart operations */
-void ContinuumElementT::ReadRestart(istream& in)
+void ContinuumElementT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	ElementBaseT::ReadRestart(in);
@@ -220,7 +219,7 @@ void ContinuumElementT::ReadRestart(istream& in)
 	}
 }
 
-void ContinuumElementT::WriteRestart(ostream& out) const
+void ContinuumElementT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	ElementBaseT::WriteRestart(out);
