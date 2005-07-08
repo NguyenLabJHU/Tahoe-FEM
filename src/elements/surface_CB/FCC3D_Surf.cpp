@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.6 2005-07-06 02:52:04 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.7 2005-07-08 05:30:31 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -57,6 +57,11 @@ void FCC3D_Surf::DefineParameters(ParameterListT& list) const
 	normal.AddLimit(0, LimitT::LowerInclusive);
 	normal.AddLimit(5, LimitT::UpperInclusive);
 	list.AddParameter(normal);
+	
+	/* bulk nearest neighbor distance */
+	ParameterT nearest_neighbor(ParameterT::Double, "bulk_nearest_neighbor");
+	nearest_neighbor.AddLimit(0, LimitT::Lower);
+	list.AddParameter(nearest_neighbor);
 }
 
 /* information about subordinate parameter lists */
@@ -120,11 +125,6 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop.Name().Pointer());
 	fPairProperty->TakeParameterList(pair_prop);
 
-	/* check */
-	fNearestNeighbor = fPairProperty->NearestNeighbor();
-	if (fNearestNeighbor < kSmall)
-		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
-
 	/* Obtain surface normal, use it to rotate Bond Table to correct orientation */
 	/* Pass normal in as input to new FCCLatticeT_Surf(nshells,normal) */
 	int normal = list.GetParameter("normal_code");
@@ -138,19 +138,11 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	fFullDensity.Dimension(fFCCLattice_Surf->NumberOfBonds());
 	fFullDensity = 1.0;
 		
-	/* compute the (approx) cell volume */
-	/* DOES THIS NEED TO BE CHANGED? */
+	/* compute stress-free dilatation */
+	fNearestNeighbor = list.GetParameter("bulk_nearest_neighbor");
 	double cube_edge = fNearestNeighbor*sqrt(2.0);
 	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
 	fAtomicArea = .5*cube_edge*cube_edge;	// area normalization same for all surface cluster atoms
-
-	/* compute stress-free dilatation */
-	/* SOMEHOW NEED TO GET BULK STRESS-FREE DILATATION FOR SURFACE CLUSTERS */
-	double stretch = ZeroStressStretch();
-	fNearestNeighbor *= stretch;
-	cube_edge = fNearestNeighbor*sqrt(2.0);
-	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
-	fAtomicArea = .5*cube_edge*cube_edge;	// need to get zero stress stretch from bulk
 
 	/* reset the continuum density (4 atoms per unit cell) */
 	/* DOES THIS NEED TO BE CHANGED? */
