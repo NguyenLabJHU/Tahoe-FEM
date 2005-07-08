@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.20 2005-02-27 00:02:25 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.21 2005-07-08 23:38:50 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -355,6 +355,29 @@ void MeshFreeSSSolidT::TakeParameterList(const ParameterListT& list)
 	   ExceptionT::BadInputValue(caller, "failure criterion requires localizing materials: %d",
 	   	MeshFreeFractureSupportT::kAcoustic);
 #endif
+
+	/* output nodal shape function information */
+	if (ElementSupport().Logging() == GlobalT::kVerbose)
+	{
+		/* output file root */
+		StringT root;
+		root.Root(ElementSupport().InputFile());
+		ofstreamT out;
+
+		/* nodal neighbors */
+		StringT neighbor_file = root;
+		neighbor_file.Append(".", Name(), ".nodal_neighbors");
+		out.open(neighbor_file);
+		fMFShapes->MeshFreeSupport().WriteNodalNeighbors(out);
+		out.close();
+
+		/* nodal shape functions */
+		StringT shape_file = root;
+		shape_file.Append(".", Name(), ".nodal_phi");
+		out.open(shape_file);
+		fMFShapes->MeshFreeSupport().WriteNodalShapes(out);
+		out.close();
+	}
 }
 
 /***********************************************************************
