@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.18 2005-05-25 17:30:51 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.19 2005-07-08 04:01:17 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -45,6 +45,7 @@ void SSEnhLocCraigT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fH_delta_0, "Post-Localization_softening_parameter_H_Delta"); 
 	list.AddParameter(fNoBandDilation, "Disallow_Dilation_on_Band");
 	list.AddParameter(fLocalizedFrictionCoeff, "Localized_Friction_Coefficient");
+	list.AddParameter(fFirstElementToLocalize, "First_element_to_localize__Zero_for_non_homogeneous_loading");
 }
 
 /* information about subordinate parameter lists */
@@ -127,6 +128,8 @@ void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
   fH_delta_0 = list.GetParameter("Post-Localization_softening_parameter_H_Delta"); 
   fNoBandDilation = list.GetParameter("Disallow_Dilation_on_Band");
   fLocalizedFrictionCoeff = list.GetParameter("Localized_Friction_Coefficient");
+  fFirstElementToLocalize = list.GetParameter("First_element_to_localize__Zero_for_non_homogeneous_loading");
+  fFirstElementToLocalize -= 1;	
 }
 
 /***********************************************************************
@@ -374,8 +377,6 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
       jumpIncrement += scale * strainIncr.Dot(dGfD, strainIncr);
       jumpWork += scale * gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);		  
     }
-  //cout << "jumpIncrement = " << jumpIncrement << endl;
-  //cout << "jumpWork = " << jumpWork << endl;
 
   jumpIncrement /= (jumpWork + area * fBand->H_delta());
 
@@ -401,8 +402,6 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
       fBand->SetEffectiveSoftening(fBand->H_delta()); 
     } 
   fBand -> StoreJumpIncrement(jumpIncrement);
-
-  // cout << "jumpIncrement = " << jumpIncrement << endl;
 
   return jumpIncrement;
 }
@@ -444,7 +443,6 @@ bool SSEnhLocCraigT::IsBandActive()
       shearStress += scale * stressIncr.MultmBn(fBand->PerpSlipDir(),fBand-> Normal()); 
     }
 
-#if 1
   if (shearStress < 0.0)
     {
       /* align slip direction with shear stress direction to get 
@@ -453,19 +451,11 @@ bool SSEnhLocCraigT::IsBandActive()
       shearStress *= -1.0;
       cout << "Slip direction flipped\n";
     }
-#endif
 
   normalStress/= area;
   shearStress = shearStress/area;
 
   double neededCohesion = shearStress + normalStress * fLocalizedFrictionCoeff;
- 
-  // cout << "Element Number " << CurrElementNumber() << ", ";
-  //cout << "normalStress = " << normalStress << endl;
-  //cout << "shearStress = " << shearStress << endl;
- //cout << "area = " << area << endl;
- //cout << "fBand-> ResidualCohesion() = " << fBand-> ResidualCohesion() << endl;
- //cout << "neededCohesion = " << neededCohesion << endl;
  
   if (fBand-> ResidualCohesion() < neededCohesion)
     {
@@ -483,7 +473,7 @@ bool SSEnhLocCraigT::IsBandActive()
 
 
 void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-			   const iArrayT& e_codes, dArray2DT& e_values)
+               const iArrayT& e_codes, dArray2DT& e_values)
 {
 
   cout << "ComputeOutput \n\n";
@@ -696,40 +686,40 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                 }
 
                 /* get Cauchy stress */
-  				//const dSymMatrixT stress(NumSD());                
+                //const dSymMatrixT stress(NumSD());                
                 const dSymMatrixT& stress = fCurrMaterial->s_ij();
-			    //dSymMatrixT stress(NumSD());
+                //dSymMatrixT stress(NumSD());
                 
-		// #if 1
+        // #if 1
                 if (IsElementTraced())
-		  {
-		    dSymMatrixT strainIncr = fStrain_List [CurrIP()];
-		    strainIncr -= fStrain_last_List [CurrIP()];
-		    
-		    dSymMatrixT gradActiveTensorFlowDir =
-		      FormGradActiveTensorFlowDir(NumSD(), CurrIP());
-		    gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
-		    
-		    strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
-		    dSymMatrixT stressIncr(NumSD());
-		    stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
-		    stressIncr += fBand->Stress_List(CurrIP());
-		    //stress = stressIncr;
-		    //cout << "stressIncr = " << stressIncr << endl;
-		    cauchy.Translate(stressIncr);
-		  }
+          {
+            dSymMatrixT strainIncr = fStrain_List [CurrIP()];
+            strainIncr -= fStrain_last_List [CurrIP()];
+            
+            dSymMatrixT gradActiveTensorFlowDir =
+              FormGradActiveTensorFlowDir(NumSD(), CurrIP());
+            gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
+            
+            strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
+            dSymMatrixT stressIncr(NumSD());
+            stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
+            stressIncr += fBand->Stress_List(CurrIP());
+            //stress = stressIncr;
+            //cout << "stressIncr = " << stressIncr << endl;
+            cauchy.Translate(stressIncr);
+          }
                 else
-		  {
-		    //const dSymMatrixT& stress = fCurrMaterial->s_ij();
-		    //cout << "stress = " << stress << endl;
-		    cauchy.Translate(stress);
-		    //cout << "cauchy = \n" << cauchy << endl;
-		  }    
-	             
-		//#endif
-		//cout << "hi\n";    
-		//cauchy.Translate(stress);
-		//cout << "cauchy = \n" << cauchy << endl;
+          {
+            //const dSymMatrixT& stress = fCurrMaterial->s_ij();
+            //cout << "stress = " << stress << endl;
+            cauchy.Translate(stress);
+            //cout << "cauchy = \n" << cauchy << endl;
+          }    
+                 
+        //#endif
+        //cout << "hi\n";    
+        //cauchy.Translate(stress);
+        //cout << "cauchy = \n" << cauchy << endl;
 
 
                 /* stresses */
@@ -978,7 +968,6 @@ void SSEnhLocCraigT::CloseStep(void)
 
 cout << "\n CloseStep \n \n";
 
-#if 1
  if (fLocalizationHasBegun)
     {
       /*update traced elements */ 
@@ -1023,6 +1012,7 @@ cout << "\n CloseStep \n \n";
 
 	      fBand -> CloseStep();
 	      	
+	      	cout << "residual cohesion = " << fBand->ResidualCohesion();
 	      	cout << "fBand->JumpIncrement = " << fBand->JumpIncrement();
 	      	cout << ", fBand->Jump() = " << fBand->Jump() << endl;	
 	    }
@@ -1032,8 +1022,8 @@ cout << "\n CloseStep \n \n";
       fEdgeOfBandCoords.Top();
       while(fEdgeOfBandElements.Next())
 	{
-	      cout << "checking for localization of element " <<
-	      	fEdgeOfBandElements.Current() << endl;
+	  //    cout << "checking for localization of element " <<
+	  //    	fEdgeOfBandElements.Current() << endl;
 	  fEdgeOfBandCoords.Next();
 	  GetElement(fEdgeOfBandElements.Current());
 	  IsElementLocalized();
@@ -1046,13 +1036,19 @@ cout << "\n CloseStep \n \n";
       Top();
       while (NextElement())
 	{
+	  GetElement(CurrElementNumber());
+	  
 	  if (IsElementLocalized())
 	    localizationHasBegun = true;
 	  	}
       if (localizationHasBegun)
 	{
 	  fLocalizationHasBegun = true;
+	  
 	  fEdgeOfBandElements.Current(0);
+	  
+	  cout << fEdgeOfBandElements.Current() << endl << flush;
+	  
 	  GetElement(fEdgeOfBandElements.Current());
 	  fEdgeOfBandCoords.Free();
 	  fEdgeOfBandCoords.Append(Centroid());	  
@@ -1063,17 +1059,13 @@ cout << "\n CloseStep \n \n";
 	    {
 	      cout << "checking for localization of element " <<
 	      	fEdgeOfBandElements.Current() << endl; 
-	      //cout << "Position = " << 	fEdgeOfBandElements.Position() << ". Length = " << fEdgeOfBandElements.Length() << endl;
-	      fEdgeOfBandCoords.Next();
+
+		  fEdgeOfBandCoords.Next();
 	      GetElement(fEdgeOfBandElements.Current());    
-	      //cout << "Element Number " << CurrElementNumber() << ". InitialCoodinates() =\n" << InitialCoordinates() << endl; 
 	      IsElementLocalized();
-	      //cout << "Position = " << 	fEdgeOfBandElements.Position() << ". Length = " << fEdgeOfBandElements.Length() << endl;
 	    }
 	}
     }
-
-#endif
 
   SmallStrainT::CloseStep();		
 }
@@ -1183,8 +1175,6 @@ bool SSEnhLocCraigT::IsElementLocalized()
   AutoArrayT <dArrayT> slipDirs;
   AutoArrayT <dArrayT> bestNormals;
   AutoArrayT <dArrayT> bestSlipDirs;
-  
-  //cout << "hi \n ";
 
   /* loop over integration points */
   fShapes->TopIP();
@@ -1219,8 +1209,7 @@ bool SSEnhLocCraigT::IsElementLocalized()
       fEdgeOfBandCoords.Current(fEdgeOfBandCoords.Position() - 1);
      }
     else
-      if (detAMin < fDetAMin)
-	//if (CurrElementNumber() == 68)
+      if ((fFirstElementToLocalize == -1 && detAMin < fDetAMin) || (CurrElementNumber() == fFirstElementToLocalize))
       {
 	fDetAMin = detAMin;
 	fEdgeOfBandElements.Free();
@@ -1323,12 +1312,26 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   shearStress = fabs(shearStress)/area;
 
   double residCohesion = shearStress + normalStress * fLocalizedFrictionCoeff;
+  cout << "residCohesion = " << residCohesion << endl;
+  
+    cout << "normal = " << normal << endl;
+    cout << "slipDir = " << slipDir << endl;
+  cout << "perpSlipDir = " << perpSlipDir << endl;
+  cout << "fEdgeOfBandCoords.Current() = " << fEdgeOfBandCoords.Current() << endl;
+
+  cout << "stressList[0] = " << stressList[0] << endl;
 
   fBand = FormNewBand(normal, slipDir, perpSlipDir, fEdgeOfBandCoords.Current(), residCohesion, stressList);
 
+  cout << "1 " << flush;
+
   fTracedElements.Insert(CurrElementNumber(), fBand);
 
+  cout << "2 " << flush;
+
   AddNewEdgeElements(CurrElementNumber());
+  
+  cout << "3 " << flush;
 }
 
 BandT* SSEnhLocCraigT::FormNewBand(dArrayT normal, dArrayT slipDir,
@@ -1343,8 +1346,14 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 {
   ModelManagerT& model = ElementSupport().ModelManager();
   iArray2DT neighbors;
+  ArrayT<StringT> ids;
+  
+  ElementBlockIDs(ids);  
+  //cout << "hi " << flush;
 
-  model.ElementNeighbors(model.ElementGroupIDs(), neighbors);
+  model.ElementNeighbors(ids, neighbors);
+
+  //cout << "neighbors =\n" << neighbors << endl;
 
   //2D
   int numSides;

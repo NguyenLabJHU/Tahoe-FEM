@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.11 2005-05-13 19:42:31 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.12 2005-07-08 04:01:18 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -26,6 +26,7 @@ namespace Tahoe{
 	/** destructor */
 	//~SSEnhLocCraigT(void);
 
+
 	/** \name total strain */
 	/*@{*/
 	//	const dSymMatrixT& LinearStrain(void) const;
@@ -50,6 +51,8 @@ namespace Tahoe{
 	/*@}*/
 
 protected:
+
+    int fFirstElementToLocalize; // -1 if loading is nonhomogeneous, element number otherwise
 
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
 
@@ -94,6 +97,14 @@ protected:
 	/* Used to check localization - is there a more appropriate fn? */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				   const iArrayT& e_codes, dArray2DT& e_values); 
+				   
+	#if 0			   
+	virtual void GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
+    const iArrayT& e_codes, ArrayT<StringT>& e_labels) const;
+    virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+     iArrayT& counts) const;			   
+	#endif	
+				   
   public:
 	virtual void CloseStep(void);
   protected:

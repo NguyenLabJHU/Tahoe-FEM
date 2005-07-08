@@ -177,9 +177,9 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
   double jumpIncrement = JumpIncrement(slipRate);
   double thetaNew = ThetaNew(slipRate);
   int newtonCounter = 0;
-  int maxIter = 20;
+  int maxIter = 30;
 
-  cout << "jumpIncrement = " << jumpIncrement << ", thetaNew = " << thetaNew;
+  //cout << "jumpIncrement = " << jumpIncrement << ", thetaNew = " << thetaNew;
 
   // what about coming off an elastic step? 
   double yieldFn = Phi(slipRate, jumpIncrement, thetaNew);
@@ -197,11 +197,15 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
 	}
 
       /* update jump increment via Newton iteration */
+
+      //cout << "dPhiSlipRate = " << DPhidSlipRate(slipRate, jumpIncrement,
+		//				 thetaNew) << " ";
+
       slipRate -= yieldFn/DPhidSlipRate(slipRate, jumpIncrement, thetaNew);
 
-      cout << "dPhiSlipRate = " << DPhidSlipRate(slipRate, jumpIncrement,
-      					 thetaNew);
-      cout << " slipRate = " << slipRate;
+      //cout << "dPhiSlipRate = " << DPhidSlipRate(slipRate, jumpIncrement,
+      //					 thetaNew);
+      //cout << " slipRate = " << slipRate;
 
       /*update increment of ISV */
       jumpIncrement = JumpIncrement(slipRate);
@@ -344,7 +348,7 @@ double SSEnhLocDieterichT::Phi(double slipRate, double jumpIncrement, double the
     phi -= newCohesion;
   //else newCohesion is really 0.0, no need to subtract anything
 
-  cout << ", phi = " << phi << endl;
+  //cout << ", phi = " << phi << endl;
 
   //cout << ", newCohesion = " << newCohesion << ", ";
 
@@ -491,6 +495,8 @@ double SSEnhLocDieterichT::DmudSlipRate(double slipRate, double thetaNew)
 
 double SSEnhLocDieterichT::ArcSinhArg(double slipRate, double theta)
 {
+  //cout << "slipRate = " << slipRate << endl;
+  //cout << "theta = " << theta << endl;
   return slipRate/(2.0* fV_star) * exp((fMu_star + fFrictionB * log( theta/fTheta_star))/fFrictionA);
 }
 
@@ -556,11 +562,15 @@ void SSEnhLocDieterichT::LoadBand(int elementNumber)
 
 double SSEnhLocDieterichT::FrictionCoeff(double slipRate, double theta)
 {
-  return fFrictionA * arcsinh(ArcSinhArg(slipRate, theta));
+  //cout << " ArcSinhArg(slipRate, theta) = " << ArcSinhArg(slipRate, theta) << endl;
+  return fFrictionA * asinh(ArcSinhArg(slipRate, theta));
 }
 
+/* obselete, using math library asinh function now */
+/* this has poor accuracy for values of arg < 0 */
 double SSEnhLocDieterichT::arcsinh(double arg)
 {
+  //cout << "arg = " << arg << endl;
   return log(arg + sqrt(arg*arg + 1));
 }
 
@@ -575,6 +585,7 @@ slipRate, double thetaNew)
 
   //double dt = ElementSupport().TimeStep();
   double frictionCoeff = FrictionCoeff(slipRate, thetaNew);
+  //cout << "frictionCoeff = " << frictionCoeff << " " ;
  
   work.Outer(fBand->Normal());
   dGdSigma.AddScaled(frictionCoeff, work);
