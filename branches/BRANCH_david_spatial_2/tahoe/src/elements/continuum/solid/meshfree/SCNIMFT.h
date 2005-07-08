@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.30.8.1 2005-05-27 19:55:14 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.30.8.2 2005-07-08 06:19:15 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -51,7 +51,7 @@ public:
 
 	/** \name initialize/finalize time increment */
 	/*@{*/
-	virtual GlobalT::InitStatusT InitStep(void);
+	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 	/*@}*/
@@ -83,11 +83,11 @@ public:
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 	/*@}*/
 
 	/** Loop over nodes and compute stiffness matrix */

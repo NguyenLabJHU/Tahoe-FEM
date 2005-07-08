@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.59.4.1 2005-05-27 19:55:14 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.59.4.2 2005-07-08 06:19:15 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -382,15 +382,13 @@ GlobalT::SystemTypeT SCNIMFT::TangentType(void) const
 	return GlobalT::kSymmetric;
 }
 
-GlobalT::InitStatusT SCNIMFT::InitStep(void)
+void SCNIMFT::InitStep(void)
 {
 	/* inherited */
-	GlobalT::InitStatusT status = ElementBaseT::InitStep();
+	ElementBaseT::InitStep();
 
 	/* set material variables */
 	if (fMaterialList)  fMaterialList->InitStep();
-	
-	return status;
 }
 
 void SCNIMFT::CloseStep(void)
@@ -600,7 +598,7 @@ void SCNIMFT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 }
 
 /* write restart data to the output stream */
-void SCNIMFT::WriteRestart(ostream& out) const
+void SCNIMFT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	ElementBaseT::WriteRestart(out);
@@ -618,7 +616,7 @@ void SCNIMFT::WriteRestart(ostream& out) const
 }
 
 /* read restart data to the output stream */
-void SCNIMFT::ReadRestart(istream& in)
+void SCNIMFT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	ElementBaseT::ReadRestart(in);
