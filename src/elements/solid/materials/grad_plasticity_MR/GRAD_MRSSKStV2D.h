@@ -1,7 +1,6 @@
-/* $Id: GRAD_MRSSKStV2D.h,v 1.5 2005-04-28 01:39:01 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV2D.h,v 1.6 2005-07-08 01:17:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
-   MR version modified to incorporate gradient plasticity 
-   theory.
+   Gradient Enhanced MR Model
 */
 #ifndef _GRAD_MR_SS_KSTV_2D_H_
 #define _GRAD_MR_SS_KSTV_2D_H_
@@ -24,7 +23,7 @@ class GRAD_MRSSKStV2D: public GRAD_MRSSKStV
                 const dSymMatrixT& totalstrain, 
 		const ElementCardT& element, int ip);
 		
-	/* returns 3D Laplacian of strain (3D) */
+	/* returns 3D laplacian of strain (3D) */
 	virtual const dSymMatrixT& LapElasticStrain(
                 const dSymMatrixT& laptotalstrain, 
 		const ElementCardT& element, int ip);

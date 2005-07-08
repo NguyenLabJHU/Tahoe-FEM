@@ -1,7 +1,6 @@
-/* $Id: GRAD_MRSSKStV.h,v 1.7 2005-04-28 01:39:02 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.h,v 1.8 2005-07-08 01:17:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
-   MR version modified to incorporate gradient plasticity 
-   theory.
+   Gradient Enhanced MR Model
 */
 #ifndef _GRAD_MR_SS_KSTV_H_
 #define _GRAD_MR_SS_KSTV_H_
@@ -76,7 +75,7 @@ class GRAD_MRSSKStV: public MFGPSSSolidMatT, public IsotropicT, public HookeanMa
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
 	
-	/** Yield function */
+	/** yield function */
 	// return the yield function to form the RHS of the 
 	// consistency equation
 	virtual const double& YieldF(void);

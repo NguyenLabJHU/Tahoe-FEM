@@ -1,10 +1,9 @@
-/* $Id: GRAD_MRPrimitiveT.cpp,v 1.2 2005-04-28 01:39:02 kyonten Exp $ */
+/* $Id: GRAD_MRPrimitiveT.cpp,v 1.3 2005-07-08 01:17:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
-   MR version modified to incorporate gradient plasticity 
-   theory.
+   Gradient Enhanced MR Model
 */
 
-/* Base class for a nonassociative, small strain,        */
+/* base class for a nonassociative, small strain,        */
 /* pressure dependent gradient plasticity model          */
 /* with nonlinear isotropic hardening/softening.         */
 /* The model is consistent with the traction sepration   */
@@ -140,7 +139,7 @@ void GRAD_MRPrimitiveT::TakeParameterList(const ParameterListT& list)
  ***********************************************************************/
 
 /*
- * Returns the value of the yield function given the
+ * returns the value of the yield function given the
  * stress vector and state variables, where alpha
  * represents isotropic hardening.
  */

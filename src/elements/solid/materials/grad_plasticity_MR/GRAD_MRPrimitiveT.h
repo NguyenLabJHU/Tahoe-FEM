@@ -1,10 +1,9 @@
-/* $Id: GRAD_MRPrimitiveT.h,v 1.2 2005-04-28 01:39:02 kyonten Exp $ */
+/* $Id: GRAD_MRPrimitiveT.h,v 1.3 2005-07-08 01:17:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
-   MR version modified to incorporate gradient plasticity 
-   theory.
+   Gradient Enhanced MR Model
 */
    
-/* Base class for a nonassociative, small strain,        */
+/* base class for a nonassociative, small strain,        */
 /* pressure dependent gradient plasticity model          */
 /* with nonlinear isotropic hardening/softening.         */
 /* The model is consistent with the traction separation  */
@@ -49,13 +48,13 @@ class GRAD_MRPrimitiveT: public ParameterInterfaceT
 	double fGf_I;    /* Mode_I Fracture Energy */
 	double fGf_II;   /* Mode_II Fracture Energy */
 
-	/* Length scale parameters */
+	/* length scale parameters */
 	double flse_v; /* pore space length scale (elastic) */
 	double flse_s; /* grain size length scale (elastic) */
 	double flsp_v; /* pore space length scale (plastic) */
 	double flsp_s; /* grain size length scale (plastic) */
 	
-	/* Inelastic response parameters */
+	/* inelastic response parameters */
 	double fchi_p; /* peak tensile strength*/  
 	double fchi_r; /* residual tensile strength */
 	double fc_p;   /* peak cohesion */

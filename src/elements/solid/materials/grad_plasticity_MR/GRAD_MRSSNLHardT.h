@@ -1,9 +1,8 @@
-/* $Id: GRAD_MRSSNLHardT.h,v 1.7 2005-05-13 22:01:16 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.h,v 1.8 2005-07-08 01:17:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
-   MR version modified to incorporate gradient plasticity 
-   theory.
+   Gradient Enhanced MR Model
 */
-/* Interface for a nonassociative, small strain,     */
+/* interface for a nonassociative, small strain,     */
 /* pressure dependent gradient plasticity model      */
 /* with nonlinear isotropic hardening/softening.     */
 
@@ -45,14 +44,14 @@ public:
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
 		const ElementCardT& element, int ip);
 		
-	/* returns Laplacian of elastic strain (3D) */
+	/* returns laplacian of elastic strain (3D) */
 	virtual const dSymMatrixT& LapElasticStrain(const dSymMatrixT& lap_totalstrain, 
 		const ElementCardT& element, int ip);
 		
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
 	const dSymMatrixT& StressCorrection(const dSymMatrixT& trialstrain,
-	    const dSymMatrixT& lap_trialstrain, const dArrayT& dlambda, const dArrayT& lap_dlambda,  
+	    const dSymMatrixT& lap_trialstrain, const dArrayT& traillambda, const dArrayT& lap_triallambda,  
 		ElementCardT& element, int ip); // dlam and lap_dlam at the ip     
 		
 	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
@@ -75,12 +74,12 @@ public:
 
 	/* return the correction to moduli due to plasticity (if any)
 	 *
-	 * Note: Return mapping occurs during the call to StressCorrection.
+	 * Note: return mapping occurs during the call to StressCorrection.
 	 *       The element passed in is already assumed to carry current
 	 *       internal variable values */
 	const dMatrixT& Moduli(const ElementCardT& element, int ip); 
 
-    /* Modulus for checking perfectly plastic bifurcation */
+    /* modulus for checking perfectly plastic bifurcation */
 	const dMatrixT& ModuliPerfPlas(const ElementCardT& element, int ip);
 	
 	/*@{*/
@@ -101,17 +100,10 @@ public:
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
-	enum InternalVariablesT {keps11 = 6, //strains
-	                         keps22 = 7,
-	                         keps33 = 8,
-	                         keps23 = 9,
-	                         keps13 = 10,
-	                         keps12 = 11,
-							 kchi = 30,  // stress-like internal state variable
+	enum InternalVariablesT {kchi = 30,  // stress-like internal state variable
 	                         kc   = 31,
 	                      ktanphi = 32,
 	                      ktanpsi = 33,
-                         kdlambda = 35,  // consistency parameter
                          kplastic = 37,  // Plastic Index
                           kftrial = 34}; // yield function value
 
@@ -124,7 +116,7 @@ public:
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
-	int PlasticLoading(const dSymMatrixT& trialstrain, const dSymMatrixT& del2_trialstrain, 
+	int PlasticLoading(const dSymMatrixT& trialstrain, const dSymMatrixT& lap_trialstrain, 
                         ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
@@ -192,11 +184,10 @@ public:
 	dSymMatrixT fDevStress;
 	dSymMatrixT fLapDevStress;
 	dSymMatrixT fDevStrain; /* deviatoric part of the strain tensor */
-	dSymMatrixT fLapDevStrain; /* deviatoric part of the Laplacian of strain tensor */
+	dSymMatrixT fLapDevStrain; /* deviatoric part of the laplacian of strain tensor */
 	dSymMatrixT IdentityTensor2;  
-
-	dMatrixT      fTensorTemp;
-	dSymMatrixT   One;  
+	dSymMatrixT One;  
+	dMatrixT    fTensorTemp;
   	
 };
 

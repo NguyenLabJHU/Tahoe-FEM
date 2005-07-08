@@ -1,7 +1,6 @@
-/* $Id: GRAD_MRSSKStV2D.cpp,v 1.6 2005-04-28 01:39:01 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV2D.cpp,v 1.7 2005-07-08 01:17:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
-   MR version modified to incorporate gradient plasticity 
-   theory.
+   Gradient Enhanced MR Model
 */
 #include "GRAD_MRSSKStV2D.h"
 #include "ElementCardT.h"
@@ -28,10 +27,9 @@ const dSymMatrixT& GRAD_MRSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain
 	/* inherited */
 	/*return fTotalStrain3D;*/
 	return GRAD_MRSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
-
 }
 
-/* returns 3D  gradient of total strain (3D) */
+/* returns 3D gradient of total strain (3D) */
 const dSymMatrixT& GRAD_MRSSKStV2D::LapElasticStrain(const dSymMatrixT& laptotalstrain, 
 	const ElementCardT& element, int ip) //lap_totalstrain??
 {
@@ -41,7 +39,6 @@ const dSymMatrixT& GRAD_MRSSKStV2D::LapElasticStrain(const dSymMatrixT& laptotal
 	/* inherited */
 	/*return fTotalStrain3D;*/
 	return GRAD_MRSSKStV::LapElasticStrain(fTotalStrain3D, element, ip);
-
 }
 
 /* moduli */
@@ -100,7 +97,6 @@ const dMatrixT& GRAD_MRSSKStV2D::c_LamU1_ij(void)
 	temp3D.Transpose(GRAD_MRSSKStV::c_LamU1_ij());
 	ReduceOffDiagonalModulus(temp3D, fTemp2DA);
 	fModulusLamU1_2D.Transpose(fTemp2DA);
-	
 	return fModulusLamU1_2D;
 }
 
@@ -113,7 +109,6 @@ const dMatrixT& GRAD_MRSSKStV2D::c_LamU2_ij(void)
 	temp3D.Transpose(GRAD_MRSSKStV::c_LamU2_ij());
 	ReduceOffDiagonalModulus(temp3D, fTemp2DB);
 	fModulusLamU2_2D.Transpose(fTemp2DB);
-	
 	return fModulusLamU2_2D;
 }
 
@@ -143,7 +138,6 @@ const dSymMatrixT& GRAD_MRSSKStV2D::s_ij(void)
 /* yield function */
 const double& GRAD_MRSSKStV2D::YieldF(void)
 {
-	
 	fYieldFunction2D = GRAD_MRSSKStV::YieldF();
 	return fYieldFunction2D;
 }

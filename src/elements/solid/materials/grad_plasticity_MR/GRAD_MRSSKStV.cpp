@@ -1,7 +1,6 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.16 2005-05-17 18:54:19 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.17 2005-07-08 01:17:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
-   MR version modified to incorporate gradient plasticity 
-   theory.
+   Gradient Enhanced MR Model
 */
 #include "GRAD_MRSSKStV.h"
 #include "GRAD_MRSSNLHardT.h"  
@@ -89,7 +88,7 @@ const dMatrixT& GRAD_MRSSKStV::c_ijkl(void)
 	return fModulus;
 }
 
-/*perfectly plastic modulus */
+/* perfectly plastic modulus */
 const dMatrixT& GRAD_MRSSKStV::c_perfplas_ijkl(void)
 {
 	/* elastoplastic correction */
@@ -98,7 +97,7 @@ const dMatrixT& GRAD_MRSSKStV::c_perfplas_ijkl(void)
 }
 
 const dMatrixT& GRAD_MRSSKStV::c_UU1_ijkl(void)
-{
+{ 
 	fModulusUU1 = fGRAD_MR->Moduli_UU1();
 	return fModulusUU1;
 }
@@ -164,7 +163,7 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	const dSymMatrixT& e_els = ElasticStrain(eps, element, ip); 
 	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_eps, element, ip);
 	
-	/* Updated Cauchy stress (return mapping) */
+	/* updated Cauchy stress (return mapping) */
 	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lam, lap_lam, element, ip);
 	return fStress;	
 }
