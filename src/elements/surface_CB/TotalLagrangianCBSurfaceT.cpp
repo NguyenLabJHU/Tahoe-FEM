@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.10 2005-07-08 05:31:06 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.11 2005-07-09 00:01:32 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -84,7 +84,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 
 	/* get pointer to the bulk model */
 	FCC3D* fcc_3D = NULL;
-	if (fMaterialList->Length() != 1) {
+	if (fMaterialList->Length() == 1) {
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
 		fcc_3D = TB_DYNAMIC_CAST(FCC3D*, pcont_mat);
 		if (!fcc_3D) ExceptionT::GeneralFail(caller, "could not resolve FCC3D material");
