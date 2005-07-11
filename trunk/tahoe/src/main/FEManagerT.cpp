@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.95 2005-05-26 20:08:36 cfoster Exp $ */
+/* $Id: FEManagerT.cpp,v 1.96 2005-07-11 23:09:39 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1638,8 +1638,16 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& name) const
 		ParameterContainerT* solver_phase = new ParameterContainerT(name);
 
 		solver_phase->AddParameter(ParameterT::Integer, "solver");
-		solver_phase->AddParameter(ParameterT::Integer, "iterations");
-		solver_phase->AddParameter(ParameterT::Integer, "pass_iterations");
+		
+		/* solver iterations per phase */
+		ParameterT iterations(ParameterT::Integer, "iterations");
+		iterations.SetDefault(-1);
+		solver_phase->AddParameter(iterations);
+		
+		/* number of iterations to "pass" */
+		ParameterT pass_iterations(ParameterT::Integer, "pass_iterations");
+		pass_iterations.SetDefault(0);
+		solver_phase->AddParameter(pass_iterations);
 		
 		return solver_phase;
 	}
