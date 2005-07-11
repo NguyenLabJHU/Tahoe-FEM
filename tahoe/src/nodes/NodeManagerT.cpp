@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.62 2005-05-24 22:12:13 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.63 2005-07-11 23:10:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -622,7 +622,7 @@ void NodeManagerT::SetEquationNumbers(int group)
 	CollectFields(group, fields);
 	if (fields.Length() == 0)
 		ExceptionT::GeneralFail("NodeManagerT::SetEquationNumbers", 
-			"group has no fields: %d", group);
+			"group has no fields: %d", group+1);
 	
 	/* initialize equations numbers arrays */
 	for (int i = 0; i < fields.Length(); i++)
