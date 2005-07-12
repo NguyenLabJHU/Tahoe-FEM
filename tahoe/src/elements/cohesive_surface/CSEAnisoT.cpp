@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.69 2005-05-25 08:28:51 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.69.2.1 2005-07-12 05:53:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -10,8 +10,8 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-
-#include "toolboxConstants.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "SurfaceShapeT.h"
 #include "SurfacePotentialT.h"
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -207,7 +207,7 @@ void CSEAnisoT::CloseStep(void)
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* write restart data to the output stream. */
-void CSEAnisoT::WriteRestart(ostream& out) const
+void CSEAnisoT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	CSEBaseT::WriteRestart(out);
@@ -221,7 +221,7 @@ void CSEAnisoT::WriteRestart(ostream& out) const
 }
 
 /* read restart data to the output stream */
-void CSEAnisoT::ReadRestart(istream& in)
+void CSEAnisoT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	CSEBaseT::ReadRestart(in);
