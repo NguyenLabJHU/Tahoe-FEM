@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.50.8.4 2005-06-11 01:13:24 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.50.8.5 2005-07-12 05:52:25 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -349,6 +349,9 @@ public:
 
 	/** called for all groups if the solution procedure for any group fails */
 	virtual ExceptionT::CodeT ResetStep(void);
+
+	/** system relaxation */
+	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
 	
 	/** solver phase information. Results of the last call to FEManagerT::SolveStep */
 	const iArray2DT& SolverPhasesStatus(void) const { return fSolverPhasesStatus; };
@@ -421,9 +424,6 @@ protected:
 	virtual void SetSolver(void);
 	virtual void SetOutput(void);
 	/*@}*/
-
-	/** system relaxation */
-	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
 
 	/** (re-) set cached value of the first equation number for the given
 	 * group on this processor. This value is cached because communication 
