@@ -1,7 +1,8 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.38.4.1 2005-05-27 19:55:20 paklein Exp $ */
- 
+/* $Id: FEManagerT_bridging.cpp,v 1.38.4.2 2005-07-12 05:50:52 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
+
+#include "SolidMaterialsConfig.h"
 
 #include "ifstreamT.h"
 #include "ModelManagerT.h"
@@ -27,6 +28,9 @@
 #include "Hex2D.h"
 #include "Chain1D.h"
 #include "BondLatticeT.h"
+#ifndef CAUCHY_BORN_MATERIAL
+#error "bridging scale formulation requires CAUCHY_BORN_MATERIAL"
+#endif
 #include "nArrayGroupT.h"
 #include "nVariMatrixT.h"
 
@@ -786,7 +790,7 @@ void FEManagerT_bridging::InitProjection(const StringT& field, CommManagerT& com
 	
 	/* reset the group equations numbers */
 //	SetEquationSystem(the_field->Group());
-#pragma message("delete me");
+#pragma message("delete me")
 
 	/* construct EAMFCC3D pointer if 3D bridging scale using EAM */
 	//if (the_field->NumDOF() == 3)

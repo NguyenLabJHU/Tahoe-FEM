@@ -1,6 +1,8 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.14 2005-04-28 23:57:15 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.14.4.1 2005-07-12 05:50:53 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
+
+#include "SolidMaterialsConfig.h"
 
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
@@ -27,6 +29,10 @@
 #include "Hex2D.h"
 #include "Chain1D.h"
 #include "BondLatticeT.h"
+#ifndef CAUCHY_BORN_MATERIAL
+#error "bridging scale formulation requires CAUCHY_BORN_MATERIAL"
+#endif
+
 #include "nArrayGroupT.h"
 #include "nVariMatrixT.h"
 #include "SecantMethodT.h"
