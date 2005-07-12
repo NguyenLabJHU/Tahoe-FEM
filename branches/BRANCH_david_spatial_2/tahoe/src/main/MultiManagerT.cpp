@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.26.4.1 2005-05-27 19:55:20 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.26.4.2 2005-07-12 05:51:53 paklein Exp $ */
 
 #include "MultiManagerT.h"
 
@@ -140,7 +140,7 @@ void MultiManagerT::SetEquationSystem(GlobalT::InitStatusT flag, int group, int 
 	int neq2 = fCoarse->GlobalNumEquations(group);
 
 	/* new equation numbers */
-	if (flag == GlobalT::kAssignEquations)
+	if (flag == GlobalT::kNewEquations)
 	{
 		fGlobalNumEquations[group] = neq1 + neq2;
 
@@ -167,7 +167,7 @@ void MultiManagerT::SetEquationSystem(GlobalT::InitStatusT flag, int group, int 
 	}
 
 	/* need to reset structure of equations in the solver */
-	if (flag == GlobalT::kAssignEquations || flag == GlobalT::kNewInteractions)
+	if (flag == GlobalT::kNewEquations || flag == GlobalT::kNewInteractions)
 	{
 		/* final step in solver configuration */
 		fSolvers[group]->Initialize(
