@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.38 2005-06-23 20:17:12 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.39 2005-07-12 05:50:11 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -12,6 +12,7 @@
 #include "ElementSupportT.h"
 #include "ModelManagerT.h"
 #include "ParameterContainerT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
@@ -667,7 +668,10 @@ void CSEBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& blo
 	ElementBaseT::CollectBlockInfo(list, block_ID, mat_index);
 
 	/* quick exit */
-	if (block_ID.Length() == 0) return;
+	if (block_ID.Length() == 0) {
+		ElementSupport().Communicator().Max(0); /* complete Max below */
+		return;
+	}
 
 	/* write output over the original connectivities */
 	CSEBaseT* non_const_this = (CSEBaseT*) this;
@@ -678,6 +682,9 @@ void CSEBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& blo
 	int nel, nen = 0;
 	for (int i = 0; nen == 0 && i < block_ID.Length(); i++)
 		model.ElementGroupDimensions (block_ID[i], nel, nen);
+
+	/* group may be empty for multi-processor calculations */
+	nen = ElementSupport().Communicator().Max(nen);
 
 	/* check for higher order elements */
 	int nsd = NumSD();
