@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.14 2005-06-28 14:46:44 d-farrell2 Exp $ */
+/* $Id: MultiManagerT.h,v 1.13.4.1 2005-05-27 19:55:20 paklein Exp $ */
 
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
@@ -35,7 +35,7 @@ public:
 	virtual void Solve(void);
 
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
+	virtual void SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift = 0);
 
 	/** (re-)set system to initial conditions */
 	virtual ExceptionT::CodeT InitialCondition(void);
@@ -167,7 +167,7 @@ protected:
 	bool fCoarseToFine; /**< coarse scale contribution to fine scale equations */ 
 	bool fCoarseToCoarse; /**< coupling between free and prescribed coarse scale */ 
 	/*@}*/
-
+	
 	// Dave Added these
 	bool fignore;	// ignore continuum (true, false)
 };

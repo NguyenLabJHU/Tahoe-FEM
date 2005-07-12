@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.14 2004-12-26 21:08:41 d-farrell2 Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.14.12.3 2005-07-12 05:52:55 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearHHTalpha.h"
 #include "dArrayT.h"
@@ -37,60 +37,71 @@ void nLinearHHTalpha::Dimension(const BasicFieldT& field)
 	vn = 0.0;
 }
 
-/* consistent BC's - updates predictors and acceleration only */
-void nLinearHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
+/* prescribe the field and derivatives consistent BC's */
+void nLinearHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes)
 {
+	const char caller[] = "nLinearHHTalpha::ConsistentKBC";
+	if (KBC.Mode() == KBC_CardT::kSet && !nodes)
+		ExceptionT::GeneralFail(caller, "expecting non-NULL nodes");
+
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (field[0])(node, dof);
-	double& v = (field[1])(node, dof);
-	double& a = (field[2])(node, dof);
+	int nnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Length() : 1;
+	const int* pnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Pointer() : &node;
 
-	switch (KBC.Code())
+	/* apply to nodes */
+	for (int i = 0; i < nnd; i++)
 	{
-		case KBC_CardT::kFix: /* zero displacement */
-		case KBC_CardT::kDsp: /* prescribed displacement */
-		{
-			double d_alpha = (1.0 + falpha)*KBC.Value() - falpha*dn(node,dof);
+		double& d = (field[0])(*pnd, dof);
+		double& v = (field[1])(*pnd, dof);
+		double& a = (field[2])(*pnd, dof);
 
-			if (fabs(dalpha_a) > kSmall) /* for dt -> 0.0 */
-				a = (d_alpha - d)/dalpha_a;
-			else
-				a = 0.0;
-			d  = d_alpha;
-			v += valpha_a*a;
+		switch (KBC.Code())
+		{
+			case KBC_CardT::kFix: /* zero displacement */
+			case KBC_CardT::kDsp: /* prescribed displacement */
+			{
+				double d_alpha = (1.0 + falpha)*KBC.Value() - falpha*dn(*pnd,dof);
+
+				if (fabs(dalpha_a) > kSmall) /* for dt -> 0.0 */
+					a = (d_alpha - d)/dalpha_a;
+				else
+					a = 0.0;
+				d  = d_alpha;
+				v += valpha_a*a;
 		
-			break;
-		}
-		case KBC_CardT::kVel: /* prescribed velocity */
-		{
-			double v_alpha = (1.0 + falpha)*KBC.Value() - falpha*vn(node,dof);
+				break;
+			}
+			case KBC_CardT::kVel: /* prescribed velocity */
+			{
+				double v_alpha = (1.0 + falpha)*KBC.Value() - falpha*vn(*pnd,dof);
 	
-			if (fabs(valpha_a) > kSmall) /* for dt -> 0.0 */
-				a = (v_alpha - v)/valpha_a;
-			else
-				a = 0.0;
-			v  = v_alpha;
-			d += dalpha_a*a;
+				if (fabs(valpha_a) > kSmall) /* for dt -> 0.0 */
+					a = (v_alpha - v)/valpha_a;
+				else
+					a = 0.0;
+				v  = v_alpha;
+				d += dalpha_a*a;
 	
-			break;
-		}
-		case KBC_CardT::kAcc: /* prescribed acceleration */
-		{
-			a  = KBC.Value();
-			d += dalpha_a*a;
-			v += valpha_a*a;
+				break;
+			}
+			case KBC_CardT::kAcc: /* prescribed acceleration */
+			{
+				a  = KBC.Value();
+				d += dalpha_a*a;
+				v += valpha_a*a;
 
-			break;
+				break;
+			}
+			case KBC_CardT::kNull: /* do nothing */
+				break;
+			default:
+				ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code());
 		}
-		case KBC_CardT::kNull: /* do nothing */
-		{
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue("nnLinearHHTalpha::ConsistentKBC", 
-				"unknown BC code: %d", KBC.Code());
+		
+		/* next */
+		pnd++;
 	}
 }		
 #pragma message ("roll up redundancy after it works")
@@ -126,8 +137,9 @@ void nLinearHHTalpha::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int 
 }		
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nLinearHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nLinearHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
+
 	if (fieldend == -1) // operate on full arrays
 	{
 		/* displacement corrector */

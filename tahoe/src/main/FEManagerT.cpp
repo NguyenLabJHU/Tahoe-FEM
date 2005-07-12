@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.96 2005-07-11 23:09:39 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.95.2.8 2005-06-27 16:52:38 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -65,7 +65,7 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fPartition(NULL),
+	fPrintStep(-1),
 	fTask(task),
 	fExternIOManager(NULL)
 {
@@ -122,6 +122,7 @@ FEManagerT::~FEManagerT(void)
 		delete fSolvers[i];
 
 	delete fIOManager;
+	delete fExternIOManager;
 	delete fModelManager;
 	delete fCommManager;
 
@@ -131,6 +132,13 @@ FEManagerT::~FEManagerT(void)
 	
 	fStatus = GlobalT::kNone;	
 }
+
+#if 0
+/* return reference to partition data */
+const PartitionT* FEManagerT::Partition(void) const {
+	return (fCommManager) ? fCommManager->Partition() : NULL;
+}
+#endif
 
 /* solve all the time sequences */
 void FEManagerT::Solve(void)
@@ -164,7 +172,7 @@ void FEManagerT::Solve(void)
 			case ExceptionT::kGeneralFail:
 			case ExceptionT::kBadJacobianDet:
 			{
-				cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
+				cout << "\n " << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
 				
 				/* reset system configuration */
 				error = ResetStep();
@@ -177,7 +185,8 @@ void FEManagerT::Solve(void)
 				break;
 			}
 			default:
-				cout << '\n' << caller <<  ": no recovery for error: " << ExceptionT::ToString(error) << endl;
+				cout << "\n " << caller <<  ": no recovery for error: " << ExceptionT::ToString(error) 
+				     << ". Check console and log files for more information." <<endl;
 		}
 	}
 }
@@ -249,12 +258,15 @@ ExceptionT::CodeT FEManagerT::ResetStep(void)
 	
 			/* solver */
 			fSolvers[fCurrentGroup]->ResetStep();
-		
+
+#if 0
 			/* check to see if the equation system needs to be reset */
 			if (relax == GlobalT::kReEQ)
 				SetEquationSystem(fCurrentGroup);
 			else if (relax != GlobalT::kNoRelax)
 				ExceptionT::GeneralFail("FEManagerT::ResetStep", "unsupported relaxation code %d", relax);
+#endif
+#pragma message("how to handle equation system after ResetStep")
 		}
 	}
 	
@@ -355,29 +367,75 @@ void FEManagerT::InternalForceOnNode(const FieldT& field, int node, dArrayT& for
 
 ExceptionT::CodeT FEManagerT::InitStep(void)
 {
-	try {
-	/* state */
-	SetStatus(GlobalT::kInitStep);
-	
-	/* set the default value for the output time stamp */
-	fIOManager->SetOutputTime(Time());	
-
-	/* loop over solver groups */
-	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+	const char caller[] = "FEManagerT::InitStep";
+	try
 	{
-		/* solver */
-		fSolvers[fCurrentGroup]->InitStep();
+		/* state */
+		SetStatus(GlobalT::kInitStep);
+	
+		/* set the default value for the output time stamp */
+		fIOManager->SetOutputTime(Time());	
 
-		/* nodes */
-		fNodeManager->InitStep(fCurrentGroup);
-	}
-	fCurrentGroup = -1;
+		/* set the system configuration */
+		if (fCurrentGroup != -1) ExceptionT::GeneralFail(caller);
+		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		{
+			/* repeat until stable */
+			bool repeat_loop = true;
+			int loop_count = 0;
+			while (repeat_loop)
+			{
+				GlobalT::InitStatusT status = GlobalT::kContinue;
 
-	/* elements */
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		(*fElementGroups)[i]->InitStep();
-	}
+				/* nodes */
+				GlobalT::InitStatusT node_status = fNodeManager->UpdateConfiguration(fCurrentGroup);
+				status = GlobalT::MaxPrecedence(node_status, status);
+
+				/* elements */
+				for (int i = 0 ; i < fElementGroups->Length(); i++) 
+					if ((*fElementGroups)[i]->InGroup(fCurrentGroup)) {
+						GlobalT::InitStatusT element_status = (*fElementGroups)[i]->UpdateConfiguration();
+						status = GlobalT::MaxPrecedence(element_status, status);
+					}
+					
+				/* continue */
+				repeat_loop = (status == GlobalT::kNewEquations);
+				if (++loop_count > 10 && repeat_loop)
+					ExceptionT::GeneralFail(caller, "configuration not stable after %d passes in group %d", 
+						loop_count, fCurrentGroup+1);
+
+				/* reset the equations */
+				if (status == GlobalT::kNewInteractions || status == GlobalT::kNewEquations)
+					SetEquationSystem(status, fCurrentGroup);
+			}
+		}
+
+		/* initialize step */
+		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		{
+			/* solver */
+			fSolvers[fCurrentGroup]->InitStep();
+
+			/* nodes */
+			fNodeManager->InitStep(fCurrentGroup);
+
+			/* elements */
+			for (int i = 0 ; i < fElementGroups->Length(); i++) 
+				if ((*fElementGroups)[i]->InGroup(fCurrentGroup))
+					(*fElementGroups)[i]->InitStep();
+		}
+		fCurrentGroup = -1;
+
+#pragma message("read me")
+//NOTE: pass through InitStep more than once to remove order dependence? Could
+//      pass through the loop until each member returns kContinue and then set
+//      the equation system at the end. Need to pass through more than once if
+//      something causes the model to change, i.e., periodic boundary conditions,
+//      redistribution over a spatial grid. Add a separate call to InitStep to
+//      the CommManagerT or ModelManagerT to take care of this before moving on
+//      to the rest of the system.
+
+	} /* try */
 	
 	catch (ExceptionT::CodeT exc) {
 		cout << "\n FEManagerT::InitStep: caught exception: " 
@@ -391,11 +449,12 @@ ExceptionT::CodeT FEManagerT::InitStep(void)
 
 ExceptionT::CodeT FEManagerT::SolveStep(void)
 {
+	const char caller[] = "FEManagerT::SolveStep";
 	ExceptionT::CodeT error = ExceptionT::kNoError;
 	try {
 	
 		/* check group flag */
-		if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
+		if (fCurrentGroup != -1) ExceptionT::GeneralFail(caller);
 		
 		int loop_count = 0;
 		bool all_pass = false;
@@ -432,8 +491,17 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 				else if (status == SolverT::kConverged && 
 					(pass == -1 || (fSolverPhasesStatus(i, kIteration) - last_iter) <= pass))
 				{
-					all_pass = all_pass && true; /* must all be true */
-					fSolverPhasesStatus(i, kPass) = 1;
+					/* check for relaxation */
+					GlobalT::RelaxCodeT relax_code = RelaxSystem(fCurrentGroup);
+					if (relax_code == GlobalT::kNoRelax) /* done */ {
+						all_pass = all_pass && true; /* must all be true */
+						fSolverPhasesStatus(i, kPass) = 1;
+					} else if (relax_code == GlobalT::kRelax) /* keep solving */ {
+						all_pass = false;
+						fSolverPhasesStatus(i, kPass) = 0;		
+					} else //TEMP - what to do about the others
+						ExceptionT::GeneralFail(caller, "unrecognized relaxation code %d", relax_code);
+#pragma message("how to handle remaining relaxation codes?")
 				}
 				else
 				{
@@ -543,49 +611,6 @@ void FEManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 	fNodeManager->GetUnknowns(group, order, unknowns);
 }
 
-GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
-{
-	/* state */
-	SetStatus(GlobalT::kRelaxSystem);
-	
-	/* check node manager */
-	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
-	relax = GlobalT::MaxPrecedence(relax, fNodeManager->RelaxSystem(group));
-		
-	/* check element groups - must touch all of them to reset */
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		if ((*fElementGroups)[i]->InGroup(group))
-			relax = GlobalT::MaxPrecedence(relax, (*fElementGroups)[i]->RelaxSystem());
-
-	return relax;
-	if (Size() > 1) // use parallel stuff if comm size > 1
-	{
-		/* gather codes */
-		iArrayT all_relax(Size());
-		fComm.AllGather(relax, all_relax);
-	
-		/* code precedence */
-		for (int i = 0; i < all_relax.Length(); i++)
-			relax = GlobalT::MaxPrecedence(relax, GlobalT::RelaxCodeT(all_relax[i]));
-	
-		/* report */
-		if (relax != GlobalT::kNoRelax)
-		{
-			cout << "\n Relaxation code at time = " << Time() << '\n';
-			cout << setw(kIntWidth) << "proc";	
-			cout << setw(kIntWidth) << "code" << '\n';	
-			for (int i = 0; i < all_relax.Length(); i++)
-			{
-				cout << setw(kIntWidth) << i;	
-				cout << setw(kIntWidth) << all_relax[i];
-				cout << '\n';	
-			}
-		 }
-
-		return relax;
-	 }
-}
-
 /* global equation functions */
 void FEManagerT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& eqnos) const
@@ -644,6 +669,7 @@ void FEManagerT::WriteOutput(double time)
 	{
 		/* state */
 		SetStatus(GlobalT::kWriteOutput);
+		fPrintStep++;
 		
 		/* set output time for the external IO manager -> from parallel */
 		if (fExternIOManager) fExternIOManager->SetOutputTime(time);
@@ -655,6 +681,9 @@ void FEManagerT::WriteOutput(double time)
 		ofstreamT& out = Output();
 		out << "\n Time = " << time << '\n';
 		out << " Step " << fTimeManager->StepNumber() << " of " << fTimeManager->NumberOfSteps() << '\n';
+
+		/* multi-processor information */
+		fCommManager->WriteOutput(fPrintStep);
 
 		/* nodes */
 		fNodeManager->WriteOutput();
@@ -783,13 +812,15 @@ void FEManagerT::WriteOutput(const StringT& file, const dArray2DT& coords, const
 
 int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 {
+	const char caller[] = "FEManagerT::RegisterOutput";
+
 	/* check */
 	if (!fIOManager) 
-		ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "I/O manager not initialized");
+		ExceptionT::GeneralFail(caller, "I/O manager not initialized");
 
 	/* limit registering output to initialization stage */
 	if (fStatus != GlobalT::kInitialization) 
-		ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "output sets can only be registered during initialization");
+		ExceptionT::GeneralFail(caller, "output sets can only be registered during initialization");
 
 	int ID = fIOManager->AddElementSet(output_set);
 	if (Size() > 1 && Rank() == 0)
@@ -808,7 +839,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			
 			/* write header information */
 			io << "# element block ID's for each output ID\n";
-			io << "# [output ID] [num blocks] [list of block ID's]\n";
+			io << "# [output ID] [changing] [num blocks] [list of block ID's]\n";
 		}
 		else
 			io.open_append(io_file);
@@ -820,7 +851,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			{	
 				/* write block ID information */
 				const ArrayT<StringT>& block_ID = output_set.BlockID();
-				io << ID << " " << block_ID.Length();
+				io << ID << " " << ((output_set.Changing()) ? 1 : 0) << " " << block_ID.Length();
 				for (int i = 0; i < block_ID.Length(); i++)
 					io << " " << block_ID[i];
 				io << '\n';
@@ -830,7 +861,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			case OutputSetT::kFreeSet: 
 			{
 				/* no ID's for free sets */
-				io << ID << " 0\n";
+				io << ID << " " << ((output_set.Changing()) ? 1 : 0) << " 0\n";
 				
 				break;
 			}
@@ -838,7 +869,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			{
 				/* write block ID information */
 				const ArrayT<StringT>& block_ID = output_set.BlockID();
-				io << ID << " " << block_ID.Length();
+				io << ID << " " << ((output_set.Changing()) ? 1 : 0) << " " << block_ID.Length();
 				for (int i = 0; i < block_ID.Length(); i++)
 					io << " " << block_ID[i];
 				io << '\n';
@@ -847,7 +878,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			}
 			default:
 			{
-				ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "unrecognized output set mode: %d", output_set.Mode());
+				ExceptionT::GeneralFail(caller, "unrecognized output set mode: %d", output_set.Mode());
 			}
 		}
 	}
@@ -944,6 +975,7 @@ int FEManagerT::ElementGroupNumber(const ElementBaseT* pgroup) const
 int FEManagerT::Rank(void) const { return fComm.Rank(); }
 int FEManagerT::Size(void) const { return fComm.Size(); }
 
+#if 0
 const ArrayT<int>* FEManagerT::ProcessorMap(void) const
 {
 	return fCommManager->ProcessorMap();
@@ -958,6 +990,7 @@ const ArrayT<int>* FEManagerT::PartitionNodes(void) const
 {
 	return fCommManager->PartitionNodes();
 }
+#endif
 
 void FEManagerT::Wait(void) { fComm.Barrier(); }
 
@@ -1039,7 +1072,7 @@ void FEManagerT::WriteSystemConfig(ostream& out, int group) const
 	out.precision(DBL_DIG);
 	
 	/* node map */
-	const ArrayT<int>* node_map = NodeMap();
+	const ArrayT<int>* node_map = fCommManager->NodeMap();
 
 	/* nodal data */
 	const dArray2DT& coords = fNodeManager->InitialCoordinates();
@@ -1286,7 +1319,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	if (format == IOBaseT::kAutomatic)
 		format = IOBaseT::name_to_FileTypeT(database);
 
-	/* multiprocessor calculation */
+	/* check for decomposed geometry */
 	if (Size() > 1) {
 
 		int token = 1;
@@ -1343,31 +1376,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 			if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error decomposing geometry");
 		}	
 
-		/* open stream */
-		StringT part_file;
-		part_file.Root(database); /* drop extension */
-		part_file.Append(".n", Size());
-		part_file.Append(".part", Rank());
-		ifstreamT part_in('#', part_file);
-		if (!part_in.is_open()) {
-			cout << "\n " << caller << ": could not open file: " << part_file << endl;
-			token = 0;	
-		}
-
-		/* synch and check */
-		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error reading parition files");
-		
-		/* read partition information */
-		fPartition = new PartitionT;
-		part_in >> (*fPartition);
-		if (fPartition->ID() != Rank()) {
-			cout << "\n " << caller << "partition ID " << fPartition->ID() << " does not match process rank " << Rank() << endl;
-			token = 0;
-		}
-
-		/* synch and check */
-		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "partition file error");
-
 		/* rename file */
 		StringT suffix;
 		suffix.Suffix(database);
@@ -1375,19 +1383,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		database.Append(".n", Size());
 		database.Append(".p", Rank());
 		database.Append(suffix);
-		if (decompose.NeedModelFile(database, format))
-		{
-			/* original model file */
-			ModelManagerT model_ALL(cout);
-			if (!model_ALL.Initialize(format, database, true))
-				ExceptionT::GeneralFail(caller, 
-					"error opening file: %s", (const char*) database);
-		
-			cout << "\n " << caller << ": writing partial geometry file: " << database << endl;
-			decompose.EchoPartialGeometry(*fPartition, model_ALL, database, format);
-			cout << " " << caller << ": writing partial geometry file: partial_file: "
-				 << database << ": DONE" << endl;
-		}	
 
 		/* revise input file name */
 		suffix.Suffix(fInputFile);
@@ -1398,6 +1393,25 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		/* synch */
 		fComm.Barrier();
 	}
+
+	/* initialize the model manager */
+	fModelManager = new ModelManagerT(fMainOut);
+	if (!fModelManager) ExceptionT::OutOfMemory(caller);
+	if (!fModelManager->Initialize(format, database, true)) /* conditions under which to scan model */
+		ExceptionT::BadInputValue(caller, "error initializing model manager");
+
+	/* initialize communication */
+	fCommManager = new CommManagerT(fComm, *fModelManager);
+	if (Size() > 1 && fTask != kDecompose) {
+		StringT part_file = list.GetParameter("geometry_file");
+		part_file.ToNativePathName();
+		part_file.Prepend(path);
+		part_file.Root(); /* drop extension */
+		part_file.Append(".n", Size());
+		part_file.Append(".part", Rank());
+		fCommManager->ReadPartition(part_file);
+	}
+	fCommManager->Initialize();
 
 	/* output format */
 	fOutputFormat = IOBaseT::int_to_FileTypeT(list.GetParameter("output_format"));
@@ -1429,12 +1443,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	/* compute the initial conditions */
 	fComputeInitialCondition = list.GetParameter("compute_IC");
 
-	/* initialize the model manager */
-	fModelManager = new ModelManagerT(fMainOut);
-	if (!fModelManager) ExceptionT::OutOfMemory(caller);
-	if (!fModelManager->Initialize(format, database, true)) /* conditions under which to scan model */
-		ExceptionT::BadInputValue(caller, "error initializing model manager");
-
 	/* construct IO manager - configure in SetOutput below */
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, fInputFile, fOutputFormat);	
 	if (!fIOManager) ExceptionT::OutOfMemory(caller);
@@ -1447,12 +1455,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	if (!fTimeManager) ExceptionT::OutOfMemory(caller);
 	fTimeManager->TakeParameterList(*time_params);
 	iAddSub(*fTimeManager);	
-
-	/* set communication manager */
-	fCommManager = New_CommManager();
-	if (!fCommManager) ExceptionT::OutOfMemory(caller);
-	fCommManager->SetPartition(fPartition);
-	fCommManager->Configure();
 
 	/* set fields */
 	const ParameterListT* node_params = list.List("nodes");
@@ -1536,6 +1538,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
 
 //TEMP - don't allocate the global equation system
+#pragma message("still need this???")
 if (fTask == kDecompose) return;
 
 	/* set equation systems */
@@ -1552,6 +1555,30 @@ if (fTask == kDecompose) return;
 			fRestartFile.Append(".p", Rank());
 			fRestartFile.Append(suffix);
 		}		
+
+		/* construct IOManager to join results at run time */
+		if (list.Name() == "tahoe")
+		{
+			int index;
+			bool do_split_io = (CommandLineOption("-split_io", index)) ? true : false;
+			int token = 1;
+			if (fCommManager->DecompType() == PartitionT::kGraph && !do_split_io)
+			{
+				/* set-up joined I/O */
+				try  {
+					const StringT& model_file = list.GetParameter("geometry_file");
+					fExternIOManager = new IOManager_mpi(fInputFile, fComm, *fIOManager, *(fCommManager->Partition()), model_file, format);
+					if (!fExternIOManager) ExceptionT::OutOfMemory(caller);
+				} /* end try */
+				catch (ExceptionT::CodeT code) { token = 0; }
+			}
+			else if (!do_split_io)
+				cout << "\n " << caller << ": decomposition method only supports -split_io" << endl;
+		
+			/* check sum */
+			if (fComm.Sum(token) != Size())
+				ExceptionT::BadHeartBeat(caller, "error initializing joined output");
+		}
 	}
 }
 
@@ -1638,16 +1665,8 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& name) const
 		ParameterContainerT* solver_phase = new ParameterContainerT(name);
 
 		solver_phase->AddParameter(ParameterT::Integer, "solver");
-		
-		/* solver iterations per phase */
-		ParameterT iterations(ParameterT::Integer, "iterations");
-		iterations.SetDefault(-1);
-		solver_phase->AddParameter(iterations);
-		
-		/* number of iterations to "pass" */
-		ParameterT pass_iterations(ParameterT::Integer, "pass_iterations");
-		pass_iterations.SetDefault(0);
-		solver_phase->AddParameter(pass_iterations);
+		solver_phase->AddParameter(ParameterT::Integer, "iterations");
+		solver_phase->AddParameter(ParameterT::Integer, "pass_iterations");
 		
 		return solver_phase;
 	}
@@ -1746,9 +1765,6 @@ void FEManagerT::SetSolver(void)
 	if (fCurrentGroup != -1) throw;
 	for (fCurrentGroup = 0; fCurrentGroup < fSolvers.Length(); fCurrentGroup++)
 	{
-		/* reset equation structure */
-		SetEquationSystem(fCurrentGroup);
-
 		/* console hierarchy */
 		iAddSub(*(fSolvers[fCurrentGroup]));	
 
@@ -1810,6 +1826,47 @@ void FEManagerT::SetOutput(void)
 	fNodeManager->RegisterOutput();
 }
 
+GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
+{
+	/* state */
+	SetStatus(GlobalT::kRelaxSystem);
+	
+	/* check node manager */
+	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
+	relax = GlobalT::MaxPrecedence(relax, fNodeManager->RelaxSystem(group));
+		
+	/* check element groups - must touch all of them to reset */
+	for (int i = 0 ; i < fElementGroups->Length(); i++)
+		if ((*fElementGroups)[i]->InGroup(group))
+			relax = GlobalT::MaxPrecedence(relax, (*fElementGroups)[i]->RelaxSystem());
+
+	if (Size() > 1) // use parallel stuff if comm size > 1
+	{
+		/* gather codes */
+		iArrayT all_relax(Size());
+		fComm.AllGather(relax, all_relax);
+	
+		/* code precedence */
+		for (int i = 0; i < all_relax.Length(); i++)
+			relax = GlobalT::MaxPrecedence(relax, GlobalT::RelaxCodeT(all_relax[i]));
+	
+		/* report */
+		if (relax != GlobalT::kNoRelax)
+		{
+			cout << "\n Relaxation code at time = " << Time() << '\n';
+			cout << setw(kIntWidth) << "proc";	
+			cout << setw(kIntWidth) << "code" << '\n';	
+			for (int i = 0; i < all_relax.Length(); i++)
+			{
+				cout << setw(kIntWidth) << i;	
+				cout << setw(kIntWidth) << all_relax[i];
+				cout << '\n';	
+			}
+		 }
+	 }
+	 return relax;
+}
+
 /* (re-)set system to initial conditions */
 ExceptionT::CodeT FEManagerT::InitialCondition(void)
 {
@@ -1865,6 +1922,8 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 /* restart file functions */
 bool FEManagerT::ReadRestart(const StringT* file_name)
 {
+	const char caller[] = "FEManagerT::ReadRestart";
+
 	/* state */
 	fStatus = GlobalT::kReadRestart;	
 
@@ -1901,9 +1960,10 @@ bool FEManagerT::ReadRestart(const StringT* file_name)
 			     << ": DONE"<< endl;
 		}
 		else
-			ExceptionT::BadInputValue("FEManagerT::ReadRestart", "could not open file: \"%s\"",
-				rs_file.Pointer());
-		
+			ExceptionT::BadInputValue(caller, "could not open file: \"%s\"", rs_file.Pointer());
+
+#pragma message("delete me")
+#if 0		
 		/* relax system with new configuration */
 		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
 		{
@@ -1916,9 +1976,11 @@ bool FEManagerT::ReadRestart(const StringT* file_name)
 
 			/* will not resolve the group */
 			if (relax_code == GlobalT::kRelax || relax_code == GlobalT::kReEQRelax)
-				cout << "\n FEManagerT::ReadRestart: will not resolve group " << fCurrentGroup+1 << endl;
+				cout << "\n " << caller << ": will not resolve group " << fCurrentGroup+1 << endl;
 		}
 		fCurrentGroup = -1;
+#endif
+
 		return true;
 	}
 	else /* no file read */
@@ -2022,71 +2084,41 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 * (3) set numbering scope
 * (4) collect equations and send to solver
 * (5) signal solver for final configuration */
-void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
+void FEManagerT::SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift)
 {
-//DEBUG
-//cout << "FEManagerT::SetEquationSystem: START" << endl;
-
-	/* equation number scope */
-	GlobalT::EquationNumberScopeT equation_scope = 
-		fSolvers[group]->EquationNumberScope();
-
-	/* assign (local) equation numbers */
-	fNodeManager->SetEquationNumbers(group);
-	fGlobalEquationStart[group] = GetGlobalEquationStart(group, start_eq_shift);
-	fActiveEquationStart[group] = (equation_scope == GlobalT::kGlobal) ? 
-		fGlobalEquationStart[group] : 1;
-	fGlobalNumEquations[group]  = GetGlobalNumEquations(group);
-
-	/* renumber locally */
-	if (fSolvers[group]->RenumberEquations() && fGlobalNumEquations[group] > 0)
+	/* need to generate new equation numbers */
+	if (flag == GlobalT::kNewEquations)
 	{
-		int num_fields = fNodeManager->NumFields(group);
-		if (num_fields == 1)
-		{
-			/* lists of connectivities */
-			AutoArrayT<const iArray2DT*> connects_1;
-			AutoArrayT<const RaggedArray2DT<int>*> connects_2;
-			AutoArrayT<const iArray2DT*> equivalent_nodes;
+		/* equation number scope */
+		GlobalT::EquationNumberScopeT equation_scope = 
+			fSolvers[group]->EquationNumberScope();
 
-			/* collect nodally generated DOF's */
-			fNodeManager->ConnectsU(group, connects_1, connects_2, equivalent_nodes);
+		/* assign (local) equation numbers */
+		fNodeManager->SetEquationNumbers(group);
+		fGlobalEquationStart[group] = GetGlobalEquationStart(group, start_eq_shift);
+		fActiveEquationStart[group] = (equation_scope == GlobalT::kGlobal) ? 
+			fGlobalEquationStart[group] : 1;
+		fGlobalNumEquations[group]  = GetGlobalNumEquations(group);
 
-			/* collect element groups */
-			for (int i = 0 ; i < fElementGroups->Length(); i++)
-				if ((*fElementGroups)[i]->InGroup(group))
-					(*fElementGroups)[i]->ConnectsU(connects_1, connects_2);		
+		/* renumber equations locally */
+		RenumberEquations(group);
 
-			/* renumber equations */
-			try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
-			catch (ExceptionT::CodeT exc) {
-				cout << "\n FEManagerT::SetEquationSystem: could not renumber equations: exception: " 
-				     << exc << endl;
-			}
-		}
-		else /* renumbering does not support multiple fields in the same group
-		      * because each row in the equations arrays is assumed to correspond
-		      * to a unique tag */
-		{
-			cout << "\n FEManagerT::SetEquationSystem: equations could not be renumbered\n"
-			     <<   "     because group " << group+1 << " contains " << num_fields << " fields." << endl;
-		}
+		/* set equation number scope */
+		fNodeManager->SetEquationNumberScope(group, equation_scope);
 	}
-
-	/* set equation number scope */
-	fNodeManager->SetEquationNumberScope(group, equation_scope);
 	
-	/* collect interaction equations and send to solver */
-	SendEqnsToSolver(group);
+	/* need to reset structure of equations in the solver */
+	if (flag == GlobalT::kNewEquations || flag == GlobalT::kNewInteractions)
+	{
+		/* collect interaction equations and send to solver */
+		SendEqnsToSolver(group);
 	
-	/* final step in solver configuration */
-	fSolvers[group]->Initialize(
-		fGlobalNumEquations[group], 
-		fNodeManager->NumEquations(group),
-		fActiveEquationStart[group]);
-
-//DEBUG
-//cout << "FEManagerT::SetEquationSystem: END" << endl;
+		/* final step in solver configuration */
+		fSolvers[group]->Initialize(
+			fGlobalNumEquations[group], 
+			fNodeManager->NumEquations(group),
+			fActiveEquationStart[group]);
+	}
 }
 
 void FEManagerT::SendEqnsToSolver(int group) const
@@ -2109,16 +2141,43 @@ void FEManagerT::SendEqnsToSolver(int group) const
 		fSolvers[group]->ReceiveEqns(*(eq_2[k]));
 }
 
-/* construct a new CommManagerT */
-CommManagerT* FEManagerT::New_CommManager(void) const
+/* renumber the local equations */
+void FEManagerT::RenumberEquations(int group)
 {
-	if (!fModelManager) 
-		ExceptionT::GeneralFail("FEManagerT::New_CommManager", "need ModelManagerT");
+	const char caller[] = "FEManagerT::RenumberEquations";
+	if (fSolvers[group]->RenumberEquations() && fGlobalNumEquations[group] > 0)
+	{
+		int num_fields = fNodeManager->NumFields(group);
+		if (num_fields == 1)
+		{
+			/* lists of connectivities */
+			AutoArrayT<const iArray2DT*> connects_1;
+			AutoArrayT<const RaggedArray2DT<int>*> connects_2;
+			AutoArrayT<const iArray2DT*> equivalent_nodes;
 
-	CommManagerT* comm_man = new CommManagerT(fComm, *fModelManager);
-	/* set the partition data */
-	comm_man->SetPartition(fPartition);	
-	return comm_man;
+			/* collect nodally generated DOF's */
+			fNodeManager->ConnectsU(group, connects_1, connects_2, equivalent_nodes);
+
+			/* collect element groups */
+			for (int i = 0 ; i < fElementGroups->Length(); i++)
+				if ((*fElementGroups)[i]->InGroup(group))
+					(*fElementGroups)[i]->ConnectsU(connects_1, connects_2);		
+
+			/* renumber equations */
+			try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
+			catch (ExceptionT::CodeT exc) {
+				cout << "\n " << caller << ": could not renumber equations: exception: " 
+				     << exc << endl;
+			}
+		}
+		else /* renumbering does not support multiple fields in the same group
+		      * because each row in the equations arrays is assumed to correspond
+		      * to a unique tag */
+		{
+			cout << "\n " << caller << ": equations could not be renumbered\n"
+			     <<   "     because group " << group+1 << " contains " << num_fields << " fields." << endl;
+		}
+	}
 }
 
 /*************************************************************************

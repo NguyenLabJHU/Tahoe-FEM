@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.27 2005-07-11 23:09:05 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.25 2005-05-01 20:29:22 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -163,32 +163,6 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 			fstress_old_rotated.Pointer(), fstress_new.Pointer(), 
 			&nsv, fstate_old.Pointer(), fstate_new.Pointer(), 
 			&matvals);
-
-		/* model signals error by returning negative time increment */
-		if (dt < 0.0) {
-			if (MaterialSupport().Logging() != GlobalT::kSilent) /* write debugging information */ {
-				ofstreamT& out = MaterialSupport().Output();
-				int old_precision = out.precision();
-				out.precision(12);
-				out << "\n SIERRA_Material_BaseT::s_ij:\n"
-					 << "    time: " << fFSMatSupport->Time() << '\n'
-					 << " element: " << CurrElementNumber()+1 << '\n'
-					 << "      ip: " << CurrIP()+1 << '\n';
-	
-				out << " F_last = " << F_total_last().no_wrap() << '\n';	
-				out << " F      = " << F().no_wrap() << '\n';	
-				out << " deform meas = " << fdstran.no_wrap() << '\n';
-				out << " old stress = " << fstress_old.no_wrap() << '\n';
-				out << " old state =\n" << fstate_old.wrap(5) << '\n';
-				out << " new stress = " << fstress_new.no_wrap() << '\n';
-				out << " new state =\n" << fstate_new.wrap(5) << '\n';
-				out.flush();
-				out.precision(old_precision);
-			}
-			
-			/* trigger step cut */
-			ExceptionT::BadJacobianDet("SIERRA_Material_BaseT::s_ij", "time increment returned %g", dt);
-		}
 
 		/* debug information */
 		if (fDebug) {

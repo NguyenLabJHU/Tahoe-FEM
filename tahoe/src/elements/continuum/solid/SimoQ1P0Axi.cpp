@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi.cpp,v 1.5 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SimoQ1P0Axi.cpp,v 1.5.20.1 2005-07-08 06:19:14 paklein Exp $ */
 #include "SimoQ1P0Axi.h"
 
 #include "ShapeFunctionT.h"
@@ -44,7 +44,7 @@ GlobalT::RelaxCodeT SimoQ1P0Axi::ResetStep(void)
 }
 
 /* read restart information from stream */
-void SimoQ1P0Axi::ReadRestart(istream& in)
+void SimoQ1P0Axi::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	UpdatedLagrangianAxiT::ReadRestart(in);
@@ -57,7 +57,7 @@ void SimoQ1P0Axi::ReadRestart(istream& in)
 }
 
 /* write restart information from stream */
-void SimoQ1P0Axi::WriteRestart(ostream& out) const
+void SimoQ1P0Axi::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	UpdatedLagrangianAxiT::WriteRestart(out);

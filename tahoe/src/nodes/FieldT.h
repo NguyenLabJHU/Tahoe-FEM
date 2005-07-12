@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.24 2005-05-24 22:09:43 paklein Exp $ */
+/* $Id: FieldT.h,v 1.24.2.2 2005-07-02 22:50:20 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -14,6 +14,7 @@
 #include "FBC_CardT.h"
 #include "GlobalT.h"
 #include "AutoArrayT.h"
+#include "VariArrayT.h"
 
 namespace Tahoe {
 
@@ -126,6 +127,9 @@ public:
 	/*@{*/
 	/** beginning of time series */
 	void InitialCondition(void);
+
+	/** (re-)set the configuration */
+	GlobalT::InitStatusT UpdateConfiguration(void);
 	
 	/** apply predictor to all degrees of freedom */
 //	void InitStep(void);
@@ -351,7 +355,7 @@ private:
 	void SetBCCode(const KBC_CardT& card);
 
 	/** determine the destinations for the force boundary conditions */
-	void SetFBCEquations(void);
+//	void SetFBCEquations(void);
 
 	/** return the index for the source of the given ID. Returns -1 if
 	 * if no source exists for given ID */
@@ -393,9 +397,11 @@ private:
 
 	/** force vector */
 	dArrayT fFBCValues;
+	VariArrayT<double> fFBCValues_man; 
 
 	/** equations with applied forces */
 	iArrayT fFBCEqnos;
+	VariArrayT<int> fFBCEqnos_man; 
 
 	/** special FBC objects */
 	AutoArrayT<FBC_ControllerT*> fFBC_Controllers;

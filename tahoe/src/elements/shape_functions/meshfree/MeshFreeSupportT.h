@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.16 2005-07-08 23:35:44 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.15 2005-04-22 00:53:04 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #ifndef _MF_SUPPORT_T_H_
 #define _MF_SUPPORT_T_H_
@@ -70,21 +70,9 @@ public:
 
 	/** destructor */
 	virtual ~MeshFreeSupportT(void);
-
-	/** \name output methods */
-	/*@{*/	
+	
 	/** write parameters to out */
 	virtual void WriteParameters(ostream& out) const;
-
-	/** write MLS statistics */
-	void WriteStatistics(ostream& out) const;
-
-	/** write nodal neighbor lists */
-	void WriteNodalNeighbors(ostream& out);
-
-	/** write shape functions for nodal neighbors */
-	void WriteNodalShapes(ostream& out);
-	/*@}*/
 	
 	/** determine nodal support parameters based window function parameters */
 	virtual void InitSupportParameters(void);
@@ -192,6 +180,9 @@ public:
 	/** list of nodes used in the connectivities */
 	const iArrayT& NodesUsed(void) const;
 
+	/** write MLS statistics */
+	void WriteStatistics(ostream& out) const;
+
 	/** nodal coordinates */
 	const dArray2DT& NodalCoordinates(void) const;
 
@@ -278,7 +269,6 @@ protected:
 	/* common meshfree parameters */
 	double       fDextra; //used by EFG only
 	bool         fStoreShape;
-	bool		 fScaledSupport;
 	FormulationT fMeshfreeType;
 
 	/* cutting surface data */

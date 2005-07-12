@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.h,v 1.9 2005-01-29 01:30:45 raregue Exp $ */
+/* $Id: LocalizerT.h,v 1.9.10.1 2005-07-08 06:19:13 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 #ifndef _LOCALIZER_T_H_
 #define _LOCALIZER_T_H_
@@ -40,8 +40,8 @@ public:
 	 * should read/write any data that overrides the default
 	 * values */
 	virtual void InitialCondition(void);
-	virtual void ReadRestart(istream& in);
-	virtual void WriteRestart(ostream& out) const;
+	virtual void ReadRestart(ifstreamT& in);
+	virtual void WriteRestart(ofstreamT& out) const;
 	
 	/* resets to the last converged solution */
 	virtual GlobalT::RelaxCodeT ResetStep(void);

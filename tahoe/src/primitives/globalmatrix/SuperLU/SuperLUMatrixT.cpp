@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.10 2005-07-01 16:10:14 jwfoulk Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.5 2005-04-13 21:50:20 paklein Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -100,13 +100,12 @@ SuperLUMatrixT::~SuperLUMatrixT(void)
 {
 	/* free the matrix */
 	Destroy_CompCol_Matrix(&fA);
-        Destroy_Dense_Matrix(&fX);
-        free(fB.Store);
+
 	/* free upper and lower factors */
-	if (fIsSymFactorized) { 
+	if (fIsNumFactorized) {
 		Destroy_SuperNode_Matrix(&fL);
 		Destroy_CompCol_Matrix(&fU);
-	} 
+	}
 }
 
 /* set the internal matrix structure.
@@ -129,7 +128,6 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	/* solution vector */
 	fX.nrow = fLocNumEQ;
-
 	DNformat* XStore = (DNformat*) fX.Store;
 	XStore->lda = fLocNumEQ;
 	free(XStore->nzval);
@@ -142,7 +140,7 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	fetree.Dimension(fLocNumEQ);
 
 	/* structure could be changing, so get rid of old factors etc. */
-	if (fIsSymFactorized) {
+	if (fIsNumFactorized) {
 		Destroy_SuperNode_Matrix(&fL);
 		fL.nrow = 0;
 		fL.ncol = 0;
@@ -151,7 +149,7 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		fU.nrow = 0;
 		fU.ncol = 0;
 		fU.Store = NULL;
-		fIsSymFactorized = false;
+		fIsNumFactorized = false;
 	}
 
 	/* configure A */
@@ -335,9 +333,7 @@ SuperLUMatrixT& SuperLUMatrixT::operator=(const SuperLUMatrixT&)
 
 /* return a clone of self */
 GlobalMatrixT* SuperLUMatrixT::Clone(void) const {
-
-	ExceptionT::GeneralFail("SuperLUMatrixT::operator=", "not implemented");
-	return NULL;
+	return new SuperLUMatrixT(*this);
 }
 
 /***********************************************************************
@@ -376,7 +372,6 @@ void SuperLUMatrixT::BackSubstitute(dArrayT& result)
 	double rcond;
 	double ferr;
 	double berr;
-
 	dgssvx(&foptions, &fA, fperm_c.Pointer(), fperm_r.Pointer(), fetree.Pointer(), &fequed,
 		fR.Pointer(), fC.Pointer(), &fL, &fU, work, lwork,
 		&fB, &fX, &recip_pivot_growth, &rcond, &ferr, &berr, &mem_usage, &stat, &info);

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.39 2005-07-12 05:50:11 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.37 2005-05-21 06:43:30 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -12,7 +12,6 @@
 #include "ElementSupportT.h"
 #include "ModelManagerT.h"
 #include "ParameterContainerT.h"
-#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
@@ -377,37 +376,6 @@ void CSEBaseT::SendOutput(int kincode)
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
 
-/* resolve the output variable label into the output code and offset within the output. */
-void CSEBaseT::ResolveOutputVariable(const StringT& variable, int& code, int& offset)
-{
-	/* search output labels */
-	code = -1;
-	offset = -1;
-	iArrayT e_counts(NumElementOutputCodes);
-	e_counts = 0;
-	iArrayT n_codes(NumNodalOutputCodes);
-	for (int i = 0; code == -1 && i < NumNodalOutputCodes; i++)
-	{
-		ArrayT<StringT> n_labels, e_labels;
-		n_codes = 0;
-		n_codes[i] = 1;
-		
-		iArrayT n_counts;
-		SetNodalOutputCodes(IOBaseT::kAtInc, n_codes, n_counts);
-		GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
-		
-		for (int j = 0; offset == -1 && j < n_labels.Length(); j++)
-			if (n_labels[j] == variable) /* found */ {
-				code = i;
-				offset = j;
-			}
-	}
-	
-	/* inherited */
-	if (code == -1 || offset == -1)
-		ElementBaseT::ResolveOutputVariable(variable, code, offset);
-}
-
 /* describe the parameters needed by the interface */
 void CSEBaseT::DefineParameters(ParameterListT& list) const
 {
@@ -668,10 +636,7 @@ void CSEBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& blo
 	ElementBaseT::CollectBlockInfo(list, block_ID, mat_index);
 
 	/* quick exit */
-	if (block_ID.Length() == 0) {
-		ElementSupport().Communicator().Max(0); /* complete Max below */
-		return;
-	}
+	if (block_ID.Length() == 0) return;
 
 	/* write output over the original connectivities */
 	CSEBaseT* non_const_this = (CSEBaseT*) this;
@@ -682,9 +647,6 @@ void CSEBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& blo
 	int nel, nen = 0;
 	for (int i = 0; nen == 0 && i < block_ID.Length(); i++)
 		model.ElementGroupDimensions (block_ID[i], nel, nen);
-
-	/* group may be empty for multi-processor calculations */
-	nen = ElementSupport().Communicator().Max(nen);
 
 	/* check for higher order elements */
 	int nsd = NumSD();

@@ -1,6 +1,0 @@
-# element block ID's for each output ID
-# [output ID] [num blocks] [list of block ID's]
-0 3 14 11 10
-1 2 13 12
-2 0
-3 0

@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.17 2004-12-20 01:23:25 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.17.14.1 2005-07-02 22:50:38 paklein Exp $ */
 #include "AugLagWallT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -115,6 +115,15 @@ void AugLagWallT::WriteRestart(ostream& out) const
 		out << fLastDOF;
 }
 
+/* (re-)set the configuration */
+GlobalT::InitStatusT AugLagWallT::UpdateConfiguration(void)
+{
+	/* inherited */
+	GlobalT::InitStatusT status = PenaltyWallT::UpdateConfiguration();
+	if (fUzawa) fDOF = 0.0;
+	return status;
+}
+
 void AugLagWallT::InitStep(void)
 {
 	/* inherited */
@@ -148,15 +157,17 @@ GlobalT::RelaxCodeT AugLagWallT::RelaxSystem(void)
 	/* check penetration tolerance */
 	if (fUzawa)
 	{
+		int nnd = fContactNodes.Length();
+	
 		/* compute relative positions */
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		fp_i.RowCollect(fContactNodes, coords);
-		for (int j = 0; j < fNumContactNodes; j++)
+		for (int j = 0; j < nnd; j++)
 			fp_i.AddToRowScaled(j, -1.0, fx);
 
 		/* evaluate constraints */
 		double penetration_norm = 0.0;
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < nnd; i++)
 		{
 			/* augmented Lagrangian multiplier */
 			double h = fp_i.DotRow(i, fnormal);
@@ -216,7 +227,8 @@ void AugLagWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	dMatrixT mat;
 
 	/* node by node */
-	for (int i = 0; i < fNumContactNodes; i++)
+	int nnd = fContactNodes.Length();
+	for (int i = 0; i < nnd; i++)
 	{
 		/* initialize */
 		fLHS = 0.0;
@@ -351,6 +363,8 @@ void AugLagWallT::TakeParameterList(const ParameterListT& list)
 	else
 		fUzawa = false;
 
+ExceptionT::GeneralFail("AugLagWallT::TakeParameterList", "not up to date");
+#if 0
 	/* do Uzawa iterations or solve concurrently */
 	if (!fUzawa)
 	{
@@ -374,10 +388,9 @@ void AugLagWallT::TakeParameterList(const ParameterListT& list)
 		set_dims = kNumAugLagDOF;
 		FieldSupport().XDOF_Manager().XDOF_Register(this, set_dims);	
 	}
-	else /* allocated space for multipliers */ {
-		fDOF.Dimension(fNumContactNodes);
-		fDOF = 0.0;
-	}
+	else /* space for multipliers */
+		fdContactNodesGroup.Register(fDOF);
+#endif
 }
 
 /**********************************************************************
@@ -408,13 +421,14 @@ void AugLagWallT::ComputeContactForce(double kforce)
 		fContactForce2D = 0.0;	
 
 		/* compute relative positions */
+		int nnd = fContactNodes.Length();
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		fp_i.RowCollect(fContactNodes, coords);
-		for (int j = 0; j < fNumContactNodes; j++)
+		for (int j = 0; j < nnd; j++)
 			fp_i.AddToRowScaled(j, -1.0, fx);
 
 		dArrayT f_u;
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < nnd; i++)
 		{
 			/* displacement DOF's */
 			f_u.Set(ndof, fContactForce2D(i));
@@ -450,12 +464,13 @@ void AugLagWallT::ComputeContactForce(double kforce)
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 	
 		/* compute relative positions */
+		int nnd = fContactNodes.Length();
 		fp_i.RowCollect(fContactNodes, coords);
-		for (int j = 0; j < fNumContactNodes; j++)
+		for (int j = 0; j < nnd; j++)
 			fp_i.AddToRowScaled(j, -1.0, fx);
 
 		dArrayT f_u;
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < nnd; i++)
 		{
 			/* displacement DOF's */
 			f_u.Set(ndof_u, fContactForce2D(i));

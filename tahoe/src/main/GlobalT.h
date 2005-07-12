@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.13 2005-03-11 20:37:19 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.13.8.2 2005-05-31 06:09:59 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -93,6 +93,16 @@ public:
 
 	/** returns the type with higher restrictions */
 	static SystemTypeT MaxPrecedence(SystemTypeT code1, SystemTypeT code2);
+
+	/** result flag for InitStep */
+	enum InitStatusT {
+		kContinue = 0,    /**< no signal needed */
+		kNewInteractions, /**< new interactions with existing equation numbers */
+		kNewEquations,    /**< (potential) change in the number of equations */
+	};
+
+	/** returns the type with higher restrictions */
+	static InitStatusT MaxPrecedence(InitStatusT status_1, InitStatusT status_2);
 
 	/** relaxation level */
 	enum RelaxCodeT {

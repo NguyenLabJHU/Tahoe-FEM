@@ -1,4 +1,4 @@
-/* $Id: tahoeOptions.h.template,v 1.6 2005-06-23 17:10:27 paklein Exp $ */
+/* $Id: tahoeOptions.h.template,v 1.5 2005-04-18 05:47:48 paklein Exp $ */
 /* optional libraries - enabled from command line with -D[symbol] declarations */
 #ifndef _TAHOE_OPTIONS_H_
 #define _TAHOE_OPTIONS_H_
@@ -19,9 +19,6 @@
 
 /* SuperLU: sparse, direct solver */
 //#define __SUPERLU__
-
-/* SuperLU MT: multi-threaded version of SuperLU */
-//#define __SUPERLU_MT__
 
 /* SPOOLES: sparse, direct solver */
 //#define __SPOOLES__
@@ -52,8 +49,5 @@
 
 /* QHULL library for computing Voronoi tesselations */
 //#define __QHULL__
-
-/* shared interface model library by J. Cox (Sandia National Laboraroties) */
-//#define __SIMOD__
 
 #endif /* _TAHOE_OPTIONS_H_ */

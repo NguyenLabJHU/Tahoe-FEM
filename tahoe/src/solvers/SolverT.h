@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.20 2004-07-15 08:31:51 paklein Exp $ */
+/* $Id: SolverT.h,v 1.20.20.2 2005-05-31 06:08:55 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -116,7 +116,7 @@ public:
 	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/
 
-	/* accessor */
+	/* accessors */
 	const int& IterationNumber(void) const;
 
 	/** debugging */
@@ -146,6 +146,7 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+	
 	/*@}*/
 
 protected:
@@ -194,7 +195,7 @@ protected:
 
 	/** \name flags */
 	/*@{*/
-	int fMatrixType;
+//	int fMatrixType;
 	int fPrintEquationNumbers;
 	/*@}*/
 
@@ -296,7 +297,7 @@ inline const GlobalMatrixT& SolverT::LHS(void) const {
 	return *fLHS; 
 }
 
-/* accessor */
+/* accessors */
 inline const int& SolverT::IterationNumber(void) const { return fNumIteration; }
 
 } /* namespace Tahoe */

@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.31 2005-07-08 23:38:51 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.30.8.2 2005-07-08 06:19:15 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -30,6 +30,7 @@ class dSPMatrixT; //TEMP
 class InverseMapT;
 class ifstreamT;
 class ofstreamT;
+class MeshFreeSupportT;
 class Traction_CardT;
 class CellGeometryT;
 
@@ -82,11 +83,11 @@ public:
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 	/*@}*/
 
 	/** Loop over nodes and compute stiffness matrix */
@@ -123,6 +124,9 @@ public:
 	
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -171,6 +175,8 @@ protected: /* for derived classes only */
 
 protected:
 
+	MeshFreeSupportT* fMFSupport;
+	
 	/** pointer to list parameters needed to construct shape functions */
 	const ParameterListT* fMeshfreeParameters;
 

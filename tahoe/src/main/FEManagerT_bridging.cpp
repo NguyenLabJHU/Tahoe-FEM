@@ -1,7 +1,8 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.38 2005-04-28 23:57:14 paklein Exp $ */
- 
+/* $Id: FEManagerT_bridging.cpp,v 1.38.4.2 2005-07-12 05:50:52 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
+
+#include "SolidMaterialsConfig.h"
 
 #include "ifstreamT.h"
 #include "ModelManagerT.h"
@@ -27,6 +28,9 @@
 #include "Hex2D.h"
 #include "Chain1D.h"
 #include "BondLatticeT.h"
+#ifndef CAUCHY_BORN_MATERIAL
+#error "bridging scale formulation requires CAUCHY_BORN_MATERIAL"
+#endif
 #include "nArrayGroupT.h"
 #include "nVariMatrixT.h"
 
@@ -149,10 +153,10 @@ void FEManagerT_bridging::DeactivateFollowerCells(void)
 }
 
 /* (re-)set the equation number for the given group */
-void FEManagerT_bridging::SetEquationSystem(int group, int start_eq_shift)
+void FEManagerT_bridging::SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift)
 {
 	/* inherited */
-	FEManagerT::SetEquationSystem(group, start_eq_shift);
+	FEManagerT::SetEquationSystem(flag, group, start_eq_shift);
 
 	//NOTE: this is going to break if the equation numbers has changed since the force was set
 //	if (fExternalForce2D[group])
@@ -275,12 +279,14 @@ void FEManagerT_bridging::InitGhostNodes(const StringT& field, const ArrayT<Stri
 			found = true;
 			particle->SetSkipParticles(fGhostNodes);
 			particle->SetConfiguration();
+ExceptionT::GeneralFail(caller, "still needed here?");
 		}
 	}
 	if (!found) ExceptionT::GeneralFail(caller, "no particle group found");
 	
 	/* reset the group equations numbers */
-	SetEquationSystem(the_field->Group());
+//	SetEquationSystem(the_field->Group());
+#pragma message("delete me")
 
 	/* echo ghost nodes */
 	if (fLogging == GlobalT::kVerbose) {
@@ -783,7 +789,8 @@ void FEManagerT_bridging::InitProjection(const StringT& field, CommManagerT& com
 	fProjection.Dimension(fProjectedNodes.Length(), ndof);
 	
 	/* reset the group equations numbers */
-	SetEquationSystem(the_field->Group());
+//	SetEquationSystem(the_field->Group());
+#pragma message("delete me")
 
 	/* construct EAMFCC3D pointer if 3D bridging scale using EAM */
 	//if (the_field->NumDOF() == 3)

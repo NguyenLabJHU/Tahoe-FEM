@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.h,v 1.8 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: LinearSolver.h,v 1.8.20.2 2005-05-31 06:08:55 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 #ifndef _LINEAR_SOLVER_H_
 #define _LINEAR_SOLVER_H_

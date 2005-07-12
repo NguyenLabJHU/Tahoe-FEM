@@ -1,7 +1,7 @@
-/* $Id: EAMT.cpp,v 1.66 2005-04-08 16:41:48 d-farrell2 Exp $ */
-
+/* $Id: EAMT.cpp,v 1.66.6.3 2005-07-02 22:48:35 paklein Exp $ */
 #include "EAMT.h"
 
+#include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
@@ -115,12 +115,14 @@ void EAMT::WriteOutput(void)
 	for (int i = 1; i < offsets.Length(); i++)
 		offsets[i] = offsets[i-1] + counts[i-1];
 
-  /* number of nodes */
-  const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
-  int non = (parition_nodes) ? parition_nodes->Length() : ElementSupport().NumNodes();
+	/* map from partition node index */
+	const ArrayT<int>* partition_nodes = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes();
+	const InverseMapT* inverse_map = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes_inv();
 
-  /* map from partition node index */
-  const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+	/* number of nodes */
+	int non = (partition_nodes) ? 
+		partition_nodes->Length() : 
+		ElementSupport().NumNodes();
 
   /* output arrays length number of active nodes */
   dArray2DT n_values(non, num_output), e_values;
@@ -155,7 +157,7 @@ void EAMT::WriteOutput(void)
   dSymMatrixT temp(ndof);
   for (int i = 0; i < non; i++) 
     {
-      int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
+      int   tag_i = (partition_nodes) ? (*partition_nodes)[i] : i;
       int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
       int  type_i = fType[tag_i];
       
@@ -425,6 +427,46 @@ void EAMT::WriteOutput(void)
 
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+}
+
+/* write restart data to the output stream */
+void EAMT::WriteRestart(ofstreamT& out) const
+{
+	/* inherited */
+	ParticleT::WriteRestart(out);
+
+	/* open stream */	
+	StringT file = out.filename();
+	file.Append(".neighbor");
+	ofstreamT my_out(file);
+	if (!my_out.is_open())
+		ExceptionT::GeneralFail("ParticlePairT::WriteRestart",
+			"could not open file \"%s\"", file.Pointer());
+
+	/* write neighbor lists */
+	fNeighbors.Write(my_out); my_out << '\n';
+	fNearestNeighbors.Write(my_out); my_out << '\n';
+	fRefNearestNeighbors.Write(my_out); my_out << '\n';
+}
+
+/* read restart data to the output stream */
+void EAMT::ReadRestart(ifstreamT& in)
+{
+	/* inherited */
+	ParticleT::ReadRestart(in);
+
+	/* open stream */	
+	StringT file = in.filename();
+	file.Append(".neighbor");
+	ifstreamT my_in(file);
+	if (!my_in.is_open())
+		ExceptionT::GeneralFail("ParticlePairT::ReadRestart",
+			"could not open file \"%s\"", file.Pointer());
+
+	/* read neighbor lists */
+	fNeighbors.Read(my_in);
+	fNearestNeighbors.Read(my_in);
+	fRefNearestNeighbors.Read(my_in);
 }
 
 /* compute the part of the stiffness matrix */
@@ -849,13 +891,18 @@ void EAMT::TakeParameterList(const ParameterListT& list)
 				int do_write = *value;
 				if (do_write)
 					fOutputFlags[i] = 1;
+//TEMP
+if (do_write && ElementSupport().CommManager().DecompType() == PartitionT::kSpatial)
+{
+	if (OutputNames[i] == "stress" || OutputNames[i] == "strain" || OutputNames[i] == "slip_vector") {
+		cout << "\n EAMT::TakeParameterList:\"" << OutputNames[i] << "\" output not supported with spatial decomposition" << endl;
+		fOutputFlags[i] = 0; //disable
+	}
+}
+//TEMP					
 			}
 		}
 	}
-
-	/* set the list of reference nearest neighbors */
-	if (fOutputFlags[kSlipVector] || fOutputFlags[kStress] || fOutputFlags[kStrain])	
-		SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
 
 	/* dimension */
 	int ndof = NumDOF();
@@ -1824,10 +1871,16 @@ void EAMT::SetConfiguration(void)
 	/* reset neighbor lists */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
-	if (fActiveParticles) 
-		part_nodes = fActiveParticles;
+	if (fActiveParticles) part_nodes = fActiveParticles;
+
+	/* neighbor lists */
 	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
+
+	/* set the list of reference nearest neighbors */
+	if (fRefNearestNeighbors.MajorDim() != fNearestNeighbors.MajorDim() &&
+		(fOutputFlags[kSlipVector] || fOutputFlags[kStress] || fOutputFlags[kStrain]))
+		SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
 	
 	ofstreamT& out = ElementSupport().Output();
 	out << "\n Neighbor statistics:\n";

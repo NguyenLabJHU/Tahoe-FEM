@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.50 2005-03-12 08:40:25 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.50.8.2 2005-07-08 06:19:11 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -6,6 +6,7 @@
 #include <iomanip.h>
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ModelManagerT.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
@@ -201,7 +202,7 @@ GlobalT::RelaxCodeT ContinuumElementT::ResetStep(void)
 }
 
 /* restart operations */
-void ContinuumElementT::ReadRestart(istream& in)
+void ContinuumElementT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	ElementBaseT::ReadRestart(in);
@@ -218,7 +219,7 @@ void ContinuumElementT::ReadRestart(istream& in)
 	}
 }
 
-void ContinuumElementT::WriteRestart(ostream& out) const
+void ContinuumElementT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	ElementBaseT::WriteRestart(out);

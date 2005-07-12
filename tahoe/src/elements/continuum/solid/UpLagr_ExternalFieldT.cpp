@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.10 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.10.20.2 2005-07-08 06:19:14 paklein Exp $ */
 #include "UpLagr_ExternalFieldT.h"
 
 #include "ifstreamT.h"

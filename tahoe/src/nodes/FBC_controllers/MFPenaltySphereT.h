@@ -1,4 +1,4 @@
-/* $Id: MFPenaltySphereT.h,v 1.7 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: MFPenaltySphereT.h,v 1.7.20.1 2005-07-02 22:50:38 paklein Exp $ */
 /* created: paklein (04/17/2000) */
 #ifndef _MF_PENALTY_SPHERE_T_H_
 #define _MF_PENALTY_SPHERE_T_H_
@@ -21,6 +21,9 @@ public:
 	/* system contributions */
 	//virtual void ApplyLHS(void);
 	//TEMP - not quite right, but leave it for now
+
+	/** (re-)set the configuration */
+	virtual GlobalT::InitStatusT UpdateConfiguration(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -47,7 +50,7 @@ protected:
 	const ElementBaseT* fElementGroup;
 	
 	/* work space */
-	dArray2DT fCoords;
+	dArray2DT fInitCoords;
 	dArray2DT fCurrCoords;
 
 	/* need MeshFreeSupportT to do this right */

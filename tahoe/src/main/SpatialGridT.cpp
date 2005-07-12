@@ -1,4 +1,4 @@
-/* $Id: SpatialGridT.cpp,v 1.2 2004-11-17 23:36:27 paklein Exp $ */
+/* $Id: SpatialGridT.cpp,v 1.2.16.2 2005-07-02 22:47:54 paklein Exp $ */
 #include "SpatialGridT.h"
 #include "dArray2DT.h"
 #include "iArrayT.h"
@@ -121,8 +121,8 @@ void SpatialGridT::GridBounds(const ArrayT<int>& grid_position, dArray2DT& bound
 			ExceptionT::OutOfRange(caller, "cell %d is out of range {0,%d} in direction %d",
 				cell, fNx[i]-1, i+1);
 		
-		bounds(i,0) = cell*fdx[i];     /* lower bound */
-		bounds(i,1) = (cell+1)*fdx[i]; /* upper bound */
+		bounds(i,0) = fMinMax(i,0) + cell*fdx[i];     /* lower bound */
+		bounds(i,1) = fMinMax(i,0) + (cell+1)*fdx[i]; /* upper bound */
 	}
 }
 
@@ -279,7 +279,8 @@ void SpatialGridT::Bin2D(const dArray2DT& points, iArrayT& bin, iArrayT& bin_cou
 		
 		/* bin index */
 		if (in_bounds) {
-			int nbin = ix*ny + iy;
+			int nbin = iy*nx + ix;
+//			int nbin = ix*ny + iy; // transpose blocks for testing
 			bin[index] = nbin;
 			bin_counts[nbin]++;
 		}
@@ -296,8 +297,8 @@ void SpatialGridT::Bin3D(const dArray2DT& points, iArrayT& bin, iArrayT& bin_cou
 	int ny = fNx[1];
 	int nz = fNx[2];
 	
-	int ix_jump = nz*ny;
-	int iy_jump = nz;
+	int iy_jump = nx;
+	int iz_jump = nx*ny;
 	
 	/* cell dimensions */
 	double dx = fdx[0];
@@ -356,7 +357,7 @@ void SpatialGridT::Bin3D(const dArray2DT& points, iArrayT& bin, iArrayT& bin_cou
 
 		/* bin index */
 		if (in_bounds) {
-			int nbin = ix*ix_jump + iy*iy_jump + iz;
+			int nbin = iz*iz_jump + iy*iy_jump + ix;
 			bin[index] = nbin;
 			bin_counts[nbin]++;
 		}

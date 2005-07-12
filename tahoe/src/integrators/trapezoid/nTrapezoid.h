@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.h,v 1.9 2004-12-26 21:09:19 d-farrell2 Exp $ */
+/* $Id: nTrapezoid.h,v 1.9.12.2 2005-06-09 02:43:59 d-farrell2 Exp $ */
 /* created: paklein (10/03/1999) */
 #ifndef _N_TRAPEZOID_H_
 #define _N_TRAPEZOID_H_
@@ -17,8 +17,12 @@ public:
 	/* constructor */
 	nTrapezoid(void);
 
-	/** consistent BC's */
-	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+	/** prescribe the field and derivatives consistent BC's 
+	 * \param field field to which boundary conditions will be applied
+	 * \param KBC boundary condition specification
+	 * \param nodes pointer to a list of nodes if KBC card has KBC_CardT::ModeT set to KBC_CardT::kSet
+	 *        or NULL if it is set to KBC_CardT::kNode. */
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes = NULL);
 
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
@@ -27,7 +31,7 @@ public:
 	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector. Maps ALL degrees of freedom forward Unless specified otherwise*/
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */

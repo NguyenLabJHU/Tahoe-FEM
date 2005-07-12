@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.35 2005-07-08 23:35:43 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.34 2005-04-22 00:53:04 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -47,8 +47,6 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 	ParameterInterfaceT("meshfree_support"),
 	fDomain(domain),
 	fDextra(0.0),
-	fStoreShape(true),
-	fScaledSupport(true),
 	fEFG(NULL),
 	fRKPM(NULL),
 	fGrid(NULL),
@@ -85,8 +83,6 @@ MeshFreeSupportT::MeshFreeSupportT(void):
 	ParameterInterfaceT("meshfree_support"),
 	fDomain(NULL),
 	fDextra(0.0),
-	fStoreShape(true),
-	fScaledSupport(true),
 	fEFG(NULL),
 	fRKPM(NULL),
 	fGrid(NULL),
@@ -144,26 +140,19 @@ void MeshFreeSupportT::InitSupportParameters(void)
 	SetSearchGrid();
 	//NOTE: do this every time SetSupportParameters is called???
 	
-	if (fScaledSupport)
+	/* initialize support size for nodes in connectivity set */
+	cout << "\n MeshFreeSupportT::InitSupportParameters: setting nodal support" << endl;
+	if (fMeshfreeType == kEFG || fRKPM->SearchType() == WindowT::kSpherical)
 	{
-		/* initialize support size for nodes in connectivity set */
-		cout << "\n MeshFreeSupportT::InitSupportParameters: setting nodal support" << endl;
-		if (fMeshfreeType == kEFG || fRKPM->SearchType() == WindowT::kSpherical)
-		{
-			cout << "\n MeshFreeSupportT::InitSupportParameters: spherical search" << endl;
-			SetSupport_Spherical_Search();
-		}
-		else if (fRKPM->SearchType() == WindowT::kConnectivity)
-		{
-			cout << "\n MeshFreeSupportT::InitSupportParameters: connectivity search" << endl;
-			SetSupport_Cartesian_Connectivities();
-		} 
-		else throw ExceptionT::kGeneralFail;
+		cout << "\n MeshFreeSupportT::InitSupportParameters: spherical search" << endl;
+		SetSupport_Spherical_Search();
 	}
-	else {
-		cout << "\n MeshFreeSupportT::InitSupportParameters: using unscaled supports" << endl;	
-		fNodalParameters = 1.0;
-	}
+	else if (fRKPM->SearchType() == WindowT::kConnectivity)
+	{
+		cout << "\n MeshFreeSupportT::InitSupportParameters: connectivity search" << endl;
+		SetSupport_Cartesian_Connectivities();
+	} 
+	else throw ExceptionT::kGeneralFail;
 }
 
 void MeshFreeSupportT::InitNeighborData(void)
@@ -751,46 +740,15 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 	fGrid->WriteStatistics(out);
 }
 
-/* write nodal neighbor lists */
-void MeshFreeSupportT::WriteNodalNeighbors(ostream& out) {
-	iArrayT neighbors;
-	dArrayT phi;
-	dArray2DT Dphi;
-	for (int i = 0; i < fNodesUsed.Length(); i++) {
-		LoadNodalData(fNodesUsed[i], neighbors, phi, Dphi);
-		neighbors++;
-		out << setw(kIntWidth) << fNodesUsed[i]+1 << ":" << neighbors.no_wrap() << '\n';
-		neighbors--;
-	}
-}
-
-/* write shape functions for nodal neighbors */
-void MeshFreeSupportT::WriteNodalShapes(ostream& out) {
-	iArrayT neighbors;
-	dArrayT phi;
-	dArray2DT Dphi;
-	for (int i = 0; i < fNodesUsed.Length(); i++) {
-		LoadNodalData(fNodesUsed[i], neighbors, phi, Dphi);
-		neighbors++;
-		out << setw(kIntWidth) << fNodesUsed[i]+1 << ":" << phi.no_wrap() << '\n';
-		neighbors--;
-	}
-}
-
 /* describe the parameters needed by the interface */
 void MeshFreeSupportT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list);
 	
-	ParameterT store_shape(fStoreShape, "store_shapefunctions");
-	store_shape.SetDefault(fStoreShape);
+	ParameterT store_shape(ParameterT::Boolean, "store_shapefunctions");
+	store_shape.SetDefault(true);
 	list.AddParameter(store_shape);
-	
-	/* use unscaled support parameters */
-	ParameterT scaled_support(fScaledSupport, "scaled_support");
-	scaled_support.SetDefault(fScaledSupport);
-	list.AddParameter(scaled_support);
 }
 
 /* information about subordinate parameter lists */
@@ -800,7 +758,7 @@ void MeshFreeSupportT::DefineSubs(SubListT& sub_list) const
 	ParameterInterfaceT::DefineSubs(sub_list);
 
 	/* window function */
-	sub_list.AddSub("meshfree_formulation", ParameterListT::Once, true);	
+	sub_list.AddSub("meshfree_formulation", ParameterListT::Once, true);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -923,9 +881,8 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
-	fStoreShape = list.GetParameter("store_shapefunctions");
-	fScaledSupport = list.GetParameter("scaled_support");
-
+	fStoreShape = list.Parameter("store_shapefunctions");
+	
 	/* coordinates */
 	const dArray2DT& coordinates = NodalCoordinates();
 	int nsd = coordinates.MinorDim();
@@ -1240,17 +1197,59 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 		allocator.Free();
 	}					
 
-	/* configure node neighbor data */
-	fnNeighborData.Configure(fnNeighborCount);
+	/* use disk for bigger problems */
+#if defined(_USE_DISK_) && !defined(__CPLANT__)
+	bool use_disk = (numnodes > 250000);
+#else
+	bool use_disk = false;
+#endif
+
+	/* write data to disk before allocating new memory */
+	if (use_disk)
+	{
+		StringT file = "nodesupport.tmp";
+		cout << "\n MeshFreeSupportT::SetNodeNeighborData_2: system is big. flushing\n"
+		     <<   "     node neighbor data to disk file: \"" << file << '\"' << endl;
+
+		/* write data to disk */
+		ArrayT<int> dump;
+		ofstreamT tmp_out(file);
+		if (!tmp_out.is_open()) throw ExceptionT::kGeneralFail;
+		for (int j = 0; j < numnodes; j++)
+		{
+			dump.Set(fnNeighborCount[j], pointers[j]);
+			dump.WriteBinary(tmp_out);
+		}
+		tmp_out.close();
+
+		/* free all temp space */
+		for (int k = 0; k < numnodes; k++)
+			delete[] pointers[k];
+		pointers.Free();
+
+		/* configure node neighbor data */
+		fnNeighborData.Configure(fnNeighborCount);
+
+		/* read contents of */
+		ifstreamT tmp_in(file);
+		if (!tmp_in.is_open()) throw ExceptionT::kGeneralFail;
+		fnNeighborData.ReadDataBinary(tmp_in);
+		tmp_in.close();
+	}
+	else
+	{
+		/* configure node neighbor data */
+		fnNeighborData.Configure(fnNeighborCount);
 	
-	/* copy data in */
-	for (int j = 0; j < numnodes; j++)
-		fnNeighborData.SetRow(j, pointers[j]);
+		/* copy data in */
+		for (int j = 0; j < numnodes; j++)
+			fnNeighborData.SetRow(j, pointers[j]);
 
-	/* free all temp space */
-	for (int k = 0; k < numnodes; k++)
-		delete[] pointers[k];
-
+		/* free all temp space */
+		for (int k = 0; k < numnodes; k++)
+			delete[] pointers[k];
+	}
+		
 	/* space for nodal calculations */
 	int maxsize = fnNeighborData.MaxMinorDim();
 	fndShapespace.Dimension(maxsize*(1 + nsd));
@@ -1518,16 +1517,58 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		allocator.Free();
 	}
 
-	/* configure element neighbor data */
-	feNeighborData.Configure(feNeighborCount);
+	/* use disk for bigger problems */
+#if defined(_USE_DISK_) && !defined(__CPLANT__)
+	bool use_disk = (numelems > 250000);
+#else
+	bool use_disk = false;
+#endif
 
-	/* copy data in */
-	for (int j = 0; j < numelems; j++)
-		feNeighborData.SetRow(j, pointers[j]);
+	/* write data to disk before allocating new memory */
+	if (use_disk)
+	{
+		StringT file = "elemsupport.tmp";
+		cout << "\n MeshFreeSupportT::SetElementNeighborData_2: system is big. flushing\n"
+		     <<   "     element neighbor data to disk file: \"" << file << '\"' << endl;
+
+		/* write data to disk */
+		ArrayT<int> dump;
+		ofstreamT tmp_out(file);
+		if (!tmp_out.is_open()) throw ExceptionT::kGeneralFail;
+		for (int j = 0; j < numelems; j++)
+		{
+			dump.Set(feNeighborCount[j], pointers[j]);
+			dump.WriteBinary(tmp_out);
+		}
+		tmp_out.close();
+
+		/* free all temp space */
+		for (int k = 0; k < numelems; k++)
+			delete[] pointers[k];
+		pointers.Free();
+
+		/* configure element neighbor data */
+		feNeighborData.Configure(feNeighborCount);
+
+		/* read contents of */
+		ifstreamT tmp_in(file);
+		if (!tmp_in.is_open()) throw ExceptionT::kGeneralFail;
+		feNeighborData.ReadDataBinary(tmp_in);
+		tmp_in.close();
+	}
+	else
+	{
+		/* configure element neighbor data */
+		feNeighborData.Configure(feNeighborCount);
+
+		/* copy data in */
+		for (int j = 0; j < numelems; j++)
+			feNeighborData.SetRow(j, pointers[j]);
 		
-	/* free all temp space */
-	for (int k = 0; k < numelems; k++)
-		delete[] pointers[k];
+		/* free all temp space */
+		for (int k = 0; k < numelems; k++)
+			delete[] pointers[k];
+	}
 		
 	/* space element calculation */
 	int maxsize = feNeighborData.MaxMinorDim();

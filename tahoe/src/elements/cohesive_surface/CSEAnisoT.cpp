@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.70 2005-06-23 20:17:12 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.69.2.1 2005-07-12 05:53:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -10,8 +10,8 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-
-#include "toolboxConstants.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "SurfaceShapeT.h"
 #include "SurfacePotentialT.h"
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -207,7 +207,7 @@ void CSEAnisoT::CloseStep(void)
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* write restart data to the output stream. */
-void CSEAnisoT::WriteRestart(ostream& out) const
+void CSEAnisoT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	CSEBaseT::WriteRestart(out);
@@ -221,7 +221,7 @@ void CSEAnisoT::WriteRestart(ostream& out) const
 }
 
 /* read restart data to the output stream */
-void CSEAnisoT::ReadRestart(istream& in)
+void CSEAnisoT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	CSEBaseT::ReadRestart(in);
@@ -867,6 +867,37 @@ void CSEAnisoT::SendOutput(int kincode)
 		CSEBaseT::SendOutput(kincode);
 	else // TiedNodesT wants its freeNode info
 		ComputeFreeNodesForOutput();
+}
+
+/* resolve the output variable label into the output code and offset within the output. */
+void CSEAnisoT::ResolveOutputVariable(const StringT& variable, int& code, int& offset)
+{
+	/* search output labels */
+	code = -1;
+	offset = -1;
+	iArrayT e_counts(NumElementOutputCodes);
+	e_counts = 0;
+	iArrayT n_codes(NumNodalOutputCodes);
+	for (int i = 0; code == -1 && i < NumNodalOutputCodes; i++)
+	{
+		ArrayT<StringT> n_labels, e_labels;
+		n_codes = 0;
+		n_codes[i] = 1;
+		
+		iArrayT n_counts;
+		SetNodalOutputCodes(IOBaseT::kAtInc, n_codes, n_counts);
+		GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
+		
+		for (int j = 0; offset == -1 && j < n_labels.Length(); j++)
+			if (n_labels[j] == variable) /* found */ {
+				code = i;
+				offset = j;
+			}
+	}
+	
+	/* inherited */
+	if (code == -1 || offset == -1)
+		ElementBaseT::ResolveOutputVariable(variable, code, offset);
 }
 
 /* set the active elements */

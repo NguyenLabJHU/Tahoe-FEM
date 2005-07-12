@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.13 2005-05-24 22:10:24 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.13.2.6 2005-06-11 01:15:07 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -11,16 +11,18 @@
 #include "dArrayT.h"
 #include "nVariArray2DT.h"
 #include "Array2DT.h"
+#include "nArrayGroupT.h"
+#include "PartitionT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-class PartitionT;
 class CommunicatorT;
 class ModelManagerT;
 class NodeManagerT;
 class iArrayT;
 class MessageT;
+class CartesianShiftT;
 
 /** manage processor to processor transactions. Manages partition information.
  * Creates ghosts nodes. Manages communication lists. Manipulates the
@@ -50,15 +52,28 @@ public:
 	/** set the width of the communication skin */
 	void SetSkin(double skin) { fSkin = skin; };
 
-	/** set or clear partition information. Needs to be set before calling 
+	/** read partition information. Needs to be set before calling 
 	 * CommManagerT::Configure. */
-	void SetPartition(PartitionT* partition);
+	void ReadPartition(const StringT& partition_file);
+	
+	/** partition information */
+	const PartitionT* Partition(void) const { return fPartition; };
+
+	/** decomposition type */
+	PartitionT::DecompTypeT DecompType(void) const;
 
 	/** set or clear node manager information */
 	void SetNodeManager(NodeManagerT* node_manager);
 
 	/** the communicator */
 	const CommunicatorT& Communicator(void) const { return fComm; };
+
+	/** Update system configuration, including enforcement of periodic boundary conditions */
+	void UpdateConfiguration(void);
+
+	/** Initialize communications. Partition information, if it exists, should be 
+	 * set with CommManagerT::ReadPartition before calling this. */
+	void Initialize(void);
 
 	/** \name periodic boundaries */
 	/*@{*/
@@ -67,20 +82,10 @@ public:
 	
 	/** accessor */
 	const dArray2DT& PeriodicBoundaries(void) { return fPeriodicBoundaries; };
-	
-	/** enforce the periodic boundary conditions */
-	void EnforcePeriodicBoundaries(void);
 
 	/** return the number of real nodes */
 	int NumRealNodes(void) const { return fNumRealNodes; };
 	/*@}*/
-
-	/** configure the current local coordinate list and register it with the
-	 * model manager. The first time this method is called, it will call
-	 * CommManagerT::FirstConfigure before performing the usual operations. 
-	 * Partition information, if it exists should be (un-)set with
-	 * CommManagerT::SetPartition before calling this. */
-	void Configure(void);
 
 	/** \name numbering maps */
 	/*@{*/
@@ -93,6 +98,9 @@ public:
 	 * NULL if there is no map, indicating the local and global node
 	 * numbers are the same. */
 	const ArrayT<int>* NodeMap(void) const;
+
+	/** node numbering map */
+	const iArrayT* ElementMap(const StringT& block_ID) const;
 
 	/** list of nodes owned by the partition. These nodes are numbered locally
 	 * within the nodes appearing on this processor. Returns NULL if there is no 
@@ -117,12 +125,6 @@ public:
 	 * within the nodes appearing on this processor. Returns NULL if there is no 
 	 * list, indicating \e all nodes are owned by this partition. */
 	const ArrayT<int>* ExternalNodes(void) const;
-
-	/** list of nodes adjacent to nodes in CommManagerT::ExternalNodes. These are the nodes 
-	 * for which information is sent to other processors. These nodes are numbered locally
-	 * within the nodes appearing on this processor. Returns NULL if there is no 
-	 * list, indicating \e all nodes are owned by this partition */
-	const ArrayT<int>* BorderNodes(void) const;
 	/*@}*/
 
 	/** \name ghost nodes 
@@ -164,20 +166,28 @@ public:
 	void AllGather(int id, nArray2DT<int>& values);
 	/*@}*/
 
-private:
+	/** register an array of nodal attributes. Register an array whose contents will be
+	 * kept up to date as the CommManagerT maintains the system across multiple processors.
+	 * The arrays should be dimensioned and initialized before the first call to
+	 * CommManagerT::UpdateConfiguration */
+	int RegisterNodalAttribute(nArrayT<int>& array);
 
-	/** return the partition or throw an exception if it's not set */
-	PartitionT& Partition(void) const;	
+	/** send output data for writing */
+	void WriteOutput(int print_step);
+
+private:
 
 	/** return the node manager or throw an exception if it's not set */
 	NodeManagerT& NodeManager(void) const;
 
 	/** collect partition nodes */
 	void CollectPartitionNodes(const ArrayT<int>& n2p_map, int part, 
-		AutoArrayT<int>& part_nodes) const;
+		AutoArrayT<int>& part_nodes, AutoArrayT<int>& external_nodes) const;
 
-	/** perform actions needed the first time CommManagerT::Configure is called. */
-	void FirstConfigure(void);
+	/** enforce the periodic boundary conditions for serial or index decomposition,
+	 * for which the whole crystal is reproduced on all processors and periodicity
+	 * is enforced by creating image atoms. */
+	void EnforcePeriodicBoundaries(void);
 
 	/** \name methods for configuring computation with a spatial decomposition */
 	/*@{*/
@@ -249,14 +259,14 @@ private:
 	/** processor bounds */
 	dArray2DT fBounds;
 
-	/** partition information */
+	/** \name partition information */
+	/*@{*/
+	StringT fPartFile;
 	PartitionT* fPartition;
+	/*@}*/
 
 	/** node manager */
 	NodeManagerT* fNodeManager;
-	
-	/** true if CommManagerT::Configure has not been called yet */
-	bool fFirstConfigure;
 
 	/** \name maps */
 	/*@{*/
@@ -274,9 +284,6 @@ private:
 
 	/** list of nodes \e not owned by this partition */
 	AutoArrayT<int> fExternalNodes;
-
-	/** list of nodes adjacent to any external nodes */
-	AutoArrayT<int> fBorderNodes;
 	/*@}*/
 	
 	/** \name persistent communications */
@@ -316,74 +323,55 @@ private:
 	/** send nodes for each phase of shift */
 	ArrayT<AutoArrayT<int> > fSendNodes;
 	ArrayT<AutoArrayT<int> > fRecvNodes;
+	
+	/* shift communications on a Cartesian grid */
+	CartesianShiftT* fCartesianShift;
+	/*@}*/
+
+	/** \name nodal attributes */
+	/*@{*/
+	int fAttributeMessageID;
+	nArrayGroupT<int> fNodalAttributes;
 	/*@}*/
 };
 
+/* decomposition type */
+inline PartitionT::DecompTypeT CommManagerT::DecompType(void) const {
+	return (fPartition) ? fPartition->DecompType() : PartitionT::kUndefined;
+}
+
 /* processor map */
-inline const ArrayT<int>* CommManagerT::ProcessorMap(void) const
-{
-	if (fProcessor.Length() > 0)
-		return &fProcessor;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::ProcessorMap(void) const {
+	return (fProcessor.Length() > 0) ? &fProcessor : NULL;
 }
 
 /* node numbering map */
-inline const ArrayT<int>* CommManagerT::NodeMap(void) const
-{
-	if (fNodeMap.Length() > 0)
-		return &fNodeMap;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::NodeMap(void) const {
+	return (fNodeMap.Length() > 0) ? &fNodeMap : NULL;
+}
+
+/* node numbering map */
+inline const iArrayT* CommManagerT::ElementMap(const StringT& block_ID) const {
+	return (fPartition) ? &(fPartition->ElementMap(block_ID)) : NULL;
 }
 
 /* list of nodes owned by the partition */
-inline const ArrayT<int>* CommManagerT::PartitionNodes(void) const
-{
-	if (fPartitionNodes.Length() > 0)
-		return &fPartitionNodes;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::PartitionNodes(void) const {
+	return (fPartitionNodes.Length() > 0) ? &fPartitionNodes : NULL;
 }
 
-inline const ArrayT<int>* CommManagerT::ExternalNodes(void) const
-{
-	if (fExternalNodes.Length() > 0)
-		return &fExternalNodes;
-	else
-		return NULL;
-}
-
-inline const ArrayT<int>* CommManagerT::BorderNodes(void) const
-{
-	if (fBorderNodes.Length() > 0)
-		return &fBorderNodes;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::ExternalNodes(void) const {
+	return (fExternalNodes.Length() > 0) ? &fExternalNodes : NULL;
 }
 
 /* nodes with ghosts */
-inline const ArrayT<int>* CommManagerT::NodesWithGhosts(void) const
-{
-	if (fPBCNodes.Length() > 0)
-		return &fPBCNodes;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::NodesWithGhosts(void) const {
+	return (fPBCNodes.Length() > 0) ? &fPBCNodes : NULL;
 }
 
 /* the ghosts */
-inline const ArrayT<int>* CommManagerT::GhostNodes(void) const
-{
-	if (fPBCNodes_ghost.Length() > 0)
-		return &fPBCNodes_ghost;
-	else
-		return NULL;
-}
-
-/* return the partition or throw an exception if it's not set */
-inline PartitionT& CommManagerT::Partition(void) const {
-	if (!fPartition) ExceptionT::GeneralFail("CommManagerT::Partition", "partition not set");
-	return *fPartition;
+inline const ArrayT<int>* CommManagerT::GhostNodes(void) const {
+	return (fPBCNodes_ghost.Length() > 0) ? &fPBCNodes_ghost : NULL;
 }
 
 /* return the node manager or throw an exception if it's not set */
@@ -392,13 +380,11 @@ inline NodeManagerT& CommManagerT::NodeManager(void) const {
 	return *fNodeManager;
 }
 
-inline int CommManagerT::Init_AllGather(const nArray2DT<int>& values)
-{
+inline int CommManagerT::Init_AllGather(const nArray2DT<int>& values) {
 	return Init_AllGather(MessageT::Integer, values.MinorDim());
 }
 
-inline int CommManagerT::Init_AllGather(const nArray2DT<double>& values)
-{
+inline int CommManagerT::Init_AllGather(const nArray2DT<double>& values) {
 	return Init_AllGather(MessageT::Double, values.MinorDim());
 }
 

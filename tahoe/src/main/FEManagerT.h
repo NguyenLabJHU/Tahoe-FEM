@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.50 2005-03-12 08:41:35 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.50.8.5 2005-07-12 05:52:25 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -9,7 +9,7 @@
 /* base classes */
 #include "iConsoleObjectT.h"
 #include "ParameterInterfaceT.h"
-#include "DecomposeT.h" // DEF 4 Aug 04
+#include "DecomposeT.h"
 
 /* direct members */
 #include "iArrayT.h"
@@ -17,12 +17,9 @@
 #include "ElementListT.h"
 #include "IOBaseT.h"
 #include "iArray2DT.h"
-/* direct members, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
 #include "PartitionT.h"
 #include "dArray2DT.h"
 #include "ofstreamT.h"
-
-#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
@@ -50,7 +47,6 @@ class FieldT;
 class CommunicatorT;
 class CommManagerT;
 class GlobalMatrixT;
-/* forward declarations, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
 class IOManager_mpi;
 class PartitionT;
 
@@ -58,7 +54,7 @@ class FEManagerT: public iConsoleObjectT, public ParameterInterfaceT
 {
 public:
 
-	/** task codes, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+	/** task codes */
 	enum TaskT {kDecompose = 0,
 	                  kRun = 1,
                kParameters = 2};
@@ -78,11 +74,11 @@ public:
 	/** destructor */
 	virtual ~FEManagerT(void);
 	
-	/* return reference to partition data, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
-	const PartitionT* Partition(void) const;
+	/** return reference to partition data */
+//	const PartitionT* Partition(void) const;
 	
-	/* set the external IOManager, formerly in FEManagerT_mpi.h, DEF 28 July 04 (needed??) */
-	void SetExternalIO(IOManager_mpi* externIO);
+	/** set the external IOManager */
+//	void SetExternalIO(IOManager_mpi* externIO);
 	
 	/** solve all the time sequences */
 	virtual void Solve(void);
@@ -157,7 +153,7 @@ public:
 	/** \name equation system */
 	/*@{*/
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
+	virtual void SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift = 0);
 
 	/** write the field equations to for the given group to the stream */
 	void WriteEquationNumbers(int group) const;
@@ -228,9 +224,6 @@ public:
 
 	/** send update of the solution to the NodeManagerT */
 	virtual void Update(int group, const dArrayT& update);
-
-	/** system relaxation */
-	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
 
 	/** return the current values of the unknowns 
 	 * \param group equation group 
@@ -310,6 +303,7 @@ public:
 	int Rank(void) const;
 	int Size(void) const;
 	
+#if 0
 	/** the local node to home processor map. Returns the home processor
 	 * for each local node. Returns NULL if there is no map, indicating 
 	 * that the native processor for all nodes is this one. */
@@ -325,6 +319,7 @@ public:
 	const ArrayT<int>* PartitionNodes(void) const;
 
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
+#endif
 
 	void Wait(void);
 	/*@}*/
@@ -354,6 +349,9 @@ public:
 
 	/** called for all groups if the solution procedure for any group fails */
 	virtual ExceptionT::CodeT ResetStep(void);
+
+	/** system relaxation */
+	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
 	
 	/** solver phase information. Results of the last call to FEManagerT::SolveStep */
 	const iArray2DT& SolverPhasesStatus(void) const { return fSolverPhasesStatus; };
@@ -439,9 +437,8 @@ protected:
 	/** collect element equations and send to solver */
 	void SendEqnsToSolver(int group) const;
 
-	/** construct a new CommManagerT. Should be called some time after the
-	 * ModelManagerT has been constructed */
-	virtual CommManagerT* New_CommManager(void) const;
+	/** renumber the local equations */
+	void RenumberEquations(int group);
 
 private:
 
@@ -523,6 +520,7 @@ protected:
 	/*@{*/
 	GlobalT::StateT fStatus; /**< state */
 	int fCurrentGroup;       /**< current group being operated on */
+	int fPrintStep;
 	/*@}*/
 	
 	/** \name equation system
@@ -548,13 +546,9 @@ protected:
 	/*@}*/
 
 private:
-	/* external IO */
-	IOManager_mpi* fExternIOManager;
-	//IOBaseT::FileTypeT fInputFormat;
-	//StringT fModelFile;
 
-	/* partition information */
-	PartitionT* fPartition;
+	/** external IO */
+	IOManager_mpi* fExternIOManager;
 	
 	/** log file */
 	ofstreamT flog;
@@ -570,6 +564,9 @@ inline TimeManagerT* FEManagerT::TimeManager(void) const { return fTimeManager; 
 inline NodeManagerT* FEManagerT::NodeManager(void) const { return fNodeManager; }
 inline CommManagerT* FEManagerT::CommManager(void) const { return fCommManager; }
 inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }
+
+#pragma message("delete me?")
+#if 0
 inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {
 #pragma unused(block_ID)
@@ -585,6 +582,7 @@ inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 	}
 	return NULL;
 }
+#endif
 
 inline const ArrayT<StringT>& FEManagerT::Argv(void) const { return fArgv; };
 inline bool FEManagerT::CommandLineOption(const char* str) const {
@@ -607,7 +605,8 @@ inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEqua
 inline int FEManagerT::ActiveEquationStart(int group) const { return fActiveEquationStart[group]; };
 inline int FEManagerT::GlobalNumEquations(int group) const { return fGlobalNumEquations[group]; }
 
-// inserted inlines formerly in FEManagerT_mpi.h, DEF 28 July 04
+#pragma message("delete me")
+#if 0
 /* return reference to partition data */
 inline const PartitionT* FEManagerT::Partition(void) const
 {
@@ -619,6 +618,7 @@ inline void FEManagerT::SetExternalIO(IOManager_mpi* externIO)
 {
 	fExternIOManager = externIO;
 }
+#endif
 
 } // namespace Tahoe 
 #endif /* _FE_MANAGER_H_ */

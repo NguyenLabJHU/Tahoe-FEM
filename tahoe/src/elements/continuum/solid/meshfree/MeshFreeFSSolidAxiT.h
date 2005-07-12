@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.h,v 1.2 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.h,v 1.2.20.2 2005-07-08 06:19:15 paklein Exp $ */
 #ifndef _MESHFREE_FSSOLID_AXI_T_H_
 #define _MESHFREE_FSSOLID_AXI_T_H_
 

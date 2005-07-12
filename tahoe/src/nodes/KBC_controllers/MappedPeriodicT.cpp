@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.10 2005-06-07 07:32:07 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.9 2004-07-15 08:31:21 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 #include "MappedPeriodicT.h"
 
@@ -21,6 +21,7 @@ MappedPeriodicT::MappedPeriodicT(const BasicSupportT& support, BasicFieldT& fiel
 	fDummySchedule(1.0) //still need this?
 {
 	SetName("mapped_nodes");
+	fF.Identity();
 }
 
 /* initial condition */
@@ -29,12 +30,13 @@ void MappedPeriodicT::InitialCondition(void)
 	/* reference coordinates */
 	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 
-	/* compute mapping: F - 1 */
+	/* compute mapping */
 	fF = fFperturb;
+	fF.PlusIdentity();
 
-	int ndof = fF.Rows();
+	int nsd = fF.Rows();
 	dArrayT	X;
-	dArrayT d(ndof);
+	dArrayT d(nsd);
 	int mappedcount = fMappedNodeList.Length();
 	int dex = 0;
 	for (int i = 0; i < mappedcount; i++)
@@ -48,9 +50,9 @@ void MappedPeriodicT::InitialCondition(void)
 		fF.Multx(X, d);
 		
 		/* set prescribed displacements */
-		for (int j = 0; j < ndof; j++)
+		for (int j = 0; j < nsd; j++)
 		{
-			fMappedCards[dex].SetValues(node, j, KBC_CardT::kDsp, fSchedule, d[j]);
+			fMappedCards[dex].SetValues(node, j, KBC_CardT::kDsp, fSchedule, d[j] - X[j]);
 			dex++;
 		}
 	}
@@ -67,6 +69,7 @@ void MappedPeriodicT::InitStep(void)
 	{
 		/* compute F - 1  = fFperturb */
 		fF.SetToScaled(fSchedule->Value(), fFperturb);
+		fF.PlusIdentity();
 	}
 	else /* apply mapping */
 	{
@@ -78,10 +81,10 @@ void MappedPeriodicT::InitStep(void)
 		fF.SetToScaled(fSchedule->Value(), fFperturb);
 
 		int dex = 0;
-		int ndof = fF.Rows();
+		int nsd = fF.Rows();
 		int num_pairs = fSlaveMasterPairs.MajorDim();	
 		dArrayT	X_m, d_m;      //master data
-		dArrayT X_s, d_s(ndof); //slave data
+		dArrayT X_s, d_s(nsd); //slave data
 		for (int i = 0; i < num_pairs; i++)
 		{
 			int node_m = fSlaveMasterPairs(i, kMaster);
@@ -97,9 +100,12 @@ void MappedPeriodicT::InitStep(void)
 			fF.Multx(fD_sm, d_s);
 		
 			/* set cards */
-			for (int j = 0; j < ndof; j++)
+			for (int j = 0; j < nsd; j++)
 				fSlaveCards[dex++].SetValues(node_s, j, KBC_CardT::kDsp, NULL, d_s[j] + d_m[j]);
 		}
+	
+		/* set mapping */
+		fF.PlusIdentity();
 	}
 }
 
@@ -110,7 +116,7 @@ void MappedPeriodicT::WriteOutput(ostream& out) const
 	KBC_ControllerT::WriteOutput(out);
 
 	/* write output */
-	out << "\n Field mapping:\n";
+	out << "\n Mapping:\n";
 	out << fF << endl;
 }
 
@@ -119,7 +125,7 @@ void MappedPeriodicT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	KBC_ControllerT::DefineParameters(list);
-
+	
 	/* schedule */
 	list.AddParameter(ParameterT::Integer, "schedule");
 }
@@ -146,16 +152,12 @@ ParameterInterfaceT* MappedPeriodicT::NewSub(const StringT& name) const
 	if (name == "F_perturb_choice") {
 
 		ParameterContainerT* F_choice = new ParameterContainerT(name);
-		F_choice->SetSubSource(this);
 		
 		/* by dimension */
 		F_choice->SetListOrder(ParameterListT::Choice);
 		F_choice->AddSub("Matrix_1x1");
 		F_choice->AddSub("Matrix_2x2");
 		F_choice->AddSub("Matrix_3x3");
-		F_choice->AddSub("Matrix_Nx1");
-		F_choice->AddSub("Matrix_Nx2");
-		F_choice->AddSub("Matrix_Nx3");
 	
 		return F_choice;
 	}
@@ -169,17 +171,6 @@ ParameterInterfaceT* MappedPeriodicT::NewSub(const StringT& name) const
 		node_pairs->AddSub("follower_node_ID_list");
 	
 		return node_pairs;	
-	}
-	else if (name.StringMatch("Matrix_Nx"))
-	{
-		ParameterContainerT* matrix = new ParameterContainerT(name);
-	
-		/* row vectors */
-		StringT vec_name = "Vector_";
-		vec_name.Append(name[name.StringLength() - 1]);
-		matrix->AddSub(vec_name, ParameterListT::OnePlus);
-	
-		return matrix;
 	}
 	else /* inherited */
 		return KBC_ControllerT::NewSub(name);
@@ -195,9 +186,8 @@ void MappedPeriodicT::TakeParameterList(const ParameterListT& list)
 
 	/* dimension workspace */
 	int nsd = fSupport.NumSD();
-	int ndof = fField.NumDOF();
-	fFperturb.Dimension(ndof,nsd);
-	fF.Dimension(ndof,nsd);
+	fFperturb.Dimension(nsd);
+	fF.Dimension(nsd);
 	fD_sm.Dimension(nsd);
 
 	/* schedule */
@@ -207,27 +197,8 @@ void MappedPeriodicT::TakeParameterList(const ParameterListT& list)
 	
 	/* perturbation matrix */
 	const char *mat_names[] = {"", "Matrix_1x1", "Matrix_2x2", "Matrix_3x3"};
-	const ParameterListT* matrix_parameters = list.List(mat_names[nsd]);
-	if (matrix_parameters) /* square matrix */
-		MatrixParameterT::Extract(*matrix_parameters, fFperturb);
-	else /* general matrix */
-	{
-		const char *mat_names[] = {"", "Matrix_Nx1", "Matrix_Nx2", "Matrix_Nx3"};
-		const ParameterListT& matrix_parameters = list.GetList(mat_names[nsd]);
-		StringT vec_name = "Vector_";
-		vec_name.Append(nsd);
-		int num_rows = matrix_parameters.NumLists(vec_name);
-		if (num_rows != ndof)
-			ExceptionT::GeneralFail(caller, "expecting %d not %d occurrences of \"%s\" in \"%s\"",
-				ndof, num_rows, vec_name.Pointer(), mat_names[nsd]);
-
-		/* extract rows */
-		dArrayT row(nsd);
-		for (int i = 0; i < num_rows; i++) {
-			VectorParameterT::Extract(matrix_parameters.GetList(vec_name, i), row);
-			fFperturb.SetRow(i, row);
-		}
-	}
+	const ParameterListT& matrix_parameters = list.GetList(mat_names[nsd]);
+	MatrixParameterT::Extract(matrix_parameters, fFperturb);
 
 	/* list of mapped nodes */
 	ArrayT<StringT> id_list;
@@ -258,21 +229,21 @@ void MappedPeriodicT::TakeParameterList(const ParameterListT& list)
 	
 	/* generate BC cards */
 	int num_BC = fMappedNodeList.Length() + fSlaveMasterPairs.MajorDim();
-	fKBC_Cards.Dimension(num_BC*ndof);
-	fMappedCards.Set(fMappedNodeList.Length()*ndof, fKBC_Cards.Pointer());
-	fSlaveCards.Set(fSlaveMasterPairs.MajorDim()*ndof,
+	fKBC_Cards.Dimension(num_BC*nsd);
+	fMappedCards.Set(fMappedNodeList.Length()*nsd, fKBC_Cards.Pointer());
+	fSlaveCards.Set(fSlaveMasterPairs.MajorDim()*nsd,
 		fKBC_Cards.Pointer(fMappedCards.Length()));
 
 	/* mapped nodes */
 	int dex = 0;
 	for (int i = 0; i < fMappedNodeList.Length(); i++)
-		for (int j = 0; j < ndof; j++)
+		for (int j = 0; j < nsd; j++)
 			fMappedCards[dex++].SetValues(fMappedNodeList[i], j, KBC_CardT::kDsp, NULL, 0.0);	
 
 	/* slave nodes */
 	dex = 0;
 	for (int ii = 0; ii < fSlaveMasterPairs.MajorDim(); ii++)
-		for (int jj = 0; jj < ndof; jj++)
+		for (int jj = 0; jj < nsd; jj++)
 		{
 			/* set values */
 			fSlaveCards[dex].SetValues(fSlaveMasterPairs(ii, kSlave), jj, KBC_CardT::kDsp, &fDummySchedule, 0.0);

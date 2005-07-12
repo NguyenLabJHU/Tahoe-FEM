@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.26 2005-04-28 23:58:14 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.26.4.2 2005-07-12 05:51:53 paklein Exp $ */
 
 #include "MultiManagerT.h"
 
@@ -131,42 +131,50 @@ void MultiManagerT::Solve(void)
 }
 
 /* (re-)set the equation number for the given group */
-void MultiManagerT::SetEquationSystem(int group, int start_eq_shift)
+void MultiManagerT::SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift)
 {
-	fFine->SetEquationSystem(group, start_eq_shift);
+	/* inherited */
+	fFine->SetEquationSystem(flag, group, start_eq_shift);	
 	int neq1 = fFine->GlobalNumEquations(group);
-	
-	fCoarse->SetEquationSystem(group, neq1 + start_eq_shift);
+	fCoarse->SetEquationSystem(flag, group, neq1 + start_eq_shift);
 	int neq2 = fCoarse->GlobalNumEquations(group);
 
-	fGlobalNumEquations[group] = neq1 + neq2;
+	/* new equation numbers */
+	if (flag == GlobalT::kNewEquations)
+	{
+		fGlobalNumEquations[group] = neq1 + neq2;
 
-	/* set total equation numbers */
-	fEqnos1.Dimension(neq1);
-	fEqnos2.Dimension(neq2);
-	fEqnos1.SetValueToPosition();
-	fEqnos2.SetValueToPosition();
-	fEqnos1 += (1 + start_eq_shift);
-	fEqnos2 += (1 + start_eq_shift + neq1);
-
-	/* final step in solver configuration */
-	fSolvers[group]->Initialize(
-		fGlobalNumEquations[group],
-		fGlobalNumEquations[group],
-		1);
+		/* set total equation numbers */
+		fEqnos1.Dimension(neq1);
+		fEqnos2.Dimension(neq2);
+		fEqnos1.SetValueToPosition();
+		fEqnos2.SetValueToPosition();
+		fEqnos1 += (1 + start_eq_shift);
+		fEqnos2 += (1 + start_eq_shift + neq1);
 	
-	/* equations for assembly of cross terms */	
-	if (fFineToCoarse) {
-		const iArray2DT& eq = fCoarseField->Equations();
-		fR_U_eqnos.Dimension(eq.Length());
-		for (int i = 0; i < fR_U_eqnos.Length(); i++) {
-			fR_U_eqnos[i] = eq[i];
-			if (fR_U_eqnos[i] > 0)
-				fR_U_eqnos[i] += start_eq_shift + neq1;
+		/* equations for assembly of cross terms */	
+		if (fFineToCoarse) {
+			const iArray2DT& eq = fCoarseField->Equations();
+			fR_U_eqnos.Dimension(eq.Length());
+			for (int i = 0; i < fR_U_eqnos.Length(); i++) {
+				fR_U_eqnos[i] = eq[i];
+				if (fR_U_eqnos[i] > 0)
+					fR_U_eqnos[i] += start_eq_shift + neq1;
+			}
 		}
+		if (fCoarseToFine)
+			fR_Q_eqnos.Alias(fFineField->Equations());
 	}
-	if (fCoarseToFine)
-		fR_Q_eqnos.Alias(fFineField->Equations());
+
+	/* need to reset structure of equations in the solver */
+	if (flag == GlobalT::kNewEquations || flag == GlobalT::kNewInteractions)
+	{
+		/* final step in solver configuration */
+		fSolvers[group]->Initialize(
+			fGlobalNumEquations[group],
+			fGlobalNumEquations[group],
+			1);
+	}
 }
 
 /* initialize the current time increment for all groups */

@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.116 2005-06-29 17:40:49 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.115 2005-05-16 18:52:28 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -152,10 +152,6 @@
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
-#endif
-
-#ifdef SURFACE_CB_DEV
-#include "TotalLagrangianCBSurfaceT.h"
 #endif
 
 using namespace Tahoe;
@@ -355,10 +351,6 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("Jones_multiplier_contact_3D");
 		sub_lists.AddSub("Jones_frictional_contact_2D");
 #endif
-
-#ifdef SURFACE_CB_DEV
-		sub_lists.AddSub("total_lagrangian_CBsurface");
-#endif
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
@@ -535,10 +527,12 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #endif
 */
 
+
 #ifdef MESHFREE_GRAD_PLAST_DEV
 	else if (name == "meshfree_grad_plast")
 		return new MFGP_AssemblyT(fSupport);
 #endif
+
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
 	else if (name == "small_strain_enh_loc")
@@ -577,11 +571,6 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new MultiplierContactElement3DT(fSupport);
 	else if (name == "Jones_frictional_contact_2D")
 		return new FrictionalContactElement2DT(fSupport);
-#endif
-
-#ifdef SURFACE_CB_DEV
-	else if (name == "total_lagrangian_CBsurface")
-		return new TotalLagrangianCBSurfaceT(fSupport);
 #endif
 
 	/* default */	

@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.6 2005-03-12 08:41:51 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.6.8.3 2005-06-10 23:01:04 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -267,7 +267,7 @@ const ArrayT<int>* BasicSupportT::NodeMap(void) const
 #ifdef _FRACTURE_INTERFACE_LIBRARY_
 	return NULL;
 #else
-	return FEManager().NodeMap();	
+	return CommManager().NodeMap();	
 #endif
 }
 
@@ -278,7 +278,7 @@ const iArrayT* BasicSupportT::ElementMap(const StringT& block_ID) const
 #pragma unused(block_ID)
 	return NULL;	
 #else
-	return FEManager().ElementMap(block_ID);
+	return CommManager().ElementMap(block_ID);
 #endif
 }
 
@@ -301,14 +301,8 @@ int BasicSupportT::Rank(void) const
 }
 
 /* the local node to home processor map */
-const ArrayT<int>* BasicSupportT::ProcessorMap(void) const 
-{ 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	if (fFEManager)
-		return fFEManager->ProcessorMap(); 
-	else
-#endif
-	return NULL;
+const ArrayT<int>* BasicSupportT::ProcessorMap(void) const {
+	return CommManager().ProcessorMap(); 
 }
 
 const ArrayT<int>* BasicSupportT::ExternalNodes(void) const
@@ -316,16 +310,6 @@ const ArrayT<int>* BasicSupportT::ExternalNodes(void) const
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	if (fCommManager) 
 		return fCommManager->ExternalNodes();
-	else
-#endif
-	return NULL;
-}
-
-const ArrayT<int>* BasicSupportT::BorderNodes(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	if (fCommManager) 
-		return fCommManager->BorderNodes();
 	else
 #endif
 	return NULL;

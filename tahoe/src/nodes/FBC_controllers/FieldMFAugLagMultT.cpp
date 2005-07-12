@@ -1,4 +1,4 @@
-/* $Id: FieldMFAugLagMultT.cpp,v 1.2 2005-06-30 21:48:23 jcmach Exp $ */
+/* $Id: FieldMFAugLagMultT.cpp,v 1.1 2005-04-12 15:34:40 paklein Exp $ */
 #include "FieldMFAugLagMultT.h"
 
 #ifdef CONTINUUM_ELEMENT
@@ -137,32 +137,8 @@ void FieldMFAugLagMultT::ComputeConstraintValues(double kforce)
 	for (int i = 0; i < fAllNodes.Length(); i++) {
 		double scale = fSchedule->Value();
 		int nd = fAllNodes[i];
-// 		fPrescribedField(i,0) = scale*0.010*initial_coordinates(nd,0);
-// 		fPrescribedField(i,1) = scale*0.002*initial_coordinates(nd,0);
-		double x = initial_coordinates(nd,0);
-		double y = initial_coordinates(nd,1);
-
- 		// Linear displacement field		
-//  		double A1 =  0.010;
-//  		double B1 =  0.002;
-//  		double C1 = -0.000;
-//  		double A2 =  0.015;
-//  		double B2 = -0.008;
-//  		double C2 =  0.000;
-//  		fPrescribedField(i,0) = scale * (A1*x + B1*y + C1*x*y);
-//  		fPrescribedField(i,1) = scale * (A2*x + B2*y + C2*x*y);
-
-		// Manufactured solution 1
-		double A = 1.0;
-		double B = 1.0;
-		double C = 1.0;
-		double D = 1.0;
-		double Pi = acos(-1.0);
-		double U = sin(A*Pi*x)*cos(B*Pi*y);
-		double V = sin(C*Pi*x)*cos(D*Pi*y);
- 		fPrescribedField(i,0) = scale*U;
- 		fPrescribedField(i,1) = scale*V;
-		
+		fPrescribedField(i,0) = scale*0.010*initial_coordinates(nd,0);
+		fPrescribedField(i,1) = scale*0.002*initial_coordinates(nd,0);
 	}
 	
 	/* compute forces based on error */

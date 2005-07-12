@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.63 2005-07-08 23:38:50 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.59.4.2 2005-07-08 06:19:15 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -245,30 +245,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 			*drow_i++ = *(dlist.CurrentValue());
 		}
 	}
-
-	/* output nodal shape function information */
-	if (ElementSupport().Logging() == GlobalT::kVerbose)
-	{
-		/* output file root */
-		StringT root;
-		root.Root(ElementSupport().InputFile());
-		ofstreamT out;
-
-		/* nodal neighbors */
-		StringT neighbor_file = root;
-		neighbor_file.Append(".", Name(), ".nodal_neighbors");
-		out.open(neighbor_file);
-		fNodalShapes->MeshFreeSupport().WriteNodalNeighbors(out);
-		out.close();
-
-		/* nodal shape functions */
-		StringT shape_file = root;
-		shape_file.Append(".", Name(), ".nodal_phi");
-		out.open(shape_file);
-		fNodalShapes->MeshFreeSupport().WriteNodalShapes(out);
-		out.close();
-	}
-
+	
 	// store shape function information for boundary integration
 	fCellGeometry->BoundaryShapeFunctions(fBoundaryPhi, fBoundarySupports, fBoundaryFacetNormals);
 	
@@ -286,6 +263,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	if (body_force) {
 		int schedule = body_force->GetParameter("schedule");
 		fBodySchedule = ElementSupport().Schedule(--schedule);
+
 		/* body force vector */
 		const ArrayT<ParameterListT>& body_force_vector = body_force->Lists();
 		if (body_force_vector.Length() != NumDOF())
@@ -440,87 +418,6 @@ void SCNIMFT::CloseStep(void)
 			}
 		}
 	}
-
- 	//---------------------
- 	// Compute error norms
- 	//---------------------
-
- 	// Create list of nodes
- 	const dArray2DT& initial_coordinates = fNodalCoordinates;
- 	int nNodes = fNodalCoordinates.MajorDim();
- 	ArrayT<int> nodeList(nNodes); 
- 	for (int i = 0; i < nNodes; i++) nodeList[i] = i;
-
- 	// Interpolate field
- 	dArray2DT fieldAtNodes(nNodes,NumSD());
- 	InterpolatedFieldAtNodes(nodeList, fieldAtNodes);
-
- 	// Loop over nodes
- 	double L2u = 0.0;
- 	double L2v = 0.0;
- 	double L1u = 0.0;
- 	double L1v = 0.0;
- 	double Linfu = 0.0;
- 	double Linfv = 0.0;
- 	double unorm = 0.0;
- 	double vnorm = 0.0;
- 	for (int i = 0; i < nNodes; i++) {
-
- 	  double x = initial_coordinates(i,0);
- 	  double y = initial_coordinates(i,1);
- 	  double u = fieldAtNodes(i,0);
- 	  double v = fieldAtNodes(i,1);
-
- 	  // Linear field
-//    	  double A1 =  0.010;
-//    	  double B1 =  0.002;
-//    	  double C1 =  0.000;
-//    	  double A2 =  0.015;
-//    	  double B2 = -0.008;
-//    	  double C2 =  0.000;
-//    	  double u_ex =  A1*x + B1*y + C1*x*y;
-//    	  double v_ex =  A2*x + B2*y + C2*x*y;
- 
-	  // Manufactured solution 1
-	  double A = 1.0;
-	  double B = 1.0;
-	  double C = 1.0;
-	  double D = 1.0;
-	  double Pi = acos(-1.0);
-	  double u_ex = sin(A*Pi*x)*cos(B*Pi*y);
-	  double v_ex = sin(C*Pi*x)*cos(D*Pi*y);
-
-
-  	  double eu = fabs(u_ex - u);
-  	  double ev = fabs(v_ex - v);
- 	  unorm += u*u;
- 	  vnorm += v*v;
- 	  L2u += eu*eu;
- 	  L2v += ev*ev;
- 	  L1u += eu;
- 	  L1v += ev;
- 	  Linfu = (eu > Linfu) ? eu : Linfu; // max(eu,Linfu);
- 	  Linfv = (ev > Linfv) ? ev : Linfv; // max(ev,Linfv);
- 	}
- 	unorm = sqrt(unorm/nNodes);
- 	vnorm = sqrt(vnorm/nNodes);
- 	L2u = sqrt(L2u/nNodes)/(unorm);
- 	L2v = sqrt(L2v/nNodes)/(vnorm);
- 	L1u = L1u/(nNodes*unorm);
- 	L1v = L1v/(nNodes*vnorm);
- 	Linfu = Linfu/unorm;
- 	Linfv = Linfv/vnorm;
- 	cout << endl;
- 	cout << "L2u   = " << L2u << endl;
- 	cout << "L2v   = " << L2v << endl;
- 	cout << "L1u   = " << L1u << endl;
- 	cout << "L1v   = " << L1v << endl;
- 	cout << "Linfu = " << Linfu << endl;
- 	cout << "Linfv = " << Linfv << endl;
- 	cout << "unorm = " << unorm << endl;
- 	cout << "vnorm = " << vnorm << endl;
- 	cout << endl;
-
 }
 
 GlobalT::RelaxCodeT SCNIMFT::ResetStep(void)
@@ -701,7 +598,7 @@ void SCNIMFT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 }
 
 /* write restart data to the output stream */
-void SCNIMFT::WriteRestart(ostream& out) const
+void SCNIMFT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	ElementBaseT::WriteRestart(out);
@@ -719,7 +616,7 @@ void SCNIMFT::WriteRestart(ostream& out) const
 }
 
 /* read restart data to the output stream */
-void SCNIMFT::ReadRestart(istream& in)
+void SCNIMFT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	ElementBaseT::ReadRestart(in);
@@ -888,7 +785,7 @@ void SCNIMFT::RHSDriver(void)
 		/* cast to isotropic class */
 		iso_material = TB_DYNAMIC_CAST(IsotropicT*, mat);
 	}
-	
+
 	/* contribution from body force source */
 	bool body_force_source = false;
 	if (fBodySchedule || body_force_source) {
@@ -898,7 +795,7 @@ void SCNIMFT::RHSDriver(void)
 
 		/* work space */	
 		double load_factor = fBodySchedule->Value();
-       		dArrayT bf_source(nsd);
+		dArrayT bf_source(nsd);
 		bf_source = 0.0;
 
 		/* compute body force */
@@ -909,49 +806,28 @@ void SCNIMFT::RHSDriver(void)
 		double density = solid_material->Density();
 		double twoPi = 2.0*acos(-1.0);
 		for (int i = 0; i < nnd; i++) {
-		  
-		  bf_source = 0.0;
+		
+			bf_source = 0.0;
 		
 			/* compute body force at node i */
 			if (fBodySchedule) bf_source = fBody;
-					
+			
 			//add additional contribution to the body force
-			// Manufactured solution 1
-			double x = initial_coordinates(i,0);
-			double y = initial_coordinates(i,1);
-			double A = 1.0;
-			double B = 1.0;
-			double C = 1.0;
-			double D = 1.0;
-			double Pi = acos(-1.0);
-			double E = 1.0;
-			double nu = 0.3;
-			double lambda = nu*E/((1+nu)*(1-2*nu));
-			double mu = E/(2*(1+nu));
-			bf_source[0] = Pi*Pi * ( (A*A*(lambda+2*mu)+B*B*mu)*sin(A*Pi*x)*cos(B*Pi*y)
-						 + C*D*(lambda+mu)*cos(C*Pi*x)*sin(D*Pi*y));
-			bf_source[1] = Pi*Pi * ( (C*C*mu + D*D*(lambda+2*mu))*sin(C*Pi*x)*cos(D*Pi*y)
-						 + A*B*(lambda+mu)*cos(A*Pi*x)*sin(B*Pi*y));
 			
 			bf_source *= load_factor*density*(*volume++);
 			if (qIsAxisymmetric) 
 				bf_source *= twoPi*fCellCentroids(i,0);
 		
-//			supp_i = nodalCellSupports(i);
-//			n_supp = nodalCellSupports.MinorDim(i);
-			supp_i = fNodalSupports(i);
-			n_supp = fNodalSupports.MinorDim(i);
+			supp_i = nodalCellSupports(i);
+			n_supp = nodalCellSupports.MinorDim(i);
 			phi_i = fNodalPhi(i);
-			for (int j = 0; j < n_supp; j++) {
-			  f = fForce(*supp_i++);
-			  for (int k = 0; k < nsd; k++)
-// 			    *f++ -= bf_source[k]*(*phi_i); // This created - disp. for + body force
-			    *f++ += bf_source[k]*(*phi_i); // This creates + disp. for + body force
-
-			  phi_i++;
+			for (int j = 0; j < n_supp; j++) { 
+				f = fForce(*supp_i++);
+				for (int k = 0; k < nsd; k++) 
+					*f++ -= bf_source[k]*(*phi_i);
+				phi_i++;
 			}
 		}	
-		cout << fForce << endl;
 	}
 	
 	if (fIntegrator->FormMa(constMa)) {
@@ -1062,6 +938,14 @@ int SCNIMFT::SupportSize(int localNode) const {
 }
 
 // XML stuff below
+
+/* describe the parameters needed by the interface */
+void SCNIMFT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ElementBaseT::DefineParameters(list);
+
+}
 
 /* information about subordinate parameter lists */
 void SCNIMFT::DefineSubs(SubListT& sub_list) const

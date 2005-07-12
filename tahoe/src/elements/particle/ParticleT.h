@@ -1,5 +1,4 @@
-/* $Id: ParticleT.h,v 1.34 2005-04-08 16:41:48 d-farrell2 Exp $ */
-
+/* $Id: ParticleT.h,v 1.34.6.4 2005-06-09 03:31:36 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -34,6 +33,9 @@ public:
 	/** destructor */
 	~ParticleT(void);
 
+	/** (re-)set the system configuration */
+	virtual GlobalT::InitStatusT UpdateConfiguration(void);
+
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
@@ -56,18 +58,15 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-	/** trigger reconfiguration */
-	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
 	/** \name restart functions */
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 	/*@}*/
 
 	/** define the particles to skip. This is a list of nodes though "owned" 
@@ -208,9 +207,6 @@ protected: /* for derived classes only */
 
 protected:
 
-	/** reference ID for sending output */
-	int fOutputID;
-
 	/** \name local to global tag map.
 	 * Used for things like neighbor lists */
 	/*@{*/
@@ -221,6 +217,7 @@ protected:
 	/** connectivities used to define the output set. Just an alias to the
 	 * ParticleT::fGlobalTag. */
 	iArray2DT fPointConnectivities;
+	nVariArray2DT<int> fPointConnectivities_man;
 	/*@}*/
 
 	/** the neighboring cut-off distance */
@@ -238,6 +235,9 @@ protected:
 	/** maximum number of steps between reseting neighbor lists */
 	int fReNeighborIncr;
 
+	/** write output over all on-processor particles */
+	bool fOutputAllParticles;
+
 	/** \name periodic boundary conditions */
 	/*@{*/
 	/** thickess of the image atoms layer used to enforce periodic boundary conditions. This
@@ -251,6 +251,7 @@ protected:
 	 * have a value of 1 at time = 0.0 and increase or decrease from there
 	 * to define the stretch in the periodic BC's as a function of time. */
 	ArrayT<const ScheduleT*> fStretchSchedule;
+	double fStretchTime;
 	/*@}*/
 
 	/** \name particle properties */
@@ -262,11 +263,8 @@ protected:
 	ArrayT<StringT> fTypeNames;
 
 	/** particle type for global tag */
-	AutoArrayT<int> fType;
-	
-	/** message id for exchanging the ParticleT::fType array */
-	int fTypeMessageID;
-	
+	iArrayT fType;
+
 	/** map of particle types to properties: {type_a, type_b} -> property number */
 	nMatrixT<int> fPropertiesMap;
 
@@ -335,7 +333,8 @@ private:
 
 	/** count between resetting neighbor lists */
 	int fReNeighborCounter;
-	int fhas_periodic;
+	bool fhas_periodic;
+	bool fhas_moving_periodic;
 	dArrayT fPeriodicLengths;
 };
 

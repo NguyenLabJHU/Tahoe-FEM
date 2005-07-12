@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.29 2005-05-24 22:12:13 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.29.2.2 2005-05-31 06:15:41 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -181,7 +181,10 @@ public:
 
 	/** Set to initial conditions */
 	virtual void InitialCondition(void);
-	
+
+	/** (re-)set the system configuration */
+	GlobalT::InitStatusT UpdateConfiguration(int group);
+
 	/** apply kinematic boundary conditions */
 	virtual void InitStep(int group);
 

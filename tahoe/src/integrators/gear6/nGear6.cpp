@@ -1,4 +1,4 @@
-/* $Id: nGear6.cpp,v 1.13 2004-12-26 21:09:05 d-farrell2 Exp $ */
+/* $Id: nGear6.cpp,v 1.13.12.2 2005-06-09 02:43:57 d-farrell2 Exp $ */
 #include "nGear6.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -21,73 +21,80 @@ nGear6::nGear6(void)
 }
 
 /* consistent BC's - updates predictors and acceleration only */
-void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
+void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes)
 {
 	const char caller[] = "nGear6::ConsistentKBC";
-
-	/* check */
+	/* checks */
+	if (KBC.Mode() == KBC_CardT::kSet && !nodes)
+		ExceptionT::GeneralFail(caller, "expecting non-NULL nodes");
 	if (field.Order() != 5)
 		ExceptionT::GeneralFail(caller, "field must be order 6: %d", field.Order());
 
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (field[0])(node, dof);
-	double& v = (field[1])(node, dof);
-	double& a = (field[2])(node, dof);
+	int nnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Length() : 1;
+	const int* pnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Pointer() : &node;
 
-	switch ( KBC.Code() )
+	/* apply to nodes */
+	for (int i = 0; i < nnd; i++)
 	{
-		case KBC_CardT::kFix: /* zero displacement */
-		{
-			d = 0.0;
-			v = 0.0; //correct?	
-			a = 0.0; //correct?	
-			break;
-		}
-		case KBC_CardT::kDsp: /* prescribed displacement */
-		{
-			d = KBC.Value();
-		   	break;
-			/* NOTE:  haven't figured out a correct way to
-			   compute velocities and accelerations given a
-			   prescribed displacement...*/
-		}
-		
-		case KBC_CardT::kVel: /* prescribed velocity */
-		{
-			v = KBC.Value();
-			// NEED ACTUAL, NOT PREDICTED ACCELERATION TO DEFINE
-			// THIS KBC!!! (update array?)
-			break;
-		}
-		
-		case KBC_CardT::kAcc: /* prescribed acceleration */
-		{
-			double a_next  = KBC.Value();
-			v -= F12 * (a - a_next);
-			d -= F02 * (a - a_next);
-			a = a_next;
-			break;
-		}
+		double& d = (field[0])(*pnd, dof);
+		double& v = (field[1])(*pnd, dof);
+		double& a = (field[2])(*pnd, dof);
+		pnd++; /* next */
 
-		case KBC_CardT::kNull: /* do nothing */
+		switch ( KBC.Code() )
 		{
-			break;
+			case KBC_CardT::kFix: /* zero displacement */
+			{
+				d = 0.0;
+				v = 0.0; //correct?	
+				a = 0.0; //correct?	
+				break;
+			}
+			case KBC_CardT::kDsp: /* prescribed displacement */
+			{
+				d = KBC.Value();
+			   	break;
+				/* NOTE:  haven't figured out a correct way to
+				   compute velocities and accelerations given a
+				   prescribed displacement...*/
+			}
+			
+			case KBC_CardT::kVel: /* prescribed velocity */
+			{
+				v = KBC.Value();
+				// NEED ACTUAL, NOT PREDICTED ACCELERATION TO DEFINE
+				// THIS KBC!!! (update array?)
+				break;
+			}
+			
+			case KBC_CardT::kAcc: /* prescribed acceleration */
+			{
+				double a_next  = KBC.Value();
+				v -= F12 * (a - a_next);
+				d -= F02 * (a - a_next);
+				a = a_next;
+				break;
+			}
+			case KBC_CardT::kNull: /* do nothing */
+			{
+				break;
+			}
+			default:
+				ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code() );
 		}
-
-		default:
-			ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code() );
 	}
 }		
-#pragma message("nGear6::Predictor, not implemented with limits yet, declaration changed to match others")
+
 /* predictors - map ALL */
 void nGear6::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 	/* check */
 	if (field.Order() != 5)
 		ExceptionT::GeneralFail("nGear6::Predictor", "field must be order 6: %d", field.Order());
-
+	
 	/* fetch pointers */
 	double* p0 = field[0].Pointer(); 
 	double* p1 = field[1].Pointer();
@@ -95,9 +102,23 @@ void nGear6::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend 
 	double* p3 = field[3].Pointer();
 	double* p4 = field[4].Pointer();
 	double* p5 = field[5].Pointer();
-
+	
+	/* now update the pointers to the appropriate starting point */
+	double dfs = fieldstart;
+	*p0 += dfs;
+	*p1 += dfs;
+	*p2 += dfs;
+	*p3 += dfs;
+	*p4 += dfs;
+	*p5 += dfs;
+	
+	int len;
+	if (fieldend == -1) // operate on full arrays
+		len = field[0].Length();
+	else // operate on restricted contiguous block of the arrays
+		len = fieldend - fieldstart + 1;
+	
 	/* run through arrays */
-	int len = field[0].Length();
 	for (int i = 0; i < len; i++)
 	{
 		(*p0++) += fdt*(*p1) + fdt2*(*p2) + fdt3*(*p3) + fdt4*(*p4) + fdt5*(*p5);
@@ -107,9 +128,9 @@ void nGear6::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend 
 		(*p4++) += fdt*(*p5++);
 	}
 }		
-#pragma message("nGear6::Corrector, not implemented with limits yet, declaration changed to match others")
+
 /* corrector. Maps ALL degrees of freedom forward. */
-void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 	/* check */
 	if (field.Order() != 5)
@@ -123,11 +144,25 @@ void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldsta
 	double* p4 = field[4].Pointer();
 	double* p5 = field[5].Pointer();
 	const double* pu = update.Pointer();
-
+	
+	/* now update the pointers to the appropriate starting point */
+	double dfs = fieldstart;
+	*p0 += dfs;
+	*p1 += dfs;
+	*p2 += dfs;
+	*p3 += dfs;
+	*p4 += dfs;
+	*p5 += dfs;
+		
+	int len;
+	if (fieldend == -1) // operate on full arrays
+		len = field[0].Length();
+	else // operate on restricted contiguous block of the arrays
+		len = fieldend - fieldstart + 1;
+	
 	if (fabs(fdt) > kSmall)
 	{
 		/* run through arrays */
-		int len = field[0].Length();
 		for (int i = 0; i < len; i++)
 		{		
 			double error = ((*p2) - (*pu++))*fdt2;
@@ -146,7 +181,6 @@ void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldsta
 	else /* for dt -> 0.0 */
 	{
 		/* run through arrays */
-		int len = field[0].Length();
 		for (int i = 0; i < len; i++)
 		{
 			*p2 -= ((*p2) - (*pu++))*F22;

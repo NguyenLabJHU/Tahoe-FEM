@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.h,v 1.5 2005-06-01 15:45:25 jwfoulk Exp $ */
+/* $Id: SuperLUMatrixT.h,v 1.4 2005-04-13 21:50:20 paklein Exp $ */
 #ifndef _SUPER_LU_MATRIX_T_H_
 #define _SUPER_LU_MATRIX_T_H_
 
@@ -10,7 +10,6 @@
 
 /* direct members */
 #include "LinkedListT.h"
-#include "AutoArrayT.h"
 
 /* SuperLU type definitions */
 #include "dsp_defs.h"

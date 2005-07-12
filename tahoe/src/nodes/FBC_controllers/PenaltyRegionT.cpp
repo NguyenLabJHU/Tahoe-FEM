@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.21 2005-03-12 08:39:15 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.21.8.2 2005-07-03 05:39:52 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -35,9 +35,17 @@ PenaltyRegionT::PenaltyRegionT(void):
 	fk(-1.0),
 	fRollerDirection(-1),
 	fSecantSearch(NULL),
-	fContactArea(0.0)
+	fContactNodes_space(25),
+	fContactArea(0.0),
+	fContactEqnos_man(10, fContactEqnos),
+	fdContactNodesGroup2D(10, false, 0),
+	fdContactNodesGroup(10, false)
 {
-
+	/* set memory groups */
+	fdContactNodesGroup.Register(fGap);
+//	fdContactNodesGroup.Register(fTempNumNodes);
+	fdContactNodesGroup.Register(fNodalAreas);
+	fdContactNodesGroup2D.Register(fContactForce2D);
 }
 
 /* destructor */
@@ -98,6 +106,96 @@ void PenaltyRegionT::WriteRestart(ostream& out) const
 	out << fv << '\n';     // velocity
 	out << fxlast << '\n'; // last converged position
 	out << fvlast << '\n'; // last converged velocity
+}
+
+/* (re-)set the configuration */
+GlobalT::InitStatusT PenaltyRegionT::UpdateConfiguration(void)
+{
+	GlobalT::InitStatusT status = FBC_ControllerT::UpdateConfiguration();
+
+	/* get contact nodes */
+	ModelManagerT& model = FieldSupport().ModelManager();
+	model.ManyNodeSets(fNodeID, fContactNodes_man);
+	fContactNodes.Alias(fContactNodes_man);
+
+	/* remove "external" nodes */
+	CommManagerT& comm = FieldSupport().CommManager();
+	const ArrayT<int>* p_map = comm.ProcessorMap();
+	if (fContactNodes.Length() > 0 && p_map)
+	{
+		/* wrap it */
+		iArrayT processor;
+		processor.Alias(*p_map);
+
+		/* collect processor nodes */
+		fContactNodes_space.Dimension(0);
+		int nnd = fContactNodes.Length();
+		int rank = comm.Rank();
+		for (int i = 0; i < nnd; i++)
+			if (processor[fContactNodes[i]] == rank)
+				fContactNodes_space.Append(fContactNodes[i]);
+
+		/* reset list */
+		if (fContactNodes_space.Length() != nnd) {
+			fContactNodes_man = fContactNodes_space;
+			fContactNodes.Alias(fContactNodes_man);
+		}
+	}
+
+	/* no changes */
+	if (fContactNodes == fContactNodes_last) 
+		return status;
+	else
+		fContactNodes_last = fContactNodes;
+	
+	/* dimension workspace */
+	int nnd = fContactNodes.Length();
+	int ndof = Field().NumDOF();	
+	fdContactNodesGroup.Dimension(nnd, false);
+	fdContactNodesGroup2D.Dimension(nnd, ndof);
+	
+	/* write contact nodes */
+	ofstreamT& out = FieldSupport().Output();
+	out << " Number of contact nodes . . . . . . . . . . . . = "
+	    << fContactNodes.Length() << endl;	
+	if (FieldSupport().PrintInput()) {
+		iArrayT tmp;
+		tmp.Alias(fContactNodes);
+		tmp++;
+		out << tmp.wrap(5) << '\n';
+		tmp--;				
+	}	
+
+	/* collect volume element block ID's containing the strikers */
+	ArrayT<StringT> element_id_all;
+	model.ElementGroupIDsWithNodes(fContactNodes, element_id_all);
+	iArrayT volume_element(element_id_all.Length());
+	for (int i = 0; i < element_id_all.Length(); i++) {
+	        GeometryT::CodeT geom = model.ElementGroupGeometry(element_id_all[i]);
+	        volume_element[i] = (GeometryT::GeometryToNumSD(geom) == FieldSupport().NumSD()) ? 1 : 0;
+	}
+	int count = 0;
+	ArrayT<StringT> element_id(volume_element.Count(1));
+	for (int i = 0; i < element_id_all.Length(); i++)
+	        if (volume_element[i])
+	                element_id[count++] = element_id_all[i];
+
+	/* compute nodal areas */
+	FieldSupport().ModelManager().ComputeNodalArea(fContactNodes,
+		element_id, fNodalAreas, fGlobal2Local);
+
+	/* allocate memory for equation numbers */
+	fContactEqnos_man.SetLength(nnd*ndof, false);
+	
+	/* allocate memory for force vector */
+	fContactForce.Alias(nnd*ndof, fContactForce2D.Pointer());
+	fContactForce2D = 0.0;
+
+	/* initialize gaps */
+	fGap = 0.0;
+
+	/* return */
+	return GlobalT::MaxPrecedence(status, GlobalT::kNewInteractions);
 }
 
 /* compute the nodal contribution to the residual force vector */
@@ -237,7 +335,7 @@ void PenaltyRegionT::RegisterOutput(void)
 	n_labels[index] = "h";
 	
 	/* register output */
-	OutputSetT output_set(fContactNodes, n_labels);
+	OutputSetT output_set(fContactNodes, n_labels, FieldSupport().CommManager().PartitionNodesChanging());
 	fOutputID = FieldSupport().RegisterOutput(output_set);
 }
 
@@ -450,98 +548,15 @@ void PenaltyRegionT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* affected nodes */
-	ArrayT<StringT> ns_ID;
-	StringListT::Extract(list.GetList("node_ID_list"), ns_ID);
-	if (ns_ID.Length() > 0) {
-		ModelManagerT& model = FieldSupport().ModelManager();
-		model.ManyNodeSets(ns_ID, fContactNodes);
-		fNumContactNodes = fContactNodes.Length();
-	}
-	else
-	  fNumContactNodes = 0;
-	
-	/* remove "external" nodes */
-	ofstreamT& out = FieldSupport().Output();
-	CommManagerT& comm = FieldSupport().CommManager();
-	const ArrayT<int>* p_map = comm.	ProcessorMap();
-	if (fNumContactNodes > 0 && p_map)
-	{
-		/* wrap it */
-		iArrayT processor;
-		processor.Alias(*p_map);
-	
-		/* count processor nodes */
-		int rank = comm.Rank();
-		int num_local_nodes = 0;
-		for (int i = 0; i < fNumContactNodes; i++)
-			if (processor[fContactNodes[i]] == rank)
-				num_local_nodes++;
-		
-		/* remove off-processor nodes */
-		if (num_local_nodes != fNumContactNodes)
-		{
-			/* report */
-			out << " Number of external contact nodes (removed). . . = "
-			    << fNumContactNodes - num_local_nodes << '\n';
-
-			/* collect processor nodes */
-			iArrayT nodes_temp(num_local_nodes);
-			int index = 0;
-			for (int i = 0; i < fNumContactNodes; i++)
-				if (processor[fContactNodes[i]] == rank)
-					nodes_temp[index++] = fContactNodes[i];
-		
-			/* reset values */
-			fContactNodes.Swap(nodes_temp);
-			fNumContactNodes = fContactNodes.Length();
-		}
-	}
-	
-	/* write contact nodes */
-	out << " Number of contact nodes . . . . . . . . . . . . = "
-	    << fNumContactNodes << endl;	
-	if (FieldSupport().PrintInput()) {
-		fContactNodes++;
-		out << fContactNodes.wrap(6) << '\n';
-		fContactNodes--;				
-	}	
-
-        /* collect volume element block ID's containing the strikers */
-        ModelManagerT& model = FieldSupport().ModelManager();
-        ArrayT<StringT> element_id_all;
-        model.ElementGroupIDsWithNodes(fContactNodes, element_id_all);
-        iArrayT volume_element(element_id_all.Length());
-        for (int i = 0; i < element_id_all.Length(); i++) {
-                GeometryT::CodeT geom = model.ElementGroupGeometry(element_id_all[i]);
-                volume_element[i] = (GeometryT::GeometryToNumSD(geom) == FieldSupport().NumSD()) ? 1 : 0;
-        }
-        int count = 0;
-        ArrayT<StringT> element_id(volume_element.Count(1));
-        for (int i = 0; i < element_id_all.Length(); i++)
-                if (volume_element[i])
-                        element_id[count++] = element_id_all[i];
-
-        /* compute nodal areas */
-        FieldSupport().ModelManager().ComputeNodalArea(fContactNodes,
-        element_id, fNodalAreas, fGlobal2Local);
-
-
-	/* allocate memory for equation numbers */
-	int ndof = Field().NumDOF();
-	fContactEqnos.Dimension(fNumContactNodes*ndof);
-	
-	/* allocate memory for force vector */
-	fContactForce2D.Dimension(fNumContactNodes, ndof);
-	fContactForce.Set(fNumContactNodes*ndof, fContactForce2D.Pointer());
-	fContactForce2D = 0.0; // will be generate impulse at ApplyPreSolve
-
-	/* allocate space to store gaps (for output) */
-	fGap.Dimension(fNumContactNodes);
-	fGap = 0.0;
+	StringListT::Extract(list.GetList("node_ID_list"), fNodeID);
 
 	/* state variables */
 	fx.Dimension(nsd);
 	fv.Dimension(nsd);
 	fxlast.Dimension(nsd);
 	fvlast.Dimension(nsd);
+
+	/* contact nodes need to be set ASAP is geometry is not changing */
+	if (!FieldSupport().CommManager().PartitionNodesChanging())
+		UpdateConfiguration();
 }

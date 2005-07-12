@@ -1,5 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.h,v 1.4 2002-07-05 22:28:03 paklein Exp $ */
-
+/* $Id: UpLagr_ExternalFieldT.h,v 1.4.86.2 2005-07-08 06:19:14 paklein Exp $ */
 #ifndef _UPDATED_LAGR_EX_FIELD_T_H_
 #define _UPDATED_LAGR_EX_FIELD_T_H_
 

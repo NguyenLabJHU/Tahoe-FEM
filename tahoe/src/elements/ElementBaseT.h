@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.46 2005-05-05 16:39:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.46.4.2 2005-05-31 06:11:00 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -162,6 +162,9 @@ public:
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force) = 0;
 #endif
 
+	/** (re-)set the system configuration */
+	virtual GlobalT::InitStatusT UpdateConfiguration(void);
+
 	/** initialize current time increment */
 	virtual void InitStep(void);
 
@@ -250,11 +253,11 @@ public:
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 	/*@}*/
 #else
 	virtual void WriteRestart(double* outgoingData) const;

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.37 2005-01-24 06:53:34 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.37.10.3 2005-07-02 00:46:34 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -88,13 +88,14 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 	double error = Residual(fRHS);
 	SolutionStatusT solutionflag = ExitIteration(error, fNumIteration);
 
+#if 0
 	/* check for relaxation */
 	if (solutionflag == kConverged) {
-		GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+		GlobalT::RelaxCodeT relaxcode = GetRelaxCode();
 
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
-			fFEManager.SetEquationSystem(Group());
+			ContinueStep(); // go back and renumber and go again... or do we just want to not renumber in here...
 			
 		/* recompute force and continue iterating */
 		if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
@@ -127,6 +128,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 			solutionflag = ExitIteration(error, fNumIteration);
 		}
 	}
+#endif
 			
 	/* loop on error */
 	while (solutionflag == kContinue &&
@@ -156,10 +158,10 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 				const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
 				CompareLHS(*fLHS, *approx_LHS);
 
-//TEMP - use the approximate matrix
-GlobalMatrixT* tmp = fLHS;
-fLHS = (GlobalMatrixT*) approx_LHS;
-approx_LHS = tmp;
+				/* use the approximate matrix */
+				GlobalMatrixT* tmp = fLHS;
+				fLHS = (GlobalMatrixT*) approx_LHS;
+				approx_LHS = tmp;
 
 				delete approx_LHS;
 			}
@@ -193,13 +195,14 @@ approx_LHS = tmp;
 		/* test for convergence */
 		solutionflag = ExitIteration(error, fNumIteration);
 
+#if 0
 		/* check for relaxation */
 		if (solutionflag == kConverged) {
-			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+			GlobalT::RelaxCodeT relaxcode = GetRelaxCode();
 		
 			/* reset global equations */
 			if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
-				fFEManager.SetEquationSystem(Group());
+				ContinueStep(); // go back and renumber and go again... or do we just want to not renumber in here...
 			
 			/* recompute force and continue iterating */
 			if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
@@ -232,11 +235,13 @@ approx_LHS = tmp;
 				solutionflag = ExitIteration(error, fNumIteration);
 			}
 		}
+#endif
 	}
 
 	/* found solution - check relaxation */
-	if (solutionflag == kConverged)
-		solutionflag = DoConverged();
+//	if (solutionflag == kConverged)
+//		solutionflag = DoConverged();
+#pragma message("delete me")
 			
 	return solutionflag;
 	}
@@ -264,6 +269,25 @@ void NLSolver::CloseStep(void)
 
 	/* close iteration output */	
 	CloseIterationOutput();
+
+	/* increase time step ? (for multi-step sequences) */
+	if (fQuickSolveTol > 1 && fNumIteration < fQuickSolveTol)
+	{
+		fQuickConvCount++;		
+		cout << "\n NLSolver::CloseStep: quick converged count: ";
+		cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
+
+		if (fQuickConvCount >= fQuickSeriesTol)
+			if (fFEManager.IncreaseLoadStep() == 1)
+				fQuickConvCount = 0;
+	}
+	else
+	{
+		/* restart count if convergence is slow */
+		fQuickConvCount = 0;	
+		cout << "\n NLSolver::CloseStep: reset quick converged: ";
+		cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;	
+	}
 }
 
 /* error handler */
@@ -282,6 +306,14 @@ void NLSolver::ResetStep(void)
 	CloseIterationOutput();
 }
 
+/* renumbering handler */
+void NLSolver::ContinueStep(void)
+{
+	// Calls InitStep to handle reconfiguration/renumbering
+	InitStep();
+}
+
+
 /* (re-)set the reference error */
 void NLSolver::SetReferenceError(double error)
 {
@@ -289,6 +321,7 @@ void NLSolver::SetReferenceError(double error)
 	fError0 = error;
 }
 
+#if 0
 /* handlers */
 NLSolver::SolutionStatusT NLSolver::DoConverged(void)
 {
@@ -314,6 +347,7 @@ NLSolver::SolutionStatusT NLSolver::DoConverged(void)
 	/* success */
 	return kConverged;						
 }
+#endif
 
 /* divert output for iterations */
 void NLSolver::InitIterationOutput(void)
@@ -333,6 +367,9 @@ void NLSolver::InitIterationOutput(void)
 		/* increment */
 		root.Append(".", fFEManager.StepNumber());
 		root.Append("of", fFEManager.NumberOfSteps());
+
+		/* tack on processor designation */
+		if (fFEManager.Size() > 1) root.Append(".p", fFEManager.Rank());
 
 		/* set temporary output */
 		fFEManager.DivertOutput(root);

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.10 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.10.20.2 2005-07-08 06:19:15 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #ifndef _EFG_FDELASTIC_T_H_
 #define _EFG_FDELASTIC_T_H_

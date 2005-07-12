@@ -1,6 +1,5 @@
-/* $Id: PenaltyRegionT.h,v 1.10 2005-03-12 08:39:15 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.10.8.2 2005-07-03 05:39:53 paklein Exp $ */
 /* created: paklein (04/30/1998) */
-
 #ifndef _PENALTY_REGION_T_H_
 #define _PENALTY_REGION_T_H_
 
@@ -14,6 +13,9 @@
 #include "iArray2DT.h"
 #include "dMatrixT.h"
 #include "InverseMapT.h"
+#include "nArrayGroupT.h"
+#include "nArray2DGroupT.h"
+#include "VariArrayT.h"
 
 namespace Tahoe {
 
@@ -58,6 +60,9 @@ public:
 	virtual void InitialCondition(void);
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
+
+	/** (re-)set the configuration */
+	virtual GlobalT::InitStatusT UpdateConfiguration(void);
 
 	/* apply force */
 	virtual void ApplyRHS(void);
@@ -112,7 +117,7 @@ protected:
 	MotionCodeT fSlow;
 	double fMass;            /**< mass of the region */
 	const ScheduleT* fLTf;   /**< NULL if there is no time dependence */
-	int fNumContactNodes; /**< number of contact nodes */
+//	int fNumContactNodes; /**< number of contact nodes */
 	/*@}*/
 
 	/** \name state variables */
@@ -131,30 +136,27 @@ protected:
 
 	/** \name contact force node and equation numbers */
 	/*@{*/
+	ArrayT<StringT> fNodeID;
+	
 	iArrayT fContactNodes;
+	AutoArrayT<int> fContactNodes_man;
+	AutoArrayT<int> fContactNodes_last;
+	AutoArrayT<int> fContactNodes_space;
 	iArrayT fContactEqnos;
-
-	/** shallow version of PenaltyRegionT::fContactForce2D */
-	dArrayT fContactForce;
+	VariArrayT<int> fContactEqnos_man;
 
 	/** array of signed gaps where gap < 0.0 implies contact */
 	dArrayT fGap;
 
 	/** dArray2DT copy of the force */
 	dArray2DT fContactForce2D;
+
+	/** shallow version of PenaltyRegionT::fContactForce2D */
+	dArrayT fContactForce;
 	/*@}*/
 
-	/* workspace */
-	dArrayT fTempNumNodes; // temp space length = fNumContactNodes
-
-	/** \name writing results */
-	/*@{*/	
 	/** output ID */
 	int fOutputID;
-	
-	/** "connectivities" for output, just alias of PenaltyRegionT::fContactNodes */
-//	iArray2DT fContactNodes2D;
-	/*@}*/	
 
 	/** nodal areas */
 	dArrayT fNodalAreas;
@@ -164,7 +166,15 @@ protected:
 
 	/** contact area */
 	double fContactArea;
+	
+	/** \name memory managers */
+	/*@{*/	
+	/** group of arrays length number of contact nodes */
+	nArrayGroupT<double> fdContactNodesGroup;
 
+	/** group of arrays length number of contact nodes x ndof */
+	nArray2DGroupT<double> fdContactNodesGroup2D;
+	/*@}*/
 };
 
 } // namespace Tahoe 

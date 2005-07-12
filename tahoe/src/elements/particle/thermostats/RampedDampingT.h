@@ -1,4 +1,4 @@
-/* $Id: RampedDampingT.h,v 1.4 2004-07-15 08:29:54 paklein Exp $ */
+/* $Id: RampedDampingT.h,v 1.4.20.1 2005-06-05 06:23:55 paklein Exp $ */
 #ifndef _RAMPED_DAMPING_T_H_
 #define _RAMPED_DAMPING_T_H_
 
@@ -18,7 +18,7 @@ public:
 	
 	/** augment/overwrite forces with new ones */
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
-			dArray2DT& forces, AutoArrayT<int>& types,
+			dArray2DT& forces, ArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties);
 	
 protected:
