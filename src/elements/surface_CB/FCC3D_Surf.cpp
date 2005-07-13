@@ -1,10 +1,11 @@
-/* $Id: FCC3D_Surf.cpp,v 1.7 2005-07-08 05:30:31 paklein Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.8 2005-07-13 05:26:42 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
 #include "ElementsConfig.h"
 #include "FCCLatticeT_Surf.h"
 #include "ContinuumElementT.h"
+#include "dSymMatrixT.h"
 #include "ModelManagerT.h"
 #include <math.h>
 
@@ -147,6 +148,16 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	/* reset the continuum density (4 atoms per unit cell) */
 	/* DOES THIS NEED TO BE CHANGED? */
 	fDensity = fPairProperty->Mass()/fAtomicVolume;
+	
+	/* CALL STRESS/MODULUS TO TEST VALUES - GET VALUES FOR EACH OF 6 SURFACES */
+	//dSymMatrixT E(3), PK2(3);
+	//dMatrixT C(6);
+	//double rho;
+	//E = 0.0;
+	//E(0,1)=E(1,0)=0.001;
+	//ComputePK2(E,PK2);
+	//ComputeModuli(E,C);
+	//rho = ComputeEnergyDensity(E);
 }
 
 /* return a reference to the bond lattice */
@@ -180,6 +191,7 @@ void FCC3D_Surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	
 	/* sum over bonds */
 	moduli = 0.0; 
+	/* HAVE NOT NORMALIZED MODULUS BY AREA YET */
 	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
@@ -188,6 +200,9 @@ void FCC3D_Surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 		fFCCLattice_Surf->BondComponentTensor4(i, fBondTensor4);
 		moduli.AddScaled(R4byV*coeff, fBondTensor4);
 	}
+	
+	/* Multiply modulus by half due to splitting bond energies */
+	moduli*=.5;
 	
 	/* symmetric */
 	moduli.CopySymmetric();
@@ -299,12 +314,14 @@ void FCC3D_Surf::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 			/* accumulate */
 			double ri = l*fNearestNeighbor;
 			double coeff = R2byV*(*density++)*force(ri, NULL, NULL)/ri;
-			pPK2[0] += coeff*R[0]*R[0];
-			pPK2[1] += coeff*R[1]*R[1];
-			pPK2[2] += coeff*R[2]*R[2];
-			pPK2[3] += coeff*R[1]*R[2];
-			pPK2[4] += coeff*R[0]*R[2];
-			pPK2[5] += coeff*R[0]*R[1];
+			
+			/* multiply PK2 by half because of splitting bond energies */
+			pPK2[0] += coeff*R[0]*R[0]*0.5;
+			pPK2[1] += coeff*R[1]*R[1]*0.5;
+			pPK2[2] += coeff*R[2]*R[2]*0.5;
+			pPK2[3] += coeff*R[1]*R[2]*0.5;
+			pPK2[4] += coeff*R[0]*R[2]*0.5;
+			pPK2[5] += coeff*R[0]*R[1]*0.5;
 		}
 	}
 }
@@ -332,9 +349,10 @@ double FCC3D_Surf::ComputeEnergyDensity(const dSymMatrixT& E)
 	for (int i = 0; i < nb; i++)
 	{
 		double r = bond_length[i]*fNearestNeighbor;
-		tmpSum += (*density++)*energy(r, NULL, NULL);
+		/* Split energy by half since counting all bonds unlike bulk */
+		tmpSum += (*density++)*energy(r, NULL, NULL)*0.5;
 	}
-	/* MODIFIED FOR SURFACE CB CALCULATIONS */
+	/* MODIFIED FOR SURFACE CB CALCULATIONS, I.E. NORMALIZE BY AREA */
 	tmpSum /= fAtomicArea;
 	
 	return tmpSum;

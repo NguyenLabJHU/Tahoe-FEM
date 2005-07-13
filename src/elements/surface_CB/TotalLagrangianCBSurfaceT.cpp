@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.11 2005-07-09 00:01:32 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.12 2005-07-13 05:26:42 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -38,7 +38,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	const ShapeFunctionT& shape = ShapeFunction();
 	int nsd = shape.NumSD();	// # of spatial dimensions in problem
 	int nfs = shape.NumFacets();	// # of total possible surface facets?
-	int nsi = shape.FacetShapeFunction(0).NumIP();		// # IPs per surface face (2x2 for 2D surface)
+	int nsi = shape.FacetShapeFunction(0).NumIP();		// # IPs per surface face (2x2=4 for 2D surface)
 	int nfn = shape.FacetShapeFunction(0).NumNodes();	// # nodes on each surface face?
 
 	/* support for the surface model */
@@ -47,6 +47,11 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	/* Need to actually place values into fF_Surf_List when testing (identity) */
 	for (int i = 0; i < fF_Surf_List.Length(); i++)
 		fF_Surf_List[i].Dimension(nsd);
+		
+	/* DUMMY INITIALIZE fF_Surf_List - SPECIFY DEFORMATION GRADIENT */
+	fF_Surf_List[0].Identity();
+
+	/* Back to normal flow */
 	fSurfaceCBSupport = new FSMatSupportT(nsd, nsi);
 	fSurfaceCBSupport->SetContinuumElement(this);
 	fSurfaceCBSupport->SetDeformationGradient(&fF_Surf_List);
@@ -164,7 +169,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 }
 
 /* TO DO LIST */
-// (1) Add reference areas for surface clusters into FCC3D_Surf.cpp
+// (1) Add reference areas for surface clusters into FCC3D_Surf.cpp - need to do for modulus?
 // (2) Check stress/modulus calculations in FCC3D_Surf.cpp, see what modifications need
 // to be made for surface cluster calculations
-// (3) Obtain "bulk" zero stress stretch, space surface clusters according to that value
+// (3) Add Stress/Modulus function calls in TotalLagrangianCBSurfaceT.cpp
