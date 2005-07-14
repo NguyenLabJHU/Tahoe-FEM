@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-04-06 01:42:58 thao Exp $
+# $Id: makefile,v 1.3 2005-07-14 19:44:38 regueiro Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = RGViscoelasticityT.o \
-	RGSplitT.o
+	RGSplitT.o \
+	VWPotentialT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,7 +42,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = RGViscoelasticityT.cpp \
-	RGSplitT.cpp
+	RGSplitT.cpp \
+	VWPotentialT.cpp
 
 ##################### (3) headers
 #
@@ -53,7 +55,8 @@ SRC = RGViscoelasticityT.cpp \
 # HDR and HDR_LINK macro   
 #
 HDR = RGViscoelasticityT.h \
-	RGSplitT.h
+	RGSplitT.h \
+	VWPotentialT.h
 
 
 HDR_LINK = $(HDR:.h=.h_link)
