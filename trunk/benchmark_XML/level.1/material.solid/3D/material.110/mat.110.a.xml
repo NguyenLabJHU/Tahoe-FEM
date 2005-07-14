@@ -35,13 +35,17 @@
                     <SIERRA_hypoelastic
                         SIERRA_parameter_file="mat.110.params" density="1.0">
                         <bulk_and_shear bulk_modulus="15177.0" shear_modulus="9001.5"/>
+                        <SIERRA_continuation continuation_steps="2">
+                            <SIERRA_continuation_property
+                                initial_value="10000.0" name="bulk modulus"/>
+                        </SIERRA_continuation>
                     </SIERRA_hypoelastic>
                 </large_strain_material_3D>
             </large_strain_element_block>
         </updated_lagrangian>
     </element_list>
     <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+01" max_iterations="3" rel_tolerance="1.0e-10">
+        divergence_tolerance="1.0e+01" max_iterations="15" rel_tolerance="1.0e-10">
         <profile_matrix/>
     </nonlinear_solver>
 </tahoe>
