@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.12 2005-07-13 05:26:42 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.13 2005-07-14 05:27:28 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -165,6 +165,94 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 				/* store */
 				fSurfaceElementFacesType(i,j) = normal_type;
 			}
+	}
+}
+
+/*************************************************************************
+ * Protected
+ *************************************************************************/
+
+/* form group contribution to the stiffness matrix */
+void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
+{
+	/* inherited - bulk contribution */
+	TotalLagrangianT::LHSDriver(sys_type);
+}
+
+/* form group contribution to the residual */
+void TotalLagrangianCBSurfaceT::RHSDriver(void)
+{
+	/* inherited - bulk contribution */
+	TotalLagrangianT::RHSDriver();
+
+	/* dimensions */
+	const ShapeFunctionT& shape = ShapeFunction();
+	int nsd = shape.NumSD();                          // # of spatial dimensions in problem
+	int nfs = shape.NumFacets();                      // # of total possible element faces
+	int nsi = shape.FacetShapeFunction(0).NumIP();    // # IPs per surface face
+	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
+	int nen = NumElementNodes();                      // # nodes in bulk element
+
+	/* loop over surface elements */
+	dMatrixT jacobian(nsd, nsd-1);
+	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	iArrayT face_nodes(nfn), face_nodes_index(nfn);
+	ElementSupport().RegisterCoordinates(face_coords);
+	dArrayT ip_coords_X(nsd);
+	dArrayT ip_coords_Xi(nsd);
+	dArrayT Na(nen);
+	dArray2DT DNa(nsd,nen);
+	for (int i = 0; i < fSurfaceElements.Length(); i++)
+	{
+		/* bulk element information */
+		int element = fSurfaceElements[i];
+		const ElementCardT& element_card = ElementCard(element);
+		fLocInitCoords.SetLocal(element_card.NodesX()); /* coordinates over bulk element */
+		fLocDisp.SetLocal(element_card.NodesX()); /* coordinates over bulk element */
+	
+		/* integrate surface contribution to nodal forces */
+		fRHS = 0.0;
+		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
+			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
+			{
+				/* face parent domain */
+				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
+			
+				/* collect coordinates of face nodes */
+				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
+				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
+				face_nodes.Collect(face_nodes_index, element_card.NodesX());
+				face_coords.SetLocal(face_nodes);
+
+				/* integrate over the face */
+				int face_ip;
+				fSurfaceCBSupport->SetCurrIP(face_ip);
+				for (face_ip = 0; face_ip < nsi; face_ip++) {
+				
+					/* ip coordinates */
+					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+					
+					/* ip coordinates in bulk parent domain */
+					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+
+					/* bulk shape functions at surface ip coordinates */
+					shape.EvaluateShapeFunctions(ip_coords_Xi, Na, DNa);
+					
+					/* deformation gradient at the surface ip */
+					dMatrixT& F = fF_Surf_List[face_ip];
+					shape.GradU(fLocDisp, F, fLocInitCoords, Na, DNa); 
+					F.PlusIdentity();				
+					
+					/* stress at the surface */
+					int normal_type = fSurfaceElementFacesType(i,j);
+					const dSymMatrixT& cauchy = fSurfaceCB[normal_type]->s_ij();
+					
+					/* compute nodal force */
+				}
+			}
+			
+		/* assemble forces */
+		ElementSupport().AssembleRHS(Group(), fRHS, element_card.Equations());
 	}
 }
 

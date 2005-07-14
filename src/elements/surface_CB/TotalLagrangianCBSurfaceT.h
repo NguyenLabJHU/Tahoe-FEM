@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.3 2005-06-30 16:52:58 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.4 2005-07-14 05:27:28 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -25,6 +25,17 @@ public:
 	/*@{*/
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+protected:
+
+	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
+	/*@{*/
+	/** form group contribution to the stiffness matrix */
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
+
+	/** form group contribution to the residual */
+	virtual void RHSDriver(void);
 	/*@}*/
 		
 protected:
