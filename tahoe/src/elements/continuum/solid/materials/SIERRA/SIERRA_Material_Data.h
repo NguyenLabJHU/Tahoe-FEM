@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.h,v 1.7 2004-08-16 17:27:17 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.h,v 1.8 2005-07-14 00:51:48 paklein Exp $ */
 #ifndef _SIERRA_MAT_DATA_H_
 #define _SIERRA_MAT_DATA_H_
 
@@ -87,7 +87,7 @@ public:
 
 	/** \name real constants for material properties */
 	/*@{*/
-	/** add a material property. Return the index of the value in the parameters array */
+	/** add/overwrite a material property. Return the index of the value in the parameters array */
 	int AddProperty(const StringT& name, double value);
 	
 	/** array property names */
@@ -182,12 +182,17 @@ inline int SIERRA_Material_Data::AddProperty(const StringT& name, double value)
 {
 	if (fPropertyNames.AppendUnique(name))
 	{
-		fPropertyValues.Append(value);
-		fPropertyMap.Insert(name, value);
+		fPropertyValues.Append(value); /* insert into array */
+		fPropertyMap.Insert(name, value); /* insert into map */
 		return fPropertyValues.Length() - 1;
 	}
-	else 
-		return fPropertyNames.PositionOf(name);
+	else /* overwrite */
+	{
+		int index = fPropertyNames.PositionOf(name);
+		fPropertyValues[index] = value; /* overwrite array value */
+		fPropertyMap[name] = value; /* overwrite map value */
+		return index;
+	}
 }
 
 /* add a symbol */
