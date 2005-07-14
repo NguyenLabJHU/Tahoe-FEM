@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.50 2005-03-12 08:40:25 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.51 2005-07-14 00:51:01 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -196,6 +196,19 @@ GlobalT::RelaxCodeT ContinuumElementT::ResetStep(void)
 			}
 		}
 	}
+
+	return relax;
+}
+
+/* element level reconfiguration for the current time increment */
+GlobalT::RelaxCodeT ContinuumElementT::RelaxSystem(void)
+{
+	/* inherited */
+	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
+
+	/* loop over materials */
+	for (int i = 0; i < fMaterialList->Length(); i++)
+		relax = GlobalT::MaxPrecedence((*fMaterialList)[i]->RelaxCode(), relax);
 
 	return relax;
 }

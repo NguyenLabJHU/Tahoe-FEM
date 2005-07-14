@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.10 2004-10-21 18:50:04 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.11 2005-07-14 00:51:09 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -37,6 +37,9 @@ public:
 
 	/** form of tangent matrix. \return symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** relaxation */
+	virtual GlobalT::RelaxCodeT RelaxCode(void) { return GlobalT::kNoRelax; };
 
 	/** reference to the material support */
 	const MaterialSupportT& MaterialSupport(void) const;

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.36 2005-03-11 20:33:41 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.37 2005-07-14 00:51:01 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -91,6 +91,9 @@ public:
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+
+	/** element level reconfiguration for the current time increment */
+	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 	/*@}*/
 
 	/** read restart information from stream */
