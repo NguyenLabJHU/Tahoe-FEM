@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.8 2005-07-13 05:26:42 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.9 2005-07-14 18:47:50 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -156,6 +156,7 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	//E = 0.0;
 	//E(0,1)=E(1,0)=0.001;
 	//ComputePK2(E,PK2);
+	//cout << "PK2 = " << PK2 << endl;
 	//ComputeModuli(E,C);
 	//rho = ComputeEnergyDensity(E);
 }

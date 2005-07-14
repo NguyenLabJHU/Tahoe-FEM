@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.14 2005-07-14 07:14:41 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.15 2005-07-14 18:47:50 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -176,8 +176,137 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 /* form group contribution to the stiffness matrix */
 void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
+	const char caller[] = "TotalLagrangianCBSurfaceT::LHSDriver";
+	
 	/* inherited - bulk contribution */
 	TotalLagrangianT::LHSDriver(sys_type);
+	
+	/* time integration parameters */
+	double constKd = 0.0;
+	int formKd = fIntegrator->FormKd(constKd);
+	if (!formKd) return;
+	
+	/* dimensions */
+	const ShapeFunctionT& shape = ShapeFunction();
+	int nsd = shape.NumSD();                          // # of spatial dimensions in problem
+	int nfs = shape.NumFacets();                      // # of total possible element faces
+	int nsi = shape.FacetShapeFunction(0).NumIP();    // # IPs per surface face
+	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
+	int nen = NumElementNodes();                      // # nodes in bulk element
+	
+	/* matrix format */
+	dMatrixT::SymmetryFlagT format =
+		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
+		dMatrixT::kWhole :
+		dMatrixT::kUpperOnly;
+	
+	/* loop over surface elements */
+	dMatrixT jacobian(nsd, nsd-1);
+	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	iArrayT face_nodes(nfn), face_nodes_index(nfn);
+	ElementSupport().RegisterCoordinates(face_coords);
+	dArrayT ip_coords_X(nsd);
+	dArrayT ip_coords_Xi(nsd);
+	dArrayT Na(nen);
+	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen), DNa_x(nsd,nen);
+	dMatrixT DXi_DX(nsd);
+	dMatrixT F_inv(nsd);
+	dMatrixT PK1(nsd), cauchy(nsd);
+	for (int i = 0; i < fSurfaceElements.Length(); i++)
+	{
+		/* bulk element information */
+		int element = fSurfaceElements[i];
+		const ElementCardT& element_card = ElementCard(element);
+		fLocInitCoords.SetLocal(element_card.NodesX()); /* coordinates over bulk element */
+		fLocDisp.SetLocal(element_card.NodesX()); /* coordinates over bulk element */
+	
+		/* initialize */
+		fStressStiff = 0.0;
+		fLHS = 0.0;
+
+		/* integrate surface contribution to nodal forces */
+		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
+			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
+			{			
+				/* face parent domain */
+				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
+			
+				/* collect coordinates of face nodes */
+				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
+				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
+				face_nodes.Collect(face_nodes_index, element_card.NodesX());
+				face_coords.SetLocal(face_nodes);
+
+				/* integrate over the face */
+				int face_ip;
+				fSurfaceCBSupport->SetCurrIP(face_ip);
+				const double* w = surf_shape.Weight();	
+			
+				for (face_ip = 0; face_ip < nsi; face_ip++)
+				{
+				/* STRESS STIFFNESS */
+				
+					/* coordinate mapping on face */
+					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+					double detj = surf_shape.SurfaceJacobian(jacobian);
+				
+					/* ip coordinates on face */
+					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+					
+					/* ip coordinates in bulk parent domain */
+					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+
+					/* shape functions/derivatives */
+					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+					DXi_DX.Inverse();
+					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+
+					/* deformation gradient/shape functions/derivatives at the surface ip */
+					dMatrixT& F = fF_Surf_List[face_ip];
+					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+					F.PlusIdentity();
+					
+					/* F^-1 */
+					double J = F.Det();
+					if (J <= 0.0)
+						ExceptionT::BadJacobianDet(caller);
+					else
+						F_inv.Inverse(F);
+					
+					cout << "Past F_inv" << endl;
+					/* Do we need to transform derivatives again here? (DNa_x) */
+					shape.TransformDerivatives(F_inv,DNa_X,DNa_x);
+					
+					cout << "past transform derivatives" << endl;
+					/* stress at the surface */
+					int normal_type = fSurfaceElementFacesType(i,j);
+					(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+
+					/* scale factor */
+					double scale = formKd*detj*w[face_ip]*J;
+					
+					/* integration constants */
+					cauchy *= scale;
+					
+					/* using the stress symmetry - watch big X vs. little x */
+					shape.GradNa(DNa_x, fGradNa);
+					fStressStiff.MultQTBQ(fGradNa,cauchy,format,dMatrixT::kAccumulate);
+
+				/* MATERIAL STIFFNESS */
+					/* strain displacement matrix */
+					Set_B(DNa_x, fB);
+					
+					/* Get D Matrix */
+					fD.SetToScaled(scale,fCurrMaterial->c_ijkl());
+					
+					/* accumulate */
+					fLHS.MultQTBQ(fB,fD,format,dMatrixT::kAccumulate);
+				}
+			}
+			
+		/* assemble forces */
+		fLHS.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
+	}
 }
 
 /* form group contribution to the residual */
