@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.9 2004-08-16 17:27:17 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.10 2005-07-14 00:53:06 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
@@ -37,6 +37,15 @@ public:
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** apply pre-conditions at the current time step. Called once for
+	 * the model at the beginning of a time increment. Resets the continuation
+	 * setp count. */
+	virtual void InitStep(void);
+
+	/** relaxation. If continuation steps of properties is enabled, these are
+	 * incremented here. */
+	virtual GlobalT::RelaxCodeT RelaxCode(void);
 
 	/** \name history variables */
 	/*@{*/
@@ -100,6 +109,12 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
@@ -218,6 +233,24 @@ private:
 	 * SIERRA_Material_BaseT::sSIERRA_Material_DB is constructed when the
 	 * first one is instantiated and is deleted when the last one is freed. */
 	static int sSIERRA_Material_count;
+
+	/** \name parameter continuation */
+	/*@{*/
+	/** number of continuation steps */
+	int fNumContinuation;
+
+	/** continuation step */
+	int fContinuationStep;
+
+	/** property name */
+	ArrayT<StringT> fContinuationPropName;
+
+	/** property index */
+	dArrayT fContinuationPropInit;
+
+	/** property index */
+	dArrayT fContinuationPropFinal;
+	/*@}*/
 };
 
 /* inlines */

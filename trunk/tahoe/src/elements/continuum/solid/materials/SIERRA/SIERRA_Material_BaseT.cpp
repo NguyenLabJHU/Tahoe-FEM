@@ -1,9 +1,10 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.27 2005-07-11 23:09:05 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.28 2005-07-14 00:53:06 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
 #include "SpectralDecompT.h"
 #include "ParameterListT.h"
+#include "ParameterContainerT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "DotLine_FormatterT.h"
@@ -28,7 +29,9 @@ SIERRA_Material_BaseT::SIERRA_Material_BaseT(void):
 	fSIERRA_Material_Data(NULL),
 	fPressure(0.0),
 	fDecomp(NULL),
-	fDebug(false)
+	fDebug(false),
+	fNumContinuation(0),
+	fContinuationStep(0)
 {
 	const char caller[] = "SIERRA_Material_BaseT::SIERRA_Material_BaseT";
 
@@ -47,6 +50,48 @@ SIERRA_Material_BaseT::~SIERRA_Material_BaseT(void)
 	/* free materials database */
 	if (--sSIERRA_Material_count == 0)
 		SIERRA_Material_DB::Delete();
+}
+
+/* apply pre-conditions at the current time step */
+void SIERRA_Material_BaseT::InitStep(void)
+{
+	/* inherited */
+	FSIsotropicMatT::InitStep();
+	
+	/* reset continuation step count */
+	fContinuationStep = 0;
+	
+	/* initialize continuation properties */
+	if (fNumContinuation > 0) 
+		for (int i = 0; i < fContinuationPropName.Length(); i++)
+			fSIERRA_Material_Data->AddProperty(fContinuationPropName[i], fContinuationPropInit[i]);
+}
+
+/* relaxation */
+GlobalT::RelaxCodeT SIERRA_Material_BaseT::RelaxCode(void)
+{
+	/* inherited */
+	GlobalT::RelaxCodeT relax = FSIsotropicMatT::RelaxCode();
+	
+	/* property continuation */
+	if (fNumContinuation > 0 && fContinuationStep < fNumContinuation)
+	{
+		/* update properties */
+		fContinuationStep++;
+		for (int i = 0; i < fContinuationPropName.Length(); i++)
+		{
+			/* interpolate property value making final value exact */
+			double m = (fContinuationPropFinal[i] - fContinuationPropInit[i])/fNumContinuation;
+			double value = fContinuationPropFinal[i] - (fNumContinuation - fContinuationStep)*m; 
+
+			/* update property value */
+			fSIERRA_Material_Data->AddProperty(fContinuationPropName[i], value);
+		}
+		
+		/* trigger relaxation */
+		relax = GlobalT::MaxPrecedence(relax, GlobalT::kRelax);
+	}
+	return relax;
 }
 
 /* materials initialization */
@@ -277,7 +322,46 @@ void SIERRA_Material_BaseT::DefineParameters(ParameterListT& list) const
 	/* file with Sierra materials parameters */
 	list.AddParameter(ParameterT::Word, "SIERRA_parameter_file");
 }
+
+/* information about subordinate parameter lists */
+void SIERRA_Material_BaseT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FSIsotropicMatT::DefineSubs(sub_list);
+
+	/* continuation variables */
+	sub_list.AddSub("SIERRA_continuation", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SIERRA_Material_BaseT::NewSub(const StringT& name) const
+{
+	if (name == "SIERRA_continuation")
+	{
+		ParameterContainerT* continuation = new ParameterContainerT(name);
+		continuation->SetSubSource(this);
 	
+		/* number of continuation steps */
+		ParameterT steps(ParameterT::Integer, "continuation_steps");
+		steps.SetDefault(1);
+		continuation->AddParameter(steps);
+	
+		/* continuation properties */
+		continuation->AddSub("SIERRA_continuation_property", ParameterListT::OnePlus);
+	
+		return continuation;
+	}
+	else if (name == "SIERRA_continuation_property")
+	{
+		ParameterContainerT* property = new ParameterContainerT(name);
+		property->AddParameter(ParameterT::String, "name");
+		property->AddParameter(ParameterT::Double, "initial_value");
+		return property;
+	}
+	else /* inherited */
+		return FSIsotropicMatT::NewSub(name);
+}
+
 /* accept parameter list */
 void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 {
@@ -435,6 +519,34 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 	out.flush();
 
 	out << "    SIERRA material: " << fSIERRA_Material_Data->Name() << '\n';	
+
+	/* continuation parameters */
+	const ParameterListT* continuation = list.List("SIERRA_continuation");
+	if (continuation)
+	{
+		/* number of continuation increments */
+		fNumContinuation = continuation->GetParameter("continuation_steps");
+		
+		/* collect continuation properties */
+		int num_props = continuation->NumLists("SIERRA_continuation_property");
+		fContinuationPropName.Dimension(num_props);
+		fContinuationPropInit.Dimension(num_props);
+		fContinuationPropFinal.Dimension(num_props);
+		for (int i = 0; i < num_props; i++) {
+			const ParameterListT& prop = continuation->GetList("SIERRA_continuation_property", i);
+			
+			/* standardize name */
+			StringT name = prop.GetParameter("name");
+			name.Replace(' ', '_');
+			name.ToUpper();
+			
+			/* store */
+			fContinuationPropName[i] = name;
+			fContinuationPropInit[i] = prop.GetParameter("initial_value");
+			fContinuationPropFinal[i] = fSIERRA_Material_Data->Property(fContinuationPropName[i]);
+		}
+	}
+	else fNumContinuation = 0;
 }
 
 /***********************************************************************
