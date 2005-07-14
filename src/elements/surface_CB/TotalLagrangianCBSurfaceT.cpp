@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.13 2005-07-14 05:27:28 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.14 2005-07-14 07:14:41 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -6,6 +6,7 @@
 #include "FCC3D_Surf.h"
 #include "FCC3D.h"
 #include "MaterialListT.h"
+#include "eIntegratorT.h"
 
 using namespace Tahoe;
 
@@ -182,8 +183,15 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 /* form group contribution to the residual */
 void TotalLagrangianCBSurfaceT::RHSDriver(void)
 {
+	const char caller[] = "TotalLagrangianCBSurfaceT::RHSDriver";
+
 	/* inherited - bulk contribution */
 	TotalLagrangianT::RHSDriver();
+
+	/* time integration parameters */
+	double constKd = 0.0;
+	int formKd = fIntegrator->FormKd(constKd);
+	if (!formKd) return;
 
 	/* dimensions */
 	const ShapeFunctionT& shape = ShapeFunction();
@@ -193,6 +201,9 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
 	int nen = NumElementNodes();                      // # nodes in bulk element
 
+	/* matrix alias to fNEEvec */
+	dMatrixT WP(nsd, fStressStiff.Rows(), fNEEvec.Pointer());
+
 	/* loop over surface elements */
 	dMatrixT jacobian(nsd, nsd-1);
 	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
@@ -201,7 +212,10 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	dArrayT ip_coords_X(nsd);
 	dArrayT ip_coords_Xi(nsd);
 	dArrayT Na(nen);
-	dArray2DT DNa(nsd,nen);
+	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen);
+	dMatrixT DXi_DX(nsd);
+	dMatrixT F_inv(nsd);
+	dMatrixT PK1(nsd), cauchy(nsd);
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
 		/* bulk element information */
@@ -227,27 +241,49 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 				/* integrate over the face */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
+				const double* w = surf_shape.Weight();				
 				for (face_ip = 0; face_ip < nsi; face_ip++) {
+
+					/* coordinate mapping on face */
+					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+					double detj = surf_shape.SurfaceJacobian(jacobian);
 				
-					/* ip coordinates */
+					/* ip coordinates on face */
 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
 					
 					/* ip coordinates in bulk parent domain */
 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
 
-					/* bulk shape functions at surface ip coordinates */
-					shape.EvaluateShapeFunctions(ip_coords_Xi, Na, DNa);
-					
-					/* deformation gradient at the surface ip */
+					/* shape functions/derivatives */
+					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+					DXi_DX.Inverse();
+					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+
+					/* deformation gradient/shape functions/derivatives at the surface ip */
 					dMatrixT& F = fF_Surf_List[face_ip];
-					shape.GradU(fLocDisp, F, fLocInitCoords, Na, DNa); 
-					F.PlusIdentity();				
+					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+					F.PlusIdentity();
+					
+					/* F^-1 */
+					double J = F.Det();
+					if (J <= 0.0)
+						ExceptionT::BadJacobianDet(caller);
+					else
+						F_inv.Inverse(F);
 					
 					/* stress at the surface */
 					int normal_type = fSurfaceElementFacesType(i,j);
-					const dSymMatrixT& cauchy = fSurfaceCB[normal_type]->s_ij();
+					(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+
+					/* compute PK1/J */
+					PK1.MultABT(cauchy, F_inv);
 					
-					/* compute nodal force */
+					/* Wi,J PiJ */
+					shape.GradNa(DNa_X, fGradNa);
+					WP.MultAB(PK1, fGradNa);
+
+					/* accumulate */
+					fRHS.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
 				}
 			}
 			
