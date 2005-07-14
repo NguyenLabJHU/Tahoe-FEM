@@ -1,6 +1,5 @@
-/* $Id: ShapeFunctionT.cpp,v 1.17 2005-02-13 22:14:30 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.18 2005-07-14 07:12:40 paklein Exp $ */
 /* created: paklein (06/26/1996) */
-
 #include "ShapeFunctionT.h"
 #include "ParentDomainT.h"
 #include "LocalArrayT.h"
@@ -226,29 +225,29 @@ void ShapeFunctionT::CloseStore(void)
 	fStore = true;
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-void ShapeFunctionT::DoTransformDerivatives(const dMatrixT& changeofvar, 
-	const dArray2DT& original, dArray2DT& transformed)
+void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar, 
+	const dArray2DT& original, dArray2DT& transformed) const
 {
 	int  numnodes = original.MinorDim();
 
 	/* allocate memory */
 	transformed.Dimension(original.MajorDim(),numnodes);
 
+	/* not so const workspace */
+	dArrayT& v1 = const_cast<dArrayT&>(fv1);
+	dArrayT& v2 = const_cast<dArrayT&>(fv2);
+
 	/* apply chain rule derivative */
 	for (int i = 0; i < numnodes; i++)
 	{
 		/* fetch values */
-		original.ColumnCopy(i,fv1);
+		original.ColumnCopy(i,v1);
 
 		/* transform */
-		changeofvar.MultTx(fv1,fv2);
+		changeofvar.MultTx(v1,v2);
 		
 		/* write back */	
-		transformed.SetColumn(i,fv2);
+		transformed.SetColumn(i,v2);
 	}
 }
 

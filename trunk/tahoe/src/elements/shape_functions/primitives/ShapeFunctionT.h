@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.25 2005-02-13 22:14:30 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.26 2005-07-14 07:12:40 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -148,7 +148,7 @@ public:
 	 *  Note: Return curl(T) will be 3x3 */
 	void CurlU(const ArrayT<dMatrixT>& T, dMatrixT& curl_T, int IPnumber) const;
 
-	/** convert shape function derivatives by applying a chain rule
+	/** \name convert shape function derivatives by applying a chain rule
 	 * transformation:
 		\f[
 			\frac{\partial N_A}{\partial x_i} =
@@ -156,9 +156,16 @@ public:
 		\f]
 	 *
 	 * \param changeofvar jacobian matrix of the coordinate transformation
-	 * \param derivatives transformed shape function derivatives. This array is
+	 * \param transformed transformed shape function derivatives. This array is
 	 *        dimensioned during the call: [nsd] x [num_nodes] */
-	void TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives);
+	/*@{*/
+	/** apply change of variables to the stored derivatives array */
+	void TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& transformed) const;
+
+	/** apply change of variables to the given derivatives array */
+	void TransformDerivatives(const dMatrixT& changeofvar, const dArray2DT& original,
+		dArray2DT& transformed) const;
+	/*@}*/
 
 	/** shape function gradients matrix at the current integration point
 	 * as in Hughes (4.90)
@@ -186,10 +193,6 @@ public:
 	/*@}*/
 
 protected:
-
-	/** apply change of variables to the shape function derivatives */
-	void DoTransformDerivatives(const dMatrixT& changeofvar, const dArray2DT& original,
-		dArray2DT& transformed);
 
 	/** set Grad_x matrix. used by the meshfree classes to substitutite a set
 	 * of shape function derivatives. the set values are retained until the next 
@@ -351,9 +354,9 @@ inline void ShapeFunctionT::B_q(dMatrixT& B_matrix) const
 }
 #endif
 
-inline void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives)
-{
-	DoTransformDerivatives(changeofvar, (*pDNaU)[fCurrIP], derivatives);
+inline void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar, 
+	dArray2DT& transformed) const {
+	TransformDerivatives(changeofvar, (*pDNaU)[fCurrIP], transformed);
 }
 
 /********************************************************************************/
