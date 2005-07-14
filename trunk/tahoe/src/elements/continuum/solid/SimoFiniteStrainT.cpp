@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.30 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.31 2005-07-14 07:10:18 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -24,6 +24,7 @@ SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const Field
 	fTempMat1(NumSD()),
 	fTempMat2(NumSD())
 {
+#pragma unused(field)
 ExceptionT::GeneralFail("SimoFiniteStrainT::SimoFiniteStrainT", "out of date");
 #if 0
 	/* read parameters */
