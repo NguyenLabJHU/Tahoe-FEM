@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.h,v 1.8 2002-09-23 06:58:29 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.h,v 1.9 2005-07-14 07:11:07 paklein Exp $ */
 
 #ifndef _SIMO_SHAPE_FUNCTION_T_H_
 #define _SIMO_SHAPE_FUNCTION_T_H_
@@ -85,11 +85,10 @@ private:
 };
 
 /* inlines */
-
 inline void SimoShapeFunctionT::TransformDerivatives_enhanced(const dMatrixT& changeofvar, 
 	dArray2DT& derivatives)
 {
-	DoTransformDerivatives(changeofvar, fDNaX_bubble[fCurrIP], derivatives);
+	TransformDerivatives(changeofvar, fDNaX_bubble[fCurrIP], derivatives);
 }
 
 #if 0

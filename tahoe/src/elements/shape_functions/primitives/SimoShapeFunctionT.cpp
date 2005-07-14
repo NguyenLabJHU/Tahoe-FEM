@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.cpp,v 1.7 2002-10-20 22:49:46 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.cpp,v 1.8 2005-07-14 07:11:07 paklein Exp $ */
 
 #include "SimoShapeFunctionT.h"
 #include "LocalArrayT.h"
@@ -153,7 +153,7 @@ void SimoShapeFunctionT::SetDerivatives(void)
 		for (int i = 0; i < nip; i++)
 		{
 			/* apply change of variables to the shape function derivatives */
-			DoTransformDerivatives(fJ_0_inv, fDNa_bubble[i], fDNaX_bubble[i]);
+			TransformDerivatives(fJ_0_inv, fDNa_bubble[i], fDNaX_bubble[i]);
 			
 			/* skip for point at centroid */
 			if (i != i_centroid)
