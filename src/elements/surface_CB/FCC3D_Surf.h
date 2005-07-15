@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.h,v 1.3 2005-07-06 02:52:04 hspark Exp $ */
+/* $Id: FCC3D_Surf.h,v 1.4 2005-07-15 22:44:33 hspark Exp $ */
 #ifndef _FCC_3D_SURF_H_
 #define _FCC_3D_SURF_H_
 
@@ -34,6 +34,9 @@ public:
 	/** nearest neighbor distance */
 	double NearestNeighbor(void) const { return fNearestNeighbor; };
 	/*@}*/
+
+	/** thickness of surface layer to subtract off of bulk */
+	double SurfaceThickness(void) const { return fSurfaceThickness; };
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -73,6 +76,9 @@ private:
 
 	/** nearest neighbor distance */
 	double fNearestNeighbor;
+
+	/** surface layer thickness */
+	double fSurfaceThickness;
 
 	/** bond information */
 	FCCLatticeT_Surf* fFCCLattice_Surf;

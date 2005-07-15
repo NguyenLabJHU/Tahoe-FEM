@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.9 2005-07-14 18:47:50 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.10 2005-07-15 22:44:33 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -24,6 +24,7 @@ using namespace Tahoe;
 FCC3D_Surf::FCC3D_Surf(void):
 	ParameterInterfaceT("FCC_3D_Surf"),
 	fNearestNeighbor(-1),
+	fSurfaceThickness(-1),
 	fFCCLattice_Surf(NULL),
 	fPairProperty(NULL),
 	fAtomicVolume(0),
@@ -144,6 +145,9 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	double cube_edge = fNearestNeighbor*sqrt(2.0);
 	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
 	fAtomicArea = .5*cube_edge*cube_edge;	// area normalization same for all surface cluster atoms
+
+	/* set surface thickness - MAY NEED TO CHANGE */
+	fSurfaceThickness = 1.5*fNearestNeighbor;
 
 	/* reset the continuum density (4 atoms per unit cell) */
 	/* DOES THIS NEED TO BE CHANGED? */

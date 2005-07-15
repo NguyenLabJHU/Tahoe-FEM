@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.15 2005-07-14 18:47:50 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.16 2005-07-15 22:44:33 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -273,39 +273,39 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					else
 						F_inv.Inverse(F);
 					
-					cout << "Past F_inv" << endl;
+					//cout << "Past F_inv" << endl;
 					/* Do we need to transform derivatives again here? (DNa_x) */
-					shape.TransformDerivatives(F_inv,DNa_X,DNa_x);
+					//shape.TransformDerivatives(F_inv,DNa_X,DNa_x);
 					
-					cout << "past transform derivatives" << endl;
+					//cout << "past transform derivatives" << endl;
 					/* stress at the surface */
-					int normal_type = fSurfaceElementFacesType(i,j);
-					(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					//int normal_type = fSurfaceElementFacesType(i,j);
+					//(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 
 					/* scale factor */
-					double scale = formKd*detj*w[face_ip]*J;
+					//double scale = formKd*detj*w[face_ip]*J;
 					
 					/* integration constants */
-					cauchy *= scale;
+					//cauchy *= scale;
 					
 					/* using the stress symmetry - watch big X vs. little x */
-					shape.GradNa(DNa_x, fGradNa);
-					fStressStiff.MultQTBQ(fGradNa,cauchy,format,dMatrixT::kAccumulate);
+					//shape.GradNa(DNa_x, fGradNa);
+					//fStressStiff.MultQTBQ(fGradNa,cauchy,format,dMatrixT::kAccumulate);
 
 				/* MATERIAL STIFFNESS */
 					/* strain displacement matrix */
-					Set_B(DNa_x, fB);
+					//Set_B(DNa_x, fB);
 					
 					/* Get D Matrix */
-					fD.SetToScaled(scale,fCurrMaterial->c_ijkl());
+					//fD.SetToScaled(scale,fCurrMaterial->c_ijkl());
 					
 					/* accumulate */
-					fLHS.MultQTBQ(fB,fD,format,dMatrixT::kAccumulate);
+					//fLHS.MultQTBQ(fB,fD,format,dMatrixT::kAccumulate);
 				}
 			}
 			
 		/* assemble forces */
-		fLHS.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
+		//fLHS.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
 	}
 }
 
