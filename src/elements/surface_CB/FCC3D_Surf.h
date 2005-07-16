@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.h,v 1.4 2005-07-15 22:44:33 hspark Exp $ */
+/* $Id: FCC3D_Surf.h,v 1.5 2005-07-16 23:02:03 paklein Exp $ */
 #ifndef _FCC_3D_SURF_H_
 #define _FCC_3D_SURF_H_
 
@@ -56,6 +56,10 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+//TEMP
+/** spatial tangent modulus */
+virtual const dMatrixT& c_ijkl(void) { return FSSolidMatT::c_ijkl(); };
 
 protected:
 
