@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.16 2005-07-15 22:44:33 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.17 2005-07-16 23:01:27 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -182,9 +182,9 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	TotalLagrangianT::LHSDriver(sys_type);
 	
 	/* time integration parameters */
-	double constKd = 0.0;
-	int formKd = fIntegrator->FormKd(constKd);
-	if (!formKd) return;
+	double constK = 0.0;
+	int formK = fIntegrator->FormK(constK);
+	if (!formK) return;
 	
 	/* dimensions */
 	const ShapeFunctionT& shape = ShapeFunction();
@@ -202,8 +202,8 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	
 	/* loop over surface elements */
 	dMatrixT jacobian(nsd, nsd-1);
-	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
 	iArrayT face_nodes(nfn), face_nodes_index(nfn);
+	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
 	ElementSupport().RegisterCoordinates(face_coords);
 	dArrayT ip_coords_X(nsd);
 	dArrayT ip_coords_Xi(nsd);
@@ -217,8 +217,8 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		/* bulk element information */
 		int element = fSurfaceElements[i];
 		const ElementCardT& element_card = ElementCard(element);
-		fLocInitCoords.SetLocal(element_card.NodesX()); /* coordinates over bulk element */
-		fLocDisp.SetLocal(element_card.NodesX()); /* coordinates over bulk element */
+		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
+		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
 	
 		/* initialize */
 		fStressStiff = 0.0;
@@ -244,9 +244,9 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			
 				for (face_ip = 0; face_ip < nsi; face_ip++)
 				{
-				/* STRESS STIFFNESS */
+				/* MAPPING/DEFORMATION */
 				
-					/* coordinate mapping on face */
+					/* reference coordinate mapping on face */
 					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
 					double detj = surf_shape.SurfaceJacobian(jacobian);
 				
@@ -268,44 +268,45 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					
 					/* F^-1 */
 					double J = F.Det();
-					if (J <= 0.0)
-						ExceptionT::BadJacobianDet(caller);
-					else
-						F_inv.Inverse(F);
-					
-					//cout << "Past F_inv" << endl;
-					/* Do we need to transform derivatives again here? (DNa_x) */
-					//shape.TransformDerivatives(F_inv,DNa_X,DNa_x);
-					
-					//cout << "past transform derivatives" << endl;
-					/* stress at the surface */
-					//int normal_type = fSurfaceElementFacesType(i,j);
-					//(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					F_inv.Inverse(F);
 
-					/* scale factor */
-					//double scale = formKd*detj*w[face_ip]*J;
+				/* STRESS STIFFNESS */
+					
+					/* shape function gradient wrt current configuration */
+					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
+					
+					/* stress at the surface */
+					int normal_type = fSurfaceElementFacesType(i,j);
+					(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+
+					/* integration weight */
+					double scale = constK*detj*w[face_ip]*J;
 					
 					/* integration constants */
-					//cauchy *= scale;
+					cauchy *= scale;
 					
 					/* using the stress symmetry - watch big X vs. little x */
-					//shape.GradNa(DNa_x, fGradNa);
-					//fStressStiff.MultQTBQ(fGradNa,cauchy,format,dMatrixT::kAccumulate);
+					shape.GradNa(DNa_x, fGradNa);
+					fStressStiff.MultQTBQ(fGradNa, cauchy, format, dMatrixT::kAccumulate);
 
 				/* MATERIAL STIFFNESS */
+				
 					/* strain displacement matrix */
-					//Set_B(DNa_x, fB);
+					Set_B(DNa_x, fB);
 					
 					/* Get D Matrix */
-					//fD.SetToScaled(scale,fCurrMaterial->c_ijkl());
+					fD.SetToScaled(scale, fSurfaceCB[normal_type]->c_ijkl());
 					
 					/* accumulate */
-					//fLHS.MultQTBQ(fB,fD,format,dMatrixT::kAccumulate);
+					fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
 				}
 			}
 			
-		/* assemble forces */
-		//fLHS.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
+		/* add/expand stress stiffness contribution into fLHS */
+		fLHS.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
+		
+		/* assemble stiffness */
+		ElementSupport().AssembleLHS(Group(), fLHS, element_card.Equations());		
 	}
 }
 
@@ -350,8 +351,8 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 		/* bulk element information */
 		int element = fSurfaceElements[i];
 		const ElementCardT& element_card = ElementCard(element);
-		fLocInitCoords.SetLocal(element_card.NodesX()); /* coordinates over bulk element */
-		fLocDisp.SetLocal(element_card.NodesX()); /* coordinates over bulk element */
+		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
+		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
 	
 		/* integrate surface contribution to nodal forces */
 		fRHS = 0.0;
