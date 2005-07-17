@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.4 2005-07-14 05:27:28 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.5 2005-07-17 04:07:05 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -37,7 +37,12 @@ protected:
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);
 	/*@}*/
-		
+
+	/** reduce the coordinates to a surface layer on the given face
+	 *\param coords should enter with the coordinates of entire element and
+	 *       returns with the coordinates defining the surface layer */
+	void SurfaceLayer(LocalArrayT& coords, int face, double thickness) const;
+
 protected:
 
 	/** list of elements on the surface */
@@ -60,6 +65,12 @@ protected:
 
 	/** deformation gradients at the surface integration points */
 	ArrayT<dMatrixT> fF_Surf_List;
+
+	/** \name split integration */
+	/*@{*/
+	LocalArrayT fSplitInitCoords;
+	ShapeFunctionT* fSplitShapes;
+	/*@}*/
 };
 
 } /* namespace Tahoe */

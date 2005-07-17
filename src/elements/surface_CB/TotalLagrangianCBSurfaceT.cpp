@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.17 2005-07-16 23:01:27 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.18 2005-07-17 04:07:05 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -10,10 +10,41 @@
 
 using namespace Tahoe;
 
+/* vector functions */
+inline static void CrossProduct(const double* A, const double* B, double* AxB) {   
+	AxB[0] = A[1]*B[2] - A[2]*B[1];
+	AxB[1] = A[2]*B[0] - A[0]*B[2];
+	AxB[2] = A[0]*B[1] - A[1]*B[0];
+};
+
+inline static double Dot(const double* A, const double* B){ 
+	return A[0]*B[0] + A[1]*B[1] + A[2]*B[2]; 
+};
+
+inline static void Vector(const double* start, const double* end, double* v) {
+	v[0] = end[0] - start[0];
+	v[1] = end[1] - start[1];
+	v[2] = end[2] - start[2];
+};
+
+inline static void Scale(double* v, double scale) {
+	v[0] *= scale;
+	v[1] *= scale;
+	v[2] *= scale;
+};
+
+inline static void Sum(const double* A, const double* B, double* AB) {
+	AB[0] = A[0] + B[0];
+	AB[1] = A[1] + B[1];
+	AB[2] = A[2] + B[2];
+};
+
 /* constructor */
 TotalLagrangianCBSurfaceT::TotalLagrangianCBSurfaceT(const ElementSupportT& support):
 	TotalLagrangianT(support),
-	fSurfaceCBSupport(NULL)
+	fSurfaceCBSupport(NULL),
+	fSplitInitCoords(LocalArrayT::kInitCoords),
+	fSplitShapes(NULL)
 {
 	SetName("total_lagrangian_CBsurface");
 }
@@ -25,6 +56,7 @@ TotalLagrangianCBSurfaceT::~TotalLagrangianCBSurfaceT(void)
 	for (int i = 0; i < fSurfaceCB.Length(); i++)
 		delete fSurfaceCB[i];
 	delete fSurfaceCBSupport;
+	delete fSplitShapes;
 }
 
 /* accept parameter list */
@@ -41,6 +73,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	int nfs = shape.NumFacets();	// # of total possible surface facets?
 	int nsi = shape.FacetShapeFunction(0).NumIP();		// # IPs per surface face (2x2=4 for 2D surface)
 	int nfn = shape.FacetShapeFunction(0).NumNodes();	// # nodes on each surface face?
+	int nen = NumElementNodes();
 
 	/* support for the surface model */
 	fF_Surf_List.Dimension(nsi);
@@ -167,6 +200,11 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 				fSurfaceElementFacesType(i,j) = normal_type;
 			}
 	}
+
+	/* initialize data for split integration */
+	fSplitInitCoords.Dimension(nen, nsd);
+	fSplitShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fSplitInitCoords);
+	fSplitShapes->Initialize();
 }
 
 /*************************************************************************
@@ -368,6 +406,12 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 				face_nodes.Collect(face_nodes_index, element_card.NodesX());
 				face_coords.SetLocal(face_nodes);
 
+				/* set up split integration */
+				int normal_type = fSurfaceElementFacesType(i,j);
+				double t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+				fSplitInitCoords = fLocInitCoords;
+				SurfaceLayer(fSplitInitCoords, j, t_surface);
+
 				/* integrate over the face */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
@@ -402,7 +446,6 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 						F_inv.Inverse(F);
 					
 					/* stress at the surface */
-					int normal_type = fSurfaceElementFacesType(i,j);
 					(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 
 					/* compute PK1/J */
@@ -420,6 +463,70 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 		/* assemble forces */
 		ElementSupport().AssembleRHS(Group(), fRHS, element_card.Equations());
 	}
+}
+
+/***********************************************************************
+ * Private
+ ***********************************************************************/
+
+/* reduce the coordinates to a surface layer on the given face */
+void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, double thickness) const
+{
+	const char caller[] = "TotalLagrangianCBSurfaceT::SurfaceLayer";
+	if (GeometryCode() != GeometryT::kHexahedron)
+		ExceptionT::GeneralFail(caller, "implemented for hex geometry only");
+
+	/* transpose coordinate data */
+	double d24[24];
+	dArray2DT coords_tmp(8, 3, d24);
+	coords.ReturnTranspose(coords_tmp);
+
+	int i4[4];
+	iArrayT face_nodes(4, i4);
+	ShapeFunction().NodesOnFacet(face, face_nodes);
+	double v1[3], v2[3];
+	Vector(coords_tmp(face_nodes[1]), coords_tmp(face_nodes[0]), v1);
+	Vector(coords_tmp(face_nodes[1]), coords_tmp(face_nodes[2]), v2);
+	double normal[3];
+	CrossProduct(v2, v1, normal);
+	Scale(normal, 1.0/sqrt(Dot(normal,normal)));
+
+	/* opposite face information */
+	int opp_face[8] = {1,0,4,5,2,3};
+	int opp_face_nodes_dat[6*4] = {
+		4,7,6,5,
+		0,1,2,3,
+		3,2,6,7,
+		0,3,7,4,
+		1,0,4,5,
+		2,1,5,6};
+	iArray2DT opp_face_nodes(6, 4, opp_face_nodes_dat);
+
+	/* "shorten" vectors to back face */
+	for (int i = 0; i < 4; i++)
+	{
+		/* nodes */
+		int n_front = face_nodes[i];
+		int n_back  = opp_face_nodes(face,i); 
+	
+		/* vector to back face */
+		Vector(coords_tmp(n_front), coords_tmp(n_back), v1);
+		double h = -Dot(v1,normal);
+		if (h < 0.0) ExceptionT::GeneralFail(caller, "geometry error");
+		if (h < 2.0*thickness)
+			ExceptionT::GeneralFail(caller, "layer thickness %g exceeds half element depth %g",
+				thickness, h/2.0);
+		
+		/* compute point */
+		Scale(v1, thickness/h);
+		Sum(coords_tmp(n_front), v1, v2);
+		
+		/* store */
+		coords_tmp.SetRow(n_back, v2);
+	}
+	
+	/* write back */
+	coords.FromTranspose(coords_tmp);	
 }
 
 /* TO DO LIST */
