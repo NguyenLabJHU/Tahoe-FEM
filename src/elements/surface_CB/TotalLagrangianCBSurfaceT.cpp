@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.18 2005-07-17 04:07:05 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.19 2005-07-17 23:24:38 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -275,11 +275,86 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				face_nodes.Collect(face_nodes_index, element_card.NodesX());
 				face_coords.SetLocal(face_nodes);
 
+				/* set up split integration */
+				int normal_type = fSurfaceElementFacesType(i,j);
+				double t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+				fSplitInitCoords = fLocInitCoords;
+				SurfaceLayer(fSplitInitCoords, j, t_surface);
+
+				/* remove bulk contribution to surface layer (see TotalLagrangianT::FormKd) */
+				const double* Det    = fSplitShapes->IPDets();
+				const double* Weight = fSplitShapes->IPWeights();
+				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
+				fSplitShapes->TopIP();
+				fShapes->TopIP(); /* synch bulk shape functions */				
+				while (fSplitShapes->NextIP())
+				{
+					/* synch bulk shape functions */
+					fShapes->NextIP();
+
+				/* MAPPING/DEFORMATION */
+
+					/* ip coordinates in the split domain */
+					fSplitShapes->IPCoords(ip_coords_X);
+					
+					/* map ip coordinates to bulk parent domain */
+					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+
+					/* bulk shape functions/derivatives */
+					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+					DXi_DX.Inverse();
+					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+
+					/* deformation gradient/shape functions/derivatives at the surface ip */
+					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
+					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+					F.PlusIdentity();
+
+					/* F^(-1) */
+					double J = F.Det();
+					if (J <= 0.0)
+						ExceptionT::BadJacobianDet(caller);
+					else
+						F_inv.Inverse(F);
+
+					/* bulk material model */
+					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
+					fCurrMaterial = (SolidMaterialT*) pcont_mat;
+
+				/* STRESS STIFFNESS */
+
+					/* shape function gradient wrt current configuration */
+					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
+
+					/* get Cauchy stress */
+					(fCurrMaterial->s_ij()).ToMatrix(cauchy);
+
+					/* integration weight */
+					double scale = -constK*(*Det++)*(*Weight++)*J;
+
+					/* integration constants */
+					cauchy *= scale;
+
+					/* using the stress symmetry - watch big X vs. little x */
+					shape.GradNa(DNa_x, fGradNa);
+					fStressStiff.MultQTBQ(fGradNa, cauchy, format, dMatrixT::kAccumulate);
+
+				/* MATERIAL STIFFNESS */
+
+					/* strain displacement matrix */
+					Set_B(DNa_x, fB);
+
+					/* Get D Matrix */
+					fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
+
+					/* accumulate */
+					fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
+				}
+
 				/* integrate over the face */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
-				const double* w = surf_shape.Weight();	
-			
+				const double* w = surf_shape.Weight();
 				for (face_ip = 0; face_ip < nsi; face_ip++)
 				{
 				/* MAPPING/DEFORMATION */
@@ -314,7 +389,6 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
 					
 					/* stress at the surface */
-					int normal_type = fSurfaceElementFacesType(i,j);
 					(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 
 					/* integration weight */
@@ -412,6 +486,58 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 				fSplitInitCoords = fLocInitCoords;
 				SurfaceLayer(fSplitInitCoords, j, t_surface);
 
+				/* remove bulk contribution to surface layer (see TotalLagrangianT::FormKd) */
+				const double* Det    = fSplitShapes->IPDets();
+				const double* Weight = fSplitShapes->IPWeights();
+				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
+				fSplitShapes->TopIP();
+				fShapes->TopIP(); /* synch bulk shape functions */
+				while (fSplitShapes->NextIP())
+				{
+					/* synch bulk shape functions */
+					fShapes->NextIP();
+				
+					/* ip coordinates in the split domain */
+					fSplitShapes->IPCoords(ip_coords_X);
+					
+					/* map ip coordinates to bulk parent domain */
+					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+
+					/* bulk shape functions/derivatives */
+					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+					DXi_DX.Inverse();
+					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+
+					/* deformation gradient/shape functions/derivatives at the surface ip */
+					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
+					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+					F.PlusIdentity();
+
+					/* F^(-1) */
+					double J = F.Det();
+					if (J <= 0.0)
+						ExceptionT::BadJacobianDet(caller);
+					else
+						F_inv.Inverse(F);
+
+					/* bulk material model */
+					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
+					fCurrMaterial = (SolidMaterialT*) pcont_mat;
+
+					/* get Cauchy stress */
+					(fCurrMaterial->s_ij()).ToMatrix(cauchy);
+
+					/* compute PK1/J */
+					PK1.MultABT(cauchy, F_inv);
+
+					/* Wi,J PiJ */
+					shape.GradNa(DNa_X, fGradNa);
+					WP.MultAB(PK1, fGradNa);
+
+					/* accumulate */
+					fRHS.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
+				}
+
 				/* integrate over the face */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
@@ -428,7 +554,7 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					/* ip coordinates in bulk parent domain */
 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
 
-					/* shape functions/derivatives */
+					/* bulk shape functions/derivatives */
 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
 					DXi_DX.Inverse();
 					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
@@ -457,7 +583,7 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 
 					/* accumulate */
 					fRHS.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
-				}
+				}				
 			}
 			
 		/* assemble forces */
