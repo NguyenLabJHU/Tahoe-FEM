@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.10 2005-07-15 22:44:33 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.11 2005-07-17 01:01:31 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -196,8 +196,9 @@ void FCC3D_Surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	
 	/* sum over bonds */
 	moduli = 0.0; 
-	/* HAVE NOT NORMALIZED MODULUS BY AREA YET */
-	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
+	
+	/* Normalize modulus by area instead of volume */
+	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fAtomicArea;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
