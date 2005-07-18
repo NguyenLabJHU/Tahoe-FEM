@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.46 2005-06-28 14:47:07 d-farrell2 Exp $ */
+/* $Id: FieldT.cpp,v 1.47 2005-07-18 08:01:32 paklein Exp $ */
 
 #include "FieldT.h"
 
@@ -1120,7 +1120,7 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& name) const
 		/* define as node set or all */		
 		ic->AddParameter(ParameterT::Word, "node_ID", ParameterListT::ZeroOrOnce);
 		ParameterT all_nodes(ParameterT::Boolean, "all_nodes");
-		all_nodes.SetDefault(true);
+		all_nodes.SetDefault(false);
 		ic->AddParameter(all_nodes, ParameterListT::ZeroOrOnce);
 
 		ic->AddParameter(ParameterT::Integer, "dof");
