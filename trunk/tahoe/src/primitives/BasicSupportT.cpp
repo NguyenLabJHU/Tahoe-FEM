@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.6 2005-03-12 08:41:51 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.7 2005-07-18 07:59:30 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -493,6 +493,16 @@ XDOF_ManagerT& BasicSupportT::XDOF_Manager(void) const
 	return *dummy;
 #else
 	return NodeManager();
+#endif
+}
+
+/* number of element groups */
+int BasicSupportT::NumElementGroups(void) const
+{
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
+	return 0;
+#else
+	return FEManager().NumElementGroups();
 #endif
 }
 
