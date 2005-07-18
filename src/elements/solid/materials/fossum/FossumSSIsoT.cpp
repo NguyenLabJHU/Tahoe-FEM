@@ -4,7 +4,7 @@
  */
 
 #include "FossumSSIsoT.h"
-#include "SSEnhLocMatSupportT.h"
+//#include "SSEnhLocMatSupportT.h"
 
 //#include <iostream.h>
 //#include "ifstreamT.h"
@@ -20,6 +20,10 @@
 #include "ArrayT.h"
 
 #include "DevelopmentElementsConfig.h"
+
+#ifdef ENHANCED_STRAIN_LOC_DEV
+#include "SSEnhLocMatSupportT.h"
+#endif
 
 using namespace Tahoe;
 
@@ -958,24 +962,35 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
  
+	cout << "1 " << flush;
+
 #ifdef ENHANCED_STRAIN_LOC_DEV	
 	int element_locflag = 0;
 	if (element.IsAllocated()) 
 	{
+	  cout << "2 " << fSSEnhLocMatSupport << " " << flush;
+	  cout << "2 " << fSSEnhLocMatSupport->ElementLocflag() << flush;
 		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+		cout << "3 " << flush;
 	}
 	if ( element_locflag == 2 )
 	{
+	  cout << "4 " << flush;
 		fStress = fSSEnhLocMatSupport->ElementStress(ip);
+		cout << "5 " << flush;
 	}
 	else
 	{
+	  cout << "6 " << flush;
 		fStress = sigma_ij();
+		cout << "7 " << flush;
 	}
 #else
 	fStress = sigma_ij();
+	cout << "8 " << flush;
 #endif
 
+	cout << "9\n" << flush;
 	return fStress;
 
 }
@@ -1113,7 +1128,7 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
   //Rate-Dependence effects. Duvaut-Lions formulation. See Simo and Hughes, p/217
   if (fFluidity != 0.0) //fluidity param = 0 => inviscid case
     {
-      double dt = fSSMatSupport -> TimeStep(); 
+      double dt = fSSMatSupport->TimeStep(); 
       
       //strains from previous time step
       //const dSymMatrixT& e_tot_last = e_last();
@@ -2161,7 +2176,7 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
 	if (fFluidity != 0.0)
 	  {
 	    fModulus *= fTimeFactor;
-	    fModulus.AddScaled(fTimeFactor*fFluidity/(fSSMatSupport -> TimeStep()), Ce);
+	    fModulus.AddScaled(fTimeFactor*fFluidity/(fSSMatSupport->TimeStep()), Ce);
 	  }
 	//if (fFossumDebug) cout << "fModulus = \n" << fModulus << endl; 
 
