@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.17 2005-05-16 17:48:05 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.18 2005-07-18 07:58:13 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -79,12 +79,9 @@ void MixtureSpeciesT::DefineParameters(ParameterListT& list) const
 	/* associated solid element group */
 	list.AddParameter(ParameterT::Integer, "solid_element_group");
 
-#if 0
 	/* velocity of species is calculated wrt this reference frame */
-	ParameterT frame(ParameterT::Word, "reference_frame");
-	frame.SetDefault("global");
-	species->AddParameter(frame);
-#endif
+	ParameterT frame(ParameterT::Word, "background_species");
+	list.AddParameter(frame, ParameterListT::ZeroOrOnce);
 
 	/* gradient option */
 	ParameterT grad_opt(ParameterT::Enumeration, "stress_gradient_option");
@@ -145,6 +142,29 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 			fQ1P0Mixture->NumIP() != NumIP())
 			ExceptionT::SizeMismatch(caller);	
 	}
+
+	/* resolve background species */
+	const ParameterT* bg_species = list.Parameter("background_species");
+	if (bg_species)
+	{
+		/* resolve bg field name */
+		StringT bg_species_name = *bg_species;
+		if (bg_species_name == Field().FieldName())
+			ExceptionT::GeneralFail(caller, "background_species must differ from this species \"%s\"",
+				Field().FieldName().Pointer());
+			
+		/* find name */
+		int num_groups = ElementSupport().NumElementGroups();
+		for (int i = 0; !fBackgroundSpecies && i < num_groups; i++) {
+			ElementBaseT& element = ElementSupport().ElementGroup(i);
+			if (element.Field().FieldName() == bg_species_name) {
+				fBackgroundSpecies = TB_DYNAMIC_CAST(MixtureSpeciesT*, &element);
+			}
+		}
+		if (!fBackgroundSpecies)
+			ExceptionT::GeneralFail(caller, "could not resolve background_species \"%s\"",
+				bg_species_name.Pointer());
+	}
 	
 	/* method used to compute stress gradient */
 	int grad_opt = list.GetParameter("stress_gradient_option");
@@ -185,8 +205,11 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 		fUpdatedLagMixture->SpeciesIndex(Field().FieldName()) :
 		fQ1P0Mixture->SpeciesIndex(Field().FieldName());
 	if (fIndex < 0)
-		ExceptionT::GeneralFail(caller, "could not resolve index of field \"%s\"",
-			Field().FieldName().Pointer());
+		ExceptionT::GeneralFail(caller, "could not resolve index of species \"%s\" in \"%s\"",
+			Field().FieldName().Pointer(),
+			((fUpdatedLagMixture) ? 
+				fUpdatedLagMixture->Name().Pointer() : 
+				fQ1P0Mixture->Name().Pointer()));
 
 #if 0
 	/* consistency check */
@@ -222,6 +245,9 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 	fNSDmat1.Dimension(NumSD());
 	fNSDmat2.Dimension(NumSD());
 	fNSDmat3.Dimension(NumSD());
+	
+	/* initialize */
+	fFluxVelocity = 0.0;
 }
 
 /***********************************************************************
@@ -507,8 +533,8 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 	dArrayT ip_conc(1);
 	dArrayT ip_acc(nsd);
 	
-	dArray2DT V_e, M_e, dM_e;
-	dArrayT V, M, Na;
+	dArray2DT V_e, M_e, dM_e, V_e_bg;
+	dArrayT V, M, Na, V_bg;
 	dMatrixT dM;
 
 	Top();
@@ -601,8 +627,16 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 			D.Multx(force, V); /* c*V */
 
 			/* compute (scaled) flux velocity */
-//			V.AddScaled(ip_conc[0], [velocity of background]);
-// add motion of background
+			if (fBackgroundSpecies)
+			{
+				/* background flux velocity */
+				const dArray2DT& bg_flux_velocity = fBackgroundSpecies->FluxVelocity();
+				V_e_bg.Alias(nip, nsd, bg_flux_velocity(e));
+				V_e_bg.RowAlias(ip, V_bg);
+
+				/* add (scaled) velocity of background */
+				V.AddScaled(ip_conc[0], V_bg);
+			}
 
 			/* compute mass flux */
 			M_e.RowAlias(ip, M);

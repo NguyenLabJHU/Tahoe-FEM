@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.h,v 1.9 2005-05-16 17:48:05 paklein Exp $ */
+/* $Id: MixtureSpeciesT.h,v 1.10 2005-07-18 07:58:13 paklein Exp $ */
 #ifndef _MIXTURE_SPECIES_T_H_
 #define _MIXTURE_SPECIES_T_H_
 
@@ -20,6 +20,9 @@ public:
 
 	/** write element output */
 	virtual void WriteOutput(void);
+
+	/** the flux velocity */
+	const dArray2DT& FluxVelocity(void) const { return fFluxVelocity; };
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
