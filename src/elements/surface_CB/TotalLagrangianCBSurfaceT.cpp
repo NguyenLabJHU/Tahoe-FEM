@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.19 2005-07-17 23:24:38 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.20 2005-07-18 05:00:04 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -654,9 +654,3 @@ void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, doub
 	/* write back */
 	coords.FromTranspose(coords_tmp);	
 }
-
-/* TO DO LIST */
-// (1) Add reference areas for surface clusters into FCC3D_Surf.cpp - need to do for modulus?
-// (2) Check stress/modulus calculations in FCC3D_Surf.cpp, see what modifications need
-// to be made for surface cluster calculations
-// (3) Add Stress/Modulus function calls in TotalLagrangianCBSurfaceT.cpp

@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.11 2005-07-17 01:01:31 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.12 2005-07-18 05:00:04 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -146,23 +146,23 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
 	fAtomicArea = .5*cube_edge*cube_edge;	// area normalization same for all surface cluster atoms
 
-	/* set surface thickness - MAY NEED TO CHANGE */
-	fSurfaceThickness = 1.5*fNearestNeighbor;
+	/* set surface thickness - should be right */
+	fSurfaceThickness = 0.75*fNearestNeighbor;
 
 	/* reset the continuum density (4 atoms per unit cell) */
 	/* DOES THIS NEED TO BE CHANGED? */
 	fDensity = fPairProperty->Mass()/fAtomicVolume;
 	
 	/* CALL STRESS/MODULUS TO TEST VALUES - GET VALUES FOR EACH OF 6 SURFACES */
-	//dSymMatrixT E(3), PK2(3);
+	dSymMatrixT E(3), PK2(3);
 	//dMatrixT C(6);
-	//double rho;
-	//E = 0.0;
+	double rho;
+	E = 0.0;
 	//E(0,1)=E(1,0)=0.001;
 	//ComputePK2(E,PK2);
 	//cout << "PK2 = " << PK2 << endl;
 	//ComputeModuli(E,C);
-	//rho = ComputeEnergyDensity(E);
+	rho = ComputeEnergyDensity(E);
 }
 
 /* return a reference to the bond lattice */
