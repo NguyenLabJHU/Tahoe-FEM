@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.6 2005-03-12 08:41:51 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.7 2005-07-18 07:59:30 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -218,6 +218,9 @@ public:
 
 	/** comm information */
 	CommManagerT& CommManager(void) const;
+
+	/** number of element groups */
+	int NumElementGroups(void) const;
 
 	/** the element group at the specified index in the element list */
 	ElementBaseT& ElementGroup(int index) const;
