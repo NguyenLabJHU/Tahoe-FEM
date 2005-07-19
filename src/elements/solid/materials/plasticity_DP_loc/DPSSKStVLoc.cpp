@@ -1,10 +1,8 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.23 2005-07-18 23:11:29 cfoster Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.24 2005-07-19 18:03:41 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 
-#ifdef ENHANCED_STRAIN_LOC_DEV
 #include "SSEnhLocMatSupportT.h"
-#endif
 
 #include "DPSSLinHardLocT.h"
 

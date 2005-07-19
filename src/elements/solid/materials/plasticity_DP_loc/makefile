@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-03-20 23:35:32 raregue Exp $
+# $Id: makefile,v 1.2 2005-07-19 18:03:41 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,8 @@ OBJ = \
 	DPPrimitiveLocT.o \
 	DPSSKStVLoc.o \
 	DPSSKStVLoc2D.o \
-	DPSSLinHardLocT.o
+	DPSSLinHardLocT.o \
+	SSEnhLocMatSupportT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +47,8 @@ SRC = \
 	DPPrimitiveLocT.cpp \
 	DPSSKStVLoc.cpp \
 	DPSSKStVLoc2D.cpp \
-	DPSSLinHardLocT.cpp
+	DPSSLinHardLocT.cpp \
+	SSEnhLocMatSupportT.cpp
 
 ##################### (3) headers
 #
@@ -61,7 +63,8 @@ HDR = \
 	DPPrimitiveLocT.h \
 	DPSSKStVLoc.h \
 	DPSSKStVLoc2D.h \
-	DPSSLinHardLocT.h
+	DPSSLinHardLocT.h \
+	SSEnhLocMatSupportT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
