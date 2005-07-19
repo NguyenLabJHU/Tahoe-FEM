@@ -1,9 +1,7 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.13 2005-07-18 23:10:35 cfoster Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.14 2005-07-19 18:04:09 raregue Exp $ */
 #include "FossumSSIso2DT.h"
 
-#ifdef ENHANCED_STRAIN_LOC_DEV
 #include "SSEnhLocMatSupportT.h"
-#endif
 
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -155,18 +153,13 @@ const dMatrixT& FossumSSIso2DT::con_perfplas_ijkl(void)
 /* stress */
 const dSymMatrixT& FossumSSIso2DT::s_ij(void)
 {
-  cout << "20 " << flush;
 #ifdef ENHANCED_STRAIN_LOC_DEV
-  cout << "21 " << flush;	
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
 	int element_locflag = 0;
-  cout << "22 " ,, flush;
 	if (element.IsAllocated()) 
 	{
-	  cout << "23 " << flush;
 		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
-		cout << "24 " << flush;
 	}
 	if ( element_locflag == 2 )
 	{
@@ -179,11 +172,9 @@ const dSymMatrixT& FossumSSIso2DT::s_ij(void)
 	}
 #else
 	/* 3D -> 2D */
-	cout << "25 " << flush;
 	fStress2D.ReduceFrom3D(FossumSSIsoT::s_ij());
 #endif
 	//	fStress2D *= fThickness; 
-	cout << "26 " << endl << flush; 
 	return fStress2D;
 }
 
