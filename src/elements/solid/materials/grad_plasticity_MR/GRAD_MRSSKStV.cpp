@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.17 2005-07-08 01:17:44 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.18 2005-07-20 16:36:06 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -98,48 +98,56 @@ const dMatrixT& GRAD_MRSSKStV::c_perfplas_ijkl(void)
 
 const dMatrixT& GRAD_MRSSKStV::c_UU1_ijkl(void)
 { 
+	fGRAD_MR->Moduli(CurrentElement(), CurrIP()); // call Moduli first
 	fModulusUU1 = fGRAD_MR->Moduli_UU1();
 	return fModulusUU1;
 }
 
 const dMatrixT& GRAD_MRSSKStV::c_UU2_ijkl(void)
 {
+	fGRAD_MR->Moduli(CurrentElement(), CurrIP()); // call Moduli first
 	fModulusUU2 = fGRAD_MR->Moduli_UU2();
 	return fModulusUU2;
 }
 
 const dMatrixT& GRAD_MRSSKStV::c_ULam1_ij(void)
 {
+	fGRAD_MR->Moduli(CurrentElement(), CurrIP()); // call Moduli first
 	fModulusULam1 =	fGRAD_MR->Moduli_ULam1();
 	return fModulusULam1;
 }
 
 const dMatrixT& GRAD_MRSSKStV::c_ULam2_ij(void)
 {
+	fGRAD_MR->Moduli(CurrentElement(), CurrIP()); // call Moduli first
 	fModulusULam2 =	fGRAD_MR->Moduli_ULam2();
 	return fModulusULam2;
 }
 
 const dMatrixT& GRAD_MRSSKStV::c_LamU1_ij(void)
 {
+	fGRAD_MR->Moduli(CurrentElement(), CurrIP()); // call Moduli first
 	fModulusLamU1 =	fGRAD_MR->Moduli_LamU1();
 	return fModulusLamU1;
 }
 
 const dMatrixT& GRAD_MRSSKStV::c_LamU2_ij(void)
 {
+	fGRAD_MR->Moduli(CurrentElement(), CurrIP()); // call Moduli first
 	fModulusLamU2 =	fGRAD_MR->Moduli_LamU2();
 	return fModulusLamU2;
 }
 
 const dMatrixT& GRAD_MRSSKStV::c_LamLam1(void)
 {
+	fGRAD_MR->Moduli(CurrentElement(), CurrIP()); // call Moduli first
 	fModulusLamLam1 = fGRAD_MR->Moduli_LamLam1();
 	return fModulusLamLam1;
 }
 
 const dMatrixT& GRAD_MRSSKStV::c_LamLam2(void)
 {
+	fGRAD_MR->Moduli(CurrentElement(), CurrIP()); // call Moduli first
 	fModulusLamLam2 = fGRAD_MR->Moduli_LamLam2();
 	return fModulusLamLam2;
 }
@@ -147,6 +155,7 @@ const dMatrixT& GRAD_MRSSKStV::c_LamLam2(void)
 /* yield function */
 const double& GRAD_MRSSKStV::YieldF(void)
 {
+	GRAD_MRSSKStV::s_ij(); // call s_ij first
 	fYieldFunction = fGRAD_MR->YieldFunction();
 	return fYieldFunction;
 }
@@ -162,6 +171,9 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	const dArrayT& lap_lam = lap_pm();
 	const dSymMatrixT& e_els = ElasticStrain(eps, element, ip); 
 	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_eps, element, ip);
+	
+	//cout << "strain " << eps << endl << endl;
+	//cout << "lambda " << lam << endl;
 	
 	/* updated Cauchy stress (return mapping) */
 	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lam, lap_lam, element, ip);
@@ -301,6 +313,14 @@ void GRAD_MRSSKStV::TakeParameterList(const ParameterListT& list)
 	fModulus.Dimension(dSymMatrixT::NumValues(3));
 	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
 	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
+	fModulusUU1.Dimension(dSymMatrixT::NumValues(3));
+	fModulusUU2.Dimension(dSymMatrixT::NumValues(3));
+	fModulusULam1.Dimension(dSymMatrixT::NumValues(3),1);
+	fModulusULam2.Dimension(dSymMatrixT::NumValues(3),1);
+	fModulusLamU1.Dimension(1,dSymMatrixT::NumValues(3));
+	fModulusLamU2.Dimension(1,dSymMatrixT::NumValues(3));
+	fModulusLamLam1.Dimension(1,1);
+	fModulusLamLam2.Dimension(1,1);
 	
 	/* construct GRAD_MR solver */
 	fGRAD_MR = new GRAD_MRSSNLHardT(NumIP(), Mu(), Lambda());
