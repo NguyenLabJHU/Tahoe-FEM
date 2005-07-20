@@ -1,0 +1,22 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 2
+ Output ID . . . . . . . . . . . . . . . . . . . = 2
+ Number of nodal values. . . . . . . . . . . . . = 4
+ Labels:
+	D_X
+	D_Y
+	F_X
+	F_Y
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 2
+ Number of nodes . . . . . . . . . . . . . . . . = 28
+ Number of elements. . . . . . . . . . . . . . . = 28
+
+ O U T P U T   D A T A :  T O C
+3_grain.io2.run.ps0000
+3_grain.io2.run.ps0001
