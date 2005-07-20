@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.20 2005-03-11 20:41:55 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.21 2005-07-20 06:53:45 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -106,7 +106,7 @@ void AdhesionT::RegisterOutput(void)
 	/* output labels */
 	const char* displ_labels[3] = {"D_X", "D_Y", "D_Z"};
 	const char* tract_labels[3] = {"t_X", "t_Y", "t_Z"};
-	if (NumDOF() > 3) throw ExceptionT::kSizeMismatch;	
+	if (NumDOF() > 3) ExceptionT::SizeMismatch("AdhesionT::RegisterOutput", "unsupported ndof > %d", NumDOF());
 	ArrayT<StringT> n_labels(2*NumDOF());
 	const char** label = displ_labels;
 	for (int i = 0; i < n_labels.Length(); i++)
@@ -1039,10 +1039,7 @@ int AdhesionT::NumIP(GeometryT::CodeT code) const
 		case GeometryT::kTriangle:
 			return 4;
 		default:
-		{
-			cout << "\n AdhesionT::NumIP: unrecognized geometry: " << code << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+			ExceptionT::GeneralFail("AdhesionT::NumIP", "unrecognized geometry %d", code);
 	}
 	return 0;
 }
