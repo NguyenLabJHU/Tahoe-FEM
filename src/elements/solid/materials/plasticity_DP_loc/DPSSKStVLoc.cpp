@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.24 2005-07-19 18:03:41 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.25 2005-07-20 16:05:28 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 
@@ -19,11 +19,12 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 3;
+const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {
 	"kappa",	// stress-like internal state variable (isotropic linear hardening)
 	"VM",		// Von Mises stress
-	"press"};	// pressure
+	"press",	// pressure
+	"loccheck"};	// localization check
 
 /* constructor */
 DPSSKStVLoc::DPSSKStVLoc(void):
@@ -268,26 +269,26 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			// check for localization
 			// compute modulus 
 			//const dMatrixT& modulus = c_ijkl();
-			//const dMatrixT& modulus = c_perfplas_ijkl();
+			const dMatrixT& modulus = c_perfplas_ijkl();
 			//const dMatrixT& modulus = c_ep_ijkl();
 
 			/* localization condition checker */
-			/*
+			
 			DetCheckT checker(stress, modulus, Ce);
 			AutoArrayT <dArrayT> normals;
 			AutoArrayT <dArrayT> slipdirs;
 			normals.Dimension(3);
 			slipdirs.Dimension(3);
 			output[3] = 0.0;
-			if(checker.IsLocalized_SS(normals,slipdirs)) output[3] = 1.0;
-			*/
-			//output[3] = 0.0;
+			double detA=1.0;
+			if(checker.IsLocalized_SS(normals,slipdirs,detA)) output[3] = 1.0;
+			
 		  }
 	}
 	else
 	{
 		output[0] = 0.0;
-		//output[3] = 0.0;
+		output[3] = 0.0;
 	}
 
 }
