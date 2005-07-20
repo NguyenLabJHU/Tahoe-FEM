@@ -1,4 +1,4 @@
-/* $Id: AugLagContact3DT.cpp,v 1.6 2005-03-12 08:38:08 paklein Exp $ */
+/* $Id: AugLagContact3DT.cpp,v 1.7 2005-07-20 16:18:23 paklein Exp $ */
 #include "AugLagContact3DT.h"
 
 #include <math.h>
@@ -359,11 +359,14 @@ void AugLagContact3DT::RHSDriver(void)
 		/* augmented Lagrangian */
 		double g = force[i] + fr*h;
 
+		/* tributary area */
+		int striker_index = fStrikerTags_map.Map(pelem[3]);
+		double area = fStrikerArea[striker_index];
+
 		/* store force vector for output */
-		int index = fStrikerTags_map.Map(pelem[3]);
-		fStrikerForce2D(index,0) = -force[i]*n[0];
-		fStrikerForce2D(index,1) = -force[i]*n[1];
-		fStrikerForce2D(index,2) = -force[i]*n[2];
+		fStrikerForce2D(striker_index,0) = -force[i]*n[0]*area;
+		fStrikerForce2D(striker_index,1) = -force[i]*n[1]*area;
+		fStrikerForce2D(striker_index,2) = -force[i]*n[2]*area;
 		
 		/* contact */
 		if (g < 0.0)
@@ -377,7 +380,7 @@ void AugLagContact3DT::RHSDriver(void)
 
 			/* d_c */
 			fdc_du.MultTx(n, fV1);
-			uRHS.SetToScaled(-g, fV1);
+			uRHS.SetToScaled(-g*area, fV1);
 
 			/* d_normal */
 			Set_dn_du(fElCoord, fdn_du);					
@@ -385,10 +388,10 @@ void AugLagContact3DT::RHSDriver(void)
 			fM1.PlusIdentity(-1.0);
 			fM2.MultATB(fM1, fdn_du);
 			fM2.MultTx(c, fV1);
-			uRHS.AddScaled(g/mag, fV1);
+			uRHS.AddScaled(g*area/mag, fV1);
 								
 			/* augmented Lagrangian DOF */				
-			fRHS[neq - 1] = -h;					
+			fRHS[neq - 1] = -h*area;					
 		}
 		else /* gap */
 		{
@@ -396,7 +399,7 @@ void AugLagContact3DT::RHSDriver(void)
 			fRHS = 0.0;
 
 			/* augmented Lagrangian DOF */				
-			fRHS[neq - 1] = force[i]/fr;							
+			fRHS[neq - 1] = force[i]*area/fr;							
 		}
 
 		/* get equation numbers */
@@ -468,6 +471,10 @@ void AugLagContact3DT::LHSDriver(GlobalT::SystemTypeT)
 		/* augmented Lagrangian */
 		double g = force[i] + fr*h;
 
+		/* tributary area */
+		int striker_index = fStrikerTags_map.Map(pelem[3]);
+		double area = fStrikerArea[striker_index];
+
 		/* contact */
 		if (g < 0.0)
 		{
@@ -481,7 +488,7 @@ void AugLagContact3DT::LHSDriver(GlobalT::SystemTypeT)
 				fElRefCoord(0), fElRefCoord(1), fElRefCoord(2), fElRefCoord(3),
 				fElDisp(0), fElDisp(1), fElDisp(2), fElDisp(3),
 				uLHS);
-			uLHS *= g*constK; 
+			uLHS *= area*g*constK; 
 
 			/* d_c */
 			fdc_du.MultTx(n, fV1);
@@ -496,14 +503,14 @@ void AugLagContact3DT::LHSDriver(GlobalT::SystemTypeT)
 			uRHS.AddScaled(-1.0/mag, fV1);
 
 			/* add term g^T g */
-			uLHS.Outer(uRHS, uRHS, fr*constK, dMatrixT::kAccumulate);
+			uLHS.Outer(uRHS, uRHS, area*fr*constK, dMatrixT::kAccumulate);
 
 			/* assemble sub-block */
 			fLHS.AddBlock(0, 0, uLHS);
 			
 			/* augmented Lagrangian DOF */
 			int dex = neq - 1;
-			fRHS *= constK;
+			fRHS *= area*constK;
 			fLHS.SetRow(dex, fRHS);
 			fLHS.SetCol(dex, fRHS);
 		}
@@ -514,7 +521,7 @@ void AugLagContact3DT::LHSDriver(GlobalT::SystemTypeT)
 		
 			/* augmented Lagrangian DOF */
 			int dex = neq - 1;
-			fLHS(dex,dex) = -1.0/fr;							
+			fLHS(dex,dex) = -area/fr;							
 		}		
 
 		/* get equation numbers */

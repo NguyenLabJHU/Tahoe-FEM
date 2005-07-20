@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.20 2005-04-13 17:37:50 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.21 2005-07-20 16:18:23 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
@@ -276,11 +276,9 @@ void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 		/* augmented Lagragian multiplier */
 		double g = force[i] + fr*h;
 
-		/* store force vector output */
-		int index = fStrikerTags_map.Map(pelem[2]);
-		double f_by_t = -force[i]/magtan;
-		fStrikerForce2D(index,0) = f_by_t*tangent[1];
-		fStrikerForce2D(index,1) =-f_by_t*tangent[0];
+		/* tributary area */
+		int striker_index = fStrikerTags_map.Map(pelem[2]);
+		double area = fStrikerArea[striker_index];
 
 		/* contact */
 		if (g < 0.0)
@@ -294,20 +292,20 @@ void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 			fdtanT.Multx(tangent,fNEEvec);
 						
 			/* compute  d h/d d_i*/
-			uRHS.AddScaled(-h/(magtan*magtan),fNEEvec);
+			uRHS.AddScaled(-h*area/(magtan*magtan),fNEEvec);
 
 			fColtemp1.Set(neq - 1, fdv1T(0));
 			fColtemp2.Set(neq - 1, fdv2T(1));
-			uRHS.AddCombination(-fv2[1]/magtan,fColtemp1,
-				                -fv1[0]/magtan,fColtemp2);
+			uRHS.AddCombination(-fv2[1]*area/magtan,fColtemp1,
+				                -fv1[0]*area/magtan,fColtemp2);
 			
 			fColtemp1.Set(neq - 1, fdv1T(1));
 			fColtemp2.Set(neq - 1, fdv2T(0));
-			uRHS.AddCombination(fv2[0]/magtan, fColtemp1,
-				                fv1[1]/magtan, fColtemp2);
+			uRHS.AddCombination(fv2[0]*area/magtan, fColtemp1,
+				                fv1[1]*area/magtan, fColtemp2);
 
 			/* dd_ e_3jk v2_j v1_k */
-			double Kh_by_t = g/magtan;
+			double Kh_by_t = g*area/magtan;
 			uLHS(0,3) = uLHS(3,0) =-Kh_by_t;
 			uLHS(0,5) = uLHS(5,0) = Kh_by_t;
 			uLHS(1,2) = uLHS(2,1) = Kh_by_t;
@@ -318,19 +316,19 @@ void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 			/* (d_tan_ (x) d h/d d_)^s */
 			fNEEmat.Outer(uRHS, fNEEvec);
 			fNEEmat.Symmetrize();
-			uLHS.AddScaled(-2.0*g/(magtan*magtan), fNEEmat);
+			uLHS.AddScaled(-2.0*g*area/(magtan*magtan), fNEEmat);
 
 			/* d_tan_ (x) d_tan_ */
 			fNEEmat.Outer(fNEEvec, fNEEvec);
-			uLHS.AddScaled(g*h/pow(magtan,4), fNEEmat);
+			uLHS.AddScaled(g*h*area/pow(magtan,4), fNEEmat);
 
 			/* tan_k/d d_i tan_k/d d_j */
 			fNEEmat.MultABT(fdtanT, fdtanT);
-			uLHS.AddScaled(-g*h/(magtan*magtan), fNEEmat);
+			uLHS.AddScaled(-g*h*area/(magtan*magtan), fNEEmat);
 
 			/* d h/d d_ (x) d h/d d_ */
 			fNEEmat.Outer(uRHS, uRHS);
-			uLHS.AddScaled(fr, fNEEmat);
+			uLHS.AddScaled(fr*area, fNEEmat);
 
 			/* assemble sub-block */
 			fLHS.AddBlock(0, 0, uLHS);
@@ -347,7 +345,7 @@ void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 		
 			/* augmented Lagrangian DOF */
 			int dex = neq - 1;
-			fLHS(dex,dex) = -1.0/fr;							
+			fLHS(dex,dex) = -area/fr;							
 		}
 
 		/* get equation numbers */
@@ -405,6 +403,15 @@ void AugLagContact2DT::RHSDriver(void)
 		/* augmented Lagrangian multiplier */
 		double g = force[i] + fr*h;
 
+		/* tributary area */
+		int striker_index = fStrikerTags_map.Map(pelem[2]);
+		double area = fStrikerArea[striker_index];
+
+		/* store force vector output */
+		double f_by_t = -force[i]*area/magtan;
+		fStrikerForce2D(striker_index,0) = f_by_t*tangent[1];
+		fStrikerForce2D(striker_index,1) =-f_by_t*tangent[0];
+
 		/* contact */
 		if (g < 0.0)
 		{
@@ -419,21 +426,21 @@ void AugLagContact2DT::RHSDriver(void)
 					
 			/* d_tan contribution */
 			fdtanT.Multx(tangent,fNEEvec);
-			uRHS.AddScaled(g*h/(magtan*magtan),fNEEvec);
+			uRHS.AddScaled(area*g*h/(magtan*magtan),fNEEvec);
 						
 			/* d_area */
 			fColtemp1.Set(neq - 1, fdv1T(0));
 			fColtemp2.Set(neq - 1, fdv2T(1));
-			uRHS.AddCombination(g*fv2[1]/magtan, fColtemp1,
-				                g*fv1[0]/magtan, fColtemp2);
+			uRHS.AddCombination(area*g*fv2[1]/magtan, fColtemp1,
+				                area*g*fv1[0]/magtan, fColtemp2);
 			
 			fColtemp1.Set(neq - 1, fdv1T(1));
 			fColtemp2.Set(neq - 1, fdv2T(0));
-			uRHS.AddCombination(-g*fv2[0]/magtan, fColtemp1,
-				                -g*fv1[1]/magtan, fColtemp2);
+			uRHS.AddCombination(-area*g*fv2[0]/magtan, fColtemp1,
+				                -area*g*fv1[1]/magtan, fColtemp2);
 				
 			/* augmented Lagrangian DOF */				
-			fRHS[neq - 1] = -h;					
+			fRHS[neq - 1] = -h*area;
 		}
 		/* gap */
 		else
@@ -442,7 +449,7 @@ void AugLagContact2DT::RHSDriver(void)
 			fRHS = 0.0;
 
 			/* augmented Lagrangian DOF */				
-			fRHS[neq - 1] = force[i]/fr;							
+			fRHS[neq - 1] = area*force[i]/fr;							
 		}
 
 		/* get equation numbers */
