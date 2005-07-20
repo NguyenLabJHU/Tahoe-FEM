@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.11 2005-02-05 01:57:25 kyonten Exp $ */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.12 2005-07-20 17:02:35 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeSupport2DT.h"
 
@@ -19,8 +19,7 @@ static double Max(double a, double b) { return (a > b) ? a : b; };
 D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(const ParentDomainT* domain,
 	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes):
 	D2MeshFreeSupportT(domain, coords, connects, nongridnodes)
-//********************************************************//
-//kyonten
+
 {
 	SetName("D2_meshfree_support_2D");
 }
