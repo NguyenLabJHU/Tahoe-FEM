@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag2DT.cpp,v 1.7 2005-01-13 01:50:47 paklein Exp $ */
+/* $Id: PenaltyContactDrag2DT.cpp,v 1.8 2005-07-20 06:54:46 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag2DT.h"
 
@@ -42,6 +42,8 @@ void PenaltyContactDrag2DT::TakeParameterList(const ParameterListT& list)
 	fGapTolerance = list.GetParameter("gap_tolerance");
 	fSlipTolerance = list.GetParameter("slip_tolerance");
 
+#pragma message("delete me")
+#if 0
 	/* collect volume element block ID's containing the strikers */
 	ModelManagerT& model = ElementSupport().ModelManager();
 	ArrayT<StringT> element_id_all;
@@ -60,6 +62,7 @@ void PenaltyContactDrag2DT::TakeParameterList(const ParameterListT& list)
 	
 	/* compute associated nodal area */
 	ComputeNodalArea(element_id, fNodalArea, fStrikerLocNumber);
+#endif
 }
 
 /***********************************************************************
@@ -166,8 +169,8 @@ void PenaltyContactDrag2DT::RHSDriver(void)
 				if (!has_contact) fRHS = 0.0;
 			
 				/* drag force */
-				int striker_index = fStrikerLocNumber.Map(striker_node);				
-				double drag_force = fNodalArea[striker_index]*fDrag;
+				int striker_index = fStrikerTags_map.Map(striker_node);				
+				double drag_force = fStrikerArea[striker_index]*fDrag;
 				double f_x = drag_force*tangent_ref[0]/tangent_ref_mag;
 				double f_y = drag_force*tangent_ref[1]/tangent_ref_mag;
 			

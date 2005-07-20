@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.15 2005-03-12 08:38:09 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.16 2005-07-20 06:54:46 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContact2DT.h"
 
@@ -136,7 +136,8 @@ void PenaltyContact2DT::LHSDriver(GlobalT::SystemTypeT)
 			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* time integration factor */
-			fLHS *= constK;
+			int striker_index = fStrikerTags_map.Map(pelem[2]);
+			fLHS *= constK*fStrikerArea[striker_index];
 			
 			/* assemble */
 			ElementSupport().AssembleLHS(Group(), fLHS, eqnos);
@@ -201,7 +202,8 @@ void PenaltyContact2DT::RHSDriver(void)
 			h_max = (h < h_max) ? h : h_max;
 
 			/* penetration force */
-			double dphi =-fK*h;
+			int striker_index = fStrikerTags_map.Map(pelem[2]);
+			double dphi =-fK*h*fStrikerArea[striker_index];
 			
 			/* initialize */
 			fRHS = 0.0;

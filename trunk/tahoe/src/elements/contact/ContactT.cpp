@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.22 2005-03-12 08:38:08 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.23 2005-07-20 06:54:46 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -55,6 +55,18 @@ GlobalT::RelaxCodeT ContactT::RelaxSystem(void)
 /* initialize current time increment. Reset the contact tracking data. */
 void ContactT::InitStep(void)
 {
+#pragma message("move to SetContactConfiguration after BRANCH_david_spatial_2")
+
+	/* look for axisymmetric groups */
+	bool axisymmetric = false;
+	int num_groups = ElementSupport().NumElementGroups();
+	for (int i = 0; i < num_groups; i++)
+		axisymmetric = (axisymmetric || ElementSupport().ElementGroup(i).Axisymmetric());
+
+	/* compute nodal tributary areas */
+	ElementSupport().ModelManager().ComputeNodalArea(fStrikerTags, 
+		fStrikerArea, fStrikerTags_map, axisymmetric);
+
 	/* reset tracking data */
 	fnum_contact = -1;
 	fh_max = 1;
@@ -335,9 +347,6 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 		out << fStrikerTags.wrap(8) << '\n';
 		fStrikerTags--;	
 	}
-	
-	/* global ID to local index */
-	fStrikerTags_map.SetMap(fStrikerTags);
 
 	/* allocate striker coords */
 	fStrikerCoords.Dimension(fStrikerTags.Length(), NumSD());
@@ -614,6 +623,7 @@ void ContactT::StrikersFromSideSets(const ParameterListT& list)
 			fStrikerTags[dex++] = i;
 }
 
+#if 0
 /* compute the nodal area associated with each striker node */
 void ContactT::ComputeNodalArea(const ArrayT<StringT>& striker_blocks, 
 	dArrayT& nodal_area, InverseMapT& inverse_map)
@@ -679,3 +689,4 @@ void ContactT::ComputeNodalArea(const ArrayT<StringT>& striker_blocks,
 		}
 	}
 }
+#endif

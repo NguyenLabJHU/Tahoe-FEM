@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.14 2005-03-12 08:38:09 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.15 2005-07-20 06:54:46 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -175,7 +175,8 @@ void PenaltyContact3DT::LHSDriver(GlobalT::SystemTypeT)
 				fElRefCoord(0), fElRefCoord(1), fElRefCoord(2), fElRefCoord(3),
 				fElDisp(0), fElDisp(1), fElDisp(2), fElDisp(3),
 				fLHS);
-			fLHS *= fK*h*constK; 
+			int striker_index = fStrikerTags_map.Map(pelem[3]);
+			fLHS *= fK*h*constK*fStrikerArea[striker_index];
 
 			/* d_c */
 			fdc_du.MultTx(n, fV1);
@@ -190,7 +191,7 @@ void PenaltyContact3DT::LHSDriver(GlobalT::SystemTypeT)
 			fRHS.AddScaled(-1.0/mag, fV1);
 
 			/* add term g^T g */
-			fLHS.Outer(fRHS, fRHS, fK*constK, dMatrixT::kAccumulate);
+			fLHS.Outer(fRHS, fRHS, fK*constK*fStrikerArea[striker_index], dMatrixT::kAccumulate);
 
 			/* get equation numbers */
 			fEqnos[0].RowAlias(i, eqnos);
@@ -264,7 +265,8 @@ void PenaltyContact3DT::RHSDriver(void)
 			h_max = (h < h_max) ? h : h_max;
 		
 			/* penetration force */
-			double dphi =-fK*h;
+			int striker_index = fStrikerTags_map.Map(pelem[3]);			
+			double dphi =-fK*h*fStrikerArea[striker_index];
 
 			/* d_c */
 			fdc_du.MultTx(n, fV1);
