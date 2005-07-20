@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.37 2005-07-02 22:44:41 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.38 2005-07-20 06:48:32 paklein Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -257,10 +257,8 @@ class ModelManagerT
 	/*@}*/
 
 	 /** compute the nodal area associated with each striker node */
-	 void ComputeNodalArea(const iArrayT& node_tags, 
-		const ArrayT<StringT>& surface_blocks, 
-		dArrayT& nodal_area, InverseMapT& inverse_map);
-
+	 void ComputeNodalArea(const iArrayT& node_tags, dArrayT& nodal_area, 
+	 	InverseMapT& inverse_map, bool axisymmetric);
 
 	/** \name node set information */
 	/*@{*/

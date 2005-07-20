@@ -1,7 +1,8 @@
-/* $Id: ModelManagerT.cpp,v 1.54 2005-07-02 22:44:40 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.55 2005-07-20 06:48:32 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
+#include <math.h>
 
 #include "ifstreamT.h"
 #include "nVariArray2DT.h"
@@ -13,6 +14,9 @@
 #include "LocalArrayT.h"
 
 using namespace Tahoe;
+
+/* constants */
+const double Pi = acos(-1.0); 
 
 /* array behavior */
 namespace Tahoe {
@@ -1101,10 +1105,23 @@ void ModelManagerT::SurfaceNodes(const ArrayT<StringT>& IDs,
 
 
 /* compute the nodal area associated with each surface node */
-void ModelManagerT::ComputeNodalArea(const iArrayT& node_tags, 
-	const ArrayT<StringT>& surface_blocks, 
-	dArrayT& nodal_area, InverseMapT& inverse_map)
+void ModelManagerT::ComputeNodalArea(const iArrayT& node_tags,
+	dArrayT& nodal_area, InverseMapT& inverse_map, bool axisymmetric)
 {
+	/* collect volume element block ID's containing the strikers */
+	ArrayT<StringT> surface_blocks_all;
+	ElementGroupIDsWithNodes(node_tags, surface_blocks_all);
+	iArrayT volume_element(surface_blocks_all.Length());
+	for (int i = 0; i < surface_blocks_all.Length(); i++) {
+		GeometryT::CodeT geom = ElementGroupGeometry(surface_blocks_all[i]);
+		volume_element[i] = (GeometryT::GeometryToNumSD(geom) == NumDimensions()) ? 1 : 0;
+	}
+	int count = 0;
+	ArrayT<StringT> surface_blocks(volume_element.Count(1));
+	for (int i = 0; i < surface_blocks_all.Length(); i++)
+		if (volume_element[i])
+			surface_blocks[count++] = surface_blocks_all[i];
+
 	/* initialize nodal area */
   	nodal_area.Dimension(node_tags.Length());
 	nodal_area = 0.0;
@@ -1135,6 +1152,7 @@ void ModelManagerT::ComputeNodalArea(const iArrayT& node_tags,
 	dMatrixT jacobian(nsd, nsd-1);
 
 	/* loop over surfaces */
+	dArrayT ip_coords(NumDimensions());
 	const double* Na = surf_shape.Shape(0);
 	const double* w  = surf_shape.Weight();
 	iArrayT facet_nodes;
@@ -1160,8 +1178,14 @@ void ModelManagerT::ComputeNodalArea(const iArrayT& node_tags,
 			{
 				/* surface node index */
 				int index = inverse_map.Map(facet_nodes[k]);
-				if (index != -1)
-					nodal_area[index] += w[0]*detj*Na[k];
+				if (index != -1) {
+					double darea = w[0]*detj*Na[k];
+					if (axisymmetric) {
+						surf_shape.Interpolate(ref_coords, ip_coords, 0);
+						darea *= 2.0*Pi*ip_coords[0]; /* revolution about y-axis */
+					}
+					nodal_area[index] += darea;
+				}
 			}
 		}
 	}
