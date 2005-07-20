@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.15 2005-07-20 06:54:46 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.16 2005-07-20 16:17:56 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -287,10 +287,9 @@ void PenaltyContact3DT::RHSDriver(void)
 			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 
 			/* store force vector for output */
-			int index = fStrikerTags_map.Map(pelem[3]);
-			fStrikerForce2D(index,0) = dphi*n[0];
-			fStrikerForce2D(index,1) = dphi*n[1];
-			fStrikerForce2D(index,2) = dphi*n[2];
+			fStrikerForce2D(striker_index,0) = dphi*n[0];
+			fStrikerForce2D(striker_index,1) = dphi*n[1];
+			fStrikerForce2D(striker_index,2) = dphi*n[2];
 		}
 	}
 

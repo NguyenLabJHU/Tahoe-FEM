@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.16 2005-07-20 06:54:46 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.17 2005-07-20 16:17:56 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContact2DT.h"
 
@@ -230,9 +230,8 @@ void PenaltyContact2DT::RHSDriver(void)
 			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 
 			/* store force vector output */
-			int index = fStrikerTags_map.Map(pelem[2]);
-			fStrikerForce2D(index,0) = dphi*tangent[1];
-			fStrikerForce2D(index,1) =-dphi*tangent[0];
+			fStrikerForce2D(striker_index,0) = dphi*tangent[1];
+			fStrikerForce2D(striker_index,1) =-dphi*tangent[0];
 		}
 	}
 
