@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.15 2005-03-12 08:38:09 paklein Exp $ */
+/* $Id: ContactT.h,v 1.16 2005-07-20 06:54:46 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -137,7 +137,7 @@ protected:
 	void SetTrackingData(int num_contact, double max_depth);
 
 	/** compute the nodal area associated with each striker node */
-	void ComputeNodalArea(const ArrayT<StringT>& striker_blocks, dArrayT& nodal_area, InverseMapT& inverse_map);
+	//void ComputeNodalArea(const ArrayT<StringT>& striker_blocks, dArrayT& nodal_area, InverseMapT& inverse_map);
 
 protected:
 
@@ -149,6 +149,7 @@ protected:
 
 	/* database info */
 	iArrayT fStrikerTags; // should be variable
+	dArrayT fStrikerArea;
 	InverseMapT fStrikerTags_map;
 	dArray2DT fStrikerCoords; // should be variable
 		// only used for search grid

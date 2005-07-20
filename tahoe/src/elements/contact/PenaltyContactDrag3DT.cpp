@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag3DT.cpp,v 1.6 2005-01-13 01:50:47 paklein Exp $ */
+/* $Id: PenaltyContactDrag3DT.cpp,v 1.7 2005-07-20 06:54:46 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag3DT.h"
 
@@ -59,6 +59,8 @@ void PenaltyContactDrag3DT::TakeParameterList(const ParameterListT& list)
 	fGapTolerance = list.GetParameter("gap_tolerance");
 	fSlipTolerance = list.GetParameter("slip_tolerance");
 
+#pragma message("delete me")
+#if 0
 	/* collect volume element block ID's containing the strikers */
 	ModelManagerT& model = ElementSupport().ModelManager();
 	ArrayT<StringT> element_id_all;
@@ -77,6 +79,7 @@ void PenaltyContactDrag3DT::TakeParameterList(const ParameterListT& list)
 	
 	/* compute associated nodal area */
 	ComputeNodalArea(element_id, fNodalArea, fStrikerLocNumber);
+#endif
 }
 
 /***********************************************************************
@@ -193,8 +196,8 @@ void PenaltyContactDrag3DT::RHSDriver(void)
 				if (!has_contact) fRHS = 0.0;
 
 				/* drag force */
-				int striker_index = fStrikerLocNumber.Map(striker_node);
-				double drag_force = -fNodalArea[striker_index]*fDrag;
+				int striker_index = fStrikerTags_map.Map(striker_node);
+				double drag_force = -fStrikerArea[striker_index]*fDrag;
 				double f_x = drag_force*drag[0]/mag_slip;
 				double f_y = drag_force*drag[1]/mag_slip;
 				double f_z = drag_force*drag[2]/mag_slip;
@@ -353,8 +356,8 @@ void PenaltyContactDrag3DT::LHSDriver(GlobalT::SystemTypeT)
 				if (!has_contact) fLHS = 0.0;
 
 				/* drag force */
-				int striker_index = fStrikerLocNumber.Map(striker_node);
-				double drag_force = fNodalArea[striker_index]*fDrag;
+				int striker_index = fStrikerTags_map.Map(striker_node);
+				double drag_force = fStrikerArea[striker_index]*fDrag;
 
 				K_drag.Identity();
 				K_drag.Outer(n_ref, n_ref, -1.0, dMatrixT::kAccumulate);

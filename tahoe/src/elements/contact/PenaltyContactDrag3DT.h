@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag3DT.h,v 1.2 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: PenaltyContactDrag3DT.h,v 1.3 2005-07-20 06:54:46 paklein Exp $ */
 #ifndef _PENALTY_CONTACT_DRAG_3D_T_H_
 #define _PENALTY_CONTACT_DRAG_3D_T_H_
 
@@ -45,13 +45,6 @@ protected:
 
 	/** slip tolerance to enable adhesion */
 	double fSlipTolerance;
-
-	/** \name striker information */
-	/** area associated with each striker node */
-	/*@{*/
-	dArrayT fNodalArea;
-	InverseMapT fStrikerLocNumber;
-	/*@}*/
 };
 
 } /* namespace Tahoe */
