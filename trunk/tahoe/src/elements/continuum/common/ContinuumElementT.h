@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.37 2005-07-14 00:51:01 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.38 2005-07-20 06:52:07 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -173,7 +173,6 @@ protected:
 	/** compute contribution to element residual force due to natural boundary 
 	 * conditions */
 	void ApplyTractionBC(void);
-	virtual bool Axisymmetric(void) const { return false; };
 
 	/** compute shape functions and derivatives */
 	virtual void SetGlobalShape(void);
