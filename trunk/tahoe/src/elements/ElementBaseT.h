@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.46 2005-05-05 16:39:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.47 2005-07-20 06:52:50 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -91,6 +91,9 @@ public:
 
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
+
+	/** indicate whether element formulation is axisymmetric */
+	virtual bool Axisymmetric(void) const { return false; };
 	
 	/** return the block ID for the specified element */
 	const StringT& ElementBlockID(int element) const;
