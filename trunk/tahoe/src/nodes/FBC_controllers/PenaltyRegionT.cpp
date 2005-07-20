@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.21 2005-03-12 08:39:15 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.22 2005-07-20 06:49:52 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -18,6 +18,7 @@
 #include "IOBaseT.h"
 #include "OutputSetT.h"
 #include "CommunicatorT.h"
+#include "ElementBaseT.h"
 
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
@@ -117,6 +118,18 @@ void PenaltyRegionT::ApplyRHS(void)
 /* apply kinematic boundary conditions */
 void PenaltyRegionT::InitStep(void)
 {
+#pragma message("move to SetContactConfiguration after BRANCH_david_spatial_2")
+
+	/* look for axisymmetric groups */
+	bool axisymmetric = false;
+	int num_groups = FieldSupport().NumElementGroups();
+	for (int i = 0; i < num_groups; i++)
+		axisymmetric = (axisymmetric || FieldSupport().ElementGroup(i).Axisymmetric());
+
+	/* compute nodal areas */
+	FieldSupport().ModelManager().ComputeNodalArea(fContactNodes,
+		fNodalAreas, fGlobal2Local, axisymmetric);
+
 	/* the time step */
 	double time_step = FieldSupport().TimeStep();
 
@@ -505,26 +518,6 @@ void PenaltyRegionT::TakeParameterList(const ParameterListT& list)
 		out << fContactNodes.wrap(6) << '\n';
 		fContactNodes--;				
 	}	
-
-        /* collect volume element block ID's containing the strikers */
-        ModelManagerT& model = FieldSupport().ModelManager();
-        ArrayT<StringT> element_id_all;
-        model.ElementGroupIDsWithNodes(fContactNodes, element_id_all);
-        iArrayT volume_element(element_id_all.Length());
-        for (int i = 0; i < element_id_all.Length(); i++) {
-                GeometryT::CodeT geom = model.ElementGroupGeometry(element_id_all[i]);
-                volume_element[i] = (GeometryT::GeometryToNumSD(geom) == FieldSupport().NumSD()) ? 1 : 0;
-        }
-        int count = 0;
-        ArrayT<StringT> element_id(volume_element.Count(1));
-        for (int i = 0; i < element_id_all.Length(); i++)
-                if (volume_element[i])
-                        element_id[count++] = element_id_all[i];
-
-        /* compute nodal areas */
-        FieldSupport().ModelManager().ComputeNodalArea(fContactNodes,
-        element_id, fNodalAreas, fGlobal2Local);
-
 
 	/* allocate memory for equation numbers */
 	int ndof = Field().NumDOF();
