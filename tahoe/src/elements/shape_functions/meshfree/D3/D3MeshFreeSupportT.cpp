@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.cpp,v 1.6 2005-02-05 01:53:27 kyonten Exp $ */
+/* $Id: D3MeshFreeSupportT.cpp,v 1.7 2005-07-20 17:03:09 kyonten Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D3MeshFreeSupportT.h"
@@ -28,16 +28,14 @@ D3MeshFreeSupportT::D3MeshFreeSupportT(const ParentDomainT* domain, const dArray
 	const iArray2DT& connects, const iArrayT& nongridnodes):
 	D2MeshFreeSupportT(domain, coords, connects, nongridnodes)
 {
-	SetName("D3_meshfree_support"); //kyonten
+	SetName("D3_meshfree_support"); 
 }
 
-//*********************************************//
-// kyonten
 D3MeshFreeSupportT::D3MeshFreeSupportT(void) 
 {
 	SetName("D3_meshfree_support");
 }
-//*********************************************//
+
 
 /* steps to initialization - modifications to the support size must
 * occur before setting the neighbor data */
@@ -98,7 +96,7 @@ void D3MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 		fnPhiData.RowAlias(tag, phi);
 		Dphi.Set(nsd, nnd, fnDPhiData(tag));
 		DDphi.Set(nst, nnd, fnDDPhiData(tag));
-		DDDphi.Set(nsd*nsd, nnd, fnDDDPhiData(tag)); //kyonten
+		DDDphi.Set(nsd*nsd, nnd, fnDDDPhiData(tag));
 	}
 	else
 	{
@@ -113,7 +111,7 @@ void D3MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 		DDphi.Set(nst, nnd, pdata);
 		pdata += DDphi.Length();
 		
-		DDDphi.Set(nsd*nsd, nnd, pdata); //kyonten
+		DDDphi.Set(nsd*nsd, nnd, pdata); 
 	
 		/* compute */
 		ComputeNodalData(node, neighbors, phi, Dphi, DDphi, DDDphi);
@@ -144,6 +142,7 @@ void D3MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 		if (fReformElem != kNoReform)
 		{
 			fReformElem = kNoReform;
+			cout << " MFGPSupportT::LoadElementData: computing int. pt. shape functions" << endl;
 			SetElementShapeFunctions();
 		}
 	
@@ -188,7 +187,7 @@ void D3MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 			pelspace += DDphi[i].Length();
 			
 			/* pointers for 3rd derivatives */
-			DDDphi[i].Set(nsd*nsd, nnd, pelspace); //kyonten
+			DDDphi[i].Set(nsd*nsd, nnd, pelspace); 
 			pelspace += DDDphi[i].Length();
 		}
 		
@@ -201,11 +200,9 @@ void D3MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 /* return values */
 const dArray2DT& D3MeshFreeSupportT::DDDFieldAt(void) const
 {	
-	return fRKPM->DDDphi();  //kyonten (uncommented)
+	return fRKPM->DDDphi();  
 }
 
-//*****************************************************************//
-// kyonten
 /* describe the parameters needed by the interface */
 void D3MeshFreeSupportT::DefineParameters(ParameterListT& list) const
 {
@@ -238,7 +235,6 @@ void D3MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue("D3MeshFreeSupportT::TakeParameterList", 
 			"EFG not implemented");
 }
-//*****************************************************************//
 
 /*************************************************************************
 * Protected
@@ -314,6 +310,10 @@ void D3MeshFreeSupportT::SetElementShapeFunctions(void)
 		ComputeElementData(elem, neighbors, phi, Dphi, DDphi, DDDphi);
 	}
 
+	/* message */
+	cout << " MFGPSupportT::SetElementShapeFunctions: cell count: "
+	     << lim << endl;	
+	     
 	/* clear */
 	fResetElems.Dimension(0);
 }
@@ -431,7 +431,7 @@ void D3MeshFreeSupportT::InitNodalShapeData(void)
 
 	/* dimensions */
 	int nst = dSymMatrixT::NumValues(fCoords->MinorDim());
-	int nsd = fCoords->MinorDim(); //kyonten
+	int nsd = fCoords->MinorDim(); 
 
 	/* configure nodal storage */
 	fnDDDPhiData.Configure(fnNeighborCount, nsd*nsd); 
@@ -444,7 +444,7 @@ void D3MeshFreeSupportT::InitElementShapeData(void)
 
 	/* dimensions */
 	int nst = dSymMatrixT::NumValues(fCoords->MinorDim());
-	int nsd = fCoords->MinorDim(); //kyonten
+	int nsd = fCoords->MinorDim(); 
 	int nip = fDomain->NumIP();
 
 	/* configure element storage */

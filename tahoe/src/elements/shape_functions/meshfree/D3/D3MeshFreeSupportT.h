@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.h,v 1.3 2004-12-24 20:33:55 kyonten Exp $ */
+/* $Id: D3MeshFreeSupportT.h,v 1.4 2005-07-20 17:03:09 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SUPPORT_T_H_
 #define _D3_MF_SUPPORT_T_H_
@@ -69,8 +69,6 @@ public:
 	 * \return 2D array dimension: [nsd*nsd] x [nnd] */
 	const dArray2DT& DDDFieldAt(void) const;
 	
-	//*****************************************************************//
-	// kyonten: to inherit the ParameterInterfaceT from D2MeshFreeSupportT
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -85,8 +83,7 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-	//*****************************************************************//
-
+	
 protected:
 
 	/* compute all nodal shape functions and derivatives */

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.14 2005-02-05 01:57:25 kyonten Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.15 2005-07-20 17:02:36 kyonten Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -30,16 +30,14 @@ D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray
 	MeshFreeSupportT(domain, coords, connects, nongridnodes),
 	fD2EFG(NULL)
 {
-	SetName("D2_meshfree_support"); //kyonten
+	SetName("D2_meshfree_support"); 
 }
 
-//*********************************************//
-// kyonten
 D2MeshFreeSupportT::D2MeshFreeSupportT(void) 
 {
 	SetName("D2_meshfree_support");
 }
-//*********************************************//
+
 
 /* steps to initialization - modifications to the support size must
 * occur before setting the neighbor data */
