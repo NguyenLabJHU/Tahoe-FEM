@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.cpp,v 1.5 2004-02-02 23:45:00 paklein Exp $ */
+/* $Id: DomainIntegrationT.cpp,v 1.6 2005-07-21 16:16:35 paklein Exp $ */
 /* created: paklein (09/04/1998)                                          */
 /* class to manage the parent domain including construction for           */
 /* shared parent domains, integration point iterations, and some          */
@@ -78,6 +78,8 @@ void DomainIntegrationT::Print(ostream& out) const
 /* set surface shapefunctions */
 void DomainIntegrationT::SetSurfaceShapes(void)
 {
+	const char caller[] = "DomainIntegrationT::SetSurfaceShapes";
+
 	/* memory */
 	int num_facets = NumFacets();
 	fSurfShapes.Dimension(num_facets);
@@ -108,10 +110,25 @@ void DomainIntegrationT::SetSurfaceShapes(void)
 		/* construct new surface shape */
 		else
 		{
-			//TEMP - set number of ip's on facet same as number of nodes
-			int nip = (NumSD() == 3) ? 4 : nnd;
+			/* set facet integration scheme - not an ideal solution */
+			GeometryT::CodeT volume_geom = fDomain->GeometryCode();
+			int nip = 0;
+			switch (NumSD()) {
+				case 1:
+				case 2:
+					nip = nnd;
+					break;				
+				case 3:
+					if (volume_geom == GeometryT::kHexahedron)
+						nip = (nnd <= 4) ? 4 : 9;
+					else
+						nip = 4;
+					break;
+				default:
+					ExceptionT::GeneralFail(caller, "unsupported dimension %d", NumSD());
+			}
 			fSurfShapes[i] = new ParentDomainT(geo, nip, nnd);
-			if (!fSurfShapes[i]) throw ExceptionT::kOutOfMemory;
+			if (!fSurfShapes[i]) ExceptionT::OutOfMemory(caller);
 	
 			/* set shape functions and derivatives */
 			fSurfShapes[i]->Initialize();
