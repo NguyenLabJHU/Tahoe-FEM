@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.12 2005-07-21 21:57:55 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.13 2005-07-21 22:02:27 d-farrell2 Exp $ */
 
 #include "BridgingScaleManagerT.h"
 
@@ -192,7 +192,7 @@ void BridgingScaleManagerT::InitBSM(void)
 	fFine_THK->InitialCondition();
 	
 	// calculate fine scale part of MD displacement and total displacement u
-	fCoarse->InitialProject(bridging_field, *(fFine_THK->NodeManager()), fProjectedu, 0, 0);
+	fCoarse->InitialProject(bridging_field, *(fFine_THK->NodeManager()), fProjectedu, 0);
 	
 	// solve for initial FEM force f(u) as function of fine scale + FEM
 	// use projected totalu instead of totalu for initial FEM displacements
