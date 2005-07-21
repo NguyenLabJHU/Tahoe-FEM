@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.20 2005-07-18 05:00:04 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.21 2005-07-21 16:21:23 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -601,14 +601,17 @@ void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, doub
 	const char caller[] = "TotalLagrangianCBSurfaceT::SurfaceLayer";
 	if (GeometryCode() != GeometryT::kHexahedron)
 		ExceptionT::GeneralFail(caller, "implemented for hex geometry only");
+	int nen = NumElementNodes();
+	if (nen != 8 && nen != 20)
+		ExceptionT::GeneralFail(caller, "implemented for 4 or 20 node hexes only: %d", nen);
 
 	/* transpose coordinate data */
-	double d24[24];
-	dArray2DT coords_tmp(8, 3, d24);
+	double d60[3*20]; /* oversize */
+	dArray2DT coords_tmp(nen, 3, d60);
 	coords.ReturnTranspose(coords_tmp);
 
-	int i4[4];
-	iArrayT face_nodes(4, i4);
+	int i8[8]; /* oversize */
+	iArrayT face_nodes(nen, i8);
 	ShapeFunction().NodesOnFacet(face, face_nodes);
 	double v1[3], v2[3];
 	Vector(coords_tmp(face_nodes[1]), coords_tmp(face_nodes[0]), v1);
@@ -617,8 +620,8 @@ void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, doub
 	CrossProduct(v2, v1, normal);
 	Scale(normal, 1.0/sqrt(Dot(normal,normal)));
 
-	/* opposite face information */
-	int opp_face[8] = {1,0,4,5,2,3};
+	/* opposite face information - vertex nodes only */
+	int opp_face[6] = {1,0,4,5,2,3};
 	int opp_face_nodes_dat[6*4] = {
 		4,7,6,5,
 		0,1,2,3,
@@ -649,6 +652,22 @@ void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, doub
 		
 		/* store */
 		coords_tmp.SetRow(n_back, v2);
+	}
+
+	/* move mid-side nodes */
+	if (nen == 20) {
+		int edges_dat[4*2] = {0,1,1,2,2,3,3,0};
+		iArray2DT edges(4, 2, edges_dat);
+		for (int i = 0; i < 6; i++)
+			if (i != face) {
+				ShapeFunction().NodesOnFacet(i, face_nodes);
+				for (int j = 0; j < 4; j++) /* loop over edges */ {
+					Sum(coords_tmp(face_nodes[edges(j,0)]), 
+					    coords_tmp(face_nodes[edges(j,1)]), 
+					    coords_tmp(face_nodes[j+4]));
+					coords_tmp.ScaleRow(face_nodes[j+4], 0.5);
+				}
+			}
 	}
 	
 	/* write back */
