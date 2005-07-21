@@ -1,4 +1,4 @@
-// $Id: Coupled_EqsT.cpp,v 1.5 2005-07-20 16:31:36 kyonten Exp $
+// $Id: Coupled_EqsT.cpp,v 1.6 2005-07-21 12:43:13 kyonten Exp $
 #include "Coupled_EqsT.h" 
 
 using namespace Tahoe;
@@ -23,10 +23,10 @@ void Coupled_EqsT::Initialize(int& curr_ip, D3MeshFreeShapeFunctionT* Shapes_dis
 	n_sd_x_n_en_plast = n_sd * n_en_plast;
  	
 	CurrMat = curr_mat;
-	N    = Shapes_displ->IPShapeU(curr_ip);
+	N    = Shapes_plast->IPShapeU(curr_ip);
 	DN   = Shapes_displ->Derivatives_U(curr_ip);
 	DDN  = Shapes_plast->DDerivatives_U(curr_ip);
-	DDDN = Shapes_plast->DDDerivatives_U(curr_ip);
+	DDDN = Shapes_displ->DDDerivatives_U(curr_ip);
 	
 	Form_C_List();
 	Form_B_List();

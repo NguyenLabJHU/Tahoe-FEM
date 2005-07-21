@@ -1,4 +1,4 @@
-// $Id: Coupled_EqsT.h,v 1.3 2005-07-08 01:13:27 kyonten Exp $
+// $Id: Coupled_EqsT.h,v 1.4 2005-07-21 12:43:13 kyonten Exp $
 #ifndef _COUPLED_EQS_T_H_ 
 #define _COUPLED_EQS_T_H_ 
 
@@ -75,8 +75,6 @@ public:
 		dMatrixT B1, B3, B4, psi_lam;  
   		dMatrixT Cuu1, Cuu2, Culam1, Culam2;
   		dMatrixT Clamu1, Clamu2, Clamlam1, Clamlam2;
-		double delta_t;
-		int time_step;
 		int ip, n_sd, n_str, n_en_displ, n_en_plast, 
 			n_sd_x_n_en_displ, n_sd_x_n_en_plast, n_state;
 		
