@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.12 2005-07-18 05:00:04 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.13 2005-07-21 03:57:06 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -147,7 +147,7 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	fAtomicArea = .5*cube_edge*cube_edge;	// area normalization same for all surface cluster atoms
 
 	/* set surface thickness - should be right */
-	fSurfaceThickness = 0.75*fNearestNeighbor;
+	fSurfaceThickness = 0.5*cube_edge;
 
 	/* reset the continuum density (4 atoms per unit cell) */
 	/* DOES THIS NEED TO BE CHANGED? */
