@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.13 2005-07-21 22:02:27 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.14 2005-07-22 16:24:09 d-farrell2 Exp $ */
 
 #include "BridgingScaleManagerT.h"
 
@@ -178,7 +178,7 @@ void BridgingScaleManagerT::InitBSM(void)
 	// reset interpolation data set in MultiManagerT::TakeParameterList with makeinactive = false
 	bool makeinactive = false;	
 	fCoarse->InitProjection(bridging_field, *(fFine_THK->CommManager()), fFine_THK->NonGhostNodes(), 
-		*(fFine_THK->NodeManager()), makeinactive, true);
+		*(fFine_THK->NodeManager()), makeinactive, false);
 	
 	// define time managers
 	fFine_time_manager = fFine_THK->TimeManager();
