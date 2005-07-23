@@ -3,5 +3,5 @@
 
 namespace Tahoe 
 {
-const bool ArrayT<CSEConstants::NodeMapMethodT>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<CSEConstants::NodeMapMethodT>::fByteCopy = true;
 }
