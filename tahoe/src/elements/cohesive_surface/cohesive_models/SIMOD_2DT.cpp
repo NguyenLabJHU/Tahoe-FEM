@@ -1,10 +1,11 @@
-/* $Id: SIMOD_2DT.cpp,v 1.3 2005-05-25 17:29:29 paklein Exp $ */
+/* $Id: SIMOD_2DT.cpp,v 1.4 2005-07-23 22:18:25 paklein Exp $ */
 #include "SIMOD_2DT.h"
 
 /* enabled */
 #ifdef __SIMOD__
 
 #include "ParameterContainerT.h"
+#include "pArrayT.h"
 #include <string.h>
 
 /* SIMOD headers */
@@ -14,32 +15,37 @@ using namespace Tahoe;
 
 /* class parameters */
 const int knumDOF = 2;
+const char caller[] = "SIMOD_2DT";
 
 /* list of supported SIMOD models */
 const simod_util_spc::model_IDnums SIMODSupported[] = {
-	simod_util_spc::xuneedleman
+	simod_util_spc::quasi2sigbrittle,
+	simod_util_spc::xuneedleman,
+	simod_util_spc::cebp_rcbond
 };
 const int kNumSIMODSupported = sizeof(SIMODSupported)/sizeof(*SIMODSupported);
 
 /* constructor */
 SIMOD_2DT::SIMOD_2DT(void): 
 	SurfacePotentialT(knumDOF),
-	fSIMOD(NULL),
-	finternalVar(NULL)
+	fSIMOD(NULL)
 {
 	SetName("SIMOD_2D");
 }
 
 /* destructor */
-SIMOD_2DT::~SIMOD_2DT(void)
-{
+SIMOD_2DT::~SIMOD_2DT(void) {
 	delete fSIMOD;
-	delete finternalVar;
 }
 
 /* return the number of state variables needed by the model */
 int SIMOD_2DT::NumStateVariables(void) const {
 	return fSIMOD->num_internal_var();
+}
+
+/* initialize the state variable array */
+void SIMOD_2DT::InitStateVariables(ArrayT<double>& state) {
+	fSIMOD->initializeInternalVariables(state.Pointer());
 }
 
 /* surface potential */
@@ -53,8 +59,8 @@ double SIMOD_2DT::FractureEnergy(const ArrayT<double>& state)
 double SIMOD_2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
+	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
+	if (state.Length() != NumStateVariables()) ExceptionT::GeneralFail(caller);
 #endif
 
 #pragma unused(state)
@@ -67,20 +73,17 @@ double SIMOD_2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 const dArrayT& SIMOD_2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
+	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
+	if (state.Length() != NumStateVariables()) ExceptionT::GeneralFail(caller);
 #endif
 
 #pragma unused(state)
 #pragma unused(sigma)
 #pragma unused(qIntegrate)
 
-	/* set size for model with maximum no. of parameters */
-//	finternalVar->toFloatAry(state.Pointer());
-
 	/* evaluate the traction */
 	double time = 0.0;
-	bool active = fSIMOD->calcTractions2d(finternalVar, jump_u[0], jump_u[1], time,
+	bool active = fSIMOD->calcTractions2d(state.Pointer(), jump_u[0], jump_u[1], time,
 		fTraction[0], fTraction[1]);	
 
 	return fTraction;
@@ -90,8 +93,8 @@ const dArrayT& SIMOD_2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state,
 const dMatrixT& SIMOD_2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
+	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
+	if (state.Length() != NumStateVariables()) ExceptionT::GeneralFail(caller);
 #endif
 
 #pragma unused(jump_u)
@@ -102,7 +105,7 @@ const dMatrixT& SIMOD_2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>
 	double time = 0.0;
 	double tau_t = 0.0, tau_n = 0.0;
 	SharedInterfaceModel::a2by2 Cchk = {{0.0,0.0},{0.0,0.0}};
-	bool active= fSIMOD->calcC2d(finternalVar, jump_u[0], jump_u[1], time,
+	bool active= fSIMOD->calcC2d(state.Pointer(), jump_u[0], jump_u[1], time,
 		tau_t, tau_n, Cchk);
 
 	/* translate */
@@ -118,12 +121,12 @@ const dMatrixT& SIMOD_2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>
 SurfacePotentialT::StatusT SIMOD_2DT::Status(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
+	if (state.Length() != NumStateVariables()) ExceptionT::GeneralFail(caller);
 #endif
 
 #pragma unused(jump_u)
 
-	bool active = fSIMOD->active(finternalVar);
+	bool active = fSIMOD->active(state.Pointer());
 	return (active) ? Precritical : Failed;
 }
 
@@ -165,15 +168,17 @@ ParameterInterfaceT* SIMOD_2DT::NewSub(const StringT& name) const
 		SharedInterfaceModel_spc::SharedInterfaceModel* simod = 
 			SharedInterfaceModel_spc::SharedInterfaceModel::factory(model_name);
 		if (!simod) ExceptionT::GeneralFail(caller, "error constructing \"%s\"", name.Pointer());
-			
-		/* define vector of parameters */
+
+		/* collect parameters descriptions */
 		int nv = simod->num_input_parameters();
+		ArrayT<parameter_item_spc::parameter_type> types(nv);
+		ArrayT<string> names(nv);
+		simod->get_input_parameter_spec(types.Pointer(), names.Pointer());
 		delete simod;
-		for (int i = 0; i < nv; i++) {
-			StringT label = "p_";
-			label.Append(i+1);
-			model_params->AddParameter(ParameterT::Double, label);
-		}
+		
+		/* define input parameters */
+		for (int i = 0; i < nv; i++)
+			model_params->AddParameter(SIMOD2Tahoe(types[i]), names[i].c_str());
 
 		return model_params;
 	}
@@ -200,31 +205,74 @@ void SIMOD_2DT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::GeneralFail(caller, "error constructing \"%s\"", 
 			simod_params->Name().Pointer());
 
-	/* extract parameters */
-	const ArrayT<ParameterT>& parameters = simod_params->Parameters();
-	if (parameters.Length() != fSIMOD->num_input_parameters())
-		ExceptionT::GeneralFail(caller, "expecting %d input parameters not %d",
-			fSIMOD->num_input_parameters(), parameters.Length());
-	dArrayT param_array(parameters.Length());
-	for (int i = 0; i < param_array.Length(); i++)
-		param_array[i] = parameters[i];
+	/* get the parameters specs */
+	int nv = fSIMOD->num_input_parameters();
+	ArrayT<parameter_item_spc::parameter_type> types(nv);
+	ArrayT<string> names(nv);
+	fSIMOD->get_input_parameter_spec(types.Pointer(), names.Pointer());
 
-	/* construct parameter input object */
-	if (model_name == simod_util_spc::model_names[simod_util_spc::xuneedleman])
+	/* translate parameters for SIMOD */
+	pArrayT<parameter_item_spc::parameter_item*> SIMOD_params(nv);
+	for (int i = 0; i < nv; i++)
 	{
-		/* define parameter object */
-		XuNeedleman::parameters* params = new XuNeedleman::parameters(param_array.Pointer());
-		
-		/* define model parameters */
-		fSIMOD->setParameters(params);
-		delete params;
-		
-		/* construct internal variable array */
-		finternalVar = new XuNeedleman::internalVar;
-	}	
-	else
-		ExceptionT::GeneralFail(caller, "unrecognized model name \"%s\"",
-			model_name.c_str());
+		/* new parameter item */
+		SIMOD_params[i] = parameter_item_spc::parameter_item::factory(types[i]);
+
+		/* set the label */
+		SIMOD_params[i]->label = names[i];
+
+		/* set the value */
+		switch (types[i]) {
+			case parameter_item_spc::int_param:
+			{
+				int a = simod_params->GetParameter(names[i].c_str());
+				SIMOD_params[i]->value(a);
+				break;
+			}
+			case parameter_item_spc::double_param:
+			{
+				double a = simod_params->GetParameter(names[i].c_str());
+				SIMOD_params[i]->value(a);
+				break;			
+			}
+			default:
+				ExceptionT::GeneralFail(caller, "unsupported type %d", types[i]);
+		}
+	}
+	
+	/* pass parameters to model */
+	fSIMOD->setParameters(SIMOD_params.Pointer(), SIMOD_params.Length());
+}
+
+/*************************************************************************
+ * Private
+ *************************************************************************/
+
+/* translate parameter types */
+ValueT::TypeT SIMOD_2DT::SIMOD2Tahoe(parameter_item_spc::parameter_type simod_type)
+{
+	switch (simod_type)
+	{
+		case parameter_item_spc::int_param:
+			return ValueT::Integer;
+
+		case parameter_item_spc::double_param:
+			return ValueT::Double;
+
+		case parameter_item_spc::bool_param:
+			return ValueT::Boolean;
+
+		case parameter_item_spc::char_param:
+		case parameter_item_spc::string_param:
+			return ValueT::Word;
+
+		default:
+			ExceptionT::GeneralFail("SIMOD_2DT::SIMOD2Tahoe", 
+				"could translate SIMOD type %d", simod_type);
+	}
+
+	/* dummy */
+	return ValueT::None;
 }
 
 #endif /* __SIMOD__ */
