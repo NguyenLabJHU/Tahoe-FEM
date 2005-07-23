@@ -1,0 +1,23 @@
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Print Step. . . . . . . . . . . . . . . . . . . = 2
+ Time. . . . . . . . . . . . . . . . . . . . . . = 1.500000000000e+01
+ Number of blocks. . . . . . . . . . . . . . . . = 2
+
+ Nodal data:
+ Number of nodal points. . . . . . . . . . . . . = 0
+ Number of values. . . . . . . . . . . . . . . . = 0
+
+
+ Element data:
+ Block ID . . . . . .  . . . . . . . . . . . . . = 1
+ Number of elements. . . . . . . . . . . . . . . = 0
+ Number of values. . . . . . . . . . . . . . . . = 0
+
+
+ Element data:
+ Block ID . . . . . .  . . . . . . . . . . . . . = 2
+ Number of elements. . . . . . . . . . . . . . . = 0
+ Number of values. . . . . . . . . . . . . . . . = 0
+
