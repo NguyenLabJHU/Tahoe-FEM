@@ -1,4 +1,4 @@
-/* $Id: iArrayT.h,v 1.9 2004-03-16 05:37:14 paklein Exp $ */
+/* $Id: iArrayT.h,v 1.10 2005-07-23 22:13:59 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 #ifndef _IARRAY_T_H_
 #define _IARRAY_T_H_
@@ -48,7 +48,8 @@ public:
 	 * \param index returns with the index of the first occurence, if found, -1 otherwise
 	 * \return 1 if value found, 0 otherwise */
 	int HasValue(int value, int& index) const;
-	
+
+#if 0
 	/** sort values in ascending order */
 	void SortAscending(void);
 
@@ -59,7 +60,8 @@ public:
 	/** sort values in ascending order determined by the master array. Both *this
 	 * and master are returned in ascending order. */
 	void SortAscending(ArrayT<double>& master);
-	
+#endif
+
 	/** determine union of the given array. This function does allocate a map array
 	 * the with a length the range of values in source. Determining the union requires
 	 * 3 passes through the source array and 2 passes through the map. 
@@ -85,6 +87,7 @@ inline iArrayT& iArrayT::operator=(int value)
 	return *this;
 }
 
+#if 0
 inline void iArrayT::SortAscending(void)
 {
 	/* inherited */
@@ -102,6 +105,7 @@ inline void iArrayT::SortAscending(ArrayT<double>& master)
 	/* utility */
 	Tahoe::SortAscending(master, *this);
 }
+#endif
 
 } /* namespace Tahoe */
 
