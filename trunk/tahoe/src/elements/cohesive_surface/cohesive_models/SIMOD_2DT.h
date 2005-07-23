@@ -1,4 +1,4 @@
-/* $Id: SIMOD_2DT.h,v 1.2 2005-05-25 17:25:04 paklein Exp $ */
+/* $Id: SIMOD_2DT.h,v 1.3 2005-07-23 22:18:25 paklein Exp $ */
 #ifndef _SIMOD_2D_T_H_
 #define _SIMOD_2D_T_H_
 
@@ -30,6 +30,10 @@ public:
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
 
+	/** initialize the state variable array. By default, initialization
+	 * involves only setting the array to zero. */
+	virtual void InitStateVariables(ArrayT<double>& state);
+
 	/** dissipated energy */
 	virtual double FractureEnergy(const ArrayT<double>& state);
 
@@ -60,11 +64,13 @@ public:
 
 private:
 
+	/** translate parameter types */
+	static ValueT::TypeT SIMOD2Tahoe(parameter_item_spc::parameter_type simod_type);
+
+private:
+
 	/** SIMOD model */
 	SharedInterfaceModel_spc::SharedInterfaceModel* fSIMOD;
-	
-	/** internal variable array */
-	SharedInterfaceModel_spc::SharedInterfaceModel::internalVar* finternalVar;
 };
 
 } /* namespace Tahoe */
