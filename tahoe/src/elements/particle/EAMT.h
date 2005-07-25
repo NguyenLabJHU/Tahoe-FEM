@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.24 2005-04-08 16:41:48 d-farrell2 Exp $ */
+/* $Id: EAMT.h,v 1.24.16.1 2005-07-25 02:37:13 paklein Exp $ */
 
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
@@ -43,6 +43,17 @@ public:
 	 * ParticleT::fGlobalTag. The values per node are those specified
 	 * by EAMT::GenerateOutputLabels. */
 	virtual void WriteOutput(void);
+
+	/** \name restart functions */
+	/*@{*/
+	/** write restart data to the output stream. Should be paired with
+	 * the corresponding ElementBaseT::ReadRestart implementation. */
+	virtual void WriteRestart(ofstreamT& out) const;
+
+	/** read restart data to the output stream. Should be paired with
+	 * the corresponding ElementBaseT::WriteRestart implementation. */
+	virtual void ReadRestart(ifstreamT& in);
+	/*@}*/
 
 	/** compute the part of the stiffness matrix associated with rows of the given 
 	 * particles. This is the mixed part of the stiffness matrix involving free

@@ -1,6 +1,5 @@
-/* $Id: NLSolver.h,v 1.12 2004-12-20 02:21:15 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.12.24.1 2005-07-25 02:37:25 paklein Exp $ */
 /* created: paklein (07/09/1996) */
-
 #ifndef _NL_SOLVER_H_
 #define _NL_SOLVER_H_
 
@@ -33,7 +32,10 @@ public:
 	virtual void CloseStep(void);
 
 	/** error handler */
-	virtual void ResetStep(void);	
+	virtual void ResetStep(void);
+	
+	/** renumbering handler */
+	virtual void ContinueStep(void);	
 	/*@}*/
 
 	/** (re-)set the reference error */
@@ -72,7 +74,7 @@ protected:
 protected:
 
 	/** things to do if the solver converges */
-	SolutionStatusT DoConverged(void);
+//	SolutionStatusT DoConverged(void);
 
 protected:
 

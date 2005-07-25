@@ -1,5 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.14 2005-06-28 14:46:44 d-farrell2 Exp $ */
-
+/* $Id: MultiManagerT.h,v 1.14.2.1 2005-07-25 02:37:20 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -35,7 +34,7 @@ public:
 	virtual void Solve(void);
 
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
+	virtual void SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift = 0);
 
 	/** (re-)set system to initial conditions */
 	virtual ExceptionT::CodeT InitialCondition(void);

@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.cpp,v 1.5 2004-07-22 08:31:56 paklein Exp $ */
+/* $Id: PenaltyCylinderT.cpp,v 1.5.30.1 2005-07-25 02:37:23 paklein Exp $ */
 #include "PenaltyCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -39,7 +39,8 @@ void PenaltyCylinderT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	const FieldSupportT& support = FieldSupport();
 
 	/* node by node */
-	for (int i = 0; i < fNumContactNodes; i++)
+	int nnd = fContactNodes.Length();
+	for (int i = 0; i < nnd; i++)
 	{
 		double gap  = fGap[i];
 		double dist = gap + fRadius;
@@ -134,8 +135,9 @@ void PenaltyCylinderT::ComputeContactForce(double kforce)
 {
 	/* loop over strikers */
 	const dArray2DT& coords = FieldSupport().CurrentCoordinates();
-	fContactForce2D = 0.0;	
-	for (int i = 0; i < fNumContactNodes; i++)
+	fContactForce2D = 0.0;
+	int nnd = fContactNodes.Length();
+	for (int i = 0; i < nnd; i++)
 	{
 		/* center to striker */
 		coords.RowCopy(fContactNodes[i], fv_OP);

@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.16 2004-12-20 01:23:25 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.16.24.1 2005-07-25 02:37:22 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 #include "AugLagSphereT.h"
 #include "FieldT.h"
@@ -140,7 +140,7 @@ GlobalT::RelaxCodeT AugLagSphereT::RelaxSystem(void)
 		/* evaluate constraints */
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		double penetration_norm = 0.0;
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < fContactNodes.Length(); i++)
 		{
 			/* center to striker */
 			coords.RowCopy(fContactNodes[i], fv_OP);
@@ -210,7 +210,7 @@ void AugLagSphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	dMatrixT mat;
 
 	/* node by node */
-	for (int i = 0; i < fNumContactNodes; i++)
+	for (int i = 0; i < fContactNodes.Length(); i++)
 	{
 		/* initialize */
 		fLHS = 0.0;
@@ -337,6 +337,8 @@ void AugLagSphereT::TakeParameterList(const ParameterListT& list)
 	else
 		fUzawa = false;
 
+ExceptionT::GeneralFail("AugLagSphereT::TakeParameterList", "not up to date");
+#if 0
 	/* do Uzawa iterations or solve concurrently */
 	if (!fUzawa)
 	{
@@ -362,6 +364,7 @@ void AugLagSphereT::TakeParameterList(const ParameterListT& list)
 		fDOF.Dimension(fNumContactNodes);
 		fDOF = 0.0;
 	}
+#endif
 }
 
 /**********************************************************************
@@ -394,7 +397,7 @@ void AugLagSphereT::ComputeContactForce(double kforce)
 		/* loop over strikers */
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		dArrayT f_u;
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < fContactNodes.Length(); i++)
 		{
 			/* displacement DOF's */
 			f_u.Set(ndof, fContactForce2D(i));
@@ -437,7 +440,7 @@ void AugLagSphereT::ComputeContactForce(double kforce)
 
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		dArrayT f_u;
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < fContactNodes.Length(); i++)
 		{
 			/* displacement DOF's */
 			f_u.Set(ndof_u, fContactForce2D(i));

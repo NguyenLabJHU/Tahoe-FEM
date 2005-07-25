@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.52 2005-05-05 16:39:03 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.52.14.1 2005-07-25 02:36:52 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -6,6 +6,7 @@
 #include <iomanip.h>
 #include <ctype.h>
 
+#include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "ModelManagerT.h"
 #include "LocalArrayT.h"
@@ -176,6 +177,9 @@ void ElementBaseT::FormRHS(void)
 	}
 }
 
+/* (re-)set the system configuration */
+GlobalT::InitStatusT ElementBaseT::UpdateConfiguration(void) { return GlobalT::kContinue; }
+
 /* initialize/finalize time increment */
 void ElementBaseT::InitStep(void) { }
 void ElementBaseT::CloseStep(void) { }
@@ -296,10 +300,10 @@ void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-void ElementBaseT::ReadRestart(istream& in)
+void ElementBaseT::ReadRestart(ifstreamT& in)
 {
 	/* stream check */
-	if (!in.good()) throw ExceptionT::kGeneralFail;
+	if (!in.good()) ExceptionT::GeneralFail("ElementBaseT::ReadRestart");
 
 	/* read status flag */
 	for (int i = 0; i < fElementCards.Length(); i++) {
@@ -309,7 +313,7 @@ void ElementBaseT::ReadRestart(istream& in)
 	}
 }
 
-void ElementBaseT::WriteRestart(ostream& out) const
+void ElementBaseT::WriteRestart(ofstreamT& out) const
 {
 	/* stream check */
 	if (!out.good()) ExceptionT::GeneralFail("ElementBaseT::WriteRestart");

@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.16 2005-07-20 06:54:46 paklein Exp $ */
+/* $Id: ContactT.h,v 1.16.2.1 2005-07-25 02:36:53 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -36,7 +36,7 @@ public:
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 	/** initialize current time increment. Reset the contact tracking data. */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 
 	/** solution calls */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force); //not implemented

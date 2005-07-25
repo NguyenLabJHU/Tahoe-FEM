@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.cpp,v 1.14 2004-12-26 21:08:41 d-farrell2 Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.14.22.1 2005-07-25 02:37:16 paklein Exp $ */
 /* created: paklein (10/17/1996) */
 #include "nNLHHTalpha.h"
 #include "dArrayT.h"
@@ -18,35 +18,46 @@ nNLHHTalpha::nNLHHTalpha(double alpha):
 }
 
 /* consistent BC's - updates predictors and acceleration only */
-void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
+void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes)
 {
+	const char caller[] = "nNLHHTalpha::ConsistentKBC";
+	if (KBC.Mode() == KBC_CardT::kSet && !nodes)
+		ExceptionT::GeneralFail(caller, "expecting non-NULL nodes");
+
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (field[0])(node, dof);
-	double& v = (field[1])(node, dof);
-	double& a = (field[2])(node, dof);
+	int nnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Length() : 1;
+	const int* pnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Pointer() : &node;
 
-	switch ( KBC.Code() )
+	/* apply to nodes */
+	for (int i = 0; i < nnd; i++)
 	{
-		case KBC_CardT::kFix: /* zero displacement */
-		case KBC_CardT::kDsp: /* prescribed displacement */
-		{
-			double temp = KBC.Value();
-			
-			if (fabs(dcorr_a) > kSmall) /* for dt -> 0.0 */
-				a = (temp - d)/dcorr_a;
-			else
-				a = 0.0;
-			d  = temp;
-			v += vcorr_a*a;
+		double& d = (field[0])(*pnd, dof);
+		double& v = (field[1])(*pnd, dof);
+		double& a = (field[2])(*pnd, dof);
+		pnd++; /* next */
 
-			break;
-		}
-		case KBC_CardT::kVel: /* prescribed velocity */
+		switch ( KBC.Code() )
 		{
-			double temp = KBC.Value();
-			
+			case KBC_CardT::kFix: /* zero displacement */
+			case KBC_CardT::kDsp: /* prescribed displacement */
+			{
+				double temp = KBC.Value();
+				
+				if (fabs(dcorr_a) > kSmall) /* for dt -> 0.0 */
+					a = (temp - d)/dcorr_a;
+				else
+					a = 0.0;
+				d  = temp;
+				v += vcorr_a*a;
+
+				break;
+			}
+			case KBC_CardT::kVel: /* prescribed velocity */
+			{
+				double temp = KBC.Value();
+				
 			if (fabs(vcorr_a) > kSmall) /* for dt -> 0.0 */
 				a = (temp - v)/vcorr_a;
 			else
@@ -55,24 +66,25 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			v  = temp;
 
 			break;
-		}
-		case KBC_CardT::kAcc: /* prescribed acceleration */
-		{
-			a  = KBC.Value();
-			d += dcorr_a*a;
-			v += vcorr_a*a;
+			}
+			case KBC_CardT::kAcc: /* prescribed acceleration */
+			{
+				a  = KBC.Value();
+				d += dcorr_a*a;
+				v += vcorr_a*a;
 
-			break;
+				break;
+			}
+			case KBC_CardT::kNull: /* do nothing */
+			{
+				break;
+			}
+			default:
+				ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code());
 		}
-		case KBC_CardT::kNull: /* do nothing */
-		{
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue("nNLHHTalpha::ConsistentKBC", 
-				"unknown BC code: %d", KBC.Code());
 	}
-}		
+}
+	
 #pragma message ("roll up redundancy after it works")
 // predictors - map ALL, unless limit arguments are specified
 void nNLHHTalpha::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
@@ -102,8 +114,9 @@ void nNLHHTalpha::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fiel
 }		
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nNLHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nNLHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
+
 	if (fieldend == -1) // operate on full arrays
 	{
 		/* displacement corrector */

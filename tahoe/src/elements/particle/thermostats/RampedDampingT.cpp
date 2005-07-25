@@ -1,8 +1,7 @@
-/* $Id: RampedDampingT.cpp,v 1.5 2004-07-15 08:29:54 paklein Exp $ */
+/* $Id: RampedDampingT.cpp,v 1.5.30.1 2005-07-25 02:37:14 paklein Exp $ */
 #include "RampedDampingT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
-#include "AutoArrayT.h"
 #include "BasicSupportT.h"
 
 const double fkB = 0.00008617385;
@@ -18,7 +17,7 @@ RampedDampingT::RampedDampingT(const BasicSupportT& support):
 }
 
 void RampedDampingT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
-			dArray2DT& forces, AutoArrayT<int>& types,
+			dArray2DT& forces, ArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties)
 {
 	int nsd = fSupport.NumSD();

@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.17 2004-09-09 23:54:55 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.17.28.1 2005-07-25 02:37:25 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 #include "iNLSolver_LS.h"
 
@@ -297,10 +297,11 @@ NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 			}
 		
 			/* found solution - check relaxation */
-			if (fIterationStatus == kConverged)
-			{
-				fIterationStatus = DoConverged();	
-			}
+//			if (fIterationStatus == kConverged)
+//			{
+//				fIterationStatus = DoConverged();	
+//			}
+#pragma message("delete me")
 			break;
 		}
 		default:

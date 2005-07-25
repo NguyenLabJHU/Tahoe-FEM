@@ -1,4 +1,4 @@
-/* $Id: MFPenaltySphereT.cpp,v 1.9 2005-07-05 07:13:24 paklein Exp $ */
+/* $Id: MFPenaltySphereT.cpp,v 1.9.2.1 2005-07-25 02:37:23 paklein Exp $ */
 /* created: paklein (04/17/2000) */
 #include "MFPenaltySphereT.h"
 #include "FieldT.h"
@@ -15,6 +15,22 @@ MFPenaltySphereT::MFPenaltySphereT(void):
 	fElementGroup(NULL)
 {
 	SetName("sphere_penalty_meshfree");
+
+	/* register with memory managers */
+	fdContactNodesGroup2D.Register(fInitCoords);
+	fdContactNodesGroup2D.Register(fCurrCoords);
+}
+
+/* (re-)set the configuration */
+GlobalT::InitStatusT MFPenaltySphereT::UpdateConfiguration(void)
+{
+	/* inherited */
+	GlobalT::InitStatusT status = PenaltySphereT::UpdateConfiguration();
+
+	/* collect coordinates */
+	fInitCoords.RowCollect(fContactNodes, FieldSupport().InitialCoordinates());
+
+	return status;
 }
 
 /* describe the parameters needed by the interface */
@@ -46,14 +62,6 @@ void MFPenaltySphereT::TakeParameterList(const ParameterListT& list)
 	/* check */
 	if (fElementGroup->InterpolantDOFs())
 		ExceptionT::GeneralFail(caller, "element group %d has interpolant DOF's. Use PenaltySphereT", group+1);
-
-	/* allocate workspace */
-	const dArray2DT& coords = FieldSupport().InitialCoordinates();
-	fCoords.Dimension(fNumContactNodes, coords.MinorDim());
-	fCurrCoords.Dimension(fNumContactNodes, Field().NumDOF());
-	
-	/* collect coordinates */
-	fCoords.RowCollect(fContactNodes, coords);
 }
 
 /**********************************************************************
@@ -68,11 +76,11 @@ void MFPenaltySphereT::ComputeContactForce(double kforce)
 
 	/* get nodal displacements */
 	fElementGroup->NodalDOFs(fContactNodes, fCurrCoords);
-	fCurrCoords += fCoords; //EFFECTIVE DVA
+	fCurrCoords += fInitCoords; //EFFECTIVE DVA
 
 	/* loop over strikers */
 	fContactForce2D = 0.0;	
-	for (int i = 0; i < fNumContactNodes; i++)
+	for (int i = 0; i < fContactNodes.Length(); i++)
 	{
 		/* center to striker */
 		fCurrCoords.RowCopy(i, fv_OP);

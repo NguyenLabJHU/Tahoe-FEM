@@ -1,4 +1,4 @@
-/* $Id: AugLagCylinderT.cpp,v 1.5 2004-12-20 01:23:25 paklein Exp $ */
+/* $Id: AugLagCylinderT.cpp,v 1.5.24.1 2005-07-25 02:37:22 paklein Exp $ */
 #include "AugLagCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -152,7 +152,7 @@ GlobalT::RelaxCodeT AugLagCylinderT::RelaxSystem(void)
 		/* evaluate constraints */
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		double penetration_norm = 0.0;
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < fContactNodes.Length(); i++)
 		{
 			/* center to striker */
 			coords.RowCopy(fContactNodes[i], fv_OP);
@@ -266,7 +266,7 @@ void AugLagCylinderT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	dMatrixT mat;
 
 	/* node by node */
-	for (int i = 0; i < fNumContactNodes; i++)
+	for (int i = 0; i < fContactNodes.Length(); i++)
 	{
 		/* initialize */
 		fLHS = 0.0;
@@ -358,7 +358,9 @@ void AugLagCylinderT::TakeParameterList(const ParameterListT& list)
 	}
 	else
 		fUzawa = false;
-	
+
+ExceptionT::GeneralFail("AugLagCylinderT::TakeParameterList", "not up to date");
+#if 0
 	/* do Uzawa iterations or solve concurrently */
 	if (!fUzawa)
 	{
@@ -386,6 +388,7 @@ void AugLagCylinderT::TakeParameterList(const ParameterListT& list)
 		fDOF.Dimension(fNumContactNodes);
 		fDOF = 0.0;
 	}
+#endif
 }
 
 /**********************************************************************
@@ -418,7 +421,7 @@ void AugLagCylinderT::ComputeContactForce(double kforce)
 		/* loop over strikers */
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		dArrayT f_u;
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < fContactNodes.Length(); i++)
 		{
 			/* displacement DOF's */
 			f_u.Alias(ndof, fContactForce2D(i));
@@ -461,7 +464,7 @@ void AugLagCylinderT::ComputeContactForce(double kforce)
 		/* loop over strikers */
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		dArrayT f_u;
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < fContactNodes.Length(); i++)
 		{
 			/* displacement DOF's */
 			f_u.Set(ndof_u, fContactForce2D(i));

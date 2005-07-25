@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.38 2005-06-23 20:17:12 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.38.6.1 2005-07-25 02:36:53 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -47,10 +47,10 @@ public:
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** write restart data to the output stream. */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** read restart data to the output stream. */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 
 	/** state variable array */
 	RaggedArray2DT<double>& StateVariables(void) { return fStateVariables; };

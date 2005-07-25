@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.14 2004-07-15 08:31:36 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.14.30.1 2005-07-25 02:37:24 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 #include "FBC_CardT.h"
 #include "ScheduleT.h"
@@ -14,6 +14,7 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_CardT>::fByteCopy = false;
 /* constructor */
 FBC_CardT::FBC_CardT(void):
 	fNode(-1),
+	fMode(kUndefined),
 	fDOF(-1),
 	fValue(0.0),
 	fSchedule(NULL)
@@ -28,6 +29,19 @@ void FBC_CardT::SetValues(int node, int dof, const ScheduleT* schedule, double v
 	fDOF      = dof;
 	fSchedule = schedule;
 	fValue    = value;
+	fMode     = kNode;
+	fID.Clear();
+}
+
+void FBC_CardT::SetValues(const StringT& ID, int dof, const ScheduleT* schedule, double value)
+{
+	/* set */
+	fNode     = -1;
+	fDOF      = dof;
+	fSchedule = schedule;
+	fValue    = value;
+	fMode     = kSet;
+	fID       = ID;
 }
 
 /* split force value in half */

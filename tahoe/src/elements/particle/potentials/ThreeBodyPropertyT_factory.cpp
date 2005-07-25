@@ -1,4 +1,4 @@
-/* $Id: ThreeBodyPropertyT_factory.cpp,v 1.1 2004-11-23 01:43:20 cjkimme Exp $ */
+/* $Id: ThreeBodyPropertyT_factory.cpp,v 1.1.24.1 2005-07-25 02:37:14 paklein Exp $ */
 #include "ThreeBodyPropertyT.h"
 #include <string.h>
 
@@ -10,6 +10,7 @@ using namespace Tahoe;
 /* pair property factor */
 ThreeBodyPropertyT* ThreeBodyPropertyT::New(const char* name, const BasicSupportT* support)
 {
+#pragma unused(support)
 	if (strcmp(name, "Stillinger_Weber") == 0)
 		return new StillingerWeberT;
 	else

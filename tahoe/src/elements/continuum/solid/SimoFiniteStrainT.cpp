@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.31 2005-07-14 07:10:18 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.31.2.1 2005-07-25 02:36:55 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -6,6 +6,7 @@
 #include <iomanip.h>
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "SolidMaterialT.h"
 #include "MaterialListT.h" //NOTE - only needed for check in Initialize?
 #include "SimoShapeFunctionT.h"
@@ -237,7 +238,7 @@ GlobalT::RelaxCodeT SimoFiniteStrainT::ResetStep(void)
 }
 
 /* read restart information from stream */
-void SimoFiniteStrainT::ReadRestart(istream& in)
+void SimoFiniteStrainT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	FiniteStrainT::ReadRestart(in);
@@ -250,7 +251,7 @@ void SimoFiniteStrainT::ReadRestart(istream& in)
 }
 
 /* write restart information from stream */
-void SimoFiniteStrainT::WriteRestart(ostream& out) const
+void SimoFiniteStrainT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	FiniteStrainT::WriteRestart(out);

@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.h,v 1.13 2004-12-20 01:23:25 paklein Exp $ */
+/* $Id: AugLagWallT.h,v 1.13.24.1 2005-07-25 02:37:22 paklein Exp $ */
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
 
@@ -34,6 +34,9 @@ public:
 	/* restarts */
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
+
+	/** (re-)set the configuration */
+	virtual GlobalT::InitStatusT UpdateConfiguration(void);
 
 	/** initialize new time increment */
 	virtual void InitStep(void);	
@@ -123,7 +126,7 @@ private:
 	/** augmented multiplier from previous iteration. With line searching, the current
 	 * value of the multplier should depend on the value from the previous iteration not
 	 * on values calculated while performing the line search. Only used for Uzawa. */
-	dArrayT fDOFi;
+	AutoArrayT<double> fDOFi;
 	
 	/** iteration number associated with AugLagSphereT::fDOFi */
 	int fIterationi;
