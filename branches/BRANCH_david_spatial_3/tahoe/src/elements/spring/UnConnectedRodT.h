@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.h,v 1.8 2004-07-15 08:30:17 paklein Exp $ */
+/* $Id: UnConnectedRodT.h,v 1.8.30.1 2005-07-25 02:37:15 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #ifndef _UNCONN_ROD_T_H_
@@ -21,7 +21,7 @@ public:
 
 	/* apply pre-conditions at the current time step.  Signal
 	 * all listeners that the time has just been incremented */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 
 	/* resets to the last converged solution */
 	virtual GlobalT::RelaxCodeT ResetStep(void);

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.9 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.9.30.1 2005-07-25 02:36:56 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #ifndef _MF_SMALLSTRAIN_T_H_
 #define _MF_SMALLSTRAIN_T_H_

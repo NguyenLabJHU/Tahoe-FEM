@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.80 2005-05-25 00:32:48 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.80.12.1 2005-07-25 02:37:18 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -19,15 +19,15 @@
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "FEManagerT.h"
-#include "IOManager_mpi.h"
 #include "ModelManagerT.h"
-#include "CommManagerT.h"
 #include "StringT.h"
-#include "GraphT.h"
 #include "PartitionT.h"
-#include "OutputSetT.h"
-#include "ModelFileT.h"
-#include "ExodusT.h"
+#pragma message("clean up")
+//#include "GraphT.h"
+//#include "OutputSetT.h"
+//#include "ModelFileT.h"
+//#include "ExodusT.h"
+//#include "CommManagerT.h"
 #include "JoinOutputT.h"
 #include "dArrayT.h"
 #include "OutputBaseT.h"
@@ -50,12 +50,13 @@
 #include "FEManagerT_THK.h"
 #include "ThermomechanicalCouplingManagerT.h"
 #endif
-#include "TimeManagerT.h"
-#include "NodeManagerT.h"
-#include "dSPMatrixT.h"
-#include "FieldT.h"
-#include "IntegratorT.h"
-#include "ElementBaseT.h"
+#pragma message("clean up")
+//#include "TimeManagerT.h"
+//#include "NodeManagerT.h"
+//#include "dSPMatrixT.h"
+//#include "FieldT.h"
+//#include "IntegratorT.h"
+//#include "ElementBaseT.h"
 #endif /* BRIDGING_ELEMENT */
 
 using namespace Tahoe;
@@ -446,62 +447,6 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 			
 			ExceptionT::GeneralFail(caller);
 		}
-
-		IOManager_mpi* IOMan = NULL;
-		if (fComm.Size() > 1 && valid_list.Name() == "tahoe")
-		{
-			/* partition information */
-			const PartitionT* partition = tahoe->Partition();
-		
-			/* external IO */
-			bool do_split_io = CommandLineOption("-split_io");
-			PartitionT::DecompTypeT decomp = (partition) ? partition->DecompType() : PartitionT::kUndefined;
-			token = 1;
-			if (decomp == PartitionT::kGraph && !do_split_io)
-			{
-				try {
-
-					/* geometry file information */
-					const StringT& model_file = valid_list.GetParameter("geometry_file");
-					IOBaseT::FileTypeT format = IOBaseT::int_to_FileTypeT(valid_list.GetParameter("geometry_format"));
-					
-					/* set-up local IO */
-					IOMan = new IOManager_mpi(input_file, fComm, *(tahoe->OutputManager()), *partition, model_file, format);
-					if (!IOMan) throw ExceptionT::kOutOfMemory;
-				
-					/* set external IO */
-					tahoe->SetExternalIO(IOMan);
-				}
-			
-				catch (ExceptionT::CodeT code)
-				{
-					token = 0;
-					status << "\n \"" << input_file << "\" exit on exception " << code 
-				    	   << " setting the external IO" << endl;
-				}
-			}
-			else if (!do_split_io)
-				status << "\n " << caller << ": decomposition method only supports -split_io" << endl;
-		}
-		if (fComm.Sum(token) != size && size > 1)
-		{
-			/* gather tokens to rank 0 */
-			if (rank == 0)
-			{
-				iArrayT tokens(size);
-				fComm.Gather(token, tokens);			
-				status << "\n The following processes exit on exception during construction:\n";
-				for (int i = 0; i < tokens.Length(); i++)
-					if (tokens[i] != 1)
-						status << setw(kIntWidth) << i << '\n';
-				status.flush();
-			}
-			else 
-				fComm.Gather(token, 0);
-			
-			ExceptionT::GeneralFail(caller);
-		}
-		
 		
 #if defined(__MWERKS__) && __option(profile)
 		/* start recording profiler information */
@@ -540,11 +485,7 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 		ProfilerDump(pstr);
 		ProfilerClear();
 #endif
-		if (valid_list.Name() == "tahoe")
-		{
-			/* free external IO */
-			delete IOMan;
-		}
+
 		if (fComm.Sum(token) != size && size > 1)
 		{
 			/* gather tokens to rank 0 */

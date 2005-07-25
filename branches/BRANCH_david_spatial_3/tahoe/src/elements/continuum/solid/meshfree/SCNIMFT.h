@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.31 2005-07-08 23:38:51 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.31.2.1 2005-07-25 02:36:56 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -82,11 +82,11 @@ public:
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 	/*@}*/
 
 	/** Loop over nodes and compute stiffness matrix */

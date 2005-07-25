@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LSX.h,v 1.2 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolver_LSX.h,v 1.2.58.1 2005-07-25 02:37:25 paklein Exp $ */
 #ifndef _NL_SOLVER_LSX_H_
 #define _NL_SOLVER_LSX_H_
 

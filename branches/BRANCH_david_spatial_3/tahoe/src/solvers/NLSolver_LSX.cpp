@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LSX.cpp,v 1.5 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: NLSolver_LSX.cpp,v 1.5.30.1 2005-07-25 02:37:25 paklein Exp $ */
 #include "NLSolver_LSX.h"
 #include "FEManagerT.h"
 #include "ifstreamT.h"

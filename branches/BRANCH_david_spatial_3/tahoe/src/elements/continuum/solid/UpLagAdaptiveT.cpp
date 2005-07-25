@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.7 2005-02-13 22:18:02 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.7.18.1 2005-07-25 02:36:55 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -21,6 +21,7 @@ UpLagAdaptiveT::UpLagAdaptiveT(const ElementSupportT& support, const FieldT& fie
 	fTied(NULL),
 	fReleaseThreshold(-1.0)
 {
+#pragma unused(field)
 //TEMP
 	if (ElementSupport().Size() != 1) ExceptionT::GeneralFail("UpLagAdaptiveT::UpLagAdaptiveT", "serial only");
 }

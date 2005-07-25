@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.17 2005-04-12 15:34:40 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.17.14.1 2005-07-25 02:37:22 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -73,6 +73,9 @@ public:
 	virtual void InitialCondition(void) = 0;
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
+
+	/** (re-)set the configuration */
+	virtual GlobalT::InitStatusT UpdateConfiguration(void) { return GlobalT::kContinue; };
 
 	/** \name apply force and tangent contributions */
 	/*@{*/

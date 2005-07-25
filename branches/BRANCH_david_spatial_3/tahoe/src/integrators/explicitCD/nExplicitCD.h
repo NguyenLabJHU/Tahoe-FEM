@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.h,v 1.9 2004-12-26 21:08:58 d-farrell2 Exp $ */
+/* $Id: nExplicitCD.h,v 1.9.22.1 2005-07-25 02:37:17 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _N_EXP_CD_H_
@@ -19,8 +19,12 @@ public:
 	/** constructor */
 	nExplicitCD(void);
 
-	/** consistent BC's */
-	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+	/** prescribe the field and derivatives consistent BC's 
+	 * \param field field to which boundary conditions will be applied
+	 * \param KBC boundary condition specification
+	 * \param nodes pointer to a list of nodes if KBC card has KBC_CardT::ModeT set to KBC_CardT::kSet
+	 *        or NULL if it is set to KBC_CardT::kNode. */
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes = NULL);
 
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
@@ -29,7 +33,7 @@ public:
 	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector. Maps ALL degrees of freedom forward. */
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */

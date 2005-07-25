@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.63 2005-07-08 23:38:50 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.63.2.1 2005-07-25 02:36:56 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -701,7 +701,7 @@ void SCNIMFT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 }
 
 /* write restart data to the output stream */
-void SCNIMFT::WriteRestart(ostream& out) const
+void SCNIMFT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	ElementBaseT::WriteRestart(out);
@@ -719,7 +719,7 @@ void SCNIMFT::WriteRestart(ostream& out) const
 }
 
 /* read restart data to the output stream */
-void SCNIMFT::ReadRestart(istream& in)
+void SCNIMFT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	ElementBaseT::ReadRestart(in);

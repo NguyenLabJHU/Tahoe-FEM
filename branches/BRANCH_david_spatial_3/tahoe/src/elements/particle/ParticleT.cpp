@@ -1,5 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.50 2005-07-06 00:33:35 d-farrell2 Exp $ */
-
+/* $Id: ParticleT.cpp,v 1.50.2.1 2005-07-25 02:37:13 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -41,13 +40,17 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fNeighborDistance(-1),
 	fReNeighborDisp(-1),
 	fReNeighborIncr(-1),
+	fOutputAllParticles(false),
+	fPointConnectivities_man(0, fPointConnectivities, 1),
+	fStretchTime(-1.0),
 	fGrid(NULL),
-	fReNeighborCounter(0),
 	fDmax(0),
 	fForce_man(fForce),
 	fActiveParticles(NULL),
-	fTypeMessageID(CommManagerT::kNULLMessageID),
-	fLatticeParameter(-1.0)
+	fLatticeParameter(-1.0),
+	fReNeighborCounter(0),
+	fhas_periodic(false),
+	fhas_moving_periodic(false)
 {
 	SetName("particle");
 
@@ -90,15 +93,15 @@ void ParticleT::RegisterOutput(void)
 {
 	/* "point connectivities" needed for output */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
-	const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
-	if (parition_nodes)
+	const ArrayT<int>* partition_nodes = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes();
+	if (partition_nodes)
 	{
-		int num_nodes = parition_nodes->Length();
-		fPointConnectivities.Alias(num_nodes, 1, parition_nodes->Pointer());
+		int num_nodes = partition_nodes->Length();
+		fPointConnectivities.Alias(num_nodes, 1, partition_nodes->Pointer());
 	}
 	else /* ALL nodes */
 	{
-		fPointConnectivities.Dimension(ElementSupport().NumNodes(), 1);
+		fPointConnectivities_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 		iArrayT tmp;
 		tmp.Alias(fPointConnectivities);
 		tmp.SetValueToPosition();				
@@ -138,14 +141,19 @@ void ParticleT::WriteOutput(void)
 	/* reset connectivities */
 	if (ChangingGeometry())
 	{
-		const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
-		if (parition_nodes)
+		const ArrayT<int>* partition_nodes = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes();
+		if (partition_nodes)
 		{
-			int num_nodes = parition_nodes->Length();
-			fPointConnectivities.Alias(num_nodes, 1, parition_nodes->Pointer());	
+			int num_nodes = partition_nodes->Length();
+			fPointConnectivities.Alias(num_nodes, 1, partition_nodes->Pointer());	
 		}
-		else
-			ExceptionT::GeneralFail("ParticleT::WriteOutput", "expecting a partition nodes list");
+		else /* ALL nodes */
+		{
+			fPointConnectivities_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+			iArrayT tmp;
+			tmp.Alias(fPointConnectivities);
+			tmp.SetValueToPosition();				
+		}
 	}
 }
 
@@ -156,11 +164,11 @@ void ParticleT::SendOutput(int kincode)
 	//TEMP: for now, do nothing
 }
 
-/* trigger reconfiguration */
-GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
+/* (re-)set the system configuration */
+GlobalT::InitStatusT ParticleT::UpdateConfiguration(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
+	GlobalT::InitStatusT status = ElementBaseT::UpdateConfiguration();
 
 	/* multiprocessor support */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
@@ -173,28 +181,21 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 	//fDampingCounters++;
 
 	/* reset periodic bounds given stretching */
-	bool has_moving = false;
-	for (int i = 0; i < NumSD(); i++)
-	{
-		const ScheduleT* stretch = fStretchSchedule[i];
-		if (stretch)
-		{
-			/* time during next solution step */
-			double next_time = ElementSupport().Time() + ElementSupport().TimeStep();
-		
-			has_moving = true;
-			double scale = stretch->Value(next_time);
-			double x_min = scale*fPeriodicBounds(i,0);
-			double x_max = scale*fPeriodicBounds(i,1);
-	
-			/* redefine bounds */
-			comm_manager.SetPeriodicBoundaries(i, x_min, x_max);
-		}
-	}
+	bool reset_stretch = fhas_moving_periodic && fabs(fStretchTime - ElementSupport().Time()) > kSmall;
 
-	/* generate contact element data */
+	/* reset periodic bounds given stretching */
+//	bool has_moving = false;
+//	for (int i = 0; !has_moving && i < NumSD(); i++)
+//		has_moving = (fStretchSchedule[i] != NULL);
+             
+	/* displacement tracking is out of date (not initialized) */
+	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
+	int npn = (part_nodes) ? part_nodes->Length() : ElementSupport().NumNodes();
+	bool out_of_date = fReNeighborCoords.MajorDim() != npn;
+
+	/* generate neighborlists */
 	fReNeighborCounter++;
-	if (has_moving ||
+	if (reset_stretch || out_of_date ||
 	    (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
 		(fReNeighborIncr > 0 && fReNeighborCounter >= fReNeighborIncr))
 	{
@@ -212,29 +213,46 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 
 		/* reset counter */
 		fReNeighborCounter = 0;
-	
-		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
+		
+		/* changes to equation system */
+		GlobalT::InitStatusT my_status = (fhas_periodic || comm_manager.DecompType() == PartitionT::kSpatial) ?
+			GlobalT::kNewEquations : 
+			GlobalT::kNewInteractions;
+		status = GlobalT::MaxPrecedence(status, my_status);
 	}
-	else
-		return relax;
+
+	return status;
 }
 
 /* write restart data to the output stream */
-void ParticleT::WriteRestart(ostream& out) const
+void ParticleT::WriteRestart(ofstreamT& out) const
 {
 	/* write counter */
 	out << fReNeighborCounter << '\n';
+
+	/* coordinates for tracking of reneighboring */
+	out << fReNeighborCoords.MajorDim() << '\n'
+	    << fReNeighborCoords.MinorDim() << '\n'
+	    << fReNeighborCoords << '\n';
 	
+	/* thermostats */
 	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->WriteRestart(out);
 }
 
 /* read restart data to the output stream */
-void ParticleT::ReadRestart(istream& in)
+void ParticleT::ReadRestart(ifstreamT& in)
 {
 	/* read counter */
 	in >> fReNeighborCounter;
 
+	/* coordinates for tracking of reneighboring */
+	int dim1, dim2;
+	in >> dim1 >> dim2;
+	fReNeighborCoords.Dimension(dim1, dim2);
+	in >> fReNeighborCoords;
+
+	/* thermostats */
 	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->ReadRestart(in);
 }
@@ -290,19 +308,25 @@ void ParticleT::SetConfiguration(void)
 	/* set periodic boundary conditions */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
 	comm_manager.SetSkin(fPeriodicSkin);
-	comm_manager.EnforcePeriodicBoundaries();
+	for (int i = 0; i < NumSD(); i++) /* reset periodic bounds given stretching */
+	{
+		const ScheduleT* stretch = fStretchSchedule[i];
+		if (stretch)
+		{
+			/* compute new bounds */
+			double scale = stretch->Value();
+			double x_min = scale*fPeriodicBounds(i,0);
+			double x_max = scale*fPeriodicBounds(i,1);
 	
-	/* reset the types array */
-	int nnd = ElementSupport().NumNodes();
-	fType.Resize(nnd);
-	
-	/* exchange type information */
-	if (fTypeMessageID == CommManagerT::kNULLMessageID)
-		fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
-	iArray2DT type_wrapper(fType.Length(), 1, fType.Pointer());
-	comm_manager.AllGather(fTypeMessageID, type_wrapper);
-	
+			/* redefine bounds */
+			comm_manager.SetPeriodicBoundaries(i, x_min, x_max);
+		}
+	}
+	comm_manager.UpdateConfiguration();
+	fStretchTime = ElementSupport().Time();
+
 	/* resize working arrays */
+	int nnd = ElementSupport().NumNodes();
 	fForce_man.SetMajorDimension(nnd, false);
 
 	/* collect current coordinates */
@@ -491,10 +515,16 @@ void ParticleT::AssembleParticleMass(const dArrayT& mass)
 double ParticleT::MaxDisplacement(void) const
 {
 	const char caller[] = "ParticleT::MaxDisplacement";
+
+	/* quick exit - this means the fReNeighborCoords is out of date and
+	 * reneighboring must occur. However, dmax alone does not guarantee
+	 * reneighboring, so this must be ensure elsewhere. */
+	double dmax2 = 0.0;
+	if (fReNeighborCoords.MajorDim() == 0) return dmax2;
+
 	CommManagerT& comm_manager = ElementSupport().CommManager();
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
-	double dmax2 = 0.0;
 	int nsd = curr_coords.MinorDim();
 	const double *p_old = fReNeighborCoords.Pointer();
 	if (part_nodes)
@@ -644,6 +674,11 @@ void ParticleT::DefineParameters(ParameterListT& list) const
 	re_neighbor_incr.AddLimit(0, LimitT::LowerInclusive);
 	re_neighbor_incr.SetDefault(0);
 	list.AddParameter(re_neighbor_incr);
+
+	/* output all on-processor particles */
+	ParameterT output_all(fOutputAllParticles, "output_all_particles");
+	output_all.SetDefault(fOutputAllParticles);
+	list.AddParameter(output_all);
 }
 
 /* information about subordinate parameter lists */
@@ -734,6 +769,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	fNeighborDistance = list.GetParameter("max_neighbor_distance");
 	fReNeighborDisp = list.GetParameter("re-neighbor_displacement");
 	fReNeighborIncr = list.GetParameter("re-neighbor_increment");
+	fOutputAllParticles = list.GetParameter("output_all_particles");
 
 	/* derived parameters */
 	if (NumSD() == 1)
@@ -760,7 +796,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	if (num_pbc > NumSD())
 		ExceptionT::BadInputValue(caller, "expecting at most %d \"periodic_bc\" not %d",
 			NumSD(), num_pbc);
-	fhas_periodic = (num_pbc > 0) ? 1 : 0;
+	fhas_periodic = (num_pbc > 0);
 	for (int i = 0; i < num_pbc; i++) {
 	
 		/* periodic bc parameters */
@@ -775,6 +811,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 		if (str_sched) {
 			int sched_num = *str_sched;
 			schedule = ElementSupport().Schedule(--sched_num);
+			fhas_moving_periodic = true;
 
 			/* check - expecting f(0) = 1 */
 			if (fabs(schedule->Value(0.0) - 1.0) > kSmall)
@@ -792,7 +829,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* resolve types */
-	fType.Dimension(ElementSupport().NumNodes());
+	ElementSupport().CommManager().RegisterNodalAttribute(fType);
 	fType = -1;
 	int num_types = list.NumLists("particle_type");
 	fTypeNames.Dimension(num_types);
@@ -887,7 +924,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	ExtractProperties(list, fTypeNames, fParticleProperties, fPropertiesMap);
 
 	/* set the neighborlists */
-	SetConfiguration();
+//	SetConfiguration();
 	
 	/* construct thermostats */
 	SetDamping(list);

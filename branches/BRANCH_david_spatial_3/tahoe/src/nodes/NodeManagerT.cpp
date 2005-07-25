@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.63 2005-07-11 23:10:22 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.63.2.1 2005-07-25 02:37:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -13,6 +13,7 @@
 #include "IOManager.h"
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
+#include "CommunicatorT.h"
 #include "LocalArrayT.h"
 #include "nIntegratorT.h"
 #include "eIntegratorT.h"
@@ -311,14 +312,33 @@ GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 	return type;
 }
 
+/* (re-)set the system configuration */
+GlobalT::InitStatusT NodeManagerT::UpdateConfiguration(int group)
+{
+	GlobalT::InitStatusT status = GlobalT::kContinue;
+	
+	/* equations have never been assigned */
+	int neq = NumEquations(group);
+	if (neq < 0) status = GlobalT::MaxPrecedence(status, GlobalT::kNewEquations);
+//NOTE: should this be kNewEquations or kNewInteractions? kNewEquations will trigger
+//      a repeat of the loop. Here we are saying equations need to be re-assigned, but
+//      not because we have changed the number of unknowns.
+
+	/* loop over fields */
+	for (int i = 0; i < fFields.Length(); i++)
+		if (fFields[i]->Group() == group)
+			status = GlobalT::MaxPrecedence(fFields[i]->UpdateConfiguration(), status);
+
+	return status;
+}
+
 /* apply kinematic boundary conditions */
 void NodeManagerT::InitStep(int group)
 {
 	const char caller[] = "NodeManagerT::InitStep";
 
 	/* decomposition information */
-	const PartitionT* partition = fFEManager.Partition();
-	PartitionT::DecompTypeT decomp = (partition) ? partition->DecompType() : PartitionT::kUndefined;
+	PartitionT::DecompTypeT decomp = fCommManager.DecompType();
 	const ArrayT<int>* partition_nodes = fCommManager.PartitionNodes();
 	if (decomp == PartitionT::kIndex && !partition_nodes)
 		ExceptionT::GeneralFail(caller, "expecting non-NULL partition nodes");
@@ -617,13 +637,15 @@ void NodeManagerT::WriteOutput(void)
 
 void NodeManagerT::SetEquationNumbers(int group)
 {
+	const char caller[] = "NodeManagerT::SetEquationNumbers";
+	int token = 1;
+	try {
 	/* collect fields in the group */
 	ArrayT<FieldT*> fields;
 	CollectFields(group, fields);
 	if (fields.Length() == 0)
-		ExceptionT::GeneralFail("NodeManagerT::SetEquationNumbers", 
-			"group has no fields: %d", group+1);
-	
+		ExceptionT::GeneralFail(caller, "group has no fields: %d", group+1);
+
 	/* initialize equations numbers arrays */
 	for (int i = 0; i < fields.Length(); i++)
 		fields[i]->InitEquations();
@@ -670,6 +692,12 @@ void NodeManagerT::SetEquationNumbers(int group)
 	int start_eq = 1;
 	for (int i = 0; i < fields.Length(); i++)
 		fields[i]->FinalizeEquations(start_eq, num_eq);
+	} /* end try */
+	
+	catch (ExceptionT::CodeT error) { token = 0; }
+
+	/* synch and check */
+	if (fCommManager.Communicator().Sum(token) != Size()) ExceptionT::BadHeartBeat(caller);
 }
 
 void NodeManagerT::RenumberEquations(int group, 
@@ -782,7 +810,7 @@ void NodeManagerT::WriteEquationNumbers(int group, ostream& out) const
 	
 	/* equations per field */
 	for (int i = 0; i < fields.Length(); i++)
-		fields[i]->WriteEquationNumbers(out, fFEManager.NodeMap());
+		fields[i]->WriteEquationNumbers(out, fCommManager.NodeMap());
 	
 	/* external equation groups */
 	for (int i = 0; i < fXDOF_Eqnos.Length(); i++)
@@ -803,7 +831,7 @@ if (NumTagSets() > 0) ExceptionT::GeneralFail(caller, "not implemented for XDOF 
 
 	/* check */
 	int num_eq = NumEquations(group);
-	if (unknowns.Length() != num_eq) throw ExceptionT::kGeneralFail;
+	if (unknowns.Length() != num_eq) ExceptionT::GeneralFail(caller);
 
 	/* loop over groups */
 	int checksum = 0;
@@ -919,21 +947,22 @@ void NodeManagerT::Pack(int node, dArrayT& values) const
 		FieldT& field = *(fFields[i]);
 		int order = field.Order();
 		int ndof  = field.NumDOF();
-		if (values.Length() >= index + 2*ndof*(order + 1))
+		if (values.Length() < index + 2*ndof*(order + 1))
 			ExceptionT::SizeMismatch("NodeManagerT::Pack");
 	
 			/* loop over time derivatives */
 			for (int i = 0; i < order+1; i++) 
 			{
+				/* values from last step */
 				dArray2DT& f = field(0,i);
-				dArray2DT& f_last = field(-1,i); /* values from last step */
+				dArray2DT& f_last = field(-1,i); 
 
 				/* values at current time */
-				field(0,i).RowCopy(node, values.Pointer(index));
+				f.RowCopy(node, values.Pointer(index));
 				index += ndof;
 
 				/* values from the last time step */
-				field(-1,i).RowCopy(node, values.Pointer(index));
+				f_last.RowCopy(node, values.Pointer(index));
 				index += ndof;
 			}	
 	}
@@ -948,21 +977,22 @@ void NodeManagerT::Unpack(int node, dArrayT& values)
 		FieldT& field = *(fFields[i]);
 		int order = field.Order();
 		int ndof  = field.NumDOF();
-		if (values.Length() >= index + 2*ndof*(order + 1))
+		if (values.Length() < index + 2*ndof*(order + 1))
 			ExceptionT::SizeMismatch("NodeManagerT::Unpack");
 	
 			/* loop over time derivatives */
 			for (int i = 0; i < order+1; i++) 
 			{
+				/* values from last step */
 				dArray2DT& f = field(0,i);
-				dArray2DT& f_last = field(-1,i); /* values from last step */
+				dArray2DT& f_last = field(-1,i);
 
 				/* values at current time */
-				field(0,i).SetRow(node, values.Pointer(index));
+				f.SetRow(node, values.Pointer(index));
 				index += ndof;
 
 				/* values from the last time step */
-				field(-1,i).SetRow(node, values.Pointer(index));
+				f_last.SetRow(node, values.Pointer(index));
 				index += ndof;
 			}	
 	}
@@ -1413,9 +1443,9 @@ void NodeManagerT::SetCoordinates(void)
 		out << '\n';
 
 		/* arrays */
-		const ArrayT<int>* processor = fFEManager.ProcessorMap();
+		const ArrayT<int>* processor = fCommManager.ProcessorMap();
 		const dArray2DT& init_coords = InitialCoordinates();
-		const ArrayT<int>* node_map = fFEManager.NodeMap();
+		const ArrayT<int>* node_map = fCommManager.NodeMap();
 		for (int i = 0; i < init_coords.MajorDim(); i++)
 		{
 			out << setw(kIntWidth) << i+1
@@ -1472,6 +1502,7 @@ void NodeManagerT::WriteData(ostream& out, const char* title,
 
 KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 {
+	const char caller[] = "NodeManagerT::NewKBC_Controller";
 	switch(code)
 	{
 		case KBC_ControllerT::kPrescribed:
@@ -1513,21 +1544,24 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			TorsionKBCT* kbc = new TorsionKBCT(fFieldSupport);
 			return kbc;
 		}
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
 		case KBC_ControllerT::kConveyor:
 		{
 			ConveyorT* kbc = new ConveyorT(fFieldSupport, field);
 			return kbc;
 		}
-#if 0
-                case KBC_ControllerT::kConveyorSym:
-                {
-                        ConveyorSymT* kbc = new ConveyorSymT(fFieldSupport, field);
-                        return kbc;
-                }
 #endif
+
+#if 0
+		case KBC_ControllerT::kConveyorSym:
+		{
+			ConveyorSymT* kbc = new ConveyorSymT(fFieldSupport, field);
+			return kbc;
+		}
+#endif
+
 		default:
-			ExceptionT::BadInputValue("NodeManagerT::NewKBC_Controller", 
-				"KBC controller code %d is not supported", code);
+			ExceptionT::BadInputValue(caller, "KBC controller code %d is not supported", code);
 	}
 	return NULL;
 }

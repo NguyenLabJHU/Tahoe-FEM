@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.33 2005-05-28 18:08:44 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.33.10.1 2005-07-25 02:37:25 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -688,7 +688,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 			/* construct */
 			fLHS = new AztecMatrixT(out, check_code, comm, params);
 #else
-			ExceptionT::GeneralFail(caller, "Aztec solver not installed: %d", fMatrixType);
+			ExceptionT::GeneralFail(caller, "Aztec solver not installed");
 #endif /* __AZTEC__ */
 	}
 	else

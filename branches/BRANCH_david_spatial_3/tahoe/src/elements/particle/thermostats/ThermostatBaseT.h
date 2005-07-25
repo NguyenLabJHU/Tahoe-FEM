@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.7 2004-07-15 08:29:54 paklein Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.7.30.1 2005-07-25 02:37:14 paklein Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 
@@ -65,7 +65,7 @@ public:
 	
 	/** augment/overwrite forces with new ones */
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
-			dArray2DT& forces, AutoArrayT<int>& types,
+			dArray2DT& forces, ArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties);
 
 	/** \name implementation of the ParameterInterfaceT interface */

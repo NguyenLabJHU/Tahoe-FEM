@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.38 2005-07-20 06:52:07 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.38.2.1 2005-07-25 02:36:54 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -97,10 +97,10 @@ public:
 	/*@}*/
 
 	/** read restart information from stream */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 	
 	 /** write restart information to stream */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** \name writing output */
 	/*@{*/

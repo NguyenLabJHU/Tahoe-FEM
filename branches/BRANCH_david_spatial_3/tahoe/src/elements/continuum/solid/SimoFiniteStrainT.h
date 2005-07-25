@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.16 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.16.30.1 2005-07-25 02:36:55 paklein Exp $ */
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
 
@@ -48,10 +48,10 @@ public:
 	virtual GlobalT::RelaxCodeT ResetStep(void);
 
 	/** read restart information from stream */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 
 	/** write restart information from stream */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** return field connectivities. Returns connectivities including
 	 * the tags for the enhanced element modes when using the monolithic

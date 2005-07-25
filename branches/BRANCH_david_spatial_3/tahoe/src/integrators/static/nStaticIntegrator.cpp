@@ -1,6 +1,5 @@
-/* $Id: nStaticIntegrator.cpp,v 1.10 2004-12-26 21:09:12 d-farrell2 Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.10.22.1 2005-07-25 02:37:17 paklein Exp $ */
 /* created: paklein (10/14/1996) */
-
 #include "nStaticIntegrator.h"
 #include "BasicFieldT.h"
 #include "dArrayT.h"
@@ -8,38 +7,49 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 nStaticIntegrator::nStaticIntegrator(void) { }
 
 /* consistent BC's */
-void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
+void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes)
 {
-	/* destination */
+	const char caller[] = "nStaticIntegrator::ConsistentKBC";
+	if (KBC.Mode() == KBC_CardT::kSet && !nodes)
+		ExceptionT::GeneralFail(caller, "expecting non-NULL nodes");
+
+	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (field[0])(node, dof);
-	
-	switch (KBC.Code())
+	int nnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Length() : 1;
+	const int* pnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Pointer() : &node;
+
+	/* apply to nodes */
+	for (int i = 0; i < nnd; i++)
 	{
-		case KBC_CardT::kFix: /* zero displacement */
+		double& d = (field[0])(*pnd, dof);
+		pnd++; /* next */
+	
+		switch (KBC.Code())
 		{
-			d = 0.0;
-			break;
+			case KBC_CardT::kFix: /* zero displacement */
+			{
+				d = 0.0;
+				break;
+			}
+			case KBC_CardT::kDsp: /* prescribed displacement */
+			{
+				d = KBC.Value();
+				break;
+			}
+			case KBC_CardT::kNull: /* do nothing and like it */
+			{
+				break;
+			}
+			default:
+				ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code());
 		}
-		case KBC_CardT::kDsp: /* prescribed displacement */
-		{
-			d = KBC.Value();
-			break;
-		}
-		case KBC_CardT::kNull: /* do nothing and like it */
-		{
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue("nStaticIntegrator::ConsistentKBC", "unknown BC code: %d", KBC.Code());
 	}
 }		
 
@@ -47,12 +57,15 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 void nStaticIntegrator::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 #pragma unused(field)
+#pragma unused(fieldstart)
+#pragma unused(fieldend)
 	//nothing to do
 }
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
+
 	if (fieldend == -1) // operate on full arrays
 	{
 		/* update displacements */

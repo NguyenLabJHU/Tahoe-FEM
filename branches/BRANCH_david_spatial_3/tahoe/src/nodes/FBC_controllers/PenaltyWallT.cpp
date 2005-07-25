@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.13 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.13.30.1 2005-07-25 02:37:23 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -17,6 +17,10 @@ PenaltyWallT::PenaltyWallT(void):
 	fLHS(ElementMatrixT::kSymmetric)
 {
 	SetName("wall_penalty");
+
+	/* register with memory managers */
+	fdContactNodesGroup2D.Register(fp_i);
+	fdContactNodesGroup2D.Register(fv_i);
 }
 
 /* tangent */
@@ -35,7 +39,8 @@ void PenaltyWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	const FieldSupportT& support = FieldSupport();
 
 	/* node by node */
-	for (int i = 0; i < fNumContactNodes; i++)
+	int nnd = fContactNodes.Length();
+	for (int i = 0; i < nnd; i++)
 	{
 		/* retrieve normal component */
 		double normal_comp = fp_i.DotRow(i, fnormal);
@@ -111,16 +116,18 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 	}
 	else
 	{
+		int nnd = fContactNodes.Length();
+	
 		/* compute relative positions */
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		fp_i.RowCollect(fContactNodes, coords);
-		for (int j = 0; j < fNumContactNodes; j++)
+		for (int j = 0; j < nnd; j++)
 			fp_i.AddToRowScaled(j, -1.0, fx);
 	
 		/* compute contact forces */
 		fntforce = 0.0;
 		fContactForce2D = 0.0;	
-		for (int i = 0; i < fNumContactNodes; i++)
+		for (int i = 0; i < nnd; i++)
 		{
 			double normal_comp = fp_i.DotRow(i, fnormal);
 		
@@ -218,7 +225,5 @@ void PenaltyWallT::TakeParameterList(const ParameterListT& list)
 	/* dimension work space */	
 	fntforce.Dimension(nsd);
 	fxyforce.Dimension(nsd);
-	fp_i.Dimension(fNumContactNodes, nsd);
-	fv_i.Dimension(fNumContactNodes, nsd);
 	fLHS.Dimension(nsd);
 }

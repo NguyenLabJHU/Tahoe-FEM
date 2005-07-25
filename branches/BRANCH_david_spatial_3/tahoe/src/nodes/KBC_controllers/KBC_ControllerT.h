@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.25 2004-12-21 17:24:51 thao Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.25.24.1 2005-07-25 02:37:23 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -65,6 +65,9 @@ public:
 
 	/** set to initial conditions */
 	virtual void InitialCondition(void) {};
+
+	/** (re-)set the configuration */
+	virtual GlobalT::InitStatusT UpdateConfiguration(void) { return GlobalT::kContinue; };
 
 	/** \name restart functions */
 	/*@{*/

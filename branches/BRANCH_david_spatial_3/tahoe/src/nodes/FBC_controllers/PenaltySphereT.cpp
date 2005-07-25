@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.16 2005-06-10 22:57:28 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.16.8.1 2005-07-25 02:37:23 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltySphereT.h"
 #include "FieldT.h"
@@ -42,7 +42,8 @@ void PenaltySphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	const FieldSupportT& support = FieldSupport();
 
 	/* node by node */
-	for (int i = 0; i < fNumContactNodes; i++)
+	int nnd = fContactNodes.Length();
+	for (int i = 0; i < nnd; i++)
 	{
 		double gap  = fGap[i];
 		double dist = gap + fRadius;
@@ -85,7 +86,6 @@ void PenaltySphereT::TakeParameterList(const ParameterListT& list)
 	/* dimension work space */
 	fv_OP.Dimension(Field().NumDOF());
 	fLHS.Dimension(FieldSupport().NumSD());
-
 }
 
 /**********************************************************************
@@ -100,8 +100,9 @@ void PenaltySphereT::ComputeContactForce(double kforce)
 
 	/* loop over strikers */
 	fContactForce2D = 0.0;	
-	fContactArea = 0.0;	
-	for (int i = 0; i < fNumContactNodes; i++)
+	fContactArea = 0.0;
+	int nnd = fContactNodes.Length();
+	for (int i = 0; i < nnd; i++)
 	{
 		/* center to striker */
 		coords.RowCopy(fContactNodes[i], fv_OP);

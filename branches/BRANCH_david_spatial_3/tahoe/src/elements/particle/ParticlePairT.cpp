@@ -1,5 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.44 2005-04-08 16:41:48 d-farrell2 Exp $ */
-
+/* $Id: ParticlePairT.cpp,v 1.44.16.1 2005-07-25 02:37:13 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -12,6 +11,8 @@
 #include "dArray2DT.h"
 #include "iGridManagerT.h"
 #include "ParameterContainerT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -110,14 +111,14 @@ void ParticlePairT::WriteOutput(void)
 	for (int i = 1; i < offsets.Length(); i++)
 		offsets[i] = offsets[i-1] + counts[i-1];
 
-	/* number of nodes */
-	const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
-	int non = (parition_nodes) ? 
-		parition_nodes->Length() : 
-		ElementSupport().NumNodes();
-
 	/* map from partition node index */
-	const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+	const ArrayT<int>* partition_nodes = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes();
+	const InverseMapT* inverse_map = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes_inv();
+
+	/* number of nodes */
+	int non = (partition_nodes) ? 
+		partition_nodes->Length() : 
+		ElementSupport().NumNodes();
 
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
@@ -158,7 +159,7 @@ void ParticlePairT::WriteOutput(void)
 	for (int i = 0; i < non; i++)
 	{
 		/* particle ID */
-		int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
+		int   tag_i = (partition_nodes) ? (*partition_nodes)[i] : i;
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 		int  type_i = fType[tag_i];
 
@@ -460,6 +461,46 @@ void ParticlePairT::WriteOutput(void)
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
 
+/* write restart data to the output stream */
+void ParticlePairT::WriteRestart(ofstreamT& out) const
+{
+	/* inherited */
+	ParticleT::WriteRestart(out);
+
+	/* open stream */	
+	StringT file = out.filename();
+	file.Append(".neighbor");
+	ofstreamT my_out(file);
+	if (!my_out.is_open())
+		ExceptionT::GeneralFail("ParticlePairT::WriteRestart",
+			"could not open file \"%s\"", file.Pointer());
+
+	/* write neighbor lists */
+	fNeighbors.Write(my_out); my_out << '\n';
+	fNearestNeighbors.Write(my_out); my_out << '\n';
+	fRefNearestNeighbors.Write(my_out); my_out << '\n';
+}
+
+/* read restart data to the output stream */
+void ParticlePairT::ReadRestart(ifstreamT& in)
+{
+	/* inherited */
+	ParticleT::ReadRestart(in);
+
+	/* open stream */	
+	StringT file = in.filename();
+	file.Append(".neighbor");
+	ifstreamT my_in(file);
+	if (!my_in.is_open())
+		ExceptionT::GeneralFail("ParticlePairT::ReadRestart",
+			"could not open file \"%s\"", file.Pointer());
+
+	/* read neighbor lists */
+	fNeighbors.Read(my_in);
+	fNearestNeighbors.Read(my_in);
+	fRefNearestNeighbors.Read(my_in);
+}
+
 /* compute the part of the stiffness matrix */
 void ParticlePairT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	const iArray2DT& col_eq, dSPMatrixT& stiffness)
@@ -655,13 +696,18 @@ void ParticlePairT::TakeParameterList(const ParameterListT& list)
 				int do_write = *value;
 				if (do_write)
 					fOutputFlags[i] = 1;
+//TEMP
+if (do_write && ElementSupport().CommManager().DecompType() == PartitionT::kSpatial)
+{
+	if (OutputNames[i] == "stress" || OutputNames[i] == "strain" || OutputNames[i] == "slip_vector") {
+		cout << "\n ParticlePairT::TakeParameterList:\"" << OutputNames[i] << "\" output not supported with spatial decomposition" << endl;
+		fOutputFlags[i] = 0; //disable
+	}
+}
+//TEMP
 			}
 		}
 	}
-
-	/* set the list of reference nearest neighbors */
-	if (fOutputFlags[kSlipVector] || fOutputFlags[kStress] || fOutputFlags[kStrain])
-		SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
 
 	/* dimension */
 	int ndof = NumDOF();
@@ -1300,11 +1346,16 @@ void ParticlePairT::SetConfiguration(void)
 	/* reset neighbor lists */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
-	if (fActiveParticles) 
-		part_nodes = fActiveParticles;
-		
+	if (fActiveParticles) part_nodes = fActiveParticles;
+	
+	/* neighbor lists */	
 	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
+
+	/* set the list of reference nearest neighbors */
+	if (fRefNearestNeighbors.MajorDim() != fNearestNeighbors.MajorDim() &&
+		(fOutputFlags[kSlipVector] || fOutputFlags[kStress] || fOutputFlags[kStrain]))
+		SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
 
 	/* output stream */
 	ofstreamT& out = ElementSupport().Output();
