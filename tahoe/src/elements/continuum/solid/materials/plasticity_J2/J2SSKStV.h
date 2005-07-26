@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.11 2005-04-06 23:32:45 thao Exp $ */
+/* $Id: J2SSKStV.h,v 1.12 2005-07-26 16:31:24 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -56,6 +56,9 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -86,6 +89,8 @@ private:
 	dSymMatrixT	fStress;
 	dMatrixT	fModulus;
 
+	/** number of elastic iterations */
+	int fElasticIterations;
 };
 
 } // namespace Tahoe 
