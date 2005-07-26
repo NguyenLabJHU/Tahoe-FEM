@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.7 2005-04-06 23:32:45 thao Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.8 2005-07-26 16:30:09 paklein Exp $ */
 #include "J2SSC0HardeningT.h"
 #include "SSMatSupportT.h"
 #include "ElementCardT.h"
@@ -98,6 +98,10 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 			{
 				/* plastic increment */
 				dgamma = 0.5*ftrial/(mu + dK(alpha)/3.0);
+				
+				/* increment must be positive */
+				if (dgamma < 0.0)
+					ExceptionT::GeneralFail(caller, "dgamma = %g < 0", dgamma);
 			}
 			else /* local Newton iteration */
 			{
