@@ -1,0 +1,14 @@
+# $Id: DARWIN-GCC4.X.macros,v 1.1 2005-07-26 16:27:36 paklein Exp $
+
+# additional for X windows
+X_INC_FLAGS = -I/usr/X11R6/include
+X_CFLAGS    = -I/usr/X11R6/include
+X_LIBS      = -L/usr/X11R6/lib -lGL -lXt -lSM -lICE -lX11 -lXext
+X_LFLAGS    = $(X_LIBS)
+
+# flags for threads
+THREAD_CFLAGS =
+THREAD_LFLAGS = -lpthread
+
+# usual compiler macros
+include $(MACRO_DIR)/DARWIN-GCC4.macros
