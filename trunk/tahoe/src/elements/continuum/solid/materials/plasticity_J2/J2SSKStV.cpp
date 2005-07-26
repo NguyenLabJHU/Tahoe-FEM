@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.14 2005-04-11 19:41:18 thao Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.15 2005-07-26 16:31:24 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -22,7 +22,8 @@ J2SSKStV::J2SSKStV(void):
 	ParameterInterfaceT("small_strain_StVenant_J2"),
 	HookeanMatT(3),
 	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3))
+	fModulus(dSymMatrixT::NumValues(3)),
+	fElasticIterations(0)
 {
 
 }
@@ -66,7 +67,7 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 
 	/* modify Cauchy stress (return mapping) */
 	int iteration = fSSMatSupport->GroupIterationNumber();
-	if (iteration > -1) /* elastic iteration */
+	if (iteration > fElasticIterations) /* elastic iteration */
 		fStress += StressCorrection(e_els, element, Mu(), NumIP(), ip);
 	/*	if (CurrElementNumber() == 0) {
 	  cout<<"\nIP: "<<CurrIP();
@@ -206,6 +207,21 @@ void J2SSKStV::ComputeOutput(dArrayT& output)
 		output[0] = 0.0;
 }
 
+/* describe the parameters needed by the interface */
+void J2SSKStV::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SSSolidMatT::DefineParameters(list);
+	IsotropicT::DefineParameters(list);
+	HookeanMatT::DefineParameters(list);
+	J2SSC0HardeningT::DefineParameters(list);
+
+	/* number of elastic iterations */
+	ParameterT elastic_its(fElasticIterations, "elastic_iterations");
+	elastic_its.SetDefault(fElasticIterations);
+	list.AddParameter(elastic_its);
+}
+
 /* information about subordinate parameter lists */
 void J2SSKStV::DefineSubs(SubListT& sub_list) const
 {
@@ -253,6 +269,10 @@ void J2SSKStV::TakeParameterList(const ParameterListT& list)
 	IsotropicT::TakeParameterList(list);
 	J2SSC0HardeningT::TakeParameterList(list);
 	HookeanMatT::TakeParameterList(list);
+
+	/* number elastic iterations */
+	fElasticIterations = list.GetParameter("elastic_iterations");
+	fElasticIterations -= 2;
 }
 
 /*************************************************************************
