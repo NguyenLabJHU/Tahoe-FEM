@@ -1,2 +1,4 @@
-# $Id: junk,v 1.10 2005-07-26 07:03:14 paklein Exp $
+# $Id: junk,v 1.11 2005-07-26 07:28:50 paklein Exp $
 # first test with postfix with 10.3
+# 2nd test with postfix with 10.3
+# 3rd test - open port 25
