@@ -1,4 +1,5 @@
-# $Id: junk,v 1.11 2005-07-26 07:28:50 paklein Exp $
+# $Id: junk,v 1.12 2005-07-26 07:30:31 paklein Exp $
 # first test with postfix with 10.3
 # 2nd test with postfix with 10.3
 # 3rd test - open port 25
+# 4th test - allow relay from cvs.sourceforge.net
