@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.57 2005-07-26 19:49:12 paklein Exp $
+# $Id: tahoe-manager,v 1.58 2005-07-27 17:35:24 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -560,13 +560,19 @@ sub update_cvs {
 
 		next if defined($module2syslib{$dir});
 
+		# update module that exists
 		if (-d $dir) {
-			my $cwd = cwd();
-			print "\tupdating $dir...";
-			chdir($dir);
-			system("cvs -q update -Pd > $cwd/cvs.log");
-			chdir($cwd);
-		} else {
+			if (-e "$dir/CVS/Root") { # update module with cvs
+				my $cwd = cwd();
+				print "\tupdating $dir...";
+				chdir($dir);
+				system("cvs -q update -Pd > $cwd/cvs.log");
+				chdir($cwd);
+			} else { # module was not checkout out
+				print "\tmodule $dir contains no CVS information\n";
+				next;
+			}
+		} else { # module needs to be checked out
 			print "\tchecking out $dir...";
 			my $repo = $module2repo{$dir};
 			if ($repo =~ /$tahoe/) { # on Tahoe server
