@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.31 2005-07-08 23:38:51 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.32 2005-07-28 07:56:17 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -147,7 +147,7 @@ protected: /* for derived classes only */
 		kMass = 2,
 		kStrain = 3,
 		kStress = 4,
-		kMaterialOutput = 5,
+		kMaterialOutput = 5
 	};
 
 	/** return number of values for each output variable */
