@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.16 2005-07-20 06:54:46 paklein Exp $ */
+/* $Id: ContactT.h,v 1.17 2005-07-28 07:57:23 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -31,6 +31,9 @@ public:
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** prepare for a sequence of time steps */
+	virtual void InitialCondition(void);
 
 	/** element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
