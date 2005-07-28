@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.23 2005-07-20 06:54:46 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.24 2005-07-28 07:57:22 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -32,6 +32,23 @@ ContactT::~ContactT(void) {	}
 /* form of tangent matrix */
 GlobalT::SystemTypeT ContactT::TangentType(void) const { return GlobalT::kSymmetric; }
 
+/* prepare for a sequence of time steps */
+void ContactT::InitialCondition(void)
+{
+	/* inherited */
+	ElementBaseT::InitialCondition();
+
+	/* look for axisymmetric groups */
+	bool axisymmetric = false;
+	int num_groups = ElementSupport().NumElementGroups();
+	for (int i = 0; i < num_groups; i++)
+		axisymmetric = (axisymmetric || ElementSupport().ElementGroup(i).Axisymmetric());
+
+	/* compute nodal tributary areas */
+	ElementSupport().ModelManager().ComputeNodalArea(fStrikerTags, 
+		fStrikerArea, fStrikerTags_map, axisymmetric);
+}
+
 /* element level reconfiguration for the current solution */
 GlobalT::RelaxCodeT ContactT::RelaxSystem(void)
 {
@@ -55,18 +72,6 @@ GlobalT::RelaxCodeT ContactT::RelaxSystem(void)
 /* initialize current time increment. Reset the contact tracking data. */
 void ContactT::InitStep(void)
 {
-#pragma message("move to SetContactConfiguration after BRANCH_david_spatial_2")
-
-	/* look for axisymmetric groups */
-	bool axisymmetric = false;
-	int num_groups = ElementSupport().NumElementGroups();
-	for (int i = 0; i < num_groups; i++)
-		axisymmetric = (axisymmetric || ElementSupport().ElementGroup(i).Axisymmetric());
-
-	/* compute nodal tributary areas */
-	ElementSupport().ModelManager().ComputeNodalArea(fStrikerTags, 
-		fStrikerArea, fStrikerTags_map, axisymmetric);
-
 	/* reset tracking data */
 	fnum_contact = -1;
 	fh_max = 1;
