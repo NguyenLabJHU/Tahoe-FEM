@@ -1,4 +1,4 @@
-# $Id: GODZILLA.mpi.debug.macros,v 1.1 2005-07-29 06:26:46 paklein Exp $
+# $Id: GODZILLA.mpi.debug.macros,v 1.2 2005-07-29 08:15:57 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpi -lmpi++
@@ -10,7 +10,7 @@ COMP_C      = cc
 COMP_CC     = CC
 COMP_F      = f77
 COMP_FLAG   = -c
-MORE_CFLAGS = -g -O -OPT:Olimit=10000 -DNDEBUG 
+MORE_CFLAGS = -g
 LOC_CFLAGS  = -mips4 $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) -woff 1110,1116
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682,3303 -LANG:exceptions=ON -LANG:ansi-for-init-scope=ON -LANG::libc_in_namespace_std=OFF
