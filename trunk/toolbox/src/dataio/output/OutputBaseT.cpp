@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.23 2005-06-09 03:22:39 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.24 2005-07-29 02:16:13 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -72,11 +72,9 @@ void OutputBaseT::SetCoordinates(const dArray2DT& coordinates, const iArrayT* no
 	fNodeID = node_id;
 	
 	/* id list check */
-	if (fNodeID && fNodeID->Length() != fCoordinates->MajorDim()) {
-		cout << "\n OutputBaseT::SetCoordinates: id list length " << fNodeID->Length() << " doesn't\n"
-		     <<   "     match the number of nodes " << fCoordinates->MajorDim() << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+	if (fNodeID && fNodeID->Length() != fCoordinates->MajorDim())
+		ExceptionT::SizeMismatch("OutputBaseT::SetCoordinates", 
+			"expecting %d not %d nodes ID's", fNodeID->Length(), fCoordinates->MajorDim());
 }
 
 /* SA: add definitions of special arrays for ParaDyn Format Output */
@@ -99,7 +97,7 @@ void OutputBaseT::SetParts(const iArrayT& parts)
 int OutputBaseT::AddElementSet(const OutputSetT& output_set)
 {
 	OutputSetT* copy = new OutputSetT(output_set);
-	if (!copy) throw ExceptionT::kOutOfMemory;
+	if (!copy) ExceptionT::OutOfMemory("OutputBaseT::AddElementSet");
 
 	/* ID is just position in array */
 	StringT ID;
@@ -284,7 +282,9 @@ void OutputBaseT::LocalConnectivity(const iArrayT& node_map,
 {
 	/* sizes must match */
 	if (connects.MajorDim() != local_connects.MajorDim() ||
-	    connects.MinorDim() != local_connects.MinorDim()) throw ExceptionT::kSizeMismatch;
+	    connects.MinorDim() != local_connects.MinorDim())
+	    	ExceptionT::SizeMismatch("OutputBaseT::LocalConnectivity", "%d x $d != %d x %d",
+	    		connects.MajorDim(), connects.MinorDim(), local_connects.MajorDim(), local_connects.MinorDim());
 
 	/* quick exit - nothing to do */
 	if (connects.MajorDim() == 0) return;
@@ -301,11 +301,13 @@ void OutputBaseT::LocalConnectivity(const iArrayT& node_map,
 		*p_loc++ = inv_node_map.Map(*p_glb++);
 }
 
-void OutputBaseT::ElementBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues) const
+void OutputBaseT::ElementBlockValues(int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues) const
 {
   int length = fElementSets[ID]->NumBlockElements(fElementSets[ID]->BlockID(block));
   if (blockvalues.MajorDim() != length ||
-      blockvalues.MinorDim() != allvalues.MinorDim()) throw ExceptionT::kSizeMismatch;
+      blockvalues.MinorDim() != allvalues.MinorDim()) 
+      ExceptionT::SizeMismatch("OutputBaseT::ElementBlockValues", "%d x $d != %d x %d",
+      	blockvalues.MajorDim(), blockvalues.MinorDim(), length, allvalues.MinorDim());
 
   /* find start point */
   int start = 0;
