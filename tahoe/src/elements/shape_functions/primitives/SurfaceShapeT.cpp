@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.12 2005-03-15 07:15:09 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.13 2005-07-29 08:13:02 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
@@ -450,7 +450,7 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 void SurfaceShapeT::Construct(void)
 {  	
 	/* check dimensions */
-	if (fFacetCoords.NumberOfNodes()*fNumFacets != fTotalNodes) throw ExceptionT::kSizeMismatch;
+	if (fFacetCoords.NumberOfNodes()*fNumFacets != fTotalNodes) ExceptionT::SizeMismatch("SurfaceShapeT::Construct");
 
 	/* shape functions */
 	fNa.Dimension(fNumIP, fTotalNodes);
@@ -474,10 +474,11 @@ void SurfaceShapeT::Construct(void)
 	}
 
 	/* return value */
+	int nsd = fFacetCoords.MinorDim();
 	fInterp.Dimension(fFieldDim);
+	fIPCoord.Dimension(nsd);
 	
 	/* coordinate transformation */	
-	int nsd = fFacetCoords.MinorDim();
 	fJacobian.Dimension(nsd, nsd-1);
 	
 	/* surface node numbering */
