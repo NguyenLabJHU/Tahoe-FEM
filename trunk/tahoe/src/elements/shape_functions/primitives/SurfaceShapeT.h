@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.9 2003-10-20 23:32:57 cjkimme Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.10 2005-07-29 08:13:02 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_
@@ -178,6 +178,9 @@ private:
 	
 	/* return value */
 	dArrayT fInterp;
+
+	/* return value */
+	dArrayT fIPCoord;
 	
 	/* coordinate transformation */
 	dMatrixT fJacobian;
@@ -206,8 +209,8 @@ inline const dArrayT& SurfaceShapeT::IPCoords(void)
 	if (fCurrIP == 0 && fCoords.NumberOfNodes() != fNumFacetNodes)
 		ComputeFacetCoords();
 
-	fDomain->Interpolate(fFacetCoords, fInterp, fCurrIP);
-	return fInterp;
+	fDomain->Interpolate(fFacetCoords, fIPCoord, fCurrIP);
+	return fIPCoord;
 }
 
 inline const dMatrixT& SurfaceShapeT::Grad_d(void) const
