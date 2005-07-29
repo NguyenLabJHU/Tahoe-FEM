@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.30 2005-01-26 19:55:26 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.31 2005-07-29 06:59:16 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -55,7 +55,7 @@ int IPnum) const
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != interp.Length() ||
-	    nodal.NumberOfNodes() != fNumNodes) throw ExceptionT::kSizeMismatch;
+	    nodal.NumberOfNodes() != fNumNodes) ExceptionT::SizeMismatch("ParentDomainT::Interpolate");
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -70,7 +70,7 @@ void ParentDomainT::Interpolate(const LocalArrayT& nodal,
 #if __option(extended_errorcheck)
 	if (interp.MinorDim() != nodal.MinorDim() ||
 	    interp.MajorDim() != fNumIP           ||
-	    nodal.NumberOfNodes() != fNumNodes) throw ExceptionT::kSizeMismatch;
+	    nodal.NumberOfNodes() != fNumNodes) ExceptionT::SizeMismatch("ParentDomainT::Interpolate");
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -197,11 +197,12 @@ void ParentDomainT::Jacobian(const LocalArrayT& nodal, const dArray2DT& DNa,
 void ParentDomainT::JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa,
 	dMatrixT& jac) const
 {
+	const char caller[] = "ParentDomainT::JacobianD2";
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (DDNa.MinorDim() != nodal.NumberOfNodes() ||
         DDNa.MajorDim() != jac.Cols()            ||
-            jac.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch("ParentDomainT::JacobianD2");
+            jac.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch(caller);
 #endif
 	double *pjac = jac.Pointer();
 	const double *pval = nodal.Pointer();
@@ -300,11 +301,7 @@ void ParentDomainT::JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa,
 		}
 	}
 	else
-	{
-		cout << "\n ParentDomainT::JacobianD2: invalid nsd " << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	
+		ExceptionT::BadInputValue(caller, "invalid dimension %d", fNumSD);
 }
 
 //--------------------------------------------------------------------
@@ -313,11 +310,12 @@ void ParentDomainT::JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa,
 void ParentDomainT::JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa,
 	dMatrixT& jac) const
 {
+	const char caller[] = "ParentDomainT::JacobianD3";
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (DDDNa.MinorDim() != nodal.NumberOfNodes() ||
         DDDNa.MajorDim() != jac.Cols()            ||
-            jac.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch("ParentDomainT::JacobianD3");
+            jac.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch(caller);
 #endif
 	double *pjac = jac.Pointer();
 	const double *pval = nodal.Pointer();
@@ -443,22 +441,18 @@ void ParentDomainT::JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa,
 		}
 	}
 	else
-	{
-		cout << "\n ParentDomainT::JacobianD3: invalid nsd " << endl;
-		throw ExceptionT::kBadInputValue;
-	}
+		ExceptionT::BadInputValue(caller, "invalid dimension %d", fNumSD);
 }
 //---------------------------------------------------------------------------
 /* returns curl of a Vector T. Each of the dArrayT's are T at a given node */
 void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT& curl) const
 {
-  #if __option(extended_errorcheck)
-  /* dimension check */
-  if (curl.Length() != 3) {
-    cout << "..ERROR >>  ParentDomainT::Curl : curl vector must be of size 3 \n";
-    throw ExceptionT::kSizeMismatch;
-  }
-  #endif
+	const char caller[] = "ParentDomainT::Curl";
+#if __option(extended_errorcheck)
+	/* dimension check */
+	if (curl.Length() != 3)
+		ExceptionT::SizeMismatch(caller, "curl vector length %d != 3", curl.Length());
+#endif
 	double *pcurl = curl.Pointer();
 
 	int nnd   = T.Length(); 
@@ -481,11 +475,7 @@ void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT
 		 zero = 0.0;
 		 dx3 = zero.Pointer(); 
 		}
-		else {
-                  cout << "..ERROR >>  ParentDomainT::Curl : DNa.MajorDim() = "
-		       << DNa.MajorDim() << " This != 2 or 3 \n";
-		  throw ExceptionT::kSizeMismatch;
-		}
+		else ExceptionT::SizeMismatch(caller, "DNa.MajorDim %d != 2 | 3", DNa.MajorDim());
 
 		const double *pT;
 
@@ -510,12 +500,11 @@ void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT
 /* returns curl of a Tensor T. Each of the dMatrixT's are T at a given node */
 void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatrixT& curl) const
 {
+	const char caller[] = "ParentDomainT::Curl";
   #if __option(extended_errorcheck)
   /* dimension check */
-  if (curl.Rows() != 3  || curl.Cols() != 3) {
-    cout << "..ERROR >>  ParentDomainT::Curl : curl_T must be 3x3 \n";
-    throw ExceptionT::kSizeMismatch;
-  }
+  if (curl.Rows() != 3  || curl.Cols() != 3)
+  	    ExceptionT::SizeMismatch(caller, "curl_T %d x %d != 3x3", curl.Rows(), curl.Cols());
   #endif
 	double *pcurl = curl.Pointer();
 
@@ -545,14 +534,9 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
 		 zero = 0.0;
 		 dx3 = zero.Pointer(); 
 		}
-		else {
-                  cout << "..ERROR >>  ParentDomainT::Curl : DNa.MajorDim() = "
-		       << DNa.MajorDim() << " This != 2 or 3 \n";
-		  throw ExceptionT::kSizeMismatch;
-		}
+		else ExceptionT::SizeMismatch(caller, "DNa.MajorDim() %d != 2 | 3", DNa.MajorDim());
 
 		const double *pT;
-
 		for (int i = 0; i < nnd; i++) {
 	
 		  pT  = T[i].Pointer();
@@ -590,9 +574,10 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
 double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian) const
 {
 #if __option(extended_errorcheck)
-	if (jacobian.Rows() != jacobian.Cols() + 1) throw ExceptionT::kGeneralFail;
+	const char caller[] = "ParentDomainT::SurfaceJacobian";
+	if (jacobian.Rows() != jacobian.Cols() + 1) ExceptionT::GeneralFail(caller);
 	if (fNumSD != 1 &&
-	    fNumSD != 2) throw ExceptionT::kGeneralFail;
+	    fNumSD != 2) ExceptionT::GeneralFail(caller);
 #endif
 
 	if (fNumSD == 1)
@@ -615,12 +600,13 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian) const
 * is the "normal" direction */
 double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) const
 {
+	const char caller[] = "ParentDomainT::SurfaceJacobian";
 #if __option(extended_errorcheck)
-	if (jacobian.Rows() != jacobian.Cols() + 1) throw ExceptionT::kGeneralFail;
+	if (jacobian.Rows() != jacobian.Cols() + 1) ExceptionT::GeneralFail(caller);
 	if (fNumSD != 1 &&
-	    fNumSD != 2) throw ExceptionT::kGeneralFail;
+	    fNumSD != 2) ExceptionT::GeneralFail(caller);
 	if (Q.Rows() != fNumSD + 1 ||
-	    Q.Cols() != fNumSD + 1) throw ExceptionT::kSizeMismatch;
+	    Q.Cols() != fNumSD + 1) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* surface dimension */
@@ -630,7 +616,7 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 		double  j = sqrt(t[0]*t[0] + t[1]*t[1]);
 
 		/* check */
-		if (j <= 0.0) throw ExceptionT::kBadJacobianDet;
+		if (j <= 0.0) ExceptionT::BadJacobianDet(caller);
 
 		/* column vectors */
 		double* n1 = Q(0);
@@ -658,12 +644,12 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 		double j1 = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
 
 		/* normalize */
-		if (jn <= 0.0) throw ExceptionT::kBadJacobianDet;
+		if (jn <= 0.0) ExceptionT::BadJacobianDet(caller);
 		n3[0] /= jn;
 		n3[1] /= jn;
 		n3[2] /= jn;
 		
-		if (j1 <= 0.0) throw ExceptionT::kBadJacobianDet;
+		if (j1 <= 0.0) ExceptionT::BadJacobianDet(caller);
 		n1[0] = m1[0]/j1;
 		n1[1] = m1[1]/j1;
 		n1[2] = m1[2]/j1;
@@ -758,7 +744,8 @@ void ParentDomainT::NodalValues(const dArrayT& IPvalues,
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (nodalvalues.MajorDim() != fNumNodes ||
-		nodalvalues.MinorDim() != IPvalues.Length()) throw ExceptionT::kSizeMismatch;
+		nodalvalues.MinorDim() != IPvalues.Length()) 
+		ExceptionT::SizeMismatch("ParentDomainT::NodalValues");
 #endif
 
 	int numvals = IPvalues.Length();
