@@ -1,15 +1,14 @@
-/* $Id: VariLocalArrayT.cpp,v 1.3 2002-10-20 22:38:57 paklein Exp $ */
+/* $Id: VariLocalArrayT.cpp,v 1.4 2005-07-29 03:09:35 paklein Exp $ */
 /* created: paklein (04/26/1999)                                          */
 /* Wrapper for dynamically re-sizing the number of nodes in               */
 /* a LocalArrayT's.                                                       */
-
 #include "VariLocalArrayT.h"
 #include "LocalArrayT.h"
 
-/* constructors */
-
 using namespace Tahoe;
+const char caller[] = "VariLocalArrayT";
 
+/* constructors */
 VariLocalArrayT::VariLocalArrayT(void):
 	fMinorDim(0),
 	fWard(NULL)
@@ -37,21 +36,21 @@ void VariLocalArrayT::SetWard(int headroom, LocalArrayT& ward,
 		if (fWard->MinorDim() > 0)
 		{
 			/* consistency check */
-			if (fWard->MinorDim() != fMinorDim) throw ExceptionT::kSizeMismatch;
+			if (fWard->MinorDim() != fMinorDim) ExceptionT::SizeMismatch(caller);
 		}
 		else
 			/* set minor dimension */
 			fWard->Set(0, fMinorDim, NULL);
 	}
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 /* set number of nodes */
 void VariLocalArrayT::SetNumberOfNodes(int numnodes)
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail(caller);
 
 	if (numnodes != fWard->NumberOfNodes())
 	{

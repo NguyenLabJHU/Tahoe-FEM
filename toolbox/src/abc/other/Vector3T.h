@@ -1,4 +1,4 @@
-/* $Id: Vector3T.h,v 1.9 2005-03-12 08:36:10 paklein Exp $ */
+/* $Id: Vector3T.h,v 1.10 2005-07-29 03:09:34 paklein Exp $ */
 /* created: paklein (02/11/2000) */
 
 #ifndef _VECTOR_3_T_H_
@@ -110,7 +110,7 @@ template <class nTYPE>
 inline nTYPE& Vector3T<nTYPE>::operator[](int dex)
 {
 #if __option(extended_errorcheck)
-	if (dex < 0 || dex > 2) throw ExceptionT::kOutOfRange;
+	if (dex < 0 || dex > 2) ExceptionT::OutOfRange(caller);
 #endif
 	return v[dex];
 }
@@ -119,7 +119,7 @@ template <class nTYPE>
 inline const nTYPE& Vector3T<nTYPE>::operator[](int dex) const
 {
 #if __option(extended_errorcheck)
-	if (dex < 0 || dex > 2) throw ExceptionT::kOutOfRange;
+	if (dex < 0 || dex > 2) ExceptionT::OutOfRange(caller);
 #endif
 	return v[dex];
 }

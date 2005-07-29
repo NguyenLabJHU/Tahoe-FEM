@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.25 2005-05-10 20:29:58 kyonten Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.26 2005-07-29 03:09:32 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -733,7 +733,7 @@ template <class TYPE>
 inline void RaggedArray2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array)
 {
 #if __option(extended_errorcheck)
-	if (array.Length() != MinorDim(row)) throw ExceptionT::kSizeMismatch;
+	if (array.Length() != MinorDim(row)) ExceptionT::SizeMismatch("RaggedArray2DT<TYPE>::SetRow");
 #endif
 
 	SetRow(row, array.Pointer());

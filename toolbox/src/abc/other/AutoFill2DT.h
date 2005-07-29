@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.16 2005-04-30 21:14:31 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.17 2005-07-29 03:09:33 paklein Exp $ */
 /* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
@@ -407,7 +407,7 @@ void AutoFill2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 	{
 		/* dimensions must match */
 		if (fMajorDim    != source.fMajorDim ||
-		    fMaxMinorDim != source.fMaxMinorDim) throw ExceptionT::kSizeMismatch;
+		    fMaxMinorDim != source.fMaxMinorDim) ExceptionT::SizeMismatch("AutoFill2DT");
 		
 		/* copy counts */
 		memcpy(fCounts, source.fCounts, sizeof(int)*fMajorDim);
@@ -514,7 +514,7 @@ template <class TYPE>
 int AutoFill2DT<TYPE>::AppendUnique(int row, const TYPE& value)
 {
 #if __option(extended_errorcheck)
-	if (row < 0 || row >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange("AutoFill2DT");
 #endif
 
 	/* chunk information */

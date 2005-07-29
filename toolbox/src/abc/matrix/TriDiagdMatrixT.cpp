@@ -1,17 +1,16 @@
-/* $Id: TriDiagdMatrixT.cpp,v 1.5 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: TriDiagdMatrixT.cpp,v 1.6 2005-07-29 03:09:33 paklein Exp $ */
 /* created: paklein (01/15/1998)                                          */
 /* Triadiagonal matrix with Gauss elimination. The                        */
 /* matrix is stored in row major form.                                    */
-
 #include "TriDiagdMatrixT.h"
 #include <math.h>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
+const char caller[] = "TriDiagdMatrixT";
 
+/* constructor */
 TriDiagdMatrixT::TriDiagdMatrixT(int rows):
 	nArrayT<double>(rows*3),
 	fRows(rows),
@@ -26,7 +25,7 @@ TriDiagdMatrixT::TriDiagdMatrixT(int rows):
 void TriDiagdMatrixT::LinearSolve(dArrayT& RHS)
 {
 	/* dimension check */
-	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
+	if (RHS.Length() != fRows) ExceptionT::SizeMismatch(caller);
 	
 	/* quick exit */
 	if (fRows == 0) return;
@@ -43,7 +42,7 @@ void TriDiagdMatrixT::LinearSolve(dArrayT& RHS)
 	for (int i = 1; i < fRows; i++)
 	{
 #if __option(extended_errorcheck)
-		if (fabs(*pdiag) < kSmall) throw ExceptionT::kGeneralFail;
+		if (fabs(*pdiag) < kSmall) ExceptionT::GeneralFail(caller);
 #endif
 
 		double factor = (*pzero++)/(*pdiag++);
@@ -61,13 +60,13 @@ void TriDiagdMatrixT::LinearSolve(dArrayT& RHS)
 	
 	/* back substitution */
 #if __option(extended_errorcheck)
-	if (fabs(*pdiag1) < kSmall) throw ExceptionT::kGeneralFail;
+	if (fabs(*pdiag1) < kSmall) ExceptionT::GeneralFail(caller);
 #endif
 	*pRHS1 /= *pdiag1;
 	for (int j = 1; j < fRows; j++)
 	{
 #if __option(extended_errorcheck)
-	if (fabs(*pdiag) < kSmall) throw ExceptionT::kGeneralFail;
+	if (fabs(*pdiag) < kSmall) ExceptionT::GeneralFail(caller);
 #endif
 
 		(*pRHS)   -= (*upper--)*(*pRHS1--);

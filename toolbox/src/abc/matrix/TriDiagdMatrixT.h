@@ -1,7 +1,6 @@
-/* $Id: TriDiagdMatrixT.h,v 1.4 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: TriDiagdMatrixT.h,v 1.5 2005-07-29 03:09:33 paklein Exp $ */
 /* created: paklein (01/15/1998)                                          */
 /* Triadiagonal matrix with Gauss elimination.                            */
-
 #ifndef _TRIDIAG_DMATRIX_T_H_
 #define _TRIDIAG_DMATRIX_T_H_
 
@@ -50,7 +49,7 @@ inline void TriDiagdMatrixT::SetRow(int row, double L, double D, double R)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (row < 0 || row >= fRows) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fRows) ExceptionT::OutOfRange("TriDiagdMatrixT::SetRow");
 #endif
 
 	pL[row] = L;	
@@ -62,7 +61,7 @@ inline void TriDiagdMatrixT::AddToRow(int row, double L, double D, double R)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (row < 0 || row >= fRows) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fRows) ExceptionT::OutOfRange("TriDiagdMatrixT::AddToRow");
 #endif
 
 	pL[row] += L;	

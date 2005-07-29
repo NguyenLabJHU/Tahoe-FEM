@@ -1,4 +1,4 @@
-/* $Id: RowAutoFill2DT.h,v 1.8 2005-04-30 21:14:31 paklein Exp $ */
+/* $Id: RowAutoFill2DT.h,v 1.9 2005-07-29 03:09:34 paklein Exp $ */
 
 #ifndef _ROW_AUTO_ARRAY2D_T_H_
 #define _ROW_AUTO_ARRAY2D_T_H_
@@ -111,7 +111,7 @@ inline RowAutoFill2DT<TYPE>::RowAutoFill2DT(int major_dim, int head_room):
 	fRowData(major_dim)
 {
 	/* check */
-	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
+	if (fHeadRoom < 0) ExceptionT::GeneralFail("RowAutoFill2DT");
 	
 	/* initialize sizes */
 	fLogicalSize = 0;
@@ -132,7 +132,7 @@ RowAutoFill2DT<TYPE>::RowAutoFill2DT(int major_dim, int head_room, int init_row_
 	fRowData(major_dim)
 {
 	/* check */
-	if (fHeadRoom < 0 || init_row_memory < 0) throw ExceptionT::kGeneralFail;
+	if (fHeadRoom < 0 || init_row_memory < 0) ExceptionT::GeneralFail("RowAutoFill2DT");
 
 	/* initialize sizes */
 	fLogicalSize = 0;
@@ -176,7 +176,7 @@ inline int RowAutoFill2DT<TYPE>::MinorDim(int major_dim) const
 {
 #if __option(extended_errorcheck)
 	/* range check */
-	if (major_dim < 0 || major_dim >= MajorDim()) throw ExceptionT::kOutOfRange;
+	if (major_dim < 0 || major_dim >= MajorDim()) ExceptionT::OutOfRange("RowAutoFill2DT");
 #endif
 
 	return fLogicalSize[major_dim];
@@ -194,7 +194,7 @@ inline int RowAutoFill2DT<TYPE>::LogicalSize(void) const
 template <class TYPE>
 inline void RowAutoFill2DT<TYPE>::SetHeadRoom(int head_room)
 {
-	if (head_room < 0) throw ExceptionT::kGeneralFail;
+	if (head_room < 0) ExceptionT::GeneralFail("RowAutoFill2DT");
 	fHeadRoom = head_room;
 }
 
@@ -212,8 +212,8 @@ inline const TYPE& RowAutoFill2DT<TYPE>::operator()(int major_dim, int minor_dim
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
-	if (minor_dim < 0 || minor_dim >= fLogicalSize[major_dim]) throw ExceptionT::kOutOfRange;
+	if (major_dim < 0 || major_dim >= fRowData.Length()) ExceptionT::OutOfRange("RowAutoFill2DT");
+	if (minor_dim < 0 || minor_dim >= fLogicalSize[major_dim]) ExceptionT::OutOfRange("RowAutoFill2DT");
 #endif
 
 	return *(fRowData[major_dim] + minor_dim);
@@ -224,8 +224,8 @@ inline TYPE& RowAutoFill2DT<TYPE>::operator()(int major_dim, int minor_dim)
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
-	if (minor_dim < 0 || minor_dim >= fLogicalSize[major_dim]) throw ExceptionT::kOutOfRange;
+	if (major_dim < 0 || major_dim >= fRowData.Length()) ExceptionT::OutOfRange("RowAutoFill2DT");
+	if (minor_dim < 0 || minor_dim >= fLogicalSize[major_dim]) ExceptionT::OutOfRange("RowAutoFill2DT");
 #endif
 
 	return *(fRowData[major_dim] + minor_dim);
@@ -236,7 +236,7 @@ inline const TYPE* RowAutoFill2DT<TYPE>::operator()(int major_dim) const
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
+	if (major_dim < 0 || major_dim >= fRowData.Length()) ExceptionT::OutOfRange("RowAutoFill2DT");
 #endif
 
 	return fRowData[major_dim];
@@ -247,7 +247,7 @@ inline TYPE* RowAutoFill2DT<TYPE>::operator()(int major_dim)
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
+	if (major_dim < 0 || major_dim >= fRowData.Length()) ExceptionT::OutOfRange("RowAutoFill2DT");
 #endif
 
 	return fRowData[major_dim];
@@ -265,7 +265,7 @@ inline void RowAutoFill2DT<TYPE>::Reset(int major_dim)
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
+	if (major_dim < 0 || major_dim >= fRowData.Length()) ExceptionT::OutOfRange("RowAutoFill2DT");
 #endif
 
 	fLogicalSize[major_dim] = 0;
@@ -276,7 +276,7 @@ template <class TYPE>
 inline void RowAutoFill2DT<TYPE>::Append(int major_dim, const TYPE& value)
 {
 #if __option(extended_errorcheck)
-	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
+	if (major_dim < 0 || major_dim >= fRowData.Length()) ExceptionT::OutOfRange("RowAutoFill2DT");
 #endif
 
 	int size = fLogicalSize[major_dim];
@@ -292,7 +292,7 @@ template <class TYPE>
 void RowAutoFill2DT<TYPE>::Append(int major_dim, const ArrayT<TYPE>& source)
 {
 #if __option(extended_errorcheck)
-	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
+	if (major_dim < 0 || major_dim >= fRowData.Length()) ExceptionT::OutOfRange("RowAutoFill2DT");
 #endif
 
 	int size = fLogicalSize[major_dim];
@@ -312,7 +312,7 @@ template <class TYPE>
 int RowAutoFill2DT<TYPE>::AppendUnique(int major_dim, const TYPE& value)
 {
 #if __option(extended_errorcheck)
-	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
+	if (major_dim < 0 || major_dim >= fRowData.Length()) ExceptionT::OutOfRange("RowAutoFill2DT");
 #endif
 
 	/* scan logical size for duplicates */
@@ -368,10 +368,7 @@ void RowAutoFill2DT<TYPE>::SetLogicalSize(int row, int length)
 		new_array = new TYPE[mem_size];
 #endif
 		if (!new_array)
-		{
-			cout << "\n RowAutoFill2DT<TYPE>::SetLogicalSize: out of memory"<< endl;
-			throw ExceptionT::kOutOfMemory;
-		}
+			ExceptionT::OutOfMemory("RowAutoFill2DT::SetLogicalSize");
 		fMemorySize[row] = mem_size;
 		fTotalMemorySize += (mem_size - old_size);
 		fFlushCount += mem_size*sizeof(TYPE);

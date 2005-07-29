@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.11 2004-01-31 07:19:11 paklein Exp $ */
+/* $Id: dMatrixT.h,v 1.12 2005-07-29 03:09:33 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DMATRIX_T_H_
 #define _DMATRIX_T_H_
@@ -167,9 +167,10 @@ inline dMatrixT& dMatrixT::Symmetrize(void) { return Symmetrize(*this); }
 inline void dMatrixT::Rank2ExpandFrom2D(const dMatrixT& mat2D)
 {
 	/* dimension checks */
-#if __option (extended_errorcheck)	
-	if (fRows != fCols || fRows != 3) throw ExceptionT::kGeneralFail;
-	if (mat2D.fRows != mat2D.fCols || mat2D.fRows != 2) throw ExceptionT::kSizeMismatch;
+#if __option (extended_errorcheck)
+	const char caller[] = "dMatrixT::Rank2ExpandFrom2D";
+	if (fRows != fCols || fRows != 3) ExceptionT::GeneralFail(caller);
+	if (mat2D.fRows != mat2D.fCols || mat2D.fRows != 2) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* p = fArray;
@@ -189,9 +190,10 @@ inline void dMatrixT::Rank2ExpandFrom2D(const dMatrixT& mat2D)
 inline void dMatrixT::Rank2ReduceFrom3D(const dMatrixT& mat3D)
 {
 	/* dimension checks */
-#if __option (extended_errorcheck)	
-	if (fRows != fCols || fRows != 2) throw ExceptionT::kGeneralFail;
-	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 3) throw ExceptionT::kSizeMismatch;
+#if __option (extended_errorcheck)
+	const char caller[] = "dMatrixT::Rank2ReduceFrom3D";
+	if (fRows != fCols || fRows != 2) ExceptionT::GeneralFail(caller);
+	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 3) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* p = fArray;

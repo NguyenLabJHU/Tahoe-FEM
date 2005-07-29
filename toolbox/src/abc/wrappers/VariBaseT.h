@@ -1,4 +1,4 @@
-/* $Id: VariBaseT.h,v 1.6 2003-11-05 22:16:32 paklein Exp $ */
+/* $Id: VariBaseT.h,v 1.7 2005-07-29 03:09:35 paklein Exp $ */
 /* created: paklein (04/18/1998) */
 #ifndef _VARI_BASE_T_H_
 #define _VARI_BASE_T_H_
@@ -80,7 +80,7 @@ template <class TYPE>
 inline void VariBaseT<TYPE>::SetHeadRoom(int headroom)
 {
 	fHeadRoom = headroom;
-	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
+	if (fHeadRoom < 0) ExceptionT::GeneralFail("VariBaseT");
 }
 
 /**********************************************************************

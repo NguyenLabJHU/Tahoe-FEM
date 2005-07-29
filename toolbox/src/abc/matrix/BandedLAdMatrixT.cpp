@@ -1,8 +1,7 @@
-/* $Id: BandedLAdMatrixT.cpp,v 1.5 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: BandedLAdMatrixT.cpp,v 1.6 2005-07-29 03:09:33 paklein Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
-
 #include "BandedLAdMatrixT.h"
 #include <math.h>
 #include <iostream.h>
@@ -11,10 +10,10 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
+const char caller[] = "BandedLAdMatrixT";
 
+/* constructor */
 BandedLAdMatrixT::BandedLAdMatrixT(int squaredim, int leftbandsize, int rightbandsize):
 	nArrayT<double>((leftbandsize+rightbandsize+1)*squaredim),
 	fRows(squaredim),
@@ -32,7 +31,7 @@ double BandedLAdMatrixT::GetElement(int row, int col) const
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row < 0 || row >= fRows || col < 0 || col >= fCols)
-		throw ExceptionT::kOutOfRange;
+		ExceptionT::OutOfRange(caller);
 #endif
 	
 	if(row-col > fLband || col-row > fRband)
@@ -70,11 +69,11 @@ void BandedLAdMatrixT::AddBlock(int row, int col, const dMatrixT& block)
 #if __option(extended_errorcheck)
 	/* within bounds */
 	if (row < 0 || row + block.Rows() > fRows ||
-	    col < 0 || row + block.Cols() > fCols) throw ExceptionT::kOutOfRange;
+	    col < 0 || row + block.Cols() > fCols) ExceptionT::OutOfRange(caller);
 
 	/* within the band */
 	if ((row + block.Rows() - col) > fLband + 1 ||
-	    (col + block.Cols() - row) > fRband + 1 ) throw ExceptionT::kOutOfRange;
+	    (col + block.Cols() - row) > fRband + 1 ) ExceptionT::OutOfRange(caller);
 #endif
 
 	const double* pblock = block.Pointer();
@@ -96,7 +95,7 @@ void BandedLAdMatrixT::Transpose(const BandedLAdMatrixT& matrix)
 #if __option(extended_errorcheck)
 	/* dimension checks */
 	if( fRband != matrix.Lband() || fLband != matrix.Rband() )
-		throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch(caller);
 #endif
 
 	int mincol, maxcol;
@@ -132,7 +131,7 @@ void BandedLAdMatrixT::LinearSolve(dArrayT& RHS)
 	{
 		double diagvalue = (*this)(col,col);
 		if(fabs( diagvalue/mean ) < 1.0e-12)
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail(caller);
 		
 		int maxrow = fRows-1;
 		if(col + fLband < maxrow)
@@ -167,7 +166,7 @@ void BandedLAdMatrixT::LinearSolve(dArrayT& RHS)
 	
 	/* back substitution */
 	if(fabs( (*this)(fRows-1,fCols-1)/mean ) < 1.0e-12)
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 
 	RHS[fRows-1] /= (*this)(fRows-1,fCols-1); 	
 			
@@ -202,7 +201,7 @@ void BandedLAdMatrixT::LinearSolve(dMatrixT& RHS)
 {
 	/* dimension checks */
 	if(fRows != fCols || RHS.Rows() != fRows)
-		throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch(caller);
 
 	/* compute mean value of elements contained in bands */
 	double* pA = (*this)(0);
@@ -218,7 +217,7 @@ void BandedLAdMatrixT::LinearSolve(dMatrixT& RHS)
 	{
 		double diagvalue = (*this)(col,col);
 		if(fabs( diagvalue/mean ) < 1.0e-12)
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail(caller);
 		
 		int maxrow = fRows-1;
 		if(col + fLband < maxrow)
@@ -257,7 +256,7 @@ void BandedLAdMatrixT::LinearSolve(dMatrixT& RHS)
 	
 	/* back substitution */
 	if(fabs( (*this)(fRows-1,fCols-1)/mean ) < 1.0e-12)
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 
 	for (int k = 0; k < RHS.Cols(); k++)
 	{
@@ -299,7 +298,7 @@ void BandedLAdMatrixT::BandedInverse(dMatrixT& RHS)
 {
 	/* dimension checks */
 	if(fRows != fCols || RHS.Rows() != fRows)
-		throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch(caller);
 
 	/* compute mean value of elements contained in bands */
 	double* pA = (*this)(0);
@@ -318,7 +317,7 @@ void BandedLAdMatrixT::BandedInverse(dMatrixT& RHS)
 	{
 		double diagvalue = (*this)(col,col);
 		if(fabs( diagvalue/mean ) < 1.0e-12)
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail(caller);
 		
 		int maxrow = fRows-1;
 		if(col + fLband < maxrow)
@@ -357,7 +356,7 @@ void BandedLAdMatrixT::BandedInverse(dMatrixT& RHS)
 	
 	/* back substitution */
 	if(fabs( (*this)(fRows-1,fCols-1)/mean ) < 1.0e-12)
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 
 	for (int colRHS1 = 0; colRHS1 < RHS.Cols(); colRHS1++)
 	{
@@ -398,7 +397,7 @@ void BandedLAdMatrixT::Multx(const dArrayT& x,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != b.Length() || fCols != x.Length()) throw ExceptionT::kSizeMismatch;
+	if (fRows != b.Length() || fCols != x.Length()) ExceptionT::SizeMismatch(caller);
 #endif
 
 	//double* ARow = Pointer() + fRband;
@@ -458,7 +457,7 @@ void BandedLAdMatrixT::MultM(const dMatrixT& M,
 	/* dimension checks */
 #if __option (extended_errorcheck)	
 	if ( ( fRows != B.Rows() || B.Cols() != M.Cols() ) || fCols != M.Rows() )
-		throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch(caller);
 #endif
 
 	for (int col = 0; col < B.Cols(); col++) {
@@ -517,7 +516,7 @@ void BandedLAdMatrixT::MultTx(const dArrayT& x,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != x.Length() || fCols != b.Length()) throw ExceptionT::kSizeMismatch;
+	if (fRows != x.Length() || fCols != b.Length()) ExceptionT::SizeMismatch(caller);
 #endif
 
 	const double* px0  = x.Pointer();
@@ -577,7 +576,7 @@ void BandedLAdMatrixT::MultTM(const dMatrixT& M,
 	/* dimension checks */
 #if __option (extended_errorcheck)	
 	if ( ( fRows != B.Cols() || B.Rows() != M.Cols() ) || fCols != M.Rows() )
-		throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch(caller);
 #endif
 
 	for (int row = 0; row < B.Rows(); row++) {
