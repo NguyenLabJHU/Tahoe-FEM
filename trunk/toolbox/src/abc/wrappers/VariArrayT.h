@@ -1,4 +1,4 @@
-/* $Id: VariArrayT.h,v 1.5 2005-04-30 21:14:41 paklein Exp $ */
+/* $Id: VariArrayT.h,v 1.6 2005-07-29 03:09:35 paklein Exp $ */
 /* created: paklein (04/18/1998) */
 #ifndef _VARI_ARRAY_T_H_
 #define _VARI_ARRAY_T_H_
@@ -73,7 +73,7 @@ void VariArrayT<TYPE>::SetWard(int headroom, ArrayT<TYPE>& ward)
 	if (!fWard)
 		fWard = &ward;
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail("VariArrayT");
 }
 	
 /* set length of the ward, fill extra space if specified */
@@ -81,7 +81,7 @@ template <class TYPE>
 inline void VariArrayT<TYPE>::SetLength(int length, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail("VariArrayT");
 
 	/* use inherited function */
 	SetAlias(*fWard, length, copy_in);
@@ -91,7 +91,7 @@ template <class TYPE>
 inline void VariArrayT<TYPE>::SetLength(int length, const TYPE& fill, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail("VariArrayT");
 
 	/* use inherited function */
 	SetAlias(*fWard, length, fill, copy_in);
@@ -102,7 +102,7 @@ template <class TYPE>
 inline int VariArrayT<TYPE>::Length(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail("VariArrayT");
 
 	return(fWard->Length());
 }

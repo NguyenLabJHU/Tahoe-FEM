@@ -32,15 +32,12 @@ int i,j;
 int HughesIndexArray [6] [2];
 
 if (fc_ijkl.Rows() != 6 || fc_ijkl.Cols() != 6)
-  {
-    cout << "Cannot convert matrix fc_ijkl to rank 4 tensor - matrix wrong size";
-    throw ExceptionT::kSizeMismatch;
-  }
+    ExceptionT::SizeMismatch("dTensor4DT::ConvertTangentFrom4DTo2D", "cannot convert matrix to rank 4 tensor");
 
 /*if (fDim0 != 3 || fDim1 != 3 || fDim2 != 3 || fDim3 !=3 )
  * {
  *   cout << "Cannot convert matrix fc_ijkl to rank 4 tensor - tensor wrong size";
- *   throw ExceptionT::kSizeMismatch;
+ *   ExceptionT::SizeMismatch(caller);
  * }
  */
 
@@ -76,15 +73,12 @@ int i,j,k,l;
 int HughesIndexArray [3] [3];
 
 if (fc_ijkl.Rows() != 6 || fc_ijkl.Cols() != 6)
-  {
-    cout << "Cannot convert matrix fc_ijkl to rank 4 tensor - matrix wrong size";
-    throw ExceptionT::kSizeMismatch;
-  }
+    ExceptionT::SizeMismatch("dTensor4DT::ConvertTangentFrom2DTo4D", "cannot convert matrix to rank 4 tensor");
 
 /*if (fDim0 != 3 || fDim1 != 3 || fDim2 != 3 || fDim3 !=3 )
  * {
  *   cout << "Cannot convert matrix fc_ijkl to rank 4 tensor - tensor wrong size";
- *   throw ExceptionT::kSizeMismatch;
+ *   ExceptionT::SizeMismatch(caller);
  * }
  */
 

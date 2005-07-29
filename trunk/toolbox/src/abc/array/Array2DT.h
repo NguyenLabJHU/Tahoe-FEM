@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.11 2005-05-01 19:27:45 paklein Exp $ */
+/* $Id: Array2DT.h,v 1.12 2005-07-29 03:09:31 paklein Exp $ */
 /* created: paklein (11/02/1998) */
 #ifndef _ARRAY2D_T_H_
 #define _ARRAY2D_T_H_
@@ -244,7 +244,7 @@ inline TYPE& Array2DT<TYPE>::operator()(int majordim, int minordim)
 /* range checking */
 #if __option (extended_errorcheck)
 if (majordim < 0 || majordim >= fMajorDim ||
-	minordim < 0 || minordim >= fMinorDim) throw ExceptionT::kOutOfRange;
+	minordim < 0 || minordim >= fMinorDim) ExceptionT::OutOfRange("Array2DT");
 #endif
 
 	return this->fArray[majordim*fMinorDim + minordim];
@@ -256,7 +256,7 @@ inline const TYPE& Array2DT<TYPE>::operator()(int majordim, int minordim) const
 /* range checking */
 #if __option (extended_errorcheck)
 if (majordim < 0 || majordim >= fMajorDim ||
-	minordim < 0 || minordim >= fMinorDim) throw ExceptionT::kOutOfRange;
+	minordim < 0 || minordim >= fMinorDim) ExceptionT::OutOfRange("Array2DT");
 #endif
 
 	return this->fArray[majordim*fMinorDim + minordim];
@@ -267,7 +267,7 @@ inline TYPE* Array2DT<TYPE>::operator()(int majordim)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) ExceptionT::OutOfRange("Array2DT");
 #endif
 
 	return this->fArray + majordim*fMinorDim ;
@@ -278,7 +278,7 @@ inline const TYPE* Array2DT<TYPE>::operator()(int majordim) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) ExceptionT::OutOfRange("Array2DT");
 #endif
 
 	return this->fArray + majordim*fMinorDim ;
@@ -338,7 +338,7 @@ inline void Array2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (array.Length() != fMinorDim) throw ExceptionT::kSizeMismatch;
+	if (array.Length() != fMinorDim) ExceptionT::SizeMismatch("Array2DT");
 #endif
 	
 	/* copy */	

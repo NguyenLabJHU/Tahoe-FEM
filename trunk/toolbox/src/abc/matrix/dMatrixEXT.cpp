@@ -1,6 +1,5 @@
-/* $Id: dMatrixEXT.cpp,v 1.15 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.16 2005-07-29 03:09:33 paklein Exp $ */
 /* created: paklein (03/06/1998)                                          */
-
 #include "dMatrixEXT.h"
 #include "toolboxConstants.h"
 #include "LAdMatrixT.h"
@@ -9,10 +8,10 @@
 #include "dTensor4DT.h"
 //#include "NRUTIL.H"
 
-/* Numerical Recipies macros */
-
 using namespace Tahoe;
+const char caller[] = "dMatrixEXT";
 
+/* Numerical Recipies macros */
 static double sqrarg;
 #define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
@@ -62,8 +61,8 @@ int dMatrixEXT::Diagonalize(dArrayT& eigs)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
-	if (fRows != fCols) throw ExceptionT::kGeneralFail;
-	if (fRows != eigs.Length()) throw ExceptionT::kSizeMismatch;
+	if (fRows != fCols) ExceptionT::GeneralFail(caller);
+	if (fRows != eigs.Length()) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* make tri-diagonal */
@@ -103,8 +102,8 @@ int dMatrixEXT::Diagonalize(dArrayT& eigs)
 void dMatrixEXT::Eigenvector(double& eig_guess, dArrayT& eigenvector) const
 {
 #if __option(extended_errorcheck)
-	if (fRows != fCols) throw ExceptionT::kGeneralFail;
-	if (fRows != eigenvector.Length()) throw ExceptionT::kSizeMismatch;
+	if (fRows != fCols) ExceptionT::GeneralFail(caller);
+	if (fRows != eigenvector.Length()) ExceptionT::SizeMismatch(caller);
 #endif
 	
 	/* Rayleigh quotient iteration (8.2.3) */
@@ -160,8 +159,8 @@ void dMatrixEXT::Compute_SVD(dMatrixT& U, dArrayT& W, dMatrixT& V, double thresh
 	    fCols != U.Cols()  ||
 	    fCols != W.Length() ||
 	    fCols != V.Rows()  ||
-	    fCols != V.Cols()) throw ExceptionT::kSizeMismatch;
-	if (threshold > 1 || threshold < 0) throw ExceptionT::kGeneralFail;
+	    fCols != V.Cols()) ExceptionT::SizeMismatch(caller);
+	if (threshold > 1 || threshold < 0) ExceptionT::GeneralFail(caller);
 #endif
 
 	/* copy */
@@ -173,10 +172,7 @@ void dMatrixEXT::Compute_SVD(dMatrixT& U, dArrayT& W, dMatrixT& V, double thresh
 
 	/* call driver */
 	if (!svdcmp(U.Pointer(), fRows, fCols, W.Pointer(), V.Pointer(), v1, max_its))
-	{
-		cout << " dMatrixEXT::Compute_SVD: failed to converge" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("dMatrixEXT::Compute_SVD", "failed to converge");
 	
 	/* find max singular value */
 	double w_max = W.Max();
@@ -193,7 +189,7 @@ void dMatrixEXT::BackSubstitute_SVD(const dMatrixT& U, const dArrayT& W,
 	if (fRows != U.Rows()  || 
 	    fCols != U.Cols()  ||
 	    fCols != W.Length() ||
-	    fRows != RHS.Length()) throw ExceptionT::kSizeMismatch;
+	    fRows != RHS.Length()) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* call driver */
@@ -327,11 +323,7 @@ int dMatrixEXT::tqli(double d[], double e[], int n)
 			}
 			if (m != l) {
 				if (iter++ == 3*n)
-				{
-					cout << "\n dMatrixEXT::tqli: no convergence after " << 3*n;
-					cout << " iterations." << endl;
-					throw ExceptionT::kGeneralFail;
-				}
+					ExceptionT::GeneralFail("dMatrixEXT::tqli", "no convergence after %d iterations", 3*n);
 					
 				g=(d[l+1]-d[l])/(2.0*e[l]);
 				r=pythag(g,1.0);
@@ -372,9 +364,9 @@ void dMatrixEXT::eigvalfinder (dMatrixEXT& matrix, dArrayT& realev, dArrayT& ime
 {
 
 #if __option(extended_errorcheck)
-	if (fRows != fCols) throw ExceptionT::kGeneralFail;
-	if (fRows != realev.Length()) throw ExceptionT::kSizeMismatch;
-        if (fRows != imev.Length()) throw ExceptionT::kSizeMismatch;
+	if (fRows != fCols) ExceptionT::GeneralFail(caller);
+	if (fRows != realev.Length()) ExceptionT::SizeMismatch(caller);
+        if (fRows != imev.Length()) ExceptionT::SizeMismatch(caller);
 #endif
 
 	dMatrixEXT matrixCopy(fRows);
@@ -481,10 +473,9 @@ void dMatrixEXT::hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi)
 					}
 					nn -= 2;
 				} else {
-					if (its == 30){
-					  cout << "Too many iterations in hqr (dMatrixEXT)  \n";
-					  throw ExceptionT::kGeneralFail;
-					}
+					if (its == 30)
+					  ExceptionT::GeneralFail("dMatrixEXT::hqr", "%d iterations", its);
+
 					if (its == 10 || its == 20) {
 						t += x;
 						//for (i=1;i<=nn;i++) a(i,i) -= x;
@@ -825,10 +816,7 @@ void dMatrixEXT::svbksb(const double* u, const double* w, const double* v, int m
 /* find eigenvalues of 3x3 matrix explicitly */
 void dMatrixEXT::eigenvalue3x3(dMatrixEXT& J, dArrayT& reroot, dArrayT& imroot)
 {
-  if (fRows!=3){
-  cout << "Attempt to use dMatrixEXT::eigenvalue3x3 on matrix of wrong size \n";
-throw ExceptionT::kGeneralFail;
-  }
+	if (fRows != 3) ExceptionT::GeneralFail("dMatrixEXT::eigenvalue3x3", "matrix must be dimension 3 not %d", fRows);
 
 dMatrixEXT matrix(3);
   int n, flag;  // counter

@@ -1,4 +1,4 @@
-/* $Id: BandedLAdMatrixT.h,v 1.5 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: BandedLAdMatrixT.h,v 1.6 2005-07-29 03:09:33 paklein Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
@@ -89,11 +89,12 @@ inline const double& BandedLAdMatrixT::operator()(int row, int col) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
+	const char caller[] = "BandedLAdMatrixT::operator()";
 	if (row < 0 || row >= fRows || col < 0 || col >= fCols)
-		throw ExceptionT::kOutOfRange;
+		ExceptionT::OutOfRange(caller);
 
 	/* don't allow access to non banded elements */
-	if(row-col > fLband || col-row > fRband) throw ExceptionT::kOutOfRange;
+	if(row-col > fLband || col-row > fRband) ExceptionT::OutOfRange(caller);
 #endif
 	
 	return (fArray[col*fColumnHeight + fRband + row - col]);
@@ -103,11 +104,12 @@ inline double& BandedLAdMatrixT::operator()(int row, int col)
 {
 /* range checking */
 #if __option (extended_errorcheck)
+	const char caller[] = "BandedLAdMatrixT::operator()";
 	if (row < 0 || row >= fRows || col < 0 || col >= fCols)
-		throw ExceptionT::kOutOfRange;
+		ExceptionT::OutOfRange(caller);
 
 	/* don't allow access to non banded elements */
-	if(row-col > fLband || col-row > fRband) throw ExceptionT::kOutOfRange;
+	if(row-col > fLband || col-row > fRband) ExceptionT::OutOfRange(caller);
 #endif
 	
 	return (fArray[col*fColumnHeight + fRband + row - col]);
@@ -118,8 +120,9 @@ inline double* BandedLAdMatrixT::operator()(int col)
 {
 /* range checking */
 #if __option (extended_errorcheck)
+	const char caller[] = "BandedLAdMatrixT::operator()";
 	if (col < 0 || col >= fCols)
-		throw ExceptionT::kOutOfRange;
+		ExceptionT::OutOfRange(caller);
 #endif
 	
 	return (fArray + col*fColumnHeight);
@@ -129,8 +132,9 @@ const inline double* BandedLAdMatrixT::operator()(int col) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
+	const char caller[] = "BandedLAdMatrixT::operator()";
 	if (col < 0 || col >= fCols)
-		throw ExceptionT::kOutOfRange;
+		ExceptionT::OutOfRange(caller);
 #endif
 	
 	return (fArray + col*fColumnHeight);

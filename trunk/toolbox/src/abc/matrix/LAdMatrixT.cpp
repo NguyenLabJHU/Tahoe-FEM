@@ -1,22 +1,21 @@
-/* $Id: LAdMatrixT.cpp,v 1.8 2003-11-10 22:14:05 cjkimme Exp $ */
+/* $Id: LAdMatrixT.cpp,v 1.9 2005-07-29 03:09:33 paklein Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* Matrix2D with some linear algebra functions                            */
-
 #include "LAdMatrixT.h"
 #include <math.h>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
+const char caller[] = "LAdMatrixT";
 
+/* constructor */
 LAdMatrixT::LAdMatrixT(void) { }
 LAdMatrixT::LAdMatrixT(int squaredim): dMatrixT(squaredim) { }
 LAdMatrixT::LAdMatrixT(const LAdMatrixT& source): dMatrixT(source)
 { 	
 	/* must be square */
-	if (fRows != fCols) throw ExceptionT::kGeneralFail;
+	if (fRows != fCols) ExceptionT::GeneralFail(caller);
 }
 
 /* pivoting functions */
@@ -25,7 +24,7 @@ void LAdMatrixT::RowPivot(int row1, int row2)
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (row1 < 0 || row1 >= fRows ||
-	    row2 < 0 || row2 >= fRows) throw ExceptionT::kOutOfRange;
+	    row2 < 0 || row2 >= fRows) ExceptionT::OutOfRange(caller);
 #endif
 
 	double* p1 = (*this)(0) + row1;
@@ -47,7 +46,7 @@ void LAdMatrixT::ColumnPivot(int col1, int col2)
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (col1 < 0 || col1 >= fCols ||
-	    col2 < 0 || col2 >= fCols) throw ExceptionT::kOutOfRange;
+	    col2 < 0 || col2 >= fCols) ExceptionT::OutOfRange(caller);
 #endif
 
 	double* p1 = (*this)(col1);
@@ -165,7 +164,7 @@ void LAdMatrixT::LinearSolve2(dArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
+	if (RHS.Length() != fRows) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* mean matrix value */
@@ -175,7 +174,7 @@ void LAdMatrixT::LinearSolve2(dArrayT& RHS)
 	for (int col = 0; col < fCols-1; col++)
 	{
 		double diagvalue = (*this)(col,col);
-		if (fabs( diagvalue/mean ) < kSmall) throw ExceptionT::kGeneralFail;
+		if (fabs( diagvalue/mean ) < kSmall) ExceptionT::GeneralFail(caller);
 		
 		for (int row = col + 1; row < fRows; row++)
 		{
@@ -201,7 +200,7 @@ void LAdMatrixT::LinearSolve2(dArrayT& RHS)
 	}
 	
 	/* back substitution */
-	if (fabs( (*this)(fRows-1,fCols-1)/mean ) > kSmall) throw ExceptionT::kGeneralFail;
+	if (fabs( (*this)(fRows-1,fCols-1)/mean ) > kSmall) ExceptionT::GeneralFail(caller);
 
 	RHS[fRows-1] /= (*this)(fRows-1,fCols-1); 		
 	for (int row = fRows-2; row > -1; row--)
@@ -229,7 +228,7 @@ int LAdMatrixT::BiCGStab(dArrayT& x ,const dArrayT& RHS ,const double M , int ma
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
+	if (RHS.Length() != fRows) ExceptionT::SizeMismatch(caller);
 #endif
 
 
@@ -344,8 +343,8 @@ int LAdMatrixT::BiCGStab(dArrayT& x ,const dArrayT& RHS ,const dArrayT& M , int 
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
-	if (  M.Length() != fRows) throw ExceptionT::kSizeMismatch;
+	if (RHS.Length() != fRows) ExceptionT::SizeMismatch(caller);
+	if (  M.Length() != fRows) ExceptionT::SizeMismatch(caller);
 #endif
 
 	int j;

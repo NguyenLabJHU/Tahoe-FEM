@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.17 2003-12-28 23:34:10 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.18 2005-07-29 03:09:32 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 #include "ComplexT.h"
 
@@ -15,13 +15,15 @@ namespace Tahoe {
 DEFINE_TEMPLATE_STATIC const bool ArrayT<ComplexT>::fByteCopy = true;
 } /* namespace Tahoe */
 
+const char caller[] = "ComplexT";
+
 /*
 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call
 */
 void ComplexT::z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 {
 	/* dimension check */
-	if ( z.Length() != d.Length() ) throw ExceptionT::kOutOfRange;
+	if ( z.Length() != d.Length() ) ExceptionT::OutOfRange(caller);
 	
 	const ComplexT* pz = z.Pointer();
 	double*   pd = d.Pointer();
@@ -33,7 +35,7 @@ void ComplexT::z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 void ComplexT::z_to_Im(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 {
 	/* dimension check */
-	if ( z.Length() != d.Length() ) throw ExceptionT::kOutOfRange;
+	if ( z.Length() != d.Length() ) ExceptionT::OutOfRange(caller);
 	
 	const ComplexT* pz = z.Pointer();
 	double*   pd = d.Pointer();
@@ -46,7 +48,7 @@ void ComplexT::ReIm_to_z(const nArrayT<double>& re, const nArrayT<double>& im,
 	nArrayT<ComplexT>& z)	
 {
 	/* dimension check */
-	if ( re.Length() != im.Length() || im.Length() != z.Length() ) throw ExceptionT::kOutOfRange;
+	if ( re.Length() != im.Length() || im.Length() != z.Length() ) ExceptionT::OutOfRange(caller);
 
 	ComplexT* pz = z.Pointer();
 	const double* pre = re.Pointer();

@@ -1,4 +1,4 @@
-/* $Id: zMatrixT.cpp,v 1.9 2003-11-21 22:41:33 paklein Exp $ */
+/* $Id: zMatrixT.cpp,v 1.10 2005-07-29 03:09:32 paklein Exp $ */
 /* created: paklein (05/19/1997) */
 #include "zMatrixT.h"
 #include <iostream.h>
@@ -6,6 +6,7 @@
 #include "dMatrixT.h"
 
 using namespace Tahoe;
+const char caller[] = "zMatrixT";
 
 zMatrixT::zMatrixT(void) { }
 zMatrixT::zMatrixT(int numrows, int numcols): nMatrixT<ComplexT>(numrows,numcols) { }
@@ -54,7 +55,7 @@ ostream& operator<<(ostream& out, const zMatrixT& matrix)
 void zMatrixT::toRe(dMatrixT& re) const
 {
 	/* dimension check */
-	if (fRows != re.Rows() || fCols != re.Cols()) throw ExceptionT::kOutOfRange;
+	if (fRows != re.Rows() || fCols != re.Cols()) ExceptionT::OutOfRange(caller);
 
 	/* ComplexT function */
 	ComplexT::z_to_Re(*this, re);
@@ -63,7 +64,7 @@ void zMatrixT::toRe(dMatrixT& re) const
 void zMatrixT::toIm(dMatrixT& im) const
 {
 	/* dimension check */
-	if (fRows != im.Rows() || fCols != im.Cols()) throw ExceptionT::kOutOfRange;
+	if (fRows != im.Rows() || fCols != im.Cols()) ExceptionT::OutOfRange(caller);
 
 	/* ComplexT function */
 	ComplexT::z_to_Im(*this, im);
@@ -73,7 +74,7 @@ zMatrixT& zMatrixT::toZ(const dMatrixT& re, const dMatrixT& im)
 {
 	/* dimension checks */
 	if (re.Rows() != re.Rows() ||
-	    re.Cols() != im.Cols()) throw ExceptionT::kOutOfRange;
+	    re.Cols() != im.Cols()) ExceptionT::OutOfRange(caller);
 	
 	/* dimension */
 	Dimension(re.Rows(),im.Cols());
@@ -89,7 +90,7 @@ zMatrixT& zMatrixT::Inverse( const zMatrixT& matrix)
 {
 	/* dimension check */
 	if (fRows != fCols || 
-	   (fRows != 2 && fRows != 3)) throw ExceptionT::kSizeMismatch;
+	   (fRows != 2 && fRows != 3)) ExceptionT::SizeMismatch(caller);
 	
 	/* (2 x 2) */
 	if (fRows == 2)
@@ -191,7 +192,7 @@ zMatrixT& zMatrixT::Inverse( const zMatrixT& matrix)
 zMatrixT& zMatrixT::Conjugate(const zMatrixT& matrix)
 {
   /* must have same length */
-  if (matrix.Length() != Length()) throw ExceptionT::kSizeMismatch;
+  if (matrix.Length() != Length()) ExceptionT::SizeMismatch(caller);
 
   ComplexT* pLHS = Pointer();
   const ComplexT* pRHS = matrix.Pointer();

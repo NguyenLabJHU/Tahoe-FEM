@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.19 2004-11-09 23:23:48 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.20 2005-07-29 03:09:33 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "dMatrixT.h"
 #include <iostream.h>
@@ -7,6 +7,7 @@
 #include "dSymMatrixT.h"
 
 using namespace Tahoe;
+const char caller[] = "dMatrixT";
 
 /* copy behavior for arrays of dMatrixT's */
 namespace Tahoe {
@@ -179,7 +180,7 @@ double dMatrixT::Det(void) const
 {
 /* dimension check */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) throw ExceptionT::kGeneralFail;
+	if (fRows != fCols) ExceptionT::GeneralFail(caller);
 #endif
 	
 	if (fCols == 2) // (2 x 2)
@@ -190,7 +191,7 @@ double dMatrixT::Det(void) const
 		return fArray[0]*(fArray[4]*fArray[8] - fArray[5]*fArray[7])
 			 - fArray[1]*(fArray[3]*fArray[8] - fArray[5]*fArray[6])
 			 + fArray[2]*(fArray[3]*fArray[7] - fArray[4]*fArray[6]);
-	else throw ExceptionT::kGeneralFail;
+	else ExceptionT::GeneralFail(caller);
 	return 0;
 }
 
@@ -199,7 +200,7 @@ double dMatrixT::Trace(void) const
 {
 /* check is square */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) throw ExceptionT::kGeneralFail;
+	if (fRows != fCols) ExceptionT::GeneralFail(caller);
 #endif
 
 	double trace  = 0.0;
@@ -237,7 +238,7 @@ dMatrixT& dMatrixT::Symmetrize(const dMatrixT& matrix)
 	/* square matrices only */
 	if (fRows != fCols ||
 	    matrix.fRows != matrix.fCols ||
-	    fRows != matrix.fRows) throw ExceptionT::kSizeMismatch;
+	    fRows != matrix.fRows) ExceptionT::SizeMismatch("dMatrixT::Symmetrize");
 #endif
 
 	if (fRows == 2)
@@ -328,7 +329,7 @@ dMatrixT& dMatrixT::ReducedIndexDeviatoric(void)
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw ExceptionT::kGeneralFail;
+	if (fRows != fCols || (fRows != 3 && fRows != 6)) ExceptionT::GeneralFail(caller);
 #endif
 
 	*this = 0.0;
@@ -363,7 +364,7 @@ dMatrixT& dMatrixT::ReducedIndexI(void)
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw ExceptionT::kGeneralFail;
+	if (fRows != fCols || (fRows != 3 && fRows != 6)) ExceptionT::GeneralFail(caller);
 #endif
 
 	*this = 0.0;
@@ -389,7 +390,7 @@ dMatrixT& dMatrixT::ReducedIndexII(void)
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw ExceptionT::kGeneralFail;
+	if (fRows != fCols || (fRows != 3 && fRows != 6)) ExceptionT::GeneralFail(caller);
 #endif
 
 	*this = 0.0;
@@ -419,11 +420,12 @@ void dMatrixT::MultSymAB(const dSymMatrixT& A, const dMatrixT& B)
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
+	const char caller[] = "dMatrixT::MultSymAB";
 	if (fRows != fCols ||
 		fCols != A.Rows() ||
 	  	A.Rows() != B.Rows() ||
-	  	B.Rows() != B.Cols()) throw ExceptionT::kSizeMismatch; 
-	if(fCols < 2 || fCols > 3) throw ExceptionT::kGeneralFail;
+	  	B.Rows() != B.Cols()) ExceptionT::SizeMismatch(caller); 
+	if(fCols < 2 || fCols > 3) ExceptionT::GeneralFail(caller);
 #endif		   
 	const double* pB = B.Pointer();
 	const double* pA = A.Pointer();
@@ -463,7 +465,7 @@ void dMatrixT::ReducedI_C(const dSymMatrixT& C)
 
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || fCols < nummod ) throw ExceptionT::kGeneralFail;
+	if (fRows != fCols || fCols < nummod ) ExceptionT::GeneralFail(caller);
 #endif
 	
 	const double* pC = C.Pointer();
@@ -536,7 +538,7 @@ dMatrixT&  dMatrixT::DyadAB(const dSymMatrixT& A, const dSymMatrixT& B)
         /*dimension check*/
 #if __option (extended_errorcheck)
 	if (fRows != fCols || A.Rows() != B.Rows() 
-	    || fCols < nummod) throw ExceptionT::kGeneralFail;
+	    || fCols < nummod) ExceptionT::GeneralFail(caller);
 #endif	
 	double* pthis = fArray;
 	const double* pB = B.Pointer();
@@ -557,7 +559,7 @@ void dMatrixT::Expand(const dMatrixT& B, int factor, AssemblyModeT mode)
 	/* dimension checks */
 #if __option (extended_errorcheck)
 	if (fRows != factor*B.fRows ||
-	    fCols != factor*B.fCols) throw ExceptionT::kSizeMismatch;
+	    fCols != factor*B.fCols) ExceptionT::SizeMismatch("dMatrixT::Expand");
 #endif
 
 	/* initialize */
