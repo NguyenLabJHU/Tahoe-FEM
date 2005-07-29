@@ -1,4 +1,4 @@
-/* $Id: Tensor4DT.h,v 1.10 2005-07-29 03:09:34 paklein Exp $ */
+/* $Id: Tensor4DT.h,v 1.11 2005-07-29 08:12:00 paklein Exp $ */
 /* created paklein (12/19/96) */
 #ifndef _TENSOR4D_T_H_
 #define _TENSOR4D_T_H_
@@ -160,7 +160,7 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1)
 /* range checking */
 #if __option (extended_errorcheck)
 	if (dim0 < 0 || dim0 >= this->fDim[0] ||
-        dim1 < 0 || dim1 >= this->fDim[1]) ExceptionT::GeneralFail(caller);
+        dim1 < 0 || dim1 >= this->fDim[1]) ExceptionT::GeneralFail("Tensor3DT");
 #endif
 
 	return this->fArray + dim0*fOffset0 + dim1*fOffset1;
@@ -171,7 +171,7 @@ inline const MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1) const
 /* range checking */
 #if __option (extended_errorcheck)
 	if (dim0 < 0 || dim0 >= this->fDim[0] ||
-        dim1 < 0 || dim1 >= this->fDim[1]) ExceptionT::GeneralFail(caller);
+        dim1 < 0 || dim1 >= this->fDim[1]) ExceptionT::GeneralFail("Tensor3DT");
 #endif
 
 	return this->fArray + dim0*fOffset0 + dim1*fOffset1;
@@ -182,7 +182,7 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= this->fDim[0]) ExceptionT::GeneralFail(caller);
+	if (dim0 < 0 || dim0 >= this->fDim[0]) ExceptionT::GeneralFail("Tensor3DT");
 #endif
 
 	return this->fArray + dim0*fOffset0;
@@ -192,7 +192,7 @@ inline const MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= this->fDim[0]) ExceptionT::GeneralFail(caller);
+	if (dim0 < 0 || dim0 >= this->fDim[0]) ExceptionT::GeneralFail("Tensor3DT");
 #endif
 
 	return this->fArray + dim0*fOffset0;
