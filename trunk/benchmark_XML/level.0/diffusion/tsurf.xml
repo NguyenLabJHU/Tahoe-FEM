@@ -38,7 +38,8 @@
         <thermal_CSE field_name="temperature">
             <line/>
             <surface_element_nodal_output displacement_jump="1" displacements="1" material_output="1" traction="1"/>
-            <thermal_CSE_element_block K_0="100.0" d_c="0.10">
+			<surface_element_element_output centroid='1' avg_traction='1'/>            
+			<thermal_CSE_element_block K_0="100.0" d_c="0.10">
                 <block_ID_list>
                     <String value="11"/>
                 </block_ID_list>
