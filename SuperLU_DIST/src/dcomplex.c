@@ -11,8 +11,8 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "dcomplex.h"
-
 
 /* Complex Division c = a/b */
 void z_div(doublecomplex *c, doublecomplex *a, doublecomplex *b)
