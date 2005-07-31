@@ -1,0 +1,18 @@
+# $Id: JANUS.macros,v 1.1.1.1 2001-01-25 01:46:10 paklein Exp $
+MPI_CFLAGS = -D__MPI__
+MPI_LFLAGS = -lmpi
+
+# ASCI Red - JANUS (sasn100, sasn101)
+COMP_CC     = ciCC
+COMP_C      = cicc
+AR          = ar
+LINK        = $(COMP_CC)
+MY_CFLAGS = -c -Wc,-tlocal -I$(INC_DIR)
+CFLAGS      = $(MY_CFLAGS)
+#MORE_CFLAGS = -g
+MORE_CFLAGS = -O2 -DNDEBUG 
+LFLAGS      =
+ARFLAGS     = -cruv
+MAKEOPTS    =
+RM          = rm
+LN          = ln -sf

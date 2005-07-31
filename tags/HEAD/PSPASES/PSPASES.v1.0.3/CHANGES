@@ -1,0 +1,70 @@
+
+--- Changes in version 1.0.3 from version 1.0.2 (May 9, 1999)
+
+1. PSPASES communicator was re-designed to fix a memory bug. This bug 
+   made it impossible to recover the memory consumed by multiple numerical
+   factorizations performed via DPSPACEN call. In the new design, the calling
+   interface to DPSPACEN has changed. There are three types of PSPASES
+   communicators depending on which call generates that communicator. Calls
+   to DPSPACEN and DPSPACET accept only specific types of communicator.
+   Refer to the updated manual in DOC subdirectory for further details.
+   The example codes pspases_testc.c, pspases_testfr.f, and pspases_testfc.f
+   in TEST subdirectory have been modified to illustrate the use of new 
+   communicator.
+
+2. Users who tried to port PSPASES to platforms such as DEC, Sun, or Linux 
+   PCs saw some compilation warnings in files "premovea.f", "emovea.f", 
+   "serialfactor.f", and "parfact1i.f". These have been taken care of.
+   Some users, who used older version (1.0) of MPICH, were facing "Invalid
+   Communicator" problem in C-driver routine in TEST subdirectory. This has
+   also been taken care of.
+
+3. A prototype file "cpspases.h" is provided. This file will help in checking
+   correct parameter passing (number and type) to PSPASES subroutines from
+   C applications.
+
+4. Some changes to Makefile to give guidelines for building the library on 
+   SUN Solaris platforms. 
+
+--- Changes in version 1.0.2 from version 1.0.1 (Sept 25, 1998)
+
+1. ParMETIS and METIS codes are new. The latest ParMETIS version 2.0 supplied
+   at the METIS site (http://www.cs.umn.edu/~metis) is used. Some minor changes
+   made to this standard distribution are listed in METIS.note file. The new
+   version has different function names and calling sequences for serial and
+   parallel ordering codes, so appropriate changes in PSPASES files have been
+   made.
+
+2. Some minor changes in Makefiles.
+
+--- Changes in version 1.0.1 from version 1.0 (June 1, 1998)
+
+1. Now PSPASES functions work on a private copy of the MPI communicator
+   being passed to them. This way, the routines are not affected by any
+   communications pending on the input MPI communicator.
+
+2. Made some minor modifications to User's manual (Section 5).
+
+3. Added some notes to "testrun" script in TEST directory.
+
+--- Changes in version 1.0 from version 0.0beta (May 23, 1998)
+
+1. Fixed problems related to boundary cases, such as relatively small size
+   of matrices for given number of processors, and diagonal matrices. 
+   Changes were made to PSPASES and Metis code, and the driver codes.
+
+2. Added support for four different formats (.fcc, .bin, .rsa HB, .rsa RB).
+   Drivers are provided for all these formats in TEST directory.
+   Note: The previous spd format is now renamed fcc format.
+
+3. Added README.USAGE file explaining some usage related issues, and the
+   formats, and changed README.INSTALL file.
+
+4. Simpler testing interface is now available via improved Makefile and a 
+   "testrun" script in TEST directory.
+
+5. Created matrices directory which has representative matrices in four
+   formats.
+
+6. Metis code is now version 3.0.6 code with some more fixes in ometispar.c
+   and sfm.c.

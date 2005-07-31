@@ -1,0 +1,194 @@
+%&LaTeX
+% $Id: tahoe.user.tex,v 1.1.1.1 2001-03-13 02:18:58 paklein Exp $
+\documentclass[12pt]{article}
+%\documentclass[11pt,twoside]{article}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage{xspace}
+%\usepackage{array}
+\usepackage{multirow}
+\usepackage{hhline}
+\usepackage{longtable}
+\usepackage{ulem}
+\usepackage{boldmath}
+\usepackage{graphicx}
+\usepackage{color}
+%\usepackage{overcite}
+\usepackage{hangcaption}
+\usepackage{fancyhdr}
+\usepackage[textures,%
+    bookmarks=true,%
+	colorlinks=true,%
+	bookmarksnumbered=true]{hyperref}
+%-------------------------- macros ----------------------
+\newcommand{\mathvec}[1]{\mbox{\boldmath $#1$}}
+\newcommand{\labeleq}[2]{\begin{equation} \label{#1} #2 \end{equation}}
+\newcommand{\rbrkt}[1]{\left(#1\right)}
+\newcommand{\sbrkt}[1]{\left[#1\right]}
+\newcommand{\cbrkt}[1]{\left\{#1\right\}}
+\newcommand{\abrkt}[1]{\left<#1\right>}
+\newcommand{\farg}[1]{\negmedspace\rbrkt{#1}}
+\newcommand{\etal}[0]{\textit{et al.}\@ }
+\newcommand{\dbyd}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\ddbydd}[3]{\frac{\partial^{2}#1}{\partial#2\partial#3}}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+%-------------------------- macros ----------------------
+
+%----------------------- environments -------------------
+% inputfile: requires the package alltt because the 
+% standard verbatim environment fails to find the end of
+% inputfile environment
+\newenvironment{inputfile}{\\%
+\begin{minipage}[t]{\linewidth}%
+\begin{minipage}[t]{0.2\linewidth} ~ \end{minipage}%
+\begin{minipage}[t]{0.8\linewidth}%
+\vspace{\parskip}%
+\begin{alltt}}
+{\end{alltt}%
+\vspace{\parskip}%
+\end{minipage}%
+\end{minipage}}
+%----------------------- environments -------------------
+
+%------------------------- headers ----------------------
+\lhead[\fancyplain{}{}]%
+      {\fancyplain{}{\slshape\rightmark}}
+\rhead[\fancyplain{}{\slshape\leftmark}]%
+      {\fancyplain{}{}}
+%--- draft      
+%\chead{{\textcolor{red}{\textbf{\textsf{DRAFT}}}}}
+%\lfoot{{\textcolor{red}{\textbf{\textsf{DRAFT}}}}}
+%\rfoot{{\textcolor{red}{\textbf{\textsf{DRAFT}}}}}
+%--- draft
+%------------------------- headers ----------------------
+
+%---------------------- table macros --------------------
+% needed to modify formats of tabular material,
+% stands for Preserve Back Slash
+\newcommand{\PBS}[1]{\let\temp=\\#1\let\\=\temp}
+% fixed width text boxes for tables
+\newcommand{\tabcell}[2]{\parbox{#1}{\vspace{0.025in}#2\vspace{0.025in}}}
+%---------------------- table macros --------------------
+
+%---------------------- editing macros ------------------
+\newcommand{\temp}[1]{\textcolor{red}{\textit{[author's note: #1]}}}
+\newcommand{\strike}[1]{\textcolor{red}{\sout{#1}}}
+\newcommand{\stefref}[1]{\temp{Wimmer:#1}}
+%---------------------- editing macros ------------------
+
+%----------------------- figure path --------------------
+\newcommand{\figpath}{fig.color}
+%\newcommand{\figpath}{fig.grayscale}
+%----------------------- figure path --------------------
+
+%----------------- platform dependent macros ------------
+%-- Mac pathnames
+\newcommand{\filepath}[1]{:#1}
+\newcommand{\dirfilepath}[2]{:#1:#2}
+\newcommand{\dirdirfilepath}[3]{:#1:#2:#3}
+
+%-- UNIX pathnames
+%\newcommand{\filepath}[1]{./#1}
+%\newcommand{\dirfilepath}[2]{./#1/#2}
+%\newcommand{\dirdirfilepath}[3]{./#1/#2/#3}
+%----------------- platform dependent macros ------------
+
+%------------------------- format -----------------------
+%-- page layout
+\setlength{\headsep}{20pt}
+\setlength{\topmargin}{0pt}
+\setlength{\headheight}{14pt}
+\setlength{\textheight}{8.5in}
+\setlength{\textwidth}{6.5in}
+\setlength{\hoffset}{0.0in}
+\setlength{\voffset}{-0.25in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\oddsidemargin}{0.0in}
+%------------------------- format -----------------------
+
+%------------------ selective typesetting ---------------
+%\includeonly{\filepath{material.solid}}
+%------------------ selective typesetting ---------------
+
+%------------------- document variables -----------------
+\newcommand{\inputversion}{3.1}
+\newcommand{\tahoe}{\textsf{Tahoe}\xspace}
+%------------------- document variables -----------------
+
+\begin{document}
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{5}
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\normalem %-- restore normal behavior for \em
+%----------------------- front matter -------------------
+\begin{center}
+%{\textcolor{red}{\textbf{\textsf{DRAFT}}}}\\
+%\textsf{
+%SAND2001-8099\\
+%Unlimited Release\\
+%Printed December 2000\\}
+\vspace{0.25in}
+{\Huge \tahoe \\}
+{\LARGE User Guide \\}
+\vspace{0.25in}
+Input Version \inputversion \\
+\vspace{0.10in}
+last updated \today \\
+%\vspace{0.10in}
+%Science-based Materials Modeling Department\\
+%Sandia National Laboratories\\
+%P.O.~Box 0969\\
+%Livermore, CA 94551\\
+\end{center}
+%------------------------ abstract ----------------------
+\begin{figure}[h]
+\centerline{\includegraphics[scale = 0.75]
+{\dirfilepath{\figpath}{Tahoe.eps}}}
+\end{figure}
+\protect\vspace{0.15in}
+\begin{abstract}
+\tahoe is a general purpose simulation code incorporating finite 
+element, meshfree methods, and atomistic methods. The code is
+capable of execution on parallel platforms and includes interfaces
+to third-party libraries that can solve linear systems of equations
+in parallel. This document is intended as a guide for users. It
+does not contain the detailed descriptions of the code required by
+developers. This guide is a work in progress. Please send questions
+and bug reports to 
+\href{mailto:tahoe-help@sandia.gov}{\texttt{tahoe-help@sandia.gov}}.
+\end{abstract}
+\protect\vspace{0.15in}
+%------------------------ abstract ----------------------
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+\listoftables
+\newpage
+%----------------------- front matter -------------------
+%-------------------------- body ------------------------
+\pagestyle{fancy}
+\include{\filepath{introduction}}
+\include{\filepath{execution}}
+\include{\filepath{input}}
+\include{\filepath{analysis}}
+\include{\filepath{element}}
+\include{\filepath{material.solid}}
+\include{\filepath{files}}
+\include{\filepath{changes}}
+%-------------------------- body ------------------------
+%----------------------- back matter --------------------
+%\appendix
+% bibliography
+\stepcounter{section}
+\addcontentsline{toc}{section}{\protect\numberline{\thesection}References}
+\bibliographystyle{amsplain}
+\bibliography{%
+   \dirfilepath{bibliography}{general},%
+   \dirfilepath{bibliography}{fracture},%
+   \dirfilepath{bibliography}{fracture.experiments},%
+   \dirfilepath{bibliography}{atomistic},%
+   \dirfilepath{bibliography}{meshfree}}
+\end{document}

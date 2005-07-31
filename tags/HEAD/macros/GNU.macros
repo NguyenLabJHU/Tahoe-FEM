@@ -1,0 +1,18 @@
+# $Id: GNU.macros,v 1.1.1.1 2001-01-25 01:46:10 paklein Exp $
+# GNU
+COMP_CC     = g++
+COMP_C      = gcc
+AR          = ar
+LINK        = $(COMP_CC)
+#MY_CFLAGS   = -c -I$(INC_DIR) $(OPT_CFLAGS) -Wunused -Wuninitialized
+MY_CFLAGS   = -c -I$(INC_DIR) $(OPT_CFLAGS)
+DEFINES     = -D__GNU__
+CFLAGS      = $(MY_CFLAGS) $(DEFINES)
+MORE_CFLAGS = -O3 -DNDEBUG
+#MORE_CFLAGS = -g
+LFLAGS      = 
+ARFLAGS     = -cruv
+MAKE_OPTS   = -s
+RM          = rm
+LN          = ln -sf
+INC_FLAGS   = -I/usr/include/g++-3 -I/usr/include/g++-2
