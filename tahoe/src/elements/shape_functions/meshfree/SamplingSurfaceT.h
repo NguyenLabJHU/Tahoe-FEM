@@ -1,4 +1,4 @@
-/* $Id: SamplingSurfaceT.h,v 1.3 2002-07-05 22:28:37 paklein Exp $ */
+/* $Id: SamplingSurfaceT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
 /* created: paklein (10/19/2000)                                          */
 
 #ifndef _SAMPLING_SURFACE_T_H_
@@ -12,8 +12,6 @@
 #include "RaggedArray2DT.h"
 #include "LocalArrayT.h"
 #include "dMatrixT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class MeshFreeSupportT;
@@ -118,5 +116,4 @@ inline int SamplingSurfaceT::NumberOfFacets(void) const { return fNumFacets; }
 inline int SamplingSurfaceT::SamplesPerFacet(void) const { return fNumSamples; }
 inline int SamplingSurfaceT::NodesPerFacet(void) const { return fNumFacetNodes; }
 
-} // namespace Tahoe 
 #endif /* _SAMPLING_SURFACE_T_H_ */

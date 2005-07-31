@@ -1,5 +1,7 @@
-/* $Id: Aztec_fe.cpp,v 1.13 2005-04-13 21:50:27 paklein Exp $ */
-/* created: paklein (08/01/1998) */
+/* $Id: Aztec_fe.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (08/01/1998)                                          */
+/* base class for interface for using Aztec with fe++                     */
+
 #include "Aztec_fe.h"
 
 /* library support options */
@@ -9,28 +11,32 @@
 #include <iomanip.h>
 #include <stdlib.h>
 
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
 #include "az_aztec.h"
-#include "ifstreamT.h"
 
+#include "fstreamT.h"
 #include "MSRBuilderT.h"
+#include "AztecReaderT.h"
 #include "iArray2DT.h"
 
-using namespace Tahoe;
+//DEBUG
+#if 0
+#include "StringT.h"
+#include <fstream.h>
+#endif
 
 /* constructor */
-Aztec_fe::Aztec_fe(const ParameterListT& parameters, ostream& msg, const CommunicatorT& comm):
-	AztecBaseT(msg, comm),
+Aztec_fe::Aztec_fe(ifstreamT& in):
 	fMSRBuilder(NULL),
 	fMSRSet(0)
 {
-	/* keep non-default options and parameters */
-	fAztecParams.TakeParameterList(parameters);
+	/* read non-default options and parameters */
+	ReadOptionsParameters(in);
 
 	/* construct MSR data builder */
 	fMSRBuilder = new MSRBuilderT(false);
-	if (!fMSRBuilder) throw ExceptionT::kOutOfMemory;
+	if (!fMSRBuilder) throw eOutOfMemory;
 }
 
 /* destructor */
@@ -42,8 +48,13 @@ void Aztec_fe::SetAztecOptions(void)
 	/* inherited (default settings) */
 	AztecBaseT::SetAztecOptions();
 
-	/* non-default options and parameters */
-	fAztecParams.SetAztecOptions(options, params);
+	/* non-default options */
+	for (int i = 0; i < AZ_options.Length(); i++)
+		options[AZ_options_dex[i]] = AZ_options[i];
+
+	/* non-default parameters */
+	for (int j = 0; j < AZ_params.Length(); j++)
+		params[AZ_params_dex[j]] = AZ_params[j];
 }
 
 /* clear values in the matrix */
@@ -74,12 +85,30 @@ void Aztec_fe::Solve(dArrayT& rhs2result)
 
 void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 {
+//DEBUG
+#if 0
+StringT name = "az.rcv";
+name.Append(".p", proc_config[AZ_node]);
+name.Append(".out");
+ofstream out(name);
+iArrayT r, c;
+dArrayT v;
+GenerateRCV(r, c, v);
+for (int i = 0; i < r.Length(); i++)
+	out << setw(kIntWidth) << r[i]
+	    << setw(kIntWidth) << c[i]
+		<< setw(kDoubleWidth) << v[i] << endl;
+cout << "\n  Aztec_fe::Solve: EXIT" << endl;
+throw;
+#endif
+//DEBUG
+
 	/* checks */
-	if (!fMSRSet) throw ExceptionT::kGeneralFail;
-	if (rhs2result.Length() != fupdate.Length()) throw ExceptionT::kSizeMismatch;
+	if (!fMSRSet) throw eGeneralFail;
+	if (rhs2result.Length() != fupdate.Length()) throw eSizeMismatch;
 
 	/* allocate initial guess */
-	finitguess.Dimension(InitGuessLength());
+	finitguess.Allocate(InitGuessLength());
 	
 	/* set initial guess */	
 	if (&initguess == &finitguess)
@@ -95,7 +124,7 @@ void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 	else
 	{
 		/* check dimension */
-		if (initguess.Length() != rhs2result.Length()) throw ExceptionT::kSizeMismatch;
+		if (initguess.Length() != rhs2result.Length()) throw eSizeMismatch;
 	
 		/* copy guess */
 		finitguess.CopyPart(0, initguess, 0, initguess.Length());
@@ -118,9 +147,12 @@ void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 	cout << "\n number of iterations: " << int(status[AZ_its]) << '\n';
 	cout <<   "   termination status: " << int(status[AZ_why]) << '\n';
 	if (int(status[AZ_why]) != AZ_normal)
-	  cout << "\n Aztec_fe::Solve: WARNING: exit status was not normal (0)\n" << endl;
+	{
+		cout << "\n Aztec_fe::Solve: solver failed to converge" << endl;
+		throw eBadJacobianDet;
+	}
 	else
-	  cout << endl;
+		cout << endl;	
 }
 
 /* statistics */
@@ -137,7 +169,7 @@ int Aztec_fe::SetMSRData(int** update, int** bindx, double** val,
 	int& is_sorted)
 {
 	/* set update vector - global numbering */
-	fupdate.Dimension(N_update);
+	fupdate.Allocate(N_update);
 	int* pupdate = fupdate.Pointer();
 	int n_update = Start_update; //OFFSET
 	for (int i = 0; i < N_update; i++)
@@ -161,15 +193,9 @@ int Aztec_fe::SetMSRData(int** update, int** bindx, double** val,
 			fbindx[i] += offset;
 	}
 #endif
-
-//DEBUG
-#if 0
-cout << "\n Aztec_fe::SetMSRData: MSR data written to message file" << endl;
-fMSRBuilder->WriteMSRData(fMessage, fupdate, fbindx);
-#endif
 	
 	/* allocate the matrix and initialize to 0.0 */
-	fval.Dimension(fbindx.Length());
+	fval.Allocate(fbindx.Length());
 	fval = 0.0;
 	
 	/* set pointers */
@@ -184,14 +210,64 @@ fMSRBuilder->WriteMSRData(fMessage, fupdate, fbindx);
 	return fbindx.Length() - 1;
 }
 
+/* read (non-default) Aztec solver options and parameters */
+void Aztec_fe::ReadOptionsParameters(ifstreamT& in)
+{
+	/* input interpreter */
+	AztecReaderT az_reader;
+
+	/* options */
+	int num_options;
+	in >> num_options;
+	if (num_options < 0 || num_options > AZ_OPTIONS_SIZE)
+		throw eBadInputValue;
+//TEMP - num_options strictly can't be AZ_OPTIONS_SIZE, should
+//       get this limit from AztecReaderT
+	
+	AZ_options_dex.Allocate(num_options);
+	AZ_options.Allocate(num_options);
+	for (int i = 0; i < num_options; i++)
+	{
+		/* read */
+		int index, value;
+		az_reader.ReadOption(in, index, value);
+		
+		/* store */
+		AZ_options_dex[i] = index;
+		AZ_options[i]     = value;
+	}
+	
+	/* parameters */
+	int num_params;
+	in >> num_params;
+	if (num_params < 0 || num_params > AZ_PARAMS_SIZE)
+		throw eBadInputValue;
+//TEMP - num_params strictly can't be AZ_PARAMS_SIZE, should
+//       get this limit from AztecReaderT
+
+	AZ_params_dex.Allocate(num_params);
+	AZ_params.Allocate(num_params);
+	for (int j = 0; j < num_params; j++)
+	{
+		/* read */
+		int    index;
+		double value;
+		az_reader.ReadParameter(in, index, value);
+		
+		/* store */
+		AZ_params_dex[j] = index;
+		AZ_params[j]     = value;
+	}
+}
+
 /* copy MSR data to RCV */
 void Aztec_fe::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v)
 {
 	/* overall dimension */
 	int num_vals = fval.Length() - 1; // MSR format has 1 unused value
-	r.Dimension(num_vals);
-	c.Dimension(num_vals);
-	v.Dimension(num_vals);
+	r.Allocate(num_vals);
+	c.Allocate(num_vals);
+	v.Allocate(num_vals);
 
 	/* start of off-diagonal data (MSR) */
 	int*    pcol = fbindx.Pointer(N_update + 1);
@@ -224,7 +300,7 @@ void Aztec_fe::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v)
 		cout << "\n SPOOLESMatrixT::GenerateRCV: translation error:\n"
 		     <<   "   expected number of values = " << num_vals << '\n'
 		     <<   "            number of values = " << count << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.2 2002-11-15 01:59:45 paklein Exp $ */
+/* $Id: main.cpp,v 1.1.1.1 2002-11-15 00:51:07 paklein Exp $ */
 #include <iostream.h>
 #include "fstreamT.h"
 
@@ -11,9 +11,14 @@
 #include "OutputSetT.h"
 
 /* Cauchy-Born constitutive model */
-#include "FDMatSupportT.h"
-#include "VIB2D.h"
+//#include "FDMatSupportT.h"
+//#include "VIB2D.h"
 //#include "LJTr2D.h"
+
+//TEMP
+//void WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
+#include "dSymMatrixT.h"
+#include "MaterialSupportT.h"
 
 enum Widths { iwidth = 10, dwidth = 12, dprecision = 5};
 
@@ -21,15 +26,18 @@ using namespace Tahoe;
 
 int main(void)
 {
+	MaterialSupportT support(2,2,1);
+
+
 	/* construct material support */
 	int nsd  = 2;
 	int ndof = 2;
 	int nip  = 1;
-	FDMatSupportT material_support(nsd, ndof, nip);
+//	FDMatSupportT material_support(nsd, ndof, nip);
 	
 	ArrayT<dMatrixT> F_List(nip);
 	F_List[0].Dimension(nsd);
-	material_support.SetDeformationGradient(&F_List);
+//	material_support.SetDeformationGradient(&F_List);
 
 	/* construct constitutive model */
     StringT materials_params_file;
@@ -42,8 +50,8 @@ int main(void)
 		throw;
 	  }
 
-	VIB2D material(material_in, material_support);
-	material.Initialize();
+//	VIB2D material(material_in, material_support);
+//	material.Initialize();
 
     /* window function parameters */
     StringT window_params_file;
@@ -161,12 +169,12 @@ int main(void)
 			else
 				disp >> displacements;
 				
-			/* read output file format */
-			IOBaseT::FileTypeT file_type;
-			cout << " output file format: ";
-			cin >> file_type;			
+			/* streams */
+			StringT root;
+			root.Root(disp_file);
 
 			/* set I/O */
+			IOBaseT::FileTypeT file_type = IOBaseT::kEnSight;
 			OutputBaseT* output = IOBaseT::NewOutput("atom_field", "0.0", "testing", disp_file, file_type, cout);
 			output->SetCoordinates(coords, NULL);
 
@@ -287,7 +295,8 @@ int main(void)
 					F(1,1) += u2_2;
 					
 					/* cauchy stress */
-					const dSymMatrixT& cauchy = material.s_ij();
+					//const dSymMatrixT& cauchy = material.s_ij();
+					dSymMatrixT cauchy(2);
 					n_value[15] = cauchy(0,0);
 					n_value[16] = cauchy(1,1);
 					n_value[17] = cauchy(0,1);
@@ -295,7 +304,7 @@ int main(void)
 					/* wave speeds */
 					normal[0] = 1.0;
 					normal[1] = 0.0;
-					material.WaveSpeeds(normal, speeds);
+					//material.WaveSpeeds(normal, speeds);
 					n_value[18] = speeds[0];
 					n_value[19] = speeds[1];
 	

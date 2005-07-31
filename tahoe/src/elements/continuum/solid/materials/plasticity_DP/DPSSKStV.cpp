@@ -1,35 +1,33 @@
-/* $Id: DPSSKStV.cpp,v 1.26 2005-02-25 18:41:18 cfoster Exp $ */
-/* created: myip (06/01/1999) */
-#include "DPSSKStV.h"
-#include "SSMatSupportT.h"
-#include "DPSSLinHardT.h"
+/* $Id: DPSSKStV.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: myip (06/01/1999)                                             */
 
+#include "DPSSKStV.h"
 #include "ElementCardT.h"
 #include "StringT.h"
-#include <iostream.h>
-
-using namespace Tahoe;
 
 /* parameters */
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 3;
+const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {
-	    "alpha",  // stress-like internal state variable (isotropic linear hardening)
-	    "VM",  	// Von Mises stress
-	    "press"}; // pressure	    
+	"alpha_dev",  // deviatoric part of equivalent plastic strain
+	"alpha_vol",  // volumetric part of equivalent plastic strain
+	       "VM",  // Von Mises stress
+	    "press"}; // pressure
 
 /* constructor */
-DPSSKStV::DPSSKStV(void):
-	ParameterInterfaceT("small_strain_StVenant_DP"),
-	HookeanMatT(3),
-	fDP(NULL)
+DPSSKStV::DPSSKStV(ifstreamT& in, const ElasticT& element):
+	SSStructMatT(in, element),
+	KStV(in),	
+	DPSSLinHardT(in, NumIP(), Mu(), Lambda()),
+	fStress(3),
+	fModulus(dSymMatrixT::NumValues(3)),
+	fElasticModulus(dSymMatrixT::NumValues(3))
 {
- 
+	/* inherited */
+	KStV::SetModulus(fElasticModulus);
 }
-
-DPSSKStV::~DPSSKStV(void) { delete fDP; }
 
 /* form of tangent matrix (symmetric by default) */
 GlobalT::SystemTypeT DPSSKStV::TangentType(void) const { return GlobalT::kNonSymmetric; }
@@ -39,7 +37,7 @@ void DPSSKStV::UpdateHistory(void)
 {
 	/* update if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) fDP->Update(element);
+	if (element.IsAllocated()) Update(element);
 }
 
 /* reset internal variables to last converged solution */
@@ -47,27 +45,34 @@ void DPSSKStV::ResetHistory(void)
 {
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) fDP->Reset(element);
+	if (element.IsAllocated()) Reset(element);
 }
 
-const dSymMatrixT& DPSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) {
-	return fDP->ElasticStrain(totalstrain, element, ip);
+/* print parameters */
+void DPSSKStV::Print(ostream& out) const
+{
+	/* inherited */
+	SSStructMatT::Print(out);
+	KStV::Print(out);
+	DPSSLinHardT::Print(out);
+}
+
+/* print name */
+void DPSSKStV::PrintName(ostream& out) const
+{
+	/* inherited */
+	SSStructMatT::PrintName(out);
+	KStV::PrintName(out);
+	DPSSLinHardT::PrintName(out);
 }
 
 /* modulus */
 const dMatrixT& DPSSKStV::c_ijkl(void)
 {
-	fModulus.SumOf(HookeanMatT::Modulus(),
-	fDP->ModuliCorrection(CurrentElement(), CurrIP()));	
+	/* elastoplastic correction */
+	fModulus.SumOf(fElasticModulus,	ModuliCorrection(CurrentElement(), CurrIP()));
 	return fModulus;
 }
-
-/* elastic modulus */
-const dMatrixT& DPSSKStV::ce_ijkl(void)
-{
-  return HookeanMatT::Modulus();
-}
-
 
 /* stress */
 const dSymMatrixT& DPSSKStV::s_ij(void)
@@ -78,28 +83,28 @@ const dSymMatrixT& DPSSKStV::s_ij(void)
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 
 	/* elastic stress */
-	HookeanStress(e_els, fStress);
+	HookeanStress(fElasticModulus, e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	fStress += fDP->StressCorrection(e_els, element, ip);
+	fStress += StressCorrection(e_els, element, ip);
 	return fStress;	
 }
-
 
 /* returns the strain energy density for the specified strain */
 double DPSSKStV::StrainEnergyDensity(void)
 {
-	return HookeanEnergy(fDP->ElasticStrain(e(), CurrentElement(), CurrIP()));
+	return HookeanEnergy(fElasticModulus,
+		ElasticStrain(e(), CurrentElement(), CurrIP()));
 }
 
 /* returns the number of variables computed for nodal extrapolation
- * during for element output, ie. internal variables. Returns 0
- * by default. */
-int DPSSKStV::NumOutputVariables(void) const  { return kNumOutput; } 
+* during for element output, ie. internal variables. Returns 0
+* by default. */
+int DPSSKStV::NumOutputVariables(void) const  { return kNumOutput; }
 void DPSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Dimension(kNumOutput);
+	labels.Allocate(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
@@ -108,94 +113,42 @@ void DPSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 
 void DPSSKStV::ComputeOutput(dArrayT& output)
 {
-	
-	/* stress tensor (load state) */
-	const dSymMatrixT& stress = s_ij();
+	/* stress tensor (loads element data) */
+	s_ij();
 
 	/* pressure */
-	output[2] = fStress.Trace()/3.0;
-
+	output[3] = fStress.Trace()/3.0;
+	
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
 	J2 = (J2 < 0.0) ? 0.0 : J2;
-	output[1] = sqrt(3.0*J2);
+	output[2] = sqrt(3.0*J2);
 	
-	/* stress-like internal variable alpha */
+	/* equivalent plastic strains */
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
-		dArrayT& internal = fDP->Internal();
-		output[0] = internal[DPSSLinHardT::kalpha];
-		const iArrayT& flags = element.IntegerData();
-		if (flags[CurrIP()] == DPSSLinHardT::kIsPlastic)
-		  {
-			output[0] -= fDP->H_prime()*internal[DPSSLinHardT::kdgamma];
-		  }
+		output[0] = fInternal[kalpha_dev];
+	  	output[1] = fInternal[kalpha_vol];
+
+		/* status flags */
+		iArrayT& flags = element.IntegerData();
+		if (flags[CurrIP()] == kIsPlastic) // output with update
+		{
+			output[0] -= fH_prime*fInternal[kdgamma];
+		  	output[1] -= sqrt(3.0)*fdilation*fK_prime*fInternal[kdgamma];
+		}
+		// alpha not incremented until Update(), which
+		// hasn't occurred yet
 	}
 	else
 	{
 		output[0] = 0.0;
+		output[1] = 0.0;
 	}
 }
 
-/* describe the parameters needed by the interface */
-void DPSSKStV::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	SSIsotropicMatT::DefineParameters(list);
-	HookeanMatT::DefineParameters(list);
-}
-
-/* information about subordinate parameter lists */
-void DPSSKStV::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	SSIsotropicMatT::DefineSubs(sub_list);
-	HookeanMatT::DefineSubs(sub_list);
-
-	/* parameters for Drucker-Prager plasticity */
-	sub_list.AddSub("DP_SS_linear_hardening");
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* DPSSKStV::NewSub(const StringT& name) const
-{
-	if (name == "DP_SS_linear_hardening")
-		return new DPSSLinHardT(0, 0.0, 0.0);
-	else
-	{
-		/* inherited */
-		ParameterInterfaceT* params = SSIsotropicMatT::NewSub(name);
-		if (params) 
-			return params;
-		else
-			return HookeanMatT::NewSub(name);
-	}
-}
-
-/* accept parameter list */
-void DPSSKStV::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	SSIsotropicMatT::TakeParameterList(list);
-	HookeanMatT::TakeParameterList(list);
-
-	fStress.Dimension(3);
-	fModulus.Dimension(dSymMatrixT::NumValues(3));
-
-	/* construct Drucker-Prager solver */
-	fDP = new DPSSLinHardT(NumIP(), Mu(), Lambda());
-	fDP->TakeParameterList(list.GetList("DP_SS_linear_hardening"));
-}
-
-/*************************************************************************
- * Protected
- *************************************************************************/
-
-/* set modulus */
-void DPSSKStV::SetModulus(dMatrixT& modulus)
-{
-	IsotropicT::ComputeModuli(modulus);
-}
-
+/***********************************************************************
+* Protected
+***********************************************************************/

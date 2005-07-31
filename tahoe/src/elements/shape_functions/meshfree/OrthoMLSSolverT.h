@@ -1,4 +1,4 @@
-/* $Id: OrthoMLSSolverT.h,v 1.4 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: OrthoMLSSolverT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
 /* created: paklein (07/03/1998)                                          */
 /* base class for orthogonal basis, moving least squares, interpolants    */
 /* (from Lu et al, Comp Meth App Mech Eng, 126, 1995, 131-153)            */
@@ -13,9 +13,6 @@
 #include "nArrayGroupT.h"
 #include "nArray2DGroupT.h"
 #include "nVariArray2DT.h"
-
-
-namespace Tahoe {
 
 class OrthoMLSSolverT
 {
@@ -32,7 +29,7 @@ public:
 	
 	/* set MLS at coords given sampling points and influence of each, returns 1
 	 * if successful and 0 if not */
-	int SetField(const dArray2DT& nodalcoords, const nArrayT<double>& dmax,
+	int SetField(const dArray2DT& nodalcoords, const dArrayT& dmax,
 		const dArrayT& samplept);
 	
 	/* return field value and derivatives - valid AFTER SetField() */
@@ -59,7 +56,6 @@ public:
 
 	/* return the number of monomial terms */
 	int NumberOfMonomials(void) const;
-	int Completeness(void) const { return fComplete; };
 
 protected:
 
@@ -154,5 +150,4 @@ inline int OrthoMLSSolverT::NumberOfMonomials(void) const
 	return NumberOfMonomials(fComplete);
 }
 
-} // namespace Tahoe 
 #endif /* _ORTHO_MLS_SOLVER_T_H_ */

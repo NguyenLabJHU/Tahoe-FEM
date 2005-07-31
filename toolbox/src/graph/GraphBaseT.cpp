@@ -1,5 +1,7 @@
-/* $Id: GraphBaseT.cpp,v 1.16 2003-11-21 23:32:11 paklein Exp $ */
-/* created: paklein (04/13/1999) */
+/* $Id: GraphBaseT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* created: paklein (04/13/1999)                                          */
+/* base class for graph class. does not handle making the graph.          */
+
 #include "GraphBaseT.h"
 
 #include <iostream.h>
@@ -12,20 +14,11 @@
 #include "AutoArrayT.h"
 #include "iArray2DT.h"
 
-#ifdef __METIS__
-/* partitioning package */
-#include "metis.h"
-#endif
-
-using namespace Tahoe;
-
 /* rounding floating point numbers */
 static inline int rnd(double number) { return int((2.0*number + 1.0)/2); }
 
 /* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<GraphBaseT*>::fByteCopy = true;
-} /* namespace Tahoe */
+const bool ArrayT<GraphBaseT*>::fByteCopy = true;
 
 /* constructor */
 GraphBaseT::GraphBaseT(bool verbose):
@@ -63,10 +56,10 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 	iArrayT& partition, bool verbose)
 {
 	/* dimension check */
-	if (weight.Length() != fEdgeList.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (weight.Length() != fEdgeList.MajorDim()) throw eSizeMismatch;
 
 	/* initialize partition map */
-	partition.Dimension(fEdgeList.MajorDim());
+	partition.Allocate(fEdgeList.MajorDim());
 	partition = 0;
 	
 	/* total number of partitions */
@@ -87,16 +80,16 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 		/* next contracted graph */
 		GraphBaseT* new_graph = new GraphBaseT(fVerbose);
-		if (!new_graph) throw ExceptionT::kOutOfMemory;
+		if (!new_graph) throw eOutOfMemory;
 		graphs.Append(new_graph);
 		
 		iArrayT* new_map = new iArrayT();
-		if (!new_map) throw ExceptionT::kOutOfMemory;
+		if (!new_map) throw eOutOfMemory;
 		maps.Append(new_map);
 	
 		/* generate contracted graph */	
 		new_graph->Contract(*graph, *new_map);
-		if (!new_graph->Verify(cout)) throw ExceptionT::kGeneralFail; //TEMP
+		if (!new_graph->Verify(cout)) throw eGeneralFail; //TEMP
 
 		/* generated contracted nodal weights */
 		iArrayT* new_weight = new iArrayT(new_graph->NumNodes());
@@ -118,7 +111,7 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 	/* initialize partitions */
 	int curr_num_parts = graphs[depth-1]->NumNodes();
-	partition.Dimension(curr_num_parts);
+	partition.Allocate(curr_num_parts);
 	partition.SetValueToPosition();
 
 	/* header */
@@ -139,11 +132,11 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 		const GraphBaseT& next_graph = (i == 0) ? *this : *graphs[i-1];
 		const iArrayT& map = *maps[i];
 		const iArrayT& next_weight = (i == 0) ? weight: *weights[i-1];
-		if (map.Length() != next_graph.NumNodes()) throw ExceptionT::kSizeMismatch; //TEMP
+		if (map.Length() != next_graph.NumNodes()) throw eSizeMismatch; //TEMP
 		
 		int dim = map.Length();
 		last_part_map.Swap(partition);
-		partition.Dimension(map.Length());
+		partition.Allocate(map.Length());
 	
 		/* propagate partitions out */
 		for (int j = 0; j < dim; j++)
@@ -181,112 +174,14 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 	}
 }	
 
-/* generate partition using METIS */
-void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
-	iArrayT& partition, int volume_or_edgecut)
-{
-#ifndef __METIS__
-#pragma unused(num_partitions)
-#pragma unused(weight)
-#pragma unused(partition)
-#pragma unused(volume_or_edgecut)
-
-	/* error message */
-	cout << "\n GraphBaseT::Partition_METIS: requires metis module" << endl;
-	throw ExceptionT::kGeneralFail;
-#else
-	
-	/* NOTE: based on "kmetis.c" */
-
-	/* dimension check */
-	if (weight.Length() != fEdgeList.MajorDim()) throw ExceptionT::kSizeMismatch;
-
-	/* options check */
-	if (volume_or_edgecut != 0 && volume_or_edgecut != 1)
-	{
-		cout << "\n GraphBaseT::Partition_METIS: volume_or_edgecut must be 0 or 1: " 
-		     << volume_or_edgecut << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
-	/* initialize partition map */
-	partition.Dimension(fEdgeList.MajorDim());
-	partition = 0;
-	if (num_partitions < 2) return;
-
-	/* timing info */
-	timer TOTALTmr, METISTmr;    
-  	cleartimer(TOTALTmr);
-  	cleartimer(METISTmr);
-
-	starttimer(TOTALTmr);
-	cout << "**********************************************************************\n";
-	cout << METISTITLE;
-	cout << "Graph Information ---------------------------------------------------\n";
-	cout << "#Vertices: " << fEdgeList.MajorDim() << '\n';
-	cout << "   #Edges: " << fEdgeList.Length()/2 << '\n';
-	cout << "   #Parts: " << num_partitions << '\n';
-	cout << "  Balancing Constraints: " << 0 << '\n';
-	cout << "\nK-way Partitioning... -----------------------------------------------\n" << endl;
-
-	/* offset vector for adjacency list */
-	iArrayT offsets;
-	fEdgeList.GenerateOffsetVector(offsets);
-	
-	/* partition weights - even */
-	ArrayT<float> tpwgts(num_partitions);
-	tpwgts = 1.0/num_partitions;
-
-  	/* METIS options */
-	iArrayT options(5);
-	options[0] = 0; /* use all default values */
-
-	/* other arguments */
-	int num_vertices = fEdgeList.MajorDim();
-	int edgecut; /* returns with number of edges cut by the partitioning */
-	int num_flag = 0;
-	int weight_flag = 2;
-	int* adjwgt = NULL;
-
-	/* partitioning method */
-	starttimer(METISTmr);
-	if (volume_or_edgecut == 0)
-		METIS_WPartGraphVKway(&num_vertices, offsets.Pointer(), fEdgeList.Pointer(), (int*) weight.Pointer(), 
-			adjwgt, &weight_flag, &num_flag, &num_partitions, 
-			tpwgts.Pointer(), options.Pointer(), &edgecut, partition.Pointer());
-	else if (volume_or_edgecut == 1)
-		METIS_WPartGraphKway(&num_vertices, offsets.Pointer(), fEdgeList.Pointer(), (int*) weight.Pointer(), 
-			adjwgt, &weight_flag, &num_flag, &num_partitions, 
-			tpwgts.Pointer(), options.Pointer(), &edgecut, partition.Pointer());
-	else throw;
-	stoptimer(METISTmr);
-
-	/* assess partition quality */
-	GraphType* graph = CreateGraph();
-	int ncon = 1; /* just 1 constraint per vertex - the weight */
-	SetUpGraph(graph, OP_KMETIS, num_vertices, ncon, offsets.Pointer(), fEdgeList.Pointer(), 
-		(int*) weight.Pointer(), NULL, 2);	
-	ComputePartitionInfo(graph, num_partitions, partition.Pointer());
-  	FreeGraph(graph);
-
-	/* write timing info */
-	stoptimer(TOTALTmr);
-	cout << "\nTiming Information --------------------------------------------------\n";
-	cout << "  Partitioning: \t\t " << gettimer(METISTmr) << "   (KMETIS time)\n";
-	cout << "  Total:        \t\t " << gettimer(TOTALTmr) << '\n';
-	cout << "**********************************************************************\n";
-	cout.flush();
-#endif
-}	
-
 /* fill in the degrees for the specified nodes */
 void GraphBaseT::ReturnDegrees(const ArrayT<int>& nodes, ArrayT<int>& degrees) const
 {
 #if __option(extended_errorcheck)
-	if (nodes.Length() != degrees.Length()) throw ExceptionT::kSizeMismatch;
+	if (nodes.Length() != degrees.Length()) throw eSizeMismatch;
 #endif
 
-	const int* pnodes = nodes.Pointer();
+	int* pnodes   = nodes.Pointer();
 	int* pdegrees = degrees.Pointer();
 	int length = nodes.Length();
 	for (int i = 0; i < length; i++)
@@ -321,7 +216,7 @@ void GraphBaseT::Write(ostream& out) const
 	iArrayT temp;
 	for (int i = 0; i < fEdgeList.MajorDim(); i++)
 	{
-		temp.Alias(fEdgeList.MinorDim(i), fEdgeList(i));
+		temp.Set(fEdgeList.MinorDim(i), fEdgeList(i));
 		
 		out << setw(kIntWidth) << fShift + i;
 		temp++;
@@ -339,7 +234,7 @@ void GraphBaseT::InitializePriorities(iArrayT& priorities, int W1) const
 	{
 		cout << "\n GraphBaseT::InitializePriorities: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 
 	for (int i = 0; i < fMaxNodeNum; i++)
@@ -381,14 +276,14 @@ void GraphBaseT::Contract(const GraphBaseT& parent, iArrayT& map)
 		cout << "\n GraphBaseT::Contract: not expecting a node number shift\n"
 		     <<   "     in this graph " << fShift << " or the parent "
 		     << parent.fShift << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 
 	/* dimensions */
 	int dim = parent.NumNodes();
 
 	/* temp work space */
-	AutoFill2DT<int> edgedata(dim, 1, 10, parent.MinDegree()); // under allocate
+	AutoFill2DT<int> edgedata(dim, parent.MinDegree(), 5); // under allocate
 	AutoArrayT<int> degrees;
 	iArrayT edges, edges2;
 
@@ -411,7 +306,7 @@ void GraphBaseT::Contract(const GraphBaseT& parent, iArrayT& map)
 			parent.GetEdges(next, edges);
 				
 			/* get degrees for edges adjacent vertex */
-			degrees.Dimension(edges.Length());
+			degrees.Allocate(edges.Length());
 			parent.ReturnDegrees(edges, degrees);		
 		
 			/* mark edge to collapse */
@@ -427,7 +322,7 @@ void GraphBaseT::Contract(const GraphBaseT& parent, iArrayT& map)
 	}
 
 	/* generate map map[old_num] = new_num */
-	map.Dimension(dim);
+	map.Allocate(dim);
 	map = -1;
 	int dex = 0;
 	for (int j = 0; j < dim; j++) /* retained nodes */
@@ -483,10 +378,10 @@ int GraphBaseT::SelectCollapse(const ArrayT<int>& edges, const ArrayT<int>& degr
 	{
 		cout << "\n GraphBaseT::SelectCollapse: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 
-	int node = -1, degree = -1;
+	int node = -1, degree;
 	for (int i = 0; i < edges.Length(); i++)
 	{
 		int node_i = edges[i];
@@ -512,7 +407,7 @@ int GraphBaseT::SetGains(const GraphBaseT& graph, const iArrayT& partition,
 	{
 		cout << "\n GraphBaseT::SetGains: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 
 	/* dimensions */
@@ -523,8 +418,8 @@ int GraphBaseT::SetGains(const GraphBaseT& graph, const iArrayT& partition,
 	gain = 0;
 	for (int i = 0; i < nnd; i++)
 	{
-		int degree = graph.Degree(i);
-		const int* edges = graph.Edges(i);
+		int  degree = graph.Degree(i);
+		int*  edges = graph.Edges(i);
 		int* gain_i = gain(i);
 		for (int j = 0; j < degree; j++)
 			gain_i[partition[*edges++]]++;
@@ -564,7 +459,7 @@ void GraphBaseT::SetMoves(const iArray2DT& gain, const iArrayT& partition,
 	{
 		cout << "\n GraphBaseT::SetMoves: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 
 	/* dimensions */
@@ -577,9 +472,9 @@ void GraphBaseT::SetMoves(const iArray2DT& gain, const iArrayT& partition,
 	max  =-1;
 	for (int k = 0; k < nnd; k++)
 	{
-		const int* gain_k = gain(k);
-		int part_k = partition[k];
-//		int   dim_k = gain_k[part_k];
+		int* gain_k = gain(k);
+		int  part_k = partition[k];
+		int   dim_k = gain_k[part_k];
 		for (int j = 0; j < dim; j++)
 		{
 			int gain_kj = gain_k[j];
@@ -629,7 +524,7 @@ int GraphBaseT::ApplyMoves(const GraphBaseT& graph, const iArrayT& move,
 	{
 		cout << "\n GraphBaseT::ApplyMoves: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 
 	/* dimensions */
@@ -684,8 +579,8 @@ int GraphBaseT::ApplyMoves(const GraphBaseT& graph, const iArrayT& move,
 				cuts -= gain_l[part_f];
 		
 				/* local data */
-				int degree = graph.Degree(node);
-				const int* edges = graph.Edges(node);
+				int  degree = graph.Degree(node);
+				int*  edges = graph.Edges(node);
 				for (int i = 0; i < degree; i++)
 				{
 					int nd = *edges++;
@@ -724,8 +619,8 @@ void GraphBaseT::OptimizeParts(const GraphBaseT& graph, const iArrayT& weight,
 	iArrayT& partition, int dim, int& repetitions, int& cuts)	
 {
 #if __option(extended_errorcheck)
-	if (graph.NumNodes() != partition.Length()) throw ExceptionT::kSizeMismatch;
-	if (graph.NumNodes() != weight.Length()) throw ExceptionT::kSizeMismatch;
+	if (graph.NumNodes() != partition.Length()) throw eSizeMismatch;
+	if (graph.NumNodes() != weight.Length()) throw eSizeMismatch;
 #endif	
 
 	//TEMP
@@ -733,7 +628,7 @@ void GraphBaseT::OptimizeParts(const GraphBaseT& graph, const iArrayT& weight,
 	{
 		cout << "\n GraphBaseT::OptimizeParts: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 
 	/* dimensions */
@@ -792,7 +687,7 @@ void GraphBaseT::OptimizeParts(const GraphBaseT& graph, const iArrayT& weight,
 
 	repetitions = 0;
 	int zero_count = 0; // probably twice zero means nothing will happen
-	//	int dcuts_last = 1;
+	int dcuts_last = 1;
 	double rcuts, rcuts_last = 1.0;
 	int max_reps = 50;
 	int max_zero_count = 5;
@@ -802,11 +697,7 @@ void GraphBaseT::OptimizeParts(const GraphBaseT& graph, const iArrayT& weight,
 		cuts += dcuts;
 		
 		SetMoves(gain, partition, size, move);
-//############################################
-#if 0
 		dcuts_last = dcuts;
-#endif
-//############################################
 		dcuts = ApplyMoves(graph, move, weight, partition, gain, size);		
 		if (fVerbose) cout << " dcuts = " << dcuts << '\n';
 		

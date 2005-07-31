@@ -1,5 +1,5 @@
-/* $Id: Traction_CardT.h,v 1.6 2004-10-20 21:20:32 paklein Exp $ */
-/* created: paklein (05/29/1996) */
+/* $Id: Traction_CardT.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (05/29/1996)                                          */
 
 #ifndef _TRACTION_T_H_
 #define _TRACTION_T_H_
@@ -10,50 +10,30 @@
 #include "iArrayT.h"
 #include "LocalArrayT.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
+#include "ios_fwd_decl.h"
 class ifstreamT;
-class ScheduleT;
+class LoadTime;
 class DomainIntegrationT;
-class ElementSupportT;
+class FEManagerT;
 
-/** natural boundary condition information */
 class Traction_CardT
 {
 public:
 
-	/** coordinate system for traction vector */
-	enum CoordSystemT {kCartesian = 0, /**< x,y,z components of traction */
-	                       kLocal = 1  /**< last component is normal component */
-	                       }; 
-	static CoordSystemT int2CoordSystemT(int i);
+	/* coordinate system for traction vector */
+	enum CoordSystemT {kCartesian = 0,  // x,y,z components of traction
+	                       kLocal = 1}; // last component is normal component
 
-	/** constructor */
+	/* constructor */
 	Traction_CardT(void);
 
 	/* modifiers */
-	void EchoValues(const ElementSupportT& support, const DomainIntegrationT& domain,
+	void EchoValues(const FEManagerT& theBoss, const DomainIntegrationT& domain,
 		int element, int ndof, ifstreamT& in, ostream& out);
-
-	void EchoValues(const ElementSupportT& support, int elem, int facet, int nLTf,
+	void EchoValues(const FEManagerT& theBoss, int elem, int facet, int nLTf,
 		 CoordSystemT coord_sys, const iArrayT& locnodenums, const dArray2DT& valuesT,
 		 ostream& out);
-
-	/** define traction values */
-	void SetValues(const ElementSupportT& support, int elem, int facet, int nLTf,
-		 CoordSystemT coord_sys, const iArrayT& locnodenums, const dArray2DT& valuesT);
-
-	/** set the Maxwell-Cattaneo relaxation time, such that the time
-	 * dependent behavior is given by
-	 \f[
-	 	g(t) = \tau f'(t) + f(t)
-	 \f]
-	 * where \f$ f(t) \f$ is the schedule function.
-	 */
-	void SetRelaxationTime(double tau) { fTau = tau; };
 
 	/* return the element and facet number specified for the force */
 	void Destination(int& elem_num, int& facet_num) const;
@@ -85,7 +65,7 @@ private:
 	int fElemNum;
 	int fFacetNum;
 	CoordSystemT fCoordSystem;
-	const ScheduleT* fLTfPtr;
+	const LoadTime* fLTfPtr;
 	LocalArrayT fValues;
 
 	 /* local numbers of facet nodes */
@@ -94,9 +74,6 @@ private:
 	/* (global) node numbers/equations */
 	iArrayT fNodes;
 	iArrayT fEqnos;
-	
-	/** relaxation time for Maxwell-Cattaneo flux */
-	double fTau;
 };
 
 /* inlines */
@@ -128,5 +105,4 @@ inline iArrayT& Traction_CardT::Eqnos(void) { return fEqnos; }
 inline const iArrayT& Traction_CardT::Nodes(void) const { return fNodes; }
 inline const iArrayT& Traction_CardT::Eqnos(void) const { return fEqnos; }
 
-} // namespace Tahoe 
 #endif /* _TRACTION_T_H_ */

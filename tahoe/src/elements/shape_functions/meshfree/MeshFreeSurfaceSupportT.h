@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceSupportT.h,v 1.4 2002-10-20 22:49:41 paklein Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.h,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
 /* created: paklein (02/22/2000)                                          */
 
 #ifndef _MF_SURFACE_SUPPORT_T_H_
@@ -12,8 +12,6 @@
 #include "nVariArray2DT.h"
 #include "VariRaggedArray2DT.h"
 #include "iAutoArrayT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class MeshFreeSupportT;
@@ -116,7 +114,7 @@ inline const dArray2DT& MeshFreeSurfaceSupportT::FacetCoords(void) const
 inline const ArrayT<int>& MeshFreeSurfaceSupportT::NeighborCounts(int side) const
 {
 #if __option(extended_errorcheck)
-	if (side != 0 && side != 1) throw ExceptionT::kOutOfRange;
+	if (side != 0 && side != 1) throw eOutOfRange;
 #endif
 
 	if (side == 0)
@@ -128,7 +126,7 @@ inline const ArrayT<int>& MeshFreeSurfaceSupportT::NeighborCounts(int side) cons
 inline const RaggedArray2DT<int>& MeshFreeSurfaceSupportT::Neighbors(int side) const
 {
 #if __option(extended_errorcheck)
-	if (side != 0 && side != 1) throw ExceptionT::kOutOfRange;
+	if (side != 0 && side != 1) throw eOutOfRange;
 #endif
 
 	if (side == 0)
@@ -148,5 +146,4 @@ inline int MeshFreeSurfaceSupportT::NumberOfNeighbors(int facet) const
 //{
 //	return fNodesUsed;
 //}
-} // namespace Tahoe 
 #endif /* _MF_SURFACE_SUPPORT_T_H_ */

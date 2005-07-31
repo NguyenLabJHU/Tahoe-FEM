@@ -1,17 +1,26 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.11 2004-09-10 22:39:17 paklein Exp $ */
-/* created: paklein (10/18/1998) */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (10/18/1998)                                          */
+/* VIB plus principal stretch elasticity                                  */
+/* Interface for a elastoplastic material that is linearly                */
+/* isotropically elastic subject to the Huber-von Mises yield             */
+/* condition as fYield with kinematic/isotropic hardening laws            */
+/* given by:                                                              */
+/* 		H(a) = (1 - ftheta) fH_bar a                                         */
+/* K(a) = fYield + ftheta fH_bar a                                        */
+/* 		where a is the internal hardening variable                           */
+/* 	Note: all calculations are peformed in 3D.                            */
+
 #include "J2IsoVIB2DLinHardT.h"
 
 #include <iostream.h>
 #include <math.h>
-#include "toolboxConstants.h"
+#include "Constants.h"
 
+#include "ElasticT.h"
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "C1FunctionT.h"
-
-using namespace Tahoe;
 
 /* flags */
 const int kNumFlags = 2;
@@ -50,10 +59,12 @@ const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"};
 
 /* constructor */
-J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(void):
-	ParameterInterfaceT("isotropic_VIB_J2_2D"),
-//	IsoVIB3D(in, support),
-//	J2PrimitiveT(in),
+J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const ElasticT& element):
+	IsoVIB3D(in, element),
+	Material2DT(in, kPlaneStrain),
+	J2PrimitiveT(in),
+
+	fLocLastDisp(element.LastDisplacements()),
 
 //TEMP
 	fEigs(kNSD),
@@ -80,10 +91,16 @@ J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(void):
 	fStress2D(2),
 	fb_2D(2)
 {
-	ExceptionT::GeneralFail("J2IsoVIB2DLinHardT:;J2IsoVIB2DLinHardT", "out of date");
-	
-	/* set default value */
-	fConstraint = kPlaneStrain;
+	/* check last displacements */
+	if (!fLocLastDisp.IsRegistered() ||
+		 fLocLastDisp.MinorDim() != NumDOF())
+	{
+		cout << "\n J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT: last local displacement vector is invalid" << endl;
+		throw eGeneralFail;
+	}
+
+	/* 2D */
+	fDensity *= fThickness;
 }
 
 /* update internal variables */
@@ -141,11 +158,19 @@ void J2IsoVIB2DLinHardT::ResetHistory(void)
 			Flags[i] = kReset;
 }
 
+/* print parameters */
+void J2IsoVIB2DLinHardT::Print(ostream& out) const
+{
+	/* inherited */
+	IsoVIB3D::Print(out);
+	J2PrimitiveT::Print(out);
+}
+
 /* modulus */
 const dMatrixT& J2IsoVIB2DLinHardT::c_ijkl(void)
 {
 	cout << "\n J2IsoVIB2DLinHardT::c_ijkl: no tangent implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 
 	return fddW; // dummy
 }
@@ -182,6 +207,7 @@ const dSymMatrixT& J2IsoVIB2DLinHardT::s_ij(void)
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fSpectral.EigsToRank2(fBeta));
+	fStress2D *= fThickness;
 	
 	return fStress2D;
 }
@@ -191,7 +217,7 @@ const dMatrixT& J2IsoVIB2DLinHardT::C_IJKL(void)
 {
 	cout << "\n J2IsoVIB2DLinHardT::C_IJKL: not optimized for total Lagrangian formulation.";
 	cout <<   "    use updated Lagrangian formulation." << endl;
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 
 	return fddW; // dummy
 }
@@ -200,7 +226,7 @@ const dSymMatrixT& J2IsoVIB2DLinHardT::S_IJ(void)
 {
 	cout << "\n J2IsoVIB2DLinHardT::S_IJ: not optimized for total Lagrangian formulation.";
 	cout <<   "    use updated Lagrangian formulation." << endl;
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 
 	return fb_elastic; // dummy
 }
@@ -230,7 +256,7 @@ double J2IsoVIB2DLinHardT::StrainEnergyDensity(void)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return energy;
+	return fThickness*energy;
 }
 
 /* required parameter flags */
@@ -241,7 +267,7 @@ int J2IsoVIB2DLinHardT::NumOutputVariables(void) const { return kNumOutput; }
 void J2IsoVIB2DLinHardT::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Dimension(kNumOutput);
+	labels.Allocate(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
@@ -281,24 +307,18 @@ void J2IsoVIB2DLinHardT::ComputeOutput(dArrayT& output)
 		output[3] = 0.0;
 }
 
-/* describe the parameters needed by the interface */
-void J2IsoVIB2DLinHardT::DefineParameters(ParameterListT& list) const
+/***********************************************************************
+* Protected
+***********************************************************************/
+
+/* print name */
+void J2IsoVIB2DLinHardT::PrintName(ostream& out) const
 {
 	/* inherited */
-	IsoVIB3D::DefineParameters(list);
-	J2PrimitiveT::DefineParameters(list);
-}
+	IsoVIB3D::PrintName(out);
 
-/* accept parameter list */
-void J2IsoVIB2DLinHardT::TakeParameterList(const ParameterListT& list)
-{
-	IsoVIB3D::TakeParameterList(list);
-	J2PrimitiveT::TakeParameterList(list);
+	out << "    J2 plasticity, principal stretch return mapping\n";
 }
-
-/***********************************************************************
- * Protected
- ***********************************************************************/
 
 /* returns the elastic stretch */
 const dSymMatrixT& J2IsoVIB2DLinHardT::TrialStretch(const dMatrixT& F_total,
@@ -455,7 +475,7 @@ void J2IsoVIB2DLinHardT::ReturnMapping(const dSymMatrixT& b_tr, const dArrayT& b
 				cout << " tolerance         = " << kYieldTol << '\n';
 				cout << " consistency error = " << ftrial    << '\n';
 				cout << " log stretch error = " << mag_res_e << endl;
-				throw ExceptionT::kGeneralFail;
+				throw eGeneralFail;
 			}
 		}
 	}
@@ -481,7 +501,7 @@ void J2IsoVIB2DLinHardT::AllocateElement(ElementCardT& element)
 	d_size += kNumInternal*num_ip;          // fInternal
 
 	/* construct new plastic element */
-	element.Dimension(i_size, d_size);
+	element.Allocate(i_size, d_size);
 
 	/* initialize values */
 	element.IntegerData() = kNotInit;
@@ -497,7 +517,7 @@ void J2IsoVIB2DLinHardT::ComputeGradients(void)
 {
 	/* compute relative displacement */
 	fFtot_2D = F();
-	fF_temp.Inverse(F_total_last());
+	fF_temp.Inverse( F(fLocLastDisp) );
 	ffrel_2D.MultAB(fFtot_2D,fF_temp);
 
 	/* 2D -> 3D */
@@ -524,20 +544,19 @@ void J2IsoVIB2DLinHardT::InitIntermediate(const dMatrixT& F_total,
 void J2IsoVIB2DLinHardT::LoadData(const ElementCardT& element, int ip)
 {
 	/* fetch internal variable array */
-	const dArrayT& d_array = element.DoubleData();
+	dArrayT& d_array = element.DoubleData();
 
 	/* decode */
-	dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);
 	int stressdim = dSymMatrixT::NumValues(kNSD);
 	int blocksize = stressdim + stressdim + kNSD + kNSD + kNSD + kNumInternal;
 	int dex       = ip*blocksize;
 	
-	     fb_n.Alias(         dim, &d_array[dex             ]);
-	    fb_tr.Alias(         dim, &d_array[dex += stressdim]);
-	 fbeta_tr.Alias(        kNSD, &d_array[dex += stressdim]);
-	   flog_e.Alias(        kNSD, &d_array[dex += kNSD     ]);
-	fUnitNorm.Alias(        kNSD, &d_array[dex += kNSD     ]);
-	fInternal.Alias(kNumInternal, &d_array[dex += kNSD     ]);     	
+	     fb_n.Set(        kNSD, &d_array[dex             ]);
+	    fb_tr.Set(        kNSD, &d_array[dex += stressdim]);
+	 fbeta_tr.Set(        kNSD, &d_array[dex += stressdim]);
+	   flog_e.Set(        kNSD, &d_array[dex += kNSD     ]);
+	fUnitNorm.Set(        kNSD, &d_array[dex += kNSD     ]);
+	fInternal.Set(kNumInternal, &d_array[dex += kNSD     ]);     	
 }
 
 /* returns 1 if the trial elastic strain state lies outside of the

@@ -1,5 +1,7 @@
-/* $Id: SolidMaterialT.h,v 1.26 2005-03-11 20:32:15 paklein Exp $ */
-/* created: paklein (11/20/1996) */
+/* $Id: SolidMaterialT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (11/20/1996)                                          */
+/* Defines the interface for elastic continuum materials.                 */
+
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
 
@@ -10,191 +12,101 @@
 
 /* direct members */
 #include "dMatrixT.h"
-#include "ThermalDilatationT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
 class ElementBaseT;
 class dMatrixT;
 class ThermalDilatationT;
-class ScheduleT;
+class LoadTime;
 class dSymMatrixT;
 class LocalArrayT;
-class SolidElementT;
+class ElasticT;
 
-/** base class for constitutive models for solids */
 class SolidMaterialT: public ContinuumMaterialT
 {
 public:
 
-	/** \name 2D constrain options */
-	enum ConstraintT {
-		kNoConstraint = 0, /**< no constraint, material is 3D */
-		kPlaneStress = 1, /**< plane stress */
-		kPlaneStrain = 2  /**< plane strain */};
-	ConstraintT static int2ConstraintT(int i);
+	/* constructor */
+	SolidMaterialT(ifstreamT& in, const ElasticT& element);
 
-	/** constructor */
-	SolidMaterialT(void);
-
-	/** destructor */
+	/* destructor */
 	~SolidMaterialT(void);
 
-	/** \name spatial description */
-	/*@{*/
-	/** spatial tangent modulus */
-	virtual const dMatrixT& c_ijkl(void) = 0;
-	
-	/** spatial elastic modulus */
-	virtual const dMatrixT& ce_ijkl(void) = 0;
+	/* print parameters */
+	virtual void Print(ostream& out) const;
 
-	/** Cauchy stress */
-	virtual const dSymMatrixT& s_ij(void) = 0;
+	/* spatial description */
+	virtual const dMatrixT& c_ijkl(void) = 0;	// spatial tangent moduli
+	virtual const dSymMatrixT& s_ij(void) = 0;	// Cauchy stress
 
-	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. The value is not guaranteed to
-	 * persist during intervening calls to any other non-const
-	 * accessor. \return 1/3 of the trace of the three-dimensional
-	 * stress tensor, regardless of the dimensionality of the
-	 * problem. */
-	virtual double Pressure(void) const = 0;
-	/*@}*/
+	/* material description */
+	virtual const dMatrixT& C_IJKL(void) = 0;	// material tangent moduli
+	virtual const dSymMatrixT& S_IJ(void) = 0;	// PK2 stress
 
-	/** \name material description */
-	/*@{*/
-	/** material tangent moduli */
-	virtual const dMatrixT& C_IJKL(void) = 0;
-
-	/** 2nd Piola-Kirchhoff stress */
-	virtual const dSymMatrixT& S_IJ(void) = 0;
-	/*@}*/
-
-	/** 2D constrain options or kNoConstraint::kNoConstraint if the material
-	 * is not 2D */
-	ConstraintT Constraint(void) const { return fConstraint; };
-
-	/** \name queries */
-	/*@{*/
-	/** return true if the material can produce localization */
-	virtual bool HasLocalization(void) const { return false; };
-
-	/** return true if the material generates heat. The returns false unless 
-	 * overridden. */
-	virtual bool HasIncrementalHeat(void) const { return false; };
-
-	virtual bool NeedDisp(void) const     { return false; };
-	virtual bool NeedLastDisp(void) const { return false; };
-	virtual bool NeedVel(void) const      { return false; };
-	
-	/** return true if the density varies with position */
-	virtual bool HasChangingDensity(void) const { return false; };
-	/*@}*/
-
-	/** incremental heat generation (energy/volume). The value should be the amount of
-	 * heat associated with the updated stress calculated with the most recent call to 
-	 * SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
-	virtual double IncrementalHeat(void);
-
-	/** strain energy density */
+	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void) = 0;
 
-	/** acoustical tensor.
-	 * \param normal wave propagation direction
-	 * \return acoustical tensor */
+	/* return the acoustical tensor and wave speeds */
 	virtual const dSymMatrixT& AcousticalTensor(const dArrayT& normal) = 0;
-
-	/** acoustic wave speeds.
-	 * \param normal wave propagation direction
-	 * \param speeds the computed acoustic wave speeds */
 	void WaveSpeeds(const dArrayT& normal, dArrayT& speeds);
+
+	/* required parameter flags */
+	virtual bool NeedDisp(void) const;
+	virtual bool NeedLastDisp(void) const;
+	virtual bool NeedVel(void) const;
+
+	/* returns true if the material has internal forces in the unloaded
+	 * configuration, ie thermal strains */
+	virtual int HasInternalStrain(void) const;
+
+	/* thermal accessors */
+	int ThermalLTfNumber(void) const;
+	void SetThermalLTfPtr(const LoadTime* LTfPtr);
 	
-	/** return the strain in the material. The definition of strain will be
-	 * dependent on the subclass */
-	virtual void Strain(dSymMatrixT& strain) = 0;
-
-	/** returns true if the material has internal forces in the unloaded
-	 * configuration, i.e. thermal strains */
-	int HasThermalStrain(void) const;
-
-	/** returns the schedule number for the imposed thermal strain */
-	int ThermalStrainSchedule(void) const;
-
-	/** set the schedule for the prescribed temperature */
-	void SetThermalSchedule(const ScheduleT* LTfPtr);
+	//double& PlanarDilatationFactor(void);
+	//DEV - this is messy
 	
-	/** return the thermal expansion rate as a percentage */
-	double ThermalElongation(void) const;
+	double ThermalElongation(void) const; //percentage
+		//wrapper functions exist to complete construction of fThermal
+		//w/o requiring the header file. For efficiency, actual communication
+		//with fThermal is done directly, and therefore requires the header
 	 	
-	/** \return mass density */
-	virtual double Density(void);
-
-	/** test for localization. check for bifurcation using current
-	 * Cauchy stress and the spatial tangent moduli.
-	 * \param normals orientation of the localization if localized
-	 * \return true if the determinant of the acoustical tensor A is 
-	 * negative or false if the determinant is positive. */
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
-							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA);
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list. This function also checks if thermal strain are 
-	 * being imposed and if the material supports thermal strain, using 
-	 * SolidMaterialT::SupportsThermalStrain. */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
-	/** \name internal variables */
-	/*@{*/
-	virtual const iArrayT& InternalDOF(void) const;
-	virtual const dArrayT& InternalStressVars(void);
-	virtual const dArrayT& InternalStrainVars(void);
-	/*@}*/
+	/* returns the density */
+	double Density(void) const;
 	
-	/** return true if material implementation supports imposed thermal
-	 * strains. */
-	virtual bool SupportsThermalStrain(void) const { return false; };
+	/* access to Rayleigh damping parameters */
+	double MassDamping(void) const;
+	double StiffnessDamping(void) const;
+
+	/* returns 1 if the strain localization conditions if satisfied,
+	 * .ie if the acoustic tensor has zero (or negative eigenvalues),
+	 * for the current conditions (current integration point and strain
+	 * state). If localization is detected, the normal (current config)
+	 * to the surface is returned in normal */
+	virtual int IsLocalized(dArrayT& normal);
 
 protected:
+
+//DEV
+//	dMatrixT fModuli;	
+	double   fDensity;
 
 	/* thermal */
 	ThermalDilatationT*	fThermal;
 
-	/* mass density */
-	double fDensity;
+private:	
 
-	/** 2D constrain option */
-	ConstraintT fConstraint;
-
-	/** coefficient of thermal expansion in strain/unit temperature */
-	double fCTE;
+	double fMassDamp;
+	double fStiffDamp;
+	
 };
 
-/* incremental heat generation */
-inline double SolidMaterialT::IncrementalHeat(void) { return 0.0; }
-
 /* returns the density */
-inline double SolidMaterialT::Density(void) { return fDensity; }
+inline double SolidMaterialT::Density(void) const { return fDensity; }
 
-/* imposed thermal strains */
-inline int SolidMaterialT::HasThermalStrain(void) const { return fThermal->IsActive(); }
-inline int SolidMaterialT::ThermalStrainSchedule(void) const { return fThermal->ScheduleNum(); }
-inline void SolidMaterialT::SetThermalSchedule(const ScheduleT* LTfPtr) { fThermal->SetSchedule(LTfPtr); }
-inline double SolidMaterialT::ThermalElongation(void) const { return fThermal->PercentElongation(); }
+/* access to Rayleigh damping parameters */
+inline double SolidMaterialT::MassDamping(void) const { return fMassDamp; }
+inline double SolidMaterialT::StiffnessDamping(void) const { return fStiffDamp;}
 
-
-} // namespace Tahoe 
 #endif /* _STRUCTURAL_MATERIALT_H_ */

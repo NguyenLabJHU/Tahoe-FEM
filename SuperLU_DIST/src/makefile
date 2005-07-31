@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2005-07-30 18:27:11 paklein Exp $
+# $Id: makefile,v 1.1.1.1 2005-07-30 18:04:14 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -53,6 +53,7 @@ pdgsrfs.c \
 pdgsrfs_ABXglobal.c \
 pdgssvx.c \
 pdgssvx_ABglobal.c \
+pdgstrf_X1.c \
 pdgstrf_irecv.c \
 pdgstrs.c \
 pdgstrs1.c \

@@ -1,24 +1,23 @@
-/* $Id: GroupAverageT.cpp,v 1.8 2003-11-21 22:41:57 paklein Exp $ */
-/* created: paklein (10/03/1996) */
+/* $Id: GroupAverageT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* created: paklein (10/03/1996)                                          */
+
 #include "GroupAverageT.h"
 
 #include <iostream.h>
 #include <fstream.h>
 #include <iomanip.h>
 
-#include "toolboxConstants.h"
+#include "Constants.h"
 #include "dArrayT.h"
 #include "StringT.h"
 #include "iArray2DT.h"
-
-using namespace Tahoe;
 
 /* constructor */
 GroupAverageT::GroupAverageT(void):
 	fNumRows(0),
 	fIsAveraged(0),
 	fCurrRow(0),
-	fMemory(0)
+	fMemory(0, true)
 {
 
 }
@@ -26,8 +25,8 @@ GroupAverageT::GroupAverageT(void):
 void GroupAverageT::ResetAverage(int numcols)
 {
 	/* dimension workspace */
-	fCounts.Dimension(fNumRows);
-	fMemory.Dimension(fNumRows*numcols);
+	fCounts.Allocate(fNumRows);
+	fMemory.Allocate(fNumRows*numcols);
 	fValues.Set(fNumRows, numcols, fMemory.Pointer());
 
 	/* initialize data */
@@ -62,7 +61,7 @@ void GroupAverageT::OutputAverage(const iArrayT& rows,
 	Average();
 
 	/* collect rows */
-	average.Dimension(rows.Length(), fValues.MinorDim());
+	average.Allocate(rows.Length(), fValues.MinorDim());
 	average.RowCollect(rows, fValues);
 }
 
@@ -71,7 +70,7 @@ void GroupAverageT::OutputUsedAverage(dArray2DT& average)
 	/* compute averages */
 	Average();
 
-	average.Dimension(NumRowsUsed(), fValues.MinorDim());
+	average.Allocate(NumRowsUsed(), fValues.MinorDim());
 	int row = 0;
 	int* pcount = fCounts.Pointer();
 	for (int i = 0; i < fNumRows; i++)
@@ -85,8 +84,8 @@ void GroupAverageT::OutputUsedAverage(dArray2DT& average)
 /* return the number of rows in the current smoothing set */
 int GroupAverageT::NumberOfAverageCols(void) const
 {
-	int nodecount = 0;
-	const int* p = fCounts.Pointer();
+	int  nodecount = 0;
+	int* p = fCounts.Pointer();
 	for (int i = 0; i < fNumRows; i++)
 		if (*p++ > 0)
 			nodecount++;
@@ -125,7 +124,7 @@ void GroupAverageT::MaxInColumn(int column, int& maxrow, double& maxval)
 	{
 		cout << "\n GroupAverageT::MaxInColumn: column out of range: "
 		     << column << endl;
-		throw ExceptionT::kOutOfRange;
+		throw eOutOfRange;
 	}
 
 	/* compute averages */
@@ -156,30 +155,23 @@ void GroupAverageT::RowsUsed(iArrayT& rowsused) const
 {
 	/* allocate */
 	int count = NumRowsUsed();
-	rowsused.Dimension(count);
+	rowsused.Allocate(count);
 
 	/* copy in used rows */
-	const int* pcount = fCounts.Pointer();
-	int* pused = rowsused.Pointer();
+	int* pcount = fCounts.Pointer();
+	int*  pused = rowsused.Pointer();
 	for (int j = 0; j < fNumRows; j++)
 		if (*pcount++ > 0) *pused++ = j;
 }
 
 int GroupAverageT::NumRowsUsed(void) const
 {
-	const int* pcount = fCounts.Pointer();
-	int count = 0;
+	int* pcount = fCounts.Pointer();
+	int   count = 0;
 	for (int i = 0; i < fNumRows; i++)
 		if (*pcount++ > 0) count++;
 
 	return count;
-}
-
-/* clear the specified row numbers */
-void GroupAverageT::ClearRows(const ArrayT<int>& rows)
-{
-	for (int i = 0; i < rows.Length(); i++)
-		fCounts[rows[i]] = 0;
 }
 
 /**********************************************************************

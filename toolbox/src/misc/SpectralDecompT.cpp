@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.11 2003-11-21 22:41:57 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -6,9 +6,6 @@
 #include <iostream.h>
 #include <math.h>
 #include <float.h>
-
-
-using namespace Tahoe;
 
 const double kpert     = 1.0e-08; // repeated root perturbation
 const double sqrt1by3  = 1.0/sqrt(3.0);
@@ -47,7 +44,7 @@ SpectralDecompT::SpectralDecompT(int nsd):
 		
 	/* dimension rank 1 matrices */
 	for (int i = 0; i < nsd; i++)
-		fm[i].Dimension(nsd);
+		fm[i].Allocate(nsd);
 
 	/* eigenvectors in columns */
 	for (int j = 0; j < nsd; j++)
@@ -88,7 +85,7 @@ void SpectralDecompT::SpectralDecomp(const dSymMatrixT& rank2, const dArrayT& ei
 	{
 		/* shift */
 		double shift = (fEigs[0] + fEigs[1] + fEigs[2])/3.0;
-		double* tmp = (double*) rank2.Pointer();
+		double* tmp = rank2.Pointer();
 		tmp[0] -= shift;
 		tmp[1] -= shift;
 		tmp[2] -= shift;
@@ -118,7 +115,7 @@ void SpectralDecompT::SpectralDecomp(const dSymMatrixT& rank2, bool perturb_repe
 }
 
 /* compute spectral decomposition using Jacobi iterations */
-void SpectralDecompT::SpectralDecomp_Jacobi(const dSymMatrixT& rank2, bool perturb_repeated)
+void SpectralDecompT::SpectralDecomp_new(const dSymMatrixT& rank2)
 {
 	bool sort_descending = false;
 	rank2.Eigensystem(fEigs, fEvecMatrix, sort_descending);
@@ -137,7 +134,7 @@ void SpectralDecompT::SpectralDecomp_Jacobi(const dSymMatrixT& rank2, bool pertu
 		dSymMatrixT& n1n1 = fm[1];
 		n1n1[0] = pvec[0]*pvec[0];
 		n1n1[1] = pvec[1]*pvec[1];
-		n1n1[2] = pvec[0]*pvec[1];		
+		n1n1[2] = pvec[0]*pvec[1];
 	}
 	else if (nsd == 3)
 	{
@@ -169,21 +166,20 @@ void SpectralDecompT::SpectralDecomp_Jacobi(const dSymMatrixT& rank2, bool pertu
 		n2n2[5] = pvec[0]*pvec[1];
 	}
 	else
-		throw ExceptionT::kGeneralFail;
-		
-	/* perturb repeated roots */
-	if (perturb_repeated) PerturbRepeated(fEigs);
+		throw eGeneralFail;
 }
 
-void SpectralDecompT::ModulusPrep(const dSymMatrixT& rank2)
+void SpectralDecompT::DecompAndModPrep(const dSymMatrixT& rank2, bool perturb_repeated)
 {
+	/* set spectral decomposition */
+	SpectralDecomp(rank2, perturb_repeated);
+	
 	/* modulus tensors */
 	if (rank2.Rows() == 2)
 		fc_b = 0.0;
 		//TEMP
 		//Set_I4_Tensor2D(rank2, fc_b);
 		//fc_b.ReducedIndexI();
-//DEV - what's going on here?
 	else
 	{
 		Set_I4_Tensor3D(rank2, fc_b);
@@ -216,22 +212,21 @@ void SpectralDecompT::PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U
 #if __option(extended_errorcheck)
 	if (fEigs.Length() != F.Rows() ||
 	          F.Rows() != R.Rows() ||
-	          R.Rows() != U.Rows()) throw ExceptionT::kSizeMismatch;
+	          R.Rows() != U.Rows()) throw eSizeMismatch;
 #endif
 
 	/* construct stretch C */
 	U.MultATA(F);
 	
 	/* spectral decomposition */
-	//SpectralDecomp(U, perturb_repeated);
-	SpectralDecomp_Jacobi(U, perturb_repeated);
+	SpectralDecomp(U, perturb_repeated);
 
 	/* eigenvalues to stretches */
-	if (fEigs[0] <= 0.0) throw ExceptionT::kBadJacobianDet; fEigs[0] = sqrt(fEigs[0]);
-	if (fEigs[1] <= 0.0) throw ExceptionT::kBadJacobianDet; fEigs[1] = sqrt(fEigs[1]);
+	if (fEigs[0] < 0.0) throw eBadJacobianDet; fEigs[0] = sqrt(fEigs[0]);
+	if (fEigs[1] < 0.0) throw eBadJacobianDet; fEigs[1] = sqrt(fEigs[1]);
 	if (fEigs.Length() == 3)
 	{
-		if (fEigs[2] <= 0.0) throw ExceptionT::kBadJacobianDet;
+		if (fEigs[2] < 0.0) throw eBadJacobianDet;
 		fEigs[2] = sqrt(fEigs[2]);
 	}
 	
@@ -248,63 +243,6 @@ void SpectralDecompT::PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U
 	
 	/* U */
 	U = EigsToRank2(fEigs);
-}
-
-/* function to perturb repeated roots */
-bool SpectralDecompT::PerturbRepeated(dArrayT& values) const
-{
-	/* check */
-	if (values.Length() != 2 && values.Length() != 3)
-	{
-		cout << "\n SpectralDecompT::PerturbRepeated: expecting array length 2 or 3" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
-	/* perturb repeated values */
-	bool perturbed = false;
-	if (values.Length() == 2)
-	{
-		if (fabs(values[0] - values[1]) < kSameRoot)
-		{
-			values[0] *= (1.0 + kpert);
-			values[1] /= (1.0 + kpert);
-			perturbed = true;
-		}
-	}
-	else
-	{
-		if (fabs(values[0] - values[1]) < kSameRoot)
-		{
-			values[0] *= (1.0 + kpert);
-			values[1] /= (1.0 + kpert);
-			if (fabs(values[0] - values[2]) < kSameRoot)
-				values[0] /= (1.0 + kpert);
-			else if (fabs(values[1] - values[2]) < kSameRoot)
-				values[1] *= (1.0 + kpert);
-			perturbed = true;
-		}
-		else if (fabs(values[0] - values[2]) < kSameRoot)
-		{
-			values[0] *= (1.0 + kpert);
-			values[2] /= (1.0 + kpert);
-			if (fabs(values[0] - values[1]) < kSameRoot)
-				values[0] /= (1.0 + kpert);
-			else if (fabs(values[2] - values[1]) < kSameRoot)
-				values[2] *= (1.0 + kpert);
-			perturbed = true;
-		}
-		else if (fabs(values[1] - values[2]) < kSameRoot)
-		{
-			values[1] *= (1.0 + kpert);
-			values[2] /= (1.0 + kpert);
-			if (fabs(values[1] - values[0]) < kSameRoot)
-				values[1] /= (1.0 + kpert);
-			else if (fabs(values[2] - values[0]) < kSameRoot)
-				values[2] *= (1.0 + kpert);
-			perturbed = true;
-		}
-	}
-	return perturbed;
 }
 
 const dMatrixT& SpectralDecompT::EigsToRank4(const dSymMatrixT& eigs)
@@ -341,24 +279,7 @@ const dMatrixT& SpectralDecompT::EigsToRank4(const dSymMatrixT& eigs)
 
 	return fSpatTensor;
 }
-/*Created by TDN: 03/05/2001
- Forms rank 4 tensor from nonsymmetric matrix of derivative of principal stress*/
-const dMatrixT& SpectralDecompT::NonSymEigsToRank4(const dMatrixT& eigs)
-{
-	/*initialize*/
-	fSpatTensor = 0.0;
-	
-	/*stress derivative term*/
-	int nsd = eigs.Rows();
-	for (int B = 0; B < nsd; B++)
-		for (int A = 0; A < nsd; A++)
-		{
-			fRank4.Outer(fm[A],fm[B]);
-			fSpatTensor.AddScaled(eigs(A,B),fRank4);
-		}
-	return fSpatTensor;
-}
-	
+
 /* compute the principal spatial tensor associated with the Ath
 * eigenvalue */
 const dMatrixT& SpectralDecompT::SpatialTensor(const dSymMatrixT& b, int A)
@@ -504,9 +425,6 @@ void SpectralDecompT::SpectralDecomp3D(const dSymMatrixT& rank2, dArrayT& eigs,
 		n0xn0(0,0) = 1.0;
 		n1xn1(1,1) = 1.0;
 		n2xn2(2,2) = 1.0;
-		
-		/* remove repeated */
-		//if (perturb_repeated) PerturbRepeated(eigs);
 	}
 	else
 	{
@@ -578,23 +496,23 @@ const dMatrixT& SpectralDecompT::SpatialTensor3D(const dSymMatrixT& b, int A)
 	/* cyclic permutation */
 	double dA;
 
-	int B = int(fmod(A + 1.0, 3));
-	int C = int(fmod(B + 1.0, 3));
+	int B = int(fmod(A + 1, 3));
+	int C = int(fmod(B + 1, 3));
 	dA = (fEigs[A] - fEigs[B])*(fEigs[A] - fEigs[C]);
 
 	/* checks */
 	if (fabs(dA) < kSmall)
 	{
-//		cout << "\n SpectralDecompT::SpatialTensor3D: detected repeated roots:\n"
-//		     << fEigs << endl;
+		cout << "\n SpectralDecompT::SpatialTensor3D: detected repeated roots:\n"
+		     << fEigs << endl;
 		fSpatTensor.Identity();
 		return fSpatTensor;
 	}
-	else if (fEigs[A] <= 0.0) throw ExceptionT::kBadJacobianDet;
+	else if (fEigs[A] < kSmall) throw eBadJacobianDet;
 
 	/* I_b - b (x) b */
 	double k1 = 1.0/dA;
-	fSpatTensor.AddScaled(k1, fc_b);
+	fSpatTensor.AddScaled(k1,fc_b);
 
 	/* I - (1-m_A) (x) (1-m_A) */	
 	fRank2.SetToCombination(1.0, f_I_Rank2, -1.0, fm[A]);
@@ -610,7 +528,7 @@ const dMatrixT& SpectralDecompT::SpatialTensor3D(const dSymMatrixT& b, int A)
 
 	/* m_A (x) m_A */
 	fRank4.Outer(fm[A],fm[A]);
-	double k4 = (fEigs[A]/dA)*(b.Trace() - 4.0*fEigs[A]);
+double k4 = (fEigs[A]/dA)*(b.Trace() - 4.0*fEigs[A]);
 	fSpatTensor.AddScaled(k4,fRank4);
 
 	return fSpatTensor;
@@ -663,7 +581,7 @@ void SpectralDecompT::SchmidtDecompose(const dSymMatrixT& rank2,
 		cout << " 1x eig = " << l2 << endl;
 		cout << " 2x nxn = (diagonals must be > 0)\n" << n2xn2 << '\n';
 		cout.precision(prec_old);
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 			
 	/* components of unique eigenvector - chop noise */
@@ -701,6 +619,6 @@ void SpectralDecompT::SchmidtDecompose(const dSymMatrixT& rank2,
 			
 	/* second rank 1 tensor */
 	n1xn1.SetToCombination(1.0/l, rank2,
-                           -l2/l, n2xn2,
-                            -1.0, n0xn0);
+-l2/l, n2xn2,
+-1.0, n0xn0);
 }	

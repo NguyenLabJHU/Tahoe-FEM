@@ -1,73 +1,65 @@
-// DEVELOPMENT
-/* $Id: VolumeT.cpp,v 1.14 2004-08-18 19:53:00 bsun Exp $ */
+/* $Id: VolumeT.cpp,v 1.1.1.1 2002-02-28 02:13:08 jzimmer Exp $ */
 #include "VolumeT.h"
+#include <iostream>
+#include <fstream>
+#include "ifstreamT.h"
+#include "dArrayT.h"
+#include "dArray2DT.h"
 
-    VolumeT::VolumeT(int n) 
-   {
-      nSD = n;
-      nATOMS = 0;
-      VolType = "none";
-   }
+VolumeT::VolumeT(int n) {
+	nSD = n;
+}
 
+VolumeT::~VolumeT() {
+}
 
-    VolumeT::VolumeT(const VolumeT& source)
-   {
-      nSD = source.nSD;
-      nATOMS = source.nATOMS;
-   }
+int VolumeT::GetDimensions() {
+	return nSD;
+}
 
+double VolumeT::GetVolume() {
+	return volume;
+}
 
-    int VolumeT::GetDimensions()
-   {
-      return nSD;
-   }
+void VolumeT::WriteFile() {
+}
 
-    double VolumeT::GetVolume() 
-   {
-      return volume;
-   }
+BoxT::BoxT(int n) : VolumeT(n) {
+}
 
-    int VolumeT::GetNumberAtoms() 
-   {
-      return nATOMS;
-   }
+BoxT::~BoxT() {
+}
 
-    StringT* VolumeT::GetAtomNames() 
-   {
-      return &atom_names;
-   }
+void BoxT::DefineBoundary(ifstreamT& in) {
+	length.Dimension(nSD);
+	switch(nSD) {
+	 case 2:
+	  in >> length[0] >> length[1];
+	  break;
+	 case 3:
+	  in >> length[0] >> length[1] >> length[2];
+	  break;
+	}
 
-    dArray2DT* VolumeT::GetAtomCoordinates() 
-   {
-      return &atom_coord;
-   }
+	surfaces.Dimension(nSD,2);
+	for (int i=0; i<nSD; i++ ) {
+		surfaces(i,0) = -length[i]/2;
+		surfaces(i,1) =  length[i]/2;
+	}
 
-    dArray2DT* VolumeT::GetAtomBounds()
-   {
-      return &atom_bounds;
-   }
+}
 
-    iArrayT* VolumeT::GetAtomNumber()
-   {
-      return &atom_number;
-   }
+void BoxT::CalculateVolume() {
+        switch(nSD) {
+	 case 2:
+	  volume = length[0]*length[1];
+	  break;
+	 case 3:
+	  volume = length[0]*length[1]*length[2];
+	  break;
+	}
+}
 
-    iArrayT* VolumeT::GetAtomTypes()
-   {
-      return &atom_types;
-   }
-
-    iArrayT* VolumeT::GetAtomParts()
-   {
-      return &atom_parts;
-   }
-
-    const ArrayT< const iArray2DT * > * VolumeT::GetAtomConnect()
-   {
-      return &atom_connect;
-   }
-
-    const ArrayT< StringT > * VolumeT::GetAtomID()
-   {
-      return &atom_ID;
-   }
+void BoxT::FillVolume() {
+}
+	

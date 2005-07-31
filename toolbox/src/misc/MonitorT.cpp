@@ -1,14 +1,11 @@
-/* $Id: MonitorT.cpp,v 1.4 2003-11-21 22:41:57 paklein Exp $ */
+/* $Id: MonitorT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
 /* created: paklein (09/30/1996)                                          */
 
 #include "MonitorT.h"
 #include <iomanip.h>
-#include "toolboxConstants.h"
+#include "Constants.h"
 
 /* parameters */
-
-using namespace Tahoe;
-
 const int kPercentHeadRoom = 5;
 
 /* constructor */
@@ -98,8 +95,8 @@ void MonitorT::PrintOFF(ostream& out) const
 */
 void MonitorT::PrintValued(ostream& out, int value, int wrapat) const
 {
-	const int* p = fStatus.Pointer();
-	int count = 0;
+	int* p = fStatus.Pointer();
+	int  count = 0;
 
 	for (int i = 0; i < fStatus.Length(); i++)
 		if (*p++ == value)

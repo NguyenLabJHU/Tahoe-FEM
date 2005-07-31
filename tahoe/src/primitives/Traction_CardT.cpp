@@ -1,34 +1,18 @@
-/* $Id: Traction_CardT.cpp,v 1.9 2004-10-20 21:20:32 paklein Exp $ */
-/* created: paklein (05/29/1996) */
+/* $Id: Traction_CardT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (05/29/1996)                                          */
+
 #include "Traction_CardT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "toolboxConstants.h"
+#include "Constants.h"
+
+#include "fstreamT.h"
 #include "dArray2DT.h"
-#include "ScheduleT.h"
-#include "ElementSupportT.h"
-
-#include "ElementsConfig.h"
-#ifdef SHAPE_FUNCTION_CLASSES
+#include "LoadTime.h"
 #include "DomainIntegrationT.h"
-#endif
-
-using namespace Tahoe;
-
-Traction_CardT::CoordSystemT Traction_CardT::int2CoordSystemT(int i)
-{
-	if (i == kCartesian)
-		return kCartesian;
-	else if (i == kLocal)
-		return kLocal;
-	else
-		ExceptionT::GeneralFail("Traction_CardT::int2CoordSystemT", 
-			"could not translate %d", i);
-		
-	return kLocal;
-}
+#include "FEManagerT.h"
 
 /* constructor */
 Traction_CardT::Traction_CardT(void):
@@ -36,20 +20,44 @@ Traction_CardT::Traction_CardT(void):
 	fFacetNum(0),
 	fCoordSystem(kCartesian),
 	fLTfPtr(NULL),
-	fValues(LocalArrayT::kUnspecified),
-	fTau(0.0)
+	fValues(LocalArrayT::kUnspecified)
 {
-#ifndef SHAPE_FUNCTION_CLASSES
-	ExceptionT::GeneralFail("Traction_CardT::Traction_CardT", "SHAPE_FUNCTION_CLASSES not enabled");
-#endif
+
 }	
 
 /* modifiers */
-void Traction_CardT::SetValues(const ElementSupportT& support, int elem, int facet,
+void Traction_CardT::EchoValues(const FEManagerT& theBoss, const DomainIntegrationT& domain,
+	int elem, int ndof, ifstreamT& in, ostream& out)
+{
+	/* parameters */
+	int facet;
+	int nLTf;
+	CoordSystemT coord_sys;
+	dArray2DT valuesT;
+
+	/* read  parameters */
+	in >> facet >> nLTf >> coord_sys;
+
+	/* correct offset */
+	facet--;
+	nLTf--;
+	
+	/* configure */
+	domain.NodesOnFacet(facet, fLocNodeNums);
+	valuesT.Allocate(fLocNodeNums.Length(), ndof);
+
+	/* read tractions */
+	in >> valuesT;
+	
+	/* set and echo */
+	EchoValues(theBoss, elem, facet, nLTf, coord_sys, fLocNodeNums, valuesT, out);
+}	
+
+void Traction_CardT::EchoValues(const FEManagerT& theBoss, int elem, int facet,
 	int nLTf, CoordSystemT coord_sys, const iArrayT& locnodenums,
-	const dArray2DT& valuesT)
+	const dArray2DT& valuesT, ostream& out)
 {	
-	fValues.Dimension(valuesT.MajorDim(), valuesT.MinorDim());
+	fValues.Allocate(valuesT.MajorDim(), valuesT.MinorDim());
 
 	/* set */
 	fElemNum  = elem;
@@ -58,17 +66,26 @@ void Traction_CardT::SetValues(const ElementSupportT& support, int elem, int fac
 	fLocNodeNums = locnodenums;
 	fValues.FromTranspose(valuesT);
 
+	/* echo */
+	out << setw(kIntWidth) << fElemNum + 1;
+	out << setw(kIntWidth) << fFacetNum + 1;
+	out << setw(kIntWidth) << nLTf + 1;
+	out << setw(kIntWidth) << fCoordSystem;
+	for (int i = 0; i < fLocNodeNums.Length(); i++)
+	{
+		/* tab */
+		if (i > 0) out << setw(5*kIntWidth) << " ";
+		valuesT.PrintRow(i, out);
+	}
+
 	/* resolve the pointer to the LTf */
-	fLTfPtr = support.Schedule(nLTf);
+	fLTfPtr = theBoss.GetLTfPtr(nLTf);
 }	
 
 /* return the traction value: (ndof x nnd) */
 void Traction_CardT::CurrentValue(LocalArrayT& traction) const
 {
-	if (fabs(fTau) < kSmall)
-		traction.SetToScaled(fLTfPtr->Value(), fValues);
-	else
-		traction.SetToScaled(fTau*fLTfPtr->Rate() + fLTfPtr->Value(), fValues);
+	traction.SetToScaled(fLTfPtr->LoadFactor(), fValues);
 }
 
 /* write the standard header */
@@ -84,8 +101,6 @@ void Traction_CardT::WriteHeader(ostream& out, int ndof) const
 		out << setw(d_width - 2) << "t[" << i+1 << "]";
 	out << '\n';			
 }
-
-namespace Tahoe {
 
 /* input operator for codes */
 istream& operator>>(istream& in, Traction_CardT::CoordSystemT& code)
@@ -105,10 +120,8 @@ istream& operator>>(istream& in, Traction_CardT::CoordSystemT& code)
 		default:
 			cout << "\n operator>>Traction_CardT::CoordSystemT: unknown code: "
 			<< i_code<< endl;
-			throw ExceptionT::kBadInputValue;	
+			throw eBadInputValue;	
 	}
 
 	return in;
-}
-
 }

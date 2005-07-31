@@ -1,65 +1,128 @@
-/* $Id: EAMFCC2D.cpp,v 1.11 2004-09-10 22:38:52 paklein Exp $ */
-/* created: paklein (12/09/1996) */
+/* $Id: EAMFCC2D.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (12/09/1996)                                          */
+/* Plane strain EAM material                                              */
+
 #include "EAMFCC2D.h"
 
+#include <math.h>
+#include <iostream.h>
+
+#include "Constants.h"
+
+#include "fstreamT.h"
 #include "EAMFCC3DSym.h"
 #include "dMatrixT.h"
-
-#include <math.h>
-
-using namespace Tahoe;
 
 /* material parameters */
 const int knsd = 2;
 
-//TEMP
-#pragma message("rename me")
+const double sqrt2 = sqrt(2.0);
+const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-EAMFCC2D::EAMFCC2D(void):
-	ParameterInterfaceT("FCC_EAM_2D"),
+EAMFCC2D::EAMFCC2D(ifstreamT& in, const ElasticT& element, int planecode):
+	NL_E_Mat2DT(in, element, kPlaneStrain),
+	fPlaneCode(planecode),
 	fEAM(NULL)
 {
-	/* reset default */
-	fConstraint = kPlaneStrain;
+	/* read EAM code */
+	in >> fEAMCode;
+	
+	switch (fPlaneCode)
+	{
+		case kFCC2Dnatural:
+		{
+			fEAM = new EAMFCC3DSym(in, fEAMCode, knsd);
+			break;
+		}	
+		case kFCC2D110:
+		{
+			dMatrixT Q(3);
+			
+			double cos45 = 0.5*sqrt2;
+			
+			/* transform global xy-plane into [110] */
+			Q = 0.0;
+			
+			Q(0,0) = 1.0;
+			Q(1,1) = Q(2,2) = cos45;
+			Q(1,2) =-cos45;
+			Q(2,1) = cos45;
+			
+			fEAM = new EAMFCC3DSym(in, Q, fEAMCode, knsd);
+			break;
+		}	
+		case kFCC2D111:
+		{
+			dMatrixT Q(3);
+			Q = 0.0;
+			
+			double rt2b2 = sqrt2/2.0;
+			double rt3b3 = sqrt3/3.0;
+			double rt6b6 = (sqrt2*sqrt3)/6.0;
+			double rt23  = sqrt2/sqrt3;
+			
+			Q(0,0) =-rt2b2;
+			Q(0,1) =-rt6b6;
+			Q(0,2) = rt3b3;
+			
+			Q(1,0) = rt2b2;
+			Q(1,1) =-rt6b6;
+			Q(1,2) = rt3b3;
+			
+			Q(2,0) = 0.0;
+			Q(2,1) = rt23;
+			Q(2,2) = rt3b3;
+			
+			fEAM = new EAMFCC3DSym(in, Q, fEAMCode, knsd);
+			break;
+		}	
+		default:
+		{
+			cout << "\nEAMFCC2D::EAMFCC2D: unknown plane code:" << fPlaneCode;
+			cout << endl;
+			throw eBadInputValue;
+		}
+	}
+	
+	if (!fEAM) throw eOutOfMemory;
+	
+	fEAM->Initialize();	
 }
 
 /* destructor */
-EAMFCC2D::~EAMFCC2D(void) { delete fEAM; }
-
-/* describe the parameters needed by the interface */
-void EAMFCC2D::DefineSubs(SubListT& sub_list) const
+EAMFCC2D::~EAMFCC2D(void)
 {
-	/* inherited */
-	NL_E_MatT::DefineSubs(sub_list);
-
-	/* Cauchy-Born EAM parameters */
-	sub_list.AddSub("FCC_EAM_Cauchy-Born");
+	delete fEAM;
 }
 
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* EAMFCC2D::NewSub(const StringT& name) const
-{
-	if (name == "FCC_EAM_Cauchy-Born")
-		return new EAMFCC3DSym;
-	else /* inherited */
-		return NL_E_MatT::NewSub(name);
-}
-
-/* accept parameter list */
-void EAMFCC2D::TakeParameterList(const ParameterListT& list)
+/* I/O functions */
+void EAMFCC2D::Print(ostream& out) const
 {
 	/* inherited */
-	NL_E_MatT::TakeParameterList(list);
+	NL_E_Mat2DT::Print(out);
 
-	/* construct Cauchy-Born EAM solver */
-	fEAM = new EAMFCC3DSym;
-	fEAM->TakeParameterList(list.GetList("FCC_EAM_Cauchy-Born"));
+	/* print EAM solver data */
+	fEAM->Print(out);
 }
 
 /*************************************************************************
- * Private
- *************************************************************************/
+* Protected
+*************************************************************************/
+
+void EAMFCC2D::PrintName(ostream& out) const
+{
+	/* inherited */
+	NL_E_Mat2DT::PrintName(out);
+
+	const char* planes[] = {"natural", "110", "111"};
+
+	out << "    EAM FCC 2D <" << planes[fPlaneCode] << "> Plane Strain\n";
+}
+
+/*************************************************************************
+* Private
+*************************************************************************/
 
 void EAMFCC2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {

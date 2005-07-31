@@ -1,5 +1,7 @@
-/* $Id: ifstreamT.cpp,v 1.28 2005-04-30 21:15:01 paklein Exp $ */
-/* created: paklein (03/03/1999) */
+/* $Id: ifstreamT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (03/03/1999)                                          */
+/* interface                                                              */
+
 #include "ifstreamT.h"
 
 /* ANSI */
@@ -7,45 +9,56 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "fstreamT.h"
+#include "Environment.h"
+#include "ExceptionCodes.h"
 
-using namespace Tahoe;
+#include "StringT.h"
 
 /* parameter */
 const int kLineLength = 255;
 
 /* static variables */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
-} /* namespace Tahoe */
+const char ifstreamT::fNULLFileName = '\0';
+const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
 
 /* constructors */
 ifstreamT::ifstreamT(void):
 	fSkipComments(0),
-	fMarker('0')
+	fMarker('0'),
+	fFileName(NULL)
 {
 
 }	
 
 ifstreamT::ifstreamT(const char* file_name):
 	fSkipComments(0),
-	fMarker('0')
+	fMarker('0'),
+	fFileName(NULL)
 {
 	open(file_name);
 }
 
 ifstreamT::ifstreamT(char marker):
 	fSkipComments(1),
-	fMarker(marker)
+	fMarker(marker),
+	fFileName(NULL)
 {
 
 }	
 
 ifstreamT::ifstreamT(char marker, const char* file_name):
 	fSkipComments(1),
-	fMarker(marker)
+	fMarker(marker),
+	fFileName(NULL)
 {
 	open(file_name);
+}
+
+/* destructor */
+ifstreamT::~ifstreamT(void)
+{
+	delete[] fFileName;
+	fFileName = NULL;
 }
 
 /* open stream */
@@ -54,17 +67,11 @@ void ifstreamT::open(const char* file_name)
 	/* close stream if already open */
 	if (is_open()) close();
 
-	/* translate name */
-	fFileName = file_name;
-	fFileName.ToNativePathName();
-	
-	//TEMP - problem with CW7
-	StringT old = fFileName;
-	fstreamT::FixPath(old, fFileName);
-	//TEMP
-
 	/* ANSI */
-	ifstream::open(fFileName);
+	ifstream::open(file_name);
+	
+	/* store file name */
+	CopyName(file_name);
 }
 
 int ifstreamT::open(const char* prompt, const char* skipname,
@@ -93,22 +100,12 @@ return fbuf->is_open();
 /* close stream */
 void ifstreamT::close(void)
 {
-	if (fstreamT::need_MW_workaround())
-	{
-		/* ANSI */
-		if (is_open()) ifstream::close();
-
-		/* clear name */
-		fFileName.Clear();
-	}
-	else /* original code */
-	{
 	/* ANSI */
 	ifstream::close();
 
 	/* clear name */
-	fFileName.Clear();
-	}
+	delete[] fFileName;
+	fFileName = NULL;
 }
 
 /* return the next character (skipping whitespace and comments)
@@ -124,24 +121,16 @@ char ifstreamT::next_char(void)
 	while (good() && isspace(c)) get(c);	
 
 	/* restore last character */
-	if (good()) ifstream::putback(c);
+	if (good()) putback(c);
 
 	return c;
 }
 
-/* put a character back in the stream */
-istream& ifstreamT::putback(char a)
+/* set file name string - does not change stream */
+void ifstreamT::set_filename(const char* name)
 {
-	/* do not allow putback with skip comments activated since
-	 * the stream has probably been advanced */
-	if (fSkipComments)
-	{
-		cout << "\n ifstreamT::putback: not allowed while comment skipping is enabled" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	
-	/* inherited */
-	return ifstream::putback(a);
+	/* store file name */
+	CopyName(name);
 }
 
 /* adjusting stream position, returns the number of lines rewound */
@@ -172,7 +161,7 @@ int ifstreamT::rewind(int num_lines)
 	}
 #endif // _MW_MSL_
 #else  // not CodeWarrior
-#if defined(__GCC_3__) || defined(__GCC_4__) || defined( __SUNPRO_CC) || (defined(__GNUC__) && defined(__PGI__)) || (defined(__DEC__) && defined (__USE_STD_IOSTREAM)) || (defined(__JANUS__) && defined(__ROGUE_STL__))
+#ifdef __SUNPRO_CC
 	streampos pos = tellg();
 	while (pos >= 0 && line_count < num_lines)
 	{
@@ -202,11 +191,7 @@ int ifstreamT::rewind(int num_lines)
 void ifstreamT::clear_line(void)
 {
 	char line[kLineLength];
-	
-	int skip = fSkipComments;
-	fSkipComments = 0;
 	getline(line, kLineLength-1);
-	fSkipComments = skip;
 }
 
 /* advances passed comments */
@@ -226,7 +211,7 @@ void ifstreamT::do_skip_comments(void)
 
 	/* don't die while skipping comments */
 	if (good())
-		ifstream::putback(c);
+		putback(c);
 	else
 		clear();
 }
@@ -245,44 +230,43 @@ ifstreamT& ifstreamT::operator>>(bool& a)
 	else
 	{
 		cout << "\n ifstreamT::operator>>bool&: expecting 0 or 1 from stream" << endl;
-		throw ExceptionT::kBadInputValue;
+		throw eBadInputValue;
 	}
 	
 	return *this;
 }
 
-/* stream search */
-bool ifstreamT::FindString(const char* key, StringT& line)
-{
-	/* clear return string */
-	line.Clear();
-
-	/* read line-by-line */
-	bool found = false;
-	while (!found && good())
-	{
-		char buffer[kLineLength];
-		getline(buffer, kLineLength-1);
-		
-		/* long line */
-		if (!good()) {		
-			/* correct anything but eof */
-			if (!eof()) clear();
-		}
-
-		/* found string */
-		if (strstr(buffer, key) != NULL)
-		{
-			line = buffer;
-			found = true;
-		}
-	}
-	return found;
-}
-
 /*************************************************************************
 * Private
 *************************************************************************/
+
+/* copy the string to fFileName */
+void ifstreamT::CopyName(const char* filename)
+{
+	/* no copies to self */
+	if (filename == fFileName) return;
+
+	/* free existing memory */
+	delete[] fFileName;
+	
+	/* check file name */
+	if (strlen(filename) == 0)
+	{
+		cout << "\n ifstreamT::CopyName: zero length filename" << endl;
+		throw eGeneralFail;
+	}
+	
+	/* allocate new memory */
+	fFileName = new char[strlen(filename) + 1];
+	if (!fFileName)
+	{
+		cout << "\n ifstreamT::CopyName: out of memory" << endl;
+		throw eOutOfMemory;
+	}
+	
+	/* copy in */
+	memcpy(fFileName, filename, sizeof(char)*(strlen(filename) + 1));
+}
 
 /* open stream with prompt - return 1 if successful */
 int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
@@ -299,8 +283,8 @@ int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 		if (defaultname != NULL && strlen(defaultname) > 0)
 		{
 			cout << ", <RETURN> for \"" << defaultname << "\"): ";
-#ifdef __SGI__
-			cout.flush();
+#if (defined __SGI__ && defined __MPI__)
+			cout << '\n';
 #endif
 			
 			/* new filename */
@@ -319,14 +303,15 @@ int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 		else
 		{
 			cout << "): ";
-#ifdef __SGI__
-			cout.flush();
+#if (defined __SGI__ && defined __MPI__)
+			cout << '\n';
 #endif					
 			cin >> newfilename;
 		}
 		
 		/* clear to end of line */
-		fstreamT::ClearLine(cin);
+		char line[255];
+		cin.getline(line, 254);
 
 		/* check exit */
 		if (strcmp(newfilename, skipname) == 0)
@@ -344,7 +329,8 @@ int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 			if (is_open())
 			{
 				/* store file name */
-				fFileName = newfilename;
+				CopyName(newfilename);
+			
 				return 1;	
 			}
 			else
@@ -358,7 +344,7 @@ int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 			{
 				cout << "\n StringT::OpenInputStream: could not find file after ";
 				cout << maxtry << " iterations" << endl;
-				throw ExceptionT::kGeneralFail;
+				throw eGeneralFail;
 			}
 		}
 	}	

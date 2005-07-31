@@ -1,4 +1,4 @@
-/* $Id: ThreeBodyT.h,v 1.4 2003-12-28 23:37:12 paklein Exp $ */
+/* $Id: ThreeBodyT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
 /* created: paklein (10/11/1997)                                          */
 /* Base class for the 3 body contribution to the strain energy density    */
 
@@ -9,8 +9,6 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
-namespace Tahoe {
-
 /* forward declaration */
 class iArray2DT;
 class dMatrixT;
@@ -20,12 +18,9 @@ class ThreeBodyT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	ThreeBodyT(const dArrayT& lengths, const dArrayT& angles,
 		const iArray2DT& bondpairs, const ThermalDilatationT* thermal);
-
-	/** destructor */
-	virtual ~ThreeBodyT(void) { };
 
 	/* triggers recomputation */
 	virtual void Set(void) = 0;
@@ -52,5 +47,4 @@ protected:
 	
 };
 
-} // namespace Tahoe 
 #endif /* _THREE_BODY_T_H_ */

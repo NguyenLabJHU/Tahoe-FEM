@@ -1,14 +1,11 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.11 2004-07-15 08:29:39 paklein Exp $ */
-/* created: paklein (11/12/1999) */
+/* $Id: MeshFreeElementSupportT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (11/12/1999)                                          */
+
 #ifndef _MFREE_SUPPORT_T_H_
 #define _MFREE_SUPPORT_T_H_
 
-/* base classes */
-#include "ParameterInterfaceT.h"
-
 /* direct members */
 #include "iArrayT.h"
-#include "dMatrixT.h"
 #include "LocalArrayGroupT.h"
 #include "RaggedArray2DT.h"
 #include "nArrayGroupT.h"
@@ -17,113 +14,78 @@
 #include "IOBaseT.h"
 #include "MeshFreeT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class ifstreamT;
 class MeshFreeShapeFunctionT;
-class MeshFreeNodalShapeFunctionT;
 class MeshFreeSupportT;
 class ElementCardT;
 class StringT;
 class ElementBaseT;
-class ModelManagerT;
 
-/** support for meshfree calculations */
-class MeshFreeElementSupportT: public ParameterInterfaceT
+class MeshFreeElementSupportT
 {
 public:
 
-	/** constructor */
-	MeshFreeElementSupportT(void);
+	/* constructor */
+	MeshFreeElementSupportT(ifstreamT& in);
 
-	/** destructor */
-	virtual ~MeshFreeElementSupportT(void) { };
-	
-	/** accessors */
+	/* accessors */
 	MeshFreeSupportT& MeshFreeSupport(void) const;
 
-	/** set pointer to the shape functions */
-	void SetShape(MeshFreeShapeFunctionT* mf_shapes);
+protected:
 
-	/** \name accessors */
-	/*@{*/
-	/** return array of interpolant points */
-	const iArrayT& InterpolantNodes(void) { return fAllFENodes; };
-	
-	/** returnt the array of off-grid points */
-	const iArrayT& OffGridNodes(void) { return fOffGridNodes; };
+	 /* write parameters to stream */
+	virtual void PrintControlData(ostream& out) const;
 
-	/** element nodes */
-	const RaggedArray2DT<int>& ElementNodes(void);
+	/* initialization */
+	virtual void InitSupport(ifstreamT& in, ostream& out,
+		AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
+		int numDOF, int max_node_num, const StringT& model_file,
+		IOBaseT::FileTypeT format);
 
-	/** element equations */
-	RaggedArray2DT<int>& ElementEquations(void) { return fElemEqnosEX; };
-	/*@}*/
-
-	/** \name memory managers for variable numbers of element nodes */
-	/*@{*/
-	/** accessor */
+	/* resize number of field nodes - returns number
+	 * of element nodes */
+	int SetElementNodes(int element);
 	int NumElementNodes(void) const;
 
-	/** resize number of field nodes, returning number of element nodes */
-	int SetElementNodes(int element);
-
-	/** register local arrays */
-	void Register(LocalArrayT& u);
-
-	/** register vectors that need to be length number of element equations */
-	void Register(dArrayT& v);
-
-	/** register matrix that need square dimensions of element equations */
-	void Register(dMatrixT& m);
-	/*@}*/
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
-	/** mark "dead" cells (no active equations) returns the number of active */
-	int MarkActiveCells(AutoArrayT<ElementCardT>& elem_cards);
-
-	/** initialization of meshless information. This method must be called once after 
-	 * a call to MeshFreeElementSupportT::TakeParameterList */
-	virtual void InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
-		const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model);
-
-	/** \name construct nodal field */
-	/*@{*/
+	/* construct nodal field */
 	void SetNodalField(const dArray2DT& dof);
 	void GetNodalField(const dArray2DT& dof, const iArrayT& nodes,
 		dArray2DT& field) const;
 	void FreeNodalField(void); // free memory associated with reconstruction
-	/*@}*/
 
-	/** write data for any cell containing the specified node as
+	/* mark "dead" cells (no active equations) returns the number of active */
+	int MarkActiveCells(AutoArrayT<ElementCardT>& elem_cards);
+
+	/* write data for any cell containing the specified node as
 	 * well as the nodes own neighborhood. (map == NULL) means no map. */
 	void TraceNode(ostream& out, int node, const ElementBaseT& element_group);
 
-	/** weight meshfree computational cost at nodes */
+	/* weight nodes */
 	void WeightNodes(iArrayT& weight) const;
 
 private:
 
-	/** called during MeshFreeElementSupportT::InitSupport */
-	void CollectNodesData(ostream& out, int max_node_num, ModelManagerT* model);
+	/* initialization steps */
+	void EchoNodesData(ifstreamT& in, ostream& out, int max_node_num,
+		const StringT& model_file, IOBaseT::FileTypeT format);
+	void ReadNodesData(ifstreamT& in, int num_id, const StringT& model_file,
+		IOBaseT::FileTypeT format, iArrayT& nodes);
 
 	/* collect nodes with interpolating shape functions */
 	void SetAllFENodes(const iArrayT& fe_nodes);
 
 protected:
 
+	/* mesh-free parameters */
+	MeshFreeT::FormulationT fMeshFreeCode;  // meshfree formulation
+	double fd_max;      // domain of influence scale factor
+	int fComplete;      // order of completeness, i.e. 1 => "linear basis"
+	int fStoreShape;    // compute/store all MLS shape functions/derivatives
+	int fAutoBorder;    // 1 => make all "surface" nodes exact
+
 	/* mesh-free shape functions */
 	MeshFreeShapeFunctionT* fMFShapes;
-	MeshFreeNodalShapeFunctionT* fNodalShapes;
 
 	/* manager for dynamic local arrays */
 	LocalArrayGroupT fLocGroup;
@@ -149,31 +111,8 @@ protected:
 	dArray2DT fNodalU;
 	iArrayT   fGlobalToNodesUsedMap;
 	int       fMapShift;
-
-private:
-
-	/** \name pointers to lists of class parameters used during initialization */
-	/*@{*/
-	const ParameterListT* fOffGridID;
-	const ParameterListT* fInterpolantID;
-	const ParameterListT* fMeshlessID;
-	/*@}*/
 };
 
-inline void MeshFreeElementSupportT::SetShape(MeshFreeShapeFunctionT* mf_shapes) { fMFShapes = mf_shapes; }
 inline int MeshFreeElementSupportT::NumElementNodes(void) const { return fNumElemenNodes; }
-inline void MeshFreeElementSupportT::Register(LocalArrayT& u) { fLocGroup.Register(u); }
-inline void MeshFreeElementSupportT::Register(dArrayT& v) { fNEEArray.Register(v); }
-inline void MeshFreeElementSupportT::Register(dMatrixT& m) { fNEEMatrix.Register(m); }
-
-/* element nodes */
-inline const RaggedArray2DT<int>& MeshFreeElementSupportT::ElementNodes(void) {
-	if (!fElemNodesEX) 
-		ExceptionT::GeneralFail("MeshFreeElementSupportT::ElementNodes", "pointer not set");
-	return *fElemNodesEX;
-}
-
-} /* namespace Tahoe */
-
 
 #endif /* _MFREE_SUPPORT_T_H_ */

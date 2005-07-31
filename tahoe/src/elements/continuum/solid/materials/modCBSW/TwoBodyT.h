@@ -1,4 +1,4 @@
-/* $Id: TwoBodyT.h,v 1.4 2003-12-28 23:37:12 paklein Exp $ */
+/* $Id: TwoBodyT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
 /* created: paklein (10/11/1997)                                          */
 /* Base class for the 2 body contribution to the strain energy density    */
 
@@ -8,8 +8,6 @@
 /* direct members */
 #include "dArrayT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class ThermalDilatationT;
 
@@ -17,12 +15,9 @@ class TwoBodyT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	TwoBodyT(const dArrayT& lengths, const ThermalDilatationT* thermal);
 
-	/** destructor */
-	virtual ~TwoBodyT(void) { };
-	
 	/* set free dof - triggers recomputation */
 	virtual void Set(void) = 0;
 
@@ -46,5 +41,4 @@ protected:
 	
 };
 
-} // namespace Tahoe 
 #endif /* _TWO_BODY_T_H_ */

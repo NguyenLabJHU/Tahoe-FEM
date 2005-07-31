@@ -1,46 +1,40 @@
-/* $Id: VariLocalArrayT.h,v 1.4 2003-01-27 06:42:46 paklein Exp $ */
-/* created: paklein (04/26/1999) */
+/* $Id: VariLocalArrayT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* created: paklein (04/26/1999)                                          */
+/* Wrapper for dynamically re-sizing the number of nodes in               */
+/* a LocalArrayT's.                                                       */
+
 #ifndef _VARI_LOCALARRAY_T_H_
 #define _VARI_LOCALARRAY_T_H_
 
 /* base class */
 #include "VariBaseT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class LocalArrayT;
 
-/** Wrapper for dynamically re-sizing the number of nodes in
- * a LocalArrayT's */
 class VariLocalArrayT: public VariBaseT<double>
 {
 public:
 
-	/** \name constructors */
-	/*@{*/
+	/* constructors */
 	VariLocalArrayT(void);
 	VariLocalArrayT(int headroom, LocalArrayT& ward, int minordim);
-	/*@}*/
 	
-	/** set the managed array - can only be set ONCE */
+	/* set the managed array - can only be set ONCE */
 	void SetWard(int headroom, LocalArrayT& ward, int minordim);
 
-	/** return true if the ward is already set */
-	bool HasWard(void) const { return fWard != NULL; };
-
-	/** set number of nodes */
+	/* set number of nodes */
 	void SetNumberOfNodes(int numnodes);
 
-	/** return the ward */
+	/* return the ward */
 	const LocalArrayT& TheWard(void) const;
 	
 private:
 
-	/** dimensions */
+	/* dimensions */
 	int fMinorDim;	
 	
-	/** the managed array */
+	/* the managed array */
 	LocalArrayT* fWard;
 };
 
@@ -52,5 +46,4 @@ inline const LocalArrayT& VariLocalArrayT::TheWard(void) const
 	return *fWard;
 }
 
-} // namespace Tahoe 
 #endif /* _VARI_LOCALARRAY_T_H_ */

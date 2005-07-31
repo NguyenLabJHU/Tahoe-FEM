@@ -1,10 +1,9 @@
-/* $Id: FrontSegmentT.cpp,v 1.7 2003-11-04 01:21:14 paklein Exp $ */
-/* created: paklein (03/19/1999) */
+/* $Id: FrontSegmentT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (03/19/1999)                                          */
+
 #include "FrontSegmentT.h"
 #include "ArrayT.h"
 #include <math.h>
-
-using namespace Tahoe;
 
 /* vector functions */
 inline static void CrossProduct(const double* A, const double* B, double* AxB)
@@ -24,9 +23,7 @@ inline static void Normalize(double* A)
 };
 
 /* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<FrontSegmentT*>::fByteCopy = true;
-} /* namespace Tahoe */
+const bool ArrayT<FrontSegmentT*>::fByteCopy = true;
 
 /* constructor */
 FrontSegmentT::FrontSegmentT(const double* A, const double* B, const double* C)

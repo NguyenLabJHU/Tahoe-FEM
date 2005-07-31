@@ -1,46 +1,38 @@
-/* $Id: nNLHHTalpha.h,v 1.11 2004-12-26 21:08:41 d-farrell2 Exp $ */
-/* created: paklein (10/17/1996) */
+/* $Id: nNLHHTalpha.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/17/1996)                                          */
+
 #ifndef _N_NL_HHT_A_H_
 #define _N_NL_HHT_A_H_
 
 /* base classes */
 #include "HHTalpha.h"
-#include "nIntegratorT.h"
+#include "nDDtControllerT.h"
 
-namespace Tahoe {
+/* forward declarations */
+class dArrayT;
+class dArray2DT;
+class KBC_CardT;
 
-/** HHT alpha integration for linear systems */
-class nNLHHTalpha: public virtual HHTalpha, public nIntegratorT
+class nNLHHTalpha: public virtual HHTalpha, public nDDtControllerT
 {
 public:
 
-	/** constructor */
-	nNLHHTalpha(double alpha);
+	/* constructor */
+	nNLHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder = kHHTalphaAuto_O2);
 
-	/** consistent BC's */
-	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+	/* consistent BC's - updates predictors and acceleration only */
+	virtual void ConsistentKBC(const KBC_CardT& KBC);
+	
+	/* predictors - map ALL */
+	virtual void Predictor(void);
 
-	/** pseudo-boundary conditions for external nodes */
+	/* correctors - map ACTIVE */
+	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update);
+	virtual void MappedCorrector(const iArrayT& map, const iArray2DT& flags,
+		const dArray2DT& update);
+
+	/* pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
-
-	/** predictor. Maps ALL degrees of freedom forward Unless specified otherwise */
-	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
-
-	/** corrector. Maps ALL degrees of freedom forward. */
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
-
-	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
-	 * documentation */
-	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
-		int eq_start, int num_eq);
-
-	/** corrector with node number map - map ACTIVE. See 
-	 * nIntegratorT::MappedCorrector for more documentation */
-	virtual void MappedCorrector(BasicFieldT& field, const iArrayT& map, 
-		const iArray2DT& flags, const dArray2DT& update);
-
-	/** return the field array needed by nIntegratorT::MappedCorrector. */
-	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const;
 
 protected:  	
 	
@@ -57,7 +49,7 @@ private:
 	/* corrector/consistent BC */
 	double	dcorr_a;
 	double	vcorr_a;
+	
 };
 
-} // namespace Tahoe 
 #endif /* _N_NL_HHT_A_H_ */

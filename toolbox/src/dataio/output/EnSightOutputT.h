@@ -1,5 +1,5 @@
-/* $Id: EnSightOutputT.h,v 1.4 2002-07-02 19:57:07 cjkimme Exp $ */
-/* created: sawimme (05/18/1999) */
+/* $Id: EnSightOutputT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: sawimme (05/18/1999)                                          */
 
 #ifndef _ENSIGHTOUTPUT_T_H_
 #define _ENSIGHTOUTPUT_T_H_
@@ -8,9 +8,6 @@
 #include "AutoArrayT.h"
 #include "StringT.h"
 #include "EnSightT.h"
-
-
-namespace Tahoe {
 
 class EnSightOutputT : public OutputBaseT
 {
@@ -26,12 +23,12 @@ private:
 
 enum FileNameTypeT { kWildFile = -9, kNoIncFile = -1 };
 
-StringT OpenGeometryFile (EnSightT& ens, ofstream& geo, int ID) const;
-StringT CreateFileName (const StringT& label, int increment, int groupnumber) const;
+StringT OpenGeometryFile (EnSightT& ens, ofstream& geo) const;
+StringT CreateFileName (const StringT& label, int increment) const;
 
 void WritePart (ostream& geo, EnSightT& ens, int ID) const;
 void WriteCoordinates (ostream& geo, EnSightT& ens, const iArrayT& nodes_used) const;
-void WriteConnectivity (ostream& geo, EnSightT& ens, const iArrayT& nodes_used, int index, int block) const;
+void WriteConnectivity (ostream& geo, EnSightT& ens, const iArrayT& nodes_used, int index) const;
 
 void WriteVariable (EnSightT& ens, bool nodal, int ID, const dArray2DT& values,
 	const ArrayT<StringT>& labels, AutoArrayT<StringT>& names,
@@ -44,6 +41,5 @@ int  fNumDigits;
 AutoArrayT<double> fTimeValues;
 };
 
-} // namespace Tahoe 
 #endif
 

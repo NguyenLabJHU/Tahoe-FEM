@@ -1,15 +1,12 @@
-/* $Id: ElementMatrixT.cpp,v 1.4 2002-10-20 22:49:31 paklein Exp $ */
+/* $Id: ElementMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
 /* created: paklein (03/17/1998)                                          */
 
 #include "ElementMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
-#include "toolboxConstants.h"
+#include "Constants.h"
 
 /* constructors */
-
-using namespace Tahoe;
-
 ElementMatrixT::ElementMatrixT(FormatT format):
 	fFormat(format)
 {
@@ -43,7 +40,7 @@ ElementMatrixT::ElementMatrixT(const ElementMatrixT& source):
 void ElementMatrixT::CopySymmetric(void) const
 {
 #if __option (extended_errorcheck)
-	if (fFormat == kNonSymmetric) throw ExceptionT::kGeneralFail;
+	if (fFormat == kNonSymmetric) throw eGeneralFail;
 #endif
 
 	if (fFormat == kDiagonal)

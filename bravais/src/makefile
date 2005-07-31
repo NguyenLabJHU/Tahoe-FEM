@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2004-08-18 19:53:00 bsun Exp $
+# $Id: makefile,v 1.1.1.1 2002-02-28 02:13:08 jzimmer Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,23 +7,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	main.o \
-	PeriodicTableT.o \
-	PerTabEntryT.o \
 	VolumeT.o \
-	CrystalLatticeT.o \
-	BoxT.o \
-	AsperityT.o \
-	PolyT.o \
-	CUBT.o \
-	FCCT.o \
-	BCCT.o \
-	DIAT.o \
-	HEXT.o \
-	CORUNT.o\
-	OutPutLatticeT.o \
-	MeshAtomT.o \
+	LatticeT.o \
 	MakeCrystalT.o 
-
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -33,41 +19,15 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	main.cpp \
-	PeriodicTableT.cpp \
-	PerTabEntryT.cpp \
 	VolumeT.cpp \
-        CrystalLatticeT.cpp \
-        BoxT.cpp \
-	AsperityT.cpp \
-	PolyT.cpp \
-	CUBT.cpp \
-	FCCT.cpp \
-	BCCT.cpp \
-	DIAT.cpp \
-	HEXT.cpp \
-	CORUNT.cpp\
-	OutPutLatticeT.cpp \
-	MeshAtomT.cpp \
-	MakeCrystalT.cpp 
- 
+	LatticeT.cpp \
+	MakeCrystalT.cpp
+
 # headers
 HDR = \
-	PeriodicTableT.h \
-	PerTabEntryT.h \
+	MakeCrystalT.h \
 	VolumeT.h \
-        CrystalLatticeT.h \
-        BoxT.h \
-	AsperityT.h \
-	PolyT.h \
-	CUBT.h \
-	FCCT.h \
-	BCCT.h \
-	DIAT.h \
-	HEXT.h \
-	CORUNT.h\
-	OutPutLatticeT.h \
-	MeshAtomT.h \
-	MakeCrystalT.h
+	LatticeT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

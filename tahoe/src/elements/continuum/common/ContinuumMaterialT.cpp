@@ -1,76 +1,50 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.12 2004-10-21 18:50:04 paklein Exp $ */
-/* created: paklein (11/20/1996) */
+/* $Id: ContinuumMaterialT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (11/20/1996)                                          */
+
 #include "ContinuumMaterialT.h"
-#include "MaterialSupportT.h"
+#include "ContinuumElementT.h"
+#include "ShapeFunctionT.h"
 #include "ArrayT.h"
 #include "StringT.h"
 
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ContinuumMaterialT>::fByteCopy = false;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ContinuumMaterialT*>::fByteCopy = true;
-} /* namespace Tahoe */
-
-using namespace Tahoe;
-
 /* constructor */
-ContinuumMaterialT::ContinuumMaterialT(void):
-	ParameterInterfaceT("continuum_material"),
-	fMaterialSupport(NULL),
-	fNumDOF(0),
-	fNumSD(0),
-	fNumIP(0)
+ContinuumMaterialT::ContinuumMaterialT(const ContinuumElementT& element):
+	fContinuumElement(element),
+	fNumDOF(element.NumDOF()),
+	fNumIP(element.NumIP()),
+	fCurrIP(element.CurrIP())
 {
 
-}
-
-/* set the material support or pass NULL to clear */
-void ContinuumMaterialT::SetMaterialSupport(const MaterialSupportT* support)
-{
-	fMaterialSupport = support;
-	if (fMaterialSupport) {
-		fNumDOF = fMaterialSupport->NumDOF();
-		fNumSD = fMaterialSupport->NumSD();
-		fNumIP = fMaterialSupport->NumIP();
-	}
-	else {
-		fNumDOF = 0;
-		fNumSD = 0;
-		fNumIP = 0;
-	}
 }
 
 /* destructor */
 ContinuumMaterialT::~ContinuumMaterialT(void) { }
 
-/* number of element nodes in the host element group */
-int ContinuumMaterialT::NumElementNodes() const {
-	ElementCardT& card = ElementCard(0);
-	return card.NodesU().Length();
-}
-
 /* element card data */
 int ContinuumMaterialT::NumElements(void) const
 {
-	return MaterialSupport().NumElements();
+	return fContinuumElement.NumElements();
 }
 
 int ContinuumMaterialT::CurrElementNumber(void) const
 {
-	return MaterialSupport().CurrElementNumber();
+	return fContinuumElement.CurrElementNumber();
 }
 
 ElementCardT& ContinuumMaterialT::ElementCard(int card) const
 {
-	ElementCardT* the_card = MaterialSupport().ElementCard(card);
-	if (!the_card) ExceptionT::GeneralFail("ContinuumMaterialT::ElementCard");
-	return *the_card;
+	return fContinuumElement.ElementCard(card);
 }
 
 ElementCardT& ContinuumMaterialT::CurrentElement(void) const
 {
-	ElementCardT* the_card = MaterialSupport().CurrentElement();
-	if (!the_card) ExceptionT::GeneralFail("ContinuumMaterialT::CurrentElement");
-	return *the_card;
+	return fContinuumElement.CurrentElement();
+}
+
+/* initialization */
+void ContinuumMaterialT::Initialize(void)
+{
+/* do nothing */
 }
 
 /* storage initialization */
@@ -87,12 +61,15 @@ GlobalT::SystemTypeT ContinuumMaterialT::TangentType(void) const
 /* apply pre-conditions at the current time step */
 void ContinuumMaterialT::InitStep(void) { }
 
-/* finalize the current time step */
-void ContinuumMaterialT::CloseStep(void) { }
-
 /* update/reset internal variables */
 void ContinuumMaterialT::UpdateHistory(void) { }
 void ContinuumMaterialT::ResetHistory(void) { }
+
+/* print parameters */
+void ContinuumMaterialT::Print(ostream& out) const
+{
+	PrintName(out);
+}
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
@@ -107,24 +84,11 @@ void ContinuumMaterialT::ComputeOutput(dArrayT& output)
 #pragma unused(output)
 }
 
-/* returns true if two materials have compatible output variables */
-bool ContinuumMaterialT::CompatibleOutput(const ContinuumMaterialT& m1, 
-	const ContinuumMaterialT& m2)
-{
-	/* number of variables */
-	if (m1.NumOutputVariables() != m2.NumOutputVariables())
-		return false;
-	/* labels */
-	else
-	{
-		ArrayT<StringT> labels1, labels2;
-		m1.OutputLabels(labels1);
-		m2.OutputLabels(labels2);
-		for (int i = 0; i < labels1.Length(); i++)
-			if (labels1[i] != labels2[i])
-				return false;
+/***********************************************************************
+* Protected
+***********************************************************************/
 
-		/* compatible if execution false through */
-		return true;
-	}
-}	
+void ContinuumMaterialT::PrintName(ostream& out) const
+{
+	out << " Material name:\n";
+}

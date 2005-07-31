@@ -6,10 +6,9 @@
  *
  *====================================================================*/
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "f2c.h"
+
+#include <stdio.h>
 
 /*  XERBLA  is an error handler for the LAPACK routines. */
 /*  It is called by an LAPACK routine if an input parameter has an */
@@ -22,7 +21,7 @@ integer xerbla(char* srname, integer* info)
 	fflush(stdout);	
 
 	/* terminate execution - raise(SIGABRT) to catch */	
-	exit(-1);
+	abort();
 	
 	return 0;
 }

@@ -1,15 +1,19 @@
-/* $Id: eStaticIntegrator.cpp,v 1.5 2002-10-20 22:48:12 paklein Exp $ */
-/* created: paklein (10/14/1996) */
+/* $Id: eStaticIntegrator.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
 
 #include "eStaticIntegrator.h"
 #include "Environment.h"
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
 eStaticIntegrator::eStaticIntegrator(void) { }
+
+/* time integration parameters */
+eIntegratorT::StatDynFlagT eStaticIntegrator::StaticDynamic(void) const { return kStatic; }
+eIntegratorT::ImpExpFlagT eStaticIntegrator::ImplicitExplicit(void) const { return kImplicit; }
+
+/* return order time discretization */
+int eStaticIntegrator::Order(void) const { return 0; }
 
 /* returns 1 if the algorithm requires M, C, or K and sets const equal
 * to the coefficient for the linear combination of components in the

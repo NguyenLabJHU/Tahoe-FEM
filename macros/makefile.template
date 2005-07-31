@@ -1,0 +1,216 @@
+# $ Id $
+# INSTALLATION INSTRUCTIONS
+#
+# (1) set HOME_DIR to the full path to this makefile.
+# (2) set MACRO_DIR to the full path to directory
+#     containing the machine specific compiler macros.
+# (3) select ARCH from list of supported platforms.
+# (4) select installed "build options".
+# (5) "make init" to (re-)initialize headers and file
+#     dependencies.
+# (6) "make build" to (re-)compiler binaries.
+
+# path to current directory
+HOME_DIR =
+
+# path to compiler macros
+MACRO_DIR = 
+
+# build architecture
+ARCH = 
+# choices:
+#     ALASKA - DEC OSF
+#  CA-CPLANT - DEC OSF
+#        DEC - DEC OSF
+#    DEC.mpi - DEC OSF with MPI
+#        GNU - egcs
+#      JANUS - ASCI Red
+#        SGI - IRIX
+#  SGI.mpich - IRIX with MPICH
+#    SGI.mpi - IRIX with MPI
+#    SIBERIA - DEC OSF
+#        SUN - SUNWSpro
+
+# default target name
+TARGET  = tahoe
+LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
+MAIN    = $(SRC_DIR)/main/main.o
+
+# directories:
+OBJ_DIR = $(HOME_DIR)/obj
+INC_DIR = $(HOME_DIR)/inc
+SRC_DIR = $(HOME_DIR)/src
+LIB_DIR = $(HOME_DIR)/lib
+
+# include compiler macros
+include $(MACRO_DIR)/$(ARCH).macros
+
+############################### build options ###########################
+##### F2C 1.4.3
+#F2C_DIR      = $(HOME_DIR)/../f2c
+#F2C_INC      = -I$(F2C_DIR)/inc
+#F2C_CFLAGS   = $(F2C_INC) -D__F2C__
+#F2C_LIB_NAME = f2c_
+#F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
+#F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
+
+#### BLAS
+#BLAS_DIR      = $(HOME_DIR)/../CBLAS
+#BLAS_INC      = -I$(BLAS_DIR)/inc
+#BLAS_CFLAGS   = $(BLAS_INC) -D__BLAS__
+#BLAS_LIB_NAME = CBLAS
+#BLAS_LIB      = $(BLAS_DIR)/lib/lib$(BLAS_LIB_NAME).a
+#BLAS_LFLAGS   = -L$(BLAS_DIR)/lib -l$(BLAS_LIB_NAME)
+
+##### Aztec iterative linear algebra library
+#AZ_DIR      = $(HOME_DIR)/../aztec
+#AZ_INC      = -I$(AZ_DIR)/inc
+#AZ_CFLAGS   = -$(AZ_INC) -D__AZTEC__
+#AZ_LIB_NAME = Aztec
+#AZ_LIB      = $(AZ_DIR)/lib/lib$(AZ_LIB_NAME).a
+#AZ_LFLAGS   = -L$(AZ_DIR)/lib -l$(AZ_LIB_NAME)
+
+#### SPOOLES
+#SPOOLES_DIR      = $(HOME_DIR)/../spooles
+#SPOOLES_INC      = -I$(SPOOLES_DIR)/inc
+#SPOOLES_CFLAGS   = $(SPOOLES_INC) -D__SPOOLES__
+#SPOOLES_LIB_NAME = SPOOLES
+#SPOOLES_LIB      = $(SPOOLES_DIR)/lib/lib$(SPOOLES_LIB_NAME).a
+#SPOOLES_LFLAGS   = -L$(SPOOLES_DIR)/lib -l$(SPOOLES_LIB_NAME)
+
+#### SPOOLES MPI
+#SPOOLESMPI_DIR      = $(HOME_DIR)/../spoolesMPI
+#SPOOLESMPI_INC      = -I$(SPOOLESMPI_DIR)/inc
+#SPOOLESMPI_CFLAGS   = $(SPOOLESMPI_INC) -D__SPOOLES_MPI__
+#SPOOLESMPI_LIB_NAME = SPOOLESMPI
+#SPOOLESMPI_LIB      = $(SPOOLESMPI_DIR)/lib/lib$(SPOOLESMPI_LIB_NAME).a
+#SPOOLESMPI_LFLAGS   = -L$(SPOOLESMPI_DIR)/lib -l$(SPOOLESMPI_LIB_NAME)
+
+#### ACME
+#ACME_DIR      = $(HOME_DIR)/../libs/acme-0.2a
+#ACME_INC      = -I$(ACME_DIR)/search -I$(ACME_DIR)/enforcement
+#ACME_CFLAGS   = $(ACME_INC) -D__ACME__
+#ACME_LIB_NAME = acme
+#ACME_LIB      = $(ACME_DIR)/lib$(ACME_LIB_NAME).a
+#ACME_LFLAGS   = -L$(ACME_DIR) -l$(ACME_LIB_NAME)
+
+##### SEACAS/ACCESS software
+#AX_INC    = -I$(ACCESS)/inc
+#AX_CFLAGS = $(AX_INC) -D__ACCESS__
+#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+#########################################################################
+# grouped
+OPT_CFLAGS = \
+	$(ACME_CFLAGS) \
+	$(SPOOLESMPI_CFLAGS) \
+	$(SPOOLES_CFLAGS) \
+	$(AZ_CFLAGS) \
+	$(BLAS_CFLAGS) \
+	$(AX_CFLAGS) \
+	$(F2C_CFLAGS)
+
+OPT_LFLAGS = \
+	$(ACME_LFLAGS) \
+	$(SPOOLESMPI_LFLAGS) \
+	$(SPOOLES_LFLAGS) \
+	$(AZ_LFLAGS) \
+	$(BLAS_LFLAGS) \
+	$(AX_LFLAGS) \
+	$(F2C_LFLAGS)
+
+OPT_LIB = \
+	$(F2C_LIB) \
+	$(BLAS_LIB) \
+	$(AZ_LIB) \
+	$(SPOOLES_LIB) \
+	$(SPOOLESMPI_LIB) \
+	$(ACME_LIB)
+	
+OPT_INC = \
+	$(F2C_INC) \
+	$(BLAS_INC) \
+	$(AZ_INC) \
+	$(SPOOLES_INC) \
+	$(SPOOLESMPI_INC) \
+	$(ACME_INC) \
+	$(AX_INC)
+		
+#########################################################################
+# paths for file dependencies
+DEPEND_FILE = all.depend
+DEPEND_PATH = -I$(INC_DIR) $(OPT_INC) $(INC_FLAGS)
+
+# Sun spends too much time searching standard directories
+#DEPEND_PATH = -Y -I$(INC_DIR) $(OPT_INC)
+#########################################################################
+
+# default target
+help:
+	@ echo " make targets:"
+	@ echo "   init - (re-)initialize headers and file dependencies"
+	@ echo "  build - (re-)build binaries "
+	@ echo "  clean - remove object files and build temporaries"
+	@ echo "   help - display this list"
+
+# instructions
+build: objects $(TARGET)
+
+$(TARGET): $(OPT_LIB) $(LIBRARY)
+	@ echo " linking..."	
+	@ $(LINK) $(MAIN) -o $(TARGET) -L$(HOME_DIR)/lib -l$(TARGET) $(OPT_LFLAGS) $(LFLAGS)
+	@ echo "    ...wrote $(TARGET)"; echo " "
+
+$(LIBRARY): $(LIB_DIR)/lib.junk
+	@ echo " building archive..."
+	@ cd $(SRC_DIR); \
+	make library \
+	"AR = $(AR)" \
+	"ARFLAGS = $(ARFLAGS)" \
+	"LIBRARY = $(LIBRARY)" \
+	"LIB_DIR = $(LIB_DIR)"
+
+init: headers depend_init
+
+RM_FILES = *.o *.i *.*~ *.bak ii_* *.d all.depend
+clean:
+	- rm $(TARGET)
+	- rm $(LIBRARY)
+	- cd $(SRC_DIR); make $(MAKE_OPTS) clean \
+	"RM = $(RM)" \
+	"RM_FILES = $(RM_FILES)" \
+	"MAKE_OPTS = $(MAKE_OPTS)" \
+	- cd $(OBJ_DIR); rm *.o
+	- cd $(OBJ_DIR)/cxx_repository; rm -r *.o *.DB
+	- cd $(INC_DIR); rm *.h
+
+headers:
+	@ echo "cd $(SRC_DIR)"; \
+	cd $(SRC_DIR); \
+	make $(MAKE_OPTS) headers \
+	"LN = $(LN)" \
+	"INC_DIR = $(INC_DIR)" \
+	"CURR_DIR = $(SRC_DIR)" \
+	"MAKE_OPTS = $(MAKE_OPTS)"
+
+depend_init:
+	@ echo "cd $(SRC_DIR)"; \
+	cd $(SRC_DIR); \
+	make $(MAKE_OPTS) depend_init \
+	"DEPEND_PATH = $(DEPEND_PATH)" \
+	"MAKE_OPTS = $(MAKE_OPTS)"
+
+objects:
+	@ echo "cd $(SRC_DIR)"; \
+	cd $(SRC_DIR); \
+	make $(MAKE_OPTS) objects \
+	"MAKE_OPTS = $(MAKE_OPTS)" \
+	"INC_DIR   = $(INC_DIR)" \
+	"OBJ_DIR   = $(OBJ_DIR)" \
+	"LIB_DIR   = $(LIB_DIR)" \
+	"CURR_DIR  = $(SRC_DIR)" \
+	"TR        = $(TR)" \
+	"COMP_CC   = $(COMP_CC)" \
+	"COMP_C    = $(COMP_C)" \
+	"CFLAGS    = $(OPT_CFLAGS) $(CFLAGS) $(MORE_CFLAGS)" \
+	"DEPEND_PATH = $(DEPEND_PATH)" \
+	"DEPEND = $(DEPEND_FILE)"

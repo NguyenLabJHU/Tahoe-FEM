@@ -1,11 +1,11 @@
-/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.5 2003-11-21 22:47:14 paklein Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
 /* created: paklein (02/22/2000)                                          */
 /* supporting functions for cohesive elements in a meshfree domain        */
 
 #include "MeshFreeSurfaceSupportT.h"
 
-#include "ExceptionT.h"
-#include "toolboxConstants.h"
+#include "ExceptionCodes.h"
+#include "Constants.h"
 
 #include "SurfaceShapeT.h"
 #include "MeshFreeSupportT.h"
@@ -16,9 +16,6 @@
 //DEBUG
 
 /* parameters */
-
-using namespace Tahoe;
-
 const int kHeadRoom = 20; // percent
 
 /* constructor */
@@ -55,7 +52,7 @@ void MeshFreeSurfaceSupportT::ResetFacets(const ArrayT<int>* reset_facets)
 	{
 		cout << "\n MeshFreeSurfaceSupportT::ResetFacets: size mismatch with local\n"
 		     <<   "     facet coords." << endl;
-		throw ExceptionT::kSizeMismatch;
+		throw eSizeMismatch;
 	}
 
 	/* dimensions */
@@ -100,7 +97,7 @@ out2 << "\n facet = " << facet+1 << '\n';
 //DEBUG
 
 		/* set facet coordinates */
-		facet_coords.Alias(fRefLocCoords.NumberOfNodes(), nsd, fFacetCoords(facet));
+		facet_coords.Set(fRefLocCoords.NumberOfNodes(), nsd, fFacetCoords(facet));
 		fRefLocCoords.FromTranspose(facet_coords);
 		double h = FacetSize(facet_coords);		
 
@@ -133,7 +130,7 @@ out2 << "\n ip = " << ip+1 << '\n';
 				cout <<   "        ip: " << ip+1 << '\n';
 				cout <<   "         x: " << ip_coord.no_wrap() << '\n';
 				cout <<   "         n: " << normal.no_wrap() << '\n';
-				throw ExceptionT::kGeneralFail;
+				throw eGeneralFail;
 			}
 
 			/* collect data */
@@ -160,7 +157,7 @@ for (int i = 0; i < neighbors.Length(); i++)
 				cout <<   "        ip: " << ip+1 << '\n';
 				cout <<   "         x: " << ip_coord.no_wrap() << '\n';
 				cout <<   "         n: " << normal.no_wrap() << '\n';
-				throw ExceptionT::kGeneralFail;
+				throw eGeneralFail;
 			}
 
 			/* collect data */
@@ -189,8 +186,8 @@ void MeshFreeSurfaceSupportT::LoadData(int facet, int side, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi)
 {
 #if __option(extended_errorcheck)
-	if (Dphi.Length() != fRefSurfaceShape.NumIP()) throw ExceptionT::kSizeMismatch;
-	if (side != 0 && side != 1) throw ExceptionT::kOutOfRange;
+	if (Dphi.Length() != fRefSurfaceShape.NumIP()) throw eSizeMismatch;
+	if (side != 0 && side != 1) throw eOutOfRange;
 #endif
 
 	/* dimensions */
@@ -220,7 +217,7 @@ void MeshFreeSurfaceSupportT::LoadData(int facet, int side, iArrayT& neighbors,
 	else
 	{
 		cout << "\n MeshFreeSurfaceSupportT::LoadData: must use stored functions" << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 }
 
@@ -230,7 +227,7 @@ void MeshFreeSurfaceSupportT::LoadData(int facet,
 {
 #if __option(extended_errorcheck)
 	if (Dphi_1.Length() != fRefSurfaceShape.NumIP() ||
-		Dphi_2.Length() != fRefSurfaceShape.NumIP()) throw ExceptionT::kSizeMismatch;
+		Dphi_2.Length() != fRefSurfaceShape.NumIP()) throw eSizeMismatch;
 #endif
 
 	/* dimensions */
@@ -264,7 +261,7 @@ void MeshFreeSurfaceSupportT::LoadData(int facet,
 	else
 	{
 		cout << "\n MeshFreeSurfaceSupportT::LoadData: must use stored functions" << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 }
 
@@ -284,7 +281,7 @@ void MeshFreeSurfaceSupportT::StoreData(int facet, int side,
 	ArrayT< AutoArrayT<double> >& Dphi)
 {
 	/* check */
-	if (side != 0 && side != 1) throw ExceptionT::kOutOfRange;
+	if (side != 0 && side != 1) throw eOutOfRange;
 
 	/* dimensions */
 	int nip = neighbors.Length();	
@@ -297,10 +294,10 @@ void MeshFreeSurfaceSupportT::StoreData(int facet, int side,
 	VariRaggedArray2DT<double>& DPhi = (side == 0) ? fDPhi_1 : fDPhi_2;
 
 	/* check */
-	if (facet < 0 || facet > Neighbors.MajorDim()) throw ExceptionT::kOutOfRange;
+	if (facet < 0 || facet > Neighbors.MajorDim()) throw eOutOfRange;
 
 	/* collect all nodes used */
-	fall_neighbors.Dimension(0);
+	fall_neighbors.Allocate(0);
 	for (int i = 0; i < nip; i++)
 		fall_neighbors.AppendUnique(neighbors[i]);
 	int nnd = fall_neighbors.Length();
@@ -311,8 +308,8 @@ void MeshFreeSurfaceSupportT::StoreData(int facet, int side,
 		
 	/* generate local data */
 	int* map = fnode_map.Pointer();
-	fphi.Dimension(nip*nnd);
-	fDphi.Dimension(nip*nsd*nnd);
+	fphi.Allocate(nip*nnd);
+	fDphi.Allocate(nip*nsd*nnd);
 	
 	fphi  = 0.0;
 	fDphi = 0.0;
@@ -369,7 +366,7 @@ void MeshFreeSurfaceSupportT::MakeInverseMap(const iAutoArrayT& map,
 	int range = max - shift + 1;
 	
 	/* dimension */
-	inv_map.Dimension(range);
+	inv_map.Allocate(range);
 	inv_map = -1;
 
 	/* make map */
@@ -385,8 +382,8 @@ double MeshFreeSurfaceSupportT::FacetSize(const dArray2DT& facet_coords) const
 	if (fRefSurfaceShape.NumSD() + 1 != 2)
 	{
 //TEMP
-		const double* x1 = facet_coords(0);
-		const double* x2 = facet_coords(1);
+		double* x1 = facet_coords(0);
+		double* x2 = facet_coords(1);
 		double dx = x1[0] - x2[0];
 		double dy = x1[1] - x2[1];
 		double dz = x1[2] - x2[2];
@@ -395,8 +392,8 @@ double MeshFreeSurfaceSupportT::FacetSize(const dArray2DT& facet_coords) const
 	/* 2D surfaces */
 	else
 	{
-		const double* x1 = facet_coords(0);
-		const double* x2 = facet_coords(1);
+		double* x1 = facet_coords(0);
+		double* x2 = facet_coords(1);
 		double dx = x1[0] - x2[0];
 		double dy = x1[1] - x2[1];
 		return sqrt(dx*dx + dy*dy);

@@ -1,4 +1,4 @@
-/* $Id: SW2BodyT.h,v 1.4 2003-12-28 23:37:12 paklein Exp $ */
+/* $Id: SW2BodyT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
 /* created: paklein (05/20/1997)                                          */
 
 #ifndef _SW2_BODY_T_H_
@@ -7,8 +7,6 @@
 /* base class */
 #include "TwoBodyT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class SWDataT;
 
@@ -16,12 +14,9 @@ class SW2BodyT: public TwoBodyT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	SW2BodyT(const dArrayT& lengths, const ThermalDilatationT* thermal,
 		const SWDataT& SW);
-
-	/** destructor */
-	virtual ~SW2BodyT(void) { };
 
 	/* set free dof - triggers recomputation */
 	virtual void Set(void);
@@ -40,5 +35,4 @@ private:
 
 };
 
-} // namespace Tahoe 
 #endif /* _SW2_BODY_T_H_ */

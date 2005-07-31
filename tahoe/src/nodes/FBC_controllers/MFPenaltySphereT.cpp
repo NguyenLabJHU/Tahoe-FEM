@@ -1,64 +1,55 @@
-/* $Id: MFPenaltySphereT.cpp,v 1.9 2005-07-05 07:13:24 paklein Exp $ */
-/* created: paklein (04/17/2000) */
-#include "MFPenaltySphereT.h"
-#include "FieldT.h"
-#include "eIntegratorT.h"
-#include "FieldSupportT.h"
-#include "ParameterContainerT.h"
-#include "ParameterUtils.h"
-#include "ElementBaseT.h"
+/* $Id: MFPenaltySphereT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* created: paklein (04/17/2000)                                          */
 
-using namespace Tahoe;
+#include "MFPenaltySphereT.h"
+
+#include <iostream.h>
+
+#include "Constants.h"
+#include "FEManagerT.h"
+#include "ElementBaseT.h"
+#include "fstreamT.h"
 
 /* constructor */
-MFPenaltySphereT::MFPenaltySphereT(void):
+MFPenaltySphereT::MFPenaltySphereT(FEManagerT& fe_manager,
+	const iArray2DT& eqnos, const dArray2DT& coords, const dArray2DT* vels):
+	PenaltySphereT(fe_manager, eqnos, coords, vels),
 	fElementGroup(NULL)
 {
-	SetName("sphere_penalty_meshfree");
+
 }
 
-/* describe the parameters needed by the interface */
-void MFPenaltySphereT::DefineParameters(ParameterListT& list) const
+/* input processing */
+void MFPenaltySphereT::EchoData(ifstreamT& in, ostream& out)
 {
 	/* inherited */
-	PenaltySphereT::DefineParameters(list);
+	PenaltySphereT::EchoData(in, out);
 
-	/* meshless group number */
-	list.AddParameter(ParameterT::Integer, "meshless_element_group");
-}
-
-/* accept parameter list */
-void MFPenaltySphereT::TakeParameterList(const ParameterListT& list)
-{
-	const char caller[] = "MFPenaltySphereT::TakeParameterList";
-
-	/* inherited */
-	PenaltySphereT::TakeParameterList(list);
-
-	/* meshless group number */
-	int group = list.GetParameter("meshless_element_group");
-	group--;
-	/* get pointer */
-	fElementGroup = &(FieldSupport().ElementGroup(group));
-	if (!fElementGroup)
-		ExceptionT::GeneralFail(caller, "error retrieving pointer for group %d", group+1);
+	/* echo parameters */
+	in >> fGroupNumber;
+	out << "\n Source element group. . . . . . . . . . . . . . = " << fGroupNumber << '\n';
 	
-	/* check */
-	if (fElementGroup->InterpolantDOFs())
-		ExceptionT::GeneralFail(caller, "element group %d has interpolant DOF's. Use PenaltySphereT", group+1);
+	/* correct numbering */
+	fGroupNumber--;
+}
 
+/* initialize data */
+void MFPenaltySphereT::Initialize(void)
+{
+	/* inherited */
+	PenaltySphereT::Initialize();
+	
 	/* allocate workspace */
-	const dArray2DT& coords = FieldSupport().InitialCoordinates();
-	fCoords.Dimension(fNumContactNodes, coords.MinorDim());
-	fCurrCoords.Dimension(fNumContactNodes, Field().NumDOF());
+	fCoords.Allocate(fNumContactNodes, rCoords.MinorDim());
+	fCurrCoords.Allocate(fNumContactNodes, rEqnos.MinorDim());
 	
 	/* collect coordinates */
-	fCoords.RowCollect(fContactNodes, coords);
+	fCoords.RowCollect(fContactNodes, rCoords);
 }
 
 /**********************************************************************
- * Protected
- **********************************************************************/
+* Protected
+**********************************************************************/
 
 /* compute the nodal contribution to the residual force vector */
 void MFPenaltySphereT::ComputeContactForce(double kforce)
@@ -71,6 +62,7 @@ void MFPenaltySphereT::ComputeContactForce(double kforce)
 	fCurrCoords += fCoords; //EFFECTIVE DVA
 
 	/* loop over strikers */
+	fh_max = 0.0;
 	fContactForce2D = 0.0;	
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
@@ -80,18 +72,21 @@ void MFPenaltySphereT::ComputeContactForce(double kforce)
 		
 		/* penetration */
 		double dist = fv_OP.Magnitude();
-		double pen  = dist - fRadius;
-		if (pen < 0.0)
+		double pen  = fRadius - dist;
+		if (pen > 0.0)
 		{
+			/* store max penetration */
+			fh_max = (pen > fh_max) ? pen : fh_max;
+		
 			/* convert to force*outward normal */
-			fv_OP *= (-pen*fk*kforce/dist);
+			fv_OP *= (pen*fk*kforce/dist);
 		
 			/* accumulate */
 			fContactForce2D.SetRow(i, fv_OP);
 		}
 
 		/* store */
-		fGap[i] = pen;
+		fDistances[i] = dist;
 	}
 }
 
@@ -102,4 +97,20 @@ void MFPenaltySphereT::ComputeContactForce(double kforce)
 /* get element group pointer */
 void MFPenaltySphereT::SetElementGroup(void)
 {
+	/* get pointer */
+	fElementGroup = fFEManager.ElementGroup(fGroupNumber);
+	if (!fElementGroup)
+	{
+		cout << "\n MFPenaltySphereT::SetElementGroup: error retrieving pointer\n"
+		     <<   "     for group " << fGroupNumber + 1 << endl;
+		throw eGeneralFail;
+	}
+	
+	/* check */
+	if (fElementGroup->InterpolantDOFs())
+	{
+		cout << "\n MFPenaltySphereT::SetElementGroup: element group " << fGroupNumber + 1
+		     << '\n' <<   "     has interpolant DOF's. Use PenaltySphereT." << endl;
+		throw eGeneralFail;
+	}
 }

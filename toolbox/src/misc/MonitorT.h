@@ -1,4 +1,4 @@
-/* $Id: MonitorT.h,v 1.3 2002-07-05 22:26:31 paklein Exp $ */
+/* $Id: MonitorT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
 /* created: paklein (09/30/1996)                                          */
 
 #ifndef _MONITOR_T_H_
@@ -8,11 +8,8 @@
 #include "iArrayT.h"
 #include "VariArrayT.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
+#include "ios_fwd_decl.h"
 
 class MonitorT
 {
@@ -90,5 +87,4 @@ inline const iArrayT& MonitorT::Status(void) const {  return fStatus; }
 /* returns 1 if any flags have changed since the last Reset */
 inline int MonitorT::Changed(void) const { return(fChanged); }
 
-} // namespace Tahoe 
 #endif /* _MONITOR_T_H_ */

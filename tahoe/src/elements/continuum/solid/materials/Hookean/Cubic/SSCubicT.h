@@ -1,5 +1,6 @@
-/* $Id: SSCubicT.h,v 1.5 2004-07-15 08:27:05 paklein Exp $ */
-/* created: paklein (06/11/1997) */
+/* $Id: SSCubicT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (06/11/1997)                                          */
+
 #ifndef _SS_CUBIC_T_H_
 #define _SS_CUBIC_T_H_
 
@@ -7,30 +8,16 @@
 #include "SSHookeanMatT.h"
 #include "CubicT.h"
 
-namespace Tahoe {
-
-/** elastic small strain material with cubic symmetry */
 class SSCubicT: public SSHookeanMatT, public CubicT
 {
 public:
 
-	/** constructor */
-	SSCubicT(void);
+	/* constructor */
+	SSCubicT(ifstreamT& in, const ElasticT& element);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
-protected:
-
-	/* set (material) tangent modulus */
-	virtual void SetModulus(dMatrixT& modulus);
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 };
 
-} // namespace Tahoe 
 #endif /* _SS_CUBIC_T_H_ */

@@ -1,5 +1,6 @@
-/* $Id: AztecBaseT.h,v 1.6 2005-04-13 21:50:27 paklein Exp $ */
-/* created: paklein (07/28/1998) */
+/* $Id: AztecBaseT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (07/28/1998)                                          */
+/* Base class for Aztec iterative solver                                  */
 
 #ifndef _AZTEC_BASE_T_H_
 #define _AZTEC_BASE_T_H_
@@ -12,18 +13,12 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
-namespace Tahoe {
-
-/* forward declarations */
-class CommunicatorT;
-
-/** low-level interface to the Aztec iterative solver */
 class AztecBaseT
 {
 public:
 
-	/** constuctor */
-	AztecBaseT(ostream& msg, const CommunicatorT& comm);
+	/* constuctor */
+	AztecBaseT(void);
 	
 	/* destructor */
 	virtual ~AztecBaseT(void);
@@ -79,12 +74,6 @@ private:
 
 protected:
 
-	/** output stream for messages */
-	ostream& fMessage;
-
-	/** multiprocessor communicator */
-	const CommunicatorT& fCommunicator;
-
 	/* number of update rows */
 	int Start_update; //1,...
 	int N_update;
@@ -103,9 +92,9 @@ protected:
 
 	/* dynamically allocated arrays */
 	int* data_org;       // Array to specify data layout
-	int* external;       // vector elements needed by this node.
+int* external;       // vector elements needed by this node.
 	int* update_index;   // ordering of update[] and external[]
-	int* extern_index;   // locally on this processor. For example
+int* extern_index;   // locally on this processor. For example
 // update_index[i] gives the index
 // location of the vector element which
 // has the global index 'update[i]'.
@@ -134,6 +123,5 @@ private:
 	int* bindx_transform; // version set by AZ_transform
 };
 
-} // namespace Tahoe 
 #endif /*__AZTEC__ */
 #endif /* _AZTEC_BASE_T_H_ */

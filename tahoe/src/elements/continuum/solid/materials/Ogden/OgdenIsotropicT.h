@@ -1,66 +1,49 @@
-/* $Id: OgdenIsotropicT.h,v 1.9 2004-07-15 08:27:22 paklein Exp $ */
-/* created: paklein (10/01/2000) */
+/* $Id: OgdenIsotropicT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (10/01/2000)                                          */
+/* base class for large deformation isotropic material following          */
+/* Ogden's formulation.                                                   */
+
 #ifndef _OGDEN_ISOTROPIC_T_H_
 #define _OGDEN_ISOTROPIC_T_H_
 
 /* base classes */
-#include "FSIsotropicMatT.h"
+#include "FDStructMatT.h"
+#include "IsotropicT.h"
 
 /* direct members */
 #include "SpectralDecompT.h"
 
-namespace Tahoe {
-
-/* forward declarations */
-class SpectralDecompT;
-
-/** base class for large deformation isotropic material following
- * Ogden's spectral formulation. Derived types need only to overload
- * OgdenIsotropicT::dWdE and OgdenIsotropicT::dWdE. */
-class OgdenIsotropicT: public FSIsotropicMatT
+class OgdenIsotropicT: public FDStructMatT, public IsotropicT
 {
 public:
 
-	/** constructor */
-	OgdenIsotropicT(void);
+	/* constructor */
+	OgdenIsotropicT(ifstreamT& in, const ElasticT& element);
+	
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 
-	/** destructor */
-	virtual ~OgdenIsotropicT(void);
+	/* class specific initializations */
+	virtual void Initialize(void);
 
-	/** \name spatial description */
-	/*@{*/
-	/** spatial tangent modulus */
+	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void);
-
-	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
-
-	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
-	 * for more information. */
-	virtual double Pressure(void) const;
-	/*@}*/
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
 protected:
 
-	/* principal values of the PK2 stress given principal values of the stretch 
-	 * tensors, i.e., the principal stretches squared */
-	virtual void dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress) = 0;
-	virtual void ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
+	/* principal values given principal stretches */
+	virtual void dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress) = 0;
+	virtual void ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
 		dSymMatrixT& eigenmod) = 0;
 
 	/* return true of model is purely 2D, plain stress */
-	virtual bool PurePlaneStress(void) const { return false; };
+	virtual bool PurePlainStress(void) const { return false; };
 
 private:
 
@@ -73,19 +56,16 @@ private:
 protected:
 
 	/* spectral operations */
-	SpectralDecompT* fSpectralDecomp;
+	SpectralDecompT fSpectralDecomp;
 
 	/* work space */
-	dSymMatrixT fC;
 	dArrayT     fEigs; //TEMP - need this??
 	dArrayT     fdWdE;
 	dSymMatrixT fddWddE;
 	dMatrixT    fModMat;
 	
-	/* return values */
-	dMatrixT    fModulus;
-	dSymMatrixT fStress;
+	/* return value */
+	dMatrixT fModulus;
 };
 
-} // namespace Tahoe 
 #endif /* _OGDEN_ISOTROPIC_T_H_ */

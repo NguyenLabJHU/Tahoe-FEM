@@ -1,37 +1,61 @@
-/* $Id: ExecutionManagerT.cpp,v 1.18 2004-09-28 15:35:37 paklein Exp $ */
-/* created: paklein (08/27/1997) */
+/* $Id: ExecutionManagerT.cpp,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* created: paklein (08/27/1997)                                          */
+/* Manages input file driven jobs.                                        */
+/* MUST overload private:RunJob().                                        */
+
 #include "ExecutionManagerT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <time.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
-#include "StringT.h"
-#include "CommunicatorT.h"
+#ifdef __MPI__
+#include "mpi.h"
+#endif
 
-using namespace Tahoe;
+#include "fstreamT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
+#include "StringT.h"
 
 /* maximum batch file recursion depth */
 const int kMaxRecursionDepth = 10;
 
 /* Constructor */
 ExecutionManagerT::ExecutionManagerT(int argc, char* argv[], char job_char, char batch_char,
-	CommunicatorT& comm,
 	int jobcharputback):
 	fJobChar(job_char),
 	fBatchChar(batch_char),
-	fComm(comm),
 	fJobCharPutBack(jobcharputback),
 	fRecursionDepth(0)
 {
-	if (fJobCharPutBack != 1 && fJobCharPutBack != 0) throw ExceptionT::kBadInputValue;
+	if (fJobCharPutBack != 1 && fJobCharPutBack != 0) throw eBadInputValue;
 
 	/* store command line arguments */
-	fCommandLineOptions.Dimension(argc);
+	fCommandLineOptions.Allocate(argc);
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
 		fCommandLineOptions[i] = argv[i];
+
+//TEMP - no command line arguments for Mac
+#ifdef _MACOS_	
+	bool decomp_test = false;
+	if (decomp_test)
+	{
+		cout << "\n ExecutionManagerT::ExecutionManagerT: command-line test" << endl;
+		fCommandLineOptions.Allocate(2);
+		fCommandLineOptions[0] = "tahoe";
+		fCommandLineOptions[1] = "-decomp";
+	}
+#endif
+
+	//TEMP
+	if (0 && fCommandLineOptions.Length() > 1)
+	{
+		cout << "\n command line arguments:\n";
+		for (int j = 0; j < fCommandLineOptions.Length(); j++)
+			cout << setw(kIntWidth) << j << ":" << fCommandLineOptions[j] << '\n';
+		cout.flush();
+	}
 
 	/* format standard output */
 	ofstreamT::format_stream(cout);	
@@ -43,8 +67,68 @@ ExecutionManagerT::~ExecutionManagerT(void) { }
 /* Prompt input files until "quit" */
 void ExecutionManagerT::Run(void)
 {
+	int size = 1;
+#ifdef __MPI__
+	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
+#endif
+
+	/* dispatch */
+	if (size > 1)
+		Run_parallel();
+	else
+		Run_serial();
+}
+
+/**********************************************************************
+* Protected
+**********************************************************************/
+
+void ExecutionManagerT::Run_serial(void)
+{
+	/* file name passed on command line */
+	int index;
+	if (CommandLineOption("-f", index))
+	{
+		/* path name */
+		StringT& file = fCommandLineOptions[index+1];
+		file.ToNativePathName();
+	
+		/* open stream */
+		ifstreamT input(file);
+		if (!input.is_open())
+		{
+			cout << "\n ExecutionManagerT::Run_serial: unable to open file: \""
+			     << file  << '\"' << endl;
+			throw eBadInputValue;
+		}
+		
+		/* dispatch */
+		JobOrBatch(input, cout);
+	}
+	else
+	{
+		StringT lastfilename;
+		while (1)
+		{
+			/* prompt for input filename and open stream */
+			ifstreamT input;		
+			if (!input.open("Enter input file name", "quit", lastfilename)) break;
+			
+			/* keep last file name */
+			lastfilename = input.filename();
+	
+			/* Recursive dispatch */
+			JobOrBatch(input, cout);
+		}
+	}
+}
+
+void ExecutionManagerT::Run_parallel(void)
+#ifdef __MPI__
+{
 	/* get rank */
-	int rank = fComm.Rank();
+	int rank;
+	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS) throw eMPIFail;
 
 	/* file name passed on command line */
 	int index;
@@ -55,12 +139,12 @@ void ExecutionManagerT::Run(void)
 		file.ToNativePathName();
 
 		/* open stream */
-		ifstreamT input('#', file);
+		ifstreamT input(file);
 		if (!input.is_open())
 		{
 			cout << "\n ExecutionManagerT::Run_parallel: unable to open file: \""
 			     << file  << '\"' << endl;
-			throw ExceptionT::kBadInputValue;
+			throw eBadInputValue;
 		}
 		
 		/* dispatch */
@@ -68,54 +152,47 @@ void ExecutionManagerT::Run(void)
 	}
 	else
 	{
+
 		StringT lastfilename;
-		int count = 0;
-		while (count++ < 10)
+		while (1)
 		{
-			/* broadcast file name or command-line option */
-			StringT line(255);
+			/* prompt for input filename and open stream */
+			ifstreamT input;
+			StringT file(255);
 			if (rank == 0)
-				Prompt("Enter input file path or option (\"quit\" to exit)", lastfilename, line);
-			fComm.Broadcast(0, line);
-		
-			/* command line option */
-			if (line[0] == '-') {
-
-				/* reset count */
-				count = 0;
-
-				/* add command line option */
-				if (AddCommandLineOption(line))
-					cout << " added command line option: \"" << line << '\"' << endl;
-			}
-			else if (strncmp(line, "quit", 4) == 0)
-				break;
-			else /* try to open file */
 			{
-				line.ToNativePathName();
-				ifstreamT input('#', line);
-				if (input.is_open()) {
-
-					/* reset count */
-					count = 0;
-
-					/* keep last file name */
-					lastfilename = input.filename();
-	
-					/* Recursive dispatch */
-					JobOrBatch(input, cout);
-				}
+				if (input.open("Enter input file name", "quit", lastfilename))
+					file.CopyIn(input.filename());
 				else
-					cout << "\nError: filename: \"" << line << "\" not found\n";
+					file = "quit";
 			}
-		}
+	
+			/* broadcast file name */
+			if (MPI_Bcast(file.Pointer(), 255, MPI_CHAR, 0, MPI_COMM_WORLD) != MPI_SUCCESS)
+				throw eMPIFail;		
+			
+			/* open stream */
+			if (file == "quit")
+				break;
+			else if (rank > 0)
+				input.open(file);
 		
-		/* exit message */
-		if (count >= 10) cout << "\nNo valid input after " << count << " attempts." <<  endl;
+			/* keep last file name */
+			lastfilename = input.filename();
+	
+			/* recursive dispatch */
+			JobOrBatch(input, cout);
+		}
 	}
 }
+#else /* __MPI__ */
+{
+	cout << "\n ExecutionManagerT::Run_parallel: should not be here without MPI" << endl;
+	throw eGeneralFail;
+}
+#endif /* __ MPI__ */
 
-// returns true if the option was passed on the command line, moved to public DEF 3 Aug 04
+/* returns true if the option was passed on the command line */
 bool ExecutionManagerT::CommandLineOption(const char* str, int& index) const
 {
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
@@ -130,35 +207,24 @@ bool ExecutionManagerT::CommandLineOption(const char* str, int& index) const
 	return false;
 }
 
-
-/**********************************************************************
- * Protected
- **********************************************************************/
-
-bool ExecutionManagerT::AddCommandLineOption(const char* str)
+void ExecutionManagerT::AddCommandLineOption(const char* str)
 {
 	/* only if not present */
 	int index;
 	if (!CommandLineOption(str, index))
 	{
-		/* append */
-		fCommandLineOptions.Append(str);
-		return true;
+		int num_options = fCommandLineOptions.Length();
+	
+		ArrayT<StringT> temp(num_options + 1);
+		for (int i = 0; i < num_options; i++)
+			temp[i] = fCommandLineOptions[i];
+	
+		/* add new */
+		temp[num_options] = str;
+		
+		/* exhange data */
+		fCommandLineOptions.Swap(temp);
 	}
-	else return false;
-}
-
-bool ExecutionManagerT::RemoveCommandLineOption(const char* str)
-{
-	/* only if not present */
-	int index;
-	if (CommandLineOption(str, index))
-	{
-		/* append */
-		fCommandLineOptions.DeleteAt(index);
-		return true;
-	}
-	else return false;
 }
 
 /**********************************************************************
@@ -180,7 +246,7 @@ void ExecutionManagerT::JobOrBatch(ifstreamT& in, ostream& status)
 	}
 
 	/* check recursion depth */
-	if (++fRecursionDepth > kMaxRecursionDepth) throw ExceptionT::kGeneralFail;
+	if (++fRecursionDepth > kMaxRecursionDepth) throw eGeneralFail;
 	
 	/* JOB file */
 	if (filetypechar == fJobChar)
@@ -205,8 +271,26 @@ void ExecutionManagerT::JobOrBatch(ifstreamT& in, ostream& status)
 /* Batch file processing */
 void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 {
+#ifdef __MPI__
+	int size;
+	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
+	if (size > 1)
+	{
+		cout << "\n ExecutionManagerT::RunBatch: not ready for parallel execution" << endl;
+		throw eGeneralFail;
+	}
+#endif /* __MPI__ */
+
 	/* mark status */
 	status << "\n Processing batch file: " << in.filename() << '\n';
+
+	/* clear whitespace */
+	//in.next_char();
+
+	/* open status stream */
+	StringT statusfilename;
+	ofstreamT stat;	
+	stat.open(statusfilename.DefaultName(in.filename(),".bat",".stat", -1));
 	
 	/* start day/date info */
 	time_t starttime;
@@ -219,28 +303,15 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 	/* repeat to end of file */
 	while (in.good())
 	{
-		/* adjusting execution options */
-		if (nextinfilename[0] == '-')
-			AddCommandLineOption(nextinfilename);
-		else /* execute regular file */
-		{	
-			/* file path format */
-			nextinfilename.ToNativePathName();
-
-			/* path to source file */
-			StringT path;
-			path.FilePath(in.filename());
+		/* open new input stream */
+		nextinfilename.ToNativePathName();
+		ifstreamT nextin(nextinfilename);
 	
-			/* open new input stream */
-			nextinfilename.Prepend(path);
-			ifstreamT nextin('#', nextinfilename);
-	
-			/* process if valid */
-			if (nextin.is_open())
-				JobOrBatch(nextin, cout);
-			else
-				cout << " File not found: " << nextinfilename << '\n';
-		}
+		/* process if valid */
+		if (nextin.is_open())
+			JobOrBatch(nextin, stat);
+		else
+			stat << " File not found: " << nextinfilename << '\n';
 			
 		/* get next entry */
 		in >> nextinfilename;
@@ -249,44 +320,6 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 	/* stop day/date info */
 	time_t stoptime;
 	time(&stoptime);
-	cout << "\n Batch start time  : " << ctime(&starttime);
-	cout <<   " Batch stop time   : " << ctime(&stoptime);
-}
-
-void ExecutionManagerT::Prompt(const char* prompt, const char* default_input, StringT& line) const
-{
-	cout << '\n' << prompt;
-
-	/* default */
-	if (default_input != NULL && strlen(default_input) > 0)
-	{
-		cout << "\nEnter <RETURN> for \"" << default_input << "\": ";
-#ifdef __SGI__
-		cout.flush();
-#endif
-			
-		/* new filename */
-		char test = cin.peek();
-		if (test != '\n')
-		{
-			/* take first word */
-			cin >> line;
-		}
-		else
-		{
-			/* copy default */
-			line = default_input;
-		}				
-	}
-	else
-	{
-		cout << ": ";
-#ifdef __SGI__
-		cout.flush();
-#endif					
-		cin >> line;
-	}
-		
-	/* clear to end of line */
-	fstreamT::ClearLine(cin);
+	stat << "\n Batch start time  : " << ctime(&starttime);
+	stat <<   " Batch stop time   : " << ctime(&stoptime);
 }

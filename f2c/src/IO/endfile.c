@@ -147,11 +147,7 @@ t_runc(alist *a)
 		goto done;
 		}
 #ifdef _POSIX_SOURCE
-#ifdef __GNU__
-	mkstemp(nm);
-#else
 	tmpnam(nm);
-#endif
 #else
 	strcpy(nm,"tmp.FXXXXXX");
 	mktemp(nm);

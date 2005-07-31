@@ -1,19 +1,22 @@
-/* $Id: PTHT2BodyT.cpp,v 1.5 2004-07-15 08:28:36 paklein Exp $ */
-/* created: paklein (10/11/1997) */
+/* $Id: PTHT2BodyT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* created: paklein (10/11/1997)                                          */
+
 #include "PTHT2BodyT.h"
 
 #include <math.h>
-#include "ThermalDilatationT.h"
 
-using namespace Tahoe;
+#include "fstreamT.h"
+#include "ThermalDilatationT.h"
 
 /* constructor */
 PTHT2BodyT::PTHT2BodyT(const dArrayT& lengths,
-	const ThermalDilatationT* thermal, double A, double A1, double A2):
-	TwoBodyT(lengths, thermal),
-	fA(A), fA1(A1), fA2(A2)
+	const ThermalDilatationT* thermal, ifstreamT& in):
+	TwoBodyT(lengths, thermal)
 {
-
+	/* read parameters */
+	in >> fA;
+	in >> fA1;
+	in >> fA2;
 }
 
 /* set free dof - triggers recomputation */
@@ -23,7 +26,7 @@ void PTHT2BodyT::Set(void)
 	double* pdPhi  = fdPhi.Pointer();
 	double* pddPhi = fddPhi.Pointer();
 	
-	const double* pl = fLengths.Pointer();
+	double* pl = fLengths.Pointer();
 	
 	/* expansion factor */
 	double a = 1.0;

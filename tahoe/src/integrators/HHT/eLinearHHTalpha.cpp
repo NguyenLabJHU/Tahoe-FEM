@@ -1,15 +1,24 @@
-/* $Id: eLinearHHTalpha.cpp,v 1.5 2004-07-15 08:30:28 paklein Exp $ */
-/* created: paklein (10/14/1996) */
+/* $Id: eLinearHHTalpha.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
+
 #include "eLinearHHTalpha.h"
 
-using namespace Tahoe;
+#include "Environment.h"
+#include "ExceptionCodes.h"
 
 /* constructor */
-eLinearHHTalpha::eLinearHHTalpha(double alpha):
-	HHTalpha(alpha)
+eLinearHHTalpha::eLinearHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder):
+	HHTalpha(in, out, auto2ndorder)
 {
 
 }
+
+/* time integration parameters */
+eControllerT::StatDynFlagT eLinearHHTalpha::StaticDynamic(void) const { return kDynamic; }
+eControllerT::ImpExpFlagT eLinearHHTalpha::ImplicitExplicit(void) const { return kImplicit; }
+
+/* return order time discretization */
+int eLinearHHTalpha::Order(void) const { return 2; }
 
 /* returns 1 if the algorithm requires M, C, or K and sets const equal
 * to the coefficient for the linear combination of components in the

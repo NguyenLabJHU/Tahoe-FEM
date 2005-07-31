@@ -1,33 +1,27 @@
-/* $Id: Trapezoid.h,v 1.6 2004-07-15 08:30:53 paklein Exp $ */
+/* $Id: Trapezoid.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/03/1999)                                          */
+
 #ifndef _TRAPEZOID_H_
 #define _TRAPEZOID_H_
 
-/* base class */
-#include "IntegratorT.h"
+/* base classes */
+#include "nTrapezoid.h"
+#include "eTrapezoid.h"
 
-namespace Tahoe {
+/* forward declarations */
+#include "ios_fwd_decl.h"
 
-/** implicit, first-order time integrator */
-class Trapezoid: virtual public IntegratorT
+class Trapezoid: public nTrapezoid, public eTrapezoid
 {
 public:
 
-	/** constructor */
-	Trapezoid(void) { };
-
-	/** \name integrator parameters */
-	/*@{*/
-	/** return flag indicating whether integrator is implicit or explicit */
-	virtual ImpExpFlagT ImplicitExplicit(void) const { return kImplicit; };
-
-	/** return order time discretization */
-	virtual int Order(void) const { return 1; };
-
-	/** return order field derivative which is treated as the primary 
-	 * unknown value */
-	virtual int OrderOfUnknown(void) const { return 1; };
-	/*@}*/
+	/* constructor */
+	Trapezoid(ostream& out);
+	  	
+protected:  	
+	
+	/* recalculate time stepping constants */
+	virtual void ComputeParameters(void);
 };
 
-} // namespace Tahoe 
 #endif /* _TRAPEZOID_H_ */

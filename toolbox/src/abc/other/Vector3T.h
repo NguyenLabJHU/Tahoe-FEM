@@ -1,91 +1,67 @@
-/* $Id: Vector3T.h,v 1.11 2005-07-29 08:11:58 paklein Exp $ */
-/* created: paklein (02/11/2000) */
+/* $Id: Vector3T.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (02/11/2000)                                          */
+/* utility class for 3D vector functions                                  */
+/* NOTE: some functions do create temporary nTYPE's                       */
+
 #ifndef _VECTOR_3_T_H_
 #define _VECTOR_3_T_H_
 
 /* Environmental */
 #include "Environment.h"
 
-namespace Tahoe {
-
-/** utility class for 3D vector functions.
- * \note some functions do create temporary nTYPE instances */
 template <class nTYPE>
 class Vector3T
 {
   public:
 
-	/** default constructor */
+	/* constructors */
 	Vector3T(void);
-
-	/** "copy" constructor. Copy the first 3 values from source */
 	Vector3T(const nTYPE* source);
 
-	/** \name accessors */
-	/*@{*/
-	/** element accessor */
-	nTYPE& operator[](int dex);
+	/* accessor */
+	nTYPE& operator[](int dex) const;
 
-	/** const element accessor */
-	const nTYPE& operator[](int dex) const;
-
-	/** type conversion operator. Convert a Vector3T to a (const nTYPE*) */
+	/* type conversion operators */
 	operator const nTYPE*() const;
+	operator nTYPE*() const;
 
-	/** type conversion operator. Convert a Vector3T to a (nTYPE*) */
-	operator nTYPE*();
-	/*@}*/
-
-	/** \name assignment operator */
-	/*@{*/
+	/* assignment operator */
 	Vector3T<nTYPE>& operator=(const nTYPE* rhs);
 	Vector3T<nTYPE>& operator=(const nTYPE& value);
-	/*@}*/
 
-	/** \name mathematical operators */
-	/*@{*/
+	/* mathematical operators */
 	Vector3T<nTYPE>& operator+=(const nTYPE* rhs);
 	Vector3T<nTYPE>& operator-=(const nTYPE* rhs);
-	/*@}*/
 
-	/** \name with scalars */
-	/*@{*/
+	/* with scalars */
 	Vector3T<nTYPE>& operator+=(const nTYPE& value);
 	Vector3T<nTYPE>& operator-=(const nTYPE& value);
 	Vector3T<nTYPE>& operator*=(const nTYPE& value);
 	Vector3T<nTYPE>& operator/=(const nTYPE& value);
-	/*@}*/
 
-	/** \name average */
-	/*@{*/
+	/* average */
 	Vector3T<nTYPE>& Average(const nTYPE* a, const nTYPE* b);
 	Vector3T<nTYPE>& Average(const nTYPE* a, const nTYPE* b, const nTYPE* c);
-	/*@}*/
 	
-	/** difference */
+	/* difference */
 	Vector3T<nTYPE>& Diff(const nTYPE* a, const nTYPE* b);
 
-	/** vector cross product */
+	/* vector cross product */
 	Vector3T<nTYPE>& Cross(const nTYPE* a, const nTYPE* b);
 
-	/** inner product */
+	/* inner product */
 	static nTYPE Dot(const nTYPE* a, const nTYPE* b);
 
-	/** L2 norm (between a and b) */
+	/* L2 norm (between a and b) */
 	nTYPE Norm(void) const;
 	static nTYPE Norm(const nTYPE* a, const nTYPE* b);
 
-	/** linear combinations <- a*A + b*B */
+	/* linear combinations <- a*A + b*B */
 	Vector3T<nTYPE>& Combine(const nTYPE& a, const nTYPE* A,
 	                         const nTYPE& b, const nTYPE* B);
 
-	/** fill vector with random numbers in the range [-1 1]
-	 * \param seed random number seed */
-	void Random(int seed);
-
 private:
 
-	/** statically allocated data */
 	nTYPE v[3];
 };
 
@@ -106,19 +82,10 @@ inline Vector3T<nTYPE>::Vector3T(const nTYPE* source)
 
 /* accessor */
 template <class nTYPE>
-inline nTYPE& Vector3T<nTYPE>::operator[](int dex)
+inline nTYPE& Vector3T<nTYPE>::operator[](int dex) const
 {
 #if __option(extended_errorcheck)
-	if (dex < 0 || dex > 2) ExceptionT::OutOfRange("Vector3T");
-#endif
-	return v[dex];
-}
-
-template <class nTYPE>
-inline const nTYPE& Vector3T<nTYPE>::operator[](int dex) const
-{
-#if __option(extended_errorcheck)
-	if (dex < 0 || dex > 2) ExceptionT::OutOfRange("Vector3T");
+	if (dex < 0 || dex > 2) throw eOutOfRange;
 #endif
 	return v[dex];
 }
@@ -128,7 +95,7 @@ template <class nTYPE>
 inline Vector3T<nTYPE>::operator const nTYPE*() const { return (const nTYPE*) v; }
 
 template <class nTYPE>
-inline Vector3T<nTYPE>::operator nTYPE*() { return (nTYPE*) v; }
+inline Vector3T<nTYPE>::operator nTYPE*() const { return (nTYPE*) v; }
 
 /* assignment operator */
 template <class nTYPE>
@@ -249,18 +216,6 @@ inline Vector3T<nTYPE>& Vector3T<nTYPE>::Cross(const nTYPE* a,
 	return *this;
 }
 
-/* fill the array with random numbers in the range [-1 1] */
-template <class nTYPE>
-inline void Vector3T<nTYPE>::Random(int seed)
-{
-	/* set random number seed */
-	srand(seed);
-
-	v[0] = nTYPE(rand() - RAND_MAX/2)/nTYPE(RAND_MAX);
-	v[1] = nTYPE(rand() - RAND_MAX/2)/nTYPE(RAND_MAX);
-	v[2] = nTYPE(rand() - RAND_MAX/2)/nTYPE(RAND_MAX);
-}
-
 /* inner product */
 template <class nTYPE>
 inline nTYPE Vector3T<nTYPE>::Dot(const nTYPE* a, const nTYPE* b)
@@ -296,5 +251,4 @@ inline Vector3T<nTYPE>& Vector3T<nTYPE>::
 	return *this;
 }
 
-} // namespace Tahoe 
 #endif /* _VECTOR_3_T_H_ */

@@ -1,122 +1,72 @@
-/* $Id: RodT.cpp,v 1.34 2004-07-22 09:12:53 paklein Exp $ */
-/* created: paklein (10/22/1996) */
+/* $Id: RodT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* created: paklein (10/22/1996)                                          */
+/* NOTE: the RodT class doesn't provide complete support for the          */
+/* different time integration schemes implemented using the               */
+/* controller classes. need to add something like the                     */
+/* ComputeEffectiveDVA functions from the continuum element               */
+/* classes to provide contributions to the global equations               */
+/* which are consistent with the time integration algorithm.              */
+/* PAK (05/30/1999)                                                       */
+
 #include "RodT.h"
 
 #include <math.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
-#include "eIntegratorT.h"
-#include "OutputSetT.h"
-#include "dArray2DT.h"
+#include "fstreamT.h"
+#include "FEManagerT.h"
+#include "eControllerT.h"
 
 /* material types */
 #include "LinearSpringT.h"
 #include "LJSpringT.h"
 
-using namespace Tahoe;
+/* material type codes */
+const int	kQuad		 = 1;	/* quadratic potential - linear spring */
+const int	kLJ612       = 2;	/* Lennard-Jones 6-12 potential */
 
-/* Element type parameters */
-const int RodT::kRodTndof = 2; /* number of degrees of freedom per node */
-const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
+const int	kMaterialMin = 1;
+const int	kMaterialMax = 2;
 
 /* constructors */
-RodT::RodT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support),
+RodT::RodT(FEManagerT& fe_manager):
+	ElementBaseT(fe_manager),
 	fCurrMaterial(NULL),
-	fLocAcc(LocalArrayT::kAcc),
-	fInstKE(0.0),
-	fInstPE(0.0),
-	fInstTotalE(0.0),
-	fInstTemp(0.0),
-	fInstPressure(0.0),
-	fAvgKE(0.0),
-	fAvgPE(0.0),
-	fAvgTotalE(0.0),
-	fAvgTemp(0.0),
-	fAvgPressure(0.0),
-	fSumKE(0.0),
-	fSumPE(0.0),
-	fSumTotalE(0.0),
-	fSumTemp(0.0),
-	fSumPressure(0.0),
-	fStepNumber(support.StepNumber()),
-	fHardyStress(NumSD()),
-	fHardyHeatFlux(NumSD()),
-	fLocVel(LocalArrayT::kVel)
+	fLocInitCoords(LocalArrayT::kInitCoords),
+	fLocDisp(LocalArrayT::kDisp)
 {
-#pragma message("fix me")
+	/* check base class initializations */
+	if (fNumElemNodes != 2) throw eGeneralFail;
+
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-	fKb = 1.38054;
 }
 
 /* initialization */
 void RodT::Initialize(void)
 {
-#pragma message("delete me")
-#if 0
 	/* inherited */
 	ElementBaseT::Initialize();
-	
-	/* local arrays */
-	fLocAcc.Dimension(2, NumDOF());
-	if (fIntegrator->Order() == 2) Field().RegisterLocal(fLocAcc);
-	fNEE_vec.Dimension(fLocAcc.Length());
-	
-	/* constant matrix needed to calculate stiffness */
-	fOneOne.Dimension(fLHS);
-	dMatrixT one(NumDOF());
-	one.Identity();
-	fOneOne.SetBlock(0, 0, one);
-	fOneOne.SetBlock(NumDOF(), NumDOF(), one);
-	one *= -1;
-	fOneOne.SetBlock(0, NumDOF(), one);
-	fOneOne.SetBlock(NumDOF(), 0, one);
-	
-	/* bond vector */
-	fBond.Dimension(NumSD());
-	fBond0.Dimension(NumSD());
+
+	/* set local arrays */
+	fLocInitCoords.Allocate(fNumElemNodes, fNumSD);
+	fLocDisp.Allocate(fNumElemNodes, fNumDOF);
+	fFEManager.RegisterLocal(fLocInitCoords);
+	fFEManager.RegisterLocal(fLocDisp);
 
 	/* echo material properties */
-	ReadMaterialData(ElementSupport().Input());	
-//	WriteMaterialData(ElementSupport().Output());
-
-	/* get form of tangent */
-	GlobalT::SystemTypeT type = TangentType();
-	
-	/* set form of element stiffness matrix */
-	if (type == GlobalT::kSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-	else if (type == GlobalT::kNonSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-	else if (type == GlobalT::kDiagonal)
-		fLHS.SetFormat(ElementMatrixT::kDiagonal);
-
-	/* initialize and allocate velocity array IF dynamic (MD) calculation*/
-	const FieldT& field = Field();
-	if (field.Order() > 0) {
-	  fLocVel.Dimension(NumElementNodes(), NumDOF());
-	  Field().RegisterLocal(fLocVel);
-	}
-#endif
+	ReadMaterialData(fFEManager.Input());	
+	WriteMaterialData(fFEManager.Output());
 }
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT RodT::TangentType(void) const
 {
-	/* special case */
-	if (fIntegrator->Order() > 0 &&
-	    fIntegrator->ImplicitExplicit() ==  eIntegratorT::kExplicit)
-		return GlobalT::kDiagonal;
-	else
-		return GlobalT::kSymmetric;
+	return GlobalT::kSymmetric;
 }
 
 /* NOT implemented. Returns an zero force vector */
-void RodT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
+void RodT::AddNodalForce(int node, dArrayT& force)
 {
-#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }
@@ -124,63 +74,32 @@ void RodT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 /* returns the energy as defined by the derived class types */
 double RodT::InternalEnergy(void)
 {
-	/* coordinates arrays */
-	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
-	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
-
 	double energy = 0.0;
-	Top();
-	while (NextElement())
-	{
-		/* node numbers */
-		const iArrayT& nodes = CurrentElement().NodesX();
-		int n0 = nodes[0];
-		int n1 = nodes[1];
-	
-		/* reference bond */
-		fBond0.DiffOf(init_coords(n1), init_coords(n0));
 
-		/* current bond */
-		fBond.DiffOf(curr_coords(n1), curr_coords(n0));
+	Top();
+	while ( NextElement() )
+	{
+		/* local arrays */
+		SetLocalX(fLocInitCoords);
+		SetLocalU(fLocDisp);
 		
 		/* form element stiffness */
-		energy += fCurrMaterial->Potential(fBond.Magnitude(), fBond0.Magnitude());
+		energy += ElementEnergy();
 	}
-	return energy;
+
+	return(energy);
 }
 
 /* writing output */
 void RodT::RegisterOutput(void)
 {
-	/* block ID's */
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
-
-	/* set output specifier */
-	ArrayT<StringT> e_labels;
-	OutputSetT output_set(GeometryT::kLine, block_ID, fConnectivities, 
-		Field().Labels(), e_labels, ChangingGeometry());
-		
-	/* register and get output ID */
-	fOutputID = ElementSupport().RegisterOutput(output_set);
+	//nothing for now
 }
 
-void RodT::WriteOutput(void)
+void RodT::WriteOutput(IOBaseT::OutputModeT mode)
 {
-	/* get list of nodes used by the group */
-	iArrayT nodes_used;
-	NodesUsed(nodes_used);
-
-	/* temp space for group displacements */
-	dArray2DT disp(nodes_used.Length(), NumDOF());
-	
-	/* collect group displacements */
-	disp.RowCollect(nodes_used, Field()[0]);
-
-	/* send */
-	dArray2DT e_values;
-	ElementSupport().WriteOutput(fOutputID, disp, e_values);
+#pragma unused(mode)
+	//nothing for now
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -190,113 +109,29 @@ void RodT::SendOutput(int kincode)
 	//TEMP: for now, do nothing
 }
 
-/* initialize/finalize step */
-void RodT::InitStep(void)
-{
-  /* inherited */
-  ElementBaseT::InitStep();
-  /* set material variables */
-  //fMaterialList->InitStep();
-}
-
-void RodT::CloseStep(void)
-{
-  /* inherited */
-  ElementBaseT::CloseStep();
-  /* set material variables */
-  //fMaterialList->CloseStep(); 
-  Top();
-  const FieldT& field = Field();
-  while (NextElement()) {
-    ComputeHardyStress();
-    if (field.Order() > 0)
-      {
-     	/* get velocities */
-	SetLocalU(fLocVel);
-	
-	/* compute MD quantities of interest */
-	ComputeInstPE();
-	ComputeInstKE();
-	ComputeInstTotalE();
-	ComputeInstTemperature();
-	//ComputeInstPressure();
-      }
-  }
-  ComputeAvgPE();
-  ComputeAvgKE();
-  ComputeAvgTotalE();
-  ComputeAvgTemperature();
-  //ComputeAvgPressure()
-  PrintMDToFile();
-}
-
-
 /***********************************************************************
 * Protected
 ***********************************************************************/
 
 /* construct the element stiffness matrix */
-void RodT::LHSDriver(GlobalT::SystemTypeT)
+void RodT::LHSDriver(void)
 {
 	/* time integration dependent */
-	double constK = 0.0;
-	double constM = 0.0;
-	int formK = fIntegrator->FormK(constK);
-	int formM = fIntegrator->FormM(constM);
-
-	/* coordinates arrays */
-	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
-	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
+	double constK;
+	if (!fController->FormK(constK)) return;
 	
-	/* use RHS as temp space */
-	dArrayT v0(NumDOF(), fRHS.Pointer());
-	dArrayT v1(NumDOF(), fRHS.Pointer() + NumDOF());
-
 	Top();
-	while (NextElement())
+	while ( NextElement() )
 	{
-		/* particle mass */
-		double mass = fCurrMaterial->Mass();
-
-		/* node numbers */
-		const iArrayT& nodes = CurrentElement().NodesX();
-		int n0 = nodes[0];
-		int n1 = nodes[1];
-
-		/* form element stiffness */
-		if (formK) {		
-
-			/* reference bond */
-			fBond0.DiffOf(init_coords(n1), init_coords(n0));
-			double l0 = fBond0.Magnitude();
-
-			/* current bond */
-			v1.DiffOf(curr_coords(n1), curr_coords(n0));
-			double l = v1.Magnitude();
-			v0.SetToScaled(-1.0, v1);
-			
-			/* bond force and stiffness */
-			double dU = fCurrMaterial->DPotential(l, l0);
-			double ddU = fCurrMaterial->DDPotential(l, l0);
-
-			/* allow zero length springs */
-			if (fabs(l) > kSmall) 
-			{
-				/* 1st term */
-				fLHS.Outer(fRHS, fRHS);
-				fLHS *= constK*(ddU - dU/l)/(l*l);
+		/* initialize */
+		fLHS = 0.0;
 		
-				/* 2nd term */
-				fLHS.AddScaled(constK*dU/l, fOneOne);
-			}
-			else /* limit as l->0 */
-				fLHS.AddScaled(constK*ddU, fOneOne);
-		} 
-		else 
-			fLHS = 0.0;
-	
-		/* mass contribution */
-		if (formM) fLHS.PlusIdentity(constM*mass);
+		/* local arrays */
+		SetLocalX(fLocInitCoords);
+		SetLocalU(fLocDisp);
+		
+		/* form element stiffness */
+		ElementStiffness(constK);
 	
 		/* add to global equations */
 		AssembleLHS();
@@ -306,61 +141,30 @@ void RodT::LHSDriver(GlobalT::SystemTypeT)
 /* construct the element force vectors */
 void RodT::RHSDriver(void)
 {
-	const char caller[] = "RodT::RHSDriver";
-
-	/* set components and weights */
-	double constMa = 0.0;
-	double constKd = 0.0;
-	
-	/* components dicated by the algorithm */
-	int formMa = fIntegrator->FormMa(constMa);
-	int formKd = fIntegrator->FormKd(constKd);
-	
-	/* coordinates arrays */
-	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
-	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
-	
-	/* point forces */
-	dArrayT f0(NumDOF(), fRHS.Pointer());
-	dArrayT f1(NumDOF(), fRHS.Pointer() + NumDOF());
+	/* time integration dependent */
+	double constKd;
+	if (!fController->FormK(constKd)) return;
 
 	Top();
-	while (NextElement())
+	while ( NextElement() )
 	{
-		/* node numbers */
-		const iArrayT& nodes = CurrentElement().NodesX();
-		int n0 = nodes[0];
-		int n1 = nodes[1];
+		/* local displacement */
+		SetLocalU(fLocDisp);
 	
-		/* reference bond */
-		fBond0.DiffOf(init_coords(n1), init_coords(n0));
-		double l0 = fBond0.Magnitude();
+		if (fLocDisp.AbsMax() > 0.0 || fCurrMaterial->HasInternalStrain())
+		{
+			/* initialize */
+			fRHS = 0.0;
+	
+			/* local coordinates */
+			SetLocalX(fLocInitCoords);
 
-		/* current bond */
-		fBond.DiffOf(curr_coords(n1), curr_coords(n0));
-		double l = fBond.Magnitude();
-		
-		/* bond force magnitude */
-		double dU = fCurrMaterial->DPotential(l, l0);
-		double f_by_l = 0.0;
-		if (fabs(l) > kSmall)
-			f_by_l = constKd*dU/l;
-		else if (fabs(dU) > kSmall)
-			ExceptionT::GeneralFail(caller, "bond %d has length but %g force", CurrElementNumber(), dU);
-
-		/* particle forces (extra -1 since moved to the RHS) */
-		f0.SetToScaled(f_by_l, fBond);
-		f1.SetToScaled(-1.0, f0);
-
-		/* inertial force */
-		if (formMa) {		
-			SetLocalU(fLocAcc);
-			fLocAcc.ReturnTranspose(fNEE_vec);
-			fRHS.AddScaled(-constMa*fCurrMaterial->Mass(), fNEE_vec);
+			/* form element force */
+			ElementForce(constKd);
+	
+			/* add to global equations */
+			AssembleRHS();
 		}
-
-		/* add to global equations */
-		AssembleRHS();
 	}
 }
 
@@ -382,7 +186,7 @@ void RodT::ReadMaterialData(ifstreamT& in)
 	/* allocate space */
 	int	nummaterials;
 	in >> nummaterials;
-	fMaterialsList.Dimension(nummaterials);
+	fMaterialsList.Allocate(nummaterials);
 
 	/* read data */
 	for (int i = 0; i < nummaterials; i++)
@@ -390,272 +194,199 @@ void RodT::ReadMaterialData(ifstreamT& in)
 		int matnum, matcode;
 		in >> matnum;
 		in >> matcode;	
+		if (matcode < kMaterialMin ||
+		    matcode > kMaterialMax) throw eBadInputValue;
 		
 		/* add to the list of materials */
 		switch (matcode)
 		{
-			case kQuad:			
+			case kQuad:
+			
 				fMaterialsList[--matnum] = new LinearSpringT(in);
 				break;
 				
 			case kLJ612:
+			
 				fMaterialsList[--matnum] = new LJSpringT(in);
 				break;
 
 			default:
 			
 				cout << "\n RodT::ReadMaterialData: unknown material type\n" << endl;
-				throw ExceptionT::kBadInputValue;
+				throw eBadInputValue;
 		}
 
 		/* check */
-		if (!fMaterialsList[matnum]) throw ExceptionT::kOutOfMemory;
+		if (!fMaterialsList[matnum]) throw(eOutOfMemory);
 	
 		/* set thermal LTf pointer */
-		int LTfnum = fMaterialsList[matnum]->ThermalScheduleNumber();
-		if (LTfnum > -1)
-			fMaterialsList[matnum]->SetThermalSchedule(ElementSupport().Schedule(LTfnum));	
+		int LTfnum = fMaterialsList[matnum]->ThermalLTfNumber();
+		if (LTfnum > 0)
+			fMaterialsList[matnum]->SetThermalLTfPtr(GetLTfPtr(LTfnum));	
 	}
 }
 
-/* read connectivity and determine the nodes used */
-void RodT::EchoConnectivityData(ifstreamT& in, ostream& out)
+void RodT::WriteMaterialData(ostream& out) const
 {
-	/* inherited */
-	//ElementBaseT::EchoConnectivityData(in, out);
-	
-	/* determine the nodes used strictly based on those in the connectivities */
-	NodesUsed(fGroupNodes);
-}
-
-/***********************************************************************
-* Private
-***********************************************************************/
-
-/* Below are functions implementing Hardy ideas deriving continuum 
- * measures from MD notions */
-
-void RodT::ComputeHardyStress(void)
-{
-  double constKd = 0.0;
-	
-  /* components dicated by the algorithm */
-  int formKd = fIntegrator->FormKd(constKd);
-  
-  /* coordinates arrays */
-  const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
-  const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
-  
-  /* point forces */
-  dArrayT f0(NumDOF(), fRHS.Pointer());
-  dArrayT f1(NumDOF(), fRHS.Pointer() + NumDOF());
-  
-  /* node numbers */
-  const iArrayT& nodes = CurrentElement().NodesX();
-  int n0 = nodes[0];
-  int n1 = nodes[1];
-	
-  /* reference bond */
-  fBond0.DiffOf(init_coords(n1), init_coords(n0));
-  double l0 = fBond0.Magnitude();
-
-  /* current bond */
-  fBond.DiffOf(curr_coords(n1), curr_coords(n0));
-  double l = fBond.Magnitude();
-		
-  /* bond force magnitude */
-  double dU = fCurrMaterial->DPotential(l, l0);
-	
-  /* particle forces */
-  f0.SetToScaled(constKd*dU/l, fBond);
-
-  /* Potential part of Hardy stress */
-  fHardyStress.Outer(fBond,f0);
-  fHardyStress *= -.5;
-
-  /* Kinetic part of Hardy stress */
-  const FieldT& field = Field();
-  if (field.Order() > 0) {
-   
-    dArrayT vel;
-    dMatrixT kinstress(NumSD());
-    const dArray2DT& velocities = field[1];
-    for (int i = 0; i < fGroupNodes.Length(); i++)
-      {
-	velocities.RowAlias(fGroupNodes[i], vel);
-	kinstress.Outer(vel,vel);
-	kinstress *= .5;
-	kinstress *= fCurrMaterial->Mass();
-	fHardyStress += kinstress;
-      }
-  }
-}
-
-void RodT::ComputeHardyHeatFlux(void)
-{
-
-
-
-
-
-}
-
-
-/* Below are MD related computational functions */
-
-void RodT::ComputeInstKE(void)
-{
-	/* computes the instantaneous kinetic energy of the system of atoms */
-	double& ke = fInstKE;
-	double& total = fSumKE;
-  
-	ke = 0.0;
-	const FieldT& field = Field();
-	if (field.Order() > 0) {
-   
-		dArrayT vel;
-		const dArray2DT& velocities = field[1];
-		for (int i = 0; i < fGroupNodes.Length(); i++)
-  		{
-  			velocities.RowAlias(fGroupNodes[i], vel);
-  			ke += dArrayT::Dot(vel,vel);
-		}
-		ke *= fCurrMaterial->Mass()/2.0;
-	}
-	total += ke;
-}
-
-void RodT::ComputeAvgKE(void)
-{
-	double& tempavg = fAvgKE;
-	if (fStepNumber) /* only for positive steps */
-  		tempavg = fSumKE / fStepNumber;
-	else
-		tempavg = 0.0;
-}
-
-void RodT::ComputeInstPE(void)
-{
-  /* computes the potential energy of the system of atoms */
-  
-  /* coordinates arrays */
-  const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
-  const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
-  double& pe = fInstPE;
-  double& total = fSumPE;
-  pe = 0.0;
-
-  /* node numbers */
-  const iArrayT& nodes = CurrentElement().NodesX();
-  int n0 = nodes[0];
-  int n1 = nodes[1];
-  
-  /* reference bond */
-  fBond0.DiffOf(init_coords(n1), init_coords(n0));
-  
-  /* current bond */
-  fBond.DiffOf(curr_coords(n1), curr_coords(n0));
-
-  pe += fCurrMaterial->Potential(fBond.Magnitude(), fBond0.Magnitude());
-  total += pe;
-}
-
-void RodT::ComputeAvgPE(void)
-{
-	double& tempavg = fAvgPE;
-  	if (fStepNumber > 0) /* only for positive steps */
-  		tempavg = fSumPE / fStepNumber;
-	else
-		tempavg = 0.0;
-}
-
-void RodT::ComputeInstTotalE(void)
-{
-  /* computes instantaneous total energy = kinetic energy + potential energy of the system */
-  double& totale = fInstTotalE;
-  double& total = fSumTotalE;
-  totale = 0.0;
-  totale = fInstKE + fInstPE;
-  total += totale;
-}
-
-void RodT::ComputeAvgTotalE(void)
-{
-  	double& tempavg = fAvgTotalE;
-	if (fStepNumber > 0) /* only for positive steps */
-		tempavg = fSumTotalE / fStepNumber;
-	else
-		tempavg = 0.0;
-}
-
-void RodT::ComputeInstTemperature(void)
-{
-  /* computes instantaneous temperature of the atomic system */
-  double& temp = fInstTemp;
-  temp = 0.0;
-  temp = 2 * fInstKE / (fKb * NumSD() * fGroupNodes.Length());
-}
-
-void RodT::ComputeAvgTemperature(void)
-{
-  double& temp = fAvgTemp;
-  temp = 2 * fAvgKE / (fKb * NumSD() * fGroupNodes.Length());
-}
-
-void RodT::ComputeInstPressure(void)
-{
-  /* computes the instantaneous pressure of the atomic system */
-
-}
-
-void RodT::ComputeAvgPressure(void)
-{
-  /* computes the average pressure of the atomic system */
-
-}
-
-int RodT::PrintMDToFile(void)
-{
-	/* print MD quantities (temperature/energy/pressure) to an output file */
-	ofstreamT out;
-	int d_width = OutputWidth(out, &fAvgTotalE); 
-	if (ElementSupport().StepNumber() == 1)
-  	{
-  		out.open("MD.out");
-		if (!out.is_open()) {
-			cout << "Cannot open MD.out file.\n";
-			return 1;
-		}
-
-  		out << setw(d_width) << "Timestep"
-		    << setw(d_width) << "InstKE"  
-  		    << setw(d_width) << "InstPE" 
-  		    << setw(d_width) << "InstTemp" 
-  		    << setw(d_width) << "InstTotalE" 
-  		    << setw(d_width) << "AvgKE" 
-  		    << setw(d_width) << "AvgPE" 
-  		    << setw(d_width) << "AvgTemp" 
-  		    << setw(d_width) << "AvgTotalE" << endl;
-	}
-	else /* appending to existing file */
+	out << "\n Material Set Data:\n";
+	for (int i = 0; i < fMaterialsList.Length(); i++)
 	{
-  		out.open_append("MD.out");
-		if (!out.is_open()) {
-			cout << "Cannot open MD.out file.\n";
-			return 1;
-		}
-	
-		out << setw(d_width) << fStepNumber
-		    << setw(d_width) << fInstKE 
-		    << setw(d_width) << fInstPE 
-		    << setw(d_width) << fInstTemp 
-		    << setw(d_width) << fInstTotalE 
-		    << setw(d_width) << fAvgKE 
-		    << setw(d_width) << fAvgPE 
-		    << setw(d_width) << fAvgTemp 
-		    << setw(d_width) << fAvgTotalE 
-		    << setw(d_width) << endl;
+		out << "\n Material number . . . . . . . . . . . . . . . . = " << i+1 << '\n';
+		fMaterialsList[i]->Print(out);
 	}
-	out.close();
-	return 0;
+}
+
+/* element calculations */
+double RodT::ElementEnergy(void)
+{
+	double z1, z2, z3, z4, z5, z6, z7, z8;
+
+	z1 = fLocDisp(0,0);
+	z2 = fLocDisp(0,1);
+	z3 = fLocDisp(1,0);
+	z4 = fLocDisp(1,1);
+	z5 = fLocInitCoords(0,0);
+	z6 = fLocInitCoords(0,1);
+	z7 = fLocInitCoords(1,0);
+	z8 = fLocInitCoords(1,1);
+	z3 = -z3;
+	z4 = -z4;
+	z7 = -z7;
+	z8 = -z8;
+	z5 = z5 + z7;
+	z6 = z6 + z8;
+	z2 = z2 + z4 + z6;
+	z1 = z1 + z3 + z5;
+	z3 = z5*z5;
+	z4 = z6*z6;
+	z2 = z2*z2;
+	z1 = z1*z1;
+	z3 = z3 + z4;
+	z1 = z1 + z2;
+	z2 = sqrt(z3);
+	z1 = sqrt(z1);
+	
+	return( fCurrMaterial->Potential(z1,z2) );
+}
+
+void RodT::ElementForce(double constKd)
+{
+	double z1, z2, z3, z4, z5, z6, z7, z8;
+
+	z1 = fLocDisp(0,0);
+	z2 = fLocDisp(0,1);
+	z3 = fLocDisp(1,0);
+	z4 = fLocDisp(1,1);
+	z5 = fLocInitCoords(0,0);
+	z6 = fLocInitCoords(0,1);
+	z7 = fLocInitCoords(1,0);
+	z8 = fLocInitCoords(1,1);
+	z3 = -z3;
+	z4 = -z4;
+	z7 = -z7;
+	z8 = -z8;
+	z5 = z5 + z7;
+	z6 = z6 + z8;
+	z2 = z2 + z4 + z6;
+	z1 = z1 + z3 + z5;
+	z3 = z5*z5;
+	z4 = z6*z6;
+	z5 = z2*z2;
+	z6 = z1*z1;
+	z3 = z3 + z4;
+	z4 = z5 + z6;
+	z3 = sqrt(z3);
+	z4 = sqrt(z4);
+	z5 = 1.0/z4;
+	z3 = fCurrMaterial->DPotential(z4,z3);
+	z4 = -z3*z5;
+	z3 = z3*z5;
+	z5 = z2*z4;
+	z4 = z1*z4;
+	z2 = z2*z3;
+	z1 = z1*z3;
+
+	// z1 = List(z4,z5,z1,z2);
+
+	/* "-k*d" */
+	fRHS[0] = -constKd*z4;
+	fRHS[1] = -constKd*z5;
+	fRHS[2] = -constKd*z1;
+	fRHS[3] = -constKd*z2;
+}
+
+void RodT::ElementStiffness(double constK)
+{
+	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
+	double z13, z14, z15, z16;
+
+	z1 = fLocDisp(0,0);
+	z2 = fLocDisp(0,1);
+	z3 = fLocDisp(1,0);
+	z4 = fLocDisp(1,1);
+	z5 = fLocInitCoords(0,0);
+	z6 = fLocInitCoords(0,1);
+	z7 = fLocInitCoords(1,0);
+	z8 = fLocInitCoords(1,1);
+	z3 = -z3;
+	z4 = -z4;
+	z7 = -z7;
+	z8 = -z8;
+	z5 = z5 + z7;
+	z6 = z6 + z8;
+	z2 = z2 + z4 + z6;
+	z1 = z1 + z3 + z5;
+	z3 = z5*z5;
+	z4 = z6*z6;
+	z5 = z2*z2;
+	z6 = z1*z1;
+	z3 = z3 + z4;
+	z4 = z5 + z6;
+	z3 = sqrt(z3);
+	z7 = pow(z4,-1.5);
+	z8 = 1.0/z4;
+	z4 = pow(z4,0.5);
+	z9 = 1.0/z4;
+	z10 = fCurrMaterial->DPotential(z4,z3);
+	z3 =  fCurrMaterial->DDPotential(z4,z3);
+	z4 = -z10*z7;
+	z7 = z10*z7;
+	z11 = -z10*z9;
+	z9 = z10*z9;
+	z10 = -z1*z2*z3*z8;
+	z12 = z1*z2*z3*z8;
+	z13 = -z3*z5*z8;
+	z14 = z3*z5*z8;
+	z15 = -z3*z6*z8;
+	z3 = z3*z6*z8;
+	z8 = z1*z2*z4;
+	z16 = z4*z5;
+	z4 = z4*z6;
+	z1 = z1*z2*z7;
+	z2 = z5*z7;
+	z5 = z6*z7;
+	z6 = z12 + z8;
+	z7 = z14 + z16 + z9;
+	z3 = z3 + z4 + z9;
+	z1 = z1 + z10;
+	z2 = z11 + z13 + z2;
+	z4 = z11 + z15 + z5;
+
+	/*
+		z3   z6   z4   z1
+		     z7   z1   z2
+		          z3   z6
+		               z7
+	*/
+
+	fLHS(0,0) = z3*constK;
+	fLHS(0,1) = z6*constK;
+	fLHS(0,2) = z4*constK;
+	fLHS(0,3) = z1*constK;
+	fLHS(1,1) = z7*constK;
+	fLHS(1,2) = z1*constK;
+	fLHS(1,3) = z2*constK;
+	fLHS(2,2) = z3*constK;
+	fLHS(2,3) = z6*constK;
+	fLHS(3,3) = z7*constK;
 }

@@ -1,5 +1,5 @@
-/* $Id: ExodusOutputT.cpp,v 1.18 2005-06-09 00:00:45 paklein Exp $ */
-/* created: sawimme (05/18/1999) */
+/* $Id: ExodusOutputT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: sawimme (05/18/1999)                                          */
 
 #include "ExodusOutputT.h"
 #include "ExodusT.h"
@@ -8,9 +8,6 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include <time.h>
-
-
-using namespace Tahoe;
 
 ExodusOutputT::ExodusOutputT(ostream& out, const ArrayT<StringT>& out_strings):
 OutputBaseT(out, out_strings)
@@ -21,10 +18,9 @@ OutputBaseT(out, out_strings)
 /* print geometry from multiple element groups to one file */
 void ExodusOutputT::WriteGeometry(void)
 {
-	ExodusT exo(cout);
-	CreateElementBlockIDs ();
-	CreateGeometryFile (exo);
-	exo.Close ();
+ExodusT exo (fout);
+CreateGeometryFile (exo);
+exo.Close ();
 }
 
 void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
@@ -37,11 +33,10 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	if (fElementSets[ID]->NumNodes() == 0) return;
 
 	/* ExodusII database */
-	ExodusT exo(cout);
-	if (fElementSets[ID]->PrintStep() == 0 ||
-	    fElementSets[ID]->Changing())
+	ExodusT exo(fout);
+	if (fElementSets[ID]->PrintStep() == 0)
 		/* create new file */
-	        CreateResultsFile(ID, exo);
+		CreateResultsFile(ID, exo);
 	else
 	{
 		/* database file name */
@@ -49,49 +44,34 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		FileName(ID, filename);
 	
 		/* append output to existing results */
-		if (!exo.OpenWrite(filename))
-			ExceptionT::DatabaseFail("ExodusOutputT::WriteOutput",
-				"could not open file \"%s\" for output ID %d at time %g",
-				filename.Pointer(), ID, time);
+		exo.OpenWrite(filename);
 	}
-	
-	/* print step - changing implies 1 result per file */
-	int print_step = (fElementSets[ID]->Changing()) ? 1 : fElementSets[ID]->PrintStep() + 1;
 
 	/* write time */
-	exo.WriteTime(print_step, time);
+	exo.WriteTime(fElementSets[ID]->PrintStep() + 1, time);
 
 	/* write nodal data */
 	if (n_values.Length() > 0)
 	{
-		/* separate values by variable */
 		dArrayT values(n_values.MajorDim());
 		for (int i = 0; i < n_values.MinorDim(); i++)
 		{
 			n_values.ColumnCopy(i, values);
-			exo.WriteNodalVariable(print_step, i + 1, values);
+			exo.WriteNodalVariable(fElementSets[ID]->PrintStep() + 1,
+				i + 1, values);
 		}
 	}
 
 	/* write element data */
-	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID ();
 	if (e_values.Length() > 0)
 	{
-		/* separate values by block */
-		for (int b=0; b < blockIDs.Length(); b++)
-	    {
-			dArray2DT e_block (fElementSets[ID]->NumBlockElements(blockIDs[b]), 
-					   e_values.MinorDim());
-			ElementBlockValues (ID, b, e_values, e_block);
-	      
-			/* separate values by variable */
-			dArrayT values(e_block.MajorDim());
-			for (int i = 0; i < e_block.MinorDim(); i++)
-			{
-				e_block.ColumnCopy(i, values);
-				exo.WriteElementVariable(print_step, fElementBlockIDs[ID][b], i + 1, values);
-			}
-	    }
+		dArrayT values(e_values.MajorDim());
+		for (int i = 0; i < e_values.MinorDim(); i++)
+		{
+			e_values.ColumnCopy(i, values);
+			exo.WriteElementVariable(fElementSets[ID]->PrintStep() + 1,
+				fElementSets[ID]->ID(), i + 1, values);
+		}
 	}
 }
 
@@ -123,8 +103,7 @@ void ExodusOutputT::FileName(int ID, StringT& filename) const
 
 	/* changing geometry */
 	if (fElementSets[ID]->Changing())
-		filename.Append(".ps", fElementSets[ID]->PrintStep(), 4);
-			/* assuming no more than 1000 output steps */
+		filename.Append(".ps", fElementSets[ID]->PrintStep() + 1);
 
 	/* extension */
 	filename.Append(".exo");
@@ -141,18 +120,15 @@ void ExodusOutputT::CreateResultsFile(int ID, ExodusT& exo)
 	int dim = fCoordinates->MinorDim();
 	int num_nodes = fElementSets[ID]->NumNodes();
 	int num_elem = fElementSets[ID]->NumElements();
-	int num_blks = fElementSets[ID]->NumBlocks();
+	int num_blks = 1;
 	int num_node_sets = 0;
 	int num_side_sets = 0;
 	
 	/* create new file */
 	ArrayT<StringT> info, qa;
 	AssembleQA (qa);
-	if (!exo.Create(filename, fTitle, info, qa, dim, num_nodes,
-			num_elem, num_blks, num_node_sets, num_side_sets))
-		ExceptionT::DatabaseFail("ExodusOutputT::WriteOutput",
-			"could not create file \"%s\" for output ID %d",
-			filename.Pointer(), ID);
+	exo.Create(filename, fTitle, info, qa, dim, num_nodes,
+		num_elem, num_blks, num_node_sets, num_side_sets);
 
 	/* write geometry */
 	iArrayT nodes_used;
@@ -162,81 +138,73 @@ void ExodusOutputT::CreateResultsFile(int ID, ExodusT& exo)
 
 	/* write nodal variable labels */
 	const ArrayT<StringT>& node_labels = fElementSets[ID]->NodeOutputLabels();
-	exo.WriteLabels(node_labels, ExodusT::kNode);
+	exo.WriteNodeLabels(node_labels);
 
 	/* write element variable labels */
 	const ArrayT<StringT>& elem_labels = fElementSets[ID]->ElementOutputLabels();
-	exo.WriteLabels(elem_labels, ExodusT::kElement);
+	exo.WriteElementLabels(elem_labels);
 }
 
 void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
 {
-  /* create integer ID values from string values */
-  String2IntIDs (fNodeSetNames, fNodeSetIntIDs);
-  String2IntIDs (fSideSetNames, fSideSetIntIDs);
+StringT filename = fOutroot;
 
-  StringT filename = fOutroot;
+/* changing geometry */
+bool change = false;
+for (int j=0; j < fElementSets.Length() && !change; j++)
+if (fElementSets[j]->Changing()) change = true;
+if (change)
+filename.Append(".ps", fElementSets[0]->PrintStep() + 1);
+filename.Append(".exo");
 
-  /* changing geometry */
-  bool change = false;
-  for (int j=0; j < fElementSets.Length() && !change; j++)
-    if (fElementSets[j]->Changing()) change = true;
-  if (change)
-    filename.Append(".ps", fElementSets[0]->PrintStep());
-  filename.Append(".exo");
-  
-  int dim = fCoordinates->MinorDim();
-  int num_nodes = fCoordinates->MajorDim();
-  int num_node_sets = fNodeSets.Length();
-  int num_side_sets = fSideSets.Length();
-  
-  int num_elem = 0, num_blks = 0;
-  for (int e=0; e < fElementSets.Length(); e++)
-      {
-	num_blks += fElementSets[e]->NumBlocks();
+int dim = fCoordinates->MinorDim();
+int num_nodes = fCoordinates->MajorDim();
+int num_node_sets = fNodeSets.Length();
+int num_side_sets = fSideSets.Length();
+
+int num_elem = 0, num_blks = 0;
+for (int e=0; e < fElementSets.Length(); e++)
+if (fElementSets[e]->NumNodes() > 0)
+{
+	num_blks++;
 	num_elem += fElementSets[e]->NumElements();
-      }
-  
-  ArrayT<StringT> info, qa;
-  AssembleQA (qa);
-  exo.Create (filename, fTitle, info, qa, dim, num_nodes,
-	      num_elem, num_blks, num_node_sets, num_side_sets);
-  
-  // write coordinates
-  iArrayT nodes_used (num_nodes);
-  nodes_used.SetValueToPosition();
-  WriteCoordinates (exo, nodes_used);
-  
-  // write connectivities
-  for (int i=0; i < fElementSets.Length(); i++)
-      WriteConnectivity (i, exo, nodes_used);
-  
-  // write node sets
-  for (int n=0; n < fNodeSets.Length(); n++)
-    {
-      iArrayT& set = *((iArrayT*) fNodeSets[n]);
-      set++;
-      // exodus does not support string labels, use index instead
-      exo.WriteNodeSet (fNodeSetIntIDs[n], set);
-      set--;
-    }
-  
-  // write side sets, send local element numbering
-  // send element block ID, not group index
-  for (int s=0; s < fSideSets.Length(); s++)
-    {
-      /* search for group name */
-      StringT& gname = fSSGroupNames [s];
-      int gindex, bindex;
-      ElementGroupBlockIndex (gname, gindex, bindex);
+}
 
-      int block_ID = fElementBlockIDs[gindex][bindex];
-      iArray2DT& set = *((iArray2DT*) fSideSets[s]);
-      set++;
-      // exodus does not support string labels, use index instead
-      exo.WriteSideSet (fSideSetIntIDs[s], block_ID, set);
-      set--;
-    }
+ArrayT<StringT> info, qa;
+AssembleQA (qa);
+exo.Create (filename, fTitle, info, qa, dim, num_nodes,
+	      num_elem, num_blks, num_node_sets, num_side_sets);
+
+
+// write coordinates
+iArrayT nodes_used (num_nodes);
+nodes_used.SetValueToPosition();
+WriteCoordinates (exo, nodes_used);
+
+// write connectivities
+for (int i=0; i < fElementSets.Length(); i++)
+if (fElementSets[i]->NumNodes() > 0)
+WriteConnectivity (i, exo, nodes_used);
+
+// write node sets
+for (int n=0; n < fNodeSets.Length(); n++)
+{
+iArrayT& set = *((iArrayT*) fNodeSets[n]);
+set++;
+exo.WriteNodeSet (fNodeSetIDs[n], set);
+set--;
+}
+
+// write side sets, send local element numbering
+// send element block ID, not group index
+for (int s=0; s < fSideSets.Length(); s++)
+{
+iArray2DT& set = *((iArray2DT*) fSideSets[s]);
+set++;
+int block_ID = fElementSets[fSSGroupID[s]]->ID();
+exo.WriteSideSet (fSideSetIDs[s], block_ID, set);
+set--;
+}
 }
 
 void ExodusOutputT::AssembleQA (ArrayT<StringT>& qa) const
@@ -254,39 +222,22 @@ void ExodusOutputT::AssembleQA (ArrayT<StringT>& qa) const
 	qa[3] = time;
 }
 
-void ExodusOutputT::WriteCoordinates (ExodusT& exo, const iArrayT& nodes_used)
+void ExodusOutputT::WriteCoordinates (ExodusT& exo, iArrayT& nodes_used)
 {
 	dArray2DT local_coords(nodes_used.Length(), fCoordinates->MinorDim());
 	local_coords.RowCollect(nodes_used, *fCoordinates);
-
-	/* collect set ids */
-	iArrayT node_id;
-	if (!fNodeID) {
-		node_id = nodes_used;
-		node_id++;
-	}
-	else {
-		node_id.Dimension(nodes_used.Length());
-		node_id.Collect(nodes_used, *fNodeID);
-	}
-
-	/* write */
-	exo.WriteCoordinates(local_coords, &node_id);
+	nodes_used++;
+	exo.WriteCoordinates(local_coords, &nodes_used);
+	nodes_used--;
 }
 
 void ExodusOutputT::WriteConnectivity (int ID, ExodusT& exo, const iArrayT& nodes_used)
 {
-	iArray2DT local_connects;
-	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID();
-	for (int i = 0; i < fElementSets[ID]->NumBlocks(); i++)
-    {
-		const iArray2DT& connects = *(fElementSets[ID]->Connectivities(blockIDs[i]));
-
-		/* generate connectivities in block-local numbering */
-		local_connects.Dimension(connects);
-		LocalConnectivity(nodes_used, connects, local_connects);
-
-		local_connects++;
-		exo.WriteConnectivities(fElementBlockIDs[ID][i], fElementSets[ID]->Geometry(), local_connects);
-    }
+	const iArray2DT& connects = fElementSets[ID]->Connectivities();
+	iArray2DT local_connects(connects.MajorDim(), connects.MinorDim());
+	LocalConnectivity(nodes_used, connects, local_connects);
+	local_connects++;
+	exo.WriteConnectivities(fElementSets[ID]->ID(), fElementSets[ID]->Geometry(),
+		local_connects);
+	local_connects--;
 }

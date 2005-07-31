@@ -1,5 +1,6 @@
-/* $Id: GroupAverageT.h,v 1.5 2003-01-27 06:42:48 paklein Exp $ */
-/* created: paklein (10/03/1996) */
+/* $Id: GroupAverageT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* created: paklein (10/03/1996)                                          */
+
 #ifndef _GROUPAVERAGE_T_H_
 #define _GROUPAVERAGE_T_H_
 
@@ -7,8 +8,6 @@
 #include "iArrayT.h"
 #include "dArray2DT.h"
 #include "AutoArrayT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class dArrayT;
@@ -31,7 +30,7 @@ public:
 	/* accumulate the values in the data */
 	void AssembleAverage(const iArrayT& nums, const dArray2DT& vals);
 	
-	/* output the averaged values */
+	/* output the averaged values to the output stream (triggers averaging) */
 	const dArray2DT& OutputAverage(void);                        // for all nodes
 	void OutputAverage(const iArrayT& rows, dArray2DT& average); // requested rows only
 	void OutputUsedAverage(dArray2DT& average); // active rows only
@@ -45,15 +44,12 @@ public:
 	int NextAverageRow(dArrayT& values);
 	
 	/* return value and position of largest (active) average value */
-	void MaxInColumn(int column, int& maxrow, double& maxval); //triggers averaging
+	void MaxInColumn(int column, int& maxrow, double& maxval); //triggers averging
 
 	/* returns the row numbers which where used by the current averaging
 	 * calculation */
 	void RowsUsed(iArrayT& rowsused) const;
 	int NumRowsUsed(void) const;
-
-	/* clear the specified row numbers */
-	void ClearRows(const ArrayT<int>& rows);
 
 protected:
 
@@ -82,5 +78,4 @@ inline void GroupAverageT::SetNumAverageRows(int numrows) { fNumRows = numrows; 
 /* return the values array */
 inline const dArray2DT& GroupAverageT::Values(void) const { return fValues; }
 
-} // namespace Tahoe 
 #endif

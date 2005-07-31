@@ -1,4 +1,4 @@
-/* $Id: ReLabellerT.cpp,v 1.6 2003-11-21 22:41:54 paklein Exp $ */
+/* $Id: ReLabellerT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "ReLabellerT.h"
@@ -10,9 +10,6 @@
 #include "AutoArrayT.h"
 
 /* status codes */
-
-using namespace Tahoe;
-
 const int kInActive   = 0;
 const int kPreActive  = 1;
 const int kActive     = 2;
@@ -53,9 +50,7 @@ int ReLabellerT::Renumber(iArray2DT& oldsequence)
 	/* relabel */
 	NewSequence();
 	
-	/* re-sequence positive values */
-	iArrayT map(oldsequence.Max() + 1);
-	map = -1;
+	/* re-sequence positive values */	
 	int subdim = oldsequence.MinorDim();
 	int	label = 0;
 	for (int i = 0; i < fGraph.NumNodes(); i++)
@@ -64,11 +59,7 @@ int ReLabellerT::Renumber(iArray2DT& oldsequence)
 		for (int j = 0; j < subdim; j++)
 		{	
 			int& oldlabel = *pseq++;
-			if (oldlabel > 0) {
-				int& label_map = map[oldlabel];
-				if (label_map == -1) label_map = ++label;
-				oldlabel = label_map;
-			}
+			if (oldlabel > 0) oldlabel = ++label;
 		}
 	}
 
@@ -81,7 +72,6 @@ int ReLabellerT::Renumber(iArray2DT& oldsequence)
 int ReLabellerT::Renumber(ArrayT<iArray2DT*>& oldsequences)
 {
 	/* first row handled by each sequence */
-	int max_in_sequence = -1;
 	iArrayT maxrow(oldsequences.Length());
 	for (int k = 0; k < oldsequences.Length(); k++)
 	{
@@ -89,12 +79,6 @@ int ReLabellerT::Renumber(ArrayT<iArray2DT*>& oldsequences)
 
 		/* offset from previous sequence */
 		if (k > 0) maxrow[k] += maxrow[k-1];
-		
-		/* find max */
-		if (oldsequences[k]->Length() > 0) {
-			int max = oldsequences[k]->Max();
-			max_in_sequence = (max > max_in_sequence) ? max: max_in_sequence;
-		}
 	}
 
 	/* make graph */
@@ -286,9 +270,7 @@ int ReLabellerT::Renumber(ArrayT<iArray2DT*>& oldsequences)
 //	}
 //	throw;
 
-	/* re-sequence positive values */
-	iArrayT map(max_in_sequence + 1);
-	map = -1;
+	/* re-sequence positive values */	
 	int	label = 0;
 	for (int i = 0; i < fSequence.Length(); i++)
 	{
@@ -307,11 +289,7 @@ int ReLabellerT::Renumber(ArrayT<iArray2DT*>& oldsequences)
 		for (int j = 0; j < subdim; j++)
 		{	
 			int& oldlabel = *pseq++;
-			if (oldlabel > 0) {
-				int& label_map = map[oldlabel];
-				if (label_map == -1) label_map = ++label;
-				oldlabel = label_map;
-			}
+			if (oldlabel > 0) oldlabel = ++label;
 		}
 	}
 
@@ -328,9 +306,9 @@ void ReLabellerT::Initialize(void)
 	int numnodes = fGraph.NumNodes();
 
 	/* allocate space */
-	fSequence.Dimension(numnodes);
-	fStatus.Dimension(numnodes);
-	fPriority.Dimension(numnodes),
+	fSequence.Allocate(numnodes);
+	fStatus.Allocate(numnodes);
+	fPriority.Allocate(numnodes),
 
 	/* initialize */
 	fSequence =-1;
@@ -395,7 +373,7 @@ void ReLabellerT::BuildRootedLevel(void)
 	}
 	
 	/* check all nodes used */
-	if (count != nnd) throw ExceptionT::kGeneralFail;
+	if (count != nnd) throw eGeneralFail;
 	
 	/* set end node from last level */
 	fRootedLevel.NodesOnLevel(nodes_used, fRootedLevel.Depth() - 1);
@@ -418,7 +396,7 @@ void ReLabellerT::SelectNodes(void)
 
 		/* collect top level info */
 		fRootedLevel.NodesOnLevel(topnodes, h_max - 1);
-		degrees.Dimension(topnodes.Length()); //really want to Dimension() every time?
+		degrees.Allocate(topnodes.Length()); //really want to Allocate() every time?
 		fGraph.ReturnDegrees(topnodes, degrees);
 		
 		/* order and halve */
@@ -472,7 +450,7 @@ void ReLabellerT::NewSequence(void)
 		NewNumber(currnode);
 	
 	/* check that all nodes got renumbered */
-	if (fCurrLabel != fPriority.Length()) throw ExceptionT::kGeneralFail;
+	if (fCurrLabel != fPriority.Length()) throw eGeneralFail;
 }
 
 /* estimate size of the system in terms of the
@@ -481,7 +459,7 @@ void ReLabellerT::ComputeSize(const iArrayT& sequence, int& bandwidth, int& prof
 {
 #if __option(extended_errorcheck)
 	if (fGraph.NumNodes() != sequence.Length())
-		throw ExceptionT::kSizeMismatch;
+		throw eSizeMismatch;
 #endif
 
 	/* generate node map */
@@ -495,8 +473,8 @@ void ReLabellerT::ComputeSize(const iArrayT& sequence, int& bandwidth, int& prof
 	bandwidth = 0;
 	for (int i = 0; i < fGraph.NumNodes(); i++)
 	{
-		const int* edges = fGraph.Edges(i);
-		int degree = fGraph.Degree(i);
+		int* edges  = fGraph.Edges(i);
+		int  degree = fGraph.Degree(i);
 	
 		int itag = nodemap[i];
 		int maxheight = 0;
@@ -561,8 +539,8 @@ void ReLabellerT::Queue(int nodenum)
 /* assign new number and check adjacent nodes */
 void ReLabellerT::NewNumber(int nodenum)
 {	
-	const int* adj_i = fGraph.Edges(nodenum);
-	int length_j = fGraph.Degree(nodenum);
+	int* adj_i    = fGraph.Edges(nodenum);
+	int  length_j = fGraph.Degree(nodenum);
 
 	/* queue any adjacent nodes */
 	if (fStatus[nodenum] == kPreActive)
@@ -586,8 +564,8 @@ void ReLabellerT::MakeActive(int nodenum)
 	fStatus[nodenum]    = kActive;
 
 	/* queue any adjacent nodes */
-	const int* adj_i = fGraph.Edges(nodenum);
-	int length_j = fGraph.Degree(nodenum);
+	int* adj_i    = fGraph.Edges(nodenum);
+	int  length_j = fGraph.Degree(nodenum);
 
 	for (int j = 0; j < length_j; j++)
 		Queue( adj_i[j] );

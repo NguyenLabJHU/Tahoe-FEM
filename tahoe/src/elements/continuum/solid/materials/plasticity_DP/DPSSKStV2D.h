@@ -1,48 +1,45 @@
-/* $Id: DPSSKStV2D.h,v 1.12 2005-02-25 18:41:18 cfoster Exp $ */
-/* created: myip (06/01/1999) */
+/* $Id: DPSSKStV2D.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: myip (06/01/1999)                                             */
+
 #ifndef _DP_SS_KSTV_2D_H_
 #define _DP_SS_KSTV_2D_H_
 
 /* base class */
+#include "Material2DT.h"
 #include "DPSSKStV.h"
 
-namespace Tahoe {
-
-class DPSSKStV2D: public DPSSKStV
+class DPSSKStV2D: public DPSSKStV, public Material2DT
 {
-  public:
+public:
 
-	/** constructor */
-	DPSSKStV2D(void);
+	/* constructor */
+	DPSSKStV2D(ifstreamT& in, const ElasticT& element);
 
 	/* returns elastic strain (3D) */
-	virtual const dSymMatrixT& ElasticStrain(
-                const dSymMatrixT& totalstrain, 
-				const ElementCardT& element, int ip);
+	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,
+		const ElementCardT& element, int ip);
 
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
+	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
-
-	virtual const dMatrixT& ce_ijkl(void);
-  	
+	
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
+	/* returns the strain energy density for the specified strain */
+	virtual double StrainEnergyDensity(void);
 
-  private:
-  
-  	/* return values */
-  	dSymMatrixT	fStress2D;
-  	dMatrixT	fModulus2D;
+private:
+
+	/* return values */
+	dSymMatrixT	fStress2D;
+	dMatrixT	fModulus2D;
 
 	/* work space */
 	dSymMatrixT	fTotalStrain3D;
 };
 
-} // namespace Tahoe 
 #endif /* _DP_SS_KSTV_2D_H_ */

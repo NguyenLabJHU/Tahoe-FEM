@@ -1,28 +1,20 @@
-/* $Id: iNLSolver_LS.cpp,v 1.17 2004-09-09 23:54:55 paklein Exp $ */
-/* created: paklein (01/01/2001) */
+/* $Id: iNLSolver_LS.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* created: paklein (01/01/2001)                                          */
+
 #include "iNLSolver_LS.h"
 
 #include <iostream.h>
 #include <math.h>
 
-
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
+#include "fstreamT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
 #include "FEManagerT.h"
 #include "iConsoleT.h"
-#include "CommandSpecT.h"
-#include "ArgSpecT.h"
-
-/* matrix types */
-#include "CCSMatrixT.h"
-#include "CCNSMatrixT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
-iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager, int group):
-	NLSolver_LS(fe_manager, group),
+iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager):
+	NLSolver_LS(fe_manager),
 	fFormTangent(true),
 	fLineSearch(true)
 {
@@ -31,34 +23,16 @@ iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager, int group):
 	iAddVariable("line_search", fLineSearch);
 
 	/* add console commands */
-	iAddCommand(CommandSpecT("ResetStep"));
-	iAddCommand(CommandSpecT("FormResidual"));
-	iAddCommand(CommandSpecT("PivotInfo"));
-	iAddCommand(CommandSpecT("InitStep"));
-
-	CommandSpecT iterate("Iterate");
-	ArgSpecT num_its(ArgSpecT::int_);
-	num_its.SetPrompt("number of iterations");
-	num_its.SetDefault(1);
-	iterate.AddArgument(num_its);
-	iAddCommand(iterate);
-
-	CommandSpecT step("Step");
-	ArgSpecT num_steps(ArgSpecT::int_);
-	num_steps.SetPrompt("number of steps");
-	num_steps.SetDefault(1);
-	step.AddArgument(num_steps);
-	iAddCommand(step);
+	iAddCommand("ResetStep");
+	iAddCommand("Iterate");
+	iAddCommand("FormResidual");
+	iAddCommand("InitStep");
+	iAddCommand("Step");
 }
 
 /* interactive */
-SolverT::SolutionStatusT iNLSolver_LS::Solve(int)
+void iNLSolver_LS::Run(void)
 {
-//TEMP - revised solvers means this interactive part needs to change
-cout << "\n iNLSolver_LS::Solve: not updated for multifield" << endl;
-return kFailed;
-
-#if 0
 	/* initial state */
 	fIterationStatus = kConverged;
 	
@@ -73,102 +47,78 @@ return kFailed;
 	/* finish time sequence */
 	const int step_number = fFEManager.StepNumber();
 	const int number_of_steps = fFEManager.NumberOfSteps();
-	
-	/* get the command spec */
-	CommandSpecT* step_command = iCommand("Step");
-	if (!step_command) throw ExceptionT::kGeneralFail;
-	step_command->Argument(0).SetValue(number_of_steps - step_number);
-	
-	/* execute */
-	StringT line;
-	iDoCommand(*step_command, line);
-#endif
+	StringT arg;
+	arg.Append("(", number_of_steps - step_number);
+	arg.Append(")");
+	iDoCommand("Step", arg);
 }
 
 /* console commands */
-bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
+bool iNLSolver_LS::iDoCommand(const StringT& command, StringT& line)
 {
 	try
 	{
-		if (command.Name() == "Step")
+		if (command == "Step")
 		{
 			/* resolve number of steps */
-			int num_steps;
-			command.Argument(0).GetValue(num_steps);
-
-			/* run steps */
-			return DoStep(num_steps);
-		}
-		else if (command.Name() == "InitStep")
-			return DoInitStep();
-		else if (command.Name() == "Iterate")
-		{
-			/* resolve argument */
-			int num_iterations;
-			command.Argument(0).GetValue(num_iterations);
-			
-			/* message */
-			if (DoIterate(num_iterations) == kFailed)
-				cout << "warning: iterations ended with FAIL" << endl;
-			return true;
-		}
-		else if (command.Name() == "FormResidual")
-		{
-			/* compute new residual */
-			fRHS = 0.0;
-			fFEManager.FormRHS(Group());
-			cout << "residual norm = " << fRHS.Magnitude() << endl;
-			return true;
-		}
-		else if (command.Name() == "ResetStep")
-		{
-			/* step back to last converged */
-//			fFEManager.ResetStep();
-
-			/* initialize step */
-			return DoInitStep();
-		}
-		else if (command.Name() == "PivotInfo")
-		{
-#ifdef __NO_RTTI__
-			cout << "command not available: requires RTTI" << endl;
-			return false;
-#else
-			/* get matrix pointer */
-			const CCSMatrixT*   CCS_mat = TB_DYNAMIC_CAST(const CCSMatrixT*, fLHS);
-			const CCNSMatrixT* CCNS_mat = TB_DYNAMIC_CAST(const CCNSMatrixT*, fLHS);
-			double min, max, abs_min, abs_max;
-			if (CCNS_mat) CCNS_mat->FindMinMaxPivot(min, max, abs_min, abs_max);
-			else if (CCS_mat) CCS_mat->FindMinMaxPivot(min, max, abs_min, abs_max);
-			else
+			int num_steps = 1;
+			if (line[0] == '(' &&
+			    !ResolveArgument(line, num_steps, &num_steps))
 			{
-				cout << "requires matrix type: " << kProfileSolver << endl;
+				cout << "could not resolve integer argument from: \""
+				     << line << '\"' << endl;
 				return false;
 			}
 			
-			/* write results */
-			int d_width = OutputWidth(cout, &min);
-			cout << "\n Matrix pivots:\n" 
-			     <<   "     min = " << setw(d_width) << min << '\n' 
-			     <<   "     max = " << setw(d_width) << max << '\n' 
-			     <<   "   |min| = " << setw(d_width) << abs_min << '\n' 
-			     <<   "   |max| = " << setw(d_width) << abs_max << '\n';
+			/* run steps */
+			return DoStep(num_steps);
+		}
+		else if (command == "InitStep")
+			return DoInitStep();
+		else if (command == "Iterate")
+		{
+			/* resolve argument */
+			int num_iterations = 1;
+			if (line[0] == '(' &&
+			   !ResolveArgument(line, num_iterations, &num_iterations))
+			{
+				cout << "could not resolve integer argument from: \""
+				     << line << '\"' << endl;
+				return false;
+			}
+			
+			/* message */
+			if (DoIterate(num_iterations) == kFail)
+				cout << "warning: iterations ended with FAIL" << endl;
+			return true;
+		}
+		else if (command == "FormResidual")
+		{
+			/* compute new residual */
+			fRHS = 0.0;
+			fFEManager.FormRHS();
+			cout << "residual norm = " << fRHS.Magnitude() << endl;
+			return true;
+		}
+		else if (command == "ResetStep")
+		{
+			/* step back to last converged */
+			fFEManager.ResetStep();
 
 			/* initialize step */
-			return true;
-#endif
+			return DoInitStep();
 		}
 		else
 			/* inherited */
 			return SolverT::iDoCommand(command, line);
 	}
 	
-	catch (ExceptionT::CodeT code)
+	catch (int code)
 	{
 		cout << "\n iNLSolver_LS::iDoCommand: exception at step number "
 		     << fFEManager.StepNumber() << " with step "
 		     << fFEManager.TimeStep() << endl;
-//		fFEManager.HandleException(code);
+		fFEManager.HandleException(code);
 		return false;
 	}
 }
@@ -209,7 +159,7 @@ bool iNLSolver_LS::DoStep(int max_steps)
 		}
 		
 		/* finished command */
-		if (count == max_steps + 1)
+		if (count == max_steps)
 			return true;
 		else
 			return false;
@@ -221,8 +171,6 @@ bool iNLSolver_LS::DoInitStep(void)
 	/* close any iteration output */	
 	CloseIterationOutput();
 
-	return false; //TEMP
-#if 0
 	if (Step())
 	{
 		/* apply boundary conditions */
@@ -235,10 +183,9 @@ bool iNLSolver_LS::DoInitStep(void)
 		cout << "reached end of time sequence" << endl;
 		return false;
 	}
-#endif
 }
 
-NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
+NLSolver::IterationStatusT iNLSolver_LS::DoIterate(int max_count)
 {
 	/* no action */
 	if (max_count < 1) return fIterationStatus;
@@ -261,45 +208,28 @@ NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 				/* open iteration output */
 				InitIterationOutput();
 	
-				/* clear all */
 				fRHS = 0.0;
-				fLHS->Clear();
-				
-				/* form residual */
-				fFEManager.FormRHS(Group());
+				fFEManager.FormRHS();
 	
 				/* initial error */
 				double error = Residual(fRHS);
-				fIterationStatus = ExitIteration(error, fNumIteration);
+				fIterationStatus = ExitIteration(error);
 			}
 				
 			/* loop on error */
 			int count = 0;
 			while (fIterationStatus == kContinue && count++ < max_count)
 			{
-				fLHS_update = (fNumIteration == 0) ? true : fFormTangent;
-
-				/* recalculate */
-				if (fLHS_update) {
-					fLHS->Clear();
-					fFEManager.FormLHS(Group(), fLHS->MatrixType());
-				}
-
-				/* update solution */
-				Iterate();
-				fNumIteration++;
-
-				/* new error */
-				double error = Residual(fRHS);		
-
-				/* test for convergence */
-				fIterationStatus = ExitIteration(error, fNumIteration);
+				bool form_tangent = (fNumIteration == 0) ? true : fFormTangent;
+				double error = SolveAndForm(form_tangent);
+				fIterationStatus = ExitIteration(error);
 			}
 		
 			/* found solution - check relaxation */
 			if (fIterationStatus == kConverged)
 			{
 				fIterationStatus = DoConverged();	
+				fFEManager.CloseStep();
 			}
 			break;
 		}

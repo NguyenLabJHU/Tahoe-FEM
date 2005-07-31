@@ -1,11 +1,18 @@
-/* $Id: SurfaceShapeT.cpp,v 1.13 2005-07-29 08:13:02 paklein Exp $ */
-/* created: paklein (11/21/1997) */
+/* $Id: SurfaceShapeT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* created: paklein (11/21/1997)                                          */
+/* Class to manage CSE integrals, where the dimension of                  */
+/* the field variable is 1 greater than the dimension of the parent       */
+/* domain. Jump quantities imply jump between any field variable          */
+/* across the CSE. Revised for new shape function object model            */
+/* PAK (09/04/98)                                                         */
+/* NOTE:                                                                  */
+/* numnodes = total number of element nodes                               */
+/* coords = coordinates of nodes on 1st facet (numnodes/2)                */
+
 #include "SurfaceShapeT.h"
 
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
-
-using namespace Tahoe;
+#include "Constants.h"
+#include "ExceptionCodes.h"
 
 /* vector functions */
 inline static void CrossProduct(const double* A, const double* B, double* AxB)
@@ -16,20 +23,19 @@ inline static void CrossProduct(const double* A, const double* B, double* AxB)
 
 /* constructor */
 SurfaceShapeT::SurfaceShapeT(GeometryT::CodeT geometry_code, int num_ip,
-	int num_nodes, int num_nodes_per_facet, int field_dim, const LocalArrayT& coords):
-	DomainIntegrationT(geometry_code, num_ip, num_nodes_per_facet),
+	int num_nodes, int field_dim, const LocalArrayT& coords):
+	DomainIntegrationT(geometry_code, num_ip, num_nodes/2),
 	fTotalNodes(num_nodes),
 	fNumFacetNodes(coords.NumberOfNodes()),
 	fFieldDim(field_dim),
 	fCoords(coords),
-	fFacetCoords(fCoords.Type()),
-	fNumFacets(num_nodes/num_nodes_per_facet)
+	fFacetCoords(fCoords.Type())
 {
 	/* coordinate mode */
 	if (fCoords.NumberOfNodes() == fNumFacetNodes)
 		fFacetCoords.Alias(fCoords);
 	else
-		fFacetCoords.Dimension(fNumFacetNodes, fCoords.MinorDim());
+		fFacetCoords.Allocate(fNumFacetNodes, fCoords.MinorDim());
 	
 	/* dimension arrays */
 	Construct();
@@ -42,7 +48,6 @@ SurfaceShapeT::SurfaceShapeT(const SurfaceShapeT& link, const LocalArrayT& coord
 	DomainIntegrationT(link),
 	fTotalNodes(link.fTotalNodes),
 	fNumFacetNodes(link.fNumFacetNodes),
-	fNumFacets(link.fNumFacets),
 	fFieldDim(link.fFieldDim),
 	fCoords(coords),
 	fFacetCoords(fCoords.Type())
@@ -51,7 +56,7 @@ SurfaceShapeT::SurfaceShapeT(const SurfaceShapeT& link, const LocalArrayT& coord
 	if (fCoords.NumberOfNodes() == fNumFacetNodes)
 		fFacetCoords.Alias(fCoords);
 	else
-		fFacetCoords.Dimension(fNumFacetNodes, fCoords.MinorDim());
+		fFacetCoords.Allocate(fNumFacetNodes, fCoords.MinorDim());
 
 	/* dimension arrays */
 	Construct();
@@ -74,35 +79,36 @@ void SurfaceShapeT::Initialize(void)
 	dArrayT dshape(fTotalNodes);
 		
 	/* set tables */
+	dArrayT	 shNafacets;
+	dMatrixT shNaMat;
 	for (int i = 0; i < fNumIP; i++)
 	{
-		double* Na = fNa(i);
 		double* jumpNa = fjumpNa(i);
 		int* sign = jump.Pointer();
 		
 		/* loop over facets */
-		for (int k = 0; k < fNumFacets; k++)
+		for (int k = 0; k < 2; k++)
 		{
 	    	const double* shape = fDomain->Shape(i);
 	    	int* pfacet = fFacetNodes(k);
 			for (int j = 0; j < fNumFacetNodes; j++) //ISO
 			{
 				int dex = *pfacet++;
-				Na[dex] = *shape;
 				jumpNa[dex] = sign[dex]*(*shape++);
 			}
 		}
 
 		/* shape function tables */
-		dMatrixT shNaMat(1, fTotalNodes, fjumpNa(i));
-		fgrad_d[i].Expand(shNaMat, fFieldDim, dMatrixT::kOverwrite);
+		shNaMat.Set(1, fTotalNodes, fjumpNa(i));
+		fgrad_d[i] = 0.0;
+		fgrad_d[i].Expand(shNaMat, fFieldDim);
 		fgrad_dTgrad_d[i].MultATB(fgrad_d[i], fgrad_d[i]);
 		
 		/* shape function derivative tables */
 		for (int j = 0; j < (fFieldDim-1); j++)
 		{
 			/* expand over facets */
-			for (int k = 0; k < fNumFacets; k++)
+			for (int k = 0; k < 2; k++)
 			{
 				const double* pdshape = fDomain->DShape(i,j);
 	    		int* pfacet = fFacetNodes(k);
@@ -114,53 +120,20 @@ void SurfaceShapeT::Initialize(void)
 			}
 			
 			shNaMat.Set(1, fTotalNodes, dshape.Pointer());
-			fgrad_dd(i,j).Expand(shNaMat, fFieldDim, dMatrixT::kOverwrite);
+			fgrad_dd(i,j) = 0.0;
+			fgrad_dd(i,j).Expand(shNaMat, fFieldDim);
 		}
 	}	
 }
 
 /**** for the current integration point ***/
 
-void SurfaceShapeT::InterpolateJump(const LocalArrayT& nodal, dArrayT& jump) const
+/* jump in the nodal values */
+const dArrayT& SurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodalU)
 {
-	int dim = jump.Length();
-	for (int i = 0; i < dim; i++)
-		jump[i] = fjumpNa.DotRow(fCurrIP, nodal(i));
-}
-
-/* interpolate field values to the current integration point */
-void SurfaceShapeT::Interpolate(const LocalArrayT& nodal, dArrayT& u) const
-{
-#if __option(extended_errorcheck)
-	const char caller[] = "SurfaceShapeT::Interpolate";
-	if (u.Length() != nodal.MinorDim()) ExceptionT::SizeMismatch(caller);
-	if (nodal.NumberOfNodes() != TotalNodes() &&
-	    nodal.NumberOfNodes() != NumFacetNodes()) ExceptionT::SizeMismatch(caller);
-#endif
-
-	/* average across both sides if all values given */
-	bool both_sides = nodal.NumberOfNodes() != fNumFacetNodes;
-	double scale = (both_sides) ? 0.5 : 1.0;
-
-	/* reference to the shape functions for one face */
-	const dArray2DT& shapes = Na();
-
-	/* a little tricky here because node numbering across
-	 * both faces is inconsistent between 2D and 3D */
-	const int* face_nodes = (both_sides) ? fFacetNodes(1) : NULL; /* nodes on 2nd face */
-	for (int i = 0; i < u.Length(); i++)
-	{	
-		/* first face */
-		const double* p = nodal(i);
-		u[i] = scale*shapes.DotRow(fCurrIP, p);
-		
-		/* second face */
-		if (both_sides)
-		{
-			for (int j = 0; j < NumFacetNodes(); j++)
-				u[i] += scale*p[face_nodes[j]]*shapes(fCurrIP, j);
-		}
-	}	
+	for (int i = 0; i < fFieldDim; i++)
+		fInterp[i] = fjumpNa.DotRow(fCurrIP, nodalU(i));
+	return fInterp;
 }
 
 /* extrapolate integration point values to the nodes
@@ -170,7 +143,7 @@ void SurfaceShapeT::Extrapolate(const dArrayT& IPvalues,
 	dArray2DT& nodalvalues)
 {
 	/* resize workspace */
-	fNodalValues.Dimension(fNumFacetNodes, IPvalues.Length());
+	fNodalValues.Allocate(fNumFacetNodes, IPvalues.Length());
 
 	/* initialize */
 	fNodalValues = 0.0;
@@ -180,7 +153,7 @@ void SurfaceShapeT::Extrapolate(const dArrayT& IPvalues,
 
 	/* copy values to nodes on the facets */
 	for (int i = 0; i < IPvalues.Length(); i++)
-		for (int k = 0; k < fNumFacets; k++) /* loop over facets */
+		for (int k = 0; k < 2; k++) /* loop over facets */
 		{
 	    	int* dex = fFacetNodes(k);
 			for (int j = 0; j < fNumFacetNodes; j++)
@@ -191,7 +164,7 @@ void SurfaceShapeT::Extrapolate(const dArrayT& IPvalues,
 double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 {
 #if __option(extended_errorcheck)
-	if (dQ.Length() != fFieldDim) throw ExceptionT::kSizeMismatch;
+	if (dQ.Length() != fFieldDim) throw eSizeMismatch;
 #endif
 
 	/* compute facet coordinates */
@@ -201,7 +174,7 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 	/* get Jacobian matrix of the surface transformation */
 	fDomain->DomainJacobian(fFacetCoords, fCurrIP, fJacobian);	
 	double j = fDomain->SurfaceJacobian(fJacobian, Q);
-	if (j <= 0.0) throw ExceptionT::kBadJacobianDet;
+	if (j < kSmall) throw eBadJacobianDet;
 
 //NOTE: everything from here down depends only on Q
 
@@ -221,15 +194,15 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 		dQ1 -= dtan_du;
 		dQ1 /= -j;
 		
-		/* second component - multiply dQ1 by Q^(-pi/2) */
+		/* second component - multiply dQ1 by Q^(pi/2) */
 		int num_cols = dQ1.Cols();
 		double* row1 = dQ1.Pointer();
 		double* row2 = row1 + 1;
 		double* pdQ2 = dQ2.Pointer();
 		for (int i = 0; i < num_cols; i++)
 		{
-			*pdQ2++ = *row2;
-			*pdQ2++ =-(*row1);
+			*pdQ2++ =-(*row2);
+			*pdQ2++ =  *row1;
 			
 			row1 += 2;
 			row2 += 2;	
@@ -249,7 +222,7 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 		double* v_m1 = fJacobian(0);
 		double* v_m2 = fJacobian(1);
 		double    m1 = sqrt(v_m1[0]*v_m1[0] + v_m1[1]*v_m1[1] + v_m1[2]*v_m1[2]);
-		if (m1 <= 0.0) throw ExceptionT::kBadJacobianDet;
+		if (m1 < kSmall) throw eBadJacobianDet;
 
 		/* tangent gradients */
 		dMatrixT& dm1_du = fgrad_dd(CurrIP(), 0);
@@ -291,30 +264,14 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 	return j;
 }
 
-void SurfaceShapeT::Shapes(dArrayT& Na) const
-{
-	/* nodes from both faces */
-	if (Na.Length() == fNa.MinorDim())
-		fNa.RowAlias(fCurrIP, Na);
-	else if (Na.Length() == fFacetNodes.MinorDim()) /* just nodes from the first face */
-	{
-		const double* pNa = fNa(fCurrIP);
-		const int* lnd = fFacetNodes(0);
-		for (int i = 0; i < Na.Length(); i++)
-			Na[i] = pNa[lnd[i]];
-	}
-	else throw ExceptionT::kBadInputValue;
-}
-
 /*******************************************/
 
 /* local node numbers on each facet */
 void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 {
-
 	/* check */
-	if (facetnodes.MajorDim() != fNumFacets &&
-	    facetnodes.MinorDim() != fNumFacetNodes)  throw ExceptionT::kSizeMismatch;
+	if (facetnodes.MajorDim() != 2 &&
+	    facetnodes.MinorDim() != fNumFacetNodes)  throw eSizeMismatch;
 
 	int num_nodes_error = 0;
 	int geometry = fDomain->GeometryCode();
@@ -322,37 +279,19 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 	{
 		case GeometryT::kLine:
 		{
-			if (fNumFacetNodes == 2)
+			if (fTotalNodes == 4)
 			{
-//				int dat_4[4] = {0, 1,
-//				                3, 2};
-				int dat_4[4] = {1, 0,
-				                2, 3};
-					
-				iArray2DT temp(fNumFacets, fNumFacetNodes, dat_4);
+				int dat_4[4] = {0, 1,
+				                3, 2};
+				iArray2DT temp(2, 2, dat_4);
 				facetnodes = temp;
 			}
-			else if (fNumFacetNodes == 3)
+			else if (fTotalNodes == 6)
 			{
-//				int dat_6[6] = {0, 1, 4,
-//				                3, 2, 5};
-				
-				if (fNumFacets == 2)
-				{
-					int dat_6[6] = {1, 0, 4,
-				               		2, 3, 5};
-					iArray2DT temp(fNumFacets, fNumFacetNodes, dat_6);
-					facetnodes = temp;
-				}
-				else
-					if (fNumFacets == 1)
-					{
-						int dat_6[3] = {1, 0, 2};
-						iArray2DT temp(fNumFacets, fNumFacetNodes, dat_6);
-						facetnodes = temp;
-					}
-					else 
-						num_nodes_error = 1;
+				int dat_6[6] = {0, 1, 4,
+				                3, 2, 5};
+				iArray2DT temp(2, 3, dat_6);
+				facetnodes = temp;
 			}
 			else
 				num_nodes_error = 1;
@@ -361,32 +300,19 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 		}
 		case GeometryT::kTriangle:
 		{
-			if (fNumFacetNodes == 3)
+			if (fTotalNodes == 6)
 			{
 				int dat_6[6] = {0, 1, 2,
 				                3, 4, 5};
-				iArray2DT temp(fNumFacets, 3, dat_6);
+				iArray2DT temp(2, 3, dat_6);
 				facetnodes = temp;
 			}
-			else if (fNumFacetNodes == 6)
+			else if (fTotalNodes == 12)
 			{
-				if (fNumFacets == 2)
-				{
-					int dat_12[12] = {0, 1, 2, 6, 7, 8,
-				   	               3, 4, 5, 9, 10, 11};
-					iArray2DT temp(fNumFacets, 6, dat_12);
-					facetnodes = temp;
-				}
-				else
-					if (fNumFacets == 1)
-					{
-						int dat_12[6] = {0, 1, 2, 3, 4, 5};
-						
-						iArray2DT temp(fNumFacets, 6, dat_12);
-						facetnodes = temp;
-					}
-					else
-						num_nodes_error = 1;
+				int dat_12[12] = {0, 1, 2, 6, 7, 8,
+				                  3, 4, 5, 9, 10, 11};
+				iArray2DT temp(2, 6, dat_12);
+				facetnodes = temp;
 			}
 			else
 				num_nodes_error = 1;
@@ -395,31 +321,19 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 		}
 		case GeometryT::kQuadrilateral:
 		{
-			if (fNumFacetNodes == 4)
+			if (fTotalNodes == 8)
 			{
 				int dat_8[8] = {0, 1, 2, 3,
 				                4, 5, 6, 7};
-				iArray2DT temp(fNumFacets, fNumFacetNodes, dat_8);
+				iArray2DT temp(2, 4, dat_8);
 				facetnodes = temp;
 			}
-			else if (fNumFacetNodes == 8)
+			else if (fTotalNodes == 16)
 			{
-				if (fNumFacets == 2)
-				{
-					int dat_16[16] = {0, 1, 2, 3, 8, 9, 10, 11,
-				     	             4, 5, 6, 7, 12, 13, 14, 15};
-					iArray2DT temp(fNumFacets, 8, dat_16);
-					facetnodes = temp;
-				}
-				else
-					if (fNumFacets == 1)
-					{
-						int dat_16[8] = {0, 1, 2, 3, 4, 5, 6, 7};
-						iArray2DT temp(fNumFacets, 8, dat_16);
-						facetnodes = temp;
-					}
-					else
-						num_nodes_error = 1;
+				int dat_16[16] = {0, 1, 2, 3, 8, 9, 10, 11,
+				                  4, 5, 6, 7, 12, 13, 14, 15};
+				iArray2DT temp(2, 8, dat_16);
+				facetnodes = temp;
 			}
 			else
 				num_nodes_error = 1;
@@ -428,17 +342,17 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 		}
 		default:
 		
-			cout << "\n SurfaceShapeT::SetNodesOnFacets: unsupported geometry: ";
+			cout << "\n SurfaceShapeT::NodesOnFacets: unsupported geometry: ";
 			cout << geometry << endl;
-			throw ExceptionT::kGeneralFail;
+			throw eGeneralFail;
 	}
 	
 	if (num_nodes_error)
 	{
-		cout << "\n SurfaceShapeT::SetNodesOnFacets: " << fTotalNodes;
+		cout << "\n SurfaceShapeT::NodesOnFacets: " << fTotalNodes;
 		cout << " nodes with geometry " << geometry << " is\n";
 		cout <<   "      not supported" << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 }
 
@@ -450,48 +364,43 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 void SurfaceShapeT::Construct(void)
 {  	
 	/* check dimensions */
-	if (fFacetCoords.NumberOfNodes()*fNumFacets != fTotalNodes) ExceptionT::SizeMismatch("SurfaceShapeT::Construct");
-
-	/* shape functions */
-	fNa.Dimension(fNumIP, fTotalNodes);
+	if (fFacetCoords.NumberOfNodes()*2 != fTotalNodes) throw eSizeMismatch;
 
 	/* jump shape functions */
-	fjumpNa.Dimension(fNumIP, fTotalNodes);
+	fjumpNa.Allocate(fNumIP, fTotalNodes);
 
 	/* shape function and derivatives tables */
-	fgrad_d.Dimension(fNumIP);
-	fgrad_dTgrad_d.Dimension(fNumIP);
-	fgrad_dd.Dimension(fNumIP, fFieldDim-1);
+	fgrad_d.Allocate(fNumIP);
+	fgrad_dTgrad_d.Allocate(fNumIP);
+	fgrad_dd.Allocate(fNumIP, fFieldDim-1);
 
 	int dim = fTotalNodes*fFieldDim;
 	for (int i = 0; i < fNumIP; i++)
 	{
-		fgrad_d[i].Dimension(fFieldDim, dim);
-		fgrad_dTgrad_d[i].Dimension(dim, dim);
+		fgrad_d[i].Allocate(fFieldDim, dim);
+		fgrad_dTgrad_d[i].Allocate(dim, dim);
 		
 		for (int j = 0; j < fFieldDim-1; j++)
-			fgrad_dd(i,j).Dimension(fFieldDim, dim);
+			fgrad_dd(i,j).Allocate(fFieldDim, dim);
 	}
 
 	/* return value */
-	int nsd = fFacetCoords.MinorDim();
-	fInterp.Dimension(fFieldDim);
-	fIPCoord.Dimension(nsd);
+	fInterp.Allocate(fFieldDim);
 	
 	/* coordinate transformation */	
-	fJacobian.Dimension(nsd, nsd-1);
+	fJacobian.Allocate(fFieldDim, fFieldDim-1);
 	
 	/* surface node numbering */
-	fFacetNodes.Dimension(fNumFacets, fNumFacetNodes);
+	fFacetNodes.Allocate(2, fNumFacetNodes);
 	
 	/* work space */
-	fu_vec.Dimension(fTotalNodes*fFieldDim);	
+	fu_vec.Allocate(fTotalNodes*fFieldDim);	
 	
 	/* 3D work space */
 	if (fFieldDim == 3)
 	{
-		fM1.Dimension(fFieldDim, fu_vec.Length());
-		fM2.Dimension(fFieldDim, fu_vec.Length());
+		fM1.Allocate(fFieldDim, fu_vec.Length());
+		fM2.Allocate(fFieldDim, fu_vec.Length());
 	}
 }
 
@@ -501,7 +410,7 @@ void SurfaceShapeT::Construct(void)
 void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 {
 	/* check */
-	if (jump.Length() != fTotalNodes) throw ExceptionT::kSizeMismatch;
+	if (jump.Length() != fTotalNodes) throw eSizeMismatch;
 
 	int num_nodes_error = 0;
 	int geometry = fDomain->GeometryCode();
@@ -509,28 +418,19 @@ void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 	{
 		case GeometryT::kLine:
 		{
-			if (fNumFacetNodes == 2)
+			if (fTotalNodes == 4)
 			{
-				iArray2DT temp(fNumFacets, 2, jump.Pointer());
+				iArray2DT temp(2, 2, jump.Pointer());
 				temp.SetRow(0,-1);
-				if (fNumFacets == 2)
-					temp.SetRow(1, 1);
+				temp.SetRow(1, 1);
 			}
-			else if (fNumFacetNodes == 3)
+			else if (fTotalNodes == 6)
 			{
-				if (fNumFacets == 2)
-				{
-					iArray2DT temp(3, 2, jump.Pointer());
-					temp.SetRow(0,-1);
-					temp.SetRow(1, 1);
-					temp(2,0) =-1;
-					temp(2,1) = 1;
-				}
-				else
-				{
-					iArray2DT temp(3,1, jump.Pointer());
-					temp = -1;
-				}
+				iArray2DT temp(3, 2, jump.Pointer());
+				temp.SetRow(0,-1);
+				temp.SetRow(1, 1);
+				temp(2,0) =-1;
+				temp(2,1) = 1;
 			}
 			else
 				num_nodes_error = 1;
@@ -539,28 +439,19 @@ void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 		}
 		case GeometryT::kTriangle:
 		{
-			if (fNumFacetNodes == 3)
+			if (fTotalNodes == 6)
 			{
-				iArray2DT temp(fNumFacets, 3, jump.Pointer());
+				iArray2DT temp(2, 3, jump.Pointer());
 				temp.SetRow(0,-1);
-				if (fNumFacets == 2)
-					temp.SetRow(1, 1);
+				temp.SetRow(1, 1);
 			}
-			else if (fNumFacetNodes == 6)
+			else if (fTotalNodes == 12)
 			{
-				if (fNumFacets == 2)
-				{
-				 	iArray2DT temp(4, 3, jump.Pointer());
-					temp.SetRow(0,-1);
-					temp.SetRow(1, 1);
-					temp.SetRow(2,-1);
-					temp.SetRow(3, 1);
-				}
-				else
-				{
-					iArray2DT temp(6, 1, jump.Pointer());
-					temp = -1;
-				}
+				iArray2DT temp(4, 3, jump.Pointer());
+				temp.SetRow(0,-1);
+				temp.SetRow(1, 1);
+				temp.SetRow(2,-1);
+				temp.SetRow(3, 1);
 			}
 			else
 				num_nodes_error = 1;
@@ -569,28 +460,19 @@ void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 		}
 		case GeometryT::kQuadrilateral:
 		{
-			if (fNumFacetNodes == 4)
+			if (fTotalNodes == 8)
 			{
-				iArray2DT temp(fNumFacets, 4, jump.Pointer());
+				iArray2DT temp(2, 4, jump.Pointer());
 				temp.SetRow(0,-1);
-				if (fNumFacets == 2)
-					temp.SetRow(1, 1);
+				temp.SetRow(1, 1);
 			}
-			else if (fNumFacetNodes == 8)
+			else if (fTotalNodes == 16)
 			{
-				if (fNumFacets == 2)
-				{
-					iArray2DT temp(4, 4, jump.Pointer());
-					temp.SetRow(0,-1);
-					temp.SetRow(1, 1);
-					temp.SetRow(2,-1);
-					temp.SetRow(3, 1);
-				}
-				else
-				{
-					iArray2DT temp(8, 1, jump.Pointer());
-					temp = -1;
-				}
+				iArray2DT temp(4, 4, jump.Pointer());
+				temp.SetRow(0,-1);
+				temp.SetRow(1, 1);
+				temp.SetRow(2,-1);
+				temp.SetRow(3, 1);
 			}
 			else
 				num_nodes_error = 1;
@@ -601,7 +483,7 @@ void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 		
 			cout << "\n SurfaceShapeT::SetJumpVector: unsupported geometry: ";
 			cout << geometry << endl;
-			throw ExceptionT::kGeneralFail;
+			throw eGeneralFail;
 	}
 	
 	if (num_nodes_error)
@@ -609,8 +491,7 @@ void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 		cout << "\n SurfaceShapeT::SetJumpVector: " << fTotalNodes;
 		cout << " nodes with geometry " << geometry << " is\n";
 		cout <<   "      not supported" << endl;
-		throw ExceptionT::kGeneralFail
-		;
+		throw eGeneralFail;
 	}
 }
 
@@ -619,7 +500,7 @@ void SurfaceShapeT::ComputeFacetCoords(void)
 {
 #if __option(extended_errorcheck)
 	if (fCoords.NumberOfNodes() != 2*fFacetCoords.NumberOfNodes())
-		throw ExceptionT::kSizeMismatch;
+		throw eSizeMismatch;
 #endif
 
 	for (int i = 0; i < fFieldDim; i++)
@@ -627,7 +508,7 @@ void SurfaceShapeT::ComputeFacetCoords(void)
 		int* facet1 = fFacetNodes(0);
 		int* facet2 = fFacetNodes(1);
 		
-		const double* px = fCoords(i);
+		double* px    = fCoords(i);
 		double* pxmid = fFacetCoords(i);
 		for (int j = 0; j < fNumFacetNodes; j++)
 			*pxmid++ = 0.5*(px[*facet1++] + px[*facet2++]);

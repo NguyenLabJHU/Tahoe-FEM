@@ -151,11 +151,7 @@ integer f_open(olist *a)
 	 case 'S':
 		b->uscrtch=1;
 #ifdef _POSIX_SOURCE
-#ifdef __GNU__
-		mkstemp(buf);
-#else
 		tmpnam(buf);
-#endif
 #else
 		(void) strcpy(buf,"tmp.FXXXXXX");
 		(void) mktemp(buf);

@@ -1,16 +1,15 @@
-/* $Id: FEExecutionManagerT.h,v 1.28 2004-09-28 15:35:37 paklein Exp $ */
-/* created: paklein (09/21/1997) */
+/* $Id: FEExecutionManagerT.h,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* created: paklein (09/21/1997)                                          */
+/* Manager for file driven finite element simulations                     */
+
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
 
 /* base class */
 #include "ExecutionManagerT.h"
-#include "DecomposeT.h"
 
 /* direct members */
 #include "IOBaseT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 template <class TYPE> class ArrayT;
@@ -19,68 +18,76 @@ class OutputSetT;
 class IOManager;
 class FEManagerT;
 class PartitionT;
-class ModelManagerT;
-class dArray2DT;
-class dArray2DT;
-class StringT;
-class ParameterListT;
 
-/** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT
 {
 public:
 
-	/** constructor */
-	FEExecutionManagerT(int argc, char* argv[], char job_char, char batch_char,
-		CommunicatorT& comm);
+	/* Constructor */
+	FEExecutionManagerT(int argc, char* argv[], char job_char, char batch_char);
+
+	/* Prompt input files until "quit" */
+	virtual void Run(void);
 
 protected:
 
-	/** add the command line option to the list. \returns true if the option was
-	 * added, false otherwise. */
-	virtual bool AddCommandLineOption(const char* str);
-
-	/** remove the command line option to the list. \returns true if the option was
-	 * removed, false otherwise. */
-	virtual bool RemoveCommandLineOption(const char* str);
-
-	/** overloaded */
+	/* overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status);
-
-	/** Recursive dispatch */
-	virtual void JobOrBatch(ifstreamT& in, ostream& status);
 
 private:
 
-	/** \name execution modes */
-	/*@{*/
-	/** enum for execution modes */
-	enum ModeT {
-        kJob = 0,
-  kDecompose = 1,
-       kJoin = 2,
-   kBridging = 3,
-        kTHK = 4,
-        kDTD = 5
-	};
+	/* standard serial driver */
+	void RunJob_serial(ifstreamT& in, ostream& status) const;
 	
-	/** serial and parallel driver */
-	void RunJob_analysis(const StringT& input_file, ostream& status) const;
+	/* parallel driver */
+	void RunJob_parallel(ifstreamT& in, ostream& status) const;
 
-	/** generate decomposition files */
-	void RunDecomp_serial(const StringT& input_file, ostream& status, CommunicatorT& comm, int size = -1) const;
+	/* generate decomposition files */
+	void RunDecomp_serial(ifstreamT& in, ostream& status) const;
 
-	/** join parallel results files */
-	void RunJoin_serial(const StringT& input_file, ostream& status, int size = -1) const;
+	/* join parallel results files */
+	void RunJoin_serial(ifstreamT& in, ostream& status) const;
 
-	/** dump current parameter description file */
-	void RunWriteDescription(int doc_type) const;
-	/*@}*/
+	/* print message on exception */
+	void Rewind(ifstreamT& in, ostream& status) const;
 
-	/** construct and return the local IOManager */
+	/* extract the model file name from the stream */
+	void GetModelFile(ifstreamT& in, StringT& model_file,
+		IOBaseT::FileTypeT& format) const;
+
+	/* generate decomposition data */
+	void Decompose(ifstreamT& in, int size, const StringT& model_file,
+		const StringT& global_model_file, IOBaseT::FileTypeT format,
+		const StringT& output_map_file) const;
+
+	/* returns true if a new decomposition is needed */
+	bool NeedDecomposition(ifstreamT& in, const StringT& model_file,
+		int size) const;
+
+	/* returns true if the global output model file is not found */
+	bool NeedModelFile(const StringT& model_file, IOBaseT::FileTypeT format) const;
+
+	/* returns true if a new decomposition is needed */
+	bool NeedOutputMap(ifstreamT& in, const StringT& map_file,
+		int size) const;
+	void ReadOutputMap(ifstreamT& in, const StringT& map_file,
+		iArrayT& map) const;
+
+	/* set output map based on length of map */
+	void SetOutputMap(const ArrayT<OutputSetT*>& output_sets,
+		iArrayT& output_map, int size) const;
+
+	/* construct and return the local IOManager */
 	IOManager* NewLocalIOManager(const FEManagerT* global_FEman,
 		const iArrayT& output_map) const;
+		
+	/* write partial geometry files */
+	void EchoPartialGeometry(const PartitionT& partition, const StringT& model_file,
+		const StringT& partial_file, IOBaseT::FileTypeT format) const;
+	void EchoPartialGeometry_ExodusII(const PartitionT& partition,
+		const StringT& model_file, const StringT& partial_file) const;
+	void EchoPartialGeometry_TahoeII(const PartitionT& partition,
+		const StringT& model_file, const StringT& partial_file) const;
 };
 
-} // namespace Tahoe 
 #endif /* _FE_EXECMAN_T_H_ */

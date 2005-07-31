@@ -1,36 +1,28 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.12 2005-07-20 17:02:35 kyonten Exp $ */
-/* created: paklein (10/23/1999) */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* created: paklein (10/23/1999)                                          */
+
 #include "D2MeshFreeSupport2DT.h"
 
 #include <math.h>
 #include <string.h>
 
-#include "ExceptionT.h"
-#include "toolboxConstants.h"
+#include "ExceptionCodes.h"
+#include "Constants.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
-
-using namespace Tahoe;
 
 static    int Max(int a, int b) { return (a > b) ? a : b; };
 static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
-D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(const ParentDomainT* domain,
-	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes):
-	D2MeshFreeSupportT(domain, coords, connects, nongridnodes)
-
+D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(const ParentDomainT& domain,
+	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes,
+	FormulationT code, double dextra, int complete, bool store_shape):
+	D2MeshFreeSupportT(domain, coords, connects, nongridnodes, code, dextra,
+		complete, store_shape)
 {
-	SetName("D2_meshfree_support_2D");
+
 }
-
-
-D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(void) 
-{
-	SetName("D2_meshfree_support_2D");
-}
-
-//********************************************************//
 
 /* cutting facet functions */
 void D2MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
@@ -41,8 +33,11 @@ void D2MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
 
 	/* checks */
 	if (fNumFacetNodes != 2)
-		ExceptionT::SizeMismatch("D2MeshFreeSupport2DT::SetCuttingFacets", "2D cutting facets must have 2 nodes: %d",
-			fNumFacetNodes);
+	{
+		cout << "\n D2MeshFreeSupport2DT::SetCuttingFacets: 2D cutting facets must\n"
+		     <<   "     have 2 nodes: " << fNumFacetNodes << endl;
+		throw eSizeMismatch;
+	}
 }
 
 /*************************************************************************
@@ -52,26 +47,26 @@ void D2MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
 /* process boundaries - nodes marked as "inactive" at the
 * current x_node by setting dmax = -1.0 */
 void D2MeshFreeSupport2DT::ProcessBoundaries(const dArray2DT& coords,
-	const dArrayT& x_node, dArray2DT& nodal_params)
+	const dArrayT& x_node, dArrayT& dmax)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
-	if (coords.MajorDim() != nodal_params.MajorDim()) throw ExceptionT::kSizeMismatch;
-	if (coords.MinorDim() != x_node.Length()) throw ExceptionT::kSizeMismatch;
+	if (coords.MajorDim() != dmax.Length()) throw eSizeMismatch;
+	if (coords.MinorDim() != x_node.Length()) throw eSizeMismatch;
 #endif
 
 	/* quick exit */
 	if (!fCutCoords) return;
 	
 	/* exhaustive search for now */
-	const double* pnode = x_node.Pointer();
+	double* pnode = x_node.Pointer();
 	for (int j = 0; j < fCutCoords->MajorDim(); j++)
 	{
-		const double* p1 = (*fCutCoords)(j);
-		const double* p2 = p1 + 2;
+		double* p1 = (*fCutCoords)(j);
+		double* p2 = p1 + 2;
+	
 		for (int i = 0; i < coords.MajorDim(); i++)
-			if (Intersect(p1, p2, pnode, coords(i))) 
-				nodal_params.SetRow(i, -1.0);
+			if (Intersect(p1, p2, pnode, coords(i))) dmax[i] = -1.0;
 	}
 }		
 
@@ -84,8 +79,9 @@ int D2MeshFreeSupport2DT::Visible(const double* x1, const double* x2)
 	/* exhaustive search for now */
 	for (int j = 0; j < fCutCoords->MajorDim(); j++)
 	{
-		const double* p1 = (*fCutCoords)(j);
-		const double* p2 = p1 + 2;
+		double* p1 = (*fCutCoords)(j);
+		double* p2 = p1 + 2;
+	
 		if (Intersect(x1, x2, p1, p2)) return 0;
 	}
 	return 1;

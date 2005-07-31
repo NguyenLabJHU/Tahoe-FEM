@@ -1,4 +1,4 @@
-/* $Id: BondLengthsT.cpp,v 1.4 2003-11-21 22:46:41 paklein Exp $ */
+/* $Id: BondLengthsT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
 /* created: paklein (05/20/1997)                                          */
 /* Class to compute/manage all bond lengths and derivatives               */
 /* for the 2 unit cell, diamond cubic, modified Cauchy-Born,              */
@@ -9,9 +9,6 @@
 #include "dArrayT.h"
 
 /* internal parameters */
-
-using namespace Tahoe;
-
 const int	kNumAtoms  = 8;
 const int   kNumBonds  = 8;
 const int	kNSD       = 3;
@@ -129,7 +126,7 @@ void BondLengthsT::dR(const dArray2DT& R, const dArrayT& l, const dMatrixT& C,
 
 	for (int i = 0; i < l.Length(); i++)
 	{
-		shR.Alias(kNSD, R(i));		
+		shR.Set(kNSD, R(i));		
 		C.MultTx(shR,fTempVec);				
 						
 		/* dl/dC */
@@ -155,7 +152,7 @@ void BondLengthsT::dR(const dArray2DT& R, const dArrayT& l, const dMatrixT& C,
 void BondLengthsT::Symmetrized(dMatrixT& mat, const dArrayT& Rmod)
 {
 	/* strictly 3D */
-	if (Rmod.Length() != 3) throw ExceptionT::kGeneralFail;
+	if (Rmod.Length() != 3) throw eGeneralFail;
 
 	int dex[6][2] =
 		{{0,0},

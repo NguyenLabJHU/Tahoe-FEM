@@ -1,11 +1,11 @@
-/* $Id: FrontNodeT.cpp,v 1.9 2003-11-21 22:41:51 paklein Exp $ */
-/* created: paklein (03/19/1999) */
+/* $Id: FrontNodeT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (03/19/1999)                                          */
+
 #include "FrontNodeT.h"
 
 #include <math.h>
-#include "dMatrixT.h"
 
-using namespace Tahoe;
+#include "dMatrixT.h"
 
 /* constants */
 const double Pi = acos(-1.0);
@@ -29,9 +29,7 @@ inline static void Normalize(double* A)
 };
 
 /* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<FrontNodeT*>::fByteCopy = true;
-} /* namespace Tahoe */
+const bool ArrayT<FrontNodeT*>::fByteCopy = true;
 
 /* constructor */
 FrontNodeT::FrontNodeT(int dim, const double* x, const double* v_n,
@@ -60,7 +58,7 @@ void FrontNodeT::Write(ostream& out) const
 	dMatrixT Q;
 	for (int i = 0; i < fQ.MajorDim(); i++)
 	{
-		Q.Alias(fdim, fdim, fQ(i));
+		Q.Set(fdim, fdim, fQ(i));
 		out << Q << '\n';
 	}
 }
@@ -77,8 +75,8 @@ void FrontNodeT::Reset2D(const double* x, const double* v_n, const double* v_t,
 	fx[2] = 0.0;
 
 	/* allocate space - points symmetric about straight ahead */
-	ftip_pts.Dimension(2*num_pts + 1, 2);
-	fQ.Dimension(2*num_pts + 1, 2*2);
+	ftip_pts.Allocate(2*num_pts + 1, 2);
+	fQ.Allocate(2*num_pts + 1, 2*2);
 
 	/* relative angle */
 	double t0 = atan2(v_n[1], v_n[0]);
@@ -147,13 +145,13 @@ void FrontNodeT::Reset3D(const double* x, const double* v_n, const double* v_t,
 	if ((det - 1.0) > 1.0e-10)
 	{
 		cout << "\n FrontNodeT::Reset: local coordinate basis error: det = " << det;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 #endif	
 
 	/* allocate space - points symmetric about straight ahead */
-	ftip_pts.Dimension(2*num_pts + 1, 3);
-	fQ.Dimension(2*num_pts + 1, 3*3);
+	ftip_pts.Allocate(2*num_pts + 1, 3);
+	fQ.Allocate(2*num_pts + 1, 3*3);
 
 	/* temp space for coordinate transforms */
 	dMatrixT Q_x(3); // in local frame

@@ -1,44 +1,39 @@
-/* $Id: NLSolverX.h,v 1.8 2004-09-09 23:54:55 paklein Exp $ */
-/* created: paklein (08/25/1996) */
+/* $Id: NLSolverX.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* created: paklein (08/25/1996)                                          */
+/* NLSolver with selective tangent reformation                            */
+
 #ifndef _NL_SOLVER_X_H_
 #define _NL_SOLVER_X_H_
 
 /* base class */
 #include "NLSolver.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class CCSMatrixT;
 class CCNSMatrixT;
 
-/** nonlinear solver methods testbed */
 class NLSolverX: public NLSolver
 {
 public:
 
-	/** constructor */
-	NLSolverX(FEManagerT& fe_manager, int group);
+	/* constructor */
+	NLSolverX(FEManagerT& fe_manager);
 
-	/** solve the system over the current time increment.
-	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
-	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
-	 *        also indicate the solution procedure has failed.
-	 * \return one of SolverT::IterationsStatusT */
-	virtual SolutionStatusT Solve(int num_iterations);
+	/* generate the solution for the current time sequence */
+	virtual void Run(void);
 
-	/* error handler */
-	virtual void ResetStep(void);
+	/* form and solve the equation system - returns the magnitude of the
+	 * residual */
+	virtual double SolveAndForm(bool newtangent);
 
 protected:
 
-#if 0
 	/* relax system - reform tangent at newtancount intervals */
-	virtual SolutionStatusT Relax(int newtancount = 1); 
-#endif
+	virtual IterationStatusT Relax(int newtancount = 1);  	
 
-	/** things to do if the solver converges */
-	SolutionStatusT DoConverged(void);
+	/* handlers */
+	virtual IterationStatusT DoConverged(void);	
+	virtual void DoNotConverged(void);
 
 private:
 
@@ -62,5 +57,4 @@ private:
 	CCNSMatrixT* pCCNS;
 };
 
-} // namespace Tahoe 
 #endif /* _NL_SOLVER_X_H_ */

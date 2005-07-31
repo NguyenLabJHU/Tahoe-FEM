@@ -1,10 +1,11 @@
-/* $Id: SPOOLESMatrixT.h,v 1.20 2005-04-13 21:50:13 paklein Exp $ */
-/* created: paklein (09/13/2000) */
+/* $Id: SPOOLESMatrixT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (09/13/2000)                                          */
+
 #ifndef _SPOOLES_MATRIX_T_H_
 #define _SPOOLES_MATRIX_T_H_
 
 /* base class */
-#include "MSRMatrixT.h"
+#include "GlobalMatrixT.h"
 
 /* library support options */
 #ifdef __SPOOLES__
@@ -16,71 +17,120 @@
 #include "dMatrixT.h"
 #include "nVariMatrixT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class MSRBuilderT;
 
-/** interface to SPOOLES sparse, direct linear solver. Solution driver supports
- * multiple solves with the same factorized matrix. Sparsity and symbolic factorization
- * is not preserved between matricies. All previous information about the previous
- * matrix is delete with the call to SPOOLESMatrixT::Clear. */
-class SPOOLESMatrixT: public MSRMatrixT
+class SPOOLESMatrixT: public GlobalMatrixT
 {
 public:
 
 	/* constuctor */
 	SPOOLESMatrixT(ostream& out, int check_code, bool symmetric,
-		bool pivoting, int message_level, const CommunicatorT& comm);
-
-	/* copy constructor */
-	SPOOLESMatrixT(const SPOOLESMatrixT& source);
-
-	/** destructor */
+		bool pivoting);
+	
+	/* destructor */
 	virtual ~SPOOLESMatrixT(void);
 
-	/** SPOOLESMatrixT::Solve does preserve the data in the matrix */
-	virtual bool SolvePreservesData(void) const { return true; };	  
+	/* set the internal matrix structure.
+	 * NOTE: do not call Initialize() equation topology has been set
+	 * with AddEquationSet() for all equation sets */
+	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 
-	/** clear values for next assembly */
-	virtual void Clear(void);
+	/* add to structure - active equations only (# > 0)
+	 * NOTE: structure not set until #CALL#. equation data
+	 * must persist outside of Aztec until (at least) then */
+	void AddEquationSet(const iArray2DT& eqnos);
+	void AddEquationSet(const RaggedArray2DT<int>& eqnos);
 
-	/** return the form of the matrix */
-	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
+	/* assemble the element contribution into the LHS matrix - assumes
+	 * that elMat is square (n x n) and that eqnos is also length n.
+	 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
+	virtual void Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos);
 
-	/** assignment operatpr */
-	SPOOLESMatrixT& operator=(const SPOOLESMatrixT& rhs);
+	/* set all matrix values to 0.0 */
+	void Clear(void);
 
-	/** return a clone of self. Caller is responsible for disposing of the matrix */
-	virtual GlobalMatrixT* Clone(void) const;
+	/* write non-zero values to stream as {row,col,value} */
+	void PrintNonZero(ostream& out) const;
+
+	/* number scope and reordering */
+	virtual EquationNumberScopeT EquationNumberScope(void) const;
+	virtual bool RenumberEquations(void) const;
+
+	/* assignment operator - not implemented */
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
 
 protected:
 
-	/** precondition matrix */
+	/* precondition matrix */
 	virtual void Factorize(void);
-
-	/** determine new search direction and put the results in result */
+	
+	/* determine new search direction and put the results in result */
 	virtual void BackSubstitute(dArrayT& result);
 
+	/* rank check functions */
+	virtual void PrintAllPivots(void) const;
+	virtual void PrintZeroPivots(void) const;
+	virtual void PrintLHS(void) const;
+
+	/* copy MSR data to RCV */
+	void GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v);
+
+private:
+
+	/* assemble row values into global structure using the global column
+	 * indices given in coldex - status is 1 if successful, 0 otherwise */
+	void AssembleRow(int row, int numvals, const int* col_dex,
+		const double* rowvals, int& status);
+
+	/* assemble diagonal values into the global structure
+	 * status is 1 if successful, 0 otherwise */
+	void AssembleDiagonals(int numvals, const int* rows, const double* vals,
+		int& status);
+
+	/* sets MSR data with column indices sorted in ascending order */
+	void SetMSRData(void);
+
+	/* allocate memory for quick find */
+	void SetUpQuickFind(void);
+
+	/* borrowed from Aztec v1.0 */
+	int AZ_quick_find(int key, int list[], int length, int shift, int bins[]);
+	int AZ_find_index(int key, int list[], int length);	
+	void AZ_init_quick_find(int list[], int length, int *shift, int *bins);
+	void AZ_sort(int list[], int N, int list2[], double list3[]);
+
 protected:
 
-	/** parameters */
+	/* SPOOLES parameters */
+	bool fSymmetric;
 	bool fPivoting;	
 
-	/** information output */
-	int fMessageLevel;
+	/* MSR database builder */
+	MSRBuilderT* fMSRBuilder;
 
-	/** data for repeated solves with the same matrix (not for MT) */
-	void* pLU_dat;
+	/* matrix data in MSR format */
+	iArrayT fupdate; // global indices updated on this processor
+	iArrayT fbindx;  // MSR structure data
+	dArrayT fval;    // matrix value array
 
-	/** runtime flag */
-	bool fIsFactorized;
+	/* quick find data */
+	int     fQF_shift;
+	iArrayT fupdate_bin;
+	iArrayT fsrow_dex; // space for sorted row indices
+	dArrayT fsrow_val; // space for sorted row values
+
+	/* for assembly operations */
+	AutoArrayT<int> fRowEqnVec, fColEqnVec;
+	AutoArrayT<int> fRowDexVec, fColDexVec;
+	AutoArrayT<double> fValVec;
+	dMatrixT             fActiveBlk;
+	nVariMatrixT<double> fActiveBlkMan;
+	iArrayT fActiveDex; // symmetric assembly
+	
+	/* solve count */
+	int fSolveCount;
 };
 
-} // namespace Tahoe 
 #endif /*__SPOOLES__ */
 #endif /* _SPOOLES_MATRIX_T_H_ */
-
-
-
-

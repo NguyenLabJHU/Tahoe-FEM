@@ -1,5 +1,6 @@
-/* $Id: DiagonalMatrixT.h,v 1.17 2005-04-13 21:49:58 paklein Exp $ */
-/* created: paklein (03/23/1997) */
+/* $Id: DiagonalMatrixT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (03/23/1997)                                          */
+/* Virtual base class for all global matrix objects                       */
 
 #ifndef _DIAGONAL_MATRIX_H_
 #define _DIAGONAL_MATRIX_H_
@@ -10,26 +11,16 @@
 /* direct members */
 #include "dArrayT.h"
 
-namespace Tahoe {
-
-/** diagonal matrix */
 class DiagonalMatrixT: public GlobalMatrixT
 {
 public:
 
-	/** enum to signal how to assemble non-diagonal contributions to the matrix */
-	enum AssemblyModeT {kNoAssembly = 0, /**< do not assemble, throw ExceptionT::xception */ 
-	                    kDiagOnly   = 1, /**< assemble the diagonal values only */
-                        kAbsRowSum  = 2  /**< assemble the L1 norm of the row */};
+	enum AssemblyModeT {kNoAssembly = 0,
+	                    kDiagOnly   = 1,
+                        kAbsRowSum  = 2};
 
-	/** constructors */
-	DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode, const CommunicatorT& comm);
-
-	/** copy constructor */
-	DiagonalMatrixT(const DiagonalMatrixT& source);
-
-	/** DiagonalMatrixT::Solve does preserve the data in the matrix */
-	virtual bool SolvePreservesData(void) const { return true; };	  
+	/* constructors */
+	DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode);
 
 	/* set assemble mode */
 	void SetAssemblyMode(AssemblyModeT mode);
@@ -52,13 +43,10 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fDimension */
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos);
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-		const ArrayT<int>& col_eqnos);
-	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos);
 
-	/* fetch values */
-	virtual void DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
+	/* assignment operator */
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
 
 	/* access to the data */
 	dArrayT& TheMatrix(void);
@@ -66,26 +54,6 @@ public:
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
-
-	/** return the form of the matrix */
-	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kDiagonal; };
-
-	/** assignment operator */
-	DiagonalMatrixT& operator=(const DiagonalMatrixT& rhs);
-
-	/** return a clone of self. Caller is responsible for disposing of the matrix */
-	virtual GlobalMatrixT* Clone(void) const;
-
-	/** matrix-vector product. OK to call either before or after the matrix is
-	 * factorized */
-	virtual void Multx(const dArrayT& x, dArrayT& b) const;
-
-	/** Tranpose[matrix]-vector product. OK to call either before or after the matrix 
-	 * is factorized */
-	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
-
-	/** vector-matrix-vector product */
-	virtual double MultmBn(const dArrayT& m, const dArrayT& n) const;
 	
 protected:
 
@@ -98,16 +66,12 @@ protected:
 	/* check functions */
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
-	virtual void PrintLHS(bool force = false) const;
+	virtual void PrintLHS(void) const;
 	
 private:
 
-	/** the matrix */
 	dArrayT	fMatrix;
-
-	/** runtime flag */
-	bool fIsFactorized;
-
+	
 	/* mode flag */
 	AssemblyModeT fMode;
 };
@@ -120,10 +84,4 @@ inline dArrayT& DiagonalMatrixT::TheMatrix(void)
 	return fMatrix;
 }
 
-/* Tranpose[matrix]-vector product */
-inline void DiagonalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const { 
-	DiagonalMatrixT::Multx(x, b);
-}; 
-
-} // namespace Tahoe 
 #endif /* _DIAGONAL_MATRIX_H_ */

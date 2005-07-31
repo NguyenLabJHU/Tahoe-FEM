@@ -1,5 +1,14 @@
-/* $Id: J2QL2DLinHardT.h,v 1.8 2004-07-15 08:28:54 paklein Exp $ */
-/* created: paklein (06/29/1997) */
+/* $Id: J2QL2DLinHardT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (06/29/1997)                                          */
+/* Interface for a elastoplastic material that is linearly                */
+/* isotropically elastic subject to the Huber-von Mises yield             */
+/* condition as fYield with kinematic/isotropic hardening laws            */
+/* given by:                                                              */
+/* 		H(a) = (1 - ftheta) fH_bar a                                         */
+/* K(a) = fYield + ftheta fH_bar a                                        */
+/* 		where a is the internal hardening variable                           */
+/* 	Note: all calculations are peformed in 3D.                            */
+
 #ifndef _J2_QL_LIN_HARD_2D_T_H_
 #define _J2_QL_LIN_HARD_2D_T_H_
 
@@ -13,40 +22,21 @@
 #include "dArrayT.h"
 #include "iArrayT.h"
 
-namespace Tahoe {
-
-/** interface for a elastoplastic material that is linearly
- * isotropically elastic subject to the Huber-von Mises yield
- * condition as fYield with kinematic/isotropic hardening laws
- * given by:
- * given by:
- 	\f[
-		H(\alpha) = (1 - \theta) \bar{H} \alpha
-	\f]
-	\f[
-		K(\alpha) = Y + \theta \bar{H} \alpha
-	\f]
- * where \f$ \alpha \f$ is the internal hardening variable
- * \note all calculations are peformed in 3D
- */
 class J2QL2DLinHardT: public QuadLog2D, public J2PrimitiveT
 {
 public:
 
-	/** constructor */
-	J2QL2DLinHardT(void);
-
-	/** required parameter flags */
-	virtual bool Need_F_last(void) const { return true; };
-
-	/** has state variables */
-	virtual bool HasHistory(void) const { return true; };
+	/* constructor */
+	J2QL2DLinHardT(ifstreamT& in, const ElasticT& element);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
+
+	/* print parameters */
+	virtual void Print(ostream& out) const;
 
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
@@ -57,20 +47,14 @@ public:
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 
+	/* required parameter flags */
+	virtual bool NeedLastDisp(void) const;
+
 	/* returns the number of variables computed for nodal extrapolation
 	 * during for element output, ie. internal variables */
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 	
 protected:
 
@@ -88,7 +72,7 @@ protected:
 	 *       The element passed in is already assumed to carry current
 	 *       internal variable values.
 	 */
-	void ElastoPlasticCorrection(dSymMatrixT& a_ep, dArrayT& beta, int ip);
+	void ElastoPlasticCorrection(dMatrixT& a_ep, dArrayT& beta, int ip);
 
 	/* allocate element storage */
 	void AllocateElement(ElementCardT& elememt);
@@ -115,15 +99,17 @@ private:
 
 private:
 
+	/* displacements from the last time step */
+	const LocalArrayT& fLocLastDisp;
+
 	/* return values */
 	dSymMatrixT fb_elastic; //return value
-	dSymMatrixT fEPModuli;  //elastoplastic moduli in principal stress space
+	dMatrixT   fEPModuli;  //elastoplastic moduli in principal stress space
 
 	/* work space */
-	dSymMatrixT fa_inverse; //inverse of 3 x 3 moduli
+	dMatrixT fa_inverse; //inverse of 3 x 3 moduli
 	dMatrixT fMatrixTemp1;
 	dMatrixT fMatrixTemp2;
-	dSymMatrixT fMatrixTemp3;
 	dArrayT  fdev_beta; //deviatoric part of principal stress
 
 	dSymMatrixT fb_n;      //last converged elastic state
@@ -139,5 +125,4 @@ private:
 	dMatrixT ffrel_2D;	
 };
 
-} // namespace Tahoe 
 #endif /* _J2_QL_LIN_HARD_2D_T_H_ */

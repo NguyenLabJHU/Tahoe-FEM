@@ -1,10 +1,21 @@
-/* $Id: J2IsoVIB2DLinHardT.h,v 1.7 2004-07-15 08:27:45 paklein Exp $ */
-/* created: paklein (10/18/1998) */
+/* $Id: J2IsoVIB2DLinHardT.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (10/18/1998)                                          */
+/* VIB plus principal stretch elasticity                                  */
+/* Interface for a elastoplastic material that is linearly                */
+/* isotropically elastic subject to the Huber-von Mises yield             */
+/* condition as fYield with kinematic/isotropic hardening laws            */
+/* given by:                                                              */
+/* 		H(a) = (1 - ftheta) fH_bar a                                         */
+/* K(a) = fYield + ftheta fH_bar a                                        */
+/* 		where a is the internal hardening variable                           */
+/* 	Note: all calculations are peformed in 3D.                            */
+
 #ifndef _J2_ISOVIB_2D_T_H_
 #define _J2_ISOVIB_2D_T_H_
 
 /* base classes */
 #include "IsoVIB3D.h"
+#include "Material2DT.h"
 #include "J2PrimitiveT.h"
 
 /* direct members */
@@ -13,30 +24,22 @@
 #include "dArrayT.h"
 #include "iArrayT.h"
 
-namespace Tahoe {
-
-/** VIB plus principal stretch elasticity
- * Interface for a elastoplastic material that is linearly
- * isotropically elastic subject to the Huber-von Mises yield
- * condition as fYield with kinematic/isotropic hardening laws
- * given by:
- *      H(a) = (1 - ftheta) fH_bar a
- *      K(a) = fYield + ftheta fH_bar a
- * 		where a is the internal hardening variable
- * 	\note all calculations are peformed in 3D
- */
-class J2IsoVIB2DLinHardT: public IsoVIB3D, public J2PrimitiveT
+class J2IsoVIB2DLinHardT: public IsoVIB3D, public Material2DT, public J2PrimitiveT
 {
 public:
 
 	/* constructor */
-	J2IsoVIB2DLinHardT(void);
+	J2IsoVIB2DLinHardT(ifstreamT& in, const ElasticT& element);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
+
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;	
 
 	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void);
@@ -46,7 +49,7 @@ public:
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 //TEMP - not yet optimized for total Lagrangian formulation.
-//       calls to these write error message and throw ExceptionT::xception
+//       calls to these write error message and throw exception
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
@@ -58,15 +61,6 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 	
 protected:
 
@@ -106,6 +100,9 @@ private:
 
 private:
 
+	/* displacements from the last time step */
+	const LocalArrayT& fLocLastDisp;
+
 //TEMP - overrides IsoVIB3D::fEigs
 	dArrayT    fEigs;
 	
@@ -142,5 +139,4 @@ private:
 	dSymMatrixT fb_2D;	
 };
 
-} // namespace Tahoe 
 #endif /* _J2_ISOVIB_2D_T_H_ */

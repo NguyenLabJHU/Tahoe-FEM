@@ -1,5 +1,6 @@
-/* $Id: Contact2DT.h,v 1.6 2004-07-15 08:26:08 paklein Exp $ */
-/* created: paklein (05/26/1999) */
+/* $Id: Contact2DT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (05/26/1999)                                          */
+
 #ifndef _CONTACT2D_T_H_
 #define _CONTACT2D_T_H_
 
@@ -9,8 +10,6 @@
 /* direct members */
 #include "AutoArrayT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class iGridManager2DT;
 
@@ -18,43 +17,31 @@ class Contact2DT: public ContactT
 {
 public:
 
-	/** constructor */
-	Contact2DT(const ElementSupportT& support);
+	/* constructor */
+	Contact2DT(FEManagerT& fe_manager);
 
-	/** destructor */
+	/* destructor */
 	virtual ~Contact2DT(void);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/	
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
+	/* allocates space and reads connectivity data */
+	virtual void Initialize(void);
 
 protected:
 
-	/** \name steps in setting contact configuration */
-	/*@{*/
-	/** set "internal" data */
-	virtual bool SetActiveInteractions(void);
-
-	/** set "external" data to send to FEManager */
-	virtual void SetConnectivities(void);
-	/*@}*/
-
-	/** \name called by Contact2DT::SetActiveInteractions */
-	/*@{*/
-	/** update by-body stored data */
-	void SetSurfacesData(void);
-
-	/** sets active striker data (based on current bodies data). Produces
-	 * one contact per striker */
-	void SetActiveStrikers(void);
-	/*@}*/
+	/* steps in setting contact configuration */
+	virtual bool SetActiveInteractions(void); // "internal" data
+	virtual void SetConnectivities(void); // "external" data - interface to FEManager
 
 private:
 
 	/* set working arrays */
 	void SetShapeFunctionArrays(void);
+
+	/* update by-body stored data */
+	void SetSurfacesData(void);
+
+	/* sets active striker data (based on current bodies data) */
+	void SetActiveStrikers(void); // one contact per striker
 
 protected:
 	
@@ -81,5 +68,4 @@ private:
 	ArrayT<dArrayT>   fTanMags;
 };
 
-} // namespace Tahoe 
 #endif /* _CONTACT2D_T_H_ */

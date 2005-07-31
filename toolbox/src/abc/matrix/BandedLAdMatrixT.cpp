@@ -1,17 +1,15 @@
-/* $Id: BandedLAdMatrixT.cpp,v 1.6 2005-07-29 03:09:33 paklein Exp $ */
+/* $Id: BandedLAdMatrixT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
+
 #include "BandedLAdMatrixT.h"
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
-#include "toolboxConstants.h"
+#include "Constants.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
-
-using namespace Tahoe;
-const char caller[] = "BandedLAdMatrixT";
 
 /* constructor */
 BandedLAdMatrixT::BandedLAdMatrixT(int squaredim, int leftbandsize, int rightbandsize):
@@ -31,7 +29,7 @@ double BandedLAdMatrixT::GetElement(int row, int col) const
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row < 0 || row >= fRows || col < 0 || col >= fCols)
-		ExceptionT::OutOfRange(caller);
+		throw eOutOfRange;
 #endif
 	
 	if(row-col > fLband || col-row > fRband)
@@ -39,8 +37,6 @@ double BandedLAdMatrixT::GetElement(int row, int col) const
 	else
 		return (fArray[col*(fLband + fRband + 1) + fRband + row - col]);
 };
-
-namespace Tahoe {
 
 /* I/O operators */
 ostream& operator<<(ostream& out, const BandedLAdMatrixT& matrix)
@@ -58,10 +54,6 @@ ostream& operator<<(ostream& out, const BandedLAdMatrixT& matrix)
 	return (out);
 }
 
-} // namespace Tahoe
-
-using namespace Tahoe;
-
 /* assemble beginning with row and col in the upper left. */
 void BandedLAdMatrixT::AddBlock(int row, int col, const dMatrixT& block)
 {
@@ -69,14 +61,14 @@ void BandedLAdMatrixT::AddBlock(int row, int col, const dMatrixT& block)
 #if __option(extended_errorcheck)
 	/* within bounds */
 	if (row < 0 || row + block.Rows() > fRows ||
-	    col < 0 || row + block.Cols() > fCols) ExceptionT::OutOfRange(caller);
+	    col < 0 || row + block.Cols() > fCols) throw eOutOfRange;
 
 	/* within the band */
 	if ((row + block.Rows() - col) > fLband + 1 ||
-	    (col + block.Cols() - row) > fRband + 1 ) ExceptionT::OutOfRange(caller);
+	    (col + block.Cols() - row) > fRband + 1 ) throw eOutOfRange;
 #endif
 
-	const double* pblock = block.Pointer();
+	double* pblock = block.Pointer();
 	double* pstart = fArray + col*fColumnHeight + fRband + row - col;
 	
 	for (int i = 0; i < block.Cols(); i++)
@@ -95,7 +87,7 @@ void BandedLAdMatrixT::Transpose(const BandedLAdMatrixT& matrix)
 #if __option(extended_errorcheck)
 	/* dimension checks */
 	if( fRband != matrix.Lband() || fLband != matrix.Rband() )
-		ExceptionT::SizeMismatch(caller);
+		throw eSizeMismatch;
 #endif
 
 	int mincol, maxcol;
@@ -131,7 +123,7 @@ void BandedLAdMatrixT::LinearSolve(dArrayT& RHS)
 	{
 		double diagvalue = (*this)(col,col);
 		if(fabs( diagvalue/mean ) < 1.0e-12)
-			ExceptionT::GeneralFail(caller);
+			throw (eGeneralFail);
 		
 		int maxrow = fRows-1;
 		if(col + fLband < maxrow)
@@ -166,7 +158,7 @@ void BandedLAdMatrixT::LinearSolve(dArrayT& RHS)
 	
 	/* back substitution */
 	if(fabs( (*this)(fRows-1,fCols-1)/mean ) < 1.0e-12)
-		ExceptionT::GeneralFail(caller);
+		throw eGeneralFail;
 
 	RHS[fRows-1] /= (*this)(fRows-1,fCols-1); 	
 			
@@ -201,7 +193,7 @@ void BandedLAdMatrixT::LinearSolve(dMatrixT& RHS)
 {
 	/* dimension checks */
 	if(fRows != fCols || RHS.Rows() != fRows)
-		ExceptionT::SizeMismatch(caller);
+		throw (eSizeMismatch);
 
 	/* compute mean value of elements contained in bands */
 	double* pA = (*this)(0);
@@ -217,7 +209,7 @@ void BandedLAdMatrixT::LinearSolve(dMatrixT& RHS)
 	{
 		double diagvalue = (*this)(col,col);
 		if(fabs( diagvalue/mean ) < 1.0e-12)
-			ExceptionT::GeneralFail(caller);
+			throw (eGeneralFail);
 		
 		int maxrow = fRows-1;
 		if(col + fLband < maxrow)
@@ -256,7 +248,7 @@ void BandedLAdMatrixT::LinearSolve(dMatrixT& RHS)
 	
 	/* back substitution */
 	if(fabs( (*this)(fRows-1,fCols-1)/mean ) < 1.0e-12)
-		ExceptionT::GeneralFail(caller);
+		throw eGeneralFail;
 
 	for (int k = 0; k < RHS.Cols(); k++)
 	{
@@ -298,7 +290,7 @@ void BandedLAdMatrixT::BandedInverse(dMatrixT& RHS)
 {
 	/* dimension checks */
 	if(fRows != fCols || RHS.Rows() != fRows)
-		ExceptionT::SizeMismatch(caller);
+		throw eSizeMismatch;
 
 	/* compute mean value of elements contained in bands */
 	double* pA = (*this)(0);
@@ -317,7 +309,7 @@ void BandedLAdMatrixT::BandedInverse(dMatrixT& RHS)
 	{
 		double diagvalue = (*this)(col,col);
 		if(fabs( diagvalue/mean ) < 1.0e-12)
-			ExceptionT::GeneralFail(caller);
+			throw eGeneralFail;
 		
 		int maxrow = fRows-1;
 		if(col + fLband < maxrow)
@@ -356,7 +348,7 @@ void BandedLAdMatrixT::BandedInverse(dMatrixT& RHS)
 	
 	/* back substitution */
 	if(fabs( (*this)(fRows-1,fCols-1)/mean ) < 1.0e-12)
-		ExceptionT::GeneralFail(caller);
+		throw eGeneralFail;
 
 	for (int colRHS1 = 0; colRHS1 < RHS.Cols(); colRHS1++)
 	{
@@ -397,12 +389,12 @@ void BandedLAdMatrixT::Multx(const dArrayT& x,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != b.Length() || fCols != x.Length()) ExceptionT::SizeMismatch(caller);
+	if (fRows != b.Length() || fCols != x.Length()) throw eSizeMismatch;
 #endif
 
 	//double* ARow = Pointer() + fRband;
 	//double* ARow;
-	const double* px0  = x.Pointer();
+	double* px0  = x.Pointer();
 	double* pb   = b.Pointer();
 
 	register double temp;
@@ -427,10 +419,10 @@ void BandedLAdMatrixT::Multx(const dArrayT& x,
 		
 		// set pointer ARow to first element of i row of A
 		//ARow = &(*this)(i,startcol);
-		const double *AR = &(*this)(i,startcol);
+		double *AR = &(*this)(i,startcol);
 
 		// set pointer to x vector to appropriate row
-		const double *px = px0 + startcol;
+		double *px = px0 + startcol;
 		
 		//double *AR = ARow;
 		
@@ -457,12 +449,12 @@ void BandedLAdMatrixT::MultM(const dMatrixT& M,
 	/* dimension checks */
 #if __option (extended_errorcheck)	
 	if ( ( fRows != B.Rows() || B.Cols() != M.Cols() ) || fCols != M.Rows() )
-		ExceptionT::SizeMismatch(caller);
+		throw eSizeMismatch;
 #endif
 
 	for (int col = 0; col < B.Cols(); col++) {
 
-		const double* pM0  = M.Pointer() + col*(M.Rows());
+		double* pM0  = M.Pointer() + col*(M.Rows());
 		double* pB   = B.Pointer() + col*(B.Rows());
 
 		register double temp;
@@ -487,10 +479,10 @@ void BandedLAdMatrixT::MultM(const dMatrixT& M,
 			
 			// set pointer ARow to first element of i row of A
 			//ARow = &(*this)(i,startcol);
-			const double *AR = &(*this)(i,startcol);	
+			double *AR = &(*this)(i,startcol);	
 
 			// set pointer to M matrix to appropriate row
-			const double *pM = pM0 + startcol;
+			double *pM = pM0 + startcol;
 		
 			//double *AR = ARow;
 		
@@ -516,10 +508,10 @@ void BandedLAdMatrixT::MultTx(const dArrayT& x,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != x.Length() || fCols != b.Length()) ExceptionT::SizeMismatch(caller);
+	if (fRows != x.Length() || fCols != b.Length()) throw eSizeMismatch;
 #endif
 
-	const double* px0  = x.Pointer();
+	double* px0  = x.Pointer();
 	double* pb   = b.Pointer();
 
 	register double temp;
@@ -544,10 +536,10 @@ void BandedLAdMatrixT::MultTx(const dArrayT& x,
 		
 		// set pointer ARow to first element of i row of A
 		//ARow = &(*this)(i,startcol);
-		const double *AR = &(*this)(startrow,i);
+		double *AR = &(*this)(startrow,i);
 
 		// set pointer to x vector to appropriate row
-		const double *px = px0 + startrow;
+		double *px = px0 + startrow;
 		
 		//double *AR = ARow;
 		
@@ -576,12 +568,12 @@ void BandedLAdMatrixT::MultTM(const dMatrixT& M,
 	/* dimension checks */
 #if __option (extended_errorcheck)	
 	if ( ( fRows != B.Cols() || B.Rows() != M.Cols() ) || fCols != M.Rows() )
-		ExceptionT::SizeMismatch(caller);
+		throw eSizeMismatch;
 #endif
 
 	for (int row = 0; row < B.Rows(); row++) {
 
-		const double* pM0  = M.Pointer() + row*(M.Rows());
+		double* pM0  = M.Pointer() + row*(M.Rows());
 		double* pB   = B.Pointer() + row;
 
 		register double temp;
@@ -606,10 +598,10 @@ void BandedLAdMatrixT::MultTM(const dMatrixT& M,
 			
 			// set pointer ARow to first element of i row of A
 			//ARow = &(*this)(i,startcol);
-			const double *AR = &(*this)(i,startcol);	
+			double *AR = &(*this)(i,startcol);	
 
 			// set pointer to M matrix to appropriate row
-			const double *pM = pM0 + startcol;
+			double *pM = pM0 + startcol;
 		
 			//double *AR = ARow;
 		

@@ -1,51 +1,51 @@
-/* $Id: Contact2DT.cpp,v 1.10 2004-07-15 08:26:08 paklein Exp $ */
-/* created: paklein (05/26/1999) */
+/* $Id: Contact2DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (05/26/1999)                                          */
+
 #include "Contact2DT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ofstreamT.h"
-#include "eIntegratorT.h"
+#include "fstreamT.h"
+#include "FEManagerT.h"
+#include "eControllerT.h"
+#include "NodeManagerT.h"
 #include "iGridManager2DT.h"
-#include "ElementSupportT.h"
 
 /* parameters */
 const int kNumFacetNodes = 2;
 const int kMaxNumGrid    = 75;
 
-using namespace Tahoe;
-
 /* constructor */
-Contact2DT::Contact2DT(const ElementSupportT& support):
-	ContactT(support, kNumFacetNodes),
+Contact2DT::Contact2DT(FEManagerT& fe_manager):
+	ContactT(fe_manager, kNumFacetNodes),
 	fGrid2D(NULL),
-	fv1(2),
-	fv2(2)
+	fv1(fNumSD),
+	fv2(fNumSD)
 {
-	SetName("contact_2D");
+	/* check base class initializations */
+	if (fNumSD != 2) throw eGeneralFail;
 }
 
 /* destructor */
 Contact2DT::~Contact2DT(void) {	delete fGrid2D; }
 
 /* allocates space and reads connectivity data */
-void Contact2DT::TakeParameterList(const ParameterListT& list)
+void Contact2DT::Initialize(void)
 {
 	/* inherited */
-	ContactT::TakeParameterList(list);
+	ContactT::Initialize();
 	
 	/* dimension */
-	int neq = NumElementNodes()*NumDOF();
-	fNEEvec.Dimension(neq);
-	fNEEmat.Dimension(neq);
+	fNEEvec.Allocate(fNumElemEqnos);
+	fNEEmat.Allocate(fNumElemEqnos);
 	SetShapeFunctionArrays();	
 }
 
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
 /* generate contact element data */
 bool Contact2DT::SetActiveInteractions(void)
@@ -57,7 +57,7 @@ bool Contact2DT::SetActiveInteractions(void)
 
 	/* collect current striker node coords */
 	if (fStrikerTags.Length() > 0)
-		fStrikerCoords.RowCollect(fStrikerTags, ElementSupport().CurrentCoordinates());
+		fStrikerCoords.RowCollect(fStrikerTags, fNodes->CurrentCoordinates());
 		
 	/* construct search grid if needed */
 	if (!fGrid2D)
@@ -70,11 +70,11 @@ bool Contact2DT::SetActiveInteractions(void)
 		ngrid = (ngrid > kMaxNumGrid) ? kMaxNumGrid : ngrid;
 
 		fGrid2D = new iGridManager2DT(ngrid, ngrid, fStrikerCoords, 0);
-		if (!fGrid2D) throw ExceptionT::kOutOfMemory;
+		if (!fGrid2D) throw eOutOfMemory;
 
 		/* search grid statistics */
-		ostream& out = ElementSupport().Output();
-		out << "\n Search grid: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
+		ostream& out = fFEManager.Output();
+		out << "\n Search grid: group " << fFEManager.ElementGroupNumber(this) + 1 << '\n';
 		fGrid2D->WriteStatistics(out);
 	}
 	
@@ -99,12 +99,12 @@ void Contact2DT::SetActiveStrikers(void)
 {
 	/* clear previous contact config */
 	fActiveMap = -1;
-	fActiveStrikers.Dimension(0);
-	fHitSurface.Dimension(0);
-	fHitFacets.Dimension(0);
+	fActiveStrikers.Allocate(0);
+	fHitSurface.Allocate(0);
+	fHitFacets.Allocate(0);
 
 	/* reference to current coordinates */
-	const dArray2DT& allcoords = ElementSupport().CurrentCoordinates(); //EFFECTIVE_DVA
+	const dArray2DT& allcoords = fNodes->CurrentCoordinates(); //EFFECTIVE_DVA
 	
 	/* by-striker data */
 	int numstrikers = fStrikerTags.Length();
@@ -126,7 +126,7 @@ void Contact2DT::SetActiveStrikers(void)
 		for (int j = 0; j < numfacets; j++)
 		{
 			/* facet node positions */
-			const int* pfacet = surface(j);
+			int* pfacet = surface(j);
 			allcoords.RowAlias(pfacet[0], fx1);	
 			allcoords.RowAlias(pfacet[1], fx2);	
 		
@@ -153,7 +153,7 @@ void Contact2DT::SetActiveStrikers(void)
 				if (!surface.HasValue(strikertag))
 				{
 					/* possible striker */
-					fStriker.Alias(NumSD(), hits[k].Coords());
+					fStriker.Set(fNumSD, hits[k].Coords());
 			
 					/* penetration vectors */
 					fv1.DiffOf(fStriker, fx1);
@@ -163,8 +163,8 @@ void Contact2DT::SetActiveStrikers(void)
 					double   magtan = tanmags[j];				
 					double        b = dArrayT::Dot(tangent, fv1)/magtan;
 					double    depth = fabs(fv2[0]*fv1[1] - (fv1[0]*fv2[1])/magtan);
-					double    max_d = magtan/2.0;
-					double overhang = magtan/50.0; // facets a little oversized
+					double    max_d = magtan/5.0;
+					double overhang = magtan/100.0; // facets a little oversized
 					
 					/* within cut-off box */
 //					if (depth < max_d && (b >= 0.0 && b <= magtan))
@@ -203,25 +203,24 @@ void Contact2DT::SetActiveStrikers(void)
 /* generate element data (based on current striker/body data) */
 void Contact2DT::SetConnectivities(void)
 {
-	const char caller[] = "Contact2DT::SetConnectivities";
-
 	/* check */
-	if (fConnectivities[0]->MajorDim() != fActiveStrikers.Length())
-		ExceptionT::GeneralFail(caller, "number of contact connectivities %d != number of active strikers %d",
-			fConnectivities[0]->MajorDim(), fActiveStrikers.Length());
+	if (fConnectivities.MajorDim() != fActiveStrikers.Length())
+	{
+		cout << "\n Contact2DT::SetConnectivities: expecting the number of contact\n"
+		     <<   "    connectivities " << fConnectivities.MajorDim()
+		     << " to equal the number of active strikers "
+		     << fActiveStrikers.Length() << endl;
+		throw eGeneralFail;
+	}
 
 	/* set interacting nodes */
-	int* pelem = (int*) fConnectivities[0]->Pointer();
-	int rowlength = fConnectivities[0]->MinorDim();
-	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 3)
-		ExceptionT::SizeMismatch(caller, "expecting connectivites length 3 not %d", rowlength);
-
-	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
+	for (int i = 0; i < fConnectivities.MajorDim(); i++)
 	{
 		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
 		
-		int facet = fHitFacets[i];
-		const int* pfacet = surface(facet);
+		int   facet = fHitFacets[i];
+		int* pfacet = surface(facet);
+		int*  pelem = fConnectivities(i);
 
 		/* all element tags */
 		pelem[0] = pfacet[0]; // 1st facet node
@@ -238,11 +237,9 @@ void Contact2DT::SetConnectivities(void)
 void Contact2DT::SetShapeFunctionArrays(void)
 {
 	/* allocate workspace - displacement DOF's only */
-	int neq = NumElementNodes()*NumDOF();
-	int nsd = NumSD();
-	fdv1T.Dimension(neq, nsd);
-	fdv2T.Dimension(neq, nsd);
-	fdtanT.Dimension(neq, nsd);
+	fdv1T.Allocate(fNumElemEqnos, fNumSD);
+	fdv2T.Allocate(fNumElemEqnos, fNumSD);
+	fdtanT.Allocate(fNumElemEqnos, fNumSD);
 
 	/* derivative arrays */
 	fdv1T = 0.0;
@@ -275,18 +272,18 @@ void Contact2DT::SetSurfacesData(void)
 	if (fTanVecs.Length() != fSurfaces.Length())
 	{
 		int num_surfaces = fSurfaces.Length();
-		fTanVecs.Dimension(num_surfaces);
-		fTanMags.Dimension(num_surfaces);
+		fTanVecs.Allocate(num_surfaces);
+		fTanMags.Allocate(num_surfaces);
 		for (int i = 0; i < fSurfaces.Length(); i++)
 		{
 			int num_facets = fSurfaces[i].MajorDim();	
-			fTanVecs[i].Dimension(num_facets, NumSD());
-			fTanMags[i].Dimension(num_facets);
+			fTanVecs[i].Allocate(num_facets, fNumSD);
+			fTanMags[i].Allocate(num_facets);
 		}
 	}
 	
 	/* reference to current coordinates */
-	const dArray2DT& allcoords = ElementSupport().CurrentCoordinates();
+	const dArray2DT& allcoords = fNodes->CurrentCoordinates();
 
 	/* loop over bodies */
 	dArrayT tangent;
@@ -302,7 +299,7 @@ void Contact2DT::SetSurfacesData(void)
 		for (int j = 0; j < numfacets; j++)
 		{
 			/* facet node positions */
-			const int* pfacet = surface(j);
+			int* pfacet = surface(j);
 			allcoords.RowAlias(pfacet[0], fx1);	
 			allcoords.RowAlias(pfacet[1], fx2);	
 				

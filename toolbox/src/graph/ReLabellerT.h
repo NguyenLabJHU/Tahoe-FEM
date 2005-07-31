@@ -1,4 +1,4 @@
-/* $Id: ReLabellerT.h,v 1.3 2002-07-05 22:26:30 paklein Exp $ */
+/* $Id: ReLabellerT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 /* relabels sequences based on connectivities registered with AddGroup(). */
 /* connectivies can have an arbitrary MinorDim(), but the labels in       */
@@ -13,8 +13,6 @@
 #include "GraphT.h"
 #include "RootedLevelT.h"
 #include "PriorityQueueT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class iArray2DT;
@@ -91,5 +89,4 @@ private:
 	int fWeight2; // default = 1
 };
 
-} // namespace Tahoe 
 #endif /* _RELABELLERT_H_ */

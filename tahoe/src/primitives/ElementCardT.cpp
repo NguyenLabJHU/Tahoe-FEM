@@ -1,39 +1,26 @@
-/* $Id: ElementCardT.cpp,v 1.15 2005-02-13 22:11:50 paklein Exp $ */
-/* created: paklein (05/24/1996) */
+/* $Id: ElementCardT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (05/24/1996)                                          */
+
 #include "ElementCardT.h"
 #include <iostream.h>
 #include <iomanip.h>
-#include "toolboxConstants.h"
+#include "Constants.h"
 #include "dArrayT.h"
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* for the BC codes */
 #include "KBC_CardT.h"
-#endif
-
-using namespace Tahoe;
 
 /* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ElementCardT>::fByteCopy = false;
-} /* namespace Tahoe */
+const bool ArrayT<ElementCardT>::fByteCopy = false;
 
 /* initialize static data */
 iArrayT ElementCardT::i_junk;
 dArrayT ElementCardT::d_junk;
 
-ElementCardT::StatusT ElementCardT::int2StatusT(int i)
-{
-	if (i < kOFF || i > kMarkOFF) 
-		ExceptionT::GeneralFail("ElementCardT::int2StatusT", "unrecognized status %d", i);
-	StatusT int2status[5] = {kOFF, kON, kMarked, kMarkON, kMarkOFF};
-	return int2status[i];
-}
-
 /* constructors */
 ElementCardT::ElementCardT(void):
 	fMatNum(-1),
-	fFlag(kON),
+	fFlag(1),
 	fNodesU(&fNodesX), // assuming isoparametric
 	fData(NULL)
 {
@@ -75,7 +62,7 @@ ElementCardT& ElementCardT::operator=(const ElementCardT& rhs)
 		else
 		{
 			fData = new ElementStorageT(*rhs.fData);
-			if (!fData) throw ExceptionT::kOutOfMemory;
+			if (!fData) throw(eOutOfMemory);
 		}
 	}
 
@@ -88,16 +75,14 @@ void ElementCardT::SetMaterialNumber(int matnum) { fMatNum = matnum; }
 /* restart operations */
 void ElementCardT::ReadRestart(istream& in)
 {
-	int flag;
-	in >> flag;
-	fFlag = int2StatusT(flag);
+	in >> fFlag;
 
 	/* read data size */
 	int i_size, d_size;
 	in >> i_size >> d_size;
 	
 	/* allocate space */
-	Dimension(i_size,d_size);
+	Allocate(i_size,d_size);
 
 	/* read data */
 	in >> (*fData);
@@ -108,11 +93,11 @@ void ElementCardT::WriteRestart(ostream& out) const
 	out << fFlag;
 
 	/* error to call if not allocated */
-	if (!fData) throw ExceptionT::kGeneralFail;
+	if (!fData) throw eGeneralFail;
 
 	/* output data size */
-	out << " " << IntegerData().Length();
-	out << " " << DoubleData().Length();
+	out << setw(kIntWidth) << IntegerData().Length();
+	out << setw(kIntWidth) << DoubleData().Length();
 	out << '\n';
 
 	/* output data */
@@ -120,48 +105,11 @@ void ElementCardT::WriteRestart(ostream& out) const
 }
 
 /* element storage accessors/modifiers */
-void ElementCardT::Dimension(int i_size, int d_size)
+void ElementCardT::Allocate(int i_size, int d_size)
 {
-	/* nothing to do */
-	if (IntegerData().Length() == i_size &&
-	     DoubleData().Length() == d_size) return;
-
-#if __option(extended_errorcheck)
-	/* warning */
-	if (fData != NULL) {
-		cout << "\n ElementCardT::Allocate: WARNING: element data already exists\n" 
-		     <<   "     and will be overwritten." << endl;
-	}
-#endif
-
-	/* free existing memory */
-	if (fData != NULL)
-	{
-		delete fData;
-		fData = NULL;
-	}
-
-	fData = new ElementStorageT(i_size, d_size);
-	if (!fData) throw ExceptionT::kOutOfMemory;
+	fData = new ElementStorageT(i_size,d_size);
+	if (!fData) throw eOutOfMemory;
 }
-
-void ElementCardT::Set(int i_size, int* i_data, int d_size, double* d_data)
-{
-	/* allocate storage card */
-	if (!fData) fData = new ElementStorageT();
-	
-	/* NOTE: exisintg data gone */
-	fData->Set(i_size, i_data, d_size, d_data);
-}
-
-/* make arrays alias to other data */
-void ElementStorageT::Set(int i_size, int* i_data, int d_size, double* d_data)
-{
-	fIntegerData.Set(i_size, i_data);
-	fDoubleData.Set(d_size, d_data);
-}
-
-namespace Tahoe {
 
 /* I/O operators */
 istream& operator>>(istream& in, ElementStorageT& data)
@@ -174,10 +122,7 @@ istream& operator>>(istream& in, ElementStorageT& data)
 
 ostream& operator<<(ostream& out, const ElementStorageT& data)
 {
-	out << data.fIntegerData.wrap_tight(1) << '\n' 
-	    << data.fDoubleData.wrap_tight(1) << '\n';
+	out << data.fIntegerData << '\n' << data.fDoubleData  << '\n';
 
 	return out;
-}
-
 }

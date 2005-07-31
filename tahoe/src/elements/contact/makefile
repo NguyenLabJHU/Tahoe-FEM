@@ -1,115 +1,184 @@
-# $Id: makefile,v 1.20 2003-11-05 20:34:47 paklein Exp $
-#
-# This makefile is divided into four sections:
-#    (1) objects
-#    (2) sources
-#    (3) headers
-#    (4) subdirectories
-#
-# Instructions for how to define these is given in each section below
-#
-include $(MACRO_DIR)/suffix
-include $(MACRO_DIR)/$(ARCH).macros
+# $Id: makefile,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $
+# object directory makefile - compilation instructions
 
-##################### (1) objects
-#
-# (1.1) If there are objects in this directory:
-#    (1) define the OBJ macro as the list of object files
-#    (2) uncomment the OBJ_LINK and DEP macros here
-#    (3) comment the OBJ, OBJ_LINK, and DEP macros in the
-#        section (1.1).
-#
+.SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
+
+# objects
 OBJ = \
 	ACME_Contact3DT.o \
 	AugLagContact2DT.o \
-	AugLagContact3DT.o \
 	ContactT.o \
 	Contact2DT.o \
 	Contact3DT.o \
-	Contact3DT_K.o \
+	DOFElementT.o \
 	PenaltyContact2DT.o \
-	PenaltyContact3DT.o \
-	MFPenaltyContact2DT.o \
-	PenaltyContactDrag2DT.o \
-	PenaltyContactDrag3DT.o
-
+	PenaltyContact3DT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 
-#
-# (1.2) If there are not object in this directory:
-#    (1) comment the OBJ, OBJ_LINK, and DEP definitions in section (1.1)
-#    (2) uncomment the OBJ, OBJ_LINK, and DEP definitions below
-#
-#OBJ = dummy
-#OBJ_LINK =
-#DEP = /dev/null
-
-##################### (2) sources
-#
-# (2) If there are sources in this directory list them in the
-#     SRC macro; otherwise, comment the SRC macro.
-#
+# sources
 SRC = \
 	ACME_Contact3DT.cpp \
 	AugLagContact2DT.cpp \
-	AugLagContact3DT.cpp \
 	ContactT.cpp \
 	Contact2DT.cpp \
 	Contact3DT.cpp \
-	Contact3DT_K.cpp \
+	DOFElementT.cpp \
 	PenaltyContact2DT.cpp \
-	PenaltyContact3DT.cpp \
-	MFPenaltyContact2DT.cpp \
-	PenaltyContactDrag2DT.cpp \
-	PenaltyContactDrag3DT.cpp
+	PenaltyContact3DT.cpp
 
-##################### (3) headers
-#
-# (3) If there are header files in this directory:
-#    (1) list the header files in the HDR macro
-#    (2) uncomment the HDR_LINK
-# 
-# If there are no header files in this directory comment both the
-# HDR and HDR_LINK macro   
-#
+# headers
 HDR = \
 	ACME_Contact3DT.h \
 	AugLagContact2DT.h \
-	AugLagContact3DT.h \
 	ContactT.h \
 	Contact2DT.h \
 	Contact3DT.h \
+	DOFElementT.h \
 	PenaltyContact2DT.h \
-	PenaltyContact3DT.h \
-	MFPenaltyContact2DT.h \
-	PenaltyContactDrag2DT.h \
-	PenaltyContactDrag3DT.h
+	PenaltyContact3DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
-##################### (4) sub-directories
-#
-# (4.1) If there are sub-directories contained in this directory:
-#    (1) list the subdirectories in the SUB_DIR macro
-#    (2) uncomment the subdir_driver macro
-#    (3) comment the SUB_DIR and subdir_driver in section (4.2)
-#
+# subdirectories
 #SUB_DIR = 
-#subdir_driver: subdir_loop
+SUB_DIR = no_subdirs
 
-#
-# (4.2) If there are no sub-directories in this directory:
-#    (1) comment the SUB_DIR and subdir_driver in section (4.1)
-#    (2) uncomment the subdir_driver macro below
-#
-SUB_DIR =
-subdir_driver: 
+# process sub-directories as targets:
+#subdir_driver: $(SUB_DIR)
+subdir_driver:
 
-#####################
+MACROS = \
+	"MAKE = $(MAKE)" \
+	"MAKE_OPTS = $(MAKE_OPTS)" \
+	"INC_DIR = $(INC_DIR)" \
+	"OBJ_DIR = $(OBJ_DIR)" \
+	"LIB_DIR = $(LIB_DIR)" \
+	"TR = $(TR)" \
+	"COMP_CC = $(COMP_CC)" \
+	"COMP_C = $(COMP_C)" \
+	"COMP_F = $(COMP_F)" \
+	"CFLAGS_C = $(CFLAGS_C)" \
+	"CFLAGS_CC = $(CFLAGS_CC)" \
+	"CFLAGS_F = $(CFLAGS_F)" \
+	"LIBRARY = $(LIBRARY)" \
+	"AR = $(AR)" \
+	"ARFLAGS = $(ARFLAGS)" \
+	"RM = $(RM)" \
+	"RM_FILES = $(RM_FILES)" \
+	"LN = $(LN)" \
+	"MAKE_DEPEND = $(MAKE_DEPEND)" \
+	"DEPEND_PATH = $(DEPEND_PATH)" \
+	"DEPEND = $(DEPEND)"
 
-# instructions for subdirectories
-include $(MACRO_DIR)/subdir.targets
+# debugging
+echo_all:
+	@ echo "MAKE = $(MAKE)"
+	@ echo "MAKE_OPTS = $(MAKE_OPTS)"
+	@ echo "INC_DIR = $(INC_DIR)"
+	@ echo "OBJ_DIR = $(OBJ_DIR)"
+	@ echo "LIB_DIR = $(LIB_DIR)"
+	@ echo "TR = $(TR)"
+	@ echo "COMP_C = $(COMP_C)"
+	@ echo "COMP_CC = $(COMP_CC)"
+	@ echo "COMP_F = $(COMP_F)"
+	@ echo "CFLAGS_C = $(CFLAGS_C)"
+	@ echo "CFLAGS_CC = $(CFLAGS_CC)"
+	@ echo "CFLAGS_F = $(CFLAGS_F)"
+	@ echo "LIBRARY = $(LIBRARY)"
+	@ echo "AR = $(AR)"
+	@ echo "ARFLAGS = $(ARFLAGS)"
+	@ echo "RM = $(RM)"
+	@ echo "RM_FILES = $(RM_FILES)"
+	@ echo "LN = $(LN)"
+	@ echo "MAKE_DEPEND = $(MAKE_DEPEND)"
+	@ echo "DEPEND_PATH = $(DEPEND_PATH)"
+	@ echo "DEPEND = $(DEPEND)"
+
+clean:
+	-@ $(RM) $(RM_FILES)
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = clean"
+
+depend_init: all.depend
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = depend_init"
+
+all.depend: $(DEP)
+	@ echo "    cat: $(DEP) > all.depend"; cat $(DEP) > all.depend
+
+headers: $(HDR_LINK)
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = headers"
+
+objects: all.depend
+	@ $(MAKE) $(MACROS) update_objects
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = objects"
+
+update_objects: $(OBJ)
+
+library:
+	@ $(AR) $(ARFLAGS) $(LIBRARY) $(OBJ_LINK)
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = library"
+
+$(SUB_DIR): dummy
+	@ echo " cd $@"; \
+	cd $@; $(MAKE) $(COMMAND) $(MACROS) "CURR_DIR = $(CURR_DIR)/$@"
+
+dummy:
+
+# suffix rules
+
+.c.o:
+	@ echo "    $(COMP_C): "$<; \
+	$(COMP_C) $(CFLAGS_C) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.cpp.o:
+	@ echo "    $(COMP_CC): "$<; \
+	$(COMP_CC) $(CFLAGS_CC) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.C.o:
+	@ echo "    $(COMP_CC): "$<; \
+	$(COMP_CC) $(CFLAGS_CC) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.f.o:
+	@ echo "    $(COMP_F): "$<; \
+	$(COMP_F) $(CFLAGS_F) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.F.o:
+	@ echo "    $(COMP_F): "$<; \
+	$(COMP_F) $(CFLAGS_F) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.h.h_link:
+	@ echo "    $(LN): "$<; \
+	$(LN) $(CURR_DIR)/$< $(INC_DIR)/$<
+
+.c.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.cpp.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "# DO NOT DELETE" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.C.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "# DO NOT DELETE" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.f.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "# DO NOT DELETE" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.F.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "# DO NOT DELETE" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
 
 # dependencies
 DEPEND = /dev/null

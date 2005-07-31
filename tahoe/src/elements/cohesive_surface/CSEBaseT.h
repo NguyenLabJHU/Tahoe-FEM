@@ -1,5 +1,7 @@
-/* $Id: CSEBaseT.h,v 1.24 2005-06-23 20:17:12 paklein Exp $ */
-/* created: paklein (11/19/1997) */
+/* $Id: CSEBaseT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (11/19/1997)                                          */
+/* Base class for cohesive surface elements                               */
+
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
 
@@ -10,52 +12,33 @@
 #include "iArrayT.h"
 #include "LocalArrayT.h"
 #include "GeometryT.h"
-#include "ofstreamT.h"
-
-namespace Tahoe {
+#include "fstreamT.h"
 
 /* forward declarations */
 class SurfaceShapeT;
 class StringT;
 
-/** base class for cohesive surface elements */
 class CSEBaseT: public ElementBaseT
 {
 public:
 
-	/* flags for derived class support */
 	enum FormulationT {Isotropic = 0,
-	                 Anisotropic = 1, 
-	         NoRotateAnisotropic = 2,
-	         	ModeIAnisotropic = 3,
-	            RigidAnisotropic = 4,
-	       NodalRigidAnisotropic = 5};
+	                 Anisotropic = 1}; // flags for derived class types
 
-	/** indicies for nodal output */
-	enum NodalOutputCodeT {
-	                  NodalCoord = 0, /**< reference coordinates */
-                       NodalDisp = 1, /**< displacements */
-                   NodalDispJump = 2, /**< opening displacements */
-                   NodalTraction = 3, /**< traction */
-                    MaterialData = 4, /**< output from constitutive relations */ 
-                    InternalData = 5  /**< 'output' within Tahoe */
-	};
-	
-	/** indicies for element output */
-	enum ElementOutputCodeT {
-	             Centroid = 0, /**< reference coordinates of centroid */
-           CohesiveEnergy = 1, /**< dissipated energy */
-                 Traction = 2  /**< element-averaged traction */ };
+	enum OutputCodeT {NodalCoord = 0,  // (reference) coordinates
+                       NodalDisp = 1,  // displacements
+                   NodalDispJump = 2,  // opening displacements
+                   NodalTraction = 3,  // traction
+                    MaterialData = 4}; // output from constitutive relations
 
-	/* constructors */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	CSEBaseT(const ElementSupportT& support);
-#else
-	CSEBaseT(ElementSupportT& support);
-#endif
+	/* constructor */
+	CSEBaseT(FEManagerT& fe_manager);
 
 	/* destructor */
 	~CSEBaseT(void);
+
+	/* allocates space and reads connectivity data */
+	virtual void Initialize(void);
 
 	/* start of new time sequence */
 	virtual void InitialCondition(void);
@@ -64,130 +47,70 @@ public:
 	virtual void CloseStep(void);
 
 	/* resets to the last converged solution */
-	virtual GlobalT::RelaxCodeT ResetStep(void);
+	virtual void ResetStep(void);
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* solution calls */
-	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
-#endif
+	virtual void AddNodalForce(int node, dArrayT& force);
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); //not implemented
 
 	/* writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(void);
+	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
-	/** compute specified output parameter and send for smoothing */
+	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-	/** resolve the output variable label into the output code and offset within the output. */
-	virtual void ResolveOutputVariable(const StringT& variable, int& code, int& offset);
+protected: /* for derived classes only */
 
-#ifdef _FRACTURE_INTERFACE_LIBRARY_	
-	/* Initialize fields passed in from the outside */
-	virtual void InitStep(void);
-#endif
+	/* element status flags */
+	enum StatusT {kOFF = 0,
+                   kON = 1,
+               kMarked = 2};
 
-	/** return true if element type is axisymmetric */
-	bool Axisymmetric(void) const { return fAxisymmetric; };
+	/* print element group data */
+	virtual void PrintControlData(ostream& out) const;
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-		SubListT& sub_lists) const;
-
-	/** a pointer to the ParameterInterfaceT */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-	
-protected:
-
-	/** \name pre-crack enums */
-	/*@{*/
-	enum AndOrT {kAND, kOR};
-	enum OpT {kEqual, kLess, kGreater};
-	enum CoordinateT {kX = 0, kY = 1, kZ = 2};
-	
-	static AndOrT int2AndOrT(int i);
-	static OpT int2OpT(int i);
-	static CoordinateT int2CoordinateT(int i);
-	/*@}*/
-
-	/** \name construction of connectivities */
-	/*@{*/
-	/** extract element block info from parameter list to be used. Method is
-	 * used in conjunction with ElementBaseT::DefineElements to initialize
-	 * the element group connectivities. CSEBaseT::CollectBlockInfo first calls
-	 * ElementBaseT::CollectBlockInfo and generates corrected connectivities
-	 * for improper higher order elements. */
-	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
-	/*@}*/
-
-	/** \name output data */
-	/*@{*/
-	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	/* nodal value calculations */
+	virtual void SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const;
-	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts) const;
-	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-		const iArrayT& e_codes, dArray2DT& e_values) = 0;
-
-	/** set output labels array */
-	virtual void GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
-		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const;
-	/*@}*/
+	virtual void ComputeNodalValues(const iArrayT& codes) = 0;
 
 	/* write current element information to the output */
 	void CurrElementInfo(ostream& out) const;
 	
-	/* number of facet nodes as a function of number of element nodes */
-	virtual int NumFacetNodes(void) { return NumElementNodes()/2; }
-	
+private:
+
+	/* construct output labels array */
+	virtual void GenerateOutputLabels(const iArrayT& codes,
+		ArrayT<StringT>& labels) const;
+
+	/* close surfaces to zero gap */
+	void CloseSurfaces(void) const;
+
 	/* return the default number of element nodes */
 	virtual int DefaultNumElemNodes(void) const;
 	//NOTE: needed because ExodusII does not store ANY information about
 	//      empty element groups, which causes trouble for parallel execution
 	//      when a partition contains no element from a group.
 	
-private:
-
-	/* close surfaces to zero gap */
-	void CloseSurfaces(void) const;
-	
 protected:
 
 	/* parameters */
 	GeometryT::CodeT fGeometryCode;
 	int fNumIntPts;
-	bool fAxisymmetric;
-	bool fCloseSurfaces;
-	bool fOutputArea;
+	int fCloseSurfaces;
+	int fOutputArea;
 
-	/** \name output control */
-	/*@{*/
+	/* output control */
 	int fOutputID;
-	iArrayT	fNodalOutputCodes;
-	iArrayT	fElementOutputCodes;
+	iArrayT	fOutputCodes;
 	iArrayT fNodesUsed;
-	bool fOutputGlobalTractions;
-	/*@}*/
 
-	/** \name output of fracture area */
-	/*@{*/
+	/* output stream for fracture area */
 	ofstreamT farea_out;
 	double fFractureArea;
-	/*@}*/
 
 	/* shape functions */
 	SurfaceShapeT* fShapes;
@@ -202,24 +125,7 @@ protected:
 	dMatrixT fNEEmat;
 
 	/* parameters */
-	static const int NumNodalOutputCodes;
-	static const int NumElementOutputCodes;
-	
-	/** output connectivities. For low-order element types, these will
-	 * be the same as in ElementBaseT::fBlockData. These will be
-	 * different if the connectivities needed for the element calculations
-	 * is not compatible with the element topologies supported by
-	 * most database types or post-processors */
-	ArrayT<StringT> fOutputBlockID;
-	
-	/** \name pre-crack rules */
-	/*@{*/	
-	AndOrT fpc_AndOr;
-	ArrayT<CoordinateT> fpc_coordinate;
-	ArrayT<OpT> fpc_op;
-	dArrayT fpc_value;
-	/*@}*/	 
+	static const int NumOutputCodes;
 };
 
-} // namespace Tahoe 
 #endif /* _CSE_BASE_T_H_ */

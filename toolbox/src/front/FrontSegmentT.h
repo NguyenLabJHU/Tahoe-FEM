@@ -1,11 +1,8 @@
-/* $Id: FrontSegmentT.h,v 1.2 2002-07-02 19:57:10 cjkimme Exp $ */
+/* $Id: FrontSegmentT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #ifndef _FRONT_SEG_T_H_
 #define _FRONT_SEG_T_H_
-
-
-namespace Tahoe {
 
 class FrontSegmentT
 {
@@ -67,5 +64,4 @@ inline void FrontSegmentT::x2(double* x) const
 inline const double* FrontSegmentT::N_n(void) const { return fN_n; }
 inline const double* FrontSegmentT::N_t(void) const { return fN_t; }
 
-} // namespace Tahoe 
 #endif /* _FRONT_SEG_T_H_ */

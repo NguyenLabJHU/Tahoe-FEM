@@ -1,20 +1,23 @@
-/* $Id: FCCPtsT.h,v 1.3 2004-07-15 08:28:09 paklein Exp $ */
-/* created: paklein (03/26/1999) */
+/* $Id: FCCPtsT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (03/26/1999)                                          */
+/* FCC lattice of points                                                  */
+
 #ifndef _FCC_PTS_T_H_
 #define _FCC_PTS_T_H_
 
 /* base class */
 #include "SpherePointsT.h"
 
-namespace Tahoe {
-
-/** FCC lattice of points */
 class FCCPtsT: public SpherePointsT
 {
 public:
 
 	/* constructor */
 	FCCPtsT(int num_shells, double bond_length);
+
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;	
 
 	/* generate sphere points:
 	 *
@@ -39,5 +42,4 @@ private:
 	double fBondLength;	// nearest neighbor bond length		
 };
 
-} // namespace Tahoe 
 #endif /* _FCC_PTS_T_H_ */

@@ -1,71 +1,63 @@
-/* $Id: ParabolaT.cpp,v 1.8 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: ParabolaT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "ParabolaT.h"
 #include <iostream.h>
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 #include "dArrayT.h"
 
 /* constructors */
-
-using namespace Tahoe;
-
-ParabolaT::ParabolaT(double k, double B, double l0): fk(k), fl0(l0), fB(B) { }
+ParabolaT::ParabolaT(double k): fk(k) { }
 
 /* I/O */
 void ParabolaT::Print(ostream& out) const
 {
-        /* parameters */
-        out << " U'' . . . . . . . . . . . . . . . . . . . . . . = " << fk << '\n';
+	/* parameters */
+	out << " U'' . . . . . . . . . . . . . . . . . . . . . . = " << fk << '\n';
 }
 
 void ParabolaT::PrintName(ostream& out) const
 {
-        out << "    Quadratic function\n";
+	out << "    Quadratic function\n";
 }
 
 /* returning values in groups */
 dArrayT& ParabolaT::MapFunction(const dArrayT& in, dArrayT& out) const
 {
-        /* dimension checks */
-        if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
+	/* dimension checks */
+	if (in.Length() != out.Length()) throw eGeneralFail;
 
-        const double* pl = in.Pointer();
-        double* pU = out.Pointer();
-        
-        for (int i = 0; i < in.Length(); i++)
-        {
-	        double x = *pl-fl0;
-                *pU++ = 0.5*fk*x*x-0.5*fk*fB;
-                pl++;
-        }
+	double* pl = in.Pointer();
+	double* pU = out.Pointer();
+	
+	for (int i = 0; i < in.Length(); i++)
+	{
+		*pU++ = fk*(*pl)*(*pl);
+		pl++;
+	}
 
-        return out;
+	return out;
 }
 
 dArrayT& ParabolaT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
-        /* dimension checks */
-        if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
+	/* dimension checks */
+	if (in.Length() != out.Length()) throw eGeneralFail;
 
-        const double* pl  = in.Pointer();
-        double* pdU = out.Pointer();
-        
-        for (int i = 0; i < in.Length(); i++)
-	{
-	        double x = *pl-fl0;
-                *pdU++ = fk*x;
-		pl++;
-		
-	}
-        return out;
+	double* pl  = in.Pointer();
+	double* pdU = out.Pointer();
+	
+	for (int i = 0; i < in.Length(); i++)
+		*pdU++ = fk*(*pl++);
+
+	return out;
 }
 
 dArrayT& ParabolaT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
-        /* dimension checks */
-        if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
+	/* dimension checks */
+	if (in.Length() != out.Length()) throw eGeneralFail;
 
-        out = fk;
-        return out;
+	out = fk;
+	return out;
 }

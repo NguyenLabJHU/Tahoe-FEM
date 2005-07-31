@@ -1,4 +1,4 @@
-/* $Id: SamplingSurfaceT.cpp,v 1.5 2003-10-20 23:32:54 cjkimme Exp $ */
+/* $Id: SamplingSurfaceT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
 /* created: paklein (10/19/2000)                                          */
 
 #include "SamplingSurfaceT.h"
@@ -6,9 +6,6 @@
 #include "MeshFreeSupportT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
 SamplingSurfaceT::SamplingSurfaceT(GeometryT::CodeT code, int num_facet_nodes,
 	int num_samples, MeshFreeSupportT& mf_support):
 	fCode(code),
@@ -20,12 +17,12 @@ SamplingSurfaceT::SamplingSurfaceT(GeometryT::CodeT code, int num_facet_nodes,
 {
 	/* set surface geometry */
 	fSurfaceShape = new SurfaceShapeT(fCode, fNumSamples, 2*fNumFacetNodes,
-		fNumFacetNodes, fLocFacetCoords.MinorDim(), fLocFacetCoords);
-	if (!fSurfaceShape) throw ExceptionT::kOutOfMemory;
+		fLocFacetCoords.MinorDim(), fLocFacetCoords);
+	if (!fSurfaceShape) throw eOutOfMemory;
 	fSurfaceShape->Initialize();
 	
 	/* work space */
-	fQ.Dimension(fLocFacetCoords.MinorDim());
+	fQ.Allocate(fLocFacetCoords.MinorDim());
 }
 
 /* destructor */
@@ -59,21 +56,21 @@ void SamplingSurfaceT::SetSamplingPoints(const dArray2DT& facet_coords,
 		     <<   "     " << fFacetCoords.MinorDim()
 		     << " does not match dimension of surface " << fSurfaceShape->NumSD() + 1
 		     << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 	if (fFacetConnects.MinorDim() != fNumFacetNodes)
 	{
 		cout << "\n SamplingSurfaceT::SetSamplingPoints: dimension of facet connectivites\n"
 		     <<   "     " << fFacetConnects.MinorDim()
 		     << " does not match dimension of surface " << fNumFacetNodes << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}	
 
 	/* set source of facet coordinates */
 	fLocFacetCoords.SetGlobal(fFacetCoords);
 	
 	/* set neighbor data */
-	AutoArrayT<int> all_neighbors(20);
+	AutoArrayT<int> all_neighbors(20, true);
 	AutoArrayT<int> neighbors;
 	iArrayT facet_nodes;
 	iArrayT neighbor_count(fNumFacets*fNumSamples);
@@ -95,7 +92,7 @@ void SamplingSurfaceT::SetSamplingPoints(const dArray2DT& facet_coords,
 			if (!fMFSupport.BuildNeighborhood(coords, neighbors))
 			{
 				cout << "\n SamplingSurfaceT::SetSamplingPoints: BuildNeighborhood: failed" << endl;
-				throw ExceptionT::kGeneralFail;
+				throw eGeneralFail;
 			}		
 			neighbor_count[dex] = neighbors.Length();
 			all_neighbors.Append(neighbors);
@@ -121,7 +118,7 @@ void SamplingSurfaceT::SetSamplingPoints(const dArray2DT& facet_coords,
 	SetFieldData(NULL);
 	
 	/* allocate flags */
-	fFlag.Dimension(fNumFacets);
+	fFlag.Allocate(fNumFacets);
 	fFlag = 0;
 }
 
@@ -172,7 +169,7 @@ void SamplingSurfaceT::LoadSamplingPoint(int facet, int point, iArrayT& nodes,
 	if (facet < 0 ||
 	    facet >= fNumFacets ||
 	    point < 0 ||
-	    point >= fNumSamples) throw ExceptionT::kOutOfRange;
+	    point >= fNumSamples) throw eOutOfRange;
 #endif
 
 	int dex = fNumSamples*facet + point;
@@ -292,7 +289,7 @@ void SamplingSurfaceT::SetFieldData(const ArrayT<int>* facets)
 				cout << "\n SamplingSurfaceT::SetSamplingPoints: failed to build field at\n"
 				     <<   "     point " << fSurfaceShape->CurrIP()+1
 				     << " of facet " << k+1 << endl;
-				throw ExceptionT::kGeneralFail;
+				throw eGeneralFail;
 			}
 			
 			/* store */

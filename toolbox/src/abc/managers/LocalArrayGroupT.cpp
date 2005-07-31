@@ -1,13 +1,15 @@
-/* $Id: LocalArrayGroupT.cpp,v 1.4 2003-01-27 06:42:44 paklein Exp $ */
-/* created: paklein (09/11/1998) */
+/* $Id: LocalArrayGroupT.cpp,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* created: paklein (09/11/1998)                                          */
+/* Class to manage a list of group of dynamically changing size           */
+/* LocalArrayT's                                                          */
+/* NOTE: all registered arrays will be shallow.                           */
+
 #include "LocalArrayGroupT.h"
 #include "LocalArrayT.h"
 
-using namespace Tahoe;
-
 /* constructor */
 LocalArrayGroupT::LocalArrayGroupT(int headroom):
-	MemoryGroupT<double>(headroom, true), /* use pooled memory */
+	MemoryGroupT<double>(headroom),
 	fNumNodes(0),
 	fMinorDim(0)
 {
@@ -22,8 +24,12 @@ void LocalArrayGroupT::Register(LocalArrayT& localarray)
 	{
 		/* size check */
 		if (fMinorDim != localarray.MinorDim())
-			ExceptionT::SizeMismatch("LocalArrayGroupT::Register", 
-				"all arrays must be of the same minor dimension: %d", fMinorDim);
+		{
+			cout << "\n LocalArrayGroupT::Register: all arrays must";
+			cout << " be of the same minor dimension: ";
+			cout << fMinorDim << endl;
+			throw eSizeMismatch;
+		}
 	}
 	else
 		fMinorDim = localarray.MinorDim();

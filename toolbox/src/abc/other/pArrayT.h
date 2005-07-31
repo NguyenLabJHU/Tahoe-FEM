@@ -1,5 +1,11 @@
-/* $Id: pArrayT.h,v 1.10 2005-07-29 03:09:34 paklein Exp $ */
-/* created: paklein (11/21/1996) */
+/* $Id: pArrayT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (11/21/1996)                                          */
+/* This is the interface for a pointer array class.  The data in the      */
+/* array is of type (TYPE*).  The members of the array is deleted when    */
+/* the array is destructed.                                               */
+/* Note: This template cannot be instantiated for a non-pointer type.     */
+/* The memory management for the class calls delete for every             */
+/* member of the array.                                                   */
 
 #ifndef _P_ARRAY_T_H_
 #define _P_ARRAY_T_H_
@@ -7,64 +13,42 @@
 /* base class */
 #include "ArrayT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 template <class TYPEPtr> class ProxyTYPEPtr;
 
-/** A class to help working with arrays of pointers. The data in the
- * array is of type (TYPE*). The pointers should be allocated with
- * operator new, not operator new []. The elements of the array are
- * initialized to NULL when the arrays are dimensioned. delete is
- * called for every element in the array in the class destructor. 
- * delete is also called on elements of the array before they are
- * over written with operator [].
- * Note: This template cannot be instantiated for a non-pointer type.
- * The memory management for the class calls delete for every
- * member of the array. */
 template <class TYPEPtr>
 class pArrayT: public ArrayT<TYPEPtr>
 {
 public:
 
-	/** constructor zero length array */
+	/* constructors */
 	pArrayT(void);
-
-	/** construct an array of the given length. All element of the
-	 * array are initialized to NULL */
-	explicit pArrayT(int length);
+	pArrayT(int length);
+	pArrayT(const pArrayT& source);
 
 	/* destructor */
 	~pArrayT(void);
 
-	/** set the array size to the given length. No change occurs if the array
-	 * is already the specified length. The previous contents of the array is
-	 * not preserved. Use pArrayT::Resize to preserve the array contents. */
-	void Dimension(int length);
+	/* allocate an array of the specified size */
+	void Allocate(int length);
 
-	/** dimension the array to the new length keeping as much of the previous
-	 * data as fits in the new space */
-	void Resize(int new_length);
-
-	/** \deprecated replaced by pArrayT::Dimension on 02/13/2002 */
-	void Allocate(int length) { Dimension(length); };
-
-	/** element accessor */
+	/* element accessor */
 	ProxyTYPEPtr<TYPEPtr> operator[](int index);
-
-	/** const element accessor */
 	ProxyTYPEPtr<TYPEPtr> operator[](int index) const;
 
 private:
 
-	/** call delete for all members of the array */
-	void DeleteAll(void);
-
-	/** no shallow copies */
+	/* no shallow copies */
 	void ShallowCopy(const pArrayT& RHS);
 
-	/** no assigment operator */	 			  	
+	/* no assigment operator */	 			  	
 	void operator=(const pArrayT& RHS);
+
+	/* no resizing */
+	void Resize(void);
+
+	/* delete all members of the array */
+	void DeleteAll(void);
 };
 
 /* proxy - for element accessor */
@@ -143,7 +127,13 @@ pArrayT<TYPEPtr>::pArrayT(void) { }
 template <class TYPEPtr>
 pArrayT<TYPEPtr>::pArrayT(int length)
 {
-	Dimension(length); 
+	Allocate(length); 
+}
+
+template <class TYPEPtr>
+pArrayT<TYPEPtr>::pArrayT(const pArrayT& source)
+{
+	operator=(source); 
 }
 
 /* destructor */
@@ -157,34 +147,21 @@ pArrayT<TYPEPtr>::~pArrayT(void)
 /* allocate an array of the specified size.  Frees any existing
 * memory */
 template <class TYPEPtr>
-void pArrayT<TYPEPtr>::Dimension(int length)
+void pArrayT<TYPEPtr>::Allocate(int length)
 {
 	/* reallocate if needed */
-	if (this->fLength != length)
+	if (fLength != length)
 	{
 		/* free existing array */
-		if (this->fLength > 0) DeleteAll();
+		if (fLength > 0) DeleteAll();
 
 		/* allocate to new size */
-		ArrayT<TYPEPtr>::Dimension(length);
+		ArrayT<TYPEPtr>::Allocate(length);
 
 		/* NULL all pointers */
-		for (int i = 0; i < this->fLength; i++)
-			this->fArray[i] = NULL;
+		for (int i = 0; i < fLength; i++)
+			fArray[i] = NULL;
 	}
-}
-
-/* dimension the array to the new length keeping as much of the previous
- * data as fits in the new space */
-template <class TYPEPtr>
-void pArrayT<TYPEPtr>::Resize(int new_length)
-{
-	/* array is shrinking - free excess */
-	for (int i = this->fLength; i > new_length; i--)
-		delete this->fArray[i-1];
-
-	/* inherited */
-	ArrayT<TYPEPtr>::Resize(new_length, NULL);
 }
 
 /* element accessor */
@@ -193,7 +170,7 @@ inline ProxyTYPEPtr<TYPEPtr> pArrayT<TYPEPtr>::operator[](int index)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (index < 0 || index >= this->fLength) ExceptionT::OutOfRange("pArrayT");
+	if (index < 0 || index >= fLength) throw(eOutOfRange);
 #endif
 
 	return ProxyTYPEPtr<TYPEPtr>(*this,index);
@@ -204,7 +181,7 @@ inline ProxyTYPEPtr<TYPEPtr> pArrayT<TYPEPtr>::operator[](int index) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (index < 0 || index >= this->fLength) ExceptionT::OutOfRange("pArrayT");
+	if (index < 0 || index >= fLength) throw(eOutOfRange);
 #endif
 
 /* const_cast<> not supported */
@@ -224,12 +201,11 @@ inline ProxyTYPEPtr<TYPEPtr> pArrayT<TYPEPtr>::operator[](int index) const
 template <class TYPEPtr>
 void pArrayT<TYPEPtr>::DeleteAll(void)
 {
-	for (int i = 0; i < this->fLength; i++)
+	for (int i = 0; i < fLength; i++)
 	{
-		delete this->fArray[i];
-		this->fArray[i] = NULL;
+		delete fArray[i];
+		fArray[i] = NULL;
 	}
 }
 
-} // namespace Tahoe 
 #endif /* _P_ARRAY_T_H_ */

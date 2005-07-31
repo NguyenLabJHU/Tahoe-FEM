@@ -1,7 +1,9 @@
-/* $Id: StaticIntegrator.h,v 1.6 2004-07-15 08:30:48 paklein Exp $ */
-/* created: paklein (10/14/1996) */
-#ifndef _STATIC_CONTROLLER_H_
-#define _STATIC_CONTROLLER_H_
+/* $Id: StaticIntegrator.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
+/* This controller does not have a node controller branch                 */
+
+#ifndef _STATICCONTROLLER_H_
+#define _STATICCONTROLLER_H_
 
 #include "Environment.h"
 
@@ -9,21 +11,21 @@
 #include "nStaticIntegrator.h"
 #include "eStaticIntegrator.h"
 
-namespace Tahoe {
+/* forward declarations */
+#include "ios_fwd_decl.h"
 
 class StaticIntegrator: public nStaticIntegrator, public eStaticIntegrator
 {
 public:
 
-	/** constructor */
-	StaticIntegrator(void);
+	/* constructor */
+	StaticIntegrator(ostream& out);
 	  	
 protected:  	
 	
-	/** recalculate time stepping constants */
+	/* recalculate time stepping constants */
 	virtual void ComputeParameters(void);
 	
 };
 
-} // namespace Tahoe 
-#endif /* _STATIC_CONTROLLER_H_ */
+#endif /* _STATICCONTROLLER_H_ */

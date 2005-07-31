@@ -1,59 +1,47 @@
-/* $Id: ThermalDilatationT.h,v 1.6 2004-07-15 08:29:20 paklein Exp $ */
-/* created: paklein (08/25/1996) */
+/* $Id: ThermalDilatationT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (08/25/1996)                                          */
+
 #ifndef _THERMALDILAT_H_
 #define _THERMALDILAT_H_
 
 #include "Environment.h"
 
-namespace Tahoe {
-
 /* forward declarations */
-class ScheduleT;
+#include "ios_fwd_decl.h"
+class ifstreamT;
+class LoadTime;
 
 class ThermalDilatationT
 {
 public:
 
 	/* constructor */
-	ThermalDilatationT(void);
+	ThermalDilatationT(ifstreamT& in);
 	
 	/* to set LTf pointer */
-	int ScheduleNum(void) const;
-	void SetSchedule(const ScheduleT* LTf);
-
-	/** set the schedule number */
-	void SetScheduleNum(int schedule) { LTfnum = schedule; };
-
-	/** set the dilation */
-	void SetPercentElongation(double perccent_elongation) { fPercentElongation = perccent_elongation; };
+	int LTfNumber(void) const;
+	void SetLTfPtr(const LoadTime* LTf);
 
 	/* returns true if active */
 	bool IsActive(void) const;
+	
+	/* I/O functions */
+	void Print(ostream& out) const;
 
 	/* returns the current elongation factor */
 	double PercentElongation(void) const;
 							
 private:
 	
-	double fPercentElongation;
-	int LTfnum;
-	const ScheduleT* LTfPtr;	
+	double			fPercentElongation;
+	double			fScaleFactor;
+	int				LTfnum;
+	const LoadTime*	LTfPtr;	
 };
 
 /* inline functions */
 
 /* returns true if active */
-inline bool ThermalDilatationT::IsActive(void) const { return fPercentElongation != 0.0; }
-
-/* set LTf pointer */
-inline int ThermalDilatationT::ScheduleNum(void) const { return LTfnum; }
-inline void ThermalDilatationT::SetSchedule(const ScheduleT* LTf)
-{ 
-	LTfPtr = LTf; 
-	if (!LTfPtr) 
-		fPercentElongation = 0.0;
-}
-
-} /* namespace Tahoe */
+inline bool ThermalDilatationT::IsActive(void) const { return LTfPtr != 0; }
 
 #endif /* _THERMALDILAT_H_ */

@@ -1,14 +1,13 @@
-/* $Id: ErcolessiAdamsAl.h,v 1.3 2004-07-15 08:26:52 paklein Exp $ */
-/* created: paklein (12/04/1996) */
+/* $Id: ErcolessiAdamsAl.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (12/04/1996)                                          */
+/* ErcolessiAdamsAl.h                                                     */
+
 #ifndef _ERCOLESSIADAMS_AL_H_
 #define _ERCOLESSIADAMS_AL_H_
 
 /* base class */
 #include "EAM.h"
 
-namespace Tahoe {
-
-/** Ercolessi and Adams EAM aluminum potentials */
 class ErcolessiAdamsAl: public EAM
 {
 public:
@@ -32,5 +31,4 @@ private:
 	
 };
 
-} // namespace Tahoe 
 #endif /* _ERCOLESSIADAMS_AL_H_ */

@@ -1,52 +1,32 @@
-/* $Id: nArray2DT.h,v 1.24 2005-04-30 21:14:21 paklein Exp $ */
-/* created: paklein (07/09/1996) */
+/* $Id: nArray2DT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (07/09/1996)                                          */
+/* nArrayT with subdimension - row major storage                          */
+
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
 
 /* base class */
 #include "nArrayT.h"
 
-namespace Tahoe {
-
-/** nArrayT with subdimension. Row major storage */
 template <class nTYPE>
 class nArray2DT: public nArrayT<nTYPE>
 {
 public:
 
-	/** \name constructors */
-	/*@{*/
+	/* constructors */
 	nArray2DT(void);
 	nArray2DT(int majordim, int minordim);
+	nArray2DT(int majordim, int minordim, nTYPE* MATHTYPEPtr);
 	nArray2DT(const nArray2DT& source);
 
-	/** construct an alias */
-	nArray2DT(int majordim, int minordim, const nTYPE* MATHTYPEPtr);
-	/*@}*/
-
-	/** destructors */
+	/* destructors */
 	~nArray2DT(void);
 
-	/** \name convert to a shallow object */
-	/*@{*/
-	void Alias(int majordim, int minordim, const nTYPE* MATHTYPEPtr);
-	void Alias(const nArray2DT& RHS);
-	/*@}*/
-	
-	/** \deprecated replaced by nArray2DT::Alias on 09/04/2003 */	
+	/* set fields - convert to shallow object */
 	void Set(int majordim, int minordim, nTYPE* MATHTYPEPtr);
 
-	/** set the array size to the given dimensions. No change occurs if the array
-	 * is already the specified size. The previous contents of the array is
-	 * not preserved. To preserve the array contents while changing the dimension
-	 * use nArray2DT::Resize. */
-	void Dimension(int majordim, int minordim);
-	
-	/** dimensions this array to the same length as the source, but no data is copied */
-	void Dimension(const nArray2DT& source) { Dimension(source.MajorDim(), source.MinorDim()); };
-	
-	/** \deprecated replaced by nArray2DT::Dimension on 02/13/2002 */
-	void Allocate(int majordim, int minordim) { Dimension(majordim, minordim); };
+	/* allocate an array of the specified size */
+	void Allocate(int majordim, int minordim);
 
 	/* free memory (if allocated) and set size to zero */
 	void Free(void);
@@ -56,61 +36,29 @@ public:
 	void Resize(int new_majordim);
 	void Resize(int new_majordim, const nTYPE& fill);
 
-	/** \name dimensions */
-	/*@{*/
-	int MajorDim(void) const; /**< major dimension */
-	int MinorDim(void) const; /**< minor dimension */
-	/*@}*/
+	/* dimensions */
+	int MajorDim(void) const;
+	int MinorDim(void) const;
 
-	/** \name accessors */
-	/*@{*/
-	/** reference to an element in the array */
-	nTYPE& operator()(int majordim, int minordim);
-
-	/** const reference to an element in the array */
-	const nTYPE& operator()(int majordim, int minordim) const;
-
-	/** pointer to the row in the array */
-	nTYPE* operator()(int majordim);
-
-	/** pointer to the row in the array */
-	const nTYPE* operator()(int majordim) const;
-	/*@}*/
+	/* accessors */
+	nTYPE& operator()(int majordim, int minordim) const;
+	nTYPE* operator()(int majordim) const;
 
 	/* copy/assignment operators - by a scalar or element by element */
 	nArray2DT<nTYPE>& operator=(const nArray2DT& RHS);
 	nArray2DT<nTYPE>& operator=(const nTYPE& value);
+	void Alias(const nArray2DT& RHS);
 	
-	/** exchange data */
+	/* exchange data */
 	void Swap(nArray2DT<nTYPE>& source);
 
-	/** return transposed list (re-dimensions) */
+	/* return transposed list (re-dimensions) - don't call with self! */
 	void Transpose(const nArray2DT<nTYPE>& source);
 	  	
-	/** copy the specified row into array.
-	 * \param array destination for row data. Returns with
-	 *        length equation to the minor dimension of *this. */
+	/* deep/shallow row copies */  	 							
 	void RowCopy(int row, nArrayT<nTYPE>& array) const;
-
-	/** copy the specified row into array without range checking. */
-	void RowCopy(int row, nTYPE* array) const;
-
-	/** copy the specified column into array. */
-	void ColumnCopy(int col, nArrayT<nTYPE>& array) const;
-
-	/** copy the specified column into array without range checking. */
-	void ColumnCopy(int col, nTYPE* array) const;
-
-	/** copy the specified column out of the source array. 
-	 * \param col destination in this of the column
-	 * \param a source array
-	 * \param col_a column to copy out of the source array */
-	void ColumnCopy(int col, const nArray2DT<nTYPE>& a, int col_a);
-
-	/** shallow copy of a row.
-	 * \param row row number to alias
-	 * \param array array to alias to the row data */
 	void RowAlias(int row, nArrayT<nTYPE>& array) const;
+	void ColumnCopy(int col, nArrayT<nTYPE>& array) const;
 	
 	/* set values in batch */
 	void SetRow(int row, const nTYPE& value);
@@ -121,20 +69,15 @@ public:
 	void SetColumn(int col, const nTYPE* array);
 	void SetColumn(int col, const nArrayT<nTYPE>& array);
 
-	/** return the sum of the values in the given row */
+	/* row and column sums */
 	nTYPE RowSum(int row) const;
-
-	/** return the sum of the values in the given column */
 	nTYPE ColumnSum(int col) const;
 
-	/** scale all values in the given row by a factor */	
+	/* row scaling */	
 	void ScaleRow(int row, const nTYPE& scale);
 
-	/** scale all values in the given column by a factor */	
-	void ScaleColumn(int col, const nTYPE& scale);
-
 	/* dot the specified row number with the array */
-	nTYPE DotRow(int row, const nTYPE* array) const;
+	nTYPE DotRow(int row, nTYPE* array) const;
 	nTYPE DotRow(int row, const nArrayT<nTYPE>& array) const;
 	nTYPE DotColumn(int col, const nArrayT<nTYPE>& array) const;
 
@@ -149,15 +92,9 @@ public:
 	/* create sublist with transposed indexing */
 	void SetLocal(const ArrayT<int>& rows, nArrayT<nTYPE>& sublist) const;
 
-	/** set the rows of vals to the existing rows of data */
+	/* assemble/add the rows of vals to the existing rows of data */
 	void Assemble(const ArrayT<int>& rows, const nArray2DT& vals);
-
-	/** \name add the rows of vals to the existing rows of data */
-	/*@{*/
 	void Accumulate(const ArrayT<int>& rows, const nArray2DT& vals);
-	void Accumulate(int col, const ArrayT<int>& rows, const nArrayT<nTYPE>& vals);
-	void Accumulate(int col, const ArrayT<int>& rows, const nTYPE* vals);
-	/*@}*/
 
 	/* commonly used single row operations;
 	 *
@@ -170,40 +107,12 @@ public:
 	void SetToRowScaled(int row, const nTYPE& scale, const nArray2DT& RHS);
 	void AddRowScaled(int row, const nTYPE& scale, const nArray2DT& RHS);
 
-	/** \name add scaled values to rows */
-	/*@{*/
-	/** check dimensions and add */
+	/* map addition on rows */
 	void AddToRowScaled(int row, const nTYPE& scale, const nArrayT<nTYPE>& array);
-
-	/** add assuming array is length of a row */
-	void AddToRowScaled(int row, const nTYPE& scale, const nTYPE* array);
-	/*@}*/
-
-	/** add the same array to all columns */
 	void AddToRowsScaled(const nTYPE& scale, const nArrayT<nTYPE>& array);
 
-	/** \name add scaled values to columns */
-	/*@{*/
-	/** check dimensions and add */
-	void AddToColumnScaled(int col, const nTYPE& scale, const nArrayT<nTYPE>& array);
-
-	/** add assuming array is length of a column */
-	void AddToColumnScaled(int col, const nTYPE& scale, const nTYPE* array);
-	/*@}*/
-
-	/** copy rows from source into this array. This array must be
-	 * large enough to copy the contents of the source array at the
-	 * specified location
-	 * \param source source of data
-	 * \param start row in this array where data will start being written 
-	 * \param nrows number of rows to copy, passing -1 means all */
-	void BlockRowCopyAt(const nArray2DT& source, int start, int nrows = -1);
-
-	/** copy all values from source into this array. This array must be
-	 * large enough to copy the contents of the source array at the
-	 * specified location
-	 * \param source source of data. All values are copied
-	 * \param start column in this array where data will start being written */
+	/* copy all rows/columns from source at start */
+	void BlockRowCopyAt(const nArray2DT& source, int start);
 	void BlockColumnCopyAt(const nArray2DT& source, int start);
 
 	/* read/write with line numbers (1,...) */
@@ -224,7 +133,7 @@ protected:
 template <class nTYPE>
 ostream& operator<<(ostream& out, const nArray2DT<nTYPE>& array)
 {
-	const nTYPE* p = array.Pointer();
+	nTYPE* p = array.Pointer();
 	int width = OutputWidth(out, p);
 	for (int i = 0; i < array.MajorDim(); i++)
 	{
@@ -233,7 +142,7 @@ ostream& operator<<(ostream& out, const nArray2DT<nTYPE>& array)
 			out << setw(width) << *p++;			
 	}
 		return out;
-}
+};
 
 /*************************************************************************
 * Implementation
@@ -246,14 +155,14 @@ inline nArray2DT<nTYPE>::nArray2DT(void): fMajorDim(0), fMinorDim(0) { }
 template <class nTYPE>
 inline nArray2DT<nTYPE>::nArray2DT(int majordim, int minordim)
 {
-	Dimension(majordim, minordim);
+	Allocate(majordim, minordim);
 }
 
 template <class nTYPE>
-inline nArray2DT<nTYPE>::nArray2DT(int majordim, int minordim, const nTYPE* MATHTYPEPtr):
+inline nArray2DT<nTYPE>::nArray2DT(int majordim, int minordim,
+	nTYPE* MATHTYPEPtr):
 	nArrayT<nTYPE>(majordim*minordim, MATHTYPEPtr),
-	fMajorDim(majordim),
-	fMinorDim(minordim)
+	fMajorDim(majordim), fMinorDim(minordim)
 {
 
 }
@@ -274,31 +183,15 @@ inline nArray2DT<nTYPE>::~nArray2DT(void)
 
 /* set fields - convert to shallow object */
 template <class nTYPE>
-inline void nArray2DT<nTYPE>::Alias(int majordim, int minordim, const nTYPE* MATHTYPEPtr)
+inline void nArray2DT<nTYPE>::Set(int majordim, int minordim,
+	nTYPE* MATHTYPEPtr)
 {
 	/* inherited */
-	nArrayT<nTYPE>::Alias(majordim*minordim, MATHTYPEPtr);
+	nArrayT<nTYPE>::Set(majordim*minordim,MATHTYPEPtr);
 
 	/* set dimensions */
 	fMajorDim = majordim;
 	fMinorDim = minordim;
-}
-
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::Alias(const nArray2DT& RHS)
-{
-	/* inherited */
-	nArrayT<nTYPE>::Alias(RHS);
-
-	/* set dimensions */
-	fMajorDim = RHS.fMajorDim;
-	fMinorDim = RHS.fMinorDim;
-}
-
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::Set(int majordim, int minordim, nTYPE* MATHTYPEPtr)
-{
-	Alias(majordim, minordim, MATHTYPEPtr);
 }
 
 /*
@@ -306,13 +199,10 @@ inline void nArray2DT<nTYPE>::Set(int majordim, int minordim, nTYPE* MATHTYPEPtr
 * nArray2DT's created by default construction.
 */
 template <class nTYPE>
-inline void nArray2DT<nTYPE>::Dimension(int majordim, int minordim)
+inline void nArray2DT<nTYPE>::Allocate(int majordim, int minordim)
 {
-	/* zero dimensions */
-	fMajorDim = fMinorDim = 0;
-
 	/* inherited */
-	nArrayT<nTYPE>::Dimension(majordim*minordim);
+	nArrayT<nTYPE>::Allocate(majordim*minordim);
 
 	/* set dimensions */
 	fMajorDim = majordim;
@@ -361,59 +251,26 @@ inline int nArray2DT<nTYPE>::MinorDim(void) const { return fMinorDim; }
 
 /* accessors */
 template <class nTYPE>
-inline nTYPE& nArray2DT<nTYPE>::operator()(int majordim, int minordim)
+inline nTYPE& nArray2DT<nTYPE>::operator()(int majordim, int minordim) const
 {
+/* range checking */
 #if __option (extended_errorcheck)
-	/* range checking */
-	if (majordim < 0 || majordim >= fMajorDim ||
-		minordim < 0 || minordim >= fMinorDim) {
-			ExceptionT::OutOfRange("nArray2DT<TYPE>::operator(int,int)",
-				"majordim ! (0 <= %d <= %d), minordim ! (0 <= %d <= %d)", 
-				majordim, fMajorDim-1,
-				minordim, fMinorDim-1);
-		}
+if (majordim < 0 || majordim >= fMajorDim ||
+	minordim < 0 || minordim >= fMinorDim) throw(eOutOfRange);
 #endif
-	return this->fArray[majordim*fMinorDim + minordim];
-}
-template <class nTYPE>
-inline const nTYPE& nArray2DT<nTYPE>::operator()(int majordim, int minordim) const
-{
-#if __option (extended_errorcheck)
-	/* range checking */
-	if (majordim < 0 || majordim >= fMajorDim ||
-		minordim < 0 || minordim >= fMinorDim) {
-			ExceptionT::OutOfRange("nArray2DT<TYPE>::operator(int,int)",
-				"majordim ! (0 <= %d <= %d), minordim ! (0 <= %d <= %d)", 
-				majordim, fMajorDim-1,
-				minordim, fMinorDim-1);
-		}
-#endif
-	return this->fArray[majordim*fMinorDim + minordim];
+
+	return fArray[majordim*fMinorDim + minordim];
 }
 
 template <class nTYPE>
-inline nTYPE* nArray2DT<nTYPE>::operator()(int majordim)
+inline nTYPE* nArray2DT<nTYPE>::operator()(int majordim) const
 {
+/* range checking */
 #if __option (extended_errorcheck)
-	/* range checking */
-	if (majordim < 0 || majordim >= fMajorDim) {
-		ExceptionT::OutOfRange("nArray2DT<TYPE>::operator(int)",
-			"majordim ! (0 <= %d <= %d)", majordim, fMajorDim-1);
-	}
+	if (majordim < 0 || majordim >= fMajorDim) throw(eOutOfRange);
 #endif
-	return this->fArray + majordim*fMinorDim;
-}
-template <class nTYPE>
-inline const nTYPE* nArray2DT<nTYPE>::operator()(int majordim) const
-{
-#if __option (extended_errorcheck)
-	/* range checking */
-	if (majordim < 0 || majordim >= fMajorDim) {
-		ExceptionT::OutOfRange("nArray2DT<TYPE>::operator(int)",
-			"majordim ! (0 <= %d <= %d)", majordim, fMajorDim-1);
-	}
-#endif
-	return this->fArray + majordim*fMinorDim;
+
+	return fArray + majordim*fMinorDim;
 }
 
 /*
@@ -443,6 +300,17 @@ inline nArray2DT<nTYPE>& nArray2DT<nTYPE>::operator=(const nTYPE& value)
 	return *this;
 }
 
+template <class nTYPE>
+inline void nArray2DT<nTYPE>::Alias(const nArray2DT& RHS)
+{
+	/* inherited */
+	nArrayT<nTYPE>::Alias(RHS);
+
+	/* set dimensions */
+	fMajorDim = RHS.fMajorDim;
+	fMinorDim = RHS.fMinorDim;
+}
+
 /* exchange data */
 template <class nTYPE>
 inline void nArray2DT<nTYPE>::Swap(nArray2DT<nTYPE>& source)
@@ -460,31 +328,22 @@ inline void nArray2DT<nTYPE>::Swap(nArray2DT<nTYPE>& source)
 	source.fMinorDim = tmp;
 }
 
-/* return transposed list (re-dimensions) */
+/* return transposed list (re-dimensions) - don't call with self! */
 template <class nTYPE>
 void nArray2DT<nTYPE>::Transpose(const nArray2DT<nTYPE>& source)
 {
-	/* called with data belonging to this*/
-	if (source.Pointer() == this->Pointer()) 
-	{
-		nArray2DT<nTYPE> temp = source;
-		Transpose(temp);
-	}
-	else
-	{
-		/* allocate memory */
-		Dimension(source.fMinorDim, source.fMajorDim);
+	/* allocate memory */
+	Allocate(source.fMinorDim, source.fMajorDim);
 	
-		const nTYPE* psrc = source.Pointer();	
-		for (int i = 0; i < fMinorDim; i++)
+	nTYPE* psrc   = source.Pointer();	
+	for (int i = 0; i < fMinorDim; i++)
+	{
+		nTYPE* pthis = Pointer() + i;
+		for (int j = 0; j < fMajorDim; j++)
 		{
-			nTYPE* pthis = this->Pointer() + i;
-			for (int j = 0; j < fMajorDim; j++)
-			{
-				*pthis = *psrc++;
-				pthis += fMinorDim;
-			}	
-		}
+			*pthis = *psrc++;
+			pthis += fMinorDim;
+		}	
 	}
 }
 
@@ -493,98 +352,63 @@ template <class nTYPE>
 void nArray2DT<nTYPE>::SetLocal(const ArrayT<int>& rows,
 	nArrayT<nTYPE>& sublist) const
 {
-#if __option(extended_errorcheck)
-	/* dimension checks */
-	if (rows.Length()*fMinorDim != sublist.Length())
-		ExceptionT::SizeMismatch();
-#endif
-
 //NOTE: could unroll loops for speed with
 //      fMinorDim = 1,2,3
-	int sublength = rows.Length();
-	const int* prows = rows.Pointer();
+
+	int	 sublength = rows.Length();
+	int*	 prows = rows.Pointer();
 	nTYPE* pSub = sublist.Pointer();	
+		
 	for (int i = 0; i < sublength; i++)
 	{
-		const nTYPE* parray = (*this)(prows[i]);
-		nTYPE* psub = pSub;
+		nTYPE* parray = Pointer() + prows[i]*fMinorDim;
+		nTYPE* psub	 = pSub;
+
 		for (int j = 0; j < fMinorDim; j++)
 		{
 			*psub = *parray++;
 			psub += sublength;
 		}
+		
 		pSub++;	
 	}
 }
 
 template <class nTYPE>
-inline void nArray2DT<nTYPE>::RowCopy(int row, nTYPE* array) const
+void nArray2DT<nTYPE>::RowCopy(int row, nArrayT<nTYPE>& array) const
 {
-	/* safe wrapper for memcpy */
-	MemCopy(array, (*this)(row), MinorDim());
-}
+	/* temp wrapper */
+	nArrayT<nTYPE> temp(fMinorDim, (*this)(row) );
 
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::RowCopy(int row, nArrayT<nTYPE>& array) const
-{
-	/* redimension if needed */
-	if (array.Length() != MinorDim()) array.Dimension(MinorDim());
-
-	/* call wrapper */
-	RowCopy(row, array.Pointer());
-}
-
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::ColumnCopy(int col, nTYPE* array) const
-{
-	/* don't do anything if empty */
-	if (fMajorDim > 0) {
-		nTYPE* pout = array;
-		const nTYPE* pcol = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++) {
-			*pout++ = *pcol;
-			pcol   += fMinorDim;
-		}
-	}
-}
-
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::ColumnCopy(int col, nArrayT<nTYPE>& array) const
-{
-#if __option (extended_errorcheck)
-	if (array.Length() != fMajorDim) ExceptionT::SizeMismatch();
-#endif
-
-	/* call wrapper */
-	ColumnCopy(col, array.Pointer());
-}
-
-/* copy the specified column out of the source array */
-template <class nTYPE>
-void nArray2DT<nTYPE>::ColumnCopy(int col, const nArray2DT<nTYPE>& a, int col_a)
-{
-#if __option (extended_errorcheck)
-	if (a.MajorDim() != fMajorDim) ExceptionT::SizeMismatch("nArray2DT<nTYPE>::ColumnCopy");
-#endif
-
-	if (fMajorDim > 0) {
-		int a_dim = a.MinorDim();
-		nTYPE* pthis = this->Pointer(col);
-		const nTYPE* pthat = a.Pointer(col_a);
-		for (int i = 0; i < fMajorDim; i++) {
-			*pthis = *pthat;
-			pthis += fMinorDim;
-			pthat += a_dim;
-		}
-	}
+	/* deep copy */
+	array = temp;
 }
 
 template <class nTYPE>
 inline void nArray2DT<nTYPE>::RowAlias(int row,
 	nArrayT<nTYPE>& array) const
 {
-	array.Alias(fMinorDim, (*this)(row));
+	array.Set(fMinorDim, (*this)(row));
 }	
+
+template <class nTYPE>
+void nArray2DT<nTYPE>::ColumnCopy(int col,
+	nArrayT<nTYPE>& array) const
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (array.Length() != fMajorDim) throw eSizeMismatch;
+#endif
+
+	nTYPE* pout = array.Pointer();
+	nTYPE* pcol = &(*this)(0,col);
+
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*pout++ = *pcol;
+		pcol   += fMinorDim;
+	}
+}
 
 /* set values in batch */
 template <class nTYPE>
@@ -607,7 +431,7 @@ inline void nArray2DT<nTYPE>::SetRow(int row, const nArrayT<nTYPE>& array)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (array.Length() != fMinorDim) ExceptionT::SizeMismatch();
+	if (array.Length() != fMinorDim) throw eSizeMismatch;
 #endif
 	
 	/* copy */	
@@ -617,46 +441,51 @@ inline void nArray2DT<nTYPE>::SetRow(int row, const nArrayT<nTYPE>& array)
 template <class nTYPE>
 void nArray2DT<nTYPE>::SetColumn(int col, const nTYPE& value)
 {
-	if (fMajorDim > 0) {
-		nTYPE* pcol = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++) {
-			*pcol = value;
-			pcol += fMinorDim;
-		}
+	nTYPE* pcol = &(*this)(0,col);
+
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*pcol = value;
+		pcol += fMinorDim;
+	}
+}
+
+template <class nTYPE>
+void nArray2DT<nTYPE>::SetColumn(int col,
+	const nArrayT<nTYPE>& array)
+{
+	/* dimension check */
+	if (array.Length() != fMajorDim)
+		throw eSizeMismatch;
+	else if (fMajorDim == 0)
+		return;
+	
+	nTYPE* pcol = &(*this)(0,col);
+	nTYPE* prhs = array.Pointer();
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*pcol = *prhs++;
+		pcol += fMinorDim;
 	}
 }
 
 template <class nTYPE>
 void nArray2DT<nTYPE>::SetColumn(int col, const nTYPE* array)
 {
-	if (fMajorDim > 0) {
-		nTYPE* pcol = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++) {
-			*pcol = *array++;
-			pcol += fMinorDim;
-		}
+	nTYPE* pcol = &(*this)(0,col);
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*pcol = *array++;
+		pcol += fMinorDim;
 	}
 }
-
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::SetColumn(int col, const nArrayT<nTYPE>& array)
-{
-/* range checking */
-#if __option (extended_errorcheck)
-	if (array.Length() != fMajorDim) ExceptionT::SizeMismatch();
-#endif
-
-	/* wrapper */
-	SetColumn(col, array.Pointer());
-}
-
 
 /* row and column sums */
 template <class nTYPE>
 nTYPE nArray2DT<nTYPE>::RowSum(int row) const
 {
 	nTYPE sum = 0.0;
-	const nTYPE* p = (*this)(row);
+	nTYPE* p  = (*this)(row);
 	for (int i = 0; i < fMinorDim; i++)
 		sum += *p++;		
 	return sum;
@@ -665,18 +494,14 @@ nTYPE nArray2DT<nTYPE>::RowSum(int row) const
 template <class nTYPE>
 nTYPE nArray2DT<nTYPE>::ColumnSum(int col) const
 {
-	if (fMajorDim == 0)
-		return 0.0;
-	else 
+	nTYPE sum = 0.0;
+	nTYPE* p  = &(*this)(0,col);
+	for (int i = 0; i < fMajorDim; i++)
 	{
-		nTYPE sum = 0.0;
-		const nTYPE* p = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++) {
-			sum += *p;
-			p   += fMinorDim;
-		}
-		return sum;
+		sum += *p;
+		p   += fMinorDim;
 	}
+	return sum;
 }
 
 /* row scaling */	
@@ -688,24 +513,12 @@ inline void nArray2DT<nTYPE>::ScaleRow(int row, const nTYPE& scale)
 		*p++ *= scale;
 }
 
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::ScaleColumn(int col, const nTYPE& scale)
-{
-	if (fMajorDim > 0) {
-		nTYPE* p = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++)	{
-			*p *= scale;
-			p += fMinorDim;
-		}
-	}
-}
-
 /* dot the specified row number with the array.  No
 * check on the array dimensions. */
 template <class nTYPE>
-nTYPE nArray2DT<nTYPE>::DotRow(int row, const nTYPE* array) const
+nTYPE nArray2DT<nTYPE>::DotRow(int row, nTYPE* array) const
 {
-	const nTYPE *p = (*this)(row);
+	nTYPE *p = (*this)(row);
 	register nTYPE sum = 0.0;
 	register nTYPE temp;
 	for (int i = 0; i < fMinorDim; i++)
@@ -724,7 +537,7 @@ inline nTYPE nArray2DT<nTYPE>::DotRow(int row,
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (array.Length() != fMinorDim) ExceptionT::SizeMismatch();
+	if (array.Length() != fMinorDim) throw eSizeMismatch;
 #endif
 
 	return DotRow(row, array.Pointer());
@@ -735,25 +548,21 @@ nTYPE nArray2DT<nTYPE>::DotColumn(int col, const nArrayT<nTYPE>& array) const
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (array.Length() != fMajorDim) ExceptionT::SizeMismatch();
+	if (array.Length() != fMajorDim) throw eSizeMismatch;
 #endif
 	
-	if (fMajorDim == 0)
-		return 0.0;
-	else
+	nTYPE *p = Pointer(col);
+	nTYPE *parray = array.Pointer();
+	register nTYPE sum = 0.0;
+	register nTYPE temp;
+	for (int i = 0; i < fMajorDim; i++)
 	{
-		const nTYPE *p = this->Pointer(col);
-		const nTYPE *parray = array.Pointer();
-		register nTYPE sum = 0.0;
-		register nTYPE temp;
-		for (int i = 0; i < fMajorDim; i++) {
-			temp  = *p;
-			temp *= *parray++;
-			sum += temp;
-			p += fMinorDim;
-		}
-		return sum;
+		temp  = *p;
+		temp *= *parray++;
+		sum += temp;
+		p += fMinorDim;
 	}
+	return sum;
 }
 
 /* row to row operations */
@@ -790,11 +599,11 @@ void nArray2DT<nTYPE>::RowCollect(const ArrayT<int>& rows,
 /* must have same minor dimension */
 #if __option (extended_errorcheck)
 	if (fMinorDim != array2D.fMinorDim || rows.Length() != fMajorDim)
-		ExceptionT::SizeMismatch();
+		throw eSizeMismatch;
 #endif
 
 	/* shallow wrapper */
-	const int* p = rows.Pointer();
+	int* p = rows.Pointer();
 	for (int i = 0; i < fMajorDim; i++)
 		SetRow(i,array2D(*p++));
 }
@@ -805,7 +614,7 @@ void nArray2DT<nTYPE>::RowCollect(const int* rows,
 {
 /* must have same minor dimension */
 #if __option (extended_errorcheck)
-	if (fMinorDim != array2D.fMinorDim) ExceptionT::SizeMismatch();
+	if (fMinorDim != array2D.fMinorDim) throw eSizeMismatch;
 #endif
 
 	for (int i = 0; i < fMajorDim; i++)
@@ -819,40 +628,26 @@ void nArray2DT<nTYPE>::Assemble(const ArrayT<int>& rows,
 {
 	for (int i = 0; i < rows.Length(); i++)
 	{	
-		nTYPE* p = (*this)(rows[i]);
-		const nTYPE* pvals = vals(i);
+		nTYPE*     p = (*this)(rows[i]);
+		nTYPE* pvals = vals(i);
+	
 		for (int j = 0; j < vals.MinorDim(); j++)
 			*p++ = *pvals++;
 	}
 }
 
 template <class nTYPE>
-void nArray2DT<nTYPE>::Accumulate(const ArrayT<int>& rows, const nArray2DT& vals)
+void nArray2DT<nTYPE>::Accumulate(const ArrayT<int>& rows,
+	const nArray2DT& vals)
 {
 	for (int i = 0; i < rows.Length(); i++)
 	{	
-		nTYPE* p = (*this)(rows[i]);
-		const nTYPE* pvals = vals(i);
+		nTYPE*     p = (*this)(rows[i]);
+		nTYPE* pvals = vals(i);
+	
 		for (int j = 0; j < vals.MinorDim(); j++)
 			*p++ += *pvals++;
 	}
-}
-
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::Accumulate(int col, const ArrayT<int>& rows, const nArrayT<nTYPE>& vals)
-{
-#if __option(extended_errorcheck)
-	if (rows.Length() != vals.Length()) ExceptionT::GeneralFail();
-#endif
-
-	Accumulate(col, rows, vals.Pointer());
-}
-
-template <class nTYPE>
-void nArray2DT<nTYPE>::Accumulate(int col, const ArrayT<int>& rows, const nTYPE* vals)
-{
-	for (int i = 0; i < rows.Length(); i++)
-		(*this)(rows[i], col) += *vals++;
 }
 
 /*
@@ -870,7 +665,7 @@ void nArray2DT<nTYPE>::SetToRowScaled(int row, const nTYPE& scale,
 {
 	/* dimension checks */
 #if __option(extended_errorcheck)	
-	if (fMinorDim != RHS.fMinorDim) ExceptionT::SizeMismatch();
+	if (fMinorDim != RHS.fMinorDim) throw eSizeMismatch;
 #endif
 
 	nTYPE* pthis = (*this)(row);
@@ -889,7 +684,7 @@ void nArray2DT<nTYPE>::AddRowScaled(int row, const nTYPE& scale,
 {
 	/* dimension checks */
 #if __option(extended_errorcheck)	
-	if (fMinorDim != RHS.fMinorDim) ExceptionT::SizeMismatch();
+	if (fMinorDim != RHS.fMinorDim) throw eSizeMismatch;
 #endif
 
 	nTYPE* pthis = (*this)(row);
@@ -908,23 +703,17 @@ void nArray2DT<nTYPE>::AddRowScaled(int row, const nTYPE& scale,
 
 /* map addition on rows */
 template <class nTYPE>
-inline void nArray2DT<nTYPE>::AddToRowScaled(int row, const nTYPE& scale,
+void nArray2DT<nTYPE>::AddToRowScaled(int row, const nTYPE& scale,
 	const nArrayT<nTYPE>& array)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (array.Length() != fMinorDim) ExceptionT::SizeMismatch();
+	if (array.Length() != fMinorDim) throw eSizeMismatch;
 #endif
 
-	AddToRowScaled(row, scale, array.Pointer());
-}
-
-template <class nTYPE>
-void nArray2DT<nTYPE>::AddToRowScaled(int row, const nTYPE& scale, const nTYPE* array)
-{
-	nTYPE temp;
-	const nTYPE* parray = array;	
-	nTYPE* prow = (*this)(row);
+	nTYPE  temp;
+	nTYPE* parray = array.Pointer();	
+	nTYPE* prow   = (*this)(row);
 	for (int i = 0; i < fMinorDim; i++)
 	{
 		temp = *parray++;
@@ -939,16 +728,16 @@ void nArray2DT<nTYPE>::AddToRowsScaled(const nTYPE& scale,
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (array.Length() != fMinorDim) ExceptionT::SizeMismatch();
+	if (array.Length() != fMinorDim) throw eSizeMismatch;
 #endif
 
 	if (fMajorDim > fMinorDim)
 	{
-		nTYPE temp;
-		const nTYPE* parray = array.Pointer();
+		nTYPE  temp;
+		nTYPE* parray = array.Pointer();
 		for (int j = 0; j < fMinorDim; j++)
 		{
-			nTYPE* pcol = this->Pointer(j);
+			nTYPE* pcol = Pointer(j);
 			for (int i = 0; i < fMajorDim; i++)
 			{
 				temp  = *parray;
@@ -963,10 +752,10 @@ void nArray2DT<nTYPE>::AddToRowsScaled(const nTYPE& scale,
 	else
 	{
 		nTYPE  temp;
-		nTYPE* p = this->Pointer();
+		nTYPE* p = Pointer();
 		for (int i = 0; i < fMajorDim; i++)
 		{
-			const nTYPE* parray = array.Pointer();
+			nTYPE* parray = array.Pointer();
 			for (int j = 0; j < fMinorDim; j++)
 			{
 				temp  = *parray++;
@@ -977,66 +766,29 @@ void nArray2DT<nTYPE>::AddToRowsScaled(const nTYPE& scale,
 	}
 }
 
-/* map addition on columns */
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::AddToColumnScaled(int col, const nTYPE& scale,
-	const nArrayT<nTYPE>& array)
-{
-/* range checking */
-#if __option (extended_errorcheck)
-	if (array.Length() != fMajorDim) ExceptionT::SizeMismatch();
-#endif
-
-	AddToColumnScaled(col, scale, array.Pointer());
-}
-
-template <class nTYPE>
-void nArray2DT<nTYPE>::AddToColumnScaled(int col, const nTYPE& scale, const nTYPE* array)
-{
-	if (fMajorDim > 0) {
-		nTYPE temp;
-		const nTYPE* parray = array;	
-		nTYPE* pcol = this->Pointer(col);
-		for (int i = 0; i < fMajorDim; i++) {
-			temp = *parray++;
-			temp *= scale;
-			*pcol += temp;
-			pcol += fMinorDim;
-		}
-	}
-}	
-
 /* copy all rows/columns from source at start */
 template <class nTYPE>
-void nArray2DT<nTYPE>::BlockRowCopyAt(const nArray2DT& source, int start, int nrows)
+void nArray2DT<nTYPE>::BlockRowCopyAt(const nArray2DT& source, int start)
 {
-	/* quick exit */
-	if (source.Length() == 0) return;
-
-	/* number of rows to copy */
-	nrows = (nrows == -1) ? source.MajorDim() : nrows;
-
 #if __option(extended_errorcheck)
 	/* dimensions check */
-	if (fMinorDim != source.fMinorDim) ExceptionT::SizeMismatch();
-	if (start + nrows > fMajorDim) ExceptionT::OutOfRange();
+if (fMinorDim != source.fMinorDim) throw eSizeMismatch;
+	if (start + source.fMajorDim > fMajorDim) throw eOutOfRange;
 #endif
 
 	/* copy */
-	MemCopy((*this)(start), source.Pointer(), nrows*source.MinorDim());
+	if (source.Length() > 0)
+		MemCopy((*this)(start), source.Pointer(), source.Length());
 }
 
 /* copy all rows/columns from source at start */
 template <class nTYPE>
 void nArray2DT<nTYPE>::BlockColumnCopyAt(const nArray2DT& source, int start)
 {
-	/* quick exit */
-	if (source.Length() == 0) return;
-
 #if __option(extended_errorcheck)
-	/* dimension checks */
-	if (fMajorDim != source.fMajorDim) ExceptionT::SizeMismatch();
-	if (start + source.fMinorDim > fMinorDim) ExceptionT::OutOfRange();
+/* dimension checks */
+if (fMajorDim != source.fMajorDim) throw eSizeMismatch;
+	if (start + source.fMinorDim > fMinorDim) throw eOutOfRange;
 #endif
 
 	for (int i = 0; i < fMajorDim; i++)
@@ -1060,7 +812,7 @@ void nArray2DT<nTYPE>::ReadNumbered(istream& in)
 template <class nTYPE>
 void nArray2DT<nTYPE>::WriteNumbered(ostream& out) const
 {
-	const nTYPE *p = this->Pointer();
+	nTYPE *p = Pointer();
 	int width = OutputWidth(out, p);
 	for (int i = 0; i < fMajorDim; i++)
 	{
@@ -1083,15 +835,14 @@ void nArray2DT<nTYPE>::PrintRow(int row, int rowlength, ostream& out) const
 {
 #if __option(extended_errorcheck)
 	/* no more than the whole row */
-	if (rowlength > fMinorDim) ExceptionT::OutOfRange();
+	if (rowlength > fMinorDim) throw eOutOfRange;
 #endif
 
-	const nTYPE* p = (*this)(row);
+	nTYPE* p = (*this)(row);
 	int width = OutputWidth(out, p);
 	for (int i = 0; i < rowlength; i++)
 		out << setw(width) << *p++;
 	out << '\n';
 }
 
-} // namespace Tahoe 
 #endif /* _NARRAY2D_T_H_ */

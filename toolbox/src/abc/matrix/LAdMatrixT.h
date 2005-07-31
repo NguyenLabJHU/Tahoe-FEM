@@ -1,4 +1,4 @@
-/* $Id: LAdMatrixT.h,v 1.5 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: LAdMatrixT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* dMatrixT with some linear algebra functions                            */
 
@@ -7,8 +7,6 @@
 
 /* base class */
 #include "dMatrixT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class dArrayT;
@@ -32,52 +30,9 @@ public:
 	void LinearSolve(dArrayT& RHS);
 	void LinearSolve2(dArrayT& RHS); /* skips zeroes */
 
-//*****************************************************************
-// Iterative  routine -- BiCGSTAB
-//
-// BiCGSTAB solves the unsymmetric linear system Ax = RHS 
-// using the Preconditioned BiConjugate Gradient Stabilized method
-//
-// BiCGSTAB follows the algorithm described on p. 27 of the 
-// SIAM Templates book.
-//
-//
-// Input Values
-//        x  -- initial guess to Ax = RHS
-//      RHS  -- the right hand side of the system Ax = RHS
-//		  M  -- Diagonal preconditioner
-//				double 	M ->   M*I,  ( I is the identity matrix )
-//				dArrayT M ->   M,    ( M is a a digonal matrix with M(i) -> M(i,i) )
-//
-// 	 max_it	 --  Maximum iterations before failure. Should be on the order of Dim(A).  
-//      tol  --  the residual below which the solution is considered to be convereged.
-//				 tol = |residual|/|RHS|
-//               Should be on the order of machine precision
-//   
-//
-// The return value indicates convergence within max_iter (input)
-// iterations (0), or no convergence within max_iter iterations (1).
-//
-// Upon successful return, output arguments have the following values:
-//  
-//        x  --  approximate solution to Ax = b
-// max_iter  --  the number of iterations performed before the
-//               tolerance was reached
-//      tol  --  the residual after the final iteration
-//	return values:
-//		   0 -- convergence within max_iter
-//		   1 -- did not converge to the specified tolerance within max_iter
-//		   2 -- internal breakdown
-//		   3 -- internal breakdown
-//  
-//*****************************************************************
-	int BiCGStab(dArrayT& x ,const dArrayT& RHS ,const double   M , int max_it , double tol );
-	int BiCGStab(dArrayT& x ,const dArrayT& RHS ,const dArrayT& M , int max_it , double tol );
-
 	/* assignment operators */
 	LAdMatrixT& operator=(const dMatrixT& RHS);
 	LAdMatrixT& operator=(const double value);
-
 };
 
 /* inlines */
@@ -97,5 +52,4 @@ inline LAdMatrixT& LAdMatrixT::operator=(const double value)
 	return *this;
 }
 
-} // namespace Tahoe 
 #endif /* _LA_DMATRIX_T_H_ */

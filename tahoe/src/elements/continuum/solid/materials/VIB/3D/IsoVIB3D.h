@@ -1,65 +1,46 @@
-/* $Id: IsoVIB3D.h,v 1.9 2004-07-15 08:27:51 paklein Exp $ */
-/* created: paklein (03/15/1998) */
+/* $Id: IsoVIB3D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (03/15/1998)                                          */
+/* 3D Isotropic VIB solver using spectral decomposition formulation       */
+
 #ifndef _ISO_VIB_3D_H_
 #define _ISO_VIB_3D_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
+#include "FDStructMatT.h"
 #include "VIB.h"
 
 /* direct members */
 #include "SpectralDecompT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class SpherePointsT;
 
-/** 3D Isotropic VIB solver using spectral decomposition formulation */
-class IsoVIB3D: public FSSolidMatT, public VIB
+class IsoVIB3D: public FDStructMatT, public VIB
 {
 public:
 
 	/* constructor */
-	IsoVIB3D(void);
+	IsoVIB3D(ifstreamT& in, const ElasticT& element);
 
 	/* destructor */
 	virtual ~IsoVIB3D(void);
-		
-	/** \name spatial description */
-	/*@{*/
-	/** spatial tangent modulus */
-	virtual const dMatrixT& c_ijkl(void);
-
-	/** Cauchy stress */
-	virtual const dSymMatrixT& s_ij(void);
-
-	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
-	 * for more information. */
-	virtual double Pressure(void) const { return fEigs.Sum()/3.0; };
-	/*@}*/
+	
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;	
+	
+	/* spatial description */
+	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli
+	virtual const dSymMatrixT& s_ij(void); // Cauchy stress
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 //TEMP - not yet optimized for total Lagrangian formulation.
-//       calls to these write error message and throw ExceptionT::xception
+//       calls to these write error message and throw exception
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/	
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 
 protected:
 
@@ -82,16 +63,11 @@ protected:
 	
 private:
 
-	/* stretch */
-	dSymMatrixT fb;
-
 	/* integration point generator */
 	SpherePointsT*	fSphere;
 	
-	/* return values */
-	dMatrixT    fModulus;
-	dSymMatrixT fStress;
+	/* return value */
+	dMatrixT fModulus;
 };
 
-} // namespace Tahoe 
 #endif /* _ISO_VIB_3D_H_ */

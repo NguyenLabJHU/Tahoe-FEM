@@ -1,45 +1,36 @@
-/* $Id: J2PrimitiveT.h,v 1.4 2004-07-15 08:28:54 paklein Exp $ */
-/* created: paklein (02/17/1997) */
+/* $Id: J2PrimitiveT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (02/17/1997)                                          */
+/* Base class for a J2 plastic material with linear kinematic/            */
+/* isotropic hardening laws defined by:                                   */
+/* 		H(a) = (1 - ftheta) fH_bar a                                         */
+/* K(a) = fYield + ftheta fH_bar a                                        */
+/* 		where a is the internal hardening variable                           */
+
 #ifndef _J2_PRIMITIVET_H_
 #define _J2_PRIMITIVET_H_
 
-/* base class */
-#include "ParameterInterfaceT.h"
-
-namespace Tahoe {
+/* project headers */
+#include "Environment.h"
 
 /* forward declarations */
+#include "ios_fwd_decl.h"
+class ifstreamT;
 class dSymMatrixT;
 
-/** base class for a J2 plastic material with linear kinematic and
- * isotropic hardening laws defined by:
- 	\f[
-		H(\alpha) = (1 - \theta) \bar{H} \alpha
-	\f]
-	\f[
-		K(\alpha) = Y + \theta \bar{H} \alpha
-	\f]
- * where \f$ \alpha \f$ is the internal hardening variable
- */
-class J2PrimitiveT: virtual public ParameterInterfaceT
+class J2PrimitiveT
 {
 public:
 
-	/** constructor */
-	J2PrimitiveT(void);
+	/* constructor */
+	J2PrimitiveT(ifstreamT& in);
 
-	/** destructor */
+	/* destructor */
 	virtual ~J2PrimitiveT(void);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
+	/* output parameters to stream */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
+	
 protected:
 
 	/* returns the value value of the yield function given the
@@ -65,7 +56,12 @@ protected:
 
 };
 
-/* hardening functions and their 1st derivatives */
+/*
+* Hardening functions and their 1st derivatives.
+*
+*		H(a) = (1 - ftheta) fH_bar a
+*      K(a) = fYield + ftheta fH_bar a
+*/
 inline double J2PrimitiveT::H(double a) const
 {
 	return ( (1.0 - ftheta)*fH_bar*a );
@@ -89,7 +85,5 @@ inline double J2PrimitiveT::dK(double a) const
 
 	return ( ftheta*fH_bar );
 }
-
-} /* namespace Tahoe */
 
 #endif /* _J2_PRIMITIVET_H_ */

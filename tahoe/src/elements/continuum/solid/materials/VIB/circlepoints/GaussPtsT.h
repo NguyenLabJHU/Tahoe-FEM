@@ -1,21 +1,30 @@
-/* $Id: GaussPtsT.h,v 1.3 2004-07-15 08:28:03 paklein Exp $ */
-/* created: paklein (11/02/1997) */
+/* $Id: GaussPtsT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (11/02/1997)                                          */
+
 #ifndef _GAUSS_PTS_T_H_
 #define _GAUSS_PTS_T_H_
 
 /* base class */
 #include "CirclePointsT.h"
 
-namespace Tahoe {
-
 class GaussPtsT: public CirclePointsT
 {
 public:
 
-	/** constructor */
-	GaussPtsT(int n);
+	/*
+	 * Constructor
+	 */
+	GaussPtsT(istream& in);
 
-	/** generate points with the given orientation angle theta */
+	/*
+	 * Print parameters.
+	 */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;	
+
+	/*
+	 * Generate points with the given orientation angle theta.
+	 */
 	virtual const dArray2DT& CirclePoints(double theta);
 	
 private:
@@ -34,5 +43,4 @@ private:
 			
 };
 
-} // namespace Tahoe 
 #endif /* _GAUSS_PTS_T_H_ */

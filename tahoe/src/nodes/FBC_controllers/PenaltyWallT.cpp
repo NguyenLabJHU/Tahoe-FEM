@@ -1,38 +1,51 @@
-/* $Id: PenaltyWallT.cpp,v 1.13 2004-07-15 08:31:15 paklein Exp $ */
-/* created: paklein (02/25/1997) */
-#include "PenaltyWallT.h"
-#include "FieldT.h"
-#include "eIntegratorT.h"
-#include "FieldSupportT.h"
-#include "ParameterContainerT.h"
-#include "ParameterUtils.h"
-#include "Vector3T.h"
+/* $Id: PenaltyWallT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* created: paklein (02/25/1997)                                          */
 
-using namespace Tahoe;
+#include "PenaltyWallT.h"
+
+#include <math.h>
+#include <iostream.h>
+#include <iomanip.h>
+
+#include "Constants.h"
+#include "fstreamT.h"
+#include "FEManagerT.h"
+#include "eControllerT.h"
 
 const double Pi = acos(-1.0);
 
 /* constructor */
-PenaltyWallT::PenaltyWallT(void):
-	fLHS(ElementMatrixT::kSymmetric)
+PenaltyWallT::PenaltyWallT(FEManagerT& fe_manager,
+	const iArray2DT& eqnos,
+	const dArray2DT& coords,
+	const dArray2DT* vels):
+	PenaltyRegionT(fe_manager, eqnos, coords, vels),
+
+	/* wall normal and tangents */	
+	fnormal(rCoords.MinorDim()),
+	fntforce(rCoords.MinorDim()),
+	fxyforce(rCoords.MinorDim()),
+	fQ(rCoords.MinorDim()),
+	
+	/* work space */
+	fLHS(eqnos.MinorDim(), ElementMatrixT::kSymmetric)
 {
-	SetName("wall_penalty");
+
 }
 
 /* tangent */
-void PenaltyWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
+void PenaltyWallT::ApplyLHS(void)
 {	
-#pragma unused(sys_type)
+	//TEMP
+	if (fmu > kSmall)
+	{
+		cout << "\n PenaltyWallT::ApplyLHS: tangent is frictionless only" << endl;
+		throw eGeneralFail;
+	}
 
 	double constK = 0.0;
-	int formK = fIntegrator->FormK(constK);
+	int formK = fController->FormK(constK);
 	if (!formK) return;
-
-	/* equations */
-	const iArray2DT& eqnos = Field().Equations();
-
-	/* support class */
-	const FieldSupportT& support = FieldSupport();
 
 	/* node by node */
 	for (int i = 0; i < fNumContactNodes; i++)
@@ -49,10 +62,60 @@ void PenaltyWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 			fLHS *= constK/(normal_comp*normal_comp*fk);		
 					
 			/* assemble */
-			eqnos.RowAlias(fContactNodes[i], fi_sh);
-			support.AssembleLHS(fGroup, fLHS, fi_sh);
+			rEqnos.RowAlias(fContactNodes[i], fi_sh);
+			fFEManager.AssembleLHS(fLHS, fi_sh);
 		}
 	}
+}
+
+/* input processing */
+void PenaltyWallT::EchoData(ifstreamT& in, ostream& out)
+{
+	/* inherited */
+	PenaltyRegionT::EchoData(in, out);
+
+	/* echo parameters */
+	in >> ftheta;
+	in >> fmu;    if (fmu < 0.0) throw eBadInputValue;
+
+	out << " Orientation of normal wrt x-axis (degrees). . . = " << ftheta << '\n';
+	out << " Penalty stiffness . . . . . . . . . . . . . . . = " << fk << '\n';
+
+	/* compute normal, tangent, and Q */
+	ftheta *= Pi/180.0;
+	
+	if (rCoords.MinorDim() == 2)
+	{
+		fnormal[0] = cos(ftheta);
+		fnormal[1] = sin(ftheta);
+
+		fQ(0,0) = fQ(1,1) = cos(ftheta);
+		fQ(1,0) = sin(ftheta);
+		fQ(0,1) =-sin(ftheta);
+	}
+	else // 3D still only has rotation about z-axis
+	{
+		fnormal[0] = cos(ftheta);
+		fnormal[1] = sin(ftheta);
+		fnormal[2] = 0.0;
+
+		fQ = 0.0;
+		fQ(0,0) = fQ(1,1) = cos(ftheta);
+		fQ(1,0) = sin(ftheta);
+		fQ(0,1) =-sin(ftheta);
+		fQ(2,2) = 1.0;
+	}
+}
+
+/* initialize data */
+void PenaltyWallT::Initialize(void)
+{
+	/* inherited */
+	PenaltyRegionT::Initialize();
+
+	/* memory relative displacements */
+	fp_i.Allocate(fNumContactNodes, rCoords.MinorDim());
+	fv_i.Allocate(fNumContactNodes, rCoords.MinorDim());	
 }
 
 /**********************************************************************
@@ -62,18 +125,21 @@ void PenaltyWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 /* compute the nodal contribution to the residual force vector */
 void PenaltyWallT::ComputeContactForce(double kforce)
 {
-	const char caller[] = "PenaltyWallT::ComputeContactForce";
-
 	/* with "friction */
-//	if (fmu > kSmall)
-	if (false)
+	if (fmu > kSmall)
 	{
 		//TEMP
-		ExceptionT::GeneralFail(caller, "general (2D/3D) friction implementation is not available");
-#if 0
-		if (!pVels)
-			ExceptionT::GeneralFail(caller, "velocities required with friction");
+		cout << "\n PenaltyWallT::ComputeContactForce: general (2D/3D) friction implementation\n";
+		cout <<   "     is not available" << endl;
+		throw eGeneralFail;
 
+		if (!pVels)
+		{
+			cout << "\n PenaltyWallT::ComputeContactForce: velocities required with friction";
+			cout << endl;
+			throw eGeneralFail;
+		}
+	
 		/* compute relative positions and velocities */
 		fp_i.RowCollect(fContactNodes, rCoords);
 		fv_i.RowCollect(fContactNodes,*pVels);
@@ -103,21 +169,17 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 				
 				fContactForce2D.SetRow(i,fxyforce);
 			}
-			
-			/* store gap */
-			fGap[i] = normal_comp;
 		}
-#endif
 	}
 	else
 	{
 		/* compute relative positions */
-		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
-		fp_i.RowCollect(fContactNodes, coords);
+		fp_i.RowCollect(fContactNodes, rCoords);
 		for (int j = 0; j < fNumContactNodes; j++)
 			fp_i.AddToRowScaled(j, -1.0, fx);
 	
 		/* compute contact forces */
+		fh_max = 0.0;
 		fntforce = 0.0;
 		fContactForce2D = 0.0;	
 		for (int i = 0; i < fNumContactNodes; i++)
@@ -127,6 +189,9 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 			/* penetration */
 			if (normal_comp < 0.0)
 			{
+				/* store max penetration */
+				fh_max = (-normal_comp > fh_max) ? -normal_comp : fh_max;
+			
 				/* normal force */
 				fntforce[0] =-fk*normal_comp*kforce;		
 		
@@ -135,90 +200,6 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 				
 				fContactForce2D.SetRow(i, fxyforce);
 			}
-
-			/* store gap */
-			fGap[i] = normal_comp;
 		}
 	}
-}
-
-/* information about subordinate parameter lists */
-void PenaltyWallT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	PenaltyRegionT::DefineSubs(sub_list);
-	
-	/* normal to the wall */
-	sub_list.AddSub("wall_normal");
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* PenaltyWallT::NewSub(const StringT& name) const
-{
-	if (name == "wall_normal") {
-
-		ParameterContainerT* n_choice = new ParameterContainerT(name);
-		
-		/* by dimension */
-		n_choice->SetListOrder(ParameterListT::Choice);
-		n_choice->AddSub("Vector_2");
-		n_choice->AddSub("Vector_3");
-
-		return n_choice;	
-	}
-	else /* inherited */
-		return PenaltyRegionT::NewSub(name);
-}
-
-/* accept parameter list */
-void PenaltyWallT::TakeParameterList(const ParameterListT& list)
-{
-	const char caller[] = "PenaltyWallT::TakeParameterList";
-
-	/* inherited */
-	PenaltyRegionT::TakeParameterList(list);
-
-	/* get normal */
-	int nsd = FieldSupport().NumSD();
-	const ParameterListT& normal = list.GetListChoice(*this, "wall_normal");
-	VectorParameterT::Extract(normal, fnormal);
-	fnormal.UnitVector();
-	if (fnormal.Length() != nsd) 
-		ExceptionT::GeneralFail(caller, "\"wall_normal\" should be length %d not %d", nsd, fnormal.Length());
-	
-	/* transformation tensor */
-	fQ.Dimension(nsd);
-	if (nsd == 2)
-	{
-		/* set column vectors */
-		fQ.SetCol(0, fnormal);
-		fQ(0,1) =-fnormal[1];
-		fQ(1,1) = fnormal[0];
-	}
-	else if (nsd == 3)
-	{
-		Vector3T<double> v0(fnormal.Pointer()), v1, v2; 
-		
-		/* find non-colinear directions */
-		int i = 0;
-		v2.Random(++i);
-		while (v2.Norm() < 1.0e-06 || Vector3T<double>::Dot(v0,v2) > 0.99)
-			v2.Random(++i);	
-		v1.Cross(v0,v2);
-		v2.Cross(v0,v1);
-
-		/* write column vectors */
-		fQ.SetCol(0,v0);
-		fQ.SetCol(1,v1);
-		fQ.SetCol(2,v2);
-	}
-	else 
-		ExceptionT::GeneralFail(caller);
-	
-	/* dimension work space */	
-	fntforce.Dimension(nsd);
-	fxyforce.Dimension(nsd);
-	fp_i.Dimension(fNumContactNodes, nsd);
-	fv_i.Dimension(fNumContactNodes, nsd);
-	fLHS.Dimension(nsd);
 }

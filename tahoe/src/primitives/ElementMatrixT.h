@@ -1,4 +1,4 @@
-/* $Id: ElementMatrixT.h,v 1.2 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: ElementMatrixT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
 /* created: paklein (03/17/1998)                                          */
 
 #ifndef _ELEMENT_MATRIX_T_H_
@@ -7,9 +7,7 @@
 /* base class */
 #include "dMatrixT.h"
 
-namespace Tahoe {
-
-class ElementMatrixT: public Tahoe::dMatrixT
+class ElementMatrixT: public dMatrixT
 {
 public:
 
@@ -65,5 +63,4 @@ inline ElementMatrixT& ElementMatrixT::operator=(const double value)
 	return *this;
 }
 
-} // namespace Tahoe 
 #endif /* _ELEMENT_MATRIX_T_H_ */

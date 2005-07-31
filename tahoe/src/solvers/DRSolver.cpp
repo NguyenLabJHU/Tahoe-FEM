@@ -1,26 +1,24 @@
-/* $Id: DRSolver.cpp,v 1.9 2004-01-05 07:07:19 paklein Exp $ */
-/* created: PAK/CBH (10/03/1996) */
+/* $Id: DRSolver.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* created: PAK/CBH (10/03/1996)                                          */
+
 #include "DRSolver.h"
 
 #include <iostream.h>
 #include <math.h>
 
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
 #include "FEManagerT.h"
 #include "CCSMatrixT.h"
 
-using namespace Tahoe;
-
 /* constructor */
-DRSolver::DRSolver(FEManagerT& fe_manager, int group): 
-	NLSolver(fe_manager, group)
+DRSolver::DRSolver(FEManagerT& fe_manager): NLSolver(fe_manager)
 {
 #ifdef __NO_RTTI__
 	fCCSLHS = (CCSMatrixT*) fLHS;
 #else
-	fCCSLHS = TB_DYNAMIC_CAST(CCSMatrixT*, fLHS);
-	if (!fCCSLHS) throw ExceptionT::kGeneralFail;
+	fCCSLHS = dynamic_cast<CCSMatrixT*>(fLHS);
+	if (!fCCSLHS) throw eGeneralFail;
 #endif
 }
 
@@ -31,61 +29,61 @@ void DRSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	NLSolver::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* memory */
-	fMass.Dimension(loc_num_eq);
-	fVel.Dimension(loc_num_eq);
-	fDisp.Dimension(loc_num_eq);
-	fKd.Dimension(loc_num_eq);
+	fMass.Allocate(loc_num_eq);
+	fVel.Allocate(loc_num_eq);
+	fDisp.Allocate(loc_num_eq);
+	fKd.Allocate(loc_num_eq);
 	
 	fNumEquations = loc_num_eq;
 }
 
 /* generate the solution for the current time sequence */
-SolverT::SolutionStatusT DRSolver::Solve(int num_iterations)
+void DRSolver::Run(void)
 {
-	try
-	{	  	
-
-	/* form the residual force vector */
-	fRHS = 0.0;
-	fFEManager.FormRHS(Group());
-
-	SolutionStatusT status = ExitIteration(fRHS.Magnitude(), fNumIteration);
-	while (status != kConverged &&
-		(num_iterations == -1 || IterationNumber() < num_iterations))
+	/* solve displacements for quasi-static load sequence */
+	while ( Step() )
 	{
-		/* form the stiffness matrix */
-		fLHS->Clear();				
-		fFEManager.FormLHS(Group(), GlobalT::kDiagonal);
+	 	try
+	  	{	  	
+			/* apply kinematic BC's - set displacements and update geometry */
+			fFEManager.InitStep();
+
+	  		/* form the residual force vector */
+			fRHS = 0.0;
+			fFEManager.FormRHS();
+
+			while (!ExitIteration(fRHS.Magnitude()))
+	  		{
+				/* form the stiffness matrix */
+				fLHS->Clear();				
+				fFEManager.FormLHS();
 	
-		/* compute mass for stability */
-		ComputeMass();
+				/* compute mass for stability */
+				ComputeMass();
 
-		/* calculate velocity */
-		ComputeVelocity();
+				/* calculate velocity */
+				ComputeVelocity();
 
-		/* displacement update */
-		fVel *= fFEManager.TimeStep();
+				/* displacement update */
+				fVel *= fFEManager.TimeStep();
 
-		/* update displacements */
-		fFEManager.Update(Group(), fVel);
+				/* update displacements */
+				fFEManager.Update(fVel);
 				
-		/* calculate critical damping */
-		ComputeDamping();
+				/* calculate critical damping */
+				ComputeDamping();
 
-		/* form the residual force vector */
-		fRHS = 0.0;
-		fFEManager.FormRHS(Group());
-		
-		/* check status */
-		status = ExitIteration(fRHS.Magnitude(), fNumIteration);
-	}  
-
-	/* normal */
-	return status;
-	
-	} /* end try */
-	
-	catch (ExceptionT::CodeT code) { return kFailed; }
+	  			/* form the residual force vector */
+				fRHS = 0.0;
+				fFEManager.FormRHS();
+			}
+			
+			/* finalize */
+			fFEManager.CloseStep();
+	 	}
+	 	
+	 	catch (int code) { fFEManager.HandleException(code); }
+	}
 }
 
 /*************************************************************************
@@ -128,8 +126,8 @@ void DRSolver::ComputeVelocity(void)
 void DRSolver::ComputeDamping(void)
 {
 	/* numerator */
-	fFEManager.GetUnknowns(fGroup, 0, fDisp);
-	fCCSLHS->Multx(fDisp, fKd);
+	fFEManager.ActiveDisplacements(fDisp);
+	fCCSLHS->MultKd(fDisp,fKd);
 	double numer = dArrayT::Dot(fDisp,fKd);
 	
 	/* denominator */

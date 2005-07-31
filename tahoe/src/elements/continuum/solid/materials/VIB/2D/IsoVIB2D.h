@@ -1,71 +1,50 @@
-/* $Id: IsoVIB2D.h,v 1.9 2004-07-15 08:27:45 paklein Exp $ */
-/* created: paklein (11/08/1997) */
+/* $Id: IsoVIB2D.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (11/08/1997)                                          */
+/* 2D Isotropic VIB solver using spectral decomposition formulation       */
+
 #ifndef _ISO_VIB_2D_H_
 #define _ISO_VIB_2D_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
+#include "FDStructMatT.h"
+#include "Material2DT.h"
 #include "VIB.h"
 
 /* direct members */
 #include "SpectralDecompT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class CirclePointsT;
 
-/** 2D Isotropic VIB solver using spectral decomposition formulation */
-class IsoVIB2D: public FSSolidMatT, public VIB
+class IsoVIB2D: public FDStructMatT, public Material2DT, public VIB
 {
 public:
 
 	/* constructor */
-	IsoVIB2D(void);
+	IsoVIB2D(ifstreamT& in, const ElasticT& element);
 
 	/* destructor */
 	~IsoVIB2D(void);
 	
-	/** \name spatial description */
-	/*@{*/
-	/** spatial tangent modulus */
-	virtual const dMatrixT& c_ijkl(void);
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;	
 
-	/** Cauchy stress */
-	virtual const dSymMatrixT& s_ij(void);
-
-	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
-	 * for more information. */
-	virtual double Pressure(void) const { return fEigs.Sum()/3.0; };
-	/*@}*/
+	/* spatial description */
+	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli
+	virtual const dSymMatrixT& s_ij(void); // Cauchy stress
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 //TEMP - not yet optimized for total Lagrangian formulation.
-//       calls to these write error message and throw ExceptionT::xception
+//       calls to these write error message and throw exception
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 
 	//TEMP
 	const dSymMatrixT& CurvatureTensor(void);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 
 protected:
 
@@ -91,13 +70,8 @@ protected:
 	
 private:
 
-	/* stretch */
-	dSymMatrixT fb;
-
-	/* return values */
-	dMatrixT    fModulus;
-	dSymMatrixT fStress;
+	/* return value */
+	dMatrixT fModulus;
 };
 
-} // namespace Tahoe 
 #endif /* _ISO_VIB_2D_H_ */

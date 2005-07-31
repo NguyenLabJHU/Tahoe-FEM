@@ -1,28 +1,30 @@
-/* $Id: nStaticIntegrator.cpp,v 1.10 2004-12-26 21:09:12 d-farrell2 Exp $ */
-/* created: paklein (10/14/1996) */
+/* $Id: nStaticIntegrator.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
 
 #include "nStaticIntegrator.h"
-#include "BasicFieldT.h"
-#include "dArrayT.h"
-#include "iArrayT.h"
+#include "ExceptionCodes.h"
 #include "dArray2DT.h"
-#include "iArray2DT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
 nStaticIntegrator::nStaticIntegrator(void) { }
 
 /* consistent BC's */
-void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
+void nStaticIntegrator::ConsistentKBC(const KBC_CardT& KBC)
 {
+#if __option(extended_errorcheck)
+	if (!fU)
+	{
+		cout << "\n nStaticIntegrator::ConsistentKBC: field arrays not set" << endl;
+		throw eGeneralFail;
+	}
+#endif
+
 	/* destination */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (field[0])(node, dof);
+	double& d = (*fU)(node, dof);
 	
-	switch (KBC.Code())
+	switch ( KBC.Code() )
 	{
 		case KBC_CardT::kFix: /* zero displacement */
 		{
@@ -34,91 +36,11 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			d = KBC.Value();
 			break;
 		}
-		case KBC_CardT::kNull: /* do nothing and like it */
-		{
-			break;
-		}
 		default:
-			ExceptionT::BadInputValue("nStaticIntegrator::ConsistentKBC", "unknown BC code: %d", KBC.Code());
+			cout << "\n nTrapezoid::ConsistentKBC:unknown BC code\n" << endl;
+			throw eBadInputValue;
 	}
 }		
-
-// predictors - map ALL, unless limit arguments are specified
-void nStaticIntegrator::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
-{
-#pragma unused(field)
-	//nothing to do
-}
-
-/* corrector. Maps ALL degrees of freedom forward. */
-void nStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
-{
-	if (fieldend == -1) // operate on full arrays
-	{
-		/* update displacements */
-		field[0] += update;
-	}
-	else
-	{
-		/* update displacements */
-		field[0].AddScaled(1.0, update, fieldstart, fieldend);
-	}
-}
-
-/* correctors - map ACTIVE */
-void nStaticIntegrator::Corrector(BasicFieldT& field, const dArrayT& update, 
-		int eq_start, int num_eq)
-{
-	const iArray2DT& eqnos = field.Equations();
-
-	/* add update - assumes that fEqnos maps directly into dva */
-	const int* peq = eqnos.Pointer();
-	double* pd  = field[0].Pointer();
-	for (int i = 0; i < eqnos.Length(); i++)
-	{
-		int eq = *peq++ - eq_start;
-	
-		/* active dof */
-		if (eq > -1 && eq < num_eq) *pd += update[eq];
-
-		/* next */
-		pd++;
-	}
-}
-
-void nStaticIntegrator::MappedCorrector(BasicFieldT& field, const iArrayT& map, 
-		const iArray2DT& flags, const dArray2DT& update)
-{
-	/* check dimensions */
-	if (flags.MajorDim() != update.MajorDim() ||
-	    flags.MinorDim() != update.MinorDim()) throw ExceptionT::kSizeMismatch;
-
-	/* run through map */
-	int minordim = flags.MinorDim();
-	const int* pflag = flags.Pointer();
-	const double* pupdate = update.Pointer();
-	for (int i = 0; i < map.Length(); i++)
-	{
-		int row = map[i];
-		const int* pflags = flags(i);
-
-		double* pd = (field[0])(row);
-		for (int j = 0; j < minordim; j++)
-		{
-			/* active */
-			if (*pflag > 0) *pd = *pupdate;
-			
-			/* next */
-			pflag++; pupdate++; pd++;
-		}
-	}
-}
-
-/* return the field array needed by nIntegrator::MappedCorrector. */
-const dArray2DT& nStaticIntegrator::MappedCorrectorField(BasicFieldT& field) const
-{
-	return field[0];
-}
 
 /* pseudo-boundary conditions for external nodes */
 KBC_CardT::CodeT nStaticIntegrator::ExternalNodeCondition(void) const

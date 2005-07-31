@@ -8,7 +8,7 @@
  * Started 9/25/94
  * George
  *
- * $Id: macros.h,v 1.2 2001-07-19 06:33:05 paklein Exp $
+ * $Id: macros.h,v 1.1.1.1 2001-07-19 06:24:00 paklein Exp $
  *
  */
 
@@ -17,7 +17,7 @@
 * The following macro returns a random number in the specified range
 **************************************************************************/
 #if 1
-/* #ifdef __VC__ */
+//#ifdef __VC__
 #define RandomInRange(u) ((rand()>>3)%(u))
 #define RandomInRangeFast(u) ((rand()>>3)%(u))
 #else

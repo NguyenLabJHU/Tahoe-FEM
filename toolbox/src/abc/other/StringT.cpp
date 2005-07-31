@@ -1,7 +1,7 @@
-/* $Id: StringT.cpp,v 1.47 2005-06-08 17:20:20 paklein Exp $ */
-/* created: paklein (08/01/1996) */
+/* $Id: StringT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (08/01/1996)                                          */
+
 #include "StringT.h"
-#include "ifstreamT.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -10,25 +10,13 @@
 #include <iostream.h>
 #include <fstream.h>
 #include <iomanip.h>
-#ifdef _MSC_VER
-#include <strstrea.h>
-#elif defined(__GCC_3__) || defined(__GCC_4__)
-#include <strstream>
-#else
-#include <strstream.h>
-#endif
 
-using namespace Tahoe;
+#include "Constants.h"
+#include "ExceptionCodes.h"
 
 /* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<StringT>::fByteCopy = false;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<StringT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<const StringT*>::fByteCopy = true;
-
-/* static character for empty strings */
-char StringT::fEmpty = '\0';
-} /* namespace Tahoe */
+const bool ArrayT<StringT>::fByteCopy = false;
+const bool ArrayT<StringT*>::fByteCopy = true;
 
 /* line length */
 const int kLineLength = 254;
@@ -41,16 +29,13 @@ StringT::StringT(int length):
 	if (length > 0)
 		(*this)[0] = '\0';
 	else
-		Alias(1, &fEmpty);
+		*this = "\0";
 }
-
-namespace Tahoe {
 
 /* input initializer */
 istream& operator>>(istream& in, StringT& stringT)
 {
 	char string[kLineLength];
-	string[0] = '\0';
 	in >> string;
 	stringT = string;
 	
@@ -64,40 +49,20 @@ ostream& operator<<(ostream& out, const StringT& string)
 	return(out);
 }
 
-} // namespace Tahoe
-
 /* assignment operator */
-void StringT::Fill(char a)
-{
-	int len = Length()-1;
-	if (len > 0) memset(Pointer(), a, len);
-}
-	
 StringT& StringT::operator=(const char* string)
 {
-	if (string == NULL || string[0] == '\0')
-		Clear();
-	else if (string != Pointer())
+	if (string != Pointer())
 	{
 		/* allocate memory */
 		int length = strlen(string) + 1;
-		Dimension(length);
+		Allocate(length);
 	
 		/* byte copy */
 		memcpy(Pointer(), string, sizeof(char)*length);
 	}
 
 	return(*this);
-}
-
-/* make string empty */
-void StringT::Clear(void)
-{
-	/* should have at least one character */
-	if (Length() < 1) Dimension(1);
-	
-	/* zero string length */
-	fArray[0] = '\0';
 }
 
 /* copy what fits without resizing. new string length */
@@ -131,28 +96,9 @@ int StringT::operator==(const char* string) const
 	return (strcmp(*this,string) == 0);
 }
 
-namespace Tahoe {
 int operator==(const char* str_lhs, const StringT& str_rhs)
 {
 	return (str_rhs == str_lhs);
-}
-} /* namespace Tahoe */
-
-/* string match */
-const char* StringT::StringMatch(const char* search) const {
-	return strstr(*this, search);
-}
-
-/* return 1 of {*this, rhs} are in alphabetical order, 0 otherwise */
-int StringT::operator<(const StringT& rhs) const
-{
-	return strcmp(*this,rhs) < 0;
-}
-	
-/* return 1 of {*this, rhs} are in reverse alphabetical order, 0 otherwise */
-int StringT::operator>(const StringT& rhs) const
-{
-	return strcmp(*this,rhs) > 0;
 }
 
 int StringT::operator!=(const char* string) const
@@ -160,17 +106,15 @@ int StringT::operator!=(const char* string) const
 	return (strcmp(*this,string) != 0);
 }
 
-namespace Tahoe {
 int operator!=(const char* str_lhs, const StringT& str_rhs)
 {
 	return (str_rhs != str_lhs);
 }
-} /* namespace Tahoe */
 
 /* convert all to uppercase */
 const StringT& StringT::ToUpper(void)
 {
-	int num_chars = strlen(*this);
+int num_chars = strlen(*this);
 	char* p = Pointer();
 	for (int i = 0; i < num_chars; i++)
 	{
@@ -181,59 +125,15 @@ const StringT& StringT::ToUpper(void)
 	return *this;
 }	
 
-/* convert all to lowercase */
-const StringT& StringT::ToLower(void)
-{
-	int num_chars = strlen(*this);
-	char* p = Pointer();
-	for (int i = 0; i < num_chars; i++)
-	{
-	    *p = tolower(*p);
-		p++;
-	}
-
-	return *this;
-}	
-
-/* replace one character with another */
-void StringT::Replace(char find, char replace)
-{
-	int num_chars = strlen(*this);
-	char* p = Pointer();
-	for (int i = 0; i < num_chars; i++)
-	{
-		if (*p == find) *p = replace;
-		p++;
-	}
-}
-
 /* read a line from the input stream, where a line is the next
 * kLineLength characters or fewer characters terminated
 * by a newline */
 void StringT::GetLineFromStream(istream& in)
 {
-	char str[kLineLength];
-//NOTE: GCC 3.1 has a bug with getline from cin
-#ifdef __GCC_3__
-	int ct = 0;
-	str[ct] = in.get();
-	while (in.good() && ct < kLineLength-1 && str[ct] != '\n') {
-		ct++;
-		str[ct] = in.get();
-	}
-	str[ct] = '\0';
-#else
-	in.getline(str, kLineLength-1);	
-#endif
-
-	operator=(str);
-}
-
-void StringT::GetLineFromStream(ifstreamT& in)
-{
-	char str[kLineLength];
-	in.getline(str, kLineLength-1);	
-	operator=(str);
+	char string[kLineLength];
+	in.getline(string, kLineLength-1);
+	
+	operator=(string);
 }
 
 /* append characters to the string */
@@ -259,33 +159,16 @@ StringT& StringT::Append(const char* s)
 	}
 }
 
-/* append a floating point number */
-StringT& StringT::Append(double number, int precision)
-{
-	char buffer[51];
-	memset(buffer, '\0', 51);
-	ostrstream out(buffer, 50);
-	out.precision(precision);
-	out.setf(ios::showpoint);
-	out.setf(ios::right, ios::adjustfield);
-	out.setf(ios::scientific, ios::floatfield);
-
-	out << number;
-
-	Append(buffer);
-	return *this;
-}
-
 /* drop the last ".xxx" extension to the string */
-StringT& StringT::Root(char marker)
+StringT& StringT::Root(void)
 {
-	/* find last instance or marker */
+	/* find last "." */
 	int len = strlen(*this);
 	char* p = fArray + len - 1;
-	for (int i = 1; i < len && *p != marker; i++) p--;
+	for (int i = 1; i < len && *p != '.'; i++) p--;
 	
 	/* drop tail */
-	if (*p == marker)
+	if (*p == '.')
 	{
 		int new_len = p - fArray + 1;
 		Resize(new_len, true);
@@ -294,43 +177,41 @@ StringT& StringT::Root(char marker)
 	return *this;
 }
 
-StringT& StringT::Root(const char* s, char marker)
+StringT& StringT::Root(const char* s)
 {
 	/* check for self */
 	if (s == Pointer())
-		return Root(marker);
+		return Root();
 	else
 	{	
-		/* find last marker */
+		/* find last "." */
 		int len = strlen(s);
 		const char* p = s + len - 1;
-		for (int i = 0; i < len && *p != marker; i++) p--;
+		for (int i = 0; i < len && *p != '.'; i++) p--;
 
 		/* drop tail */
-		if (p >= s && *p == marker)
+		if (*p == '.')
 		{
 			int new_len = p - s + 1;
-			Dimension(new_len);
+			Allocate(new_len);
 			memcpy(fArray, s, sizeof(char)*new_len);
 			fArray[new_len - 1] = '\0';
-		} /* keep whole string */
-		else
-			*this = s;
+		}	
 		return *this;
 	}
 }
 
 /* returns the last ".xxx" extension to the string */
-StringT& StringT::Suffix(char marker)
+StringT& StringT::Suffix(void)
 {
-	/* find last instance of marker */
+	/* find last "." */
 	int len = strlen(*this);
 	char* p = fArray + len - 1;
 	int i;
-	for (i = 1; i < len && *p != marker; i++) p--;
+	for (i = 1; i < len && *p != '.'; i++) p--;
 	
 	/* take tail */
-	if (*p == marker)
+	if (*p == '.')
 	{
 		/* copy down */
 		memmove(fArray, p, i + 1);
@@ -338,74 +219,30 @@ StringT& StringT::Suffix(char marker)
 		/* shrink */	
 		int new_len = strlen(fArray) + 1;
 		Resize(new_len, true);
-	} 
-	else /* empty */
-		*this = "\0";
-	return *this;
+		
+		return *this;
+	}
+	return *this = "\0";
 }
 
-StringT& StringT::Suffix(const char* s, char marker)
+StringT& StringT::Suffix(const char* s)
 {
 	/* check for self */
 	if (s == Pointer())
-		return Suffix(marker);
+		return Suffix();
 	else
 	{	
-		/* find last instance of marker */
+		/* find last "." */
 		int len = strlen(s);
 		const char* p = s + len - 1;
-		for (int i = 0; i < len && *p != marker; i++) p--;
+		for (int i = 0; i < len && *p != '.'; i++) p--;
 
 		/* drop tail */
-		if (*p == marker)
+		if (*p == '.')
 			return *this = p;
 		else
 			return *this = "\0";
 	}
-}
-
-/* returns the path part of the full path to a file - drops the file
- * from the full path to a file, keeping the directory separator */
-StringT& StringT::FilePath(void)
-{
-	/* convert to native file path */
-	ToNativePathName();
-
-	/* directory separator */
-	char separator = DirectorySeparator();
-
-	/* find last instance of separator */
-	int len = strlen(*this);
-	char* p = fArray + len - 1;
-	int i;
-	for (i = 1; i < len && *p != separator; i++) p--;
-
-	/* take tail including separator (unless MacOS) */
-	if (*p == separator)
-	{
-#if defined(_MACOS_) && !defined(__MACH__)
-		int offset = 1;
-#else
-		int offset = 2;		
-#endif
-		int new_len = p - fArray + offset;
-		Resize(new_len, true);
-		fArray[new_len - 1] = '\0';
-	}
-	/* no path */
-	else
-		fArray[0] = '\0';
-
-	return *this;
-}
-
-StringT& StringT::FilePath(const char* s)
-{
-	/* copy */
-	if (s != Pointer()) *this = s;
-	
-	/* drop file name */
-	return FilePath();
 }
 
 StringT& StringT::Append(const char* s1, const char* s2)
@@ -468,17 +305,16 @@ StringT& StringT::Append(int number, int width)
 	char num_str[] = "000000000";
 	IntegerToString(number, num_str);
 
-	unsigned int uwidth = width;
-	if (strlen(num_str) < uwidth)
+	if (strlen(num_str) < width)
 	{
 		/* set padding */
 		char pad_str[] = "0000000000";
-		unsigned int pad_len = uwidth - strlen(num_str);
+		int pad_len = width - strlen(num_str);
 		if (pad_len > strlen(pad_str))
 		{
 			cout << "\n StringT::Append: padding limit: ";
 			cout << strlen(pad_str) << endl;
-			ExceptionT::GeneralFail();
+			throw eGeneralFail;
 		}		
 		else
 			pad_str[pad_len] = '\0';
@@ -495,17 +331,16 @@ StringT& StringT::Append(const char* s, int number, int width)
 	char num_str[] = "000000000";
 	IntegerToString(number, num_str);
 
-	unsigned int uwidth = width;
-	if (strlen(num_str) < uwidth)
+	if (strlen(num_str) < width)
 	{
 		/* set padding */
 		char pad_str[] = "0000000000";
-		unsigned int pad_len = uwidth - strlen(num_str);
+		int pad_len = width - strlen(num_str);
 		if (pad_len > strlen(pad_str))
 		{
 			cout << "\n StringT::Append: padding limit: ";
 			cout << strlen(pad_str) << endl;
-			ExceptionT::GeneralFail();
+			throw eGeneralFail;
 		}		
 		else
 			pad_str[pad_len] = '\0';
@@ -573,8 +408,8 @@ StringT& StringT::Prepend(const char* s1, const char* s2)
 StringT& StringT::Drop(int n)
 {
 	/* check */
-	int abs_n = (n > 0) ? n : -n;
-	if (abs_n > strlen(*this)) ExceptionT::OutOfRange("StringT::Drop");
+	if ((int) fabs(n) > strlen(*this)) throw eOutOfRange;
+	//NOTE - SUNWspro 5.0 doesn't like int(fabs(n))
 	
 	if (n > 0)
 	{
@@ -582,21 +417,7 @@ StringT& StringT::Drop(int n)
 		memmove(str, str + n, strlen(str) + 1 - n);
 	}
 	else if (n < 0)
-		(*this)[int(strlen(*this)) + n] = '\0';
-
-	return *this;
-}
-
-/* delete characters from the string from start to end inclusive */
-StringT& StringT::Delete(int start, int end)
-{
-#if __option(extended_errorcheck)
-	if (end < start || start < 0 || end >= strlen(*this))
-		ExceptionT::OutOfRange();
-#endif
-
-	char* str = *this;
-	memmove(str + start, str + end + 1, strlen(str) - end);
+		(*this)[strlen(*this) + n] = '\0';
 
 	return *this;
 }
@@ -615,10 +436,10 @@ StringT& StringT::Take(const StringT& source, int n)
 	{
 		/* check */
 		int size = (n < 0) ? -n : n;
-		if (size > strlen(source)) ExceptionT::OutOfRange();
+		if (n > strlen(source)) throw eOutOfRange;
 
 		/* allocate */
-		Dimension(size + 1);
+		Allocate(size + 1);
 		if (n > 0)
 		{
 			memcpy(Pointer(), source.Pointer(), size);
@@ -645,12 +466,12 @@ StringT& StringT::Take(const StringT& source, int start, int end)
 	{
 		/* checks */
 		if (start < 0 ||
-		    end > (int) strlen(source) ||
-		    end < start) ExceptionT::OutOfRange();
+		    end > strlen(source) ||
+		    end < start) throw eOutOfRange;
 
 		/* allocate */
 		int n = end - start + 1;
-		Dimension(n + 1);
+		Allocate(n + 1);
 		if (n > 0) memcpy(Pointer(), source.Pointer(start), n);
 		(*this)[n] = '\0';
 		return *this;
@@ -670,7 +491,7 @@ StringT& StringT::FirstWord(const StringT& source, int& count, bool C_word_only)
 		/* skip leading white space */
 		int length = strlen(source);
 		count = 0;
-		const char* str = source;
+		char* str = source;
 		while (count < length && isspace(*str))
 		{
 			str++;
@@ -678,7 +499,7 @@ StringT& StringT::FirstWord(const StringT& source, int& count, bool C_word_only)
 		}
 
 		/* count word length */
-		const char* start = str;
+		char* start = str;
 		int word_count = 0;
 		if (C_word_only)
 		{
@@ -691,37 +512,11 @@ StringT& StringT::FirstWord(const StringT& source, int& count, bool C_word_only)
 		}
 		else
 		{
-			/* return quoted strings as one word */
-			if (*str == '"')
+			while (count < length && !isspace(*str))
 			{
-				/* skip forward */
 				str++;
-				start++;
 				count++;
-				
-				/* bound whole quoted string */
-				while (count < length && *str != '"')
-				{
-					str++;
-					count++;
-					word_count++;
-				}
-				
-				/* skip trailing quote (if present) */
-				if (*str == '"')
-				{
-					str++;
-					count++;
-				}
-			}
-			else
-			{
-				while (count < length && !isspace(*str))
-				{
-					str++;
-					count++;
-					word_count++;
-				}
+				word_count++;
 			}
 		}
 		
@@ -733,7 +528,7 @@ StringT& StringT::FirstWord(const StringT& source, int& count, bool C_word_only)
 		}
 
 		/* copy word */
-		Dimension(word_count + 1);
+		Allocate(word_count + 1);
 		if (word_count > 0) memcpy(*this, start, word_count);
 		(*this)[word_count] = '\0';
 	
@@ -767,15 +562,49 @@ StringT& StringT::DropTrailingSpace(void)
 	return *this;
 }
 
+/* return a string with the extension and suffix tacked into
+* the root of this.  The default extension for this is ".in" */
+StringT& StringT::DefaultName(const StringT& sourcename, const char* extint,
+	const char* extout, int suffix)
+{
+	char* source = sourcename.Pointer();
+	char  defname[kLineLength];
+	
+	char  num[]     = "01234567890123456789";
+	char  teststr[] = "01234567890123456789";
+	
+	int lext  = strlen(extint);
+	int lroot = strlen(source) - lext;
+
+	strncpy(teststr, &source[lroot], lext+1);
+	
+	if ( strcmp(extint,teststr) == 0 )
+	{
+		strncpy(defname, source, lroot);
+		defname[lroot] = '\0';
+	}
+	else
+		strcpy(defname, source);
+	
+	strcat(defname,extout);
+	
+	if (suffix > -1)
+	{
+		IntegerToString(suffix,num);
+		strcat(defname, num);
+	}
+	
+	/* drop in the result */
+	operator=(defname);
+	
+	return *this;
+}
+
 /* convert string to native, relative file path */
 void StringT::ToNativePathName(void)
 {
 #ifdef _MACOS_
-#ifdef __MACH__
-	ToUNIXPath();
-#else
 	ToMacOSPath();
-#endif
 	return;
 #endif
 
@@ -790,7 +619,8 @@ void StringT::ToNativePathName(void)
 #endif
 
 	/* fall through */
-	ExceptionT::GeneralFail("StringT::ToNativePathName", "unknown platform");
+	cout << "\n StringT::ToNativePathName: unknown platform" << endl;
+	throw eGeneralFail;
 }
 
 /* path string translators */
@@ -802,37 +632,21 @@ void StringT::ToMacOSPath(void)
 	{
 		/* length check */
 		if (strlen(fArray) >= kLineLength-1)
-			ExceptionT::GeneralFail("StringT::ToMacOSPath", "path too long");
+		{	
+			cout << "\n StringT::ToMacOSPath: path too long" << endl;
+			throw eGeneralFail;
+		}
 
 		char temp[kLineLength];
 		
 		int len = strlen(fArray);
 		int i = 0;
-		int j_start = 0;
 
-		/* relative path */
-		if (fArray[0] != '/' && fArray[0] != '\\')
-		{
-			temp[i++] = ':';
-			
-			/* forward */
-			if (fArray[0] == '.' && fArray[1] == '/')
-				j_start = 2;
-		}
-		/* forward */
-		else
-			while (fArray[j_start] == '/' || fArray[j_start] == '\\')
-				j_start++;
-
-		for (int j = j_start; j < len; j++)
+		temp[i++] = ':';
+		for (int j = 0; j < len; j++)
 		{
 			if (fArray[j] == '\\' || fArray[j] == '/')
-			{
 				temp[i++] = ':';
-				
-				/* forward */
-				while (fArray[j+1] == '/' || fArray[j+1] == '\\') j++;
-			}
 			else if (fArray[j] == '.')
 			{
 				if (fArray[j+1] == '.')
@@ -857,16 +671,16 @@ void StringT::ToMacOSPath(void)
 
 void StringT::ToWinNTPath(void)
 {
-	if (fArray[0] == '\\') /* native path starting with root */
-		return;
-	else if (fArray[1] == ':' && 
-	         (fArray[2] == '\\' || fArray[2] == '/')) /* native path starting with drive */
+	if (fArray[0] == '\\')
 		return;
 	else
 	{
 		/* length check */
 		if (strlen(fArray) >= kLineLength-1)
-			ExceptionT::GeneralFail("StringT::ToWinNTPath", "path too long");
+		{	
+			cout << "\n StringT::ToWinNTPath: path too long" << endl;
+			throw eGeneralFail;
+		}
 
 		/* driver */
 		ToNTorUNIX('/', '\\');
@@ -881,7 +695,10 @@ void StringT::ToUNIXPath(void)
 	{
 		/* length check */
 		if (strlen(fArray) >= kLineLength-1)
-			ExceptionT::GeneralFail("StringT::ToUNIXPath", "path too long");
+		{	
+			cout << "\n StringT::ToUNIXPath: path too long" << endl;
+			throw eGeneralFail;
+		}
 
 		/* driver */
 		ToNTorUNIX('\\', '/');
@@ -896,181 +713,9 @@ void StringT::PrintCodes(ostream& out) const
 	out << '\n';
 }
 
-/* version number comparison - returns 0 if the versions numbers are
- * the same, -1 if v1 is older than v2, 1 if v1 is newer than v2 */
-int StringT::versioncmp(const char* v1_, const char* v2_)
-{
-	/* skip leading char's */
-	while (!isdigit(*v1_) && !isdigit(*v2_))
-	{
-		if (*v1_ != *v2_)
-		{
-			cout << "\n StringT::versioncmp: incompatible version numbers:\n" 
-			     << '\t' << v1_ << '\n'
-			     << '\t' << v2_ << endl;
-			ExceptionT::GeneralFail();
-		}
-		v1_++; v2_++;
-	}
-
-	/* check */
-	int l1 = strlen(v1_);
-	int l2 = strlen(v2_);	
-	if (l1 > 50 || l2 > 50)
-		ExceptionT::GeneralFail("StringT::versioncmp", "length > 0");
-
-	/* copy in and pad with trailing space:
-	 * SGI, GNU, ?: hit EOF after reading last value
-	 *  DEC, CW, ?: hit EOF when reading last value */
-	char v1[52];
-	memcpy(v1, v1_, l1);
-	v1[l1] = '#'; // my EOF
-	v1[l1+1] = '\0';
-	char v2[52];
-	memcpy(v2, v2_, l2);
-	v2[l2] = '#'; // my EOF
-	v2[l2+1] = '\0';
-
-	istrstream s1(v1), s2(v2);
-	while (true)
-	{
-		int i1 = -9999, i2 = -9999;
-		s1 >> i1;
-		s2 >> i2;
-		
-		/* error reading */
-		if (i1 == -9999)
-			ExceptionT::GeneralFail("StringT::versioncmp", "error reading version: %s", v1);
-		if (i2 == -9999)
-			ExceptionT::GeneralFail("StringT::versioncmp", "error reading version: %s", v2);
-		
-		/* resolve */
-		if (i1 > i2)
-			return 1;
-		else if (i2 > i1)
-			return -1;
-		else /* the same so far */
-		{
-			/* get next char */
-			char a1, a2;
-			s1.get(a1);
-			s2.get(a2);
-			
-			/* same */
-			if (a1 == '#' && a2 == '#')
-				return 0;
-			else if (a1 == '#')
-				return -1;
-			else if (a2 == '#')
-				return 1;
-			/* check */
-			else if (a1 != '.' || a2 != '.')
-				ExceptionT::GeneralFail("StringT::versioncmp", "illegal character");
-		}
-	}
-}
-
-/* extract double */
-bool StringT::Tail(char key, double& value) const
-{
-	const char* first = Pointer();
-	const char* p = first + StringLength() - 1;
-	while (p != first && *p != key) p--;
-
-	value = 0.0;
-	if (*p == key)
-	{
-		value = atof(p + 1);
-		return true;
-	}
-	return false;
-}
-
-/* return the position of the first occurrence of the character */
-int StringT::FirstPositionOf(char a) const
-{
-	const char* tail = strchr(Pointer(), a);
-	if (tail)
-		return StringLength() - strlen(tail);
-	else
-		return -1;
-}
-
-/* return the position of the last occurrence of the character */
-int StringT::LastPositionOf(char a) const
-{
-	const char* tail = strrchr(Pointer(), a);
-	if (tail)
-		return StringLength() - strlen(tail);
-	else
-		return -1;
-}
-
-/* extract integer */
-bool StringT::Tail(char key, int& value) const
-{
-	const char* first = Pointer();
-	const char* p = first + StringLength() - 1;
-	while (p != first && *p != key) p--;
-
-	value = 0;
-	if (*p == key)
-	{
-		value = atoi(p + 1);
-		return true;
-		
-	}
-	return false;
-}
-
-/* extract string */
-bool StringT::Tail(char key, StringT& value) const
-{
-	const char* first = Pointer();
-	const char* p = first + StringLength() - 1;
-	while (p != first && *p != key) p--;
-
-	value.Clear();
-	if (*p == key)
-	{
-		const char* str = Pointer();
-	
-		/* find first non-whitespace */
-		int start = (p - str) + 1;
-		while (str[start] != '\0' && isspace(str[start]))
-			start++;
-	
-		/* find last non-whitespace */
-		int end = StringLength() - 1;
-		while (end >= 0 && isspace(str[end]))
-			end--;
-
-		if (end >= start) value.Take(*this, start, end);
-		return true;	
-	}
-	return false;
-}
-
-bool StringT::IsXMLName(const char* s)
-{
-	if (strlen(s) < 1 || (!isalnum(*s) && *s != '_'))
-		return false;
-	else {
-	
-		while (*s != '\0') {
-			if (!isalnum(*s) && *s != '_' && *s != '-' && *s != '.' && *s != ':')
-				return false;
-			s++;
-		}
-	
-		/* OK */
-		return true;
-	}
-}
-
 /**********************************************************************
- * Private
- **********************************************************************/
+* Private
+**********************************************************************/
 
 /* returns the character string corresponding to the number */
 void StringT::IntegerToString(int number, char* string) const
@@ -1078,7 +723,7 @@ void StringT::IntegerToString(int number, char* string) const
 	if (number == 0)
 	{
 		/* check space */
-		if (strlen(string) < 2) ExceptionT::GeneralFail();
+		if (strlen(string) < 2) throw eGeneralFail;
 		
 		string[0] = '0';
 		string[1] = '\0';
@@ -1089,12 +734,7 @@ void StringT::IntegerToString(int number, char* string) const
 			// extra space for '\0';
 	
 		/* check that string has enough space */
-		/* Have to do this in a really stupid roundabout way to 
-		 * suppress GNU warnings and simultaneously not mess up a SASS
-		 * Sun compile. 
-		 */
-		int istrLength = strlen(string);
-		if (istrLength + 1 < lens) ExceptionT::SizeMismatch();
+		if (strlen(string) + 1 < lens) throw eSizeMismatch;
 		
 		/* set all bytes to 0! */
 		memset(string, '\0', sizeof(char)*lens);
@@ -1115,12 +755,13 @@ void StringT::ToNTorUNIX(char from, char to)
 {
 	/* check */
 	if ((from != '\\' && from != '/') ||
-	     ( to != '\\' &&   to != '/')) ExceptionT::GeneralFail();
-	     
+	     ( to != '\\' &&   to != '/')) throw eGeneralFail;
+
 	char temp[kLineLength];
 
 	int len = strlen(fArray);
 	int i = 0;
+
 	for (int j = 0; j < len; j++)
 	{
 		if (fArray[j] == from)

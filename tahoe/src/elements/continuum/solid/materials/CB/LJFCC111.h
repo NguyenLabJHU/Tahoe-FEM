@@ -1,20 +1,23 @@
-/* $Id: LJFCC111.h,v 1.8 2004-12-26 21:08:14 d-farrell2 Exp $ */
-/* created: paklein (07/31/1996) */
+/* $Id: LJFCC111.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (07/31/1996)                                          */
+
 #ifndef _LJFCC111_H_
 #define _LJFCC111_H_
 
 /* base class */
 #include "NL_E_RotMat2DT.h"
 
-namespace Tahoe {
-
 class LJFCC111: public NL_E_RotMat2DT
 {
 public:
 
 	/* constructor */
-	LJFCC111(ifstreamT& in, const FSMatSupportT& support);
+	LJFCC111(ifstreamT& in, const ElasticT& element);
 	
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
+
 protected:
 
 	/* compute the symetric Cij reduced index matrix */
@@ -32,5 +35,4 @@ private:
 	double fScale;
 };
 
-} // namespace Tahoe 
 #endif /* _LJFCC111_H_ */

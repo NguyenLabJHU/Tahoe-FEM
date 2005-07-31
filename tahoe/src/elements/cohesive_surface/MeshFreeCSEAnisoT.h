@@ -1,5 +1,5 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.10 2004-07-15 08:25:57 paklein Exp $ */
-/* created: paklein (06/08/2000) */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* created: paklein (06/08/2000)                                          */
 
 #ifndef _MF_CSE_ANISO_T_H_
 #define _MF_CSE_ANISO_T_H_
@@ -18,28 +18,26 @@
 #include "dArray2DT.h"
 #include "nVariArray2DT.h"
 
-namespace Tahoe {
-
 /* forward declaration */
 class MeshFreeFractureSupportT;
 class MeshFreeSurfaceShapeT;
 class SurfacePotentialT;
 
-/** cohesive surfaces in a meshfree domain. Surfaces are
-* added adaptively during the MeshFreeCSEAnisoT::RelaxSystem
-* through communication with a MeshFreeFractureSupportT */
 class MeshFreeCSEAnisoT: public ElementBaseT
 {
 public:
 
 	/* constructor */
-	MeshFreeCSEAnisoT(const ElementSupportT& support, const FieldT& field);
+	MeshFreeCSEAnisoT(FEManagerT& fe_manager);
 
 	/* destructor */
 	~MeshFreeCSEAnisoT(void);
 	
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/* initialize class data */
+	virtual void Initialize(void);
 
 	/* start of new time sequence */
 	virtual void InitialCondition(void);
@@ -48,13 +46,13 @@ public:
 	virtual void CloseStep(void);
 
 	/* resets to the last converged solution */
-	virtual GlobalT::RelaxCodeT ResetStep(void);
+	virtual void ResetStep(void);
 
 	/* element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 	/* solution calls */
-	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
+	virtual void AddNodalForce(int node, dArrayT& force);
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); //not implemented
@@ -65,7 +63,7 @@ public:
 
 	/* writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(void);
+	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
@@ -78,18 +76,21 @@ public:
 	/* returns 1 if DOF's are interpolants of the nodal values */
 	virtual int InterpolantDOFs(void) const;
 
+protected:
+
 	/* element status flags */
 	enum StatusFlagT {kOFF = 0,
                       kON = 1,
                   kMarked = 2};
 
-protected:
+	/* print element group data */
+	virtual void PrintControlData(ostream& out) const;
 
 	/* element data */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
 	/* tangent matrix and force vector */
-	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
+	virtual void LHSDriver(void);
 	virtual void RHSDriver(void);
 
 	/* write all current element information to the stream */
@@ -126,12 +127,13 @@ protected:
 
 	/* cohesive surface potentials */
 	SurfacePotentialT* fSurfacePotential;
+	bool fIsDecohesion; //TEMP - use flag instead of RTTI
 
 	/* local arrays */
 	LocalArrayT fLocDisp;
 
 	/* work space */
-	double   fFractureArea;
+	double fFractureArea;
 	dMatrixT fNEEmat;
 	dArrayT  fNEEvec;	
 
@@ -163,11 +165,12 @@ protected:
 	dArrayT fInitTraction;
 
 	/* cohesive law variable storage */
-	dArray2DT fd_Storage;      // [nel] x [nip] : [n_state]
-	dArray2DT fd_Storage_last; // [nel] x [nip] : [n_state]
-	nVariArray2DT<double> fd_Storage_man;      // [nel] x [nip] : [n_state]
-	nVariArray2DT<double> fd_Storage_last_man; // [nel] x [nip] : [n_state]
+	iArray2DT fi_Storage; // [nel] x [nip] : [n_int]
+	iArrayT   fi_vec;     // [n_int]
+	nVariArray2DT<int> fi_StorageMan; // [nel] x [nip] : [n_int]
+	dArray2DT fd_Storage; // [nel] x [nip] : [n_double]
+	dArrayT   fd_vec;     // [n_double]
+	nVariArray2DT<double> fd_StorageMan; // [nel] x [nip] : [n_double]
 };
 
-} // namespace Tahoe 
 #endif /* _MF_CSE_ANISO_T_H_ */

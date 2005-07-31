@@ -1,12 +1,9 @@
-/* $Id: OrthoMLS2DT.cpp,v 1.3 2002-10-20 22:49:41 paklein Exp $ */
+/* $Id: OrthoMLS2DT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #include "OrthoMLS2DT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
 OrthoMLS2DT::OrthoMLS2DT(int complete): OrthoMLSSolverT(2, complete)
 {
 	/* supported bases - linear or quadratic */
@@ -14,7 +11,7 @@ OrthoMLS2DT::OrthoMLS2DT(int complete): OrthoMLSSolverT(2, complete)
 	{
 		cout << "\n OrthoMLS2DT::OrthoMLS2DT: completeness of out of range {1,3}: ";
 		cout << fComplete << endl;
-		throw ExceptionT::kBadInputValue;
+		throw eBadInputValue;
 	}
 }
 
@@ -36,7 +33,7 @@ int OrthoMLS2DT::NumberOfMonomials(int completeness) const
 		case 3:
 			return 10;
 		default:
-			throw ExceptionT::kOutOfRange;
+			throw eOutOfRange;
 	}
 	
 	return 0;
@@ -47,10 +44,10 @@ void OrthoMLS2DT::SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& Dp)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
-	if (coords.Length() != fNumSD) throw ExceptionT::kGeneralFail;
-	if (   p.Length() != NumberOfMonomials(fComplete)) throw ExceptionT::kSizeMismatch;
+	if (coords.Length() != fNumSD) throw eGeneralFail;
+	if (   p.Length() != NumberOfMonomials(fComplete)) throw eSizeMismatch;
 	if (Dp.MajorDim() != fNumSD ||
-	    Dp.MinorDim() != p.Length()) throw ExceptionT::kSizeMismatch;
+	    Dp.MinorDim() != p.Length()) throw eSizeMismatch;
 #endif
 
 //NOTE: could do this for general completeness using
@@ -154,6 +151,6 @@ void OrthoMLS2DT::SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& Dp)
 		}
 		default:
 		
-			throw ExceptionT::kOutOfRange;
+			throw eOutOfRange;
 	}
 }

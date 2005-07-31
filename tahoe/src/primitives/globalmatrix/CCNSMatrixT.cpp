@@ -1,5 +1,6 @@
-/* $Id: CCNSMatrixT.cpp,v 1.28 2005-05-08 15:33:38 paklein Exp $ */
-/* created: paklein (03/04/1998) */
+/* $Id: CCNSMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (03/04/1998)                                          */
+
 #include "CCNSMatrixT.h"
 
 #include <math.h>
@@ -7,48 +8,23 @@
 #include <iomanip.h>
 #include <string.h>
 
-#include "toolboxConstants.h"
+#include "Constants.h"
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
 #include "iArray2DT.h"
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
-#include "StringT.h"
-#include "ofstreamT.h"
-#include "CommunicatorT.h"
-
-using namespace Tahoe;
 
 /* constructor */
-CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
+CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code):
+	GlobalMatrixT(out, check_code),
 	famax(NULL),
 	fNumberOfTerms(0),
 	fMatrix(NULL),
-	fu(NULL),
-	fIsFactorized(false),
-	fBand(0),
-	fMeanBand(0)
+	fu(NULL)
 {
 
-}
-
-/* copy constructor */
-CCNSMatrixT::CCNSMatrixT(const CCNSMatrixT& source):
-	GlobalMatrixT(source),
-	famax(NULL),
-	fKU(NULL),
-	fKL(NULL),
-	fKD(NULL),
-	fNumberOfTerms(0),
-	fMatrix(NULL),
-	fu(NULL),
-	fIsFactorized(false),
-	fBand(0),
-	fMeanBand(0)
-{
-	CCNSMatrixT::operator=(source);
 }
 
 CCNSMatrixT::~CCNSMatrixT(void)
@@ -63,87 +39,86 @@ CCNSMatrixT::~CCNSMatrixT(void)
 * with AddEquationSet() for all equation sets */
 void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
-	const char caller[] = "CCNSMatrixT::Initialize";
-
 	/* inherited */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* check */
 	if (tot_num_eq != loc_num_eq)
-		ExceptionT::GeneralFail(caller,
-			"total equations %d != local equations %d", tot_num_eq, loc_num_eq);
+	{
+		cout << "\n CCNSMatrixT::Initialize: expecting total number of equations\n"
+		     <<   "     " << tot_num_eq
+		     << " to be equal to the local number of equations " << loc_num_eq << endl;
+		throw eGeneralFail;
+	}
 
 	/* allocate */	
 	if (famax != NULL) delete[] famax;
 	iArrayT i_memory;
 	try {
-		i_memory.Dimension(fLocNumEQ + 1);
+		i_memory.Allocate(fLocNumEQ + 1);
 		i_memory.ReleasePointer(&famax);
 	}	
-	catch (ExceptionT::CodeT error) {
-		ExceptionT::Throw(error, caller);
+	catch (int error)
+	{
+		if (error == eOutOfMemory)
+		{
+			cout << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
+			fOut << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
+		}
+		throw error;
 	}	
 
 	/* compute matrix structure and return dimensions */
-	ComputeSize(fNumberOfTerms, fMeanBand, fBand);
+	int meanband;
+	int band;
+	ComputeSize(fNumberOfTerms, meanband, band);
+
+	/* output */
+	fOut << " Number of terms in global matrix. . . . . . . . = " << fNumberOfTerms << '\n';
+	fOut << " Mean half bandwidth . . . . . . . . . . . . . . = " << meanband << '\n';
+	fOut << " Bandwidth . . . . . . . . . . . . . . . . . . . = " << band     << '\n';
+
 
 	/* allocate */	
 	if (fu != NULL) delete[] fu;
 	if (fMatrix != NULL) delete[] fMatrix;
 	dArrayT d_memory;
 	try {
-		d_memory.Dimension(fLocNumEQ);
+		d_memory.Allocate(fLocNumEQ);
 		d_memory.ReleasePointer(&fu);
-		d_memory.Dimension(0); /* reset */
 
-		d_memory.Dimension(fNumberOfTerms);
+		d_memory.Allocate(fNumberOfTerms);
 		d_memory.ReleasePointer(&fMatrix);
 	}	
-	catch (ExceptionT::CodeT error) {
-		ExceptionT::Throw(error, caller);
+	catch (int error)
+	{
+		if (error == eOutOfMemory)
+		{
+			cout << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
+			fOut << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
+		}
+		throw error;
 	}	
 	
 	/* set pointers */
 	fKU = fMatrix;
 	fKL = fKU + famax[fLocNumEQ];
 	fKD = fKL + famax[fLocNumEQ];
-
-	/* clear stored equation sets in preparation for next time
-	 * matrix is configured */
-	fEqnos.Clear();
-	fRaggedEqnos.Clear();
 	
-	/* set flag */
-	fIsFactorized = false;
-}
-
-/* write information to output stream */
-void CCNSMatrixT::Info(ostream& out)
-{
-	/* inherited */
-	GlobalMatrixT::Info(out);
-
-	/* output */
-	out << " Number of terms in global matrix. . . . . . . . = " << fNumberOfTerms << '\n';
-	out << " Mean half bandwidth . . . . . . . . . . . . . . = " << fMeanBand << '\n';
-	out << " Bandwidth . . . . . . . . . . . . . . . . . . . = " << fBand     << '\n';
-
-#if 0
-//NOTE: since equation sets are cleared in Initialize, we can't
-//      compute fill-in here
 	int computefilledin = 1;
 	if (computefilledin)
 	{
 		int filledelements = NumberOfFilled();
-		double percent_fill = (fNumberOfTerms != 0) ? 
-			(100.0*filledelements)/fNumberOfTerms : 
-			0.0;
 
-		out << " Storage efficiency (% non-zero) . . . . . . . . = ";
-		out << percent_fill << '\n';
+		fOut << " Storage efficiency (% non-zero) . . . . . . . . = ";
+		fOut << (100.0*filledelements)/fNumberOfTerms << '\n';
 	}
-#endif
-	out << endl;
+	/* flush stream */
+	fOut << endl;
+
+	/* clear stored equation sets */
+	fEqnos.Clear();
+	fRaggedEqnos.Clear();
 }
 
 /* set all matrix volues to 0.0 */
@@ -153,8 +128,7 @@ void CCNSMatrixT::Clear(void)
 	GlobalMatrixT::Clear();
 
 	/* byte set */
-	if (fMatrix) memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);
-	fIsFactorized = false;
+	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);	
 }
 
 /* add element group equations to the overall topology.
@@ -174,7 +148,7 @@ void CCNSMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ */
-void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -182,7 +156,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		const double* pelMat = elMat.Pointer();
+		double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 		
 		int size = eqnos.Length();
@@ -194,7 +168,10 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 			{
 #if __option (extended_errorcheck)
 				if (eqno < 0 || eqno >= fLocNumEQ)
-					ExceptionT::OutOfRange("CCNSMatrixT::Assemble", "bad equation number %d", eqno+1);
+				{
+					cout << "\n CCNSMatrixT::Assemble: index out of range: " << eqno << endl;
+					throw eGeneralFail;
+				}
 #endif
 				/* assemble */
 				fKD[eqno] += *pelMat;
@@ -224,60 +201,6 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	}
 }
 
-void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
-{
-#if __option(extended_errorcheck)
-	/* dimension check */
-	if (elMat.Rows() != row_eqnos.Length() ||
-	    elMat.Cols() != col_eqnos.Length()) throw ExceptionT::kSizeMismatch;
-#endif
-
-	/* element matrix format */
-	ElementMatrixT::FormatT format = elMat.Format();
-
-	if (format == ElementMatrixT::kDiagonal)
-	{
-		cout << "\n CCNSMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	else
-	{   	
-		/* copy to full symmetric */
-		if (format == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
-
-		/* assemble active degrees of freedom */
-		int n_c = col_eqnos.Length();
-		int n_r = row_eqnos.Length();
-		for (int col = 0; col < n_c; col++)
-		{
-			int ceqno = col_eqnos[col] - 1;	
-			if (ceqno > -1)	
-				for (int row = 0; row < n_r; row++)
-				{
-					int reqno = row_eqnos[row] - 1;
-					if ( reqno > -1)
-						(*this)(reqno,ceqno) += elMat(row,col);
-				}
-		}
-	}
-}
-
-void CCNSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
-{
-#if __option(extended_errorcheck)
-	/* dimension check */
-	if (diagonal_elMat.Length() != eqnos.Length()) ExceptionT::SizeMismatch("CCNSMatrixT::Assemble");
-#endif
-
-	for (int i = 0; i < eqnos.Length(); i++)
-	{
-		int eqno = eqnos[i] - 1;
-		if (eqno > -1)
-			fKD[eqno] += diagonal_elMat[i];
-	}
-}
-
 /* returns 1 if the factorized matrix contains a negative
 * pivot.  Matrix MUST be factorized.  Otherwise function
 * returns 0 */
@@ -292,6 +215,14 @@ int CCNSMatrixT::HasNegativePivot(void) const
 	return 0;
 }
 
+/* assignment operator */
+GlobalMatrixT& CCNSMatrixT::operator=(const GlobalMatrixT& RHS)
+{
+//not implemented
+	throw eGeneralFail;
+	return GlobalMatrixT::operator=(RHS);
+}
+
 /* number scope and reordering */
 GlobalMatrixT::EquationNumberScopeT CCNSMatrixT::EquationNumberScope(void) const
 {
@@ -299,105 +230,6 @@ GlobalMatrixT::EquationNumberScopeT CCNSMatrixT::EquationNumberScope(void) const
 }
 
 bool CCNSMatrixT::RenumberEquations(void) const { return true; }
-
-/* find the smallest and largest diagonal value */
-void CCNSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min, 
-	double& abs_max) const
-{
-	if (fLocNumEQ == 0) min = max = abs_min = abs_max = 0.0;
-	else
-	{
-		abs_min = abs_max = min = max = fKD[0];
-		for (int i = 1; i < fLocNumEQ; i++)
-		{
-			double& diag = fKD[i];
-
-			/* absolute */
-			if (diag < min)
-				min = diag;
-			else if (diag > max)
-				max = diag;
-				
-			/* magnitude */	
-			if (fabs(diag) < fabs(abs_min))
-				abs_min = diag;
-			else if (fabs(diag) > fabs(abs_max))
-				abs_max = diag;
-		}
-	}
-}
-
-/* assignment operator */
-CCNSMatrixT& CCNSMatrixT::operator=(const CCNSMatrixT& rhs)
-{
-	/* no copies of self */
-	if (this == &rhs) return *this;
-	
-	/* inherited */
-	int neq = fLocNumEQ;
-	GlobalMatrixT::operator=(rhs);
-
-	/* equation sets */
-	fEqnos = rhs.fEqnos;
-	fRaggedEqnos = rhs.fRaggedEqnos;
-
-	/* sync memory */
-	if (!famax || neq != fLocNumEQ) {
-		delete[] famax;
-		iArrayT i_memory(fLocNumEQ+1);
-		i_memory.ReleasePointer(&famax);
-	}
-	if (!fu || neq != fLocNumEQ) {
-		delete[] fu;
-		dArrayT d_memory(fLocNumEQ);
-		d_memory.ReleasePointer(&fu);		
-	}
-	if (!fMatrix || fNumberOfTerms != rhs.fNumberOfTerms) {
-		fNumberOfTerms = rhs.fNumberOfTerms;	
-		delete[] fMatrix;
-		dArrayT d_memory(fNumberOfTerms);
-		d_memory.ReleasePointer(&fMatrix);
-	}
-
-	/* copy data */
-	memcpy(famax, rhs.famax, sizeof(int)*(fLocNumEQ+1));
-	memcpy(fu, rhs.fu, sizeof(double)*fLocNumEQ);
-	memcpy(fMatrix, rhs.fMatrix, sizeof(double)*fNumberOfTerms);
-		
-	/* set pointers */
-	fKU = fMatrix;
-	fKL = fKU + famax[fLocNumEQ];
-	fKD = fKL + famax[fLocNumEQ];
-
-	/* copy info */
-	fIsFactorized = rhs.fIsFactorized;
-	fBand = rhs.fBand;
-	fMeanBand = rhs.fMeanBand;
-
-	return *this;
-}
-
-/* return a clone of self. Caller is responsible for disposing of the matrix */
-GlobalMatrixT* CCNSMatrixT::Clone(void) const
-{
-	CCNSMatrixT* new_mat = new CCNSMatrixT(*this);
-	return new_mat;
-}
-
-/* return the values along the diagonal of the matrix */
-bool CCNSMatrixT::CopyDiagonal(dArrayT& diags) const
-{
-	/* cannot be factorized */
-	if (fIsFactorized)
-		return false;
-	else
-	{
-		/* copy */
-		dArrayT tmp(fLocNumEQ, fKD);
-		diags = tmp;
-		return true;		
-	}
-}
 
 /**************************************************************************
 * Protected
@@ -412,8 +244,6 @@ double CCNSMatrixT::Element(int row, int col) const
 	else
 		return 0.0;
 }
-
-namespace Tahoe {
 
 ostream& operator<<(ostream& out, const CCNSMatrixT& matrix)
 {
@@ -431,26 +261,16 @@ ostream& operator<<(ostream& out, const CCNSMatrixT& matrix)
 	return out;
 }
 
-}
-
 /* solution routines */
 void CCNSMatrixT::Factorize(void)
-{
-	/* quick exit */
-	if (fIsFactorized)
-		return;
-	else /* factorization routine (GRF) */ {
-		SolNonSymSysSkyLine(fKU, fKL, fKD, famax, fLocNumEQ);
-		fIsFactorized = true;
-	}
+{			
+	/* factorization routine (GRF) */
+	SolNonSymSysSkyLine(fKU, fKL, fKD, famax, fLocNumEQ);
 }
 
 /* solves system. K has already been decomposed in LU form. */
 void CCNSMatrixT::BackSubstitute(dArrayT& result)
 {
-	if (!fIsFactorized) ExceptionT::GeneralFail("CCNSMatrixT::BackSubstitute",
-		"matrix is not factorized");
-
 	/* solves L u'= F -> F := u' (GRF) */
 	solvLT(fKL, result.Pointer(), famax, fLocNumEQ);
 	
@@ -467,16 +287,6 @@ void CCNSMatrixT::PrintZeroPivots(void) const
 	if (fCheckCode != GlobalMatrixT::kZeroPivots) return;
 	int d_width = OutputWidth(fOut, fKD);
 
-	/* pivot extrema */
-	double min, max, abs_min, abs_max;
-	FindMinMaxPivot(min, max, abs_min, abs_max);
-	fOut << "\n Matrix pivots:\n"
-	     <<   "     min = " << setw(d_width) << min << '\n' 
-	     <<   "     max = " << setw(d_width) << max << '\n' 
-	     <<   "   |min| = " << setw(d_width) << abs_min << '\n' 
-	     <<   "   |max| = " << setw(d_width) << abs_max << '\n';
-
-	/* write zero or negative pivots */
 	int firstline = 1;
 	for (int i = 0; i < fLocNumEQ; i++)
 	{
@@ -514,36 +324,21 @@ void CCNSMatrixT::PrintAllPivots(void) const
 	fOut << '\n';
 }
 
-void CCNSMatrixT::PrintLHS(bool force) const
+void CCNSMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
-
-	/* output stream */
-	StringT file = fstreamT::Root();
-	file.Append("CCNSMatrixT.LHS.", sOutputCount);
-	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());	
-	ofstreamT out(file);
-	out.precision(14);
-
-	/* write non-zero values in RCV format */
-	for (int r = 0; r < fLocNumEQ; r++)
-		for (int c = 0; c < fLocNumEQ; c++)
-		{
-			double value = Element(r,c);
-			if (value != 0.0)
-				out << r+1 << " " << c+1 << " " << value << '\n';
-		}
-
-	/* increment count */
-	sOutputCount++;
+	if (fCheckCode != GlobalMatrixT::kPrintLHS)
+		return;
+		
+	fOut << "\nLHS matrix:\n\n";
+	fOut << (*this) << "\n\n";
 }
 
 /* test if {row,col} is within the skyline */
 int CCNSMatrixT::InSkyline(int row, int col) const
 {
 	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) throw ExceptionT::kGeneralFail;
-	if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
+	if (row < 0 || row >= fLocNumEQ) throw eGeneralFail;
+	if (col < 0 || col >= fLocNumEQ) throw eGeneralFail;
 
 	if (row == col)      /* element on diagonal */
 		return 1;
@@ -572,11 +367,9 @@ int CCNSMatrixT::InSkyline(int row, int col) const
 /* element accessor - for assembly */
 double& CCNSMatrixT::operator()(int row, int col) const
 {
-	const char caller[] = "CCNSMatrixT::operator()";
-
 	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) ExceptionT::OutOfRange(caller);
-	if (col < 0 || col >= fLocNumEQ) ExceptionT::OutOfRange(caller);
+	if (row < 0 || row >= fLocNumEQ) throw eGeneralFail;
+	if (col < 0 || col >= fLocNumEQ) throw eGeneralFail;
 
 	if (row == col)      /* element on diagonal */
 		return fKD[row];
@@ -586,9 +379,9 @@ double& CCNSMatrixT::operator()(int row, int col) const
 		int offset    = row - col;
 		
 		/* over skyline */
-		if (offset > bandwidth) ExceptionT::OutOfRange(caller);
+		if (offset > bandwidth) throw eOutOfRange;
 
-		/* row major storage below the diagonal */
+// row major storage below the diagonal
 		return fKL[famax[row] + bandwidth - offset];
 	}
 	else                 /* element in upper triangle */
@@ -597,9 +390,9 @@ double& CCNSMatrixT::operator()(int row, int col) const
 		int offset    = col - row;
 		
 		/* over skyline */
-		if (offset > bandwidth) ExceptionT::OutOfRange(caller);
+		if (offset > bandwidth) throw eOutOfRange;
 		
-		/* col major storage above the diagonal */
+// col major storage above the diagonal
 		return fKU[famax[col] + bandwidth - offset];
 	}
 }
@@ -613,6 +406,7 @@ double& CCNSMatrixT::operator()(int row, int col) const
 void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwidth)
 {
 	/* clear diags/columns heights */
+	fNumberOfTerms = 0;
 	for (int i = 0; i < fLocNumEQ; i++)
 		famax[i] = 0;
 		
@@ -628,7 +422,6 @@ void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwi
 		SetSkylineHeights(*prageq);		
 
 	/* skyline indices */
-	num_nonzero = 0;
 	mean_bandwidth = 0;
 	bandwidth = 0;
 	famax[0]  = 0; //first equation has no elements in fKU or fKS
@@ -650,13 +443,8 @@ void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwi
 		num_nonzero = 2*famax[fLocNumEQ] + fLocNumEQ;
 
 		/* final dimensions */
-		mean_bandwidth = int(ceil(double(num_nonzero)/fLocNumEQ));
+		mean_bandwidth = int(ceil(num_nonzero/fLocNumEQ));
 		bandwidth += 1;
-	}
-	else if (fLocNumEQ == 1) {
-		num_nonzero = 1;
-		mean_bandwidth = 1;
-		bandwidth = 1;
 	}
 }
 
@@ -668,8 +456,8 @@ void CCNSMatrixT::SetSkylineHeights(const iArray2DT& eqnos)
 
 	for (int j = 0; j < nel; j++)
 	{
-		const int* eleqnos = eqnos(j);
-		int  min = fLocNumEQ;
+		int* eleqnos = eqnos(j);
+		int  min     = fLocNumEQ;
 	
 		/* find the smallest eqno > 0 */
 		for (int k = 0; k < nee; k++)
@@ -706,8 +494,8 @@ void CCNSMatrixT::SetSkylineHeights(const RaggedArray2DT<int>& eqnos)
 	int nel = eqnos.MajorDim();
 	for (int j = 0; j < nel; j++)
 	{
-		int nee = eqnos.MinorDim(j);
-		const int* eleqnos = eqnos(j);
+		int      nee = eqnos.MinorDim(j);
+		int* eleqnos = eqnos(j);
 	
 		/* find the smallest eqno > 0 */
 		int min = fLocNumEQ;

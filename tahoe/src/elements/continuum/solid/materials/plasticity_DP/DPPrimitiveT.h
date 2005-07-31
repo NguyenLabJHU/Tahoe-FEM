@@ -1,63 +1,52 @@
-/* $Id: DPPrimitiveT.h,v 1.9 2004-07-15 08:28:48 paklein Exp $ */
-/* created: myip (06/01/1999) */
+/* $Id: DPPrimitiveT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: myip (06/01/1999)                                             */
+/* Base class for a pressure dependent plastic material                   */
+
 #ifndef _DP_PRIMITIVET_H_
 #define _DP_PRIMITIVET_H_
 
-/* base class */
-#include "ParameterInterfaceT.h"
-
-namespace Tahoe {
+/* project headers */
+#include "Environment.h"
 
 /* forward declarations */
+#include "ios_fwd_decl.h"
+class ifstreamT;
 class dSymMatrixT;
 
-/** base class for Drucker-Prager, nonassociative, small-strain,
- * pressure dependent plastic model with linear isotropic hardening
- */
-class DPPrimitiveT: public ParameterInterfaceT
+class DPPrimitiveT
 {
-  public:
+public:
 
-	/** constructor */
-	DPPrimitiveT(void);
+	/* constructor */
+	DPPrimitiveT(ifstreamT& in);
 
-	/** destructor */
+	/* destructor */
 	virtual ~DPPrimitiveT(void);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
+	/* write parameters to stream */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
+	
+protected:
 
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
+	/*
+	 * Returns the value value of the yield function given the
+	 * Cauchy stress vector and state variables, where alpha_dev and
+	 * alpha_vol are the deviatoric and volumetric part of internal
+	 * variables, respectively.
+	 */
+	double YieldCondition(const dSymMatrixT& devstress, const double meanstress,
+			      double alpha_dev, double alpha_vol) const; //**mien**//
 
-	/** \name accessors to parameters */
-	/*@{*/
-	double H_prime(void) const { return fH_prime; };
-	/*@}*/
-
-  protected:
-
-  	/** returns the value of the yield function given the
-  	 * Cauchy stress vector and state variables, where alpha is
-  	 * the deviatoric stress-like internal state variable
-  	 */
-  	double YieldCondition(const dSymMatrixT& devstress, 
-			      const double meanstress, double alpha) const;
-
-  protected:
-
-	/** \name parameters */
-	/*@{*/
-  	double falpha_bar; /**< cohesion-like strength parameter (falpha_bar >= 0.0) */
-  	double ffriction;  /**< friction-like parameter (ffriction >= 0.0) */
-  	double fdilation;  /**< dilation-like parameter (fdilation >= 0.0) */
-  	double fH_prime;   /**< Deviatoric hardening parameter */
-	/*@}*/
+protected:
+	
+	double falpha_bar;  /* cohesion-like strength parameter (falpha_bar >= 0.0) */
+	double ffriction;   /* friction-like parameter (ffriction >= 0.0) */
+	double fdilation;   /* dilation-like parameter (fdialtion >= 0.0) */
+	double fH_prime;    /* Deviatoric hardening parameter */
+	double fK_prime;    /* Volumetric hardening parameter */
+	double fH_delta;    /* Localized deviatoric hardening parameter (fH_delta < 0.0) */
+	double fK_delta;    /* Localized volumetric hardening parameter (fK_delta < 0.0) */
 };
-
-} /* namespace Tahoe */
 
 #endif /* _DP_PRIMITIVET_H_ */

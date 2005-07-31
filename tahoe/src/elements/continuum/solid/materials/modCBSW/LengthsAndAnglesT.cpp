@@ -1,4 +1,4 @@
-/* $Id: LengthsAndAnglesT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: LengthsAndAnglesT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
 /* created: paklein (05/26/1997)                                          */
 /* Class to compute/manage all bond angles and derivatives                */
 /* for the 2 unit cell, diamond cubic, modified Cauchy-Born,              */
@@ -10,9 +10,6 @@
 #include "iArray2DT.h"
 
 /* internal parameters */
-
-using namespace Tahoe;
-
 const int	kNSD       = 3;
 const int	kNumDOF	   = 3;
 const int	kStressDim = dSymMatrixT::NumValues(kNSD);

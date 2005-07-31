@@ -1,49 +1,41 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.10 2005-02-16 21:41:29 paklein Exp $ */
-/* created: paklein (09/10/1998) */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* created: paklein (09/10/1998)                                          */
+/* MLS shape functions for the displacement interpolation - for           */
+/* small strain or total Lagrangian finite deformation. DO NOT            */
+/* USE for updated Lagrangian finite deformation.                         */
+
 #ifndef _MF_SHAPE_FUNCTION_T_H_
 #define _MF_SHAPE_FUNCTION_T_H_
+
+//TEMP
+#include <fstream.h>
 
 /* base class */
 #include "ShapeFunctionT.h"
 
 /* direct members */
+#include "MeshFreeT.h"
 #include "iArray2DT.h"
 #include "iAutoArrayT.h"
 #include "iArrayT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class MeshFreeSupportT;
-class ifstreamT;
 template <class TYPE> class RaggedArray2DT;
-class ParameterListT;
 
-/** interface for meshfree shape functions. See ShapeFunctionT
- * for documentation. */
 class MeshFreeShapeFunctionT: public ShapeFunctionT
 {
 public:
 
-	/** constructors
-	 * \param geometry_code geometry of the integration cells 
-	 * \param numIP number of integration points per cell
-	 * \param coords array of cell nodal coordinates in local ordering
-	 * \param all_coords reference to the entire coordinate list
-	 * \param connectivities of the integration grid and declares on-grid nodes
-	 * \param nongridnodes list of nodes not on the grid
-	 * \param currelement reference to the current cell of evaluation
-	 * \param mf_support_params parameters for meshfree support */
+/* constructors */
 	MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 		const LocalArrayT& coords, const dArray2DT& all_coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes,
-		const int& currelement, const ParameterListT& mf_support_params);
+		MeshFreeT::FormulationT code, double dextra, int complete, bool store_shape,
+		const int& currelement);
 
-	/** destructor */
+	/* destructor */
 	~MeshFreeShapeFunctionT(void);
-
-	/** class-dependent initializations */
-	virtual void Initialize(void);
 
 	/* initialization - modifications to the support size must
 	 * occur before setting the neighbor data. Coordinates and
@@ -56,10 +48,10 @@ public:
 	void SetSkipNodes(const iArrayT& skip_nodes);
 	void SetSkipElements(const iArrayT& skip_elements);
 
-	/* read/write nodal meshfree parameters */
-	void SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params);
-	void GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const;
-	dArray2DT& NodalParameters(void);
+	/* read/write Dmax */
+	void SetDmax(const iArrayT& node, const dArrayT& Dmax);
+	void GetDmax(const iArrayT& node, dArrayT& Dmax) const;
+	const dArrayT& Dmax(void) const;
 
 	/* compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);
@@ -91,8 +83,7 @@ public:
 	virtual void Print(ostream& out) const;
 	void PrintAt(ostream& out) const;
 
-	/* write MLS information */
-	void WriteParameters(ostream& out) const;
+	/* write MLS statistics */
 	void WriteStatistics(ostream& out) const;
 
 	/* blend FE/MLS shape functions for interpolant nodes */
@@ -109,10 +100,10 @@ private:
 
 protected:
 
-	/** MLS database support */
+	/* MLS database support */
 	MeshFreeSupportT* fMFSupport;
 	
-	/** reference to the current element number */
+	/* current element number */
 	const int& fCurrElement;
 	
 	/* ip data loaded from meshfree */
@@ -120,8 +111,8 @@ protected:
 	dArray2DT         fNaU;
 	ArrayT<dArray2DT> fDNaU;
 
-	/** list of integration grid cell connectivities */
-	const iArray2DT& fXConnects; 
+	/* interpolant nodes */
+	const iArray2DT& fXConnects; // integration grid cell nodes
 	iArrayT   fExactNodes; // 1...
 	                       // should this be a copy of a reference to
 	                       // a dynamically changing list? would have
@@ -143,10 +134,9 @@ protected:
 /* inlines */
 inline MeshFreeSupportT& MeshFreeShapeFunctionT::MeshFreeSupport(void) const
 {
-	if (!fMFSupport) throw ExceptionT::kGeneralFail;
+	if (!fMFSupport) throw eGeneralFail;
 	return *fMFSupport;
 }
 inline const iArrayT& MeshFreeShapeFunctionT::Neighbors(void) const { return fNeighbors; }
 
-} // namespace Tahoe 
 #endif /* _MF_SHAPE_FUNCTION_T_H_ */

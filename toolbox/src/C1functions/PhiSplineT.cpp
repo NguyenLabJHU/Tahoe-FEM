@@ -1,13 +1,10 @@
-/* $Id: PhiSplineT.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: PhiSplineT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
 /* created: paklein (01/30/2000)                                          */
 /* PhiSplineT.h                                                           */
 
 #include "PhiSplineT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
 PhiSplineT::PhiSplineT(const dArray2DT& points, FixityT fixity, double r_cut):
 	CubicSplineT(points, fixity),
 	fr_cut(r_cut)
@@ -60,9 +57,9 @@ double PhiSplineT::DDFunction(double r) const
 dArrayT& PhiSplineT::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	if ( in.Length() != out.Length() ) throw eGeneralFail;
 	
-	const double *pin   = in.Pointer();
+	double *pin   = in.Pointer();
 	double *pout  = out.Pointer();
 	int    length = in.Length();
 	
@@ -76,9 +73,9 @@ dArrayT& PhiSplineT::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& PhiSplineT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	if ( in.Length() != out.Length() ) throw eGeneralFail;
 	
-	const double *pin   =  in.Pointer();
+	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
 	int    length = in.Length();
 	
@@ -92,9 +89,9 @@ dArrayT& PhiSplineT::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& PhiSplineT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	if ( in.Length() != out.Length() ) throw eGeneralFail;
 	
-	const double *pin   =  in.Pointer();
+	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
 	int    length = in.Length();
 	

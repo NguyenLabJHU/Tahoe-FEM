@@ -1,19 +1,27 @@
-/* $Id: EAM.cpp,v 1.6 2004-07-15 08:26:47 paklein Exp $ */
-/* created: paklein (12/02/1996) */
+/* $Id: EAM.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (12/02/1996)                                          */
+/* EAM.cpp                                                                */
+
 #include "EAM.h"
+#include <iostream.h> //TEMP
 #include "CBLatticeT.h"
 #include "C1FunctionT.h"
 
-using namespace Tahoe;
-
-/* constructor */
-EAM::EAM(CBLatticeT& lattice):
-	fPairPotential(NULL),
-	fEmbeddingEnergy(NULL),
-	fElectronDensity(NULL),
-	fLattice(lattice)
+/* Constructor */
+EAM::EAM(CBLatticeT& lattice): fLattice(lattice),
+	fCounts( fLattice.BondCounts() ), fBonds( fLattice.DeformedLengths() ),
+	fNumSpatialDim( fLattice.NumberOfSpatialDim() ),
+	fNumBonds( fLattice.NumberOfBonds() ),
+	fModuliDim(dSymMatrixT::NumValues(fNumSpatialDim)),
+	fBondTensor4(fModuliDim), fAmn(fNumBonds),
+	fBondTensor2(fModuliDim), //fBondTensor2b(fModuliDim),
+	fTensor2Table(fNumBonds,fModuliDim),
+	fBond1(fNumBonds), fBond2(fNumBonds), fBond3(fNumBonds),
+	fPairPotential(NULL), fEmbeddingEnergy(NULL), fElectronDensity(NULL)
 {
-
+	/* dimension checks */
+	if (fCounts.Length() != fNumBonds ||
+	     fBonds.Length() != fNumBonds) throw eGeneralFail;
 }
 
 /* Destructor */
@@ -24,23 +32,12 @@ EAM::~EAM(void)
 	delete fElectronDensity;
 }
 
-/* Set "glue" functions and dimension work space */
-void EAM::Initialize(int nsd, int numbonds)
+/* Set "glue" functions */
+void EAM::SetGlueFunctions(void)
 {
-	/* glue functions */
 	SetPairPotential();
 	SetEmbeddingEnergy();
 	SetElectronDensity(); 		
-
-	/* dimension work space */
-	int nstrs = dSymMatrixT::NumValues(nsd);
-	fBondTensor4.Dimension(nstrs),
-	fAmn.Dimension(numbonds);
-	fBondTensor2.Dimension(nstrs);
-	fTensor2Table.Dimension(numbonds, nstrs);
-	fBond1.Dimension(numbonds);
-	fBond2.Dimension(numbonds);
-	fBond3.Dimension(numbonds);
 }
 
 /*
@@ -50,21 +47,17 @@ void EAM::Initialize(int nsd, int numbonds)
 */
 double EAM::ComputeUnitEnergy(void)
 {
-	const dArrayT& r = fLattice.DeformedLengths();
-	const iArrayT& counts = fLattice.BondCounts();
-
 	/* compute total atomic density */	
-	dArrayT& ElectronDensity = fElectronDensity->MapFunction(r, fBond1);
-	dArrayT& PairPotential   = fPairPotential->MapFunction(r, fBond2);
+	dArrayT& ElectronDensity = fElectronDensity->MapFunction(fBonds, fBond1);
+	dArrayT& PairPotential   = fPairPotential->MapFunction(fBonds, fBond2);
 
 	double rho = 0.0;
 	double energy = 0.0;
 	
-	const int* pcount = counts.Pointer();
+	int* pcount = fCounts.Pointer();
 	double* prho = ElectronDensity.Pointer();
 	double* pphi = PairPotential.Pointer();
-	int nb = r.Length();
-	for (int i = 0; i < nb; i++)
+	for (int i = 0; i < fNumBonds; i++)
 	{
 		int    ci = *pcount++;
 		
@@ -73,6 +66,7 @@ double EAM::ComputeUnitEnergy(void)
 	}
 	
 	energy += fEmbeddingEnergy->Function(rho);
+
 	return energy;
 }
 
@@ -83,22 +77,19 @@ double EAM::ComputeUnitEnergy(void)
 */
 void EAM::ComputeUnitStress(dSymMatrixT& stress)
 {
-	const dArrayT& r = fLattice.DeformedLengths();
-	const iArrayT& counts = fLattice.BondCounts();
-
 	/* total atomic density */
 	double rho = TotalElectronDensity();
 	double dFdrho = fEmbeddingEnergy->DFunction(rho);	
 
 	/* assemble stress */
 	stress = 0.0;
-	dArrayT& DPotential = fPairPotential->MapDFunction(r, fBond1);
-	dArrayT& DDensity   = fElectronDensity->MapDFunction(r, fBond2);
-	int nb = r.Length();
-	for (int i = 0; i < nb; i++)
+	
+	dArrayT& DPotential = fPairPotential->MapDFunction(fBonds, fBond1);
+	dArrayT& DDensity   = fElectronDensity->MapDFunction(fBonds, fBond2);
+	for (int i = 0; i < fNumBonds; i++)
 	{
-		double ri = r[i];
-		int    ci = counts[i];		
+		double ri = fBonds[i];
+		int    ci = fCounts[i];		
 		double coeff = (1.0/ri)*ci*(0.5*DPotential[i] + dFdrho*DDensity[i]);
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
@@ -125,28 +116,9 @@ void EAM::ComputeUnitModuli(dMatrixT& moduli)
 	FormSingleBondContribution(rho, moduli);
 }
 
-/* compute the total electron density */
-double EAM::TotalElectronDensity(void)
-{
-	const dArrayT& r = fLattice.DeformedLengths();
-	const iArrayT& counts = fLattice.BondCounts();
-
-	/* compute total atomic density */
-	dArrayT& ElectronDensity = fElectronDensity->MapFunction(r, fBond1);
-
-	double rho = 0.0;
-	const int* pcount = counts.Pointer();
-	double* pedensity = ElectronDensity.Pointer();
-	int nb = r.Length();
-	for (int i = 0; i < nb; i++)
-		rho += (*pcount++)*(*pedensity++);
-
-	return rho;
-}
-
 /**********************************************************************
- * Private
- **********************************************************************/
+* Private
+**********************************************************************/
 
 /*
 * Form matrix of mixed pair potential and embedding
@@ -155,23 +127,19 @@ double EAM::TotalElectronDensity(void)
 */
 void EAM::FormMixedDerivatives(double rho)
 {
-	const dArrayT& r = fLattice.DeformedLengths();
-	const iArrayT& counts = fLattice.BondCounts();
-
 	double dFdrho   = fEmbeddingEnergy->DFunction(rho);
 	double d2Fdrho2 = fEmbeddingEnergy->DDFunction(rho);
 
 	/* batched calls */
-	dArrayT& DDensity    = fElectronDensity->MapDFunction(r, fBond1);
-	dArrayT& DDDensity   = fElectronDensity->MapDDFunction(r, fBond2);
-	dArrayT& DDPotential = fPairPotential->MapDDFunction(r, fBond3);
+	dArrayT& DDensity    = fElectronDensity->MapDFunction(fBonds, fBond1);
+	dArrayT& DDDensity   = fElectronDensity->MapDDFunction(fBonds, fBond2);
+	dArrayT& DDPotential = fPairPotential->MapDDFunction(fBonds, fBond3);
 
 	/* form upper triangle only */
-	int nb = r.Length();
-	for (int j = 0; j < nb; j++)
+	for (int j = 0; j < fNumBonds; j++)
 	{
-		double rj = r[j];
-		int    cj = counts[j];
+		double rj = fBonds[j];
+		int    cj = fCounts[j];
 
 		double DDPj = DDPotential[j];
 		double DDDj = DDDensity[j];
@@ -180,8 +148,8 @@ void EAM::FormMixedDerivatives(double rho)
 		for (int i = 0; i <= j; i++)
 		{
 			double Amn = 0.0;
-			double ri = r[i];
-			int    ci = counts[i];
+			double ri = fBonds[i];
+			int    ci = fCounts[i];
 					
 			/* diagonal terms */
 			if (i == j)
@@ -203,25 +171,42 @@ void EAM::FormMixedDerivatives(double rho)
 	fAmn.CopySymmetric();
 }	
 
-/* moduli tensor contributions */
+/*
+* Compute the total electron density.
+*/
+double EAM::TotalElectronDensity(void)
+{
+	/* compute total atomic density */
+	dArrayT& ElectronDensity = fElectronDensity->MapFunction(fBonds, fBond1);
+
+	double rho = 0.0;
+	int*    pcount    = fCounts.Pointer();
+	double* pedensity = ElectronDensity.Pointer();
+
+	for (int i = 0; i < fNumBonds; i++)
+		rho += (*pcount++)*(*pedensity++);
+
+	return rho;
+}
+
+/*
+* Moduli tensor contributions.
+*/
 void EAM::FormSingleBondContribution(double rho, dMatrixT& moduli)
 {
-	const dArrayT& r = fLattice.DeformedLengths();
-	const iArrayT& counts = fLattice.BondCounts();
-
 	/* batch fetch */
-	dArrayT& DPotential = fPairPotential->MapDFunction(r, fBond1);
-	dArrayT& DDensity   = fElectronDensity->MapDFunction(r, fBond2);
+	dArrayT& DPotential = fPairPotential->MapDFunction(fBonds, fBond1);
+	dArrayT& DDensity   = fElectronDensity->MapDFunction(fBonds, fBond2);
 	
 	/* Embedding energy derivative */
 	double dFdrho = fEmbeddingEnergy->DFunction(rho);	
 	
-	int nb = r.Length();
-	for (int i = 0; i < nb; i++)
+	for (int i = 0; i < fNumBonds; i++)
 	{
-		double ri = r[i];
+		double ri = fBonds[i];
 	
-		double coeff = -counts[i]*(0.5*DPotential[i] + dFdrho*DDensity[i])/(ri*ri*ri);
+		double coeff = -fCounts[i]*(0.5*DPotential[i] +
+		                              dFdrho*DDensity[i])/(ri*ri*ri);
 	
 		fLattice.BondComponentTensor4(i,fBondTensor4);		
 		moduli.AddScaled(coeff,fBondTensor4);
@@ -255,30 +240,28 @@ void EAM::FormMixedBondContribution(double rho, dMatrixT& moduli)
 */
 	
 	/* reversing the loops */
-	int dim = moduli.Rows();
-	int nb = fLattice.NumberOfBonds();
-	for (int j = 0; j < dim; j++)
+	for (int j = 0; j < fModuliDim; j++)
 		for (int i = 0; i <= j; i++)
 		{
 			register double cij = 0.0;
 			double* pm = fTensor2Table(0) + i;
 			double* pn = fTensor2Table(0) + j;
 		
-			for (int n = 0; n < nb; n++)
+			for (int n = 0; n < fNumBonds; n++)
 			{
 				double* pAmn = fAmn(n);
 				double* pm2  = pm;
 				double  nj   = *pn;
 			
-				for (int m = 0; m < nb; m++)
+				for (int m = 0; m < fNumBonds; m++)
 				{
 					cij += nj*(*pAmn)*(*pm2);
 
 					pAmn++;
-					pm2 += dim;
+					pm2 += fModuliDim;
 				}
 				
-				pn += dim;
+				pn += fModuliDim;
 			}
 			
 			moduli(i,j) += cij;

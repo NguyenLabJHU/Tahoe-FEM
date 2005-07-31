@@ -1,27 +1,25 @@
-/* $Id: nIntegratorT.cpp,v 1.8 2004-12-26 21:08:50 d-farrell2 Exp $ */
-/* created: paklein (10/14/1996) */
-#include "nIntegratorT.h"
-#include "ExceptionT.h"
+/* $Id: nIntegratorT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
 
-using namespace Tahoe;
+#include "nIntegratorT.h"
+#include <iostream.h>
+#include "ExceptionCodes.h"
 
 /* constructor */
-nIntegratorT::nIntegratorT(void) { }
+nIntegratorT::nIntegratorT(void): fU(NULL) { }
 
 /* destructor */
 nIntegratorT::~nIntegratorT(void) { }
 
-/* register field with the integrator */
-void nIntegratorT::Dimension(const BasicFieldT& field)
+/* register field arrays */
+void nIntegratorT::SetField(dArray2DT& field, int order)
 {
-#pragma unused(field)
-}
-
-/* corrector. Maps ALL degrees of freedom forward. */
-void nIntegratorT::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
-{
-#pragma unused(field)
-#pragma unused(update)
-#pragma message("nIntegratorT::Corrector: make me pure virtual")
-ExceptionT::GeneralFail("nIntegratorT::Corrector", "not implemented");
+	if (order == 0)
+		fU = &field;
+	else
+	{
+		cout << "\n nIntegratorT::SetField: unexpected field order: "
+		     << order << endl;
+		throw eOutOfRange;
+	}
 }

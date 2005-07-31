@@ -1,67 +1,51 @@
-/* $Id: VariBaseT.h,v 1.7 2005-07-29 03:09:35 paklein Exp $ */
-/* created: paklein (04/18/1998) */
+/* $Id: VariBaseT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* created: paklein (04/18/1998)                                          */
+/* base class for WRAPPERS of ArrayT<>'s, and derivatives,                */
+/* to add dynamic re-sizing using some headroom to cut down               */
+/* calls for memory de/re-allocation                                      */
+
 #ifndef _VARI_BASE_T_H_
 #define _VARI_BASE_T_H_
 
 /* direct members */
 #include "ArrayT.h"
 
-namespace Tahoe {
-
-/** \name base class for WRAPPERS of ArrayT<>'s, and derivatives.
- * Adds dynamic re-sizing using some headroom to cut down
- * calls for memory de/re-allocation */
 template <class TYPE>
 class VariBaseT
 {
 public:
 
-	/** \name constructors */
-	/*@{*/
+	/* constructors */
 	VariBaseT(void);
-	
-	/** construct and define headroom
-	 * \param headroom amount in percent of excess memory that is allocated */
 	VariBaseT(int headroom);
-	/*@}*/
 
-	/* set the head room parameter
-	 * \param headroom amount in percent of excess memory that is allocated */
+	/* set the head room parameter */
 	void SetHeadRoom(int headroom);
 
 protected:
 	
-	/** \name convert array
-	 * convert array to shallow copy of fMemory, fill
+	/* convert array to shallow copy of fMemory, fill
 	 * extra new space and copy old data, if specified */
-	/*@{*/
 	void SetAlias(ArrayT<TYPE>& array, int length, bool copy_in);
 	void SetAlias(ArrayT<TYPE>& array, int length, const TYPE& fill, bool copy_in);
-	/*@}*/
 
-	/** free memory */
+	/* free memory */
 	void Free(void);
-
-	/** swap memory with the source array */
-	void Swap(ArrayT<TYPE>& source);
-
+	
 private:
 
-	/** \name not allowed */
-	/*@{*/
-	/** no copy constructor */
+	/* no copy constructor */
 	VariBaseT(const VariBaseT& source);
 
-	/** no assigment operator */	 			  	
+	/* no assigment operator */	 			  	
 	void operator=(const VariBaseT& RHS);
-	/*@}*/
 
 private:
 
-	/** overhead size - % */
+	/* overhead size - % */
 	int fHeadRoom;
 	
-	/** memory space */
+	/* memory space */
 	ArrayT<TYPE> fMemory;
 };
 
@@ -80,7 +64,7 @@ template <class TYPE>
 inline void VariBaseT<TYPE>::SetHeadRoom(int headroom)
 {
 	fHeadRoom = headroom;
-	if (fHeadRoom < 0) ExceptionT::GeneralFail("VariBaseT");
+	if (fHeadRoom < 0) throw eGeneralFail;
 }
 
 /**********************************************************************
@@ -91,7 +75,7 @@ inline void VariBaseT<TYPE>::SetHeadRoom(int headroom)
 template <class TYPE>
 void VariBaseT<TYPE>::SetAlias(ArrayT<TYPE>& array, int length, bool copy_in)
 {
-	if (array.Length() != length || array.IsAllocated())
+	if (array.Length() != length)
 	{
 		/* need more memory (no criteria to reallocate smaller) */
 		if (length > fMemory.Length())
@@ -102,7 +86,7 @@ void VariBaseT<TYPE>::SetAlias(ArrayT<TYPE>& array, int length, bool copy_in)
 			if (array.IsAllocated())	
 			{
 				/* allocate space */
-				fMemory.Dimension(memsize);
+				fMemory.Allocate(memsize);
 		
 				/* copy data from the ward */
 				if (copy_in)
@@ -114,7 +98,7 @@ void VariBaseT<TYPE>::SetAlias(ArrayT<TYPE>& array, int length, bool copy_in)
 			else if (copy_in)
 				fMemory.Resize(memsize);
 			else
-				fMemory.Dimension(memsize);
+				fMemory.Allocate(memsize);
 		}
 			
 		/* ward becomes shallow copy */
@@ -142,9 +126,4 @@ void VariBaseT<TYPE>::SetAlias(ArrayT<TYPE>& array, int length,
 template <class TYPE>
 inline void VariBaseT<TYPE>::Free(void) { fMemory.Free(); }
 
-/* swap memory */
-template <class TYPE>
-inline void VariBaseT<TYPE>::Swap(ArrayT<TYPE>& source) { fMemory.Swap(source); }
-
-} // namespace Tahoe 
 #endif /* _VARI_BASE_T_H_ */

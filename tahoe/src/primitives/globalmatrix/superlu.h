@@ -1,10 +1,11 @@
-/* $Id: superlu.h,v 1.5 2004-07-15 08:31:42 paklein Exp $ */
-/* created: rbridson (07/06/2000) */
-/* Header file for calling SuperLU */
+/* $Id: superlu.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: rbridson (07/06/2000)                                         */
+/* Header file for calling SuperLU                                        */
+
 #ifndef _SUPERLU_H_
 #define _SUPERLU_H_
 
-#include "dsp_defs.h"
+#include "supermatrix.h"
 
 #ifdef __cplusplus
 extern "C" {

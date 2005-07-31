@@ -1,27 +1,16 @@
-/* $Id: RodMaterialT.cpp,v 1.8 2004-07-15 08:30:22 paklein Exp $ */
-/* created: paklein (11/20/1996) */
+/* $Id: RodMaterialT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (11/20/1996)                                          */
+
 #include "RodMaterialT.h"
-
 #include <iostream.h>
-
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 #include "ThermalDilatationT.h"
-#include "ifstreamT.h"
-
-using namespace Tahoe;
-
-#pragma message("XML clean up")
 
 /* constructor */
 RodMaterialT::RodMaterialT(ifstreamT& in)
 {
-	fMass = -1.0;
-	in >> fMass;
-	if (fMass < 0) throw ExceptionT::kBadInputValue;
-	
-//	fThermal = new ThermalDilatationT(in);
-	fThermal = new ThermalDilatationT;
-	if (!fThermal) throw ExceptionT::kOutOfMemory;
+	fThermal = new ThermalDilatationT(in);
+	if (!fThermal) throw(eOutOfMemory);
 }
 
 /* destructor */
@@ -31,23 +20,39 @@ RodMaterialT::~RodMaterialT(void)
 }
 
 /* print parameters */
+void RodMaterialT::Print(ostream& out) const
+{
+#pragma unused(out)
+	//nothing to print
+}
+
+/* print parameters */
 void RodMaterialT::PrintParameters(ostream& out) const
 {
 	/* thermal expansion parameters */
-//	fThermal->Print(out);
+	fThermal->Print(out);
 }
 
 /* thermal accessors */
-int RodMaterialT::ThermalScheduleNumber(void) const
+int RodMaterialT::ThermalLTfNumber(void) const
 {
-	return fThermal->ScheduleNum();
+	return fThermal->LTfNumber();
 }
 
-void RodMaterialT::SetThermalSchedule(const ScheduleT* LTfPtr)
+void RodMaterialT::SetThermalLTfPtr(const LoadTime* LTfPtr)
 {
-	fThermal->SetSchedule(LTfPtr);
+	fThermal->SetLTfPtr(LTfPtr);
 }
 
 /* returns true if the material has internal forces in the unloaded
 * configuration, ie thermal strains */
 int RodMaterialT::HasInternalStrain(void) const { return 0; }
+
+/***********************************************************************
+* Protected
+***********************************************************************/
+
+void RodMaterialT::PrintName(ostream& out) const
+{
+	out << " Material name:\n";
+}

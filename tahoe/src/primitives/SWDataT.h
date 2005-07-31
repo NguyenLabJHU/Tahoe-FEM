@@ -1,22 +1,17 @@
-/* $Id: SWDataT.h,v 1.4 2004-07-15 08:31:36 paklein Exp $ */
-/* created: paklein (03/22/1997) */
-/* Container class for Stillinger-Weber potential parameters */
+/* $Id: SWDataT.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (03/22/1997)                                          */
+/* Container class for Stillinger-Weber potential parameters              */
+
 #ifndef _SW_DATA_T_H_
 #define _SW_DATA_T_H_
 
-/* base class */
-#include "ParameterInterfaceT.h"
-
 #include "Environment.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
+#include "ios_fwd_decl.h"
 class ifstreamT;
 
-class SWDataT: public ParameterInterfaceT
+class SWDataT
 {
 /* classes that use this container */
 friend class MixedSWDiamondT;
@@ -26,25 +21,13 @@ friend class SW3BodyT;
 
 public:
 
-	/** \name constructors
-	 * construct either from stream of using the ParameterInterfaceT interface */
-	/*@{*/
+	/* Constructors */
 	SWDataT(void);
 	SWDataT(ifstreamT& in);
-	/*@}*/
 
 	/* I/O functions */
 	void Read(ifstreamT& in);
 	void Write(ostream& out) const;
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
- 
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 
 protected:
 
@@ -66,5 +49,4 @@ protected:
 	double	fB;
 };
 
-} /* namespace Tahoe */
 #endif /* _SW_DATA_T_H_ */

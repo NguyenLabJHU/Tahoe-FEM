@@ -1,5 +1,6 @@
-/* $Id: NLSolver_LS.h,v 1.9 2004-09-09 23:54:55 paklein Exp $ */
-/* created: paklein (08/18/1999) */
+/* $Id: NLSolver_LS.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* created: paklein (08/18/1999)                                          */
+
 #ifndef _NL_SOLVER_LS_H_
 #define _NL_SOLVER_LS_H_
 
@@ -9,30 +10,19 @@
 /* direct members */
 #include "dArray2DT.h"
 
-namespace Tahoe {
-
-/** nonlinear Newton solver with line search */
 class NLSolver_LS: public NLSolver
 {
 public:
 
-	/** constructor */
-	NLSolver_LS(FEManagerT& fe_manager, int group);
+	/* constructor */
+	NLSolver_LS(FEManagerT& fe_manager);
 
-	/** do one iteration of the solution procedure */
-	virtual void Iterate(void);
+	/* form and solve the equation system - returns the magnitude of the
+	 * residual */
+	virtual double SolveAndForm(bool newtangent);
 
 	/* console */
 	virtual bool iDoVariable(const StringT& variable, StringT& line);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 
 protected:
 
@@ -49,23 +39,18 @@ private:
 
 private:
 
-	/** \name line search parameters */
-	/*@{*/
+	/* line search parameters */
 	int    fSearchIterations;
 	double fOrthogTolerance;
 	double fMaxStepSize;
-	/*@}*/
 
 	/* work space */
 	dArrayT fR; // store first residual
 
-	/** \name line search data */
-	/*@{*/
-	dArrayT   fUpdate;     /**< full update vector */
-	double    s_current;   /**< current step size */
-	dArray2DT fSearchData; /**< line search history */
-	/*@}*/
+	/* line search data */
+	dArrayT   fUpdate;     // full update vector
+	double    s_current;   // current step size
+	dArray2DT fSearchData; // line search history
 };
 
-} // namespace Tahoe 
 #endif /* _NL_SOLVER_LS_H_ */

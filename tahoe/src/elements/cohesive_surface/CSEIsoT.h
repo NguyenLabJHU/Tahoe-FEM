@@ -1,5 +1,8 @@
-/* $Id: CSEIsoT.h,v 1.11 2004-07-15 08:25:57 paklein Exp $ */
-/* created: paklein (11/19/1997) */
+/* $Id: CSEIsoT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* created: paklein (11/19/1997)                                          */
+/* Cohesive surface elements with scalar traction potentials,             */
+/* i.e., the traction potential is a function of the gap magnitude,       */
+/* or effective gap magnitude only.                                       */
 
 #ifndef _CSE_ISO_T_H_
 #define _CSE_ISO_T_H_
@@ -10,62 +13,37 @@
 /* direct members */
 #include "pArrayT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class C1FunctionT;
 
-/** Cohesive surface elements with scalar traction potentials,
- * i.e., the traction potential is a function of the gap magnitude,
- * or effective gap magnitude only. */
 class CSEIsoT: public CSEBaseT
 {
 public:
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/** constructor */
-	CSEIsoT(const ElementSupportT& support);
-#else
-	CSEIsoT(ElementSupportT& support);
-#endif
+	/* constructor */
+	CSEIsoT(FEManagerT& fe_manager);
 
-	/** form of tangent matrix */
+	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-		SubListT& sub_lists) const;
-
-	/** a pointer to the ParameterInterfaceT */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
+	/* initialize class data */
+	virtual void Initialize(void);
 
 protected:
 
-	/** tangent matrix */
-	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
+	/* tangent matrix */
+	virtual void LHSDriver(void);
 
-	/** force vector */
+	/* force vector */
 	virtual void RHSDriver(void);
 
-	/** compute output values */
-	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-		const iArrayT& e_codes, dArray2DT& e_values);
+	/* driver for nodal value calculations */
+	virtual void ComputeNodalValues(const iArrayT& codes);
 	
 protected:
 
-	/** cohesive surface potentials */
+	/* cohesive surface potentials */
 	pArrayT<C1FunctionT*> fSurfPots;
 };
-
-} /* namespace Tahoe */
 
 #endif /* _CSE_ISO_T_H_ */

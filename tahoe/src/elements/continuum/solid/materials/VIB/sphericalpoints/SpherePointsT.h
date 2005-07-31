@@ -1,4 +1,4 @@
-/* $Id: SpherePointsT.h,v 1.4 2004-07-15 08:28:09 paklein Exp $ */
+/* $Id: SpherePointsT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -10,9 +10,6 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 
-
-namespace Tahoe {
-
 class SpherePointsT
 {
 public:
@@ -22,11 +19,15 @@ public:
                  kIcosahedral = 1,
                          kFCC = 2}; // FCC lattice in shells
 
-	/** constructor */
+	/* constructor */
 	SpherePointsT(void);
 
-	/** destructor */
-	virtual ~SpherePointsT(void);
+	/* destructor */
+	~SpherePointsT(void);
+
+	/* print parameters */
+	virtual void Print(ostream& out) const = 0;
+	virtual void PrintName(ostream& out) const = 0;	
 
 	/* generate sphere points:
 	 *
@@ -61,5 +62,4 @@ private:
 			
 };
 
-} // namespace Tahoe 
 #endif /* _SPHERE_PTS_T_H_ */

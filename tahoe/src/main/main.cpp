@@ -1,115 +1,88 @@
-/* $Id: main.cpp,v 1.29 2005-05-01 19:28:31 paklein Exp $ */
-/* created: paklein (05/22/1996) */
+/* $Id: main.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (05/22/1996)                                          */
+
 #include <iostream.h>
 #include <fstream.h>
 
 #include "Environment.h"
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 
-#ifdef __MWERKS__
-#if __option(profile)
-#include <Profiler.h>
-#endif
-#ifdef macintosh
-extern "C" int ccommand(char ***arg);
-#endif
+#if defined(__MWERKS__) && __option(profile)
+#include <profiler.h>
 #endif
 
-#if defined(__MWERKS__) && defined(__MACH__)
-#include <unistd.h> //TEMP - needed for chdir
+#ifdef __MPI__
+#include "mpi.h"
 #endif
-
-/* MP environment */
-#include "CommunicatorT.h"
 
 #include "FEExecutionManagerT.h"
 #include "StringT.h"
 
-using namespace Tahoe;
-
-static void StartUp(int* argc, char*** argv, CommunicatorT& comm);
-static void ShutDown(CommunicatorT& comm);
-static void DumpLicense(void);
+static void StartUp(int* argc, char*** argv);
+static void ShutDown(void);
 
 /* redirect of cout for parallel execution */
 ofstream console;
-#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__GCC_4__) || defined(__INTEL_CC__)
-streambuf* cout_buff = NULL,*cerr_buff = NULL;
-#endif
 
 /* f2c library global variables */
 int xargc;
 char **xargv;
 
-int main(int argc, char* argv[])
+void main(int argc, char* argv[])
 {
 	/* f2c library global variables */
 	xargc = argc;
 	xargv = argv;
-	
-	/* MP */
-	CommunicatorT::SetArgv(&argc, &argv);
-	CommunicatorT comm;
 
-	StartUp(&argc, &argv, comm);
+	StartUp(&argc, &argv);
 
-	FEExecutionManagerT FEExec(argc, argv, '%', '@', comm);
+	FEExecutionManagerT FEExec(argc, argv, '%', '@');
 	FEExec.Run();		
 
-	ShutDown(comm);
-	return 0;
+	ShutDown();
 }
 
-static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
+static void StartUp(int* argc, char*** argv)
 {
-#if !defined(_MACOS_) && !defined(__INTEL__)
-#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__GCC_4__) || defined(__INTEL_CC__)
-	/* redirect cout and cerr */
-	if (comm.Rank() > 0)
+
+#ifdef __MPI__
+#ifdef __MWERKS__
+	cout << " Initializing MPI..." << endl;
+#endif
+
+	/* initialize MPI */
+	if (MPI_Init(argc, argv) != MPI_SUCCESS)
 	{
-		StringT console_file("console");
-		console_file.Append(comm.Rank());
-		console.open(console_file, ios::app);
-
-		/* keep buffers from cout and cerr */
-		cout_buff = cout.rdbuf();
-		cerr_buff = cerr.rdbuf();
-
-		/* redirect */
-		cout.rdbuf(console.rdbuf());
-		cerr.rdbuf(console.rdbuf());
+		cout << "\n MPI_Init: error" << endl;
+		throw eMPIFail;
 	}
-#else
+
+	int rank;
+	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS)
+		throw eMPIFail;
+	
+#ifndef _MACOS_
 	/* redirect cout and cerr */
-	if (comm.Rank() > 0)
+	if (rank > 0)
 	{
 		StringT console_file("console");
-		console_file.Append(comm.Rank());
+		console_file.Append(rank);
 		console.open(console_file, ios::app);
 		cout = console;
 		cerr = console;
 	}
-#endif /* __DEC__ || __SUN__ || __GCC_3__ || __INTEL_CC__ */
-#else /* __MACOS__ && __INTEL__ */
-#pragma unused(comm)
-#endif /* __MACOS__ && __INTEL__ */
-
-	/* write license to screen */
-	DumpLicense();	
-
-	/* output build date and time */
-	cout << "\n build: " __TIME__ ", " << __DATE__ << '\n';
-
-#if defined(__MWERKS__) && defined (macintosh)
-	/* get command-line arguments */
-	*argc = ccommand(argv);
+#endif /* __MACOS__ */
 #else
 #pragma unused(argc)
 #pragma unused(argv)
-#endif /* Carbon */
+#endif /* __MPI__ */
 
-	if (CommunicatorT::ActiveMP())
-		cout << "********************* MPI Version *********************" << '\n';
+#ifndef _MACOS_
+	cout << "********************* MPI Version *********************" << '\n';
+#endif /* _MACOS_ */
+
+	/* output build date and time */
+	cout << "\n build: " __TIME__ ", " << __DATE__ << '\n';
 
 #if __option (extended_errorcheck)
 	cout << "\n Extended error checking is ON\n";
@@ -120,11 +93,7 @@ static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 #endif
 
 #if __option (profile)
-	pascal OSErr err = ProfilerInit(collectDetailed, bestTimeBase, 10000, 50);
-	if (err != noErr) {
-		cout << "\n ProfilerInit: error " << err << endl;
-		abort();
-	}
+	ProfilerInit(collectDetailed,bestTimeBase,100,20);
 	ProfilerSetStatus(0);
 	cout << "\n P r o f i l i n g   i s   a c t i v e\n" << endl;
 #endif
@@ -135,34 +104,24 @@ static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 #endif
 }
 
-static void ShutDown(CommunicatorT& comm)
+static void ShutDown(void)
 {
 	cout << "\nExit.\n" << endl;
 
 #if __option (profile)		
+	ProfilerDump("\ptahoe.prof");
 	ProfilerTerm();
 #endif
 
-	if (comm.Rank() > 0)
-	{
-#ifdef __DEC__
-		/* restore cout and cerr */
-		cout.rdbuf(cout_buff);
-		cerr.rdbuf(cerr_buff);
-#endif
-		/* close console file */
-		console.close();
-	}
-}
+#ifdef __MPI__
+	/* get rank */
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-void DumpLicense(void)
-{
-	const char version[] = "Tahoe 2.1";
-	cout << "\n " << version << "\n\n"
-         << " Copyright 2003, Sandia Corporation.\n" 
-	     << " All rights reserved.\n\n"
-	     << " Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive\n"
-	     << " license for use of this work by or on behalf of the U.S. Government. Export\n"
-	     << " of this program may require a license from the United States Government."
-	     << endl;
+	/* end MPI */
+	if (MPI_Finalize() != MPI_SUCCESS)
+		cout << "\n MPI_Finalize: error" << endl;
+
+	if (rank > 0) console.close();
+#endif /* __MPI__ */
 }

@@ -1,19 +1,17 @@
-/* $Id: ACME_Contact3DT.cpp,v 1.6 2004-07-15 08:26:08 paklein Exp $ */
-/* created: paklein (10/15/2000) */
+/* $Id: ACME_Contact3DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (10/15/2000)                                          */
 
 #include "ACME_Contact3DT.h"
-#include "ElementSupportT.h"
 
 /* library support options */
 #ifdef __ACME__
-
+#include "FEManagerT.h"
+#include "NodeManagerT.h"
+#include "fstreamT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
-ACME_Contact3DT::ACME_Contact3DT(const ElementSupportT& support, const FieldT& field):
-	PenaltyContact3DT(support, field),
+ACME_Contact3DT::ACME_Contact3DT(FEManagerT& fe_manager):
+	PenaltyContact3DT(fe_manager),
 	fContactSearch(NULL)
 {
 
@@ -32,7 +30,7 @@ void ACME_Contact3DT::Initialize(void)
 	PenaltyContact3DT::Initialize();
 
 	/* write ACME version to output */
-	ostream& out = ElementSupport().Output();
+	ostream& out = fFEManager.Output();
 	out << " ACME version number . . . . . . . . . . . . . . = "
 	    << fContactSearch->Version() << '\n';
 }
@@ -42,14 +40,14 @@ void ACME_Contact3DT::ReadRestart(istream& in)
 {
 #pragma unused(in)
 	cout << "\n ACME_Contact3DT::ReadRestart: not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 }
 
 void ACME_Contact3DT::WriteRestart(ostream& out) const
 {
 #pragma unused(out)
 	cout << "\n AugLagContact2DT::WriteRestart: not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 }
 
 /***********************************************************************
@@ -63,10 +61,10 @@ void ACME_Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	in >> num_surfaces;
 	out << " Number of contact surfaces. . . . . . . . . . . = "
 	    << num_surfaces << '\n';
-	if (num_surfaces < 1) throw ExceptionT::kBadInputValue;
+	if (num_surfaces < 1) throw eBadInputValue;
 
 	/* read contact surfaces */
-	fSurfaces.Dimension(num_surfaces);
+	fSurfaces.Allocate(num_surfaces);
 	for (int i = 0; i < fSurfaces.Length(); i++)
 		InputSideSets(in, out, fSurfaces[i]);
 
@@ -128,7 +126,7 @@ void ACME_Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	StrikersFromSurfaces();
 
 	/* echo */
-	if (ElementSupport().PrintInput())
+	if (fFEManager.PrintInput())
 	{
 		out << "\n Striker nodes:\n";
 		fStrikerTags++;
@@ -137,7 +135,7 @@ void ACME_Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 	
 	/* allocate striker coords */
-	fStrikerCoords.Dimension(fStrikerTags.Length(), fNumSD);
+	fStrikerCoords.Allocate(fStrikerTags.Length(), fNumSD);
 }
 
 /* steps in setting contact configuration */
@@ -158,7 +156,7 @@ bool ACME_Contact3DT::SetActiveInteractions(void)
 	{
 		cout << "\n ACME_Contact3DT::SetActiveInteractions: Set_Node_Block_Configuration\n"
 		     <<   "     returned error code: " << error << endl;
-		throw ExceptionT::kGeneralFail;	
+		throw eGeneralFail;	
 	}
 
 	/* search for interactions */
@@ -167,7 +165,7 @@ bool ACME_Contact3DT::SetActiveInteractions(void)
 	{
 		cout << "\n ACME_Contact3DT::SetActiveInteractions: Static_Search_1_Configuration\n"
 		     <<   "     returned error code: " << error << endl;
-		throw ExceptionT::kGeneralFail;	
+		throw eGeneralFail;	
 	}
 
 	/* number of interactions */
@@ -202,7 +200,7 @@ bool ACME_Contact3DT::SetActiveInteractions(void)
 		{
 			cout << "\n ACME_Contact3DT::SetActiveInteractions: unexpected node\n"
 			     <<   "     block ID: " << fnode_block_ids[i] << endl;
-			throw ExceptionT::kGeneralFail;
+			throw eGeneralFail;
 		}
 		
 		/* striker */
@@ -238,29 +236,29 @@ void ACME_Contact3DT::SetWorkSpace(void)
 	int Number_of_Entity_Keys = fSurfaces.Length();
 	int Number_of_Node_Blocks = 1; //TEMP - must be 1
 
-	Node_Block_Types.Dimension(Number_of_Node_Blocks);
+	Node_Block_Types.Allocate(Number_of_Node_Blocks);
 	Node_Block_Types[0] = ContactSearch::NODE; //TEMP must be NODE
 
-	Number_Nodes_in_Blocks.Dimension(Number_of_Node_Blocks);
+	Number_Nodes_in_Blocks.Allocate(Number_of_Node_Blocks);
 	Number_Nodes_in_Blocks[0] = fStrikerTags.Length(); //TEMP - all NODE in 1
 	const int* Node_Global_IDs = fStrikerTags.Pointer(); //all facet nodes as strikers
 	int  Number_of_Face_Blocks = fSurfaces.Length();
 
-	Face_Block_Types.Dimension(Number_of_Face_Blocks);
+	Face_Block_Types.Allocate(Number_of_Face_Blocks);
 //NOTE: set this based on the number of nodes	
 	Face_Block_Types = ContactSearch::TRIFACEL3; //this end has tri facets only
 //NOTE: set this based on the number of nodes	
 
-	Number_Faces_in_Blocks.Dimension(Number_of_Face_Blocks);
+	Number_Faces_in_Blocks.Allocate(Number_of_Face_Blocks);
 	for (int i = 0; i < Number_Faces_in_Blocks.Length(); i++)
 		Number_Faces_in_Blocks[i] = fSurfaces[i].MajorDim();		
 
 	GenerateACMEConnectivities(Connectivity);
 
 	int  Number_of_Nodal_Comm_Partners = 0; //TEMP - must be 0 for now
-	Nodal_Comm_Proc_IDs.Dimension(1); //TEMP - unused
-	Number_Nodes_to_Partner.Dimension(1); //TEMP - unused
-	Communication_Nodes.Dimension(1); //TEMP - unused
+	Nodal_Comm_Proc_IDs.Allocate(1); //TEMP - unused
+	Number_Nodes_to_Partner.Allocate(1); //TEMP - unused
+	Communication_Nodes.Allocate(1); //TEMP - unused
 		 	
 	/* set up ACME search */
 	ContactSearch::ContactErrorCode error;
@@ -281,12 +279,12 @@ void ACME_Contact3DT::SetWorkSpace(void)
 		Communication_Nodes.Pointer(),
 		mpi_communicator,
 		error);
-	if (!fContactSearch) throw ExceptionT::kOutOfMemory;
+	if (!fContactSearch) throw eOutOfMemory;
 	if (error != ContactSearch::NO_ERROR)
 	{
 		cout << "\n ACME_Contact3DT::InitContactSearch: ContactSearch constructor\n"
 		     <<   "     returned error code: " << error << endl;
-		throw ExceptionT::kGeneralFail;	
+		throw eGeneralFail;	
 	}
 
 	/* set search data */
@@ -294,7 +292,7 @@ void ACME_Contact3DT::SetWorkSpace(void)
 	bool two_pass = false;
 	double normal_tolerance = 0.1;
 	double tangent_tolerance = 0.0;
-	fSearchData.Dimension(3*Number_of_Entity_Keys*Number_of_Entity_Keys);
+	fSearchData.Allocate(3*Number_of_Entity_Keys*Number_of_Entity_Keys);
 	double* pdata = fSearchData.Pointer();
 	for (int i3 = 0; i3 < Number_of_Entity_Keys; i3++)
 		for (int i2 = 0; i2 < Number_of_Entity_Keys; i2++)
@@ -328,7 +326,7 @@ void ACME_Contact3DT::SetWorkSpace(void)
 	{
 		cout << "\n ACME_Contact3DT::InitContactSearch: Check_Search_Data_Size\n"
 		     <<   "     returned error code: " << error << endl;
-		throw ExceptionT::kGeneralFail;	
+		throw eGeneralFail;	
 	}
 	
 	/* set data */
@@ -349,7 +347,7 @@ void ACME_Contact3DT::GenerateACMEConnectivities(iArrayT& connectivities)
 	int tot_num_facets = 0;
 	for (int i = 0; i < fSurfaces.Length(); i++)
 		tot_num_facets += fSurfaces[i].MajorDim();
-	connectivities.Dimension(tot_num_facets*fNumFacetNodes);
+	connectivities.Allocate(tot_num_facets*fNumFacetNodes);
 
 	/* node number -> striker tag map */
 	int max, shift;
@@ -367,7 +365,7 @@ void ACME_Contact3DT::GenerateACMEConnectivities(iArrayT& connectivities)
 			cout << "\n ACME_Contact3DT::GenerateACMEConnectivities: striker\n"
 			     <<   "     tag " << fStrikerTags[j]
 			     << " appears more than once in the list of strikers." << endl;
-			throw ExceptionT::kGeneralFail;
+			throw eGeneralFail;
 		}
 		else
 			index = j;
@@ -391,7 +389,7 @@ void ACME_Contact3DT::GenerateACMEConnectivities(iArrayT& connectivities)
 		cout << "\n ACME_Contact3DT::GenerateACMEConnectivities: error\n"
 		     <<   "     generating ACME connectivies {min, max} = {" << min
 		     << ", " << max << "}" << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 }
 

@@ -1,11 +1,20 @@
-/* $Id: CCSMatrixT.h,v 1.20 2005-04-13 21:49:58 paklein Exp $ */
-/* created: paklein (05/29/1996) */
+/* $Id: CCSMatrixT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (05/29/1996)                                          */
+/* This is the interface for a Symmetric matrix stored in                 */
+/* Compact Column form.                                                   */
+/* To initialize:                                                         */
+/* 			(1) call constructor with system dimension dim                */
+/* 			(2) set the ColumnHeight for column = 0...dim-1               */
+/* 			(3) call Initialize() to allocate space for the               */
+/* matrix and set the diagonal position array.                            */
+/* Note: assembly positions (equation numbers) = 1...fNumEQ               */
+
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
 
 /* project headers */
 #include "Environment.h"
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 
 /* base class */
 #include "GlobalMatrixT.h"
@@ -13,37 +22,20 @@
 /* direct members */
 #include "LinkedListT.h"
 
-namespace Tahoe {
-
-/** This is the interface for a Symmetric matrix stored in
- * Compact Column form.
- * To initialize:
- * -# call constructor with system dimension dim
- * -# set the ColumnHeight for column = 0...dim-1
- * -# call Initialize() to allocate space for the matrix and set the diagonal position array.
- * Note: assembly positions (equation numbers) = 1...fNumEQ
- */
 class CCSMatrixT: public GlobalMatrixT
 {
 public:
 
-	/** constructor */
-	CCSMatrixT(ostream& out, int check_code, const CommunicatorT& comm);
+	/* constructor */
+	CCSMatrixT(ostream& out, int check_code);
 
-	/** copy constructor */
-	CCSMatrixT(const CCSMatrixT& source);
-
-	/** destructor */	
+	/* destructor */	
 	virtual ~CCSMatrixT(void);
 	
 	/* set the internal matrix structure.
 	 * NOTE: do not call Initialize() equation topology has been set
 	 * with AddEquationSet() for all equation sets */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
-
-	/** write information to output stream after CCSMatrixT::Initialize
-	 * has been called */
-	virtual void Info(ostream& out);
 	
 	/* set all matrix values to 0.0 */
 	virtual void Clear(void);
@@ -58,10 +50,7 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos);
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-		const ArrayT<int>& col_eqnos);
-	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos);
 	
 	/* compute the diagonal weighted residual norm - no check as
 	 * to whether the matrix is factorized or not */
@@ -69,7 +58,11 @@ public:
 	
 	/* compute the sum of the elements on the prescribed row/col,
 	 * where rownum = 0...fNumEQ-1 */
-	virtual double AbsRowSum(int rownum) const;
+	double AbsRowSum(int rownum) const;
+	
+	/* multiply the matrix with d and return the result in Kd.
+	 * Note: do not call if the matrix is already factorized */
+	void MultKd(const dArrayT& d, dArrayT& Kd) const;
 
 	/* return the value of p_i K_ij p_j */
 	double pTKp(const dArrayT& p) const;
@@ -79,6 +72,9 @@ public:
 	 * returns 0 */
 	int HasNegativePivot(void) const;
 
+	/* assignment operator */
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
+
 	/* TESTING: write non-zero elements of matrix in Aztec readable
 	 *          format */
 	void WriteAztecFormat(ostream& out) const;
@@ -87,58 +83,11 @@ public:
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
 
-	/** return the form of the matrix */
-	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kSymmetric; };
-
-	/* find the smallest and largest diagonal value */
-	void FindMinMaxPivot(double& min, double& max, double& abs_min, double& abs_max) const;
-
-	/** assignment operator */
-	CCSMatrixT& operator=(const CCSMatrixT& rhs);
-
-	/** return a clone of self. Caller is responsible for disposing of the matrix */
-	virtual GlobalMatrixT* Clone(void) const;
-
-	/** matrix-vector product. Works only if called before the matrix has been
-	 * factorized. 
-	 * \param x vector to use for calculating the product
-	 * \param b destination for the result 
-	 * \return true if the product was calculated successful */
-	virtual void Multx(const dArrayT& x, dArrayT& b) const;
-
-	/** Tranpose[matrix]-vector product. Works only if called before the matrix 
-	 * has been factorized. 
-	 * \param x vector to use for calculating the product
-	 * \param b destination for the result
-	 * \return true if the product was calculated successful */
-	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
-
-	/** return the values along the diagonal of the matrix. Derived classes
-	 * must reimplement this function to extrat the diagonals from the
-	 * matrix-specific storage schemes.
-	 * \param diags returns with the diagonals of the matrix if the function
-	 *        is supported. Otherwise is left unchanged.
-	 * \return true if the diagonal values where collected successfully */
-	virtual bool CopyDiagonal(dArrayT& diags) const;
-
-	/** \name check functions */
-	/*@{*/
-	virtual void PrintAllPivots(void) const;
-	virtual void PrintZeroPivots(void) const;
-	virtual void PrintLHS(bool force = false) const;
-	/*@}*/
-
 protected:
 
-	/** \name element accessors */
-	/*@{*/
-	/** read only accessor returns 0.0 for nonstored values */
-	double operator()(int row, int col) const;
-
-	/** read/write accessor throws exception for nonstored values */
-	double& operator()(int row, int col);
-	/*@}*/
-
+	/* element accessor - READ ONLY */
+	double operator()(int row, int col) const;			
+	
 	/* output operator */
 	friend ostream& operator<<(ostream& out, const CCSMatrixT& matrix);	
 
@@ -147,6 +96,11 @@ protected:
 	
 	/* determine new search direction and put the results in result */
 	virtual void BackSubstitute(dArrayT& result);
+
+	/* rank check functions */
+	virtual void PrintAllPivots(void) const;
+	virtual void PrintZeroPivots(void) const;
+	virtual void PrintLHS(void) const;
 
 	/* Returns the number of elements ABOVE the diagonal in col */
 	int ColumnHeight(int col) const;
@@ -168,70 +122,23 @@ private:
 		
 protected:
 
-	/** \name equations sets */
-	/*@{*/
+	/* equations sets */
 	LinkedListT<const iArray2DT*> fEqnos;
 	LinkedListT<const RaggedArray2DT<int>*> fRaggedEqnos;
-	/*@}*/
 
-	/** \name the matrix */
-	/*@{*/
 	int*    fDiags; 	
 	int     fNumberOfTerms;
 	double* fMatrix;
-	/*@}*/
-	
-	/** \name runtime info */
-	/*@{*/
-	bool fIsFactorized;
-	int fBand;
-	int fMeanBand;
-	/*@}*/
 };
 
 /* Returns the number of elements ABOVE the diagonal in col */
 inline int CCSMatrixT::ColumnHeight(int col) const
 {
 #if __option (extended_errorcheck)
-	if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
+	if (col < 0 || col >= fLocNumEQ) throw eGeneralFail;
 #endif
 
 	return ( (col > 0) ? (fDiags[col] - fDiags[col-1] - 1) : 0);
 }
-
-/* Tranpose[matrix]-vector product */
-inline void CCSMatrixT::MultTx(const dArrayT& x, dArrayT& b) const {
-	CCSMatrixT::Multx(x, b);
-}
-
-/* element accessor */
-inline double& CCSMatrixT::operator()(int row, int col)
-{
-	const char caller[] = "CCSMatrixT::operator()";
-
-#if __option(extended_errorcheck)
-	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) ExceptionT::OutOfRange(caller);
-	if (col < 0 || col >= fLocNumEQ) ExceptionT::OutOfRange(caller);
-#endif
-	
-	if (row == col) /* element on the diagonal */
-		return fMatrix[fDiags[col]];
-	else
-	{
-		/* look into upper triangle */
-		int& r = (row > col) ? col : row;
-		int& c = (row > col) ? row : col;
-
-		int colht = ColumnHeight(c);
-		int hrow  = c - r;		
-		if (hrow > colht) /* element above the skyline */
-			ExceptionT::OutOfRange(caller);
-		
-		return fMatrix[fDiags[c] - hrow];
-	}
-}
-
-} /* namespace Tahoe */
 
 #endif /* _CCSMATRIX_T_H_ */

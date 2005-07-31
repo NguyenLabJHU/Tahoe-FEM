@@ -1,35 +1,36 @@
-/* $Id: VIB_E_MatT.cpp,v 1.7 2005-03-16 10:20:42 paklein Exp $ */
-/* created: paklein (11/08/1997) */
+/* $Id: VIB_E_MatT.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (11/08/1997)                                          */
+/* Base class for isotropic VIB_E_MatT materials.                         */
+
 #include "VIB_E_MatT.h"
 
 #include <math.h>
+#include <iostream.h>
 
-#include "ExceptionT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
 #include "dSymMatrixT.h"
 #include "C1FunctionT.h"
 
-using namespace Tahoe;
-
 /* constructors */
-VIB_E_MatT::VIB_E_MatT(int nsd):
-	ParameterInterfaceT("VIB_Green_material"),
-	VIB(nsd, dSymMatrixT::NumValues(nsd), (nsd == 2) ? 5 : 15),
-	fU_0(0.0)
+VIB_E_MatT::VIB_E_MatT(ifstreamT& in, int nsd):
+	VIB(in, nsd, dSymMatrixT::NumValues(nsd), (nsd == 2) ? 5 : 15)
 {
+
+}
+
+/* print parameters */
+void VIB_E_MatT::PrintName(ostream& out) const
+{
+	/* inherited */
+	VIB::PrintName(out);
+
+	out << "    Lagrangian\n";
 }
 
 /*************************************************************************
- * Protected
- *************************************************************************/
-
-/* set reference energy */
-void VIB_E_MatT::SetReferenceEnergy(void)
-{
-	dSymMatrixT E_0(fNumSD);
-	E_0 = 0.0;
-	fU_0 = 0.0;
-	fU_0 = VIBEnergyDensity(E_0);
-}
+* Protected
+*************************************************************************/
 
 /* returns the strain energy density for the specified strain */
 double VIB_E_MatT::VIBEnergyDensity(const dSymMatrixT& E)
@@ -48,7 +49,7 @@ double VIB_E_MatT::VIBEnergyDensity(const dSymMatrixT& E)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return( energy - fU_0 );
+	return( energy );
 }
 
 /* compute strained lengths */
@@ -57,9 +58,9 @@ void VIB_E_MatT::ComputeLengths(const dSymMatrixT& strain)
 	if (strain.Rows() == 2)
 	{
 		/* references to the strain components */
-		const double& E11 = strain[0];
-		const double& E22 = strain[1];
-		const double& E12 = strain[2];
+		double& E11 = strain[0];
+		double& E22 = strain[1];
+		double& E12 = strain[2];
 	
 		/* initialize kernel pointers */
 		double* pl  = fLengths.Pointer();
@@ -76,12 +77,12 @@ void VIB_E_MatT::ComputeLengths(const dSymMatrixT& strain)
 	else
 	{
 		/* references to the strain components */
-		const double& E11 = strain[0];
-		const double& E22 = strain[1];
-		const double& E33 = strain[2];
-		const double& E23 = strain[3];
-		const double& E13 = strain[4];
-		const double& E12 = strain[5];
+		double& E11 = strain[0];
+		double& E22 = strain[1];
+		double& E33 = strain[2];
+		double& E23 = strain[3];
+		double& E13 = strain[4];
+		double& E12 = strain[5];
 	
 		/* initialize kernel pointers */
 		double* pl  = fLengths.Pointer();
@@ -99,7 +100,7 @@ void VIB_E_MatT::ComputeLengths(const dSymMatrixT& strain)
 /* convenience */
 void VIB_E_MatT::SetStressPointers2D(double*& p11,double*& p22,double*& p12)
 {
-	if (fStressTable.MajorDim() != 3) throw ExceptionT::kGeneralFail;	
+	if (fStressTable.MajorDim() != 3) throw eGeneralFail;	
 
 	/* pointers to the rows */
 	p11 = fStressTable(0);
@@ -110,7 +111,7 @@ void VIB_E_MatT::SetStressPointers2D(double*& p11,double*& p22,double*& p12)
 void VIB_E_MatT::SetStressPointers3D(double*& p11,double*& p22,double*& p33,
 double*& p23,double*& p13,double*& p12)
 {
-	if (fStressTable.MajorDim() != 6) throw ExceptionT::kGeneralFail;	
+	if (fStressTable.MajorDim() != 6) throw eGeneralFail;	
 
 	/* pointers to the rows */
 	p11 = fStressTable(0);
@@ -124,7 +125,7 @@ double*& p23,double*& p13,double*& p12)
 void VIB_E_MatT::SetModuliPointers2D(double*& p11, double*& p22, double*& p26,
 							  double*& p16, double*& p12)
 {
-	if (fModuliTable.MajorDim() != 5) throw ExceptionT::kGeneralFail;	
+	if (fModuliTable.MajorDim() != 5) throw eGeneralFail;	
 
 	/* pointers to the rows */
 	p11 = fModuliTable(0);
@@ -138,7 +139,7 @@ void VIB_E_MatT::SetModuliPointers3D(double*& p11, double*& p12, double*& p13, d
 double*& p16, double*& p22, double*& p23, double*& p24, double*& p25,
 double*& p26, double*& p33, double*& p34, double*& p35, double*& p36)
 {
-	if (fModuliTable.MajorDim() != 15) throw ExceptionT::kGeneralFail;	
+	if (fModuliTable.MajorDim() != 15) throw eGeneralFail;	
 
 	/* pointers to the rows */
 	p11 = fModuliTable(0);

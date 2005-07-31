@@ -8,7 +8,7 @@
  * Started 10/2/97
  * George
  *
- * $Id: rename.h,v 1.3 2004-07-25 19:42:00 paklein Exp $
+ * $Id: rename.h,v 1.1.1.1 2001-07-19 06:24:01 paklein Exp $
  *
  */
 
@@ -410,7 +410,7 @@
 #define RandomPermute			__RandomPermute
 #define ispow2				__ispow2
 #define InitRandom			__InitRandom
-#define log2				__metis_log2
+#define log2				__log2
 
 
 

@@ -1,25 +1,26 @@
-/* $Id: LocalizerT.h,v 1.9 2005-01-29 01:30:45 raregue Exp $ */
-/* created: paklein (02/19/1998) */
+/* $Id: LocalizerT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (02/19/1998)                                          */
+/* Continuum elements with strain localization. Localization              */
+/* tracking and special treatment for localized elements                  */
+
 #ifndef _LOCALIZER_T_H_
 #define _LOCALIZER_T_H_
 
 /* base class */
-#include "UpdatedLagrangianT.h"
+#include "UpLag_FDElasticT.h"
 
 /* direct members */
-#include "ofstreamT.h"
+#include "fstreamT.h"
 #include "MonitorT.h"
 #include "AutoArrayT.h"
 #include "dMatrixEXT.h"
 
-namespace Tahoe {
-
-class LocalizerT: public UpdatedLagrangianT
+class LocalizerT: public UpLag_FDElasticT
 {
 public:
 
 	/* constructors */
-	LocalizerT(const ElementSupportT& support, const FieldT& field);
+	LocalizerT(FEManagerT& fe_manager);
 
 	/* set work space */
 	virtual void Initialize(void);
@@ -28,7 +29,7 @@ public:
 	virtual void CloseStep(void);
 
 	/* writing results */
-	virtual void WriteOutput(void);
+	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
 	/* returns true if the internal force has been changed since
 	 * the last time step */
@@ -44,9 +45,12 @@ public:
 	virtual void WriteRestart(ostream& out) const;
 	
 	/* resets to the last converged solution */
-	virtual GlobalT::RelaxCodeT ResetStep(void);
+	virtual void ResetStep(void);
 		
 protected:
+
+	/* print element group data */
+	virtual void PrintControlData(ostream& out) const;
 
 	/* increment current element */
 	virtual bool NextElement(void);
@@ -105,8 +109,7 @@ protected:
 	iArray2DT fNeighborList;
 	
 	/* work space */
-	//dArrayT     fNormal;
-	AutoArrayT <dArrayT> fNormals, fSlipDirs;
+	dArrayT     fNormal;
 	dSymMatrixT fAvgStretch;
 
 private: /* localization workspace */
@@ -124,5 +127,4 @@ private: /* localization workspace */
 //	int fLocalizerConnects;
 };
 
-} // namespace Tahoe 
 #endif /* _LOCALIZER_H_ */

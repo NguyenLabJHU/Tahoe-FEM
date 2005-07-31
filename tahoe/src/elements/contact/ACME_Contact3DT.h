@@ -1,5 +1,5 @@
-/* $Id: ACME_Contact3DT.h,v 1.3 2002-07-02 19:55:18 cjkimme Exp $ */
-/* created: paklein (10/15/2000) */
+/* $Id: ACME_Contact3DT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (10/15/2000)                                          */
 
 #ifndef _ACME_PENALTY_CONTACT3D_T_H_
 #define _ACME_PENALTY_CONTACT3D_T_H_
@@ -13,14 +13,12 @@
 /* direct members */
 #include "ContactSearch.h"
 
-namespace Tahoe {
-
 class ACME_Contact3DT: public PenaltyContact3DT
 {
 public:
 
 	/* constructor */
-	ACME_Contact3DT(const ElementSupportT& support, const FieldT& field);
+	ACME_Contact3DT(FEManagerT& fe_manager);
 
 	/* destructor */
 	~ACME_Contact3DT(void);
@@ -75,6 +73,5 @@ protected:
 	AutoArrayT<double> fdata;
 };
 
-} // namespace Tahoe
 #endif /* __ACME__ */
 #endif /* _ACME_PENALTY_CONTACT3D_T_H_ */

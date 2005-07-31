@@ -38,8 +38,6 @@ extern int dscal_(integer *n, doublereal *da, doublereal *dx,
 extern int dswap_(integer *n, doublereal *dx, integer *incx, 
 	doublereal *dy, integer *incy);
 
-extern int sswap_(integer *n, real *dx, integer *incx, real *dy, integer *incy);
-
 extern integer idamax_(integer *n, doublereal *dx, integer *incx);
 
 /* BLAS Level 2 routines */

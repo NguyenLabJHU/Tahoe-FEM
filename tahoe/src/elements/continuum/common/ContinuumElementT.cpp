@@ -1,114 +1,121 @@
-/* $Id: ContinuumElementT.cpp,v 1.51 2005-07-14 00:51:01 paklein Exp $ */
-/* created: paklein (10/22/1996) */
+/* $Id: ContinuumElementT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (10/22/1996)                                          */
+
 #include "ContinuumElementT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
-#include "ModelManagerT.h"
-#include "SolidMaterialT.h"
+#include "fstreamT.h"
+#include "FEManagerT.h"
+#include "NodeManagerT.h"
+#include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
-#include "eIntegratorT.h"
+#include "eControllerT.h"
 #include "Traction_CardT.h"
+#include "ExodusT.h"
+#include "ModelFileT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
-#include "ScheduleT.h"
-#include "ParameterContainerT.h"
-#include "CommunicatorT.h"
 
 //TEMP: all this for general traction BC implementation?
 #include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "VariLocalArrayT.h"
 
+/* services */
+#include "EdgeFinderT.h"
+#include "GraphT.h"
+
 /* materials lists */
-#include "MaterialSupportT.h"
 #include "MaterialListT.h"
-
-const double Pi = acos(-1.0);
-
-using namespace Tahoe;
+#include "Material2DT.h"
 
 /* constructor */
-ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
-	ElementBaseT(support),
-	fGroupCommunicator(NULL),
+ContinuumElementT::ContinuumElementT(FEManagerT& fe_manager):
+	ElementBaseT(fe_manager),
 	fMaterialList(NULL),
-	fBodySchedule(NULL),
+	fBody(fNumDOF),
 	fTractionBCSet(0),
 	fShapes(NULL),
-	fStoreShape(false),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
-	fNumIP(0),
-	fGeometryCode(GeometryT::kNone)
+	fDOFvec(fNumDOF),
+	fNSDvec(fNumSD)
 {
-	SetName("continuum_element");
+	ifstreamT&  in = fFEManager.Input();
+	ostream&    out = fFEManager.Output();
+		
+	/* control parameters */
+	in >> fGeometryCode;
+	in >> fNumIP;
 }
 
 /* destructor */
 ContinuumElementT::~ContinuumElementT(void)
-{
-	delete fGroupCommunicator;
-	delete fMaterialList;
+{	
 	delete fShapes;
+	delete fMaterialList;
 }
 
 /* accessors */
 const int& ContinuumElementT::CurrIP(void) const
 {
-	return ShapeFunction().CurrIP();
+#if __option(extended_errorcheck)
+	if (!fShapes) throw eGeneralFail;
+#endif
+	return fShapes->CurrIP();
 }
 
-/* the coordinates of the current integration points */
-void ContinuumElementT::IP_Coords(dArrayT& ip_coords) const
-{
-	/* computed by shape functions */
-	ShapeFunction().IPCoords(ip_coords);
-}
-
-/* interpolate the nodal field values to the current integration point */
-void ContinuumElementT::IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u) const
-{
-    /* computed by shape functions */
-    ShapeFunction().InterpolateU(nodal_u, ip_u);
-}
-
-void ContinuumElementT::IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u, int ip) const
-{
-    /* computed by shape functions */
-    ShapeFunction().InterpolateU(nodal_u, ip_u, ip);
-}
-
-/* field gradients */
-void ContinuumElementT::IP_ComputeGradient(const LocalArrayT& field, 
-	dMatrixT& gradient) const
-{
-	/* computed by shape functions */
-	ShapeFunction().GradU(field, gradient);
-}
-
-void ContinuumElementT::IP_ComputeGradient(const LocalArrayT& field, 
-	dMatrixT& gradient, int ip) const
-{
-	/* computed by shape functions */
-	ShapeFunction().GradU(field, gradient, ip);
-}
-
-/* extrapolate all integration point values to the nodes */
-void ContinuumElementT::IP_ExtrapolateAll(const dArrayT& ip_values, 
-	dArrayT& nodal_values) const
-{
-	/* computed by shape functions */
-	ShapeFunction().ExtrapolateAll(ip_values, nodal_values);
-}
-
-void ContinuumElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
+/* allocates space and reads connectivity data */
+void ContinuumElementT::Initialize(void)
 {
 	/* inherited */
-	ElementBaseT::Equations(eq_1, eq_2);
+	ElementBaseT::Initialize();
+	
+	/* allocate work space */
+	fNEEvec.Allocate(fNumElemNodes*fNumDOF);
+
+	/* initialize local arrays */
+	SetLocalArrays();
+
+	/* construct shape functions */
+	SetShape();
+
+	/* streams */
+	ifstreamT& in = fFEManager.Input();
+	ostream&   out = fFEManager.Output();
+
+	/* output print specifications */
+	EchoOutputCodes(in, out);
+
+	/* body force specification (non virtual) */
+	EchoBodyForce(in, out);
+	
+	/* echo traction B.C.'s (non virtual) */
+	EchoTractionBC(in, out);
+
+	/* echo material properties */
+	ReadMaterialData(in);	
+	WriteMaterialData(out);
+
+	/* get form of tangent */
+	GlobalT::SystemTypeT type = TangentType();
+	
+	/* set form of element stiffness matrix */
+	if (type == GlobalT::kSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	else if (type == GlobalT::kNonSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	else if (type == GlobalT::kDiagonal)
+		fLHS.SetFormat(ElementMatrixT::kDiagonal);
+}
+
+/* set element group for new global equations numbers */
+void ContinuumElementT::Reinitialize(void)
+{
+	/* inherited */
+	ElementBaseT::Reinitialize();
 
 	/* mark traction BC data as old */
 	fTractionBCSet = 0;
@@ -120,15 +127,12 @@ GlobalT::SystemTypeT ContinuumElementT::TangentType(void) const
 	/* initialize to lowest precedence */
 	GlobalT::SystemTypeT type = GlobalT::kDiagonal;
 
-	if (fMaterialList) 
+	for (int i = 0; i < fMaterialList->Length(); i++)
 	{
-		for (int i = 0; i < fMaterialList->Length(); i++)
-		{
-			GlobalT::SystemTypeT e_type = (*fMaterialList)[i]->TangentType();
+		GlobalT::SystemTypeT e_type = (*fMaterialList)[i]->TangentType();
 	
-			/* using type precedence */
-			type = (e_type > type) ? e_type : type;
-		}
+		/* using type precedence */
+		type = (e_type > type) ? e_type : type;
 	}
 	
 	return type;
@@ -141,7 +145,7 @@ void ContinuumElementT::InitStep(void)
 	ElementBaseT::InitStep();
 
 	/* set material variables */
-	if (fMaterialList)  fMaterialList->InitStep();
+	fMaterialList->InitStep();
 }
 
 /* initialize/finalize step */
@@ -150,43 +154,37 @@ void ContinuumElementT::CloseStep(void)
 	/* inherited */
 	ElementBaseT::CloseStep();
 
-	if (fMaterialList) 
+	/* update element level internal variables */
+	if (fMaterialList->HasHistoryMaterials())
 	{
-		/* set material variables */
-		fMaterialList->CloseStep();
-
-		/* update element level internal variables */
-		if (fMaterialList->HasHistoryMaterials())
+		Top();
+		while (NextElement())
 		{
-			Top();
-			while (NextElement())
+			ElementCardT& element = CurrentElement();
+			if (element.IsAllocated())
 			{
-				const ElementCardT& element = CurrentElement();
-				if (element.IsAllocated())
-				{
-					ContinuumMaterialT* pmat = (*fMaterialList)[element.MaterialNumber()];
+				ContinuumMaterialT* pmat = (*fMaterialList)[element.MaterialNumber()];
 
 				/* material update function */
-					pmat->UpdateHistory();
-				}
+				pmat->UpdateHistory();
 			}
 		}
 	}
 }
 
 /* resets to the last converged solution */
-GlobalT::RelaxCodeT ContinuumElementT::ResetStep(void)
+void ContinuumElementT::ResetStep(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
+	ElementBaseT::ResetStep();
 
 	/* update material internal variables */
-	if (fMaterialList && fMaterialList->HasHistoryMaterials())
+	if (fMaterialList->HasHistoryMaterials())
 	{
 		Top();
 		while (NextElement())
 		{
-			const ElementCardT& element = CurrentElement();		
+			ElementCardT& element = CurrentElement();		
 			if (element.IsAllocated())
 			{
 				ContinuumMaterialT* pmat = (*fMaterialList)[element.MaterialNumber()];
@@ -196,21 +194,6 @@ GlobalT::RelaxCodeT ContinuumElementT::ResetStep(void)
 			}
 		}
 	}
-
-	return relax;
-}
-
-/* element level reconfiguration for the current time increment */
-GlobalT::RelaxCodeT ContinuumElementT::RelaxSystem(void)
-{
-	/* inherited */
-	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
-
-	/* loop over materials */
-	for (int i = 0; i < fMaterialList->Length(); i++)
-		relax = GlobalT::MaxPrecedence((*fMaterialList)[i]->RelaxCode(), relax);
-
-	return relax;
 }
 
 /* restart operations */
@@ -220,13 +203,14 @@ void ContinuumElementT::ReadRestart(istream& in)
 	ElementBaseT::ReadRestart(in);
 
 	/* update element level internal variables */
-	if (fMaterialList && fMaterialList->HasHistoryMaterials())
+	if (fMaterialList->HasHistoryMaterials())
 	{
-		for (int i = 0; i < fElementCards.Length(); i++)
+		Top();
+		while (NextElement())
 		{
 			int isallocated;
 			in >> isallocated;
-			if (isallocated) fElementCards[i].ReadRestart(in);
+			if (isallocated) CurrentElement().ReadRestart(in);
 		}
 	}
 }
@@ -237,12 +221,12 @@ void ContinuumElementT::WriteRestart(ostream& out) const
 	ElementBaseT::WriteRestart(out);
 
 	/* update element level internal variables */
-	if (fMaterialList && fMaterialList->HasHistoryMaterials())
+	if (fMaterialList->HasHistoryMaterials())
 	{
 		for (int i = 0; i < fElementCards.Length(); i++)
 		{
 			const ElementCardT& element = fElementCards[i];
-			out << element.IsAllocated() << '\n';
+			out << setw(kIntWidth) << element.IsAllocated() << '\n';
 			if (element.IsAllocated()) element.WriteRestart(out);
 		}
 	}
@@ -251,138 +235,110 @@ void ContinuumElementT::WriteRestart(ostream& out) const
 /* writing output */
 void ContinuumElementT::RegisterOutput(void)
 {
+	/* ID is just group number */
+	int ID = fFEManager.ElementGroupNumber(this) + 1;
+
 //NOTE: could loop over each output mode and register
 //      it with the output separately. for now just register
 //      "kAtInc"
 	
-	/* nodal output */
-	iArrayT n_counts;
-	SetNodalOutputCodes(IOBaseT::kAtInc, fNodalOutputCodes, n_counts);
+	/* get output configuration */
+	iArrayT counts;
+	SetOutputCodes(IOBaseT::kAtInc, fOutputCodes, counts);
+	int num_out = counts.Sum();
 
-	/* element output */
-	iArrayT e_counts;
-	SetElementOutputCodes(IOBaseT::kAtInc, fElementOutputCodes, e_counts);
+	/* variable labels */
+	ArrayT<StringT> n_labels(num_out);
+	ArrayT<StringT> e_labels;
+	GenerateOutputLabels(counts, n_labels);
 
-	/* inherited */
-	if (n_counts.Length() == 0 && e_counts.Length() == 0)
-		ElementBaseT::RegisterOutput();
-	else
-	{
-		/* collect variable labels */
-		ArrayT<StringT> n_labels(n_counts.Sum());
-		ArrayT<StringT> e_labels(e_counts.Sum());
-		GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
-
-		/* block ID's used by the group */
-		ArrayT<StringT> block_ID(fBlockData.Length());
-		for (int i = 0; i < block_ID.Length(); i++)
-			block_ID[i] = fBlockData[i].ID();
-
-		/* set output specifier */
-		OutputSetT output_set(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
+	OutputSetT output_set(ID, fGeometryCode, fConnectivities,
+		n_labels, e_labels, false);
 		
-		/* register and get output ID */
-		fOutputID = ElementSupport().RegisterOutput(output_set);
-	}
+	/* register and get output ID */
+	fOutputID = fFEManager.RegisterOutput(output_set);
 }
 
-//NOTE - this function is/was identical to CSEBaseT::WriteOutput
-void ContinuumElementT::WriteOutput(void)
+//NOTE - this function is identical to CSEBaseT::WriteOutput
+void ContinuumElementT::WriteOutput(IOBaseT::OutputModeT mode)
 {
-	/* regular output */
-	IOBaseT::OutputModeT mode = IOBaseT::kAtInc;
+//TEMP - not handling general output modes yet
+	if (mode != IOBaseT::kAtInc)
+	{
+		cout << "\n ContinuumElementT::WriteOutput: only handling \"at increment\"\n"
+		     <<   "     print mode. SKIPPING." << endl;
+		return;
+	}
 
 	/* map output flags to count of values */
-	iArrayT n_counts;
-	SetNodalOutputCodes(mode, fNodalOutputCodes, n_counts);
-	iArrayT e_counts;
-	SetElementOutputCodes(mode, fElementOutputCodes, e_counts);
+	iArrayT counts;
+	SetOutputCodes(mode, fOutputCodes, counts);
+	int num_out = counts.Sum();
 
-	/* inherited */
-	if (n_counts.Length() == 0 && e_counts.Length() == 0)
-		ElementBaseT::WriteOutput();
-	else
+	dArray2DT group_n_values;
+	dArray2DT group_e_values(0,0);
+	if (num_out > 0)
 	{
-		/* calculate output values */
-		dArray2DT n_values;
-		dArray2DT e_values;
-		ComputeOutput(n_counts, n_values, e_counts, e_values);
+		/* reset averaging workspace */
+		fNodes->ResetAverage(num_out);
 
-		/* send to output */
-		ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+		/* compute nodal values */
+		ComputeNodalValues(counts);
+
+		/* get nodal values */
+		const iArrayT& node_used = fFEManager.OutputSet(fOutputID).NodesUsed();
+		fNodes->OutputAverage(node_used, group_n_values);
 	}
+
+	/* send out */
+	fFEManager.WriteOutput(fOutputID, group_n_values, group_e_values);
 }
 
-/* resolve the output variable label into the output code and offset within the output */
-void ContinuumElementT::ResolveOutputVariable(const StringT& variable, int& code, int& offset)
+/* side set to nodes on facets data */
+void ContinuumElementT::SideSetToFacets(int block_ID, const iArray2DT& sideset,
+	iArray2DT& facets)
 {
-	/* search output labels */
-	code = -1;
-	offset = -1;
-	iArrayT e_counts(fElementOutputCodes.Length());
-	e_counts = 0;
-	iArrayT n_codes(fNodalOutputCodes.Length());
-	for (int i = 0; code == -1 && i < n_codes.Length(); i++)
-	{
-		ArrayT<StringT> n_labels, e_labels;
-		n_codes = 0;
-		n_codes[i] = 1;
-		
-		iArrayT n_counts;
-		SetNodalOutputCodes(IOBaseT::kAtInc, n_codes, n_counts);
-		GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
-		
-		for (int j = 0; offset == -1 && j < n_labels.Length(); j++)
-			if (n_labels[j] == variable) /* found */ {
-				code = i;
-				offset = j;
-			}
-	}
+	/* checks */
+	if (sideset.MinorDim() != 2) throw eGeneralFail;
 	
-	/* inherited */
-	if (code == -1 || offset == -1)
-		ElementBaseT::ResolveOutputVariable(variable, code, offset);
-}
-
-/* return geometry and number of nodes on each facet */
-void ContinuumElementT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, 
-	iArrayT& num_facet_nodes) const
-{
-	/* from integration domain */
-	ShapeFunction().FacetGeometry(facet_geometry, num_facet_nodes);
-}
-
-void ContinuumElementT::SetStatus(const ArrayT<ElementCardT::StatusT>& status)
-{
-  /* work space */
-  dArrayT state;
-  dArrayT t_in;
-
-  /* loop over elements and initial state variables */
-  int elem_num = 0;
-  Top();
-  while (NextElement())
-    {
-      /* current element */
-      ElementCardT::StatusT& flag = CurrentElement().Flag();
-      flag = status[elem_num++];
-      /* material pointer */
-      ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
-
-      if (flag == ElementCardT::kMarkON){
-	if (pmat->NeedsPointInitialization()){
-	  /* global shape function values */
-	  SetGlobalShape();
-
-	  fShapes->TopIP();
-	  while (fShapes->NextIP())
-	    pmat->PointInitialize();
+	/* empty set */
+	if (sideset.MajorDim() == 0)
+	{
+		facets.Allocate(0, 0);
+		return;
 	}
-	flag = ElementCardT::kON;
-      }
-      else if (flag == ElementCardT::kMarkOFF)
-	flag = ElementCardT::kOFF;
-    }
+
+// NOTE: faster to get all nodes_on_facet data at once. also
+//       would be easier to check dimensions of facets.
+
+	/* get block data */
+	const int* block_data = BlockData(block_ID);
+	
+	int offset = block_data[kStartNum];
+	iArrayT facet_nodes, facet_tmp;
+	int num_facets = sideset.MajorDim();
+	for (int i = 0; i < num_facets; i++)
+	{
+		int nel = sideset(i,0) + offset;
+		int nft = sideset(i,1);
+	
+		/* get facet node map */
+		fShapes->NodesOnFacet(nft, facet_nodes);
+		
+		/* dimension/check */
+		if (i == 0)
+			facets.Allocate(sideset.MajorDim(), facet_nodes.Length());
+		else if (facets.MinorDim() != facet_nodes.Length())
+		{
+			cout << "\n ContinuumElementT::SideSetToFacets: all sides in set must have\n"
+			     <<   "     the same number of nodes in element block" << block_ID << endl;
+			throw eGeneralFail;
+		}
+
+		/* get node numbers */
+		facets.RowAlias(i, facet_tmp);
+		facet_tmp.Collect(facet_nodes, fElementCards[nel].NodesX());
+	}
 }
 
 /* initial condition/restart functions (per time sequence) */
@@ -390,113 +346,251 @@ void ContinuumElementT::InitialCondition(void)
 {
 	/* inherited */
 	ElementBaseT::InitialCondition();
-
+	
 	/* check for initialization materials */
 	bool need_init = false;
-	if (fMaterialList)
-		for (int i = 0; i < fMaterialList->Length() && !need_init; i++)
-			need_init = (*fMaterialList)[i]->NeedsPointInitialization();
+	for (int i = 0; i < fMaterialList->Length() && !need_init; i++)
+		need_init = (*fMaterialList)[i]->NeedsPointInitialization();
 
-	/* need to run through elements */
-	if (fStoreShape || need_init)
+	/* initialize materials */
+	if (need_init)
 	{
-		/* initialize storage */
-		if (fStoreShape) fShapes->InitStore(NumElements(), &(fElementCards.Position()));
-
 		/* loop over elements */
 		Top();
 		while (NextElement())
 		{
-			/* compute shape function derivarives */
-			SetGlobalShape();
-
-			/* store */
-			if (fStoreShape) fShapes->Store();
+			/* material pointer */
+			ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
 		
-			/* initialize material */
-			if (need_init) 
+			if (pmat->NeedsPointInitialization())
 			{
-				/* material pointer */
-				ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
-				if (pmat->NeedsPointInitialization())
-				{
-					/* loop over integration points */
-					fShapes->TopIP();
-					while (fShapes->NextIP())
-						pmat->PointInitialize();
-				}
+				/* global shape function values */
+				SetGlobalShape();
+				SetLocalU(fLocDisp);
+			
+				/* loop over integration points */
+				fShapes->TopIP();
+				while (fShapes->NextIP())
+					pmat->PointInitialize();
 			}
 		}
-		
-		/* finalize storage */
-		if (fStoreShape) fShapes->CloseStore();
 	}
 }
 
-ContinuumElementT::MassTypeT ContinuumElementT::int2MassTypeT(int i)
+/* surface facets */
+void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
+	iArray2DT& surface_facets, iArrayT& surface_nodes) const
 {
-	if (i == kNoMass)
-		return kNoMass;
-	else if (i == kConsistentMass)
-		return kConsistentMass;
-	else if (i == kLumpedMass)
-		return kLumpedMass;
-	else if (i == kAutomaticMass)
-		return kAutomaticMass;
+	/* surface facets must all have same geometry */
+	ArrayT<GeometryT::CodeT> facet_geom;
+	iArrayT facet_nodes;
+	fShapes->FacetGeometry(facet_geom, facet_nodes);
+	if (facet_nodes.Count(facet_nodes[0]) != facet_geom.Length())
+	{
+		cout << "\n ContinuumElementT::SurfaceFacets: only support identical\n";
+		cout <<   "     facet shapes" << endl;
+		throw eGeneralFail;
+	}
+	geometry = facet_geom[0];
+
+	/* find bounding elements */
+	AutoArrayT<int> border_nodes;
+	iArrayT   border_elems;
+	iArray2DT border_neighs;
+	BoundingElements(border_elems, border_neighs);
+	
+	/* check */
+	if (fShapes->NumFacets() != border_neighs.MinorDim())
+		throw eSizeMismatch;
+		
+	/* collect nodes on facets info */
+	ArrayT<iArrayT> facetnodemap(fShapes->NumFacets());
+	for (int i2 = 0; i2 < facetnodemap.Length(); i2++)
+		fShapes->NodesOnFacet(i2, facetnodemap[i2]);	
+
+	/* collect surface facets (with "outward" normal ordering) */
+	int surf_count = 0;
+	int num_facets = facetnodemap.Length();
+	int num_facet_nodes = facet_nodes[0];
+	border_nodes.Allocate(0);
+	surface_facets.Allocate(border_neighs.Count(-1), num_facet_nodes);
+	for (int i = 0; i < border_elems.Length(); i++)
+	{
+		/* element connectivity */
+		int* elem = fConnectivities(border_elems[i]);
+
+		/* find open sides */
+		int found_open = 0;
+		int* pneigh = border_neighs(i);
+		for (int j = 0; j < num_facets; j++)
+		{
+			/* open face */
+			if (*pneigh == -1)
+			{
+				/* set flag */
+				found_open = 1;
+				
+				/* collect facet nodes */
+				int* pfacet = surface_facets(surf_count++);
+				int* facet_nodes = facetnodemap[j].Pointer();
+				for (int k = 0; k < num_facet_nodes; k++)
+				{
+					int node = elem[*facet_nodes++];
+					*pfacet++ = node;
+					border_nodes.AppendUnique(node);
+					// better just to keep a "nodes used" map?
+				}
+			}	
+			pneigh++;
+		}
+	
+		/* no open facet */	
+		if (!found_open)
+		{
+			cout << "\n ContinuumElementT::SurfaceFacets: error building surface facet list" << endl;
+			throw eGeneralFail;
+		}	
+	}
+
+	/* return value */
+	surface_nodes.Allocate(border_nodes.Length());
+	border_nodes.CopyInto(surface_nodes);
+}
+
+/* with surface facets sorted into connected sets */
+void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
+	ArrayT<iArray2DT>& surface_facet_sets,
+	iArrayT& surface_nodes) const
+{
+	/* collect all surface facets */
+	iArray2DT surface_facets;
+	SurfaceFacets(geometry, surface_facets, surface_nodes);
+
+	/* graph object */
+	GraphT graph;
+	graph.AddGroup(surface_facets);
+	graph.MakeGraph();
+
+	iArrayT branch_map;
+	graph.LabelBranches(surface_nodes, branch_map);
+	
+	/* sort surfaces */
+	int num_branches = branch_map.Max() + 1;
+	surface_facet_sets.Allocate(num_branches);
+	if (num_branches == 1)
+		surface_facet_sets[0] = surface_facets;
 	else
-		ExceptionT::GeneralFail("ContinuumElementT::int2MassTypeT", 
-			"could not translate %d", i);	
-	return kNoMass;
+	{
+		/* surfaces in each set */
+		iArrayT count(num_branches);
+		int size = surface_facets.MinorDim();
+		count = 0;
+		int* psurf = surface_facets(0);
+		for (int i = 0; i < surface_facets.MajorDim(); i++)
+		{
+			count[branch_map[*psurf]]++;
+			psurf += size;
+		}
+
+		/* set to surfaces map */
+		RaggedArray2DT<int> set_data;
+		set_data.Configure(count);
+
+		count = 0;
+		psurf = surface_facets(0);
+		for (int j = 0; j < surface_facets.MajorDim(); j++)
+		{
+			int branch = branch_map[*psurf];
+			*(set_data(branch) + count[branch]) = j;
+
+			count[branch]++;
+			psurf += size;
+		}
+			
+		/* copy in */
+		for (int k = 0; k < num_branches; k++)
+		{
+			surface_facet_sets[k].Allocate(set_data.MinorDim(k), size);
+			surface_facet_sets[k].RowCollect(set_data(k), surface_facets);
+		}
+	}
+}		
+	
+/* surface nodes */
+void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
+{
+	/* work space */
+	AutoArrayT<int> border_nodes;
+	iArrayT   border_elems;
+	iArray2DT border_neighs;
+
+	/* find bounding elements */
+	BoundingElements(border_elems, border_neighs);
+	
+	/* check */
+	if (fShapes->NumFacets() != border_neighs.MinorDim())
+		throw eSizeMismatch;
+		
+	/* collect nodes on facets map */
+	ArrayT<iArrayT> facetnodemap(fShapes->NumFacets());
+	for (int i2 = 0; i2 < facetnodemap.Length(); i2++)
+		fShapes->NodesOnFacet(i2, facetnodemap[i2]);
+			
+	/* collect surface nodes from border elems */
+	border_nodes.Allocate(0);
+	int numfacets = facetnodemap.Length();
+	for (int i = 0; i < border_elems.Length(); i++)
+	{
+		/* element connectivity */
+		int* elem = fConnectivities(border_elems[i]);
+
+		/* find open sides */
+		int found_open = 0;
+		int* pneigh = border_neighs(i);
+		for (int j = 0; j < numfacets; j++)
+		{
+			/* open face */
+			if (*pneigh == -1)
+			{
+				/* set flag */
+				found_open = 1;
+				
+				/* collect facet nodes */
+				int  num_facet_nodes = facetnodemap[j].Length();
+				int*     facet_nodes = facetnodemap[j].Pointer();
+				for (int k = 0; k < num_facet_nodes; k++)
+					border_nodes.AppendUnique(elem[*facet_nodes++]);
+			}	
+			pneigh++;
+		}
+	
+		/* no open facet */	
+		if (!found_open)
+		{
+			cout << "\n ContinuumElementT::SurfaceNodes: error building surface node list" << endl;
+			throw eGeneralFail;
+		}	
+	}
+	
+	/* return value */
+	surface_nodes.Allocate(border_nodes.Length());
+	border_nodes.CopyInto(surface_nodes);
 }
 
 /***********************************************************************
- * Protected
- ***********************************************************************/
-
-void ContinuumElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-	iArrayT& counts) const
-{
-#pragma unused(mode)
-#pragma unused(flags)
-	counts.Dimension(0);
-}
-
-void ContinuumElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-	iArrayT& counts) const
-{
-#pragma unused(mode)
-#pragma unused(flags)
-	counts.Dimension(0);
-}
-
-void ContinuumElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-	const iArrayT& e_codes, dArray2DT& e_values)
-{
-#pragma unused(n_codes)
-#pragma unused(e_codes)
-	n_values.Dimension(0, n_values.MinorDim());
-	e_values.Dimension(0, e_values.MinorDim());
-}
-
-void ContinuumElementT::GenerateOutputLabels( const iArrayT& n_codes, 
-	ArrayT<StringT>& n_labels, const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
-{
-#pragma unused(n_codes)
-#pragma unused(e_codes)
-	n_labels.Dimension(0);
-	e_labels.Dimension(0);
-}
+* Protected
+***********************************************************************/
 
 /* initialize local arrays */
 void ContinuumElementT::SetLocalArrays(void)
 {
 	/* dimension */
-	fLocInitCoords.Dimension(NumElementNodes(), NumSD());
-	fLocDisp.Dimension(NumElementNodes(), NumDOF());
+	fLocInitCoords.Allocate(fNumElemNodes, fNumSD);
+	fLocDisp.Allocate(fNumElemNodes, fNumDOF);
 
 	/* set source */
-	ElementSupport().RegisterCoordinates(fLocInitCoords);
-	Field().RegisterLocal(fLocDisp);	
+	fFEManager.RegisterLocal(fLocInitCoords);
+	fFEManager.RegisterLocal(fLocDisp);	
 }
 
 /* form the residual force vector */
@@ -512,13 +606,7 @@ void ContinuumElementT::RHSDriver(void)
 void ContinuumElementT::ApplyTractionBC(void)
 {
 	if (fTractionList.Length() > 0)
-	{		
-		/* dimensions */
-		int nsd = NumSD();
-		int ndof = NumDOF();
-		bool is_axi = Axisymmetric();
-		if (is_axi && nsd != 2) ExceptionT::GeneralFail();
-	
+	{
 		/* update equation numbers */
 		if (!fTractionBCSet) SetTractionBC();
 	
@@ -528,23 +616,22 @@ void ContinuumElementT::ApplyTractionBC(void)
 		
 		/* local coordinates */
 		LocalArrayT coords(LocalArrayT::kInitCoords);
-		VariLocalArrayT coord_man(25, coords, nsd);
-		ElementSupport().RegisterCoordinates(coords);
+		VariLocalArrayT coord_man(25, coords, fNumSD);
+		fFEManager.RegisterLocal(coords);
 		
 		/* nodal tractions */
 		LocalArrayT tract(LocalArrayT::kUnspecified);
-		VariLocalArrayT tract_man(25, tract, ndof);
+		VariLocalArrayT tract_man(25, tract, fNumDOF);
 
 		/* integration point tractions */
 		dArray2DT ip_tract;
-		nVariArray2DT<double> ip_tract_man(25, ip_tract, ndof);
-		dArrayT tract_loc, tract_glb(ndof);
-		dMatrixT Q(ndof);
-		dArrayT ip_coords(2);
+		nVariArray2DT<double> ip_tract_man(25, ip_tract, fNumDOF);
+		dArrayT tract_loc, tract_glb(fNumDOF);
+		dMatrixT Q(fNumDOF);
 		
 		/* Jacobian of the surface mapping */
-		dMatrixT jacobian(nsd, nsd-1);
-		double Pi2 = 2.0*Pi;
+		dMatrixT jacobian(fNumSD,fNumSD-1);
+		
 		for (int i = 0; i < fTractionList.Length(); i++)
 		{
 			const Traction_CardT& BC_card = fTractionList[i];
@@ -552,7 +639,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 			/* dimension */
 			const iArrayT& nodes = BC_card.Nodes();
 			int nnd = nodes.Length();
-			rhs_man.SetLength(nnd*ndof, false);
+			rhs_man.SetLength(nnd*fNumDOF, false);
 			coord_man.SetNumberOfNodes(nnd);
 			tract_man.SetNumberOfNodes(nnd);
 			
@@ -565,9 +652,25 @@ void ContinuumElementT::ApplyTractionBC(void)
 			/* BC destination */
 			int elem, facet;
 			BC_card.Destination(elem, facet);
+			double thick = 1.0;
+			if (fNumSD == 2) //better to do this once elsewhere?
+			{
+				/* get material pointer */
+				const ElementCardT& elem_card = fElementCards[elem];
+				ContinuumMaterialT* pmat = (*fMaterialList)[elem_card.MaterialNumber()];
+			
+#ifdef __NO_RTTI__
+				/* assume it's OK */
+				Material2DT* pmat2D = (Material2DT*) pmat;
+#else
+				Material2DT* pmat2D = dynamic_cast<Material2DT*>(pmat);
+				if (!pmat2D) throw eGeneralFail;
+#endif				
+				thick = pmat2D->Thickness();
+			}
 			
 			/* boundary shape functions */
-			const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
+			const ParentDomainT& surf_shape = fShapes->FacetShapeFunction(facet);
 			int nip = surf_shape.NumIP();
 			
 			/* all ip tractions: (nip x ndof) */
@@ -587,17 +690,13 @@ void ContinuumElementT::ApplyTractionBC(void)
 					double detj = surf_shape.SurfaceJacobian(jacobian);
 	
 					/* ip weight */
-					double jwt = detj*w[j];
-					if (is_axi) {
-						surf_shape.Interpolate(coords, ip_coords, j);
-						jwt *= Pi2*ip_coords[0];
-					}
+					double jwt = detj*w[j]*thick;
 					
 					/* ip traction */
 					const double* tj = ip_tract(j);
 					
 					/* accumulate */
-					for (int l = 0; l < ndof; l++)
+					for (int l = 0; l < fNumDOF; l++)
 					{
 						/* nodal shape function */
 						const double* Na = surf_shape.Shape(j);
@@ -607,7 +706,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 						for (int k = 0; k < nnd; k++)
 						{
 							*prhs += fact*(*Na++);
-							prhs += ndof;
+							prhs += fNumDOF;
 						}
 					}				
 				}
@@ -624,11 +723,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 					double detj = surf_shape.SurfaceJacobian(jacobian, Q);
 	
 					/* ip weight */
-					double jwt = detj*w[j];
-					if (is_axi) {
-						surf_shape.Interpolate(coords, ip_coords, j);
-						jwt *= Pi2*ip_coords[0];
-					}
+					double jwt = detj*w[j]*thick;
 					
 					/* transform ip traction out of local frame */
 					ip_tract.RowAlias(j, tract_loc);
@@ -638,7 +733,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 					const double* tj = tract_glb.Pointer();
 					
 					/* accumulate */
-					for (int l = 0; l < ndof; l++)
+					for (int l = 0; l < fNumDOF; l++)
 					{
 						/* nodal shape function */
 						const double* Na = surf_shape.Shape(j);
@@ -648,16 +743,16 @@ void ContinuumElementT::ApplyTractionBC(void)
 						for (int k = 0; k < nnd; k++)
 						{
 							*prhs += fact*(*Na++);
-							prhs += ndof;
+							prhs += fNumDOF;
 						}
 					}				
 				}
 			}
 			else
-				throw ExceptionT::kGeneralFail;
+				throw eGeneralFail;
 
 			/* assemble */
-			ElementSupport().AssembleRHS(Group(), rhs, BC_card.Eqnos());
+			fFEManager.AssembleRHS(rhs, BC_card.Eqnos());
 		}
 	}
 }
@@ -673,10 +768,10 @@ void ContinuumElementT::SetGlobalShape(void)
 }
 
 /* form the element mass matrix */
-void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
+void ContinuumElementT::FormMass(int mass_type, double constM)
 {
 #if __option(extended_errorcheck)
-	if (fLocDisp.Length() != fLHS.Rows()) ExceptionT::SizeMismatch("ContinuumElementT::FormMass");
+	if (fLocDisp.Length() != fLHS.Rows()) throw eSizeMismatch;
 #endif
 
 	switch (mass_type)
@@ -693,80 +788,39 @@ void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisym
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 			
-			int nen = NumElementNodes();
-			int nun = fLocDisp.NumberOfNodes();
-			int ndof = NumDOF();
+			int nen = fLocDisp.NumberOfNodes();
 			
 			/* matrix form */
 			int a = 0, zero = 0;
 			int& b_start = (fLHS.Format() == ElementMatrixT::kSymmetricUpper) ? a : zero;
 			
-			if (axisymmetric)
+			fShapes->TopIP();	
+			while ( fShapes->NextIP() )
 			{
-				const LocalArrayT& coords = fShapes->Coordinates();
-				fShapes->TopIP();	
-				while ( fShapes->NextIP() )
-				{
-					/* compute radius */
-					const double* NaX = fShapes->IPShapeX();
-					const double* x_r = coords(0); /* r is x-coordinate */
-					double r = 0.0;
-					for (a = 0; a < nen; a++)
-						r += (*NaX++)*(*x_r++);
-
-					/* integration factor */				
-					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-
-					const double* Na = fShapes->IPShapeU();		
-					for (a = 0; a < nun; a++)
-						for (int i = 0; i < ndof; i++)
-						{
-							int p = a*ndof + i;
-							
-							/* upper triangle only */
-							for (int b = b_start; b < nun; b++) //TEMP - interpolate at the same time?
-								for (int j = 0; j < ndof; j++)
-									if(i == j) {
-										int q = b*ndof + j;
-										fLHS(p,q) += temp*Na[a]*Na[b];
-									}
-						}
-				}
-			}			
-			else /* not axisymmetric */
-			{
-				fShapes->TopIP();	
-				while ( fShapes->NextIP() )
-				{
-					/* integration factor */
-					double temp = constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-
-					const double* Na = fShapes->IPShapeU();		
-					for (a = 0; a < nun; a++)
-						for (int i = 0; i < ndof; i++)
-						{
-							int p = a*ndof + i;
-							
-							/* upper triangle only */
-							for (int b = b_start; b < nun; b++)
-								for (int j = 0; j < ndof; j++)
-									if(i == j) {
-										int q = b*ndof + j;
-										fLHS(p,q) += temp*Na[a]*Na[b];
-									}
-						}
-				}
+				double temp = constM*(*Weight++)*(*Det++);
+				const double* Na = fShapes->IPShapeU();
+								
+				for (a = 0; a < nen; a++)
+					for (int i = 0; i < fNumDOF; i++)
+					{
+						int p = a*fNumDOF + i;
+						
+						/* upper triangle only */
+						for (int b = b_start; b < nen; b++)
+							for (int j = 0; j < fNumDOF; j++)
+								if(i == j)
+								{									
+									int q = b*fNumDOF + j;
+									fLHS(p,q) += temp*Na[a]*Na[b];
+								}
+					}
 			}
 			break;
 		}
 
 		case kLumpedMass:	/* lumped mass */
 		{
-			int nen = NumElementNodes();
-			int nun = fLocDisp.NumberOfNodes();
-			int ndof = NumDOF();
+			int nen = fLocDisp.NumberOfNodes();
 
 		    double dsum   = 0.0;
 		    double totmas = 0.0;
@@ -776,48 +830,18 @@ void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisym
 			const double* Weight = fShapes->IPWeights();
 
 			/* total mass and diagonal sum */
-			if (axisymmetric)
+			fShapes->TopIP();
+			while (fShapes->NextIP())
 			{
-				const LocalArrayT& coords = fShapes->Coordinates();
-				fShapes->TopIP();
-				while (fShapes->NextIP()) {
+				double temp1     = constM*(*Weight++)*(*Det++);
+				const double* Na = fShapes->IPShapeU();
 
-					/* compute radius */
-					const double* NaX = fShapes->IPShapeX();
-					const double* x_r = coords(0); /* r is x-coordinate */
-					double r = 0.0;
-					for (int a = 0; a < nen; a++)
-						r += (*NaX++)*(*x_r++);
-
-					/* integration factor */
-					double temp1 = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp1 *= *ip_weight++;
-
-					const double* Na = fShapes->IPShapeU();
-					totmas += temp1;
-					for (int lnd = 0; lnd < nun; lnd++) {
-						double temp2 = temp1*Na[lnd]*Na[lnd];
-						dsum += temp2;
-						fNEEvec[lnd] += temp2;
-					}
-				}
-			}
-			else /* not axisymmetric */
-			{
-				fShapes->TopIP();
-				while (fShapes->NextIP()) {
-
-					/* integration factor */
-					double temp1 = constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp1 *= *ip_weight++;
-
-					const double* Na = fShapes->IPShapeU();
-					totmas += temp1;
-					for (int lnd = 0; lnd < nun; lnd++) {
-						double temp2 = temp1*Na[lnd]*Na[lnd];
-						dsum += temp2;
-						fNEEvec[lnd] += temp2;
-					}
+				totmas += temp1;
+				for (int lnd = 0; lnd < nen; lnd++)
+				{
+					double temp2 = temp1*Na[lnd]*Na[lnd];
+					dsum += temp2;
+					fNEEvec[lnd] += temp2;
 				}
 			}	
 				
@@ -827,10 +851,10 @@ void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisym
 			/* lump mass onto diagonal */
 			double* pmass = fLHS.Pointer();
 			int inc = fLHS.Rows() + 1;
-			for (int lnd = 0; lnd < nun; lnd++)
+			for (int lnd = 0; lnd < nen; lnd++)
 			{
 				double temp = diagmass*fNEEvec[lnd];
-				for (int ed = 0; ed < ndof; ed++)
+				for (int ed = 0; ed < fNumDOF; ed++)
 				{
 					*pmass += temp;
 					pmass += inc;	
@@ -839,23 +863,25 @@ void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisym
 			break;
 		}			
 		default:
-			ExceptionT::BadInputValue("ContinuumElementT::FormMass", "unknown mass matrix code");
+		
+			cout << "\n Elastic::FormMass: unknown mass matrix code\n" << endl;
+			throw eBadInputValue;
 	}
 }
 
 /* add contribution from the body force */
 void ContinuumElementT::AddBodyForce(LocalArrayT& body_force) const
 {
-	if (fBodySchedule)
+	if (fBodyForceLTf > -1)
 	{
-		int ndof = NumDOF();
 		int nen = body_force.NumberOfNodes();
-		double loadfactor = fBodySchedule->Value();
+		double loadfactor = fFEManager.LoadFactor(fBodyForceLTf);
 		double* p = body_force.Pointer();
 
-		for (int i = 0; i < ndof; i++)
+		for (int i = 0; i < fNumDOF; i++)
 		{
 			double temp = -fBody[i]*loadfactor;
+		
 			for (int j = 0; j < nen; j++)
 				*p++ = temp;
 		}
@@ -863,130 +889,66 @@ void ContinuumElementT::AddBodyForce(LocalArrayT& body_force) const
 }
 
 /* calculate the body force contribution */
-void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
-	const LocalArrayT* nodal_values,
-	const dArray2DT* ip_values,
-	const double* ip_weight)
+void ContinuumElementT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
 {
-	const char caller[] = "ContinuumElementT::FormMa";
-
-	/* quick exit */
-	if (!nodal_values && !ip_values) return;
-
-#if __option(extended_errorcheck)
-	/* dimension checks */
-	if (nodal_values && 
-		fRHS.Length() != nodal_values->Length()) 
-			ExceptionT::SizeMismatch(caller);
-
-	if (ip_values &&
-		(ip_values->MajorDim() != fShapes->NumIP() ||
-		 ip_values->MinorDim() != NumDOF()))
-			ExceptionT::SizeMismatch(caller);
-#endif
-
 	switch (mass_type)
 	{
-		case kConsistentMass:
+		case kConsistentMass:	
 		{
-			int ndof = NumDOF();
-			int  nen = NumElementNodes();
-			int  nun = nodal_values->NumberOfNodes();
+#if __option(extended_errorcheck)
+			if (fRHS.Length() != body_force.Length()) throw eSizeMismatch;
+#endif
+			int nen = body_force.NumberOfNodes();
 
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 
-			if (axisymmetric)
-			{
-				const LocalArrayT& coords = fShapes->Coordinates();
-				fShapes->TopIP();
-				while (fShapes->NextIP())
+			fShapes->TopIP();
+			while ( fShapes->NextIP() )
+			{					
+				/* integration point accelerations */
+				fShapes->InterpolateU(body_force, fDOFvec);
+
+				/* accumulate in element residual force vector */				
+				double*	res      = fRHS.Pointer();
+				const double* Na = fShapes->IPShapeU();
+
+				double temp = constM*(*Weight++)*(*Det++);				
+				for (int lnd = 0; lnd < nen; lnd++)
 				{
-					/* compute radius */
-					const double* NaX = fShapes->IPShapeX();
-					const double* x_r = coords(0); /* r is x-coordinate */
-					double r = 0.0;
-					for (int a = 0; a < nen; a++)
-						r += (*NaX++)*(*x_r++);
-				
-					/* interpolate nodal values to ip */
-					if (nodal_values)
-						fShapes->InterpolateU(*nodal_values, fDOFvec);
+					double  temp2 = temp*(*Na++);
+					double*  pacc = fDOFvec.Pointer();
 					
-					/* ip sources */
-					if (ip_values)
-						fDOFvec -= (*ip_values)(fShapes->CurrIP());
-
-					/* accumulate in element residual force vector */				
-					double*	res      = fRHS.Pointer();
-					const double* Na = fShapes->IPShapeU();
-				
-					/* integration factor */
-					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-
-					for (int lnd = 0; lnd < nun; lnd++)
-					{
-						double temp2 = temp*(*Na++);
-						double* pacc = fDOFvec.Pointer();
-						for (int dof = 0; dof < ndof; dof++)			
-							*res++ += temp2*(*pacc++);
-					}
-				}
-			}
-			else /* not axisymmetric */
-			{
-				fShapes->TopIP();
-				while (fShapes->NextIP())
-				{					
-					/* interpolate nodal values to ip */
-					if (nodal_values)
-						fShapes->InterpolateU(*nodal_values, fDOFvec);
-					
-					/* ip sources */
-					if (ip_values)
-						fDOFvec -= (*ip_values)(fShapes->CurrIP());
-
-					/* accumulate in element residual force vector */				
-					double*	res      = fRHS.Pointer();
-					const double* Na = fShapes->IPShapeU();
-				
-					/* integration factor */
-					double temp = constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-					
-					for (int lnd = 0; lnd < nun; lnd++)
-					{
-						double temp2 = temp*(*Na++);
-						double* pacc = fDOFvec.Pointer();
-						for (int dof = 0; dof < ndof; dof++)			
-							*res++ += temp2*(*pacc++);
-					}
+					for (int dof = 0; dof < fNumDOF; dof++)			
+						*res++ += temp2*(*pacc++);
 				}
 			}
 			break;
 		}	
 		case kLumpedMass:
 		{
-			fLHS = 0.0; //hope there's nothing in there!
-			FormMass(kLumpedMass, constM, axisymmetric,ip_weight);
+			//cout << "\n ContinuumElementT::FormMa: inertial forces with lumped mass not supported";
+			//cout << endl;
+			//throw eGeneralFail;
+			
+			//for now, no inertial force for lumped mass
+			//but should probably generalize the FormMass and
+			//FormStiffness routines by passing in a target object
+			//in which to place the data
 
-			/* init nodal values */
-			if (nodal_values)
-				nodal_values->ReturnTranspose(fNEEvec);
-			else {
-				ExceptionT::GeneralFail(caller, "expecting nodal values for lumped mass");
-			}
-				
-//TEMP - what to do with ip values?
-if (ip_values)
-	ExceptionT::GeneralFail(caller, "lumped mass not implemented for ip sources");
+#if __option(extended_errorcheck)
+			if (fLHS.Rows() != body_force.Length()) throw eSizeMismatch;
+#endif
+			
+			fLHS = 0.0; //hope there's nothing in there!
+			FormMass(kLumpedMass, constM);
+			body_force.ReturnTranspose(fNEEvec);
 
 			double* pAcc = fNEEvec.Pointer();
 			double* pRes = fRHS.Pointer();
 			int     massdex = 0;
 			
-			int nee = nodal_values->Length();
+			int nee = body_force.Length();
 			for (int i = 0; i < nee; i++)
 			{
 				*pRes++ += (*pAcc++)*fLHS(massdex,massdex);
@@ -998,171 +960,531 @@ if (ip_values)
 	}
 }
 
-/* extract natural boundary condition information */
-void ContinuumElementT::TakeNaturalBC(const ParameterListT& list)
+/* print element group data */
+void ContinuumElementT::PrintControlData(ostream& out) const
 {
-	const char caller[] = "ContinuumElementT::TakeTractionBC";
+	/* inherited */
+	ElementBaseT::PrintControlData(out);
 
-	int num_natural_bc = list.NumLists("natural_bc");
-	if (num_natural_bc > 0)
-	{
-		/* model manager */
-		ModelManagerT& model = ElementSupport().ModelManager();
+	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
+	out << "    eq." << GeometryT::kPoint         << ", point\n";
+	out << "    eq." << GeometryT::kLine          << ", line\n";
+	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
+	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
+	out << "    eq." << GeometryT::kHexahedron	  << ", hexahedron\n";
+	out << "    eq." << GeometryT::kTetrahedron   << ", tetrahedron\n";
+	out << " Number of integration points. . . . . . . . . . = " << fNumIP    << '\n';
+}
+
+void ContinuumElementT::ReadMaterialData(ifstreamT& in)
+{
+	/* construct material list */
+	int size;
+	in >> size;
+	fMaterialList = NewMaterialList(size);
+	if (!fMaterialList) throw eOutOfMemory;
+
+	/* read */
+	fMaterialList->ReadMaterialData(in);
 	
-		/* temp space */
-		ArrayT<StringT> block_ID(num_natural_bc);
-	    ArrayT<iArray2DT> localsides(num_natural_bc);
-	    iArrayT LTf(num_natural_bc);
-	    ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_natural_bc);
-	    ArrayT<dArray2DT> values(num_natural_bc);
-
-	    /* nodes on element facets */
-	    iArrayT num_facet_nodes;
-	    fShapes->NumNodesOnFacets(num_facet_nodes);
-	    
-	    /* loop over natural BC's */
-	    int tot_num_sides = 0;
-	    for (int i = 0; i < num_natural_bc; i++) 
-	   	{
-	    	const ParameterListT& natural_bc = list.GetList("natural_bc", i);
-	    
-	    	/* side set */
-	    	const StringT& ss_ID = natural_bc.GetParameter("side_set_ID");
-			localsides[i] = model.SideSet(ss_ID);
-			int num_sides = localsides[i].MajorDim();
-			tot_num_sides += num_sides;
-			if (num_sides > 0)
-			{
-				block_ID[i] = model.SideSetGroupID(ss_ID);
-				LTf[i] = natural_bc.GetParameter("schedule");
-				coord_sys[i] = Traction_CardT::int2CoordSystemT(natural_bc.GetParameter("coordinate_system"));
-
-				/* switch to elements numbering within the group */
-				iArray2DT& side_set = localsides[i];
-				iArrayT elems(num_sides);
-				side_set.ColumnCopy(0, elems);
-				BlockToGroupElementNumbers(elems, block_ID[i]);
-				side_set.SetColumn(0, elems);
-
-				/* all facets in set must have the same number of nodes */
-				int num_nodes = num_facet_nodes[side_set(0,1)];
-				for (int f = 0; f < num_sides; f++)
-					if (num_facet_nodes[side_set(f,1)] != num_nodes)
-						ExceptionT::BadInputValue(caller, "faces side set \"%s\" have different numbers of nodes",
-							ss_ID.Pointer());
-
-				/* read traction nodal values */
-				dArray2DT& nodal_values = values[i];
-				nodal_values.Dimension(num_nodes, NumDOF());
-				int num_traction_vectors = natural_bc.NumLists("DoubleList");
-				if (num_traction_vectors != 1 && num_traction_vectors != num_nodes)
-					ExceptionT::GeneralFail(caller, "expecting 1 or %d vectors not %d",
-						num_nodes, num_traction_vectors);
-						
-				/* constant over the face */
-				if (num_traction_vectors == 1) {
-					const ParameterListT& traction_vector = natural_bc.GetList("DoubleList");
-					int dim = traction_vector.NumLists("Double");
-					if (dim != NumDOF())
-						ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
-							NumDOF(), dim);
-
-					/* same for all face nodes */
-					for (int f = 0; f < NumDOF(); f++) {
-						double t = traction_vector.GetList("Double", f).GetParameter("value");
-						nodal_values.SetColumn(f, t);
-					}
-				}
-				else
-				{
-					/* read separate vector for each face node */
-					dArrayT t;
-					for (int f = 0; f < num_nodes; f++) {
-						const ParameterListT& traction_vector = natural_bc.GetList("DoubleList", f);
-					int dim = traction_vector.NumLists("Double");
-						if (dim != NumDOF())
-							ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
-								NumDOF(), dim);
-
-						nodal_values.RowAlias(f, t);
-						for (int j = 0; j < NumDOF(); j++)
-							t[j] = traction_vector.GetList("Double", j).GetParameter("value");
-					}
-				}
-			}
-	    }
-#pragma message("OK with empty side sets?")
-
-		/* allocate all traction BC cards */
-	    fTractionList.Dimension(tot_num_sides);
-
-	    /* correct numbering offset */
-	    LTf--;
-
-		/* define traction cards */
-		if (tot_num_sides > 0)
+	/* check range */
+	for (int i = 0; i < fBlockData.MajorDim(); i++)
+		if (fBlockData(i, kBlockMat) < 0 ||
+		    fBlockData(i, kBlockMat) >= size)
 		{
-			iArrayT loc_node_nums;
-			int dex = 0;
-			for (int i = 0; i < num_natural_bc; i++)
-			{
-				/* set traction BC cards */
-				iArray2DT& side_set = localsides[i];
-				int num_sides = side_set.MajorDim();
-				for (int j = 0; j < num_sides; j++)
-				{					
-					/* get facet local node numbers */
-					fShapes->NodesOnFacet(side_set(j, 1), loc_node_nums);
-					
-					/* set and echo */
-					fTractionList[dex++].SetValues(ElementSupport(), side_set(j,0), side_set (j,1), LTf[i],
-						 coord_sys[i], loc_node_nums, values[i]);
-				}
-			}
+			cout << "\n ContinuumElementT::ReadMaterialData: material number "
+			     << fBlockData(i, kBlockMat) + 1 << '\n';
+			cout<<    "     for element block " << i + 1 << " is out of range" << endl;
+			throw eBadInputValue;
 		}
+}
 
+/* use in conjunction with ReadMaterialData */
+void ContinuumElementT::WriteMaterialData(ostream& out) const
+{
+	fMaterialList->WriteMaterialData(out);
+
+	/* flush buffer */
+	out.flush();
+}
+
+void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)
+{
+	/* read LTf and force vector */
+	in >> fBodyForceLTf >> fBody;		
+	if (fBodyForceLTf < 0 || fBodyForceLTf > fFEManager.NumberOfLTf())
+		throw eBadInputValue;
+	fBodyForceLTf--;
+
+	/* no LTf => no body force */
+	if (fBodyForceLTf < 0) fBody = 0.0;
+	
+	out << "\n Body force vector:\n";
+	out << " Body force load-time function number. . . . . . = " << fBodyForceLTf + 1<< '\n';
+	out << " Body force vector components:\n";
+	for (int j = 0 ; j < fNumDOF; j++)
+	{
+		out << "   x[" << j+1 << "] direction. . . . . . . . . . . . . . . . = ";
+		out << fBody[j] << '\n';
+	}
+	out.flush();   	   	
+}
+
+void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
+{
+	out << "\n Traction boundary conditions:\n";
+	
+	/* dispatch */
+	switch (fFEManager.InputFormat())
+	{
+		case IOBaseT::kTahoe:
+			EchoTractionBC_ASCII(in, out);
+			break;
+
+		case IOBaseT::kTahoeII:
+			EchoTractionBC_TahoeII(in, out);
+			break;
+
+		case IOBaseT::kExodusII:
+			EchoTractionBC_ExodusII(in, out);
+			break;
+
+		default:
+
+			cout << "\n ContinuumElementT::EchoTractionBC: unsupported input format: ";
+			cout << fFEManager.InputFormat() << endl;
+			throw eGeneralFail;
+	}
+	
+	if (fNumSD != fNumDOF)
+	{
 		/* check coordinate system specifications */
-		if (NumSD() != NumDOF())
-			for (int i = 0; i < fTractionList.Length(); i++)
-				if (fTractionList[i].CoordSystem() != Traction_CardT::kCartesian)
-					ExceptionT::BadInputValue(caller, "coordinate system must be Cartesian if (nsd != ndof) for card %d", i+1);
+		for (int i = 0; i < fTractionList.Length(); i++)
+			if (fTractionList[i].CoordSystem() != Traction_CardT::kCartesian)
+			{
+				cout << "\n ContinuumElementT::EchoTractionBC: coordinate system must be\n"
+				     <<   "    Cartesian:" << Traction_CardT::kCartesian
+				     << " if (spatial dimensions != degrees of freedom)\n"
+				     <<   "    for card " << i+1 << endl;
+				throw eBadInputValue;
+			}
 	}
 }
 
-/* return a pointer to a new material list */
-MaterialListT* ContinuumElementT::NewMaterialList(const StringT& name, int size)
+void ContinuumElementT::EchoTractionBC_ASCII(ifstreamT& in, ostream& out)
 {
-#pragma unused(name)
-#pragma unused(size)
-	return NULL;
+	int num_BC;
+	in >> num_BC;		
+	out << " Number of traction BC's . . . . . . . . . . . . = " << num_BC << '\n';
+
+	if (num_BC > 0)
+	{
+		int num_sets = 1;
+		if (fBlockData.MajorDim() > 1) in >> num_sets;
+
+		/* allocate */
+		fTractionList.Allocate(num_BC);
+		fTractionList[0].WriteHeader(out, fNumDOF);
+
+		/* external file */
+		ifstreamT tmp;
+		ifstreamT& in2 = fFEManager.OpenExternal(in, tmp, out, true,
+			"ContinuumElementT::EchoTractionBC_ASCII: could not open file");
+
+		/* echo */
+		int count = 0;
+		for (int k = 0; k < num_sets; k++)
+		{
+			/* block to group element number */
+			int offset = 0;
+			int size = fNumElements;
+			int num = num_BC;
+			int ID;
+			if (fBlockData.MajorDim() > 1)
+			{
+				in2 >> ID >> num;
+				
+				/* correct offset */
+				ID--;
+			
+				/* check */
+				if (count + num > fNumElements)
+				{
+					cout << "\n ContinuumElementT::EchoTractionBC_ASCII: block size " << num << '\n';
+					cout <<   "     exceeds total BC count " << num_BC << endl;
+					throw eBadInputValue;
+				}
+				
+				/* get block data */
+				const int* block_data = BlockData(ID);
+				offset = block_data[kStartNum ];
+				size   = block_data[kBlockDim];
+			}
+			
+			for (int i = 0; i < num; i++)
+			{
+				/* resolve group element number */
+				int elem;
+				in2 >> elem;
+				elem--;
+				if (elem < 0 || elem >= size)
+				{
+					cout << "\n ContinuumElementT::EchoTractionBC_ASCII: element " << elem + 1;
+					if (fBlockData.MajorDim() > 1)
+						cout << " in block " << ID << "\n    ";
+					cout << " is out of range " << size << endl;
+					throw eBadInputValue;
+				}
+				elem += offset;
+				
+				/* echo traction specification */
+				fTractionList[count].EchoValues(fFEManager, *fShapes, elem, fNumDOF, in, out);
+
+				/* next */
+				count++;
+			}
+		}
+		
+		/* check */
+		if (count != num_BC)
+		{
+			cout << "\n ContinuumElementT::EchoTractionBC_ASCII: " << count << " cards read from\n";
+			cout <<   "     file does not equal total " << num_BC << endl;
+			throw eBadInputValue;		
+		}
+		else out.flush();
+		
+		// could check for duplicates
+	}
 }
 
-/* construct a new material support and return a pointer */
-MaterialSupportT* ContinuumElementT::NewMaterialSupport(MaterialSupportT* p) const
+void ContinuumElementT::EchoTractionBC_TahoeII(ifstreamT& in, ostream& out)
 {
-	if (!p) p = new MaterialSupportT(NumDOF(), NumIP());
+	/* number of kinematic BC node sets */
+	int num_BC_sets;
+	in >> num_BC_sets;
+	if (num_BC_sets < 0) throw eBadInputValue;
+	out << " Number of traction BC side sets . . . . . . . . = ";
+	out << num_BC_sets << "\n\n";
 
-	/* ContinuumElementT sources */
-	p->SetContinuumElement(this);
-	p->SetElementCards(const_cast<AutoArrayT<ElementCardT>* >(&fElementCards));
-	p->SetCurrIP(CurrIP());
-	p->SetGroup(Group());
+	if (num_BC_sets > 0)
+	{
+		/* open database */
+		ModelFileT model_file;
+		model_file.OpenRead(fFEManager.ModelFile());
 
-	/* ElementSupportT sources */
-//	const ElementSupportT& e_support = ElementSupport();
-//	p->SetRunState(e_support.RunState());
-//	p->SetStepNumber(e_support.StepNumber());
-//	p->SetIterationNumber(e_support.IterationNumber(Group()));
-//TEMP - solvers not set up yet. For now, the source for the iteration number will
-//       be set in the InitialCondition call for the subclass.
-//	p->SetTime(e_support.Time());                              
-//	p->SetTimeStep(e_support.TimeStep());
-//	p->SetNumberOfSteps(e_support.NumberOfSteps());
+		/* nodes on element facets */
+		iArrayT num_facet_nodes;
+		fShapes->NumNodesOnFacets(num_facet_nodes);
 
-	/* set pointer to local array */
-	p->SetLocalArray(fLocDisp);
+		/* temp space */
+		iArrayT set_ID(num_BC_sets);
+		iArrayT LTf(num_BC_sets);
+		ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_BC_sets);
+		ArrayT<iArray2DT> side_sets(num_BC_sets);
+		ArrayT<dArray2DT> valuesT(num_BC_sets);
 
-	return p;
+		/* echo set specifiers */
+		int count = 0;
+		for (int i = 0; i < num_BC_sets; i++)
+		{
+			in >> set_ID[i] >> LTf[i] >> coord_sys[i];
+			int num_sides;
+			if (model_file.GetSideSetDimensions(set_ID[i], num_sides) !=
+			    ModelFileT::kOK) throw eBadInputValue;
+
+			/* increment total count */
+			count += num_sides;
+
+			/* skip if empty */
+			int num_nodes;
+			if (num_sides > 0)
+			{
+				/* read side set */
+				int block_ID;
+				iArray2DT& side_set = side_sets[i];
+				side_set.Allocate(num_sides, 2);
+				if (model_file.GetSideSet(set_ID[i], block_ID, side_set) !=
+				    ModelFileT::kOK) throw eBadInputValue;
+	
+				/* correct offset */
+				side_set--;
+	
+				/* switch to group numbering */
+				const int* block_data = BlockData(block_ID);
+				iArrayT elems(side_set.MajorDim());
+				side_set.ColumnCopy(0, elems);
+	
+				/* check */
+				int min, max;
+				elems.MinMax(min, max);
+				if (min < 0 || max > block_data[kBlockDim])
+				{
+					cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: node numbers\n";
+					cout <<   "     {"<< min << "," << max << "} are out of range in side";
+					cout << " set ID " << set_ID[i] << endl;
+					throw eBadInputValue;
+				}
+
+				/* shift */
+				elems += block_data[kStartNum];
+				side_set.SetColumn(0, elems);
+
+				/* all facets in set must have the same number of nodes */
+				num_nodes = num_facet_nodes[side_set(0,1)];
+				for (int j = 1; j < num_sides; j++)
+					if (num_facet_nodes[side_set(j,1)] != num_nodes)
+					{
+						cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: sides specified\n";
+						cout <<   "     in ID " << set_ID[i] << " have differing numbers of nodes";
+						cout << endl;
+						throw eBadInputValue;
+					}
+			}
+			else
+			{
+				/* still number of facet nodes */
+				int min, max;
+				num_facet_nodes.MinMax(min, max);
+				if (min != max)
+				{
+					cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: cannot determine number of\n"
+					     <<   "     facet nodes for empty side set with ID " << set_ID[i] << endl;
+					throw eBadInputValue;
+				}
+				else
+					num_nodes = min;
+			}
+				
+			/* read traction BC values */
+			dArray2DT& valueT = valuesT[i];
+			valueT.Allocate(num_nodes, fNumDOF);
+			in >> valueT;
+			//NOTE - cannot simply clear to the end of the line with empty side sets
+			//       because the tractions may be on multiple lines
+		}
+
+		/* allocate all traction BC cards */
+		fTractionList.Allocate(count);
+
+		/* correct numbering offset */
+		LTf--;
+
+		/* echo node sets */
+		iArrayT loc_node_nums;
+		int dex = 0;
+		for (int ii = 0; ii < num_BC_sets; ii++)
+		{
+			const iArray2DT& side_set = side_sets[ii];
+			int num_sides = side_set.MajorDim();
+	
+			/* write header */
+		  	out << " Exodus side set ID. . . . . . . . . . . . . . . = ";
+			out << set_ID[ii] << '\n';
+			out << " Number of traction BC cards . . . . . . . . . . = ";
+			out << num_sides << endl;
+			
+			if (count > 0)
+			{
+				out << '\n';
+				out << setw(kIntWidth) << "no.";
+				fTractionList[0].WriteHeader(out, fNumDOF);
+		
+				/* set traction BC cards */
+				for (int j = 0; j < num_sides; j++)
+				{
+					out << setw(kIntWidth) << j+1;			
+
+					/* get facet local node numbers */
+					fShapes->NodesOnFacet(side_set(j,1), loc_node_nums);
+
+					/* set and echo */
+					fTractionList[dex++].EchoValues(fFEManager, side_set(j,0), side_set(j,1), LTf[ii],
+						coord_sys[ii], loc_node_nums, valuesT[ii], out);
+				}			
+				out << endl;
+			}
+		}
+	}
+}
+
+void ContinuumElementT::EchoTractionBC_ExodusII(ifstreamT& in, ostream& out)
+{
+	/* number of kinematic BC node sets */
+	int num_BC_sets;
+	in >> num_BC_sets;
+	if (num_BC_sets < 0) throw eBadInputValue;
+	out << " Number of traction BC side sets . . . . . . . . = ";
+	out << num_BC_sets << "\n\n";
+
+	if (num_BC_sets > 0)
+	{
+		/* open database */
+		ExodusT database(out);
+		database.OpenRead(fFEManager.ModelFile());
+
+		/* nodes on element facets */
+		iArrayT num_facet_nodes;
+		fShapes->NumNodesOnFacets(num_facet_nodes);
+
+		/* temp space */
+		iArrayT set_ID(num_BC_sets);
+		iArrayT LTf(num_BC_sets);
+		ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_BC_sets);
+		ArrayT<iArray2DT> side_sets(num_BC_sets);
+		ArrayT<dArray2DT> valuesT(num_BC_sets);
+
+		/* echo set specifiers */
+		int count = 0;
+		for (int i = 0; i < num_BC_sets; i++)
+		{
+			in >> set_ID[i] >> LTf[i] >> coord_sys[i];
+			int num_sides = database.NumSidesInSet(set_ID[i]);
+
+			/* increment total count */
+			count += num_sides;
+			
+			/* skip if empty */
+			int num_nodes;
+			if (num_sides > 0)
+			{
+				/* read side set */
+				int block_ID;
+				iArray2DT& side_set = side_sets[i];
+				side_set.Allocate(num_sides, 2);
+				database.ReadSideSet(set_ID[i], block_ID, side_set);
+
+				/* correct offset */
+				side_set--;
+
+				/* switch to group numbering */
+				const int* block_data = BlockData(block_ID);
+				iArrayT elems(side_set.MajorDim());
+				side_set.ColumnCopy(0, elems);
+
+				/* check */
+				int min, max;
+				elems.MinMax(min, max);
+				if (min < 0 || max > block_data[kBlockDim])
+				{
+					cout << "\n ContinuumElementT::EchoTractionBC_Exodus: node numbers\n";
+					cout <<   "     {"<< min << "," << max << "} are out of range in side";
+					cout << " set ID " << set_ID[i] << endl;
+					throw eBadInputValue;
+				}
+
+				/* shift */
+				elems += block_data[kStartNum];
+				side_set.SetColumn(0, elems);
+
+				/* all facets in set must have the same number of nodes */
+				num_nodes = num_facet_nodes[side_set(0,1)];
+				for (int j = 1; j < num_sides; j++)
+					if (num_facet_nodes[side_set(j,1)] != num_nodes)
+					{
+						cout << "\n ContinuumElementT::EchoTractionBC_Exodus: sides specified\n";
+						cout <<   "     in ID " << set_ID[i] << " have differing numbers of nodes";
+						cout << endl;
+						throw eBadInputValue;
+					}
+			}
+			else
+			{
+				/* still number of facet nodes */
+				int min, max;
+				num_facet_nodes.MinMax(min, max);
+				if (min != max)
+				{
+					cout << "\n ContinuumElementT::EchoTractionBC_Exodus: cannot determine number of\n"
+					     <<   "     facet nodes for empty side set with ID " << set_ID[i] << endl;
+					throw eBadInputValue;
+				}
+				else
+					num_nodes = min;
+			}
+				
+			/* read traction BC values */
+			dArray2DT& valueT = valuesT[i];
+			valueT.Allocate(num_nodes, fNumDOF);
+			in >> valueT;
+			//NOTE - cannot simply clear to the end of the line with empty side sets
+			//       because the tractions may be on multiple lines
+		}
+
+		/* allocate all traction BC cards */
+		fTractionList.Allocate(count);
+
+		/* correct numbering offset */
+		LTf--;
+
+		/* echo node sets */
+		iArrayT loc_node_nums;
+		int dex = 0;
+		for (int ii = 0; ii < num_BC_sets; ii++)
+		{
+			const iArray2DT& side_set = side_sets[ii];
+			int num_sides = side_set.MajorDim();
+	
+			/* write header */
+		  	out << " Exodus side set ID. . . . . . . . . . . . . . . = ";
+			out << set_ID[ii] << '\n';
+			out << " Number of traction BC cards . . . . . . . . . . = ";
+			out << num_sides << endl;
+			
+			if (count > 0)
+			{
+				out << '\n';
+				out << setw(kIntWidth) << "no.";
+				fTractionList[0].WriteHeader(out, fNumDOF);
+		
+				/* set traction BC cards */
+				for (int j = 0; j < num_sides; j++)
+				{
+					out << setw(kIntWidth) << j+1;			
+
+					/* get facet local node numbers */
+					fShapes->NodesOnFacet(side_set(j,1), loc_node_nums);
+
+					/* set and echo */
+					fTractionList[dex++].EchoValues(fFEManager, side_set(j,0), side_set(j,1), LTf[ii],
+						coord_sys[ii], loc_node_nums, valuesT[ii], out);
+				}			
+				out << endl;
+			}
+		}
+	}
+}
+
+/* return the "bounding" elements and the corresponding
+* neighbors, both dimensioned internally */
+void ContinuumElementT::BoundingElements(iArrayT& elements, iArray2DT& neighbors) const
+{
+	//TEMP - not parallelized
+	if (fFEManager.Size() > 1)
+		cout << "\n ContinuumElementT::BoundingElements: not extended to parallel" << endl;
+
+	/* build element neighbor list */
+	iArray2DT nodefacetmap;
+	fShapes->NeighborNodeMap(nodefacetmap);
+	EdgeFinderT edger(fConnectivities, nodefacetmap);
+	const iArray2DT& all_neighbors = edger.Neighbors();
+
+	/* collect list of bounding elements */
+	AutoArrayT<int> borders;
+	iArrayT element;
+	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	{
+		all_neighbors.RowAlias(i, element);
+	
+		/* has "free" edge */
+		if (element.HasValue(-1)) borders.Append(i);
+	}
+	elements.Allocate(borders.Length());
+	borders.CopyInto(elements);
+	
+	/* copy bounding element neighbor lists */
+	neighbors.Allocate(elements.Length(), all_neighbors.MinorDim());
+	neighbors.RowCollect(elements, all_neighbors);
 }
 
 /* write all current element information to the stream */
@@ -1171,241 +1493,22 @@ void ContinuumElementT::CurrElementInfo(ostream& out) const
 	/* inherited */
 	ElementBaseT::CurrElementInfo(out);
 	dArray2DT temp;
-	temp.Dimension(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
+	temp.Allocate(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
 	
 	out <<   " initial coords:\n";
-	temp.Dimension(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
+	temp.Allocate(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
 	fLocInitCoords.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 
 	out <<   " displacements:\n";
-	temp.Dimension(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
+	temp.Allocate(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
 	fLocDisp.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 }
 
-/* check material outputs - return true if OK */
-bool ContinuumElementT::CheckMaterialOutput(void) const
-{
-	/* check compatibility of output */
-	if (fMaterialList && fMaterialList->Length() > 1)
-	{
-		/* check compatibility of material outputs */
-		bool OK = true;
-		int i, j;
-		for (i = 0; OK && i < fMaterialList->Length(); i++)
-		{
-			ContinuumMaterialT* m_i = (*fMaterialList)[i];
-			for (j = i+1; OK && j < fMaterialList->Length(); j++)
-			{
-				ContinuumMaterialT* m_j = (*fMaterialList)[j];
-				OK = ContinuumMaterialT::CompatibleOutput(*m_i, *m_j);
-			}
-		}
-		i--; j--;
-			
-		/* output not compatible */
-		if (!OK)	
-		{
-#pragma message("report names")
-			cout << "\n ContinuumElementT::CheckMaterialOutput: incompatible output\n"
-			    <<    "     between materials " << i+1 << " and " << j+1 << ":\n";
-//			(*fMaterialList)[i]->PrintName(cout);
-			cout << '\n';
-//			(*fMaterialList)[j]->PrintName(cout);
-			cout << endl;
-			return false;
-		}
-	}
-	
-	/* no problems */
-	return true;
-}
-
-/* describe the parameters needed by the interface */
-void ContinuumElementT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ElementBaseT::DefineParameters(list);
-
-	/* flag to store shape functions and derivatives */
-	ParameterT store_shape(fStoreShape, "store_shapefunctions");
-	store_shape.SetDefault(fStoreShape);
-	list.AddParameter(store_shape, ParameterListT::ZeroOrOnce);
-}
-
-/* information about subordinate parameter lists */
-void ContinuumElementT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ElementBaseT::DefineSubs(sub_list);
-
-	/* geometry and integration rule (inline) */
-	sub_list.AddSub("element_geometry", ParameterListT::Once, true);
-
-	/* optional body force */
-	sub_list.AddSub("body_force", ParameterListT::ZeroOrOnce);
-	
-	/* tractions */
-	sub_list.AddSub("natural_bc", ParameterListT::Any);
-}
-
-/* return the description of the given inline subordinate parameter list */
-void ContinuumElementT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-	SubListT& sub_lists) const
-{
-	/* geometry and integration rule (inline) */
-	if (name == "element_geometry")
-	{
-		/* choice */
-		order = ParameterListT::Choice;
-	
-		/* element geometries */
-		sub_lists.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
-		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTriangle));
-		sub_lists.AddSub(GeometryT::ToString(GeometryT::kHexahedron));
-		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTetrahedron));
-		sub_lists.AddSub(GeometryT::ToString(GeometryT::kLine));
-	}
-	else
-		ElementBaseT::DefineInlineSub(name, order, sub_lists);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& name) const
-{
-	/* create non-const this */
-	ContinuumElementT* non_const_this = const_cast<ContinuumElementT*>(this);
-
-	/* try material list */
-	MaterialListT* material_list = non_const_this->NewMaterialList(name, 0);
-	if (material_list)
-		return material_list;
-		
-	/* try geometry */
-	ParameterInterfaceT* geometry = GeometryT::New(name);
-	if (geometry)
-		return geometry;
-
-	/* body force */
-	if (name == "body_force")
-	{
-		ParameterContainerT* body_force = new ParameterContainerT(name);
-	
-		/* schedule number */
-		body_force->AddParameter(ParameterT::Integer, "schedule");
-	
-		/* body force vector */
-		body_force->AddSub("Double", ParameterListT::OnePlus); 		
-		
-		return body_force;
-	}
-	else if (name == "natural_bc") /* traction bc */
-	{
-		ParameterContainerT* natural_bc = new ParameterContainerT(name);
-
-		natural_bc->AddParameter(ParameterT::Word, "side_set_ID");
-		natural_bc->AddParameter(ParameterT::Integer, "schedule");
-
-		ParameterT coord_sys(ParameterT::Enumeration, "coordinate_system");
-		coord_sys.AddEnumeration("global", Traction_CardT::kCartesian);
-		coord_sys.AddEnumeration( "local", Traction_CardT::kLocal);
-		coord_sys.SetDefault(Traction_CardT::kCartesian);
-		natural_bc->AddParameter(coord_sys);
-
-		natural_bc->AddSub("DoubleList", ParameterListT::OnePlus); 		
-		
-		return natural_bc;
-	}
-	else /* inherited */
-		return ElementBaseT::NewSub(name);
-}
-
-/* accept parameter list */
-void ContinuumElementT::TakeParameterList(const ParameterListT& list)
-{
-	const char caller[] = "ContinuumElementT::TakeParameterList";
-
-	/* resolve geometry before calling inherited method - geometry code
-	 * may be needed while reading connectivities */
-	const ParameterListT& integration_domain = list.GetListChoice(*this, "element_geometry");
-	fGeometryCode = GeometryT::string2CodeT(integration_domain.Name());
-
-	/* inherited */
-	ElementBaseT::TakeParameterList(list);
-
-	/* construct group communicator */
-	const CommunicatorT& comm = ElementSupport().Communicator();
-	int color = (NumElements() > 0) ? 1 : CommunicatorT::kNoColor;
-	fGroupCommunicator = new CommunicatorT(comm, color, comm.Rank());
-
-	/* allocate work space */
-	fNEEvec.Dimension(NumElementNodes()*NumDOF());
-	fDOFvec.Dimension(NumDOF());
-
-	/* initialize local arrays */
-	SetLocalArrays();
-
-	/* construct shape functions */
-	fNumIP = integration_domain.GetParameter("num_ip");
-	SetShape();
-
-	/* flag to compute and store shape function derivatives */
-	const ParameterT* store_shape = list.Parameter("store_shapefunctions");
-	if (store_shape) fStoreShape = *store_shape;
-
-	/* construct material list */
-	ParameterListT mat_params;
-	CollectMaterialInfo(list, mat_params);
-	if (mat_params.NumLists() > 0)
-	{
-		fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
-		if (!fMaterialList) ExceptionT::GeneralFail(caller, "could not construct material list \"%s\"", 
-			mat_params.Name().Pointer());
-		fMaterialList->TakeParameterList(mat_params);
-	}
-
-	/* get form of tangent */
-	GlobalT::SystemTypeT type = TangentType();
-	
-	/* set form of element stiffness matrix */
-	if (type == GlobalT::kSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-	else if (type == GlobalT::kNonSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-	else if (type == GlobalT::kDiagonal)
-		fLHS.SetFormat(ElementMatrixT::kDiagonal);
-
-	/* body force */
-	const ParameterListT* body_force = list.List("body_force");
-	if (body_force) {
-		int schedule = body_force->GetParameter("schedule");
-		fBodySchedule = ElementSupport().Schedule(--schedule);
-
-		/* body force vector */
-		const ArrayT<ParameterListT>& body_force_vector = body_force->Lists();
-		if (body_force_vector.Length() != NumDOF())
-			ExceptionT::BadInputValue(caller, "body force is length %d not %d",
-				body_force_vector.Length(), NumDOF());
-		fBody.Dimension(NumDOF());
-		for (int i = 0; i < fBody.Length(); i++)
-			fBody[i] = body_force_vector[i].GetParameter("value");
-	}
-	
-	/* extract natural boundary conditions */
-	TakeNaturalBC(list);
-}
-
-/* extract the list of material parameters */
-void ContinuumElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
-{
-#pragma unused(all_params)
-	mat_params.Clear();
-}
-
 /***********************************************************************
- * Private
- ***********************************************************************/
+* Private
+***********************************************************************/
 
 /* update traction BC data */
 void ContinuumElementT::SetTractionBC(void)
@@ -1415,9 +1518,6 @@ void ContinuumElementT::SetTractionBC(void)
 //      regard to the validity of the node/equation numbers, requiring
 //      only that NodesX in the element cards has the correct global
 //      node numbers.
-
-	/* dimensions */
-	int ndof = NumDOF();
 
 	/* echo values */
 	iArray2DT nd_tmp, eq_tmp;
@@ -1434,17 +1534,17 @@ void ContinuumElementT::SetTractionBC(void)
 		int nnd = loc_nodes.Length();
 		
 		iArrayT& nodes = BC_card.Nodes();
-		nodes.Dimension(nnd);
+		nodes.Allocate(nnd);
 		nodes.Collect(loc_nodes, fElementCards[elem].NodesX());
 		
 		/* set global equation numbers */
 		iArrayT& eqnos = BC_card.Eqnos();
-		eqnos.Dimension(ndof*nnd);
+		eqnos.Allocate(fNumDOF*nnd);
 		
 		/* get from node manager */
 		nd_tmp.Set(1, nnd, nodes.Pointer());
-		eq_tmp.Set(1, ndof*nnd, eqnos.Pointer());
-		Field().SetLocalEqnos(nd_tmp, eq_tmp);
+		eq_tmp.Set(1, fNumDOF*nnd, eqnos.Pointer());
+		fNodes->SetLocalEqnos(nd_tmp, eq_tmp);
 	}
 
 	/* set flag */

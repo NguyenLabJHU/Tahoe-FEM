@@ -1,48 +1,36 @@
-/* $Id: Anisotropic2DT.cpp,v 1.6 2004-07-15 08:29:19 paklein Exp $ */
-/* created: paklein (06/11/1997) */
+/* $Id: Anisotropic2DT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (06/11/1997)                                          */
+/* Base class for 2D anisotropic materials                                */
+
 #include "Anisotropic2DT.h"
 
 #include <iostream.h>
-#include "ifstreamT.h"
-#include "Rotate2DT.h"
 
-using namespace Tahoe;
+#include "Rotate2DT.h"
+#include "fstreamT.h"
 
 /* constructors */
-Anisotropic2DT::Anisotropic2DT(ifstreamT& in): 
-	fRotator(NULL)
+Anisotropic2DT::Anisotropic2DT(ifstreamT& in): fRotator(NULL)
 {
-	int is_rotated;
-	in >> is_rotated;
-	if (is_rotated != 0 && is_rotated != 1) throw ExceptionT::kBadInputValue;
-	
 	double theta12;
+	
+	in >> fIsRotated;
+	if (fIsRotated != 0 && fIsRotated != 1) throw eBadInputValue;
+	
 	in >> theta12;	/* read in degrees */
 		
 	/* double check angle, but construct regardless */
-	if (!is_rotated) theta12 = 0.0;	
+	if (!fIsRotated) theta12 = 0.0;	
 	
-	/* set rotator */
-	fRotator = new Rotate2DT;
-	SetRotation(theta12);
-}
-
-Anisotropic2DT::Anisotropic2DT(void):
-	fRotator(NULL)
-{
-	/* set rotator */
-	fRotator = new Rotate2DT;
-}
-
-/* set the rotation angle */
-void Anisotropic2DT::SetRotation(double angle)
-{
-	/* construct new rotator */
-	fRotator->SetAngle(angle);
+	fRotator = new Rotate2DT(theta12);		
+	if (!fRotator) throw eOutOfMemory;
 }
 
 /* destructor */
-Anisotropic2DT::~Anisotropic2DT(void) { delete fRotator; }
+Anisotropic2DT::~Anisotropic2DT(void)
+{
+	delete fRotator;
+}
 
 /* I/O functions */
 void Anisotropic2DT::Print(ostream& out) const
@@ -66,7 +54,7 @@ const dMatrixT& Anisotropic2DT::Q(void) const
 const dArrayT& Anisotropic2DT::TransformIn(const dArrayT& vector)
 {
 	/* tranform into material coordinates */
-	if (fabs(fRotator->Angle()) > kSmall)
+	if (fIsRotated)
 		return fRotator->RotateVectorIn(vector);
 	else
 		return vector;
@@ -75,7 +63,7 @@ const dArrayT& Anisotropic2DT::TransformIn(const dArrayT& vector)
 const dArrayT& Anisotropic2DT::TransformOut(const dArrayT& vector)
 {
 	/* tranform out of material coordinates */
-	if (fabs(fRotator->Angle()) > kSmall)
+	if (fIsRotated)
 		return fRotator->RotateVectorOut(vector);
 	else
 		return vector;
@@ -86,7 +74,7 @@ const dArrayT& Anisotropic2DT::TransformOut(const dArrayT& vector)
 const dSymMatrixT& Anisotropic2DT::TransformIn(const dSymMatrixT& redmat)
 {
 	/* tranform into material coordinates */
-	if (fabs(fRotator->Angle()) > kSmall)
+	if (fIsRotated)
 		return fRotator->RotateRedMatIn(redmat);
 	else
 		return redmat;
@@ -95,7 +83,7 @@ const dSymMatrixT& Anisotropic2DT::TransformIn(const dSymMatrixT& redmat)
 const dSymMatrixT& Anisotropic2DT::TransformOut(const dSymMatrixT& redmat)
 {
 	/* tranform out of material coordinates */
-	if (fabs(fRotator->Angle()) > kSmall)
+	if (fIsRotated)
 		return fRotator->RotateRedMatOut(redmat);
 	else
 		return redmat;
@@ -105,12 +93,10 @@ const dSymMatrixT& Anisotropic2DT::TransformOut(const dSymMatrixT& redmat)
 * and could therefore be stored in their transformed state */
 void Anisotropic2DT::TransformIn(dMatrixT& redtensor)
 {
-	if (fabs(fRotator->Angle()) > kSmall)
-		fRotator->RotateRedTensorIn(redtensor);
+	if (fIsRotated) fRotator->RotateRedTensorIn(redtensor);
 }
 
 void Anisotropic2DT::TransformOut(dMatrixT& redtensor)
 {
-	if (fabs(fRotator->Angle()) > kSmall)
-		fRotator->RotateRedTensorOut(redtensor);
+	if (fIsRotated) fRotator->RotateRedTensorOut(redtensor);
 }

@@ -1,17 +1,23 @@
-/* $Id: J2QLLinHardT.cpp,v 1.14 2004-07-15 08:28:54 paklein Exp $ */
-/* created: paklein (10/26/2000) */
+/* $Id: J2QLLinHardT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (10/26/2000)                                          */
+/* Interface for a elastoplastic material that is linearly                */
+/* isotropically elastic subject to the Huber-von Mises yield             */
+/* condition as fYield with kinematic/isotropic hardening laws            */
+/* given by:                                                              */
+/* 		H(a) = (1 - ftheta) fH_bar a                                         */
+/* K(a) = fYield + ftheta fH_bar a                                        */
+/* 		where a is the internal hardening variable                           */
+
 #include "J2QLLinHardT.h"
 
 #include <iostream.h>
 #include <math.h>
 
-#include "toolboxConstants.h"
-
+#include "Constants.h"
+#include "ElasticT.h"
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
-
-using namespace Tahoe;
 
 /* flags */
 const int kNumFlags = 2;
@@ -47,17 +53,41 @@ const int kNSD = 3;
 /* element output data */
 const int kNumOutput = 5;
 static const char* Labels[kNumOutput] = {
-        "alpha",  // equivalent plastic strain
+"alpha",  // equivalent plastic strain
 	 "VM_Kirch",  // Kirchhoff Von Mises stress
-	    "press",  // pressure
-	    "s_max",  // max principal stress
-	    "s_min"}; // min principal stress
+	        "p",  // pressure
+	    "s_max",  // max in-plane principal stress
+	    "s_min"}; // min in-plane principal stress
 
 /* constructor */
-J2QLLinHardT::J2QLLinHardT(void):
-	ParameterInterfaceT("quad_log_J2")
-{
+J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const ElasticT& element):
+	QuadLog3D(in, element),
+	J2PrimitiveT(in),
+	fb_elastic(kNSD),
+	fEPModuli(kNSD),
 
+	/* work space */
+	fa_inverse(kNSD),
+	fMatrixTemp1(kNSD),
+	fMatrixTemp2(kNSD),
+	fdev_beta(kNSD),
+	
+	/* deformation gradient stuff */
+	fLocLastDisp(element.LastDisplacements()),
+	fFtot(kNSD),
+	ffrel(kNSD),
+	fF_temp(kNSD)
+{
+	/* check last displacements */
+	if (!fLocLastDisp.IsRegistered() ||
+		 fLocLastDisp.MinorDim() != NumDOF())
+	{
+		cout << "\n J2QLLinHardT::J2QLLinHardT: last local displacement vector is invalid" << endl;
+		throw eGeneralFail;
+	}
+
+	/* for intermediate config update */
+	fa_inverse.Inverse(fEigMod);
 }
 
 /* update internal variables */
@@ -72,11 +102,8 @@ void J2QLLinHardT::UpdateHistory(void)
 		if (Flags[ip] != kReset && Flags[ip] != kNotInit)
 		//if (Flags[ip] == kIsPlastic || Flags[ip] == kP0)
 		{
-			/* mark internal state as up to date */
-			Flags[ip] = kReset;
-			/* NOTE: ComputeOutput writes the updated internal variables
-			 *       for output even during iteration output, which is
-			 *       called before UpdateHistory */
+			/* do not repeat if called again */
+			Flags[ip] = kReset; //why was I worried about this????
 						
 			/* fetch element data */
 			LoadData(element,ip);
@@ -84,17 +111,19 @@ void J2QLLinHardT::UpdateHistory(void)
 			/* plastic increment */
 			fInternal[kalpha] += sqrt23*fInternal[kdgamma];
 			
+			/* principal values - plane strain */
+			fb_tr.PrincipalValues(fEigs);
+	
 			/* set spectral decomposition (don't perturb) */
-			//fSpectral.SpectralDecomp_new(fb_tr, false);
-			fSpectral.SpectralDecomp(fb_tr, false);
+			SpectralDecomp(fb_tr, fEigs, false);
 					
 			/* updated log stretches */
 			fa_inverse.Multx(fbeta_tr, floge);
 					
 			/* compute intermediate config */
-			fb_n.SetToCombination(exp(2.0*floge[0]), fSpectral.Rank1_Principal(0),
-			                      exp(2.0*floge[1]), fSpectral.Rank1_Principal(1),
-			                      exp(2.0*floge[2]), fSpectral.Rank1_Principal(2));
+			fb_n.SetToCombination(exp(2.0*floge[0]), fn0xn0,
+			                      exp(2.0*floge[1]), fn1xn1,
+			                      exp(2.0*floge[2]), fn2xn2);
 		}
 }
 
@@ -112,6 +141,14 @@ void J2QLLinHardT::ResetHistory(void)
 	for (int i = 0; i < Flags.Length(); i++)
 		if (Flags[i] == kIsElastic || Flags[i] == kIsPlastic)
 			Flags[i] = kReset;
+}
+
+/* print parameters */
+void J2QLLinHardT::Print(ostream& out) const
+{
+	/* inherited */
+	QuadLog3D::Print(out);
+	J2PrimitiveT::Print(out);
 }
 
 /* modulus */
@@ -132,18 +169,22 @@ const dMatrixT& J2QLLinHardT::c_ijkl(void)
 	     fabs(fEigs[1] - 1.0) < kSmall &&
 	     fabs(fEigs[2] - 1.0) < kSmall )
 	{
-		IsotropicT::ComputeModuli(fModulus);
+		double mu, lambda;
+		Lame(mu, lambda);
+		IsotropicT::ComputeModuli(fModulus, mu, lambda);
 	}
 	/* compute moduli */
 	else
 	{
 		/* spectral decomposition (perturb repeated) */
-		fSpectral.DecompAndModPrep(b_tr, true);
+		SpectralDecomp(b_tr, fEigs, true);
 
 		/* logarithmic stretches */
-		fEigs = fSpectral.Eigenvalues();
 		LogStretches(fEigs);
 		
+		/* spatial tensor component */
+		Set_b_Tensor(b_tr);
+
 		/* principal stresses */
 		fEigMod.Multx(floge,fBeta);
 	
@@ -151,13 +192,28 @@ const dMatrixT& J2QLLinHardT::c_ijkl(void)
 		fEPModuli = fEigMod;
 		ElastoPlasticCorrection(fEPModuli, fBeta, ip);
 
-		/* stiffness part */
-		fModulus = fSpectral.EigsToRank4(fEPModuli);
+		/* initialize */
+		fModulus = 0.0;
+
+		/* using symmetry in A and B */
+		for (int B = 0; B < 3; B++)
+			for (int A = B; A < 3; A++)
+			{
+				fRank4.Outer(fm[A],fm[B]);
+				
+				double gamma = 1.0;
+				if (A != B)
+				{
+					gamma = 2.0;
+					fRank4.Symmetrize();
+				}
+			
+				fModulus.AddScaled(gamma*fEPModuli(A,B), fRank4);
+			}
 		
-		/* stress part */
-		fModulus.AddScaled(2.0*fBeta[0], fSpectral.SpatialTensor(b_tr, 0));
-		fModulus.AddScaled(2.0*fBeta[1], fSpectral.SpatialTensor(b_tr, 1));
-		fModulus.AddScaled(2.0*fBeta[2], fSpectral.SpatialTensor(b_tr, 2));
+		/* principal spatial tensor */
+		for (int A = 0; A < 3; A++)
+			fModulus.AddScaled(2.0*fBeta[A], SpatialTensor(b_tr,A));
 
 		/* factor of J */
 		fModulus /= sqrt(fEigs[0]*fEigs[1]*fEigs[2]);
@@ -175,15 +231,17 @@ const dSymMatrixT& J2QLLinHardT::s_ij(void)
 	int ip = CurrIP();
 	const dSymMatrixT& b_tr = TrialStretch(fFtot, ffrel, ip);
 
+	/* principal values - plane strain */
+	b_tr.PrincipalValues(fEigs);
+
 	/* spectral decomposition (don't perturb repeated) */
-	fSpectral.SpectralDecomp_new(b_tr, false);
+	SpectralDecomp(b_tr, fEigs, false);
 
 	/* logarithmic stretches */
-	fEigs = fSpectral.Eigenvalues();
 	LogStretches(fEigs);
 	
 	/* principal stresses */
-	fEigMod.Multx(floge, fBeta);
+	fEigMod.Multx(floge,fBeta);
 
 	/* plastic correction */
 	ReturnMapping(b_tr, fBeta, ip);
@@ -192,8 +250,9 @@ const dSymMatrixT& J2QLLinHardT::s_ij(void)
 	fBeta /= sqrt(fEigs[0]*fEigs[1]*fEigs[2]);
 
 	/* QuadLog3D stress */
-	fStress = fSpectral.EigsToRank2(fBeta);
-	
+	fStress.SetToCombination(fBeta[0], fn0xn0,
+	                         fBeta[1], fn1xn1,
+	                         fBeta[2], fn2xn2);
 	return fStress;
 }
 
@@ -214,6 +273,9 @@ double J2QLLinHardT::StrainEnergyDensity(void)
 	return ComputeEnergy(floge);
 }
 
+/* required parameter flags */
+bool J2QLLinHardT::NeedLastDisp(void) const { return true; }
+
 /*
 * Returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
@@ -223,7 +285,7 @@ int J2QLLinHardT::NumOutputVariables(void) const { return kNumOutput; }
 void J2QLLinHardT::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Dimension(kNumOutput);
+	labels.Allocate(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
@@ -250,13 +312,13 @@ void J2QLLinHardT::ComputeOutput(dArrayT& output)
 	output[1] = fBeta.Magnitude()/sqrt23;
 
 	/* plastic evolution parameter */
-	const ElementCardT& element = CurrentElement();
+	ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
 		output[0] = fInternal[kalpha];
 
 		/* status flags */
-		const iArrayT& flags = element.IntegerData();
+		iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic) // output with update
 			output[0] += sqrt23*fInternal[kdgamma];
 	}
@@ -264,40 +326,9 @@ void J2QLLinHardT::ComputeOutput(dArrayT& output)
 		output[0] = 0.0;
 }
 
-/* describe the parameters needed by the interface */
-void J2QLLinHardT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	QuadLog3D::DefineParameters(list);
-	J2PrimitiveT::DefineParameters(list);
-}
-
-/* accept parameter list */
-void J2QLLinHardT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	QuadLog3D::TakeParameterList(list);
-	J2PrimitiveT::TakeParameterList(list);
-
-	/* set up work space */
-	fb_elastic.Dimension(kNSD);
-	fEPModuli.Dimension(kNSD);
-	fa_inverse.Dimension(kNSD);
-	fMatrixTemp1.Dimension(kNSD);
-	fMatrixTemp2.Dimension(kNSD);
-	fMatrixTemp3.Dimension(kNSD);
-	fdev_beta.Dimension(kNSD);
-	fFtot.Dimension(kNSD);
-	ffrel.Dimension(kNSD);
-	fF_temp.Dimension(kNSD);
-
-	/* for intermediate config update */
-	fa_inverse.Inverse(fEigMod);	
-}
-
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
 /* returns the elastic stretch */
 const dSymMatrixT& J2QLLinHardT::TrialStretch(const dMatrixT& F_total,
@@ -373,31 +404,10 @@ void J2QLLinHardT::ReturnMapping(const dSymMatrixT& b_tr, dArrayT& beta, int ip)
 		if (ftrial > kYieldTol)
 		{	
 			/* update internal variables */
-			dgamma = (3.0*ftrial)/(6.0*Mu() + 2.0*fH_bar);
-
+			dgamma = (3.0*ftrial)/(6.0*fmu + 2.0*fH_bar);
+		
 			/* corrected principal stresses */
-			beta.AddScaled(-2.0*Mu()*dgamma, fUnitNorm);
-			
-			/* debugging - check the results of the return mapping */
-			bool check_map = false;
-			if (check_map)
-			{
-				/* update variables */
-				double alpha = fInternal[kalpha] + sqrt23*dgamma;
-				
-				/* updated deviatoric principal stresses */
-				dArrayT beta_test = beta;
-				beta_test -= beta_test.Average();
-			
-				/* compute update yield condition */
-				double f = YieldCondition(beta_test, alpha);
-				double t = beta_test.Magnitude()/sqrt23;
-#if 0
-				cout << "\n J2QLLinHardT::ReturnMapping: check\n"
-				     <<   "          f = " << f << '\n'
-				     <<   " ||dev[t]|| = " << t << endl;
-#endif
-			}
+			beta.AddScaled(-2.0*fmu*dgamma,fUnitNorm);
 		}
 		else
 			dgamma = 0.0;
@@ -414,11 +424,11 @@ void J2QLLinHardT::ReturnMapping(const dSymMatrixT& b_tr, dArrayT& beta, int ip)
 *       The element passed in is already assumed to carry current
 *       internal variable values.
 */
-void J2QLLinHardT::ElastoPlasticCorrection(dSymMatrixT& a_ep, dArrayT& beta,
+void J2QLLinHardT::ElastoPlasticCorrection(dMatrixT& a_ep, dArrayT& beta,
 	int ip)
 {
 	/* element pointer */
-	const ElementCardT& element = CurrentElement();
+	ElementCardT& element = CurrentElement();
 
 	if (element.IsAllocated() &&
 	    (element.IntegerData())[ip] == kIsPlastic)
@@ -434,14 +444,15 @@ void J2QLLinHardT::ElastoPlasticCorrection(dSymMatrixT& a_ep, dArrayT& beta,
 		{
 			/* compute constants */
 			double alpha    = fInternal[kalpha];
-			double thetahat = 2.0*Mu()*fInternal[kdgamma]/
+			double thetahat = 2.0*fmu*fInternal[kdgamma]/
 			                          fInternal[kstressnorm];
-			double thetabar = (3.0/(3.0 + (dK(alpha) + dH(alpha))/Mu())) - thetahat;
+			double thetabar = (3.0/(3.0 + (dK(alpha) + dH(alpha))/fmu)) - thetahat;
 			
 			/* moduli corrections */
-			fMatrixTemp3.Outer(fUnitNorm);
-			a_ep.AddScaled(-2.0*Mu()*thetabar, fMatrixTemp3);
-			a_ep.AddScaled(-2.0*Mu()*thetahat, fDevOp3);
+			fMatrixTemp1.Outer(fUnitNorm,fUnitNorm);
+	
+			a_ep.AddScaled(-2.0*fmu*thetabar, fMatrixTemp1);
+			a_ep.AddScaled(-2.0*fmu*thetahat, fDevOp3);
 		}					
 	}
 }	
@@ -467,7 +478,7 @@ void J2QLLinHardT::AllocateElement(ElementCardT& element)
 	d_size += kNumInternal*numint;          //fInternal
 
 	/* construct new plastic element */
-	element.Dimension(i_size, d_size);
+	element.Allocate(i_size, d_size);
 
 	/* initialize values */
 	element.IntegerData() = kNotInit;
@@ -475,15 +486,15 @@ void J2QLLinHardT::AllocateElement(ElementCardT& element)
 }
 
 /***********************************************************************
- * Private
- ***********************************************************************/
+* Private
+***********************************************************************/
 
 /* compute F_total and f_relative */
 void J2QLLinHardT::ComputeGradients(void)
 {
 	/* compute relative displacement */
 	fFtot = F();
-	fF_temp.Inverse(F_total_last());
+	fF_temp.Inverse(F(fLocLastDisp));
 	ffrel.MultAB(fFtot,fF_temp);
 }
 
@@ -503,19 +514,18 @@ void J2QLLinHardT::InitIntermediate(const dMatrixT& F_total,
 void J2QLLinHardT::LoadData(const ElementCardT& element, int ip)
 {
 	/* fetch internal variable array */
-	const dArrayT& d_array = element.DoubleData();
+	dArrayT& d_array = element.DoubleData();
 
 	/* decode */
 	int stressdim = dSymMatrixT::NumValues(kNSD);
-	dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);	
 	int blocksize = stressdim + stressdim + kNSD + kNSD + kNumInternal;
 	int dex       = ip*blocksize;
 	
-	     fb_n.Alias(         dim, &d_array[dex             ]);
-	    fb_tr.Alias(         dim, &d_array[dex += stressdim]);
-	 fbeta_tr.Alias(        kNSD, &d_array[dex += stressdim]);
-	fUnitNorm.Alias(        kNSD, &d_array[dex += kNSD]);
-	fInternal.Alias(kNumInternal, &d_array[dex += kNSD     ]);     	
+	     fb_n.Set(        kNSD, &d_array[dex             ]);
+	    fb_tr.Set(        kNSD, &d_array[dex += stressdim]);
+	 fbeta_tr.Set(        kNSD, &d_array[dex += stressdim]);
+	fUnitNorm.Set(        kNSD, &d_array[dex += kNSD]);
+	fInternal.Set(kNumInternal, &d_array[dex += kNSD     ]);     	
 }
 
 /*

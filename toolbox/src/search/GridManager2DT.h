@@ -1,10 +1,16 @@
-/* $Id: GridManager2DT.h,v 1.10 2004-03-18 01:15:39 paklein Exp $ */
-/* created: paklein (12/06/1997) */
+/* $Id: GridManager2DT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (12/06/1997)                                          */
+/* Interface for regular rectangular search and storage grid              */
+/* sTYPE requirements:                                                    */
+/* Clear() generates a "blank" data card                                  */
+/* Coords() returns a double* to the coordinates                          */
+/* 	   operator=                                                          */
+
 #ifndef _GRIDMANAGER2D_T_H_
 #define _GRIDMANAGER2D_T_H_
 
 #include "Environment.h"
-#include "toolboxConstants.h"
+#include "Constants.h"
 
 /* language support */
 #include <iostream.h>
@@ -14,12 +20,9 @@
 #include "pArrayT.h"
 #include "dArray2DT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class iArrayT;
 
-/** interface for regular 2D rectangular search and storage grid */
 template <class sTYPE>
 class GridManager2DT
 {
@@ -29,14 +32,14 @@ public:
 	GridManager2DT(double xmin, double xmax, int nx,
 	             double ymin, double ymax, int ny);
 	GridManager2DT(int nx, int ny, const dArray2DT& coords,
-		const ArrayT<int>* nodes_used);
+		const iArrayT* nodes_used);
 	
 	/* destructor */
 	~GridManager2DT(void);
 	
 	/* empty grid */
 	void Reset(void);
-	void Reset(const dArray2DT& coords, const ArrayT<int>* nodes_used);
+	void Reset(const dArray2DT& coords, const iArrayT* nodes_used);
 
 	/* insert data into the grid */
 	void Add(const sTYPE& data);
@@ -45,9 +48,8 @@ public:
 	const sTYPE& Closest(double* target);
 	
 	/* return list of data falling within the defined region */
-	const AutoArrayT<sTYPE>& HitsInRegion(const double* coords, double distance);
-	const AutoArrayT<sTYPE>& HitsInRegion(const double* coords, int cell_span);
-	const AutoArrayT<sTYPE>& HitsInRegion(const double* coords, const ArrayT<double>& dist_xy);
+	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, double distance);
+	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, int cell_span);
 
 	/* the distance covered by the given cell span */
 	double CellSpan(int cell_span) const;
@@ -55,13 +57,10 @@ public:
 	/* grid statistics */
 	void WriteStatistics(ostream& out) const;
 
-	/** the grid */
-	const ArrayT<AutoArrayT<sTYPE>*>& Grid(void) const { return fGrid; };
-
 protected:
 
 	/* return pointer to the content list for the given coords */
-	AutoArrayT<sTYPE>** FetchGrid(const double* coords);
+	AutoArrayT<sTYPE>** FetchGrid(double* coords);
 
 protected:
 
@@ -101,7 +100,7 @@ GridManager2DT<sTYPE>::GridManager2DT(double xmin, double xmax, int nx,
 	fGrid(fnx*fny)
 {
 	/* consistency */
-	if (fxmax <= fxmin || fymax <= fymin) throw ExceptionT::kGeneralFail;
+	if (fxmax <= fxmin || fymax <= fymin) throw eGeneralFail;
 
 	/* grid spacings */
 	fdx = (fxmax - fxmin)/fnx;
@@ -110,7 +109,7 @@ GridManager2DT<sTYPE>::GridManager2DT(double xmin, double xmax, int nx,
 
 template <class sTYPE>
 GridManager2DT<sTYPE>::GridManager2DT(int nx, int ny, const dArray2DT& coords,
-	const ArrayT<int>* nodes_used):
+	const iArrayT* nodes_used):
 	fnx(nx),
 	fny(ny)
 {
@@ -132,7 +131,7 @@ void GridManager2DT<sTYPE>::Reset(void)
 
 	for (int i = 0; i < fGrid.Length(); i++)
 	{
-		if (*pgrid) (*pgrid)->Dimension(0);
+		if (*pgrid) (*pgrid)->Allocate(0);
 		pgrid++;
 	}
 
@@ -140,7 +139,7 @@ void GridManager2DT<sTYPE>::Reset(void)
 
 template <class sTYPE>
 void GridManager2DT<sTYPE>::Reset(const dArray2DT& coords,
-	const ArrayT<int>* nodes_used)
+	const iArrayT* nodes_used)
 {
 	/* empty grid */
 	Reset();
@@ -157,7 +156,7 @@ void GridManager2DT<sTYPE>::Reset(const dArray2DT& coords,
 	
 			for (int i = 0; i < coords.MajorDim(); i++)
 			{
-				const double* p = coords(i);
+				double* p = coords(i);
 			
 				if (p[0] < fxmin) fxmin = p[0];
 				else if (p[0] > fxmax) fxmax = p[0];
@@ -177,7 +176,7 @@ void GridManager2DT<sTYPE>::Reset(const dArray2DT& coords,
 		n_max = nodes_used->Length();
 		if (nodes_used->Length() > 0)
 		{
-			const int* dex = nodes_used->Pointer();
+			int* dex = nodes_used->Pointer();
 
 			/* initialize limits */
 			fxmin = fxmax = coords(*dex, 0);
@@ -185,7 +184,7 @@ void GridManager2DT<sTYPE>::Reset(const dArray2DT& coords,
 
 			for (int i = 0; i < nodes_used->Length(); i++)
 			{
-				const double* p = coords(*dex++);
+				double* p = coords(*dex++);
 		
 				if (p[0] < fxmin) fxmin = p[0];
 				else if (p[0] > fxmax) fxmax = p[0];
@@ -239,7 +238,7 @@ void GridManager2DT<sTYPE>::Reset(const dArray2DT& coords,
 	}
 
 	/* set grid parameters */
-	fGrid.Dimension(fnx*fny);
+	fGrid.Allocate(fnx*fny);
 }	
 
 /* insert data into the grid */
@@ -253,7 +252,7 @@ void GridManager2DT<sTYPE>::Add(const sTYPE& data)
 	if (!(*griddata))
 	{
 		*griddata = new AutoArrayT<sTYPE>;
-		if (!*griddata) throw ExceptionT::kOutOfMemory;
+		if (!*griddata) throw(eOutOfMemory);
 	}
 
 	/* append value */
@@ -323,7 +322,7 @@ inline double GridManager2DT<sTYPE>::CellSpan(int cell_span) const
 /* return list of data falling within the defined region */
 template <class sTYPE>
 inline const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
-	HitsInRegion(const double* coords, int cellspan)
+	HitsInRegion(double* coords, int cellspan)
 {
 	return HitsInRegion(coords, CellSpan(cellspan));
 }	
@@ -331,57 +330,16 @@ inline const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
 /* return list of data falling within the defined region */
 template <class sTYPE>
 const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
-	HitsInRegion(const double* coords, double distance)
+	HitsInRegion(double* coords, double distance)
 {
 	/* empty hit list */
-	fHits.Dimension(0);
+	fHits.Allocate(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - distance)/fdx);
 	int iystart = int((coords[1] - fymin - distance)/fdy);
 	int ixstop  = int((coords[0] - fxmin + distance)/fdx);
 	int iystop  = int((coords[1] - fymin + distance)/fdy);
-
-	/* keep within grid */
-	ixstart = (ixstart < 0) ? 0 : ixstart;
-	iystart = (iystart < 0) ? 0 : iystart;
-	ixstop = (ixstop >= fnx) ? fnx - 1 : ixstop;
-	iystop = (iystop >= fny) ? fny - 1 : iystop;
-
-	bool out_of_range = ixstart > ixstop ||
-	                    iystart > iystop;
-	if (!out_of_range)
-	{
-		/* scan section of grid */
-		for (int ix = ixstart; ix <= ixstop; ix++)
-		{
-			/* column top */
-			AutoArrayT<sTYPE>** griddata = fGrid.Pointer(ix*fny + iystart);
-		
-			/* copy contents from cells */
-			for (int iy = iystart; iy <= iystop; iy++)
-			{
-				if (*griddata) fHits.Append(**griddata);
-				griddata++;
-			}
-		}
-	}
-	
-	return fHits;
-}	
-
-template <class sTYPE>
-const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
-	HitsInRegion(const double* coords, const ArrayT<double>& dist_xy)
-{
-	/* empty hit list */
-	fHits.Dimension(0);
-
-	/* grid indices */
-	int ixstart = int((coords[0] - fxmin - dist_xy[0])/fdx);
-	int iystart = int((coords[1] - fymin - dist_xy[1])/fdy);
-	int ixstop  = int((coords[0] - fxmin + dist_xy[0])/fdx);
-	int iystop  = int((coords[1] - fymin + dist_xy[1])/fdy);
 
 	/* keep within grid */
 	ixstart = (ixstart < 0) ? 0 : ixstart;
@@ -426,7 +384,7 @@ void GridManager2DT<sTYPE>::WriteStatistics(ostream& out) const
 	int max_count = 0;
 	int null_count = 0;
 	int tot_count  = 0;
-	AutoArrayT<sTYPE>** ppgrid = (AutoArrayT<sTYPE>**) fGrid.Pointer();
+	AutoArrayT<sTYPE>** ppgrid = fGrid.Pointer();
 	for (int i = 0; i < fGrid.Length(); i++)
 	{
 		AutoArrayT<sTYPE>* pgrid = *ppgrid++;
@@ -466,24 +424,17 @@ void GridManager2DT<sTYPE>::WriteStatistics(ostream& out) const
 
 /* return pointer to the content list for the given coords */
 template <class sTYPE>
-AutoArrayT<sTYPE>** GridManager2DT<sTYPE>::FetchGrid(const double* coords)
+AutoArrayT<sTYPE>** GridManager2DT<sTYPE>::FetchGrid(double* coords)
 {
 	/* grid indices */
 	int ix = int((coords[0] - fxmin)/fdx);
 	int iy = int((coords[1] - fymin)/fdy);
 	
 	/* range check */
-	if (ix < 0 || ix >= fnx || iy < 0 || iy >= fny ) {
-		const char caller[] = "GridManager2DT<sTYPE>::FetchGrid";
-		cout << "\n " << caller << ": point out of range\n"
-		     << "  1: (" << fxmin << " < " << coords[0] << " < " << fxmax << ")\n"
-		     << "  2: (" << fymin << " < " << coords[1] << " < " << fymax << ")\n" << endl;
-		ExceptionT::GeneralFail(caller);
-	}
+	if (ix < 0 || ix >= fnx || iy < 0 || iy >= fny ) throw eGeneralFail;		
 	
 	/* stored column major */
 	return fGrid.Pointer(ix*fny + iy);
 }
 
-} // namespace Tahoe 
 #endif /* _GRIDMANAGER2D_T_H_ */

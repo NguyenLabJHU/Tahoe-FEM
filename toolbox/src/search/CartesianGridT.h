@@ -1,5 +1,5 @@
-/* $Id: CartesianGridT.h,v 1.4 2002-07-05 22:26:33 paklein Exp $ */
-/* created: paklein (11/10/2000) */
+/* $Id: CartesianGridT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (11/10/2000)                                          */
 
 #ifndef _CARTESIAN_GRID_T_H_
 #define _CARTESIAN_GRID_T_H_
@@ -9,43 +9,34 @@
 #include "RaggedArray2DT.h"
 #include "iArray2DT.h"
 
-namespace Tahoe {
-
-/** N-dimensional cartesian grid with periodic boundary conditions 
- * and load balancing */
 class CartesianGridT
 {
 public:
 
-	/** grid boundary conditions */
+	/* grid boundary conditions */
 	enum BoundaryConditionT {kFree = 0,
 	                     kPeriodic = 1};
 
-	/** constructor */
+	/* constructor */
 	CartesianGridT(void);
 
-	/** \name accessors */
-	/*@{*/
-	int NumCells(void) const { return fDimensions.Product(); };
+	/* (re-) set dimensions */
+	void SetDimensions(const iArrayT& dimensions,
+		const ArrayT<BoundaryConditionT>& bc);
+
+	/* accessor */
 	int Dimensionality(void) const;
 	int Dimension(int axis) const;
 	BoundaryConditionT BoundaryCondition(int axis) const;
 	const iArray2DT& NeighborList(void) const;
 	const iArrayT Partition(void) const;
-	/*@}*/
 
-	/** (re-) set dimensions */
-	void SetDimensions(const iArrayT& dimensions,
-		const ArrayT<BoundaryConditionT>& bc);
-
-	/** partition the grid (num_parts <= num_cells) */
+	/* partition the grid (num_parts <= num_cells) */
 	void PartitionGrid(int num_parts, const iArrayT& cell_weight);
 
-	/** \name indexed distances */
-	/*@{*/
+	/* indexed distances */
 	int Shift(int axis) const;
 	int Width(int axis) const;
-	/*@}*/
 
 private:
 
@@ -107,5 +98,4 @@ inline const iArrayT CartesianGridT::Partition(void) const
 	return fCellMap;
 }
 
-} // namespace Tahoe 
 #endif /* _CARTESIAN_GRID_T_H_ */

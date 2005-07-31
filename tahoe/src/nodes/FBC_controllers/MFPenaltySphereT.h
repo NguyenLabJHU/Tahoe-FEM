@@ -1,12 +1,11 @@
-/* $Id: MFPenaltySphereT.h,v 1.7 2004-07-15 08:31:15 paklein Exp $ */
-/* created: paklein (04/17/2000) */
+/* $Id: MFPenaltySphereT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* created: paklein (04/17/2000)                                          */
+
 #ifndef _MF_PENALTY_SPHERE_T_H_
 #define _MF_PENALTY_SPHERE_T_H_
 
 /* base class */
 #include "PenaltySphereT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class ElementBaseT;
@@ -16,20 +15,18 @@ class MFPenaltySphereT: public PenaltySphereT
 public:
 
 	/* constructor */
-	MFPenaltySphereT(void);
+	MFPenaltySphereT(FEManagerT& fe_manager, const iArray2DT& eqnos,
+		const dArray2DT& coords, const dArray2DT* vels);
+
+	/* input processing */
+	virtual void EchoData(ifstreamT& in, ostream& out);
+
+	/* initialize data */
+	virtual void Initialize(void);
 
 	/* system contributions */
 	//virtual void ApplyLHS(void);
 	//TEMP - not quite right, but leave it for now
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 	
 protected:
 
@@ -44,6 +41,7 @@ private:
 protected:
 
 	/* element group */
+	int fGroupNumber;
 	const ElementBaseT* fElementGroup;
 	
 	/* work space */
@@ -56,5 +54,4 @@ protected:
 
 };
 
-} // namespace Tahoe 
 #endif /* _MF_PENALTY_SPHERE_T_H_ */

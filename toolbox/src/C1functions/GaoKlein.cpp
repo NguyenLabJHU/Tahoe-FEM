@@ -1,16 +1,13 @@
-/* $Id: GaoKlein.cpp,v 1.5 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: GaoKlein.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
 /* created: paklein (12/26/1998)                                          */
 
 #include "GaoKlein.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 #include "dArrayT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
 GaoKlein::GaoKlein(double A, double B, double C, double L):
 	fA(A),
 	fB(B),
@@ -39,8 +36,7 @@ void GaoKlein::PrintName(ostream& out) const
 /* returning values */
 double GaoKlein::Function(double x) const
 {
-#pragma unused(x)
-//	double dr = x - fL;
+	double dr = x - fL;
 	
 	cout << "\n GaoKlein::Function: only f' and f\" have been implemented\n";
 	cout <<   " The function value f is not available in closed form, but is\n";
@@ -60,7 +56,7 @@ cout << "  ---------------------------------------------";
 cout << "                        2	";
 cout << endl;
 	
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 	return 0.0;
 }
 
@@ -94,9 +90,9 @@ double GaoKlein::DDFunction(double x) const
 dArrayT& GaoKlein::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
+	if (in.Length() != out.Length()) throw eGeneralFail;
 
-	const double* pl  = in.Pointer();
+	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)
@@ -113,9 +109,9 @@ dArrayT& GaoKlein::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& GaoKlein::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
+	if (in.Length() != out.Length()) throw eGeneralFail;
 
-	const double* pl   = in.Pointer();
+	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)

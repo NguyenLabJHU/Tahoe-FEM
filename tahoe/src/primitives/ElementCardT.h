@@ -1,5 +1,7 @@
-/* $Id: ElementCardT.h,v 1.8 2005-02-13 22:11:50 paklein Exp $ */
-/* created: paklein (05/24/1996) */
+/* $Id: ElementCardT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (05/24/1996)                                          */
+/* Empty organizer class - needs manager class to control data.           */
+
 #ifndef _ELEMENT_CARD_T_H_
 #define _ELEMENT_CARD_T_H_
 
@@ -7,25 +9,14 @@
 #include "iArrayT.h"
 #include "dArrayT.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
+#include "ios_fwd_decl.h"
+class dMatrixT;
 class ElementStorageT;
 
-/** collection of element data */
 class ElementCardT
 {
 public:
-
-	/** element status flags */
-	enum StatusT {kOFF = 0,
-                   kON = 1,
-               kMarked = 2,
-               kMarkON = 3,
-              kMarkOFF = 4};
-	static StatusT int2StatusT(int i);
 
 	/* constructors */
 	ElementCardT(void);
@@ -40,20 +31,15 @@ public:
 	/* set material number */
 	void SetMaterialNumber(int matnum);
 
-	/** \name setting/getting the activity flags */
-	/*@{*/
-	StatusT& Flag(void);
-	const StatusT& Flag(void) const;
-	/*@}*/
+	/* setting/getting the activity flags */
+	int& Flag(void);
 						
 	/* accessors */
 	int MaterialNumber(void) const;
 	iArrayT& NodesX(void);             // geometry nodes
 	const iArrayT& NodesX(void) const; // geometry nodes
 	iArrayT& NodesU(void);             // field nodes
-	const iArrayT& NodesU(void) const;             // field nodes
 	iArrayT& Equations(void);
-	const iArrayT& Equations(void) const;
 
 	/* reset field nodes array pointer (non-isoparametric) */
 	void SetNodesU(iArrayT& nodesU);
@@ -64,18 +50,14 @@ public:
 
 	/* element storage accessors/modifiers */
 	int IsAllocated(void) const;
-	void Dimension(int i_size, int d_size);
-	void Set(int i_size, int* i_data, int d_size, double* d_data);
-
-	iArrayT& IntegerData(void);
-	const iArrayT& IntegerData(void) const;
-	dArrayT& DoubleData(void);
-	const dArrayT& DoubleData(void) const;
+	void Allocate(int i_size, int d_size);
+	iArrayT& IntegerData(void) const;
+	dArrayT& DoubleData(void) const;
 	
 private:
 	
 	int fMatNum;
-	StatusT fFlag;
+	int fFlag;
 
 	/* geometry nodes */
 	iArrayT fNodesX;
@@ -92,46 +74,34 @@ private:
 	static dArrayT d_junk;
 };
 
-/** storage */
 class ElementStorageT
 {
 	friend class ElementCardT;
 
 private:
 
-	/** \name constructor */
-	/*@{*/
-	ElementStorageT(void) {};
+	/* constructor */
 	ElementStorageT(int i_size, int d_size);
 	ElementStorageT(const ElementStorageT& source);
-	/*@}*/
 	
-	/** make arrays alias to other data */
-	void Set(int i_size, int* i_data, int d_size, double* d_data);
-	
-	/** \name I/O operators */
-	/*@{*/
+	/* I/O operators */
 	friend istream& operator>>(istream& in, ElementStorageT& data);
 	friend ostream& operator<<(ostream& out, const ElementStorageT& data);
-	/*@}*/
 
-	/** assignment operator */
+	/* assignment operator */
 	ElementStorageT& operator=(const ElementStorageT& rhs);
 	
 private:
 
-	/** storage */
-	/*@{*/
+	/* data */
 	iArrayT fIntegerData;
 	dArrayT fDoubleData;
-	/*@}*/
 };
 
 /* in-lines */
 
 /* setting/getting the activity flags */
-inline ElementCardT::StatusT& ElementCardT::Flag(void) { return fFlag; }
-inline const ElementCardT::StatusT& ElementCardT::Flag(void) const { return fFlag; }
+inline int& ElementCardT::Flag(void) { return fFlag; }
 
 /* accessors */
 inline int ElementCardT::MaterialNumber(void) const { return fMatNum; }
@@ -139,9 +109,7 @@ inline int ElementCardT::MaterialNumber(void) const { return fMatNum; }
 inline iArrayT& ElementCardT::NodesX(void) { return fNodesX;  }
 inline const iArrayT& ElementCardT::NodesX(void) const { return fNodesX;  }
 inline iArrayT& ElementCardT::NodesU(void) { return *fNodesU; }
-inline const iArrayT& ElementCardT::NodesU(void) const { return *fNodesU; }
 inline iArrayT& ElementCardT::Equations(void) { return fEqnos;   }
-inline const iArrayT& ElementCardT::Equations(void) const { return fEqnos;   }
 
 /* reset field nodes array pointer (non-isoparametric) */
 inline void ElementCardT::SetNodesU(iArrayT& nodesU)
@@ -151,20 +119,12 @@ inline void ElementCardT::SetNodesU(iArrayT& nodesU)
 
 /* element storage accessors/modifiers */
 inline int ElementCardT::IsAllocated(void) const { return (fData != NULL); }
-inline iArrayT& ElementCardT::IntegerData(void)
-{
-	return (!fData) ? i_junk : fData->fIntegerData;
-}
-inline const iArrayT& ElementCardT::IntegerData(void) const
+inline iArrayT& ElementCardT::IntegerData(void) const
 {
 	return (!fData) ? i_junk : fData->fIntegerData;
 }
 
-inline dArrayT& ElementCardT::DoubleData(void)
-{
-	return (!fData) ? d_junk : fData->fDoubleData;
-}
-inline const dArrayT& ElementCardT::DoubleData(void) const
+inline dArrayT& ElementCardT::DoubleData(void) const
 {
 	return (!fData) ? d_junk : fData->fDoubleData;
 }
@@ -188,5 +148,4 @@ inline ElementStorageT& ElementStorageT::operator=(const ElementStorageT& rhs)
 	return *this;
 }
 
-} // namespace Tahoe 
 #endif /* _ELEMENT_CARD_T_H_ */

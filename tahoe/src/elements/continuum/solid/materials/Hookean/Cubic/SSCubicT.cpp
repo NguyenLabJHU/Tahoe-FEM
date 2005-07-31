@@ -1,38 +1,28 @@
-/* $Id: SSCubicT.cpp,v 1.5 2004-07-15 08:27:05 paklein Exp $ */
-/* created: paklein (06/11/1997) */
+/* $Id: SSCubicT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (06/11/1997)                                          */
+
 #include "SSCubicT.h"
 
-using namespace Tahoe;
-
 /* constructor */
-SSCubicT::SSCubicT(void):
-	ParameterInterfaceT("small_strain_cubic")
+SSCubicT::SSCubicT(ifstreamT& in, const ElasticT& element):
+	SSHookeanMatT(in, element),
+	CubicT(in, fModulus)
 {
 
 }
 
-/* describe the parameters needed by the interface */
-void SSCubicT::DefineParameters(ParameterListT& list) const
+/* print parameters */
+void SSCubicT::Print(ostream& out) const
 {
 	/* inherited */
-	SSHookeanMatT::DefineParameters(list);
-	CubicT::DefineParameters(list);
+	SSHookeanMatT::Print(out);
+	CubicT::Print(out);
 }
 
-/* information about subordinate parameter lists */
-void SSCubicT:: TakeParameterList(const ParameterListT& list)
+/* print name */
+void SSCubicT::PrintName(ostream& out) const
 {
 	/* inherited */
-	CubicT::TakeParameterList(list); /* cubic parameters must be extracted first */
-	SSHookeanMatT::TakeParameterList(list);
-}
-
-/*************************************************************************
- * Protected
- *************************************************************************/
-
-/* set modulus */
-void SSCubicT::SetModulus(dMatrixT& modulus)
-{
-	CubicT::ComputeModuli(modulus);
+	SSHookeanMatT::PrintName(out);
+	CubicT::PrintName(out);
 }

@@ -1,5 +1,5 @@
-/* $Id: AbaqusInputT.cpp,v 1.14 2002-10-20 22:36:54 paklein Exp $ */
-/* created: sawimme (05/18/1998) */
+/* $Id: AbaqusInputT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: sawimme (05/18/1998)                                          */
 
 #include "AbaqusInputT.h"
 #include "ios_fwd_decl.h"
@@ -8,374 +8,241 @@
 #include "dArrayT.h"
 #include "iAutoArrayT.h"
 
+AbaqusInputT::AbaqusInputT (ostream& out, bool binary, const char* filename) :
+InputBaseT (out),
+	fData (out, binary),
+	fResultFile (filename),
+	fNumElements (0),
+	fNumNodes (0),
+	fDimensions (0),
+	fNumElementSets (0),
+	fNumNodeSets (0),
+	fEnergyData (false)
+{
+Initialize ();
+if (fNumElements > 0) ReadElementSets ();
+if (fNumNodes > 0) ReadNodeSets ();
+}
 
-using namespace Tahoe;
+int AbaqusInputT::NumElementGroups (void) const
+{
+iArrayT temp;
+GroupNumbers (temp);
+return temp.Length();
+}
 
-AbaqusInputT::AbaqusInputT (ostream& out) :
-  InputBaseT (out),
-  fData (out)
+int AbaqusInputT::NumNodeSets (void) const
+{
+iArrayT ids;
+NodeSetNumbers (ids);
+return ids.Length();
+}
+
+void AbaqusInputT::GroupNumbers (iArrayT& groupnums) const
+{
+iAutoArrayT temp;
+// must account for some element sets having zero elements ??
+// only return those element sets that appear in fElementData
+for (int i=0; i < fNumElements; i++)
+temp.AppendUnique (fElementData (i, 2));
+
+groupnums.Allocate (temp.Length());
+groupnums.CopyPart (0, temp, 0, temp.Length());
+}
+
+void AbaqusInputT::NodeSetNumbers (iArrayT& nodenums) const
+{
+iAutoArrayT temp;
+// must account for some element sets having zero elements ??
+// only return those element sets that appear in fElementData
+for (int i=0; i < fNumNodes; i++)
+if (fCoordinateData (i, 1) > -1)
+temp.AppendUnique (fCoordinateData (i, 1));
+
+nodenums.Allocate (temp.Length());
+nodenums.CopyPart (0, temp, 0, temp.Length());
+}
+
+void AbaqusInputT::ReadNodeSet (int set_num, iArrayT& nodes) const
+{
+int count = 0;
+for (int i=0; i < fNumNodes; i++)
+if (fCoordinateData (i,1) == set_num) count++;
+
+nodes.Allocate (count);
+int *pn = nodes.Pointer();
+for (int j=0; j < fNumNodes; j++)
+if (fCoordinateData (j,1) == set_num)
+*pn++ = j; //change to global consecutive numbering, offset to zero
+}
+
+void AbaqusInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
+{
+coords.Allocate (fNumNodes, fDimensions);
+nodemap.Allocate (fNumNodes);
+dArrayT x;
+int ID;
+ifstream in;
+if (!OpenFile (in)) throw eGeneralFail;
+for (int i=0; i < fNumNodes; i++)
+{
+fData.ReadCoordinate (in, ID, x);
+coords.SetRow (i, x);
+nodemap [i] = ID;
+}
+}
+
+void AbaqusInputT::ReadConnectivity (int group, GeometryT::CodeT& geocode, iArray2DT& connects, iArrayT& elementmap)
+{
+int count = 0;
+int numelemnodes;
+for (int i=0, j=0; i < fNumElements; i++)
+if (fElementData (i, 2) == group)
+{
+	count++;
+	if (j++ == 0) numelemnodes = fElementData (i, 3);
+}
+
+connects.Allocate (count, numelemnodes);
+elementmap.Allocate (count);
+int ID;
+GeometryT::CodeT code;
+iArrayT nodes, internal;
+ifstream in;
+if (!OpenFile (in)) throw eGeneralFail;
+for (int k=0, m=0; k < fNumElements; k++)
+if (fElementData (k,2) == group)
+{
+	fData.ReadElement (in, ID, code, nodes);
+
+	// change to consecutive numbering, offset from zero
+	internal.Allocate (nodes.Length());
+	int dex;
+	for (int n=0; n < nodes.Length(); n++)
+	  {
+	    if (!fCoordinateData.ColumnHasValue (0, nodes[n], dex))
+	      throw eGeneralFail;
+	    internal[n] = dex;
+	  }
+	if (m == 0) geocode = code;
+	else if (geocode != code)
+	  {
+	    cout << "\n\nAbaqusInputT::ReadConnectivity, mismatched geo. code\n";
+	    throw eGeneralFail;
+	  }
+
+	connects.SetRow (m, internal);
+	elementmap[m] = ID;
+	m++;
+}
+}
+
+void AbaqusInputT::Close (void)
 {
 }
 
-bool AbaqusInputT::Open (const StringT& file)
+void AbaqusInputT::QARecords (ArrayT<StringT>& records) const
 {
-	if (!fData.Initialize (file))
-	{
-		cout << "\n AbaqusInputT::Open: error initializing file: " << file << endl;
-		return false;
-	}
-	if (!fData.ScanFile (fNumElements, fNumNodes, fNumTimeSteps, fNumModes))
-	{
-		cout << "\n AbaqusInputT::Open: error scanning file: " << file << endl;  
-		return false;  	
-	} return true;
-}
-
-void AbaqusInputT::Close (void) 
-{ 
-  fData.Close (); 
-  fNumElements = 0;
-  fNumNodes = 0;
-  fNumTimeSteps = 0;
-  fNumModes = 0;
-}
-
-void AbaqusInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
-{
-  if (groupnames.Length() != fData.NumElementSets ()) throw ExceptionT::kSizeMismatch;
-  fData.ElementSetNames (groupnames);
-}
-
-void AbaqusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
-{
-  if (nodenames.Length() != fData.NumNodeSets ()) throw ExceptionT::kSizeMismatch;
-  fData.NodeSetNames (nodenames);
-}
-
-void AbaqusInputT::ReadNodeID (iArrayT& node_id)
-{
-	if (node_id.Length() != fNumNodes) throw ExceptionT::kSizeMismatch;
-	fData.NodeMap(node_id);
-}
-
-void AbaqusInputT::ReadCoordinates (dArray2DT& coords)
-{
-  if (coords.MajorDim() != fNumNodes) throw ExceptionT::kSizeMismatch;
-  fData.ResetFile ();
-  
-  dArrayT c;
-  int n;
-  int cm = coords.MinorDim();
-  for (int i=0, j=0; i < fNumNodes; i++, j+= cm)
-    {
-      fData.NextCoordinate (n, c);
-      coords.CopyPart (j, c, 0, cm);
-    }
-}
-
-void AbaqusInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
-{
-  if (nodes.Length() != NumNodesInSet (name)) 
-    {
-      fout << "\nAbaqusInputT::ReadNodeSet, array size mismatch\n";
-      throw ExceptionT::kSizeMismatch;
-    }
-  fData.NodeSet (name, nodes);
-
-  // offset and map to start numbering at zero
-  // account for discontinuous numbering
-  iArrayT map(fNumNodes);
-  ReadNodeID(map);
-  MapOffset(nodes, map);
-}
-
-void AbaqusInputT::ReadCoordinates (dArray2DT& coords, iArrayT& node_id)
-{
-	ReadNodeID(node_id);
-	ReadCoordinates(coords);
-}
-
-void AbaqusInputT::ReadAllElementMap (iArrayT& elemmap)
-{
-  if (elemmap.Length() != fNumElements) throw ExceptionT::kSizeMismatch;
-  fData.ElementMap (elemmap);
-}
-
-void AbaqusInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
-{
-  if (elemmap.Length() != NumElements (name)) throw ExceptionT::kSizeMismatch;
-  fData.ElementSet (name, elemmap);
-}
-
-void AbaqusInputT::ReadGlobalElementSet (const StringT& name, iArrayT& set)
-{
-  ReadGlobalElementMap (name, set);
-
-  // offset and map to start numbering at zero
-  // account for discontinuous numbering
-  iArrayT map (fNumElements);
-  ReadAllElementMap (map);
-  MapOffset (set, map);
-}
-
-void AbaqusInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
-{
-  iArrayT ellist (connects.MajorDim());
-  ReadGlobalElementMap (name, ellist);
-  fData.ResetFile ();
-  
-  iArrayT map (fNumNodes);
-  ReadNodeID (map);
-  //cout << "map length " << map.Length() << endl;
-
-  iArrayT n;
-  int el;
-  int cm = connects.MinorDim();
-  GeometryT::CodeT code;
-  GeometryT::CodeT firstcode;
-  for (int i=0, j=0; i < fNumElements; i++)
-    {
-      fData.NextElement (el, code, n);
-
-      /* check element type */
-      if (i==0) 
-	firstcode = code;
-      else if (code != firstcode) 
-	{
-	  fout << "AbaqusInputT::ReadConnectivity, geo code does not match\n";
-	  fout << "Group " << name << " firstcode = " << firstcode << " code= " << code;
-	  fout << "\nElement " << el << "\n\n";
-	  throw ExceptionT::kDatabaseFail;
-	}
-
-      //cout << n << endl;
-      int kdex;
-      ellist.HasValue (el, kdex);
-      if (kdex > -1 && kdex < connects.MajorDim())
-	{
-	  // offset and map to start numbering at zero
-	  // account for discontinuous numbering
-	  MapOffset (n, map);
-	  connects.CopyPart (j, n, 0, cm);
-	  j += cm;
-
-	  // quick escape
-	  if (j == connects.Length()) return;
-	}
-    }
+records.Allocate (4);
+records[0] = "Abaqus";
+records[1] = fVersion;
+records[2] = fDate;
+records[3] = fTime;
 }
 
 void AbaqusInputT::ReadTimeSteps (dArrayT& steps)
 {
-  int num = NumTimeSteps ();
-  if (steps.Length() != num) throw ExceptionT::kSizeMismatch;
-  
-  int number;
-  if (fNumModes > 0)
-    for (int i=0; i < fNumModes; i++)
-      fData.ModeData (i, number, steps[i]);
-  else
-    for (int i=0; i < fNumTimeSteps; i++)
-      fData.TimeData (i, number, steps[i]);
-}
+ifstream in;
+if (!OpenFile (in)) throw eGeneralFail;
 
-void AbaqusInputT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
+double time;
+AutoArrayT<double> temp;
+while (fData.NextTimeIncrement (in, time))
+temp.Append (time);
+
+steps.Allocate (temp.Length());
+steps.CopyPart (0, temp, 0, temp.Length());
+
+// check time steps to see if duplicate time value is used
+for (int i=1; i < steps.Length(); i++)
+if (steps[i] == steps[i-1])
 {
-  if (nlabels.Length() != NumNodeVariables()) throw ExceptionT::kSizeMismatch;
-
-  iArrayT keys (nlabels.Length());
-  iArrayT dims (nlabels.Length());
-  fData.NodeVariables (keys, dims);
-  SetLabelName (keys, dims, nlabels);
+	double shift;
+	if (i+1 != steps.Length())
+	  shift = (steps[i+1]-steps[i])/1.e-5;
+	else
+	  shift = steps[i]/1.e-5;
+	steps[i] += shift;
+}
 }
 
-void AbaqusInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
+void AbaqusInputT::ReadLabels (ArrayT<StringT>& nlabels, ArrayT<StringT>& elabels, int group_id)
 {
-  if (elabels.Length() != NumElementVariables()) throw ExceptionT::kSizeMismatch;
+#pragma unused(group_id)
+ifstream in;
+if (!OpenFile (in)) throw eGeneralFail;
+double time;
+if (!fData.NextTimeIncrement (in, time)) throw eGeneralFail;
+ArrayT<AbaqusT::VariableKeyT> nkeys, ekeys;
+fData.ReadLabels (in, nkeys, ekeys, fEnergyData);
+nlabels.Allocate (nkeys.Length());
+elabels.Allocate (ekeys.Length());
 
-  iArrayT keys (elabels.Length());
-  iArrayT dims (elabels.Length());
-  fData.ElementVariables (keys, dims);
-  SetLabelName (keys, dims, elabels);
-}
-
-void AbaqusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
+StringT newlabel;
+char incrementor = '1';
+int unknown = 0;
+for (int n=0; n < nkeys.Length(); n++)
 {
-  if (qlabels.Length() != NumQuadratureVariables()) throw ExceptionT::kSizeMismatch;
-
-  iArrayT keys (qlabels.Length());
-  iArrayT dims (qlabels.Length());
-  fData.QuadratureVariables (keys, dims);
-  SetLabelName (keys, dims, qlabels);
+if (n == 0 || nkeys[n] != nkeys[n-1]) incrementor = '1';
+SetLabelName (nkeys[n], unknown, nlabels[n], incrementor);
+incrementor++;
 }
-
-void AbaqusInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
+for (int e=0; e < ekeys.Length(); e++)
 {
-  if (used.Length() != NumNodeVariables()) throw ExceptionT::kSizeMismatch;
-  fData.VariablesUsed (name, AbaqusVariablesT::kNode, used);
+if (e == 0 || ekeys[e] != ekeys[e-1]) incrementor = '1';
+SetLabelName (ekeys[e], unknown, elabels[e], incrementor);
+incrementor++;
+}
 }
 
-void AbaqusInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
-{ 
-  if (used.Length() != NumElementVariables()) throw ExceptionT::kSizeMismatch;
-  fData.VariablesUsed (name, AbaqusVariablesT::kElement, used);
-}
-
-void AbaqusInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
-{ 
-  if (used.Length() != NumQuadratureVariables()) throw ExceptionT::kSizeMismatch;
-  fData.VariablesUsed (name, AbaqusVariablesT::kQuadrature, used);
-}
-
-void AbaqusInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& value)
+void AbaqusInputT::ReadVariables (int step, int group_id, dArray2DT& nvalues, dArray2DT& evalues)
 {
-  int n = NumNodeVariables ();
-  dArray2DT  vals (value.Length(), n);
-  ReadAllNodeVariables (step, vals);
+// determine number of variables
+ifstream in;
+if (!OpenFile (in)) throw eGeneralFail;
+ArrayT<AbaqusT::VariableKeyT> nkeys, ekeys;
+double time;
+for (int i=0; i < step + 1; i++)
+if (!fData.NextTimeIncrement (in, time)) throw eGeneralFail;
+fData.ReadLabels (in, nkeys, ekeys, fEnergyData);
 
-  double *v = vals.Pointer(varindex);
-  double *t = value.Pointer();
-  for (int i=0; i < value.Length(); i++)
-    {
-      *t++ = *v;
-      v += n;
-    }
+// read nodal variables
+if (nkeys.Length() > 0)
+{
+if (!OpenFile (in)) throw eGeneralFail; // rewind file
+for (int i1=0; i1 < step + 1; i1++)
+	if (!fData.NextTimeIncrement (in, time)) throw eGeneralFail;
+nvalues.Allocate (fNumNodes, nkeys.Length());
+fData.ReadNodeVariables (in, nkeys, nvalues);
 }
 
-void AbaqusInputT::ReadNodeVariable (int step, const StringT& elsetname, int varindex, dArrayT& value)
+// read elemental variables
+if (ekeys.Length() > 0)
 {
-  int n = NumNodeVariables ();
-  dArray2DT  vals (value.Length(), n);
-  ReadNodeVariables (step, elsetname, vals);
+if (!OpenFile (in)) throw eGeneralFail; // rewind file
+for (int i2=0; i2 < step + 1; i2++)
+	if (!fData.NextTimeIncrement (in, time)) throw eGeneralFail;
 
-  double *v = vals.Pointer(varindex);
-  double *t = value.Pointer();
-  for (int i=0; i < value.Length(); i++)
-    {
-      *t++ = *v;
-      v += n;
-    }
+iAutoArrayT elems;
+for (int i=0, j=0; i < fNumElements; i++)
+	if (fElementData (i, 2) == group_id)
+	  elems.Append (fElementData (i, 0));
+
+evalues.Allocate (elems.Length(), ekeys.Length());
+iArrayT els (elems.Length());
+els.Set (elems.Length(), elems.Pointer());
+fData.ReadElementVariables (in, ekeys, evalues, els);
 }
-
-void AbaqusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
-{
-  StringT name ("\0");
-  int numv = NumNodeVariables ();
-  if (values.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
-  fData.ReadVariables (AbaqusVariablesT::kNode, step, values, name);
-}
-
-void AbaqusInputT::ReadNodeVariables (int step, const StringT& elsetname, dArray2DT& values)
-{
-  iArray2DT connects (NumElements (elsetname), NumElementNodes (elsetname));
-  ReadConnectivity (elsetname, connects);
-
-  iArrayT nodesused;
-  NodesUsed (connects, nodesused);
-
-  // read all values
-  dArray2DT temp (NumNodes(), values.MinorDim());
-  ReadAllNodeVariables (step, temp);
-
-  values.Allocate (nodesused.Length(), NumNodeVariables());
-  values.RowCollect (nodesused, temp);
-}
-
-void AbaqusInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& values)
-{
-  int numv = NumNodeVariables ();
-  if (values.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
-  fData.ReadVariables (AbaqusVariablesT::kNode, step, values, nsetname);
-}
-
-void AbaqusInputT::ReadAllElementVariable (int step, int varindex, dArrayT& value)
-{
-  int n = NumElementVariables ();
-  dArray2DT  vals (value.Length(), n);
-  ReadAllElementVariables (step, vals);
-
-  double *v = vals.Pointer(varindex);
-  double *t = value.Pointer();
-  for (int i=0; i < value.Length(); i++)
-    {
-      *t++ = *v;
-      v += n;
-    }
-}
-
-void AbaqusInputT::ReadElementVariable (int step, const StringT& elsetname, int varindex, dArrayT& value)
-{
-  int n = NumElementVariables ();
-  dArray2DT  vals (value.Length(), n);
-  ReadElementVariables (step, elsetname, vals);
-
-  double *v = vals.Pointer(varindex);
-  double *t = value.Pointer();
-  for (int i=0; i < value.Length(); i++)
-    {
-      *t++ = *v;
-      v += n;
-    }
-}
-
-void AbaqusInputT::ReadAllElementVariables (int step, dArray2DT& values)
-{
-  StringT name ("\0");
-  int numv = NumElementVariables ();
-  if (values.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
-  fData.ReadVariables (AbaqusVariablesT::kElement, step, values, name);
-}
-
-void AbaqusInputT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
-{
-  int numv = NumElementVariables ();
-  if (evalues.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
-  fData.ReadVariables (AbaqusVariablesT::kElement, step, evalues, name);
-}
-
-void AbaqusInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& value)
-{
-  int n = NumQuadratureVariables ();
-  dArray2DT  vals (value.Length(), n);
-  ReadAllQuadratureVariables (step, vals);
-
-  double *v = vals.Pointer(varindex);
-  double *t = value.Pointer();
-  for (int i=0; i < value.Length(); i++)
-    {
-      *t++ = *v;
-      v += n;
-    }
-}
-
-void AbaqusInputT::ReadQuadratureVariable (int step, const StringT& elsetname, int varindex, dArrayT& value)
-{
-  int n = NumQuadratureVariables ();
-  dArray2DT vals (value.Length(), n);
-  ReadQuadratureVariables (step, elsetname, vals);
-
-  double *v = vals.Pointer(varindex);
-  double *t = value.Pointer();
-  for (int i=0; i < value.Length(); i++)
-    {
-      *t++ = *v;
-      v += n;
-    }
-}
-
-void AbaqusInputT::ReadAllQuadratureVariables (int step, dArray2DT& values)
-{
-  int numv = NumQuadratureVariables ();
-  if (values.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
-  StringT name ("\0");
-  fData.ReadVariables (AbaqusVariablesT::kQuadrature, step, values, name);
-}
-
-void AbaqusInputT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues)
-{
-  int numv = NumQuadratureVariables ();
-  if (qvalues.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
-  fData.ReadVariables (AbaqusVariablesT::kQuadrature, step, qvalues, name);
 }
 
 /*************************************************************************
@@ -384,58 +251,99 @@ void AbaqusInputT::ReadQuadratureVariables (int step, const StringT& name, dArra
 *
 *************************************************************************/
 
-void AbaqusInputT::SetLabelName (const iArrayT& key, const iArrayT& dims, ArrayT<StringT>& name) const
+bool AbaqusInputT::OpenFile (ifstream& in)
 {
-  int u=1;
-  for (int i=0; i < name.Length();)
-    {
-      int d = dims[i];
-      for (int j=0; j < d; j++, i++)
-	{
-	  int index = fData.VariableKeyIndex (key[i]);
-	  name[i] = fData.VariableName (index);
-	  name[i].Append ("_");
-	  if (index > 0)
-	    name[i].Append (j+1);
-	else
-	  name[i].Append (u++);
-	}
-    }
+if (in) in.close();
+fData.ResetBufferSize ();
+in.open (fResultFile);
+if (in) return true;
+else
+{
+cout << "\n\nAbaqusInputT::OpenFile unable to open file: "
+	   << fResultFile << endl;
+return false;
+}
 }
 
-void AbaqusInputT::MapOffset (ArrayT<int>& set, const iArrayT& map) const
+void AbaqusInputT::Initialize (void)
 {
-  int index;
-  for (int n=0; n < set.Length(); n++)
-    {
-      map.HasValue (set[n], index);
-      if (index < 0 || index >= map.Length()) throw ExceptionT::kOutOfRange;
-      set[n] = index;
-    }
+ifstream in;
+if (!OpenFile (in))
+{
+cout << "\n\nAbaqusInputT, unable to open file: " << fResultFile << endl;
+throw eGeneralFail;
 }
 
-void AbaqusInputT::NodesUsed (const nArrayT<int>& connects, iArrayT& nodesused) const
+// read num elements, num dimensions, etc.
+fData.ReadVersion (in, fVersion, fDate, fTime, fNumElements, fNumNodes);
+
+// set up element dat
+if (!OpenFile (in)) throw eGeneralFail; // rewind file
+int ID;
+GeometryT::CodeT geocode;
+iArrayT nodes;
+fElementData.Allocate (fNumElements, 4);
+fElementData = -1;
+int *p = fElementData.Pointer();
+for (int e=0; e < fNumElements; e++)
 {
-	/* quick exit */
-	if (connects.Length() == 0) return;
-
-	/* compressed number range */
-	int min, max;
-	connects.MinMax(min, max);
-	int range = max - min + 1;
-
-	/* local map */
-	iArrayT node_map(range);
-
-	/* determine used nodes */
-	node_map = 0;
-	for (int i = 0; i < connects.Length(); i++)
-		node_map[connects[i] - min] = 1;
-
-	/* collect list */
-	nodesused.Dimension(node_map.Count(1));
-	int dex = 0;
-	int*  p = node_map.Pointer();
-	for (int j = 0; j < node_map.Length(); j++)
-		if (*p++ == 1) nodesused[dex++] = j + min;
+fData.ReadElement (in, ID, geocode, nodes);
+*p++ = ID;
+*p++ = geocode;
+*p++;
+*p++ = nodes.Length();
 }
+
+// set up coord data
+if (!OpenFile (in)) throw eGeneralFail; // rewind file
+fCoordinateData.Allocate (fNumNodes, 2);
+fCoordinateData = -1;
+dArrayT x;
+p = fCoordinateData.Pointer();
+for (int n=0; n < fNumNodes; n++)
+{
+fData.ReadCoordinate (in, ID, x);
+*p++ = ID;
+*p++;
+}
+fDimensions = x.Length();
+
+// determine if modal analysis
+if (!OpenFile (in)) throw eGeneralFail; // rewind file
+fData.IsModal (in);
+}
+
+void AbaqusInputT::ReadElementSets (void)
+{
+ifstream (in);
+if (!OpenFile (in)) throw eGeneralFail;
+fData.ReadElementSets (in, fElementData);
+}
+
+void AbaqusInputT::ReadNodeSets (void)
+{
+ifstream (in);
+if (!OpenFile (in)) throw eGeneralFail;
+fData.ReadNodeSets (in, fCoordinateData);
+}
+
+void AbaqusInputT::SetLabelName (AbaqusT::VariableKeyT key, int& unknown, StringT& name, char incrementor) const
+{
+switch (key)
+{
+case AbaqusT::aSDV:           name = "SDV_"; break;
+case AbaqusT::aStress:        name = "S_";   break;
+case AbaqusT::aTotalStrain:   name = "E_";   break;
+case AbaqusT::aDisplacement:  name = "D_";   break;
+case AbaqusT::aVelocity:      name = "V_";   break;
+case AbaqusT::aAcceleration:  name = "A_";   break;
+case AbaqusT::aCoordVariable: name = "X_";   break;
+case AbaqusT::aPrinStress:    name = "PS_";  break;
+default:
+name = "unk";
+name.Append (unknown++);
+name.Append ("_");
+}
+name.Append (incrementor);
+}
+

@@ -1,18 +1,35 @@
-/* $Id: GaussPtsT.cpp,v 1.5 2004-07-15 08:28:03 paklein Exp $ */
-/* created: paklein (11/02/1997) */
+/* $Id: GaussPtsT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (11/02/1997)                                          */
+
 #include "GaussPtsT.h"
 #include <math.h>
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
-
-using namespace Tahoe;
+#include <iostream.h>
+#include "Constants.h"
+#include "ExceptionCodes.h"
 
 const double Pi = acos(-1.0);
 
-/* constructor */
-GaussPtsT::GaussPtsT(int n): fN(n)
+/*
+* Constructor
+*/
+GaussPtsT::GaussPtsT(istream& in)
 {
+	/* number of integration points */
+	in >> fN;
+}
 
+/*
+* Print parameters.
+*/
+void GaussPtsT::Print(ostream& out) const
+{
+	/* number of integration points */
+	out << " Number of sampling points . . . . . . . . . . . = " << fN << '\n';
+}
+
+void GaussPtsT::PrintName(ostream& out) const
+{
+	out << "    " << fN << "-point Gauss rule\n";
 }
 
 /*
@@ -76,11 +93,12 @@ void GaussPtsT::SetCoords(int numint)
 			break;
 
 		default:
-			ExceptionT::GeneralFail("GaussPtsT::SetCoords", "unrecognized Gauss rule %d", numint);
+			
+			throw eGeneralFail;
 	}
 
 	/* calculate directions */	
-	fPoints.Dimension(numint,2);
+	fPoints.Allocate(numint,2);
 	for (int i = 0; i < numint; i++)
 	{
 		double *xsi = fPoints(i);
@@ -130,13 +148,14 @@ void GaussPtsT::SetJacobians(int numint)
 			break;
 
 		default:
-			ExceptionT::GeneralFail("GaussPtsT::SetCoords", "unrecognized Gauss rule %d", numint);
+			
+			throw eGeneralFail;
 	}
 	
 	/* temp vector */
 	dArrayT temp(numint,p);
 	
 	/* copy in */
-	fJacobians.Dimension(numint);
+	fJacobians.Allocate(numint);
 	fJacobians.SetToScaled(Pi,temp);
 }

@@ -1,4 +1,4 @@
-/* $Id: D2OrthoMLS2DT.h,v 1.2 2002-07-02 19:57:02 cjkimme Exp $ */
+/* $Id: D2OrthoMLS2DT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
 /* created: paklein (10/17/1999)                                          */
 
 #ifndef _D2_ORTHO_MLS_2D_T_H_
@@ -6,9 +6,6 @@
 
 /* base class */
 #include "D2OrthoMLSSolverT.h"
-
-
-namespace Tahoe {
 
 class D2OrthoMLS2DT: public D2OrthoMLSSolverT
 {
@@ -28,5 +25,4 @@ protected:
 		dArray2DT& DDp);
 };
 
-} // namespace Tahoe 
 #endif /* _D2_ORTHO_MLS_2D_T_H_ */

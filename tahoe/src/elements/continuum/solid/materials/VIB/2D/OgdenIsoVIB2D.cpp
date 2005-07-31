@@ -1,10 +1,14 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.12 2004-07-15 08:27:45 paklein Exp $ */
-/* created: paklein (11/08/1997) */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (11/08/1997)                                          */
+/* 2D Isotropic VIB using Ogden's spectral formulation                    */
+
 #include "OgdenIsoVIB2D.h"
 
 #include <math.h>
 #include <iostream.h>
-#include "toolboxConstants.h"
+#include "Constants.h"
+
+#include "ElasticT.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
@@ -12,28 +16,54 @@
 /* point generator */
 #include "EvenSpacePtsT.h"
 
-using namespace Tahoe;
-
-/* constructor */
-OgdenIsoVIB2D::OgdenIsoVIB2D(void):
-	ParameterInterfaceT("Ogden_isotropic_VIB_2D"),
-	VIB(2, 2, 3),
+/* constructors */
+OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const ElasticT& element):
+	OgdenIsotropicT(in, element),
+	Material2DT(in, kPlaneStress),
+	VIB(in, 2, 2, 3),
 	fCircle(NULL)
 {
+	/* point generator */
+	fCircle = new EvenSpacePtsT(in);
 
+	/* set tables */
+	Construct();
 }
 
 /* destructor */
-OgdenIsoVIB2D::~OgdenIsoVIB2D(void) { delete fCircle; }
+OgdenIsoVIB2D::~OgdenIsoVIB2D(void)
+{
+	delete fCircle;
+}
+
+/* print parameters */
+void OgdenIsoVIB2D::Print(ostream& out) const
+{
+	/* inherited */
+	OgdenIsotropicT::Print(out);
+	Material2DT::Print(out);
+	VIB::Print(out);
+
+	fCircle->Print(out);
+}
+
+/* print name */
+void OgdenIsoVIB2D::PrintName(ostream& out) const
+{
+	/* inherited */
+	OgdenIsotropicT::PrintName(out);
+	VIB::PrintName(out);
+	out << "    Odgen principal stretch formulation\n";
+
+	/* integration rule */
+	fCircle->PrintName(out);
+}
 
 /* strain energy density */
 double OgdenIsoVIB2D::StrainEnergyDensity(void)
 {
-	/* stretch */
-	Compute_C(fC);
-
 	/* principal stretches */
-	fC.PrincipalValues(fEigs);
+	C().PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
@@ -48,69 +78,23 @@ double OgdenIsoVIB2D::StrainEnergyDensity(void)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return energy;
-}
-
-/* describe the parameters needed by the interface */
-void OgdenIsoVIB2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	OgdenIsotropicT::DefineParameters(list);
-	VIB::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStress);
-
-	/* integration points */
-	ParameterT points(ParameterT::Integer, "n_points");
-	points.AddLimit(1, LimitT::LowerInclusive);
-	list.AddParameter(points);
-}
-
-/* information about subordinate parameter lists */
-void OgdenIsoVIB2D::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	OgdenIsotropicT::DefineSubs(sub_list);
-	VIB::DefineSubs(sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* OgdenIsoVIB2D::NewSub(const StringT& name) const
-{
-	/* inherited */
-	ParameterInterfaceT* sub = OgdenIsotropicT::NewSub(name);
-	if (sub) return sub;
-	else return VIB::NewSub(name);
-}
-
-/* describe the parameters needed by the interface */
-void OgdenIsoVIB2D::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	OgdenIsotropicT::TakeParameterList(list);
-	VIB::TakeParameterList(list);
-
-	/* point generator */
-	int points = list.GetParameter("n_points");
-	fCircle = new EvenSpacePtsT(points);
-	Construct();
+	return energy*fThickness;
 }
 
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
-/* principal values given principal values of the stretch tensors,
- * i.e., the principal stretches squared */
-void OgdenIsoVIB2D::dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress)
+/* principal values given principal stretches */
+void OgdenIsoVIB2D::dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress)
 {
 	/* stretched bonds */
-	ComputeLengths(eigenstretch2);
+	ComputeLengths(eigenstretch);
 
 	/* derivatives of the potential */
 	fPotential->MapDFunction(fLengths, fdU);
+
+	/* initialize kernel pointers */
 	double* pdU = fdU.Pointer();
 	double* pl  = fLengths.Pointer();
 	double* pj  = fjacobian.Pointer();
@@ -127,13 +111,17 @@ void OgdenIsoVIB2D::dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress)
 		s0 += factor*(*p0++);
 		s1 += factor*(*p1++);
 	}
+
+	/* thickness */
+	s0 *= fThickness;
+	s1 *= fThickness;
 }
 
-void OgdenIsoVIB2D::ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
+void OgdenIsoVIB2D::ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
 	dSymMatrixT& eigenmod)
 {
 	/* stretched bonds */
-	ComputeLengths(eigenstretch2);
+	ComputeLengths(eigenstretch);
 
 	/* derivatives of the potential */
 	fPotential->MapDFunction(fLengths, fdU);
@@ -164,9 +152,9 @@ void OgdenIsoVIB2D::ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
 	for (int i = 0; i < fLengths.Length(); i++)
 	{
 		double sfactor = (*pj)*(*pdU)/(*pl);
-		double cfactor = (*pj)*((*pddU)/((*pl)*(*pl)) -
-		                        (*pdU)/((*pl)*(*pl)*(*pl)));
-		pl++; pj++; pddU++; pdU++;
+		double cfactor = (*pj++)*((*pddU++)/((*pl)*(*pl)) -
+		                          (*pdU++)/((*pl)*(*pl)*(*pl)));
+		pl++;
 
 		s0 += sfactor*(*ps0++);
 		s1 += sfactor*(*ps1++);
@@ -175,6 +163,13 @@ void OgdenIsoVIB2D::ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
 		c11 += cfactor*(*pc11++);
 		c01 += cfactor*(*pc01++);
 	}
+
+	/* thickness */
+	s0  *= fThickness;
+	s1  *= fThickness;
+	c00 *= fThickness;
+	c11 *= fThickness;
+	c01 *= fThickness;
 }
 
 /* strained lengths in terms of the Lagrangian stretch eigenvalues */
@@ -204,7 +199,7 @@ void OgdenIsoVIB2D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	VIB::Dimension(numpoints);
+	Allocate(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();
@@ -220,7 +215,7 @@ void OgdenIsoVIB2D::Construct(void)
 	for (int i = 0; i < numpoints; i++)
 	{
 		/* direction cosines */
-		const double *xsi = points(i);
+		double *xsi = points(i);
 		double cosi = xsi[0];
 		double sini = xsi[1];
 		

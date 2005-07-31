@@ -1,55 +1,88 @@
-/* $Id: DiffusionElementT.cpp,v 1.24 2005-01-05 01:25:07 paklein Exp $ */
-/* created: paklein (10/02/1999) */
+/* $Id: DiffusionElementT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (10/02/1999)                                          */
+
 #include "DiffusionElementT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
 
-#include "ifstreamT.h"
+#include "Constants.h"
+
+#include "fstreamT.h"
+#include "FEManagerT.h"
+#include "NodeManagerT.h"
+#include "DiffusionMaterialT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
-#include "eIntegratorT.h"
+#include "eControllerT.h"
+#include "MaterialListT.h"
 #include "iAutoArrayT.h"
-#include "ParameterContainerT.h"
 
-/* materials */
-#include "DiffusionMaterialT.h"
-#include "DiffusionMatSupportT.h"
+/* materials lists */
 #include "DiffusionMatListT.h"
 
-using namespace Tahoe;
-
 /* initialize static data */
-const int DiffusionElementT::NumNodalOutputCodes = 3;
-static const char* NodalOutputNames[] = {
-	"coordinates",
-	"displacement",
-	"material_output"};
+const int DiffusionElementT::NumOutputCodes = 3;
 
 /* parameters */
 const int kDiffusionNDOF = 1;
 
 /* constructor */
-DiffusionElementT::DiffusionElementT(const ElementSupportT& support):
-	ContinuumElementT(support),
+DiffusionElementT::DiffusionElementT(FEManagerT& fe_manager):
+	ContinuumElementT(fe_manager),
 	fLocVel(LocalArrayT::kVel),
-	fDiffusionMatSupport(NULL)
+	fD(fNumSD),
+	fq(fNumSD)
 {
-	SetName("diffusion");
+	/* check base class initializations */
+	if (fNumDOF != kDiffusionNDOF) throw eGeneralFail;
 }
 
-/* destructor */
-DiffusionElementT::~DiffusionElementT(void)
+/* data initialization */
+void DiffusionElementT::Initialize(void)
 {
-	delete fDiffusionMatSupport;
+/* inherited */
+ContinuumElementT::Initialize();
+
+/* allocate */
+fB.Allocate(fNumSD, fNumElemNodes);
+
+	/* setup for material output */
+	if (fOutputCodes[iMaterialData])
+	{
+		/* only 1 material allowed for the group */
+		if (fMaterialList->Length() > 1)
+		{
+			cout << "\n DiffusionElementT::ReadMaterialData: if the material output flag is set,\n";
+			cout <<   " there can be only 1 material defined for the element group."<< endl;
+
+			throw eGeneralFail;
+		}
+		/* no material output variables */
+	 	else if ((*fMaterialList)[0]->NumOutputVariables() == 0)
+		{
+			cout << "\n DiffusionElementT::ReadMaterialData: there are no material outputs. ";
+			cout << endl;
+
+			fOutputCodes[iMaterialData] = 0;
+		}
+	}
+}
+
+/* set the controller */
+void DiffusionElementT::SetController(eControllerT* controller)
+{
+	/* inherited */
+	ContinuumElementT::SetController(controller);
+
+	//should check the controller for compatibility
 }
 
 /* compute nodal force */
-void DiffusionElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
+void DiffusionElementT::AddNodalForce(int node, dArrayT& force)
 {
 	//not implemented
-#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }
@@ -90,15 +123,15 @@ double DiffusionElementT::InternalEnergy(void)
 
 void DiffusionElementT::SendOutput(int kincode)
 {
-	/* output flags */
-	iArrayT flags(fNodalOutputCodes.Length());
+/* output flags */
+iArrayT flags(fOutputCodes.Length());
 
 	/* set flags to get desired output */
 	flags = IOBaseT::kAtNever;
 	switch (kincode)
 	{
 		case iNodalDisp:
-		    flags[iNodalDisp] = NumDOF();
+		    flags[iNodalDisp] = fNumDOF;
 			break;
 		default:
 			cout << "\n DiffusionElementT::SendKinematic: invalid output code: ";
@@ -106,24 +139,60 @@ void DiffusionElementT::SendOutput(int kincode)
 	}
 
 	/* number of output values */
-	iArrayT n_counts;
-	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
+	iArrayT counts;
+	SetOutputCodes(IOBaseT::kAtInc, flags, counts);
+	int num_out = counts.Sum();
 
 	/* reset averaging workspace */
-	ElementSupport().ResetAverage(n_counts.Sum());
-
-	/* no element output */
-	iArrayT e_counts(fElementOutputCodes.Length());
-	e_counts = 0;
+	fNodes->ResetAverage(num_out);
 
 	/* generate nodal values */
-	dArray2DT e_values, n_values;
-	ComputeOutput(n_counts, n_values, e_counts, e_values);
+	ComputeNodalValues(counts);
 }
 
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
+
+/* print element group data */
+void DiffusionElementT::PrintControlData(ostream& out) const
+{
+	/* inherited */
+	ContinuumElementT::PrintControlData(out);
+
+	// anything else
+}
+
+void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
+{
+	/* allocate */
+	fOutputCodes.Allocate(NumOutputCodes);
+
+	/* read in at a time to allow comments */
+	for (int i = 0; i < fOutputCodes.Length(); i++)
+	{
+		in >> fOutputCodes[i];
+		
+		/* convert all to "at print increment" */
+		if (fOutputCodes[i] != IOBaseT::kAtNever)
+			fOutputCodes[i] = IOBaseT::kAtInc;
+	}		
+
+	/* checks */
+	if (fOutputCodes.Min() < IOBaseT::kAtFail ||
+	    fOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+
+	/* default behavior with output formats */
+//	fOutputCodes[iNodalCoord] = IOBaseT::kAtNever;
+//	fOutputCodes[iNodalDisp ] = IOBaseT::kAtNever;
+// what to do about default behavior
+
+	/* control parameters */
+	out << " Number of nodal output codes. . . . . . . . . . = " << NumOutputCodes << '\n';
+	out << "    [" << fOutputCodes[iNodalCoord   ] << "]: initial nodal coordinates\n";
+	out << "    [" << fOutputCodes[iNodalDisp    ] << "]: nodal displacements\n";
+	out << "    [" << fOutputCodes[iMaterialData ] << "]: nodal material output parameters\n";
+}
 
 /* initialize local arrays */
 void DiffusionElementT::SetLocalArrays(void)
@@ -131,62 +200,53 @@ void DiffusionElementT::SetLocalArrays(void)
 	/* inherited */
 	ContinuumElementT::SetLocalArrays();
 
-	/* allocate */
-	fLocVel.Dimension(NumElementNodes(), NumDOF());
-
-	/* nodal velocities */
-	if (fIntegrator->Order() > 0)
-		Field().RegisterLocal(fLocVel);
+	/* dimension */
+	fLocVel.Allocate(fNumElemNodes, fNumDOF);
+	
+	/* set source */
+	fFEManager.RegisterLocal(fLocVel);
 }
 
 /* construct output labels array */
-void DiffusionElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-	iArrayT& counts) const
+void DiffusionElementT::SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts)
 {
 	/* initialize */
-	counts.Dimension(flags.Length());
+	counts.Allocate(flags.Length());
 	counts = 0;
 
 	if (flags[iNodalCoord] == mode)
-		counts[iNodalCoord] = NumSD();
+		counts[iNodalCoord] = fNumSD;
 	if (flags[iNodalDisp] == mode)
-		counts[iNodalDisp] = NumDOF();
+		counts[iNodalDisp] = fNumDOF;
 	if (flags[iMaterialData] == mode)
 		counts[iMaterialData ] = (*fMaterialList)[0]->NumOutputVariables();
-}
-
-void DiffusionElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-	iArrayT& counts) const
-{
-#pragma unused(mode)
-#pragma unused(flags)
-	if (counts.Sum() != 0)
-		ExceptionT::BadInputValue("DiffusionElementT::SetElementOutputCodes", "not implemented");
 }
 
 /* set the correct shape functions */
 void DiffusionElementT::SetShape(void)
 {
-	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
-	if (!fShapes ) throw ExceptionT::kOutOfMemory;
+	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP,
+		fLocInitCoords, ShapeFunctionT::kStandardB);
+	if (!fShapes ) throw eOutOfMemory;
+
 	fShapes->Initialize();
 }
 
 /* construct the effective mass matrix */
-void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
+void DiffusionElementT::LHSDriver(void)
 {
 	/* inherited */
-	ContinuumElementT::LHSDriver(sys_type);
+	ContinuumElementT::LHSDriver();
 
 	/* set components and weights */
 	double constC = 0.0;
 	double constK = 0.0;
 	
-	int formC = fIntegrator->FormC(constC);
-	int formK = fIntegrator->FormK(constK);
+	int formC = fController->FormC(constC);
+	int formK = fController->FormK(constK);
 
 	/* loop over elements */
-	bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
 	{
@@ -195,9 +255,9 @@ void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		
 		/* set shape function derivatives */
 		SetGlobalShape();
-
+			
 		/* element mass */
-		if (formC) FormMass(kConsistentMass, constC*(fCurrMaterial->Capacity()), axisymmetric, NULL);
+		if (formC) FormMass(kConsistentMass, constC*(fCurrMaterial->Capacity()));
 
 		/* element stiffness */
 		if (formK) FormStiffness(constK);
@@ -217,110 +277,56 @@ void DiffusionElementT::RHSDriver(void)
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
-	int formCv = fIntegrator->FormCv(constCv);
-	int formKd = fIntegrator->FormKd(constKd);
-
-	/* block info - needed for source terms */
-	int block_dex = 0;
-	int block_count = 0;
-	dArray2DT ip_source;
-	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
-	const dArray2DT* block_source = Field().Source(block_data->ID());
-	if (block_source) ip_source.Dimension(NumIP(), 1);
+	int formCv = fController->FormCv(constCv);
+	int formKd = fController->FormKd(constKd);
 
 	/* body forces */
 	int formBody = 0;
-	if ((fBodySchedule && fBody.Magnitude() > kSmall) || block_source) {	
+	if (fBodyForceLTf > -1 && fBody.Magnitude() > kSmall)
+	{	
 		formBody = 1;
 		if (!formCv) constCv = 1.0; // correct value ??
 	}
 
-	bool axisymmetric = Axisymmetric();
-	double dt = ElementSupport().TimeStep();
-	double by_dt = (fabs(dt) > kSmall) ? 1.0/dt: 0.0; /* for dt -> 0 */
 	Top();
 	while (NextElement())
 	{
-		/* capacity */
-		double pc = fCurrMaterial->Capacity();
-
-		/* reset block info (skip empty) */
-		while (block_count == block_data->Dimension()) {
-			block_data = fBlockData.Pointer(++block_dex);
-			block_source = Field().Source(block_data->ID());
-			block_count = 0;
-		}
-		
-		/* convert heat increment/volume to unit of fLocVel (T/s) */
-		if (block_source) {
-			block_source->RowCopy(block_count, ip_source);
-			ip_source *= by_dt/pc;
-		}
-		block_count++;
-		
-		/* initialize */
-		fRHS = 0.0;
-
-		/* global shape function values */
-		SetGlobalShape();
-
-		/* conduction term */
-		if (formKd) 
+		/* nodal temperature */
+		if (formKd)
 		{
 			SetLocalU(fLocDisp);
-			FormKd(-constKd);
+			fLocDisp *= constKd;
 		}
+		else
+			fLocDisp = 0.0;
 
-		/* capacity term */
-		if (formCv || formBody)
+		/* nodal temperature rate */
+		fLocVel = 0.0;
+		if (formBody)
 		{
-			if (formCv) SetLocalU(fLocVel);
-			else fLocVel = 0.0;
-			if (formBody) AddBodyForce(fLocVel);
-
-			/* add internal contribution */
-			FormMa(kConsistentMass, -constCv*pc, axisymmetric,
-				&fLocVel,
-				(block_source) ? &ip_source : NULL,
-				NULL);			  		
+			AddBodyForce(fLocVel);
+			fLocVel *= constCv/fCurrMaterial->SpecificHeat();
 		}
-				
-		/* assemble */
-		AssembleRHS();
-	}
-}
 
-/* set the \e B matrix at the specified integration point */
-void DiffusionElementT::B(int ip, dMatrixT& B_matrix) const
-{
-	const dArray2DT& DNa = fShapes->Derivatives_U(ip);
-	int nnd = DNa.MinorDim();
-	double* pB = B_matrix.Pointer();
-
-	/* 2D */
-	if (DNa.MajorDim() == 2)
-	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
-
-		for (int i = 0; i < nnd; i++)
+		/* last check w/ effective v and d - override controller */
+		int eformCv = fLocVel.AbsMax() > 0.0;
+		int eformKd = fLocDisp.AbsMax() > 0.0;
+		if (eformCv || eformKd)
 		{
-			*pB++ = *pNax++;
-			*pB++ = *pNay++;
-		}
-	}
-	/* 3D */
-	else		
-	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
-		const double* pNaz = DNa(2);
+			/* initialize */
+			fRHS = 0.0;
 		
-		for (int i = 0; i < nnd; i++)
-		{
-			*pB++ = *pNax++;
-			*pB++ = *pNay++;
-			*pB++ = *pNaz++;
+			/* global shape function values */
+			SetGlobalShape();
+			
+			/* internal force contribution */	
+			if (eformKd) FormKd(-1.0);
+
+			/* inertia forces */
+			if (eformCv) FormMa(kConsistentMass, -fCurrMaterial->Capacity(), fLocVel);			  		
+								
+			/* assemble */
+			AssembleRHS();
 		}
 	}
 }
@@ -363,7 +369,7 @@ void DiffusionElementT::FormStiffness(double constK)
 		double scale = constK*(*Det++)*(*Weight++);
 	
 		/* strain displacement matrix */
-		B(fShapes->CurrIP(), fB);
+		fShapes->B_q(fB);
 
 		/* get D matrix */
 		fD.SetToScaled(scale, fCurrMaterial->k_ij());
@@ -381,112 +387,58 @@ void DiffusionElementT::FormKd(double constK)
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 	
-	int nsd = NumSD();
-	dMatrixT grad;
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
-		/* set field gradient */
-		grad.Set(1, nsd, fGradient_list[CurrIP()].Pointer());
-		IP_ComputeGradient(fLocDisp, grad);
-
 		/* get strain-displacement matrix */
-		B(fShapes->CurrIP(), fB);
+		fShapes->B_q(fB);
 
 		/* compute heat flow */
 		fB.MultTx(fCurrMaterial->q_i(), fNEEvec);
 
 		/* accumulate */
-		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
+		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
 	}	
 }
 
-/* construct a new material support and return a pointer */
-MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) const
+/* return a pointer to a new material list */
+MaterialListT* DiffusionElementT::NewMaterialList(int size) const
 {
 	/* allocate */
-	if (!p) p = new DiffusionMatSupportT(NumDOF(), NumIP());
-
-	/* inherited initializations */
-	ContinuumElementT::NewMaterialSupport(p);
-	
-	/* set DiffusionMatSupportT fields */
-	DiffusionMatSupportT* ps = TB_DYNAMIC_CAST(DiffusionMatSupportT*, p);
-	if (ps) {
-		ps->SetContinuumElement(this);
-		ps->SetGradient(&fGradient_list);
-	}
-
-	return p;
+	return new DiffusionMatListT(size, *this);
 }
 
-/* return a pointer to a new material list */
-MaterialListT* DiffusionElementT::NewMaterialList(const StringT& name, int size)
+/* extrapolate the integration point stresses and strains and extrapolate */
+void DiffusionElementT::ComputeNodalValues(const iArrayT& codes)
 {
-	/* no match */
-	if (name != "diffusion_material") 
-		return NULL;
-
-	if (size > 0)
-	{
-		/* material support */
-		if (!fDiffusionMatSupport) {
-			fDiffusionMatSupport = TB_DYNAMIC_CAST(DiffusionMatSupportT*, NewMaterialSupport());
-			if (!fDiffusionMatSupport) ExceptionT::GeneralFail("DiffusionElementT::NewMaterialList");
-		}
-
-		/* allocate */
-		return new DiffusionMatListT(size, *fDiffusionMatSupport);
-	}
-	else
-		return new DiffusionMatListT;
-}
-
-/* driver for calculating output values */
-void DiffusionElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-	const iArrayT& e_codes, dArray2DT& e_values)
-{
-	/* number of output values */
-	int n_out = n_codes.Sum();
-	int e_out = e_codes.Sum();
+/* number of nodally smoothed values */
+int num_out = codes.Sum();
 
 	/* nothing to output */
-	if (n_out == 0 && e_out == 0) return;
-
-//TEMP
-#pragma unused(e_values)
-if (e_out > 0)
-	ExceptionT::GeneralFail("DiffusionElementT::ComputeOutput", "element output not supported");
-
-	/* dimensions */
-	int nen = NumElementNodes();
-	int nsd = NumSD();
-
-	/* reset averaging workspace */
-	ElementSupport().ResetAverage(n_out);
+	if (num_out == 0) return;
 
 	/* work arrays */
-	dArray2DT nodal_space(nen, n_out);
-	dArray2DT nodal_all(nen, n_out);
+	dArray2DT nodal_space(fNumElemNodes, num_out);
+	dArray2DT nodal_all(fNumElemNodes, num_out);
 	dArray2DT coords, disp;
 	dArray2DT nodalstress, princstress, matdat;
 	dArray2DT energy, speed;
 
 	/* ip values */
-	dSymMatrixT cauchy(nsd);
-	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
-	dArrayT ipspeed(nsd), ipprincipal(nsd);
+	dSymMatrixT cauchy(fNumSD);
+	dArrayT ipmat(codes[iMaterialData]), ipenergy(1);
+	dArrayT ipspeed(fNumSD), ipprincipal(fNumSD);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(nen, n_codes[iNodalCoord], pall);
+	coords.Set(fNumElemNodes, codes[iNodalCoord], pall);
 	pall += coords.Length();
-	disp.Set(nen, n_codes[iNodalDisp], pall);
+	disp.Set(fNumElemNodes, codes[iNodalDisp], pall);
 	pall += disp.Length();
-	matdat.Set(nen, n_codes[iMaterialData], pall);
+	matdat.Set(fNumElemNodes, codes[iMaterialData], pall);
 
 	Top();
-	while (NextElement())
+	while ( NextElement() )
 	{
 		/* initialize */
 	    nodal_space = 0.0;
@@ -496,15 +448,15 @@ if (e_out > 0)
 		SetLocalU(fLocDisp);
 		
 		/* coordinates and displacements all at once */
-		if (n_codes[iNodalCoord]) fLocInitCoords.ReturnTranspose(coords);
-		if (n_codes[iNodalDisp])  fLocDisp.ReturnTranspose(disp);
+		if (codes[iNodalCoord]) fLocInitCoords.ReturnTranspose(coords);
+		if (codes[iNodalDisp])  fLocDisp.ReturnTranspose(disp);
 
 		/* integrate */
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{
 			/* material stuff */
-			if (n_codes[iMaterialData])
+			if (codes[iMaterialData])
 			{
 				fCurrMaterial->ComputeOutput(ipmat);
 				fShapes->Extrapolate(ipmat,matdat);
@@ -518,162 +470,44 @@ if (e_out > 0)
 		nodal_all.BlockColumnCopyAt(matdat, colcount);
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
-		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
-	}
-	
-	/* get nodally averaged values */
-	ElementSupport().OutputUsedAverage(n_values);
-}
-
-/* information about subordinate parameter lists */
-void DiffusionElementT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ContinuumElementT::DefineSubs(sub_list);
-
-	/* nodal output codes (optional) */
-	sub_list.AddSub("diffusion_element_nodal_output", ParameterListT::ZeroOrOnce);
-
-	/* element block/material specification */
-	sub_list.AddSub("diffusion_element_block", ParameterListT::OnePlus);
-}
-
-/* return the description of the given inline subordinate parameter list */
-ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& name) const
-{
-	if (name == "diffusion_element_nodal_output")
-	{
-		ParameterContainerT* node_output = new ParameterContainerT(name);
-		
-		/* all false by default */
-		for (int i = 0; i < NumNodalOutputCodes; i++) {
-			ParameterT output(ParameterT::Integer, NodalOutputNames[i]);
-			output.SetDefault(1);
-			node_output->AddParameter(output, ParameterListT::ZeroOrOnce);
-		}
-
-		return node_output;
-	}
-	else if (name == "diffusion_element_block")
-	{
-		ParameterContainerT* block = new ParameterContainerT(name);
-		
-		/* list of element block ID's (defined by ElementBaseT) */
-		block->AddSub("block_ID_list", ParameterListT::Once);
-	
-		/* choice of materials lists (inline) */
-		block->AddSub("diffusion_material", ParameterListT::Once);
-	
-		/* set this as source of subs */
-		block->SetSubSource(this);
-		
-		return block;
-	}
-	else /* inherited */
-		return ContinuumElementT::NewSub(name);
-}
-
-/* accept parameter list */
-void DiffusionElementT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ContinuumElementT::TakeParameterList(list);
-
-	/* dimensions */
-	int nsd = NumSD();
-	int nen = NumElementNodes();
-	int nip = NumIP();
-	fD.Dimension(nsd);
-	fq.Dimension(nsd);
-	fB.Dimension(nsd, nen);
-	fGradient_list.Dimension(nip);
-	for (int i = 0; i < fGradient_list.Length(); i++)
-		fGradient_list[i].Dimension(nsd);
-	
-	/* nodal output codes */
-	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
-	fNodalOutputCodes = 0;
-	const ParameterListT* node_output = list.List("diffusion_element_nodal_output");
-	if (node_output)
-		for (int i = 0; i < NumNodalOutputCodes; i++)
-		{
-			/* look for entry */
-			const ParameterT* nodal_value = node_output->Parameter(NodalOutputNames[i]);
-			if (nodal_value) {
-				int do_write = *nodal_value;
-				if (do_write)
-					fNodalOutputCodes[i] = 1;
-			}
-		}	
-}
-
-/* extract the list of material parameters */
-void DiffusionElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
-{
-	const char caller[] = "DiffusionElementT::CollectMaterialInfo";
-	
-	/* initialize */
-	mat_params.Clear();
-
-	/* set materials list name */
-	mat_params.SetName("diffusion_material");
-	
-	/* collected material parameters */
-	int num_blocks = all_params.NumLists("diffusion_element_block");
-	for (int i = 0; i < num_blocks; i++) {
-
-		/* block information */	
-		const ParameterListT& block = all_params.GetList("diffusion_element_block", i);
-		
-		/* collect material parameters */
-		const ParameterListT& mat_list = block.GetList(mat_params.Name());
-		const ArrayT<ParameterListT>& mat = mat_list.Lists();
-		mat_params.AddList(mat[0]);
+		fNodes->AssembleAverage(CurrentElement().NodesX(), nodal_all);
 	}
 }
 
 /***********************************************************************
- * Private
- ***********************************************************************/
+* Private
+***********************************************************************/
 
 /* construct output labels array */
-void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,
-	ArrayT<StringT>& n_labels, const iArrayT& e_codes, 
-	ArrayT<StringT>& e_labels) const
+void DiffusionElementT::GenerateOutputLabels(const iArrayT& codes,
+	ArrayT<StringT>& labels) const
 {
-//TEMP - no element labels for now
-#pragma unused(e_labels)
+	/* allocate */
+	labels.Allocate(codes.Sum());
 
-	/* allocate node labels */
-	n_labels.Dimension(n_codes.Sum());
 	int count = 0;	
-
-	if (n_codes[iNodalDisp])
+	if (codes[iNodalDisp])
 	{
-		/* labels from the field */
-		const ArrayT<StringT>& labels = Field().Labels();
-		for (int i = 0; i < labels.Length(); i++)
-			n_labels[count++] = labels[i];
+		if (fNumDOF > 6) throw eGeneralFail;
+		const char* dlabels[] = {"d1", "d2", "d3", "d4", "d5", "d6"};
+		for (int i = 0; i < fNumDOF; i++)
+			labels[count++] = dlabels[i];
 	}
 
-	if (n_codes[iNodalCoord])
+	if (codes[iNodalCoord])
 	{
 		const char* xlabels[] = {"x1", "x2", "x3"};
-		for (int i = 0; i < NumSD(); i++)
-			n_labels[count++] = xlabels[i];
+		for (int i = 0; i < fNumSD; i++)
+			labels[count++] = xlabels[i];
 	}
 
 	/* material output labels */
-	if (n_codes[iMaterialData])
+	if (codes[iMaterialData])
 	{
 		ArrayT<StringT> matlabels;
 		(*fMaterialList)[0]->OutputLabels(matlabels);	
 		
-		for (int i = 0; i < n_codes[iMaterialData]; i++)
-			n_labels[count++] = matlabels[i];
+		for (int i = 0; i < codes[iMaterialData]; i++)
+			labels[count++] = matlabels[i];
 	}
-	
-	if (e_codes.Sum() != 0)
-		ExceptionT::GeneralFail("DiffusionElementT::GenerateOutputLabels", 
-			"not expecting any element output codes");
 }

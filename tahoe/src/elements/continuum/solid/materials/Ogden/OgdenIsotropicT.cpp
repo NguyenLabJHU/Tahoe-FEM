@@ -1,66 +1,99 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.14 2004-07-15 08:27:22 paklein Exp $ */
-/* created: paklein (10/01/2000) */
+/* $Id: OgdenIsotropicT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (10/01/2000)                                          */
+/* base class for large deformation isotropic material following          */
+/* Ogden's formulation.                                                   */
+
 #include "OgdenIsotropicT.h"
 
+#include <iostream.h>
 #include <math.h>
 
-using namespace Tahoe;
-
 /* constructor */
-OgdenIsotropicT::OgdenIsotropicT(void):
-	ParameterInterfaceT("Ogden_isotropic"),
-	fSpectralDecomp(NULL)
+OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const ElasticT& element):
+	FDStructMatT(in, element),
+	fSpectralDecomp(NumSD()),
+	fEigs(NumSD()),
+	fdWdE(NumSD()),
+	fddWddE(NumSD()),
+	fModMat(dSymMatrixT::NumValues(NumSD())),
+	fModulus(dSymMatrixT::NumValues(NumSD()))
 {
 
 }
 
-OgdenIsotropicT::~OgdenIsotropicT(void)
+void OgdenIsotropicT::Print(ostream& out) const
 {
-	delete fSpectralDecomp;
+	/* inherited */
+	FDStructMatT::Print(out);
+	IsotropicT::Print(out);
+}
+
+void OgdenIsotropicT::PrintName(ostream& out) const
+{
+	/* inherited */
+	FDStructMatT::PrintName(out);
+
+	out << "    Ogden spectral formulation\n";
+}
+
+/* class specific initializations */
+void OgdenIsotropicT::Initialize(void)
+{
+	/* initial modulus */
+	fEigs = 1.0;
+	ddWddE(fEigs, fdWdE, fddWddE);
+	
+	if (NumSD() == 2 && PurePlainStress())
+	{
+		double lambda = fddWddE(0,1);
+		double mu = 0.5*(fddWddE(0,0) - fddWddE(0,1));
+		double E = 4.0*mu*(lambda + mu)/(lambda + 2.0*mu);
+		double nu = lambda/(lambda + 2.0*mu);
+
+		/* set moduli */
+		IsotropicT::Set_E_nu(E, nu);
+	}
+	else
+	{
+		/* bulk and shear moduli */
+		double kappa = (fddWddE(0,0) + 2.0*fddWddE(0,1))/3.0;
+		double mu = (fddWddE(0,0) - fddWddE(0,1))/2.0;
+
+		/* using the normal 3D relations */
+		IsotropicT::Set_mu_kappa(mu, kappa);
+	}
 }
 
 /* modulus */
 const dMatrixT& OgdenIsotropicT::c_ijkl(void)
 {
-	/* deformation gradient */
-	const dMatrixT& Fmat = F();
-	
-	/* transform */
-	fModulus.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, OgdenIsotropicT::C_IJKL()));
-	return fModulus;
-} 
-/**< \todo compute directly in spatial representation rather than transforming */
+	//TEMP - compute directly in spatial representation
+	return C_to_c(OgdenIsotropicT::C_IJKL());
+}
 	
 /* stresses */
 const dSymMatrixT& OgdenIsotropicT::s_ij(void)
 {
-	/* deformation gradient */
-	const dMatrixT& Fmat = F();
-	
-	/* transform */
-	fStress.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, OgdenIsotropicT::S_IJ()));
-	return fStress;
+	//TEMP - compute directly in spatial representation
+	return S_to_s(OgdenIsotropicT::S_IJ());
 }
-/**< \todo compute directly in spatial representation rather than transforming */
 
 /* material description */
 const dMatrixT& OgdenIsotropicT::C_IJKL(void)
 {
-	/* stretch */
-	Compute_C(fC);
-
 	/* spectral decomposition */
-	fSpectralDecomp->SpectralDecomp_Jacobi(fC, false);
+	fSpectralDecomp.SpectralDecomp_new(C());
+	fSpectralDecomp.SpectralDecomp(C(), false); // closed-form decomposition
 
 	/* principal values */
-	const dArrayT& eigenstretch = fSpectralDecomp->Eigenvalues();
+	const dArrayT& eigenstretch = fSpectralDecomp.Eigenvalues();
 	ddWddE(eigenstretch, fdWdE, fddWddE);
 
 	/* axial */
-	fModulus = fSpectralDecomp->EigsToRank4(fddWddE);
+	fModulus = fSpectralDecomp.EigsToRank4(fddWddE);
 
 	/* shear terms */
-	const ArrayT<dArrayT>& eigenvectors = fSpectralDecomp->Eigenvectors();
+	const ArrayT<dArrayT>& eigenvectors = fSpectralDecomp.Eigenvectors();
 	double diff_stretch, dtde;
 	if (NumSD() == 2)
 	{
@@ -103,56 +136,25 @@ const dMatrixT& OgdenIsotropicT::C_IJKL(void)
 		MixedRank4_3D(eigenvectors[1], eigenvectors[2], fModMat);
 		fModulus.AddScaled(2.0*dtde, fModMat);
 	}
+	
 	return fModulus;
 }
 
 const dSymMatrixT& OgdenIsotropicT::S_IJ(void)
 {
-	/* stretch */
-	Compute_C(fC);
-
 	/* spectral decomposition */
-	fSpectralDecomp->SpectralDecomp_Jacobi(fC, false);
-	//fSpectralDecomp->SpectralDecomp(C(), false); // closed-form decomposition
-	const ArrayT<dArrayT>& eigenvectors = fSpectralDecomp->Eigenvectors();
+	fSpectralDecomp.SpectralDecomp_new(C());
+	//fSpectralDecomp.SpectralDecomp(C(), false); // closed-form decomposition
 
 	/* principal values */
-	dWdE(fSpectralDecomp->Eigenvalues(), fdWdE);
-	fStress = fSpectralDecomp->EigsToRank2(fdWdE);
+	dWdE(fSpectralDecomp.Eigenvalues(), fdWdE);
 
-	return (fStress);
-}
-
-/* return the pressure associated with the last call to stress */
-double OgdenIsotropicT::Pressure(void) const
-{
-	return dArrayT::Dot(fSpectralDecomp->Eigenvalues(), fdWdE)/
-			sqrt(fSpectralDecomp->Eigenvalues().Product());
-}
-
-/* accept parameter list */
-void OgdenIsotropicT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	FSIsotropicMatT::TakeParameterList(list);
-
-	/* construct spectral decomposition */
-	int nsd = NumSD();
-	fSpectralDecomp = new SpectralDecompT(nsd);
-
-	/* dimension work space */
-	fC.Dimension(nsd);
-	fEigs.Dimension(nsd);
-	fdWdE.Dimension(nsd);
-	fddWddE.Dimension(nsd);
-	fModMat.Dimension(dSymMatrixT::NumValues(nsd));
-	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
-	fStress.Dimension(nsd);
+	return fSpectralDecomp.EigsToRank2(fdWdE);
 }
 
 /*************************************************************************
- * Private
- *************************************************************************/
+* Private
+*************************************************************************/
 
 /* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
 void OgdenIsotropicT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,
@@ -162,7 +164,7 @@ void OgdenIsotropicT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,
 	if (a.Length() != 2 ||
 	    b.Length() != 2 ||
 	    rank4_ab.Rows() != 3 ||
-	    rank4_ab.Cols() != 3) throw ExceptionT::kSizeMismatch;
+	    rank4_ab.Cols() != 3) throw eSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
@@ -204,14 +206,14 @@ void OgdenIsotropicT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,
 
 	double* p = rank4_ab.Pointer();
 	*p++ = z11;
-	*p++ = z8;
-	*p++ = z3;
-	*p++ = z8;
-	*p++ = z5;
-	*p++ = z1;
-	*p++ = z3;
-	*p++ = z1;
-	*p   = z2;
+*p++ = z8;
+*p++ = z3;
+*p++ = z8;
+*p++ = z5;
+*p++ = z1;
+*p++ = z3;
+*p++ = z1;
+*p   = z2;
 }
 
 void OgdenIsotropicT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
@@ -221,7 +223,7 @@ void OgdenIsotropicT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
 	if (a.Length() != 3 ||
 	    b.Length() != 3 ||
 	    rank4_ab.Rows() != 6 ||
-	    rank4_ab.Cols() != 6) throw ExceptionT::kSizeMismatch;
+	    rank4_ab.Cols() != 6) throw eSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
@@ -340,40 +342,40 @@ void OgdenIsotropicT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
 	// { z2, z13, z11, z15,  z3,  z7}}
 	
 	double* p = rank4_ab.Pointer();
-	*p++ = z30;
-	*p++ = z16;
-	*p++ = z10;
-	*p++ = z6;
-	*p++ = z5;
-	*p++ = z2;
-	*p++ = z16;
-	*p++ = z37;
-	*p++ = z26;
-	*p++ = z8;
-	*p++ = z9;
-	*p++ = z13;
-	*p++ = z10;
-	*p++ = z26;
-	*p++ = z27;
-	*p++ = z4;
-	*p++ = z1;
-	*p++ = z11;
-	*p++ = z6;
-	*p++ = z8;
-	*p++ = z4;
-	*p++ = z17;
-	*p++ = z12;
-	*p++ = z15;
-	*p++ = z5;
-	*p++ = z9;
-	*p++ = z1;
-	*p++ = z12;
-	*p++ = z14;
-	*p++ = z3;
-	*p++ = z2;
-	*p++ = z13;
-	*p++ = z11;
-	*p++ = z15;
-	*p++ = z3;
-	*p  = z7;
+*p++ = z30;
+*p++ = z16;
+*p++ = z10;
+*p++ = z6;
+*p++ = z5;
+*p++ = z2;
+*p++ = z16;
+*p++ = z37;
+*p++ = z26;
+*p++ = z8;
+*p++ = z9;
+*p++ = z13;
+*p++ = z10;
+*p++ = z26;
+*p++ = z27;
+*p++ = z4;
+*p++ = z1;
+*p++ = z11;
+*p++ = z6;
+*p++ = z8;
+*p++ = z4;
+*p++ = z17;
+*p++ = z12;
+*p++ = z15;
+*p++ = z5;
+*p++ = z9;
+*p++ = z1;
+*p++ = z12;
+*p++ = z14;
+*p++ = z3;
+*p++ = z2;
+*p++ = z13;
+*p++ = z11;
+*p++ = z15;
+*p++ = z3;
+*p  = z7;
 }

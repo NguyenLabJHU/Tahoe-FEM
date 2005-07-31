@@ -1,21 +1,17 @@
-/* $Id: GlobalT.cpp,v 1.9 2005-03-11 20:37:19 paklein Exp $ */
-/* created: paklein (04/01/2000) */
+/* $Id: GlobalT.cpp,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* created: paklein (04/01/2000)                                          */
+/* GlobalT.cpp                                                            */
+
 #include "GlobalT.h"
-#include "ExceptionT.h"
+#include <iostream.h>
+#include "ExceptionCodes.h"
 
-using namespace Tahoe;
-
-#if 0
-namespace Tahoe {
 istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 {
 	int i_code;
 	in >> i_code;
 	switch (i_code)
 	{
-		case GlobalT::kNoAnalysis:
-			code = GlobalT::kNoAnalysis;
-			break;
 		case GlobalT::kLinStatic:
 			code = GlobalT::kLinStatic;
 			break;
@@ -40,31 +36,26 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 		case GlobalT::kCBStatic:
 		{
 			cout << "\n operator>>GlobalT::AnalysisCodeT: Cauchy-Born BC's converted to KBC controller" << endl;
-			throw ExceptionT::kBadInputValue;
+			throw eBadInputValue;
 		}
 		case GlobalT::kNLStaticKfield:
 		{
 			cout << "\n operator>>GlobalT::AnalysisCodeT: K-field converted to KBC controller" << endl;
-			throw ExceptionT::kBadInputValue;
+			throw eBadInputValue;
 		}
 		case GlobalT::kVarNodeNLStatic:
+			code = GlobalT::kVarNodeNLStatic;
+			break;
 		case GlobalT::kVarNodeNLExpDyn:
-		{
-			cout << "\n operator>>GlobalT::AnalysisCodeT: analysis code is not longer\n"
-			     <<   "     supported. Support for changing geometry is being re-\n"
-			     <<   "     written: " << i_code << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+			code = GlobalT::kVarNodeNLExpDyn;
+			break;
 		case GlobalT::kAugLagStatic:
-		{
-			cout << "\n operator>>GlobalT::AnalysisCodeT: external degrees of freedom no longer\n" 
-			     <<   "     require a specific analysis code: " << GlobalT::kAugLagStatic << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+			code = GlobalT::kAugLagStatic;
+			break;
 		case GlobalT::kNLExpDynKfield:
 		{
 			cout << "\n operator>>GlobalT::AnalysisCodeT: K-field converted to KBC controller" << endl;
-			throw ExceptionT::kBadInputValue;
+			throw eBadInputValue;
 		}
 		case GlobalT::kLinStaticHeat:
 			code = GlobalT::kLinStaticHeat;
@@ -72,27 +63,13 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 		case GlobalT::kLinTransHeat:
 			code = GlobalT::kLinTransHeat;
 			break;
-		case GlobalT::kNLStaticHeat:
-			code = GlobalT::kNLStaticHeat;
-			break;
-		case GlobalT::kNLTransHeat:
-			code = GlobalT::kNLTransHeat;
-			break;
-		case GlobalT::kPML:
-			code = GlobalT::kPML;
-			break;
-		case GlobalT::kMultiField:
-			code = GlobalT::kMultiField;
-			break;
 		default:
 			cout << "\n operator>>GlobalT::AnalysisCodeT: unknown code: "
 			<< i_code<< endl;
-			throw ExceptionT::kBadInputValue;	
+			throw eBadInputValue;	
 	}
 	return in;
 }
-}
-#endif
 
 /* returns flag with precedence */
 GlobalT::RelaxCodeT GlobalT::MaxPrecedence(GlobalT::RelaxCodeT code1,
@@ -112,21 +89,10 @@ GlobalT::RelaxCodeT GlobalT::MaxPrecedence(GlobalT::RelaxCodeT code1,
 	else if (code1 == kNoRelax && code2 == kNoRelax)
 		result = kNoRelax;
 	else
-		ExceptionT::GeneralFail("GlobalT::MaxPrecedence", "not expecting %d and %d",
-			code1, code2);
+	{
+		cout << "\n GlobalT::MaxPrecedence: unexpected combination" << endl;	
+		throw eGeneralFail;
+	}
 
 	return result;
-}
-
-GlobalT::LoggingT GlobalT::int2LoggingT(int i)
-{
-	if (i == kVerbose)
-		return kVerbose;
-	else if (i == kModerate)
-		return kModerate;
-	else if (i == kSilent)
-		return kSilent;
-	else
-		ExceptionT::GeneralFail("GlobalT::int2LoggingT", "could not translate %d", i);
-	return kModerate;
 }

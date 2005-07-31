@@ -1,80 +1,62 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.10 2005-01-07 02:16:03 paklein Exp $ */
-/* created: paklein (10/02/1999) */
+/* $Id: DiffusionMaterialT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (10/02/1999)                                          */
+
 #include "DiffusionMaterialT.h"
-#include "DiffusionMatSupportT.h"
+
+#include <iostream.h>
 
 #include "StringT.h"
+#include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
-
-using namespace Tahoe;
-
-/* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<DiffusionMaterialT>::fByteCopy = false;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<DiffusionMaterialT*>::fByteCopy = true;
-} /* namespace Tahoe */
+#include "ShapeFunctionT.h"
+#include "LocalArrayT.h"
+#include "DiffusionT.h"
 
 /* constructor */
-DiffusionMaterialT::DiffusionMaterialT(void):
-	ParameterInterfaceT("linear_diffusion_material"),
-	fDiffusionMatSupport(NULL),
-	fDensity(0.0),
-	fSpecificHeat(0.0)
+DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionT& element):
+	ContinuumMaterialT(element),
+	fShapes(element.ShapeFunction()),
+	fLocDisp(element.Displacements()),
+	fConductivity(fShapes.NumSD()),
+	fT_x(1,fShapes.NumSD()),
+	fq_i(fShapes.NumSD())
 {
+	in >> fDensity;		 if (fDensity <= 0.0) throw eBadInputValue;
+	in >> fSpecificHeat; if (fDensity <= 0.0) throw eBadInputValue;
+	in >> fConductivity;
 
+	fCapacity = fDensity*fSpecificHeat;
 }
 
-/* set support */
-void DiffusionMaterialT::SetDiffusionMatSupport(const DiffusionMatSupportT* support)
+/* I/O functions */
+void DiffusionMaterialT::Print(ostream& out) const
 {
 	/* inherited */
-	SetMaterialSupport(support);
-	fDiffusionMatSupport = support;
+	ContinuumMaterialT::Print(out);
 
-	/* dimension */
-	int nsd = NumSD();
-	fConductivity.Dimension(nsd);
-	fq_i.Dimension(nsd);
-	fdq_i.Dimension(nsd);
-	fdk_ij.Dimension(nsd);
-
-	/* initialize */
-	fConductivity = 0.0;
-	fq_i = 0.0;
-	fdq_i = 0.0;
-	fdk_ij = 0.0;
+	out << " Density . . . . . . . . . . . . . . . . . . . . = " << fDensity      << '\n';
+	out << " Specific Heat . . . . . . . . . . . . . . . . . = " << fSpecificHeat << '\n';
+	out << " Conductivity:\n" << fConductivity << endl;
 }
 
 /* heat flux */
 const dArrayT& DiffusionMaterialT::q_i(void)
 {
 	/* should be 1 row */
-	fConductivity.Multx(fDiffusionMatSupport->Gradient(), fq_i, -1.0);
+	fShapes.GradU(fLocDisp, fT_x);
+	fConductivity.Multx(fT_x, fq_i);
 	return fq_i;
 }
 
-/* describe the parameters needed by the interface */
-void DiffusionMaterialT::DefineParameters(ParameterListT& list) const
+/*************************************************************************
+* Protected
+*************************************************************************/
+
+void DiffusionMaterialT::PrintName(ostream& out) const
 {
 	/* inherited */
-	ContinuumMaterialT::DefineParameters(list);
-
-	/* define parameters */
-	list.AddParameter(fDensity, "density");
-	list.AddParameter(fSpecificHeat, "specific_heat");
-	list.AddParameter(ParameterT::Double, "conductivity");
-}
-
-/* accept parameter list */
-void DiffusionMaterialT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ContinuumMaterialT::TakeParameterList(list);
-
-	/* get parameters */
-	fDensity = list.GetParameter("density");
-	fSpecificHeat = list.GetParameter("specific_heat");
-	double k = list.GetParameter("conductivity");
-	fConductivity.Identity(k);
+	ContinuumMaterialT::PrintName(out);
+	
+	out << "    Linear diffusion material\n";
 }

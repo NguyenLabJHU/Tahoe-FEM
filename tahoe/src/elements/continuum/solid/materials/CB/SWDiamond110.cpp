@@ -1,22 +1,30 @@
-/* $Id: SWDiamond110.cpp,v 1.8 2004-12-26 21:08:14 d-farrell2 Exp $ */
-/* created: paklein (08/25/1996) */
+/* $Id: SWDiamond110.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (08/25/1996)                                          */
+/* (11/9/1996) : includes cut off terms                                   */
+
 #include "SWDiamond110.h"
 #include <math.h>
 #include <iostream.h>
 
-using namespace Tahoe;
-
 /* constructor */
-SWDiamond110::SWDiamond110(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Stillinger_Weber_DC_110"),
-	SWMaterial2D(in, support)
+SWDiamond110::SWDiamond110(ifstreamT& in, const ElasticT& element):
+	SWMaterial2D(in, element)
 {
 
 }
 
 /*************************************************************************
- * Protected
- *************************************************************************/
+* Protected
+*************************************************************************/
+
+/* print name */
+void SWDiamond110::PrintName(ostream& out) const
+{
+	/* inherited */
+	SWMaterial2D::PrintName(out);
+
+	out << "    SW Diamond <110> 2D\n";
+}
 
 /* symmetric Cij reduced index matrix */
 void SWDiamond110::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)

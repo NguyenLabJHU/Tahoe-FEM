@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.cpp,v 1.6 2005-07-21 16:16:35 paklein Exp $ */
+/* $Id: DomainIntegrationT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
 /* created: paklein (09/04/1998)                                          */
 /* class to manage the parent domain including construction for           */
 /* shared parent domains, integration point iterations, and some          */
@@ -10,18 +10,15 @@
 #include "DomainIntegrationT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
 DomainIntegrationT::DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP, int numnodes):
 	fNumIP(numIP),
 	fCurrIP(frefCurrIP),
 	fDeleteDomain(1),
-	frefCurrIP(-1)
+	frefCurrIP(0)
 {
-	/* set parent geometry */
-	fDomain = new ParentDomainT(geometry_code, fNumIP, numnodes);
-	if (!fDomain) throw ExceptionT::kOutOfMemory;
+/* set parent geometry */
+fDomain = new ParentDomainT(geometry_code, fNumIP, numnodes);
+	if (!fDomain) throw eOutOfMemory;
 	
 	/* set parent domain shape functions and derivatives */
 	fDomain->Initialize();
@@ -43,7 +40,7 @@ DomainIntegrationT::DomainIntegrationT(const DomainIntegrationT& link):
 		/* surface shapefunctions */
 		fSurfShapes.Alias(link.fSurfShapes);
 
-		fDelete.Dimension(fSurfShapes.Length());
+		fDelete.Allocate(fSurfShapes.Length());
 		fDelete = 0;
 	}
 }
@@ -51,15 +48,15 @@ DomainIntegrationT::DomainIntegrationT(const DomainIntegrationT& link):
 /* destructor */
 DomainIntegrationT::~DomainIntegrationT(void)
 {
-	if (fDeleteDomain) delete fDomain;
+if (fDeleteDomain) delete fDomain;
 
-	/* surface shapefunctions */
-	for (int i = 0; i < fSurfShapes.Length(); i++)
-		if (fDelete[i] == 1)
-		{
-			delete fSurfShapes[i];
-			fSurfShapes[i] = NULL;
-		}
+/* surface shapefunctions */
+for (int i = 0; i < fSurfShapes.Length(); i++)
+	if (fDelete[i] == 1)
+	{
+		delete fSurfShapes[i];
+		fSurfShapes[i] = NULL;
+	}
 }
 
 /* set all local parameters */
@@ -78,12 +75,10 @@ void DomainIntegrationT::Print(ostream& out) const
 /* set surface shapefunctions */
 void DomainIntegrationT::SetSurfaceShapes(void)
 {
-	const char caller[] = "DomainIntegrationT::SetSurfaceShapes";
-
 	/* memory */
 	int num_facets = NumFacets();
-	fSurfShapes.Dimension(num_facets);
-	fDelete.Dimension(num_facets);
+	fSurfShapes.Allocate(num_facets);
+	fDelete.Allocate(num_facets);
 	
 	/* surface shape information */
 	ArrayT<GeometryT::CodeT> facet_geom;
@@ -110,25 +105,10 @@ void DomainIntegrationT::SetSurfaceShapes(void)
 		/* construct new surface shape */
 		else
 		{
-			/* set facet integration scheme - not an ideal solution */
-			GeometryT::CodeT volume_geom = fDomain->GeometryCode();
-			int nip = 0;
-			switch (NumSD()) {
-				case 1:
-				case 2:
-					nip = nnd;
-					break;				
-				case 3:
-					if (volume_geom == GeometryT::kHexahedron)
-						nip = (nnd <= 4) ? 4 : 9;
-					else
-						nip = 4;
-					break;
-				default:
-					ExceptionT::GeneralFail(caller, "unsupported dimension %d", NumSD());
-			}
+			//TEMP - set number of ip's on facet same as number of nodes
+			int nip = (NumSD() == 3) ? 4 : nnd;
 			fSurfShapes[i] = new ParentDomainT(geo, nip, nnd);
-			if (!fSurfShapes[i]) ExceptionT::OutOfMemory(caller);
+			if (!fSurfShapes[i]) throw eOutOfMemory;
 	
 			/* set shape functions and derivatives */
 			fSurfShapes[i]->Initialize();

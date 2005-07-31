@@ -1,5 +1,7 @@
-/* $Id: Anisotropic2DT.h,v 1.4 2004-07-15 08:29:19 paklein Exp $ */
-/* created: paklein (06/11/1997) */
+/* $Id: Anisotropic2DT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (06/11/1997)                                          */
+/* Base class for 2D anisotropic materials                                */
+
 #ifndef _ANISOTROPIC2D_T_H_
 #define _ANISOTROPIC2D_T_H_
 
@@ -8,26 +10,18 @@
 /* direct members */
 #include "dSymMatrixT.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
+#include "ios_fwd_decl.h"
 class ifstreamT;
 class Rotate2DT;
 class dMatrixT;
 
-/** base class for 2D anisotropic materials */
 class Anisotropic2DT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	Anisotropic2DT(ifstreamT& in);
-	Anisotropic2DT(void);
-
-	/** set the rotation angle */
-	void SetRotation(double angle);
 
 	/* destructor */
 	virtual ~Anisotropic2DT(void);
@@ -57,14 +51,15 @@ protected:
 	
 private:
 
-	/** called by constructor */
+	/* called by constructor */
 	void Construct(istream& in);
 		
 protected:
+			
+	/* coordinate transformer */
+	int		   fIsRotated;
+	Rotate2DT* fRotator;
 	
-	/** coordinate transformer */
-	Rotate2DT* fRotator;	
 };
 
-} // namespace Tahoe 
 #endif /* _ANISOTROPIC2D_T_H_ */

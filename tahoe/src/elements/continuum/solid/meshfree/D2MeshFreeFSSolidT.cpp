@@ -1,49 +1,39 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.14 2004-07-15 08:29:39 paklein Exp $ */
-/* created: paklein (10/23/1999) */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (10/23/1999)                                          */
+
 #include "D2MeshFreeFSSolidT.h"
-#include "SolidMaterialsConfig.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
 #include "D2MeshFreeShapeFunctionT.h"
-#include "MeshFreeFractureSupportT.h"
-
-#ifdef VIB_MATERIAL
-#include "D2VIB2D.h"
-#else
-#include "SolidMaterialT.h"
-#endif
+#include "FEManagerT.h"
+#include "NodeManagerT.h"
 
 //TEMP
 #include "MaterialListT.h"
+#include "D2VIB2D.h"
 
 //TEMP - for RHS stuff
-#include "eIntegratorT.h"
-
-using namespace Tahoe;
+#include "eControllerT.h"
 
 /* constructor */
-D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field):
-	MeshFreeFSSolidT(support),
+D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(FEManagerT& fe_manager):
+	MeshFreeFSSolidT(fe_manager),
 	fD2MFShapes(NULL),
 
 	/* work space */
-	fDW(NumSD()),
-	fDDW(NumSD(), dSymMatrixT::NumValues(NumSD())),
+	fDW(fNumSD),
+	fDDW(fNumSD, dSymMatrixT::NumValues(fNumSD)),
 	fD2GradNa(dSymMatrixT::NumValues(NumSD()), 0), // need rows, but is dynamic
 	fD2GradNa_wrap(10, fD2GradNa)
 {
 	//DEBUG
 	DoPrint = 0;
-
-#ifndef VIB_MATERIAL
-	ExceptionT::BadInputValue("D2MeshFreeFSSolidT::D2MeshFreeFSSolidT", 
-		"VIB_MATERIAL must be enabled");
-#endif
 }
 
 /* check material's list */
@@ -52,33 +42,27 @@ void D2MeshFreeFSSolidT::Initialize(void)
 //TEMP - must be a cleaner way
 #ifdef __NO_RTTI__
 	cout << "\n D2MeshFreeFSSolidT::Initialize: requires RTTI" << endl;
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 #endif		
 
 	/* inherited */
-	//MeshFreeFSSolidT::Initialize();
+	MeshFreeFSSolidT::Initialize();
 
 	/* check material's list */
 	for (int i = 0; i < fMaterialList->Length(); i++)
 	{
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		SolidMaterialT* pstruct_mat = (SolidMaterialT*) pcont_mat;
-#ifdef VIB_MATERIAL
+		StructuralMaterialT* pstruct_mat = (StructuralMaterialT*) pcont_mat;
 		D2VIB2D* pmat = dynamic_cast<D2VIB2D*>(pstruct_mat);
-#else
-		D2VIB2D* pmat = NULL;
-#endif
 		if (!pmat)
 		{
 			cout << "\n D2MeshFreeFSSolidT::Initialize: all materials must";
 			cout << " be D2VIB2D" << endl;
-			throw ExceptionT::kBadInputValue;
+			throw eBadInputValue;
 		}
 	}
 }
 
-//DEV - no reason to override
-#if 0
 void D2MeshFreeFSSolidT::RHSDriver(void)
 {
 	/* skip down */
@@ -97,9 +81,9 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
-	int formMa = fIntegrator->FormMa(constMa);
-	int formCv = fIntegrator->FormCv(constCv);
-	int formKd = fIntegrator->FormKd(constKd);
+	int formMa = fController->FormMa(constMa);
+	int formCv = fController->FormCv(constCv);
+	int formKd = fController->FormKd(constKd);
 
 	/* body forces */
 	int formBody = 0;
@@ -139,8 +123,7 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 			if (eformKd) FormKd(-1.0);
 				
 			/* damping */
-			//if (eformCv) FormCv(-1.0);
-			//DEV - compute at constitutive level
+			if (eformCv) FormCv(-1.0);
 
 			/* inertia forces */
 			if (eformMa) FormMa(fMassType, -(fCurrMaterial->Density()), fLocAcc);			  		
@@ -150,7 +133,6 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 		}
 	}
 }
-#endif
 
 /***********************************************************************
 * Protected
@@ -159,21 +141,12 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 /* initialization functions */
 void D2MeshFreeFSSolidT::SetShape(void)
 {
-#pragma message("fix me")
-#if 0
-	/* only support single list of integration cells for now */
-	if (fConnectivities.Length() > 1) {
-		cout << "\n D2MeshFreeFSSolidT::SetShape: multiple element blocks within an"
-		     <<   "     element group not supported. Number of blocks: " 
-		     << fConnectivities.Length() << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+/* constructors */
+	fD2MFShapes = new D2MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
+		fLocInitCoords, fNodes->InitialCoordinates(), fConnectivities, fOffGridNodes,
+		fMeshFreeCode, fd_max, fComplete, fStoreShape, fElementCards.Position());
 
-	/* constructors */
-	fD2MFShapes = new D2MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
-		fLocInitCoords, ElementSupport().InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
-		fElementCards.Position(), ElementSupport().Input());
-	if (!fD2MFShapes) throw ExceptionT::kOutOfMemory;
+	if (!fD2MFShapes) throw eOutOfMemory;
 	
 	/* initialize (set internal database) */
 	fD2MFShapes->Initialize();
@@ -181,7 +154,6 @@ void D2MeshFreeFSSolidT::SetShape(void)
 	/* set base class pointers */
 	fShapes   = fD2MFShapes;
 	fMFShapes = fD2MFShapes;
-#endif
 }
 
 /* current element operations */
@@ -191,7 +163,7 @@ bool D2MeshFreeFSSolidT::NextElement(void)
 	int OK = MeshFreeFSSolidT::NextElement();
 	
 	/* resize */
-	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), fMFFractureSupport->NumElementNodes());
+	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), NumElementNodes());
 
 	/* set material pointer (cast checked above) */
 	if (OK) pD2VIB2D = (D2VIB2D*) fCurrMaterial;
@@ -203,17 +175,16 @@ bool D2MeshFreeFSSolidT::NextElement(void)
 void D2MeshFreeFSSolidT::FormKd(double constK)
 {
 	/* set work space */
-	dMatrixT fWP(NumDOF(), fStressStiff.Rows(), fNEEvec.Pointer());
+	dMatrixT fWP(fNumDOF, fStressStiff.Rows(), fNEEvec.Pointer());
 
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
-#ifdef VIB_MATERIAL
 		/* material internal stress terms */
 		pD2VIB2D->StressTerms(fDW, fDDW);
-#endif	
+	
 		/* integration factor */
 		double factor = constK*(*Weight++)*(*Det++);
 
@@ -247,29 +218,29 @@ void D2MeshFreeFSSolidT::A_ijk_B_jkl(const dMatrixT& A, const dMatrixT& B,
 	/* dimension checks */
 	if (C.Rows() != A.Rows() ||
 	    C.Cols() != B.Cols() ||
-	    A.Cols() != B.Rows()) throw ExceptionT::kSizeMismatch;
+	    A.Cols() != B.Rows()) throw eSizeMismatch;
 #endif		
 
 	double scale_2D[3] = {1.0, 1.0, 2.0};
 	double scale_3D[6] = {1.0, 1.0, 1.0, 2.0, 2.0, 2.0};
-	double* scale = (NumSD() == 2) ? scale_2D : scale_3D;
+	double* scale = (fNumSD == 2) ? scale_2D : scale_3D;
 
 	int        rows = C.Rows();
 	int        cols = C.Cols();
 	int    dotcount = A.Cols();
 	double*	c       = C.Pointer();
-	const double* BCol = B.Pointer();
+	double*	BCol    = B.Pointer();
 
 	register double sum;
 	for (int Bcol = 0; Bcol < cols; Bcol++)
 	{
-		const double* ARow = A.Pointer();
+		double* ARow = A.Pointer();
 		 		 	
 		for (int Arow = 0; Arow < rows; Arow++)
 		{
 			sum = 0.0;
-			const double* AR = ARow;
-			const double* BC = BCol;
+			double* AR = ARow;
+			double* BC = BCol;
 			double* pscale = scale;
 			for (int i = 0; i < dotcount; i++)
 			{
@@ -288,7 +259,7 @@ void D2MeshFreeFSSolidT::WriteField(void)
 {
 	cout << "\n D2MeshFreeFSSolidT::WriteField: writing full field" << endl;
 	
-	const dArray2DT& DOFs = Field()[0]; /* displacements */
+	const dArray2DT& DOFs = fNodes->Displacements();
 	
 	/* reconstruct displacement field and all derivatives */
 	dArray2DT u;
@@ -298,17 +269,17 @@ void D2MeshFreeFSSolidT::WriteField(void)
 	fD2MFShapes->NodalField(DOFs, u, Du, DDu, nodes);
 
 	/* write data */
-	const StringT& input_file = ElementSupport().InputFile();
+	ifstreamT& in = fFEManager.Input();
 	
 	/* output filenames */
 	StringT s_u, s_Du, s_DDu;
-	s_u.Root(input_file);
-	s_Du.Root(input_file);
-	s_DDu.Root(input_file);
+	s_u.Root(in.filename());
+	s_Du.Root(in.filename());
+	s_DDu.Root(in.filename());
 	
-	s_u.Append(".u.", ElementSupport().StepNumber());
-	s_Du.Append(".Du.", ElementSupport().StepNumber());
-	s_DDu.Append(".DDu.", ElementSupport().StepNumber());
+	s_u.Append(".u.", fFEManager.StepNumber());
+	s_Du.Append(".Du.", fFEManager.StepNumber());
+	s_DDu.Append(".DDu.", fFEManager.StepNumber());
 	
 	/* open output streams */
 	ofstreamT out_u(s_u), out_Du(s_Du), out_DDu(s_DDu);

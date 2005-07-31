@@ -1,14 +1,15 @@
-/* $Id: VirtualRodT.cpp,v 1.8 2004-07-15 08:30:17 paklein Exp $ */
-/* created: paklein (05/01/1997) */
+/* $Id: VirtualRodT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* created: paklein (05/01/1997)                                          */
+/* UnConnectedRodT plus virtual elements for periodic boundary            */
+/* conditions.                                                            */
+
 #include "VirtualRodT.h"
 
 #include <iomanip.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
-#include "toolboxConstants.h"
-
-using namespace Tahoe;
+#include "fstreamT.h"
+#include "Constants.h"
+#include "NodeManagerT.h"
 
 /* decoding VElPair data */
 const int kBoundaryNode = 0;
@@ -16,8 +17,7 @@ const int kVirtualNode  = 1;
 const int kActiveNode   = 2;
 
 /* constructor */
-VirtualRodT::VirtualRodT(const ElementSupportT& support, const FieldT& field): 
-	UnConnectedRodT(support, field)
+VirtualRodT::VirtualRodT(FEManagerT& fe_manager): UnConnectedRodT(fe_manager)
 {
 
 }
@@ -30,7 +30,7 @@ void VirtualRodT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
 	/* substitute in virtual node numbers */
 	iArray2DT tempnodes; //temp copy to be modified
-	tempnodes = *(fConnectivities[0]);
+	tempnodes = fConnectivities;
 	
 	/* swap nodes to get periodic local equation numbers */
 	SwapVirtualNodes(tempnodes);
@@ -38,10 +38,10 @@ void VirtualRodT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		//accounted for in bandwidth reduction.
 
 	/* set local equations numbers */
-	Field().SetLocalEqnos(tempnodes, fEqnos[0]);
+	fNodes->SetLocalEqnos(tempnodes, fEqnos);
 
 	/* add to list */
-	eq_1.Append(&fEqnos[0]);
+	eq_1.Append(&fEqnos);
 }
 
 /***********************************************************************
@@ -62,7 +62,7 @@ void VirtualRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	if (numtriplets > 0)
 	{
 		/* memory */
-		fVNodeTriplets.Dimension(numtriplets, 3);
+		fVNodeTriplets.Allocate(numtriplets, 3);
 	
 		/* read data */
 		fVNodeTriplets.ReadNumbered(in);
@@ -88,13 +88,12 @@ void VirtualRodT::SwapVirtualNodes(iArray2DT& elnodelist) const
 	/* shallow work space */
 	iArrayT nodelist;
 	
-	int nen = NumElements();
 	for (int i = 0; i < fVNodeTriplets.MajorDim(); i++)
 	{
 		/* warning flag */
 		int found = 0;
 		
-		for (int el = 0; el < nen; el++)	
+		for (int el = 0; el < fNumElements; el++)	
 		{
 			/* fetch local node list */
 			elnodelist.RowAlias(el, nodelist);			

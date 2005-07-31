@@ -1,53 +1,110 @@
-/* $Id: TimeManagerT.cpp,v 1.25 2004-10-14 20:20:06 paklein Exp $ */
-/* created: paklein (05/23/1996) */
+/* $Id: TimeManagerT.cpp,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* created: paklein (05/23/1996)                                          */
+
 #include "TimeManagerT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
-#include "toolboxConstants.h"
+#include "fstreamT.h"
+
+#include "Constants.h"
 #include "FEManagerT.h"
+#include "TimeSequence.h"
 #include "dArrayT.h"
 #include "NodeManagerT.h"
 
-using namespace Tahoe;
+/* step cut status flags */
+const int kDecreaseStep =-1;
+const int kSameStep     = 0;
+const int kIncreaseStep = 1;
+
+/* controllers */
+#include "HHTalpha.h"
 
 /* constructor */
 TimeManagerT::TimeManagerT(FEManagerT& FEM):
-	ParameterInterfaceT("time"),
-	fFEManager(FEM),
+	theBoss(FEM),
 
 	/* runtime data for the current sequence */
+	fCurrentSequence(-1),
 	fStepNum(0),
 	fTime(0.0),
 	fNumStepCuts(0),
 	fStepCutStatus(kSameStep),
+	fOutputCount(0),
 	
 	fNumSteps(0), fOutputInc(1), fMaxCuts(0), fTimeStep(1.0),
-	fIsTimeShifted(0), fTimeShift(0.0),
-	fImpExp(IntegratorT::kImplicit)
+	fIsTimeShifted(0), fTimeShift(0.0)
 {
+	ifstreamT& in  = theBoss.Input();
+	ostream&   out = theBoss.Output();
 
+	/* Time sequences - allocate memory and echo */
+	int num_sequences;
+	in >> num_sequences;	
+	if (num_sequences < 1) throw eBadInputValue;
+	fSequences.Allocate(num_sequences);
+	EchoTimeSequences(in, out);
+	
+	/* Loadtime functions - allocate memory and echo */	
+	int num_LTf;
+	in >> num_LTf;
+	if (num_LTf < 1) throw eBadInputValue;
+	fLTf.Allocate(num_LTf); // add: f(t) = 1.0
+
+	EchoLoadTime(in, out);
+	
+	/* console variables */
+	iSetName("time");
+	iAddVariable("num_steps", fNumSteps);
+	iAddVariable("output_inc", fOutputInc);
+	iAddVariable("max_step_cuts", fMaxCuts);
+	iAddVariable("time_step", fTimeStep);
 }
 
-/* set to initial conditions */
-void TimeManagerT::InitialCondition(void)
+/* run through the time sequences.  NextSequence returns 0
+* if there are no more time sequences */
+void TimeManagerT::Top(void)
 {
-	/* broadcast time step */
-	fFEManager.SetTimeStep(fTimeStep);
+	fCurrentSequence = -1;
+}
 
-	/* nodes */
-	const NodeManagerT* nodes = fFEManager.NodeManager();
-	if (!nodes) ExceptionT::GeneralFail("TimeManagerT::InitialCondition");
+bool TimeManagerT::NextSequence(void)
+{
+	fCurrentSequence++;
+	
+	/* initialize next sequence */
+	if (fCurrentSequence < fSequences.Length())
+	{
+		TimeSequence& curr_sequence = fSequences[fCurrentSequence];
+		
+		/* runtime data for the current sequence */
+		fStepNum       = 0;
+		fTime          = 0.0;
+		fNumStepCuts   = 0;
+		fStepCutStatus = kSameStep;
+		fOutputCount   = 0;
+		
+		/* copy from current sequence */
+		fNumSteps  = curr_sequence.fNumSteps;
+		fOutputInc = curr_sequence.fOutputInc;
+		fMaxCuts   = curr_sequence.fMaxCuts;
+		fTimeStep  = curr_sequence.fTimeStep;
+		
+		/* broadcast time step */
+		theBoss.SetTimeStep(fTimeStep);
 
-	/* see if all integrators are explicit */
-	fImpExp = IntegratorT::kExplicit;
-	int num_groups = fFEManager.NumGroups();
-	for (int i = 0; i < num_groups && fImpExp == IntegratorT::kExplicit; i++)
-		fImpExp = nodes->ImplicitExplicit(i);
+		/* print headers */
+		theBoss.Output() << "\n T i m e   S e q u e n c e : ";
+		theBoss.Output() << fCurrentSequence + 1 << "\n\n";
+		cout << "\n T i m e   S e q u e n c e : ";
+		cout << fCurrentSequence + 1 << endl;
+		return true;
+	}
+	else
+		return false;
 }
 
 /* advance one time step, return 0 when if the sequence
@@ -55,7 +112,7 @@ void TimeManagerT::InitialCondition(void)
 bool TimeManagerT::Step(void)
 {
 	/* check that time has not been shifted */
-	if (fIsTimeShifted) throw ExceptionT::kGeneralFail;
+	if (fIsTimeShifted) throw eGeneralFail;
 
 	if (fStepNum < fNumSteps)
 	{
@@ -70,13 +127,17 @@ bool TimeManagerT::Step(void)
 		IncrementTime(fTimeStep);
 		
 		/* print less often for explicit */
-		bool is_explicit = fImpExp == IntegratorT::kExplicit;
-
+		GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
+		bool is_explicit = (analysiscode == GlobalT::kLinExpDynamic ||
+		                    analysiscode == GlobalT::kNLExpDynamic    ||
+		                    analysiscode == GlobalT::kVarNodeNLExpDyn ||
+		                    analysiscode == GlobalT::kNLExpDynKfield);
+		
 		/* verbose flag */
 		bool write_header = !is_explicit     ||
 		                    fOutputInc == -1 ||
 		                    fOutputInc == 0  ||
-		                    fStepNum % fOutputInc == 0;
+		                    fmod(fStepNum, fOutputInc) == 0;
 
 		
 		/* step header */
@@ -100,14 +161,15 @@ bool TimeManagerT::Step(void)
 
 void TimeManagerT::ResetStep(void)
 {
-	const char caller[] = "TimeManagerT::ResetStep";
-
 	/* check that time has not been shifted */
-	if (fIsTimeShifted) ExceptionT::GeneralFail(caller);
+	if (fIsTimeShifted) throw eGeneralFail;
 
 	/* too far */
 	if (fStepNum == 0)
-		 ExceptionT::GeneralFail(caller, "already at the start time");
+	{
+		cout << "\n TimeManagerT::ResetStep: already at the start time"<< endl;
+		throw eGeneralFail;
+	}
 	/* return to previous time */
 	else
 	{		
@@ -152,20 +214,23 @@ bool TimeManagerT::IncreaseLoadStep(void)
 		return false;
 }
 
-/* return a pointer to the specified ScheduleT function */
-ScheduleT* TimeManagerT::Schedule(int num) const
+/* return a pointer to the specified LoadTime function */
+LoadTime* TimeManagerT::GetLTf(int num) const
 {
 	/* range check */
-	if (num < 0 || num >= fSchedule.Length())
-		ExceptionT::OutOfRange("TimeManagerT::Schedule", "schedule %d is out of range {0,%d}",
-			num, fSchedule.Length() - 1);
+	if (num < 0 || num >= fLTf.Length())
+	{
+		cout << "\n TimeManagerT::GetLTf: function number " << num << " is out of\n"
+		     <<   "     range {" << 0 << "," << fLTf.Length() - 1 << "}" << endl;
+		throw eOutOfRange;
+	}
 
-	return fSchedule[num];
+	return fLTf[num];
 }
 
-double TimeManagerT::ScheduleValue(int num) const
+double TimeManagerT::LoadFactor(int nLTf) const
 {
-	return fSchedule[num]->Value();
+	return fLTf[nLTf]->LoadFactor();
 }
 
 /* initialize/restart functions
@@ -176,137 +241,105 @@ double TimeManagerT::ScheduleValue(int num) const
 * values */
 void TimeManagerT::ReadRestart(istream& restart_in)
 {	
-#if 0 
-	/* total desired simulation time */ 
-	double tot_time = fTimeStep*fNumSteps; 
-         
-	restart_in >> fTime >> fNumStepCuts >> fTimeStep; 
+	int sequencenumber;
+	restart_in >> sequencenumber;
+	if (sequencenumber != fCurrentSequence) throw eBadInputValue;
+
+	/* total desired simulation time */
+	double tot_time = fTimeStep*fNumSteps;
+	
+	restart_in >> fTime >> fNumStepCuts >> fTimeStep;
 	cout << " Restarting from time: " << fTime << '\n';
 
-	/* reset number of steps to preserve the total time */ 
-	double float_steps = tot_time/fTimeStep; 
-	fNumSteps = int((2.0*float_steps + 1.0)/2.0); 
-#endif 
- 
-	//TEMP - do no use the time step written in the restart file
-	//       will become restart option
-	double time_step; 
-	restart_in >> fTime >> fNumStepCuts >> time_step; 
-	cout << " Restarting from time: " << fTime << '\n';  
-	cout << "   Previous step cuts: " << fNumStepCuts << '\n';  
-	cout << "   Previous step size: " << time_step << '\n';  
-	cout << "    Current step size: " << fTimeStep << '\n';
-        
+	/* reset number of steps to preserve the total time */
+	double float_steps = tot_time/fTimeStep;
+	fNumSteps = int((2.0*float_steps + 1.0)/2.0);
+	
 	/* set load factors */
-	for (int i = 0; i < fSchedule.Length(); i++)
-		fSchedule[i]->SetTime(fTime);
+	for (int i = 0; i < fLTf.Length(); i++)
+		fLTf[i]->SetLoadFactor(fTime);
 }
 
 void TimeManagerT::WriteRestart(ostream& restart_out) const
 {
+	restart_out << fCurrentSequence << '\n';
 	restart_out << fTime            << '\n';
 	restart_out << fNumStepCuts     << '\n';
 	restart_out << fTimeStep        << '\n';
 }
 
-/* return true if output should be written for the current step */
-bool TimeManagerT::WriteOutput(void) const
+/* finalize step (trigger output) */
+void TimeManagerT::CloseStep(void) //TEMP? - let FEManager control/monitor output?
 {
-	if (fabs(fTimeStep) > kSmall && /* no output if clock is not running */
-		fOutputInc != 0 &&
-	   		(fStepNum % fOutputInc == 0 || /* at increment */
-	    	 fStepNum == fNumSteps) /* at end */
-	)
-		return true;
-	else
-		return false;
-}
-
-/* describe the parameters needed by the interface */
-void TimeManagerT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
-
-	/* number of steps */
-	ParameterT num_steps(ParameterT::Integer, "num_steps");
-	num_steps.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(num_steps);
-
-	/* results output increment */
-	ParameterT output_inc(ParameterT::Integer, "output_inc");
-	output_inc.SetDefault(0);
-	list.AddParameter(output_inc);
-
-	/* maximum number of time increment cuts */
-	ParameterT max_step_cuts(ParameterT::Integer, "max_step_cuts");
-	max_step_cuts.SetDefault(0);
-	max_step_cuts.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(max_step_cuts);
-
-	/* (initial) time increment */
-	ParameterT time_step(ParameterT::Double, "time_step");
-	time_step.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(time_step);
-}
-
-/* accept parameter list */
-void TimeManagerT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-
-	/* set time parameters */
-	fNumSteps  = list.GetParameter("num_steps");
-	fOutputInc = list.GetParameter("output_inc");
-	fMaxCuts   = list.GetParameter("max_step_cuts");
-	fTimeStep  = list.GetParameter("time_step");	
-
-	/* runtime data for the current sequence */
-	fStepNum       = 0;
-	fTime          = 0.0;
-	fNumStepCuts   = 0;
-	fStepCutStatus = kSameStep;
-
-	/* console variables */
-	iSetName("time");
-	iAddVariable("num_steps", fNumSteps);
-	iAddVariable("output_inc", fOutputInc);
-	iAddVariable("max_step_cuts", fMaxCuts);
-	iAddVariable("time_step", fTimeStep);
-
-	/* construct schedule functions */
-	fSchedule.Dimension(list.NumLists("schedule_function"));
-	for (int i = 0; i < fSchedule.Length(); i++)
+	if (fOutputInc != 0 &&
+	   (++fOutputCount >= ((fOutputInc > 0) ? fOutputInc :-fOutputInc) || // at increment
+	    fStepNum == fNumSteps)) // at end
 	{
-		fSchedule[i] = new ScheduleT;
-		fSchedule[i]->TakeParameterList(*(list.List("schedule_function", i)));
-		fSchedule[i]->SetTime(0.0);
+		/* run time output */
+		theBoss.WriteOutput(IOBaseT::kAtInc);
+			
+		/* reset count */
+		fOutputCount = 0;
 	}
 }
 
-/* information about subordinate parameter lists */
-void TimeManagerT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-
-	/* schedule function */
-	sub_list.AddSub("schedule_function", ParameterListT::Any);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* TimeManagerT::NewSub(const StringT& name) const
-{
-	if (name == "schedule_function")
-		return new ScheduleT;
-	else /* inherited */
-		return ParameterInterfaceT::NewSub(name);
-}
-
 /************************************************************************
- * Private
- ************************************************************************/
+* Private
+************************************************************************/
+
+void TimeManagerT::EchoTimeSequences(ifstreamT& in, ostream& out)
+{
+	int num_seq = fSequences.Length();
+	out << "\n T i m e   S e q u e n c e   D a t a :\n\n";
+	out << " Number of time sequences  . . . . . . . . . . . = " << num_seq;
+	out << "\n\n";
+	
+	for (int i = 0; i < num_seq; i++)
+	{
+		int seqnum;
+		in >> seqnum;	
+		if (seqnum < 1 ||
+		    seqnum > num_seq) throw eBadInputValue;
+
+		out << " Sequence number . . . . . . . . . . . . . . . . = ";
+		out << seqnum << '\n';
+		
+		/* echo data */
+		seqnum--;
+		fSequences[seqnum].Read(in);
+		fSequences[seqnum].Write(out);
+		out << '\n';
+	}
+}
+
+void TimeManagerT::EchoLoadTime(ifstreamT& in, ostream& out)
+{
+	int num_LTf = fLTf.Length();
+	out << "\n L o a d - T i m e   F u n c t i o n   D a t a :\n\n";
+	out << " Number of load-time functions . . . . . . . . . = " << num_LTf << '\n';
+
+	for (int i = 0; i < num_LTf; i++)
+	{
+		int LTfnum, numpts;
+		in >> LTfnum >> numpts;
+
+		/* checks */
+		if (LTfnum < 1 || LTfnum > num_LTf) throw eBadInputValue;
+		if (numpts < 1) throw eBadInputValue;
+
+		out << " Loadtime function number. . . . . . . . . . . . = ";
+		out << LTfnum << "\n\n";
+		
+		/* echo data */
+		LTfnum--;
+		fLTf[LTfnum] = new LoadTime(numpts);
+		if (!fLTf[LTfnum]) throw(eOutOfMemory);
+
+		fLTf[LTfnum]->Read(in);
+		fLTf[LTfnum]->Write(out);
+		out << '\n';
+	}
+}
 
 /* increment the time and reset the load factors */
 void TimeManagerT::IncrementTime(double dt)
@@ -315,14 +348,14 @@ void TimeManagerT::IncrementTime(double dt)
 	fTime += dt;
 
 	/* set load factors */
-	for (int i = 0; i < fSchedule.Length(); i++)
-		fSchedule[i]->SetTime(fTime);
+	for (int i = 0; i < fLTf.Length(); i++)
+		fLTf[i]->SetLoadFactor(fTime);
 }
 
 /* returns 1 if the number is even, otherwise returns 0	*/
 int TimeManagerT::IsEven(int number) const
 {
-	return int(number % 2 == 0);
+	return (fmod(number,2) < 0.5) ? 1 : 0;
 }
 
 /* adjust time stepping parameters */
@@ -336,9 +369,10 @@ void TimeManagerT::DoDecreaseStep(void)
 	fOutputInc   *= (fOutputInc < 0) ? 1 : 2;
 	fNumSteps    *= 2;
 	fStepNum     *= 2;
+	fOutputCount *= 2;
 	
 	/* broadcast time step change */
-	fFEManager.SetTimeStep(fTimeStep);
+	theBoss.SetTimeStep(fTimeStep);
 	cout << "\n TimeManagerT: step reduced to: " << fTimeStep << endl;
 }
 
@@ -352,9 +386,11 @@ void TimeManagerT::DoIncreaseStep(void)
 	fOutputInc   /= (fOutputInc < 0) ? 1 : 2;
 	fNumSteps    /= 2;	
 	fStepNum     /= 2;
+	fOutputCount /= 2;
 
 	/* broadcast time step change */
-	fFEManager.SetTimeStep(fTimeStep);
+	theBoss.SetTimeStep(fTimeStep);
+
 	cout << "\n TimeManagerT: step increased to: " << fTimeStep << endl;
 }
 

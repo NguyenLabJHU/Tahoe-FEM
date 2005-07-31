@@ -1,5 +1,5 @@
-/* $Id: HHTalpha.h,v 1.6 2004-07-15 08:30:27 paklein Exp $ */
-/* created: paklein (10/14/1996) */
+/* $Id: HHTalpha.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
 
 #ifndef _HHT_ALPHA_H_
 #define _HHT_ALPHA_H_
@@ -7,56 +7,38 @@
 #include "Environment.h"
 
 /* base class */
-#include "IntegratorT.h"
-
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
+#include "ControllerT.h"
 
 /* forward declarations */
+#include "ios_fwd_decl.h"
 class ifstreamT;
 class dArrayT;
 
-/** HHT-\f$\alpha\f$ time integrator */
-class HHTalpha: virtual public IntegratorT
+/* automatic setting of gamma and beta */
+const int	kHHTalphaAuto_O2 = 1;
+
+class HHTalpha: public ControllerT
 {
 public:
 
-	/** constructor 
-	 * \param alpha damping parameters 
-	 */
-	HHTalpha(double alpha);
-
-	/** \name integrator parameters */
-	/*@{*/
-	/** return flag indicating whether integrator is implicit or explicit */
-	virtual ImpExpFlagT ImplicitExplicit(void) const { return kImplicit; };
-
-	/** return order time discretization */
-	virtual int Order(void) const { return 2; };
-
-	/** return order field derivative which is treated as the primary 
-	 * unknown value */
-	virtual int OrderOfUnknown(void) const { return 2; };
-	/*@}*/
+	/* constructor */
+	HHTalpha(ifstreamT& in, ostream& out, int auto2ndorder = 0);
 
 protected:
 
-	/** set time integration to single parameter 2nd order */
+	/* set time integration to single parameter 2nd order */
 	void Set2ndOrder(double alpha);
 	
 protected:
 
-	/** autoset parameters */
-	bool fAuto2ndOrder;
+	/* autoset parameters */
+	int		fAuto2ndOrder;
 
-	/** \name time integration parameters */
-	/*@{*/
-	double fgamma;
-	double fbeta;
-	double falpha;
-	/*@}*/		
+	/* time integration parameters */
+	double	fgamma;
+	double	fbeta;
+	double	falpha;
+		
 };
 
-} // namespace Tahoe 
 #endif /* _HHT_ALPHA_H_ */

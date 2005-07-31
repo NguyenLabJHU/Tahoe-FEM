@@ -1,46 +1,39 @@
-/* $Id: SimoIso3D.h,v 1.11 2004-08-01 00:58:34 paklein Exp $ */
-/* created: paklein (03/02/1997) */
+/* $Id: SimoIso3D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (03/02/1997)                                          */
+/* Hyperelastic material governed by Simo's split volumetric/deviatoric   */
+/* stored energy function.                                                */
+/* Note: This material is inherently 3D.                                  */
+
 #ifndef _SIMO_ISO_3D_H_
 #define _SIMO_ISO_3D_H_
 
 /* base classes */
-#include "FSIsotropicMatT.h"
+#include "FDStructMatT.h"
+#include "IsotropicT.h"
 
-namespace Tahoe {
-
-/** hyperelastic material governed by Simo's split volumetric/deviatoric
- * stored energy function.
- * \note This material is inherently 3D
- */
-class SimoIso3D: public FSIsotropicMatT
+class SimoIso3D: public FDStructMatT, public IsotropicT
 {
 public:
 
 	/* constructor */
-	SimoIso3D(void);
+	SimoIso3D(ifstreamT& in, const ElasticT& element);
 	
-	/** \name spatial description */
-	/*@{*/
-	/** spatial tangent modulus */
-	virtual const dMatrixT& c_ijkl(void);
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 
-	/** Cauchy stress */
-	virtual const dSymMatrixT& s_ij(void);
+	/* spatial description */
+	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli
+	virtual const dSymMatrixT& s_ij(void); // Cauchy stress
 
-	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
-	 * for more information. */
-	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
-	/*@}*/
+	/* material description */
+	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
+	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
+//TEMP - no reason to use these in total Lagrangian formulation.
+//       calls to these write error message and throw exception
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 	
 protected:
 	
@@ -54,27 +47,21 @@ protected:
 	double  dU(double J) const;
 	double ddU(double J) const;
 
-private:
-
-	/** return true if material implementation supports imposed thermal
-	 * strains. This material does support multiplicative thermal
-	 * strains. */
-	virtual bool SupportsThermalStrain(void) const { return true; };
-
 protected:
 
-	/* work space */
-	dSymMatrixT	fb;	
-	dSymMatrixT	fb_bar;
-
-	/** \name return values */
-	/*@{*/
-	dSymMatrixT fStress;
-	dMatrixT fModulus;
-	/*@}*/
+	/* return value */
+	dSymMatrixT	fStress;
+	dMatrixT    fModulus;
 
 private:
 
+	/* moduli */
+	double fmu; 	//shear modulus
+	double fkappa;	//bulk modulus
+
+	/* work space */
+	dSymMatrixT	fb_bar;
+	dSymMatrixT	fnorm;
 	dMatrixT	frank4;
 	
 	/* fixed forms */
@@ -84,21 +71,4 @@ private:
 	dMatrixT	fDevOp4;
 };
 
-/* inlines */
-inline double SimoIso3D::U(double J) const
-{
-	return 0.5*Kappa()*(0.5*(J*J - 1.0) - log(J));
-}
-
-inline double SimoIso3D::dU(double J) const
-{
-	return 0.5*Kappa()*(J - 1.0/J);
-}
-
-inline double SimoIso3D::ddU(double J) const
-{
-	return 0.5*Kappa()*(1.0 + 1.0/(J*J));
-}
-
-} // namespace Tahoe 
 #endif /* _SIMO_ISO_3D_H_ */

@@ -1,4 +1,4 @@
-/* $Id: FindNeighbor23T.cpp,v 1.4 2003-11-21 22:41:59 paklein Exp $ */
+/* $Id: FindNeighbor23T.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighbor23T.cpp                                                    */
 
@@ -6,9 +6,6 @@
 #include <iostream.h>
 
 /* Constructors */
-
-using namespace Tahoe;
-
 FindNeighbor23T::FindNeighbor23T(const dArray2DT& coords, int maxneighbors):
 	FindNeighborT(coords, maxneighbors)
 {
@@ -45,7 +42,7 @@ void FindNeighbor23T::GetNeighors(iArray2DT& edges, iArray2DT& angles,
 	FindNeighborT::GetNeighors(edges, tolerance);
 
 	/* count number of 3 body and allocate */
-	angles.Dimension(Count3Body(), 3);
+	angles.Allocate(Count3Body(), 3);
 	
 	/* determine 3 body lists */
 	if (fNodeMap)
@@ -81,7 +78,7 @@ void FindNeighbor23T::Set3Body(iArray2DT& angles) const
 	int* p3Body = angles(0);
 	for (int node = 0; node < fNumPts; node++)
 	{
-		const int* pneigh = fNeighbors(node);
+		int* pneigh = fNeighbors(node);
 	
 		for (int i = 0; i < fCount[node]; i++)
 			for (int j = i + 1; j < fCount[node]; j++)
@@ -101,7 +98,7 @@ void FindNeighbor23T::Set3BodyMapped(iArray2DT& angles) const
 	int* p3Body = angles(0);
 	for (int node = 0; node < fNumPts; node++)
 	{
-		const int* pneigh = fNeighbors(node);
+		int* pneigh = fNeighbors(node);
 	
 		for (int i = 0; i < fCount[node]; i++)
 			for (int j = i + 1; j < fCount[node]; j++)

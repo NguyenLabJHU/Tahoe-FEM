@@ -1,11 +1,15 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.13 2004-08-01 20:41:53 paklein Exp $ */
-/* created: paklein (05/09/2000) */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* created: paklein (05/09/2000)                                          */
+/* NOTE: pick the base class for this based on the                        */
+/* weak form equations it's supposed to fit into                          */
+/* Q: What to do with the constitutive jacobian?                          */
+/* chain rule it into a material tangent modulus???                       */
+
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
 
-/* base classes */
-#include "ABAQUS_BaseT.h"
-#include "FSIsotropicMatT.h"
+/* base class */
+#include "FDStructMatT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -15,33 +19,34 @@
 #include "iArrayT.h"
 #include "dArray2DT.h"
 
+//TEMP - debugging
+#include <fstream.h>
+
 /* f2c */
 #include "f2c.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class SpectralDecompT;
 
-/** wrapper for using ABAQUS UMAT's with finite strain elements */
-class ABAQUS_UMAT_BaseT: protected ABAQUS_BaseT, public FSIsotropicMatT
+class ABAQUS_UMAT_BaseT: public FDStructMatT
 {
 public:
 
 	/* constructor */
-	ABAQUS_UMAT_BaseT(void);
+	ABAQUS_UMAT_BaseT(ifstreamT& in, const ElasticT& element);
 
 	/* destructor */
 	~ABAQUS_UMAT_BaseT(void);
 
-	/** required parameter flags */
-	virtual bool Need_F_last(void) const { return true; };
-
-	/** material has history variables */
-	virtual bool HasHistory(void) const { return true; };
-
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
+
+	/* initialization */
+	virtual void Initialize(void);
 
 	/* materials initialization */
 	virtual bool NeedsPointInitialization(void) const; // false by default
@@ -51,19 +56,18 @@ public:
 	virtual void UpdateHistory(void); // per element
 	virtual void ResetHistory(void);  // per element
 
-	/** \name spatial description */
-	/*@{*/
-	/** spatial tangent modulus */
-	virtual const dMatrixT& c_ijkl(void);
+	/* required parameter flags */
+	virtual bool NeedDisp(void) const;
+	virtual bool NeedLastDisp(void) const;
+	virtual bool NeedVel(void) const;
 
-	/** Cauchy stress */
-	virtual const dSymMatrixT& s_ij(void);
+	/* spatial description */
+	virtual const dMatrixT& c_ijkl(void);  // spatial tangent moduli
+	virtual const dSymMatrixT& s_ij(void); // Cauchy stress
 
-	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
-	 * for more information. */
-	virtual double Pressure(void) const { return fPressure; };
-	/*@}*/
+	/* material description */
+	virtual const dMatrixT& C_IJKL(void);  // material tangent moduli
+	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
@@ -79,15 +83,6 @@ public:
 	virtual void SetOutputVariables(iArrayT& variable_index,
 		ArrayT<StringT>& output_labels) = 0;
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
 protected:
 
 	/* I/O functions */
@@ -95,8 +90,13 @@ protected:
 
 private:
 
+	/* conversion functions */
+	void dMatrixT_to_ABAQUS(const dMatrixT& A, nMatrixT<doublereal>& B) const;
+	void ABAQUS_to_dSymMatrixT(const doublereal* pA, dSymMatrixT& B) const;
+	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB) const;
+
 	/* load element data for the specified integration point */
-	void Load(const ElementCardT& element, int ip);
+	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
 	/* make call to the UMAT */
@@ -117,32 +117,39 @@ private:
 		integer*, integer*, integer*, integer*, integer*,
 		integer*, ftnlen) = 0;
 
+	/* read ABAQUS-format input */
+	void Read_ABAQUS_Input(ifstreamT& in);
+	bool Next_ABAQUS_Keyword(ifstreamT& in) const;
+	bool Skip_ABAQUS_Symbol(ifstreamT& in, char c) const; // returns true if c is next non-whitespace
+	void Skip_ABAQUS_Comments(ifstreamT& in);
+	void Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_upper = true) const;
+	
 protected:
 
-	GlobalT::SystemTypeT fTangentType;
+	/* execution stage */
+	const GlobalT::StateT& fRunState;
 
-	/** properties array */
-	nArrayT<doublereal> fProperties;
-	
 private:
 
-	/** if true, writes debugging info to output */
-	bool fDebug;
-
-	/** if true, uses the modulus computed by the UMAT; otherwise, returns
-	 * the finite difference approximation computed by FSSolidMatT */
-	bool fUseUMATModulus;
+	//debugging
+	ofstream flog;
 	
 	/* material name */
 	StringT fUMAT_name;
+	GlobalT::SystemTypeT fTangentType;
 	//other options:
 	//  strain type
 	//  orientation (*ORIENTATION)
 	//  expansion   (*EXPANSION)
 
 	/* work space */
-	dArrayT fIPCoordinates; /**< integration point coordinates */
-	double fPressure; /**< pressure for the most recent calculation of the stress */
+	const LocalArrayT& fLocLastDisp; // displacements from the last time step
+	dMatrixT    fModulus;            // return value
+	dSymMatrixT fStress;             // return value
+	dArrayT fIPCoordinates;          // integration point coordinates
+
+	/* properties array */
+	nArrayT<doublereal> fProperties;
 	
 	/* material output data */
 	iArrayT fOutputIndex;
@@ -197,14 +204,5 @@ inline GlobalT::SystemTypeT ABAQUS_UMAT_BaseT::TangentType(void) const
 	return fTangentType;
 }
 
-} /* namespace Tahoe */
-
-#else /* __F2C__ */
-
-#ifndef __MWERKS__
-#error "ABAQUS_UMAT_BaseT requires __F2C__"
-#endif
-
 #endif /* __F2C__ */
-
 #endif /* _ABAQUS_UMAT_BASE_T_H_ */

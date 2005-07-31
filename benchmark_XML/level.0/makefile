@@ -1,26 +1,11 @@
-# $Id: makefile,v 1.16 2005-01-07 22:02:48 paklein Exp $
+# $Id: makefile,v 1.1.1.1 2004-03-04 06:42:09 paklein Exp $
 #
 # type "make clean" to remove test results
 #
 
 # list of subdirectories
 SUB_DIR = \
-matrix_check \
-2D.elastodynamic \
-2D.elastostatic \
-3D.elastostatic \
-3D.elastodynamic \
-diffusion \
-coupled \
-enhanced.strain \
-integrator \
-2D.particle \
-3D.particle \
-adhesion \
-axisymmetric \
-meshfree \
-inputoutput \
-bridging
+	2D.elastostatic
 
 all:
 	@echo "make clean to remove test results"

@@ -1,16 +1,13 @@
-/* $Id: Rotate2DT.cpp,v 1.5 2005-01-13 00:10:32 paklein Exp $ */
+/* $Id: Rotate2DT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
 /* created: paklein (07/21/1996)                                          */
 /* This class provides the functionality to do 2D coordinate              */
 /* transformations.                                                       */
 
 #include "Rotate2DT.h"
 #include <math.h>
-#include "toolboxConstants.h"
+#include "Constants.h"
 
 /* size parameters */
-
-using namespace Tahoe;
-
 const int kMatrixDim = 2;
 const int kRedMatDim = 3;
 
@@ -37,8 +34,7 @@ Rotate2DT::Rotate2DT(double angle): fAngleDeg(angle), fQ(kMatrixDim),
 */
 void Rotate2DT::SetAngle(double angle)
 {
-	fAngleDeg = angle;
-	fAngle = fAngleDeg*Pi/180.0;
+	fAngle = angle*Pi/180.0;
 
 	double temp = fAngle;
 	fCost = cos(temp);	
@@ -65,7 +61,7 @@ const dSymMatrixT& Rotate2DT::RotateRedMatIn(const dSymMatrixT& redmat)
 {
 /* dimension checking */
 #if __option (extended_errorcheck)
-	if (redmat.Length() != kRedMatDim) throw ExceptionT::kGeneralFail;
+	if (redmat.Length() != kRedMatDim) throw eGeneralFail;
 #endif
 
 	/* Note: This reduced index coordinate transformation requires
@@ -87,7 +83,7 @@ const dSymMatrixT& Rotate2DT::RotateRedMatOut(const dSymMatrixT& redmat)
 {
 /* dimension checking */
 #if __option (extended_errorcheck)
-	if (redmat.Length() != kRedMatDim) throw ExceptionT::kGeneralFail;
+	if (redmat.Length() != kRedMatDim) throw eGeneralFail;
 #endif
 
 	/* Note: This reduced index coordinate transformation requires
@@ -113,7 +109,7 @@ void Rotate2DT::PushIndexIn(dMatrixT& matrix, int index)
 	if (matrix.Rows() != kMatrixDim ||
 	    matrix.Cols() != kMatrixDim ||
 	    index < 0                   ||
-	    index >= kMatrixDim) throw ExceptionT::kGeneralFail;
+	    index >= kMatrixDim) throw eGeneralFail;
 #endif
 
 	/* copy */
@@ -135,7 +131,7 @@ void Rotate2DT::RotateRedTensorIn(dMatrixT& matrix)
 /* dimension checking */
 #if __option (extended_errorcheck)
 	if (matrix.Rows() != kRedMatDim ||
-	    matrix.Cols() != kRedMatDim) throw ExceptionT::kGeneralFail;
+	    matrix.Cols() != kRedMatDim) throw eGeneralFail;
 #endif
 
 	TransformO42D(matrix, 1);
@@ -146,7 +142,7 @@ void Rotate2DT::RotateRedTensorOut(dMatrixT& matrix)
 /* dimension checking */
 #if __option (extended_errorcheck)
 	if (matrix.Rows() != kRedMatDim ||
-	    matrix.Cols() != kRedMatDim) throw ExceptionT::kGeneralFail;
+	    matrix.Cols() != kRedMatDim) throw eGeneralFail;
 #endif
 
 	TransformO42D(matrix,-1);
@@ -171,7 +167,7 @@ void Rotate2DT::TransformO42D(dMatrixT& matrix, int RotateDirection)
 
 	/* check */
 	if (RotateDirection != 1 &&
-	    RotateDirection != -1) throw ExceptionT::kGeneralFail;
+	    RotateDirection != -1) throw eGeneralFail;
 
 	z3 = matrix(0,0);
 	z4 = matrix(0,1);

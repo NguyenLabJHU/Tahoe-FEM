@@ -1,99 +1,67 @@
-/* $Id: J2Simo2D.h,v 1.12 2004-07-15 08:28:54 paklein Exp $ */
-/* created: paklein (06/22/1997) */
+/* $Id: J2Simo2D.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (06/22/1997)                                          */
+
 #ifndef _J2_SIMO_2D_H_
 #define _J2_SIMO_2D_H_
 
 /* base classes */
 #include "SimoIso2D.h"
-#include "J2SimoC0HardeningT.h"
+#include "J2SimoLinHardT.h"
 
 /* direct members */
 #include "LocalArrayT.h"
 
-namespace Tahoe {
-
-/** finite strain J2 plasticity */
-class J2Simo2D: public SimoIso2D, public J2SimoC0HardeningT
+class J2Simo2D: public SimoIso2D, public J2SimoLinHardT
 {
 public:
 
-	/** constructor */
-	J2Simo2D(void);
+	/* constructor */
+	J2Simo2D(ifstreamT& in, const ElasticT& element);
 
-	/** form of tangent matrix (symmetric by default) */
+	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/** update internal variables */
+	/* update internal variables */
 	virtual void UpdateHistory(void);
 
-	/** reset internal variables to last converged solution */
+	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
+
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 	
-	/** modulus */
+	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
 	
-	/** stress */
+	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
 
-	/** returns the strain energy density for the specified strain */
+	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
-
-	/** incremental heat generation */
-	virtual double IncrementalHeat(void);
-
-	/** this model does generate heat */
-	virtual bool HasIncrementalHeat(void) const { return true; };
-
-	/** model has history variables */
-	virtual bool HasHistory(void) const { return true; };
 	 	 	
-	/** required parameter flags */
-	virtual bool Need_F_last(void) const { return true; };
-
-	/** returns the number of output variables */
-	virtual int NumOutputVariables(void) const;
-
-	/** returns labels for output variables */
-	virtual void OutputLabels(ArrayT<StringT>& labels) const;
-
-	/** compute output variables */
-	virtual void ComputeOutput(dArrayT& output);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-	
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
+	/* required parameter flags */
+	virtual bool NeedLastDisp(void) const;
 
 private:
 
-	/** flag to indicate whether material supports thermal strains.
-	 * Returns true. */
-	virtual bool SupportsThermalStrain(void) const { return true; };
-
-	/** compute F_mechanical and f_relative for the current step */
+	/* compute F_total and f_relative */
 	void ComputeGradients(void);
 
 private:
 
+	/* last converged disp - needed for f_relative */
+	const LocalArrayT& fLocLastDisp;
+	LocalArrayT	fRelDisp;
+
 	/* deformation gradients - 3D*/
-	dMatrixT fFmech;
+	dMatrixT fFtot;
 	dMatrixT ffrel;
 	
 	/* work space */
 	dMatrixT fF_temp;
-	dMatrixT fFmech_2D;
+	dMatrixT fFtot_2D;
 	dMatrixT ffrel_2D;
 };
 
-} // namespace Tahoe 
 #endif /* _J2_SIMO_2D_H_ */

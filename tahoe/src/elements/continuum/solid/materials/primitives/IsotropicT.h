@@ -1,21 +1,17 @@
-/* $Id: IsotropicT.h,v 1.8 2004-07-15 08:29:19 paklein Exp $ */
-/* created: paklein (06/10/1997) */
+/* $Id: IsotropicT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (06/10/1997)                                          */
+
 #ifndef _ISOTROPIC_T_H_
 #define _ISOTROPIC_T_H_
 
-/* base class */
-#include "ParameterInterfaceT.h"
-
-/* direct members */
-#include "SolidMaterialT.h"
-
-namespace Tahoe {
+#include "Environment.h"
 
 /* forward declarations */
 class dMatrixT;
+#include "ios_fwd_decl.h"
 class ifstreamT;
 
-class IsotropicT: virtual public ParameterInterfaceT
+class IsotropicT
 {
 public:
 
@@ -23,64 +19,46 @@ public:
 	IsotropicT(ifstreamT& in);
 	IsotropicT(void);
 
-	/** \name set moduli */
-	/*@{*/
+	/* set moduli */
 	void Set_E_nu(double E, double nu);
 	void Set_mu_kappa(double mu, double kappa);
-	void Set_PurePlaneStress_mu_lambda(double mu, double lambda);
-	/*@}*/
 	
-	/** \name accessors */
-	/*@{*/
+	/* accessors */
 	double Young(void) const;
 	double Poisson(void) const;
-	double Mu(void) const;
-	double Kappa(void) const;
-	double Lambda(void) const;
-	/*@}*/
 	
+	/* returns the Lame constants (calculated from E, nu) */
+	void Lame(double& mu, double& lambda) const;
+
+	/* shear and bulk moduli */
+	void MuAndKappa(double& mu, double& kappa) const;
+	double Mu(void) const;
+	double Lambda(void) const;
+
 	/* print parameters */
 	void Print(ostream& out) const;
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 
 protected:
 
 	/* compute isotropic moduli tensor */
-	void ComputeModuli(dMatrixT& moduli) const;
-	void ComputeModuli2D(dMatrixT& moduli, SolidMaterialT::ConstraintT constraint) const;
-	void ComputeModuli1D(dMatrixT& moduli) const;
-
-	/* scale factor for constrained dilatation */
-	double DilatationFactor2D(SolidMaterialT::ConstraintT constraint) const;   	
+	void ComputeModuli(dMatrixT& moduli, double mu, double lambda) const;
 
 private:
 
-	/** \name moduli */
-	/*@{*/
-	double fYoung;
-	double fPoisson;
-	double fMu;
-	double fKappa;
-	double fLambda;
-	/*@}*/
+	double	fYoung;
+	double	fPoisson;
+		
 };
 
 /* inline functions */
-inline double IsotropicT::Young(void) const { return fYoung; }
-inline double IsotropicT::Poisson(void) const { return fPoisson; }
-inline double IsotropicT::Mu(void) const { return fMu; }
-inline double IsotropicT::Kappa(void) const { return fKappa; }
-inline double IsotropicT::Lambda(void) const { return fLambda; }
-} // namespace Tahoe 
+inline double IsotropicT::Mu(void) const
+{
+	return 0.5*fYoung/(1.0 + fPoisson);
+}
+
+inline double IsotropicT::Lambda(void) const
+{
+	return fYoung*fPoisson/((1.0 + fPoisson)*(1.0 - 2.0*fPoisson));
+}
+
 #endif /* _ISOTROPIC_T_H_ */

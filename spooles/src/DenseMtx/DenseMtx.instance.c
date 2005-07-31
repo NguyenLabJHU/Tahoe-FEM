@@ -241,7 +241,7 @@ return(DV_entries(&mtx->wrkDV)) ; }
    created -- 98jun05, cca
    ------------------------------------------
 */
-int
+void
 DenseMtx_realEntry (
    DenseMtx   *mtx,
    int        irow,
@@ -256,31 +256,31 @@ DenseMtx_realEntry (
 if ( mtx == NULL || pValue == NULL ) {
    fprintf(stderr, "\n fatal error in DenseMtx_realEntry()"
            "\n mtx or pValue is NULL\n") ;
-	return -1;
+   exit(-1) ;
 }
 if ( mtx->type != SPOOLES_REAL ) {
    fprintf(stderr, "\n fatal error in DenseMtx_realEntry()"
            "\n mtx type must be SPOOLES_REAL\n") ;
-	return -1;
+   exit(-1) ;
 }
 if ( irow < 0 || irow >= mtx->nrow ) {
    fprintf(stderr, "\n fatal error in DenseMtx_realEntry()"
            "\n irow = %d, mtx->nrow = %d input\n", irow, mtx->nrow) ;
-	return -1;
+   exit(-1) ;
 }
 if ( jcol < 0 || jcol >= mtx->ncol ) {
    fprintf(stderr, "\n fatal error in DenseMtx_realEntry()"
            "\n jcol = %d, mtx->ncol = %d input\n", jcol, mtx->ncol) ;
-	return -1;
+   exit(-1) ;
 }
 if ( mtx->entries == NULL ) {
    fprintf(stderr, "\n fatal error in DenseMtx_realEntry()"
            "\n mtx->entries is NULL \n") ;
-	return -1;
+   exit(-1) ;
 }
 *pValue = mtx->entries[irow*mtx->inc1 + jcol*mtx->inc2] ;
 
-return 1; }
+return ; }
 
 /*--------------------------------------------------------------------*/
 /*

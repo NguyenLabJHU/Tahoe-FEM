@@ -1,5 +1,6 @@
-/* $Id: DiffusionElementT.h,v 1.12 2004-07-15 08:26:18 paklein Exp $ */
-/* created: paklein (10/02/1999) */
+/* $Id: DiffusionElementT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (10/02/1999)                                          */
+
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
 
@@ -11,139 +12,92 @@
 #include "LocalArrayT.h"
 #include "dSymMatrixT.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
+#include "ios_fwd_decl.h"
 class ShapeFunctionT;
 class DiffusionMaterialT;
-class DiffusionMatSupportT;
 class StringT;
 
-/** linear diffusion element */
 class DiffusionElementT: public ContinuumElementT
 {
 public:
 	
-	/** list/index of nodal outputs */
-	enum OutputCodeT {iNodalCoord = 0,  /**< (reference) nodal coordinates */
-                       iNodalDisp = 1,  /**< nodal "displacements" */
-                    iMaterialData = 2}; /**< material model output */
+	enum OutputCodeT {iNodalCoord = 0, // (reference) nodal coordinates
+                       iNodalDisp = 1, // nodal "displacements"
+                    iMaterialData = 2};// material model output
 
-	/** constructor */
-	DiffusionElementT(const ElementSupportT& support);
+	/* constructor */
+	DiffusionElementT(FEManagerT& fe_manager);
+	
+	/* data initialization */
+	virtual void Initialize(void);
 
-	/** destructor */
-	~DiffusionElementT(void);
+	/* set the controller */
+	virtual void SetController(eControllerT* controller);
 
-	/** compute nodal force */
-	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
+	/* compute nodal force */
+	virtual void AddNodalForce(int node, dArrayT& force);
 
-	/** returns the stored energy */
+	/* returns the stored energy */
 	virtual double InternalEnergy(void);
 
-	/** compute specified output parameter and send for smoothing */
+	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
 protected:
 
-	/** initialization functions */
-	/*@{*/
+	/* print element group data */
+	virtual void PrintControlData(ostream& out) const;
+	virtual void EchoOutputCodes(ifstreamT& in, ostream& out);
+
+	/* initialization functions */
 	virtual void SetLocalArrays(void);
 	virtual void SetShape(void);
-	/*@}*/
 
-	/** construct the effective mass matrix */
-	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
+	/* construct the effective mass matrix */
+	virtual void LHSDriver(void);
 
-	/** form the residual force vector */
+	/* form the residual force vector */
 	virtual void RHSDriver(void);
 
-	/** set the \e B matrix at the specified integration point */
-	void B(int ip, dMatrixT& B_matrix) const;
-
-	/** increment current element */
+	/* increment current element */
 	virtual bool NextElement(void);	
-
-	/** form the element stiffness matrix */
+	
+	/* form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 
-	/** calculate the internal force contribution ("-k*d") */
+	/* calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
 
-	/** construct a new material support and return a pointer. Recipient is responsible for
-	 * for freeing the pointer.
-	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
-	 *        a new MaterialSupportT and initialize it. */
-	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
+	/* return a pointer to a new material list */
+	virtual MaterialListT* NewMaterialList(int size) const;
 
-	/** return a pointer to a new material list. Recipient is responsible for freeing 
-	 * the pointer. 
-	 * \param name list identifier
-	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
-
-	/** driver for calculating output values */
-	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-	                           const iArrayT& e_codes, dArray2DT& e_values);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** return the description of the given inline subordinate parameter list */
-	ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
-	/** extract the list of material parameters */
-	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
+	/* driver for nodal value calculations */
+	virtual void ComputeNodalValues(const iArrayT& codes);
 
 private:
 
-	/** \name construct output labels array */
-	/*@{*/
-	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts) const;
-	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts) const;
-	virtual void GenerateOutputLabels(const iArrayT& n_counts,
-		ArrayT<StringT>& n_labels, const iArrayT& e_counts, ArrayT<StringT>& e_labels) const;
-	/*@}*/
+	/* construct output labels array */
+	virtual void SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts);
+	virtual void GenerateOutputLabels(const iArrayT& counts,
+		ArrayT<StringT>& labels) const;
 
 protected:
 
-	/** run time */
+	/* run time */
 	DiffusionMaterialT* fCurrMaterial;
 
-	/** "temperature rate" with local ordering */
-	LocalArrayT fLocVel;
+	/* arrays with local ordering */
+	LocalArrayT fLocVel; // "temperature rate"
 	
-	/** \name work space */
-	/*@{*/
-	dMatrixT fD; /**< constitutive matrix          */
-	dMatrixT fB; /**< "strain-displacement" matrix */
-	dArrayT  fq; /**< heat flow = k_ij T,j         */
-	/*@}*/
-
-	/** field gradients over the element. The gradients are only computed
-	 * an integration point at a time and stored. */
-  	ArrayT<dArrayT> fGradient_list;
+	/* work space */
+	dMatrixT fD; /* constitutive matrix          */
+	dMatrixT fB; /* "strain-displacement" matrix */
+	dArrayT  fq; /* heat flow = k_ij T,j         */
 
 	/* parameters */
-	static const int NumNodalOutputCodes;
-
-private:
-
-  	/** the material support used to construct materials lists. This pointer
-  	 * is only set the first time DiffusionElementT::NewMaterialList is called. */
-	DiffusionMatSupportT* fDiffusionMatSupport;
+	static const int NumOutputCodes;
 };
-
-} /* namespace Tahoe */
 
 #endif /* _DIFFUSE_T_H_ */

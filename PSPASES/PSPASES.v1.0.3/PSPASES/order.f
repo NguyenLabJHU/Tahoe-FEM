@@ -39,7 +39,7 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: order.f,v 1.2 2004-12-11 09:27:23 paklein Exp $ */
+C/* $Id: order.f,v 1.1.1.1 2004-10-07 16:05:26 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine porder(rowdist,aptrs,ainds,order,sizes,myid,pp,
@@ -88,10 +88,8 @@ C/*****************************************************************************/
       call mpi_allreduce(xadj(mynnodes),offdnz,1,MPI_INTEGER,MPI_SUM,
      +                   comm,ierr);
 
-      print *, 'offdnz = ', offdnz
-
       if(offdnz.eq.0) then
-       
+        
         do i=0,mynnodes-1
           order(i) = i + m
         end do
@@ -112,8 +110,6 @@ C/*****************************************************************************/
         opts(2) = 2
         opts(3) = dbgpp
         opts(4) = 0
-
-      print *, 'dbgpp = ', dbgpp
 
         call parometisf(rowdist,xadj,adjncy,order,sizes,opts,
      +         serialorder,comm)

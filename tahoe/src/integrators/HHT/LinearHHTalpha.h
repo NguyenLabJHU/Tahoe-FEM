@@ -1,13 +1,12 @@
-/* $Id: LinearHHTalpha.h,v 1.5 2004-07-15 08:30:28 paklein Exp $ */
-/* created: paklein (10/11/1996) */
+/* $Id: LinearHHTalpha.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/11/1996)                                          */
+
 #ifndef _LINEAR_HHT_ALPHA_H_
 #define _LINEAR_HHT_ALPHA_H_
 
 /* base classes */
 #include "nLinearHHTalpha.h"
 #include "eLinearHHTalpha.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class NodeManagerT;
@@ -17,8 +16,9 @@ class LinearHHTalpha: public nLinearHHTalpha, public eLinearHHTalpha
 {
 public:
 
-	/** constructor */
-	LinearHHTalpha(double alpha);
+	/* constructor */
+	LinearHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out,
+		int auto2ndorder = kHHTalphaAuto_O2);
 
 	/* take responsibility for forming the nodal contribution
 	 * to the RHS vector:
@@ -34,10 +34,9 @@ protected:
 
 private:
 
-	TimeManagerT* fTimeBoss;
-	double        fTimeShift; /* t_n+1+alpha */
+	TimeManagerT& 	TimeBoss;
+	double			fTimeShift; /* t_n+1+alpha */
 	
 };
 
-} // namespace Tahoe 
 #endif /* _LINEAR_HHT_ALPHA_H_ */

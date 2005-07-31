@@ -1,15 +1,14 @@
-/* $Id: D2VIB2D.h,v 1.6 2004-07-15 08:27:57 paklein Exp $ */
-/* created: paklein (10/23/1999) */
+/* $Id: D2VIB2D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (10/23/1999)                                          */
+
 #ifndef _D2_VIB_2D_H_
 #define _D2_VIB_2D_H_
 
 /* base class */
 #include "VIB2D.h"
 
-namespace Tahoe {
-
 /* forward declarations */
-class D2FSMatSupportT;
+class D2MeshFreeFDElasticT;
 class D2MeshFreeShapeFunctionT;
 
 class D2VIB2D: public VIB2D
@@ -17,7 +16,11 @@ class D2VIB2D: public VIB2D
 public:
 
 	/* constructor */
-	D2VIB2D(ifstreamT& in, const D2FSMatSupportT& support);
+	D2VIB2D(ifstreamT& in, const D2MeshFreeFDElasticT& element);
+
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;	
 
 	/* material internal stress terms */
 	virtual void StressTerms(dMatrixT& DW, dMatrixT& DDW) = 0;
@@ -37,5 +40,4 @@ protected:
 	double feps2;
 };
 
-} // namespace Tahoe 
 #endif /* _D2_VIB_2D_H_ */

@@ -1,13 +1,11 @@
-/* $Id: TecPlotT.cpp,v 1.7 2003-11-21 22:41:46 paklein Exp $ */
+/* $Id: TecPlotT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
 /* created: saw (06.06.2000)                                              */
 /* version 7.5                                                            */
 /* rules:                                                                 */
 /* 1. Maximum 32,766 zone records                                         */
-/* 2. Maximum 10 custom label records (does not refer to variable labels) */
-/*    (Custom labels are for axis labels, text tick marks, etc ...)       */
-/*    Custom labels are not currently used.                               */
-/* 3. Maximum ascii line length is 4000 characters                        */
-/* 4. Don't wrap amid a "" string                                         */
+/* 	 2. Maximum 10 custom label records (does not refer to variable labels) */
+/* 	 3. Maximum ascii line length is 4000 characters                      */
+/* 	 4. Don't wrap amid a "" string                                       */
 
 #include "TecPlotT.h"
 #include "ios_fwd_decl.h"
@@ -15,9 +13,6 @@
 #include "iArray2DT.h"
 #include "iArrayT.h"
 #include "dArray2DT.h"
-
-
-using namespace Tahoe;
 
 TecPlotT::TecPlotT (ostream& out, bool point) :
 fOut (out),
@@ -29,6 +24,8 @@ void TecPlotT::WriteHeader (ostream& out, const StringT& title, const ArrayT<Str
 {
 if (title.Length() > 1)
 out << "TITLE = \"" << title << "\"\n";
+if (variablenames.Length() > 10)
+cout << "\n\nTecPlot: Warning: TecPlot will only support 10 variables\n\n";
 
 if (variablenames.Length() > 0)
 out << "VARIABLES = ";
@@ -83,9 +80,9 @@ case GeometryT::kHexahedron: out << "BRICK "; break;
 case GeometryT::kTetrahedron: out << "TETRAHEDRON "; break;
 default:
 {
-	cout << "\n\nTecPlotT::WriteFEZone, unknown geometry code \"" << GeometryT::ToString(code) << "\" ("
-	     << code << ')' << endl;
-	throw ExceptionT::kGeneralFail;
+	cout << "\n\nTecPlotT::WriteFEZone, unknown geometry code "
+	     << code << endl;
+	throw eGeneralFail;
 }
 }
 
@@ -117,33 +114,6 @@ for (int i=0; i < temp.Length(); i++)
 }
 }
 
-// write data should not be called using the  point format
-// but may be called repeatly, in proper order, for block format
-void TecPlotT::WriteData (ostream& out, const ArrayT<double>& data, const int rows, const int cols) const
-{
-  if (fPoint)
-    {
-      fOut << "\n\nTecPlot::WriteData, This function should not be used to write Point format data\n";
-      throw ExceptionT::kGeneralFail;
-    }
-  else
-    {
-      for (int j=0; j < cols; j++)
-	{
-	  const double *p = data.Pointer(j);
-	  for (int k=0; k < rows; k++)
-	    {
-	      out << *p << " ";
-	      // keep row length under 4000 characters
-	      if ((k+1)%100 == 0) 
-		out << '\n';
-	      p += cols;
-	    }
-	  out << '\n';
-	}
-    }
-}
-
 // only used with WriteFEZone
 void TecPlotT::WriteConnectivity (ostream& out, GeometryT::CodeT code, const iArray2DT& connects) const
 {
@@ -158,7 +128,7 @@ default:
 {
 	cout << "\n\nTecPlotT::WriteConnectivity, unknown geometry code "
 	     << code << endl;
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 }
 }
 

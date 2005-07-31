@@ -1,48 +1,169 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.22 2005-07-08 23:38:50 paklein Exp $ */
-/* created: paklein (09/16/1998) */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (09/16/1998)                                          */
+/* large deformation elasticity with MLS shapefunctions for the           */
+/* field (displacement) representation                                    */
+
 #include "MeshFreeFSSolidT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
 #include "MeshFreeShapeFunctionT.h"
-#include "ModelManagerT.h"
-#include "CommManagerT.h"
-#include "ParameterContainerT.h"
-
-#include "MeshFreeFractureSupportT.h"
-#include "MeshFreeSupport2DT.h"
-#include "MeshFreeSupport3DT.h"
+#include "FEManagerT.h"
+#include "NodeManagerT.h"
 
 //TEMP
 #include "MaterialListT.h"
-#include "SolidMaterialT.h"
+#include "StructuralMaterialT.h"
 
-using namespace Tahoe;
+//TEMP - parallel non-repeatability testing
+#ifdef __MPI__
+#include "mpi.h"
+#endif
 
 /* parameters */
 const double Pi = acos(-1.0);
 
 /* constructor */
-MeshFreeFSSolidT::MeshFreeFSSolidT(const ElementSupportT& support):
-	TotalLagrangianT(support),
-	fAutoBorder(false),
+MeshFreeFSSolidT::MeshFreeFSSolidT(FEManagerT& fe_manager):
+	TotLag_FSSolidT(fe_manager),
+	MeshFreeFractureSupportT(fFEManager.Input()),
 	fB_wrap(10, fB),
 	fGradNa_wrap(10, fGradNa),
-	fStressStiff_wrap(10, fStressStiff),
-	fMFShapes(NULL),
-	fMFFractureSupport(NULL),
-	fMeshfreeParameters(NULL)		
+	fStressStiff_wrap(10, fStressStiff)
 {
-	SetName("large_strain_meshfree");
+
 }
 
-MeshFreeFSSolidT::~MeshFreeFSSolidT(void)
+/* data initialization */
+void MeshFreeFSSolidT::Initialize(void)
 {
-	delete fMFFractureSupport;
+/* inherited */
+TotLag_FSSolidT::Initialize();
+
+/* free memory associated with "other" eqnos */
+fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
+// base class initializations
+
+	/* register dynamic local arrays */
+	fLocGroup.Register(fLocDisp);     // ContinuumElementT
+	fLocGroup.Register(fLocVel);      // ContinuumElementT
+	fLocGroup.Register(fLocAcc);      // ContinuumElementT
+	fLocGroup.Register(fLocLastDisp); // TotLag_FSSolidT
+
+	/* register other variable length workspace */
+	fNEEArray.Register(fRHS);         // ElementBaseT
+	fNEEArray.Register(fNEEvec);      // ContinuumElementT
+	fNEEArray.Register(fTemp2);       // TotLag_FSSolidT
+	fNEEMatrix.Register(fLHS);        // ElementBaseT
+
+	/* dimension */
+	fDNa_x_wrap.SetWard(10, fDNa_x, fNumElemNodes);
+
+	/* set MLS data base (connectivities must be set 1st) */
+	fMFShapes->SetSupportSize();
+
+	/* exchange nodal parameters (only Dmax for now) */
+	iArrayT nodes_in;
+	fFEManager.IncomingNodes(nodes_in);
+	if (nodes_in.Length() > 0)
+	{
+		/* send all */
+		const dArrayT& d_max = fMFShapes->Dmax();
+		dArray2DT all_data_out(d_max.Length(), 1, d_max.Pointer());
+		fFEManager.SendExternalData(all_data_out);
+
+		/* receive */
+		dArray2DT all_data_in(nodes_in.Length(), 1);
+		fFEManager.RecvExternalData(all_data_in);
+	
+		/* set values */
+		dArrayT d_max_in;
+		d_max_in.Alias(all_data_in);
+		fMFShapes->SetDmax(nodes_in, d_max_in);
+		
+		/* skip MLS fit at external nodes */
+		fMFShapes->SetSkipNodes(nodes_in);
+	}
+
+	/* set nodal neighborhoods */
+	fMFShapes->SetNeighborData();
+
+/* initialize support data */
+iArrayT surface_nodes;
+	if (fAutoBorder) SurfaceNodes(surface_nodes);
+	MeshFreeFractureSupportT::InitSupport(fFEManager.Input(), fFEManager.Output(),
+		fElementCards, surface_nodes, NumDOF(), fNodes->NumNodes(),
+		fFEManager.ModelFile(), fFEManager.InputFormat());
+
+	/* final MLS initializations */
+	fMFShapes->SetExactNodes(fAllFENodes);
+	fMFShapes->WriteStatistics(fFEManager.Output());
+	
+	//TEMP - only works for one material right now, else would have to check
+	//       for the material active within the integration cell (element)
+	if (HasActiveCracks() && fMaterialList->Length() != 1)
+	{	
+		cout << "\n MeshFreeFSSolidT::Initialize: can only have 1 material in the group\n";
+		cout <<   "     with active cracks" << endl;
+		throw eBadInputValue;
+	}
+	
+	/* check for localizing materials */
+	if (FractureCriterion() == MeshFreeFractureSupportT::kAcoustic &&
+	   !fMaterialList->HasLocalizingMaterials())
+	{
+		cout << "\n MeshFreeFSSolidT::Initialize: failure criterion requires\n"
+		     <<   "     localizing materials: " << MeshFreeFractureSupportT::kAcoustic
+		     << endl;
+		throw eBadInputValue;
+	}
+
+//TEMP - Dmax
+#if 0
+ostream& out = FEManager().Output();
+cout << "\n MeshFreeFSSolidT::Initialize: writing d_max to file :"
+<< FEManager().Input().filename() << endl;
+out << "\n MeshFreeFSSolidT::Initialize: d_max:\n";
+const dArrayT& Dmax = fMFShapes->Dmax();
+const iArrayT* node_map = FEManager().NodeMap();
+int d_width = out.precision() + kDoubleExtra;
+out << setw(kIntWidth) << "node"
+<< setw(  d_width) << "d_max" << '\n';
+if (node_map)
+	for (int i = 0; i < Dmax.Length(); i++)
+		out << setw(kIntWidth) << (*node_map)[i] + 1
+		    << setw(  d_width) << Dmax[i] << '\n';
+else
+	for (int j = 0; j < Dmax.Length(); j++)
+		out << setw(kIntWidth) << j + 1
+		    << setw(  d_width) << Dmax[j] << '\n';
+#endif
+
+//TEMP - U connectivities
+#if 0
+out << "\n MeshFreeFSSolidT::Initialize: connects U: 0, 1,...\n";
+fElemNodesEX->WriteNumbered(out);
+out.flush();
+#endif
+
+//TEMP - trace node
+#if 0
+int rank, size;
+MPI_Comm_size(MPI_COMM_WORLD, &size);
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	
+int hit_node = -1;
+if (size == 1)
+	hit_node = 13607 - 1;
+else if (size == 2 && rank == 0)
+	hit_node = 5420 - 1;
+if (hit_node > 0) TraceNode(fFEManager.Output(), hit_node, *this);
+#endif
 }
 
 /* append element equations numbers to the list */
@@ -51,25 +172,21 @@ void MeshFreeFSSolidT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 {
 #pragma unused(eq_1)
 
-	/* element arrays */
-	const RaggedArray2DT<int>& element_nodes = fMFFractureSupport->ElementNodes();
-	RaggedArray2DT<int>& element_equations = fMFFractureSupport->ElementEquations();
-
 	/* get local equations numbers */
-	Field().SetLocalEqnos(element_nodes, element_equations);
+	fNodes->SetLocalEqnos(*fElemNodesEX, fElemEqnosEX);
 
 	/* add to list */
-	eq_2.Append(&element_equations);
+	eq_2.Append(&fElemEqnosEX);
 	
 	/* update active cells */
-	int num_active = fMFFractureSupport->MarkActiveCells(fElementCards);
-	if (num_active != NumElements())
+	int num_active = MarkActiveCells(fElementCards);
+	if (num_active != fNumElements)
 	{
 		/* collect inactive */
-		int num_inactive = NumElements() - num_active;
+		int num_inactive = fNumElements - num_active;
 		iArrayT skip_elements(num_inactive);
 		int count = 0;
-		for (int i = 0; i < NumElements(); i++)
+		for (int i = 0; i < fNumElements; i++)
 			if (fElementCards[i].Flag() != 1)
 				skip_elements[count++] = i;
 	
@@ -84,26 +201,30 @@ void MeshFreeFSSolidT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 {
 #pragma unused(connects_1)
 
-	/* element arrays */
-	const RaggedArray2DT<int>& element_nodes = fMFFractureSupport->ElementNodes();
-
 	/* integration cell field connects */
-	connects_2.Append(&element_nodes);
+	connects_2.Append(fElemNodesEX);
 
 	/* nodal field connects */
 	connects_2.Append(&(fMFShapes->NodeNeighbors()));
 }
 
 /* write output */
-void MeshFreeFSSolidT::WriteOutput(void)
+void MeshFreeFSSolidT::WriteOutput(IOBaseT::OutputModeT mode)
 {
 	/* inherited */
-	TotalLagrangianT::WriteOutput();
+	TotLag_FSSolidT::WriteOutput(mode);
 
 //TEMP - crack path
-	ostream& out = ElementSupport().Output();
-	out << "\n time = " << ElementSupport().Time() << '\n';
-	fMFFractureSupport->WriteOutput(out);
+	if (mode == IOBaseT::kAtInc)
+	{
+		ostream& out = fFEManager.Output();
+
+		/* time stamp */
+		out << "\n time = " << fFEManager.Time() << '\n';
+		
+		/* inherited */
+		MeshFreeFractureSupportT::WriteOutput(out);
+	}
 }
 
 /* returns true if the internal force has been changed since
@@ -111,22 +232,14 @@ void MeshFreeFSSolidT::WriteOutput(void)
 GlobalT::RelaxCodeT MeshFreeFSSolidT::RelaxSystem(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = TotalLagrangianT::RelaxSystem();
-	if (fMFFractureSupport->HasActiveCracks())
+	GlobalT::RelaxCodeT relax = TotLag_FSSolidT::RelaxSystem();
+	if (HasActiveCracks())
 	{
-		//TEMP - need to replace material/element interface for evaluation
-		//       of stresses/material properties at the sampling points. This
-		//       includes the current element pointer, gradient operators,
-		//       state variables, etc. Not implemented
-		cout << "\n MeshFreeFSSolidT::RelaxSystem: crack growth not available" << endl;
-		throw ExceptionT::kGeneralFail;
-		fElementCards.Current(0);
-		
 		/* check for crack growth */
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
-		SolidMaterialT* pmat = (SolidMaterialT*) pcont_mat;
+		StructuralMaterialT* pmat = (StructuralMaterialT*) pcont_mat;
 		bool verbose = false;
-	 	if (fMFFractureSupport->CheckGrowth(pmat, &fLocDisp, verbose))
+	 	if (CheckGrowth(*pmat, fLocDisp, verbose))
 	 	{
 	 		relax = GlobalT::MaxPrecedence(relax, GlobalT::kRelax);
 			//TEMP - currently, neighborlists are not reset when cutting
@@ -135,22 +248,17 @@ GlobalT::RelaxCodeT MeshFreeFSSolidT::RelaxSystem(void)
 			//       since this is needed, though not optimal
 			
 			/* write new facets to output stream */
-			ostream& out = ElementSupport().Output();
-			const dArray2DT& facets = fMFFractureSupport->Facets();
-			const ArrayT<int>& reset_facets = fMFFractureSupport->ResetFacets();
+			ostream& out = fFEManager.Output();
+			const dArray2DT& facets = Facets();
+			const ArrayT<int>& reset_facets = ResetFacets();
 			out << "\n MeshFreeFSSolidT::RelaxSystem:\n";
-			out << "               time: " << ElementSupport().Time() << '\n';
+			out << "               time: " << fFEManager.Time() << '\n';
 			out << " new cutting facets: " << reset_facets.Length() << '\n';
 			for (int i = 0; i < reset_facets.Length(); i++)
 				facets.PrintRow(reset_facets[i], out);
 			out.flush();	
 		}
 	}
-	else if (fMFFractureSupport->CheckGrowth(NULL, &fLocDisp, false)) {
-		cout << "\n MeshFreeFSSolidT::RelaxSystem: unexpected crack growth" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-		
 	return relax;
 }
 
@@ -162,317 +270,105 @@ int MeshFreeFSSolidT::InterpolantDOFs(void) const
 }
 
 /* retrieve nodal DOF's */
-void MeshFreeFSSolidT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const {
-	fMFFractureSupport->GetNodalField(Field()[0], nodes, DOFs); /* displacements */
+void MeshFreeFSSolidT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
+{
+	/* inherited */
+	GetNodalField(fNodes->Displacements(), nodes, DOFs);
 }
 
 /* weight the computational effort of every node */
-void MeshFreeFSSolidT::WeightNodalCost(iArrayT& weight) const {
-	fMFFractureSupport->WeightNodes(weight);
+void MeshFreeFSSolidT::WeightNodalCost(iArrayT& weight) const
+{
+	/* inherited */
+	WeightNodes(weight);
 }
 
 /* initialize/finalize time increment */
 void MeshFreeFSSolidT::InitStep(void)
 {
 	/* inherited */
-	TotalLagrangianT::InitStep();
-	fMFFractureSupport->InitStep();
+	MeshFreeFractureSupportT::InitStep();
 }
 
 void MeshFreeFSSolidT::CloseStep(void)
 {
 	/* inherited */
-	TotalLagrangianT::CloseStep();
-	fMFFractureSupport->CloseStep();
+	MeshFreeFractureSupportT::CloseStep();
 }
 
-GlobalT::RelaxCodeT MeshFreeFSSolidT::ResetStep(void)
+void MeshFreeFSSolidT::ResetStep(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = TotalLagrangianT::ResetStep();
-	fMFFractureSupport->ResetStep();
-
-	return relax;
-}
-
-MeshFreeSupportT& MeshFreeFSSolidT::MeshFreeSupport(void) const
-{
-	if (!fMFShapes) ExceptionT::GeneralFail("MeshFreeFSSolidT::MeshFreeSupport", "shape functions not set");
-	return fMFShapes->MeshFreeSupport();
-}
-
-/* describe the parameters needed by the interface */
-void MeshFreeFSSolidT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	TotalLagrangianT::DefineParameters(list);
-
-	/* shape function storage handled by meshless classes */
-	list.RemoveParameter("store_shapefunctions");
-	
-	ParameterT auto_border(fAutoBorder, "auto_border");
-	auto_border.SetDefault(false);
-	list.AddParameter(auto_border);
-}
-
-/* information about subordinate parameter lists */
-void MeshFreeFSSolidT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	TotalLagrangianT::DefineSubs(sub_list);
-	
-	/* parameters for the meshfree support */
-	sub_list.AddSub("meshfree_support_choice", ParameterListT::Once, true);
-
-	/* element support */
-	sub_list.AddSub("meshfree_fracture_support");
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* MeshFreeFSSolidT::NewSub(const StringT& name) const
-{
-	if (name == "meshfree_support_choice")
-	{
-		ParameterContainerT* mf_choice = new ParameterContainerT(name);
-		mf_choice->SetSubSource(this);
-		mf_choice->SetListOrder(ParameterListT::Choice);
-		
-		mf_choice->AddSub("meshfree_support_2D");
-		mf_choice->AddSub("meshfree_support_3D");
-		
-		return mf_choice;
-	}
-	else if (name == "meshfree_support_2D")
-		return new MeshFreeSupport2DT;
-	else if (name == "meshfree_support_3D")
-		return new MeshFreeSupport3DT;
-	else if (name == "meshfree_fracture_support")
-		return new MeshFreeFractureSupportT;
-	else /* inherited */
-		return TotalLagrangianT::NewSub(name);
-}
-
-/* accept parameter list */
-void MeshFreeFSSolidT::TakeParameterList(const ParameterListT& list)
-{
-	const char caller[] = "MeshFreeFSSolidT::TakeParameterList";
-
-	/* construct meshfree support before calling inherited method because
-	 * support class needed to construct shape functions */
-	fMFFractureSupport = new MeshFreeFractureSupportT;
-	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
-
-	/* get parameters needed to construct shape functions */
-	fMeshfreeParameters = list.ListChoice(*this, "meshfree_support_choice");
-
-	/* inherited */
-	TotalLagrangianT::TakeParameterList(list);
-
-	/* make field at border nodes nodally exact */
-	fAutoBorder = list.GetParameter("auto_border");
-	if (fAutoBorder && ElementSupport().Size() > 1)
-		ExceptionT::BadInputValue(caller, "auto-border not support in parallel");
-
-	/* free memory associated with "other" eqnos */
-	fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
-	               // base class initializations
-
-	/* register dynamic local arrays */
-	fMFFractureSupport->Register(fLocDisp);     // ContinuumElementT
-	fMFFractureSupport->Register(fLocVel);      // ContinuumElementT
-	fMFFractureSupport->Register(fLocAcc);      // ContinuumElementT
-	fMFFractureSupport->Register(fLocLastDisp); // TotalLagrangianT
-
-	/* register other variable length workspace */
-	fMFFractureSupport->Register(fRHS);         // ElementBaseT
-	fMFFractureSupport->Register(fNEEvec);      // ContinuumElementT
-	fMFFractureSupport->Register(fTemp2);       // TotalLagrangianT
-	fMFFractureSupport->Register(fLHS);         // ElementBaseT
-
-	/* dimension */
-	fDNa_x_wrap.SetWard(10, fDNa_x, fMFFractureSupport->NumElementNodes());
-
-	/* set MLS data base (connectivities must be set 1st) */
-	fMFShapes->SetSupportSize();
-
-	/* exchange nodal parameters (only Dmax for now) */
-	const ArrayT<int>* p_nodes_in = ElementSupport().ExternalNodes();
-	if (p_nodes_in)
-	{
-		/* skip MLS fit at external nodes */
-		iArrayT nodes_in;
-		nodes_in.Alias(*p_nodes_in);
-		fMFShapes->SetSkipNodes(nodes_in);
-		
-		/* exchange */
-		CommManagerT& comm = ElementSupport().CommManager();
-
-		/* send all */
-		dArray2DT& nodal_params = fMFShapes->NodalParameters();
-
-		/* initialize the exchange */
-		int id = comm.Init_AllGather(nodal_params);
-		
-		/* do the exchange */
-		comm.AllGather(id, nodal_params);
-		
-		/* clear the communication */
-		comm.Clear_AllGather(id);
-	}
-
-	/* set nodal neighborhoods */
-	fMFShapes->SetNeighborData();
-
-	/* initialize support data */
-	iArrayT surface_nodes;
-	if (fAutoBorder) {
-		ArrayT<StringT> IDs;
-		ElementBlockIDs(IDs);
-		ElementSupport().ModelManager().SurfaceNodes(IDs, surface_nodes,
-			&(ShapeFunction().ParentDomain().Geometry()));
-	}
-
-	/* initialize meshfree support class */
-	fMFFractureSupport->InitSupport(ElementSupport().Output(),
-		fElementCards, 
-		surface_nodes,
-		NumDOF(), 
-		ElementSupport().NumNodes(),
-		&ElementSupport().ModelManager());
-
-	/* final MLS initializations */
-	fMFShapes->SetExactNodes(fMFFractureSupport->InterpolantNodes());
-	fMFShapes->WriteStatistics(ElementSupport().Output());
-	
-	//TEMP - only works for one material right now, else would have to check
-	//       for the material active within the integration cell (element)
-	if (fMFFractureSupport->HasActiveCracks() && fMaterialList->Length() != 1)
-		ExceptionT::BadInputValue(caller, "can only have 1 material in the group with active cracks");
-
-//TEMP - needs rethinking
-#if 0
-	/* check for localizing materials */
-	if (FractureCriterion() == MeshFreeFractureSupportT::kAcoustic &&
-	   !fMaterialList->HasLocalizingMaterials())
-	   ExceptionT::BadInputValue(caller, "failure criterion requires localizing materials: %d",
-	   	MeshFreeFractureSupportT::kAcoustic);
-#endif
-
-	/* output nodal shape function information */
-	if (ElementSupport().Logging() == GlobalT::kVerbose)
-	{
-		/* output file root */
-		StringT root;
-		root.Root(ElementSupport().InputFile());
-		ofstreamT out;
-
-		/* nodal neighbors */
-		StringT neighbor_file = root;
-		neighbor_file.Append(".", Name(), ".nodal_neighbors");
-		out.open(neighbor_file);
-		fMFShapes->MeshFreeSupport().WriteNodalNeighbors(out);
-		out.close();
-
-		/* nodal shape functions */
-		StringT shape_file = root;
-		shape_file.Append(".", Name(), ".nodal_phi");
-		out.open(shape_file);
-		fMFShapes->MeshFreeSupport().WriteNodalShapes(out);
-		out.close();
-	}
+	MeshFreeFractureSupportT::ResetStep();
 }
 
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
+
+/* print element group data */
+void MeshFreeFSSolidT::PrintControlData(ostream& out) const
+{
+	/* inherited */
+	TotLag_FSSolidT::PrintControlData(out);
+	MeshFreeFractureSupportT::PrintControlData(out);
+}
 
 /* initialization functions */
 void MeshFreeFSSolidT::SetShape(void)
 {
-	const char caller[] = "MeshFreeFSSolidT::SetShape";
+/* constructors */
+	fMFShapes = new MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
+		fLocInitCoords, fNodes->InitialCoordinates(), fConnectivities, fOffGridNodes,
+		fMeshFreeCode, fd_max, fComplete, fStoreShape, fElementCards.Position());
 
-	/* only support single list of integration cells for now */
-	if (fConnectivities.Length() > 1)
-		ExceptionT::GeneralFail(caller, "multiple (%d) element blocks not supported",
-			fConnectivities.Length());
-
-	//TEMP - quick and dirty attempt to run with multiple element blocks
-	const iArray2DT* mf_connect = fConnectivities[0];
-	if (fConnectivities.Length() > 1) {
-
-		/* dimension */
-		fConnectsAll.Dimension(NumElements(), TotalLagrangianT::NumElementNodes());
-
-		/* copy connectivities from blocks in */
-		int count = 0;
-		for (int i = 0; i < fConnectivities.Length(); i++)
-		{
-			fConnectsAll.BlockRowCopyAt(*fConnectivities[i], count);
-			count += fConnectivities[i]->MajorDim();
-		}
-		mf_connect = &fConnectsAll;
-
-		//TEMP write warning
-		cout << "\n MeshFreeFSSolidT::SetShape: WARNING multiple element blocks within the element group" << endl;
-	}
-
-	/* construct */
-	if (!fMeshfreeParameters) ExceptionT::GeneralFail(caller, "shape function parameters not set");
-	fMFShapes = new MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
-		fLocInitCoords, ElementSupport().InitialCoordinates(), *mf_connect, fMFFractureSupport->OffGridNodes(),
-		fElementCards.Position(), *fMeshfreeParameters);
-
-	/* echo parameters */
-	fMFShapes->WriteParameters(ElementSupport().Output());
+	if (!fMFShapes) throw eOutOfMemory;
 	
 	/* initialize (set internal database) */
 	fMFShapes->Initialize();
 	
 	/* set base class pointer */
-	fShapes = fMFShapes;	
-
-	/* set support class */
-	fMFFractureSupport->SetShape(fMFShapes);
+	fShapes = fMFShapes;
 }
 
 /* current element operations */
 bool MeshFreeFSSolidT::NextElement(void)
 {
 	/* inherited (skip inactive cells) */
-	bool OK = SolidElementT::NextElement();
+	bool OK = ElasticT::NextElement();
 	while (OK && CurrentElement().Flag() != 1)
-		OK = SolidElementT::NextElement();
+		OK = ElasticT::NextElement();
 
 	/* configure for current element */
 	if (OK)
 	{
 		/* current number of element neighbors */
-		int nen = fMFFractureSupport->SetElementNodes(fElementCards.Position());
+		int nen = SetElementNodes(fElementCards.Position());
 
 		/* resize */
 		fStressStiff_wrap.SetDimensions(nen, nen);
-		fB_wrap.SetDimensions(fB.Rows(), NumSD()*nen);
+		fB_wrap.SetDimensions(fB.Rows(), fNumSD*nen);
 		fGradNa_wrap.SetDimensions(fGradNa.Rows(), nen);
-		fDNa_x_wrap.Dimension(NumSD(), nen);
+		fDNa_x_wrap.Dimension(fNumSD, nen);
+
+		/* reset base class dimensions */
+		fNumElemEqnos = nen*fNumDOF;
 	}
 
 	return OK;
 }
 
 /* driver for nodal value calculations */
-void MeshFreeFSSolidT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-	const iArrayT& e_codes, dArray2DT& e_values)
+void MeshFreeFSSolidT::ComputeNodalValues(const iArrayT& codes)
 {
 	/* set nodal displacements data */
-	if (n_codes[iNodalDisp] == NumDOF()) 
-		fMFFractureSupport->SetNodalField(Field()[0]);
+	if (codes[iNodalDisp] == fNumDOF) SetNodalField(fNodes->Displacements());
 
 	/* inherited */
-	TotalLagrangianT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+	TotLag_FSSolidT::ComputeNodalValues(codes);
 
 	/* free work space memory */
-	if (n_codes[iNodalDisp] == NumDOF()) 
-		fMFFractureSupport->FreeNodalField();
+	if (codes[iNodalDisp] == fNumDOF) FreeNodalField();
 }
 
 /***********************************************************************
@@ -483,8 +379,8 @@ void MeshFreeFSSolidT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values
 void MeshFreeFSSolidT::WriteField(void)
 {
 	cout << "\n MeshFreeFSSolidT::WriteField: writing full field" << endl;
-		
-	const dArray2DT& DOFs = Field()[0]; /* displacements */
+	
+	const dArray2DT& DOFs = fNodes->Displacements();
 	
 	/* reconstruct displacement field and all derivatives */
 	dArray2DT u;
@@ -493,15 +389,15 @@ void MeshFreeFSSolidT::WriteField(void)
 	fMFShapes->NodalField(DOFs, u, Du, nodes);
 
 	/* write data */
-	const StringT& input_file = ElementSupport().InputFile();
+	ifstreamT& in = fFEManager.Input();
 	
 	/* output filenames */
 	StringT s_u, s_Du;
-	s_u.Root(input_file);
-	s_Du.Root(input_file);
+	s_u.Root(in.filename());
+	s_Du.Root(in.filename());
 	
-	s_u.Append(".u.", ElementSupport().StepNumber());
-	s_Du.Append(".Du.", ElementSupport().StepNumber());
+	s_u.Append(".u.", fFEManager.StepNumber());
+	s_Du.Append(".Du.", fFEManager.StepNumber());
 	
 	/* open output streams */
 	ofstreamT out_u(s_u), out_Du(s_Du);

@@ -1,38 +1,25 @@
-/* $Id: GlobalMatrixT.cpp,v 1.23 2005-04-13 21:49:58 paklein Exp $ */
-/* created: paklein (03/23/1997) */
+/* $Id: GlobalMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (03/23/1997)                                          */
+/* Virtual base class for all global matrix objects                       */
+
 #include "GlobalMatrixT.h"
 #include <iostream.h>
 #include <fstream.h>
 #include <iomanip.h>
-#include "toolboxConstants.h"
+#include "Constants.h"
 #include "dArrayT.h"
 
-using namespace Tahoe;
-
-/* initialize static data */
-int GlobalMatrixT::sOutputCount = 0;
-
 /* cconstructor */
-GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
+GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code):
 	fOut(out),
-	fComm(comm),
 	fCheckCode(check_code),
 	fLocNumEQ(0),	
 	fTotNumEQ(0),
-	fStartEQ(0)
+	fStartEQ(0),
+	fIsFactorized(0)
 {
-
-}
-
-GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
-	fOut(source.fOut),
-	fComm(source.fComm),
-	fCheckCode(kNoCheck),
-	fLocNumEQ(0),	
-	fTotNumEQ(0),
-	fStartEQ(0)
-{
-	GlobalMatrixT::operator=(source);
+	if (fCheckCode < kNoCheck ||
+	    fCheckCode > kPrintSolution) throw eBadInputValue;
 }
 
 GlobalMatrixT::~GlobalMatrixT(void) { }
@@ -43,170 +30,137 @@ GlobalMatrixT::~GlobalMatrixT(void) { }
 */
 void GlobalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
-	const char caller[] = "GlobalMatrixT::Initialize";
-
 	/* set dimensions */
 	fTotNumEQ = tot_num_eq;
 	fLocNumEQ = loc_num_eq;
 	fStartEQ  = start_eq;
 
+	/* output */
+	fOut << "\n E q u a t i o n    S y s t e m    D a t a :\n\n";
+	fOut << " Local number of equations . . . . . . . . . . . = " << fLocNumEQ << '\n';
+	fOut << " Total number of equations . . . . . . . . . . . = " << fTotNumEQ << '\n';
+
 	/* consistency */
 	if (fLocNumEQ > fTotNumEQ)
-		ExceptionT::GeneralFail(caller, "local number of equations %d cannot exceed the total number of equations %d", 
-			fLocNumEQ, fTotNumEQ);
+	{
+		cout << "\n GlobalMatrixT::Initialize: local number of equations " << fLocNumEQ << '\n'
+		     <<   "     cannot be greater than the total number of equations "
+		     << fTotNumEQ << endl;
+		throw eGeneralFail;
+	}
 
+	/* must have at least 1 active equation */
+	if (fLocNumEQ < 1)
+	{
+		cout << "\n GlobalMatrixT::Initialize: expecting at least one active equation"
+		     << endl;
+		throw eGeneralFail;
+	}
+	
 	/* active equation numbers must be > 0 */
-	if (fStartEQ < 1) ExceptionT::GeneralFail(caller, "active equation numbers must be > 0");
+	if (fStartEQ < 1)
+	{
+		cout << "\n GlobalMatrixT::Initialize: active equation must be > 0" << endl;
+		throw eGeneralFail;
+	}
 }
 
-/* write information to output stream */
-void GlobalMatrixT::Info(ostream& out) {
-	out << "\n E q u a t i o n    S y s t e m    D a t a :\n\n";
-	out << " Local number of equations . . . . . . . . . . . = " << fLocNumEQ << '\n';
-	out << " Total number of equations . . . . . . . . . . . = " << fTotNumEQ << '\n';
-	out.flush();
-}
+/* set all matrix values to 0.0 */
+void GlobalMatrixT::Clear(void) { fIsFactorized = 0; }
 
 /*
 * Solve the system for the vector given, returning the result
 * in the same array
 */
-bool GlobalMatrixT::Solve(dArrayT& result)
+void GlobalMatrixT::Solve(dArrayT& result)
 {
-	/* catch any exceptions */
-	try 
+	if (!fIsFactorized)
 	{
-		/* store original precision */
-		int old_precision = fOut.precision();
-		fOut.precision(12);
-	
 		/* rank checks before factorization */
 		PrintLHS();
 	
-		/* factorize/precondition */
+		/* factorize */
+		fIsFactorized = 1;
 		Factorize();
-	
+		
 		/* rank checks after factorization */
 		PrintZeroPivots();
 		PrintAllPivots();
-
-		/* output before solution */
-		PrintRHS(result);
-
-		/* find new search direction */
-		BackSubstitute(result);
-
-		/* output after solution */
-		PrintSolution(result);
-
-		/* restore precision */
-		fOut.precision(old_precision);
 	}
-	catch (ExceptionT::CodeT error) {
-		cout << "\n GlobalMatrixT::Solve: caught exception: " << error << endl;
-		return false;
-	}
-	return true;
+
+	/* output before solution */
+	PrintRHS(result);
+
+	/* find new search direction */
+	BackSubstitute(result);
+
+	/* output after solution */
+	PrintSolution(result);
+	
+//TEMP: right result of linear solve	
+//cout << "\n Writing update to output file: update.data" << endl;
+//ofstream out("update.data");
+//out.precision(12);
+//out.setf(ios::showpoint);
+//out.setf(ios::right, ios::adjustfield);
+//out.setf(ios::scientific, ios::floatfield);
+//out << result << endl;
 }
 
-/* strong manipulation functions 
- * NOTE: These must be overridden to provide support for these functions.
- *       By default, these all throw ExceptionT::xceptions. These could be pure
- *       virtual, but that requires updating all derived matrix types */
-void GlobalMatrixT::OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
+/* strong manipulation functions */
+//TEMP should be pure virtual, but no time to update others
+//     so just throw exception for now
+void GlobalMatrixT::OverWrite(const ElementMatrixT& elMat, const iArrayT& eqnos)
 {
 #pragma unused(elMat)
 #pragma unused(eqnos)
-	ExceptionT::GeneralFail("GlobalMatrixT::OverWrite", "not implemented");
+	cout << "\n GlobalMatrixT::OverWrite: not implemented" << endl;
+	throw eGeneralFail;
 }
 
-void GlobalMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
+void GlobalMatrixT::Disassemble(dMatrixT& elMat, const iArrayT& eqnos) const
 {
 #pragma unused(elMat)
 #pragma unused(eqnos)
-	ExceptionT::GeneralFail("GlobalMatrixT::Disassemble", "not implemented");
-}
-
-void GlobalMatrixT::DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const
-{
-#pragma unused(diagonals)
-#pragma unused(eqnos)
-	ExceptionT::GeneralFail("GlobalMatrixT::DisassembleDiagonal", "not implemented");
-}
-
-/* compute the sum of the elements on the prescribed row/col */
-double GlobalMatrixT::AbsRowSum(int rownum) const {
-#pragma unused(rownum)
-	ExceptionT::GeneralFail("GlobalMatrixT::AbsRowSum", "not implemented");
-	return 0.0;
+	cout << "\n GlobalMatrixT::Disassemble: not implemented" << endl;
+	throw eGeneralFail;
 }
 
 /* assignment operator */
-GlobalMatrixT& GlobalMatrixT::operator=(const GlobalMatrixT& rhs)
+GlobalMatrixT& GlobalMatrixT::operator=(const GlobalMatrixT& RHS)
 {
-	fCheckCode = rhs.fCheckCode;
-	fLocNumEQ  = rhs.fLocNumEQ;
-	fTotNumEQ  = rhs.fTotNumEQ;
-	fStartEQ   = rhs.fStartEQ;
-
+	fCheckCode    = RHS.fCheckCode;
+	fLocNumEQ     = RHS.fLocNumEQ;
+	fTotNumEQ     = RHS.fTotNumEQ;
+	fStartEQ      = RHS.fStartEQ;
+	fIsFactorized = RHS.fIsFactorized;
 	return *this;
 }
 
-/* matrix-vector product */
-void GlobalMatrixT::Multx(const dArrayT& x, dArrayT& b) const 
-{ 
-#pragma unused(x)
-#pragma unused(b)
-	ExceptionT::GeneralFail("GlobalMatrixT::Multx", "not implemented");
-}
-
-/* Tranpose[matrix]-vector product */
-void GlobalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const 
-{
-#pragma unused(x)
-#pragma unused(b)
-	ExceptionT::GeneralFail("GlobalMatrixT::MultTx", "not implemented");
-}
-
-/* vector-matrix-vector product */
-double GlobalMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
-{
-#pragma unused(m)
-#pragma unused(n)
-	ExceptionT::GeneralFail("GlobalMatrixT::MultmBn", "not implemented");
-	return 0;
-}
-
-/* return the values along the diagonal of the matrix */
-bool GlobalMatrixT::CopyDiagonal(dArrayT& diags) const
-{
-#pragma unused(diags)
-	return false;
-}
-
 /**************************************************************************
- * Protected
- **************************************************************************/
+* Protected
+**************************************************************************/
 
 void GlobalMatrixT::PrintRHS(const dArrayT& RHS) const
 {
 	if (fCheckCode != kPrintRHS) return;
 	
 	/* increase output stream precision */
-	const double* p = RHS.Pointer();
+	double* p = RHS.Pointer();
 
 	int high_precision = 12;
 	fOut.precision(high_precision);
 	int d_width = OutputWidth(fOut, p);
 
 	fOut << "\n RHS vector:\n\n";
-	fOut << setw(kIntWidth)    << "loc eq."
-	     << setw(kIntWidth)    << "glb eq." 
-	     << setw(d_width)      << "RHS\n\n";
+	fOut << setw(kIntWidth)    << "eqn no.";
+	fOut << setw(d_width) << "RHS\n\n";
 	for (int i = 0; i < fLocNumEQ; i++)
-		fOut << setw(kIntWidth) << i + 1
-		     << setw(kIntWidth) << fStartEQ + i
-		     << setw(d_width) << *p++ << '\n';	
+	{
+		fOut << setw(kIntWidth) << i + 1;
+		fOut << setw(d_width) << *p++ << '\n';
+	}
+	
 	fOut << endl;
 
 	/* restore stream precision */
@@ -218,20 +172,22 @@ void GlobalMatrixT::PrintSolution(const dArrayT& solution) const
 	if (fCheckCode != kPrintSolution) return;
 	
 	/* increase output stream precision */
-	const double* p = solution.Pointer();
+	double* p = solution.Pointer();
 
 	int high_precision = 12;
 	fOut.precision(high_precision);
 	int d_width = OutputWidth(fOut, p);
 
 	fOut << "\n solution vector:\n\n";
-	fOut << setw(kIntWidth)    << "loc eq."
-	     << setw(kIntWidth)    << "glb eq." 
-	     << setw(d_width)      << "solution\n\n";
+	fOut << setw(kIntWidth)    << "eqn no.";
+	fOut << setw(d_width) << "solution\n\n";
+
 	for (int i = 0; i < fLocNumEQ; i++)
-		fOut << setw(kIntWidth) << i + 1
-		     << setw(kIntWidth) << fStartEQ + i
-		     << setw(d_width) << *p++ << '\n';	
+	{
+		fOut << setw(kIntWidth) << i + 1;
+		fOut << setw(d_width) << *p++ << '\n';
+	}
+	
 	fOut << endl;
 
 	/* restore stream precision */

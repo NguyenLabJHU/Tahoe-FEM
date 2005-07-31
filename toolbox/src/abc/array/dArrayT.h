@@ -1,45 +1,33 @@
-/* $Id: dArrayT.h,v 1.9 2004-05-21 19:44:07 paklein Exp $ */
-/* created: paklein (08/11/1996) */
+/* $Id: dArrayT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (08/11/1996)                                          */
+
 #ifndef _DARRAY_T_H_
 #define _DARRAY_T_H_
 
 /* base class */
 #include "nArrayT.h"
 
-namespace Tahoe {
-
-/** array of double's */
 class dArrayT: public nArrayT<double>
 {
 public:
 
-	/** \name constructors */
-	/*@{*/
+	/* constructors */
 	dArrayT(void);
-	explicit dArrayT(int length);
+	dArrayT(int length);
+	dArrayT(int length, double* p);
 	dArrayT(const dArrayT& source);
 
-	/** construct an alias */
-	dArrayT(int length, const double* p);
-	/*@}*/
+	/* assigment operators */
+	dArrayT& operator=(const dArrayT& RHS);
+	dArrayT& operator=(const double value);
 
-	/** \name assigment operators */
-	/*@{*/
-	dArrayT& operator=(const dArrayT& RHS); /**< assignment operator. Redimensions the array too match the source. */
-	dArrayT& operator=(const double* pRHS); /**< assignment operator. Copy as many values as fit. */
-	dArrayT& operator=(double value);       /**< set all elements in the array to value */
-	/*@}*/
-
-	/** \f$ L_2 \f$ norm of the vector */
+	/* L2 norm of the vector */
 	double Magnitude(void) const;
 
-	/** \name create a unit vectors */
-	/*@{*/
+	/* set this equal the unit vector in the direction of vector.  If no
+	 * argument is passed in, *this is scaled */
 	dArrayT& UnitVector(const dArrayT& vector);
-
-	/** scale this */
 	dArrayT& UnitVector(void);
-	/*@}*/
 };
 
 /* inlines */
@@ -51,13 +39,7 @@ inline dArrayT& dArrayT::operator=(const dArrayT& RHS)
 	return *this;
 }
 
-inline dArrayT& dArrayT::operator=(const double* pRHS)
-{
-	nArrayT<double>::operator=(pRHS);
-	return *this;
-}
-
-inline dArrayT& dArrayT::operator=(double value)
+inline dArrayT& dArrayT::operator=(const double value)
 {
 	nArrayT<double>::operator=(value);
 	return *this;
@@ -65,11 +47,7 @@ inline dArrayT& dArrayT::operator=(double value)
 
 inline dArrayT& dArrayT::UnitVector(const dArrayT& vector)
 {
-	double r = vector.Magnitude();
-	if (fabs(r) < kSmall)
-		ExceptionT::GeneralFail("dArrayT::UnitVector", "invalid length %g", r);
-	else
-		SetToScaled(1.0/vector.Magnitude(), vector);
+	SetToScaled(1.0/vector.Magnitude(), vector);
 	return *this;
 }
 
@@ -78,6 +56,4 @@ inline dArrayT& dArrayT::UnitVector(void)
 	return UnitVector(*this);
 }
 
-} // namespace Tahoe
- 
 #endif /* _DARRAY_T_H_ */

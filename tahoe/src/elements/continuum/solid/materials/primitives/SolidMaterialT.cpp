@@ -1,51 +1,53 @@
-/* $Id: SolidMaterialT.cpp,v 1.22 2005-04-12 15:32:29 paklein Exp $ */
-/* created: paklein (11/20/1996) */
+/* $Id: SolidMaterialT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (11/20/1996)                                          */
+
 #include "SolidMaterialT.h"
 
+#include <iostream.h>
+
+#include "ThermalDilatationT.h"
+#include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
+#include "ElasticT.h"
 #include "LocalArrayT.h"
-#include "ParameterContainerT.h"
-
-using namespace Tahoe;
-
-/* dummy return values */
-iArrayT ijunk;
-dArrayT djunk;
-
-SolidMaterialT::ConstraintT SolidMaterialT::int2ConstraintT(int i)
-{
-	if (i == kNoConstraint)
-		return kNoConstraint;
-	else if (i == kPlaneStress)
-		return kPlaneStress;
-	else if (i == kPlaneStrain)
-		return kPlaneStrain;
-	else
-		ExceptionT::GeneralFail("SolidMaterialT::int2ConstraintT",
-			"could not translate %d", i);
-	return kNoConstraint;
-}
 
 /* constructor */
-SolidMaterialT::SolidMaterialT(void):
-	ParameterInterfaceT("solid_material"),
-	fThermal(NULL),
-	fDensity(0.0),
-	fConstraint(kNoConstraint),
-	fCTE(0.0)
+SolidMaterialT::SolidMaterialT(ifstreamT& in,
+	const ElasticT& element):
+	ContinuumMaterialT(element)
+//DEV
+//	,fModuli(dSymMatrixT::NumValues(element.InitialCoordinates().MinorDim()))
 {
+	in >> fMassDamp;	if (fMassDamp  <  0.0) throw eBadInputValue;
+	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw eBadInputValue;
+	in >> fDensity;		if (fDensity   <= 0.0) throw eBadInputValue;
 
+	fThermal = new ThermalDilatationT(in);
+	if (!fThermal) throw eOutOfMemory;
 }
 
 /* destructor */
 SolidMaterialT::~SolidMaterialT(void) { delete fThermal; }
 
+/* I/O functions */
+void SolidMaterialT::Print(ostream& out) const
+{
+	/* inherited */
+	ContinuumMaterialT::Print(out);
+	
+	out << " Mass damping coefficient. . . . . . . . . . . . = " << fMassDamp  << '\n';
+	out << " Stiffness damping coefficient . . . . . . . . . = " << fStiffDamp << '\n';
+	out << " Density . . . . . . . . . . . . . . . . . . . . = " << fDensity   << '\n';
+
+	fThermal->Print(out);
+}
+
 /* return the wave speeds */
 void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 {
 #if __option(extended_errorcheck)
-	if (normal.Length() != speeds.Length()) throw ExceptionT::kSizeMismatch;
+	if (normal.Length() != speeds.Length()) throw eSizeMismatch;
 #endif
 
 	/* compute acoustical tensor */
@@ -63,7 +65,7 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 		{
 			double temp = speeds[0];
 			speeds[0] = speeds[1];
-			speeds[1] = temp;
+			speeds[1] = speeds[0];
 		}
 		
 		/* compute wave speeds */
@@ -113,142 +115,51 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 	}
 }
 
-/* returns true if the strain localization conditions if satisfied,
+/* required parameter flags - (all FALSE by default) */
+bool SolidMaterialT::NeedDisp(void) const     { return false; }
+bool SolidMaterialT::NeedLastDisp(void) const { return false; }
+bool SolidMaterialT::NeedVel(void) const      { return false; }
+
+/* returns true if the material has internal forces in the unloaded
+* configuration, ie thermal strains */
+int SolidMaterialT::HasInternalStrain(void) const
+{
+	return fThermal->IsActive();
+}
+
+/* Thermal accessors */
+int SolidMaterialT::ThermalLTfNumber(void) const
+{
+	return fThermal->LTfNumber();
+}
+
+void SolidMaterialT::SetThermalLTfPtr(const LoadTime* LTfPtr)
+{
+	fThermal->SetLTfPtr(LTfPtr);
+}
+
+//DEV - specific to 2D, small strain even, isotropic???
+#if 0
+double& SolidMaterialT::PlanarDilatationFactor(void)
+{
+	return fThermal->ScaleFactor();
+}	
+#endif
+
+double SolidMaterialT::ThermalElongation(void) const //percentage
+{
+	return fThermal->PercentElongation();
+}
+
+/* returns 1 if the strain localization conditions if satisfied,
 * .ie if the acoustic tensor has zero (or negative eigenvalues),
 * for the current conditions (current integration point and strain
-* state). If localization is detected, the normals (current config)
-* to the various surfaces are returned in normals */
-bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
-								AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
+* state). If localization is detected, the normal (current config)
+* to the surface is returned in normal */
+int SolidMaterialT::IsLocalized(dArrayT& normal)
 {
-#pragma unused(normals)
+#pragma unused(normal)
 
 	/* by default, no localization */
-	return false;
+	return 0;
 }
-
-bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
-								double &detA)
-{
-#pragma unused(normals)
-
-	/* by default, no localization */
-	return false;
-}
-
-bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
-{
-	double dummyDetA;
-	return IsLocalized(normals, slipdirs, dummyDetA);
-}
-
-
-/* describe the parameters needed by the interface */
-void SolidMaterialT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ContinuumMaterialT::DefineParameters(list);
-
-	/* density */
-	ParameterT density(fDensity, "density");
-	density.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(density);
-
-	/* 2D constraint option */
-	ParameterT constraint(ParameterT::Enumeration, "constraint_2D");
-	constraint.AddEnumeration("none", kNoConstraint);
-	constraint.AddEnumeration("plane_stress", kPlaneStress);
-	constraint.AddEnumeration("plane_strain", kPlaneStrain);
-	constraint.SetDefault(fConstraint);
-	list.AddParameter(constraint);
-	
-	/* coefficient of thermal expansion */
-	ParameterT CTE(fCTE, "CTE");
-	CTE.SetDefault(fCTE);
-	list.AddParameter(CTE);
-}
-
-/* information about subordinate parameter lists */
-void SolidMaterialT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ContinuumMaterialT::DefineSubs(sub_list);
-	
-	/* thermal dilatation */
-	sub_list.AddSub("thermal_dilatation", ParameterListT::ZeroOrOnce);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SolidMaterialT::NewSub(const StringT& name) const
-{
-	if (name == "thermal_dilatation")
-	{
-		ParameterContainerT* thermal_dilatation = new ParameterContainerT(name);
-		
-		thermal_dilatation->AddParameter(ParameterT::Double, "percent_elongation");
-		thermal_dilatation->AddParameter(ParameterT::Integer, "schedule_number");
-		
-		return thermal_dilatation;
-	}
-	else /* inherited */
-		return ContinuumMaterialT::NewSub(name);
-}
-
-/* accept parameter list */
-void SolidMaterialT::TakeParameterList(const ParameterListT& list)
-{
-	const char caller[] = "SolidMaterialT::TakeParameterList";
-
-	/* inherited */
-	ContinuumMaterialT::TakeParameterList(list);
-
-	/* density */
-	fDensity = list.GetParameter("density");
-
-	/* 2D constraint - default to plane strain for 2D materials */
-	int constraint = list.GetParameter("constraint_2D");
-	fConstraint = int2ConstraintT(constraint);
-	
-	if (NumSD() == 3)
-		fConstraint = kNoConstraint;
-	else if (NumSD() == 2 && fConstraint == kNoConstraint)
-		fConstraint = kPlaneStrain;
-
-	/* coefficient of thermal expansion */
-	fCTE = list.GetParameter("CTE");
-
-	/* thermal dilatation */
-	if (!fThermal) fThermal = new ThermalDilatationT;
-	const ParameterListT* thermal = list.List("thermal_dilatation");
-	if (thermal) {
-		double elongation = thermal->GetParameter("percent_elongation");
-		int schedule_num = thermal->GetParameter("schedule_number");
-		schedule_num--;
-		
-		fThermal->SetPercentElongation(elongation);
-		fThermal->SetScheduleNum(schedule_num);
-		const ScheduleT* schedule = MaterialSupport().Schedule(schedule_num);
-		if (!schedule) ExceptionT::GeneralFail(caller, "could not resolve schedule %d", schedule_num+1);		
-		fThermal->SetSchedule(schedule);
-	}
-
-	/* active thermal dilatation */
-	if (fThermal->IsActive() && !SupportsThermalStrain())
-		ExceptionT::BadInputValue("SolidMaterialT::Initialize", 
-			"material does not support imposed thermal strain");
-}
-
-const iArrayT& SolidMaterialT::InternalDOF(void) const {
-	ExceptionT::GeneralFail("SolidMaterialT::InternalDOF", "not implemented");
-	return ijunk;
-}
-
-const dArrayT& SolidMaterialT::InternalStressVars(void) {
-	ExceptionT::GeneralFail("SolidMaterialT::InternalStressVars", "not implemented");
-	return djunk;
-};
-
-const dArrayT& SolidMaterialT::InternalStrainVars(void) {
-	ExceptionT::GeneralFail("SolidMaterialT::InternalStrainVars", "not implemented");
-	return djunk;
-};

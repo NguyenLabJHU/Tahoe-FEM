@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.2 2004-01-02 04:58:02 paklein Exp $
+# $Id: makefile.template,v 1.1.1.1 2002-11-15 00:51:07 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -11,29 +11,26 @@
 #     dependencies.
 # (6) "make build" to (re-)compiler binaries.
 
-# full path to the top level of this module
-HOME_DIR =
-
-# build architecture - see macros directory for choices $(ARCH).macros
-ARCH =
-
-# destination for the build 
-BLD_DIR = $(HOME_DIR)
+# full path to current directory
+HOME_DIR = 
 
 # working directories:
+OBJ_DIR = $(HOME_DIR)/obj
 INC_DIR = $(HOME_DIR)/inc
 SRC_DIR = $(HOME_DIR)/src
-OBJ_DIR = $(BLD_DIR)/obj
-BLD_SRC_DIR = $(BLD_DIR)/src-mirror
-LIB_DIR = $(BLD_DIR)/lib
+LIB_DIR = $(HOME_DIR)/lib
+
+# build architecture
+ARCH =
+# see the macros directory for options
 
 # default target name - root of library name or executable name
 TARGET  = atom_field
-LIBRARY = $(LIB_DIR)/lib$(TARGET).a
+LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
 
 # path to main, needed if primary target is an executable (not 
 # a library)
-MAIN    = $(BLD_SRC_DIR)/main.o
+MAIN    = $(SRC_DIR)/main.o
 
 # target of "make build", i.e., the library $(LIBRARY) or
 # the executable $(TARGET)

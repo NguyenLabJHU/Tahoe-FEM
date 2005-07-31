@@ -1,5 +1,9 @@
-/* $Id: nVariArray2DT.h,v 1.11 2005-04-30 21:14:41 paklein Exp $ */
-/* created: paklein (04/18/1998) */
+/* $Id: nVariArray2DT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* created: paklein (04/18/1998)                                          */
+/* WRAPPER for nArray2DT<>'s to add dynamic re-sizing of the              */
+/* major dimension, using some headroom to cut down calls for             */
+/* memory de/re-allocation                                                */
+
 #ifndef _N_VARI_ARRAY2D_T_H_
 #define _N_VARI_ARRAY2D_T_H_
 
@@ -9,58 +13,35 @@
 /* direct members */
 #include "nArray2DT.h"
 
-namespace Tahoe {
-
-/** wrapper for nArray2DT<>'s. Adds dynamic re-sizing of the
- * major dimension, using some headroom to cut down calls for
- * memory de/re-allocation
- */
 template <class nTYPE>
 class nVariArray2DT: public VariBaseT<nTYPE>
 {
 public:
 
-	/** \name constructors */
-	/*@{*/
+	/* constructors */
 	nVariArray2DT(void);
-	nVariArray2DT(nArray2DT<nTYPE>& ward);
 	nVariArray2DT(int headroom, nArray2DT<nTYPE>& ward, int minordim);
-	/*@}*/
 
-	/** set the managed array - can only be set once */
+	/* set the managed array - can only be set once */
 	void SetWard(int headroom, nArray2DT<nTYPE>& ward, int minordim);
 	
-	/** return true if the ward is already set */
-	bool HasWard(void) const { return fWard != NULL; };
-	
-	/** \name set length of the ward
-	 * Fills extra space and copy old data if specified */
-	/*@{*/
+	/* set length of the ward, fill extra space and copy old data if specified */
 	void Dimension(int majordim, int minordim);
-	void Dimension(const nArray2DT<nTYPE>& array2D) { Dimension(array2D.MajorDim(), array2D.MinorDim()); };
 	void SetMajorDimension(int majordim, const nTYPE& fill, bool copy_in);
 	void SetMajorDimension(int majordim, bool copy_in);
 
-	/** exchange memory with the source array */
-	void Swap(nArray2DT<nTYPE>& source);
-	/*@}*/
-
-	/** \name dimensions of the ward */
-	/*@{*/
+	/* dimensions accessors - of the ward */
 	int MajorDim(void) const;
 	int MinorDim(void) const;
-	/*@}*/
 	
-	/** reference to the ward */
+	/* reference to the ward */
 	const nArray2DT<nTYPE>& TheWard(void) const;
 		
 private:
 
-	/** \name the managed array */
-	/*@{*/
+	/* the managed array */
 	int fMinorDim;
 	nArray2DT<nTYPE>* fWard;
-	/*@}*/
 };
 
 /*************************************************************************
@@ -69,26 +50,11 @@ private:
 
 /* constructors */
 template <class nTYPE>
-nVariArray2DT<nTYPE>::nVariArray2DT(void): 
-	fMinorDim(0),
-	fWard(NULL)
-{ 
-
-}
-
-template <class nTYPE>
-nVariArray2DT<nTYPE>::nVariArray2DT(nArray2DT<nTYPE>& ward):
-	fMinorDim(0),
-	fWard(NULL)
-{
-	SetWard(0, ward, 0);
-}
+nVariArray2DT<nTYPE>::nVariArray2DT(void): fWard(NULL) { }
 
 template <class nTYPE>
 nVariArray2DT<nTYPE>::nVariArray2DT(int headroom,
-	nArray2DT<nTYPE>& ward, int minordim): 
-	fMinorDim(0),
-	fWard(NULL)
+	nArray2DT<nTYPE>& ward, int minordim): fWard(NULL)
 {
 	SetWard(headroom, ward, minordim);
 }
@@ -98,10 +64,8 @@ template <class nTYPE>
 void nVariArray2DT<nTYPE>::SetWard(int headroom, nArray2DT<nTYPE>& ward,
 	int minordim)
 {
-	const char caller[] = "nVariArray2DT<nTYPE>::SetWard";
-	
 	/* inherited */
-	this->SetHeadRoom(headroom);
+	SetHeadRoom(headroom);
 
 	/* can only be called once */
 	if (!fWard)
@@ -111,14 +75,14 @@ void nVariArray2DT<nTYPE>::SetWard(int headroom, nArray2DT<nTYPE>& ward,
 		if (fWard->MinorDim() > 0)
 		{
 			/* consistency check */
-			if (fWard->MinorDim() != fMinorDim) ExceptionT::SizeMismatch(caller);
+			if (fWard->MinorDim() != fMinorDim) throw eSizeMismatch;
 		}
 		else
 			/* set minor dimension */
 			fWard->Set(0, fMinorDim, NULL);
 	}
 	else
-		ExceptionT::GeneralFail(caller, "ward already set");
+		throw eGeneralFail;
 }
 	
 /* set length of the ward, fill extra space if specified */
@@ -136,7 +100,7 @@ template <class nTYPE>
 inline void nVariArray2DT<nTYPE>::SetMajorDimension(int majordim, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::SetMajorDimension", "ward not set");
+	if (!fWard) throw eGeneralFail;
 
 	/* update ArrayT data */
 	SetAlias(*fWard, majordim*fMinorDim, copy_in);
@@ -150,7 +114,7 @@ inline void nVariArray2DT<nTYPE>::SetMajorDimension(int majordim,
 	const nTYPE& fill, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::SetMajorDimension", "ward not set");
+	if (!fWard) throw eGeneralFail;
 
 	/* update ArrayT data */
 	SetAlias(*fWard, majordim*fMinorDim, fill, copy_in);
@@ -159,37 +123,12 @@ inline void nVariArray2DT<nTYPE>::SetMajorDimension(int majordim,
 	fWard->Set(majordim, fMinorDim, fWard->Pointer());
 }
 
-/* exchange memory with the source array */
-template <class nTYPE>
-void nVariArray2DT<nTYPE>::Swap(nArray2DT<nTYPE>& source)
-{
-	/* ward must be set */
-	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::Swap", "ward not set");
-
-	/* current dimensions */
-	int major_dim = source.MajorDim();
-	int minor_dim = source.MinorDim();
-
-	/* swap memory and dimension (yuk!) */
-	VariBaseT<nTYPE>::Swap(source);
-	nTYPE* mem;
-	source.ReleasePointer(&mem);
-	source.Set(source.Length()/fMinorDim, fMinorDim, mem);
-	source.TakePointer(source.Length(), mem);
-	
-	/* set ward */
-	fMinorDim = minor_dim;
-	fWard->Free(); /* force reset */
-	SetAlias(*fWard, major_dim*fMinorDim, true);
-	fWard->Set(major_dim, fMinorDim, fWard->Pointer());
-}
-
 /* dimensions accessors - of the ward */
 template <class nTYPE>
 inline int nVariArray2DT<nTYPE>::MajorDim(void) const
 {
 	/* ward must be set */
-	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::MajorDim", "ward not set");
+	if (!fWard) throw eGeneralFail;
 
 	return(fWard->MajorDim());
 }
@@ -198,7 +137,7 @@ template <class nTYPE>
 inline int nVariArray2DT<nTYPE>::MinorDim(void) const
 {
 	/* ward must be set */
-	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::MinorDim", "ward not set");
+	if (!fWard) throw eGeneralFail;
 
 	return(fWard->MinorDim());
 }
@@ -208,10 +147,9 @@ template <class nTYPE>
 const nArray2DT<nTYPE>& nVariArray2DT<nTYPE>::TheWard(void) const
 {
 	/* ward must be set */
-	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::TheWard", "ward not set");
+	if (!fWard) throw eGeneralFail;
 
 	return(*fWard);
 }
 
-} // namespace Tahoe 
 #endif /* _N_VARI_ARRAY2D_T_H_ */

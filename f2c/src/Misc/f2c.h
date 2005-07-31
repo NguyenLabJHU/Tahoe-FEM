@@ -7,11 +7,10 @@
 #ifndef F2C_INCLUDE
 #define F2C_INCLUDE
 
-#if defined(CW_F2C_MAC) || defined(CW_F2C_WIN32) || defined(__AIX__) || defined(__SGI__)
-#include <math.h>					
-/* Need to include this for Metrowerks compilers */
-/* Some platforms define abs, so the math header needs to be read first */
-#endif
+#if defined(CW_F2C_MAC) || defined(CW_F2C_WIN32)
+	#include <math.h>					/* Need to include this for Metrowerks compilers */
+#endif	/* Metrowerks compilers */
+
 
 /* IMT 9Sep95  Prototypes for functions that add multitasking to CW, SPM, TPM */
 #ifdef CW_F2C_MAC
@@ -25,14 +24,6 @@
 	}
 	#endif
 #endif /* CW_F2C_MAC */
-
-#ifdef NON_UNIX_STDIO
-#ifdef CW_F2C_MAC
-#define f2c_access Mac_f2c_access
-#else
-#define f2c_access access
-#endif
-#endif
 
 /* FORTRAN says integer, logical, and real should occupy
  * the same amount of space. double precision and complex
@@ -197,10 +188,7 @@ struct Namelist {
 	};
 typedef struct Namelist Namelist;
 
-#ifndef abs
 #define abs(x) ((x) >= 0 ? (x) : -(x))
-#endif
-
 #define dabs(x) (doublereal)abs(x)
 #define min(a,b) ((a) <= (b) ? (a) : (b))
 #define max(a,b) ((a) >= (b) ? (a) : (b))
@@ -263,11 +251,7 @@ typedef doublereal E_f;	/* real function with -R not specified */
 #undef u3b
 #undef u3b2
 #undef u3b5
-/* Alpha-Linux compiler doesn't like this - PAK (02/21/2001) */
-/* PGI-Linux C++ compiler doesn't like undef unix - PAK (08/22/2001) */
-#if !defined(__ALPHA_LINUX__) && !(defined(__GNU__) && defined(__PGI__)) 
 #undef unix
-#endif
 #undef vax
 #endif
 #endif

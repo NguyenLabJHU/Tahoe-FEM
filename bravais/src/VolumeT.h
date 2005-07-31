@@ -1,80 +1,39 @@
-// DEVELOPMENT
-/* $Id: VolumeT.h,v 1.20 2004-08-18 19:53:00 bsun Exp $ */
-
-#ifndef _VOLUME_T_H_
-#define _VOLUME_T_H_
-
-#include <iostream.h>
-
-#include "iArrayT.h"
-#include "iArray2DT.h"
-
+/* $Id: VolumeT.h,v 1.1.1.1 2002-02-28 02:13:08 jzimmer Exp $ */
+#include <iostream>
 #include "dArrayT.h"
 #include "dArray2DT.h"
-#include "CrystalLatticeT.h"
-#include "ifstreamT.h"
 
-   using namespace Tahoe;
+class ifstreamT;
 
-    class VolumeT 
-   {
-   
-   protected:
-   
-      int nSD;
-      int nATOMS;
-      double volume;
-      StringT sLATTYPE;
-      StringT VolType;
-   
-      StringT atom_names;
-      iArrayT atom_number;
-      ArrayT< StringT > atom_ID;
-      dArray2DT atom_coord;
-      ArrayT< const iArray2DT * >  atom_connect;
-      dArray2DT atom_bounds;
-      iArrayT atom_types;
-      iArrayT atom_parts;
-   
-      iArrayT WhichSort;
-      iArrayT Map;
-   
-   public:
-   
-      VolumeT(int n);
-       ~VolumeT() {};
-      VolumeT(const VolumeT& source);
-   
-      int GetDimensions();
-      int GetNumberAtoms();
-      double GetVolume();
-   
-      int GetNumberOfAtoms();
-      StringT GetTypeOfVolume();
-   
-      virtual void CreateLattice(CrystalLatticeT* pcl) = 0;
-      virtual void SortLattice(CrystalLatticeT* pcl) = 0;
-   
-      virtual void CalculateBounds(CrystalLatticeT* pcl) = 0;
-   
-      virtual iArrayT GetNCells() = 0;
-      virtual dArray2DT GetLength() = 0; 
-   
-      StringT*   GetAtomNames();
-      const ArrayT< StringT > *   GetAtomID();
-      dArray2DT* GetAtomCoordinates();
-      const ArrayT< const iArray2DT * > * GetAtomConnect();
-      dArray2DT* GetAtomBounds();
-      iArrayT*   GetAtomNumber();
-      iArrayT*   GetAtomTypes();
-      iArrayT*   GetAtomParts();
-   
-   };
+class VolumeT {
+protected:
+	int nSD;
+	double volume;
+public:
+        VolumeT(int n);
+	~VolumeT();
+	int GetDimensions();
+	double GetVolume();
+	void WriteFile();
 
-    inline int VolumeT::GetNumberOfAtoms() {
-      return nATOMS;};
-    inline StringT VolumeT::GetTypeOfVolume() {
-      return VolType;};
+	virtual void DefineBoundary(ifstreamT& in) = 0;
+	virtual void CalculateVolume() = 0;
+	virtual void FillVolume() = 0;
+};
 
-#endif
+class BoxT : public VolumeT {
+private:
+        dArrayT length;
+        dArray2DT surfaces;
+public:
+        BoxT(int n);
+        ~BoxT();
+        void DefineBoundary(ifstreamT& in);
+        void CalculateVolume();
+        void FillVolume();
+};
+
+
+
+
 

@@ -1,161 +1,125 @@
-/* $Id: CSEIsoT.cpp,v 1.23 2005-03-15 07:15:35 paklein Exp $ */
-/* created: paklein (11/19/1997) */
+/* $Id: CSEIsoT.cpp,v 1.1.1.1 2001-01-29 08:20:37 paklein Exp $ */
+/* created: paklein (11/19/1997)                                          */
+/* Cohesive surface elements with scalar traction potentials,             */
+/* i.e., the traction potential is a function of the gap magnitude,       */
+/* or effective gap magnitude only.                                       */
+
 #include "CSEIsoT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ElementSupportT.h"
-
-#include "toolboxConstants.h"
+#include "fstreamT.h"
+#include "Constants.h"
 #include "SurfaceShapeT.h"
+#include "FEManagerT.h"
+#include "NodeManagerT.h"
 #include "C1FunctionT.h"
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-#include "eIntegratorT.h"
-#endif
-#include "ParameterContainerT.h"
+#include "eControllerT.h"
 
 /* potential functions */
 #include "LennardJones612.h"
 #include "SmithFerrante.h"
 
-using namespace Tahoe;
-
-const double Pi = acos(-1.0);
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
-CSEIsoT::CSEIsoT(const ElementSupportT& support):
-	CSEBaseT(support)
+CSEIsoT::CSEIsoT(FEManagerT& fe_manager):
+	CSEBaseT(fe_manager)
 {
-	SetName("isotropic_CSE");
+
 }
-#else
-CSEIsoT::CSEIsoT(ElementSupportT& support):
-	CSEBaseT(support)
-{
-	SetName("isotropic_CSE");
-}
-#endif
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT CSEIsoT::TangentType(void) const
 {
-	/* tangent matrix is symmetric */
+	/* tangent matrix is not symmetric */
 	return GlobalT::kSymmetric;
 }
 
-/* information about subordinate parameter lists */
-void CSEIsoT::DefineSubs(SubListT& sub_list) const
+void CSEIsoT::Initialize(void)
 {
 	/* inherited */
-	CSEBaseT::DefineSubs(sub_list);
-
-	/* element block/material specification */
-	sub_list.AddSub("isotropic_CSE_element_block", ParameterListT::OnePlus);
-}
-
-/* return the description of the given inline subordinate parameter list */
-void CSEIsoT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-	SubListT& sub_lists) const
-{
-	if (name == "surface_potential")
-	{
-		/* choice */
-		order = ParameterListT::Choice;
-		
-		/* function types */
-		sub_lists.AddSub("Lennard-Jones_6-12");
-		sub_lists.AddSub("Smith-Ferrante");
-	}
-	else /* inherited */
-		CSEBaseT::DefineInlineSub(name, order, sub_lists);
-}
-
-/* a pointer to the ParameterInterfaceT */
-ParameterInterfaceT* CSEIsoT::NewSub(const StringT& name) const
-{
-	/* try surface potential */
-	C1FunctionT* surf_pot = C1FunctionT::New(name);
-	if (surf_pot)
-		return surf_pot;
-
-	/* other lists */
-	if (name == "isotropic_CSE_element_block")
-	{
-		ParameterContainerT* block = new ParameterContainerT(name);
-		
-		/* list of element block ID's (defined by ElementBaseT) */
-		block->AddSub("block_ID_list", ParameterListT::Once);
-
-		/* choice of materials lists (inline) */
-		block->AddSub("surface_potential", ParameterListT::Once, true);
-
-		/* set this as source of subs */
-		block->SetSubSource(this);
-		
-		return block;
-	}		
-	else /* inherited */
-		return CSEBaseT::NewSub(name);
-}
-
-/* accept parameter list */
-void CSEIsoT::TakeParameterList(const ParameterListT& list)
-{
-	const char caller[] = "CSEIsoT::TakeParameterList";
-
-	/* inherited */
-	CSEBaseT::TakeParameterList(list);
+	CSEBaseT::Initialize();
 
 	/* check output codes */
-	if (fNodalOutputCodes[MaterialData])
-		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever; /* not supported */
+	if (fOutputCodes[MaterialData])
+	{
+		cout << "\n CSEIsoT::Initialize: material outputs not supported, overriding" << endl;
+		fOutputCodes[MaterialData] = IOBaseT::kAtNever;
+	}
 
-	/* construct list of potentials - one per block */
-	int num_block = list.NumLists("isotropic_CSE_element_block");
-	fSurfPots.Dimension(num_block);
-	for (int i = 0; i < fSurfPots.Length(); i++) {
+	/* streams */
+	ifstreamT& in = fFEManager.Input();
+	ostream&   out = fFEManager.Output();
+	
+	/* construct props */
+	int numpots;
+	in >> numpots;
+	fSurfPots.Allocate(numpots);
+	for (int i = 0; i < fSurfPots.Length(); i++)
+	{
+		int num, code;
+		in >> num >> code;
+		
+		/* check for repeated number */
+		if (fSurfPots[--num] != NULL) throw eBadInputValue;
+	
+		/* construct surface potential function */
+		switch (code)
+		{
+			case C1FunctionT::kLennardJones:
+			{	
+				double A;
+				in >> A;
+				
+				fSurfPots[num] = new LennardJones612(A);
+				break;
+			}	
+			case C1FunctionT::kSmithFerrante:
+			{
+				double A, B;
+				in >> A >> B;
+			
+				fSurfPots[num] = new SmithFerrante(A,B,0.0);
+				break;
+			}
+			default:
+			
+				throw eBadInputValue;	
+		}
+	
+		if (!fSurfPots[num]) throw eOutOfMemory;
+	}
 
-		/* block information */
-		const ParameterListT& block = list.GetList("isotropic_CSE_element_block", i);
-
-		/* resolve material choice */
-		const ParameterListT& surf_pot_params = block.GetListChoice(*this, "surface_potential");
-
-		/* construct material */
-		C1FunctionT* surf_pot = C1FunctionT::New(surf_pot_params.Name());
-		if (!surf_pot)
-			ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params.Name().Pointer());
-		surf_pot->TakeParameterList(surf_pot_params);
-
-		/* keep */
-		fSurfPots[i] = surf_pot;
+	/* echo */
+	out << "\n Cohesive surface potentials:\n";
+	out << " Number of potentials. . . . . . . . . . . . . . = ";
+	out << fSurfPots.Length() << '\n';
+	for (int j = 0; j < fSurfPots.Length(); j++)
+	{
+		out << "\n Potential number. . . . . . . . . . . . . . . . = "
+		    << j + 1 << '\n';
+		out << " Potential name:\n";
+		fSurfPots[j]->PrintName(out);
+		fSurfPots[j]->Print(out);
 	}
 }
 
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
 /* called by FormRHS and FormLHS */
-void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)
+void CSEIsoT::LHSDriver(void)
 {
-	/* time-stepping parameters */
+	/* algorithmic constants */
 	double constK = 0.0;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	int     formK = fIntegrator->FormK(constK);
+	int     formK = fController->FormK(constK);
 	if (!formK) return;
-#endif
 
 	/* node map of facet 1 */
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
-
-	/* ip coordinates needed for axisymmetry */
-	dArrayT x_ip;
-	if (fAxisymmetric) x_ip.Dimension(2);
 
 	/* loop over elements */
 	Top();
@@ -183,13 +147,9 @@ void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)
 		{
 			/* gap vector from facet1 to facet2 */
 			const dArrayT& gap = fShapes->InterpolateJumpU(fLocCurrCoords);
-			double d = gap.Magnitude();
-			double j = fShapes->Jacobian();
-			if (fAxisymmetric) {
-				fShapes->Interpolate(fLocInitCoords1, x_ip);
-				j *= 2.0*Pi*x_ip[0];
-			}
-			double w = fShapes->IPWeight();
+			double           d = gap.Magnitude();
+			double           j = fShapes->Jacobian();
+			double           w = fShapes->IPWeight();
 					
 			if (fabs(d) > kSmall)
 			{
@@ -220,18 +180,12 @@ void CSEIsoT::RHSDriver(void)
 {
 	/* time-stepping parameters */
 	double constKd = 0.0;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	int     formKd = fIntegrator->FormKd(constKd);
+	int     formKd = fController->FormKd(constKd);
 	if (!formKd) return;
-#endif
 	
 	/* node map of facet 1 */
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
-	
-	/* ip coordinates needed for axisymmetry */
-	dArrayT x_ip;
-	if (fAxisymmetric) x_ip.Dimension(2);
 	
 	Top();
 	while ( NextElement() )
@@ -262,12 +216,8 @@ void CSEIsoT::RHSDriver(void)
 			
 			if (fabs(d) > kSmall)
 			{
-				double j = fShapes->Jacobian();
-				if (fAxisymmetric) {
-					fShapes->Interpolate(fLocInitCoords1, x_ip);
-					j *= 2.0*Pi*x_ip[0];
-				}
-				double w = fShapes->IPWeight();
+				double    j = fShapes->Jacobian();
+				double    w = fShapes->IPWeight();
 				double dphi =-j*w*constKd*(surfpot->DFunction(d));
 				
 				/* accumulate */
@@ -282,138 +232,76 @@ void CSEIsoT::RHSDriver(void)
 }
 
 /* extrapolate the integration point stresses and strains and extrapolate */
-void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-	const iArrayT& e_codes, dArray2DT& e_values)
+void CSEIsoT::ComputeNodalValues(const iArrayT& codes)
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* number of nodally smoothed values */
-	int n_out = n_codes.Sum();
-	int e_out = e_codes.Sum();
-#else
-	int n_out = 0;
-	int e_out = 0;
-#endif
+/* number of nodally smoothed values */
+int num_out = codes.Sum();
 
 	/* nothing to output */
-	if (n_out == 0 && e_out == 0) return;
-
-	int nsd = NumSD();
-	int ndof = NumDOF();
-	int nen = NumElementNodes();
-
-	/* reset averaging workspace */
-	ElementSupport().ResetAverage(n_out);
-
-	/* allocate element results space */
-	e_values.Dimension(NumElements(), e_out);
-	e_values = 0.0;
+	if (num_out == 0) return;
 
 	/* work arrays */
-	dArray2DT nodal_space(nen, n_out);
-	dArray2DT nodal_all(nen, n_out);
+	dArray2DT nodal_space(fNumElemNodes, num_out);
+	dArray2DT nodal_all(fNumElemNodes, num_out);
 	dArray2DT coords, disp;
 	dArray2DT jump, Tmag;
 
 	/* ip values */
 	dArrayT ipjump(1), ipTmag(1);
-	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
-	LocalArrayT loc_disp(LocalArrayT::kDisp, nen, ndof);
-	ElementSupport().RegisterCoordinates(loc_init_coords);
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	Field().RegisterLocal(loc_disp);
-#else
-#pragma message("What to do with loc_disp?")
-#endif
+	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, fNumElemNodes, fNumSD);
+	LocalArrayT loc_disp(LocalArrayT::kDisp, fNumElemNodes, fNumDOF);
+	fFEManager.RegisterLocal(loc_init_coords);
+	fFEManager.RegisterLocal(loc_disp);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(nen, n_codes[NodalCoord], pall);
+	coords.Set(fNumElemNodes, codes[NodalCoord], pall);
 	pall += coords.Length();
-	disp.Set(nen, n_codes[NodalDisp], pall);
+	disp.Set(fNumElemNodes, codes[NodalDisp], pall);
 	pall += disp.Length();
-	jump.Set(nen, n_codes[NodalDispJump], pall);
+	jump.Set(fNumElemNodes, codes[NodalDispJump], pall);
 	pall += jump.Length();
-	Tmag.Set(nen, n_codes[NodalTraction], pall);
-
-	/* element work arrays */
-	dArrayT element_values(e_values.MinorDim());
-	pall = element_values.Pointer();
-	dArrayT centroid;
-	if (e_codes[Centroid])
-	{
-		centroid.Set(nsd, pall); 
-		pall += nsd;
-	}
-	double e_tmp, area;
-	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : e_tmp;
-	double& T_e = (e_codes[Traction]) ? *pall++ : e_tmp;
-
-	/* node map of facet 1 */
-	iArrayT facet1;
-	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
-
-	/* ip coordinates needed for axisymmetry */
-	dArrayT x_ip;
-	if (fAxisymmetric) x_ip.Dimension(2);
+	Tmag.Set(fNumElemNodes, codes[NodalTraction], pall);
 
 	Top();
 	while (NextElement())
 	{
-		/* current element */
-		const ElementCardT& element = CurrentElement();
-
 		/* initialize */
 	    nodal_space = 0.0;
-	    element_values = 0.0;
 
 		/* coordinates for whole element */
-		if (n_codes[NodalCoord])
+		if (codes[NodalCoord])
 		{
 			SetLocalX(loc_init_coords);
 			loc_init_coords.ReturnTranspose(coords);
 		}
 		
 		/* displacements for whole element */
-		if (n_codes[NodalDisp])
+		if (codes[NodalDisp])
 		{
 			SetLocalU(loc_disp);
 			loc_disp.ReturnTranspose(disp);
 		}
 
-		/* compute output */
-		if (element.Flag() == ElementCardT::kON)
+		/* gap and/or traction magnitude */
+		if (codes[NodalDispJump] ||
+		    codes[NodalTraction])
 		{
 	  		/* surface potential */
 			C1FunctionT* surfpot = fSurfPots[CurrentElement().MaterialNumber()];
 
-			/* get ref geometry (1st facet only) */
-			fNodes1.Collect(facet1, element.NodesX());
-			fLocInitCoords1.SetLocal(fNodes1);
-
 			/* get current geometry */
 			SetLocalX(fLocCurrCoords); //EFFECTIVE_DVA
-
-			/* initialize element values */
-			phi = area = 0.0;
-			if (e_codes[Centroid]) centroid = 0.0;
 
 			/* integrate */
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
-				/* element integration weight */
-				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
-				if (fAxisymmetric) {
-					fShapes->Interpolate(fLocInitCoords1, x_ip);
-					ip_w *= 2.0*Pi*x_ip[0];
-				}
-				area += ip_w;
-
 				/* gap */
 				const dArrayT& gap = fShapes->InterpolateJumpU(fLocCurrCoords);
 				double d = gap.Magnitude();
 
-				if (n_codes[NodalDispJump])
+				if (codes[NodalDispJump])
 				{
 					/* extrapolate ip values to nodes */
 					ipjump[0] = d;
@@ -421,83 +309,15 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				}
 
 				/* traction */
-				if (n_codes[NodalTraction] || e_codes[Traction])
+				if (codes[NodalTraction])
 				{
-					/* compute traction */
-					double t = surfpot->DFunction(d);
-					
+					/* traction magnitude */
+					ipTmag[0] = surfpot->DFunction(d);
+
 					/* extrapolate to nodes */
-					if (n_codes[NodalTraction])
-					{
-						ipTmag[0] = t;
-						fShapes->Extrapolate(ipTmag, Tmag);
-					}
-					
-					/* element average */
-					if (e_codes[Traction]) T_e += ip_w*t;
-				}	
-				
-				/* moment */
-				if (e_codes[Centroid])
-					centroid.AddScaled(ip_w, fShapes->IPCoords());
-				
-				/* cohesive energy */
-				if (e_codes[CohesiveEnergy])
-				{
-					/* surface potential */
-					double potential = surfpot->Function(d);
-
-					/* integrate */
-					phi += potential*ip_w;
-				}
+					fShapes->Extrapolate(ipTmag, Tmag);
+				}			
 			}
-			
-			/* element values */
-			if (e_codes[Centroid]) centroid /= area;
-			if (e_codes[Traction]) T_e /= area;
-		}
-		/* element has failed */
-		else
-		{
-			/* can still be calculated */
-			if (e_codes[Centroid] || e_codes[CohesiveEnergy])
-			{
-				/* get ref geometry (1st facet only) */
-				fNodes1.Collect(facet1, element.NodesX());
-				fLocInitCoords1.SetLocal(fNodes1);
-
-				/* initialize element values */
-				phi = area = 0.0;
-				if (e_codes[Centroid]) centroid = 0.0;
-	
-		  		/* surface potential */
-				C1FunctionT* surfpot = fSurfPots[CurrentElement().MaterialNumber()];
-		
-				/* integrate */
-				fShapes->TopIP();
-				while (fShapes->NextIP())
-				{
-					/* element integration weight */
-					double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
-					if (fAxisymmetric) {
-						fShapes->Interpolate(fLocInitCoords1, x_ip);
-						ip_w *= 2.0*Pi*x_ip[0];
-					}
-					area += ip_w;
-		
-					/* moment */
-					if (e_codes[Centroid])
-						centroid.AddScaled(ip_w, fShapes->IPCoords());
-				}
-				
-				/* element values */
-				if (e_codes[Centroid]) centroid /= area;
-				
-				/* cohesive energy */
-				if (e_codes[CohesiveEnergy])
-					phi = area*surfpot->Function(sqrt(area)*1000);
-					//NOTE: assume "large" opening is related to the element size
-			}		
 		}
 
 		/* copy in the cols (in sequence of output) */
@@ -508,12 +328,6 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		nodal_all.BlockColumnCopyAt(Tmag  , colcount);
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
-		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
-		
-		/* store results */
-		e_values.SetRow(CurrElementNumber(), element_values);		
+		fNodes->AssembleAverage(CurrentElement().NodesX(), nodal_all);
 	}
-
-	/* get nodally averaged values */
-	ElementSupport().OutputUsedAverage(n_values);
 }

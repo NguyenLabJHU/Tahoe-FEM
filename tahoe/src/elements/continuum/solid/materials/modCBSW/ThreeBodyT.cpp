@@ -1,4 +1,4 @@
-/* $Id: ThreeBodyT.cpp,v 1.2 2002-07-02 19:56:07 cjkimme Exp $ */
+/* $Id: ThreeBodyT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
 /* created: paklein (10/11/1997)                                          */
 /* Base class for the 3 body contribution to the strain energy density    */
 
@@ -7,9 +7,6 @@
 #include "iArray2DT.h"
 
 /* parameters */
-
-using namespace Tahoe;
-
 const int kNumVars = 3; //number of arguments in Phi
 
 /* constructor */

@@ -1,26 +1,27 @@
-/* $Id: LocalizerT.cpp,v 1.13 2005-01-29 01:30:45 raregue Exp $ */
-/* created: paklein (02/19/1998) */
+/* $Id: LocalizerT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (02/19/1998)                                          */
+
 #include "LocalizerT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
-#include "SolidMaterialT.h"
+#include "fstreamT.h"
+#include "Constants.h"
+#include "FEManagerT.h"
+#include "StructuralMaterialT.h"
+#include "MaterialList2DT.h"
+#include "MaterialList3DT.h"
 #include "ShapeFunctionT.h"
 #include "EdgeFinderT.h"
 #include "iAutoArrayT.h"
 #include "ExodusT.h"
-#include "SolidMatListT.h"
 
 //for strain check below
-#include "FSSolidMatT.h"
+#include "FDStructMatT.h"
 
 /* flag parameter to mark localized elements */
-
-using namespace Tahoe;
-
 const int kMonitorLocalized = -1;
 
 /* strain check flags */
@@ -34,14 +35,12 @@ const int kLocCheckNever   = 0;
 const int kLocCheckAtPrint =-1;
 
 /* constructor */
-LocalizerT::LocalizerT(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianT(support),
-	fAvgStretch(NumSD())
+LocalizerT::LocalizerT(FEManagerT& fe_manager):
+	UpLag_FDElasticT(fe_manager),
+	fAvgStretch(fNumSD)
 {
-ExceptionT::GeneralFail("LocalizerT::LocalizerT", "out of date");
-#if 0
 	/* flags */
-	ifstreamT& in = ElementSupport().Input();
+	ifstreamT& in = fFEManager.Input();
 
 	in >> fStrainCheckFlag;
 	in >> fCriticalStretch;
@@ -51,61 +50,54 @@ ExceptionT::GeneralFail("LocalizerT::LocalizerT", "out of date");
 	    fStrainCheckFlag != kStrainCheckRHS   &&
 	    fStrainCheckFlag != kStrainCheckLHS   &&
 	    fStrainCheckFlag != kStrainCheckEvery)
-		throw ExceptionT::kBadInputValue;
+		throw eBadInputValue;
 	
 	if (fStrainCheckFlag != kStrainCheckNever &&
 	    fCriticalStretch < 1.0)
-		throw ExceptionT::kBadInputValue;
+		throw eBadInputValue;
 	
 	if (fLocCheckInc != kLocCheckNever   &&
 	    fLocCheckInc != kLocCheckAtPrint &&
 	    fLocCheckInc < 0)
-		throw ExceptionT::kBadInputValue;
-#endif
+		throw eBadInputValue;
 }
 
 /* set work space */
 void LocalizerT::Initialize(void)
 {
-#pragma message("delete me")
-#if 0
 	/* inherited */
-	UpdatedLagrangianT::Initialize();
+	UpLag_FDElasticT::Initialize();
 
 	/* dimension */
-	fKloc.Dimension(NumElementNodes()*NumDOF());
+	fKloc.Allocate(fNumElemNodes*fNumDOF);
 	
 	/* echo group-specific input data */
-	EchoData(ElementSupport().Input(), ElementSupport().Output());
+	EchoData(fFEManager.Input(), fFEManager.Output());
 
 	/* dimension */	
-	fElementMonitor.Resize(NumElements(), false);
+	fElementMonitor.Resize(fNumElements, false);
 
-//TEMP - needs rethinking
-#if 0
 	/* check material list for localizing materials */
 	if (!fMaterialList->HasLocalizingMaterials())
 		cout << "\n LocalizerT::Initialize: WARNING: no localizing materials" << endl;
-#endif
 
 	/* open output stream for localization data */
 	if (fLocCheckInc != kLocCheckNever)
 	{
-		int groupnum = ElementSupport().ElementGroupNumber(this) + 1;
+		int groupnum = fFEManager.ElementGroupNumber(this) + 1;
 	
 		StringT outfile;
-		outfile.Root(ElementSupport().InputFile());
-		outfile.Append(".loc.elem", groupnum);
+		StringT source_name = (fFEManager.Input()).filename();
+		outfile.DefaultName(source_name, ".loc.elem", groupnum);
 		fLocOut.open(outfile);
 
-		outfile.Root(ElementSupport().InputFile());
-		outfile.Append(".TOC.elem", groupnum);
+		outfile.DefaultName(source_name, ".TOC.elem", groupnum);
 		fLocTOC.open(outfile);
 	}		
 
 	/* localization check work space */
 	iArrayT eq_temp;
-	switch (GeometryCode())
+	switch (fGeometryCode)
 	{
 		case GeometryT::kQuadrilateral:
 		{
@@ -133,33 +125,32 @@ void LocalizerT::Initialize(void)
 		}
 		default:
 
-			throw ExceptionT::kGeneralFail;
+			throw eGeneralFail;
 	}
 	fnoRBeqs = eq_temp;
 
 	/* dimension eigenvalue solver */
-	fEigSolver.Dimension(fnoRBeqs.Length());
-	fEigs.Dimension(fnoRBeqs.Length());
-#endif
+	fEigSolver.Allocate(fnoRBeqs.Length());
+	fEigs.Allocate(fnoRBeqs.Length());
 }
 
 /* finalize time increment */
 void LocalizerT::CloseStep(void)
 {
 	/* inherited */
-	UpdatedLagrangianT::CloseStep();
+	UpLag_FDElasticT::CloseStep();
 	
 	/* set flag to OFF for elements marked last time */
 	fElementMonitor.MarkedToOFF();
 }
 
 /* writing results */
-void LocalizerT::WriteOutput(void)
+void LocalizerT::WriteOutput(IOBaseT::OutputModeT mode)
 {	
 	/* inherited */
-	UpdatedLagrangianT::WriteOutput();
+	UpLag_FDElasticT::WriteOutput(mode);
 
-	ostream& out = ElementSupport().Output();
+	ostream& out = fFEManager.Output();
 
 	/* insert strain check info */
 	if (fStrainCheckFlag != kStrainCheckNever)
@@ -178,8 +169,7 @@ void LocalizerT::WriteOutput(void)
 		PrintLocalized(out);
 		
 		/* output search info to localization file */
-		//if (mode == IOBaseT::kAtFinal)
-		if (true)
+		if (mode == IOBaseT::kAtFinal)
 		{
 			fLocOut << "\n Localization search data:\n\n";
 			fLocOut << " Number of check elements. . . . . . . . . . . . = ";
@@ -213,7 +203,7 @@ void LocalizerT::WriteOutput(void)
 GlobalT::RelaxCodeT LocalizerT::RelaxSystem(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = UpdatedLagrangianT::RelaxSystem();
+	GlobalT::RelaxCodeT relax = UpLag_FDElasticT::RelaxSystem();
 
 	/* check localization at intervals */
 	if (++fLocCheckCount == fLocCheckInc)
@@ -230,7 +220,7 @@ GlobalT::RelaxCodeT LocalizerT::RelaxSystem(void)
 		if (numMARKED > 0)
 		{
 			/* to output file */
-			ostream& out = ElementSupport().Output();
+			ostream& out = fFEManager.Output();
 			out << "\n Marked elements:\n";
 			fElementMonitor.PrintValued(cout, MonitorT::kMarked, 5);
 			out << endl;
@@ -252,7 +242,7 @@ GlobalT::RelaxCodeT LocalizerT::RelaxSystem(void)
 void LocalizerT::InitialCondition(void)
 {
 	/* inherited */
-	UpdatedLagrangianT::InitialCondition();
+	UpLag_FDElasticT::InitialCondition();
 
 	fLocCheckCount = 0;
 
@@ -270,7 +260,7 @@ void LocalizerT::ReadRestart(istream& in)
 	{
 		/* set initial localization check list */
 		cout << "\n Initializing localization check list: ";
-		for (int j = 0; j < NumElements(); j++)
+		for (int j = 0; j < fNumElements; j++)
 			if (fElementMonitor.Status(j) == kMonitorLocalized)
 				fLocCheckList.Append(j);
 		cout << fLocCheckList.Length() << endl;
@@ -309,28 +299,25 @@ void LocalizerT::WriteRestart(ostream& out) const
 }
 
 /* resets to the last converged solution */
-GlobalT::RelaxCodeT LocalizerT::ResetStep(void)
+void LocalizerT::ResetStep(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = UpdatedLagrangianT::ResetStep();
+	UpLag_FDElasticT::ResetStep();
 
 	/* reset flagged elements */
 	fElementMonitor.MarkedToON();
 	fElementMonitor.ResetFlags(kMonitorLocalized, MonitorT::kON);
-
-	return relax;
 }
 
 /***********************************************************************
 * Protected
 ***********************************************************************/
 
-#if 0
 /* print element group data */
 void LocalizerT::PrintControlData(ostream& out) const
 {
 	/* inherited */
-	UpdatedLagrangianT::PrintControlData(out);
+	UpLag_FDElasticT::PrintControlData(out);
 	
 	/* control parameters */
 	out << " Strain check flag . . . . . . . . . . . . . . . = " << fStrainCheckFlag << '\n';
@@ -344,20 +331,19 @@ void LocalizerT::PrintControlData(ostream& out) const
 	out << "    eq." << kLocCheckNever   << ", never (skip all localization checks)\n";
 	out << "    eq." << fLocCheckInc	 << ", at every nth step\n";
 }
-#endif
 
 /* skip elements that are off (when?) */
 bool LocalizerT::NextElement(void)
 {
 	/* inherited */
-	bool notend = UpdatedLagrangianT::NextElement();
+	bool notend = UpLag_FDElasticT::NextElement();
 	
 	/* skip OFF elements */
 	if (fStrainCheckFlag != kStrainCheckNever)
 	{
 		while (notend &&
 			fElementMonitor.Status(fElementCards.Position()) == MonitorT::kOFF)
-			notend = UpdatedLagrangianT::NextElement();
+			notend = UpLag_FDElasticT::NextElement();
 	}
 		
 	return notend;
@@ -367,10 +353,8 @@ bool LocalizerT::NextElement(void)
 void LocalizerT::ReadMaterialData(ifstreamT& in)
 {
 	/* inherited */
-//	UpdatedLagrangianT::ReadMaterialData(in);
+	UpLag_FDElasticT::ReadMaterialData(in);
 	
-//TEMP - needs rethinking
-#if 0
 	/* check for localizing materials */
 	if (!fMaterialList->HasLocalizingMaterials())
 	{
@@ -378,16 +362,15 @@ void LocalizerT::ReadMaterialData(ifstreamT& in)
 			"\n LocalizerT::ReadMaterialData: WARNING: no localizing materials";
 	
 		cout << message << endl;
-		ElementSupport().Output() << message << endl;
+		fFEManager.Output() << message << endl;
 	}
-#endif	
 }
 
 /* form the element stiffness matrix */
 void LocalizerT::FormStiffness(double constK)
 {		
 	/* inherited */
-	UpdatedLagrangianT::FormStiffness(constK);
+	UpLag_FDElasticT::FormStiffness(constK);
 	
 	/* disable the rest */
 	return;
@@ -459,7 +442,7 @@ void LocalizerT::FormStiffness(double constK)
 		fLocOut << fullvec << '\n';		
 	}
 		
-	if (Kcheck || Qcheck) throw ExceptionT::kBadJacobianDet;
+	if (Kcheck || Qcheck) throw(eBadJacobianDet);
 }
 
 /***********************************************************************
@@ -472,24 +455,24 @@ void LocalizerT::EchoData(ifstreamT& in, ostream& out)
 	/* read initial localization check elements */
 	int numlocelems;
 	in >> numlocelems;
-	if (numlocelems < 0) throw ExceptionT::kBadInputValue;
+	if (numlocelems < 0) throw eBadInputValue;
 	
 	/* indicates "smart" element checking */
 	if (numlocelems > 0)
 	{
 		/* read element list */
-		fLocCheckList.Dimension(numlocelems);
+		fLocCheckList.Allocate(numlocelems);
 		for (int i = 0; i < numlocelems; i++)
 		{
 			int temp;
 			in >> temp;
 						
 			/* range check */
-			if (temp > NumElements())
+			if (temp > fNumElements)
 			{
 				cout << "\n LocalizerT::EchoSpecialData: element localization list";
 				cout << " member " << temp << " is out of range" << endl;
-				throw ExceptionT::kBadInputValue;
+				throw eBadInputValue;
 			}
 			
 			/* add to list */
@@ -531,20 +514,17 @@ void LocalizerT::EchoData(ifstreamT& in, ostream& out)
 /* element localization check driver - loop over all/list */
 void LocalizerT::Localization(void)
 {
-//TEMP - needs rethinking
-#if 0
 	/* check material behavior */
 	if (!fMaterialList->HasLocalizingMaterials()) return;
-#endif
 
 	/* write the time */
-	fLocOut << ElementSupport().Time() << '\n';
+	fLocOut << fFEManager.Time() << '\n';
 
 	/* check ALL */
 	if (fLocCheckList.Length() == 0)
 	{
 		/* TOC entries */
-		iArrayT numlocip(NumElements());
+		iArrayT numlocip(fNumElements);
 		numlocip = 0;
 	
 		int* pnumloc = numlocip.Pointer();
@@ -554,13 +534,13 @@ void LocalizerT::Localization(void)
 			
 		/* write TOC */
 		int numOK = numlocip.Count(0);
-		if (numOK < NumElements())
+		if (numOK < fNumElements)
 		{
-			int numloc = NumElements() - numOK;
+			int numloc = fNumElements - numOK;
 			fLocTOC << numloc << '\n';
 			
 			int* ploc = numlocip.Pointer();
-			for (int i = 0; i < NumElements(); i++)
+			for (int i = 0; i < fNumElements; i++)
 			{
 				if (*ploc > 0)
 					fLocTOC << i+1 << " " << *ploc << '\n';
@@ -588,7 +568,7 @@ void LocalizerT::Localization(void)
 
 			/* cast is safe since class contructs materials list */
 			ContinuumMaterialT* pcont_mat = (*fMaterialList)[element.MaterialNumber()];
-			fCurrMaterial = (SolidMaterialT*) pcont_mat;
+			fCurrMaterial = (StructuralMaterialT*) pcont_mat;
 	
 			/* check for localization */
 			numlocip[i] = CheckLocalization(fLocOut);
@@ -642,8 +622,10 @@ int LocalizerT::CheckLocalization(ostream& out)
 {
 	/* compute global shape functions */
 	SetGlobalShape();
+		
+	/* get local displacements */
+	SetLocalU(fLocDisp);
 
-	dArrayT vec(NumSD());
 	int numloc = 0;
 	fShapes->TopIP();
 	while (fShapes->NextIP())
@@ -653,12 +635,11 @@ int LocalizerT::CheckLocalization(ostream& out)
 		const dMatrixT& cijkl = fCurrMaterial->c_ijkl();
 		
 		/* localization check */
-		//if (fCurrMaterial->IsLocalized(fNormal))
-		if (fCurrMaterial->IsLocalized(fNormals,fSlipDirs))
+		if (fCurrMaterial->IsLocalized(fNormal))
 		{
 			numloc++;
-			fShapes->IPCoords(vec);
-			out << vec.no_wrap() << '\n';
+			fShapes->IPCoords(fNSDvec);
+			out << fNSDvec.no_wrap() << '\n';
 		}
 	}
 	
@@ -701,10 +682,7 @@ void LocalizerT::PrintLocalized(ostream& out)
 
 /* check strain magnitude */
 void LocalizerT::CheckStrain(void)
-{
-	/* work space */
-	dSymMatrixT temp(NumSD());
-
+{	
 	/* initialize */
 	fAvgStretch = 0.0;
 
@@ -712,11 +690,11 @@ void LocalizerT::CheckStrain(void)
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
-		/* compute the stretch */
-		temp.MultATA(DeformationGradient());
+		//assume case if OK
+		FDStructMatT* FDmat = (FDStructMatT*) fCurrMaterial;
 	
 		/* accumulate over element */
-		fAvgStretch += temp;
+		fAvgStretch += FDmat->C();
 	}	
 		
 	/* element average */

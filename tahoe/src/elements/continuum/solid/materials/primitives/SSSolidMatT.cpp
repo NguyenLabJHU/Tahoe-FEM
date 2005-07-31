@@ -1,192 +1,69 @@
-/* $Id: SSSolidMatT.cpp,v 1.16 2005-03-09 19:25:48 raregue Exp $ */
-/* created: paklein (06/09/1997) */
+/* $Id: SSSolidMatT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (06/09/1997)                                          */
+
 #include "SSSolidMatT.h"
-#include "SSMatSupportT.h"
+#include <iostream.h>
+#include "ElasticT.h"
+#include "ShapeFunctionT.h"
 #include "dSymMatrixT.h"
 #include "ThermalDilatationT.h"
 
-using namespace Tahoe;
-
-/* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<SSSolidMatT>::fByteCopy = false;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<SSSolidMatT*>::fByteCopy = true;
-} /* namespace Tahoe */
-
-/* perturbation used to compute c_ijkl from finite difference */
-const double strain_perturbation = 1.0e-08;
-
 /* constructor */
-SSSolidMatT::SSSolidMatT(void):
-	ParameterInterfaceT("small_strain_material"),
-	fSSMatSupport(NULL),
-	fHasThermalStrain(false)
+SSSolidMatT::SSSolidMatT(ifstreamT& in, const ElasticT& element):
+	ContinuumT(element.NumSD()),
+	StructuralMaterialT(in, element),
+	fShapes(element.ShapeFunction()),
+	fLocDisp(element.Displacements()),	
+	fStrainTemp(element.NumSD()),
+	fQ(element.NumSD()),
+	fGradU(element.NumSD()),
+	fThermalStrain(NumSD())
 {
 
 }
 
-/* set the material support or pass NULL to clear */
-void SSSolidMatT::SetSSMatSupport(const SSMatSupportT* support)
+/* I/O */
+void SSSolidMatT::PrintName(ostream& out) const
 {
-	/* set inherited material support */
-	SetMaterialSupport(support);
-
-	fSSMatSupport = support;
-
-	/* dimension */
-	int nsd = NumSD();
-	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
-	fStrainTemp.Dimension(nsd);
-	fQ.Dimension(nsd);
-	fThermalStrain.Dimension(nsd);
+	/* inherited */
+	StructuralMaterialT::PrintName(out);
+	
+	out << "    Small strain\n";
 }
+
+/* required parameter flags */
+bool SSSolidMatT::NeedDisp(void) const { return true; }
 
 /* strain - returns the elastic strain, ie. thermal removed */
 const dSymMatrixT& SSSolidMatT::e(void)
 {
+	/* displacement gradient */
+	fShapes.GradU(fLocDisp, fGradU);
+
 	/* remove thermal strain */
 	if (fHasThermalStrain)
 	{
 		/* thermal strain is purely dilatational */
-		fStrainTemp  = fSSMatSupport->LinearStrain();
+		fStrainTemp = ContinuumT::e(fGradU);
 		fStrainTemp -= fThermalStrain;
 		return fStrainTemp;
 	}
 	else
-		return fSSMatSupport->LinearStrain();
-}
-
-/* elastic strain at the given integration point */
-const dSymMatrixT& SSSolidMatT::e(int ip)
-{
-	/* remove thermal strain */
-	if (fHasThermalStrain)
-	{
-		/* thermal strain is purely dilatational */
-		fStrainTemp  = fSSMatSupport->LinearStrain(ip);
-		fStrainTemp -= fThermalStrain;
-		return fStrainTemp;
-	}
-	else
-		return fSSMatSupport->LinearStrain(ip);
-}
-
-/* strain - returns the elastic strain, ie. thermal removed */
-const dSymMatrixT& SSSolidMatT::e_last(void)
-{
-	/* cannot have thermal strain */
-	if (fHasThermalStrain)
-		ExceptionT::GeneralFail("SSSolidMatT::e_last", "not available with thermal strains");
-	return fSSMatSupport->LinearStrain_last();
-}
-
-/* elastic strain at the given integration point */
-const dSymMatrixT& SSSolidMatT::e_last(int ip)
-{
-	/* cannot have thermal strain */
-	if (fHasThermalStrain)
-		ExceptionT::GeneralFail("SSSolidMatT::e_last", "not available with thermal strains");
-	return fSSMatSupport->LinearStrain_last(ip);
+		return ContinuumT::e(fGradU);
 }
 
 /* material description */
 const dMatrixT& SSSolidMatT::C_IJKL(void)  { return c_ijkl(); }
 const dSymMatrixT& SSSolidMatT::S_IJ(void) { return s_ij();   }
 
-/* return modulus */
-const dMatrixT& SSSolidMatT::c_ijkl(void)
-{
-	/* get the strain tensor for the current ip - use the strain
-	 * from the material support since the return values from ensure e()
-	 * is recomputed when there are thermal strains */
-	dSymMatrixT& strain = const_cast<dSymMatrixT&>(fSSMatSupport->LinearStrain());
-
-	/* compute columns of modulus */
-	for (int i = 0; i < fModulus.Cols(); i++) {
-
-		/* perturb strain */
-		strain[i] += strain_perturbation;
-	
-		/* compute stress */
-		const dSymMatrixT& stress = s_ij();
-	
-		/* write into modulus */
-		fModulus.SetCol(i, stress);
-		
-		/* undo perturbation */
-		strain[i] -= strain_perturbation;
-	}
-	
-	/* restore stress to unperturbed state */
-	const dSymMatrixT& stress = s_ij();
-	
-	/* compute modulus from finite difference */
-	int nsd = NumSD();
-	double den = strain_perturbation;
-	for (int i = 0; i < fModulus.Cols(); i++) {
-
-		/* shear strains */
-		if (i == nsd) den *= 2.0;
-
-		for (int j = 0; j < fModulus.Rows(); j++)
-			fModulus(j,i) = (fModulus(j,i) - stress[j])/den;
-	}
-
-	return fModulus;
-}
-
-/* spatial elastic modulus */
-const dMatrixT& SSSolidMatT::ce_ijkl(void) {
-	return c_ijkl();
-}
-
 /* apply pre-conditions at the current time step */
 void SSSolidMatT::InitStep(void)
 {
 	/* inherited */
-	SolidMaterialT::InitStep();
+	StructuralMaterialT::InitStep();
 
 	/* thermal strain */
 	fHasThermalStrain = SetThermalStrain(fThermalStrain);
-}
-
-/* assumes small strains. returns true if the strain localization condition is satisfied,
-* .ie if the acoustic tensor has zero (or negative eigenvalues),
-* for the current conditions (current integration point and strain
-* state). If localization is detected, the normals (current config)
-* to the surface and slip directions are returned */
-
-bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
-							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
-{
-	/* elastic modulus */
-	/* this uses same space as c_ijkl(), so save separatley first */
-	const dMatrixT modulus_e = ce_ijkl();
-
-	/* localization condition checker */
-	DetCheckT checker(s_ij(), c_ijkl(), modulus_e);
-	normals.Dimension(NumSD());
-	slipdirs.Dimension(NumSD());
-	return checker.IsLocalized_SS(normals, slipdirs, detAs);
-}
-
-bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA)
-{
-	/* elastic modulus */
-	/* this uses same space as c_ijkl(), so save separatley first */
-	const dMatrixT modulus_e = ce_ijkl();
-
-	/* localization condition checker */
-	DetCheckT checker(s_ij(), c_ijkl(), modulus_e);
-	normals.Dimension(NumSD());
-	slipdirs.Dimension(NumSD());
-	return checker.IsLocalized_SS(normals, slipdirs, detA);
-}
-
-bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
-{
-	double dummyDetA = 0.0;
-	return IsLocalized(normals, slipdirs, dummyDetA);
 }
 
 /*************************************************************************
@@ -210,7 +87,7 @@ bool SSSolidMatT::SetThermalStrain(dSymMatrixT& thermal_strain)
 const dSymMatrixT& SSSolidMatT::AcousticalTensor(const dArrayT& normal)
 {
 #if __option(extended_errorcheck)
-	if (fQ.Rows() != normal.Length()) throw ExceptionT::kSizeMismatch;
+	if (fQ.Rows() != normal.Length()) throw eSizeMismatch;
 #endif
 
 	/* fetch modulus */
@@ -221,7 +98,7 @@ const dSymMatrixT& SSSolidMatT::AcousticalTensor(const dArrayT& normal)
 	else if (normal.Length() == 3)
 		Q_3D(c_, normal, fQ);
 	else
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 
 	return fQ;
 }

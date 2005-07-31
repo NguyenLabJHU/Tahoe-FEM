@@ -1,17 +1,11 @@
-/* $Id: CartesianGridT.cpp,v 1.8 2003-11-04 01:21:27 paklein Exp $ */
-/* created: paklein (11/10/2000) */
+/* $Id: CartesianGridT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (11/10/2000)                                          */
+
 #include "CartesianGridT.h"
 #include <math.h>
 #include "GraphT.h"
 
-using namespace Tahoe;
-
 static int to_integer(double a) { return int((2.0*a + 1.0)/2.0); };
-
-/* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<CartesianGridT::BoundaryConditionT>::fByteCopy = true;
-} /* namespace Tahoe */
 
 /* constructor */
 CartesianGridT::CartesianGridT(void)
@@ -33,12 +27,12 @@ void CartesianGridT::SetDimensions(const iArrayT& dimensions,
 		cout << "\n CartesianGridT::SetDimensions: dimensionality " << dimensions.Length()
 		     << " does not\n" <<   "     match the number of boundary conditions "
 		     << fBC.Length() << endl;
-		throw ExceptionT::kSizeMismatch;
+		throw eSizeMismatch;
 	}	
 
 	/* indexed distances */
 	int n_dim = fDimensions.Length();
-	fShift.Dimension(n_dim);
+	fShift.Allocate(n_dim);
 	int shift = 1;
 	for (int i = n_dim - 1; i > -1; i--)
 	{
@@ -60,20 +54,20 @@ void CartesianGridT::PartitionGrid(int num_parts, const iArrayT& cell_weight)
 		cout << "\n CartesianGridT::PartitionGrid: number of partitions " << num_parts
 		     << " must be <= number\n"
 		     <<   "     of cells in the grid " << num_cells << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 	if (cell_weight.Length() != num_cells)
 	{
 		cout << "\n CartesianGridT::Partition: number of weights "
 		     << cell_weight.Length() << " does not\n"
 		     <<   "     match the number of grid cells " << num_cells << endl;
-		throw ExceptionT::kSizeMismatch;
+		throw eSizeMismatch;
 	}
 
 	/* allocate space */
-	fCellMap.Dimension(num_cells);
-	int num_neighbors = to_integer(pow(2.0, fDimensions.Length()));
-	fNeighborList.Dimension(num_cells, num_neighbors + 1);
+	fCellMap.Allocate(num_cells);
+	int num_neighbors = to_integer(pow(2, fDimensions.Length()));
+	fNeighborList.Allocate(num_cells, num_neighbors + 1);
 	
 	/* set neighbors data */
 	SetNeighborLists();
@@ -96,7 +90,7 @@ void CartesianGridT::PartitionGrid(int num_parts, const iArrayT& cell_weight)
 				edge[1] = list[j];
 			}
 	}
-	if (pair != pairs.MajorDim()) throw ExceptionT::kGeneralFail;
+	if (pair != pairs.MajorDim()) throw eGeneralFail;
 	to_graph= &pairs;
 #endif
 	
@@ -118,12 +112,7 @@ void CartesianGridT::PartitionGrid(int num_parts, const iArrayT& cell_weight)
 		/* partition and balance */
 		iArrayT config(1);
 		config = num_parts;
-#ifndef __METIS__
 		graph.Partition(config, cell_weight, fCellMap, true);
-#else
-		int volume_or_edgecut = 1;
-		graph.Partition_METIS(config[0], cell_weight, fCellMap, volume_or_edgecut);
-#endif
 	}
 }
 
@@ -155,7 +144,7 @@ void CartesianGridT::SetNeighborLists(void)
 					else if (fBC[j] == kPeriodic)
 						neighbors[0] = cell_num + Width(j);
 					else
-						throw ExceptionT::kGeneralFail;
+						throw eGeneralFail;
 
 					neighbors[1] = cell_num + Shift(j);
 				}
@@ -168,7 +157,7 @@ void CartesianGridT::SetNeighborLists(void)
 					else if (fBC[j] == kPeriodic)
 						neighbors[1] = cell_num - Width(j);
 					else
-						throw ExceptionT::kGeneralFail;
+						throw eGeneralFail;
 				}
 				else
 				{

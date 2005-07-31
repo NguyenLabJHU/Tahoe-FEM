@@ -1,38 +1,35 @@
-/* $Id: EAMFCC2D.h,v 1.9 2004-09-10 22:38:52 paklein Exp $ */
-/* created: paklein (12/09/1996) */
+/* $Id: EAMFCC2D.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (12/09/1996)                                          */
+/* Plane strain EAM material                                              */
+
 #ifndef _EAMFCC2D_H_
 #define _EAMFCC2D_H_
 
 /* base class */
-#include "NL_E_MatT.h"
-
-namespace Tahoe {
+#include "NL_E_Mat2DT.h"
 
 /* forward declarations */
 class EAMFCC3DSym;
 
-/** plane strain EAM material */
-class EAMFCC2D: public NL_E_MatT
+
+class EAMFCC2D: public NL_E_Mat2DT
 {
 public:
 
+	/* plane codes - for crystal axes rotated wrt global axes*/
+	enum PlaneCodeT {kFCC2Dnatural = 0,
+                         kFCC2D110 = 1,
+                         kFCC2D111 = 2};
+
 	/* constructor */
-	EAMFCC2D(void);
+	EAMFCC2D(ifstreamT& in, const ElasticT& element, int planecode);
 
 	/* destructor */
 	virtual ~EAMFCC2D(void);
 	
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 
 protected:
 
@@ -47,9 +44,12 @@ protected:
 	
 protected:
 	
-	/** Cauchy-Born EAM solver */
+	int fPlaneCode;
+	int	fEAMCode;
+	
+	/* EAM solver */
 	EAMFCC3DSym* fEAM;
+	
 };
 
-} // namespace Tahoe 
 #endif /* _EAMFCC2D_H_ */

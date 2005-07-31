@@ -1,46 +1,37 @@
-/* $Id: nTrapezoid.h,v 1.9 2004-12-26 21:09:19 d-farrell2 Exp $ */
-/* created: paklein (10/03/1999) */
+/* $Id: nTrapezoid.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/03/1999)                                          */
+
 #ifndef _N_TRAPEZOID_H_
 #define _N_TRAPEZOID_H_
 
 /* base class */
-#include "Trapezoid.h"
-#include "nIntegratorT.h"
+#include "ControllerT.h"
+#include "nDtControllerT.h"
 
-namespace Tahoe {
+/* forward declarations */
+class dArrayT;
+class KBC_CardT;
 
-/** trapezoidal integration for first order systems */
-class nTrapezoid: public virtual Trapezoid, public nIntegratorT
+class nTrapezoid: public virtual ControllerT, public nDtControllerT
 {
 public:
 
 	/* constructor */
 	nTrapezoid(void);
 
-	/** consistent BC's */
-	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+	/* consistent BC's */
+	virtual void ConsistentKBC(const KBC_CardT& KBC);
+	
+	/* predictors - map ALL */
+	virtual void Predictor(void);
 
-	/** pseudo-boundary conditions for external nodes */
+	/* correctors - map ACTIVE */
+	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update);
+	virtual void MappedCorrector(const iArrayT& map, const iArray2DT& flags,
+		const dArray2DT& update);
+
+	/* pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
-
-	/** predictor. Maps ALL degrees of freedom forward Unless specified otherwise */
-	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
-
-	/** corrector. Maps ALL degrees of freedom forward Unless specified otherwise*/
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
-
-	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
-	 * documentation */
-	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
-		int eq_start, int num_eq);
-
-	/** corrector with node number map - map ACTIVE. See 
-	 * nIntegratorT::MappedCorrector for more documentation */
-	virtual void MappedCorrector(BasicFieldT& field, const iArrayT& map, 
-		const iArray2DT& flags, const dArray2DT& update);
-
-	/** return the field array needed by nIntegratorT::MappedCorrector. */
-	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const;
 
 protected:  	
 	
@@ -56,5 +47,4 @@ private:
 	double	dcorr_v;
 };
 
-} // namespace Tahoe 
 #endif /* _N_TRAPEZOID_H_ */

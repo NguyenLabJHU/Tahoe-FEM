@@ -1,56 +1,44 @@
-/* $Id: OgdenIsoVIB2D.h,v 1.10 2004-07-15 08:27:45 paklein Exp $ */
-/* created: paklein (11/08/1997) */
+/* $Id: OgdenIsoVIB2D.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (11/08/1997)                                          */
+/* 2D Isotropic VIB using Ogden's spectral formulation                    */
+
 #ifndef _OGDEN_ISO_VIB_2D_H_
 #define _OGDEN_ISO_VIB_2D_H_
 
 /* base classes */
 #include "OgdenIsotropicT.h"
+#include "Material2DT.h"
 #include "VIB.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class CirclePointsT;
 
-/** 2D Isotropic VIB using Ogden's spectral formulation */
-class OgdenIsoVIB2D: public OgdenIsotropicT, public VIB
+class OgdenIsoVIB2D: public OgdenIsotropicT, public Material2DT, public VIB
 {
 public:
 
 	/* constructor */
-	OgdenIsoVIB2D(void);
+	OgdenIsoVIB2D(ifstreamT& in, const ElasticT& element);
 
 	/* destructor */
 	~OgdenIsoVIB2D(void);
 	
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
+
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
 protected:
 
-	/* principal values given principal values of the stretch tensors,
-	 * i.e., the principal stretches squared */
-	virtual void dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress);
-	virtual void ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
+	/* principal values given principal stretches */
+	virtual void dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress);
+	virtual void ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
 		dSymMatrixT& eigenmod);
 
 	/* return true of model is purely 2D, plain stress */
-	virtual bool PurePlaneStress(void) const { return true; };
+	virtual bool PurePlainStress(void) const { return true; };
 
 	/* strained lengths in terms of the Lagrangian stretch eigenvalues */
 	void ComputeLengths(const dArrayT& eigs);
@@ -66,5 +54,4 @@ protected:
 	CirclePointsT*	fCircle;
 };
 
-} // namespace Tahoe 
 #endif /* _OGDEN_ISO_VIB_2D_H_ */

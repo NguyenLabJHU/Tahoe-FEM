@@ -1,4 +1,4 @@
-/* $Id: SW3BodyT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: SW3BodyT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
 /* created: paklein (05/22/1997)                                          */
 
 #include "SW3BodyT.h"
@@ -9,9 +9,6 @@
 #include "ThermalDilatationT.h"
 
 /* parameters */
-
-using namespace Tahoe;
-
 const int kNumVars = 3; //number of arguments in Phi
 
 /* constructor */

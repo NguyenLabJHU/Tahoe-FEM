@@ -1,21 +1,19 @@
-/* $Id: TimeManagerT.h,v 1.14 2004-07-22 08:41:39 paklein Exp $ */
-/* created: paklein (05/23/1996) */
+/* $Id: TimeManagerT.h,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* created: paklein (05/23/1996)                                          */
+
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
 
 /* base class */
 #include "iConsoleObjectT.h"
-#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "StringT.h"
 #include "pArrayT.h"
-#include "ScheduleT.h"
+#include "LoadTime.h"
 #include "iAutoArrayT.h"
 #include "IOBaseT.h"
-#include "IntegratorT.h"
-
-namespace Tahoe {
+#include "TimeSequence.h"
 
 /* forward declarations */
 class ifstreamT;
@@ -24,7 +22,7 @@ class CoordinatorT;
 class nLinearHHTalpha;
 class NodeManagerT;
 
-class TimeManagerT: public iConsoleObjectT, public ParameterInterfaceT
+class TimeManagerT: public iConsoleObjectT
 {
 	/* time shifters */
 	friend class LinearHHTalpha;
@@ -32,11 +30,12 @@ class TimeManagerT: public iConsoleObjectT, public ParameterInterfaceT
 
 public:
 
-	/** constructor */
+	/* constructor */
 	TimeManagerT(FEManagerT& FEM);
 
-	/** set to initial conditions */
-	void InitialCondition(void);
+	/* run through the time sequences */
+	void Top(void);
+	bool NextSequence(void);
 
 	/* time sequence */
 	bool Step(void);
@@ -46,24 +45,18 @@ public:
 	const double& Time(void) const;
 	const double& TimeStep(void) const;
 
-	/** set the time step. Use at your own risk. TimeManagerT manages its
-	 * own time step. This method can be used to override this time step
-	 * control. However, the TimeManagerT's state will be inconsistent until
-	 * the step is restored. */
-	void SetTimeStep(double dt) { fTimeStep = dt; };
-
 	/* load control functions (returns true if successful) */
 	bool DecreaseLoadStep(void);
 	bool IncreaseLoadStep(void);
 	
-	/* return a pointer to the specified ScheduleT function */
+	/* return a pointer to the specified LoadTime function */
+	LoadTime* GetLTf(int num) const;
+	double LoadFactor(int nLTf) const;
 
-	/** \name schedule information */
-	/*@{*/
-	int NumSchedule(void) const;
-	ScheduleT* Schedule(int num) const;
-	double ScheduleValue(int num) const;
-	/*@}*/
+	/* accessors */
+	int NumberOfLTf(void) const;
+	int SequenceNumber(void) const;
+	int NumSequences(void) const;
 			
 	/* initialize/restart functions
 	 *
@@ -74,30 +67,14 @@ public:
 	void ReadRestart(istream& in);
 	void WriteRestart(ostream& out) const;
 
-	/** return true if output should be written for the current step */
-	bool WriteOutput(void) const;
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-	/*@}*/
+	/* finalize step (trigger output) */
+	void CloseStep(void); //TEMP? - let FEManager control/monitor output?
 
 private:	
-
-	/** step cut status flags */
-	enum StatusT { kDecreaseStep =-1,
-                       kSameStep = 0,
-                   kIncreaseStep = 1};
+	
+	/* output functions */
+	void EchoTimeSequences(ifstreamT& in, ostream& out);
+	void EchoLoadTime(ifstreamT& in, ostream& out);
 
 	/* increment the time and reset the load factors */
 	void IncrementTime(double dt);
@@ -111,39 +88,32 @@ private:
 
 private:
 
-	FEManagerT& fFEManager;
+	FEManagerT& theBoss;
+	
+	ArrayT<TimeSequence> fSequences;
+	pArrayT<LoadTime*>   fLTf;
 
-	/* schedules */
-	pArrayT<ScheduleT*>  fSchedule;
-
-	/** \name copied from current sequence */
-	/*@{*/
+	/* copied from current sequence */
 	int	   fNumSteps;
 	int	   fOutputInc;
 	int	   fMaxCuts;
 	double fTimeStep;
-	/*@}*/
 	
-	/** \name runtime data for the current sequence */
-	/*@{*/
+	/* runtime data for the current sequence */
+	int	   fCurrentSequence;
 	int	   fStepNum;
 	double fTime;
 	int    fNumStepCuts;
 	int	   fStepCutStatus;
-	/*@}*/
-
+	int    fOutputCount;	
+	
 	/* time stepper */
 	int	   fIsTimeShifted;
 	double fTimeShift;
-	
-	/** will be IntegratorT::kExplicit if all integrators are explicit
-	 * otherwise will be IntegratorT::kImplicit */
-	IntegratorT::ImpExpFlagT fImpExp;
 
+/* functions for time shifters */
 private:
 
-	/** \name functions for time shifters */
-	/*@{*/
 	/* to allow LinearHHTalpha to adjust the time.  LinearHHTalpha must
 	 * call ResetTime when finished.  MUST call ResetTime before the next call
 	 * to Step */
@@ -151,7 +121,6 @@ private:
 	
 	/* reset the time back to what it was before the calls to IncrementTime */
 	void ResetTime(void);
-	/*@}*/
 };
 
 /* inlines */
@@ -160,8 +129,7 @@ inline const double& TimeManagerT::TimeStep(void) const { return fTimeStep; }
 inline const int& TimeManagerT::StepNumber(void) const { return fStepNum; }
 inline const int& TimeManagerT::NumberOfSteps(void) const { return fNumSteps; }
 
-inline int TimeManagerT::NumSchedule(void) const { return fSchedule.Length() ; }
-
-} /* namespace Tahoe */
-
+inline int TimeManagerT::NumberOfLTf(void) const { return fLTf.Length() ; }
+inline int TimeManagerT::SequenceNumber(void) const { return fCurrentSequence; }
+inline int TimeManagerT::NumSequences(void) const { return fSequences.Length(); }
 #endif /* _TIMEMANAGER_T_H_ */

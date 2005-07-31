@@ -1,33 +1,21 @@
-/* $Id: ExceptionCodes.h,v 1.9 2003-05-04 22:52:51 paklein Exp $ */
-/* created: paklein (06/04/1996) */
+/* $Id: ExceptionCodes.h,v 1.1.1.1 2001-01-25 20:56:28 paklein Exp $ */
+/* created: paklein (06/04/1996)                                          */
 
 #ifndef _EXCEPTION_CODES_H_
 #define _EXCEPTION_CODES_H_
 
-/** \file  
- * Backward compatibility for exception codes.
- *
- * \deprecated This file provides backward compatibility for the "old" style
- * of Tahoe exception enums and output. See ExceptionT for revised definitions
- * and methods having to do with exceptions.
- */
-#include "ExceptionT.h"
- 
 /* number of exception codes */
-#define eNumExceptions   Tahoe::ExceptionT::NumExceptions
+const int eNumExceptions	= 9;
 
-/* see ExceptionT for definitions */
-#define eNoError         Tahoe::ExceptionT::kNoError         // no error
-#define eGeneralFail     Tahoe::ExceptionT::kGeneralFail     // general unrecoverable error
-#define eStop            Tahoe::ExceptionT::kStop            // stop
-#define eOutOfMemory     Tahoe::ExceptionT::kOutOfMemory     // out of memory
-#define eOutOfRange      Tahoe::ExceptionT::kOutOfRange      // index range error
-#define eSizeMismatch    Tahoe::ExceptionT::kSizeMismatch    // (array) dimension mismatch
-#define eBadInputValue   Tahoe::ExceptionT::kBadInputValue   // bad input/construction parameter
-#define eBadJacobianDet  Tahoe::ExceptionT::kBadJacobianDet  // ParentDomainT:bad jacobian determinant
-#define eMPIFail         Tahoe::ExceptionT::kMPIFail         // general error on MPI call
-#define eDatabaseFail    Tahoe::ExceptionT::kDatabaseFail    // general error reading/writing database
-#define eBadHeartBeat    Tahoe::ExceptionT::kBadHeartBeat    // error detected on other processor
-#define eTypeMismatch    Tahoe::ExceptionT::kTypeMismatch    // type mismatch
- 
-#endif
+/* exception codes */
+const int eNoError          = 0; // no error
+const int eGeneralFail		= 1; // general unrecoverable error
+const int eStop             = 2; // stop
+const int eOutOfMemory      = 3; // out of memory
+const int eOutOfRange       = 4; // index range error
+const int eSizeMismatch     = 5; // (array) dimension mismatch
+const int eBadInputValue    = 6; // bad input/construction parameter
+const int eBadJacobianDet	= 7; // ParentDomainT:bad jacobian determinant
+const int eMPIFail          = 8; // general error on MPI call
+
+#endif /* _EXCEPTION_CODES_H_ */

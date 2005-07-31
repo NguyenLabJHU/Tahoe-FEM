@@ -1,34 +1,77 @@
-/* $Id: PCGSolver_LS.cpp,v 1.25 2004-12-20 02:21:15 paklein Exp $ */
-/* created: paklein (08/19/1999) */
+/* $Id: PCGSolver_LS.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* created: paklein (08/19/1999)                                          */
+
 #include "PCGSolver_LS.h"
 
 #include <iostream.h>
 #include <math.h>
 
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
+#include "fstreamT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
 
 #include "FEManagerT.h"
 #include "DiagonalMatrixT.h"
 
-using namespace Tahoe;
-
 /* constructor */
-PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
-	NLSolver(fe_manager, group),
-	fRestart_count(-1),
-	fOutputFlag(kAtRestart),
-	fSearchIterations(3),
-	fOrthogTolerance(0.25),
-	fMaxStepSize(2.5)
+PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager):
+	NLSolver(fe_manager),
+	fPreconditioner(0) //TEMP
 {
-	SetName("PCG_solver");
+	/* check */
+	if (fMatrixType != kDiagonalMatrix)
+	{
+		cout << "\n PCGSolver_LS::PCGSolver_LS: expecting matrix type: "
+		     << kDiagonalMatrix << endl;
+		throw eGeneralFail;
+	}
+	
+	/* set assembly mode */
+#ifdef __NO_RTTI__
+	DiagonalMatrixT* pdiag = (DiagonalMatrixT*) fLHS;
+#else
+	DiagonalMatrixT* pdiag = dynamic_cast<DiagonalMatrixT*>(fLHS);
+	if (!pdiag)
+	{
+		cout << "\n PCGSolver_LS::PCGSolver_LS: unable to cast LHS matrix to\n"
+		     <<   "     DiagonalMatrixT" << endl;
+		throw eGeneralFail;
+	}
+#endif
+	pdiag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
+
+	ifstreamT& in = fFEManager.Input();
+	/* read parameters */
+	in >> fRestart;
+	in >> fSearchIterations;
+	in >> fOrthogTolerance;
+	in >> fMaxStepSize;
+
+	/* mininum search iterations > 0 */
+	fSearchIterations = (fSearchIterations != 0 &&
+	                     fSearchIterations < 3) ? 3 : fSearchIterations;
+
+	/* print parameters */
+	ostream& out = fFEManager.Output();
+	out << " CG restart count. . . . . . . . . . . . . . . . = " << fRestart          << '\n';
+	out << " Maximum number of line search iterations. . . . = " << fSearchIterations << '\n';
+	out << " Line search orthoginality tolerance . . . . . . = " << fOrthogTolerance  << '\n';
+	out << " Maximum update step size. . . . . . . . . . . . = " << fMaxStepSize      << endl;
+	
+	/* checks */
+	if (fRestart < 1)           throw eBadInputValue;
+	if (fSearchIterations < 0)  throw eBadInputValue;
+	if (fOrthogTolerance > 1.0) throw eBadInputValue;
+	if (fMaxStepSize      < 0)  throw eBadInputValue;
+	
+	/* allocate space for history */
+	fSearchData.Allocate(fSearchIterations, 2);
 
 	/* set console */
 	iAddVariable("search_iterations", fSearchIterations);
 	iAddVariable("line_search_tolerance", fOrthogTolerance);
 	iAddVariable("max_step_size", fMaxStepSize);
-	iAddVariable("restart_count", fRestart);	
+	iAddVariable("restart_count", fRestart);
 }
 
 /* (re-)configure the global equation system */
@@ -38,124 +81,58 @@ void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	NLSolver::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* allocate work space */
-	fdiff_R.Dimension(fRHS.Length());
-	
-	/* set flag */
-	fRestart_count = -1;
-}
-
-/* describe the parameters needed by the interface */
-void PCGSolver_LS::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	NLSolver::DefineParameters(list);
-
-	/* restart iterations */
-	ParameterT restart(ParameterT::Integer, "restart");
-	restart.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(restart);
-
-	/* output flag */
-	ParameterT output_flag(ParameterT::Enumeration, "output_flag");
-	output_flag.AddEnumeration("all_iterations", kAllIterations);
-	output_flag.AddEnumeration("at_restart", kAtRestart);
-	output_flag.SetDefault(fOutputFlag);
-	list.AddParameter(output_flag);
-
-	/* line search iterations */
-	ParameterT line_search_iterations(fSearchIterations, "line_search_iterations");
-	line_search_iterations.SetDefault(fSearchIterations);
-	list.AddParameter(line_search_iterations);
-
-	/* line search orthogonality tolerance */
-	ParameterT line_search_tolerance(fOrthogTolerance, "line_search_tolerance");
-	line_search_tolerance.SetDefault(fOrthogTolerance);
-	list.AddParameter(line_search_tolerance);
-
-	/* maximum step size */
-	ParameterT max_step(fMaxStepSize, "max_step");
-	max_step.SetDefault(fMaxStepSize);
-	list.AddParameter(max_step);
-}
-
-/* accept parameter list */
-void PCGSolver_LS::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	NLSolver::TakeParameterList(list);
-
-	/* extract parameters */
-	fRestart = list.GetParameter("restart");
-	fSearchIterations = list.GetParameter("line_search_iterations");
-	fOrthogTolerance = list.GetParameter("line_search_tolerance");
-	fMaxStepSize = list.GetParameter("max_step");
-	int output_flag = list.GetParameter("output_flag");
-	fOutputFlag = (output_flag == kAllIterations) ? kAllIterations : kAtRestart;
-
-	/* redefining inherited parameters */
-	fReformTangentIterations = fRestart;
-
-	/* allocate space for history */
-	fSearchData.Dimension(fSearchIterations, 2);
+	fdiff_R.Allocate(fRHS.Length());
 }
 
 /*************************************************************************
- * Protected
- *************************************************************************/
+* Protected
+*************************************************************************/
 
-/* do one iteration of the solution procedure */
-void PCGSolver_LS::Iterate(void)
-{
+double PCGSolver_LS::SolveAndForm(bool newtangent)
+{		
+#pragma unused(newtangent)
+
+	/* form the stiffness matrix */
+	if (fNumIteration == 0 || fPreconditioner)
+	{
+		fLHS->Clear();
+		fFEManager.FormLHS();
+		fPreconditioner = 0;
+	}
+
 	/* get new search direction (in fRHS) */
 	fR = fRHS;
 	CGSearch();
 
 	/* apply update to system */
-	fRHS_lock = kOpen;
-	fLHS_lock = kIgnore;
 	Update(fRHS, &fR);
-	fLHS_lock = kLocked;
-}
-
-#if 0
-/* relax system */
-SolverT::SolutionStatusT PCGSolver_LS::Relax(int newtancount)
-{
-	/* begin in steepest */
-	fRestart_count = -1;
-
-	/* inherited */
-	return NLSolver::Solve(newtancount);
-}
-#endif
-
-SolverT::SolutionStatusT PCGSolver_LS::Solve(int max_iterations)
-{
-	fRestart_count = -1;
-	fVerbose = 0;
-
-	/* inherited */
-	return NLSolver::Solve(max_iterations);
+								
+	/* compute new residual */
+	fRHS = 0.0;
+	fFEManager.FormRHS();
+	
+	/* combine residual magnitude with update magnitude */
+	/* e = a1 |R| + a2 |delta_d|                        */
+	//not implemented!
+			
+	return Residual(fRHS);
 }
 
 /*************************************************************************
- * Private
- *************************************************************************/
+* Private
+*************************************************************************/
 
 void PCGSolver_LS::CGSearch(void)
 {
-	const char caller[] = "PCGSolver_LS::CGSearch";
-
 	/* restart */
-	bool start_relaxation = fRestartIteration == IterationNumber();
-	fRestart_count++;
-	if (fRestart_count == 0 || fRestart_count == fRestart || start_relaxation) 
+	if (fmod(fNumIteration, fRestart) < kSmall)
 	{
-		/* steepest descent direction */
-		fR_last = fRHS;		
-		if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet(caller);
+		fR_last = fRHS;
+		fLHS->Solve(fRHS);
 		fu_last = fRHS;
-		fRestart_count = 0;
+		
+		/* reform preconditioner */
+		if (fNumIteration > 0) fPreconditioner = 1;
 
 		/* output control */
 		fVerbose = 1;
@@ -169,45 +146,21 @@ void PCGSolver_LS::CGSearch(void)
 //                    InnerProduct(fdiff_R, fu_last);			
 			 			              			
 		/* Bertsekas (6.36) and Polak-Ribiere formula (JAS3D) */
-//		double beta = InnerProduct(fRHS, fdiff_R)/
-//		              InnerProduct(fR_last, fR_last);
-
-		/* with scaling matrix Bertsekas (6.32) */
-		if (!fLHS->Solve(fdiff_R)) ExceptionT::BadJacobianDet(caller); /* apply scaling */
-		double beta = InnerProduct(fRHS, fdiff_R);
-		fdiff_R = fR_last;     /* copy */
-		if (!fLHS->Solve(fdiff_R)) ExceptionT::BadJacobianDet(caller); /* apply scaling */
-
-		/* no division by zero */
-		double denominator = InnerProduct(fR_last, fdiff_R);
-		if (fabs(denominator) < 1.0e-24) {
-			denominator = 1.0;
-			beta = 0.0; /* revert to steepest descent */
-		}
-		else
-			beta /= denominator;		
-		
+		double beta = InnerProduct(fRHS, fdiff_R)/
+		              InnerProduct(fR_last, fR_last);
+			
 		/* limit beta */
 		//beta = (beta < 0.0) ? 0.0 : beta;
 		
 		/* compute new update (in last update) */
 		fR_last = fRHS;
-		if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet(caller); /* apply preconditioner */
+		fLHS->Solve(fRHS);
 		fRHS.AddScaled(beta, fu_last);
 		fu_last = fRHS;
 
 		/* output control */
 		fVerbose = 0;
 	}
-
-	/* override */
-	if (fOutputFlag == kAllIterations) fVerbose = 1;
-
-	/* check recalculation of LHS */
-	if (fRestart_count == (fRestart - 1))
-		fLHS_update = true;
-	else
-		fLHS_update = false;
 }
 
 void PCGSolver_LS::Update(const dArrayT& update, const dArrayT* residual)
@@ -358,10 +311,10 @@ double PCGSolver_LS::GValue(double step)
 	s_current = step;
 	
 	/* compute residual */
-	fFEManager.Update(Group(), fRHS);
+	fFEManager.Update(fRHS);
 	fRHS = 0.0;
-	try { fFEManager.FormRHS(Group()); }
-	catch (ExceptionT::CodeT error)
+	try { fFEManager.FormRHS(); }
+	catch (int error)
 	{
 		cout << "\n PCGSolver_LS::GValue: caught exception" << endl;
 		throw error;

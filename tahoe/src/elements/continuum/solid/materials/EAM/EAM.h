@@ -1,5 +1,7 @@
-/* $Id: EAM.h,v 1.5 2004-07-15 08:26:47 paklein Exp $ */
-/* created: paklein (12/02/1996) */
+/* $Id: EAM.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (12/02/1996)                                          */
+/* EAM.h                                                                  */
+
 #ifndef _EAM_H_
 #define _EAM_H_
 
@@ -8,31 +10,24 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class CBLatticeT;
 class C1FunctionT;
 class iArrayT;
 class dSymMatrixT;
 
-/** Cauchy-Born calculations for EAM potentials */
 class EAM
 {
 public:
 
-	/** constructor.
-	* \param lattice crystal used to compute Cauchy-Born geometry information
-	* \param nsd number of spatial dimensions needed for the stress and modulus calculations.
-	*        This can be different from the dimensions of lattice, i.e., for 2D plane strain
-	*        calculations nsd = 2, but the lattice will have 3 dimensions. */
+	/* constructor */
 	EAM(CBLatticeT& lattice);
 
 	/* destructor */
 	virtual ~EAM(void);
 
-	/** set "glue" functions and dimension work space */
-	void Initialize(int nsd, int numbonds);
+	/* set "glue" functions */
+	void SetGlueFunctions(void);
 
 	/* compute unit strain energy density:
 	 *
@@ -55,22 +50,15 @@ public:
 	/* unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const = 0;
 
-	/** \name access glue functions */
-	/*@{*/
-	const C1FunctionT* PairPotential(void) { return fPairPotential; };
-	const C1FunctionT* EmbeddingEnergy(void) { return fEmbeddingEnergy; };
-	const C1FunctionT* ElectronDensity(void) { return fElectronDensity; };
-	/*@}*/
-	
-	/** compute the total electron density */
-	double TotalElectronDensity(void);
-	
 private:
 
 	/* form matrix of mixed pair potential and embedding
 	 * energy derivatives.  NOTE: computes the UPPER triangle
 	 * ONLY */
 	void FormMixedDerivatives(double rho);	
+
+	/* compute the total electron density */
+	double TotalElectronDensity(void);
 
 	/* Moduli tensor contributions */
 	void FormSingleBondContribution(double rho, dMatrixT& moduli);
@@ -83,32 +71,30 @@ private:
 
 protected:
 
-	/** \name glue functions */
-	/*@{*/
-	C1FunctionT* fPairPotential;
-	C1FunctionT* fEmbeddingEnergy;
-	C1FunctionT* fElectronDensity;
-	/*@}*/
+	/* glue functions */
+	C1FunctionT*	fPairPotential;
+	C1FunctionT*	fEmbeddingEnergy;
+	C1FunctionT*	fElectronDensity;
 	
 private:   	
 
 	CBLatticeT&	fLattice;
-//	const iArrayT& fCounts;		
-//	const dArrayT& fBonds;
+	const iArrayT&	fCounts;		
+	const dArrayT&	fBonds;
 
 	/* parameters */
-//	int	fNumSpatialDim;
-//	int	fNumBonds;
-//	int	fModuliDim;
+	int		fNumSpatialDim;
+	int		fNumBonds;
+	int		fModuliDim;
 	
-	dMatrixT fBondTensor4;
-	dMatrixT fAmn; /* mixed derivative matrix */
+	dMatrixT	fBondTensor4;
+	dMatrixT	fAmn; /* mixed derivative matrix */
 
-	dArrayT fBondTensor2;
-//	dArrayT fBondTensor2b;
+	dArrayT		fBondTensor2;
+//	dArrayT		fBondTensor2b;
 
 	/* 2nk rank bond component tensor */
-	dArray2DT fTensor2Table;	
+	dArray2DT	fTensor2Table;	
 
 	/* for batch evaluation of bond data */
 	dArrayT	fBond1;
@@ -116,5 +102,4 @@ private:
 	dArrayT	fBond3;
 };
 
-} // namespace Tahoe 
 #endif /* _EAM_H_ */

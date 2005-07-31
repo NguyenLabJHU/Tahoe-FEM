@@ -1,10 +1,15 @@
-/* $Id: EdgeFinderT.cpp,v 1.10 2005-04-05 15:57:53 paklein Exp $ */
-/* created: paklein (02/14/1998) */
-#include "EdgeFinderT.h"
-#include "AutoArrayT.h"
-#include "GraphT.h"
+/* $Id: EdgeFinderT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* created: paklein (02/14/1998)                                          */
+/* Class to determine element neighbors based on the connectivies.        */
+/* The neighboring element numbers (taken from position in the list       */
+/* of connectivities) has the same dimension as the number of element     */
+/* nodes. The order of neighbors corresponds to the order of edges        */
+/* as they appear in the connectivities. If no neighbor is found for      */
+/* any edge, the neighbor number is -1.                                   */
 
-using namespace Tahoe;
+#include "EdgeFinderT.h"
+
+#include "AutoArrayT.h"
 
 /* indices for data flags */
 int kNumFlags   = 3;
@@ -13,28 +18,18 @@ int kNeighbor   = 1;
 int kInvConnect = 2;
 
 /* constructor */
-EdgeFinderT::EdgeFinderT(const ArrayT<const iArray2DT*>& connects,
+EdgeFinderT::EdgeFinderT(const iArray2DT& connects,
 	const iArray2DT& nodefacetmap):
-	fConnects(connects.Length()),
-	fStartNumber (connects.Length()),
-	fNumElements(0),
+	fCurrent(kNumFlags),
+	fConnects(connects),
 	fNumFacets(nodefacetmap.MajorDim()),
 	fKeyNodes(nodefacetmap.Max() + 1), // assuming key nodes appear sequentially as
 	                                   // the first entries in the connectivities
-	fNodeFacetMap(nodefacetmap),
-	fCurrent(kNumFlags)
+	fNodeFacetMap(nodefacetmap)
 {
 	/* check */
-	const char caller[] = "EdgeFinderT::EdgeFinderT";
-	if (fNumFacets < 3) ExceptionT::GeneralFail(caller); // at least tri's?
-	if (fKeyNodes < fNumFacets) ExceptionT::GeneralFail(caller);
-
-	for (int i=0; i < connects.Length(); i++)
-	  {
-	    fStartNumber [i] = fNumElements;
-	    fConnects[i] = connects[i];
-	    fNumElements += connects[i]->MajorDim();
-	  }
+	if (fNumFacets < 3) throw eGeneralFail; // at least tri's?
+	if (fKeyNodes < fNumFacets) throw eGeneralFail;
 
 	/* initialize */
 	Clear();
@@ -68,29 +63,30 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 
 		/* set elements(node) */
 		SetInverseConnects();
-
+		
 		/* allocate and initialize neighbor data */
-		fNeighbors.Dimension(fNumElements, fNumFacets);
+		int nel = fConnects.MajorDim();
+		fNeighbors.Allocate(nel, fNumFacets);
 		fNeighbors = -1;
 
 		/* work space */
-		iArrayT hit_count(fNumElements);
+		iArrayT hit_count(nel);
 		hit_count = 0;
 		
 		/* set neighbors */
 		int nfn = fNodeFacetMap.MinorDim();
 		AutoArrayT<int> hit_elems;
-		for (int i = 0; i < fNumElements; i++)
+		for (int i = 0; i < nel; i++)
 		{
 			int* neigh_i = fNeighbors(i);
-			const int* elem_i  = ElementNodes(i);
+			int* elem_i  = fConnects(i);
 			for (int j = 0; j < fNumFacets; j++)
 			{
 				/* neighbor not set */
 				if (*neigh_i == -1)
 				{
 					/* tag all neighboring elements */
-					const int* nodemap = fNodeFacetMap(j);
+					int* nodemap = fNodeFacetMap(j);
 					for (int k = 0; k < nfn; k++)
 					{
 						/* location of elems(node) data */
@@ -122,13 +118,16 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 					if (neighbor != -1)
 					{
 						/* determine neighbor's facet */
-						int facet_l = FindMatchingFacet(j, elem_i, ElementNodes(neighbor));
+						int facet_l = FindMatchingFacet(j, elem_i, fConnects(neighbor));
 				
+					#if __option(extended_errorcheck)
 						/* neighbor's neighbor should be unset */
 						if (fNeighbors(neighbor, facet_l) != -1)
-							ExceptionT::GeneralFail("EdgeFinderT::Neighbors",
-								"element %d face %d neighbor element %d face %d is already set to %d",
-								i+1, j+1, neighbor+1, facet_l+1, fNeighbors(neighbor, facet_l)+1);
+						{
+							cout << "\n EdgeFinderT::Neighbors: neighbor's neighbor already set" << endl;
+							throw eGeneralFail;
+						}
+					#endif
 						
 						/* cross link */
 						*neigh_i = neighbor;
@@ -143,7 +142,7 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 					hit_count[*hits++] = 0;
 				
 				/* initialize hit list */	
-				hit_elems.Dimension(0);
+				hit_elems.Allocate(0);
 		
 				/* next facet */
 				neigh_i++;
@@ -154,231 +153,6 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 	return fNeighbors;
 }
 
-/* return the "bounding" elements */
-void EdgeFinderT::BoundingElements(iArrayT& elements, iArray2DT& neighbors)
-{
-	/* element neighbor list */
-	const iArray2DT& all_neighbors = Neighbors();
-
-	/* determine total number of elements */
-	int nel = 0;
-	for (int i = 0; i < fConnects.Length(); i++)
-		nel += fConnects[i]->MajorDim();
-
-	/* collect list of bounding elements */
-	AutoArrayT<int> borders;
-	iArrayT element;
-	for (int i = 0; i < nel; i++)
-	{
-		all_neighbors.RowAlias(i, element);
-	
-		/* has "free" edge */
-		if (element.HasValue(-1)) borders.Append(i);
-	}
-	elements.Dimension(borders.Length());
-	borders.CopyInto(elements);
-	
-	/* copy bounding element neighbor lists */
-	neighbors.Dimension(elements.Length(), all_neighbors.MinorDim());
-	neighbors.RowCollect(elements, all_neighbors);
-}
-
-/* surface facets */
-void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets, iArrayT& surface_nodes)
-{
-	/* find bounding elements */
-	iArrayT   border_elems;
-	iArray2DT border_neighs;
-	BoundingElements(border_elems, border_neighs);
-		
-	/* collect nodes on facets info */
-//TEMP
-#if 0
-	ArrayT<iArrayT> facetnodemap(geometry->NumFacets());
-	for (int i2 = 0; i2 < facetnodemap.Length(); i2++)
-		geometry->NodesOnFacet(i2, facetnodemap[i2]);	
-#endif
-
-	/* collect surface facets (with "outward" normal ordering) */
-	AutoArrayT<int> border_nodes;
-	int surf_count = 0;
-	int num_facets = fNodeFacetMap.MajorDim();
-	int num_facet_nodes = fNodeFacetMap.MinorDim();
-	border_nodes.Dimension(0);
-	surface_facets.Dimension(border_neighs.Count(-1), num_facet_nodes);
-	for (int i = 0; i < border_elems.Length(); i++)
-	{
-		/* element connectivity */
-		const int* elem = ElementNodes(border_elems[i]);
-
-		/* find open sides */
-		int found_open = 0;
-		int* pneigh = border_neighs(i);
-		for (int j = 0; j < num_facets; j++)
-		{
-			/* open face */
-			if (*pneigh == -1)
-			{
-				/* set flag */
-				found_open = 1;
-				
-				/* collect facet nodes */
-				int* pfacet = surface_facets(surf_count++);
-				const int* facet_nodes = fNodeFacetMap(j);
-				for (int k = 0; k < num_facet_nodes; k++)
-				{
-					int node = elem[*facet_nodes++];
-					*pfacet++ = node;
-					border_nodes.AppendUnique(node);
-					// better just to keep a "nodes used" map?
-				}
-			}	
-			pneigh++;
-		}
-	
-		/* no open facet */	
-		if (!found_open)
-			ExceptionT::GeneralFail("EdgeFinderT::SurfaceFacets", 
-				"error building surface facet list");
-	}
-
-	/* return value */
-	surface_nodes.Dimension(border_nodes.Length());
-	border_nodes.CopyInto(surface_nodes);
-}
-void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets, 
-	iArrayT& surface_nodes, iArrayT& facet_numbers, iArrayT& elem_numbers)
-{
-	/* find bounding elements */
-	iArrayT   border_elems;
-	iArray2DT border_neighs;
-	BoundingElements(border_elems, border_neighs);
-		
-	/* collect nodes on facets info */
-//TEMP
-#if 0
-	ArrayT<iArrayT> facetnodemap(geometry->NumFacets());
-	for (int i2 = 0; i2 < facetnodemap.Length(); i2++)
-		geometry->NodesOnFacet(i2, facetnodemap[i2]);	
-#endif
-
-	/* collect surface facets (with "outward" normal ordering) */
-	AutoArrayT<int> border_nodes;
-	int surf_count = 0;
-	int num_facets = fNodeFacetMap.MajorDim();
-	int num_facet_nodes = fNodeFacetMap.MinorDim();
-	border_nodes.Dimension(0);
-	surface_facets.Dimension(border_neighs.Count(-1), num_facet_nodes);
-	facet_numbers.Dimension(surface_facets.MajorDim());
-	elem_numbers.Dimension(surface_facets.MajorDim());
-	for (int i = 0; i < border_elems.Length(); i++)
-	{
-		/* element connectivity */
-		const int* elem = ElementNodes(border_elems[i]);
-
-		/* find open sides */
-		int found_open = 0;
-		int* pneigh = border_neighs(i);
-		for (int j = 0; j < num_facets; j++)
-		{
-			/* open face */
-			if (*pneigh == -1)
-			{
-				/* set flag */
-				found_open = 1;
-				
-				/* collect facet nodes */
-				const int* facet_nodes = fNodeFacetMap(j);
-				facet_numbers[surf_count] = j; 			
-				elem_numbers[surf_count] = border_elems[i];	
-				int* pfacet = surface_facets(surf_count++);
-				for (int k = 0; k < num_facet_nodes; k++)
-				{
-					int node = elem[*facet_nodes++];
-					*pfacet++ = node;
-					border_nodes.AppendUnique(node);
-					// better just to keep a "nodes used" map?
-				}
-			}	
-			pneigh++;
-		}
-	
-		/* no open facet */	
-		if (!found_open)
-			ExceptionT::GeneralFail("EdgeFinderT::SurfaceFacets", 
-				"error building surface facet list");
-	}
-
-	/* return value */
-	surface_nodes.Dimension(border_nodes.Length());
-	border_nodes.CopyInto(surface_nodes);
-}
-/* with surface facets sorted into connected sets */
-void EdgeFinderT::SurfaceFacets(ArrayT<iArray2DT>& surface_facet_sets,
-	iArrayT& surface_nodes)
-{
-	/* collect all surface facets */
-	iArray2DT surface_facets;
-	SurfaceFacets(surface_facets, surface_nodes);
-
-	/* graph object */
-	GraphT graph;
-	graph.AddGroup(surface_facets);
-	graph.MakeGraph();
-
-	iArrayT branch_map;
-	graph.LabelBranches(surface_nodes, branch_map);
-	
-	/* sort surfaces */
-	int num_branches = branch_map.Max() + 1;
-	surface_facet_sets.Dimension(num_branches);
-	if (num_branches == 1)
-		surface_facet_sets[0] = surface_facets;
-	else
-	{
-		/* surfaces in each set */
-		iArrayT count(num_branches);
-		int size = surface_facets.MinorDim();
-		count = 0;
-		int* psurf = surface_facets(0);
-		for (int i = 0; i < surface_facets.MajorDim(); i++)
-		{
-			count[branch_map[*psurf]]++;
-			psurf += size;
-		}
-
-		/* set to surfaces map */
-		RaggedArray2DT<int> set_data;
-		set_data.Configure(count);
-
-		count = 0;
-		psurf = surface_facets(0);
-		for (int j = 0; j < surface_facets.MajorDim(); j++)
-		{
-			int branch = branch_map[*psurf];
-			*(set_data(branch) + count[branch]) = j;
-
-			count[branch]++;
-			psurf += size;
-		}
-			
-		/* copy in */
-		for (int k = 0; k < num_branches; k++)
-		{
-			surface_facet_sets[k].Dimension(set_data.MinorDim(k), size);
-			surface_facet_sets[k].RowCollect(set_data(k), surface_facets);
-		}
-	}
-}		
-
-/* with surface facets sorted into connected sets */
-void EdgeFinderT::SurfaceNodes(iArrayT& surface_nodes)
-{
-	/* collect all surface facets */
-	iArray2DT surface_facets;
-	SurfaceFacets(surface_facets, surface_nodes);
-}
-
 /**********************************************************************
 * Private
 **********************************************************************/
@@ -386,31 +160,17 @@ void EdgeFinderT::SurfaceNodes(iArrayT& surface_nodes)
 /* get dimensions from the connectivity set */
 void EdgeFinderT::SetDimensions(void)
 {
-	const char caller[] = "EdgeFinderT::SetDimensions";
 	if (!fCurrent[kDims])
 	{
 		/* mark as current */
 		fCurrent[kDims] = 1;
 	
 		/* check */
-		int nen = fConnects[0]->MinorDim();
-		for (int i=0; i < fConnects.Length(); i++)
-		  {
-		    if (fKeyNodes > fConnects[i]->MinorDim()) ExceptionT::OutOfRange(caller);
-		    if (nen != fConnects[i]->MinorDim()) ExceptionT::SizeMismatch(caller);
-		  }
-
+		if (fKeyNodes > fConnects.MinorDim()) throw eOutOfRange;
+	
 		/* set node number range */
-		iArrayT mins (fConnects.Length());
-		iArrayT maxes (fConnects.Length());
-		for (int i=0; i < fConnects.Length(); i++)
-		  {
-		    mins[i] = fConnects[i]->Min();
-		    maxes[i] = fConnects[i]->Max();
-		  }
-
-		fMinNum   = mins.Min();
-		fMaxNum   = maxes.Max();
+		fMinNum   = fConnects.Min();
+		fMaxNum   = fConnects.Max();
 		fNumNodes = fMaxNum - fMinNum + 1;
 	}
 }
@@ -424,18 +184,21 @@ void EdgeFinderT::SetInverseConnects(void)
 		fCurrent[kInvConnect] = 1;
 		
 		/* workspace */
-		AutoFill2DT<int> invconnects(fNumNodes, 1, 25, fNumFacets);
+		AutoFill2DT<int> invconnects(fNumNodes, 25, fNumFacets);
 
 		/* generate map */
-//		int  nen = fConnects[0]->MinorDim();
-		for (int i = 0; i < fNumElements; i++)
+		int  nen = fConnects.MinorDim();
+		int* pel = fConnects(0);
+		for (int i = 0; i < fConnects.MajorDim(); i++)
 		{
-			const int* pel = ElementNodes(i);
+			int* pel_i = pel;
 			for (int j = 0; j < fKeyNodes; j++)
 			{
-				int row = (*pel++) - fMinNum;
+				int row = (*pel_i++) - fMinNum;
 				invconnects.AppendUnique(row, i);
 			}
+
+			pel += nen;
 		}		
 
 		/* copy data */
@@ -451,8 +214,8 @@ int EdgeFinderT::FindMatchingFacet(int facet_i, const int* elem_i,
 	int facet_j = -1;
 	for (int j = 0; j < fNumFacets && facet_j < 0; j++)
 	{
-		const int* nodemap_i = fNodeFacetMap(facet_i) + (nfn - 1);
-		const int* nodemap_j = fNodeFacetMap(j);
+		int* nodemap_i = fNodeFacetMap(facet_i) + (nfn - 1);
+		int* nodemap_j = fNodeFacetMap(j);
 
 		/* find starting point */
 		int node_i = elem_i[*nodemap_i--];
@@ -479,28 +242,14 @@ int EdgeFinderT::FindMatchingFacet(int facet_i, const int* elem_i,
 		}
 	}
 
+#if __option(extended_errorcheck)
 	/* facet not found */
 	if (facet_j == -1)
-		ExceptionT::GeneralFail("EdgeFinderT::FindMatchingFacet", "failed");
+	{
+		cout << "\n EdgeFinderT::FindMatchingFacet: failed" << endl;
+		throw eGeneralFail;
+	}
+#endif
 
 	return facet_j;	
-}
-
-const int* EdgeFinderT::ElementNodes (int index) const
-{
-	const char caller[] = "EdgeFinderT::ElementNodes";
-  if (index < 0 || index >= fNumElements) ExceptionT::OutOfRange(caller);
-
-  /* find the block */
-  int block = 0;
-//  int offset = 0;
-  while (block+1 < fStartNumber.Length() && index >= fStartNumber[block+1])
-    {
-      block++;
-      if (block > fConnects.Length()) ExceptionT::OutOfRange(caller);
-    }
-
-  int localindex = index - fStartNumber[block];
-  const iArray2DT* conn = fConnects[block];
-  return (*conn)(localindex);
 }

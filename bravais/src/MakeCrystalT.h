@@ -1,19 +1,14 @@
-// DEVELOPMENT
-/* $Id: MakeCrystalT.h,v 1.4 2005-02-04 00:59:27 rjones Exp $ */
+/* $Id: MakeCrystalT.h,v 1.1.1.1 2002-02-28 02:13:08 jzimmer Exp $ */
 
 #ifndef _MAKE_CRYSTAL_T_H_
 #define _MAKE_CRYSTAL_T_H_
 
-#include "StringT.h"
+class MakeCrystalT {
+public:
+	MakeCrystalT() { }
+	~MakeCrystalT() { }
 
-using namespace Tahoe;
-
-    class MakeCrystalT {
-   public:
-       MakeCrystalT() { }
-       ~MakeCrystalT() { }
-   
-      void Run(StringT& input_file);
-   };
+	void Run();
+};
 
 #endif

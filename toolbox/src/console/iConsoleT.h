@@ -1,5 +1,7 @@
-/* $Id: iConsoleT.h,v 1.15 2004-06-17 06:38:16 paklein Exp $ */
-/* created: paklein (12/21/2000) */
+/* $Id: iConsoleT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* created: paklein (12/21/2000)                                          */
+/* iConsoleT.h                                                            */
+
 #ifndef _I_CONSOLE_T_H_
 #define _I_CONSOLE_T_H_
 
@@ -7,50 +9,31 @@
 #include "iConsoleBaseT.h"
 
 /* direct members */
-#include "ofstreamT.h"
-
-namespace Tahoe {
+#include "fstreamT.h"
 
 /* forward declaration */
 class iConsoleObjectT;
 
-/** interactive console. */
 class iConsoleT: public iConsoleBaseT
 {
-  public:
+public:
 
 	/* constructor */
-	iConsoleT(const StringT& log_file, iConsoleObjectT& current,
-		const ArrayT<StringT>* arguments = NULL,
-		bool do_interactive = true);
+	iConsoleT(const StringT& log_file, iConsoleObjectT& current);
 
 	/* destructor */
-	virtual ~iConsoleT(void);
+	~iConsoleT(void);
 
 	/* execute given command - returns false on fail */
-	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
+	virtual bool iDoCommand(const StringT& command, StringT& line);
 
 	/* operate on given variable */
 	virtual bool iDoVariable(const StringT& variable, StringT& line);
 
-	/* console flags */
-	enum CommandScope {kNone = 0,
-		     kConsoleCommand = 1,
-	        kConsoleVariable = 2,
-	           kScopeCommand = 3,
-	          kScopeVariable = 4,
-	                  kAlias = 5};
+private:
 
-	/** return the name of the current scope */
-	const StringT& Scope(void) { return fScope; };
-	
-	/** reference to the object which is the current scope */
-	iConsoleObjectT& Current(void) { return *fCurrent; };
-
-	/** main event loop */
+	/* main event loop */
 	void DoInteractive(void);
-
-  private:
 
 	/* get command line */
 	void GetCommandLine(StringT& line);
@@ -64,15 +47,24 @@ class iConsoleT: public iConsoleBaseT
 	/* pulls the first word from the line and resolves it into
 	 * a command from the console or current scope, or returns
 	 * kNone if the word could not be resolved */
+	enum CommandScope {kNone = 0,
+		     kConsoleCommand = 1,
+	        kConsoleVariable = 2,
+	           kScopeCommand = 3,
+	          kScopeVariable = 4,
+	                  kAlias = 5};
 	CommandScope ResolveNextWord(StringT& line, StringT& command) const;
-	CommandScope ResolveCommandName(StringT& command) const;
+	CommandScope ResolveCommand(StringT& command) const;
 	
 	/* reset dictionary - scope_only sets only scope commands
 	 * and variables */
 	void BuildDictionary(bool scope_only);
 
+private:
+
 	/* commands */
 	void ListCommand(ostream& out) const;
+	bool HistoryCommand(StringT& line);
 	
 	/* flush the command line and all input streams */
 	void FlushInput(StringT& line);
@@ -80,60 +72,41 @@ class iConsoleT: public iConsoleBaseT
 	/* make an alias - returns false on fail */
 	bool MakeAlias(const StringT& alias, StringT& line);
 
-	/** \name command history
-	 * manipulating the history stack */
-	/*@{*/
+	/* manipulating the history stack */
 	void PushHistory(const StringT& line);
 	void PopHistory(void);
 	void TopHistory(StringT& line);
-	/*@}*/
-
-	/** pull the next command from the line. Commands are separated by ';',
-	 * but separators contained in quoted strings are ignored */
-	void NextCommand(const StringT& source, StringT& next) const;
 
 private:
 
-	/** log file */
+	/* log file */
 	ofstreamT flog;
 
-	/** console variables */
-	/*@{*/
+	/* parameters */
 	int fmax_recursion_depth;
 	int fhistory_size;
-	/*@}*/
 
-	/** current console object */
-	/*@{*/
+	/* current console object */
 	iConsoleObjectT* fCurrent;
 	iConsoleObjectT* fLastCurrent;
-	/*@}*/
 		
-	/** scope */
+	/* scope */
 	StringT fScope;
 	
-	/** runtime */
-	/*@{*/
-	int  frecursion_depth;
-	bool fstop_read_on_error;
+	/* runtime */
+	int frecursion_depth;
 	AutoArrayT<ifstreamT*> fInputStack;
 	AutoArrayT<StringT>    fDanglingInput;
-	int fHistoryCount;
 	AutoArrayT<StringT*>   fHistory;
-	/*@}*/
+	
 
-	/** dictionary */
-	/*@{*/
-	AutoArrayT<const StringT*> fWord;
-	AutoArrayT<CommandScope>   fWordScope;
-	/*@}*/
-
-	/** aliases */
-	/*@{*/
+	/* dictionary */
+	AutoArrayT<StringT*>     fWord;
+	AutoArrayT<CommandScope> fWordScope;
+	
+	/* aliases */
 	AutoArrayT<StringT> fAlias;
 	AutoArrayT<StringT> fAliasCommand;
-	/*@}*/
 };
 
-} // namespace Tahoe 
 #endif /* _I_CONSOLE_T_H_ */

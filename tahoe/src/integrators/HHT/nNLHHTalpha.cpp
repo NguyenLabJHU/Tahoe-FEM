@@ -1,31 +1,37 @@
-/* $Id: nNLHHTalpha.cpp,v 1.14 2004-12-26 21:08:41 d-farrell2 Exp $ */
-/* created: paklein (10/17/1996) */
+/* $Id: nNLHHTalpha.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/17/1996)                                          */
+
 #include "nNLHHTalpha.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "KBC_CardT.h"
-#include "BasicFieldT.h"
-
-using namespace Tahoe;
 
 /* constructor */
-nNLHHTalpha::nNLHHTalpha(double alpha):
-	HHTalpha(alpha)
+nNLHHTalpha::nNLHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder):
+	HHTalpha(in, out, auto2ndorder)
 {
 
 }
 
 /* consistent BC's - updates predictors and acceleration only */
-void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
+void nNLHHTalpha::ConsistentKBC(const KBC_CardT& KBC)
 {
+#if __option(extended_errorcheck)
+	if (!fU || !fdU || !fddU)
+	{
+		cout << "\n nNLHHTalpha::ConsistentKBC: field arrays not set" << endl;
+		throw eGeneralFail;
+	}
+#endif
+
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (field[0])(node, dof);
-	double& v = (field[1])(node, dof);
-	double& a = (field[2])(node, dof);
+	double& d = (*fU)(node, dof);
+	double& v = (*fdU)(node, dof);
+	double& a = (*fddU)(node, dof);
 
 	switch ( KBC.Code() )
 	{
@@ -34,28 +40,24 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		{
 			double temp = KBC.Value();
 			
-			if (fabs(dcorr_a) > kSmall) /* for dt -> 0.0 */
-				a = (temp - d)/dcorr_a;
-			else
-				a = 0.0;
+			a  = (temp - d)/dcorr_a;
 			d  = temp;
 			v += vcorr_a*a;
-
+		
 			break;
 		}
+		
 		case KBC_CardT::kVel: /* prescribed velocity */
 		{
 			double temp = KBC.Value();
 			
-			if (fabs(vcorr_a) > kSmall) /* for dt -> 0.0 */
-				a = (temp - v)/vcorr_a;
-			else
-				a = 0.0;
+			a  = (temp - v)/vcorr_a;
 			d += dcorr_a*a;
 			v  = temp;
-
+	
 			break;
 		}
+		
 		case KBC_CardT::kAcc: /* prescribed acceleration */
 		{
 			a  = KBC.Value();
@@ -64,103 +66,95 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 
 			break;
 		}
-		case KBC_CardT::kNull: /* do nothing */
-		{
-			break;
-		}
+		
 		default:
-			ExceptionT::BadInputValue("nNLHHTalpha::ConsistentKBC", 
-				"unknown BC code: %d", KBC.Code());
-	}
-}		
-#pragma message ("roll up redundancy after it works")
-// predictors - map ALL, unless limit arguments are specified
-void nNLHHTalpha::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
-{
-	if (fieldend == -1) // operate on full arrays
-	{
-		/* displacement predictor */
-		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);
 		
-		/* velocity predictor */
-		field[1].AddScaled(vpred_a, field[2]);
-		
-		/* acceleratior predictor */
-		field[2] = 0.0;	
-	}
-	else // operate on restricted contiguous block of the arrays
-	{
-		/* displacement predictor */
-		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2], fieldstart, fieldend);
-		
-		/* velocity predictor */
-		field[1].AddScaled(vpred_a, field[2], fieldstart, fieldend);
-		
-		/* acceleratior predictor */
-		field[2].SetToScaled(0.0, field[1], fieldstart, fieldend);	
+			cout << "\nnNLHHTalpha::ConsistentKBC:unknown BC code\n" << endl;
+			throw eBadInputValue;
 	}
 }		
 
-/* corrector. Maps ALL degrees of freedom forward. */
-void nNLHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+/* rredictors - map ALL */
+void nNLHHTalpha::Predictor(void)
 {
-	if (fieldend == -1) // operate on full arrays
+#if __option (extended_errorcheck)
+	if (!fU || !fdU || !fddU)
 	{
-		/* displacement corrector */
-		field[0].AddScaled(dcorr_a, update);
-		
-		/* velocity corrector */
-		field[1].AddScaled(vcorr_a, update);
-		
-		/* acceleration corrector */
-		field[2] += update;
+		cout << "\n nNLHHTalpha::Predictor: field arrays not set" << endl;
+		throw eGeneralFail;
 	}
-	else // operate on restricted contiguous block of the arrays
-	{
-		/* displacement corrector */
-		field[0].AddScaled(dcorr_a, update, fieldstart, fieldend);
-		
-		/* velocity corrector */
-		field[1].AddScaled(vcorr_a, update, fieldstart, fieldend);
-		
-		/* acceleration corrector */
-		field[2].AddScaled(1.0, update, fieldstart, fieldend);
-	}
-}
+	if (fU->Length() != fdU->Length() ||
+	   fdU->Length() != fddU->Length()) throw eGeneralFail;
+#endif
+
+	/* displacement predictor */
+	fU->AddCombination(dpred_v, *fdU, dpred_a, *fddU);
+
+	/* velocity predictor */
+	fdU->AddScaled(vpred_a, *fddU);
+	
+	/* acceleration predictor */
+	(*fddU) = 0.0;
+}		
 
 /* correctors - map ACTIVE */
-void nNLHHTalpha::Corrector(BasicFieldT& field, const dArrayT& update, 
-	int eq_start, int num_eq)
+void nNLHHTalpha::Corrector(const iArray2DT& eqnos, const dArrayT& update)
 {
-	const iArray2DT& eqnos = field.Equations();
+#if __option (extended_errorcheck)
+	if (!fU || !fdU || !fddU)
+	{
+		cout << "\n nNLHHTalpha::Corrector: field arrays not set" << endl;
+		throw eGeneralFail;
+	}
+	if (eqnos.Length() != fU->Length()  ||
+	      fU->Length() != fdU->Length() ||
+	     fdU->Length() != fddU->Length()) throw eGeneralFail;		
+	/* note: No check on length of update.  Could make numequations
+	         a field in ControllerT. */
+#endif
 
 	/* add update - assumes that fEqnos maps directly into dva */
-	const int *peq = eqnos.Pointer();
+	int    *peq = eqnos.Pointer();
 	
-	double *pd  = field[0].Pointer();
-	double *pv  = field[1].Pointer();
-	double *pa  = field[2].Pointer();
+	double *pd  = fU->Pointer();
+	double *pv  = fdU->Pointer();
+	double *pa  = fddU->Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
-		int eq = *peq++ - eq_start;
+		int eq = *peq++;
 		
-		if (eq > -1 && eq < num_eq) /* active dof */
+		if (eq > 0)	/* active dof */
 		{
-			double da = update[eq];
+			double da = update[--eq];
 		
 			*pd += dcorr_a*da;
 			*pv += vcorr_a*da;
 			*pa += da;
 		}
+			
 		pd++;
 		pv++;
 		pa++;		
 	}	
 }
 
-void nNLHHTalpha::MappedCorrector(BasicFieldT& field, const iArrayT& map, 
-		const iArray2DT& flags, const dArray2DT& update)
+void nNLHHTalpha::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
+	const dArray2DT& update)
 {
+#if __option (extended_errorcheck)
+	if (!fU || !fdU || !fddU)
+	{
+		cout << "\n nNLHHTalpha::MappedCorrector: field arrays not set" << endl;
+		throw eGeneralFail;
+	}
+#endif
+
+	/* checks */
+	if (flags.MajorDim() != map.Length() ||
+	    flags.MajorDim() != update.MajorDim() ||
+	    flags.MinorDim() != update.MinorDim() ||
+	    flags.MinorDim() != fU->MinorDim()) throw eSizeMismatch;
+
 	/* run through map */
 	int minordim = flags.MinorDim();
 	const int* pflag = flags.Pointer();
@@ -168,41 +162,27 @@ void nNLHHTalpha::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	for (int i = 0; i < map.Length(); i++)
 	{
 		int row = map[i];
-		const int* pflags = flags(i);
+		int* pflags = flags(i);
 
-		double* pd = (field[0])(row);
-		double* pv = (field[1])(row);
-		double* pa = (field[2])(row);
+		double* pd = (*fU)(row);
+		double* pv = (*fdU)(row);
+		double* pa = (*fddU)(row);
 		for (int j = 0; j < minordim; j++)
 		{
 			/* active */
-			if (*pflag > 0)
+			if (*pflag++ > 0)
 			{
-				double da = *pupdate - *pa; 
-/* NOTE: update is the total a_n+1, so we need to recover da, the acceleration
- *       increment. Due to truncation errors, this will not match the update
- *       applied in nNLHHTalpha::Corrector exactly. Therefore, ghosted nodes
- *       will not have exactly the same trajectory as their images. The solution
- *       would be to expand da to the full field, and send it. Otherwise, we
- *       could develop maps from the update vector to each communicated outgoing
- *       packet. Or {d,v,a} could be recalculated from t_n here and in Corrector,
- *       though this would require the data from t_n. */
+				double da = *pupdate;
 			
 				*pd += dcorr_a*da;
 				*pv += vcorr_a*da;
-				*pa  = *pupdate; /* a_n+1 matches exactly */
+				*pa += da;
 			}
 			
 			/* next */
-			pflag++; pupdate++; pd++; pv++; pa++;
+			pupdate++; pd++; pv++; pa++;
 		}
 	}
-}
-
-/* return the field array needed by nIntegratorT::MappedCorrector. */
-const dArray2DT& nNLHHTalpha::MappedCorrectorField(BasicFieldT& field) const
-{
-	return field[2];
 }
 
 /* pseudo-boundary conditions for external nodes */

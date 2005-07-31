@@ -1,21 +1,36 @@
-/* $Id: SSKStV2D.cpp,v 1.7 2004-09-10 22:39:02 paklein Exp $ */
-/* created: paklein (06/10/1997) */
+/* $Id: SSKStV2D.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (06/10/1997)                                          */
+
 #include "SSKStV2D.h"
 #include "StringT.h"
 #include "ThermalDilatationT.h"
-
-using namespace Tahoe;
 
 /* element output data */
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"phi", "J2_dev", "p"};
 
 /* constructor */
-SSKStV2D::SSKStV2D(void):
-	ParameterInterfaceT("small_strain_StVenant_2D")
+SSKStV2D::SSKStV2D(ifstreamT& in, const ElasticT& element):
+	SSHookeanMatT(in, element),
+	KStV2D(in, fModulus, fDensity)
 {
-	/* reset default value */
-	fConstraint = kPlaneStress;
+
+}
+
+/* print parameters */
+void SSKStV2D::Print(ostream& out) const
+{
+	/* inherited */
+	SSHookeanMatT::Print(out);
+	KStV2D::Print(out);
+}
+
+/* print name */
+void SSKStV2D::PrintName(ostream& out) const
+{
+	/* inherited */
+	SSHookeanMatT::PrintName(out);
+	KStV2D::PrintName(out);
 }
 
 /* returns the number of variables computed for nodal extrapolation
@@ -24,7 +39,7 @@ int SSKStV2D::NumOutputVariables(void) const { return kNumOutput; }
 void SSKStV2D::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Dimension(kNumOutput);
+	labels.Allocate(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
@@ -47,7 +62,7 @@ void SSKStV2D::ComputeOutput(dArrayT& output)
 	dSymMatrixT cauchy_3D(3,a);
 	cauchy_3D.ExpandFrom2D(cauchy_2D);
 		
-	cauchy_3D(2,2) = (Constraint() == kPlaneStress) ? 0.0:
+	cauchy_3D(2,2) = (fConstraintOption == kPlaneStress) ? 0.0:
 						nu*(cauchy_3D(0,0) + cauchy_3D(0,0));
 
 	/* pressure */
@@ -56,16 +71,6 @@ void SSKStV2D::ComputeOutput(dArrayT& output)
 	/* deviator J2 */
 	cauchy_3D.Deviatoric();
 	output[1] = cauchy_3D.Invariant2();
-}
-
-/*************************************************************************
-* Protected
-*************************************************************************/
-
-/* set (material) tangent modulus */
-void SSKStV2D::SetModulus(dMatrixT& modulus)
-{
-	IsotropicT::ComputeModuli2D(modulus, Constraint());
 }
 
 /*************************************************************************
@@ -78,7 +83,7 @@ bool SSKStV2D::SetThermalStrain(dSymMatrixT& thermal_strain)
 	thermal_strain = 0.0;
 	if (fThermal->IsActive())
 	{
-		double factor = IsotropicT::DilatationFactor2D(Constraint());
+		double factor = DilatationFactor();
 		thermal_strain.PlusIdentity(factor*fThermal->PercentElongation());
 		return true;
 	}

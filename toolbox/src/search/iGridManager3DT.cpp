@@ -1,14 +1,13 @@
-/* $Id: iGridManager3DT.cpp,v 1.6 2003-11-21 22:42:07 paklein Exp $ */
-/* created: paklein (12/09/1997) */
+/* $Id: iGridManager3DT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (12/09/1997)                                          */
+/* iNodeT grid                                                            */
+
 #include "iGridManager3DT.h"
 #include "iArrayT.h"
-#include "dArrayT.h"
-
-using namespace Tahoe;
 
 /* constructor */
 iGridManager3DT::iGridManager3DT(int nx, int ny, int nz,
-	const dArray2DT& coords, const ArrayT<int>* nodes_used):
+	const dArray2DT& coords, const iArrayT* nodes_used):
 	GridManager3DT<iNodeT>(nx, ny, nz, coords, nodes_used),
 	fCoords(coords),
 	fNodesUsed(nodes_used)
@@ -20,10 +19,10 @@ iGridManager3DT::iGridManager3DT(int nx, int ny, int nz,
 void iGridManager3DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 {
 	/* initialize */
-	neighbors.Dimension(0);
+	neighbors.Allocate(0);
 	
 	/* fetch prospective neighbors */
-	const double* target = fCoords(n);
+	double* target = fCoords(n);
 	const AutoArrayT<iNodeT>& hits =  HitsInRegion(target,tol);
 
 	/* search through list */
@@ -32,7 +31,7 @@ void iGridManager3DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 	for (int i = 0; i < hits.Length(); i++)
 		if (hits[i].Tag() != thistag)
 		{
-			const double* coords = hits[i].Coords();
+			double* coords = hits[i].Coords();
 			
 			double dx = target[0] - coords[0];
 			double dy = target[1] - coords[1];
@@ -41,36 +40,6 @@ void iGridManager3DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 			
 			/* add to neighbor list */
 			if (dsqr <= tolsqr) neighbors.Append(hits[i].Tag());
-		}
-}
-
-void iGridManager3DT::Neighbors(int n, const ArrayT<double>& tol_xyz, AutoArrayT<int>& neighbors)
-{
-	/* initialize */
-	neighbors.Dimension(0);
-	
-	/* fetch prospective neighbors */
-	const double* target = fCoords(n);
-	const AutoArrayT<iNodeT>& hits =  HitsInRegion(target, tol_xyz);
-
-	/* search through list */
-	double tol_x = tol_xyz[0];
-	double tol_y = tol_xyz[1];
-	double tol_z = tol_xyz[2];
-	int   thistag = n;
-	for (int i = 0; i < hits.Length(); i++)
-		if (hits[i].Tag() != thistag)
-		{
-			const double* coords = hits[i].Coords();
-			
-			double dx = fabs(target[0] - coords[0]);
-			double dy = fabs(target[1] - coords[1]);
-			double dz = fabs(target[2] - coords[2]);
-			
-			/* add to neighbor list */
-			if (dx <= tol_x && 
-			    dy <= tol_y &&
-			    dz <= tol_z) neighbors.Append(hits[i].Tag());
 		}
 }
 
@@ -93,7 +62,7 @@ void iGridManager3DT::Reset(void)
 	else
 	{
 		iNodeT temp;
-		const int* dex = fNodesUsed->Pointer();
+		int* dex = fNodesUsed->Pointer();
 		for (int i = 0; i < fNodesUsed->Length(); i++)
 		{
 			int node = *dex++;
@@ -118,7 +87,7 @@ void iGridManager3DT::ProcessHits(double* target, double tol, int skiptag,
 	for (int i = 0; i < hits.Length(); i++)
 		if (hits[i].Tag() != skiptag)
 		{
-			const double* coords = hits[i].Coords();
+			double* coords = hits[i].Coords();
 			
 			double dx = target[0] - coords[0];
 			double dy = target[1] - coords[1];
@@ -129,7 +98,7 @@ void iGridManager3DT::ProcessHits(double* target, double tol, int skiptag,
 			if (dsqr <= tolsqr)
 			{
 				/* quit if list full */
-				if (count == neighbors.Length()) throw ExceptionT::kGeneralFail;
+				if (count == neighbors.Length()) throw eGeneralFail;
 
 				/* append to list */
 				neighbors[count++] = hits[i].Tag();			
@@ -152,7 +121,7 @@ void iGridManager3DT::ProcessHitsSorted(double* target, double tol,
 	
 		if (tag > skiptag)
 		{
-			const double* coords = hits[i].Coords();
+			double* coords = hits[i].Coords();
 			
 			double dx = target[0] - coords[0];
 			double dy = target[1] - coords[1];

@@ -1,62 +1,69 @@
-/* $Id: SWDiamondT.cpp,v 1.13 2004-07-15 08:30:17 paklein Exp $ */
-/* created: paklein (03/19/1997) */
+/* $Id: SWDiamondT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (03/19/1997)                                          */
+
 #include "SWDiamondT.h"
 
 #include <math.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
+#include "FEManagerT.h"
+#include "NodeManagerT.h"
 #include "FindNeighbor23T.h"
-#include "OutputSetT.h"
-
-using namespace Tahoe;
 
 /* element group parameters */
+const int kndof = 3;
 const int knsd  = 3;
 const int kSWMaxNeighbors0 = 4; //max neighbors in undeformed state
 
 /* constructor */
-SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support),
+SWDiamondT::SWDiamondT(FEManagerT& fe_manager):
+	ElementBaseT(fe_manager),
 	fK_3Body(fLHS),
 	fF_3Body(fRHS),
 	fK_2Body(ElementMatrixT::kSymmetricUpper),
 	fLocX_3Body(LocalArrayT::kInitCoords, 3, knsd),
-	fLocd_3Body(LocalArrayT::kDisp, 3, NumDOF()),
+	fLocd_3Body(LocalArrayT::kDisp, 3, kndof),
 	List_3Body(fElementCards),
+	fNodes_3Body(fConnectivities),
+	fEqnos_3Body(fEqnos),
 	fLocX_2Body(LocalArrayT::kInitCoords, 2, knsd),
-	fLocd_2Body(LocalArrayT::kDisp, 2, NumDOF()),
+	fLocd_2Body(LocalArrayT::kDisp, 2, kndof),
 	fHessian_3Body(3)
 {
-ExceptionT::GeneralFail("SWDiamondT::SWDiamondT", "out of date");
-#if 0
 	/* check base class initializations */
-	if (NumSD() != knsd) throw ExceptionT::kGeneralFail;
+	if (fNumSD != knsd) throw eGeneralFail;
 
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
 
 	/* set base class data */
-//	fNumElemEqnos = 3*NumDOF();
+	fNumDOF = kndof;
 
 	/* allocate memory */
-	fK_3Body.Dimension(3*NumDOF());
-	fF_3Body.Dimension(3*NumDOF());
+	fK_3Body.Allocate(3*fNumDOF);
+	fF_3Body.Allocate(3*fNumDOF);
 
-	fK_2Body.Dimension(2*NumDOF());
-	fF_2Body.Dimension(2*NumDOF());
+	fK_2Body.Allocate(2*fNumDOF);
+	fF_2Body.Allocate(2*fNumDOF);
 
 	/* register local arrays */
-	ElementSupport().RegisterCoordinates(fLocX_3Body);
-	ElementSupport().RegisterCoordinates(fLocX_2Body);
+	fFEManager.RegisterLocal(fLocX_3Body);
+	fFEManager.RegisterLocal(fLocX_2Body);
 	
-	Field().RegisterLocal(fLocd_3Body);
-	Field().RegisterLocal(fLocd_2Body);
-	
-	//TEMP
-	ReadMaterialData(ElementSupport().Input());	
-#endif
+	fFEManager.RegisterLocal(fLocd_3Body);
+	fFEManager.RegisterLocal(fLocd_2Body);
+}
+
+/* initialization */
+void SWDiamondT::Initialize(void)
+{
+	/* inherited */
+	ElementBaseT::Initialize();
+
+	/* material parameters */
+	ReadMaterialData(fFEManager.Input());	
+	WriteMaterialData(fFEManager.Output());
 }
 
 /* form of tangent matrix */
@@ -66,9 +73,8 @@ GlobalT::SystemTypeT SWDiamondT::TangentType(void) const
 }
 
 /* NOT implemented. Returns an zero force vector */
-void SWDiamondT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
+void SWDiamondT::AddNodalForce(int node, dArrayT& force)
 {
-#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }
@@ -112,8 +118,8 @@ void SWDiamondT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_2)
 
 	/* set local equations numbers */
-	Field().SetLocalEqnos(fNodes_3Body, fEqnos_3Body);
-	Field().SetLocalEqnos(fNodes_2Body, fEqnos_2Body);
+	fNodes->SetLocalEqnos(fNodes_3Body, fEqnos_3Body);
+	fNodes->SetLocalEqnos(fNodes_2Body, fEqnos_2Body);
 
 	/* add to list */
 	eq_1.Append(&fEqnos_3Body); // 3-body interactions include 2-body
@@ -122,33 +128,13 @@ void SWDiamondT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 /* writing output */
 void SWDiamondT::RegisterOutput(void)
 {
-	/* set labels */
-	ArrayT<StringT> n_labels(3), e_labels;
-	n_labels[0] = "D_X";
-	n_labels[1] = "D_Y";
-	n_labels[2] = "D_Z";		
-
-	/* set block IDs, since fBlockData is nil */
-	ArrayT<StringT> block_ID (1);
-	block_ID[0] = "1";
-
-	/* set output specifier */
-	ArrayT<const iArray2DT*> output_connects_list(1);
-	output_connects_list[0] = &fOutputConnects;
-	OutputSetT output_set(GeometryT::kPoint, block_ID, output_connects_list, n_labels, e_labels, false);
-
-	/* register and get output ID */
-	fOutputID = ElementSupport().RegisterOutput(output_set);
+	//nothing for now
 }
 
-void SWDiamondT::WriteOutput(void)
+void SWDiamondT::WriteOutput(IOBaseT::OutputModeT mode)
 {
-	/* calculate output values */
-	dArray2DT n_values(fNodesUsed.Length(), NumDOF()), e_values;
-	n_values.RowCollect(fNodesUsed, Field()[0]); /* displacements */
-
-	/* send to output */
-	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+#pragma unused(mode)
+	//nothing for now
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -162,48 +148,42 @@ void SWDiamondT::SendOutput(int kincode)
 ***********************************************************************/
 
 /* construct the element stiffness matrix */
-void SWDiamondT::LHSDriver(GlobalT::SystemTypeT)
+void SWDiamondT::LHSDriver(void)
 {
 	/* 3 body contribution */
 	List_3Body.Top();
-	while (List_3Body.Next()) //assume ALL will contribute
+	while ( Next3Body() )
 	{
 		/* initialize */
 		fK_3Body = 0.0;
 
-		/* current interaction */
-		ElementCardT& card = List_3Body.Current();
-	
 		/* local arrays */
-		fLocX_3Body.SetLocal(card.NodesX());
-		fLocd_3Body.SetLocal(card.NodesU());
+		SetLocalX(fLocX_3Body);
+		SetLocalU(fLocd_3Body);
 						
 		/* form element stiffness */
 		Stiffness3Body();
 	
 		/* add to global equations */
-		ElementSupport().AssembleLHS(Group(), fK_3Body, card.Equations());
+		fFEManager.AssembleLHS(fK_3Body, CurrentElement().Equations());
 	}
 
 	/* 2 body contribution */
 	List_2Body.Top();
-	while (List_2Body.Next()) //assume ALL will contribute
+	while ( Next2Body() )
 	{
 		/* initialize */
 		fK_2Body = 0.0;
 
-		/* current interaction */
-		ElementCardT& card = List_2Body.Current();
-
 		/* local arrays */
-		fLocX_2Body.SetLocal(card.NodesX());
-		fLocd_2Body.SetLocal(card.NodesX());
+		SetLocalX(fLocX_2Body);
+		SetLocalU(fLocd_2Body);
 		
 		/* form element stiffness */
 		Stiffness2Body();
 	
 		/* add to global equations */
-		ElementSupport().AssembleLHS(Group(), fK_2Body, card.Equations());
+		fFEManager.AssembleLHS(fK_2Body, CurrentElement().Equations());
 	}
 }
 
@@ -212,44 +192,38 @@ void SWDiamondT::RHSDriver(void)
 {
 	/* 3 body contribution */
 	List_3Body.Top();
-	while (List_3Body.Next()) //assume ALL will contribute
+	while ( Next3Body() ) //assume ALL will contribute
 	{
 		/* initialize */
 		fF_3Body = 0.0;
 
-		/* current interaction */
-		ElementCardT& card = List_3Body.Current();
-	
 		/* local arrays */
-		fLocX_3Body.SetLocal(card.NodesX());
-		fLocd_3Body.SetLocal(card.NodesU());
+		SetLocalX(fLocX_3Body);
+		SetLocalU(fLocd_3Body);
 						
 		/* form element stiffness */
 		Force3Body();
 	
 		/* add to global equations */
-		ElementSupport().AssembleRHS(Group(), fF_3Body, card.Equations());
+		fFEManager.AssembleRHS(fF_3Body, CurrentElement().Equations());
 	}
 
 	/* 2 body contribution */
 	List_2Body.Top();
-	while (List_2Body.Next()) //assume ALL will contribute
+	while ( Next2Body() ) //assume ALL will contribute
 	{
 		/* initialize */
 		fF_2Body = 0.0;
 
-		/* current interaction */
-		ElementCardT& card = List_2Body.Current();
-
 		/* local arrays */
-		fLocX_2Body.SetLocal(card.NodesX());
-		fLocd_2Body.SetLocal(card.NodesX());
+		SetLocalX(fLocX_2Body);
+		SetLocalU(fLocd_2Body);
 		
 		/* form element stiffness */
 		Force2Body();
 	
 		/* add to global equations */
-		ElementSupport().AssembleRHS(Group(), fF_2Body, card.Equations());
+		fFEManager.AssembleRHS(fF_2Body, CurrentElement().Equations());
 	}
 }
 
@@ -263,18 +237,18 @@ void SWDiamondT::PrintControlData(ostream& out) const
 void SWDiamondT::ReadMaterialData(ifstreamT& in)
 {
 	/* unit scaling */
-	in >> feps;	if (feps <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> feps;	if (feps <= 0.0) throw eBadInputValue;
 
 	/* 2 body potential */
-	in >> fA;		if (fA     <= 0.0) throw ExceptionT::kBadInputValue;
-	in >> fdelta;	if (fdelta <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> fA;		if (fA     <= 0.0) throw eBadInputValue;
+	in >> fdelta;	if (fdelta <= 0.0) throw eBadInputValue;
 	
 	/* 3 body potential */
-	in >> fgamma;	if (fgamma  <= 0.0) throw ExceptionT::kBadInputValue;
-	in >> flambda;	if (flambda <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> fgamma;	if (fgamma  <= 0.0) throw eBadInputValue;
+	in >> flambda;	if (flambda <= 0.0) throw eBadInputValue;
 	
-	in >> frcut;	if (frcut <= 0.0) throw ExceptionT::kBadInputValue;		
-	in >> fa;		if (fa    <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> frcut;	if (frcut <= 0.0) throw eBadInputValue;		
+	in >> fa;		if (fa    <= 0.0) throw eBadInputValue;
 
 	/* set B factor */
 	double a0 = pow(2.0,1.0/6.0);
@@ -309,7 +283,7 @@ void SWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	int num_nodes_used;
 	in >> num_nodes_used;
 	if (num_nodes_used != -1 &&
-	    num_nodes_used  < 1) throw ExceptionT::kBadInputValue;
+	    num_nodes_used  < 1) throw eBadInputValue;
 
 	/* neighbor distance */
 	double tolerance = 1.01*pow(2.0,1.0/6.0)*fa;
@@ -317,28 +291,21 @@ void SWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* read nodes used */
 	if (num_nodes_used == -1) //use ALL nodes
 	{
-		/* current coordinates */
-		const dArray2DT& coords = ElementSupport().CurrentCoordinates();
-	
 		/* connector */
-		FindNeighbor23T Connector(coords, kSWMaxNeighbors0);
+		FindNeighbor23T Connector(fNodes->CurrentCoordinates(), kSWMaxNeighbors0);
 	
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(fNodes_2Body, fNodes_3Body, tolerance);
-		
-		/* set nodes used */
-		fNodesUsed.Dimension(coords.MajorDim());
-		fNodesUsed.SetValueToPosition();
 	}
 	else                      //only use specified nodes
 	{
 		/* read specified nodes */
-		fNodesUsed.Dimension(num_nodes_used);
-		in >> fNodesUsed;
+		iArrayT nodesused(num_nodes_used);
+		in >> nodesused;
 
 		/* echo data */
 		out << "\n Nodes used : \n\n";
-		int* pnodes    = fNodesUsed.Pointer();
+		int* pnodes    = nodesused.Pointer();
 		int  linecount = 0;
 		for (int i = 0; i < num_nodes_used; i++)
 		{
@@ -355,15 +322,12 @@ void SWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		if (linecount != 0) out << '\n';
 
 		/* connector */
-		FindNeighbor23T Connector(fNodesUsed, ElementSupport().CurrentCoordinates(),
+		FindNeighbor23T Connector(nodesused, fNodes->CurrentCoordinates(),
 									kSWMaxNeighbors0);
 	
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(fNodes_2Body, fNodes_3Body, tolerance);		
 	}
-	
-	/* connectivities of "point elements" */
-	fOutputConnects.Set(fNodesUsed.Length(), 1, fNodesUsed.Pointer());
 	
 	/* set element equation and node lists */
 	ConfigureElementData();
@@ -378,15 +342,15 @@ void SWDiamondT::ConfigureElementData(void)
 	int num3 = fNodes_3Body.MajorDim();
 	int num2 = fNodes_2Body.MajorDim();
 
-	int neq3body = 3*NumDOF();
-	int neq2body = 2*NumDOF();
+	int neq3body = 3*fNumDOF;
+	int neq2body = 2*fNumDOF;
 
 	/* allocate memory */
-	List_3Body.Dimension(num3);
-	List_2Body.Dimension(num2);
+	List_3Body.Allocate(num3);
+	List_2Body.Allocate(num2);
 
-	fEqnos_3Body.Dimension(num3, neq3body);
-	fEqnos_2Body.Dimension(num2, neq2body);
+	fEqnos_3Body.Allocate(num3, neq3body);
+	fEqnos_2Body.Allocate(num2, neq2body);
 
 	/* set 3 body element data */
 	for (int i = 0; i < num3; i++)	
@@ -403,12 +367,6 @@ void SWDiamondT::ConfigureElementData(void)
 		(List_2Body[j].NodesX()).Set(2, fNodes_2Body(j));		
 		(List_2Body[j].Equations()).Set(neq2body, fEqnos_2Body(j));
 	}
-	
-	/* set base class connectivity and equations data */
-	fConnectivities.Dimension(1);
-	fConnectivities[0] = &fNodes_3Body;
-	fEqnos.Dimension(1);
-	fEqnos[0].Alias(fEqnos_3Body);
 }
 
 /* element list increment */
@@ -1580,31 +1538,31 @@ void SWDiamondT::PrintConnectivityData(ostream& out)
 /* 3 body potentials */
 double SWDiamondT::U3body(double r1, double r2, double c12) const
 {
-	return( pow(1.0/3.0 + c12, 2.0)*feps*flambda*
+	return( pow(1./3 + c12,2)*feps*flambda*
 	         ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
-( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0) );
+( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 ) );
 }
 	
 	/* 1st derivs */
 double SWDiamondT::Dr1U3body(double r1, double r2, double c12) const
 {
-	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
+	return( pow(1 + 3*c12,2)*feps*flambda*
 	        ( (r1 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r1/fa))/
-	                          pow(-(fa*frcut) + r1, 2.0)) : 0.0)*
-( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 )/9.0 );
+	                          pow(-(fa*frcut) + r1,2)) : 0.0 )*
+( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 )/9 );
 }
 
 double SWDiamondT::Dr2U3body(double r1, double r2, double c12) const
 {
-	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
+	return( pow(1 + 3*c12,2)*feps*flambda*
 	         ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r2/fa))/
-pow(-(fa*frcut) + r2, 2.0)) : 0.0)/9.0 );
+pow(-(fa*frcut) + r2,2)) : 0.0 )/9 );
 }
 
 double SWDiamondT::Dc12U3body(double r1, double r2, double c12) const
 {
-	return( 2.0*(1.0/3.0 + c12)*feps*flambda*
+	return( 2*(1./3 + c12)*feps*flambda*
 	        ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 ) );
 }
@@ -1612,25 +1570,25 @@ double SWDiamondT::Dc12U3body(double r1, double r2, double c12) const
 	/* 2nd derivs */
 double SWDiamondT::DDr1U3body(double r1, double r2, double c12) const
 {
-	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
+	return( pow(1 + 3*c12,2)*feps*flambda*
 	         ( (r1 < frcut*fa) ? fa*fgamma*(fa*fgamma - 2*fa*frcut + 2*r1)*
-	            exp(fgamma/(-frcut + r1/fa))/pow(-(fa*frcut) + r1, 4.0) : 0.0)*
-	         ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0)/9.0 );
+	            exp(fgamma/(-frcut + r1/fa))/pow(-(fa*frcut) + r1,4) : 0.0)*
+	         ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0)/9 );
 }
 
 double SWDiamondT::DDr2U3body(double r1, double r2, double c12) const
 {
-	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
+	return( pow(1 + 3*c12,2)*feps*flambda*
 	         ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? fa*fgamma*(fa*fgamma - 2*fa*frcut + 2*r2)*
-exp(fgamma/(-frcut + r2/fa))/pow(-(fa*frcut) + r2, 4.0) : 0.0 )/9.0 );
+exp(fgamma/(-frcut + r2/fa))/pow(-(fa*frcut) + r2,4) : 0.0 )/9 );
 }
 
 double SWDiamondT::DDc12U3body(double r1, double r2, double c12) const
 {
 #pragma unused(c12) //cos_12 doesn't appear in second derivative
 
-	return( 2.0*feps*flambda*
+	return( 2*feps*flambda*
 	        ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 ) );
 }
@@ -1638,27 +1596,27 @@ double SWDiamondT::DDc12U3body(double r1, double r2, double c12) const
 	/* mixed derivs */
 double SWDiamondT::Dr1Dr2U3body(double r1, double r2, double c12) const
 {
-	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
+	return( pow(1 + 3*c12,2)*feps*flambda*
 	         ( (r1 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r1/fa))/
 	                            pow(-(fa*frcut) + r1,2)) : 0.0 )*
 ( (r2 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r2/fa))/
-pow(-(fa*frcut) + r2,2)) : 0.0 )/9.0 );
+pow(-(fa*frcut) + r2,2)) : 0.0 )/9 );
 }
 
 double SWDiamondT::Dr1Dc12U3body(double r1, double r2, double c12) const
 {
-	return( 2.0*(1.0/3.0 + c12)*feps*flambda*
+	return( 2*(1./3 + c12)*feps*flambda*
 	         ( (r1 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r1/fa))/
-	                            pow(-(fa*frcut) + r1, 2.0)) : 0.0 )*
+	                            pow(-(fa*frcut) + r1,2)) : 0.0 )*
 ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 ) );
 }
 
 double SWDiamondT::Dr2Dc12U3body(double r1, double r2, double c12) const
 {
-	return( 2.0*(1.0/3.0 + c12)*feps*flambda*
+	return( 2*(1./3 + c12)*feps*flambda*
 	        ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r2/fa))/
-pow(-(fa*frcut) + r2, 2.0)) : 0.0 ) );
+pow(-(fa*frcut) + r2,2)) : 0.0 ) );
 }
 
 /* compute entire Hessian at once */
@@ -1727,28 +1685,28 @@ void SWDiamondT::ComputeHessian_3Body(dMatrixT& hessian,
 	/* 2 body potential and derivatives */
 double SWDiamondT::U2body(double r) const
 {
-	return( fA*feps*(-1.0 + pow(fa,4.0)*fB/pow(r,4.0))*
+	return( fA*feps*(-1 + pow(fa,4)*fB/pow(r,4))*
 	         ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0 ) );
 }
 
 double SWDiamondT::DU2body(double r) const
 {
-	return( -4.0*pow(fa,4.0)*fA*fB*feps*
-	          ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0 )/pow(r,5.0) +
-fA*feps*(-1.0 + pow(fa,4.0)*fB/pow(r,4.0))*
+	return( -4*pow(fa,4)*fA*fB*feps*
+	          ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0 )/pow(r,5) +
+fA*feps*(-1 + pow(fa,4)*fB/pow(r,4))*
 ( (r < frcut*fa) ? -(fa*fdelta*exp(fdelta/(-frcut + r/fa))/
 pow(-(fa*frcut) + r,2)) : 0.0) );
 }
 
 double SWDiamondT::DDU2body(double r) const
 {
-	return( 20.0*pow(fa,4.0)*fA*fB*feps*
-	         ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0)/pow(r,6.0) -
-8.0*pow(fa,4.0)*fA*fB*feps*
+	return( 20*pow(fa,4)*fA*fB*feps*
+	         ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0)/pow(r,6) -
+8*pow(fa,4)*fA*fB*feps*
 ( (r < frcut*fa) ? -(fa*fdelta*exp(fdelta/(-frcut + r/fa))/
-pow(-(fa*frcut) + r,2.0)) : 0.0 )/pow(r,5.0) +
-fA*feps*(-1.0 + pow(fa,4.0)*fB/pow(r,4.0))*
-( (r < frcut*fa) ? fa*fdelta*(fa*fdelta - 2.0*fa*frcut + 2.0*r)*
+pow(-(fa*frcut) + r,2)) : 0.0 )/pow(r,5) +
+fA*feps*(-1 + pow(fa,4)*fB/pow(r,4))*
+( (r < frcut*fa) ? fa*fdelta*(fa*fdelta - 2*fa*frcut + 2*r)*
 exp(fdelta/(-frcut + r/fa))/
-pow(-(fa*frcut) + r,4.0): 0.0 ) );
+pow(-(fa*frcut) + r,4): 0.0 ) );
 }

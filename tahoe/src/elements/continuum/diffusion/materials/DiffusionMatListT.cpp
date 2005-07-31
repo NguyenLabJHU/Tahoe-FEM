@@ -1,104 +1,68 @@
-/* $Id: DiffusionMatListT.cpp,v 1.10 2004-07-15 08:26:22 paklein Exp $ */
-/* created: paklein (02/14/1997) */
+/* $Id: DiffusionMatListT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (02/14/1997)                                          */
+
 #include "DiffusionMatListT.h"
-#include "DiffusionMatSupportT.h"
+
+#include "ContinuumElementT.h"
+#include "fstreamT.h"
 
 /* diffusion materials */
 #include "DiffusionMaterialT.h"
-#include "NLDiffusionMaterialT.h"
 
-using namespace Tahoe;
+/* diffusion materials */
+const int kLinear      = 1;
+
+const int kMaterialMin = 1;
+const int kMaterialMax = 1;
 
 /* constructors */
-DiffusionMatListT::	DiffusionMatListT(int length, const DiffusionMatSupportT& support):
+DiffusionMatListT::	DiffusionMatListT(int length,
+	const DiffusionT& element_group):
 	MaterialListT(length),
-	fDiffusionMatSupport(&support)
+	fElementGroup(element_group)
 {
-	SetName("diffusion_material");
+
 }
 
-DiffusionMatListT::	DiffusionMatListT(void):
-	fDiffusionMatSupport(NULL)
+/* read material data from the input stream */
+void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 {
-	SetName("diffusion_material");
-}
-
-/* information about subordinate parameter lists */
-void DiffusionMatListT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	MaterialListT::DefineSubs(sub_list);
-
-	/* an array of choices */
-	sub_list.AddSub("diffusion_material_list", ParameterListT::Once, true);
-}
-
-/* return the description of the given inline subordinate parameter list */
-void DiffusionMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-	SubListT& sub_lists) const
-{
-	/* list of choice of materials */
-	if (name == "diffusion_material_list")
+	/* read material data */
+	for (int i = 0; i < fLength; i++)
 	{
-		order = ParameterListT::Choice;
-	
-		/* diffusion materials */
-		sub_lists.AddSub("linear_diffusion_material");
-		sub_lists.AddSub("nonlinear_diffusion_material");
-	}	
-	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
-}
+		int matnum, matcode;
+		in >> matnum; matnum--;
+		in >> matcode;
+		
+		/* checks */
+		if (matnum < 0  || matnum >= fLength) throw eBadInputValue;
+		if (matcode < kMaterialMin ||
+		    matcode > kMaterialMax) throw eBadInputValue;
 
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* DiffusionMatListT::NewSub(const StringT& name) const
-{
-	/* try to construct material */
-	DiffusionMaterialT* material = NewDiffusionMaterial(name);
-	if (material)
-		return material;
-	else /* inherited */
-		return MaterialListT::NewSub(name);
-}
-
-/* accept parameter list */
-void DiffusionMatListT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	MaterialListT::TakeParameterList(list);
-
-	/* construct materials - NOTE: subs have been defined as a choice, but
-	 * here we construct as many materials as are passed in */
-	AutoArrayT<DiffusionMaterialT*> materials;
-	const ArrayT<ParameterListT>& subs = list.Lists();
-	for (int i = 0; i < subs.Length(); i++) {
-		const ParameterListT& sub = subs[i];
-		DiffusionMaterialT* mat = NewDiffusionMaterial(sub.Name());
-		if (mat) {
-			materials.Append(mat);
-			mat->TakeParameterList(sub);
+		/* repeated material number */
+		if (fArray[matnum] != NULL)
+		{
+			cout << "\n DiffusionMatListT::ReadMaterialData: repeated material number: ";
+			cout << matnum + 1 << endl;
+			throw eBadInputValue;
 		}
+		
+		/* add to the list of materials */
+		switch (matcode)
+		{
+			case kLinear:
+			{
+				fArray[matnum] = new DiffusionMaterialT(in, fElementGroup);
+				break;
+			}
+			default:
+			
+				cout << "\n DiffusionMatListT::ReadMaterialData: unknown material code: ";
+				cout << matcode << '\n' << endl;
+				throw eBadInputValue;
+		}
+
+		/* verify construction */
+		if (!fArray[matnum]) throw eOutOfMemory;
 	}
-
-	/* transfer */
-	Dimension(materials.Length());
-	for (int i = 0; i < materials.Length(); i++)
-		fArray[i] = materials[i];
-	
-}
-
-/* construct the specified material or NULL if the request cannot be completed */
-DiffusionMaterialT* DiffusionMatListT::NewDiffusionMaterial(const StringT& name) const
-{
-	DiffusionMaterialT* mat = NULL;
-
-	if (name == "linear_diffusion_material")
-		mat = new DiffusionMaterialT;	
-	else if (name == "nonlinear_diffusion_material")
-		mat = new NLDiffusionMaterialT;
-
-	/* set support */
-	if (mat) mat->SetDiffusionMatSupport(fDiffusionMatSupport);
-
-	return mat;
 }

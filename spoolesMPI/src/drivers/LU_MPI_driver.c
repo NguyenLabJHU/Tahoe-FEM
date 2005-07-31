@@ -38,7 +38,7 @@ int LU_MPI_driver(int msg_lvl, const char* message_file, int matrix_type,
 char            buffer[128] ;
 Chv             *rootchv ;
 ChvManager      *chvmanager ;
-DenseMtx        *mtxX, *mtxY, *newY, *mtxX_tmp;
+DenseMtx        *mtxX, *mtxY, *newY;
 SubMtxManager   *mtxmanager, *solvemanager;
 FrontMtx        *frontmtx ;
 InpMtx          *mtxA, *newA ;
@@ -51,7 +51,7 @@ FILE            *inputFile, *msgFile ;
 Graph           *graph ;
 int             error, firsttag, ient, irow, jcol, lookahead = 0, 
                 msglvl, myid, nedges, nent, neqns, nmycol, nproc, nrhs,
-                nrow, pivotingflag, root, seed, symmetryflag, matrixtype ;
+                nrow, pivotingflag, root, seed, symmetryflag, type ;
 int             stats[20] ;
 int             *rowind ;
 IV              *oldToNewIV, *ownedColumnsIV, *ownersIV, 
@@ -90,7 +90,7 @@ if ( (msgFile = fopen(message_file, "a")) == NULL ) {
 	return(-1);
    }
 msglvl = msg_lvl;
-matrixtype = matrix_type;
+type = matrix_type;
 symmetryflag = symmetry_flag;
 pivotingflag = pivoting_flag;
 seed = rand_seed;
@@ -105,7 +105,7 @@ fprintf(msgFile,
         "\n symmetryflag = %d"
         "\n pivotingflag = %d"
         "\n seed         = %d",
-        msglvl, message_file, matrixtype, symmetryflag, pivotingflag, seed) ;
+        msglvl, message_file, type, symmetryflag, pivotingflag, seed) ;
 fflush(msgFile);
 }
 MPI_Barrier(*comm);
@@ -127,16 +127,16 @@ MPI_Barrier(*comm) ;
 neqns = num_eq;
 nent = num_entries;
 mtxA = InpMtx_new() ;
-InpMtx_init(mtxA, INPMTX_BY_ROWS, matrixtype, nent, 0) ;
+InpMtx_init(mtxA, INPMTX_BY_ROWS, type, nent, 0) ;
 
 #if 0
-if ( matrixtype == SPOOLES_REAL ) {
+if ( type == SPOOLES_REAL ) {
    double   value ;
    for ( ient = 0 ; ient < nent ; ient++ ) {
       fscanf(inputFile, "%d %d %le", &irow, &jcol, &value) ;
       InpMtx_inputRealEntry(mtxA, irow, jcol, value) ;
    }
-} else if ( matrixtype == SPOOLES_COMPLEX ) {
+} else if ( type == SPOOLES_COMPLEX ) {
    double   imag, real ;
    for ( ient = 0 ; ient < nent ; ient++ ) {
       fscanf(inputFile, "%d %d %le %le", &irow, &jcol, &real, &imag) ;
@@ -145,7 +145,7 @@ if ( matrixtype == SPOOLES_REAL ) {
 }
 fclose(inputFile) ;
 #endif
-if (matrixtype == SPOOLES_REAL)
+if (matrix_type == SPOOLES_REAL)
 	/* enter all {row, column, value} triples */
 	InpMtx_inputRealTriples(mtxA, num_entries, r, c, v);
 else
@@ -177,11 +177,11 @@ nrow = num_row;
 nrhs = 1;
 
 mtxY = DenseMtx_new() ;
-DenseMtx_init(mtxY, matrixtype, 0, 0, nrow, nrhs, 1, nrow);
+DenseMtx_init(mtxY, type, 0, 0, nrow, nrhs, 1, nrow);
 DenseMtx_rowIndices(mtxY, &nrow, &rowind) ;
 
 #if 0
-if ( matrixtype == SPOOLES_REAL ) {
+if ( type == SPOOLES_REAL ) {
    double   value ;
    for ( irow = 0 ; irow < nrow ; irow++ ) {
       fscanf(inputFile, "%d", rowind + irow) ;
@@ -190,7 +190,7 @@ if ( matrixtype == SPOOLES_REAL ) {
          DenseMtx_setRealEntry(mtxY, irow, jcol, value) ;
       }
    }
-} if ( matrixtype == SPOOLES_COMPLEX ) {
+} if ( type == SPOOLES_COMPLEX ) {
    double   imag, real ;
    for ( irow = 0 ; irow < nrow ; irow++ ) {
       fscanf(inputFile, "%d", rowind + irow) ;
@@ -203,7 +203,7 @@ if ( matrixtype == SPOOLES_REAL ) {
 fclose(inputFile) ;
 #endif
 
-if (matrixtype == SPOOLES_REAL)
+if (matrix_type == SPOOLES_REAL)
 {
 	for (irow = 0 ; irow < nrow ; irow++)
 	{
@@ -252,7 +252,7 @@ if ( msglvl > 2 ) {
    fflush(msgFile) ;
 }
 opcounts = DVinit(nproc, 0.0) ;
-opcounts[myid] = ETree_nFactorOps(frontETree, matrixtype, symmetryflag) ;
+opcounts[myid] = ETree_nFactorOps(frontETree, type, symmetryflag) ;
 MPI_Allgather((void *) &opcounts[myid], 1, MPI_DOUBLE,
               (void *) opcounts, 1, MPI_DOUBLE, *comm) ;
 minops = DVmin(nproc, opcounts, &root) ;
@@ -298,7 +298,7 @@ cutoff   = 1./(2*nproc) ;
 cumopsDV = DV_new() ;
 DV_init(cumopsDV, nproc, NULL) ;
 ownersIV = ETree_ddMap(frontETree, 
-                       matrixtype, symmetryflag, cumopsDV, cutoff) ;
+                       type, symmetryflag, cumopsDV, cutoff) ;
 DV_free(cumopsDV) ;
 vtxmapIV = IV_new() ;
 IV_init(vtxmapIV, neqns, NULL) ;
@@ -367,7 +367,7 @@ if ( msglvl > 2 ) {
 mtxmanager = SubMtxManager_new() ;
 SubMtxManager_init(mtxmanager, NO_LOCK, 0) ;
 frontmtx = FrontMtx_new() ;
-FrontMtx_init(frontmtx, frontETree, symbfacIVL, matrixtype, symmetryflag,
+FrontMtx_init(frontmtx, frontETree, symbfacIVL, type, symmetryflag,
               FRONTMTX_DENSE_FRONTS, pivotingflag, NO_LOCK, myid,
               ownersIV, mtxmanager, msglvl, msgFile) ;
 /*--------------------------------------------------------------------*/
@@ -391,8 +391,8 @@ if ( msglvl > 2 ) {
 if ( error >= 0 ) {
    fprintf(stderr, 
           "\n proc %d : factorization error at front %d", myid, error) ;
-   /* MPI_Finalize() ; */
-   return -1;
+   MPI_Finalize() ;
+   exit(-1) ;
 }
 /*--------------------------------------------------------------------*/
 /*
@@ -476,7 +476,7 @@ ownedColumnsIV = FrontMtx_ownedColumnsIV(frontmtx, myid, ownersIV,
 nmycol = IV_size(ownedColumnsIV) ;
 mtxX = DenseMtx_new() ;
 if ( nmycol > 0 ) {
-   DenseMtx_init(mtxX, matrixtype, 0, 0, nmycol, nrhs, 1, nmycol) ;
+   DenseMtx_init(mtxX, type, 0, 0, nmycol, nrhs, 1, nmycol) ;
    DenseMtx_rowIndices(mtxX, &nrow, &rowind) ;
    IVcopy(nmycol, rowind, IV_entries(ownedColumnsIV)) ;
 }
@@ -571,10 +571,8 @@ free(row_map);
 /* redistribute */
 /* IV_fill(vtxmapIV, 0) ; */
 firsttag++ ;
-mtxX_tmp = mtxX;
-mtxX = DenseMtx_MPI_splitByRows(mtxX_tmp, vtxmapIV, stats, msglvl, msgFile,
+mtxX = DenseMtx_MPI_splitByRows(mtxX, vtxmapIV, stats, msglvl, msgFile,
 	                                firsttag, *comm) ;
-DenseMtx_free(mtxX_tmp);
 if (msglvl > 0) {
    fprintf(msgFile, "\n\n complete solution in old ordering") ;
    DenseMtx_writeForHumanEye(mtxX, msgFile) ;
@@ -582,15 +580,11 @@ if (msglvl > 0) {
 }
 
 /* PAK - extract data */
-if (matrixtype == SPOOLES_REAL)
+if (matrix_type == SPOOLES_REAL)
 {
 	for (irow = 0 ; irow < num_row; irow++) 
-		if (DenseMtx_realEntry(mtxX, irow, 0, rhs2out + irow) != 1)
+		DenseMtx_realEntry(mtxX, irow, 0, rhs2out + irow);
 		/* NOTE: there is no function to copy a column into a vector */
-		{
-			fprintf(stderr, "\n proc %d : factorization error redistributing", myid);
-			return -1;
-		}
 }
 else
 {
@@ -620,9 +614,6 @@ SolveMap_free(solvemap);
 /* MPI_Finalize() ; */
 
 /* need to free mtxX????? */
-
-/* close message stream */
-fclose(msgFile);
 
 return 1;}
 /*--------------------------------------------------------------------*/

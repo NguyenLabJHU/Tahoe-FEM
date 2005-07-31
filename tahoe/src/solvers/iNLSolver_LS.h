@@ -1,5 +1,5 @@
-/* $Id: iNLSolver_LS.h,v 1.6 2004-07-15 08:31:51 paklein Exp $ */
-/* created: paklein (01/01/2001) */
+/* $Id: iNLSolver_LS.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* created: paklein (01/01/2001)                                          */
 
 #ifndef _I_NL_SOLVER_LS_H_
 #define _I_NL_SOLVER_LS_H_
@@ -10,25 +10,18 @@
 /* direct members */
 #include "dArray2DT.h"
 
-namespace Tahoe {
-
-/** nonlinear Newton solver with interactive console */
 class iNLSolver_LS: public NLSolver_LS
 {
 public:
 
-	/** constructor */
-	iNLSolver_LS(FEManagerT& fe_manager, int group);
+	/* constructor */
+	iNLSolver_LS(FEManagerT& fe_manager);
 
-	/** solve the system over the current time increment.
-	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
-	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
-	 *        also indicate the solution procedure has failed.
-	 * \return one of SolverT::IterationsStatusT */
-	virtual SolutionStatusT Solve(int num_iterations);
+	/* generate the solution for the current time sequence */
+	virtual void Run(void);
 	
 	/* execute commands */
-	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
+	virtual bool iDoCommand(const StringT& command, StringT& line);
 
 private:
 
@@ -38,7 +31,7 @@ private:
 	/* commands */
 	bool DoStep(int max_steps);
 	bool DoInitStep(void);
-	SolutionStatusT DoIterate(int max_count);
+	IterationStatusT DoIterate(int max_count);
 	
 private:
 
@@ -47,8 +40,7 @@ private:
 	bool fLineSearch;	
 
 	/* solution states */
-	SolutionStatusT fIterationStatus;
+	IterationStatusT fIterationStatus;
 };
 
-} // namespace Tahoe 
 #endif /* _I_NL_SOLVER_LS_H_ */

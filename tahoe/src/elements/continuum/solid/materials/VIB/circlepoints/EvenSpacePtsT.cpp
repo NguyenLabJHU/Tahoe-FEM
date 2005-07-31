@@ -1,27 +1,45 @@
-/* $Id: EvenSpacePtsT.cpp,v 1.6 2004-07-15 08:28:03 paklein Exp $ */
-/* created: paklein (11/02/1997) */
+/* $Id: EvenSpacePtsT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (11/02/1997)                                          */
+
 #include "EvenSpacePtsT.h"
 
 #include <math.h>
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
+#include <iostream.h>
 
-
-using namespace Tahoe;
+#include "Constants.h"
+#include "ExceptionCodes.h"
+#include "fstreamT.h"
 
 const double Pi = acos(-1.0);
 
-/* constructor */
-EvenSpacePtsT::EvenSpacePtsT(int n): fNtheta(n)
+/*
+* Constructor
+*/
+EvenSpacePtsT::EvenSpacePtsT(ifstreamT& in)
 {
 	/* number of integration points */
-	if (fNtheta < 1) ExceptionT::BadInputValue("EvenSpacePtsT::EvenSpacePtsT");
+	in >> fNtheta;
+	if (fNtheta < 1) throw eBadInputValue;
 	
-	fPoints.Dimension(fNtheta,2);
-	fJacobians.Dimension(fNtheta);
+	fPoints.Allocate(fNtheta,2);
+	fJacobians.Allocate(fNtheta);
 	
 	/* all same weight */
 	fJacobians = (2.0*Pi/fNtheta);
+}
+
+/*
+* Print parameters.
+*/
+void EvenSpacePtsT::Print(ostream& out) const
+{
+	/* number of integration points */
+	out << " Number of sampling points . . . . . . . . . . . = " << fNtheta << '\n';
+}
+
+void EvenSpacePtsT::PrintName(ostream& out) const
+{
+	out << "    Even spaced points\n";
 }
 
 /*

@@ -1,182 +1,273 @@
-/* $Id: ElementListT.cpp,v 1.116 2005-06-29 17:40:49 paklein Exp $ */
-/* created: paklein (04/20/1998) */
+/* $Id: ElementListT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* created: paklein (04/20/1998)                                          */
+
 #include "ElementListT.h"
-#include "ElementsConfig.h"
-
-#ifdef __DEVELOPMENT__
-#include "DevelopmentElementsConfig.h"
-#endif
-
 #include <iostream.h>
-#include "ifstreamT.h"
+#include "fstreamT.h"
+#include "FEManagerT.h"
+#include "XDOF_FDNodesT.h"
 #include "StringT.h"
-#include "ElementT.h"
-#include "ElementSupportT.h"
-#include "GeometryT.h"
 
+/* elements */
 #include "ElementBaseT.h"
-
-#ifdef ADHESION_ELEMENT
-#include "AdhesionT.h"
-#endif
-
-#ifdef COHESIVE_SURFACE_ELEMENT
+#include "RodT.h"
+#include "ElasticT.h"
+#include "UpLag_FDElasticT.h"
+#include "LocalizerT.h"
+#include "SWDiamondT.h"
+#include "MixedSWDiamondT.h"
+#include "UnConnectedRodT.h"
+#include "VirtualRodT.h"
+#include "VirtualSWDC.h"
+#include "BEMelement.h"
+#include "VariTriT.h" //TEMP
+#include "TotLag_FDElasticT.h"
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
-#include "CSESymAnisoT.h"
-#include "MeshFreeCSEAnisoT.h"
-#include "ThermalSurfaceT.h"
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-#include "RigidCSEAnisoT.h"
-#include "NodalRigidCSEAnisoT.h"
-#endif
-#endif
+#include "GeometryT.h"
 
-#ifdef CONTINUUM_ELEMENT
-#include "ViscousDragT.h"
-#include "SmallStrainT.h"
-#include "SmallStrainAxiT.h"
-#include "UpdatedLagrangianT.h"
-#include "UpdatedLagrangianAxiT.h"
-#include "UpLagAdaptiveT.h"
-#include "TotalLagrangianT.h"
-#include "TotalLagrangianAxiT.h"
-#include "LocalizerT.h"
-#include "SimoFiniteStrainT.h"
-#include "SimoQ1P0.h"
-#include "SimoQ1P0_inv.h"
-#include "SimoQ1P0Axi.h"
-#include "SimoQ1P0Axi_inv.h"
-#include "DiffusionElementT.h"
-#include "NLDiffusionElementT.h"
-#include "HyperbolicDiffusionElementT.h"
-#include "MeshFreeSSSolidT.h"
-#include "MeshFreeFSSolidT.h"
-#include "MeshFreeFSSolidAxiT.h"
-#include "D2MeshFreeFSSolidT.h"
-#include "SS_SCNIMFT.h"
-#include "FS_SCNIMFT.h"
-#include "SS_SCNIMF_AxiT.h"
-#include "FS_SCNIMF_AxiT.h"
-#include "UpLagr_ExternalFieldT.h"
-#ifdef SIMPLE_SOLID_DEV
-#include "TotalLagrangianFlatT.h"
-#endif
-#endif
-
-#ifdef BRIDGING_ELEMENT
-#include "BridgingScaleT.h"
-#include "MeshfreeBridgingT.h"
-#endif
-
-#ifdef CONTACT_ELEMENT
+/* contact */
 #include "PenaltyContact2DT.h"
 #include "PenaltyContact3DT.h"
 #include "AugLagContact2DT.h"
-#include "AugLagContact3DT.h"
 #include "ACME_Contact3DT.h"
-#include "PenaltyContactDrag2DT.h"
-#include "PenaltyContactDrag3DT.h"
-#ifdef CONTINUUM_ELEMENT /* need meshfree code */
-#include "MFPenaltyContact2DT.h"
-#endif
-#endif
 
-#ifdef PARTICLE_ELEMENT
-#include "ParticlePairT.h"
-#include "EAMT.h"
-#include "ParticleThreeBodyT.h"
-#endif
+//TEMP
+#include "MeshFreeElasticT.h"
+#include "MeshFreeFDElasticT.h"
+#include "D2MeshFreeFDElasticT.h"
 
-#ifdef SPRING_ELEMENT
-#include "SWDiamondT.h"
-#include "MixedSWDiamondT.h"
-#include "VirtualSWDC.h"
-#include "RodT.h"
-#include "UnConnectedRodT.h"
-#include "VirtualRodT.h"
-#endif
+/* linear diffusion */
+#include "DiffusionT.h"
 
-#ifdef CONTACT_ELEMENT_DEV
-#include "MultiplierContactElement3DT.h"
-#include "MultiplierContactElement2DT.h"
-#include "PenaltyContactElement2DT.h"
-#include "PenaltyContactElement3DT.h"
-#include "FrictionalContactElement2DT.h"
-#endif
+/* meshfree cohesive surface elements */
+#include "MeshFreeCSEAnisoT.h"
 
-#ifdef BEM_ELEMENT_DEV
-#include "BEMelement.h"
-#endif
+/* Element Types */
+const int kRod                = 1;
+const int kElastic            = 2;
+const int kHyperElastic       = 3;
+const int kLocalizing         = 4;
+const int kVariTri            = 5; //TEMP
 
-#ifdef MULTISCALE_ELEMENT_DEV
-#include "StaggeredMultiScaleT.h"
-#endif
+const int kSWDiamond          = 6;
+const int kMixedSWDiamond     = 7;
+const int kUnConnectedRod     = 8;
+const int kVirtualRod         = 9;
+const int kVirtualSWDC        = 10;
 
-#ifdef MULTISCALE_APS_DEV
-#include "APS_AssemblyT.h"
-#endif
+const int kCohesiveSurface    = 11;
+const int kPenaltyContact     = 14;
+const int kBEMelement         = 15;
+const int kAugLagContact2D    = 16;
+const int kTotLagHyperElastic = 17;
 
-#ifdef MULTISCALE_APS_V_DEV
-#include "APS_V_AssemblyT.h"
-#endif
+const int kMeshFreeElastic    = 18;
+const int kMeshFreeFDElastic  = 19;
+const int kD2MeshFreeFDElastic = 20;
 
-#ifdef MESHFREE_GRAD_PLAST_DEV
-#include "MFGP_AssemblyT.h"
-#endif
+const int kLinearDiffusion    = 21;
+const int kMFCohesiveSurface  = 22;
 
-#ifdef ENHANCED_STRAIN_LOC_DEV
-#include "SmallStrainEnhLocT.h"
-#endif
-
-#ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
-#include "SSEnhLocCraigT.h"
-#include "SSEnhLocDieterichT.h"
-#endif
-
-#ifdef GRAD_SMALL_STRAIN_DEV
-#include "GradSmallStrainT.h"
-#endif
-
-#ifdef SOLID_ELEMENT_DEV
-#ifdef MATERIAL_FORCE_ELEMENT_DEV
-#include "SSMF.h"
-#endif /* MATERIAL_FORCE_ELEMENT_DEV */
-
-#ifdef SPLIT_INTEGRATION_DEV
-#include "SplitIntegrationT.h"
-#endif
-#endif
-
-#ifdef MIXTURE_THEORY_DEV
-#include "MixtureSpeciesT.h"
-#include "UpdatedLagMixtureT.h"
-#include "Q1P0MixtureT.h"
-#endif
-
-#ifdef SURFACE_CB_DEV
-#include "TotalLagrangianCBSurfaceT.h"
-#endif
-
-using namespace Tahoe;
+const int kACME_Contact       = 23;
 
 /* constructors */
-ElementListT::ElementListT(FEManagerT& fe):
-	ParameterInterfaceT("element_list"),
-	fHasContact(false)
+ElementListT::ElementListT(FEManagerT& fe_manager):
+	fFEManager(fe_manager)
 {
-	/* initialize element support */
-	fSupport.SetFEManager(&fe);
+
 }
 
-/* destructor */
-ElementListT::~ElementListT(void)
+/* initialization functions */
+void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
+	eControllerT* e_controller)
 {
-	/* activate all */
-	if (fAllElementGroups.Length() > 0) {
-		ArrayT<bool> mask(fAllElementGroups.Length());
-		mask = true;
-		SetActiveElementGroupMask(mask);
+	/* print header */
+	out << "\n E l e m e n t   G r o u p   D a t a :\n\n";
+	out << " Number of element groups. . . . . . . . . . . . = ";
+	out << Length() << "\n";
+
+	/* construct element groups */
+	for (int i = 0; i < Length(); i++)
+	{
+		int	group, code;
+		in >> group >> code;
+		group--;
+
+		out << "\n Group number. . . . . . . . . . . . . . . . . . = " << group + 1 << '\n';
+		out <<   " Element type code . . . . . . . . . . . . . . . = " <<      code << '\n';
+		out << "    eq. " << kRod                << ", rod\n";
+		out << "    eq. " << kElastic            << ", elastic\n";
+		out << "    eq. " << kHyperElastic       << ", hyperelastic\n";
+		out << "    eq. " << kLocalizing         << ", hyperelastic with localization\n";
+		out << "    eq. " << kSWDiamond          << ", diamond cubic lattice\n";   	
+		out << "    eq. " << kMixedSWDiamond     << ", diamond cubic lattice with evolving params\n";   	
+		out << "    eq. " << kUnConnectedRod     << ", self-connecting rods\n";   	
+		out << "    eq. " << kVirtualRod         << ", self-connecting rods with periodic BC's\n";   	
+		out << "    eq. " << kVirtualSWDC        << ", diamond cubic lattice with periodic BC's\n";   	
+		out << "    eq. " << kCohesiveSurface    << ", cohesive surface element\n";   	
+		out << "    eq. " << kPenaltyContact     << ", penalty contact\n";
+		out << "    eq. " << kAugLagContact2D    << ", augmented Lagrangian contact\n";
+		out << "    eq. " << kTotLagHyperElastic << ", hyperelastic (total Lagrangian)\n";
+		out << "    eq. " << kMeshFreeElastic    << ", elastic with MLS displacements\n";
+		out << "    eq. " << kMeshFreeFDElastic  << ", hyperelastic MLS (total Lagrangian)\n";
+		out << "    eq. " << kD2MeshFreeFDElastic << ", hyperelastic MLS (total Lagrangian)\n";
+		out << "    eq. " << kLinearDiffusion    << ", linear diffusion element\n";
+		out << "    eq. " << kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
+
+		out << "    eq. " << kACME_Contact       << ", 3D contact using ACME\n";
+		
+		/* check */
+		if (group < 0 || group >= Length())
+		{
+			cout << "\n ElementListT::EchoElementData: Element group number is out of\n";
+			cout <<   "     range: " << group + 1 << endl;
+			throw eBadInputValue;
+		}
+
+		/* create new element group - read control parameters
+		   and allocate space in the contructors */
+		switch (code)
+		{
+			case kRod:
+
+				fArray[group] = new RodT(fFEManager);
+				break;
+
+			case kElastic:
+				fArray[group] = new ElasticT(fFEManager);
+				break;
+
+			case kMeshFreeElastic:
+				fArray[group] = new MeshFreeElasticT(fFEManager);
+				break;
+
+			case kHyperElastic:
+				fArray[group] = new UpLag_FDElasticT(fFEManager);
+				break;
+
+			case kTotLagHyperElastic:
+				fArray[group] = new TotLag_FDElasticT(fFEManager);
+				break;
+
+			case kMeshFreeFDElastic:
+				fArray[group] = new MeshFreeFDElasticT(fFEManager);
+				break;
+
+			case kD2MeshFreeFDElastic:
+				fArray[group] = new D2MeshFreeFDElasticT(fFEManager);
+				break;
+
+			case kLocalizing:
+				fArray[group] = new LocalizerT(fFEManager);
+				break;
+
+			case kVariTri:
+				fArray[group] = new VariTriT(fFEManager);
+				break;
+
+			case kSWDiamond:
+				fArray[group] = new SWDiamondT(fFEManager);
+				break;
+				
+			case kMixedSWDiamond:
+				fArray[group] = new MixedSWDiamondT(fFEManager);
+				break;
+
+			case kUnConnectedRod:
+				fArray[group] = new UnConnectedRodT(fFEManager);
+				break;
+			
+			case kVirtualRod:
+				fArray[group] = new VirtualRodT(fFEManager);
+				break;
+
+			case kVirtualSWDC:
+				fArray[group] = new VirtualSWDC(fFEManager);
+				break;
+
+			case kCohesiveSurface:
+			{
+				int CSEcode;
+				in >> CSEcode;
+				out << " Cohesive surface formulation code . . . . . . . = " << CSEcode << '\n';
+				out << "    eq. " << CSEBaseT::Isotropic   << ", isotropic\n";
+				out << "    eq. " << CSEBaseT::Anisotropic << ", anisotropic\n";
+
+				if (CSEcode == CSEBaseT::Isotropic)
+					fArray[group] = new CSEIsoT(fFEManager);	
+				else if (CSEcode == CSEBaseT::Anisotropic)
+					fArray[group] = new CSEAnisoT(fFEManager);
+				else
+				{
+					cout << "\n ElementListT::EchoElementData: unknown CSE formulation: ";
+					cout << CSEcode << '\n';
+					throw eBadInputValue;
+				}
+				break;
+			}
+			case kPenaltyContact:
+			{
+				int nsd = (fFEManager.NodeManager())->NumSD();
+				if (nsd == 2)
+					fArray[group] = new PenaltyContact2DT(fFEManager);
+				else
+					fArray[group] = new PenaltyContact3DT(fFEManager);
+					
+				break;
+			}
+			case kAugLagContact2D:
+			{
+#ifdef __NO_RTTI__
+				if (fFEManager.Analysis() != GlobalT::kAugLagStatic) throw eGeneralFail;
+				XDOF_FDNodesT* XDOF_man = (XDOF_FDNodesT*) fFEManager.NodeManager();
+#else
+				XDOF_FDNodesT* XDOF_man = dynamic_cast<XDOF_FDNodesT*>(fFEManager.NodeManager());
+				if (!XDOF_man)
+				{
+					cout << "\n ElementListT::EchoElementData: failed to cast node manager to XDOF_FDNodesT\n"
+					     <<   "     as needed with analysis code: " << kAugLagContact2D << endl;
+					throw eBadInputValue;
+				}
+#endif /* __NO_RTTI__ */
+			
+				fArray[group] = new AugLagContact2DT(fFEManager, XDOF_man);	
+				break;
+			}
+			case kBEMelement:
+			{
+				StringT BEMfilename;
+				in >> BEMfilename;
+			
+				fArray[group] = new BEMelement(fFEManager, BEMfilename);	
+				break;
+			}
+			case kLinearDiffusion:
+				fArray[group] = new DiffusionT(fFEManager);
+				break;
+
+			case kMFCohesiveSurface:
+				fArray[group] = new MeshFreeCSEAnisoT(fFEManager);
+				break;
+
+			case kACME_Contact:
+#ifdef __ACME__
+				fArray[group] = new ACME_Contact3DT(fFEManager);
+#else
+				cout << "\n ElementListT::EchoElementData: ACME not installed.";
+				throw eGeneralFail;					
+#endif /* __ACME__ */			
+				break;
+
+			default:
+			
+				cout << "\n ElementListT::EchoElementData: unknown element type:" << code << endl;
+				throw eBadInputValue;
+		}
+		
+		if (!fArray[group]) throw eOutOfMemory;
+		fArray[group]->SetController(e_controller); //TEMP: this is dangerous. should pass
+		fArray[group]->Initialize();                //      controller in during construction
 	}
 }
 
@@ -190,401 +281,18 @@ bool ElementListT::InterpolantDOFs(void) const
 	return are_interp;
 }
 
-/* change the number of active element groups */
-void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
+/* returns true if contact group present */
+bool ElementListT::HasContact(void) const
 {
-	/* first time */
-	if (fAllElementGroups.Length() == 0) 
+#ifdef __NO_RTTI__
+	cout << "\n ElementListT::HasContact: needs RTTI: returning false" << endl;
+	return false; // safe default??
+#else
+	for (int i = 0; i < Length(); i++)
 	{
-		/* cache all pointers */
-		fAllElementGroups.Dimension(Length());
-		for (int i = 0; i < fAllElementGroups.Length(); i++)
-		{
-			ElementBaseT* element = (*this)[i];
-			fAllElementGroups[i] = element;
-		}
+		ContactT* contact_elem = dynamic_cast<ContactT*>(fArray[i]);
+		if (contact_elem) return true;
 	}
-
-	/* check */
-	if (mask.Length() != fAllElementGroups.Length())
-		ExceptionT::SizeMismatch("ElementListT::SetActiveElementGroupMask",
-			"expecting mask length %d not %d", fAllElementGroups.Length(), mask.Length());
-
-	/* reset active element groups */
-	int num_active = 0;
-	for (int i = 0; i < mask.Length(); i++)
-		if (mask[i])
-			num_active++;
-			
-	/* cast this to an ArrayT */
-	ArrayT<ElementBaseT*>& element_list = *this;
-	element_list.Dimension(num_active);
-	num_active = 0;
-	for (int i = 0; i < mask.Length(); i++)
-		if (mask[i])
-			element_list[num_active++] = fAllElementGroups[i];
-}
-
-/* information about subordinate parameter lists */
-void ElementListT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-
-	/* the element groups - an array of choices */
-	sub_list.AddSub("element_groups", ParameterListT::OnePlus, true);
-}
-
-/* return the description of the given inline subordinate parameter list */
-void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-	SubListT& sub_lists) const
-{
-	if (name == "element_groups")
-	{
-		order = ParameterListT::Choice;
-
-#ifdef COHESIVE_SURFACE_ELEMENT
-		sub_lists.AddSub("isotropic_CSE");
-		sub_lists.AddSub("anisotropic_CSE");
-		sub_lists.AddSub("anisotropic_symmetry_CSE");
-		sub_lists.AddSub("thermal_CSE");
+	return false;
 #endif
-
-#ifdef ADHESION_ELEMENT
-		sub_lists.AddSub("adhesion");
-#endif
-
-#ifdef CONTACT_ELEMENT
-		sub_lists.AddSub("contact_2D_penalty");
-		sub_lists.AddSub("contact_3D_penalty");
-
-		sub_lists.AddSub("contact_2D_multiplier");
-		sub_lists.AddSub("contact_3D_multiplier");
-
-		sub_lists.AddSub("contact_drag_2D_penalty");
-		sub_lists.AddSub("contact_drag_3D_penalty");
-#endif
-
-#ifdef CONTACT_ELEMENT
-#ifdef CONTINUUM_ELEMENT /* need meshfree code */
-		sub_lists.AddSub("meshfree_contact_2D_penalty");
-#endif
-#endif
-
-#ifdef PARTICLE_ELEMENT
-		sub_lists.AddSub("particle_pair");
-		sub_lists.AddSub("particle_EAM");
-		sub_lists.AddSub("particle_three_body");
-#endif
-
-#ifdef CONTINUUM_ELEMENT
-		sub_lists.AddSub("diffusion");
-		sub_lists.AddSub("nonlinear_diffusion");
-		sub_lists.AddSub("hyperbolic_diffusion");
-		sub_lists.AddSub("small_strain");
-		sub_lists.AddSub("updated_lagrangian");
-		sub_lists.AddSub("updated_lagrangian_Q1P0");
-		sub_lists.AddSub("updated_lagrangian_Q1P0_inv");
-		sub_lists.AddSub("total_lagrangian");
-		sub_lists.AddSub("small_strain_meshfree");
-		sub_lists.AddSub("large_strain_meshfree");
-		sub_lists.AddSub("small_strain_axi");
-		sub_lists.AddSub("updated_lagrangian_axi");
-		sub_lists.AddSub("total_lagrangian_axi");
-		sub_lists.AddSub("updated_lagrangian_Q1P0_axi");
-		sub_lists.AddSub("updated_lagrangian_Q1P0_inv_axi");
-		sub_lists.AddSub("large_strain_meshfree_axi");
-		sub_lists.AddSub("ss_mfparticle");
-		sub_lists.AddSub("fd_mfparticle");
-		sub_lists.AddSub("ss_mfparticle_axi");
-		sub_lists.AddSub("fd_mfparticle_axi");
-
-#ifdef BRIDGING_ELEMENT
-		sub_lists.AddSub("bridging");
-		sub_lists.AddSub("meshfree_bridging");
-#endif
-#endif /* CONTINUUM_ELEMENT */
-
-#ifdef GRAD_SMALL_STRAIN_DEV
-		sub_lists.AddSub("grad_small_strain");
-#endif
-
-/*
-#ifdef MULTISCALE_ELEMENT_DEV
-		sub_lists.AddSub("variational_multiscale");
-#endif
-*/
-
-#ifdef MULTISCALE_APS_DEV
-		sub_lists.AddSub("antiplane_shear_grad_plast");
-#endif
-
-/*
-#ifdef MULTISCALE_APS_V_DEV
-		sub_lists.AddSub("antiplane_shear_grad_plast_V");
-#endif
-*/
-
-#ifdef MESHFREE_GRAD_PLAST_DEV
-		sub_lists.AddSub("meshfree_grad_plast");
-#endif
-
-#ifdef ENHANCED_STRAIN_LOC_DEV
-		sub_lists.AddSub("small_strain_enh_loc");
-#endif
-
-#ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
-		sub_lists.AddSub("small_strain_enh_loc_craig");
-		sub_lists.AddSub("small_strain_enh_loc_dieterich");
-#endif
-
-#if defined(SOLID_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
-		sub_lists.AddSub("small_strain_material_force");
-#endif
-
-#ifdef MIXTURE_THEORY_DEV
-		sub_lists.AddSub("updated_lagrangian_mixture");
-		sub_lists.AddSub("Q1P0_mixture");
-		sub_lists.AddSub("mixture_species");
-#endif
-
-#ifdef CONTACT_ELEMENT_DEV
-		sub_lists.AddSub("Jones_penalty_contact_2D");
-		sub_lists.AddSub("Jones_penalty_contact_3D");
-		sub_lists.AddSub("Jones_multiplier_contact_2D");
-		sub_lists.AddSub("Jones_multiplier_contact_3D");
-		sub_lists.AddSub("Jones_frictional_contact_2D");
-#endif
-
-#ifdef SURFACE_CB_DEV
-		sub_lists.AddSub("total_lagrangian_CBsurface");
-#endif
-	}
-	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ElementListT::NewSub(const StringT& name) const
-{
-	/* try to construct element */
-	ElementBaseT* element = NewElement(name);
-	if (element)
-		return element;
-	else /* inherited */	
-		return ParameterInterfaceT::NewSub(name);
-}
-
-/* accept parameter list */
-void ElementListT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-
-	/* dimension */
-	const ArrayT<ParameterListT>& subs = list.Lists();
-	Dimension(subs.Length());
-	for (int i = 0; i < Length(); i++) {
-
-		/* construct element */
-		ElementBaseT* element = NewElement(subs[i].Name());
-		if (!element)
-			ExceptionT::GeneralFail("ElementListT::TakeParameterList", "could not construct \"%s\"");
-		
-		/* store */
-		fArray[i] = element;
-
-		/* initialize */
-		element->TakeParameterList(subs[i]);		
-	}
-}
-
-/***********************************************************************
- * Protected
- ***********************************************************************/
-
-/* return a pointer to a new element group or NULL if the request cannot be completed */
-ElementBaseT* ElementListT::NewElement(const StringT& name) const
-{
-	if (false) /* dummy */
-		return NULL;
-
-#ifdef COHESIVE_SURFACE_ELEMENT	
-	else if (name == "isotropic_CSE")
-		return new CSEIsoT(fSupport);
-		
-	else if (name == "anisotropic_CSE")
-		return new CSEAnisoT(fSupport);
-
-	else if (name == "anisotropic_symmetry_CSE")
-		return new CSESymAnisoT(fSupport);
-
-	else if (name == "thermal_CSE")
-		return new ThermalSurfaceT(fSupport);
-#endif
-
-#ifdef ADHESION_ELEMENT
-	else if (name == "adhesion")
-		return new AdhesionT(fSupport);
-#endif
-
-#ifdef CONTACT_ELEMENT
-	else if (name == "contact_2D_penalty")
-		return new PenaltyContact2DT(fSupport);
-	else if (name == "contact_3D_penalty")
-		return new PenaltyContact3DT(fSupport);
-
-	else if (name == "contact_2D_multiplier")
-		return new AugLagContact2DT(fSupport);
-	else if (name == "contact_3D_multiplier")
-		return new AugLagContact3DT(fSupport);
-
-	else if (name == "contact_drag_2D_penalty")
-		return new PenaltyContactDrag2DT(fSupport);
-	else if (name == "contact_drag_3D_penalty")
-		return new PenaltyContactDrag3DT(fSupport);
-#endif
-
-#ifdef CONTACT_ELEMENT
-#ifdef CONTINUUM_ELEMENT /* need meshfree code */
-	else if (name == "meshfree_contact_2D_penalty")
-		return new MFPenaltyContact2DT(fSupport);
-#endif
-#endif
-
-#ifdef PARTICLE_ELEMENT
-	else if (name == "particle_pair")
-		return new ParticlePairT(fSupport);
-	else if (name == "particle_EAM")
-		return new EAMT(fSupport);
-	else if (name == "particle_three_body")
-		return new ParticleThreeBodyT(fSupport);
-#endif
-
-#ifdef CONTINUUM_ELEMENT
-	else if (name == "diffusion")
-		return new DiffusionElementT(fSupport);
-	else if (name == "nonlinear_diffusion")
-		return new NLDiffusionElementT(fSupport);
-	else if (name == "hyperbolic_diffusion")
-		return new HyperbolicDiffusionElementT(fSupport);
-	else if (name == "small_strain")
-		return new SmallStrainT(fSupport);	
-	else if (name == "updated_lagrangian")
-		return new UpdatedLagrangianT(fSupport);
-	else if (name == "updated_lagrangian_Q1P0")
-		return new SimoQ1P0(fSupport);
-	else if (name == "updated_lagrangian_Q1P0_inv")
-		return new SimoQ1P0_inv(fSupport);
-	else if (name == "total_lagrangian")
-		return new TotalLagrangianT(fSupport);
-	else if (name == "small_strain_meshfree")
-		return new MeshFreeSSSolidT(fSupport);
-	else if (name == "large_strain_meshfree")
-		return new MeshFreeFSSolidT(fSupport);
-	else if (name == "small_strain_axi")
-		return new SmallStrainAxiT(fSupport);
-	else if (name == "updated_lagrangian_axi")
-		return new UpdatedLagrangianAxiT(fSupport);
-	else if (name == "total_lagrangian_axi")
-		return new TotalLagrangianAxiT(fSupport);
-	else if (name == "updated_lagrangian_Q1P0_axi")
-		return new SimoQ1P0Axi(fSupport);
-	else if (name == "updated_lagrangian_Q1P0_inv_axi")
-		return new SimoQ1P0Axi_inv(fSupport);
-	else if (name == "large_strain_meshfree_axi")
-		return new MeshFreeFSSolidAxiT(fSupport);
-	else if (name == "ss_mfparticle")
-		return new SS_SCNIMFT(fSupport);
-	else if (name == "fd_mfparticle")
-		return new FS_SCNIMFT(fSupport);
-	else if (name == "ss_mfparticle_axi")
-		return new SS_SCNIMF_AxiT(fSupport);
-	else if (name == "fd_mfparticle_axi")
-	  return new FS_SCNIMF_AxiT(fSupport);
-
-#ifdef BRIDGING_ELEMENT
-	else if (name == "bridging")
-		return new BridgingScaleT(fSupport);
-	else if (name == "meshfree_bridging")
-		return new MeshfreeBridgingT(fSupport);
-#endif
-#endif /* CONTINUUM_ELEMENT */
-
-#ifdef GRAD_SMALL_STRAIN_DEV
-	else if (name == "grad_small_strain")
-		return new GradSmallStrainT(fSupport);
-#endif	
-
-/*
-#ifdef MULTISCALE_ELEMENT_DEV
-	else if (name == "variational_multiscale")
-		return new StaggeredMultiScaleT(fSupport);
-#endif
-*/
-
-#ifdef MULTISCALE_APS_DEV
-	else if (name == "antiplane_shear_grad_plast")
-		return new APS_AssemblyT(fSupport);
-#endif
-
-/*
-#ifdef MULTISCALE_APS_V_DEV
-	else if (name == "antiplane_shear_grad_plast_V")
-		return new APS_V_AssemblyT(fSupport);
-#endif
-*/
-
-#ifdef MESHFREE_GRAD_PLAST_DEV
-	else if (name == "meshfree_grad_plast")
-		return new MFGP_AssemblyT(fSupport);
-#endif
-
-#ifdef ENHANCED_STRAIN_LOC_DEV
-	else if (name == "small_strain_enh_loc")
-		return new SmallStrainEnhLocT(fSupport);
-#endif
-
-#ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
-	else if (name == "small_strain_enh_loc_craig")
-		return new SSEnhLocCraigT(fSupport);
-		else if (name == "small_strain_enh_loc_dieterich")
-		return new SSEnhLocDieterichT(fSupport);
-#endif
-
-#ifdef MIXTURE_THEORY_DEV
-	else if (name == "updated_lagrangian_mixture")
-		return new UpdatedLagMixtureT(fSupport);
-	else if (name == "Q1P0_mixture")
-		return new Q1P0MixtureT(fSupport);
-	else if (name == "mixture_species")
-		return new MixtureSpeciesT(fSupport);
-#endif
-
-#if defined(SOLID_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
-	else if (name == "small_strain_material_force")
-		return new SSMF(fSupport);
-#endif
-
-#ifdef CONTACT_ELEMENT_DEV
-	else if (name == "Jones_penalty_contact_2D")
-		return new PenaltyContactElement2DT(fSupport);
-	else if (name == "Jones_penalty_contact_3D")
-		return new PenaltyContactElement3DT(fSupport);
-	else if (name == "Jones_multiplier_contact_2D")
-		return new MultiplierContactElement2DT(fSupport);
-	else if (name == "Jones_multiplier_contact_3D")
-		return new MultiplierContactElement3DT(fSupport);
-	else if (name == "Jones_frictional_contact_2D")
-		return new FrictionalContactElement2DT(fSupport);
-#endif
-
-#ifdef SURFACE_CB_DEV
-	else if (name == "total_lagrangian_CBsurface")
-		return new TotalLagrangianCBSurfaceT(fSupport);
-#endif
-
-	/* default */	
-	else
-		return NULL;
 }

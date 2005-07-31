@@ -1,13 +1,13 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.13 2004-07-15 08:29:39 paklein Exp $ */
-/* created: paklein (02/15/2000) */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (02/15/2000)                                          */
+
 #include "MeshFreeFractureSupportT.h"
 
 #include "StringT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "MeshFreeShapeFunctionT.h"
-#include "SolidMaterialT.h"
-#include "FSSolidMatT.h"
-#include "ParameterContainerT.h"
+#include "StructuralMaterialT.h"
+#include "FDStructMatT.h"
 
 /* crack growth */
 #include "Front2DT.h"
@@ -15,13 +15,12 @@
 #include "FrontNodeT.h"
 #include "SamplingSurfaceT.h"
 
-using namespace Tahoe;
-
 /* constructor */
-MeshFreeFractureSupportT::MeshFreeFractureSupportT(void):
+MeshFreeFractureSupportT::MeshFreeFractureSupportT(ifstreamT& in):
+	MeshFreeElementSupportT(in),
 	fCriterion(kNoCriterion)
 {
-	SetName("meshfree_fracture_support");
+
 }
 
 /* destructor */
@@ -56,117 +55,22 @@ void MeshFreeFractureSupportT::ResetStep(void)
 	/* reset all marked to on */
 	for (int i = 0; i < fSamplingSurfaces.Length(); i++)
 		fSamplingSurfaces[i]->ChangeFlags(kMarked, kON);
-
-	//TEMP - no history
-	if (fFrontList.Length() > 0)
-		ExceptionT::GeneralFail("MeshFreeFractureSupportT::ResetStep", 
-			"not implemented for active crack fronts: %s", fFrontList.Length());
-}
-
-/* information about subordinate parameter lists */
-void MeshFreeFractureSupportT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	MeshFreeElementSupportT::DefineSubs(sub_list);
-
-	/* cutting surfaces */
-	sub_list.AddSub("cutting_surface", ParameterListT::Any);
-
-	/* sampling surfaces */
-	sub_list.AddSub("sampling_surface", ParameterListT::Any);
-
-#pragma message("define cutting surfaces")
-#pragma message("define sampling surfaces")
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* MeshFreeFractureSupportT::NewSub(const StringT& name) const
-{
-	if (name == "fracture_criterion") {
-
-		ParameterContainerT* crit = new ParameterContainerT(name);
-
-		/* fracture criterion */
-		ParameterT criterion(ParameterT::Enumeration, "criterion");
-		criterion.AddEnumeration("none", kNoCriterion);
-		criterion.AddEnumeration("max_hoop_stress", kMaxHoopStress);
-		criterion.AddEnumeration("max_traction", kMaxTraction);
-		criterion.AddEnumeration("loss_of_ellipticity", kAcoustic);
-		criterion.SetDefault("none");
-		crit->AddParameter(criterion);
 		
-		/* critical value */
-		crit->AddParameter(ParameterT::Double, "critical_value");
-	
-		return crit;
-	}
-	else if (name == "cutting_surface") {
-
-		ParameterContainerT* cutting_surface = new ParameterContainerT(name);
-		cutting_surface->SetSubSource(this);
-		cutting_surface->AddParameter(ParameterT::Word, "geometry_file");
-		cutting_surface->AddSub("block_ID_list");
-		
-		/* one or more advancing fronts */
-		cutting_surface->AddSub("advancing_front", ParameterListT::Any);
-		
-		return cutting_surface;
-	}
-	else if (name == "sampling_surface") {
-		ParameterContainerT* sampling_surface = new ParameterContainerT(name);
-		sampling_surface->AddParameter(ParameterT::Integer, "num_sampling_points");
-		sampling_surface->AddParameter(ParameterT::Word, "geometry_file");
-		sampling_surface->AddSub("block_ID_list");
-		return sampling_surface;
-	}
-	else if (name == "advancing_front") {
-
-		ParameterContainerT* advancing_front = new ParameterContainerT(name);
-		advancing_front->SetSubSource(this);
-
-		/* fracture criterion */
-		advancing_front->AddSub("fracture_criterion", ParameterListT::ZeroOrOnce);
-	
-		/* sampling parameters */
-		advancing_front->AddParameter(ParameterT::Double, "extension_increment");
-		advancing_front->AddParameter(ParameterT::Integer, "num_side_sampling_points");
-		advancing_front->AddParameter(ParameterT::Double, "sampling_cone_angle");
-		advancing_front->AddParameter(ParameterT::Double, "sampling_distance_fraction");
-		advancing_front->AddParameter(ParameterT::Double, "insertion_threshold");
-	
-		/* fronts are side sets to the element blocks defining the surfaces */
-		advancing_front->AddSub("side_set_ID_list");
-		
-		return advancing_front;
-	}
-	else /* inherited */
-		return MeshFreeElementSupportT::NewSub(name);
-}
-
-/* accept parameter list */
-void MeshFreeFractureSupportT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	MeshFreeElementSupportT::TakeParameterList(list);
-
-	/* fracture criterion */
-	const ParameterListT* crit = list.List("fracture_criterion");
-	if (crit) {
-		fCriterion = int2FractureCriterionT(crit->GetParameter("criterion"));
-		fs_u = crit->GetParameter("critical_value");
-	}
-
-	/* collect pointers to parameter lists needed during InitSupport */
+//TEMP - need to reset cutting surfaces and restore all
+//       shape function databases
+cout << "\n MeshFreeFractureSupportT::ResetStep: not fully implemented" << endl;
+throw eGeneralFail;		
 }
 
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
-MeshFreeFractureSupportT::FractureCriterionT MeshFreeFractureSupportT::int2FractureCriterionT(int i)
+istream& operator>>(istream& in, MeshFreeFractureSupportT::FractureCriterionT& criterion)
 {
-	FractureCriterionT criterion;
-	switch (i)
+	int i_criterion = -1;
+	in >> i_criterion;
+	switch(i_criterion)
 	{
 		case MeshFreeFractureSupportT::kNoCriterion:
 			criterion = MeshFreeFractureSupportT::kNoCriterion;
@@ -181,29 +85,31 @@ MeshFreeFractureSupportT::FractureCriterionT MeshFreeFractureSupportT::int2Fract
 			criterion = MeshFreeFractureSupportT::kAcoustic;
 			break;
 		default:
-			ExceptionT::BadInputValue("MeshFreeFractureSupportT::int2FractureCriterionT",
-				"unrecognized criterion %d", i);
+			cout << "\n operator>>MeshFreeFractureSupportT::FractureCriterionT: bad value: "
+			     << i_criterion << endl;
+			throw eBadInputValue;	
 	}
-	return criterion;
+	return in;
 }
 
 /* initialization */
-void MeshFreeFractureSupportT::InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
-	const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model)
+void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
+	AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
+	int numDOF, int max_node_num, const StringT& model_file, IOBaseT::FileTypeT format)
 {
 	/* inherited */
-	MeshFreeElementSupportT::InitSupport(out, elem_cards, surface_nodes, numDOF, max_node_num, model);
+	MeshFreeElementSupportT::InitSupport(in, out, elem_cards, surface_nodes,
+		numDOF, max_node_num, model_file, format);
 
 	/* unitialized */
 	fNumFacetNodes = -1;
 
 	/* field cutting facets (and active crack fronts) */
-	InitCuttingFacetsAndFronts(out);
+	InitCuttingFacetsAndFronts(in, out);
 
 	/* field sampling surfaces */
-//	InitSamplingSurfaces(out);
-
-#if 0
+	InitSamplingSurfaces(in, out);
+	
 	/* insertion criterion */
 	if (fFrontList.Length() > 0 || fSamplingSurfaces.Length() > 0)
 	{
@@ -218,38 +124,25 @@ void MeshFreeFractureSupportT::InitSupport(ostream& out, AutoArrayT<ElementCardT
 			out.flush();
 			cout << "\n MeshFreeFractureSupportT::InitSupport: criterion does not admit growth: "
 			     << kNoCriterion << endl;
-			throw ExceptionT::kBadInputValue;
+			throw eBadInputValue;
 		}
 		
 		/* allocate work space */
 		int nsd = fMFShapes->NumSD();
-		ftmp_nsd.Dimension(nsd);
+		ftmp_nsd.Allocate(nsd);
 	}
-#endif
 }
 
-bool MeshFreeFractureSupportT::CheckGrowth(SolidMaterialT* material, 
-	LocalArrayT* disp, bool verbose)
+bool MeshFreeFractureSupportT::CheckGrowth(StructuralMaterialT& material,
+	LocalArrayT& disp, bool verbose)
 {
 	/* clear facets to reset */
-	fResetFacets.Dimension(0);
+	fResetFacets.Allocate(0);
 	fInitTractionMan.SetMajorDimension(0, false);
 
-	/* do check */
-	bool growth_on_front = false;
-	bool growth_on_surfs = false;
-	if (material) {
-
-		/* check */
-		if (!disp) {
-			cout << "\n MeshFreeFractureSupportT::CheckGrowth: displacement array is NULL" << endl;
-			throw ExceptionT::kGeneralFail;
-		}
-
-		/* check source of growth */
-		growth_on_front = CheckFronts(*material, *disp, verbose);
-		growth_on_surfs = CheckSurfaces(*material, *disp, verbose);
-	}
+	/* steps in checking growth */
+	bool growth_on_front = CheckFronts(material, disp, verbose);
+	bool growth_on_surfs = CheckSurfaces(material, disp, verbose);
 
 	/* write cutting facets */
 	if (verbose)
@@ -290,18 +183,9 @@ bool MeshFreeFractureSupportT::CheckGrowth(SolidMaterialT* material,
 ***********************************************************************/
 
 /* steps in InitSupport() */
-void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ostream& out)
+void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ifstreamT& in,
+	ostream& out)
 {
-//TEMP
-fs_i  = 0.0;
-fda   = 0.0;
-fda_s = 0.0;
-fcone = 0.0;
-fn_s  = 0;
-InitFacetDatabase(0);
-//TEMP
-
-#if 0
 	int num_facets = -99;
 	in >> num_facets;
 	out << " Number of cutting facets. . . . . . . . . . . . = "
@@ -315,7 +199,7 @@ InitFacetDatabase(0);
 			cout << "\n MeshFreeFractureSupportT::InitSupport: number of cutting facets\n"
 			     <<   "     must be >= 0: " << num_facets << endl;
 		out.flush();
-		throw ExceptionT::kBadInputValue;
+		throw eBadInputValue;
 	}
 
 	if (num_facets > 0)
@@ -329,14 +213,14 @@ InitFacetDatabase(0);
 			     <<   "    cutting facet nodes " << num_facet_nodes
 			     << " does not match previously given value " << fNumFacetNodes
 			     << endl;
-			throw ExceptionT::kBadInputValue;
+			throw eBadInputValue;
 		}
-		else if (fNumFacetNodes == -1)          //NOTE: -1 indicates fNumFacetNodes has not 
-			InitFacetDatabase(num_facet_nodes); //      been initialized, why call this anyway?
+		else if (fNumFacetNodes == -1)
+			InitFacetDatabase(num_facet_nodes);
 		
 		/* read facet data */
 		int nsd = fMFShapes->NumSD();
-		fResetFacets.Dimension(0);
+		fResetFacets.Allocate(0);
 		fFacetman.SetMajorDimension(num_facets, false);
 		dArray2DT facet;
 		dArrayT x;
@@ -372,11 +256,7 @@ InitFacetDatabase(0);
 		fda_s = 0.0;
 		fcone = 0.0;
 		fn_s  = 0;
-		
-		/* must initialize */
-		InitFacetDatabase(0);
 	}
-#endif
 }
 
 void MeshFreeFractureSupportT::InitSamplingSurfaces(ifstreamT& in, ostream& out)
@@ -394,12 +274,12 @@ void MeshFreeFractureSupportT::InitSamplingSurfaces(ifstreamT& in, ostream& out)
 			cout << "\n MeshFreeFractureSupportT::InitSupport: number of sampling surfaces\n"
 			     <<   "     must be >= 0: " << num_sampling_surfaces << endl;
 		out.flush();
-		throw ExceptionT::kBadInputValue;
+		throw eBadInputValue;
 	}
 	
 	if (num_sampling_surfaces > 0)
 	{
-		fSamplingSurfaces.Dimension(num_sampling_surfaces);
+		fSamplingSurfaces.Allocate(num_sampling_surfaces);
 
 		//TEMP - only support in line data
 		for (int i = 0; i < fSamplingSurfaces.Length(); i++)
@@ -423,14 +303,14 @@ void MeshFreeFractureSupportT::InitSamplingSurfaces(ifstreamT& in, ostream& out)
 	   			     <<   "    cutting facet nodes " << num_facet_nodes
 	   			     << " does not match previously given value " << fNumFacetNodes
 	   			     << endl;
-	   			throw ExceptionT::kBadInputValue;
+	   			throw eBadInputValue;
 	   		}
 	   		else if (fNumFacetNodes == -1)
 	   			InitFacetDatabase(num_facet_nodes);
 
 			fSamplingSurfaces[i] = new SamplingSurfaceT(code, num_facet_nodes,
 				num_samples_per_facet, fMFShapes->MeshFreeSupport());
-			if (!fSamplingSurfaces[i]) throw ExceptionT::kOutOfMemory;
+			if (!fSamplingSurfaces[i]) throw eOutOfMemory;
 
 			/* surface geometry data */
 			int nnd;
@@ -483,19 +363,19 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 	{
 		cout << "\n MeshFreeFractureSupportT::InitializeFronts: fraction of\n"
 		     <<   "     failure stress at insertion must be >= 0: " << fs_i << endl;
-		throw ExceptionT::kBadInputValue;
+		throw eBadInputValue;
 	}
 
 	/* number of crack fronts */
 	int num_fronts;
-	in >> num_fronts; if (num_fronts < 0) throw ExceptionT::kBadInputValue;
+	in >> num_fronts; if (num_fronts < 0) throw eBadInputValue;
 	out << " Number of active crack fronts . . . . . . . . . = " << num_fronts << endl;
 			
 	/* allocate tip space */	
 	if (fn_s > -1 && num_fronts > 0)
 	{
 		/* allocate list */
-		fFrontList.Dimension(num_fronts);
+		fFrontList.Allocate(num_fronts);
 		int numSD = fMFShapes->NumSD();
 		for (int i = 0; i < fFrontList.Length(); i++)
 		{
@@ -523,7 +403,7 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 			if (numSD == 2)
 			{
 				Front2DT* front2D = new Front2DT(fcone, fda, fda_s, fn_s);
-				if (!front2D) throw ExceptionT::kOutOfMemory;			
+				if (!front2D) throw eOutOfMemory;			
 
 		  		/* store */
 		  		fFrontList[i] = front2D;
@@ -531,7 +411,7 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 			else
 			{
 				Front3DT* front3D = new Front3DT(fcone, fda, fda_s, fn_s);
-				if (!front3D) throw ExceptionT::kOutOfMemory;			
+				if (!front3D) throw eOutOfMemory;			
 
 		  		/* set minimum included angle for kinks on the front */
 		  		front3D->SetKinkAngle(90.0);		
@@ -544,27 +424,27 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 		}	  	
 
 		/* allocate workspace */
-		fhoop.Dimension(numSD);
+		fhoop.Allocate(numSD);
 	}		
 }
 
 /* steps in checking growth */
-bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
+bool MeshFreeFractureSupportT::CheckFronts(StructuralMaterialT& material,
 	LocalArrayT& disp, bool verbose)
 {
 #pragma unused(verbose)
 
 	/* checks */
 	if (!fLocGroup.IsRegistered(disp) ||
-		disp.Type() != LocalArrayT::kDisp) throw ExceptionT::kGeneralFail;
+		disp.Type() != LocalArrayT::kDisp) throw eGeneralFail;
 
 #ifdef __NO_RTTI__
 	cout << "\n MeshFreeFractureSupportT::CheckSurfaces: requires RTTI" << endl;
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 #endif
 
 	/* check for finite deformation */
-	FSSolidMatT* FD_material = TB_DYNAMIC_CAST(FSSolidMatT*, &material);
+	FDStructMatT* FD_material = dynamic_cast<FDStructMatT*>(&material);
 	
 	/* dimensions */
 	int nsd = fMFShapes->NumSD();
@@ -600,12 +480,12 @@ bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
 			double max_sample;
 			int max_dex = -1;
 			int dex = nsd - 1; // "last" component
-			samples.Dimension(x_list.MajorDim());
+			samples.Allocate(x_list.MajorDim());
 			for (int j = 0; j < x_list.MajorDim(); j++)
 			{
 				/* fetch coords and transformation tensor */
-				x_s.Alias(nsd, x_list(j));
-				Q_s.Alias(nsd, nsd, Q_list(j));
+				x_s.Set(nsd, x_list(j));
+				Q_s.Set(nsd, nsd, Q_list(j));
 				
 				/* set field */
 				if (fMFShapes->SetDerivativesAt(x_s))
@@ -646,7 +526,7 @@ bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
 				{
 					cout << "\n MeshFreeFractureSupportT::CheckFronts: error at sampling point: ";
 					cout << x_s.no_wrap() << endl;
-					throw ExceptionT::kGeneralFail;
+					throw eGeneralFail;
 				}
 			}
 		
@@ -718,7 +598,7 @@ bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
 				for (int k = 0; k < x_list.MajorDim(); k++)
 				{
 					/* fetch coords and transformation tensor */
-					x_s.Alias(nsd, x_list(k));
+					x_s.Set(nsd, x_list(k));
 						
 					/* output */
 					cout << setw(kIntWidth) << k+1
@@ -733,22 +613,22 @@ bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
 	return growth;
 }
 
-bool MeshFreeFractureSupportT::CheckSurfaces(SolidMaterialT& material,
+bool MeshFreeFractureSupportT::CheckSurfaces(StructuralMaterialT& material,
 	LocalArrayT& disp, bool verbose)
 {
 #pragma unused(verbose)
 
 	/* checks */
 	if (!fLocGroup.IsRegistered(disp) || disp.Type() != LocalArrayT::kDisp)
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 
 #ifdef __NO_RTTI__
 	cout << "\n MeshFreeFractureSupportT::CheckSurfaces: requires RTTI" << endl;
-	throw ExceptionT::kGeneralFail;
+	throw eGeneralFail;
 #endif
 
 	/* check for finite deformation */
-	FSSolidMatT* FD_material = TB_DYNAMIC_CAST(FSSolidMatT*, &material);
+	FDStructMatT* FD_material = dynamic_cast<FDStructMatT*>(&material);
 
 	/* sampling point data */
 	iArrayT neighbors;
@@ -817,7 +697,7 @@ bool MeshFreeFractureSupportT::CheckSurfaces(SolidMaterialT& material,
 						//      sampled on the surface
 						
 						/* retrieve facet coordinates */
-						coordinates.Dimension(surface.NodesPerFacet(), nsd);
+						coordinates.Allocate(surface.NodesPerFacet(), nsd);
 						surface.FacetCoordinates(facet, coordinates);
 						
 						/* store facet coordinates */
@@ -858,7 +738,7 @@ void MeshFreeFractureSupportT::InitFacetDatabase(int num_facet_nodes)
 * global frame. Call only after configuring the meshfree field
 * at the current point. Return value has sign convention that
 * "more positive" is closer to failed */
-double MeshFreeFractureSupportT::ComputeCriterion(SolidMaterialT& material,
+double MeshFreeFractureSupportT::ComputeCriterion(StructuralMaterialT& material,
 	const dMatrixT& Q, const dArrayT& n, FractureCriterionT criterion,
 	double critical_value, dArrayT& t_local)
 {
@@ -909,7 +789,7 @@ double MeshFreeFractureSupportT::ComputeCriterion(SolidMaterialT& material,
 		{
 			cout << "\n MeshFreeFractureSupportT::ComputeCriterion: unknown criterion: "
 			     << criterion << endl;
-			throw ExceptionT::kGeneralFail;
+			throw eGeneralFail;
 		}
 	}
 	return value;

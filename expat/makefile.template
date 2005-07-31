@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.6 2005-04-08 17:30:28 paklein Exp $
+# $Id: makefile.template,v 1.1.1.1 2004-07-12 17:22:36 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # NOTE: this is makefile just wraps the configure/build system
@@ -12,28 +12,6 @@
 
 # full path to the top level of this module
 HOME_DIR =
-
-# build architecture - see macros directory for choices $(ARCH).macros
-ARCH =
-
-# destination for the build
-BLD_DIR = $(HOME_DIR)
-
-# working directories:
-INC_DIR = $(BLD_DIR)/inc
-SRC_DIR = $(HOME_DIR)/src
-OBJ_DIR = $(BLD_DIR)/obj
-BLD_SRC_DIR = $(BLD_DIR)/src-mirror
-LIB_DIR = $(BLD_DIR)/lib
-
-# default target name - root of library name or executable name
-TARGET  = expat
-LIBRARY = $(LIB_DIR)/lib$(TARGET).a
-PCH     = $(TARGET)Prefix.h
-
-# target of "make build", i.e., the library $(LIBRARY) or
-# the executable $(TARGET)
-BUILD = $(LIBRARY)
 
 # full path to compiler macros
 MACRO_DIR = $(HOME_DIR)/../macros
@@ -62,40 +40,22 @@ MOD_BUILD_XTRAS            = nothing
 
 # default target
 help:
-	@ $(PRINTF) " make targets:\n"
-	@ $(PRINTF) "   init - (re-)initialize headers and file dependencies\n"
-	@ $(PRINTF) "  build - (re-)build binaries\n"
-	@ $(PRINTF) "  clean - remove object files and build temporaries\n"
-	@ $(PRINTF) "   help - display this list\n"
-
-
-# include common target definitions
-include $(MACRO_DIR)/$(ARCH).macros
+	@ printf " make targets:\n"
+	@ printf "   init - (re-)initialize headers and file dependencies\n"
+	@ printf "  build - (re-)build binaries\n"
+	@ printf "  clean - remove object files and build temporaries\n"
+	@ printf "   help - display this list\n"
 
 init:
-	cd expat; gunzip $(EXPAT_CURRENT).tar.gz; tar xvf $(EXPAT_CURRENT).tar; gzip $(EXPAT_CURRENT).tar
-	cd expat/$(EXPAT_CURRENT); ./configure --prefix=$(HOME_DIR)/local --disable-shared CC=$(COMP_C)
-	make install
+	cd expat; gunzip $(EXPAT_CURRENT).tar.gz; tar xvf $(EXPAT_CURRENT).tar
+	cd expat/$(EXPAT_CURRENT); configure --prefix=$(HOME_DIR) --disable-shared
 	
 build:
-	@ $(PRINTF) "nothing to do for 'make build'. expat installed with 'make init'\n"
-
-install:
 	cd expat/$(EXPAT_CURRENT); make; make install
-	make include
-	make lib
-
-include:
-	if [ ! -d include ]; then mkdir include; fi
-	cp local/include/* include
-
-lib:
-	if [ ! -d lib ]; then mkdir lib; fi
-	cp local/lib/* lib
 
 clean:
 	rm -rf expat/$(EXPAT_CURRENT)
-	rm -rf pch bin include lib local
+	rm -rf bin include lib man
 
 # init extras target
 update_config: nothing

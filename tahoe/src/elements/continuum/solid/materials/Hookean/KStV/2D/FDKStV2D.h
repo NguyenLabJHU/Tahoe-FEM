@@ -1,25 +1,23 @@
-/* $Id: FDKStV2D.h,v 1.7 2004-09-10 22:39:02 paklein Exp $ */
-/* created: paklein (06/10/97) */
+/* $Id: FDKStV2D.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (06/10/97)                                            */
+
 #ifndef _FD_KSTV_2D_H_
 #define _FD_KSTV_2D_H_
 
 /* base classes */
-#include "FDKStV.h"
-#include "IsotropicT.h"
+#include "FDHookeanMatT.h"
+#include "KStV2D.h"
 
-namespace Tahoe {
-
-class FDKStV2D: public FDKStV
+class FDKStV2D: public FDHookeanMatT, public KStV2D
 {
 public:
 
-	/** constructor */
-	FDKStV2D(void);
+	/* constructor */
+	FDKStV2D(ifstreamT& in, const ElasticT& element);
 
-protected:
-
-	/* set modulus */
-	virtual void SetModulus(dMatrixT& modulus);
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 
 private:
 
@@ -27,5 +25,4 @@ private:
 	virtual bool SetInverseThermalTransformation(dMatrixT& F_trans_inv);  			
 };
 
-} // namespace Tahoe 
 #endif /* _FD_KSTV_2D_H_ */

@@ -1,15 +1,12 @@
-/* $Id: D2OrthoMLSSolverT.cpp,v 1.5 2002-10-20 22:49:42 paklein Exp $ */
+/* $Id: D2OrthoMLSSolverT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
 /* created: paklein (10/17/1999)                                          */
 
 #include "D2OrthoMLSSolverT.h"
 
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 #include "dSymMatrixT.h"
 
 /* constants */
-
-using namespace Tahoe;
-
 const double sqrtPi = sqrt(acos(-1.0));
 
 /* constructor */
@@ -37,16 +34,16 @@ void D2OrthoMLSSolverT::Initialize(void)
 	int dim = dSymMatrixT::NumValues(fNumSD);
 
 	/* b (2.11 b) derivatives */
-	fDDb.Dimension(dim, m);
+	fDDb.Allocate(dim, m);
 
 	/* monomial derivatives */
-	fDDp.Dimension(dim, m);
+	fDDp.Allocate(dim, m);
 
 	/* (orthogonal) basis functions derivatives */
-	fDDq.Dimension(dim, m);
+	fDDq.Allocate(dim, m);
 
 	/* rows of alpha derivatives */
-	fDDa.Dimension(dim, m-1);
+	fDDa.Allocate(dim, m-1);
 	
 	/* register variable length arrays */
 	for (int i = 0; i < dim; i++)
@@ -58,11 +55,11 @@ void D2OrthoMLSSolverT::Initialize(void)
 
 /* set MLS at coords given sampling points */
 int D2OrthoMLSSolverT::SetField(const dArray2DT& nodalcoords,
-	const ArrayT<double>& dmax, const dArrayT& samplept)
+	const dArrayT& dmax, const dArrayT& samplept)
 {
 #if __option(extended_errorcheck)
-	if (dmax.Length() != nodalcoords.MajorDim()) throw ExceptionT::kSizeMismatch;
-	if (samplept.Length() != fNumSD) throw ExceptionT::kSizeMismatch;
+	if (dmax.Length() != nodalcoords.MajorDim()) throw eSizeMismatch;
+	if (samplept.Length() != fNumSD) throw eSizeMismatch;
 #endif
 
 	/* set size of current working set */
@@ -85,7 +82,7 @@ int D2OrthoMLSSolverT::SetField(const dArray2DT& nodalcoords,
 		//TEMP - will handle externally later
 		cout << "\n D2OrthoMLSSolverT::SetField: not enough nodes for fit: ";
 		cout << numactive << '/' << NumberOfMonomials(fComplete) << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 		
 		return 0;
 	}

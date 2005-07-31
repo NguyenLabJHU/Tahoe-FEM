@@ -1,5 +1,6 @@
-/* $Id: CCSMatrixT.cpp,v 1.29 2005-04-13 21:49:58 paklein Exp $ */
-/* created: paklein (05/29/1996) */
+/* $Id: CCSMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (05/29/1996)                                          */
+
 #include "CCSMatrixT.h"
 
 #include <math.h>
@@ -8,7 +9,7 @@
 #include <iomanip.h>
 #include <string.h>
 
-#include "toolboxConstants.h"
+#include "Constants.h"
 
 #include "dMatrixT.h"
 #include "dArrayT.h"
@@ -16,35 +17,15 @@
 #include "iArray2DT.h"
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
-#include "StringT.h"
-#include "ofstreamT.h"
-#include "CommunicatorT.h"
-
-using namespace Tahoe;
 
 /* constructor */
-CCSMatrixT::CCSMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
+CCSMatrixT::CCSMatrixT(ostream& out, int check_code):
+	GlobalMatrixT(out, check_code),
 	fDiags(NULL),
 	fNumberOfTerms(0),
-	fMatrix(NULL),
-	fIsFactorized(false),
-	fBand(0),
-	fMeanBand(0)	
+	fMatrix(NULL)
 {
 
-}
-
-CCSMatrixT::CCSMatrixT(const CCSMatrixT& source):
-	GlobalMatrixT(source),
-	fDiags(NULL),
-	fNumberOfTerms(0),
-	fMatrix(NULL),
-	fIsFactorized(source.fIsFactorized),
-	fBand(0),
-	fMeanBand(0)	
-{
-	CCSMatrixT::operator=(source);
 }
 
 CCSMatrixT::~CCSMatrixT(void)
@@ -58,80 +39,79 @@ CCSMatrixT::~CCSMatrixT(void)
 * with AddEquationSet() for all equation sets */
 void CCSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
-	const char caller[] = "FullMatrixT::Initialize";
-
 	/* inherited */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* check */
 	if (tot_num_eq != loc_num_eq)
-		ExceptionT::GeneralFail(caller,
-			"total equations %d != local equations %d", tot_num_eq, loc_num_eq);
+	{
+		cout << "\n CCSMatrixT::Initialize: expecting total number of equations\n"
+		     <<   "     " << tot_num_eq
+		     << " to be equal to the local number of equations " << loc_num_eq << endl;
+		throw eGeneralFail;
+	}
 
 	/* allocate diagonal index array */
 	if (fDiags != NULL) delete[] fDiags;
 	iArrayT i_memory;
 	try {
-		i_memory.Dimension(fLocNumEQ);
+		i_memory.Allocate(fLocNumEQ);
 		i_memory.ReleasePointer(&fDiags);
 	}	
-	catch (ExceptionT::CodeT error) {
-		ExceptionT::Throw(error, caller);
+	catch (int error)
+	{
+		if (error == eOutOfMemory)
+		{
+			cout << "\n CCSMatrixT::Initialize: not enough memory" << endl;
+			fOut << "\n CCSMatrixT::Initialize: not enough memory" << endl;
+		}
+		throw error;
 	}	
 
 	/* compute matrix structure and return dimensions */
-	ComputeSize(fNumberOfTerms, fMeanBand, fBand);
+	int meanband;
+	int band;
+	ComputeSize(fNumberOfTerms, meanband, band);
+
+	/* output */
+	fOut << " Number of terms in global matrix. . . . . . . . = " << fNumberOfTerms << '\n';
+	fOut << " Mean half bandwidth . . . . . . . . . . . . . . = " << meanband << '\n';
+	fOut << " Bandwidth . . . . . . . . . . . . . . . . . . . = " << band     << '\n';
 
 	/* allocate matrix */
 	if (fMatrix != NULL) delete[] fMatrix;
 	dArrayT d_memory;
 	try {
-		d_memory.Dimension(fNumberOfTerms);
+		d_memory.Allocate(fNumberOfTerms);
 		d_memory.ReleasePointer(&fMatrix);
 	}	
-	catch (ExceptionT::CodeT error) {
-		 ExceptionT::Throw(error, caller);
-	}
-	
-	/* clear stored equation sets in preparation for next time
-	 * matrix is configured */
-	fEqnos.Clear();
-	fRaggedEqnos.Clear();
-	
-	/* set flag */
-	fIsFactorized = false;
-}
+	catch (int error)
+	{
+		if (error == eOutOfMemory)
+		{
+			cout << "\n CCSMatrixT::Initialize: not enough memory" << endl;
+			fOut << "\n CCSMatrixT::Initialize: not enough memory" << endl;
+		}
+		throw error;
+	}	
 
-/* write information to output stream */
-void CCSMatrixT::Info(ostream& out)
-{
-	/* inherited */
-	GlobalMatrixT::Info(out);
-
-	/* output */
-	out << " Number of terms in global matrix. . . . . . . . = " << fNumberOfTerms << '\n';
-	out << " Mean half bandwidth . . . . . . . . . . . . . . = " << fMeanBand << '\n';
-	out << " Bandwidth . . . . . . . . . . . . . . . . . . . = " << fBand     << '\n';
-
-#if 0
-//NOTE: since equation sets are cleared in Initialize, we can't
-//      compute fill-in here
 	int computefilledin = 1;
 	if (computefilledin)
 	{
 		int printRCV = 0;
 		int filledelements = NumberOfFilled(printRCV);
-		double percent_fill = (fNumberOfTerms != 0) ? 
-			(100.0*filledelements)/fNumberOfTerms : 
-			0.0; 
 
-		out << " Number of non-zero values (pre-factorization) . = ";
-		out << filledelements << '\n';
-		out << " Storage efficiency (% non-zero) . . . . . . . . = ";
-		out << percent_fill << '\n';
+		fOut << " Number of non-zero values (pre-factorization) . = ";
+		fOut << filledelements << '\n';
+		fOut << " Storage efficiency (% non-zero) . . . . . . . . = ";
+		fOut << (100.0*filledelements)/fNumberOfTerms << '\n';
 	}
-#endif
-	out << endl;
+	/* flush stream */
+	fOut << endl;
+	
+	/* clear stored equation sets */
+	fEqnos.Clear();
+	fRaggedEqnos.Clear();
 }
 
 /* set all matrix volues to 0.0 */
@@ -141,8 +121,7 @@ void CCSMatrixT::Clear(void)
 	GlobalMatrixT::Clear();
 
 	/* byte set */
-	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);
-	fIsFactorized = false;
+	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);	
 }
 
 /* add element group equations to the overall topology.
@@ -162,19 +141,17 @@ void CCSMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
 {
-	const char caller[] = "CCSMatrixT::Assemble";
-
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
 
 	if (format == ElementMatrixT::kNonSymmetric)
-		ExceptionT::GeneralFail(caller, "element matrix cannot be nonsymmetric");
+		throw eGeneralFail;
 	else if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		const double* pelMat = elMat.Pointer();
+		double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 		
 		int size = eqnos.Length();
@@ -186,7 +163,10 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 
 #if __option (extended_errorcheck)
 			if (dex < 0 || dex >= fNumberOfTerms)
-				ExceptionT::GeneralFail(caller, "index out of range: %d", dex);
+			{
+				cout << "\nCCSMatrixT::Assemble: index out of range: " << dex << endl;
+				throw eGeneralFail;
+			}
 #endif
 			/* assemble */
 			fMatrix[dex] += *pelMat;
@@ -214,79 +194,15 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 
 #if __option (extended_errorcheck)
 						if (dex < 0 || dex >= fNumberOfTerms)
-							ExceptionT::GeneralFail(caller, "index out of range: %d", dex);
+						{
+							cout << "\nCCSMatrixT::Assemble: index out of range: " << dex << endl;
+							throw eGeneralFail;
+						}
 #endif
-						/* off-diagonal in element, but global in diagonal */
-						if (ceqno == reqno && row != col)
-							fMatrix[dex] += 2.0*elMat(row,col);
-						else
-							fMatrix[dex] += elMat(row,col);
+						/* assemble */
+						fMatrix[dex] += elMat(row,col);
 					}
 			}
-	}
-}
-
-void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
-{
-#if __option(extended_errorcheck)
-	/* dimension checks */
-	const char caller[] = "CCSMatrixT::Assemble";
-	if (elMat.Rows() != row_eqnos.Length() ||
-	    elMat.Cols() != col_eqnos.Length()) ExceptionT::SizeMismatch(caller);
-#endif
-
-	/* element matrix format */
-	ElementMatrixT::FormatT format = elMat.Format();
-
-	if (format == ElementMatrixT::kDiagonal)
-	{
-#if __option(extended_errorcheck)
-		if (row_eqnos.Length() != col_eqnos.Length())
-			ExceptionT::SizeMismatch(caller);
-#endif
-		for (int i = 0; i < row_eqnos.Length(); i++) {
-			int ceqno = col_eqnos[i] - 1;	
-			int reqno = row_eqnos[i] - 1;
-			if (ceqno > -1 && reqno > -1)
-				(*this)(reqno,ceqno) += elMat(i,i);
-		}
-	}
-	else
-	{   	
-		/* copy to full symmetric */
-		if (format == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
-
-		/* assemble active degrees of freedom */
-		int n_c = col_eqnos.Length();
-		int n_r = row_eqnos.Length();
-		for (int col = 0; col < n_c; col++)
-		{
-			int ceqno = col_eqnos[col] - 1;	
-			if (ceqno > -1)	
-				for (int row = 0; row < n_r; row++)
-				{
-					int reqno = row_eqnos[row] - 1;
-					if (reqno > -1 && ceqno >= reqno)
-						(*this)(reqno,ceqno) += elMat(row,col);
-				}
-		}
-	}
-}
-
-void CCSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
-{
-#if __option(extended_errorcheck)
-	/* dimension check */
-	if (diagonal_elMat.Length() != eqnos.Length()) ExceptionT::SizeMismatch("CCSMatrixT::Assemble");
-#endif
-
-	/* assemble */
-	for (int j = 0; j < eqnos.Length(); j++)
-	{
-		int eqno = eqnos[j] - 1;
-		if (eqno > -1)
-			fMatrix[fDiags[eqno]] += diagonal_elMat[j];
 	}
 }
 
@@ -295,10 +211,10 @@ void CCSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<in
 double CCSMatrixT::ResidualNorm(const dArrayT& result) const
 {
 	/* dimension check */
-	if (result.Length() != fLocNumEQ) ExceptionT::GeneralFail("CCSMatrixT::ResidualNorm");
+	if (result.Length() != fLocNumEQ) throw eGeneralFail;
 
 	double  norm = 0.0;
-	const double* p = result.Pointer();
+	double* p = result.Pointer();
 
 	for (int i = 0; i < fLocNumEQ; i++)
 	{
@@ -313,7 +229,7 @@ double CCSMatrixT::ResidualNorm(const dArrayT& result) const
 double CCSMatrixT::AbsRowSum(int rownum) const
 {
 	/* dimension check */
-	if (rownum < 0 || rownum >= fLocNumEQ) throw ExceptionT::kGeneralFail;
+	if (rownum < 0 || rownum >= fLocNumEQ) throw eGeneralFail;
 
 	register double rowsum = fabs( fMatrix[ fDiags[rownum] ] );
 	
@@ -345,6 +261,64 @@ double CCSMatrixT::AbsRowSum(int rownum) const
 	
 	return rowsum;
 }
+	
+/* multiply the matrix with d and return the result in Kd.
+* Note: do not call if the matrix is already factorized */
+void CCSMatrixT::MultKd(const dArrayT& d, dArrayT& Kd) const
+{
+	/* consistency check */
+	if (fIsFactorized) throw eGeneralFail;
+
+	/* dimension checks */
+	if ( d.Length() != Kd.Length() ||
+	     d.Length() != fLocNumEQ ) throw eGeneralFail;
+
+	Kd = 0.0;
+	
+	/* diagonal */
+	for (int j = 0; j < fLocNumEQ; j++)
+		Kd[j] += d[j]*fMatrix[ fDiags[j] ];
+		
+	/* upper triangle */
+	int dexd = 1;
+	for (int i = 1; i < fLocNumEQ; i++)
+	{
+		int height = fDiags[i] - fDiags[i-1] - 1;
+		
+		if (height > 0)
+		{
+			int dexK = fDiags[i] - height;
+			int eqK  = i - height;
+			
+			while (eqK < i)
+			{
+				Kd[eqK] += d[dexd]*fMatrix[dexK];
+				dexK++;
+				eqK++;
+			}
+		}
+		dexd++;
+	}
+			
+	/* lower triangle */		
+	for (int eqK = 1; eqK < fLocNumEQ; eqK++)
+	{
+		int height = fDiags[eqK] - fDiags[eqK-1] - 1;
+		
+		if (height > 0)
+		{
+			int dexK = fDiags[eqK] - height;
+			int dexd = eqK - height;
+			
+			while (dexd < eqK)
+			{
+				Kd[eqK] += d[dexd]*fMatrix[dexK];
+				dexK++;
+				dexd++;
+			}
+		}
+	}
+}									
 
 /* return the value of p_i K_ij p_j */
 double CCSMatrixT::pTKp(const dArrayT& p) const
@@ -371,7 +345,7 @@ double CCSMatrixT::pTKp(const dArrayT& p) const
 	else /* not factorized */
 	{
 		dArrayT Kp(fLocNumEQ);
-		Multx(p, Kp);
+		MultKd(p, Kp);
 		return dArrayT::Dot(Kp,p);
 	}
 }
@@ -391,62 +365,52 @@ int CCSMatrixT::HasNegativePivot(void) const
 	return 0;
 }
 
-/* deep copy operator */
-CCSMatrixT& CCSMatrixT::operator=(const CCSMatrixT& rhs)
+/* assignment operator */
+GlobalMatrixT& CCSMatrixT::operator=(const GlobalMatrixT& RHS)
 {
-	/* no copies of self */
-	if (&rhs == this) return *this;
-	
-	/* inherited */
-	int neq = fLocNumEQ;
-	GlobalMatrixT::operator=(rhs);
+#ifdef __NO_RTTI__
+	const CCSMatrixT* pRHS = (const CCSMatrixT*) (&RHS);
+#else
+	const CCSMatrixT* pRHS = dynamic_cast<const CCSMatrixT*>(&RHS);
+	if (!pRHS) throw eGeneralFail;
+#endif
 
 	/* equation sets */
-	fEqnos = rhs.fEqnos;
-	fRaggedEqnos = rhs.fRaggedEqnos;
-
+	fEqnos = pRHS->fEqnos;
+	fRaggedEqnos = pRHS->fRaggedEqnos;
+	
 	/* sync memory */
-	if (!fDiags || neq != fLocNumEQ)
+	if (fLocNumEQ != pRHS->fLocNumEQ)
 	{
 		/* free existing */
 		delete[] fDiags;
 			
 		/* reallocate */
-		iArrayT i_memory(fLocNumEQ);
-		i_memory.ReleasePointer(&fDiags);
+		fLocNumEQ = pRHS->fLocNumEQ;
+		fDiags = new int[fLocNumEQ];
+		if (!fDiags) throw(eOutOfMemory);
 	}
 
 	/* copy bytes */	
-	memcpy(fDiags, rhs.fDiags, sizeof(int)*fLocNumEQ);	
+	memcpy(fDiags, pRHS->fDiags, sizeof(int)*fLocNumEQ);	
 
 	/* sync memory */
-	if (!fMatrix || fNumberOfTerms != rhs.fNumberOfTerms)
+	if (fNumberOfTerms != pRHS->fNumberOfTerms)
 	{
 		/* free existing */
 		delete[] fMatrix;
 			
 		/* reallocate */
-		fNumberOfTerms = rhs.fNumberOfTerms;
-		dArrayT d_memory(fNumberOfTerms);
-		d_memory.ReleasePointer(&fMatrix);
+		fNumberOfTerms = pRHS->fNumberOfTerms;
+		fMatrix = new double[fNumberOfTerms];
+		if (!fMatrix) throw(eOutOfMemory);
 	}
 
 	/* copy bytes */	
-	memcpy(fMatrix, rhs.fMatrix, sizeof(double)*fNumberOfTerms);
-	
-	/* copy info */
-	fIsFactorized = rhs.fIsFactorized;
-	fBand = rhs.fBand;
-	fMeanBand = rhs.fMeanBand;
+	memcpy(fMatrix, pRHS->fMatrix, sizeof(double)*fNumberOfTerms);	
 
-	return *this;
-}
-
-/* return a clone of self */
-GlobalMatrixT* CCSMatrixT::Clone(void) const
-{
-	CCSMatrixT* new_mat = new CCSMatrixT(*this);
-	return new_mat;
+	/* inherited */
+	return GlobalMatrixT::operator=(RHS);
 }
 
 /* TESTING: write non-zero elements of matrix in Aztec readable
@@ -491,65 +455,35 @@ GlobalMatrixT::EquationNumberScopeT CCSMatrixT::EquationNumberScope(void) const
 
 bool CCSMatrixT::RenumberEquations(void) const { return true; }
 
-/* find the smallest and largest diagonal value */
-void CCSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min, 
-	double& abs_max) const
-{
-	if (fLocNumEQ == 0)  min = max = abs_min = abs_max = 0.0;
-	else
-	{
-		abs_min = abs_max = min = max = fMatrix[fDiags[0]];
-		for (int i = 1; i < fLocNumEQ; i++)
-		{
-			double& diag = fMatrix[fDiags[i]];
-
-			/* absolute */
-			if (diag < min)
-				min = diag;
-			else if (diag > max)
-				max = diag;
-				
-			/* magnitude */	
-			if (fabs(diag) < fabs(abs_min))
-				abs_min = diag;
-			else if (fabs(diag) > fabs(abs_max))
-				abs_max = diag;
-		}
-	}
-}
-
 /**************************************************************************
- * Protected
- **************************************************************************/
+* Protected
+**************************************************************************/
 
 /* element accessor */
 double CCSMatrixT::operator()(int row, int col) const
 {
-#if __option(extended_errorcheck)
-	/* range checks */
-	const char caller[] = "CCSMatrixT::operator()";
-	if (row < 0 || row >= fLocNumEQ) ExceptionT::OutOfRange(caller);
-	if (col < 0 || col >= fLocNumEQ) ExceptionT::OutOfRange(caller);
-#endif
-	
-	if (row == col) /* element on the diagonal */
-		return fMatrix[fDiags[col]];
+	if (row > col) /* element in lower triangle */
+		return (*this)(col,row);
 	else
 	{
-		/* look into upper triangle */
-		int& r = (row > col) ? col : row;
-		int& c = (row > col) ? row : col;
-
-		int colht = ColumnHeight(c);
-		int hrow  = c - r;		
-		if (hrow > colht) /* element above the skyline */
-			return 0.0;
+		/* range checks */
+		if (row < 0 || row >= fLocNumEQ) throw eGeneralFail;
+		if (col < 0 || col >= fLocNumEQ) throw eGeneralFail;
+	
+		if (row == col) /* element on the diagonal */
+			return fMatrix[fDiags[col]];
 		else
-			return fMatrix[fDiags[c] - hrow];
-	}
+		{
+			int colht = ColumnHeight(col);
+			int hrow  = col-row;
+					
+			if (hrow > colht) /* element above the skyline */
+				return 0.0;
+			else
+				return fMatrix[fDiags[col] - hrow];
+		}
+	}	
 }
-
-namespace Tahoe {
 
 ostream& operator<<(ostream& out, const CCSMatrixT& matrix)
 {
@@ -567,14 +501,9 @@ ostream& operator<<(ostream& out, const CCSMatrixT& matrix)
 	return out;
 }
 
-}
-
 /* solution routines */
 void CCSMatrixT::Factorize(void)
-{
-	/* quick exit */
-	if (fIsFactorized) return;
-
+{			
 	int		j, jj, jjlast, jcolht;
 	int		i, ii, ij, icolht, istart, iilast;
 	int		jm1, jlength, jtemp, length;
@@ -644,21 +573,19 @@ if (jcolht >= 2)
 		cout << "\n CCSMatrixT::Factorize: factorization is approximate due to zero";
 		cout << " values on the diagonal" << endl;
 	}
-	
-	/* set flag */
-	fIsFactorized = true;
 }
 
 void CCSMatrixT::BackSubstitute(dArrayT& result)
 {
-	/* check */
-	if (!fIsFactorized) ExceptionT::GeneralFail("CCSMatrixT::BackSubstitute", "matrix is not factorized");
 
 	int		j, jj, jjlast, jjnext, jcolht;
 	int		i, istart, jtemp;
 	double	ajj, bj;
 	double* resultPtr = result.Pointer();
 	int     fail = 0;
+
+	/* check */
+	if (!fIsFactorized) throw eGeneralFail;
 		
 	/* forward reduction */
 	jj = -1;
@@ -722,19 +649,9 @@ void CCSMatrixT::BackSubstitute(dArrayT& result)
 /* check functions */
 void CCSMatrixT::PrintZeroPivots(void) const
 {
-	if (fCheckCode != GlobalMatrixT::kZeroPivots || fLocNumEQ == 0) return;
+	if (fCheckCode != GlobalMatrixT::kZeroPivots) return;
 	int d_width = OutputWidth(fOut, fMatrix);
 
-	/* pivot extrema */
-	double min, max, abs_min, abs_max;
-	FindMinMaxPivot(min, max, abs_min, abs_max);
-	fOut << "\n Matrix pivots:\n"
-	     <<   "     min = " << setw(d_width) << min << '\n' 
-	     <<   "     max = " << setw(d_width) << max << '\n' 
-	     <<   "   |min| = " << setw(d_width) << abs_min << '\n' 
-	     <<   "   |max| = " << setw(d_width) << abs_max << '\n';
-
-	/* write zero or negative pivots */
 	int firstline = 1;
 	for (int i = 0; i < fLocNumEQ; i++)
 	{
@@ -744,7 +661,7 @@ void CCSMatrixT::PrintZeroPivots(void) const
 		{
 			if (firstline)
 			{
-				fOut << "\n Zero or negative pivots:\n\n";
+				fOut << "\nZero or negative pivots:\n\n";
 				firstline = 0;
 			}
 		
@@ -772,108 +689,20 @@ void CCSMatrixT::PrintAllPivots(void) const
 	fOut << '\n';
 }
 
-void CCSMatrixT::PrintLHS(bool force) const
+void CCSMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
-
-	/* output stream */
-	StringT file = fstreamT::Root();
-	file.Append("CCSMatrixT.LHS.", sOutputCount);
-	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());	
-	ofstreamT out(file);
-	out.precision(14);
-
-	/* write non-zero values in RCV format */
-	for (int r = 0; r < fLocNumEQ; r++)
-		for (int c = r; c < fLocNumEQ; c++)
-		{
-			double value = (*this)(r,c);
-			if (value != 0.0) {
-				out << r+1 << " " << c+1 << " " << value << '\n';
-				if (r != c) out << c+1 << " " << r+1 << " " << value << '\n';
-			}
-		}
-
-	/* increment count */
-	sOutputCount++;
-}
-
-/* matrix-vector product */
-void CCSMatrixT::Multx(const dArrayT& d, dArrayT& Kd) const
-{
-	const char caller[] = "CCSMatrixT::Multx";
-
-	/* consistency check */
-	if (fIsFactorized) ExceptionT::GeneralFail(caller, "matrix if factorized");
-
-	/* dimension checks */
-	if ( d.Length() != Kd.Length() ||
-	     d.Length() != fLocNumEQ ) ExceptionT::SizeMismatch(caller);
-
-	Kd = 0.0;
+if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
 	
-	/* diagonal */
-	for (int j = 0; j < fLocNumEQ; j++)
-		Kd[j] += d[j]*fMatrix[ fDiags[j] ];
-		
-	/* upper triangle */
-	int dexd = 1;
-	for (int i = 1; i < fLocNumEQ; i++)
-	{
-		int height = fDiags[i] - fDiags[i-1] - 1;
-		
-		if (height > 0)
-		{
-			int dexK = fDiags[i] - height;
-			int eqK  = i - height;
-			
-			while (eqK < i)
-			{
-				Kd[eqK] += d[dexd]*fMatrix[dexK];
-				dexK++;
-				eqK++;
-			}
-		}
-		dexd++;
-	}
-			
-	/* lower triangle */		
-	for (int eqK = 1; eqK < fLocNumEQ; eqK++)
-	{
-		int height = fDiags[eqK] - fDiags[eqK-1] - 1;
-		
-		if (height > 0)
-		{
-			int dexK = fDiags[eqK] - height;
-			int dexd = eqK - height;
-			
-			while (dexd < eqK)
-			{
-				Kd[eqK] += d[dexd]*fMatrix[dexK];
-				dexK++;
-				dexd++;
-			}
-		}
-	}
-}									
-
-/* return the values along the diagonal of the matrix */
-bool CCSMatrixT::CopyDiagonal(dArrayT& diags) const
-{
-	/* cannot be factorized */
-	if (fIsFactorized)
-		return false;
-	else
-	{
-		/* dimension */
-		diags.Dimension(fLocNumEQ);
-
-		/* collect */
-		for (int j = 0; j < fLocNumEQ; j++)
-			diags[j] = fMatrix[fDiags[j]];
+	fOut << "\nLHS matrix:\n\n";
+	fOut << (*this) << "\n\n";
 	
-		return true;		
-	}
+//TEMP - write to Aztec format	
+//cout << "\n Writing Aztec output file: .data" << endl;
+//ofstream az_out(".data");
+//az_out.setf(ios::showpoint);
+//az_out.setf(ios::right, ios::adjustfield);
+//az_out.setf(ios::scientific, ios::floatfield);
+//WriteAztecFormat(az_out);
 }
 
 /**************************************************************************
@@ -885,7 +714,7 @@ bool CCSMatrixT::CopyDiagonal(dArrayT& diags) const
 void CCSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwidth)
 {
 	/* check */
-	if (fLocNumEQ > 0 && !fDiags) throw ExceptionT::kGeneralFail;
+	if (!fDiags) throw eGeneralFail;
 
 	/* clear diags/columns heights */
 	for (int i = 0; i < fLocNumEQ; i++)
@@ -919,7 +748,7 @@ void CCSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwid
 		num_nonzero = fDiags[fLocNumEQ-1] + 1;
 
 		/* final dimensions */
-		mean_bandwidth = int(ceil(double(num_nonzero)/fLocNumEQ));
+		mean_bandwidth = int(ceil(num_nonzero/fLocNumEQ));
 		bandwidth += 1;
 	}
 }
@@ -932,8 +761,8 @@ void CCSMatrixT::SetColumnHeights(const iArray2DT& eqnos)
 
 	for (int j = 0; j < nel; j++)
 	{
-		const int* eleqnos = eqnos(j);
-		int min = fLocNumEQ;
+		int* eleqnos = eqnos(j);
+		int  min     = fLocNumEQ;
 	
 		/* find the smallest eqno > 0 */
 		for (int k = 0; k < nee; k++)
@@ -970,8 +799,8 @@ void CCSMatrixT::SetColumnHeights(const RaggedArray2DT<int>& eqnos)
 	int nel = eqnos.MajorDim();
 	for (int j = 0; j < nel; j++)
 	{
-		int nee = eqnos.MinorDim(j);
-		const int* eleqnos = eqnos(j);
+		int      nee = eqnos.MinorDim(j);
+		int* eleqnos = eqnos(j);
 	
 		/* find the smallest eqno > 0 */
 		int min = fLocNumEQ;

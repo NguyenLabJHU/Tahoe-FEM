@@ -1,27 +1,42 @@
-/* $Id: LJFCC111.cpp,v 1.10 2004-12-26 21:08:14 d-farrell2 Exp $ */
-/* created: paklein (07/31/1996) */
+/* $Id: LJFCC111.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (07/31/1996)                                          */
+
 #include "LJFCC111.h"
 
 #include <math.h>
 #include <iostream.h>
-#include "ifstreamT.h"
 
-using namespace Tahoe;
+#include "fstreamT.h"
 
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-LJFCC111::LJFCC111(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("LJ_FCC_111"),
-	NL_E_RotMat2DT(in, support, kPlaneStrain)
+LJFCC111::LJFCC111(ifstreamT& in, const ElasticT& element):
+	NL_E_RotMat2DT(in, element, kPlaneStrain)
 {
-	in >> fScale;	if (fScale < 0.0) throw ExceptionT::kBadInputValue;
+	in >> fScale;	if (fScale < 0.0) throw eBadInputValue;
+}
+
+/* I/O functions  */
+void LJFCC111::Print(ostream& out) const
+{
+	/* inherited */
+	NL_E_RotMat2DT::Print(out);
+
+	out << " Scaling constant. . . . . . . . . . . . . . . . = " << fScale << '\n';
 }
 
 /*************************************************************************
- * Protected
- *************************************************************************/
+* Protected
+*************************************************************************/
+
+void LJFCC111::PrintName(ostream& out) const
+{
+	NL_E_RotMat2DT::PrintName(out);
+
+	out << "    LJ FCC <111> 2D\n";
+}
 
 /* compute the symetric Cij reduced index matrix */
 void LJFCC111::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)

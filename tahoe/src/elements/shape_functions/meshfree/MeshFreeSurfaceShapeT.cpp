@@ -1,19 +1,16 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.8 2003-11-21 22:47:14 paklein Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
 
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
 
 #include "SurfaceShapeT.h"
 #include "MeshFreeSurfaceSupportT.h"
 #include "MeshFreeSupportT.h"
 
 /* vector functions */
-
-using namespace Tahoe;
-
 inline static void CrossProduct(const double* A, const double* B, double* AxB)
 {   AxB[0] = A[1]*B[2] - A[2]*B[1];
 	AxB[1] = A[2]*B[0] - A[0]*B[2];
@@ -31,23 +28,22 @@ MeshFreeSurfaceShapeT::MeshFreeSurfaceShapeT(GeometryT::CodeT geometry_code,
 
 	fFacetCoords(LocalArrayT::kInitCoords, num_facet_nodes,
 		GeometryT::GeometryToNumSD(geometry_code) + 1),
-	fRefSurfaceShape(geometry_code, num_ip, 2*num_facet_nodes, num_facet_nodes, 
-					fFieldDim, fFacetCoords),
+	fRefSurfaceShape(geometry_code, num_ip, 2*num_facet_nodes, fFieldDim, fFacetCoords),
 	fCurrIP(fRefSurfaceShape.CurrIP()),
 
 	/* dynamics work space managers */
-	fDphi_man(0, true),
-	fMatrixManager_1(0, true),
-	fMatrixManager_2(0, true),
+	fDphi_man(0),
+	fMatrixManager_1(0),
+	fMatrixManager_2(0),
 
-	fVectorManager_2(0, true),
-	fMatrixManager_3(0, true)
+	fVectorManager_2(0),
+	fMatrixManager_3(0)
 {
 	/* meshfree surface support */
 	fMFSurfaceSupport = new MeshFreeSurfaceSupportT(mf_support,
 		fRefSurfaceShape, fFacetCoords, facet_coords, num_facet_nodes,
 		store_shape);	
-	if (!fMFSurfaceSupport) throw ExceptionT::kOutOfMemory;
+	if (!fMFSurfaceSupport) throw eOutOfMemory;
 
 	/* dimension arrays */
 	Construct();
@@ -91,7 +87,7 @@ void MeshFreeSurfaceShapeT::NeighborCounts(ArrayT<int>& counts) const
 {
 	const ArrayT<int>& counts_1 = fMFSurfaceSupport->NeighborCounts(0);
 	const ArrayT<int>& counts_2 = fMFSurfaceSupport->NeighborCounts(1);
-	counts.Dimension(counts_1.Length());
+	counts.Allocate(counts_1.Length());
 	for (int i = 0; i < counts.Length(); i++)
 		counts[i] = counts_1[i] + counts_2[i];
 }
@@ -105,7 +101,7 @@ void MeshFreeSurfaceShapeT::Neighbors(RaggedArray2DT<int>& neighbors) const
 	if (neighbors.Length() != neighbors_1.Length() + neighbors_2.Length())
 	{
 		cout << "\n MeshFreeSurfaceShapeT::Neighbors: destination array must be configured" << endl;
-		throw ExceptionT::kSizeMismatch;
+		throw eSizeMismatch;
 	}
 	
 	int nnd = neighbors_1.MajorDim();
@@ -122,7 +118,7 @@ void MeshFreeSurfaceShapeT::Neighbors(RaggedArray2DT<int>& neighbors) const
 			     << " of destination is length "
 			     << nnd << "\n" <<   "     instead of length "
 			     << nnd_1 + nnd_2 << endl;
-			throw ExceptionT::kSizeMismatch;
+			throw eSizeMismatch;
 		}
 	
 		/* copy data */
@@ -171,7 +167,7 @@ int MeshFreeSurfaceShapeT::SetFacet(int facet)
 
 	/* set facet reference coordinates */
 	const dArray2DT& all_facets = fMFSurfaceSupport->FacetCoords();
-	fRefFacetCoords.Alias(fRefSurfaceShape.NumFacetNodes(),
+	fRefFacetCoords.Set(fRefSurfaceShape.NumFacetNodes(),
 		fRefSurfaceShape.NumSD() + 1, all_facets(facet));
 	fFacetCoords.FromTranspose(fRefFacetCoords);
 	
@@ -190,7 +186,7 @@ const dArrayT& MeshFreeSurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodal_
 {
 #if __option(extended_errorcheck)
 	if (nodal_1.NumberOfNodes() + nodal_2.NumberOfNodes() !=
-	    fjump_phi.MinorDim()) throw ExceptionT::kSizeMismatch;
+	    fjump_phi.MinorDim()) throw eSizeMismatch;
 #endif
 
 	int nnd_1 = nodal_1.NumberOfNodes();
@@ -200,7 +196,7 @@ const dArrayT& MeshFreeSurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodal_
 		double* phi = fjump_phi(fCurrIP);
 	
 		double jump = 0.0;
-		const double* u = nodal_1(i);
+		double* u = nodal_1(i);
 		for (int j1 = 0; j1 < nnd_1; j1++)
 			jump += (*phi++)*(*u++);
 
@@ -280,8 +276,8 @@ void MeshFreeSurfaceShapeT::Construct(void)
 	int num_ip = fRefSurfaceShape.NumIP();
 
 	/* shape function derivatives array */
-	fDphi.Dimension(num_ip);
-	fDphi_tmp.Dimension(num_ip);
+	fDphi.Allocate(num_ip);
+	fDphi_tmp.Allocate(num_ip);
 
 	fneighbors_man.SetWard(0, fneighbors);
 	fphi_man.SetWard(0, fjump_phi, 0);
@@ -289,11 +285,11 @@ void MeshFreeSurfaceShapeT::Construct(void)
 		fDphi_man.Register(fDphi[ii]);
 
 	/* shape function and derivatives tables */
-	fgrad_d.Dimension(num_ip);
-	fgrad_dTgrad_d.Dimension(num_ip);
+	fgrad_d.Allocate(num_ip);
+	fgrad_dTgrad_d.Allocate(num_ip);
 
 	/* shape function jacobian derivative tables (current ip) */
-	fdx_dsdu.Dimension(fFieldDim-1);
+	fdx_dsdu.Allocate(fFieldDim-1);
 
 	/* register with dynamic workspace managers */
 	for (int i = 0; i < num_ip; i++)
@@ -306,19 +302,19 @@ void MeshFreeSurfaceShapeT::Construct(void)
 		fMatrixManager_1.Register(fdx_dsdu[k]);
 
 	/* return value */
-	fInterp.Dimension(fFieldDim);
+	fInterp.Allocate(fFieldDim);
 	
 	/* coordinate transformations */	
-	fRefJacobian.Dimension(fFieldDim, fFieldDim-1);
-	fJacobian.Dimension(fFieldDim, fFieldDim-1);
-	fJ_tmp.Dimension(fFieldDim, fFieldDim-1);
-	fJ_1.Dimension(fFieldDim, fFieldDim);
-	fJ_2.Dimension(fFieldDim, fFieldDim);
+	fRefJacobian.Allocate(fFieldDim, fFieldDim-1);
+	fJacobian.Allocate(fFieldDim, fFieldDim-1);
+	fJ_tmp.Allocate(fFieldDim, fFieldDim-1);
+	fJ_1.Allocate(fFieldDim, fFieldDim);
+	fJ_2.Allocate(fFieldDim, fFieldDim);
 	
 	/* work space */
 	fVectorManager_1.SetWard(0, fu_vec);
 
-	fnnd_vec.Dimension(fFieldDim-1);
+	fnnd_vec.Allocate(fFieldDim-1);
 	for (int j = 0; j < fnnd_vec.Length(); j++)
 		fVectorManager_2.Register(fnnd_vec[j]);
 	
@@ -353,7 +349,7 @@ void MeshFreeSurfaceShapeT::SetDomainJacobian(void)
 void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>& dQ)
 {
 	/* checks */
-	if (dQ.Length() != fFieldDim) throw ExceptionT::kSizeMismatch;
+	if (dQ.Length() != fFieldDim) throw eSizeMismatch;
 
 	/* dimensions */
 	int nnd = fneighbors.Length();
@@ -370,7 +366,7 @@ void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>
 		dMatrixT& dQ2 = dQ[1];
 	
 		/* unit tangent */
-		fx_vec.Alias(2, Q(0));
+		fx_vec.Set(2, Q(0));
 		dMatrixT& dtan_du = fdx_dsdu[0];
 		dtan_du.MultTx(fx_vec, fu_vec);
 	
@@ -407,7 +403,7 @@ void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>
 		double* v_m1 = fJacobian(0);
 		double* v_m2 = fJacobian(1);
 		double    m1 = sqrt(v_m1[0]*v_m1[0] + v_m1[1]*v_m1[1] + v_m1[2]*v_m1[2]);
-		if (m1 <= 0.0) throw ExceptionT::kBadJacobianDet;
+		if (m1 < kSmall) throw eBadJacobianDet;
 
 		/* tangent gradients */
 		ArrayT<dMatrixT>& grad_dd = fdx_dsdu;
@@ -415,7 +411,7 @@ void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>
 		dMatrixT& dm2_du = grad_dd[1];
 
 		/* first component */
-		fx_vec.Alias(3, Q(0));
+		fx_vec.Set(3, Q(0));
 		dm1_du.MultTx(fx_vec, fu_vec);
 		dQ1.Outer(fx_vec, fu_vec);
 		dQ1 -= dm1_du;
@@ -430,15 +426,15 @@ void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>
 		fM1 += fM2;
 		
 		/* third component */
-		fx_vec.Alias(3, Q(2));
+		fx_vec.Set(3, Q(2));
 		fM1.MultTx(fx_vec, fu_vec);
 		dQ3.Outer(fx_vec, fu_vec);
 		dQ3 -= fM1;
 		dQ3 /= -j;
 		
 		/* second component */
-		const double* t1 = Q(0);
-		const double*  n = Q(2);
+		double* t1 = Q(0);
+		double*  n = Q(2);
 		for (int k = 0; k < nu; k++)
 		{
 			CrossProduct(dQ3(k), t1, dQ2(k));
@@ -460,7 +456,8 @@ void MeshFreeSurfaceShapeT::SetShapeFunctionTables(void)
 	for (int i = 0; i < num_ip; i++)
 	{
 		shNaMat.Set(1, nnd, fjump_phi(i));
-		fgrad_d[i].Expand(shNaMat, fFieldDim, dMatrixT::kOverwrite);
+		fgrad_d[i] = 0.0;
+		fgrad_d[i].Expand(shNaMat, fFieldDim);
 		fgrad_dTgrad_d[i].MultATB(fgrad_d[i], fgrad_d[i]);
 	}
 }
@@ -501,6 +498,7 @@ void MeshFreeSurfaceShapeT::SetJacobianDerivatives(void)
 		shNaMat.Set(1, nnd, fnnd_vec[j].Pointer());
 		
 		/* expand */
-		fdx_dsdu[j].Expand(shNaMat, fFieldDim, dMatrixT::kOverwrite);	
+		fdx_dsdu[j] = 0.0;
+		fdx_dsdu[j].Expand(shNaMat, fFieldDim);	
 	}
 }

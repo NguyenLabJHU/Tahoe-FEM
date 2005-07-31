@@ -39,45 +39,17 @@
 /* conditions are subject to change at any time without prior notice.        */
 /*                                                                           */
 /*****************************************************************************/
-/* $Id: parmetisf.c,v 1.2 2004-12-11 09:27:24 paklein Exp $ */
+/* $Id: parmetisf.c,v 1.1.1.1 2004-10-07 16:05:26 paklein Exp $ */
 /*****************************************************************************/
 
 #include <pspaces.h>
-#include "mpi.h"
-
-/* #define __DO_DEBUG__ 1 */
-#undef __DO_DEBUG__
 
 void parometisf(idxtype *vtxdist,idxtype *xadj,idxtype *adjncy,
 		idxtype *order,idxtype *sizes,int *options,
 		int *serialorder,MPI_Comm *commin) 
 {
-	int i, size, rank;
-	int numflag;
 
-#if __DO_DEBUG__
-	MPI_Comm_rank(*commin, &rank);
-	MPI_Comm_size(*commin, &size);
-	printf("%5d: vtxdist = ", rank);
-	for (i = 0; i < 10; i++)
-		printf("%8d", vtxdist[i]);
-	printf("\n");
-
-	printf("%5d: xadj = ", rank);
-	for (i = 0; i < 10; i++)
-		printf("%8d", xadj[i]);
-	printf("\n");
-
-	printf("%5d: sizes = ", rank);
-	for (i = 0; i < 2*size; i++)
-		printf("%12d", sizes[i]);
-	printf("\n");
-
-	printf("%5d: options = ", rank);
-	for (i = 0; i < 5; i++)
-		printf("%8d", options[i]);
-	printf("\n");
-#endif
+  int numflag;
 
   numflag = 0;
   if(*serialorder) {
@@ -89,12 +61,6 @@ void parometisf(idxtype *vtxdist,idxtype *xadj,idxtype *adjncy,
                 vtxdist,xadj,adjncy,&numflag,options,order,sizes,commin);  
   }
 
-#ifdef __DO_DEBUG__
-	printf("%5d: sizes = ", rank);
-	for (i = 0; i < 2*size; i++)
-		printf("%12d", sizes[i]);
-	printf("\n");
-#endif
 }
 
 void ikeysortf(int *pn,idxtype *inds,idxtype *perm) {

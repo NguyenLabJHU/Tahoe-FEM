@@ -1,10 +1,10 @@
-/* $Id: VoterChenAl.cpp,v 1.5 2004-07-15 08:26:52 paklein Exp $ */
-/* created: paklein (12/04/1996) */
+/* $Id: VoterChenAl.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (12/04/1996)                                          */
+/* VoterChenAl.cpp                                                        */
+
 #include "VoterChenAl.h"
 #include <math.h>
 #include "CubicSplineT.h"
-
-using namespace Tahoe;
 
 /* lattice parameters */
 const double kLatticeParameterAl = 4.05; /* angstrom */
@@ -30,13 +30,13 @@ double VoterChenAl::LatticeParameter(void) const
 void VoterChenAl::SetPairPotential(void)
 {	
 	fPairPotential = new VCPairPotential();
-	if (!fPairPotential) throw ExceptionT::kOutOfMemory;
+	if (!fPairPotential) throw(eOutOfMemory);
 }
 
 void VoterChenAl::SetElectronDensity(void)
 {	
 	fElectronDensity = new VCElectronDensity();
-	if (!fElectronDensity) throw ExceptionT::kOutOfMemory;
+	if (!fElectronDensity) throw(eOutOfMemory);
 }
 
 void VoterChenAl::SetEmbeddingEnergy(void)
@@ -85,7 +85,7 @@ void VoterChenAl::SetEmbeddingEnergy(void)
 	dArray2DT	coeff(18, 4, coeffdata);
 
 	fEmbeddingEnergy = new CubicSplineT(knots, coeff);
-	if (!fEmbeddingEnergy) throw ExceptionT::kOutOfMemory;
+	if (!fEmbeddingEnergy) throw(eOutOfMemory);
 }
 
 /**********************************************************************
@@ -145,11 +145,11 @@ double VCPairPotential::DDFunction(double x) const
 dArrayT& VCPairPotential::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	if ( in.Length() != out.Length() ) throw eGeneralFail;
 	
-	const double *pin = in.Pointer();
-	double *pout = out.Pointer();
-	int length =  in.Length();
+	double *pin   =  in.Pointer();
+	double *pout  = out.Pointer();
+	int    length =  in.Length();
 	
 	/* fast mapping */
 	for (int i = 0; i < length; i++)
@@ -161,11 +161,11 @@ dArrayT& VCPairPotential::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& VCPairPotential::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	if ( in.Length() != out.Length() ) throw eGeneralFail;
 	
-	const double *pin = in.Pointer();
-	double *pout = out.Pointer();
-	int length = in.Length();
+	double *pin   =  in.Pointer();
+	double *pout  = out.Pointer();
+	int    length = in.Length();
 	
 	/* fast mapping */
 	for (int i = 0; i < length; i++)
@@ -177,11 +177,11 @@ dArrayT& VCPairPotential::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& VCPairPotential::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	if ( in.Length() != out.Length() ) throw eGeneralFail;
 	
-	const double *pin = in.Pointer();
-	double *pout = out.Pointer();
-	int length = in.Length();
+	double *pin   =  in.Pointer();
+	double *pout  = out.Pointer();
+	int    length = in.Length();
 	
 	/* fast mapping */
 	for (int i = 0; i < length; i++)
@@ -281,11 +281,11 @@ double VCElectronDensity::DDFunction(double x) const
 dArrayT& VCElectronDensity::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	if ( in.Length() != out.Length() ) throw eGeneralFail;
 	
-	const double *pin = in.Pointer();
-	double *pout = out.Pointer();
-	int length = in.Length();
+	double *pin   =  in.Pointer();
+	double *pout  = out.Pointer();
+	int    length =  in.Length();
 	
 	/* fast mapping */
 	for (int i = 0; i < length; i++)
@@ -297,11 +297,11 @@ dArrayT& VCElectronDensity::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& VCElectronDensity::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	if ( in.Length() != out.Length() ) throw eGeneralFail;
 	
-	const double *pin = in.Pointer();
-	double *pout = out.Pointer();
-	int length = in.Length();
+	double *pin   =  in.Pointer();
+	double *pout  = out.Pointer();
+	int    length = in.Length();
 	
 	/* fast mapping */
 	for (int i = 0; i < length; i++)
@@ -313,11 +313,11 @@ dArrayT& VCElectronDensity::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& VCElectronDensity::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	if ( in.Length() != out.Length() ) throw eGeneralFail;
 	
-	const double *pin = in.Pointer();
-	double *pout = out.Pointer();
-	int length = in.Length();
+	double *pin   =  in.Pointer();
+	double *pout  = out.Pointer();
+	int    length = in.Length();
 	
 	/* fast mapping */
 	for (int i = 0; i < length; i++)

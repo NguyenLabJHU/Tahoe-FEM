@@ -7,14 +7,14 @@
  *
  * $Author: paklein $
  *
- * $Date: 2002-02-22 01:58:38 $
+ * $Date: 2001-01-30 20:59:14 $
  *
- * $Revision: 1.2 $
+ * $Revision: 1.1.1.1 $
  *
  * $Name: not supported by cvs2svn $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_converge.c,v 1.2 2002-02-22 01:58:38 paklein Exp $";
+static char rcsid[] = "$Id: az_converge.c,v 1.1.1.1 2001-01-30 20:59:14 paklein Exp $";
 #endif
 
 
@@ -30,7 +30,7 @@ static char rcsid[] = "$Id: az_converge.c,v 1.2 2002-02-22 01:58:38 paklein Exp 
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#if !defined(__MWERKS__) && !defined(__DARWIN__)
+#ifndef __MWERKS__
 #include <malloc.h>
 #endif /* __MWERKS __ */
 #include <float.h>

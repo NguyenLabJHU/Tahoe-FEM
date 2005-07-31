@@ -1,24 +1,35 @@
-/* $Id: SWDiamond100.cpp,v 1.8 2004-12-26 21:08:14 d-farrell2 Exp $ */
-/* created: paklein (08/25/1996) */
+/* $Id: SWDiamond100.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (08/25/1996)                                          */
+
 #include "SWDiamond100.h"
 #include <math.h>
 #include <iostream.h>
 
-using namespace Tahoe;
-
 /* constructor */
-SWDiamond100::SWDiamond100(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Stillinger_Weber_DC_100"),
-	SWMaterial2D(in, support)
+SWDiamond100::SWDiamond100(ifstreamT& in, const ElasticT& element):
+	SWMaterial2D(in, element)
 {
 
 }
 
 /*************************************************************************
- * Protected
- *************************************************************************/
+* Protected
+*************************************************************************/
 
-/* compute the symetric Cij reduced index matrix */
+/*
+* Print name.
+*/
+void SWDiamond100::PrintName(ostream& out) const
+{
+	/* inherited */
+	SWMaterial2D::PrintName(out);
+
+	out << "    SW Diamond <100> 2D\n";
+}
+
+/*
+* Compute the symetric Cij reduced index matrix.
+*/
 void SWDiamond100::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15;

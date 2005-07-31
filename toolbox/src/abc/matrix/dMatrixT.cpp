@@ -1,43 +1,29 @@
-/* $Id: dMatrixT.cpp,v 1.20 2005-07-29 03:09:33 paklein Exp $ */
-/* created: paklein (05/24/1996) */
+/* $Id: dMatrixT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (05/24/1996)                                          */
+
 #include "dMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
-#include "toolboxConstants.h"
-#include "dSymMatrixT.h"
-
-using namespace Tahoe;
-const char caller[] = "dMatrixT";
-
-/* copy behavior for arrays of dMatrixT's */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<dMatrixT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<dMatrixT>::fByteCopy = false;
-} /* namespace Tahoe */
+#include "Constants.h"
 
 /* constructor */
 dMatrixT::dMatrixT(void) { }
 dMatrixT::dMatrixT(int numrows, int numcols): nMatrixT<double>(numrows,numcols) { }
 dMatrixT::dMatrixT(int squaredim): nMatrixT<double>(squaredim) { }
-dMatrixT::dMatrixT(int numrows, int numcols, const double* p):
+dMatrixT::dMatrixT(int numrows, int numcols, double* p):
 	nMatrixT<double>(numrows, numcols, p) { }
 dMatrixT::dMatrixT(const dMatrixT& source): nMatrixT<double>(source) { }
 
-/* matrix inverse functions */
+/* matrix inverse functions - only implemented for (2 x 2)
+* and (3 x 3) matrices */
 dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
 {
-	const char caller[] = "dMatrixT::Inverse";
-
-	/* must be square */
-	if (fRows != fCols) ExceptionT::SizeMismatch(caller, "matrix must be square");
-
-	/* (1 x 1) */
-	if (fRows == 1)
-	{
-		fArray[0] = 1.0/fArray[0];
-	}
+	/* dimension check */
+	if (fRows != fCols ||
+	   (fRows != 2 && fRows != 3)) throw eSizeMismatch;
+	
 	/* (2 x 2) */
-	else if (fRows == 2)
+	if (fRows == 2)
 	{
 		/* temps - incase matrix is *this */
 		double A0 = matrix.fArray[0];
@@ -53,7 +39,7 @@ dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
 		fArray[3] =	A0/det;		
 	}
 	/* (3 x 3) */
-	else if (fRows == 3)
+	else
 	{
 		double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13;
 		double z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25;	
@@ -128,48 +114,6 @@ dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
 		*pthis++ = z7;
 		*pthis   = z6;
 	}
-	else /* general procedure */
-	{
-		/* copy in */
-		if (Pointer() != matrix.Pointer()) *this = matrix;
-
-		double* a = Pointer();
-		for (int n = 0; n < fCols; n++)
-		{
-			if(a[n] != 0.0) /* check diagonal */
-			{
-				double d = 1.0/a[n];
-
-				double* a_n = a;
-				for (int j = 0; j < fRows; j++)
-					*a_n++ *= -d;
-
-				double* a_ji = Pointer();
-				double* a_ni = Pointer(n);
-				for (int i = 0; i < fCols; i++)
-				{
-            		if(n != i)
-            		{
-            			a_n = a;
-            			for (int j = 0; j < fRows; j++)
-            			{
-                			if(n != j) *a_ji += (*a_ni)*(*a_n);
-                			a_ji++;
-                			a_n++;
-                		}
-					}
-					else a_ji += fRows;
-					
-            		*a_ni *= d;
-            		a_ni += fRows;
-				}
-          		a[n] = d;          		
-          		a += fRows;
-			}
-			else 
-				ExceptionT::GeneralFail(caller, "zero pivot in row %d", n);
-		}
-	}
 
 	return *this;
 }
@@ -180,19 +124,16 @@ double dMatrixT::Det(void) const
 {
 /* dimension check */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) ExceptionT::GeneralFail(caller);
+	if (fRows != fCols ||
+	   (fRows != 2 && fRows != 3)) throw eGeneralFail;
 #endif
 	
 	if (fCols == 2) // (2 x 2)
 		return fArray[0]*fArray[3] - fArray[1]*fArray[2];
-	else if (fCols == 1) // (1 x 1)
-		return fArray[0];
-	else if (fCols == 3) // (3 x 3)
+	else            // (3 x 3)
 		return fArray[0]*(fArray[4]*fArray[8] - fArray[5]*fArray[7])
 			 - fArray[1]*(fArray[3]*fArray[8] - fArray[5]*fArray[6])
 			 + fArray[2]*(fArray[3]*fArray[7] - fArray[4]*fArray[6]);
-	else ExceptionT::GeneralFail(caller);
-	return 0;
 }
 
 /* returns the Trace of the matrix.  Matrix must be square */
@@ -200,7 +141,7 @@ double dMatrixT::Trace(void) const
 {
 /* check is square */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) ExceptionT::GeneralFail(caller);
+	if (fRows != fCols) throw eGeneralFail;
 #endif
 
 	double trace  = 0.0;
@@ -238,7 +179,7 @@ dMatrixT& dMatrixT::Symmetrize(const dMatrixT& matrix)
 	/* square matrices only */
 	if (fRows != fCols ||
 	    matrix.fRows != matrix.fCols ||
-	    fRows != matrix.fRows) ExceptionT::SizeMismatch("dMatrixT::Symmetrize");
+	    fRows != matrix.fRows) throw eSizeMismatch;
 #endif
 
 	if (fRows == 2)
@@ -260,6 +201,56 @@ dMatrixT& dMatrixT::Symmetrize(const dMatrixT& matrix)
 	return *this;
 }
 
+/* tranposition */
+dMatrixT& dMatrixT::Transpose(const dMatrixT& matrix)
+{
+#if __option (extended_errorcheck)	
+	if (fRows != matrix.fCols ||
+	    fCols != matrix.fRows) throw eSizeMismatch;
+#endif
+
+	/* selve transposition */
+	if (fArray == matrix.fArray) return Transpose();
+
+	double *pthis = fArray;
+	double *pm    = matrix.fArray;
+	for (int i = 0; i < matrix.fRows; i++)
+	{
+		double* pmj = pm++;
+	
+		for (int j = 0; j < matrix.fCols; j++)
+		{
+			*pthis++ = *pmj;
+			    pmj += matrix.fRows;
+		}
+	}
+	
+	return *this;
+}
+
+dMatrixT& dMatrixT::Transpose(void)
+{
+	register double temp;
+
+	for (int i = 0; i < fRows - 1; i++)
+	{
+		double* prow = (*this)(i+1) + i;
+		double* pcol = (*this)(i) + i + 1;
+	
+		for (int j = i + 1; j < fCols; j++)
+		{
+			temp  = *prow;
+			*prow = *pcol;
+			*pcol = temp;
+			
+			pcol++;
+			prow += fRows;
+		}
+	}
+
+	return *this;
+}
+
 /***********************************************
 *
 * Symmetric matrix specializations
@@ -269,52 +260,25 @@ dMatrixT& dMatrixT::Symmetrize(const dMatrixT& matrix)
 /* reduced index Rank 4 translations */
 void dMatrixT::Rank4ReduceFrom3D(const dMatrixT& mat3D)
 {
-#if __option(extended_errorcheck)
-	const char caller[] = "dMatrixT::Rank4ReduceFrom3D";
 	/* dimension checks */
-	if (fRows != fCols || (fRows != 3 && fRows != 4)) ExceptionT::SizeMismatch(caller);
-	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 6) ExceptionT::SizeMismatch(caller);
+#if __option(extended_errorcheck)	
+	if (fRows != fCols || fRows != 3) throw eGeneralFail;
+	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 6) throw eSizeMismatch;
 #endif
 
 	double* pthis = fArray;
 	
-	/* 2D */
-	if (fRows == 3)
-	{	
-		*pthis++ = mat3D.fArray[0];	//1,1
-		*pthis++ = mat3D.fArray[1]; //2,1
-		*pthis++ = mat3D.fArray[5]; //3,1
+	*pthis++ = mat3D.fArray[0];	//1,1
+	*pthis++ = mat3D.fArray[1]; //2,1
+	*pthis++ = mat3D.fArray[5]; //3,1
 
-		*pthis++ = mat3D.fArray[6]; //1,2
-		*pthis++ = mat3D.fArray[7]; //2,2
-		*pthis++ = mat3D.fArray[11]; //3,2
+	*pthis++ = mat3D.fArray[6]; //1,2
+	*pthis++ = mat3D.fArray[7]; //2,2
+	*pthis++ = mat3D.fArray[11]; //3,2
 
-		*pthis++ = mat3D.fArray[30]; //3,1
-		*pthis++ = mat3D.fArray[31]; //3,2
-		*pthis   = mat3D.fArray[35]; //3,3
-	}
-	else /* 2D-axisymmetric */
-	{
-		*pthis++ = mat3D.fArray[0];
-		*pthis++ = mat3D.fArray[1];
-		*pthis++ = mat3D.fArray[5];
-		*pthis++ = mat3D.fArray[2];
-
-		*pthis++ = mat3D.fArray[6];
-		*pthis++ = mat3D.fArray[7];
-		*pthis++ = mat3D.fArray[11];
-		*pthis++ = mat3D.fArray[8];
-
-		*pthis++ = mat3D.fArray[30];
-		*pthis++ = mat3D.fArray[31];
-		*pthis++ = mat3D.fArray[35];
-		*pthis++ = mat3D.fArray[32];
-
-		*pthis++ = mat3D.fArray[12];
-		*pthis++ = mat3D.fArray[13];
-		*pthis++ = mat3D.fArray[17];
-		*pthis   = mat3D.fArray[14];
-	}
+	*pthis++ = mat3D.fArray[30]; //3,1
+	*pthis++ = mat3D.fArray[31]; //3,2
+	*pthis   = mat3D.fArray[35]; //3,3
 }
 
 /* returns the Rank 4 devatoric operator in reduced index form and
@@ -329,7 +293,7 @@ dMatrixT& dMatrixT::ReducedIndexDeviatoric(void)
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || (fRows != 3 && fRows != 6)) ExceptionT::GeneralFail(caller);
+	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw eGeneralFail;
 #endif
 
 	*this = 0.0;
@@ -364,7 +328,7 @@ dMatrixT& dMatrixT::ReducedIndexI(void)
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || (fRows != 3 && fRows != 6)) ExceptionT::GeneralFail(caller);
+	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw eGeneralFail;
 #endif
 
 	*this = 0.0;
@@ -383,202 +347,36 @@ dMatrixT& dMatrixT::ReducedIndexI(void)
 	return *this;
 }
 
-/*	1 x 1 = d_ij d_ik 
-*
-* Returns a reference to this. */
-dMatrixT& dMatrixT::ReducedIndexII(void)
-{
-#if __option (extended_errorcheck)
-	/* check */
-	if (fRows != fCols || (fRows != 3 && fRows != 6)) ExceptionT::GeneralFail(caller);
-#endif
-
-	*this = 0.0;
-
-	if (fRows == 3)
-	{
-		(*this)(0,0) = (*this)(1,1) = 1.0;
-		(*this)(0,1) = (*this)(1,0) = 1.0;
-	}
-	else
-	{
-		(*this)(0,0) = (*this)(1,1) = (*this)(2,2) = 1.0;
-		(*this)(0,1) = (*this)(0,2) = (*this)(1,2) = 1.0;
-		(*this)(1,0) = (*this)(2,0) = (*this)(2,1) = 1.0;
-	}
-
-	return *this;
-}
-
 /***********************************************
 *
 * Specializations added for element stiffness matrices - new class?
 *
 **********************************************/
-/*Multiplies symmetric matrix A with nonsymmetric matrix B.*/
-void dMatrixT::MultSymAB(const dSymMatrixT& A, const dMatrixT& B)
-{
-	/* dimension checks */
-#if __option (extended_errorcheck)
-	const char caller[] = "dMatrixT::MultSymAB";
-	if (fRows != fCols ||
-		fCols != A.Rows() ||
-	  	A.Rows() != B.Rows() ||
-	  	B.Rows() != B.Cols()) ExceptionT::SizeMismatch(caller); 
-	if(fCols < 2 || fCols > 3) ExceptionT::GeneralFail(caller);
-#endif		   
-	const double* pB = B.Pointer();
-	const double* pA = A.Pointer();
-	if (fCols == 2)
-	{
-		fArray[0] = pA[0]*pB[0]+pA[2]*pB[1];
-		fArray[1] = pA[2]*pB[0]+pA[1]*pB[1];
-
-		fArray[2] = pA[0]*pB[2]+pA[2]*pB[3];
-		fArray[3] = pA[2]*pB[2]+pA[1]*pB[3];
-	}
-	else
-	{
-		fArray[0] = pA[0]*pB[0]+pA[5]*pB[1]+pA[4]*pB[2];
-		fArray[1] = pA[5]*pB[0]+pA[1]*pB[1]+pA[3]*pB[2];
-		fArray[2] = pA[4]*pB[0]+pA[3]*pB[1]+pA[2]*pB[2];
-		
-		fArray[3] = pA[0]*pB[3]+pA[5]*pB[4]+pA[4]*pB[5];
-		fArray[4] = pA[5]*pB[3]+pA[1]*pB[4]+pA[3]*pB[5];
-		fArray[5] = pA[4]*pB[3]+pA[3]*pB[4]+pA[2]*pB[5];
-
-
-		fArray[6] = pA[0]*pB[6]+pA[5]*pB[7]+pA[4]*pB[8];
-		fArray[7] = pA[5]*pB[6]+pA[1]*pB[7]+pA[3]*pB[8];
-		fArray[8] = pA[4]*pB[6]+pA[3]*pB[7]+pA[2]*pB[8];
-		
-	}
-}
-/* symmetric 4th rank tensor formed from general symmetric matrix C:
-*
-*	I_Cijkl = 1/2 (C_ik C_jl + C_il C_jk)
-*
-* Returns a reference to this. */
-void dMatrixT::ReducedI_C(const dSymMatrixT& C)
-{
-      int nummod = dSymMatrixT::NumValues(C.Rows());
-
-#if __option (extended_errorcheck)
-	/* check */
-	if (fRows != fCols || fCols < nummod ) ExceptionT::GeneralFail(caller);
-#endif
-	
-	const double* pC = C.Pointer();
-
-	if (nummod == 3)
-	{
-	        fArray[0] = pC[0]*pC[0];
-		fArray[1] = pC[2]*pC[2];
-		fArray[2] = pC[0]*pC[2];
-	
-		fArray[3] = pC[2]*pC[2];
-		fArray[4] = pC[1]*pC[1];
-		fArray[5] = pC[2]*pC[1];
-
-		fArray[6] = pC[0]*pC[2];
-		fArray[7] = pC[2]*pC[1];
-		fArray[8] = 0.5*(pC[0]*pC[1]+pC[2]*pC[2]);
-	}
-	else
-	{
-	        fArray[0] = pC[0]*pC[0];
-		fArray[1] = pC[5]*pC[5];
-		fArray[2] = pC[4]*pC[4];
-		fArray[3] = pC[4]*pC[5];
-		fArray[4] = pC[4]*pC[0];
-		fArray[5] = pC[5]*pC[0];
-
-		fArray[6] = pC[5]*pC[5];
-		fArray[7] = pC[1]*pC[1];
-		fArray[8] = pC[3]*pC[3];
-		fArray[9] = pC[3]*pC[1];
-		fArray[10] = pC[3]*pC[5];
-		fArray[11] = pC[1]*pC[5];
-
-		fArray[12] = pC[4]*pC[4];
-		fArray[13] = pC[3]*pC[3];
-		fArray[14] = pC[2]*pC[2];
-		fArray[15] = pC[2]*pC[3];
-		fArray[16] = pC[2]*pC[4];
-		fArray[17] = pC[3]*pC[4];
-
-		fArray[18] = pC[5]*pC[4];
-		fArray[19] = pC[1]*pC[3];
-		fArray[20] = pC[3]*pC[2];
-		fArray[21] = 0.5*(pC[1]*pC[2] + pC[3]*pC[3]);
-		fArray[22] = 0.5*(pC[5]*pC[2] + pC[3]*pC[4]);
-		fArray[23] = 0.5*(pC[5]*pC[3] + pC[1]*pC[4]);
-
-		fArray[24] = pC[0]*pC[4];
-		fArray[25] = pC[5]*pC[3];
-		fArray[26] = pC[4]*pC[2];
-		fArray[27] = 0.5*(pC[5]*pC[2] + pC[4]*pC[3]);
-		fArray[28] = 0.5*(pC[0]*pC[2] + pC[4]*pC[4]);
-		fArray[29] = 0.5*(pC[0]*pC[3] + pC[5]*pC[4]);
-
-		fArray[30] = pC[0]*pC[5];
-		fArray[31] = pC[5]*pC[1];
-		fArray[32] = pC[4]*pC[3];
-		fArray[33] = 0.5*(pC[5]*pC[3] + pC[4]*pC[1]);
-		fArray[34] = 0.5*(pC[0]*pC[3] + pC[4]*pC[5]);
-		fArray[35] = 0.5*(pC[0]*pC[1] + pC[5]*pC[5]);
-
-	}
-}
-/*Evaluates A x B where A and B are both symmetric matrices*/
-dMatrixT&  dMatrixT::DyadAB(const dSymMatrixT& A, const dSymMatrixT& B)
-{
-
-      int nummod = dSymMatrixT::NumValues(A.Rows());
-        /*dimension check*/
-#if __option (extended_errorcheck)
-	if (fRows != fCols || A.Rows() != B.Rows() 
-	    || fCols < nummod) ExceptionT::GeneralFail(caller);
-#endif	
-	double* pthis = fArray;
-	const double* pB = B.Pointer();
-	
-	for (int i = 0; i < nummod; i++)
-	{
-	     const double* pA = A.Pointer();
-	     for (int j  = 0; j < nummod; j++)
-	            *pthis++ = (*pA++) * (*pB);
-	     pB++;
-	}
-	return(*this);
-}
 
 /* expand into block diagonal submatrices if dimension factor */
-void dMatrixT::Expand(const dMatrixT& B, int factor, AssemblyModeT mode)
+void dMatrixT::Expand(const dMatrixT& B, int factor)
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
 	if (fRows != factor*B.fRows ||
-	    fCols != factor*B.fCols) ExceptionT::SizeMismatch("dMatrixT::Expand");
+	    fCols != factor*B.fCols) throw eSizeMismatch;
 #endif
 
-	/* initialize */
-	if (mode == kOverwrite) *this = 0.0;
-
 	double*	pCol  = Pointer();
-	const double* pBCol = B.Pointer();
+	double* pBCol = B.Pointer();
 	
 	int coloffset = factor*fRows;
 	
 	for (int i = 0; i < B.fCols; i++)
 	{
 		double* pcol  = pCol;
-		const double* pBcol = pBCol;
+		double* pBcol = pBCol;
 
 		/* expand column of B */
 		for (int k = 0; k < factor; k++)
 		{
-			const double* psubBcol = pBcol;
+			double* psubBcol = pBcol;
+			
 			for (int j = 0; j < B.fRows; j++)
 			{
 				*pcol += *psubBcol++; /* accumulate */

@@ -1,13 +1,11 @@
-/* $Id: SWMaterial2D.cpp,v 1.8 2004-12-26 21:08:15 d-farrell2 Exp $ */
-/* created: paklein (08/25/1996) */
+/* $Id: SWMaterial2D.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (08/25/1996)                                          */
+
 #include "SWMaterial2D.h"
 
-using namespace Tahoe;
-
 /* constructor */
-SWMaterial2D::SWMaterial2D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Stillinger_Weber_material_2D"),
-	NL_E_RotMat2DT(in, support, kPlaneStrain),
+SWMaterial2D::SWMaterial2D(ifstreamT& in, const ElasticT& element):
+	NL_E_RotMat2DT(in, element, kPlaneStrain),
 	SWDataT(in)
 {
 

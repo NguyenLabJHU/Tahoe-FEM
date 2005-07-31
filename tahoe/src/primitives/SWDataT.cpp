@@ -1,25 +1,26 @@
-/* $Id: SWDataT.cpp,v 1.6 2004-07-15 08:31:36 paklein Exp $ */
-/* created: paklein (03/22/1997) */
+/* $Id: SWDataT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (03/22/1997)                                          */
+/* Container class for Stillinger-Weber potential parameters              */
+
 #include "SWDataT.h"
 
-#include "ifstreamT.h"
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-using namespace Tahoe;
+#include "Constants.h"
+#include "ExceptionCodes.h"
+
+#include "fstreamT.h"
 
 /* constructor */
-SWDataT::SWDataT(void): 
-	ParameterInterfaceT("Stillinger-Weber"),
-	feps(0.0), fA(0.0), fdelta(0.0), fgamma(0.0),
+SWDataT::SWDataT(void): feps(0.0), fA(0.0), fdelta(0.0), fgamma(0.0),
 	flambda(0.0), frcut(0.0), fa(0.0), fB(0.0)
 {
 
 }
 
-SWDataT::SWDataT(ifstreamT& in):
-	ParameterInterfaceT("Stillinger-Weber")
+SWDataT::SWDataT(ifstreamT& in)
 {
 	Read(in);
 }
@@ -28,18 +29,18 @@ SWDataT::SWDataT(ifstreamT& in):
 void SWDataT::Read(ifstreamT& in)
 {
 	/* unit scaling */
-	in >> feps;	if (feps <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> feps;	if (feps <= 0.0) throw eBadInputValue;
 
 	/* 2 body potential */
-	in >> fA;		if (fA     <= 0.0) throw ExceptionT::kBadInputValue;
-	in >> fdelta;	if (fdelta <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> fA;		if (fA     <= 0.0) throw eBadInputValue;
+	in >> fdelta;	if (fdelta <= 0.0) throw eBadInputValue;
 	
 	/* 3 body potential */
-	in >> fgamma;	if (fgamma  <= 0.0) throw ExceptionT::kBadInputValue;
-	in >> flambda;	if (flambda <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> fgamma;	if (fgamma  <= 0.0) throw eBadInputValue;
+	in >> flambda;	if (flambda <= 0.0) throw eBadInputValue;
 	
-	in >> frcut;	if (frcut <= 0.0) throw ExceptionT::kBadInputValue;		
-	in >> fa;		if (fa    <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> frcut;	if (frcut <= 0.0) throw eBadInputValue;		
+	in >> fa;		if (fa    <= 0.0) throw eBadInputValue;
 
 	/* compute B factor */
 	double a0 = pow(2.0,1.0/6.0);
@@ -68,39 +69,4 @@ void SWDataT::Write(ostream& out) const
 	out << " Lattice scaling and cut-off terms:\n";
 	out << "      r_cut = " << frcut << '\n';
 	out << "         a0 = " << fa << '\n';
-}
-
-/* describe the parameters needed by the interface */
-void SWDataT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
-
-	list.AddParameter(feps, "epsilon");
-	list.AddParameter(fA, "A");
-	list.AddParameter(fdelta, "delta");
-	list.AddParameter(fgamma, "gamma");
-	list.AddParameter(flambda, "lambda");
-	list.AddParameter(frcut, "r_cut");
-	list.AddParameter(fa, "a");
-}
- 
-/* accept parameter list */
-void SWDataT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-
-	feps    = list.GetParameter("epsilon");
-	fA      = list.GetParameter("A");
-	fdelta  = list.GetParameter("delta");
-	fgamma  = list.GetParameter("gamma");
-	flambda = list.GetParameter("lambda");
-	frcut   = list.GetParameter("r_cut");
-	fa      = list.GetParameter("a");
-
-	/* compute B factor */
-	double a0 = pow(2.0,1.0/6.0);
-	fB =-(fdelta*pow(a0,5))/(-(a0*fdelta) - 4.0*a0*a0 +
-	           8.0*a0*frcut - 4.0*frcut*frcut);
 }

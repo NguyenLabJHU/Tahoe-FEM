@@ -1,37 +1,31 @@
-/* $Id: ModCB2DT.h,v 1.9 2004-09-10 22:39:22 paklein Exp $ */
-/* created: paklein (05/31/1997) */
+/* $Id: ModCB2DT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* created: paklein (05/31/1997)                                          */
+
 #ifndef _MODCB_2DT_H_
 #define _MODCB_2DT_H_
 
 /* base class */
-#include "NL_E_MatT.h"
+#include "NL_E_Mat2DT.h"
 
-namespace Tahoe {
+/* direct members */
+#include "SWDataT.h"
 
 /* forward declarations */
 class ModCBSolverT;
 
-class ModCB2DT: public NL_E_MatT
+class ModCB2DT: public NL_E_Mat2DT
 {
 public:
 
 	/* constructor */
-	ModCB2DT(void);
+	ModCB2DT(ifstreamT& in, const ElasticT& element, bool equilibrate);
 
 	/* destructor */
 	virtual ~ModCB2DT(void);
 	
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
- 	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
+	/* print Parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 
 protected:
 
@@ -54,6 +48,9 @@ private:
 	
 private:
 	
+	/* 2D plane code */
+	int fPlaneCode;
+
 	/* modified CB solver */
 	ModCBSolverT*	fModCBSolver;
 	
@@ -63,7 +60,7 @@ private:
 	dMatrixT	fStretch3D;
 	dMatrixT	fStretch2D;
 	dMatrixT	fStress3D;
+		
 };
 
-} // namespace Tahoe 
 #endif /* _MODCB_2DT_H_ */

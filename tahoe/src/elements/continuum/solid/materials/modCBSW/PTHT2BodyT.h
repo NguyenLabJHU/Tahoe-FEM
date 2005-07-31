@@ -1,25 +1,23 @@
-/* $Id: PTHT2BodyT.h,v 1.5 2004-07-15 08:28:36 paklein Exp $ */
-/* created: paklein (10/11/1997) */
+/* $Id: PTHT2BodyT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* created: paklein (10/11/1997)                                          */
+
 #ifndef _PTHT2_BODY_T_H_
 #define _PTHT2_BODY_T_H_
 
 /* base class */
 #include "TwoBodyT.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
+#include "ios_fwd_decl.h"
 class ifstreamT;
 
 class PTHT2BodyT: public TwoBodyT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	PTHT2BodyT(const dArrayT& lengths, const ThermalDilatationT* thermal,
-		double A, double A1, double A2);
+		ifstreamT& in);
 
 	/* set free dof - triggers recomputation */
 	virtual void Set(void);
@@ -39,5 +37,4 @@ private:
 	double fA2;
 };
 
-} // namespace Tahoe 
 #endif /* _PTHT2_BODY_T_H_ */

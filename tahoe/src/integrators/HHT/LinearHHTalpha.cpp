@@ -1,18 +1,19 @@
-/* $Id: LinearHHTalpha.cpp,v 1.6 2004-07-15 08:30:27 paklein Exp $ */
-/* created: paklein (10/11/1996) */
+/* $Id: LinearHHTalpha.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/11/1996)                                          */
+
 #include "LinearHHTalpha.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
+#include "NodeManagerT.h"
 #include "TimeManagerT.h"
 
-using namespace Tahoe;
-
 /* constructor */
-LinearHHTalpha::LinearHHTalpha(double alpha):
-	HHTalpha(alpha),
-	nLinearHHTalpha(alpha),
-	eLinearHHTalpha(alpha),
-	fTimeBoss(NULL)
+LinearHHTalpha::LinearHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out,
+	int auto2ndorder):
+	HHTalpha(in, out, auto2ndorder),
+	nLinearHHTalpha(in, out, auto2ndorder),
+	eLinearHHTalpha(in, out, auto2ndorder),
+	TimeBoss(TM)
 {
 
 }
@@ -25,15 +26,13 @@ LinearHHTalpha::LinearHHTalpha(double alpha):
 void LinearHHTalpha::FormNodalForce(NodeManagerT* nodeboss) const
 {
 	/* shift time back */
-	fTimeBoss->ShiftTime(fTimeShift);
+	TimeBoss.ShiftTime(fTimeShift);
 	
 	/* form nodal contribution to RHS */
-//	nodeboss->FormRHS();
-#pragma unused(nodeboss)
-#pragma message("LinearHHTalpha::FormNodalForce: need this????")
+	nodeboss->FormRHS();
 	
 	/* reset the time */
-	fTimeBoss->ResetTime();
+	TimeBoss.ResetTime();
 }
 
 /***********************************************************************

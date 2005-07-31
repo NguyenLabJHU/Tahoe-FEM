@@ -1,16 +1,18 @@
-/* $Id: PolyBasis1DT.cpp,v 1.8 2005-04-22 00:33:39 paklein Exp $ */
-/* created: paklein (12/11/1999) */
-#include "PolyBasis1DT.h"
+/* $Id: PolyBasis1DT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* created: paklein (12/11/1999)                                          */
+/* base class for basis functions                                         */
 
-using namespace Tahoe;
+#include "PolyBasis1DT.h"
 
 /* constructor */
 PolyBasis1DT::PolyBasis1DT(int complete):
 	BasisT(complete, 1)
 {
 	if (fComplete < 0 || fComplete > 1)
-		ExceptionT::OutOfRange("PolyBasis1DT::PolyBasis1DT",
-			"completeness must be [0,1]: %d", complete);
+	{
+		cout << "\n PolyBasis1DT::PolyBasis1DT: completeness must be [0,1]" << endl;
+		throw eBadInputValue;	
+	}
 }
 	
 /* return the number of basis functions */
@@ -24,9 +26,8 @@ void PolyBasis1DT::SetBasis(const dArray2DT& coords, int order)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
-	const char caller[] = "PolyBasis1DT::SetBasis";
-	if (coords.MinorDim() != fNumSD) ExceptionT::GeneralFail(caller);
-	if (order > 3) ExceptionT::OutOfRange(caller); //kyonten (order increased to 3)
+	if (coords.MinorDim() != fNumSD) throw eGeneralFail;
+	if (order > 2) throw eOutOfRange;
 #endif
 
 	/* dimensions */
@@ -44,19 +45,13 @@ void PolyBasis1DT::SetBasis(const dArray2DT& coords, int order)
 			{
 				fDP[0] = 0.0;
 				if (order > 1)
-				{
 					fDDP[0] = 0.0;
-					if (order > 2) // kyonten (third derivative)
-					{
-						fDDDP[0] = 0.0;
-					}
-				}
 			}
 			break;
 		}
 		case 1: // linear basis
 		{
-			const double* px = coords.Pointer();
+			double* px   = coords.Pointer();
 			double* pP0  = fP(0);
 			double* pP1  = fP(1);
 			double* pDP0 = (fDP[0])(0);
@@ -73,7 +68,6 @@ void PolyBasis1DT::SetBasis(const dArray2DT& coords, int order)
 			}
 			
 			if (order > 1) fDDP[0] = 0.0;
-			if (order > 2) fDDDP[0] = 0.0; // kyonten
 			break;
 		}
 	}

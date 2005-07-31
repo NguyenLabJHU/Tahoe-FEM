@@ -1,38 +1,32 @@
-/* $Id: FDCubicT.cpp,v 1.6 2004-07-15 08:27:05 paklein Exp $ */
-/* created: paklein (06/11/1997) */
+/* $Id: FDCubicT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (06/11/1997)                                          */
+
 #include "FDCubicT.h"
 
-using namespace Tahoe;
-
 /* constructor */
-FDCubicT::FDCubicT(void):
-	ParameterInterfaceT("large_strain_cubic")
+FDCubicT::FDCubicT(ifstreamT& in, const ElasticT& element):
+	FDHookeanMatT(in, element),
+	CubicT(in, fModulus)
 {
 
 }
 
-/* information about subordinate parameter lists */
-void FDCubicT:: DefineParameters(ParameterListT& list) const
+/* print parameters */
+void FDCubicT::Print(ostream& out) const
 {
 	/* inherited */
-	FDHookeanMatT::DefineParameters(list);
-	CubicT::DefineParameters(list);
-}
-
-/* information about subordinate parameter lists */
-void FDCubicT:: TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	CubicT::TakeParameterList(list); /* cubic parameters must be extracted first */
-	FDHookeanMatT::TakeParameterList(list);
+	FDHookeanMatT::Print(out);
+	CubicT::Print(out);
 }
 
 /*************************************************************************
 * Protected
 *************************************************************************/
 
-/* set modulus */
-void FDCubicT::SetModulus(dMatrixT& modulus)
+/* print name */
+void FDCubicT::PrintName(ostream& out) const
 {
-	CubicT::ComputeModuli(modulus);
+	/* inherited */
+	FDHookeanMatT::PrintName(out);
+	CubicT::PrintName(out);
 }

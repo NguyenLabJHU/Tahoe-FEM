@@ -1,109 +1,67 @@
-/* $Id: LinkedListT.h,v 1.9 2005-04-30 21:15:05 paklein Exp $ */
-/* created: paklein (02/07/1996) */
+/* $Id: LinkedListT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (02/07/1996)                                          */
+/* Basic linked list template                                             */
+/* Note: the TYPE stored in the list should have an appropriate           */
+/* copy constructor, an assignment ("=") operator, and a                  */
+/* stream insertion ("<<"), and a test for equality ("==").               */
+
 #ifndef _LINKEDLIST_T_H_
 #define _LINKEDLIST_T_H_
 
 /* ANSI headers */
 #include <iostream.h>
 
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 
 /* direct members */
 #include "ListNodeT.h"
 
-namespace Tahoe {
-
-/** basic templated linked list class
- * \note the TYPE stored in the list should have an appropriate
- * copy constructor, an assignment ("=") operator, and a
- * stream insertion ("<<"), and a test for equality ("==").
- */
 template <class TYPE>
 class LinkedListT
 {
 public:
 
-	/** \name constructors */
-	/*@{*/
+	/* constructor */
 	LinkedListT(void);
 	LinkedListT(const LinkedListT<TYPE>& source);
-	/*@}*/
 
-	/** destructor */
+	/* destructor */
 	~LinkedListT(void);
 	 	
-	/** append value to the end of the list */
+	/* append value to the end of the list */
 	void Append(const TYPE& value);
-	
-	/** append a given number of values */
-	void AppendArray(int length, TYPE* values);
-	
-	/** append a given number of the same value */
-	void AppendArray(int length, TYPE& value);
 
-	/** append value if not already in the list (using "==").
+	/* append value if not already in the list (using "==").
 	 * returns 1 if the value was added, else returns 0 */
 	int AppendUnique(const TYPE& value);
-	
-	/** insert values at the current position in the list */
-	void InsertAtCurrent(const TYPE& value);
 
-	/** delete/insert values at - error if out of range */
+	/* delete/insert values at - error if out of range */
 	void InsertAt(const TYPE& value, int position);
 	void DeleteAt(int position);
 		
-	/** \name top/next loops */
-	/*@{*/
+	/* top/next loops */
 	void Top(void);
-	
-	int AtTop(void) { return fAtTop; };
-	
-	/** increment the list pointer and copy the contents of the next element into value */
 	int Next(TYPE& value);
-	
-	/** return a pointer to the next value in the list. Returns NULL if there are no 
-	 * more values */
-	TYPE* Next(void);
-	/*@}*/
 				
-	/** clears list contents */
+	/* clears list contents */
 	void Clear(void);	
 
-	/** return 1 if the list is empty else return 0 */
+	/* return 1 if the list is empty else return 0 */
 	int	IsEmpty(void) const;
 		
-	/** returns the number of values in the list */	
+	/* returns the number of values in the list */	
 	int Length(void) const;
 	
-	/** returns pointer to the current value in the list or NULL if empty or undefined */
-	TYPE* CurrentValue(void) const;
-	
-	/** returns pointer to the next node's value or NULL */
-	TYPE* PeekAhead(void) const;
-	
-	/** shallow copy */
-	void Alias(const LinkedListT<TYPE>& RHS);
-	
-	/** deep or shallow? */
-	bool IsAllocated(void) const;
-	
-	/** assignment operator */
+	/* assignment operator */
 	LinkedListT<TYPE>& operator=(const LinkedListT<TYPE>& source);
 	
 private:
 
-	/** \name pointers into the list */
-	/*@{*/
-	ListNodeT<TYPE>* fCurrPtr;	/**< pointer to the current node in the list */
-	ListNodeT<TYPE>* fFirstPtr;	/**< pointer to the first node in the list   */
-	ListNodeT<TYPE>* fLastPtr;	/**< pointer to the last node in the list    */
-	/*@}*/
+	ListNodeT<TYPE>* fCurrPtr;	/* pointer to the current node in the list */
+	ListNodeT<TYPE>* fFirstPtr;	/* pointer to the first node in the list   */
+	ListNodeT<TYPE>* fLastPtr;	/* pointer to the last node in the list   */
 	
-	/** flag to indicate that the list has been reset */	
-	int fAtTop;
-	
-	/** flag to indicate that this owns the memory */
-	int fDelete;
+	int fAtTop; /* flag to indicate that the list has been reset */	
 };
 
 /* output operator */
@@ -117,7 +75,7 @@ ostream& operator<<(ostream& out, const LinkedListT<TYPE>& list)
 		currPtr = currPtr->NextPtr();
 	}
 	return out;
-}
+};
 
 /*************************************************************************
 * Implementation
@@ -128,8 +86,7 @@ LinkedListT<TYPE>::LinkedListT(void):
 	fCurrPtr(NULL),
 	fFirstPtr(NULL),
 	fLastPtr(NULL),
-	fAtTop(0),
-	fDelete(1)
+	fAtTop(0)
 {
 
 }
@@ -139,8 +96,7 @@ LinkedListT<TYPE>::LinkedListT(const LinkedListT<TYPE>& source):
 	fCurrPtr(NULL),
 	fFirstPtr(NULL),
 	fLastPtr(NULL),
-	fAtTop(0),
-	fDelete(1)
+	fAtTop(0)
 {
 	(*this) = source;
 }
@@ -155,136 +111,8 @@ LinkedListT<TYPE>::~LinkedListT(void)
 template <class TYPE>
 void LinkedListT<TYPE>::Append(const TYPE &value)
 {
-	if (fDelete)
-	{
-		ListNodeT<TYPE>* newptr = new ListNodeT<TYPE>(value);
-		if (!newptr) throw ExceptionT::kOutOfMemory;
-	
-		if (fFirstPtr == NULL)
-		{
-			/* empty list */
-			fFirstPtr = newptr;
-			fLastPtr  = newptr;
-		}
-		else 	
-		{
-			/* list not empty */
-			fLastPtr->fNextPtr = newptr;
-			fLastPtr = newptr;
-		}
-	}
-	else
-		ExceptionT::GeneralFail("LinkedListT::Append","Cannot Append to shallow list");
-}
-
-template <class TYPE>
-void LinkedListT<TYPE>::AppendArray(int length, TYPE* values)
-{
-	if (fDelete)
-	{
-		if (length)
-		{
-			/* guarantee list is non-empty before looping */
-			ListNodeT<TYPE>* newptr = new ListNodeT<TYPE>(*values++);
-			if (!newptr) throw ExceptionT::kOutOfMemory;
-	
-			if (fFirstPtr == NULL)
-			{
-				/* empty list */
-				fFirstPtr = newptr;
-				fLastPtr  = newptr;
-			}
-			else 	
-			{
-				/* list not empty */
-				fLastPtr->fNextPtr = newptr;
-				fLastPtr = newptr;
-			}
-			length--;
-			
-			for (int i = 0; i < length; i++)
-			{
-				ListNodeT<TYPE>* newptr = new ListNodeT<TYPE>(*values++);
-				if (!newptr) throw ExceptionT::kOutOfMemory;	
-			
-				fLastPtr->fNextPtr = newptr;
-				fLastPtr = newptr;
-			}
-		}
-	}
-	else
-		ExceptionT::GeneralFail("LinkedListT::AppendArray","Cannot append to shallow Array \n");
-}
-
-template <class TYPE>
-void LinkedListT<TYPE>::AppendArray(int length, TYPE& value)
-{
-	if (fDelete)
-	{
-		if (length)
-		{
-			/* guarantee list is non-empty before looping */
-			ListNodeT<TYPE>* newptr = new ListNodeT<TYPE>(value);
-			if (!newptr) throw ExceptionT::kOutOfMemory;
-		
-			if (fFirstPtr == NULL)
-			{
-				/* empty list */
-				fFirstPtr = newptr;
-				fLastPtr  = newptr;
-			}
-			else 	
-			{
-				/* list not empty */
-				fLastPtr->fNextPtr = newptr;
-				fLastPtr = newptr;
-			}
-			length--;
-			for (int i = 0; i < length; i++)
-			{
-				ListNodeT<TYPE>* newptr = new ListNodeT<TYPE>(value);
-				if (!newptr) throw ExceptionT::kOutOfMemory;	
-				
-				fLastPtr->fNextPtr = newptr;
-				fLastPtr = newptr;
-			}
-		}
-	}
-	else
-		ExceptionT::GeneralFail("LinkedListT::AppendArray","Cannot append to shallow list");
-}
-
-
-template <class TYPE>
-int LinkedListT<TYPE>::AppendUnique(const TYPE &value)
-{
-	if (fDelete)
-	{
-		/* search for matching value */
-		ListNodeT<TYPE>* currPtr = fFirstPtr;
-		while (currPtr != NULL)
-		{
-			if (currPtr->fValue == value) return 0;
-			currPtr = currPtr->fNextPtr;		
-		}
-		
-		/* value not found */	
-		Append(value);
-		return 1;
-	}
-	else
-		ExceptionT::GeneralFail("LinkedListT::AppendUnique","Cannot append to shallow list");
-
-	/* dummy */
-	return 0;
-}
-
-/* insert value at the current node of the linked list */
-template <class TYPE>
-void LinkedListT<TYPE>::InsertAtCurrent(const TYPE& value)
-{
 	ListNodeT<TYPE>* newptr = new ListNodeT<TYPE>(value);
-	if (!newptr) throw ExceptionT::kOutOfMemory;
+	if (!newptr) throw(eOutOfMemory);
 	
 	if (fFirstPtr == NULL)
 	{
@@ -294,21 +122,26 @@ void LinkedListT<TYPE>::InsertAtCurrent(const TYPE& value)
 	}
 	else 	
 	{
-		/* If insertion follows a call to Top(), nothing is set but this flag */
-		if (fAtTop)
-		{
-			newptr->fNextPtr = fFirstPtr;
-			fFirstPtr = newptr;
-		}
-		else
-		{
-			newptr->fNextPtr = fCurrPtr->fNextPtr;
-			fCurrPtr->fNextPtr = newptr;
-			fCurrPtr = fCurrPtr->fNextPtr;
-			if (!fCurrPtr->fNextPtr)
-				fLastPtr = fCurrPtr;
-		}
+		/* list not empty */
+		fLastPtr->fNextPtr = newptr;
+		fLastPtr = newptr;
 	}
+}
+
+template <class TYPE>
+int LinkedListT<TYPE>::AppendUnique(const TYPE &value)
+{
+	/* search for matching value */
+	ListNodeT<TYPE>* currPtr = fFirstPtr;
+	while (currPtr != NULL)
+	{
+		if (currPtr->fValue == value) return 0;
+		currPtr = currPtr->fNextPtr;		
+	}
+		
+	/* value not found */	
+	Append(value);
+	return 1;
 }
 
 /* delete/insert values at - error if out of range */
@@ -326,50 +159,45 @@ void LinkedListT<TYPE>::InsertAt(const TYPE& value, int position)
 	}
 		
 	/* check */	
-	if (currPtr == NULL) throw ExceptionT::kGeneralFail;
+	if (currPtr == NULL) throw eGeneralFail;
 
 	/* new list node */
 	ListNodeT<TYPE>* newptr = new ListNodeT<TYPE>(value);
-	if (!newptr) throw ExceptionT::kOutOfMemory;
+	if (!newptr) throw(eOutOfMemory);
 	
 	if (lastPtr == NULL)
-		fFirstPtr = newptr;
+		fFirstPtr = newPtr;
 	else
-		lastPtr->fNextPtr = newptr;
+		lastPtr->fNextPtr = newPtr;
 
-	newptr->fNextPtr = currPtr;
-	if (currPtr == fLastPtr) fLastPtr = newptr;
+	newPtr->fNextPtr = currPtr;
+	if (currPtr == fLastPtr) fLastPtr = newPtr;
 }
 
 template <class TYPE>
 void LinkedListT<TYPE>::DeleteAt(int position)
 {
-	if (fDelete)
+	/* advance */
+	int i = 0;
+	ListNodeT<TYPE>* currPtr = fFirstPtr;
+	ListNodeT<TYPE>* lastPtr = NULL;
+	while (i++ < position && currPtr != NULL)
 	{
-		/* advance */
-		int i = 0;
-		ListNodeT<TYPE>* currPtr = fFirstPtr;
-		ListNodeT<TYPE>* lastPtr = NULL;
-		while (i++ < position && currPtr != NULL)
-		{
-			lastPtr = currPtr;
-			currPtr = currPtr->fNextPtr;
-		}
-		
-		/* check */	
-		if (currPtr == NULL) throw ExceptionT::kGeneralFail;
-	
-		if (lastPtr == NULL)
-			fFirstPtr = currPtr->fNextPtr;
-		else
-			lastPtr->fNextPtr = currPtr->fNextPtr;
-
-		if (currPtr == fLastPtr) fLastPtr = lastPtr;
-
-		delete currPtr;	
+		lastPtr = currPtr;
+		currPtr = currPtr->fNextPtr;
 	}
+		
+	/* check */	
+	if (currPtr == NULL) throw eGeneralFail;
+	
+	if (lastPtr == NULL)
+		fFirstPtr = currPtr->fNextPtr;
 	else
-		ExceptionT::GeneralFail("LinkedListT::DeleteAt","Cannot delete from shallow list");
+		lastPtr->fNextPtr = currPtr->fNextPtr;
+
+	if (currPtr == fLastPtr) fLastPtr = lastPtr;
+
+	delete currPtr;	
 }
 
 template <class TYPE>
@@ -398,48 +226,22 @@ int LinkedListT<TYPE>::Next(TYPE &value)
 }
 
 template <class TYPE>
-TYPE* LinkedListT<TYPE>::Next(void)
-{
-	if (fFirstPtr == NULL)
-		return NULL;
-	else
-	{
-		if (fAtTop)
-		{
-			fAtTop = 0;
-			fCurrPtr = fFirstPtr;
-		}
-		else if (fCurrPtr == fLastPtr)
-			return NULL;
-		else
-			fCurrPtr = fCurrPtr->fNextPtr;
-	
-		return &(fCurrPtr->fValue);
-	}
-}
-
-template <class TYPE>
 void LinkedListT<TYPE>::Clear(void)
 {
-	if (fDelete)
-	{
-		ListNodeT<TYPE>* currPtr;
-		ListNodeT<TYPE>* tempPtr;
+	ListNodeT<TYPE>* currPtr;
+	ListNodeT<TYPE>* tempPtr;
 	
-		currPtr = fFirstPtr;
-		while (currPtr != NULL)
-		{
-			tempPtr = currPtr;
-			currPtr = currPtr->fNextPtr;
-			delete tempPtr;
-		}
+	currPtr = fFirstPtr;
+	while (currPtr != NULL)
+	{
+		tempPtr = currPtr;
+		currPtr = currPtr->fNextPtr;
+		delete tempPtr;
 	}
 
 	fFirstPtr = NULL;
 	fLastPtr  = NULL;
 	fCurrPtr  = NULL;
-	
-	fDelete = 1;
 }
 
 template <class TYPE>
@@ -463,55 +265,6 @@ int LinkedListT<TYPE>::Length(void) const
 	return length;
 }
 
-template <class TYPE>
-TYPE* LinkedListT<TYPE>::CurrentValue(void) const
-{
-	if (!fFirstPtr) 
-		return NULL;
-	
-	if (fAtTop)
-		return &(fFirstPtr->fValue);
-	else
-	{
-		if (!fCurrPtr) // this is actually an error, but ignore it for now
-			return NULL;
-	
-		return &(fCurrPtr->fValue);
-	}
-}
-
-template <class TYPE>
-TYPE* LinkedListT<TYPE>::PeekAhead(void) const
-{
-	if (!fCurrPtr)
-		return NULL;
-	
-	if (!fCurrPtr->fNextPtr)
-		return NULL;
-		
-	return &(fCurrPtr->fNextPtr->fValue);
-		
-}
-
-template <class TYPE>
-void LinkedListT<TYPE>::Alias(const LinkedListT<TYPE>& RHS)
-{
-	if (this != &RHS)
-	{
-		Clear();
-	
-		fFirstPtr = RHS.fFirstPtr;
-		fLastPtr = RHS.fLastPtr;
-		fCurrPtr = RHS.fCurrPtr;
-		fAtTop = RHS.fAtTop;
-		fDelete = 0;
-	}
-}
-
-/* deep or shallow ? */
-template <class TYPE>
-inline bool LinkedListT<TYPE>::IsAllocated(void) const { return fDelete != 0; }
-
 /*
 * Assignment operator
 */
@@ -530,6 +283,5 @@ LinkedListT<TYPE>& LinkedListT<TYPE>::operator=(const LinkedListT<TYPE>& source)
 
 	return *this;
 }
-	
-} // namespace Tahoe 
+
 #endif /* _LINKEDLIST_T_H_ */

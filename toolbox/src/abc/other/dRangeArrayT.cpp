@@ -1,25 +1,25 @@
-/* $Id: dRangeArrayT.cpp,v 1.7 2004-12-27 06:09:46 paklein Exp $ */
-/* created: paklein (12/02/1996) */
+/* $Id: dRangeArrayT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (12/02/1996)                                          */
+/* dRangeArrayT.cpp                                                       */
 
 #include "dRangeArrayT.h"
 #include "dArray2DT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
-dRangeArrayT::dRangeArrayT(void) { }
-
 dRangeArrayT::dRangeArrayT(const dArrayT& values)
 {
-	SetValues(values);
+	dArrayT::operator=(values);
+	if ( !IsSequential()) throw eGeneralFail;
 }
 
-dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D) {
-	SetValues(colnum, values2D);
+dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D)
+{
+	/* allocate space */
+	Allocate(values2D.MajorDim());
+	
+	/* copy values */
+	values2D.ColumnCopy(colnum,*this);
 }
-
-namespace Tahoe {
 
 /* I/O operators */
 ostream& operator<<(ostream& out, const dRangeArrayT& array)
@@ -27,31 +27,6 @@ ostream& operator<<(ostream& out, const dRangeArrayT& array)
 	/* inherited */
 	const dArrayT& temp = array;
 	return (out << temp);
-}
-
-} // namespace Tahoe
-
-/* set values */
-void dRangeArrayT::SetValues(const dArrayT& values)
-{
-	dArrayT::operator=(values);
-	if (!IsSequential())
-		ExceptionT::GeneralFail("dRangeArrayT::SetValues", 
-			"array values must be sorted in ascending order"); 
-}
-
-void dRangeArrayT::SetValues(int colnum, const dArray2DT& values2D)
-{
-	/* allocate space */
-	Dimension(values2D.MajorDim());
-	
-	/* copy values */
-	values2D.ColumnCopy(colnum,*this);
-
-	/* check */
-	if (!IsSequential())
-		ExceptionT::GeneralFail("dRangeArrayT::dRangeArrayT", 
-			"array values must be sorted in ascending order");
 }
 
 /*

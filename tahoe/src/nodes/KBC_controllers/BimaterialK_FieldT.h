@@ -1,37 +1,24 @@
-/* $Id: BimaterialK_FieldT.h,v 1.7 2004-11-18 16:36:47 paklein Exp $ */
-/* created: paklein (09/06/2000)*/
+/* $Id: BimaterialK_FieldT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* created: paklein (09/06/2000)                                          */
+/* Displacements for a bimaterial K-field:                                */
+/* P.P.L.Matos et al (1989), Int. J. of Fract., v40, 235-254.             */
+
 #ifndef _BIMATERIAL_K_FIELD_T_H_
 #define _BIMATERIAL_K_FIELD_T_H_
-
-#include "ElementsConfig.h"
-#ifdef CONTINUUM_ELEMENT
 
 /* base class */
 #include "K_FieldT.h"
 
-namespace Tahoe {
-
-/** Displacements for a bimaterial K-field.
- * Displacement field taken from\\
- * P.P.L.Matos et al (1989), Int. J. of Fract. \b 40, 235-254. */
 class BimaterialK_FieldT: public K_FieldT
 {
 public:
 
-	/** constructor */
-	BimaterialK_FieldT(const BasicSupportT& support);
+	/* constructor */
+	BimaterialK_FieldT(NodeManagerT& node_manager);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
+	/* initialize data - called immediately after construction */
+	virtual void Initialize(ifstreamT& in);
+	virtual void WriteParameters(ostream& out) const;
 
 protected:
 
@@ -55,39 +42,22 @@ protected:
 	int fFarFieldMaterialNum_2;
 
 	/* BC nodes */
-	ArrayT<StringT> fID_List_1;
+	iArrayT fID_List_1;
 	iArrayT fNodes_1;
-	ArrayT<StringT> fID_List_2;
+	iArrayT fID_List_2;
 	iArrayT fNodes_2;
+	
+	/* external links */
+	const IsotropicT*  fIsotropic_2;
+	const Material2DT* fMaterial2D_2;
 
 	dArray2DT fK1Disp_1;
 	dArray2DT fK2Disp_1;
 	dArray2DT fK1Disp_2;
 	dArray2DT fK2Disp_2;
-
-	/** \name elastic constants */
-	/*@{*/
-	double fmu_1; /**< shear modulus */
-	double fnu_1; /**< Poisson's ratio */
-	double fkappa_1; /**< function of nu */
-
-	double fmu_2; /**< shear modulus */
-	double fnu_2; /**< Poisson's ratio */
-	double fkappa_2; /**< function of nu */
 	
-	int fGroupNumber_1;
-	int fMaterialNumber_1;
-
-	int fGroupNumber_2;
-	int fMaterialNumber_2;
-	/*@}*/
-
-	/** group in "upper half plane" (t > 0) */
+	/* group in "upper half plane" (t > 0) */
 	int fUHP;
 };
-
-} // namespace Tahoe 
-
-#endif /* CONTINUUM_ELEMENT */
 
 #endif /* _BIMATERIAL_K_FIELD_T_H_ */

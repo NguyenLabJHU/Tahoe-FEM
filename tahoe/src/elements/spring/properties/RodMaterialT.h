@@ -1,55 +1,51 @@
-/* $Id: RodMaterialT.h,v 1.6 2004-07-15 08:30:22 paklein Exp $ */
-/* created: paklein (11/20/1996) */
+/* $Id: RodMaterialT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (11/20/1996)                                          */
 
 #ifndef _RODMATERIALT_H_
 #define _RODMATERIALT_H_
 
 #include "Environment.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
+#include "ios_fwd_decl.h"
 class ifstreamT;
 class ThermalDilatationT;
-class ScheduleT;
+class LoadTime;
 
-/** pair interactions */
 class RodMaterialT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	RodMaterialT(ifstreamT& in);
 
-	/** destructor */
+	/* destructor */
 	virtual ~RodMaterialT(void);
 
-	/** print parameters */
+	/* I/O functions */
+	virtual void Print(ostream& out) const = 0;
+	virtual void PrintName(ostream& out) const = 0;
+
+	/* print parameters */
 	void PrintParameters(ostream& out) const;
 	
-	/** return the particle mass */
-	double Mass(void) const { return fMass; };
-	
-	/** potential function and derivatives */
+	/* potential function and derivatives */
 	virtual double Potential(double rmag, double Rmag) const = 0;
 	virtual double DPotential(double rmag, double Rmag) const = 0;
 	virtual double DDPotential(double rmag, double Rmag) const = 0;
 
-	/** thermal accessors */
-	int ThermalScheduleNumber(void) const;
-	void SetThermalSchedule(const ScheduleT* LTfPtr);
+	/* thermal accessors */
+	int ThermalLTfNumber(void) const;
+	void SetThermalLTfPtr(const LoadTime* LTfPtr);
 
-	/** returns true if the material has internal forces in the unloaded
+	/* returns true if the material has internal forces in the unloaded
 	 * configuration, ie thermal strains */
 	virtual int HasInternalStrain(void) const;
 
 protected:
 
-	double fMass;
 	ThermalDilatationT* fThermal;
+
 };
 
-} // namespace Tahoe 
 #endif /* _RODMATERIALT_H_ */

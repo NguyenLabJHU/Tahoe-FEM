@@ -1,145 +1,181 @@
-# $Id: makefile,v 1.28 2004-06-29 16:15:43 paklein Exp $
-#
-# This makefile is divided into four sections:
-#    (1) objects
-#    (2) sources
-#    (3) headers
-#    (4) subdirectories
-#
-# Instructions for how to define these is given in each section below
-#
-include $(MACRO_DIR)/suffix
-include $(MACRO_DIR)/$(ARCH).macros
+# $Id: makefile,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $
+# object directory makefile - compilation instructions
 
-##################### (1) objects
-#
-# (1.1) If there are objects in this directory:
-#    (1) define the OBJ macro as the list of object files
-#    (2) uncomment the OBJ_LINK and DEP macros here
-#    (3) comment the OBJ, OBJ_LINK, and DEP macros in the
-#        section (1.1).
-#
+.SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
+
+# objects
 OBJ = \
 	CubicSplineT.o \
 	C1FunctionT.o \
-	C1FunctionT_factory.o \
-	ErrorFunc.o \
 	GaoKlein.o \
-	Gamma.o \
 	LennardJones612.o \
-	ModBessel.o \
 	ParabolaT.o \
 	PhiSplineT.o \
-	SmithFerrante.o \
-	ModSmithFerrante.o \
-	LinearExponentialT.o \
-	Triantafyllidis.o \
-	LinearT.o \
-	GaoVicky.o \
-	GaoJi.o \
-	GaoJi2.o \
-	SF2.o \
-	PiecewiseLinearT.o \
-	PowerLawT.o\
-	CosineT.o
-
+	SmithFerrante.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 
-#
-# (1.2) If there are not object in this directory:
-#    (1) comment the OBJ, OBJ_LINK, and DEP definitions in section (1.1)
-#    (2) uncomment the OBJ, OBJ_LINK, and DEP definitions below
-#
-#OBJ = dummy
-#OBJ_LINK =
-#DEP = /dev/null
-
-##################### (2) sources
-#
-# (2) If there are sources in this directory list them in the
-#     SRC macro; otherwise, comment the SRC macro.
-#
+# sources
 SRC = \
 	CubicSplineT.cpp \
 	C1FunctionT.cpp \
-	C1FunctionT_factory.cpp \
-	ErrorFunc.cpp \
-	Gamma.cpp \
 	GaoKlein.cpp \
 	LennardJones612.cpp \
-	ModBessel.cpp \
 	ParabolaT.cpp \
 	PhiSplineT.cpp \
-	SmithFerrante.cpp \
-	ModSmithFerrante.cpp \
-	LinearExponentialT.cpp \
-	Triantafyllidis.cpp \
-	LinearT.cpp \
-	GaoVicky.cpp \
-	GaoJi.cpp \
-	GaoJi2.cpp \
-	SF2.cpp \
-	PiecewiseLinearT.cpp \
-	PowerLawT.cpp \
-	CosineT.cpp
+	SmithFerrante.cpp
 
-##################### (3) headers
-#
-# (3) If there are header files in this directory:
-#    (1) list the header files in the HDR macro
-#    (2) uncomment the HDR_LINK
-# 
-# If there are no header files in this directory comment both the
-# HDR and HDR_LINK macro   
-#
+# headers
 HDR = \
 	CubicSplineT.h \
 	C1FunctionT.h \
-	ErrorFunc.h \
-	Gamma.h \
 	GaoKlein.h \
 	LennardJones612.h \
-	ModBessel.h \
 	ParabolaT.h \
 	PhiSplineT.h \
-	SmithFerrante.h \
-	ModSmithFerrante.h \
-	LinearExponentialT.h \
-	Triantafyllidis.h \
-	LinearT.h \
-	GaoVicky.h \
-	GaoJi.h \
-	GaoJi2.h \
-	SF2.h \
-	PiecewiseLinearT.h \
-	PowerLawT.h \
-	CosineT.h
+	SmithFerrante.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
-##################### (4) sub-directories
-#
-# (4.1) If there are sub-directories contained in this directory:
-#    (1) list the subdirectories in the SUB_DIR macro
-#    (2) uncomment the subdir_driver macro
-#    (3) comment the SUB_DIR and subdir_driver in section (4.2)
-#
-SUB_DIR =  
-#subdir_driver: subdir_loop
+# subdirectories
+#SUB_DIR = 
+SUB_DIR = no_subdirs
 
-#
-# (4.2) If there are no sub-directories in this directory:
-#    (1) comment the SUB_DIR and subdir_driver in section (4.1)
-#    (2) uncomment the subdir_driver macro below
-#
-#SUB_DIR is empty
-subdir_driver: 
+# process sub-directories as targets:
+#subdir_driver: $(SUB_DIR)
+subdir_driver:
 
-#####################
+MACROS = \
+	"MAKE = $(MAKE)" \
+	"MAKE_OPTS = $(MAKE_OPTS)" \
+	"INC_DIR = $(INC_DIR)" \
+	"OBJ_DIR = $(OBJ_DIR)" \
+	"LIB_DIR = $(LIB_DIR)" \
+	"TR = $(TR)" \
+	"COMP_CC = $(COMP_CC)" \
+	"COMP_C = $(COMP_C)" \
+	"COMP_F = $(COMP_F)" \
+	"CFLAGS_C = $(CFLAGS_C)" \
+	"CFLAGS_CC = $(CFLAGS_CC)" \
+	"CFLAGS_F = $(CFLAGS_F)" \
+	"LIBRARY = $(LIBRARY)" \
+	"AR = $(AR)" \
+	"ARFLAGS = $(ARFLAGS)" \
+	"RM = $(RM)" \
+	"RM_FILES = $(RM_FILES)" \
+	"LN = $(LN)" \
+	"MAKE_DEPEND = $(MAKE_DEPEND)" \
+	"DEPEND_PATH = $(DEPEND_PATH)" \
+	"DEPEND = $(DEPEND)"
 
-# instructions for subdirectories
-include $(MACRO_DIR)/subdir.targets
+# debugging
+echo_all:
+	@ echo "MAKE = $(MAKE)"
+	@ echo "MAKE_OPTS = $(MAKE_OPTS)"
+	@ echo "INC_DIR = $(INC_DIR)"
+	@ echo "OBJ_DIR = $(OBJ_DIR)"
+	@ echo "LIB_DIR = $(LIB_DIR)"
+	@ echo "TR = $(TR)"
+	@ echo "COMP_C = $(COMP_C)"
+	@ echo "COMP_CC = $(COMP_CC)"
+	@ echo "COMP_F = $(COMP_F)"
+	@ echo "CFLAGS_C = $(CFLAGS_C)"
+	@ echo "CFLAGS_CC = $(CFLAGS_CC)"
+	@ echo "CFLAGS_F = $(CFLAGS_F)"
+	@ echo "LIBRARY = $(LIBRARY)"
+	@ echo "AR = $(AR)"
+	@ echo "ARFLAGS = $(ARFLAGS)"
+	@ echo "RM = $(RM)"
+	@ echo "RM_FILES = $(RM_FILES)"
+	@ echo "LN = $(LN)"
+	@ echo "MAKE_DEPEND = $(MAKE_DEPEND)"
+	@ echo "DEPEND_PATH = $(DEPEND_PATH)"
+	@ echo "DEPEND = $(DEPEND)"
+
+clean:
+	-@ $(RM) $(RM_FILES)
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = clean"
+
+depend_init: all.depend
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = depend_init"
+
+all.depend: $(DEP)
+	@ echo "    cat: $(DEP) > all.depend"; cat $(DEP) > all.depend
+
+headers: $(HDR_LINK)
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = headers"
+
+objects: all.depend
+	@ $(MAKE) $(MACROS) update_objects
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = objects"
+
+update_objects: $(OBJ)
+
+library:
+	@ $(AR) $(ARFLAGS) $(LIBRARY) $(OBJ_LINK)
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = library"
+
+$(SUB_DIR): dummy
+	@ echo " cd $@"; \
+	cd $@; $(MAKE) $(COMMAND) $(MACROS) "CURR_DIR = $(CURR_DIR)/$@"
+
+dummy:
+
+# suffix rules
+
+.c.o:
+	@ echo "    $(COMP_C): "$<; \
+	$(COMP_C) $(CFLAGS_C) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.cpp.o:
+	@ echo "    $(COMP_CC): "$<; \
+	$(COMP_CC) $(CFLAGS_CC) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.C.o:
+	@ echo "    $(COMP_CC): "$<; \
+	$(COMP_CC) $(CFLAGS_CC) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.f.o:
+	@ echo "    $(COMP_F): "$<; \
+	$(COMP_F) $(CFLAGS_F) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.F.o:
+	@ echo "    $(COMP_F): "$<; \
+	$(COMP_F) $(CFLAGS_F) $<
+	@echo "#touch" > $(LIB_DIR)/lib.junk
+
+.h.h_link:
+	@ echo "    $(LN): "$<; \
+	$(LN) $(CURR_DIR)/$< $(INC_DIR)/$<
+
+.c.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.cpp.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "# DO NOT DELETE" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.C.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "# DO NOT DELETE" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.f.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "# DO NOT DELETE" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.F.d:
+	@ echo "    $(MAKE_DEPEND): "$<; \
+	echo "# DO NOT DELETE" > $@; \
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
 
 # dependencies
 DEPEND = /dev/null

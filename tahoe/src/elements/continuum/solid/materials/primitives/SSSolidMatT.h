@@ -1,46 +1,35 @@
-/* $Id: SSSolidMatT.h,v 1.20 2005-03-09 19:25:48 raregue Exp $ */
-/* created: paklein (06/09/1997) */
+/* $Id: SSSolidMatT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (06/09/1997)                                          */
+/* Defines the interface for elastic continuum materials.                 */
+
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
 
 /* base class */
-#include "SolidMaterialT.h"
-
-/* direct members */
-#include "dSymMatrixT.h"
-#include "DetCheckT.h"
-
-namespace Tahoe {
+#include "ContinuumT.h"
+#include "StructuralMaterialT.h"
 
 /* forward declarations */
-class SSMatSupportT;
+class ShapeFunctionT;
 
-/** defines the interface for small strain continuum materials */
-class SSSolidMatT: public SolidMaterialT
+class SSSolidMatT: protected ContinuumT, public StructuralMaterialT
 {
 public:
 
-	/** constructor */
-	SSSolidMatT(void);
+	/* constructor */
+	SSSolidMatT(ifstreamT& in, const ElasticT& element);
 
-	/** set the material support or pass NULL to clear */
-	virtual void SetSSMatSupport(const SSMatSupportT* support);
+	/* I/O functions */
+	virtual void PrintName(ostream& out) const;
 
 	/* required parameter flags */
-	virtual bool Need_Strain(void) const { return true; };
-	virtual bool Need_Strain_last(void) const { return false; };
+	virtual bool NeedDisp(void) const;
 
-	/** elastic strain */
+	/* the shape functions */
+	const ShapeFunctionT& ShapeFunction(void) const;
+		
+	/* elastic strain */
 	const dSymMatrixT& e(void);
-
-	/** elastic strain at the given integration point */
-	const dSymMatrixT& e(int ip);
-
-	/** elastic strain */
-	const dSymMatrixT& e_last(void);
-
-	/** elastic strain at the given integration point */
-	const dSymMatrixT& e_last(int ip);
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void);  // material tangent moduli
@@ -51,35 +40,8 @@ public:
 		// per call. for efficiency, each derived SSSolidMatT should
 		// overload these.
 
-	/** return modulus. This default implementation computes the material
-	 * modulus using a finite difference approach */
-	virtual const dMatrixT& c_ijkl(void);	 
-	
-	/** spatial elastic modulus */
-	virtual const dMatrixT& ce_ijkl(void);
-
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void);
-
-	/** return the strain in the material at the current integration point. 
-	 * Returns the small strain tensor. */
-	virtual void Strain(dSymMatrixT& strain) { strain = e(); };
-
-	/*inquire if dissipation variables used in material force calculation are needed*/
-	virtual bool HasDissipVar(void) const {return false;};
-
-	/** small strain material support additive split of thermal strains by default */
-	virtual bool SupportsThermalStrain(void) const { return true; };
-	
-	/** test for localization assuming small strains. check for bifurcation using current
-	 * Cauchy stress and the spatial tangent moduli.
-	 * \param normal orientation of the localization if localized
-	 * \return true if the determinant of the acoustical tensor is negative
-	 * or fals if the determinant is positive. */
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
-							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA);
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 protected:
 
@@ -95,24 +57,26 @@ private:
 	void Q_2D(const dMatrixT& c_ijkl, const dArrayT& n, dSymMatrixT& Q) const;
 	void Q_3D(const dMatrixT& c_ijkl, const dArrayT& n, dSymMatrixT& Q) const;
 
-protected:
-
-	/** small strain material support */
-	const SSMatSupportT* fSSMatSupport;
-
-	/** return value for the modulus */
-	dMatrixT fModulus;
-
 private:
+
+	/* shape functions */
+	const ShapeFunctionT& fShapes;
 	
+	/* nodal displacements */
+	const LocalArrayT& fLocDisp;
+
 	/* work space */
 	dSymMatrixT	fStrainTemp; // elastic strain (w/o thermal)
 	dSymMatrixT fQ;          // return value
+	dMatrixT fGradU;         // displacement gradient matrix
 
 	/* thermal strain: e_elastic = e_total - e_thermal */
 	bool        fHasThermalStrain;
 	dSymMatrixT fThermalStrain;
+
 };
 
-} // namespace Tahoe 
+/* inlines */
+inline const ShapeFunctionT& SSSolidMatT::ShapeFunction(void) const { return fShapes; }
+
 #endif /* _SS_STRUCT_MAT_T_H_ */

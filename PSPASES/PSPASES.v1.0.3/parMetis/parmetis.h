@@ -8,15 +8,13 @@
  * Started 8/27/94
  * George
  *
- * $Id: parmetis.h,v 1.2 2004-12-10 20:29:42 paklein Exp $
+ * $Id: parmetis.h,v 1.1.1.1 2004-10-07 16:05:25 paklein Exp $
  */
 
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef MALLOC
 #include <malloc.h>
-#endif
 #include <strings.h>
 #include <string.h>
 #include <ctype.h>

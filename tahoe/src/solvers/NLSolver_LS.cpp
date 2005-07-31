@@ -1,43 +1,79 @@
-/* $Id: NLSolver_LS.cpp,v 1.15 2004-09-09 23:54:55 paklein Exp $ */
-/* created: paklein (08/18/1999) */
+/* $Id: NLSolver_LS.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* created: paklein (08/18/1999)                                          */
+
 #include "NLSolver_LS.h"
 
 #include <iostream.h>
 #include <math.h>
 
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
+#include "fstreamT.h"
+#include "Constants.h"
+#include "ExceptionCodes.h"
 #include "FEManagerT.h"
 
-using namespace Tahoe;
-
 /* constructor */
-NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
-	NLSolver(fe_manager, group),
-	fSearchIterations(3),
-	fOrthogTolerance(0.25),
-	fMaxStepSize(2.5)
+NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager):
+	NLSolver(fe_manager)
 {
-	SetName("nonlinear_solver_LS");
+	ifstreamT& in = fFEManager.Input();
+	
+	/* read parameters */
+	in >> fSearchIterations;
+	in >> fOrthogTolerance;
+	in >> fMaxStepSize;
 
+	/* mininum search iterations > 0 */
+	fSearchIterations = (fSearchIterations != 0 &&
+	                     fSearchIterations < 3) ? 3 : fSearchIterations;
+
+	/* print parameters */
+	ostream& out = fFEManager.Output();
+	out << " Maximum number of line search iterations. . . . = " << fSearchIterations << '\n';
+	out << " Line search orthoginality tolerance . . . . . . = " << fOrthogTolerance  << '\n';
+	out << " Maximum update step size. . . . . . . . . . . . = " << fMaxStepSize      << endl;
+	
+	/* checks */
+	if (fSearchIterations < 0)  throw eBadInputValue;
+	if (fOrthogTolerance > 1.0) throw eBadInputValue;
+	if (fMaxStepSize      < 0)  throw eBadInputValue;
+	
+	/* allocate space for history */
+	fSearchData.Allocate(fSearchIterations, 2);
+	
 	/* set console */
 	iAddVariable("line_search_iterations", fSearchIterations);
 	iAddVariable("line_search_tolerance", fOrthogTolerance);
 	iAddVariable("max_step_size", fMaxStepSize);
 }
 
-/* do one iteration of the solution procedure */
-void NLSolver_LS::Iterate(void)
-{	
+/* form and solve the equation system */
+double NLSolver_LS::SolveAndForm(bool newtangent)
+{		
+	/* form the stiffness matrix */
+	if (newtangent)
+	{
+		fLHS->Clear();
+		fFEManager.FormLHS();
+	}
+	
 	/* store residual */
 	fR = fRHS;
-
+		 		
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("NLSolver_LS::Iterate");
+	fLHS->Solve(fRHS);
 
-	/* apply update to system - using line search */
-	fRHS_lock = kOpen;
-	Update(fRHS, &fR);									
+	/* apply update to system */
+	Update(fRHS, &fR);
+								
+	/* compute new residual */
+	fRHS = 0.0;
+	fFEManager.FormRHS();
+
+	/* combine residual magnitude with update magnitude */
+	/* e = a1 |R| + a2 |delta_d|                        */
+	//not implemented!
+			
+	return fRHS.Magnitude();
 }
 
 /* console */
@@ -49,47 +85,9 @@ bool NLSolver_LS::iDoVariable(const StringT& variable, StringT& line)
 	{
 		/* need to reallocate */
 		if (variable == "line_search_iterations")
-			fSearchData.Dimension(fSearchIterations, 2);
+			fSearchData.Allocate(fSearchIterations, 2);
 	}
 	return result;
-}
-
-/* describe the parameters needed by the interface */
-void NLSolver_LS::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	NLSolver::DefineParameters(list);
-
-	/* line search iterations */
-	ParameterT line_search_iterations(fSearchIterations, "line_search_iterations");
-	line_search_iterations.SetDefault(fSearchIterations);
-	list.AddParameter(line_search_iterations);
-
-	/* line search orthogonality tolerance */
-	ParameterT line_search_tolerance(fOrthogTolerance, "line_search_tolerance");
-	line_search_tolerance.SetDefault(fOrthogTolerance);
-	list.AddParameter(line_search_tolerance);
-
-	/* maximum step size */
-	ParameterT max_step(fMaxStepSize, "max_step");
-	max_step.SetDefault(fMaxStepSize);
-	list.AddParameter(max_step);
-}
-
-/* accept parameter list */
-void NLSolver_LS::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	NLSolver::TakeParameterList(list);
-
-	/* extract line search parameters */
-	fSearchIterations = list.GetParameter("line_search_iterations");
-	fOrthogTolerance = list.GetParameter("line_search_tolerance");
-	fMaxStepSize = list.GetParameter("max_step");
-
-	/* allocate space for history */
-	fSearchData.Dimension(fSearchIterations, 2);
-	fSearchData = 0.0;
 }
 
 /*************************************************************************
@@ -126,19 +124,9 @@ void NLSolver_LS::Update(const dArrayT& update, const dArrayT* residual)
 	fSearchData(0,0) = s_a;
 	fSearchData(0,1) = G_a;
 
-	/* start with check full step */
+	/* check full step */
 	double s_b = 1.0;
 	double G_b = GValue(s_b);
-#if 1
-	int cuts = 0;
-	while (cuts++ < 10 && fabs(G_a) > kSmall && fabs(G_b/G_a) > 1.0e6) /* too big */
-	{
-		s_b = 0.5*(s_b + s_a);
-		G_b = GValue(s_b);
-	}
-	cout << " init:" << setw(2) << cuts - 1;
-	if (cuts == 10) throw ExceptionT::kBadJacobianDet;
-#endif
 	fSearchData(1,0) = s_b;
 	fSearchData(1,1) = G_b;
 
@@ -197,13 +185,12 @@ void NLSolver_LS::Update(const dArrayT& update, const dArrayT* residual)
 		
 		}
 		
-		/* max iterations or s_a == s_b */
-		if (++count >= fSearchIterations || fabs(s_a - s_b) < kSmall) 
-			give_up = true;
+		/* max iterations */
+		if (++count >= fSearchIterations) give_up = true;
 		
 	} while (fabs(G_new) > fZeroTolerance &&
 	         fabs(G_new/G_0) > fOrthogTolerance &&
-			!give_up);
+!give_up);
 
 	/* best step on fail */
 	if (give_up)
@@ -225,9 +212,6 @@ void NLSolver_LS::Update(const dArrayT& update, const dArrayT* residual)
 		/* set to "best" */
 		GValue(fSearchData(best,0));
 	}
-	
-	/* no good */
-	if (fabs(s_current) < kSmall) throw ExceptionT::kBadJacobianDet;
 
 	/* write results */
 	cout << " LS: " << count << setw(kDoubleWidth) << s_current << " | ";
@@ -248,15 +232,15 @@ double NLSolver_LS::GValue(double step)
 	s_current = step;
 	
 	/* compute residual */
-	fFEManager.Update(Group(), fRHS);
+	fFEManager.Update(fRHS);
 	fRHS = 0.0;
-	try { fFEManager.FormRHS(Group()); }
+	try { fFEManager.FormRHS(); }
 
-	catch (ExceptionT::CodeT error)
+	catch (int error)
 	{
 		cout << "\n NLSolver_LS::GValue: caught exception: " << error << endl;
 		throw error;
 	}
-	
+
 	return InnerProduct(fUpdate, fRHS);
 }

@@ -1,146 +1,90 @@
-/* $Id: FSSolidMatT.cpp,v 1.20 2005-03-16 20:24:23 cfoster Exp $ */
-/* created: paklein (06/09/1997) */
+/* $Id: FSSolidMatT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (06/09/1997)                                          */
+
 #include "FSSolidMatT.h"
-#include "FSMatSupportT.h"
+#include <iostream.h>
+
+#include "ElasticT.h"
+#include "ShapeFunctionT.h"
 #include "ThermalDilatationT.h"
-#include "iArray2DT.h"
-
-using namespace Tahoe;
-
-/* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<FSSolidMatT>::fByteCopy = false;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<FSSolidMatT*>::fByteCopy = true;
-} /* namespace Tahoe */
 
 /* constructor */
-FSSolidMatT::FSSolidMatT(void):
-	ParameterInterfaceT("large_strain_material"),
-	fFSMatSupport(NULL),
-	fTemperatureField(false)
+FSSolidMatT::FSSolidMatT(ifstreamT& in, const ElasticT& element):
+	FDContinuumT(element.NumSD()),
+	StructuralMaterialT(in, element),
+	fShapes(element.ShapeFunction()),
+	fLocDisp(element.Displacements()),
+	fQ(NumSD()),
+	fGradU(NumSD())
 {
 
 }
 
-/* set the material support or pass NULL to clear */
-void FSSolidMatT::SetFSMatSupport(const FSMatSupportT* support)
-{
-	/* set inherited material support */
-	SetMaterialSupport(support);
+/* required parameter flags */
+bool FSSolidMatT::NeedDisp(void) const { return true; }
 
-	fFSMatSupport = support;
+/* initialization */
+void FSSolidMatT::Initialize(void)
+{
+	/* inherited */
+	StructuralMaterialT::Initialize();
+
+	/* active multiplicative dilatation */
+	if (fThermal->IsActive())
+	{
+		/* allocate and initialize */
+		fFtherminverse.Allocate(NumSD());
+		fFtherminverse.Identity();
 	
-	/* dimension */
-	int nsd = NumSD();
-	TensorTransformT::Dimension(nsd);
-	fQ.Dimension(nsd);
-	fF_therm_inv.Dimension(nsd);
-	fF_therm_inv_last.Dimension(nsd);
-	fF_mechanical.Dimension(nsd);
-
-	/* initialize */
-	fF_therm_inv.Identity();
-	fF_therm_inv_last.Identity();	
-	fF_mechanical.Identity();
-}
-
-/* spatial elastic modulus */
-const dMatrixT& FSSolidMatT::ce_ijkl(void) {
-	return c_ijkl();
-}
-
-const dMatrixT& FSSolidMatT::c_ijkl(void)
-{
-	/* basis vectors */
-	int nsd = NumSD();
-	double basis_1D[1*1] = {0.0};
-	double basis_2D[2*2] = {1.0, 0.0, 0.0, 1.0};
-	double basis_3D[3*3] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-	double* basis_list[4] = {NULL, basis_1D, basis_2D, basis_3D};
-	dArray2DT basis(nsd, nsd, basis_list[nsd]);
-
-	/* work space */
-	dMatrixT& F = const_cast<dMatrixT&>(fFSMatSupport->DeformationGradient());
-	F_0_ = F;
-	double J_0 = F_0_.Det();
-	dArrayT e_c, e_d;
-
-	/* compute perturbed stress (in columns) */
-	double eps = 1.0e-08;
-	for (int i = 0; i < fModulus.Cols(); i++) {
-
-		/* map column to symmetric indicies */
-		int c, d;
-		dSymMatrixT::ExpandIndex(nsd, i, c, d);
-		basis.RowAlias(c, e_c);
-		basis.RowAlias(d, e_d);
-
-		/* perturbed deformation gradient (2.17) */
-		F = F_0_;
-		F_0_.MultTx(e_d, vec_);
-		F.Outer(e_c, vec_, 0.5*eps, dMatrixT::kAccumulate); 
-		F_0_.MultTx(e_c, vec_);
-		F.Outer(e_d, vec_, 0.5*eps, dMatrixT::kAccumulate); 
-		double J = F.Det();
-
-		/* compute stress */
-		stress_.SetToScaled(J, s_ij());
-	
-		/* write into modulus */
-		fModulus.SetCol(i, stress_);
+		/* activate continuum level correction */
+		SetFmodMult(&fFtherminverse);
 	}
-	
-	/* restore nominal state of deformation and stress */
-	F = F_0_;
-	stress_.SetToScaled(J_0, s_ij());
-	
-	/* compute finite difference and geometric contribution (2.18) */
-	for (int i = 0; i < fModulus.Cols(); i++) {
-
-		/* map column to symmetric indicies */
-		int c, d;
-		dSymMatrixT::ExpandIndex(nsd, i, c, d);
-		basis.RowAlias(c, e_c);
-		basis.RowAlias(d, e_d);
-
-		/* geometric contribution */
-		stress_.Multx(e_d, vec_);
-		F_0_.Outer(e_c, vec_, 0.5, dMatrixT::kOverwrite); 
-		F_0_.Outer(vec_, e_c, 0.5, dMatrixT::kAccumulate); 
-		stress_.Multx(e_c, vec_);
-		F_0_.Outer(e_d, vec_, 0.5, dMatrixT::kAccumulate); 
-		F_0_.Outer(vec_, e_d, 0.5, dMatrixT::kAccumulate); 
-		
-		/* combine results */
-		for (int j = 0; j < fModulus.Rows(); j++)
-		{
-			int a, b;
-			dSymMatrixT::ExpandIndex(nsd, j, a, b);
-			fModulus(j,i) = (fModulus(j,i) - stress_[j])/eps - F_0_(a,b);
-		}
-	}
-
-	/* J factor */
-	fModulus /= J_0;
-
-	return fModulus;
 }
 
-/* material description */
-const dMatrixT& FSSolidMatT::C_IJKL(void)
+/* strains/deformation measures */
+const dMatrixT& FSSolidMatT::F(void)
 {
-	/* spatial -> material */
-	const dMatrixT& Fmat = F(); // NOTE: use F or F_mechanical?
-	fModulus.SetToScaled(Fmat.Det(), PullBack(Fmat, c_ijkl()));	
-	return fModulus;
+	/* displacement gradient */
+	fShapes.GradU(fLocDisp, fGradU);
+
+	/* deformation gradient */
+	return FDContinuumT::F(fGradU);
 }
 
-const dSymMatrixT& FSSolidMatT::S_IJ(void)
+const dMatrixT& FSSolidMatT::F(const LocalArrayT& disp)
 {
-	/* spatial -> material */
-	const dMatrixT& Fmat = F(); // NOTE: use F or F_mechanical?
-	fStress.SetToScaled(Fmat.Det(), PullBack(Fmat, s_ij()));	
-	return fStress;
+	/* displacement gradient */
+	fShapes.GradU(disp, fGradU);
+
+	/* deformation gradient */
+	return FDContinuumT::F(fGradU);
+}
+
+const dSymMatrixT& FSSolidMatT::C(void)
+{
+	/* displacement gradient */
+	fShapes.GradU(fLocDisp, fGradU);
+
+	/* right stretch */
+	return FDContinuumT::C(fGradU);
+}
+
+const dSymMatrixT& FSSolidMatT::b(void)
+{
+	/* displacement gradient */
+	fShapes.GradU(fLocDisp, fGradU);
+
+	/* left stretch */
+	return FDContinuumT::b(fGradU);
+}
+
+const dSymMatrixT& FSSolidMatT::E(void)
+{
+	/* displacement gradient */
+	fShapes.GradU(fLocDisp, fGradU);
+
+	/* Green-Lagrange strain */
+	return FDContinuumT::E(fGradU);
 }
 
 /* test for localization using "current" values for Cauchy
@@ -148,370 +92,43 @@ const dSymMatrixT& FSSolidMatT::S_IJ(void)
 * determinant of the acoustic tensor is negative and returns
 * the normal for which the determinant is minimum. Returns 0
 * of the determinant is positive. */
-bool FSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &DetA)
+int FSSolidMatT::IsLocalized(dArrayT& normal)
 {
-#pragma unused(normals)
-#pragma unused(slipdirs)
-#pragma unused(DetA)
-
-ExceptionT::GeneralFail("FSSolidMatT::IsLocalized", "broken");
-return false;
-//DEV
-/*
-#if 0
 	if (FDContinuumT::IsLocalized(normal))
 		return 1;
 	else
-		return 0;
-#endif
-*/
+		return 0;	
 }
 
-bool FSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
-                        AutoArrayT <double> &detAs, AutoArrayT <double>
-                        &dissipations_fact)
+/* I/O functions */
+void FSSolidMatT::PrintName(ostream& out) const
 {
-#pragma unused(normals)
-#pragma unused(slipdirs)
-#pragma unused(detAs)
-#pragma unused(dissipations_fact)
-
-ExceptionT::GeneralFail("FSSolidMatT::IsLocalized", "broken");
-return false;
+	/* inherited */
+	StructuralMaterialT::PrintName(out);
+	
+	out << "    Large strain\n";
 }
 
-bool FSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
-{
-  double dummyDetA = 0.0;
-  return IsLocalized(normals, slipdirs, dummyDetA);
-}
-
-
-/* initialize current step. compute thermal dilatation */
+/* apply pre-conditions at the current time step: compute
+* thermal dilatation correction */
 void FSSolidMatT::InitStep(void)
 {
 	/* inherited */
-	SolidMaterialT::InitStep();
+	StructuralMaterialT::InitStep();
 
 	/* set multiplicative thermal transformation */
-	SetInverseThermalTransformation(fF_therm_inv);
-}
-
-/* close current step. store thermal dilatation */
-void FSSolidMatT::CloseStep(void)
-{
-	/* store the thermal dilatation used for the current time step */
-	fF_therm_inv_last = fF_therm_inv;
-}
-
-/* deformation gradients */
-const dMatrixT& FSSolidMatT::F(void) const
-{
-	return fFSMatSupport->DeformationGradient();
-	//DEV - what about corrections for thermal strains?
-}
-
-const dMatrixT& FSSolidMatT::F(int ip) const
-{
-	return fFSMatSupport->DeformationGradient(ip);
-	//DEV - what about corrections for thermal strains?
-}
-
-const dMatrixT& FSSolidMatT::F_total(void) const
-{
-	return fFSMatSupport->DeformationGradient();
-}
-
-const dMatrixT& FSSolidMatT::F_total(int ip) const
-{
-	return fFSMatSupport->DeformationGradient(ip);
-}
-
-const dMatrixT& FSSolidMatT::F_mechanical(void)
-{
-	/* has nodal temperature field */
-	if (fTemperatureField)
-	{
-		/* integration point temperature */
-		fFSMatSupport->Interpolate(*(fFSMatSupport->Temperatures()), fTemperature);
-	
-		/* expansion factor */
-		double dilatation = 1.0 + fTemperature[0]*fCTE;
-
-		/* remove thermal strain */
-		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
-		return fF_mechanical;
-	}
-	else if (fThermal->IsActive())
-	{	
-		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
-		return fF_mechanical;
-	}
-	else /* no thermal strain */
-		return fFSMatSupport->DeformationGradient();
-}
-
-const dMatrixT& FSSolidMatT::F_mechanical(int ip)
-{
-	/* has nodal temperature field */
-	if (fTemperatureField)
-	{
-		/* integration point temperature */
-		fFSMatSupport->Interpolate(*(fFSMatSupport->Temperatures()), fTemperature, ip);
-	
-		/* expansion factor */
-		double dilatation = 1.0 + fTemperature[0]*fCTE;
-
-		/* remove thermal strain */
-		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
-		return fF_mechanical;
-	}
-	/* has thermal strain */
-	else if (fThermal->IsActive())
-	{
-		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(ip), fF_therm_inv);
-		return fF_mechanical;
-	}
-	else /* no thermal strain */
-		return fFSMatSupport->DeformationGradient(ip);
-}
-
-/* deformation gradient from end of previous step */
-const dMatrixT& FSSolidMatT::F_total_last(void) const
-{
-	return fFSMatSupport->DeformationGradient_last();
-}
-
-const dMatrixT& FSSolidMatT::F_total_last(int ip) const
-{
-	return fFSMatSupport->DeformationGradient_last(ip);
-}
-
-const dMatrixT& FSSolidMatT::F_mechanical_last(void)
-{
-	/* has nodal temperature field */
-	if (fTemperatureField)
-	{
-		/* integration point temperature */
-		fFSMatSupport->Interpolate(*(fFSMatSupport->LastTemperatures()), fTemperature);
-	
-		/* expansion factor */
-		double dilatation = 1.0 + fTemperature[0]*fCTE;
-
-		/* remove thermal strain */
-		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient_last(), fF_therm_inv);
-		return fF_mechanical;
-	}
-	/* has thermal strain */
-	else if (fThermal->IsActive())
-	{
-		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient_last(), 
-			fF_therm_inv_last);
-		return fF_mechanical;
-	}
-	else /* no thermal strain */
-		return fFSMatSupport->DeformationGradient_last();
-}
-
-const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
-{
-	/* has nodal temperature field */
-	if (fTemperatureField)
-	{
-		/* integration point temperature */
-		fFSMatSupport->Interpolate(*(fFSMatSupport->LastTemperatures()), fTemperature, ip);
-	
-		/* expansion factor */
-		double dilatation = 1.0 + fTemperature[0]*fCTE;
-
-		/* remove thermal strain */
-		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
-		return fF_mechanical;
-	}
-	/* has thermal strain */
-	else if (fThermal->IsActive())
-	{
-		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient_last(ip), 
-			fF_therm_inv_last);
-		return fF_mechanical;
-	}
-	else /* no thermal strain */
-		return fFSMatSupport->DeformationGradient_last(ip);
-}
-
-/* accept parameter list */
-void FSSolidMatT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	SolidMaterialT::TakeParameterList(list);
-
-	/* dimension return values */
-	int nsd = NumSD();
-	fStress.Dimension(nsd);
-	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
-
-	/* FSSolidMatT::c_ijkl work space */
-	F_0_.Dimension(nsd);
-	vec_.Dimension(nsd);
-	stress_.Dimension(nsd);
-
-	/* set multiplicative thermal transformation */
-	SetInverseThermalTransformation(fF_therm_inv);
-	fF_therm_inv_last = fF_therm_inv;
-	
-	/* check for temperature field */
-	if (fFSMatSupport->Temperatures() && fFSMatSupport->LastTemperatures()) {
-
-		/* set flag */
-		fTemperatureField = true;
-		
-		/* work space */
-		fTemperature.Dimension(fFSMatSupport->Temperatures()->MinorDim());
-		
-		/* disable prescribed dilatation */
-		fThermal->SetSchedule(NULL);
-	}	
+	SetInverseThermalTransformation(fFtherminverse);
 }
 
 /***********************************************************************
- * Protected
- ***********************************************************************/
-
-/* left stretch tensor */
-void FSSolidMatT::Compute_b(dSymMatrixT& b) const
-{
-	Compute_b(fFSMatSupport->DeformationGradient(), b);
-}
-
-/* right stretch tensor */
-void FSSolidMatT::Compute_C(dSymMatrixT& C) const
-{
-	Compute_C(fFSMatSupport->DeformationGradient(), C);
-}
-
-/* Green-Lagrangian strain */
-void FSSolidMatT::Compute_E(dSymMatrixT& E) const
-{
-	Compute_E(fFSMatSupport->DeformationGradient(), E);
-}
-
-/* left stretch tensor */
-void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
-{
-	const char caller[] = "FSSolidMatT::Compute_b";
-	int nsd = F.Rows();
-#if __option(extended_errorcheck)
-	if (F.Cols() != nsd || b.Rows() != nsd) ExceptionT::SizeMismatch(caller);	
-#endif
-	if (nsd == 2)
-	{
-		const double* f = F.Pointer();
-		double* a = b.Pointer();
-		
-		/* unrolled */
-		a[0] = f[0]*f[0] + f[2]*f[2];
-		a[1] = f[1]*f[1] + f[3]*f[3];
-		a[2] = f[0]*f[1] + f[2]*f[3];
-	}
-	else if (nsd == 3)
-	{
-		const double* f = F.Pointer();
-		double* a = b.Pointer();
-	
-		/* unrolled */
-		a[0] = f[0]*f[0] + f[3]*f[3] + f[6]*f[6];
-		a[1] = f[1]*f[1] + f[4]*f[4] + f[7]*f[7];
-		a[2] = f[2]*f[2] + f[5]*f[5] + f[8]*f[8];
-		a[3] = f[1]*f[2] + f[4]*f[5] + f[7]*f[8];
-		a[4] = f[0]*f[2] + f[3]*f[5] + f[6]*f[8];
-		a[5] = f[0]*f[1] + f[3]*f[4] + f[6]*f[7];
-	}
-	else
-		ExceptionT::GeneralFail(caller, "unsupported dimension %d", nsd);
-}
-
-/* right stretch tensor */
-void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
-{
-	const char caller[] = "FSSolidMatT::Compute_C";
-	int nsd = F.Rows();
-#if __option(extended_errorcheck)
-	if (F.Cols() != nsd || C.Rows() != nsd) ExceptionT::SizeMismatch(caller);	
-#endif
-	if (nsd == 2)
-	{
-		const double* f = F.Pointer();
-		double* c = C.Pointer();
-		
-		/* unrolled */
-		c[0] = f[0]*f[0] + f[1]*f[1];
-		c[1] = f[2]*f[2] + f[3]*f[3];
-		c[2] = f[0]*f[2] + f[1]*f[3];
-	}
-	else if (nsd == 3)
-	{
-		const double* f = F.Pointer();
-		double* c = C.Pointer();
-	
-		/* unrolled */
-		c[0] = f[0]*f[0] + f[1]*f[1] + f[2]*f[2];
-		c[1] = f[3]*f[3] + f[4]*f[4] + f[5]*f[5];
-		c[2] = f[6]*f[6] + f[7]*f[7] + f[8]*f[8];
-		c[3] = f[3]*f[6] + f[4]*f[7] + f[5]*f[8];
-		c[4] = f[0]*f[6] + f[1]*f[7] + f[2]*f[8];
-		c[5] = f[0]*f[3] + f[1]*f[4] + f[2]*f[5];
-	}
-	else
-		ExceptionT::GeneralFail(caller, "unsupported dimension %d", nsd);
-}
-
-/* Green-Lagrangian strain */
-void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
-{
-	const char caller[] = "FSSolidMatT::Compute_E";
-	int nsd = F.Rows();
-#if __option(extended_errorcheck)
-	if (F.Cols() != nsd || E.Rows() != nsd) ExceptionT::SizeMismatch(caller);
-#endif
-	if (nsd == 2)
-	{
-		const double* f = F.Pointer();
-		double* e = E.Pointer();
-		
-		/* unrolled */
-		e[0] = (f[0]*f[0] + f[1]*f[1] - 1.0)*0.5;
-		e[1] = (f[2]*f[2] + f[3]*f[3] - 1.0)*0.5;
-		e[2] = (f[0]*f[2] + f[1]*f[3])*0.5;
-	}
-	else if (nsd == 3)
-	{
-		const double* f = F.Pointer();
-		double* e = E.Pointer();
-	
-		/* unrolled */
-		e[0] = (f[0]*f[0] + f[1]*f[1] + f[2]*f[2] - 1.0)*0.5;
-		e[1] = (f[3]*f[3] + f[4]*f[4] + f[5]*f[5] - 1.0)*0.5;
-		e[2] = (f[6]*f[6] + f[7]*f[7] + f[8]*f[8] - 1.0)*0.5;
-		e[3] = (f[3]*f[6] + f[4]*f[7] + f[5]*f[8])*0.5;
-		e[4] = (f[0]*f[6] + f[1]*f[7] + f[2]*f[8])*0.5;
-		e[5] = (f[0]*f[3] + f[1]*f[4] + f[2]*f[5])*0.5;
-	}
-	else if (nsd == 1)
-		E[0] = 0.5*(F[0]*F[0] - 1.0);
-	else
-		ExceptionT::GeneralFail(caller, "unsupported dimension %d", nsd);
-}
+* Protected
+***********************************************************************/
 
 /* return the acoustical tensor and wave speeds */
 const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)
 {
-	const char caller[] = "FSSolidMatT::AcousticalTensor";
 #if __option(extended_errorcheck)
-	if (fQ.Rows() != normal.Length()) ExceptionT::SizeMismatch(caller);
+	if (fQ.Rows() != normal.Length()) throw eSizeMismatch;
 #endif
 
 	/* collect matrices */
@@ -526,14 +143,14 @@ const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)
 	else if (normal.Length() == 3)
 		ComputeQ_3D(C_, S_, F_, normal, fQ);
 	else
-		ExceptionT::GeneralFail(caller);
+		throw eGeneralFail;
 
 	return fQ;
 }
 
 /*************************************************************************
- * Private
- *************************************************************************/
+* Private
+*************************************************************************/
 
 /* set inverse of thermal transformation - return true if active */
 bool FSSolidMatT::SetInverseThermalTransformation(dMatrixT& F_trans_inv)

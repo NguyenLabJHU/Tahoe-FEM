@@ -1,31 +1,53 @@
-/* $Id: SimoIso3D.cpp,v 1.12 2004-08-01 00:58:34 paklein Exp $ */
-/* created: paklein (03/02/1997) */
-#include "SimoIso3D.h"
-#include <math.h>
+/* $Id: SimoIso3D.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (03/02/1997)                                          */
 
-using namespace Tahoe;
+#include "SimoIso3D.h"
+#include <iostream.h>
+#include <math.h>
+#include "ElasticT.h"
 
 /* constructor */
-SimoIso3D::SimoIso3D(void):
-	ParameterInterfaceT("Simo_isotropic")
+SimoIso3D::SimoIso3D(ifstreamT& in, const ElasticT& element):
+	FDStructMatT(in, element),
+	IsotropicT(in),
+	fStress(3),
+	fModulus(dSymMatrixT::NumValues(3)),
+	
+	/* work space */
+	fb_bar(3),
+	fnorm(3),
+	frank4(dSymMatrixT::NumValues(3)),
+	
+	/* fixed forms */
+	fIdentity(3),
+	fIcrossI(dSymMatrixT::NumValues(3)),
+	fIdentity4(dSymMatrixT::NumValues(3)),
+	fDevOp4(dSymMatrixT::NumValues(3))
 {	
+	MuAndKappa(fmu, fkappa);
+	
+	/* initialize work matricies */
+	fIdentity.Identity();
+	fIcrossI.Outer(fIdentity, fIdentity);
+	fIdentity4.ReducedIndexI();	
+	fDevOp4.ReducedIndexDeviatoric();
+}
 
+/* print parameters */
+void SimoIso3D::Print(ostream& out) const
+{
+	/* inherited */
+	FDStructMatT::Print(out);
+	IsotropicT::Print(out);
 }
 
 /* modulus */
 const dMatrixT& SimoIso3D::c_ijkl(void)
 {
-	/* get mechanical part of the deformation gradient */
-	const dMatrixT& F_mech = F_mechanical();
-
-	/* b */
-	Compute_b(F_mech, fb);
-
 	/* compute b_bar */
-	double J = fb.Det();
-	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
-	J = sqrt(J);
-	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
+	const dSymMatrixT& b_3D = b();
+	double J = sqrt(b_3D.Det());
+	fb_bar.SetToScaled(pow(J,-2.0/3.0),b_3D);
 
 	ComputeModuli(J, fb_bar, fModulus);
 	
@@ -35,68 +57,55 @@ const dMatrixT& SimoIso3D::c_ijkl(void)
 /* stress */
 const dSymMatrixT& SimoIso3D::s_ij(void)
 {
-	/* get mechanical part of the deformation gradient */
-	const dMatrixT& F_mech = F_mechanical();
-
-	/* b */
-	Compute_b(F_mech, fb);
-
 	/* compute b_bar */
-	double J = fb.Det();
-	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
-	J = sqrt(J);
-	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
+	const dSymMatrixT& b_3D = b();
+	double J = sqrt(b_3D.Det());
+	fb_bar.SetToScaled(pow(J,-2.0/3.0),b_3D);
 
 	ComputeCauchy(J, fb_bar, fStress);
 	
 	return fStress;
 }
 
+/* material description */
+const dMatrixT& SimoIso3D::C_IJKL(void)
+{
+	cout << "\n SimoIso3D::C_IJKL: use updated Lagrangian formulation" << endl;
+	throw eGeneralFail;
+
+	return fModulus; // dummy
+}
+
+const dSymMatrixT& SimoIso3D::S_IJ(void)
+{
+	cout << "\n SimoIso3D::S_IJ: use updated Lagrangian formulation" << endl;
+	throw eGeneralFail;
+
+	return fStress; // dummy
+}
+
 /* returns the strain energy density for the specified strain */
 double SimoIso3D::StrainEnergyDensity(void)
 {
-	/* get mechanical part of the deformation gradient */
-	const dMatrixT& F_mech = F_mechanical();
-
-	/* b */
-	Compute_b(F_mech, fb);
-
 	/* compute b_bar */
-	double J = fb.Det();
-	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
-	J = sqrt(J);
-	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
+	const dSymMatrixT& b_3D = b();
+	double J = sqrt(b_3D.Det());
+	fb_bar.SetToScaled(pow(J,-2.0/3.0),b_3D);
 
 	return ComputeEnergy(J, fb_bar);
 }
 
-/* accept parameter list */
-void SimoIso3D::TakeParameterList(const ParameterListT& list)
+/*************************************************************************
+* Protected
+*************************************************************************/
+
+void SimoIso3D::PrintName(ostream& out) const
 {
 	/* inherited */
-	FSIsotropicMatT::TakeParameterList(list);
-	
-	/* dimension work space */
-	fStress.Dimension(3);
-	fModulus.Dimension(dSymMatrixT::NumValues(3));
-	fb.Dimension(3);
-	fb_bar.Dimension(3);
-	frank4.Dimension(dSymMatrixT::NumValues(3));
-	fIdentity.Dimension(3);
-	fIcrossI.Dimension(dSymMatrixT::NumValues(3));
-	fIdentity4.Dimension(dSymMatrixT::NumValues(3));
-	fDevOp4.Dimension(dSymMatrixT::NumValues(3));
+	FDStructMatT::PrintName(out);
 
-	/* initialize work matricies */
-	fIdentity.Identity();
-	fIcrossI.Outer(fIdentity, fIdentity);
-	fIdentity4.ReducedIndexI();	
-	fDevOp4.ReducedIndexDeviatoric();
+	out << "    Simo Isotropic\n";
 }
-
-/*************************************************************************
- * Protected
- *************************************************************************/
 
 /* computation routines */
 void SimoIso3D::ComputeModuli(double J, const dSymMatrixT& b_bar,
@@ -113,10 +122,10 @@ void SimoIso3D::ComputeModuli(double J, const dSymMatrixT& b_bar,
 	moduli.AddScaled(-2.0*du,fIdentity4);
 	
 	/* deviatoric */
-	double mu_bar = Mu()*b_bar.Trace()/(J*3.0);
+	double mu_bar = fmu*b_bar.Trace()/(J*3.0);
 	moduli.AddScaled(2.0*mu_bar, fDevOp4);
 
-	fStress.SetToScaled(Mu(), b_bar);
+	fStress.SetToScaled(fmu,b_bar);
 	fStress.Deviatoric();
 	
 	frank4.Outer(fStress,fIdentity);
@@ -128,7 +137,7 @@ void SimoIso3D::ComputeCauchy(double J, const dSymMatrixT& b_bar,
 	dSymMatrixT& cauchy)
 {
 	/* deviatoric */
-	cauchy.SetToScaled(Mu()/J,b_bar);
+	cauchy.SetToScaled(fmu/J,b_bar);
 	cauchy.Deviatoric();
 	
 	/* volumetric */
@@ -137,6 +146,22 @@ void SimoIso3D::ComputeCauchy(double J, const dSymMatrixT& b_bar,
 
 double SimoIso3D::ComputeEnergy(double J, const dSymMatrixT& b_bar)
 {
-	return U(J) +                          /* volumetric */
-	       0.5*Mu()*(b_bar.Trace() - 3.0); /* deviatoric */
+	return U(J) +                         /* volumetric */
+	       0.5*fmu*(b_bar.Trace() - 3.0); /* deviatoric */
+}
+
+/* Volumetric energy function and derivatives */
+double SimoIso3D::U(double J) const
+{
+	return 0.5*fkappa*(0.5*(J*J - 1.0) - log(J));
+}
+
+double SimoIso3D::dU(double J) const
+{
+	return 0.5*fkappa*(J - 1.0/J);
+}
+
+double SimoIso3D::ddU(double J) const
+{
+	return 0.5*fkappa*(1.0 + 1.0/(J*J));
 }

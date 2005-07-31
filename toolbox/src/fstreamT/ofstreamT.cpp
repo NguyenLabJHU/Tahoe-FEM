@@ -1,5 +1,6 @@
-/* $Id: ofstreamT.cpp,v 1.5 2002-10-20 22:39:00 paklein Exp $ */
-/* created: paklein (12/30/2000) */
+/* $Id: ofstreamT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (12/30/2000)                                          */
+/* interface                                                              */
 
 #include "ofstreamT.h"
 
@@ -7,25 +8,26 @@
 #include <iostream.h>
 #include <string.h>
 
-#include "fstreamT.h"
 #include "Environment.h"
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 
 #include "StringT.h"
 
 /* parameter */
-
-using namespace Tahoe;
-
 const int kLineLength = 255;
 
+/* static variables */
+const char ofstreamT::fNULLFileName = '\0';
+
 /* constructors */
-ofstreamT::ofstreamT(void)
+ofstreamT::ofstreamT(void):
+	fFileName(NULL)
 {
 	format_stream(*this);
 }	
 
-ofstreamT::ofstreamT(const char* file_name, bool append)
+ofstreamT::ofstreamT(const char* file_name, bool append):
+	fFileName(NULL)
 {
 	format_stream(*this);
 	if (append)
@@ -34,18 +36,24 @@ ofstreamT::ofstreamT(const char* file_name, bool append)
 		open(file_name);
 }
 
+/* destructor */
+ofstreamT::~ofstreamT(void)
+{
+	delete[] fFileName;
+	fFileName = NULL;
+}
+
 /* open stream */
 void ofstreamT::open(const char* stream)
 {
 	/* close stream if already open */
 	if (is_open()) close();
 
-	/* copy file name */
-	fFileName = stream;
-	fFileName.ToNativePathName();
-
 	/* ANSI */
-	ofstream::open(fFileName);
+	ofstream::open(stream);
+	
+	/* store file name */
+	CopyName(stream);
 }
 
 void ofstreamT::open_append(const char* stream)
@@ -53,12 +61,11 @@ void ofstreamT::open_append(const char* stream)
 	/* close stream if already open */
 	if (is_open()) close();
 
-	/* copy file name */
-	fFileName = stream;
-	fFileName.ToNativePathName();
-
 	/* ANSI */
 	ofstream::open(stream, ios::app);
+	
+	/* store file name */
+	CopyName(stream);
 }
 
 int ofstreamT::is_open(void)
@@ -77,22 +84,12 @@ return fbuf->is_open();
 /* close stream */
 void ofstreamT::close(void)
 {
-	if (fstreamT::need_MW_workaround())
-	{
-		/* ANSI */
-		if (is_open()) ofstream::close();
-
-		/* clear name */
-		fFileName.Clear();
-	}
-	else /* original code */
-	{
 	/* ANSI */
 	ofstream::close();
 
 	/* clear name */
-	fFileName.Clear();
-	}
+	delete[] fFileName;
+	fFileName = NULL;
 }
 
 /* set stream formats */
@@ -102,4 +99,36 @@ void ofstreamT::format_stream(ostream& out)
 	out.setf(ios::showpoint);
 	out.setf(ios::right, ios::adjustfield);
 	out.setf(ios::scientific, ios::floatfield);
+}
+
+/*************************************************************************
+* Private
+*************************************************************************/
+
+/* copy the string to fFileName */
+void ofstreamT::CopyName(const char* filename)
+{
+	/* no copies to self */
+	if (filename == fFileName) return;
+
+	/* free existing memory */
+	delete[] fFileName;
+	
+	/* check file name */
+	if (strlen(filename) == 0)
+	{
+		cout << "\n ofstreamT::CopyName: zero length filename" << endl;
+		throw eGeneralFail;
+	}
+	
+	/* allocate new memory */
+	fFileName = new char[strlen(filename) + 1];
+	if (!fFileName)
+	{
+		cout << "\n ofstreamT::CopyName: out of memory" << endl;
+		throw eOutOfMemory;
+	}
+	
+	/* copy in */
+	memcpy(fFileName, filename, sizeof(char)*(strlen(filename) + 1));
 }

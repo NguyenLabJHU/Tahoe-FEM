@@ -1,5 +1,7 @@
-/* $Id: EnSightT.cpp,v 1.19 2004-07-01 16:39:40 paklein Exp $ */
-/* created: sawimme (05/13/1999) */
+/* $Id: EnSightT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: sawimme (05/13/1999)                                          */
+/* ******EnSight6 Format Gold, ASCII or Binary******                      */
+
 #include "EnSightT.h"
 
 #include <ctype.h>
@@ -9,19 +11,16 @@
 #include "dArray2DT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
+#include "ios_fwd_decl.h"
 #include "AutoArrayT.h"
 
-using namespace Tahoe;
-
 /* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
-} /* namespace Tahoe */
+const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
 
 EnSightT::EnSightT (ostream& out, bool binary, int dof) :
-fOut(out),
 fBinary (binary),
+fOut (out),
 fDOF (dof)
 {
 }
@@ -65,7 +64,7 @@ void EnSightT::WriteCoordinateMap (ostream& fgeo, const iArrayT& nodesmap) const
 if (fBinary)
 {
 int itemp;
-const int *pnodemap = nodesmap.Pointer();
+int *pnodemap = nodesmap.Pointer();
 for (int n=0; n < nodesmap.Length(); n++)
 	{
 	  itemp = pnodemap[n];
@@ -126,39 +125,19 @@ else
 elementmap.WriteWithFormat (fgeo, iwidth, 0, 1, 0);
 }
 
-void EnSightT::WriteConnectivity (ostream& fgeo, GeometryT::CodeT code, int numelemnodes, const iArray2DT& connects) const
+void EnSightT::WriteConnectivity (ostream& fgeo, int numelemnodes, const iArray2DT& connects) const
 {
-	/* resolve numbering convention differences between EnSight and tahoe */
-	iArray2DT connects_tmp;
-	connects_tmp.Alias(connects);
-	ConvertElementNumbering(code, connects_tmp);
-
-  /* do not write all columns of connectivity data,
-     only write up to numelemnodes */
-  if (fBinary)
-    {
-      for (int ic = 0; ic < connects.MajorDim(); ic++)
+if (fBinary)
+{
+for (int ic = 0; ic < connects.MajorDim(); ic++)
 	for (int j=0; j < numelemnodes; j++)
 	  {
 	    int itemp = connects (ic,j);
 	    fgeo.write (reinterpret_cast<const char *> (&itemp), sizeof (int));
 	  }
-    }
-  else
-    {
-      const int *pc = connects.Pointer();
-      for (int ic = 0; ic < connects.MajorDim(); ic++)
-	{
-	  for (int j=0; j < numelemnodes; j++)
-	    fgeo << setw (iwidth) << *(pc + j);
-	  fgeo << '\n';
-
-	  pc += connects.MinorDim();
-	}
-    }
-
-	/* convert back since we modified const connects */
-	ConvertElementNumbering(code, connects_tmp);
+}
+else
+connects.WriteWithFormat (fgeo, iwidth, 0, connects.MinorDim(), 0);
 }
 
 void EnSightT::WriteVector (ostream& fvar, const dArray2DT& values, int i) const
@@ -204,31 +183,18 @@ fvar << "FORMAT\ntype:\t ensight gold\n\n";
 
 void EnSightT::WriteCaseGeometry (ostream& fvar, int sequence, StringT& geofile) const
 {
-	/* remove file path */
-	StringT path, file(geofile);
-	path.FilePath(file);
-	file.Drop(path.StringLength());
-	file.ToUNIXPath();
-	fvar << "GEOMETRY\nmodel:\t " << sequence << "\t " << file << "\n\n";
+fvar << "GEOMETRY\nmodel:\t " << sequence << "\t " << geofile << "\n\n";
 }
 
 void EnSightT::WriteVariableLabels (ostream& fvar, const ArrayT<StringT>& labels, const ArrayT<StringT>& filenames, const ArrayT<EnSightT::VariableTypeT>& t) const
 {
-	const char *type [4] = {"scalar per element", "vector per element",
-                      "scalar per node", "vector per node"};
+char *type [4] = {"scalar per element", "vector per element",
+		    "scalar per node", "vector per node"};
 
-	fvar << "VARIABLE\n";
-	for (int i=0; i < labels.Length(); i++)
-	{
-		/* remove file path */
-		StringT path, file(filenames[i]);
-		path.FilePath(file);
-		file.Drop(path.StringLength());
-		file.ToUNIXPath();
-		
-		fvar << type[t[i]] << ":\t " << labels[i] << "\t " << file << "\n";
-	}
-	fvar << '\n';
+fvar << "VARIABLE\n";
+for (int i=0; i < labels.Length(); i++)
+fvar << type[t[i]] << ":\t " << labels[i] << "\t " << filenames[i] << "\n";
+fvar << '\n';
 }
 
 void EnSightT::WriteTime (ostream& fvar, int sequence, int start, int increment, const ArrayT<double>& timesteps) const
@@ -276,7 +242,7 @@ if (num_nodes > 3 || num_nodes < 2)
 	       << num_nodes << "\n\n";
 	  fOut << "\nEnSightT::GetElementName cannot do bar with fNumberElementNodes = "
 	       << num_nodes << "\n\n";
-	  throw ExceptionT::kGeneralFail;
+	  throw eGeneralFail;
 	}
 num_output_nodes = num_nodes;
 fElementName.Append (num_output_nodes);
@@ -317,7 +283,7 @@ cout << "\nEnSightT::GetElementName cannot find name for Geometry CodeT "
 	   << geocode << "\n\n";
 fOut << "\nEnSightT::GetElementName cannot find name for Geometry CodeT "
 	   << geocode << "\n\n";
-throw ExceptionT::kGeneralFail;
+throw eGeneralFail;
 }
 }
 
@@ -409,21 +375,6 @@ in >> vector;
 return true;
 }
 
-int EnSightT::NumTimeSteps (ifstreamT& in) const
-{
-  char c = 'c';
-  int timeset, num;
-
-  while (c != ':') in >> c;
-  in >> timeset;
-  c = 'c';
-  
-  while (c != ':') in >> c;
-  in >> num;
-
-  return num;
-}
-
 bool EnSightT::ReadTimeSection (ifstreamT& in, int& start, int& increment, dArrayT& timesteps) const
 {
 char c = 'c';
@@ -463,7 +414,7 @@ in.read (line.Pointer(), sizeof (char)*80);
 if (strncmp (line.Pointer(), "C Binary", 8) != 0)
 	{
 	  cout << "\n\nEnSight can only read C Binary\n";
-	  throw ExceptionT::kGeneralFail;
+	  throw eGeneralFail;
 	}
 
 in.read (line.Pointer(), sizeof (char)*80); // header 1
@@ -618,45 +569,40 @@ in.getline (line.Pointer(), 80, '\n'); // clear endline character
 
 void EnSightT::ReadConnectivity (istream& in, iArray2DT& conn, iArrayT& map, bool elemmapgiven, GeometryT::CodeT& code) const
 {
-	StringT line (81);
-	int num_elems, num_elem_nodes;
-	if (fBinary)
+StringT line (81);
+int num_elems, num_elem_nodes;
+if (fBinary)
+{
+in.read (line.Pointer(), sizeof (char)*80); // element name
+if (!GeometryCode (code, line, num_elem_nodes)) return;
+in.read (reinterpret_cast<char *> (&num_elems), sizeof (int));
+if (elemmapgiven)
 	{
-		in.read (line.Pointer(), sizeof (char)*80); // element name
-		if (!GeometryCode (code, line, num_elem_nodes)) return;
-		in.read (reinterpret_cast<char *> (&num_elems), sizeof (int));
-		if (elemmapgiven)
-		{
-			map.Dimension (num_elems);
-			int *mp = map.Pointer();
-			for (int k=0; k < num_elems; k++)
-			in.read (reinterpret_cast<char *> (mp++), sizeof (int));
-		}
-
-		conn.Dimension (num_elems, num_elem_nodes);
-		int *cp = conn.Pointer();
-		for (int l=0; l < num_elems*num_elem_nodes; l++)
-			in.read (reinterpret_cast<char *> (cp++), sizeof (int));
+	  map.Allocate (num_elems);
+	  int *mp = map.Pointer();
+	  for (int k=0; k < num_elems; k++)
+	    in.read (reinterpret_cast<char *> (mp++), sizeof (int));
 	}
-	else
+conn.Allocate (num_elems, num_elem_nodes);
+int *cp = conn.Pointer();
+for (int l=0; l < num_elems*num_elem_nodes; l++)
+	in.read (reinterpret_cast<char *> (cp++), sizeof (int));
+}
+else
+{
+in.getline (line.Pointer(), 80, '\n'); // element name
+if (!GeometryCode (code, line, num_elem_nodes)) return;
+in >> num_elems;
+if (elemmapgiven)
 	{
-		in.getline (line.Pointer(), 80, '\n'); // element name
-		if (!GeometryCode (code, line, num_elem_nodes)) return;
-		in >> num_elems;
-		if (elemmapgiven)
-		{
-			map.Dimension (num_elems);
-			in >> map;
-		}
-		
-		conn.Dimension (num_elems, num_elem_nodes);
-		in >> conn;
-
-		in.getline (line.Pointer(), 80, '\n'); // clear endline character
+	  map.Allocate (num_elems);
+	  in >> map;
 	}
+conn.Allocate (num_elems, num_elem_nodes);
+in >> conn;
 
-	/* translate numbering conventions */
-	ConvertElementNumbering(code, conn);
+in.getline (line.Pointer(), 80, '\n'); // clear endline character
+}
 }
 
 void EnSightT::ReadVariableHeader (istream& in, StringT& header) const
@@ -692,22 +638,8 @@ values.Transpose (temp);
 }
 
 /*************************************************************************
- * Private
- *************************************************************************/
-
-/* translate element number convention between EnSight and tahoe */
-void EnSightT::ConvertElementNumbering(GeometryT::CodeT code, iArray2DT& conn) const
-{
-	/* 3-noded line elements */
-	if (code == GeometryT::kLine && conn.MinorDim() == 3)
-		for (int i = 0; i < conn.MajorDim(); i++)
-		{
-			/* swap last two nodes */
-			int tmp = conn(i,1);
-			conn(i,1) = conn(i,2);
-			conn(i,2) = tmp;
-		}
-}
+* Private
+*************************************************************************/
 
 void EnSightT::WritedArray2DT(ostream& out, const dArray2DT& values, int column_position) const
 {
@@ -717,7 +649,7 @@ out.setf(ios::showpoint);
 out.setf(ios::right, ios::adjustfield);
 out.setf(ios::scientific, ios::floatfield);
 out.precision(dprecision);
-const double* pv = values.Pointer() + column_position;
+double* pv = values.Pointer() + column_position;
 for (int i=0; i < values.MajorDim(); i++)
 {
 out << setw(dwidth) << *pv << '\n';
@@ -779,10 +711,10 @@ code = GeometryT::kTetrahedron;
 numelemnodes = (name[5] == '4') ? 4 : 10;
 return true;
 }
-else if (strncmp (name, "hexa", 3) == 0)
+else if (strncmp (name, "hex", 3) == 0)
 {
 code = GeometryT::kHexahedron;
-numelemnodes = (name[4] == '8') ? 8 : 20;
+numelemnodes = (name[3] == '8') ? 8 : 20;
 return true;
 }
 else if (strncmp (name, "penta", 3) == 0)

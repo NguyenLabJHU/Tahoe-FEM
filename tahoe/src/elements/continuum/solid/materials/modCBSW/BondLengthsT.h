@@ -1,4 +1,4 @@
-/* $Id: BondLengthsT.h,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: BondLengthsT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
 /* created: paklein (05/20/1997)                                          */
 /* Class to compute/manage all bond lengths and derivatives               */
 /* for the 2 unit cell, diamond cubic, modified Cauchy-Born,              */
@@ -12,9 +12,6 @@
 #include "dMatrixT.h"
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
-
-
-namespace Tahoe {
 
 class BondLengthsT
 {
@@ -86,5 +83,4 @@ protected:
 	
 };
 
-} // namespace Tahoe 
 #endif /* _BOND_LENGTHS_T_H_ */

@@ -1,27 +1,20 @@
-/* $Id: iConsoleObjectT.cpp,v 1.9 2003-11-10 22:14:15 cjkimme Exp $ */
-/* created: paklein (12/21/2000) */
+/* $Id: iConsoleObjectT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* created: paklein (12/21/2000)                                          */
+/* iConsoleObjectT.cpp                                                    */
+
 #include "iConsoleObjectT.h"
 #include <ctype.h>
 
-using namespace Tahoe;
-
 /* array behavior */
-namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<iConsoleObjectT*>::fByteCopy = true;
-} /* namespace Tahoe */
+const bool ArrayT<iConsoleObjectT*>::fByteCopy = true;
 
 /* constructor */
 iConsoleObjectT::iConsoleObjectT(void):
 	fSuper(NULL),
-	fSubs(0)
+	fSubs(0, true)
 {
 	StringT name("<none>");
 	iSetName(name);
-}
-
-iConsoleObjectT::~iConsoleObjectT(void)
-{
-	// do nothing
 }
 
 /* subs control - return true if changed */
@@ -57,7 +50,7 @@ void iConsoleObjectT::iSetName(const StringT& name)
 {
 	fName = name;
 	char* str = fName;
-	for (size_t i = 0; i < strlen(str); i++)
+	for (int i = 0; i < strlen(str); i++)
 		if (isspace(str[i]))
 			str[i] = '_';
 }

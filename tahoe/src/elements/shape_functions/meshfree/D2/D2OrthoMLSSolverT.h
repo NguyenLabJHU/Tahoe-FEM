@@ -1,4 +1,4 @@
-/* $Id: D2OrthoMLSSolverT.h,v 1.4 2002-07-02 19:57:02 cjkimme Exp $ */
+/* $Id: D2OrthoMLSSolverT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
 /* created: paklein (10/10/1999)                                          */
 /* base class for orthogonal basis, moving least squares, interpolants    */
 /* (from Lu et al, Comp Meth App Mech Eng, 126, 1995, 131-153)            */
@@ -12,9 +12,6 @@
 /* direct members */
 #include "dSymMatrixT.h"
 
-
-namespace Tahoe {
-
 class D2OrthoMLSSolverT: public OrthoMLSSolverT
 {
 public:
@@ -27,7 +24,7 @@ public:
 	
 	/* set MLS at coords given sampling points and influence of each, returns 1
 	 * if successful and 0 if not */
-	int SetField(const dArray2DT& nodalcoords, const ArrayT<double>& dmax,
+	int SetField(const dArray2DT& nodalcoords, const dArrayT& dmax,
 		const dArrayT& samplept);
 	
 	/* return field value and derivatives - valid AFTER SetField() */
@@ -105,5 +102,4 @@ inline const dArray2DT& D2OrthoMLSSolverT::DDw(void) const { return fDDw; }
 inline const dArray2DT& D2OrthoMLSSolverT::DDb(void) const { return fDDb; }
 inline const dArray2DT& D2OrthoMLSSolverT::DDq(void) const { return fDDq; }
 
-} // namespace Tahoe 
 #endif /* _D2_ORTHO_MLS_SOLVER_T_H_ */

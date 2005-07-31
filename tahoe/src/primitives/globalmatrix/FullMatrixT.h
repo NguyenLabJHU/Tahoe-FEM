@@ -1,5 +1,6 @@
-/* $Id: FullMatrixT.h,v 1.18 2005-04-13 21:49:58 paklein Exp $ */
-/* created: paklein (03/07/1998) */
+/* $Id: FullMatrixT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (03/07/1998)                                          */
+/* Virtual base class for all global matrix objects                       */
 
 #ifndef _FULL_MATRIX_T_H_
 #define _FULL_MATRIX_T_H_
@@ -10,18 +11,12 @@
 /* direct members */
 #include "LAdMatrixT.h"
 
-namespace Tahoe {
-
-/** full matrix */
 class FullMatrixT: public GlobalMatrixT
 {
 public:
 
-	/** constructor */
-	FullMatrixT(ostream& out, int check_code, const CommunicatorT& comm);
-
-	/** copy constructor */
-	FullMatrixT(const FullMatrixT& source);
+	/* constructor */
+	FullMatrixT(ostream& out, int check_code);
 		
 	/* set the internal matrix structure.
 	 * NOTE: do not call Initialize() equation topology has been set
@@ -41,42 +36,25 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fDimension */
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos);
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-		const ArrayT<int>& col_eqnos);
-	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos);
 
 	/* strong manipulation functions */
 	//TEMP should be pure virtual, but no time to update others
-	//     so just throw ExceptionT::xception for now
-	virtual void OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
-	virtual void Disassemble(dMatrixT& matrix, const nArrayT<int>& eqnos) const;
-	virtual void DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
+	//     so just throw exception for now
+	virtual void OverWrite(const ElementMatrixT& elMat, const iArrayT& eqnos);
+	virtual void Disassemble(dMatrixT& elMat, const iArrayT& eqnos) const;
+
+	/* assignment operator */
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
 
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
-
-	/** return the form of the matrix */
-	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
-
-	/** assignment operator */
-	FullMatrixT& operator=(const FullMatrixT& rhs);
-
-	/** return a clone of self. Caller is responsible for disposing of the matrix */
-	virtual GlobalMatrixT* Clone(void) const;
-
-	/** matrix-vector product. Cannot be called after the matrix is factorized. */
-	virtual void Multx(const dArrayT& x, dArrayT& b) const;
-
-	/** Tranpose[matrix]-vector product. Cannot be called after the matrix is 
-	 * factorized. */
-	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
-
-	/** vector-matrix-vector product */
-	virtual double MultmBn(const dArrayT& m, const dArrayT& n) const;
 	
 protected:
+
+	/* precondition matrix */
+	virtual void Factorize(void);
 	
 	/* solution driver */
 	virtual void BackSubstitute(dArrayT& result);
@@ -84,16 +62,12 @@ protected:
 	/* rank check functions */
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
-	virtual void PrintLHS(bool force = false) const;
-
+	virtual void PrintLHS(void) const;
+	
 protected:
 
-	/** the matrix */
+	/* the matrix */
 	LAdMatrixT fMatrix;
-	
-	/** runtime flag */
-	bool fIsFactorized;
 };
 
-} // namespace Tahoe 
 #endif /* _FULL_MATRIX_T_H_ */

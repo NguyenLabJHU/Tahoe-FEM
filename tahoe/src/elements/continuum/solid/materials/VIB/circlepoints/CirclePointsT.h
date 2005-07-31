@@ -1,5 +1,7 @@
-/* $Id: CirclePointsT.h,v 1.4 2004-07-15 08:28:03 paklein Exp $ */
-/* created: paklein (11/02/1997) */
+/* $Id: CirclePointsT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (11/02/1997)                                          */
+/* Base class for circular integration point generators.                  */
+
 #ifndef _CIRCLE_PTS_T_H_
 #define _CIRCLE_PTS_T_H_
 
@@ -8,44 +10,56 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 
-namespace Tahoe {
-
-/** base class for circular integration point generators */
 class CirclePointsT
 {
 public:
 
-	/** constructor */
+	/*
+	 * Constructor
+	 */
 	CirclePointsT(void);
 
-	/** destructor */
-	virtual ~CirclePointsT(void);
+	/*
+	 * Destructor
+	 */
+	~CirclePointsT(void);
 
-	/** enerate points with the given orientation angle theta */
+	/*
+	 * Print parameters.
+	 */
+	virtual void Print(ostream& out) const = 0;
+	virtual void PrintName(ostream& out) const = 0;	
+
+	/*
+	 * Generate points with the given orientation angle theta.
+	 */
 	virtual const dArray2DT& CirclePoints(double theta) = 0;
 
-	/** list of jacobian determinants */
+	/*
+	 * List of jacobian determinants
+	 */
 	const dArrayT& Jacobians(void) const;
 	
 protected:
 
-	/** orient points with given rotations (in degrees) */
+	/*
+	 * Orient points with given rotations (in degrees)
+	 */
 	void TransformPoints(double theta);
 	
 protected:
 
-	/** point table */
+	/* point table */
 	dArray2DT	fPoints;
 	
-	/** jacobians */
+	/* jacobians */
 	dArrayT		fJacobians;
 
 private:
 
-	/** tranformation tensor */
-	dMatrixT fQ;
+	/* tranformation tensor */
+	dMatrixT	fQ;
 			
 };
 
-} // namespace Tahoe 
 #endif /* _CIRCLE_PTS_T_H_ */

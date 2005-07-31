@@ -1,5 +1,6 @@
-/* $Id: ModelFileT.h,v 1.4 2004-01-31 07:19:54 paklein Exp $ */
-/* created: paklein (12/15/1999) */
+/* $Id: ModelFileT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (12/15/1999)                                          */
+
 #ifndef _MODEL_FILE_T_H_
 #define _MODEL_FILE_T_H_
 
@@ -9,11 +10,8 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
+#include "ios_fwd_decl.h"
 class ifstreamT;
 class ExodusT;
 
@@ -89,7 +87,8 @@ private:
 	void WriteFile(bool extern_file) const;
 
 	/* return reference to external or inline stream */
-	ifstreamT& OpenExternal(ifstreamT& in,  ifstreamT& in2, const char* caller) const;
+	ifstreamT& OpenExternal(ifstreamT& in,  ifstreamT& in2, ostream& out,
+		bool verbose, const char* fail) const;
 
 	/* open output file */
 	ostream& OpenStream(ofstream& out, const StringT& file_name) const;
@@ -126,5 +125,4 @@ private:
 	ArrayT<iArray2DT*> fSideSets;
 };
 
-} // namespace Tahoe 
 #endif /* _MODEL_FILE_T_H_ */

@@ -1,31 +1,24 @@
-/* $Id: PartitionT.cpp,v 1.17 2005-06-11 17:53:58 paklein Exp $ */
-/* created: paklein (11/16/1999) */
+/* $Id: PartitionT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* created: paklein (11/16/1999)                                          */
+/* graph partition information (following NEMESIS data model)             */
+
 #include "PartitionT.h"
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "GraphT.h"
 #include "AutoArrayT.h"
 #include "iArray2DT.h"
-#include "dArray2DT.h"
-#include "RaggedArray2DT.h"
 #include "StringT.h"
 
-using namespace Tahoe;
-
 /* parameters */
-const int kHeadRoom = 20;                // percent
-const char* sPartitionTVersion = "v1.1"; // version marker
+const int kHeadRoom = 20;             // percent
+const char* sPartitionTVersion = "v1.0"; // version marker
 
 /* constructor */
 PartitionT::PartitionT(void):
 	fNumPartitions(0),
 	fID(-1),
-	fScope(kUnSet),
-	fDecompType(kUndefined),
-	fNodes_i_man(0, fNodes_i),
-	fNodes_b_man(0, fNodes_b),
-	fNodes_e_man(0, fNodes_e),
-	fNodeMap_man(0, fNodeMap)
+	fScope(kUnSet)
 {
 
 }
@@ -40,7 +33,7 @@ bool PartitionT::CheckVersion(const StringT& version)
 void PartitionT::PartitionNodes(iArrayT& nodes, NumberScopeT scope) const
 {
 	/* allocate */
-	nodes.Dimension(fNodes_i.Length() + fNodes_b.Length());
+	nodes.Allocate(fNodes_i.Length() + fNodes_b.Length());
 
 	/* partition nodes in local numbering */
 	nodes.CopyPart(0, fNodes_i, 0, fNodes_i.Length());
@@ -70,16 +63,15 @@ const iArrayT* PartitionT::NodesOut(int ID) const
 }
 
 /* set node info */
-void PartitionT::Set(int num_parts, int id, const ArrayT<int>& part_map, 
-	const GraphT& graph)
+void PartitionT::Set(int num_parts, int id, const iArrayT& part_map, const GraphT& graph)
 {
 	/* total number of partitions */
 	fNumPartitions = num_parts;
-	if (fNumPartitions < 1) throw ExceptionT::kGeneralFail;
+	if (fNumPartitions < 1) throw eGeneralFail;
 
 	/* set ID */
 	fID = id;
-	if (fID < 0 || fID >= fNumPartitions) throw ExceptionT::kOutOfRange;
+	if (fID < 0 || fID >= fNumPartitions) throw eOutOfRange;
 		
 	/* numbering is global */
 	fScope = kGlobal;
@@ -87,74 +79,6 @@ void PartitionT::Set(int num_parts, int id, const ArrayT<int>& part_map,
 	/* resolve internal/boundary nodes */
 	ClassifyNodes(part_map, graph);
 	
-	/* set send information */
-	SetReceive(part_map);
-	
-	/* clear inverse maps */
-	fInvNodeMap.Free();
-	for (int i = 0; i < fInvElementMap.Length(); i++)
-		fInvElementMap.Free();
-}
-
-void PartitionT::Set(int num_parts, int id, const ArrayT<int>& part_map, const ArrayT<const iArray2DT*>& connects_1,
-	const ArrayT<const RaggedArray2DT<int>*>& connects_2)
-{
-	/* total number of partitions */
-	fNumPartitions = num_parts;
-	if (fNumPartitions < 1) throw ExceptionT::kGeneralFail;
-
-	/* set ID */
-	fID = id;
-	if (fID < 0 || fID >= fNumPartitions) throw ExceptionT::kOutOfRange;
-		
-	/* numbering is global */
-	fScope = kGlobal;
-
-	/* resolve internal/boundary nodes */
-	ClassifyNodes(part_map, connects_1, connects_2);
-	
-	/* set send information */
-	SetReceive(part_map);
-	
-	/* clear inverse maps */
-	fInvNodeMap.Free();
-	for (int i = 0; i < fInvElementMap.Length(); i++)
-		fInvElementMap.Free();
-}
-
-void PartitionT::Set(int num_parts, int id, const ArrayT<int>& part_map,
-	const ArrayT<int>& node_map,
-	const ArrayT<const iArray2DT*>& connects_1,
-	const ArrayT<const RaggedArray2DT<int>*>& connects_2)
-{
-	const char caller[] = "PartitionT::Set";
-
-	/* check */
-	if (part_map.Length() != node_map.Length())
-		ExceptionT::SizeMismatch(caller, "part map length %d must equal node map length %d",
-			part_map.Length(), node_map.Length());
-
-	/* total number of partitions */
-	fNumPartitions = num_parts;
-	if (fNumPartitions < 1) ExceptionT::GeneralFail(caller, "bad size %d", fNumPartitions);
-
-	/* set ID */
-	fID = id;
-	if (fID < 0 || fID >= fNumPartitions) ExceptionT::OutOfRange(caller, "bad id %d", fID);
-		
-	/* numbering is global */
-	fScope = kLocal;
-
-	/* resolve internal/boundary nodes */
-	ClassifyNodes(part_map, connects_1, connects_2);
-
-	/* set node map */
-	fNodeMap_man.SetLength(node_map.Length(), false);
-	int nnd = fNodes_i.Length() + fNodes_b.Length() + fNodes_e.Length();
-	if (fNodeMap.Length() != nnd)
-		ExceptionT::GeneralFail(caller, "expecting %d entries in node map %d", nnd, fNodeMap.Length());
-	fNodeMap.Copy(node_map.Pointer());
-
 	/* set send information */
 	SetReceive(part_map);
 	
@@ -174,18 +98,18 @@ void PartitionT::SetOutgoing(const ArrayT<iArrayT>& nodes_out)
 		     << nodes_out.Length() << ")\n";
 		cout <<   "     to be the same as the Comm ID list (" << fCommID.Length()
 		     << ")" << endl;
-		throw ExceptionT::kSizeMismatch;
+		throw eSizeMismatch;
 	}
 	
 	/* only at global scope for now */
 	if (fScope != kGlobal)
 	{
 		cout << "\n PartitionT::SetOutgoing: number scope must be global" << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 
 	/* store */
-	fNodes_out.Dimension(nodes_out.Length());
+	fNodes_out.Allocate(nodes_out.Length());
 	for (int i = 0; i < fNodes_out.Length(); i++)
 		fNodes_out[i] = nodes_out[i];
 }
@@ -226,35 +150,30 @@ void PartitionT::SetScope(NumberScopeT scope)
 	fScope = scope;
 }
 
-void PartitionT::InitElementBlocks(const ArrayT<StringT>& blockID)
+void PartitionT::InitElementBlocks(const iArrayT& blockID)
 {
 	/* copy */
 	fElementBlockID = blockID;
 	
 	/* allocate memory */
 	int n = fElementBlockID.Length();
-	fElements_i.Dimension(n);
-	fElements_b.Dimension(n);
-	fElementMap.Dimension(n);
-	fElementMapShift.Dimension(n);
-	fInvElementMap.Dimension(n);
-	
-	/* initialize */
-	fElementMapShift = 0;
-	for (int i = 0; i < n; i++) {
-		fElements_i[i].Free();
-		fElements_b[i].Free();
-		fElementMap[i].Free();
-		fInvElementMap[i].Free();
-	}
+	fElements_i.Allocate(n);
+	fElements_b.Allocate(n);
+	fElementMap.Allocate(n);
+	fElementMapShift.Allocate(n);
+	fInvElementMap.Allocate(n);
 }
 
 /* collect internal and border elements */
-void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
+void PartitionT::SetElements(int blockID, const iArray2DT& connects)
 {
-	/* quick fix for local scope */
+	/* only at global scope for now */
 	if (fScope != kGlobal)
-		ExceptionT::GeneralFail("PartitionT::SetElements", "number scope must be global");
+	{
+		cout << "\n PartitionT::SetElements: number scope must be global"
+		     << endl;
+		throw eGeneralFail;
+	}
 
 	/* resolve ID */
 	int dex = ElementBlockIndex(blockID, "SetElements");
@@ -269,15 +188,17 @@ void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
 	node_map = kExternal;
 	MapStatus(kInternal, fNodes_i, node_map, min);
 	MapStatus(  kBorder, fNodes_b, node_map, min);
-	MapStatus(  kBorder, fNodes_e, node_map, min); // TEMP: fix 1
 	
-	AutoArrayT<int> elements_i(20);
-	AutoArrayT<int> elements_b(20);
+	//TEMP
+	MapStatus(  kBorder, fNodes_e, node_map, min); // temp fix 1
+	
+	AutoArrayT<int> elements_i(20, true);
+	AutoArrayT<int> elements_b(20, true);
 	
 	/* sort elements into internal/external */
 	int nel = connects.MajorDim();
 	int nen = connects.MinorDim();
-	const int* pelem = connects.Pointer();
+	int* pelem = connects.Pointer();
 	for (int i = 0; i < nel; i++)
 	{
 		int n_i = 0;
@@ -323,15 +244,15 @@ void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
 
 	/* copy in */
 	int n_i = elements_i.Length();
-	fElements_i[dex].Dimension(n_i);
+	fElements_i[dex].Allocate(n_i);
 	elements_i.CopyInto(fElements_i[dex]);
 
 	int n_b = elements_b.Length();
-	fElements_b[dex].Dimension(n_b);
+	fElements_b[dex].Allocate(n_b);
 	elements_b.CopyInto(fElements_b[dex]);
 	
 	/* set map */
-	fElementMap[dex].Dimension(n_i + n_b);
+	fElementMap[dex].Allocate(n_i + n_b);
 	fElementMap[dex].CopyPart(0, fElements_i[dex], 0, n_i);
 	fElementMap[dex].CopyPart(n_i, fElements_b[dex], 0, n_b);
 }
@@ -355,8 +276,8 @@ int PartitionT::CrossCheck(const PartitionT& that) const
 			return 0;
 		else
 		{
-			const int* p1 = fNodes_in[i1].Pointer();
-			const int* p2 = (that.fNodes_out[i2]).Pointer();
+			int* p1 = fNodes_in[i1].Pointer();
+			int* p2 = (that.fNodes_out[i2]).Pointer();
 			for (int i = 0; i < n1; i++)
 				if (fNodeMap[*p1++] != (that.fNodeMap)[*p2++]) return 0;
 				// need to check global/local here
@@ -376,8 +297,8 @@ int PartitionT::CrossCheck(const PartitionT& that) const
 			return 0;
 		else
 		{
-			const int* p1 = fNodes_out[i1].Pointer();
-			const int* p2 = (that.fNodes_in[i2]).Pointer();
+			int* p1 = fNodes_out[i1].Pointer();
+			int* p2 = (that.fNodes_in[i2]).Pointer();
 			for (int i = 0; i < n1; i++)
 				if (fNodeMap[*p1++] != (that.fNodeMap)[*p2++]) return 0;
 		}
@@ -387,35 +308,13 @@ int PartitionT::CrossCheck(const PartitionT& that) const
 	return 1;
 }
 
-namespace Tahoe {
-
 /* I/O */
 ostream& operator<<(ostream& out, const PartitionT& partition)
 {
-	const char caller[] = "operator<<PartitionT";
-
 	out << sPartitionTVersion << '\n';
-	out << setw(6) << partition.fNumPartitions << " # number of parts\n";
-	out << setw(6) << partition.fID            << " # partition number\n";
-	out << setw(6) << partition.fScope         << " # numbering scope\n";
-	out << setw(6) << partition.fDecompType    << " # decomposition type\n";
-
-	// additional grid parameters for spatial decomposition
-	if (partition.fDecompType == PartitionT::kSpatial) {
-
-		// must be set
-		if (partition.fGridDims.Length() == 0) 
-			ExceptionT::GeneralFail(caller, "grid dimensions not set");
-		if (partition.fGridPosition.Length() == 0) 
-			ExceptionT::GeneralFail(caller, "grid position not set");
-		if (partition.fGridDims.Length() != partition.fGridPosition.Length()) 
-			ExceptionT::SizeMismatch(caller, "position not consistent with grid");
-
-		out << "# type " <<  PartitionT::kSpatial << " decomposition parameters:\n";
-		out << partition.fGridDims.Length()           << " # grid dimensions\n";
-		out << partition.fGridDims.wrap_tight(10)     << " # grid topology\n";
-		out << partition.fGridPosition.wrap_tight(10) << " # grid position\n";
-	}
+	out << partition.fNumPartitions << '\n'; // number of parts
+	out << partition.fID            << '\n'; // partition number
+	out << partition.fScope         << '\n'; // numbering scope
 	
 	// nodal information
 	out << "# internal nodes:\n";
@@ -454,16 +353,7 @@ ostream& operator<<(ostream& out, const PartitionT& partition)
 	out << (partition.fElements_i).Length() << '\n';
 
 	out << "# element block ID's:\n";
-	int wrap = 0;
-	for (int i = 0; i < partition.fElementBlockID.Length(); i++)
-	{
-		if (wrap++ == 10) {
-			out << '\n';
-			wrap = 0;
-		}
-		out << partition.fElementBlockID[i] << " ";
-	}
-	out << '\n';
+	out << (partition.fElementBlockID).wrap_tight(10) << '\n';
 
 	out << "# internal elements (by block):\n";
 	for (int k = 0; k < (partition.fElements_i).Length(); k++)
@@ -495,86 +385,72 @@ ostream& operator<<(ostream& out, const PartitionT& partition)
 	return out;
 }
 
-}
-
 /* operator support */
 ifstreamT& PartitionT::Read(ifstreamT& in)
 {
-	/* set comment marker */
-	char old_marker = in.comment_marker();
-	in.set_marker(CommentMarker());
-
 	/* check version */
 	StringT version;
 	in >> version;
 	if (version != sPartitionTVersion)
-		ExceptionT::BadInputValue("operator>>PartitionT", 
-			"file version %s is not the current %s", version.Pointer(), sPartitionTVersion);
+	{
+		cout << "\n operator>>PartitionT&: file version " << version
+		     << " is not current: " << sPartitionTVersion << endl;
+		throw eGeneralFail;
+	}
+
+	int length;
 
 	in >> fNumPartitions; // number of parts
 	in >> fID;            // partition number
 	in >> fScope;         // numbering scope
-	in >> fDecompType;    // decomposition type
-
-	int length;
-
-	// read grid parameters for spatial decomposition
-	if (fDecompType == PartitionT::kSpatial) {
-		in >> length;
-		fGridDims.Dimension(length);
-		in >> fGridDims;
-		fGridPosition.Dimension(length);
-		in >> fGridPosition;
-	}
 	
 	// nodal information
 	in >> length;
-	fNodes_i_man.SetLength(length, false);
+	fNodes_i.Allocate(length);
 	in >> fNodes_i; // internal nodes	
 	
 	in >> length;
-	fNodes_b_man.SetLength(length, false);
+	fNodes_b.Allocate(length);
 	in >> fNodes_b; // border nodes	
 
 	in >> length;
-	fNodes_e_man.SetLength(length, false);
+	fNodes_e.Allocate(length);
 	in >> fNodes_e; // external nodes
 	
 	// receive/send information
 	in >> length;
-	fCommID.Dimension(length);
+	fCommID.Allocate(length);
 	in >> fCommID; // ID's of communicating partitions
 
-	fNodes_in.Dimension(length);
+	fNodes_in.Allocate(length);
 	for (int i = 0; i < length; i++)
 	{
 		int dim;
 		in >> dim;
-		fNodes_in[i].Dimension(dim);
+		fNodes_in[i].Allocate(dim);
 		in >> fNodes_in[i];
 	}
 
-	fNodes_out.Dimension(length);
+	fNodes_out.Allocate(length);
 	for (int j = 0; j < length; j++)
 	{
 		int dim;
 		in >> dim;
-		fNodes_out[j].Dimension(dim);
+		fNodes_out[j].Allocate(dim);
 		in >> fNodes_out[j];
 	}
 	
 	// element information
 	in >> length;
-	fElementBlockID.Dimension(length);
-	for (int i = 0; i < fElementBlockID.Length(); i++)
-		in >> fElementBlockID[i];
+	fElementBlockID.Allocate(length);
+	in >> fElementBlockID;
 	InitElementBlocks(fElementBlockID);	
 
 	for (int k = 0; k < fElements_i.Length(); k++)
 	{
 		int dim;
 		in >> dim;
-		fElements_i[k].Dimension(dim);
+		fElements_i[k].Allocate(dim);
 		in >> fElements_i[k]; // internal elements
 	}
 
@@ -582,55 +458,41 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	{
 		int dim;
 		in >> dim;
-		fElements_b[l].Dimension(dim);
+		fElements_b[l].Allocate(dim);
 		in >> fElements_b[l]; // internal elements
 	}
 	
 	// global node map
 	in >> length;
-	fNodeMap_man.SetLength(length, false);
+	fNodeMap.Allocate(length);
 	in >> fNodeMap; // global[local]
 	if (length != (fNodes_i.Length() +
 	               fNodes_b.Length() +
-                   fNodes_e.Length())) throw ExceptionT::kBadInputValue;
+fNodes_e.Length())) throw eBadInputValue;
 
 	// block global element numbering map
 	for (int m = 0; m < fElementMap.Length(); m++)
 	{
 		int dim;
 		in >> dim;
-		fElementMap[m].Dimension(dim);
+		fElementMap[m].Allocate(dim);
 		in >> fElementMap[m];
 	}
-
-	/* clear inverse maps */
-	fInvNodeMap.Free();
-	for (int i = 0; i < fInvElementMap.Length(); i++)
-		fInvElementMap.Free();
-
-	/* restore comment marker */
-	if (in.skip_comments())
-		in.set_marker(old_marker);
-	else
-		in.clear_marker();
 	
 	return in;
 }
 
 /* resolve element block ID to index */
-int PartitionT::ElementBlockIndex(const StringT& blockID, const char* caller) const
+int PartitionT::ElementBlockIndex(int blockID, const char* caller) const
 {
-	int dex = -1;
-	for (int i = 0; dex == -1 && i < fElementBlockID.Length(); i++)
-		if (fElementBlockID[i] == blockID)
-			dex = i;
-
-	if (dex == -1)
+	int dex = 0;
+	if (!fElementBlockID.HasValue(blockID, dex))
 	{
 		const char* this_routine = "ElementBlockIndex";
 		const char* str = (caller != NULL) ? caller : this_routine;
-		ExceptionT::GeneralFail("PartitionT::ElementBlockIndex", "block ID \"%s\" not found",
-			blockID.Pointer());
+		cout << "\n PartitionT::" << str << ": block ID not found: "
+		     << blockID << endl;
+		throw eGeneralFail;
 	}
 	return dex;
 }
@@ -646,9 +508,13 @@ void PartitionT::MapValues(const iArrayT& map, int shift, ArrayT<int>& values) c
 		//TEMP ?
 		int value = *pn - shift;
 		if (value < 0 || value >= n_map)
-			ExceptionT::OutOfRange("PartitionT::MapValues", "value %d at position %d is out of range {0, %d}",
-				value, i, n_map);
-
+		{
+			cout << "\n PartitionT::MapValues: value " << value
+			     << " at position " << i << " is out of\n"
+			     <<   "     range {0," << n_map << "}" << endl;
+			throw eOutOfRange;
+		}
+	
 		*pn = map[value];
 		pn++;
 	}
@@ -676,7 +542,7 @@ void PartitionT::ReturnPartitionNodes(const iArrayT& global_nodes,
 	int shift;
 	MakeInverseMap(fNodeMap, inv_map, shift);
 
-	AutoArrayT<int> tmp(20);
+	AutoArrayT<int> tmp(20, true);
 	for (int i = 0; i < global_nodes.Length(); i++)
 	{
 		int snode = global_nodes[i] - shift;
@@ -687,13 +553,13 @@ void PartitionT::ReturnPartitionNodes(const iArrayT& global_nodes,
 	}
 
 	/* copy to return value */
-	partition_indices.Dimension(tmp.Length());
+	partition_indices.Allocate(tmp.Length());
 	tmp.CopyInto(partition_indices);
 }
 
 /* returns indeces of (block) global elements that lie within
 * the partition */
-void PartitionT::ReturnPartitionElements(const StringT& blockID,
+void PartitionT::ReturnPartitionElements(int blockID,
 	const iArrayT& global_elements, iArrayT& partition_indices) const
 {
 	/* make inverse map */
@@ -701,7 +567,7 @@ void PartitionT::ReturnPartitionElements(const StringT& blockID,
 	int shift;
 	MakeInverseMap(ElementMap(blockID), inv_map, shift);
 
-	AutoArrayT<int> tmp(20);
+	AutoArrayT<int> tmp(20, true);
 	for (int i = 0; i < global_elements.Length(); i++)
 	{
 		int selement = global_elements[i] - shift;
@@ -711,25 +577,8 @@ void PartitionT::ReturnPartitionElements(const StringT& blockID,
 	}
 
 	/* copy to return value */
-	partition_indices.Dimension(tmp.Length());
+	partition_indices.Allocate(tmp.Length());
 	tmp.CopyInto(partition_indices);
-}
-
-/* return the node to processor map */
-void PartitionT::ReturnProcessorMap(ArrayT<int>& n2p) const
-{
-	/* dimension/initialize */
-	n2p.Dimension(fNodeMap);
-	n2p = fID;
-	
-	/* label nodes from elsewhere */
-	for (int i = 0; i < fCommID.Length(); i++)
-	{
-		int proc = fCommID[i];
-		const iArrayT& nodes = fNodes_in[i];
-		for (int j = 0; j < nodes.Length(); j++)
-			n2p[nodes[j]] = proc;
-	}
 }
 
 /* mapping functions (assumes scope is currently the opposite) */
@@ -747,7 +596,7 @@ void PartitionT::SetNodeScope(NumberScopeT scope, ArrayT<int>& nodes) const
 	MapValues(map, shift, nodes);
 }
 
-void PartitionT::SetElementScope(NumberScopeT scope, const StringT& blockID, ArrayT<int>& elements) const
+void PartitionT::SetElementScope(NumberScopeT scope, int blockID, ArrayT<int>& elements) const
 {
 	/* quick exit */
 	if (elements.Length() == 0) return;
@@ -761,13 +610,12 @@ void PartitionT::SetElementScope(NumberScopeT scope, const StringT& blockID, Arr
 	MapValues(map, shift, elements);
 }
 
-namespace Tahoe {
-
 /* input operator for scope */
 istream& operator>>(istream& in, PartitionT::NumberScopeT& scope)
 {
 	int i_scope;
 	in >> i_scope;
+	
 	switch (i_scope)
 	{
 		case PartitionT::kUnSet:
@@ -779,40 +627,13 @@ istream& operator>>(istream& in, PartitionT::NumberScopeT& scope)
 		case PartitionT::kGlobal:
 			scope = PartitionT::kGlobal;
 			break;
-		default:
-			ExceptionT::BadInputValue("operator>>PartitionT::NumberScopeT", 
-				"unrecognized scope: %d", i_scope);	
+		default:	
+			cout << "\n operator>>PartitionT::NumberScopeT: unknown value: " << i_scope << endl;
+			throw eBadInputValue;
 	}
+
 	return in;
 }
-
-/* input operator for scope */
-istream& operator>>(istream& in, PartitionT::DecompTypeT& t)
-{
-	int i_t;
-	in >> i_t;
-	switch (i_t)
-	{
-		case PartitionT::kUndefined:
-			t = PartitionT::kUndefined;
-			break;
-		case PartitionT::kGraph:
-			t = PartitionT::kGraph;
-			break;
-		case PartitionT::kIndex:
-			t = PartitionT::kIndex;
-			break;
-		case PartitionT::kSpatial:
-			t = PartitionT::kSpatial;
-			break;
-		default:
-			ExceptionT::BadInputValue("operator>>PartitionT::DecompTypeT", 
-				"unrecognized scope: %d", i_t);	
-	}
-	return in;
-}
-
-} // namespace Tahoe
 
 /************************************************************************
 * Private
@@ -822,38 +643,30 @@ istream& operator>>(istream& in, PartitionT::DecompTypeT& t)
 void PartitionT::MakeInverseMap(const iArrayT& map, iArrayT& inv_map,
 	int& shift) const
 {
-  if (map.Length() == 0)
-	{
-	  shift = 0;
-	  inv_map.Dimension(0);
-	}
-  else
-	{
 	/* range */
 	int max;
 	map.MinMax(shift, max);
 	int range = max - shift + 1;
 	
 	/* dimension */
-	inv_map.Dimension(range);
+	inv_map.Allocate(range);
 	inv_map = -1;
 
 	/* make map */
 	int dim = map.Length();
 	for (int i = 0; i < dim; i++)
-		inv_map[map[i] - shift] = i;
-	}
+		inv_map[map[i] - shift] = i;	
 }
 
 /* set node info */
-void PartitionT::ClassifyNodes(const ArrayT<int>& part_map,
+void PartitionT::ClassifyNodes(const iArrayT& part_map,
 	const GraphT& graph)
 {
 	/* work space */
-	AutoArrayT<int> nodes_i(kHeadRoom);
-	AutoArrayT<int> nodes_b(kHeadRoom);
-	AutoArrayT<int> nodes_e(kHeadRoom);
-	AutoArrayT<int> commID(kHeadRoom);
+	AutoArrayT<int> nodes_i(kHeadRoom, true);
+	AutoArrayT<int> nodes_b(kHeadRoom, true);
+	AutoArrayT<int> nodes_e(kHeadRoom, true);
+	AutoArrayT<int> commID(kHeadRoom, true);
 
 	/* resolve internal/boundary nodes */
 	int nnd = part_map.Length();
@@ -866,7 +679,7 @@ void PartitionT::ClassifyNodes(const ArrayT<int>& part_map,
 		if (part_i == fID)
 		{
 			int degree = graph.Degree(i);
-			const int *pedge = graph.Edges(i);
+			int *pedge = graph.Edges(i);
 			for (int j = 0; j < degree; j++)
 			{
 				int part_j = part_map[*pedge];
@@ -889,184 +702,23 @@ void PartitionT::ClassifyNodes(const ArrayT<int>& part_map,
 	}
 	
 	/* store */
-	fNodes_i_man.SetLength(nodes_i.Length(), false);
+	fNodes_i.Allocate(nodes_i.Length());
 	nodes_i.CopyInto(fNodes_i);
 
-	fNodes_b_man.SetLength(nodes_b.Length(), false);
+	fNodes_b.Allocate(nodes_b.Length());
 	nodes_b.CopyInto(fNodes_b);	
 
-	fNodes_e_man.SetLength(nodes_e.Length(), false);
-	nodes_e.CopyInto(fNodes_e);
+	fNodes_e.Allocate(nodes_e.Length());
+	nodes_e.CopyInto(fNodes_e);	
 
-	fCommID.Dimension(commID.Length());
+	fCommID.Allocate(commID.Length());
 	commID.CopyInto(fCommID);
-
-#if 0
-//NOTE: the other version of ClassifyNodes() inherently sorts the node
-//      lists in ascending order and this step allows the two approaches
-//      to be verified against each other.
-	cout << "\n PartitionT::ClassifyNodes: NOTE: sorting node lists in ascending order" << endl;
-	fNodes_i.SortAscending();
-	fNodes_b.SortAscending();
-	fNodes_e.SortAscending();
-	fCommID.SortAscending();
-#endif
 	
 	/* generate node map (just number sequentially through _i, _b, _e) */
-	fNodeMap_man.SetLength(fNodes_i.Length() + fNodes_b.Length() + fNodes_e.Length(), false); 
-	// sets sequence for local node numbers - DO NOT CHANGE
-	
-	/* copy in (with no resequencing) */
-	fNodeMap.CopyPart(0, fNodes_i, 0, fNodes_i.Length());
-	fNodeMap.CopyPart(fNodes_i.Length(), fNodes_b, 0, fNodes_b.Length());
-	fNodeMap.CopyPart(fNodes_i.Length() + fNodes_b.Length(), fNodes_e, 0, fNodes_e.Length());
-}
-
-void PartitionT::ClassifyNodes(const ArrayT<int>& part_map, const ArrayT<const iArray2DT*>& connects_1,
-	const ArrayT<const RaggedArray2DT<int>*>& connects_2)
-{
-	/* node classification */
-	int nnd = part_map.Length();
-	ArrayT<StatusT> status(nnd);
-	status = kUnset;
-	
-	/* mark all partition nodes as internal */
-	for (int i = 0; i < nnd; i++)
-		if (part_map[i] == fID)
-			status[i] = kInternal;
-
-	/* run through connectivities in group 1 */
-	for (int j = 0; j < connects_1.Length(); j++)
-	{
-		/* set dimensions */
-		const iArray2DT& connects = *(connects_1[j]);
-		int nel = connects.MajorDim();
-		int nen = connects.MinorDim();
-	
-		/* scan elements */
-		const int* pel = connects.Pointer();
-		for (int i = 0; i < nel; i++)
-		{
-			/* look for mixed elements */
-			bool has_internal = false;
-			bool has_external = false;
-			for (int a = 0; a < nen && (!has_internal || !has_external); a++)
-			{
-				int node = pel[a];
-				if (status[node] == kInternal || status[node] == kBorder)
-					has_internal = true;
-				else
-					has_external = true;
-			}
-		
-			/* re-mark nodes */
-			if (has_internal && has_external)
-			{
-				for (int a = 0; a < nen; a++)
-				{
-					int node = pel[a];
-					if (status[node] == kInternal)
-						status[node] = kBorder;
-					else if (status[node] == kUnset)
-						status[node] = kExternal;
-				}
-			}
-		
-			/* next */
-			pel += nen;
-		}
-	}
-
-	/* run through connectivities in group 1 */
-	for (int k = 0; k < connects_2.Length(); k++)
-	{
-		/* set dimensions */
-		const RaggedArray2DT<int>& connects = *(connects_2[k]);
-		int nel = connects.MajorDim();
-	
-		/* scan elements */
-		for (int i = 0; i < nel; i++)
-		{
-			/* current element */
-			int nen = connects.MinorDim(i);
-			const int* pel = connects(i);
-
-			/* look for mixed elements */
-			bool has_internal = false;
-			bool has_external = false;
-			for (int a = 0; a < nen && (!has_internal || !has_external); a++)
-			{
-				int node = pel[a];
-				if (status[node] == kInternal || status[node] == kBorder)
-					has_internal = true;
-				else
-					has_external = true;
-			}
-		
-			/* re-mark nodes */
-			if (has_internal && has_external)
-			{
-				for (int a = 0; a < nen; a++)
-				{
-					int node = pel[a];
-					if (status[node] == kInternal)
-						status[node] = kBorder;
-					else if (status[node] == kUnset)
-						status[node] = kExternal;
-				}
-			}
-		}
-	}
-
-	/* count-em up */
-	iArrayT comm_list(fNumPartitions);
-	comm_list = 0;
-	int n_i, n_b, n_e;
-	n_i = n_b = n_e = 0;
-	StatusT* pstat = status.Pointer();
-	for (int l = 0; l < nnd; l++)
-	{
-		if (*pstat == kInternal)
-			n_i++;
-		else if (*pstat == kBorder)
-			n_b++;
-		else if (*pstat == kExternal)
-		{
-			n_e++;
-			comm_list[part_map[l]] = 1;
-		}
-		pstat++;
-	}
-
-	/* store (sorted) comm list */
-	fCommID.Dimension(comm_list.Count(1));
-	int dex = 0;
-	for (int ll = 0; ll < fNumPartitions; ll++)
-		if (comm_list[ll] == 1)
-			fCommID[dex++] = ll;
-
-	/* allocate node lists */
-	fNodes_i_man.SetLength(n_i, false);
-	fNodes_b_man.SetLength(n_b, false);
-	fNodes_e_man.SetLength(n_e, false);
-
-	/* sort-em out */
-	n_i = n_b = n_e = 0;
-	pstat = status.Pointer();
-	for (int m = 0; m < nnd; m++)
-	{
-		if (*pstat == kInternal)
-			fNodes_i[n_i++] = m;
-		else if (*pstat == kBorder)
-			fNodes_b[n_b++] = m;
-		else if (*pstat == kExternal)
-			fNodes_e[n_e++] = m;
-		pstat++;
-	}
-	
-	/* generate node map (just number sequentially through _i, _b, _e) */
-	fNodeMap_man.SetLength(fNodes_i.Length() + fNodes_b.Length() + fNodes_e.Length(), false); 
-	// sets sequence for local node numbers - DO NOT CHANGE
+	fNodeMap.Allocate(fNodes_i.Length() +
+	                  fNodes_b.Length() +
+	                  fNodes_e.Length()); // sets sequence for local node
+	                                      // numbers - DO NOT CHANGE
 	
 	/* copy in (with no resequencing) */
 	fNodeMap.CopyPart(0, fNodes_i, 0, fNodes_i.Length());
@@ -1080,7 +732,7 @@ void PartitionT::MapStatus(StatusT status, const iArrayT& part,
 {
 	int  range = status_map.Length();
 	int length = part.Length();
-	const int* ppart = part.Pointer();
+	int* ppart = part.Pointer();
 	for (int i = 0; i < length; i++)
 	{
 		int dex = *ppart++ - offset;
@@ -1089,7 +741,7 @@ void PartitionT::MapStatus(StatusT status, const iArrayT& part,
 }
 
 /* set send nodes/partition information */
-void PartitionT::SetReceive(const ArrayT<int>& part_map)
+void PartitionT::SetReceive(const iArrayT& part_map)
 {
 	/* (partition - min) -> index in fCommID */
 	int min;
@@ -1108,9 +760,9 @@ void PartitionT::SetReceive(const ArrayT<int>& part_map)
 	}
 	
 	/* allocate communication map */
-	fNodes_in.Dimension(fCommID.Length());
+	fNodes_in.Allocate(fCommID.Length());
 	for (int k = 0; k < fCommID.Length(); k++)
-		fNodes_in[k].Dimension(counts[fCommID[k] - min]);
+		fNodes_in[k].Allocate(counts[fCommID[k] - min]);
 
 	/* store communication map */
 	counts = 0;
@@ -1148,7 +800,7 @@ void PartitionT::SetNodeMap(NumberScopeT scope, iArrayT& map, int& shift) const
 	}
 }
 
-void PartitionT::SetElementMap(NumberScopeT scope, const StringT& blockID, iArrayT& map,
+void PartitionT::SetElementMap(NumberScopeT scope, int blockID, iArrayT& map,
 	int& shift) const
 {
 	int dex = ElementBlockIndex(blockID, "SetElementMap");
@@ -1156,9 +808,8 @@ void PartitionT::SetElementMap(NumberScopeT scope, const StringT& blockID, iArra
 	{
 		/* construct inverse element map */
 		if (fInvElementMap[dex].Length() == 0)
-			MakeInverseMap(fElementMap[dex], 
-				const_cast<iArrayT&>(fInvElementMap[dex]),
-				const_cast<int&>(fElementMapShift[dex]));
+			MakeInverseMap(fElementMap[dex], fInvElementMap[dex],
+				fElementMapShift[dex]);
 				
 		shift = fElementMapShift[dex];
 		map.Alias(fInvElementMap[dex]);

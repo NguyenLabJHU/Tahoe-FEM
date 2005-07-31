@@ -1,34 +1,33 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.17 2005-02-16 21:41:29 paklein Exp $ */
-/* created: paklein (09/10/1998) */
-#include "MeshFreeShapeFunctionT.h"
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* created: paklein (09/10/1998)                                          */
 
-#include "toolboxConstants.h"
+#include "MeshFreeShapeFunctionT.h"
+#include "Constants.h"
 #include "MeshFreeSupport2DT.h"
 #include "MeshFreeSupport3DT.h"
 #include "LocalArrayT.h"
-
-using namespace Tahoe;
 
 /* constructor */
 MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, const dArray2DT& all_coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes,
-	const int& currelement, const ParameterListT& mf_support_params):
-	ShapeFunctionT(geometry_code, numIP, coords),
-	fMFSupport(NULL),
+	MeshFreeT::FormulationT code, double dextra, int complete, bool store_shape,
+	const int& currelement):
+	ShapeFunctionT(geometry_code, numIP, coords, kStandardB),
 	fCurrElement(currelement),
 	fDNaU(numIP),
 	fXConnects(connects)
 {
-	/* construct MLS support - otherwise must be set by constructor of derived classes */
-	if (mf_support_params.Name() == "meshfree_support_2D")
-		fMFSupport = new MeshFreeSupport2DT(fDomain, all_coords, connects, nongridnodes);
-	else if (mf_support_params.Name() == "meshfree_support_3D")
-		fMFSupport = new MeshFreeSupport3DT(fDomain, all_coords, connects, nongridnodes);
+	/* construct MLS support */
+	if (all_coords.MinorDim() == 2)
+		fMFSupport = new MeshFreeSupport2DT(*fDomain, all_coords, connects,
+							nongridnodes, code, dextra, complete, store_shape);
+	else
+		fMFSupport = new MeshFreeSupport3DT(*fDomain, all_coords, connects,
+							nongridnodes, code, dextra, complete, store_shape);
 
-	/* initialize */
-	if (fMFSupport) fMFSupport->TakeParameterList(mf_support_params);
-
+	if (!fMFSupport) throw eOutOfMemory;
+	
 	/* set as field shape function */
 	SetUShapeFunctions(fNaU, fDNaU);
 }
@@ -36,31 +35,19 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 /* destructor */
 MeshFreeShapeFunctionT::~MeshFreeShapeFunctionT(void) { delete fMFSupport; }
 
-/* class-dependent initializations */
-void MeshFreeShapeFunctionT::Initialize(void)
-{
-	/* inherited */
-	ShapeFunctionT::Initialize();
-	
-	/* check */
-	if (!fMFSupport)
-		ExceptionT::GeneralFail("MeshFreeShapeFunctionT::Initialize",
-			"meshfree support not set");
-}
-
 /* initialization - modifications to the support size must
 * occur before setting the neighbor data. Coordinates and
 * connecitivies must be set */
 void MeshFreeShapeFunctionT::SetSupportSize(void)
 {
 	/* initialize MLS data */
-	fMFSupport->InitSupportParameters();
+	fMFSupport->SetSupportSize();
 }
 
 void MeshFreeShapeFunctionT::SetNeighborData(void)
 {
 	/* initialize MLS data */
-	fMFSupport->InitNeighborData();
+	fMFSupport->SetNeighborData();
 }
 
 void MeshFreeShapeFunctionT::SetExactNodes(const iArrayT& exact_nodes)
@@ -189,7 +176,7 @@ void MeshFreeShapeFunctionT::SelectedNodalField(const dArray2DT& all_DOF,
 	int ndf = all_DOF.MinorDim();
 	
 	/* allocate output space */
-	field.Dimension(nnd, ndf);
+	field.Allocate(nnd, ndf);
 
 	/* MLS nodal data */
 	iArrayT   neighbors;
@@ -240,7 +227,7 @@ void MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field,
 	int ndf = DOF.MinorDim();
 	
 	/* allocate output space */
-	field.Dimension(nnd, ndf);
+	field.Allocate(nnd, ndf);
 
 	/* MLS nodal data */
 	iArrayT   neighbors;
@@ -288,7 +275,7 @@ void MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field,
 	{
 		cout << "\n MeshFreeShapeFunctionT::NodalField: derivatives not continuous with\n"
 		     <<   "     interpolant field nodes" << endl;
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	}
 
 	/* fetch list of nodes to compute */
@@ -300,8 +287,8 @@ void MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field,
 	int nsd = NumSD();
 	
 	/* allocate output space */
-	field.Dimension(nnd, ndf);
-	Dfield.Dimension(nnd, ndf*nsd);
+	field.Allocate(nnd, ndf);
+	Dfield.Allocate(nnd, ndf*nsd);
 
 	/* MLS nodal data */
 	iArrayT   neighbors;
@@ -393,11 +380,6 @@ void MeshFreeShapeFunctionT::PrintAt(ostream& out) const
 }
 
 /* write MLS statistics */
-void MeshFreeShapeFunctionT::WriteParameters(ostream& out) const
-{
-	fMFSupport->WriteParameters(out);
-}
-
 void MeshFreeShapeFunctionT::WriteStatistics(ostream& out) const
 {
 	fMFSupport->WriteStatistics(out);
@@ -411,7 +393,7 @@ void MeshFreeShapeFunctionT::WriteStatistics(ostream& out) const
 void MeshFreeShapeFunctionT::InitBlend(void)
 {
 	/* initialize element flags */
-	fElemHasExactNode.Dimension(fXConnects.MajorDim());
+	fElemHasExactNode.Allocate(fXConnects.MajorDim());
 	fElemHasExactNode = -1;
 
 	/* map to exact nodes */
@@ -430,7 +412,7 @@ void MeshFreeShapeFunctionT::InitBlend(void)
 	hit_map = 0;
 	for (int j = 0; j < nel; j++)
 	{
-		const int* pelem = fXConnects(j);
+		int* pelem = fXConnects(j);
 		for (int k = 0; k < nen; k++)
 		{
 			int shifted_node = *pelem++ - shift;
@@ -471,7 +453,7 @@ void MeshFreeShapeFunctionT::InitBlend(void)
 
 	/* initialize element data */
 	int num_flagged = fElemHasExactNode.Count(1);
-	fElemFlags.Dimension(num_flagged, nen);
+	fElemFlags.Allocate(num_flagged, nen);
 	fElemFlags = 0;
 	
 	/* create element flagged data and make map */
@@ -482,7 +464,7 @@ void MeshFreeShapeFunctionT::InitBlend(void)
 			/* convert to map of element data */
 			fElemHasExactNode[ii] = flagged_count;
 
-			const int* pelem = fXConnects(ii);
+			int* pelem  = fXConnects(ii);
 			int* pflags = fElemFlags(flagged_count);
 			for (int j = 0; j < nen; j++)
 			{
@@ -501,20 +483,20 @@ for (int i = 0; i < fElemHasExactNode.Length(); i++)
 	if (fElemHasExactNode[i] > -1)
 		fElemFlags.PrintRow(fElemHasExactNode[i], cout);
 }	
-throw ExceptionT::kStop;
+throw eStop;
 #endif
 //END
 	
 	/* allocate ramp function */
-	fR.Dimension(NumIP());
-	fDR.Dimension(NumIP(), NumSD());
+	fR.Allocate(NumIP());
+	fDR.Allocate(NumIP(), NumSD());
 		
 	/* allocate work space for blended shape functions */
-	fDNa_tmp.Dimension(NumIP());
+	fDNa_tmp.Allocate(NumIP());
 	int el_maxsize = (fMFSupport->ElementNeighbors()).MaxMinorDim();
 	int nd_maxsize = (fMFSupport->NodeNeighbors()   ).MaxMinorDim();
-	felSpace.Dimension(NumIP()*el_maxsize*(1 + NumSD()));
-	fndSpace.Dimension(nd_maxsize*(1 + NumSD()));
+	felSpace.Allocate(NumIP()*el_maxsize*(1 + NumSD()));
+	fndSpace.Allocate(nd_maxsize*(1 + NumSD()));
 }
 
 /* blend FE/MLS shape functions for interpolant nodes */
@@ -532,14 +514,14 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 	int nen = rNa.MinorDim();
 	int nnd = fNeighbors.Length();
 	
-	fR  = 0.0;
-	fDR = 0.0;
+	fR  = 0;
+	fDR = 0;			
 	int* pelem_flags = fElemFlags(fElemHasExactNode[fCurrElement]);
 	for (int ii = 0; ii < nip; ii++)
 	{
 		/* ramp function */
-		int* pflag = pelem_flags;
-		const double* pNa = rNa(ii);
+		int*  pflag = pelem_flags;
+		double* pNa = rNa(ii);
 		for (int j = 0; j < nen; j++)
 			fR[ii] += (1 - *pflag++)*(*pNa++);
 		
@@ -548,7 +530,7 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 		{
 			int*   pflag = pelem_flags;
 			double* pDR  = fDR(ii);
-			const double* pDNa = (rDNa[ii])(k);
+			double* pDNa = (rDNa[ii])(k);
 			for (int j = 0; j < nen; j++)
 				pDR[k] += (1 - *pflag++)*(*pDNa++);
 		}
@@ -574,11 +556,11 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 	}	
 	
 	/* identify the cell nodes in the neighbors list */
-	fNeighExactFlags.Dimension(nnd);
+	fNeighExactFlags.Allocate(nnd);
 	for (int k = 0; k < nnd; k++)
 	{
-		int loc = -1;
-		const int* pelem = fXConnects(fCurrElement);
+		int    loc   = -1;
+		int* pelem   = fXConnects(fCurrElement);
 		int listnode = fNeighbors[k];
 		for (int i = 0; i < nen && loc < 0; i++)
 			if (*pelem++ == listnode) loc = i;
@@ -675,18 +657,15 @@ void MeshFreeShapeFunctionT::BlendNodalData(int node, const iArrayT& nodes, dArr
 	}
 }
 
-/* read/write nodal meshfree parameters */
-void MeshFreeShapeFunctionT::SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params)
+/* read/write Dmax */
+void MeshFreeShapeFunctionT::SetDmax(const iArrayT& node, const dArrayT& Dmax)
 {
-	fMFSupport->SetSupportParameters(node, nodal_params);
+	fMFSupport->SetDmax(node, Dmax);
 }
 
-void MeshFreeShapeFunctionT::GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const
+void MeshFreeShapeFunctionT::GetDmax(const iArrayT& node, dArrayT& Dmax) const
 {
-	fMFSupport->GetSupportParameters(node, nodal_params);
+	fMFSupport->GetDmax(node, Dmax);
 }
 
-dArray2DT& MeshFreeShapeFunctionT::NodalParameters(void) 
-{ 
-	return fMFSupport->NodalParameters(); 
-}
+const dArrayT& MeshFreeShapeFunctionT::Dmax(void) const { return fMFSupport->Dmax(); }

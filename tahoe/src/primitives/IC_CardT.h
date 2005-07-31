@@ -1,35 +1,52 @@
-/* $Id: IC_CardT.h,v 1.6 2004-07-15 08:31:36 paklein Exp $ */
-/* created: paklein (07/16/1997) */
+/* $Id: IC_CardT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (07/16/1997)                                          */
+/* Container class for kinematic initial condition data.                  */
+/* Handles mainly I/O and provides access to data via                     */
+/* (inline) accessors.                                                    */
+
 #ifndef _IC_CARD_T_H_
 #define _IC_CARD_T_H_
 
-namespace Tahoe {
+#include "Environment.h"
 
-/** container class for kinematic initial condition data.
- * Handles mainly I/O and provides access to data via (inline) accessors */
+/* forward declarations */
+#include "ios_fwd_decl.h"
+class ifstreamT;
+
 class IC_CardT
 {
 public:
 
-	/** constructor */
+	/* codes */
+	enum CodeT {kDsp = 1,
+	            kVel = 2,
+	            kAcc = 3};
+
+	/* constructor */
 	IC_CardT(void);
 
-	/** modifier */
-	void SetValues(int node, int dof, int order, double value);
+	/* modifiers */
+	void SetValues(ifstreamT& in);
+	void SetValues(int node, int dof, CodeT code, double value);
 	
-	/** \name accessors */
-	/*@{*/
+	/* accessors */
 	int Node(void) const;
 	int DOF(void) const;
-	int Order(void) const;
+	CodeT Code(void) const;
 	double Value(void) const;
-	/*@}*/
 
+	/* I/O */
+	void WriteHeader(ostream& out) const;
+	void WriteValues(ostream& out) const;
+	
+	/* input operator for codes */
+	friend istream& operator>>(istream& in, IC_CardT::CodeT& code);
+	
 private:
 
 	int    fnode;
 	int    fdof;
-	int    forder; /**< time derivative */
+	CodeT  fcode;
 	double fvalue;			
 };
 
@@ -38,8 +55,7 @@ private:
 /* accessors */
 inline int IC_CardT::Node(void) const     { return fnode;  }
 inline int IC_CardT::DOF(void) const      { return fdof;   }
-inline int IC_CardT::Order(void) const    { return forder; }
+inline IC_CardT::CodeT IC_CardT::Code(void) const { return fcode;  }
 inline double IC_CardT::Value(void) const { return fvalue; }
 
-} // namespace Tahoe 
 #endif /* _IC_CARD_T_H_ */

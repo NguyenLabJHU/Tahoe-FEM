@@ -7,15 +7,15 @@
  *
  * $Author: paklein $
  *
- * $Date: 2002-11-29 19:07:38 $
+ * $Date: 2001-01-30 20:59:12 $
  *
- * $Revision: 1.2 $
+ * $Revision: 1.1.1.1 $
  *
  * $Name: not supported by cvs2svn $
  *====================================================================*/
 #ifndef lint
 static char *cvs_wrapmpi_id =
-  "$Id: md_wrap_c.c,v 1.2 2002-11-29 19:07:38 paklein Exp $";
+  "$Id: md_wrap_c.c,v 1.1.1.1 2001-01-30 20:59:12 paklein Exp $";
 #endif
 
 
@@ -38,7 +38,7 @@ static char *cvs_wrapmpi_id =
 #endif /* __MWERKS__ */           
 
 /*******************************************************************************/
-#ifndef __TAHOE_MPI__
+#ifndef __MPI__
 /*******************************************************************************/
 
 #define MPI_Request int

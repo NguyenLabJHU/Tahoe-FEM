@@ -1,24 +1,39 @@
-/* $Id: ThermalDilatationT.cpp,v 1.6 2004-07-15 08:29:20 paklein Exp $ */
-/* created: paklein (08/25/1996) */
+/* $Id: ThermalDilatationT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (08/25/1996)                                          */
+
 #include "ThermalDilatationT.h"
 
-#include "ScheduleT.h"
+#include <iostream.h>
 
-using namespace Tahoe;
+#include "fstreamT.h"
+#include "LoadTime.h"
 
 /* constructor */
-ThermalDilatationT::ThermalDilatationT(void):
-	LTfPtr(NULL),
-	fPercentElongation(0.0),
-	LTfnum(-1)
+ThermalDilatationT::ThermalDilatationT(ifstreamT& in):
+	LTfPtr(NULL)
 {
+	in >> LTfnum; LTfnum--;
+	in >> fPercentElongation;
+	
+	/* overwrite */
+	if (LTfnum == -1) fPercentElongation = 0.0;
+}
 
+/* set LTf pointer */
+int ThermalDilatationT::LTfNumber(void) const { return LTfnum; }
+void ThermalDilatationT::SetLTfPtr(const LoadTime* LTf) { LTfPtr = LTf; }
+
+/* I/O functions */
+void ThermalDilatationT::Print(ostream& out) const
+{
+	out << " Dilatation LTf. . . . . . . . . . . . . . . . . = " << LTfnum + 1         << '\n';
+	out << " Percent elongation. . . . . . . . . . . . . . . = " << fPercentElongation << '\n';
 }
 
 /* returns the current elongation factor */
 double ThermalDilatationT::PercentElongation(void) const
 {
 	return (LTfPtr != NULL) ?
-		fPercentElongation*0.01*(LTfPtr->Value()) :
+		fPercentElongation*0.01*(LTfPtr->LoadFactor()) :
 		0.0;
 }

@@ -1,29 +1,46 @@
-/* $Id: DPSSKStV2D.cpp,v 1.12 2005-02-25 18:41:18 cfoster Exp $ */
-/* created: myip (06/01/1999) */
+/* $Id: DPSSKStV2D.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: myip (06/01/1999)                                             */
+
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
-#include "DPSSLinHardT.h"
-
-using namespace Tahoe;
 
 /* constructor */
-DPSSKStV2D::DPSSKStV2D(void):
-	ParameterInterfaceT("small_strain_StVenant_DP_2D")
+DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const ElasticT& element):
+	DPSSKStV(in, element),
+	Material2DT(in, kPlaneStrain),
+	fStress2D(2),
+	fModulus2D(dSymMatrixT::NumValues(2)),
+	fTotalStrain3D(3)
 {
-	/* reset default value */
-	fConstraint = kPlaneStrain;
+
 }
 
 /* returns elastic strain (3D) */
-const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain, 
+const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 	const ElementCardT& element, int ip)
 {
-	/* 2D -> 3D (plane strain) */
-	fTotalStrain3D.ExpandFrom2D(totalstrain);
+/* 2D -> 3D (plane strain) */
+fTotalStrain3D.ExpandFrom2D(totalstrain);
 
+/* inherited */
+return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
+}
+
+/* print parameters */
+void DPSSKStV2D::Print(ostream& out) const
+{
 	/* inherited */
-	return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
+	DPSSKStV::Print(out);
+	Material2DT::Print(out);
+}
+
+/* print name */
+void DPSSKStV2D::PrintName(ostream& out) const
+{
+	/* inherited */
+	DPSSKStV::PrintName(out);
+	out << "    2D\n";
 }
 
 /* moduli */
@@ -31,14 +48,7 @@ const dMatrixT& DPSSKStV2D::c_ijkl(void)
 {
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(DPSSKStV::c_ijkl());
-	return fModulus2D;
-}
-
-/* moduli */
-const dMatrixT& DPSSKStV2D::ce_ijkl(void)
-{
-	/* 3D -> 2D */
-	fModulus2D.Rank4ReduceFrom3D(DPSSKStV::ce_ijkl());
+	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 
@@ -47,17 +57,16 @@ const dSymMatrixT& DPSSKStV2D::s_ij(void)
 {
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(DPSSKStV::s_ij());
+	fStress2D *= fThickness;
 	return fStress2D;
 }
 
-/* accept parameter list */
-void DPSSKStV2D::TakeParameterList(const ParameterListT& list)
+/* returns the strain energy density for the specified strain */
+double DPSSKStV2D::StrainEnergyDensity(void)
 {
-	/* inherited */
-	DPSSKStV::TakeParameterList(list);
-
-	/* dimension work space */
-	fStress2D.Dimension(2);
-	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
-	fTotalStrain3D.Dimension(3);
+	return fThickness*DPSSKStV::StrainEnergyDensity();
 }
+
+/***********************************************************************
+* Protected
+***********************************************************************/

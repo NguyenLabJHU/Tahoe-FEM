@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.h,v 1.5 2002-10-20 22:39:06 paklein Exp $ */
+/* $Id: FindNeighborT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighborT.h                                                        */
 
@@ -11,12 +11,8 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
 /* forward declarations */
-class iGridManager1DT;
+#include "ios_fwd_decl.h"
 class iGridManager2DT;
 class iGridManager3DT;
 
@@ -42,12 +38,11 @@ public:
 private:
 
 	/* Determine neighbors */
-	void FindNeighors1D(double tolerance);
 	void FindNeighors2D(double tolerance);
 	void FindNeighors3D(double tolerance);
 	
 	/* allocate memory */
-	void Dimension(int numpts, int nsd);
+	void Allocate(int numpts, int nsd);
 
 	/* Determine number of 2 body interactions */
 	int Count2Body(void) const;
@@ -73,10 +68,8 @@ private:
 	const dArray2DT& fglCoords;	//all nodal coordinates
 	dArray2DT fCoords;			//searched nodal coordinates
 	
-	iGridManager1DT*        fGrid1D;        //search grid
 	iGridManager2DT*	fGrid2D;	//search grid
 	iGridManager3DT*	fGrid3D;	//search grid
 };
 
-} // namespace Tahoe 
 #endif /* _FIND_NEIGHBORT_H_ */

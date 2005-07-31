@@ -1,30 +1,30 @@
-/* $Id: MixedSWDiamondT.cpp,v 1.6 2004-07-15 08:30:17 paklein Exp $ */
-/* created: paklein (03/22/1997) */
+/* $Id: MixedSWDiamondT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (03/22/1997)                                          */
+/* Interface for heterogeneous diamond cubic lattice                      */
+
 #include "MixedSWDiamondT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
+#include "FEManagerT.h"
+#include "NodeManagerT.h"
 #include "FindNeighbor23T.h"
-#include "ScheduleT.h"
-
-using namespace Tahoe;
+#include "LoadTime.h"
 
 /* parameters */
 const int kSWMaxNeighbors0 = 4;
 
-/* constructor */
-MixedSWDiamondT::MixedSWDiamondT(const ElementSupportT& support, const FieldT& field):
-	SWDiamondT(support, field),
+/*
+* constructor
+*/
+MixedSWDiamondT::MixedSWDiamondT(FEManagerT& fe_manager):SWDiamondT(fe_manager),
 	fCurrMatType(-1)
 {
-ExceptionT::GeneralFail("MixedSWDiamondT::MixedSWDiamondT", "out of date");
-#if 0
-	ElementSupport().Input() >> fLTfNum;
-	fLTfPtr = ElementSupport().Schedule(fLTfNum);
-#endif
+	fFEManager.Input() >> fLTfNum;
+	fLTfPtr = GetLTfPtr(fLTfNum);
 }
 
 /*
@@ -37,7 +37,7 @@ void MixedSWDiamondT::InitStep(void)
 	SWDiamondT::InitStep();
 	
 	/* update variable material properties */
-	double x   = fLTfPtr->Value();
+	double x   = fLTfPtr->LoadFactor();
 	double xm1 = 1.0 - x; //assumes 0 ² x ² 1 during the run!!!!
 
 	/* 3rd material is variable */
@@ -66,9 +66,9 @@ void MixedSWDiamondT::ReadMaterialData(ifstreamT& in)
 {
 	int numsets;
 	
-	in >> numsets;	if (numsets < 1) throw ExceptionT::kBadInputValue;
+	in >> numsets;	if (numsets < 1) throw eBadInputValue;
 
-	fSWDataList.Dimension(numsets);
+	fSWDataList.Allocate(numsets);
 
 	for (int i = 0; i < numsets; i++)
 		fSWDataList[i].Read(in);	
@@ -87,7 +87,7 @@ void MixedSWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
 	int num_nodes_used;
 	in >> num_nodes_used;
-	if (num_nodes_used != -1 /* || num_nodes_used > 0 */) throw ExceptionT::kBadInputValue;
+	if (num_nodes_used != -1 /* || num_nodes_used > 0 */) throw eBadInputValue;
 								//general case not implemented yet		
 
 	/* neighbor distance assuming material 0*/
@@ -100,14 +100,14 @@ void MixedSWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		EchoNodeTags(in, out);
 	
 		/* connector */
-		FindNeighbor23T Connector(ElementSupport().CurrentCoordinates(), kSWMaxNeighbors0);
+		FindNeighbor23T Connector(fNodes->CurrentCoordinates(), kSWMaxNeighbors0);
 	
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(fNodes_2Body, fNodes_3Body, tolerance);
 	}
 	else //only use specified nodes
 	{
-		throw ExceptionT::kGeneralFail;
+		throw eGeneralFail;
 	
 		//see MixedSWDiamondT for sample code
 	}
@@ -165,11 +165,11 @@ bool MixedSWDiamondT::Next3Body(void)
 /* echo node type tags */
 void MixedSWDiamondT::EchoNodeTags(istream& in, ostream& out)
 {
-	int numnodes = ElementSupport().NumNodes();
+	int numnodes = fNodes->NumNodes();
 	int numtypes = fSWDataList.Length();
 
 	/* allocate memory */
-	fNodeTypes.Dimension(numnodes);
+	fNodeTypes.Allocate(numnodes);
 
 	/* header */
 	out << "\n Node type tags : \n";
@@ -185,7 +185,7 @@ void MixedSWDiamondT::EchoNodeTags(istream& in, ostream& out)
 
 		/* checks */
 		if (fNodeTypes[nodenum] < 1 ||
-		    fNodeTypes[nodenum] > numtypes) throw ExceptionT::kBadInputValue;
+		    fNodeTypes[nodenum] > numtypes) throw eBadInputValue;
 	
 		out << setw(kIntWidth) << nodenum;
 		out << setw(kIntWidth) << fNodeTypes[nodenum];

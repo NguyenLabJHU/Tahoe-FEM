@@ -1,10 +1,10 @@
-/* $Id: ErcolessiAdamsAl.cpp,v 1.4 2004-07-15 08:26:52 paklein Exp $ */
-/* created: paklein (12/02/1996) */
+/* $Id: ErcolessiAdamsAl.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (12/02/1996)                                          */
+/* ErcolessiAdamsAl.cpp                                                   */
+
 #include "ErcolessiAdamsAl.h"
 #include <iostream.h> //TEMP
 #include "CubicSplineT.h"
-
-using namespace Tahoe;
 
 /* lattice parameters - angstrom */
 //const double kLatticeParameterAl = 4.032; //given by E&A
@@ -77,7 +77,7 @@ void ErcolessiAdamsAl::SetPairPotential(void)
 	dArray2DT	coeff(18, 4, coeffdata);
 
 	fPairPotential = new CubicSplineT(knots, coeff);
-	if (!fPairPotential) throw ExceptionT::kOutOfMemory;
+	if (!fPairPotential) throw(eOutOfMemory);
 }
 
 void ErcolessiAdamsAl::SetEmbeddingEnergy(void)
@@ -117,7 +117,7 @@ void ErcolessiAdamsAl::SetEmbeddingEnergy(void)
 	dArray2DT	coeff(14, 4, coeffdata);
 
 	fEmbeddingEnergy = new CubicSplineT(knots, coeff);
-	if (!fEmbeddingEnergy) throw ExceptionT::kOutOfMemory;
+	if (!fEmbeddingEnergy) throw(eOutOfMemory);
 }
 
 void ErcolessiAdamsAl::SetElectronDensity(void)
@@ -165,5 +165,5 @@ void ErcolessiAdamsAl::SetElectronDensity(void)
 	dArray2DT	coeff(18, 4, coeffdata);
 
 	fElectronDensity = new CubicSplineT(knots, coeff);
-	if (!fElectronDensity) throw ExceptionT::kOutOfMemory;
+	if (!fElectronDensity) throw(eOutOfMemory);
 }

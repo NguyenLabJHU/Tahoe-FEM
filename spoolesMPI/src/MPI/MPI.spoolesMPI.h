@@ -1,7 +1,7 @@
 /*  spoolesMPI.h  */
 
-#ifndef _MPI_SPOOLES_MPI_H_
-#define _MPI_SPOOLES_MPI_H_
+#ifndef _SPOOLES_MPI_H_
+#define _SPOOLES_MPI_H_
 
 #include "mpi.h"
 #include "FrontMtx.h"
@@ -1187,4 +1187,4 @@ makeSendRecvIVLs (
 ) ;
 /*--------------------------------------------------------------------*/
 
-#endif /* _MPI_SPOOLES_MPI_H_ */
+#endif

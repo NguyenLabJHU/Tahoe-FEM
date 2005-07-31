@@ -1,6 +1,7 @@
-/* $Id: TriDiagdMatrixT.h,v 1.5 2005-07-29 03:09:33 paklein Exp $ */
+/* $Id: TriDiagdMatrixT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
 /* created: paklein (01/15/1998)                                          */
 /* Triadiagonal matrix with Gauss elimination.                            */
+
 #ifndef _TRIDIAG_DMATRIX_T_H_
 #define _TRIDIAG_DMATRIX_T_H_
 
@@ -9,8 +10,6 @@
 
 /* base class */
 #include "nArrayT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class dArrayT;
@@ -49,7 +48,7 @@ inline void TriDiagdMatrixT::SetRow(int row, double L, double D, double R)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (row < 0 || row >= fRows) ExceptionT::OutOfRange("TriDiagdMatrixT::SetRow");
+	if (row < 0 || row >= fRows) throw(eOutOfRange);
 #endif
 
 	pL[row] = L;	
@@ -61,7 +60,7 @@ inline void TriDiagdMatrixT::AddToRow(int row, double L, double D, double R)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (row < 0 || row >= fRows) ExceptionT::OutOfRange("TriDiagdMatrixT::AddToRow");
+	if (row < 0 || row >= fRows) throw(eOutOfRange);
 #endif
 
 	pL[row] += L;	
@@ -72,5 +71,4 @@ inline void TriDiagdMatrixT::AddToRow(int row, double L, double D, double R)
 /* dimensions */
 inline int TriDiagdMatrixT::Rows(void) const { return (fRows); }
 
-} // namespace Tahoe 
 #endif /* _TRIDIAG_DMATRIX_T_H_ */

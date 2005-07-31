@@ -9,19 +9,12 @@
 #define TT_SOLARIS 1
 #define TT_POSIX   2
 
-/* set the thread type based on compile time parameters */
+/* disable threads */
+#if 1
 #define THREAD_TYPE TT_NONE
-
-#ifdef __POSIX_THREADS__
-#undef THREAD_TYPE
+#else 
 #define THREAD_TYPE TT_POSIX
-#endif
-
-#ifdef __SOLARIS_THREADS__
-#undef THREAD_TYPE
-#define THREAD_TYPE TT_SOLARIS
-#endif
- 
+#endif 
  
 #if THREAD_TYPE == TT_SOLARIS
 #include <thread.h>

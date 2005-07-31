@@ -1,84 +1,90 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.16 2005-02-13 22:19:55 paklein Exp $ */
-/* created: paklein (11/12/1999) */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (11/12/1999)                                          */
+
 #include "MeshFreeElementSupportT.h"
 
-
+#include "fstreamT.h"
 #include "iAutoArrayT.h"
 #include "MeshFreeShapeFunctionT.h"
-#include "MeshFreeNodalShapeFunctionT.h"
 #include "ElementCardT.h"
 #include "MeshFreeSupportT.h"
+
+#include "ModelFileT.h"
+#include "ExodusT.h"
+
+/* needed for TraceNode */
+#include "FEManagerT.h"
 #include "ElementBaseT.h"
-#include "ParameterUtils.h"
-
-#include "ModelManagerT.h"
-#include "CommunicatorT.h"
-
-using namespace Tahoe;
 
 /* parameters */
 const int kHeadRoom = 10; // percent
 
+#ifdef __MPI__
+#include "mpi.h"
+#endif
+
 /* constructor */
-MeshFreeElementSupportT::MeshFreeElementSupportT(void):
-	ParameterInterfaceT("meshfree_element_support"),
+MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	fMFShapes(NULL),
-	fNodalShapes(NULL),
-	fElemNodesEX(NULL),
 	fLocGroup(kHeadRoom),
 	fNumElemenNodes(0),
-	fNEEArray(kHeadRoom, true),
-	fNEEMatrix(kHeadRoom, true),
+	fNEEArray(kHeadRoom),
+	fNEEMatrix(kHeadRoom),
 	fFieldSet(false),
-	fMapShift(-1),
-	fOffGridID(NULL),
-	fInterpolantID(NULL),
-	fMeshlessID(NULL)
+	fMapShift(-1)
 {
+	/* read */
+	in >> fMeshFreeCode;
+	in >> fd_max;
+	in >> fComplete;
+	in >> fStoreShape;
+	in >> fAutoBorder;
 
+	/* check values */
+	if (fd_max < 1.0) throw eBadInputValue;
+	if (fComplete < 1) throw eBadInputValue;
+	if (fStoreShape != 0 && fStoreShape != 1) throw eBadInputValue;
+	if (fAutoBorder != 0 && fAutoBorder != 1) throw eBadInputValue;
+
+#ifdef __MPI__
+	//TEMP
+	int size;
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	if (size > 1 && fAutoBorder)
+		cout << "\n ::MeshFreeElementSupportT: AutoBorder not extended to parallel" << endl;
+#endif
 }
 
 /* accessors */
-MeshFreeSupportT& MeshFreeElementSupportT::MeshFreeSupport(void) const {
+MeshFreeSupportT& MeshFreeElementSupportT::MeshFreeSupport(void) const
+{
 	return fMFShapes->MeshFreeSupport();
 }
 
-/* information about subordinate parameter lists */
-void MeshFreeElementSupportT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-
-	/* ID's for off grid nodes */
-	sub_list.AddSub("off_grid_node_ID_list", ParameterListT::ZeroOrOnce);
-
-	/* ID's for interpolant nodes */
-	sub_list.AddSub("interpolant_node_ID_list", ParameterListT::ZeroOrOnce);
-
-	/* ID's for forces meshless nodes */
-	sub_list.AddSub("meshfree_node_ID_list", ParameterListT::ZeroOrOnce);
-}
-
-/* accept parameter list */
-void MeshFreeElementSupportT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-
-	/* collect pointers to class parameters */
-	fOffGridID = list.List("off_grid_node_ID_list");
-	fInterpolantID = list.List("interpolant_node_ID_list");
-	fMeshlessID = list.List("meshfree_node_ID_list");
-}
-
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
+
+/* print element group data */
+void MeshFreeElementSupportT::PrintControlData(ostream& out) const
+{
+	/* echo */
+	out << " Mesh-free formulation . . . . . . . . . . . . . = " << fMeshFreeCode << '\n';
+	out << "    eq. " << MeshFreeSupportT::kEFG  << ", EFG\n";
+	out << "    eq. " << MeshFreeSupportT::kRKPM << ", RKPM\n";
+	out << " Domain of influence scale factor (d_max). . . . = " << fd_max        << '\n';
+	out << " Order of completeness of basis functions. . . . = " << fComplete     << '\n';
+	out << " Store all shape functions and derivatives . . . = " << fStoreShape   << '\n';
+	out << " Auto selection/generation of border transition. = " << fAutoBorder;
+	out << ((fAutoBorder == 1) ? " (ACTIVE)" : " (INACTIVE)") << '\n';
+	out.flush();
+}
 
 /* initialization */
-void MeshFreeElementSupportT::InitSupport(ostream& out,
+void MeshFreeElementSupportT::InitSupport(ifstreamT& in, ostream& out,
 	AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
-	int numDOF, int max_node_num, ModelManagerT* model)
+	int numDOF, int max_node_num, const StringT& model_file,
+	IOBaseT::FileTypeT format)
 {
 	/* configure variable length element arrays */
 	fElemNodesEX = &(fMFShapes->ElementNeighbors());
@@ -86,7 +92,7 @@ void MeshFreeElementSupportT::InitSupport(ostream& out,
 	
 	/* set element card pointers */
 	int num_cells = elem_cards.Length();
-	fUNodeLists.Dimension(num_cells);
+	fUNodeLists.Allocate(num_cells);
 	for (int i = 0; i < num_cells; i++)
 	{
 		ElementCardT& card = elem_cards[i];
@@ -99,8 +105,8 @@ void MeshFreeElementSupportT::InitSupport(ostream& out,
 		fElemEqnosEX.RowAlias(i, card.Equations());
 	}
 	
-	/* collect FE/meshfree nodes */
-	CollectNodesData(out, max_node_num, model);
+	/* echo FE/meshfree nodes */
+	EchoNodesData(in, out, max_node_num, model_file, format);
 
 	/* collect interpolant nodes = (auto) + (FE) - (EFG) */
 	SetAllFENodes(surface_nodes);
@@ -146,7 +152,7 @@ void MeshFreeElementSupportT::SetNodalField(const dArray2DT& dof)
 	int range = max - fMapShift + 1;
 	
 	/* dimension */
-	fGlobalToNodesUsedMap.Dimension(range);
+	fGlobalToNodesUsedMap.Allocate(range);
 	fGlobalToNodesUsedMap = -1;
 
 	/* make map */
@@ -167,7 +173,7 @@ void MeshFreeElementSupportT::GetNodalField(const dArray2DT& dof,
 		/* field data might be "free"-ed */
 		if (nodes.Length() > fGlobalToNodesUsedMap.Length() ||
 		    field.MinorDim() != fNodalU.MinorDim() ||
-		    fMapShift < 0) throw ExceptionT::kGeneralFail;
+		    fMapShift < 0) throw eGeneralFail;
 #endif	
 
 		for (int i = 0; i < nodes.Length(); i++)
@@ -210,11 +216,11 @@ int MeshFreeElementSupportT::MarkActiveCells(AutoArrayT<ElementCardT>& elem_card
 		/* mark cell */
 		if (active)
 		{
-			elem_cards[i].Flag() = ElementCardT::kON;
+			elem_cards[i].Flag() = 1;
 			active_count++;
 		}
 		else
-			elem_cards[i].Flag() = ElementCardT::kOFF;
+			elem_cards[i].Flag() = 0;
 	}
 	return active_count;
 }
@@ -227,7 +233,7 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 	out << "\n MeshFreeElementSupportT::TraceNode: " << node + 1 << endl;
 
 	/* node map */
-	const ArrayT<int>* node_map = element_group.ElementSupport().NodeMap();
+	const iArrayT* node_map = element_group.FEManager().NodeMap();
 
 	/* shape function data */
 	MeshFreeSupportT& mf_support = fMFShapes->MeshFreeSupport();
@@ -242,20 +248,19 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 	mf_support.LoadNodalData(node, neighbors, phi, Dphi);
 
 	/* nodal support size */
-	dArray2DT nodal_params(neighbors.Length(), mf_support.NodalParameters().MinorDim());
-	mf_support.GetSupportParameters(neighbors, nodal_params);
+	dArrayT d_max(neighbors.Length());
+	mf_support.GetDmax(neighbors, d_max);
 
 	/* write */
 	out << setw(kIntWidth) << "node"
-        << setw(d_width) << "phi"
-	    << setw(nodal_params.MinorDim()*d_width) << "d_max" << '\n';
+	    << setw(d_width) << "d_max"
+	    << setw(d_width) << "phi"   << '\n';
 	for (int i = 0; i < neighbors.Length(); i++)
 	{
 		out << setw(kIntWidth) <<
 			((node_map != NULL) ? (*node_map)[neighbors[i]] : neighbors[i]) + 1
-			<< setw(d_width) << phi[i];
-		nodal_params.PrintRow(i, out);
-		out << '\n';
+		    << setw(d_width) << d_max[i]
+		    << setw(d_width) << phi[i] << '\n';
 	}
 
 	/* integration cell information */
@@ -266,8 +271,8 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 		if (u_nodes.HasValue(node))
 		{
 			/* cell map */
-			const StringT& block_ID = element_group.ElementBlockID(j);
-			const iArrayT* element_map = element_group.ElementSupport().ElementMap(block_ID);
+			int block_ID = element_group.ElementBlockID(j);
+			const iArrayT* element_map = element_group.FEManager().ElementMap(block_ID);
 		
 			out << "    block ID: " << block_ID << '\n';
 			out << "(local) cell: " << j + 1 << '\n';
@@ -282,21 +287,21 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 			mf_support.LoadElementData(j, neighbors, phi, Dphi);
 	
 			/* nodal support size */
-			dArray2DT nodal_params(neighbors.Length(), mf_support.NodalParameters().MinorDim());
-			mf_support.GetSupportParameters(neighbors, nodal_params);
+			dArrayT d_max(neighbors.Length());
+			mf_support.GetDmax(neighbors, d_max);
 
 			/* write header */
 			out << setw(kIntWidth) << "node"
-			    << setw(nodal_params.MinorDim()*d_width) << "d_max";
+			    << setw(d_width) << "d_max";
 			for (int i = 0; i < num_ip; i++)
 				out << setw(d_width - 2) << "phi[" << i+1 << "]";
 			out << '\n';
 			
 			for (int k = 0; k < neighbors.Length(); k++)
 			{
-				out << setw(kIntWidth) 
-				    << ((node_map != NULL) ? (*node_map)[neighbors[k]] : neighbors[k]) + 1;
-				nodal_params.PrintRow(k, out);
+				out << setw(kIntWidth) <<
+					((node_map != NULL) ? (*node_map)[neighbors[k]] : neighbors[k]) + 1
+					<< setw(d_width) << d_max[k];
 				for (int i = 0; i < num_ip; i++)
 					out << setw(d_width) << phi(i,k);			
 				out << '\n';
@@ -317,61 +322,141 @@ void MeshFreeElementSupportT::WeightNodes(iArrayT& weight) const
 }
 
 /***********************************************************************
- * Private
- ***********************************************************************/
+* Private
+***********************************************************************/
 
 /* class specific data */
-void MeshFreeElementSupportT::CollectNodesData(ostream& out, int max_node_num,
-	ModelManagerT* model)
+void MeshFreeElementSupportT::EchoNodesData(ifstreamT& in, ostream& out, int max_node_num,
+	const StringT& model_file, IOBaseT::FileTypeT format)
 {
-	const char caller[] = "MeshFreeElementSupportT::CollectNodesData";
+	/* could echo "sampling points" */
 
-	/* temp space */
-	ArrayT<StringT> set_ID;
+	/* EFG nodes not on the integration grid */
+	int num_offgrid;
+	in >> num_offgrid;
+	out << "\n Number of nodes off the integration grid. . . . = "
+	    <<num_offgrid << '\n';
+	if (num_offgrid > 0)
+	{
+		/* read data */
+		ReadNodesData(in, num_offgrid, model_file, format, fOffGridNodes);
 
-	/* meshfree nodes not on the integration grid */
-	if (fOffGridID) {
-		StringListT::Extract(*fOffGridID, set_ID);
-		model->ManyNodeSets(set_ID, fOffGridNodes);
-		fOffGridID = NULL;
-	} else
-		fOffGridNodes.Dimension(0);
-	out << "\n Number of nodes off the integration grid. . . . = " << fOffGridNodes.Length() << '\n';
+		/* correct offset */
+		if (fOffGridNodes.Length() > 0) // empty sets
+		{
+			fOffGridNodes--;
 
-	if (fOffGridNodes.Length() > 0) /* skip empty sets */
-	    if (fOffGridNodes.Min() < 0 || fOffGridNodes.Max() >= max_node_num) /* check */
-	    	ExceptionT::BadInputValue(caller, "off grid node is out of range: %d > %d",
-	    		fOffGridNodes.Max()+1, max_node_num);
-	    		
+			/* check */
+			if (fOffGridNodes.Min() < 0 || fOffGridNodes.Max() >= max_node_num)
+			{
+				cout << "\n MeshFreeElementSupportT::EchoNodesData: off grid EFG node out of range" << endl;
+				throw eBadInputValue;
+			}
+		}
+	}
 	
 	/* interpolant nodes */
-	if (fInterpolantID) {
-		StringListT::Extract(*fInterpolantID, set_ID);
-		model->ManyNodeSets(set_ID, fFENodes);
-		fInterpolantID = NULL;
-	} else
-		fFENodes.Dimension(0);
-	out << " Number of interpolant shape function nodes. . . = " << fFENodes.Length() << '\n';
+	int num_FE;
+	in >> num_FE;
+	out << " Number of interpolant shape function nodes. . . = " << num_FE << '\n';
+	if (num_FE > 0)
+	{
+		/* read data */
+		ReadNodesData(in, num_FE, model_file, format, fFENodes);
 
-	if (fFENodes.Length() > 0) /* skip empty sets */
-	    if (fFENodes.Min() < 0 || fFENodes.Max() >= max_node_num) /* check */
-	    	ExceptionT::BadInputValue(caller, "interpolant node is out of range: %d > %d",
-	    		fFENodes.Max()+1, max_node_num);
+		/* correct offset */
+		if (fFENodes.Length() > 0) // empty sets
+		{
+			fFENodes--;
 
+			/* check */
+			if (fFENodes.Min() < 0 || fFENodes.Max() >= max_node_num)
+			{
+				cout << "\n MeshFreeElementSupportT::EchoNodesData: interpolant node out of range" << endl;
+				throw eBadInputValue;
+			}
+		}
+	}
 
-	/* forced meshless nodes */
-	if (fMeshlessID) {
-		StringListT::Extract(*fMeshlessID, set_ID);
-		model->ManyNodeSets(set_ID, fEFGNodes);
-		fMeshlessID = NULL;
-	} else
-		fEFGNodes.Dimension(0);
-	out << " Number of pure EFG shape function nodes . . . . = "  << fEFGNodes.Length() << '\n';
+	/* pure EFG nodes */
+	int num_EFG;
+	in >> num_EFG;
+	out << " Number of pure EFG shape function nodes . . . . = " << num_EFG << '\n';
+	if (num_EFG > 0)
+	{
+		/* read data */
+		ReadNodesData(in, num_EFG, model_file, format, fEFGNodes);
 
-	if (fEFGNodes.Length() > 0) /* skip empty sets */
-		if (fEFGNodes.Min() < 0 || fEFGNodes.Max() > max_node_num) /* check */
-	    	ExceptionT::BadInputValue(caller, "meshless node is out of range: %d > %d",
-	    		fEFGNodes.Max()+1, max_node_num);
+		/* correct offset */
+		if (fEFGNodes.Length() > 0) // empty sets
+		{
+			fEFGNodes--;
+
+			/* check */
+			if (fEFGNodes.Min() < 0 || fEFGNodes.Max() > max_node_num)
+			{
+				cout << "\n MeshFreeElementSupportT::EchoNodesData: set EFG node out of range" << endl;
+				throw eBadInputValue;
+			}
+		}
+	}
+}
+
+void MeshFreeElementSupportT::ReadNodesData(ifstreamT& in, int num_id, const StringT& model_file,
+	IOBaseT::FileTypeT format, iArrayT& nodes)
+{
+	/* read contact nodes */
+	switch (format)
+	{
+		case IOBaseT::kTahoe:
+		{
+			nodes.Allocate(num_id);
+			in >> nodes;
+			break;
+		}
+		case IOBaseT::kTahoeII:
+		{
+			/* number of node sets */
+			if (num_id > 0)
+			{
+				/* open database */
+				ModelFileT database;
+				database.OpenRead(model_file);
+
+				/* echo set ID's */
+				iArrayT ID_list(num_id);
+				in >> ID_list;
+				
+				/* collect */
+				if (database.GetNodeSets(ID_list, nodes) != ModelFileT::kOK)
+					throw eBadInputValue;
+			}
+			break;
+		}
+		case IOBaseT::kExodusII:
+		{
+			/* number of node sets */
+			if (num_id > 0)
+			{
+				/* echo set ID's */
+				iArrayT ID_list(num_id);
+				in >> ID_list;
+
+				/* open database */
+				ExodusT database(cout);
+				database.OpenRead(model_file);
+				
+				/* read collect all nodes in sets */
+				database.ReadNodeSets(ID_list, nodes);
+			}				
+			break;
+		}
+		default:
+
+			cout << "\n MeshFreeElementSupportT::ReadNodesData: unsupported input format: ";
+			cout << format << endl;
+			throw eGeneralFail;
+	}
 }
 
 /* set nodes which will have nodally exact shapefunctions */
@@ -390,7 +475,7 @@ void MeshFreeElementSupportT::SetAllFENodes(const iArrayT& fe_nodes)
 		//NOTE: this could be more efficient
 
 	/* generate final list */
-	fAllFENodes.Dimension(all_fe_nodes.Length() - all_fe_nodes.Count(-1));
+	fAllFENodes.Allocate(all_fe_nodes.Length() - all_fe_nodes.Count(-1));
 	int* from = all_fe_nodes.Pointer();
 	int*   to = fAllFENodes.Pointer();
 	for (int k = 0; k < all_fe_nodes.Length(); k++)

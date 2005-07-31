@@ -1,68 +1,45 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.21 2004-07-15 08:26:03 paklein Exp $ */
-/* created: paklein (06/23/1999)*/
+/* $Id: XuNeedleman3DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (06/23/1999)                                          */
+
 #include "XuNeedleman3DT.h"
 
 #include <iostream.h>
 #include <math.h>
 
-#include "ExceptionT.h"
-using namespace Tahoe;
+#include "ExceptionCodes.h"
+#include "fstreamT.h"
 
 /* class parameters */
 const int    knumDOF = 3;
 const double kExpMax = 20;
 
-XuNeedleman3DT::XuNeedleman3DT(dArrayT& params): SurfacePotentialT(knumDOF)
+/* constructor */
+XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
-	SetName("Xu-Needleman_3D");
-
-	q = params[0];; // phi_t/phi_n
-	r = params[1]; // delta_n* /d_n
-	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
+	in >> q; // phi_t/phi_n
+	in >> r; // delta_n* /d_n
+	if (q < 0.0 || r < 0.0) throw eBadInputValue;
 	
-	d_n = params[2]; // characteristic normal opening
-	d_t = params[3]; // characteristic tangent opening
-	if (d_n < 0.0 || d_t < 0.0) throw ExceptionT::kBadInputValue;
+	in >> d_n; // characteristic normal opening
+	in >> d_t; // characteristic tangent opening
+	if (d_n < 0.0 || d_t < 0.0) throw eBadInputValue;
 	
-	phi_n = params[4]; // mode I work to fracture
-	if (phi_n < 0.0) throw ExceptionT::kBadInputValue;
+	in >> phi_n; // mode I work to fracture
+	if (phi_n < 0.0) throw eBadInputValue;
 
-	r_fail = params[5]; // d/d_(n/t) for which surface is considered failed
-	if (r_fail < 1.0) throw ExceptionT::kBadInputValue;
+	in >> r_fail; // d/d_(n/t) for which surface is considered failed
+	if (r_fail < 1.0) throw eBadInputValue;
 
-	fKratio = params[6]; // stiffening ratio
-	if (fKratio < 0.0) throw ExceptionT::kBadInputValue;
-	
+	in >> fKratio; // stiffening ratio
+	if (fKratio < 0.0) throw eBadInputValue;
 	fK = fKratio*phi_n/(d_n*d_n);
 }
 
-XuNeedleman3DT::XuNeedleman3DT(void): 
-	SurfacePotentialT(knumDOF),
-	q(0.0),
-	r(0.0),
-	d_n(0.0),
-	d_t(0.0),
-	phi_n(0.0),
-	r_fail(0.0),
-	fKratio(0.0),
-	fK(0.0)
-{
-	SetName("Xu-Needleman_3D");
-}
-
 /* surface potential */
-double XuNeedleman3DT::FractureEnergy(const ArrayT<double>& state) 
+double XuNeedleman3DT::Potential(const dArrayT& jump_u)
 {
-#pragma unused(state)
-	return phi_n; 
-}
-
-double XuNeedleman3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
-{
-#pragma unused(state)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;	
+	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
@@ -107,14 +84,10 @@ double XuNeedleman3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 }
 
 /* traction vector given displacement jump vector */	
-const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
+const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u)
 {
-#pragma unused(state)
-#pragma unused(sigma)
-#pragma unused(qIntegrate)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
+	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
@@ -122,45 +95,54 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	double u_t1 = jump_u[0];
 	double u_t2 = jump_u[1];
 	double u_n  = jump_u[2];
-	
+
 	z1 = 1./d_n;
 	z2 = 1./(d_t*d_t);
-	z3 = r-q;
-	z4 = 1./(-1. + r);
-	z5 = 1 - r;
-	z6 = -z2*(u_t1*u_t1 + u_t2*u_t2);
+	z3 = -q;
+	z4 = -1. + r;
+	z5 = -r;
+	z6 = u_t1*u_t1;
+	z7 = u_t2*u_t2;
 	z8 = -u_n*z1;
-	z9 = -z8;
-	z10 = 1. - q;
-	
+	z9 = u_n*z1;
+	z10 = 1. + z3;
+	z3 = r + z3;
+	z4 = 1./z4;
+	z6 = z6 + z7;
 	// limit compressive deformation
 	if (z8 > kExpMax)
-		ExceptionT::BadJacobianDet("XuNeedleman2DT::Traction", "exp(x): x = %g > kExpMax", z8);
-
+	{
+		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z8 << " > kExpMax" << endl;
+		throw eBadJacobianDet;
+	}	
 	z7 = exp(z8);
 	z11 = z1*z10*z4;
-	z12 = z3*z4*z9 + q;
-	z5 += z9;
+	z6 = -z2*z6;
+	z12 = z3*z4*z9;
+	z5 = 1. + z5 + z9;
 	z9 = exp(z6); //don't limit shear opening
-	z5 *= z10*z4;
-	z6 += z8; // since (z6 < 0), (z6' < z8) and z8 is checked above
+	z12 = q + z12;
+	z5 = z10*z4*z5;
+	z6 = z6 + z8; // since (z6 < 0), (z6' < z8) and z8 is checked above
 	z6 = exp(z6);
 	z8 = -z9;
-	z3 *= z1*z4*z8;
-	z4 = z12*z8 + z5;
-	z2 *= 2.*phi_n*z12*z6;
-	z3 += z11;
+	z3 = z1*z3*z4*z8;
+	z4 = z12*z8;
+	z2 = 2.*phi_n*z12*z2*z6;
+	z3 = z11 + z3;
+	z4 = z4 + z5;
 	z5 = u_t1*z2;
-	z2 *= u_t2;
+	z2 = u_t2*z2;
 	z6 = phi_n*z7;
-	z3 *= z6;
-	z1 *= -z4*z6;
-	z1 += z3;
+	z3 = z3*z6;
+	z1 = -z1*z4*z6;
+	z1 = z1 + z3;
+	//z1 = List(z5,z2,z1);
 	
 	fTraction[0] = z5;
 	fTraction[1] = z2;
 	fTraction[2] = z1;
-	
+
 	/* penetration */
 	if (u_n < 0.0) fTraction[2] += u_n*fK;
 
@@ -169,13 +151,10 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 
 
 /* potential stiffness */
-const dMatrixT& XuNeedleman3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
+const dMatrixT& XuNeedleman3DT::Stiffness(const dArrayT& jump_u)
 {
-#pragma unused(sigma)
-#pragma unused(state)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
+	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
@@ -263,13 +242,8 @@ const dMatrixT& XuNeedleman3DT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 }
 
 /* surface status */
-SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u, const ArrayT<double>& state)
+SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u)
 {
-#pragma unused(state)
-#if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
-#endif
-
 	double u_t1 = jump_u[0];
 	double u_t2 = jump_u[1];
 	double u_t  = sqrt(u_t2*u_t2 + u_t1*u_t1);
@@ -283,77 +257,19 @@ SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u, const A
 	else
 		return Precritical;
 }
+	
+void XuNeedleman3DT::PrintName(ostream& out) const
+{
+	out << "    Xu-Needleman 3D\n";
+}
 
-#if 0
 /* print parameters to the output stream */
 void XuNeedleman3DT::Print(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << " Surface energy ratio (phi_t/phi_n). . . . . . . = " << q       << '\n';
 	out << " Critical opening ratio (delta_n* /d_n). . . . . = " << r       << '\n';
 	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
 	out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
 	out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fKratio << '\n';
-#else
-#pragma unused(out)
-#endif
-}
-#endif
-
-/* describe the parameters  */
-void XuNeedleman3DT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	SurfacePotentialT::DefineParameters(list);
-
-	ParameterT q_(q, "q");
-	q_.AddLimit(0.0, LimitT::Lower);
-	q_.AddLimit(1.0, LimitT::UpperInclusive);
-	q_.SetDefault(1.0);
-	list.AddParameter(q_);
-
-	ParameterT r_(r, "r");
-	r_.AddLimit(0.0, LimitT::LowerInclusive);
-	r_.AddLimit(1.0, LimitT::Upper);
-	r_.SetDefault(0.0);
-	list.AddParameter(r_);
-
-	ParameterT d_n_(d_n, "d_n");
-	d_n_.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(d_n_);
-
-	ParameterT d_t_(d_t, "d_t");
-	d_t_.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(d_t_);
-
-	ParameterT phi_n_(d_t, "phi_n");
-	phi_n_.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(phi_n_);
-
-	ParameterT r_fail_(r_fail, "r_fail");
-	r_fail_.AddLimit(1.0, LimitT::LowerInclusive);
-	list.AddParameter(r_fail_);
-
-	ParameterT Kratio(fKratio, "K_ratio");
-	Kratio.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(Kratio);
-}
-
-/* accept parameter list */
-void XuNeedleman3DT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	SurfacePotentialT::TakeParameterList(list);
-
-	q = list.GetParameter("q");
-	r = list.GetParameter("r");
-	d_n = list.GetParameter("d_n");
-	d_t = list.GetParameter("d_t");
-	phi_n = list.GetParameter("phi_n");
-	r_fail = list.GetParameter("r_fail");
-	fKratio = list.GetParameter("K_ratio");
-
-	/* penetration stiffness */
-	fK = fKratio*phi_n/(d_n*d_n);
 }

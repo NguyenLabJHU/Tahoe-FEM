@@ -1,13 +1,13 @@
-/* $Id: FBD_EAMGlue.cpp,v 1.5 2004-07-15 08:26:52 paklein Exp $ */
-/* created: paklein (01/30/2000) */
+/* $Id: FBD_EAMGlue.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (01/30/2000)                                          */
+/* FBD_EAMGlue.cpp                                                        */
+
 #include "FBD_EAMGlue.h"
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "PhiSplineT.h"
 
-using namespace Tahoe;
-
-/* constructor */
+/* Constructor */
 FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	EAM(lattice)
 {
@@ -27,15 +27,15 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	    dp < 0.0 ||
 	    nr < 2   ||
 	    dr < 0.0 ||
-	 r_cut < 0.0) throw ExceptionT::kBadInputValue;
+	 r_cut < 0.0) throw eBadInputValue;
 	
 	/* work space */
 	dArrayT tmp;
 	dArray2DT table;
 	
 	/* embedding energy */
-	tmp.Dimension(np);
-	table.Dimension(np, 2);
+	tmp.Allocate(np);
+	table.Allocate(np, 2);
 	in >> tmp;
 	table.SetColumn(1, tmp);
 	double p = 0.0;
@@ -45,11 +45,11 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 		p += dp;
 	}
 	fEmbeddingEnergy =  new CubicSplineT(table, CubicSplineT::kParabolic);
-	if (!fEmbeddingEnergy) throw ExceptionT::kOutOfMemory;
+	if (!fEmbeddingEnergy) throw eOutOfMemory;
 	
 	/* phi function */
-	tmp.Dimension(nr);
-	table.Dimension(nr, 2);
+	tmp.Allocate(nr);
+	table.Allocate(nr, 2);
 	in >> tmp;
 	tmp *= sqrt(27.2*0.529);
 	
@@ -72,13 +72,13 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	}
 	//fPairPotential =  new PhiSplineT(table, CubicSplineT::kFreeRun, r_cut);
 	fPairPotential =  new CubicSplineT(table, CubicSplineT::kFreeRun);
-	if (!fPairPotential) throw ExceptionT::kOutOfMemory;
+	if (!fPairPotential) throw eOutOfMemory;
 	
 	/* electron density function */
 	in >> tmp;
 	table.SetColumn(1, tmp);
 	fElectronDensity =  new CubicSplineT(table, CubicSplineT::kParabolic);
-	if (!fElectronDensity) throw ExceptionT::kOutOfMemory;
+	if (!fElectronDensity) throw eOutOfMemory;
 }
 
 /* lattice parameter */

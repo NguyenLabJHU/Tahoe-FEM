@@ -1,7 +1,11 @@
-/* $Id: DiffusionMaterialT.h,v 1.9 2005-01-07 02:16:03 paklein Exp $ */
-/* created: paklein (10/02/1999) */
+/* $Id: DiffusionMaterialT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (10/02/1999)                                          */
+/* Defines the interface for materials for diffusion.                     */
+
 #ifndef _DIFFUSION_MATERIALT_H_
 #define _DIFFUSION_MATERIALT_H_
+
+#include "GlobalT.h"
 
 /* base class */
 #include "ContinuumMaterialT.h"
@@ -10,87 +14,61 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class ifstreamT;
+class ShapeFunctionT;
+class LocalArrayT;
 class DiffusionT;
-class DiffusionMatSupportT;
 
-/** interface for materials for diffusion */
 class DiffusionMaterialT: public ContinuumMaterialT
 {
 public:
 
-	/** constructor */
-	DiffusionMaterialT(void);
+	/* constructor */
+	DiffusionMaterialT(ifstreamT& in, const DiffusionT& element);
 
-	/** set support */
-	void SetDiffusionMatSupport(const DiffusionMatSupportT* support);
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 
-	/** \name parameters at the current field point */
-	/*@{*/
-	/** conductivity */
-	virtual const dMatrixT& k_ij(void);
+	/* conductivity */
+	const dMatrixT& k_ij(void);
 
-	/** heat flux */
-	virtual const dArrayT& q_i(void);
+	/* heat flux */
+	const dArrayT& q_i(void);
 
-	/** change in heat flux with temperature */
-	virtual const dArrayT& dq_i_dT(void) { return fdq_i; };
-
-	/** change in conductivity with temperature */
-	virtual const dMatrixT& dk_ij(void) { return fdk_ij; };
-
+	/* returns the density */
 	double Density(void) const;
-	virtual double SpecificHeat(void) const;
+	double SpecificHeat(void) const;
 	double Capacity(void) const;
-
-	/** change in capacity with temperature */
-	virtual double dCapacity_dT(void) const { return 0; };
-	/*@}*/
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
+	
 protected:
 
-	/** support for diffusion materials */
-	const DiffusionMatSupportT* fDiffusionMatSupport;
+	/* interpolation and gradients */
+	const ShapeFunctionT& fShapes;
 
-	/** \name parameters */
-	/*@{*/
+	/* local displacements */
+	const LocalArrayT& fLocDisp;
+
+	/* parameters */
 	double   fDensity;
 	double   fSpecificHeat;
-	dMatrixT fConductivity;
-	/*@}*/
+	dMatrixT fConductivity;	// always symmetric?
+	
+	/* derived */
+	double fCapacity;
 
-	/** \name return values */
-	/*@{*/
-	/** heat flux return value */
-	dArrayT fq_i;  
-
-	/** heat flux variation return value */
-	dArrayT fdq_i;  
-
-	/** conductivity variation return value */
-	dMatrixT fdk_ij;  
-	/*@}*/
+	/* return value */
+	dMatrixT fT_x; // temperature gradient
+	dArrayT fq_i;  // heat flux
 };
 
 /* returns the density */
 inline double DiffusionMaterialT::Density(void) const { return fDensity; }
 inline double DiffusionMaterialT::SpecificHeat(void) const { return fSpecificHeat; }
-inline double DiffusionMaterialT::Capacity(void) const { return fDensity*SpecificHeat(); }
+inline double DiffusionMaterialT::Capacity(void) const { return fCapacity; }
 
 /* conductivity */
 inline const dMatrixT& DiffusionMaterialT::k_ij(void) { return fConductivity; }
 
-} // namespace Tahoe 
 #endif /* _DIFFUSION_MATERIALT_H_ */

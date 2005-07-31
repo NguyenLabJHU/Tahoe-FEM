@@ -1,4 +1,4 @@
-/* $Id: CMReLabellerT.cpp,v 1.4 2003-11-21 22:41:54 paklein Exp $ */
+/* $Id: CMReLabellerT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "CMReLabellerT.h"
@@ -8,9 +8,6 @@
 #include "AutoArrayT.h"
 
 /* status codes */
-
-using namespace Tahoe;
-
 const int kInActive   = 0;
 const int kPreActive  = 1;
 const int kActive     = 2;
@@ -136,9 +133,9 @@ void CMReLabellerT::Initialize(void)
 	int numnodes = fGraph.NumNodes();
 
 	/* allocate space */
-	fSequence.Dimension(numnodes);
-	fStatus.Dimension(numnodes);
-	fPriority.Dimension(numnodes);
+	fSequence.Allocate(numnodes);
+	fStatus.Allocate(numnodes);
+	fPriority.Allocate(numnodes);
 
 	/* initialize */
 	fSequence =-1;
@@ -203,7 +200,7 @@ void CMReLabellerT::BuildRootedLevel(void)
 	}
 	
 	/* check all nodes used */
-	if (count != nnd) throw ExceptionT::kGeneralFail;
+	if (count != nnd) throw eGeneralFail;
 	
 	/* set end node from last level */
 	fRootedLevel.NodesOnLevel(nodes_used, fRootedLevel.Depth() - 1);
@@ -230,7 +227,7 @@ void CMReLabellerT::SelectNodes(void)
 
 		/* collect top level info */
 		fRootedLevel.NodesOnLevel(topnodes, h_max - 1);
-		degrees.Dimension(topnodes.Length()); //really want to Dimension() every time?
+		degrees.Allocate(topnodes.Length()); //really want to Allocate() every time?
 		fGraph.ReturnDegrees(topnodes, degrees);
 		
 		/* order and halve */
@@ -278,7 +275,7 @@ void CMReLabellerT::NewSequence(void)
 		NewNumber(currnode);
 	
 	/* check that all nodes got renumbered */
-	if (fCurrLabel != fPriority.Length()) throw ExceptionT::kGeneralFail;
+	if (fCurrLabel != fPriority.Length()) throw eGeneralFail;
 }
 
 /* initialize priorities as specified by Sloan */
@@ -309,8 +306,8 @@ void CMReLabellerT::Queue(int nodenum)
 /* assign new number and check adjacent nodes */
 void CMReLabellerT::NewNumber(int nodenum)
 {	
-	const int* adj_i = fGraph.Edges(nodenum);
-	int length_j = fGraph.Degree(nodenum);
+	int* adj_i    = fGraph.Edges(nodenum);
+	int  length_j = fGraph.Degree(nodenum);
 
 	/* queue any adjacent nodes */
 	if (fStatus[nodenum] == kPreActive)
@@ -334,8 +331,8 @@ void CMReLabellerT::MakeActive(int nodenum)
 	fStatus[nodenum]    = kActive;
 
 	/* queue any adjacent nodes */
-	const int* adj_i = fGraph.Edges(nodenum);
-	int length_j = fGraph.Degree(nodenum);
+	int* adj_i    = fGraph.Edges(nodenum);
+	int  length_j = fGraph.Degree(nodenum);
 
 	for (int j = 0; j < length_j; j++)
 		Queue( adj_i[j] );
@@ -375,7 +372,7 @@ void CMReLabellerT::CMSequence(void)
 		Liactive = active_tmp;
 		
 		// array carrying ordering of Liactive
-		Liordered.Dimension(0);
+		Liordered.Allocate(0);
 		
 		// loop through nodes of level i-1
 		for(int j = 0; j < widthiminus1; j++)
@@ -383,7 +380,7 @@ void CMReLabellerT::CMSequence(void)
 			// look at edges of nodes in L_(i-1)
 			int postactivenode = Liminus1[j];
 			iArrayT edges;
-			edges.Alias(fGraph.Degree(postactivenode), fGraph.Edges(postactivenode));
+			edges.Set(fGraph.Degree(postactivenode), fGraph.Edges(postactivenode));
 			SortByMinDegree(edges);
 			
 			// while active nodes still exist in L_i, loop through edges of each node
@@ -428,7 +425,7 @@ void CMReLabellerT::ComputeSize(const iArrayT& sequence, int& bandwidth, int& pr
 {
 #if __option(extended_errorcheck)
 	if (fGraph.NumNodes() != sequence.Length() - 1)
-		throw ExceptionT::kSizeMismatch;
+		throw eSizeMismatch;
 #endif
 
 	// create map
@@ -442,7 +439,7 @@ void CMReLabellerT::ComputeSize(const iArrayT& sequence, int& bandwidth, int& pr
 	bandwidth = 0;
 	for (int i = 0; i < fGraph.NumNodes(); i++)
 	{
-		const int* edges = fGraph.Edges(i);
+		int* edges = fGraph.Edges(i);
 		int degree = fGraph.Degree(i);
 	
 		int itag = nodemap[i];

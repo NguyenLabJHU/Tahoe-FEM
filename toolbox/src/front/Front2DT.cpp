@@ -1,4 +1,4 @@
-/* $Id: Front2DT.cpp,v 1.4 2003-11-21 22:41:51 paklein Exp $ */
+/* $Id: Front2DT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
 /* created: paklein (03/18/1999)                                          */
 
 #include "Front2DT.h"
@@ -8,9 +8,6 @@
 #include "iArrayT.h"
 
 /* constants */
-
-using namespace Tahoe;
-
 const double Pi = acos(-1.0);
 
 /* constructor */
@@ -25,14 +22,14 @@ void Front2DT::Initialize(const dArray2DT& facet_coords, const iArrayT& fr_facet
 		const iArrayT& fr_edges)
 {
 	/* expecting line segments */
-	if (facet_coords.MinorDim() != 2*2) throw ExceptionT::kGeneralFail;
+	if (facet_coords.MinorDim() != 2*2) throw eGeneralFail;
 
 	for (int i = 0; i < fr_facets.Length(); i++)
 	{
-		const double* x1 = facet_coords(fr_facets[i]);
-		const double* x2 = x1 + 2;
+		double* x1 = facet_coords(fr_facets[i]);
+		double* x2 = x1 + 2;
 
-		const double* x = (fr_edges[i] == 0) ? x1 : x2;
+		double* x = (fr_edges[i] == 0) ? x1 : x2;
 		double v_n[2];
 		if (fr_edges[i] == 0)
 		{
@@ -49,7 +46,7 @@ void Front2DT::Initialize(const dArray2DT& facet_coords, const iArrayT& fr_facet
 
 		/* construct node */
 		FrontNodeT* node = new FrontNodeT(2, x, v_n, NULL, fcone, fda*fda_s, fnum_pts);
-		if (!node) throw ExceptionT::kOutOfMemory;
+		if (!node) throw eOutOfMemory;
 	
 		/* store */
 		fFrontNodes.Append(node);
@@ -62,7 +59,7 @@ const dArray2DT& Front2DT::NewFacets(const ArrayT<int>& extend_pts,
 	const ArrayT<int>& extend_dir)
 {
 	/* dimension check */
-	if (extend_pts.Length() != extend_dir.Length()) throw ExceptionT::kSizeMismatch;
+	if (extend_pts.Length() != extend_dir.Length()) throw eSizeMismatch;
 
 	/* each extension generates a new facets */
 	fNewFacetMan.SetMajorDimension(extend_pts.Length(), false);

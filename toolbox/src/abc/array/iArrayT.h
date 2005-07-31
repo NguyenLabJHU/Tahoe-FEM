@@ -1,75 +1,39 @@
-/* $Id: iArrayT.h,v 1.10 2005-07-23 22:13:59 paklein Exp $ */
-/* created: paklein (08/10/1996) */
+/* $Id: iArrayT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (08/10/1996)                                          */
+
 #ifndef _IARRAY_T_H_
 #define _IARRAY_T_H_
 
 /* base class */
 #include "nArrayT.h"
 
-namespace Tahoe {
-
-/** integer array class. Most functionality is inherited from nArrayT */
 class iArrayT: public nArrayT<int>
 {
 public:
 
-	/** \name constructors */
-	/*@{*/
+	/* constructors */
 	iArrayT(void);
-	explicit iArrayT(int length);
+	iArrayT(int length);
+	iArrayT(int length, int* p);
 	iArrayT(const iArrayT& source);
-
-	/** create an alias */
-	iArrayT(int length, const int* p);
-	/*@}*/
 	
-	/** \name assigment operators 
-	 * Cannot provide operator with (int*) on the right-hand side since this is
-	 * indistinguishable from an int. */
-	/*@{*/
-	iArrayT& operator=(const iArrayT& RHS); /**< assignment operator. Redimensions the array too match the source. */
-	iArrayT& operator=(int value);  /**< set all elements in the array to value */
-	/*@}*/
-
-	/** flip specified values in the array
-	 * \param from values to match
-	 * \param to new value for matching entries
-	 * \return number of values changed */
-	int ChangeValue(int from, int to);
-
-	/** count the instances of value in the array */
-	int	Count(int value) const;
+	/* assigment operators */
+	iArrayT& operator=(const iArrayT& RHS);
+	iArrayT& operator=(const int value);
 	
-	/** return 1 of the value is present, 0 otherwise */
-	int HasValue(int value) const;
+	/* flagging operations */
+	int ChangeValue(int from, int to); // returns the number changed
+	int	Count(int value) const;	
+	int HasValue(int value) const;	           // returns 1 if present, 0 otherwise.
+	int HasValue(int value, int& index) const; // first occurence at index.
 	
-	/** find the first occurence of a value in the array
-	 * \param value value to match
-	 * \param index returns with the index of the first occurence, if found, -1 otherwise
-	 * \return 1 if value found, 0 otherwise */
-	int HasValue(int value, int& index) const;
-
-#if 0
-	/** sort values in ascending order */
+	/* set array value to its position in the array */
+	void SetValueToPosition(void);
+	
+	/* sort both arrays by the values in master */
 	void SortAscending(void);
-
-	/** sort values in ascending order determined by the master array. Both *this
-	 * and master are returned in ascending order. */
 	void SortAscending(ArrayT<int>& master);
-
-	/** sort values in ascending order determined by the master array. Both *this
-	 * and master are returned in ascending order. */
 	void SortAscending(ArrayT<double>& master);
-#endif
-
-	/** determine union of the given array. This function does allocate a map array
-	 * the with a length the range of values in source. Determining the union requires
-	 * 3 passes through the source array and 2 passes through the map. 
-	 * \return a reference to *this. */
-	iArrayT& Union(const nArrayT<int>& source);
-
-	/** determine the union of the given arrays */
-	iArrayT& Union(const ArrayT<const nArrayT<int>*>& source);
 };
 
 /* inlines */
@@ -81,13 +45,12 @@ inline iArrayT& iArrayT::operator=(const iArrayT& RHS)
 	return *this;
 }
 
-inline iArrayT& iArrayT::operator=(int value)
+inline iArrayT& iArrayT::operator=(const int value)
 {
 	nArrayT<int>::operator=(value);
 	return *this;
 }
 
-#if 0
 inline void iArrayT::SortAscending(void)
 {
 	/* inherited */
@@ -103,10 +66,7 @@ inline void iArrayT::SortAscending(ArrayT<int>& master)
 inline void iArrayT::SortAscending(ArrayT<double>& master)
 {
 	/* utility */
-	Tahoe::SortAscending(master, *this);
+	::SortAscending(master, *this);
 }
-#endif
-
-} /* namespace Tahoe */
 
 #endif /* _IARRAY_T_H_ */

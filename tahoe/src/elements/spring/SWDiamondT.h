@@ -1,5 +1,5 @@
-/* $Id: SWDiamondT.h,v 1.8 2004-07-15 08:30:17 paklein Exp $ */
-/* created: paklein (03/19/1997) */
+/* $Id: SWDiamondT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (03/19/1997)                                          */
 
 #ifndef _SWDIAMOND_T_H_
 #define _SWDIAMOND_T_H_
@@ -14,21 +14,21 @@
 /* templates */
 #include "pArrayT.h"
 
-
-namespace Tahoe {
-
 class SWDiamondT: public ElementBaseT
 {
 public:
 
 	/* constructor */
-	SWDiamondT(const ElementSupportT& support, const FieldT& field);
+	SWDiamondT(FEManagerT& fe_manager);
+
+	/* initialization */
+	virtual void Initialize(void);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/* NOT implemented. Returns an zero force vector */
-	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
+	virtual void AddNodalForce(int node, dArrayT& force);
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);
@@ -39,7 +39,7 @@ public:
 	
 	/* writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(void);
+	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
@@ -48,7 +48,7 @@ public:
 protected: /* for derived classes only */
 	 	
 	/* called by FormRHS and FormLHS */
-	virtual void LHSDriver(GlobalT::SystemTypeT);
+	virtual void LHSDriver(void);
 	virtual void RHSDriver(void);
 
 	/* print element group data */
@@ -126,11 +126,6 @@ protected:
 	/* derived values */
 	double	fB;
 
-	/* I/O ID */
-	int       fOutputID;
-	iArrayT   fNodesUsed;
-	iArray2DT fOutputConnects;
-
 	/* 3 Body */
 	ElementMatrixT& fK_3Body;
 	dArrayT&        fF_3Body;
@@ -140,8 +135,8 @@ protected:
 
 	AutoArrayT<ElementCardT>& List_3Body;
 	
-	iArray2DT fNodes_3Body;
-	iArray2DT fEqnos_3Body;
+	iArray2DT&	fNodes_3Body; //will be alias for fNodeNums		
+	iArray2DT&	fEqnos_3Body; //will be alias for fEqnos		
 
 	/* 2 Body */
 	ElementMatrixT fK_2Body;
@@ -160,5 +155,4 @@ protected:
 
 };
 
-} // namespace Tahoe 
 #endif /* _SWDIAMOND_T_H_ */

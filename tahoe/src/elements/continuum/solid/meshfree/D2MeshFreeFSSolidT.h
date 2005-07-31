@@ -1,12 +1,11 @@
-/* $Id: D2MeshFreeFSSolidT.h,v 1.7 2002-11-14 17:05:54 paklein Exp $ */
-/* created: paklein (10/23/1999) */
+/* $Id: D2MeshFreeFSSolidT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* created: paklein (10/23/1999)                                          */
+
 #ifndef _D2_EFG_FDELASTIC_T_H_
 #define _D2_EFG_FDELASTIC_T_H_
 
 /* base class */
 #include "MeshFreeFSSolidT.h"
-
-namespace Tahoe {
 
 /* forward declaration */
 class D2MeshFreeShapeFunctionT;
@@ -17,7 +16,7 @@ class D2MeshFreeFSSolidT: public MeshFreeFSSolidT
 public:
 
 	/* constructor */
-	D2MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field);
+	D2MeshFreeFSSolidT(FEManagerT& fe_manager);
 
 	/* accessors */
 	const D2MeshFreeShapeFunctionT& D2MLSShapeFunction() const;
@@ -25,12 +24,9 @@ public:
 	/* check material's list */
 	virtual void Initialize(void);
 
-//DEV - no need to override
-#if 0
 	/* form the residual force vector */
 	virtual void RHSDriver(void);
 	void ElementRHSDriver(void);
-#endif
 
 protected:
 
@@ -72,9 +68,8 @@ protected:
 /* inline  */
 inline const D2MeshFreeShapeFunctionT& D2MeshFreeFSSolidT::D2MLSShapeFunction() const
 {
-	if (!fD2MFShapes) throw ExceptionT::kGeneralFail;
+	if (!fD2MFShapes) throw eGeneralFail;
 	return *fD2MFShapes;
 }
 
-} // namespace Tahoe 
 #endif /* _D2_EFG_FDELASTIC_T_H_ */

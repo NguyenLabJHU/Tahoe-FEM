@@ -1,5 +1,6 @@
-/* $Id: ModelFileT.cpp,v 1.13 2004-06-17 06:38:21 paklein Exp $ */
-/* created: paklein (12/15/1999)  */
+/* $Id: ModelFileT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* created: paklein (12/15/1999)                                          */
+
 #include "ModelFileT.h"
 
 #include <iostream.h>
@@ -7,11 +8,9 @@
 #include <ctype.h>
 #include <float.h>
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "iArray2DT.h"
 #include "ExodusT.h"
-
-using namespace Tahoe;
 
 /* parameters */
 const char  sComment = '#';
@@ -127,9 +126,6 @@ ModelFileT::StatusT ModelFileT::OpenRead(const StringT& file_name)
 	ifstreamT tmp(sComment, file_name);
 	if (tmp.is_open() && CheckVersion(tmp) == kOK)
 	{
-		/* close temp file */
-		tmp.close();
-	
 		fFileName = file_name;
 		fMode = kRead;
 		
@@ -272,11 +268,12 @@ ModelFileT::StatusT ModelFileT::GetCoordinates(dArray2DT& coords) const
 	if (AdvanceStream(in, keyword[knodes]) == kOK)
 	{
 		ifstreamT in2;
-		ifstreamT& src = OpenExternal(in, in2, "ModelFileT::GetCoordinates");
+		ifstreamT& src = OpenExternal(in, in2, cout, false,
+			"ModelFileT::GetCoordinates: file not found");
 
 		int num_nodes, dimension;
 		src >> num_nodes >> dimension;
-		coords.Dimension(num_nodes, dimension);
+		coords.Allocate(num_nodes, dimension);
 		if (coords.Length() > 0) coords.ReadNumbered(src);
 		
 		return in2.good() ? kOK : kFail;
@@ -299,7 +296,7 @@ ModelFileT::StatusT ModelFileT::PutElementSet(int ID, const iArray2DT& set)
 		/* store set info */
 		int dim = fElementID.MajorDim();
 		if (dim == 0)
-			fElementID.Dimension(1, 3);
+			fElementID.Allocate(1, 3);
 		else
 			fElementID.Resize(dim + 1);
 		
@@ -339,9 +336,8 @@ ModelFileT::StatusT ModelFileT::GetElementSetID(iArrayT& ID) const
 		return kFail;
 	else
 	{
-		ID.Dimension(fElementID.MajorDim());
-		if (fElementID.MajorDim() > 0)
-		  fElementID.ColumnCopy(0, ID);
+		ID.Allocate(fElementID.MajorDim());
+		fElementID.ColumnCopy(0, ID);
 		return kOK;
 	}
 }
@@ -373,11 +369,13 @@ ModelFileT::StatusT ModelFileT::GetElementSet(int ID, iArray2DT& set) const
 			keyword[kset], dex) == kOK)
 		{
 			ifstreamT in2;
-			ifstreamT& src = OpenExternal(in, in2, "ModelFileT::GetElementSet");
+			ifstreamT& src = OpenExternal(in, in2, cout, false,
+				"ModelFileT::GetElementSet: file not found");
 
 			int num_elements;
 			int num_element_nodes;
 			src >> num_elements >> num_element_nodes;
+
 			/* check */
 			int nel, nen;
 			GetElementSetDimensions(ID, nel, nen);
@@ -388,8 +386,9 @@ ModelFileT::StatusT ModelFileT::GetElementSet(int ID, iArray2DT& set) const
 				return kFail;
 			}
 			
-			set.Dimension(num_elements, num_element_nodes);
+			set.Allocate(num_elements, num_element_nodes);
 			if (set.Length() > 0) set.ReadNumbered(src);
+		
 			return src.good() ? kOK : kFail;
 		}
 		else
@@ -411,7 +410,7 @@ ModelFileT::StatusT ModelFileT::PutNodeSet(int ID, const iArrayT& set)
 		/* store set info */
 		int dim = fNodeSetID.MajorDim();
 		if (dim == 0)
-			fNodeSetID.Dimension(1, 2);
+			fNodeSetID.Allocate(1, 2);
 		else
 			fNodeSetID.Resize(dim + 1);
 			
@@ -451,7 +450,7 @@ ModelFileT::StatusT ModelFileT::GetNodeSetID(iArrayT& ID) const
 	else
 	{
 		int num_sets = fNodeSetID.MajorDim();
-		ID.Dimension(num_sets);
+		ID.Allocate(num_sets);
 		if (num_sets > 0) fNodeSetID.ColumnCopy(0, ID);
 		return kOK;
 	}
@@ -486,7 +485,8 @@ cout << "\n ModelFileT::GetNodeSet: wrong mode or ID not found" << endl;
 			keyword[kset], dex) == kOK)
 		{
 			ifstreamT in2;
-			ifstreamT& src = OpenExternal(in, in2, "ModelFileT::GetNodeSet");
+			ifstreamT& src = OpenExternal(in, in2, cout, false,
+				"ModelFileT::GetNodeSet: file not found");
 
 			int num_nodes;
 			src >> num_nodes;
@@ -501,7 +501,7 @@ cout << "\n ModelFileT::GetNodeSet: wrong mode or ID not found" << endl;
 				return kFail;
 			}
 			
-			set.Dimension(num_nodes);
+			set.Allocate(num_nodes);
 			if (set.Length() > 0) src >> set;
 		
 			return src.good() ? kOK : kFail;
@@ -526,7 +526,7 @@ ModelFileT::StatusT ModelFileT::GetNodeSets(const iArrayT& ID, iArrayT& set) con
 	}		
 
 	/* allocate */
-	set.Dimension(num_nodes);
+	set.Allocate(num_nodes);
 	iArrayT tmp_set;
 	int count = 0;
 	for (int j = 0; j < ID.Length(); j++)
@@ -558,7 +558,7 @@ ModelFileT::StatusT ModelFileT::PutSideSet(int ID, int element_set_ID,
 		/* store set info */
 		int dim = fSideSetID.MajorDim();
 		if (dim == 0)
-			fSideSetID.Dimension(1, 3);
+			fSideSetID.Allocate(1, 3);
 		else
 			fSideSetID.Resize(dim + 1);
 
@@ -599,7 +599,7 @@ ModelFileT::StatusT ModelFileT::GetSideSetID(iArrayT& ID) const
 	else
 	{
 		int num_sets = fSideSetID.MajorDim();
-		ID.Dimension(num_sets);
+		ID.Allocate(num_sets);
 		if (num_sets > 0) fSideSetID.ColumnCopy(0, ID);
 		return kOK;
 	}
@@ -634,7 +634,8 @@ ModelFileT::StatusT ModelFileT::GetSideSet(int ID, int& element_set_ID,
 			element_set_ID = fSideSetID(dex, 1);
 	
 			ifstreamT in2;
-			ifstreamT& src = OpenExternal(in, in2, "ModelFileT::GetSideSet");
+			ifstreamT& src = OpenExternal(in, in2, cout, false,
+				"ModelFileT::GetSideSet: file not found");
 
 			int num_sides;
 			src >> num_sides;
@@ -649,7 +650,7 @@ ModelFileT::StatusT ModelFileT::GetSideSet(int ID, int& element_set_ID,
 				return kFail;
 			}
 			
-			set.Dimension(num_sides, 2);
+			set.Allocate(num_sides, 2);
 			if (set.Length() > 0) src >> set;
 		
 			return src.good() ? kOK : kFail;
@@ -682,34 +683,18 @@ ModelFileT::StatusT ModelFileT::AdvanceStream(istream& in,
 	const char* key) const
 {
 	int found = 0;
-	char line[255];
+	char word[255], line[255];
 	while (!found && in.good())
 	{
-		in >> line;
-		if (line[0] == '*')
+		in >> word;
+		if (word[0] == '*')
 		{
-			ToLower(line);
-			if (strcmp(line + 1, key) == 0)
+			ToLower(word);
+			if (strcmp(word + 1, key) == 0)
 				found = 1;
 		}
-		else /* clear the next line */
-		{
-			bool done = false;
-			while (!done)
-			{
-				in.getline(line, 254);
-				
-				/* line longer than 254 char's */
-				if (!in.good())
-				{
-					if (in.fail()) /* ran out of buffer */
-						in.clear();
-					else /* die on all other errors */
-						done = true;
-				} 
-				else done = true;
-			}
-		}
+		else
+			in.getline(line, 254);
 	}
 	
 	return found ? kOK : kFail;
@@ -746,42 +731,18 @@ ModelFileT::StatusT ModelFileT::GetInformation(void)
 		
 		int num_elem_sets;
 		in >> num_elem_sets;
-		fElementID.Dimension(num_elem_sets, 3);
-		if (fElementID.MajorDim() > 0)
-		{
-			/* read row-by-row to allow comments on each line */
-			iArrayT row;
-			for (int i = 0; i < fElementID.MajorDim(); i++) {
-				fElementID.RowAlias(i, row);
-				in >> row;
-			}
-		}	
+		fElementID.Allocate(num_elem_sets, 3);
+		if (fElementID.Length() > 0) in >> fElementID;
 
 		int num_node_sets;
 		in >> num_node_sets;
-		fNodeSetID.Dimension(num_node_sets, 2);
-		if (fNodeSetID.MajorDim() > 0)
-		{
-			/* read row-by-row to allow comments on each line */
-			iArrayT row;
-			for (int i = 0; i < fNodeSetID.MajorDim(); i++) {
-				fNodeSetID.RowAlias(i, row);
-				in >> row;
-			}
-		}	
+		fNodeSetID.Allocate(num_node_sets, 2);
+		if (fNodeSetID.Length() > 0) in >> fNodeSetID;
 
 		int num_side_sets;
 		in >> num_side_sets;
-		fSideSetID.Dimension(num_side_sets, 3);
-		if (fSideSetID.MajorDim() > 0)
-		{
-			/* read row-by-row to allow comments on each line */
-			iArrayT row;
-			for (int i = 0; i < fSideSetID.MajorDim(); i++) {
-				fSideSetID.RowAlias(i, row);
-				in >> row;
-			}
-		}
+		fSideSetID.Allocate(num_side_sets, 3);
+		if (fSideSetID.Length() > 0) in >> fSideSetID;
 		
 		return in.good() ? kOK : kFail;
 	}
@@ -795,10 +756,6 @@ void ModelFileT::WriteFile(bool extern_file) const
 	/* open and format stream */
 	ofstream out;
 	OpenStream(out, fFileName);
-	StringT path, root(fFileName);
-	path.FilePath(fFileName);
-	root.Drop(path.StringLength());
-	root.ToNativePathName();
 
 	out << "*" << keyword[kversion] << '\n';
 	out << sVersion << '\n';
@@ -824,7 +781,7 @@ void ModelFileT::WriteFile(bool extern_file) const
 		const iArrayT& set = *(fNodeSets[i]);
 		if (extern_file)
 		{
-			StringT extern_file_name(root);
+			StringT extern_file_name(fFileName);
 			extern_file_name.Append(".ns", i);
 			out << extern_file_name << '\n';			
 		}		
@@ -843,7 +800,7 @@ void ModelFileT::WriteFile(bool extern_file) const
 		const iArray2DT& set = *(fSideSets[j]);
 		if (extern_file)
 		{
-			StringT extern_file_name(root);
+			StringT extern_file_name(fFileName);
 			extern_file_name.Append(".ss", j);
 			out << extern_file_name << '\n';			
 		}		
@@ -862,7 +819,7 @@ void ModelFileT::WriteFile(bool extern_file) const
 		const iArray2DT& set = *(fElementSets[k]);
 		if (extern_file)
 		{
-			StringT extern_file_name(root);
+			StringT extern_file_name(fFileName);
 			extern_file_name.Append(".es", k);
 			out << extern_file_name << '\n';
 		}		
@@ -877,7 +834,7 @@ void ModelFileT::WriteFile(bool extern_file) const
 	out << "*" << keyword[knodes] << '\n';
 	if (extern_file)
 	{
-		StringT extern_file_name(root);
+		StringT extern_file_name(fFileName);
 		extern_file_name.Append(".nd");
 		out << extern_file_name << '\n';
 	}		
@@ -889,7 +846,8 @@ void ModelFileT::WriteFile(bool extern_file) const
 	}
 }
 
-ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2, const char* caller) const
+ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2,
+	ostream& out, bool verbose, const char* fail) const
 {
 	/* check for external file */
 	char nextchar = in.next_char();
@@ -897,20 +855,19 @@ ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2, const char* 
 		return in;
 	else
 	{
-		/* external file name */
+		/* open external file */
 		StringT file;
 		in >> file;
-		file.ToNativePathName();
-		
-		/* path to source file */
-		StringT path;
-		path.FilePath(in.filename());
-		file.Prepend(path);
+		if (verbose) out << " external file: " << file << '\n';
 			
 		/* open stream */
+		file.ToNativePathName();
 		in2.open(file);
 		if (!in2.is_open())
-			ExceptionT::DatabaseFail(caller, "could not open file \"%s\"", file.Pointer());
+		{
+			if (fail) cout << fail << ": " << file << endl;
+			throw eBadInputValue;
+		}
 
 		/* set comments */
 		if (in.skip_comments()) in2.set_marker(in.comment_marker());

@@ -1,5 +1,10 @@
-/* $Id: PenaltyRegionT.h,v 1.10 2005-03-12 08:39:15 paklein Exp $ */
-/* created: paklein (04/30/1998) */
+/* $Id: PenaltyRegionT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* created: paklein (04/30/1998)                                          */
+/* base class for moving rigid, penalty regions. contact nodes            */
+/* that enter the region are expelled by a quadratic penetration          */
+/* potential. derived classes are responsilble for computing              */
+/* the penetration depth and reaction for based on the geometry           */
+/* of the region.                                                         */
 
 #ifndef _PENALTY_REGION_T_H_
 #define _PENALTY_REGION_T_H_
@@ -13,35 +18,24 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dMatrixT.h"
-#include "InverseMapT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
-class ScheduleT;
-class SecantMethodT;
+class LoadTime;
 
-/** base class for moving rigid, penalty regions. contact nodes
- * that enter the region are expelled by a quadratic penetration
- * potential. derived classes are responsilble for computing
- * the penetration depth and reaction for based on the geometry
- * of the region. */
 class PenaltyRegionT: public FBC_ControllerT
 {
 public:
 
-	/** motion control codes */
-	enum MotionCodeT {
-		kConstantVelocity = 0, /**< on change in velocity */
-		         kImpulse = 1, /**< region slows with contact impulse */
-		        kSchedule = 2  /**< velocity follows schedule function */
-			};
+	/* constructor */
+	PenaltyRegionT(FEManagerT& fe_manager, const iArray2DT& eqnos,
+		const dArray2DT& coords, const dArray2DT* vels);
 
-	/** constructor */
-	PenaltyRegionT(void);
+	/* input processing */
+	virtual void EchoData(ifstreamT& in, ostream& out);
 
-	/** destructor */
-	virtual ~PenaltyRegionT(void);
+	/* initialize data */
+	virtual void Initialize(void);
+	virtual void Reinitialize(void);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -69,33 +63,8 @@ public:
 	/* reset displacements (and configuration to the last known solution) */
 	virtual void Reset(void);
 
-	/** returns true if the internal force has been changed since
-	 * the last time step */
-	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
-	/** \name writing results */
-	/*@{*/
-	/** register data for output */
-	virtual void RegisterOutput(void);
-
-	/** write results */
+	/* writing results */
 	virtual void WriteOutput(ostream& out) const;
-	/*@}*/
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 
 private:
 
@@ -104,68 +73,37 @@ private:
 
 protected:
 
-	/** \name wall input parameters */
-	/*@{*/
-	dArrayT fx0;             /**< initial position */
-	dArrayT fv0;             /**< initial velocity */
-	double fk;               /**< penalty stiffness */
-	MotionCodeT fSlow;
-	double fMass;            /**< mass of the region */
-	const ScheduleT* fLTf;   /**< NULL if there is no time dependence */
-	int fNumContactNodes; /**< number of contact nodes */
-	/*@}*/
+	/* references to NodeManagerT data */
+	const iArray2DT& rEqnos;
+	const dArray2DT& rCoords;
+	const dArray2DT* pVels;
 
-	/** \name state variables */
-	/*@{*/
-	dArrayT fx;     /**< position */
-	dArrayT fv;     /**< velocity */
-	dArrayT fxlast; /**< last converged position */
-	dArrayT fvlast; /**< last converged velocity */
-	/*@}*/
+	/* wall input parameters */
+	dArrayT fx0;             // initial position
+	dArrayT fv0;             // initial velocity
+	double fk;               // penalty stiffness
+	int	   fSlow;            // 1 if the region slows from collisions
+	double fMass;            // mass of the region
+	int    fNumContactNodes; // number of contact nodes
+	LoadTime* fLTf;          // NULL if there is no time dependence
 
-	/** \name "roller" boundary condition */
-	/*@{*/
-	int fRollerDirection;
-	SecantMethodT* fSecantSearch;
-	/*@}*/
+	/* state variables */
+	double  fh_max; // maximum penetration distance
+	dArrayT fx;     // position
+	dArrayT fv;     // velocity
+	dArrayT fxlast; // last converged position
+	dArrayT fvlast; // last converged velocity
 
-	/** \name contact force node and equation numbers */
-	/*@{*/
+	/* contact force node and equation numbers */
 	iArrayT fContactNodes;
 	iArrayT fContactEqnos;
+	dArrayT fContactForce; // shallow version of fContactForce2D
 
-	/** shallow version of PenaltyRegionT::fContactForce2D */
-	dArrayT fContactForce;
-
-	/** array of signed gaps where gap < 0.0 implies contact */
-	dArrayT fGap;
-
-	/** dArray2DT copy of the force */
+	/* dArray2DT copy of the force */
 	dArray2DT fContactForce2D;
-	/*@}*/
-
+	
 	/* workspace */
 	dArrayT fTempNumNodes; // temp space length = fNumContactNodes
-
-	/** \name writing results */
-	/*@{*/	
-	/** output ID */
-	int fOutputID;
-	
-	/** "connectivities" for output, just alias of PenaltyRegionT::fContactNodes */
-//	iArray2DT fContactNodes2D;
-	/*@}*/	
-
-	/** nodal areas */
-	dArrayT fNodalAreas;
-
-	/** global to local numbering map */
-	InverseMapT fGlobal2Local;
-
-	/** contact area */
-	double fContactArea;
-
 };
 
-} // namespace Tahoe 
 #endif /* _PENALTY_REGION_T_H_ */

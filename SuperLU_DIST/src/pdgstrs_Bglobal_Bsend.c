@@ -10,11 +10,6 @@
 
 #include "superlu_ddefs.h"
 
-/*-- Function prototypes --*/
-static void gather_diag_to_all(int_t, int_t, double [], Glu_persist_t *,
-				   LocalLU_t *, gridinfo_t *, int_t, int_t [],
-				   int_t [], double [], int_t, double []);
-
 
 /*#define ISEND_IRECV*/
 
@@ -141,6 +136,10 @@ pdgstrs_Bglobal(int_t n, LUstruct_t *LUstruct, gridinfo_t *grid, double *B,
 #if ( DEBUGlevel>=2 )
     int_t Ublocks = 0;
 #endif
+    /*-- Function prototypes --*/
+    extern void gather_diag_to_all(int_t, int_t, double [], Glu_persist_t *,
+				   LocalLU_t *, gridinfo_t *, int_t, int_t [],
+				   int_t [], double [], int_t, double []);
 
     t = SuperLU_timer_();
 

@@ -1,5 +1,6 @@
-/* $Id: GraphBaseT.h,v 1.6 2003-11-21 22:41:54 paklein Exp $ */
-/* created: paklein (04/13/1999) */
+/* $Id: GraphBaseT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* created: paklein (04/13/1999)                                          */
+/* base class for graph class. does not handle making the graph.          */
 
 #ifndef _GRAPHBASE_T_H_
 #define _GRAPHBASE_T_H_
@@ -7,14 +8,10 @@
 /* direct members */
 #include "RaggedArray2DT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class iArrayT;
 class iArray2DT;
 
-/** base class for graph manipulations. Actual construction of the graph
- * must be handled by the derived classes */
 class GraphBaseT
 {
 public:
@@ -29,7 +26,7 @@ public:
 	int  Degree(int nodenum) const; // number of edges incident on the node
 	void Degrees(ArrayT<int>& degrees, int& row_shift) const; // all of them
 	int  NumNodes(void) const;
-	const int* Edges(int nodenum) const;  // adjacency list for the node
+	int* Edges(int nodenum) const;  // adjacency list for the node
 	int  MinDegree(void) const;
 	int  MinDegreeNode(void) const;
 	void GetEdges(int nodenum, ArrayT<int>& edges) const; // shallow copy
@@ -37,19 +34,12 @@ public:
 	/* set adjacency list */
 	void SetAdjacency(const RaggedArray2DT<int>& edge_list);
 
-	/** generate partition.
-	 * \param config i x j x k x ...  rectangular partition dimensions
-	 * \param weight nodal weights used for load balancing
-	 * \param partition partition[node] = partition of the node */
+	/* partition -
+	 *      config: i x j x k x ...  rectangular partition dimensions
+	 *      weight: nodal weights used for load balancing
+	 *   partition: partition[node] = partition of the node */
 	void Partition(const iArrayT& config, const iArrayT& weight,
 		iArrayT& partition, bool verbose);
-
-	/** generate partition using METIS
-	 * \param num_partitions number of partitions
-	 * \param weight nodal weights used for load balancing
-	 * \param partition partition[node] = partition of the node */
-	void Partition_METIS(int num_partitions, const iArrayT& weight,
-		iArrayT& partition, int volume_or_edgecut);
 
 	/* fill in the degrees for the specified nodes */
 	void ReturnDegrees(const ArrayT<int>& nodes, ArrayT<int>& degrees) const;
@@ -131,7 +121,7 @@ inline void GraphBaseT::Degrees(ArrayT<int>& degrees, int& row_shift) const
 }
 
 inline int GraphBaseT::NumNodes(void) const { return fEdgeList.MajorDim(); }
-inline const int* GraphBaseT::Edges(int nodenum) const
+inline int* GraphBaseT::Edges(int nodenum) const
 {
 	return fEdgeList(nodenum - fShift);
 }
@@ -151,5 +141,4 @@ inline const RaggedArray2DT<int>& GraphBaseT::EdgeList(int& row_shift) const
 	return fEdgeList;
 }
 
-} // namespace Tahoe 
 #endif /* _GRAPHBASE_T_H_ */

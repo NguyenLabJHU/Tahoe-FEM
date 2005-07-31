@@ -1,36 +1,20 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.21 2005-04-13 21:49:58 paklein Exp $ */
-/* created: paklein (03/23/1997) */
+/* $Id: DiagonalMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (03/23/1997)                                          */
+/* Virtual base class for all global matrix objects                       */
+
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
-#include "toolboxConstants.h"
+#include "Constants.h"
 #include "iArrayT.h"
 #include "ElementMatrixT.h"
-#include "StringT.h"
-#include "ofstreamT.h"
-#include "CommunicatorT.h"
-
-using namespace Tahoe;
 
 /* constructor */
-DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode, 
-	const CommunicatorT& comm):
-	GlobalMatrixT(out, check_code, comm),
-	fIsFactorized(false)
+DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode):
+	GlobalMatrixT(out, check_code)
 {
 	try { SetAssemblyMode(mode); }
-	catch (ExceptionT::CodeT) { throw ExceptionT::kBadInputValue; }
-}
-
-/* copy constructor */
-DiagonalMatrixT::DiagonalMatrixT(const DiagonalMatrixT& source):
-	GlobalMatrixT(source),
-	fMatrix(source.fMatrix),
-	fMode(source.fMode),
-	fIsFactorized(source.fIsFactorized)
-{
-
-
+	catch (int) { throw eBadInputValue; }
 }
 
 /* set assemble mode */
@@ -42,7 +26,7 @@ void DiagonalMatrixT::SetAssemblyMode(AssemblyModeT mode)
 	/* check */
 	if (fMode != kNoAssembly &&
 	    fMode != kDiagOnly   &&
-	    fMode != kAbsRowSum) throw ExceptionT::kGeneralFail;
+	    fMode != kAbsRowSum) throw eGeneralFail;
 }
 
 /* set the internal matrix structure.
@@ -54,8 +38,7 @@ void DiagonalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* allocate work space */
-	fMatrix.Dimension(fLocNumEQ);
-	fIsFactorized = false;
+	fMatrix.Allocate(fLocNumEQ);
 }
 
 /* set all matrix values to 0.0 */
@@ -66,7 +49,6 @@ void DiagonalMatrixT::Clear(void)
 
 	/* clear data */
 	fMatrix = 0.0;
-	fIsFactorized = false;
 }
 
 /* add element group equations to the overall topology.
@@ -88,12 +70,12 @@ void DiagonalMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
 {
 	if (elMat.Format() == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		const double* pelMat = elMat.Pointer();
+		double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 
 		int numvals = eqnos.Length();
@@ -131,7 +113,7 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& e
 				for (int i = 0; i < numrows; i++)
 					if (eqnos[i] > 0)
 					{
-						const double* prow = elMat.Pointer(i);
+						double* prow = elMat.Pointer(i);
 						double sum = 0.0;					
 						for (int j = 0; j < numrows; j++)
 						{				
@@ -145,59 +127,26 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& e
 				break;
 			}
 			default:			
-				cout << "\n DiagonalMatrixT::Assemble: cannot assemble mode: " << fMode << endl;
-				throw ExceptionT::kGeneralFail;
+				/* no assembly mode specified */
+				throw eGeneralFail;
 		}
 	}
 }
 
-void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
+/* assignment operator */
+GlobalMatrixT& DiagonalMatrixT::operator=(const GlobalMatrixT& RHS)
 {
-	/* pick out diagonal values */
-	for (int row = 0; row < row_eqnos.Length(); row++)
-		for (int col = 0; col < col_eqnos.Length(); col++)
-			if (row_eqnos[row] == col_eqnos[col])
-			{
-				int eqno = row_eqnos[row] - 1;
-				if (eqno > -1)
-					fMatrix[eqno] += elMat(row, col);
-			}
-}
-
-void DiagonalMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
-{
-#if __option(extended_errorcheck)
-	/* dimension check */
-	if (diagonal_elMat.Length() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
+#ifdef __NO_RTTI__
+	const DiagonalMatrixT* pRHS = (const DiagonalMatrixT*) (&RHS);
+#else
+	const DiagonalMatrixT* pRHS = dynamic_cast<const DiagonalMatrixT*>(&RHS);
+	if (!pRHS) throw eGeneralFail;
 #endif
 
-	for (int i = 0; i < eqnos.Length(); i++)
-	{
-		int eqno = eqnos[i] - 1;
-		if (eqno > -1)
-			fMatrix[eqno] += diagonal_elMat[i];
-	}
-}
+	fMatrix = pRHS->fMatrix;
 
-/* fetch values */
-void DiagonalMatrixT::DisassembleDiagonal(dArrayT& diagonals, 
-	const nArrayT<int>& eqnos) const
-{
-#if __option(extended_errorcheck)
-	/* dimension check */
-	if (diagonals.Length() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
-#endif
-
-	for (int i = 0; i < eqnos.Length(); i++)
-	{
-		/* ignore requests for inactive equations */	
-		int eq = eqnos[i];	
-		if (eq-- > 0)
-			diagonals[i] = fMatrix[eq];
-		else
-			diagonals[i] = 0.0;
-	}
+	/* inherited */
+	return GlobalMatrixT::operator=(RHS);
 }
 
 /* number scope and reordering */
@@ -208,57 +157,6 @@ GlobalMatrixT::EquationNumberScopeT DiagonalMatrixT::EquationNumberScope(void) c
 
 bool DiagonalMatrixT::RenumberEquations(void) const { return false; }
 
-/* assignment operator */
-DiagonalMatrixT& DiagonalMatrixT::operator=(const DiagonalMatrixT& rhs)
-{
-	/* no copies of self */
-	if (this == &rhs) return *this;
-
-	/* inherited */
-	GlobalMatrixT::operator=(rhs);
-
-	fMatrix = rhs.fMatrix;
-	fMode   = rhs.fMode;
-	fIsFactorized = rhs.fIsFactorized;
-
-	return *this;
-}
-
-/** return a clone of self */
-GlobalMatrixT* DiagonalMatrixT::Clone(void) const
-{
-	DiagonalMatrixT* new_mat = new DiagonalMatrixT(*this);
-	return new_mat;
-}
-
-/* matrix-vector product */
-void DiagonalMatrixT::Multx(const dArrayT& x, dArrayT& b) const
-{
-	b = x;
-	if (fIsFactorized)
-		b /= fMatrix;
-	else
-		b *= fMatrix;
-}
-
-/* vector-matrix-vector product */
-double DiagonalMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
-{
-#if __option(extended_errorcheck)
-	if (m.Length() != fMatrix.Length() || n.Length() != fMatrix.Length())
-		ExceptionT::SizeMismatch("DiagonalMatrixT::MultmBn");
-#endif
-
-	const double* pm = m.Pointer();
-	const double* pn = n.Pointer();
-	const double* pM = fMatrix.Pointer();
-	int length = fMatrix.Length();
-	double mBn = 0.0;
-	for (int i = 0; i < length; i++)
-		mBn += (*pm++)*(*pM++)*(*pn++);
-	return mBn;
-}
-
 /**************************************************************************
 * Protected
 **************************************************************************/
@@ -266,54 +164,45 @@ double DiagonalMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
 /* precondition matrix */
 void DiagonalMatrixT::Factorize(void)
 {
-	/* quick exit */
-	if (fIsFactorized)
-		return;
-	else {
-	
-		double* pMatrix = fMatrix.Pointer();
+	double* pMatrix = fMatrix.Pointer();
 
-		/* inverse of a diagonal matrix */
-		bool first = true;
-		for (int i = 0; i < fLocNumEQ; i++)
+	/* inverse of a diagonal matrix */
+	bool first = true;
+	for (int i = 0; i < fLocNumEQ; i++)
+	{
+		/* check zero pivots */
+		if (fabs(*pMatrix) < kSmall)
 		{
-			/* check for zero pivots */
-			if (fabs(*pMatrix) > kSmall)
-				*pMatrix = 1.0/(*pMatrix);
-			else
+			if (first)
 			{
-				if (first)
-				{
-					cout << "\n DiagonalMatrixT::Factorize: WARNING: skipping small pivots. See out file."
-					     << endl;
+				cout << "\n DiagonalMatrixT::Factorize: WARNING: small pivots. See out file."
+				     << endl;
 				
-					fOut << "\n DiagonalMatrixT::Factorize: small pivots\n";
-					fOut << setw(kIntWidth) << "eqn"
-					     << setw(OutputWidth(fOut, pMatrix)) << "pivot" << '\n';
-					first = false;		
-				}
-			
-				fOut << setw(kIntWidth) << i+1
-				     << setw(OutputWidth(fOut, pMatrix)) << *pMatrix << '\n';
+				fOut << "\n DiagonalMatrixT::Factorize: small pivots\n";
+				fOut << setw(kIntWidth) << "eqn"
+				     << setw(OutputWidth(fOut, pMatrix)) << "pivot" << '\n';
+				first = false;		
 			}
-	
-			/* next */
-			pMatrix++;
-		}
-
-		/* flush */
-		if (!first) fOut.flush();
 		
-		/* set flag */
-		fIsFactorized = true;
+			fOut << setw(kIntWidth) << i+1
+			     << setw(OutputWidth(fOut, pMatrix)) << *pMatrix << '\n';
+		}
+	
+		*pMatrix = 1.0/(*pMatrix);
+		pMatrix++;
 	}
+
+	/* flush */
+	if (!first) fOut.flush();
+
+	fIsFactorized = 1;
 }
 	
 /* solution driver */
 void DiagonalMatrixT::BackSubstitute(dArrayT& result)
 {
 	/* checks */
-	if (result.Length() != fLocNumEQ || !fIsFactorized) throw ExceptionT::kGeneralFail;
+	if (result.Length() != fLocNumEQ || !fIsFactorized) throw eGeneralFail;
 	
 	double* presult = result.Pointer();
 	double* pMatrix = fMatrix.Pointer();
@@ -358,21 +247,10 @@ void DiagonalMatrixT::PrintZeroPivots(void) const
 	if (!firstline) fOut << '\n';
 }
 
-void DiagonalMatrixT::PrintLHS(bool force) const
+void DiagonalMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
-
-	/* output stream */
-	StringT file = fstreamT::Root();
-	file.Append("DiagonalMatrixT.LHS.", sOutputCount);
-	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());		
-	ofstreamT out(file);
-	out.precision(14);
-
-	/* write non-zero values in RCV format */
-	for (int i = 0; i < fLocNumEQ; i++)
-		out << i+1 << " " << i+1 << " " << fMatrix[i] << '\n';	
-
-	/* increment count */
-	sOutputCount++;
+	if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
+		
+	fOut << "\nLHS matrix:\n\n";
+	fOut << fMatrix << "\n\n";
 }

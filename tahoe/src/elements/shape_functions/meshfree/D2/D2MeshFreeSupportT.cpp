@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.15 2005-07-20 17:02:36 kyonten Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -6,8 +6,8 @@
 #include <math.h>
 #include <string.h>
 
-#include "ExceptionT.h"
-#include "toolboxConstants.h"
+#include "ExceptionCodes.h"
+#include "Constants.h"
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
 #include "ParentDomainT.h"
@@ -22,44 +22,57 @@
 #include "D2OrthoMLS2DT.h"
 #include "MLSSolverT.h"
 
-using namespace Tahoe;
-
 /* constructor */
-D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
-	const iArray2DT& connects, const iArrayT& nongridnodes):
-	MeshFreeSupportT(domain, coords, connects, nongridnodes),
+D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
+	const iArray2DT& connects, const iArrayT& nongridnodes, FormulationT code,
+	double dextra, int complete, bool store_shape):
+	MeshFreeSupportT(domain, coords, connects, nongridnodes, code, dextra,
+		complete, store_shape),
 	fD2EFG(NULL)
 {
-	SetName("D2_meshfree_support"); 
+	/* only EFG solver is different for D2 */
+	if (code == kEFG)
+	{
+		/* construct D2 MLS solver */
+		if (fCoords.MinorDim() == 2)
+			fD2EFG = new D2OrthoMLS2DT(fComplete);
+		else
+		{
+			cout << "\n D2MeshFreeSupportT::D2MeshFreeSupportT: no 3D yet" << endl;
+			throw eBadInputValue;
+		}
+		if (!fD2EFG) throw eOutOfMemory;	
+		fD2EFG->Initialize();
+	
+	//TEMP - this will be better later
+	
+		/* set inherited */
+		delete fEFG;
+		fEFG = fD2EFG;
+	}
 }
-
-D2MeshFreeSupportT::D2MeshFreeSupportT(void) 
-{
-	SetName("D2_meshfree_support");
-}
-
 
 /* steps to initialization - modifications to the support size must
 * occur before setting the neighbor data */
-void D2MeshFreeSupportT::InitNeighborData(void)
+void D2MeshFreeSupportT::SetNeighborData(void)
 {
 	/* inherited */
-	MeshFreeSupportT::InitNeighborData();
+	MeshFreeSupportT::SetNeighborData();
 
 //TEMP - reset nodal work space for higher order derivatives
 //       this process could be redesigned
 
-	int nip        = fDomain->NumIP();
-	int nsd        = fCoords->MinorDim();
+	int nip        = fDomain.NumIP();
+	int nsd        = fCoords.MinorDim();
 	int stress_dim = dSymMatrixT::NumValues(nsd);
 
 	/* space for nodal calculations */
 	int max_n_size = fnNeighborData.MaxMinorDim();
-	fndShapespace.Dimension(max_n_size*(1 + nsd + stress_dim));
+	fndShapespace.Allocate(max_n_size*(1 + nsd + stress_dim));
 
 	/* data and element integration point shape functions */
 	int max_e_size = feNeighborData.MaxMinorDim();
-	felShapespace.Dimension(nip*max_e_size*(1 + nsd + stress_dim));
+	felShapespace.Allocate(nip*max_e_size*(1 + nsd + stress_dim));
 }
 
 /* "load" data for the specified node (global numbering) */
@@ -72,7 +85,7 @@ void D2MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 	fnNeighborData.RowAlias(tag, neighbors);
 
 	/* dimensions */
-	int nsd = fCoords->MinorDim();
+	int nsd = fCoords.MinorDim();
 	int nst = dSymMatrixT::NumValues(nsd);
 	int nnd = neighbors.Length();
 	
@@ -90,7 +103,7 @@ void D2MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 		{
 			cout << "\n D2MeshFreeSupportT::LoadNodalData: requesting empty data for node: ";
 			cout << node + 1 << endl;
-			throw ExceptionT::kGeneralFail;
+			throw eGeneralFail;
 		}
 #endif
 
@@ -122,15 +135,15 @@ void D2MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi, ArrayT<dArray2DT>& DDphi)
 {
 #if __option(extended_errorcheck)
-	if (Dphi.Length() != fDomain->NumIP()) throw ExceptionT::kSizeMismatch;
+	if (Dphi.Length() != fDomain.NumIP()) throw eSizeMismatch;
 #endif
 
 	/* element neighbors */
 	feNeighborData.RowAlias(element, neighbors);
 
 	/* dimensions */
-	int nip = fDomain->NumIP();
-	int nsd = fCoords->MinorDim();
+	int nip = fDomain.NumIP();
+	int nsd = fCoords.MinorDim();
 	int nst = dSymMatrixT::NumValues(nsd);
 	int nnd = neighbors.Length();
 
@@ -185,84 +198,47 @@ void D2MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 }
 
 /* return the field derivatives at the specified point */
-int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, const dArrayT* shift)
+int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, AutoArrayT<int>& nodes)
+//const dArray2DT& D2MeshFreeSupportT::FieldDerivativesAt(const dArrayT& x, AutoArrayT<int>& tags)
 {
-	/* collect all nodes covering x */
-	int result;
-	if (shift != NULL)
-	{
-		dArrayT x_shift(x.Length());
-		x_shift.SumOf(x, *shift);
-		result = BuildNeighborhood(x_shift, fneighbors);
-	}
-	else
-		result = BuildNeighborhood(x, fneighbors);
+// collect nodes within a cellspan and then collect list of
+// the union of the nodes and neighbors and filter those to
+// find "all" the nodes_i within dmax_i of x. There is now
+// mechanism by which to change the local nodes dmax if the
+// search for a neighborhood fails.
+
+	/* check nodes and their neighbors */
+	BuildNeighborhood(x, nodes);
 			
 	/* check */
 	int dim = (fD2EFG) ? fD2EFG->NumberOfMonomials() :
 	                      fRKPM->BasisDimension();
-	if (fneighbors.Length() < dim)
+	if (nodes.Length() < dim)
 	{
-		cout << "\n D2MeshFreeSupportT::SetFieldUsing: could not build neighborhood at:\n";
-		cout << x << '\n';
-		cout << " insufficient number of nodes: " << fneighbors.Length() << "/" << dim << '\n';
-		iArrayT tmp;
-		tmp.Alias(fneighbors);
-		tmp++;
-		cout << tmp.wrap(5) << endl;
-		tmp--;
+		cout << "\n D2MeshFreeSupportT::SetFieldAt: could not build neighborhood at:\n";
+		cout << x << endl;
 		return 0;
 	}
 	else
 	{
 		/* dimension */
-		fcoords_man.SetMajorDimension(fneighbors.Length(), false);	
-		fnodal_param_man.SetMajorDimension(fneighbors.Length(), false);
+		fcoords_man.SetMajorDimension(nodes.Length(), false);	
+		fdmax_man.Dimension(nodes.Length(), false);
 	
 		/* collect local lists */
-		fcoords.RowCollect(fneighbors, *fCoords);
-		fnodal_param.RowCollect(fneighbors, fNodalParameters);
+		fcoords.RowCollect(nodes, fCoords);
+		fdmax.Collect(nodes, fDmax);
 	
 		/* compute MLS field */
-		int OK;
 		if (fD2EFG)
-			OK = fD2EFG->SetField(fcoords, fnodal_param, x);
+			fD2EFG->SetField(fcoords, fdmax, x);
 		else
 		{
-			/* nodal volumes */
-			fvolume_man.SetLength(fneighbors.Length(), false);
-			fvolume.Collect(fneighbors, fVolume);
-
-			/* compute field */
-			OK = fRKPM->SetField(fcoords, fnodal_param, fvolume, x, 2);
+			fvolume.Collect(nodes, fVolume);
+			fRKPM->SetField(fcoords, fdmax, fvolume, x, 2);
 		}
 		
-		/* error */
-		if (!OK)
-		{
-			int d_width = cout.precision() + kDoubleExtra;
-			cout << "\n D2MeshFreeSupportT::SetFieldUsing: could not compute:\n";
-			cout << " coordinates :" << x.no_wrap() << '\n';
-			cout << " neighborhood: " << fneighbors.Length() << '\n';
-			cout << setw(kIntWidth) << "node"
-			     << setw(  d_width) << "dist"
-			     << setw(fnodal_param.MinorDim()*d_width) << "nodal parameters"
-			     << setw(fcoords.MinorDim()*d_width) << "x" << '\n';
-			dArrayT dist(x.Length());			
-			for (int i = 0; i < fneighbors.Length(); i++)
-			{
-				cout << setw(kIntWidth) << fneighbors[i] + 1;
-				fcoords.RowCopy(i, dist);
-				dist -= x;		
-				cout << setw(  d_width) << dist.Magnitude();
-				fnodal_param.PrintRow(i, cout);
-				fcoords.PrintRow(i, cout);
-			}
-			cout.flush();
-			return 0;
-		}
-		else
-			return 1;
+		return 1;
 	}
 }
 
@@ -271,57 +247,7 @@ const dArray2DT& D2MeshFreeSupportT::DDFieldAt(void) const
 {	
 	return (fD2EFG) ? fD2EFG->DDphi() : fRKPM->DDphi();
 }
-//*****************************************************************//
-// kyonten
-/* describe the parameters needed by the interface */
-void D2MeshFreeSupportT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	MeshFreeSupportT::DefineParameters(list);
-}
 
-/* information about subordinate parameter lists */
-void D2MeshFreeSupportT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	MeshFreeSupportT::DefineSubs(sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* D2MeshFreeSupportT::NewSub(const StringT& name) const
-{
-	/* inherited */
-	return MeshFreeSupportT::NewSub(name);
-}
-
-/* accept parameter list */
-void D2MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
-{
-	const char caller[] = "D2MeshFreeSupportT::TakeParameterList";
-
-	/* inherited */
-	MeshFreeSupportT::TakeParameterList(list);
-
-	/* only EFG solver is different for D2 */
-	if (fMeshfreeType == kEFG)
-	{
-		/* construct D2 MLS solver */
-		if (fCoords->MinorDim() == 2)
-			fD2EFG = new D2OrthoMLS2DT(fEFG->Completeness());
-		else
-			ExceptionT::BadInputValue(caller, "no 3D yet");
-
-		if (!fD2EFG) ExceptionT::OutOfMemory(caller);
-		fD2EFG->Initialize();
-	
-	//TEMP - this will be better later
-	
-		/* set inherited */
-		delete fEFG;
-		fEFG = fD2EFG;
-	}
-}
-//*****************************************************************//
 /*************************************************************************
 * Protected
 *************************************************************************/
@@ -360,7 +286,7 @@ void D2MeshFreeSupportT::SetNodalShapeFunctions(void)
 	}
 	
 	/* clear */
-	fResetNodes.Dimension(0);
+	fResetNodes.Allocate(0);
 }
 
 /* compute all integration point shape functions and derivatives */
@@ -370,8 +296,8 @@ void D2MeshFreeSupportT::SetElementShapeFunctions(void)
 	InitElementShapeData();
 
 	/* dimensions */
-	int nip = fDomain->NumIP();
-	int nel = fConnects->MajorDim();
+	int nip = fDomain.NumIP();
+	int nel = fConnects.MajorDim();
 
 	/* work space */
 	iArrayT    neighbors;
@@ -395,7 +321,7 @@ void D2MeshFreeSupportT::SetElementShapeFunctions(void)
 	}
 
 	/* clear */
-	fResetElems.Dimension(0);
+	fResetElems.Allocate(0);
 }
 
 /*************************************************************************
@@ -407,26 +333,26 @@ void D2MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 {
 	/* set dimensions */
 	int count = neighbors.Length();
-	fnodal_param_man.SetMajorDimension(count, false);
+	fdmax_man.Dimension(count, false);
 	fcoords_man.SetMajorDimension(count, false);
 	
 	/* collect local lists */
-	fcoords.RowCollect(neighbors, *fCoords);
-	fnodal_param.Collect(neighbors, fNodalParameters);
+	fcoords.RowCollect(neighbors, fCoords);
+	fdmax.Collect(neighbors, fDmax);
 		
 	/* coords of current node */
 	dArrayT x_node;
-	fCoords->RowAlias(node, x_node);
+	fCoords.RowAlias(node, x_node);
 	
 	/* process boundaries */
-	fnodal_param_ip = fnodal_param;
-	ProcessBoundaries(fcoords, x_node, fnodal_param_ip);
+	fdmax_ip = fdmax;
+	ProcessBoundaries(fcoords, x_node, fdmax);
 	// set dmax = -1 for nodes that are inactive at x_node
 		
 	/* compute MLS field */
 	if (fD2EFG)
 	{
-		fD2EFG->SetField(fcoords, fnodal_param_ip, x_node);
+		fD2EFG->SetField(fcoords, fdmax_ip, x_node);
 			
 		/* copy field data */
 		phi   = fD2EFG->phi();
@@ -435,9 +361,8 @@ void D2MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 	}
 	else
 	{
-		fvolume_man.SetLength(count, false);
 		fvolume.Collect(neighbors, fVolume);
-		fRKPM->SetField(fcoords, fnodal_param_ip, fvolume, x_node, 2);
+		fRKPM->SetField(fcoords, fdmax_ip, fvolume, x_node, 2);
 			
 		/* copy field data */
 		phi   = fRKPM->phi();
@@ -450,29 +375,28 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi, ArrayT<dArray2DT>& DDphi)
 {
 	/* dimensions */
-	int nsd = fCoords->MinorDim();
-	int nip = fDomain->NumIP();
+	int nsd = fCoords.MinorDim();
+	int nip = fDomain.NumIP();
 	int nnd = neighbors.Length();
-	int nen = fConnects->MinorDim();
+	int nen = fConnects.MinorDim();
 
 	/* set dimensions */
-	fnodal_param_man.SetMajorDimension(nnd, false);
+	fdmax_man.Dimension(nnd, false);
 	fcoords_man.SetMajorDimension(nnd, false);
-	fvolume_man.SetLength(nnd, false);
 
 	/* collect neighbor data */
-	fcoords.RowCollect(neighbors, *fCoords);
-	fnodal_param.RowCollect(neighbors, fNodalParameters);
+	fcoords.RowCollect(neighbors, fCoords);
+	fdmax.Collect(neighbors, fDmax);
 
 	/* workspace */
 	iArrayT     elementnodes;
 	LocalArrayT loccoords(LocalArrayT::kUnspecified, nen, nsd);
-	loccoords.SetGlobal(*fCoords);
+	loccoords.SetGlobal(fCoords);
 		
 	/* integration point coordinates */
-	fConnects->RowAlias(element, elementnodes);
+	fConnects.RowAlias(element, elementnodes);
 	loccoords.SetLocal(elementnodes);
-	fDomain->Interpolate(loccoords, fx_ip_table);
+	fDomain.Interpolate(loccoords, fx_ip_table);
 		
 	/* loop over integration points */
 	dArrayT x_ip;
@@ -482,14 +406,14 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 		fx_ip_table.RowAlias(i, x_ip);
 
 		/* process boundaries */
-		fnodal_param_ip = fnodal_param;
-		ProcessBoundaries(fcoords, x_ip, fnodal_param_ip);
+		fdmax_ip = fdmax;
+		ProcessBoundaries(fcoords, x_ip, fdmax_ip);
 		// set dmax = -1 for nodes that are inactive at x_node
 	
 		/* compute MLS field */
 		if (fD2EFG)
 		{
-			fD2EFG->SetField(fcoords, fnodal_param_ip, x_ip);
+			fD2EFG->SetField(fcoords, fdmax_ip, x_ip);
 		
 			/* store field data */
 			phi.SetRow(i, fD2EFG->phi());
@@ -499,7 +423,7 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 		else
 		{
 			fvolume.Collect(neighbors, fVolume);
-			fRKPM->SetField(fcoords, fnodal_param_ip, fvolume, x_ip, 2);
+			fRKPM->SetField(fcoords, fdmax_ip, fvolume, x_ip, 2);
 		
 			/* store field data */
 			phi.SetRow(i, fRKPM->phi());
@@ -516,7 +440,7 @@ void D2MeshFreeSupportT::InitNodalShapeData(void)
 	MeshFreeSupportT::InitNodalShapeData();
 
 	/* dimensions */
-	int nst = dSymMatrixT::NumValues(fCoords->MinorDim());
+	int nst = dSymMatrixT::NumValues(fCoords.MinorDim());
 
 	/* configure nodal storage */
 	fnDDPhiData.Configure(fnNeighborCount, nst);	
@@ -528,8 +452,8 @@ void D2MeshFreeSupportT::InitElementShapeData(void)
 	MeshFreeSupportT::InitElementShapeData();
 
 	/* dimensions */
-	int nst = dSymMatrixT::NumValues(fCoords->MinorDim());
-	int nip = fDomain->NumIP();
+	int nst = dSymMatrixT::NumValues(fCoords.MinorDim());
+	int nip = fDomain.NumIP();
 
 	/* configure element storage */
 	feDDPhiData.Configure(feNeighborCount, nip*nst);

@@ -1,12 +1,12 @@
-/* $Id: IcosahedralPtsT.h,v 1.4 2004-07-15 08:28:09 paklein Exp $ */
-/* created: paklein (10/31/1997) */
+/* $Id: IcosahedralPtsT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (10/31/1997)                                          */
+/* Base class for spherical point generators.                             */
+
 #ifndef _ICO_PTS_T_H_
 #define _ICO_PTS_T_H_
 
 /* base class */
 #include "SpherePointsT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
@@ -15,8 +15,16 @@ class IcosahedralPtsT: public SpherePointsT
 {
 public:
 
-	/* constructor */
-	IcosahedralPtsT(int num_points);
+	/*
+	 * Constructor
+	 */
+	IcosahedralPtsT(ifstreamT& in);
+
+	/*
+	 * Print parameters.
+	 */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;	
 
 	/*
 	 * Generate sphere points:
@@ -44,5 +52,4 @@ private:
 			
 };
 
-} // namespace Tahoe 
 #endif /* _ICO_PTS_T_H_ */

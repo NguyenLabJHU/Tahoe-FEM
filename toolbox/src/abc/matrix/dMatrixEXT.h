@@ -1,5 +1,6 @@
-/* $Id: dMatrixEXT.h,v 1.11 2003-11-21 22:41:36 paklein Exp $ */
-/* created: paklein (03/06/1998) */
+/* $Id: dMatrixEXT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (03/06/1998)                                          */
+/* dMatrixT plus special matrix functions                                 */
 
 #ifndef _DMATRIXEX_T_H_
 #define _DMATRIXEX_T_H_
@@ -10,25 +11,18 @@
 /* direct members */
 #include "dArrayT.h"
 #include "iArrayT.h"
-#include "dTensor4DT.h"
 
-namespace Tahoe {
-
-/** interface for dMatrixT plus special matrix functions */
 class dMatrixEXT: public dMatrixT
 {
 public:
 
 	/* constructor */
 	dMatrixEXT(void);
-	explicit dMatrixEXT(int squaredim);
-	dMatrixEXT(int squaredim, const double* p);
+	dMatrixEXT(int squaredim);
+	dMatrixEXT(int squaredim, double* p);
 
-	/** dimension to a square matrix */
-	void Dimension(int squaredim);
-
-	/** \deprecated replaced by dMatrixEXT::Dimension on 02/13/2002 */
-	void Allocate(int squaredim) { Dimension(squaredim); };
+	/* post constructor (re-)dimensioning */
+	void Allocate(int squaredim);
 
 	/* diagonalize (using symmetric QR algorithm).
 	 * assumes the matrix is symmetric. Returns the
@@ -38,43 +32,6 @@ public:
 	/* return the {eigenvalue,eigenvector} pair corresponding
 	 * to the approximate eigenvalue that is passed in */
 	void Eigenvector(double& eig_guess, dArrayT& eigenvector) const;
-
-	/* returns eigenvalues of a general matrix by first putting it in 
-	 * Hessian form */
-	void eigvalfinder (dMatrixEXT& matrix, dArrayT& realev, dArrayT& imev);
-    void eigenvalue3x3(dMatrixEXT& J, dArrayT& reroot, dArrayT& imroot);
-	void eigenvector3x3(dMatrixEXT& J, double value, int numvector,  dArrayT& vector, dArrayT& vector2, dArrayT& vector3);
-	/*forms acoustic tensor from rank 4 tangent modulus, normal */
-	//void formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal);
-	void formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal);
-
-
-	/** generate singular value decomposition of *this = U*W*V^T. 
-	 * \param U return matrix: [n_rows] x [n_cols]
-	 * \param W diagonal matrix of singular values: [n_cols]
-	 * \param V square return matrix: [n_cols] x [n_cols] 
-	 * \param threshold for singular values allows to be nonzero, i.e., upper bound relative
-	 *        to the maximum singular value
-	 * \param max_its maximum number of iterations, 30 by default */
-	void Compute_SVD(dMatrixT& U, dArrayT& W, dMatrixT& V, double threshold, int max_its = 30) const;
-
-	/** back substitute given a decomposition computed with dMatrixEXT::Compute_SVD.
-	 * \param U return matrix: [n_rows] x [n_cols]
-	 * \param W diagonal matrix of singular values: [n_cols]
-	 * \param V square return matrix: [n_cols] x [n_cols] 
-	 * \param RHS goes in as the RHS vector and returns as the solution
- 	 * \note Aside from dimension checks, this function doesn't really involve
- 	 *       the matrix stored in *this. */
-	void BackSubstitute_SVD(const dMatrixT& U, const dArrayT& W, const dMatrixT& V, dArrayT& RHS) const;
-
-	/* assignment operator. Operator will re-dimension matrix as needed.
-	 * \param RHS source
-	 * \return reference to *this */
-	dMatrixT& operator=(const dMatrixT& RHS) { return dMatrixT::operator=(RHS); };
-
-	/* assignment operator. Set all entries in the matrix to value
-	 * \return reference to *this */
-	dMatrixT& operator=(const double value) { return dMatrixT::operator=(value); };
 
 private:
 
@@ -118,22 +75,8 @@ private:
 	void PullUpTri(int i, int length);
 
 	/* Numerical Recipies */
-	double pythag(double a, double b) const;
+	double pythag(double a, double b);
 	int tqli(double d[], double e[], int n);
-
-	/* Numerical recipe, puts general matrix in Hessenberg form */
-	void elmhes(dMatrixEXT& a,int n);
-
-	/* numerical recipe, finds eigenvalues of Hessenberg matrix
-	 *real part of each value is in wr, imaginary in wi */
-	void hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi);
-
-	/** compute SVD */
-	int svdcmp(double* a, int m, int n, double* w, double* v, double* rv1, int max_its) const;
-
-	/** back substitute SVD */
-	void svbksb(const double* u, const double* w, const double* v, int m, int n, 
-		const double* b, double* x, double* tmp) const;
 
 private:
 
@@ -156,5 +99,4 @@ inline double dMatrixEXT::Dot(const double* v1, const double* v2, int length) co
 	return prod;
 }
 
-} // namespace Tahoe 
 #endif /* _DMATRIXEX_T_H_ */

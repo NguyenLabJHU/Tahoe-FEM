@@ -1,8 +1,7 @@
-/* $Id: OrthoMLSSolverT.cpp,v 1.8 2004-06-26 06:11:09 paklein Exp $ */
-/* created: paklein (07/03/1998) */
-#include "OrthoMLSSolverT.h"
+/* $Id: OrthoMLSSolverT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* created: paklein (07/03/1998)                                          */
 
-using namespace Tahoe;
+#include "OrthoMLSSolverT.h"
 
 /* constants */
 const double sqrtPi = sqrt(acos(-1.0));
@@ -15,13 +14,13 @@ OrthoMLSSolverT::OrthoMLSSolverT(int nsd, int complete):
 	fDqJ(fNumSD),
 
 	/* variable memory managers */
-	fArrayGroup(0, true),
+	fArrayGroup(0),
 	fArray2DGroup1(0, 0),
 	fArray2DGroup2(0, 0),
 	fLocCoords_man(0, fLocCoords, fNumSD)
 {
 	/* error checking */
-	if (fNumSD < 1 && fNumSD > 3) throw ExceptionT::kBadInputValue;
+	if (fNumSD < 1 && fNumSD > 3) throw eBadInputValue;
 }
 	
 /* destructor */
@@ -34,20 +33,20 @@ void OrthoMLSSolverT::Initialize(void)
 	int m = NumberOfMonomials(fComplete);
 
 	/* b (2.11 b) and derivatives */
-	fb.Dimension(m);
-	fDb.Dimension(fNumSD, m);
+	fb.Allocate(m);
+	fDb.Allocate(fNumSD, m);
 
 	/* monomials and derivatives */
-	fp.Dimension(m);
-	fDp.Dimension(fNumSD, m);
+	fp.Allocate(m);
+	fDp.Allocate(fNumSD, m);
 
 	/* (orthogonal) basis functions (2.4) and derivatives */
-	fq.Dimension(m);
-	fDq.Dimension(fNumSD, m);
+	fq.Allocate(m);
+	fDq.Allocate(fNumSD, m);
 
 	/* rows of alpha and derivatives */
-	fa.Dimension(m-1);
-	fDa.Dimension(fNumSD, m-1);
+	fa.Allocate(m-1);
+	fDa.Allocate(fNumSD, m-1);
 	
 	/* register variable length arrays */
 	fArrayGroup.Register(fw);
@@ -64,11 +63,11 @@ void OrthoMLSSolverT::Initialize(void)
 
 /* set MLS at coords given sampling points */
 int OrthoMLSSolverT::SetField(const dArray2DT& nodalcoords,
-	const nArrayT<double>& dmax, const dArrayT& samplept)
+	const dArrayT& dmax, const dArrayT& samplept)
 {
 #if __option(extended_errorcheck)
-	if (dmax.Length() != nodalcoords.MajorDim()) throw ExceptionT::kSizeMismatch;
-	if (samplept.Length() != fNumSD) throw ExceptionT::kSizeMismatch;
+	if (dmax.Length() != nodalcoords.MajorDim()) throw eSizeMismatch;
+	if (samplept.Length() != fNumSD) throw eSizeMismatch;
 #endif
 
 	/* set size of current working set */
@@ -158,16 +157,16 @@ void OrthoMLSSolverT::ComputeOrtho(dMatrixT& mat) const
 {
 	/* dimension output matrix */
 	int m = fq.Length();
-	mat.Dimension(m);
+	mat.Allocate(m);
 
 	for (int i = 0; i < m; i++)
 		for (int j = 0; j < m; j++)
 		{
 			double sum = 0.0;
 			
-			const double* w = fw.Pointer();
-			const double* qi = fqJ(i);
-			const double* qj = fqJ(j);
+			double* w  = fw.Pointer();
+			double* qi = fqJ(i);
+			double* qj = fqJ(j);
 			for (int J = 0; J < fNumNeighbors; J++)		
 				sum += (*w++)*(*qi++)*(*qj++);
 		
@@ -179,20 +178,20 @@ void OrthoMLSSolverT::ComputeDOrtho(int deriv, dMatrixT& mat) const
 {
 	/* dimension output matrix */
 	int m = fq.Length();
-	mat.Dimension(m);
+	mat.Allocate(m);
 
 	for (int i = 0; i < m; i++)
 		for (int j = 0; j < m; j++)
 		{
 			double sum = 0.0;
 			
-			const double* w = fw.Pointer();
-			const double* qi = fqJ(i);
-			const double* qj = fqJ(j);
+			double* w  = fw.Pointer();
+			double* qi = fqJ(i);
+			double* qj = fqJ(j);
 
-			const double* Dw  = fDw(deriv);
-			const double* Dqi = (fDqJ[deriv])(i);
-			const double* Dqj = (fDqJ[deriv])(j);
+			double* Dw  = fDw(deriv);
+			double* Dqi = (fDqJ[deriv])(i);
+			double* Dqj = (fDqJ[deriv])(j);
 			for (int J = 0; J < fNumNeighbors; J++)
 			{
 				sum += (*Dw++)*(*qi)*(*qj) +

@@ -1,9 +1,14 @@
-/* $Id: IsoVIB2D.cpp,v 1.10 2004-07-15 08:27:45 paklein Exp $ */
-/* created: paklein (11/08/1997) */
+/* $Id: IsoVIB2D.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* created: paklein (11/08/1997)                                          */
+/* 2D Isotropic VIB solver using spectral decomposition formulation       */
+
 #include "IsoVIB2D.h"
 
 #include <math.h>
-#include "toolboxConstants.h"
+#include <iostream.h>
+#include "Constants.h"
+
+#include "ElasticT.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
@@ -11,30 +16,45 @@
 /* point generator */
 #include "EvenSpacePtsT.h"
 
-using namespace Tahoe;
-
 /* constructors */
-IsoVIB2D::IsoVIB2D(void):
-	ParameterInterfaceT("isotropic_VIB_2D"),
-	VIB(2, 2, 3),
-	fCircle(NULL),
-	fSpectral(2)
+IsoVIB2D::IsoVIB2D(ifstreamT& in, const ElasticT& element):
+	FDStructMatT(in, element),
+	Material2DT(in, kPlaneStress),
+	VIB(in, 2, 2, 3),
+	fEigs(2),
+	fEigmods(2),
+	fSpectral(2),
+	fModulus(dSymMatrixT::NumValues(2))
 {
+	/* point generator */
+	fCircle = new EvenSpacePtsT(in);
 
+	/* set tables */
+	Construct();
 }
 
 /* destructor */
-IsoVIB2D::~IsoVIB2D(void) { delete fCircle; }
+IsoVIB2D::~IsoVIB2D(void)
+{
+	delete fCircle;
+}
+
+/* print parameters */
+void IsoVIB2D::Print(ostream& out) const
+{
+	/* inherited */
+	FDStructMatT::Print(out);
+	Material2DT::Print(out);
+	VIB::Print(out);
+
+	fCircle->Print(out);
+}
 
 /* modulus */
 const dMatrixT& IsoVIB2D::c_ijkl(void)
 {
-	/* stretch */
-	Compute_b(fb);
-	
-	/* compute spectral decomposition */
-	fSpectral.SpectralDecomp_Jacobi(fb, false);
-	fEigs = fSpectral.Eigenvalues();
+	/* principal stretches */
+	C().PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
@@ -83,7 +103,7 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 	}
 
 	/* (material) -> (spatial) (with thickness) */
-	double J = sqrt(fEigs[0]*fEigs[1]);
+	double J = sqrt(fEigs[0]*fEigs[1])/fThickness;
 
 	if (fabs(fEigs[0]-fEigs[1]) < kSmall)
 	{
@@ -91,8 +111,11 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 
 		double k = fEigs[0]*fEigs[0]/J;
 		fModulus(0,0) = fModulus(1,1) = c11*k;
-		fModulus(0,1) = fModulus(1,0) = c12*k;
-		fModulus(2,2) = 0.5*(c11 - c12)*k;
+fModulus(0,1) = fModulus(1,0) = c12*k;
+fModulus(2,2) = 0.5*(c11 - c12)*k;
+
+//		fModulus(2,2) = fModulus(0,1) =
+//		               fModulus(1,0) = c12*k; //Cauchy symmetry
 	}
 	else
 	{
@@ -111,14 +134,14 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 		c11 += 2.0*fEigs[0];
 		c22 += 2.0*fEigs[1];
 
-		/* set constribution due to b */
-		fSpectral.PerturbRoots();
-		fSpectral.ModulusPrep(fb);
+		/* set spectral decomp of b */
+		const dSymMatrixT& b_2D = b();
+		fSpectral.DecompAndModPrep(b_2D, false);
 
 		/* construct moduli */
 		fModulus = fSpectral.EigsToRank4(fEigmods);		
-		fModulus.AddScaled(2.0*fEigs[0], fSpectral.SpatialTensor(fb, 0));
-		fModulus.AddScaled(2.0*fEigs[1], fSpectral.SpatialTensor(fb, 1));
+		fModulus.AddScaled(2.0*fEigs[0],fSpectral.SpatialTensor(b_2D, 0));
+		fModulus.AddScaled(2.0*fEigs[1],fSpectral.SpatialTensor(b_2D, 1));
 	}
 	
 	return fModulus;
@@ -127,12 +150,8 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 /* stress */
 const dSymMatrixT& IsoVIB2D::s_ij(void)
 {
-	/* stretch */
-	Compute_b(fb);
-
-	/* compute spectral decomposition */
-	fSpectral.SpectralDecomp_Jacobi(fb, false);
-	fEigs = fSpectral.Eigenvalues();
+	/* principal stretches */
+	C().PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
@@ -159,9 +178,12 @@ const dSymMatrixT& IsoVIB2D::s_ij(void)
 	}
 
 	/* PK2 -> Cauchy (with thickness) */
-	double J = sqrt(fEigs[0]*fEigs[1]);
+	double J = sqrt(fEigs[0]*fEigs[1])/fThickness;
 	fEigs[0] *= (s1/J);
 	fEigs[1] *= (s2/J);
+
+	/* set spectral decomp of b */
+	fSpectral.SpectralDecomp(b(), false);
 
 	/* build stress */
 	return fSpectral.EigsToRank2(fEigs);
@@ -170,34 +192,27 @@ const dSymMatrixT& IsoVIB2D::s_ij(void)
 /* material description */
 const dMatrixT& IsoVIB2D::C_IJKL(void)
 {
-	/* deformation gradient */
-	const dMatrixT& Fmat = F();
+	/* spatial tangent modulus */
+	const dMatrixT& modulus = c_ijkl();
 	
-	/* transform */
-	fModulus.SetToScaled(Fmat.Det(), PullBack(Fmat, c_ijkl()));
-	return fModulus;
+	/* tranform to material */
+	return c_to_C(modulus);  	
 }
-/**< \todo construct directly in material description */
 
 const dSymMatrixT& IsoVIB2D::S_IJ(void)
 {
-	/* deformation gradient */
-	const dMatrixT& Fmat = F();
-	
-	/* transform */
-	fStress.SetToScaled(Fmat.Det(), PullBack(Fmat, s_ij()));
-	return fStress;
+	/* Cauchy stress */
+	const dSymMatrixT& cauchy = s_ij();
+
+	/* convert to PK2 */
+	return s_to_S(cauchy);
 }
-/**< \todo construct directly in material description */
 
 //TEMP
 const dSymMatrixT& IsoVIB2D::CurvatureTensor(void)
 {
-	/* stretch */
-	Compute_b(fb);
-
 	/* principal stretches */
-	fb.PrincipalValues(fEigs);
+	C().PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
@@ -258,11 +273,8 @@ const dSymMatrixT& IsoVIB2D::CurvatureTensor(void)
 /* strain energy density */
 double IsoVIB2D::StrainEnergyDensity(void)
 {
-	/* stretch */
-	Compute_b(fb);
-
 	/* principal stretches */
-	fb.PrincipalValues(fEigs);
+	C().PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
@@ -277,66 +289,25 @@ double IsoVIB2D::StrainEnergyDensity(void)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return energy;
-}
-
-/* describe the parameters needed by the interface */
-void IsoVIB2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	FSSolidMatT::DefineParameters(list);
-	VIB::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStress);
-
-	/* integration points */
-	ParameterT points(ParameterT::Integer, "n_points");
-	points.AddLimit(1, LimitT::LowerInclusive);
-	list.AddParameter(points);
-}
-
-/* information about subordinate parameter lists */
-void IsoVIB2D::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	FSSolidMatT::DefineSubs(sub_list);
-	VIB::DefineSubs(sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* IsoVIB2D::NewSub(const StringT& name) const
-{
-	/* inherited */
-	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
-	if (sub) return sub;
-	else return VIB::NewSub(name);
-}
-
-/* accept parameter list */
-void IsoVIB2D::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	FSSolidMatT::TakeParameterList(list);
-	VIB::TakeParameterList(list);
-
-	/* dimension work space */
-	fEigs.Dimension(2);
-	fEigmods.Dimension(2);
-	fb.Dimension(2);
-	fModulus.Dimension(dSymMatrixT::NumValues(2));
-	fStress.Dimension(2);
-
-	/* point generator */
-	int points = list.GetParameter("n_points");
-	fCircle = new EvenSpacePtsT(points);
-	Construct();
+	return energy*fThickness;
 }
 
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
+
+/* print name */
+void IsoVIB2D::PrintName(ostream& out) const
+{
+	/* inherited */
+	FDStructMatT::PrintName(out);
+	VIB::PrintName(out);
+
+	out << "    Isotropic/Principal Stretch Formulation\n";
+
+	/* integration rule */
+	fCircle->PrintName(out);
+}
 
 /* strained lengths in terms of the Lagrangian stretch eigenvalues */
 void IsoVIB2D::ComputeLengths(const dArrayT& eigs)
@@ -365,7 +336,7 @@ void IsoVIB2D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	VIB::Dimension(numpoints);
+	Allocate(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();
@@ -381,7 +352,7 @@ void IsoVIB2D::Construct(void)
 	for (int i = 0; i < numpoints; i++)
 	{
 		/* direction cosines */
-		const double *xsi = points(i);
+		double *xsi = points(i);
 		double cosi = xsi[0];
 		double sini = xsi[1];
 		

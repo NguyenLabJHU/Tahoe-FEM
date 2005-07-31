@@ -1,38 +1,23 @@
-/* $Id: SSKStV.h,v 1.5 2004-07-15 08:27:14 paklein Exp $ */
-/* created: paklein (06/10/1997) */
+/* $Id: SSKStV.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* created: paklein (06/10/1997)                                          */
+
 #ifndef _SS_KSTV_H_
 #define _SS_KSTV_H_
 
 /* base classes */
 #include "SSHookeanMatT.h"
-#include "IsotropicT.h"
+#include "KStV.h"
 
-namespace Tahoe {
-
-class SSKStV: public SSHookeanMatT, public IsotropicT
+class SSKStV: public SSHookeanMatT, public KStV
 {
 public:
 
 	/* constructor */
-	SSKStV(void);
+	SSKStV(ifstreamT& in, const ElasticT& element);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
-protected:
-
-	/* set modulus */
-	virtual void SetModulus(dMatrixT& modulus);
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 };
 
-} // namespace Tahoe 
 #endif /* _SS_KSTV_H_ */

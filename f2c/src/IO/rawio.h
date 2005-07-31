@@ -37,11 +37,7 @@ extern int creat(const char*,int), open(const char*,int);
 
 #else	/* ] [ */
 extern int close(int);
-#ifdef __AIX__
-extern ssize_t read(int,void*,size_t), write(int,const void*,size_t);
-#else
 extern int read(int,void*,size_t), write(int,void*,size_t);
-#endif /* __AIX__ */
 extern int unlink(const char*);
 #endif	/* ] */
 

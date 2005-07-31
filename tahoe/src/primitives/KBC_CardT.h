@@ -1,57 +1,60 @@
-/* $Id: KBC_CardT.h,v 1.6 2004-07-15 08:31:36 paklein Exp $ */
-/* created: paklein (05/23/1996) */
+/* $Id: KBC_CardT.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (05/23/1996)                                          */
+
 #ifndef _KBC_CARD_T_H_
 #define _KBC_CARD_T_H_
 
-namespace Tahoe {
+#include "Environment.h"
 
-/* forward declaration */
-class ScheduleT;
+/* forward declarations */
+#include "ios_fwd_decl.h"
+class LoadTime;
 
-/** container to hold kinematic boundary condition specifications */
 class KBC_CardT
 {
 public:
 
-	friend class NodeManagerT;
+	friend class NodeManagerPrimitive;
 	
-	/** codes */
+	/* codes */
 	enum CodeT {kFix = 0,
                 kDsp = 1,
                 kVel = 2,
-                kAcc = 3,
-                kNull= 4};
+                kAcc = 3};
 
-	/** \name constructor */
-	/*@{*/
+	/* constructor */
 	KBC_CardT(void);
-	KBC_CardT(int node, int dof, CodeT code, const ScheduleT* schedule, double value);
-	/*@}*/
+	KBC_CardT(int node, int dof, CodeT code, int nLTF, double value);
 
-	/** modifier */
-	void SetValues(int node, int dof, CodeT code, const ScheduleT* schedule, double value);
-
-	/** \name accessors */
-	/*@{*/
+	/* modifiers */
+	void SetValues(istream& in);
+	void SetValues(int node, int dof, CodeT code, int nLTF, double value);
+	void SetSchedule(const LoadTime* LTfPtr);
+	
+	/* accessors */
 	int Node(void) const;
 	int DOF(void) const;
 	CodeT Code(void) const;
-	const ScheduleT* Schedule(void) const { return fSchedule; };
-	/*@}*/
-
+	int LTfNum(void) const;
+		
 	/* returns the value of the BC */
 	double Value(void) const;
 
+	/* I/O */
+	void WriteHeader(ostream& out) const;
+	void WriteValues(ostream& out) const;
+
 	/* input operator for codes */
-	static CodeT int2CodeT(int i);
+	friend istream& operator>>(istream& in, KBC_CardT::CodeT& code);
 	
 protected:
 
 	int      fnode;
 	int      fdof;
 	CodeT    fcode;
+	int      fnLTf;
 	double   fvalue;			
-	const ScheduleT* fSchedule;
+	const LoadTime* fLTfPtr;
 };
 
 /* in-lines */
@@ -60,6 +63,6 @@ protected:
 inline int KBC_CardT::Node(void) const   { return fnode; }
 inline int KBC_CardT::DOF(void) const    { return fdof;  }
 inline KBC_CardT::CodeT KBC_CardT::Code(void) const   { return fcode; }
+inline int KBC_CardT::LTfNum(void) const { return fnLTf; }
 
-} // namespace Tahoe 
 #endif /* _KBC_CARD_T_H_ */

@@ -1,5 +1,7 @@
-/* $Id: Aztec_fe.h,v 1.7 2005-04-13 21:50:27 paklein Exp $ */
-/* created: paklein (08/01/1998) */
+/* $Id: Aztec_fe.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* created: paklein (08/01/1998)                                          */
+/* base class for interface for using Aztec with fe++                     */
+
 #ifndef _AZTEC_FE_H_
 #define _AZTEC_FE_H_
 
@@ -10,9 +12,8 @@
 #ifdef __AZTEC__
 
 /* direct members */
-#include "AztecParamsT.h"
-
-namespace Tahoe {
+#include "iArrayT.h"
+#include "dArrayT.h"
 
 /* forward declarations */
 class ifstreamT;
@@ -20,15 +21,12 @@ class iArray2DT;
 class MSRBuilderT;
 template <class TYPE> class RaggedArray2DT;
 
-/** interface to the Aztec iterative solver library */
 class Aztec_fe: public AztecBaseT
 {
 public:
 
-	/** constuctor 
-	 * \param in stream to read input parameters 
-	 * \param msg output stream for logging messages */
-	Aztec_fe(const ParameterListT& parameters, ostream& msg, const CommunicatorT& comm);
+	/* constuctor */
+	Aztec_fe(ifstreamT& in);
 
 	/* destructor */
 	virtual ~Aztec_fe(void);
@@ -64,10 +62,16 @@ private:
 	virtual int SetMSRData(int** update, int** bindx, double** val,
 		int& is_sorted);
 
+	/* read (non-default) Aztec solver options and parameters */
+	void ReadOptionsParameters(ifstreamT& in);
+
 private:
 
-	/** handle Aztec parameters */
-	AztecParamsT fAztecParams;
+	/* Aztec option and parameter overrides */
+	iArrayT AZ_options_dex;
+	iArrayT AZ_options;
+	iArrayT AZ_params_dex;
+	dArrayT AZ_params;
 
 	/* Aztec workspace */
 	iArrayT fupdate;
@@ -83,6 +87,5 @@ private:
 };
 
 /* library support options */
-} // namespace Tahoe 
 #endif /* __AZTEC__ */
 #endif /* _AZTEC_FE_H_ */

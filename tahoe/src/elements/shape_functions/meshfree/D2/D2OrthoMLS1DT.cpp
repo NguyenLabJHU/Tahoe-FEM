@@ -1,15 +1,12 @@
-/* $Id: D2OrthoMLS1DT.cpp,v 1.3 2002-10-20 22:49:42 paklein Exp $ */
+/* $Id: D2OrthoMLS1DT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
 /* created: paklein (10/17/1999)                                          */
 
 #include "D2OrthoMLS1DT.h"
 
-#include "ExceptionT.h"
+#include "ExceptionCodes.h"
 #include "dSymMatrixT.h"
 
 /* constructor */
-
-using namespace Tahoe;
-
 D2OrthoMLS1DT::D2OrthoMLS1DT(int complete):
 	D2OrthoMLSSolverT(1, complete)
 {
@@ -18,7 +15,7 @@ D2OrthoMLS1DT::D2OrthoMLS1DT(int complete):
 	{
 		cout << "\n D2OrthoMLS1DT::D2OrthoMLS1DT: completeness of out of range {1,3}: ";
 		cout << fComplete << endl;
-		throw ExceptionT::kBadInputValue;
+		throw eBadInputValue;
 	}
 }
 
@@ -37,10 +34,10 @@ void D2OrthoMLS1DT::SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& D
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
-	if (coords.Length() != fNumSD) throw ExceptionT::kGeneralFail;
-	if (   p.Length() != NumberOfMonomials(fComplete)) throw ExceptionT::kSizeMismatch;
+	if (coords.Length() != fNumSD) throw eGeneralFail;
+	if (   p.Length() != NumberOfMonomials(fComplete)) throw eSizeMismatch;
 	if (Dp.MajorDim() != fNumSD ||
-	    Dp.MinorDim() != p.Length()) throw ExceptionT::kSizeMismatch;
+	    Dp.MinorDim() != p.Length()) throw eSizeMismatch;
 #endif
 
 //NOTE: could do this for general completeness using
@@ -80,7 +77,7 @@ void D2OrthoMLS1DT::SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& D
 
 		default:
 		
-			throw ExceptionT::kOutOfRange;
+			throw eOutOfRange;
 	}
 }
 
@@ -90,7 +87,7 @@ void D2OrthoMLS1DT::_SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& 
 #if __option(extended_errorcheck)
 	/* dimension checking */
 	if (DDp.MajorDim() != dSymMatrixT::NumValues(fNumSD) ||
-	    DDp.MinorDim() != p.Length()) throw ExceptionT::kSizeMismatch;
+	    DDp.MinorDim() != p.Length()) throw eSizeMismatch;
 #endif
 
 	/* set lower order derivatives */
@@ -116,6 +113,6 @@ void D2OrthoMLS1DT::_SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& 
 
 		default:
 		
-			throw ExceptionT::kOutOfRange;
+			throw eOutOfRange;
 	}
 }

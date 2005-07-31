@@ -18,7 +18,7 @@
        6      16   0.000000000000e+00   0.000000000000e+00
 
  Connectivities:
- Block ID . . . .  . . . . . . . . . . . . . . . = 3
+ Block ID . . . .  . . . . . . . . . . . . . . . = 3001
  Number of elements .  . . . . . . . . . . . . . = 1
  Number of element nodes . . . . . . . . . . . . = 8
  Geometry code . . . . . . . . . . . . . . . . . = 1

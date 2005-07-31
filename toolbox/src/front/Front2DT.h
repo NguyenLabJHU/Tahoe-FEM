@@ -1,4 +1,4 @@
-/* $Id: Front2DT.h,v 1.3 2002-07-05 22:26:29 paklein Exp $ */
+/* $Id: Front2DT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
 /* created: paklein (03/18/1999)                                          */
 
 #ifndef _FRONT_2D_T_H_
@@ -6,8 +6,6 @@
 
 /* base class */
 #include "FrontT.h"
-
-namespace Tahoe {
 
 /* forward declarations */
 class FrontSegmentT;
@@ -29,5 +27,4 @@ public:
 		const ArrayT<int>& extend_dir);
 };
 
-} // namespace Tahoe 
 #endif /* _FRONT_2D_T_H_ */

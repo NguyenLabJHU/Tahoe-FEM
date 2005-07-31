@@ -1,11 +1,12 @@
-/* $Id: FCCPtsT.cpp,v 1.5 2004-07-15 08:28:09 paklein Exp $ */
-/* created: paklein (03/26/1999) */
+/* $Id: FCCPtsT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (03/26/1999)                                          */
+/* FCC lattice of points                                                  */
+
 #include "FCCPtsT.h"
 #include <math.h>
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
-
-using namespace Tahoe;
+#include <iostream.h>
+#include "Constants.h"
+#include "ExceptionCodes.h"
 
 const double Pi = acos(-1.0);
 
@@ -14,10 +15,8 @@ FCCPtsT::FCCPtsT(int num_shells, double bond_length):
 	fNumShells(num_shells),
 	fBondLength(bond_length)
 {
-	const char caller[] = "FCCPtsT::FCCPtsT";
-
 	/* number of nearest neighbor shells */
-	if (fBondLength < 0.0) ExceptionT::BadInputValue(caller);
+	if (fBondLength < 0.0) throw eBadInputValue;
 	
 	int num_bonds;
 	switch (fNumShells)
@@ -26,12 +25,27 @@ FCCPtsT::FCCPtsT(int num_shells, double bond_length):
 			num_bonds = 6;
 			break;
 		default:
-			ExceptionT::BadInputValue(caller, "currently only support nearest neighbor bonds");
+			cout << "\n FCCPtsT::FCCPtsT: currently only support nearest neighbor bonds" << endl;
+			throw eBadInputValue;			
 	}	
 
 	/* set weights */
-	fJacobians.Dimension(num_bonds);
+	fJacobians.Allocate(num_bonds);
 	fJacobians = 1;
+}
+
+/* print parameters */
+void FCCPtsT::Print(ostream& out) const
+{
+	/* number of integration points */
+	out << " Number of nearest neighbor shells . . . . . . . = " << fNumShells << '\n';
+	out << " Number of bonds (using 4-fold symmetry) . . . . = " << fJacobians.Length() << '\n';
+	out << " Bond length . . . . . . . . . . . . . . . . . . = " << fBondLength << '\n';
+}
+
+void FCCPtsT::PrintName(ostream& out) const
+{
+	out << "    FCC lattice\n";
 }
 
 /* generate sphere points:
@@ -71,7 +85,7 @@ void FCCPtsT::SetCoords(void)
 			temp.Set(6,3,p6);
 			break;
 		default:
-			ExceptionT::GeneralFail("FCCPtsT::SetCoords", "unsupported number of shells %d", fNumShells);
+			throw eGeneralFail;
 	}
 
 	/* copy data */

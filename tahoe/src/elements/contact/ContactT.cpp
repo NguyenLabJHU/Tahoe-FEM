@@ -1,61 +1,45 @@
-/* $Id: ContactT.cpp,v 1.24 2005-07-28 07:57:22 paklein Exp $ */
-/* created: paklein (12/11/1997) */
+/* $Id: ContactT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (12/11/1997)                                          */
+
 #include "ContactT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ModelManagerT.h"
-#include "ofstreamT.h"
-#include "ParentDomainT.h"
-#include "InverseMapT.h"
-#include "OutputSetT.h"
-#include "ParameterContainerT.h"
-#include "ParameterUtils.h"
-
-using namespace Tahoe;
+#include "fstreamT.h"
+#include "IOBaseT.h"
+#include "FEManagerT.h"
+#include "NodeManagerT.h"
+#include "iGridManager2DT.h"
+#include "ExodusT.h"
+#include "ModelFileT.h"
+#include "ContinuumElementT.h" // For conversion of side sets to facets.
+// Do directly or add call to FEManagerT?
 
 /* constructor */
-ContactT::ContactT(const ElementSupportT& support, int numfacetnodes):
-	ElementBaseT(support),
-	fNumFacetNodes(numfacetnodes),
-	fnum_contact(-1), 
-	fh_max(1)
+ContactT::ContactT(FEManagerT& fe_manager, int numfacetnodes):
+	ElementBaseT(fe_manager),
+	fNumFacetNodes(numfacetnodes)
 {
-	SetName("contact");
+	/* override base class parameters */
+	fNumElemNodes = fNumFacetNodes + 1; // facet nodes + 1 striker for each
+	      fNumDOF = fNumSD;             // contact interaction
+	fNumElemEqnos = fNumElemNodes*fNumDOF;
 }
 
 /* destructor */
 ContactT::~ContactT(void) {	}
 
 /* form of tangent matrix */
-GlobalT::SystemTypeT ContactT::TangentType(void) const { return GlobalT::kSymmetric; }
-
-/* prepare for a sequence of time steps */
-void ContactT::InitialCondition(void)
+GlobalT::SystemTypeT ContactT::TangentType(void) const
 {
-	/* inherited */
-	ElementBaseT::InitialCondition();
-
-	/* look for axisymmetric groups */
-	bool axisymmetric = false;
-	int num_groups = ElementSupport().NumElementGroups();
-	for (int i = 0; i < num_groups; i++)
-		axisymmetric = (axisymmetric || ElementSupport().ElementGroup(i).Axisymmetric());
-
-	/* compute nodal tributary areas */
-	ElementSupport().ModelManager().ComputeNodalArea(fStrikerTags, 
-		fStrikerArea, fStrikerTags_map, axisymmetric);
+	return GlobalT::kSymmetric;
 }
 
 /* element level reconfiguration for the current solution */
 GlobalT::RelaxCodeT ContactT::RelaxSystem(void)
 {
-	/* write before reconfiguration since information will be reset */
-	if (ElementSupport().WriteOutput())
-		WriteContactInfo(ElementSupport().Output());
-
 	/* inherited */
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
 
@@ -69,18 +53,22 @@ GlobalT::RelaxCodeT ContactT::RelaxSystem(void)
 		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
 }
 
-/* initialize current time increment. Reset the contact tracking data. */
-void ContactT::InitStep(void)
+/* initialization after constructor */
+void ContactT::Initialize(void)
 {
-	/* reset tracking data */
-	fnum_contact = -1;
-	fh_max = 1;
+	/* inherited */
+	ElementBaseT::Initialize();
+
+	/* set up work space */
+	SetWorkSpace();
+	
+	/* set initial contact configuration */
+	SetContactConfiguration();	
 }
 
 /* solution calls */
-void ContactT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
+void ContactT::AddNodalForce(int node, dArrayT& force)
 {
-#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 //not implemented
@@ -93,52 +81,33 @@ double ContactT::InternalEnergy(void)
 	return 0.0;
 }
 
-/* register output */
-void ContactT::RegisterOutput(void)
+/* writing output - nothing to write */
+void ContactT::RegisterOutput(void) {}
+void ContactT::WriteOutput(IOBaseT::OutputModeT mode)
 {
-	/* check */
-	if (NumDOF() > 3)
-		ExceptionT::GeneralFail("ContactT::RegisterOutput", "ndof %d > 3", NumDOF());
-	
-	/* output labels */
-	ArrayT<StringT> n_labels(2*NumDOF()); /* displacements + force */
-	
-	/* displacements */
-	int count = 0;
-	const ArrayT<StringT>& labels = Field().Labels();
-	for (int i = 0; i < labels.Length(); i++)
-		n_labels[count++] = labels[i];
-	
-	/* forces */
-	const char *force[] = {"F_X", "F_Y", "F_Z"};
-	for (int i = 0; i < NumDOF(); i++)
-		n_labels[count++] = force[i];
-	
-	/* output record */
-	OutputSetT output_set(fStrikerTags, n_labels);
-
-	/* register */
-	fOutputID = ElementSupport().RegisterOutput(output_set);
-}
-
-/* write output */
-void ContactT::WriteOutput(void) 
-{
-	/* work space */
-	dArray2DT n_values(fStrikerTags.Length(), 2*NumDOF());
-
-	/* displacements */
-	const dArray2DT& disp = (Field())[0];
-	dArray2DT disp_tmp(fStrikerTags.Length(), NumDOF());
-	disp_tmp.RowCollect(fStrikerTags, disp);
-	n_values.BlockColumnCopyAt(disp_tmp, 0);
-
-	/* forces */
-	for (int i = 0; i < NumDOF(); i++)
-		n_values.ColumnCopy(i + NumDOF(), fStrikerForce2D, i);
-
-	/* send it */
-	ElementSupport().WriteOutput(fOutputID, n_values);
+#pragma unused(mode)
+	/* contact statistics */
+	ostream& out = fFEManager.Output();
+	out << "\n Contact tracking: group " << fFEManager.ElementGroupNumber(this) + 1 << '\n';
+	out << " Time                           = " << fFEManager.Time() << '\n';
+	out << " Active strikers                = " << fActiveStrikers.Length() << '\n';
+	if (fActiveStrikers.Length() > 0)
+	{
+		out << setw(kIntWidth) << "striker";
+		out << setw(kIntWidth) << "surface";
+		out << setw(kIntWidth) << "facet";
+		out << setw(fNumFacetNodes*kIntWidth) << "facet nodes" << '\n';
+		for (int i = 0; i < fActiveStrikers.Length(); i++)
+		{
+			out << setw(kIntWidth) << fActiveStrikers[i] + 1;
+			out << setw(kIntWidth) << fHitSurface[i] + 1; int hit_facet = fHitFacets[i];
+			out << setw(kIntWidth) << hit_facet + 1;
+			for (int j = 0; j < fNumFacetNodes; j++)
+				out << setw(kIntWidth) << fSurfaces[fHitSurface[i]](hit_facet, j) + 1;
+			out << '\n';
+		}
+		out << endl;
+	}
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -166,124 +135,67 @@ void ContactT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 //	connects.Append(NULL);
 }
 
-/* information about subordinate parameter lists */
-void ContactT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ElementBaseT::DefineSubs(sub_list);
-
-	/* surfaces */
-	sub_list.AddSub("contact_surface", ParameterListT::OnePlus);
-	
-	/* striker nodes */
-	sub_list.AddSub("contact_nodes");
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ContactT::NewSub(const StringT& name) const
-{
-	if (name == "contact_surface") {
-	
-		ParameterContainerT* contact_surface = new ParameterContainerT(name);
-		contact_surface->SetListOrder(ParameterListT::Choice);
-		
-		/* surface from side set  */
-		ParameterContainerT surface_side_set("surface_side_set");
-		surface_side_set.AddParameter(ParameterT::Word, "side_set_ID");
-		contact_surface->AddSub(surface_side_set);
-	
-		/* surfaces from body boundary */
-		ParameterContainerT body_boundary("body_boundary");
-		body_boundary.AddParameter(ParameterT::Integer, "body_element_group");
-		contact_surface->AddSub(body_boundary);
-	
-		return contact_surface;
-	}
-	else if (name == "contact_nodes") {
-
-		ParameterContainerT* contact_nodes = new ParameterContainerT(name);
-		contact_nodes->SetListOrder(ParameterListT::Choice);
-		
-		/* strikers from node sets */
-		contact_nodes->AddSub("node_ID_list");
-
-		/* strikers from side sets */
-		contact_nodes->AddSub("side_set_ID_list");
-		
-		/* strikers from surfaces */
-		contact_nodes->AddSub(ParameterContainerT("all_surface_nodes"));
-
-		/* all nodes as strikers */
-		contact_nodes->AddSub(ParameterContainerT("all_nodes_as_strikers"));
-	
-		return contact_nodes;	
-	}
-	else /* inherited */
-		return ElementBaseT::NewSub(name);
-}
-
-/* accept parameter list */
-void ContactT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ElementBaseT::TakeParameterList(list);
-
-	/* dimension */
-	int neq = (fNumFacetNodes + 1)*NumDOF();
-	fLHS.Dimension(neq);	
-	fRHS.Dimension(neq);
-
-	/* extract contact geometry from the list */
-	ExtractContactGeometry(list);
-
-	/* set up work space */
-	SetWorkSpace();
-	
-	/* set initial contact configuration */
-	SetContactConfiguration();	
-}
-
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
-/* echo contact bodies and striker nodes. After the read section, should have valid 
- * nodes/facet connectivities for the local database. */
-void ContactT::ExtractContactGeometry(const ParameterListT& list)
+/* print element group data */
+void ContactT::PrintControlData(ostream& out) const
 {
-	const char caller[] = "ContactT::ExtractContactGeometry";
+	/* inherited */
+	ElementBaseT::PrintControlData(out);
 
-	/* output stream */
-	ofstreamT& out = ElementSupport().Output();
-	bool print_input = ElementSupport().PrintInput();
+	out << " Number of facet nodes . . . . . . . . . . . . . = "
+	    << fNumFacetNodes << '\n';
+}
 
-	/* get surfaces */
-	int num_surfaces = list.NumLists("contact_surface");
-	fSurfaces.Dimension(num_surfaces);
+/* echo contact bodies and striker nodes */
+void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
+{
+	int num_surfaces;
+	in >> num_surfaces;
+	out << " Number of contact surfaces. . . . . . . . . . . = "
+	    << num_surfaces << '\n';
+	if (num_surfaces < 1) throw eBadInputValue;
 
 	/* read contact bodies */
+	fSurfaces.Allocate(num_surfaces);
 	for (int i = 0; i < fSurfaces.Length(); i++)
 	{
-		const ParameterListT& surface_spec = list.GetListChoice(*this, "contact_surface", i);
-
-		if (surface_spec.Name() == "surface_side_set")
-			InputSideSets(surface_spec, fSurfaces[i]);
-		else if (surface_spec.Name() == "body_boundary") 
+		int spec_mode;
+		in >> spec_mode;
+		switch (spec_mode)
 		{
-			/* may resize the surfaces array */
-			InputBodyBoundary(surface_spec, fSurfaces, i);
-			num_surfaces = fSurfaces.Length();
+			case kNodesOnFacet:	
+				InputNodesOnFacet(in, fSurfaces[i]);
+				break;
+			
+			case kSideSets:
+				InputSideSets(in, out, fSurfaces[i]);
+				break;
+			
+			case kBodyBoundary:
+				/* may resize the surfaces array */
+				InputBodyBoundary(in, fSurfaces, i);
+				num_surfaces = fSurfaces.Length();
+				break;
+		
+			default:
+				cout << "\n ContactT::EchoConnectivityData: unknown surface specification\n";
+				cout <<   "     mode " << spec_mode << " for surface " << i+1 << '\n';
+				throw eBadInputValue;
 		}
-		else
-			ExceptionT::GeneralFail(caller, "unrecognized contact surface \"%s\"",
-				surface_spec.Name().Pointer());
 	}
 	
-	/* echo data  */
+	// after the read section, should have valid nodes/facet connectivities
+	// for the local database
+
+	/* echo data and correct numbering offset */
 	out << " Contact surfaces:\n";
 	out << setw(kIntWidth) << "surface"
 	    << setw(kIntWidth) << "facets"
 	    << setw(kIntWidth) << "size" << '\n';
+	int surface_count = 0;
 	for (int j = 0; j < fSurfaces.Length(); j++)
 	{		
 	  	iArray2DT& surface = fSurfaces[j];
@@ -291,22 +203,20 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 	  	out << setw(kIntWidth) << j+1
 	  	    << setw(kIntWidth) << surface.MajorDim()
 	  	    << setw(kIntWidth) << surface.MinorDim() << "\n\n";
-  	
-		/* verbose */
-		if (print_input) {
-			surface++;
-			surface.WriteNumbered(out);
-			surface--;
-			out << '\n';
+	  	
+	  	/* set offset for output */
+	  	if (fFEManager.PrintInput())
+	  	{
+	  		surface++;
+	  		surface.WriteNumbered(out);
+	  		surface--;
+	  		out << '\n';
 	  	}
-	}
-
-	/* look for empty surfaces */
-	int surface_count = 0;	
-	for (int j = 0; j < fSurfaces.Length(); j++)
-		if (fSurfaces[j].MajorDim() > 0)
-			surface_count++;
-
+	  	
+	  	/* count non-empty */
+	  	if (surface.MajorDim() > 0) surface_count++;
+	}	
+	
 	/* remove empty surfaces */
 	if (surface_count != fSurfaces.Length())
 	{
@@ -325,69 +235,53 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 		/* exchange */
 		fSurfaces.Swap(tmp_surfaces);
 	}
-
-	/* get strikers */
-	const ParameterListT& striker_spec = list.GetListChoice(*this, "contact_nodes");
-	if (striker_spec.Name() == "node_ID_list")
-		StrikersFromNodeSets(striker_spec);
-	else if (striker_spec.Name() == "side_set_ID_list")
-		StrikersFromSideSets(striker_spec);
-	else if (striker_spec.Name() == "all_surface_nodes")
-		StrikersFromSurfaces();
-	else if (striker_spec.Name() == "all_nodes_as_strikers") 
+	
+	/* striker nodes */
+	int striker_spec_mode;
+	in >> striker_spec_mode;
+	switch (striker_spec_mode)
 	{
-		fStrikerCoords.Alias(ElementSupport().CurrentCoordinates());
-
-		//TEMP - not tested
-		ExceptionT::GeneralFail("ContactT::EchoConnectivityData", "all nodes as strikers not tested");
+		case kListStrikers: /* read strikers */
+			ReadStrikers(in, out);
+			break;
+		
+		case kSurfaceNodes: /* collect nodes from contact surfaces */
+			StrikersFromSurfaces();
+			break;
+	
+		case kAllStrikers:  /* shallow striker coords */
+			fStrikerCoords.Alias(fNodes->CurrentCoordinates());
+			out << "\n Striker nodes: ALL\n";	
+			break;
+	
+		default:
+			cout << "\n ContactT::EchoConnectivityData: unknown striker specification\n";
+			cout <<   "     mode " << striker_spec_mode << '\n';
+			throw eBadInputValue;
 	}
-	else
-		ExceptionT::GeneralFail(caller, "unrecognized contact node specification \"\"",
-			striker_spec.Name().Pointer());
 
 	/* echo */
-	if (print_input) {
+	if (fFEManager.PrintInput())
+	{
 		out << "\n Striker nodes:\n";
 		fStrikerTags++;
 		out << fStrikerTags.wrap(8) << '\n';
 		fStrikerTags--;	
 	}
-
-	/* allocate striker coords */
-	fStrikerCoords.Dimension(fStrikerTags.Length(), NumSD());
-
-	/* space for output */
-	fStrikerForce2D.Dimension(fStrikerTags.Length(), NumDOF());
-	fStrikerForce2D = 0.0;
 	
-	/* set connectivity name */
-	ModelManagerT& model = ElementSupport().ModelManager();
-	StringT name ("Contact");
-	name.Append (ElementSupport().ElementGroupNumber(this) + 1);
-
-	/* register with the model manager and let it set the ward */
-	int nen = fNumFacetNodes + 1; /* facet nodes + 1 striker */
-	if (!model.RegisterElementGroup(name, GeometryT::kLine, nen)) 
-		ExceptionT::GeneralFail(caller, "could not register contact facets");
-
-	/* set up fConnectivities */
-	fConnectivities.Dimension(1);
-	fConnectivities[0] = model.ElementGroupPointer(name);
-
-	/* set up fBlockData to store block ID */
-	fBlockData.Dimension(1);
-	fBlockData[0].Set(name, 0, fConnectivities[0]->MajorDim(), -1);
-
-	/* set managed equation numbers array */
-	fEqnos.Dimension(1);
-	fEqnos_man.SetWard(0, fEqnos[0], nen*NumDOF());
+	/* allocate striker coords */
+	fStrikerCoords.Allocate(fStrikerTags.Length(),fNumSD);
 }
 
 void ContactT::SetWorkSpace(void)
 {
 	/* allocate map to active strikers data */
-	fActiveMap.Dimension(fStrikerTags.Length());
+	fActiveMap.Allocate(fStrikerCoords.MajorDim());
 	fActiveMap = -1;
+
+	/* set the managed array - can only be set once */
+	fConnectivities_man.SetWard(0, fConnectivities, fNumElemNodes);
+	fEqnos_man.SetWard(0, fEqnos, fNumElemEqnos);
 
 	/* make pseudo-element list to link surfaces in case
 	 * bodies are not otherwise interacting (for the bandwidth
@@ -395,7 +289,7 @@ void ContactT::SetWorkSpace(void)
 	int num_surfaces = fSurfaces.Length();
 	if (num_surfaces > 1)
 	{
-		fSurfaceLinks.Dimension(num_surfaces - 1, 2);
+		fSurfaceLinks.Allocate(num_surfaces - 1, 2);
 		for (int i = 0; i < num_surfaces - 1; i++)
 		{
 			fSurfaceLinks(i,0) = (fSurfaces[i  ])[0];
@@ -404,125 +298,182 @@ void ContactT::SetWorkSpace(void)
 	}
 }
 
-void ContactT::WriteContactInfo(ostream& out) const
-{
-	/* contact statistics */
-	int d_width = OutputWidth(out, fStrikerForce2D.Pointer());
-	out << "\n Contact tracking: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
-	out << " Time                           = " << ElementSupport().Time() << '\n';
-	out << " Active strikers                = " << fActiveStrikers.Length() << '\n';
-	dArrayT f_c;
-	if (fActiveStrikers.Length() > 0 && ElementSupport().Logging() == GlobalT::kVerbose)
-	{
-		out << setw(kIntWidth) << "striker" 
-		    << setw(kIntWidth) << "surface"
-		    << setw(kIntWidth) << "facet"
-		    << setw(fNumFacetNodes*kIntWidth) << "facet nodes" 
-		    << setw(d_width) << "force" << '\n';
-		for (int i = 0; i < fActiveStrikers.Length(); i++)
-		{
-			out << setw(kIntWidth) << fActiveStrikers[i] + 1;
-			out << setw(kIntWidth) << fHitSurface[i] + 1; int hit_facet = fHitFacets[i];
-			out << setw(kIntWidth) << hit_facet + 1;
-			for (int j = 0; j < fNumFacetNodes; j++)
-				out << setw(kIntWidth) << fSurfaces[fHitSurface[i]](hit_facet, j) + 1;
-			fStrikerForce2D.RowAlias(fActiveStrikers[i], f_c);
-			out << setw(d_width) << f_c.Magnitude();
-			out << '\n';
-		}
-		out << endl;
-	}
-
-	/* write tracking data */
-	if (fnum_contact != -1) {
-		out << " Number of contact interactions = " << fnum_contact << '\n';
-		out << " Maximum penetration depth      = " << fh_max << '\n';
-	} else { /* not set */
-		out << " Number of contact interactions = --\n";
-		out << " Maximum penetration depth      = --\n";	
-	}
-}
-
 /* generate contact element data - return true if configuration has
 * changed since the last call */
 bool ContactT::SetContactConfiguration(void)
 {
-	int last_num_active = fActiveStrikers.Length();
 	bool contact_changed = SetActiveInteractions();
 	if (contact_changed)
 	{
 		/* resize */
-		int nel = fActiveStrikers.Length();
-		fEqnos_man.SetMajorDimension(nel, false);
-
-		/* update dimensions */
-		ElementBlockDataT& block = fBlockData[0];
-		block.Set(block.ID(), block.StartNumber(), fConnectivities[0]->MinorDim(), block.MaterialID());
-
-		/* reset the model manager */
-		ModelManagerT& model = ElementSupport().ModelManager();
-		model.ResizeElementGroup(block.ID(), nel);
+		int num_active = fActiveStrikers.Length();
+		fConnectivities_man.SetMajorDimension(num_active, false);
+		fEqnos_man.SetMajorDimension(num_active, false);
 
 		/* generate connectivities */
-		SetConnectivities();
+		SetConnectivities();	
 	}
-
-	/* write list of active strikers */
-	if (ElementSupport().Logging() != GlobalT::kSilent) {
-		iArrayT tmp;
-		tmp.Alias(fActiveStrikers);	
-		ostream& out = ElementSupport().Output();
-		out << "\n            time: " << ElementSupport().Time() << '\n';
-		out <<   " previous active: " << last_num_active << '\n';
-		out <<   "  current active: " << fActiveStrikers.Length() << '\n';
-		if (fActiveStrikers.Length() > 0 && ElementSupport().Logging() == GlobalT::kVerbose) {
-			out << setw(kIntWidth) << "node" 
-			    << setw(kIntWidth) << "surface" 
-			    << setw(kIntWidth) << "face" << '\n';
-			for (int i = 0; i < fActiveStrikers.Length(); i++)
-				out << setw(kIntWidth) << fActiveStrikers[i]+1
-				    << setw(kIntWidth) << fHitSurface[i]+1
-				    << setw(kIntWidth) << fHitFacets[i]+1 << '\n';
-		}
-	}
-
+	
 	return contact_changed;
 }
 
 /***********************************************************************
- * Private
- ***********************************************************************/
+* Private
+***********************************************************************/
 
-void ContactT::InputSideSets(const ParameterListT& list, iArray2DT& facets)
+/* surface input functions */
+void ContactT::InputNodesOnFacet(ifstreamT& in, iArray2DT& facets)
 {
-	const char caller[] = "ContactT::InputSideSets";
-
-	/* extract side set ID */
-	StringT ss_ID;
-	ss_ID = list.GetParameter("side_set_ID");
-
-	/* read side set faces */
-	ModelManagerT& model = ElementSupport().ModelManager();
-	ArrayT<GeometryT::CodeT> facet_geom;
-	iArrayT facet_nodes;
-	model.SideSet(ss_ID, facet_geom, facet_nodes, facets);
+	int num_facets;
+	in >> num_facets;
+	if (num_facets < 0) throw eBadInputValue;
+	
+	/* dimension */
+	facets.Allocate(num_facets, fNumFacetNodes);
+	
+	/* read */
+	in >> facets;
+	
+	/* correct numbering */
+	facets--;
 }
 
-void ContactT::InputBodyBoundary(const ParameterListT& list, ArrayT<iArray2DT>& surfaces,
-	int& surface)
+void ContactT::InputSideSets(ifstreamT& in, ostream& out, iArray2DT& facets)
 {
-	/* gather element group info */
-	int elem_group = list.GetParameter("body_element_group");
+#ifdef __NO_RTTI__
+	cout << "\n ContactT::InputSideSets: RTTI required, but not available.\n";
+	cout <<   "     Use different surface specification mode." << endl;
+	throw;
+#endif
+
+	int elem_group;
+	in >> elem_group;
 	elem_group--;
-	ElementBaseT& element = ElementSupport().ElementGroup(elem_group);
-	ArrayT<StringT> IDs;
-	element.ElementBlockIDs(IDs);
+	ContinuumElementT* pelem_group =
+		dynamic_cast<ContinuumElementT*>(fFEManager.ElementGroup(elem_group));
+
+	/* checks */
+	if (!pelem_group)
+	{
+		cout << "\n ContactT::InputSideSets: element group " << elem_group;
+		cout << " must be of type\n" <<   "     ContinuumElementT" << endl;
+		throw eBadInputValue;
+	}
+	
+	/* read side set */
+	iArray2DT side_set;
+	int block_ID;
+	int input_format = fFEManager.InputFormat();
+	switch (input_format)
+	{
+		case IOBaseT::kExodusII:
+		{
+			/* ExodusII database info */
+			const StringT& file = fFEManager.ModelFile();
+			ostream& out = fFEManager.Output();
+			ExodusT database(out);
+			if (!database.OpenRead(file))
+			{
+				cout << "\n ContactT::InputSideSets: error opening file: "
+		     		 << file << endl;
+				throw eGeneralFail;
+			}		
+
+			/* read side set info */
+			int set_ID;
+			in >> set_ID;
+			int num_sides = database.NumSidesInSet(set_ID);
+			side_set.Allocate(num_sides, 2);
+			database.ReadSideSet(set_ID, block_ID, side_set);
+
+			/* correct offset */
+			side_set--;
+
+			/* echo dimensions */
+			out << " side set ID: " << set_ID << '\n';
+			out << "  element ID: " << block_ID << '\n';
+			out << "       sides: " << side_set.MajorDim() << '\n';
+			break;
+		}
+		case IOBaseT::kTahoe:
+		{	
+			/* read */
+			int num_facets;
+			in >> block_ID >> num_facets;
+			if (num_facets < 0) throw eBadInputValue;
+			side_set.Allocate(num_facets, 2);
+			in >> side_set;
+			
+			/* correct offset */
+			block_ID--;
+			side_set--;
+			break;
+		}
+		case IOBaseT::kTahoeII:
+		{
+			/* open database */
+			ModelFileT database;
+			if (database.OpenRead(fFEManager.ModelFile()) != ModelFileT::kOK)
+			{
+				cout << "\n ContactT::InputSideSets: error opening file: "
+		     		 << fFEManager.ModelFile() << endl;
+				throw eGeneralFail;
+			}		
+
+			/* read side set info */
+			int set_ID;
+			in >> set_ID;			
+			database.GetSideSet(set_ID, block_ID, side_set);
+			
+			/* correct offset */
+			side_set--;
+
+			/* echo dimensions */
+			out << " side set ID: " << set_ID << '\n';
+			out << "  element ID: " << block_ID << '\n';
+			out << "       sides: " << side_set.MajorDim() << '\n';
+			break;
+		}
+		default:		
+			cout << "\n ContactT::InputSideSets: input format not supported: ";
+			cout << input_format << endl;
+			throw eGeneralFail;
+	}
+	
+	/* numbers from element group */
+	pelem_group->SideSetToFacets(block_ID, side_set, facets);
+}
+
+void ContactT::InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces,
+		int& surface)
+{
+#ifdef __NO_RTTI__
+	cout << "\n ContactT::InputBodyBoundary: RTTI required, but not available.\n";
+	cout <<   "     Use different surface specification mode." << endl;
+	throw;
+#endif
+
+	/* get element group */
+	int elem_group;
+	in >> elem_group;
+	elem_group--;
+	
+	ContinuumElementT* pelem_group =
+		dynamic_cast<ContinuumElementT*>(fFEManager.ElementGroup(elem_group));
+
+	/* checks */
+	if (!pelem_group)
+	{
+		cout << "\n ContactT::InputBodyBoundary: element group " << elem_group;
+		cout << " must be of type\n" <<   "     ContinuumElementT" << endl;
+		throw eBadInputValue;
+	}
 
 	/* get sets of facet */
 	GeometryT::CodeT geometry;
 	ArrayT<iArray2DT> surface_facet_sets;
 	iArrayT surface_nodes;
-	ElementSupport().ModelManager().SurfaceFacets(IDs, geometry, surface_facet_sets, surface_nodes);
+	pelem_group->SurfaceFacets(geometry, surface_facet_sets, surface_nodes);
 
 	/* just one surface */
 	if (surface_facet_sets.Length() == 1)
@@ -548,7 +499,7 @@ void ContactT::InputBodyBoundary(const ParameterListT& list, ArrayT<iArray2DT>& 
 void ContactT::StrikersFromSurfaces(void)
 {
 	//TEMP just make big for now
-	int num_nodes = ElementSupport().NumNodes();
+	int num_nodes = (fFEManager.NodeManager())->NumNodes();
 	iArrayT counts(num_nodes);
 	counts = 0;
 
@@ -573,7 +524,7 @@ void ContactT::StrikersFromSurfaces(void)
 			node_count++;
 
 	/* collect */
-	fStrikerTags.Dimension(node_count);
+	fStrikerTags.Allocate(node_count);
 	pcount = counts.Pointer();
 	int* pstrike = fStrikerTags.Pointer();
 	for (int k = 0; k < num_nodes; k++)
@@ -581,117 +532,74 @@ void ContactT::StrikersFromSurfaces(void)
 			*pstrike++ = k;
 }
 
-void ContactT::StrikersFromNodeSets(const ParameterListT& list)
+void ContactT::ReadStrikers(ifstreamT& in, ostream& out)
 {
-	/* collect node set id indexes */
-	ArrayT<StringT> ns_ID;
-	StringListT::Extract(list, ns_ID);
-
-	/* collect nodes from those indexes */
-	ModelManagerT& model = ElementSupport().ModelManager();
-	iArrayT tmp;
-	model.ManyNodeSets(ns_ID, fStrikerTags);
-}
-
-void ContactT::StrikersFromSideSets(const ParameterListT& list)
-{
-	/* read data from parameter file */
-	ArrayT<StringT> ss_ID;
-	StringListT::Extract(list, ss_ID);	
-
-	/* geometry database */
-	ModelManagerT& model = ElementSupport().ModelManager();
-
-	/* list node nodes used */
-	iArrayT nodes_used(model.NumNodes());
-	nodes_used = 0;
-
-	/* mark nodes used in side sets */
-	ArrayT<GeometryT::CodeT> facet_geom;
-	iArrayT facet_nodes;
-	iArray2DT facets;
-	for (int i = 0; i < ss_ID.Length(); i++)
+	switch (fFEManager.InputFormat())
 	{
-		/* read side set */
-		model.SideSet(ss_ID[i], facet_geom, facet_nodes, facets);
-	
-		/* mark nodes used */
-		for (int j = 0; j < facets.Length(); j++)
-			nodes_used[facets[j]] = 1;
-	}
-	
-	/* collect nodes */
-	fStrikerTags.Dimension(nodes_used.Count(1));
-	int dex = 0;
-	for (int i = 0; i < nodes_used.Length(); i++)
-		if (nodes_used[i] == 1)
-			fStrikerTags[dex++] = i;
-}
-
-#if 0
-/* compute the nodal area associated with each striker node */
-void ContactT::ComputeNodalArea(const ArrayT<StringT>& striker_blocks, 
-	dArrayT& nodal_area, InverseMapT& inverse_map)
-{
-	/* initialize nodal area */
-	nodal_area.Dimension(fStrikerTags.Length());
-	nodal_area = 0.0;
-
-	/* get surface faces */
-	GeometryT::CodeT geometry;
-	ArrayT<iArray2DT> surfaces;
-	iArrayT surface_nodes;
-	ElementSupport().ModelManager().SurfaceFacets(striker_blocks, geometry, surfaces, surface_nodes);
-
-	/* no surfaces */
-	if (surfaces.Length() == 0) return;
-
-	/* map to local id of striker nodes */
-	inverse_map.SetOutOfRange(InverseMapT::MinusOne);
-	inverse_map.SetMap(fStrikerTags);
-
-	/* shape functions over the faces */
-	int nip = 1;
-	int nfn = surfaces[0].MinorDim();
-	ParentDomainT surf_shape(geometry, nip, nfn);
-	surf_shape.Initialize();
-
-	/* coordinates over the face */
-	int nsd = NumSD();
-	LocalArrayT ref_coords(LocalArrayT::kInitCoords, nfn, nsd);
-	ElementSupport().RegisterCoordinates(ref_coords);
-	dMatrixT jacobian(nsd, nsd-1);
-
-	/* loop over surfaces */
-	const double* Na = surf_shape.Shape(0);
-	const double* w  = surf_shape.Weight();
-	iArrayT facet_nodes;
-	for (int i = 0; i < surfaces.Length(); i++)
-	{
-		const iArray2DT& surface = surfaces[i];
-
-		/* loop over faces */
-		for (int j = 0; j < surface.MajorDim(); j++)
+		case IOBaseT::kTahoe:
 		{
-			/* face nodes */
-			surface.RowAlias(j, facet_nodes);
-		
-			/* gather coordinates */
-			ref_coords.SetLocal(facet_nodes);
-		
-			/* coordinate mapping */
-			surf_shape.DomainJacobian(ref_coords, 0, jacobian);
-			double detj = surf_shape.SurfaceJacobian(jacobian);	
-		
-			/* loop over face nodes */
-			for (int k = 0; k < facet_nodes.Length(); k++)
-			{
-				/* striker node index */
-				int index = inverse_map.Map(facet_nodes[k]);
-				if (index != -1)
-					nodal_area[index] += w[0]*detj*Na[k];
-			}
+			ifstreamT tmp;
+			ifstreamT& in2 = fFEManager.OpenExternal(in, tmp, out, true,
+				"ContactT::ReadNodes: could not open file");
+
+			int num_nodes;
+			in2 >> num_nodes;
+			fStrikerTags.Allocate(num_nodes);
+			in2 >> fStrikerTags;
+			break;
 		}
+		case IOBaseT::kTahoeII:
+		{
+			/* number of node sets */
+			int num_sets;
+			in >> num_sets;
+			out << " Number of node set ID's: " << num_sets << endl;
+			if (num_sets > 0)
+			{
+				/* open database */
+				ModelFileT model_file;
+				model_file.OpenRead(fFEManager.ModelFile());
+
+				/* echo set ID's */
+				iArrayT ID_list(num_sets);
+				in >> ID_list;
+				out << ID_list.wrap(10) << '\n';
+				
+				/* collect */
+				if (model_file.GetNodeSets(ID_list, fStrikerTags) !=
+				    ModelFileT::kOK) throw eBadInputValue;
+			}
+			break;
+		}
+		case IOBaseT::kExodusII:
+		{
+			/* number of node sets */
+			int num_sets;
+			in >> num_sets;
+			out << " Number of node set ID's: " << num_sets << endl;
+			if (num_sets > 0)
+			{
+				/* echo set ID's */
+				iArrayT ID_list(num_sets);
+				in >> ID_list;
+				out << ID_list.wrap(10) << '\n';
+
+				/* open database */
+				ExodusT database(out);
+				database.OpenRead(fFEManager.ModelFile());
+				
+				/* read collect all nodes in sets */
+				database.ReadNodeSets(ID_list, fStrikerTags);
+			}
+			break;
+		}
+		default:
+
+			cout << "\n ContactT::ReadNodes: unsupported input format: ";
+			cout << fFEManager.InputFormat() << endl;
+			throw eGeneralFail;
 	}
+
+	/* correct offset */
+	fStrikerTags--;
 }
-#endif

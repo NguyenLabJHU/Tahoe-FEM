@@ -1,4 +1,4 @@
-/* $Id: LocalParabolaT.h,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: LocalParabolaT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
 /* created: paklein (01/28/1997)                                          */
 /* LocalParabolaT.h                                                       */
 /* Interface for a successively fitted parabolic approximation.  Data     */
@@ -11,9 +11,6 @@
 
 #ifndef _LOCALPARABOLA_T_H_
 #define _LOCALPARABOLA_T_H_
-
-
-namespace Tahoe {
 
 class LocalParabolaT
 {
@@ -79,5 +76,4 @@ private:
 	double fymin;
 };
 
-} // namespace Tahoe 
 #endif /* _LOCALPARABOLA_T_H_ */

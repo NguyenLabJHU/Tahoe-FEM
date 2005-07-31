@@ -1,16 +1,15 @@
-/* $Id: LinearSolver.cpp,v 1.12 2005-05-01 19:29:45 paklein Exp $ */
-/* created: paklein (05/30/1996) */
+/* $Id: LinearSolver.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* created: paklein (05/30/1996)                                          */
+
 #include "LinearSolver.h"
 #include "FEManagerT.h"
 
-using namespace Tahoe;
-
-/* constructors */
-LinearSolver::LinearSolver(FEManagerT& fe_manager, int group):
-	SolverT(fe_manager, group),
+/* constructor */
+LinearSolver::LinearSolver(FEManagerT& fe_manager):
+	SolverT(fe_manager),
 	fFormLHS(1)
 {
-	SetName("linear_solver");
+
 }
 
 /* signal new reconfigured system */
@@ -21,86 +20,77 @@ void LinearSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	
 	/* flag to reform LHS */
 	fFormLHS = 1;
+
+#if 0
+	int analysis_code = fFEManager.Analysis();
+	if (analysis_code != GlobalT::kLinExpDynamic &&
+		analysis_code != GlobalT::kNLExpDynamic)
+		fFormLHS = 1;
+#endif
+//NOTE: these checks were added because explicit dynamics with
+//      contact was reforming the mass matrix whenever the contact
+//      configuration was changed. until this state is more clearly
+//      defined {ReEQ, Relax, ReEQRelax, ????}
+//
+//  Need a flag to say that the force configured:
+//    ReEQ_LHS, ReEQ_RHS
 }
 
-/* start solution step */
-void LinearSolver::InitStep(void)
+/* solve for the current time sequence */
+void LinearSolver::Run(void)
 {
-	/* inherited */
-	SolverT::InitStep();
-
-	/* no iterations count */
-	fNumIteration = 0;
-}
-
-/* solve the current step */
-SolverT::SolutionStatusT LinearSolver::Solve(int)
-{
-	try {
-	/* initialize */
-	fRHS = 0.0;
+	/* single-step update loop */
+	while (Step())
+	{
+		try
+		{
+			/* initialize */
+			fRHS = 0.0;
 			
-	/* form the residual force vector */
-	fFEManager.FormRHS(Group());
+			/* apply kinematic BC's */
+			fFEManager.InitStep();
+
+			/* form the residual force vector */
+			fFEManager.FormRHS();
 					
-	/* solve equation system */
-	if (fFormLHS)
-	{
-		/* unlock */
-		fLHS_lock = kOpen;
+			/* solve equation system */
+			if (fFormLHS)
+			{
+				/* initialize */
+				fLHS->Clear();
 	
-		/* initialize */
-		fLHS->Clear();
-	
-		/* form the stiffness matrix */
-		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
+				/* form the stiffness matrix */
+				fFEManager.FormLHS();
 				
-		/* flag not to reform */
-		fFormLHS = 0;
+				/* flag not to reform */
+				fFormLHS = 0;
+			}
 
-		/* lock */
-		fLHS_lock = kLocked;
-	}
+			/* determine update vector */
+			fLHS->Solve(fRHS);
 
-	/* determine update vector */
-	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("LinearSolver::Solve");
-
-	/* update displacements */
-	fFEManager.Update(Group(), fRHS);		
+			/* update displacements */
+			fFEManager.Update(fRHS);		
 			
-	/* relaxation */
-	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+			/* relaxation */
+			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem();
 				
-	/* relax for configuration change */
-	if (relaxcode == GlobalT::kRelax) fFormLHS = 1;
-			//NOTE: NLSolver calls "fFEManager.Reinitialize()". Should this happen
-			//      here, too? For statics, should also reset the structure of
-			//      global stiffness matrix, but since EFG only breaks connections
-			//      and doesn't make new ones, this should be OK for now. PAK (03/04/99)
+			/* relax for configuration change */
+			if (relaxcode == GlobalT::kRelax) fFormLHS = 1;
+				//NOTE: NLSolver calls "fFEManager.Reinitialize()". Should this happen
+				//      here, too? For statics, should also reset the structure of
+				//      global stiffness matrix, but since EFG only breaks connections
+				//      and doesn't make new ones, this should be OK for now. PAK (03/04/99)
 			
-	/* trigger set of new equations */
-	if (relaxcode == GlobalT::kReEQ ||
-	    relaxcode == GlobalT::kReEQRelax)
-		fFEManager.SetEquationSystem(Group());
+			/* trigger set of new equations */
+			if (relaxcode == GlobalT::kReEQ ||
+			    relaxcode == GlobalT::kReEQRelax)
+				fFEManager.Reinitialize();
+				
+			/* finalize */
+			fFEManager.CloseStep();
+		}
 
-	return kConverged;
-	} /* end try */
-	
-	/* not OK */
-	catch (ExceptionT::CodeT exc)
-	{
-		cout << "\n LinearSolver::Solve: caught exception: " 
-		     << ExceptionT::ToString(exc) << endl;
-		return kFailed;
+		catch (int code) { fFEManager.HandleException(code); }
 	}
-}
-
-/* signal time step change */
-void LinearSolver::SetTimeStep(double dt)
-{
-	/* inherited */
-	SolverT::SetTimeStep(dt);
-	
-	/* reform LHS matrix */
-	fFormLHS = 1;
-}
+}	

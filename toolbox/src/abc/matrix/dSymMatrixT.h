@@ -1,92 +1,51 @@
-/* $Id: dSymMatrixT.h,v 1.21 2005-03-16 10:18:35 paklein Exp $ */
-/* created: paklein (05/24/1996) */
+/* $Id: dSymMatrixT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (05/24/1996)                                          */
+/* Interface for a reduced index symmetric matrix, stored as a vector.    */
+/* Can be constructed in 2D or 3D.                                        */
+
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
 
 /* base class */
 #include "dArrayT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
 class dMatrixT;
 
-/** interface for a 1D/2D/3D reduced index symmetric matrix stored as 
- * a reduced index vector */
 class dSymMatrixT: public dArrayT
 {
 public:
 
-	/** enumerated type to indicate matrix dimension */
-	enum DimensionT {
-		kNone = 0,
-		k1D = 1,
-		k2D = 2,
-		k3D = 3,
-		k3D_plane = 4 /**< 2D plane components, plus axial out-of-plane component */
-	};
-
-	enum AssemblyModeT {kOverwrite = 0, kAccumulate = 1};
-
-	/** integer to dSymMatrixT::DimensionT type conversion operator. Needed
-	 * for backward compatibility with code written before the enum was defined */
-	static DimensionT int2DimensionT(int i) {
-#if __option(extended_errorcheck)
-		if (i < kNone || i > k3D_plane) ExceptionT::OutOfRange("dSymMatrixT::int2DimensionT");
-#endif
-		DimensionT dims[5] = {kNone, k1D, k2D, k3D, k3D_plane};
-		return dims[i];
-	};
-
-	/** \name constructors */
-	/*@{*/
+	/* constructors */
 	dSymMatrixT(void);
-	explicit dSymMatrixT(DimensionT nsd);
+	dSymMatrixT(int nsd);
+	dSymMatrixT(int nsd, double* array);
 	dSymMatrixT(const dSymMatrixT& source);
 
-	/** construct alias */
-	dSymMatrixT(DimensionT nsd, const double* array);
-	/*@}*/
+	/* allocate an reduced matrix for the given spatial dimension */
+	void Allocate(int nsd);
 
-	/** dimension the matrix for the number of spatial dimensions. No change 
-	 * occurs if the array is already the specified length. The previous contents 
-	 * of the array is not preserved. */
-	void Dimension(DimensionT nsd);
+	/* set fields */
+	void Set(int nsd, double* array);
+//	void SetNSD(int nsd);
+//DEV - what's this for? Why not use allocate function to set NSD
 
-	/** create shallow matrix. Explicitly set the memory used the matrix.
-	 * \param nsd matrix dimension
-	 * \param array pointer to memory at least length dSymMatrixT::NumValues(nsd) */
-	void Alias(DimensionT nsd, const double* array);
-
-	/** \name assignment operators */
-	/*@{*/
+	/* assignment operators */
 	dSymMatrixT& operator=(const dSymMatrixT& RHS);
 	dSymMatrixT& operator=(const double value);
-	/*@}*/
 
-	/** \name element accessor */
-	/*@{*/
-	double& operator()(int row, int col);
-	const double& operator()(int row, int col) const;
-	/*@}*/
+	/* accessor */
+	double& operator()(int row, int col) const;
 
 	/* returns the number of dimensions in the reduced
 	 * index symmetric matrix vectors given the number of spatial
 	 * dimensions.  nsd can only be 2 or 3. */
-	static int NumValues(DimensionT nsd) {
-#if __option(extended_errorcheck)
-		if (nsd < kNone || nsd > k3D_plane) ExceptionT::OutOfRange("dSymMatrixT::NumValues");
-#endif
-		int map[5] = {0, 1, 3, 6, 4};
-		return map[nsd];	
-	};
-	static void ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2);
+	static int NumValues(int nsd);
+	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2);
 
-	/** \name dimensions */
-	/*@{*/
+	/* dimensions */
 	int Rows(void) const;
 	int Cols(void) const;
-	/*@}*/
 	
 	/* I/O operators */
 	friend ostream& operator<<(ostream& out, const dSymMatrixT& array);
@@ -103,10 +62,6 @@ public:
 	 *             T:T = T_ij T_ij
 	 */
 	double ScalarProduct(void) const;
-	/* 
-	 *             A:B = A_ij B_ij
-	 */
-	double ScalarProduct(const dSymMatrixT& matrix) const;
 	
 	/* the second invariant */
 	double Invariant2(void) const;
@@ -147,11 +102,8 @@ public:
 	dSymMatrixT& ExpandFrom2D(const dSymMatrixT& vec2D); /* assumed plane strain */
 	dSymMatrixT& ReduceFrom3D(const dSymMatrixT& vec3D);
 
-	/** ? <-> ? translations */
-	dSymMatrixT& Translate(const dSymMatrixT& matrix);
-
-	/** outer product */
-	void Outer(const dArrayT& v, double scale = 1.0);
+	/* outer product */
+	void Outer(const dArrayT& v);
 
 	/* matrix-matrix multiplication */
 	void MultAB(const dSymMatrixT& A, const dSymMatrixT& B); /* A and B must commute */
@@ -163,7 +115,7 @@ public:
 	void MultQTBQ(const dMatrixT& Q, const dSymMatrixT& B);
 
 	/* matrix-vector multiplication */
-	void Multx(const dArrayT& x, dArrayT& b, double scale = 1.0, int fillmode = kOverwrite) const;
+	void Multx(const dArrayT& x, dArrayT& b) const;
 
 	/* vector-matrix-vector product */
 	double MultmBn(const dArrayT& m, const dArrayT& n) const;
@@ -174,21 +126,6 @@ public:
 
 	/* symmetric rank-(2-4-2) contraction with this */
 	double B_ij_A_ijkl_B_kl(const dMatrixT& A) const;
-
-	/** scale off-diagonal value by the given factor */
-	void ScaleOffDiagonal(double factor);
-
-	/** \name deprecated methods */
-	/*@{*/
-	explicit dSymMatrixT(int nsd) ;
-	dSymMatrixT(int nsd, double* array);
-	void Dimension(int nsd) { Dimension(int2DimensionT(nsd)); };
-	void Allocate(int nsd) { Dimension(nsd); };
-	void Set(int nsd, double* array);
-	void Set(DimensionT nsd, double* array);
-	static int NumValues(int nsd) { return NumValues(int2DimensionT(nsd)); };
-	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2);
-	/*@}*/
 
 private:
 
@@ -202,17 +139,25 @@ private:
 	
 private:
 
-	DimensionT fNumSD;	
+	int fNumSD;	
 };
 
 /* inlines */
+
+/* dimensions */
+inline int dSymMatrixT::NumValues(int nsd)
+{
+	if (nsd < 1 || nsd > 3) throw eGeneralFail;
+	int map[4] = {0, 1, 3, 6};
+	return map[nsd];	
+}
 
 /* assigment operators */
 inline dSymMatrixT& dSymMatrixT::operator=(const dSymMatrixT& RHS)
 {
 	/* must be same dimension or nsd must be zero */
 	if (fNumSD != 0 && fNumSD != RHS.fNumSD)
-		ExceptionT::SizeMismatch("dSymMatrixT::operator=");
+		throw eSizeMismatch;
 	else
 		fNumSD = RHS.fNumSD;
 
@@ -229,83 +174,9 @@ inline dSymMatrixT& dSymMatrixT::operator=(const double value)
 }
 
 /* dimensions */
-inline int dSymMatrixT::Rows(void) const { 
-  return (fNumSD<3) ? fNumSD:3; 
-}
-inline int dSymMatrixT::Cols(void) const { 
-return (fNumSD<3) ? fNumSD:3; 
-}
+inline int dSymMatrixT::Rows(void) const { return fNumSD; }
+inline int dSymMatrixT::Cols(void) const { return fNumSD; }
 inline dSymMatrixT& dSymMatrixT::Deviatoric(void) { return Deviatoric(*this); }
 inline dSymMatrixT& dSymMatrixT::Inverse(void) { return Inverse(*this); }
-
-/* scale off-diagonal value by the given factor */
-inline void dSymMatrixT::ScaleOffDiagonal(double factor)
-{
-	if (fNumSD == 2 || fNumSD == dSymMatrixT::k3D_plane)
-		fArray[2] *= factor;
-	else if (fNumSD == 3) {
-		fArray[3] *= factor;
-		fArray[4] *= factor;	
-		fArray[5] *= factor;	
-	}
-}
-
-/* set fields */
-inline void dSymMatrixT::Alias(DimensionT nsd, const double* array)
-{
-	fNumSD = int2DimensionT(nsd);
-#if __option(extended_errorcheck)
-	if (fNumSD < 1 || fNumSD > 4) 
-		ExceptionT::GeneralFail("dSymMatrixT::Alias", "invalid dimension %d", nsd);
-#endif
-	/* inherited */
-	dArrayT::Alias(NumValues(fNumSD), array);
-}
-
-inline void dSymMatrixT::Set(DimensionT nsd, double* array)
-{
-	fNumSD = int2DimensionT(nsd);
-#if __option(extended_errorcheck)
-	if (fNumSD < 1 || fNumSD > 4) 
-		ExceptionT::GeneralFail("dSymMatrixT::Set", "invalid dimension %d", nsd);
-#endif
-	/* inherited */
-	dArrayT::Set(NumValues(fNumSD), array);
-}
-
-inline void dSymMatrixT::Set(int nsd, double* array)
-{
-	Set(int2DimensionT(nsd), array); 
-};
-
-/* const element accessor */
-inline double& dSymMatrixT::operator()(int row, int col) {
-	const double& a = ((const dSymMatrixT*) this)->operator()(row,col);
-	return const_cast<double&>(a);
-}
-
-inline void dSymMatrixT::ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2)
-{
-#if __option(extended_errorcheck)
-	/* consistency check */
-	const char caller[] = "dSymMatrixT::ExpandIndex";
-	if (dex >= NumValues(nsd)) ExceptionT::OutOfRange(caller, "bad index %d", dex);
-#endif
-	
-	int  map_1D[2] = {0,0};
-	int  map_2D[6] = {0,0,1,1,0,1};
-	int map_3D[18] = {0,0,1,1,2,2,1,2,0,2,0,1};
-	int* map_list[4] = {NULL, map_1D, map_2D, map_3D};
-	int* map = map_list[nsd];
-	int* p = map + 2*dex;
-	dex_1 = p[0];
-	dex_2 = p[1];
-}
-
-inline void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) { 
-	ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2); 
-};
-
-} /* namespace Tahoe */
 
 #endif /* _DSYM_MATRIX_T_H_ */
