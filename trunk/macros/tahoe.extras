@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.19 2005-06-02 05:45:40 paklein Exp $
+# $Id: tahoe.extras,v 1.20 2005-08-01 03:27:55 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -55,7 +55,8 @@ touch_SEACAS:
 touch_MPI:
 	@ $(PRINTF) "removing object files depending on MPI\n"
 	- $(RM) $(BLD_SRC_DIR)/main/*.o
-	- $(MAKE) touch_spooles touch_Aztec
+	- $(RM) $(BLD_SRC_DIR)/nodes/FBC_controllers/PenaltyRegionT.o
+	- $(MAKE) touch_spooles touch_Aztec touch_SuperLU
 	@ $(PRINTF) "NOTE: toolbox must also be up to date\n"
 	
 touch_METIS:
