@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.9 2004-11-09 21:56:57 paklein Exp $
+# $Id: makefile.template,v 1.10 2005-08-01 05:21:39 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -10,7 +10,7 @@
 # (5) "make init" to (re-)initialize headers and file
 #     dependencies.
 # (6) "make build" to (re-)compiler binaries.
-
+#
 # full path to the top level of this module
 HOME_DIR =
 
