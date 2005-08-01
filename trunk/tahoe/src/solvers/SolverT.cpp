@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.33 2005-05-28 18:08:44 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.34 2005-08-01 03:25:37 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -292,9 +292,39 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 		choice->AddSub(ParameterContainerT("PSPASES_matrix"));
 #endif	
 
+#if defined(__SUPERLU__) || defined(__SUPERLU_DIST__)
+		/* output timing statistics */
+		ParameterT print_stat(ParameterT::Boolean, "print_stat");
+		print_stat.SetDefault(false);
+		
+		/* solution refinement */
+		ParameterT refinement(ParameterT::Enumeration, "refinement");
+		refinement.AddEnumeration("NOREFINE", NOREFINE);
+		refinement.AddEnumeration(  "SINGLE", SINGLE);
+		refinement.AddEnumeration(  "DOUBLE", DOUBLE);
+		refinement.AddEnumeration(   "EXTRA", EXTRA);
+		refinement.SetDefault(NOREFINE);
+#endif /* __SUPERLU__ or __SUPERLU_DIST__ */
+
 #ifdef __SUPERLU__
-		choice->AddSub(ParameterContainerT("SuperLU_matrix"));
-#endif	
+		ParameterContainerT SuperLU("SuperLU_matrix");
+
+		/* options */
+		SuperLU.AddParameter(print_stat);
+		SuperLU.AddParameter(refinement);		
+
+		choice->AddSub(SuperLU);
+#endif /* __SUPERLU__ */
+
+#ifdef __SUPERLU_DIST__
+		ParameterContainerT SuperLU_DIST("SuperLU_DIST_matrix");
+
+		/* options */
+		SuperLU_DIST.AddParameter(print_stat);
+		SuperLU_DIST.AddParameter(refinement);		
+
+		choice->AddSub(SuperLU_DIST);
+#endif /* __SUPERLU_DIST__ */
 
 #ifdef __SUPERLU_MT__
 		ParameterContainerT SuperLU_MT("SuperLU_MT_matrix");
@@ -634,35 +664,40 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 	}
 	else if (params.Name() == "SuperLU_matrix")
 	{
-		if (fFEManager.Size() == 1) /* serial */
-		{
 #ifdef __SUPERLU__
-			/* global system properties */
-			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
+		/* global system properties */
+		GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 
-			bool symmetric;
-			if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
-				symmetric = true;
-			else if (type == GlobalT::kNonSymmetric)
-				symmetric = false;
-			else
-				ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
+		bool symmetric;
+		if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
+			symmetric = true;
+		else if (type == GlobalT::kNonSymmetric)
+			symmetric = false;
+		else
+			ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
 
-			/* construct */
-			fLHS = new SuperLUMatrixT(out, check_code, symmetric, comm);
+		/* construct */
+		bool print_stat = params.GetParameter("print_stat");
+		int i_refine  = params.GetParameter("refinement");		
+		IterRefine_t refine = SuperLUMatrixT::int2IterRefine_t(i_refine);
+
+		fLHS = new SuperLUMatrixT(out, check_code, symmetric, print_stat, refine, comm);
 #else /* no __SUPERLU__ */
-			ExceptionT::GeneralFail(caller, "SuperLU not installed");
+		ExceptionT::GeneralFail(caller, "SuperLU not installed");
 #endif /* __SUPERLU__*/
-		}
-		else /* parallel */
-		{
+	}
+	else if (params.Name() == "SuperLU_DIST_matrix")
+	{
 #ifdef __SUPERLU_DIST__
-			/* construct */
-			fLHS = new SuperLU_DISTMatrixT(out, check_code, comm);
+		/* construct */
+		bool print_stat = params.GetParameter("print_stat");
+		int i_refine  = params.GetParameter("refinement");
+		IterRefine_t refine = SuperLU_DISTMatrixT::int2IterRefine_t(i_refine);
+
+		fLHS = new SuperLU_DISTMatrixT(out, check_code, print_stat, refine, comm);
 #else /* no __SUPERLU_DIST__ */
-			ExceptionT::GeneralFail(caller, "SuperLU_DIST not installed");
-#endif /* __SUPERLU_DIST__*/
-		}
+		ExceptionT::GeneralFail(caller, "SuperLU_DIST not installed");
+#endif /* __SUPERLU_DIST__ */
 	}
 	else if (params.Name() == "SuperLU_MT_matrix")
 	{
