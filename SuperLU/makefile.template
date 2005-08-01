@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.1.1.1 2005-07-31 01:06:29 paklein Exp $
+# $Id: makefile.template,v 1.2 2005-08-01 03:17:36 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -51,6 +51,15 @@ MOD_CFLAGS_C  =
 MOD_CFLAGS_CC =
 MOD_CFLAGS_F  =
 MOD_LFLAGS    =
+
+##### SuperLU_DIST CBLAS distribution
+SUPERLUCBLAS_PREFIX   = $(HOME_DIR)/../SuperLU_CBLAS
+SUPERLUCBLAS_DEFINES  = -D__SUPERLU_CBLAS__
+SUPERLUCBLAS_INC      = -I$(SUPERLUCBLAS_PREFIX)/include
+SUPERLUCBLAS_CFLAGS   = $(SUPERLUCBLAS_INC) $(SUPERLUCBLAS_DEFINES)
+SUPERLUCBLAS_LIB_NAME = SuperLU_CBLAS
+SUPERLUCBLAS_LIB      = $(SUPERLUCBLAS_PREFIX)/lib/lib$(SUPERLUCBLAS_LIB_NAME).a
+SUPERLUCBLAS_LFLAGS   = -L$(SUPERLUCBLAS_PREFIX)/lib -l$(SUPERLUCBLAS_LIB_NAME)
 
 ############################### build options ###########################
 
