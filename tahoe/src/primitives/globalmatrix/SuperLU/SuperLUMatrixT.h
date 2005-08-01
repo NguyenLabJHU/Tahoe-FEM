@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.h,v 1.5 2005-06-01 15:45:25 jwfoulk Exp $ */
+/* $Id: SuperLUMatrixT.h,v 1.6 2005-08-01 03:26:30 paklein Exp $ */
 #ifndef _SUPER_LU_MATRIX_T_H_
 #define _SUPER_LU_MATRIX_T_H_
 
@@ -23,10 +23,14 @@ class SuperLUMatrixT: public GlobalMatrixT
 public:
 
 	/** constructor */
-	SuperLUMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm);
+	SuperLUMatrixT(ostream& out, int check_code, bool symmetric, bool print_stat, 
+		IterRefine_t refine, const CommunicatorT& comm);
 
 	/** destructor */
 	~SuperLUMatrixT(void);
+
+	/** enum conversion */
+	static IterRefine_t int2IterRefine_t(int i);
 
 	/* set the internal matrix structure.
 	 * NOTE: do not call Initialize() until equation topology has been set
@@ -240,6 +244,26 @@ inline double SuperLUMatrixT::Element(int row, int col) const
 
 	/* otherwise this nonzero wasn't present */
 	return 0.0;
+}
+
+/* enum conversion */
+inline IterRefine_t SuperLUMatrixT::int2IterRefine_t(int i)
+{
+	switch (i)
+	{
+		case NOREFINE:
+			return NOREFINE;
+		case SINGLE:
+			return SINGLE;
+		case DOUBLE:
+			return DOUBLE;
+		case EXTRA:
+			return EXTRA;
+		default:
+			ExceptionT::GeneralFail("SuperLUMatrixT::int2IterRefine_t", 
+				"unrecognized %d", i);
+	}
+	return NOREFINE;
 }
 
 } /* namespace Tahoe */

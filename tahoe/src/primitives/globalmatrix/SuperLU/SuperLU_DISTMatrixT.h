@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.h,v 1.7 2005-04-13 21:50:20 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.h,v 1.8 2005-08-01 03:26:30 paklein Exp $ */
 #ifndef _SUPER_LU_DIST_MATRIX_T_H_
 #define _SUPER_LU_DIST_MATRIX_T_H_
 
@@ -26,13 +26,17 @@ class SuperLU_DISTMatrixT: public GlobalMatrixT
 public:
 
 	/** constructor */
-	SuperLU_DISTMatrixT(ostream& out, int check_code, const CommunicatorT& comm);
+	SuperLU_DISTMatrixT(ostream& out, int check_code, bool print_stat, 
+		IterRefine_t refine, const CommunicatorT& comm);
 
 	/** copy constructor */
 	SuperLU_DISTMatrixT(const SuperLU_DISTMatrixT& rhs);
 
 	/** destructor */
 	~SuperLU_DISTMatrixT(void);
+
+	/** enum conversion */
+	static IterRefine_t int2IterRefine_t(int i);
 
 	/** set the internal matrix structure */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
@@ -186,6 +190,26 @@ inline double* SuperLU_DISTMatrixT::operator()(int row, int col)
 		return fnzval.Pointer(r_dex + c_dex);
 	else /* not found */
 		return NULL;
+}
+
+/* enum conversion */
+inline IterRefine_t SuperLU_DISTMatrixT::int2IterRefine_t(int i)
+{
+	switch (i)
+	{
+		case NOREFINE:
+			return NOREFINE;
+		case SINGLE:
+			return SINGLE;
+		case DOUBLE:
+			return DOUBLE;
+		case EXTRA:
+			return EXTRA;
+		default:
+			ExceptionT::GeneralFail("SuperLU_DISTMatrixT::int2IterRefine_t", 
+				"unrecognized %d", i);
+	}
+	return NOREFINE;
 }
 
 } /* namespace Tahoe */
