@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.58 2005-07-27 17:35:24 paklein Exp $
+# $Id: tahoe-manager,v 1.59 2005-08-01 03:46:17 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -30,6 +30,9 @@ $tahoe_sf = "cvs.sourceforge.net";
 "spooles",
 "spoolesMPI",
 "spoolesMT",
+"SuperLU_CBLAS",
+"SuperLU",
+"SuperLU_DIST",
 "toolbox",
 "qhull",
 "Sierra",
@@ -41,6 +44,9 @@ $tahoe_sf = "cvs.sourceforge.net";
 "bravais");
 
 # prefix on macros in the makefiles
+# NOTE: macro prefixes must be unique when compared as regular expressions,
+#       i.e., ($macro_i =~ /$macro_j/) should not return true if i != j. This
+#       means macro prefix names cannot be sub-strings of other macro prefixes.
 %module2define = qw(
 expat	EXPAT_
 toolbox	TB_
@@ -62,6 +68,9 @@ benchmark_XML NODEFINE
 development_benchmark_XML NODEFINE
 SIMOD SIMOD_
 bravais NODEFINE
+SuperLU_CBLAS SUPERLUCBLAS_
+SuperLU SUPERLU_
+SuperLU_DIST SUPERLUDIST_
 );
 
 # location of module on the server
@@ -85,6 +94,9 @@ benchmark_XML	cvs.sourceforge.net:/cvsroot/tahoe
 development_benchmark_XML tahoe.ca.sandia.gov:/cvs/private/tahoe
 contrib		cvs.sourceforge.net:/cvsroot/tahoe
 bravais		cvs.sourceforge.net:/cvsroot/tahoe
+SuperLU_CBLAS cvs.sourceforge.net:/cvsroot/tahoe
+SuperLU       cvs.sourceforge.net:/cvsroot/tahoe
+SuperLU_DIST  cvs.sourceforge.net:/cvsroot/tahoe
 );
 
 # "touch" targets
@@ -97,6 +109,8 @@ f2c touch_f2c
 access touch_SEACAS
 metis touch_METIS
 SIMOD touch_SIMOD
+SuperLU touch_SuperLU
+SuperLU_DIST touch_SuperLU
 );
 
 # modules in the UP_TO_DATE macro
@@ -138,10 +152,10 @@ access ACCESS
 SIMOD  SIMOD_HOME
 );
 
-%connect2command = qw(
-cvs     cvs
-http	curl
-);
+#%connect2command = qw(
+#cvs     cvs
+#http	curl
+#);
 
 # default configuration file
 $config_file = "./.tahoe_config";
@@ -197,7 +211,7 @@ exit 0;
 sub selfupdate {
 	if ($connection =~ /cvs/) {
 		print "updating...\n";
-		system("cvs -q update tahoe-manager");
+		do_system("cvs -q update tahoe-manager");
 	} else {
 		print "no selfupdate for connection $connection\n";
 	}
@@ -240,12 +254,13 @@ while (scalar(@req_missing) > 0) {
 }
 
 print "*--------------------------------------------------\n";
-print "*   tahoe name: $tahoe_name\n";
-print "*   connection: $connection\n";
+print "*  Sourceforge name: $tahoe_sf_name\n";
+print "* Tahoe server name: $tahoe_name\n";
+#print "*   connection: $connection\n";
 if ($proxy !~ "NONE") {
-	print "*        proxy: $proxy\n";
+	print "*             proxy: $proxy\n";
 }
-print "* architecture: $arch \n"; 
+print "*      architecture: $arch \n"; 
 print "*--------------------------------------------------\n";
 
 # check connection method
@@ -439,7 +454,7 @@ if ($connection =~ "cvs") {
 	if ($tahoe_sf_name eq "anonymous") { # do anonymous login once now
 		print "\nAccess as \"anonymous\" to Sourceforge requires you to login once.\n";
 		print "Press [ENTER] at the prompt to login using an empty password.\n";
-		system("cvs -d :pserver:$tahoe_sf_name\@$tahoe_sf:/cvsroot/tahoe login");
+		do_system("cvs -d :pserver:$tahoe_sf_name\@$tahoe_sf:/cvsroot/tahoe login");
 		print "\n";
 	}
 
@@ -465,13 +480,13 @@ unless(-d "macros") {
 		if ($proxy !~ "NONE") {
 			$curl_cmd = $curl_cmd." --proxy $proxy";
 		}
-		system("$curl_cmd") == 0
+		do_system("$curl_cmd") == 0
 			or die "ERROR: curl failed. Check connection or proxy ($proxy)";
 
 		# unpack
-		system("gunzip macros.tar.gz");
-		system("tar xf macros.tar");
-		system("rm macros.tar");
+		do_system("gunzip macros.tar.gz");
+		do_system("tar xf macros.tar");
+		do_system("rm macros.tar");
 	}
 	else {
 		print "ERROR: unrecognized connection '$connection'\n";	
@@ -527,7 +542,7 @@ sub update{
 		# check if tahoe-manager is out of date
 		if (-e "CVS/Root") {
 			unlink("cvs.log");
-			system("cvs -q -n update tahoe-manager > cvs.log");
+			do_system("cvs -q -n update tahoe-manager > cvs.log");
 			open(IN, "cvs.log"); my @lines = <IN>; my $file = "@lines"; close(IN);
 			if ($file =~ /tahoe-manager/) {
 				print STDOUT "*\n* NOTE: \"tahoe-manager\" has changed. Run \"selfupdate\" to update.\n*\n";
@@ -566,7 +581,7 @@ sub update_cvs {
 				my $cwd = cwd();
 				print "\tupdating $dir...";
 				chdir($dir);
-				system("cvs -q update -Pd > $cwd/cvs.log");
+				do_system("cvs -q update -Pd > $cwd/cvs.log");
 				chdir($cwd);
 			} else { # module was not checkout out
 				print "\tmodule $dir contains no CVS information\n";
@@ -577,13 +592,13 @@ sub update_cvs {
 			my $repo = $module2repo{$dir};
 			if ($repo =~ /$tahoe/) { # on Tahoe server
 				if ($tahoe_name !~ /NONE/) { # must have an account
-					system("cvs -d $tahoe_name\@$repo -q checkout $dir > cvs.log");
+					do_system("cvs -d $tahoe_name\@$repo -q checkout $dir > cvs.log");
 				}
 			} else { # on Sourceforge
 				if ($tahoe_sf_name =~ /anonymous/) { # anonymous access
-					system("cvs -z3 -d :pserver:$tahoe_sf_name\@$repo -q checkout $dir >> cvs.log");
+					do_system("cvs -z3 -d :pserver:$tahoe_sf_name\@$repo -q checkout $dir >> cvs.log");
 				} else { # developer account
-					system("cvs -z3 -d $tahoe_sf_name\@$repo -q checkout $dir > cvs.log");
+					do_system("cvs -z3 -d $tahoe_sf_name\@$repo -q checkout $dir > cvs.log");
 				}
 			}
 		}
@@ -632,7 +647,7 @@ sub update_cvs {
 		if (-d $dir && 
 			$errors + $patches + $updates + $merges > 0 && 
 			$module2define{$dir} !~ "NODEFINE") {
-			system("echo 'init' > $dir/.status");
+			do_system("echo 'init' > $dir/.status");
 		}
 	}
 }
@@ -661,7 +676,7 @@ sub update_http {
 		if ($proxy !~ "NONE") {
 			$curl_cmd = $curl_cmd." --proxy $proxy";
 		}
-		system("$curl_cmd") == 0
+		do_system("$curl_cmd") == 0
 			or die "ERROR: curl failed. Check connection or proxy ($proxy)";
 
 		# move existing directory aside
@@ -673,26 +688,29 @@ sub update_http {
 
 			# rename
 			if (! -d "saved") {
-				system("mkdir saved");
+				do_system("mkdir saved");
 			}
-			system("mv $dir saved/$dir.$the_date");
+			do_system("mv $dir saved/$dir.$the_date");
 		} 
 			
 		# unpack
-		system("gunzip $dir.tar.gz");
-		system("tar xf $dir.tar");
+		do_system("gunzip $dir.tar.gz");
+		do_system("tar xf $dir.tar");
 		if ($module2define{$dir} !~ "NODEFINE") {
-			system("echo 'init' > $dir/.status");
+			do_system("echo 'init' > $dir/.status");
 		}
 		
 		# clean up
-		system("rm $dir.tar");
+		do_system("rm $dir.tar");
 		print " ok\n";
 	}
 }
 
 ##############################################################################
 sub build {
+
+	# make bin directory
+	if (! -e "bin") { mkdir "bin"; }
 
 	# run all unless specified
 	my @run_modules = @_;
@@ -743,28 +761,33 @@ sub build {
 			if (-e ".built") {
 				print " built\n"; }
 			else {
-				system("make build > build.log 2>&1");
-			
-				# check for errors	
-				open(IN,"build.log");
-				my @lines = <IN>; $file = "@lines"; close(IN); 
-				my $errors = ($file =~ /\*\*\* ERROR:/);
-               			if($errors > 0) {
-               				print " ERROR. See $dir/build.log for details.\n";
-               				$script_status++;
-               			}
+				do_system("make build > build.log 2>&1");
+
+				# check for error status
+               	if($? > 0) {
+               		print " ERROR $?. See $dir/build.log for details.\n";
+               		$script_status++;
+               	}
 				elsif ($dir eq "tahoe" 
-				&& !($file =~ /wrote tahoe/)
 				&& !(-x "tahoe")) { 
                				print " ERROR.  See $dir/build.log for details.\n";
                				$script_status++;
 				}
-				else { print " ok\n"; 
-#					if (inlist($dir,\@staticlibs))	{
-#						open(OUT,">build.log");
-#						print OUT "static\n";
-#						close OUT;
-#					}
+				else {
+				
+					# sym link to bin directory
+					my $curr_dir = cwd();
+		        	opendir(CURR, $curr_dir) or die "ERROR: could not open directory: $curr_dir\n";
+        			my @all_files = grep {! /^\./ } readdir CURR;
+        			closedir(CURR);
+        			foreach $file (@all_files) {
+						if (-f $file && -x $file) {
+							unlink("$cwd/bin/$file") if (-l "$cwd/bin/$file");
+							do_system("ln -s $cwd/$dir/$file $cwd/bin/$file");
+							print " installing bin/$file...";
+						}
+        			}
+					print " ok\n";
 				}
 			}
 			chdir($cwd);
@@ -820,14 +843,11 @@ sub init {
 				# run "make init"
 				if (!defined($up_to_date_modules{$dir})) {
 					print "\tinitializing $dir...";
-					system("make init > init.log 2>&1");
+					do_system("make init > init.log 2>&1");
 					
-					# check for errors	
-					open(IN,"init.log");
-					my @lines = <IN>; $file = "@lines"; close(IN); 
-					my $errors = ($file =~ /\*\*\* ERROR:/);
-               		if($errors > 0) {
-               			print " ERROR. See $dir/init.log for details.\n";
+					# check for error status
+               		if($? > 0) {
+               			print " ERROR $?. See $dir/init.log for details.\n";
                			$script_status++;
                		}
 					else { 
@@ -862,9 +882,13 @@ sub clean {
 		if (-e $dir) { 
 			my $cwd = cwd();
 			chdir $dir; 
-			if (-e "makefile") {
+			if (-e "makefile.template") {
+			
+				# create makefile
+				fillin_makefile($dir) if (! -e "makefile");
+			
 				print "\tcleaning $dir...";
-				system("make clean > clean.log 2>&1");
+				do_system("make clean > clean.log 2>&1");
 				print " ok\n";
 				
 				# remove the makefile
@@ -877,7 +901,7 @@ sub clean {
 				unlink(".tahoe_config") if (-e ".tahoe_config");
 		
 				# flag
-				system("echo 'init' > .status");
+				do_system("echo 'init' > .status");
 			}
 		 	chdir $cwd;
 		}
@@ -885,7 +909,10 @@ sub clean {
 
 	# move configuration file
 	print "moving .tahoe_config to tahoe_config.BAK\n";
-	system("mv -f .tahoe_config tahoe_config.BAK");
+	do_system("mv -f .tahoe_config tahoe_config.BAK");
+	
+	# clean out bin directory
+	if (-e "bin") { do_system("rm bin/*"); }
 }
 
 ##############################################################################
@@ -895,18 +922,24 @@ sub test{
 	my $cwd = cwd();
 	chdir("benchmark_XML/comparator");
 	print("\tbuilding comparator...");
-	fillin_makefile("comparator"); system("make init build > build.log 2>&1");
+	fillin_makefile("comparator"); do_system("make init build > build.log 2>&1");
 	die "error building compare\n" if (! -x "compare");
+
+	# sym link to bin directory
+	unlink("$cwd/bin/compare") if (-l "$cwd/bin/compare");
+	do_system("ln -s $cwd/benchmark_XML/comparator/compare $cwd/bin/compare");
+	print " installing bin/compare...";
+	
 	print(" ok\n");
 	chdir("$cwd/benchmark_XML");
 	print("\tremoving previous results...");
-	system("make clean > build.log 2>&1");
+	do_system("make clean > build.log 2>&1");
 	print(" ok\n");
 	print("\trunning benchmark cases...");
-	system("$cwd/tahoe/tahoe -f run.batch > run.out 2>&1");
+	do_system("$cwd/tahoe/tahoe -f run.batch > run.out 2>&1");
 	print(" ok\n");
 	print("\tcomparing benchmarks...");
-	system("./comparator/compare -f run.batch > compare.out 2>&1");
+	do_system("./comparator/compare -f run.batch > compare.out 2>&1");
 	print(" ok\n");
 	open(IN,"compare.summary") || die "could not open $cwd/compare.summary\n";
 	<IN>; 
@@ -952,11 +985,12 @@ sub a_depends_on_b {
 	my $source = "$a/makefile.template";
 	if (-e $source) {
 		open(IN, "$source");
-		my @lines = <IN>; $afile = "@lines"; 
+		my @lines = <IN>; 
 		close(IN);
-		my $bdefine = $module2define{$b}; 
- 		my $a_on_b = ($afile =~ /$bdefine/);
-		if ($a_on_b > 0) { return 1; }
+		my $bdefine = $module2define{$b};
+		foreach my $line (@lines) {
+			return 1 if ($line =~ /^#?$bdefine/);
+		}
 	}
 	return 0;
 }
@@ -975,46 +1009,6 @@ sub by_depend {
 
 	my $comp = ($rank_a <=> $rank_b);
 	#print " $a ($rank_a) $b ($rank_b) : $comp\n";
-	return $comp;	
-}
-
-
-# NOTE: this version never quite worked right because the order could not be
-#       determine unabiguously just by the macros defined in the top-level makefiles
-sub by_depend_old {
-	my $filename = "$a/makefile.template";
-	my $a_on_b = -1;
-	if (-e $filename) {
-		open(IN,"$filename");
-		my @lines = <IN>; $afile = "@lines"; 
-		close(IN);
-		my $bdefine = $module2define{$b}; 
- 		$a_on_b = ($afile =~ /$bdefine/);
-		unless($a_on_b > 0) {$a_on_b = 0;}
-	}
-
-	$filename = "$b/makefile.template";
-	my $b_on_a = -1;
-	if (-e $filename) {
-		open(IN,"$filename");
-		my @lines = <IN>; $bfile = "@lines"; 
-		close(IN);
-		my $adefine = $module2define{$a};
-		$b_on_a = ($bfile =~ /$adefine/);
-		unless($b_on_a > 0) {$b_on_a = 0;}
-	}
-
-	# bi-directional dependency with tahoe => tahoe goes last
-	if ($a_on_b == $b_on_a && ($a =~ "tahoe" || $b =~ "tahoe") ) {
-		if ($a =~ "tahoe") {
-			$a_on_b = $b_on_a + 1;
-		} else {
-			$b_on_a = $a_on_b + 1;
-		}
-	}
-
-	my $comp = ($a_on_b <=> $b_on_a) || ($a cmp $b);
-	#print " $a $a_on_b $b $b_on_a : $comp\n";
 	return $comp;	
 }
 
@@ -1247,6 +1241,9 @@ sub config_optional_modules {
 		foreach $missingmodule (@missingmodules) { # missing module needed due to dependency
 			DEP: foreach $addmodule (@addmodules) {
 				if (a_depends_on_b($addmodule, $missingmodule) == 1) {
+				
+					#print "opt: $addmodule extended by $missingmodule\n";
+				
 					push (@dependmodules, $missingmodule);
 					last DEP;
 				}
@@ -1294,14 +1291,23 @@ sub config_optional_modules {
 	foreach my $module (@modules) {
 		foreach my $changedmodule (@changedmodules) {
 			if (a_depends_on_b($module, $changedmodule) == 1) {
-				system("echo 'init' > $module/.status");
+				do_system("echo 'init' > $module/.status");
 			}
 			
 			# "touch" target
-			if (-e "$module/makefile" && defined($module2touch{$changedmodule})) {
+			if (-e "$module/makefile.template" && defined($module2touch{$changedmodule})) {
 				my $cwd = cwd();
 				chdir($module);
-				system("make $module2touch{$changedmodule} >> build.log 2>&1");
+				
+				# generate makefile
+				if (! -e "makefile") {
+					print "\tcreating makefile in $module...";
+					fillin_makefile($module);
+					print " ok\n";
+				}
+								
+				# touch
+				do_system("make $module2touch{$changedmodule} >> build.log 2>&1");
 				chdir $cwd;
 			}
 		}
@@ -1388,14 +1394,14 @@ sub add_optional_modules {
 	foreach my $module (@modules) {
 		foreach my $addmodule (@addmodules) {
 			if (a_depends_on_b($module, $addmodule) == 1) {
-				system("echo 'init' > $module/.status");
+				do_system("echo 'init' > $module/.status");
 			}
 			
 			# "touch" target
 			if (-e "$module/makefile" && defined($module2touch{$addmodule})) {
 				my $cwd = cwd();
 				chdir $module;
-				system("make $module2touch{$addmodule} >> build.log 2>&1");
+				do_system("make $module2touch{$addmodule} >> build.log 2>&1");
 				chdir $cwd;
 			}
 		}
@@ -1432,14 +1438,14 @@ sub remove_optional_modules {
 		foreach $choice (@choices) {
 			my $outmodule = $curr_optionalmodules[$choice];
 			if (a_depends_on_b($module, $outmodule) == 1) {
-				system("echo 'init' > $module/.status");
+				do_system("echo 'init' > $module/.status");
 			}
 
 			# "touch" target
 			if (-e "$module/makefile" && defined($module2touch{$outmodule})) {
 				my $cwd = cwd();
 				chdir($module);
-				system("make $module2touch{$outmodule} >> build.log 2>&1");
+				do_system("make $module2touch{$outmodule} >> build.log 2>&1");
 				chdir($cwd);
 			}
 		}
@@ -1515,7 +1521,7 @@ sub configure_module {
 	my $cwd = cwd();
 	chdir $module;
 	fillin_makefile($module);
-	system("make update_config > build.log 2>&1");
+	do_system("make update_config > build.log 2>&1");
 	
 	# find configuration headers
 	@config_headers = ();
@@ -1542,7 +1548,7 @@ sub configure_module {
 		my @choices = split(/ +|,/,$choice);
 		foreach $choice (@choices) {	
 			if (configure_header($config_headers[$choice]) != 0) {
-				system("echo 'init' > .status");
+				do_system("echo 'init' > .status");
 				$change++;
 			}
 		}
@@ -1748,22 +1754,19 @@ sub get_missing_modules {
 		my $filename = "$dir/makefile.template";
 		if (-e $filename) {
 			open(IN,"$filename");
-			my @lines = <IN>; $file = "@lines";
+			my @lines = <IN>; 
 			close(IN);
 			foreach my $mod (@missing_modules) {
 				my $define = $module2define{$mod};
 				
 				# add if not already in the list
-				if ($file =~ /$define/ && $file !~ /#$define/) {
-					my $found = 0;
-					LOOK: foreach my $missing (@req_missing) {
-						if ($missing eq $mod) {
-							$found = 1;
-							last LOOK;
-						}
-					}
-					push(@req_missing, $mod) if ($found == 0);
-				}				
+				SEARCH : foreach my $line (@lines) {
+					if ($line =~ /^$define/) {
+						my @tmp = ($mod);
+						push(@req_missing, $mod) if (scalar(intersection(\@req_missing, \@tmp)) == 0);
+						last SEARCH;
+					}				
+				}
 			}
 		}
 	}
@@ -1803,6 +1806,7 @@ sub intersection {
 	}
 	return @complement;
 }
+
 ##############################################################################
 sub findENV {
 	foreach my $key (sort(keys %ENV)) {
@@ -1810,14 +1814,18 @@ sub findENV {
 	}
 	return undef;
 }
-##############################################################################
-#sub inlist {
-#	my ($key,$list) = @_;
-#	my $i = 0;
-#	foreach my $item (@$list) {
-#        	if ($key eq $item) {return $i; }       
-#		$i++;
-#	}
-#	return undef;
-#}
 
+##############################################################################
+sub do_system {
+
+	# execute system command
+	$cmd = shift(@_);
+	system($cmd);
+	
+	# trap SIGINT - cvs catches SIGINT and then signals 256
+	#print "\n $?: $cmd\n";
+	if ($? == 2 || ($cmd =~ /^cvs/ && $? == 256)) {
+		print "\ninterrupted.\n";
+		exit;
+	}
+}
