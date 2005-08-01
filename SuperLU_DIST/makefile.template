@@ -1,4 +1,10 @@
-# $Id: makefile.template,v 1.2 2005-07-31 19:14:45 paklein Exp $
+################################################################################
+#### NOTE: This makefile is automatically generated from makefile.template. ####
+####       Changes to the MOD_ macros are preserved. All other changes will ####
+####       be lost.                                                         ####
+################################################################################
+
+# $Id: makefile.template,v 1.3 2005-08-01 03:20:35 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -62,13 +68,13 @@ F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
 F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
 
 ##### SuperLU_DIST CBLAS distribution
-SUPERLU_CBLAS_PREFIX   = $(HOME_DIR)/../SuperLU_CBLAS
-SUPERLU_CBLAS_DEFINES  = -D__SUPERLU_CBLAS__
-SUPERLU_CBLAS_INC      = -I$(SUPERLU_CBLAS_PREFIX)/include
-SUPERLU_CBLAS_CFLAGS   = $(SUPERLU_CBLAS_INC) $(SUPERLU_CBLAS_DEFINES)
-SUPERLU_CBLAS_LIB_NAME = SuperLU_CBLAS
-SUPERLU_CBLAS_LIB      = $(SUPERLU_CBLAS_PREFIX)/lib/lib$(SUPERLU_CBLAS_LIB_NAME).a
-SUPERLU_CBLAS_LFLAGS   = -L$(SUPERLU_CBLAS_PREFIX)/lib -l$(SUPERLU_CBLAS_LIB_NAME)
+SUPERLUCBLAS_PREFIX   = $(HOME_DIR)/../SuperLU_CBLAS
+SUPERLUCBLAS_DEFINES  = -D__SUPERLU_CBLAS__
+SUPERLUCBLAS_INC      = -I$(SUPERLUCBLAS_PREFIX)/include
+SUPERLUCBLAS_CFLAGS   = $(SUPERLUCBLAS_INC) $(SUPERLUCBLAS_DEFINES)
+SUPERLUCBLAS_LIB_NAME = SuperLU_CBLAS
+SUPERLUCBLAS_LIB      = $(SUPERLUCBLAS_PREFIX)/lib/lib$(SUPERLUCBLAS_LIB_NAME).a
+SUPERLUCBLAS_LFLAGS   = -L$(SUPERLUCBLAS_PREFIX)/lib -l$(SUPERLUCBLAS_LIB_NAME)
 
 ############################### build options ###########################
 
