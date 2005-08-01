@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.cpp,v 1.7 2005-04-13 21:50:20 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.cpp,v 1.8 2005-08-01 03:26:30 paklein Exp $ */
 #include "SuperLU_DISTMatrixT.h"
 
 /* library support options */
@@ -21,7 +21,8 @@
 using namespace Tahoe;
 
 /* constructor */
-SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
+SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, bool print_stat, 
+	IterRefine_t refine, const CommunicatorT& comm):
 	GlobalMatrixT(out, check_code, comm),
 	fBuilder(NULL),
 	fIsSymFactorized(false),
@@ -73,11 +74,8 @@ SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, const Com
         options.PrintStat = YES;
      */
     set_default_options_dist(&foptions);
-#if __option (extended_errorcheck)
-    foptions.PrintStat = YES;
-#else
-    foptions.PrintStat = NO;
-#endif
+    foptions.PrintStat = (print_stat) ? YES : NO;
+    foptions.IterRefine = refine;
 
 	/* initialize the process grid - divide as square */
 	int size = fComm.Size();

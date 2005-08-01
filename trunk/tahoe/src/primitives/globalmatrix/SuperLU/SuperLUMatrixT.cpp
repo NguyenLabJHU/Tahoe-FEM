@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.10 2005-07-01 16:10:14 jwfoulk Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.11 2005-08-01 03:26:30 paklein Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -23,7 +23,8 @@
 using namespace Tahoe;
 
 /* constructor */
-SuperLUMatrixT::SuperLUMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm):
+SuperLUMatrixT::SuperLUMatrixT(ostream& out, int check_code, bool symmetric, bool print_stat, 
+	IterRefine_t refine, const CommunicatorT& comm):
 	GlobalMatrixT(out, check_code, comm),
 	fIsSymFactorized(false),
 	fIsNumFactorized(false)
@@ -87,6 +88,8 @@ SuperLUMatrixT::SuperLUMatrixT(ostream& out, int check_code, bool symmetric, con
     	options.ConditionNumber = NO;
     	options.PrintStat = YES; */
     set_default_options(&foptions);
+    foptions.PrintStat = (print_stat) ? YES : NO;
+    
 #if __option (extended_errorcheck)
     foptions.PrintStat = YES;
 #else
