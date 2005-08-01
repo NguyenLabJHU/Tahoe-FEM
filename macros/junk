@@ -1,8 +1,0 @@
-# $Id: junk,v 1.15 2005-07-26 08:49:08 paklein Exp $
-# first test with postfix with 10.3
-# 2nd test with postfix with 10.3
-# 3rd test - open port 25
-# 4th test - allow relay from cvs.sourceforge.net
-# 5th test - move bonsai alias further up the file
-# 6th test - add tahoe.ca.sandia.gov to list of names for localhost
-# 7th test - chang permissions o+rx upto and including handleCheckinMail.pl
