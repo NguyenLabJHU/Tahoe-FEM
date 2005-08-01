@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.16 2005-05-15 07:33:24 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.17 2005-08-01 03:24:33 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -10,10 +10,13 @@
 #include "ParameterUtils.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "ContinuumElementT.h"
 #include "CommunicatorT.h"
-
 #include "ElementsConfig.h"
+
+#ifdef CONTINUUM_ELEMENT
+#include "ContinuumElementT.h"
+#endif
+
 #ifdef COHESIVE_SURFACE_ELEMENT
 #include "CSEAnisoT.h"
 #endif
@@ -1094,25 +1097,34 @@ void ConveyorT::MarkElements(void)
 			else if (x_min > X_R_on) /* in reactivation zone */
 				status[j] = ElementCardT::kON;
 		}
-		
-		ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(ContinuumElementT*, element_group);
+
+		/* flag */
+		bool status_set = false;
+
+#ifdef CONTINUUM_ELEMENT
+		if (!status_set) {
+			ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(ContinuumElementT*, element_group);
+			if (cont_elem) {
+				cont_elem->SetStatus(status);
+				status_set = true;
+			}
+		}
+#endif /* CONTINUUM_ELEMENT */
+
 #ifdef COHESIVE_SURFACE_ELEMENT
-		if (!cont_elem) {
+		if (!status_set) {
 			CSEAnisoT* cse_aniso_elem = TB_DYNAMIC_CAST(CSEAnisoT*, element_group);
-			if (!cse_aniso_elem)
-				ExceptionT::GeneralFail(caller,  "could not cast element group %d to CSEAnisoT", 
-					element_group+1);
-			else cse_aniso_elem->SetStatus(status);
+			if (cse_aniso_elem) {
+				cse_aniso_elem->SetStatus(status);
+				status_set = true;
+			}
 		}
-		else {
-			cont_elem->SetStatus(status);
-		}
-#else /* COHESIVE_SURFACE_ELEMENT */
-		if (!cont_elem)
-			ExceptionT::GeneralFail(caller,  "could not cast element group %d to ContinuumElementT", 
-				element_group+1);
-		cont_elem->SetStatus(status);
 #endif /* COHESIVE_SURFACE_ELEMENT */
+
+		/* status not changed */
+		if (!status_set)
+			ExceptionT::GeneralFail(caller, "could not cast element group %d to CSEAnisoT or ContinuumElementT", 
+				element_group+1);
  	}
 }
 
