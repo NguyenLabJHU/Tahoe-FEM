@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.49 2005-04-14 01:18:53 paklein Exp $ */
+/* $Id: ContactElementT.cpp,v 1.50 2005-08-02 19:37:24 paklein Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -408,7 +408,7 @@ void ContactElementT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("Jones_contact_output", ParameterListT::ZeroOrOnce);
 
 	/* surfaces */
-	sub_list.AddSub("Jones_contact_surface", ParameterListT::OnePlus);
+	sub_list.AddSub("Jones_contact_surfaces");
 
 	/* surface interactions */
 	sub_list.AddSub("Jones_contact_surface_pairs", ParameterListT::OnePlus);
@@ -429,7 +429,7 @@ ParameterInterfaceT* ContactElementT::NewSub(const StringT& name) const
 		}
 		return output;
 	}
-	else if (name == "Jones_contact_surface")
+	else if (name == "Jones_contact_surfaces")
 	{
 		ParameterContainerT* surface = new ParameterContainerT(name);
 		surface->AddSub("side_set_ID_list");
@@ -456,7 +456,7 @@ ParameterInterfaceT* ContactElementT::NewSub(const StringT& name) const
 		return pair;	
 	}
 	else if (name == "Jones_search")
-		return new VectorParameterT(name, kSearchNumParameters);
+		return new DoubleListT(name);
 	else if (name == "Jones_enforcement")
 		return new DoubleListT(name);
 	else if (name == "Jones_properties")
@@ -484,7 +484,8 @@ void ContactElementT::TakeParameterList(const ParameterListT& list)
     }
 
 	/* dimension check */
-	int num_surfaces = list.NumLists("Jones_contact_surfaces");
+	const ParameterListT& contact_surface = list.GetList("Jones_contact_surfaces");
+	int num_surfaces = contact_surface.GetList("side_set_ID_list").NumLists("String");
 	int num_pairs = list.NumLists("Jones_contact_surface_pairs");
     if (num_pairs < 1 || num_pairs > num_surfaces*(num_surfaces-1))
         ExceptionT::BadInputValue(caller);
@@ -503,8 +504,10 @@ void ContactElementT::TakeParameterList(const ParameterListT& list)
 
         /* general parameters for search */
         dArrayT& search_parameters = fSearchParameters(s1,s2);
-        search_parameters.Dimension(kSearchNumParameters);
-        VectorParameterT::Extract(pair.GetList("Jones_search"), search_parameters);
+        const ParameterListT& search = pair.GetList("Jones_search");
+        search_parameters.Dimension(search.NumLists());
+        for (int i = 0; i < search_parameters.Length(); i++)
+        	search_parameters[i] = search.GetList(i).GetParameter("value");
 
         /* parameters specific to enforcement */
         dArrayT& enf_parameters = fEnforcementParameters(s1,s2);
@@ -536,7 +539,7 @@ void ContactElementT::TakeParameterList(const ParameterListT& list)
 		surface.SetTag(i);
 
 		/* get side set ID's */
-		const ParameterListT& surface_params = list.GetList("Jones_contact_surface", i);
+		const ParameterListT& surface_params = list.GetList("Jones_contact_surfaces", i);
 		ArrayT<StringT> ss_ID;
 		StringListT::Extract(surface_params.GetList("side_set_ID_list"), ss_ID);
 
