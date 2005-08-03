@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.38 2005-04-28 23:57:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.39 2005-08-03 07:54:42 paklein Exp $ */
  
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
@@ -255,7 +255,7 @@ void FEManagerT_bridging::InitGhostNodes(const StringT& field, const ArrayT<Stri
 	int dex = 0;
 	for (int j = 0; j < ndof; j++)
 		for (int i = 0; i < fGhostNodes.Length(); i++)
-			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, NULL, 0.0);
+			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kNull, NULL, 0.0);
 
 	/* search through element groups for particles */
 	bool found = false;
@@ -774,7 +774,7 @@ void FEManagerT_bridging::InitProjection(const StringT& field, CommManagerT& com
 		int dex = 0;
 		for (int j = 0; j < ndof; j++)
 			for (int i = 0; i < fProjectedNodes.Length(); i++)
-				KBC_cards[dex++].SetValues(fProjectedNodes[i], j, KBC_CardT::kDsp, NULL, 0.0);
+				KBC_cards[dex++].SetValues(fProjectedNodes[i], j, KBC_CardT::kNull, NULL, 0.0);
 	}
 	else
 		KBC_cards.Dimension(0);
