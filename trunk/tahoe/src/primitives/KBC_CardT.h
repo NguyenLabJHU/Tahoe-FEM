@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.h,v 1.6 2004-07-15 08:31:36 paklein Exp $ */
+/* $Id: KBC_CardT.h,v 1.7 2005-08-03 07:52:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _KBC_CARD_T_H_
 #define _KBC_CARD_T_H_
@@ -16,11 +16,12 @@ public:
 	friend class NodeManagerT;
 	
 	/** codes */
-	enum CodeT {kFix = 0,
-                kDsp = 1,
-                kVel = 2,
-                kAcc = 3,
-                kNull= 4};
+	enum CodeT {kFix = 0, /**< fixed to 0 */
+                kDsp = 1, /**< prescribed displacement (0th time derivative) */
+                kVel = 2, /**< prescribed velocity (1st time derivative) */
+                kAcc = 3, /**< prescribed acceleration (2nd time derivative) */
+                kNull= 4  /**< component is marked as inactive, but integrator does not modify */
+                };
 
 	/** \name constructor */
 	/*@{*/
