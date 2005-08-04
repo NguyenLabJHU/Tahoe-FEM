@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.h,v 1.5 2005-04-13 00:10:25 kyonten Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.h,v 1.6 2005-08-04 21:41:31 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SHAPE_T_H_
 #define _D3_MF_SHAPE_T_H_
@@ -44,6 +44,9 @@ public:
 	/* reconstruct displacement field and all derivatives */
 	void NodalField(const dArray2DT& DOF, dArray2DT& field, dArray2DT& Dfield,
 		dArray2DT& DDfield, dArray2DT& DDDfield, iArrayT& nodes);
+		
+	/* reference to the support */
+	D3MeshFreeSupportT& D3MeshFreeSupport(void) const;
 
 protected:
 
@@ -58,6 +61,11 @@ protected:
 };
 
 /* inlines */
+inline D3MeshFreeSupportT& D3MeshFreeShapeFunctionT::D3MeshFreeSupport(void) const
+{
+	if (!fD3MFSupport) throw ExceptionT::kGeneralFail;
+	return *fD3MFSupport;
+}
 
 /* spatial gradients */
 inline void D3MeshFreeShapeFunctionT::GradGradGradU(const LocalArrayT& nodal,

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.h,v 1.9 2005-04-13 00:09:23 kyonten Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.h,v 1.10 2005-08-04 21:41:12 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D2_MF_SHAPE_T_H_
 #define _D2_MF_SHAPE_T_H_
@@ -43,6 +43,9 @@ public:
 	/* reconstruct displacement field and all derivatives */
 	void NodalField(const dArray2DT& DOF, dArray2DT& field, dArray2DT& Dfield,
 		dArray2DT& DDfield, iArrayT& nodes);
+		
+	/* reference to the support */
+	D2MeshFreeSupportT& D2MeshFreeSupport(void) const;
 
 protected:
 
@@ -56,6 +59,11 @@ protected:
 };
 
 /* inlines */
+inline D2MeshFreeSupportT& D2MeshFreeShapeFunctionT::D2MeshFreeSupport(void) const
+{
+	if (!fD2MFSupport) throw ExceptionT::kGeneralFail;
+	return *fD2MFSupport;
+}
 
 /* spatial gradients */
 inline void D2MeshFreeShapeFunctionT::GradGradU(const LocalArrayT& nodal,
