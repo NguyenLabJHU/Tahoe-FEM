@@ -16,7 +16,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class MFGP_AssemblyT;
+class MFGPAssemblyT;
 class ElementCardT;
 
 /** support for the MFGP materials classes. */
@@ -62,7 +62,7 @@ public:
 	/** return a pointer to the host element. Returns NULL if no
 	 * no element information in available. The ContinuumElementT
 	 * pointer is set using MaterialSupportT::SetContinuumElement. */
-	const MFGP_AssemblyT* MFGPAssembly(void) const;
+	const MFGPAssemblyT* MFGPAssembly(void) const;
 
 	/** solver iteration number for the group set with MaterialSupportT::SetGroup */
 	const int& GroupIterationNumber(void) const;
@@ -93,7 +93,7 @@ public:
 	/** \name set host code information */
 	/*@{*/
 	/** set the element group pointer */
-	virtual void SetMFGPAssembly(const MFGP_AssemblyT* p);
+	virtual void SetMFGPAssembly(const MFGPAssemblyT* p);
 
 	/** set pointer local array */
 	virtual void SetLocalArray(const LocalArrayT& array);
@@ -208,7 +208,7 @@ public:
 	AutoArrayT<ElementCardT>* fElementCards;	
   
   	/** pointer to the continuum element */
-  	const MFGP_AssemblyT* fMFGPAssembly;
+  	const MFGPAssemblyT* fMFGPAssembly;
 
 	/** solver group for MaterialSupportT::fContinuumElement */
 	int fGroup;
@@ -239,7 +239,7 @@ public:
 };
 
 /* inlines functions */
-inline const MFGP_AssemblyT* MFGPMatSupportT::MFGPAssembly(void) const
+inline const MFGPAssemblyT* MFGPMatSupportT::MFGPAssembly(void) const
 {
 	return fMFGPAssembly;
 }

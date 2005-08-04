@@ -1,4 +1,4 @@
-/* $Id: MFGPMaterialT.h,v 1.3 2005-07-05 07:14:32 paklein Exp $  */
+/* $Id: MFGPMaterialT.h,v 1.4 2005-08-04 21:42:48 kyonten Exp $  */
 #ifndef _MFGP_MATERIAL_T_H_
 #define _MFGP_MATERIAL_T_H_
 
@@ -26,7 +26,7 @@ class ElementBaseT;
 class dMatrixT;
 class dSymMatrixT;
 class LocalArrayT;
-class MFGP_AssemblyT;
+class MFGPAssemblyT;
 
 /** interface for continuum materials. */
 class MFGPMaterialT: virtual public ParameterInterfaceT
@@ -51,12 +51,15 @@ public:
 
 	/** form of tangent matrix. \return symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+	
+	/** relaxation */
+	virtual GlobalT::RelaxCodeT RelaxCode(void) { return GlobalT::kNoRelax; };
 
 	/** reference to the material support */
 	const MFGPMatSupportT& MFGPMatSupport(void) const;
 
 	/** reference to the host element */
-	const MFGP_AssemblyT& MFGPAssembly(void) const;
+	const MFGPAssemblyT& MFGPAssembly(void) const;
 
 	/** number of element nodes in the host element group */
 	int NumElementNodes() const;
@@ -185,10 +188,6 @@ public:
 	virtual const dSymMatrixT& S_IJ(void) = 0;
 	/*@}*/
 	
-	/** pass to the material model */
-	virtual void Initialize(ElementCardT element, int ip, int n_ip, dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
-					dArrayT lambdaPM_ip, dArrayT lambdaPM_lap_ip) = 0;
-	
 	/** yield function */
 	virtual const double& YieldF(void) = 0;
 	
@@ -262,7 +261,7 @@ inline const MFGPMatSupportT& MFGPMaterialT::MFGPMatSupport(void) const
 
 inline int MFGPMaterialT::CurrIP(void) const { return MFGPMatSupport().CurrIP(); };
 
-inline const MFGP_AssemblyT& MFGPMaterialT::MFGPAssembly(void) const { 
+inline const MFGPAssemblyT& MFGPMaterialT::MFGPAssembly(void) const { 
 	return *(MFGPMatSupport().MFGPAssembly()); 
 }
 

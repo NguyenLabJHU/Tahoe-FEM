@@ -1,7 +1,7 @@
 /* $Id: MFGPMatSupportT.cpp */
 #include "MFGPMatSupportT.h"
 #include "ElementsConfig.h"
-#include "MFGP_AssemblyT.h"
+#include "MFGPAssemblyT.h"
 #include "ElementSupportT.h"
 
 using namespace Tahoe;
@@ -50,7 +50,7 @@ MFGPMatSupportT::MFGPMatSupportT(int ndof_displ, int ndof_plast, int nip_displ, 
 /* destructor */
 MFGPMatSupportT::~MFGPMatSupportT(void) { }
 
-void MFGPMatSupportT::SetMFGPAssembly(const MFGP_AssemblyT* p)
+void MFGPMatSupportT::SetMFGPAssembly(const MFGPAssemblyT* p)
 {
 	fMFGPAssembly = p;
 	if (fMFGPAssembly)
