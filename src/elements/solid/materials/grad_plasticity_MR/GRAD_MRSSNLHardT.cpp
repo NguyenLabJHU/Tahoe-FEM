@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.10 2005-07-08 01:17:44 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.11 2005-08-04 21:49:33 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -20,7 +20,7 @@
 
 using namespace Tahoe;
 
-const int    kNumInternal = 38; // number of internal state variables
+const int    kNumInternal = 40; // number of internal state variables
 const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 //const int    kNSTR        = dSymMatrixT::NumValues(kNSD);
@@ -103,7 +103,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     dArrayT Sig(6); dArrayT dSig(6); dArrayT Sig_I(6);
     dArrayT mm(6); dArrayT rr(4); dArrayT nn(6); 
     dArrayT dq(4); dArrayT hh(4); dArrayT gg(4); 
-    dArrayT state(39); dArrayT Sig_trial(6);
+    dArrayT state(40); dArrayT Sig_trial(6);
     dArrayT RSig(6); dArrayT Rq(4);
     dArrayT R(10); dArrayT ls(4);
     
@@ -237,21 +237,21 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     
     int iplastic; 
     double dlam = triallambda[0]; double lap_dlam = lap_triallambda[0]; 
-    
+ 
 /* check the yield function */
-     
     Yield_f(Sig, qn, ff);
     if (ff < kYieldTol) 
     {
       iplastic = 0;
       state[34] = ff;
-      state[38] = ff;
+      state[39] = ff;
       kk = 0;
     }
       
     else 
     {
-      state[38] = ff;
+      cout << endl << " yield condition satisfied!!! " << endl;
+      state[39] = ff;
       kk = 0;
       iplastic = 1;
       while (ff > fTol_1) 
@@ -417,7 +417,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	state[37] = double(iplastic);
 	state[38] = double(kk);
 	
-	fYield = ff;
+	fYield = state[34];
 	for (int i = 0; i < 6; i++) 
 		fStressCorr[i] = state[i];
     
@@ -988,7 +988,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     dArrayT RSig(6), Rq(4);
     dArrayT mm(6); dArrayT rr(4); dArrayT nn(6); 
     dArrayT dq(4); dArrayT hh(4); dArrayT gg(4); 
-    dArrayT state(38); dArrayT Sig_trial(6);
+    dArrayT state(40); dArrayT Sig_trial(6);
     dArrayT R(10); dArrayT ls(4);
     
     double dlam, lap_dlam;

@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.18 2005-07-20 16:36:06 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.19 2005-08-04 21:49:33 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -55,20 +55,6 @@ void GRAD_MRSSKStV::ResetHistory(void)
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
 	if (element.IsAllocated()) fGRAD_MR->Reset(element);
-}
-
-/* initialize laplacian of strain and lambda, and lambda, all at ip */
-void GRAD_MRSSKStV::Initialize(ElementCardT element, int ip, int n_ip,
-                    dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
-					dArrayT lambda_ip, dArrayT lambda_lap_ip)
-{
-	/*fStrain_IP = strain_ip;
-	fLapStrain_IP = strain_lap_ip;
-    fLambdaPM_IP = lambda_ip;
-    fLapLambdaPM_IP = lambda_lap_ip;
-    curr_element = element;
-    curr_ip = ip;
-    num_ip = n_ip;*/
 }
 
 const dSymMatrixT& GRAD_MRSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) 
@@ -153,7 +139,7 @@ const dMatrixT& GRAD_MRSSKStV::c_LamLam2(void)
 }
 
 /* yield function */
-const double& GRAD_MRSSKStV::YieldF(void)
+const double& GRAD_MRSSKStV::YieldF()
 {
 	GRAD_MRSSKStV::s_ij(); // call s_ij first
 	fYieldFunction = fGRAD_MR->YieldFunction();
@@ -172,9 +158,22 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	const dSymMatrixT& e_els = ElasticStrain(eps, element, ip); 
 	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_eps, element, ip);
 	
-	//cout << "strain " << eps << endl << endl;
-	//cout << "lambda " << lam << endl;
+	cout << endl << "ip = " << ip << endl;
+	cout << endl << "strain" << endl << eps << endl;
+	cout << endl << "laplacian of strain" << endl << lap_eps << endl;
 	
+	
+	/* check for correct lambda and it's laplacian */
+    if (lam[0] < 0.) {
+    	ExceptionT::GeneralFail("GRAD_MRSSKStV::s_ij", 
+			"negative lambda! %d", lam[0]);
+    }
+    
+    if (lap_lam[0] < 0.) {
+    	ExceptionT::GeneralFail("GRAD_MRSSKStV::s_ij", 
+			"negative laplacian of lambda! %d", lap_lam[0]);
+    }
+     
 	/* updated Cauchy stress (return mapping) */
 	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lam, lap_lam, element, ip);
 	return fStress;	

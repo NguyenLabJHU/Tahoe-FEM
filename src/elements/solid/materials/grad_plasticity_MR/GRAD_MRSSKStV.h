@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.h,v 1.8 2005-07-08 01:17:44 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.h,v 1.9 2005-08-04 21:49:33 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -39,10 +39,6 @@ class GRAD_MRSSKStV: public MFGPSSSolidMatT, public IsotropicT, public HookeanMa
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-	
-	/* initialize laplacian of strain and lambdaPM, and lambdaPM, all at ip */
-	void Initialize(ElementCardT element, int ip, int n_ip, dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
-					dArrayT lambdaPM_ip, dArrayT lambdaPM_lap_ip);
 	
 	/** returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
