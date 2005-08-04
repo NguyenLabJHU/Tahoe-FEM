@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.116 2005-06-29 17:40:49 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.117 2005-08-04 21:35:44 kyonten Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -122,7 +122,7 @@
 #endif
 
 #ifdef MESHFREE_GRAD_PLAST_DEV
-#include "MFGP_AssemblyT.h"
+#include "MFGPElementT.h"
 #endif
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
@@ -326,7 +326,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 */
 
 #ifdef MESHFREE_GRAD_PLAST_DEV
-		sub_lists.AddSub("meshfree_grad_plast");
+		sub_lists.AddSub("mfgp_element");
 #endif
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
@@ -536,8 +536,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 */
 
 #ifdef MESHFREE_GRAD_PLAST_DEV
-	else if (name == "meshfree_grad_plast")
-		return new MFGP_AssemblyT(fSupport);
+	else if (name == "mfgp_element")
+		return new MFGPElementT(fSupport);
 #endif
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
