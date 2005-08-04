@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.26 2004-08-01 20:41:58 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.27 2005-08-04 07:06:02 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -120,16 +120,7 @@ double ABAQUS_VUMAT_BaseT::StrainEnergyDensity(void) {
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int ABAQUS_VUMAT_BaseT::NumOutputVariables(void) const
-{
-	/* set material output variables/labels */
-	if (fOutputIndex.Length() == 0)
-	{
-		//TEMP - better place for this?
-		ABAQUS_VUMAT_BaseT* tmp = (ABAQUS_VUMAT_BaseT*) this;
-		tmp->SetOutputVariables(tmp->fOutputIndex, tmp->fOutputLabels);
-	}
-
+int ABAQUS_VUMAT_BaseT::NumOutputVariables(void) const {
 	return fOutputIndex.Length();
 }
 
@@ -289,6 +280,9 @@ void ABAQUS_VUMAT_BaseT::TakeParameterList(const ParameterListT& list)
 	if (fThermal->IsActive())
 		cout << "\n ABAQUS_VUMAT_BaseT::Initialize: thermal strains must\n"
 		     <<   "    be handled within the VUMAT\n" << endl;
+
+	/* set material output variables/labels */
+	SetOutputVariables(fOutputIndex, fOutputLabels);
 }
 
 /***********************************************************************

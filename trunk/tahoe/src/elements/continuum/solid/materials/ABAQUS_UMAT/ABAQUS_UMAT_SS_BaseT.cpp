@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.7 2004-08-01 20:41:53 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.8 2005-08-04 07:06:02 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -270,16 +270,7 @@ double ABAQUS_UMAT_SS_BaseT::StrainEnergyDensity(void)
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int ABAQUS_UMAT_SS_BaseT::NumOutputVariables(void) const
-{
-	/* set material output variables/labels */
-	if (fOutputIndex.Length() == 0)
-	{
-		//TEMP - better place for this?
-		ABAQUS_UMAT_SS_BaseT* tmp = (ABAQUS_UMAT_SS_BaseT*) this;
-		tmp->SetOutputVariables(tmp->fOutputIndex, tmp->fOutputLabels);
-	}
-
+int ABAQUS_UMAT_SS_BaseT::NumOutputVariables(void) const {
 	return fOutputIndex.Length();
 }
 
@@ -437,6 +428,9 @@ void ABAQUS_UMAT_SS_BaseT::TakeParameterList(const ParameterListT& list)
 	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';
 	out << " Number of ABAQUS UMAT properties. . . . . . . . = " << fProperties.Length() << '\n';
 	PrintProperties(out);
+
+	/* set material output variables/labels */
+	SetOutputVariables(fOutputIndex, fOutputLabels);
 }
 
 /***********************************************************************
