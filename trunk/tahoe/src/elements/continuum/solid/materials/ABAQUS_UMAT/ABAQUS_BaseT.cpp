@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.cpp,v 1.7 2004-08-01 20:41:53 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.cpp,v 1.8 2005-08-04 07:04:46 paklein Exp $ */
 #include "ABAQUS_BaseT.h"
 
 #ifdef __F2C__
@@ -204,7 +204,7 @@ void ABAQUS_BaseT::Read_ABAQUS_Input(ifstreamT& in, StringT& name, nArrayT<doubl
 				
 				/* read properties */
 				properties.Dimension(nprops);
-				in.clear_line();
+				//in.clear_line();
 				Skip_ABAQUS_Comments(in);
 				for (int i = 0; i < nprops && in.good(); i++)
 				{	
