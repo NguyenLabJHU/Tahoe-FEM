@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.60 2005-08-04 22:02:19 paklein Exp $
+# $Id: tahoe-manager,v 1.61 2005-08-05 07:19:32 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -235,6 +235,13 @@ foreach my $key (sort(keys %ENV)) {
 if(-e "$config_file") { read_config(); }
 else                  { write_default_config(); }
 
+# verify macros module
+unless(-d "macros") {
+	print "checking out macros...";
+	update("macros");
+	print " ok\n";
+}
+
 # remove system libraries from @modules
 #foreach my $lib (@syslibs) {
 #	for (my $i = 0; $i < scalar(@modules) ; $i++) {
@@ -469,29 +476,9 @@ if ($connection =~ "cvs") {
 
 # get macros module
 unless(-d "macros") {
-	if ($connection =~ "cvs") {
-		print "checking out macros...";
-		update("macros");
-		print " ok\n";
-	} elsif ($connection =~ "http") {
-	
-		# grab new copy
-		my $curl_cmd = "curl http://tahoe.ca.sandia.gov/download/nightly/macros.tar.gz --remote-name --connect-timeout 10";
-		if ($proxy !~ "NONE") {
-			$curl_cmd = $curl_cmd." --proxy $proxy";
-		}
-		do_system("$curl_cmd") == 0
-			or die "ERROR: curl failed. Check connection or proxy ($proxy)";
-
-		# unpack
-		do_system("gunzip macros.tar.gz");
-		do_system("tar xf macros.tar");
-		do_system("rm macros.tar");
-	}
-	else {
-		print "ERROR: unrecognized connection '$connection'\n";	
-		exit;
-	}
+	print "checking out macros...";
+	update("macros");
+	print " ok\n";
 }
 
 # architecture
