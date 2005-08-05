@@ -1,10 +1,10 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.7 2005-02-13 22:18:02 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.8 2005-08-05 09:02:35 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
 #ifdef COHESIVE_SURFACE_ELEMENT
 
-#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "CSEAnisoT.h"
 #include "AutoFill2DT.h"
 #include "TiedNodesT.h"
@@ -15,38 +15,50 @@
 using namespace Tahoe;
 
 /* constructor */
-UpLagAdaptiveT::UpLagAdaptiveT(const ElementSupportT& support, const FieldT& field):
+UpLagAdaptiveT::UpLagAdaptiveT(const ElementSupportT& support):
 	UpdatedLagrangianT(support),
 	fCSE(NULL),
 	fTied(NULL),
 	fReleaseThreshold(-1.0)
 {
-//TEMP
-	if (ElementSupport().Size() != 1) ExceptionT::GeneralFail("UpLagAdaptiveT::UpLagAdaptiveT", "serial only");
+	SetName("updated_lagrangian_adaptive_insertion");
 }
 
-/* initialization. called immediately after constructor */
-void UpLagAdaptiveT::Initialize(void)
+/* describe the parameters needed by the interface */
+void UpLagAdaptiveT::DefineParameters(ParameterListT& list) const
 {
-	const char caller[] = "UpLagAdaptiveT::Initialize";
-ExceptionT::GeneralFail(caller, "out of date");
-#if 0
 	/* inherited */
-	UpdatedLagrangianT::Initialize();
+	UpdatedLagrangianT::DefineParameters(list);
+
+	/* cohesive element group */
+	list.AddParameter(ParameterT::Integer, "cohesive_element_group");
+
+	/* release threshold */
+	ParameterT release(ParameterT::Double, "release_threshold");
+	release.AddLimit(0, LimitT::Lower);
+	list.AddParameter(release);
+}
+
+/* accept parameter list */
+void UpLagAdaptiveT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "UpLagAdaptiveT::TakeParameterList";
+
+	/* check */
+	if (ElementSupport().Size() != 1) ExceptionT::GeneralFail(caller, "serial only");
+
+	/* inherited */
+	UpdatedLagrangianT::TakeParameterList(list);
 	
 	/* resolve CSE class */
-	ifstreamT& in = ElementSupport().Input();
-	int cse_group = -99;
-	in >> cse_group;
+	int cse_group = list.GetParameter("cohesive_element_group");
 	cse_group--;
 	ElementBaseT& element_base = ElementSupport().ElementGroup(cse_group);
 	fCSE = TB_DYNAMIC_CAST(CSEAnisoT*, &element_base);
 	if (!fCSE) ExceptionT::BadInputValue(caller, "could not resolve CSE group at %d", cse_group+1);
 
 	/* release threshold (t > 0) */
-	in >> fReleaseThreshold;
-	if (fReleaseThreshold < 0.0)
-		ExceptionT::BadInputValue(caller, "release threshold %g < 0.0", fReleaseThreshold);
+	fReleaseThreshold = list.GetParameter("release_threshold");
 
 	/* get nodes used by the CSE element group */
 	fCSE->NodesUsed(fCSENodesUsed);
@@ -67,11 +79,11 @@ ExceptionT::GeneralFail(caller, "out of date");
 	int *pconn = fConnectivitiesCSELocal.Pointer();
 	for (int i = 0; i < fConnectivitiesCSELocal.Length(); i++) {
 		*pconn = fGlobalToLocal.Map(*pconn);
-		*pconn++;
+		pconn++;
 	}
 
 	fCSEActive.Dimension(fConnectivitiesCSELocal.MajorDim());
-	fCSEActive = kOFF;
+	fCSEActive = ElementCardT::kOFF;
 
 	/* generated inverse connectivities */
 	int num_chunks = fCSENodesUsed.Length()/1000;
@@ -106,7 +118,6 @@ ExceptionT::GeneralFail(caller, "out of date");
 	fNodalValues.Dimension(fCSENodesUsed.Length(), dSymMatrixT::NumValues(NumSD()));
 	fNodalValues = 0.0;
 	fNodalExtrapolation.Dimension(NumElementNodes(), dSymMatrixT::NumValues(NumSD()));
-#endif
 }
 
 /* initialize current time increment */
