@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2004-06-08 04:50:05 paklein Exp $
+# $Id: makefile,v 1.5 2005-08-05 07:18:07 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -24,3 +24,10 @@ clean:
 			fi; \
 	done    
 	-@ rm tahoe.xsd tahoe.dtd
+
+init: dummy
+
+build: dummy
+
+dummy:
+	@echo "dummy target"
