@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.118 2005-08-05 01:26:09 alindblad Exp $ */
+/* $Id: ElementListT.cpp,v 1.119 2005-08-05 09:01:38 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -42,7 +42,6 @@
 #include "SmallStrainAxiT.h"
 #include "UpdatedLagrangianT.h"
 #include "UpdatedLagrangianAxiT.h"
-#include "UpLagAdaptiveT.h"
 #include "TotalLagrangianT.h"
 #include "TotalLagrangianAxiT.h"
 #include "LocalizerT.h"
@@ -65,6 +64,9 @@
 #include "UpLagr_ExternalFieldT.h"
 #ifdef SIMPLE_SOLID_DEV
 #include "TotalLagrangianFlatT.h"
+#endif
+#ifdef COHESIVE_SURFACE_ELEMENT
+#include "UpLagAdaptiveT.h"
 #endif
 #endif
 
@@ -311,6 +313,11 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("bridging");
 		sub_lists.AddSub("meshfree_bridging");
 #endif
+
+#ifdef COHESIVE_SURFACE_ELEMENT
+		sub_lists.AddSub("updated_lagrangian_adaptive_insertion");
+#endif
+
 #endif /* CONTINUUM_ELEMENT */
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -522,6 +529,12 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	else if (name == "meshfree_bridging")
 		return new MeshfreeBridgingT(fSupport);
 #endif
+
+#ifdef COHESIVE_SURFACE_ELEMENT
+	else if (name == "updated_lagrangian_adaptive_insertion")
+		return new UpLagAdaptiveT(fSupport);
+#endif
+
 #endif /* CONTINUUM_ELEMENT */
 
 #ifdef GRAD_SMALL_STRAIN_DEV
