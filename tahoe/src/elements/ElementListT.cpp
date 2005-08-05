@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.117 2005-08-04 21:35:44 kyonten Exp $ */
+/* $Id: ElementListT.cpp,v 1.118 2005-08-05 01:26:09 alindblad Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -18,6 +18,10 @@
 
 #ifdef ADHESION_ELEMENT
 #include "AdhesionT.h"
+#endif
+
+#ifdef CONSTANT_VOLUME_ELEMENT
+#include "ConstantVolumeT.h"
 #endif
 
 #ifdef COHESIVE_SURFACE_ELEMENT
@@ -254,6 +258,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("adhesion");
 #endif
 
+#ifdef CONSTANT_VOLUME_ELEMENT
+		sub_lists.AddSub("constant_volume");
+#endif
+
 #ifdef CONTACT_ELEMENT
 		sub_lists.AddSub("contact_2D_penalty");
 		sub_lists.AddSub("contact_3D_penalty");
@@ -426,6 +434,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef ADHESION_ELEMENT
 	else if (name == "adhesion")
 		return new AdhesionT(fSupport);
+#endif
+
+#ifdef CONSTANT_VOLUME_ELEMENT
+	else if (name == "constant_volume")
+	        return new ConstantVolumeT(fSupport);
 #endif
 
 #ifdef CONTACT_ELEMENT
