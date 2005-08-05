@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.h,v 1.3 2005-02-13 22:18:02 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.h,v 1.4 2005-08-05 09:02:35 paklein Exp $ */
 #ifndef _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 #define _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 
@@ -25,10 +25,7 @@ class UpLagAdaptiveT: public UpdatedLagrangianT
 public:
 
 	/** constructors */
-	UpLagAdaptiveT(const ElementSupportT& support, const FieldT& field);
-
-	/** initialization. called immediately after constructor */
-	virtual void Initialize(void);
+	UpLagAdaptiveT(const ElementSupportT& support);
 
 	/** compute residual */
 	virtual void RHSDriver(void);
@@ -41,6 +38,15 @@ public:
 	 * provides an interface for element-level adaptivity. The nature of
 	 * the changes are indicated by the GlobalT::RelaxCodeT return value. */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 
