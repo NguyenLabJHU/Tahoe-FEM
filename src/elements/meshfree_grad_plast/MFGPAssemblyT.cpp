@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.1 2005-08-04 21:48:25 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.2 2005-08-05 07:20:19 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -103,7 +103,11 @@ void MFGPAssemblyT::RHSDriver(void)
 void MFGPAssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
-  // do nothing
+  /* inherited */
+	ElementBaseT::Equations(eq_1, eq_2);
+
+	/* mark traction BC data as old */
+	fTractionBCSet = 0;
 }
 
 /* form of tangent matrix */

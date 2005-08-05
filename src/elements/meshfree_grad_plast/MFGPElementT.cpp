@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.1 2005-08-04 21:48:25 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.2 2005-08-05 07:20:19 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -1577,10 +1577,14 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArray2DT nodal_space(nen, n_extrap);
 	dArray2DT nodal_all(nen, n_extrap);
 	dArray2DT coords, disp, nodal_lambda, nodal_lap_lambda;
-	dArray2DT nodalstress, matdat;
+	dArray2DT nodalstress, nodalstrain, nodallapstrain, matdat;
 
 	/* ip values */
 	dSymMatrixT cauchy((nstrs != 4) ? nsd : dSymMatrixT::k3D_plane), nstr_tmp;
+	dSymMatrixT strain(cauchy.Rows()), nstr_tmp2;
+	dSymMatrixT strain_tmp(strain.Rows());
+	dSymMatrixT lapstrain(strain.Rows()), nstr_tmp3;
+	dSymMatrixT lapstrain_tmp(strain.Rows());
 	dArrayT ipmat(n_codes[iMaterialData]);
 	dArrayT iplambda(n_codes[iNodalLambda]);
 	dArrayT iplaplambda(n_codes[iNodalLapLambda]);
@@ -1591,8 +1595,9 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	disp.Alias(nen, n_codes[iNodalDisp], pall)   ; pall += disp.Length();
 	nodal_lambda.Alias(nen, n_codes[iNodalLambda], pall); pall += nodal_lambda.Length();
 	nodal_lap_lambda.Alias(nen, n_codes[iNodalLapLambda], pall); pall += nodal_lap_lambda.Length();
-      
 	nodalstress.Alias(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
+	nodalstrain.Alias(nen, n_codes[iNodalStrain], pall); pall += nodalstrain.Length();
+	nodallapstrain.Alias(nen, n_codes[iNodalLapStrain], pall); pall += nodallapstrain.Length();
 	matdat.Alias(nen, n_codes[iMaterialData], pall)    ; pall += matdat.Length();
         
 	/* element work arrays */
@@ -1604,6 +1609,18 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	if (e_codes[iIPStress]) {
 		ip_stress.Alias(NumIP(), e_codes[iIPStress]/NumIP(), pall);
 		pall += ip_stress.Length();
+	}
+	
+	dArray2DT ip_strain;
+	if (e_codes[iIPStrain]) {
+		ip_strain.Alias(NumIP(), e_codes[iIPStrain]/NumIP(), pall);
+		pall += ip_strain.Length();
+	}
+	
+	dArray2DT ip_lap_strain;
+	if (e_codes[iIPLapStrain]) {
+		ip_lap_strain.Alias(NumIP(), e_codes[iIPLapStrain]/NumIP(), pall);
+		pall += ip_lap_strain.Length();
 	}
 	
 	dArray2DT ip_lambda;
@@ -1687,9 +1704,39 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					double* row = ip_stress(fShapes_displ->CurrIP());
 					nstr_tmp.Set(nsd, row);
 					nstr_tmp = cauchy;
-					row += cauchy.Length();
-					nstr_tmp.Set(nsd, row);
-					fCurrMaterial->Strain(nstr_tmp);
+				}
+				
+				/* get strain and its laplacian */
+				fCurrMaterial->Strain(strain_tmp); fCurrMaterial->LapStrain(lapstrain_tmp);
+				strain.Translate(strain_tmp); lapstrain.Translate(lapstrain_tmp);
+
+				/* strains */
+				if (n_codes[iNodalStrain]) {        
+					if (qNoExtrap)
+						for (int k = 0; k < nen; k++)
+							nodalstrain.AddToRowScaled(k,Na_X_ip_w(k,0),strain);
+					else
+						fShapes_displ->Extrapolate(strain, nodalstrain);
+				}
+				
+				if (n_codes[iNodalLapStrain]) {        
+					if (qNoExtrap)
+						for (int k = 0; k < nen; k++)
+							nodallapstrain.AddToRowScaled(k,Na_X_ip_w(k,0),lapstrain);
+					else
+						fShapes_displ->Extrapolate(lapstrain, nodallapstrain);
+				}
+
+				if (e_codes[iIPStrain]) {
+					double* row = ip_strain(fShapes_displ->CurrIP());
+					nstr_tmp2.Set(nsd, row);
+					nstr_tmp2 = strain;
+				}
+				
+				if (e_codes[iIPLapStrain]) {
+					double* row = ip_lap_strain(fShapes_displ->CurrIP());
+					nstr_tmp3.Set(nsd, row);
+					nstr_tmp3 = lapstrain;
 				}
 
 				/* get laplacian of plastic multiplier */
@@ -1697,7 +1744,7 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				{
 					/* store nodal values */
 					if (n_codes[iNodalLapLambda]) {
-						iplaplambda = LapLambda();
+						fCurrMaterial->LapPlasticMultiplier(iplaplambda);
 						if (qNoExtrap)
 							for (int k = 0; k < nen; k++)
 								nodal_lap_lambda.AddToRowScaled(k,Na_X_ip_w(k,0), iplaplambda);
@@ -1707,11 +1754,12 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					
 					/* store element values */
 					if (e_codes[iIPLapLambda]) { 
-						iplaplambda = LapLambda(fShapes_displ->CurrIP());
+						fCurrMaterial->LapPlasticMultiplier(iplaplambda);
 						ip_lap_lambda.SetRow(fShapes_displ->CurrIP(), iplaplambda);
 					}
 					
-					if (e_codes[iIPLambda]) IP_Interpolate(u, iplambda, fShapes_displ->CurrIP());
+					if (e_codes[iIPLambda]) fCurrMaterial->PlasticMultiplier(iplaplambda); 
+					IP_Interpolate(u, iplambda, fShapes_displ->CurrIP());
 				} 
 				
 				/* material stuff */

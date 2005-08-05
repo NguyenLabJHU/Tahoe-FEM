@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.h,v 1.1 2005-08-04 21:48:25 kyonten Exp $ */ 
+/* $Id: MFGPAssemblyT.h,v 1.2 2005-08-05 07:20:19 kyonten Exp $ */ 
 //DEVELOPMENT
 #ifndef _MFGP_ASSEMBLY_T_H_ 
 #define _MFGP_ASSEMBLY_T_H_ 
@@ -95,6 +95,18 @@ public:
 	 * \param nodalvalues extrapolated values: [nnd] */
 	void IP_ExtrapolateAll(const dArrayT& ip_values, dArrayT& nodal_values) const;
 
+	/** element coordinates.
+	 * \return initial nodal coordinates of current element: [nen] x [nsd] */
+	const LocalArrayT& InitialCoordinates() const;
+	
+	/** element displacements.
+	 * \return nodal displacements of current element: [nen] x [ndof] */
+	const LocalArrayT& Displacements() const;
+	const LocalArrayT& LastDisplacements(void) const;
+	const LocalArrayT& Accelerations(void) const;
+	const LocalArrayT& PlasticMultipliers() const;
+	const LocalArrayT& LastPlasticMultipliers(void) const;
+	
 	/** reference to the materials list */
 	const MFGPMatListT& MFGPMatList(void) const;
 	
@@ -476,6 +488,13 @@ inline const MFGPMatListT& MFGPAssemblyT::MFGPMatList(void) const
 #endif
 	return *fMFGPMatList;
 }
+
+inline const LocalArrayT& MFGPAssemblyT::InitialCoordinates() const {return fInitCoords_displ;}
+inline const LocalArrayT& MFGPAssemblyT::Displacements() const {return u;}
+inline const LocalArrayT& MFGPAssemblyT::LastDisplacements(void) const { return u_n; }
+inline const LocalArrayT& MFGPAssemblyT::Accelerations(void) const { return DDu; }
+inline const LocalArrayT& MFGPAssemblyT::PlasticMultipliers() const {return lambda;}
+inline const LocalArrayT& MFGPAssemblyT::LastPlasticMultipliers(void) const { return lambda_n; }
 
 } // namespace Tahoe 
 #endif /* _MFGP_ASSEMBLY_T_H_ */
