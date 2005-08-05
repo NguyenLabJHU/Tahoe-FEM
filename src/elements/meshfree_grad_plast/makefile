@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2005-07-05 07:14:18 paklein Exp $
+# $Id: makefile,v 1.6 2005-08-05 09:03:08 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -69,7 +69,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = mfgp_mat_interfaces coupled_equations
+SUB_DIR = mfgp_mat_interfaces
 subdir_driver: subdir_loop
 
 #
