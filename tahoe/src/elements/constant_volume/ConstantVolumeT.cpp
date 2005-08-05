@@ -1,4 +1,4 @@
-/* $Id: ConstantVolumeT.cpp,v 1.1 2005-08-05 01:00:10 alindblad Exp $ */
+/* $Id: ConstantVolumeT.cpp,v 1.2 2005-08-05 09:02:12 paklein Exp $ */
 #include "ConstantVolumeT.h"
 
 #include "ModelManagerT.h"
@@ -14,6 +14,9 @@
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
 #include "C1FunctionT.h"
+#include "EdgeFinderT.h"
+#include "XDOF_ManagerT.h"
+#include "ParentDomainT.h"
 
 using namespace Tahoe;
 
@@ -24,7 +27,9 @@ ConstantVolumeT::ConstantVolumeT(const ElementSupportT& support):
 	fNEE_vec_man(0, true),
 	fNEE_mat_man(0, true),
 	fFace2_man(0, true),
-	fGrad_d_man(0, fGrad_d)
+	fGrad_d_man(0, fGrad_d),
+	fPressureLast(0),
+	fFaceDomain(NULL)
 {
 	SetName("constant_volume");
 
@@ -42,6 +47,8 @@ ConstantVolumeT::ConstantVolumeT(const ElementSupportT& support):
 /* destructor */
 ConstantVolumeT::~ConstantVolumeT(void)
 {
+	delete fFaceDomain;
+
 	for (int i = 0; i < fShapes.Length(); i++)
 		delete fShapes[i];
 	for (int i = 0; i < fCurrShapes.Length(); i++)
@@ -56,6 +63,8 @@ GlobalT::RelaxCodeT ConstantVolumeT::RelaxSystem(void)
 	/* inherited */
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
 
+	return relax;
+#if 0
 	/* generate interaction element data */
 	bool changed = SetConfiguration();
 
@@ -72,6 +81,7 @@ GlobalT::RelaxCodeT ConstantVolumeT::RelaxSystem(void)
 
 		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
 	}
+#endif
 }
 
 /* solution calls */
@@ -126,6 +136,17 @@ void ConstantVolumeT::WriteOutput(void)
     WriteCallLocation("WriteOutput");
 }
 
+/* close current time increment */
+void ConstantVolumeT::CloseStep(void)
+{
+	/* inherited */
+	ElementBaseT::CloseStep();
+	
+	/* store converged pressure */
+	const dArray2DT& xdof = ElementSupport().XDOF_Manager().XDOF(this, 0);
+	fPressureLast = xdof[0];
+}
+
 /* compute specified output parameter and send for smoothing */
 void ConstantVolumeT::SendOutput(int kincode)
 {
@@ -143,7 +164,10 @@ void ConstantVolumeT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	ElementBaseT::ConnectsU(connects_1, connects_2);
 	
 	/* append face-pair connectivities */
-	connects_2.Append(&fFaceConnectivities);
+//	connects_2.Append(&fFaceConnectivities);
+
+	/* face-pressure connectivities */
+	connects_1.Append(&fDOFConnects);
 }
 
 /* returns no (NULL) geometry connectivies */
@@ -163,10 +187,31 @@ void ConstantVolumeT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	ElementBaseT::Equations(eq_1, eq_2);
 	
 	/* collect equations */
-	Field().SetLocalEqnos(fFaceConnectivities, fFaceEquations);
+//	Field().SetLocalEqnos(fFaceConnectivities, fFaceEquations);
 
 	/* add equations to the array */
-	eq_2.Append(&fFaceEquations);
+//	eq_2.Append(&fFaceEquations);
+
+	/* dimension equations */
+	fEqnos.Dimension(fDOFConnects.MajorDim(), (fDOFConnects.MinorDim()-1)*NumDOF() + 1);
+
+	/* collect using method allowing mixed node/tag numbers */
+	ElementSupport().XDOF_Manager().XDOF_SetLocalEqnos(Group(), fDOFConnects, fEqnos);
+
+	/* add to list */
+	eq_1.Append(&fEqnos);
+}
+
+/* generate nodal connectivities */ 
+void ConstantVolumeT::GenerateElementData(void)
+{
+	/* surface faces */
+	iArray2DT& surface = fSurfaces[0];
+
+	/* allocate space */
+	fDOFConnects.Dimension(surface.MajorDim(), surface.MinorDim()+1);
+	fDOFConnects.BlockColumnCopyAt(surface, 0);
+	fDOFConnects.SetColumn(fDOFConnects.MinorDim()-1, fPressureTag[0]); /* last "node" is the pressure tag */
 }
 
 /* describe the parameters needed by the interface */
@@ -228,18 +273,38 @@ void ConstantVolumeT::TakeParameterList(const ParameterListT& list)
 
 	/* construct the adhesive surfaces */
 	ExtractSurfaces(list);
-	
+
+	//TEMP
+	if (fSurfaces.Length() != 1) ExceptionT::GeneralFail(caller, "expecting only one surface %d", fSurfaces.Length());
+
+	//TEMP - check surface is closed
+	iArray2DT nodefacetmap;
+	fShapes[0]->ParentDomain().NeighborNodeMap(nodefacetmap);
+	ArrayT<const iArray2DT*> connects(1);
+	connects[0] = fSurfaces.Pointer(0);
+	EdgeFinderT edger(connects, nodefacetmap);
+	if (edger.Neighbors().Count(-1) > 0)
+		ExceptionT::GeneralFail(caller, "surface is not closed");
+
 	/* set up work space */
 	SetWorkSpace();
 	
 	/* set initial configuration */
-	SetConfiguration();	
+//	SetConfiguration();	
 
 	/* write statistics */
 	ostream& out = ElementSupport().Output();
 	out << "\n Constant volume: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
 	out << " Time                           = " << ElementSupport().Time() << '\n';
 	//out << " Active face pairs              = " << fSurface1.Length() << '\n';
+
+	/* only ever need a single extra tag for pressure */
+	fPressureTag.Dimension(1);
+
+	/* register with node manager - sets initial fContactDOFtags */
+	iArrayT numDOF(1); /* 1 tag set */
+	numDOF[0] = 1; /* 1 degree of freedom per tag */
+	ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
 }
 
 /***********************************************************************
@@ -251,6 +316,26 @@ void ConstantVolumeT::LHSDriver(GlobalT::SystemTypeT)
 {
   /* NEED TO IMPLEMENT */
     WriteCallLocation("LHSDriver"); 
+
+	/* time integration parameters */
+	double constK = 0.0;
+	int formK = fIntegrator->FormK(constK);
+	if (!formK) return;
+
+	/* loop over surface faces */
+	iArrayT eqnos;
+	for (int i = 0; i < fDOFConnects.MajorDim(); i++)
+	{
+		/* initialize */
+		fLHS = 0.0;
+	
+		/* integrate over the face */
+	
+	
+		/* assemble */
+		fEqnos.RowAlias(i, eqnos);
+		ElementSupport().AssembleLHS(Group(), fLHS, eqnos);
+	} 
 }
 
 /* form group contribution to the residual */
@@ -258,9 +343,73 @@ void ConstantVolumeT::RHSDriver(void)
 {
   /* NEED TO IMPLEMENT */
     WriteCallLocation("RHSDriver");
+
+	/* time-stepping parameters */
+	double constKd = 0.0;
+	int     formKd = fIntegrator->FormKd(constKd);
+	if (!formKd) return;
+
+	/* dimensions */
+	int nsd = NumSD();
+	int ndof = NumDOF();
+
+	/* face coordinates array */
+	LocalArrayT face_coords(LocalArrayT::kCurrCoords, fDOFConnects.MinorDim()-1, nsd);
+	ElementSupport().RegisterCoordinates(face_coords);
+
+	/* face displacement array */
+	LocalArrayT face_disp(LocalArrayT::kDisp, fDOFConnects.MinorDim()-1, ndof);
+	Field().RegisterLocal(face_disp);
+
+	/* work space */
+	dArrayT n, ip_disp(ndof);
+	dMatrixT Q(nsd);
+	dMatrixT jacobian(nsd, nsd-1);
+
+	/* loop over surface faces */
+	iArrayT nodes;
+	iArrayT eqnos;
+	const double* w = fFaceDomain->Weight();
+	for (int i = 0; i < fDOFConnects.MajorDim(); i++)
+	{
+		/* initialize */
+		fRHS = 0.0;
+	
+		/* collect face coordinates */
+		nodes.Alias(fDOFConnects.MinorDim()-1, fDOFConnects(i));
+		face_coords.SetLocal(nodes);
+
+		/* collect face displacements */
+		face_disp.SetLocal(nodes);
+
+//NOTE: similar to integration of traction in ContinuumElementT::ApplyTractionBC
+
+		/* integrate over the face */
+		for (int j = 0; j < fFaceDomain->NumIP(); j++)
+		{
+			/* coordinate mapping */
+			fFaceDomain->DomainJacobian(face_coords, j, jacobian);
+			double detj = fFaceDomain->SurfaceJacobian(jacobian, Q);
+		
+			/* face normal is last column */
+			Q.ColumnAlias(nsd-1, n);
+		
+			/* interpolate displacements */
+			fFaceDomain->Interpolate(face_disp, ip_disp, j);
+		
+			//compute force
+
+			/* integrate */
+			//fRHS.AddScaled(-w[j]*detj, ????);
+		}
+	
+		/* assemble */
+		fEqnos.RowAlias(i, eqnos);
+		ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
+	} 
 }
 
-/** construct the adhesive surfaces */
+/* construct the adhesive surfaces */
 void ConstantVolumeT::ExtractSurfaces(const ParameterListT& list)
 {
         WriteCallLocation("ExtractSurfaces");
@@ -411,6 +560,9 @@ void ConstantVolumeT::ExtractSurfaces(const ParameterListT& list)
 
 	fOutputID.Dimension(fSurfaces.Length());
 	fOutputID = -1;
+
+	/* construct face parent domain */
+	fFaceDomain = new ParentDomainT(geom[0], NumIP(geom[0]), fSurfaces[0].MinorDim());
 }
 
 void ConstantVolumeT::SetWorkSpace(void)
@@ -439,6 +591,7 @@ void ConstantVolumeT::SetWorkSpace(void)
 	fFaceCentroids = 0.0;
 }
 
+#if 0
 /* generate element data - return true if configuration has
 * changed since the last call */
 bool ConstantVolumeT::SetConfiguration(void)
@@ -533,7 +686,7 @@ bool ConstantVolumeT::SetConfiguration(void)
   /* TEMP - until I figure out what this is doing */
   return true;
 }
-
+#endif
 /***********************************************************************
  * Private
  ***********************************************************************/

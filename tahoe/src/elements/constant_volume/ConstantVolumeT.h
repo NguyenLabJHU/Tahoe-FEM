@@ -1,4 +1,4 @@
-/* $Id: ConstantVolumeT.h,v 1.1 2005-08-05 01:00:10 alindblad Exp $ */
+/* $Id: ConstantVolumeT.h,v 1.2 2005-08-05 09:02:12 paklein Exp $ */
 #ifndef _CONSTANT_VOLUME_T_H_
 #define _CONSTANT_VOLUME_T_H_
 
@@ -16,17 +16,19 @@
 #include "nVariMatrixT.h"
 #include "nArray2DGroupT.h"
 #include "nMatrixGroupT.h"
+#include "DOFElementT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
+class ParentDomainT;
 class SurfaceShapeT;
 class C1FunctionT;
 class iGridManagerT;
 class ScheduleT;
 
 /** class to calculate surface adhesion forces between bodies */
-class ConstantVolumeT: public ElementBaseT
+class ConstantVolumeT: public ElementBaseT, public DOFElementT
 {
 public:
 
@@ -55,6 +57,9 @@ public:
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);  // not implemented
 
+	/** close current time increment */
+	virtual void CloseStep(void);
+
 	/** \name connectivities */
 	/*@{*/
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
@@ -66,6 +71,34 @@ public:
 	 * for more documentation. */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
+
+	/** return the equation group to which the generate degrees of freedom belong. */
+	virtual int Group(void) const { return ElementBaseT::Group(); };
+	
+	/** determine number of tags needed */
+	virtual void SetDOFTags(void) {};
+	
+	/** return the array tag numbers in the specified set currently 
+	 * used/need by the group */
+	virtual iArrayT& DOFTags(int) { return fPressureTag; };
+
+	/** generate nodal connectivities */ 
+	virtual void GenerateElementData(void);
+
+	/** return the connectivities associated with the element generated
+	 * degrees of freedom. */
+	virtual const iArray2DT& DOFConnects(int) const { return fDOFConnects; };
+
+	/** restore/initialize the values of the element degrees of freedom to the 
+	 * last converged solution */
+	virtual void ResetDOF(dArray2DT& DOF, int) const { DOF[0] = fPressureLast; };
+
+	/** check element group for tag reconfiguration */
+	virtual int Reconfigure(void) { return 0; };
+	
+	/** restore any state data to the previous converged state */
+	virtual void ResetState(void) {};
+	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -109,7 +142,7 @@ protected:
 
 	/** generate face-interaction data - return true if configuration has
 	 * changed since the last call */
-	bool SetConfiguration(void);
+//	bool SetConfiguration(void);
 
 	/** \name surface input methods */
 	/*@{*/
@@ -124,6 +157,24 @@ protected:
 	void WriteCallLocation( char* loc ) const;
 	
 protected:
+
+	/** \name face connectivities with multiplier */
+	/*@{*/
+	iArray2DT fDOFConnects;
+	iArray2DT fEqnos;	
+	/*@}*/
+
+	/** \name pressure degree of freedom */
+	/*@{*/
+	/*tag for the pressure degree(s) of freedom */
+	iArrayT fPressureTag;
+	
+	/** converged pressure */
+	double fPressureLast;
+	/*@}*/
+
+	/** geometry and integration over each face */
+	ParentDomainT* fFaceDomain;
 
 	/** \name surface data */
 	/*@{*/
