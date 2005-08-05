@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.2 2005-08-05 07:20:19 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.3 2005-08-05 22:24:04 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -177,7 +177,7 @@ void MFGPAssemblyT::IP_ComputeLaplacian(const LocalArrayT& field, dArrayT& lapla
     dMatrixT gradgrad_u;
     ShapeFunction().GradGradU(field, gradgrad_u, ip);
     laplacian = 0.0;
-    
+    // cout << endl << "gradgrad_u" << gradgrad_u << endl;
     for (int j = 0; j < field.MinorDim(); j++) 
     	for (int i = 0; i < NumSD(); i++) 
     		laplacian[j] += gradgrad_u(j,i);
@@ -802,49 +802,17 @@ void MFGPAssemblyT::RHSDriver_monolithic(void)
 			/* plastic multiplier field node arrays */
 			const iArrayT& nodes_plast = fElementCards_plast[e].NodesU();
 			// node numbers are local or global??
-			
-			/**********************************DEBUGGING*********************************************/
-			/* one output for each element */
-			/*StringT file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/stiffness.";
-			file_name.Append(e); // append element number to output string
-			file_name.Append(".txt");
-			ofstream output(file_name);*/
-			/* print displ_eq and plast_eq numbers */
-			/*if (!output) {
-				cout << "Error opening output file" << endl;
-			}
-			output << "element # " << e << endl;
-			output << "contributing nodes: " << endl;
+			/*
 			for (int i = 0; i < nodes_plast.Length(); i++)
-				output << nodes_plast[i]+1 << endl;
-			output << "displacement equation number:" << endl;
-			output << displ_eq << endl << endl;
-			output << "plastic multiplier equation number:" << endl;
-			output << plast_eq << endl;*/
-			
-			/* print element stiffness matrices */
-			/*output << "accumulated stiffness matrices " << endl;
-			for (int i = 0; i < fKuu.Rows(); i++)
-			{
-				for (int j = 0; j < fKuu.Cols(); j++)
-					output << "KUU("<< i << ","<< j <<"): " << fKuu(i,j) << endl;
-				output << endl;	
-				for (int j = 0; j < fKlambdalambda.Rows(); j++) 
-					output << "KULambda("<< i << ","<< j <<"): " << fKulambda(i,j) << endl;
-				output << endl;
-			}
-				
-			for (int i = 0; i < fKlambdalambda.Rows(); i++)
-			{
-				for (int j = 0; j < fKlambdalambda.Cols(); j++)
-					output << "KLambdaLambda("<< i << ","<< j <<"): " << fKlambdalambda(i,j) << endl;
-				cout << endl;
-				for (int j = 0; j < fKlambdalambda.Cols(); j++)
-					output << "KLambdaU("<< i << ","<< j <<"): " << fKlambdau(i,j) << endl;
-				output << endl;
-			}	
-			output.close();*/
-			/**********************************************************************************/
+				cout << "element # " << e << endl;
+				cout << "contributing nodes: " << endl;
+				cout << nodes_plast[i]+1 << endl;
+				cout << "displacement equation number:" << endl;
+				cout << displ_eq << endl << endl;
+				cout << "plastic multiplier equation number:" << endl;
+				cout << plast_eq << endl;
+			*/
+			PrintStiffness("before_penalty");
 			
 			/* impose boundary conditions via penalty method on plastic multiplier; 
 			   penalty number added to diagonal terms of Klambdalambda of elastic nodes
@@ -857,6 +825,8 @@ void MFGPAssemblyT::RHSDriver_monolithic(void)
 						fPenaltyFlags[j] = 1;
 					}
 			}
+			
+			PrintStiffness("after_penalty");
 			
 			/* assemble residuals */
 			ElementSupport().AssembleRHS(curr_group, fFu_int, displ_eq);
@@ -940,7 +910,7 @@ void MFGPAssemblyT::SetGlobalShape(void)
 	SetLocalU(lambda);	
 	SetLocalU(lambda_n);
 	*/
-	cout << endl << "displacement" << endl << u << endl; //check displ passed
+	//cout << endl << "displacement" << endl << u << endl; //check displ passed
 	
 	/* if lambda is negative set lambda to its previous value */
 	// should negative lambdas be set to zeros or previous values??
@@ -1996,3 +1966,53 @@ bool MFGPAssemblyT::CheckMaterialOutput(void) const
 	return true;
 }
 
+/***********************************************************************
+ * Private
+ ***********************************************************************/
+ /* write stiffness matrices to the output files 
+ before or after penalty number is added */
+void MFGPAssemblyT::PrintStiffness(StringT before_after) const
+{
+	StringT file_name; int e = CurrElementNumber(); 
+	if(before_after == "before_penalty") {			
+		/* one output for each element */
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
+	}
+	else if (before_after == "after_penalty") {
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
+	}
+	file_name.Append(e); // append element number to output string
+	file_name.Append(".txt");
+	ofstream output(file_name);
+	/* print displ_eq and plast_eq numbers */
+	if (!output) {
+		cout << "Error opening output file" << endl;
+	}
+	output << "element # " << e << endl;
+			
+		/* print element stiffness matrices */
+		output << "accumulated stiffness matrices " << endl;
+		for (int i = 0; i < fKuu.Rows(); i++)
+		{
+			for (int j = 0; j < fKuu.Cols(); j++)
+				output << "KUU("<< i << ","<< j <<"): " << fKuu(i,j) << endl;
+			output << endl;	
+			for (int j = 0; j < fKlambdalambda.Rows(); j++) 
+				output << "KULambda("<< i << ","<< j <<"): " << fKulambda(i,j) << endl;
+			output << endl;
+		}
+				
+		for (int i = 0; i < fKlambdalambda.Rows(); i++)
+		{
+			for (int j = 0; j < fKlambdalambda.Cols(); j++)
+				output << "KLambdaLambda("<< i << ","<< j <<"): " << fKlambdalambda(i,j) << endl;
+			cout << endl;
+			for (int j = 0; j < fKlambdalambda.Cols(); j++)
+				output << "KLambdaU("<< i << ","<< j <<"): " << fKlambdau(i,j) << endl;
+			output << endl;
+		}	
+		output.close();
+}
+		

@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.2 2005-08-05 07:20:19 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.3 2005-08-05 22:24:04 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -1395,7 +1395,7 @@ void MFGPElementT::SetGlobalShape(void)
 	
 	/* compute the measures of strain/deformation over the element */
 	/* loop over integration points */
-	for (int i = 0; i < NumIP(); i++)
+	for (int i = 0; i < fNumIP_displ; i++)
 	{
 		/* deformation gradient */
 		ShapeFunction().GradU(u, fGradU, i);
@@ -1479,7 +1479,7 @@ void MFGPElementT::SetGlobalShape(void)
 	
 	/* compute the plastic multiplier and its laplacian over the element */
 	/* loop over integration points */
-	for (int i = 0; i < NumIP(); i++)
+	for (int i = 0; i < fNumIP_plast; i++)
 	{
 		/* plastic multiplier */
 		IP_Interpolate(lambda, fLambda_List[i], i);

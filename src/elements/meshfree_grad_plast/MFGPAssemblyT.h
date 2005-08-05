@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.h,v 1.2 2005-08-05 07:20:19 kyonten Exp $ */ 
+/* $Id: MFGPAssemblyT.h,v 1.3 2005-08-05 22:24:04 kyonten Exp $ */ 
 //DEVELOPMENT
 #ifndef _MFGP_ASSEMBLY_T_H_ 
 #define _MFGP_ASSEMBLY_T_H_ 
@@ -338,6 +338,9 @@ private:
 	/** driver for monolithic solution */
 	void RHSDriver_monolithic(void);
 	/*@}*/
+	
+	/* print stiffness matrices before or after adding penalty number */
+	void MFGPAssemblyT::PrintStiffness(StringT before_after) const;
 	
 protected:
 
