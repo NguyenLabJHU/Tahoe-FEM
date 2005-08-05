@@ -1,4 +1,4 @@
-/* $Id: MFGPSSSolidMatT.h,v 1.2 2005-05-11 23:10:05 kyonten Exp $  */
+/* $Id: MFGPSSSolidMatT.h,v 1.3 2005-08-05 07:18:17 kyonten Exp $  */
 #ifndef _MFGP_SS_STRUCT_MAT_T_H_
 #define _MFGP_SS_STRUCT_MAT_T_H_
 
@@ -28,6 +28,12 @@ public:
 	/* required parameter flags */
 	virtual bool Need_Strain(void) const { return true; };
 	virtual bool Need_Strain_last(void) const { return false; };
+	virtual bool Need_Lap_Strain(void) const { return true; };
+	virtual bool Need_Lap_Strain_last(void) const { return false; };
+	virtual bool Need_Lambda(void) const { return true; };
+	virtual bool Need_Lambda_last(void) const { return false; };
+	virtual bool Need_Lap_Lambda(void) const { return true; };
+	virtual bool Need_Lap_Lambda_last(void) const { return false; };
 
 	/*@{*/
 	/** elastic strain */
@@ -104,6 +110,16 @@ public:
 	/** return the strain in the material at the current integration point. 
 	 * Returns the small strain tensor. */
 	virtual void Strain(dSymMatrixT& strain) { strain = e(); };
+	
+	/** return the laplacian of strain in the material at the current integration point. 
+	 * Returns the small strain tensor. */
+	virtual void LapStrain(dSymMatrixT& strain) { strain = lap_e(); };
+	
+	/** return the plastic multiplier in the material at the current integration point.*/
+	virtual void PlasticMultiplier(dArrayT& lambda) { lambda = pm(); };
+	
+	/** return the laplacian of plastic multiplier in the material at the current integration point.*/ 
+	virtual void LapPlasticMultiplier(dArrayT& lap_lambda) { lap_lambda = lap_pm(); };
 
 	/*inquire if dissipation variables used in material force calculation are needed*/
 	virtual bool HasDissipVar(void) const {return false;};

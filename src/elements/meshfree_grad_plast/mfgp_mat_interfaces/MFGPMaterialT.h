@@ -1,4 +1,4 @@
-/* $Id: MFGPMaterialT.h,v 1.4 2005-08-04 21:42:48 kyonten Exp $  */
+/* $Id: MFGPMaterialT.h,v 1.5 2005-08-05 07:18:17 kyonten Exp $  */
 #ifndef _MFGP_MATERIAL_T_H_
 #define _MFGP_MATERIAL_T_H_
 
@@ -211,6 +211,18 @@ public:
 	/** return the strain in the material. The definition of strain will be
 	 * dependent on the subclass */
 	virtual void Strain(dSymMatrixT& strain) = 0;
+	
+	/** return the laplacian of strain in the material. The definition of strain will be
+	 * dependent on the subclass */
+	virtual void LapStrain(dSymMatrixT& lap_strain) = 0;
+	
+	/** return the plastic multiplier in the material. The definition of lambda will be
+	 * dependent on the subclass */
+	virtual void PlasticMultiplier(dArrayT& lambda) = 0;
+	
+	/** return the laplacian of plastic multiplier in the material. The definition of lambda will be
+	 * dependent on the subclass */
+	virtual void LapPlasticMultiplier(dArrayT& lap_lambda) = 0;
 	
 	/** \return mass density */
 	virtual double Density(void);

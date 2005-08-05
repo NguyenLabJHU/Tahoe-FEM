@@ -90,6 +90,15 @@ public:
 	virtual const LocalArrayT* LocalArray(LocalArrayT::TypeT t) const;
 	/*@}*/
 
+	/** interpolate the given field to the current integration point. Returns true if the
+	 * field is available, false otherwise. */
+	bool Interpolate(const LocalArrayT& u, dArrayT& u_ip) const;
+
+	/** interpolate the given field to the given integration point. Returns true if the
+	 * field is available, false otherwise. */
+	bool Interpolate(const LocalArrayT& u, dArrayT& u_ip, int ip) const;
+	/*@}*/
+	
 	/** \name set host code information */
 	/*@{*/
 	/** set the element group pointer */

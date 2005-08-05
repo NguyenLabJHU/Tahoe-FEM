@@ -261,3 +261,33 @@ void MFGPMatSupportT::SetLapLambdaPM_last(const ArrayT<dArrayT>* laplambda_last_
 	/* keep pointer */
 	fLapLambda_last_List = laplambda_last_List;
 }
+
+/* interpolate the given field to the current integration point */
+bool MFGPMatSupportT::Interpolate(const LocalArrayT& u, dArrayT& u_ip) const
+{
+	if (!fMFGPAssembly) 
+	{
+		u_ip = 0.0;
+		return false;
+	}
+	else
+	{
+		fMFGPAssembly->IP_Interpolate(u, u_ip);
+		return true;
+	}
+}
+
+/* interpolate the given field to the given integration point */
+bool MFGPMatSupportT::Interpolate(const LocalArrayT& u, dArrayT& u_ip, int ip) const
+{
+	if (!fMFGPAssembly) 
+	{
+		u_ip = 0.0;
+		return false;
+	}
+	else
+	{
+		fMFGPAssembly->IP_Interpolate(u, u_ip, ip);
+		return true;
+	}
+}
