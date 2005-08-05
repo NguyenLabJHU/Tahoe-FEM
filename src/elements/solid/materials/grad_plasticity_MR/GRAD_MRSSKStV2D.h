@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV2D.h,v 1.6 2005-07-08 01:17:44 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV2D.h,v 1.7 2005-08-05 22:26:12 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -80,7 +80,7 @@ class GRAD_MRSSKStV2D: public GRAD_MRSSKStV
   	double      fYieldFunction2D; //yield function
 
 	/* work space */
-	dSymMatrixT	fTotalStrain3D;
+	dSymMatrixT	fTotalStrain3D, fLapTotalStrain3D;
 };
 
 inline void GRAD_MRSSKStV2D::ReduceOffDiagonalModulus(const dMatrixT& mat3D, dMatrixT& mat2D)

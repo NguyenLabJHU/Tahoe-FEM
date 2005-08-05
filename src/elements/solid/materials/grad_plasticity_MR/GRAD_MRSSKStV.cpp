@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.19 2005-08-04 21:49:33 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.20 2005-08-05 22:26:12 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -157,23 +157,23 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	const dArrayT& lap_lam = lap_pm();
 	const dSymMatrixT& e_els = ElasticStrain(eps, element, ip); 
 	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_eps, element, ip);
-	
+	/*
 	cout << endl << "ip = " << ip << endl;
-	cout << endl << "strain" << endl << eps << endl;
-	cout << endl << "laplacian of strain" << endl << lap_eps << endl;
-	
+	cout << endl << "strain" << endl << e_els << endl;
+	cout << endl << "laplacian of strain" << endl << lap_e_els << endl;
+	*/
 	
 	/* check for correct lambda and it's laplacian */
     if (lam[0] < 0.) {
     	ExceptionT::GeneralFail("GRAD_MRSSKStV::s_ij", 
 			"negative lambda! %d", lam[0]);
     }
-    
+    /*
     if (lap_lam[0] < 0.) {
     	ExceptionT::GeneralFail("GRAD_MRSSKStV::s_ij", 
 			"negative laplacian of lambda! %d", lap_lam[0]);
     }
-     
+    */
 	/* updated Cauchy stress (return mapping) */
 	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lam, lap_lam, element, ip);
 	return fStress;	

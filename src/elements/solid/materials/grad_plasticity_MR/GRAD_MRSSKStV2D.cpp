@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV2D.cpp,v 1.7 2005-07-08 01:17:44 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV2D.cpp,v 1.8 2005-08-05 22:26:12 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -34,11 +34,11 @@ const dSymMatrixT& GRAD_MRSSKStV2D::LapElasticStrain(const dSymMatrixT& laptotal
 	const ElementCardT& element, int ip) //lap_totalstrain??
 {
 	/* 2D -> 3D (plane strain) */
-	fTotalStrain3D.ExpandFrom2D(laptotalstrain);
+	fLapTotalStrain3D.ExpandFrom2D(laptotalstrain);
 
 	/* inherited */
 	/*return fTotalStrain3D;*/
-	return GRAD_MRSSKStV::LapElasticStrain(fTotalStrain3D, element, ip);
+	return GRAD_MRSSKStV::LapElasticStrain(fLapTotalStrain3D, element, ip);
 }
 
 /* moduli */
@@ -171,7 +171,7 @@ void GRAD_MRSSKStV2D::TakeParameterList(const ParameterListT& list)
 	fModulusLamU2_2D.Dimension(1,dSymMatrixT::NumValues(2));
 	fModulusLamLam1_2D.Dimension(1,1);
 	fModulusLamLam2_2D.Dimension(1,1);
-	fTotalStrain3D.Dimension(3);
+	fTotalStrain3D.Dimension(3); fLapTotalStrain3D.Dimension(3);
 	fTemp2DA.Dimension(dSymMatrixT::NumValues(2),1);
 	fTemp2DB.Dimension(dSymMatrixT::NumValues(2),1);
 }
