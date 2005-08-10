@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.5 2005-08-10 06:36:01 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.6 2005-08-10 22:23:31 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -811,12 +811,12 @@ void MFGPAssemblyT::RHSDriver_monolithic(void)
 				cout << "plastic multiplier equation number:" << endl;
 				cout << plast_eq << endl;
 			*/
-			PrintInternalForces(); 
-			
 			PrintStiffness("before_penalty");
+			PrintInternalForces("before_penalty");
 			
 			ApplyLambdaBC(nodes_plast);
-		
+			
+			PrintInternalForces("after_penalty"); 
 			PrintStiffness("after_penalty");
 			
 			/* assemble residuals */
@@ -1961,17 +1961,28 @@ bool MFGPAssemblyT::CheckMaterialOutput(void) const
 /***********************************************************************
  * Private
  ***********************************************************************/
-/* impose boundary conditions via penalty method on plastic multiplier; 
-   penalty number added to diagonal terms of Klambdalambda of elastic nodes */ 
+/* impose boundary conditions on plastic multipliers via penalty method 
+   on elastic nodes */ 
 void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
 { 		
 	for (int i = 0; i < nodes.Length(); i++)
 	{
+		/* prescribe zero lambdas to the elastic nodes */
+		double presc_value = 0.0;
+		double aug_stiffness_coeff;
 		int j = nodes[i]; // local and global number are same ??
 		if(fNodalYieldFlags[j] == 0 && fPenaltyFlags[j] == 0) {
 			fKlambdalambda(i,i) += penalty_num;
+			aug_stiffness_coeff = fKlambdalambda(i,i);
+			fFlambda[j] = aug_stiffness_coeff * presc_value;
 			fPenaltyFlags[j] = 1; 
 		}
+		
+		/* if the same elastic nodes come back (during element-loop) 
+		   with non-zero fFlambda value, although previously prescribed 
+		   to zero, set fFlambda to zero for that node */ 
+		if (fNodalYieldFlags[j] == 0 && fPenaltyFlags[j] == 1)
+			fFlambda[j] = 0.0;
 	}
 }
  
@@ -1982,12 +1993,12 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after) const
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
 	}
 	else if (before_after == "after_penalty") {
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".txt");
@@ -2033,12 +2044,20 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after) const
 	output.close();
 }
 
- /* write internal forces (Fu and Flambda) vectors to the output files */
-void MFGPAssemblyT::PrintInternalForces() const
+ /* write internal forces (Fu and Flambda) vectors to the output files 
+    before and after applying penalty method on lambda */
+void MFGPAssemblyT::PrintInternalForces(StringT before_after) const
 {
 	StringT file_name; int e = CurrElementNumber(); 
-	//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/internalforce.";
-	file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/internalforce.";
+	if(before_after == "before_penalty") {			
+		/* one output for each element */
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
+	}
+	else if (before_after == "after_penalty") {
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
+	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".txt");
 	ofstream output(file_name);

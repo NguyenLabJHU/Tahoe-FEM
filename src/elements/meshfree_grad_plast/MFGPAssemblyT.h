@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.h,v 1.4 2005-08-10 02:52:05 kyonten Exp $ */ 
+/* $Id: MFGPAssemblyT.h,v 1.5 2005-08-10 22:23:31 kyonten Exp $ */ 
 //DEVELOPMENT
 #ifndef _MFGP_ASSEMBLY_T_H_ 
 #define _MFGP_ASSEMBLY_T_H_ 
@@ -344,11 +344,13 @@ private:
 	 * \param name contributing nodes */
 	void ApplyLambdaBC(const iArrayT& nodes);
 	
+	//*************DEBUG****************************
 	/* print stiffness matrices before or after adding penalty number */
 	void MFGPAssemblyT::PrintStiffness(StringT before_after) const;
 	
 	/* print stiffness matrices before or after adding penalty number */
-	void MFGPAssemblyT::PrintInternalForces() const;
+	void MFGPAssemblyT::PrintInternalForces(StringT before_after) const;
+	//*************DEBUG****************************
 	
 protected:
 

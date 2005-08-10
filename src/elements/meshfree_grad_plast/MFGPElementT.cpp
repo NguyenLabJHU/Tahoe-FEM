@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.5 2005-08-10 06:36:01 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.6 2005-08-10 22:23:31 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -1242,10 +1242,6 @@ void MFGPElementT::FormKd(double constK)
 		
 		fFlambda_temp = fPsiLam[0];
 		fFlambda_temp *= fCurrMaterial->YieldF(); // Flambda_int: [nnd]
-		
-		/* fFlambda = 0.0 during elastic process?? */
-		if (fCurrMaterial->YieldF() < 0.0 )
-			fFlambda_temp = 0.0;
 		
 		/* accumulate */
 		fFlambda.AddScaled(scale, fFlambda_temp);
