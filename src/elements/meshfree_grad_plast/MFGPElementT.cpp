@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.4 2005-08-10 02:52:05 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.5 2005-08-10 06:36:01 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -910,14 +910,14 @@ void MFGPElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT&
 		counts[iNodalDisp] = fDispl->NumDOF();
 	if (flags[iNodalLambda] == mode)
 		counts[iNodalLambda] = fPlast->NumDOF();
+	if (flags[iNodalLapLambda] == mode)
+		counts[iNodalLapLambda] = fPlast->NumDOF();
 	if (flags[iNodalStress] == mode)
 		counts[iNodalStress] = fB1.Rows(); //
 	if (flags[iNodalStrain] == mode)
 		counts[iNodalStrain] = fB1.Rows(); //
 	if (flags[iNodalLapStrain] == mode)
 		counts[iNodalLapStrain] = fB1.Rows(); //	
-	if (flags[iNodalLapLambda] == mode)
-		counts[iNodalLapLambda] = fPlast->NumDOF();
 	if (flags[iMaterialData] == mode)
 		counts[iMaterialData] = (*fMFGPMatList)[0]->NumOutputVariables();
 }
@@ -1219,13 +1219,11 @@ void MFGPElementT::FormKd(double constK)
 		Set_B1(fShapes_displ->Derivatives_U(), fB1);
 
 		/* B1^T * Cauchy stress */
-		fB1.MultTx(fCurrMaterial->s_ij(), /*fNEEvec*/fFu_int_temp); // Fu_int: [nsd*nnd]
+		fB1.MultTx(fCurrMaterial->s_ij(), /* fNEEvec */ fFu_int_temp); // Fu_int: [nsd*nnd]
 		
 		/* accumulate */
 		fFu_int.AddScaled(constK*(*Weight_d++)*(*Det_d++), fFu_int_temp);
 	}
-	//cout << "fFu_int = " << endl;
-	//cout << fFu_int << endl;	
 	
 	/* residual for plastic multiplier */
 	const double* Det_p    = fShapes_plast->IPDets();
@@ -1245,11 +1243,13 @@ void MFGPElementT::FormKd(double constK)
 		fFlambda_temp = fPsiLam[0];
 		fFlambda_temp *= fCurrMaterial->YieldF(); // Flambda_int: [nnd]
 		
+		/* fFlambda = 0.0 during elastic process?? */
+		if (fCurrMaterial->YieldF() < 0.0 )
+			fFlambda_temp = 0.0;
+		
 		/* accumulate */
 		fFlambda.AddScaled(scale, fFlambda_temp);
 	}
-	//cout << "fFlambda = " << endl;
-	//cout << fFlambda << endl;	
 }
 
 /* form the element stiffness matrices */
@@ -1581,14 +1581,14 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArray2DT nodalstress, nodalstrain, nodallapstrain, matdat;
 
 	/* ip values */
+	dArrayT iplambda(n_codes[iNodalLambda]);
+	dArrayT iplaplambda(n_codes[iNodalLapLambda]);
 	dSymMatrixT cauchy((nstrs != 4) ? nsd : dSymMatrixT::k3D_plane), nstr_tmp;
 	dSymMatrixT strain(cauchy.Rows()), nstr_tmp2;
 	dSymMatrixT strain_tmp(strain.Rows());
 	dSymMatrixT lapstrain(strain.Rows()), nstr_tmp3;
 	dSymMatrixT lapstrain_tmp(strain.Rows());
 	dArrayT ipmat(n_codes[iMaterialData]);
-	dArrayT iplambda(n_codes[iNodalLambda]);
-	dArrayT iplaplambda(n_codes[iNodalLapLambda]);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
@@ -1606,6 +1606,20 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	pall = element_values.Pointer();
 	dArrayT ip_coords(nsd);
 
+	dArray2DT ip_lambda;
+	if (e_codes[iIPLambda]) {
+		ip_lambda.Alias(NumIP(), e_codes[iIPLambda]/NumIP(), pall);
+		pall += ip_lambda.Length();
+		iplambda.Dimension(ip_lambda.MinorDim());
+	}
+	
+	dArray2DT ip_lap_lambda;
+	if (e_codes[iIPLapLambda]) {
+		ip_lap_lambda.Alias(NumIP(), e_codes[iIPLapLambda]/NumIP(), pall);
+		pall += ip_lap_lambda.Length();
+		iplaplambda.Dimension(ip_lap_lambda.MinorDim());
+	}
+	
 	dArray2DT ip_stress;
 	if (e_codes[iIPStress]) {
 		ip_stress.Alias(NumIP(), e_codes[iIPStress]/NumIP(), pall);
@@ -1622,20 +1636,6 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	if (e_codes[iIPLapStrain]) {
 		ip_lap_strain.Alias(NumIP(), e_codes[iIPLapStrain]/NumIP(), pall);
 		pall += ip_lap_strain.Length();
-	}
-	
-	dArray2DT ip_lambda;
-	if (e_codes[iIPLambda]) {
-		ip_lambda.Alias(NumIP(), e_codes[iIPLambda]/NumIP(), pall);
-		pall += ip_lambda.Length();
-		iplambda.Dimension(ip_lambda.MinorDim());
-	}
-	
-	dArray2DT ip_lap_lambda;
-	if (e_codes[iIPLapLambda]) {
-		ip_lap_lambda.Alias(NumIP(), e_codes[iIPLapLambda]/NumIP(), pall);
-		pall += ip_lap_lambda.Length();
-		iplaplambda.Dimension(ip_lap_lambda.MinorDim());
 	}
 	
 	dArray2DT ip_material_data;
@@ -1760,7 +1760,7 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					}
 					
 					if (e_codes[iIPLambda]) fCurrMaterial->PlasticMultiplier(iplaplambda); 
-					IP_Interpolate(u, iplambda, fShapes_displ->CurrIP());
+					IP_Interpolate(lambda, iplambda, fShapes_displ->CurrIP());
 				} 
 				
 				/* material stuff */
@@ -1791,13 +1791,15 @@ void MFGPElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			nodal_all.BlockColumnCopyAt(coords     , colcount); colcount += coords.MinorDim();
 			if (qNoExtrap) {
 				double nip(fShapes_displ->NumIP());
+				nodal_lap_lambda /= nip;
 				nodalstress /= nip;
 				matdat /= nip;
-				nodal_lap_lambda /= nip;
 			}
-			nodal_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
-			nodal_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
 			nodal_all.BlockColumnCopyAt(nodal_lap_lambda     , colcount); colcount += nodal_lap_lambda.MinorDim();
+			nodal_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
+			nodal_all.BlockColumnCopyAt(nodalstrain, colcount); colcount += nodalstrain.MinorDim();
+			nodal_all.BlockColumnCopyAt(nodallapstrain, colcount); colcount += nodallapstrain.MinorDim();
+			nodal_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
 
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
 			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
@@ -1847,18 +1849,18 @@ void MFGPElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>&
 			n_labels[count++] = labels[i];
 	}
 	
+	if (n_codes[iNodalCoord]) {
+		const char* xlabels[] = {"x1", "x2", "x3"};
+		for (int i = 0; i < NumSD(); i++)
+			n_labels[count++] = xlabels[i];
+	}
+	
 	if (n_codes[iNodalLapLambda]) {
 		const char* lap_lambda_labels[] = {"lap_lambda"};
 		const char** lap_lambdalabels = NULL;
 		lap_lambdalabels = lap_lambda_labels;
 
 		n_labels[count++] = lap_lambdalabels[0];
-	}
-
-	if (n_codes[iNodalCoord]) {
-		const char* xlabels[] = {"x1", "x2", "x3"};
-		for (int i = 0; i < NumSD(); i++)
-			n_labels[count++] = xlabels[i];
 	}
 
 	if (n_codes[iNodalStress]) {
@@ -1939,39 +1941,6 @@ void MFGPElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>&
 	/* allocate */
 	e_labels.Dimension(e_codes.Sum());
 	count = 0;
-	if (e_codes[iIPStress]) {
-		const char* slabels1D[] = {"s11", "e11"};
-		const char* slabels2D[] = {"s11", "s22", "s12","e11", "e22", "e12"};
-		const char* slabels2D_axi[] = {"srr", "szz", "srz", "stt", "err", "ezz", "erz", "ett"};
-		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12", "e11", "e22", "e33", "e23", "e13", "e12"};
-		int nstrs = fB1.Rows();
-		const char** slabels = NULL;
-		if (nstrs == 1)
-			slabels = slabels1D;
-		else if (nstrs == 3)
-			slabels = slabels2D;
-		else if (nstrs == 4)
-			slabels = slabels2D_axi;
-		else if (nstrs == 6)
-			slabels = slabels3D;
-		else
-			ExceptionT::GeneralFail(caller);
-
-		/* over integration points */
-		for (int j = 0; j < NumIP(); j++)
-		{
-			StringT ip_label;
-			ip_label.Append("ip", j+1);
-			
-			/* over stress/strain components */
-			for (int i = 0; i < 2*nstrs; i++) {
-				e_labels[count].Clear();
-				e_labels[count].Append(ip_label, ".", slabels[i]);
-				count++;
-			}
-		}		
-	}
-	
 	if (n_codes[iIPLambda]) {
 		const char* lambda_labels[] = {"lambda"};
 		const char** lambdalabels = NULL;
@@ -2003,6 +1972,105 @@ void MFGPElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>&
 			/* over lap lambda components */
 			e_labels[count++].Clear();
 			e_labels[count++].Append(ip_label, ".", lap_lambdalabels[0]);
+		}		
+	}
+	
+	if (e_codes[iIPStress]) {
+		const char* slabels1D[] = {"s11", "e11"};
+		const char* slabels2D[] = {"s11", "s22", "s12"};
+		const char* slabels2D_axi[] = {"srr", "szz", "srz", "stt"};
+		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
+		int nstrs = fB1.Rows();
+		const char** slabels = NULL;
+		if (nstrs == 1)
+			slabels = slabels1D;
+		else if (nstrs == 3)
+			slabels = slabels2D;
+		else if (nstrs == 4)
+			slabels = slabels2D_axi;
+		else if (nstrs == 6)
+			slabels = slabels3D;
+		else
+			ExceptionT::GeneralFail(caller);
+
+		/* over integration points */
+		for (int j = 0; j < NumIP(); j++)
+		{
+			StringT ip_label;
+			ip_label.Append("ip", j+1);
+			
+			/* over stress/strain components */
+			for (int i = 0; i < 2*nstrs; i++) {
+				e_labels[count].Clear();
+				e_labels[count].Append(ip_label, ".", slabels[i]);
+				count++;
+			}
+		}		
+	}
+	
+	if (e_codes[iIPStrain]) {
+		const char* epslabels1D[] = {"eps11", "eps11"};
+		const char* epslabels2D[] = {"eps11", "eps22", "eps12"};
+		const char* epslabels2D_axi[] = {"epsrr", "epszz", "epsrz", "epstt"};
+		const char* epslabels3D[] = {"eps11", "eps22", "eps33", "eps23", "eps13", "eps12"};
+		int nstrs = fB1.Rows();
+		const char** epslabels = NULL;
+		if (nstrs == 1)
+			epslabels = epslabels1D;
+		else if (nstrs == 3)
+			epslabels = epslabels2D;
+		else if (nstrs == 4)
+			epslabels = epslabels2D_axi;
+		else if (nstrs == 6)
+			epslabels = epslabels3D;
+		else
+			ExceptionT::GeneralFail(caller);
+
+		/* over integration points */
+		for (int j = 0; j < NumIP(); j++)
+		{
+			StringT ip_label;
+			ip_label.Append("ip", j+1);
+			
+			/* over stress/strain components */
+			for (int i = 0; i < 2*nstrs; i++) {
+				e_labels[count].Clear();
+				e_labels[count].Append(ip_label, ".", epslabels[i]);
+				count++;
+			}
+		}		
+	}
+	
+	if (e_codes[iIPLapStrain]) {
+		const char* lap_epslabels1D[] = {"lap_eps11", "lap_eps11"};
+		const char* lap_epslabels2D[] = {"lap_eps11", "lap_eps22", "lap_eps12"};
+		const char* lap_epslabels2D_axi[] = {"lap_epsrr", "lap_epszz", "lap_epsrz", "lap_epstt"};
+		const char* lap_epslabels3D[] = {"lap_eps11", "lap_eps22", "lap_eps33", "lap_eps23", "lap_eps13", "lap_eps12"};
+		int nstrs = fB1.Rows();
+		const char** lap_epslabels = NULL;
+		if (nstrs == 1)
+			lap_epslabels = lap_epslabels1D;
+		else if (nstrs == 3)
+			lap_epslabels = lap_epslabels2D;
+		else if (nstrs == 4)
+			lap_epslabels = lap_epslabels2D_axi;
+		else if (nstrs == 6)
+			lap_epslabels = lap_epslabels3D;
+		else
+			ExceptionT::GeneralFail(caller);
+
+		/* over integration points */
+		for (int j = 0; j < NumIP(); j++)
+		{
+			StringT ip_label;
+			ip_label.Append("ip", j+1);
+			
+			/* over stress/strain components */
+			for (int i = 0; i < 2*nstrs; i++) {
+				e_labels[count].Clear();
+				e_labels[count].Append(ip_label, ".", lap_epslabels[i]);
+				count++;
+			}
 		}		
 	}
 	

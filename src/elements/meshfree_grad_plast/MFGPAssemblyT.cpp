@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.4 2005-08-10 02:52:05 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.5 2005-08-10 06:36:01 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -766,8 +766,8 @@ void MFGPAssemblyT::RHSDriver_monolithic(void)
 			fKulambda = 0.0; fKulambda_temp = 0.0;
 			fKlambdau = 0.0; fKlambdau_temp = 0.0;
 			fKlambdalambda = 0.0; fKlambdalambda_temp = 0.0;
-			fFu_int = 0.0;
-			fFlambda = 0.0;
+			fFu_int = 0.0; 
+			fFlambda = 0.0; 
 			
 			/* global shape function derivatives, local arrays */ 
 	    	SetGlobalShape();
