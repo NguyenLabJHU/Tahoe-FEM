@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.20 2005-08-05 22:26:12 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.21 2005-08-10 02:53:01 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -164,6 +164,7 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	*/
 	
 	/* check for correct lambda and it's laplacian */
+    //cout << endl << "lambda = "<< endl << lam[0] << endl;
     if (lam[0] < 0.) {
     	ExceptionT::GeneralFail("GRAD_MRSSKStV::s_ij", 
 			"negative lambda! %d", lam[0]);

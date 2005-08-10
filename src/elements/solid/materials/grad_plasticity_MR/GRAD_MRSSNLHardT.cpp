@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.11 2005-08-04 21:49:33 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.12 2005-08-10 02:53:01 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -32,7 +32,7 @@ GRAD_MRSSNLHardT::GRAD_MRSSNLHardT(int num_ip, double mu, double lambda):
 	flambda(lambda),
 	fkappa(flambda + (2.0/3.0*fmu)),
 	fmu_ast(flse_s*flse_s*mu),
-	flambda_ast(flse_v*flse_v*lambda+2.*(flse_v*flse_v-flse_s*flse_s)*mu/3.),
+	flambda_ast(flse_v*flse_v*fkappa-2.0/3.0*fmu_ast),
 	fkappa_ast(flambda_ast + (2.0/3.0*fmu_ast))
 {
 	SetName("GRAD_MR_SS_nonlinear_hardening");
@@ -233,12 +233,18 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     KE_AST.Multx(lap_ue,lap_Sig_e);
     Sig += Sig_e; 
     Sig -= lap_Sig_e;
+    //cout << endl << "sig_e =" << endl << Sig_e << endl;
+    //cout << endl << "lap_sig_e =" << endl << lap_Sig_e << endl;
     Sig_trial = Sig;
     
     int iplastic; 
     double dlam = triallambda[0]; double lap_dlam = lap_triallambda[0]; 
  
 /* check the yield function */
+	//cout << endl << "ip = " << ip << endl;
+    //cout << endl << "sig = " << endl << Sig << endl;
+    //cout << endl << "qn = " << endl << qn << endl;
+    
     Yield_f(Sig, qn, ff);
     if (ff < kYieldTol) 
     {
@@ -250,7 +256,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
       
     else 
     {
-      cout << endl << " yield condition satisfied!!! " << endl;
+      cout << endl << " yield condition satisfied!!! " << ff << endl;
       state[39] = ff;
       kk = 0;
       iplastic = 1;
