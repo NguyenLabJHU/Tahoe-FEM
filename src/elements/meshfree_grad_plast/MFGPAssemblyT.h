@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.h,v 1.3 2005-08-05 22:24:04 kyonten Exp $ */ 
+/* $Id: MFGPAssemblyT.h,v 1.4 2005-08-10 02:52:05 kyonten Exp $ */ 
 //DEVELOPMENT
 #ifndef _MFGP_ASSEMBLY_T_H_ 
 #define _MFGP_ASSEMBLY_T_H_ 
@@ -339,8 +339,16 @@ private:
 	void RHSDriver_monolithic(void);
 	/*@}*/
 	
+	/** impose boundary conditions on plastic multiplier via penalty method
+	 *  elastic nodes have zero lambda values 
+	 * \param name contributing nodes */
+	void ApplyLambdaBC(const iArrayT& nodes);
+	
 	/* print stiffness matrices before or after adding penalty number */
 	void MFGPAssemblyT::PrintStiffness(StringT before_after) const;
+	
+	/* print stiffness matrices before or after adding penalty number */
+	void MFGPAssemblyT::PrintInternalForces() const;
 	
 protected:
 

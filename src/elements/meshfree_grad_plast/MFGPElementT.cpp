@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.3 2005-08-05 22:24:04 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.4 2005-08-10 02:52:05 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -1256,10 +1256,10 @@ void MFGPElementT::FormKd(double constK)
 void MFGPElementT::FormStiffness(double constK)
 {
 	/* matrix format */
-	dMatrixT::SymmetryFlagT format =
-		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
-		dMatrixT::kWhole :
-		dMatrixT::kUpperOnly;
+    dMatrixT::SymmetryFlagT format =
+        (fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
+        dMatrixT::kWhole :
+        dMatrixT::kUpperOnly;
 
 	/********DEBUG*******/
 	bool print = false; 
@@ -1290,6 +1290,7 @@ void MFGPElementT::FormStiffness(double constK)
 		fCUU2.SetToScaled(scale, fCurrMaterial->c_UU2_ijkl());
 		fCULam1.SetToScaled(scale, fCurrMaterial->c_ULam1_ij());
 		fCULam2.SetToScaled(scale, fCurrMaterial->c_ULam2_ij());
+		
 		if (print) {
 			cout << "\nCUU1: "<<fCurrMaterial->c_UU1_ijkl() << endl;
 			cout << "\nCUU2: "<<fCurrMaterial->c_UU2_ijkl() << endl;
@@ -1298,14 +1299,14 @@ void MFGPElementT::FormStiffness(double constK)
 		} 
 							
 		/* form Kuu */
-		fKuu.MultQTBQ(fB1, fCUU1, format, dMatrixT::kAccumulate);
-		fKuu_temp.MultATBC(fB1, fCUU2, fB3, format, dMatrixT::kAccumulate);
-		fKuu += fKuu_temp; // Kuu: [nsd*nnd]x[nsd*nnd]
+        fKuu.MultQTBQ(fB1, fCUU1, format, dMatrixT::kAccumulate);
+        fKuu_temp.MultATBC(fB1, fCUU2, fB3, format, dMatrixT::kAccumulate);
+        fKuu += fKuu_temp; // Kuu: [nsd*nnd]x[nsd*nnd]
 	
 		/* form Kulambda */
 		fKulambda.MultATBC(fB1, fCULam1, fPsiLam, format, dMatrixT::kAccumulate);
-		fKulambda_temp.MultATBC(fB1, fCULam2, fB4, format, dMatrixT::kAccumulate);
-		fKulambda += fKulambda_temp;	// Kulambda: [nsd*nnd]x[nnd] 	
+        fKulambda_temp.MultATBC(fB1, fCULam2, fB4, format, dMatrixT::kAccumulate);
+        fKulambda += fKulambda_temp;        // Kulambda: [nsd*nnd]x[nnd] 	
 	}
 	
 	/* tangent for plastic multiplier */
@@ -1338,13 +1339,13 @@ void MFGPElementT::FormStiffness(double constK)
 							
 		/* form Klambdau */
 		fKlambdau.MultATBC(fPsiLam, fCLamU1, fB1, format, dMatrixT::kAccumulate);
-		fKlambdau_temp.MultATBC(fPsiLam, fCLamU2, fB3, format, dMatrixT::kAccumulate);
-		fKlambdau += fKlambdau_temp;	// Klambdau :[nnd]x[nsd*nnd]
+        fKlambdau_temp.MultATBC(fPsiLam, fCLamU2, fB3, format, dMatrixT::kAccumulate);
+        fKlambdau += fKlambdau_temp;        // Klambdau :[nnd]x[nsd*nnd]
 		
 		/* form Klambdalambda */
 		fKlambdalambda.MultQTBQ(fPsiLam, fCLamLam1, format, dMatrixT::kAccumulate);
-		fKlambdalambda_temp.MultATBC(fPsiLam, fCLamLam2, fB4, format, dMatrixT::kAccumulate);
-		fKlambdalambda += fKlambdalambda_temp;	//Klambdalambda: [nnd]x[nnd]	
+        fKlambdalambda_temp.MultATBC(fPsiLam, fCLamLam2, fB4, format, dMatrixT::kAccumulate);
+        fKlambdalambda += fKlambdalambda_temp;        //Klambdalambda: [nnd]x[nnd]   
 	}
 }
 

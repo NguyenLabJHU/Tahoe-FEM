@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.3 2005-08-05 22:24:04 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.4 2005-08-10 02:52:05 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -594,7 +594,7 @@ MFGPMatSupportT* MFGPAssemblyT::NewMFGPMatSupport(MFGPMatSupportT* p) const
 	p->SetElementCards(const_cast<AutoArrayT<ElementCardT>* >(&fElementCards));
 	p->SetCurrIP(fShapes_displ->CurrIP());
 	//p->SetCurrIP(fShapes_plast->CurrIP());
-	p->SetGroup(fDispl->Group());
+	p->SetGroup(fPlast->Group());
 	//p->SetGroup(fPlast->Group());
 	
 	/* set pointer to local array */
@@ -751,8 +751,7 @@ void MFGPAssemblyT::RHSDriver_monolithic(void)
 	/* check yield conditions on the nodes and set up yield flags */
 	CheckNodalYield();
 	
-	/* dimension and initialize penalty flags array */
-	iArrayT fPenaltyFlags(fNodalYieldFlags.Length()); 
+	/* initialize penalty flags array */ 
 	fPenaltyFlags = 0; 
 	
 	/* loop over nodes */
@@ -763,13 +762,13 @@ void MFGPAssemblyT::RHSDriver_monolithic(void)
 			double constKe = constK;
 			
 			/* initialize */
-			fKuu = 0.0;
-			fKulambda = 0.0;
-			fKlambdau = 0.0;
-			fKlambdalambda = 0.0;
+			fKuu = 0.0; fKuu_temp = 0.0;
+			fKulambda = 0.0; fKulambda_temp = 0.0;
+			fKlambdau = 0.0; fKlambdau_temp = 0.0;
+			fKlambdalambda = 0.0; fKlambdalambda_temp = 0.0;
 			fFu_int = 0.0;
 			fFlambda = 0.0;
-		
+			
 			/* global shape function derivatives, local arrays */ 
 	    	SetGlobalShape();
 	    	
@@ -812,20 +811,12 @@ void MFGPAssemblyT::RHSDriver_monolithic(void)
 				cout << "plastic multiplier equation number:" << endl;
 				cout << plast_eq << endl;
 			*/
+			PrintInternalForces(); 
+			
 			PrintStiffness("before_penalty");
 			
-			/* impose boundary conditions via penalty method on plastic multiplier; 
-			   penalty number added to diagonal terms of Klambdalambda of elastic nodes
-			*/ 
-			for (int i = 0; i < nodes_plast.Length(); i++) 
-			{
-					int j = nodes_plast[i]; // local and global number are same ??
-					if(fNodalYieldFlags[j] == 0 && fPenaltyFlags[j] == 0) {
-						fKlambdalambda(i,i) = fKlambdalambda(i,i) + penalty_num;
-						fPenaltyFlags[j] = 1;
-					}
-			}
-			
+			ApplyLambdaBC(nodes_plast);
+		
 			PrintStiffness("after_penalty");
 			
 			/* assemble residuals */
@@ -1080,6 +1071,7 @@ void MFGPAssemblyT::TakeParameterList(const ParameterListT& list)
 	fNEEvec.Dimension(NumElementNodes()*NumDOF());
 	fDOFvec.Dimension(NumDOF());
 	fNodalYieldFlags.Dimension(ElementSupport().NumNodes());
+	fPenaltyFlags.Dimension(fNodalYieldFlags.Length());
 	
 	
 	/* initialize/set up local arrays */
@@ -1969,6 +1961,20 @@ bool MFGPAssemblyT::CheckMaterialOutput(void) const
 /***********************************************************************
  * Private
  ***********************************************************************/
+/* impose boundary conditions via penalty method on plastic multiplier; 
+   penalty number added to diagonal terms of Klambdalambda of elastic nodes */ 
+void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
+{ 		
+	for (int i = 0; i < nodes.Length(); i++)
+	{
+		int j = nodes[i]; // local and global number are same ??
+		if(fNodalYieldFlags[j] == 0 && fPenaltyFlags[j] == 0) {
+			fKlambdalambda(i,i) += penalty_num;
+			fPenaltyFlags[j] = 1; 
+		}
+	}
+}
+ 
  /* write stiffness matrices to the output files 
  before or after penalty number is added */
 void MFGPAssemblyT::PrintStiffness(StringT before_after) const
@@ -1976,43 +1982,85 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after) const
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
 	}
 	else if (before_after == "after_penalty") {
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".txt");
 	ofstream output(file_name);
-	/* print displ_eq and plast_eq numbers */
 	if (!output) {
 		cout << "Error opening output file" << endl;
 	}
 	output << "element # " << e << endl;
 			
-		/* print element stiffness matrices */
-		output << "accumulated stiffness matrices " << endl;
-		for (int i = 0; i < fKuu.Rows(); i++)
-		{
-			for (int j = 0; j < fKuu.Cols(); j++)
-				output << "KUU("<< i << ","<< j <<"): " << fKuu(i,j) << endl;
-			output << endl;	
-			for (int j = 0; j < fKlambdalambda.Rows(); j++) 
-				output << "KULambda("<< i << ","<< j <<"): " << fKulambda(i,j) << endl;
-			output << endl;
-		}
+	/* print element stiffness matrices */
+	output << "accumulated stiffness matrices " << endl << endl;
+	output << "*******KUU******* " << endl;
+	for (int i = 0; i < fKuu.Rows(); i++)
+	{
+		for (int j = 0; j < fKuu.Cols(); j++)
+			output << "KUU("<< i << ","<< j <<"): " << fKuu(i,j) << endl;
+	}
+	output << endl;	
+	
+	output << "*******KULambda******* " << endl;
+	for (int i = 0; i < fKulambda.Rows(); i++)
+	{
+		for (int j = 0; j < fKulambda.Cols(); j++) 
+			output << "KULambda("<< i << ","<< j <<"): " << fKulambda(i,j) << endl;
+	}
+	output << endl;	
 				
-		for (int i = 0; i < fKlambdalambda.Rows(); i++)
-		{
-			for (int j = 0; j < fKlambdalambda.Cols(); j++)
-				output << "KLambdaLambda("<< i << ","<< j <<"): " << fKlambdalambda(i,j) << endl;
-			cout << endl;
-			for (int j = 0; j < fKlambdalambda.Cols(); j++)
-				output << "KLambdaU("<< i << ","<< j <<"): " << fKlambdau(i,j) << endl;
-			output << endl;
-		}	
-		output.close();
+	output << "*******KLambdaLambda******* " << endl;
+	for (int i = 0; i < fKlambdalambda.Rows(); i++)
+	{
+		for (int j = 0; j < fKlambdalambda.Cols(); j++)
+			output << "KLambdaLambda("<< i << ","<< j <<"): " << fKlambdalambda(i,j) << endl;
+	}
+	output << endl;	
+		
+	output << "*******KLambdaU******* " << endl;
+	for (int i = 0; i < fKlambdau.Rows(); i++)
+	{
+		for (int j = 0; j < fKlambdau.Cols(); j++)
+			output << "KLambdaU("<< i << ","<< j <<"): " << fKlambdau(i,j) << endl;
+	}
+	output << endl;	
+	output.close();
 }
+
+ /* write internal forces (Fu and Flambda) vectors to the output files */
+void MFGPAssemblyT::PrintInternalForces() const
+{
+	StringT file_name; int e = CurrElementNumber(); 
+	//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/internalforce.";
+	file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/internalforce.";
+	file_name.Append(e); // append element number to output string
+	file_name.Append(".txt");
+	ofstream output(file_name);
+	if (!output) {
+		cout << "Error opening output file" << endl;
+	}
+	output << "element # " << e << endl;
+			
+	/* print element internal force vectors */
+	output << "accumulated internal force " << endl << endl;
+	output << "*******Fu******* " << endl;
+	for (int i = 0; i < fFu_int.Length(); i++)
+		output << "Fu["<< i << "]: " << fFu_int[i] << endl;
+		
+	output << endl;	
+	
+	output << "*******Flambda******* " << endl;
+	for (int i = 0; i < fFlambda.Length(); i++)
+		output << "Flambda["<< i << "]: " << fFlambda[i] << endl;
+		
+	output << endl;	
+	output.close();
+}
+		
 		
