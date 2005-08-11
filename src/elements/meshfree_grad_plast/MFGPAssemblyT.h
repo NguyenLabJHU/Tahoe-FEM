@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.h,v 1.5 2005-08-10 22:23:31 kyonten Exp $ */ 
+/* $Id: MFGPAssemblyT.h,v 1.6 2005-08-11 21:17:01 kyonten Exp $ */ 
 //DEVELOPMENT
 #ifndef _MFGP_ASSEMBLY_T_H_ 
 #define _MFGP_ASSEMBLY_T_H_ 
@@ -423,8 +423,6 @@ protected:
 	/** number of integration points */
 	int	fNumIP_displ, fNumIP_plast; 
 	
-	double penalty_num; // to enforce b.c. on plastic multiplier (lambda)
-
 	/* Data Storage */
 	ElementMatrixT fKuu, fKuu_temp; // [ndof_displ]x[ndof_displ]; ndof_displ = nen_displ x dof_displ
 	ElementMatrixT fKulambda, fKulambda_temp; // [ndof_displ]x[nen_plast]

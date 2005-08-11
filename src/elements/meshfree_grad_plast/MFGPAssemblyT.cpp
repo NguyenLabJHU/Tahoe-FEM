@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.6 2005-08-10 22:23:31 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.7 2005-08-11 21:17:01 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -925,10 +925,6 @@ void MFGPAssemblyT::DefineParameters(ParameterListT& list) const
 	
 	/* plastic gradient field */
 	list.AddParameter(ParameterT::Word, "plastic_mult_field_name");
-	
-	ParameterT penalty_num(ParameterT::Double, "penalty_number"); //penalty number for lambda b.c.
-	penalty_num.SetDefault(1.0e+20);  //set default value to 1e+20
-	list.AddParameter(penalty_num); 
 }
 
 /* information about subordinate parameter lists */
@@ -1128,9 +1124,6 @@ void MFGPAssemblyT::TakeParameterList(const ParameterListT& list)
 		
 	/* extract natural boundary conditions */
 	TakeNaturalBC(list);
-	
-	/* get penalty number */
-	penalty_num = list.GetParameter("penalty_number");  
 	
 	// enable the model manager
 	ModelManagerT& model = ElementSupport().ModelManager();
@@ -1965,6 +1958,15 @@ bool MFGPAssemblyT::CheckMaterialOutput(void) const
    on elastic nodes */ 
 void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
 { 		
+	/* calculate suitable penalty number */
+	int max_value, penalty_number;
+	int min_penalty = 1.0e5;
+	max_value = fKlambdalambda.AbsMax();
+	
+	/* set max_value to min_penalty if it's zero */
+	if (max_value == 0.0) max_value = 1.0;
+	penalty_number = max_value * min_penalty; 
+	
 	for (int i = 0; i < nodes.Length(); i++)
 	{
 		/* prescribe zero lambdas to the elastic nodes */
@@ -1972,7 +1974,7 @@ void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
 		double aug_stiffness_coeff;
 		int j = nodes[i]; // local and global number are same ??
 		if(fNodalYieldFlags[j] == 0 && fPenaltyFlags[j] == 0) {
-			fKlambdalambda(i,i) += penalty_num;
+			fKlambdalambda(i,i) += penalty_number;
 			aug_stiffness_coeff = fKlambdalambda(i,i);
 			fFlambda[j] = aug_stiffness_coeff * presc_value;
 			fPenaltyFlags[j] = 1; 
