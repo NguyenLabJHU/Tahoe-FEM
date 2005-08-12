@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-01-31 09:46:53 paklein Exp $
+# $Id: makefile,v 1.2 2005-08-12 05:39:27 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,7 +10,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #DEP = $(OBJ:.o=.d)
 OBJ = dummy
 OBJ_LINK =
-DEP = /dev/null
+DEP = $(MACRO_DIR)/empty
 
 # sources
 #SRC = 
@@ -34,5 +34,5 @@ subdir_driver: subdir_loop
 include $(MACRO_DIR)/subdir.targets
 
 # dependencies
-DEPEND = /dev/null
+DEPEND = $(MACRO_DIR)/empty
 include $(DEPEND)

@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.4 2003-12-06 08:01:38 paklein Exp $ */
+#/* $Id: makefile,v 1.5 2005-08-12 05:38:44 paklein Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -33,5 +33,5 @@ subdir_driver:
 include $(MACRO_DIR)/subdir.targets
 
 # dependencies
-DEPEND = /dev/null
+DEPEND = $(MACRO_DIR)/empty
 include $(DEPEND)

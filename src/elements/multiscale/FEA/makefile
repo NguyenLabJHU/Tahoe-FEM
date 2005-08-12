@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.2 2002-12-04 17:09:35 creigh Exp $ */
+#/* $Id: makefile,v 1.3 2005-08-12 05:38:35 paklein Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,7 +11,7 @@ OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
 #OBJ_LINK =
-#DEP = /dev/null
+#DEP = $(MACRO_DIR)/empty
 
 # sources
 SRC = all_depend.cpp 
@@ -34,5 +34,5 @@ subdir_driver: subdir_loop
 include $(MACRO_DIR)/subdir.targets
 
 # dependencies (none this directory)
-DEPEND = /dev/null
+DEPEND = $(MACRO_DIR)/empty
 include $(DEPEND)
