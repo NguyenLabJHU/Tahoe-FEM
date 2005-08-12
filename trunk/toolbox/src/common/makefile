@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.15 2003-03-09 04:01:55 paklein Exp $
+# $Id: makefile,v 1.16 2005-08-12 05:15:24 paklein Exp $
 # object directory makefile - compilation instructions
 #
 
@@ -26,7 +26,7 @@ DEP = $(OBJ:.o=.d)
 #
 #OBJ = dummy
 #OBJ_LINK =
-#DEP = /dev/null
+#DEP = $(MACRO_DIR)/empty
 
 ##################### (2) sources
 #
@@ -81,5 +81,5 @@ subdir_driver:
 include $(MACRO_DIR)/subdir.targets
 
 # dependencies
-DEPEND = /dev/null
+DEPEND = $(MACRO_DIR)/empty
 include $(DEPEND)

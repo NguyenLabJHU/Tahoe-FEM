@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2003-03-04 06:41:04 paklein Exp $
+# $Id: makefile,v 1.9 2005-08-12 05:15:20 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -30,7 +30,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = dummy
 OBJ_LINK =
-DEP = /dev/null
+DEP = $(MACRO_DIR)/empty
 
 ##################### (2) sources
 #
@@ -82,5 +82,5 @@ subdir_driver: subdir_loop
 include $(MACRO_DIR)/subdir.targets
 
 # dependencies
-DEPEND = /dev/null
+DEPEND = $(MACRO_DIR)/empty
 include $(DEPEND)
