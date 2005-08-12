@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2003-11-21 22:41:33 paklein Exp $
+# $Id: makefile,v 1.9 2005-08-12 05:15:22 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -35,7 +35,7 @@ DEP = $(OBJ:.o=.d)
 #
 #OBJ = dummy
 #OBJ_LINK =
-#DEP = /dev/null
+#DEP = $(MACRO_DIR)/empty
 
 ##################### (2) sources
 #
@@ -90,6 +90,6 @@ subdir_driver:
 include $(MACRO_DIR)/subdir.targets
 
 # dependencies
-DEPEND = /dev/null
+DEPEND = $(MACRO_DIR)/empty
 include $(DEPEND)
 # DO NOT DELETE
