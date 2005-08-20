@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.21 2005-08-10 02:53:01 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.22 2005-08-20 14:51:56 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -157,9 +157,10 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	const dArrayT& lap_lam = lap_pm();
 	const dSymMatrixT& e_els = ElasticStrain(eps, element, ip); 
 	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_eps, element, ip);
+	
+	//cout << endl << "ip = " << ip << endl;
+	//cout << endl << "strain" << endl << e_els << endl;
 	/*
-	cout << endl << "ip = " << ip << endl;
-	cout << endl << "strain" << endl << e_els << endl;
 	cout << endl << "laplacian of strain" << endl << lap_e_els << endl;
 	*/
 	

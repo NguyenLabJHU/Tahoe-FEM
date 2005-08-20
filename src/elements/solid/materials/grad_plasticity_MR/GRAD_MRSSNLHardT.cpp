@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.12 2005-08-10 02:53:01 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.13 2005-08-20 14:51:56 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -83,19 +83,19 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
                   const dSymMatrixT& lap_trialstrain, const dArrayT& triallambda, const dArrayT& lap_triallambda,
                   ElementCardT& element, int ip)
 {	
-
   	int kk, PLI;
   	double ff;
 
-    dMatrixT KE(6,6); dMatrixT KE_AST(6,6); 
-    dMatrixT I_mat(4,4); dMatrixT II_mat(6,6); 
+    /* define and allocate matrices */
+    dMatrixT KE(6,6); dMatrixT KE_AST(6,6);  
     dMatrixT dhdSig(4,6); dMatrixT dhdq(4,4); dMatrixT dhdm(4,6);
     dMatrixT dgdSig(4,6); dMatrixT dgdq(4,4);
     dMatrixT dmdSig(6,6); dMatrixT dmdq(6,4);
     dMatrixT dRSig_dSig(6,6); dMatrixT dRSig_dq(6,4); 
     dMatrixT dRq_dSig(4,6); dMatrixT dRq_dq(4,4);  dMatrixT Y(6,6); 
-    LAdMatrixT dRR(10); // 10x10: set up matrix A for solving Ax=b system
+    LAdMatrixT dLHS(10); // 10x10: set up matrix A for solving Ax=b system
      
+    /* define and allocate vectors */
     dArrayT u(6); dArrayT up(6); dArrayT du(6); dArrayT dup(6); dArrayT upo(6); 
     dArrayT lap_u(6); dArrayT lap_up(6); dArrayT lap_du(6); dArrayT lap_dup(6); 
     dArrayT lap_upo(6);  
@@ -104,29 +104,30 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     dArrayT mm(6); dArrayT rr(4); dArrayT nn(6); 
     dArrayT dq(4); dArrayT hh(4); dArrayT gg(4); 
     dArrayT state(40); dArrayT Sig_trial(6);
+    dArrayT dRHS(10); dArrayT ls(4);
     dArrayT RSig(6); dArrayT Rq(4);
-    dArrayT R(10); dArrayT ls(4);
     
-    KE = 0.;
-	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
-	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
-	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
-	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
-	
+    /* initialize */
+    dRHS = 0.0; dLHS = 0.0;
+    KE = 0.; KE_AST = 0.; 
+    
+	/* length scales parameters */
 	ls[0] = flse_v; // lse_v: pore space length scale (elastic)  
 	ls[1] = flse_s; // lse_s: grain size length scale (elastic)
 	ls[2] = flsp_v; // lsp_v: pore space length scale (plastic)   
 	ls[3] = flsp_s; // lsp_s: grain size length scale (plastic) 
 	
-	/* KE_AST includes length scales */
-	KE_AST = 0.;
+	/* C and C_AST matrices */
+	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
+	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
+	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
+	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
+	
 	KE_AST(2,2) = KE_AST(1,1) = KE_AST(0,0) = flambda_ast + 2.0*fmu_ast;
 	KE_AST(1,2) = KE_AST(0,1) = KE_AST(0,2) = flambda_ast;
 	KE_AST(2,1) = KE_AST(1,0) = KE_AST(2,0) = flambda_ast;
 	KE_AST(5,5) = KE_AST(4,4) = KE_AST(3,3) = fmu_ast;
-	
-    I_mat = 0.; II_mat = 0.;
-      
+	 
     /* take out the symmetric part of the strain tensor
        and laplacian of strain tensor   */
 	for (int ij = 0; ij < dSymMatrixT::NumValues(kNSD); ij++)
@@ -141,7 +142,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	
 	if (PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
 	    element.IsAllocated()) 
-   {
+    {
 	  LoadData(element, ip);
 	  for (int i = 0; i < 39; i++) {
        state[i] = fInternal[i];   
@@ -164,6 +165,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         state[32] = ftan_phi;
         state[33] = ftan_psi;
 	}
+	
 	if (!PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
 	    !element.IsAllocated())
 	{
@@ -216,12 +218,8 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
        if (i < 4) {
        		qn[i] = state[i+30];
         	qo[i] = qn[i];
-        	I_mat(i,i) = 1.;
        }
     }
-    
-    II_mat(0,0) = II_mat(1,1) = II_mat(2,2) = 1.; 
-    II_mat(3,3) = II_mat(4,4) = II_mat(5,5) = 1.;
      
     Sig = Sig_I;
     dArrayT ue(6), lap_ue(6), Sig_e(6), lap_Sig_e(6); 
@@ -229,8 +227,8 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     ue -= up;
     lap_ue = lap_u;
     lap_ue -= lap_up;
-    KE.Multx(ue,Sig_e);
-    KE_AST.Multx(lap_ue,lap_Sig_e);
+    KE.Multx(ue, Sig_e);
+    KE_AST.Multx(lap_ue, lap_Sig_e);
     Sig += Sig_e; 
     Sig -= lap_Sig_e;
     //cout << endl << "sig_e =" << endl << Sig_e << endl;
@@ -248,6 +246,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     Yield_f(Sig, qn, ff);
     if (ff < kYieldTol) 
     {
+      //cout << "yield condition = " << ff << endl;
       iplastic = 0;
       state[34] = ff;
       state[39] = ff;
@@ -256,7 +255,9 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
       
     else 
     {
-      cout << endl << " yield condition satisfied!!! " << ff << endl;
+      cout << endl << " ip yield condition satisfied!!! " << ff << endl;
+      cout << "dlam = " << dlam << endl;
+      cout << "lap_dlam = " << lap_dlam << endl;
       state[39] = ff;
       kk = 0;
       iplastic = 1;
@@ -270,111 +271,113 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         ue -= up;
         lap_ue = lap_u;
         lap_ue -= lap_up;
-        KE.Multx(ue,Sig_e);
-        KE_AST.Multx(lap_ue,lap_Sig_e);
+        KE.Multx(ue, Sig_e);
+        KE_AST.Multx(lap_ue, lap_Sig_e);
         Sig += Sig_e; 
         Sig -= lap_Sig_e;
         
         Yield_f(Sig, qn, ff);  //yield function
-        m_f(Sig, qn, mm); //mm = dQdSig
-        h_f(Sig, qn, hh); 
-        g_f(Sig, qn, ls, gg);   
-        dmdSig_f(qn, dmdSig); 
-        dmdq_f(Sig, qn, dmdq);
-        dhdSig_f(Sig, qn, dhdSig); 
-        dhdq_f(Sig, qn, dhdq); 
-        dhdm_f(Sig, qn, dhdm);
-        dgdSig_f(Sig, qn, ls, dgdSig); 
-        dgdq_f(Sig, qn, ls, dgdq);
         
-        /* work space */
-        dMatrixT tempMat(6,6), tempMat1(6,6); 
-        dMatrixT tempMat2(4,6), tempMat3(4,4); 
+        /* calculate all the necessary derivatives */
+        m_f(Sig, qn, mm); dmdSig_f(qn, dmdSig); dmdq_f(Sig, qn, dmdq);
+        h_f(Sig, qn, hh); dhdSig_f(Sig, qn, dhdSig); dhdq_f(Sig, qn, dhdq); dhdm_f(Sig, qn, dhdm);  
+        g_f(Sig, qn, ls, gg); dgdSig_f(Sig, qn, ls, dgdSig); dgdq_f(Sig, qn, ls, dgdq);   
         
-        tempMat = KE;          
-        tempMat *= dlam;       
-        tempMat1 = KE_AST;
-        tempMat1 *= lap_dlam;
-        tempMat -= tempMat1;  
-        dRSig_dSig.MultAB(tempMat,dmdSig);
-        dRSig_dSig += II_mat; 
-        dRSig_dq.MultAB(tempMat,dmdq);
+        /* calculate R_Sig_Sig and R_Sig_q matrices */
+        dMatrixT RSigMat1(6,6), RSigMat2(6,6); /* work space */ 
+        RSigMat1.SetToScaled(dlam, KE);       
+        RSigMat2.SetToScaled(lap_dlam, KE_AST);
+        RSigMat1 -= RSigMat2;  
+        dRSig_dSig.MultAB(RSigMat1, dmdSig);
+        dRSig_dSig += IdentityMatrix6;
+         
+        dRSig_dq.MultAB(RSigMat1, dmdq);
         
-        dRq_dSig.MultAB(dhdm,dmdSig);
+        /* calculate R_q_Sig and R_q_q matrices */
+        dMatrixT RqMat1(4,6), RqMat2(4,4); /* work space */
+        dRq_dSig.MultAB(dhdm, dmdSig);
         dRq_dSig += dhdSig;
         dRq_dSig *= -dlam;
-        tempMat2 = dgdSig;
-        tempMat2 *= lap_dlam;
-        dRq_dSig += tempMat2; 
+        RqMat1.SetToScaled(lap_dlam, dgdSig);
+        dRq_dSig += RqMat1; 
         
-        dRq_dq.MultAB(dhdm,dmdq);
+        dRq_dq.MultAB(dhdm, dmdq);
         dRq_dq += dhdq;
         dRq_dq *= -dlam;
-        tempMat3 = dgdq;
-        tempMat3 *= lap_dlam;
-        dRq_dq += tempMat3;
-        dRq_dq += I_mat;
+        RqMat2.SetToScaled(lap_dlam, dgdq);
+        dRq_dq += RqMat2;
+        dRq_dq += IdentityMatrix4;
          
-        /* work space */
-        dArrayT RSig1(6), RSig2(6), RSig3(6), RSig4(6);
-        dArrayT tempA(6), tempB(6), tempC(4);
+        /* calculate R_Sig vector */
+         /* work space */
+        dArrayT RSigTemp1(6), RSigTemp2(6), RSigTemp3(6), RSigTemp4(6);
+        dArrayT RSigTemp5(6), RSigTemp6(6);
+        KE.Multx(du, RSigTemp1);
+        KE_AST.Multx(lap_du, RSigTemp2);
+        RSig.DiffOf(RSigTemp2, RSigTemp1); // RSigTemp2 - RSigTemp1
+        KE.Multx(mm, RSigTemp3);  
+        KE_AST.Multx(mm, RSigTemp4);
+        RSigTemp5.SetToScaled(dlam, RSigTemp3); // dlam*RSigTemp3;
+        RSig += RSigTemp5;				   // dlam2 == dlam??
+        RSigTemp6.SetToScaled(lap_dlam, RSigTemp4); // lap_dlam*RSigTemp4;
+        RSig -= RSigTemp6;
         
-        KE.Multx(du,RSig1);
-        KE_AST.Multx(lap_du,RSig2);
-        KE.Multx(mm,RSig3);  
-        KE_AST.Multx(mm,RSig4);
-        RSig.DiffOf(RSig2,RSig1); // RSig2 - RSig1
-        tempA.SetToScaled(dlam,RSig3); // dlam*RSig3;
-        RSig += tempA;				   // dlam2 == dlam??
-        tempB.SetToScaled(lap_dlam,RSig4); // lap_dlam*RSig4;
-        RSig -= tempB;						//lap_dlam2 == lap_dlam?? 
-        Rq.SetToScaled(lap_dlam,gg);  //lap_dlam*gg;
-        Rq = tempC;						  //lap_dlam2 == lap_dlam?? 
-        tempC.SetToScaled(dlam,hh);  //dlam2 == dlam??
-        Rq -= tempC; 
+        /* calculate R_q vector */						//lap_dlam2 == lap_dlam?? 
+        dArrayT Rq_temp(4); /* work space */
+        Rq.SetToScaled(lap_dlam, gg);  //lap_dlam*gg;
+        Rq_temp.SetToScaled(dlam, hh);  //dlam2 == dlam??
+        Rq -= Rq_temp; 
         
-        /* form R (RHS) vector and dRR (10,10) matrix */
-        for (int i = 0; i < 10; i++) 
-        {
-        	if (i < 6) 
-            	R[i] = RSig[i]; 
-         	
-            if (i > 5) 
-            	R[i] = Rq[i-6];
-            
-          	for (int j = 0; j < 10; j++) 
-          	{
-            	if (i < 6 && j < 6) 
-             		dRR(i,j) = dRSig_dSig(i,j);
-            	
-            	if (i < 6 && j > 5) 
-             		dRR(i,j) = dRSig_dq(i,j-6);
-            	 
-            	if(i > 5 && j < 6) 
-             		dRR(i,j) = dRq_dSig(i-6,j);
-            	
-            	if(i > 5 && j > 5) 
-             		dRR(i,j) = dRq_dq(i-6,j-6);
-          }
-        }
+        /* check the matrices are correct before assemblying */
+        /*if (kk == 500) {
+        	cout << "dRSig_dSig =" << endl << dRSig_dSig << endl;
+        	cout << "dRSig_dq =" << endl << dRSig_dq << endl;
+        	cout << "dRq_dSig =" << endl << dRq_dSig << endl;
+        	cout << "dRq_dq =" << endl << dRq_dq << endl;
+        	cout << "RSig =" << endl << RSig << endl;
+        	cout << "Rq =" << endl << Rq << endl;
+        }*/
+        
+        /* form dLHS (10,10) matrix */
+        dLHS.AddBlock(0,                 0,                 dRSig_dSig);
+		dLHS.AddBlock(0,                 dRSig_dSig.Cols(), dRSig_dq);
+		dLHS.AddBlock(dRSig_dSig.Rows(), 0,                 dRq_dSig);
+		dLHS.AddBlock(dRSig_dSig.Rows(), dRSig_dSig.Cols(), dRq_dq);
+		
+        /* form dRHS (10) vector */
+		dRHS.CopyIn(0, RSig);
+		dRHS.CopyIn(RSig.Length(), Rq);
+		
+		/* check to see dLHS and dRHS are assembled correctly */
+		/*if (kk == 500) {
+			cout << "dLHS = " << endl << dLHS << endl;
+			cout << "dRHS = " << endl << dRHS << endl;
+		}*/
+        
         /* solve the linear sys. of eqs. */
-        dRR.LinearSolve(R); 
+        dLHS.LinearSolve(dRHS); 
         
-        /* extract stress vector and internal variables
-           from R										*/
-        for (int i = 0; i < 10; i++) 
+        /* extract stress vector and internal variables from dRHS */
+        for (int i = 0; i < dRHS.Length(); i++) 
         {
             if (i < 6) 
-            	dSig[i] = R[i];
-            
-            if (i > 5) 
-            	dq[i-6] = R[i];
+            	dSig[i] = dRHS[i];
+            else 
+            	dq[i-6] = dRHS[i];
         }
+        
+        /* check the solutions */
+        /*if (kk == 500) {
+        	cout << "dSig = " << endl << dSig << endl;
+        	cout << "dq = " << endl << dq << endl;
+        }*/
+        
        /* update plastic strain, gradient plastic strain 
        	  and internal variables 						*/
-        dup.SetToScaled(lap_dlam,mm);
+        m_f(dSig, qn, mm);
+        dup.SetToScaled(dlam, mm);
         up += dup;
-        lap_up.SetToScaled(lap_dlam,mm);  //lap_dlam2 == lap_dlam??
+        lap_up.SetToScaled(lap_dlam, mm);  //lap_dlam2 == lap_dlam??
         lap_up += lap_dup;
         Sig += dSig;   // stress automatically updated when up & lap_up are updated??
         qn += dq;
@@ -383,12 +386,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     }	// if (ff <kYieldTol)
     
     /* update state variables */
-    state[0] = Sig[0];
-    state[1] = Sig[1];
-    state[2] = Sig[2];
-    state[3] = Sig[3];
-    state[4] = Sig[4];
-    state[5] = Sig[5]; 
+    state.CopyIn(0, Sig); 
 	state[6] = trialstrain(0,0);
 	state[7] = trialstrain(1,1);
 	state[8] = trialstrain(2,2);
@@ -401,22 +399,9 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	state[15] = lap_trialstrain(1,2);
 	state[16] = lap_trialstrain(0,2);
 	state[17] = lap_trialstrain(0,1);
-	state[18] = up[0]; 
-	state[19] = up[1];
-	state[20] = up[2];
-	state[21] = up[3];
-	state[22] = up[4];
-	state[23] = up[5];
-	state[24] = lap_up[0]; 
-	state[25] = lap_up[1];
-	state[26] = lap_up[2];
-	state[27] = lap_up[3];
-	state[28] = lap_up[4];
-	state[29] = lap_up[5];
-	state[30] = qn[0];
-	state[31] = qn[1];
-	state[32] = qn[2];
-	state[33] = qn[3];
+	state.CopyIn(18, up);
+	state.CopyIn(24, lap_up);
+	state.CopyIn(30, qn);
 	state[34] = ff; 
 	state[35] = dlam;
 	state[36] = lap_dlam;
@@ -429,16 +414,15 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     
 	if (iplastic > 0) 
 	{
-	   for (int i = 0; i < 39; i++) 
+	   for (int i = 0; i < 39; i++) { 
 	   		fInternal[i] = state[i];
-	  
-	   for (int i = 0; i < 12; i++) 
-	   {
-	      if (i < 6)
-	      	fPlasticStrain[i] = state[i+18];
-	      else
-	        fLapPlasticStrain[i] = state[i+18];
-       }
+	   		
+	   		/* collect plastic strain and its laplacian */
+	   		if (i > 17 && i < 24)
+	      		fPlasticStrain[i-18] = state[i];
+	      	else if (i > 23 && i < 30)
+	        	fLapPlasticStrain[i-24] = state[i];
+	   }
 	}		
  return fStressCorr;
 }	//end StressCorrection
@@ -456,6 +440,7 @@ double& GRAD_MRSSNLHardT::Yield_f(const dArrayT& Sig,
   dMatrixT devstress(3,3);
   devstress_f(Sig, devstress);
   fpress  = Sig[0]+Sig[1]+Sig[2];
+  fpress /=3.;
   fc = qn[1];
   ffriction = qn[2];
   fchi = qn[0];
@@ -563,11 +548,7 @@ dArrayT& GRAD_MRSSNLHardT::g_f(const dArrayT& Sig, const dArrayT& qn, const dArr
 dMatrixT& GRAD_MRSSNLHardT::dmdSig_f(const dArrayT& qn, dMatrixT& dmdSig)
 {
   double Fac;
-  dMatrixT II_mat(6,6), I_mat(6,6);
-  
-  II_mat = 0.;
-  II_mat(0,0) = II_mat(1,1) = II_mat(2,2) = 1.; 
-  II_mat(3,3) = II_mat(4,4) = II_mat(5,5) = 1.;
+  dMatrixT I_mat(6,6);
   
   I_mat = 0.;
   for (int i = 0; i < 3; i++) 
@@ -582,7 +563,7 @@ dMatrixT& GRAD_MRSSNLHardT::dmdSig_f(const dArrayT& qn, dMatrixT& dmdSig)
   Fac /= 3.;
   I_mat *= Fac;
   
-  dmdSig  = II_mat;
+  dmdSig  = IdentityMatrix6;
   dmdSig -= I_mat;
   return dmdSig;
 }
@@ -662,10 +643,7 @@ dMatrixT& GRAD_MRSSNLHardT::dhdSig_f(const dArrayT& Sig, const dArrayT& qn, dMat
    double Sig_p, A1, B1, A2, A3, A4, dQdP, d2QdP2, dB1dP, SN;
    dMatrixT dhchi_dSig(3,3), dhc_dSig(3,3), dhtanphi_dSig(3,3), dhtanpsi_dSig(3,3);
    dMatrixT Sig_Dev(3,3), B2(3,3), B3(3,3), dQdS(3,3), dB2dS_dQdS(3,3), dB3dS_dQdS(3,3);
-   dMatrixT I_mat(3,3); dMatrixT tempmat(3,3);
-   
-   I_mat = 0.;
-   I_mat(0,0) = I_mat(1,1) = I_mat(2,2) = 1.;
+   dMatrixT tempmat(3,3);
    
    Sig_p = (Sig[0]+Sig[1]+Sig[2])/3.0;
    devstress_f(Sig, Sig_Dev);
@@ -690,7 +668,7 @@ dMatrixT& GRAD_MRSSNLHardT::dhdSig_f(const dArrayT& Sig, const dArrayT& qn, dMat
    SN = signof(Sig_p);
    dB1dP = (SN +fabs(SN))/2./fGf_I;
    
-   dhchi_dSig  = I_mat;
+   dhchi_dSig  = IdentityMatrix3;
    dhchi_dSig *= (A1*B1*d2QdP2+A1*dQdP*dB1dP)/3.;
    tempmat =  dB2dS_dQdS; 
    tempmat += B2; 
@@ -739,10 +717,7 @@ dMatrixT& GRAD_MRSSNLHardT::dgdSig_f(const dArrayT& Sig, const dArrayT& qn, cons
    double Sig_p, A1, B1, A2, A3, A4, dQdP, d2QdP2, dB1dP, SN;
    dMatrixT dgchi_dSig(3,3), dgc_dSig(3,3), dgtanphi_dSig(3,3), dgtanpsi_dSig(3,3);
    dMatrixT Sig_Dev(3,3), B2(3,3), B3(3,3), dQdS(3,3), dB2dS_dQdS(3,3), dB3dS_dQdS(3,3);
-   dMatrixT I_mat(3,3); dMatrixT tempmat(3,3);
-   
-   I_mat = 0.;
-   I_mat(0,0) = I_mat(1,1) = I_mat(2,2) = 1.;
+   dMatrixT tempmat(3,3);
    
    Sig_p = (Sig[0]+Sig[1]+Sig[2])/3.0;
    devstress_f(Sig, Sig_Dev);
@@ -773,7 +748,7 @@ dMatrixT& GRAD_MRSSNLHardT::dgdSig_f(const dArrayT& Sig, const dArrayT& qn, cons
    dB1dP = (SN +fabs(SN))/2./fGf_I;
    dB1dP *= ls[2]*ls[2];
    
-   dgchi_dSig  = I_mat;
+   dgchi_dSig  = IdentityMatrix3;
    dgchi_dSig *= (A1*B1*d2QdP2+A1*dQdP*dB1dP)/3.;
    tempmat =  dB2dS_dQdS; 
    tempmat += B2;  
@@ -910,7 +885,7 @@ dMatrixT& GRAD_MRSSNLHardT::dhdm_f(const dArrayT& Sig, const dArrayT& qn, dMatri
    dMatrixT Sig_Dev(3,3), B2(3,3), B3(3,3), dQdS(3,3);
    dMatrixT dhchi_dm(3,3), dhc_dm(3,3); 
    dMatrixT dhtanphi_dm(3,3), dhtanpsi_dm(3,3);
-   dMatrixT I_mat(3,3), tempMat(3,3);
+   dMatrixT tempMat(3,3);
    
    Sig_p = (Sig[0]+Sig[1]+Sig[2])/3.0;
    devstress_f(Sig, Sig_Dev);
@@ -924,7 +899,7 @@ dMatrixT& GRAD_MRSSNLHardT::dhdm_f(const dArrayT& Sig, const dArrayT& qn, dMatri
    B3 /= fGf_II;
    A3 = -falpha_phi*(qn[2] - tan(fphi_r));
    A4 = -falpha_psi*qn[3];
-   dhchi_dm  = I_mat;
+   dhchi_dm  = IdentityMatrix3;
    dhchi_dm *= (A1*B1)/3.;
    tempMat = B2;
    tempMat *= A1;
@@ -973,12 +948,12 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	int ip)
 {
 
+    /* define and allocate matrices */
     dMatrixT KE(6,6); dMatrixT KE_AST(6,6);
     dMatrixT KE_UU1(6,6); dMatrixT KE_UU2(6,6);
     dMatrixT KE_ULambda1(6,1); dMatrixT KE_ULambda2(6,1); //6x1
     dMatrixT KE_LambdaU1(1,6); dMatrixT KE_LambdaU2(1,6); //1x6
-    dMatrixT KE_LambdaLambda1(1,1); dMatrixT KE_LambdaLambda2(1,1); 
-    dMatrixT I_mat(4,4); dMatrixT II_mat(6,6); 
+    dMatrixT KE_LambdaLambda1(1,1); dMatrixT KE_LambdaLambda2(1,1);  
     dMatrixT dhdSig(4,6); dMatrixT dhdq(4,4); dMatrixT dhdm(4,6);
     dMatrixT dgdSig(4,6); dMatrixT dgdq(4,4);
     dMatrixT dmdSig(6,6); dMatrixT dmdq(6,4);
@@ -986,6 +961,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     dMatrixT dRq_dSig(4,6); dMatrixT dRq_dq(4,4); dMatrixT dRq_dq_Inv(4,4); 
     dMatrixT dRR(10,10); dMatrixT Y(6,6); dMatrixT Y_Inv(6,6); 
      
+    /* define and allocate vectors */
     dArrayT u(6); dArrayT up(6); dArrayT du(6); dArrayT dup(6); dArrayT upo(6); 
     dArrayT lap_u(6); dArrayT lap_up(6); dArrayT lap_du(6); dArrayT lap_dup(6); 
     dArrayT lap_upo(6);  
@@ -998,39 +974,34 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     dArrayT R(10); dArrayT ls(4);
     
     double dlam, lap_dlam;
-
-	KE = 0.;
-	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
-	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
-	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
-	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
+    
+	/* initialize */
+	KE = 0.; KE_AST=0.;
+	KE_UU1 =0.; KE_UU2 = 0.;
+	KE_ULambda1 = 0.; KE_ULambda2 = 0.;
+	KE_LambdaU1 = 0.; KE_LambdaU2 = 0.;
+	KE_LambdaLambda1 = 0.; KE_LambdaLambda2 = 0.; 
 	
 	ls[0] = flse_v; // lse_v: pore space length scale (elastic)  
 	ls[1] = flse_s; // lse_s: grain size length scale (elastic)
 	ls[2] = flsp_v; // lsp_v: pore space length scale (plastic)   
 	ls[3] = flsp_s; // lsp_s: grain size length scale (plastic)
 	
-	// KE_AST for gradient terms
-	KE_AST=0.;
+	/* C and C_AST matrices */
+	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
+	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
+	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
+	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
+	
 	KE_AST(2,2) = KE_AST(1,1) = KE_AST(0,0) = flambda_ast + 2.0*fmu_ast;
 	KE_AST(1,2) = KE_AST(0,1) = KE_AST(0,2) = flambda_ast;
 	KE_AST(2,1) = KE_AST(1,0) = KE_AST(2,0) = flambda_ast;
-	KE_AST(5,5) = KE_AST(4,4) = KE_AST(3,3) = fmu_ast;
-	
-	I_mat = 0.; II_mat = 0.;
-	KE_UU1 =0.; KE_UU2 = 0.;
-	KE_ULambda1 = 0.; KE_ULambda2 = 0.;
-	KE_LambdaU1 = 0.; KE_LambdaU2 = 0.;
-	KE_LambdaLambda1 = 0.; KE_LambdaLambda2 = 0.;  
+	KE_AST(5,5) = KE_AST(4,4) = KE_AST(3,3) = fmu_ast; 
 		
 	if(!element.IsAllocated()) 
 	{
 	  	KE_UU1 = KE;
-	  	KE_UU2 = KE_AST;
-	  	KE_UU2 *= -1.;
-	  	KE_ULambda1 = 0.; KE_ULambda2 = 0.;
-	  	KE_LambdaU1 =0.; KE_LambdaU2 = 0.;
-	  	KE_LambdaLambda1 = 0.; KE_LambdaLambda2 = 0.;
+	  	KE_UU2.SetToScaled(-1., KE_AST);
 	  	
 	  	fModuli_UU1 = KE_UU1;
 		fModuli_UU2 = KE_UU2;
@@ -1058,21 +1029,13 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
        if (i < 4)
        {
        		qn[i] = state[i+30];
-      		I_mat(i,i) = 1.;
        }
     }
-    
-    II_mat(0,0) = II_mat(1,1) = II_mat(2,2) = 1.; 
-    II_mat(3,3) = II_mat(4,4) = II_mat(5,5) = 1.;
 
 	if (state[37] == 0.) 
 	{
 	    KE_UU1 = KE;
-	  	KE_UU2 = KE_AST;
-	  	KE_UU2 *= -1.;
-	  	KE_ULambda1 = 0.; KE_ULambda2 = 0.;
-	  	KE_LambdaU1 =0.; KE_LambdaU2 = 0.;
-	  	KE_LambdaLambda1 = 0.; KE_LambdaLambda2 = 0.;
+	  	KE_UU2.SetToScaled(-1., KE_AST);
 	  	
 	  	fModuli_UU1 = KE_UU1;
 		fModuli_UU2 = KE_UU2;
@@ -1083,120 +1046,111 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		fModuli_LamLam1 = KE_LambdaLambda1;
 		fModuli_LamLam2 = KE_LambdaLambda2; 
 	  	fModuli = 0.0;     
-	    // fModuli.CopySymmetric();
 	}
 	else 
 	  	if (state[37] == 1.) 
 	  	{
-	  	    //dlam = state[35];
-	  	    //lap_dlam = state[36];
-	  	    m_f(Sig, qn, mm); //mm = dQdSig
-        	h_f(Sig, qn, hh); g_f(Sig, qn, ls, gg);   
-        	dmdSig_f(qn, dmdSig); dmdq_f(Sig, qn, dmdq);
-        	dhdSig_f(Sig, qn, dhdSig); dhdq_f(Sig, qn, dhdq); 
-        	dhdm_f(Sig, qn, dhdm);
-        	dgdSig_f(Sig, qn, ls, dgdSig); dgdq_f(Sig, qn, ls, dgdq);
-        
+	  	    dlam = state[35];
+	  	    lap_dlam = state[36];
+	  	    
+	  	    /* compute the derivatives */
+	  	    m_f(Sig, qn, mm); dmdSig_f(qn, dmdSig); dmdq_f(Sig, qn, dmdq); 
+        	h_f(Sig, qn, hh); dhdSig_f(Sig, qn, dhdSig); dhdq_f(Sig, qn, dhdq); dhdm_f(Sig, qn, dhdm); 
+        	g_f(Sig, qn, ls, gg); dgdSig_f(Sig, qn, ls, dgdSig); dgdq_f(Sig, qn, ls, dgdq);   
+        	
         	/* work space */
         	dMatrixT tempMat1(6,6), tempMat2(6,6);  
         	dMatrixT tempMat3(4,6), tempMat4(4,4);
-        	tempMat1 = KE; 
-        	tempMat1 *= dlam;
-        	tempMat2 = KE_AST;
-        	tempMat2 *= lap_dlam;
+        	tempMat1.SetToScaled(dlam, KE); 
+        	tempMat2.SetToScaled(lap_dlam, KE_AST);
         	tempMat1 -= tempMat2;
-        	dRSig_dSig.MultAB(tempMat1,dmdSig);
-        	dRSig_dSig += II_mat; 
-        	dRSig_dq.MultAB(tempMat1,dmdq);
+        	dRSig_dSig.MultAB(tempMat1, dmdSig);
+        	dRSig_dSig += IdentityMatrix6; 
+        	dRSig_dq.MultAB(tempMat1, dmdq);
         
-        	dRq_dSig.MultAB(dhdm,dmdSig);
+        	dRq_dSig.MultAB(dhdm, dmdSig);
         	dRq_dSig += dhdSig;
         	dRq_dSig *= -dlam;
-        	tempMat3 = dgdSig;
-        	tempMat3 *= lap_dlam;
+        	tempMat3.SetToScaled(lap_dlam, dgdSig);
         	dRq_dSig += tempMat3; 
         
-        	dRq_dq.MultAB(dhdm,dmdq);
+        	dRq_dq.MultAB(dhdm, dmdq);
         	dRq_dq += dhdq;
         	dRq_dq *= -dlam;
-        	tempMat4 = dgdq;
-        	tempMat4 *= lap_dlam;
+        	tempMat4.SetToScaled(lap_dlam, dgdq);
         	dRq_dq += tempMat4;
-        	dRq_dq += I_mat;
+        	dRq_dq += IdentityMatrix4;
          
         	/* work space */
         	dArrayT RSig1(6), RSig2(6), RSig3(6), RSig4(6);
         	dArrayT temp1(6), temp2(6), temp3(4);
         	
-        	KE.Multx(du,RSig1);
-       	 	KE_AST.Multx(lap_du,RSig2);
-        	KE.Multx(mm,RSig3);  
-        	KE_AST.Multx(mm,RSig4);
-        	RSig.DiffOf(RSig2,RSig1); //RSig2-RSig1
-        	temp1.SetToScaled(dlam,RSig3);  //dlam2 == dlam??
+        	KE.Multx(du, RSig1);
+       	 	KE_AST.Multx(lap_du, RSig2);
+        	KE.Multx(mm, RSig3);  
+        	KE_AST.Multx(mm, RSig4);
+        	RSig.DiffOf(RSig2, RSig1); //RSig2-RSig1
+        	temp1.SetToScaled(dlam, RSig3);  //dlam2 == dlam??
         	RSig += temp1;
-        	temp2.SetToScaled(lap_dlam,RSig4); // lap_dlam2 == dlam??	
+        	temp2.SetToScaled(lap_dlam, RSig4); // lap_dlam2 == dlam??	
         	RSig -= temp2;
         
-        	Rq.SetToScaled(lap_dlam,gg);   //lap_dlam2/lap_dlam??
-        	temp3.SetToScaled(dlam,hh);     //dlam2/dlam??
+        	Rq.SetToScaled(lap_dlam, gg);   //lap_dlam2/lap_dlam??
+        	temp3.SetToScaled(dlam, hh);     //dlam2/dlam??
         	Rq -= temp3; 
         
+        	/* calculate KE_UU1 and KE_UU2 matrices */
         	dMatrixT RRq_dqdSig(4,6);
         	dRq_dq_Inv.Inverse(dRq_dq);
-        	RRq_dqdSig.MultAB(dRq_dq_Inv,dRq_dSig);
-        	Y.MultAB(RRq_dqdSig,dRSig_dq);
-        	Y *= -1.;
-        	Y += dRSig_dSig;
+        	RRq_dqdSig.MultAB(dRq_dq_Inv, dRq_dSig);
+        	Y.MultAB(RRq_dqdSig, dRSig_dq);
+        	Y -= dRSig_dSig;
         	Y_Inv.Inverse(Y);
         	KE_UU1.MultAB(Y_Inv, KE);
 	  	    KE_UU2.MultAB(Y_Inv, KE_AST);
         	
+        	/* calculate KE_ULambda1 and KE_ULambda2 matrices */
         	/* work space */
         	dArrayT termA1(6), termA2i(4), termA2(6);
         	dArrayT termB1(6), termB2i(4), termB2(6);
         	
-        	KE.Multx(mm,termA1);
-        	dRq_dq_Inv.Multx(hh,termA2i);
-        	dRSig_dq.Multx(termA2i,termA2);
+        	KE.Multx(mm, termA1);
+        	dRq_dq_Inv.Multx(hh, termA2i);
+        	dRSig_dq.Multx(termA2i, termA2);
         	termA2 += termA1;
-        	KE_AST.Multx(mm,termB1);
-        	dRq_dq_Inv.Multx(gg,termB2i);
-        	dRSig_dq.Multx(termB2i,termB2);
+        	KE_AST.Multx(mm, termB1);
+        	dRq_dq_Inv.Multx(gg, termB2i);
+        	dRSig_dq.Multx(termB2i, termB2);
         	termB2 += termB1;
-	  	    Y_Inv.Multx(termA2,KE_ULambda1);
+	  	    Y_Inv.Multx(termA2, KE_ULambda1);
 	  	    KE_ULambda1 *= -1.;
-	  	    Y_Inv.Multx(termB2,KE_ULambda2);
+	  	    Y_Inv.Multx(termB2, KE_ULambda2);
 	  	    
+	  	    /* calculate KE_LambdaU1 and KE_LambdaU2 matrices */
 	  	    /* work space */
 	  	    dArrayT mul1(4),term2C(6),TT(6);
 	  	    dMatrixT dRq_dSigT(6,4);
 	  	    
-	  	    dRq_dq_Inv.Multx(rr,mul1);
+	  	    dRq_dq_Inv.Multx(rr, mul1);
 	  	    dRq_dSigT.Transpose(dRq_dSig);
-	  	    dRq_dSigT.Multx(mul1,term2C);
+	  	    dRq_dSigT.Multx(mul1, term2C);
 	  	    term2C *= -1.;
 	  	    term2C += nn;
-	  	    Y_Inv.Multx(term2C,TT);
+	  	    Y_Inv.Multx(term2C, TT);
 	  	    KE.Multx(TT, KE_LambdaU1);
-	  	    KE_AST.Multx(TT,KE_LambdaU2);
+	  	    KE_AST.Multx(TT, KE_LambdaU2);
 	  	    KE_LambdaU2 *= -1.;
 	  	    
+	  	    /* calculate KE_LambdaLambda1 and KE_LambdaLambda2 matrices */
 	  	    dArrayT termD2i(4), termE2i(4);
 	  	    double termD1, termD2, termE1, termE2;
 	  	    termD1 = termD2 = termE1 = termE2 = 0.;
-	  	    dRq_dq_Inv.Multx(hh,termD2i);
-	  	    dRq_dq_Inv.Multx(gg,termE2i);
-	  	    for (int i = 0; i < 4; ++i) // vector dot product
-	  	    {
-	  	     termD2 = termD2 + rr[i] * termD2i[i];
-	  	     termE2 = termE2 + rr[i] * termE2i[i];
-	  	    }
-	  	    for (int i = 0; i < 6; ++i)
-	  	    {
-	  	     termD1 = termD1 + termA2[i] * TT[i];
-	  	     termE1 = termE1 + termB2[i] * TT[i];
-	  	    }
+	  	    dRq_dq_Inv.Multx(hh, termD2i);
+	  	    dRq_dq_Inv.Multx(gg, termE2i);
+	  	    termD1 = dMatrixT::Dot(TT, termA2); //vector dot product 
+	  	    termE1 = dMatrixT::Dot(TT, termB2);
+	  	    termD2 = dMatrixT::Dot(rr, termD2i); //vector dot product 
+	  	    termE2 = dMatrixT::Dot(rr, termE2i);
 	  	    termD1 += termD2;
 	  	    termE1 += termE2;
 	  	    KE_LambdaLambda1 = -1.* termD1;
@@ -1210,7 +1164,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 			fModuli_LamU2 = KE_LambdaU2;
 			fModuli_LamLam1 = KE_LambdaLambda1;
 			fModuli_LamLam2 = KE_LambdaLambda2; 
-	  	    fModuli = 0.0;	//
+	  	    fModuli = 0.0;
 	    }
 	return fModuli; 
 }
@@ -1243,6 +1197,7 @@ void GRAD_MRSSNLHardT::AllocateElement(ElementCardT& element)
 
 	int d_size = 0;
 	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fPlasticStrain
+	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fLapPlasticStrain
 	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fUnitNorm
 	d_size += kNumInternal*fNumIP;        //fInternal
 
@@ -1277,13 +1232,15 @@ void GRAD_MRSSNLHardT::TakeParameterList(const ParameterListT& list)
 	fDevStress.Dimension(kNSD);
 	fLapDevStress.Dimension(kNSD);
 	fDevStrain.Dimension(kNSD);
-	fLapDevStrain.Dimension(kNSD); 
-	fTensorTemp.Dimension(dSymMatrixT::NumValues(kNSD));
-	IdentityTensor2.Dimension(kNSD);
-	One.Dimension(kNSD);
+	fLapDevStrain.Dimension(kNSD);
+	IdentityMatrix3.Dimension(3); 
+	IdentityMatrix4.Dimension(4);
+	IdentityMatrix6.Dimension(6);
     
-	/* initialize constant tensor */
-	One.Identity();
+	/* initialize constant matrices */
+	IdentityMatrix3.Identity();
+	IdentityMatrix4.Identity();
+	IdentityMatrix6.Identity();
 }
 /***********************************************************************
  * Protected
@@ -1344,6 +1301,7 @@ void GRAD_MRSSNLHardT::LoadData(const ElementCardT& element, int ip)
 	int dex       = ip*stressdim;
 	
 	fPlasticStrain.Alias(dim, &d_array[dex]);
+	fLapPlasticStrain.Alias(dim, &d_array[dex]);
 	/*fUnitNorm.Set(kNSD, &d_array[  offset + dex]); */    
 	fInternal.Alias(kNumInternal, &d_array[2*offset + ip*kNumInternal]);
 }

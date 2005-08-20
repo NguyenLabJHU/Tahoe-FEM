@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.h,v 1.8 2005-07-08 01:17:44 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.h,v 1.9 2005-08-20 14:51:56 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -185,10 +185,11 @@ public:
 	dSymMatrixT fLapDevStress;
 	dSymMatrixT fDevStrain; /* deviatoric part of the strain tensor */
 	dSymMatrixT fLapDevStrain; /* deviatoric part of the laplacian of strain tensor */
-	dSymMatrixT IdentityTensor2;  
-	dSymMatrixT One;  
-	dMatrixT    fTensorTemp;
-  	
+	
+	/* constant matrices */
+	dMatrixT IdentityMatrix3; /* 3x3 identity matrix */ 
+	dMatrixT IdentityMatrix4; /* 4x4 identity matrix */ 
+	dMatrixT IdentityMatrix6; /* 6x6 identity matrix */ 
 };
 
 
