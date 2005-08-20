@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.7 2005-08-11 21:17:01 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.8 2005-08-20 14:40:20 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -645,12 +645,12 @@ void MFGPAssemblyT::RHSDriver_staggered(void)
 		double constKe = constK;
 		
 		/* initialize */
-		fKuu=0.0;
-		fKulambda=0.0;
-		fKlambdau=0.0;
-		fKlambdalambda=0.0;
-		fFu_int=0.0;
-		fFlambda=0.0;
+		fKuu = 0.0; fKuu_temp = 0.0;
+		fKulambda = 0.0; fKulambda_temp = 0.0;
+		fKlambdau = 0.0; fKlambdau_temp = 0.0;
+		fKlambdalambda = 0.0; fKlambdalambda_temp = 0.0;
+		fFu_int = 0.0; 
+		fFlambda = 0.0; 
 		
 		/* global shape function derivatives, local arrays */ 
 	    SetGlobalShape();
@@ -1959,12 +1959,13 @@ bool MFGPAssemblyT::CheckMaterialOutput(void) const
 void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
 { 		
 	/* calculate suitable penalty number */
-	int max_value, penalty_number;
-	int min_penalty = 1.0e5;
+	double max_value, penalty_number;
+	double min_penalty = 1.0e5;
+	double tol = 1.0e-10;
 	max_value = fKlambdalambda.AbsMax();
 	
 	/* set max_value to min_penalty if it's zero */
-	if (max_value == 0.0) max_value = 1.0;
+	if (max_value < tol) max_value = 1.0;
 	penalty_number = max_value * min_penalty; 
 	
 	for (int i = 0; i < nodes.Length(); i++)
@@ -1995,12 +1996,12 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after) const
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
 	}
 	else if (before_after == "after_penalty") {
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".txt");
@@ -2053,12 +2054,12 @@ void MFGPAssemblyT::PrintInternalForces(StringT before_after) const
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
 	}
 	else if (before_after == "after_penalty") {
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".txt");

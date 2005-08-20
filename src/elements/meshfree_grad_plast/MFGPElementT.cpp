@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.6 2005-08-10 22:23:31 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.7 2005-08-20 14:40:21 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -418,8 +418,10 @@ void MFGPElementT::CheckNodalYield()
 	yield_flags = 0;
 	for (int i = 0; i < n_nodes; i++) {
 		ComputeNodalYield(stress_data[i], mat_data[i], yield);
-		if (yield > tol)
+		if (yield > tol) {
 			yield_flags[i] = 1;
+			cout << "nodal yield condition satisfied! " << endl;
+		}
 	}
 	
 	#if __option(extended_errorcheck)
