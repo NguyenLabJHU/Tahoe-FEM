@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.19 2005-07-08 04:01:17 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.20 2005-08-22 20:40:09 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -27,6 +27,7 @@ SSEnhLocCraigT::SSEnhLocCraigT(const ElementSupportT& support):
 	fBand(NULL)
 {
 	SmallStrainT::SetName("small_strain_enh_loc_craig");
+	jump_out.open("jump.info");
 }
 
 /* destructor */
@@ -45,7 +46,21 @@ void SSEnhLocCraigT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fH_delta_0, "Post-Localization_softening_parameter_H_Delta"); 
 	list.AddParameter(fNoBandDilation, "Disallow_Dilation_on_Band");
 	list.AddParameter(fLocalizedFrictionCoeff, "Localized_Friction_Coefficient");
-	list.AddParameter(fFirstElementToLocalize, "First_element_to_localize__Zero_for_non_homogeneous_loading");
+	list.AddParameter(fBVPType, "BVP_type");
+	list.AddParameter(fFirstElementToLocalize, "First_element_to_localize");
+	
+	double dummy;
+	
+	list.AddParameter(dummy, "First_component_of_normal_if_prefailed");
+	list.AddParameter(dummy, "Second_component_of_normal_if_prefailed");
+	list.AddParameter(dummy, "First_component_of_slip_dir_if_prefailed");
+	list.AddParameter(dummy, "Second_component_of_slip_dir_if_prefailed");
+
+    //list.AddParameter(fPreFailedNormal[0], "First_component_of_normal_if_prefailed");
+	//list.AddParameter(fPreFailedNormal[1], "Second_component_of_normal_if_prefailed");
+	//list.AddParameter(fPreFailedSlipDir[0], "First_component_of_slip_dir_if_prefailed");
+	//list.AddParameter(fPreFailedSlipDir[1], "Second_component_of_slip_dir_if_prefailed");
+	
 }
 
 /* information about subordinate parameter lists */
@@ -128,8 +143,25 @@ void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
   fH_delta_0 = list.GetParameter("Post-Localization_softening_parameter_H_Delta"); 
   fNoBandDilation = list.GetParameter("Disallow_Dilation_on_Band");
   fLocalizedFrictionCoeff = list.GetParameter("Localized_Friction_Coefficient");
-  fFirstElementToLocalize = list.GetParameter("First_element_to_localize__Zero_for_non_homogeneous_loading");
+  fBVPType = list.GetParameter("BVP_type");
+  fFirstElementToLocalize = list.GetParameter("First_element_to_localize");
   fFirstElementToLocalize -= 1;	
+
+  if (fBVPType == kPreFailed)
+    {
+      fPreFailedNormal.Dimension(2);
+      fPreFailedSlipDir.Dimension(2);
+
+      fPreFailedNormal[0] = list.GetParameter("First_component_of_normal_if_prefailed");
+      fPreFailedNormal[1] = list.GetParameter("Second_component_of_normal_if_prefailed");
+      fPreFailedSlipDir[0] = list.GetParameter("First_component_of_slip_dir_if_prefailed");
+      fPreFailedSlipDir[1] = list.GetParameter("Second_component_of_slip_dir_if_prefailed");
+	  
+	  fPreFailedNormal.UnitVector();
+	  fPreFailedSlipDir.UnitVector();
+	  
+	  //PreFailElements();
+    }
 }
 
 /***********************************************************************
@@ -158,6 +190,8 @@ void SSEnhLocCraigT::FormKd(double constK)
     SmallStrainT::FormKd(constK);
   else 
       {
+	//cout << "SSEnhLocCraigT::FormKd\n";
+	  
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 
@@ -629,6 +663,13 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
             /* global shape function values */
             SetGlobalShape();
+			
+			/**********************************************************************/
+			jump_out.open_append("jump.info");
+			if(IsElementTraced())
+				jump_out << setw(16) << fBand->JumpIncrement() + fBand->Jump() << " ";
+			else
+			    jump_out << setw(16) << "0.0 ";	
 
             /* collect nodal values */
             if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum] || n_codes[iPoyntingVector]) {
@@ -959,6 +1000,7 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
   /* inherited */
   //SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
   
+  jump_out << endl;  
 
 }
 
@@ -983,7 +1025,7 @@ cout << "\n CloseStep \n \n";
 		SetGlobalShape();	
 
 
-	    	/* loop over integration point */
+	    	/* loop over integration points */
 	    	fShapes->TopIP();
 	      while (fShapes->NextIP())
 			{    
@@ -1034,19 +1076,25 @@ cout << "\n CloseStep \n \n";
       //choose first element then let band progress
       bool localizationHasBegun = false;
       Top();
+      //cout << "1 " << flush;
       while (NextElement())
 	{
 	  GetElement(CurrElementNumber());
 	  
+	  //cout << "2 " << flush;
+
 	  if (IsElementLocalized())
 	    localizationHasBegun = true;
-	  	}
+	}
       if (localizationHasBegun)
 	{
+          //cout << "3 " << flush;
+
 	  fLocalizationHasBegun = true;
 	  
 	  fEdgeOfBandElements.Current(0);
-	  
+
+
 	  cout << fEdgeOfBandElements.Current() << endl << flush;
 	  
 	  GetElement(fEdgeOfBandElements.Current());
@@ -1067,7 +1115,16 @@ cout << "\n CloseStep \n \n";
 	}
     }
 
-  SmallStrainT::CloseStep();		
+ //cout << "hi\n" << flush; 
+
+ if (fBVPType == kPreFailed && ElementSupport().Time() == 0.0)
+   {
+     //cout << "time = 0.0\n" << flush; 
+     PreFailElements();
+   }
+
+  SmallStrainT::CloseStep();
+  		
 }
 
 
@@ -1180,6 +1237,9 @@ bool SSEnhLocCraigT::IsElementLocalized()
   fShapes->TopIP();
   while ( fShapes->NextIP() )
     {
+      //if (CurrIP() == 0 && CurrElementNumber() == 0)
+      //cout << "stress = " << fCurrMaterial->s_ij() << endl;
+
       //checker.SetfStructuralMatSupport(*fSSMatSupport);
       if (fCurrMaterial->IsLocalized(normals, slipDirs, detA))
 	{
@@ -1209,7 +1269,8 @@ bool SSEnhLocCraigT::IsElementLocalized()
       fEdgeOfBandCoords.Current(fEdgeOfBandCoords.Position() - 1);
      }
     else
-      if ((fFirstElementToLocalize == -1 && detAMin < fDetAMin) || (CurrElementNumber() == fFirstElementToLocalize))
+      if ((fBVPType == kNonhomogeneous && detAMin < fDetAMin) || (fBVPType !=
+    kNonhomogeneous && CurrElementNumber() == fFirstElementToLocalize))
       {
 	fDetAMin = detAMin;
 	fEdgeOfBandElements.Free();
@@ -1221,6 +1282,42 @@ bool SSEnhLocCraigT::IsElementLocalized()
       }
 
   return locCheck;
+}
+
+void SSEnhLocCraigT::PreFailElements()
+{
+	fLocalizationHasBegun = true;
+	
+	AutoArrayT<dArrayT> normals;
+	AutoArrayT<dArrayT> slipDirs;
+	
+	normals.Append(fPreFailedNormal);
+	slipDirs.Append(fPreFailedSlipDir);
+
+	GetElement(fFirstElementToLocalize);
+	fEdgeOfBandCoords.Append(Centroid());
+	fEdgeOfBandCoords.Current(0);		
+	ChooseNormals(normals, slipDirs);
+	fEdgeOfBandCoords.DeleteAt(0);
+  
+	fEdgeOfBandElements.Top();
+	fEdgeOfBandCoords.Top();
+	
+	while(fEdgeOfBandElements.Next())
+	    {
+	      cout << "checking for localization of element " <<
+	      	fEdgeOfBandElements.Current() << endl; 
+
+		  fEdgeOfBandCoords.Next();
+	      GetElement(fEdgeOfBandElements.Current());    
+		  ChooseNormals(normals, slipDirs);	
+	
+      /* remove element from list of Edge elements*/
+      fEdgeOfBandElements.DeleteAt(fEdgeOfBandElements.Position());
+      fEdgeOfBandElements.Current(fEdgeOfBandElements.Position() -1);
+      fEdgeOfBandCoords.DeleteAt(fEdgeOfBandCoords.Position());  
+      fEdgeOfBandCoords.Current(fEdgeOfBandCoords.Position() - 1);	
+	}
 }
 
 void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs)
@@ -1258,18 +1355,25 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
 
   while(normals.Next())
     {
+      cout << "current normal = \n" << normals.Current() << endl; 
       slipDirs.Next();
       prod = fabs( avgGradU.MultmBn(normals.Current(), slipDirs.Current()));
+      //prod = (normals.Current() [1]) * (normals.Current() [2]);
       if (prod > maxProd)
 	{
+	  cout << "best normal = \n" << normals.Current() << endl; 
 	  normal = normals.Current(); 
 	  slipDir = slipDirs.Current();
+          //maxProd = prod;
 	}
     }
 
   //make sure slip direction is dilatant
   if (normal.Dot(normal, slipDir)<0.0)
     slipDir *= -1.0;
+
+  normal *= -1.0;
+  slipDir *= -1.0;
 
   perpSlipDir = slipDir;
   perpSlipDir.AddScaled(-1.0*slipDir.Dot(slipDir, normal), normal);
@@ -1280,17 +1384,33 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
       slipDir = perpSlipDir;
     }
 
-  //get centroid - 
-  //later this can be point on edge if neighboring element is localized
-  //dArrayT centroid = Centroid();
 
+  fBand = FormNewBand(normal, slipDir, perpSlipDir, fEdgeOfBandCoords.Current(), area);
+
+  //cout << "1 " << flush;
+
+  fTracedElements.Insert(CurrElementNumber(), fBand);
+
+  //cout << "2 " << flush;
+
+  AddNewEdgeElements(CurrElementNumber());
+  
+  //cout << "3 " << flush;
+}
+
+BandT* SSEnhLocCraigT::FormNewBand(dArrayT normal, dArrayT slipDir,
+dArrayT perpSlipDir, dArrayT coords, double area)
+{
   ArrayT<dSymMatrixT> stressList;
   stressList.Dimension(NumIP());
+
+  const double* Det    = fShapes->IPDets();
+  const double* Weight = fShapes->IPWeights();
+  //double area = 0.0;
 
   /*for residual cohesion*/
   double normalStress = 0.0;
   double shearStress = 0.0;
-  //double area = 0.0;
 
   Det    = fShapes->IPDets();
   Weight = fShapes->IPWeights();
@@ -1312,32 +1432,13 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   shearStress = fabs(shearStress)/area;
 
   double residCohesion = shearStress + normalStress * fLocalizedFrictionCoeff;
+
+  if (fBVPType == kPreFailed && ElementSupport().Time() == 0.0)
+    residCohesion = 0.0;
+
   cout << "residCohesion = " << residCohesion << endl;
-  
-    cout << "normal = " << normal << endl;
-    cout << "slipDir = " << slipDir << endl;
-  cout << "perpSlipDir = " << perpSlipDir << endl;
-  cout << "fEdgeOfBandCoords.Current() = " << fEdgeOfBandCoords.Current() << endl;
 
-  cout << "stressList[0] = " << stressList[0] << endl;
 
-  fBand = FormNewBand(normal, slipDir, perpSlipDir, fEdgeOfBandCoords.Current(), residCohesion, stressList);
-
-  cout << "1 " << flush;
-
-  fTracedElements.Insert(CurrElementNumber(), fBand);
-
-  cout << "2 " << flush;
-
-  AddNewEdgeElements(CurrElementNumber());
-  
-  cout << "3 " << flush;
-}
-
-BandT* SSEnhLocCraigT::FormNewBand(dArrayT normal, dArrayT slipDir,
-dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
-stressList)
-{
   //cout << "coords =\n" << coords << endl;
 return new BandT(normal, slipDir, perpSlipDir, coords, fH_delta_0, residCohesion, stressList, this);
 }

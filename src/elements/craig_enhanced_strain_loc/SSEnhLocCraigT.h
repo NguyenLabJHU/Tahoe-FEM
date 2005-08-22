@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.12 2005-07-08 04:01:18 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.13 2005-08-22 20:40:09 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -9,6 +9,8 @@
 
 #include "HookeanMatT.h"
 #include "MapT.h"
+
+#include "ofstreamT.h"
 
 namespace Tahoe{
 
@@ -26,6 +28,10 @@ namespace Tahoe{
 	/** destructor */
 	//~SSEnhLocCraigT(void);
 
+	enum BVPTypeT {kNonhomogeneous = 0,
+             kHomogeneous,
+             kPreFailed,
+             kNumBVPTypes};
 
 	/** \name total strain */
 	/*@{*/
@@ -71,6 +77,8 @@ protected:
 	virtual void SetGlobalShape(void);
 	virtual bool LocalizationHasBegun(void) {return
 						 fLocalizationHasBegun;};
+	virtual void PreFailElements();
+						 
 
   private:
 
@@ -84,8 +92,16 @@ protected:
 	AutoArrayT<dArrayT> fEdgeOfBandCoords;
 	static bool fLocalizationHasBegun;
 	static double fDetAMin;
+	
+	ofstreamT jump_out;
+	
   protected:
     
+	//BVPTypeT fBVPType;
+	int fBVPType;
+	dArrayT fPreFailedNormal;
+	dArrayT fPreFailedSlipDir;
+
 	BandT *fBand;
 	double fH_delta_0;
 	bool fNoBandDilation;
@@ -113,8 +129,7 @@ protected:
 	virtual bool IsBandActive();
 	virtual void LoadBand(int elementNumber);
 	virtual BandT* FormNewBand(dArrayT normal, dArrayT slipDir,
-				   dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
-stressList);
+				   dArrayT perpSlipDir, dArrayT coords, double area);
 	virtual void AddNewEdgeElements(int elementNumber);
 	virtual dArrayT InterceptCoords(dArrayT& localizedEleCoord, dArrayT& nodalCoord1, dArrayT& nodalCoord2);
 

@@ -49,8 +49,10 @@ double DieterichBandT::SlipRateLast()
 
 void DieterichBandT::CloseStep()
 {
-  /* inherited */
-  BandT::CloseStep();
+  /* no longer inherited - with new cohesion softening model, 
+    only track initial residual cohesion*/
+  //BandT::CloseStep();
+    IncrementJump();
 
   /* update ISV theta */
   fLastTheta = fTheta;

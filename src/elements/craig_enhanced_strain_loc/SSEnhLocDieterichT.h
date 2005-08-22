@@ -30,8 +30,7 @@ namespace Tahoe {
       virtual bool IsBandActive();
 
       virtual BandT* FormNewBand(dArrayT normal, dArrayT slipDir,
-				 dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
-				 stressList);
+				 dArrayT perpSlipDir, dArrayT coords, double area);
       
       virtual void CloseStep(void);
 
@@ -39,6 +38,7 @@ namespace Tahoe {
       virtual void LoadBand(int elementNumber);
 
       /* math functions for jump increment */
+	  virtual double NewCohesion(double slipRate, double jumpIncrement, double thetaNew);
       virtual dSymMatrixT StressIncrOnBand(double jumpIncrement);
       virtual dSymMatrixT LastStressOnBand();
       virtual dSymMatrixT AvgStrainRelaxation(double jumpIncrement);
@@ -52,6 +52,8 @@ namespace Tahoe {
       virtual double ThetaNew(double slipRate);
       virtual  double Phi(double slipRate, double jumpIncrement, double thetaNew);
       virtual double DPhidSlipRate(double slipRate, double jumpIncr, double thetaNew);
+	  virtual double DCohesiondSlipRate(double slipRate, double jumpIncr, double thetaNew);
+	  virtual double DNormalStressdSlipRate(double jumpIncr);
       virtual dSymMatrixT DSigmadSlipRate(double JumpIncrement);
       virtual double DjumpdSlipRate();
       virtual double DmudSlipRate(double slipRate, double thetaNew);

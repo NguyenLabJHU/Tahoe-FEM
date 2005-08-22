@@ -29,7 +29,7 @@ class BandT
     virtual double ResidualCohesion() const;
     virtual double Jump() const;
     virtual double JumpIncrement() const;
-    //virtual void IncrementJump ();
+    virtual void IncrementJump ();
     virtual void StoreJumpIncrement(double increment);
     //void CloseStep();
     virtual dSymMatrixT Stress_List(int ip);

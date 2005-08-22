@@ -94,12 +94,12 @@ double BandT::JumpIncrement() const
   return fJumpIncrement;
 }
 
-/*
+
 void BandT::IncrementJump ()
 {
   fJump += fJumpIncrement;
 }
-*/
+
 
 void BandT::StoreJumpIncrement(double increment)
 {
