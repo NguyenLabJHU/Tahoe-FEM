@@ -20,6 +20,9 @@
                 </block_ID_list>
                 <large_strain_material_2D>
                     <hex_2D density="1.0" shells="5">
+                        <CB_lattice_Hex>
+                            <HEX2D_natural/>
+                        </CB_lattice_Hex>
                         <Lennard_Jones cut_off_distance="2.63"
                             energy_scaling="0.5678950796453064"
                             length_scaling="2.62311730030557" mass="196.97 "/>

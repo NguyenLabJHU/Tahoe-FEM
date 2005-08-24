@@ -30,6 +30,9 @@
                 </block_ID_list>
                 <large_strain_material_2D>
                     <hex_2D density="1.0" shells="1">
+                        <CB_lattice_Hex>
+                            <HEX2D_natural/>
+                        </CB_lattice_Hex>
                         <harmonic mass="1.0" rest_length="1.0" stiffness="1.0"/>
                     </hex_2D>
                 </large_strain_material_2D>
