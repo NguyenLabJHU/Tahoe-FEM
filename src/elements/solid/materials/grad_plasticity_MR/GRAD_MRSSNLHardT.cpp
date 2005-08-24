@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.13 2005-08-20 14:51:56 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.14 2005-08-24 22:17:46 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -244,16 +244,20 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     //cout << endl << "qn = " << endl << qn << endl;
     
     Yield_f(Sig, qn, ff);
+    
+    /* if yield condition is satisfied, but lambda is zero
+       skip plastic part, and send back current stresses and 
+       internal variables to the global level
+    */ 
     if (ff < kYieldTol) 
     {
-      //cout << "yield condition = " << ff << endl;
       iplastic = 0;
       state[34] = ff;
       state[39] = ff;
       kk = 0;
     }
       
-    else 
+    else if (ff > kYieldTol && dlam > kYieldTol)  
     {
       cout << endl << " ip yield condition satisfied!!! " << ff << endl;
       cout << "dlam = " << dlam << endl;
@@ -407,7 +411,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	state[36] = lap_dlam;
 	state[37] = double(iplastic);
 	state[38] = double(kk);
-	
+ 	
 	fYield = state[34];
 	for (int i = 0; i < 6; i++) 
 		fStressCorr[i] = state[i];
@@ -423,7 +427,10 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	      	else if (i > 23 && i < 30)
 	        	fLapPlasticStrain[i-24] = state[i];
 	   }
-	}		
+	}
+	
+	for (int i = 0; i < 4; i++)
+		cout << fInternal[i+30] << endl << endl;		
  return fStressCorr;
 }	//end StressCorrection
 
@@ -1312,10 +1319,15 @@ int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 	  const dSymMatrixT& lap_trialstrain, ElementCardT& element, int ip) 
 {
 	/* not yet plastic */
-	if (!element.IsAllocated()) 
+	if (!element.IsAllocated()) { 
+		cout << "!element.IsAllocated()" << endl;
+		double yield = YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
+			   MeanStress(trialstrain,lap_trialstrain,element));
+		cout << "failure fun = " << yield;
 		return( YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
 			   MeanStress(trialstrain,lap_trialstrain,element)) > kYieldTol );
         /* already plastic */
+    }
 	else 
 	{
 	/* get flags */

@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.7 2005-08-20 14:40:21 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.8 2005-08-24 22:17:15 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -377,6 +377,8 @@ void MFGPElementT::CheckNodalYield()
 
 				/* compute material output */
 				fCurrMaterial->ComputeOutput(ipmat);
+				
+				//cout << endl << "ip_int_var = " << endl << ipmat << endl;
 
 				/* store nodal data */
 				fShapes_displ->Extrapolate(ipmat, matdat);
@@ -418,6 +420,9 @@ void MFGPElementT::CheckNodalYield()
 	yield_flags = 0;
 	for (int i = 0; i < n_nodes; i++) {
 		ComputeNodalYield(stress_data[i], mat_data[i], yield);
+		//cout << endl << "stress = " << endl << stress_data[i] << endl;
+		//cout << endl << "int variable =" << endl << mat_data[i] << endl;
+		//cout << "ff = " << endl << yield << endl;
 		if (yield > tol) {
 			yield_flags[i] = 1;
 			cout << "nodal yield condition satisfied! " << endl;
