@@ -1,4 +1,4 @@
-/* $Id: Environment.h,v 1.13 2005-06-24 16:35:10 paklein Exp $ */
+/* $Id: Environment.h,v 1.14 2005-08-24 06:28:16 paklein Exp $ */
 /* created: paklein (02/10/1997)                                          */
 /* Environment.h                                                          */
 /* defining environment-specific preprocessor symbols and options         */
@@ -21,6 +21,12 @@
 
 /* Visual C++ */
 #ifdef _MSC_VER
+
+/* older than 7.0 - for loop scoping */
+#if (_MSC_VER < 1300)
+#define for if(0);else for
+#endif
+
 #define _WINNT_
 #pragma warning(disable:4068) //disable unknown MWERKS pragma warnings
 #endif
@@ -30,7 +36,7 @@
 #ifndef _WINNT_
 #define _UNIX__
 #endif
-#endif
+#endif /* _MSC_VER */
 
 /*************************************************************************/
 /************************* error checking code ***************************/
