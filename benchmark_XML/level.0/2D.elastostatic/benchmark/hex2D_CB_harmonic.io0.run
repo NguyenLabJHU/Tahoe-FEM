@@ -1,0 +1,69 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 7
+ Labels:
+	D_X
+	D_Y
+	x1
+	x2
+	s11
+	s22
+	s12
+ Number of element values. . . . . . . . . . . . = 25
+ Labels:
+	U
+	ip1.s11
+	ip1.s22
+	ip1.s12
+	ip1.e11
+	ip1.e22
+	ip1.e12
+	ip2.s11
+	ip2.s22
+	ip2.s12
+	ip2.e11
+	ip2.e22
+	ip2.e12
+	ip3.s11
+	ip3.s22
+	ip3.s12
+	ip3.e11
+	ip3.e22
+	ip3.e12
+	ip4.s11
+	ip4.s22
+	ip4.s12
+	ip4.e11
+	ip4.e22
+	ip4.e12
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 4
+ Number of elements. . . . . . . . . . . . . . . = 1
+
+ O U T P U T   D A T A :  T O C
+hex2D_CB_harmonic.io0.run.ps0000
+hex2D_CB_harmonic.io0.run.ps0001
+hex2D_CB_harmonic.io0.run.ps0002
+hex2D_CB_harmonic.io0.run.ps0003
+hex2D_CB_harmonic.io0.run.ps0004
+hex2D_CB_harmonic.io0.run.ps0005
+hex2D_CB_harmonic.io0.run.ps0006
+hex2D_CB_harmonic.io0.run.ps0007
+hex2D_CB_harmonic.io0.run.ps0008
+hex2D_CB_harmonic.io0.run.ps0009
+hex2D_CB_harmonic.io0.run.ps0010
+hex2D_CB_harmonic.io0.run.ps0011
+hex2D_CB_harmonic.io0.run.ps0012
+hex2D_CB_harmonic.io0.run.ps0013
+hex2D_CB_harmonic.io0.run.ps0014
+hex2D_CB_harmonic.io0.run.ps0015
+hex2D_CB_harmonic.io0.run.ps0016
+hex2D_CB_harmonic.io0.run.ps0017
+hex2D_CB_harmonic.io0.run.ps0018
+hex2D_CB_harmonic.io0.run.ps0019
