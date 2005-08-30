@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.7 2005-05-21 06:44:06 paklein Exp $
+# $Id: run.batch,v 1.8 2005-08-30 07:23:01 jzimmer Exp $
 CSE.1.xml
 CSE.1a.xml
 CSE.1b.xml
@@ -25,4 +25,7 @@ tri3.xml
 tri6.xml
 cse.pre-crack.1.xml
 cse.pre-crack.2.xml
-
+hex2D_90_CB_LJ5.xml
+hex2D_CB_LJ2.xml
+hex2D_CB_LJ5.xml
+hex2D_CB_harmonic.xml
