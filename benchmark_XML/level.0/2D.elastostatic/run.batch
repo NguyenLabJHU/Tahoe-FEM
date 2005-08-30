@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.8 2005-08-30 07:23:01 jzimmer Exp $
+# $Id: run.batch,v 1.9 2005-08-30 07:54:45 jzimmer Exp $
 CSE.1.xml
 CSE.1a.xml
 CSE.1b.xml
@@ -29,3 +29,4 @@ hex2D_90_CB_LJ5.xml
 hex2D_CB_LJ2.xml
 hex2D_CB_LJ5.xml
 hex2D_CB_harmonic.xml
+hex2D_rot_CB_LJ5.xml
