@@ -1,4 +1,4 @@
-/* $Id: HexLattice2DT.h,v 1.4 2005-08-24 03:00:54 jzimmer Exp $ */
+/* $Id: HexLattice2DT.h,v 1.5 2005-08-30 07:16:49 jzimmer Exp $ */
 #ifndef _HEX_LATTICE_2D_T_H_
 #define _HEX_LATTICE_2D_T_H_
 
@@ -21,8 +21,8 @@ public:
         /** orientation codes - for crystal axes rotated wrt global axes*/
         enum OrientationCodeT {
         kHEX2Dnatural = 0,
-            kHEX2D_90 = 1,
-            kRotationAngle = 2};
+        kHEX2D90 = 1,
+        kRotationAngle = 2};
 
 	/** constructor */
 	HexLattice2DT(int nshells);

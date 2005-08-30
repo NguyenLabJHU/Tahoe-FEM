@@ -1,4 +1,4 @@
-/* $Id: HexLattice2DT.cpp,v 1.4 2005-08-24 03:00:54 jzimmer Exp $ */
+/* $Id: HexLattice2DT.cpp,v 1.5 2005-08-30 07:16:49 jzimmer Exp $ */
 #include "HexLattice2DT.h"
 #include "ParameterContainerT.h"
 
@@ -42,12 +42,8 @@ ParameterInterfaceT* HexLattice2DT::NewSub(const StringT& name) const
                 ParameterContainerT natural("HEX2D_natural");
                 orientation->AddSub(natural);
 
-                ParameterContainerT HEX2D_90("HEX2D_90");
-                ParameterT HEX2D_90_type(ParameterT::Enumeration, "sense");
-                HEX2D_90_type.AddEnumeration("90 degree rotation of lattice",0);
-                HEX2D_90_type.SetDefault(0);
-                HEX2D_90.AddParameter(HEX2D_90_type);
-                orientation->AddSub(HEX2D_90);
+                ParameterContainerT HEX2D90("HEX2D_90");
+                orientation->AddSub(HEX2D90);
 
                 ParameterContainerT Rotation_angle("HEX2D_Rotation_angle");
                 Rotation_angle.AddParameter(ParameterT::Double, "phi");
@@ -90,16 +86,8 @@ void HexLattice2DT::SetQ(const ParameterListT& list, dMatrixT& Q)
                 Q.Identity();
         else if (list.Name() == "HEX2D_90")
         {
-                double cos45 = 0.5*sqrt2;
-
-                int sense = list.GetParameter("sense");
-                if (sense == 0) /* 90 degree rotation of lattice */ {
-                        Q(0,0) = Q(1,1) = cos45;
-                        Q(0,1) =-cos45;
-                        Q(1,0) = cos45;
-                }
-                else
-                        ExceptionT::GeneralFail(caller, "unrecognized 90 sense %d", sense);
+                Q(0,1) = 1.0;
+		Q(1,0) = -1.0;
         }
         else
                 ExceptionT::GeneralFail(caller, "unrecognized orientation \"%s\"", list.Name().Pointer());
