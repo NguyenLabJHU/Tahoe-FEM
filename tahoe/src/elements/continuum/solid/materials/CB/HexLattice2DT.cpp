@@ -1,4 +1,4 @@
-/* $Id: HexLattice2DT.cpp,v 1.5 2005-08-30 07:16:49 jzimmer Exp $ */
+/* $Id: HexLattice2DT.cpp,v 1.6 2005-08-30 07:53:40 jzimmer Exp $ */
 #include "HexLattice2DT.h"
 #include "ParameterContainerT.h"
 
@@ -89,7 +89,15 @@ void HexLattice2DT::SetQ(const ParameterListT& list, dMatrixT& Q)
                 Q(0,1) = 1.0;
 		Q(1,0) = -1.0;
         }
-        else
+        else if (list.Name() == "HEX2D_Rotation_angle")
+	{
+        	double phi = list.GetParameter("phi");
+		double cosphi = cos(phi);
+		double sinphi = sin(phi);
+                Q(0,0) = cosphi; Q(0,1) = -sinphi;
+		Q(1,0) = sinphi; Q(1,1) = cosphi;
+	}
+	else
                 ExceptionT::GeneralFail(caller, "unrecognized orientation \"%s\"", list.Name().Pointer());
 }
 
