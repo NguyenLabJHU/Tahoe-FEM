@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.14 2005-08-24 22:17:46 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.15 2005-08-31 16:57:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -109,7 +109,9 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     
     /* initialize */
     dRHS = 0.0; dLHS = 0.0;
-    KE = 0.; KE_AST = 0.; 
+    KE = 0.; KE_AST = 0.;
+    fIVFlag = 0; // elastic or plastic but zero lambda value
+    fIniInternal = 0.; 
     
 	/* length scales parameters */
 	ls[0] = flse_v; // lse_v: pore space length scale (elastic)  
@@ -137,16 +139,14 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 		u[ij] = trialstrain(i,j);
 		lap_u[ij] = lap_trialstrain(i,j);
 	} 
-	
+        
 	PLI = PlasticLoading(trialstrain, lap_trialstrain, element, ip);
 	
 	if (PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
 	    element.IsAllocated()) 
     {
 	  LoadData(element, ip);
-	  for (int i = 0; i < 39; i++) {
-       state[i] = fInternal[i];   
-      }
+	  state.CopyIn(0, fInternal);
 	}
     
 	if (!PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
@@ -159,7 +159,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
         double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
         double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
-        state = 0.;
+        state = 0.; 
         state[30] = fchi;
         state[31] = fc;
         state[32] = ftan_phi;
@@ -265,6 +265,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
       state[39] = ff;
       kk = 0;
       iplastic = 1;
+      fIVFlag = 1;
       while (ff > fTol_1) 
       {
         if (kk > 500) 
@@ -415,6 +416,9 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	fYield = state[34];
 	for (int i = 0; i < 6; i++) 
 		fStressCorr[i] = state[i];
+	
+	for (int i = 0; i < 4; i++) 
+		fIniInternal[i] = state[i+30];
     
 	if (iplastic > 0) 
 	{
@@ -428,9 +432,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	        	fLapPlasticStrain[i-24] = state[i];
 	   }
 	}
-	
-	for (int i = 0; i < 4; i++)
-		cout << fInternal[i+30] << endl << endl;		
+				
  return fStressCorr;
 }	//end StressCorrection
 
@@ -1243,6 +1245,7 @@ void GRAD_MRSSNLHardT::TakeParameterList(const ParameterListT& list)
 	IdentityMatrix3.Dimension(3); 
 	IdentityMatrix4.Dimension(4);
 	IdentityMatrix6.Dimension(6);
+	fIniInternal.Dimension(4);
     
 	/* initialize constant matrices */
 	IdentityMatrix3.Identity();
@@ -1320,10 +1323,11 @@ int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 {
 	/* not yet plastic */
 	if (!element.IsAllocated()) { 
-		cout << "!element.IsAllocated()" << endl;
-		double yield = YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
-			   MeanStress(trialstrain,lap_trialstrain,element));
-		cout << "failure fun = " << yield;
+		//cout << "!element.IsAllocated()" << endl;
+		//double yield = YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
+			   //MeanStress(trialstrain,lap_trialstrain,element));
+		//cout << "failure fun = " << yield;
+		
 		return( YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
 			   MeanStress(trialstrain,lap_trialstrain,element)) > kYieldTol );
         /* already plastic */

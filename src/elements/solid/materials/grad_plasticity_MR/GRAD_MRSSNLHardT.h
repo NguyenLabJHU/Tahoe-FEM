@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.h,v 1.9 2005-08-20 14:51:56 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.h,v 1.10 2005-08-31 16:57:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -38,7 +38,7 @@ public:
 	enum LoadingStatusT {kIsPlastic = 0,
                          kIsElastic = 1,
                        kIsLocalized = 2, 
-                             kReset = 3}; // indicate not to repeat update
+                             kReset = 3,}; // indicate not to repeat update 
                              
 	/* returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
@@ -95,6 +95,9 @@ public:
 	
 	/* return yield condition, f */
 	const double& YieldFunction(void) const { return fYield; };
+	
+	/* return 1 if yield condition satisfied and lambda is positive */
+	int InitalIV(void) { return fIVFlag;};
 
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
@@ -109,6 +112,9 @@ public:
 
 	/** internal variables */
 	dArrayT& Internal(void) { return fInternal; };
+	
+	/* initial internal variables */
+	dArrayT& IniInternal(void) { return fIniInternal; };
 	
 	/* element level data */
 	void Update(ElementCardT& element);
@@ -145,7 +151,9 @@ public:
   	/* element level internal state variables */
   	dSymMatrixT fPlasticStrain; // total plastic strain (deviatoric and volumetric)
   	dSymMatrixT fLapPlasticStrain; // Laplacian of total plastic strain (deviatoric and volumetric)
-  	dArrayT     fInternal;      //internal variables
+  	dArrayT     fInternal;      // internal variables
+  	dArrayT     fIniInternal;      // initial internal variables
+  	int fIVFlag; // fIVFlag = 1 if plastic and lambda is positive  
 
   private:
 
