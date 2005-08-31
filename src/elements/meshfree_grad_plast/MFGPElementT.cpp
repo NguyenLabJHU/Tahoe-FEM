@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.8 2005-08-24 22:17:15 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.9 2005-08-31 16:52:24 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -321,7 +321,7 @@ void MFGPElementT::CheckNodalYield()
 	/* dimensions */
 	int nen = NumElementNodes();
 	int nnd = ElementSupport().NumNodes();
-	int nstrs = dSymMatrixT::NumValues(NumSD());
+	int nstrs = fB1.Rows();
 	
 	/* number of output values */
 	int n_out, n_stressdata, n_matdata, nsd;
@@ -371,17 +371,20 @@ void MFGPElementT::CheckNodalYield()
 				/* get Cauchy stress */
 				const dSymMatrixT& stress = fCurrMaterial->s_ij();
 				cauchy.Translate(stress);
+				//cout << endl << "ip_stress = " << endl << stress << endl;
 
 				/* stresses */       
 				fShapes_displ->Extrapolate(cauchy, nodalstress);
+				//cout << endl << "nodal_stress = " << endl << nodalstress << endl;
 
 				/* compute material output */
 				fCurrMaterial->ComputeOutput(ipmat);
-				
 				//cout << endl << "ip_int_var = " << endl << ipmat << endl;
 
 				/* store nodal data */
 				fShapes_displ->Extrapolate(ipmat, matdat);
+				//cout << endl << "nodal_int_var = " << endl << matdat << endl;
+				
 			} // while (fShapes_displ->NextIP())
 
 			/* copy in the cols */
@@ -404,12 +407,13 @@ void MFGPElementT::CheckNodalYield()
 		mat_data[i].Dimension(n_matdata);
 	}
 	
+	/* collect stresses and internal variables separately */
 	for (int i = 0; i < n_nodes; i++) {
 		for (int j = 0; j < n_out; j++) { 
 			if (j < n_stressdata)
-				stress_data[i] = n_values(i, j); 
+				stress_data[i][j] = n_values(i)[j]; 
 			else
-				mat_data[i] = n_values(i,j);
+				mat_data[i][j-n_stressdata] = n_values(i)[j];
 		}
 	}
 	
@@ -420,9 +424,10 @@ void MFGPElementT::CheckNodalYield()
 	yield_flags = 0;
 	for (int i = 0; i < n_nodes; i++) {
 		ComputeNodalYield(stress_data[i], mat_data[i], yield);
-		//cout << endl << "stress = " << endl << stress_data[i] << endl;
-		//cout << endl << "int variable =" << endl << mat_data[i] << endl;
-		//cout << "ff = " << endl << yield << endl;
+		//cout << "node # " << i << endl;
+		//cout << "nodal stress = " << endl << stress_data[i] << endl;
+		//cout << "nodal int_variable =" << endl << mat_data[i] << endl;
+		//cout << "yield function = " << yield << endl << endl;
 		if (yield > tol) {
 			yield_flags[i] = 1;
 			cout << "nodal yield condition satisfied! " << endl;
@@ -445,17 +450,22 @@ const double& MFGPElementT::ComputeNodalYield(const dArrayT& Sig, const dArrayT&
   double fc, fchi, ffriction, fpress;
   dMatrixT devstress(3,3);
   devstress = 0.0;
-  if (Sig.Length() == 4) 
-  {
-    fpress  = Sig[0]+Sig[1]+Sig[3];
+  if (Sig.Length() == 4) {
+    fpress  = Sig[0]+Sig[1]+Sig[3]; // Sig = transpose <sig11 sig22 sig12 sig33>
     fpress /=3.;
   	devstress(0,0) = Sig[0] - fpress;
   	devstress(1,1) = Sig[1] - fpress;
   	devstress(2,2) = Sig[3] - fpress;
   	devstress(0,1) = devstress(1,0) = Sig[2];
   }
-  if (Sig.Length() == 6)
-  {
+  else if (Sig.Length() == 3) {
+    fpress  = Sig[0]+Sig[1];
+    fpress /=3.;
+  	devstress(0,0) = Sig[0] - fpress;
+  	devstress(1,1) = Sig[1] - fpress;
+  	devstress(0,1) = devstress(1,0) = Sig[2];
+  }
+  else {
   	fpress  = Sig[0]+Sig[1]+Sig[2];
   	fpress /=3.;
   	devstress(0,0) = Sig[0] - fpress;
