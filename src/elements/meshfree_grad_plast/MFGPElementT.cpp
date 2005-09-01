@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.9 2005-08-31 16:52:24 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.10 2005-09-01 01:09:13 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -430,7 +430,7 @@ void MFGPElementT::CheckNodalYield()
 		//cout << "yield function = " << yield << endl << endl;
 		if (yield > tol) {
 			yield_flags[i] = 1;
-			cout << "nodal yield condition satisfied! " << endl;
+			cout << "nodal yield condition satisfied!  " << yield << endl;
 		}
 	}
 	
@@ -1259,7 +1259,7 @@ void MFGPElementT::FormKd(double constK)
 		
 		fFlambda_temp = fPsiLam[0];
 		fFlambda_temp *= fCurrMaterial->YieldF(); // Flambda_int: [nnd]
-		
+
 		/* accumulate */
 		fFlambda.AddScaled(scale, fFlambda_temp);
 	}

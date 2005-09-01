@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.8 2005-08-20 14:40:20 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.9 2005-09-01 01:09:13 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -1983,8 +1983,10 @@ void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
 		
 		/* if the same elastic nodes come back (during element-loop) 
 		   with non-zero fFlambda value, although previously prescribed 
-		   to zero, set fFlambda to zero for that node */ 
-		if (fNodalYieldFlags[j] == 0 && fPenaltyFlags[j] == 1)
+		   to zero, OR nodes are plastic but initially have zero lambda value, 
+		   set fFlambda to zero for that node */ 
+		if (fNodalYieldFlags[j] == 0 && fPenaltyFlags[j] == 1 
+			|| fNodalYieldFlags[j] == 1 && lambda[j] < tol)
 			fFlambda[j] = 0.0;
 	}
 }
