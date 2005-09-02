@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.h,v 1.6 2005-06-28 14:45:39 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.h,v 1.7 2005-09-02 02:07:50 d-farrell2 Exp $ */
 #ifndef _BRIDGING_SCALE_MANAGER_H_
 #define _BRIDGING_SCALE_MANAGER_H_
 
@@ -85,8 +85,6 @@ private:
 	TimeManagerT* fCoarse_time_manager;
 	dArrayT fFx, fTempx;	// some arrays for the NtF calculation (perhaps don't need?)
 	nMatrixT<int> fGhostonmap, fGhostoffmap;
-	
-	// Misc. parameters for MD/THK only 
 		
 };
 

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.16 2005-06-28 14:45:39 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.17 2005-09-02 02:07:50 d-farrell2 Exp $ */
 
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
@@ -26,21 +26,12 @@ public:
 	FEManagerT_THK(const StringT& input, ofstreamT& output, CommunicatorT& comm,
 		const ArrayT<StringT>& argv, TaskT task);
 
-	/** return array containing atom numbers of boundary and ghost atoms - 2D version **/
-	const iArrayT& InterpolationNodes2D(void);
-	
-	/** return array containing atom numbers of boundary and ghost atoms - 3D veresion **/
-	const iArrayT& InterpolationNodes3D(void);
+	/** return array containing atom numbers of boundary and ghost atoms **/
+	const iArrayT& InterpolationNodes(void);
 	
 	/** predictor routine for FEM solution interpolated to MD boundary atoms.
 		predictor and corrector combined because of constant acceleration assumption.  **/
 	void BAPredictAndCorrect(double timestep, dArray2DT& badisp, dArray2DT& bavel, dArray2DT& baacc);
-	
-	/** calculate THK force on boundary atoms for 2D disp/force formulation **/
-	const dArray2DT& THKForce2D(const StringT& bridging_field, const dArray2DT& badisp);
-
-	/** calculate THK force on boundary atoms for 3D disp/force formulation **/
-	const dArray2DT& THKForce3D(const StringT& bridging_field, const dArray2DT& badisp);
 	
 	/** calculate THK displacement for ghost atoms for 2/3D disp formulation **/
 	const dArray2DT& THKDisp(const StringT& bridging_field, const dArray2DT& badisp);
@@ -59,14 +50,8 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	
-	/** 2D Bridging Scale Initialization */
-	void Initialize2D(void);
-
-	/** 3D Bridging Scale Initialization */
-	void Initialize3D(void);
-	
-	/** 2D/3D MD/THK Initialization */
-	void InitializeMDTHK(void);
+	/** 2D/3D MD/THK and BSM THK Initialization */
+	void InitializeTHK(bool ignore_continuum);
 	
 	/** accessor for the ghostoffmapping */
 	const nMatrixT<int> GetGhostMap(void) { return fghostoffmap;};
@@ -93,7 +78,7 @@ private:
 	/** \name input parameters */
 	/*@{*/
 	int fNcrit;
-	double fTcrit, fLatticeParameter, fSearchParameter;
+	double fTcut, fLatticeParameter, fSearchParameter;
 	StringT fThetaFile, fGhostMapFile;
 	ArrayT<StringT> fTHKNodes, fTHKGhostNodes;
 	/*@}*/
@@ -114,7 +99,7 @@ private:
 	int fmax_thk_bound_length;
 	int fnumsets;
 	
-	int ftotal_b_atoms; // total number of boundary atoms
+	int ftotal_b_atoms, ftotal_g_atoms; // total number of boundary atoms, ghost atoms
 	
 	// array of THK BC plane normals
 	ArrayT<dArrayT> fTHK_normals; 
@@ -137,12 +122,6 @@ private:
 	/** file containing the fourier coefficients for the sine series used to calculate Theta matrices */
 	// size: [n_sets] - 1 entry per set
 	ArrayT<StringT> fThetaFile_array;
-	
-	// information for special atoms (corners and edges)
-	StringT fSpecAtomFile;
-	int fnum_spec_atoms; // number of special atoms
-	ArrayT<iArrayT> fSpecAtomInfo; // special atom information array size: [# spec atoms] x [# sets atom is in + 2]
-	iArrayT fSpecAtomID; // array of the atom number of the special atoms
 	
 	// parameter which allows the scaling of Tcrit and the Bn's for the sine series (defaults to 1)
 	// This allows fourier sine coeffs calculated for k,m = 1 to be used for any k, m it is sqrt(k/m) for the desired values
