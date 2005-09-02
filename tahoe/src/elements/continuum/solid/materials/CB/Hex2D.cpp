@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.7 2005-08-24 03:00:54 jzimmer Exp $ */
+/* $Id: Hex2D.cpp,v 1.6 2005-02-17 17:38:53 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -65,9 +65,6 @@ void Hex2D::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	NL_E_MatT::DefineSubs(sub_list);
 
-        /* Hexagonal lattice */
-        sub_list.AddSub("CB_lattice_Hex");
-
 	/* pair potential choice */
 	sub_list.AddSub("hex_2D_potential_choice", ParameterListT::Once, true);
 }
@@ -97,8 +94,6 @@ ParameterInterfaceT* Hex2D::NewSub(const StringT& name) const
 	PairPropertyT* pair_prop = PairPropertyT::New(name, fMaterialSupport);
 	if (pair_prop)
 		return pair_prop;
-        else if (name == "CB_lattice_Hex")
-		return new HexLattice2DT(0);
 	else /* inherited */
 		return NL_E_MatT::NewSub(name);
 }
@@ -127,7 +122,6 @@ void Hex2D::TakeParameterList(const ParameterListT& list)
 
 	/* construct the bond tables */
 	fHexLattice2D = new HexLattice2DT(nshells);
-	fHexLattice2D->TakeParameterList(list.GetList("CB_lattice_Hex"));
 	fHexLattice2D->Initialize();
 
 	/* construct default bond density array */

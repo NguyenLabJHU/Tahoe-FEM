@@ -28,7 +28,7 @@ DEP = $(OBJ:.o=.d)
 #
 #OBJ = dummy
 #OBJ_LINK =
-#DEP = $(MACRO_DIR)/empty
+#DEP = /dev/null
 
 ##################### (2) sources
 #
@@ -88,5 +88,5 @@ subdir_driver:
 include $(MACRO_DIR)/subdir.targets
 
 # dependencies
-DEPEND = $(MACRO_DIR)/empty
+DEPEND = /dev/null
 include $(DEPEND)

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.11 2005-08-04 23:17:42 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.10 2005-01-06 22:30:00 kyonten Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -48,10 +48,7 @@
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
 #include "ABAQUS_SS_BCJ_ISO.h"
 #endif
-#ifdef ABAQUS_DEV
-#include "ABAQUS_UMAT_IsoPlast.h"
 #endif
-#endif /* ABAQUS_MATERIAL */
 
 #ifdef FOSSUM_MATERIAL_DEV
 #include "FossumSSIso2DT.h"
@@ -159,9 +156,6 @@ void SSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
 		sub_lists.AddSub("ABAQUS_UMAT_SS_BCJ_iso-damage");
 #endif
-#ifdef ABAQUS_DEV
-		sub_lists.AddSub("ABAQUS_UMAT_IsoPlast");
-#endif
 #endif
 
 	}
@@ -260,11 +254,7 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& name) const
 	else if (name == "ABAQUS_UMAT_SS_BCJ_iso-damage")
 		mat = new ABAQUS_SS_BCJ_ISO;
 #endif
-#ifdef ABAQUS_DEV
-	else if (name == "ABAQUS_UMAT_IsoPlast")
-		mat = new ABAQUS_UMAT_IsoPlast;
 #endif
-#endif /* ABAQUS_MATERIAL */
 
 	/* set support */
 	if (mat) mat->SetSSMatSupport(fSSMatSupport);

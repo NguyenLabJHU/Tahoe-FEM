@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.119 2005-08-05 09:01:38 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.116 2005-06-29 17:40:49 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -20,10 +20,6 @@
 #include "AdhesionT.h"
 #endif
 
-#ifdef CONSTANT_VOLUME_ELEMENT
-#include "ConstantVolumeT.h"
-#endif
-
 #ifdef COHESIVE_SURFACE_ELEMENT
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
@@ -42,6 +38,7 @@
 #include "SmallStrainAxiT.h"
 #include "UpdatedLagrangianT.h"
 #include "UpdatedLagrangianAxiT.h"
+#include "UpLagAdaptiveT.h"
 #include "TotalLagrangianT.h"
 #include "TotalLagrangianAxiT.h"
 #include "LocalizerT.h"
@@ -64,9 +61,6 @@
 #include "UpLagr_ExternalFieldT.h"
 #ifdef SIMPLE_SOLID_DEV
 #include "TotalLagrangianFlatT.h"
-#endif
-#ifdef COHESIVE_SURFACE_ELEMENT
-#include "UpLagAdaptiveT.h"
 #endif
 #endif
 
@@ -128,7 +122,7 @@
 #endif
 
 #ifdef MESHFREE_GRAD_PLAST_DEV
-#include "MFGPElementT.h"
+#include "MFGP_AssemblyT.h"
 #endif
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
@@ -260,10 +254,6 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("adhesion");
 #endif
 
-#ifdef CONSTANT_VOLUME_ELEMENT
-		sub_lists.AddSub("constant_volume");
-#endif
-
 #ifdef CONTACT_ELEMENT
 		sub_lists.AddSub("contact_2D_penalty");
 		sub_lists.AddSub("contact_3D_penalty");
@@ -313,11 +303,6 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("bridging");
 		sub_lists.AddSub("meshfree_bridging");
 #endif
-
-#ifdef COHESIVE_SURFACE_ELEMENT
-		sub_lists.AddSub("updated_lagrangian_adaptive_insertion");
-#endif
-
 #endif /* CONTINUUM_ELEMENT */
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -341,7 +326,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 */
 
 #ifdef MESHFREE_GRAD_PLAST_DEV
-		sub_lists.AddSub("mfgp_element");
+		sub_lists.AddSub("meshfree_grad_plast");
 #endif
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
@@ -443,11 +428,6 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new AdhesionT(fSupport);
 #endif
 
-#ifdef CONSTANT_VOLUME_ELEMENT
-	else if (name == "constant_volume")
-	        return new ConstantVolumeT(fSupport);
-#endif
-
 #ifdef CONTACT_ELEMENT
 	else if (name == "contact_2D_penalty")
 		return new PenaltyContact2DT(fSupport);
@@ -529,12 +509,6 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	else if (name == "meshfree_bridging")
 		return new MeshfreeBridgingT(fSupport);
 #endif
-
-#ifdef COHESIVE_SURFACE_ELEMENT
-	else if (name == "updated_lagrangian_adaptive_insertion")
-		return new UpLagAdaptiveT(fSupport);
-#endif
-
 #endif /* CONTINUUM_ELEMENT */
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -562,8 +536,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 */
 
 #ifdef MESHFREE_GRAD_PLAST_DEV
-	else if (name == "mfgp_element")
-		return new MFGPElementT(fSupport);
+	else if (name == "meshfree_grad_plast")
+		return new MFGP_AssemblyT(fSupport);
 #endif
 
 #ifdef ENHANCED_STRAIN_LOC_DEV

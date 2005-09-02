@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.6 2005-08-04 07:06:02 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.5 2004-08-01 20:41:53 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
@@ -117,14 +117,6 @@ protected:
 	/** properties array */
 	nArrayT<doublereal> fProperties;
 
-	/** \name UMAT dimensions */
-	/*@{*/
-	integer ndi;    /**< number of direct stress components (always 3) */
-	integer nshr;   /**< number of engineering shear stress components (2D: 1, 3D: 3) */
-	integer ntens;  /**< stress/strain array dimension: ndi + nshr */
-	integer nstatv; /**< number of state variables */
-	/*@}*/
-
 private:
 
 	/** if true, writes debugging info to output */
@@ -156,6 +148,12 @@ private:
 	/* dimensions */
 	int fModulusDim; // dimension of modulus storage --- need this???
 	int fBlockSize;  // storage block size (per ip)
+
+	/* UMAT dimensions */
+	integer ndi;    // number of direct stress components (always 3)
+	integer nshr;   // number of engineering shear stress components (2D: 1, 3D: 3)
+	integer ntens;  // stress/strain array dimension: ndi + nshr
+	integer nstatv; // number of state variables
 	
 	/* UMAT array arguments */
 	nMatrixT<doublereal> fddsdde;
