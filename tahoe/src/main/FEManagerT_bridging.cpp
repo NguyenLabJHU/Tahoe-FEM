@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.38 2005-04-28 23:57:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.38.16.1 2005-09-02 00:11:44 d-farrell2 Exp $ */
  
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
@@ -821,7 +821,7 @@ void FEManagerT_bridging::ProjectField(const StringT& field, const NodeManagerT&
 	if (!source_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
 
 	/* compute the projection onto the mesh */
-	const dArray2DT& source_field_values = (*source_field)[0];
+	const dArray2DT& source_field_values = (*source_field)[order];
 	BridgingScale().ProjectField(fDrivenCellData, source_field_values, fProjection);
 
 	/* write values into the field */
@@ -847,14 +847,14 @@ void FEManagerT_bridging::CoarseField(const StringT& field, const NodeManagerT& 
 void FEManagerT_bridging::InitialProject(const StringT& field, NodeManagerT& node_manager, dArray2DT& projectedu,
 int order)
 {
-	const char caller[] = "FEManagerT_bridging::ProjectField";
+	const char caller[] = "FEManagerT_bridging::InitialProject";
 
 	/* get the source field */
 	FieldT* source_field = node_manager.Field(field);
 	if (!source_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
 
 	/* compute the projection onto the mesh */
-	const dArray2DT& source_field_values = (*source_field)[0];
+	const dArray2DT& source_field_values = (*source_field)[order];
 	BridgingScale().InitialProject(field, fDrivenCellData, source_field_values, fProjection, projectedu);
 
 	/* write values into the field */

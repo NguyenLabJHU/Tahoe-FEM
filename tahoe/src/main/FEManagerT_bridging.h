@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.26 2005-04-28 23:57:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.26.16.1 2005-09-02 00:11:44 d-farrell2 Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -93,7 +93,7 @@ public:
 	/** return list of ghost nodes */
 	const iArrayT& GhostNodes(void) const { return fGhostNodes; };
 
-	/** return list of ghost nodes */
+	/** return list of non ghost nodes */
 	const iArrayT& NonGhostNodes(void) const { return fNonGhostNodes; };
 
 	/** compute the ghost-nonghost part of the stiffness matrix */
