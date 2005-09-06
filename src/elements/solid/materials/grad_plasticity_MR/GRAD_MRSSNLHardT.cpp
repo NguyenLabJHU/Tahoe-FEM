@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.16 2005-09-01 01:08:43 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.17 2005-09-06 15:02:51 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -236,7 +236,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     Sig_trial = Sig;
     
     int iplastic; 
-    double dlam = triallambda[0]; double lap_dlam = lap_triallambda[0]; 
+    double dlam = triallambda[0]; double lap_dlam = lap_triallambda[0];
  
 /* check the yield function */
 	//cout << endl << "ip = " << ip << endl;

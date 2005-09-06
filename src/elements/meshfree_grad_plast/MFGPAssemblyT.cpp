@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.9 2005-09-01 01:09:13 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.10 2005-09-06 15:03:24 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -591,7 +591,8 @@ MFGPMatSupportT* MFGPAssemblyT::NewMFGPMatSupport(MFGPMatSupportT* p) const
 
 	/* MFGPAssemblyT sources */
 	p->SetMFGPAssembly(this);
-	p->SetElementCards(const_cast<AutoArrayT<ElementCardT>* >(&fElementCards));
+	p->SetElementCards(const_cast<AutoArrayT<ElementCardT>* >(&fElementCards_displ));
+	//p->SetElementCards(const_cast<AutoArrayT<ElementCardT>* >(&fElementCards_plast));
 	p->SetCurrIP(fShapes_displ->CurrIP());
 	//p->SetCurrIP(fShapes_plast->CurrIP());
 	p->SetGroup(fPlast->Group());
@@ -902,13 +903,13 @@ void MFGPAssemblyT::SetGlobalShape(void)
 	SetLocalU(lambda_n);
 	*/
 	//cout << endl << "displacement" << endl << u << endl; //check displ passed
+	//cout << "lambda = " << lambda << endl;
 	
-	/* if lambda is negative set lambda to its previous value */
-	// should negative lambdas be set to zeros or previous values??
+	/* if lambda is negative set lambda to zero */
 	for (int i = 0; i < lambda.Length(); i++)
 	{
 		if (lambda[i] < 0.) {
-		lambda[i] = lambda_n[i];
+		lambda[i] = 0.0;
 		}	
 	}
 }
@@ -1062,7 +1063,7 @@ void MFGPAssemblyT::TakeParameterList(const ParameterListT& list)
 	/* initialize element cards before calling SetShape() */
 	fElementCards_displ.Alias(fElementCards);
 	fElementCards_plast = fElementCards_displ; // use same element card for now
-	
+
 	/* dimensions */
 	fNEEvec.Dimension(NumElementNodes()*NumDOF());
 	fDOFvec.Dimension(NumDOF());
