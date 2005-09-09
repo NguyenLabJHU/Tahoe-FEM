@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.34 2005-04-28 20:48:37 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.35 2005-09-09 21:05:52 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -1075,8 +1075,13 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 	
 	dArrayT start_surface_vect(NumSD()), elem_centroid(NumSD());
 	
+	/* calculate element centroid */
+	coords_elem.Average(elem_centroid);
+	fElementCentroid.SetRow(elem, elem_centroid);
+	
 	/* fetch slip surface starting intersection point */
-	if (!fFirstTrace && elem == choose_element-1)
+	//if (!fFirstTrace && elem == choose_element-1)
+	if (!fFirstTrace)
 	{
 		fElementLocStartSurface.SetRow(elem, start_surface_vect_read);
 		if (start_surface_vect_read.Magnitude() > verysmallnum) 
@@ -1086,10 +1091,10 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 		else 
 		{
 			/* fetch element centroid */
-			fElementCentroid.RowCopy(elem, elem_centroid);
+			//fElementCentroid.RowCopy(elem, elem_centroid);
 			start_surface_vect = elem_centroid;
 		}
-		fFirstTrace = true;
+		//fFirstTrace = true;
 		fElementLocFlag[elem] = 2;
 	}
 	else
@@ -1894,6 +1899,11 @@ void SmallStrainEnhLocT::FormKd(double constK)
 				ss_enh_out	<< endl << "activity of node " << i+1
 							<< setw(outputFileWidth)<< fElementLocNodesActive[NumElementNodes()*elem + i];
 			}			
+			dArrayT elem_centroid(NumSD());
+			fElementCentroid.RowCopy(elem, elem_centroid);
+			ss_enh_out	<< endl << "elem_centroid: " << setw(outputFileWidth) << elem_centroid[0] 
+							<< setw(outputFileWidth) << elem_centroid[1] 
+							<< setw(outputFileWidth) << elem_centroid[2];
 		}
 				
 	} // if loc_flag == 2
