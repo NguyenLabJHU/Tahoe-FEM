@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.35 2005-09-09 21:05:52 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.36 2005-09-10 19:22:37 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -1080,8 +1080,8 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 	fElementCentroid.SetRow(elem, elem_centroid);
 	
 	/* fetch slip surface starting intersection point */
-	//if (!fFirstTrace && elem == choose_element-1)
-	if (!fFirstTrace)
+	// for one chosen element
+	if (!fFirstTrace && elem == choose_element-1)
 	{
 		fElementLocStartSurface.SetRow(elem, start_surface_vect_read);
 		if (start_surface_vect_read.Magnitude() > verysmallnum) 
@@ -1090,11 +1090,15 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 		}
 		else 
 		{
-			/* fetch element centroid */
-			//fElementCentroid.RowCopy(elem, elem_centroid);
 			start_surface_vect = elem_centroid;
 		}
-		//fFirstTrace = true;
+		fFirstTrace = true;
+		fElementLocFlag[elem] = 2;
+	}
+	// for all localized elements
+	else if (!fFirstTrace)
+	{
+		start_surface_vect = elem_centroid;
 		fElementLocFlag[elem] = 2;
 	}
 	else
@@ -1105,7 +1109,6 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 		//fElementLocStartSurface.SetRow(elem, start_surface_vect);
 		
 		//fElementLocFlag[elem] = 2;
-		
 	}
 	
 	/*
@@ -1714,6 +1717,18 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	
 	if ( loc_flag == 2 )
 	{	
+		// ensure that P_S is negative (in compression) or zero along \cS
+		double P_S_abs;
+		P_S_abs = fabs(P_S_last);
+		P_S_last -= P_S_abs;
+		P_S_last *= 0.5;
+		P_S_abs = fabs(P_S_trial);
+		P_S_trial -= P_S_abs;
+		P_S_trial *= 0.5;
+		P_S_abs = fabs(P_S);
+		P_S -= P_S_abs;
+		P_S *= 0.5;
+		
 		// store volume averaged resolved stresses
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP_S] = P_S;
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_St] = q_St;
