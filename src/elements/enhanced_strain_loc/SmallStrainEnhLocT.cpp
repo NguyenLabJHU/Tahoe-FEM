@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.36 2005-09-10 19:22:37 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.37 2005-09-10 19:55:49 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -1465,10 +1465,44 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		secphi2 = secphi*secphi;
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksecphi2] = secphi2;
 		
+		/// calculate the trial direction sign_q_St
+		const double* Det    = fShapes->IPDets();
+		const double* Weight = fShapes->IPWeights();
+		fShapes->TopIP();
+		while (fShapes->NextIP())
+		{
+			double scale_no_constK = (*Det++)*(*Weight++);
+			double scale_vol = scale_no_constK*divide_vol;
+			
+			const int ip = fShapes->CurrIP();
+		
+			// fetch last stress at current IP
+			stress_last_IPs.RowCopy(ip, stress_last);
+			
+			// calculate trial stress
+			strain_inc.DiffOf(LinearStrain(), LinearStrain_last());
+			strain_inc.ScaleOffDiagonal(2.0);
+			fStressTrial = stress_last;
+			fDe = fCurrMaterial->ce_ijkl();
+			fDe.Multx(strain_inc, stress_inc);
+			fStressTrial += stress_inc;
+			
+			// calc q_St_trial
+			inner_matrix = 0.0;
+			inner_matrix.MultAB(fStressTrial, F_tn);
+			inner = inner_matrix.Trace();
+			inner *= scale_vol;
+			q_St_trial += inner;			
+		}
+		sign_q_St = 1.0;
+		if (fabs(q_St_trial) > verysmallnum) sign_q_St = q_St_trial/fabs(q_St_trial);
+		fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St] = sign_q_St;
+		//reinitialize
+		q_St_trial = 0.0;
+		
 		// update mu_dir using last direction
-		// may need to change this calculation if unloading causes problems
-		sign_q_St = fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St];
-		if ( fabs(sign_q_St) < verysmallnum ) sign_q_St = 1.0;
+		//sign_q_St = fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St];
+		//if ( fabs(sign_q_St) < verysmallnum ) sign_q_St = 1.0;
 		tmp_array = normal_chosen;
 		tmp_array *= tanphi;
 		mu_dir = tangent_chosen;
@@ -1737,9 +1771,10 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		fElementLocGradEnh.SetRow(elem, fElementLocGradEnhIP);
 		
 		// calc sign_q_St and update MuDir
-		sign_q_St = 1.0;
-		if (fabs(q_St) > verysmallnum) sign_q_St = q_St/fabs(q_St);
-		fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St] = sign_q_St;
+		//sign_q_St = 1.0;
+		//if (fabs(q_St) > verysmallnum) sign_q_St = q_St/fabs(q_St);
+		//fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St] = sign_q_St;
+		sign_q_St = fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St];
 		tmp_array = normal_chosen;
 		tmp_array *= tanphi;
 		mu_dir = tangent_chosen;
