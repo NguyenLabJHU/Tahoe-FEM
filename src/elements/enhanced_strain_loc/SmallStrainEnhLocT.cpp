@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.37 2005-09-10 19:55:49 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.38 2005-09-12 23:48:19 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -20,7 +20,17 @@ const double verysmallnum = 1.0e-40;
 
 /* initialize static variables */
 bool SmallStrainEnhLocT::fFirstPass = true;
+
+#ifndef __MWERKS__ // for compilation outside CodeWarrior
+#ifdef NDEBUG
+bool SmallStrainEnhLocT::fDeBug = false;	// output info for debugging
+#else
+bool SmallStrainEnhLocT::fDeBug = true;	// no output
+#endif
+#else
 bool SmallStrainEnhLocT::fDeBug = true;
+#endif // __MWERKS__
+
 //bool SmallStrainEnhLocT::fFirstTrace = false;
 
 /* constructor */
@@ -1465,7 +1475,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		secphi2 = secphi*secphi;
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksecphi2] = secphi2;
 		
-		/// calculate the trial direction sign_q_St
+		// calculate the trial direction sign_q_St
 		const double* Det    = fShapes->IPDets();
 		const double* Weight = fShapes->IPWeights();
 		fShapes->TopIP();
@@ -1480,6 +1490,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			stress_last_IPs.RowCopy(ip, stress_last);
 			
 			// calculate trial stress
+			strain_inc=0.0;
 			strain_inc.DiffOf(LinearStrain(), LinearStrain_last());
 			strain_inc.ScaleOffDiagonal(2.0);
 			fStressTrial = stress_last;
@@ -1639,6 +1650,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			P_S_last += inner;
 			
 			// calculate trial stress
+			strain_inc=0.0;
 			strain_inc.DiffOf(LinearStrain(), LinearStrain_last());
 			strain_inc.ScaleOffDiagonal(2.0);
 			fStressTrial = stress_last;
@@ -1863,7 +1875,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		
 		// calculate yield on discontinuity surface
 		double fYieldTrial = Q_Sn_trial - fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kCohesion];
-		fYieldTrial = 1.0;
+		//fYieldTrial = 1.0;
 		fElementYieldTrial[elem] = fYieldTrial;
 	
 		// modify fRHS if yielding
@@ -1934,10 +1946,12 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			
 			ss_enh_out	<< endl << endl << "loc_flag" << setw(outputFileWidth) << "jump_displ" 
 						<< setw(outputFileWidth) << "gamma_delta" <<  setw(outputFileWidth) << "Q_S"
-						<< setw(outputFileWidth) << "P_S" <<  setw(outputFileWidth) << "q_St"; 
+						<< setw(outputFileWidth) << "P_S" <<  setw(outputFileWidth) << "q_St"
+						<< setw(outputFileWidth) << "sign_q_St"; 
 			ss_enh_out	<< endl << fElementLocFlag[elem] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kzeta] 
 						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kQ_S]
-						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP_S] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_St]; 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP_S] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_St]
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St]; 
 			
 			ss_enh_out	<< endl << endl << "cohesion" << setw(outputFileWidth) << "friction (rad)" 
 						<< setw(outputFileWidth) << "dilation (rad)"; 
