@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.47 2005-04-28 17:51:43 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.48 2005-09-12 23:49:51 regueiro Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -16,7 +16,16 @@ using namespace Tahoe;
 
 /* initialize static variables */
 bool DetCheckT::fFirstPass = true;
-bool DetCheckT::fDeBug = false;
+
+#ifndef __MWERKS__ // for compilation outside CodeWarrior
+#ifdef NDEBUG
+bool DetCheckT::fDeBug = false;	// output info for debugging
+#else
+bool DetCheckT::fDeBug = true;	// no output
+#endif
+#else
+bool DetCheckT::fDeBug = true;
+#endif // __MWERKS__
 
 /* constants */
 const double Pi = acos(-1.0);
