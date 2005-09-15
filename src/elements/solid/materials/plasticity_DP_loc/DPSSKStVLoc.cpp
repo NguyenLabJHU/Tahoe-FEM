@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.25 2005-07-20 16:05:28 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.26 2005-09-15 14:59:09 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 
@@ -19,12 +19,13 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 4;
+const int kNumOutput = 5;
 static const char* Labels[kNumOutput] = {
 	"kappa",	// stress-like internal state variable (isotropic linear hardening)
 	"VM",		// Von Mises stress
 	"press",	// pressure
-	"loccheck"};	// localization check
+	"ip_loccheck",	// ip localization check
+	"el_locflag"};	// element localization flag
 
 /* constructor */
 DPSSKStVLoc::DPSSKStVLoc(void):
@@ -117,7 +118,7 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 	//cout << "e_els= \n" << e_els <<endl << endl; 
 	
 #ifdef ENHANCED_STRAIN_LOC_DEV	
-	int element_locflag = 0;
+	element_locflag = 0;
 	if (element.IsAllocated()) 
 	{
 		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
@@ -245,6 +246,9 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 	
 	/* stress tensor (load state) */
 	const dSymMatrixT& stress = s_ij();
+	
+	// element localization flag
+	output[4] = element_locflag;
 
 	/* pressure */
 	output[2] = fStress.Trace()/3.0;

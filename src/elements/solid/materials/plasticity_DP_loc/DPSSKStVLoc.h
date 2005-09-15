@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.14 2005-04-14 16:45:07 raregue Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.15 2005-09-15 14:59:09 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -106,6 +106,9 @@ private:
 	
 	// pointer to material support
 	const SSEnhLocMatSupportT* fSSEnhLocMatSupport;
+	
+	// element localization flag
+	int element_locflag;
   
 	/* return values */
 	dSymMatrixT	fStress;
