@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.61 2005-08-05 07:19:32 paklein Exp $
+# $Id: tahoe-manager,v 1.62 2005-09-21 03:39:39 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
 #    for TAHOE
 # written by: 
-#    Reese Jones (rjones@sandia.gov) and Patrick Klein (paklein@sandia.gov)
+#    Reese Jones (rjones@sandia.gov) and Patrick Klein (patrickklein@mac.com)
 #------------------------------------------------------------------------------
 
 use Cwd; # $home = cwd();
@@ -131,7 +131,14 @@ spooles 1
 spoolesMPI 1
 spoolesMT 1
 contrib 1
-benchmark_XML 1
+);
+
+# build directories buried within modules. Should not be defined
+# for modules where the makefile to build the module resides in the
+# top-level of each module
+%module2targets = (
+	'benchmark_XML' => ['benchmark_XML/comparator'],
+	'contrib' => ['contrib/translate', 'contrib/wrap', 'contrib/MakeCSE', 'contrib/Dakota']
 );
 
 # classify modules
@@ -725,6 +732,11 @@ sub build {
 			# update tahoe
 			$add_tahoe = 1 if defined($up_to_date_modules{$dir});
 		}
+		elsif (defined($module2targets{$dir})) { # module has nested targets
+			foreach my $build_dir (@{$module2targets{$dir}}) {
+				$add = 1 if (! -e "$build_dir/makefile" && -e "$build_dir/makefile.template");
+			}
+		}
 		
 		# adding tahoe
 		$tahoe_added = 1 if ($add > 0 && $dir =~ "tahoe");
@@ -740,44 +752,49 @@ sub build {
 	print "($count) building: @tmp_modules, at $time\n";
 
 	DIR: foreach my $dir (@tmp_modules) {
-		if (-e "$dir/makefile" && !defined($up_to_date_modules{$dir})) {
+		if (!defined($up_to_date_modules{$dir})) {
 
 			my $cwd = cwd();
-			chdir($dir);
-			print "\tmaking $dir...";
-			if (-e ".built") {
-				print " built\n"; }
-			else {
+			my @build_dirs = ($dir);
+			if (defined($module2targets{$dir})){ # module has nested targets
+				@build_dirs = @{$module2targets{$dir}};
+			}
+			BUILD_DIR: foreach my $build_dir (@build_dirs) {
+				next BUILD_DIR if (! -e "$build_dir/makefile");
+				chdir $build_dir; 
+				print "\tmaking $build_dir...";
+
 				do_system("make build > build.log 2>&1");
 
 				# check for error status
-               	if($? > 0) {
-               		print " ERROR $?. See $dir/build.log for details.\n";
-               		$script_status++;
-               	}
-				elsif ($dir eq "tahoe" 
-				&& !(-x "tahoe")) { 
-               				print " ERROR.  See $dir/build.log for details.\n";
-               				$script_status++;
+    	        if ($? > 0) {
+    	     		print " ERROR $?. See $build_dir/build.log for details.\n";
+    	           	$script_status++;
+    	    	}
+				elsif ($build_dir eq "tahoe" && !(-x "tahoe")) { 
+        	       	print " ERROR.  See $build_dir/build.log for details.\n";
+        	       	$script_status++;
 				}
 				else {
 				
 					# sym link to bin directory
 					my $curr_dir = cwd();
-		        	opendir(CURR, $curr_dir) or die "ERROR: could not open directory: $curr_dir\n";
-        			my @all_files = grep {! /^\./ } readdir CURR;
+			        opendir(CURR, $curr_dir) or die "ERROR: could not open directory: $curr_dir\n";
+    	    		my @all_files = grep {! /^\./ } readdir CURR;
         			closedir(CURR);
+					$exec_count = 0;
         			foreach $file (@all_files) {
 						if (-f $file && -x $file) {
 							unlink("$cwd/bin/$file") if (-l "$cwd/bin/$file");
-							do_system("ln -s $cwd/$dir/$file $cwd/bin/$file");
+							do_system("ln -s $cwd/$build_dir/$file $cwd/bin/$file");
+							print "\n\t\t" if ($exec_count++ > 0);
 							print " installing bin/$file...";
 						}
         			}
 					print " ok\n";
 				}
+				chdir($cwd);
 			}
-			chdir($cwd);
 		}
 	}
 }
@@ -804,19 +821,22 @@ sub init {
 	foreach my $dir (@run_modules) {
 		if (-e $dir) { 
 			my $cwd = cwd();
-			chdir $dir; 
-			if (-e "makefile.template") {
-				unlink(".built");
-
-				# generate makefile
-				print "\tcreating makefile in $dir...";
-				fillin_makefile($dir);
-				print " ok\n";
+			my @build_dirs = ($dir);
+			if (defined($module2targets{$dir})){ # module has nested targets
+				@build_dirs = @{$module2targets{$dir}};
 			}
-			chdir $cwd; 
+			foreach my $build_dir (@build_dirs) {
+				chdir $build_dir; 
+				if (-e "makefile.template") { # generate makefile
+					print "\tcreating makefile in $build_dir...";
+					fillin_makefile($build_dir);
+					print " ok\n";
+				}
+				chdir $cwd;
+			} 
 		}
 	}
-	
+
 	# need to sort modules based on dependencies
 	my @tmp_modules = sort by_depend(@run_modules);
 	print "($count) initializing: @tmp_modules, at $time\n";	
@@ -824,26 +844,32 @@ sub init {
 	foreach my $dir (@tmp_modules) {
 		if (-e $dir) { 
 			my $cwd = cwd();
-			chdir $dir; 
-			if (-e "makefile.template") {
-
-				# run "make init"
-				if (!defined($up_to_date_modules{$dir})) {
-					print "\tinitializing $dir...";
-					do_system("make init > init.log 2>&1");
-					
-					# check for error status
-               		if($? > 0) {
-               			print " ERROR $?. See $dir/init.log for details.\n";
-               			$script_status++;
-               		}
-					else { 
-						print " ok\n"; 
-						unlink(".status"); # remove flag
-					}
-				} else { unlink(".status"); } # remove flag
+			my @build_dirs = ($dir);
+			if (defined($module2targets{$dir})){ # module has nested targets
+				@build_dirs = @{$module2targets{$dir}};
 			}
-		 	chdir $cwd;
+			foreach my $build_dir (@build_dirs) {
+				chdir $build_dir; 
+				if (-e "makefile.template") {
+
+					# run "make init"
+					if (!defined($up_to_date_modules{$build_dir})) {
+						print "\tinitializing $build_dir...";
+						do_system("make init > init.log 2>&1");
+					
+						# check for error status
+               			if($? > 0) {
+               				print " ERROR $?. See $build_dir/init.log for details.\n";
+               				$script_status++;
+               			}
+						else { 
+							print " ok\n"; 
+							unlink(".status"); # remove flag
+						}
+					} else { unlink(".status"); } # remove flag
+				}
+		 		chdir $cwd;
+			}
 		}
 	}
 }
@@ -868,29 +894,32 @@ sub clean {
 	foreach $dir (@run_modules) {
 		if (-e $dir) { 
 			my $cwd = cwd();
-			chdir $dir; 
-			if (-e "makefile.template") {
-			
-				# create makefile
-				fillin_makefile($dir) if (! -e "makefile");
-			
-				print "\tcleaning $dir...";
-				do_system("make clean > clean.log 2>&1");
-				print " ok\n";
-				
-				# remove the makefile
-				unlink("makefile");
-		
-				# remove flag
-				unlink(".built") if (-e ".built");
-				
-				# remove module preferences
-				unlink(".tahoe_config") if (-e ".tahoe_config");
-		
-				# flag
-				do_system("echo 'init' > .status");
+			my @build_dirs = ($dir);
+			if (defined($module2targets{$dir})){ # module has nested targets
+				@build_dirs = @{$module2targets{$dir}};
 			}
-		 	chdir $cwd;
+			foreach my $build_dir (@build_dirs) {
+				chdir $build_dir; 
+				if (-e "makefile.template") {
+			
+					# create makefile
+					fillin_makefile($build_dir) if (! -e "makefile");
+			
+					print "\tcleaning $build_dir...";
+					do_system("make clean > clean.log 2>&1");
+					print " ok\n";
+				
+					# remove the makefile
+					unlink("makefile");
+
+					# remove module preferences
+					unlink(".tahoe_config") if (-e ".tahoe_config");
+		
+					# flag
+					do_system("echo 'init' > .status");
+				}
+		 		chdir $cwd;
+			}
 		}
 	}
 
