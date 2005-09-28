@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.24 2005-09-02 02:07:50 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.25 2005-09-28 19:25:57 d-farrell2 Exp $ */
 
 #include "FEManagerT_THK.h"
 #if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
@@ -645,15 +645,24 @@ void FEManagerT_THK::DoGhostMap(void)
 	const int promap_dim = promap.Rows(); // assumes square property matrix
 	// ghostoffmap matrix
 	fghostoffmap.Dimension(promap_dim);
-	fghostoffmap = 0;
+	fghostoffmap = promap;
 	
 	int ghosti = 0; // row number
 	int ghostj = 0; // column number
-	// now read in the rows and columns of the fghostoffmap 2D array
+	int ghostval=0;	// value for zero-force potential
+	// now read in the rows and columns of the fghostoffmap 2D array, and the value to set it to
+	/* Here is how this works:
+	 * The ghostonmap is the same as the properties map. The properties map is what is specified in the input file. Each line
+	 * from the soecified pair_particle_interaction's is a new property, where the first = 0, etc. This is the upper triangle
+	 * of the properties map, which is symmetric. For the ghostoffmap, you want to turn off all of the interactions that include
+	 * the ghost atoms. To do this, you must set the entry corresponding to the atom type to a interaction value which will produce
+	 * no force (i.e. k=0 for harmonic, epsilon = 0 for LJ). the ghostoffmapfile contains the coordinates for the entries which need
+	 * to change, as well as the value they need to be set to. all the other interactions remain the same as the input file.
+	 */ 
 	for (int ghostk = 0; ghostk < 2*(promap_dim-1); ghostk++)
 	{
-		data2 >> ghosti >> ghostj ;
-		fghostoffmap(ghosti,ghostj) = 1;
+		data2 >> ghosti >> ghostj >> ghostval ;
+		fghostoffmap(ghosti,ghostj) = ghostval;
 	}
 }
 
