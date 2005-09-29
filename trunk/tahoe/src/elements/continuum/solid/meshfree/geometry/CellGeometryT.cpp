@@ -1,4 +1,4 @@
-/* $Id: CellGeometryT.cpp,v 1.6 2005-01-31 17:47:20 cjkimme Exp $ */
+/* $Id: CellGeometryT.cpp,v 1.7 2005-09-29 19:15:33 jcmach Exp $ */
 #include "CellGeometryT.h"
 #include "dArrayT.h"
 
@@ -97,75 +97,75 @@ void CellGeometryT::TakeParameterList(const ParameterListT& list)
 void CellGeometryT::MergeFacetIntegral(int node_num, double weight, dArrayT& facetNormal, const dArrayT& phiValues,
 						const iArrayT& neighbors) 
 {
-	/* If a node covering the integration point is not in the support of the node,
-	 * insert that covering node into the sorted list.
-	 */			 
-	iArrayT cover(neighbors);	
-	int n_cover = cover.Length();	
-	iArrayT cover_key(n_cover);
-	cover_key.SetValueToPosition();
-	cover_key.SortAscending(cover);	
+  /* If a node covering the integration point is not in the support of the node,
+   * insert that covering node into the sorted list.
+   */			 
+  iArrayT cover(neighbors);	
+  int n_cover = cover.Length();	
+  iArrayT cover_key(n_cover);
+  cover_key.SetValueToPosition();
+  cover_key.SortAscending(cover);	
 
-	LinkedListT<int>& supp = nodeWorkSpace[node_num];
-	LinkedListT< dArrayT >& bVectors = facetWorkSpace[node_num];
-	LinkedListT< double > *circumf;
-	if (qIsAxisymmetric) 
-		circumf = &circumferentialWorkSpace[node_num];
-	int s = -1;
+  LinkedListT<int>& supp = nodeWorkSpace[node_num];
+  LinkedListT< dArrayT >& bVectors = facetWorkSpace[node_num];
+  LinkedListT< double > *circumf;
+  if (qIsAxisymmetric) 
+    circumf = &circumferentialWorkSpace[node_num];
+  int s = -1;
 	
-	supp.Top(); 
-	bVectors.Top();
-	int *next = supp.CurrentValue();
-	if (qIsAxisymmetric) 
-		circumf->Top();
+  supp.Top(); 
+  bVectors.Top();
+  int *next = supp.CurrentValue();
+  if (qIsAxisymmetric) 
+    circumf->Top();
 		
-	bool traverseQ;
-	int* c = cover.Pointer();
-	int* c_j = cover_key.Pointer();
-	int nsd = facetNormal.Length();
-	dArrayT facetIntegral(nsd), zeroFacet(nsd);
-	zeroFacet = 0.;
-	for (int j = 0; j < n_cover; j++, c++, c_j++) {
+  bool traverseQ;
+  int* c = cover.Pointer();
+  int* c_j = cover_key.Pointer();
+  int nsd = facetNormal.Length();
+  dArrayT facetIntegral(nsd), zeroFacet(nsd);
+  zeroFacet = 0.;
+  for (int j = 0; j < n_cover; j++, c++, c_j++) {
 		
-		facetIntegral = facetNormal;
-		facetIntegral *= phiValues[*c_j]*weight;	
+    facetIntegral = facetNormal;
+    facetIntegral *= phiValues[*c_j]*weight;	
 		
-		if (next)
-			traverseQ = *next <= *c;
-		else
-			traverseQ = false;
+    if (next)
+      traverseQ = *next <= *c;
+    else
+      traverseQ = false;
 				
-		// advance supp_0 and supp_1 until they are greater than or equal to current node
-		while (traverseQ && supp.Next(s) && bVectors.Next()) {
-			if (qIsAxisymmetric)
-				circumf->Next();
-			next = supp.PeekAhead(); 
-			if (!next)
-				traverseQ = false;
-			else
-				if (*next > *c)
-					traverseQ = false;
-		}
+    // advance supp_0 and supp_1 until they are greater than or equal to current node
+    while (traverseQ && supp.Next(s) && bVectors.Next()) {
+      if (qIsAxisymmetric)
+	circumf->Next();
+      next = supp.PeekAhead(); 
+      if (!next)
+	traverseQ = false;
+      else
+	if (*next > *c)
+	  traverseQ = false;
+    }
 			
-		if (s != *c) { // means we're not at the end of the linked list
-			supp.InsertAtCurrent(*c);
-			bVectors.InsertAtCurrent(zeroFacet);
-			if (qIsAxisymmetric) 
-				circumf->InsertAtCurrent(0.);
-			s = *c;
-			if (supp.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
-				supp.Next(); 
-				bVectors.Next();
-				if (qIsAxisymmetric)
-					circumf->Next();
-			}
-		}
+    if (s != *c) { // means we're not at the end of the linked list
+      supp.InsertAtCurrent(*c);
+      bVectors.InsertAtCurrent(zeroFacet);
+      if (qIsAxisymmetric) 
+	circumf->InsertAtCurrent(0.);
+      s = *c;
+      if (supp.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
+	supp.Next(); 
+	bVectors.Next();
+	if (qIsAxisymmetric)
+	  circumf->Next();
+      }
+    }
 			
-		double *currentI = facetIntegral.Pointer();
-		double *currentB = bVectors.CurrentValue()->Pointer();
-		for (int k = 0; k < nsd; k++)
-			*currentB++ += *currentI++;
-	}
+    double *currentI = facetIntegral.Pointer();
+    double *currentB = bVectors.CurrentValue()->Pointer();
+    for (int k = 0; k < nsd; k++)
+      *currentB++ += *currentI++;
+  }
 }
 
 void CellGeometryT::MergeNodalValues(int node_num, dArrayT& values,
