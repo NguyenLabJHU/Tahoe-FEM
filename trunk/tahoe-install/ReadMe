@@ -1,12 +1,11 @@
-# $Id: ReadMe,v 1.3 2005-06-21 05:51:32 paklein Exp $
+# $Id: ReadMe,v 1.4 2005-09-29 01:59:10 paklein Exp $
 
 0. QUICKSTART
 Run:
 > tahoe-manager build
 
 ...answer the configuration questions, and then sit back and wait for the build
-to finish. If successful, you'll end up with an executable in:
-tahoe-install/tahoe/tahoe
+to finish. If successful, you'll end up with an executables in tahoe-install/bin.
 
 1. GENERAL
 The "tahoe-manager" is a PERL script (i.e. you'll need an installation of perl,
@@ -69,6 +68,9 @@ macros expat toolbox tahoe spooles CBLAS f2c development
 
 # VERBOSE
 false
+
+# TAHOE_HOME
+/Users/rjones/Code/tahoe-install
 
 # EOF
 
