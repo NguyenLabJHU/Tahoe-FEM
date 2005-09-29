@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.h,v 1.6 2005-03-04 18:31:51 cjkimme Exp $ */
+/* $Id: SS_SCNIMFT.h,v 1.7 2005-09-29 19:20:30 jcmach Exp $ */
 #ifndef _SS_SCNIMF_T_H_
 #define _SS_SCNIMF_T_H_
 
@@ -61,9 +61,14 @@ protected: /* for derived classes only */
 	
 	/** translate internal storage of bVector to Strain-Displacement matrix */	
 	void bVectorToMatrix(double *bVector, dMatrixT& BJ);
-	
+
+	/** translate internal storage of bprimeVector to Strain-Displacement matrices */
+	void bprimeVectorToMatrix(dMatrixT *bprimeVector, ArrayT<dMatrixT>& BprimeJ);
 
 	SSMatSupportT* fSSMatSupport;
+	
+	/** true if small strain enhanced order nodal integration is enabled */
+	bool fssEONI;
 	
 	/** \name strain matrices passed to the constitutive models */
 	/*@{*/

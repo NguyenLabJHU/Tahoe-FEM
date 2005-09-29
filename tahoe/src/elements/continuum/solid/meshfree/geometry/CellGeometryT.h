@@ -1,4 +1,4 @@
-/* $Id: CellGeometryT.h,v 1.6 2005-01-28 00:38:02 cjkimme Exp $ */
+/* $Id: CellGeometryT.h,v 1.7 2005-09-29 19:16:24 jcmach Exp $ */
 #ifndef _CELL_GEOMETRY_T_
 #define _CELL_GEOMETRY_T_
 
@@ -38,7 +38,12 @@ public:
 	
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(RaggedArray2DT<int>& nodalCellSupports, RaggedArray2DT<dArrayT>& bVectorArray,
-									dArrayT& cellVolumes, dArray2DT& cellCentroids, RaggedArray2DT<double>& circumferential_B) = 0;
+				      dArrayT& cellVolumes, dArray2DT& cellCentroids, RaggedArray2DT<double>& circumferential_B) = 0;
+
+	/** compute Bprime matrices for strain smoothing/nodal integration */
+	virtual void ComputeBprimeMatricesSS(RaggedArray2DT<dMatrixT>& bprimeVectorArray, const RaggedArray2DT<int>& cellSupports,
+					   const RaggedArray2DT<dArrayT>& bVectorArray, const dArrayT& cellVolumes, const dArray2DT& cellCentroids,
+					   dArray2DT& Ymatrices) = 0;
 
 	/** accessor to the element support class */
 	const ElementSupportT& ElementSupport(void) const;

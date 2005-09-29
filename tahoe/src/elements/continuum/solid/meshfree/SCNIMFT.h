@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.32 2005-07-28 07:56:17 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.33 2005-09-29 19:19:16 jcmach Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -138,6 +138,7 @@ public:
 	void TakeNaturalBC(const ParameterListT& list);
 	/*@}*/
 
+
 protected: /* for derived classes only */
 
 	/** list/index of output values */
@@ -209,6 +210,8 @@ protected:
 	/** These are the actual data structures used for force and stiffness computations */
 	RaggedArray2DT<int> nodalCellSupports;
 	RaggedArray2DT<dArrayT> bVectorArray;
+	RaggedArray2DT<dMatrixT> bprimeVectorArray;
+	dArray2DT Ymatrices;
 	
 	/** workspace for nodal shape functions */
 	RaggedArray2DT<double> fNodalPhi, fBoundaryPhi;
