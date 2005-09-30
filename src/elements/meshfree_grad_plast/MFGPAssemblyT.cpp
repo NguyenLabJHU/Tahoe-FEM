@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.10 2005-09-06 15:03:24 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.11 2005-09-30 22:05:03 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -734,6 +734,7 @@ void MFGPAssemblyT::RHSDriver_monolithic(void)
 			fDispl->Group(), fPlast->Group());
 
 	int curr_group = ElementSupport().CurrentGroup();
+	int step_number = ElementSupport().StepNumber();
 	
  	/* set components and weights */
 	double constK = 0.0;
@@ -802,23 +803,25 @@ void MFGPAssemblyT::RHSDriver_monolithic(void)
 			/* plastic multiplier field node arrays */
 			const iArrayT& nodes_plast = fElementCards_plast[e].NodesU();
 			// node numbers are local or global??
+			
 			/*
+			cout << "element # " << e << endl;
+			cout << "contributing nodes: " << nodes_plast.Length() << endl;
 			for (int i = 0; i < nodes_plast.Length(); i++)
-				cout << "element # " << e << endl;
-				cout << "contributing nodes: " << endl;
 				cout << nodes_plast[i]+1 << endl;
-				cout << "displacement equation number:" << endl;
-				cout << displ_eq << endl << endl;
-				cout << "plastic multiplier equation number:" << endl;
-				cout << plast_eq << endl;
+			cout << "displacement equation number:" << endl;
+			cout << displ_eq << endl << endl;
+			cout << "plastic multiplier equation number:" << endl;
+			cout << plast_eq << endl;
 			*/
-			PrintStiffness("before_penalty");
-			PrintInternalForces("before_penalty");
+			
+			PrintStiffness("before_penalty", step_number);
+			PrintInternalForces("before_penalty", step_number);
 			
 			ApplyLambdaBC(nodes_plast);
 			
-			PrintInternalForces("after_penalty"); 
-			PrintStiffness("after_penalty");
+			PrintInternalForces("after_penalty", step_number); 
+			PrintStiffness("after_penalty", step_number);
 			
 			/* assemble residuals */
 			ElementSupport().AssembleRHS(curr_group, fFu_int, displ_eq);
@@ -1965,8 +1968,9 @@ void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
 	double tol = 1.0e-10;
 	max_value = fKlambdalambda.AbsMax();
 	
-	/* set max_value to min_penalty if it's zero */
-	if (max_value < tol) max_value = 1.0;
+	/* if max_value is zero set it to 1e+15 to
+	   give a penalty_number of 1e+20        */
+	if (max_value < tol) max_value = 1.0e15;
 	penalty_number = max_value * min_penalty; 
 	
 	for (int i = 0; i < nodes.Length(); i++)
@@ -1994,19 +1998,21 @@ void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
  
  /* write stiffness matrices to the output files 
  before or after penalty number is added */
-void MFGPAssemblyT::PrintStiffness(StringT before_after) const
+void MFGPAssemblyT::PrintStiffness(StringT before_after, int step_num) const
 {
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
 	}
 	else if (before_after == "after_penalty") {
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
 	}
 	file_name.Append(e); // append element number to output string
+	file_name.Append(".");
+	file_name.Append(step_num); // append load step number
 	file_name.Append(".txt");
 	ofstream output(file_name);
 	if (!output) {
@@ -2015,7 +2021,7 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after) const
 	output << "element # " << e << endl;
 			
 	/* print element stiffness matrices */
-	output << "accumulated stiffness matrices " << endl << endl;
+	output << "accumulated element stiffness matrices " << endl << endl;
 	output << "*******KUU******* " << endl;
 	for (int i = 0; i < fKuu.Rows(); i++)
 	{
@@ -2052,19 +2058,21 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after) const
 
  /* write internal forces (Fu and Flambda) vectors to the output files 
     before and after applying penalty method on lambda */
-void MFGPAssemblyT::PrintInternalForces(StringT before_after) const
+void MFGPAssemblyT::PrintInternalForces(StringT before_after, int step_num) const
 {
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
 	}
 	else if (before_after == "after_penalty") {
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
 	}
 	file_name.Append(e); // append element number to output string
+	file_name.Append(".");
+	file_name.Append(step_num); // append load step number
 	file_name.Append(".txt");
 	ofstream output(file_name);
 	if (!output) {

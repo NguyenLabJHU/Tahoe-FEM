@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.h,v 1.6 2005-08-11 21:17:01 kyonten Exp $ */ 
+/* $Id: MFGPAssemblyT.h,v 1.7 2005-09-30 22:05:03 kyonten Exp $ */ 
 //DEVELOPMENT
 #ifndef _MFGP_ASSEMBLY_T_H_ 
 #define _MFGP_ASSEMBLY_T_H_ 
@@ -346,10 +346,10 @@ private:
 	
 	//*************DEBUG****************************
 	/* print stiffness matrices before or after adding penalty number */
-	void MFGPAssemblyT::PrintStiffness(StringT before_after) const;
+	void MFGPAssemblyT::PrintStiffness(StringT before_after, int step_num) const;
 	
 	/* print stiffness matrices before or after adding penalty number */
-	void MFGPAssemblyT::PrintInternalForces(StringT before_after) const;
+	void MFGPAssemblyT::PrintInternalForces(StringT before_after, int step_num) const;
 	//*************DEBUG****************************
 	
 protected:
