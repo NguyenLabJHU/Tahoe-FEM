@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.28 2005-07-29 02:16:13 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.29 2005-10-05 22:53:07 cjkimme Exp $ */
 /* created: sawimme (12/04/1998) */
 #include "ExodusT.h"
 
@@ -12,6 +12,7 @@
 #include "iArray2DT.h"
 #include "StringT.h"
 #include "pArrayT.h"
+#include "GeometryT.h"
 #include "ifstreamT.h"
 
 using namespace Tahoe;
@@ -1241,7 +1242,11 @@ void ExodusT::BlockToGlobalElementNumbers(int block_ID, nArrayT<int>& elements) 
 void ExodusT::WriteQA(const ArrayT<StringT>& qa_records) const { ExceptionT::GeneralFail(caller); }
 void ExodusT::WriteInfo(const ArrayT<StringT>& info_records) const { ExceptionT::GeneralFail(caller); }
 void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code, StringT& elem_name, int& num_output_nodes) const { ExceptionT::GeneralFail(caller); }
+#ifndef SIERRA_PARALLEL_MPI 
 GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const { ExceptionT::GeneralFail(caller); }
+#else
+void ExodusT::ToGeometryCode(const StringT& elem_name) const { ExceptionT::GeneralFail(caller); }
+#endif
 void ExodusT::ConvertSideSetOut(const char* elem_type, nArrayT<int>& sides) const { ExceptionT::GeneralFail(caller); }
 void ExodusT::ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const { ExceptionT::GeneralFail(caller); }
 void ExodusT::ConvertElementNumbering (iArray2DT& conn, int fcode) const { ExceptionT::GeneralFail(caller); }
