@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.17 2005-09-06 15:02:51 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.18 2005-10-05 23:58:08 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -968,7 +968,8 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     dMatrixT dgdSig(4,6); dMatrixT dgdq(4,4);
     dMatrixT dmdSig(6,6); dMatrixT dmdq(6,4);
     dMatrixT dRSig_dSig(6,6); dMatrixT dRSig_dq(6,4); 
-    dMatrixT dRq_dSig(4,6); dMatrixT dRq_dq(4,4); dMatrixT dRq_dq_Inv(4,4); 
+    dMatrixT dRq_dSig(4,6); dMatrixT dRq_dq(4,4); dMatrixT dRq_dq_Inv(4,4);
+    dMatrixT RSigq_qq(6,4); 
     dMatrixT dRR(10,10); dMatrixT Y(6,6); dMatrixT Y_Inv(6,6); 
      
     /* define and allocate vectors */
@@ -977,7 +978,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     dArrayT lap_upo(6);  
     dArrayT qn(4); dArrayT qo(4);
     dArrayT Sig(6); dArrayT Sig_I(6);
-    dArrayT RSig(6), Rq(4);
+    dArrayT RSig(6), Rq(4), T(6);
     dArrayT mm(6); dArrayT rr(4); dArrayT nn(6); 
     dArrayT dq(4); dArrayT hh(4); dArrayT gg(4); 
     dArrayT state(40); dArrayT Sig_trial(6);
@@ -1055,7 +1056,85 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		fModuli_LamU2 = KE_LambdaU2;
 		fModuli_LamLam1 = KE_LambdaLambda1;
 		fModuli_LamLam2 = KE_LambdaLambda2; 
-	  	fModuli = 0.0;     
+	  	fModuli = 0.0; 
+	  	
+	  	//*************debug*********************//
+	  	StringT file_name;  
+	
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Elastic";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Elastic";
+		file_name.Append(".txt");
+		ofstream output(file_name);
+		if (!output) {
+			cout << "Error opening output file" << endl;
+		}
+			
+		/* print C matrices */
+		output << "*******CUU1******* " << endl;
+		for (int i = 0; i < KE_UU1.Rows(); i++)
+		{
+			for (int j = 0; j < KE_UU1.Cols(); j++)
+				output << "CUU1("<< i << ","<< j <<"): " << KE_UU1(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CUU2******* " << endl;
+		for (int i = 0; i < KE_UU2.Rows(); i++)
+		{
+			for (int j = 0; j < KE_UU2.Cols(); j++)
+				output << "CUU2("<< i << ","<< j <<"): " << KE_UU2(i,j) << endl;
+		}
+		output << endl;	
+	
+		output << "*******CULambda1******* " << endl;
+		for (int i = 0; i < KE_ULambda1.Rows(); i++)
+		{
+			for (int j = 0; j < KE_ULambda1.Cols(); j++) 
+				output << "CULambda1("<< i << ","<< j <<"): " << KE_ULambda1(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CULambda2******* " << endl;
+		for (int i = 0; i < KE_ULambda2.Rows(); i++)
+		{
+			for (int j = 0; j < KE_ULambda2.Cols(); j++) 
+				output << "CULambda2("<< i << ","<< j <<"): " << KE_ULambda2(i,j) << endl;
+		}
+		output << endl;	
+				
+		output << "*******CLambdaLambda1******* " << endl;
+		for (int i = 0; i < KE_LambdaLambda1.Rows(); i++)
+		{
+			for (int j = 0; j < KE_LambdaLambda1.Cols(); j++)
+				output << "CLambdaLambda1("<< i << ","<< j <<"): " << KE_LambdaLambda1(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CLambdaLambda2******* " << endl;
+		for (int i = 0; i < KE_LambdaLambda2.Rows(); i++)
+		{
+			for (int j = 0; j < KE_LambdaLambda2.Cols(); j++)
+				output << "CLambdaLambda2("<< i << ","<< j <<"): " << KE_LambdaLambda2(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CLambdaU1******* " << endl;
+		for (int i = 0; i < KE_LambdaU1.Rows(); i++)
+		{
+			for (int j = 0; j < KE_LambdaU1.Cols(); j++)
+				output << "CLambdaU1("<< i << ","<< j <<"): " << KE_LambdaU1(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CLambdaU2******* " << endl;
+		for (int i = 0; i < KE_LambdaU2.Rows(); i++)
+		{
+			for (int j = 0; j < KE_LambdaU2.Cols(); j++)
+				output << "CLambdaU2("<< i << ","<< j <<"): " << KE_LambdaU2(i,j) << endl;
+		}
+		output << endl;	
+		output.close();
+		//*************debug*********************//    
 	}
 	else  
 	{
@@ -1070,102 +1149,94 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
         /* work space */
         dMatrixT tempMat1(6,6), tempMat2(6,6);  
         dMatrixT tempMat3(4,6), tempMat4(4,4);
+        
+        /* dRSig_dSig matrix */
         tempMat1.SetToScaled(dlam, KE); 
         tempMat2.SetToScaled(lap_dlam, KE_AST);
         tempMat1 -= tempMat2;
         dRSig_dSig.MultAB(tempMat1, dmdSig);
-        dRSig_dSig += IdentityMatrix6; 
+        dRSig_dSig += IdentityMatrix6;
+         
+        /* dRSig_dq matrix */
         dRSig_dq.MultAB(tempMat1, dmdq);
         
+        /* dRq_dSig matrix */
         dRq_dSig.MultAB(dhdm, dmdSig);
         dRq_dSig += dhdSig;
         dRq_dSig *= -dlam;
         tempMat3.SetToScaled(lap_dlam, dgdSig);
         dRq_dSig += tempMat3; 
         
+        /* dRq_dq matrix */
         dRq_dq.MultAB(dhdm, dmdq);
         dRq_dq += dhdq;
         dRq_dq *= -dlam;
         tempMat4.SetToScaled(lap_dlam, dgdq);
         dRq_dq += tempMat4;
         dRq_dq += IdentityMatrix4;
-         
-        /* work space */
-        dArrayT RSig1(6), RSig2(6), RSig3(6), RSig4(6);
-        dArrayT temp1(6), temp2(6), temp3(4);
-        	
-        KE.Multx(du, RSig1);
-       	KE_AST.Multx(lap_du, RSig2);
-       	KE.Multx(mm, RSig3);  
-        KE_AST.Multx(mm, RSig4);
-        RSig.DiffOf(RSig2, RSig1); //RSig2-RSig1
-        temp1.SetToScaled(dlam, RSig3);  //dlam2 == dlam??
-        RSig += temp1;
-        temp2.SetToScaled(lap_dlam, RSig4); // lap_dlam2 == dlam??	
-        RSig -= temp2;
         
-        Rq.SetToScaled(lap_dlam, gg);   //lap_dlam2/lap_dlam??
-        temp3.SetToScaled(dlam, hh);     //dlam2/dlam??
-        Rq -= temp3; 
-        
-        /* calculate KE_UU1 and KE_UU2 matrices */
-        dMatrixT RRq_dqdSig(4,6);
+        /* Y and Y_Inv matrix */
+        dMatrixT RRq_dqdSig(4,6), YY(6,6); /* work space */
         dRq_dq_Inv.Inverse(dRq_dq);
         RRq_dqdSig.MultAB(dRq_dq_Inv, dRq_dSig);
-        Y.MultAB(dRSig_dq, RRq_dqdSig);
-        Y -= dRSig_dSig;
+        YY.MultAB(dRSig_dq, RRq_dqdSig);
+        Y = dRSig_dSig;
+        Y -= YY;
         Y_Inv.Inverse(Y);
+        
+        /* T vector */
+        dArrayT tmp_vec(6); /* work space */
+        
+        T = nn;
+        RRq_dqdSig.MultTx(rr, tmp_vec);
+        T -= tmp_vec;
+        
+        /* RSigq_qq vector */
+        RSigq_qq.MultAB(dRSig_dq, dRq_dq_Inv);
+        
+        /* calculate KE_UU1 and KE_UU2 matrices */
         KE_UU1.MultAB(Y_Inv, KE);
 	  	KE_UU2.MultAB(Y_Inv, KE_AST);
+	  	KE_UU2 *= -1.0;
         	
         /* calculate KE_ULambda1 and KE_ULambda2 matrices */
         /* work space */
-        dArrayT termA1(6), termA2i(4), termA2(6);
-        dArrayT termB1(6), termB2i(4), termB2(6);
+        dArrayT termA1(6), termA2(6);
+        dArrayT termB1(6), termB2(6);
         	
         KE.Multx(mm, termA1);
-        dRq_dq_Inv.Multx(hh, termA2i);
-        dRSig_dq.Multx(termA2i, termA2);
-        termA2 += termA1;
+        RSigq_qq.Multx(hh, termA2);
+        termA1 += termA2;
+        Y_Inv.Multx(termA1, KE_ULambda1);
+        
         KE_AST.Multx(mm, termB1);
-        dRq_dq_Inv.Multx(gg, termB2i);
-        dRSig_dq.Multx(termB2i, termB2);
-        termB2 += termB1;
-	  	Y_Inv.Multx(termA2, KE_ULambda1);
-	  	KE_ULambda1 *= -1.;
-	  	Y_Inv.Multx(termB2, KE_ULambda2);
-	  	    
-	  	//cout << "Y inverse =" << endl << Y_Inv << endl;
+        RSigq_qq.Multx(gg, termB2);
+        termB1 += termB2;
+	  	Y_Inv.Multx(termB1, KE_ULambda2);
+	  	KE_ULambda2 *= -1.0;
 	  	    
 	  	/* calculate KE_LambdaU1 and KE_LambdaU2 matrices */
-	  	/* work space */
-	  	dArrayT mul1(4),term2C(6),TT(6);
-	  	dMatrixT dRq_dSigT(6,4);
-	  	    
-	  	dRq_dq_Inv.Multx(rr, mul1);
-	  	dRq_dSigT.Transpose(dRq_dSig);
-	  	dRq_dSigT.Multx(mul1, term2C);
-	  	term2C *= -1.;
-	  	term2C += nn;
-	  	Y_Inv.Multx(term2C, TT);
-	  	KE.Multx(TT, KE_LambdaU1);
-	  	KE_AST.Multx(TT, KE_LambdaU2);
-	  	KE_LambdaU2 *= -1.;
+	  	KE_UU1.Multx(T, KE_LambdaU1);
+	  	KE_UU2.Multx(T, KE_LambdaU2);
+	  	KE_LambdaU2 *= -1.0;
 	  	    
 	  	/* calculate KE_LambdaLambda1 and KE_LambdaLambda2 matrices */
-	  	dArrayT termD2i(4), termE2i(4);
-	  	double termD1, termD2, termE1, termE2;
-	  	termD1 = termD2 = termE1 = termE2 = 0.;
-	  	dRq_dq_Inv.Multx(hh, termD2i);
-	  	dRq_dq_Inv.Multx(gg, termE2i);
-	  	termD1 = dMatrixT::Dot(TT, termA2); //vector dot product 
-	  	termE1 = dMatrixT::Dot(TT, termB2);
-	  	termD2 = dMatrixT::Dot(rr, termD2i); //vector dot product 
-	  	termE2 = dMatrixT::Dot(rr, termE2i);
-	  	termD1 += termD2;
-	  	termE1 += termE2;
-	  	KE_LambdaLambda1 = -1.* termD1;
-	  	KE_LambdaLambda2 = termE1; 
+	  	 /* work space */
+	  	dArrayT termD1a(6), termD2a(4);
+	  	dArrayT termE1a(6), termE2a(4); 
+	  	double termD2, termE2;
+	  	Y.Multx(KE_ULambda1, termD1a);
+	  	KE_LambdaLambda1 = dMatrixT::Dot(T, termD1a); //vector dot product
+	  	dRq_dq_Inv.Multx(hh, termD2a); 
+	  	termD2 = dMatrixT::Dot(rr, termD2a);  
+	  	KE_LambdaLambda1 += termD2;
+	  	
+	  	Y.Multx(KE_ULambda2, termE1a);
+	  	KE_LambdaLambda2 = dMatrixT::Dot(T, termE1a);
+	  	dRq_dq_Inv.Multx(gg, termE2a);
+	  	termE2 = dMatrixT::Dot(rr, termE2a);
+	  	KE_LambdaLambda2 += termE2;
+	  	KE_LambdaLambda2 *= -1.0; 
 	
         fModuli_UU1 = KE_UU1;
 		fModuli_UU2 = KE_UU2;
@@ -1176,7 +1247,86 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		fModuli_LamLam1 = KE_LambdaLambda1;
 		fModuli_LamLam2 = KE_LambdaLambda2; 
 	  	fModuli = 0.0;
-	} // if (state[37] == 0.)
+	  	
+	  	//*************debug*********************//
+	  	StringT file_name;  
+	
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Plastic";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Plastic";
+		file_name.Append(".txt");
+		ofstream output(file_name);
+		if (!output) {
+			cout << "Error opening output file" << endl;
+		}
+			
+		/* print C matrices */
+		output << "*******CUU1******* " << endl;
+		for (int i = 0; i < KE_UU1.Rows(); i++)
+		{
+			for (int j = 0; j < KE_UU1.Cols(); j++)
+				output << "CUU1("<< i << ","<< j <<"): " << KE_UU1(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CUU2******* " << endl;
+		for (int i = 0; i < KE_UU2.Rows(); i++)
+		{
+			for (int j = 0; j < KE_UU2.Cols(); j++)
+				output << "CUU2("<< i << ","<< j <<"): " << KE_UU2(i,j) << endl;
+		}
+		output << endl;	
+	
+		output << "*******CULambda1******* " << endl;
+		for (int i = 0; i < KE_ULambda1.Rows(); i++)
+		{
+			for (int j = 0; j < KE_ULambda1.Cols(); j++) 
+				output << "CULambda1("<< i << ","<< j <<"): " << KE_ULambda1(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CULambda2******* " << endl;
+		for (int i = 0; i < KE_ULambda2.Rows(); i++)
+		{
+			for (int j = 0; j < KE_ULambda2.Cols(); j++) 
+				output << "CULambda2("<< i << ","<< j <<"): " << KE_ULambda2(i,j) << endl;
+		}
+		output << endl;	
+				
+		output << "*******CLambdaLambda1******* " << endl;
+		for (int i = 0; i < KE_LambdaLambda1.Rows(); i++)
+		{
+			for (int j = 0; j < KE_LambdaLambda1.Cols(); j++)
+				output << "CLambdaLambda1("<< i << ","<< j <<"): " << KE_LambdaLambda1(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CLambdaLambda2******* " << endl;
+		for (int i = 0; i < KE_LambdaLambda2.Rows(); i++)
+		{
+			for (int j = 0; j < KE_LambdaLambda2.Cols(); j++)
+				output << "CLambdaLambda2("<< i << ","<< j <<"): " << KE_LambdaLambda2(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CLambdaU1******* " << endl;
+		for (int i = 0; i < KE_LambdaU1.Rows(); i++)
+		{
+			for (int j = 0; j < KE_LambdaU1.Cols(); j++)
+				output << "CLambdaU1("<< i << ","<< j <<"): " << KE_LambdaU1(i,j) << endl;
+		}
+		output << endl;	
+		
+		output << "*******CLambdaU2******* " << endl;
+		for (int i = 0; i < KE_LambdaU2.Rows(); i++)
+		{
+			for (int j = 0; j < KE_LambdaU2.Cols(); j++)
+				output << "CLambdaU2("<< i << ","<< j <<"): " << KE_LambdaU2(i,j) << endl;
+		}
+		output << endl;	
+		output.close();
+		//*************debug*********************//
+		
+		} // if (state[37] == 0.)
 	return fModuli; 
 }
 
