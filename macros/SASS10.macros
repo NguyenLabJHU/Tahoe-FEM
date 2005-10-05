@@ -1,0 +1,60 @@
+# $Id: SASS10.macros,v 1.1 2005-10-05 22:49:44 cjkimme Exp $
+#
+## Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
+#
+# OPTIONAL: set this from your shell or .cshrc
+# setenv LD_LIBRARY_PATH $(COMP_DIR)/lib
+#
+COMP_DIR = /opt/SUNWhpc/
+#
+MAKE        = make
+DEFINES     = -D__SUN__ -D__MPI__ -D__TAHOE_MPI__ -D__SASS10__
+# use the makedepend that comes with /usr/openwin/bin
+# do not use the one that comes with SEACAS/etc
+MAKEDEPEND_C = makedepend
+MAKEDEPEND_OUTPUT_C = -f
+MAKEDEPENDFLAGS_C  = -I$(INC_DIR) -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
+               -I/$(COMP_DIR)/include/CC4 -I/$(COMP_DIR)/include/CCios \
+               -I/$(COMP_DIR)/include/f77 $(DEFINES)
+MAKEDEPEND_CC = makedepend
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPENDFLAGS_CC  = -I$(INC_DIR) -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
+               -I/$(COMP_DIR)/include/CC4 -I/$(COMP_DIR)/include/CCios \
+               -I/$(COMP_DIR)/include/f77 $(DEFINES)
+MAKEDEPEND_F = makedepend
+MAKEDEPEND_OUTPUT_F = -f
+MAKEDEPENDFLAGS_F  = -I$(INC_DIR) -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
+               -I/$(COMP_DIR)/include/CC4 -I/$(COMP_DIR)/include/CCios \
+               -I/$(COMP_DIR)/include/f77 $(DEFINES)
+COMP_C      = $(COMP_DIR)/bin/mpcc
+COMP_CC     = $(COMP_DIR)/bin/mpCC
+COMP_F      = $(COMP_DIR)/bin/mpf77
+MORE_CFLAGS = -xO4 -DNDEBUG
+LOC_CFLAGS  = -c -I$(INC_DIR) -I/opt/SUNWhpc/include/v9 $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS) -features=rtti -xO4 -xtarget=native64 -xarch=native64 -xcode=pic32 -library=stlport4
+CFLAGS_F    = $(LOC_CFLAGS)
+LINK        = $(COMP_CC) -xO4 -xtarget=native64 -xarch=native64 -xcode=pic32  -library=stlport4
+LFLAGS      = -L/opt/SUNWhpc/lib/sparcv9 -R/opt/SUNWhpc/lib -lmpi
+LFLAGS	    = 
+AR          = ar
+ARFLAGS     = -cruv
+RANLIB      = echo
+RANLIBFLAGS =
+MAKE_OPTS   = 
+RM          = rm
+RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
+LN          = /usr/bin/ln -sf
+ECHO        = echo
+CAT         = cat
+PERL        = perl -w
+PRINTF      = printf
+GREP        = grep
+XARGS       = xargs
+
+# target-specific extras
+MAKE_INIT_XTRAS        =
+MAKE_HEADERS_XTRAS     =
+MAKE_DEPEND_INIT_XTRAS =
+MAKE_CLEAN_XTRAS       =
+MAKE_BUILD_XTRAS       =
