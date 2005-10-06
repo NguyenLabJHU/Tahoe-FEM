@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.18 2005-10-05 23:58:08 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.19 2005-10-06 22:22:19 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -969,7 +969,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     dMatrixT dmdSig(6,6); dMatrixT dmdq(6,4);
     dMatrixT dRSig_dSig(6,6); dMatrixT dRSig_dq(6,4); 
     dMatrixT dRq_dSig(4,6); dMatrixT dRq_dq(4,4); dMatrixT dRq_dq_Inv(4,4);
-    dMatrixT RSigq_qq(6,4); 
+    dMatrixT RRq_dqdSig(4,6), RSigq_qq(6,4); 
     dMatrixT dRR(10,10); dMatrixT Y(6,6); dMatrixT Y_Inv(6,6); 
      
     /* define and allocate vectors */
@@ -1176,20 +1176,17 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
         dRq_dq += IdentityMatrix4;
         
         /* Y and Y_Inv matrix */
-        dMatrixT RRq_dqdSig(4,6), YY(6,6); /* work space */
         dRq_dq_Inv.Inverse(dRq_dq);
         RRq_dqdSig.MultAB(dRq_dq_Inv, dRq_dSig);
-        YY.MultAB(dRSig_dq, RRq_dqdSig);
-        Y = dRSig_dSig;
-        Y -= YY;
+        Y.MultAB(dRSig_dq, RRq_dqdSig);
+        Y *= -1.0;
+        Y += dRSig_dSig;
         Y_Inv.Inverse(Y);
         
         /* T vector */
-        dArrayT tmp_vec(6); /* work space */
-        
-        T = nn;
-        RRq_dqdSig.MultTx(rr, tmp_vec);
-        T -= tmp_vec;
+        RRq_dqdSig.MultTx(rr, T);
+        T *= -1.0;
+        T += nn;
         
         /* RSigq_qq vector */
         RSigq_qq.MultAB(dRSig_dq, dRq_dq_Inv);
