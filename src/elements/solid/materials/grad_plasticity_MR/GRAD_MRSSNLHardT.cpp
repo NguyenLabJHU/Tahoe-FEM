@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.19 2005-10-06 22:22:19 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.20 2005-10-14 23:05:37 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -249,7 +249,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
        skip plastic part, and send back current stresses and 
        internal variables to the global level
     */ 
-    if (ff < kYieldTol) 
+    if (dlam < kYieldTol) 
     {
       iplastic = 0;
       state[34] = ff;
@@ -259,18 +259,20 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
       
     else  
     {
-      cout << endl << " ip yield condition satisfied!!! " << ff << endl;
+      //cout << endl << " ip yield condition satisfied!!! " << ff << endl;
       state[39] = ff;
       iplastic = 1;
-      if (dlam > kYieldTol) fIVFlag = 1;
-      kk = 0;
-      while (ff > fTol_1) 
+      cout << "dlam = " << dlam << endl;
+      //if (dlam > kYieldTol) fIVFlag = 1;
+      fIVFlag = 1;
+      //kk = 0;
+      //while (ff > fTol_1) 
       {
-        if (kk > 500) 
-        	ExceptionT::GeneralFail("GRAD_MRSSNLHardT::StressCorrection","Too Many Iterations");
+        //if (kk > 500) 
+        	//ExceptionT::GeneralFail("GRAD_MRSSNLHardT::StressCorrection","Too Many Iterations");
         
         /* terminate iteration since lambda = 0 will run into convergence problem */ 
-        if (fIVFlag == 0) break;
+        //if (fIVFlag == 0) break;
          
         Sig = Sig_I;
         ue = u;
@@ -335,14 +337,14 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         Rq -= Rq_temp; 
         
         /* check the matrices are correct before assemblying */
-        /*if (kk == 500) {
-        	cout << "dRSig_dSig =" << endl << dRSig_dSig << endl;
-        	cout << "dRSig_dq =" << endl << dRSig_dq << endl;
-        	cout << "dRq_dSig =" << endl << dRq_dSig << endl;
-        	cout << "dRq_dq =" << endl << dRq_dq << endl;
-        	cout << "RSig =" << endl << RSig << endl;
-        	cout << "Rq =" << endl << Rq << endl;
-        }*/
+        ///*if (kk == 500) {
+        	//cout << "dRSig_dSig =" << endl << dRSig_dSig << endl;
+        	//cout << "dRSig_dq =" << endl << dRSig_dq << endl;
+        	//cout << "dRq_dSig =" << endl << dRq_dSig << endl;
+        	//cout << "dRq_dq =" << endl << dRq_dq << endl;
+        	//cout << "RSig =" << endl << RSig << endl;
+        	//cout << "Rq =" << endl << Rq << endl;
+        //}*/
         
         /* form dLHS (10,10) matrix */
         dLHS.AddBlock(0,                 0,                 dRSig_dSig);
@@ -353,12 +355,38 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         /* form dRHS (10) vector */
 		dRHS.CopyIn(0, RSig);
 		dRHS.CopyIn(RSig.Length(), Rq);
+		dRHS *= -1.0;
 		
 		/* check to see dLHS and dRHS are assembled correctly */
 		/*if (kk == 500) {
 			cout << "dLHS = " << endl << dLHS << endl;
 			cout << "dRHS = " << endl << dRHS << endl;
 		}*/
+		
+		StringT file_name;  
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/LinearSolve";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/LinearSolve";
+		file_name.Append(".txt");
+		ofstream output(file_name);
+		if (!output) {
+			cout << "Error opening output file" << endl;
+		}
+			
+		output << "*******dLHS******* " << endl;
+		for (int i = 0; i < dLHS.Rows(); i++)
+		{
+			for (int j = 0; j < dLHS.Cols(); j++) 
+				if (dLHS(i,j) != 0.0)
+					output << "dLHS("<< i << ","<< j <<"): " << dLHS(i,j) << endl;
+		}
+		output << endl;
+			
+		output << "*******dRHS******* " << endl;
+		for (int i = 0; i < dRHS.Length(); i++)
+				if (dRHS[i] != 0.0) 
+					output << "dRHS ("<<i<<"): "<< dRHS[i] << endl;
+		output << endl;	
+		output.close();
         
         /* solve the linear sys. of eqs. */
         dLHS.LinearSolve(dRHS); 
@@ -387,7 +415,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         lap_up += lap_dup;
         Sig += dSig;   // stress automatically updated when up & lap_up are updated??
         qn += dq;
-        kk = kk + 1;
+        //kk = kk + 1;
       }	// while (ff > fTol_1) 
     }	// if (ff <kYieldTol)
     
@@ -1060,7 +1088,6 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	
 	  	//*************debug*********************//
 	  	StringT file_name;  
-	
 		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Elastic";
 		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Elastic";
 		file_name.Append(".txt");
@@ -1073,24 +1100,27 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		output << "*******CUU1******* " << endl;
 		for (int i = 0; i < KE_UU1.Rows(); i++)
 		{
-			for (int j = 0; j < KE_UU1.Cols(); j++)
-				output << "CUU1("<< i << ","<< j <<"): " << KE_UU1(i,j) << endl;
+			for (int j = 0; j < KE_UU1.Cols(); j++) 
+				if (KE_UU1(i,j) != 0.0) 
+					output << "CUU1("<< i << ","<< j <<"): " << KE_UU1(i,j) << endl;
 		}
 		output << endl;	
 		
 		output << "*******CUU2******* " << endl;
 		for (int i = 0; i < KE_UU2.Rows(); i++)
 		{
-			for (int j = 0; j < KE_UU2.Cols(); j++)
-				output << "CUU2("<< i << ","<< j <<"): " << KE_UU2(i,j) << endl;
+			for (int j = 0; j < KE_UU2.Cols(); j++) 
+				if (KE_UU2(i,j) != 0.0) 
+					output << "CUU2("<< i << ","<< j <<"): " << KE_UU2(i,j) << endl;
 		}
 		output << endl;	
-	
+			
 		output << "*******CULambda1******* " << endl;
 		for (int i = 0; i < KE_ULambda1.Rows(); i++)
 		{
 			for (int j = 0; j < KE_ULambda1.Cols(); j++) 
-				output << "CULambda1("<< i << ","<< j <<"): " << KE_ULambda1(i,j) << endl;
+				if (KE_ULambda1(i,j) != 0.0)  
+					output << "CULambda1("<< i << ","<< j <<"): " << KE_ULambda1(i,j) << endl;
 		}
 		output << endl;	
 		
@@ -1098,43 +1128,48 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		for (int i = 0; i < KE_ULambda2.Rows(); i++)
 		{
 			for (int j = 0; j < KE_ULambda2.Cols(); j++) 
-				output << "CULambda2("<< i << ","<< j <<"): " << KE_ULambda2(i,j) << endl;
+				if (KE_ULambda2(i,j) != 0.0)    
+					output << "CULambda2("<< i << ","<< j <<"): " << KE_ULambda2(i,j) << endl;	
 		}
 		output << endl;	
 				
 		output << "*******CLambdaLambda1******* " << endl;
 		for (int i = 0; i < KE_LambdaLambda1.Rows(); i++)
 		{
-			for (int j = 0; j < KE_LambdaLambda1.Cols(); j++)
-				output << "CLambdaLambda1("<< i << ","<< j <<"): " << KE_LambdaLambda1(i,j) << endl;
+			for (int j = 0; j < KE_LambdaLambda1.Cols(); j++) 
+				if (KE_LambdaLambda1(i,j) != 0.0)  
+					output << "CLambdaLambda1("<< i << ","<< j <<"): " << KE_LambdaLambda1(i,j) << endl;
 		}
 		output << endl;	
 		
 		output << "*******CLambdaLambda2******* " << endl;
 		for (int i = 0; i < KE_LambdaLambda2.Rows(); i++)
 		{
-			for (int j = 0; j < KE_LambdaLambda2.Cols(); j++)
-				output << "CLambdaLambda2("<< i << ","<< j <<"): " << KE_LambdaLambda2(i,j) << endl;
+			for (int j = 0; j < KE_LambdaLambda2.Cols(); j++) 
+				if (KE_LambdaLambda2(i,j) != 0.0)  
+					output << "CLambdaLambda2("<< i << ","<< j <<"): " << KE_LambdaLambda2(i,j) << endl;
 		}
 		output << endl;	
 		
 		output << "*******CLambdaU1******* " << endl;
 		for (int i = 0; i < KE_LambdaU1.Rows(); i++)
 		{
-			for (int j = 0; j < KE_LambdaU1.Cols(); j++)
-				output << "CLambdaU1("<< i << ","<< j <<"): " << KE_LambdaU1(i,j) << endl;
+			for (int j = 0; j < KE_LambdaU1.Cols(); j++) 
+				if (KE_LambdaU1(i,j) != 0.0)  
+					output << "CLambdaU1("<< i << ","<< j <<"): " << KE_LambdaU1(i,j) << endl;
 		}
 		output << endl;	
 		
 		output << "*******CLambdaU2******* " << endl;
 		for (int i = 0; i < KE_LambdaU2.Rows(); i++)
 		{
-			for (int j = 0; j < KE_LambdaU2.Cols(); j++)
-				output << "CLambdaU2("<< i << ","<< j <<"): " << KE_LambdaU2(i,j) << endl;
+			for (int j = 0; j < KE_LambdaU2.Cols(); j++) 
+				if (KE_LambdaU2(i,j) != 0.0)  
+					output << "CLambdaU2("<< i << ","<< j <<"): " << KE_LambdaU2(i,j) << endl;
 		}
 		output << endl;	
 		output.close();
-		//*************debug*********************//    
+		//*************debug*********************//   
 	}
 	else  
 	{
@@ -1247,7 +1282,6 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	
 	  	//*************debug*********************//
 	  	StringT file_name;  
-	
 		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Plastic";
 		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Plastic";
 		file_name.Append(".txt");
@@ -1260,24 +1294,53 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		output << "*******CUU1******* " << endl;
 		for (int i = 0; i < KE_UU1.Rows(); i++)
 		{
-			for (int j = 0; j < KE_UU1.Cols(); j++)
-				output << "CUU1("<< i << ","<< j <<"): " << KE_UU1(i,j) << endl;
+			for (int j = 0; j < KE_UU1.Cols(); j++) 
+				if (KE_UU1(i,j) != 0.0) 
+					output << "CUU1("<< i << ","<< j <<"): " << KE_UU1(i,j) << endl;
 		}
 		output << endl;	
 		
 		output << "*******CUU2******* " << endl;
 		for (int i = 0; i < KE_UU2.Rows(); i++)
 		{
-			for (int j = 0; j < KE_UU2.Cols(); j++)
-				output << "CUU2("<< i << ","<< j <<"): " << KE_UU2(i,j) << endl;
+			for (int j = 0; j < KE_UU2.Cols(); j++) 
+				if (KE_UU2(i,j) != 0.0) 
+					output << "CUU2("<< i << ","<< j <<"): " << KE_UU2(i,j) << endl;
 		}
 		output << endl;	
 	
+		output << "******* mm, nn, rr, hh, gg ******* " << endl;
+		for (int i = 0; i < mm.Length(); i++)
+				if (mm[i] != 0.0) 
+					output << "mm ("<<i<<"): "<< mm[i] << endl;
+		output << endl;
+			
+		for (int i = 0; i < nn.Length(); i++)
+			if (nn[i] != 0.0)
+				output << "nn ("<<i<<"): "<< nn[i] << endl;
+		output << endl;
+		
+		for (int i = 0; i < rr.Length(); i++)
+			if (rr[i] != 0.0)
+				output << "rr ("<<i<<"): "<< rr[i] << endl;
+		output << endl;
+		
+		for (int i = 0; i < hh.Length(); i++)
+			if (hh[i] != 0.0)
+				output << "hh ("<<i<<"): "<< hh[i] << endl;
+		output << endl;
+		
+		for (int i = 0; i < gg.Length(); i++)
+			if (gg[i] != 0.0)
+				output << "gg ("<<i<<"): "<< gg[i] << endl;
+		output << endl;
+			
 		output << "*******CULambda1******* " << endl;
 		for (int i = 0; i < KE_ULambda1.Rows(); i++)
 		{
 			for (int j = 0; j < KE_ULambda1.Cols(); j++) 
-				output << "CULambda1("<< i << ","<< j <<"): " << KE_ULambda1(i,j) << endl;
+				if (KE_ULambda1(i,j) != 0.0)  
+					output << "CULambda1("<< i << ","<< j <<"): " << KE_ULambda1(i,j) << endl;
 		}
 		output << endl;	
 		
@@ -1285,39 +1348,44 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		for (int i = 0; i < KE_ULambda2.Rows(); i++)
 		{
 			for (int j = 0; j < KE_ULambda2.Cols(); j++) 
-				output << "CULambda2("<< i << ","<< j <<"): " << KE_ULambda2(i,j) << endl;
+				if (KE_ULambda2(i,j) != 0.0)    
+					output << "CULambda2("<< i << ","<< j <<"): " << KE_ULambda2(i,j) << endl;	
 		}
 		output << endl;	
 				
 		output << "*******CLambdaLambda1******* " << endl;
 		for (int i = 0; i < KE_LambdaLambda1.Rows(); i++)
 		{
-			for (int j = 0; j < KE_LambdaLambda1.Cols(); j++)
-				output << "CLambdaLambda1("<< i << ","<< j <<"): " << KE_LambdaLambda1(i,j) << endl;
+			for (int j = 0; j < KE_LambdaLambda1.Cols(); j++) 
+				if (KE_LambdaLambda1(i,j) != 0.0)  
+					output << "CLambdaLambda1("<< i << ","<< j <<"): " << KE_LambdaLambda1(i,j) << endl;
 		}
 		output << endl;	
 		
 		output << "*******CLambdaLambda2******* " << endl;
 		for (int i = 0; i < KE_LambdaLambda2.Rows(); i++)
 		{
-			for (int j = 0; j < KE_LambdaLambda2.Cols(); j++)
-				output << "CLambdaLambda2("<< i << ","<< j <<"): " << KE_LambdaLambda2(i,j) << endl;
+			for (int j = 0; j < KE_LambdaLambda2.Cols(); j++) 
+				if (KE_LambdaLambda2(i,j) != 0.0)  
+					output << "CLambdaLambda2("<< i << ","<< j <<"): " << KE_LambdaLambda2(i,j) << endl;
 		}
 		output << endl;	
 		
 		output << "*******CLambdaU1******* " << endl;
 		for (int i = 0; i < KE_LambdaU1.Rows(); i++)
 		{
-			for (int j = 0; j < KE_LambdaU1.Cols(); j++)
-				output << "CLambdaU1("<< i << ","<< j <<"): " << KE_LambdaU1(i,j) << endl;
+			for (int j = 0; j < KE_LambdaU1.Cols(); j++) 
+				if (KE_LambdaU1(i,j) != 0.0)  
+					output << "CLambdaU1("<< i << ","<< j <<"): " << KE_LambdaU1(i,j) << endl;
 		}
 		output << endl;	
 		
 		output << "*******CLambdaU2******* " << endl;
 		for (int i = 0; i < KE_LambdaU2.Rows(); i++)
 		{
-			for (int j = 0; j < KE_LambdaU2.Cols(); j++)
-				output << "CLambdaU2("<< i << ","<< j <<"): " << KE_LambdaU2(i,j) << endl;
+			for (int j = 0; j < KE_LambdaU2.Cols(); j++) 
+				if (KE_LambdaU2(i,j) != 0.0)  
+					output << "CLambdaU2("<< i << ","<< j <<"): " << KE_LambdaU2(i,j) << endl;
 		}
 		output << endl;	
 		output.close();
