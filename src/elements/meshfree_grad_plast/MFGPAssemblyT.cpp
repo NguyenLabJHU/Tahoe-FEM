@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.12 2005-10-05 23:57:35 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.13 2005-10-18 00:33:14 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -2025,40 +2025,36 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after, int step_num) const
 	output << "*******KUU******* " << endl;
 	for (int i = 0; i < fKuu.Rows(); i++)
 	{
-		for (int j = 0; j < fKuu.Cols(); j++) {
+		for (int j = 0; j < fKuu.Cols(); j++) 
 			if (fKuu(i,j) != 0.0)
 				output << "KUU("<< i << ","<< j <<"): " << fKuu(i,j) << endl;
-		}
 	}
 	output << endl;	
 	
 	output << "*******KULambda******* " << endl;
 	for (int i = 0; i < fKulambda.Rows(); i++)
 	{
-		for (int j = 0; j < fKulambda.Cols(); j++) {
+		for (int j = 0; j < fKulambda.Cols(); j++) 
 			if (fKulambda(i,j) != 0.0) 
-				output << "KULambda("<< i << ","<< j <<"): " << fKulambda(i,j) << endl;
-		}	
+				output << "KULambda("<< i << ","<< j <<"): " << fKulambda(i,j) << endl;	
 	}
 	output << endl;	
 				
 	output << "*******KLambdaLambda******* " << endl;
 	for (int i = 0; i < fKlambdalambda.Rows(); i++)
 	{
-		for (int j = 0; j < fKlambdalambda.Cols(); j++) {
+		for (int j = 0; j < fKlambdalambda.Cols(); j++) 
 			if (fKlambdalambda(i,j) != 0.0)  
 				output << "KLambdaLambda("<< i << ","<< j <<"): " << fKlambdalambda(i,j) << endl;
-		}
 	}
 	output << endl;	
 		
 	output << "*******KLambdaU******* " << endl;
 	for (int i = 0; i < fKlambdau.Rows(); i++)
 	{
-		for (int j = 0; j < fKlambdau.Cols(); j++) {
+		for (int j = 0; j < fKlambdau.Cols(); j++) 
 			if (fKlambdau(i,j) != 0.0)  
 				output << "KLambdaU("<< i << ","<< j <<"): " << fKlambdau(i,j) << endl;
-		}
 	}
 	output << endl;	
 	output.close();
@@ -2091,17 +2087,15 @@ void MFGPAssemblyT::PrintInternalForces(StringT before_after, int step_num) cons
 	/* print element internal force vectors */
 	output << "accumulated internal force " << endl << endl;
 	output << "*******Fu******* " << endl;
-	for (int i = 0; i < fFu_int.Length(); i++) {
+	for (int i = 0; i < fFu_int.Length(); i++) 
 		if (fFu_int[i] != 0.0 )
 			output << "Fu["<< i << "]: " << fFu_int[i] << endl;
-	}
 	output << endl;	
 	
 	output << "*******Flambda******* " << endl;
-	for (int i = 0; i < fFlambda.Length(); i++) {
+	for (int i = 0; i < fFlambda.Length(); i++) 
 		if (fFlambda[i] != 0.0 )
-			output << "Flambda["<< i << "]: " << fFlambda[i] << endl;
-	}	
+			output << "Flambda["<< i << "]: " << fFlambda[i] << endl;	
 	output << endl;	
 	output.close();
 }
