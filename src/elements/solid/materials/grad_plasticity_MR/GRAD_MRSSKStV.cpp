@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.23 2005-08-31 16:57:44 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.24 2005-10-28 16:18:38 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -219,18 +219,25 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 	J2 = (J2 < 0.0) ? 0.0 : J2;
 	output[4] = sqrt(3.0*J2);
 	
-	int flag = fGRAD_MR->InitalIV(); // check if yield criterion is satisfied and lambda is positive
-	
 	const ElementCardT& element = CurrentElement();
-	if (element.IsAllocated() && flag == 1)
+	if (element.IsAllocated())
 	{
-		dArrayT& internal = fGRAD_MR->Internal();
+		int flag = fGRAD_MR->InitalIV(); // check if yield criterion is satisfied and lambda is positive
+		if (flag == 0) {
+			dArrayT& internal = fGRAD_MR->IniInternal();
 		
-		/* stress-like internal variable Chi */
-		output[0] = internal[GRAD_MRSSNLHardT::kchi];
-		output[1] = internal[GRAD_MRSSNLHardT::kc];
-		output[2] = internal[GRAD_MRSSNLHardT::ktanphi];
-		output[3] = internal[GRAD_MRSSNLHardT::ktanpsi];
+			/* stress-like internal variable Chi */
+			output.CopyIn(0, internal);
+		}
+		else {
+			dArrayT& internal = fGRAD_MR->Internal();
+		
+			/* stress-like internal variable Chi */
+			output[0] = internal[GRAD_MRSSNLHardT::kchi];
+			output[1] = internal[GRAD_MRSSNLHardT::kc];
+			output[2] = internal[GRAD_MRSSNLHardT::ktanphi];
+			output[3] = internal[GRAD_MRSSNLHardT::ktanpsi];
+		}
 		
 		// check for localization
 		// compute modulus 
@@ -254,17 +261,7 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 		else output[18] = 0.0;
 		*/
 		output[6] = 0.0;
-	}	
-	else
-	{
-		dArrayT& internal = fGRAD_MR->IniInternal();
-		
-		/* stress-like internal variable Chi */
-		output.CopyIn(0, internal);
-		output[6] = 0.0;
-	}
-
-	
+	}		
 }
 
 /* describe the parameters needed by the interface */

@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.21 2005-10-26 22:05:46 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.22 2005-10-28 16:18:38 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -230,18 +230,13 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     KE_AST.Multx(lap_ue, lap_Sig_e);
     Sig += Sig_e; 
     Sig -= lap_Sig_e;
-    //cout << endl << "sig_e =" << endl << Sig_e << endl;
-    //cout << endl << "lap_sig_e =" << endl << lap_Sig_e << endl;
     Sig_trial = Sig;
     
     int iplastic; 
-    double dlam = triallambda[0]; double lap_dlam = lap_triallambda[0];
+    double dlam = triallambda[0]; 
+    double lap_dlam = lap_triallambda[0];
  
 /* check the yield function */
-	//cout << endl << "ip = " << ip << endl;
-    //cout << endl << "sig = " << endl << Sig << endl;
-    //cout << endl << "qn = " << endl << qn << endl;
-    
     Yield_f(Sig, qn, ff);
     
     /* if yield condition is satisfied, but lambda is zero
@@ -258,7 +253,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
       
     else  
     {
-      //cout << endl << " ip yield condition satisfied!!! " << ff << endl;
+      cout << endl << " ip yield condition satisfied!!! " << ff << endl;
       state[39] = ff;
       iplastic = 1;
       if (dlam > kYieldTol) {
@@ -332,16 +327,6 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         	Rq_temp.SetToScaled(dlam, hh);  //dlam2 == dlam??
         	Rq -= Rq_temp; 
         
-        /* check the matrices are correct before assemblying */
-        ///*if (kk == 500) {
-        	//cout << "dRSig_dSig =" << endl << dRSig_dSig << endl;
-        	//cout << "dRSig_dq =" << endl << dRSig_dq << endl;
-        	//cout << "dRq_dSig =" << endl << dRq_dSig << endl;
-        	//cout << "dRq_dq =" << endl << dRq_dq << endl;
-        	//cout << "RSig =" << endl << RSig << endl;
-        	//cout << "Rq =" << endl << Rq << endl;
-        //}*/
-        
         	/* form dLHS (10,10) matrix */
         	/*dLHS.AddBlock(0,                 0,                 dRSig_dSig);
 			dLHS.AddBlock(0,                 dRSig_dSig.Cols(), dRSig_dq);
@@ -353,36 +338,6 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 			dRHS.CopyIn(RSig.Length(), Rq);
 			dRHS *= -1.0;
 			*/
-		/* check to see dLHS and dRHS are assembled correctly */
-		/*if (kk == 500) {
-			cout << "dLHS = " << endl << dLHS << endl;
-			cout << "dRHS = " << endl << dRHS << endl;
-		}*/
-		/*
-			StringT file_name;  
-			file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/LinearSolve";
-			//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/LinearSolve";
-			file_name.Append(".txt");
-			ofstream output(file_name);
-			if (!output) {
-				cout << "Error opening output file" << endl;
-			}
-			
-			output << "*******dLHS******* " << endl;
-			for (int i = 0; i < dLHS.Rows(); i++)
-			{
-				for (int j = 0; j < dLHS.Cols(); j++) 
-					if (dLHS(i,j) != 0.0)
-						output << "dLHS("<< i << ","<< j <<"): " << dLHS(i,j) << endl;
-			}
-			output << endl;
-			
-			output << "*******dRHS******* " << endl;
-			for (int i = 0; i < dRHS.Length(); i++)
-				if (dRHS[i] != 0.0) 
-					output << "dRHS ("<<i<<"): "<< dRHS[i] << endl;
-			output << endl;	
-			output.close();*/
         
         	/* solve the linear sys. of eqs. */
         	//dLHS.LinearSolve(dRHS); 
@@ -396,13 +351,8 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
             		dq[i-6] = dRHS[i];
         	}
         */
-        /* check the solutions */
-        /*if (kk == 500) {
-        	cout << "dSig = " << endl << dSig << endl;
-        	cout << "dq = " << endl << dq << endl;
-        }*/
         
-        	/* solving dSig and dq in close form */
+        	/* solving dSig and dq in closed form */
         	dArrayT dSig_tmp(6), dq_tmp(4);
         	dRq_dq_Inv.Inverse(dRq_dq);
         	RRq_dqdSig.MultAB(dRq_dq_Inv, dRq_dSig);
@@ -431,8 +381,8 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         	qn += dq;
         	kk = kk + 1;
       	}	// while (ff > fTol_1)
-      } //if (dlam < kYieldTol)  
-    }	// if (ff <kYieldTol)
+      } // if (dlam > kYieldTol)  
+    }	// if (ff < kYieldTol)
     
     /* update state variables */
     state.CopyIn(0, Sig); 
@@ -1035,6 +985,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	KE_ULambda1 = 0.; KE_ULambda2 = 0.;
 	KE_LambdaU1 = 0.; KE_LambdaU2 = 0.;
 	KE_LambdaLambda1 = 0.; KE_LambdaLambda2 = 0.; 
+	state = 0.;
 	
 	ls[0] = flse_v; // lse_v: pore space length scale (elastic)  
 	ls[1] = flse_s; // lse_s: grain size length scale (elastic)
@@ -1065,46 +1016,11 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		fModuli_LamU2 = KE_LambdaU2;
 		fModuli_LamLam1 = KE_LambdaLambda1;
 		fModuli_LamLam2 = KE_LambdaLambda2;
-	  	fModuli = 0.0;     
-	  	return fModuli;
-	}
-    
-    /* load internal state variables */
-    if(!element.IsAllocated()) 
-    {
-	  	LoadData(element,ip);
-	  	for (int i = 0; i < 39; i++) 
-			state[i] = fInternal[i];
-	}
-	  	
-    for (int i = 0; i < 6; i++) 
-    {
-       Sig[i] = state[i];
-       if (i < 4)
-       {
-       		qn[i] = state[i+30];
-       }
-    }
-	
-	if (state[37] == 0) 
-	{
-	    KE_UU1 = KE;
-	  	KE_UU2.SetToScaled(-1., KE_AST);
-	  	
-	  	fModuli_UU1 = KE_UU1;
-		fModuli_UU2 = KE_UU2;
-		fModuli_ULam1 = KE_ULambda1;
-		fModuli_ULam2 = KE_ULambda2;
-		fModuli_LamU1 = KE_LambdaU1;
-		fModuli_LamU2 = KE_LambdaU2;
-		fModuli_LamLam1 = KE_LambdaLambda1;
-		fModuli_LamLam2 = KE_LambdaLambda2; 
-	  	fModuli = 0.0; 
-	  	
+	  	fModuli = 0.0;
 	  	//*************debug*********************//
 	  	StringT file_name;  
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Elastic";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Elastic";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Elastic";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Elastic";
 		file_name.Append(".txt");
 		ofstream output(file_name);
 		if (!output) {
@@ -1185,6 +1101,40 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		output << endl;	
 		output.close();
 		//*************debug*********************//   
+		     
+	  	return fModuli;
+	}
+    
+    /* load internal state variables */
+    if(element.IsAllocated()) 
+    {
+	  	LoadData(element,ip);
+	  	state.CopyIn(0, fInternal);
+	}
+	  	
+    for (int i = 0; i < 6; i++) 
+    {
+       Sig[i] = state[i];
+       if (i < 4)
+       {
+       		qn[i] = state[i+30];
+       }
+    }
+	
+	if (state[kplastic] == 0) 
+	{
+	    KE_UU1 = KE;
+	  	KE_UU2.SetToScaled(-1., KE_AST);
+	  	
+	  	fModuli_UU1 = KE_UU1;
+		fModuli_UU2 = KE_UU2;
+		fModuli_ULam1 = KE_ULambda1;
+		fModuli_ULam2 = KE_ULambda2;
+		fModuli_LamU1 = KE_LambdaU1;
+		fModuli_LamU2 = KE_LambdaU2;
+		fModuli_LamLam1 = KE_LambdaLambda1;
+		fModuli_LamLam2 = KE_LambdaLambda2; 
+	  	fModuli = 0.0; 
 	}
 	else  
 	{
@@ -1298,8 +1248,8 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	
 	  	//*************debug*********************//
 	  	StringT file_name;  
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Plastic";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Plastic";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Plastic";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Plastic";
 		file_name.Append(".txt");
 		ofstream output(file_name);
 		if (!output) {
@@ -1419,7 +1369,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		output.close();
 		//*************debug*********************//
 		
-		} // if (state[37] == 0.)
+		} // if (state[kplastic] == 0.)
 	return fModuli; 
 }
 
@@ -1568,11 +1518,6 @@ int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 {
 	/* not yet plastic */
 	if (!element.IsAllocated()) { 
-		//cout << "!element.IsAllocated()" << endl;
-		//double yield = YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
-			   //MeanStress(trialstrain,lap_trialstrain,element));
-		//cout << "failure fun = " << yield;
-		
 		return( YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
 			   MeanStress(trialstrain,lap_trialstrain,element)) > kYieldTol );
         /* already plastic */
