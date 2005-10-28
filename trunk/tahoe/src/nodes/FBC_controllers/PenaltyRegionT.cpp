@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.22 2005-07-20 06:49:52 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.23 2005-10-28 13:55:29 regueiro Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -34,6 +34,7 @@ PenaltyRegionT::PenaltyRegionT(void):
 	fLTf(NULL),
 	fOutputID(-1),
 	fk(-1.0),
+	fmu(-1.0),
 	fRollerDirection(-1),
 	fSecantSearch(NULL),
 	fContactArea(0.0)
@@ -328,6 +329,11 @@ void PenaltyRegionT::DefineParameters(ParameterListT& list) const
 	ParameterT k(fk, "stiffness");
 	k.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(k);
+
+	/* add a parameter 'mu' corresponding to 'fmu' in the parameter list of the .xml file */
+	ParameterT mu(fmu, "friction_coefficient");
+	mu.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(mu);
 }
 
 /* information about subordinate parameter lists */
@@ -416,6 +422,9 @@ void PenaltyRegionT::TakeParameterList(const ParameterListT& list)
 
 	/* stiffness */
 	fk = list.GetParameter("stiffness");
+
+	/* coefficient of friction */
+	fmu = list.GetParameter("friction_coefficient");
 
 	/* dimension */
 	int nsd = FieldSupport().NumSD();

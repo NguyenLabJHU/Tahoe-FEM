@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.10 2005-03-12 08:39:15 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.11 2005-10-28 13:55:29 regueiro Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -109,6 +109,8 @@ protected:
 	dArrayT fx0;             /**< initial position */
 	dArrayT fv0;             /**< initial velocity */
 	double fk;               /**< penalty stiffness */
+	/*add a parameter 'fmu' to consider interface friction */
+	double fmu;              /**< coefficient of friction */
 	MotionCodeT fSlow;
 	double fMass;            /**< mass of the region */
 	const ScheduleT* fLTf;   /**< NULL if there is no time dependence */
@@ -154,7 +156,7 @@ protected:
 	
 	/** "connectivities" for output, just alias of PenaltyRegionT::fContactNodes */
 //	iArray2DT fContactNodes2D;
-	/*@}*/	
+	/*@}*/
 
 	/** nodal areas */
 	dArrayT fNodalAreas;
