@@ -17,7 +17,7 @@
             </dof_labels>
             <kinematic_BC dof="1" node_ID="2"/>
             <kinematic_BC dof="2" node_ID="2"/>
-            <sphere_penalty radius="0.2" stiffness="1.0e+2">
+            <sphere_penalty radius="0.2" friction_coefficient="0" stiffness="1.0e+2">
                 <bc_initial_position>
                     <Vector_2 v_1="0.25" v_2="0.2"/>
                 </bc_initial_position>

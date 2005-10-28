@@ -16,7 +16,7 @@
             </dof_labels>
             <kinematic_BC dof="2" node_ID="1"/>
             <kinematic_BC dof="1" node_ID="4"/>
-            <wall_penalty stiffness="5.0e+03">
+            <wall_penalty  friction_coefficient="0" stiffness="5.0e+03">
                 <bc_initial_position>
                     <Vector_2 v_1="-2.5" v_2="2.5"/>
                 </bc_initial_position>
