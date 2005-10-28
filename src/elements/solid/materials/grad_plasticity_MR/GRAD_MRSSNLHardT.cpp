@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.22 2005-10-28 16:18:38 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.23 2005-10-28 22:22:49 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -83,7 +83,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
                   const dSymMatrixT& lap_trialstrain, const dArrayT& triallambda, const dArrayT& lap_triallambda,
                   ElementCardT& element, int ip)
 {	
-  	int kk, PLI;
+  	int kk;
   	double ff;
 
     /* define and allocate matrices */
@@ -110,7 +110,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     dRHS = 0.0; dLHS = 0.0;
     KE = 0.; KE_AST = 0.;
     fIVFlag = 0; // elastic or plastic but zero lambda value
-    fIniInternal = 0.; 
+    fIniInternal = 0.;
     
 	/* length scales parameters */
 	ls[0] = flse_v; // lse_v: pore space length scale (elastic)  
@@ -139,48 +139,21 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 		lap_u[ij] = lap_trialstrain(i,j);
 	} 
         
-	PLI = PlasticLoading(trialstrain, lap_trialstrain, element, ip);
-	
-	if (PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
-	    element.IsAllocated()) 
-    {
-	  LoadData(element, ip);
-	  state.CopyIn(0, fInternal);
-	}
+	double dlam = triallambda[0]; 
+    double lap_dlam = lap_triallambda[0];
     
-	if (!PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
-	    element.IsAllocated())
-	{
-		/* initialize element data */
-		double enp  = 0.;
-        double esp  = 0.;
-        double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
-        double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
-        double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-        double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
-        state = 0.; 
-        state[30] = fchi;
-        state[31] = fc;
-        state[32] = ftan_phi;
-        state[33] = ftan_psi;
-	}
-	
-	if (!PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
-	    !element.IsAllocated())
-	{
-		/* initialize element data */
-		double enp  = 0.;
-        double esp  = 0.;
-        fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
-        double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
-        double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-        double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
-        state = 0.;
-        state[30] = fchi;
-        state[31] = fc;
-        state[32] = ftan_phi;
-        state[33] = ftan_psi;
-	}
+	/* initialize element data */
+	double enp  = 0.;
+    double esp  = 0.;
+    double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
+    double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
+    double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+    double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
+    state = 0.; 
+    state[30] = fchi;
+    state[31] = fc;
+    state[32] = ftan_phi;
+    state[33] = ftan_psi;
 	
 	/* initialize in the case of first plastic loading  */
 	/* check consistency and initialize plastic element */
@@ -189,19 +162,12 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	{
 		/* new plastic element */
 		AllocateElement(element); 
-		PlasticLoading(trialstrain, lap_trialstrain, element, ip); 
+		
 		/* initialize element data */
-		double enp  = 0.;
-        double esp  = 0.;
-        fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
-        double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
-        double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-        double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
-        state = 0.;
-        state[30] = fchi;
-        state[31] = fc;
-        state[32] = ftan_phi;
-        state[33] = ftan_psi;
+		PlasticLoading(trialstrain, lap_trialstrain, element, ip);
+		
+		/* fetch internal variables */
+		state.CopyIn(0, fInternal); 
 	}
 	
 	/* calculate incremental strains and initialize the necessary vectors */
@@ -233,8 +199,8 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     Sig_trial = Sig;
     
     int iplastic; 
-    double dlam = triallambda[0]; 
-    double lap_dlam = lap_triallambda[0];
+    //double dlam = triallambda[0]; 
+   //double lap_dlam = lap_triallambda[0];
  
 /* check the yield function */
     Yield_f(Sig, qn, ff);
@@ -343,14 +309,15 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         	//dLHS.LinearSolve(dRHS); 
         
         	/* extract stress vector and internal variables from dRHS */
-        	/*for (int i = 0; i < dRHS.Length(); i++) 
+        	/*
+        	for (int i = 0; i < dRHS.Length(); i++) 
         	{
             	if (i < 6) 
             		dSig[i] = dRHS[i];
             	else 
             		dq[i-6] = dRHS[i];
         	}
-        */
+           */
         
         	/* solving dSig and dq in closed form */
         	dArrayT dSig_tmp(6), dq_tmp(4);
@@ -1019,8 +986,8 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	fModuli = 0.0;
 	  	//*************debug*********************//
 	  	StringT file_name;  
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Elastic";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Elastic";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Elastic";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Elastic";
 		file_name.Append(".txt");
 		ofstream output(file_name);
 		if (!output) {
@@ -1248,8 +1215,8 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	
 	  	//*************debug*********************//
 	  	StringT file_name;  
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Plastic";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Plastic";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices_Plastic";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices_Plastic";
 		file_name.Append(".txt");
 		ofstream output(file_name);
 		if (!output) {
