@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.23 2005-10-28 13:55:29 regueiro Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.24 2005-10-30 03:36:56 regueiro Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -332,6 +332,7 @@ void PenaltyRegionT::DefineParameters(ParameterListT& list) const
 
 	/* add a parameter 'mu' corresponding to 'fmu' in the parameter list of the .xml file */
 	ParameterT mu(fmu, "friction_coefficient");
+	mu.SetDefault(0.0);
 	mu.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(mu);
 }
