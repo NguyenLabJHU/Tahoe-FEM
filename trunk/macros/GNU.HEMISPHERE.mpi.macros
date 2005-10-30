@@ -1,4 +1,4 @@
-# $Id: GNU.HEMISPHERE.mpi.macros,v 1.1 2005-10-28 17:32:15 regueiro Exp $
+# $Id: GNU.HEMISPHERE.mpi.macros,v 1.2 2005-10-30 03:48:03 regueiro Exp $
 # GNU
 #
 COMP_DIR    = /opt/gcc-3.3.2
@@ -10,12 +10,12 @@ COMP_CC     = $(COMP_DIR)/bin/g++
 COMP_F      = $(COMP_DIR)/bin/g77
 COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
-LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)  -Wunused -Wuninitialized -Wno-deprecated
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)  -Wunused -Wuninitialized -Wno-deprecated -I$(MPI_HOME)/include
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
-LFLAGS      = -lmpi -lpthread
+LFLAGS      = -L$(MPI_HOME)/lib -lmpi -lpthread
 MAKEDEPEND_C         = $(COMP_DIR)/bin/gcc -MM
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES) -I$(MPI_HOME)/include
 MAKEDEPEND_OUTPUT_C  = -MF
