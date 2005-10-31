@@ -1,3 +1,4 @@
+/* $Id: MRSSNLHardT.h,v 1.6 2005-10-31 18:03:12 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)            */
 /*  
  * Interface for a nonassociative, small strain,     */

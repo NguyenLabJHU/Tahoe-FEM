@@ -1,3 +1,4 @@
+/* $Id: MRSSNLHardT.cpp,v 1.8 2005-10-31 18:03:12 kyonten Exp $ */
 /* created: Majid T. Manari (04/16/2003)              */
 
 /* Interface for a nonassociative, small strain,      */
@@ -232,6 +233,7 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
         dQdSigdq_f(Sig, qn, A_uq);
         dqbardSig_f(Sig, qn, A_qu);
         dqbardq_f(Sig, qn, A_qq);
+       
         for (i = 0; i<=9; ++i) {
           for (j = 0; j<=9; ++j) {
             if (i<=5 & j<=5){
@@ -737,7 +739,7 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
     ZMAT = 0.; ZMATP = 0.;
     
     /* load internal state variables */
-    if(!element.IsAllocated()) {
+    if(element.IsAllocated()) {
 	  	LoadData(element,ip);
 	  	for (i =0; i<=27; ++i) {
 		  state[i] = fInternal[i];
@@ -786,22 +788,22 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
 	        KES += KE;
 	        
 	        KES_Inv.Inverse(KES);
-	     
+	     	
             for (i = 0; i<=9; ++i) {
               for (j = 0; j<=9; ++j) {
-                if (i<=1 & j<=5){
+                if (i<=5 & j<=5){
                  AA_inv(i,j)  = KE_Inv(i,j);
                  AA_inv(i,j) += dlam*dQdSig2(i,j);
                 }
-                if (i<=1 & j>5){
+                if (i<=5 & j>5){
                   AA_inv(i,j) = A_uq(i,j-6);
                   AA_inv(i,j) *= dlam;
                 } 
-                if(i>1 & j<=5){
+                if(i>5 & j<=5){
                   AA_inv(i,j) = A_qu(i-6,j);
                   AA_inv(i,j) *= dlam;
                 } 
-                if(i>1 & j >5) {
+                if(i>5 & j >5) {
                   AA_inv(i,j)  = I_mat(i-6,j-6);
                   AA_inv(i,j)  *= -1.; 
                   AA_inv(i,j) += dlam*A_qq(i-6,j-6);
@@ -826,7 +828,7 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
                 Cvec[i] = qbar[i-6];
               }
             }
-            dArrayT tmpVec(10), Vvec(6), dVec(4);
+            dArrayT tmpVec(10), Vvec(6), dVec(6);
             AA.Multx(Cvec,tmpVec);
             bott = dArrayT::Dot(Rvec,tmpVec);
             
