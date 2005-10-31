@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.38 2005-09-12 23:48:19 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.39 2005-10-31 18:49:25 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -106,23 +106,17 @@ void SmallStrainEnhLocT::CloseStep(void)
 		SetGlobalShape();
 		
 		/* get displacements */
-        SetLocalU(fLocDisp);
+		SetLocalU(fLocDisp);
         
-        /* get reference geometry */
-        SetLocalX(fLocInitCoords);
-        /* get current geometry */
+		/* get reference geometry */
+		SetLocalX(fLocInitCoords);
+		/* get current geometry */
 		//SetLocalX(fLocCurrCoords); // same for small strain
 		
 		elem_num = CurrElementNumber();
 		nen = NumElementNodes();
 		loc_flag = fElementLocFlag[elem_num];
-			
-		if ( loc_flag == 1 )
-		{
-			/* choose normal and slip direction based on current element deformation */
-			ChooseNormalAndSlipDir(fLocDisp, elem_num, nen);
-		}
-	
+
 		if ( loc_flag == 1 )
 		{
 			/* determine active nodes and band trace */
@@ -254,6 +248,15 @@ GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
 
 			/* check for localization */
 			CheckLocalization(elem_num, fLocDisp);
+			
+			/* choose normal and slipdir */
+			loc_flag = fElementLocFlag[elem_num];
+			if ( loc_flag == 1 )
+			{
+				/* choose normal and slip direction based on current element deformation */
+				ChooseNormalAndSlipDir(fLocDisp, elem_num, nen);
+			}
+	
 		}
 	
 	} // while next element
