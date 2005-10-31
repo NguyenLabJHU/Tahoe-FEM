@@ -1,3 +1,4 @@
+/* $Id: MRSSKStV.h,v 1.6 2005-10-31 18:02:22 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003) */
 #ifndef _MR_SS_KSTV_H_
 #define _MR_SS_KSTV_H_

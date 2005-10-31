@@ -1,3 +1,4 @@
+/* $Id: MRPrimitiveT.h,v 1.3 2005-10-31 18:02:22 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)                */
 /*
 /* Base class for a nonassociative, small strain,        */
