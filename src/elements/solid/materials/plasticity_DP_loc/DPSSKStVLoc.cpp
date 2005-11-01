@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.26 2005-09-15 14:59:09 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.27 2005-11-01 22:33:43 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 
@@ -246,9 +246,6 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 	
 	/* stress tensor (load state) */
 	const dSymMatrixT& stress = s_ij();
-	
-	// element localization flag
-	output[4] = element_locflag;
 
 	/* pressure */
 	output[2] = fStress.Trace()/3.0;
@@ -287,7 +284,13 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			double detA=1.0;
 			if(checker.IsLocalized_SS(normals,slipdirs,detA)) output[3] = 1.0;
 			
-		  }
+		}
+		// element localization flag
+		output[4] = 0;
+		#ifdef ENHANCED_STRAIN_LOC_DEV	
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+		output[4] = element_locflag;
+		#endif
 	}
 	else
 	{
