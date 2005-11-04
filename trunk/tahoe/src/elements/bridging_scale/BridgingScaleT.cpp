@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.53 2005-04-16 01:58:41 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.54 2005-11-04 21:38:54 d-farrell2 Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -737,7 +737,7 @@ out << "\n residual =\n" << projection << endl;
 /* calculate the fine scale part of MD solution as well as total solution u - same as project Field
  * except for those changes */
 void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT& cell_data,
-	const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu)
+	const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu, dArray2DT& fineu)
 {
 #pragma unused(field)
 
@@ -874,6 +874,9 @@ out << "\n residual =\n" << projection << endl;
 			}
 		}
 	}
+	
+	// set fineu = fFineScale for use later
+	fineu = fFineScale;
 }
 
 /* writing output */
