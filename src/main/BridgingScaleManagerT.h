@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.h,v 1.7 2005-09-02 02:07:50 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.h,v 1.8 2005-11-04 21:40:15 d-farrell2 Exp $ */
 #ifndef _BRIDGING_SCALE_MANAGER_H_
 #define _BRIDGING_SCALE_MANAGER_H_
 
@@ -77,7 +77,7 @@ private:
 	TimeManagerT* fFine_time_manager;
 	
 	// Misc. parameters for BSM only
-	dArray2DT fRHS_2D_true, fFubig, fTotalu, fFu, fProjectedu, fNtfproduct;
+	dArray2DT fRHS_2D_true, fFubig, fTotalu, fTotalv, fFu, fProjectedu, fNtfproduct;
 	iArrayT fActiveFENodes;
 	dSPMatrixT fNtF;
 	CommManagerT* fFine_comm_manager;
@@ -85,6 +85,8 @@ private:
 	TimeManagerT* fCoarse_time_manager;
 	dArrayT fFx, fTempx;	// some arrays for the NtF calculation (perhaps don't need?)
 	nMatrixT<int> fGhostonmap, fGhostoffmap;
+	dArray2DT fCorrection, NtPUprime, fUprime, fVprime, NtPVprime;
+	
 		
 };
 
