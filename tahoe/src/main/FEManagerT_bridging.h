@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.27 2005-09-02 02:04:10 d-farrell2 Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.28 2005-11-04 21:38:54 d-farrell2 Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -168,9 +168,9 @@ public:
 	void CoarseField(const StringT& field, const NodeManagerT& node_manager, int order, dArray2DT& coarse);
 
 	/** calculate the fine scale part of MD solution as well as total displacement u.  Does not
-	  * write into the displacement field */
+	  * write into the displacement field, order specifies order of field to be used */
 	void BridgingFields(const StringT& field, NodeManagerT& atom_node_manager,
-		NodeManagerT& fem_node_manager, dArray2DT& totalu);
+		NodeManagerT& fem_node_manager, dArray2DT& totalu, dArray2DT& fineu, int order = 0);
 	
 	/** calculate the initial FEM displacement via projection of initial MD displacement.  Differs 
 	  * from BridgingFields in that projected FE nodal values written into displacement field */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.40 2005-09-02 02:04:09 d-farrell2 Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.41 2005-11-04 21:38:54 d-farrell2 Exp $ */
  
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
@@ -863,7 +863,7 @@ int order)
 
 /* calculate the fine scale part of MD solution as well as total displacement u */
 void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& atom_node_manager, 
-	NodeManagerT& fem_node_manager, dArray2DT& totalu)
+	NodeManagerT& fem_node_manager, dArray2DT& totalu, dArray2DT& fineu, int order)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
@@ -874,9 +874,9 @@ void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& ato
 	if (!fem_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
 	
 	/* compute the fine scale part of MD solution as well as total displacement u */
-	const dArray2DT& atom_values = (*atom_field)[0];
-	const dArray2DT& fem_values = (*fem_field)[0];
-	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu);
+	const dArray2DT& atom_values = (*atom_field)[order];
+	const dArray2DT& fem_values = (*fem_field)[order];
+	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu, fineu);
 }
 
 /* transpose follower cell data */
