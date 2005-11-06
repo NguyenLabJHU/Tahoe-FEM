@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.16 2005-01-07 22:02:48 paklein Exp $
+# $Id: makefile,v 1.17 2005-11-06 00:38:41 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -6,6 +6,8 @@
 # list of subdirectories
 SUB_DIR = \
 matrix_check \
+2D.spring \
+3D.spring \
 2D.elastodynamic \
 2D.elastostatic \
 3D.elastostatic \
