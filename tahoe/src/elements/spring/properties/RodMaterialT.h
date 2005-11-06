@@ -1,18 +1,13 @@
-/* $Id: RodMaterialT.h,v 1.6 2004-07-15 08:30:22 paklein Exp $ */
+/* $Id: RodMaterialT.h,v 1.7 2005-11-06 00:37:58 paklein Exp $ */
 /* created: paklein (11/20/1996) */
-
 #ifndef _RODMATERIALT_H_
 #define _RODMATERIALT_H_
 
 #include "Environment.h"
 
-#include "ios_fwd_decl.h"
-
 namespace Tahoe {
 
 /* forward declarations */
-class ifstreamT;
-class ThermalDilatationT;
 class ScheduleT;
 
 /** pair interactions */
@@ -21,14 +16,11 @@ class RodMaterialT
 public:
 
 	/** constructor */
-	RodMaterialT(ifstreamT& in);
+	RodMaterialT(double mass);
 
 	/** destructor */
 	virtual ~RodMaterialT(void);
 
-	/** print parameters */
-	void PrintParameters(ostream& out) const;
-	
 	/** return the particle mass */
 	double Mass(void) const { return fMass; };
 	
@@ -37,6 +29,7 @@ public:
 	virtual double DPotential(double rmag, double Rmag) const = 0;
 	virtual double DDPotential(double rmag, double Rmag) const = 0;
 
+#if 0
 	/** thermal accessors */
 	int ThermalScheduleNumber(void) const;
 	void SetThermalSchedule(const ScheduleT* LTfPtr);
@@ -44,11 +37,11 @@ public:
 	/** returns true if the material has internal forces in the unloaded
 	 * configuration, ie thermal strains */
 	virtual int HasInternalStrain(void) const;
+#endif
 
 protected:
 
 	double fMass;
-	ThermalDilatationT* fThermal;
 };
 
 } // namespace Tahoe 

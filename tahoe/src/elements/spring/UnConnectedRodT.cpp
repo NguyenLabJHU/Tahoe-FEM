@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.17 2004-07-22 09:24:45 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.18 2005-11-06 00:37:58 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 #include "UnConnectedRodT.h"
 
@@ -12,7 +12,7 @@ using namespace Tahoe;
 
 /* constructor */
 UnConnectedRodT::UnConnectedRodT(const ElementSupportT& support, const FieldT& field):
-	RodT(support, field),
+	RodT(support),
 	fNumNodesUsed(0),
 	fReconnectCount(0)
 {
@@ -97,7 +97,7 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 void UnConnectedRodT::ReadMaterialData(ifstreamT& in)
 {
 	/* read element data */
-	RodT::ReadMaterialData(in);
+//	RodT::ReadMaterialData(in);
 	
 	/* should only be one material */
 	if (fMaterialsList.Length() != 1) throw ExceptionT::kGeneralFail;

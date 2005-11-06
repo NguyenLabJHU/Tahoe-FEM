@@ -1,12 +1,10 @@
-/* $Id: LinearSpringT.h,v 1.3 2004-07-15 08:30:22 paklein Exp $ */
-/* created: paklein (11/20/1996)                                          */
-
+/* $Id: LinearSpringT.h,v 1.4 2005-11-06 00:37:58 paklein Exp $ */
+/* created: paklein (11/20/1996) */
 #ifndef _LINEARSPRINGT_H_
 #define _LINEARSPRINGT_H_
 
 /* base class */
 #include "RodMaterialT.h"
-
 
 namespace Tahoe {
 
@@ -15,7 +13,7 @@ class LinearSpringT: public RodMaterialT
 public:
 
 	/* constructor */
-	LinearSpringT(ifstreamT& in);
+	LinearSpringT(double mass, double k);
 	
 	/* potential function and derivatives */
 	virtual double Potential(double rmag, double Rmag) const;
