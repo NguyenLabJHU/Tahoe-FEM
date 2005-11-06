@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.119 2005-08-05 09:01:38 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.120 2005-11-06 00:38:19 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -320,6 +320,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 
 #endif /* CONTINUUM_ELEMENT */
 
+#ifdef SPRING_ELEMENT
+		sub_lists.AddSub("spring_element");
+#endif
+
 #ifdef GRAD_SMALL_STRAIN_DEV
 		sub_lists.AddSub("grad_small_strain");
 #endif
@@ -536,6 +540,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #endif
 
 #endif /* CONTINUUM_ELEMENT */
+
+#ifdef SPRING_ELEMENT
+	else if (name == "spring_element")
+		return new RodT(fSupport);
+#endif
 
 #ifdef GRAD_SMALL_STRAIN_DEV
 	else if (name == "grad_small_strain")
