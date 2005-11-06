@@ -1,10 +1,11 @@
-/* $Id: LJSpringT.cpp,v 1.7 2005-11-06 00:37:58 paklein Exp $ */
+/* $Id: LJSpringT.cpp,v 1.8 2005-11-06 23:08:57 paklein Exp $ */
 /* created: paklein (5/28/1996) */
 #include "LJSpringT.h"
 
 #include <iostream.h>
 #include <math.h>
 //#include "ThermalDilatationT.h"
+#include "ExceptionT.h"
 
 using namespace Tahoe;
 
