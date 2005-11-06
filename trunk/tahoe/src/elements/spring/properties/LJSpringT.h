@@ -1,4 +1,4 @@
-/* $Id: LJSpringT.h,v 1.5 2004-07-15 08:30:22 paklein Exp $ */
+/* $Id: LJSpringT.h,v 1.6 2005-11-06 00:37:58 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _LJ_SPRINGT_H_
 #define _LJ_SPRINGT_H_
@@ -32,7 +32,7 @@ class LJSpringT: public RodMaterialT
 public:
 
 	/* constructor */
-	LJSpringT(ifstreamT& in);
+	LJSpringT(double mass, double eps, double sigma);
 
 	/* returns trues TRUE since the initial length is always assumed
 	 * to be non-equilibrium */

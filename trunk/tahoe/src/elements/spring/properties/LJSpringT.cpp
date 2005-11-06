@@ -1,20 +1,22 @@
-/* $Id: LJSpringT.cpp,v 1.6 2004-07-15 08:30:22 paklein Exp $ */
+/* $Id: LJSpringT.cpp,v 1.7 2005-11-06 00:37:58 paklein Exp $ */
 /* created: paklein (5/28/1996) */
 #include "LJSpringT.h"
 
 #include <iostream.h>
 #include <math.h>
-
-#include "ifstreamT.h"
-#include "ThermalDilatationT.h"
+//#include "ThermalDilatationT.h"
 
 using namespace Tahoe;
 
 /* constructor  */
-LJSpringT::LJSpringT(ifstreamT& in): RodMaterialT(in)
+LJSpringT::LJSpringT(double mass, double eps, double sigma): 
+	RodMaterialT(mass),
+	f_eps(eps),
+	f_sigma(sigma)
 {
-	in >> f_eps; if (f_eps < 0.0) ExceptionT::BadInputValue();
-	in >> f_sigma; if (f_sigma < 0.0) ExceptionT::BadInputValue();
+	const char caller[] = "LJSpringT::LJSpringT";
+	if (f_eps < 0.0) ExceptionT::BadInputValue(caller);
+	if (f_sigma < 0.0) ExceptionT::BadInputValue(caller);
 }
 
 /*
@@ -37,7 +39,7 @@ double LJSpringT::Potential(double rmag, double Rmag) const
 {
 #pragma unused(Rmag)
 
-	double a = 1.0 + fThermal->PercentElongation();
+	double a = 1.0;// + fThermal->PercentElongation();
 	
 	double r = f_sigma*a/rmag;
 	
@@ -48,7 +50,7 @@ double LJSpringT::DPotential(double rmag, double Rmag) const
 {
 #pragma unused(Rmag)
 
-	double a = 1.0 + fThermal->PercentElongation();
+	double a = 1.0;// + fThermal->PercentElongation();
 
 	double r = f_sigma/rmag;
 
@@ -59,7 +61,7 @@ double LJSpringT::DDPotential(double rmag, double Rmag) const
 {
 #pragma unused(Rmag)
 
-	double a = 1.0 + fThermal->PercentElongation();
+	double a = 1.0;// + fThermal->PercentElongation();
 
 	double r = f_sigma/rmag;
 

@@ -1,14 +1,14 @@
-/* $Id: RodT.cpp,v 1.34 2004-07-22 09:12:53 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.35 2005-11-06 00:37:58 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
 #include <math.h>
-
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "OutputSetT.h"
 #include "dArray2DT.h"
+#include "ParameterContainerT.h"
 
 /* material types */
 #include "LinearSpringT.h"
@@ -16,12 +16,8 @@
 
 using namespace Tahoe;
 
-/* Element type parameters */
-const int RodT::kRodTndof = 2; /* number of degrees of freedom per node */
-const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
-
 /* constructors */
-RodT::RodT(const ElementSupportT& support, const FieldT& field):
+RodT::RodT(const ElementSupportT& support):
 	ElementBaseT(support),
 	fCurrMaterial(NULL),
 	fLocAcc(LocalArrayT::kAcc),
@@ -40,66 +36,12 @@ RodT::RodT(const ElementSupportT& support, const FieldT& field):
 	fSumTotalE(0.0),
 	fSumTemp(0.0),
 	fSumPressure(0.0),
-	fStepNumber(support.StepNumber()),
-	fHardyStress(NumSD()),
-	fHardyHeatFlux(NumSD()),
-	fLocVel(LocalArrayT::kVel)
+	fLocVel(LocalArrayT::kVel),
+	fOutputDiagnostic(false),
+	fKb(1.38054)
 {
-#pragma message("fix me")
-	/* set matrix format */
-	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-	fKb = 1.38054;
-}
-
-/* initialization */
-void RodT::Initialize(void)
-{
-#pragma message("delete me")
-#if 0
-	/* inherited */
-	ElementBaseT::Initialize();
-	
-	/* local arrays */
-	fLocAcc.Dimension(2, NumDOF());
-	if (fIntegrator->Order() == 2) Field().RegisterLocal(fLocAcc);
-	fNEE_vec.Dimension(fLocAcc.Length());
-	
-	/* constant matrix needed to calculate stiffness */
-	fOneOne.Dimension(fLHS);
-	dMatrixT one(NumDOF());
-	one.Identity();
-	fOneOne.SetBlock(0, 0, one);
-	fOneOne.SetBlock(NumDOF(), NumDOF(), one);
-	one *= -1;
-	fOneOne.SetBlock(0, NumDOF(), one);
-	fOneOne.SetBlock(NumDOF(), 0, one);
-	
-	/* bond vector */
-	fBond.Dimension(NumSD());
-	fBond0.Dimension(NumSD());
-
-	/* echo material properties */
-	ReadMaterialData(ElementSupport().Input());	
-//	WriteMaterialData(ElementSupport().Output());
-
-	/* get form of tangent */
-	GlobalT::SystemTypeT type = TangentType();
-	
-	/* set form of element stiffness matrix */
-	if (type == GlobalT::kSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-	else if (type == GlobalT::kNonSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-	else if (type == GlobalT::kDiagonal)
-		fLHS.SetFormat(ElementMatrixT::kDiagonal);
-
-	/* initialize and allocate velocity array IF dynamic (MD) calculation*/
-	const FieldT& field = Field();
-	if (field.Order() > 0) {
-	  fLocVel.Dimension(NumElementNodes(), NumDOF());
-	  Field().RegisterLocal(fLocVel);
-	}
-#endif
+	/* class name */
+	SetName("spring_element");
 }
 
 /* form of tangent matrix */
@@ -116,9 +58,58 @@ GlobalT::SystemTypeT RodT::TangentType(void) const
 /* NOT implemented. Returns an zero force vector */
 void RodT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
-#pragma unused(field)
-#pragma unused(node)
-#pragma unused(force)
+	const char caller[] = "RodT::AddNodalForce";
+
+	/* different field */
+	if (field.FieldName() != Field().FieldName()) return;
+
+	/* set components and weights */
+	double constKd = 0.0;
+	int formKd = fIntegrator->FormKd(constKd);
+	
+	/* coordinates arrays */
+	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
+	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
+	
+	/* point forces */
+	dArrayT f0(NumDOF(), fRHS.Pointer());
+	dArrayT f1(NumDOF(), fRHS.Pointer() + NumDOF());
+
+	Top();
+	while (NextElement())
+	{
+		/* node numbers */
+		const iArrayT& nodes = CurrentElement().NodesX();
+		int n0 = nodes[0];
+		int n1 = nodes[1];
+		if (node == n0 || node == n1)
+		{
+			/* reference bond */
+			fBond0.DiffOf(init_coords(n1), init_coords(n0));
+			double l0 = fBond0.Magnitude();
+
+			/* current bond */
+			fBond.DiffOf(curr_coords(n1), curr_coords(n0));
+			double l = fBond.Magnitude();
+		
+			/* bond force magnitude */
+			double dU = fCurrMaterial->DPotential(l, l0);
+			double f_by_l = 0.0;
+			if (fabs(l) > kSmall)
+				f_by_l = constKd*dU/l;
+			else if (fabs(dU) > kSmall)
+				ExceptionT::GeneralFail(caller, "bond %d has length but %g force", CurrElementNumber(), dU);
+
+			/* particle forces (extra -1 since moved to the RHS) */
+			f0.SetToScaled(f_by_l, fBond);
+			
+			/* assemble */
+			if (node == n0)
+				force -= f0;
+			else
+				force += f0;
+		}
+	}
 }
 
 /* returns the energy as defined by the derived class types */
@@ -190,46 +181,205 @@ void RodT::SendOutput(int kincode)
 	//TEMP: for now, do nothing
 }
 
-/* initialize/finalize step */
-void RodT::InitStep(void)
-{
-  /* inherited */
-  ElementBaseT::InitStep();
-  /* set material variables */
-  //fMaterialList->InitStep();
-}
-
 void RodT::CloseStep(void)
 {
-  /* inherited */
-  ElementBaseT::CloseStep();
-  /* set material variables */
-  //fMaterialList->CloseStep(); 
-  Top();
-  const FieldT& field = Field();
-  while (NextElement()) {
-    ComputeHardyStress();
-    if (field.Order() > 0)
-      {
-     	/* get velocities */
-	SetLocalU(fLocVel);
+	/* inherited */
+	ElementBaseT::CloseStep();
+
+	if (fOutputDiagnostic) {
+		Top();
+		const FieldT& field = Field();
+		while (NextElement()) {
+			ComputeHardyStress();
+			if (field.Order() > 0)
+			{
+				/* get velocities */
+				SetLocalU(fLocVel);
 	
-	/* compute MD quantities of interest */
-	ComputeInstPE();
-	ComputeInstKE();
-	ComputeInstTotalE();
-	ComputeInstTemperature();
-	//ComputeInstPressure();
-      }
-  }
-  ComputeAvgPE();
-  ComputeAvgKE();
-  ComputeAvgTotalE();
-  ComputeAvgTemperature();
-  //ComputeAvgPressure()
-  PrintMDToFile();
+				/* compute MD quantities of interest */
+				ComputeInstPE();
+				ComputeInstKE();
+				ComputeInstTotalE();
+				ComputeInstTemperature();
+				//ComputeInstPressure();
+      		}
+  		}
+  		ComputeAvgPE();
+  		ComputeAvgKE();
+  		ComputeAvgTotalE();
+  		ComputeAvgTemperature();
+  		//ComputeAvgPressure()
+  		PrintMDToFile();
+  	}
 }
 
+/* describe the parameters needed by the interface */
+void RodT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ElementBaseT::DefineParameters(list);
+
+	/* output diagnostic data */
+	ParameterT output_diagnostic(fOutputDiagnostic, "output_diagnostic");
+	output_diagnostic.SetDefault(fOutputDiagnostic);
+	list.AddParameter(output_diagnostic);
+}
+
+/* information about subordinate parameter lists */
+void RodT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ElementBaseT::DefineSubs(sub_list);
+
+	/* element block/constitutive specification */
+	sub_list.AddSub("spring_element_block", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list */
+ParameterInterfaceT* RodT::NewSub(const StringT& name) const
+{
+	if (name == "spring_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("spring_material_choice", ParameterListT::Once, true);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	} 
+	else if (name == "spring_material_choice") 
+	{
+		ParameterContainerT* mat_choice = new ParameterContainerT(name);
+		mat_choice->SetListOrder(ParameterListT::Choice);
+	
+		/* mass parameter */
+		ParameterT mass(ParameterT::Double, "mass");
+		mass.AddLimit(0, LimitT::LowerInclusive);
+
+		/* linear spring */
+		ParameterContainerT linear("spring_linear");
+		linear.AddParameter(mass);
+		ParameterT k(ParameterT::Double, "stiffness");
+		k.AddLimit(0, LimitT::LowerInclusive);
+		linear.AddParameter(k);
+		mat_choice->AddSub(linear);
+
+		/* Lennard-Jones spring */
+		ParameterContainerT LJ("spring_LJ");
+		LJ.AddParameter(mass);
+		ParameterT eps(ParameterT::Double, "epsilon");
+		eps.AddLimit(0, LimitT::LowerInclusive);
+		LJ.AddParameter(eps);
+		ParameterT sigma(ParameterT::Double, "sigma");
+		sigma.AddLimit(0, LimitT::LowerInclusive);
+		LJ.AddParameter(sigma);
+		mat_choice->AddSub(LJ);
+	
+		return mat_choice;
+	}
+	else /* inherited */
+		return ElementBaseT::NewSub(name);
+}
+
+/* accept parameter list */
+void RodT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "RodT::TakeParameterList";
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* output diagnostic data */
+	fOutputDiagnostic = list.GetParameter("output_diagnostic");
+
+	/* dimensions */
+	int nsd = NumSD();
+	int ndof = NumDOF();
+	
+	/* constant matrix needed to calculate stiffness */
+	fOneOne.Dimension(fLHS);
+	dMatrixT one(ndof);
+	one.Identity();
+	fOneOne.SetBlock(0, 0, one);
+	fOneOne.SetBlock(ndof, ndof, one);
+	one *= -1;
+	fOneOne.SetBlock(0, ndof, one);
+	fOneOne.SetBlock(ndof, 0, one);
+	
+	/* work space */
+	fBond.Dimension(nsd);
+	fBond0.Dimension(nsd);
+	fHardyStress.Dimension(nsd);
+	fHardyHeatFlux.Dimension(nsd);	
+
+	/* echo material properties */
+//	ReadMaterialData(ElementSupport().Input());	
+//	WriteMaterialData(ElementSupport().Output());
+
+	/* get form of tangent */
+	GlobalT::SystemTypeT type = TangentType();
+	
+	/* set form of element stiffness matrix */
+	if (type == GlobalT::kSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	else if (type == GlobalT::kNonSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	else if (type == GlobalT::kDiagonal)
+		fLHS.SetFormat(ElementMatrixT::kDiagonal);
+
+	/* local arrays */
+	const FieldT& field = Field();
+	fLocVel.Dimension(NumElementNodes(), ndof);
+	if (field.Order() > 0) Field().RegisterLocal(fLocVel);
+	fLocAcc.Dimension(NumElementNodes(), ndof);
+	if (fIntegrator->Order() == 2) Field().RegisterLocal(fLocAcc);
+	fNEE_vec.Dimension(fLocAcc.Length());
+
+	/* determine the nodes used strictly based on those in the connectivities */
+	NodesUsed(fGroupNodes);
+	
+	/* number of element blocks */
+	int num_blocks = fConnectivities.Length();
+	fMaterialsList.Dimension(num_blocks);
+	for (int i = 0; i < num_blocks; i++)
+	{
+		/* block parameters */
+		const ParameterListT* block_info = list.FindList("_element_block", i);
+		if (!block_info) ExceptionT::GeneralFail(caller, "could not resolve instance %d of block information", i+1);
+
+		/* material parameters */
+		const ParameterListT* mat_info = block_info->ListChoice(*this, "spring_material_choice");
+		if (!mat_info) ExceptionT::GeneralFail(caller, "could not resolve \"spring_material_choice\"", i+1);
+		if (mat_info->Name() == "spring_linear")
+		{
+			/* parameters */
+			double mass = mat_info->GetParameter("mass");
+			double k = mat_info->GetParameter("stiffness");
+
+			/* construct */
+			fMaterialsList[i] = new LinearSpringT(mass, k);
+		}
+		else if (mat_info->Name() == "spring_LJ")
+		{
+			/* parameters */
+			double mass = mat_info->GetParameter("mass");
+			double eps = mat_info->GetParameter("epsilon");
+			double sigma = mat_info->GetParameter("sigma");
+
+			/* construct */
+			fMaterialsList[i] = new LJSpringT(mass, eps, sigma);
+		}
+		else
+			ExceptionT::GeneralFail(caller, "could not resolve type \"%s\"",
+				mat_info->Name().Pointer());
+	}
+}
 
 /***********************************************************************
 * Protected
@@ -375,58 +525,6 @@ bool RodT::NextElement(void)
 	
 	return result;
 }
-	
-/* element data */
-void RodT::ReadMaterialData(ifstreamT& in)
-{
-	/* allocate space */
-	int	nummaterials;
-	in >> nummaterials;
-	fMaterialsList.Dimension(nummaterials);
-
-	/* read data */
-	for (int i = 0; i < nummaterials; i++)
-	{
-		int matnum, matcode;
-		in >> matnum;
-		in >> matcode;	
-		
-		/* add to the list of materials */
-		switch (matcode)
-		{
-			case kQuad:			
-				fMaterialsList[--matnum] = new LinearSpringT(in);
-				break;
-				
-			case kLJ612:
-				fMaterialsList[--matnum] = new LJSpringT(in);
-				break;
-
-			default:
-			
-				cout << "\n RodT::ReadMaterialData: unknown material type\n" << endl;
-				throw ExceptionT::kBadInputValue;
-		}
-
-		/* check */
-		if (!fMaterialsList[matnum]) throw ExceptionT::kOutOfMemory;
-	
-		/* set thermal LTf pointer */
-		int LTfnum = fMaterialsList[matnum]->ThermalScheduleNumber();
-		if (LTfnum > -1)
-			fMaterialsList[matnum]->SetThermalSchedule(ElementSupport().Schedule(LTfnum));	
-	}
-}
-
-/* read connectivity and determine the nodes used */
-void RodT::EchoConnectivityData(ifstreamT& in, ostream& out)
-{
-	/* inherited */
-	//ElementBaseT::EchoConnectivityData(in, out);
-	
-	/* determine the nodes used strictly based on those in the connectivities */
-	NodesUsed(fGroupNodes);
-}
 
 /***********************************************************************
 * Private
@@ -491,15 +589,7 @@ void RodT::ComputeHardyStress(void)
   }
 }
 
-void RodT::ComputeHardyHeatFlux(void)
-{
-
-
-
-
-
-}
-
+void RodT::ComputeHardyHeatFlux(void) { }
 
 /* Below are MD related computational functions */
 
@@ -528,8 +618,9 @@ void RodT::ComputeInstKE(void)
 void RodT::ComputeAvgKE(void)
 {
 	double& tempavg = fAvgKE;
-	if (fStepNumber) /* only for positive steps */
-  		tempavg = fSumKE / fStepNumber;
+	int nstep = ElementSupport().StepNumber();
+	if (nstep) /* only for positive steps */
+  		tempavg = fSumKE / nstep;
 	else
 		tempavg = 0.0;
 }
@@ -563,8 +654,9 @@ void RodT::ComputeInstPE(void)
 void RodT::ComputeAvgPE(void)
 {
 	double& tempavg = fAvgPE;
-  	if (fStepNumber > 0) /* only for positive steps */
-  		tempavg = fSumPE / fStepNumber;
+	int nstep = ElementSupport().StepNumber();	
+  	if (nstep > 0) /* only for positive steps */
+  		tempavg = fSumPE / nstep;
 	else
 		tempavg = 0.0;
 }
@@ -582,8 +674,9 @@ void RodT::ComputeInstTotalE(void)
 void RodT::ComputeAvgTotalE(void)
 {
   	double& tempavg = fAvgTotalE;
-	if (fStepNumber > 0) /* only for positive steps */
-		tempavg = fSumTotalE / fStepNumber;
+	int nstep = ElementSupport().StepNumber();  	
+	if (nstep > 0) /* only for positive steps */
+		tempavg = fSumTotalE / nstep;
 	else
 		tempavg = 0.0;
 }
@@ -645,7 +738,7 @@ int RodT::PrintMDToFile(void)
 			return 1;
 		}
 	
-		out << setw(d_width) << fStepNumber
+		out << setw(d_width) << ElementSupport().StepNumber()
 		    << setw(d_width) << fInstKE 
 		    << setw(d_width) << fInstPE 
 		    << setw(d_width) << fInstTemp 

@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.19 2004-07-15 08:30:17 paklein Exp $ */
+/* $Id: RodT.h,v 1.20 2005-11-06 00:37:58 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -26,17 +26,8 @@ class RodT: public ElementBaseT
 {
 public:
 
-	/** spring potential types */
-	enum PotentialCodeT {
-        kQuad = 1, /**< linear spring */
-       kLJ612 = 2 /**< Lennard-Jones 6-12 potential */
-		};
-
 	/** constructor */
-	RodT(const ElementSupportT& support, const FieldT& field);
-	
-	/** initialization */
-	virtual void Initialize(void);
+	RodT(const ElementSupportT& support);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -55,13 +46,23 @@ public:
 	virtual void SendOutput(int kincode);
 
 	/* initialize/finalize time increment */
-	virtual void InitStep(void);
 	virtual void CloseStep(void);
 
-	/* Element type parameters */
-	static const int kRodTndof; /* number of degrees of freedom per node */
-	static const int  kRodTnsd; /* number of spatial dimensions */
-	 			  	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	ParameterInterfaceT* NewSub(const StringT& name) const;
+		
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected: /* for derived classes only */
 	 	
 	/* called by FormRHS and FormLHS */
@@ -70,15 +71,9 @@ protected: /* for derived classes only */
 
 	/* increment current element */
 	virtual bool NextElement(void);
-		
-	/* element data */
-	virtual void ReadMaterialData(ifstreamT& in);	
 
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const { return false; };
-
-	/** read connectivity and determine the nodes used */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
 private: /* MD related computational functions */
 
@@ -102,9 +97,6 @@ private: /* MD related computational functions */
 
 protected:
 
-	/** reference ID for sending output */
-	int fOutputID;
-
 	/* material data */
 	pArrayT<RodMaterialT*> fMaterialsList; 	
 	RodMaterialT*	       fCurrMaterial;
@@ -114,6 +106,9 @@ protected:
 	iArrayT fGroupNodes;
 
 private:
+
+	/** output diagnostic data */
+	bool fOutputDiagnostic;
 
 	/** \name work space */
 	/*@{*/
@@ -134,15 +129,16 @@ private:
 	dArrayT fNEE_vec;
 	/*@}*/
 
-	/* MD related variables */
+	/** \name MD related variables */
+	/*@{*/
 	double fKb;
 	double fInstKE, fInstPE, fInstTotalE, fInstTemp, fInstPressure;
 	double fAvgKE, fAvgPE, fAvgTotalE, fAvgTemp, fAvgPressure;
 	double fSumKE, fSumPE, fSumTotalE, fSumTemp, fSumPressure;
 	LocalArrayT fLocVel;
-	const int& fStepNumber;
 	dMatrixT fHardyStress;
 	dArrayT fHardyHeatFlux;
+	/*@}*/
 };
 
 } // namespace Tahoe 
