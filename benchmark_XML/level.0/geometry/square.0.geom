@@ -5,9 +5,10 @@
 *dimensions
 4   # number of nodes
 2   # number of spatial dimensions
-1   # number of element sets
+2   # number of element sets
 # [ID] [nel] [nen]
 1   1   4
+2   6	2
 5   # number of node sets
 # [ID] [nnd]
 1   1
@@ -62,6 +63,15 @@
 1   # number of elements
 4   # number of element nodes
 1  1  2  3  4
+*set
+6   # number of elements
+2   # number of element nodes
+1  1  2
+2  2  3
+3  3  4
+4  1  4
+5  1  3
+6  2  4
 # end elements
 *nodes
 4  # number of nodes
