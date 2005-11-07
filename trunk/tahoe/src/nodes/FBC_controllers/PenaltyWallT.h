@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.11 2005-11-07 15:53:09 regueiro Exp $ */
+/* $Id: PenaltyWallT.h,v 1.12 2005-11-07 21:00:23 regueiro Exp $ */
 /* created: paklein (02/25/1997) */
 #ifndef _PENATLY_WALL_T_H_
 #define _PENATLY_WALL_T_H_
@@ -47,7 +47,6 @@ protected:
 	/* wall parameters */
 	dArrayT 	fnormal;
 	dArrayT		ftangent; //relative tangent displacement
-	double		fmu;    //coefficient of friction
 	
 	/* wall normal and tangents */
 	dArrayT		fntforce;
