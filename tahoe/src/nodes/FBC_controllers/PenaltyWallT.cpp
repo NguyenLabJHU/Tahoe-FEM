@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.13 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.14 2005-11-07 15:53:09 regueiro Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -65,18 +65,21 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 	const char caller[] = "PenaltyWallT::ComputeContactForce";
 
 	/* with "friction */
-//	if (fmu > kSmall)
-	if (false)
+	if (fmu > kSmall)
+//	if (false)
 	{
 		//TEMP
-		ExceptionT::GeneralFail(caller, "general (2D/3D) friction implementation is not available");
+		//ExceptionT::GeneralFail(caller, "general (2D/3D) friction implementation is not available");
 #if 0
 		if (!pVels)
 			ExceptionT::GeneralFail(caller, "velocities required with friction");
 
 		/* compute relative positions and velocities */
-		fp_i.RowCollect(fContactNodes, rCoords);
-		fv_i.RowCollect(fContactNodes,*pVels);
+		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
+		fp_i.RowCollect(fContactNodes, coords);
+		//const dArray2DT& vels = ??;
+		const dArray2DT& vels;
+		fv_i.RowCollect(fContactNodes, vels);
 		for (int j = 0; j < fNumContactNodes; j++)
 		{
 			fp_i.AddToRowScaled(j, -1.0, fx);
@@ -93,11 +96,11 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 			/* penetration */
 			if (normal_comp < 0.0)
 			{			
-				// old 2D implementation:
-				// double tangent_comp = fv_i.DotRow(i, ftangent);	
+				/* calculate tangential force due to friction */
+				double tangent_comp = fv_i.DotRow(i, ftangent);
 				fntforce[0] =-fk*normal_comp*kforce;		
-				//fntforce[1] = ((tangent_comp > 0.0) ? -1.0 : 1.0)*fmu*fntforce[0]*kforce;
-		
+				fntforce[1] = ((tangent_comp > 0.0) ? -1.0 : 1.0)*fmu*fntforce[0]*kforce;
+
 				/* transform to x-y coordinates */
 				fQ.Multx(fntforce, fxyforce);
 				
