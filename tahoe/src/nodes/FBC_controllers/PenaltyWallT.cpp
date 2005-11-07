@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.14 2005-11-07 15:53:09 regueiro Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.15 2005-11-07 21:00:23 regueiro Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -66,24 +66,20 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 
 	/* with "friction */
 	if (fmu > kSmall)
-//	if (false)
 	{
 		//TEMP
 		//ExceptionT::GeneralFail(caller, "general (2D/3D) friction implementation is not available");
-#if 0
-		if (!pVels)
-			ExceptionT::GeneralFail(caller, "velocities required with friction");
-
+//#if 0
 		/* compute relative positions and velocities */
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		fp_i.RowCollect(fContactNodes, coords);
-		//const dArray2DT& vels = ??;
-		const dArray2DT& vels;
+		//where are velocities calculated?
+		const dArray2DT& vels = FieldSupport().CurrentCoordinates();
 		fv_i.RowCollect(fContactNodes, vels);
 		for (int j = 0; j < fNumContactNodes; j++)
 		{
 			fp_i.AddToRowScaled(j, -1.0, fx);
-			fv_i.AddToRowScaled(j, -1.0, fv);	
+			fv_i.AddToRowScaled(j, -1.0, fv);
 		}
 	
 		/* compute contact forces */
@@ -110,7 +106,7 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 			/* store gap */
 			fGap[i] = normal_comp;
 		}
-#endif
+//#endif		
 	}
 	else
 	{
