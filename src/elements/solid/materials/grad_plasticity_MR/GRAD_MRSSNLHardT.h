@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.h,v 1.10 2005-08-31 16:57:44 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.h,v 1.11 2005-11-08 15:46:24 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -54,20 +54,20 @@ public:
 	    const dSymMatrixT& lap_trialstrain, const dArrayT& traillambda, const dArrayT& lap_triallambda,  
 		ElementCardT& element, int ip); // dlam and lap_dlam at the ip     
 		
-	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
-    dArrayT& h_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& hh);
-    dArrayT& g_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dArrayT& gg);
-    dArrayT& n_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& nn);
-    dArrayT& r_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& rr);
-    dArrayT& m_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& mm);       
-    dMatrixT& devstress_f(const dArrayT& Sig, dMatrixT& devstress);
-    dMatrixT& dmdSig_f(const dArrayT& qn, dMatrixT& dmdSig);
-    dMatrixT& dmdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dmdq);
-    dMatrixT& dhdSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdSig);
-    dMatrixT& dgdSig_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dgdSig);
-    dMatrixT& dhdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdq);
-    dMatrixT& dhdm_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdm);
-    dMatrixT& dgdq_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dgdq);
+	void yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
+    void h_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& hh);
+    void g_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dArrayT& gg);
+    void n_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
+    void r_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq);
+    void m_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig);       
+    void sij_p_f(const dArrayT& Sig, dMatrixT& Sig_Dev, double& Sig_p);
+    void dmdSig_f(const dArrayT& qn, dMatrixT& dmdSig);
+    void dmdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dmdq);
+    void dhdSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdSig);
+    void dgdSig_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dgdSig);
+    void dhdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdq);
+    void dhdm_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdm);
+    void dgdq_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dgdq);
     
     /* utility function */
 	double signof(double& r);

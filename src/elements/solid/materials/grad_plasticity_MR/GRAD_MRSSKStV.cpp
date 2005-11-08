@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.24 2005-10-28 16:18:38 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.25 2005-11-08 15:46:24 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -223,13 +223,13 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 	if (element.IsAllocated())
 	{
 		int flag = fGRAD_MR->InitalIV(); // check if yield criterion is satisfied and lambda is positive
-		if (flag == 0) {
-			dArrayT& internal = fGRAD_MR->IniInternal();
+		//if (flag == 0) {
+			//dArrayT& internal = fGRAD_MR->IniInternal();
 		
 			/* stress-like internal variable Chi */
-			output.CopyIn(0, internal);
-		}
-		else {
+			//output.CopyIn(0, internal);
+		//}
+		//else {
 			dArrayT& internal = fGRAD_MR->Internal();
 		
 			/* stress-like internal variable Chi */
@@ -237,7 +237,7 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 			output[1] = internal[GRAD_MRSSNLHardT::kc];
 			output[2] = internal[GRAD_MRSSNLHardT::ktanphi];
 			output[3] = internal[GRAD_MRSSNLHardT::ktanpsi];
-		}
+		//}
 		
 		// check for localization
 		// compute modulus 
