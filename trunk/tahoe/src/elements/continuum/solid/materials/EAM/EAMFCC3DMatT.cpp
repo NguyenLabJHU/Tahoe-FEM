@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.9 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.10 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
@@ -8,9 +8,6 @@
 #include <math.h>
 
 using namespace Tahoe;
-
-//TEMP
-#pragma message("rename me")
 
 /* constructor */
 EAMFCC3DMatT::EAMFCC3DMatT(void):

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.22 2005-04-12 15:32:29 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.23 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -122,6 +122,9 @@ bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArr
 								AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
 {
 #pragma unused(normals)
+#pragma unused(slipdirs)
+#pragma unused(detAs)
+#pragma unused(dissipations_fact)
 
 	/* by default, no localization */
 	return false;
@@ -131,6 +134,8 @@ bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArr
 								double &detA)
 {
 #pragma unused(normals)
+#pragma unused(slipdirs)
+#pragma unused(detA)
 
 	/* by default, no localization */
 	return false;

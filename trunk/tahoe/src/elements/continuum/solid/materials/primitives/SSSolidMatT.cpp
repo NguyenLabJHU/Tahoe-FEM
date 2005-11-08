@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.16 2005-03-09 19:25:48 raregue Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.17 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
@@ -159,6 +159,8 @@ void SSSolidMatT::InitStep(void)
 bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
 							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
 {
+#pragma unused(dissipations_fact)
+
 	/* elastic modulus */
 	/* this uses same space as c_ijkl(), so save separatley first */
 	const dMatrixT modulus_e = ce_ijkl();

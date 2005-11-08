@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.49 2005-10-26 16:41:23 regueiro Exp $ */
+/* $Id: DetCheckT.cpp,v 1.50 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -123,7 +123,7 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 		//this doesn't work for 2D, comment out slip dir calc for now
 		//C.ConvertTangentFrom2DTo4D(C, fc_ijkl);
 		/* call SPINLOC routine */
-		double eigVal;
+		//double eigVal;
 		AutoArrayT <double> theta;
 		int numev = 0; 
 		bool check = false; 

@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.cpp,v 1.7 2004-07-15 08:29:20 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.cpp,v 1.8 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #include "NL_E_RotMat2DT.h"
 
@@ -10,6 +10,8 @@ NL_E_RotMat2DT::NL_E_RotMat2DT(ifstreamT& in, const FSMatSupportT& support, Cons
 //	NL_E_MatT(in, support),
 	Anisotropic2DT(in)
 {
+#pragma unused(support)
+#pragma unused(constraint)
 ExceptionT::Stop("NL_E_RotMat2DT::NL_E_RotMat2DT", "out of date");
 }
 

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.14 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.15 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "SolidMaterialsConfig.h"
@@ -37,6 +37,7 @@ D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(const ElementSupportT& support, const Fie
 	fD2GradNa(dSymMatrixT::NumValues(NumSD()), 0), // need rows, but is dynamic
 	fD2GradNa_wrap(10, fD2GradNa)
 {
+#pragma unused(field)
 	//DEBUG
 	DoPrint = 0;
 
