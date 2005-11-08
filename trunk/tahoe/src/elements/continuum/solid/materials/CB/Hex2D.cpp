@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.7 2005-08-24 03:00:54 jzimmer Exp $ */
+/* $Id: Hex2D.cpp,v 1.8 2005-11-08 04:09:37 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -142,8 +142,8 @@ void Hex2D::TakeParameterList(const ParameterListT& list)
 	fNearestNeighbor *= stretch;
 	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
 	
-	/* reset the continuum density (2 atoms per unit cell) */
-	fDensity = 2*fPairProperty->Mass()/fCellVolume;
+	/* reset the continuum density (1 atom per unit cell) */
+	fDensity = fPairProperty->Mass()/fCellVolume;
 }
 
 /* return a reference to the bond lattice */
