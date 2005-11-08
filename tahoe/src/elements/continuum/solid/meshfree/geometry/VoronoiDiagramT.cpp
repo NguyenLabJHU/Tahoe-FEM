@@ -338,7 +338,13 @@ void VoronoiDiagramT::ComputeBprimeMatricesSS(RaggedArray2DT<dMatrixT>& bprimeVe
 					  const RaggedArray2DT<dArrayT>& bVectors, const dArrayT& cellVolumes,
 					  const dArray2DT& cellCentroids, dArray2DT& Ymatrices)
 {
-  ExceptionT::GeneralFail("VoronoiDiagramT::ComputeBprimeMatricesSS","Currently not available for Voronoi diagram - use cell from mesh");
+#pragma unused(bprimeVectors)
+#pragma unused(cellSupports)
+#pragma unused(bVectors)
+#pragma unused(cellVolumes)
+#pragma unused(cellCentroids)
+#pragma unused(Ymatrices)
+	ExceptionT::GeneralFail("VoronoiDiagramT::ComputeBprimeMatricesSS","Currently not available for Voronoi diagram - use cell from mesh");
 }
 
 void VoronoiDiagramT::VoronoiDiagramToFile(ofstreamT& vout)

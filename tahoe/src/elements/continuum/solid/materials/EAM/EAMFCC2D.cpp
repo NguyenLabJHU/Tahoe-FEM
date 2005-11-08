@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.11 2004-09-10 22:38:52 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.12 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -11,9 +11,6 @@ using namespace Tahoe;
 
 /* material parameters */
 const int knsd = 2;
-
-//TEMP
-#pragma message("rename me")
 
 /* constructor */
 EAMFCC2D::EAMFCC2D(void):

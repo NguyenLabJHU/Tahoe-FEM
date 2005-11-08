@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.7 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.8 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
@@ -20,9 +20,6 @@ using namespace Tahoe;
 const int kEAMFCC3DNumBonds			= 54;
 const int kEAMFCC3DNumLatticeDim 	=  3;
 const int kEAMFCC3DNumAtomsPerCell	=  4;
-
-//TEMP
-#pragma message("rename me to indicate this is a Cauchy-Born solver")
 
 /* constructor */
 EAMFCC3D::EAMFCC3D(void):

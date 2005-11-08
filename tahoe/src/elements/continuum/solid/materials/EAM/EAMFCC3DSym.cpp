@@ -1,13 +1,10 @@
-/* $Id: EAMFCC3DSym.cpp,v 1.4 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAMFCC3DSym.cpp,v 1.5 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym.h"
 
 /* bond parameters */
 const int kEAMFCC3DSymNumBonds = 27;
 const int kEAMFCC3DNumLatticeDim =  3;
-
-//TEMP
-#pragma message("rename me to indicate this is a Cauchy-Born solver")
 
 using namespace Tahoe;
 
