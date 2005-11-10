@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.16 2005-11-10 17:39:50 regueiro Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.17 2005-11-10 20:16:33 regueiro Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -92,16 +92,18 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 			/* penetration */
 			if (normal_comp < 0.0)
 			{
+				fntforce[0] = -fk*normal_comp*kforce;
+
 				/* calculate tangential force due to friction */
 				//double tangent_comp = fv_i.DotRow(i, ftangent);
 				double tangent_comp = fp_i.DotRow(i, ftangent);
 
-				fntforce[0] = -fk*normal_comp*kforce;
 				//fntforce[1] = ((tangent_comp > 0.0) ? -1.0 : 1.0)*fmu*fntforce[0]*kforce;
 				/* use Coulomb friction model to calculate friction tangential force */
 				if (fabs(tangent_comp) < fabs(fmu*normal_comp))
 				{
-					/*stick stage, linear elastic relationship between the tangential displacement and tangential force */
+					/*stick stage, linear elastic relationship between the
+ * tangential displacement and tangential force; penalty */
 					fntforce[1] = -fk*tangent_comp*kforce;
 				}
 				else
@@ -110,7 +112,7 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 					double sign_tangent_comp = 1.0;
 					if (fabs(tangent_comp) > kSmall) sign_tangent_comp = tangent_comp/fabs(tangent_comp);
 					/* relative tangential displacement is in the opposite direction */
-					fntforce[1] = -sign_tangent_comp*fk*fmu*normal_comp*kforce;
+					fntforce[1] = -sign_tangent_comp*fk*fmu*fabs(normal_comp)*kforce;
 				}
 
 				/* transform to x-y coordinates */
