@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.h,v 1.11 2005-11-08 15:46:24 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.h,v 1.12 2005-11-16 22:59:44 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -107,8 +107,10 @@ public:
 	                         kc   = 31,
 	                      ktanphi = 32,
 	                      ktanpsi = 33,
-                         kplastic = 37,  // Plastic Index
-                          kftrial = 34}; // yield function value
+                         kplastic = 37,  /* plastic index */
+                          kftrial = 34, /* yield function value */
+                          klambda = 35, /* plastic multiplier */
+                       klaplambda = 36,}; /* laplacian of plastic multiplier */
 
 	/** internal variables */
 	dArrayT& Internal(void) { return fInternal; };
@@ -123,7 +125,7 @@ public:
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
 	int PlasticLoading(const dSymMatrixT& trialstrain, const dSymMatrixT& lap_trialstrain, 
-                        ElementCardT& element, int ip);
+                        const dArrayT& triallambda, ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The function returns a reference to the
