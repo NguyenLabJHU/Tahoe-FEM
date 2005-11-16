@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRPrimitiveT.h,v 1.3 2005-07-08 01:17:44 kyonten Exp $ */
+/* $Id: GRAD_MRPrimitiveT.h,v 1.4 2005-11-16 22:56:00 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -41,7 +41,7 @@ class GRAD_MRPrimitiveT: public ParameterInterfaceT
 	/*@}*/
 	
 	double YieldCondition(const dSymMatrixT& devstress, 
-			const double meanstress);
+			const double meanstress) const;
 
   protected:
 	

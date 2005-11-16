@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRPrimitiveT.cpp,v 1.3 2005-07-08 01:17:44 kyonten Exp $ */
+/* $Id: GRAD_MRPrimitiveT.cpp,v 1.4 2005-11-16 22:56:00 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -144,9 +144,8 @@ void GRAD_MRPrimitiveT::TakeParameterList(const ParameterListT& list)
  * represents isotropic hardening.
  */
 double GRAD_MRPrimitiveT::YieldCondition(const dSymMatrixT& devstress, 
-			const double meanstress)
+			const double meanstress) const
 {
-  double kTemp1, kTemp2, kTemp3, kTemp4;
   double fc, fchi, ffriction, ff, ftan_phi, fpress;
 
   fpress  = meanstress;
@@ -156,14 +155,8 @@ double GRAD_MRPrimitiveT::YieldCondition(const dSymMatrixT& devstress,
   fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
   ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
   ffriction = ftan_phi;
-  ff   = (devstress.ScalarProduct())/2.0;
-  kTemp2  = (fc - ffriction*fpress);
-  kTemp1  = kTemp2;
-  kTemp1 *= kTemp2;
-  ff  -= kTemp1;
-  kTemp3  = (fc - ffriction*fchi);
-  kTemp4  = kTemp3;
-  kTemp4 *= kTemp3;
-  ff  += kTemp4;
+  ff  = (devstress.ScalarProduct())/2.0;
+  ff -= pow((fc - ffriction*fpress), 2);
+  ff += pow((fc - ffriction*fchi), 2);
   return  ff;
 }
