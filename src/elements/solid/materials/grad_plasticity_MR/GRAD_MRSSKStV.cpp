@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.25 2005-11-08 15:46:24 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.26 2005-11-16 22:57:32 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -16,14 +16,15 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 7;
+const int kNumOutput = 8;
 static const char* Labels[kNumOutput] = {
 	    "chi",
 	    "cohesion",
 	    "Friction Angle",
 	    "Dilation Angle",
+	    "deviator stress",  // deviator stress, tau or q
+	    "press", // pressure (mean stress, p)
 	    "VM",  // Von Mises stress
-	    "press", // pressurefmo
 	    "loccheck"}; //	localization check    
 
 /* constructor */
@@ -141,7 +142,7 @@ const dMatrixT& GRAD_MRSSKStV::c_LamLam2(void)
 /* yield function */
 const double& GRAD_MRSSKStV::YieldF()
 {
-	GRAD_MRSSKStV::s_ij(); // call s_ij first
+	s_ij(); // call s_ij first
 	fYieldFunction = fGRAD_MR->YieldFunction();
 	return fYieldFunction;
 }
@@ -210,26 +211,27 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 	/* stress tensor (load state) */
 	const dSymMatrixT& stress = s_ij();
 
-	/* pressure */
+	/* pressure, p */
 	output[5] = fStress.Trace()/3.0;
 
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
 	J2 = (J2 < 0.0) ? 0.0 : J2;
-	output[4] = sqrt(3.0*J2);
+	output[4] = sqrt(J2); /* deviator stress, tau or q */
+	output[6] = sqrt(3.0*J2);
 	
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
 		int flag = fGRAD_MR->InitalIV(); // check if yield criterion is satisfied and lambda is positive
-		//if (flag == 0) {
-			//dArrayT& internal = fGRAD_MR->IniInternal();
+		if (flag == 0) {
+			dArrayT& internal = fGRAD_MR->IniInternal();
 		
 			/* stress-like internal variable Chi */
-			//output.CopyIn(0, internal);
-		//}
-		//else {
+			output.CopyIn(0, internal);
+		}
+		else {
 			dArrayT& internal = fGRAD_MR->Internal();
 		
 			/* stress-like internal variable Chi */
@@ -237,7 +239,7 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 			output[1] = internal[GRAD_MRSSNLHardT::kc];
 			output[2] = internal[GRAD_MRSSNLHardT::ktanphi];
 			output[3] = internal[GRAD_MRSSNLHardT::ktanpsi];
-		//}
+		}
 		
 		// check for localization
 		// compute modulus 
@@ -260,7 +262,7 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 		if (checkloc) output[18] = 1.0;
 		else output[18] = 0.0;
 		*/
-		output[6] = 0.0;
+		output[7] = 0.0;
 	}		
 }
 
