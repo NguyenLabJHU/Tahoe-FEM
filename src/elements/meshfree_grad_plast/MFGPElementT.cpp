@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.10 2005-09-01 01:09:13 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.11 2005-11-16 23:05:41 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -312,30 +312,21 @@ void MFGPElementT::CollectMaterialInfo(const ParameterListT& all_params, Paramet
 	}
 }
 
-/* extrapolate the integration point stresses and internal variables, 
-   check the yield condition on the nodes and pass the flag whether 
-   the nodes are elastically or plastically loaded
+/* extrapolate the integration point deviator and mean stresses 
+   and internal variables, check the nodal yield condition 
+   and pass the flag whether the nodes are elastically or 
+   plastically loaded
 */ 
 void MFGPElementT::CheckNodalYield()
 {
 	/* dimensions */
 	int nen = NumElementNodes();
 	int nnd = ElementSupport().NumNodes();
-	int nstrs = fB1.Rows();
 	
 	/* number of output values */
-	int n_out, n_stressdata, n_matdata, nsd;
-	if (nstrs != 4) {
-	    nsd = NumSD();
-		n_stressdata = dSymMatrixT::NumValues(nsd);
-	}
-	else {
-	    nsd = dSymMatrixT::k3D_plane;
-		n_stressdata = dSymMatrixT::NumValues(nsd);
-	}
-		
+	int n_out, n_matdata;
 	n_matdata = (*fMFGPMatList)[0]->NumOutputVariables();  
-	n_out = n_stressdata + n_matdata;
+	n_out = n_matdata;
 
 	/* reset averaging workspace */
 	ElementSupport().ResetAverage(n_out);
@@ -343,15 +334,13 @@ void MFGPElementT::CheckNodalYield()
 	/* nodal work arrays */
 	dArray2DT nodal_space(nen, n_out);
 	dArray2DT nodal_all(nen, n_out);
-	dArray2DT nodalstress, matdat;
+	dArray2DT matdat;
 
 	/* ip values */
-	dSymMatrixT cauchy((nstrs != 4) ? NumSD() : dSymMatrixT::k3D_plane), nstr_tmp;
 	dArrayT ipmat((*fMFGPMatList)[0]->NumOutputVariables());
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	nodalstress.Alias(nen, nstrs, pall); pall += nodalstress.Length();
 	matdat.Alias(nen, (*fMFGPMatList)[0]->NumOutputVariables(), pall); pall += matdat.Length();
         
 	Top();
@@ -368,15 +357,6 @@ void MFGPElementT::CheckNodalYield()
 			fShapes_displ->TopIP();
 			while (fShapes_displ->NextIP())
 			{
-				/* get Cauchy stress */
-				const dSymMatrixT& stress = fCurrMaterial->s_ij();
-				cauchy.Translate(stress);
-				//cout << endl << "ip_stress = " << endl << stress << endl;
-
-				/* stresses */       
-				fShapes_displ->Extrapolate(cauchy, nodalstress);
-				//cout << endl << "nodal_stress = " << endl << nodalstress << endl;
-
 				/* compute material output */
 				fCurrMaterial->ComputeOutput(ipmat);
 				//cout << endl << "ip_int_var = " << endl << ipmat << endl;
@@ -389,8 +369,7 @@ void MFGPElementT::CheckNodalYield()
 
 			/* copy in the cols */
 			int colcount = 0;
-			nodal_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
-			nodal_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
+			nodal_all.BlockColumnCopyAt(matdat, colcount); colcount += matdat.MinorDim();
 
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
 			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
@@ -400,22 +379,15 @@ void MFGPElementT::CheckNodalYield()
 	dArray2DT n_values;
 	ElementSupport().OutputUsedAverage(n_values); // nodal values arranged in increasing node order
 	int n_nodes = n_values.MajorDim();
-	ArrayT<dArrayT> stress_data(n_nodes);
 	ArrayT<dArrayT> mat_data(n_nodes);
-	for (int i = 0; i < stress_data.Length(); i++) {
-		stress_data[i].Dimension(n_stressdata);
-		mat_data[i].Dimension(n_matdata);
-	}
 	
-	/* collect stresses and internal variables separately */
-	for (int i = 0; i < n_nodes; i++) {
-		for (int j = 0; j < n_out; j++) { 
-			if (j < n_stressdata)
-				stress_data[i][j] = n_values(i)[j]; 
-			else
-				mat_data[i][j-n_stressdata] = n_values(i)[j];
-		}
-	}
+	for (int i = 0; i < mat_data.Length(); i++) 
+		mat_data[i].Dimension(n_matdata);
+	
+	/* collect internal variables */
+	for (int i = 0; i < n_nodes; i++)
+		for (int j = 0; j < n_out; j++)  
+			mat_data[i][j] = n_values(i)[j]; 
 	
 	/* calculate nodal yield function and set up yield flags */
 	double yield;
@@ -423,9 +395,8 @@ void MFGPElementT::CheckNodalYield()
 	iArrayT yield_flags(n_nodes);
 	yield_flags = 0;
 	for (int i = 0; i < n_nodes; i++) {
-		ComputeNodalYield(stress_data[i], mat_data[i], yield);
+		ComputeNodalYield(mat_data[i], yield);
 		//cout << "node # " << i << endl;
-		//cout << "nodal stress = " << endl << stress_data[i] << endl;
 		//cout << "nodal int_variable =" << endl << mat_data[i] << endl;
 		//cout << "yield function = " << yield << endl << endl;
 		if (yield > tol) {
@@ -443,52 +414,17 @@ void MFGPElementT::CheckNodalYield()
 }
 
 /* calculate yield condition at the nodes */ 
-const double& MFGPElementT::ComputeNodalYield(const dArrayT& Sig, const dArrayT& qn, 
-                double& ff)
+const double& MFGPElementT::ComputeNodalYield(const dArrayT& qn, double& ff)
 {
-  double kTemp1, kTemp2, kTemp3, kTemp4;
-  double fc, fchi, ffriction, fpress;
-  dMatrixT devstress(3,3);
-  devstress = 0.0;
-  if (Sig.Length() == 4) {
-    fpress  = Sig[0]+Sig[1]+Sig[3]; // Sig = transpose <sig11 sig22 sig12 sig33>
-    fpress /=3.;
-  	devstress(0,0) = Sig[0] - fpress;
-  	devstress(1,1) = Sig[1] - fpress;
-  	devstress(2,2) = Sig[3] - fpress;
-  	devstress(0,1) = devstress(1,0) = Sig[2];
-  }
-  else if (Sig.Length() == 3) {
-    fpress  = Sig[0]+Sig[1];
-    fpress /=3.;
-  	devstress(0,0) = Sig[0] - fpress;
-  	devstress(1,1) = Sig[1] - fpress;
-  	devstress(0,1) = devstress(1,0) = Sig[2];
-  }
-  else {
-  	fpress  = Sig[0]+Sig[1]+Sig[2];
-  	fpress /=3.;
-  	devstress(0,0) = Sig[0] - fpress;
-  	devstress(1,1) = Sig[1] - fpress;
-  	devstress(2,2) = Sig[2] - fpress;
-  	devstress(1,2) = devstress(2,1) = Sig[3];
-  	devstress(0,2) = devstress(2,0) = Sig[4];
-  	devstress(0,1) = devstress(1,0) = Sig[5];
-  }
-  
+  double fc, fchi, ffriction, ftau, fpress;
   fc = qn[1];
   ffriction = qn[2];
   fchi = qn[0];
-  ff = dMatrixT::Dot(devstress,devstress);
-  ff /= 2.;
-  kTemp2  = (fc - ffriction*fpress);
-  kTemp1  = kTemp2;
-  kTemp1 *= kTemp2;
-  ff  -= kTemp1;
-  kTemp3  = (fc - ffriction*fchi);
-  kTemp4  = kTemp3;
-  kTemp4 *= kTemp3;
-  ff  += kTemp4;
+  ftau = qn[4];
+  fpress = qn[5];
+  ff  = pow(ftau, 2);
+  ff -= pow((fc - ffriction*fpress), 2);
+  ff += pow((fc - ffriction*fchi), 2);
   return ff;
 }
 
