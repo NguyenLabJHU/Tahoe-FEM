@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.h,v 1.6 2005-10-31 18:03:12 kyonten Exp $ */
+/* $Id: MRSSNLHardT.h,v 1.7 2005-11-18 19:37:22 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)            */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -48,15 +48,15 @@ public:
 	const dSymMatrixT& StressCorrection(const dSymMatrixT& trialstrain, 
 		ElementCardT& element, int ip); 
 
-	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
-    dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
-    dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
-    dArrayT& dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig);    
-    dArrayT& dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq);    
-    dMatrixT& dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2);
-    dMatrixT& dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
-    dMatrixT& dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
-    dMatrixT& dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq);
+	void Yield_f(const dSymMatrixT& Sig, const dArrayT& qn, double& ff);
+    void dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);    
+    void dfdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdq); 
+    void dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig);   
+    void dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2);
+    void dQdSigdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
+    void qbar_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& qbar);
+    void dqbardSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
+    void dqbardq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dqbardq);
     
     /* utility function */
 	double signof(double& r);
@@ -144,8 +144,11 @@ public:
 	dSymMatrixT fDevStrain; /* deviatoric part of the strain tensor */
 	dSymMatrixT IdentityTensor2;  
 
-	dMatrixT      fTensorTemp;
-	dSymMatrixT   One;  
+	dMatrixT fTensorTemp;
+	dSymMatrixT Identity3x3; /* 3x3 identity matrix */
+	dMatrixT Identity4x4; /* 4x4 identity matrix */
+	dMatrixT Identity6x6; /* 6x6 identity matrix */
+	dMatrixT KE;          /* elastic moduli tensor */
   	
 };
 

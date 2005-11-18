@@ -1,4 +1,4 @@
-/* $Id: MRPrimitiveT.cpp,v 1.5 2005-10-31 18:02:22 kyonten Exp $ */
+/* $Id: MRPrimitiveT.cpp,v 1.6 2005-11-18 19:37:22 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)                */
 
 /* Base class for a nonassociative, small strain,        */
@@ -120,30 +120,20 @@ void MRPrimitiveT::TakeParameterList(const ParameterListT& list)
 
 /*
  * Returns the value of the yield function given the
- * stress vector and state variables, where alpha
- * represents isotropic hardening.
+ * stress vector and state variables
  */
 double MRPrimitiveT::YieldCondition(const dSymMatrixT& devstress, 
-			const double meanstress)
+			const double meanstress) const
 {
-  double kTemp1, kTemp2, kTemp3, kTemp4;
-  double fc, fchi, ffriction, ff, ftan_phi, fpress;
-
-  fpress  = meanstress;
+  double fpress  = meanstress;
   double enp  = 0.;
   double esp  = 0.;
-  fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
-  fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
-  ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-  ffriction = ftan_phi;
-  ff   = (devstress.ScalarProduct())/2.0;
-  kTemp2  = (fc - ffriction*fpress);
-  kTemp1  = kTemp2;
-  kTemp1 *= kTemp2;
-  ff  -= kTemp1;
-  kTemp3  = (fc - ffriction*fchi);
-  kTemp4  = kTemp3;
-  kTemp4 *= kTemp3;
-  ff  += kTemp4;
+  double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
+  double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
+  double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+  double ffriction = ftan_phi;
+  double ff  = (devstress.ScalarProduct())/2.0;
+  ff -= pow((fc - ffriction*fpress), 2);
+  ff += pow((fc - ffriction*fchi), 2);
   return  ff;
 }
