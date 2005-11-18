@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.14 2005-11-18 06:31:25 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.15 2005-11-18 07:15:17 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
@@ -297,6 +297,21 @@ void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(const ParameterListT& 
 
 	//TEMP - only support a single surface for now
 	if (num_surface > 1) ExceptionT::GeneralFail(caller, "expecting only 1 cutting surface not %d", num_surface);
+	
+	/* quick exit */
+	if (num_surface == 0)
+	{
+		/* dummy values */
+		fs_i  = 0.0;
+		fda   = 0.0;
+		fda_s = 0.0;
+		fcone = 0.0;
+		fn_s  = 0;
+		
+		/* must initialize */
+		InitFacetDatabase(0);
+		return;
+	}
 
 	/* external file */
 	const ParameterListT& cutting_params = params.GetList("cutting_surface", 0);
