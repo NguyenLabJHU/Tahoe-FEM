@@ -1,8 +1,8 @@
 @
-# $Id: run.batch,v 1.24 2005-07-08 23:39:55 paklein Exp $
+# $Id: run.batch,v 1.25 2005-11-18 06:30:09 paklein Exp $
 RKPM.2D.0.xml
 RKPM.2D.0.tri.xml
-#RKPM.2D.1.xml
+RKPM.2D.1.xml
 RKPM.2D.2.xml
 RKPM.2D.3.xml
 RKPM.2D.4.xml
