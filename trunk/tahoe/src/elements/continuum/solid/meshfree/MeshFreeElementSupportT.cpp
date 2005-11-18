@@ -1,7 +1,6 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.16 2005-02-13 22:19:55 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.17 2005-11-18 06:31:25 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 #include "MeshFreeElementSupportT.h"
-
 
 #include "iAutoArrayT.h"
 #include "MeshFreeShapeFunctionT.h"
@@ -76,10 +75,12 @@ void MeshFreeElementSupportT::TakeParameterList(const ParameterListT& list)
  ***********************************************************************/
 
 /* initialization */
-void MeshFreeElementSupportT::InitSupport(ostream& out,
+void MeshFreeElementSupportT::InitSupport(const ParameterListT& params, ostream& out,
 	AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
 	int numDOF, int max_node_num, ModelManagerT* model)
 {
+#pragma unused(params)
+
 	/* configure variable length element arrays */
 	fElemNodesEX = &(fMFShapes->ElementNeighbors());
 	fElemEqnosEX.Configure(fMFShapes->ElementNeighborsCounts(), numDOF);

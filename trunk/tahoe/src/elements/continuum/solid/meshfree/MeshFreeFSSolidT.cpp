@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.22 2005-07-08 23:38:50 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.23 2005-11-18 06:31:25 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -333,7 +333,9 @@ void MeshFreeFSSolidT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* initialize meshfree support class */
-	fMFFractureSupport->InitSupport(ElementSupport().Output(),
+	fMFFractureSupport->InitSupport(
+		list.GetList("meshfree_fracture_support"),
+		ElementSupport().Output(),
 		fElementCards, 
 		surface_nodes,
 		NumDOF(), 

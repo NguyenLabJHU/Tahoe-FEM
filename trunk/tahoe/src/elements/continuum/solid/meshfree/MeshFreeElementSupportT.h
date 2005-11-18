@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.11 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.12 2005-11-18 06:31:25 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 #ifndef _MFREE_SUPPORT_T_H_
 #define _MFREE_SUPPORT_T_H_
@@ -93,8 +93,9 @@ public:
 
 	/** initialization of meshless information. This method must be called once after 
 	 * a call to MeshFreeElementSupportT::TakeParameterList */
-	virtual void InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
-		const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model);
+	virtual void InitSupport(const ParameterListT& params, ostream& out,
+		AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes, 
+		int numDOF, int max_node_num, ModelManagerT* model);
 
 	/** \name construct nodal field */
 	/*@{*/
