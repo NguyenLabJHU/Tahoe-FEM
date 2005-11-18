@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.13 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.14 2005-11-18 06:31:25 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
@@ -74,9 +74,6 @@ void MeshFreeFractureSupportT::DefineSubs(SubListT& sub_list) const
 
 	/* sampling surfaces */
 	sub_list.AddSub("sampling_surface", ParameterListT::Any);
-
-#pragma message("define cutting surfaces")
-#pragma message("define sampling surfaces")
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -105,7 +102,7 @@ ParameterInterfaceT* MeshFreeFractureSupportT::NewSub(const StringT& name) const
 		ParameterContainerT* cutting_surface = new ParameterContainerT(name);
 		cutting_surface->SetSubSource(this);
 		cutting_surface->AddParameter(ParameterT::Word, "geometry_file");
-		cutting_surface->AddSub("block_ID_list");
+		//cutting_surface->AddSub("block_ID_list");
 		
 		/* one or more advancing fronts */
 		cutting_surface->AddSub("advancing_front", ParameterListT::Any);
@@ -188,17 +185,18 @@ MeshFreeFractureSupportT::FractureCriterionT MeshFreeFractureSupportT::int2Fract
 }
 
 /* initialization */
-void MeshFreeFractureSupportT::InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
-	const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model)
+void MeshFreeFractureSupportT::InitSupport(const ParameterListT& params, ostream& out, 
+	AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes, int numDOF, int max_node_num, 
+	ModelManagerT* model)
 {
 	/* inherited */
-	MeshFreeElementSupportT::InitSupport(out, elem_cards, surface_nodes, numDOF, max_node_num, model);
+	MeshFreeElementSupportT::InitSupport(params, out, elem_cards, surface_nodes, numDOF, max_node_num, model);
 
 	/* unitialized */
 	fNumFacetNodes = -1;
 
 	/* field cutting facets (and active crack fronts) */
-	InitCuttingFacetsAndFronts(out);
+	InitCuttingFacetsAndFronts(params, out);
 
 	/* field sampling surfaces */
 //	InitSamplingSurfaces(out);
@@ -290,47 +288,40 @@ bool MeshFreeFractureSupportT::CheckGrowth(SolidMaterialT* material,
 ***********************************************************************/
 
 /* steps in InitSupport() */
-void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ostream& out)
+void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(const ParameterListT& params, ostream& out)
 {
-//TEMP
-fs_i  = 0.0;
-fda   = 0.0;
-fda_s = 0.0;
-fcone = 0.0;
-fn_s  = 0;
-InitFacetDatabase(0);
-//TEMP
+	const char caller[] = "MeshFreeFractureSupportT::InitCuttingFacetsAndFronts";
 
-#if 0
+	/* number of cutting surfaces */
+	int num_surface = params.NumLists("cutting_surface");
+
+	//TEMP - only support a single surface for now
+	if (num_surface > 1) ExceptionT::GeneralFail(caller, "expecting only 1 cutting surface not %d", num_surface);
+
+	/* external file */
+	const ParameterListT& cutting_params = params.GetList("cutting_surface", 0);
+	StringT path = fstreamT::Root();
+	StringT geom_file = cutting_params.GetParameter("geometry_file");
+	geom_file.ToNativePathName();
+	geom_file.Prepend(path);
+	ifstreamT in('#', geom_file);
+	if (!in.is_open())
+		ExceptionT::GeneralFail(caller, "could not open file \"%s\"", geom_file.Pointer());
+	else
+		out << caller << ": reading cutting surface from \"" << geom_file << "\"\n";
+
+	/* read cutting surface */
 	int num_facets = -99;
 	in >> num_facets;
-	out << " Number of cutting facets. . . . . . . . . . . . = "
-	    << num_facets << '\n';
-	if (num_facets < 0)
-	{
-		if (num_facets == -99)
-			cout << "\n MeshFreeFractureSupportT::InitSupport: error reading\n"
-			     <<   "     number of cutting facets" << endl;
-		else
-			cout << "\n MeshFreeFractureSupportT::InitSupport: number of cutting facets\n"
-			     <<   "     must be >= 0: " << num_facets << endl;
-		out.flush();
-		throw ExceptionT::kBadInputValue;
-	}
-
+	out << " Number of cutting facets. . . . . . . . . . . . = " << num_facets << '\n';
 	if (num_facets > 0)
 	{
 		/* number of cutting facet nodes */
 		int num_facet_nodes;
 		in >> num_facet_nodes;
 		if (fNumFacetNodes != -1 && fNumFacetNodes != num_facet_nodes)
-		{
-			cout << "\n MeshFreeFractureSupportT::InitCuttingFacetsAndFronts: number of\n"
-			     <<   "    cutting facet nodes " << num_facet_nodes
-			     << " does not match previously given value " << fNumFacetNodes
-			     << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+			ExceptionT::SizeMismatch(caller, "expecting %d facet nodes not %d",
+				fNumFacetNodes, num_facet_nodes);
 		else if (fNumFacetNodes == -1)          //NOTE: -1 indicates fNumFacetNodes has not 
 			InitFacetDatabase(num_facet_nodes); //      been initialized, why call this anyway?
 		
@@ -362,7 +353,14 @@ InitFacetDatabase(0);
 		fMFShapes->ResetFacets(fResetFacets);
 
 		/* construct fronts from stream data */
-		InitializeFronts(in, out);
+		//InitializeFronts(in, out);
+		//TEMP
+		fs_i  = 0.0;
+		fda   = 0.0;
+		fda_s = 0.0;
+		fcone = 0.0;
+		fn_s  = 0;
+		//TEMP
 	}
 	else
 	{
@@ -376,7 +374,6 @@ InitFacetDatabase(0);
 		/* must initialize */
 		InitFacetDatabase(0);
 	}
-#endif
 }
 
 void MeshFreeFractureSupportT::InitSamplingSurfaces(ifstreamT& in, ostream& out)

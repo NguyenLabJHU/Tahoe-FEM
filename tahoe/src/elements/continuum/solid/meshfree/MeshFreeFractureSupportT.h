@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.9 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.10 2005-11-18 06:31:25 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #ifndef _MESHFREE_FRACTURE_T_H_
 #define _MESHFREE_FRACTURE_T_H_
@@ -71,7 +71,7 @@ public:
 	
 	/** initialization of meshless information. This method must be called once after 
 	 * a call to MeshFreeElementSupportT::TakeParameterList */
-	virtual void InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
+	virtual void InitSupport(const ParameterListT& params, ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
 		const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model);
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -97,7 +97,7 @@ private:
 	enum SurfaceStatusT {kON, kMarked, kOFF};
 
 	/* steps in InitSupport() */
-	void InitCuttingFacetsAndFronts(ostream& out);
+	void InitCuttingFacetsAndFronts(const ParameterListT& params, ostream& out);
 	void InitSamplingSurfaces(ifstreamT& in, ostream& out);
 
 	/* initial active cracks from stream data */
