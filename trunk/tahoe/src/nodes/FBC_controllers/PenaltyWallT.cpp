@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.17 2005-11-10 20:16:33 regueiro Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.18 2005-11-20 23:08:29 regueiro Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -63,9 +63,10 @@ void PenaltyWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 void PenaltyWallT::ComputeContactForce(double kforce)
 {
 	const char caller[] = "PenaltyWallT::ComputeContactForce";
+	double normal_comp = 0.0;
 
 	/* with "friction */
-	if (fmu > kSmall)
+	if (fmu > 0.0)
 	{
 		//TEMP
 		//ExceptionT::GeneralFail(caller, "general (2D/3D) friction implementation is not available");
@@ -73,50 +74,71 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 		/* compute relative positions and velocities */
 		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 		fp_i.RowCollect(fContactNodes, coords);
+		fcurr_i = fp_i;
 		//where are velocities calculated?
 		//const dArray2DT& vels = ??;
 		//fv_i.RowCollect(fContactNodes, vels);
 		for (int j = 0; j < fNumContactNodes; j++)
 		{
 			fp_i.AddToRowScaled(j, -1.0, fx);
+			normal_comp = fp_i.DotRow(j, fnormal);
+			normal_displ = fnormal;
+			normal_displ *= normal_comp;
+			fcurr_i.AddToRowScaled(j, -1.0, normal_displ);
 			//fv_i.AddToRowScaled(j, -1.0, fv);
 		}
-	
+		
+		// compute current contact nodal displacements
+		if (FieldSupport().StepNumber() == 0) fprev_i = fcurr_i;
+		fdispl_i = fcurr_i;
+		fdispl_i -= fprev_i;
+		
+		// record the previous step's coordinates of the contact nodes
+		fprev_i = fcurr_i;
+
 		/* compute contact forces */
 		fntforce = 0.0;
 		fContactForce2D = 0.0;	
 		for (int i = 0; i < fNumContactNodes; i++)
 		{
-			double normal_comp = fp_i.DotRow(i, fnormal);
+			normal_comp = fp_i.DotRow(i, fnormal);
 
 			/* penetration */
 			if (normal_comp < 0.0)
 			{
 				fntforce[0] = -fk*normal_comp*kforce;
 
-				/* calculate tangential force due to friction */
-				//double tangent_comp = fv_i.DotRow(i, ftangent);
-				double tangent_comp = fp_i.DotRow(i, ftangent);
+				/* compute tangential displacement at contact node */
+				double normal_comp_d = fdispl_i.DotRow(i, fnormal);
+				normal_displ = fnormal;
+				normal_displ *= normal_comp_d;
+				fdispl_i.RowCopy(i, tangent_displ);
+				tangent_displ -= normal_displ;
+				ftangent = tangent_displ;
+				if (ftangent.Magnitude() != 0.0) ftangent.UnitVector();
+				double tangent_comp = tangent_displ.Magnitude();			
 
-				//fntforce[1] = ((tangent_comp > 0.0) ? -1.0 : 1.0)*fmu*fntforce[0]*kforce;
-				/* use Coulomb friction model to calculate friction tangential force */
+				/* use Coulomb friction model to calculate frictional tangential force */
 				if (fabs(tangent_comp) < fabs(fmu*normal_comp))
 				{
-					/*stick stage, linear elastic relationship between the
- * tangential displacement and tangential force; penalty */
+					/*stick stage, linear elastic relationship between the tangential displacement and tangential force; penalty */
 					fntforce[1] = -fk*tangent_comp*kforce;
 				}
 				else
 				{
-					/*slip stage, the tangential force remains constant */
-					double sign_tangent_comp = 1.0;
-					if (fabs(tangent_comp) > kSmall) sign_tangent_comp = tangent_comp/fabs(tangent_comp);
+					/* slip stage, the tangential force remains constant */
 					/* relative tangential displacement is in the opposite direction */
-					fntforce[1] = -sign_tangent_comp*fk*fmu*fabs(normal_comp)*kforce;
+					fntforce[1] = -fk*fmu*fabs(normal_comp)*kforce;
 				}
 
 				/* transform to x-y coordinates */
-				fQ.Multx(fntforce, fxyforce);
+				//fQ.Multx(fntforce, fxyforce);
+				fnforce = fnormal;
+				fnforce *= fntforce[0];
+				ftforce = ftangent;
+				ftforce *= fntforce[1];
+				fxyforce = fnforce;
+				fxyforce += ftforce;
 				
 				fContactForce2D.SetRow(i,fxyforce);
 			}
@@ -139,7 +161,7 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 		fContactForce2D = 0.0;	
 		for (int i = 0; i < fNumContactNodes; i++)
 		{
-			double normal_comp = fp_i.DotRow(i, fnormal);
+			normal_comp = fp_i.DotRow(i, fnormal);
 		
 			/* penetration */
 			if (normal_comp < 0.0)
@@ -169,8 +191,7 @@ void PenaltyWallT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("wall_normal");
 	
 	/* tangent to the wall */
-	//sub_list.AddSub("wall_tangent");
-	sub_list.AddSub("wall_tangent", ParameterListT::ZeroOrOnce);
+	//sub_list.AddSub("wall_tangent", ParameterListT::ZeroOrOnce);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -187,17 +208,19 @@ ParameterInterfaceT* PenaltyWallT::NewSub(const StringT& name) const
 
 		return n_choice;	
 	}
+	/*
 	else if (name == "wall_tangent") {
 
 		ParameterContainerT* t_choice = new ParameterContainerT(name);
 		
-		/* by dimension */
+		// by dimension
 		t_choice->SetListOrder(ParameterListT::Choice);
 		t_choice->AddSub("Vector_2");
 		t_choice->AddSub("Vector_3");
 
 		return t_choice;	
 	}
+	*/
 	else /* inherited */
 		return PenaltyRegionT::NewSub(name);
 }
@@ -219,6 +242,7 @@ void PenaltyWallT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::GeneralFail(caller, "\"wall_normal\" should be length %d not %d", nsd, fnormal.Length());
 	
 	/* get tangent */
+	/*
 	const ParameterListT* tangent_check = list.List("wall_tangent");
 	if (tangent_check)
 	{
@@ -228,9 +252,9 @@ void PenaltyWallT::TakeParameterList(const ParameterListT& list)
 		if (ftangent.Length() != nsd) 
 			ExceptionT::GeneralFail(caller, "\"wall_tangent\" should be length %d not %d", nsd, fnormal.Length());
 	}
+	*/
 	
-	
-	
+
 	/* transformation tensor */
 	fQ.Dimension(nsd);
 	if (nsd == 2)
@@ -262,8 +286,16 @@ void PenaltyWallT::TakeParameterList(const ParameterListT& list)
 	
 	/* dimension work space */	
 	fntforce.Dimension(nsd);
+	fnforce.Dimension(nsd);
+	ftforce.Dimension(nsd);
 	fxyforce.Dimension(nsd);
 	fp_i.Dimension(fNumContactNodes, nsd);
+	fcurr_i.Dimension(fNumContactNodes, nsd);
+	fprev_i.Dimension(fNumContactNodes, nsd);
+	fdispl_i.Dimension(fNumContactNodes, nsd);
 	fv_i.Dimension(fNumContactNodes, nsd);
 	fLHS.Dimension(nsd);
+	ftangent.Dimension(nsd);
+	normal_displ.Dimension(nsd);
+	tangent_displ.Dimension(nsd);
 }

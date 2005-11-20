@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.12 2005-11-07 21:00:23 regueiro Exp $ */
+/* $Id: PenaltyWallT.h,v 1.13 2005-11-20 23:08:29 regueiro Exp $ */
 /* created: paklein (02/25/1997) */
 #ifndef _PENATLY_WALL_T_H_
 #define _PENATLY_WALL_T_H_
@@ -45,18 +45,25 @@ private:
 protected:
 
 	/* wall parameters */
-	dArrayT 	fnormal;
-	dArrayT		ftangent; //relative tangent displacement
+	dArrayT		fnormal;
+	dArrayT		ftangent;
+	dArrayT		normal_displ;
+	dArrayT		tangent_displ;
 	
 	/* wall normal and tangents */
 	dArrayT		fntforce;
+	dArrayT		fnforce;
+	dArrayT		ftforce;
 	dArrayT		fxyforce;
 	dMatrixT	fQ;
 
 	/* relative displacements */
 	dArray2DT	fp_i; //relative displacement
 	dArray2DT	fv_i; //relative velocity
-
+	dArray2DT	fprev_i; // previous contact nodal coordinates
+	dArray2DT	fcurr_i; // current contact nodal coordinates
+	dArray2DT	fdispl_i; // current contact nodal displacements
+	
 	/* workspace */
 	ElementMatrixT fLHS;  //tangent matrix
 	dArrayT        fd_sh; //shallow
