@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.18 2005-11-20 23:08:29 regueiro Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.19 2005-11-20 23:19:16 regueiro Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -94,7 +94,8 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 		fdispl_i -= fprev_i;
 		
 		// record the previous step's coordinates of the contact nodes
-		fprev_i = fcurr_i;
+		// if commented out, using the original coordinates as reference for slip
+		//fprev_i = fcurr_i;
 
 		/* compute contact forces */
 		fntforce = 0.0;
