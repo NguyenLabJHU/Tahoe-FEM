@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRPrimitiveT.cpp,v 1.4 2005-11-16 22:56:00 kyonten Exp $ */
+/* $Id: GRAD_MRPrimitiveT.cpp,v 1.5 2005-11-21 13:24:45 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -140,22 +140,19 @@ void GRAD_MRPrimitiveT::TakeParameterList(const ParameterListT& list)
 
 /*
  * returns the value of the yield function given the
- * stress vector and state variables, where alpha
- * represents isotropic hardening.
+ * stress vector and state variables
  */
 double GRAD_MRPrimitiveT::YieldCondition(const dSymMatrixT& devstress, 
 			const double meanstress) const
 {
-  double fc, fchi, ffriction, ff, ftan_phi, fpress;
-
-  fpress  = meanstress;
+  double fpress  = meanstress;
   double enp  = 0.;
   double esp  = 0.;
-  fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
-  fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
-  ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-  ffriction = ftan_phi;
-  ff  = (devstress.ScalarProduct())/2.0;
+  double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
+  double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
+  double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+  double ffriction = ftan_phi;
+  double ff  = (devstress.ScalarProduct())/2.0;
   ff -= pow((fc - ffriction*fpress), 2);
   ff += pow((fc - ffriction*fchi), 2);
   return  ff;

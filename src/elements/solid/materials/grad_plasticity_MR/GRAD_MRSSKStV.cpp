@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.26 2005-11-16 22:57:32 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.27 2005-11-21 13:24:45 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -159,12 +159,6 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	const dSymMatrixT& e_els = ElasticStrain(eps, element, ip); 
 	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_eps, element, ip);
 	
-	//cout << endl << "ip = " << ip << endl;
-	//cout << endl << "strain" << endl << e_els << endl;
-	/*
-	cout << endl << "laplacian of strain" << endl << lap_e_els << endl;
-	*/
-	
 	/* check for correct lambda and it's laplacian */
     //cout << endl << "lambda = "<< endl << lam[0] << endl;
     if (lam[0] < 0.) {
@@ -224,22 +218,13 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
-		int flag = fGRAD_MR->InitalIV(); // check if yield criterion is satisfied and lambda is positive
-		if (flag == 0) {
-			dArrayT& internal = fGRAD_MR->IniInternal();
+		dArrayT& internal = fGRAD_MR->Internal();
 		
-			/* stress-like internal variable Chi */
-			output.CopyIn(0, internal);
-		}
-		else {
-			dArrayT& internal = fGRAD_MR->Internal();
-		
-			/* stress-like internal variable Chi */
-			output[0] = internal[GRAD_MRSSNLHardT::kchi];
-			output[1] = internal[GRAD_MRSSNLHardT::kc];
-			output[2] = internal[GRAD_MRSSNLHardT::ktanphi];
-			output[3] = internal[GRAD_MRSSNLHardT::ktanpsi];
-		}
+		/* stress-like internal variable Chi */
+		output[0] = internal[GRAD_MRSSNLHardT::kchi];
+		output[1] = internal[GRAD_MRSSNLHardT::kc];
+		output[2] = internal[GRAD_MRSSNLHardT::ktanphi];
+		output[3] = internal[GRAD_MRSSNLHardT::ktanpsi];
 		
 		// check for localization
 		// compute modulus 
@@ -263,6 +248,14 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 		else output[18] = 0.0;
 		*/
 		output[7] = 0.0;
+	}
+	else 
+	{
+		/* initial values of the variables */
+		dArrayT& internal = fGRAD_MR->IniInternal();
+		
+		/* stress-like internal variable Chi */
+		output.CopyIn(0, internal);
 	}		
 }
 

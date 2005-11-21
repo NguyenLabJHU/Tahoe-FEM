@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.13 2005-10-18 00:33:14 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.14 2005-11-21 13:25:31 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -1980,8 +1980,8 @@ void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
 		double aug_stiffness_coeff;
 		int j = nodes[i]; // local and global number are same ??
 		if(fNodalYieldFlags[j] == 0 && fPenaltyFlags[j] == 0) {
-			fKlambdalambda(i,i) += penalty_number;
-			aug_stiffness_coeff = fKlambdalambda(i,i);
+			fKlambdalambda(j,j) += penalty_number;
+			aug_stiffness_coeff = fKlambdalambda(j,j);
 			fFlambda[j] = aug_stiffness_coeff * presc_value;
 			fPenaltyFlags[j] = 1; 
 		}
@@ -2003,12 +2003,12 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after, int step_num) const
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
 	}
 	else if (before_after == "after_penalty") {
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".");
@@ -2067,12 +2067,12 @@ void MFGPAssemblyT::PrintInternalForces(StringT before_after, int step_num) cons
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
 	}
 	else if (before_after == "after_penalty") {
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".");

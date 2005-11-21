@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.h,v 1.12 2005-11-16 22:59:44 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.h,v 1.13 2005-11-21 13:24:45 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -54,20 +54,19 @@ public:
 	    const dSymMatrixT& lap_trialstrain, const dArrayT& traillambda, const dArrayT& lap_triallambda,  
 		ElementCardT& element, int ip); // dlam and lap_dlam at the ip     
 		
-	void yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
-    void h_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& hh);
-    void g_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dArrayT& gg);
-    void n_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
-    void r_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq);
-    void m_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig);       
-    void sij_p_f(const dArrayT& Sig, dMatrixT& Sig_Dev, double& Sig_p);
+	void yield_f(const dSymMatrixT& Sig, const dArrayT& qn, double& ff);
+	void n_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);
+    void r_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdq);
+    void m_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig);       
     void dmdSig_f(const dArrayT& qn, dMatrixT& dmdSig);
-    void dmdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dmdq);
-    void dhdSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdSig);
-    void dgdSig_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dgdSig);
-    void dhdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdq);
-    void dhdm_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdm);
-    void dgdq_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dgdq);
+    void dmdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dmdq);
+    void h_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& hh);
+    void dhdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dhdSig);
+    void dhdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dhdq);
+    void dhdm_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dhdm);
+    void g_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& gg);
+    void dgdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dgdSig);
+    void dgdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dgdq);
     
     /* utility function */
 	double signof(double& r);
@@ -95,9 +94,6 @@ public:
 	
 	/* return yield condition, f */
 	const double& YieldFunction(void) const { return fYield; };
-	
-	/* return 1 if yield condition satisfied and lambda is positive */
-	int InitalIV(void) { return fIVFlag;};
 
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
@@ -125,7 +121,7 @@ public:
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
 	int PlasticLoading(const dSymMatrixT& trialstrain, const dSymMatrixT& lap_trialstrain, 
-                        const dArrayT& triallambda, ElementCardT& element, int ip);
+                        ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The function returns a reference to the
@@ -155,7 +151,6 @@ public:
   	dSymMatrixT fLapPlasticStrain; // Laplacian of total plastic strain (deviatoric and volumetric)
   	dArrayT     fInternal;      // internal variables
   	dArrayT     fIniInternal;      // initial internal variables
-  	int fIVFlag; // fIVFlag = 1 if plastic and lambda is positive  
 
   private:
 
@@ -197,9 +192,11 @@ public:
 	dSymMatrixT fLapDevStrain; /* deviatoric part of the laplacian of strain tensor */
 	
 	/* constant matrices */
-	dMatrixT IdentityMatrix3; /* 3x3 identity matrix */ 
-	dMatrixT IdentityMatrix4; /* 4x4 identity matrix */ 
-	dMatrixT IdentityMatrix6; /* 6x6 identity matrix */ 
+	dSymMatrixT Identity3x3; /* 3x3 identity matrix */ 
+	dMatrixT Identity4x4; /* 4x4 identity matrix */ 
+	dMatrixT Identity6x6; /* 6x6 identity matrix */ 
+	dMatrixT KE;          /* elastic moduli tensor */
+	dMatrixT KE_AST;      /* elastic moduli tensor with length scale effect */
 };
 
 
