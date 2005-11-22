@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.h,v 1.7 2005-11-18 19:37:22 kyonten Exp $ */
+/* $Id: MRSSNLHardT.h,v 1.8 2005-11-22 18:26:40 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)            */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -148,7 +148,6 @@ public:
 	dSymMatrixT Identity3x3; /* 3x3 identity matrix */
 	dMatrixT Identity4x4; /* 4x4 identity matrix */
 	dMatrixT Identity6x6; /* 6x6 identity matrix */
-	dMatrixT KE;          /* elastic moduli tensor */
   	
 };
 

@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.h,v 1.2 2005-11-16 23:05:41 kyonten Exp $ */ 
+/* $Id: MFGPElementT.h,v 1.3 2005-11-22 18:29:00 kyonten Exp $ */ 
 //DEVELOPMENT
 #ifndef _MFGP_ELEMENT_T_H_ 
 #define _MFGP_ELEMENT_T_H_ 
@@ -279,6 +279,7 @@ protected:
 	/** \name work space */
 	/*@{*/
 	dMatrixT fGradU;
+	dMatrixT fGradGradGradU;
 	/*@}*/
 	
 	/** mass type */

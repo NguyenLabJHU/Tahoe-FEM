@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.11 2005-11-16 23:05:41 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.12 2005-11-22 18:29:00 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -599,9 +599,10 @@ void MFGPElementT::TakeParameterList(const ParameterListT& list)
 	fCULam2.Dimension(dSymMatrixT::NumValues(NumSD()),1);
 	fCLamU1.Dimension(1, dSymMatrixT::NumValues(NumSD()));
 	fCLamU2.Dimension(1, dSymMatrixT::NumValues(NumSD()));
-	fCLamLam1.Dimension(1,1);
-	fCLamLam2.Dimension(1,1);
+	fCLamLam1.Dimension(1);
+	fCLamLam2.Dimension(1);
 	fGradU.Dimension(NumSD());
+	fGradGradGradU.Dimension(NumSD()*NumSD());
 	
 	/* nodal output codes */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
@@ -1348,44 +1349,50 @@ void MFGPElementT::SetGlobalShape(void)
 	for (int i = 0; i < fNumIP_displ; i++)
 	{
 		/* deformation gradient */
-		ShapeFunction().GradU(u, fGradU, i);
+		fShapes_displ->GradU(u, fGradU, i);
 	
 		/* symmetric part */
 		fStrain_List[i].Symmetrize(fGradU);
 		
 		/* "last" deformation gradient */
-		ShapeFunction().GradU(u_n, fGradU, i);
+		fShapes_displ->GradU(u_n, fGradU, i);
 		/* symmetric part */
 		fStrain_last_List[i].Symmetrize(fGradU);
 		
 		/* laplacian of strains */
     	dMatrixT gradgradgrad_u;
-    	ShapeFunction().GradGradGradU(u, gradgradgrad_u, i);
+    	fShapes_displ->GradGradGradU(u, fGradGradGradU, i);
     	/** Note: other option is to use B3 which will make the code more compact **/
     	if (NumSD() == 2) {
-    		fLapStrain_List[i](0,0)=gradgradgrad_u(0,0)+gradgradgrad_u(0,1);
-    		fLapStrain_List[i](1,1)=gradgradgrad_u(1,2)+gradgradgrad_u(1,3);
-    		fLapStrain_List[i](0,1)=gradgradgrad_u(0,2)+gradgradgrad_u(0,3);
-    		fLapStrain_List[i](0,1)+=gradgradgrad_u(1,0)+gradgradgrad_u(1,1);
-    		fLapStrain_List[i](0,1)*=0.5;
-    		fLapStrain_List[i](1,0)=fLapStrain_List[i](0,1);
+    		fLapStrain_List[i][0]=fGradGradGradU(0,0)+fGradGradGradU(0,1);
+    		fLapStrain_List[i][1]=fGradGradGradU(1,2)+fGradGradGradU(1,3);
+    		fLapStrain_List[i][2]=fGradGradGradU(0,2)+fGradGradGradU(0,3);
+    		fLapStrain_List[i][2]+=fGradGradGradU(1,0)+fGradGradGradU(1,1);
+    		fLapStrain_List[i][2]*=0.5;
+            
+    		/*
+    		fLapStrain_List[i][0]=gradgradgrad_u(0,0)+gradgradgrad_u(0,1);
+    		fLapStrain_List[i][1]=gradgradgrad_u(1,2)+gradgradgrad_u(1,3);
+    		fLapStrain_List[i][2]=gradgradgrad_u(0,2)+gradgradgrad_u(0,3);
+    		fLapStrain_List[i][2]+=gradgradgrad_u(1,0)+gradgradgrad_u(1,1);
+    		fLapStrain_List[i][2]*=0.5;
+    		*/
+    		cout << "fLapStrain_List = " << fLapStrain_List[i] << endl;
     	}
     	else if (NumSD() == 3) {
-    		fLapStrain_List[i](0,0)=gradgradgrad_u(0,0)+gradgradgrad_u(0,1)+gradgradgrad_u(0,2);
-    		fLapStrain_List[i](1,1)=gradgradgrad_u(1,3)+gradgradgrad_u(1,4)+gradgradgrad_u(1,5);
-    		fLapStrain_List[i](2,2)=gradgradgrad_u(2,6)+gradgradgrad_u(2,7)+gradgradgrad_u(2,8);
-    		fLapStrain_List[i](1,2)=gradgradgrad_u(1,6)+gradgradgrad_u(1,7)+gradgradgrad_u(1,8);
-    		fLapStrain_List[i](1,2)+=gradgradgrad_u(2,3)+gradgradgrad_u(2,4)+gradgradgrad_u(2,5);
-    		fLapStrain_List[i](1,2)*=0.5;
-    		fLapStrain_List[i](0,2)=gradgradgrad_u(0,6)+gradgradgrad_u(0,7)+gradgradgrad_u(0,8);
-    		fLapStrain_List[i](0,2)+=gradgradgrad_u(2,0)+gradgradgrad_u(2,1)+gradgradgrad_u(2,2);
-    		fLapStrain_List[i](0,2)*=0.5;
-    		fLapStrain_List[i](0,1)=gradgradgrad_u(0,3)+gradgradgrad_u(0,4)+gradgradgrad_u(0,5);
-    		fLapStrain_List[i](0,1)+=gradgradgrad_u(1,0)+gradgradgrad_u(1,1)+gradgradgrad_u(1,2);
-    		fLapStrain_List[i](0,1)*=0.5;
-    		fLapStrain_List[i](2,1)=fLapStrain_List[i](1,2);
-    		fLapStrain_List[i](2,0)=fLapStrain_List[i](0,2);
-    		fLapStrain_List[i](1,0)=fLapStrain_List[i](0,1);
+    		
+    		fLapStrain_List[i][0]=gradgradgrad_u(0,0)+gradgradgrad_u(0,1)+gradgradgrad_u(0,2);
+    		fLapStrain_List[i][1]=gradgradgrad_u(1,3)+gradgradgrad_u(1,4)+gradgradgrad_u(1,5);
+    		fLapStrain_List[i][2]=gradgradgrad_u(2,6)+gradgradgrad_u(2,7)+gradgradgrad_u(2,8);
+    		fLapStrain_List[i][3]=gradgradgrad_u(1,6)+gradgradgrad_u(1,7)+gradgradgrad_u(1,8);
+    		fLapStrain_List[i][3]+=gradgradgrad_u(2,3)+gradgradgrad_u(2,4)+gradgradgrad_u(2,5);
+    		fLapStrain_List[i][3]*=0.5;
+    		fLapStrain_List[i][4]=gradgradgrad_u(0,6)+gradgradgrad_u(0,7)+gradgradgrad_u(0,8);
+    		fLapStrain_List[i][4]+=gradgradgrad_u(2,0)+gradgradgrad_u(2,1)+gradgradgrad_u(2,2);
+    		fLapStrain_List[i][4]*=0.5;
+    		fLapStrain_List[i][5]=gradgradgrad_u(0,3)+gradgradgrad_u(0,4)+gradgradgrad_u(0,5);
+    		fLapStrain_List[i][5]+=gradgradgrad_u(1,0)+gradgradgrad_u(1,1)+gradgradgrad_u(1,2);
+    		fLapStrain_List[i][5]*=0.5;
     	}
     	else {
     		cout << "\n MFGPElementT::SetGlobalShape: invalid nsd " << endl;
@@ -1394,32 +1401,28 @@ void MFGPElementT::SetGlobalShape(void)
     	
     	/* "last" laplacian of strains */
     	dMatrixT gradgradgrad_u_n;
-    	ShapeFunction().GradGradGradU(u_n, gradgradgrad_u_n, i);
+    	fShapes_displ->GradGradGradU(u_n, gradgradgrad_u_n, i);
     	/** Note: other option is to use B3 which will make the code more compact **/
     	if (NumSD() == 2) {
-    		fLapStrain_last_List[i](0,0)=gradgradgrad_u_n(0,0)+gradgradgrad_u_n(0,1);
-    		fLapStrain_last_List[i](1,1)=gradgradgrad_u_n(1,2)+gradgradgrad_u_n(1,3);
-    		fLapStrain_last_List[i](0,1)=gradgradgrad_u_n(0,2)+gradgradgrad_u_n(0,3);
-    		fLapStrain_last_List[i](0,1)+=gradgradgrad_u_n(1,0)+gradgradgrad_u_n(1,1);
-    		fLapStrain_last_List[i](0,1)*=0.5;
-    		fLapStrain_last_List[i](1,0)=fLapStrain_last_List[i](0,1);
+    		fLapStrain_last_List[i][0]=gradgradgrad_u_n(0,0)+gradgradgrad_u_n(0,1);
+    		fLapStrain_last_List[i][1]=gradgradgrad_u_n(1,2)+gradgradgrad_u_n(1,3);
+    		fLapStrain_last_List[i][2]=gradgradgrad_u_n(0,2)+gradgradgrad_u_n(0,3);
+    		fLapStrain_last_List[i][2]+=gradgradgrad_u_n(1,0)+gradgradgrad_u_n(1,1);
+    		fLapStrain_last_List[i][2]*=0.5;
     	}
     	else if (NumSD() == 3) {
-    		fLapStrain_last_List[i](0,0)=gradgradgrad_u_n(0,0)+gradgradgrad_u_n(0,1)+gradgradgrad_u_n(0,2);
-    		fLapStrain_last_List[i](1,1)=gradgradgrad_u_n(1,3)+gradgradgrad_u_n(1,4)+gradgradgrad_u_n(1,5);
-    		fLapStrain_last_List[i](2,2)=gradgradgrad_u_n(2,6)+gradgradgrad_u_n(2,7)+gradgradgrad_u_n(2,8);
-    		fLapStrain_last_List[i](1,2)=gradgradgrad_u_n(1,6)+gradgradgrad_u_n(1,7)+gradgradgrad_u_n(1,8);
-    		fLapStrain_last_List[i](1,2)+=gradgradgrad_u_n(2,3)+gradgradgrad_u_n(2,4)+gradgradgrad_u_n(2,5);
-    		fLapStrain_last_List[i](1,2)*=0.5;
-    		fLapStrain_last_List[i](0,2)=gradgradgrad_u_n(0,6)+gradgradgrad_u_n(0,7)+gradgradgrad_u_n(0,8);
-    		fLapStrain_last_List[i](0,2)+=gradgradgrad_u_n(2,0)+gradgradgrad_u_n(2,1)+gradgradgrad_u_n(2,2);
-    		fLapStrain_last_List[i](0,2)*=0.5;
-    		fLapStrain_last_List[i](0,1)=gradgradgrad_u_n(0,3)+gradgradgrad_u_n(0,4)+gradgradgrad_u_n(0,5);
-    		fLapStrain_last_List[i](0,1)+=gradgradgrad_u_n(1,0)+gradgradgrad_u_n(1,1)+gradgradgrad_u_n(1,2);
-    		fLapStrain_last_List[i](0,1)*=0.5;
-    		fLapStrain_last_List[i](2,1)=fLapStrain_last_List[i](1,2);
-    		fLapStrain_last_List[i](2,0)=fLapStrain_last_List[i](0,2);
-    		fLapStrain_last_List[i](1,0)=fLapStrain_last_List[i](0,1);
+    		fLapStrain_last_List[i][0]=gradgradgrad_u_n(0,0)+gradgradgrad_u_n(0,1)+gradgradgrad_u_n(0,2);
+    		fLapStrain_last_List[i][1]=gradgradgrad_u_n(1,3)+gradgradgrad_u_n(1,4)+gradgradgrad_u_n(1,5);
+    		fLapStrain_last_List[i][2]=gradgradgrad_u_n(2,6)+gradgradgrad_u_n(2,7)+gradgradgrad_u_n(2,8);
+    		fLapStrain_last_List[i][3]=gradgradgrad_u_n(1,6)+gradgradgrad_u_n(1,7)+gradgradgrad_u_n(1,8);
+    		fLapStrain_last_List[i][3]+=gradgradgrad_u_n(2,3)+gradgradgrad_u_n(2,4)+gradgradgrad_u_n(2,5);
+    		fLapStrain_last_List[i][3]*=0.5;
+    		fLapStrain_last_List[i][4]=gradgradgrad_u_n(0,6)+gradgradgrad_u_n(0,7)+gradgradgrad_u_n(0,8);
+    		fLapStrain_last_List[i][4]+=gradgradgrad_u_n(2,0)+gradgradgrad_u_n(2,1)+gradgradgrad_u_n(2,2);
+    		fLapStrain_last_List[i][4]*=0.5;
+    		fLapStrain_last_List[i][5]=gradgradgrad_u_n(0,3)+gradgradgrad_u_n(0,4)+gradgradgrad_u_n(0,5);
+    		fLapStrain_last_List[i][5]+=gradgradgrad_u_n(1,0)+gradgradgrad_u_n(1,1)+gradgradgrad_u_n(1,2);
+    		fLapStrain_last_List[i][5]*=0.5;
     	}
     	else {
     		cout << "\n MFGPElementT::SetGlobalShape: invalid nsd " << endl;
@@ -1433,6 +1436,7 @@ void MFGPElementT::SetGlobalShape(void)
 	{
 		/* plastic multiplier */
 		IP_Interpolate(lambda, fLambda_List[i], i);
+		//cout << "fLambda = " << fLambda_List[i] << endl;
 		
 		/* "last" plastic multiplier */
 		IP_Interpolate(lambda_n, fLambda_last_List[i], i);

@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.h,v 1.13 2005-11-21 13:24:45 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.h,v 1.14 2005-11-22 18:27:19 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -195,8 +195,6 @@ public:
 	dSymMatrixT Identity3x3; /* 3x3 identity matrix */ 
 	dMatrixT Identity4x4; /* 4x4 identity matrix */ 
 	dMatrixT Identity6x6; /* 6x6 identity matrix */ 
-	dMatrixT KE;          /* elastic moduli tensor */
-	dMatrixT KE_AST;      /* elastic moduli tensor with length scale effect */
 };
 
 

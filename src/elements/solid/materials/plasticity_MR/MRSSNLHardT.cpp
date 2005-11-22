@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.9 2005-11-18 19:37:22 kyonten Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.10 2005-11-22 18:26:40 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)              */
 
 /* Interface for a nonassociative, small strain,      */
@@ -66,9 +66,9 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
   	double ff, bott, topp, normr;
   	
 	/* allocate matrices */
-    dMatrixT AA(10,10), AA_inv(10,10), KE_Inv(6,6), CMAT(10,10);  
-    dMatrixT A_uu(6, 6), A_uq(6,4), A_qu(4,6), A_qq(4,4);
-    dMatrixT dQdSig2(6,6), dQdSigdq(6,4), dqbardq(4,4), dqbardSig(4,6);
+    dMatrixT KE(6), AA(10), AA_inv(10), KE_Inv(6), CMAT(10);  
+    dMatrixT A_uu(6), A_uq(6,4), A_qu(4,6), A_qq(4);
+    dMatrixT dQdSig2(6), dQdSigdq(6,4), dqbardq(4), dqbardSig(4,6);
     
 	/* allocate reduced index vector of symmetric matrices */
     dSymMatrixT u(3), up(3), upo(3), du(3), dup(3), ue(3);
@@ -79,6 +79,13 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
     dArrayT qo(4), qn(4), dq(4), R_up(6), R_q(4); 
     dArrayT dfdSig(6), dfdq(4), dQdSig(6), qbar(4);  
     dArrayT state(28);
+	
+	/* elastic moduli tensor */
+	KE = 0.0;
+	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
+	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
+	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
+	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 	
 	/* initialize element data */
 	double enp  = 0.;
@@ -407,17 +414,15 @@ void MRSSNLHardT::qbar_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& qba
    B2 /= fGf_I;
    dQdS = Sig_Dev;
    B3 = Sig_Dev;
-   B3 /= fGf_II;
-   double B2dQdS = dMatrixT::Dot(B2,dQdS);
-   double B3dQdS = dMatrixT::Dot(B3,dQdS);  
+   B3 /= fGf_II; 
       
    qbar[0]  = A1*B1*dQdP; 
-   qbar[0] += A1*B2dQdS;
-   qbar[1]  = B3dQdS;
+   qbar[0] += A1*dMatrixT::Dot(B2,dQdS);
+   qbar[1]  = dMatrixT::Dot(B3,dQdS);
    qbar[1]  *=A2;
-   qbar[2]  = B3dQdS;
+   qbar[2]  = dMatrixT::Dot(B3,dQdS);
    qbar[2]  *=A3;
-   qbar[3]  = B3dQdS;
+   qbar[3]  = dMatrixT::Dot(B3,dQdS);
    qbar[3]  *=A4;
  }
  
@@ -537,15 +542,22 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
 	int ip)
 {
 	 double bott, dlam;
-     dMatrixT AA(10,10), AA_inv(10,10), CMAT(10,10), KE_Inv(6,6); 
-     dMatrixT A_uu(6,6), A_uq(6,4), A_qu(4,6), A_qq(4,4);
-     dMatrixT dQdSig2(6,6), dqbardq(4,4), dQdSigdq(6,4), dqbardSig(4,6);
-     dMatrixT KP(6,6), KP2(6,6), KEP(6,6), KES(6,6), KES_Inv(6,6);
-     dMatrixT Ch(4,4), Ch_Inv(4,4), KE1(4,6), KE2(6,6), KE3(6,4);
+     dMatrixT KE(6), AA(10), AA_inv(10), CMAT(10), KE_Inv(6); 
+     dMatrixT A_uu(6), A_uq(6,4), A_qu(4,6), A_qq(4);
+     dMatrixT dQdSig2(6), dqbardq(4), dQdSigdq(6,4), dqbardSig(4,6);
+     dMatrixT KP(6), KP2(6), KEP(6), KES(6), KES_Inv(6);
+     dMatrixT Ch(4), Ch_Inv(4), KE1(4,6), KE2(6), KE3(6,4);
      
      dSymMatrixT Sig(3), Sig_I(3);     
      dArrayT dfdSig(6), dfdq(4), dQdSig(6), qbar(4);
      dArrayT qn(4), Rvec(10), Cvec(10);
+	
+    /* elastic moduli tensor */
+	KE = 0.0;
+	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
+	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
+	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
+	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 	
     if(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic) {
 	  	/* load internal state variables */
@@ -677,19 +689,11 @@ void MRSSNLHardT::TakeParameterList(const ParameterListT& list)
 	Identity3x3.Dimension(kNSD); 
 	Identity4x4.Dimension(kNSD+1);
 	Identity6x6.Dimension(kNSTR);
-	KE.Dimension(kNSTR, kNSTR);
     
 	/* initialize constant tensor */
 	Identity3x3.Identity();
 	Identity4x4.Identity(); 
 	Identity6x6.Identity();
-	
-	/* C matrix */
-	KE = 0.;
-	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
-	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
-	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
-	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 }
 
 /***********************************************************************
