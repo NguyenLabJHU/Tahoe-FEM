@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.40 2005-11-23 15:01:22 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.41 2005-11-23 15:33:43 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -379,11 +379,15 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	SolidElementT::TakeParameterList(list);
 	
 	/* get coordinates of start surface */
-	int nsd = NumSD();
-	const ParameterListT& start_surf = list.GetListChoice(*this, "start_surface_coord");
-	VectorParameterT::Extract(start_surf, start_surface_coord_read);
-	if (start_surface_coord_read.Length() != nsd) 
-		ExceptionT::GeneralFail(caller, "\"start_surface_coord\" should be length %d not %d", nsd, start_surface_coord_read.Length());
+	const ParameterListT* start_check = list.List("start_surface_coord");
+	if (start_check)
+	{
+		int nsd = NumSD();
+		const ParameterListT& start_surf = list.GetListChoice(*this, "start_surface_coord");
+		VectorParameterT::Extract(start_surf, start_surface_coord_read);
+		if (start_surface_coord_read.Length() != nsd) 
+			ExceptionT::GeneralFail(caller, "\"start_surface_coord\" should be length %d not %d", nsd, start_surface_coord_read.Length());
+	}
 	
 	/* dimension workspace */
 	fGradU.Dimension(NumSD());	
