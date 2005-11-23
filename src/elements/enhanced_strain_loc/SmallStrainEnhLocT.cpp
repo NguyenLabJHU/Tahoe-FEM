@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.41 2005-11-23 15:33:43 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.42 2005-11-23 22:35:08 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -1882,7 +1882,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		
 		// calculate yield on discontinuity surface
 		double fYieldTrial = Q_Sn_trial - fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kCohesion];
-		//fYieldTrial = 1.0;
+		fYieldTrial = 1.0;
 		fElementYieldTrial[elem] = fYieldTrial;
 	
 		// modify fRHS if yielding
@@ -1972,9 +1972,17 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			}			
 			dArrayT elem_centroid(NumSD());
 			fElementCentroid.RowCopy(elem, elem_centroid);
-			ss_enh_out	<< endl << "elem_centroid: " << setw(outputFileWidth) << elem_centroid[0] 
+			if (NumSD() == 2)	
+			{
+				ss_enh_out	<< endl << "elem_centroid: " << setw(outputFileWidth) << elem_centroid[0] 
+							<< setw(outputFileWidth) << elem_centroid[1];
+			}
+			else if (NumSD() == 3)	
+			{
+				ss_enh_out	<< endl << "elem_centroid: " << setw(outputFileWidth) << elem_centroid[0] 
 							<< setw(outputFileWidth) << elem_centroid[1] 
 							<< setw(outputFileWidth) << elem_centroid[2];
+			}
 		}
 				
 	} // if loc_flag == 2
