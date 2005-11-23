@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.cpp,v 1.11 2005-07-19 18:03:41 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.cpp,v 1.12 2005-11-23 22:36:04 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc2D.h"
 
@@ -14,8 +14,11 @@ using namespace Tahoe;
 
 /* constructor */
 DPSSKStVLoc2D::DPSSKStVLoc2D(void):
+	ParameterInterfaceT("small_strain_StVenant_DP_Loc_2D")
+	/*
 	ParameterInterfaceT("small_strain_StVenant_DP_Loc_2D"),
 	fSSEnhLocMatSupport(NULL)
+	*/
 {
 
 }
@@ -65,11 +68,8 @@ const dSymMatrixT& DPSSKStVLoc2D::s_ij(void)
 #ifdef ENHANCED_STRAIN_LOC_DEV	
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
-	int element_locflag = 0;
-	if (element.IsAllocated()) 
-	{
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
-	}
+	element_locflag = 0;
+	if (element.IsAllocated()) element_locflag = fSSEnhLocMatSupport->ElementLocflag();
 	if ( element_locflag == 2 )
 	{
 		fStress2D = fSSEnhLocMatSupport->ElementStress(ip);
@@ -111,5 +111,5 @@ void DPSSKStVLoc2D::TakeParameterList(const ParameterListT& list)
 	fTotalStrain3D.Dimension(3);
 	
 	/* cast to small strain embedded discontinuity material pointer */
-	fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
+	//fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
 }

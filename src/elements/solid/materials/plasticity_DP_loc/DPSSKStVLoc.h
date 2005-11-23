@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.15 2005-09-15 14:59:09 raregue Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.16 2005-11-23 22:36:04 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -98,18 +98,18 @@ protected:
 	/* set modulus */
  	virtual void SetModulus(dMatrixT& modulus); 
 	int loccheck;
+	
+	// element localization flag
+	int element_locflag;
+	
+	// pointer to material support
+	const SSEnhLocMatSupportT* fSSEnhLocMatSupport;
  
 private:
 
 	/** Drucker-Prager plasticity with linear hardening and localization*/
 	DPSSLinHardLocT* fDP;
 	
-	// pointer to material support
-	const SSEnhLocMatSupportT* fSSEnhLocMatSupport;
-	
-	// element localization flag
-	int element_locflag;
-  
 	/* return values */
 	dSymMatrixT	fStress;
 	dMatrixT fModulus, fModulusCe, fModulusEP;
