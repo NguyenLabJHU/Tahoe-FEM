@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.39 2005-10-31 18:49:25 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.40 2005-11-23 15:01:22 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -10,6 +10,8 @@
 #include "SSEnhLocMatSupportT.h"
 #include "ParameterContainerT.h"
 #include "ModelManagerT.h"
+
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
@@ -295,11 +297,6 @@ void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(psi_p, "peak_dilation_angle_rad");
 	list.AddParameter(alpha_psi, "dilation_softening_coefficient");
 	
-	double start1, start2, start3;
-	list.AddParameter(start1, "start_surface_vect_1");
-	list.AddParameter(start2, "start_surface_vect_2");
-	list.AddParameter(start3, "start_surface_vect_3");
-	
 	int choosenormal;
 	list.AddParameter(choosenormal, "choose_normal");
 	
@@ -315,6 +312,9 @@ void SmallStrainEnhLocT::DefineSubs(SubListT& sub_list) const
 
 	/* element block/material specification */
 	sub_list.AddSub("small_strain_enh_loc_element_block", ParameterListT::OnePlus);
+	
+	/* coordinates of point from which to start discontinuity surface */
+	sub_list.AddSub("start_surface_coord", ParameterListT::ZeroOrOnce);
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -334,6 +334,17 @@ ParameterInterfaceT* SmallStrainEnhLocT::NewSub(const StringT& name) const
 		block->SetSubSource(this);
 		
 		return block;
+	}
+	else if (name == "start_surface_coord") {
+
+		ParameterContainerT* s_choice = new ParameterContainerT(name);
+		
+		/* by dimension */
+		s_choice->SetListOrder(ParameterListT::Choice);
+		s_choice->AddSub("Vector_2");
+		s_choice->AddSub("Vector_3");
+
+		return s_choice;	
 	}
 	else /* inherited */
 		return SolidElementT::NewSub(name);
@@ -366,6 +377,13 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	SolidElementT::TakeParameterList(list);
+	
+	/* get coordinates of start surface */
+	int nsd = NumSD();
+	const ParameterListT& start_surf = list.GetListChoice(*this, "start_surface_coord");
+	VectorParameterT::Extract(start_surf, start_surface_coord_read);
+	if (start_surface_coord_read.Length() != nsd) 
+		ExceptionT::GeneralFail(caller, "\"start_surface_coord\" should be length %d not %d", nsd, start_surface_coord_read.Length());
 	
 	/* dimension workspace */
 	fGradU.Dimension(NumSD());	
@@ -527,7 +545,7 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	mu_dir.Dimension(NumSD());
 	mu_dir_last.Dimension(NumSD());
 		
-	start_surface_vect_read.Dimension(NumSD());
+	start_surface_coord_read.Dimension(NumSD());
 	
 	fDe.Dimension(dSymMatrixT::NumValues(NumSD()));
 	
@@ -558,24 +576,6 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fCohesiveSurface_Params[kalpha_phi] = list.GetParameter("friction_softening_coefficient");
 	fCohesiveSurface_Params[kpsi_p] = list.GetParameter("peak_dilation_angle_rad");
 	fCohesiveSurface_Params[kalpha_psi] = list.GetParameter("dilation_softening_coefficient");
-	
-	/* set start surface vector; most useful for coarse meshes; fine meshes should use element centroid */
-	dArrayT start_surface_vect_tmp(3);
-	start_surface_vect_tmp[0] = list.GetParameter("start_surface_vect_1");
-	start_surface_vect_tmp[1] = list.GetParameter("start_surface_vect_2");
-	start_surface_vect_tmp[2] = list.GetParameter("start_surface_vect_3");
-	
-	if ( NumSD() == 2 ) 
-	{
-		start_surface_vect_read[0] = start_surface_vect_tmp[0];
-		start_surface_vect_read[1] = start_surface_vect_tmp[1];
-	}
-	else if ( NumSD() == 3 ) 
-	{
-		start_surface_vect_read[0] = start_surface_vect_tmp[0];
-		start_surface_vect_read[1] = start_surface_vect_tmp[1];
-		start_surface_vect_read[2] = start_surface_vect_tmp[2];
-	}
 	
 	choose_normal = list.GetParameter("choose_normal");
 	
@@ -1086,7 +1086,7 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 	/* fetch chosen normal */
 	fElementLocNormal.RowCopy(elem, normal_chosen);
 	
-	dArrayT start_surface_vect(NumSD()), elem_centroid(NumSD());
+	dArrayT start_surface_coords(NumSD()), elem_centroid(NumSD());
 	
 	/* calculate element centroid */
 	coords_elem.Average(elem_centroid);
@@ -1096,14 +1096,14 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 	// for one chosen element
 	if (!fFirstTrace && elem == choose_element-1)
 	{
-		fElementLocStartSurface.SetRow(elem, start_surface_vect_read);
-		if (start_surface_vect_read.Magnitude() > verysmallnum) 
+		fElementLocStartSurface.SetRow(elem, start_surface_coord_read);
+		if (start_surface_coord_read.Magnitude() > verysmallnum) 
 		{
-			start_surface_vect = start_surface_vect_read;
+			start_surface_coords = start_surface_coord_read;
 		}
 		else 
 		{
-			start_surface_vect = elem_centroid;
+			start_surface_coords = elem_centroid;
 		}
 		fFirstTrace = true;
 		fElementLocFlag[elem] = 2;
@@ -1111,15 +1111,15 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 	// for all localized elements
 	else if (!fFirstTrace)
 	{
-		start_surface_vect = elem_centroid;
+		start_surface_coords = elem_centroid;
 		fElementLocFlag[elem] = 2;
 	}
 	else
 	{
 		//determine whether element is adjacent to traced element to see whether it can be traced
 		
-		//if found adjacent, set start_surface_vect
-		//fElementLocStartSurface.SetRow(elem, start_surface_vect);
+		//if found adjacent, set start_surface_coords
+		//fElementLocStartSurface.SetRow(elem, start_surface_coords);
 		
 		//fElementLocFlag[elem] = 2;
 	}
@@ -1146,7 +1146,7 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 			node_coords[1] = coords_elem[i+nen];
 			node_coords[2] = coords_elem[i+2*nen];
 		}
-		diff_vector.DiffOf(node_coords,start_surface_vect);
+		diff_vector.DiffOf(node_coords,start_surface_coords);
 		product = dArrayT::Dot(normal_chosen,diff_vector);
 		if (product > 0.0)
 		{
