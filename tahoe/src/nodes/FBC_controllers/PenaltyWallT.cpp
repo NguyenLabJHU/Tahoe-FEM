@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.20 2005-11-30 20:51:27 regueiro Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.21 2005-12-01 00:24:11 regueiro Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -116,8 +116,12 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 				fdispl_i.RowCopy(i, tangent_displ);
 				tangent_displ -= normal_displ;
 				ftangent = tangent_displ;
-				if (ftangent.Magnitude() > 1.0e-15) ftangent.UnitVector();
-				double tangent_comp = tangent_displ.Magnitude();			
+				double tangent_comp = 0.0;
+				if (ftangent.Magnitude() > 1.0e-10) 
+				{
+					ftangent.UnitVector();
+					tangent_comp = tangent_displ.Magnitude();
+				}
 
 				/* use Coulomb friction model to calculate frictional tangential force */
 				if (fabs(tangent_comp) < fabs(fmu*normal_comp))
