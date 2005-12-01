@@ -1,4 +1,4 @@
-/* $Id: CellFromMeshT.cpp,v 1.9 2005-09-29 19:11:39 jcmach Exp $ */
+/* $Id: CellFromMeshT.cpp,v 1.10 2005-12-01 21:03:23 cjkimme Exp $ */
 #include "CellFromMeshT.h"
 
 #include "ArrayT.h"
@@ -590,10 +590,92 @@ void CellFromMeshT::BoundaryShapeFunctions(RaggedArray2DT<double>& phis, RaggedA
 #pragma unused(phis)
 #pragma unused(supports)
 #pragma unused(normals)
+
+  return ;
   // for traction BCs, these data structures are needed
   // phis are shape function values for nodes covering integration points on boundary facets
   // supports are the locally-numbered indices
   // normals are the facet normal vectors 
+
+  ModelManagerT& model = ElementSupport().ModelManager();
+
+  GeometryT::CodeT facet_geometry;
+  iArray2DT surface_facets;
+  iArrayT surface_nodes, facet_nums, element_nums;
+
+  model.SurfaceFacets(fBlockID, facet_geometry, surface_facets, surface_nodes,
+		      facet_nums, element_nums);
+
+  int nsd = ElementSupport().NumSD();
+  int num_facets = surface_facets.MajorDim();
+  int num_facet_nodes = surface_facets.MinorDim();
+  iArrayT support_lengths(num_facets);
+  ArrayT< LinkedListT<double> > phiValues(num_facets);
+  ArrayT< LinkedListT<int> > support_indices(num_facets);
+
+  normals.Dimension(num_facets, nsd);
+
+  ParentDomainT boundary_facet(facet_geometry, fNumIP, num_facet_nodes);
+  boundary_facet.Initialize();
+  LocalArrayT facet_coords(LocalArrayT::kInitCoords, num_facet_nodes, nsd);
+  facet_coords.SetGlobal(ElementSupport().InitialCoordinates());
+  iArrayT facet_nodes(num_facet_nodes);
+  dArrayT ip_coords(nsd);
+  dMatrixT jacobian(nsd, 1);
+  const double* ip_weight = boundary_facet.Weight();
+
+  dArrayT weighted_phis, facet_normal(nsd);
+  int local_node_number;
+  for (int i = 0; i < num_facets; i++) {
+    // loop over facet nodes -- ouch that's the painful part
+    surface_facets.RowAlias(i, facet_nodes);
+    facet_coords.SetLocal(facet_nodes);
+    // compute normal vector here
+    for (int fn = 0; fn < num_facet_nodes; fn++) {
+      local_node_number = surface_facets(i, fn);
+      // make facet sub-domain here
+      for (int j = 0; j < fNumIP; j++) {
+	boundary_facet.DomainJacobian(facet_coords, j, jacobian);
+	double jw = ip_weight[j]*boundary_facet.SurfaceJacobian(jacobian);
+	
+	/* integration point coordinates */
+	boundary_facet.Interpolate(facet_coords, ip_coords, j);
+	
+	if (!fNodalShapes->SetFieldAt(ip_coords, NULL))
+	  ExceptionT::GeneralFail("CellFromMeshT::BoundaryShapeFunctions",
+				  "Shape Function evaluation"
+				  "failed at boundary facet %d ip %d\n",i,j);
+	
+	const dArrayT& phis = fNodalShapes->FieldAt();
+	const iArrayT& neighbors = fNodalShapes->Neighbors();
+	
+	int l_supp = phis.Length();
+	
+	weighted_phis.Dimension(l_supp);
+	weighted_phis = phis;
+	weighted_phis *= jw;
+	
+	MergeFacetIntegral(local_node_number, jw, facet_normal, phis, neighbors);
+	MergeNodalValues(i, weighted_phis, neighbors, support_indices, phiValues, true);
+      }
+    }
+  }
+  
+  // transfer to RaggedArrays for function return
+  phis.Configure(phiValues);
+  supports.Configure(support_indices);
+  for (int i = 0; i < support_lengths.Length(); ++i) {
+    int* irow_i = supports(i);
+    double* drow_i = phis(i);
+    LinkedListT<int>& ilist = support_indices[i];
+    LinkedListT<double>& dlist = phiValues[i];
+    ilist.Top();
+    dlist.Top();
+    while (ilist.Next() && dlist.Next()) {
+      *irow_i++ = *(ilist.CurrentValue());
+      *drow_i++ = *(dlist.CurrentValue());
+    }
+  }
 }
 
 void CellFromMeshT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index) 
