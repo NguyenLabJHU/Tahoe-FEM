@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.h,v 1.10 2005-08-04 21:41:12 kyonten Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.h,v 1.11 2005-12-03 23:10:16 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D2_MF_SHAPE_T_H_
 #define _D2_MF_SHAPE_T_H_
@@ -69,19 +69,25 @@ inline D2MeshFreeSupportT& D2MeshFreeShapeFunctionT::D2MeshFreeSupport(void) con
 inline void D2MeshFreeShapeFunctionT::GradGradU(const LocalArrayT& nodal,
 	dMatrixT& gradgrad_U) const
 {
-	int row = nodal.MinorDim();
-	int col = fDDNaU[fCurrIP].MajorDim(); 
-	gradgrad_U.Dimension(row, col);
-	fDomain->Jacobian(nodal, fDDNaU[fCurrIP], gradgrad_U);	
+#if __option(extended_errorcheck)
+	if (gradgrad_U.Rows() != nodal.MinorDim() ||
+		gradgrad_U.Cols() != fDDNaU[fCurrIP].MajorDim())
+    	throw ExceptionT::kSizeMismatch;
+#endif
+	
+	fDomain->JacobianD2(nodal, fDDNaU[fCurrIP], gradgrad_U);	
 }
 
 inline void D2MeshFreeShapeFunctionT::GradGradU(const LocalArrayT& nodal,
 	dMatrixT& gradgrad_U, int ip) const
 {
-	int row = nodal.MinorDim();
-	int col = fDDNaU[ip].MajorDim(); 
-	gradgrad_U.Dimension(row, col);
-	fDomain->Jacobian(nodal, fDDNaU[ip], gradgrad_U);	
+#if __option(extended_errorcheck)
+	if (gradgrad_U.Rows() != nodal.MinorDim() ||
+		gradgrad_U.Cols() != fDDNaU[ip].MajorDim())
+    	throw ExceptionT::kSizeMismatch;
+#endif
+	
+	fDomain->JacobianD2(nodal, fDDNaU[ip], gradgrad_U);	
 }
 
 } // namespace Tahoe 
