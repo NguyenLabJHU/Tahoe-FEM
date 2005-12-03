@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.h,v 1.7 2005-09-30 22:05:03 kyonten Exp $ */ 
+/* $Id: MFGPAssemblyT.h,v 1.8 2005-12-03 23:16:38 kyonten Exp $ */ 
 //DEVELOPMENT
 #ifndef _MFGP_ASSEMBLY_T_H_ 
 #define _MFGP_ASSEMBLY_T_H_ 
@@ -431,7 +431,7 @@ protected:
 	dArrayT 	fFu_int, fFu_int_temp; //[ndof_displ]
 	dArrayT 	fFu_ext; //[ndof_displ]
 	dArrayT		fFlambda, fFlambda_temp; // [nen_plast]	
-
+	
 	/** the displacement field */
 	const FieldT* fDispl;
 	

@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.14 2005-11-21 13:25:31 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.15 2005-12-03 23:16:38 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -157,13 +157,13 @@ void MFGPAssemblyT::IP_ComputeLaplacian(const LocalArrayT& field, dArrayT& lapla
 #endif
     /* computed by shape functions */
     //ShapeFunction().LaplaceU(field, laplacian);
-    dMatrixT gradgrad_u;
-    ShapeFunction().GradGradU(field, gradgrad_u);
+    dMatrixT gradgradU(field.MinorDim(), dSymMatrixT::NumValues(NumSD()));
+    ShapeFunction().GradGradU(field, gradgradU);
     laplacian = 0.0;
     
     for (int j = 0; j < field.MinorDim(); j++) 
-    	for (int i = 0; i < NumSD(); i++) 
-    		laplacian[j] += gradgrad_u(j,i);
+    	for (int i = 0; i < NumSD()-1; i++) 
+    		laplacian[j] += gradgradU(j,i);
 }
 
 void MFGPAssemblyT::IP_ComputeLaplacian(const LocalArrayT& field, dArrayT& laplacian, int ip) const
@@ -174,13 +174,13 @@ void MFGPAssemblyT::IP_ComputeLaplacian(const LocalArrayT& field, dArrayT& lapla
 #endif
     /* computed by shape functions */
     //ShapeFunction().LaplaceU(field, laplacian);
-    dMatrixT gradgrad_u;
-    ShapeFunction().GradGradU(field, gradgrad_u, ip);
+    dMatrixT gradgradU(field.MinorDim(), dSymMatrixT::NumValues(NumSD()));
+    ShapeFunction().GradGradU(field, gradgradU, ip);
     laplacian = 0.0;
-    // cout << endl << "gradgrad_u" << gradgrad_u << endl;
+    
     for (int j = 0; j < field.MinorDim(); j++) 
-    	for (int i = 0; i < NumSD(); i++) 
-    		laplacian[j] += gradgrad_u(j,i);
+    	for (int i = 0; i < NumSD()-1; i++) 
+    		laplacian[j] += gradgradU(j,i);
 }
 
 /* field gradients */
@@ -905,16 +905,6 @@ void MFGPAssemblyT::SetGlobalShape(void)
 	SetLocalU(lambda);	
 	SetLocalU(lambda_n);
 	*/
-	//cout << endl << "displacement" << endl << u << endl; //check displ passed
-	//cout << "lambda = " << lambda << endl;
-	
-	/* if lambda is negative set lambda to zero */
-	for (int i = 0; i < lambda.Length(); i++)
-	{
-		if (lambda[i] < 0.) {
-		lambda[i] = 0.0;
-		}	
-	}
 }
 
 /* describe the parameters needed by the interface */
@@ -1072,7 +1062,6 @@ void MFGPAssemblyT::TakeParameterList(const ParameterListT& list)
 	fDOFvec.Dimension(NumDOF());
 	fNodalYieldFlags.Dimension(ElementSupport().NumNodes());
 	fPenaltyFlags.Dimension(fNodalYieldFlags.Length());
-	
 	
 	/* initialize/set up local arrays */
 	SetLocalArrays();
@@ -2003,12 +1992,12 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after, int step_num) const
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
 	}
 	else if (before_after == "after_penalty") {
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".");
@@ -2067,12 +2056,12 @@ void MFGPAssemblyT::PrintInternalForces(StringT before_after, int step_num) cons
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
 	}
 	else if (before_after == "after_penalty") {
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
+		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
+		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".");
