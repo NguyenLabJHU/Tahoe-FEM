@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.h,v 1.6 2005-08-04 21:41:31 kyonten Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.h,v 1.7 2005-12-03 23:10:32 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SHAPE_T_H_
 #define _D3_MF_SHAPE_T_H_
@@ -71,19 +71,25 @@ inline D3MeshFreeSupportT& D3MeshFreeShapeFunctionT::D3MeshFreeSupport(void) con
 inline void D3MeshFreeShapeFunctionT::GradGradGradU(const LocalArrayT& nodal,
 	dMatrixT& gradgradgrad_U) const
 {
-	int row = nodal.MinorDim();
-	int col = fDDDNaU[fCurrIP].MajorDim(); 
-	gradgradgrad_U.Dimension(row, col);
-	fDomain->Jacobian(nodal, fDDDNaU[fCurrIP], gradgradgrad_U);	
+#if __option(extended_errorcheck)
+	if (gradgradgrad_U.Rows() != nodal.MinorDim() ||
+		gradgradgrad_U.Cols() != fDDDNaU[fCurrIP].MajorDim())
+    	throw ExceptionT::kSizeMismatch;
+#endif
+
+	fDomain->JacobianD3(nodal, fDDDNaU[fCurrIP], gradgradgrad_U);	
 }
 
 inline void D3MeshFreeShapeFunctionT::GradGradGradU(const LocalArrayT& nodal,
 	dMatrixT& gradgradgrad_U, int ip) const
 {
-	int row = nodal.MinorDim();
-	int col = fDDDNaU[ip].MajorDim(); 
-	gradgradgrad_U.Dimension(row, col);
-	fDomain->Jacobian(nodal, fDDDNaU[ip], gradgradgrad_U);	
+#if __option(extended_errorcheck)
+	if (gradgradgrad_U.Rows() != nodal.MinorDim() ||
+		gradgradgrad_U.Cols() != fDDDNaU[ip].MajorDim())
+    	throw ExceptionT::kSizeMismatch;
+#endif
+	
+	fDomain->JacobianD3(nodal, fDDDNaU[ip], gradgradgrad_U);	
 }
 
 } // namespace Tahoe 
