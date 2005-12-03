@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.31 2005-07-29 06:59:16 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.32 2005-12-03 23:13:24 kyonten Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -209,10 +209,33 @@ void ParentDomainT::JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa,
 	
 	/* dimensions */
 	int nnd   = nodal.NumberOfNodes();
+	int num_u = jac.Rows();
+	int num_d = jac.Cols();
 	
-	/* allocate output space */
-	//jac.Dimension(nsd, nstr);
-	if (fNumSD == 2)
+	if (num_u == 1 && num_d == 3)
+	{
+		double& j11 = *pjac++;
+		double& j12 = *pjac++;
+		double& j13 = *pjac;
+		
+		j11 = j12 = j13 = 0.0;
+		
+		const double* pu1 = nodal(0);
+		const double* dxx = DDNa(0);
+		const double* dyy = DDNa(1);
+		const double* dxy = DDNa(2);
+			
+		for (int i = 0; i < nnd; i++)
+		{
+			j11 += (*pu1)*(*dxx);
+			j12 += (*pu1)*(*dyy);
+			j13 += (*pu1)*(*dxy);
+			
+			pu1++; dxx++; dyy++; dxy++;	
+		}
+	}
+	
+	else if (num_u == 2 && num_d == 3)
 	{
 		double& j11 = *pjac++;
 		double& j21 = *pjac++;
@@ -241,7 +264,39 @@ void ParentDomainT::JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa,
 			pu1++; pu2++; dxx++; dyy++; dxy++;	
 		}
 	}
-	else if (fNumSD == 3)
+	else if (num_u == 1 && num_d == 6)
+	{
+		double& j11 = *pjac++;
+		double& j12 = *pjac++;
+		double& j13 = *pjac++;
+		double& j14 = *pjac++;
+		double& j15 = *pjac++;
+		double& j16 = *pjac;
+	
+		j11 = j12 = j13 = j14 = j15 = j16 = 0.0;
+
+		const double* pu1 = nodal(0);
+		const double* dxx = DDNa(0);
+		const double* dyy = DDNa(1);
+		const double* dzz = DDNa(2);
+		const double* dyz = DDNa(3);
+		const double* dxz = DDNa(4);
+		const double* dxy = DDNa(5);
+
+		for (int i = 0; i < nnd; i++)
+		{
+			j11 += (*pu1)*(*dxx);
+			j12 += (*pu1)*(*dyy);
+			j13 += (*pu1)*(*dzz);
+			j14 += (*pu1)*(*dyz);
+			j15 += (*pu1)*(*dxz);
+			j16 += (*pu1)*(*dxy);
+			
+			pu1++; dxx++; dyy++; dzz++;
+			dyz++; dxz++; dxy++;	
+		}
+	}
+	else if (num_u == 3 && num_d == 6)
 	{
 		double& j11 = *pjac++;
 		double& j21 = *pjac++;
@@ -301,7 +356,7 @@ void ParentDomainT::JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa,
 		}
 	}
 	else
-		ExceptionT::BadInputValue(caller, "invalid dimension %d", fNumSD);
+		ExceptionT::BadInputValue("ParentDomainT::JacobianD2: unsupported dimensions");
 }
 
 //--------------------------------------------------------------------
@@ -322,9 +377,35 @@ void ParentDomainT::JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa,
 	
 	/* dimensions */
 	int nnd   = nodal.NumberOfNodes();
+	int num_u = jac.Rows();
+	int num_d = jac.Cols();
 	
-	//jac.Dimension(nsd, nsd*nsd);
-	if (fNumSD == 2)
+	if (num_u == 1 && num_d == 4)
+	{
+		double& j11 = *pjac++;
+		double& j12 = *pjac++;
+		double& j13 = *pjac++;
+		double& j14 = *pjac;
+	
+		j11 = j12 = j13 = j14 = 0.0;
+
+		const double* pu1 = nodal(0);
+		const double* dxxx = DDDNa(0);
+		const double* dyyx = DDDNa(1);
+		const double* dxxy = DDDNa(2);
+		const double* dyyy = DDDNa(3);
+
+		for (int i = 0; i < nnd; i++)
+		{
+			j11 += (*pu1)*(*dxxx);
+			j12 += (*pu1)*(*dyyx);
+			j13 += (*pu1)*(*dxxy);
+			j14 += (*pu1)*(*dyyy);
+			
+			pu1++; dxxx++; dyyx++; dxxy++; dyyy++;	
+		}
+	}
+	else if (num_u == 2 && num_d == 4)
 	{
 		double& j11 = *pjac++;
 		double& j21 = *pjac++;
@@ -359,7 +440,48 @@ void ParentDomainT::JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa,
 			pu1++; pu2++; dxxx++; dyyx++; dxxy++; dyyy++;	
 		}
 	}
-	else if (fNumSD == 3)
+	else if (num_u == 1 && num_d == 9)
+	{
+		double& j11 = *pjac++;
+		double& j12 = *pjac++;
+		double& j13 = *pjac++;
+		double& j14 = *pjac++;
+		double& j15 = *pjac++;
+		double& j16 = *pjac++;
+		double& j17 = *pjac++;
+		double& j18 = *pjac++;
+		double& j19 = *pjac;
+	
+		j11 = j12 = j13 = j14 = j15 = j16 = j17 = j18 = j19 = 0.0;
+
+		const double* pu1 = nodal(0);
+		const double* dxxx = DDDNa(0);
+		const double* dyyx = DDDNa(1);
+		const double* dzzx = DDDNa(2);
+		const double* dxxy = DDDNa(3);
+		const double* dyyy = DDDNa(4);
+		const double* dzzy = DDDNa(5);
+		const double* dxxz = DDDNa(6);
+		const double* dyyz = DDDNa(7);
+		const double* dzzz = DDDNa(8);
+
+		for (int i = 0; i < nnd; i++)
+		{
+			j11 += (*pu1)*(*dxxx);
+			j12 += (*pu1)*(*dyyx);
+			j13 += (*pu1)*(*dzzx);
+			j14 += (*pu1)*(*dxxy);
+			j15 += (*pu1)*(*dyyy);
+			j16 += (*pu1)*(*dzzy);
+			j17 += (*pu1)*(*dxxz);
+			j18 += (*pu1)*(*dyyz);
+			j19 += (*pu1)*(*dzzz);
+			
+			pu1++; dxxx++; dyyx++; dzzx++;
+			dxxy++; dyyy++; dzzy++; dxxz++; dyyz++; dzzz++;	
+		}
+	}
+	else if (num_u == 3 && num_d == 9)
 	{
 		double& j11 = *pjac++;
 		double& j21 = *pjac++;
@@ -441,7 +563,7 @@ void ParentDomainT::JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa,
 		}
 	}
 	else
-		ExceptionT::BadInputValue(caller, "invalid dimension %d", fNumSD);
+		ExceptionT::BadInputValue("ParentDomainT::JacobianD2: unsupported dimensions");
 }
 //---------------------------------------------------------------------------
 /* returns curl of a Vector T. Each of the dArrayT's are T at a given node */
