@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.17 2005-03-02 17:37:30 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.18 2005-12-04 16:56:29 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -720,6 +720,11 @@ void QuadT::NumNodesOnFacets(iArrayT& num_nodes) const
 		num_nodes = 2;
 	else
 		num_nodes = 3;
+}
+
+/* return the local node numbers for each edge of element */
+void QuadT::NodesOnEdges(iArray2DT& nodes_on_edges) const {
+	nodes_on_edges.Dimension(0,0);
 }
 
 /* returns the nodes on each facet needed to determine neighbors

@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.h,v 1.5 2004-05-12 22:20:15 paklein Exp $ */
+/* $Id: TetrahedronT.h,v 1.6 2005-12-04 16:56:29 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _TETRAHEDRON_T_H_
 #define _TETRAHEDRON_T_H_
@@ -32,7 +32,7 @@ public:
 	virtual void SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 		dArrayT& weights) const;
 
-	/* set the values of the nodal extrapolation matrix */
+	/** set the values of the nodal extrapolation matrix */
 	virtual void SetExtrapolation(dMatrixT& extrap) const;
 
 	/** integration point gradient matrix */
@@ -44,11 +44,16 @@ public:
 	virtual void NodesOnFacet(int facet, iArrayT& facetnodes) const;
 	virtual void NumNodesOnFacets(iArrayT& num_nodes) const;
 
-	/* returns the nodes on each facet needed to determine neighbors
+	/** return the local node numbers for each edge of element where
+	 * the row number corresponds with the canonical numbering of the
+	 * edges in the element. Edges are only defined for 3D domain geometries. */
+	virtual void NodesOnEdges(iArray2DT& nodes_on_edges) const;
+
+	/** returns the nodes on each facet needed to determine neighbors
 	 * across facets */
 	virtual void NeighborNodeMap(iArray2DT& facetnodes) const;
 	
-	/* return geometry and number of nodes on each facet */
+	/** return geometry and number of nodes on each facet */
 	virtual void FacetGeometry(ArrayT<CodeT>& facet_geom,
 		iArrayT& facet_nodes) const;		
 

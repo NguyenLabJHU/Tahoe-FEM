@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.10 2005-03-02 17:37:30 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.11 2005-12-04 16:56:29 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -289,6 +289,11 @@ void LineT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
 	num_nodes.Dimension(2);
 	num_nodes = 1;
+}
+
+/* return the local node numbers for each edge of element */
+void LineT::NodesOnEdges(iArray2DT& nodes_on_edges) const {
+	nodes_on_edges.Dimension(0,0); // has no edges
 }
 
 /* returns the nodes on each facet needed to determine neighbors

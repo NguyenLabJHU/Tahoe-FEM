@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.h,v 1.8 2005-02-03 17:36:21 paklein Exp $ */
+/* $Id: GeometryBaseT.h,v 1.9 2005-12-04 16:56:29 paklein Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
@@ -86,12 +86,17 @@ public:
 	 * throws an exception if called. */
 	virtual void IPGradientTransform(int ip, dMatrixT& transform) const;
 
-	/* return the local node numbers for each facet of the element
+	/** return the local node numbers for each facet of the element
 	 * numbered to produce at outward normal in the order: vertex
 	 * nodes, mid-edge nodes, mid-face nodes */
 	virtual void NodesOnFacet(int facet, iArrayT& facets) const = 0;
 	virtual void NumNodesOnFacets(iArrayT& num_nodes) const = 0;
 //	virtual void NodesOnFacet(RaggedArrayT<int>& facets) const = 0;
+
+	/** return the local node numbers for each edge of element where
+	 * the row number corresponds with the canonical numbering of the
+	 * edges in the element. Edges are only defined for 3D domain geometries. */
+	virtual void NodesOnEdges(iArray2DT& nodes_on_edges) const = 0;
 
 	/** returns the nodes on each facet needed to determine neighbors
 	 * across facets. The number of nodes on each face may be less

@@ -1,4 +1,4 @@
-/* $Id: TriT.cpp,v 1.10 2005-04-28 20:59:34 paklein Exp $ */
+/* $Id: TriT.cpp,v 1.11 2005-12-04 16:56:29 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "TriT.h"
 #include "QuadT.h"
@@ -394,6 +394,11 @@ void TriT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 	
 	/* (allocate and) copy in */
 	facetnodes = tmp;
+}
+
+/* return the local node numbers for each edge of element */
+void TriT::NodesOnEdges(iArray2DT& nodes_on_edges) const {
+	nodes_on_edges.Dimension(0,0); // no edges in 2D
 }
 
 /* returns the nodes on each facet needed to determine neighbors
