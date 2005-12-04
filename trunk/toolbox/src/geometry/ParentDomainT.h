@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.18 2005-01-26 19:55:26 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.19 2005-12-04 16:56:29 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -205,6 +205,11 @@ class ParentDomainT
 	/** return a list of the number of nodes on every element face */
 	void NumNodesOnFacets(iArrayT& num_nodes) const;
 
+	/** return the local node numbers for each edge of element where
+	 * the row number corresponds with the canonical numbering of the
+	 * edges in the element. Edges are only defined for 3D domain geometries. */
+	virtual void NodesOnEdges(iArray2DT& nodes_on_edges) const;
+
 	/** return the nodes on each facet needed to determine neighbors
 	 * across facets */
 	void NeighborNodeMap(iArray2DT& facetnodes) const;
@@ -347,6 +352,11 @@ inline void ParentDomainT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 inline void ParentDomainT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
 	fGeometry->NumNodesOnFacets(num_nodes);
+}
+
+inline void ParentDomainT::NodesOnEdges(iArray2DT& nodes_on_edges) const
+{
+	fGeometry->NodesOnEdges(nodes_on_edges);
 }
 
 /* returns the nodes on each facet needed to determine neighbors

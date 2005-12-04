@@ -1,4 +1,4 @@
-/* $Id: PentahedronT.cpp,v 1.4 2003-11-10 22:14:29 cjkimme Exp $ */
+/* $Id: PentahedronT.cpp,v 1.5 2005-12-04 16:56:29 paklein Exp $ */
 /* created: sawimme (10/22/1999) */
 #include "PentahedronT.h"
 
@@ -133,6 +133,46 @@ void PentahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 		num_nodes[0] = 6;
 		num_nodes[1] = 6;
 	}
+}
+
+/* return the local node numbers for each edge of element */
+void PentahedronT::NodesOnEdges(iArray2DT& nodes_on_edges) const
+{
+	/* nodes in edges data */
+	int dat6[9*2] = {
+		0,1,
+		1,2,
+		2,0,
+		3,4,
+		4,5,
+		5,3,
+		0,3,
+		1,4,
+		2,5
+	};
+
+	int dat15[9*3] = {
+		0,6,1,
+		1,7,2,
+		2,8,0,
+		3,9,4,
+		4,10,5,
+		5,11,3,
+		0,12,3,
+		1,13,4,
+		2,14,5
+	};
+
+	iArray2DT tmp;
+	if (fNumNodes == 6)
+		tmp.Alias(9, 2, dat6);
+	else if (fNumNodes == 15)
+		tmp.Alias(9, 3, dat15);
+	else
+		ExceptionT::OutOfRange("PentahedronT::NodesOnEdges");
+
+	/* copy in */
+	nodes_on_edges = tmp;
 }
 
 /* returns the nodes on each facet needed to determine neighbors

@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.11 2005-01-26 19:55:54 paklein Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.12 2005-12-04 16:56:49 paklein Exp $ */
 /* created: paklein (09/04/1998) */
 #ifndef _DOMAIN_INTEGRATION_T_H_
 #define _DOMAIN_INTEGRATION_T_H_
@@ -91,6 +91,11 @@ public:
 	 * \param facetnodes list of number of nodes on each facet 
 	 * \note facetnodes does not need to be dimensioned */
 	void NodesOnFacet(int facet, iArrayT& facetnodes) const;
+
+	/** return the local node numbers for each edge of element where
+	 * the row number corresponds with the canonical numbering of the
+	 * edges in the element. Edges are only defined for 3D domain geometries. */
+	void NodesOnEdges(iArray2DT& nodes_on_edges) const;
 
 	/** geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geom,
@@ -233,6 +238,11 @@ inline void DomainIntegrationT::NodesOnFacet(int facet, iArrayT& facetnodes) con
 inline void DomainIntegrationT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
 	fDomain->NumNodesOnFacets(num_nodes);
+}
+
+inline void DomainIntegrationT::NodesOnEdges(iArray2DT& nodes_on_edges) const
+{
+	fDomain->NodesOnEdges(nodes_on_edges);
 }
 
 /* return geometry and number of nodes on each facet */

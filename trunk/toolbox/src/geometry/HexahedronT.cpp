@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.9 2005-03-02 17:37:30 paklein Exp $ */
+/* $Id: HexahedronT.cpp,v 1.10 2005-12-04 16:56:29 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -667,6 +667,53 @@ void HexahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 	
 	/* (allocate and) copy in */
 	facetnodes = tmp;
+}
+
+/* return the local node numbers for each edge of element */
+void HexahedronT::NodesOnEdges(iArray2DT& nodes_on_edges) const
+{
+	/* edges in 8-node hex */
+	int dat8[12*2] = {
+		0,1,
+		1,2,
+		2,3,
+		3,0,
+		4,5,
+		5,6,
+		6,7,
+		7,4,
+		0,4,
+		1,5,
+		2,6,
+		3,7
+	};
+
+	/* edges in 20-node hex */
+	int dat20[12*3] = {
+		0,8,1,
+		1,9,2,
+		2,10,3,
+		3,11,0,
+		4,12,5,
+		5,13,6,
+		6,14,7,
+		7,15,4,
+		0,16,4,
+		1,17,5,
+		2,18,6,
+		3,19,7
+	};
+
+	iArray2DT tmp;
+	if (fNumNodes == 8)
+		tmp.Alias(12, 2, dat8);
+	else if (fNumNodes == 20)
+		tmp.Alias(12, 3, dat20);
+	else
+		ExceptionT::OutOfRange("HexahedronT::NodesOnEdges");
+
+	/* copy in */
+	nodes_on_edges = tmp;
 }
 
 void HexahedronT::NumNodesOnFacets(iArrayT& num_nodes) const

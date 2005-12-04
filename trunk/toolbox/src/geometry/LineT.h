@@ -1,4 +1,4 @@
-/* $Id: LineT.h,v 1.6 2004-05-20 14:55:49 paklein Exp $ */
+/* $Id: LineT.h,v 1.7 2005-12-04 16:56:29 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #ifndef _LINE_T_H_
 #define _LINE_T_H_
@@ -45,6 +45,11 @@ public:
 	virtual void NodesOnFacet(int facet, iArrayT& facetnodes) const;
 //	virtual void NodesOnFacet(RaggedArrayT<int>& facets) const;
 	virtual void NumNodesOnFacets(iArrayT& num_nodes) const;
+
+	/** return the local node numbers for each edge of element where
+	 * the row number corresponds with the canonical numbering of the
+	 * edges in the element. Edges are only defined for 3D domain geometries. */
+	virtual void NodesOnEdges(iArray2DT& nodes_on_edges) const;
 
 	/* returns the nodes on each facet needed to determine neighbors
 	 * across facets */

@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.9 2005-03-02 17:37:30 paklein Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.10 2005-12-04 16:56:29 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "TetrahedronT.h"
 #include "QuadT.h"
@@ -387,6 +387,40 @@ void TetrahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 		num_nodes = 3;
 	else
 		num_nodes = 6;
+}
+
+/* return the local node numbers for each edge of element */
+void TetrahedronT::NodesOnEdges(iArray2DT& nodes_on_edges) const
+{
+	/* nodes in edges data */
+	int dat3[6*2] = {
+		0,1,
+		1,2,
+		2,0,
+		0,3,
+		1,3,
+		2,3
+	};
+
+	int dat10[6*3] = {
+		0,4,1,
+		1,5,2,
+		2,6,0,
+		0,7,3,
+		1,8,3,
+		2,10,3
+	};
+
+	iArray2DT tmp;
+	if (fNumNodes == 3)
+		tmp.Alias(6, 2, dat3);
+	else if (fNumNodes == 10)
+		tmp.Alias(6, 3, dat10);
+	else
+		ExceptionT::OutOfRange("TetrahedronT::NodesOnEdges");
+
+	/* copy in */
+	nodes_on_edges = tmp;
 }
 
 /* returns the nodes on each facet needed to determine neighbors
