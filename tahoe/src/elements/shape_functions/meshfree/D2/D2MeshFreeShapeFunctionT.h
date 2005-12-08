@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.h,v 1.11 2005-12-03 23:10:16 kyonten Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.h,v 1.12 2005-12-08 15:32:15 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D2_MF_SHAPE_T_H_
 #define _D2_MF_SHAPE_T_H_
@@ -75,7 +75,7 @@ inline void D2MeshFreeShapeFunctionT::GradGradU(const LocalArrayT& nodal,
     	throw ExceptionT::kSizeMismatch;
 #endif
 	
-	fDomain->JacobianD2(nodal, fDDNaU[fCurrIP], gradgrad_U);	
+	fDomain->Jacobian(nodal, fDDNaU[fCurrIP], gradgrad_U);	
 }
 
 inline void D2MeshFreeShapeFunctionT::GradGradU(const LocalArrayT& nodal,
@@ -87,7 +87,7 @@ inline void D2MeshFreeShapeFunctionT::GradGradU(const LocalArrayT& nodal,
     	throw ExceptionT::kSizeMismatch;
 #endif
 	
-	fDomain->JacobianD2(nodal, fDDNaU[ip], gradgrad_U);	
+	fDomain->Jacobian(nodal, fDDNaU[ip], gradgrad_U);	
 }
 
 } // namespace Tahoe 
