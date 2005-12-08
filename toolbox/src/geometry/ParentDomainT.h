@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.19 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.20 2005-12-08 00:10:15 kyonten Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -78,22 +78,6 @@ class ParentDomainT
 	 * \param DNa shape function derivatives: [ndim] x [nnd]
 	 * \param jacobian resulting jacobian: [nu] x [ndim] */
 	void Jacobian(const LocalArrayT& nodal, const dArray2DT& DNa, dMatrixT& jacobian) const;
-	
-	/** compute the jacobian of the nodal values.
-	 * uses externally provided shape function derivatives.
-	 * \param nodal values at the nodes: [nnd] x [nu]
-	 * \param DDNa shape function second derivatives: [nstr] x [nnd]
-	 * \param jacobian resulting jacobian: [nu] x [nstr]
-	 **/ //kyonten
-	void JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa, dMatrixT& jacobianD2) const;
-	
-	/** compute the jacobian of the nodal values.
-	 * uses externally provided shape function derivatives.
-	 * \param nodal values at the nodes: [nnd] x [nu]
-	 * \param DDDNa shape function third derivatives: [nsd*nsd] x [nnd] 
-	 * \param jacobian resulting jacobian: [nu] x [nsd*nsd]  
-	 **/ //kyonten
-	void JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa, dMatrixT& jacobianD3) const;
 
 	/** compute the curl of a vector that is of dimension 3x1
 	 *  Values for vector at the node points must be provided 
@@ -269,8 +253,6 @@ class ParentDomainT
 	/*@{*/
 	dArray2DT		  fNa;
 	ArrayT<dArray2DT> fDNa;
-	ArrayT<dArray2DT> fDDNa; // kyonten
-	ArrayT<dArray2DT> fDDDNa; // kyonten
 	dArrayT           fWeights; /**< integration weights */
 	/*@}*/
 
@@ -281,8 +263,6 @@ class ParentDomainT
 	/*@{*/
 	dMatrixT  fNodalExtrap; /**< extrapolation matrix */
 	dMatrixT  fJacobian;    /**< jacobian matrix */
-	dMatrixT  fJacobianD2;    /**< jacobian matrix */ //kyonten
-	dMatrixT  fJacobianD3;    /**< jacobian matrix */ //kyonten
 	dArrayT   fNa_p;        /**< array of shape functions */
 	dArray2DT fDNa_p;       /**< array of shape function derivatives */
 	/*@}*/
