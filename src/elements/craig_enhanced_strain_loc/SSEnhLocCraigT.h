@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.13 2005-08-22 20:40:09 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.14 2005-12-15 18:39:07 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -92,6 +92,7 @@ protected:
 	AutoArrayT<dArrayT> fEdgeOfBandCoords;
 	static bool fLocalizationHasBegun;
 	static double fDetAMin;
+	static int fLeastDetEle;
 	
 	ofstreamT jump_out;
 	
@@ -104,6 +105,7 @@ protected:
 
 	BandT *fBand;
 	double fH_delta_0;
+	bool fMultiBand;
 	bool fNoBandDilation;
 	double fLocalizedFrictionCoeff;
 	MapT<int, BandT*>* TracedElements()
@@ -139,6 +141,7 @@ protected:
 	bool IsElementTraced();
 	bool IsElementTraced(int elementNumber);
 	bool IsElementLocalized();
+	bool TraceElement();
 	virtual void ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs);
 	dArrayT Centroid();
 

@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.20 2005-08-22 20:40:09 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.21 2005-12-15 18:39:07 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -19,15 +19,19 @@ using namespace Tahoe;
 
 /*initialize static variables */
 bool SSEnhLocCraigT::fLocalizationHasBegun = false;
-double SSEnhLocCraigT::fDetAMin = 1.0;
+double SSEnhLocCraigT::fDetAMin = 1.0e99;
+int SSEnhLocCraigT::fLeastDetEle = -1;
 
 /* constructor */
 SSEnhLocCraigT::SSEnhLocCraigT(const ElementSupportT& support):
 	SmallStrainT(support),
 	fBand(NULL)
+	//fLeastDetEle(-1)
 {
 	SmallStrainT::SetName("small_strain_enh_loc_craig");
 	jump_out.open("jump.info");
+	fEdgeOfBandElements.Free();
+	fEdgeOfBandCoords.Free();
 }
 
 /* destructor */
@@ -46,6 +50,12 @@ void SSEnhLocCraigT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fH_delta_0, "Post-Localization_softening_parameter_H_Delta"); 
 	list.AddParameter(fNoBandDilation, "Disallow_Dilation_on_Band");
 	list.AddParameter(fLocalizedFrictionCoeff, "Localized_Friction_Coefficient");
+	//list.AddParameter(fMultiBand, "Allow_Multiple_Bands");
+	ParameterT multiBand(fMultiBand, "Allow_Multiple_Bands");
+	multiBand.SetDefault(false);
+	list.AddParameter(multiBand);
+	
+	
 	list.AddParameter(fBVPType, "BVP_type");
 	list.AddParameter(fFirstElementToLocalize, "First_element_to_localize");
 	
@@ -143,6 +153,7 @@ void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
   fH_delta_0 = list.GetParameter("Post-Localization_softening_parameter_H_Delta"); 
   fNoBandDilation = list.GetParameter("Disallow_Dilation_on_Band");
   fLocalizedFrictionCoeff = list.GetParameter("Localized_Friction_Coefficient");
+  fMultiBand = list.GetParameter("Allow_Multiple_Bands");
   fBVPType = list.GetParameter("BVP_type");
   fFirstElementToLocalize = list.GetParameter("First_element_to_localize");
   fFirstElementToLocalize -= 1;	
@@ -665,11 +676,15 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
             SetGlobalShape();
 			
 			/**********************************************************************/
+	     
+            /* output jump for element */
 			jump_out.open_append("jump.info");
 			if(IsElementTraced())
 				jump_out << setw(16) << fBand->JumpIncrement() + fBand->Jump() << " ";
 			else
 			    jump_out << setw(16) << "0.0 ";	
+	    
+
 
             /* collect nodal values */
             if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum] || n_codes[iPoyntingVector]) {
@@ -1010,6 +1025,128 @@ void SSEnhLocCraigT::CloseStep(void)
 
 cout << "\n CloseStep \n \n";
 
+/*update traced elements */ 
+if (fLocalizationHasBegun)
+	{
+	  Top();
+      while (NextElement())
+	{
+	  if (IsElementTraced())
+	    {
+		SetGlobalShape();	
+
+	    	/* loop over integration points */
+	    	fShapes->TopIP();
+	      while (fShapes->NextIP())
+			{    
+	      	dSymMatrixT strainIncr = fStrain_List [CurrIP()];
+	      	strainIncr -= fStrain_last_List [CurrIP()]; 
+	      
+	     	dSymMatrixT gradActiveTensorFlowDir =
+			FormGradActiveTensorFlowDir(NumSD(), CurrIP());
+	      	gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);      	
+
+	      	strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
+	      
+	     	dSymMatrixT stressIncr(NumSD());
+	      	stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
+	      	fBand -> IncrementStress(stressIncr, CurrIP());
+	      	}
+	      fBand -> CloseStep();
+	      	
+			cout << "residual cohesion = " << fBand->ResidualCohesion();
+	      	cout << "fBand->JumpIncrement = " << fBand->JumpIncrement();
+	      	cout << ", fBand->Jump() = " << fBand->Jump() << endl;	
+	    }			
+	}
+	}
+
+bool finishedTracing = false;
+	
+/* check for newly localized elements on existing bands */
+//fJustChecking = false;
+fEdgeOfBandElements.Top();
+fEdgeOfBandCoords.Top();
+
+while(!finishedTracing)
+{
+while(fEdgeOfBandElements.Next())
+	{
+	  fEdgeOfBandCoords.Next();
+	  cout << "fEdgeOfBandElements.Current() = " << flush << fEdgeOfBandElements.Current() << endl << flush;
+	  cout << "fEdgeOfBandCoords.Current() = " << fEdgeOfBandCoords.Current() << endl;	  
+	  GetElement(fEdgeOfBandElements.Current());
+	  if (IsElementLocalized())
+		TraceElement();
+	}
+
+//reset to check for elements not on an existing band
+fDetAMin = 1.0e99;
+finishedTracing = true;
+//fEdgeOfBandElements.Previous();
+fEdgeOfBandElements.Current(fEdgeOfBandElements.Position() -1);
+
+/* check for newly localized elements not on existing bands */
+//fJustChecking = true;
+	  cout << "hi hi\n";
+    
+if (!fLocalizationHasBegun || fMultiBand) 
+    {
+	  cout << "hi\n";
+      //choose first element then let band progress
+ 
+      Top();
+      while (NextElement())
+	{
+		  //cout << "1\n";
+		if (!IsElementTraced())
+		{
+		    cout << "CurrElementNumber = " << CurrElementNumber() << "\n";
+			GetElement(CurrElementNumber());
+
+			if (IsElementLocalized())
+				finishedTracing = false;
+		}
+	}
+			if (!finishedTracing)
+			{
+				fLocalizationHasBegun = true;
+				//fEdgeOfBandElements.Current(0); //should be at
+	  
+	  			cout << "fLeastDetEle = " << fLeastDetEle << endl;
+				GetElement(fLeastDetEle);
+				//fEdgeOfBandCoords.Free();
+				fEdgeOfBandElements.Append(fLeastDetEle);
+				fEdgeOfBandCoords.Append(Centroid());	  
+				//fEdgeOfBandElements.Top();
+				//fEdgeOfBandCoords.Top();
+			}
+    }
+}
+
+ //cout << "hi\n" << flush; 
+
+ if (fBVPType == kPreFailed && ElementSupport().Time() == 0.0)
+   {
+     //cout << "time = 0.0\n" << flush; 
+     PreFailElements();
+   }
+
+  SmallStrainT::CloseStep();
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
  if (fLocalizationHasBegun)
     {
       /*update traced elements */ 
@@ -1058,6 +1195,8 @@ cout << "\n CloseStep \n \n";
 	      	cout << "fBand->JumpIncrement = " << fBand->JumpIncrement();
 	      	cout << ", fBand->Jump() = " << fBand->Jump() << endl;	
 	    }
+		
+	
 	}
       /* check for newly localized elements */
       fEdgeOfBandElements.Top();
@@ -1070,6 +1209,7 @@ cout << "\n CloseStep \n \n";
 	  GetElement(fEdgeOfBandElements.Current());
 	  IsElementLocalized();
 	}
+	  // if fMultiBand..
     }
   else
     {
@@ -1124,7 +1264,23 @@ cout << "\n CloseStep \n \n";
    }
 
   SmallStrainT::CloseStep();
-  		
+ 
+  /* 	
+  Top();
+  while (NextElement())
+    {	
+      SetGlobalShape();
+      
+      jump_out.open_append("jump.info");
+      if(IsElementTraced())
+	jump_out << setw(16) << fBand->JumpIncrement() + fBand->Jump() << " ";
+      else
+	jump_out << setw(16) << "0.0 ";
+    }
+  */
+ 
+ #endif
+ 
 }
 
 
@@ -1225,6 +1381,56 @@ void SSEnhLocCraigT::LoadBand(int elementNumber)
 
 bool SSEnhLocCraigT::IsElementLocalized()
 {
+  /* newly localized elements only */
+  if (IsElementTraced())
+	return false;
+
+  bool locCheck = false;
+  double detA, detAMin  = 1.0e99;
+  AutoArrayT <dArrayT> normals;
+  AutoArrayT <dArrayT> slipDirs;
+  //AutoArrayT <dArrayT> bestNormals;
+  //AutoArrayT <dArrayT> bestSlipDirs;
+
+  /* loop over integration points */
+  fShapes->TopIP();
+  while ( fShapes->NextIP() )
+    {
+      //if (CurrIP() == 0 && CurrElementNumber() == 0)
+      //cout << "stress = " << fCurrMaterial->s_ij() << endl;
+
+      //checker.SetfStructuralMatSupport(*fSSMatSupport);
+      if (fCurrMaterial->IsLocalized(normals, slipDirs, detA))
+	{
+	  locCheck = true;
+	  normals.Top();
+	  while (normals.Next())
+
+	  if (detA < detAMin)
+	    detAMin = detA;
+
+	  cout << "detAMin = " << flush << detAMin << flush << endl;
+	  cout << "fDetAMin = " << fDetAMin << endl << endl;
+	
+      if ((fBVPType == kNonhomogeneous && detAMin < fDetAMin) || (fBVPType !=
+		kNonhomogeneous && CurrElementNumber() == fFirstElementToLocalize))
+      {
+	  
+		fDetAMin = detAMin;
+		fLeastDetEle = CurrElementNumber();
+		cout << "detAMin = " << detAMin << endl;
+		cout << "fDetAMin = " << fDetAMin << endl;
+		cout << "fLeastDetEle = " << fLeastDetEle << endl;
+		//save best normals and slipdirs here?
+      }
+	}
+	}
+
+  return locCheck;
+}
+
+bool SSEnhLocCraigT::TraceElement()
+{
 
   bool locCheck = false;
   double detA, detAMin  = 1.0e99;
@@ -1259,7 +1465,6 @@ bool SSEnhLocCraigT::IsElementLocalized()
     }
 
   if (locCheck)
-    if (fLocalizationHasBegun)
     {
       ChooseNormals(bestNormals, bestSlipDirs);
       /* remove element from list of Edge elements*/
@@ -1268,18 +1473,6 @@ bool SSEnhLocCraigT::IsElementLocalized()
       fEdgeOfBandCoords.DeleteAt(fEdgeOfBandCoords.Position());  
       fEdgeOfBandCoords.Current(fEdgeOfBandCoords.Position() - 1);
      }
-    else
-      if ((fBVPType == kNonhomogeneous && detAMin < fDetAMin) || (fBVPType !=
-    kNonhomogeneous && CurrElementNumber() == fFirstElementToLocalize))
-      {
-	fDetAMin = detAMin;
-	fEdgeOfBandElements.Free();
-	//EdgeOfBandElement* newElement = new EdgeOfBandElement;
-	//newElement->elementNumber = CurrElementNumber();
-	//dArrayT coords = Centroid();
-	fEdgeOfBandElements.Append(CurrElementNumber());
-	//fEdgeOfBandCoords.Append(coords);
-      }
 
   return locCheck;
 }
