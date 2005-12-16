@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.27 2005-04-28 15:54:21 raregue Exp $ */
+/* $Id: DetCheckT.h,v 1.28 2005-12-16 00:20:52 cfoster01 Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -77,9 +77,16 @@ private:
 	bool SPINLOC_localize(const double *c__, AutoArrayT<double> &thetan, bool *loccheck);
 
 
-	/*3D Small Strain check for localization */
+	/*Small Strain checks for localization */
+	bool DetCheck2D_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+					AutoArrayT <double> &detAs);
 	bool DetCheck3D_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
 					AutoArrayT <double> &detAs);
+
+	/*auxilairy functions to DetCheck2D_S */
+	dMatrixT FormAcousticTensor2D(dArrayT normal, dMatrixT cc_ijkl);
+	dArrayT RefineNormal2D(dArrayT tempNormal);
+	int IndexConversion2D(int i, int j);
 
 	/* auxiliary functions to DetCheck3D_SS */
 	void FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
