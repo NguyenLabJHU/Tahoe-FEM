@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.7 2004-07-15 08:28:40 paklein Exp $ */
+/* $Id: RGBaseT.cpp,v 1.8 2005-12-17 01:20:24 thao Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGBaseT.h"
 
@@ -39,6 +39,16 @@ ExceptionT::GeneralFail("RGBaseT::Initialize", "out of date");
     pstatev += numstress;
     fC_vn.Set(fndof, pstatev);
 #endif
+}
+
+void RGBaseT::Print(ostream& out) const
+{
+   cout << "\n Nonlinear Isotropic Viscoelastic Model"<<endl;
+}
+
+void RGBaseT::PrintName(ostream& out) const
+{
+    cout << "\n Nonlinear Isotropic Viscoelastic Model"<<endl;
 }
 
 /*initializes history variable */
