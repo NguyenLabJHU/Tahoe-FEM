@@ -1,4 +1,4 @@
-/* $Id: FSMatSupportT.h,v 1.4 2004-07-15 08:28:22 paklein Exp $ */
+/* $Id: FSMatSupportT.h,v 1.5 2005-12-20 17:26:37 tdnguye Exp $ */
 #ifndef _FD_MAT_SUPPORT_T_H_
 #define _FD_MAT_SUPPORT_T_H_
 
@@ -21,6 +21,10 @@ public:
 
 	/** constructor */
 	FSMatSupportT(int ndof, int nip);
+
+	/** interpolate the given field to the current integration point. Returns true if the
+	 * field is available, false otherwise. */
+    bool Interpolate_current(const LocalArrayT& u, dArrayT& u_ip) const;
 
 	/** \name deformation gradients */
 	/*@{*/

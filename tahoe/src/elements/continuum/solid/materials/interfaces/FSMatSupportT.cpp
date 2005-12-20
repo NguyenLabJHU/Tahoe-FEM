@@ -1,4 +1,4 @@
-/* $Id: FSMatSupportT.cpp,v 1.6 2004-07-15 08:28:22 paklein Exp $ */
+/* $Id: FSMatSupportT.cpp,v 1.7 2005-12-20 17:26:37 tdnguye Exp $ */
 #include "FSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -16,6 +16,31 @@ FSMatSupportT::FSMatSupportT(int ndof, int nip):
 	fFiniteStrain(NULL)
 {
 
+}
+
+/* interpolate the given field to the current integration point */
+bool FSMatSupportT::Interpolate_current(const LocalArrayT& u, dArrayT& u_ip) const
+{
+#ifdef CONTINUUM_ELEMENT
+	if (!fFiniteStrain) 
+	{
+		u_ip = 0.0;
+		return false;
+	}
+	else
+	{
+        const ShapeFunctionT& CurrShapes = fFiniteStrain->CurrShapeFunction();
+        if(&CurrShapes)
+            fFiniteStrain->IP_Interpolate_current(u, u_ip);
+        else
+            fFiniteStrain->IP_Interpolate(u, u_ip);
+		return true;
+	}
+#else
+#pragma unused(u)
+	u_ip = 0.0;
+	return false;
+#endif
 }
 
 /* set source for the deformation gradient */

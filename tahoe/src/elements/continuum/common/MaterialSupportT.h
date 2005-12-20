@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.14 2004-10-26 22:03:20 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.15 2005-12-20 17:26:36 tdnguye Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -86,7 +86,7 @@ public:
 
 	/** interpolate the given field to the current integration point. Returns true if the
 	 * field is available, false otherwise. */
-	bool Interpolate(const LocalArrayT& u, dArrayT& u_ip) const;
+    bool Interpolate(const LocalArrayT& u, dArrayT& u_ip) const;
 
 	/** interpolate the given field to the given integration point. Returns true if the
 	 * field is available, false otherwise. */
