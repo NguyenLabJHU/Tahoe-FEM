@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.19 2005-03-02 02:29:14 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.20 2005-12-20 17:26:36 tdnguye Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -44,13 +44,16 @@ class FiniteStrainT: public SolidElementT
 	/** compute field gradients with respect to current coordinates at the specified integration point */
 	void ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, int ip) const;
 
-	/** compute field gradients with respect to reference coordinates at the current integration point */
+	/** interpolate the nodal field values to the current integration point */
+    void IP_Interpolate_current(const LocalArrayT& nodal_u, dArrayT& ip_u) const;
+	
+    /** compute field gradients with respect to reference coordinates at the current integration point */
 	void ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u) const;
 
 	/** compute field gradients with respect to reference coordinates at the specified integration point */
 	void ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u, int ip) const;
 	/*@}*/
-
+	
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */
@@ -69,6 +72,8 @@ class FiniteStrainT: public SolidElementT
 
 	/** extract the list of material parameters */
 	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
+	
+	const ShapeFunctionT& CurrShapeFunction(void) const;
 
   protected:
 
@@ -130,6 +135,15 @@ class FiniteStrainT: public SolidElementT
 
 /* inlines */
 
+/* accessors */
+inline const ShapeFunctionT& FiniteStrainT::CurrShapeFunction(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fCurrShapes)
+		ExceptionT::GeneralFail("FiniteStrainT::CurrShapeFunctionT", "no shape functions");
+#endif
+	return *fCurrShapes;
+}
 inline const dMatrixT& FiniteStrainT::DeformationGradient(void) const
 {
 #if __option(extended_errorcheck)

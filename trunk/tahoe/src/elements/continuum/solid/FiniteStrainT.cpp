@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.20 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.21 2005-12-20 17:26:36 tdnguye Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -314,3 +314,10 @@ void FiniteStrainT::CurrElementInfo(ostream& out) const
 		    << fF_List[i] << '\n';
 	out << '\n';
 }
+
+void FiniteStrainT::IP_Interpolate_current(const LocalArrayT& nodal_u, dArrayT& ip_u) const
+{
+    /* computed by shape functions */
+    CurrShapeFunction().InterpolateU(nodal_u, ip_u);
+}
+

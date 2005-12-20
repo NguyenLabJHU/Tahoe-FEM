@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.120 2005-11-06 00:38:19 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.121 2005-12-20 17:26:33 tdnguye Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -156,6 +156,7 @@
 
 #ifdef MIXTURE_THEORY_DEV
 #include "MixtureSpeciesT.h"
+#include "CurrMixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
 #endif
@@ -365,6 +366,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("updated_lagrangian_mixture");
 		sub_lists.AddSub("Q1P0_mixture");
 		sub_lists.AddSub("mixture_species");
+		sub_lists.AddSub("current_mixture_species");
 #endif
 
 #ifdef CONTACT_ELEMENT_DEV
@@ -594,6 +596,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new Q1P0MixtureT(fSupport);
 	else if (name == "mixture_species")
 		return new MixtureSpeciesT(fSupport);
+	else if (name == "current_mixture_species")
+		return new CurrMixtureSpeciesT(fSupport);
 #endif
 
 #if defined(SOLID_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
