@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.h,v 1.6 2005-05-10 17:55:49 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.h,v 1.7 2005-12-20 17:23:16 thao Exp $ */
 #ifndef _UPDATED_LAG_MIXTURE_T_H_
 #define _UPDATED_LAG_MIXTURE_T_H_
 
@@ -43,6 +43,9 @@ public:
 	/** project the given partial first Piola-Kirchoff stress to the nodes */
 	void ProjectPartialStress(int i);
 
+	/** project the given partial first Piola-Kirchoff stress to the nodes */
+	void ProjectPartialTau(int i);
+
 	/** project the variation with concentration of the given partial first 
 	 * Piola-Kirchoff stress to the nodes */
 	void ProjectDPartialStress(int i);
@@ -57,6 +60,12 @@ public:
 	 * \param ip_dstress pointer to the destination of the integration point stress
 	 *        variations or NULL if the variations are wanted */
 	void IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress, ArrayT<dMatrixT>* ip_dstress);
+
+	/*returns the species specific kirchhoff stress at the integration points*/
+	void IP_PartialTau(int i, ArrayT<dMatrixT>* ip_stress);
+
+	/*returns the species specific kirchhoff stress at the integration points*/
+	const dMatrixT& IP_PartialTau(int i, int ip);
 
 	/** return the body force vector */
 	void BodyForce(dArrayT& body_force) const;
@@ -93,7 +102,7 @@ protected:
 	FSSolidMixtureT& FSSolidMixture(void);
 	const FSSolidMixtureT& FSSolidMixture(void) const;
 	/*@}*/
-
+	
 protected:
 
 	/** \name work space */

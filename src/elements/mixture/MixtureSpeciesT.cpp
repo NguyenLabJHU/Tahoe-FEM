@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.18 2005-07-18 07:58:13 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.19 2005-12-20 17:23:16 thao Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -407,8 +407,8 @@ void MixtureSpeciesT::FormKd(double constK)
 			/* compute velocity gradient (Simo: 8.1.22) and (Simo: 8.3.13) */
 			double dt = ElementSupport().TimeStep();
 			double by_dt = (dt > kSmall) ? 1.0/dt : 0.0;
-			fNSDmat2.SetToCombination(by_dt, fNSDmat3, -0.5*by_dt, fNSDmat1);
-
+            /*rate of deformation tensor, symmetric part of velocity gradient*/
+            fNSDmat2.SetToCombination(by_dt, fNSDmat3, -0.5*by_dt, fNSDmat1); 
 			/* c div(v) */
 			double c_div_v = field[0]*fNSDmat2.Trace();
 			fNEEvec.AddScaled(-c_div_v, fShapes->IPShapeU());

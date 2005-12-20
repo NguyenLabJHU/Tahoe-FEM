@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2005-08-12 05:38:27 paklein Exp $
+# $Id: makefile,v 1.5 2005-12-20 17:23:16 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,6 +23,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 FSSolidMixtureT.o \
 MixtureSpeciesT.o \
+CurrMixtureSpeciesT.o \
 UpdatedLagMixtureT.o \
 Q1P0MixtureT.o
 
@@ -45,6 +46,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 FSSolidMixtureT.cpp \
+CurrMixtureSpeciesT.cpp \
 MixtureSpeciesT.cpp \
 UpdatedLagMixtureT.cpp \
 Q1P0MixtureT.cpp
@@ -60,6 +62,7 @@ Q1P0MixtureT.cpp
 #
 HDR = \
 FSSolidMixtureT.h \
+CurrMixtureSpeciesT.h \
 MixtureSpeciesT.h \
 UpdatedLagMixtureT.h \
 Q1P0MixtureT.h

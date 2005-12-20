@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.8 2005-05-10 17:57:07 paklein Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.9 2005-12-20 17:23:16 thao Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -90,6 +90,8 @@ public:
 	 * concentrations. These can be updated with FSSolidMixtureT::UpdateConcentrations. */
 	const dSymMatrixT& s_ij(int i);
 
+	const dSymMatrixT& specific_tau_ij(int i);
+	
 	/** return the pressure associated with the last call to 
 	 * FSSolidMixtureT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.17 2005-05-16 00:14:59 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.18 2005-12-20 17:23:16 thao Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -310,6 +310,7 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 /* partial Cauchy stress */
 const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 {
+	/*int i is the species index*/
 	const char caller[] = "FSSolidMixtureT::s_ij";
 
 	/* current element information */
@@ -328,8 +329,44 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
 	/* compute stress */
+	/*fStressFunctions[i]->sij() returns 1/J^e P Fe^T
+		Multiply by c_o/J_g to get cauchy stress*/
 	fStress.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
 
+	return fStress;
+}
+
+/* partial Cauchy stress */
+const dSymMatrixT& FSSolidMixtureT::specific_tau_ij(int i)
+{
+	/*int i is the species index*/
+
+	const char caller[] = "FSSolidMixtureT::specific_s_ij";
+	
+	/* current element information */
+	/*retrieve original reference concetrations at ip*/
+	const ElementCardT& element = CurrentElement();
+	const dArrayT& conc_0 = element.DoubleData();
+	
+	/*retrieve reference concentrations*/
+	/* concentrations */
+	IPConcentration(fConc, fIPConc);
+	const dArrayT& conc = fIPConc;	
+	
+	/* compute mechanical strain */
+	double alpha = 1.0/fF_growth_inv.Rows();	
+	double J_g = conc[i]/conc_0[i];
+	if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
+	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
+	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
+	
+	/* compute stress */
+	/*returns 1/J^e P Fe^T*/
+	fStress = fStressFunctions[i]->s_ij();
+	
+	/*Multiply by J^e to obtain tau_bar*/
+	fStress *= fF_species[0].Det();
+	
 	return fStress;
 }
 
@@ -586,7 +623,10 @@ FSSolidMatT* FSSolidMixtureT::New(const StringT& name) const
 void FSSolidMixtureT::IPConcentration(const LocalArrayT& c_nodal, dArrayT& c_ip) const
 {
 	/* interpolate values to the integration point */
-	fFSMatSupport->Interpolate(c_nodal, c_ip);
+ 	if (Concentration(0) == kCurrent)   /*assumes all species have the same concentration type*/
+        fFSMatSupport->Interpolate_current(c_nodal, c_ip);
+    else
+        fFSMatSupport->Interpolate(c_nodal, c_ip);
 
 	/* compute total density from species concentration */
 	double detF = 1.0;
