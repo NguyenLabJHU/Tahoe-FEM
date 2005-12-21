@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.9 2005-12-20 17:23:16 thao Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.10 2005-12-21 00:53:49 thao Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -91,7 +91,7 @@ public:
 	const dSymMatrixT& s_ij(int i);
 
 	const dSymMatrixT& specific_tau_ij(int i);
-	
+
 	/** return the pressure associated with the last call to 
 	 * FSSolidMixtureT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
@@ -150,6 +150,7 @@ protected:
 	 * \param c_ip returns with reference concentrations at the current
 	 *        integration point. */
 	void IPConcentration(const LocalArrayT& c_nodal, dArrayT& c_ip) const;
+	void IPConcentration_current(const LocalArrayT& c_nodal, dArrayT& c_ip) const;
 
 protected:
 

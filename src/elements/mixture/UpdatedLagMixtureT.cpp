@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.13 2005-12-20 17:23:16 thao Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.14 2005-12-21 00:53:49 thao Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -137,14 +137,14 @@ void UpdatedLagMixtureT::ProjectPartialTau(int i)
 			
 			/* extrapolate element stresses */
 			nodal_tau = 0.0;
-			fShapes->TopIP();
-			while (fShapes->NextIP())
+			fCurrShapes->TopIP();
+			while (fCurrShapes->NextIP())
 			{
 				/* Cauchy stress */
 				const dSymMatrixT& tau = mixture.specific_tau_ij(i);
 								
 				/* extrapolate to the nodes */
-				fShapes->Extrapolate(tau_1D, nodal_tau);
+				fCurrShapes->Extrapolate(tau_1D, nodal_tau);
 			}
 			
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
@@ -291,18 +291,15 @@ void UpdatedLagMixtureT::IP_PartialTau(int i, ArrayT<dMatrixT>* ip_stress)
 		while (fShapes->NextIP())
 		{
 			/* destination */
-			int ip = fShapes->CurrIP();
-			
-			/* deformation gradient */
-			const dMatrixT& F = DeformationGradient();
-			fF_inv.Inverse(F);
-			
-			/* stress */
+			int ip = fShapes->CurrIP();			
+
+        
+            /* stress */
 			if (ip_stress)
 			{
 				/* Cauchy stress */
 				const dSymMatrixT& tau = mixture.specific_tau_ij(i);
-				dMatrixT& mat_stress = (*ip_stress)[ip];
+ 				dMatrixT& mat_stress = (*ip_stress)[ip];
 				tau.ToMatrix(mat_stress);
 			}
 		}
@@ -315,7 +312,7 @@ void UpdatedLagMixtureT::IP_PartialTau(int i, ArrayT<dMatrixT>* ip_stress)
 	}
 }
 
-const dMatrixT& UpdatedLagMixtureT::IP_PartialTau(int i, int ip)
+const dMatrixT& UpdatedLagMixtureT::IP_PartialTau(int i,int ip)
 {
 	/* element is active */
 	if (CurrentElement().Flag() != ElementCardT::kOFF)
@@ -326,11 +323,9 @@ const dMatrixT& UpdatedLagMixtureT::IP_PartialTau(int i, int ip)
 		/* collect concentration */
 		mixture.UpdateConcentrations(i);
 		
-		/* deformation gradient */
-		const dMatrixT& F = DeformationGradient(ip);
-		fF_inv.Inverse(F);
+        fShapes->SetIP(ip);
 
-		/* Cauchy stress */
+        /* Cauchy stress */
 		mixture.specific_tau_ij(i).ToMatrix(fStress);
 	}
 	else fStress = 0.0;

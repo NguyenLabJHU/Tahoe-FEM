@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.cpp,v 1.1 2005-12-20 17:24:04 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.cpp,v 1.2 2005-12-21 00:55:49 thao Exp $ */
 #include "CurrMixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -108,7 +108,7 @@ void CurrMixtureSpeciesT::DefineParameters(ParameterListT& list) const
 void CurrMixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "CurrMixtureSpeciesT::TakeParameterList";
-
+ 
 	/* inherited */
 	NLDiffusionElementT::TakeParameterList(list);
 
@@ -180,37 +180,29 @@ void CurrMixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 	/* output the total system mass */
 	fOutputMass = list.GetParameter("output_mass");
 
+    /* dimensions */
+    int nip = NumIP();
+    int nsd = NumSD();
+    /* allocate/initialize */
+    ftau_ip.Dimension(nip);
+    for (int i = 0; i < nip; i++) {
+        ftau_ip[i].Dimension(nsd);
+    }
+    
 	/* allocate work space for element-by-element stress projection */
 	if (fGradientOption == kElementProjection) 
 	{
 		/* parent domain information */
 		const ParentDomainT& parent_domain = fShapes->ParentDomain();
 	
-		/* dimensions */
-		int nip = NumIP();
-		int nsd = NumSD();
-        
 		/* allocate/initialize */
-		ftau_ip.Dimension(nip);
 		fip_gradient.Dimension(nip);
 		for (int i = 0; i < nip; i++) {
-			ftau_ip[i].Dimension(nsd);
 			fip_gradient[i].Dimension(nsd,nip);
 			parent_domain.IPGradientTransform(i, fip_gradient[i]);
 		}
 	}
-    else
-    {
-		/* dimensions */
-		int nip = NumIP();
-		int nsd = NumSD();
-        
-		/* allocate/initialize */
-		ftau_ip.Dimension(nip);
-		for (int i = 0; i < nip; i++) 
-			ftau_ip[i].Dimension(nsd);
-    }
-    
+
 	/* resolve species index */
 	fIndex = (fUpdatedLagMixture) ? 
 		fUpdatedLagMixture->SpeciesIndex(Field().FieldName()) :
@@ -332,9 +324,9 @@ bool CurrMixtureSpeciesT::NextElement(void)
 /* form the residual force vector */
 void CurrMixtureSpeciesT::RHSDriver(void)
 {
-	/* compute the flux velocities */
+    /* compute the flux velocities */
 	ComputeMassFlux();
-
+    
 	/* inherited */
 	NLDiffusionElementT::RHSDriver();
 }
@@ -472,10 +464,11 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 	dArrayT Na;
 	dMatrixT ip_tau(nsd);
 	
-	fShapes->TopIP();
+ 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
 		int ip = fShapes->CurrIP();
+
 		double scale = constK*(*Det++)*(*Weight++);
 		
 		/* set field gradient */
@@ -542,10 +535,10 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 			if (fUpdatedLagMixture)
 			{
 				mat1 = fUpdatedLagMixture->IP_PartialTau(fIndex, fShapes->CurrIP());
-				mat1 *= conc[0]*scale;
+ 				mat1 *= conc[0]*scale;
 			}
-			fNEEmat.MultAB(D,mat1);
-			fLHS.MultQTBQ(fB,fNEEmat, dMatrixT::kWhole, dMatrixT::kAccumulate);
+			fD.MultAB(D,mat1);
+			fLHS.MultQTBQ(fB,fD, dMatrixT::kWhole, dMatrixT::kAccumulate);
 			
 		}
 		else if (fSpecies == kSolute)
@@ -628,7 +621,6 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 		while (NextElement()) 
 		{
 			int e = CurrElementNumber();
-
 			/* global shape function values */
 			SetGlobalShape();
 	
@@ -637,8 +629,8 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 
 			if (fUpdatedLagMixture) {
 				/*collect ip stress*/
- 				fUpdatedLagMixture->IP_PartialTau(fIndex, &ftau_ip);
-        
+				fUpdatedLagMixture->IP_PartialTau(fIndex, &ftau_ip);
+
 				/*collect nodal accelrations*/
 				fUpdatedLagMixture->Acceleration(acc);
 			}
@@ -791,7 +783,7 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 				D.Multx(grad_conc,m, -1.0);
 				
 				v_e.RowAlias(ip,v);
-				v.SetToScaled(ip_conc[0],m);
+				v.SetToScaled(1.0/ip_conc[0],m);
 			}
 		}
 	}

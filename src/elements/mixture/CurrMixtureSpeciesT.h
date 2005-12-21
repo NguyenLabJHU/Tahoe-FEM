@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.h,v 1.1 2005-12-20 17:24:04 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.h,v 1.2 2005-12-21 00:55:49 thao Exp $ */
 #ifndef _CURR_MIXTURE_SPECIES_T_H_
 #define _CURR_MIXTURE_SPECIES_T_H_
 
@@ -95,8 +95,6 @@ protected:
 	void ComputeMassFlux(void);
 
 	/** compute the flux velocities and their variation with concentration */
-//	void ComputeDMassFlux(void);
-
 	/** compute the divergence tensor field given the values at the integration points */
 	void ComputeDivergence(const dMatrixT& ip_grad_transform, const ArrayT<dMatrixT>& tensor_ip,
 		dArrayT& div) const;

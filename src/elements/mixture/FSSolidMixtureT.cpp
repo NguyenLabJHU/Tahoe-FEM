@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.18 2005-12-20 17:23:16 thao Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.19 2005-12-21 00:53:49 thao Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -43,7 +43,7 @@ GlobalT::SystemTypeT FSSolidMixtureT::TangentType(void) const {
 void FSSolidMixtureT::SetConcentration(int i, ConcentrationT conc) 
 {
 	fConcentration[i] = conc;
-	if (conc == kCurrent)
+	if (fConcentration[i] == kCurrent)
 		fHasCurrent = true;
 	else {
 		fHasCurrent = false;
@@ -112,6 +112,7 @@ double FSSolidMixtureT::Density(void)
 {
 	/* update concentrations */
 	if (CurrIP() == 0) UpdateConcentrations();
+    
 	IPConcentration(fConc, fIPConc);
 
 	fDensity = fIPConc.Sum();
@@ -350,7 +351,9 @@ const dSymMatrixT& FSSolidMixtureT::specific_tau_ij(int i)
 	
 	/*retrieve reference concentrations*/
 	/* concentrations */
-	IPConcentration(fConc, fIPConc);
+    
+    /*IPConcentration or IPConcentration_current*/
+	IPConcentration_current(fConc, fIPConc);
 	const dArrayT& conc = fIPConc;	
 	
 	/* compute mechanical strain */
@@ -622,11 +625,25 @@ FSSolidMatT* FSSolidMixtureT::New(const StringT& name) const
 /* compute integration point concentrations */
 void FSSolidMixtureT::IPConcentration(const LocalArrayT& c_nodal, dArrayT& c_ip) const
 {
-	/* interpolate values to the integration point */
- 	if (Concentration(0) == kCurrent)   /*assumes all species have the same concentration type*/
-        fFSMatSupport->Interpolate_current(c_nodal, c_ip);
-    else
-        fFSMatSupport->Interpolate(c_nodal, c_ip);
+    fFSMatSupport->Interpolate(c_nodal, c_ip);
+
+	/* compute total density from species concentration */
+	double detF = 1.0;
+	bool detF_set = false;
+	for (int i = 0; i < c_ip.Length(); i++)
+		if (Concentration(i) == kCurrent) {
+			if (!detF_set) {
+				detF = fFSMatSupport->DeformationGradient().Det();
+				detF_set = true;
+			}
+			c_ip[i] *= detF;
+		}
+}
+
+/* compute integration point concentrations */
+void FSSolidMixtureT::IPConcentration_current(const LocalArrayT& c_nodal, dArrayT& c_ip) const
+{
+    fFSMatSupport->Interpolate_current(c_nodal, c_ip);
 
 	/* compute total density from species concentration */
 	double detF = 1.0;
