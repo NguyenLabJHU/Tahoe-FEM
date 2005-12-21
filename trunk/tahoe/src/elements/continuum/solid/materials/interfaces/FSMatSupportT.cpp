@@ -1,4 +1,4 @@
-/* $Id: FSMatSupportT.cpp,v 1.7 2005-12-20 17:26:37 tdnguye Exp $ */
+/* $Id: FSMatSupportT.cpp,v 1.8 2005-12-21 00:57:37 tdnguye Exp $ */
 #include "FSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -24,17 +24,23 @@ bool FSMatSupportT::Interpolate_current(const LocalArrayT& u, dArrayT& u_ip) con
 #ifdef CONTINUUM_ELEMENT
 	if (!fFiniteStrain) 
 	{
+        cout << "\nFiniteStrainT not defined.  Zeros assigned for ip values.";
 		u_ip = 0.0;
 		return false;
 	}
 	else
 	{
         const ShapeFunctionT& CurrShapes = fFiniteStrain->CurrShapeFunction();
-        if(&CurrShapes)
+        if(&CurrShapes){
             fFiniteStrain->IP_Interpolate_current(u, u_ip);
+            return true;
+        }
         else
-            fFiniteStrain->IP_Interpolate(u, u_ip);
-		return true;
+        {
+            cout << "\fCurrShapes (UpdatedLangragnianT) not defined.  Zeros assigned to ip values.";
+            u_ip = 0.0;
+            return false;
+        }
 	}
 #else
 #pragma unused(u)
