@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.h,v 1.4 2005-07-20 17:03:09 kyonten Exp $ */
+/* $Id: D3MeshFreeSupportT.h,v 1.5 2005-12-23 03:26:24 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SUPPORT_T_H_
 #define _D3_MF_SUPPORT_T_H_
@@ -95,6 +95,9 @@ protected:
 	/* allocate and set pointers for shape function databases */
 	void InitNodalShapeData(void);
 	void InitElementShapeData(void);
+	
+	/* number of third order derivatives to compute */
+	int fNumDeriv;
 
 private:
 

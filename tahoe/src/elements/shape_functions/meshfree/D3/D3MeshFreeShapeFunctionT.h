@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.h,v 1.8 2005-12-08 15:32:56 kyonten Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.h,v 1.9 2005-12-23 03:26:24 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SHAPE_T_H_
 #define _D3_MF_SHAPE_T_H_
@@ -57,6 +57,9 @@ protected:
 	
 	/* work space for blended shape functions */
 	ArrayT<dArray2DT> fDDDNa_tmp;
+	
+	/* number of derivatives to calculate */
+	int fNumDeriv;
 	
 };
 
