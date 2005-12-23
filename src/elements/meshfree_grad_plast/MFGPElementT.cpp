@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.13 2005-12-03 23:16:38 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.14 2005-12-23 03:45:44 kyonten Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -602,7 +602,11 @@ void MFGPElementT::TakeParameterList(const ParameterListT& list)
 	fCLamLam1.Dimension(1);
 	fCLamLam2.Dimension(1);
 	fGradU.Dimension(NumSD());
-	fGradGradGradU.Dimension(NumSD(), NumSD()*NumSD());
+	
+	if (NumSD() == 3)
+		fGradGradGradU.Dimension(NumSD(), NumSD()*NumSD()+1);
+	else
+		fGradGradGradU.Dimension(NumSD(), NumSD()*NumSD());
 	
 	/* nodal output codes */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
@@ -1371,6 +1375,7 @@ void MFGPElementT::SetGlobalShape(void)
     		fLapStrain_List[i][2]=fGradGradGradU(0,2)+fGradGradGradU(0,3);
     		fLapStrain_List[i][2]+=fGradGradGradU(1,0)+fGradGradGradU(1,1);
     		fLapStrain_List[i][2]*=0.5;
+    		
     		cout << "fLapStrain_List = " << fLapStrain_List[i] << endl;
     	}
     	else if (NumSD() == 3) {

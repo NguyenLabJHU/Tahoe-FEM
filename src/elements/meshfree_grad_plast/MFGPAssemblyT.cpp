@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.15 2005-12-03 23:16:38 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.16 2005-12-23 03:45:43 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -1992,12 +1992,12 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after, int step_num) const
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
 	}
 	else if (before_after == "after_penalty") {
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".");
@@ -2056,12 +2056,12 @@ void MFGPAssemblyT::PrintInternalForces(StringT before_after, int step_num) cons
 	StringT file_name; int e = CurrElementNumber(); 
 	if(before_after == "before_penalty") {			
 		/* one output for each element */
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
 	}
 	else if (before_after == "after_penalty") {
-		file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
-		//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
+		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
+		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
 	}
 	file_name.Append(e); // append element number to output string
 	file_name.Append(".");
