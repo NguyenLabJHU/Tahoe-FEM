@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.cpp,v 1.5 2005-04-06 01:03:55 kyonten Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.cpp,v 1.6 2005-12-23 03:26:24 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D3MeshFreeShapeFunctionT.h"
 #include "D3MeshFreeSupport2DT.h"
@@ -34,6 +34,12 @@ D3MeshFreeShapeFunctionT::D3MeshFreeShapeFunctionT(GeometryT::CodeT geometry_cod
 	
 	/* set as field shape function */
 	//SetUShapeFunctions(fNaU, fDNaU, fDDNaU, fDDDNaU);
+	
+	/* set number of derivatives */
+	if (NumSD() == 3) 
+		fNumDeriv = NumSD()*NumSD()+1;
+	else
+		fNumDeriv = NumSD()*NumSD();
 }
 
 /* class-dependent initializations */
@@ -118,7 +124,7 @@ void D3MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 	field.Dimension(nnd, ndf);
 	Dfield.Dimension(nnd, ndf*nsd);
 	DDfield.Dimension(nnd, ndf*nxx);
-	DDDfield.Dimension(nnd, ndf*(nsd*nsd));  
+	DDDfield.Dimension(nnd, ndf*fNumDeriv);  
 
 	/* MLS nodal data */
 	iArrayT   neighbors;
@@ -153,7 +159,7 @@ void D3MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 		/* compute nodal values */
 		Du.Set(ndf, nsd, Dfield(i));
 		DDu.Set(ndf, nxx, DDfield(i));
-		DDDu.Set(ndf, nsd*nsd, DDDfield(i)); 
+		DDDu.Set(ndf, fNumDeriv, DDDfield(i)); 
 		for (int j = 0; j < ndf; j++)
 		{
 			dof.Set(len, locdisp(j));
@@ -176,7 +182,7 @@ void D3MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 			}
 			
 			/* third derivatives */
-			for (int l = 0; l < nsd*nsd; l++)  
+			for (int l = 0; l < fNumDeriv; l++)  
 			{
 				DDDphi.RowAlias(l, tmp);
 				DDDu(j, l) = dArrayT::Dot(dof, tmp);

@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.cpp,v 1.7 2005-07-20 17:03:09 kyonten Exp $ */
+/* $Id: D3MeshFreeSupportT.cpp,v 1.8 2005-12-23 03:26:24 kyonten Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D3MeshFreeSupportT.h"
@@ -28,7 +28,14 @@ D3MeshFreeSupportT::D3MeshFreeSupportT(const ParentDomainT* domain, const dArray
 	const iArray2DT& connects, const iArrayT& nongridnodes):
 	D2MeshFreeSupportT(domain, coords, connects, nongridnodes)
 {
-	SetName("D3_meshfree_support"); 
+	SetName("D3_meshfree_support");
+	
+	/* set the number of third order derivatives */
+	int nsd = coords.MinorDim();  
+	if (nsd == 3)
+		fNumDeriv = nsd*nsd + 1;
+	else
+		fNumDeriv = nsd*nsd;
 }
 
 D3MeshFreeSupportT::D3MeshFreeSupportT(void) 
@@ -96,7 +103,7 @@ void D3MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 		fnPhiData.RowAlias(tag, phi);
 		Dphi.Set(nsd, nnd, fnDPhiData(tag));
 		DDphi.Set(nst, nnd, fnDDPhiData(tag));
-		DDDphi.Set(nsd*nsd, nnd, fnDDDPhiData(tag));
+		DDDphi.Set(fNumDeriv, nnd, fnDDDPhiData(tag));
 	}
 	else
 	{
@@ -111,7 +118,7 @@ void D3MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 		DDphi.Set(nst, nnd, pdata);
 		pdata += DDphi.Length();
 		
-		DDDphi.Set(nsd*nsd, nnd, pdata); 
+		DDDphi.Set(fNumDeriv, nnd, pdata); 
 	
 		/* compute */
 		ComputeNodalData(node, neighbors, phi, Dphi, DDphi, DDDphi);
@@ -164,7 +171,7 @@ void D3MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 			DDphi_ptr += DDphi[i].Length();
 			
 			/* 3rd derivatives */
-			DDDphi[i].Set(nsd*nsd, nnd, DDDphi_ptr); 
+			DDDphi[i].Set(fNumDeriv, nnd, DDDphi_ptr); 
 			DDDphi_ptr += DDDphi[i].Length();
 		}
 	}
@@ -187,7 +194,7 @@ void D3MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 			pelspace += DDphi[i].Length();
 			
 			/* pointers for 3rd derivatives */
-			DDDphi[i].Set(nsd*nsd, nnd, pelspace); 
+			DDDphi[i].Set(fNumDeriv, nnd, pelspace); 
 			pelspace += DDDphi[i].Length();
 		}
 		
@@ -412,7 +419,7 @@ void D3MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 		else
 		{
 			fvolume.Collect(neighbors, fVolume);
-			fRKPM->SetField(fcoords, fnodal_param_ip, fvolume, x_ip, 2);
+			fRKPM->SetField(fcoords, fnodal_param_ip, fvolume, x_ip, 3);
 		
 			/* store field data */
 			phi.SetRow(i, fRKPM->phi());
@@ -434,7 +441,7 @@ void D3MeshFreeSupportT::InitNodalShapeData(void)
 	int nsd = fCoords->MinorDim(); 
 
 	/* configure nodal storage */
-	fnDDDPhiData.Configure(fnNeighborCount, nsd*nsd); 
+	fnDDDPhiData.Configure(fnNeighborCount, fNumDeriv); 
 }
 
 void D3MeshFreeSupportT::InitElementShapeData(void)
@@ -448,5 +455,5 @@ void D3MeshFreeSupportT::InitElementShapeData(void)
 	int nip = fDomain->NumIP();
 
 	/* configure element storage */
-	feDDDPhiData.Configure(feNeighborCount, nip*(nsd*nsd)); 
+	feDDDPhiData.Configure(feNeighborCount, nip*fNumDeriv); 
 }
