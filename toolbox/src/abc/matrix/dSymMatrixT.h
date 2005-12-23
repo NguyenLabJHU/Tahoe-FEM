@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.21 2005-03-16 10:18:35 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.22 2005-12-23 03:44:33 kyonten Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
@@ -80,7 +80,17 @@ public:
 		int map[5] = {0, 1, 3, 6, 4};
 		return map[nsd];	
 	};
+	/* resolves index ij into i and j 
+	 * max ij = nstr (using symmetry) */
 	static void ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2);
+	
+	/* resolves index ijk into i, j, k, ij, jk and ik
+	 * max ijk = nsd*nsd (1D/2D) or nsd*nsd+1 (3D) (using symmetry) */
+	static void ExpandIndex3(DimensionT nsd, int dex, int& dex_1, int& dex_2, int& dex_3, int& dex_12, 
+                             int& dex_23, int& dex_13);
+    
+    /* resolves index i and j into ij */
+    static void ExpandIndex2(int nsd, int dex_1, int dex_2, int& dex_12);
 
 	/** \name dimensions */
 	/*@{*/
@@ -188,6 +198,8 @@ public:
 	void Set(DimensionT nsd, double* array);
 	static int NumValues(int nsd) { return NumValues(int2DimensionT(nsd)); };
 	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2);
+	static void ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, int& dex_3,
+							int& dex_12, int& dex_23, int& dex_13);
 	/*@}*/
 
 private:
@@ -304,6 +316,42 @@ inline void dSymMatrixT::ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& d
 
 inline void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) { 
 	ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2); 
+};
+
+inline void dSymMatrixT::ExpandIndex3(DimensionT nsd, int dex, int& dex_1, int& dex_2, int& dex_3,
+				  int& dex_12, int& dex_23, int& dex_13)
+{
+#if __option(extended_errorcheck)
+	/* consistency check */
+	const char caller[] = "dSymMatrixT::ExpandIndex3";
+	int max_dex;
+	if (nsd == 3)
+		max_dex = nsd*nsd+1;
+	else
+		max_dex = nsd*nsd;
+	if (dex >= max_dex) ExceptionT::OutOfRange(caller, "bad index %d", dex);
+#endif
+	
+	int  map_1D[3] = {0,0,0};
+	int  map_2D[12] = {0,0,0,1,1,0,0,0,1,1,1,1};
+	int map_3D[30] = {0,0,0,1,1,0,2,2,0,
+	                  0,0,1,1,1,1,2,2,1,
+	                  0,0,2,1,1,2,2,2,2,0,1,2};
+	int* map_list[4] = {NULL, map_1D, map_2D, map_3D};
+	int* map = map_list[nsd];
+	int* p = map + 3*dex; 
+	dex_1 = p[0];
+	dex_2 = p[1];
+	dex_3 = p[2];
+	
+	ExpandIndex2(nsd, dex_1, dex_2, dex_12);
+	ExpandIndex2(nsd, dex_2, dex_3, dex_23);
+	ExpandIndex2(nsd, dex_1, dex_3, dex_13);
+}
+
+inline void dSymMatrixT::ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, int& dex_3,
+								int& dex_12, int& dex_23, int& dex_13) { 
+	ExpandIndex3(int2DimensionT(nsd), dex, dex_1, dex_2, dex_3, dex_12, dex_23, dex_13); 
 };
 
 } /* namespace Tahoe */

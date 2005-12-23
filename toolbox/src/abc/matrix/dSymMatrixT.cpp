@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.34 2005-03-16 10:18:35 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.35 2005-12-23 03:44:33 kyonten Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -1270,6 +1270,48 @@ double dSymMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
 		ExceptionT::GeneralFail(caller);
 
 	return 0.0;
+}
+
+/* return index ij for given i and j */
+void dSymMatrixT::ExpandIndex2(int nsd, int dex_1, int dex_2, int& dex_12)
+{
+	const char caller[] = "dSymMatrixT::ExpandIndex2";
+
+	switch (nsd)
+	{
+		case 1:
+		{
+		 if (dex_1==0 && dex_2==0) dex_12=0;
+		 break;	
+		}
+		
+		case 2:
+		{
+			if (dex_1==0 && dex_2==0) dex_12=0; 
+		 	if (dex_1==1 && dex_2==1) dex_12=1; 
+		 	if (dex_1==0 && dex_2==1) dex_12=2; 
+		 	if (dex_1==1 && dex_2==0) dex_12=2; 
+		 	break;
+		}
+		
+		case 3:
+		{
+			if (dex_1==0 && dex_2==0) dex_12=0; 
+		 	if (dex_1==1 && dex_2==1) dex_12=1; 
+		 	if (dex_1==2 && dex_2==2) dex_12=2; 
+		 	if (dex_1==1 && dex_2==2) dex_12=3; 
+		 	if (dex_1==2 && dex_2==1) dex_12=3; 
+		 	if (dex_1==0 && dex_2==2) dex_12=4; 
+		 	if (dex_1==2 && dex_2==0) dex_12=4; 
+		 	if (dex_1==0 && dex_2==1) dex_12=5; 
+		 	if (dex_1==1 && dex_2==0) dex_12=5; 
+		 	break;
+		}
+		default:
+		{
+			ExceptionT::BadInputValue(caller, " unsupported spatial dimensions %d", nsd);
+		}
+	}			
 }
 
 /**************************************************************************
