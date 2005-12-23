@@ -1,9 +1,8 @@
-/* $Id: D3MeshFreeShapeFunctionT.h,v 1.9 2005-12-23 03:26:24 kyonten Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.h,v 1.10 2005-12-23 14:15:57 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SHAPE_T_H_
 #define _D3_MF_SHAPE_T_H_
 
-#include "MFGP_ToolsT.h"
 /* base class */
 #include "D2MeshFreeShapeFunctionT.h"
 
