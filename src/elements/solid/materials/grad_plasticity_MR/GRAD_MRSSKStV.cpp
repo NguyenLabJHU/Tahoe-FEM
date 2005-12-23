@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.29 2005-12-23 14:44:41 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.30 2005-12-23 14:49:15 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -161,8 +161,6 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_eps, element, ip);
 	
 	/* check for correct lambda and it's laplacian */
-    cout << "lamda = " << lam[0] << endl;
-    int lambda = lam[0];
     if (lam[0] < 0.) 
     	ExceptionT::GeneralFail(caller, "negative lambda %e", lam[0]);
     
