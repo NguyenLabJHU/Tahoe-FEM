@@ -1,4 +1,4 @@
-/* $Id: RectGaussianWindowT.h,v 1.10 2004-11-03 16:09:54 raregue Exp $ */
+/* $Id: RectGaussianWindowT.h,v 1.11 2005-12-23 03:20:17 kyonten Exp $ */
 
 #ifndef _RECT_GAUSSIAN_WINDOW_T_H_
 #define _RECT_GAUSSIAN_WINDOW_T_H_
@@ -8,7 +8,6 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
-#include "dMatrixT.h"  //kyonten
 
 namespace Tahoe {
 
@@ -44,11 +43,11 @@ class RectGaussianWindowT: public WindowT
 
 	/* single point evaluations */
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw); //kyonten
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dArrayT& DDDw); //kyonten (DDDw)
 
 	/* multiple point evaluations */
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw); //kyonten
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw); //kyonten (DDDw)
 
 	/** \name coverage tests */
 	/*@{*/
@@ -77,9 +76,9 @@ class RectGaussianWindowT: public WindowT
 	double fCutOffFactor;
 	
 	/* work space */
-	dArrayT fNSD;
+	dArrayT     fNSD;
 	dSymMatrixT fNSDsym;
-	dMatrixT    fNSDunsym; //kyonten
+	dArrayT     fNSDArray; //kyonten
 };
 
 } // namespace Tahoe 

@@ -9,7 +9,6 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
-#include "dMatrixT.h" //kyonten
 
 namespace Tahoe {
 
@@ -45,11 +44,11 @@ class RectCubicSplineWindowT: public WindowT
 
 	/** single point evaluations */
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw); //kyonten
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dArrayT& DDDw); //kyonten (DDDw)
 
 	/** multiple point evaluations */
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw); //kyonten
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw); //kyonten (DDDw)
 
 	/** \name coverage */
 	/*@{*/
@@ -78,7 +77,7 @@ class RectCubicSplineWindowT: public WindowT
 	/* work space */
 	dArrayT     fNSD;
 	dSymMatrixT fNSDsym;
-	dMatrixT    fNSDunsym; //kyonten
+	dArrayT     fNSDArray; //kyonten
 };
 
 } // namespace Tahoe 

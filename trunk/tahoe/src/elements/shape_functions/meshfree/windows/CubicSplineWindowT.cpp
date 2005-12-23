@@ -44,10 +44,8 @@ void CubicSplineWindowT::WriteParameters(ostream& out) const
 
 /* Single point evaluations */
 bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) // kyonten
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dArrayT& DDDw) 
 {
-	/* allocate */
-	int nsd = x.Length(); // kyonten: dimensioning DDDw 
 	/* outside the range of influence */
 	if (!CubicSplineWindowT::Covers(x_n, x, param_n))
 	{
@@ -89,42 +87,53 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 					DDw.PlusIdentity(dw/(dist*a));
 					if (order > 2) // kyonten
 	  				{ 
-	  					/* work space */
-	  					dSymMatrixT DDDw1(nsd);
-	  					dMatrixT DDDw2(nsd,nsd);
-	  					dArrayT DDDw1_vec(nsd), I(nsd);
-	  					double const1, const2;
-	  					/*  DDDw is a [nsd]x[nsd]x[nsd] or [nsd]x[nsd*nsd] matrix. 
-	  				    	using symmetry it reduces to [nsd]x[nstr]
-	  						only the first three (3D) or two (2D) columns (contribution from 
-	  						diagonal terms) of the [nsd]x[nstr] matrix are needed for the
-	  						calculation of the Laplacian of strain tensor
-	  						DDDw, thus, becomes a [nsd]x[nsd] unsymmetric matrix 
+	  					/*  NOTE: DDDw is a [nsd*nsd]x[nsd] matrix (outer product of 3 vectors). 
+	  				    	using symmetry we have only 4 components in 2D or 10 components in 3D
 	  					*/
-	  					DDDw1.Outer(Dw);
+	  
+						int nsd = x.Length(); 
+	  					/* work space */
+	  					dSymMatrixT dddw1(nsd);
+	  					dMatrixT dddw2(nsd),  dddw3(nsd);
+	  					dArrayT dddw1_dia(nsd), I(nsd), colA(nsd), colB(nsd);
+	  					dArrayT DDDw2(DDDw.Length());
+	  					int offset_length;
+	  					
+	  					/* initialize */
+	  					DDDw2 = 0.0;
+	  					
+	  					dddw1.Outer(Dw);
+	  					/* collect diagonal terms */
 	  					for (int i = 0; i < nsd; i++)
 	  					{
-	  						for (int j = 0; i < nsd; j++)
-	  						{
-	  							if (i == j)
-	  							{
-	  								DDDw1_vec[j] = DDDw1(i,j); // collect diagonal terms
-	  								I[j] = 1.0;
-	  							}
-	  						}
+	  						dddw1_dia[i] = dddw1(i,i); 
+	  						I[i] = 1.0;
 	  					}
-	  					DDDw.Outer(Dw,DDDw1_vec);  
-	  					const1 = (ddw/a - dw/dist);
-	  					const1 *= -2./(dist*dist);
-	  					const1 -= 1./(a*a*a*dist);
-	  					const1 -= dr/(a*a*dist*dist);
-	  					const1 += dw/(dist*dist*dist);
-	  					DDDw *= const1/(dist*dist*a);
-	  					const2 = (ddw/a - dw/dist)/(dist*dist*a);
-	  					DDDw2.Outer(Dw,I); 
-	  					DDDw2 += DDDw2;
-	  					DDDw2 += DDDw2;
-	  					DDDw2 *= const2;
+	  					dddw2.Outer(Dw, dddw1_dia);
+	  					dddw3.Outer(Dw, I);
+	  					/* collect the components of dddw2 and dddw3 in arrays */
+	  					for (int i = 0; i < nsd; i++) {
+	  						dddw2.CopyColumn(i, colA);
+	  						dddw3.CopyColumn(i, colB);
+	  						offset_length = i*colA.Length();
+	  						if (i == 0) {
+	  							DDDw.CopyIn(0, colA);
+	  							DDDw2.CopyIn(0, colB);
+	  						}
+	  						else {
+	  							DDDw.CopyIn(offset_length, colA);
+	  							DDDw2.CopyIn(offset_length, colB);
+	  						}
+	  					
+	  					}
+	  					/* 3D: add the 10th component */
+	  					if (nsd == 3)
+	  						DDDw[nsd*nsd-1] = dddw1[5]*Dw[2];
+	  						
+	  					DDDw *= (-dist/(a*a*a*a) - 3.0*(dr)/(a*a*a) - 3.0*dr*dr/(2.0*a*a*dist));
+	  					DDDw /= (dist*dist*dist*dist);
+	  					DDDw2 *= 3.0*(dr/(a*a*a) + dr*dr/(2.0*a*a*dist));
+	  					DDDw /= (dist*dist);
 	  					DDDw += DDDw2;
 	  				} // if(order > 2)
 				}
@@ -141,37 +150,55 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 					DDw.PlusIdentity(dw_by_r*r/(dist*a));
 					if (order > 2) // kyonten
 	  				{
+	  					int nsd = x.Length(); 
 	  					/* work space */
-	  					dSymMatrixT DDDw1(nsd);
-	  					dMatrixT DDDw2(nsd,dSymMatrixT::NumValues(nsd));
-	  					dArrayT DDDw1_vec(nsd), I(nsd);
-	  					double const1, const2;
+	  					dSymMatrixT dddw1(nsd);
+	  					dMatrixT dddw2(nsd),  dddw3(nsd);
+	  					dArrayT dddw1_dia(nsd), I(nsd), colA(nsd), colB(nsd);
+	  					dArrayT DDDw2(DDDw.Length()), DDDw3(DDDw.Length());
+	  					int offset_length;
 	  					
-	  					DDDw1.Outer(Dw);
+	  					/* initialize */
+	  					DDDw2 = 0.0;
+	  					DDDw3 = 0.0;
+	  					
+	  					dddw1.Outer(Dw);
+	  					/* collect diagonal terms */
 	  					for (int i = 0; i < nsd; i++)
 	  					{
-	  						for (int j = 0; i < nsd; j++)
-	  						{
-	  							if (i == j)
-	  							{
-	  								DDDw1_vec[j] = DDDw1(i,j);
-	  								I[j] = 1.0;
-	  							}
-	  						}
+	  						dddw1_dia[i] = dddw1(i,i); 
+	  						I[i] = 1.0;
 	  					}
-	  					DDDw.Outer(Dw,DDDw1_vec); 
-	  					const1 = (ddw/a - dw_by_r*r/dist);
-	  					const1 *= -2./(dist*dist);
-	  					const1 += 3./(a*a*a*dist);
-	  					const1 -= (3.*r-1.)/(a*a*dist*dist);
-	  					const1 += dw_by_r * r/(dist*dist*dist);
-	  					DDDw *= const1/(dist*dist*a);
-	  					const2 = (ddw/a - dw_by_r*r/dist)/(dist*dist*a);
-	  					DDDw2.Outer(Dw,I); 
-	  					DDDw2 += DDDw2;
-	  					DDDw2 += DDDw2;
-	  					DDDw2 *= const2;
+	  					dddw2.Outer(Dw, dddw1_dia);
+	  					dddw3.Outer(Dw, I);
+	  					/* collect the components of dddw2 and dddw3 in arrays */
+	  					for (int i = 0; i < nsd; i++) {
+	  						dddw2.CopyColumn(i, colA);
+	  						dddw3.CopyColumn(i, colB);
+	  						offset_length = i*colA.Length();
+	  						if (i == 0) {
+	  							DDDw.CopyIn(0, colA);
+	  							DDDw2.CopyIn(0, colB);
+	  							DDDw3.CopyIn(0, colB);
+	  						}
+	  						else {
+	  							DDDw.CopyIn(offset_length, colA);
+	  							DDDw2.CopyIn(offset_length, colB);
+	  							DDDw3.CopyIn(offset_length, colB);
+	  						}
+	  					
+	  					}
+	  					/* 3D: add the 10th component */
+	  					if (nsd == 3)
+	  						DDDw[nsd*nsd-1] = dddw1[5]*Dw[2];
+	  						
+	  					DDDw  *= (3.0*dist/(a*a*a) - 3.0*r/(2*a*a) - dw_by_r*r/dist);
+	  					DDDw2 *= 2.0*(ddw/a - dw_by_r*r/dist);
 	  					DDDw += DDDw2;
+	  					DDDw /= (a*dist*dist*dist*dist);
+	  					DDDw3 *= (ddw/a - dw_by_r*r/dist);
+	  					DDDw3 /= (a*dist*dist);   	
+	  					DDDw += DDDw3;
 	  				} // (order > 2)
 				}
 				Dw *= dw_by_r/(a*a);
@@ -185,13 +212,17 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 
 /* multiple point calculations */
 int CubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw) //kyonten
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw)
 {
 	/* allocate */
 	int nsd = x.Length();
 	fNSD.Dimension(nsd);
 	fNSDsym.Dimension(nsd);
-	fNSDunsym.Dimension(nsd,nsd); // for DDDw
+	
+	if (nsd == 3)
+		fNSDArray.Dimension(nsd*nsd+1);
+	else
+		fNSDArray.Dimension(nsd*nsd);
 
 	/* work space */
 	dArrayT x_node, param_node;
@@ -204,7 +235,7 @@ int CubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, c
 		x_n.RowAlias(i, x_node);
 		param_n.RowAlias(i, param_node);
       
-		if (CubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDunsym)) //kyonten
+		if (CubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDArray))
 			count++;
 
 		/* store derivatives */
@@ -214,8 +245,8 @@ int CubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, c
 			if (order > 1)
 			{
 				DDw.SetColumn(i, fNSDsym);
-				if (order > 2)
-					DDDw.SetColumn(i, fNSDunsym); // kyonten
+				if (order > 2) // kyonten
+					DDDw.SetColumn(i, fNSDArray); 
 			}
 		}
 	}
