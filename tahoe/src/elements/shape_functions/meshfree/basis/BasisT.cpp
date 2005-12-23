@@ -1,4 +1,4 @@
-/* $Id: BasisT.cpp,v 1.5 2004-11-03 16:09:48 raregue Exp $ */
+/* $Id: BasisT.cpp,v 1.6 2005-12-23 03:24:00 kyonten Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -15,15 +15,11 @@ BasisT::BasisT(int complete, int nsd):
 	fDP(fNumSD),
 	fDDP(dSymMatrixT::NumValues(fNumSD)),
 	fDDDP(fNumSD*fNumSD), // kyonten
-	/*  DDDP is a [nsd]x[nsd]x[nsd] or [nsd]x[nsd*nsd] matrix. 
-	  	using symmetry it reduces to [nsd]x[nstr]
-	  	only the first three (3D) or two (2D) columns (contribution from 
-	  	diagonal terms) of the [nsd]x[nstr] matrix are needed for calculation of
-	  	the Laplacian of the strain tensor
-	  	DDDw, thus, becomes a [nsd]x[nsd] unsymmetric matrix 
-	*/
 	fArray2DGroup1(0, 0)
 {
+	/* fDDDP dimension in 3D */
+	if(fNumSD == 3) fDDDP.Dimension(fNumSD*fNumSD+1);
+	
 	fArray2DGroup1.Register(fP);
 	
 	for (int i = 0; i < fDP.Length(); i++)
