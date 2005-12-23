@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.17 2005-04-22 00:53:04 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.18 2005-12-23 03:32:31 kyonten Exp $ */
 /* created: paklein (12/08/1999) */
 #ifndef _MLS_SOLVER_T_H_
 #define _MLS_SOLVER_T_H_
@@ -72,13 +72,10 @@ public:
 	const dArray2DT& DDphi(void) const;	
 	
 	/** shape function third derivatives.
-	    DDDphi is a [nsd]x[nsd]x[nsd] or [nsd]x[nsd*nsd] matrix. 
-	  	using symmetry it reduces to [nsd]x[nstr]
-	  	only the first three (3D) or two (2D) columns (contribution from diagonal 
-	  	terms) of the [nsd]x[nstr] matrix are needed for calculation of the 
-	  	Laplacian of the strain tensor
-	  	DDDphi, thus, becomes a [nsd]x[nsd] unsymmetric matrix 
-	 * \return array of shape functions third derivatives: [nsd*nsd] x [nnd] */
+	    NOTE: DDDphi consists of 27 components. 
+	  	using symmetry we have only 4 components in 2D or 10 components in 3D
+	 * \return array of shape functions third derivatives: 1D/2D: [nsd*nsd] x [nnd] 
+	 													   3D: [nsd*nsd+1] x [nnd] */
 	const dArray2DT& DDDphi(void) const;	//kyonten
 		
 	/** neighbor search type needed by the window function */
@@ -166,6 +163,7 @@ protected:
 	/* parameters */
 	const int fNumSD;    /**< number of spatial dimensions   */
 	const int fComplete; /**< order of completeness in basis */
+	int fNumThirdDer;       /**< number of third order derivatives to calculate */ //kyonten
 
 	/* runtime parameters */
 	int fOrder;        /**< number of derivatives to calculate at the current field point */
@@ -188,41 +186,42 @@ protected:
 	dArrayT   fw;   /**< values of window function at the current field point: [nnd] */
 	dArray2DT fDw;  /**< values of window function gradient at the current field point: [nsd] x [nnd] */
 	dArray2DT fDDw; /**< second gradient of window functions at the current field point: [nstr] x [nnd] */
-	dArray2DT fDDDw; /**< third gradient of window functions at the current field point: [nsd*nsd] x [nnd] */
-						//kyonten
+	dArray2DT fDDDw; /**< third gradient of window functions at the current field point: 1D/2D: [nsd*nsd] x [nnd] 
+																						 3D: [nsd*nsd+1] x [nnd] */
 	
 	/* correction function coefficients */
 	dArrayT fb;           /**< correction function coefficients at the current field point: [nbasis] */
 	ArrayT<dArrayT> fDb;  /**< gradient of correction function coefficients: [nsd] x [nbasis] */
 	ArrayT<dArrayT> fDDb; /**< second gradient of correction function coefficient: [nstr] x [nbasis] */
-	ArrayT<dArrayT> fDDDb; /**< third gradient of correction function coefficient: [nsd*nsd] x [nbasis] */
-							//kyonten
-	
+	ArrayT<dArrayT> fDDDb; /**< third gradient of correction function coefficient: 1D/2D: [nsd*nsd] x [nbasis] 
+																				   3D: [nsd*nsd+1] x [nbasis] */
+
 	/* inverse of moment matrix */
 	dMatrixT fMinv;        /**< moment matrix at the current field point: [nbasis] x [nbasis] */
 	ArrayT<dMatrixT> fDM;  /**< gradient of moment matrix: [nsd] x [nbasis] x [nbasis] */
 	ArrayT<dMatrixT> fDDM; /**< second gradient of moment matrix: [nstr] x [nbasis] x [nbasis] */
-	ArrayT<dMatrixT> fDDDM; /**< third gradient of moment matrix: [nsd*nsd] x [nbasis] x [nbasis] */
-								//kyonten
+	ArrayT<dMatrixT> fDDDM; /**< third gradient of moment matrix: 1D/2D: [nsd*nsd] x [nbasis] x [nbasis] 
+																  3D: [nsd*nsd+1] x [nbasis] x [nbasis]  */
+							
 	/* correction function */
 	dArrayT   fC;   /**< correction function at the current field point: [nnd] */
 	dArray2DT fDC;  /**< gradient of the correction function: [nsd] x [nnd] */
 	dArray2DT fDDC; /**< second gradient of the correction function: [nstr] x [nnd] */
-	dArray2DT fDDDC; /**< third gradient of the correction function: [nsd*nsd] x [nnd] */
-						//kyonten
+	dArray2DT fDDDC; /**< third gradient of the correction function: 1D/2D:[nsd*nsd] x [nnd] 
+																	 3D:[nsd*nsd+1] x [nnd] */
 	
 	/* return values of all nodes at field pt */
 	dArrayT   fphi;   /**< nodal shape functions at the current field point: [nnd] */
 	dArray2DT fDphi;  /**< nodal shape function gradients at the current field point: [nsd] x [nnd] */
 	dArray2DT fDDphi; /**< second gradient of nodal shape functions: [nstr] x [nnd] */
-	dArray2DT fDDDphi; /**< third gradient of nodal shape functions: [nsd*nsd] x [nnd] */
-						//kyonten
+	dArray2DT fDDDphi; /**< third gradient of nodal shape functions: 1D/2D:[nsd*nsd] x [nnd] 
+																	 3D:[nsd*nsd+1] x [nnd] */
 	
 	/* variable memory managers */
 	nArrayGroupT<double>   fArrayGroup;    /**< variable memory manager for arrays length [nnd] */
 	nArray2DGroupT<double> fArray2DGroup2; /**< variable memory manager for 2D arrays length [nsd] x [nnd] */
 	nArray2DGroupT<double> fArray2DGroup3; /**< variable memory manager for 2D arrays length [nstr] x [nnd]	*/
-	nArray2DGroupT<double> fArray2DGroup4; /**< variable memory manager for 2D arrays length [nsd*nsd] x [nnd]	*/
+	nArray2DGroupT<double> fArray2DGroup4; /**< variable memory manager for 2D arrays length [nsd*nsd]/[nsd*nsd+1] x [nnd]	*/
 	nVariArray2DT<double>  fLocCoords_man; /**< variable memory manager for local coordinates array */
 
 private:
@@ -231,7 +230,7 @@ private:
 	dSymMatrixT fNSDsym;
 	dMatrixT    fMtemp;
 	dArrayT     fbtemp1, fbtemp2, fbtemp3, fbtemp4;
-	dArrayT     fbtemp5, fbtemp6, fbtemp7, fbtemp8, fbtemp9, fbtemp10;// kyonten (DDDb)
+	dArrayT     fbtemp5, fbtemp6, fbtemp7, fbtemp8, fbtemp9; // kyonten (DDDb)
 };
 
 /* inlines */
@@ -303,7 +302,7 @@ inline const dArray2DT& MLSSolverT::DDDC(void) const { return fDDDC; }// kyonten
 inline const dArrayT& MLSSolverT::b(void) const { return fb; }
 inline const dArrayT& MLSSolverT::Db(int component) const{ return fDb[component];}
 inline const dArrayT& MLSSolverT::DDb(int component) const{	return fDDb[component];}
-inline const dArrayT& MLSSolverT::DDDb(int component) const{ return fDDDb[component];} //kyonten
+inline const dArrayT& MLSSolverT::DDDb(int component) const{ return fDDDb[component];} // kyonten
 
 } // namespace Tahoe 
 #endif /* _MLS_SOLVER_T_H_ */

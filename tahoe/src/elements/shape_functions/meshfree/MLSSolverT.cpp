@@ -1,11 +1,9 @@
-/* $Id: MLSSolverT.cpp,v 1.23 2005-04-22 00:53:04 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.24 2005-12-23 03:32:30 kyonten Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
 #include "ExceptionT.h"
 #include "dSymMatrixT.h"
-
-#include "MFGP_ToolsT.h"  //kyonten
 
 /* basis functions */
 #include "PolyBasis1DT.h"
@@ -36,7 +34,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, bool cross_terms, MeshFreeT::Windo
 	fOrder(0),
 	fDb(fNumSD),
 	fDDb(dSymMatrixT::NumValues(fNumSD)),
-	fDDDb(fNumSD*fNumSD),// kyonten 
+	fDDDb(fNumSD*fNumSD), // kyonten 
 	fDM(fNumSD),
 	fDDM(dSymMatrixT::NumValues(fNumSD)),
 	fDDDM(fNumSD*fNumSD), // kyonten 
@@ -44,7 +42,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, bool cross_terms, MeshFreeT::Windo
 	fArrayGroup(0, true),
 	fArray2DGroup2(0, 0),
 	fArray2DGroup3(0, 0),
-	fArray2DGroup4(0, 0), // kyonten (for the third derivative)
+	fArray2DGroup4(0, 0), // kyonten
 	fLocCoords_man(0, fLocCoords, fNumSD),
 	
 	/* work space */
@@ -112,6 +110,14 @@ MLSSolverT::MLSSolverT(int nsd, int complete, bool cross_terms, MeshFreeT::Windo
 	}
 	fOrigin = 0.0;
 	
+	/* dimensions for fDDDb and fDDDM in 3D */
+	if (fNumSD == 3)
+	    fNumThirdDer = fNumSD*fNumSD+1;
+	else
+		fNumThirdDer = fNumSD*fNumSD;	
+	fDDDb.Dimension(fNumThirdDer); // redimensioned for 3D
+	fDDDM.Dimension(fNumThirdDer); // redimensioned for 3D
+	
 	/* dimension arrays */
 	int m = fBasis->BasisDimension();
 	fb.Dimension(m);
@@ -138,13 +144,13 @@ MLSSolverT::MLSSolverT(int nsd, int complete, bool cross_terms, MeshFreeT::Windo
 	fbtemp2.Dimension(m);
 	fbtemp3.Dimension(m);
 	fbtemp4.Dimension(m);
-	// kyonten (DDDb)
+	
+	/* work space for DDDb */ //kyonten
 	fbtemp5.Dimension(m);
 	fbtemp6.Dimension(m);
 	fbtemp7.Dimension(m);
 	fbtemp8.Dimension(m);
 	fbtemp9.Dimension(m);
-	fbtemp10.Dimension(m);
 }
 	
 /* destructor */
@@ -279,8 +285,7 @@ void MLSSolverT::Dimension(void)
 	if (fOrder > 0) fArray2DGroup2.Dimension(fNumSD, fNumNeighbors);
 	if (fOrder > 1) fArray2DGroup3.Dimension(dSymMatrixT::NumValues(fNumSD),
 		fNumNeighbors);
-	if (fOrder > 2) fArray2DGroup4.Dimension(fNumSD*fNumSD,	
-		fNumNeighbors); // kyonten
+	if (fOrder > 2) fArray2DGroup4.Dimension(fNumThirdDer,	fNumNeighbors); // kyonten
 }
 
 /* set moment matrix, inverse, and derivatives */
@@ -580,14 +585,13 @@ void MLSSolverT::ComputeDDDM(const dArrayT& volume) // kyonten (DDDM)
 {
 	int dim = fBasis->BasisDimension();
 	const dArray2DT& basis = fBasis->P();
-	for (int rst = 0; rst < (fNumSD*fNumSD); rst++)
+	for (int rst = 0; rst < fNumThirdDer; rst++)
 	{
 		dMatrixT& DDDM = fDDDM[rst];
 
 		/* resolve components */
 		int r, s, t, rs, st, rt;
-		MFGP_ToolsT::ExpandIndex3(fNumSD, rst, r, s, t);
-		MFGP_ToolsT::ExpandIndex2(fNumSD, r, s, t, rs, st, rt);
+		dSymMatrixT::ExpandIndex3(fNumSD, rst, r, s, t, rs, st, rt);
 		
 		const dArray2DT& Dbasis_r = fBasis->DP(r);
 		const dArray2DT& Dbasis_s = fBasis->DP(s);
@@ -631,23 +635,23 @@ void MLSSolverT::ComputeDDDM(const dArrayT& volume) // kyonten (DDDM)
 				for (int k = 0; k < fNumNeighbors; k++)
 				{
 					DDDmij += ((*DDDpi)*(*w)*(*pj) //first 9 components
+							+ (*Dpi_r)*(*DDw_st)*(*pj)
 							+ (*Dpi_r)*(*w)*(*DDpj_st)
-							+ (*Dpi_r)*(*Dw_t)*(*Dpj_s)
 							+ (*Dpi_r)*((*Dpj_s)*(*Dw_t) + (*Dpj_t)*(*Dw_s))
 							+ (*pj)*((*DDpi_rs)*(*Dw_t) + (*DDpi_rt)*(*Dw_s))
 							+ (*w)*((*DDpi_rs)*(*Dpj_t) + (*DDpi_rt)*(*Dpj_s))
-							+ (*DDpi_st)*(*w)*(*Dpj_r) //second 9 components
-							+ (*pi)*(*w)*(*DDDpj)
+							+ (*DDpi_st)*(*Dw_r)*(*pj) //second 9 components
+							+ (*pi)*(*DDDw)*(*pj)
+							+ (*pi)*(*Dw_r)*(*DDpj_st)
+							+ (*pi)*((*DDw_rs)*(*Dpj_t) + (*DDw_rt)*(*Dpj_s))
+							+ (*pj)*((*DDw_rs)*(*Dpi_t) + (*DDw_rt)*(*Dpi_s))
+							+ (*Dw_r)*((*Dpi_s)*(*Dpj_t) + (*Dpi_t)*(*Dpj_s))
+							+ (*DDpi_st)*(*w)*(*Dpj_r) //third 9 components
 							+ (*pi)*(*DDw_st)*(*Dpj_r)
+							+ (*pi)*(*w)*(*DDDpj)
 							+ (*pi)*((*DDpj_rs)*(*Dw_t) + (*DDpj_rt)*(*Dw_s))
 							+ (*Dpj_r)*((*Dpi_s)*(*Dw_t) + (*Dpi_t)*(*Dw_s))
-							+ (*w)*((*Dpi_s)*(*DDpj_rt) + (*Dpi_t)*(*DDpj_rs))
-							+ (*DDpi_st)*(*Dw_r)*(*pj) //third 9 components
-							+ (*pi)*(*Dw_r)*(*DDpj_st)
-							+ (*pi)*(*DDDw)*(*pj)
-							+ (*pi)*((*Dpj_s)*(*DDw_rt) + (*Dpj_t)*(*DDw_rs))
-							+ (*pj)*((*Dpi_s)*(*DDw_rt) + (*Dpi_t)*(*DDw_rs))
-							+ (*Dw_r)*((*Dpi_s)*(*Dpj_t) + (*Dpi_t)*(*Dpj_s)))*(*vol);
+							+ (*w)*((*DDpj_rs)*(*Dpi_t) + (*DDpj_rt)*(*Dpi_s)))*(*vol);
 					
 					w++; Dw_r++; Dw_s++; Dw_t++; 
 					DDw_rs++; DDw_st++; DDw_rt++; DDDw++;
@@ -697,16 +701,15 @@ void MLSSolverT::SetCorrectionCoefficient(void)
 				                         -1.0, fbtemp3);
 				fMinv.Multx(fbtemp4, fDDb[ij]);
 			}
-			if (fOrder > 2)
+			if (fOrder > 2) // kyonten
 			{
-				/* third derivative */ // kyonten
-				for (int ijk = 0; ijk < fNumSD*fNumSD; ijk++)
+				/* third derivative */
+				for (int ijk = 0; ijk < fNumThirdDer; ijk++)
 				{
 					/* resolve indices */
 					int i, j, k, ij, jk, ik;
-					MFGP_ToolsT::ExpandIndex3(fNumSD, ijk, i, j, k);
-					MFGP_ToolsT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
-		
+					dSymMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k, ij, jk, ik);
+					
 					fDDDM[ijk].Multx(fb, fbtemp1);
 					fDDM[ij].Multx(fDb[k], fbtemp2);
 					fDDM[jk].Multx(fDb[i], fbtemp3);
@@ -720,10 +723,9 @@ void MLSSolverT::SetCorrectionCoefficient(void)
 				    fbtemp9.SetToCombination(-1.0, fbtemp4,
 				                         -1.0, fbtemp5,
 				                         -1.0, fbtemp6);
-				    fbtemp10 = fbtemp8;
-				    fbtemp10 += fbtemp9;
-				    fbtemp10 -= fbtemp7;                        
-					fMinv.Multx(fbtemp10, fDDDb[ijk]);
+				    fbtemp9 += fbtemp8;
+				    fbtemp9 -= fbtemp7;                        
+					fMinv.Multx(fbtemp9, fDDDb[ijk]);
 				}
 			}
 		}
@@ -777,6 +779,7 @@ void MLSSolverT::SetCorrection(void)
 				/* expand index */
 				int i, j;
 				dSymMatrixT::ExpandIndex(fNumSD, ij, i, j);
+				
 				const dArray2DT& Dbasis_i = fBasis->DP(i);
 				const dArray2DT& Dbasis_j = fBasis->DP(j);
 				const dArray2DT&  DDbasis = fBasis->DDP(ij);
@@ -803,12 +806,11 @@ void MLSSolverT::SetCorrection(void)
 			{
 				/* 3rd derivative */
 				fDDDC = 0.0;
-				for (int ijk = 0; ijk < (fNumSD*fNumSD); ijk++)
+				for (int ijk = 0; ijk < fNumThirdDer; ijk++)
 				{
 					/* expand index */
 					int i, j, k, ij, jk, ik;
-					MFGP_ToolsT::ExpandIndex3(fNumSD, ijk, i, j, k);
-					MFGP_ToolsT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
+					dSymMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k, ij, jk, ik);
 					
 					const dArray2DT& Dbasis_i = fBasis->DP(i);
 					const dArray2DT& Dbasis_j = fBasis->DP(j);
@@ -888,7 +890,7 @@ void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
 				/* resolve index */
 				int i, j;
 				dSymMatrixT::ExpandIndex(fNumSD, ij, i, j);
-			
+				
 				double* DDphi = fDDphi(ij);
 				double*     C = fC.Pointer();
 				double*  DC_i = fDC(i);
@@ -907,13 +909,12 @@ void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
 			}
 			if (fOrder > 2) // kyonten
 			{
-				for (int ijk = 0; ijk < fNumSD*fNumSD; ijk++)
+				for (int ijk = 0; ijk < fNumThirdDer; ijk++)
 				{
 					/* resolve index */
 					int i, j, k, ij, jk, ik;
-					MFGP_ToolsT::ExpandIndex3(fNumSD, ijk, i, j, k);
-					MFGP_ToolsT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
-			
+					dSymMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k, ij, jk, ik);
+					
 					double* DDDphi = fDDDphi(ijk);
 					double*     C = fC.Pointer();
 					double*  DC_i = fDC(i);
