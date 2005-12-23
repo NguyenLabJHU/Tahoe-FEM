@@ -1,4 +1,4 @@
-/* $Id: BasisT.h,v 1.7 2004-11-03 16:09:48 raregue Exp $ */
+/* $Id: BasisT.h,v 1.8 2005-12-23 03:24:00 kyonten Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -50,7 +50,8 @@ protected:
 	dArray2DT fP;           // [nbasis] x [nnd]
 	ArrayT<dArray2DT> fDP;  // [nsd] x [nbasis] x [nnd]
 	ArrayT<dArray2DT> fDDP; // [nstr] x [nbasis] x [nnd]
-	ArrayT<dArray2DT> fDDDP; // [nsd*nsd] x [nbasis] x [nnd] // kyonten 
+	ArrayT<dArray2DT> fDDDP; // 1D/2D: [nsd*nsd] x [nbasis] x [nnd] 
+							//  3D: [nsd*nsd + 1] x [nbasis] x [nnd] 
 
 	/* dynamic workspace manager */
 	nArray2DGroupT<double> fArray2DGroup1; // [nbasis] x [nnd]
