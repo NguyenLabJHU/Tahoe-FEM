@@ -1,4 +1,4 @@
-/* $Id: WindowT.h,v 1.14 2004-11-03 16:09:54 raregue Exp $ */
+/* $Id: WindowT.h,v 1.15 2005-12-23 03:20:17 kyonten Exp $ */
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
 
@@ -11,7 +11,6 @@ class ifstreamT;
 class dArrayT;
 class dArray2DT;
 class dSymMatrixT;
-class dMatrixT; //kyonten
 template <class TYPE> class ArrayT;
 
 /** base class for various support types, and hence different 
@@ -66,10 +65,10 @@ class WindowT
 	 * \param w the value at x of the window function centered at x_n
 	 * \param Dw window function derivatives: [nsd]
 	 * \param DDw window function second derivatives: [nstr] 
-	 * \param DDDw window function third derivatives: [nsd*nsd] 
+	 * \param DDDw window function third derivatives: 1D/2D:[nsd*nsd]; 3D:[nsd*nsd+1] 
 	 * \return true if the support covers the field point */
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) = 0;
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dArrayT& DDDw) = 0;
 
 	/** coverage test.
 	 * \return true if the window function centered at x_n covers the
@@ -99,7 +98,8 @@ class WindowT
 	 * \param w values of the window function: [npts]
 	 * \param w values of the window function derivaties: [npts] x [nsd]
 	 * \param w values of the window function second derivaties: [npts] x [nstr] 
-	 * \param w values of the window function third derivaties: [npts] x [nsd*nsd] 
+	 * \param w values of the window function third derivaties: 
+	 	1D/2D:[npts] x [nsd*nsd]; 3D:[npts] x [nsd*nsd+1] 
 	 * \return the number of points covered by the window function */
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
 		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw) = 0;	

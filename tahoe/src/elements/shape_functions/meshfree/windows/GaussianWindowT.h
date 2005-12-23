@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.15 2004-11-03 16:09:54 raregue Exp $ */
+/* $Id: GaussianWindowT.h,v 1.16 2005-12-23 03:20:17 kyonten Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -10,7 +10,6 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
-#include "dMatrixT.h" // kyonten
 
 namespace Tahoe {
 
@@ -47,11 +46,11 @@ class GaussianWindowT: public WindowT
 
 	/* single point evaluations */
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw); //kyonten
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dArrayT& DDDw); //kyonten (DDDw)
 
 	/* multiple point evaluations */
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw); //kyonten
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw); //kyonten (DDDw)
 
 	/** \name coverage tests */
 	/*@{*/
@@ -87,8 +86,8 @@ class GaussianWindowT: public WindowT
 	/* work space */
 	dArrayT     fNSD;
 	dSymMatrixT fNSDsym;
-	dMatrixT    fNSDunsym; //kyonten
-	dArrayT fSupportSize;
+	dArrayT     fNSDArray; //kyonten
+	dArrayT     fSupportSize;
 };
 
 } /* namespace Tahoe */
