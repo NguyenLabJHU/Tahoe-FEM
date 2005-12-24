@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.10 2005-11-22 18:26:40 kyonten Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.11 2005-12-24 16:19:17 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)              */
 
 /* Interface for a nonassociative, small strain,      */
@@ -191,15 +191,22 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
         double norm_q = R_q.Magnitude();
         
         /* exit the loop if ff < fTol_1 && normr < fTol_2 */
-        cout << "k=" << kk << "   ff=" << ff << "      norm=" << normr << endl;
+        //cout << "k=" << kk << "   ff=" << ff << "      norm=" << normr << endl;
         if (ff < fTol_1 && normr < fTol_2) TolExceeded = false;
         
+        /* print on screen to check which conditions are met */
+        //if (ff < fTol_1) cout << "ff < fTol_1 is satisfied" << endl;
+        //if (normr < fTol_2) cout << "normr < fTol_2 is satisfied" << endl;
+        
         /* check residuals of plastic strain and internal variables separately */
-        /*
+		/*
         cout << "k=" << kk << "   ff=" << ff << "      norm_up=" << norm_up
              << "      norm_q=" << norm_q << endl;
         if(ff < fTol_1 && norm_up < fTol_2 && norm_q < fTol_2)
         	TolExceeded = false;
+        if (ff < fTol_1) cout << "ff < fTol_1 is satisfied" << endl;
+        if (norm_up < fTol_2) cout << "norm_up < fTol_2 is satisfied" << endl;
+        if (norm_q < fTol_2) cout << "norm_q < fTol_2 is satisfied" << endl;
         */
         
         /* form AA_inv matrix */
@@ -234,6 +241,7 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
         AA.Multx(Cvec, tmpVec);
         bott = dArrayT::Dot(Cvec, tmpVec);
         dlam2 = topp/bott;
+        //cout << "dlam2 = " << dlam2 << endl;
         //cout << "sign of topp " << signof(topp) << endl;
         //cout << "sign of bott " << signof(bott) << endl;		
         //cout << "k = " << kk << " dlam = " << dlam << endl;
@@ -259,6 +267,9 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
         up += dup;
         qn += dq;
         dlam += dlam2;
+        
+        /* print dlam to screen */
+        cout << "dlam = " << dlam << endl;
         kk++;
       }
     }
@@ -543,7 +554,7 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
 {
 	 double bott, dlam;
      dMatrixT KE(6), AA(10), AA_inv(10), CMAT(10), KE_Inv(6); 
-     dMatrixT A_uu(6), A_uq(6,4), A_qu(4,6), A_qq(4);
+     dMatrixT A_uu(6), A_uq(6,4), A_qu(4,6), A_qu_trans(6,4), A_qq(4);
      dMatrixT dQdSig2(6), dqbardq(4), dQdSigdq(6,4), dqbardSig(4,6);
      dMatrixT KP(6), KP2(6), KEP(6), KES(6), KES_Inv(6);
      dMatrixT Ch(4), Ch_Inv(4), KE1(4,6), KE2(6), KE3(6,4);
@@ -610,7 +621,8 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
         AA.Multx(Cvec, tmpVec);
         bott = dArrayT::Dot(Rvec, tmpVec); /* H (scalar) */
         A_uu.Multx(dfdSig, Vvec);
-        A_qu.Multx(dfdq, Vvec2);
+        A_qu_trans.Transpose(A_qu);
+        A_qu_trans.Multx(dfdq, Vvec2);
         Vvec += Vvec2;       /* V (vector) */
         KP.Outer(dQdSig, Vvec);     
         KE3.MultAB(dQdSigdq, Ch_Inv);
