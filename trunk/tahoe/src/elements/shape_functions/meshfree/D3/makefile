@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2005-08-12 05:20:56 paklein Exp $
+# $Id: makefile,v 1.7 2005-12-28 05:37:39 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,8 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	D3MeshFreeShapeFunctionT.o \
 	D3MeshFreeSupportT.o \
-	D3MeshFreeSupport2DT.o \
-	MFGP_ToolsT.o
+	D3MeshFreeSupport2DT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,8 +44,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	D3MeshFreeShapeFunctionT.cpp \
 	D3MeshFreeSupportT.cpp \
-	D3MeshFreeSupport2DT.cpp \
-	MFGP_ToolsT.cpp
+	D3MeshFreeSupport2DT.cpp
 
 ##################### (3) headers
 #
@@ -60,8 +58,7 @@ SRC = \
 HDR = \
 	D3MeshFreeShapeFunctionT.h \
 	D3MeshFreeSupportT.h \
-	D3MeshFreeSupport2DT.h \
-	MFGP_ToolsT.h
+	D3MeshFreeSupport2DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
