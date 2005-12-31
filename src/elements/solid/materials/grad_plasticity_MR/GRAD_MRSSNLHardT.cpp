@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.28 2005-12-03 23:17:24 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.29 2005-12-31 17:04:50 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -85,7 +85,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
                   ElementCardT& element, int ip)
 {	
   	int iplastic;
-  	double ff, dlam, lap_dlam;
+  	double ff;
 
     /* define and allocate matrices */ 
     dMatrixT KE(6), KE_AST(6), dhdSig(4,6), dhdq(4), dhdm(4,6);
@@ -126,8 +126,8 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	/* get displacement, plastic multiplier and their laplacians */
 	u = trialstrain;
 	lap_u = lap_trialstrain;   
-	dlam = triallambda[0]; 
-    lap_dlam = lap_triallambda[0];
+	double dlam = triallambda[0]; 
+    double lap_dlam = lap_triallambda[0];
     
     bool print = false;
     if(print) {
@@ -190,10 +190,11 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     Sig += Sig_e; 
     Sig -= lap_Sig_e;
     Sig_trial = Sig; 
- 	
+ 	//cout << "lap_u = " << lap_u << endl;
+ 	//cout << "lap_up = " << lap_up << endl;
 /* calculate the yield function */
     yield_f(Sig, qn, ff);
-    cout << "yield in StressCorrection = " << ff << endl;
+    //cout << "ff = " << ff << endl;
     
     if (ff < kYieldTol) 
     	iplastic = kIsElastic;
@@ -446,12 +447,9 @@ void GRAD_MRSSNLHardT::h_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& h
  
    hh[0]  = A1*B1*dQdP; 
    hh[0] += A1*dMatrixT::Dot(B2,dQdS);
-   hh[1]  = dMatrixT::Dot(B3,dQdS);
-   hh[1] *= A2;
-   hh[2]  = dMatrixT::Dot(B3,dQdS);
-   hh[2] *= A3;
-   hh[3]  = dMatrixT::Dot(B3,dQdS);
-   hh[3] *= A4;
+   hh[1]  = A2*dMatrixT::Dot(B3,dQdS);
+   hh[2]  = A3*dMatrixT::Dot(B3,dQdS);
+   hh[3]  = A4*dMatrixT::Dot(B3,dQdS);
  }
  
 /* calculation of dhdSig_f */
@@ -545,6 +543,7 @@ void GRAD_MRSSNLHardT::dhdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrix
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
    double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
    
+   Sig_Dev.Deviatoric(Sig);
    B2 = Sig_Dev;
    B2 /= fGf_I;
    dQdS = Sig_Dev;
@@ -581,6 +580,7 @@ void GRAD_MRSSNLHardT::dhdm_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrix
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
    double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
    
+   Sig_Dev.Deviatoric(Sig);
    B2 = Sig_Dev;
    B2 /= fGf_I;
    B3 = Sig_Dev;
@@ -764,6 +764,7 @@ void GRAD_MRSSNLHardT::dgdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrix
    double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
    double d2QdP2 =  -2.*ftan_psi*ftan_psi; 
    
+   Sig_Dev.Deviatoric(Sig);
    B2A = Sig_Dev;
    B2A /= fGf_I;
    B2A *= lsps2;
@@ -962,8 +963,8 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		fModuli = 0.0;
 		//*************debug*********************//
 	StringT file_name;  
-	file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices";
-	//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices";
+	//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices";
+	file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices";
 	file_name.Append(".txt");
 	ofstream output(file_name);
 	if (!output) {
@@ -1245,11 +1246,9 @@ int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 	  const dSymMatrixT& lap_trialstrain, ElementCardT& element, int ip) 
 {
 	/* not yet plastic */
-	if (!element.IsAllocated()) {
-		double yield = YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
-			   MeanStress(trialstrain,lap_trialstrain,element));
-		cout << "yield in plastic loading = " << yield << endl; 
-		return(yield > kYieldTol );
+	if (!element.IsAllocated()) { 
+		return(YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
+			   MeanStress(trialstrain,lap_trialstrain,element)) > kYieldTol );
         /* already plastic */
     }
 	else 

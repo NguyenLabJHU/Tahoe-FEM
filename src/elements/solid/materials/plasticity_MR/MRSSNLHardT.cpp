@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.11 2005-12-24 16:19:17 kyonten Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.12 2005-12-31 17:04:16 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)              */
 
 /* Interface for a nonassociative, small strain,      */
@@ -429,12 +429,9 @@ void MRSSNLHardT::qbar_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& qba
       
    qbar[0]  = A1*B1*dQdP; 
    qbar[0] += A1*dMatrixT::Dot(B2,dQdS);
-   qbar[1]  = dMatrixT::Dot(B3,dQdS);
-   qbar[1]  *=A2;
-   qbar[2]  = dMatrixT::Dot(B3,dQdS);
-   qbar[2]  *=A3;
-   qbar[3]  = dMatrixT::Dot(B3,dQdS);
-   qbar[3]  *=A4;
+   qbar[1]  = A2*dMatrixT::Dot(B3,dQdS);
+   qbar[2]  = A3*dMatrixT::Dot(B3,dQdS);
+   qbar[3]  = A4*dMatrixT::Dot(B3,dQdS);
  }
  
 /* calculation of dqbardSig_f */
@@ -528,6 +525,7 @@ void MRSSNLHardT::dqbardq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT&
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
    double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
    
+   Sig_Dev.Deviatoric(Sig);
    B2 = Sig_Dev;
    B2 /= fGf_I;
    dQdS = Sig_Dev;
