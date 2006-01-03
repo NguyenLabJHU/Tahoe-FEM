@@ -1,4 +1,4 @@
-/* $Id: MRPrimitiveT.cpp,v 1.6 2005-11-18 19:37:22 kyonten Exp $ */
+/* $Id: MRPrimitiveT.cpp,v 1.7 2006-01-03 22:18:34 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)                */
 
 /* Base class for a nonassociative, small strain,        */
@@ -132,8 +132,9 @@ double MRPrimitiveT::YieldCondition(const dSymMatrixT& devstress,
   double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
   double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
   double ffriction = ftan_phi;
-  double ff  = (devstress.ScalarProduct())/2.0;
-  ff -= pow((fc - ffriction*fpress), 2);
-  ff += pow((fc - ffriction*fchi), 2);
+  double temp  = (devstress.ScalarProduct())/2.0;
+  temp += pow((fc - ffriction*fchi), 2);
+  double ff = sqrt(temp); 
+  ff -= (fc - ffriction*fpress);
   return  ff;
 }

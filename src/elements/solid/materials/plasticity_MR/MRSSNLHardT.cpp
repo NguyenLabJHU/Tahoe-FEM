@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.12 2005-12-31 17:04:16 kyonten Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.13 2006-01-03 22:18:34 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)              */
 
 /* Interface for a nonassociative, small strain,      */
@@ -21,7 +21,7 @@ const int    kNumInternal = 28; // number of internal state variables
 const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 const int    kNSTR        = dSymMatrixT::NumValues(kNSD);
-const double ratio23      = 2.0/3.0;
+const double ratio32      = 3.0/2.0;
 
 /* constructor */
 MRSSNLHardT::MRSSNLHardT(int num_ip, double mu, double lambda):
@@ -72,7 +72,7 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
     
 	/* allocate reduced index vector of symmetric matrices */
     dSymMatrixT u(3), up(3), upo(3), du(3), dup(3), ue(3);
-    dSymMatrixT Sig(3), Sig_I(3), Sig_trial(3), Sig_e(3);;
+    dSymMatrixT Sig(3), Sig_I(3), Sig_trial(3), Sig_e(3);
     
     /* allocate vectors */
     dArrayT Rvec(10), Cvec(10), R(10), Rmod(10), X(10), Y(10);
@@ -210,7 +210,7 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
         */
         
         /* form AA_inv matrix */
-        dQdSig2_f(qn, dQdSig2);
+        dQdSig2_f(Sig, qn, dQdSig2);
         dQdSigdq_f(Sig, qn, dQdSigdq);
         dqbardSig_f(Sig, qn, dqbardSig);
         dqbardq_f(Sig, qn, dqbardq);
@@ -295,112 +295,146 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
 }
 
 /*
- * Returns the value of the yield function given the
+ * returns the value of the yield function given the
  * stress vector and state variables
  */
 void MRSSNLHardT::Yield_f(const dSymMatrixT& Sig, 
 			const dArrayT& qn, double& ff)
 {
-  dSymMatrixT Sig_Dev(3);
+  dSymMatrixT Sig_Dev(Sig.Rows());
   double fchi = qn[0];
   double fc = qn[1];
   double ffriction = qn[2]; 
   double fpress = Sig.Trace()/3.0;
   
   Sig_Dev.Deviatoric(Sig);
-  ff = Sig_Dev.Invariant2();
-  ff -= pow((fc - ffriction*fpress), 2);
-  ff += pow((fc - ffriction*fchi), 2);
+  double temp  = (Sig_Dev.ScalarProduct())/2.0;
+  temp += pow((fc - ffriction*fchi), 2);
+  ff = sqrt(temp); 
+  ff -= (fc - ffriction*fpress);
 }
 
 /* calculation of dfdSig_f */
 void MRSSNLHardT::dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 {
+   dSymMatrixT Sig_Dev(Sig.Rows());
+   double fchi = qn[0];
    double fc = qn[1];
    double ftan_phi = qn[2]; 
    double Sig_p = Sig.Trace()/3.0;
    
-   dfdSig[0] = Sig[0] - Sig_p;
-   dfdSig[1] = Sig[1] - Sig_p;
-   dfdSig[2] = Sig[2] - Sig_p;
-   dfdSig[3] = Sig[3];
-   dfdSig[4] = Sig[4];
-   dfdSig[5] = Sig[5];
-
-   double temp  = ratio23*ftan_phi;
-   temp *= (fc - Sig_p*ftan_phi);
+   Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   temp += pow((fc - ftan_phi*fchi), 2);
+   double deno = 2.0*sqrt(temp);
+   Sig_Dev /= deno;
+   
    for (int i = 0; i < 3; i++) 
-   		dfdSig[i] += temp;
+   		dfdSig[i] = Sig_Dev[i] + (ftan_phi/3.0);
 }
 
 /* calculation of dfdq_f */
 void MRSSNLHardT::dfdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdq)
 {
+   dSymMatrixT Sig_Dev(Sig.Rows());
    double fchi = qn[0];
    double fc = qn[1];
    double ftan_phi = qn[2];
    double Sig_p = Sig.Trace()/3.0;
    
-   dfdq[0] = -2.*ftan_phi*(fc-fchi*ftan_phi);
-   dfdq[1] = 2.*(Sig_p - fchi)*ftan_phi;
-   dfdq[2] = 2.*Sig_p*(fc - Sig_p*ftan_phi) - 2.*fchi*(fc-fchi*ftan_phi);
+   double const1 = fc-fchi*ftan_phi; 
+   Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   temp += pow(const1, 2);
+   double deno = sqrt(temp);
+   dfdq[0] = -ftan_phi*const1/deno;
+   dfdq[1] = const1/deno - 1.0;
+   dfdq[2] = -fchi*const1/deno + Sig_p;
    dfdq[3] = 0.;
 }
 
 /* calculation of dQdSig_f */
 void MRSSNLHardT::dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig)
 {
+   dSymMatrixT Sig_Dev(Sig.Rows());
+   double fchi = qn[0];
    double fc = qn[1];
    double ftan_psi = qn[3];
    double Sig_p = Sig.Trace()/3.0;
    
-   dQdSig[0] = Sig[0] - Sig_p;
-   dQdSig[1] = Sig[1] - Sig_p;
-   dQdSig[2] = Sig[2] - Sig_p;
-   dQdSig[3] = Sig[3];
-   dQdSig[4] = Sig[4];
-   dQdSig[5] = Sig[5];
-
-   double temp  = ratio23*ftan_psi;
-   temp *= (fc - Sig_p*ftan_psi);
+   Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   temp += pow((fc - ftan_psi*fchi), 2);
+   double deno = 2.0*sqrt(temp);
+   Sig_Dev /= deno;
+   
    for (int i = 0; i < 3; i++) 
-      dQdSig[i] += temp;
+   		dQdSig[i] = Sig_Dev[i] + (ftan_psi/3.0);
 }
 
 /* calculation of dQdSig2_f */
-void MRSSNLHardT::dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2)
+void MRSSNLHardT::dQdSig2_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dQdSig2)
 {
+  dSymMatrixT Sig_Dev(Sig.Rows()); 
+  dMatrixT I_mat(6), matrix2(6);
+  dArrayT sym_Sig_Dev(6);
+  double fchi = qn[0];
+  double fc = qn[1];
   double ftan_psi = qn[3];
-  dMatrixT I_mat(6,6);
+  double Sig_p = Sig.Trace()/3.0;
   
+  Sig_Dev.Deviatoric(Sig);
+  double temp  = (Sig_Dev.ScalarProduct())/2.0;
+  temp += pow((fc - ftan_psi*fchi), 2);
+  double deno = 2.0*sqrt(temp);
   I_mat = 0.;
   for (int i = 0; i < 3; i++) 
   {
      for (int j = 0; j < 3; j++) 
      	I_mat(i,j) = 1.;
   }
-  
-  double Fac = ratio23*ftan_psi*ftan_psi;
-  Fac += 1.;
-  Fac /= 3.;
-  I_mat *= Fac;
-  
+  I_mat /= 3.0;
   dQdSig2 = Identity6x6;
   dQdSig2 -= I_mat;
+  dQdSig2 /= deno;
+  
+  /* collect symmetric part of Sig_Dev */
+  for (int i = 0; i < 6; i++)
+       sym_Sig_Dev[i] = Sig_Dev[i];
+       
+  matrix2.Outer(sym_Sig_Dev, sym_Sig_Dev);
+  matrix2 /= 4.0*pow(temp, ratio32);
+  
+  dQdSig2 -= matrix2;
 }
 
 /* calculation of dQdSigdq_f */
 void MRSSNLHardT::dQdSigdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq)
 {
+  dSymMatrixT Sig_Dev(Sig.Rows());
+  dArrayT sym_Sig_Dev(6);
+  dMatrixT col_1(6,1), col_2(6,1), col_4(6,1);
+  double fchi = qn[0];
   double fc = qn[1];
   double ftan_psi = qn[3];
   double Sig_p = Sig.Trace()/3.0;
+  double const1 = fc - ftan_psi*fchi;
   
+  Sig_Dev.Deviatoric(Sig);
+  double temp  = (Sig_Dev.ScalarProduct())/2.0;
+  temp += pow(const1, 2);
+  const1 /= 2.0*pow(temp, ratio32); 
+  
+  for (int i = 0; i < 6; i++)
+       sym_Sig_Dev[i] = Sig_Dev[i];
+       
+  col_1.SetToScaled(ftan_psi*const1, sym_Sig_Dev);
+  col_2.SetToScaled(-1.0*const1, sym_Sig_Dev);
+  col_4.SetToScaled(fchi*const1, sym_Sig_Dev);     
   dQdSigdq = 0.;
-  dQdSigdq(1,0) = ratio23*ftan_psi;
-  dQdSigdq(1,1) = dQdSigdq(1,2) = dQdSigdq(1,0);
-  dQdSigdq(3,0) = ratio23*(fc - 2.*Sig_p*ftan_psi);
-  dQdSigdq(3,1) = dQdSigdq(3,2) = dQdSigdq(3,0); 
+  dQdSigdq.AddBlock(0, 0, col_1);
+  dQdSigdq.AddBlock(0, 1, col_2); 
+  dQdSigdq.AddBlock(0, 3, col_4);
 }
 
 /* calculation of qbar_f */
@@ -418,12 +452,16 @@ void MRSSNLHardT::qbar_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& qba
    double A4 = -falpha_psi*ftan_psi;
    double Sig_p = Sig.Trace()/3.0;
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
+   double dQdP = ftan_psi;
    
    Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   temp += pow((fc - ftan_psi*fchi), 2);
+   double deno = 2.0*sqrt(temp);
    B2 = Sig_Dev;
    B2 /= fGf_I;
    dQdS = Sig_Dev;
+   dQdS /= deno;
    B3 = Sig_Dev;
    B3 /= fGf_II; 
       
@@ -453,19 +491,23 @@ void MRSSNLHardT::dqbardSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrix
    double SN = signof(Sig_p);
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
    double dB1dP = (SN +fabs(SN))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
-   double d2QdP2 =  -2.*ftan_psi*ftan_psi;
+   double dQdP = ftan_psi;
+   double d2QdP2 =  0.0;
    
    Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   temp += pow((fc - ftan_psi*fchi), 2);
+   double deno = 2.0*sqrt(temp);
    B2 = Sig_Dev;
    B2 /= fGf_I;
    dQdS = Sig_Dev;
+   dQdS /= deno;
    B3 = Sig_Dev;
    B3 /= fGf_II;
    dB2dS_dQdS  = Sig_Dev;
-   dB2dS_dQdS /= fGf_I;
+   dB2dS_dQdS /= (fGf_I*deno);
    dB3dS_dQdS  = Sig_Dev;
-   dB3dS_dQdS /= fGf_II;
+   dB3dS_dQdS /= (fGf_II*deno);
    dhchi_dSig  = Identity3x3;
    dhchi_dSig *= (A1*B1*d2QdP2+A1*dQdP*dB1dP)/3.;
    tempmat =  dB2dS_dQdS; 
@@ -523,23 +565,41 @@ void MRSSNLHardT::dqbardq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT&
    double A4 = -falpha_psi*ftan_psi;
    double Sig_p = Sig.Trace()/3.0;
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
+   double dQdP = ftan_psi;
+   double const1 = fc - ftan_psi*fchi;
    
    Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   temp += pow(const1, 2);
+   double deno = 2.0*sqrt(temp);
+   const1 /= 2.0*pow(temp, ratio32);
    B2 = Sig_Dev;
    B2 /= fGf_I;
    dQdS = Sig_Dev;
+   dQdS /= deno;
    B3 = Sig_Dev;
    B3 /= fGf_II;
+   double B2S = dMatrixT::Dot(B2,Sig_Dev);
+   double B3S = dMatrixT::Dot(B3,Sig_Dev);
    double B2dQdS = dMatrixT::Dot(B2,dQdS);
    double B3dQdS = dMatrixT::Dot(B3,dQdS);
    dqbardq = 0.0;
-   dqbardq(0,0) = -falpha_chi*(B1*dQdP + B2dQdS);
-   dqbardq(0,1) =  A1*B1*(2.*ftan_psi);
-   dqbardq(0,3) =  A1*B1*(2.*fc-4.*Sig_p*ftan_psi);   
-   dqbardq(1,1) = -falpha_c*B3dQdS;
-   dqbardq(2,2) = -falpha_phi*B3dQdS;
-   dqbardq(3,3) = -falpha_psi*B3dQdS;
+   dqbardq(0,0)  = -falpha_chi*(B1*dQdP + B2dQdS);
+   dqbardq(0,0) += A1*ftan_psi*const1*B2S;
+   dqbardq(0,1)  =  -A1*const1*B2S;
+   dqbardq(0,3)  =  A1*B1+A1*fchi*const1*B2S;
+   dqbardq(1,0)  = A3*ftan_psi*const1*B3S;   
+   dqbardq(1,1)  = -falpha_c*B3dQdS;
+   dqbardq(1,1) -= A2*const1*B3S;
+   dqbardq(1,3)  = A2*fchi*const1*B3S;
+   dqbardq(2,0)  = A3*ftan_psi*const1*B3S;
+   dqbardq(2,1)  = -A3*const1*B3S;
+   dqbardq(2,2)  = -falpha_phi*B3dQdS;
+   dqbardq(2,3)  = A3*fchi*const1*B3S;
+   dqbardq(3,0)  = A4*ftan_psi*const1*B3S;
+   dqbardq(3,1)  = -A4*const1*B3S;
+   dqbardq(3,3)  = -falpha_psi*B3dQdS;
+   dqbardq(3,3) += A4*fchi*const1*B3S;
 }
 
 /* return the consistent elstoplastic moduli 
@@ -577,7 +637,7 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
 		KE_Inv.Inverse(KE);
 		
 		/* calculate the first part of Cep */
-	  	dQdSig2_f(qn, dQdSig2);
+	  	dQdSig2_f(Sig, qn, dQdSig2);
 	    dqbardSig_f(Sig, qn, dqbardSig);
 	    dqbardq_f(Sig, qn, dqbardq);
 	    dQdSigdq_f(Sig, qn, dQdSigdq);

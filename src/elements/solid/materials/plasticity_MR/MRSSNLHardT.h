@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.h,v 1.8 2005-11-22 18:26:40 kyonten Exp $ */
+/* $Id: MRSSNLHardT.h,v 1.9 2006-01-03 22:18:34 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)            */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -52,7 +52,7 @@ public:
     void dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);    
     void dfdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdq); 
     void dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig);   
-    void dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2);
+    void dQdSig2_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dQdSig2);
     void dQdSigdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
     void qbar_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& qbar);
     void dqbardSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
