@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.20 2006-01-04 00:09:29 thao Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.21 2006-01-04 17:40:39 thao Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -513,9 +513,7 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 	else {
 		ip_grad_X.Dimension(nsd, nip);
 	}
-	
-    cout << "\nglobal averaged stresses: \n"<<fP_avg;
-    
+	    
 	/* get the body force */
 	dArrayT body_force(nsd), divP(nsd), vec(nsd);
 	dArrayT vec1(nsd), vec2(nsd);
@@ -581,6 +579,9 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		{
 			int ip = fShapes->CurrIP();
 
+            cout << "\nelement: "<< e
+                 << "\tip: "<< ip;
+
 			/* deformation gradient */
 			const dMatrixT& F = (fUpdatedLagMixture) ?
 				fUpdatedLagMixture->DeformationGradient(ip) :
@@ -597,11 +598,13 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		
 			/* inertial forces */
 			force.SetToCombination(-1.0, ip_acc, 1.0, body_force);
-						
+                        
 			/* compute stress divergence */
 			if (fGradientOption == kGlobalProjection)
 			{
 				divP = 0.0;
+//                cout << "\nP: "<<P;
+//                cout << "\nnodal conc: "<<fLocDisp;
 				IP_ComputeGradient(P, ip_Grad_P);
 				for (int j = 0; j < nsd; j++) {
 					ip_Grad_P_j.Alias(nsd, nsd, ip_Grad_P(j));
@@ -622,7 +625,7 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 			
 			/* add to force */
 			force.AddScaled(1.0/ip_conc[0], divP);
-			
+            
 			/* compute (scaled) relative flux velocity */
 			const dMatrixT& D = fCurrMaterial->k_ij();
 			V_e.RowAlias(ip, V);
@@ -646,6 +649,8 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 			
 			/* compute velocity */
 			V /= ip_conc[0];
+//            cout << "\nvelocity: "<<V;
+//            cout << "\nmass flux: "<<M;
 
 			/* mass flux variation */
 			if (compute_dmass_flux)

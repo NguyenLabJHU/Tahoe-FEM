@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.cpp,v 1.3 2006-01-04 00:09:29 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.cpp,v 1.4 2006-01-04 17:40:39 thao Exp $ */
 #include "CurrMixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -604,7 +604,7 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 			ip_Grad_tau.Dimension(nsd*nsd, nsd);
 		}
 	
-        cout <<"\nglobal average stresses: \n"<<ftau_avg;
+//        cout <<"\nglobal average stresses: \n"<<ftau_avg;
 		/*calculate momentum driving force*/
 		/* get the body force */
 		dArrayT body_force(nsd);
@@ -651,17 +651,22 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 			{
 				int ip = fShapes->CurrIP();
 
+                cout << "\nelement: "<< e
+                     << "\tip: "<< ip;
+                     
 				fShapes->InterpolateU(acc, ip_acc);		
 
 				f_e.RowAlias(ip, fbar);
 
 				/* inertial forces */
 				fbar.SetToCombination(-1.0, ip_acc, 1.0, body_force);
-						
+                		
 				/* compute stress divergence */
 				if (fGradientOption == kGlobalProjection)
 				{
 					divtau = 0.0;
+//                    cout <<"\n tau: "<<tau;
+//                    cout <<"\n fLocDisp: "<<fLocDisp;
 					if (fUpdatedLagMixture)
 						fShapes->GradU(tau, ip_Grad_tau);   /*gradient wrt to current configuration*/
 					else ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
@@ -671,6 +676,7 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 						for (int i = 0; i < nsd; i++)
 							divtau[i] += ip_Grad_tau_j(i,j);
 					}
+//                    cout << "\n divtau: "<<divtau;
 				}
 				else /* element-by-element gradient calculation */
 				{
@@ -686,7 +692,7 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 			
 				/* add to force */
 				fbar += divtau;
-
+            
 				/* ip values of current concentration*/  //confirm that fLocDisp is current concentration*/
 				fShapes->InterpolateU(fLocDisp, ip_conc);
 
@@ -701,12 +707,14 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 				const dMatrixT& D = fCurrMaterial->k_ij();
 				v_e.RowAlias(ip, v);
 				D.Multx(phi, v); /* c*V */
-//				v /= ip_conc[0]*ip_conc[0];
 	
 				/* compute relative mass flux */
 				m_e.RowAlias(ip, m);
 				m = v;
 				m *= ip_conc[0];			
+                cout << "\nvelocity: "<<v;
+                cout << "\nmass flux: "<<m;
+
 			}
 		}
 	}

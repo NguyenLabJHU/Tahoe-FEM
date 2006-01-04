@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.15 2006-01-04 00:09:29 thao Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.16 2006-01-04 17:40:39 thao Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -95,9 +95,9 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 				fF_inv.Inverse(F);
 				P.MultABT(fStress, fF_inv);
 				P *= F.Det();
-                cout << "\n Elem: "<<CurrElementNumber()
-                     << "\t IP: "<<CurrIP()
-                     << "\n P: "<<P;
+//                cout << "\n Elem: "<<CurrElementNumber()
+//                     << "\t IP: "<<CurrIP()
+//                     << "\n P: "<<P;
                      
 				/* extrapolate to the nodes */
 				fShapes->Extrapolate(P_1D, nodal_P);
@@ -122,9 +122,10 @@ void UpdatedLagMixtureT::ProjectPartialTau(int i)
 	dMatrixT tau(nsd);
 	dArrayT tau_1D;
 	tau_1D.Alias(tau);
-	
+
 	/* loop over elements */
 	dArray2DT nodal_tau(nen, nsd*nsd);
+
 	Top();
 	while (NextElement())
 		if (CurrentElement().Flag() != ElementCardT::kOFF)
@@ -144,16 +145,16 @@ void UpdatedLagMixtureT::ProjectPartialTau(int i)
 			while (fCurrShapes->NextIP())
 			{
 				/* Cauchy stress */
-				const dSymMatrixT& tau = mixture.specific_tau_ij(i);
-
+				const dSymMatrixT& stress = mixture.specific_tau_ij(i);
+                stress.ToMatrix(tau);
+                
                 const dArrayT& conc = mixture.Get_IPConcentration();	
-                dMatrixT P(3);
-                tau.ToMatrix(P);
+                dMatrixT P=tau;
                 P *= conc[i];
-                cout << "\n Elem: "<<CurrElementNumber()
-                     << "\t IP: "<<CurrIP()
-                     << "\n tau: "<<tau
-                     << "\n P: "<<P;
+//                cout << "\n Elem: "<<CurrElementNumber()
+//                     << "\t IP: "<<CurrIP()
+//                     << "\n tau: "<<tau
+//                     << "\n P: "<<P;
 
 				/* extrapolate to the nodes */
 				fCurrShapes->Extrapolate(tau_1D, nodal_tau);
