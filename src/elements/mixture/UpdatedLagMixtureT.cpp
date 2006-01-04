@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.14 2005-12-21 00:53:49 thao Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.15 2006-01-04 00:09:29 thao Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -95,7 +95,10 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 				fF_inv.Inverse(F);
 				P.MultABT(fStress, fF_inv);
 				P *= F.Det();
-
+                cout << "\n Elem: "<<CurrElementNumber()
+                     << "\t IP: "<<CurrIP()
+                     << "\n P: "<<P;
+                     
 				/* extrapolate to the nodes */
 				fShapes->Extrapolate(P_1D, nodal_P);
 			}
@@ -142,7 +145,16 @@ void UpdatedLagMixtureT::ProjectPartialTau(int i)
 			{
 				/* Cauchy stress */
 				const dSymMatrixT& tau = mixture.specific_tau_ij(i);
-								
+
+                const dArrayT& conc = mixture.Get_IPConcentration();	
+                dMatrixT P(3);
+                tau.ToMatrix(P);
+                P *= conc[i];
+                cout << "\n Elem: "<<CurrElementNumber()
+                     << "\t IP: "<<CurrIP()
+                     << "\n tau: "<<tau
+                     << "\n P: "<<P;
+
 				/* extrapolate to the nodes */
 				fCurrShapes->Extrapolate(tau_1D, nodal_tau);
 			}

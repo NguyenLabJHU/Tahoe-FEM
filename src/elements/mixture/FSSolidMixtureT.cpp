@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.19 2005-12-21 00:53:49 thao Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.20 2006-01-04 00:09:29 thao Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -325,6 +325,7 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 	/* compute mechanical strain */
 	double alpha = 1.0/fF_growth_inv.Rows();	
 	double J_g = conc[i]/conc_0[i];
+
 	if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
 	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
@@ -333,6 +334,11 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 	/*fStressFunctions[i]->sij() returns 1/J^e P Fe^T
 		Multiply by c_o/J_g to get cauchy stress*/
 	fStress.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
+
+//    cout << "\n J_g: "<< J_g
+//         << "\n conc: "<<conc[i]
+//         << "\n sij*: "<<fStressFunctions[i]->s_ij()
+//         << "\n J: "<<fF_species[0].Det();
 
 	return fStress;
 }
@@ -361,7 +367,8 @@ const dSymMatrixT& FSSolidMixtureT::specific_tau_ij(int i)
 	double J_g = conc[i]/conc_0[i];
 	if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
 	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
-	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
+    const dMatrixT& F = fFSMatSupport->DeformationGradient();
+	fF_species[0].MultAB(F, fF_growth_inv);
 	
 	/* compute stress */
 	/*returns 1/J^e P Fe^T*/
@@ -369,7 +376,12 @@ const dSymMatrixT& FSSolidMixtureT::specific_tau_ij(int i)
 	
 	/*Multiply by J^e to obtain tau_bar*/
 	fStress *= fF_species[0].Det();
-	
+
+    
+//    cout << "\n J_g: "<< J_g
+//         << "\n conc: "<<conc[i]
+//         << "\n sij*: "<<fStressFunctions[i]->s_ij()
+//         << "\n J: "<<fF_species[0].Det();
 	return fStress;
 }
 
@@ -626,6 +638,8 @@ FSSolidMatT* FSSolidMixtureT::New(const StringT& name) const
 void FSSolidMixtureT::IPConcentration(const LocalArrayT& c_nodal, dArrayT& c_ip) const
 {
     fFSMatSupport->Interpolate(c_nodal, c_ip);
+//    cout <<"\n cnodal: "<<c_nodal;
+//    cout << "\n c_ip: "<< c_ip;
 
 	/* compute total density from species concentration */
 	double detF = 1.0;
@@ -644,6 +658,8 @@ void FSSolidMixtureT::IPConcentration(const LocalArrayT& c_nodal, dArrayT& c_ip)
 void FSSolidMixtureT::IPConcentration_current(const LocalArrayT& c_nodal, dArrayT& c_ip) const
 {
     fFSMatSupport->Interpolate_current(c_nodal, c_ip);
+//    cout <<"\n cnodal: "<<c_nodal;
+//    cout << "\n c_ip: "<< c_ip;
 
 	/* compute total density from species concentration */
 	double detF = 1.0;

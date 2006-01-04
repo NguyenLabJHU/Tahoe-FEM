@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.19 2005-12-20 17:23:16 thao Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.20 2006-01-04 00:09:29 thao Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -514,6 +514,8 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		ip_grad_X.Dimension(nsd, nip);
 	}
 	
+    cout << "\nglobal averaged stresses: \n"<<fP_avg;
+    
 	/* get the body force */
 	dArrayT body_force(nsd), divP(nsd), vec(nsd);
 	dArrayT vec1(nsd), vec2(nsd);

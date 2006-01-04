@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.cpp,v 1.2 2005-12-21 00:55:49 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.cpp,v 1.3 2006-01-04 00:09:29 thao Exp $ */
 #include "CurrMixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -604,6 +604,7 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 			ip_Grad_tau.Dimension(nsd*nsd, nsd);
 		}
 	
+        cout <<"\nglobal average stresses: \n"<<ftau_avg;
 		/*calculate momentum driving force*/
 		/* get the body force */
 		dArrayT body_force(nsd);

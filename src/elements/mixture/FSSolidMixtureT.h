@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.10 2005-12-21 00:53:49 thao Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.11 2006-01-04 00:09:29 thao Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -40,6 +40,7 @@ public:
 	void SetConcentration(int i, ConcentrationT conc);
 	ConcentrationT Concentration(int i) const { return fConcentration[i]; };
 	/*@}*/
+    const dArrayT& Get_IPConcentration(void) const {return fIPConc;};
 
 	/** need to compute objective velocity gradient in mass balance
 	 * \note this is really only needed when FSSolidMixtureT::fConcentration ==
