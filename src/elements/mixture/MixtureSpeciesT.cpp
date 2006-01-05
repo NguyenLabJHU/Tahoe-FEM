@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.21 2006-01-04 17:40:39 thao Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.22 2006-01-05 02:02:39 thao Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -579,8 +579,8 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		{
 			int ip = fShapes->CurrIP();
 
-            cout << "\nelement: "<< e
-                 << "\tip: "<< ip;
+//            cout << "\nelement: "<< e
+//                 << "\tip: "<< ip;
 
 			/* deformation gradient */
 			const dMatrixT& F = (fUpdatedLagMixture) ?

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.16 2006-01-04 17:40:39 thao Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.17 2006-01-05 02:02:39 thao Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -145,16 +145,13 @@ void UpdatedLagMixtureT::ProjectPartialTau(int i)
 			while (fCurrShapes->NextIP())
 			{
 				/* Cauchy stress */
+//                cout << "\nProjectPartialTau: ";
 				const dSymMatrixT& stress = mixture.specific_tau_ij(i);
                 stress.ToMatrix(tau);
                 
                 const dArrayT& conc = mixture.Get_IPConcentration();	
                 dMatrixT P=tau;
                 P *= conc[i];
-//                cout << "\n Elem: "<<CurrElementNumber()
-//                     << "\t IP: "<<CurrIP()
-//                     << "\n tau: "<<tau
-//                     << "\n P: "<<P;
 
 				/* extrapolate to the nodes */
 				fCurrShapes->Extrapolate(tau_1D, nodal_tau);
@@ -311,6 +308,7 @@ void UpdatedLagMixtureT::IP_PartialTau(int i, ArrayT<dMatrixT>* ip_stress)
 			if (ip_stress)
 			{
 				/* Cauchy stress */
+//                cout<< "\nIP_partialtau1: ";
 				const dSymMatrixT& tau = mixture.specific_tau_ij(i);
  				dMatrixT& mat_stress = (*ip_stress)[ip];
 				tau.ToMatrix(mat_stress);
@@ -339,6 +337,7 @@ const dMatrixT& UpdatedLagMixtureT::IP_PartialTau(int i,int ip)
         fShapes->SetIP(ip);
 
         /* Cauchy stress */
+//        cout << "\nIP_PartialTau2: ";
 		mixture.specific_tau_ij(i).ToMatrix(fStress);
 	}
 	else fStress = 0.0;

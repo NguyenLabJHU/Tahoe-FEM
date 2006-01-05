@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.cpp,v 1.4 2006-01-04 17:40:39 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.cpp,v 1.5 2006-01-05 02:02:39 thao Exp $ */
 #include "CurrMixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -406,7 +406,7 @@ void CurrMixtureSpeciesT::FormKd(double constK)
 		/* c div(v) */
 		double c_div_v = conc[0]*fNSDmat2.Trace();
 		fNEEvec.AddScaled(-c_div_v, fShapes->IPShapeU());
-		
+
 		if (fSpecies == kSolute) 
 		{
 			/*c div(v_f)*/
@@ -470,7 +470,7 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 		int ip = fShapes->CurrIP();
 
 		double scale = constK*(*Det++)*(*Weight++);
-		
+//		cout << "\nscale0: "<<scale;
 		/* set field gradient */
 		grad_conc.Alias(1, nsd, fGradient_list[ip].Pointer());
 		fShapes->GradU(fLocDisp, grad_conc);
@@ -478,7 +478,7 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 		/* interpolate field */
 		conc.Alias(1, fField_list.Pointer(ip));
 		fShapes->InterpolateU(fLocDisp, conc);
-
+        
 		/* strain displacement matrix */
 		B(ip, fB);
 
@@ -509,8 +509,8 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 		fNSDmat2.SetToCombination(by_dt, fNSDmat3, -0.5*by_dt, fNSDmat1);
 		
 		double div_v = fNSDmat2.Trace();
-		
 		fLHS.Outer(Na, Na, scale*div_v, dMatrixT::kAccumulate);
+//        cout << "\nLHS1: "<<fLHS;
 
 		if(fSpecies == kFluid)  
 		{
@@ -520,11 +520,12 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 			/*calculate asymmetric part of the stiffness matrix*/
 			
 			/*del(c*D)*vel where D is permitivity/viscosity*/
-			D.MultTx(vel,vec);
-			dD.MultTx(vel,vec, conc[0], dMatrixT::kAccumulate);
+			D.Multx(vel,vec);
+			dD.Multx(vel,vec, conc[0], dMatrixT::kAccumulate);
 			
 			/*(cD)*del(fbar)*/
-			D.MultTx(fbar, vec, -conc[0], dMatrixT::kAccumulate);
+//			D.Multx(fbar, vec, -conc[0], dMatrixT::kAccumulate);
+			D.Multx(fbar, vec, conc[0], dMatrixT::kAccumulate);
 		
 			fB.MultTx(vec, fNEEvec);
 			fLHS.Outer(fNEEvec, Na, scale, dMatrixT::kAccumulate);
@@ -537,6 +538,16 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 				mat1 = fUpdatedLagMixture->IP_PartialTau(fIndex, fShapes->CurrIP());
  				mat1 *= conc[0]*scale;
 			}
+
+/*            if (CurrElementNumber() == 0)
+            {
+                cout << "\nconc: "<<conc;
+                cout << "\nip: "<<fShapes->CurrIP();
+                cout << "\n vel: "<<vel;
+                cout << "\n fbar: "<< fbar;
+                cout << "\n taubar: "<<fUpdatedLagMixture->IP_PartialTau(fIndex, fShapes->CurrIP());
+            }
+*/
 			fD.MultAB(D,mat1);
 			fLHS.MultQTBQ(fB,fD, dMatrixT::kWhole, dMatrixT::kAccumulate);
 			
@@ -596,7 +607,7 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 			/* get concentration specific nodal Kirchhoff stresses (tau) */
 			if (fUpdatedLagMixture) fUpdatedLagMixture->ProjectPartialTau(fIndex);
 			else ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
-		
+//            cout << "\nComputeMassFlux Projecting Partial Tau: ";
 			ftau_avg = ElementSupport().OutputAverage();
 			tau.Dimension(NumElementNodes(), nsd*nsd);		
 			tau.SetGlobal(ftau_avg);
@@ -631,7 +642,7 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 			if (fUpdatedLagMixture) {
 				/*collect ip stress*/
 				fUpdatedLagMixture->IP_PartialTau(fIndex, &ftau_ip);
-
+//                cout << "\nComputeMassFlux IP_PartialTau1: ";
 				/*collect nodal accelrations*/
 				fUpdatedLagMixture->Acceleration(acc);
 			}
@@ -651,8 +662,8 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 			{
 				int ip = fShapes->CurrIP();
 
-                cout << "\nelement: "<< e
-                     << "\tip: "<< ip;
+//                cout << "\nelement: "<< e
+//                     << "\tip: "<< ip;
                      
 				fShapes->InterpolateU(acc, ip_acc);		
 
@@ -702,18 +713,26 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 				/*calculate momentum driving force*/
 				ftau_ip[ip].Multx(grad_conc.Pointer(), phi.Pointer());     /*tau_bar grad_x c*/
 				phi.AddScaled(ip_conc[0],fbar);       /*c f_bar*/
-
 				/* compute relative flux velocity */
 				const dMatrixT& D = fCurrMaterial->k_ij();
 				v_e.RowAlias(ip, v);
 				D.Multx(phi, v); /* c*V */
-	
+
+/*                if (e == 0)
+                {
+                    cout << "\n ip: "<< ip;
+                    cout << "\n ip_conc: "<<ip_conc;
+                    cout << "\n fbar: "<<fbar;
+                    cout << "\n ftau_ip: "<<ftau_ip[ip];
+                    cout << "\nv: "<<v;
+                }
+*/
 				/* compute relative mass flux */
 				m_e.RowAlias(ip, m);
 				m = v;
 				m *= ip_conc[0];			
-                cout << "\nvelocity: "<<v;
-                cout << "\nmass flux: "<<m;
+//                cout << "\nvelocity: "<<v;
+//                cout << "\nmass flux: "<<m;
 
 			}
 		}

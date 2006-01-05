@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.20 2006-01-04 00:09:29 thao Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.21 2006-01-05 02:02:39 thao Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -365,11 +365,11 @@ const dSymMatrixT& FSSolidMixtureT::specific_tau_ij(int i)
 	/* compute mechanical strain */
 	double alpha = 1.0/fF_growth_inv.Rows();	
 	double J_g = conc[i]/conc_0[i];
+
 	if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
 	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
     const dMatrixT& F = fFSMatSupport->DeformationGradient();
 	fF_species[0].MultAB(F, fF_growth_inv);
-	
 	/* compute stress */
 	/*returns 1/J^e P Fe^T*/
 	fStress = fStressFunctions[i]->s_ij();
@@ -378,10 +378,6 @@ const dSymMatrixT& FSSolidMixtureT::specific_tau_ij(int i)
 	fStress *= fF_species[0].Det();
 
     
-//    cout << "\n J_g: "<< J_g
-//         << "\n conc: "<<conc[i]
-//         << "\n sij*: "<<fStressFunctions[i]->s_ij()
-//         << "\n J: "<<fF_species[0].Det();
 	return fStress;
 }
 
