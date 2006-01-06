@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.17 2006-01-05 02:02:39 thao Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.18 2006-01-06 02:55:57 thao Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -109,7 +109,7 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 }
 
 /* project the given partial first Piola-Kirchoff stress to the nodes */
-void UpdatedLagMixtureT::ProjectPartialTau(int i)
+void UpdatedLagMixtureT::ProjectPartialCauchy(int i)
 {
 	/* dimensions */
 	int nen = NumElementNodes();
@@ -119,12 +119,12 @@ void UpdatedLagMixtureT::ProjectPartialTau(int i)
 	ElementSupport().ResetAverage(nsd*nsd);
 	
 	/* work space */
-	dMatrixT tau(nsd);
-	dArrayT tau_1D;
-	tau_1D.Alias(tau);
+	dMatrixT cauchy(nsd);
+	dArrayT cauchy_1D;
+	cauchy_1D.Alias(cauchy);
 
 	/* loop over elements */
-	dArray2DT nodal_tau(nen, nsd*nsd);
+	dArray2DT nodal_cauchy(nen, nsd*nsd);
 
 	Top();
 	while (NextElement())
@@ -140,25 +140,26 @@ void UpdatedLagMixtureT::ProjectPartialTau(int i)
 			mixture.UpdateConcentrations(i);
 			
 			/* extrapolate element stresses */
-			nodal_tau = 0.0;
+			nodal_cauchy = 0.0;
 			fCurrShapes->TopIP();
 			while (fCurrShapes->NextIP())
 			{
 				/* Cauchy stress */
-//                cout << "\nProjectPartialTau: ";
-				const dSymMatrixT& stress = mixture.specific_tau_ij(i);
-                stress.ToMatrix(tau);
+//                cout << "\nProjectPartialCauchy: ";
+				const dSymMatrixT& stress = mixture.s_ij(i);
+                stress.ToMatrix(cauchy);
                 
                 const dArrayT& conc = mixture.Get_IPConcentration();	
-                dMatrixT P=tau;
-                P *= conc[i];
+
+//                dMatrixT P = cauchy;
+//                P *= conc[i];
 
 				/* extrapolate to the nodes */
-				fCurrShapes->Extrapolate(tau_1D, nodal_tau);
+				fCurrShapes->Extrapolate(cauchy_1D, nodal_cauchy);
 			}
 			
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
-			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_tau);
+			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_cauchy);
 		}
 }
 
@@ -214,6 +215,57 @@ void UpdatedLagMixtureT::ProjectDPartialStress(int i)
 
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
 			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_P);
+		}
+}
+
+/* project the variation with concentration of the given partial first
+ * Piola-Kirchoff stress to the nodes */
+void UpdatedLagMixtureT::ProjectDPartialCauchy(int i)
+{
+	/* dimensions */
+	int nen = NumElementNodes();
+	int nsd = NumSD();
+
+	/* reset averaging workspace */
+	ElementSupport().ResetAverage(nsd*nsd);
+
+	/* work space */
+	dMatrixT cauchy(nsd), s(nsd);
+	dArrayT cauchy_1D;
+	cauchy_1D.Alias(fStress);
+
+	/* loop over elements */
+	dArray2DT nodal_cauchy(nen, nsd*nsd);
+	Top();
+	while (NextElement())
+		if (CurrentElement().Flag() != ElementCardT::kOFF)
+		{
+			/* get materials */
+			FSSolidMixtureT& mixture = FSSolidMixture();
+
+			/* global shape function values */
+			SetGlobalShape();
+			
+			/* collect concentration */
+			mixture.UpdateConcentrations(i);
+
+			/* extrapolate element stresses */
+			nodal_cauchy = 0.0;
+			fShapes->TopIP();
+			while (fShapes->NextIP())
+			{
+				/* Cauchy stress */
+				const dSymMatrixT& dcauchy = mixture.ds_ij_dc_exact(i);
+				
+				/* Cauchy -> 1st PK stress */
+				dcauchy.ToMatrix(fStress);
+                
+				/* extrapolate to the nodes */
+				fShapes->Extrapolate(cauchy_1D, nodal_cauchy);
+			}
+
+			/* accumulate - extrapolation done from ip's to corners => X nodes */
+			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_cauchy);
 		}
 }
 
@@ -282,10 +334,10 @@ void UpdatedLagMixtureT::IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress,
 	}
 }
 
-void UpdatedLagMixtureT::IP_PartialTau(int i, ArrayT<dMatrixT>* ip_stress)
+void UpdatedLagMixtureT::IP_PartialCauchy(int i, ArrayT<dMatrixT>* ip_stress, ArrayT<dMatrixT>* ip_dstress)
 {
 	/* nothing wanted */
-	if (!ip_stress)
+	if (!ip_stress && !ip_dstress)
 		return;
 	/* element is active */
 	else if (CurrentElement().Flag() != ElementCardT::kOFF)
@@ -303,15 +355,23 @@ void UpdatedLagMixtureT::IP_PartialTau(int i, ArrayT<dMatrixT>* ip_stress)
 			/* destination */
 			int ip = fShapes->CurrIP();			
 
-        
             /* stress */
 			if (ip_stress)
 			{
 				/* Cauchy stress */
-//                cout<< "\nIP_partialtau1: ";
-				const dSymMatrixT& tau = mixture.specific_tau_ij(i);
+//                cout<< "\nIP_partialstress1: ";
+				const dSymMatrixT& cauchy = mixture.s_ij(i);
  				dMatrixT& mat_stress = (*ip_stress)[ip];
-				tau.ToMatrix(mat_stress);
+				cauchy.ToMatrix(mat_stress);
+			}
+
+			/* stress variation */
+			if (ip_dstress)
+			{
+				/* Cauchy stress */
+				const dSymMatrixT& dcauchy = mixture.ds_ij_dc_exact(i);
+				dMatrixT& dstress = (*ip_dstress)[ip];
+				dcauchy.ToMatrix(dstress);
 			}
 		}
 	}
@@ -320,29 +380,10 @@ void UpdatedLagMixtureT::IP_PartialTau(int i, ArrayT<dMatrixT>* ip_stress)
 		if (ip_stress)
 			for (int i = 0; i < ip_stress->Length(); i++)
 				(*ip_stress)[i] = 0.0;
+		if (ip_dstress)
+			for (int i = 0; i < ip_dstress->Length(); i++)
+				(*ip_dstress)[i] = 0.0;
 	}
-}
-
-const dMatrixT& UpdatedLagMixtureT::IP_PartialTau(int i,int ip)
-{
-	/* element is active */
-	if (CurrentElement().Flag() != ElementCardT::kOFF)
-	{
-		/* get materials */
-		FSSolidMixtureT& mixture = FSSolidMixture();
-		
-		/* collect concentration */
-		mixture.UpdateConcentrations(i);
-		
-        fShapes->SetIP(ip);
-
-        /* Cauchy stress */
-//        cout << "\nIP_PartialTau2: ";
-		mixture.specific_tau_ij(i).ToMatrix(fStress);
-	}
-	else fStress = 0.0;
-	
-	return (fStress);
 }
 
 /* return the nodal accelerations over the current element */

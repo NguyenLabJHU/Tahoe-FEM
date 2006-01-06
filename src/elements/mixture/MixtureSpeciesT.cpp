@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.22 2006-01-05 02:02:39 thao Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.23 2006-01-06 02:55:57 thao Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -417,6 +417,8 @@ void MixtureSpeciesT::FormKd(double constK)
 		/* accumulate */
 		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
 	}	
+    if (CurrElementNumber() == 0)
+        cout << "\nfRHS: "<<fRHS;
 }
 
 /* form the element stiffness matrix */
@@ -469,6 +471,8 @@ void MixtureSpeciesT::FormStiffness(double constK)
 		fNEEmat.MultATB(fB, DM);
 		fLHS.AddScaled(scale, fNEEmat);
 	}
+    if (CurrElementNumber() == 0)
+        cout << "\nfLHS: "<<fLHS;
 }
 
 /* compute the flux velocities */
@@ -498,6 +502,7 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		fP_avg = ElementSupport().OutputAverage();
 		P.Dimension(NumElementNodes(), nsd*nsd);		
 		P.SetGlobal(fP_avg);
+//        cout<<"\nnodal P: "<<P;
 
 		/* project variation in partial stresses to the nodes */
 		if (compute_dmass_flux) {
@@ -506,6 +511,8 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 			dP_avg.Alias(ElementSupport().OutputAverage());
 			dP.Dimension(NumElementNodes(), nsd*nsd);		
 			dP.SetGlobal(dP_avg);
+            
+//            cout << "\nnodal dP: "<<dP;
 		}
 
 		ip_Grad_P.Dimension(nsd*nsd, nsd);
@@ -579,9 +586,6 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		{
 			int ip = fShapes->CurrIP();
 
-//            cout << "\nelement: "<< e
-//                 << "\tip: "<< ip;
-
 			/* deformation gradient */
 			const dMatrixT& F = (fUpdatedLagMixture) ?
 				fUpdatedLagMixture->DeformationGradient(ip) :
@@ -622,7 +626,7 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 				/* compute divergence of P */
 				ComputeDivergence(ip_grad_X, fP_ip, divP);
 			}
-			
+			            
 			/* add to force */
 			force.AddScaled(1.0/ip_conc[0], divP);
             
@@ -652,6 +656,13 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 //            cout << "\nvelocity: "<<V;
 //            cout << "\nmass flux: "<<M;
 
+/*            if (CurrElementNumber() == 0)
+            {
+                cout << "\n ip: "<< ip
+                     << "\n ip_conc: "<<ip_conc[0]
+                     << "\n force/conc: "<<force;
+            }
+*/
 			/* mass flux variation */
 			if (compute_dmass_flux)
 			{
@@ -741,6 +752,8 @@ void MixtureSpeciesT::ComputeDDivergence(const dMatrixT& ip_grad_transform,
 	
 	dArrayT Na;
 	d_div = 0.0;
+    dArrayT divdP(nsd);
+    divdP = 0.0;
 	for (int k = 0; k < nip; k++) 
 	{
 		/* shape function array */
@@ -751,7 +764,17 @@ void MixtureSpeciesT::ComputeDDivergence(const dMatrixT& ip_grad_transform,
 			for (int j = 0; j < nsd; j++) /* div */
 				for (int n = 0; n < nen; n++)
 					d_div(i,n) += ip_grad_transform(j,k)*A_k(i,j)*Na[n];
+
+//        if (CurrElementNumber() == 0)
+//            cout << "\n div dP ip: "<<A_k;
+        for (int i = 0 ; i < nsd; i++)
+			for (int j = 0; j < nsd; j++) /* div */
+					divdP[i] += ip_grad_transform(j,k)*A_k(i,j);
 	}
+        if (CurrElementNumber() == 0) {
+            cout << "\ndivdP: "<<divdP;
+            cout << "\nd_div: "<<d_div;
+        }
 }
 
 void MixtureSpeciesT::ComputeDDivergence(const LocalArrayT& nodal_dP, dMatrixT& d_div,
@@ -764,7 +787,7 @@ void MixtureSpeciesT::ComputeDDivergence(const LocalArrayT& nodal_dP, dMatrixT& 
 	
 	/* extrapolation matrix */
 	const dMatrixT& extrap = fShapes->Extrapolation();
-
+//    cout << "\nextrap: "<<extrap;
 	/* shape function derivatives (at the current integration point) */
 	const dArray2DT& DNa = fShapes->Derivatives_U();
 
@@ -782,6 +805,6 @@ void MixtureSpeciesT::ComputeDDivergence(const LocalArrayT& nodal_dP, dMatrixT& 
 			for (int j = 0; j < nsd; j++) /* div */
 				for (int n = 0; n < nen; n++)
 					for (int m = 0; m < nen; m++)
-						d_div(i,n) += DNa(j,m)*extrap(m,k)*dP_ip(i,j)*Na[n];
-	}
+ 						d_div(i,n) += DNa(j,m)*extrap(m,k)*dP_ip(i,j)*Na[n];
+ 	}
 }

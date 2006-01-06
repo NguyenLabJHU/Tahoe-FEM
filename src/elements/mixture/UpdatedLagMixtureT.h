@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.h,v 1.7 2005-12-20 17:23:16 thao Exp $ */
+/* $Id: UpdatedLagMixtureT.h,v 1.8 2006-01-06 02:55:57 thao Exp $ */
 #ifndef _UPDATED_LAG_MIXTURE_T_H_
 #define _UPDATED_LAG_MIXTURE_T_H_
 
@@ -44,11 +44,15 @@ public:
 	void ProjectPartialStress(int i);
 
 	/** project the given partial first Piola-Kirchoff stress to the nodes */
-	void ProjectPartialTau(int i);
+	void ProjectPartialCauchy(int i);
 
 	/** project the variation with concentration of the given partial first 
 	 * Piola-Kirchoff stress to the nodes */
 	void ProjectDPartialStress(int i);
+	/*@}*/
+
+	/** project the variation with concentration of the given partial cauchy stress to the nodes */
+	void ProjectDPartialCauchy(int i);
 	/*@}*/
 
 	/** collect the integration point stresses and variations in stress. This method
@@ -62,10 +66,7 @@ public:
 	void IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress, ArrayT<dMatrixT>* ip_dstress);
 
 	/*returns the species specific kirchhoff stress at the integration points*/
-	void IP_PartialTau(int i, ArrayT<dMatrixT>* ip_stress);
-
-	/*returns the species specific kirchhoff stress at the integration points*/
-	const dMatrixT& IP_PartialTau(int i, int ip);
+	void IP_PartialCauchy(int i, ArrayT<dMatrixT>* ip_stress, ArrayT<dMatrixT>* ip_dstress);
 
 	/** return the body force vector */
 	void BodyForce(dArrayT& body_force) const;

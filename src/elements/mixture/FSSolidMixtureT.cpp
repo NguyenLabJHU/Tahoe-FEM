@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.21 2006-01-05 02:02:39 thao Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.22 2006-01-06 02:55:57 thao Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -173,6 +173,45 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 	return fStress;
 }
 
+/* variation of 1st Piola-Kirchhoff for the given species with concentration */
+const dSymMatrixT& FSSolidMixtureT::ds_ij_dc_exact(int i)
+{
+	const char caller[] = "FSSolidMixtureT::ds_ij_dc";
+
+	/* current element information */
+	const ElementCardT& element = CurrentElement();
+	const dArrayT& conc_0 = element.DoubleData();
+
+	/* concentrations */
+	IPConcentration(fConc, fIPConc);
+	dArrayT& conc = fIPConc;	
+
+	double alpha = 1.0/fF_growth_inv.Rows();
+
+	double J_g = conc[i]/conc_0[i];
+    const dMatrixT& F = fFSMatSupport->DeformationGradient();
+	if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
+	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
+	fF_species[0].MultAB(F, fF_growth_inv);
+    
+    double J_e = F.Det()/J_g;
+
+    /* cauchy stress divided by current concentration times 1/3 (i.e. 1/3 taubar) */
+    /* recall that fStressFunctions[i]->s_ij() returns 1/Je de/dFe Fe^T*/
+    const double third = 1.0/3.0;
+	fStress.SetToScaled(third*J_e, fStressFunctions[i]->s_ij());
+
+    fModulus.SetToScaled(J_e, fStressFunctions[i]->c_ijkl());
+	fStress[0] -= third*(fModulus(0,0)+fModulus(0,1)+fModulus(0,2));
+	fStress[1] -= third*(fModulus(1,0)+fModulus(1,1)+fModulus(1,2));
+	fStress[2] -= third*(fModulus(2,0)+fModulus(2,1)+fModulus(2,2));
+	fStress[3] -= third*(fModulus(3,0)+fModulus(3,1)+fModulus(3,2));
+	fStress[4] -= third*(fModulus(4,0)+fModulus(5,1)+fModulus(5,2));
+	fStress[5] -= third*(fModulus(4,0)+fModulus(5,1)+fModulus(5,2));
+
+	return fStress;
+}
+
 /* strain energy density */
 double FSSolidMixtureT::StrainEnergyDensity(void)
 {
@@ -343,43 +382,6 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 	return fStress;
 }
 
-/* partial Cauchy stress */
-const dSymMatrixT& FSSolidMixtureT::specific_tau_ij(int i)
-{
-	/*int i is the species index*/
-
-	const char caller[] = "FSSolidMixtureT::specific_s_ij";
-	
-	/* current element information */
-	/*retrieve original reference concetrations at ip*/
-	const ElementCardT& element = CurrentElement();
-	const dArrayT& conc_0 = element.DoubleData();
-	
-	/*retrieve reference concentrations*/
-	/* concentrations */
-    
-    /*IPConcentration or IPConcentration_current*/
-	IPConcentration_current(fConc, fIPConc);
-	const dArrayT& conc = fIPConc;	
-	
-	/* compute mechanical strain */
-	double alpha = 1.0/fF_growth_inv.Rows();	
-	double J_g = conc[i]/conc_0[i];
-
-	if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
-	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
-    const dMatrixT& F = fFSMatSupport->DeformationGradient();
-	fF_species[0].MultAB(F, fF_growth_inv);
-	/* compute stress */
-	/*returns 1/J^e P Fe^T*/
-	fStress = fStressFunctions[i]->s_ij();
-	
-	/*Multiply by J^e to obtain tau_bar*/
-	fStress *= fF_species[0].Det();
-
-    
-	return fStress;
-}
 
 /* initialization */
 void FSSolidMixtureT::PointInitialize(void)

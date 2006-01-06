@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.11 2006-01-04 00:09:29 thao Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.12 2006-01-06 02:55:57 thao Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -72,6 +72,9 @@ public:
 	/** variation of the Cauchy for the given species with concentration */
 	const dSymMatrixT& ds_ij_dc(int i);
 
+	/** variation of the Cauchy for the given species with concentration */
+	const dSymMatrixT& ds_ij_dc_exact(int i);
+
 	/** \name spatial representation */
 	/*@{*/
 	/** strain energy density. Method does retrieve current values of the nodal concentrations. */
@@ -90,8 +93,6 @@ public:
 	/** partial Cauchy stress. Method does not retrieve current values of the nodal 
 	 * concentrations. These can be updated with FSSolidMixtureT::UpdateConcentrations. */
 	const dSymMatrixT& s_ij(int i);
-
-	const dSymMatrixT& specific_tau_ij(int i);
 
 	/** return the pressure associated with the last call to 
 	 * FSSolidMixtureT::s_ij. See SolidMaterialT::Pressure

@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.h,v 1.2 2005-12-21 00:55:49 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.h,v 1.3 2006-01-06 02:55:57 thao Exp $ */
 #ifndef _CURR_MIXTURE_SPECIES_T_H_
 #define _CURR_MIXTURE_SPECIES_T_H_
 
@@ -92,12 +92,7 @@ protected:
 	virtual void FormStiffness(double constK);
 
 	/** compute the mass flux and flux velocities */
-	void ComputeMassFlux(void);
-
-	/** compute the flux velocities and their variation with concentration */
-	/** compute the divergence tensor field given the values at the integration points */
-	void ComputeDivergence(const dMatrixT& ip_grad_transform, const ArrayT<dMatrixT>& tensor_ip,
-		dArrayT& div) const;
+	void ComputeMassFlux(bool compute_dmass_flux);
 	
 	/*project background velocities from ip to nodes*/
 	void ProjectV(void);
@@ -132,6 +127,9 @@ protected:
 	/** mass flux */
 	dArray2DT fMassFlux;
 
+	/** variation in mass flux with concentration */
+	dArray2DT fDMassFlux;
+
 	/** concentration specific driving force*/
 	dArray2DT fDrivingForce;
 
@@ -139,16 +137,17 @@ protected:
 	dArray2DT fDivBackgroundVel;
 
 	/*ip specific stresses*/
-	ArrayT<dMatrixT> ftau_ip;
+	ArrayT<dMatrixT> fcauchy_ip;
+    ArrayT<dMatrixT> fdcauchy_ip;
 
 	/** nodal specific stresses */
-	dArray2DT ftau_avg;
+	dArray2DT fcauchy_avg;
 	
 	dArray2DT fv_bg_avg;
 	
 	/** \name element-by-element stress projection */
 	/*@{*/
-	/*grad_x to calculate div_x tau from integration point values*/
+	/*grad_x to calculate div_x cauchy from integration point values*/
 	ArrayT<dMatrixT> fip_gradient;
 	/*@}*/
 	

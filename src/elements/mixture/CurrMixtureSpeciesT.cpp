@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.cpp,v 1.5 2006-01-05 02:02:39 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.cpp,v 1.6 2006-01-06 02:55:57 thao Exp $ */
 #include "CurrMixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -183,10 +183,13 @@ void CurrMixtureSpeciesT::TakeParameterList(const ParameterListT& list)
     /* dimensions */
     int nip = NumIP();
     int nsd = NumSD();
+
     /* allocate/initialize */
-    ftau_ip.Dimension(nip);
+    fcauchy_ip.Dimension(nip);
+    fdcauchy_ip.Dimension(nip);
     for (int i = 0; i < nip; i++) {
-        ftau_ip[i].Dimension(nsd);
+        fcauchy_ip[i].Dimension(nsd);
+        fdcauchy_ip[i].Dimension(nsd);
     }
     
 	/* allocate work space for element-by-element stress projection */
@@ -235,9 +238,9 @@ void CurrMixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 		fQ1P0Mixture->SetConcentration(fIndex, Q1P0MixtureT::kCurrent);	
 
 	/* dimension */
-	fDrivingForce.Dimension(NumElements(), NumIP()*NumSD());
 	fFluxVelocity.Dimension(NumElements(), NumIP()*NumSD());
 	fMassFlux.Dimension(NumElements(), NumIP()*NumSD());
+	fDMassFlux.Dimension(NumElements(), NumIP()*NumSD());
 	fDivBackgroundVel.Dimension(NumElements(), NumIP());
 	fNEEmat.Dimension(NumElementNodes());
 	fNSDmat1.Dimension(NumSD());
@@ -246,7 +249,8 @@ void CurrMixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 	
 	/* initialize */
 	fFluxVelocity = 0.0;
-	fDrivingForce = 0.0;
+    fMassFlux = 0.0;
+    fDMassFlux = 0.0;
 	fDivBackgroundVel = 0.0;
 }
 
@@ -325,7 +329,7 @@ bool CurrMixtureSpeciesT::NextElement(void)
 void CurrMixtureSpeciesT::RHSDriver(void)
 {
     /* compute the flux velocities */
-	ComputeMassFlux();
+	ComputeMassFlux(false);
     
 	/* inherited */
 	NLDiffusionElementT::RHSDriver();
@@ -337,7 +341,7 @@ void CurrMixtureSpeciesT::LHSDriver(GlobalT::SystemTypeT sys_type)
 #pragma unused(sys_type)
 
 	/* compute the variation in flux velocities */
-	ComputeMassFlux();
+	ComputeMassFlux(true);
 
 	/* inherited */
 	NLDiffusionElementT::LHSDriver(sys_type);
@@ -429,6 +433,8 @@ void CurrMixtureSpeciesT::FormKd(double constK)
 		/* accumulate */
 		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
 	}	
+    if (CurrElementNumber() == 0)
+        cout << "\nfRHS: "<<fRHS;
 }
 
 /* form the element stiffness matrix */
@@ -449,28 +455,23 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 	int nen = NumElementNodes();	
 
 	/* flux velocity */
-	dArray2DT v_e(nip, nsd, fFluxVelocity(CurrElementNumber()));
-	dArrayT vel;
-	dArray2DT f_e(nip, nsd, fDrivingForce(CurrElementNumber()));
-	dArrayT fbar;
+	dArray2DT dm_e(nip, nsd, fFluxVelocity(CurrElementNumber()));
+	dArrayT dm(nsd);
 
 	/* integrate element stiffness */
 	dMatrixT grad_conc;
 	dArrayT conc;
 	
 	/*work space*/
-	dArrayT vec(nsd);
-	dMatrixT mat1(nsd);
 	dArrayT Na;
-	dMatrixT ip_tau(nsd);
-	
+    	
  	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
 		int ip = fShapes->CurrIP();
 
 		double scale = constK*(*Det++)*(*Weight++);
-//		cout << "\nscale0: "<<scale;
+
 		/* set field gradient */
 		grad_conc.Alias(1, nsd, fGradient_list[ip].Pointer());
 		fShapes->GradU(fLocDisp, grad_conc);
@@ -484,9 +485,6 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 
 		/* shape function array */
 		Na.Alias(nen, fShapes->IPShapeU());			
-
-		const dMatrixT& D = fCurrMaterial->k_ij();
-		const dMatrixT& dD = fCurrMaterial->dk_ij();
 
 		/*div(v)*/
 		/* deformation gradients */
@@ -514,44 +512,15 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 
 		if(fSpecies == kFluid)  
 		{
-			v_e.RowAlias(ip,vel);
-			f_e.RowAlias(ip,fbar);
-			
-			/*calculate asymmetric part of the stiffness matrix*/
-			
-			/*del(c*D)*vel where D is permitivity/viscosity*/
-			D.Multx(vel,vec);
-			dD.Multx(vel,vec, conc[0], dMatrixT::kAccumulate);
-			
-			/*(cD)*del(fbar)*/
-//			D.Multx(fbar, vec, -conc[0], dMatrixT::kAccumulate);
-			D.Multx(fbar, vec, conc[0], dMatrixT::kAccumulate);
+			/*calculate Ba^T dm/dc Nb part of the stiffness matrix*/
+            /*get derivative of mass flux wrt to conc*/
+            dm_e.RowAlias(ip,dm);
 		
-			fB.MultTx(vec, fNEEvec);
+			fB.MultTx(dm, fNEEvec);
+            cout << "\ndm: "<<dm;
+            cout << "\nNa: "<<Na;
 			fLHS.Outer(fNEEvec, Na, scale, dMatrixT::kAccumulate);
-			
-			/*calculate symmetric part*/
-			/*D(c tau_bar)*/
-			mat1 = 0.0;
-			if (fUpdatedLagMixture)
-			{
-				mat1 = fUpdatedLagMixture->IP_PartialTau(fIndex, fShapes->CurrIP());
- 				mat1 *= conc[0]*scale;
-			}
-
-/*            if (CurrElementNumber() == 0)
-            {
-                cout << "\nconc: "<<conc;
-                cout << "\nip: "<<fShapes->CurrIP();
-                cout << "\n vel: "<<vel;
-                cout << "\n fbar: "<< fbar;
-                cout << "\n taubar: "<<fUpdatedLagMixture->IP_PartialTau(fIndex, fShapes->CurrIP());
-            }
-*/
-			fD.MultAB(D,mat1);
-			fLHS.MultQTBQ(fB,fD, dMatrixT::kWhole, dMatrixT::kAccumulate);
-			
-		}
+        }
 		else if (fSpecies == kSolute)
 		{
 			/*c div(v_f)*/
@@ -573,12 +542,19 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
 			/*Diffusion*/
 			fD.SetToScaled(scale, fCurrMaterial->k_ij());
 			fLHS.MultQTBQ(fB, fD, dMatrixT::kWhole, dMatrixT::kAccumulate);
+            
+            /*get derivative of mass flux wrt to conc (dD*grad_c) */
+            dm_e.RowAlias(ip,dm);
+            fB.MultTx(dm,fNEEvec);
+			fLHS.Outer(fNEEvec, Na, scale, dMatrixT::kAccumulate);            
 		}
 	}
+    if (CurrElementNumber() == 0)
+        cout << "\nfLHS: "<<fLHS;
 }
 
-/* compute the relative mass flux and velocities. Implemented now only for fluid species and for momentum driving forces only */
-void CurrMixtureSpeciesT::ComputeMassFlux(void)
+/* compute the relative mass flux and velocities. Implemented now only for fluid species  for momentum driving forces only and for solute species for diffusion only */
+void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 {
 	const char caller[] = "CurrMixtureSpeciesT::ComputeMassFlux";
 	
@@ -593,41 +569,55 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 	dArrayT ip_conc(1);
 	dMatrixT grad_conc(1,nsd); /*current coords*/
 
-	dArray2DT v_e, m_e;
-	dArrayT v, m;
+	dArray2DT v_e, m_e,dm_e;
+	dArrayT v, m, dm;
 
 	if(fSpecies == kFluid) 
 	{
 		/*work space for projecting partial stresses to the nodes*/
-		LocalArrayT tau(LocalArrayT::kUnspecified); /*element local array of nodal stresses*/
-		dMatrixT ip_Grad_tau, ip_Grad_tau_j;  /*ip array of gradient of globally projected tau*/
-
+        /*element local array of nodal stresses and variation of nodal stresses with concentration*/
+		LocalArrayT cauchy(LocalArrayT::kUnspecified), dcauchy(LocalArrayT::kUnspecified); 
+        dArray2DT dcauchy_avg;
+        
+        /*workspaces for calculating divergence*/
+		dMatrixT ip_Grad_val, ip_Grad_val_j;
+        dArrayT div_val(nsd);	
 		if (fGradientOption == kGlobalProjection)
 		{	
 			/* get concentration specific nodal Kirchhoff stresses (tau) */
-			if (fUpdatedLagMixture) fUpdatedLagMixture->ProjectPartialTau(fIndex);
+			if (fUpdatedLagMixture) fUpdatedLagMixture->ProjectPartialCauchy(fIndex);
 			else ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
-//            cout << "\nComputeMassFlux Projecting Partial Tau: ";
-			ftau_avg = ElementSupport().OutputAverage();
-			tau.Dimension(NumElementNodes(), nsd*nsd);		
-			tau.SetGlobal(ftau_avg);
 
-			ip_Grad_tau.Dimension(nsd*nsd, nsd);
+			fcauchy_avg = ElementSupport().OutputAverage();
+			cauchy.Dimension(NumElementNodes(), nsd*nsd);		
+			cauchy.SetGlobal(fcauchy_avg);
+//            cout << "\nnodal cauchy: "<<cauchy;
+
+            /* project variation in partial stresses to the nodes */
+            if (compute_dmass_flux) {
+                if (fUpdatedLagMixture) fUpdatedLagMixture->ProjectDPartialCauchy(fIndex);
+                else ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
+                dcauchy_avg.Alias(ElementSupport().OutputAverage());
+                dcauchy.Dimension(NumElementNodes(), nsd*nsd);		
+                dcauchy.SetGlobal(dcauchy_avg);
+//                cout << "\nnodal dcauchy: "<<dcauchy;
+            }
+			ip_Grad_val.Dimension(nsd*nsd, nsd);
 		}
+        else {
+            ip_grad_x.Dimension(nsd, nip);
+        }
 	
-//        cout <<"\nglobal average stresses: \n"<<ftau_avg;
 		/*calculate momentum driving force*/
 		/* get the body force */
 		dArrayT body_force(nsd);
 		if (fUpdatedLagMixture) fUpdatedLagMixture->BodyForce(body_force);
 		else fQ1P0Mixture->BodyForce(body_force);
-
-		dArrayT divtau(nsd);	/* element values */
+        
 		LocalArrayT acc(LocalArrayT::kAcc, NumElementNodes(), nsd);
 		dArrayT ip_acc(nsd);
 		
-		dArray2DT  f_e;
-		dArrayT fbar, phi(nsd); /*-(c fbar - tau_bar grad_x c*/;
+		dArrayT force(nsd); /*v=D*force, force = -phi*/;
 
 		Top();
 		while (NextElement()) 
@@ -637,22 +627,29 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 			SetGlobalShape();
 	
 			/* collect nodal stresses */
-			if (fGradientOption == kGlobalProjection) SetLocalU(tau);
+			if (fGradientOption == kGlobalProjection) {
+                SetLocalU(cauchy);
+                if (compute_dmass_flux) SetLocalU(dcauchy);
+            }
 
-			if (fUpdatedLagMixture) {
-				/*collect ip stress*/
-				fUpdatedLagMixture->IP_PartialTau(fIndex, &ftau_ip);
-//                cout << "\nComputeMassFlux IP_PartialTau1: ";
-				/*collect nodal accelrations*/
-				fUpdatedLagMixture->Acceleration(acc);
-			}
-			else ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
-		
+            /* collect integration point stresses - sets shapes functions over the element */
+            if (fGradientOption == kElementProjection) {
+                if (fUpdatedLagMixture)
+                    fUpdatedLagMixture->IP_PartialStress(fIndex, &fcauchy_ip, (compute_dmass_flux) ? &fdcauchy_ip : NULL);
+                else
+				ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
+            }
+
+            /* collect nodal accelerations */
+            if (fUpdatedLagMixture)
+                fUpdatedLagMixture->Acceleration(acc);
+            else
+                fQ1P0Mixture->Acceleration(acc);
+
 			/* collect nodal concentrations */
 			SetLocalU(fLocDisp);
 		
 			/* mass flux and velocity */
-			f_e.Alias(nip, nsd, fDrivingForce(e));
 			v_e.Alias(nip, nsd, fFluxVelocity(e));
 			m_e.Alias(nip, nsd, fMassFlux(e));
 
@@ -665,29 +662,26 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 //                cout << "\nelement: "<< e
 //                     << "\tip: "<< ip;
                      
+				/* ip values of current concentration and acceleration*/
+				fShapes->InterpolateU(fLocDisp, ip_conc);
 				fShapes->InterpolateU(acc, ip_acc);		
 
-				f_e.RowAlias(ip, fbar);
-
 				/* inertial forces */
-				fbar.SetToCombination(-1.0, ip_acc, 1.0, body_force);
-                		
-				/* compute stress divergence */
+				force.SetToCombination(-ip_conc[0], ip_acc, ip_conc[0], body_force);
+ 
+                /* compute stress divergence */
 				if (fGradientOption == kGlobalProjection)
 				{
-					divtau = 0.0;
-//                    cout <<"\n tau: "<<tau;
-//                    cout <<"\n fLocDisp: "<<fLocDisp;
+					div_val = 0.0;
 					if (fUpdatedLagMixture)
-						fShapes->GradU(tau, ip_Grad_tau);   /*gradient wrt to current configuration*/
+						fShapes->GradU(cauchy, ip_Grad_val);   /*gradient wrt to current configuration*/
 					else ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
 					
 					for (int j = 0; j < nsd; j++) {
-						ip_Grad_tau_j.Alias(nsd, nsd, ip_Grad_tau(j));
+						ip_Grad_val_j.Alias(nsd, nsd, ip_Grad_val(j));
 						for (int i = 0; i < nsd; i++)
-							divtau[i] += ip_Grad_tau_j(i,j);
+							div_val[i] += ip_Grad_val_j(i,j);
 					}
-//                    cout << "\n divtau: "<<divtau;
 				}
 				else /* element-by-element gradient calculation */
 				{
@@ -698,45 +692,109 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 					ip_grad_x.MultATB(jacobian, fip_gradient[ip]);
 
 					/* compute divergence of tau */
-					ComputeDivergence(ip_grad_x, ftau_ip, divtau);
+                    /* dimensions */
+                    int nsd = ip_grad_x.Rows();
+                    int nip = ip_grad_x.Cols();
+
+                    div_val = 0.0;
+                    for (int k = 0; k < nip; k++) {
+                        const dMatrixT& ip_stress = fcauchy_ip[k];
+                        for (int i = 0 ; i < nsd; i++)
+                            for (int j = 0; j < nsd; j++) /* div */
+                                div_val[i] += ip_grad_x(j,k)*ip_stress(i,j);			
+                    }
+
 				}
-			
-				/* add to force */
-				fbar += divtau;
             
-				/* ip values of current concentration*/  //confirm that fLocDisp is current concentration*/
-				fShapes->InterpolateU(fLocDisp, ip_conc);
+				/* add divergence of stress term to force */
+				force += div_val;
 
-				/*ip values spatial gradient of current concentration*/
-				fShapes->GradU(fLocDisp, grad_conc);   /*gradient wrt current coordinates*/
-			
-				/*calculate momentum driving force*/
-				ftau_ip[ip].Multx(grad_conc.Pointer(), phi.Pointer());     /*tau_bar grad_x c*/
-				phi.AddScaled(ip_conc[0],fbar);       /*c f_bar*/
-				/* compute relative flux velocity */
-				const dMatrixT& D = fCurrMaterial->k_ij();
 				v_e.RowAlias(ip, v);
-				D.Multx(phi, v); /* c*V */
+            
+				const dMatrixT& D = fCurrMaterial->k_ij();
+				D.Multx(force, v); /* c*V */
 
-/*                if (e == 0)
-                {
-                    cout << "\n ip: "<< ip;
-                    cout << "\n ip_conc: "<<ip_conc;
-                    cout << "\n fbar: "<<fbar;
-                    cout << "\n ftau_ip: "<<ftau_ip[ip];
-                    cout << "\nv: "<<v;
-                }
-*/
 				/* compute relative mass flux */
 				m_e.RowAlias(ip, m);
-				m = v;
-				m *= ip_conc[0];			
-//                cout << "\nvelocity: "<<v;
-//                cout << "\nmass flux: "<<m;
+				m.SetToScaled(ip_conc[0],v);
+  
+/*                if (CurrElementNumber() == 0)
+                {
+                    cout << "\n ip: "<< ip
+                        << "\n ip_conc: "<<ip_conc[0]
+                        << "\n force: "<<force;
+                }
+*/
+                /* mass flux variation */
+                if (compute_dmass_flux)
+                {
+                    dm_e.Alias(nip, nsd, fDMassFlux(e));
+                    dm_e.RowAlias(ip, dm);
+    
+                    /* contribution from changing diffusivity -cf dB/dc phi*/
+                    const dMatrixT& dD = fCurrMaterial->dk_ij();
+                    dD.Multx(force, dm, ip_conc[0]);
 
-			}
-		}
-	}
+                    /*contribution form -B(2 cf dv/dt - 2 cf g - div sigma)*/
+                    force.AddScaled(-ip_conc[0], ip_acc);
+                    force.AddScaled(ip_conc[0], body_force);
+                    const dMatrixT& D = fCurrMaterial->k_ij();
+                    D.Multx(force, dm, 1.0, dMatrixT::kAccumulate);
+                
+                
+                    /* compute divergence of dstress/dconc */
+                    if (fGradientOption == kGlobalProjection)
+                    {
+                        div_val = 0.0;
+                        if (fUpdatedLagMixture)
+                            fShapes->GradU(dcauchy, ip_Grad_val);   /*gradient wrt to current configuration*/
+                        else ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
+					
+                        for (int j = 0; j < nsd; j++) {
+                            ip_Grad_val_j.Alias(nsd, nsd, ip_Grad_val(j));
+                            for (int i = 0; i < nsd; i++)
+                                div_val[i] += ip_Grad_val_j(i,j);
+                        }
+                    }
+                    else /* element-by-element gradient calculation */
+                    {
+                        /* transform gradient matrix to element (curr) coordinates */
+                        dMatrixT jacobian(nsd);
+                        fShapes->ParentDomain().DomainJacobian(fLocCurrCoords, ip, jacobian);
+                        jacobian.Inverse();
+                        ip_grad_x.MultATB(jacobian, fip_gradient[ip]);
+
+                        /* compute divergence of tau */
+                        /* dimensions */
+                        int nsd = ip_grad_x.Rows();
+                        int nip = ip_grad_x.Cols();
+
+                        div_val = 0.0;
+                        for (int k = 0; k < nip; k++) {
+                            const dMatrixT& ip_val= fdcauchy_ip[k];
+
+/*                    if (CurrElementNumber() == 0)
+                    {
+                        cout << "\n div dcauchy ip: "<<ip_val;
+                    }
+                    */
+
+                            for (int i = 0 ; i < nsd; i++)
+                                for (int j = 0; j < nsd; j++) /* div */
+                                    div_val[i] += ip_grad_x(j,k)*ip_val(i,j);			
+                        }
+                    }
+                    D.Multx(div_val, dm, ip_conc[0], dMatrixT::kAccumulate); 
+
+/*                    if (CurrElementNumber() == 0)
+                    {
+                        cout << "\n div dcauchy: "<<div_val;
+                    } */
+                
+                }
+            }
+        }
+    }
 	else if (fSpecies == kSolute) 
 	{		
 		if (fGradientOption == kGlobalProjection){
@@ -769,7 +827,6 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 				
 				if (fGradientOption == kGlobalProjection){
 					LocalArrayT v_bg(LocalArrayT::kUnspecified);
-					v_bg.Dimension(NumElementNodes(),nsd);
 					dMatrixT ip_grad_v(nsd);
 
 					v_bg.Dimension(NumElementNodes(), nsd);		
@@ -812,27 +869,22 @@ void CurrMixtureSpeciesT::ComputeMassFlux(void)
 				
 				v_e.RowAlias(ip,v);
 				v.SetToScaled(1.0/ip_conc[0],m);
+                
+                /* mass flux variation with respect to conc: only dD grad_c implemented for now */
+                if (compute_dmass_flux)
+                {
+                    dm_e.Alias(nip, nsd, fDMassFlux(e));
+                    dm_e.RowAlias(ip, dm);
+    
+                    /* contribution from changing diffusivity -cf dB/dc phi*/
+                    const dMatrixT& dD = fCurrMaterial->dk_ij();
+                    dD.Multx(grad_conc, dm);
+                }
 			}
 		}
 	}
 }
 
-/* compute the divergence tensor field given the values at the integration points */
-void CurrMixtureSpeciesT::ComputeDivergence(const dMatrixT& ip_grad_transform, 
-	const ArrayT<dMatrixT>& tensor_ip, dArrayT& div) const
-{
-	/* dimensions */
-	int nsd = ip_grad_transform.Rows();
-	int nip = ip_grad_transform.Cols();
-
-	div = 0.0;
-	for (int k = 0; k < nip; k++) {
-		const dMatrixT& A_k = tensor_ip[k];
-		for (int i = 0 ; i < nsd; i++)
-			for (int j = 0; j < nsd; j++) /* div */
-				div[i] += ip_grad_transform(j,k)*A_k(i,j);			
-	}
-}
 
 /* project the given partial first Piola-Kirchoff stress to the nodes */
 void CurrMixtureSpeciesT::ProjectV(void)
