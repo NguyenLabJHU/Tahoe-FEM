@@ -1,4 +1,4 @@
-/* $Id: tahoe.MacOS.pch++,v 1.3 2005-12-21 00:57:37 tdnguye Exp $ */
+/* $Id: tahoe.MacOS.pch++,v 1.4 2006-01-07 17:59:26 paklein Exp $ */
 #pragma check_header_flags on  
 
 //#define _MSL_USING_MW_C_HEADERS 1
@@ -13,9 +13,6 @@
 	#pragma precompile_target "tahoe.PPC.mch"
 #endif
 
-#ifndef macintosh
-#define macintosh
-#endif
 /* tahoe defines */
 #include "tahoeOptions.h"
 
