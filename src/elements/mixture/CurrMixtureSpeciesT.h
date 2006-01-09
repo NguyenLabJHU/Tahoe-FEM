@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.h,v 1.3 2006-01-06 02:55:57 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.h,v 1.4 2006-01-09 17:36:51 thao Exp $ */
 #ifndef _CURR_MIXTURE_SPECIES_T_H_
 #define _CURR_MIXTURE_SPECIES_T_H_
 
@@ -96,6 +96,15 @@ protected:
 	
 	/*project background velocities from ip to nodes*/
 	void ProjectV(void);
+
+	/** \name variation of divergence with respect to the nodal values */
+	/*@{*/
+	/** using element-by-element projection */
+	void ComputeDDivergence(const dMatrixT& ip_grad_transform, const ArrayT<dMatrixT>& tensor_ip,
+		dMatrixT& d_div) const;
+
+	void ComputeDDivergence(const LocalArrayT& nodal_dP, dMatrixT& d_div, dMatrixT& dP_ip) const;
+	/*@}*/
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.23 2006-01-06 02:55:57 thao Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.24 2006-01-09 17:36:51 thao Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -341,6 +341,7 @@ void MixtureSpeciesT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
 #pragma unused(sys_type)
 
+    cout <<"\nLHS Driver: ";
 	/* compute the variation in flux velocities */
 	ComputeMassFlux(true);
 
@@ -417,8 +418,8 @@ void MixtureSpeciesT::FormKd(double constK)
 		/* accumulate */
 		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
 	}	
-    if (CurrElementNumber() == 0)
-        cout << "\nfRHS: "<<fRHS;
+//    if (CurrElementNumber() == 0)
+//        cout << "\nfRHS: "<<fRHS;
 }
 
 /* form the element stiffness matrix */
@@ -471,8 +472,8 @@ void MixtureSpeciesT::FormStiffness(double constK)
 		fNEEmat.MultATB(fB, DM);
 		fLHS.AddScaled(scale, fNEEmat);
 	}
-    if (CurrElementNumber() == 0)
-        cout << "\nfLHS: "<<fLHS;
+//    if (CurrElementNumber() == 0)
+//        cout << "\nfLHS: "<<fLHS;
 }
 
 /* compute the flux velocities */
@@ -653,15 +654,13 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 			
 			/* compute velocity */
 			V /= ip_conc[0];
-//            cout << "\nvelocity: "<<V;
-//            cout << "\nmass flux: "<<M;
 
-/*            if (CurrElementNumber() == 0)
-            {
-                cout << "\n ip: "<< ip
-                     << "\n ip_conc: "<<ip_conc[0]
-                     << "\n force/conc: "<<force;
-            }
+/*                if (CurrElementNumber() == 0)
+                {
+                    cout << "\n ip: "<< ip
+                        << "\n ip_conc: "<<ip_conc[0]
+                        << "\n flux: "<<M;
+                }
 */
 			/* mass flux variation */
 			if (compute_dmass_flux)
@@ -752,8 +751,6 @@ void MixtureSpeciesT::ComputeDDivergence(const dMatrixT& ip_grad_transform,
 	
 	dArrayT Na;
 	d_div = 0.0;
-    dArrayT divdP(nsd);
-    divdP = 0.0;
 	for (int k = 0; k < nip; k++) 
 	{
 		/* shape function array */
@@ -764,17 +761,10 @@ void MixtureSpeciesT::ComputeDDivergence(const dMatrixT& ip_grad_transform,
 			for (int j = 0; j < nsd; j++) /* div */
 				for (int n = 0; n < nen; n++)
 					d_div(i,n) += ip_grad_transform(j,k)*A_k(i,j)*Na[n];
-
-//        if (CurrElementNumber() == 0)
-//            cout << "\n div dP ip: "<<A_k;
-        for (int i = 0 ; i < nsd; i++)
-			for (int j = 0; j < nsd; j++) /* div */
-					divdP[i] += ip_grad_transform(j,k)*A_k(i,j);
 	}
-        if (CurrElementNumber() == 0) {
-            cout << "\ndivdP: "<<divdP;
-            cout << "\nd_div: "<<d_div;
-        }
+//        if (CurrElementNumber() == 0)
+//            cout << "\nd_div: "<<d_div;
+    
 }
 
 void MixtureSpeciesT::ComputeDDivergence(const LocalArrayT& nodal_dP, dMatrixT& d_div,

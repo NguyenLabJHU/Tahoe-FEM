@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.22 2006-01-06 02:55:57 thao Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.23 2006-01-09 17:36:51 thao Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -75,6 +75,8 @@ void FSSolidMixtureT::UpdateConcentrations(void)
 	{
 		const FieldT& field = *(fFields[i]);
 		const dArray2DT& c = field[0];
+//        cout << "\nfield name: "<<fFields[i]->FieldName();
+//        cout << "\nconc field: "<< c;
 		double* pc = fConc(i);
 		for (int j = 0; j < nodes_u.Length(); j++)
 			*pc++ = c[nodes_u[j]];
@@ -336,7 +338,12 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 	{
 		/* compute mechanical strain */
 		double J_g = conc[i]/conc_0[i];
-		if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
+		if (J_g <= 0.0) 
+        {
+//            cout << "\nfield name: "<<fFields[i]->FieldName();
+//            cout << "\nconc: "<<fConc;
+            ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
+        }
 		fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
