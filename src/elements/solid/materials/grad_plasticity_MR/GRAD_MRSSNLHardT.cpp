@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.29 2005-12-31 17:04:50 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.30 2006-01-09 21:08:59 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -153,6 +153,15 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     state[33] = ftan_psi;
     
 	if (dlam > 0.0 || PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
+        element.IsAllocated()) 
+    {
+      LoadData(element, ip);
+      
+       /* fetch internal variables */
+      state.CopyIn(0, fInternal);
+    }
+    
+	if (dlam > 0.0 || PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
 	    !element.IsAllocated())
 	{ 
 		/* new plastic element */
@@ -160,9 +169,6 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 		
 		/* initialize element data */
 		PlasticLoading(trialstrain, lap_trialstrain, element, ip);
-		
-		/* fetch internal variables */
-		state.CopyIn(0, fInternal);
 	} 
 	
     
@@ -327,7 +333,7 @@ void GRAD_MRSSNLHardT::yield_f(const dSymMatrixT& Sig,
   double fpress = Sig.Trace()/3.0;
   
   Sig_Dev.Deviatoric(Sig);
-  ff = Sig_Dev.Invariant2();
+  ff = (Sig_Dev.ScalarProduct())/2.0;
   ff -= pow((fc - ffriction*fpress), 2);
   ff += pow((fc - ffriction*fchi), 2);
 }
@@ -416,9 +422,9 @@ void GRAD_MRSSNLHardT::dmdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrix
   double Sig_p = Sig.Trace()/3.0;
   
   dmdq = 0.;
-  dmdq(1,0) = dmdq(1,1) = dmdq(1,2) = ratio23*ftan_psi;
-  dmdq(3,0) = ratio23*(fc - 2.*Sig_p*ftan_psi);
-  dmdq(3,1) = dmdq(3,2) = dmdq(3,0); 
+  dmdq(0,1) = dmdq(1,1) = dmdq(2,1) = ratio23*ftan_psi;
+  dmdq(0,3) = ratio23*(fc - 2.*Sig_p*ftan_psi);
+  dmdq(1,3) = dmdq(2,3) = dmdq(0,3); 
 }
 
 /* calculation of h_f vector */
@@ -654,12 +660,9 @@ void GRAD_MRSSNLHardT::g_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& g
    
    gg[0]  = A1*B1*dQdP; 
    gg[0] += A1*dMatrixT::Dot(B2, dQdS);
-   gg[1]  = dMatrixT::Dot(B3,dQdS);
-   gg[1] *= A2;
-   gg[2]  = dMatrixT::Dot(B3,dQdS);
-   gg[2] *= A3;
-   gg[3]  = dMatrixT::Dot(B3,dQdS);
-   gg[3] *= A4;
+   gg[1]  = A2*dMatrixT::Dot(B3,dQdS);
+   gg[2]  = A3*dMatrixT::Dot(B3,dQdS);
+   gg[3]  = A4*dMatrixT::Dot(B3,dQdS);
  }
 
 /* calculation of dgdSig_f */
