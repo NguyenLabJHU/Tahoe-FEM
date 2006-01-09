@@ -1,4 +1,4 @@
-/* $Id: MRPrimitiveT.h,v 1.4 2005-11-18 19:37:22 kyonten Exp $ */
+/* $Id: MRPrimitiveT.h,v 1.5 2006-01-09 20:41:09 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)                */
 /*
 /* Base class for a nonassociative, small strain,        */
@@ -22,41 +22,41 @@ class MRPrimitiveT: public ParameterInterfaceT
 {
   public:
 
-	/* constructor */
-	MRPrimitiveT(void);
+    /* constructor */
+    MRPrimitiveT(void);
 
-	/* destructor */
-	virtual ~MRPrimitiveT(void);
+    /* destructor */
+    virtual ~MRPrimitiveT(void);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
+    /** \name implementation of the ParameterInterfaceT interface */
+    /*@{*/
+    /** describe the parameters needed by the interface */
+    virtual void DefineParameters(ParameterListT& list) const;
 
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-	
-	double YieldCondition(const dSymMatrixT& devstress, 
-			const double meanstress) const;
+    /** accept parameter list */
+    virtual void TakeParameterList(const ParameterListT& list);
+    /*@}*/
+    
+    double YieldCondition(const dSymMatrixT& devstress, 
+            const double meanstress) const;
 
   protected:
-	
-	double fGf_I;    /* Mode_I Fracture Energy */
-	double fGf_II;   /* Mode_II Fracture Energy */
+    
+    double fGf_I;    /* Mode_I Fracture Energy */
+    double fGf_II;   /* Mode_II Fracture Energy */
 
-	/* Inelastic response parameters */
-	double fchi_p; /* peak tensile strength*/  
-	double fchi_r; /* residual tensile strength */
-	double fc_p;   /* peak cohesion */
-	double fc_r;   /* residual cohesion */
-	double fphi_p; /* peak friction angle */
-	double fphi_r; /* critical state friction angle */
-	double fpsi_p; /* peak dilation angle */
-	double falpha_chi; /* Coefficient of chi degredation */
-	double falpha_c; /* Coefficient of c degredation */
-	double falpha_phi; /*  Coefficient of phi degredation */
-	double falpha_psi; /*  Coefficient of psi degredatione */
+    /* Inelastic response parameters */
+    double fchi_p; /* peak tensile strength*/  
+    double fchi_r; /* residual tensile strength */
+    double fc_p;   /* peak cohesion */
+    double fc_r;   /* residual cohesion */
+    double fphi_p; /* peak friction angle */
+    double fphi_r; /* critical state friction angle */
+    double fpsi_p; /* peak dilation angle */
+    double falpha_chi; /* Coefficient of chi degredation */
+    double falpha_c; /* Coefficient of c degredation */
+    double falpha_phi; /*  Coefficient of phi degredation */
+    double falpha_psi; /*  Coefficient of psi degredatione */
     double fTol_1;    /*  Tolerance for Yield Function */
     double fTol_2; /*  Tolerance for Residuals */
     double fchi, fc, fphi, fpsi;
