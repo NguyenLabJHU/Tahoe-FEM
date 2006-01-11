@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.h,v 1.4 2006-01-09 17:36:51 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.h,v 1.5 2006-01-11 01:51:51 thao Exp $ */
 #ifndef _CURR_MIXTURE_SPECIES_T_H_
 #define _CURR_MIXTURE_SPECIES_T_H_
 
@@ -103,7 +103,7 @@ protected:
 	void ComputeDDivergence(const dMatrixT& ip_grad_transform, const ArrayT<dMatrixT>& tensor_ip,
 		dMatrixT& d_div) const;
 
-	void ComputeDDivergence(const LocalArrayT& nodal_dP, dMatrixT& d_div, dMatrixT& dP_ip) const;
+	void ComputeDDivergence(const ArrayT<dMatrixT>& tensor_ip, dMatrixT& d_div) const;
 	/*@}*/
 
 protected:
