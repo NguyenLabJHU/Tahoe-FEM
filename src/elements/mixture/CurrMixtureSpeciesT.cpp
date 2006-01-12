@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.cpp,v 1.8 2006-01-11 01:51:51 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.cpp,v 1.9 2006-01-12 01:51:14 thao Exp $ */
 #include "CurrMixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -24,6 +24,196 @@ CurrMixtureSpeciesT::CurrMixtureSpeciesT(const ElementSupportT& support):
 	fLocCurrCoords(LocalArrayT::kCurrCoords)
 {
 	SetName("current_mixture_species");
+}
+
+void CurrMixtureSpeciesT::SendOutput(int kincode)
+{
+	/* output flags */
+	iArrayT flags(fNodalOutputCodes.Length());
+
+	/* set flags to get desired output */
+	flags = IOBaseT::kAtNever;
+	switch (kincode)
+	{
+		case iNodalDisp:
+		    flags[iNodalDisp] = 1;
+			break;
+		case iMaterialData:  /*fluxes*/
+		    flags[iMaterialData] = 1;
+			break;
+		default:
+			cout << "\n DiffusionElementT::SendKinematic: invalid output code: ";
+			cout << kincode << endl;
+	}
+
+	/* number of output values */
+	iArrayT n_counts;
+	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
+
+	/* reset averaging workspace */
+	ElementSupport().ResetAverage(n_counts.Sum());
+
+	/* no element output */
+	iArrayT e_counts(fElementOutputCodes.Length());
+	e_counts = 0;
+
+	/* generate nodal values */
+	dArray2DT e_values, n_values;
+	ComputeOutput(n_counts, n_values, e_counts, e_values);
+}
+
+/* construct output labels array */
+void CurrMixtureSpeciesT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts) const
+{
+	/* initialize */
+	counts.Dimension(flags.Length());
+	counts = 0;
+
+	if (flags[iNodalCoord] == mode)
+		counts[iNodalCoord] = NumSD();
+	if (flags[iNodalDisp] == mode)
+		counts[iNodalDisp] = NumDOF();
+	if (flags[iMaterialData] == mode)
+		counts[iMaterialData ] = NumDOF()*NumSD();
+}
+
+void CurrMixtureSpeciesT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts) const
+{
+#pragma unused(mode)
+#pragma unused(flags)
+	if (counts.Sum() != 0)
+		ExceptionT::BadInputValue("DiffusionElementT::SetElementOutputCodes", "not implemented");
+}
+
+/* driver for calculating output values */
+void CurrMixtureSpeciesT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	const iArrayT& e_codes, dArray2DT& e_values)
+{
+	/* number of output values */
+	int n_out = n_codes.Sum();
+	int e_out = e_codes.Sum();
+
+	/* nothing to output */
+	if (n_out == 0 && e_out == 0) return;
+
+//TEMP
+#pragma unused(e_values)
+if (e_out > 0)
+	ExceptionT::GeneralFail("CurrMixtureSpeciesT::ComputeOutput", "element output not supported");
+
+	/* dimensions */
+	int nen = NumElementNodes();
+	int nsd = NumSD();
+
+	/* reset averaging workspace */
+	ElementSupport().ResetAverage(n_out);
+
+	/* work arrays */
+	dArray2DT nodal_space(nen, n_out);
+	dArray2DT nodal_all(nen, n_out);
+	dArray2DT coords, disp;
+	dArray2DT flux_elem, matdat;
+
+	/* ip values */
+	dSymMatrixT cauchy(nsd);
+	dArrayT flux_ip;
+
+	/* set shallow copies */
+	double* pall = nodal_space.Pointer();
+	coords.Set(nen, n_codes[iNodalCoord], pall);
+	pall += coords.Length();
+	disp.Set(nen, n_codes[iNodalDisp], pall);
+	pall += disp.Length();
+	matdat.Set(nen, n_codes[iMaterialData], pall);
+
+	Top();
+	while (NextElement())
+	{
+		/* initialize */
+	    nodal_space = 0.0;
+
+		/* global shape function values */
+		SetGlobalShape();
+		SetLocalU(fLocDisp);
+		
+		/* coordinates and displacements all at once */
+		if (n_codes[iNodalCoord]) fLocInitCoords.ReturnTranspose(coords);
+		if (n_codes[iNodalDisp])  fLocDisp.ReturnTranspose(disp);
+
+        /* material stuff */
+        if (n_codes[iMaterialData])
+        {
+            flux_elem.Alias(NumIP(), NumSD(), fMassFlux(CurrElementNumber()));
+            /* integrate */
+            fShapes->TopIP();
+            while (fShapes->NextIP())
+            {
+                flux_elem.RowAlias(fShapes->CurrIP(), flux_ip);
+				fShapes->Extrapolate(flux_ip, matdat);
+			}
+		}
+
+		/* copy in the cols (in sequence of output) */
+		int colcount = 0;
+		nodal_all.BlockColumnCopyAt(disp  , colcount); colcount += disp.MinorDim();
+		nodal_all.BlockColumnCopyAt(coords, colcount); colcount += coords.MinorDim();
+		nodal_all.BlockColumnCopyAt(matdat, colcount);
+
+		/* accumulate - extrapolation done from ip's to corners => X nodes */
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
+	}
+	
+	/* get nodally averaged values */
+	ElementSupport().OutputUsedAverage(n_values);
+}
+
+/* construct output labels array */
+void CurrMixtureSpeciesT::GenerateOutputLabels(const iArrayT& n_codes,
+	ArrayT<StringT>& n_labels, const iArrayT& e_codes, 
+	ArrayT<StringT>& e_labels) const
+{
+//TEMP - no element labels for now
+#pragma unused(e_labels)
+
+	/* allocate node labels */
+	n_labels.Dimension(n_codes.Sum());
+	int count = 0;	
+
+	if (n_codes[iNodalDisp])
+	{
+		/* labels from the field */
+		const ArrayT<StringT>& labels = Field().Labels();
+		for (int i = 0; i < labels.Length(); i++)
+			n_labels[count++] = labels[i];
+	}
+
+	if (n_codes[iNodalCoord])
+	{
+		const char* xlabels[] = {"x1", "x2", "x3"};
+		for (int i = 0; i < NumSD(); i++)
+			n_labels[count++] = xlabels[i];
+	}
+
+	/* material output labels */
+	if (n_codes[iMaterialData])
+	{
+		const char* mlabels[] = {"m1", "m2", "m3"};
+
+		const ArrayT<StringT>& field_labels = Field().Labels();
+		for (int i = 0; i < field_labels.Length(); i++) {
+            for (int j = 0; j < NumSD(); j++) {
+                StringT label = mlabels[j];
+                label.Append("_",field_labels[i]);
+                n_labels[count++] = label;
+            }
+        }
+	}
+	
+	if (e_codes.Sum() != 0)
+		ExceptionT::GeneralFail("DiffusionElementT::GenerateOutputLabels", 
+			"not expecting any element output codes");
 }
 
 /* write element output */
@@ -380,8 +570,6 @@ void CurrMixtureSpeciesT::FormKd(double constK)
 		/* interpolate field */
 		conc.Alias(1, fField_list.Pointer(ip));
 		fShapes->InterpolateU(fLocDisp, conc);
-/*        cout << "\nelem: "<<CurrElementNumber()<<"\tip: "<<ip;
-        cout << "\nconcentration: "<<conc;*/
         
         /*shapefunction*/
 //		Na.Set(nen, (double*) fShapes->IPShapeU());
@@ -440,8 +628,6 @@ void CurrMixtureSpeciesT::FormKd(double constK)
 		/* accumulate */
 		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
 	}
-//    if (CurrElementNumber() == 0) 
-//        cout << "\nfRHS: "<<fRHS;	
 }
 
 /* form the element stiffness matrix */
@@ -553,8 +739,6 @@ void CurrMixtureSpeciesT::FormStiffness(double constK)
             fLHS.AddScaled(scale, fNEEmat);
 	    }
 	}
-//    if (CurrElementNumber() == 0)
-//        cout << "\nfLHS: "<<fLHS;
 }
 
 /* compute the relative mass flux and velocities. Implemented now only for fluid species  for momentum driving forces only and for solute species for diffusion only */
@@ -605,13 +789,12 @@ void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 			fcauchy_avg = ElementSupport().OutputAverage();
 			cauchy.Dimension(NumElementNodes(), nsd*nsd);		
 			cauchy.SetGlobal(fcauchy_avg);
-//            cout << "\nnodal cauchy: "<<cauchy;
 			ip_Grad_val.Dimension(nsd*nsd, nsd);
 		}
         else {
             ip_grad_x.Dimension(nsd, nip);
         }
-	
+
 		/*calculate momentum driving force*/
 		/* get the body force */
 		if (fUpdatedLagMixture) fUpdatedLagMixture->BodyForce(body_force);
@@ -701,12 +884,11 @@ void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
                     }
 
 				}
-            
 				/* add divergence of stress term to force */
 				force += div_val;
-
+                    
 				v_e.RowAlias(ip, v);
-            
+
 				const dMatrixT& D = fCurrMaterial->k_ij();
 				D.Multx(force, v); /* c*V */
 

@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.h,v 1.5 2006-01-11 01:51:51 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.h,v 1.6 2006-01-12 01:51:14 thao Exp $ */
 #ifndef _CURR_MIXTURE_SPECIES_T_H_
 #define _CURR_MIXTURE_SPECIES_T_H_
 
@@ -33,6 +33,9 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 
 	/*@}*/
+
+	/** compute specified output parameter and send for smoothing */
+	virtual void SendOutput(int kincode);
 
 protected:
 
@@ -104,6 +107,22 @@ protected:
 		dMatrixT& d_div) const;
 
 	void ComputeDDivergence(const ArrayT<dMatrixT>& tensor_ip, dMatrixT& d_div) const;
+	/*@}*/
+
+	/** driver for calculating output values */
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	                           const iArrayT& e_codes, dArray2DT& e_values);
+
+private:
+
+	/** \name construct output labels array */
+	/*@{*/
+	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const;
+	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const;
+	virtual void GenerateOutputLabels(const iArrayT& n_counts,
+		ArrayT<StringT>& n_labels, const iArrayT& e_counts, ArrayT<StringT>& e_labels) const;
 	/*@}*/
 
 protected:
