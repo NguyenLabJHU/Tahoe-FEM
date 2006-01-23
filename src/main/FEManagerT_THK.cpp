@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.26 2005-11-04 21:40:15 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.27 2006-01-23 23:17:04 d-farrell2 Exp $ */
 
 #include "FEManagerT_THK.h"
 #if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
@@ -281,10 +281,6 @@ void FEManagerT_THK::DefineParameters(ParameterListT& list) const
 	omega_sys.SetDefault(1.0);
 	list.AddParameter(omega_sys);	// parameter to scale Tcrit and the bn's if the k used in theta file differs
 	
-	ParameterT use_correction(ParameterT::Boolean, "use_correction");
-	use_correction.SetDefault(false);
-	list.AddParameter(use_correction);	// turn on/off Tang's Correction
-	
 	// the ghost mapping for the coupling matrix specified in a file
 	list.AddParameter(ParameterT::Word, "ghostmap_file");
 
@@ -339,7 +335,6 @@ void FEManagerT_THK::TakeParameterList(const ParameterListT& list)
 	fNcrit = list.GetParameter("N_crit");
 	fTcut = list.GetParameter("T_cut");
 	fOmega_sys = list.GetParameter("Omega_sys");
-	fUse_correct = list.GetParameter("use_correction");
 	fLatticeParameter = list.GetParameter("lattice_parameter");
 	fSearchParameter = list.GetParameter("interplanar_parameter");
 	StringT path;

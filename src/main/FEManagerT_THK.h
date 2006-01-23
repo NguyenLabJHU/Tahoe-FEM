@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.18 2005-11-04 21:40:16 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.19 2006-01-23 23:17:04 d-farrell2 Exp $ */
 
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
@@ -55,9 +55,7 @@ public:
 	
 	/** accessor for the ghostoffmapping */
 	const nMatrixT<int> GetGhostMap(void) { return fghostoffmap;};
-	
-	/** accessor for the use correction */
-	const bool Use_correct(void) { return fUse_correct;};
+
 	/*@}*/
 
 	
@@ -129,9 +127,6 @@ private:
 	// parameter which allows the scaling of Tcrit and the Bn's for the sine series (defaults to 1)
 	// This allows fourier sine coeffs calculated for k,m = 1 to be used for any k, m it is sqrt(k/m) for the desired values
 	double fOmega_sys;
-	
-	// Boolean to turn on/off Tang's correction
-	bool fUse_correct;
 	
 };
 

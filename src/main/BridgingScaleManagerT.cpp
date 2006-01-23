@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.16 2005-11-04 21:40:15 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.17 2006-01-23 23:17:04 d-farrell2 Exp $ */
 
 #include "BridgingScaleManagerT.h"
 
@@ -353,8 +353,8 @@ void BridgingScaleManagerT::SolveBSM(void)
             
 		// calculate total displacement u = FE + fine scale here using updated FEM displacement
 		// do same for velocity - only need fine scale part though
-		fCoarse->BridgingFields(bridging_field, *(fFine_THK->NodeManager()), *(fCoarse->NodeManager()), fTotalu, fUprime);
-		fCoarse->BridgingFields(bridging_field, *(fFine_THK->NodeManager()), *(fCoarse->NodeManager()), fTotalv, fVprime, 1);
+		fCoarse->BridgingFields(bridging_field, *(fFine_THK->NodeManager()), *(fCoarse->NodeManager()), fTotalu, fFineU);
+		fCoarse->BridgingFields(bridging_field, *(fFine_THK->NodeManager()), *(fCoarse->NodeManager()), fTotalv, fFineV, 1);
 		
 		// calculate FE internal force as function of total displacement u here
 		(fFine_THK->PropertiesMap(0)) = fGhostoffmap;  // turn off ghost atoms for f(u) calculations
@@ -377,34 +377,6 @@ void BridgingScaleManagerT::SolveBSM(void)
 		{
 			fCoarse->ResetCumulativeUpdate(0);
 			error = fCoarse->SolveStep();
-		}
-
-// Note: have not been able to get projection of fine scale onto coarse scale to work out properly.
-#pragma message("Finescale information not yet included in FE - have not been able to get it to work properly - talk to Dave")
-		// If desired, calculate Tang's correction d = d + N^{T} P [u - ubar] = d + N^{T} P u'
-		// must be done for both displacement and velocity
-		dArray2DT overlapdisp(fActiveFENodes.Length(),fNSD), overlapvel(fActiveFENodes.Length(),fNSD), correcteddisp, correctedvel;
-		if ((fFine_THK->Use_correct()) == true)
-		{
-			// Calculate the correction term N^{T} P u' for the non-ghost atoms
-			(fCoarse->BridgingScale()).CoarseField(fCoarse->ProjectionData(), fUprime, NtPUprime);
-			(fCoarse->BridgingScale()).CoarseField(fCoarse->ProjectionData(), fVprime, NtPVprime);
-			
-			// Now add the correction to the existing displacements,velocities in the overlap region
-			// First get the existing displacements, velocities	
-			overlapdisp.RowCollect(fActiveFENodes,(*coarse_field)[0]);
-			overlapvel.RowCollect(fActiveFENodes,(*coarse_field)[1]);
-			
-			// Now add the correction and set field values. (again, two steps to avoid illegal operand)
-			correcteddisp = overlapdisp;
-			correcteddisp += NtPUprime;
-			correctedvel = overlapvel;
-			correctedvel += NtPVprime;
-			
-			// set the field values
-			fCoarse->SetFieldValues(bridging_field, fActiveFENodes, 0, correcteddisp);
-			fCoarse->SetFieldValues(bridging_field, fActiveFENodes, 1, correctedvel);
-			
 		}
 				
 		// Interpolate FEM values to MD ghost & boundary nodes which will act as course scale for MD ghost & boundary nodes (0 - disp, 1-vel, 2-acc)
