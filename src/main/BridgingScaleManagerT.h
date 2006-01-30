@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.h,v 1.9 2006-01-23 23:17:04 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.h,v 1.10 2006-01-30 21:46:11 d-farrell2 Exp $ */
 #ifndef _BRIDGING_SCALE_MANAGER_H_
 #define _BRIDGING_SCALE_MANAGER_H_
 
@@ -50,11 +50,17 @@ private:
 	/** Determine basic BSM solution information, initial conditions */
 	virtual void InitBSM(void);
 	
+	/** Determine basic BSM solution information, initial conditions for Beta type THK */
+	virtual void InitBetaBSM(void);
+	
 	/** Determine basic MD/THK solution information, initial conditions */
 	virtual void InitMDTHK(void);
 
-	/** Determine BSM solution */
+	/** Determine BSM solution, theta THK */
 	virtual void SolveBSM(void);
+	
+	/** Determine BSM solution, beta THK */
+	virtual void SolveBetaBSM(void);
 	
 	/** Determine MD/THK solution */
 	virtual void SolveMDTHK(void);

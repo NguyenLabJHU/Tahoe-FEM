@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.17 2006-01-23 23:17:04 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.18 2006-01-30 21:46:11 d-farrell2 Exp $ */
 
 #include "BridgingScaleManagerT.h"
 
@@ -54,9 +54,13 @@ void BridgingScaleManagerT::Solve(void)
 	// Set up the required parameters, etc, and find initial condition
 	Initialize();
 	
-	if (fignore == false)	// BSM simulation solver
+	if (fignore == false)	// BSM simulation solver with theta THK
 	{
 		SolveBSM();
+	}
+	else if (fignore == false && fFine_THK->GetTHKType() == "beta")	// use continuum, i.e. BSM with beta THK
+	{
+		SolveBetaBSM();
 	}
 	else if	(fignore == true)	// MD/THK simulation solver
 	{
@@ -128,11 +132,15 @@ void BridgingScaleManagerT::Initialize(void)
 	fBoundatoms.CopyPart(0, fBoundaryghostatoms, fNumgatoms, fNumbatoms);
 	
 	// now initialize BSM or MD/THK stuff as needed
-	if (fignore == true) // don't use continuum, i.e. MD/THK
+	if (fignore == true) // don't use continuum, i.e. MD/ Theta THK
 	{
 		InitMDTHK();
 	}
-	else // use continuum, i.e. BSM by default
+	else if (fFine_THK->GetTHKType() == "beta")	// use continuum, i.e. BSM with beta THK
+	{
+		InitBetaBSM();
+	}
+	else // use continuum, i.e. BSM with Theta THK by default
 	{
 		InitBSM();
 	}
@@ -248,6 +256,116 @@ void BridgingScaleManagerT::InitBSM(void)
 	fFine_THK->SetFieldValues(bridging_field, fFine_THK->GhostNodes(), 0, fGadisp);
 }
 
+// Determine basic BSM solution information, initial conditions for Beta type THK
+void BridgingScaleManagerT::InitBetaBSM(void)
+{
+	const char caller[] = "BridgingScaleManagerT::InitBetaBSM";
+	
+	const StringT& bridging_field = fFineField->FieldName();
+	FieldT* field = (*fFine_THK).NodeManager()->Field(bridging_field);
+	if (!field) 
+		ExceptionT::GeneralFail(caller, "field \"%s\" not found", bridging_field.Pointer());
+	
+	// internal force vector - communicated within atomistic side
+	fRHS_2D_true.Dimension(fNND,fNSD);
+	fRHS_2D_true = 0.0e0;
+	
+	fFubig.Dimension(fNND,fNSD);
+	
+#pragma message("fix this when come back to do parallel implementation for spatial/index decomp")
+	
+	fFine_comm_manager = fFine_THK->CommManager();
+	if (!fFine_comm_manager) ExceptionT::GeneralFail(caller, "could not resolve fine scale comm manager");
+	fFubig_ID = fFine_comm_manager->Init_AllGather(fFubig);
+	
+	// reset interpolation data set in MultiManagerT::TakeParameterList
+	fCoarse->InitInterpolation(bridging_field, fBoundaryghostatoms, (*(fFine_THK->NodeManager())).InitialCoordinates());
+	
+	// reset interpolation data set in MultiManagerT::TakeParameterList with makeinactive = false
+	bool makeinactive = false;	
+	fCoarse->InitProjection(bridging_field, *(fFine_THK->CommManager()), fFine_THK->NonGhostNodes(), 
+		*(fFine_THK->NodeManager()), makeinactive, false);
+	
+	// define time managers
+	fFine_time_manager = fFine_THK->TimeManager();
+	fCoarse_time_manager = fCoarse->TimeManager();
+	
+	// compute initial conditions
+	fFine->SetComputeInitialCondition(true);
+	fCoarse->SetComputeInitialCondition(true);
+	
+	// set to initial condition
+	fFine_THK->InitialCondition();
+	
+	// calculate fine scale part of MD displacement and total displacement u
+	fCoarse->InitialProject(bridging_field, *(fFine_THK->NodeManager()), fProjectedu, 0);
+	
+	// solve for initial FEM force f(u) as function of fine scale + FEM
+	// use projected totalu instead of totalu for initial FEM displacements
+	
+	// assumes square property matrix,  element group for particles = 0
+	// Here, we assume that there is only the 1 element set in the atomistics, ok since tahoe uses nodesets for BCs, ICs, etc
+	const int promap_dim = (fFine_THK->PropertiesMap(0)).Rows();
+	
+	// now dimension the ghost on/off property mappings
+	fGhostonmap.Dimension(promap_dim);
+	fGhostoffmap.Dimension(promap_dim);
+	
+	// now define the ghost on/off property mappings
+	fGhostoffmap = 0;
+	fGhostoffmap = fFine_THK->GetGhostMap();
+	
+	fGhostonmap = (fFine_THK->PropertiesMap(0));	// copy original properties map
+	(fFine_THK->PropertiesMap(0)) = fGhostoffmap;	// turn ghost atoms off for f(u) calculation
+	
+	fFubig = TotalForce(bridging_field, fProjectedu, *fFine_THK, fRHS_2D_true);
+	
+	fFine_comm_manager->AllGather(fFubig_ID, fFubig);	
+	(fFine_THK->PropertiesMap(0)) = fGhostonmap;   // turn ghost atoms back on for MD force calculations
+
+	// calculate global interpolation matrix NtF
+	fCoarse->Ntf(fNtF, fFine_THK->NonGhostNodes(), fActiveFENodes);
+	
+	// compute FEM RHS force as product of ntf and fu
+	fFx.Dimension(fNtF.Rows());
+	fTempx.Dimension(fNtF.Cols());
+	fNtfproduct.Dimension(fNtF.Rows(), fNSD);
+	fFu.Dimension((fFine_THK->NonGhostNodes()).Length(), fNSD);
+	fFu.RowCollect(fFine_THK->NonGhostNodes(), fFubig); 
+	
+	for (int i = 0; i < fNSD; i++)
+	{
+		fFu.ColumnCopy(i, fTempx);
+		fNtF.Multx(fTempx, fFx);
+		fNtfproduct.SetColumn(i, fFx);
+	}
+	
+	// Add FEM RHS force to RHS using SetExternalForce
+	fCoarse->SetExternalForce(fFineField->FieldName(), fNtfproduct, fActiveFENodes);
+	
+	// now d0, v0 and a0 are known after InitialCondition
+	fCoarse->InitialCondition();
+		
+	// interpolate FEM values to MD ghost & boundary nodes which will act as course scale for MD ghost & boundary nodes (0 - disp, 1-vel, 2-acc)
+	fCoarse->InterpolateField(bridging_field, 0, fBoundghostdisp);
+	fCoarse->InterpolateField(bridging_field, 1, fBoundghostvel);
+	fCoarse->InterpolateField(bridging_field, 2, fBoundghostacc);
+	
+	// sort boundary + ghost atom info into separate arrays
+	fGadisp.RowCollect(fGatoms, fBoundghostdisp);
+	fGavel.RowCollect(fGatoms, fBoundghostvel);
+	fGaacc.RowCollect(fGatoms, fBoundghostacc);
+	fBadisp.RowCollect(fBatoms, fBoundghostdisp);
+	fBavel.RowCollect(fBatoms, fBoundghostvel);
+	fBaacc.RowCollect(fBatoms, fBoundghostacc);
+			
+	// Determine the ghost atom displacement from displacement formulation
+	fGadisp = fFine_THK->BetaTHKDisp(bridging_field, fBadisp, fBavel);	
+
+	// Write interpolated FEM values at MD ghost nodes into MD field - displacements only
+	fFine_THK->SetFieldValues(bridging_field, fFine_THK->GhostNodes(), 0, fGadisp);
+}
+
 // Determine basic MD/THK solution information, initial conditions
 void BridgingScaleManagerT::InitMDTHK(void)
 {
@@ -292,7 +410,7 @@ void BridgingScaleManagerT::InitMDTHK(void)
 	fFine_THK->SetFieldValues(bridging_field, fFine_THK->GhostNodes(), 0, fGadisp); 
 }
 
-// Determine BSM solution
+// Determine BSM solution, theta THK
 void BridgingScaleManagerT::SolveBSM(void)
 {
 
@@ -332,6 +450,111 @@ void BridgingScaleManagerT::SolveBSM(void)
 			// then add to coarse ghost atom displacement (from above)
 			Gadisp_w_THK = fGadisp;	// note: did this in 2 steps to avoid illegal operand with the const dArray2dT
 			Gadisp_w_THK += fFine_THK->THKDisp(bridging_field, fBadisp);		
+
+			// Write displacement at MD ghost nodes into MD field - displacements only
+			fFine_THK->SetFieldValues(bridging_field, fFine_THK->GhostNodes(), 0, Gadisp_w_THK);
+				
+			// solve MD equations of motion
+			if (1 || error == ExceptionT::kNoError) {
+					fFine_THK->ResetCumulativeUpdate(0);
+					error = fFine_THK->SolveStep();
+			}
+			
+			// close  md step
+			if (1 || error == ExceptionT::kNoError) error = fFine_THK->CloseStep();    
+		}
+
+		fCoarse_time_manager->Step();
+
+		// initialize step
+		if (1 || error == ExceptionT::kNoError) error = fCoarse->InitStep();
+            
+		// calculate total displacement u = FE + fine scale here using updated FEM displacement
+		// do same for velocity - only need fine scale part though
+		fCoarse->BridgingFields(bridging_field, *(fFine_THK->NodeManager()), *(fCoarse->NodeManager()), fTotalu, fFineU);
+		fCoarse->BridgingFields(bridging_field, *(fFine_THK->NodeManager()), *(fCoarse->NodeManager()), fTotalv, fFineV, 1);
+		
+		// calculate FE internal force as function of total displacement u here
+		(fFine_THK->PropertiesMap(0)) = fGhostoffmap;  // turn off ghost atoms for f(u) calculations
+		
+		fFubig = TotalForce(bridging_field, fTotalu, *fFine_THK, fRHS_2D_true);
+		
+		fFine_comm_manager->AllGather(fFubig_ID, fFubig);	
+		(fFine_THK->PropertiesMap(0)) = fGhostonmap;   // turn on ghost atoms for MD force calculations
+		fFu.RowCollect(fFine_THK->NonGhostNodes(), fFubig); 
+
+		for (int i = 0; i < fNSD; i++)
+		{
+			fFu.ColumnCopy(i, fTempx);
+			fNtF.Multx(fTempx, fFx);
+			fNtfproduct.SetColumn(i, fFx);
+		}
+			
+		// solve FE equation of motion using internal force just calculated
+		if (1 || error == ExceptionT::kNoError)
+		{
+			fCoarse->ResetCumulativeUpdate(0);
+			error = fCoarse->SolveStep();
+		}
+				
+		// Interpolate FEM values to MD ghost & boundary nodes which will act as course scale for MD ghost & boundary nodes (0 - disp, 1-vel, 2-acc)
+		fCoarse->InterpolateField(bridging_field, 0, fBoundghostdisp);
+		fCoarse->InterpolateField(bridging_field, 1, fBoundghostvel);
+		fCoarse->InterpolateField(bridging_field, 2, fBoundghostacc);
+			
+		// sort boundary + ghost atom info into separate arrays
+		fGadisp.RowCollect(fGatoms, fBoundghostdisp);
+		fGavel.RowCollect(fGatoms, fBoundghostvel);
+		fGaacc.RowCollect(fGatoms, fBoundghostacc);
+		fBadisp.RowCollect(fBatoms, fBoundghostdisp);
+		fBavel.RowCollect(fBatoms, fBoundghostvel);
+		fBaacc.RowCollect(fBatoms, fBoundghostacc);
+			
+		// close fe step
+		if (1 || error == ExceptionT::kNoError) error = fCoarse->CloseStep();                   
+	}
+}
+
+// Determine BSM solution, beta THK
+void BridgingScaleManagerT::SolveBetaBSM(void)
+{
+
+	const StringT& bridging_field = fFineField->FieldName();
+	FieldT* coarse_field = (*fCoarse).NodeManager()->Field(bridging_field);
+	int NND_coarse = fActiveFENodes.Length();	// number of FE nodes in fine scale region
+	
+	// figure out timestep ratio between fem and md simulations
+	int nfesteps = fCoarse_time_manager->NumberOfSteps();
+	double mddt = fFine_time_manager->TimeStep();
+	double fedt = fCoarse_time_manager->TimeStep();
+	double d_ratio = fedt/mddt;		
+	int ratio = int((2.0*d_ratio + 1.0)/2.0);
+	
+	// Set up array for total displacement of ghost atoms
+	dArray2DT Gadisp_w_THK(fNumgatoms,fNSD);
+	
+	// running status flag
+	ExceptionT::CodeT error = ExceptionT::kNoError;	
+
+	for (int i = 0; i < nfesteps; i++)	
+	{
+		for (int j = 0; j < ratio; j++)	// MD update first
+		{
+			fFine_time_manager->Step();	
+								
+			// initialize step
+			if (1 || error == ExceptionT::kNoError) error = fFine_THK->InitStep();
+				
+			/* update FEM solution interpolated at boundary atoms and ghost atoms assuming 
+			constant acceleration - because of constant acceleration assumption, predictor and 
+			corrector are combined into one function */
+			fFine_THK->BAPredictAndCorrect(mddt, fBadisp, fBavel, fBaacc);
+			fFine_THK->BAPredictAndCorrect(mddt, fGadisp, fGavel, fGaacc);
+
+			// Determine the ghost atom displacement from displacement formulation (fluctuation due to THK)
+			// then add to coarse ghost atom displacement (from above)
+			Gadisp_w_THK = fGadisp;	// note: did this in 2 steps to avoid illegal operand with the const dArray2dT
+			Gadisp_w_THK += fFine_THK->BetaTHKDisp(bridging_field, fBadisp, fBavel);		
 
 			// Write displacement at MD ghost nodes into MD field - displacements only
 			fFine_THK->SetFieldValues(bridging_field, fFine_THK->GhostNodes(), 0, Gadisp_w_THK);
