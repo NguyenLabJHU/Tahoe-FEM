@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.19 2006-01-23 23:17:04 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.20 2006-01-30 21:46:47 d-farrell2 Exp $ */
 
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
@@ -35,6 +35,9 @@ public:
 	
 	/** calculate THK displacement for ghost atoms for 2/3D disp formulation **/
 	const dArray2DT& THKDisp(const StringT& bridging_field, const dArray2DT& badisp);
+	
+	/** calculate THK displacement for ghost atoms for 2/3D disp formulation, use Beta form **/
+	const dArray2DT& BetaTHKDisp(const StringT& bridging_field, const dArray2DT& badisp, const dArray2DT& bavel);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -55,6 +58,9 @@ public:
 	
 	/** accessor for the ghostoffmapping */
 	const nMatrixT<int> GetGhostMap(void) { return fghostoffmap;};
+	
+	/** accessor for the THK type */
+	const StringT GetTHKType(void) { return fTHK_type;};
 
 	/*@}*/
 
@@ -71,8 +77,11 @@ private:
 	/** find the ghost atom properties map */
 	void DoGhostMap(void);
 	
-	/** compute theta tables for 2D/3D disp/disp or disp/force formulation (doesn't matter, its all the same) */
+	/** compute theta tables for 2D/3D disp/disp or force/disp formulation (doesn't matter, its all the same) */
 	void ComputeThetaTables(void);
+	
+	/** compute beta tables for 2D/3D disp/vel or force/vel formulation (doesn't matter, its all the same) */
+	void ComputeBetaTables(void);
 
 private:
 
@@ -128,6 +137,9 @@ private:
 	// This allows fourier sine coeffs calculated for k,m = 1 to be used for any k, m it is sqrt(k/m) for the desired values
 	double fOmega_sys;
 	
+	// parameter which allows choice of theta type (displacement-displacement) or beta type (displacement-velocity) THK
+	// choices are beta, theta. default is theta
+	StringT fTHK_type;
 };
 
 } /* namespace Tahoe */
