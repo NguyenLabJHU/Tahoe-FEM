@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.20 2006-01-30 21:46:47 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.21 2006-02-05 17:28:59 d-farrell2 Exp $ */
 
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
@@ -123,7 +123,7 @@ private:
 	/** displacement history: [boundary_n] x [[n_boundary_atoms] x [time x ndof]] (has repeats) */
 	ArrayT< ArrayT<dArray2DT> > fHistoryTable;
 	
-	/** THK values: [boundary_n] x [[neighbor] x [time x n_theta_values]] (has repeats)*/
+	/** THK values: [boundary_n] x [[neighbor] x [time x ndof*ndof]] (has repeats)*/
 	ArrayT< ArrayT<dArray2DT> > fThetaTable_array;
 	
 	/** boundary neighbors: [boundary_n] x [[n_boundary_atoms] x [n_neighbors]] (has repeats)*/

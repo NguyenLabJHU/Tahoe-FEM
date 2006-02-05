@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.28 2006-01-30 21:46:47 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.29 2006-02-05 17:28:59 d-farrell2 Exp $ */
 
 #include "FEManagerT_THK.h"
 #if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
@@ -386,7 +386,7 @@ const dArray2DT& FEManagerT_THK::BetaTHKDisp(const StringT& bridging_field, cons
 					// calculate fine scale THK disp using beta here (- Beta * (v_b - vbar_b)) and add it on to the above
 					if (stepnum < fNumstep_crit)
 					{
-						for (int l = 0; l < stepnum; l++)
+						for (int l = 0; l <= stepnum; l++)
 						{												
 							beta.Alias(nsd,nsd,beta_temp(l));
 							vel_temp0.RowAlias(stepnum-l, vel_temp1);
@@ -411,7 +411,7 @@ const dArray2DT& FEManagerT_THK::BetaTHKDisp(const StringT& bridging_field, cons
 			fTHKdisp.SetRow(counter2, gdisp_temp);
 		}
 	}
-	//cout << "fTHKdisp = " << fTHKdisp << endl;
+	//cout << "fTHKdisp = " << fTHKdisp << endl;	
 	return fTHKdisp;
 }
 
@@ -1089,7 +1089,7 @@ void FEManagerT_THK::ComputeBetaTables(void)
 				for (int k = 0; k < n_theta; k++) // loop over each term in the series
 				{
 					/* Extract each row of coefficients */
-					temptheta.AddScaled(fOmega_sys*cos(k*pi*j/(t_max/fOmega_sys)), theta_i(k));
+					temptheta.AddScaled(cos(k*pi*j/(t_max/fOmega_sys)), theta_i(k));
 				}
 
 				/* add temptheta into fThetaTable */
