@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.h,v 1.10 2006-01-09 20:41:09 kyonten Exp $ */
+/* $Id: MRSSNLHardT.h,v 1.11 2006-02-09 15:12:19 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)            */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -49,9 +49,9 @@ public:
         ElementCardT& element, int ip); 
 
     void Yield_f(const dSymMatrixT& Sig, const dArrayT& qn, double& ff);
-    void dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);    
+    void dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);
     void dfdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdq); 
-    void dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig);   
+    void dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig);    
     void dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2);
     void dQdSigdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
     void qbar_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& qbar);
@@ -134,21 +134,14 @@ public:
     double fMeanStress;
   
     /* return values */
-    dSymMatrixT        fElasticStrain;
-    dSymMatrixT        fStressCorr;
-    dMatrixT        fModuli;
+    dSymMatrixT fElasticStrain;
+    dSymMatrixT fStressCorr;
+    dMatrixT    fModuli;
     dMatrixT    fModuliPerfPlas;
         
     /* work space */
     dSymMatrixT fDevStress;
-    dSymMatrixT fDevStrain; /* deviatoric part of the strain tensor */
-    dSymMatrixT IdentityTensor2;  
-
-    dMatrixT fTensorTemp;
-    dSymMatrixT Identity3x3; /* 3x3 identity matrix */
-    dMatrixT Identity4x4; /* 4x4 identity matrix */
-    dMatrixT Identity6x6; /* 6x6 identity matrix */
-    
+    dSymMatrixT fDevStrain; /* deviatoric part of the strain tensor */ 
 };
 
 } // namespace Tahoe 
