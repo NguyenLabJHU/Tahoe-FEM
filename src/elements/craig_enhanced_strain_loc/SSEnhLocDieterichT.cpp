@@ -225,8 +225,8 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
 
       /* update jump increment via Newton iteration */
 
-      cout << "dPhiSlipRate = " << DPhidSlipRate(slipRate, jumpIncrement,
-						 thetaNew) << " ";
+      //cout << "dPhiSlipRate = " << DPhidSlipRate(slipRate, jumpIncrement,
+      //						 thetaNew) << " ";
 
       slipRate -= yieldFn/DPhidSlipRate(slipRate, jumpIncrement, thetaNew);
 
@@ -339,8 +339,7 @@ bool SSEnhLocDieterichT::IsBandActive()
   double neededCohesion = shearStress; 
   if (fV_star == 0.0)
   {
-	//neededCohesion += normalStress * fLocalizedFrictionCoeff;
-	neededCohesion += normalStress * FrictionCoeff(0.0, theta);	 
+	 neededCohesion += normalStress * FrictionCoeff(0.0, theta);	 
   }
   //cout << "ResidualCohesion = " << fBand->ResidualCohesion() << endl; 
   //cout << "neededCohesion = " << neededCohesion << endl; 
@@ -434,7 +433,7 @@ double SSEnhLocDieterichT::NewCohesion(double slipRate, double jumpIncrement, do
 	double mu = FrictionCoeff(slipRate, thetaNew);
 	double normalStress = NormalStress(jumpIncrement);
 	 
-        cout << " normalStress = " << normalStress << " ";
+        //cout << " normalStress = " << normalStress << " ";
 
 		 
 	double newCohesion = (fBand->ResidualCohesion() + mu* normalStress) * (1.0 - jump/fH_delta_0);
@@ -587,12 +586,10 @@ double SSEnhLocDieterichT::DPhidSlipRate(double slipRate, double jumpIncr, doubl
 	
 	dSymMatrixT dSigmadSlipRate = DSigmadSlipRate(jumpIncr);
 	dPhi = dPhidSigma.Dot(dPhidSigma, dSigmadSlipRate); 
-	//dPhi += DmudSlipRate(slipRate, thetaNew) * NormalStress(jumpIncr) * jump/fH_delta_0;
-	
+	dPhi += DmudSlipRate(slipRate, thetaNew) * NormalStress(jumpIncr) * jump/fH_delta_0;
 	dPhi += frictionCoeff * NormalStress(jumpIncr) * DjumpdSlipRate() / fH_delta_0; 
-	dPhi += fBand->ResidualCohesion() * DjumpdSlipRate() / fH_delta_0;
 	
-	dPhi += fBand->ResidualCohesion() * DjumpdSlipRate() * fH_delta_0;
+	dPhi += fBand->ResidualCohesion() * DjumpdSlipRate() / fH_delta_0;
   }
   
   return dPhi;
@@ -853,12 +850,15 @@ void SSEnhLocDieterichT::LoadBand(int elementNumber)
 
 double SSEnhLocDieterichT::FrictionCoeff(double slipRate, double theta)
 {
-  if (fV_star == 0.0)
-    return fMu_star;
-
+  
   double jumpIncr = JumpIncrement(slipRate);
   if (fNoFrictionInTension && NormalStress(jumpIncr) >= 0.0)
 	return 0.0;
+
+  if (fV_star == 0.0)
+    return fMu_star;
+
+
 
   //cout << " ArcSinhArg(slipRate, theta) = " << ArcSinhArg(slipRate, theta) << endl;
   return fFrictionA * asinh(ArcSinhArg(slipRate, theta));
