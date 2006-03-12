@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.14 2005-12-15 18:39:07 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.15 2006-03-12 07:33:36 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -91,6 +91,7 @@ protected:
 	iAutoArrayT fEdgeOfBandElements;
 	AutoArrayT<dArrayT> fEdgeOfBandCoords;
 	static bool fLocalizationHasBegun;
+	static bool fSeedElementsSet;
 	static double fDetAMin;
 	static int fLeastDetEle;
 	

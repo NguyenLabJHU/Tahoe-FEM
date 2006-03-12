@@ -50,9 +50,14 @@ namespace Tahoe {
 
       virtual double JumpIncrement(double slipRate);
       virtual double ThetaNew(double slipRate);
-      virtual  double Phi(double slipRate, double jumpIncrement, double thetaNew);
+      virtual double Phi(double slipRate, double jumpIncrement, double thetaNew);
       virtual double DPhidSlipRate(double slipRate, double jumpIncr, double thetaNew);
 	  virtual double DCohesiondSlipRate(double slipRate, double jumpIncr, double thetaNew);
+	  
+	  virtual double DSecondOrderSofteningDSlipRate(double slipRate, double jumpIncr, double thetaNew);
+	  virtual double D2MuDSlipRate2(double slipRate, double thetaNew);
+	  virtual double D2ThetaDSlipRate2(double slipRate);
+	  
 	  virtual double DNormalStressdSlipRate(double jumpIncr);
       virtual dSymMatrixT DSigmadSlipRate(double JumpIncrement);
       virtual double DjumpdSlipRate();
@@ -60,6 +65,7 @@ namespace Tahoe {
       virtual double ArcSinhArg(double slipRate, double theta);
       virtual double DthetadSlipRate(double slipRate);
       virtual double NormalStress(double jumpIncr);
+	  virtual double ShearStress(double jumpIncr);
       virtual double FrictionCoeff(double slipRate, double theta);
       virtual double arcsinh(double arg);
 
@@ -78,6 +84,9 @@ namespace Tahoe {
       double fTheta_0; //perhaps same as fTheta_star?
       double fBeta_zeta;
       double fBeta_theta;
+	  bool fSimpleSoftening;
+	  bool fNoFrictionInTension;
+	  double fInitialSlipRate;
     }; //end class declaration
 
 }//end namespace Tahoe

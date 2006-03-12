@@ -9,11 +9,10 @@ using namespace Tahoe;
 /* constructor */
 SSEnhLocDieterichT::SSEnhLocDieterichT(const ElementSupportT& support):
   SSEnhLocCraigT(support),
+  fSimpleSoftening(true),
+  fNoFrictionInTension(true),
   fDieterichBand(NULL)
-  //fDieterichBand(static_cast<DieterichBandT*> (fBand))
 {
-  //fDieterichBand =  dynamic_cast<DieterichBandT*> (fBand);
-
   SmallStrainT::SetName("small_strain_enh_loc_dieterich");
 }
 
@@ -32,7 +31,10 @@ void SSEnhLocDieterichT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fD_c, "evolution_paramter_D_c");
 	list.AddParameter(fTheta_0, "initial_isv_theta_0");
 	list.AddParameter(fBeta_zeta,"time_integration_parameter_beta_zeta");
-	list.AddParameter(fBeta_theta,"time_integration_parameter_beta_theta");        
+	list.AddParameter(fBeta_theta,"time_integration_parameter_beta_theta");
+	ParameterT initialSlipRate(fInitialSlipRate, "Initial_Slip_Rate_neg_one_for_V_star");
+	initialSlipRate.SetDefault(-1.0);
+	list.AddParameter(initialSlipRate);
 }
 
 void SSEnhLocDieterichT::TakeParameterList(const ParameterListT& list)
@@ -51,6 +53,11 @@ void SSEnhLocDieterichT::TakeParameterList(const ParameterListT& list)
   fTheta_0 = list.GetParameter("initial_isv_theta_0");
   fBeta_zeta = list.GetParameter("time_integration_parameter_beta_zeta");
   fBeta_theta = list.GetParameter("time_integration_parameter_beta_theta");
+  fInitialSlipRate = list.GetParameter("Initial_Slip_Rate_neg_one_for_V_star");
+  
+  if (fInitialSlipRate == -1.0)
+	fInitialSlipRate = fV_star;
+  
 }
 
 void SSEnhLocDieterichT::FormStiffness(double constK)
@@ -99,13 +106,24 @@ void SSEnhLocDieterichT::FormStiffness(double constK)
 	dGdSigma = FormdGdSigma(ndof, slipRate, thetaNew);
 	
 	//cohesion part
-	double jump = fabs(fBand->Jump()) + fabs(jumpIncrement);
+	double jump = fBand->Jump() + jumpIncrement;
 	if (jump < fH_delta_0)
 		{	
+		   /*
+			double frictionCoeff;
+		    
+			if (fV_star == 0.0)
+				frictionCoeff = fMu_star;
+			else
+				frictionCoeff = fFrictionA * asinh(ArcSinhArg(slipRate, thetaNew));
+			*/
+		
 			nTensorn.Outer(fBand->Normal());
 			nTensorn.ScaleOffDiagonal(2.0);
 			dGdSigma.AddScaled(-1.0*FrictionCoeff(slipRate, thetaNew)*(1.0 - jump/fH_delta_0),
 				nTensorn); 
+				
+			//dGdSigma.AddScaled(-1.0*frictionCoeff*(1.0 - jump/fH_delta_0), nTensorn);
 		}		
 
 	fShapes->TopIP();
@@ -165,23 +183,24 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
   if(!IsBandActive())
   	{
  	   double dt = ElementSupport().TimeStep();	
-       double jumpAtZeroVel = dt * (1.0 - fBeta_zeta) * fDieterichBand -> SlipRateLast(); 
+       double jumpIncrAtZeroVel = dt * (1.0 - fBeta_zeta) * fDieterichBand -> SlipRateLast(); 
  
- 	   fBand -> StoreJumpIncrement(jumpAtZeroVel);
+ 	   fBand -> StoreJumpIncrement(jumpIncrAtZeroVel);
   	   fDieterichBand -> StoreTheta(fDieterichBand -> ThetaLast() 
   	   	+ dt * ((1 - fBeta_theta) * fDieterichBand -> ThetaRateLast() + fBeta_theta));
   	   fDieterichBand -> StoreSlipRate(0.0);
   
-    	return jumpAtZeroVel;
+    	return jumpIncrAtZeroVel;
 	}
 
   //cout << "Element # " << CurrElementNumber() << endl;
   // cout << "fBand->SlipDir =\n" << fBand->SlipDir() << endl;
 
-  double newtonTol = 1.0e-10;
+  double newtonTol = 1.0e-12;
+  double slipRateTol = 1.0e-12;
   //double dt = ElementSupport().TimeStep();
   
-  double slipRate = 1.0e-7;//fV_star; //0.0;
+  double slipRate = fInitialSlipRate;//5.0e-7;// 5.0e-7 for gabbro problems
   double jumpIncrement = JumpIncrement(slipRate);
   double thetaNew = ThetaNew(slipRate);
   int newtonCounter = 0;
@@ -192,7 +211,7 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
   // what about coming off an elastic step? 
   double yieldFn = Phi(slipRate, jumpIncrement, thetaNew);
   double yieldFn0 = yieldFn;
-  cout << ", yieldFn = " << yieldFn << ", element # " << CurrElementNumber() << endl;
+  cout << ", initial sliprate = " << slipRate << ", yieldFn = " << yieldFn << ", element # " << CurrElementNumber() << endl;
 
       // make this a relative tolerance
   while (fabs(yieldFn/yieldFn0) > newtonTol && fabs(yieldFn) > newtonTol)
@@ -228,7 +247,16 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
       yieldFn = Phi(slipRate, jumpIncrement, thetaNew);
       cout << ", yieldFn = " << yieldFn  << endl;
     }
-
+  
+  if (slipRate < 0.0 && slipRate > -1.0 * slipRateTol)
+	slipRate = 0.0;
+  
+  if (slipRate < 0.0)
+  {
+  	  cout << "SSEnhLocDieterichT::CalculateJumpIncrement, inadmissable slip rate.\n";
+	  cout << "Slip in opposite direction to shear stress\n";
+	  throw ExceptionT::kGeneralFail;
+  }
 
   fBand -> StoreJumpIncrement(jumpIncrement);
   fDieterichBand -> StoreTheta(thetaNew);
@@ -240,13 +268,18 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
 
 bool SSEnhLocDieterichT::IsBandActive()
 {
+  //return true;
+
    /*calculate average stress assuming no jump*/
   const double* Det    = fShapes->IPDets();
   const double* Weight = fShapes->IPWeights();
     
   double area = 0.0;
-  //double normalStress = 0.0;
+  double normalStress = 0.0;
   double shearStress = 0.0;
+  
+  double dt = ElementSupport().TimeStep();
+  double jumpIncrAtZeroVel = dt * (1.0 - fBeta_zeta) * fDieterichBand -> SlipRateLast();
 
   /* collect incremental heat */
   //bool need_heat = fElementHeat.Length() == fShapes->NumIP();
@@ -278,9 +311,13 @@ bool SSEnhLocDieterichT::IsBandActive()
       area += (*Det)*(*Weight);
       double scale = (*Det++)*(*Weight++);
 
-      //normalStress += scale * stressIncr.MultmBn(fBand->Normal(),fBand-> Normal());
+      normalStress += scale * stressIncr.MultmBn(fBand->Normal(),fBand-> Normal());
       shearStress += scale * stressIncr.MultmBn(fBand->PerpSlipDir(),fBand-> Normal()); 
     }
+
+ // cout << "normal = \n" << fBand->Normal();
+ // cout << "slipDir = \n" << fBand->SlipDir();
+ // cout << "perslipdir = \n" << fBand->PerpSlipDir();
 
   if (shearStress < 0.0)
     {
@@ -288,27 +325,40 @@ bool SSEnhLocDieterichT::IsBandActive()
      correct yield surface */
       fBand-> FlipSlipDir();
       shearStress *= -1.0;
+	  cout << "slip direction flipped\n";
     }
 
-  //normalStress/= area;
+  //return true;	
+
+  normalStress/= area;
   shearStress = shearStress/area;
 
-  double neededCohesion = shearStress; // + normalStress * fLocalizedFrictionCoeff;
+  double theta = fDieterichBand -> ThetaLast() 
+  	   	+ dt * ((1.0 - fBeta_theta) * fDieterichBand -> ThetaRateLast() + fBeta_theta);
+
+  double neededCohesion = shearStress; 
+  if (fV_star == 0.0)
+  {
+	//neededCohesion += normalStress * fLocalizedFrictionCoeff;
+	neededCohesion += normalStress * FrictionCoeff(0.0, theta);	 
+  }
   //cout << "ResidualCohesion = " << fBand->ResidualCohesion() << endl; 
   //cout << "neededCohesion = " << neededCohesion << endl; 
 
-  double residCohesion = fBand->ResidualCohesion() * (1.0 - fBand->Jump()/fH_delta_0);
+  //double jumpIncr = dt * (1.0 - fBeta_zeta) * fDieterichBand -> SlipRateLast();
+
+  double residCohesion = NewCohesion(0.0, jumpIncrAtZeroVel, theta);
   
   if (residCohesion < neededCohesion)
     {
       fBand-> SetActive(true);
-      // cout << "Band is active\n";
+	  cout << "Band is active\n";
       return true;
     }
   else
     {
       fBand -> SetActive(false);
-      //cout << "Band is NOT active\n";
+      cout << "Band is NOT active\n";
       return false;
     }
 
@@ -358,6 +408,7 @@ double SSEnhLocDieterichT::Phi(double slipRate, double jumpIncrement, double the
   //fBand->ResidualCohesion() +fBand->H_delta()*jumpIncrement;
 
   cout << "newCohesion = " << newCohesion;
+  cout << " normalStress = " << NormalStress(jumpIncrement);
 
   //if (newCohesion > 0.0)
     phi -= newCohesion;
@@ -367,23 +418,34 @@ double SSEnhLocDieterichT::Phi(double slipRate, double jumpIncrement, double the
 
   //cout << ", newCohesion = " << newCohesion << ", ";
 
+  //cout << "\nshearStress = " << ShearStress(jumpIncrement) << ", normalStress = " << NormalStress(jumpIncrement)
+  //     << ", mu = " << FrictionCoeff(slipRate, thetaNew) << ", newCohesion = " << newCohesion << endl;
+
   return phi;
 }
 
 double SSEnhLocDieterichT::NewCohesion(double slipRate, double jumpIncrement, double thetaNew)
 {
-	double jump = fabs(fBand->Jump()) + fabs(jumpIncrement);
+	double jump = fBand->Jump() + jumpIncrement;
 
-	if (jump >= fH_delta_0)
+	if (jump >= fH_delta_0 || fBand->Jump() >= fH_delta_0)
 		return 0.0;
 	
-	double mu = fabs(FrictionCoeff(slipRate, thetaNew));
+	double mu = FrictionCoeff(slipRate, thetaNew);
 	double normalStress = NormalStress(jumpIncrement);
 	 
         cout << " normalStress = " << normalStress << " ";
-         
-	return (fBand->ResidualCohesion() + mu* normalStress) * (1.0 - jump/fH_delta_0);
 
+		 
+	double newCohesion = (fBand->ResidualCohesion() + mu* normalStress) * (1.0 - jump/fH_delta_0);
+	
+	//cout <<  "newCohesion = " << newCohesion;
+	
+	if (!fSimpleSoftening)
+		newCohesion -= (mu * DNormalStressdSlipRate(jumpIncrement) + normalStress * DmudSlipRate(slipRate, thetaNew)) 
+		                *  (1.0 - jump/fH_delta_0)* jump/DjumpdSlipRate();
+	
+    return newCohesion;
 }
 
 dSymMatrixT SSEnhLocDieterichT::StressIncrOnBand(double jumpIncrement)
@@ -471,6 +533,7 @@ dSymMatrixT SSEnhLocDieterichT::AvgStrainRelaxation(double jumpIncrement)
 double SSEnhLocDieterichT::DPhidSlipRate(double slipRate, double jumpIncr, double thetaNew)
 {
 
+ #if 0
   dSymMatrixT dSigmadSlipRate = DSigmadSlipRate(jumpIncr);
 
   dSymMatrixT dPhidSigma = FormdGdSigma(NumDOF(), slipRate, thetaNew);
@@ -478,48 +541,162 @@ double SSEnhLocDieterichT::DPhidSlipRate(double slipRate, double jumpIncr, doubl
 
   double dPhi = dPhidSigma.Dot(dPhidSigma, dSigmadSlipRate); 
 
-  //cout << "dPhi = " << dPhi << endl;
+  cout << "dPhi = " << dPhi << endl;
 
   dPhi += DmudSlipRate(slipRate, thetaNew) * NormalStress(jumpIncr);
 
-  //cout << "dPhi = " << dPhi << endl;
+  cout << "dPhi = " << dPhi << endl;
 
   /* if there's still cohesion, take softening of band into account,
      otherwise, no effect */
   //if (fabs(fBand->Jump()) + fabs(jumpIncr) < fH_delta_0)
     dPhi -= DCohesiondSlipRate(slipRate, jumpIncr, thetaNew);
 
-  //cout << "dPhi = " << dPhi << endl;
+  cout << "dPhi = " << dPhi << endl;
 
+  return dPhi;
+  #endif
+  
+  double dPhi = 0.0;
+  double jump = fBand->Jump() + jumpIncr;
+
+  if (jump >= fH_delta_0 || fBand->Jump() >= fH_delta_0)
+  {
+	  dSymMatrixT dSigmadSlipRate = DSigmadSlipRate(jumpIncr);
+	  dSymMatrixT dPhidSigma = FormdGdSigma(NumDOF(), slipRate, thetaNew);
+ 
+	  dPhi = dPhidSigma.Dot(dPhidSigma, dSigmadSlipRate); 
+      dPhi += DmudSlipRate(slipRate, thetaNew) * NormalStress(jumpIncr);
+  }
+  else
+  {
+    int ndof = NumDOF();
+	dSymMatrixT dPhidSigma(ndof), work(ndof);
+	dMatrixT dGNonSym(ndof);
+
+	dGNonSym.Outer(fBand->Normal(), fBand->PerpSlipDir());
+	dPhidSigma.Symmetrize(dGNonSym);
+
+	double frictionCoeff = FrictionCoeff(slipRate, thetaNew);
+   
+	work.Outer(fBand->Normal());
+	dPhidSigma.AddScaled(frictionCoeff * jump/fH_delta_0, work);
+
+	/* use vector values for mult */
+	dPhidSigma.ScaleOffDiagonal(2.0);
+	
+	dSymMatrixT dSigmadSlipRate = DSigmadSlipRate(jumpIncr);
+	dPhi = dPhidSigma.Dot(dPhidSigma, dSigmadSlipRate); 
+	//dPhi += DmudSlipRate(slipRate, thetaNew) * NormalStress(jumpIncr) * jump/fH_delta_0;
+	
+	dPhi += frictionCoeff * NormalStress(jumpIncr) * DjumpdSlipRate() / fH_delta_0; 
+	dPhi += fBand->ResidualCohesion() * DjumpdSlipRate() / fH_delta_0;
+	
+	dPhi += fBand->ResidualCohesion() * DjumpdSlipRate() * fH_delta_0;
+  }
+  
   return dPhi;
 }
 
 double SSEnhLocDieterichT::DCohesiondSlipRate(double slipRate, double jumpIncr, double thetaNew)
 {
- 	double jump = fabs(fBand->Jump()) + fabs(jumpIncr);
+	double jump = fBand->Jump() + jumpIncr;
 
-	if (jump >= fH_delta_0)
+	if (jump >= fH_delta_0 || fBand->Jump() >= fH_delta_0)
 		return 0.0;
 	
 	double mu = FrictionCoeff(slipRate, thetaNew);
 	double normalStress = NormalStress(jumpIncr);
 	
-	double returnValue = -1.0*(fBand->ResidualCohesion() + fabs(mu)* normalStress)/fH_delta_0 *DjumpdSlipRate();
+	double returnValue = -1.0*(fBand->ResidualCohesion() + mu* normalStress)/fH_delta_0 *DjumpdSlipRate();
 	
+    cout << "returnValue = " << returnValue << " ";
     
 	returnValue += (1.0 - jump/fH_delta_0) *
-	(DmudSlipRate(fabs(slipRate), thetaNew) * NormalStress(jumpIncr) + fabs(mu) * DNormalStressdSlipRate(jumpIncr));
+	(DmudSlipRate(slipRate, thetaNew) * NormalStress(jumpIncr) + mu * DNormalStressdSlipRate(jumpIncr));
 
 
-    //cout << "returnValue = " << returnValue << " ";
+	if (!fSimpleSoftening)
+		returnValue += DSecondOrderSofteningDSlipRate(slipRate, jumpIncr, thetaNew);
+
+    cout << "returnValue = " << returnValue << " ";
     //returnValue *= -1.0;
 	return returnValue;
   //return DCohesiondJump(slipRate, jumpIncr, thetaNew) * DjumpdSlipRate();
 }
 
+double SSEnhLocDieterichT::DSecondOrderSofteningDSlipRate(double slipRate, double jumpIncr, double thetaNew)
+{
+
+	double jump = fBand->Jump() + jumpIncr;
+
+	double mu = FrictionCoeff(slipRate, thetaNew);
+	double normalStress = NormalStress(jumpIncr);
+	 
+	double returnValue = (mu * DNormalStressdSlipRate(jumpIncr) + normalStress * DmudSlipRate(slipRate, thetaNew)) 
+		                *  (1.0 - 2.0*jump/fH_delta_0);
+	
+	returnValue += (1.0 - jump/fH_delta_0)* jump/DjumpdSlipRate() *
+	               (2.0 * DNormalStressdSlipRate(jumpIncr) * DmudSlipRate(slipRate, thetaNew)
+				    + normalStress * D2MuDSlipRate2(slipRate, thetaNew));
+
+	returnValue *= -1.0;
+	return returnValue;
+}
+
+double SSEnhLocDieterichT::D2MuDSlipRate2(double slipRate, double thetaNew)
+{
+  if (fV_star == 0.0)
+    return 0.0;
+	
+  double jumpIncr = JumpIncrement(slipRate);
+  if (fNoFrictionInTension && NormalStress(jumpIncr) >= 0.0)
+	return 0.0;
+
+  if (slipRate == 0.0)
+	{
+      double returnValue = fFrictionA/(2.0* fV_star) * exp((fMu_star + fFrictionB * log( thetaNew/fTheta_star))/fFrictionA);
+	  returnValue *= 2.0 * fFrictionB * DthetadSlipRate(0.0)/(fFrictionA * thetaNew);
+	  return returnValue;
+	}
+  else
+    {
+      double arg = ArcSinhArg(slipRate, thetaNew);
+	  double dThetadSlipRate = DthetadSlipRate(slipRate);
+      double returnValue = fFrictionB/(fFrictionA * thetaNew);
+	  returnValue *= 2.0 * dThetadSlipRate /slipRate 
+					+ (fFrictionA/fFrictionB - 1.0) * dThetadSlipRate * dThetadSlipRate / thetaNew 
+					+ D2ThetaDSlipRate2(slipRate); 
+	  returnValue -= arg * arg * (1.0/slipRate + fFrictionB * dThetadSlipRate/(fFrictionA * thetaNew)) / (1.0 + arg * arg); 
+	  returnValue *= fFrictionA *arg/ sqrt(1.0 + arg*arg);
+	  return returnValue;
+    }	
+}
+
+double SSEnhLocDieterichT::D2ThetaDSlipRate2(double slipRate)
+{
+  double dt = ElementSupport().TimeStep();
+
+  double numerator = fDieterichBand-> ThetaLast();
+  numerator += dt * ( ( 1 - fBeta_theta) * fDieterichBand -> ThetaRateLast()
+		      + fBeta_theta); 
+ numerator *= 2.0 * fBeta_theta * fBeta_theta * dt * dt * fD_c;
+
+ double cubrtDenom = (fD_c + fBeta_theta * slipRate * dt);
+
+ return numerator/(cubrtDenom * cubrtDenom * cubrtDenom);  
+}
+
 double SSEnhLocDieterichT::DNormalStressdSlipRate(double jumpIncr)
 {
+	//checking for triaxial simulations
+    double jump = fBand->Jump() + jumpIncr;
+	double shearStress = ShearStress(jumpIncr);
+	
+	double check = fBand->Normal()[1]/fBand->Normal()[0] * (shearStress - fBand->ResidualCohesion())/jump * DjumpdSlipRate();
+
 	double dNormalStressdSlipRate =  DSigmadSlipRate(jumpIncr).MultmBn(fBand->Normal(), fBand->Normal());
+	//cout << "dNormalStressdSlipRate = " << dNormalStressdSlipRate << ", check = " << check << " ";
 	return dNormalStressdSlipRate;    
 }
 
@@ -545,6 +722,10 @@ double SSEnhLocDieterichT::DmudSlipRate(double slipRate, double thetaNew)
 {
   if (fV_star == 0.0)
     return 0.0;
+	
+  double jumpIncr = JumpIncrement(slipRate);
+  if (fNoFrictionInTension && NormalStress(jumpIncr) >= 0.0)
+	return 0.0;
 
   if (slipRate == 0.0)
     return fFrictionA/(2.0* fV_star) * exp((fMu_star + fFrictionB * log( thetaNew/fTheta_star))/fFrictionA);
@@ -585,6 +766,13 @@ double SSEnhLocDieterichT::NormalStress(double jumpIncr)
   return currStress.MultmBn(fBand->Normal(), fBand->Normal());
 }
 
+double SSEnhLocDieterichT::ShearStress(double jumpIncr)
+{
+  dSymMatrixT currStress = LastStressOnBand();
+  currStress += StressIncrOnBand(jumpIncr);
+
+  return currStress.MultmBn(fBand->PerpSlipDir(), fBand->Normal());
+}
 
 /*------end math functions----------------------------------------*/
 
@@ -623,6 +811,9 @@ BandT* SSEnhLocDieterichT::FormNewBand(dArrayT normal, dArrayT slipDir,
   shearStress = fabs(shearStress)/area;
 
   double residCohesion = shearStress;
+  
+  //if (normalStress < 0.0 && fV_star == 0.0)
+  //	residCohesion += normalStress * fMu_star;
 
   if (fBVPType == kPreFailed && ElementSupport().Time() == 0.0)
     residCohesion = 0.0;
@@ -664,6 +855,10 @@ double SSEnhLocDieterichT::FrictionCoeff(double slipRate, double theta)
 {
   if (fV_star == 0.0)
     return fMu_star;
+
+  double jumpIncr = JumpIncrement(slipRate);
+  if (fNoFrictionInTension && NormalStress(jumpIncr) >= 0.0)
+	return 0.0;
 
   //cout << " ArcSinhArg(slipRate, theta) = " << ArcSinhArg(slipRate, theta) << endl;
   return fFrictionA * asinh(ArcSinhArg(slipRate, theta));

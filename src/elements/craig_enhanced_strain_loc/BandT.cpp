@@ -242,7 +242,7 @@ void BandT::ActivateNodes(dArrayT& coord)
       if (nodalCoord.Dot(nodalCoord, fNormal) > 0.0)
 	{
 	  fActiveNodes.Append(i);
-	  cout << "node " << i << " is active.Coords =\n" << nodalCoord << endl; 
+	  cout << "node " << i << " is active. Coords =\n" << nodalCoord << endl; 
 	}
     }
 

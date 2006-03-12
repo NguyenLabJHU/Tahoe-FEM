@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.21 2005-12-15 18:39:07 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.22 2006-03-12 07:33:36 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -19,6 +19,7 @@ using namespace Tahoe;
 
 /*initialize static variables */
 bool SSEnhLocCraigT::fLocalizationHasBegun = false;
+bool SSEnhLocCraigT::fSeedElementsSet = false;
 double SSEnhLocCraigT::fDetAMin = 1.0e99;
 int SSEnhLocCraigT::fLeastDetEle = -1;
 
@@ -1074,7 +1075,7 @@ while(fEdgeOfBandElements.Next())
 	{
 	  fEdgeOfBandCoords.Next();
 	  cout << "fEdgeOfBandElements.Current() = " << flush << fEdgeOfBandElements.Current() << endl << flush;
-	  cout << "fEdgeOfBandCoords.Current() = " << fEdgeOfBandCoords.Current() << endl;	  
+	  //cout << "fEdgeOfBandCoords.Current() = " << fEdgeOfBandCoords.Current() << endl;	  
 	  GetElement(fEdgeOfBandElements.Current());
 	  if (IsElementLocalized())
 		TraceElement();
@@ -1088,11 +1089,11 @@ fEdgeOfBandElements.Current(fEdgeOfBandElements.Position() -1);
 
 /* check for newly localized elements not on existing bands */
 //fJustChecking = true;
-	  cout << "hi hi\n";
-    
+	  //cout << "hi hi\n";
+if (!fSeedElementsSet)
 if (!fLocalizationHasBegun || fMultiBand) 
     {
-	  cout << "hi\n";
+	  //cout << "hi\n";
       //choose first element then let band progress
  
       Top();
@@ -1101,7 +1102,7 @@ if (!fLocalizationHasBegun || fMultiBand)
 		  //cout << "1\n";
 		if (!IsElementTraced())
 		{
-		    cout << "CurrElementNumber = " << CurrElementNumber() << "\n";
+		    //cout << "CurrElementNumber = " << CurrElementNumber() << "\n";
 			GetElement(CurrElementNumber());
 
 			if (IsElementLocalized())
@@ -1113,7 +1114,7 @@ if (!fLocalizationHasBegun || fMultiBand)
 				fLocalizationHasBegun = true;
 				//fEdgeOfBandElements.Current(0); //should be at
 	  
-	  			cout << "fLeastDetEle = " << fLeastDetEle << endl;
+	  			//cout << "fLeastDetEle = " << fLeastDetEle << endl;
 				GetElement(fLeastDetEle);
 				//fEdgeOfBandCoords.Free();
 				fEdgeOfBandElements.Append(fLeastDetEle);
@@ -1131,6 +1132,9 @@ if (!fLocalizationHasBegun || fMultiBand)
      //cout << "time = 0.0\n" << flush; 
      PreFailElements();
    }
+
+ if (fLocalizationHasBegun)
+	fSeedElementsSet = true;
 
   SmallStrainT::CloseStep();
  
@@ -1409,8 +1413,8 @@ bool SSEnhLocCraigT::IsElementLocalized()
 	  if (detA < detAMin)
 	    detAMin = detA;
 
-	  cout << "detAMin = " << flush << detAMin << flush << endl;
-	  cout << "fDetAMin = " << fDetAMin << endl << endl;
+	  //cout << "detAMin = " << flush << detAMin << flush << endl;
+	  //cout << "fDetAMin = " << fDetAMin << endl << endl;
 	
       if ((fBVPType == kNonhomogeneous && detAMin < fDetAMin) || (fBVPType !=
 		kNonhomogeneous && CurrElementNumber() == fFirstElementToLocalize))
@@ -1418,9 +1422,9 @@ bool SSEnhLocCraigT::IsElementLocalized()
 	  
 		fDetAMin = detAMin;
 		fLeastDetEle = CurrElementNumber();
-		cout << "detAMin = " << detAMin << endl;
-		cout << "fDetAMin = " << fDetAMin << endl;
-		cout << "fLeastDetEle = " << fLeastDetEle << endl;
+		//cout << "detAMin = " << detAMin << endl;
+		//cout << "fDetAMin = " << fDetAMin << endl;
+		//cout << "fLeastDetEle = " << fLeastDetEle << endl;
 		//save best normals and slipdirs here?
       }
 	}
@@ -1431,6 +1435,7 @@ bool SSEnhLocCraigT::IsElementLocalized()
 
 bool SSEnhLocCraigT::TraceElement()
 {
+  cout << "Tracing element " << CurrElementNumber() << endl;
 
   bool locCheck = false;
   double detA, detAMin  = 1.0e99;
@@ -1550,14 +1555,16 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
     {
       cout << "current normal = \n" << normals.Current() << endl; 
       slipDirs.Next();
-      prod = fabs( avgGradU.MultmBn(normals.Current(), slipDirs.Current()));
+      //prod = fabs( avgGradU.MultmBn(normals.Current(), slipDirs.Current()));
+      prod = fabs( avgGradU.MultmBn(slipDirs.Current(), normals.Current()));
+	  cout << "prod = " << prod << endl;
       //prod = (normals.Current() [1]) * (normals.Current() [2]);
       if (prod > maxProd)
 	{
 	  cout << "best normal = \n" << normals.Current() << endl; 
 	  normal = normals.Current(); 
 	  slipDir = slipDirs.Current();
-          //maxProd = prod;
+          maxProd = prod;
 	}
     }
 
@@ -1565,8 +1572,8 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   if (normal.Dot(normal, slipDir)<0.0)
     slipDir *= -1.0;
 
-  normal *= -1.0;
-  slipDir *= -1.0;
+  //normal *= -1.0;
+  //slipDir *= -1.0;
 
   perpSlipDir = slipDir;
   perpSlipDir.AddScaled(-1.0*slipDir.Dot(slipDir, normal), normal);
@@ -1579,11 +1586,15 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
 
 
   fBand = FormNewBand(normal, slipDir, perpSlipDir, fEdgeOfBandCoords.Current(), area);
-
+  
+  cout << "fBand->PerpSlipDir() = " << fBand->PerpSlipDir() << endl;
+  cout << "fBand->Coords() = " << fBand->Coords() << endl;
+  //cout << "fBand = " << fBand << endl;
   //cout << "1 " << flush;
 
   fTracedElements.Insert(CurrElementNumber(), fBand);
 
+  //cout << "fBand = " << fBand << endl;
   //cout << "2 " << flush;
 
   AddNewEdgeElements(CurrElementNumber());
@@ -1653,7 +1664,15 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
   int numSides;
   int numSidesFound = 0;
   //int numElementSides = 0;
+  
+ 
+  
   iAutoArrayT activeNodes = fBand->ActiveNodes();
+  //activeNodes.Free();
+  //activeNodes.Dimension(fBand->ActiveNodes());
+  //fBand->ActiveNodes().CopyInto(activeNodes);
+
+
 
   switch (GeometryCode())
 {
@@ -1678,21 +1697,33 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
   LocalArrayT nodalCoords = InitialCoordinates();
   dArrayT nodalCoord1(NumSD()), nodalCoord2(NumSD()); //coords a particular node
 
+  cout << "fBand = " << fBand << endl;
+  
+  //temporary workaround- IsElementTraced loads the element, changing the coordinates
+  BandT* fBandTemp = fBand;
+
   for(int i = 0; i < numSides; i++)
-    if ((activeNodes.HasValue((i+1) % numSides) && !activeNodes.HasValue(i))
-	|| (!activeNodes.HasValue((i+1) % numSides) && activeNodes.HasValue(i)))
+    //if (((fBand->ActiveNodes()).HasValue((i+1) % numSides) && !((fBand->ActiveNodes()).HasValue(i)))
+	//|| (!((fBand->ActiveNodes()).HasValue((i+1) % numSides)) && (fBand->ActiveNodes()).HasValue(i)))
+	if ((activeNodes.HasValue((i+1) % numSides) && !(activeNodes.HasValue(i)))
+	|| (!(activeNodes.HasValue((i+1) % numSides)) && activeNodes.HasValue(i)))
       {
-	//cout << "i = " << i << ", neighbor = " << neighbors(elementNumber,
-	//						    i) << endl;	
+
+	  cout << "fBand = " << fBand << endl;	
+      fBand = fBandTemp;
+	  
+	
 		if (!(neighbors(elementNumber,i) == -1 || IsElementTraced(neighbors(elementNumber ,i))))
 	  	{
 	    	//get coords
+			fBand = fBandTemp;
+			  cout << "fBand = " << fBand << endl;
 	    	dArrayT localizedEleCoord = fBand -> Coords();
 
 		    for (int j = 0; j < nodalCoords.MinorDim(); j++)
 		      {		
 				nodalCoord1 [j] = nodalCoords(i,j);
-				nodalCoord2 [j] = nodalCoords((i+1) % numSides, j);
+				nodalCoord2 [j] = nodalCoords((i+1) % numSides, j); //replace numSides w/ num Ele nodes!
 	      		}
 		    /*
 	      	cout << CurrElementNumber() << endl;
@@ -1726,12 +1757,15 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 dArrayT SSEnhLocCraigT::InterceptCoords(dArrayT& localizedEleCoord,
 dArrayT& nodalCoord1, dArrayT& nodalCoord2)
 {
-  //assumes staright sides
+  //assumes straight sides
   dArrayT sideVector = nodalCoord2;
   sideVector -= nodalCoord1;
 
   dArrayT perpSlipDir = fBand -> PerpSlipDir();
 
+  cout << "Interceptcoords: nodalCoord1 =\n" << nodalCoord1 << "\nNodalCoord2 =\n" << nodalCoord2
+       << "\nlocalizedEleCoord =\n" << localizedEleCoord << "\nperpSlipDir =\n" << perpSlipDir; 
+	   
   double alpha = sideVector[0] * (localizedEleCoord[1] - nodalCoord1[1]) -
   sideVector[1] * (localizedEleCoord[0] - nodalCoord1[0]);
   alpha /= sideVector[1] * perpSlipDir[0] - sideVector[0] *
