@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.62 2005-09-21 03:39:39 paklein Exp $
+# $Id: tahoe-manager,v 1.63 2006-03-24 23:39:02 regueiro Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -16,6 +16,9 @@ $tahoe = "tahoe.ca.sandia.gov";
 
 # Sourceforge server
 $tahoe_sf = "cvs.sourceforge.net"; 
+
+# Colorado server
+$tahoe_co = "tahoe.colorado.edu"; 
 
 # modules in order of dependency
 @modulebydepend = (
@@ -37,11 +40,13 @@ $tahoe_sf = "cvs.sourceforge.net";
 "qhull",
 "Sierra",
 "development",
+"development_colorado",
 "tahoe",
 "contrib",
 "benchmark_XML",
 "development_benchmark_XML",
-"bravais");
+"bravais",
+"development_colorado_benchmark");
 
 # prefix on macros in the makefiles
 # NOTE: macro prefixes must be unique when compared as regular expressions,
@@ -57,15 +62,17 @@ spoolesMPI SPOOLESMPI_
 spoolesMT SPOOLESMT_
 metis   METIS_
 aztec   AZ_
-f2c	    F2C_
+f2c	F2C_
 CBLAS	BLAS_
 access	AX_
 development DEV_
+development_colorado DEV_CO
 Sierra SIERRA_
 qhull  QHULL_
 contrib NODEFINE
 benchmark_XML NODEFINE
 development_benchmark_XML NODEFINE
+development_colorado_benchmark NODEFINE
 SIMOD SIMOD_
 bravais NODEFINE
 SuperLU_CBLAS SUPERLUCBLAS_
@@ -84,14 +91,16 @@ spoolesMPI	cvs.sourceforge.net:/cvsroot/tahoe
 spoolesMT	cvs.sourceforge.net:/cvsroot/tahoe
 metis		cvs.sourceforge.net:/cvsroot/tahoe
 aztec		cvs.sourceforge.net:/cvsroot/tahoe
-f2c			cvs.sourceforge.net:/cvsroot/tahoe
+f2c		cvs.sourceforge.net:/cvsroot/tahoe
 CBLAS		cvs.sourceforge.net:/cvsroot/tahoe
 access		cvs.sourceforge.net:/cvsroot/tahoe
 development	tahoe.ca.sandia.gov:/cvs/private/tahoe
+development_colorado tahoe.colorado.edu:/cvs/tahoe
 Sierra		tahoe.ca.sandia.gov:/cvs/private/tahoe
 qhull		tahoe.ca.sandia.gov:/cvs/private/tahoe
 benchmark_XML	cvs.sourceforge.net:/cvsroot/tahoe
 development_benchmark_XML tahoe.ca.sandia.gov:/cvs/private/tahoe
+development_colorado_benchmark tahoe.colorado.edu:/cvs/tahoe
 contrib		cvs.sourceforge.net:/cvsroot/tahoe
 bravais		cvs.sourceforge.net:/cvsroot/tahoe
 SuperLU_CBLAS cvs.sourceforge.net:/cvsroot/tahoe
@@ -116,6 +125,7 @@ SuperLU_DIST touch_SuperLU
 # modules in the UP_TO_DATE macro
 %up_to_date_modules = qw(
 development 1
+development_colorado 1
 Sierra 1
 );
 
@@ -270,6 +280,7 @@ while (scalar(@req_missing) > 0) {
 print "*--------------------------------------------------\n";
 print "*  Sourceforge name: $tahoe_sf_name\n";
 print "* Tahoe server name: $tahoe_name\n";
+print "* Colorado server name: $tahoe_co_name\n";
 #print "*   connection: $connection\n";
 if ($proxy !~ "NONE") {
 	print "*             proxy: $proxy\n";
@@ -351,6 +362,7 @@ while(<CONFIG>) {
 			if ($type  =~ /CONNECTION/) {$connection = $tmp_list[0];}
 			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_name = $tmp_list[0]; }
 			elsif ($type =~ /TAHOE_SF_LOGIN/) { $tahoe_sf_name = $tmp_list[0]; }
+			elsif ($type =~ /TAHOE_CO_LOGIN/) { $tahoe_co_name = $tmp_list[0]; }
 			elsif  ($type  =~ /PROXY/){$proxy = $tmp_list[0];}
 			elsif  ($type  =~ /ARCH/){$arch = $tmp_list[0];}
 			elsif  ($type  =~ /USE_DEFAULT/){$use_default_arch = $tmp_list[0];}
@@ -479,6 +491,14 @@ if ($connection =~ "cvs") {
 	if (length($name) > 0) {
 		$tahoe_name = $name;
 	}
+
+	# colorado server
+	$tahoe_co_name = "NONE";
+	print "Colorado server username [NONE]: ";
+	$name = <STDIN>; chomp($name);
+	if (length($name) > 0) {
+		$tahoe_co_name = $name;
+	}
 }
 
 # get macros module
@@ -588,11 +608,15 @@ sub update_cvs {
 				if ($tahoe_name !~ /NONE/) { # must have an account
 					do_system("cvs -d $tahoe_name\@$repo -q checkout $dir > cvs.log");
 				}
-			} else { # on Sourceforge
+			} elsif ($repo =~ /$tahoe_sf/) { # on Sourceforge
 				if ($tahoe_sf_name =~ /anonymous/) { # anonymous access
 					do_system("cvs -z3 -d :pserver:$tahoe_sf_name\@$repo -q checkout $dir >> cvs.log");
 				} else { # developer account
 					do_system("cvs -z3 -d $tahoe_sf_name\@$repo -q checkout $dir > cvs.log");
+				}
+			} else { # on Colorado server
+				if ($tahoe_co_name !~ /NONE/) { # must have an account
+					do_system("cvs -d $tahoe_co_name\@$repo -q checkout $dir > cvs.log");
 				}
 			}
 		}
@@ -1135,6 +1159,7 @@ sub write_config {
 	open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
 	print CONFIG  "# TAHOE_LOGIN\n$tahoe_name\n\n";
 	print CONFIG  "# TAHOE_SF_LOGIN\n$tahoe_sf_name\n\n";
+	print CONFIG  "# TAHOE_CO_LOGIN\n$tahoe_co_name\n\n";
 	print CONFIG  "# CONNECTION\n$connection\n\n";
 	print CONFIG  "# PROXY\n$proxy\n\n";
 	print CONFIG  "# ARCHITECTURE\n$arch\n\n";
