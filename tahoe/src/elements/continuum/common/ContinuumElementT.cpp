@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.51 2005-07-14 00:51:01 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.52 2006-03-28 18:57:19 regueiro Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -25,6 +25,10 @@
 /* materials lists */
 #include "MaterialSupportT.h"
 #include "MaterialListT.h"
+
+#ifdef __DEVELOPMENT_COLORADO__
+#include "DevelopmentColoradoElementsConfig.h"
+#endif
 
 const double Pi = acos(-1.0);
 
@@ -1262,6 +1266,9 @@ void ContinuumElementT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 	
 		/* element geometries */
 		sub_lists.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
+		#ifdef AG_ELEMENT_DEV
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kQuadrilateralAG));
+		#endif
 		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTriangle));
 		sub_lists.AddSub(GeometryT::ToString(GeometryT::kHexahedron));
 		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTetrahedron));
@@ -1460,6 +1467,10 @@ int ContinuumElementT::DefaultNumElemNodes(void) const
 			return 2;
 		case GeometryT::kQuadrilateral:
 			return 4;
+		#ifdef AG_ELEMENT_DEV	
+		case GeometryT::kQuadrilateralAG:
+			return 9;
+		#endif	
 		case GeometryT::kTriangle:
 			return 3;
 		case GeometryT::kHexahedron:
