@@ -1,4 +1,4 @@
-/* $Id: tahoeOptions.h.template,v 1.6 2005-06-23 17:10:27 paklein Exp $ */
+/* $Id: tahoeOptions.h.template,v 1.7 2006-03-28 18:55:46 regueiro Exp $ */
 /* optional libraries - enabled from command line with -D[symbol] declarations */
 #ifndef _TAHOE_OPTIONS_H_
 #define _TAHOE_OPTIONS_H_
@@ -7,6 +7,9 @@
 
 /* development: the Tahoe development module */
 //#define __DEVELOPMENT__
+
+/* Colorado development: the Colorado Tahoe development module */
+//#define __DEVELOPMENT_COLORADO__
 
 /* f2c: FORTRAN to C support */
 //#define __F2C__
