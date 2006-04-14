@@ -1,10 +1,11 @@
-/* $Id: CurrMixtureSpeciesT.cpp,v 1.9 2006-01-12 01:51:14 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.cpp,v 1.10 2006-04-14 15:28:32 thao Exp $ */
 #include "CurrMixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
 #include "ShapeFunctionT.h"
 #include "NLDiffusionMaterialT.h"
 #include "MaterialListT.h"
+#include "KBC_CardT.h"
 
 //DEBUG
 #include "ofstreamT.h"
@@ -88,7 +89,7 @@ void CurrMixtureSpeciesT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const
 }
 
 /* driver for calculating output values */
-void CurrMixtureSpeciesT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+void  CurrMixtureSpeciesT::ComputeOutput (const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
 {
 	/* number of output values */
@@ -163,10 +164,22 @@ if (e_out > 0)
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
 		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
+
+/*		const iArrayT nodes = CurrentElement().NodesX();
+		for (int i = 0; i < nodes.Length(); i++)
+			if (nodes[i] == 221) cout << "\nCompute Output 222: "<<nodal_all(i, 0);
+*/
 	}
 	
 	/* get nodally averaged values */
 	ElementSupport().OutputUsedAverage(n_values);
+/*
+	cout << "\nCompute Output: n_values major dim: "<<n_values.MajorDim();
+	cout << "\nCompute Output: n_values minor dim: "<<n_values.MinorDim();
+	cout << "\nCompute Output: nvalues: ";
+	for (int i =0; i<n_values.MinorDim(); i++)
+		cout <<n_values(221,i)<<"\t";
+*/
 }
 
 /* construct output labels array */
@@ -179,7 +192,7 @@ void CurrMixtureSpeciesT::GenerateOutputLabels(const iArrayT& n_codes,
 
 	/* allocate node labels */
 	n_labels.Dimension(n_codes.Sum());
-	int count = 0;	
+	int count = 0;	 
 
 	if (n_codes[iNodalDisp])
 	{
@@ -222,6 +235,22 @@ void CurrMixtureSpeciesT::WriteOutput(void)
 	/* inherited */
 	NLDiffusionElementT::WriteOutput();
 
+/*	cout << "\nField Name: "<<Field().FieldName();
+	const iArray2DT& eq = Field().Equations();
+	cout << "\nNumber of equations: "<<eq.Length();
+	cout << "\nNumber of nodes: "<<eq.MajorDim();
+	cout << "\nNumber of dof: "<<eq.MinorDim();
+
+	int cnt = 0;
+	for (int i = 0; i<eq.MajorDim(); i++)
+	{
+		if (eq(i,0) < 0) {
+			cout << "\n "<<i+1 << " "<<eq(i,0);
+			cnt ++;
+		}
+	}
+	cout << "\nnumber kcbs: "<<cnt;
+*/	
 	if (fOutputMass)
 	{
 		/* compute total species mass */
@@ -516,7 +545,8 @@ bool CurrMixtureSpeciesT::NextElement(void)
 /* form the residual force vector */
 void CurrMixtureSpeciesT::RHSDriver(void)
 {
-    /* compute the flux velocities */
+
+   /* compute the flux velocities */
 	ComputeMassFlux(false);
     
 	/* inherited */
@@ -761,7 +791,7 @@ void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
     dArrayT vec(nsd);
 
     /*workspaces for calculating divergence*/
-    dMatrixT ip_grad_x;                   /*ip gradient operator*/
+    dMatrixT ip_grad_x, ip_grad_cauchy;                   /*ip gradient operator*/
     ip_grad_x.Dimension(nsd,nip);
     dMatrixT jacobian(nsd);
 
@@ -769,11 +799,13 @@ void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 	{
 		/*work spaces*/
         /*workspaces for calculating divergence*/
-		LocalArrayT cauchy(LocalArrayT::kUnspecified); 
+		LocalArrayT cauchy(LocalArrayT::kUnspecified), dcauchy(LocalArrayT::kUnspecified); 
     
 		dMatrixT ip_Grad_val, ip_Grad_val_j;
         dArrayT div_val(nsd);	
         dMatrixT d_divcauchy(nsd,nen), mat(nsd,nen);
+		dMatrixT dcauchy_ip(nsd);
+		dArray2DT dcauchy_avg;
 
 		dArrayT body_force(nsd);
 		LocalArrayT acc(LocalArrayT::kAcc, NumElementNodes(), nsd);
@@ -784,12 +816,22 @@ void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		{	
 			/* get concentration specific nodal Kirchhoff stresses (tau) */
 			if (fUpdatedLagMixture) fUpdatedLagMixture->ProjectPartialCauchy(fIndex);
-			else ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
+			else fQ1P0Mixture->ProjectPartialCauchy(fIndex);
 
 			fcauchy_avg = ElementSupport().OutputAverage();
 			cauchy.Dimension(NumElementNodes(), nsd*nsd);		
 			cauchy.SetGlobal(fcauchy_avg);
 			ip_Grad_val.Dimension(nsd*nsd, nsd);
+
+			/* project variation in partial stresses to the nodes */
+			if (compute_dmass_flux) {
+				if (fUpdatedLagMixture) fUpdatedLagMixture->ProjectDPartialCauchy(fIndex);
+				else fQ1P0Mixture->ProjectDPartialCauchy(fIndex);
+				dcauchy_avg.Alias(ElementSupport().OutputAverage());
+				dcauchy.Dimension(NumElementNodes(), nsd*nsd);		
+				dcauchy.SetGlobal(dcauchy_avg);
+			}
+
 		}
         else {
             ip_grad_x.Dimension(nsd, nip);
@@ -817,11 +859,16 @@ void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
                 SetLocalU(cauchy);
 
             /* collect integration point stresses - sets shapes functions over the element */
-            if (fUpdatedLagMixture)
+/*            if (fUpdatedLagMixture)
                 fUpdatedLagMixture->IP_PartialStress(fIndex, &fcauchy_ip, (compute_dmass_flux) ? &fdcauchy_ip : NULL);
             else
-				ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
-
+				fQ1P0Mixture->IP_PartialStress(fIndex, &fcauchy_ip, (compute_dmass_flux) ? &fdcauchy_ip : NULL);
+*/
+            if (fUpdatedLagMixture)
+                fUpdatedLagMixture->IP_PartialCauchy(fIndex, &fcauchy_ip, (compute_dmass_flux) ? &fdcauchy_ip : NULL);
+            else
+				fQ1P0Mixture->IP_PartialCauchy(fIndex, &fcauchy_ip, (compute_dmass_flux) ? &fdcauchy_ip : NULL);
+				
             /* collect nodal accelerations */
             if (fUpdatedLagMixture)
                 fUpdatedLagMixture->Acceleration(acc);
@@ -853,10 +900,13 @@ void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 				if (fGradientOption == kGlobalProjection)
 				{
 					div_val = 0.0;
-					if (fUpdatedLagMixture)
-						fShapes->GradU(cauchy, ip_Grad_val);   /*gradient wrt to current configuration*/
+
+/*					if (fUpdatedLagMixture)
+						fShapes->GradU(cauchy, ip_Grad_val);  
 					else ExceptionT::GeneralFail(caller, "Not implemented for Q1P0");
-					
+*/
+					fShapes->GradU(cauchy, ip_Grad_val);   /*gradient wrt to current configuration*/
+										
 					for (int j = 0; j < nsd; j++) {
 						ip_Grad_val_j.Alias(nsd, nsd, ip_Grad_val(j));
 						for (int i = 0; i < nsd; i++)
@@ -887,15 +937,27 @@ void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 				/* add divergence of stress term to force */
 				force += div_val;
                     
+				/* v = D div_sig
+
 				v_e.RowAlias(ip, v);
 
 				const dMatrixT& D = fCurrMaterial->k_ij();
-				D.Multx(force, v); /* c*V */
+				D.Multx(force, v); 
 
-				/* compute relative mass flux */
 				m_e.RowAlias(ip, m);
 				m.SetToScaled(ip_conc[0],v);
-  
+				*/
+
+				/* m = D div_sig*/
+				m_e.RowAlias(ip, m);
+				v_e.RowAlias(ip, v);
+
+				const dMatrixT& D = fCurrMaterial->k_ij();
+				D.Multx(force, m); /* c*V */
+
+				v.SetToScaled(1.0/ip_conc[0],m);
+				
+				
                 /* mass flux variation */
                 if (compute_dmass_flux)
                 {
@@ -904,26 +966,43 @@ void CurrMixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
                     /* shape function array */
                     Na.Alias(nen, fShapes->IPShapeU());			
 
+					/* v = D div_sig*/
                     /* contribution from changing diffusivity -cf dB/dc phi*/
-                    const dMatrixT& dD = fCurrMaterial->dk_ij();
-                    dD.Multx(force, vec, ip_conc[0]);
-
+                    /*const dMatrixT& dD = fCurrMaterial->dk_ij();
+                    dD.Multx(force, vec, ip_conc[0]); 
+					*/
                     /*contribution form -B(2 cf dv/dt - 2 cf g - div sigma)*/
-                    force.AddScaled(-ip_conc[0], ip_acc);
+                    /*force.AddScaled(-ip_conc[0], ip_acc);
                     force.AddScaled(ip_conc[0], body_force);
                     const dMatrixT& D = fCurrMaterial->k_ij();
                     D.Multx(force, vec, 1.0, dMatrixT::kAccumulate);
-                
+                    */
+					
+					/*m = D div_sig*/
+					/*contribution from changing diffusivity, -dB/dC phi*/
+                    const dMatrixT& dD = fCurrMaterial->dk_ij();
+                    dD.Multx(force, vec); 
+					/*contribution form -B( dv/dt -  g )*/
+					const dMatrixT& D = fCurrMaterial->k_ij();
+					D.Multx(ip_acc, vec, -1.0, dMatrixT::kAccumulate);
+					D.Multx(body_force, vec, dMatrixT::kAccumulate);
+					
                     dm.Outer(vec, Na, 1.0, dMatrixT::kAccumulate);
 
                     /* compute divergence of dstress/dconc */
                     if (fGradientOption == kGlobalProjection)
                         ComputeDDivergence(fdcauchy_ip, d_divcauchy);
+//                        ComputeDDivergence(dcauchy, d_divcauchy,dcauchy_ip);
                     else /* element-by-element gradient calculation */
                         ComputeDDivergence(ip_grad_x, fdcauchy_ip, d_divcauchy);
 
                     mat.MultAB(D, d_divcauchy);
-                    dm.AddScaled(ip_conc[0], mat);
+
+					/* v = D div_sig*/
+                    //dm.AddScaled(ip_conc[0], mat);
+
+					/* m = D div_sig*/
+                    dm.AddScaled(1.0, mat);
                 }
             }
         }
@@ -1133,13 +1212,39 @@ void CurrMixtureSpeciesT::ComputeDDivergence(const ArrayT<dMatrixT>& tensor_ip, 
 		/* shape function array */
 		Na.Alias(nen, fShapes->IPShapeU(k));			
 
-		const dMatrixT& dP_ip = tensor_ip[k];
+		const dMatrixT& dval_ip = tensor_ip[k];
 
 		for (int i = 0 ; i < nsd; i++)
 			for (int j = 0; j < nsd; j++) /* div */
 				for (int n = 0; n < nen; n++)
 					for (int m = 0; m < nen; m++)
- 						d_div(i,n) += DNa(j,m)*extrap(m,k)*dP_ip(i,j)*Na[n];
+ 						d_div(i,n) += DNa(j,m)*extrap(m,k)*dval_ip(i,j)*Na[n];
  	}
 }
 
+/*
+void CurrMixtureSpeciesT::ComputeDDivergence(const LocalArrayT& nodal_dval, dMatrixT& d_div, dMatrixT& dval_ip) const
+{
+	int nen = NumElementNodes();
+	int nip = fShapes->NumIP();
+	int nsd = NumSD();
+	
+	const dMatrixT& extrap = fShapes->Extrapolation();
+	const dArray2DT& DNa = fShapes->Derivatives_U();
+
+	dArrayT Na;
+	d_div = 0.0;
+	for (int k = 0; k < nip; k++) 
+	{
+		Na.Alias(nen, fShapes->IPShapeU(k));			
+
+		fShapes->InterpolateU(nodal_dval, dval_ip, k);
+
+		for (int i = 0 ; i < nsd; i++)
+			for (int j = 0; j < nsd; j++) 
+				for (int n = 0; n < nen; n++)
+					for (int m = 0; m < nen; m++)
+ 						d_div(i,n) += DNa(j,m)*extrap(m,k)*dval_ip(i,j)*Na[n];
+ 	}
+}
+*/

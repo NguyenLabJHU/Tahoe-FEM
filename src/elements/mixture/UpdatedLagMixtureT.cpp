@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.18 2006-01-06 02:55:57 thao Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.19 2006-04-14 15:28:32 thao Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -95,9 +95,6 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 				fF_inv.Inverse(F);
 				P.MultABT(fStress, fF_inv);
 				P *= F.Det();
-//                cout << "\n Elem: "<<CurrElementNumber()
-//                     << "\t IP: "<<CurrIP()
-//                     << "\n P: "<<P;
                      
 				/* extrapolate to the nodes */
 				fShapes->Extrapolate(P_1D, nodal_P);
@@ -145,14 +142,10 @@ void UpdatedLagMixtureT::ProjectPartialCauchy(int i)
 			while (fCurrShapes->NextIP())
 			{
 				/* Cauchy stress */
-//                cout << "\nProjectPartialCauchy: ";
 				const dSymMatrixT& stress = mixture.s_ij(i);
                 stress.ToMatrix(cauchy);
                 
                 const dArrayT& conc = mixture.Get_IPConcentration();	
-
-//                dMatrixT P = cauchy;
-//                P *= conc[i];
 
 				/* extrapolate to the nodes */
 				fCurrShapes->Extrapolate(cauchy_1D, nodal_cauchy);
@@ -369,6 +362,7 @@ void UpdatedLagMixtureT::IP_PartialCauchy(int i, ArrayT<dMatrixT>* ip_stress, Ar
 			if (ip_dstress)
 			{
 				/* Cauchy stress */
+//				const dSymMatrixT& dcauchy0 = mixture.ds_ij_dc(i);
 				const dSymMatrixT& dcauchy = mixture.ds_ij_dc_exact(i);
 				dMatrixT& dstress = (*ip_dstress)[ip];
 				dcauchy.ToMatrix(dstress);
@@ -449,4 +443,17 @@ const FSSolidMixtureT& UpdatedLagMixtureT::FSSolidMixture(void) const
 			pcont_mat->Name().Pointer());
 
 	return *mixture;
+}
+
+/***********************************************************************
+ * Public
+ ***********************************************************************/
+
+/* extrapolate the integration point stresses and strains and extrapolate */
+void UpdatedLagMixtureT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	const iArrayT& e_codes, dArray2DT& e_values)
+{
+	/*Inherited*/
+	UpdatedLagrangianT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+	
 }

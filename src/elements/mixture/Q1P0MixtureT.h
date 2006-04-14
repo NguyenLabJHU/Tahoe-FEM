@@ -1,4 +1,4 @@
-/* $Id: Q1P0MixtureT.h,v 1.1 2005-05-16 17:48:05 paklein Exp $ */
+/* $Id: Q1P0MixtureT.h,v 1.2 2006-04-14 15:28:32 thao Exp $ */
 #ifndef _Q1P0_MIXTURE_T_H_
 #define _Q1P0_MIXTURE_T_H_
 
@@ -43,9 +43,16 @@ public:
 	/** project the given partial first Piola-Kirchoff stress to the nodes */
 	void ProjectPartialStress(int i);
 
+	/** project the given partial first Piola-Kirchoff stress to the nodes */
+	void ProjectPartialCauchy(int i);
+
 	/** project the variation with concentration of the given partial first 
 	 * Piola-Kirchoff stress to the nodes */
 	void ProjectDPartialStress(int i);
+	/*@}*/
+
+	/** project the variation with concentration of the given partial cauchy stress to the nodes */
+	void ProjectDPartialCauchy(int i);
 	/*@}*/
 
 	/** collect the integration point stresses and variations in stress. This method
@@ -57,6 +64,9 @@ public:
 	 * \param ip_dstress pointer to the destination of the integration point stress
 	 *        variations or NULL if the variations are wanted */
 	void IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress, ArrayT<dMatrixT>* ip_dstress);
+
+	/*returns the species specific kirchhoff stress at the integration points*/
+	void IP_PartialCauchy(int i, ArrayT<dMatrixT>* ip_stress, ArrayT<dMatrixT>* ip_dstress);
 
 	/** return the body force vector */
 	void BodyForce(dArrayT& body_force) const;
@@ -110,4 +120,4 @@ inline FSSolidMixtureT& Q1P0MixtureT::FSSolidMixture(void) {
 
 } /* namespace Tahoe */
 
-#endif /* _UPDATED_LAG_MIXTURE_T_H_ */
+#endif /* _Q1P0_MIXTURE_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.h,v 1.8 2006-01-06 02:55:57 thao Exp $ */
+/* $Id: UpdatedLagMixtureT.h,v 1.9 2006-04-14 15:28:32 thao Exp $ */
 #ifndef _UPDATED_LAG_MIXTURE_T_H_
 #define _UPDATED_LAG_MIXTURE_T_H_
 
@@ -95,6 +95,9 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+		const iArrayT& e_codes, dArray2DT& e_values);
 
 protected:
 

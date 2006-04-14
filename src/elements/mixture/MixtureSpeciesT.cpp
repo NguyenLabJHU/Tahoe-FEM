@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.24 2006-01-09 17:36:51 thao Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.25 2006-04-14 15:28:32 thao Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -512,8 +512,6 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 			dP_avg.Alias(ElementSupport().OutputAverage());
 			dP.Dimension(NumElementNodes(), nsd*nsd);		
 			dP.SetGlobal(dP_avg);
-            
-//            cout << "\nnodal dP: "<<dP;
 		}
 
 		ip_Grad_P.Dimension(nsd*nsd, nsd);

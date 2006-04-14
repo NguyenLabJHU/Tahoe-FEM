@@ -1,4 +1,4 @@
-/* $Id: Q1P0MixtureT.cpp,v 1.1 2005-05-16 17:48:05 paklein Exp $ */
+/* $Id: Q1P0MixtureT.cpp,v 1.2 2006-04-14 15:28:32 thao Exp $ */
 #include "Q1P0MixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -105,6 +105,57 @@ void Q1P0MixtureT::ProjectPartialStress(int i)
 		}
 }
 
+/* project the given partial first Piola-Kirchoff stress to the nodes */
+void Q1P0MixtureT::ProjectPartialCauchy(int i)
+{
+	/* dimensions */
+	int nen = NumElementNodes();
+	int nsd = NumSD();
+	
+	/* reset averaging workspace */
+	ElementSupport().ResetAverage(nsd*nsd);
+	
+	/* work space */
+	dMatrixT cauchy(nsd);
+	dArrayT cauchy_1D;
+	cauchy_1D.Alias(cauchy);
+
+	/* loop over elements */
+	dArray2DT nodal_cauchy(nen, nsd*nsd);
+
+	Top();
+	while (NextElement())
+		if (CurrentElement().Flag() != ElementCardT::kOFF)
+		{
+			/* get material */
+			FSSolidMixtureT& mixture = FSSolidMixture();
+			
+			/* global shape function values */
+			SetGlobalShape();
+			
+			/* collect concentration */
+			mixture.UpdateConcentrations(i);
+			
+			/* extrapolate element stresses */
+			nodal_cauchy = 0.0;
+			fCurrShapes->TopIP();
+			while (fCurrShapes->NextIP())
+			{
+				/* Cauchy stress */
+				const dSymMatrixT& stress = mixture.s_ij(i);
+                stress.ToMatrix(cauchy);
+                
+                const dArrayT& conc = mixture.Get_IPConcentration();	
+
+				/* extrapolate to the nodes */
+				fCurrShapes->Extrapolate(cauchy_1D, nodal_cauchy);
+			}
+			
+			/* accumulate - extrapolation done from ip's to corners => X nodes */
+			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_cauchy);
+		}
+}
+
 /* project the variation with concentration of the given partial first
  * Piola-Kirchoff stress to the nodes */
 void Q1P0MixtureT::ProjectDPartialStress(int i)
@@ -157,6 +208,57 @@ void Q1P0MixtureT::ProjectDPartialStress(int i)
 
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
 			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_P);
+		}
+}
+
+/* project the variation with concentration of the given partial first
+ * Piola-Kirchoff stress to the nodes */
+void Q1P0MixtureT::ProjectDPartialCauchy(int i)
+{
+	/* dimensions */
+	int nen = NumElementNodes();
+	int nsd = NumSD();
+
+	/* reset averaging workspace */
+	ElementSupport().ResetAverage(nsd*nsd);
+
+	/* work space */
+	dMatrixT cauchy(nsd), s(nsd);
+	dArrayT cauchy_1D;
+	cauchy_1D.Alias(fStress);
+
+	/* loop over elements */
+	dArray2DT nodal_cauchy(nen, nsd*nsd);
+	Top();
+	while (NextElement())
+		if (CurrentElement().Flag() != ElementCardT::kOFF)
+		{
+			/* get materials */
+			FSSolidMixtureT& mixture = FSSolidMixture();
+
+			/* global shape function values */
+			SetGlobalShape();
+			
+			/* collect concentration */
+			mixture.UpdateConcentrations(i);
+
+			/* extrapolate element stresses */
+			nodal_cauchy = 0.0;
+			fShapes->TopIP();
+			while (fShapes->NextIP())
+			{
+				/* Cauchy stress */
+				const dSymMatrixT& dcauchy = mixture.ds_ij_dc_exact(i);
+				
+				/* Cauchy -> 1st PK stress */
+				dcauchy.ToMatrix(fStress);
+                
+				/* extrapolate to the nodes */
+				fShapes->Extrapolate(cauchy_1D, nodal_cauchy);
+			}
+
+			/* accumulate - extrapolation done from ip's to corners => X nodes */
+			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_cauchy);
 		}
 }
 
@@ -219,6 +321,57 @@ void Q1P0MixtureT::IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress,
 			for (int i = 0; i < ip_stress->Length(); i++)
 				(*ip_stress)[i] = 0.0;
 
+		if (ip_dstress)
+			for (int i = 0; i < ip_dstress->Length(); i++)
+				(*ip_dstress)[i] = 0.0;
+	}
+}
+
+void Q1P0MixtureT::IP_PartialCauchy(int i, ArrayT<dMatrixT>* ip_stress, ArrayT<dMatrixT>* ip_dstress)
+{
+	/* nothing wanted */
+	if (!ip_stress && !ip_dstress)
+		return;
+	/* element is active */
+	else if (CurrentElement().Flag() != ElementCardT::kOFF)
+	{
+		/* get materials */
+		FSSolidMixtureT& mixture = FSSolidMixture();
+		
+		/* collect concentration */
+		mixture.UpdateConcentrations(i);
+		
+		/* collect integration point element stresses */
+		fShapes->TopIP();
+		while (fShapes->NextIP())
+		{
+			/* destination */
+			int ip = fShapes->CurrIP();			
+
+            /* stress */
+			if (ip_stress)
+			{
+				/* Cauchy stress */
+				const dSymMatrixT& cauchy = mixture.s_ij(i);
+ 				dMatrixT& mat_stress = (*ip_stress)[ip];
+				cauchy.ToMatrix(mat_stress);
+			}
+
+			/* stress variation */
+			if (ip_dstress)
+			{
+				/* Cauchy stress */
+				const dSymMatrixT& dcauchy = mixture.ds_ij_dc_exact(i);
+				dMatrixT& dstress = (*ip_dstress)[ip];
+				dcauchy.ToMatrix(dstress);
+			}
+		}
+	}
+	else /* zero them out */
+	{
+		if (ip_stress)
+			for (int i = 0; i < ip_stress->Length(); i++)
+				(*ip_stress)[i] = 0.0;
 		if (ip_dstress)
 			for (int i = 0; i < ip_dstress->Length(); i++)
 				(*ip_dstress)[i] = 0.0;

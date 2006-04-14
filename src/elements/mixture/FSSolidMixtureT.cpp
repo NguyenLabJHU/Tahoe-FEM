@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.23 2006-01-09 17:36:51 thao Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.24 2006-04-14 15:28:32 thao Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -95,7 +95,15 @@ void FSSolidMixtureT::UpdateConcentrations(int i)
 	const dArray2DT& c = field[0];
 	double* pc = fConc(i);
 	for (int j = 0; j < nodes_u.Length(); j++)
+	{
+
+/*		if (nodes_u[j] == 221 || nodes_u[j] == 529 || nodes_u[j]==665){
+			cout << "\nField name: "<<field.FieldName();
+			cout << "\nNode: "<<nodes_u[j]<<"\t concentration: "<<c[nodes_u[j]];
+		}
+*/
 		*pc++ = c[nodes_u[j]];
+	}
 }
 
 /** return the index of the species associated with the given field name */
@@ -172,6 +180,7 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 	/* restore the concentration */
 	conc[i] = c_0;
 	
+//	cout << "\nApp DStress: "<<fStress;
 	return fStress;
 }
 
@@ -202,15 +211,17 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc_exact(int i)
     /* recall that fStressFunctions[i]->s_ij() returns 1/Je de/dFe Fe^T*/
     const double third = 1.0/3.0;
 	fStress.SetToScaled(third*J_e, fStressFunctions[i]->s_ij());
+//	cout << "\nExact Stress: "<<fStress;
 
     fModulus.SetToScaled(J_e, fStressFunctions[i]->c_ijkl());
 	fStress[0] -= third*(fModulus(0,0)+fModulus(0,1)+fModulus(0,2));
 	fStress[1] -= third*(fModulus(1,0)+fModulus(1,1)+fModulus(1,2));
 	fStress[2] -= third*(fModulus(2,0)+fModulus(2,1)+fModulus(2,2));
 	fStress[3] -= third*(fModulus(3,0)+fModulus(3,1)+fModulus(3,2));
-	fStress[4] -= third*(fModulus(4,0)+fModulus(5,1)+fModulus(5,2));
-	fStress[5] -= third*(fModulus(4,0)+fModulus(5,1)+fModulus(5,2));
+	fStress[4] -= third*(fModulus(4,0)+fModulus(4,1)+fModulus(4,2));
+	fStress[5] -= third*(fModulus(5,0)+fModulus(5,1)+fModulus(5,2));
 
+//	cout << "\nExact DStress: "<<fStress;
 	return fStress;
 }
 
@@ -340,9 +351,7 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 		double J_g = conc[i]/conc_0[i];
 		if (J_g <= 0.0) 
         {
-//            cout << "\nfield name: "<<fFields[i]->FieldName();
-//            cout << "\nconc: "<<fConc;
-            ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
+           ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
         }
 		fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
