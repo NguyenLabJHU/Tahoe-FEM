@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.26 2005-02-25 18:41:18 cfoster Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.27 2006-04-25 18:15:53 regueiro Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -50,7 +50,9 @@ void DPSSKStV::ResetHistory(void)
 	if (element.IsAllocated()) fDP->Reset(element);
 }
 
-const dSymMatrixT& DPSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) {
+const dSymMatrixT& DPSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, 
+											const ElementCardT& element, int ip) 
+{
 	return fDP->ElasticStrain(totalstrain, element, ip);
 }
 
@@ -129,9 +131,9 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 		output[0] = internal[DPSSLinHardT::kalpha];
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == DPSSLinHardT::kIsPlastic)
-		  {
+		{
 			output[0] -= fDP->H_prime()*internal[DPSSLinHardT::kdgamma];
-		  }
+		}
 	}
 	else
 	{

@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.h,v 1.14 2004-07-15 08:28:48 paklein Exp $ */
+/* $Id: DPSSLinHardT.h,v 1.15 2006-04-25 18:15:53 regueiro Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_LIN_HARD_T_H_
 #define _DP_SS_LIN_HARD_T_H_
@@ -33,7 +33,8 @@ class DPSSLinHardT: public DPPrimitiveT
 						kReset = 3}; // indicate not to repeat update
 
 	/** returns elastic strain (3D) */
-	const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,  const ElementCardT& element, int ip);
+	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,  
+									const ElementCardT& element, int ip);
 			
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
@@ -55,7 +56,7 @@ class DPSSLinHardT: public DPPrimitiveT
                         kstressnorm = 1,  // norm of stress
                             kdgamma = 2,  // consistency parameter
                             kftrial = 3,  // yield function value
-			    		kdgamma2 = 4}; // 2nd consistency par. at vertex
+			    		   kdgamma2 = 4}; // 2nd consistency par. at vertex
 
 	/** internal variables */
 	dArrayT& Internal(void) { return fInternal; };
