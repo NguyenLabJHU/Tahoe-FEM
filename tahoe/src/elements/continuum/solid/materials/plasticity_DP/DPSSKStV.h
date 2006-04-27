@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.14 2005-02-25 18:41:18 cfoster Exp $ */
+/* $Id: DPSSKStV.h,v 1.15 2006-04-27 04:37:50 cfoster01 Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -84,6 +84,11 @@ class DPSSKStV: public SSIsotropicMatT,
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+    virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA);
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 protected:
 
