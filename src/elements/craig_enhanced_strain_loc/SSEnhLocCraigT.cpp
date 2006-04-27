@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.22 2006-03-12 07:33:36 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.23 2006-04-27 04:40:37 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -1133,6 +1133,8 @@ if (!fLocalizationHasBegun || fMultiBand)
      PreFailElements();
    }
 
+ /* uncomment these two lines to restrict band propagation after initial
+    localization */
  if (fLocalizationHasBegun)
 	fSeedElementsSet = true;
 
@@ -1553,20 +1555,76 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
 
   while(normals.Next())
     {
-      cout << "current normal = \n" << normals.Current() << endl; 
+      //cout << "current normal = \n" << normals.Current() << endl; 
       slipDirs.Next();
       //prod = fabs( avgGradU.MultmBn(normals.Current(), slipDirs.Current()));
       prod = fabs( avgGradU.MultmBn(slipDirs.Current(), normals.Current()));
-	  cout << "prod = " << prod << endl;
+	  //cout << "prod = " << prod << endl;
       //prod = (normals.Current() [1]) * (normals.Current() [2]);
       if (prod > maxProd)
 	{
-	  cout << "best normal = \n" << normals.Current() << endl; 
+	  //cout << "best normal = \n" << normals.Current() << endl; 
 	  normal = normals.Current(); 
 	  slipDir = slipDirs.Current();
           maxProd = prod;
 	}
     }
+
+ //For propagating band normal in same direction
+ #if 0
+   BandT* fBandTemp = fBand;
+ 
+   //get element neighbors array
+   ModelManagerT& model = ElementSupport().ModelManager();
+  iArray2DT neighbors;
+  ArrayT<StringT> ids;
+  
+  ElementBlockIDs(ids);  
+  //cout << "hi " << flush;
+
+  model.ElementNeighbors(ids, neighbors);
+
+  //cout << "neighbors =\n" << neighbors << endl;
+
+  //2D
+  int numSides;
+  int numSidesFound = 0;
+
+  switch (GeometryCode())
+{
+ case GeometryT::kQuadrilateral:
+   {
+     numSides = 4;
+     break;
+   }
+ case GeometryT::kTriangle: 
+   {
+     numSides = 3;
+     break;
+   }
+ default:
+   {
+     cout << "SSEnhLocCraigT::AddNewEdgeElements, geometry not implemented. \n" << flush;
+     throw ExceptionT::kGeneralFail;
+   }
+}
+
+   int elementNumber = CurrElementNumber();
+   //search for traced neighbor
+    for(int i = 0; i < numSides; i++)
+   		if (neighbors(elementNumber,i) != -1 && IsElementTraced(neighbors(elementNumber ,i)))
+         {   
+			//load that element - done by IsElementTraced
+   
+			//get that normal
+			normal = fBand -> Normal();
+         }
+ 
+ 
+  fBand = fBandTemp;
+ #endif
+
+
 
   //make sure slip direction is dilatant
   if (normal.Dot(normal, slipDir)<0.0)
@@ -1584,11 +1642,19 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
       slipDir = perpSlipDir;
     }
 
+  //very temp
+  /*
+  normal[0] = .8;
+  normal[1] = .6;
+  slipDir[0] = .6;
+  slipDir[1] = -.8;
+  perpSlipDir = slipDir;
+	*/
 
   fBand = FormNewBand(normal, slipDir, perpSlipDir, fEdgeOfBandCoords.Current(), area);
   
-  cout << "fBand->PerpSlipDir() = " << fBand->PerpSlipDir() << endl;
-  cout << "fBand->Coords() = " << fBand->Coords() << endl;
+  //cout << "fBand->PerpSlipDir() = " << fBand->PerpSlipDir() << endl;
+  //cout << "fBand->Coords() = " << fBand->Coords() << endl;
   //cout << "fBand = " << fBand << endl;
   //cout << "1 " << flush;
 
@@ -1697,7 +1763,7 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
   LocalArrayT nodalCoords = InitialCoordinates();
   dArrayT nodalCoord1(NumSD()), nodalCoord2(NumSD()); //coords a particular node
 
-  cout << "fBand = " << fBand << endl;
+  //cout << "fBand = " << fBand << endl;
   
   //temporary workaround- IsElementTraced loads the element, changing the coordinates
   BandT* fBandTemp = fBand;
@@ -1709,7 +1775,7 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 	|| (!(activeNodes.HasValue((i+1) % numSides)) && activeNodes.HasValue(i)))
       {
 
-	  cout << "fBand = " << fBand << endl;	
+	  //cout << "fBand = " << fBand << endl;	
       fBand = fBandTemp;
 	  
 	
@@ -1717,7 +1783,7 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 	  	{
 	    	//get coords
 			fBand = fBandTemp;
-			  cout << "fBand = " << fBand << endl;
+			  //cout << "fBand = " << fBand << endl;
 	    	dArrayT localizedEleCoord = fBand -> Coords();
 
 		    for (int j = 0; j < nodalCoords.MinorDim(); j++)
@@ -1763,8 +1829,8 @@ dArrayT& nodalCoord1, dArrayT& nodalCoord2)
 
   dArrayT perpSlipDir = fBand -> PerpSlipDir();
 
-  cout << "Interceptcoords: nodalCoord1 =\n" << nodalCoord1 << "\nNodalCoord2 =\n" << nodalCoord2
-       << "\nlocalizedEleCoord =\n" << localizedEleCoord << "\nperpSlipDir =\n" << perpSlipDir; 
+  //cout << "Interceptcoords: nodalCoord1 =\n" << nodalCoord1 << "\nNodalCoord2 =\n" << nodalCoord2
+  //     << "\nlocalizedEleCoord =\n" << localizedEleCoord << "\nperpSlipDir =\n" << perpSlipDir; 
 	   
   double alpha = sideVector[0] * (localizedEleCoord[1] - nodalCoord1[1]) -
   sideVector[1] * (localizedEleCoord[0] - nodalCoord1[0]);
