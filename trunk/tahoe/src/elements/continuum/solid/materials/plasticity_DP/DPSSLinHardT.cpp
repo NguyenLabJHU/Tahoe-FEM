@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.19 2006-04-25 18:15:53 regueiro Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.20 2006-04-27 04:37:50 cfoster01 Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSLinHardT.h"
 #include <iostream.h>
@@ -78,6 +78,7 @@ const dSymMatrixT& DPSSLinHardT::StressCorrection(
 		/* return mapping (single step) */
 		if (ftrial > kYieldTol)
 		{
+		  //cout << "plastic loading. ";
 
 		/* plastic increment */
 		dgamma = ftrial/fX_H;
@@ -147,6 +148,7 @@ const dMatrixT& DPSSLinHardT::ModuliCorrection(const ElementCardT& element,
 	if (element.IsAllocated() && 
 	   (element.IntegerData())[ip] == kIsPlastic)
 	{
+
 		/* load internal state variables */
 		LoadData(element,ip);
 		

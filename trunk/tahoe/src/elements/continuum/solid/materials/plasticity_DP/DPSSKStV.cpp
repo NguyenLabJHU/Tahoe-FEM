@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.27 2006-04-25 18:15:53 regueiro Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.28 2006-04-27 04:37:50 cfoster01 Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -50,9 +50,7 @@ void DPSSKStV::ResetHistory(void)
 	if (element.IsAllocated()) fDP->Reset(element);
 }
 
-const dSymMatrixT& DPSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, 
-											const ElementCardT& element, int ip) 
-{
+const dSymMatrixT& DPSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) {
 	return fDP->ElasticStrain(totalstrain, element, ip);
 }
 
@@ -61,6 +59,8 @@ const dMatrixT& DPSSKStV::c_ijkl(void)
 {
 	fModulus.SumOf(HookeanMatT::Modulus(),
 	fDP->ModuliCorrection(CurrentElement(), CurrIP()));	
+	if (fModulus != HookeanMatT::Modulus())
+		cout << "plastic modulus, element number " <<  CurrElementNumber() << endl;
 	return fModulus;
 }
 
@@ -131,9 +131,9 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 		output[0] = internal[DPSSLinHardT::kalpha];
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == DPSSLinHardT::kIsPlastic)
-		{
+		  {
 			output[0] -= fDP->H_prime()*internal[DPSSLinHardT::kdgamma];
-		}
+		  }
 	}
 	else
 	{
@@ -190,6 +190,55 @@ void DPSSKStV::TakeParameterList(const ParameterListT& list)
 	fDP = new DPSSLinHardT(NumIP(), Mu(), Lambda());
 	fDP->TakeParameterList(list.GetList("DP_SS_linear_hardening"));
 }
+
+bool DPSSKStV::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+                             AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
+ {
+ #pragma unused(dissipations_fact)
+ 
+     /* elastic modulus */
+     /* this uses same space as c_ijkl(), so save separatley first */
+     const dMatrixT modulus_e = ce_ijkl();
+ 
+     /* localization condition checker */
+     DetCheckT checker(s_ij(), c_ijkl(), modulus_e);
+     normals.Dimension(NumSD());
+     slipdirs.Dimension(NumSD());
+     return checker.IsLocalized_SS(normals, slipdirs, detAs);
+}
+ 
+bool DPSSKStV::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA)
+ {
+
+
+	 
+	 /* elastic modulus */
+     /* this uses same space as c_ijkl(), so save separatley first */
+     dMatrixT modulus_e = ce_ijkl();
+	 dMatrixT modulus = c_ijkl();
+
+	 if ( modulus == modulus_e)
+	    return false;
+
+     /* localization condition checker */
+     DetCheckT checker(s_ij(), c_ijkl(), modulus_e);
+     normals.Dimension(NumSD());
+     slipdirs.Dimension(NumSD());
+     bool dummy = checker.IsLocalized_SS(normals, slipdirs, detA);
+	 
+	/*plasticity = loc */
+	//return true;
+	
+	/*traditional */
+	return dummy;
+}
+ 
+bool DPSSKStV::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+{
+     double dummyDetA = 0.0;
+     return IsLocalized(normals, slipdirs, dummyDetA);
+}
+
 
 /*************************************************************************
  * Protected
