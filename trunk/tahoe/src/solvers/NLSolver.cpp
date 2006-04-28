@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.37 2005-01-24 06:53:34 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.38 2006-04-28 16:37:14 tdnguye Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -450,6 +450,7 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 {
 	int d_width = cout.precision() + kDoubleExtra;
+//	cout <<" Absolute Error i:  "<<error<<endl;
 
 	/* write convergence output */
 	if (fIterationOutputIncrement > 0 && ++fIterationOutputCount >= fIterationOutputIncrement)

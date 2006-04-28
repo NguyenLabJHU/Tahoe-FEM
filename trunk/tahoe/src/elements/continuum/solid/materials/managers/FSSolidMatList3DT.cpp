@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.16 2005-11-08 04:10:44 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.17 2006-04-28 16:37:14 tdnguye Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -76,6 +76,10 @@
 
 #ifdef ELASTICITY_CRYSTAL_MATERIAL
 #include "FDCrystalElast.h"
+#endif
+
+#ifdef BIO_MATERIALS
+#include "VerondaWestmannT.h"
 #endif
 
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
@@ -183,6 +187,9 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("Reese-Govindjee_split");
+#endif
+#ifdef BIO_MATERIALS
+		sub_lists.AddSub("veronda_westmann");
 #endif
 
 #ifdef FINITE_ANISOTROPY
@@ -380,6 +387,12 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef MIXTURE_THEORY_DEV
 	else if (name == "large_strain_solid_mixture")
 		mat= new FSSolidMixtureT;
+#endif
+
+
+#ifdef BIO_MATERIALS
+	else if (name == "veronda_westmann")
+		mat = new VerondaWestmannT;
 #endif
 
 	/* set support */

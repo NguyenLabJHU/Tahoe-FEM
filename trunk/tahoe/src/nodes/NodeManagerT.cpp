@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.63 2005-07-11 23:10:22 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.64 2006-04-28 16:37:14 tdnguye Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -238,7 +238,9 @@ void NodeManagerT::ConnectsU(int group,
 	/* from fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
+		{
 			fFields[i]->Connectivities(connects_1, connects_2, equivalent_nodes);
+		}
 }
 
 /* return the implicit-explicit flag for the given group */
@@ -639,7 +641,9 @@ void NodeManagerT::SetEquationNumbers(int group)
 			/* mark all external as inactive for setting local
 			 * equation numbers */
 			for (int j = 0; j < ex_nodes->Length(); j++)
+			{
 				eqnos.SetRow((*ex_nodes)[j], FieldT::kExternal);	
+			}
 		}
 
 	/* assign active equation numbers node-by-node across fields
@@ -686,6 +690,9 @@ void NodeManagerT::RenumberEquations(int group,
 		relabel.AddGroup(*(connects_1[j]));
 	for (int k = 0; k < connects_2.Length(); k++)
 		relabel.AddGroup(*(connects_2[k]));
+	
+//	cout << "\nconnects1 length: "<<connects_1.Length();
+//	cout << "\nconnects2 length: "<<connects_2.Length();
 	
 	/* collect sets of equation numbers */
 	AutoArrayT<iArray2DT*> eqnos;

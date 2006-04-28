@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.42 2005-04-19 22:10:26 thao Exp $ */
+/* $Id: SolidT.cpp,v 1.43 2006-04-28 16:37:14 tdnguye Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 #include "ExceptionT.h"
@@ -189,6 +189,9 @@ SolidT::TypeT SolidT::int2TypeT(int i)
 
 		case SolidT::kIso_VE_Cornea_Model:
 			return SolidT::kIso_VE_Cornea_Model;
+
+		case SolidT::kVerondaWestmann:
+			return SolidT::kVerondaWestmann;
 
 		default:
 			ExceptionT::BadInputValue("SolidT::int2TypeT", "unknown code %d", i);
