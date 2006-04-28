@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.15 2005-02-13 22:18:40 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.16 2006-04-28 16:37:13 tdnguye Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -156,8 +156,10 @@ void UpdatedLagrangianT::FormKd(double constK)
 		/* strain displacement matrix */
 		Set_B(fCurrShapes->Derivatives_U(), fB);
 
+	    const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
+//		cout << "\n sij tot: "<< cauchy<< endl;
 		/* B^T * Cauchy stress */
-		fB.MultTx(fCurrMaterial->s_ij(), fNEEvec);
+		fB.MultTx(cauchy, fNEEvec);
 
 		/* accumulate */
 		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);

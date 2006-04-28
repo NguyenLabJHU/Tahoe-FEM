@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.24 2005-01-05 01:25:07 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.25 2006-04-28 16:37:12 tdnguye Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -234,6 +234,7 @@ void DiffusionElementT::RHSDriver(void)
 		formBody = 1;
 		if (!formCv) constCv = 1.0; // correct value ??
 	}
+
 
 	bool axisymmetric = Axisymmetric();
 	double dt = ElementSupport().TimeStep();

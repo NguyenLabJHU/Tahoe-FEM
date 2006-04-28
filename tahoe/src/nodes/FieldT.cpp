@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.47 2005-07-18 08:01:32 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.48 2006-04-28 16:37:14 tdnguye Exp $ */
 
 #include "FieldT.h"
 
@@ -1436,10 +1436,11 @@ bool FieldT::Apply_IC(const IC_CardT& card)
 
 	/* check order - do not allow initial conditions on highest order derivative
 	 * of the field */
-	if (card.Order() > Order()-1)
+	 //TDN:  Temporary
+/*	if (card.Order() > Order()-1)
 		ExceptionT::OutOfRange(caller, "order is out of range {0,%d}: %d", 
 			Order()-1, card.Order());
-
+*/
 	/* decode */
 	int node     = card.Node();
 	int dof      = card.DOF();

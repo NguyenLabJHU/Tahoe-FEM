@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.44 2005-04-19 22:10:26 thao Exp $ */
+/* $Id: SolidT.h,v 1.45 2006-04-28 16:37:14 tdnguye Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -70,7 +70,8 @@ kSIERRA_Hypoelastic = 110,
 	 kSIERRA_Iso_Geomat = 111,
 	 kBischoff_Arruda_WLC = 120, 
 	 kIso_Cornea_Model = 121,
-	 kIso_VE_Cornea_Model = 122
+	 kIso_VE_Cornea_Model = 122,
+	 kVerondaWestmann = 200
 };
 
 	/** convert integer to SolidT::TypeT */

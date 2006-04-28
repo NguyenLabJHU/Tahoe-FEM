@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.96 2005-07-11 23:09:39 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.97 2006-04-28 16:37:14 tdnguye Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -403,7 +403,7 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 
 		/* clear status */
 		fSolverPhasesStatus = 0;
-
+	
 		while (!all_pass && 
 			(fMaxSolverLoops == -1 || loop_count < fMaxSolverLoops) &&
 			status != SolverT::kFailed)
@@ -425,12 +425,14 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 				fSolverPhasesStatus(i, kGroup) = fCurrentGroup;
 				int last_iter = fSolverPhasesStatus(i, kIteration);
 				fSolverPhasesStatus(i, kIteration) = fSolvers[fCurrentGroup]->IterationNumber();
-				if (status == SolverT::kFailed) {
+				if (status == SolverT::kFailed) 
+				{
 					all_pass = false;
 					fSolverPhasesStatus(i, kPass) = -1;					
 				}
 				else if (status == SolverT::kConverged && 
-					(pass == -1 || (fSolverPhasesStatus(i, kIteration) - last_iter) <= pass))
+					(pass == -1 || (fSolverPhasesStatus(i, kIteration) - last_iter) <= pass)
+					|| fSolverPhasesStatus(i, kIteration) > 1000)
 				{
 					all_pass = all_pass && true; /* must all be true */
 					fSolverPhasesStatus(i, kPass) = 1;
@@ -2051,7 +2053,7 @@ void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 
 			/* collect nodally generated DOF's */
 			fNodeManager->ConnectsU(group, connects_1, connects_2, equivalent_nodes);
-
+			
 			/* collect element groups */
 			for (int i = 0 ; i < fElementGroups->Length(); i++)
 				if ((*fElementGroups)[i]->InGroup(group))
