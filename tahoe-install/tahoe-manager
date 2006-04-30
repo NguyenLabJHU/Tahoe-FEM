@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.63 2006-03-24 23:39:02 regueiro Exp $
+# $Id: tahoe-manager,v 1.64 2006-04-30 04:37:02 regueiro Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -40,13 +40,11 @@ $tahoe_co = "tahoe.colorado.edu";
 "qhull",
 "Sierra",
 "development",
-"development_colorado",
 "tahoe",
 "contrib",
 "benchmark_XML",
 "development_benchmark_XML",
-"bravais",
-"development_colorado_benchmark");
+"bravais");
 
 # prefix on macros in the makefiles
 # NOTE: macro prefixes must be unique when compared as regular expressions,
@@ -66,13 +64,11 @@ f2c	F2C_
 CBLAS	BLAS_
 access	AX_
 development DEV_
-development_colorado DEV_CO
 Sierra SIERRA_
 qhull  QHULL_
 contrib NODEFINE
 benchmark_XML NODEFINE
 development_benchmark_XML NODEFINE
-development_colorado_benchmark NODEFINE
 SIMOD SIMOD_
 bravais NODEFINE
 SuperLU_CBLAS SUPERLUCBLAS_
@@ -94,13 +90,11 @@ aztec		cvs.sourceforge.net:/cvsroot/tahoe
 f2c		cvs.sourceforge.net:/cvsroot/tahoe
 CBLAS		cvs.sourceforge.net:/cvsroot/tahoe
 access		cvs.sourceforge.net:/cvsroot/tahoe
-development	tahoe.ca.sandia.gov:/cvs/private/tahoe
-development_colorado tahoe.colorado.edu:/cvs/tahoe
-Sierra		tahoe.ca.sandia.gov:/cvs/private/tahoe
+development	tahoe.colorado.edu:/cvs/private/tahoe
+Sierra		tahoe.colorado.edu:/cvs/private/tahoe
 qhull		tahoe.ca.sandia.gov:/cvs/private/tahoe
 benchmark_XML	cvs.sourceforge.net:/cvsroot/tahoe
-development_benchmark_XML tahoe.ca.sandia.gov:/cvs/private/tahoe
-development_colorado_benchmark tahoe.colorado.edu:/cvs/tahoe
+development_benchmark_XML tahoe.colorado.edu:/cvs/private/tahoe
 contrib		cvs.sourceforge.net:/cvsroot/tahoe
 bravais		cvs.sourceforge.net:/cvsroot/tahoe
 SuperLU_CBLAS cvs.sourceforge.net:/cvsroot/tahoe
@@ -125,7 +119,6 @@ SuperLU_DIST touch_SuperLU
 # modules in the UP_TO_DATE macro
 %up_to_date_modules = qw(
 development 1
-development_colorado 1
 Sierra 1
 );
 
@@ -278,8 +271,8 @@ while (scalar(@req_missing) > 0) {
 }
 
 print "*--------------------------------------------------\n";
-print "*  Sourceforge name: $tahoe_sf_name\n";
-print "* Tahoe server name: $tahoe_name\n";
+print "*     Sourceforge name: $tahoe_sf_name\n";
+print "*    Tahoe server name: $tahoe_name\n";
 print "* Colorado server name: $tahoe_co_name\n";
 #print "*   connection: $connection\n";
 if ($proxy !~ "NONE") {
