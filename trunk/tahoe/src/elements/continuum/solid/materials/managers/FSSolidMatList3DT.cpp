@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.17 2006-04-28 16:37:14 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.18 2006-05-01 00:12:44 tdnguye Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -48,7 +48,8 @@
 #include "OgdenMaterialT.h"
 #endif
 
-#ifdef CORNEA_MODELS
+#ifdef BIO_MODELS
+#include "VerondaWestmannT.h"
 #include "IsoCorneaModel.h"
 #include "IsoVECorneaModel.h"
 #endif
@@ -76,10 +77,6 @@
 
 #ifdef ELASTICITY_CRYSTAL_MATERIAL
 #include "FDCrystalElast.h"
-#endif
-
-#ifdef BIO_MATERIALS
-#include "VerondaWestmannT.h"
 #endif
 
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
