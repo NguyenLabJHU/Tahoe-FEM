@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.65 2006-05-19 18:02:44 tdnguye Exp $
+# $Id: tahoe-manager,v 1.66 2006-05-20 18:15:17 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -271,9 +271,9 @@ while (scalar(@req_missing) > 0) {
 }
 
 print "*--------------------------------------------------\n";
-print "*     Sourceforge name: $tahoe_sf_name\n";
-print "*    Tahoe server name: $tahoe_name\n";
-print "* Colorado server name: $tahoe_co_name\n";
+print "*  Sourceforge name: $tahoe_sf_name\@$tahoe_sf\n";
+print "* Tahoe server name: $tahoe_name\@$tahoe\n";
+print "* Colorado server name: $tahoe_co_name\@$tahoe_co\n";
 #print "*   connection: $connection\n";
 if ($proxy !~ "NONE") {
 	print "*             proxy: $proxy\n";
@@ -348,6 +348,7 @@ sub read_config{
 print "* reading config file $config_file\n";
 open(CONFIG,$config_file) || die "cannot open file $config_file for reading : $!";
 my $type = "UNKNOWN";
+$tahoe_co_name = 'NONE';
 while(<CONFIG>) {
 	s/^\s+//; s/\s+$//; @list = split(/ +/);
  	if (defined($list[0])){
