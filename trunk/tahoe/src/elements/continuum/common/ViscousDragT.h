@@ -1,4 +1,4 @@
-/* $Id: ViscousDragT.h,v 1.3 2004-07-15 08:26:14 paklein Exp $ */
+/* $Id: ViscousDragT.h,v 1.4 2006-05-20 20:39:32 paklein Exp $ */
 #ifndef _VISCOUS_DRAG_T_H_
 #define _VISCOUS_DRAG_T_H_
 
@@ -48,6 +48,15 @@ public:
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 protected:

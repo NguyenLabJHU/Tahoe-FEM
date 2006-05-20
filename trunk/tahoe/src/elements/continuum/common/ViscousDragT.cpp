@@ -1,4 +1,4 @@
-/* $Id: ViscousDragT.cpp,v 1.4 2004-07-15 08:26:14 paklein Exp $ */
+/* $Id: ViscousDragT.cpp,v 1.5 2006-05-20 20:39:32 paklein Exp $ */
 #include "ViscousDragT.h"
 
 #include "ifstreamT.h"
@@ -15,77 +15,7 @@ ViscousDragT::ViscousDragT(const ElementSupportT& support):
 	fViscosity(0.0)
 {
 	SetName("viscous_drag");
-ExceptionT::GeneralFail("ViscousDragT::ViscousDragT", "out of date");
 }
-
-#if 0
-/* class initialization */
-void ViscousDragT::Initialize(void)
-{
-#pragma message("delete me")
-	/* inherited */
-	ElementBaseT::Initialize();
-
-	/* read parameters */
-	ifstreamT& in = ElementSupport().Input();
-	in >> fViscosity
-	   >> fID;
-	   
-	/* model manager */
-	ModelManagerT& model = ElementSupport().ModelManager();
-	const iArray2DT& connects = model.ElementGroup(fID);
-	iArrayT nodes_used;
-	nodes_used.Union(connects);
-	fNodesUsed.Dimension(nodes_used.Length(), 1);
-	fNodesUsed.SetColumn(0, nodes_used);
-	nodes_used.Free();
-	fNodalMass.Dimension(fNodesUsed.Length());
-	fDragForce.Dimension(fNodesUsed.Length(), NumDOF());
-
-	/* shape functions */
-	GeometryT::CodeT geometry_code = model.ElementGroupGeometry(fID);
-	LocalArrayT ref_coords(LocalArrayT::kInitCoords, connects.MinorDim(), NumSD());
-	ElementSupport().RegisterCoordinates(ref_coords);
-	ShapeFunctionT shape(geometry_code, 1, ref_coords);
-	shape.Initialize();
-
-	/* shape function information */
-	const double* j0 = shape.IPDets();
-	const double* w  = shape.IPWeights();
-	const double* Na = shape.IPShapeU(0);
-
-	/* calculate nodal mass */
-	fGlobalToLocal.SetOutOfRange(InverseMapT::MinusOne);
-	fGlobalToLocal.SetMap(fNodesUsed);
-	int nel = connects.MajorDim();
-	int nen = connects.MinorDim();
-	fNodalMass = 0.0;
-	iArrayT elem_nodes;
-	for (int i = 0; i < nel; i++)
-	{
-		/* collect element info */
-		connects.RowAlias(i, elem_nodes);
-		ref_coords.SetLocal(elem_nodes);
-		
-		/* set shape functions */ 	
-		shape.SetDerivatives();
-
-		/* accumulate over element nodes - 1 ip*/
-		for (int j = 0; j < nen; j++) {
-			int index = fGlobalToLocal.Map(elem_nodes[j]);
-			fNodalMass[index] += (*w)*(*j0)*Na[j]; 
-		}
-	}
-
-	/* echo parameters */
-	ofstreamT& out = ElementSupport().Output();
-	out << " Viscosity per unit volume . . . . . . . . . . . = " << fViscosity << '\n';
-	out << " Element block ID. . . . . . . . . . . . . . . . = " << fID << '\n';
-	out << " Number of nodes used. . . . . . . . . . . . . . = " << fNodesUsed.Length() << '\n';
-	if (ElementSupport().PrintInput())
-		out << fNodesUsed.wrap(5) << '\n';
-}
-#endif
 
 /* collecting element group equation numbers */
 void ViscousDragT::Equations(AutoArrayT<const iArray2DT*>& eq_1, AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
@@ -175,6 +105,79 @@ void ViscousDragT::WriteOutput(void)
 
 void ViscousDragT::SendOutput(int) {
 	ExceptionT::GeneralFail("ViscousDragT::SendOutput", "not supported");
+}
+
+/* describe the parameters needed by the interface */
+void ViscousDragT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ElementBaseT::DefineParameters(list);
+	
+	/* viscosity */
+	ParameterT viscosity(fViscosity, "viscosity");
+	viscosity.SetDefault(fViscosity);
+	list.AddParameter(viscosity);
+	
+	/* affected block ID */
+	ParameterT block_ID(fID, "element_block_ID");
+	list.AddParameter(block_ID);
+}
+
+/* accept parameter list */
+void ViscousDragT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* get parameters */
+	fViscosity = list.GetParameter("viscosity");
+	fID = list.GetParameter("element_block_ID");
+	   
+	/* model manager */
+	ModelManagerT& model = ElementSupport().ModelManager();
+	const iArray2DT& connects = model.ElementGroup(fID);
+	iArrayT nodes_used;
+	nodes_used.Union(connects);
+	fNodesUsed.Dimension(nodes_used.Length(), 1);
+	fNodesUsed.SetColumn(0, nodes_used);
+	nodes_used.Free();
+	fNodalMass.Dimension(fNodesUsed.Length());
+	fDragForce.Dimension(fNodesUsed.Length(), NumDOF());
+
+	/* shape functions */
+	GeometryT::CodeT geometry_code = model.ElementGroupGeometry(fID);
+	LocalArrayT ref_coords(LocalArrayT::kInitCoords, connects.MinorDim(), NumSD());
+	ElementSupport().RegisterCoordinates(ref_coords);
+	ShapeFunctionT shape(geometry_code, 1, ref_coords);
+	shape.Initialize();
+
+	/* shape function information */
+	const double* j0 = shape.IPDets();
+	const double* w  = shape.IPWeights();
+	const double* Na = shape.IPShapeU(0);
+
+	/* calculate nodal mass */
+	fGlobalToLocal.SetOutOfRange(InverseMapT::MinusOne);
+	fGlobalToLocal.SetMap(fNodesUsed);
+	int nel = connects.MajorDim();
+	int nen = connects.MinorDim();
+	fNodalMass = 0.0;
+	iArrayT elem_nodes;
+	for (int i = 0; i < nel; i++)
+	{
+		/* collect element info */
+		connects.RowAlias(i, elem_nodes);
+		ref_coords.SetLocal(elem_nodes);
+		
+		/* set shape functions */ 	
+		shape.SetDerivatives();
+
+		/* accumulate over element nodes - 1 ip*/
+		for (int j = 0; j < nen; j++) {
+			int index = fGlobalToLocal.Map(elem_nodes[j]);
+			fNodalMass[index] += (*w)*(*j0)*Na[j]; 
+		}
+	}
 }
 
 /***********************************************************************
