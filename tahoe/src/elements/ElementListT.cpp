@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.121 2005-12-20 17:26:33 tdnguye Exp $ */
+/* $Id: ElementListT.cpp,v 1.122 2006-05-20 20:39:32 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -290,6 +290,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 
 #ifdef CONTINUUM_ELEMENT
 		sub_lists.AddSub("diffusion");
+		sub_lists.AddSub("viscous_drag");
 		sub_lists.AddSub("nonlinear_diffusion");
 		sub_lists.AddSub("hyperbolic_diffusion");
 		sub_lists.AddSub("small_strain");
@@ -490,6 +491,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef CONTINUUM_ELEMENT
 	else if (name == "diffusion")
 		return new DiffusionElementT(fSupport);
+	else if (name == "viscous_drag")
+		return new ViscousDragT(fSupport);
 	else if (name == "nonlinear_diffusion")
 		return new NLDiffusionElementT(fSupport);
 	else if (name == "hyperbolic_diffusion")
