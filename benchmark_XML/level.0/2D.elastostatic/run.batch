@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.9 2005-08-30 07:54:45 jzimmer Exp $
+# $Id: run.batch,v 1.10 2006-05-20 20:40:18 paklein Exp $
 CSE.1.xml
 CSE.1a.xml
 CSE.1b.xml
@@ -15,6 +15,7 @@ gravity.0.xml
 gravity.0a.xml
 gravity.1.xml
 gravity.2.xml
+viscous_drag.xml
 traction.0a.xml
 traction.0b.xml
 traction.0c.xml
