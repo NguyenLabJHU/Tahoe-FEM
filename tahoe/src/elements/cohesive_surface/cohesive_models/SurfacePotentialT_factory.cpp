@@ -1,5 +1,9 @@
-/* $Id: SurfacePotentialT_factory.cpp,v 1.3 2005-05-25 08:28:59 paklein Exp $ */
+/* $Id: SurfacePotentialT_factory.cpp,v 1.4 2006-05-21 17:49:22 paklein Exp $ */
 #include "SurfacePotentialT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
 
 #include "XuNeedleman2DT.h"
 #include "XuNeedleman3DT.h"
@@ -11,6 +15,10 @@
 #include "YoonAllen2DT.h"
 #include "YoonAllen3DT.h"
 #include "SIMOD_2DT.h"
+
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+#include "InelasticDuctile_RP2DT.h"
+#endif
 
 #include <string.h>
 
@@ -37,6 +45,11 @@ SurfacePotentialT* SurfacePotentialT::New(const char* name)
 		return new YoonAllen2DT;
 	else if (strcmp(name, "Yoon-Allen_3D") == 0)
 		return new YoonAllen3DT;
+
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+	else if (strcmp(name, "rigid-inelastic_BCJ_2D") == 0)
+		return new InelasticDuctile_RP2DT;
+#endif
 
 #ifdef __SIMOD__
 	else if (strcmp(name, "SIMOD_2D") == 0)

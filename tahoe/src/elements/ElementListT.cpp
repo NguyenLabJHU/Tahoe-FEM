@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.122 2006-05-20 20:39:32 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.123 2006-05-21 17:49:21 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -255,6 +255,12 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("anisotropic_CSE");
 		sub_lists.AddSub("anisotropic_symmetry_CSE");
 		sub_lists.AddSub("thermal_CSE");
+
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+		sub_lists.AddSub("rigid_anisotropic_CSE");
+		sub_lists.AddSub("nodal_rigid_anisotropic_CSE");
+#endif /* COHESIVE_SURFACE_ELEMENT_DEV */
+
 #endif
 
 #ifdef ADHESION_ELEMENT
@@ -443,6 +449,14 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 
 	else if (name == "thermal_CSE")
 		return new ThermalSurfaceT(fSupport);
+
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+	else if (name == "rigid_anisotropic_CSE")
+		return new RigidCSEAnisoT(fSupport);
+	else if (name == "nodal_rigid_anisotropic_CSE")
+		return new NodalRigidCSEAnisoT(fSupport);
+#endif /* COHESIVE_SURFACE_ELEMENT_DEV */
+
 #endif
 
 #ifdef ADHESION_ELEMENT
