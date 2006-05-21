@@ -1,10 +1,11 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.11 2005-08-04 23:17:42 paklein Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.12 2006-05-21 18:39:04 paklein Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 #include "SolidMaterialsConfig.h"
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentMaterialsConfig.h"
+#include "DevelopmentElementsConfig.h"
 #endif
 
 #include "SSKStV.h"
@@ -14,18 +15,25 @@
 #include "SSLinearVE3D.h"
 #endif
 
+#ifdef PLASTICITY_J2_MATERIAL
+#include "J2SSKStV.h"
+#include "LocalJ2SSNonlinHard.h"
+#include "GradJ2SSNonlinHard.h"
+#endif
+
+#ifdef PLASTICITY_DP_MATERIAL
+#include "DPSSKStV.h"
+#endif
+
+/* development module materials require solid element development to be enabled */
+#ifdef SOLID_ELEMENT_DEV
+
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "SSSV_KStV3D.h"
 #endif
 
 #ifdef J2PLASTICITY_MATERIALS_DEV
 #include "SSJ2LinHardT.h"
-#endif
-
-#ifdef PLASTICITY_J2_MATERIAL
-#include "J2SSKStV.h"
-#include "LocalJ2SSNonlinHard.h"
-#include "GradJ2SSNonlinHard.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -36,10 +44,6 @@
 #include "ABAQUS_UMAT_IsoPlast.h"
 #endif
 #endif /* ABAQUS_MATERIAL */
-
-#ifdef PLASTICITY_DP_MATERIAL
-#include "DPSSKStV.h"
-#endif
 
 #ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
 #include "DPSSKStVLoc.h"
@@ -52,6 +56,8 @@
 #ifdef PLASTICITY_MR_MATERIAL_DEV
 #include "MRSSKStV.h"
 #endif
+
+#endif /* SOLID_ELEMENT_DEV */
 
 using namespace Tahoe;
 

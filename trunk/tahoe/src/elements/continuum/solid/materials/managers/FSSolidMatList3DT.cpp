@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.18 2006-05-01 00:12:44 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.19 2006-05-21 18:39:04 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -35,17 +35,8 @@
 #include "RGSplitT.h"
 #endif
 
-#ifdef VISCOELASTIC_MATERIALS_DEV
-#include "FDSV_KStV3D.h"
-#include "RGSplit3D.h"
-#endif
-
 #ifdef FINITE_ANISOTROPY
 #include "WLC.h"
-#endif
-
-#ifdef ELASTIC_OGDEN_MATERIAL_DEV
-#include "OgdenMaterialT.h"
 #endif
 
 #ifdef BIO_MODELS
@@ -83,17 +74,6 @@
 #include "tevp3D.h"
 #endif
 
-#ifdef ABAQUS_MATERIAL
-#ifdef ABAQUS_BCJ_MATERIAL_DEV
-#include "ABAQUS_BCJ.h"
-#include "ABAQUS_BCJ_ISO.h"
-#include "ABAQUS_VUMAT_BCJ.h"
-#endif
-#ifdef ABAQUS_TI_DEV
-#include "ABAQUS_Ti.h"
-#endif
-#endif
-
 #ifdef SIERRA_MATERIAL
 #include "SIERRA_HypoElasticT.h"
 
@@ -112,6 +92,31 @@
 #ifdef MIXTURE_THEORY_DEV
 #include "FSSolidMixtureT.h"
 #endif
+
+/* development module materials require solid element development to be enabled */
+#ifdef SOLID_ELEMENT_DEV
+
+#ifdef VISCOELASTIC_MATERIALS_DEV
+#include "FDSV_KStV3D.h"
+#include "RGSplit3D.h"
+#endif
+
+#ifdef ABAQUS_MATERIAL
+#ifdef ABAQUS_BCJ_MATERIAL_DEV
+#include "ABAQUS_BCJ.h"
+#include "ABAQUS_BCJ_ISO.h"
+#include "ABAQUS_VUMAT_BCJ.h"
+#endif
+#ifdef ABAQUS_TI_DEV
+#include "ABAQUS_Ti.h"
+#endif
+#endif
+
+#ifdef ELASTIC_OGDEN_MATERIAL_DEV
+#include "OgdenMaterialT.h"
+#endif
+
+#endif /* SOLID_ELEMENT_DEV */
 
 using namespace Tahoe;
 

@@ -1,12 +1,12 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.10 2005-11-08 04:10:44 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.11 2006-05-21 18:39:04 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
-
 
 #include "SolidMaterialsConfig.h"
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentMaterialsConfig.h"
+#include "DevelopmentElementsConfig.h"
 #endif
 
 #include "FDHookeanMat2DT.h"
@@ -53,14 +53,26 @@
 #include "J2QL2DLinHardT.h"
 #endif
 
+#ifdef VISCOELASTICITY
+#include "RGSplitT.h"
+#endif
+
+#ifdef THERMO_VISCO_PLASTIC_MATERIAL
+#include "tevp2D.h"
+#include "povirk2D.h"
+#endif
+
+#ifdef FINITE_ANISOTROPY
+#include "WLC.h"
+#endif
+
+/* development module materials require solid element development to be enabled */
+#ifdef SOLID_ELEMENT_DEV
+
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "RGVIB2D.h"
 #include "RGSplit3D.h"
 #include "FDSV_KStV2D.h"
-#endif
-
-#ifdef VISCOELASTICITY
-#include "RGSplitT.h"
 #endif
 
 #ifdef ELASTIC_OGDEN_MATERIAL_DEV
@@ -72,20 +84,13 @@
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_BCJ_ISO.h"
 #include "ABAQUS_VUMAT_BCJ.h"
-#endif
+#endif /* ABAQUS_BCJ_MATERIAL_DEV */
 #ifdef ABAQUS_TI_DEV
 #include "ABAQUS_Ti.h"
 #endif
 #endif
 
-#ifdef THERMO_VISCO_PLASTIC_MATERIAL
-#include "tevp2D.h"
-#include "povirk2D.h"
-#endif
-
-#ifdef FINITE_ANISOTROPY
-#include "WLC.h"
-#endif
+#endif /* SOLID_ELEMENT_DEV */
 
 using namespace Tahoe;
 
