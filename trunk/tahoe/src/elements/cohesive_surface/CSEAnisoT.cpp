@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.71 2006-03-28 17:19:56 regueiro Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.72 2006-05-21 17:49:22 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -128,8 +128,11 @@ void CSEAnisoT::InitialCondition(void)
 		InelasticDuctile_RP2DT* ductile = dynamic_cast<InelasticDuctile_RP2DT*>(potential);
 		if (ductile)
 		{
-			const int& iteration = ElementSupport().IterationNumber(Group());	
+			const int& iteration = ElementSupport().IterationNumber(Group());
 			ductile->SetIterationPointer(&iteration);
+			const double& time_step = ElementSupport().TimeStep();
+			ductile->SetTimeStepPointer(&time_step);
+			ductile->SetAreaPointer(&fIPArea);
 		}
 	}
 #endif
@@ -358,6 +361,9 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& name) const
 		cz->AddSub("SIMOD_2D");
 #endif
 
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+		cz->AddSub("rigid-inelastic_BCJ_2D");
+#endif
 		return cz;
 	}
 	else if (name == "cohesive_relation_3D")
