@@ -1,12 +1,12 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.11 2005-08-04 23:17:42 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.12 2006-05-21 18:39:04 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
-
 
 #include "SolidMaterialsConfig.h"
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentMaterialsConfig.h"
+#include "DevelopmentElementsConfig.h"
 #endif
 
 #include "SSHookeanMat2DT.h"
@@ -23,6 +23,13 @@
 #include "DPSSKStV2D.h"
 #endif
 
+#ifdef VISCOELASTICITY
+#include "SSLinearVE2D.h"
+#endif
+
+/* development module materials require solid element development to be enabled */
+#ifdef SOLID_ELEMENT_DEV
+
 #ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
 #include "DPSSKStVLoc2D.h"
 #endif
@@ -33,10 +40,6 @@
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "SSSV_KStV2D.h"
-#endif
-
-#ifdef VISCOELASTICITY
-#include "SSLinearVE2D.h"
 #endif
 
 #ifdef J2PLASTICITY_MATERIALS_DEV
@@ -56,6 +59,8 @@
 #ifdef FOSSUM_MATERIAL_DEV
 #include "FossumSSIso2DT.h"
 #endif
+
+#endif /* SOLID_ELEMENT_DEV */
 
 using namespace Tahoe;
 
