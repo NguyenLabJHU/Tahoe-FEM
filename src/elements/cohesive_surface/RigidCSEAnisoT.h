@@ -1,4 +1,4 @@
-/* $Id: RigidCSEAnisoT.h,v 1.2 2004-01-05 07:44:44 paklein Exp $ */
+/* $Id: RigidCSEAnisoT.h,v 1.3 2006-05-21 17:47:59 paklein Exp $ */
 #ifndef _RIGID_CSE_ANISO_T_H_
 #define _RIGID_CSE_ANISO_T_H_
 
@@ -18,13 +18,10 @@ class RigidCSEAnisoT: public CSEAnisoT, public DOFElementT
 public:
 
 	/** constructor */
-	RigidCSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
+	RigidCSEAnisoT(const ElementSupportT& support);
 
 	/** destructor */
 	virtual ~RigidCSEAnisoT(void);
-
-	/** allocates space and reads connectivity data */
-	virtual void Initialize(void);
 
 	/** collecting element connectivities for the field */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
@@ -65,7 +62,16 @@ public:
 	/** the group */
 	virtual int Group(void) const { return CSEAnisoT::Group(); }
 	/*@}*/
-	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** constraint status */

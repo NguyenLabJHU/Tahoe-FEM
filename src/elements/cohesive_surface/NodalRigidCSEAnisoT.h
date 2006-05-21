@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoT.h,v 1.2 2004-01-05 07:44:43 paklein Exp $ */
+/* $Id: NodalRigidCSEAnisoT.h,v 1.3 2006-05-21 17:47:59 paklein Exp $ */
 #ifndef _NODAL_RIGID_CSE_ANISO_T_H_
 #define _NODAL_RIGID_CSE_ANISO_T_H_
 
@@ -21,13 +21,10 @@ class NodalRigidCSEAnisoT: public CSEAnisoT, public DOFElementT
 public:
 
 	/** constructor */
-	NodalRigidCSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
+	NodalRigidCSEAnisoT(const ElementSupportT& support);
 
 	/** destructor */
 	virtual ~NodalRigidCSEAnisoT(void);
-
-	/** allocates space and reads connectivity data */
-	virtual void Initialize(void);
 
 	/** collecting element connectivities for the field */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
@@ -80,6 +77,15 @@ public:
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
 	virtual void ReadRestart(istream& in);
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

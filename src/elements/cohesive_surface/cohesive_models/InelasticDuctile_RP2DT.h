@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile_RP2DT.h,v 1.7 2004-01-05 07:42:13 paklein Exp $ */
+/* $Id: InelasticDuctile_RP2DT.h,v 1.8 2006-05-21 17:47:59 paklein Exp $ */
 #ifndef _INELASTIC_DUCTILE_RP_2D_T_H_
 #define _INELASTIC_DUCTILE_RP_2D_T_H_
 
@@ -30,11 +30,19 @@ public:
 
 	/** constructor.
 	 * \param time_step reference to the current time step */
-	InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step, const double& area, ofstreamT& out);
-		//TEMP - output stream for debugging information
+	InelasticDuctile_RP2DT(void);
 
+	/** \name set data pointers */
+	/*@{*/
 	/** set the pointer to the number of iterations */
 	void SetIterationPointer(const int* iteration) { fIteration = iteration; };
+
+	/** set the pointer to the number of iterations */
+	void SetTimeStepPointer(const double* time_step) { fTimeStep = time_step; };
+
+	/** set the pointer to the integration point */
+	void SetAreaPointer(const double* area) { fArea = area; };
+	/*@}*/
 
 	/** \name methods needed for externally enforcing constraints */
 	/*@{*/
@@ -130,6 +138,21 @@ public:
 	virtual int TiedStatusPosition(void) const;
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** return true if the potential has compatible (type and sequence)
@@ -154,14 +177,11 @@ private:
 
 private:
 
-	//TEMP
-	ofstreamT& fOut;
+	/** pointer to the area of the current evaluation point */
+	const double* fArea;
 
-	/** reference to the time step */
-	const double& fTimeStep;
-
-	/** reference to the area of the current evaluation point */
-	const double& fArea;
+	/** pointer to the area of the current time step */
+	const double* fTimeStep;
 
 	/** pointer to the iteration number counter */
 	const int* fIteration;

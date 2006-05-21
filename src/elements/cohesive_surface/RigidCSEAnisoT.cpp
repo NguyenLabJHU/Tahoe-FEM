@@ -1,4 +1,4 @@
-/* $Id: RigidCSEAnisoT.cpp,v 1.4 2004-07-15 08:28:05 paklein Exp $ */
+/* $Id: RigidCSEAnisoT.cpp,v 1.5 2006-05-21 17:47:59 paklein Exp $ */
 #include "RigidCSEAnisoT.h"
 
 #include "XDOF_ManagerT.h"
@@ -9,14 +9,14 @@
 using namespace Tahoe;
 
 /* constructor */
-RigidCSEAnisoT::RigidCSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
+RigidCSEAnisoT::RigidCSEAnisoT(const ElementSupportT& support):
 	CSEAnisoT(support),
-	fr(0),
+	fr(0.0),
 	fDisp(LocalArrayT::kDisp),
 	fLastDisp(LocalArrayT::kLastDisp),
 	fConstraintShapes(NULL)
 {
-
+	SetName("rigid_anisotropic_CSE");
 }
 
 /* destructor */
@@ -157,54 +157,6 @@ int RigidCSEAnisoT::Reconfigure(void)
 		return 0;
 }
 
-/* allocates space and reads connectivity data */
-void RigidCSEAnisoT::Initialize(void)
-{
-ExceptionT::GeneralFail("RigidCSEAnisoT::Initialize", "out of date");
-#if 0
-	/* inherited */
-	CSEAnisoT::Initialize();
-
-	/* construct surface shape functions (1 integration point) */
-//	fConstraintShapes = new SurfaceShapeT(fGeometryCode, 1, NumElementNodes(), NumDOF(), fLocInitCoords1);
-//	if (!fConstraintShapes) throw ExceptionT::kOutOfMemory;
-//	fConstraintShapes->Initialize();
-	fConstraintShapes = fShapes;
-
-	/* set local arrays */
-	int nen = NumElementNodes();
-	int ndof = NumDOF();
-	fDisp.Dimension(nen, ndof);
-	fLastDisp.Dimension(nen, ndof);
-	Field().RegisterLocal(fDisp);
-	Field().RegisterLocal(fLastDisp);
-
-	/* flags array */
-	fConstraintStatus.Dimension(NumElements(), NumDOF()*fConstraintShapes->NumIP());
-	fConstraintStatus = kActive;
-
-	/* reset base class parameters */
-	int neq = NumElementNodes() + 1; // 1 additional dof
-
-	/* dynamic work space managers */
-	fConstraintXDOFTags_man.SetWard(0, fConstraintXDOFTags);
-	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
-	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, NumElementNodes() + 1);
-	
-	/* echo the regularization parameter */	
-	ifstreamT&  in = ElementSupport().Input();
-	ofstreamT& out = ElementSupport().Output();
-	in >> fr;
-	if (fr < 0.0) ExceptionT::BadInputValue("RigidCSEAnisoT::Initialize");
-	out << " Regularization parameter. . . . . . . . . . . . = " << fr << '\n';
-
-	/* register with node manager - sets initial fContactDOFtags */
-	iArrayT xdof_tags(1);
-	xdof_tags = 1;
-	ElementSupport().XDOF_Manager().XDOF_Register(this, xdof_tags);
-#endif
-}
-
 /* collecting element connectivities for the field */
 void RigidCSEAnisoT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1, 
 	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
@@ -303,6 +255,60 @@ void RigidCSEAnisoT::GenerateElementData(void)
 				tag++;
 			}
 	}
+}
+
+/* describe the parameters needed by the interface */
+void RigidCSEAnisoT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	CSEAnisoT::DefineParameters(list);
+
+	/* regularization */
+	ParameterT regularization(fr, "regularization");
+	regularization.SetDefault(fr);
+	regularization.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(regularization);
+}
+
+/* accept parameter list */
+void RigidCSEAnisoT::TakeParameterList(const ParameterListT& list)
+{
+	/* regularization */
+	fr = list.GetParameter("regularization");
+
+	/* inherited */
+	CSEAnisoT::TakeParameterList(list);
+
+	/* construct surface shape functions (1 integration point) */
+//	fConstraintShapes = new SurfaceShapeT(fGeometryCode, 1, NumElementNodes(), NumDOF(), fLocInitCoords1);
+//	if (!fConstraintShapes) throw ExceptionT::kOutOfMemory;
+//	fConstraintShapes->Initialize();
+	fConstraintShapes = fShapes;
+
+	/* set local arrays */
+	int nen = NumElementNodes();
+	int ndof = NumDOF();
+	fDisp.Dimension(nen, ndof);
+	fLastDisp.Dimension(nen, ndof);
+	Field().RegisterLocal(fDisp);
+	Field().RegisterLocal(fLastDisp);
+
+	/* flags array */
+	fConstraintStatus.Dimension(NumElements(), NumDOF()*fConstraintShapes->NumIP());
+	fConstraintStatus = kActive;
+
+	/* reset base class parameters */
+	int neq = NumElementNodes() + 1; // 1 additional dof
+
+	/* dynamic work space managers */
+	fConstraintXDOFTags_man.SetWard(0, fConstraintXDOFTags);
+	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
+	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, NumElementNodes() + 1);
+
+	/* register with node manager - sets initial fContactDOFtags */
+	iArrayT xdof_tags(1);
+	xdof_tags = 1;
+	ElementSupport().XDOF_Manager().XDOF_Register(this, xdof_tags);
 }
 
 /* force vector */

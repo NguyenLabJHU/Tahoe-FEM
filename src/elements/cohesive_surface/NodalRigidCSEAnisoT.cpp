@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoT.cpp,v 1.4 2004-07-15 08:28:05 paklein Exp $ */
+/* $Id: NodalRigidCSEAnisoT.cpp,v 1.5 2006-05-21 17:47:59 paklein Exp $ */
 #include "NodalRigidCSEAnisoT.h"
 
 #include "XDOF_ManagerT.h"
@@ -15,13 +15,13 @@ using namespace Tahoe;
 #undef DEBUG
 
 /* constructor */
-NodalRigidCSEAnisoT::NodalRigidCSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
+NodalRigidCSEAnisoT::NodalRigidCSEAnisoT(const ElementSupportT& support):
 	CSEAnisoT(support),
 	fr(0),
 	fCZRelation(NULL),
 	fCurrPair(-1)
 {
-
+	SetName("nodal_rigid_anisotropic_CSE");
 }
 
 /* destructor */
@@ -224,180 +224,6 @@ void NodalRigidCSEAnisoT::ResetState(void)
 	/* reset the 'last' state */
 	fConstraintStatus_last = fConstraintStatus_n;
 	fConstraints_last = fConstraints_n;
-}
-
-/* allocates space and reads connectivity data */
-void NodalRigidCSEAnisoT::Initialize(void)
-{
-ExceptionT::GeneralFail("NodalRigidCSEAnisoT::Initialize", "out of date");
-#if 0
-	const char caller[] = "NodalRigidCSEAnisoT::Initialize";
-
-	/* inherited */
-	CSEAnisoT::Initialize();
-	fElementCards.Current(0); /* reset element counter even though it's not used */
-
-	/* local node numbers on each facet */
-	const iArray2DT& nodes_on_facets = fShapes->NodesOnFacets();
-	int nfn = nodes_on_facets.MinorDim();
-	iArrayT face1, face2;
-	nodes_on_facets.RowAlias(0, face1);
-	nodes_on_facets.RowAlias(1, face2);
-
-	/* count cohesive zone nodes */
-	ArrayT<char> cz_node(ElementSupport().NumNodes());
-	cz_node = 0;
-	int count = 0;
-	int nel = NumElements();
-	for (int i = 0; i < nel; i++) 
-	{
-		const ElementCardT& card = ElementCard(i);
-		const iArrayT& nodes = card.NodesU();
-		for (int j = 0; j < nfn; j++) 
-		{
-			int nd1 = nodes[face1[j]];
-			int nd2 = nodes[face2[j]];
-			if (nd1 != nd2 && cz_node[nd1] == 0) /* first time and no self-self constraints */
-			{
-				cz_node[nd1] = 1;
-				count++;
-			}
-		}
-	}
-	fCZNodePairs.Dimension(count,2);
-	fCZNodePairPoints.Alias(fCZNodePairs.Length(), 1, fCZNodePairs.Pointer());
-
-	/* collect pairs */
-	cz_node = 0;
-	count = 0;
-	for (int i = 0; i < nel; i++) 
-	{
-		const ElementCardT& card = ElementCard(i);
-		const iArrayT& nodes = card.NodesU();
-		for (int j = 0; j < nfn; j++) 
-		{
-			int nd_1 = nodes[face1[j]];
-			int nd_2 = nodes[face2[j]];
-			if (nd_1 != nd_2 && cz_node[nd_1] == 0) /* first time */
-			{
-				cz_node[nd_1] = 1;
-				fCZNodePairs(count, 0) = nd_1;
-				fCZNodePairs(count, 1) = nd_2;
-				count++;
-			}
-		}
-	}
-
-	/* construct an inverse map to local of first node of each pair */
-	iArrayT first_node(fCZNodePairs.MajorDim());
-	fCZNodePairs.ColumnCopy(0, first_node);
-	InverseMapT global_to_pair_map;
-	global_to_pair_map.SetOutOfRange(InverseMapT::MinusOne);
-	global_to_pair_map.SetMap(first_node);
-
-	/* compute the triburary area of each node */
-	fCZNodeAreas.Dimension(fCZNodePairs.MajorDim());
-	fCZNodeAreas = 0.0;
-	fCZDirection.Dimension(fCZNodePairs.MajorDim());
-	fCZDirection = 0.0;
-	dMatrixT Q(NumSD());
-	dArrayT area(NumElementNodes()), Na(NumElementNodes());
-	for (int i = 0; i < nel; i++) 
-	{
-		/* element information */
-		const ElementCardT& card = ElementCard(i);
-		const iArrayT& nodes_X = card.NodesX();
-	
-		/* get ref geometry (1st facet only) */
-		fNodes1.Collect(face1, nodes_X);
-		fLocInitCoords1.SetLocal(fNodes1);
-
-		/* integrate */
-		area = 0.0;
-		fShapes->TopIP();
-		while (fShapes->NextIP())
-		{  
-			/* integration weights */
-			double w = fShapes->IPWeight();	
-			double j0 = fShapes->Jacobian(Q);
-
-			//TEMP - require normal to be in the x2 direction:
-			if (fabs(fabs(Q(1,1)) - 1.0) > kSmall)
-				ExceptionT::GeneralFail(caller, "surface normals must be in the x2 direction");
-
-			/* get shape functions */
-			fShapes->Shapes(Na);
-			
-			/* integrate */
-			area.AddScaled(w*j0, Na);
-		}
-		
-		/* accumulate nodal values */
-		for (int j = 0; j < area.Length(); j++)
-		{
-			int pair = global_to_pair_map.Map(nodes_X[j]);
-			if (pair != -1) {
-			
-				/* nodal area */
-				fCZNodeAreas[pair] += area[j];
-				
-				/* direction from the last ip */
-				if (fabs(fCZDirection[pair]) < 0.5)
-					fCZDirection[pair] = Q(1,1);
-			}
-		}
-	}
-
-	/* flags array */
-	fConstraintStatus.Dimension(fCZNodePairs.MajorDim(), NumDOF());
-	fConstraintStatus = kActive;
-	fConstraintStatus_n = fConstraintStatus;
-	fConstraintStatus_last = fConstraintStatus;
-
-	/* equations in every constrained pair */
-	int neq = 2 + 1; /* 2 nodes and the constraint */
-
-	/* dynamic work space managers */
-	fConstraintXDOFTags_man.SetWard(0, fConstraintXDOFTags);
-	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, neq);
-	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, neq);
-	
-	/* echo the regularization parameter */	
-	ifstreamT&  in = ElementSupport().Input();
-	ofstreamT& out = ElementSupport().Output();
-	in >> fr;
-	if (fr < 0.0) ExceptionT::BadInputValue("NodalRigidCSEAnisoT::Initialize");
-	out << " Regularization parameter. . . . . . . . . . . . = " << fr << '\n';
-
-	/* register with node manager - sets initial fContactDOFtags */
-	iArrayT xdof_tags(1);
-	xdof_tags = 1;
-	ElementSupport().XDOF_Manager().XDOF_Register(this, xdof_tags);
-
-	/* allocate state variables */
-	if (fSurfPots.Length() != 1) ExceptionT::BadInputValue(caller, "only 1 potential supported: %d", fSurfPots.Length());
-	SurfacePotentialT* surf_pot = fSurfPots[0];
-	fCZRelation = dynamic_cast<InelasticDuctile_RP2DT*>(surf_pot);
-	if (!fCZRelation) ExceptionT::BadInputValue(caller, "cohesive relation must be InelasticDuctile_RP2DT");
-	int num_state = fCZRelation->NumStateVariables(); 
-	fStateVariables.Dimension(fCZNodePairs.MajorDim(), num_state);
-
-	/* initialize state variable space */
-	dArrayT state;
-	dArrayT active_flags;
-	for (int i = 0; i < fCZNodePairs.MajorDim(); i++)
-	{
-		fStateVariables.RowAlias(i, state);
-		fCZRelation->InitStateVariables(state);
-		
-		/* mark all evolution equations as inactive since all the constraints are active */
-		fCZRelation->GetActiveFlags(state, active_flags);
-		active_flags = 0.0;
-	}
-
-	/* set history */
-	fStateVariables_n = fStateVariables;
-#endif
 }
 
 /* collecting element connectivities for the field */
@@ -707,6 +533,188 @@ void NodalRigidCSEAnisoT::ReadRestart(istream& in)
 
 	/* state variables */
 	in >> fStateVariables;
+	fStateVariables_n = fStateVariables;
+}
+
+/* describe the parameters needed by the interface */
+void NodalRigidCSEAnisoT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	CSEAnisoT::DefineParameters(list);
+
+	/* regularization */
+	ParameterT regularization(fr, "regularization");
+	regularization.SetDefault(fr);
+	regularization.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(regularization);
+}
+
+/* accept parameter list */
+void NodalRigidCSEAnisoT::TakeParameterList(const ParameterListT& list)
+{
+	/* regularization */
+	fr = list.GetParameter("regularization");
+
+	/* inherited */
+	CSEAnisoT::TakeParameterList(list);
+
+	const char caller[] = "NodalRigidCSEAnisoT::Initialize";
+
+	/* inherited */
+	fElementCards.Current(0); /* reset element counter even though it's not used */
+
+	/* local node numbers on each facet */
+	const iArray2DT& nodes_on_facets = fShapes->NodesOnFacets();
+	int nfn = nodes_on_facets.MinorDim();
+	iArrayT face1, face2;
+	nodes_on_facets.RowAlias(0, face1);
+	nodes_on_facets.RowAlias(1, face2);
+
+	/* count cohesive zone nodes */
+	ArrayT<char> cz_node(ElementSupport().NumNodes());
+	cz_node = 0;
+	int count = 0;
+	int nel = NumElements();
+	for (int i = 0; i < nel; i++) 
+	{
+		const ElementCardT& card = ElementCard(i);
+		const iArrayT& nodes = card.NodesU();
+		for (int j = 0; j < nfn; j++) 
+		{
+			int nd1 = nodes[face1[j]];
+			int nd2 = nodes[face2[j]];
+			if (nd1 != nd2 && cz_node[nd1] == 0) /* first time and no self-self constraints */
+			{
+				cz_node[nd1] = 1;
+				count++;
+			}
+		}
+	}
+	fCZNodePairs.Dimension(count,2);
+	fCZNodePairPoints.Alias(fCZNodePairs.Length(), 1, fCZNodePairs.Pointer());
+
+	/* collect pairs */
+	cz_node = 0;
+	count = 0;
+	for (int i = 0; i < nel; i++) 
+	{
+		const ElementCardT& card = ElementCard(i);
+		const iArrayT& nodes = card.NodesU();
+		for (int j = 0; j < nfn; j++) 
+		{
+			int nd_1 = nodes[face1[j]];
+			int nd_2 = nodes[face2[j]];
+			if (nd_1 != nd_2 && cz_node[nd_1] == 0) /* first time */
+			{
+				cz_node[nd_1] = 1;
+				fCZNodePairs(count, 0) = nd_1;
+				fCZNodePairs(count, 1) = nd_2;
+				count++;
+			}
+		}
+	}
+
+	/* construct an inverse map to local of first node of each pair */
+	iArrayT first_node(fCZNodePairs.MajorDim());
+	fCZNodePairs.ColumnCopy(0, first_node);
+	InverseMapT global_to_pair_map;
+	global_to_pair_map.SetOutOfRange(InverseMapT::MinusOne);
+	global_to_pair_map.SetMap(first_node);
+
+	/* compute the triburary area of each node */
+	fCZNodeAreas.Dimension(fCZNodePairs.MajorDim());
+	fCZNodeAreas = 0.0;
+	fCZDirection.Dimension(fCZNodePairs.MajorDim());
+	fCZDirection = 0.0;
+	dMatrixT Q(NumSD());
+	dArrayT area(NumElementNodes()), Na(NumElementNodes());
+	for (int i = 0; i < nel; i++) 
+	{
+		/* element information */
+		const ElementCardT& card = ElementCard(i);
+		const iArrayT& nodes_X = card.NodesX();
+	
+		/* get ref geometry (1st facet only) */
+		fNodes1.Collect(face1, nodes_X);
+		fLocInitCoords1.SetLocal(fNodes1);
+
+		/* integrate */
+		area = 0.0;
+		fShapes->TopIP();
+		while (fShapes->NextIP())
+		{  
+			/* integration weights */
+			double w = fShapes->IPWeight();	
+			double j0 = fShapes->Jacobian(Q);
+
+			//TEMP - require normal to be in the x2 direction:
+			if (fabs(fabs(Q(1,1)) - 1.0) > kSmall)
+				ExceptionT::GeneralFail(caller, "surface normals must be in the x2 direction");
+
+			/* get shape functions */
+			fShapes->Shapes(Na);
+			
+			/* integrate */
+			area.AddScaled(w*j0, Na);
+		}
+		
+		/* accumulate nodal values */
+		for (int j = 0; j < area.Length(); j++)
+		{
+			int pair = global_to_pair_map.Map(nodes_X[j]);
+			if (pair != -1) {
+			
+				/* nodal area */
+				fCZNodeAreas[pair] += area[j];
+				
+				/* direction from the last ip */
+				if (fabs(fCZDirection[pair]) < 0.5)
+					fCZDirection[pair] = Q(1,1);
+			}
+		}
+	}
+
+	/* flags array */
+	fConstraintStatus.Dimension(fCZNodePairs.MajorDim(), NumDOF());
+	fConstraintStatus = kActive;
+	fConstraintStatus_n = fConstraintStatus;
+	fConstraintStatus_last = fConstraintStatus;
+
+	/* equations in every constrained pair */
+	int neq = 2 + 1; /* 2 nodes and the constraint */
+
+	/* dynamic work space managers */
+	fConstraintXDOFTags_man.SetWard(0, fConstraintXDOFTags);
+	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, neq);
+	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, neq);
+
+	/* register with node manager - sets initial fContactDOFtags */
+	iArrayT xdof_tags(1);
+	xdof_tags = 1;
+	ElementSupport().XDOF_Manager().XDOF_Register(this, xdof_tags);
+
+	/* allocate state variables */
+	if (fSurfPots.Length() != 1) ExceptionT::BadInputValue(caller, "only 1 potential supported: %d", fSurfPots.Length());
+	SurfacePotentialT* surf_pot = fSurfPots[0];
+	fCZRelation = dynamic_cast<InelasticDuctile_RP2DT*>(surf_pot);
+	if (!fCZRelation) ExceptionT::BadInputValue(caller, "cohesive relation must be InelasticDuctile_RP2DT");
+	int num_state = fCZRelation->NumStateVariables(); 
+	fStateVariables.Dimension(fCZNodePairs.MajorDim(), num_state);
+
+	/* initialize state variable space */
+	dArrayT state;
+	dArrayT active_flags;
+	for (int i = 0; i < fCZNodePairs.MajorDim(); i++)
+	{
+		fStateVariables.RowAlias(i, state);
+		fCZRelation->InitStateVariables(state);
+		
+		/* mark all evolution equations as inactive since all the constraints are active */
+		fCZRelation->GetActiveFlags(state, active_flags);
+		active_flags = 0.0;
+	}
+
+	/* set history */
 	fStateVariables_n = fStateVariables;
 }
 
