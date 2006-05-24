@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.8 2005-08-05 09:02:35 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.9 2006-05-24 04:55:16 tdnguye Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -53,6 +53,7 @@ void UpLagAdaptiveT::TakeParameterList(const ParameterListT& list)
 	/* resolve CSE class */
 	int cse_group = list.GetParameter("cohesive_element_group");
 	cse_group--;
+	//ElementBaseT& element_base = ElementSupport().ElementGroup(1);
 	ElementBaseT& element_base = ElementSupport().ElementGroup(cse_group);
 	fCSE = TB_DYNAMIC_CAST(CSEAnisoT*, &element_base);
 	if (!fCSE) ExceptionT::BadInputValue(caller, "could not resolve CSE group at %d", cse_group+1);
@@ -71,10 +72,10 @@ void UpLagAdaptiveT::TakeParameterList(const ParameterListT& list)
 	fConnectivitiesCSELocal.Dimension(fCSE->NumElements(), fCSE->NumElementNodes());
 	int count = 0;
 	for (int i = 0; i < connects.Length(); i++) {
+//		cout << "\nconnects: "<<*(connects[i]);
 		fConnectivitiesCSELocal.BlockRowCopyAt(*(connects[i]), count);
 		count += connects[i]->MajorDim();
 	}
-
 	/* renumber in locally */
 	int *pconn = fConnectivitiesCSELocal.Pointer();
 	for (int i = 0; i < fConnectivitiesCSELocal.Length(); i++) {
@@ -82,6 +83,8 @@ void UpLagAdaptiveT::TakeParameterList(const ParameterListT& list)
 		pconn++;
 	}
 
+//	cout << "\nLocal Connects: "<<fConnectivitiesCSELocal;
+	
 	fCSEActive.Dimension(fConnectivitiesCSELocal.MajorDim());
 	fCSEActive = ElementCardT::kOFF;
 
@@ -99,7 +102,16 @@ void UpLagAdaptiveT::TakeParameterList(const ParameterListT& list)
 	}
 	fInverseConnectivitiesCSELocal.CopyCompressed(inv_conn);
 	inv_conn.Free();
-
+	
+/*
+	cout << "\nfInverseConnectivities: ";
+	for (int i = 0; i < fInverseConnectivitiesCSELocal.MajorDim(); i++)
+	{
+		cout << "\n";
+		for (int j = 0; j < fInverseConnectivitiesCSELocal.MinorDim(i); j++)
+			cout <<"\t"<< fInverseConnectivitiesCSELocal(i,j);
+	}
+*/
 	/* get field (cast away const-ness) */
 	FieldT* field = (FieldT*) &(Field());
 
@@ -257,6 +269,7 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 void UpLagAdaptiveT::SetNetwork(const ArrayT<ElementCardT::StatusT>& active_elements)
 {
 	/* determine duplicate nodes */
+
 	FindLeaders(fConnectivitiesCSELocal, active_elements, fSameAs);
 
 	/* collect constrainted pairs (global node numbers) */
@@ -273,6 +286,8 @@ void UpLagAdaptiveT::SetNetwork(const ArrayT<ElementCardT::StatusT>& active_elem
 			pair_num++;
 		}
 	}
+//	cout << "\nfollower: "<<follower;
+//	cout << "\nleader: "<<leader;
 	
 	/* reset tied nodes */
 	fTied->SetTiedPairs(follower, leader);
@@ -285,7 +300,7 @@ void UpLagAdaptiveT::SetNetwork(const ArrayT<ElementCardT::StatusT>& active_elem
 void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<ElementCardT::StatusT>& active, iArrayT& same_as) const
 {
 	const char caller[] = "UpLagAdaptiveT::FindLeaders";
-
+	cout << "\nUpLagAdaptiveT::FindLeaders";
 //TEMP assume 4-noded (2D) and 8-noded (3D) CSE only
 	if (NumSD() == 2 && fConnectivitiesCSELocal.MinorDim() != 4)
 		ExceptionT::GeneralFail(caller, "expecting 4-noded cse in 2D");
@@ -295,7 +310,8 @@ void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<Element
 		ExceptionT::GeneralFail(caller, "1D not implemented");
 	
 	/* pair node to the nodes in the 1st facet */
-	int pair_2D[] = {2,3};
+//	int pair_2D[] = {2,3};
+	int pair_2D[] = {3,2};
 	int pair_3D[] = {4,5,6,7};
 	int* pair_node = (NumSD() == 2) ? pair_2D : pair_3D;
 
@@ -306,6 +322,7 @@ void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<Element
 
 	/* initialize leader list */
 	int nfn = connects.MinorDim()/2;
+//	cout << "\nactive length: "<<active.Length();
 	for (int i = 0; i < active.Length(); i++)
 	if (active[i] == ElementCardT::kOFF)
 	{
@@ -314,9 +331,10 @@ void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<Element
 		{
 			int n1 = pelem[j];
 			int n2 = pelem[pair_node[j]];
+//			cout << "\nn1: "<<n1<<"\nn2: "<<n2;
 			if (n1 > n2)
 				same_as[n1] = n2;
-			else
+			else if (n1 < n2)
 				same_as[n2] = n1;
 		}
 	}
@@ -328,11 +346,11 @@ void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<Element
 	{
 		changed = false;
 		changed_count++;
-		for (int i = 0; i < fSameAs.Length(); i++)
+		for (int i = 0; i < same_as.Length(); i++)
 		{
 			int& leader = same_as[i];
 			if (leader > -1) {
-				int leader_leader = fSameAs[leader];
+				int leader_leader = same_as[leader];
 				if (leader_leader > -1 && leader_leader < leader)
 				{
 					leader = leader_leader;
