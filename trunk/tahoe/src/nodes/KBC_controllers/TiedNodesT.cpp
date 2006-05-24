@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.29 2004-09-09 16:20:25 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.30 2006-05-24 04:57:30 tdnguye Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -430,8 +430,11 @@ bool TiedNodesT::ChangeStatus(void)
 	  		surroundingGroup.SendOutput(CSEBaseT::InternalData);
 	  		freeNodeQ = fSupport.NodeManager().OutputAverage();
 	    }
+//		cout << "\nfNodesPairs: "<<fNodePairs.MajorDim();
+//		cout << "\nPairStatus: "<<fPairStatus.Length();
+		cout << "\nNumber of released pairs: "<<freeNodeQ.MajorDim();
 	    
-	    for (int i = 0; i < fNodePairs.MajorDim();i++) 
+	    for (int i = 0; i < fNodePairs.MajorDim() && freeNodeQ.MajorDim() > 0 ;i++) 
 		{      
 			if (fPairStatus[i] == kTied && freeNodeQ(fNodePairs(i,1),0) > 0.)     
 			{ 
