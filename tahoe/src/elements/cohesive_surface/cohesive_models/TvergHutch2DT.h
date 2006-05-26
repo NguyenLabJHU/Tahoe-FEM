@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.h,v 1.12 2004-09-16 16:37:00 paklein Exp $ */
+/* $Id: TvergHutch2DT.h,v 1.13 2006-05-26 20:17:26 tdnguye Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_2D_T_H_
@@ -27,6 +27,9 @@ public:
 
 	/** dissipated energy */
 	virtual double FractureEnergy(const ArrayT<double>& state);
+	
+	/*cohesive strength*/
+	virtual const double FractureStrength(void) const;
 
 	/** potential energy */
 	virtual double Potential(const dArrayT& jump_u, const ArrayT<double>& state);
@@ -90,5 +93,9 @@ private:
 	bool fSecantStiffness;
 };
 
+inline const double TvergHutch2DT::FractureStrength(void) const
+{
+	return(fsigma_max);
+}
 } // namespace Tahoe 
 #endif /* _TVERG_HUTCH_2D_T_H_ */

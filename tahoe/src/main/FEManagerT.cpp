@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.97 2006-04-28 16:37:14 tdnguye Exp $ */
+/* $Id: FEManagerT.cpp,v 1.98 2006-05-26 20:17:26 tdnguye Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -929,7 +929,9 @@ ElementBaseT* FEManagerT::ElementGroup(int groupnumber) const
 {
 	/* check range */
 	if (fElementGroups && groupnumber > -1 && groupnumber < fElementGroups->Length())
+	{
 		return (*fElementGroups)[groupnumber];
+	}
 	else
 		return NULL;
 }
