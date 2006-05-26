@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.9 2006-05-24 04:55:16 tdnguye Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.10 2006-05-26 19:05:55 tdnguye Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -128,6 +128,9 @@ void UpLagAdaptiveT::TakeParameterList(const ParameterListT& list)
 	fAvgCount.Dimension(fCSENodesUsed.Length());
 	fAvgCount = 0;
 	fNodalValues.Dimension(fCSENodesUsed.Length(), dSymMatrixT::NumValues(NumSD()));
+	cout << "\nNodal Vals Major: "<<fNodalValues.MajorDim();
+	cout << "\nNodal Vals Minor: "<<fNodalValues.MinorDim();
+	
 	fNodalValues = 0.0;
 	fNodalExtrapolation.Dimension(NumElementNodes(), dSymMatrixT::NumValues(NumSD()));
 }
@@ -172,6 +175,12 @@ void UpLagAdaptiveT::FormKd(double constK)
 
 		/* extrapolate the nodal stresses */
 		fShapes->Extrapolate(Cauchy, fNodalExtrapolation);
+		int elem = CurrElementNumber();
+		int ip = CurrIP();
+
+/*		if ((elem==0 && ip ==0) || (elem == 1577 && ip ==1) || (elem==11068 && ip==2) || (elem==5099 && ip==3))
+			cout <<"\nelem: "<<elem<<"\tip: "<<ip<< "\ts22: "<<Cauchy[1];
+*/
 	}
 	
 	const iArrayT& element_nodes = CurrentElement().NodesU();
@@ -182,7 +191,15 @@ void UpLagAdaptiveT::FormKd(double constK)
 			fAvgCount[loc_node]++;
 			fNodalValues.AddToRowScaled(loc_node, 1.0, fNodalExtrapolation(i));
 		}
+/*		if(element_nodes[i]==8079)
+		{
+			cout << "\nelem: "<<CurrElementNumber();
+			cout << "\nNodalExtrapolation: "<<fNodalExtrapolation(i,1);
+			cout << "\nNodalValues: "<<fNodalValues(loc_node,1);
+		}
+*/
 	}
+
 }
 
 /* element level reconfiguration for the current time increment */
@@ -197,9 +214,6 @@ GlobalT::RelaxCodeT UpLagAdaptiveT::RelaxSystem(void)
 		if (count > 0) fNodalValues.ScaleRow(i, 1.0/count);
 	}
 
-//TEMP
-ostream& out = ElementSupport().Output();
-out << "nodal values:\n" << fCSENodesUsed << '\n' << fNodalValues << endl;
 
 //TEMP - only 2D for now
 if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D only");
@@ -211,6 +225,7 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 	const dArray2DT& current_coords = ElementSupport().CurrentCoordinates();
 	dSymMatrixT Cauchy(NumSD());
 	dArrayT traction(NumSD()), tangent(NumSD()), normal(NumSD());
+	double tmax = 0.0;
 	for (int i = 0; i < fCSEActive.Length(); i++)
 		if (fCSEActive[i] == ElementCardT::kOFF) /* only test rigid surfaces */
 		{
@@ -222,37 +237,74 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 			tangent[0] = current_coords(n2,0) - current_coords(n1,0);
 			tangent[1] = current_coords(n2,1) - current_coords(n1,1);
 			
+			double mag = sqrt(tangent[0]*tangent[0]+tangent[1]*tangent[1]);
+			tangent[0] /= mag;
+			tangent[1] /= mag;
+			
 			/* face normal */
 			normal[0] =-tangent[1];
 			normal[1] = tangent[0];
 			
+			double tmax = 0.0;
+			int jmax = 0;
+			for (int j = 0; j < fConnectivitiesCSELocal.MinorDim(); j++)
+			{
+				double* s = fNodalValues(pface[0]);
+				traction[0] = s[0]*normal[0] + s[2]*normal[1];
+				traction[1] = s[2]*normal[0] + s[1]*normal[1];
+				double t_mag2 = traction[0]*traction[0] + traction[1]*traction[1];
+
+				if(tmax < sqrt(t_mag2)) {
+					tmax =  sqrt(t_mag2);
+					jmax = j;
+				}
+			}
+			
 			/* compute average of stresses */
+/*
 			double* s0 = fNodalValues(pface[0]);
 			double* s1 = fNodalValues(pface[1]);
 			double* s2 = fNodalValues(pface[2]);
 			double* s3 = fNodalValues(pface[3]);
+
 			Cauchy[0] = (s0[0] + s1[0] + s2[0] + s3[0])*0.25;
 			Cauchy[1] = (s0[1] + s1[1] + s2[1] + s3[1])*0.25;
 			Cauchy[2] = (s0[2] + s1[2] + s2[2] + s3[2])*0.25;
 			
 			/* traction */
-			traction[0] = Cauchy(0,0)*normal[0] + Cauchy(0,1)*normal[1];
+/*			traction[0] = Cauchy(0,0)*normal[0] + Cauchy(0,1)*normal[1];
 			traction[1] = Cauchy(1,0)*normal[0] + Cauchy(1,1)*normal[1];
 			double t_mag2 = traction[0]*traction[0] + traction[1]*traction[1];
-		
+*/		
 			/* "sense" */
+/*			double sense = traction[0]*normal[0] + traction[1]*normal[1];
+
+			if(tmax < sqrt(t_mag2))
+				tmax =  sqrt(t_mag2);
+*/
+			double* s = fNodalValues(pface[jmax]);
+			traction[0] = s[0]*normal[0] + s[2]*normal[1];
+			traction[1] = s[2]*normal[0] + s[1]*normal[1];
+			double t_mag2 = traction[0]*traction[0] + traction[1]*traction[1];
 			double sense = traction[0]*normal[0] + traction[1]*normal[1];
 			
 			/* tensile release */
-			if (t_mag2 > fReleaseThreshold*fReleaseThreshold && sense > 0.0) {
+			if (sqrt(t_mag2) > fReleaseThreshold*fReleaseThreshold && sense > 0.0) {
 				fCSEActive[i] = ElementCardT::kMarkON;
 				release_count++;
 
 				/* write traction into state variables */
-				state_variables(i,0) = traction[0];
-				state_variables(i,1) = traction[1];
+//				cout << "\nlength: "<<state_variables.Length();
+
+				if (state_variables.Length() > 0)
+				{
+					state_variables(i,0) = traction[0];
+					state_variables(i,1) = traction[1];
+				}
 			}
 		}
+				cout << "\nrelease_count: "<<release_count;
+				cout << "\ntmax: "<<tmax;
 		
 	/* relaxation code for CSE release */
 	GlobalT::RelaxCodeT cse_relax_code = (release_count > 0) ? 
