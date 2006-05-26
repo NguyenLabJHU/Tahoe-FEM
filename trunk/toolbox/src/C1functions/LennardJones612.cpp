@@ -1,4 +1,4 @@
-/* $Id: LennardJones612.cpp,v 1.7 2004-05-10 17:01:28 paklein Exp $ */
+/* $Id: LennardJones612.cpp,v 1.8 2006-05-26 14:34:58 tdnguye Exp $ */
 /* created: paklein (10/30/1997) */
 #include "LennardJones612.h"
 #include <math.h>
@@ -49,13 +49,13 @@ double LennardJones612::Function(double x) const
 double LennardJones612::DFunction(double x) const
 {
 	double s = x/fB;
-	return 6.0*fA*(-pow(s,-13.0) + pow(s,-7.0));
+	return 6.0*fA/fB*(-pow(s,-13.0) + pow(s,-7.0));
 }
 
 double LennardJones612::DDFunction(double x) const
 {
 	double s = x/fB;
-	return fA*(78.0*pow(s,-14.0) - 42.0*pow(s,-8.0));
+	return fA/fB/fB*(78.0*pow(s,-14.0) - 42.0*pow(s,-8.0));
 }
 
 /* returning values in groups */
@@ -86,7 +86,7 @@ dArrayT& LennardJones612::MapDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = *pl++/fB;
-		*pdU++ = 6.0*fA*(-pow(r,-13.0) + pow(r,-7.0));
+		*pdU++ = 6.0*fA/fB*(-pow(r,-13.0) + pow(r,-7.0));
 	}
 	return out;
 }
@@ -102,7 +102,7 @@ dArrayT& LennardJones612::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = *pl++/fB;
-		*pddU++ = fA*(78.0*pow(r,-14.0) - 42.0*pow(r,-8.0));
+		*pddU++ = fA/fB/fB*(78.0*pow(r,-14.0) - 42.0*pow(r,-8.0));
 	}
 	return out;
 }
