@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.38 2005-06-23 20:17:12 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.39 2006-05-26 20:17:26 tdnguye Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -93,7 +93,7 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-
+	
 protected:
 
 	/* tangent matrix and force vector */
@@ -203,6 +203,9 @@ protected:
 	
 	/* if nodes are tied, keep track of free nodes per element */
 	dArray2DT freeNodeQ, freeNodeQ_last;
+	
+	private:
+	double fsigma_max;
 };
 
 } // namespace Tahoe 

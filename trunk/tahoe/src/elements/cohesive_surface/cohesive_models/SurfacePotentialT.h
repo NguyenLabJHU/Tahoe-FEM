@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.24 2004-07-15 08:26:02 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.25 2006-05-26 20:17:26 tdnguye Exp $ */
 /* created: paklein (06/20/1999) */
 #ifndef _SURFACE_POTENTIAL_T_H_
 #define _SURFACE_POTENTIAL_T_H_
@@ -77,6 +77,9 @@ public:
 	 * the current state. */
 	virtual double FractureEnergy(const ArrayT<double>& state) = 0;
 
+	/*cohesive strength*/
+	virtual const double FractureStrength(void) const;
+
 	/** incremental heat. The amount of energy per unit undeformed area
 	 * released as heat over the current increment */
 	virtual double IncrementalHeat(const dArrayT& jump, const ArrayT<double>& state);
@@ -130,6 +133,12 @@ protected:
 	dArrayT  fTraction;  /**< traction return value */
 	dMatrixT fStiffness; /**< stiffness return value */
 };
+
+inline const double SurfacePotentialT::FractureStrength(void) const
+{
+	cout <<"\nSurfacePotentialT::FractureStrength:  Cohesive energy not yet defined.";
+	return(0.0);
+}
 
 } // namespace Tahoe 
 #endif /* _SURFACE_POTENTIAL_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.72 2006-05-21 17:49:22 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.73 2006-05-26 20:17:26 tdnguye Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -517,6 +517,7 @@ void CSEAnisoT::TakeParameterList(const ParameterListT& list)
 	/* For SIERRA, don't do anything. Wait until InitStep. */
 #endif
 }
+
 
 /***********************************************************************
  * Protected
