@@ -59,7 +59,7 @@ $dostatus = 1;
 # searches for $repo_name and replaces it with $cvsweb_URL:
 $repo_short_name = "Sourceforge";
 $repo_name = "/cvsroot/tahoe";
-$cvsweb_URL = "http://cvs.sourceforge.net/viewcvs.py/tahoe";
+$cvsweb_URL = "http://tahoe.cvs.sourceforge.net/tahoe";
 
 # parse command line arguments
 #
@@ -129,7 +129,7 @@ if ($users) {
 
 if (MAIL) {
 #	print MAIL "\n";
-	print MAIL '$Id: log.pl,v 1.7 2005-06-18 15:53:23 paklein Exp $' . "\n";
+	print MAIL '$Id: log.pl,v 1.8 2006-05-27 01:05:57 paklein Exp $' . "\n";
 	print MAIL "===================================================================\n";
 	print MAIL "  Date: $days[$wday] $mos[$mon] $mday, $year @ $hour:" . sprintf("%02d", $min) . "\n";
 	print MAIL "Author: $login\n\n";
