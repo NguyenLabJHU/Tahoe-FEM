@@ -1,4 +1,4 @@
-# $Id: junk,v 1.16 2005-08-01 05:19:05 paklein Exp $
+# $Id: junk,v 1.17 2006-05-27 01:08:06 paklein Exp $
 # first test with postfix with 10.3
 # 2nd test with postfix with 10.3
 # 3rd test - open port 25
@@ -7,3 +7,4 @@
 # 6th test - add tahoe.ca.sandia.gov to list of names for localhost
 # 7th test - chang permissions o+rx upto and including handleCheckinMail.pl
 # check on bonsai/globals.pl
+# testing
