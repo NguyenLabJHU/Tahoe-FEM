@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.h,v 1.6 2005-07-17 01:01:31 hspark Exp $ */
+/* $Id: FCC3D_Surf.h,v 1.7 2006-05-29 17:22:15 paklein Exp $ */
 #ifndef _FCC_3D_SURF_H_
 #define _FCC_3D_SURF_H_
 
@@ -10,7 +10,7 @@ namespace Tahoe {
 /* forward declarations */
 class FCCLatticeT_Surf;
 class PairPropertyT;
-class BondLatticeT_Surf;
+class BondLatticeT;
 
 /** 3D Cauchy-Born material for FCC crystals with pair potential interactions. */
 class FCC3D_Surf: public NL_E_MatT
@@ -26,7 +26,7 @@ public:
 	/** \name Cauchy-Born parameters */
 	/*@{*/
 	/** return a reference to the bond lattice */
-	const BondLatticeT_Surf& BondLattice_Surf(void) const;
+	const BondLatticeT& BondLattice(void) const;
 
 	/** reference volume */
 	double CellVolume(void) const { return fAtomicVolume; };

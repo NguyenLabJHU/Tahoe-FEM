@@ -1,9 +1,9 @@
-/* $Id: FCCLatticeT_Surf.h,v 1.2 2005-07-01 22:08:10 hspark Exp $ */
+/* $Id: FCCLatticeT_Surf.h,v 1.3 2006-05-29 17:22:15 paklein Exp $ */
 #ifndef _FCC_LATTICE_T_SURF_H_
 #define _FCC_LATTICE_T_SURF_H_
 
 /* base classes */
-#include "CBLatticeT_Surf.h"
+#include "CBLatticeT.h"
 #include "ParameterInterfaceT.h"
 
 namespace Tahoe {
@@ -14,7 +14,7 @@ namespace Tahoe {
  * \note the lattice can be initialized either by
  * -# FCCLatticeT::Initialize
  * -# FCCLatticeT::TakeParameterList */
-class FCCLatticeT_Surf: public CBLatticeT_Surf, public ParameterInterfaceT
+class FCCLatticeT_Surf: public CBLatticeT, public ParameterInterfaceT
 {
 public:
 
@@ -27,7 +27,7 @@ public:
 	  kEulerAngles = 4};
 
 	/** constructor */
-	FCCLatticeT_Surf(int nshells,int normal);
+	FCCLatticeT_Surf(int nshells, int normal);
 
 	/** number of shells */
 	int NumShells(void) const { return fNumShells; };

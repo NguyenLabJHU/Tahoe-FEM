@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.14 2005-08-09 13:42:58 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.15 2006-05-29 17:22:15 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -166,7 +166,7 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 }
 
 /* return a reference to the bond lattice */
-const BondLatticeT_Surf& FCC3D_Surf::BondLattice_Surf(void) const {
+const BondLatticeT& FCC3D_Surf::BondLattice(void) const {
 	if (!fFCCLattice_Surf) ExceptionT::GeneralFail("FCC3D_Surf::BondLattice_Surf", "pointer not set");
 	return *fFCCLattice_Surf;
 }
