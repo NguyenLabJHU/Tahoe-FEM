@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.5 2005-07-17 04:07:05 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.6 2006-05-29 19:08:23 hspark Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -56,6 +56,9 @@ protected:
 
 	/** surface normals */
 	ArrayT<dArrayT> fNormal;
+
+    /** NEW THING HERE for EAM Surface CB */
+	//ArrayT<EAMFCC3D_Surf*> fEAMSurfaceCB;
 
 	/** surface Cauchy-Born models */
 	ArrayT<FCC3D_Surf*> fSurfaceCB;

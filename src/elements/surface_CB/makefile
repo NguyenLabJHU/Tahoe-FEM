@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2005-08-12 05:40:47 paklein Exp $
+# $Id: makefile,v 1.4 2006-05-29 19:08:23 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,8 +22,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 TotalLagrangianCBSurfaceT.o \
-BondLatticeT_Surf.o \
-CBLatticeT_Surf.o \
 FCC3D_Surf.o \
 FCCLatticeT_Surf.o
 
@@ -46,8 +44,6 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 TotalLagrangianCBSurfaceT.cpp \
-BondLatticeT_Surf.cpp \
-CBLatticeT_Surf.cpp \
 FCC3D_Surf.cpp \
 FCCLatticeT_Surf.cpp 
 
@@ -62,8 +58,6 @@ FCCLatticeT_Surf.cpp
 #
 HDR = \
 TotalLagrangianCBSurfaceT.h \
-BondLatticeT_Surf.h \
-CBLatticeT_Surf.h \
 FCC3D_Surf.h \
 FCCLatticeT_Surf.h
 
