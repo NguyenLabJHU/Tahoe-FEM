@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.2 2006-05-29 16:55:27 paklein Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.3 2006-05-29 17:22:56 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -22,8 +22,8 @@ const int kEAMFCC3DNumLatticeDim 	=  3;
 const int kEAMFCC3DNumAtomsPerCell	=  4;
 
 /* constructor */
-EAMFCC3D_surf::EAMFCC3D_surf(void):
-	FCCLatticeT(0), /* number of shells is not used by this class */
+EAMFCC3D_surf::EAMFCC3D_surf(int nshells, int normal):
+	FCCLatticeT_Surf(nshells, normal),
 	fEAM(NULL),
 	fEAM_particle(NULL),
 	fLatticeParameter(0.0),
@@ -184,7 +184,7 @@ void EAMFCC3D_surf::LoadBondTable(void)
 void EAMFCC3D_surf::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	FCCLatticeT::DefineParameters(list);
+	FCCLatticeT_Surf::DefineParameters(list);
 
 	/* number of spatial dimensions */
 	ParameterT nsd(ParameterT::Integer, "dimensions");
@@ -198,7 +198,7 @@ void EAMFCC3D_surf::DefineParameters(ParameterListT& list) const
 void EAMFCC3D_surf::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	FCCLatticeT::DefineSubs(sub_list);
+	FCCLatticeT_Surf::DefineSubs(sub_list);
 	
 	/* choice of EAM Cauchy-Born glue functions */
 	sub_list.AddSub("EAM_FCC_glue_choice", ParameterListT::Once, true);
@@ -230,7 +230,7 @@ ParameterInterfaceT* EAMFCC3D_surf::NewSub(const StringT& name) const
 		return choice;
 	}
 	else /* inherited */
-		return FCCLatticeT::NewSub(name);
+		return FCCLatticeT_Surf::NewSub(name);
 }
 
 /* accept parameter list */
@@ -292,7 +292,7 @@ void EAMFCC3D_surf::TakeParameterList(const ParameterListT& list)
 	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
 
 	/* inherited - lattice parameter needs to be set first */
-	FCCLatticeT::TakeParameterList(list);
+	FCCLatticeT_Surf::TakeParameterList(list);
 
 	/* initialize glue functions */
 	if (fEAM)

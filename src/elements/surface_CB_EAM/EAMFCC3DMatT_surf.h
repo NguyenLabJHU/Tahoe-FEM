@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.h,v 1.1 2006-05-21 15:55:19 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.h,v 1.2 2006-05-29 17:22:56 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_SURF_H_
 #define _EAMFCC3DMatT_SURF_H_
@@ -24,6 +24,9 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 

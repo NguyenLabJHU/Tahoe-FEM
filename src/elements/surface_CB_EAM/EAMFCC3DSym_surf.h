@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_surf.h,v 1.1 2006-05-21 15:55:19 hspark Exp $ */
+/* $Id: EAMFCC3DSym_surf.h,v 1.2 2006-05-29 17:22:56 paklein Exp $ */
 /* created: paklein (12/06/1996) */
 #ifndef _EAMFCC3DSYM_SURF_H_
 #define _EAMFCC3DSYM_SURF_H_
@@ -16,7 +16,7 @@ class EAMFCC3DSym_surf: public EAMFCC3D_surf
 public:
 
 	/** constructor */
-	EAMFCC3DSym_surf(void);
+	EAMFCC3DSym_surf(int nshells, int normal);
 
 protected:
 

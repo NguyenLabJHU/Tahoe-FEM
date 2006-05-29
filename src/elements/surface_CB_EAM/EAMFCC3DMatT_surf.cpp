@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.cpp,v 1.1 2006-05-21 15:55:19 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.cpp,v 1.2 2006-05-29 17:22:56 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT_surf.h"
 
@@ -21,6 +21,24 @@ EAMFCC3DMatT_surf::EAMFCC3DMatT_surf(void):
 EAMFCC3DMatT_surf::~EAMFCC3DMatT_surf(void) { delete fEAM; }
 
 /* describe the parameters needed by the interface */
+void EAMFCC3DMatT_surf::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+
+	/* number of neighbor shells */
+	ParameterT n_shells(ParameterT::Integer, "shells");
+	n_shells.AddLimit(1, LimitT::LowerInclusive);
+	list.AddParameter(n_shells);
+	
+	/* surface normal */
+	ParameterT normal(ParameterT::Integer, "normal_code");
+	normal.AddLimit(0, LimitT::LowerInclusive);
+	normal.AddLimit(5, LimitT::UpperInclusive);
+	list.AddParameter(normal);
+}
+
+/* describe the parameters needed by the interface */
 void EAMFCC3DMatT_surf::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
@@ -34,7 +52,7 @@ void EAMFCC3DMatT_surf::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* EAMFCC3DMatT_surf::NewSub(const StringT& name) const
 {
 	if (name == "FCC_EAM_Cauchy-Born")
-		return new EAMFCC3DSym_surf;
+		return new EAMFCC3DSym_surf(0, 0);
 	else /* inherited */
 		return NL_E_MatT::NewSub(name);
 }
@@ -46,7 +64,9 @@ void EAMFCC3DMatT_surf::TakeParameterList(const ParameterListT& list)
 	NL_E_MatT::TakeParameterList(list);
 
 	/* construct Cauchy-Born EAM solver */
-	fEAM = new EAMFCC3DSym_surf;
+	int shells = list.GetParameter("shells");
+	int normal_code = list.GetParameter("normal_code");
+	fEAM = new EAMFCC3DSym_surf(shells, normal_code);
 	fEAM->TakeParameterList(list.GetList("FCC_EAM_Cauchy-Born"));
 }
 
