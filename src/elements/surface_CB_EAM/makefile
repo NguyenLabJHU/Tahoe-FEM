@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2006-05-29 04:17:49 hspark Exp $
+# $Id: makefile,v 1.3 2006-05-29 19:06:29 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,11 +20,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	EAM_Surf.o \
-	EAMFCC3D_Surf.o \
-	EAMFCC3DMatT_Surf.o \
-	EAMFCC3DSym_Surf.o \
-	EAM_particle_Surf.o
+	EAMFCC3D_surf.o \
+	EAMFCC3DMatT_surf.o \
+	EAMFCC3DSym_surf.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -44,11 +42,9 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	EAM_Surf.cpp \
-	EAMFCC3D_Surf.cpp \
-	EAMFCC3DMatT_Surf.cpp \
-	EAMFCC3DSym_Surf.cpp \
-	EAM_particle_Surf.cpp
+	EAMFCC3D_surf.cpp \
+	EAMFCC3DMatT_surf.cpp \
+	EAMFCC3DSym_surf.cpp 
 
 ##################### (3) headers
 #
@@ -60,11 +56,9 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	EAMFCC3D_Surf.h \
-	EAMFCC3DMatT_Surf.h \
-	EAMFCC3DSym_Surf.h \
-	EAM_Surf.h \
-	EAM_particle_Surf.h
+	EAMFCC3D_surf.h \
+	EAMFCC3DMatT_surf.h \
+	EAMFCC3DSym_surf.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
