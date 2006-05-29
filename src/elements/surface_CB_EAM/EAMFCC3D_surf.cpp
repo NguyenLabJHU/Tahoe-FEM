@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.1 2006-05-21 15:55:19 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.2 2006-05-29 16:55:27 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -12,7 +12,7 @@
 #include "VoterChenAl.h"
 #include "VoterChenCu.h"
 #include "FBD_EAMGlue.h"
-#include "EAM_particle_surf.h"
+#include "EAM_particle.h"
 
 using namespace Tahoe;
 
@@ -281,7 +281,7 @@ void EAMFCC3D_surf::TakeParameterList(const ParameterListT& list)
 		/* path to source file */
 		data_file.Prepend(fstreamT::Root());
 
-		fEAM_particle = new EAM_particle_surf(*this, data_file);
+		fEAM_particle = new EAM_particle(*this, data_file);
 	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized glue function \"%s\"",

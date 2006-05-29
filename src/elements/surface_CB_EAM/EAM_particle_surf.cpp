@@ -1,6 +1,6 @@
-/* $Id: EAM_particle_surf.cpp,v 1.1 2006-05-21 15:55:19 hspark Exp $ */
+/* $Id: EAM_particle_surf.cpp,v 1.2 2006-05-29 16:55:27 paklein Exp $ */
 /* created: hspark(02/25/2004) */
-#include "EAM_particle_surf_surf.h"
+#include "EAM_particle_surf.h"
 #include <iostream.h> //TEMP
 #include "CBLatticeT.h"
 

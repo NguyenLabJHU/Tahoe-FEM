@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.h,v 1.1 2006-05-21 15:55:19 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.h,v 1.2 2006-05-29 16:55:27 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAMFCC3D_SURF_H_
 #define _EAMFCC3D_SURF_H_
@@ -12,8 +12,8 @@ namespace Tahoe {
 class ifstreamT;
 class dMatrixT;
 class dSymMatrixT;
-class EAM_surf;
-class EAM_particle_surf;
+class EAM;
+class EAM_particle;
 
 class EAMFCC3D_surf: public FCCLatticeT
 {
@@ -71,8 +71,10 @@ protected:
 
 	/** \name embedded atom solver */
 	/*@{*/
-	EAM_surf* fEAM;
-	EAM_particle_surf* fEAM_particle;	
+//	EAM_surf* fEAM;
+//	EAM_particle_surf* fEAM_particle;	
+	EAM* fEAM;
+	EAM_particle* fEAM_particle;	
 	/*@}*/
 };
 
