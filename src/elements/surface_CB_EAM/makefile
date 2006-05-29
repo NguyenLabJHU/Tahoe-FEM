@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2006-05-21 15:55:19 hspark Exp $
+# $Id: makefile,v 1.2 2006-05-29 04:17:49 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	EAM_Surf.o \
-	EAMFCC2D_Surf.o \
 	EAMFCC3D_Surf.o \
 	EAMFCC3DMatT_Surf.o \
 	EAMFCC3DSym_Surf.o \
@@ -46,7 +45,6 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	EAM_Surf.cpp \
-	EAMFCC2D_Surf.cpp \
 	EAMFCC3D_Surf.cpp \
 	EAMFCC3DMatT_Surf.cpp \
 	EAMFCC3DSym_Surf.cpp \
@@ -62,7 +60,6 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	EAMFCC2D_Surf.h \
 	EAMFCC3D_Surf.h \
 	EAMFCC3DMatT_Surf.h \
 	EAMFCC3DSym_Surf.h \
@@ -79,7 +76,6 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
 SUB_DIR = \
-	EAM_glue
 
 subdir_driver: subdir_loop
 
