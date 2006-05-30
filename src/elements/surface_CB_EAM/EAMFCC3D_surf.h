@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.h,v 1.3 2006-05-29 17:22:56 paklein Exp $ */
+/* $Id: EAMFCC3D_surf.h,v 1.4 2006-05-30 18:36:38 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAMFCC3D_SURF_H_
 #define _EAMFCC3D_SURF_H_
@@ -44,6 +44,9 @@ public:
 	/* calculate electron density at ghost atom */
 	void ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce);
 
+	/** thickness of surface layer to subtract off of bulk */
+	double SurfaceThickness(void) const { return fSurfaceThickness; };
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -68,12 +71,28 @@ protected:
 
 	double	fLatticeParameter;
 	double	fCellVolume;
-
+	
+	/* Atomic area for surface normalization, surface thickness */
+    double  fCellArea;	
+	double  fSurfaceThickness;
+	
 	/** \name embedded atom solver */
 	/*@{*/
 	EAM* fEAM;
 	EAM_particle* fEAM_particle;	
 	/*@}*/
+	
+private:
+
+	/** normal code to do bond table rotation */
+	int fNormalCode;
+	
+	/** Return rotation matrix for bond table */
+	dMatrixT RotationMatrixA(const double angle);
+	
+	/** Reeturn other rotation matrix for bond table */
+	dMatrixT RotationMatrixB(const double angle);
+	
 };
 
 } // namespace Tahoe 
