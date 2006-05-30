@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.11 2006-05-26 21:38:32 tdnguye Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.12 2006-05-30 20:13:22 tdnguye Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -222,12 +222,13 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 	RaggedArray2DT<double>& state_variables = fCSE->StateVariables();
 
 	int release_count = 0;
+	double t_mag2 = 0.0;
 	const dArray2DT& current_coords = ElementSupport().CurrentCoordinates();
 	dSymMatrixT Cauchy(NumSD());
 	dArrayT traction(NumSD()), tangent(NumSD()), normal(NumSD());
-	double t_mag2 = 0.0;
 	ostream& out = ElementSupport().Output();
 	for (int i = 0; i < fCSEActive.Length(); i++)
+	  {
 		if (fCSEActive[i] == ElementCardT::kOFF) /* only test rigid surfaces */
 		{
 			int* pface = fConnectivitiesCSELocal(i);
@@ -290,7 +291,7 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 			double sense = traction[0]*normal[0] + traction[1]*normal[1];
 			
 			/* tensile release */
-			if (sqrt(t_mag2) > fReleaseThreshold*fReleaseThreshold && sense > 0.0) {
+			if (t_mag2 > fReleaseThreshold*fReleaseThreshold && sense > 0.0) {
 				fCSEActive[i] = ElementCardT::kMarkON;
 				release_count++;
 
@@ -304,6 +305,7 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 				}
 			}
 		}
+	  }
 				out << "\nrelease_count: "<<release_count;
 				out << "\ntmax: "<<sqrt(t_mag2);
 				cout << "\nrelease_count: "<<release_count;
