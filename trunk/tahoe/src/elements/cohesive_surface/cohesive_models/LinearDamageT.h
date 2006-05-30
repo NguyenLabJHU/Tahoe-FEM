@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.h,v 1.11 2004-07-15 08:26:02 paklein Exp $ */
+/* $Id: LinearDamageT.h,v 1.12 2006-05-30 23:22:04 tdnguye Exp $ */
 /* created: paklein (08/26/2000) */
 #ifndef _LINEAR_DAMAGE_T_H_
 #define _LINEAR_DAMAGE_T_H_
@@ -45,6 +45,15 @@ public:
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state);
 	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters  */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 private:
 
 	/** traction at initialization */
@@ -55,8 +64,9 @@ private:
 	double fd_c_t; /**< characteristic tangential opening to failure */
 	
 	/* penetration stiffness */
-	double fpenalty; /**< stiffening multiplier during interpenetration */
+//	double fpenalty; /**< stiffening multiplier during interpenetration */
 	double fK;       /**< calculated penetration stiffness */
+	double fL_max; /*Maximum normalized opening*/
 };
 
 } // namespace Tahoe 
