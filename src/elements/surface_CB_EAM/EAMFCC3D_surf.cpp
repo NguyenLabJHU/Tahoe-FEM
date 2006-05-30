@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.4 2006-05-30 18:36:38 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.5 2006-05-30 19:08:10 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -21,7 +21,10 @@ const int kEAMFCC3DSurfBonds        = 78;
 const int kEAMFCC3DNumBonds			= 54;
 const int kEAMFCC3DNumLatticeDim 	=  3;
 const int kEAMFCC3DNumAtomsPerCell	=  4;
+const int kEAMFCC3DNumAtomsPerArea  =  2;
 const double piby2 = 4.0 * atan(1.0) / 2.0;
+
+// WHAT ABOUT FACTOR OF 0.5 IN PAIR POTENTIAL TERMS IN EAM.CPP?
 
 /* constructor */
 EAMFCC3D_surf::EAMFCC3D_surf(int nshells, int normal):
@@ -49,7 +52,8 @@ double EAMFCC3D_surf::EnergyDensity(const dSymMatrixT& strain)
 	/* compute deformed lattice geometry */
 	ComputeDeformedLengths(strain);
 
-	return (kEAMFCC3DNumAtomsPerCell/fCellVolume)*fEAM->ComputeUnitEnergy();
+	/* scale by atoms per cell/AREA per cell, split energy by one-half */
+	return (0.5*kEAMFCC3DNumAtomsPerArea/fCellArea)*fEAM->ComputeUnitEnergy();
 }
 
 /* return the material tangent moduli in Cij */
@@ -64,8 +68,8 @@ void EAMFCC3D_surf::Moduli(dMatrixT& Cij, const dSymMatrixT& strain)
 	else
 		fEAM->ComputeUnitModuli(Cij);
 	
-	/* scale by atoms per cell/volume per cell */
-	Cij	*= kEAMFCC3DNumAtomsPerCell/fCellVolume;
+	/* scale by atoms per cell/AREA per cell, split by one half for counting all bonds */
+	Cij	*= 0.5*kEAMFCC3DNumAtomsPerArea/fCellArea;
 }
 
 /* return the symmetric 2nd PK stress tensor */
@@ -80,8 +84,8 @@ void EAMFCC3D_surf::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 	else
 		fEAM->ComputeUnitStress(stress);
 	
-	/* scale by atoms per cell/volume per cell */
-	stress *= kEAMFCC3DNumAtomsPerCell/fCellVolume;
+	/* scale by atoms per cell/AREA per cell, split by one half for counting all bonds */
+	stress *= 0.5*kEAMFCC3DNumAtomsPerArea/fCellArea;
 }
 
 /* compute electron density at ghost atom */
@@ -454,6 +458,8 @@ void EAMFCC3D_surf::TakeParameterList(const ParameterListT& list)
 	/* HSP - WHY IS CELL VOLUME DIFFERENT FROM FCC3D? */
 	fLatticeParameter = (fEAM) ? fEAM->LatticeParameter() : fEAM_particle->LatticeParameter();
 	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
+	fCellArea = 0.5*fLatticeParameter*fLatticeParameter;
+	fSurfaceThickness = 0.75*fLatticeParameter; // CHECK THIS
 
 	/* inherited - lattice parameter needs to be set first */
 	FCCLatticeT_Surf::TakeParameterList(list);
