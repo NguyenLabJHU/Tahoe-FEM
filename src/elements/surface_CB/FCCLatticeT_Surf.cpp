@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT_Surf.cpp,v 1.4 2005-07-02 20:16:12 hspark Exp $ */
+/* $Id: FCCLatticeT_Surf.cpp,v 1.5 2006-06-02 16:57:25 hspark Exp $ */
 #include "FCCLatticeT_Surf.h"
 #include "ParameterContainerT.h"
 
@@ -262,7 +262,7 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 	 -1.0/sqrt2,    -sqrt2,-1.0/sqrt2};
 
 	/* Rotate Bond Tables based on fNormalCode and rotation matrices */
-	/* Create temporary bond table temp_bonds */
+	/* Create temporary bond table temp_bonds that combines bonddata */
 	double* shells[3];
 	shells[0] = bonddata1;
 	shells[1] = bonddata2;

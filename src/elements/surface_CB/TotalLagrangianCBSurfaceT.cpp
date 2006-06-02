@@ -1,10 +1,12 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.21 2005-07-21 16:21:23 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.22 2006-06-02 16:57:25 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
 #include "ShapeFunctionT.h"
 #include "FCC3D_Surf.h"
 #include "FCC3D.h"
+#include "EAMFCC3D_surf.h"
+#include "EAMFCC3D.h"
 #include "MaterialListT.h"
 #include "eIntegratorT.h"
 
@@ -44,6 +46,7 @@ TotalLagrangianCBSurfaceT::TotalLagrangianCBSurfaceT(const ElementSupportT& supp
 	TotalLagrangianT(support),
 	fSurfaceCBSupport(NULL),
 	fSplitInitCoords(LocalArrayT::kInitCoords),
+	fIndicator(0),
 	fSplitShapes(NULL)
 {
 	SetName("total_lagrangian_CBsurface");
@@ -105,6 +108,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	};
 	dArray2DT normals(6, 3, normals_dat);
 
+	/* START DISTINGUISHING HERE BETWEEN FCCEAMCB AND FCC3D */
 	/* find parameter list for the bulk material */
 	int num_blocks = list.NumLists("large_strain_element_block");
 	if (num_blocks > 1)
@@ -113,42 +117,86 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	const ParameterListT& mat_list = block.GetListChoice(*this, "large_strain_material_choice");
 	const ArrayT<ParameterListT>& mat = mat_list.Lists();
 	const ParameterListT& bulk_params = mat[0];
-	if (bulk_params.Name() != "FCC_3D")
-		ExceptionT::GeneralFail(caller, "expecting \"FCC_3D\" not \"%s\"", bulk_params.Name().Pointer());
+	const char* blah = bulk_params.Name();
+	fIndicator = blah;
+	//if (bulk_params.Name() != "FCC_3D")
+	if (fIndicator != "FCC_3D")
+		ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM\" not \"%s\"", bulk_params.Name().Pointer());
 	
-	/* initialize surface information & create all possible (6) surface clusters */
-	fNormal.Dimension(nfs);
-	fSurfaceCB.Dimension(nfs);
-	fSurfaceCB = NULL;
-
-	/* get pointer to the bulk model */
-	FCC3D* fcc_3D = NULL;
-	if (fMaterialList->Length() == 1) {
-		ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
-		fcc_3D = TB_DYNAMIC_CAST(FCC3D*, pcont_mat);
-		if (!fcc_3D) ExceptionT::GeneralFail(caller, "could not resolve FCC3D material");
-	} else ExceptionT::GeneralFail(caller, "expecting 1 not %d materials", fMaterialList->Length());
-
-	/* Update parameter list for FCC3D_Surf to include the surface normal codes */
-	for (int i = 0; i < nfs; i++)
+	/* Initialize either fSurfaceCB or fEAMSurfaceCB depending on fIndicator */
+	if (fIndicator == "FCC_3D")
 	{
-		/* face normal */
-		fNormal[i].Dimension(nsd);
-		fNormal[i] = normals(i);
-	
-		/* face C-B model */
-		fSurfaceCB[i] = new FCC3D_Surf;
-		fSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
-		
-		/* pass parameters to the surface model, including surface normal code */
-		ParameterListT surf_params = bulk_params;
-		surf_params.SetName("FCC_3D_Surf");
-		surf_params.AddParameter(i, "normal_code");
-		surf_params.AddParameter(fcc_3D->NearestNeighbor(), "bulk_nearest_neighbor");
+		/* initialize surface information & create all possible (6) surface clusters */
+		fNormal.Dimension(nfs);
+		fSurfaceCB.Dimension(nfs);
+		fSurfaceCB = NULL;
 
-		/* Initialize a different FCC3D_Surf for each different surface normal type (6 total) */
-		fSurfaceCB[i]->TakeParameterList(surf_params);
+		/* get pointer to the bulk model */
+		FCC3D* fcc_3D = NULL;
+		if (fMaterialList->Length() == 1) {
+			ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
+			fcc_3D = TB_DYNAMIC_CAST(FCC3D*, pcont_mat);
+			if (!fcc_3D) ExceptionT::GeneralFail(caller, "could not resolve FCC3D material");
+		} else ExceptionT::GeneralFail(caller, "expecting 1 not %d materials", fMaterialList->Length());
+
+		/* Update parameter list for FCC3D_Surf to include the surface normal codes */
+		for (int i = 0; i < nfs; i++)
+		{
+			/* face normal */
+			fNormal[i].Dimension(nsd);
+			fNormal[i] = normals(i);
+	
+			/* face C-B model */
+			fSurfaceCB[i] = new FCC3D_Surf;
+			fSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
+		
+			/* pass parameters to the surface model, including surface normal code */
+			ParameterListT surf_params = bulk_params;
+			surf_params.SetName("FCC_3D_Surf");
+			surf_params.AddParameter(i, "normal_code");
+			surf_params.AddParameter(fcc_3D->NearestNeighbor(), "bulk_nearest_neighbor");
+
+			/* Initialize a different FCC3D_Surf for each different surface normal type (6 total) */
+			fSurfaceCB[i]->TakeParameterList(surf_params);
+		}
 	}
+	else if (fIndicator == "FCC_EAM")
+	{
+		/* initialize surface information & create all possible (6) surface clusters */
+		fNormal.Dimension(nfs);
+		fEAMSurfaceCB.Dimension(nfs);
+		fEAMSurfaceCB = NULL;
+
+		/* get pointer to the bulk model */
+		EAMFCC3D* EAMfcc_3D = NULL;
+		if (fMaterialList->Length() == 1) {
+			ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
+			EAMfcc_3D = TB_DYNAMIC_CAST(EAMFCC3D*, pcont_mat);
+			if (!EAMfcc_3D) ExceptionT::GeneralFail(caller, "could not resolve EAMFCC3D material");
+		} else ExceptionT::GeneralFail(caller, "expecting 1 not %d materials", fMaterialList->Length());
+
+		/* Update parameter list for EAMFCC3D_Surf to include the surface normal codes */
+		for (int i = 0; i < nfs; i++)
+		{
+			/* face normal */
+			fNormal[i].Dimension(nsd);
+			fNormal[i] = normals(i);
+	
+			/* face C-B model */
+			fEAMSurfaceCB[i] = new EAMFCC3D_surf;
+			fEAMSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
+		
+			/* pass parameters to the surface model, including surface normal code */
+			ParameterListT surf_params = bulk_params;
+			surf_params.SetName("FCC_EAM_Surf");
+			surf_params.AddParameter(i, "normal_code");
+			//surf_params.AddParameter(fcc_3D->NearestNeighbor(), "bulk_nearest_neighbor");
+
+			/* Initialize a different EAMFCC3D_Surf for each different surface normal type (6 total) */
+			fEAMSurfaceCB[i]->TakeParameterList(surf_params);
+		}
+	}
+	else ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM\" not \"%s\"", bulk_params.Name().Pointer());
 
 	/* collect surface element information */
 	ArrayT<StringT> block_ID;
@@ -250,6 +298,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	dMatrixT DXi_DX(nsd);
 	dMatrixT F_inv(nsd);
 	dMatrixT PK1(nsd), cauchy(nsd);
+	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
 		/* bulk element information */
@@ -277,7 +326,13 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 				/* set up split integration */
 				int normal_type = fSurfaceElementFacesType(i,j);
-				double t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+				//double t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+				
+				if (fIndicator == "FCC_3D")
+				{
+					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+				}
+				
 				fSplitInitCoords = fLocInitCoords;
 				SurfaceLayer(fSplitInitCoords, j, t_surface);
 
