@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_surf.h,v 1.2 2006-05-29 17:22:56 paklein Exp $ */
+/* $Id: EAMFCC3DSym_surf.h,v 1.3 2006-06-03 23:03:45 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #ifndef _EAMFCC3DSYM_SURF_H_
 #define _EAMFCC3DSYM_SURF_H_
@@ -22,6 +22,18 @@ protected:
 
 	/** initialize bond table values */
 	virtual void LoadBondTable(void);
+	
+private:
+
+	/** normal code to do bond table rotation */
+	int fNormalCode;
+	
+	/** Return rotation matrix for bond table */
+	dMatrixT RotationMatrixA(const double angle);
+	
+	/** Reeturn other rotation matrix for bond table */
+	dMatrixT RotationMatrixB(const double angle);
+	
 };
 
 } /* namespace Tahoe */

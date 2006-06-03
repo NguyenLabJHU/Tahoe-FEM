@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.cpp,v 1.2 2006-05-29 17:22:56 paklein Exp $ */
+/* $Id: EAMFCC3DMatT_surf.cpp,v 1.3 2006-06-03 23:03:45 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT_surf.h"
 
@@ -11,7 +11,8 @@ using namespace Tahoe;
 
 /* constructor */
 EAMFCC3DMatT_surf::EAMFCC3DMatT_surf(void):
-	ParameterInterfaceT("FCC_EAM"),
+	ParameterInterfaceT("FCC_EAM_Surf"),
+	fSurfaceThickness(-1),
 	fEAM(NULL)
 {
 
@@ -63,11 +64,14 @@ void EAMFCC3DMatT_surf::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	NL_E_MatT::TakeParameterList(list);
 
-	/* construct Cauchy-Born EAM solver */
+	/* construct Cauchy-Born EAM solver - call EAMFCC3D_surf instead? */
 	int shells = list.GetParameter("shells");
 	int normal_code = list.GetParameter("normal_code");
 	fEAM = new EAMFCC3DSym_surf(shells, normal_code);
 	fEAM->TakeParameterList(list.GetList("FCC_EAM_Cauchy-Born"));
+	
+	/* TEMP - GET SURFACE THICKNESS FROM EAMFCC3D_SURF */
+	fSurfaceThickness = fEAM->SurfaceThickness();
 }
 
 /*************************************************************************

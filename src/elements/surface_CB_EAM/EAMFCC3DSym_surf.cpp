@@ -1,16 +1,19 @@
-/* $Id: EAMFCC3DSym_surf.cpp,v 1.2 2006-05-29 17:22:56 paklein Exp $ */
+/* $Id: EAMFCC3DSym_surf.cpp,v 1.3 2006-06-03 23:03:45 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym_surf.h"
 
 /* bond parameters */
-const int kEAMFCC3DSymNumBonds = 27;
+const int kEAMFCC3DSymNumBonds = 78;	// changed from 27 for symmetric & bulk
 const int kEAMFCC3DNumLatticeDim =  3;
 
 using namespace Tahoe;
 
+const double piby2 = 4.0 * atan(1.0) / 2.0;
+
 /* constructor */
 EAMFCC3DSym_surf::EAMFCC3DSym_surf(int nshells, int normal):
-	EAMFCC3D_surf(nshells, normal)
+	EAMFCC3D_surf(nshells, normal),
+	fNormalCode(normal)
 {
 	SetName("FCC_EAM_Cauchy-Born");
 }
@@ -26,60 +29,203 @@ void EAMFCC3DSym_surf::LoadBondTable(void)
 	fDefLength.Dimension(kEAMFCC3DSymNumBonds);
 	fBonds.Dimension(kEAMFCC3DSymNumBonds, kEAMFCC3DNumLatticeDim);
 
-	/* all bonds appear twice */
-	fBondCounts = 2;
+	dArray2DT temp_bonds, temp_bonds2;
+	temp_bonds.Dimension(kEAMFCC3DSymNumBonds, 3);	// temporary bond table before rotation
+	temp_bonds2.Dimension(kEAMFCC3DSymNumBonds, 3);	// Currently have # of bonds for {100} surfaces
+
+	/* all bonds appear ONCE (change from regular EAMFCC3DSym) */
+	fBondCounts = 1;
 	
 	/* clear deformed lengths for now */
 	fDefLength = 0.0;
 
-	/*
-	 * Undeformed bond data for unit cube - the table includes
-	 * all neighbors in a (2 x 2 x 2) unit cell area except those
-	 * located at [±1 ±1 ±1], ie the body diagonal neighbors.
-	 */
-	double bonddata[kEAMFCC3DSymNumBonds][kEAMFCC3DNumLatticeDim] =
+	/* New bond table for surface clusters - change dimensions! */
+	/* AVOID HARD CODING NUMBER OF BONDS SPECIFIC TO {100} */
+	double bonddata[kEAMFCC3DSymNumBonds][kEAMFCC3DNumLatticeDim] = {
+		{0.5, 0.5, 0.0}, // Surface cluster (8 nearest neighbors)
+		{0.5, -0.5, 0.0},
+		{0.5, 0.0, 0.5},
+		{0.5, 0.0, -0.5},
+		{0.0, 0.5, 0.5},
+		{0.0, -0.5, 0.5},
+		{0.0, 0.5, -0.5},
+		{0.0, -0.5, -0.5},
+		{0.5, 0.5, 0.0}, // Repeat cluster here - one atomic thickness into bulk
+		{0.5, -0.5, 0.0}, // Total of 12 nearest neighbors
+		{0.5, 0.0, 0.5},
+		{0.5, 0.0, -0.5},
+		{0.0, 0.5, 0.5},
+		{0.0, -0.5, 0.5},
+		{0.0, 0.5, -0.5},
+		{0.0, -0.5, -0.5},
+		{-0.5, -0.5, 0.0}, // New bonds for second surface cluster begin here
+		{-0.5, 0.5, 0.0},
+		{-0.5, 0.0, 0.5},
+		{-0.5, 0.0, -0.5},
+		{1.0, 0.0, 0.0}, // Surface cluster (5 2nd shell neighbors)
+		{0.0, 1.0, 0.0},
+		{0.0, 0.0, 1.0},
+		{0.0, -1.0, 0.0},
+		{0.0, 0.0, -1.0},
+		{1.0, 0.0, 0.0}, // Repeat cluster here - one atomic thickness into bulk
+		{0.0, 1.0, 0.0}, // Total of 5 2nd shell neighbors
+		{0.0, 0.0, 1.0},
+		{0.0, -1.0, 0.0},
+		{0.0, 0.0, -1.0},
+		{1.0, 0.5, 0.5}, // Surface cluster (12 3rd shell neighbors)
+		{0.5, 1.0, 0.5},
+		{0.5, 0.5, 1.0},
+		{1.0, 0.5, -0.5},
+		{0.5, 1.0, -0.5},
+		{0.5, 0.5, -1.0},
+		{1.0, -0.5, 0.5},
+		{0.5, -1.0, 0.5},
+		{0.5, -0.5, 1.0},
+		{1.0, -0.5, -0.5},
+		{0.5, -1.0, -0.5},
+		{0.5, -0.5, -1.0},
+		{1.0, 0.5, 0.5}, // Repeat cluster here - one atomic thickness into bulk
+		{0.5, 1.0, 0.5}, // Total of 20 3rd shell neighbors
+		{0.5, 0.5, 1.0},
+		{1.0, 0.5, -0.5},
+		{0.5, 1.0, -0.5},
+		{0.5, 0.5, -1.0},
+		{1.0, -0.5, 0.5},
+		{0.5, -1.0, 0.5},
+		{0.5, -0.5, 1.0},
+		{1.0, -0.5, -0.5},
+		{0.5, -1.0, -0.5},
+		{0.5, -0.5, -1.0},
+		{-0.5, 1.0, 0.5}, // New bonds for second surface cluster begin here
+		{-0.5, 1.0, -0.5},
+		{-0.5, 0.5, 1.0},
+		{-0.5, 0.5, -1.0},
+		{-0.5, -0.5, 1.0},
+		{-0.5, -0.5, -1.0},
+		{-0.5, -1.0, 0.5},
+		{-0.5, -1.0, -0.5},
+		{0.0, 1.0, -1.0}, // Surface cluster (8 4th shell neighbors)
+		{0.0, 1.0, 1.0},
+		{1.0, 1.0, 0.0},
+		{1.0, -1.0, 0.0},
+		{1.0, 0.0, 1.0},
+		{1.0, 0.0, -1.0},
+		{0.0, -1.0, -1.0},
+		{0.0, -1.0, 1.0},
+		{0.0, 1.0, -1.0}, // Repeat cluster here - one atomic thickness into the bulk
+		{0.0, 1.0, 1.0},
+		{1.0, 1.0, 0.0},
+		{1.0, -1.0, 0.0},
+		{1.0, 0.0, 1.0},
+		{1.0, 0.0, -1.0},
+		{0.0, -1.0, -1.0},
+		{0.0, -1.0, 1.0}
+	};
 	
-						   {/* face centers - 1st nearest */
-				/*  1 */	{ 0.5, 0.5, 0.0},
-				/*  2 */	{-0.5, 0.5, 0.0},
-				/*  3 */	{ 0.5, 0.0, 0.5},
-				/*  4 */	{-0.5, 0.0, 0.5},
-				/*  5 */	{ 0.0, 0.5, 0.5},
-				/*  6 */	{ 0.0,-0.5, 0.5},
-	  			
-	  			/* face corners - 4th nearest */
-				/*  7 */	{ 1.0, 1.0, 0.0},
-				/*  8 */	{-1.0, 1.0, 0.0},
-				/*  9 */	{ 1.0, 0.0, 1.0},
-				/* 10 */	{-1.0, 0.0, 1.0},
-				/* 11 */	{ 0.0, 1.0, 1.0},
-				/* 12 */	{ 0.0,-1.0, 1.0},
-				
-							/* edge corners - 2nd nearest */
-				/* 13 */	{ 1.0, 0.0, 0.0},
-				/* 14 */	{ 0.0, 1.0, 0.0},
-				/* 15 */	{ 0.0, 0.0, 1.0},
-					
-							/* far face corners - 3rd nearest */					
-				/* 16 */	{ 1.0, 0.5, 0.5},
-				/* 17 */	{ 1.0, 0.5,-0.5},
-				/* 18 */	{ 1.0,-0.5, 0.5},
-				/* 19 */	{ 1.0,-0.5,-0.5},
-				/* 20 */	{ 0.5, 1.0, 0.5},
-				/* 21 */	{ 0.5, 1.0,-0.5},
-				/* 22 */	{-0.5, 1.0, 0.5},
-				/* 23 */	{-0.5, 1.0,-0.5},
-				/* 24 */	{ 0.5, 0.5, 1.0},
-				/* 25 */	{ 0.5,-0.5, 1.0},
-				/* 26 */	{-0.5, 0.5, 1.0},
-				/* 27 */	{-0.5,-0.5, 1.0}
-				     		};
+	/* Rotate Bond Tables based on fNormalCode and rotation matrices */
+	/* Create temporary bond table temp_bonds that combines bonddata */
+	for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_bonds(i,j) = bonddata[i][j];
+	
+	/* Now manipulate temp_bonds */
+	dMatrixT blah1(3);
+	dArrayT asdf(3), prod(3);
+	if (fNormalCode == 0)	// normal is [1,0,0]
+	{
+		temp_bonds2 = temp_bonds;
+		fBonds = temp_bonds2;
+		fBonds *= -1.0;
+	}
+	else if (fNormalCode == 1)
+		fBonds = temp_bonds;	// this table is the default, i.e. [-1,0,0]
+	else if (fNormalCode == 2)	// rotate [-1,0,0] to [0,1,0]
+	{
+		temp_bonds2 = temp_bonds;
+		blah1 = RotationMatrixA(piby2);
+		for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
+		{
+			temp_bonds2.RowCopy(i,asdf);	// take bond
+			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
+			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
+		}
+		fBonds = temp_bonds2;
+	}
+	else if (fNormalCode == 3)	// rotate [-1,0,0] to [0,-1,0]
+	{
+		temp_bonds2 = temp_bonds;
+		blah1 = RotationMatrixA(-piby2);
+		for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
+		{
+			temp_bonds2.RowCopy(i,asdf);	// take bond
+			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
+			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
+		}	
+		fBonds = temp_bonds2;
+	}
+	else if (fNormalCode == 4)	// rotate [-1,0,0] to [0,0,1]
+	{
+		temp_bonds2 = temp_bonds;
+		blah1 = RotationMatrixB(-piby2);
+		for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
+		{
+			temp_bonds2.RowCopy(i,asdf);	// take bond
+			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
+			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
+		}	
+		fBonds = temp_bonds2;
+	}	
+	else if (fNormalCode == 5)	// rotate [-1,0,0] to [0,0,-1]
+	{
+		temp_bonds2 = temp_bonds;
+		blah1 = RotationMatrixB(piby2);
+		for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
+		{
+			temp_bonds2.RowCopy(i,asdf);	// take bond
+			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
+			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
+		}	
+		fBonds = temp_bonds2;
+	}
 	
 	/* copy into reference table */
-	for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
-		for (int j = 0; j < 3; j++)
-			fBonds(i,j) = bonddata[i][j];
+	/* OBVIATED BY fBonds ABOVE */
+	//for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
+	//	for (int j = 0; j < 3; j++)
+	//		fBonds(i,j) = bonddata[i][j];
 			
 	/* scale to correct lattice parameter */				     		
 	fBonds *= fLatticeParameter;
+}
+
+/*************************************************************************
+ * Private
+ *************************************************************************/
+ 
+ /* Rotate bonds with [-1,0,0] normal to bonds with [0,1,0]-type normals */
+dMatrixT EAMFCC3DSym_surf::RotationMatrixA(const double angle)
+ {
+	dMatrixT rmatrix(3);
+	rmatrix = 0.0;
+    rmatrix(0,0) = cos(angle);
+	rmatrix(0,1) = sin(angle);
+	rmatrix(1,0) = -sin(angle);
+	rmatrix(1,1) = cos(angle);
+	rmatrix(2,2) = 1.0;
+	
+	return rmatrix;
+ }
+ 
+/* Rotate bonds with [-1,0,0] normal to bonds with [0,0,1]-type normals */
+dMatrixT EAMFCC3DSym_surf::RotationMatrixB(const double angle)
+{
+	dMatrixT rmatrix(3);
+	rmatrix = 0.0;
+    rmatrix(0,0) = cos(angle);
+	rmatrix(0,2) = -sin(angle);
+	rmatrix(1,1) = 1.0;
+	rmatrix(2,0) = sin(angle);
+	rmatrix(2,2) = cos(angle);
+	
+	return rmatrix;
 }
