@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tahoe echo_input="false" geometry_file="./geometry/Ktest2_db.exo" xmlns:x0="http://www.w3.org/2001/XMLSchema">
-    <time max_step_cuts = "6" num_steps="50" output_inc="-1" time_step="0.01">
+<tahoe echo_input="false" geometry_file="./geometry/Ktest2_db.exo"
+    restart_output_inc="0" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="6" num_steps="50" output_inc="-1" time_step="0.01">
         <schedule_function>
             <piecewise_linear>
                 <OrderedPair x="0.0" y="0.0"/>
@@ -22,7 +23,7 @@
                 <node_ID_list>
                     <String value="1"/>
                 </node_ID_list>
-                <tip_tracking max_growth_distance="0.2"
+                <tip_tracking max_growth_distance="0.4"
                     max_growth_steps="5" near_tip_group="2" near_tip_output_variable="s22">
                     <location_of_maximum noise_level=".002"/>
                 </tip_tracking>
@@ -39,14 +40,12 @@
                     <String value="4"/>
                 </block_ID_list>
                 <cohesive_relation_2D>
-                    <Tvergaard-Hutchinson_2D L_1="0.01" L_2="0.01"
-                        L_fail="1000" d_c_n=".1" d_c_t=".1"
-                        penalty="1000" sigma_max="3.3"/>
+                    <Linear_Damage_2D fracture_energy="0.167" penetration_stiffness="100.0"/>
                 </cohesive_relation_2D>
             </anisotropic_CSE_element_block>
         </anisotropic_CSE>
         <updated_lagrangian_adaptive_insertion
-            cohesive_element_group="1" field_name="displacement" release_threshold="2.0">
+            cohesive_element_group="1" field_name="displacement" release_threshold="3.33">
             <quadrilateral/>
             <solid_element_nodal_output coordinates="1"
                 displacements="1" principal_stress="1" stress="1"/>
@@ -65,8 +64,9 @@
             </large_strain_element_block>
         </updated_lagrangian_adaptive_insertion>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+01" max_iterations="6" rel_tolerance="1.0e-12">
+    <nonlinear_solver abs_tolerance="1.0e-8"
+        divergence_tolerance="1.0e+01" max_iterations="20"
+        output_inc="0" rel_tolerance="1.0e-8">
         <profile_matrix/>
     </nonlinear_solver>
 </tahoe>
