@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.22 2006-06-02 16:57:25 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.23 2006-06-03 23:04:13 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -7,6 +7,8 @@
 #include "FCC3D.h"
 #include "EAMFCC3D_surf.h"
 #include "EAMFCC3D.h"
+#include "EAMFCC3DMatT.h"
+#include "EAMFCC3DMatT_surf.h"
 #include "MaterialListT.h"
 #include "eIntegratorT.h"
 
@@ -160,7 +162,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 			fSurfaceCB[i]->TakeParameterList(surf_params);
 		}
 	}
-	else if (fIndicator == "FCC_EAM")
+	else if (fIndicator == "FCC_EAM_Cauchy-Born")
 	{
 		/* initialize surface information & create all possible (6) surface clusters */
 		fNormal.Dimension(nfs);
@@ -168,10 +170,10 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 		fEAMSurfaceCB = NULL;
 
 		/* get pointer to the bulk model */
-		EAMFCC3D* EAMfcc_3D = NULL;
+		EAMFCC3DMatT* EAMfcc_3D = NULL;
 		if (fMaterialList->Length() == 1) {
 			ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
-			EAMfcc_3D = TB_DYNAMIC_CAST(EAMFCC3D*, pcont_mat);
+			EAMfcc_3D = TB_DYNAMIC_CAST(EAMFCC3DMatT*, pcont_mat);
 			if (!EAMfcc_3D) ExceptionT::GeneralFail(caller, "could not resolve EAMFCC3D material");
 		} else ExceptionT::GeneralFail(caller, "expecting 1 not %d materials", fMaterialList->Length());
 
@@ -183,12 +185,12 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 			fNormal[i] = normals(i);
 	
 			/* face C-B model */
-			fEAMSurfaceCB[i] = new EAMFCC3D_surf;
+			fEAMSurfaceCB[i] = new EAMFCC3DMatT_surf;
 			fEAMSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
 		
 			/* pass parameters to the surface model, including surface normal code */
 			ParameterListT surf_params = bulk_params;
-			surf_params.SetName("FCC_EAM_Surf");
+			surf_params.SetName("FCC_EAM_Cauchy-Born_Surf");
 			surf_params.AddParameter(i, "normal_code");
 			//surf_params.AddParameter(fcc_3D->NearestNeighbor(), "bulk_nearest_neighbor");
 
@@ -329,9 +331,11 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				//double t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
 				
 				if (fIndicator == "FCC_3D")
-				{
 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
-				}
+				else if (fIndicator == "FCC_EAM_Cauchy-Born")
+					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
+				else
+					int blah = 0;
 				
 				fSplitInitCoords = fLocInitCoords;
 				SurfaceLayer(fSplitInitCoords, j, t_surface);
@@ -443,9 +447,14 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					/* shape function gradient wrt current configuration */
 					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
 					
-					/* stress at the surface */
-					(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-
+					/* stress at the surface - USE INDICATOR HERE */
+					if (fIndicator == "FCC_3D")
+						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					else if (fIndicator == "FCC_EAM_Cauchy-Born")
+						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					else
+						int blah = 0;
+					
 					/* integration weight */
 					double scale = constK*detj*w[face_ip]*J;
 					
@@ -462,7 +471,12 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					Set_B(DNa_x, fB);
 					
 					/* Get D Matrix */
-					fD.SetToScaled(scale, fSurfaceCB[normal_type]->c_ijkl());
+					if (fIndicator == "FCC_3D")
+						fD.SetToScaled(scale, fSurfaceCB[normal_type]->c_ijkl());
+					else if (fIndicator == "FCC_EAM_Cauchy-Born")
+						fD.SetToScaled(scale, fEAMSurfaceCB[normal_type]->c_ijkl());
+					else
+						int blah = 0;
 					
 					/* accumulate */
 					fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
@@ -513,6 +527,7 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	dMatrixT DXi_DX(nsd);
 	dMatrixT F_inv(nsd);
 	dMatrixT PK1(nsd), cauchy(nsd);
+	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
 		/* bulk element information */
@@ -537,7 +552,14 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 
 				/* set up split integration */
 				int normal_type = fSurfaceElementFacesType(i,j);
-				double t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+				
+				if (fIndicator == "FCC_3D")
+					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+				else if (fIndicator == "FCC_EAM_Cauchy-Born")
+					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
+				else
+					int blah = 0;
+				
 				fSplitInitCoords = fLocInitCoords;
 				SurfaceLayer(fSplitInitCoords, j, t_surface);
 
@@ -627,7 +649,12 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 						F_inv.Inverse(F);
 					
 					/* stress at the surface */
-					(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					if (fIndicator == "FCC_3D")
+						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					else if (fIndicator == "FCC_EAM_Cauchy-Born")
+						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					else
+						int blah = 0;
 
 					/* compute PK1/J */
 					PK1.MultABT(cauchy, F_inv);

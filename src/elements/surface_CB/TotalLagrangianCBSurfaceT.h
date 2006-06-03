@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.7 2006-06-02 16:57:25 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.8 2006-06-03 23:04:13 hspark Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -8,7 +8,7 @@
 namespace Tahoe {
 
 class FCC3D_Surf;
-class EAMFCC3D_surf;
+class EAMFCC3DMatT_surf;
 
 /** total Lagrangian, finite strain element for working with Cauchy-Born approach
  * for modeling surface effects */
@@ -59,7 +59,7 @@ protected:
 	ArrayT<dArrayT> fNormal;
 
     /** EAM Surface CB model */
-	ArrayT<EAMFCC3D_surf*> fEAMSurfaceCB;
+	ArrayT<EAMFCC3DMatT_surf*> fEAMSurfaceCB;
 
 	/** surface Cauchy-Born models */
 	ArrayT<FCC3D_Surf*> fSurfaceCB;
