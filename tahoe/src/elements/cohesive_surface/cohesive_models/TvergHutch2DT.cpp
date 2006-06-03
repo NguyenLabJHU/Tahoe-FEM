@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.22 2004-09-16 16:37:00 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.23 2006-06-03 16:25:14 tdnguye Exp $ */
 /* created: paklein (02/05/2000) */
 #include "TvergHutch2DT.h"
 
@@ -101,7 +101,9 @@ const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 
 	fTraction[0] = sigbyL*r_t*(fd_c_n/fd_c_t);
 	fTraction[1] = sigbyL*r_n;
-
+	
+	cout <<"\nTractions: "<<fTraction;
+	
 	/* penetration */
 	if (u_n < 0) fTraction[1] += fK*u_n;
 

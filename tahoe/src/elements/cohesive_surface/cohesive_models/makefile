@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.20 2005-08-12 05:20:47 paklein Exp $
+# $Id: makefile,v 1.21 2006-06-03 16:25:14 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,6 +21,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	RateDep2DT.o \
+	LinearDamage2DT.o \
 	LinearDamageT.o \
 	SurfacePotentialT.o \
 	SurfacePotentialT_factory.o \
@@ -57,6 +58,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	RateDep2DT.cpp \
+	LinearDamage2DT.cpp \
 	LinearDamageT.cpp \
 	SurfacePotentialT.cpp \
 	SurfacePotentialT_factory.cpp \
@@ -85,6 +87,7 @@ SRC = \
 #
 HDR = \
 	RateDep2DT.h \
+	LinearDamage2DT.h \
 	LinearDamageT.h \
 	SurfacePotentialT.h \
 	TiedPotentialT.h \

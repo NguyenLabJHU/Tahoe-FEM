@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.20 2006-05-31 00:20:55 tdnguye Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.21 2006-06-03 16:25:14 tdnguye Exp $ */
 /* created: paklein (08/21/2000) */
 #include "LinearDamageT.h"
 
@@ -122,7 +122,7 @@ const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		if (state[kTrialOpening] > state[kMaxOpening])
 			state[kMaxOpening] = state[kTrialOpening];
 	}
-
+	
 	return fTraction;
 }
 

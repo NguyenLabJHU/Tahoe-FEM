@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.12 2006-05-30 20:13:22 tdnguye Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.13 2006-06-03 16:25:14 tdnguye Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -19,6 +19,7 @@ UpLagAdaptiveT::UpLagAdaptiveT(const ElementSupportT& support):
 	UpdatedLagrangianT(support),
 	fCSE(NULL),
 	fTied(NULL),
+	ftractions_elem(LocalArrayT::kUnspecified),
 	fReleaseThreshold(-1.0)
 {
 	SetName("updated_lagrangian_adaptive_insertion");
@@ -37,6 +38,49 @@ void UpLagAdaptiveT::DefineParameters(ParameterListT& list) const
 	ParameterT release(ParameterT::Double, "release_threshold");
 	release.AddLimit(0, LimitT::Lower);
 	list.AddParameter(release);
+}
+
+GlobalT::RelaxCodeT UpLagAdaptiveT::ResetStep(void)
+{
+	/* inherited */
+	GlobalT::RelaxCodeT relax = UpdatedLagrangianT::ResetStep();
+	GlobalT::RelaxCodeT cse_relax = relax;
+	cout << "\nreseting step: ";
+	
+	/* get state variable storage array */
+	RaggedArray2DT<double>& state_variables = fCSE->StateVariables();
+	RaggedArray2DT<double>& state_variables_last = fCSE->StateVariables_Last();
+
+	/*set state to last converged step*/
+	state_variables = state_variables_last;
+	
+	ostream& out = ElementSupport().Output();
+	int nip = fCSE->NumIP();
+
+	if (state_variables.Length() > 0)
+	{
+		cout << state_variables.Length();
+		for (int i = 0; i < fCSEActive.Length() ; i++)
+		{			
+			if (fCSEActive[i] == ElementCardT::kON || fCSEActive[i]==ElementCardT::kMarkON) 
+			{
+				int num_state = state_variables.MinorDim(i)/nip;
+				for (int j = 0; j < nip; j++)
+				{
+					double T1 = state_variables(i,j*num_state);
+					double T2 = state_variables(i,j*num_state);
+					double sigma_max = sqrt(T1*T1+T2*T2);
+					if (sigma_max < kSmall) {
+						fCSEActive[i] = ElementCardT::kOFF;
+//						cout << "\nRe-tie element: "<< i;
+						cse_relax = GlobalT::kReEQ;
+					}
+				}
+			}
+		}
+		SetNetwork(fCSEActive);
+	}
+	return GlobalT::MaxPrecedence(relax, cse_relax);
 }
 
 /* accept parameter list */
@@ -65,11 +109,13 @@ void UpLagAdaptiveT::TakeParameterList(const ParameterListT& list)
 	fCSE->NodesUsed(fCSENodesUsed);
 	fGlobalToLocal.SetMap(fCSENodesUsed);
 	fGlobalToLocal.SetOutOfRange(InverseMapT::MinusOne);
-
+	
 	/* collect CSE connectivites */
 	AutoArrayT<const iArray2DT*> connects;
 	fCSE->ConnectsX(connects);
 	fConnectivitiesCSELocal.Dimension(fCSE->NumElements(), fCSE->NumElementNodes());
+	ftractions_elem.Dimension(fCSE->NumElementNodes(), NumSD());
+	ftractions_elem = 0.0;
 	int count = 0;
 	for (int i = 0; i < connects.Length(); i++) {
 //		cout << "\nconnects: "<<*(connects[i]);
@@ -128,8 +174,6 @@ void UpLagAdaptiveT::TakeParameterList(const ParameterListT& list)
 	fAvgCount.Dimension(fCSENodesUsed.Length());
 	fAvgCount = 0;
 	fNodalValues.Dimension(fCSENodesUsed.Length(), dSymMatrixT::NumValues(NumSD()));
-	cout << "\nNodal Vals Major: "<<fNodalValues.MajorDim();
-	cout << "\nNodal Vals Minor: "<<fNodalValues.MinorDim();
 	
 	fNodalValues = 0.0;
 	fNodalExtrapolation.Dimension(NumElementNodes(), dSymMatrixT::NumValues(NumSD()));
@@ -220,13 +264,14 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 
 	/* get state variable storage array */
 	RaggedArray2DT<double>& state_variables = fCSE->StateVariables();
-
 	int release_count = 0;
 	double t_mag2 = 0.0;
 	const dArray2DT& current_coords = ElementSupport().CurrentCoordinates();
 	dSymMatrixT Cauchy(NumSD());
-	dArrayT traction(NumSD()), tangent(NumSD()), normal(NumSD());
+	dArrayT tangent(NumSD()), normal(NumSD());
+	dArrayT ip_tracts;
 	ostream& out = ElementSupport().Output();
+	
 	for (int i = 0; i < fCSEActive.Length(); i++)
 	  {
 		if (fCSEActive[i] == ElementCardT::kOFF) /* only test rigid surfaces */
@@ -251,10 +296,11 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 			int jmax = 0;
 			for (int j = 0; j < fConnectivitiesCSELocal.MinorDim(); j++)
 			{
-				double* s = fNodalValues(pface[0]);
-				traction[0] = s[0]*normal[0] + s[2]*normal[1];
-				traction[1] = s[2]*normal[0] + s[1]*normal[1];
-				double t_mag2 = traction[0]*traction[0] + traction[1]*traction[1];
+				double* s = fNodalValues(pface[j]);
+
+				ftractions_elem(j,0) = s[0]*normal[0] + s[2]*normal[1];
+				ftractions_elem(j,1) = s[2]*normal[0] + s[1]*normal[1];
+				double t_mag2 = ftractions_elem(j,0)*ftractions_elem(j,0) + ftractions_elem(j,1)*ftractions_elem(j,1);
 
 				if(tmax < sqrt(t_mag2)) {
 					tmax =  sqrt(t_mag2);
@@ -262,46 +308,32 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 				}
 			}
 			
-			/* compute average of stresses */
-/*
-			double* s0 = fNodalValues(pface[0]);
-			double* s1 = fNodalValues(pface[1]);
-			double* s2 = fNodalValues(pface[2]);
-			double* s3 = fNodalValues(pface[3]);
-
-			Cauchy[0] = (s0[0] + s1[0] + s2[0] + s3[0])*0.25;
-			Cauchy[1] = (s0[1] + s1[1] + s2[1] + s3[1])*0.25;
-			Cauchy[2] = (s0[2] + s1[2] + s2[2] + s3[2])*0.25;
-			
-			/* traction */
-/*			traction[0] = Cauchy(0,0)*normal[0] + Cauchy(0,1)*normal[1];
-			traction[1] = Cauchy(1,0)*normal[0] + Cauchy(1,1)*normal[1];
-			double t_mag2 = traction[0]*traction[0] + traction[1]*traction[1];
-*/		
-			/* "sense" */
-/*			double sense = traction[0]*normal[0] + traction[1]*normal[1];
-
-			if(tmax < sqrt(t_mag2))
-				tmax =  sqrt(t_mag2);
-*/
-			double* s = fNodalValues(pface[jmax]);
-			traction[0] = s[0]*normal[0] + s[2]*normal[1];
-			traction[1] = s[2]*normal[0] + s[1]*normal[1];
-			t_mag2 = traction[0]*traction[0] + traction[1]*traction[1];
-			double sense = traction[0]*normal[0] + traction[1]*normal[1];
-			
+			t_mag2 = ftractions_elem(jmax,0)*ftractions_elem(jmax,0) + ftractions_elem(jmax,1)*ftractions_elem(jmax,1);
+			double sense = ftractions_elem(jmax,0)*normal[0] + ftractions_elem(jmax,1)*normal[1];
+		    
+				
+			int nip = fCSE->NumIP();
 			/* tensile release */
 			if (t_mag2 > fReleaseThreshold*fReleaseThreshold && sense > 0.0) {
 				fCSEActive[i] = ElementCardT::kMarkON;
 				release_count++;
 
+				/*assume that tractions are stored at the top of the state variable array and
+				that every ip has the same number of state variables*/
+				int num_state = state_variables.MinorDim(i)/nip;
 				/* write traction into state variables */
-//				cout << "\nlength: "<<state_variables.Length();
-
+				cout << "\nelement: "<<i;		
 				if (state_variables.Length() > 0)
 				{
-					state_variables(i,0) = traction[0];
-					state_variables(i,1) = traction[1];
+					for (int j = 0; j < nip; j++)
+					{
+						fCSE->Interpolate(ip_tracts, ftractions_elem, j);
+//						cout << "\niptracts: "<<ip_tracts;
+						state_variables(i,j*num_state) = ip_tracts[0];
+						state_variables(i,j*num_state+1) = ip_tracts[1];
+					}
+//					for (int j = 0; j < num_state*nip; j++)
+//						cout << "\nstate: "<<state_variables(i,j);
 				}
 			}
 		}
@@ -344,13 +376,11 @@ void UpLagAdaptiveT::SetNetwork(const ArrayT<ElementCardT::StatusT>& active_elem
 			pair_num++;
 		}
 	}
-//	cout << "\nfollower: "<<follower;
-//	cout << "\nleader: "<<leader;
 	
 	/* reset tied nodes */
 	fTied->SetTiedPairs(follower, leader);
 	
-	/* set the element flags in the CSE group */
+	/* set the element flags in the CSE group */
 	fCSE->SetStatus(active_elements);
 }
 

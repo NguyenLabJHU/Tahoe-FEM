@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.h,v 1.4 2005-08-05 09:02:35 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.h,v 1.5 2006-06-03 16:25:14 tdnguye Exp $ */
 #ifndef _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 #define _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 
@@ -38,6 +38,10 @@ public:
 	 * provides an interface for element-level adaptivity. The nature of
 	 * the changes are indicated by the GlobalT::RelaxCodeT return value. */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
+
+	/** restore the element group to its state at the beginning of the
+	 * current time step. */
+	virtual GlobalT::RelaxCodeT ResetStep(void); 
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -91,6 +95,7 @@ protected:
 	iArrayT   fAvgCount;
 	dArray2DT fNodalValues;
 	dArray2DT fNodalExtrapolation;
+	LocalArrayT ftractions_elem;
 	/*@}*/
 };
 

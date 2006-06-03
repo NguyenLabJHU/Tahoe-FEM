@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.19 2004-07-15 08:26:02 paklein Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.20 2006-06-03 16:25:14 tdnguye Exp $ */
 /* created: paklein (06/20/1999) */
 #include "SurfacePotentialT.h"
 
@@ -10,7 +10,6 @@ SurfacePotentialT::SurfacePotentialT(int ndof):
 	fTraction(ndof),
 	fStiffness(ndof)
 {
-
 }
 
 /* destructor */

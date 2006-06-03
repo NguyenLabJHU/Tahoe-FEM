@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.10 2005-07-29 08:13:02 paklein Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.11 2006-06-03 16:25:15 tdnguye Exp $ */
 /* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_
@@ -85,6 +85,9 @@ public:
 	 *        of an element.
 	 * \return interpolated jump in the nodal values: [nu] */
 	void Interpolate(const LocalArrayT& nodal, dArrayT& u) const;
+
+	/**interpolate field to specified integration point ip*/
+	void Interpolate(const LocalArrayT& nodal, dArrayT& u, int ip);
 
 	/** coordinates of the current integration point */
 	const dArrayT& IPCoords(void);
