@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.39 2006-05-26 20:17:26 tdnguye Exp $ */
+/* $Id: CSEAnisoT.h,v 1.40 2006-06-03 16:25:14 tdnguye Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -45,6 +45,10 @@ public:
 	/** close current time increment */
 	virtual void CloseStep(void);
 
+	/** restore the element group to its state at the beginning of the
+	 * current time step. */
+	virtual GlobalT::RelaxCodeT ResetStep(void); 
+
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** write restart data to the output stream. */
 	virtual void WriteRestart(ostream& out) const;
@@ -54,6 +58,8 @@ public:
 
 	/** state variable array */
 	RaggedArray2DT<double>& StateVariables(void) { return fStateVariables; };
+	/** state variable array */
+	RaggedArray2DT<double>& StateVariables_Last(void) { return fStateVariables_last; };
 #else
 
   	/* send restart array */
@@ -93,6 +99,11 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+	
+	/* Interpolate bulk quantities to integration points, rotating to local frame if desired */	
+	void Interpolate(dArrayT& localFrameIP, LocalArrayT& nodal_values, int ip);
+	
+	const int NumIP(void) const;
 	
 protected:
 
@@ -208,5 +219,6 @@ protected:
 	double fsigma_max;
 };
 
+ 
 } // namespace Tahoe 
 #endif /* _CSE_ANISO_T_H_ */

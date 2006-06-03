@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.13 2005-07-29 08:13:02 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.14 2006-06-03 16:25:14 tdnguye Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
@@ -159,6 +159,41 @@ void SurfaceShapeT::Interpolate(const LocalArrayT& nodal, dArrayT& u) const
 		{
 			for (int j = 0; j < NumFacetNodes(); j++)
 				u[i] += scale*p[face_nodes[j]]*shapes(fCurrIP, j);
+		}
+	}	
+}
+
+/* interpolate field values to the current integration point */
+void SurfaceShapeT::Interpolate(const LocalArrayT& nodal, dArrayT& u, int ip)
+{
+#if __option(extended_errorcheck)
+	const char caller[] = "SurfaceShapeT::Interpolate";
+	if (u.Length() != nodal.MinorDim()) ExceptionT::SizeMismatch(caller);
+	if (nodal.NumberOfNodes() != TotalNodes() &&
+	    nodal.NumberOfNodes() != NumFacetNodes()) ExceptionT::SizeMismatch(caller);
+#endif
+
+	/* average across both sides if all values given */
+	bool both_sides = nodal.NumberOfNodes() != fNumFacetNodes;
+	double scale = (both_sides) ? 0.5 : 1.0;
+
+	/* reference to the shape functions for one face */
+	const dArray2DT& shapes = Na();
+
+	/* a little tricky here because node numbering across
+	 * both faces is inconsistent between 2D and 3D */
+	const int* face_nodes = (both_sides) ? fFacetNodes(1) : NULL; /* nodes on 2nd face */
+	for (int i = 0; i < u.Length(); i++)
+	{	
+		/* first face */
+		const double* p = nodal(i);
+		u[i] = scale*shapes.DotRow(ip, p);
+		
+		/* second face */
+		if (both_sides)
+		{
+			for (int j = 0; j < NumFacetNodes(); j++)
+				u[i] += scale*p[face_nodes[j]]*shapes(ip, j);
 		}
 	}	
 }

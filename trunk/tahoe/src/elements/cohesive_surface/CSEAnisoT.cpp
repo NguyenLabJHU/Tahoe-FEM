@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.73 2006-05-26 20:17:26 tdnguye Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.74 2006-06-03 16:25:14 tdnguye Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -38,6 +38,7 @@
 #include "YoonAllen2DT.h"
 #include "From2Dto3DT.h"
 #include "TvergHutchRigid2DT.h"
+#include "LinearDamage2DT.h"
 #include "SIMOD_2DT.h"
 #endif
 
@@ -184,7 +185,8 @@ void CSEAnisoT::CloseStep(void)
 			{
 				const ElementCardT& element = ElementCard(e);
 				int mat_num = element.MaterialNumber();
-				TiedPotentialBaseT* tiedpot = fTiedPots[mat_num];
+
+/*				TiedPotentialBaseT* tiedpot = fTiedPots[mat_num];
 				if (tiedpot)
 				{
 					SurfacePotentialT* surfpot = fSurfPots[mat_num];
@@ -201,6 +203,7 @@ void CSEAnisoT::CloseStep(void)
 						pstate += num_state;
 					}
 				}
+*/
 			}
 		}
 
@@ -213,6 +216,15 @@ void CSEAnisoT::CloseStep(void)
 	/* store history */
 	fStateVariables_last = fStateVariables;
 #endif /* _FRACTURE_INTERFACE_LIBRARY_ */
+}
+/* resets to the last converged solution */
+GlobalT::RelaxCodeT CSEAnisoT::ResetStep(void)
+{
+	/* inherited */
+	GlobalT::RelaxCodeT relax = CSEBaseT::ResetStep();
+	fStateVariables = fStateVariables_last;
+		
+	return relax;
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -356,6 +368,7 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& name) const
 		cz->AddSub("Tijssens_2D");
 		cz->AddSub("Tvergaard-Hutchinson_rate_dep_2D");
 		cz->AddSub("Yoon-Allen_2D");
+		cz->AddSub("Linear_Damage_2D");
 
 #ifdef __SIMOD__
 		cz->AddSub("SIMOD_2D");
@@ -506,7 +519,7 @@ void CSEAnisoT::TakeParameterList(const ParameterListT& list)
 				fSurfPots[mat_num]->InitStateVariables(state);
 				pstate += num_var;
 			}
-		}		
+		}
 	}
 	else /* set dimensions to zero */
 		fStateVariables.Dimension(fElementCards.Length(), 0);
@@ -518,6 +531,21 @@ void CSEAnisoT::TakeParameterList(const ParameterListT& list)
 #endif
 }
 
+void CSEAnisoT::Interpolate(dArrayT& localFrameIP, LocalArrayT& nodal_values, int ip)
+{
+	dArrayT tensorIP(nodal_values.MinorDim());
+	localFrameIP.Dimension(nodal_values.MinorDim());
+    fShapes->Interpolate(nodal_values, tensorIP, ip);
+    if (fRotate)
+		fQ.MultTx(tensorIP, localFrameIP);
+	else
+		localFrameIP = tensorIP;
+}
+
+const int CSEAnisoT::NumIP(void) const
+{
+	return(fShapes->NumIP());
+}
 
 /***********************************************************************
  * Protected
@@ -563,8 +591,9 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 		int num_state = fNumStateVariables[element.MaterialNumber()];
 		state2.Dimension(num_state);
+		
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
+//		TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 #endif
 
 		/* get ref geometry (1st facet only) */
@@ -579,8 +608,9 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 		/* Get local bulk values for CSE*/
-		if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
+/*		if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 			SurfaceValuesFromBulk(element, ndIndices, elementVals, nodal_values);
+*/
 #endif
 
 		/* loop over integration points */
@@ -622,8 +652,9 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 			/* Interpolate nodal info to IPs using stress tensor in local frame*/
-			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
+/*			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 				FromNodesToIPs(tiedpot->RotateNodalQuantity(), localFrameIP, nodal_values);
+*/
 #endif
 
 			/* stiffness in local frame */
@@ -691,7 +722,9 @@ void CSEAnisoT::RHSDriver(void)
 #endif
 
 	/* set state to start of current step */
-	fStateVariables = fStateVariables_last;
+//	TEMP
+//	fStateVariables = fStateVariables_last;
+
 	if (freeNodeQ.IsAllocated())
 		freeNodeQ = freeNodeQ_last;
 
@@ -743,16 +776,18 @@ void CSEAnisoT::RHSDriver(void)
 	  		fRHS = 0.0;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
+//			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 
 			/* Get local bulk values for CSE*/
-			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 	
+/*			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 	
 				SurfaceValuesFromBulk(element, ndIndices, elementVals, nodal_values);
+*/
 #endif
 			
 			/* loop over integration points */
 			double* pstate = fStateVariables(CurrElementNumber());
 			int all_failed = 1;
+			int ip = 0;
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
@@ -789,13 +824,18 @@ void CSEAnisoT::RHSDriver(void)
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_					
 				/* Interpolate nodal info to IPs using stress tensor in local frame*/
-				if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
+/*				if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 				{
 					FromNodesToIPs(tiedpot->RotateNodalQuantity(), localFrameIP, nodal_values);
 					UntieOrRetieNodes(CurrElementNumber(), ndIndices.Length(), 
 									tiedpot, state, localFrameIP);
 				}
+*/
 #endif
+//				cout <<"\nelem: "<<CurrElementNumber()<< "\tIP RHS: "<<fShapes->CurrIP();
+//				for (int k=0; k<state.Length(); k++)
+//					cout << "\nstate: "<<state[k];
+
 				/* traction vector in/out of local frame */
 				fQ.Multx(surfpot->Traction(fdelta, state, localFrameIP, true), fT);
 				
@@ -819,6 +859,7 @@ void CSEAnisoT::RHSDriver(void)
 					fIncrementalHeat[block_dex](block_count, fShapes->CurrIP()) = 
 						surfpot->IncrementalHeat(fdelta, state);
 #endif
+				ip++;
 			}
 
 			/* assemble */
@@ -936,9 +977,6 @@ void CSEAnisoT::SetStatus(const ArrayT<ElementCardT::StatusT>& status)
 						fQ.MultTx(state, t_in);
 						state = t_in;
 					}
-		
-					/* initialize the state variables */
-					surfpot->InitStateVariables(state);
 				}
 			}
 			flag = ElementCardT::kON;
@@ -1075,11 +1113,12 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Traction]) traction = 0.0;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
+//			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 			
 			/* Get local bulk values for CSE*/
-			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 	
+/*			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 	
 				SurfaceValuesFromBulk(element, ndIndices, elementVals, nodal_values);
+*/
 #endif
 
 			/* integrate */
@@ -1116,11 +1155,13 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 					/* Interpolate nodal info to IPs using stress tensor in local frame*/
-					if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
+/*					if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 						FromNodesToIPs(tiedpot->RotateNodalQuantity(), localFrameIP, nodal_values);			
+*/
 #endif
 
 					/* compute traction in local frame */
+//					cout <<"\nelem: "<<CurrElementNumber()<< "\nIP OUT: "<<fShapes->CurrIP();
 					const dArrayT& tract = surfpot->Traction(fdelta, state, localFrameIP, false);
 
 					/* transform to global frame */
@@ -1471,9 +1512,11 @@ void CSEAnisoT::FromNodesToIPs(bool rotate, dArrayT& localFrameIP, LocalArrayT& 
 		localFrameIP = tensorIP;
 }
 
+
 void CSEAnisoT::UntieOrRetieNodes(int elNum, int nnd, const TiedPotentialBaseT* tiedpot, 
 								ArrayT<double>& state, dArrayT& localFrameIP)
 {
+/*
 	if (state[iTiedFlagIndex] == TiedPotentialBaseT::kTiedNode && 
 		tiedpot->InitiationQ(localFrameIP))
 	{
@@ -1482,7 +1525,6 @@ void CSEAnisoT::UntieOrRetieNodes(int elNum, int nnd, const TiedPotentialBaseT* 
 		state[iTiedFlagIndex] = TiedPotentialBaseT::kReleaseNextStep;
 	}
 	else
-		/* see if nodes need to be retied */
 		if (qRetieNodes && state[iTiedFlagIndex] == TiedPotentialBaseT::kFreeNode && 
 			tiedpot->RetieQ(localFrameIP, state, fdelta))
 		{
@@ -1490,6 +1532,7 @@ void CSEAnisoT::UntieOrRetieNodes(int elNum, int nnd, const TiedPotentialBaseT* 
 			for (int i = 0; i < nnd; i++)
 				freeNodeQ(elNum,i) = 0.;
 		}
+*/
 }
 					
 

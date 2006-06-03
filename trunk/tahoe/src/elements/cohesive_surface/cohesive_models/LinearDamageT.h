@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.h,v 1.13 2006-05-31 00:20:55 tdnguye Exp $ */
+/* $Id: LinearDamageT.h,v 1.14 2006-06-03 16:25:14 tdnguye Exp $ */
 /* created: paklein (08/26/2000) */
 #ifndef _LINEAR_DAMAGE_T_H_
 #define _LINEAR_DAMAGE_T_H_
@@ -57,6 +57,7 @@ private:
 	/* penetration stiffness */
 	double fpenalty; /**< stiffening multiplier during interpenetration */
 	double fK;       /**< calculated penetration stiffness */
+	
 };
 
 } // namespace Tahoe 
