@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.5 2006-05-30 19:08:10 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.6 2006-06-04 20:35:23 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -455,7 +455,6 @@ void EAMFCC3D_surf::TakeParameterList(const ParameterListT& list)
 			glue.Name().Pointer());
 
 	/* lattice parameter and cell volume */
-	/* HSP - WHY IS CELL VOLUME DIFFERENT FROM FCC3D? */
 	fLatticeParameter = (fEAM) ? fEAM->LatticeParameter() : fEAM_particle->LatticeParameter();
 	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
 	fCellArea = 0.5*fLatticeParameter*fLatticeParameter;

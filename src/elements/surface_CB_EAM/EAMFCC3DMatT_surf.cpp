@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.cpp,v 1.3 2006-06-03 23:03:45 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.cpp,v 1.4 2006-06-04 20:35:23 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT_surf.h"
 
@@ -64,7 +64,7 @@ void EAMFCC3DMatT_surf::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	NL_E_MatT::TakeParameterList(list);
 
-	/* construct Cauchy-Born EAM solver - call EAMFCC3D_surf instead? */
+	/* construct Cauchy-Born EAM solver */
 	int shells = list.GetParameter("shells");
 	int normal_code = list.GetParameter("normal_code");
 	fEAM = new EAMFCC3DSym_surf(shells, normal_code);

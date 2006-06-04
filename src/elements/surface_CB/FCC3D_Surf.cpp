@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.15 2006-05-29 17:22:15 paklein Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.16 2006-06-04 20:35:01 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -278,11 +278,12 @@ void FCC3D_Surf::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 			);
 
 			/* accumulate */
+			/* Split by 1/2 for surface */
 			double ri = l*fNearestNeighbor;
 			double coeff = R2byV*(*density++)*force(ri, NULL, NULL)/ri;
-			pPK2[0] += coeff*R[0]*R[0];
-			pPK2[1] += coeff*R[1]*R[1];
-			pPK2[2] += coeff*R[0]*R[1];
+			pPK2[0] += coeff*R[0]*R[0]*0.5;
+			pPK2[1] += coeff*R[1]*R[1]*0.5;
+			pPK2[2] += coeff*R[0]*R[1]*0.5;
 		}
 	}
 	else /* 3D */ 

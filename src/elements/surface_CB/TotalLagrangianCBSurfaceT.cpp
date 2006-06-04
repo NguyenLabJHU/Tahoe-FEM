@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.23 2006-06-03 23:04:13 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.24 2006-06-04 20:35:02 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -122,8 +122,8 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	const char* blah = bulk_params.Name();
 	fIndicator = blah;
 	//if (bulk_params.Name() != "FCC_3D")
-	if (fIndicator != "FCC_3D")
-		ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM\" not \"%s\"", bulk_params.Name().Pointer());
+	//if (fIndicator != "FCC_3D")
+	//	ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM\" not \"%s\"", bulk_params.Name().Pointer());
 	
 	/* Initialize either fSurfaceCB or fEAMSurfaceCB depending on fIndicator */
 	if (fIndicator == "FCC_3D")
@@ -162,7 +162,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 			fSurfaceCB[i]->TakeParameterList(surf_params);
 		}
 	}
-	else if (fIndicator == "FCC_EAM_Cauchy-Born")
+	else if (fIndicator == "FCC_EAM")
 	{
 		/* initialize surface information & create all possible (6) surface clusters */
 		fNormal.Dimension(nfs);
@@ -187,12 +187,14 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 			/* face C-B model */
 			fEAMSurfaceCB[i] = new EAMFCC3DMatT_surf;
 			fEAMSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
-		
+
 			/* pass parameters to the surface model, including surface normal code */
 			ParameterListT surf_params = bulk_params;
-			surf_params.SetName("FCC_EAM_Cauchy-Born_Surf");
+			surf_params.SetName("FCC_EAM_Surf");
 			surf_params.AddParameter(i, "normal_code");
-			//surf_params.AddParameter(fcc_3D->NearestNeighbor(), "bulk_nearest_neighbor");
+			
+			/* ADD DUMMY VALUE FOR SHELLS SINCE SHELLS NOT READ IN IN INPUT FILE */
+			surf_params.AddParameter(4, "shells");
 
 			/* Initialize a different EAMFCC3D_Surf for each different surface normal type (6 total) */
 			fEAMSurfaceCB[i]->TakeParameterList(surf_params);
@@ -332,7 +334,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				
 				if (fIndicator == "FCC_3D")
 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
-				else if (fIndicator == "FCC_EAM_Cauchy-Born")
+				else if (fIndicator == "FCC_EAM")
 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
 				else
 					int blah = 0;
@@ -450,7 +452,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					/* stress at the surface - USE INDICATOR HERE */
 					if (fIndicator == "FCC_3D")
 						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-					else if (fIndicator == "FCC_EAM_Cauchy-Born")
+					else if (fIndicator == "FCC_EAM")
 						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else
 						int blah = 0;
@@ -473,7 +475,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					/* Get D Matrix */
 					if (fIndicator == "FCC_3D")
 						fD.SetToScaled(scale, fSurfaceCB[normal_type]->c_ijkl());
-					else if (fIndicator == "FCC_EAM_Cauchy-Born")
+					else if (fIndicator == "FCC_EAM")
 						fD.SetToScaled(scale, fEAMSurfaceCB[normal_type]->c_ijkl());
 					else
 						int blah = 0;
@@ -555,7 +557,7 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 				
 				if (fIndicator == "FCC_3D")
 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
-				else if (fIndicator == "FCC_EAM_Cauchy-Born")
+				else if (fIndicator == "FCC_EAM")
 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
 				else
 					int blah = 0;
@@ -651,7 +653,7 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					/* stress at the surface */
 					if (fIndicator == "FCC_3D")
 						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-					else if (fIndicator == "FCC_EAM_Cauchy-Born")
+					else if (fIndicator == "FCC_EAM")
 						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else
 						int blah = 0;

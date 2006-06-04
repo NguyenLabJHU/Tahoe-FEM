@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT_Surf.cpp,v 1.5 2006-06-02 16:57:25 hspark Exp $ */
+/* $Id: FCCLatticeT_Surf.cpp,v 1.6 2006-06-04 20:35:02 hspark Exp $ */
 #include "FCCLatticeT_Surf.h"
 #include "ParameterContainerT.h"
 
@@ -341,24 +341,6 @@ void FCCLatticeT_Surf::LoadBondTable(void)
 		fBonds = temp_bonds2;
 	}	
 	
-	/* Copy bonds into official bond table */
-//	double* shells[3];
-//	shells[0] = bonddata1;
-//	shells[1] = bonddata2;
-//	shells[2] = bonddata3;
-
-//	int bond = 0;
-//	for (int i = 0; i < fNumShells; i++)
-//	{
-//		dArray2DT bonds(atoms_per_shell[i], 3, shells[i]);
-//		for (int j = 0; j < bonds.MajorDim(); j++)
-//		{
-//			fBonds(bond,0) = bonds(j,0);
-//			fBonds(bond,1) = bonds(j,1);
-//			fBonds(bond,2) = bonds(j,2);
-//			bond++;
-//		}
-//	}
 }
 
 /*************************************************************************
