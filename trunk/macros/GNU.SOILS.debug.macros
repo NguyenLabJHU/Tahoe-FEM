@@ -1,14 +1,14 @@
-# $Id: GNU.HEMISPHERE.macros,v 1.2 2006-06-06 15:57:07 regueiro Exp $
+# $Id: GNU.SOILS.debug.macros,v 1.1 2006-06-06 15:57:07 regueiro Exp $
 # GNU
 #
-COMP_DIR    = /opt/gcc-3.3.2
+COMP_DIR    = /usr/local/gnu
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
 COMP_C      = $(COMP_DIR)/bin/gcc
 COMP_CC     = $(COMP_DIR)/bin/g++
 COMP_F      = $(COMP_DIR)/bin/g77
 COMP_FLAG   = -c
-MORE_CFLAGS = -O3 -DNDEBUG
+MORE_CFLAGS = -g
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)  -Wunused -Wuninitialized -Wno-deprecated
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
