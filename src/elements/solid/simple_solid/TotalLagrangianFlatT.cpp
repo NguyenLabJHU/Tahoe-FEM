@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianFlatT.cpp,v 1.2 2004-07-15 08:29:02 paklein Exp $ */
+/* $Id: TotalLagrangianFlatT.cpp,v 1.3 2006-06-09 22:58:50 jzimmer Exp $ */
 #include "TotalLagrangianFlatT.h"
 
 #include "ShapeFunctionT.h"
@@ -164,7 +164,7 @@ void TotalLagrangianFlatT::RHSDriver(void)
 			/* body force contribution */
 			if (formBody) AddBodyForce(fLocAcc);
 		
-			FormMa(fMassType, -constMa*fCurrMaterial->Density(), false, &fLocAcc, NULL);
+			FormMa(fMassType, -constMa*fCurrMaterial->Density(), false, &fLocAcc, NULL, NULL);
 		}
 		
 		/* store incremental heat */
