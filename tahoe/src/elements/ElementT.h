@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.50 2004-11-23 01:43:08 cjkimme Exp $ */
+/* $Id: ElementT.h,v 1.50.28.1 2006-06-12 18:41:38 d-farrell2 Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -81,7 +81,8 @@ kMeshfreePenaltyContact = 115, /**< contact with meshfree strikers */
 kTotLagSplitIntegration = 117,
            kSimoQ1P0Inv = 136, /**< Q1P0, finite strain, mixed element with inverse dilation */
         kSimoQ1P0InvAxi = 137, /**< axisymmetric Q1P0, finite strain, mixed element with inverse dilation */
-            kTotLagFlat = 217  /**< simplified total Lagragian solid */
+            kTotLagFlat = 217,  /**< simplified total Lagragian solid */
+            	kTersoff = 138	/**< Particles with Tersoff Potential */
 	};
 
 	/** convert integer to ElementT::TypeT */
