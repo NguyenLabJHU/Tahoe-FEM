@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.42 2005-11-23 22:35:08 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.43 2006-06-12 20:25:40 regueiro Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -25,12 +25,12 @@ bool SmallStrainEnhLocT::fFirstPass = true;
 
 #ifndef __MWERKS__ // for compilation outside CodeWarrior
 #ifdef NDEBUG
-bool SmallStrainEnhLocT::fDeBug = false;	// output info for debugging
+bool SmallStrainEnhLocT::fDeBug = false; // no output
 #else
-bool SmallStrainEnhLocT::fDeBug = true;	// no output
+bool SmallStrainEnhLocT::fDeBug = true; // output info for debugging
 #endif
 #else
-bool SmallStrainEnhLocT::fDeBug = true;
+bool SmallStrainEnhLocT::fDeBug = true; // output info for debugging
 #endif // __MWERKS__
 
 //bool SmallStrainEnhLocT::fFirstTrace = false;
@@ -811,13 +811,13 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem, LocalArrayT& displ_elem)
 					double product = dArrayT::Dot(normal_tmp,slipdir_tmp);
 					double psi_tmp = asin(product);
 					psis.Append(psi_tmp);
-					double sec = 1.0/cos(psi_tmp);
 					if (fabs(psi_tmp-Pi/2.0) < smallnum)
 					{
 						tangent_tmp = 0.0;
 					}
 					else 
 					{
+						double sec = 1.0/cos(psi_tmp);
 						tangent_tmp = slipdir_tmp;
 						tangent_tmp *= sec;
 						dummyt = normal_tmp;
@@ -1513,7 +1513,9 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			q_St_trial += inner;			
 		}
 		sign_q_St = 1.0;
-		if (fabs(q_St_trial) > verysmallnum) sign_q_St = q_St_trial/fabs(q_St_trial);
+		//if (fabs(q_St_trial) > verysmallnum) sign_q_St = q_St_trial/fabs(q_St_trial);
+		// change dir if large relative to fraction of elastic modulus??
+		//if (fabs(q_St_trial) > smallnum) sign_q_St = q_St_trial/fabs(q_St_trial);
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St] = sign_q_St;
 		//reinitialize
 		q_St_trial = 0.0;
@@ -1535,7 +1537,8 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		tmp_array *= sinpsi;
 		slipdir_tmp = tangent_chosen;
 		slipdir_tmp *= cospsi;
-		slipdir_tmp *= sign_q_St;
+		// be careful that stays in direction of loading
+		//slipdir_tmp *= sign_q_St;
 		slipdir_tmp += tmp_array;
 		fElementLocSlipDir.SetRow(elem, slipdir_tmp);
 		slipdir_chosen = slipdir_tmp;
