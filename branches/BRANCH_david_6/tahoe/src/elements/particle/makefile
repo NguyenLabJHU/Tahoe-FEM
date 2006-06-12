@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2005-08-12 05:20:54 paklein Exp $
+# $Id: makefile,v 1.6.2.1 2006-06-12 18:35:43 d-farrell2 Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,8 @@ OBJ = \
 	ParticlePairT.o \
 	EAMT.o \
 	ParticleT.o \
-	ParticleThreeBodyT.o
+	ParticleThreeBodyT.o \
+	ParticleTersoffT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +47,8 @@ SRC = \
 	ParticlePairT.cpp \
 	EAMT.cpp \
 	ParticleT.cpp \
-	ParticleThreeBodyT.cpp
+	ParticleThreeBodyT.cpp \
+	ParticleTersoffT.cpp
 
 ##################### (3) headers
 #
@@ -61,7 +63,8 @@ HDR = \
 	ParticlePairT.h \
 	EAMT.h \
 	ParticleT.h \
-	ParticleThreeBodyT.h
+	ParticleThreeBodyT.h \
+	ParticleTersoffT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
