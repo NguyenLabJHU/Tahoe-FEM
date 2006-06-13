@@ -1,4 +1,4 @@
-/* $Id: ParticleTersoffT.h,v 1.1.2.1 2006-06-12 18:38:12 d-farrell2 Exp $ */
+/* $Id: ParticleTersoffT.h,v 1.1.2.2 2006-06-13 16:30:58 d-farrell2 Exp $ */
 #ifndef _PARTICLE_TERSOFF_T_H_
 #define _PARTICLE_TERSOFF_T_H_
 
@@ -99,7 +99,8 @@ protected:
 	 * to determine the neighborlists. */
 	virtual void SetConfiguration(void);
 
-	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties, unlike others,
+	 this does not assume a symmetric properties map. */
 	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
 		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map);
 
