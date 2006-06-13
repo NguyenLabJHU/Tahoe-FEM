@@ -1,4 +1,4 @@
-/* $Id: ParticleTersoffT.cpp,v 1.1.2.4 2006-06-13 18:04:08 d-farrell2 Exp $ */
+/* $Id: ParticleTersoffT.cpp,v 1.1.2.5 2006-06-13 18:37:33 d-farrell2 Exp $ */
 #include "ParticleTersoffT.h"
 
 #include "TersoffPropertyT.h"
@@ -1103,7 +1103,7 @@ void ParticleTersoffT::SetConfiguration(void)
 		part_nodes = fActiveParticles;
 	
 	// set the nearest neighbor distance, based on diamond/zinc-blende structure - good for Si and 3C SiC
-	fNearestNeighborDistance = sqrt(3.0*pow(fLatticeParameter,2))/4.0;
+	fNearestNeighborDistance = 1.1 * (sqrt(3.0*pow(fLatticeParameter,2))/4.0);
 		
 	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, true, true);
