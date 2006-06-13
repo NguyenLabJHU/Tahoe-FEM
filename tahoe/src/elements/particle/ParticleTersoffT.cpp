@@ -1,4 +1,4 @@
-/* $Id: ParticleTersoffT.cpp,v 1.1.2.2 2006-06-13 16:30:58 d-farrell2 Exp $ */
+/* $Id: ParticleTersoffT.cpp,v 1.1.2.3 2006-06-13 17:13:58 d-farrell2 Exp $ */
 #include "ParticleTersoffT.h"
 
 #include "TersoffPropertyT.h"
@@ -1143,7 +1143,7 @@ void ParticleTersoffT::ExtractProperties(const ParameterListT& list, const Array
 	int num_props = list.NumLists("tersoff_particle_interaction");
 	int dim = 0;
 	for (int i = 0; i < properties_map.Rows(); i++)
-		dim += properties_map.Rows() - i;
+		dim += properties_map.Rows();
 	if (dim != num_props)
 		ExceptionT::GeneralFail(caller, "%d types requires %d \"tersoff_particle_interaction\"",
 			properties_map.Rows(), dim);
@@ -1172,6 +1172,7 @@ void ParticleTersoffT::ExtractProperties(const ParameterListT& list, const Array
 		if (properties_map(index_1, index_2) != -1)
 			ExceptionT::GeneralFail(caller, "%s-%s interaction is already defined",
 				label_1.Pointer(), label_2.Pointer());
+		properties_map(index_1, index_2) = i;	// assign value to map
 		
 		/* read property */
 		const ParameterListT& property = interaction.GetListChoice(*this, "tersoff_property_choice");
