@@ -1,4 +1,4 @@
-/* $Id: TersoffPairT.cpp,v 1.1.2.1 2006-06-12 18:40:06 d-farrell2 Exp $ */
+/* $Id: TersoffPairT.cpp,v 1.1.2.2 2006-06-13 15:57:49 d-farrell2 Exp $ */
 #include "TersoffPairT.h"
 #include <iostream.h>
 #include <math.h>
@@ -151,7 +151,6 @@ void TersoffPairT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(d, ParameterListT::ZeroOrOnce);
 	
 	ParameterT h(f_h, "bond_order_coeff4_hi");
-	h.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(h, ParameterListT::ZeroOrOnce);
 	
 	ParameterT chi(f_chi, "bond_order_scaling_chi_ij");
@@ -256,8 +255,8 @@ void TersoffPairT::TakeParameterList(const ParameterListT& list)
 		f_S = 3.0; // Cutoff length parameter 2 - angstrom	
 
 
-	SetRange(f_S);
-	SetNearestNeighbor(f_R);	
+	SetRange(1.1*f_S);					// range, with a tolerance
+	SetNearestNeighbor(1.1*f_R);	// nearest neighbor, with an tolerance
 
 }
 
