@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.h,v 1.5 2005-04-08 19:22:46 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.h,v 1.6 2006-06-14 18:44:12 regueiro Exp $ */
 /* created: myip (06/01/1999)                                      */
 
 /*  
@@ -68,7 +68,8 @@ public:
 							kstressnorm = 1,  // norm of stress
                             kdgamma = 2,  // consistency parameter
                             kftrial = 3, // yield function value
-			    			kdgamma2 = 4}; // 2nd consistency par. at vertex
+			    			kdgamma2 = 4, // 2nd consistency par. at vertex
+			    			kgamma = 5}; // accumulated plastic strain
 	
 	/** internal variables */
 	dArrayT& Internal(void) { return fInternal; };

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.28 2005-11-02 12:58:37 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.29 2006-06-14 18:44:12 regueiro Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 
@@ -19,9 +19,10 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 5;
+const int kNumOutput = 6;
 static const char* Labels[kNumOutput] = {
 	"kappa",	// stress-like internal state variable (isotropic linear hardening)
+	"plstr",	// magnitude of deviatoric plastic strain
 	"VM",		// Von Mises stress
 	"press",	// pressure
 	"ip_loccheck",	// ip localization check
@@ -248,13 +249,13 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 	const dSymMatrixT& stress = s_ij();
 
 	/* pressure */
-	output[2] = fStress.Trace()/3.0;
+	output[3] = fStress.Trace()/3.0;
 
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
 	J2 = (J2 < 0.0) ? 0.0 : J2;
-	output[1] = sqrt(3.0*J2);
+	output[2] = sqrt(3.0*J2);
 	
 	/* output stress-like internal variable kappa, and check for bifurcation */
 	const ElementCardT& element = CurrentElement();
@@ -262,10 +263,13 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 	{
 		dArrayT& internal = fDP->Internal();
 		output[0] = internal[DPSSLinHardLocT::kkappa];
+		output[1] = internal[DPSSLinHardLocT::kgamma];
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == DPSSLinHardLocT::kIsPlastic)
 		{
 			output[0] -= fDP->H()*internal[DPSSLinHardLocT::kdgamma];
+			
+			output[1] += internal[DPSSLinHardLocT::kdgamma];
 			
 			// check for localization
 			// compute modulus 
@@ -279,22 +283,26 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			AutoArrayT <dArrayT> slipdirs;
 			normals.Dimension(3);
 			slipdirs.Dimension(3);
-			output[3] = 0.0;
+			output[4] = 0.0;
 			double detA=1.0;
-			if(checker.IsLocalized_SS(normals,slipdirs,detA)) output[3] = 1.0;
+			if(checker.IsLocalized_SS(normals,slipdirs,detA)) output[4] = 1.0;
 		}
 		// element localization flag
-		output[4] = 0;
+		output[5] = 0;
 		#ifdef ENHANCED_STRAIN_LOC_DEV	
 		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
-		output[4] = element_locflag;
+		if (element_locflag > 0) 
+		{
+			output[5] = element_locflag;
+		}
 		#endif
 	}
 	else
 	{
 		output[0] = 0.0;
-		output[3] = 0.0;
+		output[1] = 0.0;
 		output[4] = 0.0;
+		output[5] = 0.0;
 	}
 
 }

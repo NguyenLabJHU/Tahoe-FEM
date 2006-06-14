@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.cpp,v 1.8 2005-04-14 16:45:07 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.cpp,v 1.9 2006-06-14 18:44:12 regueiro Exp $ */
 /* created: myip (06/01/1999)                                        */
 
 /*
@@ -20,7 +20,7 @@
 
 using namespace Tahoe;
 
-const int    kNumInternal = 5; // number of internal state variables
+const int    kNumInternal = 6; // number of internal state variables
 const double sqrt23       = sqrt(2.0/3.0);
 const double sqrt32       = sqrt(3.0/2.0);
 const double kYieldTol    = 1.0e-10;
@@ -47,7 +47,6 @@ const dSymMatrixT& DPSSLinHardLocT::ElasticStrain(const dSymMatrixT& totalstrain
 		/* load internal variables */
 		LoadData(element, ip);
 
-
 		/* compute elastic strain */
 		fElasticStrain.DiffOf(totalstrain, fPlasticStrain);
 	
@@ -64,8 +63,6 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 						const dSymMatrixT& trialstrain, 
 						ElementCardT& element, int ip, double dt)
 {
-
-
 	/* check consistency and initialize plastic element */
 	if (PlasticLoading(trialstrain, element, ip) && !element.IsAllocated())
 	{
@@ -382,6 +379,9 @@ void DPSSLinHardLocT::Update(ElementCardT& element, double dt)
 			/* plastic increment */
 			double& dgamma = fInternal[kdgamma];
 			//cout << "kdgamma = " << fInternal[kdgamma] << endl;
+			
+			/* invariant of deviatoric plastic strain */
+			fInternal[kgamma] += dgamma;
 		
 			/* internal state variable */
 			if (fEta == 0.0)
