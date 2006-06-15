@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.43 2006-06-12 20:25:40 regueiro Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.44 2006-06-15 18:05:51 regueiro Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -125,9 +125,15 @@ void SmallStrainEnhLocT::CloseStep(void)
 			DetermineActiveNodesTrace(fLocInitCoords, elem_num, nen);
 		}
 		
+		/*
+		if ( fDeBug ) ss_enh_out << elem_num 
+								<< setw(outputFileWidth) << fElementLocFlag[elem_num]
+								<< endl;
+								*/
+		
 		if ( fDeBug &&  loc_flag == 2 )
 		{
-			ss_enh_isv	<< fElementLocFlag[elem_num] 
+			ss_enh_isv	<< elem_num << setw(outputFileWidth) << fElementLocFlag[elem_num] 
 						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kzeta] 
 						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kgamma_delta] 
 						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kQ_S]
@@ -451,8 +457,12 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fStress_List.Dimension(NumIP());
 	for (int j = 0; j < NumIP(); j++)
 		fStress_List[j].Dimension(NumSD());
-
 		
+	fElementStress_List.Dimension(NumElements(),NumIP());
+	for (int i = 0; i < NumElements(); i++)
+		for (int j = 0; j < NumIP(); j++)
+			fElementStress_List[i,j].Dimension(NumSD());
+
 	/* allocate "last" stress list */
 	/*
 	fStress_last_List.Dimension(NumIP());
@@ -674,8 +684,10 @@ MaterialSupportT* SmallStrainEnhLocT::NewMaterialSupport(MaterialSupportT* p) co
 	if (ps) {
 		ps->SetLinearStrain(&fStrain_List);
 		ps->SetLinearStrain_last(&fStrain_last_List);
-		ps->SetElementStress(&fStress_List);
-		ps->SetElementLocFlag(&fLocFlag);
+		/*ps->SetElementStress(&fStress_List);
+		ps->SetElementLocFlag(&fLocFlag);*/
+		ps->SetElementStress(&fElementStress_List);
+		ps->SetElementLocFlag(&fElementLocFlag);
 	}
 
 	return p;
@@ -1710,6 +1722,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			fStressCurr -= stress_return;
 			stress_IPs.SetRow(ip, fStressCurr);
 			fStress_List[ip] = fStressCurr;
+			fElementStress_List[elem,ip] = fStressCurr;
 	
 			// calc q_St
 			inner_matrix = 0.0;
@@ -1978,13 +1991,13 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			if (NumSD() == 2)	
 			{
 				ss_enh_out	<< endl << "elem_centroid: " << setw(outputFileWidth) << elem_centroid[0] 
-							<< setw(outputFileWidth) << elem_centroid[1];
+							<< setw(outputFileWidth) << elem_centroid[1] << endl;
 			}
 			else if (NumSD() == 3)	
 			{
 				ss_enh_out	<< endl << "elem_centroid: " << setw(outputFileWidth) << elem_centroid[0] 
 							<< setw(outputFileWidth) << elem_centroid[1] 
-							<< setw(outputFileWidth) << elem_centroid[2];
+							<< setw(outputFileWidth) << elem_centroid[2] << endl;
 			}
 		}
 				

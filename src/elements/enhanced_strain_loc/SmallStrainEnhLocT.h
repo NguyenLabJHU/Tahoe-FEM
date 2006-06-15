@@ -1,9 +1,11 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.26 2005-11-23 15:01:22 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.27 2006-06-15 18:05:51 regueiro Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
 /* base class */
 #include "SolidElementT.h"
+
+#include "Array2DT.h"
 
 #include "ofstreamT.h"
 
@@ -189,6 +191,8 @@ protected:
 	
   	ArrayT<dSymMatrixT> fStress_List;
   	//ArrayT<dSymMatrixT> fStress_last_List;
+  	
+  	Array2DT<dSymMatrixT> fElementStress_List;
   	
   	int fLocFlag;
 	/*@}*/
