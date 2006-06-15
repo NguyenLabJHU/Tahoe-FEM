@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocMatSupportT.cpp,v 1.1 2005-07-19 18:03:41 raregue Exp $ */
+/* $Id: SSEnhLocMatSupportT.cpp,v 1.2 2006-06-15 18:07:17 regueiro Exp $ */
 
 #include "SSEnhLocMatSupportT.h"
 
@@ -37,12 +37,22 @@ void SSEnhLocMatSupportT::SetElementStress(const ArrayT<dSymMatrixT>* stress_Lis
 	/* keep pointer */
 	fStress_List = stress_List;
 }
+void SSEnhLocMatSupportT::SetElementStress(const Array2DT<dSymMatrixT>* elementstress_List)
+{
+	/* keep pointer */
+	fElementStress_List = elementstress_List;
+}
 
 /* set source for the LocFlag */
 void SSEnhLocMatSupportT::SetElementLocFlag(const int* loc_flag)
 {
 	/* keep pointer */
 	fLocFlag = loc_flag;
+}
+void SSEnhLocMatSupportT::SetElementLocFlag(const iArrayT* elementloc_flag)
+{
+	/* keep pointer */
+	fElemLocFlag = elementloc_flag;
 }
 
 /* set the element group pointer */

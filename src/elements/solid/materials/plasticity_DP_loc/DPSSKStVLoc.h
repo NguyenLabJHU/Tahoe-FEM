@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.16 2005-11-23 22:36:04 raregue Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.17 2006-06-15 18:07:17 regueiro Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -102,8 +102,12 @@ protected:
 	// element localization flag
 	int element_locflag;
 	
-	// pointer to material support
+	/* 
+	pointer to material support; does not actually return stresses from this class;
+	stresses are calculated post-localization in SmallStrainEnhLocT
+	*/
 	const SSEnhLocMatSupportT* fSSEnhLocMatSupport;
+	//SSEnhLocMatSupportT* fSSEnhLocMatSupport;
  
 private:
 

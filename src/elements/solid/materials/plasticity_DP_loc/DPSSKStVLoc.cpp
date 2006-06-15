@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.29 2006-06-14 18:44:12 regueiro Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.30 2006-06-15 18:07:17 regueiro Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 
@@ -32,8 +32,8 @@ static const char* Labels[kNumOutput] = {
 DPSSKStVLoc::DPSSKStVLoc(void):
 	ParameterInterfaceT("small_strain_StVenant_DP_Loc"),
 	HookeanMatT(3),
-	fDP(NULL),
-	fSSEnhLocMatSupport(NULL)
+	fDP(NULL)
+	//fSSEnhLocMatSupport(NULL)
 {
  
 }
@@ -42,6 +42,7 @@ DPSSKStVLoc::DPSSKStVLoc(void):
 DPSSKStVLoc::~DPSSKStVLoc(void) 
 { 
 	delete fDP;
+	//delete fSSEnhLocMatSupport;
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -122,11 +123,13 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 	element_locflag = 0;
 	if (element.IsAllocated()) 
 	{
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+		//element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
 	}
 	if ( element_locflag == 2 )
 	{
-		fStress = fSSEnhLocMatSupport->ElementStress(ip);
+		//fStress = fSSEnhLocMatSupport->ElementStress(ip);
+		fStress = fSSEnhLocMatSupport->ElementStress(elem,ip);
 	}
 	else
 	{
@@ -259,6 +262,7 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 	
 	/* output stress-like internal variable kappa, and check for bifurcation */
 	const ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
 	if (element.IsAllocated())
 	{
 		dArrayT& internal = fDP->Internal();
@@ -290,7 +294,8 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 		// element localization flag
 		output[5] = 0;
 		#ifdef ENHANCED_STRAIN_LOC_DEV	
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+		//element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
 		if (element_locflag > 0) 
 		{
 			output[5] = element_locflag;
@@ -361,6 +366,7 @@ void DPSSKStVLoc::TakeParameterList(const ParameterListT& list)
 		
 	/* cast to small strain embedded discontinuity material pointer */
 	fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
+	//fSSEnhLocMatSupport = TB_DYNAMIC_CAST(SSEnhLocMatSupportT*, fSSMatSupport);
 }
 
 /*************************************************************************
