@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.13 2006-06-03 16:25:14 tdnguye Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.14 2006-06-18 01:08:34 tdnguye Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -260,7 +260,7 @@ GlobalT::RelaxCodeT UpLagAdaptiveT::RelaxSystem(void)
 
 
 //TEMP - only 2D for now
-if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D only");
+	if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D only");
 
 	/* get state variable storage array */
 	RaggedArray2DT<double>& state_variables = fCSE->StateVariables();
@@ -271,6 +271,7 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 	dArrayT tangent(NumSD()), normal(NumSD());
 	dArrayT ip_tracts;
 	ostream& out = ElementSupport().Output();
+	bool over = false;
 	
 	for (int i = 0; i < fCSEActive.Length(); i++)
 	  {
@@ -314,7 +315,14 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 				
 			int nip = fCSE->NumIP();
 			/* tensile release */
-			if (t_mag2 > fReleaseThreshold*fReleaseThreshold && sense > 0.0) {
+			double ratio = sqrt(t_mag2/(fReleaseThreshold*fReleaseThreshold));
+			
+			if (ratio - 1.0 > 0.01){
+				over = true;
+				cout << "\nNodal stress exceeds release threshold by more than 1%";
+			}
+
+			if (fabs(ratio-1.0) < 0.01 && sense > kSmall) {
 				fCSEActive[i] = ElementCardT::kMarkON;
 				release_count++;
 
@@ -343,13 +351,25 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 				cout << "\nrelease_count: "<<release_count;
 				cout << "\ntmax: "<<sqrt(t_mag2);
 
-		
 	/* relaxation code for CSE release */
-	GlobalT::RelaxCodeT cse_relax_code = (release_count > 0) ? 
+/*	GlobalT::RelaxCodeT cse_relax_code = (release_count > 0) ? 
 		GlobalT::kReEQ : GlobalT::kNoRelax;
+	if (release_count > 0) SetNetwork (fCSEActive);
+*/
+		
+	GlobalT::RelaxCodeT cse_relax_code;
 
-	/* reset the network */
-	if (release_count > 0) SetNetwork(fCSEActive);
+	if (release_count > 0)
+		if (relax_code == GlobalT::kRelax || relax_code == GlobalT::kReEQRelax)
+			cse_relax_code = GlobalT::kFailReset;
+		else {
+			cse_relax_code = GlobalT::kReEQ;
+			SetNetwork(fCSEActive);
+		}
+	else
+		cse_relax_code = GlobalT::kNoRelax;
+	
+	if (over) cse_relax_code = GlobalT::kFailReset;
 
 	return GlobalT::MaxPrecedence(relax_code, cse_relax_code);
 }
