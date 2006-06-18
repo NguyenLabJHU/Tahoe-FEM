@@ -958,16 +958,17 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 {
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
 
 #ifdef ENHANCED_STRAIN_LOC_DEV	
 	int element_locflag = 0;
 	if (element.IsAllocated()) 
 	{
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
 	}
 	if ( element_locflag == 2 )
 	{
-		fStress = fSSEnhLocMatSupport->ElementStress(ip);
+		fStress = fSSEnhLocMatSupport->ElementStress(elem,ip);
 	}
 	else
 	{
