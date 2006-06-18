@@ -1,4 +1,4 @@
-/* $Id: GlobalT.cpp,v 1.9 2005-03-11 20:37:19 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.10 2006-06-18 01:44:20 tdnguye Exp $ */
 /* created: paklein (04/01/2000) */
 #include "GlobalT.h"
 #include "ExceptionT.h"
@@ -111,6 +111,8 @@ GlobalT::RelaxCodeT GlobalT::MaxPrecedence(GlobalT::RelaxCodeT code1,
 		result = kRelax;
 	else if (code1 == kNoRelax && code2 == kNoRelax)
 		result = kNoRelax;
+	else if (code1 == kFailReset || code2 == kFailReset)
+		result = kFailReset;
 	else
 		ExceptionT::GeneralFail("GlobalT::MaxPrecedence", "not expecting %d and %d",
 			code1, code2);
