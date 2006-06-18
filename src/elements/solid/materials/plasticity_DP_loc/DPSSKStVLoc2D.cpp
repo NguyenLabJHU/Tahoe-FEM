@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.cpp,v 1.12 2005-11-23 22:36:04 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.cpp,v 1.13 2006-06-18 21:35:40 regueiro Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc2D.h"
 
@@ -68,11 +68,12 @@ const dSymMatrixT& DPSSKStVLoc2D::s_ij(void)
 #ifdef ENHANCED_STRAIN_LOC_DEV	
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
 	element_locflag = 0;
-	if (element.IsAllocated()) element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+	if (element.IsAllocated()) element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
 	if ( element_locflag == 2 )
 	{
-		fStress2D = fSSEnhLocMatSupport->ElementStress(ip);
+		fStress2D = fSSEnhLocMatSupport->ElementStress(elem,ip);
 	}
 	else
 	{
