@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.12 2005-12-04 16:56:49 paklein Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.13 2006-06-19 15:25:33 r-jones Exp $ */
 /* created: paklein (09/04/1998) */
 #ifndef _DOMAIN_INTEGRATION_T_H_
 #define _DOMAIN_INTEGRATION_T_H_
@@ -59,6 +59,7 @@ public:
 
 	/** array nodal shape functions at the "current" integration point */
 	const double* IPShape(void) const;
+	const double* IPDShape(int d) const;
 
 	/** integration weight of the "current" integration point */
 	double IPWeight(void) const;
@@ -193,6 +194,11 @@ inline void DomainIntegrationT::SetIP(int ip)
 inline const double* DomainIntegrationT::IPShape(void) const
 {
 	return fDomain->Shape(fCurrIP);
+}
+
+inline const double* DomainIntegrationT::IPDShape(int d) const
+{
+	return fDomain->DShape(fCurrIP,d);
 }
 
 inline double DomainIntegrationT::IPWeight(void) const

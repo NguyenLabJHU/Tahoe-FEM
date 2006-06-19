@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2005-08-12 05:21:01 paklein Exp $
+# $Id: makefile,v 1.12 2006-06-19 15:25:34 r-jones Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -30,6 +30,7 @@ OBJ = \
 	PenaltyCylinderT.o \
 	AugLagCylinderT.o \
 	MFAugLagMultT.o \
+	PressureBCT.o \
 	FieldMFAugLagMultT.o
 
 OBJ_LINK = $(OBJ)
@@ -60,6 +61,7 @@ SRC = \
 	PenaltyCylinderT.cpp \
 	AugLagCylinderT.cpp \
 	MFAugLagMultT.cpp \
+	PressureBCT.cpp \
 	FieldMFAugLagMultT.cpp
 
 ##################### (3) headers
@@ -82,6 +84,7 @@ HDR = \
 	PenaltyCylinderT.h \
 	AugLagCylinderT.h \
 	MFAugLagMultT.h \
+	PressureBCT.h \
 	FieldMFAugLagMultT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
