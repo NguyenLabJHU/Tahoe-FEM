@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.13 2005-04-12 15:34:40 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.14 2006-06-19 15:25:34 r-jones Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
@@ -36,6 +36,8 @@ FBC_ControllerT::CodeT FBC_ControllerT::Code(const char* name)
 		return kAugLagCylinder;
 	else if (strcmp("field_augmented_Lagrangian_KBC_meshfree", name) == 0)
 		return kFieldMFAugLagMult;
+	else if (strcmp("pressure_bc", name) == 0)
+		return kPressureBC;
 	else
 		return kNone;
 }

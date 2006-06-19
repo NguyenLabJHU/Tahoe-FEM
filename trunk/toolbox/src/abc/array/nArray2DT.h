@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.24 2005-04-30 21:14:21 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.25 2006-06-19 15:25:34 r-jones Exp $ */
 /* created: paklein (07/09/1996) */
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
@@ -136,6 +136,7 @@ public:
 	/* dot the specified row number with the array */
 	nTYPE DotRow(int row, const nTYPE* array) const;
 	nTYPE DotRow(int row, const nArrayT<nTYPE>& array) const;
+	nTYPE DotColumn(int col, const nTYPE* array) const;
 	nTYPE DotColumn(int col, const nArrayT<nTYPE>& array) const;
 
 	/* row to row operations */
@@ -749,6 +750,26 @@ nTYPE nArray2DT<nTYPE>::DotColumn(int col, const nArrayT<nTYPE>& array) const
 		for (int i = 0; i < fMajorDim; i++) {
 			temp  = *p;
 			temp *= *parray++;
+			sum += temp;
+			p += fMinorDim;
+		}
+		return sum;
+	}
+}
+
+template <class nTYPE>
+nTYPE nArray2DT<nTYPE>::DotColumn(int col, const nTYPE* array) const
+{
+	if (fMajorDim == 0)
+		return 0.0;
+	else
+	{
+		const nTYPE *p = this->Pointer(col);
+		register nTYPE sum = 0.0;
+		register nTYPE temp;
+		for (int i = 0; i < fMajorDim; i++) {
+			temp  = *p;
+			temp *= *array++;
 			sum += temp;
 			p += fMinorDim;
 		}
