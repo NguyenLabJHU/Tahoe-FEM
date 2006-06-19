@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.44 2006-06-15 18:05:51 regueiro Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.45 2006-06-19 02:08:04 regueiro Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -584,6 +584,9 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	// c_p is determined at localization
 	//fCohesiveSurface_Params[kc_p] = list.GetParameter("peak_cohesion");
 	fCohesiveSurface_Params[kc_p] = 0.0;
+	// store and check element by element, since can vary between multiple elements
+	fCohesionParam.Dimension(NumElements());
+	fCohesionParam = 0.0;
 	fCohesiveSurface_Params[kalpha_c] = list.GetParameter("cohesion_softening_coefficient");
 	fCohesiveSurface_Params[kphi_r] = list.GetParameter("residual_friction_angle_rad");
 	fCohesiveSurface_Params[kphi_p] = list.GetParameter("peak_friction_angle_rad");
@@ -1260,7 +1263,9 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	{
 		/* fetch material constants */
 		c_r = fCohesiveSurface_Params[kc_r];
-		c_p = fCohesiveSurface_Params[kc_p];
+		//c_p = fCohesiveSurface_Params[kc_p];
+		//check per element rather than for each element, because c_p will be calculated based on element average shear stress
+		c_p = fCohesionParam[elem];
 		alpha_c = fCohesiveSurface_Params[kalpha_c];
 		phi_r = fCohesiveSurface_Params[kphi_r];
 		phi_p = fCohesiveSurface_Params[kphi_p];
@@ -1848,7 +1853,8 @@ void SmallStrainEnhLocT::FormKd(double constK)
 				c_r = 0.1*c_p;
 				fCohesiveSurface_Params[kc_r] = c_r;
 			}
-			fCohesiveSurface_Params[kc_p] = c_p;
+			//fCohesiveSurface_Params[kc_p] = c_p;
+			fCohesionParam[elem] = c_p;
 			
 			if (model_type == 1)
 			{

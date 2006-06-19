@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.27 2006-06-15 18:05:51 regueiro Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.28 2006-06-19 02:08:04 regueiro Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -257,6 +257,7 @@ protected:
 	/*@}*/
 		
 	dArrayT fCohesiveSurface_Params;
+	dArrayT fCohesionParam;
 	
 	AutoArrayT <dArrayT> normals;
 	AutoArrayT <dArrayT> slipdirs;
