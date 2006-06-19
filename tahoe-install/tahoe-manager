@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.66 2006-05-20 18:15:17 paklein Exp $
+# $Id: tahoe-manager,v 1.67 2006-06-19 18:21:26 r-jones Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -186,7 +186,7 @@ foreach my $tool (@required_tools) {
 
 # if TAHOE_HOME is set, change to that location
 $tahoe_home = cwd();
-if(defined($dir = findENV("TAHOE_HOME") ) ) {
+if( !(-e $config_file) && defined($dir = findENV("TAHOE_HOME") ) ) {
 	$tahoe_home = $dir;
 	print "* changing to directory TAHOE_HOME = $tahoe_home\n";
 	chdir $tahoe_home;
