@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.15 2006-06-18 21:34:58 regueiro Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.16 2006-06-21 15:20:30 regueiro Exp $ */
 #include "FossumSSIso2DT.h"
 
 #include "SSEnhLocMatSupportT.h"
@@ -22,7 +22,7 @@ FossumSSIso2DT::FossumSSIso2DT(void):
 void FossumSSIso2DT::DefineParameters(ParameterListT& list) const
 {
   /* inherited */
-  FossumSSIsoT::DefineParameters(list);
+	FossumSSIsoT::DefineParameters(list);
   
   /* 2D option must be plain stress */
   ParameterT& constraint = list.GetParameter("constraint_2D");

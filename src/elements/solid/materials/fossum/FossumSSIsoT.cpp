@@ -31,7 +31,7 @@ const double kYieldTol = 1.0e-10;
 const int kNSD = 3;
 
 /* element output data */
-const int kNumOutput = 11;
+const int kNumOutput = 12;
 static const char* Labels[kNumOutput] = {
 	"alpha11",  // back stress
 	"alpha22",  
@@ -43,7 +43,8 @@ static const char* Labels[kNumOutput] = {
 	"meanstress",
 	"J2",
 	"J3",
-	"loccheck"
+	"ip_loccheck",
+	"el_locflag"
 };
 
 /*constructor*/
@@ -420,6 +421,7 @@ void FossumSSIsoT::OutputLabels(ArrayT<StringT>& labels) const
 void FossumSSIsoT::ComputeOutput(dArrayT& output)
 {
 	const ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
 	int ip = CurrIP();
 	dMatrixT Ce = HookeanMatT::Modulus();
 
@@ -429,6 +431,10 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	  	LoadData(element, ip);
 		for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i] + fDeltaAlpha[i];
 		output [6] = fInternal[kkappa] + fInternal[kdeltakappa];
+		#ifdef ENHANCED_STRAIN_LOC_DEV	
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
+		if (element_locflag > 0) output[11] = element_locflag;
+		#endif
 	}
 	else
 	{       
@@ -439,6 +445,7 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 		output [4] = 0.0;
 		output [5] = 0.0;
 		output [6] = fKappa0;
+		output[11] = 0.0;
 	}
 	
 	/* stress tensor (load state) */
@@ -459,7 +466,6 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	
 	/* Clean up - restore full stress state */ 
 	fStress.AddScaled(output[7], One);
-
 
 	//if (element.IsAllocated())
 	/*

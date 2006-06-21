@@ -84,7 +84,7 @@ protected:
 
 	double fPsi;       // Ratio of failure strength in tension to f. s. in compr.
 	double fN;         // offset from initial yield to failure
-        double fFluidity;   //fluidity parameter, relation time = fFluidity/(2*fmu)
+	double fFluidity;   //fluidity parameter, relation time = fFluidity/(2*fmu)
 	bool fFossumDebug;
 
 	/* initialization */
@@ -138,9 +138,8 @@ protected:
 protected:
 
 	/* set modulus */
-
 	virtual void SetModulus(dMatrixT& modulus); 
-	int loccheck;
+	int loccheck, element_locflag;
  
 private:
   
