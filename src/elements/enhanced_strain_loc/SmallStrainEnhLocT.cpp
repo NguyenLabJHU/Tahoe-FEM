@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.45 2006-06-19 02:08:04 regueiro Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.46 2006-06-21 15:19:57 regueiro Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -1532,7 +1532,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		sign_q_St = 1.0;
 		//if (fabs(q_St_trial) > verysmallnum) sign_q_St = q_St_trial/fabs(q_St_trial);
 		// change dir if large relative to fraction of elastic modulus??
-		//if (fabs(q_St_trial) > smallnum) sign_q_St = q_St_trial/fabs(q_St_trial);
+		if (fabs(q_St_trial) > smallnum) sign_q_St = q_St_trial/fabs(q_St_trial);
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St] = sign_q_St;
 		//reinitialize
 		q_St_trial = 0.0;
@@ -1904,7 +1904,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		
 		// calculate yield on discontinuity surface
 		double fYieldTrial = Q_Sn_trial - fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kCohesion];
-		fYieldTrial = 1.0;
+		//fYieldTrial = 1.0;
 		fElementYieldTrial[elem] = fYieldTrial;
 	
 		// modify fRHS if yielding
@@ -1973,18 +1973,28 @@ void SmallStrainEnhLocT::FormKd(double constK)
 							<< setw(outputFileWidth) << mu_dir[1] <<  setw(outputFileWidth) << mu_dir[2];
 			}
 			
-			ss_enh_out	<< endl << endl << "loc_flag" << setw(outputFileWidth) << "jump_displ" 
-						<< setw(outputFileWidth) << "gamma_delta" <<  setw(outputFileWidth) << "Q_S"
-						<< setw(outputFileWidth) << "P_S" <<  setw(outputFileWidth) << "q_St"
-						<< setw(outputFileWidth) << "sign_q_St"; 
-			ss_enh_out	<< endl << fElementLocFlag[elem] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kzeta] 
-						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kQ_S]
-						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP_S] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_St]
-						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St]; 
+			ss_enh_out	<< endl << endl << "loc_flag" 
+						<< setw(outputFileWidth) << "jump_displ" 
+						<< setw(outputFileWidth) << "gamma_delta" 
+						<< setw(outputFileWidth) << "Q_S"
+						<< setw(outputFileWidth) << "P_S" 
+						<< setw(outputFileWidth) << "q_St"
+						<< setw(outputFileWidth) << "sign_q_St"
+						<< setw(outputFileWidth) << "YieldTrial"; 
+			ss_enh_out	<< endl << fElementLocFlag[elem] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kzeta] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kQ_S]
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP_S] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_St]
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksign_q_St] 
+						<< setw(outputFileWidth) << fElementYieldTrial[elem]; 
 			
-			ss_enh_out	<< endl << endl << "cohesion" << setw(outputFileWidth) << "friction (rad)" 
+			ss_enh_out	<< endl << endl << "cohesion" 
+						<< setw(outputFileWidth) << "friction (rad)" 
 						<< setw(outputFileWidth) << "dilation (rad)"; 
-			ss_enh_out	<< endl << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kCohesion] << setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kFriction] 
+			ss_enh_out	<< endl << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kCohesion] 
+						<< setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kFriction] 
 						<< setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation] << endl;		
 			
 			for (int i=0; i < NumElementNodes(); i++)
