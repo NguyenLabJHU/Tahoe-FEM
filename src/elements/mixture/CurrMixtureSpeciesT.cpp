@@ -1,4 +1,4 @@
-/* $Id: CurrMixtureSpeciesT.cpp,v 1.10 2006-04-14 15:28:32 thao Exp $ */
+/* $Id: CurrMixtureSpeciesT.cpp,v 1.11 2006-06-26 21:20:01 thao Exp $ */
 #include "CurrMixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "Q1P0MixtureT.h"
@@ -303,7 +303,7 @@ void CurrMixtureSpeciesT::DefineParameters(ParameterListT& list) const
 	species_opt.AddEnumeration("solid", kSolid);
 	species_opt.AddEnumeration("fluid", kFluid);
 	species_opt.AddEnumeration("solute", kSolute);
-	species_opt.SetDefault(fSpecies);
+	species_opt.SetDefault(kSolid);
 	list.AddParameter(species_opt);
 
 	/* velocity of species is calculated wrt this reference frame */
