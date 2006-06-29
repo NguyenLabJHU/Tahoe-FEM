@@ -1,4 +1,4 @@
-/* $Id: ParticleTersoffT.h,v 1.1.2.2 2006-06-13 16:30:58 d-farrell2 Exp $ */
+/* $Id: ParticleTersoffT.h,v 1.1.2.3 2006-06-29 21:06:21 d-farrell2 Exp $ */
 #ifndef _PARTICLE_TERSOFF_T_H_
 #define _PARTICLE_TERSOFF_T_H_
 
@@ -81,7 +81,8 @@ protected:
 		kStrain = 4,
 		kSlipVector = 5,
 		kCS = 6,
-		kCN = 7
+		kCN = 7,
+		kForce = 8
 	};
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
@@ -145,6 +146,7 @@ private:
 	
 	/** output flags */
 	iArrayT fOutputFlags;
+	
 };
 
 } /* namespace Tahoe */
