@@ -1,4 +1,4 @@
-/* $Id: TersoffPairT.cpp,v 1.1.2.2 2006-06-13 15:57:49 d-farrell2 Exp $ */
+/* $Id: TersoffPairT.cpp,v 1.1.2.3 2006-06-29 21:06:21 d-farrell2 Exp $ */
 #include "TersoffPairT.h"
 #include <iostream.h>
 #include <math.h>
@@ -161,7 +161,7 @@ void TersoffPairT::DefineParameters(ParameterListT& list) const
 	R.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(R, ParameterListT::ZeroOrOnce);
 	
-	ParameterT S(f_S, "cutoff_func_length_1_Sij");
+	ParameterT S(f_S, "cutoff_func_length_2_Sij");
 	S.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(S, ParameterListT::ZeroOrOnce);
 
@@ -274,7 +274,7 @@ double TersoffPairT::Energy(double rij, iArrayT neighbors, const int j, const Au
 	// figure out some needed values
 	if (rij < s_R)
 		FCij = 1.0;	
-	else if (rij > s_R && rij < s_S)
+	else if (rij >= s_R && rij < s_S)
 		FCij = .5 + .5*cos(Pi * (rij - s_R)/(s_S - s_R));
 	else
 		FCij = 0.0;
@@ -324,7 +324,7 @@ double TersoffPairT::Energy(double rij, iArrayT neighbors, const int j, const Au
 		double FCik = 0.0;
 		if (rik < Rik)
 			FCik = 1.0;	
-		else if (rik > Rik && rik < Sik)
+		else if (rik >= Rik && rik < Sik)
 			FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
 		else
 			FCik = 0.0;
@@ -358,7 +358,7 @@ double TersoffPairT::Force(double rij, iArrayT neighbors, const int j, const Aut
 		FCij = 1.0;
 		dFCijdr = 0.0;
 	}	
-	else if (rij > s_R && rij < s_S)
+	else if (rij >= s_R && rij < s_S)
 	{
 		FCij = .5 + .5*cos(Pi * (rij - s_R)/(s_S - s_R));
 		dFCijdr = -Pi/(2*(s_S - s_R)) * sin(Pi * (rij - s_R)/(s_S - s_R));
@@ -416,15 +416,20 @@ double TersoffPairT::Force(double rij, iArrayT neighbors, const int j, const Aut
 		double FCik = 0.0;
 		if (rik < Rik)
 			FCik = 1.0;	
-		else if (rik > Rik && rik < Sik)
+		else if (rik >= Rik && rik < Sik)
 			FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
 		else
 			FCik = 0.0;
 		
 		// now put together the parts
 		ksi_ij += FCik * g;
-	}
 	
+//DEBUG
+//cout << "rij = " << rij << " , rik = " << rik << " , costheta = " << costheta << " , FCij = " << FCij << " , FCik = " << FCik << endl; 
+	
+	}
+//DEBUG
+//cout << "-----------------------" << endl;	
 	// Assemble bond order term
 	double bij = s_chi * pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -1/(2*s_n));
 	
@@ -448,7 +453,7 @@ double TersoffPairT::Stiffness(double rij, iArrayT neighbors, const int j, const
 		dFCijdr = 0.0;
 		d2FCijdr2 = 0.0;
 	}	
-	else if (rij > s_R && rij < s_S)
+	else if (rij >= s_R && rij < s_S)
 	{
 		FCij = .5 + .5*cos(Pi * (rij - s_R)/(s_S - s_R));
 		dFCijdr = -Pi/(2*(s_S - s_R)) * sin(Pi * (rij - s_R)/(s_S - s_R));
@@ -469,7 +474,7 @@ double TersoffPairT::Stiffness(double rij, iArrayT neighbors, const int j, const
 	// Determine the attractive  part and its derivatives
 	double FA = -s_B * exp(-s_mu * rij);
 	double dFAdr = -s_mu * FA;
-	double d2FAdr2 = s_lambda * s_lambda * FA;
+	double d2FAdr2 = s_mu * s_mu * FA;
 	
 	// Determine the bond order parameter - no derivative needed, not function of rij
 	double ksi_ij = 0.0;
@@ -510,7 +515,7 @@ double TersoffPairT::Stiffness(double rij, iArrayT neighbors, const int j, const
 		double FCik = 0.0;
 		if (rik < Rik)
 			FCik = 1.0;	
-		else if (rik > Rik && rik < Sik)
+		else if (rik >= Rik && rik < Sik)
 			FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
 		else
 			FCik = 0.0;

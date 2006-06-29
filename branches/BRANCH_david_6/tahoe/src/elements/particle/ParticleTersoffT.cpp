@@ -1,4 +1,4 @@
-/* $Id: ParticleTersoffT.cpp,v 1.1.2.5 2006-06-13 18:37:33 d-farrell2 Exp $ */
+/* $Id: ParticleTersoffT.cpp,v 1.1.2.6 2006-06-29 21:06:21 d-farrell2 Exp $ */
 #include "ParticleTersoffT.h"
 
 #include "TersoffPropertyT.h"
@@ -25,7 +25,7 @@ using namespace Tahoe;
 const int kMemoryHeadRoom = 15; /* percent */
 const int kNumOutput = 8;
 static const char* OutputNames[kNumOutput] = {
-	"displacement",
+	"displacement",	
 	"potential_energy",
 	"kinetic_energy",
 	"stress",
@@ -184,6 +184,7 @@ void ParticleTersoffT::WriteOutput(void)
 	dSymMatrixT vs_i(ndof);
 	dArrayT SlipVector(ndof);
 	dMatrixT Strain(ndof);
+	
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{	    
 		/* row of neighbor list */
@@ -240,10 +241,7 @@ void ParticleTersoffT::WriteOutput(void)
 			if (fOutputFlags[kPE]) {
 				uby2 = energy_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
 				values_i[offsets[kPE]] += uby2;
-			}
-			
-// DEBUG
-//cout << tag_i << " , " << tag_j << ", " << offsets[kPE] << ", PE = " << values_i[offsets[kPE]] << endl;			
+			}			
 
 			/* stress contribution */			
 			double Fbyr = 0.0;
@@ -853,10 +851,13 @@ void ParticleTersoffT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			x_ip = coords(tag_i);
 			for (int j = 1; j < neighbors.Length(); j++)
 			{
+				// skip if atom_i == atom_j
+				if (neighbors[j] == tag_i)
+					continue;
+				
 				/* global tag */
 				int  tag_j = neighbors[j];
 				int type_j = fType[tag_j];
-				double* k_j = fForce(tag_j);
 			
 				/* set pair property (if not already set) */
 				int property = fPropertiesMap(type_i, type_j);
@@ -886,7 +887,6 @@ void ParticleTersoffT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					double r_k = r_ij[k]*r_ij[k]/r/r;
 					double K_k = constK*(K*r_k + Fbyr*(1.0 - r_k));
 					k_i[k] += K_k;
-					k_j[k] += K_k;
 				}
 			}
 		}
@@ -937,6 +937,11 @@ void ParticleTersoffT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			x_ip = coords(tag_i);
 			for (int j = 1; j < neighbors.Length(); j++)
 			{
+				// skip if atom_i == atom_j
+				if (neighbors[j] == tag_i)
+					continue;
+				
+				
 				/* global tag */
 				int  tag_j = neighbors[j];
 				int type_j = fType[tag_j];
@@ -1050,7 +1055,6 @@ void ParticleTersoffT::RHSDriver3D(void)
 			/* global tag */
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];
-			double* f_j = fForce(tag_j);
 			const double* x_j = coords(tag_j);
 
 			/* set pair property (if not already set) */
@@ -1071,22 +1075,23 @@ void ParticleTersoffT::RHSDriver3D(void)
 			double F;			
 			F = force_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);			
 // DEBUG
-//cout << tag_i << " , " << tag_j <<  ", F = " << F << endl;
-			
+//cout << tag_i << " , " << tag_j <<  ", type i = " << type_i <<  ", type j = " << type_j << ", r_ij = " << r << ", F = " << F << endl;
+//cout << "pos i = "<< "{ " << x_i[0] << " , " << x_i[1] << " , " << x_i[2] << " }" << endl;
+//cout << "pos j = "<< "{ " << x_j[0] << " , " << x_j[1] << " , " << x_j[2] << " }" << endl;
+//cout << "-----------------------" << endl;				
 			double Fbyr = formKd*F/r;
 
 			r_ij_0 *= Fbyr;
 			f_i[0] += r_ij_0;
-			f_j[0] +=-r_ij_0;
 
 			r_ij_1 *= Fbyr;
 			f_i[1] += r_ij_1;
-			f_j[1] +=-r_ij_1;
 
 			r_ij_2 *= Fbyr;
 			f_i[2] += r_ij_2;
-			f_j[2] +=-r_ij_2;
 		}
+//DEBUG
+//cout << "-----------------------" << endl;		
 	}
 }
 
@@ -1102,7 +1107,7 @@ void ParticleTersoffT::SetConfiguration(void)
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
 	
-	// set the nearest neighbor distance, based on diamond/zinc-blende structure - good for Si and 3C SiC
+	// set the nearest neighbor distance, based on diamond/zinc-blende structure - good for Si, Diamond, Ge and 3C SiC
 	fNearestNeighborDistance = 1.1 * (sqrt(3.0*pow(fLatticeParameter,2))/4.0);
 		
 	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
