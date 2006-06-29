@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.h,v 1.4 2006-05-30 18:36:38 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.h,v 1.5 2006-06-29 20:11:15 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAMFCC3D_SURF_H_
 #define _EAMFCC3D_SURF_H_
@@ -42,7 +42,7 @@ public:
 	void SetStress(const dSymMatrixT& strain, dSymMatrixT& stress);
 
 	/* calculate electron density at ghost atom */
-	void ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce);
+	//void ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce);
 
 	/** thickness of surface layer to subtract off of bulk */
 	double SurfaceThickness(void) const { return fSurfaceThickness; };

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.6 2006-06-04 20:35:23 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.7 2006-06-29 20:11:15 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -89,20 +89,20 @@ void EAMFCC3D_surf::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 }
 
 /* compute electron density at ghost atom */
-void EAMFCC3D_surf::ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce)
-{
+//void EAMFCC3D_surf::ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce)
+//{
 	/* compute deformed lattice geometry */
-	ComputeDeformedLengths(strain);
+//	ComputeDeformedLengths(strain);
 	
 	/* get electron density */
-	if (!fEAM)
-	{
-		edensity = fEAM_particle->TotalElectronDensity();
-		embforce = fEAM_particle->ReturnEmbeddingForce(edensity);
-	}
-	else
-		edensity = fEAM->TotalElectronDensity();	
-}
+//	if (!fEAM)
+//	{
+//		edensity = fEAM_particle->TotalElectronDensity();
+//		embforce = fEAM_particle->ReturnEmbeddingForce(edensity);
+//	}
+//	else
+//		edensity = fEAM->TotalElectronDensity();	
+//}
 
 /**********************************************************************
  * Protected
@@ -457,7 +457,7 @@ void EAMFCC3D_surf::TakeParameterList(const ParameterListT& list)
 	/* lattice parameter and cell volume */
 	fLatticeParameter = (fEAM) ? fEAM->LatticeParameter() : fEAM_particle->LatticeParameter();
 	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
-	fCellArea = 0.5*fLatticeParameter*fLatticeParameter;
+	fCellArea = fLatticeParameter*fLatticeParameter; //0.5*
 	fSurfaceThickness = 0.75*fLatticeParameter; // CHECK THIS
 
 	/* inherited - lattice parameter needs to be set first */

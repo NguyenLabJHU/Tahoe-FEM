@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.24 2006-06-04 20:35:02 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.25 2006-06-29 20:11:15 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -216,6 +216,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	ElementSupport().RegisterCoordinates(face_coords);
 	fSurfaceElementFacesType = fSurfaceElementNeighbors;
 	fSurfaceElementFacesType = -1;
+
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
 		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
@@ -561,7 +562,7 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
 				else
 					int blah = 0;
-				
+	
 				fSplitInitCoords = fLocInitCoords;
 				SurfaceLayer(fSplitInitCoords, j, t_surface);
 
@@ -657,7 +658,7 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else
 						int blah = 0;
-
+				
 					/* compute PK1/J */
 					PK1.MultABT(cauchy, F_inv);
 					
