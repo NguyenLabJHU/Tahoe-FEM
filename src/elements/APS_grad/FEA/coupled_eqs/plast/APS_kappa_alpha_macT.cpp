@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alpha_macT.cpp,v 1.2 2005-06-15 20:06:10 raregue Exp $
+// $Id: APS_kappa_alpha_macT.cpp,v 1.3 2006-06-30 18:09:25 regueiro Exp $
 #include "APS_kappa_alpha_macT.h"
 
 using namespace Tahoe;
@@ -144,7 +144,30 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kgammap_curl] = B_gradgammap[kgrad_gammap](1,0)-B_gradgammap[kgrad_gammap](0,1);
 	// output mag of curl in out of plane direction
 	V_out[kstressstate](2) = S[kgammap_curl];
-		
+	
+	// calculate sign of gammap_curl
+	S[ksign_gammap_curl] = S[kgammap_curl];
+	S[kS_Temp11].Abs( S[kgammap_curl] );
+	if (S[kS_Temp11] > C[ksmall])
+	{
+		S[ksign_gammap_curl] /= S[kS_Temp11];
+	}
+	else
+	{
+		S[ksign_gammap_curl] = 1.0;
+	}
+	S[kS_Temp10] = 1.0;
+	S[kS_Temp10] -= S[ksign_gammap_curl];
+	S[kS_Temp10] *= 0.5;
+	// set back to sign_gammap_curl
+	S[ksign_gammap_curl] = S[kS_Temp10];
+	
+	// ensure that gammap_curl is negative to ensure hardening
+	S[kS_Temp9] = S[kgammap_curl];
+	S[kS_Temp9] -= S[kS_Temp11];
+	S[kS_Temp9] *= 0.5;
+	S[kgammap_curl] = S[kS_Temp9];
+	
 	// calculate elastic gradient vector
 	V[kV_Temp1].DiffOf( V[kV_Temp4], V[kgammap] ); 	
 	
@@ -215,7 +238,9 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 
 	// calculate resolved stress on slip system
 	V[kV_Temp1].Dot( V[km1_bar], S[kS_1] );
-	S[kS_1]   *= C[kMu];
+	S[kS_1] *= C[kMu];
+	// keep resolved stress positive
+	if (S[kS_1]<0.0) S[kS_1] = 0.0;
 	
 	// calculate relative stress
 	S[kxi_1] = S[kS_1];
@@ -234,7 +259,7 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp10].Abs( S[kdel_gamma1_n] );
 	if ( S[kS_Temp10] > C[ksmall]) S[ksign_del_gamma1] /= S[kS_Temp10];
 	
-	//calculate initial residual for solving for del_gamma1
+	// calculate initial residual for solving for del_gamma1
 	S[kS_Temp10] = S[kdel_gamma1_n];
 	S[kS_Temp9] = C[kkappa0_1];
 	S[kS_Temp9] += S[kIV_kappa1_n];
@@ -245,7 +270,7 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp12] *= delta_t;
 	S[kS_Temp10] -= S[kS_Temp12];
 	
-	//initialize deldel_gamma1 and del_gamma1 before iteration
+	// initialize deldel_gamma1 and del_gamma1 before iteration
 	S[kdeldel_gamma1] = 0.0;
 	S[kdel_gamma1] = S[kdel_gamma1_n];
 	
@@ -597,6 +622,8 @@ void APS_kappa_alpha_macT::Form_VB_List (void)
 		VB_eps[kVB_eps_Temp4] *= S[kxi_curl_term];
  		S[kS_Temp3] = S[kS_1];
  		S[kS_Temp3] *= C[kl];
+ 		// keep gammap_curl negative
+ 		S[kS_Temp3] *= S[ksign_gammap_curl];
  		S[kS_Temp3] /= C[kMu];
  		S[kS_Temp3] /= 3.0; 
  		VB_eps[kVB_eps_Temp1].DiffOf( VB_eps[kNgam_ydx], VB_eps[kNgam_xdy] ); 
@@ -645,6 +672,8 @@ void APS_kappa_alpha_macT::Form_VB_List (void)
 		VB_eps[kVB_eps_Temp4] *= S[kxi_curl_term];
  		S[kS_Temp3] = S[kS_2];
  		S[kS_Temp3] *= C[kl];
+ 		// keep gammap_curl negative
+ 		S[kS_Temp3] *= S[ksign_gammap_curl];
  		S[kS_Temp3] /= C[kMu];
  		S[kS_Temp3] /= 3.0; 
  		VB_eps[kVB_eps_Temp1].DiffOf( VB_eps[kNgam_ydx], VB_eps[kNgam_xdy] ); 
@@ -693,6 +722,8 @@ void APS_kappa_alpha_macT::Form_VB_List (void)
 		VB_eps[kVB_eps_Temp4] *= S[kxi_curl_term];
  		S[kS_Temp3] = S[kS_3];
  		S[kS_Temp3] *= C[kl];
+ 		// keep gammap_curl negative
+ 		S[kS_Temp3] *= S[ksign_gammap_curl];
  		S[kS_Temp3] /= C[kMu];
  		S[kS_Temp3] /= 3.0; 
  		VB_eps[kVB_eps_Temp1].DiffOf( VB_eps[kNgam_ydx], VB_eps[kNgam_xdy] ); 

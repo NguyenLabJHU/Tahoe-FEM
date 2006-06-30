@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.66 2005-06-15 00:06:15 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.67 2006-06-30 18:09:24 regueiro Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -421,8 +421,10 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstatenew_all, fstate );
 		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstate_all, fstate_n );
 		
-		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// variables at time-step n	 
+		// variables at time-step n+1
+		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate );
+		// variables at time-step n
+		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );
 
 			/* calculate displacement nodal force */
 			if (is_displ)

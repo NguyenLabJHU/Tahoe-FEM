@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alpha_macT.h,v 1.1 2005-06-15 00:06:19 raregue Exp $
+// $Id: APS_kappa_alpha_macT.h,v 1.2 2006-06-30 18:09:25 regueiro Exp $
 #ifndef _APS_KAPPA_ALPHA_MAC_T_H_ 
 #define _APS_KAPPA_ALPHA_MAC_T_H_ 
 
@@ -94,6 +94,7 @@ class APS_kappa_alpha_macT : public PlastT
 								kS_2,
 								kS_3,
 								kgammap_curl,
+								ksign_gammap_curl,
 								kxi_1,
 								kxi_2,
 								kxi_3,
