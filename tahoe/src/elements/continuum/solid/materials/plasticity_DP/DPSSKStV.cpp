@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.28 2006-04-27 04:37:50 cfoster01 Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.29 2006-07-02 18:44:31 cfoster01 Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -59,8 +59,8 @@ const dMatrixT& DPSSKStV::c_ijkl(void)
 {
 	fModulus.SumOf(HookeanMatT::Modulus(),
 	fDP->ModuliCorrection(CurrentElement(), CurrIP()));	
-	if (fModulus != HookeanMatT::Modulus())
-		cout << "plastic modulus, element number " <<  CurrElementNumber() << endl;
+	//if (fModulus != HookeanMatT::Modulus())
+	//	cout << "plastic modulus, element number " <<  CurrElementNumber() << endl;
 	return fModulus;
 }
 
@@ -227,10 +227,10 @@ bool DPSSKStV::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &
      bool dummy = checker.IsLocalized_SS(normals, slipdirs, detA);
 	 
 	/*plasticity = loc */
-	//return true;
+	return true;
 	
 	/*traditional */
-	return dummy;
+	//return dummy;
 }
  
 bool DPSSKStV::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
