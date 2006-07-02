@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.5 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAM.h,v 1.6 2006-07-02 21:11:06 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAM_H_
 #define _EAM_H_
@@ -63,6 +63,7 @@ public:
 	/*@}*/
 	
 	/** compute the total electron density */
+	dArrayT ElectronDensityAtNeighbors(void);
 	double TotalElectronDensity(void);
 	
 private:
@@ -70,11 +71,11 @@ private:
 	/* form matrix of mixed pair potential and embedding
 	 * energy derivatives.  NOTE: computes the UPPER triangle
 	 * ONLY */
-	void FormMixedDerivatives(double rho);	
+	void FormMixedDerivatives(dArrayT rho);	
 
 	/* Moduli tensor contributions */
-	void FormSingleBondContribution(double rho, dMatrixT& moduli);
-	void FormMixedBondContribution(double rho, dMatrixT& moduli);
+	void FormSingleBondContribution(dArrayT rho, dMatrixT& moduli);
+	void FormMixedBondContribution(dArrayT rho, dMatrixT& moduli);
 
 	/* set the glue function pointers - called by Initialize() */
 	virtual void SetPairPotential(void) = 0;
@@ -114,6 +115,9 @@ private:
 	dArrayT	fBond1;
 	dArrayT	fBond2;
 	dArrayT	fBond3;
+	
+	/* array of electron densities at neighboring atoms */
+	//dArrayT fRhoAll;
 };
 
 } // namespace Tahoe 

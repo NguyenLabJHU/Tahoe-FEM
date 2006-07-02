@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.66 2005-04-08 16:41:48 d-farrell2 Exp $ */
+/* $Id: EAMT.cpp,v 1.67 2006-07-02 21:11:07 hspark Exp $ */
 
 #include "EAMT.h"
 
@@ -1707,7 +1707,7 @@ void EAMT::RHSDriver3D(void)
 
   iArrayT neighbors;
   fForce = 0.0;
-	
+
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
@@ -1765,9 +1765,8 @@ void EAMT::RHSDriver3D(void)
 	      
 	      double E = z_i*z_j/r;
 	      double F = (z_i*zp_j + zp_i*z_j)/r - E/r;
-	      
 	      double Fbyr = formKd*F/r;
-	      
+		  
 	      r_ij_0 *= Fbyr;
 	      f_i[0] += r_ij_0;
 	      f_j[0] +=-r_ij_0;

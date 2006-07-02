@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.6 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAM.cpp,v 1.7 2006-07-02 21:11:06 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAM.h"
 #include "CBLatticeT.h"
@@ -56,7 +56,7 @@ double EAM::ComputeUnitEnergy(void)
 	/* compute total atomic density */	
 	dArrayT& ElectronDensity = fElectronDensity->MapFunction(r, fBond1);
 	dArrayT& PairPotential   = fPairPotential->MapFunction(r, fBond2);
-
+	
 	double rho = 0.0;
 	double energy = 0.0;
 	
@@ -87,19 +87,28 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 	const iArrayT& counts = fLattice.BondCounts();
 
 	/* total atomic density */
-	double rho = TotalElectronDensity();
-	double dFdrho = fEmbeddingEnergy->DFunction(rho);	
+	dArrayT rho = ElectronDensityAtNeighbors();
+	double rho0 = rho[0];
+	double dFdrho_i = fEmbeddingEnergy->DFunction(rho[0]);
+	//double dFdrho = fEmbeddingEnergy->DFunction(rho);	
 
 	/* assemble stress */
 	stress = 0.0;
 	dArrayT& DPotential = fPairPotential->MapDFunction(r, fBond1);
 	dArrayT& DDensity   = fElectronDensity->MapDFunction(r, fBond2);
 	int nb = r.Length();
+//	cout << "Pair force = " << DPotential << endl;
+//	cout << "drhodr = " << DDensity << endl;
+
+	double force = 0.0;
 	for (int i = 0; i < nb; i++)
 	{
+		double dFdrho_j = fEmbeddingEnergy->DFunction(rho[i+1]);
+//		cout << "dFdrho = " << dFdrho_j << endl;
 		double ri = r[i];
 		int    ci = counts[i];		
-		double coeff = (1.0/ri)*ci*(0.5*DPotential[i] + dFdrho*DDensity[i]);
+		double coeff = (1.0/ri)*ci*(DPotential[i] + dFdrho_j*DDensity[i] + dFdrho_i*DDensity[i]);
+		force += coeff;
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
 	}
@@ -113,7 +122,7 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 void EAM::ComputeUnitModuli(dMatrixT& moduli)
 {
 	/* compute total electron density */
-	double rho = TotalElectronDensity();
+	dArrayT rho = ElectronDensityAtNeighbors();
 
 	/* initialize */
 	moduli = 0.0;
@@ -123,6 +132,28 @@ void EAM::ComputeUnitModuli(dMatrixT& moduli)
 	
 	/* single bond contribution */
 	FormSingleBondContribution(rho, moduli);
+}
+
+/* compute the total electron density at atom_i and its neighbors atom_j */
+dArrayT EAM::ElectronDensityAtNeighbors(void)
+{
+	const dArrayT& r = fLattice.DeformedLengths();
+	const iArrayT& counts = fLattice.BondCounts();
+	dArrayT rhoall(counts.Length()+1);	// rho_i is the first value, rho_j are others
+
+	/* compute total atomic density */
+	dArrayT& ElectronDensity = fElectronDensity->MapFunction(r, fBond1);
+
+	double rho = 0.0;
+	const int* pcount = counts.Pointer();
+	double* pedensity = ElectronDensity.Pointer();
+	int nb = r.Length();
+
+	for (int i = 0; i < nb; i++)
+		rho += (*pcount++)*(*pedensity++);
+
+	rhoall = rho;
+	return rhoall;
 }
 
 /* compute the total electron density */
@@ -138,6 +169,7 @@ double EAM::TotalElectronDensity(void)
 	const int* pcount = counts.Pointer();
 	double* pedensity = ElectronDensity.Pointer();
 	int nb = r.Length();
+
 	for (int i = 0; i < nb; i++)
 		rho += (*pcount++)*(*pedensity++);
 
@@ -153,13 +185,13 @@ double EAM::TotalElectronDensity(void)
 * energy derivatives.  NOTE: computes the UPPER triangle
 * ONLY.
 */
-void EAM::FormMixedDerivatives(double rho)
+void EAM::FormMixedDerivatives(dArrayT rho)
 {
 	const dArrayT& r = fLattice.DeformedLengths();
 	const iArrayT& counts = fLattice.BondCounts();
 
-	double dFdrho   = fEmbeddingEnergy->DFunction(rho);
-	double d2Fdrho2 = fEmbeddingEnergy->DDFunction(rho);
+	//double dFdrho   = fEmbeddingEnergy->DFunction(rho);
+	//double d2Fdrho2 = fEmbeddingEnergy->DDFunction(rho);
 
 	/* batched calls */
 	dArrayT& DDensity    = fElectronDensity->MapDFunction(r, fBond1);
@@ -177,6 +209,10 @@ void EAM::FormMixedDerivatives(double rho)
 		double DDDj = DDDensity[j];
 		double DDj  = DDensity[j];
 	
+		/* Embedding energy derivative */
+		double dFdrho = fEmbeddingEnergy->DFunction(rho[j]);	
+		double d2Fdrho2 = fEmbeddingEnergy->DDFunction(rho[j]);
+		
 		for (int i = 0; i <= j; i++)
 		{
 			double Amn = 0.0;
@@ -204,7 +240,7 @@ void EAM::FormMixedDerivatives(double rho)
 }	
 
 /* moduli tensor contributions */
-void EAM::FormSingleBondContribution(double rho, dMatrixT& moduli)
+void EAM::FormSingleBondContribution(dArrayT rho, dMatrixT& moduli)
 {
 	const dArrayT& r = fLattice.DeformedLengths();
 	const iArrayT& counts = fLattice.BondCounts();
@@ -212,13 +248,16 @@ void EAM::FormSingleBondContribution(double rho, dMatrixT& moduli)
 	/* batch fetch */
 	dArrayT& DPotential = fPairPotential->MapDFunction(r, fBond1);
 	dArrayT& DDensity   = fElectronDensity->MapDFunction(r, fBond2);
-	
+
 	/* Embedding energy derivative */
-	double dFdrho = fEmbeddingEnergy->DFunction(rho);	
+	//double dFdrho = fEmbeddingEnergy->DFunction(rho[i]);	
 	
 	int nb = r.Length();
 	for (int i = 0; i < nb; i++)
 	{
+		/* Embedding energy derivative */
+		double dFdrho = fEmbeddingEnergy->DFunction(rho[i]);	
+
 		double ri = r[i];
 	
 		double coeff = -counts[i]*(0.5*DPotential[i] + dFdrho*DDensity[i])/(ri*ri*ri);
@@ -228,7 +267,7 @@ void EAM::FormSingleBondContribution(double rho, dMatrixT& moduli)
 	}
 }
 
-void EAM::FormMixedBondContribution(double rho, dMatrixT& moduli)
+void EAM::FormMixedBondContribution(dArrayT rho, dMatrixT& moduli)
 {
 	/* batch fetch */
 	fLattice.BatchBondComponentTensor2(fTensor2Table);
