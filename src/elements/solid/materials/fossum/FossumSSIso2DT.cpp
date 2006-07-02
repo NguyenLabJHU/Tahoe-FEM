@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.16 2006-06-21 15:20:30 regueiro Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.17 2006-07-02 18:50:10 cfoster Exp $ */
 #include "FossumSSIso2DT.h"
 
 #include "SSEnhLocMatSupportT.h"
@@ -22,7 +22,7 @@ FossumSSIso2DT::FossumSSIso2DT(void):
 void FossumSSIso2DT::DefineParameters(ParameterListT& list) const
 {
   /* inherited */
-	FossumSSIsoT::DefineParameters(list);
+  FossumSSIsoT::DefineParameters(list);
   
   /* 2D option must be plain stress */
   ParameterT& constraint = list.GetParameter("constraint_2D");
@@ -32,20 +32,20 @@ void FossumSSIso2DT::DefineParameters(ParameterListT& list) const
 /* accept parameter list */
 void FossumSSIso2DT::TakeParameterList(const ParameterListT& list)
 {
-	/* inherited */
-	FossumSSIsoT::TakeParameterList(list);
+  /* inherited */
+  FossumSSIsoT::TakeParameterList(list);
   
-	/* dimension work space */
-	fStress2D.Dimension(2);
-	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
-	fModulusElas2D.Dimension(dSymMatrixT::NumValues(2));
-	fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2)),
+  /* dimension work space */
+  fStress2D.Dimension(2);
+  fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+  fModulusElas2D.Dimension(dSymMatrixT::NumValues(2));
+  fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2)),
 	fModulusContinuum2D.Dimension(dSymMatrixT::NumValues(2)),
 	fModulusContinuumPerfPlas2D.Dimension(dSymMatrixT::NumValues(2)),
-	fTotalStrain3D.Dimension(3);
+  fTotalStrain3D.Dimension(3);
   
 	/* cast to small strain embedded discontinuity material pointer */
-	//fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
+	fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
 }
 
 #if 0
@@ -112,9 +112,14 @@ void FossumSSIso2DT::PrintName(ostream& out) const
 /* moduli */
 const dMatrixT& FossumSSIso2DT::c_ijkl(void)
 {
+	//SSSolidMat already reduces to 2D, trying to reduce again
+	//creates major indexing errors
+	return SSSolidMatT::c_ijkl();
+
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(FossumSSIsoT::c_ijkl());
 //	fModulus2D *= fThickness;
+//    cout << "fModulus2D = \n" << fModulus2D;
 	return fModulus2D;
 }
 
@@ -156,15 +161,14 @@ const dSymMatrixT& FossumSSIso2DT::s_ij(void)
 #ifdef ENHANCED_STRAIN_LOC_DEV
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
-	int elem = CurrElementNumber();
 	int element_locflag = 0;
 	if (element.IsAllocated()) 
 	{
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
 	}
 	if ( element_locflag == 2 )
 	{
-		fStress2D = fSSEnhLocMatSupport->ElementStress(elem,ip);
+		fStress2D = fSSEnhLocMatSupport->ElementStress(ip);
 	}
 	else
 	{

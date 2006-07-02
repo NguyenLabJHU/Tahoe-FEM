@@ -31,7 +31,7 @@ const double kYieldTol = 1.0e-10;
 const int kNSD = 3;
 
 /* element output data */
-const int kNumOutput = 12;
+const int kNumOutput = 11;
 static const char* Labels[kNumOutput] = {
 	"alpha11",  // back stress
 	"alpha22",  
@@ -43,8 +43,7 @@ static const char* Labels[kNumOutput] = {
 	"meanstress",
 	"J2",
 	"J3",
-	"ip_loccheck",
-	"el_locflag"
+	"loccheck"
 };
 
 /*constructor*/
@@ -326,7 +325,7 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
 * the normals and slipdirs. Returns false if the determinant is positive.
 */
 
-//#if 0
+#if 0
 bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
 							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
 {
@@ -394,7 +393,7 @@ bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArray
 	
 	return checkloc;
 }
-//#endif
+#endif
 
 
 /* returns the strain energy density for the specified strain */
@@ -421,7 +420,6 @@ void FossumSSIsoT::OutputLabels(ArrayT<StringT>& labels) const
 void FossumSSIsoT::ComputeOutput(dArrayT& output)
 {
 	const ElementCardT& element = CurrentElement();
-	int elem = CurrElementNumber();
 	int ip = CurrIP();
 	dMatrixT Ce = HookeanMatT::Modulus();
 
@@ -431,10 +429,6 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	  	LoadData(element, ip);
 		for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i] + fDeltaAlpha[i];
 		output [6] = fInternal[kkappa] + fInternal[kdeltakappa];
-		#ifdef ENHANCED_STRAIN_LOC_DEV	
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
-		if (element_locflag > 0) output[11] = element_locflag;
-		#endif
 	}
 	else
 	{       
@@ -445,7 +439,6 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 		output [4] = 0.0;
 		output [5] = 0.0;
 		output [6] = fKappa0;
-		output[11] = 0.0;
 	}
 	
 	/* stress tensor (load state) */
@@ -466,6 +459,7 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	
 	/* Clean up - restore full stress state */ 
 	fStress.AddScaled(output[7], One);
+
 
 	//if (element.IsAllocated())
 	/*
@@ -964,17 +958,16 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 {
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
-	int elem = CurrElementNumber();
 
 #ifdef ENHANCED_STRAIN_LOC_DEV	
 	int element_locflag = 0;
 	if (element.IsAllocated()) 
 	{
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
 	}
 	if ( element_locflag == 2 )
 	{
-		fStress = fSSEnhLocMatSupport->ElementStress(elem,ip);
+		fStress = fSSEnhLocMatSupport->ElementStress(ip);
 	}
 	else
 	{
@@ -1023,7 +1016,6 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
   //cout << "fStrain= \n" << fStrain <<endl << endl; 
   
   HookeanStress(e_els, fSigma);
-
   /* working ISV's for iteration */
   dSymMatrixT workingBackStress(kNSD); 
   double workingKappa;
@@ -1163,8 +1155,8 @@ bool FossumSSIsoT::StressPointIteration(double initialYieldCheck, dArrayT& itera
 {
   int ip = CurrIP();
 
-  if (fFossumDebug)
-    cout << " ip = " << ip << endl;
+  //if (fFossumDebug)
+    //cout << " ip = " << ip << endl;
 
 	/* initialize iteration variables */
 	int newtonCounter = 0, maxIter = 20;
@@ -2152,8 +2144,8 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
 	    //cout << "fTimeFactor = " << fTimeFactor <<endl;
 	    //cout << "alphaInviscid = \n" << alphaInviscid << endl;
 	    cout << "fKappaCapped = " << fKappaCapped <<endl;
-	    cout << "fModulus = \n" << fModulus << endl;
-	    cout << "SSSolidMatT::c_ijkl = \n" << SSSolidMatT::c_ijkl() << endl;
+	    //cout << "fModulus = \n" << fModulus << endl;
+	    //cout << "SSSolidMatT::c_ijkl = \n" << SSSolidMatT::c_ijkl() << endl;
 	    //cout << "Ce = \n" << Ce <<endl;
 	  }
 
@@ -2173,8 +2165,13 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
 	  }
 	//if (fFossumDebug) cout << "fModulus = \n" << fModulus << endl; 
 
-	//return SSSolidMatT::c_ijkl();
-	return fModulus;
+	//cout << "fModulus = \n" << fModulus << endl;
+
+    //fModulus = SSSolidMatT::c_ijkl();
+	//cout << "SSSolidMatT::c_ijkl() = \n" << SSSolidMatT::c_ijkl() << endl;
+
+	return SSSolidMatT::c_ijkl();
+	//return fModulus;
 }
 
 

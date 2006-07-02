@@ -84,7 +84,7 @@ protected:
 
 	double fPsi;       // Ratio of failure strength in tension to f. s. in compr.
 	double fN;         // offset from initial yield to failure
-	double fFluidity;   //fluidity parameter, relation time = fFluidity/(2*fmu)
+        double fFluidity;   //fluidity parameter, relation time = fFluidity/(2*fmu)
 	bool fFossumDebug;
 
 	/* initialization */
@@ -132,14 +132,15 @@ protected:
 	* determinant of the acoustic tensor is negative and returns
 	* the normals and slipdirs. Returns false if the determinant is positive.
 	*/
-	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
-					AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
+	//bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+	//				AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 
 protected:
 
 	/* set modulus */
+
 	virtual void SetModulus(dMatrixT& modulus); 
-	int loccheck, element_locflag;
+	int loccheck;
  
 private:
   
