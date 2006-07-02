@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.23 2006-04-27 04:40:37 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.24 2006-07-02 18:47:33 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -744,7 +744,7 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
                 /* get Cauchy stress */
                 //const dSymMatrixT stress(NumSD());                
-                const dSymMatrixT& stress = fCurrMaterial->s_ij();
+                //const dSymMatrixT& stress = fCurrMaterial->s_ij();
                 //dSymMatrixT stress(NumSD());
                 
         // #if 1
@@ -767,7 +767,7 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
           }
                 else
           {
-            //const dSymMatrixT& stress = fCurrMaterial->s_ij();
+            const dSymMatrixT& stress = fCurrMaterial->s_ij();
             //cout << "stress = " << stress << endl;
             cauchy.Translate(stress);
             //cout << "cauchy = \n" << cauchy << endl;
@@ -1062,6 +1062,12 @@ if (fLocalizationHasBegun)
 	}
 	}
 
+ if (fBVPType == kPreFailed && ElementSupport().Time() == 0.0)
+   {
+     //cout << "time = 0.0\n" << flush; 
+     PreFailElements();
+   }
+
 bool finishedTracing = false;
 	
 /* check for newly localized elements on existing bands */
@@ -1114,7 +1120,7 @@ if (!fLocalizationHasBegun || fMultiBand)
 				fLocalizationHasBegun = true;
 				//fEdgeOfBandElements.Current(0); //should be at
 	  
-	  			//cout << "fLeastDetEle = " << fLeastDetEle << endl;
+	  			cout << "fLeastDetEle = " << fLeastDetEle << endl;
 				GetElement(fLeastDetEle);
 				//fEdgeOfBandCoords.Free();
 				fEdgeOfBandElements.Append(fLeastDetEle);
@@ -1127,15 +1133,11 @@ if (!fLocalizationHasBegun || fMultiBand)
 
  //cout << "hi\n" << flush; 
 
- if (fBVPType == kPreFailed && ElementSupport().Time() == 0.0)
-   {
-     //cout << "time = 0.0\n" << flush; 
-     PreFailElements();
-   }
+
 
  /* uncomment these two lines to restrict band propagation after initial
     localization */
- if (fLocalizationHasBegun)
+if (fLocalizationHasBegun)
 	fSeedElementsSet = true;
 
   SmallStrainT::CloseStep();
@@ -1241,7 +1243,7 @@ if (!fLocalizationHasBegun || fMultiBand)
 	  fEdgeOfBandElements.Current(0);
 
 
-	  cout << fEdgeOfBandElements.Current() << endl << flush;
+	  //cout << fEdgeOfBandElements.Current() << endl << flush;
 	  
 	  GetElement(fEdgeOfBandElements.Current());
 	  fEdgeOfBandCoords.Free();
@@ -1300,6 +1302,7 @@ void SSEnhLocCraigT::GetElement(int elementNumber)
   /* inherited */
   //bool result = ContinuumElementT::NextElement();
   fElementCards.Current(elementNumber);  
+  //cout << "elementNumber =" << elementNumber << endl;
 
   /* get material pointer */
   ContinuumMaterialT* pcont_mat = (*fMaterialList)[CurrentElement().MaterialNumber()];
@@ -1570,7 +1573,7 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
 	}
     }
 
- //For propagating band normal in same direction
+ //1 For propagating band normal in same direction
  #if 0
    BandT* fBandTemp = fBand;
  
