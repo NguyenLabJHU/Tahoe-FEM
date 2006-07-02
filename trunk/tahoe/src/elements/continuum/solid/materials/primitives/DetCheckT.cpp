@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.52 2006-06-19 02:09:06 regueiro Exp $ */
+/* $Id: DetCheckT.cpp,v 1.53 2006-07-02 18:39:46 cfoster01 Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -19,12 +19,12 @@ bool DetCheckT::fFirstPass = true;
 
 #ifndef __MWERKS__ // for compilation outside CodeWarrior
 #ifdef NDEBUG
-bool DetCheckT::fDeBug = false;	// no output
+bool DetCheckT::fDeBug = true;	// output info for debugging
 #else
-bool DetCheckT::fDeBug = true; // output info for debugging
+bool DetCheckT::fDeBug = true;	// no output
 #endif
 #else
-bool DetCheckT::fDeBug = true; // output info for debugging
+bool DetCheckT::fDeBug = true;
 #endif // __MWERKS__
 
 /* constants */
@@ -332,7 +332,7 @@ bool DetCheckT::DetCheck2D_SS(AutoArrayT <dArrayT> &normals,
 {
 	//cout << "\n1 ";
 	//double normalTol = 1.0e-10;
-	double locTol = 1.0e-5;
+	double locTol = 1.0e-3;
 
 	normals.Free();
 	slipdirs.Free();
@@ -347,6 +347,7 @@ bool DetCheckT::DetCheck2D_SS(AutoArrayT <dArrayT> &normals,
 	double detA [numSweepChecks]; //determinant of acoustic tensor at each increment
 	bool locCheck = false; //return value for localization
 	
+	//cout << "fc_ijkl = \n" << fc_ijkl << endl;
 
 	/* Get values of Acoustic Tensor at angle increments */
 	for (int i = 0; i < numSweepChecks; i ++)
@@ -358,6 +359,10 @@ bool DetCheckT::DetCheck2D_SS(AutoArrayT <dArrayT> &normals,
 	    A = FormAcousticTensor2D(normal, fc_ijkl);
 		detA [i] = A(0,0) * A(1,1) - A(0,1) * A(1,0);
 	}
+	
+	//cout << "detA = " << endl;
+	//for (int i = 0; i < numSweepChecks; i ++)
+	//	cout << detA [i] << endl; 
 	
 	/* find approximate local minima and refine normal */
 	for (int i = 0; i < numSweepChecks; i ++)
@@ -372,7 +377,7 @@ bool DetCheckT::DetCheck2D_SS(AutoArrayT <dArrayT> &normals,
 			tempNormal [0] = cos(theta);
 			tempNormal [1] = sin(theta);
 			
-			//cout << "normal = " << normal << endl;
+			//cout << "tempNormal = " << tempNormal << endl;
 			
 			normal = RefineNormal2D(tempNormal);
 			
@@ -392,6 +397,7 @@ bool DetCheckT::DetCheck2D_SS(AutoArrayT <dArrayT> &normals,
 				double detAe = Ae(0,0) * Ae(1,1) - Ae(0,1) * Ae(1,0);
 								
 				//cout << "detAmin = " << detAmin << ", detAe = " << detAe << endl;
+				//cout << " detAe = " << detAe << endl;
 				
 				if (detAe < 0.0)
 				{
@@ -414,10 +420,11 @@ bool DetCheckT::DetCheck2D_SS(AutoArrayT <dArrayT> &normals,
 				}
 				  
 				double lambda_min =  .5*(minus_b - sqrt(discriminant));
-				  
+				//cout << "lambda_min = " << lambda_min << endl; 
+				   
 				if (lambda_min > 0.0 && locCheck)
 				{
-					cout << "Warning: Minimun eigenvalue is positive even though localization was detected. DetCheckT::DetCheck2D_SS" << flush;
+					cout << "Warning: Minimum eigenvalue is positive even though localization was detected. DetCheckT::DetCheck2D_SS" << flush;
 				}
 					 
 				//find slip direction
@@ -471,6 +478,7 @@ dMatrixT DetCheckT::FormAcousticTensor2D(dArrayT normal, dMatrixT cc_ijkl)
 dArrayT DetCheckT::RefineNormal2D(dArrayT tempNormal)
 {
 	//return tempNormal;
+	
 	dArrayT normal(2);
 	normal = 0.0; //prevent converge on first try
 	double normalTol = 1.0e-10;
@@ -558,6 +566,10 @@ int DetCheckT::IndexConversion2D(int i, int j)
 bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 							AutoArrayT <dArrayT> &slipdirs, AutoArrayT <double> &detAs)
 {
+
+	//cout << "fc_ijkl = \n" << fc_ijkl << endl;
+ 
+ 
 	int i,j,k,l,m,n; // counters 
 		
 	/* calculated normal at particular angle increment */
@@ -688,8 +700,7 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 					/* if too many iterations */
 					if (newtoncounter > maxcount)
 					{
-						//if (fDeBug) cout << "Warning: Bifurcation check failed. Newton refinement did not converge after 100 iterations. \n"; 
-						if (fDeBug) normal_out << "Warning: Bifurcation check failed. Newton refinement did not converge after 100 iterations. \n"; 
+						if (fDeBug) cout << "Warning: Bifurcation check failed. Newton refinement did not converge after 100 iterations. \n"; 
 						if (fDeBug) normal_out << setw(2*outputFileWidth) << "Did not converge";
 						//return 8;
 						//normal=0.0;
