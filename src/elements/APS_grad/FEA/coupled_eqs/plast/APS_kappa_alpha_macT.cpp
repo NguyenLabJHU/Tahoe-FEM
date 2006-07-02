@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alpha_macT.cpp,v 1.3 2006-06-30 18:09:25 regueiro Exp $
+// $Id: APS_kappa_alpha_macT.cpp,v 1.4 2006-07-02 03:21:28 regueiro Exp $
 #include "APS_kappa_alpha_macT.h"
 
 using namespace Tahoe;
@@ -351,6 +351,8 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	// calculate resolved stress on slip system
 	V[kV_Temp1].Dot( V[km2_bar], S[kS_2] );
 	S[kS_2]   *= C[kMu];
+	// keep resolved stress positive
+	if (S[kS_2]<0.0) S[kS_2] = 0.0;
 	
 	// calculate relative stress
 	S[kxi_2] = S[kS_2];
@@ -463,6 +465,8 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	// calculate resolved stress on slip system
 	V[kV_Temp1].Dot( V[km3_bar], S[kS_3] );
 	S[kS_3]   *= C[kMu];
+	// keep resolved stress positive
+	if (S[kS_3]<0.0) S[kS_3] = 0.0;
 	
 	// calculate relative stress
 	S[kxi_3] = S[kS_3];
