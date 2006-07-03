@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.cpp,v 1.4 2006-06-04 20:35:23 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.cpp,v 1.5 2006-07-03 20:20:09 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT_surf.h"
 
@@ -80,8 +80,10 @@ void EAMFCC3DMatT_surf::TakeParameterList(const ParameterListT& list)
 
 void EAMFCC3DMatT_surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {
+	/* Temporarily override for finite difference approximation */
+	moduli = FSSolidMatT::c_ijkl();
 	/* EAM solver */
-	fEAM->Moduli(moduli, E);
+	//fEAM->Moduli(moduli, E);
 }
 
 /* returns the stress corresponding to the given strain - the strain

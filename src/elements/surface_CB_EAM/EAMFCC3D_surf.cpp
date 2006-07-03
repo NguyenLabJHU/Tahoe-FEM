@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.7 2006-06-29 20:11:15 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.8 2006-07-03 20:20:09 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -19,6 +19,8 @@ using namespace Tahoe;
 /* bond parameters */
 const int kEAMFCC3DSurfBonds        = 78;
 const int kEAMFCC3DNumBonds			= 54;
+const int kEAMFCC3DSurf1Bonds       = 33;
+const int kEAMFCC3DSurf2Bonds       = 45;
 const int kEAMFCC3DNumLatticeDim 	=  3;
 const int kEAMFCC3DNumAtomsPerCell	=  4;
 const int kEAMFCC3DNumAtomsPerArea  =  2;
@@ -72,19 +74,25 @@ void EAMFCC3D_surf::Moduli(dMatrixT& Cij, const dSymMatrixT& strain)
 	Cij	*= 0.5*kEAMFCC3DNumAtomsPerArea/fCellArea;
 }
 
-/* return the symmetric 2nd PK stress tensor */
+/* return the symmetric 2nd PK surface stress tensor */
 void EAMFCC3D_surf::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 {
 	/* compute deformed lattice geometry */
 	ComputeDeformedLengths(strain);
 
+	/* Compute deformed lattice geometry for surface/bulk unit cells */
+	ComputeDeformedBulkBonds(strain);
+	ComputeDeformedSurf1Bonds(strain);
+	ComputeDeformedSurf2Bonds(strain);
+
 	/* unit stress */
 	if (!fEAM)
-		fEAM_particle->ComputeUnitStress(stress);
+		fEAM_particle->ComputeUnitStress(stress);	// IMPLEMENT THIS?
 	else
-		fEAM->ComputeUnitStress(stress);
+		fEAM->ComputeUnitSurfaceStress(stress);
 	
 	/* scale by atoms per cell/AREA per cell, split by one half for counting all bonds */
+	/* MAY NOT NEED TO SPLIT BONDS BY ONE HALF */
 	stress *= 0.5*kEAMFCC3DNumAtomsPerArea/fCellArea;
 }
 
@@ -110,10 +118,19 @@ void EAMFCC3D_surf::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 	
 void EAMFCC3D_surf::LoadBondTable(void)
 {
-	/* dimension work space */
-	fBondCounts.Dimension(kEAMFCC3DNumBonds);
-	fDefLength.Dimension(kEAMFCC3DNumBonds);
-	fBonds.Dimension(kEAMFCC3DNumBonds, kEAMFCC3DNumLatticeDim);
+	/* dimension work space - ARE THESE DIMENSIONS CORRECT? */
+	fBondCounts.Dimension(kEAMFCC3DSurfBonds);
+	fBulkCounts.Dimension(kEAMFCC3DNumBonds);
+	fSurf1Counts.Dimension(kEAMFCC3DSurf1Bonds);
+	fSurf2Counts.Dimension(kEAMFCC3DSurf2Bonds);
+	fDefLength.Dimension(kEAMFCC3DSurfBonds);
+	fDefBulk.Dimension(kEAMFCC3DNumBonds);
+	fDefSurf1.Dimension(kEAMFCC3DSurf1Bonds);
+	fDefSurf2.Dimension(kEAMFCC3DSurf2Bonds);
+	fBonds.Dimension(kEAMFCC3DSurfBonds, kEAMFCC3DNumLatticeDim);
+	fBulkBonds.Dimension(kEAMFCC3DNumBonds,3);
+	fSurf1Bonds.Dimension(kEAMFCC3DSurf1Bonds,3);
+	fSurf2Bonds.Dimension(kEAMFCC3DSurf2Bonds,3);
 
 	dArray2DT temp_bonds, temp_bonds2;
 	temp_bonds.Dimension(kEAMFCC3DSurfBonds, 3);	// temporary bond table before rotation
@@ -124,10 +141,12 @@ void EAMFCC3D_surf::LoadBondTable(void)
 	
 	/* clear deformed lengths for now */
 	fDefLength = 0.0;
+	fDefBulk = 0.0;
+	fDefSurf1 = 0.0;
+	fDefSurf2 = 0.0;
 
-	/* undeformed bond data for unit cube to 4th nearest neighbors */
-	/*
-	double bonddata[kEAMFCC3DNumBonds][kEAMFCC3DNumLatticeDim] = {
+	/* undeformed bond data for bulk atom with 4th neighbor interactions */
+	double bulkbond[kEAMFCC3DNumBonds][kEAMFCC3DNumLatticeDim] = {
 		{0, 0, -1.},
 		{0, 0, 1.},
 		{0, -1., 0},
@@ -183,7 +202,107 @@ void EAMFCC3D_surf::LoadBondTable(void)
 		{1., 0.5, -0.5},
 		{1., 0.5, 0.5}
 	};
-*/
+
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DNumBonds; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			fBulkBonds(i,j) = bulkbond[i][j];
+
+	/* Bond table for an atom on the surface */
+	double surf1bond[kEAMFCC3DSurf1Bonds][kEAMFCC3DNumLatticeDim] = {
+		{0.5, 0.5, 0.0}, // Surface cluster (8 nearest neighbors)
+		{0.5, -0.5, 0.0},
+		{0.5, 0.0, 0.5},
+		{0.5, 0.0, -0.5},
+		{0.0, 0.5, 0.5},
+		{0.0, -0.5, 0.5},
+		{0.0, 0.5, -0.5},
+		{0.0, -0.5, -0.5},
+		{1.0, 0.0, 0.0}, // Surface cluster (5 2nd shell neighbors)
+		{0.0, 1.0, 0.0},
+		{0.0, 0.0, 1.0},
+		{0.0, -1.0, 0.0},
+		{0.0, 0.0, -1.0},
+		{1.0, 0.5, 0.5}, // Surface cluster (12 3rd shell neighbors)
+		{0.5, 1.0, 0.5},
+		{0.5, 0.5, 1.0},
+		{1.0, 0.5, -0.5},
+		{0.5, 1.0, -0.5},
+		{0.5, 0.5, -1.0},
+		{1.0, -0.5, 0.5},
+		{0.5, -1.0, 0.5},
+		{0.5, -0.5, 1.0},
+		{1.0, -0.5, -0.5},
+		{0.5, -1.0, -0.5},
+		{0.5, -0.5, -1.0},
+		{0.0, 1.0, -1.0}, // Surface cluster (8 4th shell neighbors)
+		{0.0, 1.0, 1.0},
+		{1.0, 1.0, 0.0},
+		{1.0, -1.0, 0.0},
+		{1.0, 0.0, 1.0},
+		{1.0, 0.0, -1.0},
+		{0.0, -1.0, -1.0},
+		{0.0, -1.0, 1.0}
+	};
+
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DSurf1Bonds; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			fSurf1Bonds(i,j) = surf1bond[i][j];
+
+	/* Bond table for an atom 1 layer into the bulk */
+	double surf2bond[kEAMFCC3DSurf2Bonds][kEAMFCC3DNumLatticeDim] = {
+		{0.5, 0.5, 0.0}, // Surface cluster (8 nearest neighbors)
+		{0.5, -0.5, 0.0},
+		{0.5, 0.0, 0.5},
+		{0.5, 0.0, -0.5},
+		{0.0, 0.5, 0.5},
+		{0.0, -0.5, 0.5},
+		{0.0, 0.5, -0.5},
+		{0.0, -0.5, -0.5},
+		{-0.5, -0.5, 0.0}, // New bonds for second surface cluster begin here
+		{-0.5, 0.5, 0.0},
+		{-0.5, 0.0, 0.5},
+		{-0.5, 0.0, -0.5},
+		{1.0, 0.0, 0.0}, // Surface cluster (5 2nd shell neighbors)
+		{0.0, 1.0, 0.0},
+		{0.0, 0.0, 1.0},
+		{0.0, -1.0, 0.0},
+		{0.0, 0.0, -1.0},
+		{1.0, 0.5, 0.5}, // Surface cluster (12 3rd shell neighbors)
+		{0.5, 1.0, 0.5},
+		{0.5, 0.5, 1.0},
+		{1.0, 0.5, -0.5},
+		{0.5, 1.0, -0.5},
+		{0.5, 0.5, -1.0},
+		{1.0, -0.5, 0.5},
+		{0.5, -1.0, 0.5},
+		{0.5, -0.5, 1.0},
+		{1.0, -0.5, -0.5},
+		{0.5, -1.0, -0.5},
+		{0.5, -0.5, -1.0},
+		{-0.5, 1.0, 0.5}, // New bonds for second surface cluster begin here
+		{-0.5, 1.0, -0.5},
+		{-0.5, 0.5, 1.0},
+		{-0.5, 0.5, -1.0},
+		{-0.5, -0.5, 1.0},
+		{-0.5, -0.5, -1.0},
+		{-0.5, -1.0, 0.5},
+		{-0.5, -1.0, -0.5},
+		{0.0, 1.0, -1.0}, // Surface cluster (8 4th shell neighbors)
+		{0.0, 1.0, 1.0},
+		{1.0, 1.0, 0.0},
+		{1.0, -1.0, 0.0},
+		{1.0, 0.0, 1.0},
+		{1.0, 0.0, -1.0},
+		{0.0, -1.0, -1.0},
+		{0.0, -1.0, 1.0}
+	};
+
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DSurf2Bonds; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			fSurf2Bonds(i,j) = surf2bond[i][j];
 
 	/* New bond table for surface clusters - change dimensions! */
 	/* AVOID HARD CODING NUMBER OF BONDS SPECIFIC TO {100} */
@@ -333,7 +452,6 @@ void EAMFCC3D_surf::LoadBondTable(void)
 		}	
 		fBonds = temp_bonds2;
 	}	
-
 	
 	/* copy into reference table */
 	/* AVOID HARD CODING NUMBER OF BONDS DUE TO {100} SURFACES */
@@ -345,6 +463,9 @@ void EAMFCC3D_surf::LoadBondTable(void)
 	*/
 	/* scale to correct lattice parameter */				     		
 	fBonds *= fLatticeParameter;
+	fBulkBonds *= fLatticeParameter;
+	fSurf1Bonds *= fLatticeParameter;
+	fSurf2Bonds *= fLatticeParameter;
 }
 
 /* describe the parameters needed by the interface */
