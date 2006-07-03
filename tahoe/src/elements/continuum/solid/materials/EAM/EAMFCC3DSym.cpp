@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym.cpp,v 1.6 2006-07-02 21:11:06 hspark Exp $ */
+/* $Id: EAMFCC3DSym.cpp,v 1.7 2006-07-03 20:19:32 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym.h"
 
@@ -18,69 +18,66 @@ EAMFCC3DSym::EAMFCC3DSym(void) {
  **********************************************************************/
 	
 void EAMFCC3DSym::LoadBondTable(void)
-{
-	/* override with full, non-symmetric bond table */
-	EAMFCC3D::LoadBondTable();
-	
+{	
 	/* dimension work space */
-//	fBondCounts.Dimension(kEAMFCC3DSymNumBonds);
-//	fDefLength.Dimension(kEAMFCC3DSymNumBonds);
-//	fBonds.Dimension(kEAMFCC3DSymNumBonds, kEAMFCC3DNumLatticeDim);
+	fBondCounts.Dimension(kEAMFCC3DSymNumBonds);
+	fDefLength.Dimension(kEAMFCC3DSymNumBonds);
+	fBonds.Dimension(kEAMFCC3DSymNumBonds, kEAMFCC3DNumLatticeDim);
 
 	/* all bonds appear twice */
-//	fBondCounts = 2;
+	fBondCounts = 2;
 	
 	/* clear deformed lengths for now */
-//	fDefLength = 0.0;
+	fDefLength = 0.0;
 
 	/*
 	 * Undeformed bond data for unit cube - the table includes
 	 * all neighbors in a (2 x 2 x 2) unit cell area except those
 	 * located at [±1 ±1 ±1], ie the body diagonal neighbors.
 	 */
-//	double bonddata[kEAMFCC3DSymNumBonds][kEAMFCC3DNumLatticeDim] =
+	double bonddata[kEAMFCC3DSymNumBonds][kEAMFCC3DNumLatticeDim] =
 	
 						   {/* face centers - 1st nearest */
-//				/*  1 */	{ 0.5, 0.5, 0.0},
-//				/*  2 */	{-0.5, 0.5, 0.0},
-//				/*  3 */	{ 0.5, 0.0, 0.5},
-//				/*  4 */	{-0.5, 0.0, 0.5},
-//				/*  5 */	{ 0.0, 0.5, 0.5},
-//				/*  6 */	{ 0.0,-0.5, 0.5},
+				/*  1 */	{ 0.5, 0.5, 0.0},
+				/*  2 */	{-0.5, 0.5, 0.0},
+				/*  3 */	{ 0.5, 0.0, 0.5},
+				/*  4 */	{-0.5, 0.0, 0.5},
+				/*  5 */	{ 0.0, 0.5, 0.5},
+				/*  6 */	{ 0.0,-0.5, 0.5},
 	  			
 	  			/* face corners - 4th nearest */
-//				/*  7 */	{ 1.0, 1.0, 0.0},
-//				/*  8 */	{-1.0, 1.0, 0.0},
-//				/*  9 */	{ 1.0, 0.0, 1.0},
-//				/* 10 */	{-1.0, 0.0, 1.0},
-//				/* 11 */	{ 0.0, 1.0, 1.0},
-//				/* 12 */	{ 0.0,-1.0, 1.0},
+				/*  7 */	{ 1.0, 1.0, 0.0},
+				/*  8 */	{-1.0, 1.0, 0.0},
+				/*  9 */	{ 1.0, 0.0, 1.0},
+				/* 10 */	{-1.0, 0.0, 1.0},
+				/* 11 */	{ 0.0, 1.0, 1.0},
+				/* 12 */	{ 0.0,-1.0, 1.0},
 				
 							/* edge corners - 2nd nearest */
-//				/* 13 */	{ 1.0, 0.0, 0.0},
-//				/* 14 */	{ 0.0, 1.0, 0.0},
-//				/* 15 */	{ 0.0, 0.0, 1.0},
+				/* 13 */	{ 1.0, 0.0, 0.0},
+				/* 14 */	{ 0.0, 1.0, 0.0},
+				/* 15 */	{ 0.0, 0.0, 1.0},
 					
 							/* far face corners - 3rd nearest */					
-//				/* 16 */	{ 1.0, 0.5, 0.5},
-//				/* 17 */	{ 1.0, 0.5,-0.5},
-//				/* 18 */	{ 1.0,-0.5, 0.5},
-//				/* 19 */	{ 1.0,-0.5,-0.5},
-//				/* 20 */	{ 0.5, 1.0, 0.5},
-//				/* 21 */	{ 0.5, 1.0,-0.5},
-//				/* 22 */	{-0.5, 1.0, 0.5},
-//				/* 23 */	{-0.5, 1.0,-0.5},
-//				/* 24 */	{ 0.5, 0.5, 1.0},
-//				/* 25 */	{ 0.5,-0.5, 1.0},
-//				/* 26 */	{-0.5, 0.5, 1.0},
-//				/* 27 */	{-0.5,-0.5, 1.0}
+				/* 16 */	{ 1.0, 0.5, 0.5},
+				/* 17 */	{ 1.0, 0.5,-0.5},
+				/* 18 */	{ 1.0,-0.5, 0.5},
+				/* 19 */	{ 1.0,-0.5,-0.5},
+				/* 20 */	{ 0.5, 1.0, 0.5},
+				/* 21 */	{ 0.5, 1.0,-0.5},
+				/* 22 */	{-0.5, 1.0, 0.5},
+				/* 23 */	{-0.5, 1.0,-0.5},
+				/* 24 */	{ 0.5, 0.5, 1.0},
+				/* 25 */	{ 0.5,-0.5, 1.0},
+				/* 26 */	{-0.5, 0.5, 1.0},
+				/* 27 */	{-0.5,-0.5, 1.0}
 				     		};
 	
 	/* copy into reference table */
-//	for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
-//		for (int j = 0; j < 3; j++)
-//			fBonds(i,j) = bonddata[i][j];
+	for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
+		for (int j = 0; j < 3; j++)
+			fBonds(i,j) = bonddata[i][j];
 			
 	/* scale to correct lattice parameter */				     		
-//	fBonds *= fLatticeParameter;
+	fBonds *= fLatticeParameter;
 }

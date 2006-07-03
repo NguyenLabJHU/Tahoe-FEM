@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.8 2005-11-08 04:10:44 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.9 2006-07-03 20:19:32 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
@@ -176,6 +176,11 @@ void EAMFCC3D::LoadBondTable(void)
 		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
 			fBonds(i,j) = bonddata[i][j];
 			
+			
+	/* Define array of atom types = all the same for bulk */
+	fAtomType.Dimension(kEAMFCC3DNumBonds);
+	fAtomType = 0;
+	
 	/* scale to correct lattice parameter */				     		
 	fBonds *= fLatticeParameter;
 }
