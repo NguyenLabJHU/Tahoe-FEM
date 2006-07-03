@@ -1,4 +1,4 @@
-/* $Id: iArrayT.h,v 1.10 2005-07-23 22:13:59 paklein Exp $ */
+/* $Id: iArrayT.h,v 1.11 2006-07-03 20:18:43 hspark Exp $ */
 /* created: paklein (08/10/1996) */
 #ifndef _IARRAY_T_H_
 #define _IARRAY_T_H_
@@ -28,6 +28,7 @@ public:
 	 * indistinguishable from an int. */
 	/*@{*/
 	iArrayT& operator=(const iArrayT& RHS); /**< assignment operator. Redimensions the array too match the source. */
+	iArrayT& operator=(const int* pRHS); /**< assignment operator.  Copy as many values as fit */
 	iArrayT& operator=(int value);  /**< set all elements in the array to value */
 	/*@}*/
 
@@ -76,6 +77,12 @@ public:
 
 /* assigment operators */
 inline iArrayT& iArrayT::operator=(const iArrayT& RHS)
+{
+	nArrayT<int>::operator=(RHS);
+	return *this;
+}
+
+inline iArrayT& iArrayT::operator=(const int* RHS)
 {
 	nArrayT<int>::operator=(RHS);
 	return *this;
