@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.67 2006-07-02 21:11:07 hspark Exp $ */
+/* $Id: EAMT.cpp,v 1.68 2006-07-03 01:38:28 hspark Exp $ */
 
 #include "EAMT.h"
 
@@ -245,9 +245,9 @@ void EAMT::WriteOutput(void)
 
       /* Embedding Energy: E_i(rho_i) */
       if(iEmb == 1 && fOutputFlags[kPE]) values_i[offsets[kPE]] += fEmbeddingEnergy(tag_i,0);
-      	  
 		for (int j = 1; j < neighbors.Length(); j++)
 		{
+
 	  /* tags */
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];		
@@ -316,7 +316,6 @@ void EAMT::WriteOutput(void)
 				double F =  Ep_j * rhop_i + Ep_i * rhop_j;
 				Fbyr += F/r;
 			}
-
 	  		temp.Outer(r_ij);
 			vs_i.AddScaled( 0.5*Fbyr,temp);
 	  }

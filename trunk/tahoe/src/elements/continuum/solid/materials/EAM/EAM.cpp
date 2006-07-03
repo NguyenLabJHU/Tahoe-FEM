@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.7 2006-07-02 21:11:06 hspark Exp $ */
+/* $Id: EAM.cpp,v 1.8 2006-07-03 01:38:28 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAM.h"
 #include "CBLatticeT.h"
@@ -90,25 +90,20 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 	dArrayT rho = ElectronDensityAtNeighbors();
 	double rho0 = rho[0];
 	double dFdrho_i = fEmbeddingEnergy->DFunction(rho[0]);
-	//double dFdrho = fEmbeddingEnergy->DFunction(rho);	
 
 	/* assemble stress */
 	stress = 0.0;
 	dArrayT& DPotential = fPairPotential->MapDFunction(r, fBond1);
 	dArrayT& DDensity   = fElectronDensity->MapDFunction(r, fBond2);
 	int nb = r.Length();
-//	cout << "Pair force = " << DPotential << endl;
-//	cout << "drhodr = " << DDensity << endl;
 
-	double force = 0.0;
 	for (int i = 0; i < nb; i++)
 	{
 		double dFdrho_j = fEmbeddingEnergy->DFunction(rho[i+1]);
-//		cout << "dFdrho = " << dFdrho_j << endl;
 		double ri = r[i];
 		int    ci = counts[i];		
-		double coeff = (1.0/ri)*ci*(DPotential[i] + dFdrho_j*DDensity[i] + dFdrho_i*DDensity[i]);
-		force += coeff;
+		double coeff = (1.0/ri)*ci*0.5*(DPotential[i] + dFdrho_j*DDensity[i] + dFdrho_i*DDensity[i]);
+		//double coeff = (1.0/ri)*ci*(0.5*DPotential[i] + dFdrho_j*DDensity[i]); // old expression
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
 	}
