@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.6 2006-07-02 21:11:06 hspark Exp $ */
+/* $Id: EAM.h,v 1.7 2006-07-03 20:19:32 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAM_H_
 #define _EAM_H_
@@ -45,6 +45,12 @@ public:
 	 *     unit 2nd PK stress = SIJ*(volume per cell/atoms per cell)
 	 */
 	void ComputeUnitStress(dSymMatrixT& stress);
+
+	/* compute unit 2nd PK surface stress:
+	 *
+	 *     unit 2nd PK surface stress = SIJ*(area per cell/atoms per cell)
+	 */
+	void ComputeUnitSurfaceStress(dSymMatrixT& stress);
 	   	    	
 	/* compute unit material tangent moduli:
 	 *
@@ -63,19 +69,21 @@ public:
 	/*@}*/
 	
 	/** compute the total electron density */
-	dArrayT ElectronDensityAtNeighbors(void);
 	double TotalElectronDensity(void);
+	
+	/** calculate representative electron densities for bulk, surface1 and surface2 atoms */
+	void ComputeElectronDensity(void);
 	
 private:
 
 	/* form matrix of mixed pair potential and embedding
 	 * energy derivatives.  NOTE: computes the UPPER triangle
 	 * ONLY */
-	void FormMixedDerivatives(dArrayT rho);	
+	void FormMixedDerivatives(double rho);	
 
 	/* Moduli tensor contributions */
-	void FormSingleBondContribution(dArrayT rho, dMatrixT& moduli);
-	void FormMixedBondContribution(dArrayT rho, dMatrixT& moduli);
+	void FormSingleBondContribution(double rho, dMatrixT& moduli);
+	void FormMixedBondContribution(double rho, dMatrixT& moduli);
 
 	/* set the glue function pointers - called by Initialize() */
 	virtual void SetPairPotential(void) = 0;
@@ -106,18 +114,22 @@ private:
 	dMatrixT fAmn; /* mixed derivative matrix */
 
 	dArrayT fBondTensor2;
-//	dArrayT fBondTensor2b;
+	dArrayT fBondTensor2b;
 
 	/* 2nk rank bond component tensor */
 	dArray2DT fTensor2Table;	
+
+	/* interactiont table for surface clusters */
+	dArray2DT fIntType;
 
 	/* for batch evaluation of bond data */
 	dArrayT	fBond1;
 	dArrayT	fBond2;
 	dArrayT	fBond3;
-	
-	/* array of electron densities at neighboring atoms */
-	//dArrayT fRhoAll;
+	dArrayT fBond4;
+	dArrayT fBond5;
+	dArrayT fBond6;
+	dArrayT fRepRho;
 };
 
 } // namespace Tahoe 
