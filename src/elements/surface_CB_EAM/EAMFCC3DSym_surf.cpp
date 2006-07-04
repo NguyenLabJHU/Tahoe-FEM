@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_surf.cpp,v 1.4 2006-07-03 20:20:09 hspark Exp $ */
+/* $Id: EAMFCC3DSym_surf.cpp,v 1.5 2006-07-04 02:08:30 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym_surf.h"
 
@@ -219,39 +219,12 @@ void EAMFCC3DSym_surf::LoadBondTable(void)
 			fSurf2Bonds(i,j) = surf2bond[i][j];
 
 	/* work space arrays for storing interaction types */
-	iArrayT surf1nn(8);
-	iArrayT surf2nn(12);
-	iArrayT surf12nn(5);
-	iArrayT surf22nn(5);
-	iArrayT surf13nn(12);
-	iArrayT surf23nn(20);
-	iArrayT surf14nn(8);
-	iArrayT surf24nn(8);
-	int surf1n[8]={1,1,1,1,0,0,0,0};
-	int surf2n[12]={5,5,5,5,4,4,4,4,3,3,3,3};
-	int surf12n[5]={2,0,0,0,0};
-	int surf22n[5]={5,4,4,4,4};
-	int surf13n[12]={2,1,1,2,1,1,2,1,1,2,1,1};
-	int surf23n[20]={5,5,5,5,5,5,5,5,5,5,5,5,3,3,3,3,3,3,3,3};
-	int surf14n[8]={0,0,2,2,2,2,0,0};
-	int surf24n[8]={4,4,5,5,5,5,4,4};
-	surf1nn = surf1n;
-	surf2nn = surf2n;
-	surf12nn = surf12n;
-	surf22nn = surf22n;
-	surf13nn = surf13n;
-	surf23nn = surf23n;
-	surf14nn = surf14n;
-	surf24nn = surf24n;
-	fAtomType.CopyIn(0, surf1nn);
-	fAtomType.CopyIn(surf1nn.Length(), surf2nn);
-	fAtomType.CopyIn(surf1nn.Length()+surf2nn.Length(), surf12nn);
-	fAtomType.CopyIn(surf1nn.Length()+surf2nn.Length()+surf12nn.Length(), surf22nn);
-	fAtomType.CopyIn(surf1nn.Length()+surf2nn.Length()+surf12nn.Length()+surf22nn.Length(), surf13nn);
-	int blah = surf1nn.Length()+surf2nn.Length()+surf12nn.Length()+surf22nn.Length()+surf13nn.Length();
-	fAtomType.CopyIn(blah, surf23nn);
-	fAtomType.CopyIn(blah+surf23nn.Length(), surf14nn);
-	fAtomType.CopyIn(blah+surf23nn.Length()+surf14nn.Length(), surf24nn);
+	iArrayT allbonds(78);
+	int surf1n[78]={1,1,1,1,0,0,0,0,5,5,5,5,4,4,4,4,3,3,3,3,2,0,0,0,0,5,4,4,4,4,2,1,1,2,1,1,2,1,1,2,1,1,5,5,5,5,5,5,5,5,5,5,5,5,3,3,3,3,3,3,3,3,0,0,2,2,2,2,0,0,4,4,5,5,5,5,4,4};
+	for (int i = 0; i < kEAMFCC3DSurfBonds; i++)
+		allbonds[i] = surf1n[i];
+	
+	fAtomType.CopyIn(0, allbonds);
 	
 	/* New bond table for surface clusters - change dimensions! */
 	/* AVOID HARD CODING NUMBER OF BONDS SPECIFIC TO {100} */
