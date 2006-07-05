@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.17 2006-06-29 20:11:15 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.18 2006-07-05 17:46:57 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -145,12 +145,9 @@ void FCC3D_Surf::TakeParameterList(const ParameterListT& list)
 	double cube_edge = fNearestNeighbor*sqrt(2.0);
 	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
 	fAtomicArea = .5*cube_edge*cube_edge;	// area normalization same for all surface cluster atoms
-	cout << "fAtomicVolume = " << fAtomicVolume << endl;
-	cout << "fAtomicArea = " << fAtomicArea << endl;
 
 	/* set surface thickness - should be right */
 	fSurfaceThickness = 0.75*cube_edge;
-	cout << "fSurfaceThickness = " << fSurfaceThickness << endl;
 
 	/* reset the continuum density (4 atoms per unit cell) */
 	/* DOES THIS NEED TO BE CHANGED? */

@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.h,v 1.7 2006-05-29 17:22:15 paklein Exp $ */
+/* $Id: FCC3D_Surf.h,v 1.8 2006-07-05 17:46:58 hspark Exp $ */
 #ifndef _FCC_3D_SURF_H_
 #define _FCC_3D_SURF_H_
 
@@ -59,7 +59,7 @@ public:
 
 //TEMP
 /** spatial tangent modulus */
-//virtual const dMatrixT& c_ijkl(void) { return FSSolidMatT::c_ijkl(); };
+	virtual const dMatrixT& c_ijkl(void) { return FSSolidMatT::c_ijkl(); };
 
 protected:
 

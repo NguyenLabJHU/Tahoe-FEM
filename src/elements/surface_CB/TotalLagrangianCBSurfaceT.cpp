@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.25 2006-06-29 20:11:15 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.26 2006-07-05 17:46:58 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -498,6 +498,10 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 void TotalLagrangianCBSurfaceT::RHSDriver(void)
 {
 	const char caller[] = "TotalLagrangianCBSurfaceT::RHSDriver";
+	
+	/* check wave speed directions */
+	dArrayT normal(3), speeds(3);
+	normal = (0.0,0.0,1.0);
 
 	/* inherited - bulk contribution */
 	TotalLagrangianT::RHSDriver();
@@ -655,7 +659,11 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					if (fIndicator == "FCC_3D")
 						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else if (fIndicator == "FCC_EAM")
+					{
 						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+						//fEAMSurfaceCB[normal_type]->WaveSpeeds(normal, speeds);
+						//cout << "wave speeds are " << speeds << endl;
+					}
 					else
 						int blah = 0;
 				

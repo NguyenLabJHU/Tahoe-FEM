@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.h,v 1.3 2006-06-03 23:03:45 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.h,v 1.4 2006-07-05 17:46:58 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_SURF_H_
 #define _EAMFCC3DMatT_SURF_H_
@@ -39,6 +39,10 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+//TEMP
+/** spatial tangent modulus */
+	virtual const dMatrixT& c_ijkl(void) { return FSSolidMatT::c_ijkl(); };
 
 protected:
 
