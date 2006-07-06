@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.9 2006-07-03 20:19:32 hspark Exp $ */
+/* $Id: EAM.cpp,v 1.10 2006-07-06 01:20:05 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAM.h"
 #include "CBLatticeT.h"
@@ -51,7 +51,7 @@ void EAM::Initialize(int nsd, int numbonds)
 	fBond5.Dimension(rs1.Length());
 	fBond6.Dimension(rs2.Length());
 	fBondTensor2b.Dimension(nstrs);
-	fIntType.Dimension(5,2);
+	fIntType.Dimension(6,2);
 }
 
 /*
@@ -99,7 +99,6 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 
 	/* total atomic density */
 	double rho = TotalElectronDensity();
-	//cout << "TotalElectronDensity = " << rho << endl;
 	double dFdrho = fEmbeddingEnergy->DFunction(rho);
 
 	/* assemble stress */
@@ -133,9 +132,6 @@ void EAM::ComputeUnitSurfaceStress(dSymMatrixT& stress)
 		
 	/* calculate representative electron densities */
 	ComputeElectronDensity();
-	//cout << "bulk rho = " << fRepRho[0] << endl;
-	//cout << "surf1 rho = " << fRepRho[1] << endl;
-	//cout << "surf2 rho = " << fRepRho[2] << endl;
 	
 	/* Create interaction table using calculated electron densities */
 	fIntType(0,0) = (fRepRho[1]);
@@ -150,7 +146,6 @@ void EAM::ComputeUnitSurfaceStress(dSymMatrixT& stress)
 	fIntType(4,1) = (fRepRho[2]);
 	fIntType(5,0) = (fRepRho[2]);
 	fIntType(5,1) = (fRepRho[0]);
-	//cout << "Interaction type = " << fIntType << endl;
 
 	/* assemble stress */
 	stress = 0.0;
@@ -240,7 +235,6 @@ void EAM::ComputeElectronDensity(void)
 		rhos2 += (*pcounts2++)*(*pedenss2++);
 	
 	double blah[3] = {rhob,rhos1,rhos2};
-	int asdf1[3] = {1,2,3};
 	fRepRho = blah;
 }
 
