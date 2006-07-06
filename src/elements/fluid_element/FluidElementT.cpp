@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.1 2006-07-06 16:28:45 a-kopacz Exp $ */
+/* $CVSHeader$ */
 
 #include "FluidElementT.h"
 
