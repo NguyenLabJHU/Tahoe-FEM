@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_surf.cpp,v 1.5 2006-07-04 02:08:30 hspark Exp $ */
+/* $Id: EAMFCC3DSym_surf.cpp,v 1.6 2006-07-06 19:05:25 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym_surf.h"
 
@@ -43,9 +43,15 @@ void EAMFCC3DSym_surf::LoadBondTable(void)
 	fSurf2Bonds.Dimension(kEAMFCC3DSurf2Bonds,3);
 	fAtomType.Dimension(kEAMFCC3DSurfBonds);
 
-	dArray2DT temp_bonds, temp_bonds2;
+	dArray2DT temp_bonds, temp_bonds2, temp_bulk, temp_surf1, temp_surf2, tempb, temps1, temps2;
 	temp_bonds.Dimension(kEAMFCC3DSurfBonds, 3);	// temporary bond table before rotation
 	temp_bonds2.Dimension(kEAMFCC3DSurfBonds, 3);	// Currently have # of bonds for {100} surfaces
+	temp_bulk.Dimension(kEAMFCC3DNumBonds, 3);
+	temp_surf1.Dimension(kEAMFCC3DSurf1Bonds, 3);
+	temp_surf2.Dimension(kEAMFCC3DSurf2Bonds, 3);
+	tempb.Dimension(kEAMFCC3DNumBonds, 3);
+	temps1.Dimension(kEAMFCC3DSurf1Bonds, 3);
+	temps2.Dimension(kEAMFCC3DSurf2Bonds, 3);
 
 	/* all bonds appear once */
 	fBondCounts = 1;
@@ -120,7 +126,7 @@ void EAMFCC3DSym_surf::LoadBondTable(void)
 	/* Copy bond table into array */
 	for (int i = 0; i < kEAMFCC3DNumBonds; i++)
 		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
-			fBulkBonds(i,j) = bulkbond[i][j];
+			temp_bulk(i,j) = bulkbond[i][j];
 
 	/* Bond table for an atom on the surface */
 	double surf1bond[kEAMFCC3DSurf1Bonds][kEAMFCC3DNumLatticeDim] = {
@@ -162,7 +168,7 @@ void EAMFCC3DSym_surf::LoadBondTable(void)
 	/* Copy bond table into array */
 	for (int i = 0; i < kEAMFCC3DSurf1Bonds; i++)
 		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
-			fSurf1Bonds(i,j) = surf1bond[i][j];
+			temp_surf1(i,j) = surf1bond[i][j];
 
 	/* Bond table for an atom 1 layer into the bulk */
 	double surf2bond[kEAMFCC3DSurf2Bonds][kEAMFCC3DNumLatticeDim] = {
@@ -216,7 +222,7 @@ void EAMFCC3DSym_surf::LoadBondTable(void)
 	/* Copy bond table into array */
 	for (int i = 0; i < kEAMFCC3DSurf2Bonds; i++)
 		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
-			fSurf2Bonds(i,j) = surf2bond[i][j];
+			temp_surf2(i,j) = surf2bond[i][j];
 
 	/* work space arrays for storing interaction types */
 	iArrayT allbonds(78);
@@ -319,18 +325,32 @@ void EAMFCC3DSym_surf::LoadBondTable(void)
 	
 	/* Now manipulate temp_bonds */
 	dMatrixT blah1(3);
-	dArrayT asdf(3), prod(3);
+	dArrayT asdf(3), prod(3), asdfb(3), prodb(3), asdfs1(3), prods1(3), asdfs2(3), prods2(3);
 	if (fNormalCode == 0)	// normal is [1,0,0]
 	{
 		temp_bonds2 = temp_bonds;
 		fBonds = temp_bonds2;
 		fBonds *= -1.0;
+		fBulkBonds = temp_bulk;
+		fBulkBonds *= -1.0;
+		fSurf1Bonds = temp_surf1;
+		fSurf1Bonds *= -1.0;
+		fSurf2Bonds = temp_surf2;
+		fSurf2Bonds *= -1.0;
 	}
 	else if (fNormalCode == 1)
+	{
 		fBonds = temp_bonds;	// this table is the default, i.e. [-1,0,0]
+		fBulkBonds = temp_bulk;
+		fSurf1Bonds = temp_surf1;
+		fSurf2Bonds = temp_surf2;
+	}
 	else if (fNormalCode == 2)	// rotate [-1,0,0] to [0,1,0]
 	{
 		temp_bonds2 = temp_bonds;
+		tempb = temp_bulk;
+		temps1 = temp_surf1;
+		temps2 = temp_surf2;
 		blah1 = RotationMatrixA(piby2);
 		for (int i = 0; i < kEAMFCC3DSurfBonds; i++)
 		{
@@ -338,53 +358,138 @@ void EAMFCC3DSym_surf::LoadBondTable(void)
 			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
 			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
 		}
+		for (int i = 0; i < kEAMFCC3DNumBonds; i++)
+		{
+			tempb.RowCopy(i,asdfb);
+			blah1.Multx(asdfb,prodb);
+			tempb.SetRow(i,prodb);
+		}
+		for (int i = 0; i < kEAMFCC3DSurf1Bonds; i++)
+		{
+			temps1.RowCopy(i,asdfs1);
+			blah1.Multx(asdfs1,prods1);
+			temps1.SetRow(i,prods1);
+		}
+		for (int i = 0; i < kEAMFCC3DSurf2Bonds; i++)
+		{
+			temps2.RowCopy(i,asdfs2);
+			blah1.Multx(asdfs2,prods2);
+			temps2.SetRow(i,prods2);
+		}
 		fBonds = temp_bonds2;
+		fBulkBonds = tempb;
+		fSurf1Bonds = temps1;
+		fSurf2Bonds = temps2;
 	}
 	else if (fNormalCode == 3)	// rotate [-1,0,0] to [0,-1,0]
 	{
 		temp_bonds2 = temp_bonds;
+		tempb = temp_bulk;
+		temps1 = temp_surf1;
+		temps2 = temp_surf2;
 		blah1 = RotationMatrixA(-piby2);
 		for (int i = 0; i < kEAMFCC3DSurfBonds; i++)
 		{
 			temp_bonds2.RowCopy(i,asdf);	// take bond
 			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
 			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
-		}	
+		}
+		for (int i = 0; i < kEAMFCC3DNumBonds; i++)
+		{
+			tempb.RowCopy(i,asdfb);
+			blah1.Multx(asdfb,prodb);
+			tempb.SetRow(i,prodb);
+		}
+		for (int i = 0; i < kEAMFCC3DSurf1Bonds; i++)
+		{
+			temps1.RowCopy(i,asdfs1);
+			blah1.Multx(asdfs1,prods1);
+			temps1.SetRow(i,prods1);
+		}
+		for (int i = 0; i < kEAMFCC3DSurf2Bonds; i++)
+		{
+			temps2.RowCopy(i,asdfs2);
+			blah1.Multx(asdfs2,prods2);
+			temps2.SetRow(i,prods2);
+		}
 		fBonds = temp_bonds2;
+		fBulkBonds = tempb;
+		fSurf1Bonds = temps1;
+		fSurf2Bonds = temps2;
 	}
 	else if (fNormalCode == 4)	// rotate [-1,0,0] to [0,0,1]
 	{
 		temp_bonds2 = temp_bonds;
+		tempb = temp_bulk;
+		temps1 = temp_surf1;
+		temps2 = temp_surf2;
 		blah1 = RotationMatrixB(-piby2);
 		for (int i = 0; i < kEAMFCC3DSurfBonds; i++)
 		{
 			temp_bonds2.RowCopy(i,asdf);	// take bond
 			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
 			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
-		}	
+		}
+		for (int i = 0; i < kEAMFCC3DNumBonds; i++)
+		{
+			tempb.RowCopy(i,asdfb);
+			blah1.Multx(asdfb,prodb);
+			tempb.SetRow(i,prodb);
+		}
+		for (int i = 0; i < kEAMFCC3DSurf1Bonds; i++)
+		{
+			temps1.RowCopy(i,asdfs1);
+			blah1.Multx(asdfs1,prods1);
+			temps1.SetRow(i,prods1);
+		}
+		for (int i = 0; i < kEAMFCC3DSurf2Bonds; i++)
+		{
+			temps2.RowCopy(i,asdfs2);
+			blah1.Multx(asdfs2,prods2);
+			temps2.SetRow(i,prods2);
+		}
 		fBonds = temp_bonds2;
+		fBulkBonds = tempb;
+		fSurf1Bonds = temps1;
+		fSurf2Bonds = temps2;
 	}	
 	else if (fNormalCode == 5)	// rotate [-1,0,0] to [0,0,-1]
 	{
 		temp_bonds2 = temp_bonds;
+		tempb = temp_bulk;
+		temps1 = temp_surf1;
+		temps2 = temp_surf2;
 		blah1 = RotationMatrixB(piby2);
 		for (int i = 0; i < kEAMFCC3DSurfBonds; i++)
 		{
 			temp_bonds2.RowCopy(i,asdf);	// take bond
 			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
 			temp_bonds2.SetRow(i,prod);	// place new bond back into temp_bonds
-		}	
+		}
+		for (int i = 0; i < kEAMFCC3DNumBonds; i++)
+		{
+			tempb.RowCopy(i,asdfb);
+			blah1.Multx(asdfb,prodb);
+			tempb.SetRow(i,prodb);
+		}
+		for (int i = 0; i < kEAMFCC3DSurf1Bonds; i++)
+		{
+			temps1.RowCopy(i,asdfs1);
+			blah1.Multx(asdfs1,prods1);
+			temps1.SetRow(i,prods1);
+		}
+		for (int i = 0; i < kEAMFCC3DSurf2Bonds; i++)
+		{
+			temps2.RowCopy(i,asdfs2);
+			blah1.Multx(asdfs2,prods2);
+			temps2.SetRow(i,prods2);
+		}
 		fBonds = temp_bonds2;
+		fBulkBonds = tempb;
+		fSurf1Bonds = temps1;
+		fSurf2Bonds = temps2;
 	}	
-	
-	/* copy into reference table */
-	/* AVOID HARD CODING NUMBER OF BONDS DUE TO {100} SURFACES */
-	/* OBVIATED BY fBonds ABOVE
-	for (int i = 0; i < 78; i++)
-		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
-			fBonds(i,j) = bonddata[i][j];
-	
-	*/
+
 	/* scale to correct lattice parameter */				     		
 	fBonds *= fLatticeParameter;
 	fBulkBonds *= fLatticeParameter;
