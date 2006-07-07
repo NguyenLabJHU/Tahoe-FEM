@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.8 2006-07-03 20:20:09 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.9 2006-07-07 02:44:40 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -93,7 +93,7 @@ void EAMFCC3D_surf::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 	
 	/* scale by atoms per cell/AREA per cell, split by one half for counting all bonds */
 	/* MAY NOT NEED TO SPLIT BONDS BY ONE HALF */
-	stress *= 0.5*kEAMFCC3DNumAtomsPerArea/fCellArea;
+	stress *= kEAMFCC3DNumAtomsPerArea/fCellArea;
 }
 
 /* compute electron density at ghost atom */
