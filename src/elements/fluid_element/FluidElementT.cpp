@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.4 2006-07-12 17:48:40 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.5 2006-07-13 17:55:11 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -9,8 +9,14 @@
 #include "ifstreamT.h"
 #include "eIntegratorT.h"
 #include "ShapeFunctionT.h"
-#include "XDOF_ManagerT.h"
 #include "ParameterContainerT.h"
+
+/* materials */
+#include "FluidMaterialT.h"
+#include "FluidMatSupportT.h"
+#include "FluidMatListT.h"
+
+const double Pi = acos(-1.0);
 
 using namespace Tahoe;
 
@@ -36,11 +42,13 @@ const int FluidElementT::kPressureNDOF = 1;
 /* constructor */
 FluidElementT::FluidElementT(const ElementSupportT& support):
   ContinuumElementT(support),
-  /* velocity */
-  fLocCurVel(LocalArrayT::kDisp),  
-  fLocOldVel(LocalArrayT::kLastDisp),
+  /*dofs: vels and press*/
+  fLocLastDisp(LocalArrayT::kLastDisp),
+  fLocVel(LocalArrayT::kVel), /* velocity */
+  fLocCurVel(LocalArrayT::kUnspecified),  
+  fLocOldVel(LocalArrayT::kUnspecified),
   /* accelaration */
-  fLocCurAcc(LocalArrayT::kVel),
+  fLocCurAcc(LocalArrayT::kUnspecified),
   /* pressure */   
   fLocPrs(LocalArrayT::kUnspecified)
 {
@@ -50,8 +58,7 @@ FluidElementT::FluidElementT(const ElementSupportT& support):
 /* destructor */
 FluidElementT::~FluidElementT(void)
 {
-  delete fCurrShapes;
-  fCurrShapes = NULL;
+	delete fFluidMatSupport;
 }
 
 /* compute nodal force */
@@ -117,6 +124,51 @@ void FluidElementT::SendOutput(int kincode)
   dArray2DT n_values, e_values;
   ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+/* construct a new material support and return a pointer */
+MaterialSupportT* FluidElementT::NewMaterialSupport(MaterialSupportT* p) const
+{
+	/* allocate */
+	if (!p) p = new FluidMatSupportT(NumDOF(), NumIP());
+
+	/* inherited initializations */
+	ContinuumElementT::NewMaterialSupport(p);
+	
+	/* set FluidMatSupportT fields */
+	FluidMatSupportT* ps = TB_DYNAMIC_CAST(FluidMatSupportT*, p);
+	if (ps) {
+		ps->SetContinuumElement(this);
+		ps->SetField(&fVel_list, &fPres_list);
+		ps->SetGradient(&fGradVel_list, &fGradPres_list);
+	}
+
+	return p;
+}
+
+/* return a pointer to a new material list */
+MaterialListT* FluidElementT::NewMaterialList(const StringT& name, int size)
+{
+	/* no match */
+	if (name != "fluid_material") 
+		return NULL;
+
+	if (size > 0)
+	{
+		if (!fFluidMatSupport) {
+			fFluidMatSupport = TB_DYNAMIC_CAST(FluidMatSupportT*, NewMaterialSupport());
+			if (!fFluidMatSupport) ExceptionT::GeneralFail("FluidElementT::NewMaterialList");
+		}
+
+		return new FluidMatListT(size, *fFluidMatSupport);
+	}
+	else
+		return new FluidMatListT;
+
+}
+
 /* driver for calculating output values */
 void FluidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
   const iArrayT& e_codes, dArray2DT& e_values)
@@ -132,191 +184,562 @@ void FluidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
   // not implemented
   return;
 }  
-/***********************************************************************
- * Protected
- ***********************************************************************/
 
+/* current element operations */
+bool FluidElementT::NextElement(void)
+{
+	/* inherited */
+	bool result = ContinuumElementT::NextElement();
+	
+	/* get material pointer */
+	if (result)
+	{
+		ContinuumMaterialT* pcont_mat = (*fMaterialList)[CurrentElement().MaterialNumber()];
+	
+		/* cast is safe since class contructs materials list */
+		fCurrMaterial = (FluidMaterialT*) pcont_mat;
+	}
+	
+	return result;
+}
 /** initialize local arrays */
 void FluidElementT::SetLocalArrays(void)
 {
   WriteCallLocation("SetLocalArrays"); //DEBUG
+
   /* inherited */
   ContinuumElementT::SetLocalArrays();
 
   /* allocate */
   int nen = NumElementNodes();
-  fLocCurVel.Dimension(nen, NumDOF());
-  fLocOldVel.Dimension(nen, NumDOF());
-  fLocCurAcc.Dimension(nen, NumDOF());
+  int ndof  = NumDOF();
+
+  fLocLastDisp.Dimension(nen, ndof);
 
   /* set source */
-  Field().RegisterLocal(fLocCurVel);
-  Field().RegisterLocal(fLocOldVel);
+  Field().RegisterLocal(fLocLastDisp);
 
   if (fIntegrator->Order() > 0)
-    Field().RegisterLocal(fLocCurAcc);
+    Field().RegisterLocal(fLocVel);
+  
+  const double* p_cur_vel = fLocDisp(0);  
+  fLocCurVel.Alias(nen, ndof - 1, p_cur_vel);
 
-  /* allocate */
-  fLocPrs.Dimension(NumElementNodes(), 1);
+  const double* p_cur_pres = fLocDisp(ndof-1);
+  fLocPrs.Alias(nen, 1, p_cur_pres);
+  
+  const double* p_old_vel = fLocLastDisp(0);  
+  fLocOldVel.Alias(nen, ndof - 1, p_old_vel);
 
-  /* no need to set source for fLocPrs; handled by XDOF_ManagerT */
+  const double* p_cur_acc = fLocVel(0);  
+  fLocCurAcc.Alias(nen, ndof - 1, p_cur_acc);
 }
 
-void FluidElementT::SetShape(void)
-{
-  WriteCallLocation("SetShape"); //DEBUG
-  /* link shape functions to current velocities */
-  fCurrShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocCurVel);
-  if (!fCurrShapes ) throw ExceptionT::kOutOfMemory;
-
-  fCurrShapes->Initialize();
-}
-
-/** form shape functions and derivatives */
+/* form shape functions and derivatives */
 void FluidElementT::SetGlobalShape(void)
 {
-  WriteCallLocation("SetGlobalShape"); //DEBUG
-  /* shape function wrt current velocities; Eularian formulation */
-  SetLocalX(fLocCurVel);
+	/* inherited */
+	ContinuumElementT::SetGlobalShape();
 
-  /* compute shape function derivatives */
-  fCurrShapes->SetDerivatives();
+
+	/* material dependent local arrays */
+	SetLocalU(fLocDisp);	
+	SetLocalU(fLocLastDisp);	
+
+	/* have velocity */
+	if (fLocVel.IsRegistered())
+		SetLocalU(fLocVel);
+	
+	/* loop over integration points */
+	for (int i = 0; i < NumIP(); i++)
+	{
+		/* velocity gradient */
+		dArrayT& vel = fVel_list[i];
+		dMatrixT& gradV = fGradVel_list[i];
+		dMatrixT gradP;
+		gradP.Set(1,NumSD(), fGradPres_list[i].Pointer());
+    dArrayT pres;
+    double* p = fPres_list.Pointer();
+    pres.Set(1,p+i);
+		fShapes->GradU(fLocCurVel, gradV, i);
+		fShapes->GradU(fLocPrs, gradP, i);
+		fShapes->InterpolateU(fLocPrs, pres, i);
+		fShapes->InterpolateU(fLocCurVel, vel, i);
+	}
+}
+
+void FluidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
+{
+#if __option(extended_errorcheck)
+	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
+	    B.Cols() != DNa.Length())
+	    throw ExceptionT::kSizeMismatch;
+#endif
+
+	int nnd = DNa.MinorDim();
+	double* pB = B.Pointer();
+
+	/* 1D */
+	if (DNa.MajorDim() == 1)
+	{
+		const double* pNax = DNa(0);
+		for (int i = 0; i < nnd; i++)
+			*pB++ = *pNax++;
+	}
+	/* 2D */
+	else if (DNa.MajorDim() == 2)
+	{
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+		for (int i = 0; i < nnd; i++)
+		{
+			/* see Hughes (2.8.20) */
+			*pB++ = *pNax;
+			*pB++ = 0.0;
+			*pB++ = *pNay;
+
+			*pB++ = 0.0;
+			*pB++ = *pNay++;
+			*pB++ = *pNax++;
+		}
+	}
+	/* 3D */
+	else		
+	{
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+		const double* pNaz = DNa(2);
+		for (int i = 0; i < nnd; i++)
+		{
+			/* see Hughes (2.8.21) */
+			*pB++ = *pNax;
+			*pB++ = 0.0;
+			*pB++ = 0.0;
+			*pB++ = 0.0;
+			*pB++ = *pNaz;
+			*pB++ = *pNay;
+
+			*pB++ = 0.0;
+			*pB++ = *pNay;
+			*pB++ = 0.0;
+			*pB++ = *pNaz;
+			*pB++ = 0.0;
+			*pB++ = *pNax;
+
+			*pB++ = 0.0;
+			*pB++ = 0.0;
+			*pB++ = *pNaz++;
+			*pB++ = *pNay++;
+			*pB++ = *pNax++;
+			*pB++ = 0.0;
+		}
+	}
+}
+
+/* set the \e B matrix for axisymmetric deformations */
+void FluidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa, 
+	double r, dMatrixT& B) const
+{
+#if __option(extended_errorcheck)
+	if (B.Rows() != 4 || /* (number of stress 2D components) + 1 */
+	    B.Cols() != DNa.Length() ||
+    DNa.MajorDim() != 2 ||
+    DNa.MinorDim() != Na.Length())
+			ExceptionT::SizeMismatch("SolidElementT::Set_B_axi");
+#endif
+
+	int nnd = DNa.MinorDim();
+	double* pB = B.Pointer();
+
+	const double* pNax = DNa(0);
+	const double* pNay = DNa(1);
+	const double* pNa  = Na.Pointer();
+	for (int i = 0; i < nnd; i++)
+	{
+		/* see Hughes (2.12.8) */
+		*pB++ = *pNax;
+		*pB++ = 0.0;
+		*pB++ = *pNay;
+		*pB++ = *pNa++/r; /* about y-axis: u_r = u_x */
+
+		*pB++ = 0.0;
+		*pB++ = *pNay++;
+		*pB++ = *pNax++;
+		*pB++ = 0.0;
+	}
+}
+
+/* form the element mass matrix */
+void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
+{
+#if __option(extended_errorcheck)
+	if (fLocDisp.Length() != fLHS.Rows()) ExceptionT::SizeMismatch("FluidElementT::FormMass");
+#endif
+
+	switch (mass_type)
+	{
+		case kNoMass:			/* no mass matrix */
+		
+			break;
+		
+		/*Only consider consistent mass for now.  Do we need a case for lumped mass? */
+		case kConsistentMass:	/* consistent mass	*/
+		{
+			// integration of the element mass is done
+			// in the reference configuration since density
+			// is mass/(undeformed volume)
+			const double* Det    = fShapes->IPDets();
+			const double* Weight = fShapes->IPWeights();
+			
+			int nen = NumElementNodes();
+			int nun = fLocDisp.NumberOfNodes();
+			int ndof = NumDOF();
+			
+			/* matrix form */
+			int a = 0, zero = 0;
+			int& b_start = (fLHS.Format() == ElementMatrixT::kSymmetricUpper) ? a : zero;
+			
+			if (axisymmetric)
+			{
+				const LocalArrayT& coords = fShapes->Coordinates();
+				fShapes->TopIP();	
+				while ( fShapes->NextIP() )
+				{
+					/* compute radius */
+					const double* NaX = fShapes->IPShapeX();
+					const double* x_r = coords(0); /* r is x-coordinate */
+					double r = 0.0;
+					for (a = 0; a < nen; a++)
+						r += (*NaX++)*(*x_r++);
+
+					/* integration factor */				
+					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
+					if (ip_weight) temp *= *ip_weight++;
+
+					const double* Na = fShapes->IPShapeU();		
+					for (a = 0; a < nun; a++)
+						for (int i = 0; i < ndof; i++)
+						{
+							int p = a*ndof + i;
+							
+							/* upper triangle only */
+							for (int b = b_start; b < nun; b++) //TEMP - interpolate at the same time?
+								for (int j = 0; j < ndof; j++)
+									if(i == j) {
+										int q = b*ndof + j;
+										if (j < fPresIndex)
+											fLHS(p,q) += temp*Na[a]*Na[b];
+										else fLHS(p,q) = 0.0;
+									}
+						}
+				}
+			}			
+			else /* not axisymmetric */
+			{
+				fShapes->TopIP();	
+				while ( fShapes->NextIP() )
+				{
+					/* integration factor */
+					double temp = constM*(*Weight++)*(*Det++);
+					if (ip_weight) temp *= *ip_weight++;
+
+					const double* Na = fShapes->IPShapeU();		
+					for (a = 0; a < nun; a++)
+						for (int i = 0; i < ndof; i++)
+						{
+							int p = a*ndof + i;
+							
+							/* upper triangle only */
+							for (int b = b_start; b < nun; b++)
+								for (int j = 0; j < ndof; j++)
+									if(i == j) {
+										int q = b*ndof + j;
+										if (j < fPresIndex)
+											fLHS(p,q) += temp*Na[a]*Na[b];
+										else fLHS(p,q) = 0.0;
+									}
+						}
+				}
+			}
+			break;
+		}
+		default:
+			ExceptionT::BadInputValue("FluidElementT::FormMass", "unknown mass matrix code");
+	}
 }
 
 void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
   WriteCallLocation("LHSDriver"); //DEBUG
+	/* inherited */
+	ContinuumElementT::LHSDriver(sys_type);
+	/* set components and weights */
+	double constC = 0.0;
+	double constK = 0.0;
+	
+	int formC = fIntegrator->FormC(constC);
+	int formK = fIntegrator->FormK(constK);
+
+	/* loop over elements */
+	bool axisymmetric = Axisymmetric();
+	Top();
+	while (NextElement())
+	{
+		/* initialize */
+		fLHS = 0.0;
+		
+		/* set shape function derivatives */
+		SetGlobalShape();
+
+		/* element mass */
+		double density =  fCurrMaterial->Density();
+		if (formC) FormMass(kConsistentMass, constC*density, axisymmetric, NULL);
+
+		/* element stiffness */
+		if (formK) FormStiffness(constK);
+	
+		/* add to global equations */
+		AssembleLHS();		
+	}
 }
+
 void FluidElementT::RHSDriver(void)
 {
   WriteCallLocation("RHSDriver"); //DEBUG  
+	/* inherited */
+	ContinuumElementT::RHSDriver();
+
+	/* set components and weights */
+	double constCv = 0.0;
+	double constKd = 0.0;
+	
+	/* components dicated by the algorithm */
+	int formCv = fIntegrator->FormCv(constCv);
+	int formKd = fIntegrator->FormKd(constKd);
+
+
+	/* body forces */
+	int formBody = 0;
+	if ((fBodySchedule && fBody.Magnitude() > kSmall)) {	
+		formBody = 1;
+		if (!formCv) constCv = 1.0; // correct value ??
+	}
+
+
+	bool axisymmetric = Axisymmetric();
+	double dt = ElementSupport().TimeStep();
+	double by_dt = (fabs(dt) > kSmall) ? 1.0/dt: 0.0; /* for dt -> 0 */
+	Top();
+	while (NextElement())
+	{
+		const ElementCardT& element = CurrentElement();
+
+		if (element.Flag() != ElementCardT::kOFF)
+		{
+			/* initialize */
+			fRHS = 0.0;
+
+			/* global shape function values */
+			SetGlobalShape();
+
+			if (formKd) 
+			{
+				SetLocalU(fLocDisp);
+				FormKd(-constKd);
+			}
+			/* capacity term */
+			if (formCv || formBody)
+			{
+				if (formCv) SetLocalU(fLocVel);
+				else fLocVel = 0.0;
+				if (formBody) AddBodyForce(fLocVel);
+
+				/* add internal contribution */
+				double density = fCurrMaterial->Density();
+				FormMa(kConsistentMass, -constCv*density, axisymmetric,
+					&fLocVel,NULL, NULL);			  		
+			}
+				
+			/* assemble */
+			AssembleRHS();
+		}
+
+	}
 }
 
-/** appends group connectivities to the array (X -> geometry, U -> field) */
-void FluidElementT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
-  AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
+/* calculate the body force contribution */
+void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
+	const LocalArrayT* nodal_values,
+	const dArray2DT* ip_values,
+	const double* ip_weight)
 {
-  WriteCallLocation("ConnectsU"); //DEBUG
-  /* inherited */
-  ContinuumElementT::ConnectsU(connects_1, connects_2);
-  
-  bool found = false;
-  for (int i = connects_1.Length() - 1; i > -1 && !found; i--)
-    if (connects_1[i] == fConnectivities[0])
-    {
-      connects_1[i] = &fXDOFConnectivities;
-      found = true;
-    }
-  /* check */
-  if (!found) connects_1.AppendUnique(&fXDOFConnectivities);  
-}
+	const char caller[] = "FluidElementT::FormMa";
 
-/** collecting element group equation numbers */
-void FluidElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
-  AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
-{
-  WriteCallLocation("Equations"); //DEBUG
-#pragma unused(eq_2)
-  /* collect using method allowing mixed node/tag numbers */
-  ElementSupport().XDOF_Manager().XDOF_SetLocalEqnos(Group(), fXDOFConnectivities, fXDOFEqnos);
-  /* add to equation list */
-  eq_1.Append(&fXDOFEqnos);
-}
-    
-/** determine number of tags needed */
-void FluidElementT::SetDOFTags(void)
-{
-  WriteCallLocation("SetDOFTags"); //DEBUG
-  /* need a single tag w/ 1 DOF for pressure node
-   * based on NodesUsed in elment group
-   */
-  ElementBaseT::NodesUsed(fNodesUsed);   
-  fPressureDOFtags.Dimension(fNodesUsed.Length());
-}
+	/* quick exit */
+	if (!nodal_values && !ip_values) return;
 
-/** return an array of tag numbers */
-iArrayT& FluidElementT::DOFTags(int tag_set)
-{
-  WriteCallLocation("DOFTags"); //DEBUG
-  /* check */
 #if __option(extended_errorcheck)
-  if (tag_set != 0)
-  {
-    cout << "\n FluidElementT::DOFTags: expecting tag set 0:"
-      << tag_set << endl;
-    throw ExceptionT::kOutOfRange;
-  }
-#endif  
-  return fPressureDOFtags;
+	/* dimension checks */
+	if (nodal_values && 
+		fRHS.Length() != nodal_values->Length()) 
+			ExceptionT::SizeMismatch(caller);
+
+	if (ip_values &&
+		(ip_values->MajorDim() != fShapes->NumIP() ||
+		 ip_values->MinorDim() != NumDOF()))
+			ExceptionT::SizeMismatch(caller);
+#endif
+
+	switch (mass_type)
+	{
+		/*Only consider consistent mass for now.  Do we need a case for lumped mass? */
+		case kConsistentMass:
+		{
+			int ndof = NumDOF();
+			int  nen = NumElementNodes();
+			int  nun = nodal_values->NumberOfNodes();
+
+			const double* Det    = fShapes->IPDets();
+			const double* Weight = fShapes->IPWeights();
+
+			if (axisymmetric)
+			{
+				const LocalArrayT& coords = fShapes->Coordinates();
+				fShapes->TopIP();
+				while (fShapes->NextIP())
+				{
+					/* compute radius */
+					const double* NaX = fShapes->IPShapeX();
+					const double* x_r = coords(0); /* r is x-coordinate */
+					double r = 0.0;
+					for (int a = 0; a < nen; a++)
+						r += (*NaX++)*(*x_r++);
+				
+					/* interpolate nodal values to ip */
+					if (nodal_values)
+						fShapes->InterpolateU(*nodal_values, fDOFvec);
+					
+					/* ip sources */
+					if (ip_values)
+						fDOFvec -= (*ip_values)(fShapes->CurrIP());
+
+					/* accumulate in element residual force vector */				
+					double*	res      = fRHS.Pointer();
+					const double* Na = fShapes->IPShapeU();
+				
+					/* integration factor */
+					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
+					if (ip_weight) temp *= *ip_weight++;
+
+					for (int lnd = 0; lnd < nun; lnd++)
+					{
+						double temp2 = temp*(*Na++);
+						double* pacc = fDOFvec.Pointer();
+						for (int dof = 0; dof < ndof; dof++){
+							if (dof < fPresIndex)
+								*res++ += temp2*(*pacc++);
+							else {
+								*res++ = 0;
+								pacc++;
+							}
+						}
+					}
+				}
+			}
+			else /* not axisymmetric */
+			{
+				fShapes->TopIP();
+				while (fShapes->NextIP())
+				{					
+					/* interpolate nodal values to ip */
+					if (nodal_values)
+						fShapes->InterpolateU(*nodal_values, fDOFvec);
+					
+					/* ip sources */
+					if (ip_values)
+						fDOFvec -= (*ip_values)(fShapes->CurrIP());
+
+					/* accumulate in element residual force vector */				
+					double*	res      = fRHS.Pointer();
+					const double* Na = fShapes->IPShapeU();
+				
+					/* integration factor */
+					double temp = constM*(*Weight++)*(*Det++);
+					if (ip_weight) temp *= *ip_weight++;
+					
+					for (int lnd = 0; lnd < nun; lnd++)
+					{
+						double temp2 = temp*(*Na++);
+						double* pacc = fDOFvec.Pointer();
+						for (int dof = 0; dof < ndof; dof++){
+							if (dof < fPresIndex)
+								*res++ += temp2*(*pacc++);
+							else {
+								*res++ = 0;
+								pacc++;
+							}
+						}
+					}
+				}
+			}
+			break;
+		}	
+		default:
+			ExceptionT::BadInputValue("FluidElementT::FormMass", "unknown mass matrix code");
+	}
 }
 
-/** generate nodal connectivities */
-void FluidElementT::GenerateElementData(void)
+
+/* form the element stiffness matrix */
+void FluidElementT::FormStiffness(double constK)
 {
-  WriteCallLocation("GenerateElementData"); //DEBUG
-  iArrayT& DOFTagSet=DOFTags(0);
+	/* matrix format */
+	dMatrixT::SymmetryFlagT format =
+		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
+		dMatrixT::kWhole :
+		dMatrixT::kUpperOnly;
 
-  /* consider elmenet within some group
-   *
-   *  08---01---04
-   *  |     |    |
-   *  09---11---05
-   *  |     |    |
-   *  12---02---03
-   *
-   * fNodesUsed [ 12 02 03 09 11 05 08 01 04 ]
-   * fPressureDOFtags [ 01 02 03 04 05 06 07 08 09 ]
-   * fNodesUsedInverse [ 08 02 03 09 06 -1 -1 07 04 -1 05 01 ]
-   
-   * AK!? this might cause memory problems, lets say node 1 is '89'
-   * meaning the size of fNodesUsedInverse is 89, with 80 values of -1
-
-   *
-   */
-    
-  fNodesUsedInverse.Dimension(fNodesUsed.Max()-1);
-  fNodesUsedInverse=-1;
-  for(int i=0; i<fNodesUsed.Length(); i++)
-  {
-     fNodesUsedInverse[fNodesUsed[i]]=DOFTagSet[i];
-  }
-
-  fXDOFConnectivities.Dimension(fConnectivities[0]->MajorDim(),2*NumElementNodes());
-     
-  const int *pelem = fConnectivities[0]->Pointer();
-  int rowlength = fConnectivities[0]->MinorDim();
- 
-  for(int i=0; i<fConnectivities[0]->MajorDim(); i++, pelem+=rowlength)
-  {
-    int* pxelem = fXDOFConnectivities(i);
-    for(int j=0; j<2*NumElementNodes(); j++)
-    {
-      if(j<NumElementNodes())
-      {
-        pxelem[j]=  pelem[j];
-      }
-      else
-      {
-        pxelem[j]= fNodesUsedInverse[pelem[j-NumElementNodes()]];
-      }
-    }
-  }
+	/* integration parameters */
+	const double* Det    = fShapes->IPDets();
+	const double* Weight = fShapes->IPWeights();
+	
+	/* integrate element stiffness */
+	fShapes->TopIP();
+	while ( fShapes->NextIP() )
+	{
+		double scale = constK*(*Det++)*(*Weight++);
+	
+		/* strain displacement matrix */
+/*		B(fShapes->CurrIP(), fB);
+		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());							
+		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
+*/
+	    fLHS = 0.0;
+	}
 }
 
-/** return the connectivities associated with the node */
-const iArray2DT& FluidElementT::DOFConnects(int tag_set) const
+/* calculate the internal force contribution ("-k*d") */
+void FluidElementT::FormKd(double constK)
 {
-  WriteCallLocation("DOFConnects"); //DEBUG
-  /* check */
-#if __option(extended_errorcheck)  
-  if (tag_set != 0)
-  {
-    cout << "\n FluidElementT::DOFTags: expecting tag set 0:"
-      << tag_set << endl;
-    throw ExceptionT::kOutOfRange;
-  }
-#endif  
-  return fXDOFConnectivities;
+	/* integration parameters */
+	const double* Det    = fShapes->IPDets();
+	const double* Weight = fShapes->IPWeights();
+	
+	int nsd = NumSD();
+	dMatrixT grad;
+	fShapes->TopIP();
+	while ( fShapes->NextIP() )
+	{
+		/* set field gradient */
+
+/*		B(fShapes->CurrIP(), fB);
+
+		fB.MultTx(fCurrMaterial->s_ij(), fNEEvec);
+
+		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
+*/
+	    fRHS = 0.0;
+	}	
 }
 
 /** describe the parameters needed by the interface */
@@ -337,6 +760,7 @@ void FluidElementT::DefineSubs(SubListT& sub_list) const
   sub_list.AddSub("fluid_element_nodal_output", ParameterListT::ZeroOrOnce);
   sub_list.AddSub("fluid_element_element_output", ParameterListT::ZeroOrOnce);
   sub_list.AddSub("fluid_element_stab_param", ParameterListT::ZeroOrOnce);
+  sub_list.AddSub("fluid_element_block", ParameterListT::OnePlus);
 }
 
 /** a pointer to the ParameterInterfaceT of the given subordinate */
@@ -379,6 +803,21 @@ ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
     }
     return stab_param;
   }  
+	else if (name == "fluid_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("fluid_material", ParameterListT::Once);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
   else /* inherited */
     return ContinuumElementT::NewSub(name);  
 }
@@ -391,6 +830,22 @@ void FluidElementT::TakeParameterList(const ParameterListT& list)
 
   /* inherited */
   ContinuumElementT::TakeParameterList(list);
+
+	fPresIndex = NumDOF() - 1;
+	/* allocate work space */
+	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fD.Dimension(dSymMatrixT::NumValues(NumSD()));
+
+	/* allocate gradient lists */
+	fVel_list.Dimension(NumIP());
+	fPres_list.Dimension(NumIP());
+	fGradVel_list.Dimension(NumIP());
+	fGradPres_list.Dimension(NumIP());
+	for (int i = 0; i < NumIP(); i++) {
+		fGradVel_list[i].Dimension(NumSD());
+		fGradPres_list[i].Dimension(NumSD());
+		fVel_list[i].Dimension(NumSD());
+	}
 
   /* nodal output codes */
   fNodalOutputCodes.Dimension(NumNodalOutputCodes);
@@ -481,13 +936,31 @@ void FluidElementT::TakeParameterList(const ParameterListT& list)
     }
   }  
     
-  /* only 1 tag set for the group */
-  int NumTagSet = 1;
-  iArrayT numDOF(NumTagSet);
-  numDOF[0] = FluidElementT::kPressureNDOF;
+}
 
-  /* register with node manager - sets initial fPressureDOFtags */
-  ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF); 
+/* extract the list of material parameters */
+void FluidElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+	const char caller[] = "FluidElementT::CollectMaterialInfo";
+	
+	/* initialize */
+	mat_params.Clear();
+
+	/* set materials list name */
+	mat_params.SetName("fluid_material");
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("fluid_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("fluid_element_block", i);
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
+	}
 }
 
 /* construct output labels array */
@@ -504,6 +977,7 @@ void FluidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
   if (flags[iNodalVel] == mode) counts[iNodalVel] = NumSD();
   if (flags[iNodalAcc] == mode) counts[iNodalAcc] = NumSD();
   if (flags[iNodalPrs] == mode) counts[iNodalPrs] = FluidElementT::kPressureNDOF;
+  if (flags[iNodalPrs] == mode) counts[iNodalPrs] = 1;
 }
 
 void FluidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,

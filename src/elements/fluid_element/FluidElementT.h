@@ -1,17 +1,18 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.4 2006-07-12 17:48:41 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.5 2006-07-13 17:55:11 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #ifndef _FLUID_ELEMENT_H_
 #define _FLUID_ELEMENT_H_
 
 /* base class */
 #include "ContinuumElementT.h"
-#include "DOFElementT.h"
-
-/* direct members
- * NONE
- */
+#include "dSymMatrixT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class ShapeFunctionT;
+class FluidMaterialT;
+class FluidMatSupportT;
 
 /* forward declarations
  * NONE
@@ -20,7 +21,7 @@ namespace Tahoe {
 /* Fluid element; 4 DOF's per node. Fourth degree of freedom
  * is supported by the inheritance of the DOFElementT interface.
  */
-class FluidElementT: public ContinuumElementT, public DOFElementT
+class FluidElementT: public ContinuumElementT
 {
 public:
 
@@ -65,10 +66,6 @@ public:
   /** compute specified output parameter and send for smoothing */
   virtual void SendOutput(int kincode);
 
-  /** driver for calculating output values */
-  virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-    const iArrayT& e_codes, dArray2DT& e_values);  
-
 protected:
 
   /* parameters */
@@ -77,80 +74,72 @@ protected:
   static const int NumStabParamCodes;
   static const int kPressureNDOF;
 
-  /** pointer to shape functions wrt current velocities */
-  ShapeFunctionT* fCurrShapes;
+	/** set the \e B matrix using the given shape function derivatives
+	 * Set strain displacement matrix as in Hughes (2.8.20)
+	 * \param derivatives of shape function derivatives: [nsd] x [nen]
+	 * \param B destination for B */
+	void Set_B(const dArray2DT& derivatives, dMatrixT& B) const;
+
+	/** set the \e B matrix for 2D axysymmetric problems using the given shape functions
+	 * and derivative using the y-axis as the axis or revolution.
+	 * \param shapes shape function values: [nen]
+	 * \param derivatives of shape function derivatives: [nsd] x [nen]
+	 * \param r distance from the axis of revolution
+	 * \param B destination for B */
+	void Set_B_axi(const dArrayT& shapes, const dArray2DT& derivatives, double r, dMatrixT& B) const;
+
+	/** increment current element */
+	virtual bool NextElement(void);	
 
   /** initialization functions */
   virtual void SetLocalArrays(void);
-  virtual void SetShape(void);
 
   /** form shape functions and derivatives */
   virtual void SetGlobalShape(void);
+
+   virtual void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
+		const double* ip_weight);
+
+	/** element body force contribution 
+	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
+	 * \param constM pre-factor for the element integral
+	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
+	 * \param ip_values integration point source terms. Pass NULL for no integration
+	 *        point values : [nip] x [ndof]
+	 * \param ip_weight array of weights per integration point or NULL
+	 *        if no additional weighting is needed beyond those defined by
+	 *        the integration scheme */
+	virtual void FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
+		const LocalArrayT* nodal_values,
+		const dArray2DT* ip_values,
+		const double* ip_weight);
+
+	/** form the element stiffness matrix
+	 * Compute the linearization of the force calculated by SolidElementT::FormKd */
+	virtual void FormStiffness(double constK) = 0;
+
+	/** internal force */
+	virtual void FormKd(double constK) = 0;
 
   /** drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
   virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
   virtual void RHSDriver(void);
 
-  /** tag for the pressure DOF (1 DOF/tag; 1 tag/node) */
-  iArrayT fPressureDOFtags;
+	/** construct a new material support and return a pointer. Recipient is responsible for
+	 * for freeing the pointer.
+	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
+	 *        a new MaterialSupportT and initialize it. */
+	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
 
-  /** map vectors */
-  iArrayT fNodesUsed;
-  iArrayT fNodesUsedInverse;
+	/** return a pointer to a new material list. Recipient is responsible for freeing 
+	 * the pointer. 
+	 * \param name list identifier
+	 * \param size length of the list */
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
-  /** extended interaction data */
-  iArray2DT fXDOFConnectivities;
-  iArray2DT fXDOFEqnos;
-
-  /** appends group connectivities to the array (X -> geometry, U -> field) */  
-  virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const { /** ConnectX is called if geometry changes */ }
-  virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
-    AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
-  
-  /** collecting element group equation numbers */
-  virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
-    AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
-      
-  /**************************************************************/
-  /************ implementing interface of DOFElementT ************/
-  /**************************************************************/
-  /* virtual int Group(void) const;
-   * virtual void SetDOFTags(void);
-   * virtual iArrayT& DOFTags(int tag_set);
-   * virtual void GenerateElementData(void);
-   * virtual const iArray2DT& DOFConnects(int tag_set) const;
-   * virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
-   * virtual int Reconfigure(void);
-   * virtual void ResetState(void);
-  /**************************************************************/
-  /**************************************************************/
-
-  /** \name implementation of the DOFElementT interface */
-  /*@{*/  
-  /** return the equation group to which the generate degrees of freedom belong */
-  virtual int Group(void) const { return ElementBaseT::Group(); };
-
-  /** determine number of tags needed */
-  virtual void SetDOFTags(void);
-
-  /** return an array of tag numbers */
-  virtual iArrayT& DOFTags(int tag_set);
-
-  /** generate nodal connectivities */
-  virtual void GenerateElementData(void);  
-
-  /** return the connectivities associated with the node */
-  virtual const iArray2DT& DOFConnects(int tag_set) const;
-
-  /** restore/initialize the values of the element DOF */
-  virtual void ResetDOF(dArray2DT& DOF, int) const { /* DOF[0] = */ };
-
-  /** check element group for tag reconfiguration */
-  virtual int Reconfigure(void) { return 0; };
-
-  /** restore any state data to the previous converged state */
-  virtual void ResetState(void) {};
-  /*@}*/
+  /** driver for calculating output values */
+  virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+    const iArrayT& e_codes, dArray2DT& e_values);  
   
   /**************************************************************/
   /******* implementing interface of ParameterInterfaceT ********/
@@ -176,21 +165,49 @@ protected:
   /** accept parameter list */
   virtual void TakeParameterList(const ParameterListT& list);
   /*@}*/
-   
-private:
 
-  /** reference to current element shape functions, over undeformed configuration*/
-  const ShapeFunctionT& CurrShapeFunction(void) const;
+  /** extract the list of material parameters */
+  virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
+  
+   /** run time */
+   FluidMaterialT* fCurrMaterial;
 
-  /** nodal pressure values with local ordering */
+  /*nodal dofs with local ordering.  Includes both velocities and pressures*/
+  /*Sets  pressures as the last dof in the array*/ 
+  LocalArrayT fLocLastDisp;
+  LocalArrayT fLocVel;
+
+  /** nodal pressure values with local ordering, shallow copy of fLocDisp */
   LocalArrayT fLocPrs;
 
-  /** nodal current/old velocities with local ordering */
+  /** nodal current/old velocities with local ordering shallow copy of fLocDisp and fLocLastDisp*/
   LocalArrayT fLocCurVel;
   LocalArrayT fLocOldVel;
 
-  /** nodal current accelerations with local ordering */
+  /** nodal current accelerations with local ordering shallow copy of fLocVel */
   LocalArrayT fLocCurAcc; // post-processing only
+	
+  /** \name work space */
+  /*@{*/
+  dMatrixT fD; /**< constitutive matrix          */
+  dMatrixT fB; /**< "strain-displacement" matrix */
+  /*@}*/
+
+ /** field gradients over the element. The gradients are only computed
+	* an integration point at a time and stored. */
+  /*velocity gradient.  Should we symmetrize?*/
+  ArrayT<dMatrixT> fGradVel_list;
+  
+  /*pressure gradient*/
+  ArrayT<dArrayT> fGradPres_list;
+
+  /*pressure gradient*/
+  ArrayT<dArrayT> fVel_list;
+
+  /*pressure gradient*/
+  dArrayT fPres_list;
+ 
+private:
 
   /** \name construct output labels array */
   /*@{*/
@@ -201,20 +218,18 @@ private:
   virtual void GenerateOutputLabels(const iArrayT& n_counts,
     ArrayT<StringT>& n_labels, const iArrayT& e_counts, ArrayT<StringT>& e_labels) const;
   /*@}*/
+
+	/*Material Interface/Support*/
+	FluidMatSupportT* fFluidMatSupport;
+	
+	/*pressure index*/
+	int fPresIndex;
+
       
   /** FOR DEBUGGING PURPOSES ONLY */
   void WriteCallLocation( char* loc ) const;
 };
 
-/* accessors */
-inline const ShapeFunctionT& FluidElementT::CurrShapeFunction(void) const
-{
-#if __option(extended_errorcheck)
-if (!fCurrShapes)
-  ExceptionT::GeneralFail("FluidElementT::CurrShapeFunctionT", "no shape functions");
-#endif
-  return *fCurrShapes;
-}
 inline const LocalArrayT& FluidElementT::OldVelocities(void) const { return fLocOldVel; }
 inline const LocalArrayT& FluidElementT::Velocities(void) const { return fLocCurVel; }
 inline const LocalArrayT& FluidElementT::Accelerations(void) const { return fLocCurAcc; }
