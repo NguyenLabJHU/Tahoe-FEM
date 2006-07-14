@@ -1,4 +1,4 @@
-/* $Id: TersoffPairT.cpp,v 1.1.2.3 2006-06-29 21:06:21 d-farrell2 Exp $ */
+/* $Id: TersoffPairT.cpp,v 1.1.2.4 2006-07-14 14:19:19 d-farrell2 Exp $ */
 #include "TersoffPairT.h"
 #include <iostream.h>
 #include <math.h>
@@ -425,8 +425,9 @@ double TersoffPairT::Force(double rij, iArrayT neighbors, const int j, const Aut
 		ksi_ij += FCik * g;
 	
 //DEBUG
+//cout << "i = " << neighbors[0] << " , " << neighbors[k] << endl;
 //cout << "rij = " << rij << " , rik = " << rik << " , costheta = " << costheta << " , FCij = " << FCij << " , FCik = " << FCik << endl; 
-	
+//cout << "ksi_ij = " << ksi_ij << endl;	
 	}
 //DEBUG
 //cout << "-----------------------" << endl;	

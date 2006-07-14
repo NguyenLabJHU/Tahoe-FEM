@@ -1,4 +1,4 @@
-/* $Id: ParticleTersoffT.cpp,v 1.1.2.6 2006-06-29 21:06:21 d-farrell2 Exp $ */
+/* $Id: ParticleTersoffT.cpp,v 1.1.2.7 2006-07-14 14:19:19 d-farrell2 Exp $ */
 #include "ParticleTersoffT.h"
 
 #include "TersoffPropertyT.h"
@@ -240,6 +240,8 @@ void ParticleTersoffT::WriteOutput(void)
 			double uby2 = 0.0;
 			if (fOutputFlags[kPE]) {
 				uby2 = energy_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
+//DEBUG			
+//cout << tag_i << " , " << tag_j << " PE = " << uby2 << endl;			
 				values_i[offsets[kPE]] += uby2;
 			}			
 
@@ -880,6 +882,9 @@ void ParticleTersoffT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				double F = force_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
 				double K = stiffness_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
 				K = (K < 0.0) ? 0.0 : K;
+//DEBUG
+//cout << "i= " << tag_i << " , " << "j= " << tag_j << " K = " << K << " F = " << F << endl;
+				
 
 				double Fbyr = F/r;
 				for (int k = 0; k < ndof; k++)
@@ -889,6 +894,8 @@ void ParticleTersoffT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					k_i[k] += K_k;
 				}
 			}
+//DEBUG
+//cout << "------------" << endl;			
 		}
 
 		/* assemble */
@@ -1023,6 +1030,9 @@ void ParticleTersoffT::RHSDriver3D(void)
 	
 	/* global coordinates */
 	const dArray2DT& coords = support.CurrentCoordinates();
+	
+// DEBUG
+//const dArray2DT& origcoords = support.InitialCoordinates();
 
 	/* function pointers, etc. */
 	int current_property = -1;
@@ -1078,7 +1088,16 @@ void ParticleTersoffT::RHSDriver3D(void)
 //cout << tag_i << " , " << tag_j <<  ", type i = " << type_i <<  ", type j = " << type_j << ", r_ij = " << r << ", F = " << F << endl;
 //cout << "pos i = "<< "{ " << x_i[0] << " , " << x_i[1] << " , " << x_i[2] << " }" << endl;
 //cout << "pos j = "<< "{ " << x_j[0] << " , " << x_j[1] << " , " << x_j[2] << " }" << endl;
-//cout << "-----------------------" << endl;				
+//cout << "-----------------------" << endl;
+//const double* x0_i = origcoords(tag_i);
+//const double* x0_j = origcoords(tag_j);
+//double x_ij_0 = x0_j[0] - x0_i[0];
+//double x_ij_1 = x0_j[1] - x0_i[1];
+//double x_ij_2 = x0_j[2] - x0_i[2];
+//double xx = sqrt(x_ij_0*x_ij_0 + x_ij_1*x_ij_1 + x_ij_2*x_ij_2);
+//if (F == 0.0 && xx < 2.8)
+//	cout << tag_i << " , " << tag_j << ", r_ij = " << r << endl;
+				
 			double Fbyr = formKd*F/r;
 
 			r_ij_0 *= Fbyr;
