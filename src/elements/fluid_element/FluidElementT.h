@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.5 2006-07-13 17:55:11 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.6 2006-07-17 00:47:26 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #ifndef _FLUID_ELEMENT_H_
 #define _FLUID_ELEMENT_H_
@@ -13,13 +13,9 @@ namespace Tahoe {
 class ShapeFunctionT;
 class FluidMaterialT;
 class FluidMatSupportT;
-
-/* forward declarations
- * NONE
- */
  
 /* Fluid element; 4 DOF's per node. Fourth degree of freedom
- * is supported by the inheritance of the DOFElementT interface.
+ * is managed by the FieldT
  */
 class FluidElementT: public ContinuumElementT
 {
@@ -68,12 +64,18 @@ public:
 
 protected:
 
-  /* parameters */
+  /** parameters */
   static const int NumNodalOutputCodes;
   static const int NumElementOutputCodes;
   static const int NumStabParamCodes;
   static const int kPressureNDOF;
 
+	/** allocate and initialize local arrays */
+	virtual void SetLocalArrays(void);
+
+	/** allocate and initialize shape function objects */
+	virtual void SetShape(void);
+  
 	/** set the \e B matrix using the given shape function derivatives
 	 * Set strain displacement matrix as in Hughes (2.8.20)
 	 * \param derivatives of shape function derivatives: [nsd] x [nen]
@@ -91,13 +93,10 @@ protected:
 	/** increment current element */
 	virtual bool NextElement(void);	
 
-  /** initialization functions */
-  virtual void SetLocalArrays(void);
-
   /** form shape functions and derivatives */
   virtual void SetGlobalShape(void);
 
-   virtual void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
+  virtual void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
 		const double* ip_weight);
 
 	/** element body force contribution 
@@ -116,10 +115,10 @@ protected:
 
 	/** form the element stiffness matrix
 	 * Compute the linearization of the force calculated by SolidElementT::FormKd */
-	virtual void FormStiffness(double constK) = 0;
+	virtual void FormStiffness(double constK);
 
 	/** internal force */
-	virtual void FormKd(double constK) = 0;
+	virtual void FormKd(double constK);
 
   /** drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
   virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
@@ -159,6 +158,10 @@ protected:
   /** information about subordinate parameter lists */
   virtual void DefineSubs(SubListT& sub_list) const;
 
+  /** information about inline subordinate parameter list */
+  virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
+    SubListT& sub_lists) const;
+
   /** a pointer to the ParameterInterfaceT of the given subordinate */
   virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
@@ -169,8 +172,8 @@ protected:
   /** extract the list of material parameters */
   virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
   
-   /** run time */
-   FluidMaterialT* fCurrMaterial;
+  /** run time */
+  FluidMaterialT* fCurrMaterial;
 
   /*nodal dofs with local ordering.  Includes both velocities and pressures*/
   /*Sets  pressures as the last dof in the array*/ 
@@ -194,17 +197,17 @@ protected:
   /*@}*/
 
  /** field gradients over the element. The gradients are only computed
-	* an integration point at a time and stored. */
-  /*velocity gradient.  Should we symmetrize?*/
+	* an integration point at a time and stored.
+  * velocity gradient.  Should we symmetrize?*/
   ArrayT<dMatrixT> fGradVel_list;
   
-  /*pressure gradient*/
+  /** pressure gradient */
   ArrayT<dArrayT> fGradPres_list;
 
-  /*pressure gradient*/
+  /** pressure gradient */
   ArrayT<dArrayT> fVel_list;
 
-  /*pressure gradient*/
+  /** pressure gradient */
   dArrayT fPres_list;
  
 private:
@@ -219,12 +222,11 @@ private:
     ArrayT<StringT>& n_labels, const iArrayT& e_counts, ArrayT<StringT>& e_labels) const;
   /*@}*/
 
-	/*Material Interface/Support*/
+	/** Material Interface/Support */
 	FluidMatSupportT* fFluidMatSupport;
 	
-	/*pressure index*/
+	/** pressure index */
 	int fPresIndex;
-
       
   /** FOR DEBUGGING PURPOSES ONLY */
   void WriteCallLocation( char* loc ) const;

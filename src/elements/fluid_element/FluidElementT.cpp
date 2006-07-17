@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.5 2006-07-13 17:55:11 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.6 2006-07-17 00:47:26 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -42,9 +42,12 @@ const int FluidElementT::kPressureNDOF = 1;
 /* constructor */
 FluidElementT::FluidElementT(const ElementSupportT& support):
   ContinuumElementT(support),
-  /*dofs: vels and press*/
+  /* dofs: vels and press */
   fLocLastDisp(LocalArrayT::kLastDisp),
-  fLocVel(LocalArrayT::kVel), /* velocity */
+  
+  fLocVel(LocalArrayT::kVel),
+  
+  /* velocity */
   fLocCurVel(LocalArrayT::kUnspecified),  
   fLocOldVel(LocalArrayT::kUnspecified),
   /* accelaration */
@@ -128,9 +131,54 @@ void FluidElementT::SendOutput(int kincode)
  * Protected
  ***********************************************************************/
 
-/* construct a new material support and return a pointer */
+/** initialize local arrays */
+void FluidElementT::SetLocalArrays(void)
+{
+  WriteCallLocation("SetLocalArrays"); //DEBUG
+
+  /* inherited */
+  ContinuumElementT::SetLocalArrays();
+
+  /* allocate */
+  int nen = NumElementNodes();
+  int ndof  = NumDOF();
+
+  fLocLastDisp.Dimension(nen, ndof);
+  fLocVel.Dimension(nen, ndof);
+
+  /* set source */
+  Field().RegisterLocal(fLocLastDisp);
+
+  if (fIntegrator->Order() > 0)
+    Field().RegisterLocal(fLocVel);
+
+  /* map */
+  const double* p_cur_vel = fLocDisp(0);
+  fLocCurVel.Alias(nen, ndof - 1, p_cur_vel);
+
+  const double* p_cur_pres = fLocDisp(ndof-1);
+  fLocPrs.Alias(nen, 1, p_cur_pres);
+
+  const double* p_old_vel = fLocLastDisp(0);
+  fLocOldVel.Alias(nen, ndof - 1, p_old_vel);
+
+  const double* p_cur_acc = fLocVel(0);
+  fLocCurAcc.Alias(nen, ndof - 1, p_cur_acc);
+}
+
+/** allocate and initialize shape function objects */
+void FluidElementT::SetShape(void)
+{
+  WriteCallLocation("SetShape"); //DEBUG
+  fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
+  if (!fShapes ) throw ExceptionT::kOutOfMemory;
+  fShapes->Initialize();
+}
+ 
+/** construct a new material support and return a pointer */
 MaterialSupportT* FluidElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
+  WriteCallLocation("NewMaterialSupport"); //DEBUG
 	/* allocate */
 	if (!p) p = new FluidMatSupportT(NumDOF(), NumIP());
 
@@ -151,6 +199,7 @@ MaterialSupportT* FluidElementT::NewMaterialSupport(MaterialSupportT* p) const
 /* return a pointer to a new material list */
 MaterialListT* FluidElementT::NewMaterialList(const StringT& name, int size)
 {
+  WriteCallLocation("NewMaterialList"); //DEBUG
 	/* no match */
 	if (name != "fluid_material") 
 		return NULL;
@@ -188,6 +237,7 @@ void FluidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 /* current element operations */
 bool FluidElementT::NextElement(void)
 {
+  WriteCallLocation("NextElement"); //DEBUG
 	/* inherited */
 	bool result = ContinuumElementT::NextElement();
 	
@@ -202,42 +252,11 @@ bool FluidElementT::NextElement(void)
 	
 	return result;
 }
-/** initialize local arrays */
-void FluidElementT::SetLocalArrays(void)
-{
-  WriteCallLocation("SetLocalArrays"); //DEBUG
-
-  /* inherited */
-  ContinuumElementT::SetLocalArrays();
-
-  /* allocate */
-  int nen = NumElementNodes();
-  int ndof  = NumDOF();
-
-  fLocLastDisp.Dimension(nen, ndof);
-
-  /* set source */
-  Field().RegisterLocal(fLocLastDisp);
-
-  if (fIntegrator->Order() > 0)
-    Field().RegisterLocal(fLocVel);
-  
-  const double* p_cur_vel = fLocDisp(0);  
-  fLocCurVel.Alias(nen, ndof - 1, p_cur_vel);
-
-  const double* p_cur_pres = fLocDisp(ndof-1);
-  fLocPrs.Alias(nen, 1, p_cur_pres);
-  
-  const double* p_old_vel = fLocLastDisp(0);  
-  fLocOldVel.Alias(nen, ndof - 1, p_old_vel);
-
-  const double* p_cur_acc = fLocVel(0);  
-  fLocCurAcc.Alias(nen, ndof - 1, p_cur_acc);
-}
 
 /* form shape functions and derivatives */
 void FluidElementT::SetGlobalShape(void)
 {
+  WriteCallLocation("SetGlobalShape"); //DEBUG
 	/* inherited */
 	ContinuumElementT::SetGlobalShape();
 
@@ -270,6 +289,7 @@ void FluidElementT::SetGlobalShape(void)
 
 void FluidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 {
+  WriteCallLocation("Set_B"); //DEBUG
 #if __option(extended_errorcheck)
 	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
 	    B.Cols() != DNa.Length())
@@ -340,6 +360,7 @@ void FluidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 void FluidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa, 
 	double r, dMatrixT& B) const
 {
+  WriteCallLocation("Set_B_axi"); //DEBUG
 #if __option(extended_errorcheck)
 	if (B.Rows() != 4 || /* (number of stress 2D components) + 1 */
 	    B.Cols() != DNa.Length() ||
@@ -372,6 +393,7 @@ void FluidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa,
 /* form the element mass matrix */
 void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
 {
+  WriteCallLocation("FormMass"); //DEBUG
 #if __option(extended_errorcheck)
 	if (fLocDisp.Length() != fLHS.Rows()) ExceptionT::SizeMismatch("FluidElementT::FormMass");
 #endif
@@ -573,6 +595,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 	const dArray2DT* ip_values,
 	const double* ip_weight)
 {
+  WriteCallLocation("FormMa"); //DEBUG
 	const char caller[] = "FluidElementT::FormMa";
 
 	/* quick exit */
@@ -693,6 +716,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 /* form the element stiffness matrix */
 void FluidElementT::FormStiffness(double constK)
 {
+  WriteCallLocation("FormStiffness"); //DEBUG
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format =
 		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
@@ -721,6 +745,7 @@ void FluidElementT::FormStiffness(double constK)
 /* calculate the internal force contribution ("-k*d") */
 void FluidElementT::FormKd(double constK)
 {
+  WriteCallLocation("FormKd"); //DEBUG
 	/* integration parameters */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
@@ -759,14 +784,43 @@ void FluidElementT::DefineSubs(SubListT& sub_list) const
 
   sub_list.AddSub("fluid_element_nodal_output", ParameterListT::ZeroOrOnce);
   sub_list.AddSub("fluid_element_element_output", ParameterListT::ZeroOrOnce);
-  sub_list.AddSub("fluid_element_stab_param", ParameterListT::ZeroOrOnce);
+  sub_list.AddSub("fluid_element_stab_param", ParameterListT::Once, true);
   sub_list.AddSub("fluid_element_block", ParameterListT::OnePlus);
+}
+
+/** information about inline subordinate parameter list */
+void FluidElementT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
+  SubListT& sub_lists) const
+{
+  /* stabilization paramaters (inline) */
+  if (name == "fluid_element_stab_param")
+  {
+    /* choice */
+    order = ParameterListT::Choice;
+
+    /* all false by default */
+    for (int i = 0; i < NumStabParamCodes; i++)
+      sub_lists.AddSub(StabParamNames[i]);
+  }                                           
+  else /* inherited */
+    ContinuumElementT::DefineInlineSub(name, order, sub_lists);
 }
 
 /** a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
 {
   WriteCallLocation("NewSub"); //DEBUG
+
+  /* try construct stabilization paramaters */
+  for (int i = 0; i < NumStabParamCodes; i++)
+    if (name == StabParamNames[i])
+    {
+      ParameterContainerT* stab_param = new ParameterContainerT("fluid_element_stab_param");
+      stab_param->SetListOrder(ParameterListT::Choice);      
+      stab_param->AddSub(name);
+      return stab_param;
+    }  
+
   if (name == "fluid_element_nodal_output")
   {
     ParameterContainerT* node_output = new ParameterContainerT(name);
@@ -791,19 +845,7 @@ ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
     }
     return element_output;
   }
-  else if (name == "fluid_element_stab_param")
-  {
-    ParameterContainerT* stab_param = new ParameterContainerT(name);
-    /* all false by default */
-    for (int i = 0; i < NumStabParamCodes; i++)
-    {
-      ParameterT output(ParameterT::Integer, StabParamNames[i]);
-      output.SetDefault(1);
-      stab_param->AddParameter(output, ParameterListT::ZeroOrOnce);
-    }
-    return stab_param;
-  }  
-	else if (name == "fluid_element_block")
+  else if (name == "fluid_element_block")
 	{
 		ParameterContainerT* block = new ParameterContainerT(name);
 		
@@ -941,6 +983,7 @@ void FluidElementT::TakeParameterList(const ParameterListT& list)
 /* extract the list of material parameters */
 void FluidElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
 {
+  WriteCallLocation("CollectMaterialInfo"); //DEBUG
 	const char caller[] = "FluidElementT::CollectMaterialInfo";
 	
 	/* initialize */
