@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.6 2006-07-17 00:47:26 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.7 2006-07-18 01:39:09 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -32,10 +32,11 @@ const int FluidElementT::NumElementOutputCodes = 0;
 static const char* ElementOutputNames[] = {
   "NONE"};
 
-const int FluidElementT::NumStabParamCodes = 1;
+const int FluidElementT::NumStabParamCodes = 2;
 static const char* StabParamNames[] = {
-  "tau_m_is_tau_c"}; /* T.E. Tezduyar, Stabilized Finite Element Formulations for Incompressible Flow Computations, Adv. Appl. Mech. 28(1991) 1-44. */
-  
+  "tau_m_is_tau_c", /* T.E. Tezduyar, Stabilized Finite Element Formulations for Incompressible Flow Computations, Adv. Appl. Mech. 28(1991) 1-44. */
+  "NONE"}; /* Galerkin formulation; ie \tau_m and \tau_c = 0
+
 /* parameters */
 const int FluidElementT::kPressureNDOF = 1;
 
@@ -44,15 +45,15 @@ FluidElementT::FluidElementT(const ElementSupportT& support):
   ContinuumElementT(support),
   /* dofs: vels and press */
   fLocLastDisp(LocalArrayT::kLastDisp),
-  
+
   fLocVel(LocalArrayT::kVel),
-  
+
   /* velocity */
-  fLocCurVel(LocalArrayT::kUnspecified),  
+  fLocCurVel(LocalArrayT::kUnspecified),
   fLocOldVel(LocalArrayT::kUnspecified),
   /* accelaration */
   fLocCurAcc(LocalArrayT::kUnspecified),
-  /* pressure */   
+  /* pressure */
   fLocPrs(LocalArrayT::kUnspecified)
 {
   SetName("incompressible_newtonian_fluid_element");
@@ -67,7 +68,7 @@ FluidElementT::~FluidElementT(void)
 /* compute nodal force */
 void FluidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
-  WriteCallLocation("AddNodalForce: not implemented"); //DEBUG  
+  WriteCallLocation("AddNodalForce: not implemented"); //DEBUG
   //not implemented
 #pragma unused(field)
 #pragma unused(node)
@@ -86,13 +87,13 @@ double FluidElementT::InternalEnergy(void)
 /** compute specified output parameter and send for smoothing */
 void FluidElementT::SendOutput(int kincode)
 {
-  WriteCallLocation("SendOutput"); //DEBUG 
+  WriteCallLocation("SendOutput"); //DEBUG
   /* output flags */
   iArrayT flags(fNodalOutputCodes.Length());
 
   /* set flags to get desired output */
   flags = IOBaseT::kAtNever;
-  
+
   switch (kincode)
   {
     case iNodalCrd:
@@ -174,7 +175,7 @@ void FluidElementT::SetShape(void)
   if (!fShapes ) throw ExceptionT::kOutOfMemory;
   fShapes->Initialize();
 }
- 
+
 /** construct a new material support and return a pointer */
 MaterialSupportT* FluidElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
@@ -184,7 +185,7 @@ MaterialSupportT* FluidElementT::NewMaterialSupport(MaterialSupportT* p) const
 
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);
-	
+
 	/* set FluidMatSupportT fields */
 	FluidMatSupportT* ps = TB_DYNAMIC_CAST(FluidMatSupportT*, p);
 	if (ps) {
@@ -201,28 +202,30 @@ MaterialListT* FluidElementT::NewMaterialList(const StringT& name, int size)
 {
   WriteCallLocation("NewMaterialList"); //DEBUG
 	/* no match */
-	if (name != "fluid_material") 
+	if (name != "fluid_material")
 		return NULL;
 
 	if (size > 0)
 	{
-		if (!fFluidMatSupport) {
+    /* material support */
+		if (!fFluidMatSupport)
+    {
 			fFluidMatSupport = TB_DYNAMIC_CAST(FluidMatSupportT*, NewMaterialSupport());
-			if (!fFluidMatSupport) ExceptionT::GeneralFail("FluidElementT::NewMaterialList");
+			if (!fFluidMatSupport)
+        ExceptionT::GeneralFail("FluidElementT::NewMaterialList");
 		}
-
+    /* allocate */
 		return new FluidMatListT(size, *fFluidMatSupport);
 	}
 	else
 		return new FluidMatListT;
-
 }
 
 /* driver for calculating output values */
 void FluidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
   const iArrayT& e_codes, dArray2DT& e_values)
 {
-  WriteCallLocation("ComputeOutput"); //DEBUG 
+  WriteCallLocation("ComputeOutput"); //DEBUG
   /* number of output values */
   int n_out = n_codes.Sum();
   int e_out = e_codes.Sum();
@@ -232,7 +235,7 @@ void FluidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
   // not implemented
   return;
-}  
+}
 
 /* current element operations */
 bool FluidElementT::NextElement(void)
@@ -240,16 +243,16 @@ bool FluidElementT::NextElement(void)
   WriteCallLocation("NextElement"); //DEBUG
 	/* inherited */
 	bool result = ContinuumElementT::NextElement();
-	
+
 	/* get material pointer */
 	if (result)
 	{
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[CurrentElement().MaterialNumber()];
-	
+
 		/* cast is safe since class contructs materials list */
 		fCurrMaterial = (FluidMaterialT*) pcont_mat;
 	}
-	
+
 	return result;
 }
 
@@ -262,13 +265,13 @@ void FluidElementT::SetGlobalShape(void)
 
 
 	/* material dependent local arrays */
-	SetLocalU(fLocDisp);	
-	SetLocalU(fLocLastDisp);	
+	SetLocalU(fLocDisp);
+	SetLocalU(fLocLastDisp);
 
 	/* have velocity */
 	if (fLocVel.IsRegistered())
 		SetLocalU(fLocVel);
-	
+
 	/* loop over integration points */
 	for (int i = 0; i < NumIP(); i++)
 	{
@@ -324,7 +327,7 @@ void FluidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 		}
 	}
 	/* 3D */
-	else		
+	else
 	{
 		const double* pNax = DNa(0);
 		const double* pNay = DNa(1);
@@ -357,7 +360,7 @@ void FluidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 }
 
 /* set the \e B matrix for axisymmetric deformations */
-void FluidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa, 
+void FluidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa,
 	double r, dMatrixT& B) const
 {
   WriteCallLocation("Set_B_axi"); //DEBUG
@@ -401,9 +404,9 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 	switch (mass_type)
 	{
 		case kNoMass:			/* no mass matrix */
-		
+
 			break;
-		
+
 		/*Only consider consistent mass for now.  Do we need a case for lumped mass? */
 		case kConsistentMass:	/* consistent mass	*/
 		{
@@ -412,19 +415,19 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 			// is mass/(undeformed volume)
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
-			
+
 			int nen = NumElementNodes();
 			int nun = fLocDisp.NumberOfNodes();
 			int ndof = NumDOF();
-			
+
 			/* matrix form */
 			int a = 0, zero = 0;
 			int& b_start = (fLHS.Format() == ElementMatrixT::kSymmetricUpper) ? a : zero;
-			
+
 			if (axisymmetric)
 			{
 				const LocalArrayT& coords = fShapes->Coordinates();
-				fShapes->TopIP();	
+				fShapes->TopIP();
 				while ( fShapes->NextIP() )
 				{
 					/* compute radius */
@@ -434,16 +437,16 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 					for (a = 0; a < nen; a++)
 						r += (*NaX++)*(*x_r++);
 
-					/* integration factor */				
+					/* integration factor */
 					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
 					if (ip_weight) temp *= *ip_weight++;
 
-					const double* Na = fShapes->IPShapeU();		
+					const double* Na = fShapes->IPShapeU();
 					for (a = 0; a < nun; a++)
 						for (int i = 0; i < ndof; i++)
 						{
 							int p = a*ndof + i;
-							
+
 							/* upper triangle only */
 							for (int b = b_start; b < nun; b++) //TEMP - interpolate at the same time?
 								for (int j = 0; j < ndof; j++)
@@ -455,22 +458,22 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 									}
 						}
 				}
-			}			
+			}
 			else /* not axisymmetric */
 			{
-				fShapes->TopIP();	
+				fShapes->TopIP();
 				while ( fShapes->NextIP() )
 				{
 					/* integration factor */
 					double temp = constM*(*Weight++)*(*Det++);
 					if (ip_weight) temp *= *ip_weight++;
 
-					const double* Na = fShapes->IPShapeU();		
+					const double* Na = fShapes->IPShapeU();
 					for (a = 0; a < nun; a++)
 						for (int i = 0; i < ndof; i++)
 						{
 							int p = a*ndof + i;
-							
+
 							/* upper triangle only */
 							for (int b = b_start; b < nun; b++)
 								for (int j = 0; j < ndof; j++)
@@ -498,7 +501,7 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	/* set components and weights */
 	double constC = 0.0;
 	double constK = 0.0;
-	
+
 	int formC = fIntegrator->FormC(constC);
 	int formK = fIntegrator->FormK(constK);
 
@@ -509,7 +512,7 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	{
 		/* initialize */
 		fLHS = 0.0;
-		
+
 		/* set shape function derivatives */
 		SetGlobalShape();
 
@@ -519,22 +522,22 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		/* element stiffness */
 		if (formK) FormStiffness(constK);
-	
+
 		/* add to global equations */
-		AssembleLHS();		
+		AssembleLHS();
 	}
 }
 
 void FluidElementT::RHSDriver(void)
 {
-  WriteCallLocation("RHSDriver"); //DEBUG  
+  WriteCallLocation("RHSDriver"); //DEBUG
 	/* inherited */
 	ContinuumElementT::RHSDriver();
 
 	/* set components and weights */
 	double constCv = 0.0;
 	double constKd = 0.0;
-	
+
 	/* components dicated by the algorithm */
 	int formCv = fIntegrator->FormCv(constCv);
 	int formKd = fIntegrator->FormKd(constKd);
@@ -542,7 +545,7 @@ void FluidElementT::RHSDriver(void)
 
 	/* body forces */
 	int formBody = 0;
-	if ((fBodySchedule && fBody.Magnitude() > kSmall)) {	
+	if ((fBodySchedule && fBody.Magnitude() > kSmall)) {
 		formBody = 1;
 		if (!formCv) constCv = 1.0; // correct value ??
 	}
@@ -564,7 +567,7 @@ void FluidElementT::RHSDriver(void)
 			/* global shape function values */
 			SetGlobalShape();
 
-			if (formKd) 
+			if (formKd)
 			{
 				SetLocalU(fLocDisp);
 				FormKd(-constKd);
@@ -579,9 +582,9 @@ void FluidElementT::RHSDriver(void)
 				/* add internal contribution */
 				double density = fCurrMaterial->Density();
 				FormMa(kConsistentMass, -constCv*density, axisymmetric,
-					&fLocVel,NULL, NULL);			  		
+					&fLocVel,NULL, NULL);
 			}
-				
+
 			/* assemble */
 			AssembleRHS();
 		}
@@ -603,8 +606,8 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 
 #if __option(extended_errorcheck)
 	/* dimension checks */
-	if (nodal_values && 
-		fRHS.Length() != nodal_values->Length()) 
+	if (nodal_values &&
+		fRHS.Length() != nodal_values->Length())
 			ExceptionT::SizeMismatch(caller);
 
 	if (ip_values &&
@@ -637,19 +640,19 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 					double r = 0.0;
 					for (int a = 0; a < nen; a++)
 						r += (*NaX++)*(*x_r++);
-				
+
 					/* interpolate nodal values to ip */
 					if (nodal_values)
 						fShapes->InterpolateU(*nodal_values, fDOFvec);
-					
+
 					/* ip sources */
 					if (ip_values)
 						fDOFvec -= (*ip_values)(fShapes->CurrIP());
 
-					/* accumulate in element residual force vector */				
+					/* accumulate in element residual force vector */
 					double*	res      = fRHS.Pointer();
 					const double* Na = fShapes->IPShapeU();
-				
+
 					/* integration factor */
 					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
 					if (ip_weight) temp *= *ip_weight++;
@@ -673,23 +676,23 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 			{
 				fShapes->TopIP();
 				while (fShapes->NextIP())
-				{					
+				{
 					/* interpolate nodal values to ip */
 					if (nodal_values)
 						fShapes->InterpolateU(*nodal_values, fDOFvec);
-					
+
 					/* ip sources */
 					if (ip_values)
 						fDOFvec -= (*ip_values)(fShapes->CurrIP());
 
-					/* accumulate in element residual force vector */				
+					/* accumulate in element residual force vector */
 					double*	res      = fRHS.Pointer();
 					const double* Na = fShapes->IPShapeU();
-				
+
 					/* integration factor */
 					double temp = constM*(*Weight++)*(*Det++);
 					if (ip_weight) temp *= *ip_weight++;
-					
+
 					for (int lnd = 0; lnd < nun; lnd++)
 					{
 						double temp2 = temp*(*Na++);
@@ -706,7 +709,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 				}
 			}
 			break;
-		}	
+		}
 		default:
 			ExceptionT::BadInputValue("FluidElementT::FormMass", "unknown mass matrix code");
 	}
@@ -726,17 +729,17 @@ void FluidElementT::FormStiffness(double constK)
 	/* integration parameters */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
-	
+
 	/* integrate element stiffness */
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
 		double scale = constK*(*Det++)*(*Weight++);
-	
+
 		/* strain displacement matrix */
 /*		B(fShapes->CurrIP(), fB);
-		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());							
-		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
+		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
+		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
 */
 	    fLHS = 0.0;
 	}
@@ -749,7 +752,7 @@ void FluidElementT::FormKd(double constK)
 	/* integration parameters */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
-	
+
 	int nsd = NumSD();
 	dMatrixT grad;
 	fShapes->TopIP();
@@ -764,7 +767,7 @@ void FluidElementT::FormKd(double constK)
 		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
 */
 	    fRHS = 0.0;
-	}	
+	}
 }
 
 /** describe the parameters needed by the interface */
@@ -784,26 +787,8 @@ void FluidElementT::DefineSubs(SubListT& sub_list) const
 
   sub_list.AddSub("fluid_element_nodal_output", ParameterListT::ZeroOrOnce);
   sub_list.AddSub("fluid_element_element_output", ParameterListT::ZeroOrOnce);
-  sub_list.AddSub("fluid_element_stab_param", ParameterListT::Once, true);
+  sub_list.AddSub("fluid_element_stab_param");
   sub_list.AddSub("fluid_element_block", ParameterListT::OnePlus);
-}
-
-/** information about inline subordinate parameter list */
-void FluidElementT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
-  SubListT& sub_lists) const
-{
-  /* stabilization paramaters (inline) */
-  if (name == "fluid_element_stab_param")
-  {
-    /* choice */
-    order = ParameterListT::Choice;
-
-    /* all false by default */
-    for (int i = 0; i < NumStabParamCodes; i++)
-      sub_lists.AddSub(StabParamNames[i]);
-  }                                           
-  else /* inherited */
-    ContinuumElementT::DefineInlineSub(name, order, sub_lists);
 }
 
 /** a pointer to the ParameterInterfaceT of the given subordinate */
@@ -812,16 +797,18 @@ ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
   WriteCallLocation("NewSub"); //DEBUG
 
   /* try construct stabilization paramaters */
-  for (int i = 0; i < NumStabParamCodes; i++)
-    if (name == StabParamNames[i])
-    {
-      ParameterContainerT* stab_param = new ParameterContainerT("fluid_element_stab_param");
-      stab_param->SetListOrder(ParameterListT::Choice);      
-      stab_param->AddSub(name);
-      return stab_param;
-    }  
+  if (name == "fluid_element_stab_param")
+  {
+    ParameterContainerT* stab_param = new ParameterContainerT(name);
+    stab_param->SetListOrder(ParameterListT::Choice);
 
-  if (name == "fluid_element_nodal_output")
+    /* choice of parameters */
+    for (int i = 0; i < NumStabParamCodes; i++)
+      stab_param->AddSub(ParameterContainerT(StabParamNames[i]));
+
+    return stab_param;
+  }
+  else if (name == "fluid_element_nodal_output")
   {
     ParameterContainerT* node_output = new ParameterContainerT(name);
     /* all false by default */
@@ -848,20 +835,20 @@ ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
   else if (name == "fluid_element_block")
 	{
 		ParameterContainerT* block = new ParameterContainerT(name);
-		
+
 		/* list of element block ID's (defined by ElementBaseT) */
 		block->AddSub("block_ID_list", ParameterListT::Once);
-	
+
 		/* choice of materials lists (inline) */
 		block->AddSub("fluid_material", ParameterListT::Once);
-	
+
 		/* set this as source of subs */
 		block->SetSubSource(this);
-		
+
 		return block;
 	}
   else /* inherited */
-    return ContinuumElementT::NewSub(name);  
+    return ContinuumElementT::NewSub(name);
 }
 
 /** accept parameter list */
@@ -901,35 +888,10 @@ void FluidElementT::TakeParameterList(const ParameterListT& list)
       /* look for entry */
       const ParameterT* nodal_value = node_output->Parameter(NodalOutputNames[i]);
       if (nodal_value)
-      {
-        int do_write = *nodal_value;        
-        if (do_write == 0)
-        {
-          fNodalOutputCodes[i] = IOBaseT::kAtInc;
-          WriteCallLocation("Picked: fNodalOutputCodes: coordinates"); //DEBUG
-        }
-        else if (do_write == 1)
-        {
-          fNodalOutputCodes[i] = IOBaseT::kAtInc;
-          WriteCallLocation("Picked: fNodalOutputCodes: velocities"); //DEBUG
-        }
-        else if (do_write == 2)
-        {
-          /* check order of the time integrator */
-          if (fIntegrator->Order() < 1)
-            ExceptionT::GeneralFail(caller, "expecting time integrator order of 1 or higher");          
-          fNodalOutputCodes[i] = IOBaseT::kAtInc;
-          WriteCallLocation("Picked: fNodalOutputCodes: accelerations"); //DEBUG
-        }
-        else if (do_write == 3)
-        {
-          fNodalOutputCodes[i] = IOBaseT::kAtInc;
-          WriteCallLocation("Picked: fNodalOutputCodes: pressures"); //DEBUG
-        }
-      }
+        fNodalOutputCodes[i] = IOBaseT::kAtInc;
     }
   }
-  
+
   /* element output codes */
   fElementOutputCodes.Dimension(NumElementOutputCodes);
   fElementOutputCodes = IOBaseT::kAtNever;
@@ -942,42 +904,31 @@ void FluidElementT::TakeParameterList(const ParameterListT& list)
       /* look for entry */
       const ParameterT* element_value = element_output->Parameter(ElementOutputNames[i]);
       if (element_value)
-      {
-        int do_write = *element_value;
-        if (do_write == 0)
-        {
-          fElementOutputCodes[i] = IOBaseT::kAtInc;
-          WriteCallLocation("Picked: fElementOutputCodes: NONE"); //DEBUG
-        }
-      }
+        fElementOutputCodes[i] = IOBaseT::kAtInc;
     }
   }
 
   /* stabilization parameter codes */
-  const ParameterListT* stab_param = list.List("fluid_element_stab_param");
-  if (stab_param)
+  const ParameterListT& stab_param = list.GetListChoice(*this, "fluid_element_stab_param");
+  for (int i = 0; i < NumStabParamCodes; i++)
+    if (stab_param.Name() == StabParamNames[i])
+      fStabParam = StabParamCodeT(i);
+
+  if (fStabParam == 0)
   {
-    /* set flags */
-    for (int i = 0; i < NumStabParamCodes; i++)
-    {
-      /* look for entry */
-      const ParameterT* stab_param_value = stab_param->Parameter(StabParamNames[i]);
-      if (stab_param_value)
-      {
-        int param_value = *stab_param_value;
-        if (param_value == 0)
-        {
-          /* implement \tau_m = \tau_c = \tau_PSPG = \tau_SUPG \tau
-           *
-           * \tau = [ (2/(del t))^2 + (2/h * ||v||) + (4\mu / h^2) ]^(-1/2)
-           * ** check reference
-           */
-           WriteCallLocation("Picked: \tau_m = \tau_c"); //DEBUG
-        }
-      }
-    }
-  }  
-    
+    /* implement \tau_m = \tau_c = \tau_PSPG = \tau_SUPG \tau
+     *
+     * \tau = [ (2/(del t))^2 + (2/h * ||v||) + (4\mu / h^2) ]^(-1/2)
+     * ** check reference
+     */
+     WriteCallLocation("Picked: tau_m_is_tau_c"); //DEBUG
+  }
+  else if (fStabParam == 1)
+  {
+    /* Galerkin formulation
+    */
+    WriteCallLocation("Picked: tau_m_is_tau_c = 0"); //DEBUG
+  }
 }
 
 /* extract the list of material parameters */
@@ -985,20 +936,20 @@ void FluidElementT::CollectMaterialInfo(const ParameterListT& all_params, Parame
 {
   WriteCallLocation("CollectMaterialInfo"); //DEBUG
 	const char caller[] = "FluidElementT::CollectMaterialInfo";
-	
+
 	/* initialize */
 	mat_params.Clear();
 
 	/* set materials list name */
 	mat_params.SetName("fluid_material");
-	
+
 	/* collected material parameters */
 	int num_blocks = all_params.NumLists("fluid_element_block");
 	for (int i = 0; i < num_blocks; i++) {
 
-		/* block information */	
+		/* block information */
 		const ParameterListT& block = all_params.GetList("fluid_element_block", i);
-		
+
 		/* collect material parameters */
 		const ParameterListT& mat_list = block.GetList(mat_params.Name());
 		const ArrayT<ParameterListT>& mat = mat_list.Lists();
@@ -1027,12 +978,10 @@ void FluidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArra
   iArrayT& counts) const
 {
   WriteCallLocation("SetElementOutputCodes"); //DEBUG
-  /* initialize */
-  counts.Dimension(flags.Length());
-  counts = 0;
-
-  /* set output flags */
-  if (fElementOutputCodes[iNONE] == mode) counts[iNONE] = 0;
+#pragma unused(mode)
+#pragma unused(flags)
+  if (counts.Sum() != 0)
+    ExceptionT::BadInputValue("FluidElementT::SetElementOutputCodes", "not implemented");
 }
 
 void FluidElementT::GenerateOutputLabels(const iArrayT& n_codes,
@@ -1075,7 +1024,7 @@ void FluidElementT::GenerateOutputLabels(const iArrayT& n_codes,
 
   if (e_codes.Sum() != 0)
     ExceptionT::GeneralFail("FluidElementT::GenerateOutputLabels",
-      "not expecting any element output codes");  
+      "not expecting any element output codes");
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.6 2006-07-17 00:47:26 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.7 2006-07-18 01:39:09 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #ifndef _FLUID_ELEMENT_H_
 #define _FLUID_ELEMENT_H_
@@ -13,7 +13,7 @@ namespace Tahoe {
 class ShapeFunctionT;
 class FluidMaterialT;
 class FluidMatSupportT;
- 
+
 /* Fluid element; 4 DOF's per node. Fourth degree of freedom
  * is managed by the FieldT
  */
@@ -36,7 +36,8 @@ public:
 
   /** list/index of stabilization parameters */
   enum StabParamCodeT {
-    iStabParamOne = 0 /**< \tau_m = \tau_c = \tau_PSPG = \tau_SUPG */
+    iStabParamOne = 0, /**< \tau_m = \tau_c = \tau_PSPG = \tau_SUPG */
+    iStabParamNone = 1 /**< \tau_m = \tau_c = \tau_PSPG = \tau_SUPG = 0 */
   };
 
   /** constructor */
@@ -44,7 +45,7 @@ public:
 
   /** destructor */
   virtual ~FluidElementT(void);
-  
+
   /** \name access to nodal values */
   /*@{*/
   const LocalArrayT& OldVelocities(void) const;
@@ -75,7 +76,7 @@ protected:
 
 	/** allocate and initialize shape function objects */
 	virtual void SetShape(void);
-  
+
 	/** set the \e B matrix using the given shape function derivatives
 	 * Set strain displacement matrix as in Hughes (2.8.20)
 	 * \param derivatives of shape function derivatives: [nsd] x [nen]
@@ -91,7 +92,7 @@ protected:
 	void Set_B_axi(const dArrayT& shapes, const dArray2DT& derivatives, double r, dMatrixT& B) const;
 
 	/** increment current element */
-	virtual bool NextElement(void);	
+	virtual bool NextElement(void);
 
   /** form shape functions and derivatives */
   virtual void SetGlobalShape(void);
@@ -99,7 +100,7 @@ protected:
   virtual void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
 		const double* ip_weight);
 
-	/** element body force contribution 
+	/** element body force contribution
 	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
 	 * \param constM pre-factor for the element integral
 	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
@@ -130,16 +131,16 @@ protected:
 	 *        a new MaterialSupportT and initialize it. */
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
 
-	/** return a pointer to a new material list. Recipient is responsible for freeing 
-	 * the pointer. 
+	/** return a pointer to a new material list. Recipient is responsible for freeing
+	 * the pointer.
 	 * \param name list identifier
 	 * \param size length of the list */
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
   /** driver for calculating output values */
   virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-    const iArrayT& e_codes, dArray2DT& e_values);  
-  
+    const iArrayT& e_codes, dArray2DT& e_values);
+
   /**************************************************************/
   /******* implementing interface of ParameterInterfaceT ********/
   /**************************************************************/
@@ -158,10 +159,6 @@ protected:
   /** information about subordinate parameter lists */
   virtual void DefineSubs(SubListT& sub_list) const;
 
-  /** information about inline subordinate parameter list */
-  virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
-    SubListT& sub_lists) const;
-
   /** a pointer to the ParameterInterfaceT of the given subordinate */
   virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
@@ -171,12 +168,12 @@ protected:
 
   /** extract the list of material parameters */
   virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
-  
+
   /** run time */
   FluidMaterialT* fCurrMaterial;
 
   /*nodal dofs with local ordering.  Includes both velocities and pressures*/
-  /*Sets  pressures as the last dof in the array*/ 
+  /*Sets  pressures as the last dof in the array*/
   LocalArrayT fLocLastDisp;
   LocalArrayT fLocVel;
 
@@ -189,7 +186,7 @@ protected:
 
   /** nodal current accelerations with local ordering shallow copy of fLocVel */
   LocalArrayT fLocCurAcc; // post-processing only
-	
+
   /** \name work space */
   /*@{*/
   dMatrixT fD; /**< constitutive matrix          */
@@ -200,7 +197,7 @@ protected:
 	* an integration point at a time and stored.
   * velocity gradient.  Should we symmetrize?*/
   ArrayT<dMatrixT> fGradVel_list;
-  
+
   /** pressure gradient */
   ArrayT<dArrayT> fGradPres_list;
 
@@ -209,7 +206,7 @@ protected:
 
   /** pressure gradient */
   dArrayT fPres_list;
- 
+
 private:
 
   /** \name construct output labels array */
@@ -224,10 +221,13 @@ private:
 
 	/** Material Interface/Support */
 	FluidMatSupportT* fFluidMatSupport;
-	
+
 	/** pressure index */
 	int fPresIndex;
-      
+
+  /** stabilization parameter */
+  FluidElementT::StabParamCodeT fStabParam;
+
   /** FOR DEBUGGING PURPOSES ONLY */
   void WriteCallLocation( char* loc ) const;
 };
