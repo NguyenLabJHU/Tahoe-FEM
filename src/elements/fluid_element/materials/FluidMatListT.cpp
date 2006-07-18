@@ -1,9 +1,9 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatListT.cpp,v 1.1 2006-07-13 17:57:27 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatListT.cpp,v 1.2 2006-07-18 01:21:21 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #include "FluidMatListT.h"
 #include "FluidMatSupportT.h"
 
-/* diffusion materials */
+/* fluid materials */
 #include "FluidMaterialT.h"
 
 using namespace Tahoe;
@@ -25,7 +25,9 @@ FluidMatListT::	FluidMatListT(void):
 /* information about subordinate parameter lists */
 void FluidMatListT::DefineSubs(SubListT& sub_list) const
 {
-	/* inherited */
+  WriteCallLocation("DefineSubs"); //DEBUG
+
+  /* inherited */
 	MaterialListT::DefineSubs(sub_list);
 
 	/* an array of choices */
@@ -36,6 +38,8 @@ void FluidMatListT::DefineSubs(SubListT& sub_list) const
 void FluidMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
 	SubListT& sub_lists) const
 {
+  WriteCallLocation("DefineInlineSub"); //DEBUG
+
 	/* list of choice of materials */
 	if (name == "fluid_material_list")
 	{
@@ -51,6 +55,8 @@ void FluidMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrd
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* FluidMatListT::NewSub(const StringT& name) const
 {
+  WriteCallLocation("NewSub"); //DEBUG
+
 	/* try to construct material */
 	FluidMaterialT* material = NewFluidMaterial(name);
 	if (material)
@@ -62,6 +68,8 @@ ParameterInterfaceT* FluidMatListT::NewSub(const StringT& name) const
 /* accept parameter list */
 void FluidMatListT::TakeParameterList(const ParameterListT& list)
 {
+  WriteCallLocation("TakeParameterList"); //DEBUG
+
 	/* inherited */
 	MaterialListT::TakeParameterList(list);
 
@@ -88,13 +96,20 @@ void FluidMatListT::TakeParameterList(const ParameterListT& list)
 /* construct the specified material or NULL if the request cannot be completed */
 FluidMaterialT* FluidMatListT::NewFluidMaterial(const StringT& name) const
 {
+  WriteCallLocation("NewFluidMaterial"); //DEBUG
+
 	FluidMaterialT* mat = NULL;
 
 	if (name == "linear_fluid_material")
-		mat = new FluidMaterialT;	
+		mat = new FluidMaterialT;
 
 	/* set support */
 	if (mat) mat->SetFluidMatSupport(fFluidMatSupport);
 
 	return mat;
+}
+
+/** FOR DEBUGGING PURPOSES ONLY */
+void FluidMatListT::WriteCallLocation( char* loc ) const {
+cout << "Inside of FluidMatListT::" << loc << endl;
 }

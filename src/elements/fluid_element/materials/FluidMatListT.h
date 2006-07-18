@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatListT.h,v 1.1 2006-07-13 17:57:28 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatListT.h,v 1.2 2006-07-18 01:21:21 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #ifndef _FLUID_MAT_LIST_T_H_
 #define _FLUID_MAT_LIST_T_H_
@@ -12,7 +12,7 @@ namespace Tahoe {
 class FluidMatSupportT;
 class FluidMaterialT;
 
-/** list of materials for diffusion analysis */
+/** list of materials for fluid analysis */
 class FluidMatListT: public MaterialListT
 {
 public:
@@ -47,8 +47,11 @@ public:
 	
 private:
 
-	/** support for diffusion materials */
+	/** support for fluid materials */
 	const FluidMatSupportT* fFluidMatSupport;
+
+  /** FOR DEBUGGING PURPOSES ONLY */
+  void WriteCallLocation( char* loc ) const;
 };
 
 } // namespace Tahoe 

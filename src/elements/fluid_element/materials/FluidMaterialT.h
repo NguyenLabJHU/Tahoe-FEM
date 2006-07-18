@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.h,v 1.1 2006-07-13 17:57:28 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.h,v 1.2 2006-07-18 01:21:20 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #ifndef _FLUID_MATERIALT_H_
 #define _FLUID_MATERIALT_H_
@@ -18,7 +18,7 @@ class ifstreamT;
 class FluidT;
 class FluidMatSupportT;
 
-/** interface for materials for diffusion */
+/** interface for materials for fluid */
 class FluidMaterialT: public ContinuumMaterialT
 {
 public:
@@ -52,7 +52,7 @@ public:
 
 protected:
 
-	/** support for diffusion materials */
+	/** support for fluid materials */
 	const FluidMatSupportT* fFluidMatSupport;
 
 	/** \name parameters */
@@ -61,13 +61,16 @@ protected:
 	double   fMu;
 	/*@}*/
 
-	/** heat flux variation return value */
+	/** pressure flux variation return value */
 	dSymMatrixT fStress;  
 	dSymMatrixT fStrainRate;
 
 	/** conductivity variation return value */
 	dMatrixT fModulus;  
 	/*@}*/
+  
+  /** FOR DEBUGGING PURPOSES ONLY */
+  void WriteCallLocation( char* loc ) const;
 };
 
 /* returns the density */

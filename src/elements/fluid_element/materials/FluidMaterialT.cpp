@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.cpp,v 1.1 2006-07-13 17:57:28 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.cpp,v 1.2 2006-07-18 01:21:20 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #include "FluidMaterialT.h"
 #include "FluidMatSupportT.h"
@@ -28,6 +28,7 @@ FluidMaterialT::FluidMaterialT(void):
 /* set support */
 void FluidMaterialT::SetFluidMatSupport(const FluidMatSupportT* support)
 {
+  WriteCallLocation("SetFluidMatSupport"); //DEBUG
 	/* inherited */
 	SetMaterialSupport(support);
 	fFluidMatSupport = support;
@@ -42,15 +43,17 @@ void FluidMaterialT::SetFluidMatSupport(const FluidMatSupportT* support)
 	fModulus = 0.0;
 }
 
-/* conductivity */
-const dMatrixT& FluidMaterialT::c_ijkl(void) { 
-	
+/* viscosity */
+const dMatrixT& FluidMaterialT::c_ijkl(void)
+{
+  WriteCallLocation("c_ijkl"); //DEBUG
+
 	double third = 1.0/3.0;
 	
 	if (NumSD() ==1)
 		fModulus = 2.0*fMu;
 	else if (NumSD() ==2 ) {
-		/*"plane strain assumption for now.  i.e. no flow in out of plane diretion*/
+		/*"plane strain assumption for now.  i.e. no flow in out of plane direction*/
 		fModulus(0,0) = fModulus(1,1) =  2.0*fMu*(1.0 - third);
 		fModulus(1,0) = fModulus(0,1) = -2.0*fMu*third;
 	}
@@ -66,7 +69,9 @@ return fModulus;
 /* fluid stress */
 const dSymMatrixT& FluidMaterialT::s_ij(void)
 {
-	/* should be 1 row */
+  WriteCallLocation("s_ij"); //DEBUG
+
+  /* should be 1 row */
 	fStrainRate.Symmetrize(fFluidMatSupport->VelGrad());
 	fStress = fStrainRate;
 	fStress *= 2.0*fMu;
@@ -80,7 +85,9 @@ const dSymMatrixT& FluidMaterialT::s_ij(void)
 /* describe the parameters needed by the interface */
 void FluidMaterialT::DefineParameters(ParameterListT& list) const
 {
-	/* inherited */
+  WriteCallLocation("DefineParameters"); //DEBUG
+
+  /* inherited */
 	ContinuumMaterialT::DefineParameters(list);
 
 	/* define parameters */
@@ -91,10 +98,17 @@ void FluidMaterialT::DefineParameters(ParameterListT& list) const
 /* accept parameter list */
 void FluidMaterialT::TakeParameterList(const ParameterListT& list)
 {
-	/* inherited */
+  WriteCallLocation("TakeParameterList"); //DEBUG
+
+  /* inherited */
 	ContinuumMaterialT::TakeParameterList(list);
 
 	/* get parameters */
 	fDensity = list.GetParameter("density");
 	fMu = list.GetParameter("viscosity");
+}
+
+/** FOR DEBUGGING PURPOSES ONLY */
+void FluidMaterialT::WriteCallLocation( char* loc ) const {
+cout << "Inside of FluidMaterialT::" << loc << endl;
 }

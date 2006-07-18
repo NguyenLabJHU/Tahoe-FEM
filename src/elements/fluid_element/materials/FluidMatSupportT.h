@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatSupportT.h,v 1.2 2006-07-13 17:59:04 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatSupportT.h,v 1.3 2006-07-18 01:21:21 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #ifndef _FLUID_SUPPORT_T_H_
 #define _FLUID_SUPPORT_T_H_
@@ -36,7 +36,7 @@ public:
 	/** current pressure value at the specified integration point */
 	double Pressure(int ip) const;
 
-	/** current Pressure value at the current integration point */
+	/** current pressure value at the current integration point */
 	double Pressure(void) const;
 
 	/** set the source for the gradient information */
@@ -87,8 +87,11 @@ public:
 	const ArrayT<dMatrixT>* fGradVel_list;
 	const ArrayT<dArrayT>* fGradPres_list;
 
-  	/** pointer to the diffusion element */
+  	/** pointer to the fluid element */
 	const FluidElementT* fFluid;
+
+  /** FOR DEBUGGING PURPOSES ONLY */
+  void WriteCallLocation( char* loc ) const;
 };
 
 /* inlines */
