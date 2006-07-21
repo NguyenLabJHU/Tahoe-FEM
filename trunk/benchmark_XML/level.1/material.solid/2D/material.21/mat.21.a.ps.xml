@@ -30,7 +30,7 @@
                     <String value="1"/>
                 </block_ID_list>
                 <small_strain_material_2D>
-                    <linear_viscoelastic_2D constraint_2D="plane_strain"
+                    <linear_viscoelastic_2D constraint_2D="plane_stress"
                         density="1.0" kappa_EQ="1.2" kappa_NEQ="1.2"
                         mu_EQ="1.2" mu_NEQ="1.2" tau_bulk="1.0" tau_shear="1.0"/>
                 </small_strain_material_2D>
