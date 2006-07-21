@@ -31,10 +31,10 @@
                     <String value="1"/>
                 </block_ID_list>
                 <small_strain_material_2D>
-                    <small_strain_StVenant_J2_PlaneStrain density="1.0">
-                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
-                        <linear_function a="0.01" b="0.25"/>
-                    </small_strain_StVenant_J2_PlaneStrain>
+                    <small_strain_StVenant_J2_PlaneStress density="1.0" max_iteration="20">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.00"/>
+                        <linear_function a="0.0" b="0.25"/>
+                    </small_strain_StVenant_J2_PlaneStress>
                 </small_strain_material_2D>
             </small_strain_element_block>
         </small_strain>
