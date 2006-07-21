@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.6 2004-09-10 22:39:32 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.7 2006-07-21 20:03:19 tdnguye Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV2D.h"
 #include "ElementCardT.h"
@@ -8,7 +8,7 @@ using namespace Tahoe;
 
 /* constructor */
 J2SSKStV2D::J2SSKStV2D(void):
-	ParameterInterfaceT("small_strain_StVenant_J2_2D")
+	ParameterInterfaceT("small_strain_StVenant_J2_PlaneStrain")
 {
 	/* reset default value */
 	fConstraint = kPlaneStrain;
