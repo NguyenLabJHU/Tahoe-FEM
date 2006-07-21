@@ -6,7 +6,6 @@
 #ifndef _FOSSUM_SS_ISOT_H_
 #define _FOSSUM_SS_ISOT_H_
 
-//#include "SolidMaterialT.h"
 #include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 #include "SSHookeanMatT.h"
@@ -17,13 +16,9 @@
 #include "dArrayT.h"
 #include "LAdMatrixT.h"
 
-// Primitive-like fns
-
 namespace Tahoe {
 
 /* forward declarations */
-//class dSymMatrixT;
-//class ElementCardT;
 class SSEnhLocMatSupportT;
 
  class FossumSSIsoT: public SSIsotropicMatT, public HookeanMatT //, public ParameterInterfaceT
@@ -32,7 +27,6 @@ class SSEnhLocMatSupportT;
 public:
 
 	/* constructor */
-	// FossumSSIsoT(ifstreamT& in, const SmallStrainT& element, int num_ip, double mu, double lambda);
 	FossumSSIsoT(void);
 
 	/* destructor */
@@ -87,9 +81,6 @@ protected:
         double fFluidity;   //fluidity parameter, relation time = fFluidity/(2*fmu)
 	bool fFossumDebug;
 
-	/* initialization */
-	virtual void Initialize(void);
-
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
@@ -126,15 +117,6 @@ protected:
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
 
-	/*
-	* Test for localization using "current" values for Cauchy
-	* stress and the spatial tangent moduli. Returns true if the
-	* determinant of the acoustic tensor is negative and returns
-	* the normals and slipdirs. Returns false if the determinant is positive.
-	*/
-	//bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
-	//				AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
-
 protected:
 
 	/* set modulus */
@@ -159,8 +141,7 @@ private:
 
 
 /*--------------------------------------------------------------------*/
-// hardening stuff
-
+// hardening functions
 
 protected:
 
@@ -172,10 +153,6 @@ protected:
 	/* returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip);
                         
-	/* return correction to stress vector computed by mapping the
-	* stress back to the yield surface, if needed */
-	const dSymMatrixT& StressCorrection(const dSymMatrixT& trialstrain, ElementCardT& element, int ip); 
-
 	/* return the correction to moduli due to plasticity (if any)
 	*
 	* Note: Return mapping occurs during the call to StressCorrection.
@@ -198,19 +175,6 @@ protected:
 	void Update(ElementCardT& element);
 	void Reset(ElementCardT& element);
 
-	/* returns 1 if the trial elastic strain state lies outside of the 
-	* yield surface */
-
-	//int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int ip);
-
-	/* computes the deviatoric stress corresponding to the given element
-	* and elastic strain.  The function returns a reference to the
-	* stress in fDevStress */
-	dSymMatrixT& DeviatoricStress(const dSymMatrixT& trialstrain, const ElementCardT& element);
-
-	/* computes the hydrostatic (mean) stress. */
-	double MeanStress(const dSymMatrixT& trialstrain, const ElementCardT& element);
-
 private:
 
 	/* load element data for the specified integration point */
@@ -232,10 +196,8 @@ private:
 	double fmu;
 	double flambda;
 	double fkappa;
-	//double fDeltaKappa;
 	double fX_H;
 	double fX;
-	double fMeanStress;
 	dSymMatrixT fBackStress;
 	dSymMatrixT fDeltaAlpha;  
 
@@ -246,40 +208,34 @@ private:
 
 	/* return values */
 	dSymMatrixT fElasticStrain;
-	dSymMatrixT fStressCorr;
 	dMatrixT fModuliCorr;
 	dMatrixT fModuliCorrPerfPlas;
                 
 	/* work space */
-	dSymMatrixT fDevStress;
-	dSymMatrixT fDevStrain; /* deviatoric part of the strain tensor */
-	dSymMatrixT IdentityTensor2;  
-
-	dMatrixT fTensorTemp;
 	dSymMatrixT One;  
 	double fTimeFactor;
-	//dSymMatrixT fStressInviscid;
 
 	int &fKappaCapped;
 	int fKappaDummy;
         
 private:
 
+	/* auxiliary functions to yield function */
 	double YieldFnGamma(double J2, double J3);
 	double YieldFnFfMinusN(double I1);
 	double YieldFnFc(double I1, const double kappa);
 	int HeavisideFn(double arg);
-	double Lfn(const double kappa);
 	double Xfn(const double kappa);
 	double YieldFnFf(double I1);
 
+	/* auxiliaries to s_ij */
 	bool StressPointIteration(double initialYieldCheck, dArrayT& iterationVars, dSymMatrixT workingBackStress, double workingKappa);
 	bool ResidualIsConverged(dArrayT& residual, dArrayT& residual0);
 	dArrayT CapKappa(const dArrayT &residual, const LAdMatrixT &dRdX, const double kappa);
 	dArrayT CondenseAndSolve(const LAdMatrixT& dRdX, const dArrayT& residual);
 
 	double ElasticConstant(int i, int j);	
-	//double Galpha(dSymMatrixT workingStress, double J2);
+	/* hardening functions and necessary derivatives */
 	double Galpha(dSymMatrixT alpha);
 	double KappaHardening(double I1, double kappa);
 	double dfdDevStressA (double I1, double J2, double J3, double sigmaA);
@@ -293,8 +249,10 @@ private:
 	double dPlasticVolStraindX(double kappa);
 	double dXdKappa(double kappa);
 
+    /* Matrix for stress point NR iteration */
 	LAdMatrixT FormdRdX(double I1, double J2, double J3, dArrayT principalEqStress, double workingKappa, dSymMatrixT workingStress, dSymMatrixT workingBackStress, double dGamma, ArrayT<dSymMatrixT> m);
 
+    /* derivatives for FormdRdX */
 	int KroneckerDelta (int A, int B);
 	double d2fdSigmaBdSigmaC (double I1, double J2, double J3, double principalEqStressA, double principalEqStressB, int A, int B, double kappa);
 	double d2fdDevStressdSigmaB (double I1, double J2, double J3, double principalEqStressA, double principalEqStressB, int A, int B);
@@ -309,32 +267,19 @@ private:
 	double d2fdJ3dJ3 (double J2, double J3);
 	double d2fdSigmaCdKappa (double I1, double kappa);
 	double d2FcdI1dKappa(double I1, double kappa);
-	double dGalphadSigmaB (dSymMatrixT workingStress, dSymMatrixT principalDirectionB ,double principalEqStressB, double I1, double J2);
-	//double dGalphadAlphaB (double J2, double principalEqStressB, double principalEqStress3);
 	double dGalphadAlphaB (dSymMatrixT alpha, dArrayT principalEqStress, int B, ArrayT<dSymMatrixT> m);
 	double d2fdI1dKappa (double I1, double kappa);
 	double dFcdKappa (double I1, double kappa);
-	double dLdKappa (double kappa);
 	double d2XdKappadKappa( double kappa);
 	double d2PlasticVolStraindXdX(double kappa);
 	double dfdKappa(double I1, double kappa);
 	double InnerProduct(dSymMatrixT A, dSymMatrixT B);
 
+	/*tensor-valued derviatives for consistent tangent */
 	dMatrixT D2fdSigmadSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
-	dMatrixT D2fdSigmadq(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
-	dMatrixT D2fdqdq(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
-	//double d2fdAlphaBdAlphaC(double I1, double J2, double J3, dArrayT principalEqStress, int B, int C, double kappa);
-	double D2fdKappadKappa(double I1, double kappa);
-	double D2FcdKappadKappa(double I1, double kappa);
 	dSymMatrixT DfdSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
 	dSymMatrixT DfdAlpha(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
-
 	dArrayT Hardening(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m, dSymMatrixT alpha);
-	dMatrixT DhdSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m, dSymMatrixT alpha);
-	dMatrixT Dhdq(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m, dSymMatrixT alpha);
-	dSymMatrixT DfdDevStress(double I1, double J2, double J3, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
-	dMatrixT D2fdDevStressdAlpha(double I1, double J2, double J3, dArrayT principalEqStress);
-
 };
 
 const double sqrt3__ = sqrt(3.0);

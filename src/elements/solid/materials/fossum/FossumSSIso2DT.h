@@ -1,9 +1,8 @@
-/* $Id: FossumSSIso2DT.h,v 1.13 2005-04-27 20:45:48 raregue Exp $ */
+/* $Id: FossumSSIso2DT.h,v 1.14 2006-07-21 18:09:17 cfoster Exp $ */
 #ifndef _FOSSUM_SS_ISO_2D_T_H_
 #define _FOSSUM_SS_ISO_2D_T_H_
 
 /* base class */
-//#include "Material2DT.h"
 #include "FossumSSIsoT.h"
 
 #include "SSSolidMatT.h"
@@ -14,7 +13,7 @@ namespace Tahoe {
 /* forward declarations */
 class SSEnhLocMatSupportT;
 
-class FossumSSIso2DT: public FossumSSIsoT//, public Material2DT
+class FossumSSIso2DT: public FossumSSIsoT
 {
 public:
 
@@ -25,7 +24,6 @@ public:
 	//virtual void Initialize(void);
 	virtual void DefineParameters(ParameterListT& list) const;
 	virtual void TakeParameterList(const ParameterListT& list);
-	//virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/* returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
