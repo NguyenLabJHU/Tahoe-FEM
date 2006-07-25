@@ -1,4 +1,4 @@
-/* $Id: TersoffPairT.cpp,v 1.1.2.4 2006-07-14 14:19:19 d-farrell2 Exp $ */
+/* $Id: TersoffPairT.cpp,v 1.1.2.5 2006-07-25 14:29:48 d-farrell2 Exp $ */
 #include "TersoffPairT.h"
 #include <iostream.h>
 #include <math.h>
@@ -422,15 +422,9 @@ double TersoffPairT::Force(double rij, iArrayT neighbors, const int j, const Aut
 			FCik = 0.0;
 		
 		// now put together the parts
-		ksi_ij += FCik * g;
-	
-//DEBUG
-//cout << "i = " << neighbors[0] << " , " << neighbors[k] << endl;
-//cout << "rij = " << rij << " , rik = " << rik << " , costheta = " << costheta << " , FCij = " << FCij << " , FCik = " << FCik << endl; 
-//cout << "ksi_ij = " << ksi_ij << endl;	
+		ksi_ij += FCik * g;	
 	}
-//DEBUG
-//cout << "-----------------------" << endl;	
+
 	// Assemble bond order term
 	double bij = s_chi * pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -1/(2*s_n));
 	
