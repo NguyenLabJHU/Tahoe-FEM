@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.123 2006-05-21 17:49:21 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.124 2006-07-25 16:29:46 d-farrell2 Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -92,6 +92,7 @@
 #include "ParticlePairT.h"
 #include "EAMT.h"
 #include "ParticleThreeBodyT.h"
+#include "ParticleTersoffT.h"
 #endif
 
 #ifdef SPRING_ELEMENT
@@ -292,6 +293,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("particle_pair");
 		sub_lists.AddSub("particle_EAM");
 		sub_lists.AddSub("particle_three_body");
+		sub_lists.AddSub("particle_tersoff");
 #endif
 
 #ifdef CONTINUUM_ELEMENT
@@ -500,6 +502,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new EAMT(fSupport);
 	else if (name == "particle_three_body")
 		return new ParticleThreeBodyT(fSupport);
+	else if (name == "particle_tersoff")
+		return new ParticleTersoffT(fSupport);
 #endif
 
 #ifdef CONTINUUM_ELEMENT

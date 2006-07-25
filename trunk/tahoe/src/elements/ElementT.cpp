@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.49 2004-11-23 01:43:08 cjkimme Exp $ */
+/* $Id: ElementT.cpp,v 1.50 2006-07-25 16:29:47 d-farrell2 Exp $ */
 #include "ElementT.h"
 #include "ExceptionT.h"
 
@@ -199,6 +199,9 @@ ElementT::TypeT ElementT::int2TypeT(int i)
 
 		case ElementT::kTotLagFlat:
 		    return ElementT::kTotLagFlat;
+		    
+		case ElementT::kTersoff:
+		    return ElementT::kTersoff;
 
 		default:
 			ExceptionT::BadInputValue("ElementT::int2TypeT", "unknown type: %d", i);
