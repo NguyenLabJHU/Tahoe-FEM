@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.h,v 1.9 2004-07-15 08:29:49 paklein Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.10 2006-07-25 16:29:47 d-farrell2 Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
 
@@ -20,7 +20,8 @@ public:
     kLennardJonesPair = 1, /**< Jennard-Jones 6/12 pair potential */
          kParadynPair = 2, /**< pair potential in Paradyn (EAM) format */
           kParadynEAM = 3, /**< EAM potentials in Paradyn format */
-	  kMatsuiPair = 4  /**< Matsui pair potential */
+	 	  kMatsuiPair = 4,  /**< Matsui pair potential */
+	  	  kTersoff	  = 5 /**< Tersoff potential */
 	};
 
 	/** stream extraction operators */
