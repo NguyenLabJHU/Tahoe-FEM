@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.7 2006-07-18 01:39:09 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.8 2006-07-25 16:30:00 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #ifndef _FLUID_ELEMENT_H_
 #define _FLUID_ELEMENT_H_
@@ -77,6 +77,9 @@ protected:
 	/** allocate and initialize shape function objects */
 	virtual void SetShape(void);
 
+  /** set the \e B matrix at the specified integration point */
+  void B(int ip, dMatrixT& B_matrix) const;
+  
 	/** set the \e B matrix using the given shape function derivatives
 	 * Set strain displacement matrix as in Hughes (2.8.20)
 	 * \param derivatives of shape function derivatives: [nsd] x [nen]
@@ -113,7 +116,7 @@ protected:
 		const LocalArrayT* nodal_values,
 		const dArray2DT* ip_values,
 		const double* ip_weight);
-
+    
 	/** form the element stiffness matrix
 	 * Compute the linearization of the force calculated by SolidElementT::FormKd */
 	virtual void FormStiffness(double constK);
@@ -174,11 +177,12 @@ protected:
 
   /*nodal dofs with local ordering.  Includes both velocities and pressures*/
   /*Sets  pressures as the last dof in the array*/
+  LocalArrayT fLocDisp;
   LocalArrayT fLocLastDisp;
   LocalArrayT fLocVel;
 
   /** nodal pressure values with local ordering, shallow copy of fLocDisp */
-  LocalArrayT fLocPrs;
+  LocalArrayT fLocCurPrs;
 
   /** nodal current/old velocities with local ordering shallow copy of fLocDisp and fLocLastDisp*/
   LocalArrayT fLocCurVel;
@@ -191,21 +195,26 @@ protected:
   /*@{*/
   dMatrixT fD; /**< constitutive matrix          */
   dMatrixT fB; /**< "strain-displacement" matrix */
+  double tau_m;
+  double tau_c;
   /*@}*/
 
  /** field gradients over the element. The gradients are only computed
 	* an integration point at a time and stored.
-  * velocity gradient.  Should we symmetrize?*/
-  ArrayT<dMatrixT> fGradVel_list;
+  * Should we symmetrize? */
 
+  /** pressure */
+  dArrayT fPres_list;
+  
   /** pressure gradient */
   ArrayT<dArrayT> fGradPres_list;
 
-  /** pressure gradient */
+  /** velocity */
   ArrayT<dArrayT> fVel_list;
+  ArrayT<dArrayT> fOldVel_list;
 
-  /** pressure gradient */
-  dArrayT fPres_list;
+  /** velocity gradient */
+  ArrayT<dMatrixT> fGradVel_list;
 
 private:
 
@@ -235,7 +244,7 @@ private:
 inline const LocalArrayT& FluidElementT::OldVelocities(void) const { return fLocOldVel; }
 inline const LocalArrayT& FluidElementT::Velocities(void) const { return fLocCurVel; }
 inline const LocalArrayT& FluidElementT::Accelerations(void) const { return fLocCurAcc; }
-inline const LocalArrayT& FluidElementT::Pressures(void) const { return fLocPrs; }
+inline const LocalArrayT& FluidElementT::Pressures(void) const { return fLocCurPrs; }
 
 } // namespace Tahoe
 #endif /* _FLUID_ELEMENT_H_ */
