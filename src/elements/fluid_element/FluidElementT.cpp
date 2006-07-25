@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.8 2006-07-25 16:30:00 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.9 2006-07-25 19:38:37 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -481,108 +481,6 @@ void FluidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa,
 	}
 }
 
-/* form the element mass matrix */
-void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
-{
-  WriteCallLocation("FormMass"); //DEBUG
-#if __option(extended_errorcheck)
-	if (fLocDisp.Length() != fLHS.Rows()) ExceptionT::SizeMismatch("FluidElementT::FormMass");
-#endif
-
-	switch (mass_type)
-	{
-		case kNoMass:			/* no mass matrix */
-
-			break;
-
-		/*Only consider consistent mass for now.  Do we need a case for lumped mass? */
-		case kConsistentMass:	/* consistent mass	*/
-		{
-			// integration of the element mass is done
-			// in the reference configuration since density
-			// is mass/(undeformed volume)
-			const double* Det    = fShapes->IPDets();
-			const double* Weight = fShapes->IPWeights();
-
-			int nen = NumElementNodes();
-			int nun = fLocDisp.NumberOfNodes();
-			int ndof = NumDOF();
-
-			/* matrix form */
-			int a = 0, zero = 0;
-			int& b_start = (fLHS.Format() == ElementMatrixT::kSymmetricUpper) ? a : zero;
-
-			if (axisymmetric)
-			{
-				const LocalArrayT& coords = fShapes->Coordinates();
-				fShapes->TopIP();
-				while ( fShapes->NextIP() )
-				{
-					/* compute radius */
-					const double* NaX = fShapes->IPShapeX();
-					const double* x_r = coords(0); /* r is x-coordinate */
-					double r = 0.0;
-					for (a = 0; a < nen; a++)
-						r += (*NaX++)*(*x_r++);
-
-					/* integration factor */
-					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-
-					const double* Na = fShapes->IPShapeU();
-					for (a = 0; a < nun; a++)
-						for (int i = 0; i < ndof; i++)
-						{
-							int p = a*ndof + i;
-
-							/* upper triangle only */
-							for (int b = b_start; b < nun; b++) //TEMP - interpolate at the same time?
-								for (int j = 0; j < ndof; j++)
-									if(i == j) {
-										int q = b*ndof + j;
-										if (j < fPresIndex)
-											fLHS(p,q) += temp*Na[a]*Na[b];
-										else
-                      fLHS(p,q) += 0.0;
-									}
-						}
-				}
-			}
-			else /* not axisymmetric */
-			{
-				fShapes->TopIP();
-				while ( fShapes->NextIP() )
-				{
-					/* integration factor */
-					double temp = constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-
-					const double* Na = fShapes->IPShapeU();
-					for (a = 0; a < nun; a++)
-						for (int i = 0; i < ndof; i++)
-						{
-							int p = a*ndof + i;
-
-							/* upper triangle only */
-							for (int b = b_start; b < nun; b++)
-								for (int j = 0; j < ndof; j++)
-									if(i == j) {
-										int q = b*ndof + j;
-										if (j < fPresIndex)
-											fLHS(p,q) += temp*Na[a]*Na[b];
-										else
-                      fLHS(p,q) += 0.0;
-									}
-						}
-				}
-			}
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue("FluidElementT::FormMass", "unknown mass matrix code");
-	}
-}
-
 void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
   WriteCallLocation("LHSDriver"); //DEBUG
@@ -672,7 +570,7 @@ void FluidElementT::RHSDriver(void)
 			if (formKd)
 			{
 				SetLocalU(fLocDisp);
-				FormKd(-constKd);
+				//FormKd(-constKd);
 			}
 
 			if (formBody) AddBodyForce(fLocVel);
@@ -720,7 +618,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
       /* degrees of freedom */
 			int ndof = NumDOF();
       /* dimensions */
-      int nsd = NumSD();
+      int  nsd = NumSD();
 			int  nen = NumElementNodes();
 			int  nun = nodal_values->NumberOfNodes();
 
@@ -729,7 +627,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 
 			if (axisymmetric)
 			{
-        ExceptionT::BadInputValue("FluidElementT::FormMass", "bad mass matrix code");
+        ExceptionT::BadInputValue("FluidElementT::FormMa", "axisymmetric not applicable");
 			}
 			else /* not axisymmetric */
 			{
@@ -737,70 +635,42 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 				while (fShapes->NextIP())
 				{
 					/* interpolate nodal values to ip */
-					if (nodal_values)
-						fShapes->InterpolateU(*nodal_values, fDOFvec);
+					if (nodal_values) fShapes->InterpolateU(*nodal_values, fDOFvec);
 
 					/* ip sources */
-					if (ip_values)
-						fDOFvec -= (*ip_values)(fShapes->CurrIP());
+					if (ip_values)  fDOFvec -= (*ip_values)(fShapes->CurrIP());
 
-					/* accumulate in element residual force vector */
-					double*	res      = fRHS.Pointer();
-					const double* Na = fShapes->IPShapeU();
-					const dArray2DT& Na_grad = fShapes->Derivatives_U();
-          const dArrayT& OldVel = fOldVel_list[fShapes->CurrIP()];
-          dArrayT stemp(nun);
-//          stemp = 0;
+					/* accumulate in element force vector */
+					double*	pfRHS             = fRHS.Pointer();
+					const double* Na          = fShapes->IPShapeU();                   /* [nun] */
+					const dArray2DT& Na_grad  = fShapes->Derivatives_U();              /* [nsd x nun] */
+          const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
+          dArrayT temp0(nun); temp0 = 0.0;
 
 					/* integration factor */
-					double temp = constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-
-          //fB=0; fD=0;             
-          //Set_B(fShapes->CurrIP(), fB);
-          //Set_B(Na_grad, fB);
-          //fB.Multx(fVel_list[fShapes->CurrIP()], fNEEvec);
-          //cout << endl << fB << endl << endl <<endl ;
-         // cout << endl << endl << fVel_list << endl <<endl;
-          //cout << endl << endl << fVel_list[fShapes->CurrIP()] << endl << endl;
-          //cout << endl << endl << fPres_list[fShapes->CurrIP()] << endl << endl;
-          //cout << endl << endl << fGradVel_list[fShapes->CurrIP()] << endl << endl;
-          //cout << endl << endl << fGradPres_list[fShapes->CurrIP()] << endl << endl;
-
-
-
-          cout << endl << endl << OldVel << endl << endl;
-          cout << endl << endl << Na_grad << endl << endl;
-          /* accumulate */
-          //fD.AddScaled(tau_m, fNEEvec);
-
-          //fD.MultQTBQ(fB, fVel_list(fShapes->CurrIP(), dMatrixT::kAccumulate);
-                /*		B(fShapes->CurrIP(), fB);
-		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
-		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);     */
+					double temp1 = constM*(*Weight++)*(*Det++);
+					if (ip_weight) temp1 *= *ip_weight++;
     
 					for (int lnd = 0; lnd < nun; lnd++)
 					{
-            /* sum over dimensions */
-            //if ( nsd == 2 )
-            //  stemp(lnd) = OldVel(1)*Na_grad(lnd,1)+OldVel(2)*Na_grad(lnd,2);
-            //else /* 3D */
-            //  stemp(lnd) = OldVel(1)*Na_grad(lnd,1)+OldVel(2)*Na_grad(lnd,2)+OldVel(3)*Na_grad(lnd,3);
-              
-						double temp2 = temp*(*Na++);//+temp*tau_m*stemp(lnd);
-						double* pacc = fDOFvec.Pointer();
-						for (int dof = 0; dof < ndof; dof++){
-							if (dof < fPresIndex)
+            /* sum over nsd, tau_m term */
+            if ( nsd == 2 )
+              temp0[lnd] += OldVel[0]*Na_grad(0,lnd)+OldVel[1]*Na_grad(1,lnd);
+            else /* 3D */
+              temp0[lnd] += OldVel[0]*Na_grad(0,lnd)+OldVel[1]*Na_grad(1,lnd)+OldVel[2]*Na_grad(2,lnd);
+   
+            double temp2 = temp1*(*Na++)+temp1*tau_m*temp0[lnd];
+            double temp3 = 0.0;
+            double* pacc = fDOFvec.Pointer();
+            for (int dof = 0; dof < ndof; dof++)
+              if (dof < fPresIndex)
               {
-								*res++ += temp2*(*pacc);
-                pacc++;
+                *pfRHS++ += temp2*(*pacc);
+                /* sum over nsd, tau_c term */
+                temp3 += (*pacc++)*Na_grad(dof,lnd);  
               }
-							else
-              {
-								*res++ += 0;
-							  pacc++;
-							}
-						}
+              else
+                *pfRHS++ += temp3*tau_c*(*pacc++);   
 					}
 				}
 			}
@@ -811,6 +681,100 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 	}
 }
 
+/* form the element mass matrix */
+void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
+{
+  WriteCallLocation("FormMass"); //DEBUG
+	const char caller[] = "FluidElementT::FormMass";
+#if __option(extended_errorcheck)
+	if (fLocDisp.Length() != fLHS.Rows()) ExceptionT::SizeMismatch(caller);
+#endif
+
+	switch (mass_type)
+	{
+		case kNoMass:			/* no mass matrix */
+		break;
+
+		/*Only consider consistent mass for now.  Do we need a case for lumped mass? */
+		case kConsistentMass:	/* consistent mass	*/
+		{ 
+      /* degrees of freedom */
+			int ndof = NumDOF();
+      /* dimensions */
+      int  nsd = NumSD();
+			int  nen = NumElementNodes();
+			int  nun = fLocDisp.NumberOfNodes();
+
+			const double* Det    = fShapes->IPDets();
+			const double* Weight = fShapes->IPWeights();
+
+      /* matrix form */
+//      int a = 0, zero = 0;
+//      int& b_start = (fLHS.Format() == ElementMatrixT::kSymmetricUpper) ? a : zero;
+
+			if (axisymmetric)
+			{
+        ExceptionT::BadInputValue("FluidElementT::FormMass", "axisymmetric not applicable");
+			}
+			else /* not axisymmetric */
+			{
+        const LocalArrayT& coords = fShapes->Coordinates();
+				fShapes->TopIP();
+				while ( fShapes->NextIP() )
+				{
+					/* accumulate in element force vector */
+					const double* Na          = fShapes->IPShapeU();                   /* [nun] */
+					const dArray2DT& Na_grad  = fShapes->Derivatives_U();              /* [nsd x nun] */
+          const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */ 
+          dArrayT temp0(nun); temp0 = 0.0;
+
+          /* compute radius */
+//          const double* NaX = fShapes->IPShapeX();
+//          const double* x_r = coords(0); /* r is x-coordinate */
+//          double r = 0.0;
+//          for (a = 0; a < nen; a++)
+//            r += (*NaX++)*(*x_r++);
+          
+					/* integration factor */
+					double temp1 = constM*(*Weight++)*(*Det++);
+//					double temp1 = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
+					if (ip_weight) temp1 *= *ip_weight++;
+
+					for (int a = 0; a < nun; a++)
+					{
+            for (int i = 0; i < ndof; i++)
+            {
+              if ( i < nsd ) /* sum over nsd, tau_m term */
+                temp0[a] += OldVel[i]*Na_grad(i,a);
+
+              int p = a*ndof + i;
+              for (int b = 0; b < nun; b++)
+              {
+                double temp3 = 0.0;
+                for (int j = 0; j < ndof; j++)
+                {
+                  int q = b*ndof + j;
+                  if (j < fPresIndex)
+                  {
+                    if ( i < nsd ) /* sum over nsd, tau_c term */
+                      temp3 += OldVel[i]*Na_grad(i,b);
+              
+                    fLHS(p,q) += temp1*Na[a]*Na[b]+temp1*tau_m*temp0[a]*Na[b];
+                  }
+                  else
+                    fLHS(p,q) += temp1*tau_c*temp3*Na[b];
+                }
+              }
+            }    
+          }
+				}
+			}
+			break;
+		}
+		default:
+			ExceptionT::BadInputValue("FluidElementT::FormMass", "unknown mass matrix code");
+	}
+}
 
 /* form the element stiffness matrix */
 void FluidElementT::FormStiffness(double constK)
