@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.65 2006-06-19 15:25:34 r-jones Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.64 2006-04-28 16:37:14 tdnguye Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -34,7 +34,6 @@
 #include "AugLagCylinderT.h"
 #include "MFAugLagMultT.h"
 #include "FieldMFAugLagMultT.h"
-#include "PressureBCT.h"
 
 /* kinematic BC controllers */
 #include "K_FieldT.h"
@@ -239,7 +238,9 @@ void NodeManagerT::ConnectsU(int group,
 	/* from fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
+		{
 			fFields[i]->Connectivities(connects_1, connects_2, equivalent_nodes);
+		}
 }
 
 /* return the implicit-explicit flag for the given group */
@@ -640,7 +641,9 @@ void NodeManagerT::SetEquationNumbers(int group)
 			/* mark all external as inactive for setting local
 			 * equation numbers */
 			for (int j = 0; j < ex_nodes->Length(); j++)
+			{
 				eqnos.SetRow((*ex_nodes)[j], FieldT::kExternal);	
+			}
 		}
 
 	/* assign active equation numbers node-by-node across fields
@@ -687,6 +690,9 @@ void NodeManagerT::RenumberEquations(int group,
 		relabel.AddGroup(*(connects_1[j]));
 	for (int k = 0; k < connects_2.Length(); k++)
 		relabel.AddGroup(*(connects_2[k]));
+	
+//	cout << "\nconnects1 length: "<<connects_1.Length();
+//	cout << "\nconnects2 length: "<<connects_2.Length();
 	
 	/* collect sets of equation numbers */
 	AutoArrayT<iArray2DT*> eqnos;
@@ -1577,11 +1583,6 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(int code)
 	    case FBC_ControllerT::kAugLagCylinder:
 	    	fbc = new AugLagCylinderT;
 	    	break;
-
-	    case FBC_ControllerT::kPressureBC:
-	    	fbc = new PressureBCT;
-	    	break;
-
 
 		default:
 			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);

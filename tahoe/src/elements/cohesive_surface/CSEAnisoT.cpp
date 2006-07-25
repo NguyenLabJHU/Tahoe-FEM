@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.75 2006-06-18 01:05:57 tdnguye Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.74 2006-06-03 16:25:14 tdnguye Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -723,10 +723,8 @@ void CSEAnisoT::RHSDriver(void)
 
 	/* set state to start of current step */
 //	TEMP
-	fStateVariables = fStateVariables_last;
-	double* p = fStateVariables.Pointer();
-//	for (int j = 0; j<fStateVariables.Length(); j++)
-//		cout << "\nfStateVariables: "<<p[j];
+//	fStateVariables = fStateVariables_last;
+
 	if (freeNodeQ.IsAllocated())
 		freeNodeQ = freeNodeQ_last;
 
@@ -788,7 +786,6 @@ void CSEAnisoT::RHSDriver(void)
 			
 			/* loop over integration points */
 			double* pstate = fStateVariables(CurrElementNumber());
-//			cout << "\nnum state vars: "<<fStateVariables.MinorDim(CurrElementNumber());
 			int all_failed = 1;
 			int ip = 0;
 			fShapes->TopIP();
@@ -796,12 +793,8 @@ void CSEAnisoT::RHSDriver(void)
 			{
 				/* set state variables */
 				state.Set(num_state, pstate);
-				
 				pstate += num_state;
 			
-//				cout << "\nelem: "<<CurrElementNumber()<<"\tip: "<<ip;
-	//			for (int j = 0; j<num_state; j++)
-	//				cout << "\nstate: "<<state[j];
 				/* integration weights */
 				double w = fShapes->IPWeight();
 

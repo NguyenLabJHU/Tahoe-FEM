@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.cpp,v 1.8 2006-07-03 20:19:32 hspark Exp $ */
+/* $Id: BondLatticeT.cpp,v 1.7 2005-02-13 22:23:52 paklein Exp $ */
 /* created: paklein (01/07/1997) */
 #include "BondLatticeT.h"
 #include <math.h>
@@ -40,7 +40,6 @@ void BondLatticeT::Initialize(const dMatrixT* Q)
 
 	/* transform bonds */
 	if ( fQ.Rows() > 0 )
-	{
 		for (int bond = 0; bond < fBonds.MajorDim(); bond++)
 		{
 			/* get bond vector */
@@ -52,43 +51,6 @@ void BondLatticeT::Initialize(const dMatrixT* Q)
 			/* transform */
 			fQ.MultTx(fBondDp, fBondSh);		
 		}
-		/* transform bulk bonds for surface CB stuff */
-		for (int bond = 0; bond < fBulkBonds.MajorDim(); bond++)
-		{
-			/* get bond vector */
-			fBulkBonds.RowAlias(bond, fBondShB);
-			
-			/* temp */
-			fBondDpB = fBondShB;
-		
-			/* transform */
-			fQ.MultTx(fBondDpB, fBondShB);		
-		}
-		/* transform surface 1 bonds for surface CB stuff */
-		for (int bond = 0; bond < fSurf1Bonds.MajorDim(); bond++)
-		{
-			/* get bond vector */
-			fSurf1Bonds.RowAlias(bond, fBondShS1);
-			
-			/* temp */
-			fBondDpS1 = fBondShS1;
-		
-			/* transform */
-			fQ.MultTx(fBondDpS1, fBondShS1);		
-		}
-		/* transform surface 2 bonds for surface CB stuff */
-		for (int bond = 0; bond < fSurf2Bonds.MajorDim(); bond++)
-		{
-			/* get bond vector */
-			fSurf2Bonds.RowAlias(bond, fBondShS2);
-			
-			/* temp */
-			fBondDpS2 = fBondShS2;
-		
-			/* transform */
-			fQ.MultTx(fBondDpS2, fBondShS2);		
-		}
-	}
 }
 
 #if 0
@@ -125,87 +87,5 @@ void BondLatticeT::ComputeDeformedLengths(const dSymMatrixT& strain)
 		
 		/* deformed length */
 		fDefLength[bond] = sqrt(dArrayT::Dot(fBondSh, fBondDp));
-	}
-}
-
-/* BELOW ARE NEW SURFACE CB SPECIFIC FUNCTIONS */
-/* Compute deformed lengths for a representative bulk atom */
-void BondLatticeT::ComputeDeformedBulkBonds(const dSymMatrixT& strain)
-{
-	/* spatial vs. lattice dimension translation */
-	if (fStrain.Rows() == 3 && strain.Rows() == 2)
-		fStrain.ExpandFrom2D(strain);
-	else
-		fStrain = strain;
-
-	/* compute stretch tensor */
-	fStretch.SetToScaled(2.0, fStrain);
-	fStretch.PlusIdentity(1.0);
-
-	/* loop over all bonds */
-	for (int bond = 0; bond < fBulkBonds.MajorDim(); bond++)
-	{
-		/* get bond vector */
-		fBulkBonds.RowAlias(bond, fBondShB);
-		
-		/* using symmetry in C */
-		fStretch.Multx(fBondShB, fBondDpB);
-		
-		/* deformed length */
-		fDefBulk[bond] = sqrt(dArrayT::Dot(fBondShB, fBondDpB));
-	}
-}
-
-/* Compute deformed lengths for a representative surface atom */
-void BondLatticeT::ComputeDeformedSurf1Bonds(const dSymMatrixT& strain)
-{
-	/* spatial vs. lattice dimension translation */
-	if (fStrain.Rows() == 3 && strain.Rows() == 2)
-		fStrain.ExpandFrom2D(strain);
-	else
-		fStrain = strain;
-
-	/* compute stretch tensor */
-	fStretch.SetToScaled(2.0, fStrain);
-	fStretch.PlusIdentity(1.0);
-
-	/* loop over all bonds */
-	for (int bond = 0; bond < fSurf1Bonds.MajorDim(); bond++)
-	{
-		/* get bond vector */
-		fSurf1Bonds.RowAlias(bond, fBondShS1);
-		
-		/* using symmetry in C */
-		fStretch.Multx(fBondShS1, fBondDpS1);
-		
-		/* deformed length */
-		fDefSurf1[bond] = sqrt(dArrayT::Dot(fBondShS1, fBondDpS1));
-	}
-}
-
-/* Compute deformed lengths for a representative atom 1 layer into the bulk */
-void BondLatticeT::ComputeDeformedSurf2Bonds(const dSymMatrixT& strain)
-{
-	/* spatial vs. lattice dimension translation */
-	if (fStrain.Rows() == 3 && strain.Rows() == 2)
-		fStrain.ExpandFrom2D(strain);
-	else
-		fStrain = strain;
-
-	/* compute stretch tensor */
-	fStretch.SetToScaled(2.0, fStrain);
-	fStretch.PlusIdentity(1.0);
-
-	/* loop over all bonds */
-	for (int bond = 0; bond < fSurf2Bonds.MajorDim(); bond++)
-	{
-		/* get bond vector */
-		fSurf2Bonds.RowAlias(bond, fBondShS2);
-		
-		/* using symmetry in C */
-		fStretch.Multx(fBondShS2, fBondDpS2);
-		
-		/* deformed length */
-		fDefSurf2[bond] = sqrt(dArrayT::Dot(fBondShS2, fBondDpS2));
 	}
 }

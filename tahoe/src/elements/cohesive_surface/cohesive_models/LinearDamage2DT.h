@@ -1,4 +1,4 @@
-/* $Id: LinearDamage2DT.h,v 1.2 2006-06-18 01:05:57 tdnguye Exp $ */
+/* $Id: LinearDamage2DT.h,v 1.1 2006-06-03 16:26:41 tdnguye Exp $ */
 /* created: paklein (08/26/2000) */
 #ifndef _LINEAR_DAMAGE_2D_T_H_
 #define _LINEAR_DAMAGE_2D_T_H_
@@ -59,8 +59,7 @@ public:
 private:
 
 	/** traction at initialization */
-	dArrayT fTraction_Last;
-	dArrayT fOpening_Last;
+	dArrayT fInitTraction;
 
 	/* traction potential parameters */
 //	double fd_c_n; /**< characteristic normal opening to failure */
@@ -69,8 +68,9 @@ private:
 	/* penetration stiffness */
 //	double fpenalty; /**< stiffening multiplier during interpenetration */
 	double fK;       /**< calculated penetration stiffness */
-	double fdel_max; /*Maximum effective opening*/
-	double fsigma_max; /*Maximum effective stress*/
+	double fL_max; /*Maximum normalized opening*/
+//TEMP
+	double fG_max;
 };
 
 } // namespace Tahoe 

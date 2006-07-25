@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE2D.h,v 1.4 2006-07-21 20:54:31 tdnguye Exp $ */
+/* $Id: SSLinearVE2D.h,v 1.3 2004-07-15 08:29:34 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_LINEAR_VE_2D_H_
 #define _SS_LINEAR_VE_2D_H_
@@ -17,9 +17,6 @@ class SSLinearVE2D: public SSViscoelasticityT
 	/** constructor */
 	SSLinearVE2D(void);
 		
-	/*initilize internal variables*/
-	virtual void PointInitialize(void);
-
 	virtual double StrainEnergyDensity(void);
 
 	/* spatial description */ 

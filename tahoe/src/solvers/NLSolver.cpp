@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.39 2006-06-18 01:45:53 tdnguye Exp $ */
+/* $Id: NLSolver.cpp,v 1.38 2006-04-28 16:37:14 tdnguye Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -126,10 +126,6 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 			/* test for convergence */
 			solutionflag = ExitIteration(error, fNumIteration);
 		}
-		
-		if(relaxcode == GlobalT::kFailReset)
-			solutionflag = kFailed;
-		
 	}
 			
 	/* loop on error */
@@ -235,8 +231,6 @@ approx_LHS = tmp;
 				/* test for convergence */
 				solutionflag = ExitIteration(error, fNumIteration);
 			}
-			if(relaxcode == GlobalT::kFailReset)
-				solutionflag = kFailed;
 		}
 	}
 

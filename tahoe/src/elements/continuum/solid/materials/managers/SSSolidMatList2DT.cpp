@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.13 2006-07-21 20:04:31 tdnguye Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.12 2006-05-21 18:39:04 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -15,7 +15,6 @@
 
 #ifdef PLASTICITY_J2_MATERIAL
 #include "J2SSKStV2D.h"
-#include "J2SSKStV2DPlaneStress.h"
 #include "LocalJ2SSNonlinHard2D.h"
 #include "GradJ2SSNonlinHard2D.h"
 #endif
@@ -138,8 +137,7 @@ void SSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("small_strain_StVenant_2D");
 
 #ifdef PLASTICITY_J2_MATERIAL
-		sub_lists.AddSub("small_strain_StVenant_J2_PlaneStrain");
-		sub_lists.AddSub("small_strain_StVenant_J2_PlaneStress");
+		sub_lists.AddSub("small_strain_StVenant_J2_2D");
 #endif
 
 #ifdef PLASTICITY_DP_MATERIAL
@@ -233,10 +231,8 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& name) const
 		mat = new SSKStV2D;
 
 #ifdef PLASTICITY_J2_MATERIAL
-	else if (name == "small_strain_StVenant_J2_PlaneStrain")
+	else if (name == "small_strain_StVenant_J2_2D")
 		mat = new J2SSKStV2D;
-	else if (name == "small_strain_StVenant_J2_PlaneStress")
-		mat = new J2SSKStV2DPlaneStress;
 #endif
 
 #ifdef PLASTICITY_DP_MATERIAL

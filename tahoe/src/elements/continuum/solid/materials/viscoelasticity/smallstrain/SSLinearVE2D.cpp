@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE2D.cpp,v 1.6 2006-07-21 20:54:31 tdnguye Exp $ */
+/* $Id: SSLinearVE2D.cpp,v 1.5 2004-07-15 08:29:34 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE2D.h"
 #include "SSMatSupportT.h"
@@ -17,146 +17,54 @@ static const char* Labels[kNumOutputVar] = {"Dvisc"};
 SSLinearVE2D::SSLinearVE2D(void):
 	ParameterInterfaceT("linear_viscoelastic_2D")
 {
-	/*set default*/
-	fConstraint = kPlaneStrain;
+
 }	
-
-void SSLinearVE2D::PointInitialize(void)
-{
-	int ip = CurrIP();
-	/* allocate element storage */
-	ElementCardT& element = CurrentElement();
-
-	if (element.Flag() == ElementCardT::kON){
-		if (ip == 0) {
-			element.Dimension(0, fnstatev*NumIP());
-			element.DoubleData() = 0.0;
-		}
-	if (ip == NumIP() - 1)
-		UpdateHistory();   /*set current to last*/
-	}
-
-	if (element.Flag() == ElementCardT::kMarkON)
-	{
-		if (ip ==0) {
-				element.Dimension(0,fnstatev*NumIP());
-		}
-		Load(element,ip);
-
-		fmeanQ = 0.0;
-		fmeanQ_n = 0.0;
-		fdevQ = 0.0;
-		fdevQ_n = 0.0;
-
-		double muEQ = fMu[kEquilibrium];
-		double kappaEQ = fKappa[kEquilibrium];
-		double muNEQ = fMu[kNonEquilibrium];
-		double kappaNEQ = fKappa[kNonEquilibrium];
-
-		double dt = fSSMatSupport->TimeStep();
-		double taudtS = dt/ftauS;
-		double taudtB = dt/ftauB;
-		falphaS = exp(-0.5*taudtS);
-		falphaB = exp(-0.5*taudtB);
-		fbetaS = exp(-taudtS);
-		fbetaB = exp(-taudtB);
-
-		const dSymMatrixT& strain = e();
-		fStrain3D = 0;
-		fStrain3D[0] = strain[0];
-		fStrain3D[1] = strain[1];
-		fStrain3D[5] = strain[2];
-		/*calculate out of plane component*/
-		if (Constraint() == kPlaneStress)
-		{
-			double K1 = 3.0*(kappaEQ + kappaNEQ*falphaB) + 4.0*(muEQ + muNEQ*falphaS);
-			double K2 = -3.0*(fbetaB*fmeanQ_n[0] + fbetaS*fdevQ_n[2] - falphaB*fmeanSin_n[0] - falphaS*fdevSin_n[2]);
-			K2 += (-3.0*kappaNEQ*falphaB + 2.0*muNEQ*falphaS - 3.0*kappaEQ + 2.0*muEQ)*(strain[0]+strain[1]);
-	
-			fStrain3D[2] = K2/K1;
-		}
-
-
-		double I1 = fStrain3D[0]+fStrain3D[1]+fStrain3D[2];
-
-		fStrain3D[0] -= third*I1;
-		fStrain3D[1] -= third*I1;
-		fStrain3D[2] -= third*I1;
-
-		/*deviatoric part*/
-		fdevSin = fStrain3D;
-		fdevSin *= 2.0*muNEQ;
-		fdevSin_n = fdevSin;
-		/*volumetric part*/
-		fmeanSin[0] = kappaNEQ*I1;
-		fmeanSin_n[0] = fmeanSin[0];
-
-		Store(element, ip);
-	}
-}
 
 double SSLinearVE2D::StrainEnergyDensity(void)
 {
-	double muEQ = fMu[kEquilibrium];
-	double kappaEQ = fKappa[kEquilibrium];
-	double muNEQ = fMu[kNonEquilibrium];
-	double kappaNEQ = fKappa[kNonEquilibrium];
-
-	double dt = fSSMatSupport->TimeStep();
-	double taudtS = dt/ftauS;
-	double taudtB = dt/ftauB;
-	falphaS = exp(-0.5*taudtS);
-	falphaB = exp(-0.5*taudtB);
-	fbetaS = exp(-taudtS);
-	fbetaB = exp(-taudtB);
-
-	/*non-equilibrium components*/
-	ElementCardT& element = CurrentElement();
-	Load(element, CurrIP());
-
-	const dSymMatrixT& strain = e();
+        const dSymMatrixT& strain = e();
 	fStrain3D = 0;
 	fStrain3D[0] = strain[0];
 	fStrain3D[1] = strain[1];
 	fStrain3D[5] = strain[2];
 	
-	/*calculate out of plane component*/
-	if (Constraint() == kPlaneStress)
-	{
-		double K1 = 3.0*(kappaEQ + kappaNEQ*falphaB) + 4.0*(muEQ + muNEQ*falphaS);
-		double K2 = -3.0*(fbetaB*fmeanQ_n[0] + fbetaS*fdevQ_n[2] - falphaB*fmeanSin_n[0] - falphaS*fdevSin_n[2]);
-		K2 += (-3.0*kappaNEQ*falphaB + 2.0*muNEQ*falphaS - 3.0*kappaEQ + 2.0*muEQ)*(strain[0]+strain[1]);
+	/*equilibrium components*/
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
 
-		fStrain3D[2] = K2/K1;
-	}
-
-
-	double I1 = fStrain3D[0]+fStrain3D[1]+fStrain3D[2];
+	double I1 = strain[0]+strain[1]; 
 
 	fStrain3D[0] -= third*I1;
 	fStrain3D[1] -= third*I1;
 	fStrain3D[2] -= third*I1;
-
+	
 	/*deviatoric part*/
 	fStress3D = fStrain3D;
-	fStress3D *= 2.0*muEQ;
+	fStress3D *= 2.0*mu;
 
 	/*volumetric part*/
-	fStress3D[0] += kappaEQ*I1;
-	fStress3D[1] += kappaEQ*I1;
-	fStress3D[2] += kappaEQ*I1;
+	fStress3D[0] += kappa*I1;
+	fStress3D[1] += kappa*I1;
+	fStress3D[2] += kappa*I1;
+	
+	/*reduce to 2D*/
+	fStress[0] = fStress3D[0];
+	fStress[1] = fStress3D[1];
+	fStress[2] = fStress3D[5];
 
-	fStrain3D[0] += third*I1;
-	fStrain3D[1] += third*I1;
-	fStrain3D[2] += third*I1;
+	double energy = 0.5*fStress.ScalarProduct(e());
+	
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
 
-	double energy = 0.5*fStress3D.ScalarProduct(fStrain3D);
-
+	mu = fMu[kNonEquilibrium];
+	kappa = fKappa[kNonEquilibrium];
+	
 	fStrain3D = fdevQ;
-	fStrain3D /= 2.0*muNEQ;
-	fStrain3D[0] += fmeanQ[0]/kappaNEQ*third;
-	fStrain3D[1] += fmeanQ[0]/kappaNEQ*third;
-	fStrain3D[2] += fmeanQ[0]/kappaNEQ*third;
+	fStrain3D /= 2.0*mu;
+	fStrain3D[0] += fmeanQ[0]/kappa*third;
+	fStrain3D[1] += fmeanQ[0]/kappa*third;
+	fStrain3D[2] += fmeanQ[0]/kappa*third;
 
 	fStress3D = fdevQ;
 	fStress3D[0] += fmeanQ[0];
@@ -179,148 +87,117 @@ const dSymMatrixT& SSLinearVE2D::S_IJ(void)
 
 const dMatrixT& SSLinearVE2D::c_ijkl(void)
 {        
-        double dt = fSSMatSupport->TimeStep();
-        double taudtS = dt/ftauS;
-        double taudtB = dt/ftauB;
+ 	double dt = fSSMatSupport->TimeStep();
+	double taudtS = dt/ftauS;
+	double taudtB = dt/ftauB;
 
-        falphaS = exp(-0.5*taudtS);
-        falphaB = exp(-0.5*taudtB);
+	falphaS = exp(-0.5*taudtS);
+	falphaB = exp(-0.5*taudtB);
 
-        double muEQ = fMu[kEquilibrium];
-        double kappaEQ = fKappa[kEquilibrium];
-        double muNEQ = fMu[kNonEquilibrium];
-        double kappaNEQ = fKappa[kNonEquilibrium];
+	/*equilibrium component*/
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
+	
+	/*deviatoric part*/
+	fModulus = 0.0;
+	fModulus(0,0) = fModulus(1,1) = 2.0*mu*(1.0 - third);
+	fModulus(2,2) = mu;
+	fModulus(0,1) =	fModulus(1,0) = -2.0*mu*third;
 
-        double r = 0.0;
-        if (Constraint() == kPlaneStress)
-        {
-                double K1 = 3.0*(kappaEQ + kappaNEQ*falphaB) + 4.0*(muEQ + muNEQ*falphaS);
-                double K2 = 3.0*(kappaEQ + kappaNEQ*falphaB) - 2.0*(muEQ + muNEQ*falphaS);
-                r = K2/K1;
-        }
+	/*volumetric part*/
+	fModulus(0,0) += kappa; fModulus(1,1) += kappa; 
+	fModulus(0,1) += kappa; fModulus(1,0) += kappa; 
+	
+	/*non-equilibrium component*/
+	mu = fMu[kNonEquilibrium];
+	kappa = fKappa[kNonEquilibrium];
 
-        /*equilibrium component*/
-        /*deviatoric part*/
-        fModulus = 0.0;
-        fModulus(0,0) = fModulus(1,1) = 2.0*muEQ*third*(2.0+r);
-        fModulus(2,2) = muEQ;
-        fModulus(0,1) = fModulus(1,0) = -2.0*muEQ*third*(1.0-r);
-        /*volumetric part*/
-        fModulus(0,0) += kappaEQ*(1.0-r); fModulus(1,1) += kappaEQ*(1.0-r);
-        fModulus(0,1) += kappaEQ*(1.0-r); fModulus(1,0) += kappaEQ*(1.0-r);
-
-        /*nonequilibrium component*/
-        /*deviatoric part*/
-       fModulus = 0.0;
-        fModulus(0,0) = fModulus(1,1) = 2.0*muEQ*third*(2.0+r);
-        fModulus(2,2) = muEQ;
-        fModulus(0,1) = fModulus(1,0) = -2.0*muEQ*third*(1.0-r);
-        /*volumetric part*/
-        fModulus(0,0) += kappaEQ*(1.0-r); fModulus(1,1) += kappaEQ*(1.0-r);
-        fModulus(0,1) += kappaEQ*(1.0-r); fModulus(1,0) += kappaEQ*(1.0-r);
-
-        /*nonequilibrium component*/
-        /*deviatoric part*/
-        fModMat = 0.0;
-        fModMat(0,0) = fModMat(1,1) = 2.0*muNEQ*falphaS*third*(2.0+r);
-        fModMat(2,2) = muNEQ*falphaS;
-        fModMat(0,1) = fModMat(1,0) = -2.0*muNEQ*falphaS*third*(1.0-r);
-        /*volumetric part*/
-        fModMat(0,0) += kappaNEQ*falphaB*(1.0-r); fModMat(1,1) += kappaNEQ*falphaB*(1.0-r);
-        fModMat(0,1) += kappaNEQ*falphaB*(1.0-r); fModMat(1,0) += kappaNEQ*falphaB*(1.0-r);
-
-        fModulus += fModMat;
-
-        return(fModulus);
+	/*deviatoric part*/
+	fModMat = 0.0;
+	fModMat(0,0) = fModMat(1,1) = 2.0*mu*falphaS*(1.0 - third);
+	fModMat(2,2) = mu*falphaS;
+	fModMat(0,1) = fModMat(1,0) = -2.0*mu*falphaS*third;
+	
+	/*volumetric part*/
+	fModMat(0,0) += kappa*falphaB; fModMat(1,1) += kappa*falphaB; 
+	fModMat(0,1) += kappa*falphaB; fModMat(1,0) += kappa*falphaB; 
+	
+	fModulus += fModMat;
+    
+	return(fModulus);
 }
 
 const dSymMatrixT& SSLinearVE2D::s_ij(void)
 {
-        double muEQ = fMu[kEquilibrium];
-        double kappaEQ = fKappa[kEquilibrium];
-        double muNEQ = fMu[kNonEquilibrium];
-        double kappaNEQ = fKappa[kNonEquilibrium];
+	double dt = fSSMatSupport->TimeStep();
+	double taudtS = dt/ftauS;
+	double taudtB = dt/ftauB;
 
-        double dt = fSSMatSupport->TimeStep();
-        double taudtS = dt/ftauS;
-        double taudtB = dt/ftauB;
-        falphaS = exp(-0.5*taudtS);
-        falphaB = exp(-0.5*taudtB);
-        fbetaS = exp(-taudtS);
-        fbetaB = exp(-taudtB);
+	falphaS = exp(-0.5*taudtS);
+	falphaB = exp(-0.5*taudtB);
+	fbetaS = exp(-taudtS);
+	fbetaB = exp(-taudtB);
 
-        /*non-equilibrium components*/
-        ElementCardT& element = CurrentElement();
-        Load(element, CurrIP());
+	const dSymMatrixT& strain = e();
+	fStrain3D = 0;
+	fStrain3D[0] = strain[0];
+	fStrain3D[1] = strain[1];
+	fStrain3D[5] = strain[2];
+	
+	/*equilibrium components*/
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
 
-        const dSymMatrixT& strain = e();
-        fStrain3D = 0;
-        fStrain3D[0] = strain[0];
-        fStrain3D[1] = strain[1];
-        fStrain3D[5] = strain[2];
-        /*calculate out of plane component*/
-        if (Constraint() == kPlaneStress)
-        {
-                double K1 = 3.0*(kappaEQ + kappaNEQ*falphaB) + 4.0*(muEQ + muNEQ*falphaS);
-                double K2 = -3.0*(fbetaB*fmeanQ_n[0] + fbetaS*fdevQ_n[2] - falphaB*fmeanSin_n[0] - falpha\
-S*fdevSin_n[2]);
-                K2 += (-3.0*kappaNEQ*falphaB + 2.0*muNEQ*falphaS - 3.0*kappaEQ + 2.0*muEQ)*(strain[0]+str\
-ain[1]);
+	double I1 = strain[0]+strain[1]; 
 
-                fStrain3D[2] = K2/K1;
-        }
+	fStrain3D[0] -= third*I1;
+	fStrain3D[1] -= third*I1;
+	fStrain3D[2] -= third*I1;
+	
+	/*deviatoric part*/
+	fStress3D = fStrain3D;
+	fStress3D *= 2.0*mu;
 
-        /*equilibrium components*/
-        double I1 = fStrain3D[0]+fStrain3D[1]+fStrain3D[2];
+	/*volumetric part*/
+	fStress3D[0] += kappa*I1;
+	fStress3D[1] += kappa*I1;
+	fStress3D[2] += kappa*I1;
+	/*non-equilibrium components*/
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
 
-        fStrain3D[0] -= third*I1;
-        fStrain3D[1] -= third*I1;
-        fStrain3D[2] -= third*I1;
+	if(fSSMatSupport->RunState() == GlobalT::kFormRHS)
+	{
+		mu = fMu[kNonEquilibrium];
+		kappa = fKappa[kNonEquilibrium];
 
-        /*deviatoric part*/
-         fStress3D = fStrain3D;
-        fStress3D *= 2.0*muEQ;
+		/*deviatoric part*/       
+		fdevSin = fStrain3D;
+		fdevSin *= 2.0*mu;
+		
+		fdevQ[0] = fbetaS*fdevQ_n[0] + falphaS*(fdevSin[0]-fdevSin_n[0]);
+		fdevQ[1] = fbetaS*fdevQ_n[1] + falphaS*(fdevSin[1]-fdevSin_n[1]);
+		fdevQ[2] = fbetaS*fdevQ_n[2] + falphaS*(fdevSin[2]-fdevSin_n[2]);
+		fdevQ[3] = fbetaS*fdevQ_n[3] + falphaS*(fdevSin[3]-fdevSin_n[3]);
+		fdevQ[4] = fbetaS*fdevQ_n[4] + falphaS*(fdevSin[4]-fdevSin_n[4]);
+		fdevQ[5] = fbetaS*fdevQ_n[5] + falphaS*(fdevSin[5]-fdevSin_n[5]);
+		
+		/*volumetric part*/
+		fmeanSin[0] = kappa*I1;
+		fmeanQ[0] = fbetaB*fmeanQ_n[0] + falphaB * (fmeanSin[0]-fmeanSin_n[0]);
+        
+		Store(element,CurrIP());
+	}
+	fStress3D += fdevQ;
 
-        /*volumetric part*/
-        fStress3D[0] += kappaEQ*I1;
-        fStress3D[1] += kappaEQ*I1;
-        fStress3D[2] += kappaEQ*I1;
+	fStress3D[0] += fmeanQ[0];
+	fStress3D[1] += fmeanQ[0];
+	fStress3D[2] += fmeanQ[0];
 
-        /*calculate state variables*/
-        if (fSSMatSupport->RunState() == GlobalT::kFormRHS)
-        {
-                /*deviatoric part*/
-                fdevSin = fStrain3D;
-                fdevSin *= 2.0*muNEQ;
-
-                fdevQ[0] = fbetaS*fdevQ_n[0] + falphaS*(fdevSin[0]-fdevSin_n[0]);
-                fdevQ[1] = fbetaS*fdevQ_n[1] + falphaS*(fdevSin[1]-fdevSin_n[1]);
-                fdevQ[2] = fbetaS*fdevQ_n[2] + falphaS*(fdevSin[2]-fdevSin_n[2]);
-                fdevQ[3] = fbetaS*fdevQ_n[3] + falphaS*(fdevSin[3]-fdevSin_n[3]);
-                fdevQ[4] = fbetaS*fdevQ_n[4] + falphaS*(fdevSin[4]-fdevSin_n[4]);
-                fdevQ[5] = fbetaS*fdevQ_n[5] + falphaS*(fdevSin[5]-fdevSin_n[5]);
-
-                /*volumetric part*/
-                fmeanSin[0] = kappaNEQ*I1;
-                fmeanQ[0] = fbetaB*fmeanQ_n[0] + falphaB*(fmeanSin[0]-fmeanSin_n[0]);
-
-                Store(element,CurrIP());
-        }
-
-        /*add nonequilibrium component*/
-        fStress3D += fdevQ;
-
-        fStress3D[0] += fmeanQ[0];
-        fStress3D[1] += fmeanQ[0];
-        fStress3D[2] += fmeanQ[0];
-
-        /*reduce to 2D*/
-        fStress[0] = fStress3D[0];
-        fStress[1] = fStress3D[1];
-        fStress[2] = fStress3D[5];
-
-        return(fStress);
-
+	fStress[0] = fStress3D[0];
+	fStress[1] = fStress3D[1];
+	fStress[2] = fStress3D[5];
+	return(fStress);
 }
 int SSLinearVE2D::NumOutputVariables() const {return kNumOutputVar;}
 

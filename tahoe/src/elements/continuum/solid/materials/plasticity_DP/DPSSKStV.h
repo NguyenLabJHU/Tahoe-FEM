@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.16 2006-06-30 15:13:22 regueiro Exp $ */
+/* $Id: DPSSKStV.h,v 1.15 2006-04-27 04:37:50 cfoster01 Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -42,7 +42,7 @@ class DPSSKStV: public SSIsotropicMatT,
 	/** returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
                 const dSymMatrixT& totalstrain, 
-		const ElementCardT& element, int ip);
+				const ElementCardT& element, int ip);
 
 	/** \name spatial description */
 	/*@{*/

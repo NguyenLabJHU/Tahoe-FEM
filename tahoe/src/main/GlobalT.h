@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.14 2006-06-18 01:44:20 tdnguye Exp $ */
+/* $Id: GlobalT.h,v 1.13 2005-03-11 20:37:19 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -99,8 +99,7 @@ public:
 		kNoRelax = 0, /**< do nothing */
 		   kReEQ = 1, /**< reset global equation numbers, but still at force equilirbium */
 		  kRelax = 2, /**< relax, ie. re-find equilibrium */
-	  kReEQRelax = 3,  /**< reset global equation numbers and relax */ 
-	  kFailReset = 4};
+	  kReEQRelax = 3  /**< reset global equation numbers and relax */ };
 
 	/** returns flag with precedence */
 	static RelaxCodeT MaxPrecedence(RelaxCodeT code1, RelaxCodeT code2);

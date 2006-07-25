@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.cpp,v 1.8 2006-07-06 01:20:06 hspark Exp $ */
+/* $Id: NL_E_MatT.cpp,v 1.7 2004-07-15 08:29:19 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #include "NL_E_MatT.h"
 
@@ -22,7 +22,7 @@ const dMatrixT& NL_E_MatT::c_ijkl(void)
 	
 	/* material -> spatial */
 	const dMatrixT& Fmat = F();
-	fModuli.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, fModuli));
+	fModuli.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, fModuli));	
 	return fModuli;
 }
 	

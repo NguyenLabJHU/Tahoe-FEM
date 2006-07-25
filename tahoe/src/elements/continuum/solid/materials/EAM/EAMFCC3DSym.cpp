@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym.cpp,v 1.7 2006-07-03 20:19:32 hspark Exp $ */
+/* $Id: EAMFCC3DSym.cpp,v 1.5 2005-11-08 04:10:44 paklein Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym.h"
 
@@ -18,7 +18,7 @@ EAMFCC3DSym::EAMFCC3DSym(void) {
  **********************************************************************/
 	
 void EAMFCC3DSym::LoadBondTable(void)
-{	
+{
 	/* dimension work space */
 	fBondCounts.Dimension(kEAMFCC3DSymNumBonds);
 	fDefLength.Dimension(kEAMFCC3DSymNumBonds);

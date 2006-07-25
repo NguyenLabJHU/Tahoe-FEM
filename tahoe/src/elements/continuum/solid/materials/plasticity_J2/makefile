@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2006-07-21 20:03:19 tdnguye Exp $
+# $Id: makefile,v 1.11 2005-08-12 05:20:51 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -29,8 +29,8 @@ OBJ = \
 	J2SSKStV2D.o \
 	J2_C0HardeningT.o \
 	J2SSC0HardeningT.o \
-	J2SimoC0HardeningT.o \
-	J2SSKStV2DPlaneStress.o
+	J2SimoC0HardeningT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 
@@ -58,8 +58,7 @@ SRC = \
 	J2SSKStV2D.cpp \
 	J2_C0HardeningT.cpp \
 	J2SSC0HardeningT.cpp \
-	J2SimoC0HardeningT.cpp \
-	J2SSKStV2DPlaneStress.cpp
+	J2SimoC0HardeningT.cpp
 
 ##################### (3) headers
 #
@@ -80,8 +79,7 @@ HDR = \
 	J2SSKStV2D.h \
 	J2_C0HardeningT.h \
 	J2SSC0HardeningT.h \
-	J2SimoC0HardeningT.h \
-	J2SSKStV2DPlaneStress.h 
+	J2SimoC0HardeningT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

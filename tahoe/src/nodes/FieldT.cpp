@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.49 2006-06-19 15:25:33 r-jones Exp $ */
+/* $Id: FieldT.cpp,v 1.48 2006-04-28 16:37:14 tdnguye Exp $ */
 
 #include "FieldT.h"
 
@@ -1072,7 +1072,6 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 		sub_lists.AddSub("wall_augmented_Lagrangian");
 		sub_lists.AddSub("cylinder_penalty");
 		sub_lists.AddSub("cylinder_augmented_Lagrangian");
-		sub_lists.AddSub("pressure_bc");
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);

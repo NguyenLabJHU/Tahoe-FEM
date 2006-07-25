@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.68 2006-07-03 01:38:28 hspark Exp $ */
+/* $Id: EAMT.cpp,v 1.66 2005-04-08 16:41:48 d-farrell2 Exp $ */
 
 #include "EAMT.h"
 
@@ -245,9 +245,9 @@ void EAMT::WriteOutput(void)
 
       /* Embedding Energy: E_i(rho_i) */
       if(iEmb == 1 && fOutputFlags[kPE]) values_i[offsets[kPE]] += fEmbeddingEnergy(tag_i,0);
+      	  
 		for (int j = 1; j < neighbors.Length(); j++)
 		{
-
 	  /* tags */
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];		
@@ -316,6 +316,7 @@ void EAMT::WriteOutput(void)
 				double F =  Ep_j * rhop_i + Ep_i * rhop_j;
 				Fbyr += F/r;
 			}
+
 	  		temp.Outer(r_ij);
 			vs_i.AddScaled( 0.5*Fbyr,temp);
 	  }
@@ -1706,7 +1707,7 @@ void EAMT::RHSDriver3D(void)
 
   iArrayT neighbors;
   fForce = 0.0;
-
+	
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
@@ -1764,8 +1765,9 @@ void EAMT::RHSDriver3D(void)
 	      
 	      double E = z_i*z_j/r;
 	      double F = (z_i*zp_j + zp_i*z_j)/r - E/r;
+	      
 	      double Fbyr = formKd*F/r;
-		  
+	      
 	      r_ij_0 *= Fbyr;
 	      f_i[0] += r_ij_0;
 	      f_j[0] +=-r_ij_0;

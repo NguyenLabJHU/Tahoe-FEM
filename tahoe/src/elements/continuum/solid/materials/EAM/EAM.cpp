@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.10 2006-07-06 01:20:05 hspark Exp $ */
+/* $Id: EAM.cpp,v 1.6 2004-07-15 08:26:47 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAM.h"
 #include "CBLatticeT.h"
@@ -11,7 +11,6 @@ EAM::EAM(CBLatticeT& lattice):
 	fPairPotential(NULL),
 	fEmbeddingEnergy(NULL),
 	fElectronDensity(NULL),
-	fRepRho(3),
 	fLattice(lattice)
 {
 
@@ -42,16 +41,6 @@ void EAM::Initialize(int nsd, int numbonds)
 	fBond1.Dimension(numbonds);
 	fBond2.Dimension(numbonds);
 	fBond3.Dimension(numbonds);
-	
-	/* Dimension surface cluster work space */
-	const dArrayT& rb = fLattice.DeformedBulk();
-	const dArrayT& rs1 = fLattice.DeformedSurf1();
-	const dArrayT& rs2 = fLattice.DeformedSurf2();
-	fBond4.Dimension(rb.Length());
-	fBond5.Dimension(rs1.Length());
-	fBond6.Dimension(rs2.Length());
-	fBondTensor2b.Dimension(nstrs);
-	fIntType.Dimension(6,2);
 }
 
 /*
@@ -67,7 +56,7 @@ double EAM::ComputeUnitEnergy(void)
 	/* compute total atomic density */	
 	dArrayT& ElectronDensity = fElectronDensity->MapFunction(r, fBond1);
 	dArrayT& PairPotential   = fPairPotential->MapFunction(r, fBond2);
-	
+
 	double rho = 0.0;
 	double energy = 0.0;
 	
@@ -88,7 +77,7 @@ double EAM::ComputeUnitEnergy(void)
 }
 
 /*
-* Compute unit 2nd PK stress - used by bulk CB solver
+* Compute unit 2nd PK stress:
 *
 *     unit 2nd PK stress = SIJ*(volume per cell/atoms per cell)
 */
@@ -99,73 +88,20 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 
 	/* total atomic density */
 	double rho = TotalElectronDensity();
-	double dFdrho = fEmbeddingEnergy->DFunction(rho);
+	double dFdrho = fEmbeddingEnergy->DFunction(rho);	
 
 	/* assemble stress */
 	stress = 0.0;
 	dArrayT& DPotential = fPairPotential->MapDFunction(r, fBond1);
 	dArrayT& DDensity   = fElectronDensity->MapDFunction(r, fBond2);
 	int nb = r.Length();
-
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = r[i];
 		int    ci = counts[i];		
-		//double coeff = (1.0/ri)*ci*0.5*(DPotential[i] + dFdrho_j*DDensity[i] + dFdrho_i*DDensity[i]);
-		double coeff = (1.0/ri)*ci*(0.5*DPotential[i] + dFdrho*DDensity[i]); // old expression
+		double coeff = (1.0/ri)*ci*(0.5*DPotential[i] + dFdrho*DDensity[i]);
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
-	}
-}
-
-/*
-* Compute unit 2nd PK surface stress - used by surface CB solver
-*
-*     unit 2nd PK surface stress = SIJ*(area per cell/atoms per cell)
-*/
-void EAM::ComputeUnitSurfaceStress(dSymMatrixT& stress)
-{
-	const dArrayT& r = fLattice.DeformedLengths();
-	const iArrayT& counts = fLattice.BondCounts();
-	const iArrayT& atom_type = fLattice.AtomTypes();	// added by HSP
-	const dArray2DT& bonds = fLattice.Bonds();	// can access initial bonds
-		
-	/* calculate representative electron densities */
-	ComputeElectronDensity();
-	
-	/* Create interaction table using calculated electron densities */
-	fIntType(0,0) = (fRepRho[1]);
-	fIntType(0,1) = (fRepRho[1]);
-	fIntType(1,0) = (fRepRho[1]);
-	fIntType(1,1) = (fRepRho[2]);
-	fIntType(2,0) = (fRepRho[1]);
-	fIntType(2,1) = (fRepRho[0]);
-	fIntType(3,0) = (fRepRho[2]);
-	fIntType(3,1) = (fRepRho[1]);
-	fIntType(4,0) = (fRepRho[2]);
-	fIntType(4,1) = (fRepRho[2]);
-	fIntType(5,0) = (fRepRho[2]);
-	fIntType(5,1) = (fRepRho[0]);
-
-	/* assemble stress */
-	stress = 0.0;
-	dArrayT& DPotential = fPairPotential->MapDFunction(r, fBond1);
-	dArrayT& DDensity   = fElectronDensity->MapDFunction(r, fBond2);
-	int nb = r.Length();
-	dArrayT blah(2);
-
-	for (int i = 0; i < nb; i++)
-	{
-		// define dFdrho_i and dFdrho_j here depending on rho_i and rho_j
-		int type = atom_type[i];	// what is the interaction type?
-		fIntType.RowCopy(type, blah);	// get correct electron densities for i-j interactions
-		double dFdrho_i = fEmbeddingEnergy->DFunction(blah[0]);
-		double dFdrho_j = fEmbeddingEnergy->DFunction(blah[1]);
-		double ri = r[i];
-		int    ci = counts[i];		
-		double coeff = (1.0/ri)*ci*0.5*(DPotential[i] + dFdrho_j*DDensity[i] + dFdrho_i*DDensity[i]);
-		fLattice.BondComponentTensor2(i,fBondTensor2b);
-		stress.AddScaled(coeff,fBondTensor2b);
 	}
 }
 	   	    	
@@ -189,55 +125,6 @@ void EAM::ComputeUnitModuli(dMatrixT& moduli)
 	FormSingleBondContribution(rho, moduli);
 }
 
-/* calculate rho for bulk, surface1 and surface2 atoms */
-void EAM::ComputeElectronDensity(void)
-{
-	/* Get deformed lengths for bulk, surface1 and surface2 clusters */
-	const dArrayT& rb = fLattice.DeformedBulk();
-	const dArrayT& rs1 = fLattice.DeformedSurf1();
-	const dArrayT& rs2 = fLattice.DeformedSurf2();
-	
-	/* Get bond counts for each cluster type */
-	const iArrayT& countsb = fLattice.BulkCounts();
-	const iArrayT& countss1 = fLattice.Surf1Counts();
-	const iArrayT& countss2 = fLattice.Surf2Counts();
-	
-	/* values of electron density */
-	double rhob = 0.0;
-	double rhos1 = 0.0;
-	double rhos2 = 0.0;
-
-	/* compute electron density at each neighbor for each atom type */
-	dArrayT& ElecDensBulk = fElectronDensity->MapFunction(rb, fBond4);
-	dArrayT& ElecDensSurf1 = fElectronDensity->MapFunction(rs1, fBond5);
-	dArrayT& ElecDensSurf2 = fElectronDensity->MapFunction(rs2, fBond6);
-
-	const int* pcountb = countsb.Pointer();
-	const int* pcounts1 = countss1.Pointer();
-	const int* pcounts2 = countss2.Pointer();
-	double* pedensb = ElecDensBulk.Pointer();
-	double* pedenss1 = ElecDensSurf1.Pointer();
-	double* pedenss2 = ElecDensSurf2.Pointer();
-	int nbb = rb.Length();
-	int nbs1 = rs1.Length();
-	int nbs2 = rs2.Length();
-
-	/* bulk atoms */
-	for (int i = 0; i < nbb; i++)
-		rhob += (*pcountb++)*(*pedensb++);
-
-	/* surface1 atoms */
-	for (int i = 0; i < nbs1; i++)
-		rhos1 += (*pcounts1++)*(*pedenss1++);	
-	
-	/* surface2 atoms */
-	for (int i = 0; i < nbs2; i++)
-		rhos2 += (*pcounts2++)*(*pedenss2++);
-	
-	double blah[3] = {rhob,rhos1,rhos2};
-	fRepRho = blah;
-}
-
 /* compute the total electron density */
 double EAM::TotalElectronDensity(void)
 {
@@ -251,7 +138,6 @@ double EAM::TotalElectronDensity(void)
 	const int* pcount = counts.Pointer();
 	double* pedensity = ElectronDensity.Pointer();
 	int nb = r.Length();
-
 	for (int i = 0; i < nb; i++)
 		rho += (*pcount++)*(*pedensity++);
 
@@ -291,10 +177,6 @@ void EAM::FormMixedDerivatives(double rho)
 		double DDDj = DDDensity[j];
 		double DDj  = DDensity[j];
 	
-		/* Embedding energy derivative */
-		//double dFdrho = fEmbeddingEnergy->DFunction(rho[j]);	
-		//double d2Fdrho2 = fEmbeddingEnergy->DDFunction(rho[j]);
-		
 		for (int i = 0; i <= j; i++)
 		{
 			double Amn = 0.0;
@@ -330,16 +212,13 @@ void EAM::FormSingleBondContribution(double rho, dMatrixT& moduli)
 	/* batch fetch */
 	dArrayT& DPotential = fPairPotential->MapDFunction(r, fBond1);
 	dArrayT& DDensity   = fElectronDensity->MapDFunction(r, fBond2);
-
+	
 	/* Embedding energy derivative */
 	double dFdrho = fEmbeddingEnergy->DFunction(rho);	
 	
 	int nb = r.Length();
 	for (int i = 0; i < nb; i++)
 	{
-		/* Embedding energy derivative */
-		//double dFdrho = fEmbeddingEnergy->DFunction(rho[i]);	
-
 		double ri = r[i];
 	
 		double coeff = -counts[i]*(0.5*DPotential[i] + dFdrho*DDensity[i])/(ri*ri*ri);
