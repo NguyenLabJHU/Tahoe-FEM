@@ -1,5 +1,6 @@
-<?xml version="1.0"?>
-<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/square.1.geom" title="2D uniaxial tension">
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="paklein" geometry_file="../geometry/square.1.geom"
+    title="2D uniaxial tension" xmlns:x0="http://www.w3.org/2001/XMLSchema">
     <time num_steps="2" output_inc="1" time_step="0.5">
         <schedule_function>
             <piecewise_linear>
@@ -23,24 +24,28 @@
     <element_list>
         <small_strain field_name="displacement">
             <quadrilateral/>
-            <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1"/>
             <small_strain_element_block>
                 <block_ID_list>
                     <String value="1"/>
                 </block_ID_list>
                 <small_strain_material_2D>
-                    <small_strain_StVenant_J2_2D density="1.0">
-                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    <small_strain_StVenant_J2_PlaneStrain density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100"/>
                         <cubic_spline fixity="free_run">
                             <OrderedPair x="0.0" y="0.25"/>
                             <OrderedPair x="0.01" y="0.255"/>
                             <OrderedPair x="0.05" y="0.26"/>
                             <OrderedPair x="0.10" y="0.30"/>
                         </cubic_spline>
-                    </small_strain_StVenant_J2_2D>
+                    </small_strain_StVenant_J2_PlaneStrain>
                 </small_strain_material_2D>
             </small_strain_element_block>
         </small_strain>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12">
+        <profile_matrix/>
+    </nonlinear_solver>
 </tahoe>
