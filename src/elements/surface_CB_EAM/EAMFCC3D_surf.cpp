@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.9 2006-07-07 02:44:40 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.10 2006-07-27 01:56:58 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -578,8 +578,9 @@ void EAMFCC3D_surf::TakeParameterList(const ParameterListT& list)
 	/* lattice parameter and cell volume */
 	fLatticeParameter = (fEAM) ? fEAM->LatticeParameter() : fEAM_particle->LatticeParameter();
 	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
-	fCellArea = fLatticeParameter*fLatticeParameter; //0.5*
-	fSurfaceThickness = 0.75*fLatticeParameter; // CHECK THIS
+	fCellArea = fLatticeParameter*fLatticeParameter; // OK because dividing by 2 in Stress/Modulus calls
+	//fSurfaceThickness = 0.75*fLatticeParameter; // CHECK THIS
+	fSurfaceThickness = 1.75*fLatticeParameter;	// Accounting for S3 and S4 layers
 
 	/* inherited - lattice parameter needs to be set first */
 	FCCLatticeT_Surf::TakeParameterList(list);
