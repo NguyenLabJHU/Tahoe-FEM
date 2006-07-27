@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.44 2005-04-08 16:41:48 d-farrell2 Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.45 2006-07-27 02:30:58 hspark Exp $ */
 
 #include "ParticlePairT.h"
 
@@ -1221,6 +1221,7 @@ void ParticlePairT::RHSDriver3D(void)
 	/* run through neighbor list */
 	fForce = 0.0;
 	iArrayT neighbors;
+
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
 		/* row of neighbor list */
@@ -1231,7 +1232,7 @@ void ParticlePairT::RHSDriver3D(void)
 		int  type_i = fType[tag_i];
 		double* f_i = fForce(tag_i);
 		const double* x_i = coords(tag_i);
-		
+
 		/* run though neighbors for one atom - first neighbor is self */
 		for (int j = 1; j < neighbors.Length(); j++)
 		{

@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.68 2006-07-03 01:38:28 hspark Exp $ */
+/* $Id: EAMT.cpp,v 1.69 2006-07-27 02:30:55 hspark Exp $ */
 
 #include "EAMT.h"
 
@@ -216,7 +216,7 @@ void EAMT::WriteOutput(void)
 
   int current_property_i = -1;
   int current_property_j = -1;
-		
+	
 	/* Loop i : run through neighbor list */
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
@@ -242,7 +242,7 @@ void EAMT::WriteOutput(void)
 		}
 
       coords.RowAlias(tag_i, x_i);
-
+	
       /* Embedding Energy: E_i(rho_i) */
       if(iEmb == 1 && fOutputFlags[kPE]) values_i[offsets[kPE]] += fEmbeddingEnergy(tag_i,0);
 		for (int j = 1; j < neighbors.Length(); j++)
@@ -1765,7 +1765,7 @@ void EAMT::RHSDriver3D(void)
 	      double E = z_i*z_j/r;
 	      double F = (z_i*zp_j + zp_i*z_j)/r - E/r;
 	      double Fbyr = formKd*F/r;
-		  
+				  
 	      r_ij_0 *= Fbyr;
 	      f_i[0] += r_ij_0;
 	      f_j[0] +=-r_ij_0;
@@ -1795,7 +1795,7 @@ void EAMT::RHSDriver3D(void)
 
 	      double F =  Ep_j * rhop_i + Ep_i * rhop_j;
 	      double Fbyr = formKd*F/r;
-
+			
 	      r_ij_0 *= Fbyr;
 	      f_i[0] +=  r_ij_0;
 	      f_j[0] += -r_ij_0;
@@ -1810,7 +1810,7 @@ void EAMT::RHSDriver3D(void)
 	 
 	    }
 	}
-    }
+	}
 }
 
 /* set neighborlists */
