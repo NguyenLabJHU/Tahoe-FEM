@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.10 2006-07-06 01:20:05 hspark Exp $ */
+/* $Id: EAM.cpp,v 1.11 2006-07-27 02:30:55 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAM.h"
 #include "CBLatticeT.h"
@@ -51,7 +51,8 @@ void EAM::Initialize(int nsd, int numbonds)
 	fBond5.Dimension(rs1.Length());
 	fBond6.Dimension(rs2.Length());
 	fBondTensor2b.Dimension(nstrs);
-	fIntType.Dimension(6,2);
+	//fIntType.Dimension(6,2);
+	fIntType.Dimension(7,2);
 }
 
 /*
@@ -78,7 +79,6 @@ double EAM::ComputeUnitEnergy(void)
 	for (int i = 0; i < nb; i++)
 	{
 		int    ci = *pcount++;
-		
 		rho    += ci*(*prho++);
 		energy += ci*0.5*(*pphi++);
 	}
@@ -111,8 +111,8 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 	{
 		double ri = r[i];
 		int    ci = counts[i];		
-		//double coeff = (1.0/ri)*ci*0.5*(DPotential[i] + dFdrho_j*DDensity[i] + dFdrho_i*DDensity[i]);
 		double coeff = (1.0/ri)*ci*(0.5*DPotential[i] + dFdrho*DDensity[i]); // old expression
+		//double coeff = (1.0/ri)*ci*0.5*(DPotential[i] + dFdrho*DDensity[i] + dFdrho*DDensity[i]);
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
 	}
@@ -146,6 +146,8 @@ void EAM::ComputeUnitSurfaceStress(dSymMatrixT& stress)
 	fIntType(4,1) = (fRepRho[2]);
 	fIntType(5,0) = (fRepRho[2]);
 	fIntType(5,1) = (fRepRho[0]);
+	fIntType(6,0) = (fRepRho[0]);	// bulk/bulk interactions for S3 and S4 atoms
+	fIntType(6,1) = (fRepRho[0]);
 
 	/* assemble stress */
 	stress = 0.0;

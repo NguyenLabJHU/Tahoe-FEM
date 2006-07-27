@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.h,v 1.7 2006-07-03 20:19:32 hspark Exp $ */
+/* $Id: BondLatticeT.h,v 1.8 2006-07-27 02:30:55 hspark Exp $ */
 /* created: paklein (01/07/1997) */
 #ifndef _BONDLATTICET_H_
 #define _BONDLATTICET_H_
@@ -85,8 +85,8 @@ protected:
 	dArrayT     fDefSurf1;		/* list of deformed surface bonds */
 	dArrayT     fDefSurf2;      /* list of deformed bonds for atom 1 layer into the bulk */
 	dMatrixT	fQ;				/* bond vector transformation matrix */
-	iArrayT     fAtomType;		/* interaction indicator type (0-5) for surface CB */
-	/* 0=s1/s1, 1=s1/s2, 2=s1/bulk, 3=s2/s1, 4=s2/s2, 5=s2/bulk */
+	iArrayT     fAtomType;		/* interaction indicator type (0-6) for surface CB */
+	/* 0=s1/s1, 1=s1/s2, 2=s1/bulk, 3=s2/s1, 4=s2/s2, 5=s2/bulk, 6=bulk/bulk */
 			
 	/** \name work space */
 	/*@{*/
