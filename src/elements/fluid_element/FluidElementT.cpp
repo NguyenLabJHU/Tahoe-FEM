@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.10 2006-07-26 15:43:17 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.11 2006-07-27 02:55:03 thao Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -636,7 +636,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
       /* dimensions */
       int  nsd = NumSD();
 			int  nen = NumElementNodes();
-			int  nun = nodal_values->Length();
+			int  nun = nodal_values->NumberOfNodes();
 
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
@@ -661,7 +661,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
           const double* Na          = fShapes->IPShapeU();                   /* [nun] */
 	        const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
           const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
-          double temp0;       temp0 = 0.0;
+          double temp0 = 0.0;
 
 					/* integration factor */
 					double temp1 = constM*(*Weight++)*(*Det++);
@@ -732,7 +732,7 @@ void FluidElementT::FormKd(double constK)
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
-    double*	pfRHS             = fRHS.Pointer();
+    double*	pfRHS             = fRHS.Pointer();							/* [nun] */
     const double* Na          = fShapes->IPShapeU();                   /* [nun] */
 	  const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
 
@@ -743,14 +743,14 @@ void FluidElementT::FormKd(double constK)
 
     const double& Pres        = fPres_list[fShapes->CurrIP()];         /* [1] */
     const dArrayT& GradPres   = fGradPres_list[fShapes->CurrIP()];     /* [nsd] */
-    double temp0;       temp0 = 0.0;
-    dArrayT temp7(nsd); temp7 = 0.0;
-    dArrayT temp4(nsd); temp4 = 0.0;
-    double temp5;       temp5 = 0.0;
-    const dSymMatrixT& s_ij = fCurrMaterial->s_ij();
+    double temp0 = 0.0;
+    dArrayT temp7(nsd) = 0.0;
+    dArrayT temp4(nsd) = 0.0;
+    double temp5 = 0.0;
+    const dSymMatrixT& s_ij = fCurrMaterial->s_ij();					/*[nsd x nsd] or [numstress]
     
-	  /* integration factor */
-		double temp1 = constK*(*Weight++)*(*Det++);
+	/* integration factor */
+	double temp1 = constK*(*Weight++)*(*Det++);
 
     /* temp4[i] = v_{j}*v{i,j} */
     /* temp5 = v_{j,j} */
@@ -974,8 +974,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
       /* degrees of freedom */
 			int ndof = NumDOF();
       /* dimensions */
-      int  nsd = NumSD();
-			int  nen = NumElementNodes();
+		int  nsd = NumSD();
 			int  nun = fLocDisp.NumberOfNodes();
 
 			const double* Det    = fShapes->IPDets();
@@ -1004,31 +1003,31 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 
 					for (int a = 0; a < nun; a++)
 					{
-            for (int i = 0; i < ndof; i++)
-            {
-              if ( i < nsd ) /* sum over nsd, tau_m term */
-                temp0 += OldVel[i]*Na_grad(i,a);
-
-              int p = a*ndof + i;
-              for (int b = 0; b < nun; b++)
-              {
-                temp3 = 0.0;
-                for (int j = 0; j < ndof; j++)
-                {
-                  int q = b*ndof + j;
-                  if (j < fPresIndex)
-                  {
-                    if ( i < nsd ) /* sum over nsd, tau_c term */
-                      temp3[i] = Na_grad(i,b);
-              
-                    fLHS(p,q) += temp1*Na[a]*Na[b]+temp1*tau_m*temp0[a]*Na[b];
-                  }
-                  else
-                    fLHS(p,q) += temp1*tau_c*temp3[i]*Na[b];
-                }
-              }
-            }    
-          }
+						/* temp0 = v_{k}*N_{A,k} */
+						temp0 = 0.0;
+						if ( nsd == 2 )
+							temp0 += OldVel[0]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd);
+						else /* 3D */
+							temp0 += OldVel[0]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[2]*GradNa(2,lnd);
+						for (int i = 0; i < ndof; i++)
+						{
+							int p = nun*a + i;
+							if (i < fPresIndex)
+							{
+								for (int b = 0; b < nun; b++)
+								{
+									for (int j = 0; j < nsd; j++)
+									{
+										int q = nun*b+j;
+										if(i==j)
+											fLHS(p,q) += temp1*Na[a]*Na[b]+temp1*tau_m*temp0*Na[b];
+									}
+								}
+							}
+							else
+								fLHS(p,q) += temp1*tau_c*Na[b]*GradNa[j,a];							
+						}    
+					}
 				}
 			}
 			break;
