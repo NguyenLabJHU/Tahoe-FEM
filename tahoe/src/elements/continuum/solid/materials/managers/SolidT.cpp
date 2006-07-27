@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.43 2006-04-28 16:37:14 tdnguye Exp $ */
+/* $Id: SolidT.cpp,v 1.44 2006-07-27 13:37:42 kyonten Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 #include "ExceptionT.h"
@@ -48,6 +48,9 @@ SolidT::TypeT SolidT::int2TypeT(int i)
 
 		case SolidT::kMRSSKStV:
 			return SolidT::kMRSSKStV;
+		
+		case SolidT::kSMRSSKStV:
+			return SolidT::kSMRSSKStV;
 
 		case SolidT::kLJTr2D:
 			return SolidT::kLJTr2D;

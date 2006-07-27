@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.13 2006-07-21 20:04:31 tdnguye Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.14 2006-07-27 13:37:42 kyonten Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -37,6 +37,10 @@
 
 #ifdef PLASTICITY_MR_MATERIAL_DEV
 #include "MRSSKStV2D.h"
+#endif
+
+#ifdef PLASTICITY_SMR_MATERIAL_DEV
+#include "SMRSSKStV2D.h"
 #endif
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
@@ -150,6 +154,10 @@ void SSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("small_strain_StVenant_MR_2D");
 #endif
 
+#ifdef PLASTICITY_SMR_MATERIAL_DEV
+		sub_lists.AddSub("small_strain_StVenant_SMR_2D");
+#endif
+
 #ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
 		sub_lists.AddSub("small_strain_StVenant_DP_Loc_2D");
 #endif
@@ -247,6 +255,11 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& name) const
 #ifdef PLASTICITY_MR_MATERIAL_DEV
 	else if (name == "small_strain_StVenant_MR_2D")
 		mat = new MRSSKStV2D;
+#endif
+
+#ifdef PLASTICITY_SMR_MATERIAL_DEV
+	else if (name == "small_strain_StVenant_SMR_2D")
+		mat = new SMRSSKStV2D;
 #endif
 
 #ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
