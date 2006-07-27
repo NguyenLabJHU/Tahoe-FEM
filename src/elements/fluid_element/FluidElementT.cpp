@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.12 2006-07-27 21:58:18 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.13 2006-07-27 22:14:41 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -720,8 +720,8 @@ void FluidElementT::FormKd(double constK)
     double temp5 = 0.0;
     const dSymMatrixT& s_ij = fCurrMaterial->s_ij();					/*[nsd x nsd] or [numstress]
     
-	/* integration factor */
-	double temp1 = constK*(*Weight++)*(*Det++);
+	  /* integration factor */
+	  double temp1 = constK*(*Weight++)*(*Det++);
 
     /* temp4[i] = v_{j}*v{i,j} */
     /* temp5 = v_{j,j} */
@@ -878,10 +878,10 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 					/* accumulate in element force vector */
 					const double* Na          = fShapes->IPShapeU();                   /* [nun] */
 					const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
-          const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */ 
+          const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
           double temp0;       temp0 = 0.0;
           dArrayT temp3(nsd);
-          
+
 					/* integration factor */
 					double temp1 = constM*(*Weight++)*(*Det++);
 					if (ip_weight) temp1 *= *ip_weight++;
@@ -899,8 +899,8 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
             for (i = 0; i < nsd; i++)
             {
               p = a*ndof + i;
-               for (b = 0; b < nun; b++)
-                for (j = 0; j < ndof; j++)
+              for (b = 0; b < nun; b++)
+                for (j = 0; j < nsd; j++)
                 {
                   q = b*ndof + j;
                   if(i == j)
@@ -916,7 +916,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
             /* 4th term */
             p = a*ndof + 4;
             for (b = 0; b < nun; b++)
-              for (j = 0; j < ndof; j++)
+              for (j = 0; j < nsd; j++)
               {
                 q = b*ndof + j;
 
@@ -943,23 +943,74 @@ void FluidElementT::FormStiffness(double constK)
 		dMatrixT::kWhole :
 		dMatrixT::kUpperOnly;
 
+  /* degrees of freedom */
+  int ndof = NumDOF();
+  /* dimensions */
+  int  nsd = NumSD();
+  int  nen = NumElementNodes();
+  int  nun = fLocDisp.NumberOfNodes();
+
 	/* integration parameters */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
+  double Density = fCurrMaterial->Density();
 
-	/* integrate element stiffness */
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
-		double scale = constK*(*Det++)*(*Weight++);
+    double*	pfRHS             = fRHS.Pointer();							/* [nun] */
+    const double* Na          = fShapes->IPShapeU();                   /* [nun] */
+	  const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
 
-		/* strain displacement matrix */
-/*		B(fShapes->CurrIP(), fB);
-		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
-		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
-*/
-	    fLHS = 0.0;
-	}
+    const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
+
+    const dArrayT& Vel        = fVel_list[fShapes->CurrIP()];          /* [nsd] */
+    const dMatrixT& GradVel   = fGradVel_list[fShapes->CurrIP()];      /* [nsd x nsd] */
+
+    const double& Pres        = fPres_list[fShapes->CurrIP()];         /* [1] */
+    const dArrayT& GradPres   = fGradPres_list[fShapes->CurrIP()];     /* [nsd] */
+
+    /* integration factor */
+	  double temp1 = constK*(*Weight++)*(*Det++);
+    
+    int a,i,b,j,p,q;
+		for (a = 0; a < nun; a++)
+		{
+      for (i = 0; i < nsd; i++)
+      {
+        p = a*ndof + i;
+        for (b = 0; b < nun; b++)
+        {
+          for (j = 0; j < nsd; j++)
+          {
+            q = b*ndof + j;
+            if(i == j)
+            {
+              /* term :  */
+              fLHS(p,q) += 0;
+            }
+            else
+            {
+              /* term :  */
+              fLHS(p,q) += 0;
+            }
+          }
+          /*j4th term */
+        }
+      }
+      /* 4th term */
+      p = a*ndof + 4;
+      for (b = 0; b < nun; b++)
+        for (j = 0; j < nsd; j++)
+        {
+          q = b*ndof + j;
+
+          /* term :  */
+          fLHS(p,q) += 0;
+        }
+        /* j4th term */
+    }
+  }
 }
 
 /** describe the parameters needed by the interface */
