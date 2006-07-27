@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.cpp,v 1.2 2006-07-27 21:56:03 kyonten Exp $ */
+/* $Id: SMRSSNLHardT.cpp,v 1.3 2006-07-27 23:13:18 regueiro Exp $ */
 /* created: Karma Yonten */
 
 /* Interface for a nonassociative, small strain,      */
@@ -61,7 +61,7 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
       ElementCardT& element, int ip)
 {
   	int kk, iplastic;
-    double ff, dlam, dlam2, normr;
+	double ff, dlam, dlam2, normr;
   	
 	/* allocate matrices */
     dMatrixT KE(6), AA(10), AA_inv(10), KE_Inv(6), CMAT(10);  
@@ -274,7 +274,7 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
         /* convergence criteria: stresses brought back to the yield 
          * surface (i.e. ff ~= 0) and residuals of plastic strains 
          * and internal variables are very small */
-        if (abs(ff) < fTol_1 && normr < fTol_2) {
+        if (fabs(ff) < fTol_1 && normr < fTol_2) {
         	NotConverged = false;
         }
         
