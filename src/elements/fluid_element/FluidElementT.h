@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.8 2006-07-25 16:30:00 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.9 2006-07-27 21:58:18 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #ifndef _FLUID_ELEMENT_H_
 #define _FLUID_ELEMENT_H_
@@ -86,17 +86,12 @@ protected:
 	 * \param B destination for B */
 	void Set_B(const dArray2DT& derivatives, dMatrixT& B) const;
 
-	/** set the \e B matrix for 2D axysymmetric problems using the given shape functions
-	 * and derivative using the y-axis as the axis or revolution.
-	 * \param shapes shape function values: [nen]
-	 * \param derivatives of shape function derivatives: [nsd] x [nen]
-	 * \param r distance from the axis of revolution
-	 * \param B destination for B */
-	void Set_B_axi(const dArrayT& shapes, const dArray2DT& derivatives, double r, dMatrixT& B) const;
-
 	/** increment current element */
 	virtual bool NextElement(void);
 
+  /** set initial velocities */
+  void FluidElementT::InitialCondition(void);
+  
   /** form shape functions and derivatives */
   virtual void SetGlobalShape(void);
 
