@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.cpp,v 1.1 2006-07-27 13:20:08 kyonten Exp $ */
+/* $Id: SMRSSNLHardT.cpp,v 1.2 2006-07-27 21:56:03 kyonten Exp $ */
 /* created: Karma Yonten */
 
 /* Interface for a nonassociative, small strain,      */
@@ -156,7 +156,7 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
     KE_Inv.Inverse(KE);
   
 /* check the yield function */
-    Yield_f(Sig, qn, ff);
+    ff = Yield_f(Sig, qn);
     if (ff < kYieldTol) {
       iplastic = 0;
       state[27] = ff;
@@ -181,7 +181,7 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
     	Sig = Sig_e;
         
         /* check yield condition */
-        Yield_f(Sig, qn, ff);
+        ff = Yield_f(Sig, qn);
  
         /* residuals for plastic strain and internal variables */
         dQdSig_f(Sig, qn, dQdSig);
@@ -309,8 +309,8 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
  * returns the value of the yield function given the
  * stress vector and state variables
  */
-void SMRSSNLHardT::Yield_f(const dSymMatrixT& Sig, 
-			const dArrayT& qn, double& ff)
+double SMRSSNLHardT::Yield_f(const dSymMatrixT& Sig, 
+			const dArrayT& qn)
 {
   dSymMatrixT Sig_Dev(3);
   double ffriction = qn[2]; 
@@ -318,7 +318,8 @@ void SMRSSNLHardT::Yield_f(const dSymMatrixT& Sig,
   
   Sig_Dev.Deviatoric(Sig);
   double temp  = (Sig_Dev.ScalarProduct())/2.0;
-  ff = sqrt(3.*temp) + (ffriction*fpress) - fc;
+  double ff = sqrt(3.*temp) + (ffriction*fpress) - fc;
+  return ff;
 }
 
 /* calculation of dfdSig_f */

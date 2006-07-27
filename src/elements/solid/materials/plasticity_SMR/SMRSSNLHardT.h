@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.h,v 1.1 2006-07-27 13:20:08 kyonten Exp $ */
+/* $Id: SMRSSNLHardT.h,v 1.2 2006-07-27 21:56:03 kyonten Exp $ */
 /* created: Karma Yonten  */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -48,7 +48,7 @@ public:
 	const dSymMatrixT& StressCorrection(const dSymMatrixT& totalstrain_curr, 
 		ElementCardT& element, int ip); 
 
-	void Yield_f(const dSymMatrixT& Sig, const dArrayT& qn, double& ff);
+	double Yield_f(const dSymMatrixT& Sig, const dArrayT& qn);
     void dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);    
     void dfdq_f(const dSymMatrixT& Sig, dArrayT& dfdq); 
     void dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig);   
