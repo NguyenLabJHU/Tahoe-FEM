@@ -116,6 +116,9 @@ protected:
 	virtual int  NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+	
+	//bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 	 
+    //                                AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 
 protected:
 

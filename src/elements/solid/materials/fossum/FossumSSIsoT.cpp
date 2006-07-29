@@ -14,7 +14,7 @@ const double kYieldTol = 1.0e-10;
 const int kNSD = 3;
 
 /* element output data */
-const int kNumOutput = 10;
+const int kNumOutput = 11;
 static const char* Labels[kNumOutput] = {
 	"alpha11",  // back stress
 	"alpha22",  
@@ -25,7 +25,8 @@ static const char* Labels[kNumOutput] = {
 	"kappa",
 	"meanstress",
 	"J2",
-	"J3"
+	"J3",
+	"loccheck"
 };
 
 /*constructor*/
@@ -267,6 +268,83 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
 	return fModulusContinuumPerfPlas;
 }
 
+/* 	 
+ * Test for localization using "current" values for Cauchy 	 
+ * stress and the spatial tangent moduli. Returns true if the 	 
+ * determinant of the acoustic tensor is negative and returns 	 
+ * the normals and slipdirs. Returns false if the determinant is positive. 	 
+ */ 	 
+  	 
+ #if 0 	 
+ bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 	 
+                             AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact) 	 
+ { 	 
+     /* stress tensor */ 	 
+     const dSymMatrixT& stress = s_ij(); 	 
+              	 
+     /* elasto-plastic tangent moduli */ 	 
+     const dMatrixT& modulus = con_perfplas_ijkl(); 	 
+     //const dMatrixT& modulus = c_ijkl(); 	 
+      	 
+     /* elastic modulus */ 	 
+     const dMatrixT& modulus_e = ce_ijkl(); 	 
+  	 
+     /* localization condition checker */ 	 
+     DetCheckT checker(stress, modulus, modulus_e); 	 
+     normals.Dimension(NumSD()); 	 
+     slipdirs.Dimension(NumSD()); 	 
+     normals.Free(); 	 
+     slipdirs.Free(); 	 
+     detAs.Free(); 	 
+     bool checkloc = checker.IsLocalized_SS(normals,slipdirs,detAs); 	 
+      	 
+     if (checkloc) 	 
+     { 	 
+         /* calculate dissipation for each normal and slipdir */ 	 
+         // not calculated at the moment 	 
+         normals.Top(); 	 
+         slipdirs.Top(); 	 
+         dArrayT normal_tmp, slipdir_tmp; 	 
+         normal_tmp.Dimension(NumSD()); 	 
+         slipdir_tmp.Dimension(NumSD()); 	 
+          	 
+         dissipations_fact.Free(); 	 
+          	 
+         double sigmn_scalar, nm, psi, cospsi; 	 
+          	 
+         //dSymMatrixT devsig(NumSD()); 	 
+         //devsig.Deviatoric(stress); 	 
+         /* 	 
+         dArrayT& internal = fDP->Internal(); 	 
+         double kappaISV = internal[DPSSLinHardLocT::kkappa]; 	 
+         const ElementCardT& element = CurrentElement(); 	 
+         const iArrayT& flags = element.IntegerData(); 	 
+         if (flags[CurrIP()] == DPSSLinHardLocT::kIsPlastic) 	 
+             kappaISV -= fDP->H()*internal[DPSSLinHardLocT::kdgamma]; 	 
+         */ 	 
+          	 
+         while (normals.Next()) 	 
+         { 	 
+             normal_tmp = normals.Current(); 	 
+             slipdirs.Next(); 	 
+             slipdir_tmp = slipdirs.Current(); 	 
+             sigmn_scalar = stress.MultmBn(normal_tmp, slipdir_tmp); 	 
+             /* 	 
+             nm = dArrayT::Dot(normal_tmp, slipdir_tmp); 	 
+             psi = asin(nm); 	 
+             cospsi = cos(psi); 	 
+             double dissip = sigmn_scalar; 	 
+             dissip -= kappaISV*cospsi; 	 
+             */ 	 
+             double dissip = 0.0; 	 
+             dissipations_fact.Append(dissip); 	 
+         } 	 
+     } 	 
+      	 
+     return checkloc; 	 
+ } 	 
+ #endif 	 
+
 /* returns the strain energy density for the specified strain */
 double FossumSSIsoT::StrainEnergyDensity(void)
 {
@@ -330,6 +408,47 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	
 	/* Clean up - restore full stress state */ 
 	fStress.AddScaled(output[7], One);
+	
+	     //if (element.IsAllocated()) 	 
+     /* 	 
+     if (0)  //to disable localization check 	 
+     { 	 
+         const iArrayT& flags = element.IntegerData(); 	 
+         if (flags[CurrIP()] == kIsPlastic) 	 
+         { 	 
+             // check for localization 	 
+             // compute modulus 	 
+  	 
+             //const dMatrixT& modulus = c_ijkl(); 	 
+  	 
+             //const dMatrixT& modulus = c_perfplas_ijkl(); 	 
+             //const dMatrixT& modulus = con_ijkl(); 	 
+             const dMatrixT& modulus = con_perfplas_ijkl(); 	 
+  	 
+             // localization condition checker 	 
+             //DetCheckT checker(stress, modulus, Ce); 	 
+  	 
+             AutoArrayT <dArrayT> normals; 	 
+             AutoArrayT <dArrayT> slipdirs; 	 
+             normals.Dimension(3); 	 
+             slipdirs.Dimension(3); 	 
+             output[10] = 0.0; 	 
+             //double dummy; 	 
+             if(IsLocalized(normals,slipdirs)) 	 
+               output[10] = 1.0; 	 
+  	 
+         } 	 
+         else 	 
+         { 	 
+             output[10] = 0.0; 	 
+         } 	 
+     } 	 
+     else 	 
+     { 	 
+         output[10] = 0.0; 	 
+     } 	 
+     */ 	 
+     output[10] = 0.0; 	 
 }
 
 /*************************************************************************
@@ -643,7 +762,7 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 {
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
-
+   
 #ifdef ENHANCED_STRAIN_LOC_DEV	
 	int element_locflag = 0;
 	if (element.IsAllocated()) 
