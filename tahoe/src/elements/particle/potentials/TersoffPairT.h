@@ -1,9 +1,14 @@
-/* $Id: TersoffPairT.h,v 1.2 2006-07-25 16:29:47 d-farrell2 Exp $ */
+/* $Id: TersoffPairT.h,v 1.3 2006-07-31 14:50:30 d-farrell2 Exp $ */
 #ifndef _TERSOFF_PAIR_T_H_
 #define _TERSOFF_PAIR_T_H_
 
 /* base classes */
 #include "TersoffPropertyT.h"
+#include "iArrayT.h"
+#include "AutoArrayT.h"
+#include "ArrayT.h"
+#include "nMatrixT.h"
+#include "dArray2DT.h"
 
 /* define NULL */
 #include <stdlib.h>
