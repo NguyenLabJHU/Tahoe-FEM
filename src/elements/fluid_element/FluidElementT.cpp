@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.15 2006-07-31 23:50:37 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.16 2006-08-01 23:34:26 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -518,6 +518,7 @@ void FluidElementT::RHSDriver(void)
  				fShapes->TopIP();
 				while (fShapes->NextIP())
 				{
+          const double* Na          = fShapes->IPShapeU();                   /* [nun] */
 	        const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
           const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
 
@@ -529,19 +530,16 @@ void FluidElementT::RHSDriver(void)
           {
             if ( nsd == 2 )
             {
-              OldVelMag += sqrt( (temp1*OldVel[0])*(temp1*OldVel[0])
-                                +(temp1*OldVel[1])*(temp1*OldVel[1]) );
-              h_nsum += sqrt( (temp1*OldVel[0]*GradNa(0,lnd))*(temp1*OldVel[0]*GradNa(0,lnd))
-                             +(temp1*OldVel[1]*GradNa(1,lnd))*(temp1*OldVel[1]*GradNa(1,lnd)) );
+              OldVelMag += temp1*Na[lnd]*sqrt( pow(OldVel[0],2)+pow(OldVel[1],2) );
+              h_nsum += temp1*sqrt( pow(OldVel[0]*GradNa(0,lnd)+OldVel[0]*GradNa(1,lnd)+OldVel[0]*GradNa(2,lnd),2)
+                                   +pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2) );
             }
             else /* 3D */
             {
-              OldVelMag += sqrt( (temp1*OldVel[0])*(temp1*OldVel[0])
-                                +(temp1*OldVel[1])*(temp1*OldVel[1])
-                                +(temp1*OldVel[2])*(temp1*OldVel[2]) );
-              h_nsum += sqrt( (temp1*OldVel[0]*GradNa(0,lnd))*(temp1*OldVel[0]*GradNa(0,lnd))
-                             +(temp1*OldVel[1]*GradNa(1,lnd))*(temp1*OldVel[1]*GradNa(1,lnd))
-                             +(temp1*OldVel[2]*GradNa(2,lnd))*(temp1*OldVel[2]*GradNa(2,lnd)) );
+              OldVelMag += temp1*Na[lnd]*sqrt( pow(OldVel[0],2)+pow(OldVel[1],2)+pow(OldVel[2],2) );
+              h_nsum += temp1*sqrt( pow(OldVel[0]*GradNa(0,lnd)+OldVel[0]*GradNa(1,lnd)+OldVel[0]*GradNa(2,lnd),2)
+                                   +pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2)
+                                   +pow(OldVel[2]*GradNa(0,lnd)+OldVel[2]*GradNa(1,lnd)+OldVel[2]*GradNa(2,lnd),2) );                   
             }
           }
         }
@@ -650,7 +648,8 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
               temp0 += OldVel[0]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd);
             else /* 3D */
               temp0 += OldVel[0]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[2]*GradNa(2,lnd);
-   
+
+            /* temp3 = N_{A,i}*\dot{v_{i}} */
             double temp3 = 0.0;
             double* pacc = fDOFvec.Pointer();
             for (int dof = 0; dof < nsd; dof++)
@@ -757,7 +756,9 @@ void FluidElementT::FormKd(double constK)
         temp7[2] += s_ij[2]*GradNa(2,lnd) + s_ij[3]*GradNa(1,lnd)+ s_ij[4]*GradNa(0,lnd);
       }
 
+      /* temp3 = N_{A,i}*[ v_{j}*v_{i,j} ] */
       double temp3 = 0.0;
+      /* temp6 = N_{A,i}*p_{,i} */
       double temp6 = 0.0;
       for (int dof = 0; dof < nsd; dof++)
       {
@@ -847,6 +848,7 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
+        const double* Na          = fShapes->IPShapeU();                   /* [nun] */
         const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
         const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
 
@@ -858,19 +860,16 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
         {
           if ( nsd == 2 )
           {
-            OldVelMag += sqrt( (temp1*OldVel[0])*(temp1*OldVel[0])
-                              +(temp1*OldVel[1])*(temp1*OldVel[1]) );
-            h_nsum += sqrt( (temp1*OldVel[0]*GradNa(0,lnd))*(temp1*OldVel[0]*GradNa(0,lnd))
-                           +(temp1*OldVel[1]*GradNa(1,lnd))*(temp1*OldVel[1]*GradNa(1,lnd)) );
+            OldVelMag += temp1*Na[lnd]*sqrt( pow(OldVel[0],2)+pow(OldVel[1],2) );
+            h_nsum += temp1*sqrt( pow(OldVel[0]*GradNa(0,lnd)+OldVel[0]*GradNa(1,lnd)+OldVel[0]*GradNa(2,lnd),2)
+                                 +pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2) );
           }
           else /* 3D */
           {
-            OldVelMag += sqrt( (temp1*OldVel[0])*(temp1*OldVel[0])
-                              +(temp1*OldVel[1])*(temp1*OldVel[1])
-                              +(temp1*OldVel[2])*(temp1*OldVel[2]) );
-            h_nsum += sqrt( (temp1*OldVel[0]*GradNa(0,lnd))*(temp1*OldVel[0]*GradNa(0,lnd))
-                           +(temp1*OldVel[1]*GradNa(1,lnd))*(temp1*OldVel[1]*GradNa(1,lnd))
-                           +(temp1*OldVel[2]*GradNa(2,lnd))*(temp1*OldVel[2]*GradNa(2,lnd)) );
+            OldVelMag += temp1*Na[lnd]*sqrt( pow(OldVel[0],2)+pow(OldVel[1],2)+pow(OldVel[2],2) );
+            h_nsum += temp1*sqrt( pow(OldVel[0]*GradNa(0,lnd)+OldVel[0]*GradNa(1,lnd)+OldVel[0]*GradNa(2,lnd),2)
+                                 +pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2)
+                                 +pow(OldVel[2]*GradNa(0,lnd)+OldVel[2]*GradNa(1,lnd)+OldVel[2]*GradNa(2,lnd),2) );
           }
         }
       }
@@ -968,7 +967,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
                     /* term : \rho*N_{A}*N_{B} \delta_{ij} */
                     fLHS(p,q) += temp1*Na[a]*Na[b];
 
-                    /* term : \tau^{m}*v_{k,old}*N_{,k}*\rho*N_{A}*N_{B} \delta_{ij} */
+                    /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*N_{B} \delta_{ij} */
                     fLHS(p,q) += temp1*tau_m*temp0*Na[b];
                   }
                 }
@@ -1083,7 +1082,7 @@ void FluidElementT::FormStiffness(double constK)
                         
           temp5(0,2) += ( c(0,2)*GradNa(0,a)+c(4,2)*GradNa(2,a)+c(5,2)*GradNa(1,a) )*GradNa(2,a)+
                         ( c(0,3)*GradNa(0,a)+c(4,3)*GradNa(2,a)+c(5,3)*GradNa(1,a) )*GradNa(1,a)+
-                        ( c(0,5)*GradNa(0,a)+c(4,4)*GradNa(2,a)+c(5,4)*GradNa(1,a) )*GradNa(0,a);
+                        ( c(0,4)*GradNa(0,a)+c(4,4)*GradNa(2,a)+c(5,4)*GradNa(1,a) )*GradNa(0,a);
           /**/
           temp5(1,0) += ( c(1,0)*GradNa(1,a)+c(3,0)*GradNa(2,a)+c(5,0)*GradNa(0,a) )*GradNa(0,a)+
                         ( c(1,4)*GradNa(1,a)+c(3,4)*GradNa(2,a)+c(5,4)*GradNa(0,a) )*GradNa(2,a)+
@@ -1093,9 +1092,9 @@ void FluidElementT::FormStiffness(double constK)
                         ( c(1,3)*GradNa(1,a)+c(3,3)*GradNa(2,a)+c(5,3)*GradNa(0,a) )*GradNa(2,a)+
                         ( c(1,5)*GradNa(1,a)+c(3,5)*GradNa(2,a)+c(5,5)*GradNa(0,a) )*GradNa(0,a);
                         
-          temp5(1,2) += ( c(1,2)*GradNa(1,a)+c(3,2)*GradNa(2,a)+c(5,2)*GradNa(0,a) )*GradNa(1,a)+
-                        ( c(1,3)*GradNa(1,a)+c(3,3)*GradNa(2,a)+c(5,3)*GradNa(0,a) )*GradNa(2,a)+
-                        ( c(1,5)*GradNa(1,a)+c(3,5)*GradNa(2,a)+c(5,5)*GradNa(0,a) )*GradNa(0,a);
+          temp5(1,2) += ( c(1,2)*GradNa(1,a)+c(3,2)*GradNa(2,a)+c(5,2)*GradNa(0,a) )*GradNa(2,a)+
+                        ( c(1,3)*GradNa(1,a)+c(3,3)*GradNa(2,a)+c(5,3)*GradNa(0,a) )*GradNa(1,a)+
+                        ( c(1,4)*GradNa(1,a)+c(3,4)*GradNa(2,a)+c(5,4)*GradNa(0,a) )*GradNa(0,a);
           /**/
           temp5(2,0) += ( c(2,0)*GradNa(2,a)+c(3,0)*GradNa(1,a)+c(4,0)*GradNa(0,a) )*GradNa(0,a)+
                         ( c(2,4)*GradNa(2,a)+c(3,4)*GradNa(1,a)+c(4,4)*GradNa(0,a) )*GradNa(2,a)+
@@ -1106,7 +1105,7 @@ void FluidElementT::FormStiffness(double constK)
                         ( c(2,5)*GradNa(2,a)+c(3,5)*GradNa(1,a)+c(4,5)*GradNa(0,a) )*GradNa(0,a);
                         
           temp5(2,2) += ( c(2,2)*GradNa(2,a)+c(3,2)*GradNa(1,a)+c(4,2)*GradNa(0,a) )*GradNa(2,a)+
-                        ( c(2,3)*GradNa(2,a)+c(3,3)*GradNa(1,a)+c(5,3)*GradNa(0,a) )*GradNa(1,a)+
+                        ( c(2,3)*GradNa(2,a)+c(3,3)*GradNa(1,a)+c(4,3)*GradNa(0,a) )*GradNa(1,a)+
                         ( c(2,4)*GradNa(2,a)+c(3,4)*GradNa(1,a)+c(4,4)*GradNa(0,a) )*GradNa(0,a);
       }
       
@@ -1127,7 +1126,7 @@ void FluidElementT::FormStiffness(double constK)
             fLHS(p,q) += temp1*Na[a]*Density*Na[b]*GradVel(i,j);
 
             /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*N_{B}*v_{i,j} */
-            fLHS(p,q) += temp1*temp0*Density*Na[b]*GradVel(i,j);
+            fLHS(p,q) += temp1*tau_m*temp0*Density*Na[b]*GradVel(i,j);
 
             if(i == j)
             {
