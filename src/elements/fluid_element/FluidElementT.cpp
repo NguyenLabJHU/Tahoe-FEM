@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.16 2006-08-01 23:34:26 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.17 2006-08-02 17:31:23 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -551,7 +551,7 @@ void FluidElementT::RHSDriver(void)
         /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
         h=2*OldVelMag*(1/h_nsum);
         /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
-        tau_m = 1/sqrt( (2*by_dt)*(2*by_dt) + (2*OldVelMag/h)*(2*OldVelMag/h) + (4*viscosity/(h*h))*(4*viscosity/(h*h)) );
+        tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
         /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
         tau_c=tau_m;
       }
@@ -751,9 +751,9 @@ void FluidElementT::FormKd(double constK)
       else /* 3D */
       {
         temp0 += OldVel[0]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[2]*GradNa(2,lnd);
-        temp7[0] += s_ij[0]*GradNa(0,lnd) + s_ij[4]*GradNa(2,lnd)+ s_ij[5]*GradNa(1,lnd);
-        temp7[1] += s_ij[1]*GradNa(1,lnd) + s_ij[3]*GradNa(2,lnd)+ s_ij[5]*GradNa(0,lnd);
-        temp7[2] += s_ij[2]*GradNa(2,lnd) + s_ij[3]*GradNa(1,lnd)+ s_ij[4]*GradNa(0,lnd);
+        temp7[0] += s_ij[0]*GradNa(0,lnd) + s_ij[4]*GradNa(2,lnd) + s_ij[5]*GradNa(1,lnd);
+        temp7[1] += s_ij[1]*GradNa(1,lnd) + s_ij[3]*GradNa(2,lnd) + s_ij[5]*GradNa(0,lnd);
+        temp7[2] += s_ij[2]*GradNa(2,lnd) + s_ij[3]*GradNa(1,lnd) + s_ij[4]*GradNa(0,lnd);
       }
 
       /* temp3 = N_{A,i}*[ v_{j}*v_{i,j} ] */
@@ -881,7 +881,7 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
       /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
       h=2*OldVelMag*(1/h_nsum);
       /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
-      tau_m = 1/sqrt( (2*by_dt)*(2*by_dt) + (2*OldVelMag/h)*(2*OldVelMag/h) + (4*viscosity/(h*h))*(4*viscosity/(h*h)) );
+      tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
       /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
       tau_c=tau_m;
     }
@@ -979,7 +979,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
               {
                 q = b*ndof + j;
 
-                /* term : \tau^{c}*N_{A,j}*\rho*N_{B} */
+                /* term : \tau^{c}*N_{A,l}*\rho*N_{B} \delta_{jl} */
                 fLHS(p,q) += temp1*tau_c*Na[b]*GradNa[j,a];
               }
 					}
@@ -1138,7 +1138,7 @@ void FluidElementT::FormStiffness(double constK)
             }
 
             /* term : N_{A,k}*c_{ikjl}*N_{B,l} */
-            fLHS(p,q) += temp5(i,j);
+            fLHS(p,q) += temp1*temp5(i,j);
             
             /* term : \tau^{c}*N_{A,i}*N_{B,j} */
             fLHS(p,q) += temp1*tau_c*GradNa(i,a)*GradNa(j,b);
