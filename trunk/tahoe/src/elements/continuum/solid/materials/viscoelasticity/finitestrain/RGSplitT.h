@@ -1,18 +1,18 @@
-/* $Id: RGSplitT.h,v 1.3 2004-12-01 17:50:21 thao Exp $ */
+/* $Id: RGSplitT.h,v 1.4 2006-08-03 23:16:01 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _RGSplitT_
 #define _RGSplitT_
 
+/**Reese and Govindjee IJSS 1998:  nonlinear viscoelasticity model with  **
+ **constant isotropic viscosity tensor. Volumetric/Deviatoric split formulation/ **
+ **Constitutive relation is calculated by default using a compressible Neo-Hookean 
+ **potential.  Other potentials can be implemented in derived classes by overloading 
+ **RGSplitT::dWdE and RGSplitT::dWdE.    **\
+
 /* base class */
 #include "RGViscoelasticityT.h"
 
-/* direct members */
-#include "SpectralDecompT.h"
-
 namespace Tahoe {
-
-/* forward declarations */
-class PotentialT;
 
 class RGSplitT: public RGViscoelasticityT
 {
@@ -21,7 +21,7 @@ class RGSplitT: public RGViscoelasticityT
 	/* constructor/destructor */
 	RGSplitT(void);
 
-	~RGSplitT(void);
+	enum EnergyType {kEQ=0, kNEQ=1}; 
 	
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
@@ -35,6 +35,19 @@ class RGSplitT: public RGViscoelasticityT
 	virtual void OutputLabels(ArrayT<StringT>& labels) const; 
 	virtual void ComputeOutput(dArrayT& output);
 
+	/*free energy density*/
+	virtual double Energy(const dArrayT& lambda_bar, const double J, const int type);
+
+	/*calculates principal values of deviatoric Kirchoff stress given principal values of deviatoric stretch tensor*/
+	virtual void DevStress(const dArrayT& lambda_bar, dArrayT& tau, const int type);
+	/*calculates mean Kirchhoff stress tensor given J*/
+	virtual double MeanStress(const double J, const int type);
+
+	/*calculates principal values of deviatoric stiffness given principal values of deviatoric stretch tensor*/
+ 	virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus, const int type);
+	/*calculates bulk mod given J*/
+	virtual double MeanMod(const double J, const int type);
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -46,7 +59,7 @@ class RGSplitT: public RGViscoelasticityT
 
    private:
 	void ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
-	                   dArrayT& eigenstress, dSymMatrixT& eigenmodulus);
+	                   dArrayT& eigenstress, dSymMatrixT& eigenmodulus, const int process_num);
 	void ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus);
     
    protected:
@@ -55,17 +68,12 @@ class RGSplitT: public RGViscoelasticityT
 	dMatrixT fModulus;
 	dSymMatrixT fStress;
 	
-	/* free energy potential */
-	PotentialT* fPot_EQ;
-	PotentialT* fPot_NEQ;
-
    private:  
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
 
 	/*work space*/
-	dSymMatrixT fStretch;
-	dSymMatrixT fb3D;
+	dSymMatrixT fb;
 	dSymMatrixT fbe;
 	dSymMatrixT fb_tr;
 	dMatrixT fF3D;
@@ -74,7 +82,6 @@ class RGSplitT: public RGViscoelasticityT
 	dArrayT     fEigs;
 	dArrayT     fEigs_e;
 	dArrayT     fEigs_tr;
-	dArrayT     fEigs_v;
 	dArrayT     fEigs_dev;
 
 	dArrayT	    ftau_EQ;
@@ -92,6 +99,12 @@ class RGSplitT: public RGViscoelasticityT
   	/*viscosities*/
 	double fietaS;
 	double fietaB;
+	
+	/*moduli for NeoHookean Potential*/
+	double fmu_eq;
+	double fmu_neq;
+	double fkappa_eq;
+	double fkappa_neq;
 };
 }
 #endif /* _RGSplitT_ */
