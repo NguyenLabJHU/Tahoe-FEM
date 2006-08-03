@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.18 2006-07-21 18:09:17 cfoster Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.19 2006-08-03 15:59:05 regueiro Exp $ */
 #include "FossumSSIso2DT.h"
 
 #include "SSEnhLocMatSupportT.h"
@@ -30,20 +30,17 @@ void FossumSSIso2DT::DefineParameters(ParameterListT& list) const
 /* accept parameter list */
 void FossumSSIso2DT::TakeParameterList(const ParameterListT& list)
 {
-  /* inherited */
-  FossumSSIsoT::TakeParameterList(list);
+	/* inherited */
+	FossumSSIsoT::TakeParameterList(list);
   
-  /* dimension work space */
-  fStress2D.Dimension(2);
-  fModulus2D.Dimension(dSymMatrixT::NumValues(2));
-  fModulusElas2D.Dimension(dSymMatrixT::NumValues(2));
-  fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2)),
+	/* dimension work space */
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fModulusElas2D.Dimension(dSymMatrixT::NumValues(2));
+	fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2)),
 	fModulusContinuum2D.Dimension(dSymMatrixT::NumValues(2)),
 	fModulusContinuumPerfPlas2D.Dimension(dSymMatrixT::NumValues(2)),
-  fTotalStrain3D.Dimension(3);
-  
-	/* cast to small strain embedded discontinuity material pointer */
-	fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
+	fTotalStrain3D.Dimension(3);
 }
 
 /* returns elastic strain (3D) */
@@ -105,14 +102,15 @@ const dSymMatrixT& FossumSSIso2DT::s_ij(void)
 #ifdef ENHANCED_STRAIN_LOC_DEV
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
 	int element_locflag = 0;
-	if (element.IsAllocated()) 
+	if (element.IsAllocated())
 	{
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
 	}
 	if ( element_locflag == 2 )
 	{
-		fStress2D = fSSEnhLocMatSupport->ElementStress(ip);
+		fStress2D = fSSEnhLocMatSupport->ElementStress(elem,ip);
 	}
 	else
 	{

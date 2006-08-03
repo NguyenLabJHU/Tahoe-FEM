@@ -21,7 +21,7 @@ namespace Tahoe {
 /* forward declarations */
 class SSEnhLocMatSupportT;
 
- class FossumSSIsoT: public SSIsotropicMatT, public HookeanMatT //, public ParameterInterfaceT
+class FossumSSIsoT: public SSIsotropicMatT, public HookeanMatT //, public ParameterInterfaceT
 {
 
 public:
@@ -117,15 +117,16 @@ protected:
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
 	
-	//bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 	 
-    //                                AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
+	/* test for localization */
+	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 	 
+			AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 
 protected:
 
 	/* set modulus */
 
 	virtual void SetModulus(dMatrixT& modulus); 
-	int loccheck;
+	int loccheck, element_locflag;
  
 private:
   

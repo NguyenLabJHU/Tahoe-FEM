@@ -5,6 +5,7 @@
 
 #include "FossumSSIsoT.h"
 #include "SSEnhLocMatSupportT.h"
+#include "DevelopmentElementsConfig.h"
 
 using namespace Tahoe;
 
@@ -26,7 +27,7 @@ static const char* Labels[kNumOutput] = {
 	"meanstress",
 	"J2",
 	"J3",
-	"loccheck"
+	"el_locflag"
 };
 
 /*constructor*/
@@ -268,14 +269,13 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
 	return fModulusContinuumPerfPlas;
 }
 
+
 /* 	 
  * Test for localization using "current" values for Cauchy 	 
  * stress and the spatial tangent moduli. Returns true if the 	 
  * determinant of the acoustic tensor is negative and returns 	 
  * the normals and slipdirs. Returns false if the determinant is positive. 	 
  */ 	 
-  	 
- #if 0 	 
  bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 	 
                              AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact) 	 
  { 	 
@@ -343,7 +343,7 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
       	 
      return checkloc; 	 
  } 	 
- #endif 	 
+  
 
 /* returns the strain energy density for the specified strain */
 double FossumSSIsoT::StrainEnergyDensity(void)
@@ -369,6 +369,7 @@ void FossumSSIsoT::OutputLabels(ArrayT<StringT>& labels) const
 void FossumSSIsoT::ComputeOutput(dArrayT& output)
 {
 	const ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
 	int ip = CurrIP();
 	dMatrixT Ce = HookeanMatT::Modulus();
 
@@ -378,6 +379,10 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	  	LoadData(element, ip);
 		for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i] + fDeltaAlpha[i];
 		output [6] = fInternal[kkappa] + fInternal[kdeltakappa];
+#ifdef ENHANCED_STRAIN_LOC_DEV Ê Ê Ê Ê
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
+		if (element_locflag > 0) output[10] = element_locflag;
+#endif
 	}
 	else
 	{       
@@ -388,6 +393,7 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 		output [4] = 0.0;
 		output [5] = 0.0;
 		output [6] = fKappa0;
+		output [10] = 0.0;
 	}
 	
 	/* stress tensor (load state) */
@@ -408,47 +414,6 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	
 	/* Clean up - restore full stress state */ 
 	fStress.AddScaled(output[7], One);
-	
-	     //if (element.IsAllocated()) 	 
-     /* 	 
-     if (0)  //to disable localization check 	 
-     { 	 
-         const iArrayT& flags = element.IntegerData(); 	 
-         if (flags[CurrIP()] == kIsPlastic) 	 
-         { 	 
-             // check for localization 	 
-             // compute modulus 	 
-  	 
-             //const dMatrixT& modulus = c_ijkl(); 	 
-  	 
-             //const dMatrixT& modulus = c_perfplas_ijkl(); 	 
-             //const dMatrixT& modulus = con_ijkl(); 	 
-             const dMatrixT& modulus = con_perfplas_ijkl(); 	 
-  	 
-             // localization condition checker 	 
-             //DetCheckT checker(stress, modulus, Ce); 	 
-  	 
-             AutoArrayT <dArrayT> normals; 	 
-             AutoArrayT <dArrayT> slipdirs; 	 
-             normals.Dimension(3); 	 
-             slipdirs.Dimension(3); 	 
-             output[10] = 0.0; 	 
-             //double dummy; 	 
-             if(IsLocalized(normals,slipdirs)) 	 
-               output[10] = 1.0; 	 
-  	 
-         } 	 
-         else 	 
-         { 	 
-             output[10] = 0.0; 	 
-         } 	 
-     } 	 
-     else 	 
-     { 	 
-         output[10] = 0.0; 	 
-     } 	 
-     */ 	 
-     output[10] = 0.0; 	 
 }
 
 /*************************************************************************
@@ -762,16 +727,17 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 {
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
    
 #ifdef ENHANCED_STRAIN_LOC_DEV	
 	int element_locflag = 0;
 	if (element.IsAllocated()) 
 	{
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
 	}
 	if ( element_locflag == 2 )
 	{
-		fStress = fSSEnhLocMatSupport->ElementStress(ip);
+		fStress = fSSEnhLocMatSupport->ElementStress(elem,ip);
 	}
 	else
 	{
