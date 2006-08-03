@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.cpp,v 1.2 2006-07-18 01:21:20 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.cpp,v 1.3 2006-08-03 20:51:20 thao Exp $ */
 /* created: tdnguye (07/12/2006) */
 #include "FluidMaterialT.h"
 #include "FluidMatSupportT.h"
@@ -54,14 +54,21 @@ const dMatrixT& FluidMaterialT::c_ijkl(void)
 		fModulus = 2.0*fMu;
 	else if (NumSD() ==2 ) {
 		/*"plane strain assumption for now.  i.e. no flow in out of plane direction*/
-		fModulus(0,0) = fModulus(1,1) =  2.0*fMu*(1.0 - third);
-		fModulus(1,0) = fModulus(0,1) = -2.0*fMu*third;
+//		fModulus(0,0) = fModulus(1,1) =  2.0*fMu*(1.0 - third);
+//		fModulus(1,0) = fModulus(0,1) = -2.0*fMu*third;
+		fModulus(0,0) = fModulus(1,1) =  2.0*fMu;
+		fModulus(1,0) = fModulus(0,1) = 0.0;
+		fModulus(2,2) = fMu;
 	}
 	else if (NumSD() == 3) {
-		fModulus(0,0) = fModulus(1,1) =  fModulus(2,2) = 2.0*fMu*(1.0 - third);
+//		fModulus(0,0) = fModulus(1,1) =  fModulus(2,2) = 2.0*fMu*(1.0 - third);
+//		fModulus(3,3) = fModulus(4,4) =  fModulus(5,5) = fMu;
+//		fModulus(0,1) = fModulus(0,2) =  fModulus(1,2) = -2.0*fMu*third;
+//		fModulus(1,0) = fModulus(2,0) =  fModulus(2,1) = -2.0*fMu*third;
+		fModulus(0,0) = fModulus(1,1) =  fModulus(2,2) = 2.0*fMu;
 		fModulus(3,3) = fModulus(4,4) =  fModulus(5,5) = fMu;
-		fModulus(0,1) = fModulus(0,2) =  fModulus(1,2) = -2.0*fMu*third;
-		fModulus(1,0) = fModulus(2,0) =  fModulus(2,1) = -2.0*fMu*third;
+		fModulus(0,1) = fModulus(0,2) =  fModulus(1,2) = 0.0;
+		fModulus(1,0) = fModulus(2,0) =  fModulus(2,1) = 0.0;
 	}
 return fModulus; 
 }
