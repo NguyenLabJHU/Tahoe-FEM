@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.124 2006-07-25 16:29:46 d-farrell2 Exp $ */
+/* $Id: ElementListT.cpp,v 1.125 2006-08-03 01:13:35 tdnguye Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -164,6 +164,10 @@
 
 #ifdef SURFACE_CB_DEV
 #include "TotalLagrangianCBSurfaceT.h"
+#endif
+
+#ifdef FIBER_COMP_DEV
+#include "UpLagFiberCompT.h"
 #endif
 
 using namespace Tahoe;
@@ -389,6 +393,12 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef SURFACE_CB_DEV
 		sub_lists.AddSub("total_lagrangian_CBsurface");
 #endif
+
+#ifdef FIBER_COMP_DEV
+		sub_lists.AddSub("uplag_fiber_comp_planar");
+#endif
+
+
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
@@ -643,6 +653,12 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	else if (name == "total_lagrangian_CBsurface")
 		return new TotalLagrangianCBSurfaceT(fSupport);
 #endif
+
+#ifdef FIBER_COMP_DEV
+	else if (name == "uplag_fiber_comp_planar")
+	  return new UpLagFiberCompT(fSupport);
+#endif
+
 
 	/* default */	
 	else
