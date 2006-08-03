@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.cpp,v 1.2 2004-07-15 08:29:30 paklein Exp $ */
+/* $Id: RGViscoelasticityT.cpp,v 1.3 2006-08-03 23:13:34 tdnguye Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGViscoelasticityT.h"
 
@@ -6,9 +6,13 @@ using namespace Tahoe;
 
 /* constructor */
 RGViscoelasticityT::RGViscoelasticityT(void):
-	ParameterInterfaceT("Reese_Govindjee_viscoelastic")
+	ParameterInterfaceT("Reese_Govindjee_viscoelastic"),
+	fSpectralDecompRef(3)
 {
-
+	/*set default value*/ 
+	/*overide in derived element classes before calling *
+	 *RGViscoelasticity::TakeParameterLis               */
+	fNumProcess = 1;
 }
 
 /*initializes history variable */
@@ -27,8 +31,11 @@ void  RGViscoelasticityT::PointInitialize(void)
 		      /* load state variables */
 		      Load(element, ip);
 		      
-		      fC_vn.Identity();
-		      fC_v.Identity();
+			  for (int i = 0; i < fNumProcess; i++)
+			  {
+				fC_vn[i].Identity();
+				fC_v[i].Identity();
+			  }
 
 		      /* write to storage */
 		      Store(element, ip);
@@ -46,7 +53,8 @@ void RGViscoelasticityT::UpdateHistory(void)
 		Load(element, ip);
 	
 		/* assign "current" to "last" */	
-		fC_vn = fC_v;
+		for (int i = 0; i < fNumProcess; i++)
+			fC_vn[i] = fC_v[i];
 
 		/* write to storage */
 		Store(element, ip);
@@ -75,6 +83,18 @@ GlobalT::SystemTypeT RGViscoelasticityT::TangentType(void) const
 	/* symmetric by default */
 	return GlobalT::kNonSymmetric;
 }
+
+const dArrayT& RGViscoelasticityT::Compute_Eigs_v(const int process_id)
+{
+	fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v[process_id], false);
+	return(fSpectralDecompRef.Eigenvalues());
+} 
+
+const dArrayT& RGViscoelasticityT::Compute_Eigs_vn(const int process_id)
+{
+	fSpectralDecompRef.SpectralDecomp_Jacobi(fC_vn[process_id], false);
+	return(fSpectralDecompRef.Eigenvalues());
+} 
 
 void RGViscoelasticityT::Load(ElementCardT& element, int ip)
 {
@@ -334,6 +354,17 @@ void RGViscoelasticityT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	FSSolidMatT::TakeParameterList(list);
 
+	/*Dimension state variable arrays*/
+	SetStateVariables(fNumProcess);
+}
+
+/* accept parameter list */
+void RGViscoelasticityT::SetStateVariables(const int numprocess)
+{
+
+	fC_v.Dimension(numprocess);
+	fC_vn.Dimension(numprocess);
+
 	int ndof = 3;
 	int numstress = dSymMatrixT::NumValues(ndof);
 
@@ -341,11 +372,17 @@ void RGViscoelasticityT::TakeParameterList(const ParameterListT& list)
 	fnstatev += numstress;   /*current C_v*/
 	fnstatev += numstress;   /*last C_vn*/
 
+	fnstatev *= numprocess;
+	
 	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
-	
+		
 	/* assign pointers to current and last blocks of state variable array */
-	fC_v.Set(ndof, pstatev);
-	pstatev += numstress;
-	fC_vn.Set(ndof, pstatev);
+	for (int i = 0; i < numprocess; i++)
+	{
+		fC_v[i].Set(ndof, pstatev);
+		pstatev += numstress;
+		fC_vn[i].Set(ndof, pstatev);
+		pstatev += numstress;
+	}
 }
