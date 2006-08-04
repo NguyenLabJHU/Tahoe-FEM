@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.19 2006-08-04 21:30:24 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.20 2006-08-04 23:01:47 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -1069,7 +1069,7 @@ void FluidElementT::FormStiffness(double constK)
     double temp0, temp2, temp3, temp4;        
     dMatrixT temp5(nsd);
     const dMatrixT& c = fCurrMaterial->c_ijkl();
-    
+        cout << "\n OldVel:" << OldVel << "\n Vel:" << Vel;
     /* integration factor */
 	  double temp1 = 1*(*Weight++)*(*Det++); /* DEBUG */
     
@@ -1078,17 +1078,11 @@ void FluidElementT::FormStiffness(double constK)
 		{
   		/* temp0 = v_{k,old}*N_{A,k} */
 			temp0 = 0.0;
-      /* temp2 = v_{l}*N_{B,l} */
-			temp2 = 0.0;
-      /* temp4 = N_{A,i}*N_{B,i} */
-      temp4 = 0.0;
       /* N_{A,k}*c_{ikjl}*N_{B,l} == > B^{T}*D*B */
       temp5 = 0.0;
 			if ( nsd == 2 )
       {
 					temp0 += OldVel[0]*GradNa(0,a)+OldVel[1]*GradNa(1,a);
-					temp2 += Vel[0]*GradNa(0,a)+Vel[1]*GradNa(1,a);
-					temp4 += GradNa(0,a)*GradNa(0,a)+GradNa(1,a)*GradNa(1,a);
 
           /* note: GradNa == GradNb */
           temp5(0,0) += ( c(0,0)*GradNa(0,a)+c(2,0)*GradNa(1,a) )*GradNa(0,a)+
@@ -1106,8 +1100,6 @@ void FluidElementT::FormStiffness(double constK)
 			else /* 3D */
       {
 					temp0 += OldVel[0]*GradNa(0,a)+OldVel[1]*GradNa(1,a)+OldVel[2]*GradNa(2,a);
-					temp2 += Vel[0]*GradNa(0,a)+Vel[1]*GradNa(1,a)+Vel[2]*GradNa(2,a);
-					temp4 += GradNa(0,a)*GradNa(0,a)+GradNa(1,a)*GradNa(1,a)+GradNa(2,a)*GradNa(2,a);
 
           /* note: GradNa == GradNb */
           temp5(0,0) += ( c(0,0)*GradNa(0,a)+c(4,0)*GradNa(2,a)+c(5,0)*GradNa(1,a) )*GradNa(0,a)+
@@ -1149,11 +1141,25 @@ void FluidElementT::FormStiffness(double constK)
       
       /* temp3 = N_{a,i}*v_{i,j} */
       temp3 = 0.0;
+      /* temp4 = N_{A,i}*N_{B,i} */
+      temp4 = 0.0;      
       for (i = 0; i < nsd; i++)
       {
         p = a*ndof + i;
         for (b = 0; b < nun; b++)
         {
+          /* temp2 = v_{l}*N_{B,l} */
+			    temp2 = 0.0;
+          if ( nsd == 2 )
+          {
+            temp4 += GradNa(0,a)*GradNa(0,b)+GradNa(1,a)*GradNa(1,b);
+            temp2 += Vel[0]*GradNa(0,b)+Vel[1]*GradNa(1,b);
+          }
+          else /* 3D */
+          {
+            temp4 += GradNa(0,a)*GradNa(0,b)+GradNa(1,a)*GradNa(1,b)+GradNa(2,a)*GradNa(2,b);
+            temp2 += Vel[0]*GradNa(0,b)+Vel[1]*GradNa(1,b)+Vel[2]*GradNa(2,b);
+          }
           for (j = 0; j < nsd; j++)
           {
             temp3 += GradNa(i,a)*GradVel(i,j);
@@ -1161,40 +1167,47 @@ void FluidElementT::FormStiffness(double constK)
             q = b*ndof + j;
 
             /* term : N_{A}*\rho*N_{B}*v_{i,j} */
-            //fLHS(p,q) += temp1*Na[a]*Density*Na[b]*GradVel(i,j);
+            fLHS(p,q) += temp1*Na[a]*Density*Na[b]*GradVel(i,j);
 
             /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*N_{B}*v_{i,j} */
-            //fLHS(p,q) += temp1*tau_m*temp0*Density*Na[b]*GradVel(i,j);
+            fLHS(p,q) += temp1*tau_m*temp0*Density*Na[b]*GradVel(i,j);
 
             if(i == j)
             {
               /* term : N_{A}*\rho*v_{l}*N_{B,l} \delta_{ij} */
-              //fLHS(p,q) += temp1*Na[a]*Density*temp2;
+              fLHS(p,q) += temp1*Na[a]*Density*temp2;
 
               /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*v_{l}*N_{B,l} \delta{ij} */
-              //fLHS(p,q) += temp1*tau_m*temp0*Density*temp2;
+              fLHS(p,q) += temp1*tau_m*temp0*Density*temp2;
             }
 
             /* term : N_{A,k}*c_{ikjl}*N_{B,l} */
             //fLHS(p,q) += temp1*temp5(i,j);
             
             /* term : \tau^{c}*N_{A,i}*N_{B,j} */
-            //fLHS(p,q) += temp1*tau_c*GradNa(i,a)*GradNa(j,b);
+            fLHS(p,q) += temp1*tau_c*GradNa(i,a)*GradNa(j,b);
           }
           /* j4th term */
           q = b*ndof + 3;
 
           /* term : \tau^{m}*v_{k,old}*N_{A,k}*N_{B,i} */
-          //fLHS(p,q) += temp1*tau_m*temp0*GradNa(i,b);
+          fLHS(p,q) += temp1*tau_m*temp0*GradNa(i,b);
 
           /* term : -N_{A,i}*N_{B} NOTE: this is from the stress term */
-          //fLHS(p,q) -= temp1*GradNa(i,a)*Na[b];
+          fLHS(p,q) -= temp1*GradNa(i,a)*Na[b];
         }
       }
       /* i4th term */
       p = a*ndof + 3;
       for (b = 0; b < nun; b++)
       {
+        /* temp2 = v_{l}*N_{B,l} */
+			  temp2 = 0.0;
+        if ( nsd == 2 )
+          temp2 += Vel[0]*GradNa(0,b)+Vel[1]*GradNa(1,b);
+        else /* 3D */
+          temp2 += Vel[0]*GradNa(0,b)+Vel[1]*GradNa(1,b)+Vel[2]*GradNa(2,b);
+          
         for (j = 0; j < nsd; j++)
         {
           q = b*ndof + j;
@@ -1203,16 +1216,16 @@ void FluidElementT::FormStiffness(double constK)
           //fLHS(p,q) += temp1*tau_c*temp3*Density*Na[b];
 
           /* term : \tau^{c}*N_{A,i}*\rho*v_{l}*N_{B,l} \delta_{ij} */
-          //fLHS(p,q) += temp1*tau_c*GradNa(j,a)*Density*temp2;
+          fLHS(p,q) += temp1*tau_c*GradNa(j,a)*Density*temp2;
           
           /* term : N_{A}*N_{B,j} */
-          //fLHS(p,q) += temp1*Na[a]*GradNa(j,b);
+          fLHS(p,q) += temp1*Na[a]*GradNa(j,b);
         }
         /* j4th term */
         q = b*ndof + 3;
 
         /* term : \tau^{c}*N_{A,i}*N_{B,i} */
-        fLHS(p,q) += temp1*tau_c*temp4;
+        //fLHS(p,q) += temp1*tau_c*temp4;
       }
     }
   }
