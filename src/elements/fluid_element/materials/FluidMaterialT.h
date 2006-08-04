@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.h,v 1.2 2006-07-18 01:21:20 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.h,v 1.3 2006-08-04 15:26:44 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #ifndef _FLUID_MATERIALT_H_
 #define _FLUID_MATERIALT_H_
@@ -17,7 +17,7 @@ namespace Tahoe {
 class ifstreamT;
 class FluidT;
 class FluidMatSupportT;
-
+ 
 /** interface for materials for fluid */
 class FluidMaterialT: public ContinuumMaterialT
 {

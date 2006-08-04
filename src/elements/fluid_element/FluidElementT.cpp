@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.17 2006-08-02 17:31:23 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.18 2006-08-04 15:26:43 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -69,7 +69,7 @@ FluidElementT::~FluidElementT(void)
 /* compute nodal force */
 void FluidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
-  WriteCallLocation("AddNodalForce: not implemented"); //DEBUG
+//  WriteCallLocation("AddNodalForce: not implemented"); //DEBUG
   //not implemented
 #pragma unused(field)
 #pragma unused(node)
@@ -79,7 +79,7 @@ void FluidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 /* returns the energy as defined by the derived class types */
 double FluidElementT::InternalEnergy(void)
 {
-  WriteCallLocation("InternalEnergy: not implemented"); //DEBUG
+//  WriteCallLocation("InternalEnergy: not implemented"); //DEBUG
   //not implemented
   double energy = 0.0;
   return energy;
@@ -88,7 +88,7 @@ double FluidElementT::InternalEnergy(void)
 /** compute specified output parameter and send for smoothing */
 void FluidElementT::SendOutput(int kincode)
 {
-  WriteCallLocation("SendOutput"); //DEBUG
+//  WriteCallLocation("SendOutput"); //DEBUG
   /* output flags */
   iArrayT flags(fNodalOutputCodes.Length());
 
@@ -136,7 +136,7 @@ void FluidElementT::SendOutput(int kincode)
 /** initialize local arrays */
 void FluidElementT::SetLocalArrays(void)
 {
-  WriteCallLocation("SetLocalArrays"); //DEBUG
+//  WriteCallLocation("SetLocalArrays"); //DEBUG
 
   /* inherited */
   ContinuumElementT::SetLocalArrays();
@@ -173,7 +173,7 @@ void FluidElementT::SetLocalArrays(void)
 /** allocate and initialize shape function objects */
 void FluidElementT::SetShape(void)
 {
-  WriteCallLocation("SetShape"); //DEBUG
+//  WriteCallLocation("SetShape"); //DEBUG
   fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
   if (!fShapes ) throw ExceptionT::kOutOfMemory;
   fShapes->Initialize();
@@ -182,7 +182,7 @@ void FluidElementT::SetShape(void)
 /** construct a new material support and return a pointer */
 MaterialSupportT* FluidElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
-  WriteCallLocation("NewMaterialSupport"); //DEBUG
+//  WriteCallLocation("NewMaterialSupport"); //DEBUG
 	/* allocate */
 	if (!p) p = new FluidMatSupportT(NumDOF(), NumIP());
 
@@ -203,7 +203,7 @@ MaterialSupportT* FluidElementT::NewMaterialSupport(MaterialSupportT* p) const
 /* return a pointer to a new material list */
 MaterialListT* FluidElementT::NewMaterialList(const StringT& name, int size)
 {
-  WriteCallLocation("NewMaterialList"); //DEBUG
+//  WriteCallLocation("NewMaterialList"); //DEBUG
 	/* no match */
 	if (name != "fluid_material")
 		return NULL;
@@ -228,7 +228,7 @@ MaterialListT* FluidElementT::NewMaterialList(const StringT& name, int size)
 void FluidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
   const iArrayT& e_codes, dArray2DT& e_values)
 {
-  WriteCallLocation("ComputeOutput"); //DEBUG
+//  WriteCallLocation("ComputeOutput"); //DEBUG
   /* number of output values */
   int n_out = n_codes.Sum();
   int e_out = e_codes.Sum();
@@ -295,7 +295,7 @@ void FluidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 /* current element operations */
 bool FluidElementT::NextElement(void)
 {
-  WriteCallLocation("NextElement"); //DEBUG
+//  WriteCallLocation("NextElement"); //DEBUG
 	/* inherited */
 	bool result = ContinuumElementT::NextElement();
 
@@ -314,7 +314,7 @@ bool FluidElementT::NextElement(void)
 /* form shape functions and derivatives */
 void FluidElementT::SetGlobalShape(void)
 {
-  WriteCallLocation("SetGlobalShape"); //DEBUG
+//  WriteCallLocation("SetGlobalShape"); //DEBUG
 	/* inherited */
 	ContinuumElementT::SetGlobalShape();
 
@@ -451,7 +451,7 @@ void FluidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 /* set initial velocities */
 void FluidElementT::InitialCondition(void)
 {
-  WriteCallLocation("InitialCondition"); //DEBUG
+//  WriteCallLocation("InitialCondition"); //DEBUG
 	/* inherited */
 	ContinuumElementT::InitialCondition();
 }
@@ -545,14 +545,15 @@ void FluidElementT::RHSDriver(void)
         }
    
         /* check for zero values */
-        if ( h_nsum == 0.0 ) h_nsum = 1e-12;
-        if ( OldVelMag == 0.0 ) OldVelMag = 1e-12;
+        if ( h_nsum == 0.0 ) h_nsum = 1e-6;
+        if ( OldVelMag == 0.0 ) OldVelMag = 1e-6;
 
         /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
         h=2*OldVelMag*(1/h_nsum);
         /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
         tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
         /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
+        tau_m=1; /* DEBUG */
         tau_c=tau_m;
       }
 
@@ -658,7 +659,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
               *pfRHS += temp1*(*Na)*(*pacc);
 
               /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*\dot{v_{i}} */
-              *pfRHS += temp1*tau_m*temp0*(*pacc);
+              //*pfRHS += temp1*tau_m*temp0*(*pacc); /* NO STAB ON MA */
               *pfRHS++;
                 
               /* temp3 = N_{A,i}*\dot{v_{i}} */
@@ -666,7 +667,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
               *pacc++;  
             }
             /* term : \tau^{c}*N_{A,i}*\rho*\dot{v_{i}} */
-            *pfRHS += temp1*tau_c*temp3;
+            //*pfRHS += temp1*tau_c*temp3; /* NO STAB ON MA */
             *pfRHS++;
             *pacc++;           
             *Na++;
@@ -700,7 +701,7 @@ void FluidElementT::FormKd(double constK)
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
-    double*	pfRHS             = fRHS.Pointer();							/* [nun] */
+    double*	pfRHS             = fRHS.Pointer();							           /* [nun] */
     const double* Na          = fShapes->IPShapeU();                   /* [nun] */
 	  const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
 
@@ -712,8 +713,9 @@ void FluidElementT::FormKd(double constK)
     const double& Pres        = fPres_list[fShapes->CurrIP()];         /* [1] */
     const dArrayT& GradPres   = fGradPres_list[fShapes->CurrIP()];     /* [nsd] */
     double temp0, temp5;
-    dArrayT temp7(nsd), temp4(nsd);
-    const dSymMatrixT& s_ij = fCurrMaterial->s_ij();					/*[nsd x nsd] or [numstress]
+    dArrayT temp7(nsd), temp4(nsd), temp8(nsd);
+    const dSymMatrixT& s_ij = fCurrMaterial->s_ij();					/* [nsd x nsd] or [numstress] */
+    double viscosity = fCurrMaterial->Shear_Modulus();
     
 	  /* integration factor */
 	  double temp1 = constK*(*Weight++)*(*Det++);
@@ -722,6 +724,7 @@ void FluidElementT::FormKd(double constK)
     temp4 = 0.0;
     /* temp5 = v_{j,j} */
     temp5 = 0.0;
+
     if ( nsd ==2 )
     {
       temp4[0] = OldVel[0]*GradVel(0,0)+OldVel[1]*GradVel(0,1);
@@ -740,13 +743,22 @@ void FluidElementT::FormKd(double constK)
     {
       /* temp0 = v_{k,old}*N_{A,k} */
       temp0 = 0.0;
-      /* temp7[i] = \sigma_{ij}*N_{A,j}*/
+      /* temp7[i] = \sigma_{ij}*N_{A,j} */
       temp7 = 0.0;
+      /* temp8[i] = N_{A,j}*( v_{i,j}+v_{j,i} ) */
+      temp8 = 0.0;
       if ( nsd == 2 )
       {
         temp0 += OldVel[0]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd);
         temp7[0] += s_ij[0]*GradNa(0,lnd) + s_ij[2]*GradNa(1,lnd);
         temp7[1] += s_ij[1]*GradNa(1,lnd) + s_ij[2]*GradNa(0,lnd);
+
+        temp8[0] += GradNa(0,lnd)*(GradVel(0,0)+GradVel(0,0))+
+                    GradNa(1,lnd)*(GradVel(0,1)+GradVel(1,0))+
+                    GradNa(2,lnd)*(GradVel(0,2)+GradVel(2,0));
+        temp8[1] += GradNa(0,lnd)*(GradVel(1,0)+GradVel(0,1))+
+                    GradNa(1,lnd)*(GradVel(1,1)+GradVel(1,1))+
+                    GradNa(2,lnd)*(GradVel(1,2)+GradVel(2,1)); 
       }
       else /* 3D */
       {
@@ -754,12 +766,23 @@ void FluidElementT::FormKd(double constK)
         temp7[0] += s_ij[0]*GradNa(0,lnd) + s_ij[4]*GradNa(2,lnd) + s_ij[5]*GradNa(1,lnd);
         temp7[1] += s_ij[1]*GradNa(1,lnd) + s_ij[3]*GradNa(2,lnd) + s_ij[5]*GradNa(0,lnd);
         temp7[2] += s_ij[2]*GradNa(2,lnd) + s_ij[3]*GradNa(1,lnd) + s_ij[4]*GradNa(0,lnd);
+
+        temp8[0] += GradNa(0,lnd)*(GradVel(0,0)+GradVel(0,0))+
+                    GradNa(1,lnd)*(GradVel(0,1)+GradVel(1,0))+
+                    GradNa(2,lnd)*(GradVel(0,2)+GradVel(2,0));                   
+        temp8[1] += GradNa(0,lnd)*(GradVel(1,0)+GradVel(0,1))+
+                    GradNa(1,lnd)*(GradVel(1,1)+GradVel(1,1))+
+                    GradNa(2,lnd)*(GradVel(1,2)+GradVel(2,1));                 
+        temp8[2] += GradNa(0,lnd)*(GradVel(2,0)+GradVel(0,2))+
+                    GradNa(1,lnd)*(GradVel(2,1)+GradVel(1,2))+
+                    GradNa(2,lnd)*(GradVel(2,2)+GradVel(2,2));
       }
 
       /* temp3 = N_{A,i}*[ v_{j}*v_{i,j} ] */
       double temp3 = 0.0;
       /* temp6 = N_{A,i}*p_{,i} */
       double temp6 = 0.0;
+                    
       for (int dof = 0; dof < nsd; dof++)
       {
         /* term : N_{A}*\rho*v_{j}*v_{i,j} */
@@ -767,10 +790,16 @@ void FluidElementT::FormKd(double constK)
           
         /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*v_{j}*v_{i,j} */
         *pfRHS += temp1*tau_m*temp0*Density*temp4[dof];
-
+ 
         /* term : N_{A,j}*\sigma_{ij} */
         *pfRHS += temp1*temp7[dof];
-          
+
+        /** term : \mu*N_{A,j}*( v_{i,j}+v_{j,i} ) **/
+        //*pfRHS += temp1*viscosity*temp8[dof];
+        
+        /** term : -N_{A,i}*p **/
+        //*pfRHS -= temp1*GradNa(dof,lnd)*Pres;
+                            
         /* term : \tau^{m}*v_{k,old}*N_{A,k}*p_(,i) */
         *pfRHS += temp1*tau_m*temp0*GradPres[dof];
           
@@ -883,6 +912,7 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
       /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
       tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
       /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
+      tau_m=1; /* DEBUG */
       tau_c=tau_m;
     }
 
@@ -959,6 +989,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
             {
               p = a*ndof + i;
               for (b = 0; b < nun; b++)
+              {
                 for (j = 0; j < nsd; j++)
                 {
                   q = b*ndof + j;
@@ -968,20 +999,29 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
                     fLHS(p,q) += temp1*Na[a]*Na[b];
 
                     /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*N_{B} \delta_{ij} */
-                    fLHS(p,q) += temp1*tau_m*temp0*Na[b];
+                    //fLHS(p,q) += temp1*tau_m*temp0*Na[b]; /* NO STAB ON MASS */
                   }
                 }
+                /* j4th term */
+                q = b*ndof + 3;
+                //fLHS(p,q) += 1; /* ZERO ON THE DIAGNAL */
+              }
             }
             /* i4th term */
             p = a*ndof + 3;
             for (b = 0; b < nun; b++)
+            {
               for (j = 0; j < nsd; j++)
               {
                 q = b*ndof + j;
 
                 /* term : \tau^{c}*N_{A,l}*\rho*N_{B} \delta_{jl} */
-                fLHS(p,q) += temp1*tau_c*Na[b]*GradNa[j,a];
+                //fLHS(p,q) += temp1*tau_c*Na[b]*GradNa[j,a]; /* NO STAB ON MASS */
               }
+              /* j4th term */
+              q = b*ndof + 3;
+              //fLHS(p,q) += 1; /* ZERO ON THE DIAGNAL */
+            }
 					}
 				}
 			}
@@ -990,6 +1030,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 		default:
 			ExceptionT::BadInputValue("FluidElementT::FormMass", "unknown mass matrix code");
 	}
+  cout << "\n FormMass: \n" <<fLHS;
 }
 
 /* form the element stiffness matrix */
@@ -1148,6 +1189,9 @@ void FluidElementT::FormStiffness(double constK)
 
           /* term : \tau^{m}*v_{k,old}*N_{A,k}*N_{B,i} */
           fLHS(p,q) += temp1*tau_m*temp0*GradNa(i,b);
+
+          /* term : -N_{A,i}*N_{B} NOTE: this is from the stress term */
+          fLHS(p,q) -= temp1*GradNa(i,a)*Na[b];
         }
       }
       /* i4th term */
@@ -1180,7 +1224,7 @@ void FluidElementT::FormStiffness(double constK)
 /** describe the parameters needed by the interface */
 void FluidElementT::DefineParameters(ParameterListT& list) const
 {
-  WriteCallLocation("DefineParameters"); //DEBUG
+//  WriteCallLocation("DefineParameters"); //DEBUG
   /* inherited */
   ElementBaseT::DefineParameters(list);
 }
@@ -1188,7 +1232,7 @@ void FluidElementT::DefineParameters(ParameterListT& list) const
 /** information about subordinate parameter lists */
 void FluidElementT::DefineSubs(SubListT& sub_list) const
 {
-  WriteCallLocation("DefineSubs"); //DEBUG
+//  WriteCallLocation("DefineSubs"); //DEBUG
   /* inherited */
   ContinuumElementT::DefineSubs(sub_list);
 
@@ -1201,7 +1245,7 @@ void FluidElementT::DefineSubs(SubListT& sub_list) const
 /** a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
 {
-  WriteCallLocation("NewSub"); //DEBUG
+//  WriteCallLocation("NewSub"); //DEBUG
 
   /* try construct stabilization paramaters */
   if (name == "fluid_element_stab_param")
@@ -1261,7 +1305,7 @@ ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
 /** accept parameter list */
 void FluidElementT::TakeParameterList(const ParameterListT& list)
 {
-  WriteCallLocation("TakeParameterList"); //DEBUG
+//  WriteCallLocation("TakeParameterList"); //DEBUG
   const char caller[] = "FluidElementT::TakeParameterList";
 
   /* inherited */
@@ -1328,7 +1372,7 @@ void FluidElementT::TakeParameterList(const ParameterListT& list)
 /* extract the list of material parameters */
 void FluidElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
 {
-  WriteCallLocation("CollectMaterialInfo"); //DEBUG
+//  WriteCallLocation("CollectMaterialInfo"); //DEBUG
 	const char caller[] = "FluidElementT::CollectMaterialInfo";
 
 	/* initialize */
@@ -1355,7 +1399,7 @@ void FluidElementT::CollectMaterialInfo(const ParameterListT& all_params, Parame
 void FluidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
   iArrayT& counts) const
 {
-  WriteCallLocation("SetNodalOutputCodes"); //DEBUG
+//  WriteCallLocation("SetNodalOutputCodes"); //DEBUG
   if (counts.Sum() == 0)
     return;
 
@@ -1373,7 +1417,7 @@ void FluidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
 void FluidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
   iArrayT& counts) const
 {
-  WriteCallLocation("SetElementOutputCodes"); //DEBUG
+//  WriteCallLocation("SetElementOutputCodes"); //DEBUG
 #pragma unused(mode)
 #pragma unused(flags)
   if (counts.Sum() != 0)
@@ -1383,7 +1427,7 @@ void FluidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArra
 void FluidElementT::GenerateOutputLabels(const iArrayT& n_codes,
     ArrayT<StringT>& n_labels, const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
-  WriteCallLocation("GenerateOutputLabels"); //DEBUG
+//  WriteCallLocation("GenerateOutputLabels"); //DEBUG
   const char caller[] = "FluidElementT::GenerateOutputLabels";
 
   /* allocate node labels */
@@ -1430,6 +1474,7 @@ void FluidElementT::GenerateOutputLabels(const iArrayT& n_codes,
 
 
 /** FOR DEBUGGING PURPOSES ONLY */
-void FluidElementT::WriteCallLocation( char* loc ) const {
-cout << "\n Inside of FluidElementT::" << loc << endl;
+void FluidElementT::WriteCallLocation( char* loc ) const
+{
+  cout << "\n Inside of FluidElementT::" << loc;
 }

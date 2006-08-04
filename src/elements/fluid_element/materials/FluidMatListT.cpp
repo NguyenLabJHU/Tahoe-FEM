@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatListT.cpp,v 1.2 2006-07-18 01:21:21 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatListT.cpp,v 1.3 2006-08-04 15:26:44 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #include "FluidMatListT.h"
 #include "FluidMatSupportT.h"
@@ -110,6 +110,7 @@ FluidMaterialT* FluidMatListT::NewFluidMaterial(const StringT& name) const
 }
 
 /** FOR DEBUGGING PURPOSES ONLY */
-void FluidMatListT::WriteCallLocation( char* loc ) const {
-cout << "Inside of FluidMatListT::" << loc << endl;
+void FluidMatListT::WriteCallLocation( char* loc ) const
+{
+  //cout << "\n Inside of FluidMatListT::" << loc << endl;
 }
