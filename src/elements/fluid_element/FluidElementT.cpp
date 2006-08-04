@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.18 2006-08-04 15:26:43 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.19 2006-08-04 21:30:24 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -659,7 +659,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
               *pfRHS += temp1*(*Na)*(*pacc);
 
               /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*\dot{v_{i}} */
-              //*pfRHS += temp1*tau_m*temp0*(*pacc); /* NO STAB ON MA */
+              *pfRHS += temp1*tau_m*temp0*(*pacc); /* NO STAB ON MA */
               *pfRHS++;
                 
               /* temp3 = N_{A,i}*\dot{v_{i}} */
@@ -667,7 +667,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
               *pacc++;  
             }
             /* term : \tau^{c}*N_{A,i}*\rho*\dot{v_{i}} */
-            //*pfRHS += temp1*tau_c*temp3; /* NO STAB ON MA */
+            *pfRHS += temp1*tau_c*temp3; /* NO STAB ON MA */
             *pfRHS++;
             *pacc++;           
             *Na++;
@@ -999,12 +999,9 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
                     fLHS(p,q) += temp1*Na[a]*Na[b];
 
                     /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*N_{B} \delta_{ij} */
-                    //fLHS(p,q) += temp1*tau_m*temp0*Na[b]; /* NO STAB ON MASS */
+                    fLHS(p,q) += temp1*tau_m*temp0*Na[b]; /* NO STAB ON MASS */
                   }
                 }
-                /* j4th term */
-                q = b*ndof + 3;
-                //fLHS(p,q) += 1; /* ZERO ON THE DIAGNAL */
               }
             }
             /* i4th term */
@@ -1016,11 +1013,11 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
                 q = b*ndof + j;
 
                 /* term : \tau^{c}*N_{A,l}*\rho*N_{B} \delta_{jl} */
-                //fLHS(p,q) += temp1*tau_c*Na[b]*GradNa[j,a]; /* NO STAB ON MASS */
+                fLHS(p,q) += temp1*tau_c*Na[b]*GradNa(j,a); /* NO STAB ON MASS */
               }
               /* j4th term */
               q = b*ndof + 3;
-              //fLHS(p,q) += 1; /* ZERO ON THE DIAGNAL */
+              fLHS(p,q) += 1e-6; /* ZERO ON THE DIAGNAL */
             }
 					}
 				}
@@ -1030,7 +1027,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 		default:
 			ExceptionT::BadInputValue("FluidElementT::FormMass", "unknown mass matrix code");
 	}
-  cout << "\n FormMass: \n" <<fLHS;
+  //cout << "\n FormMass: \n" <<fLHS;
 }
 
 /* form the element stiffness matrix */
@@ -1074,7 +1071,7 @@ void FluidElementT::FormStiffness(double constK)
     const dMatrixT& c = fCurrMaterial->c_ijkl();
     
     /* integration factor */
-	  double temp1 = constK*(*Weight++)*(*Det++);
+	  double temp1 = 1*(*Weight++)*(*Det++); /* DEBUG */
     
     int a,i,b,j,p,q;
 		for (a = 0; a < nun; a++)
@@ -1164,34 +1161,34 @@ void FluidElementT::FormStiffness(double constK)
             q = b*ndof + j;
 
             /* term : N_{A}*\rho*N_{B}*v_{i,j} */
-            fLHS(p,q) += temp1*Na[a]*Density*Na[b]*GradVel(i,j);
+            //fLHS(p,q) += temp1*Na[a]*Density*Na[b]*GradVel(i,j);
 
             /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*N_{B}*v_{i,j} */
-            fLHS(p,q) += temp1*tau_m*temp0*Density*Na[b]*GradVel(i,j);
+            //fLHS(p,q) += temp1*tau_m*temp0*Density*Na[b]*GradVel(i,j);
 
             if(i == j)
             {
               /* term : N_{A}*\rho*v_{l}*N_{B,l} \delta_{ij} */
-              fLHS(p,q) += temp1*Na[a]*Density*temp2;
+              //fLHS(p,q) += temp1*Na[a]*Density*temp2;
 
               /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*v_{l}*N_{B,l} \delta{ij} */
-              fLHS(p,q) += temp1*tau_m*temp0*Density*temp2;
+              //fLHS(p,q) += temp1*tau_m*temp0*Density*temp2;
             }
 
             /* term : N_{A,k}*c_{ikjl}*N_{B,l} */
-            fLHS(p,q) += temp1*temp5(i,j);
+            //fLHS(p,q) += temp1*temp5(i,j);
             
             /* term : \tau^{c}*N_{A,i}*N_{B,j} */
-            fLHS(p,q) += temp1*tau_c*GradNa(i,a)*GradNa(j,b);
+            //fLHS(p,q) += temp1*tau_c*GradNa(i,a)*GradNa(j,b);
           }
           /* j4th term */
           q = b*ndof + 3;
 
           /* term : \tau^{m}*v_{k,old}*N_{A,k}*N_{B,i} */
-          fLHS(p,q) += temp1*tau_m*temp0*GradNa(i,b);
+          //fLHS(p,q) += temp1*tau_m*temp0*GradNa(i,b);
 
           /* term : -N_{A,i}*N_{B} NOTE: this is from the stress term */
-          fLHS(p,q) -= temp1*GradNa(i,a)*Na[b];
+          //fLHS(p,q) -= temp1*GradNa(i,a)*Na[b];
         }
       }
       /* i4th term */
@@ -1203,13 +1200,13 @@ void FluidElementT::FormStiffness(double constK)
           q = b*ndof + j;
 
           /* term : \tau^{c}*N_{A,i}*\rho*N_{B}*v_{i,j} */
-          fLHS(p,q) += temp1*tau_c*temp3*Density*Na[b];
+          //fLHS(p,q) += temp1*tau_c*temp3*Density*Na[b];
 
           /* term : \tau^{c}*N_{A,i}*\rho*v_{l}*N_{B,l} \delta_{ij} */
-          fLHS(p,q) += temp1*tau_c*GradNa(j,a)*Density*temp2;
+          //fLHS(p,q) += temp1*tau_c*GradNa(j,a)*Density*temp2;
           
           /* term : N_{A}*N_{B,j} */
-          fLHS(p,q) += temp1*Na[a]*GradNa(j,b);
+          //fLHS(p,q) += temp1*Na[a]*GradNa(j,b);
         }
         /* j4th term */
         q = b*ndof + 3;
@@ -1219,6 +1216,7 @@ void FluidElementT::FormStiffness(double constK)
       }
     }
   }
+  cout << "\n FormStiffness: \n" <<fLHS;
 }
 
 /** describe the parameters needed by the interface */
