@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.21 2006-08-07 15:56:34 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.22 2006-08-07 21:54:24 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -997,7 +997,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 										/* term : \rho*N_{A}*N_{B} \delta_{ij} */
 										fLHS(p,q) += temp1*Na[a]*Na[b];
 
-						                /* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*N_{B} \delta_{ij} */
+										/* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*N_{B} \delta_{ij} */
 										fLHS(p,q) += temp1*tau_m*temp0*Na[b]; /* NO STAB ON MASS */
 									}
 								}
@@ -1016,7 +1016,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 							}
 							/* j4th term */
 							q = b*ndof + 3;
-							//fLHS(p,q) += 0; /* ZERO ON THE DIAGNAL */
+							fLHS(p,q) += 0; /* ZERO ON THE DIAGNAL */
 						}
 					}
 				}
@@ -1070,7 +1070,7 @@ void FluidElementT::FormStiffness(double constK)
 		const dMatrixT& c = fCurrMaterial->c_ijkl();
        
 		/* integration factor */
-		double temp1 = 1*(*Weight++)*(*Det++); /* DEBUG */
+		double temp1 = constK*(*Weight++)*(*Det++);
     
 		int a,i,b,j,p,q;
 		for (a = 0; a < nun; a++)
