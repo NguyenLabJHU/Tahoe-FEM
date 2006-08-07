@@ -372,13 +372,25 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	int elem = CurrElementNumber();
 	int ip = CurrIP();
 	dMatrixT Ce = HookeanMatT::Modulus();
+	
+	/* get flags */
+	const iArrayT& Flags = element.IntegerData();
 
 	/*OUTPUT FOR ALPHA, KAPPA */ 
 	if (element.IsAllocated())
 	{
 	  	LoadData(element, ip);
-		for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i] + fDeltaAlpha[i];
-		output [6] = fInternal[kkappa] + fInternal[kdeltakappa];
+		//if (Flags[ip] == kIsPlastic)
+		//{
+			for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i] + fDeltaAlpha[i];
+			output [6] = fInternal[kkappa] + fInternal[kdeltakappa];
+		//}
+		//else
+		//{
+		//	for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i];
+		//	output [6] = fInternal[kkappa];
+		//}
+		
 #ifdef ENHANCED_STRAIN_LOC_DEV Ê Ê Ê Ê
 		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
 		if (element_locflag > 0) output[10] = element_locflag;
@@ -620,6 +632,7 @@ void FossumSSIsoT::Update(ElementCardT& element)
 			}
 
 			fInternal[kkappa] += fInternal[kdeltakappa];
+			cout << "kkapa = " << fInternal[kkappa] << ", kdeltakappa = " << fInternal[kdeltakappa] << endl;
 			fBackStress += fDeltaAlpha;
 			
 			//alt for visco
@@ -1380,7 +1393,7 @@ double FossumSSIsoT::d2FcdI1dKappa(double I1, double kappa)
 {
 	double XminusKappa = Xfn(kappa) - kappa;
 
-	return 2 * HeavisideFn(kappa - I1) * kappa 
+	return 2 * HeavisideFn(kappa - I1) 
 		* (XminusKappa + 2 * fR * (I1 - kappa) * (fB * fC * exp (fB * kappa) + fTheta))
 		/ (XminusKappa * XminusKappa * XminusKappa);
 }
@@ -1409,7 +1422,7 @@ double FossumSSIsoT::dFcdKappa(double I1, double kappa)
 {
 	double XminusKappa = Xfn(kappa) - kappa;
 
-	return 2 * HeavisideFn(kappa - I1) * kappa * ( I1 - kappa) * ((XminusKappa) + fR * (I1 - kappa) * ( fTheta + fB * fC * exp (fB * kappa))) / (XminusKappa * XminusKappa * XminusKappa);
+	return 2 * HeavisideFn(kappa - I1) * ( I1 - kappa) * ((XminusKappa) + fR * (I1 - kappa) * ( fTheta + fB * fC * exp (fB * kappa))) / (XminusKappa * XminusKappa * XminusKappa);
 }
 
 double FossumSSIsoT::d2XdKappadKappa( double kappa)
