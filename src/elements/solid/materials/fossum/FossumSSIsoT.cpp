@@ -380,16 +380,16 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	if (element.IsAllocated())
 	{
 	  	LoadData(element, ip);
-		//if (Flags[ip] == kIsPlastic)
-		//{
+		if (Flags[ip] == kIsPlastic)
+		{
 			for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i] + fDeltaAlpha[i];
 			output [6] = fInternal[kkappa] + fInternal[kdeltakappa];
-		//}
-		//else
-		//{
-		//	for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i];
-		//	output [6] = fInternal[kkappa];
-		//}
+		}
+		else
+		{
+			for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i];
+			output [6] = fInternal[kkappa];
+		}
 		
 #ifdef ENHANCED_STRAIN_LOC_DEV Ê Ê Ê Ê
 		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
@@ -632,7 +632,6 @@ void FossumSSIsoT::Update(ElementCardT& element)
 			}
 
 			fInternal[kkappa] += fInternal[kdeltakappa];
-			cout << "kkapa = " << fInternal[kkappa] << ", kdeltakappa = " << fInternal[kdeltakappa] << endl;
 			fBackStress += fDeltaAlpha;
 			
 			//alt for visco
