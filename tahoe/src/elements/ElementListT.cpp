@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.125 2006-08-03 01:13:35 tdnguye Exp $ */
+/* $Id: ElementListT.cpp,v 1.126 2006-08-07 17:57:57 a-kopacz Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -164,6 +164,10 @@
 
 #ifdef SURFACE_CB_DEV
 #include "TotalLagrangianCBSurfaceT.h"
+#endif
+
+#ifdef FLUID_ELEMENT_DEV
+#include "FluidElementT.h"
 #endif
 
 #ifdef FIBER_COMP_DEV
@@ -394,10 +398,13 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("total_lagrangian_CBsurface");
 #endif
 
+#ifdef FLUID_ELEMENT_DEV
+		sub_lists.AddSub("incompressible_newtonian_fluid_element");
+#endif
+
 #ifdef FIBER_COMP_DEV
 		sub_lists.AddSub("uplag_fiber_comp_planar");
 #endif
-
 
 	}
 	else /* inherited */
@@ -654,11 +661,15 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new TotalLagrangianCBSurfaceT(fSupport);
 #endif
 
+#ifdef FLUID_ELEMENT_DEV
+	else if (name == "incompressible_newtonian_fluid_element")
+		return new FluidElementT(fSupport);
+#endif
+
 #ifdef FIBER_COMP_DEV
 	else if (name == "uplag_fiber_comp_planar")
 	  return new UpLagFiberCompT(fSupport);
 #endif
-
 
 	/* default */	
 	else
