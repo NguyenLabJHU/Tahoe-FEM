@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.22 2006-08-07 21:54:24 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.23 2006-08-09 00:34:03 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -35,8 +35,13 @@ static const char* ElementOutputNames[] = {
 const int FluidElementT::NumStabParamCodes = 2;
 static const char* StabParamNames[] = {
   "tau_m_is_tau_c", /* T.E. Tezduyar, Stabilized Finite Element Formulations for Incompressible Flow Computations, Adv. Appl. Mech. 28(1991) 1-44. */
-  "NONE"}; /* Galerkin formulation; ie \tau_m and \tau_c = 0
+  "NONE"}; /* Galerkin formulation; ie \tau_m and \tau_c = 0 { WILL NOT CONVERGE }  */
 
+const int FluidElementT::NumElementLSCodes = 2;
+static const char* ElementLSNames[] = {
+  "spatial_length_scale",
+  "velocity_field_length_scale"}; /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
+  
 /* parameters */
 const int FluidElementT::kPressureNDOF = 1;
 
@@ -55,6 +60,7 @@ FluidElementT::FluidElementT(const ElementSupportT& support):
   fLocCurAcc(LocalArrayT::kUnspecified),
   /* pressure */
   fLocCurPrs(LocalArrayT::kUnspecified),
+  
   fFluidMatSupport(NULL)
 {
   SetName("incompressible_newtonian_fluid_element");
@@ -459,7 +465,7 @@ void FluidElementT::InitialCondition(void)
  
 void FluidElementT::RHSDriver(void)
 {
-  WriteCallLocation("RHSDriver"); //DEBUG
+//  WriteCallLocation("RHSDriver"); //DEBUG
 	/* inherited */
 	ContinuumElementT::RHSDriver();
 
@@ -484,6 +490,7 @@ void FluidElementT::RHSDriver(void)
 	double by_dt = (fabs(dt) > kSmall) ? 1.0/dt: 0.0; /* for dt -> 0 */
 
 	Top();
+  int ElementCounter = 0;
 	while (NextElement())
 	{
 		const ElementCardT& element = CurrentElement();
@@ -499,7 +506,7 @@ void FluidElementT::RHSDriver(void)
 			SetGlobalShape();
 
 			if(StabParamNames[fStabParam]=="tau_m_is_tau_c")
-			{
+			{ 
 				double viscosity = fCurrMaterial->Shear_Modulus();
 				double h_nsum=0.0;
 				double h=0.0;
@@ -507,10 +514,10 @@ void FluidElementT::RHSDriver(void)
 
 
 				/* degrees of freedom */
-				int ndof = NumDOF();
+//				int ndof = NumDOF();
 				/* dimensions */
 				int  nsd = NumSD();
-				int  nen = NumElementNodes();
+//				int  nen = NumElementNodes();
 				int  nun = fLocDisp.NumberOfNodes();
 
 				const double* Det    = fShapes->IPDets();
@@ -550,8 +557,12 @@ void FluidElementT::RHSDriver(void)
 				if ( h_nsum == 0.0 ) h_nsum = 1e-6;
 				if ( OldVelMag == 0.0 ) OldVelMag = 1e-6;
 
-				/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
-				h=2*OldVelMag*(1/h_nsum);
+        if (ElementLSNames[fElementLS]=="velocity_field_length_scale")
+          /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
+				  h=2*OldVelMag*(1/h_nsum);
+        else /* spatial_length_scale */
+          h= fElementLS_list[ElementCounter]; /**< precalculated */
+        
 				/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
 				tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
 				/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
@@ -573,6 +584,7 @@ void FluidElementT::RHSDriver(void)
 
 			/* assemble */
 			AssembleRHS();
+      ElementCounter++;
 		}
 	}
 }
@@ -583,7 +595,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 	const dArray2DT* ip_values,
 	const double* ip_weight)
 {
-  WriteCallLocation("FormMa"); //DEBUG
+//  WriteCallLocation("FormMa"); //DEBUG
 	const char caller[] = "FluidElementT::FormMa";
 
 	/* quick exit */
@@ -685,7 +697,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 /* calculate the internal force contribution ("-k*d") */
 void FluidElementT::FormKd(double constK)
 {
-	WriteCallLocation("FormKd"); //DEBUG
+//	WriteCallLocation("FormKd"); //DEBUG
 
 	/* degrees of freedom */
 	int ndof = NumDOF();
@@ -831,7 +843,7 @@ void FluidElementT::FormKd(double constK)
 
 void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
-  WriteCallLocation("LHSDriver"); //DEBUG
+//  WriteCallLocation("LHSDriver"); //DEBUG
 	/* inherited */
 	ContinuumElementT::LHSDriver(sys_type);
 	/* set components and weights */
@@ -846,6 +858,7 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	/* loop over elements */
 	bool axisymmetric = Axisymmetric();
 	Top();
+  int ElementCounter = 0;
 	while (NextElement())
 	{
 		/* initialize */
@@ -864,10 +877,10 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			double OldVelMag=0.0;
 
 			/* degrees of freedom */
-			int ndof = NumDOF();
+//			int ndof = NumDOF();
 			/* dimensions */
 			int  nsd = NumSD();
-			int  nen = NumElementNodes();
+//			int  nen = NumElementNodes();
 			int  nun = fLocDisp.NumberOfNodes();
 
 			const double* Det    = fShapes->IPDets();
@@ -907,8 +920,12 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			if ( h_nsum == 0.0 ) h_nsum = 1e-12;
 			if ( OldVelMag == 0.0 ) OldVelMag = 1e-12;
 
-			/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
-			h=2*OldVelMag*(1/h_nsum);
+      if (ElementLSNames[fElementLS]=="velocity_field_length_scale")
+        /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
+			  h=2*OldVelMag*(1/h_nsum);
+      else /* spatial_length_scale */
+        h= fElementLS_list[ElementCounter]; /**< precalculated */
+          
 			/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
 			tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
 			/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
@@ -925,13 +942,14 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		/* add to global equations */
 		AssembleLHS();
+    ElementCounter++;
 	}
 }
 
 /* form the element mass matrix */
 void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
 {
-  WriteCallLocation("FormMass"); //DEBUG
+//  WriteCallLocation("FormMass"); //DEBUG
 	const char caller[] = "FluidElementT::FormMass";
 #if __option(extended_errorcheck)
 	if (fLocDisp.Length() != fLHS.Rows()) ExceptionT::SizeMismatch(caller);
@@ -1016,7 +1034,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 							}
 							/* j4th term */
 							q = b*ndof + 3;
-							fLHS(p,q) += 0; /* ZERO ON THE DIAGNAL */
+							//fLHS(p,q) += 0; /* ZERO ON THE DIAGNAL */
 						}
 					}
 				}
@@ -1026,13 +1044,13 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 		default:
 			ExceptionT::BadInputValue("FluidElementT::FormMass", "unknown mass matrix code");
 	}
-	//cout << "\n FormMass: \n" << setprecision(12) << fLHS;
+	cout << "\n FormMass: \n" << setprecision(12) << fLHS;
 }
 
 /* form the element stiffness matrix */
 void FluidElementT::FormStiffness(double constK)
 {
-  WriteCallLocation("FormStiffness"); //DEBUG
+//  WriteCallLocation("FormStiffness"); //DEBUG
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format =
 		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
@@ -1244,7 +1262,7 @@ void FluidElementT::FormStiffness(double constK)
 			}
 		}
 	}
-	//cout << "\n FormStiffness: \n" << setprecision(12) << fLHS;
+	cout << "\n FormStiffness: \n" << setprecision(12) << fLHS;
 }
 
 /** describe the parameters needed by the interface */
@@ -1279,10 +1297,21 @@ ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
     ParameterContainerT* stab_param = new ParameterContainerT(name);
     stab_param->SetListOrder(ParameterListT::Choice);
 
-    /* choice of parameters */
-    for (int i = 0; i < NumStabParamCodes; i++)
+    /* add element length scale type 4 tau_m_is_tau_c */
+    ParameterContainerT element_LS(StabParamNames[0]);
+    element_LS.SetListOrder(ParameterListT::Choice);   
+    for (int i = 0; i < NumElementLSCodes; i++)
+    {
+      //ParameterT LS(ParameterT::Integer, ElementLSNames[i]);
+      //element_LS.AddParameter(LS, ParameterListT::Once);
+      element_LS.AddSub(ParameterContainerT(ElementLSNames[i]));
+    }
+    stab_param->AddSub(element_LS,ParameterListT::Once,false);
+    
+    /* rest of parameters */
+    for (int i = 1; i < NumStabParamCodes; i++)
       stab_param->AddSub(ParameterContainerT(StabParamNames[i]));
-
+        
     return stab_param;
   }
   else if (name == "fluid_element_nodal_output")
@@ -1390,9 +1419,87 @@ void FluidElementT::TakeParameterList(const ParameterListT& list)
 
 	/* stabilization parameter codes */
 	const ParameterListT& stab_param = list.GetListChoice(*this, "fluid_element_stab_param");
-	for (int i = 0; i < NumStabParamCodes; i++)
+  for (int i = 1; i < NumStabParamCodes; i++)
 		if (stab_param.Name() == StabParamNames[i])
 			fStabParam = StabParamCodeT(i);
+      
+  if (stab_param.Name() == StabParamNames[0])
+  {
+		fStabParam = StabParamCodeT(0);
+//			const ParameterT* element_ls_value = stab_param.Parameter(StabParamNames[0]);
+//      const ParameterListT& element_ls_value1 = stab_param.GetListChoice(*this, StabParamNames[0]);
+//     const ParameterListT* element_ls_value2 = stab_param.List(StabParamNames[0]);
+//      const ParameterListT& element_ls_value11 = stab_param.GetListChoice(*this, StabParamNames[0]);
+//      const ParameterListT* element_ls_value22 = stab_param.List(StabParamNames[0]);
+    
+		for (int i = 1; i < NumElementLSCodes; i++)
+    {
+      /* look for entry */   
+//			if (element_ls_value)
+				fElementLS = ElementLSCodeT(0);
+    }
+  }
+  
+  if ( ElementLSNames[fElementLS] == "spatial_length_scale" )
+  {
+    /* dimensions */
+    int  nsd = NumSD();
+    int  nen = NumElementNodes();
+    
+    /* precalculate element spatial lengths */
+    fElementLS_list.Dimension(NumElements());
+    Top();
+    int ElementCounter = 0;
+    dArrayT h_sd(nen/2); h_sd = 0.0; /* assuming QUAD/HEX elements */
+                                     /* need TRI/TET element support */
+    while (NextElement())
+    {
+      /* current element */
+      ElementCardT& element = CurrentElement();
+       
+      if (element.Flag() != ElementCardT::kOFF)
+		  {
+        fLocInitCoords.SetLocal(element.NodesX());              
+        if ( nsd == 2 )
+        {
+          /* based on geometry coordinates for QUADRILATERAL */
+          h_sd[0]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(2,0),2.0)
+                      +pow(fLocInitCoords(0,1)-fLocInitCoords(2,1),2.0));
+
+          h_sd[1]=sqrt(pow(fLocInitCoords(1,0)-fLocInitCoords(3,0),2.0)
+                      +pow(fLocInitCoords(1,1)-fLocInitCoords(3,1),2.0));
+
+          h_sd[0] = max(h_sd[0],h_sd[1]);
+        }
+        else /* 3D */
+        {
+          /* based on geometry coordinates for HEXAHEDRON */
+          h_sd[0]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(6,0),2.0)
+                      +pow(fLocInitCoords(0,1)-fLocInitCoords(6,1),2.0)
+                      +pow(fLocInitCoords(0,2)-fLocInitCoords(6,2),2.0));
+
+          h_sd[1]=sqrt(pow(fLocInitCoords(1,0)-fLocInitCoords(7,0),2.0)
+                      +pow(fLocInitCoords(1,1)-fLocInitCoords(7,1),2.0)
+                      +pow(fLocInitCoords(1,2)-fLocInitCoords(7,2),2.0));
+
+          h_sd[2]=sqrt(pow(fLocInitCoords(2,0)-fLocInitCoords(4,0),2.0)
+                      +pow(fLocInitCoords(2,1)-fLocInitCoords(4,1),2.0)
+                      +pow(fLocInitCoords(2,2)-fLocInitCoords(4,2),2.0));
+
+          h_sd[3]=sqrt(pow(fLocInitCoords(3,0)-fLocInitCoords(5,0),2.0)
+                      +pow(fLocInitCoords(3,1)-fLocInitCoords(5,1),2.0)
+                      +pow(fLocInitCoords(3,2)-fLocInitCoords(5,2),2.0));
+
+          double t1 = max(h_sd[0],h_sd[1]);
+          double t2 = max(h_sd[2],h_sd[3]); 
+          h_sd[0] = max(t1,t2);
+        }
+                        
+        fElementLS_list[ElementCounter]=h_sd[0];
+        ElementCounter++;
+      }
+    }
+  }
 }
 
 /* extract the list of material parameters */

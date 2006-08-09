@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.9 2006-07-27 21:58:18 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.10 2006-08-09 00:34:40 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #ifndef _FLUID_ELEMENT_H_
 #define _FLUID_ELEMENT_H_
@@ -33,11 +33,17 @@ public:
   enum ElementOutputCodeT {
     iNONE = 0 /**< NONE */
   };
-
+  
   /** list/index of stabilization parameters */
   enum StabParamCodeT {
     iStabParamOne = 0, /**< \tau_m = \tau_c = \tau_PSPG = \tau_SUPG */
     iStabParamNone = 1 /**< \tau_m = \tau_c = \tau_PSPG = \tau_SUPG = 0 */
+  };
+
+  /** element length scale types */
+  enum ElementLSCodeT {
+    iSpatial = 0, /**< precalculated */
+    iVelocity = 1 /**< calculated at each time step */
   };
 
   /** constructor */
@@ -69,6 +75,7 @@ protected:
   static const int NumNodalOutputCodes;
   static const int NumElementOutputCodes;
   static const int NumStabParamCodes;
+  static const int NumElementLSCodes;
   static const int kPressureNDOF;
 
 	/** allocate and initialize local arrays */
@@ -211,6 +218,9 @@ protected:
   /** velocity gradient */
   ArrayT<dMatrixT> fGradVel_list;
 
+  /** element length scales (spatial) */
+  dArrayT fElementLS_list;
+
 private:
 
   /** \name construct output labels array */
@@ -231,6 +241,7 @@ private:
 
   /** stabilization parameter */
   FluidElementT::StabParamCodeT fStabParam;
+  FluidElementT::ElementLSCodeT fElementLS;
 
   /** FOR DEBUGGING PURPOSES ONLY */
   void WriteCallLocation( char* loc ) const;
