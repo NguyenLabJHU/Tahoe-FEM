@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.1 2006-08-03 01:10:40 thao Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.2 2006-08-10 01:49:40 thao Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -55,7 +55,7 @@ ParameterInterfaceT* UpLagFiberCompT::NewSub(const StringT& name) const
 		/* list of element block ID's (defined by ElementBaseT) */
 		block->AddSub("block_ID_list", ParameterListT::Once);
 	
-		/* choice of materials lists (inline) */
+		/* choice of materials lists */
 		block->AddSub("fiber_comp_material", ParameterListT::Once);
 	
 		/* set this as source of subs */
@@ -325,11 +325,6 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 							{
 								surf_shape.DomainJacobian(coords, l, jacobian);
 								double detj = surf_shape.SurfaceJacobian(jacobian, Q);
-//								cout << "\nloc_node: \n"<<facet_nodes_loc;
-//								cout << "\nglob_node: \n"<<facet_nodes_glob;
-//								cout << "\nelem: "<<elem<<"\t facet: "<<facet<<"\t ip: "<<l;
-//								cout <<"\nQ: "<<Q;
-//								cout << "\njacobian: "<< jacobian;
 								Q.Multx(p_loc, p_glb, scale, dMatrixT::kAccumulate);
 							}
 						}
