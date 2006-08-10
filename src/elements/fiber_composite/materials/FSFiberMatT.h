@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.h,v 1.1 2006-08-03 01:10:41 thao Exp $ */
+/* $Id: FSFiberMatT.h,v 1.2 2006-08-10 01:46:53 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIB_MAT_T_H_
 #define _FD_FIB_MAT_T_H_
@@ -31,10 +31,75 @@ public:
 	const FSFiberMatSupportT& FiberMatSupportT(void) const;
 	/*@}*/
 
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
+	virtual const dMatrixT& c_ijkl(void);
+
+	/** Cauchy stress */
+	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fStress.Sum()/3.0; };
+	/*@}*/
+
+	/* material description */
+	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
+	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
+
+	/*compute output variables*/
+	virtual int NumOutputVariables() const;
+	virtual void OutputLabels(ArrayT<StringT>& labels) const;
+	virtual void ComputeOutput(dArrayT& output);
+
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	virtual void TakeParameterList(const ParameterListT& list);
+
+protected:
+	/**rotate fiber stress and fiber moduli from local fiber coords to global cartesian coords*/
+	void ComputeFiberStretch(const dSymMatrixT& global_stretch, dSymMatrixT& fib_stretch);
+	void AssembleFiberStress(const dSymMatrixT& fib_stress, dSymMatrixT& global_stress, 
+				const int fillmode = dSymMatrixT::kAccumulate);
+	void AssembleFiberModuli(const dSymMatrixT& fib_mod, dMatrixT& global_mod,
+				const int fillmode = dSymMatrixT::kAccumulate);
+
+	/*calculates  matrix contribution to 2PK stress*/
+	virtual void ComputeMatrixStress(const dSymMatrixT& C, dSymMatrixT& Stress) = 0;
+
+	/*calculates matrix contribution to modulus*/
+	virtual void ComputeMatrixMod(const dSymMatrixT& C, dSymMatrixT& Stress, dMatrixT& Mod) = 0;
+	
+	/*computes integrated fiber stress in local frame*/
+	virtual void ComputeFiberStress (const dSymMatrixT& Stretch, dSymMatrixT& Stress) = 0;
+	
+	/*computes integrated moduli in local frame*/
+	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, dSymMatrixT& Stress, dSymMatrixT& Mod) = 0;
+
 protected:
 
 	/** support for finite strain materials */
 	const FSFiberMatSupportT* fFSFiberMatSupport;
+
+	/* stretch */
+	dSymMatrixT fC;
+
+	/* return values */
+	dMatrixT    fModulus;
+	dSymMatrixT fStress;
+
+	/*dimension*/
+	int fNumSD;
+	int fNumFibStress;
+	int fNumFibModuli; 	
+	
+	/*stretch, stress, and moduli defined in local fiber coords*/
+	dSymMatrixT fFiberStretch;
+	dSymMatrixT fFiberStress;
+	dSymMatrixT fFiberMod;
+
 };
 
 /* fiber element materials support */

@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.h,v 1.1 2006-08-03 01:10:41 thao Exp $ */
+/* $Id: AnisoCornea.h,v 1.2 2006-08-10 01:46:53 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ANISO_CORNEA_2D_H_
 #define _ANISO_CORNEA_2D_H_
@@ -6,13 +6,11 @@
 /* base classes */
 #include "FSFiberMatT.h"
 
-/* direct members */
-#include "C1FunctionT.h"
-
 namespace Tahoe {
 
 /* forward declarations */
 class CirclePointsT;
+class C1FunctionT;
 
 /** 2D Isotropic VIB solver using spectral decomposition formulation */
 class AnisoCornea: public FSFiberMatT
@@ -25,36 +23,15 @@ public:
 	/* destructor */
 	~AnisoCornea(void);
 	
-	/** \name spatial description */
-	/*@{*/
-	/** spatial tangent modulus */
-	virtual const dMatrixT& c_ijkl(void);
-
-	/** Cauchy stress */
-	virtual const dSymMatrixT& s_ij(void);
-
-	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
-	 * for more information. */
-	virtual double Pressure(void) const { return fStress.Sum()/3.0; };
-	/*@}*/
-
-	/* material description */
-	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
-	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
-
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
-
-	/*compute output variables*/
-	virtual int NumOutputVariables() const;
-	virtual void OutputLabels(ArrayT<StringT>& labels) const;
-	virtual void ComputeOutput(dArrayT& output);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+//	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, SubListT& sub_lists) const;
 
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
@@ -67,19 +44,26 @@ public:
 	/*@}*/
 
 protected:
-	/* allocate memory for all the tables */
-	void Dimension(int numbonds);
+	/*calculates  matrix contribution to 2PK stress*/
+	virtual void ComputeMatrixStress(const dSymMatrixT& C, dSymMatrixT& Stress);
+
+	/*calculates matrix contribution to modulus*/
+	virtual void ComputeMatrixMod(const dSymMatrixT& C, dSymMatrixT& Stress, dMatrixT& Mod);
+	
+	/*computes integrated fiber stress in local frame*/
+	virtual void ComputeFiberStress (const dSymMatrixT& FiberStretch, dSymMatrixT& FiberStress);
+	
+	/*computes integrated moduli in local frame*/
+	virtual void ComputeFiberMod (const dSymMatrixT& FiberStretch, dSymMatrixT& FiberStress,
+					dSymMatrixT& FiberMod);
 
 	/* strained lengths in terms of the Lagrangian stretch eigenvalues */
 	void ComputeLengths(const dSymMatrixT& stretch);
-
+	
 private:
 
 	/* initialize angle tables */
 	void Construct(void);
-	
-	void AssembleFiberStress(const dArrayT& fib_stress, dSymMatrixT& global_stress);
-	void AssembleFiberModuli(const dSymMatrixT& fib_mod, dMatrixT& global_mod);
 
 protected:
 	
@@ -97,7 +81,8 @@ protected:
 	C1FunctionT* fDistribution;
 
 	/* length table */
-	dArrayT	fLengths;
+	/*I4*/
+	dArrayT	fI4;
 
 	/* potential tables */
 	dArrayT	fU;
@@ -106,36 +91,13 @@ protected:
 
 	/* jacobian table */
 	dArrayT	fjacobian;
-	dArrayT fangles;
 
-	int fNumSD;
-			
 	/* STRESS angle tables for fiber stress - by associated stress component */
-	int fNumFibStress;
 	dArray2DT fStressTable;
 	  	
-	/*rotation matrix from cartesian to fibril coordinates*/
-//	dMatrixT fQ;
-//	dArrayT fNT; /*NT-orientation*/
-//	dArrayT fIS; /*IS-orientation*/
-//	dArrayT fOP;  /*normal orientation*/
-
 	/* MODULI angle tables for fiber moduli */
-	int fNumFibModuli; 	
 	dArray2DT fModuliTable;	
 
-	/* return values */
-	dSymMatrixT fMatStress;
-	dMatrixT	fMatMod;
-	dMatrixT    fModulus;
-	dSymMatrixT fStress;
-
-private:
-
-	/* stretch */
-	dSymMatrixT fC;
-	dArrayT fFiberStress;
-	dSymMatrixT fFiberMod;
 };
 
 } // namespace Tahoe 

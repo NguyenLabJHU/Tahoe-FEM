@@ -1,4 +1,4 @@
-# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/materials/makefile,v 1.1 2006-08-03 01:10:41 thao Exp $
+# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/materials/makefile,v 1.2 2006-08-10 01:46:53 thao Exp $
 # created: a-kopacz (07/04/2006)
 #
 # This makefile is divided into four sections:
@@ -24,7 +24,10 @@ OBJ = \
 	FSFiberMatT.o \
 	FSFiberMatListT.o \
 	FSFiberMatSupportT.o \
-	AnisoCornea.o 	
+	FSFiberMatViscT.o \
+	AnisoCorneaIVisco.o \
+	AnisoCorneaVisco.o \
+	AnisoCornea.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -47,7 +50,11 @@ SRC = \
 	FSFiberMatT.cpp \
 	FSFiberMatListT.cpp \
 	FSFiberMatSupportT.cpp \
-	AnisoCornea.cpp 	
+	FSFiberMatViscT.cpp \
+	AnisoCorneaIVisco.cpp \
+	AnisoCorneaVisco.cpp \
+	AnisoCornea.cpp 
+
 
 ##################### (3) headers
 #
@@ -62,7 +69,10 @@ HDR = \
 	FSFiberMatT.h \
 	FSFiberMatListT.h \
 	FSFiberMatSupportT.h \
-	AnisoCornea.h 	
+	FSFiberMatViscT.h \
+	AnisoCorneaIVisco.h \
+	AnisoCorneaVisco.h \
+	AnisoCornea.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
