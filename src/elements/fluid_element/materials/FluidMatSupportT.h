@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatSupportT.h,v 1.3 2006-07-18 01:21:21 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatSupportT.h,v 1.4 2006-08-18 01:23:44 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #ifndef _FLUID_SUPPORT_T_H_
 #define _FLUID_SUPPORT_T_H_
@@ -24,8 +24,8 @@ public:
 	FluidMatSupportT(int ndof, int nip);
 
 	/** \name field values at the integration points
-	 * The field values can only be access after the source for the
-	 * field source is set using FluidMatSupportT::SetField. */
+	* The field values can only be access after the source for the
+	* field source is set using FluidMatSupportT::SetField. */
 	/*@{*/
 	/** current velocity value at the specified integration point */
 	dArrayT Velocity(int ip) const;
@@ -44,8 +44,8 @@ public:
 	/*@}*/
 
 	/** \name field gradients.
-	 * Field gradients can only be access after the source for the
-	 * gradient information is set using FluidMatSupportT::SetGradient. */
+	* Field gradients can only be access after the source for the
+	* gradient information is set using FluidMatSupportT::SetGradient. */
 	/*@{*/
 	/** field gradient at the current integration point */
 	const dMatrixT& VelGrad(void) const;
@@ -66,32 +66,32 @@ public:
 	/** \name host code information */
 	/*@{*/
 	/** return a pointer to the host element. Returns NULL if no
-	 * no element information in available. The ContinuumElementT
-	 * pointer is set using MaterialSupportT::SetContinuumElement. */
+	* no element information in available. The ContinuumElementT
+	* pointer is set using MaterialSupportT::SetContinuumElement. */
 	const FluidElementT* Fluid(void) const { return fFluid; };
 
 	/** set the element group pointer */
 	virtual void SetContinuumElement(const ContinuumElementT* p);
 	/*@}*/
-	
-  private:
+
+private:
 
 	/** field values. Pointer to the array that always contains the
-	 * current values of the field over the element being calculated: [nip] */
+	* current values of the field over the element being calculated: [nip] */
 	const ArrayT<dArrayT>* fVel_list;
 	const dArrayT* fPres_list;
-	
+
 	/** field gradient. Pointer to the array that always contains the
-	 * current values of the field gradient over the element being
-	 * calculated: [nip] x [nsd] */
+	* current values of the field gradient over the element being
+	* calculated: [nip] x [nsd] */
 	const ArrayT<dMatrixT>* fGradVel_list;
 	const ArrayT<dArrayT>* fGradPres_list;
 
-  	/** pointer to the fluid element */
+	/** pointer to the fluid element */
 	const FluidElementT* fFluid;
 
-  /** FOR DEBUGGING PURPOSES ONLY */
-  void WriteCallLocation( char* loc ) const;
+	/** FOR DEBUGGING PURPOSES ONLY */
+	void WriteCallLocation( char* loc ) const;
 };
 
 /* inlines */

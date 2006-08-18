@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.cpp,v 1.4 2006-08-04 15:26:44 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.cpp,v 1.5 2006-08-18 01:23:44 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #include "FluidMaterialT.h"
 #include "FluidMatSupportT.h"
@@ -11,16 +11,16 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-  DEFINE_TEMPLATE_STATIC const bool ArrayT<FluidMaterialT>::fByteCopy = false;
-  DEFINE_TEMPLATE_STATIC const bool ArrayT<FluidMaterialT*>::fByteCopy = true;
+	DEFINE_TEMPLATE_STATIC const bool ArrayT<FluidMaterialT>::fByteCopy = false;
+	DEFINE_TEMPLATE_STATIC const bool ArrayT<FluidMaterialT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */
 FluidMaterialT::FluidMaterialT(void):
-  ParameterInterfaceT("linear_fluid_material"),
-  fFluidMatSupport(NULL),
-  fDensity(0.0),
-  fMu(0.0)
+	ParameterInterfaceT("linear_fluid_material"),
+	fFluidMatSupport(NULL),
+	fDensity(0.0),
+	fMu(0.0)
 {
 
 }
@@ -28,97 +28,107 @@ FluidMaterialT::FluidMaterialT(void):
 /* set support */
 void FluidMaterialT::SetFluidMatSupport(const FluidMatSupportT* support)
 {
-  WriteCallLocation("SetFluidMatSupport"); //DEBUG
-  /* inherited */
-  SetMaterialSupport(support);
-  fFluidMatSupport = support;
+	//WriteCallLocation("SetFluidMatSupport"); //DEBUG
+	
+	/* inherited */
+	SetMaterialSupport(support);
+	fFluidMatSupport = support;
 
-  /* dimension */
-  int nsd = NumSD();
-  fStrainRate.Dimension(nsd);
-  fStress.Dimension(nsd);
-  fModulus.Dimension(dSymMatrixT::NumValues(nsd));
-  /* initialize */
-  fStress = 0.0;
-  fModulus = 0.0;
+	/* dimension */
+	int nsd = NumSD();
+	fStrainRate.Dimension(nsd);
+	fStress.Dimension(nsd);
+	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
+	
+	/* initialize */
+	fStress = 0.0;
+	fModulus = 0.0;
+}
+
+/* form of tangent matrix (symmetric by default) */
+GlobalT::SystemTypeT FluidMaterialT::TangentType(void) const
+{
+    return GlobalT::kNonSymmetric;
 }
 
 /* change in fluid stress */
 const dMatrixT& FluidMaterialT::c_ijkl(void)
 {
-  WriteCallLocation("c_ijkl"); //DEBUG
+	//WriteCallLocation("c_ijkl"); //DEBUG
 
-  double third = 1.0/3.0;
-  
+	double third = 1.0/3.0;
+
 	if (NumSD() ==1)
 		fModulus = 2.0*fMu;
-	else if (NumSD() ==2 ) {
+	else if (NumSD() ==2 ) 
+	{
 		/*"plane strain assumption for now.  i.e. no flow in out of plane direction*/
-//		fModulus(0,0) = fModulus(1,1) =  2.0*fMu*(1.0 - third);
-//		fModulus(1,0) = fModulus(0,1) = -2.0*fMu*third;
+		//fModulus(0,0) = fModulus(1,1) =  2.0*fMu*(1.0 - third);
+		//fModulus(1,0) = fModulus(0,1) = -2.0*fMu*third;
 		fModulus(0,0) = fModulus(1,1) =  2.0*fMu;
 		fModulus(1,0) = fModulus(0,1) = 0.0;
 		fModulus(2,2) = fMu;
 	}
-	else if (NumSD() == 3) {
-//		fModulus(0,0) = fModulus(1,1) =  fModulus(2,2) = 2.0*fMu*(1.0 - third);
-//		fModulus(3,3) = fModulus(4,4) =  fModulus(5,5) = fMu;
-//		fModulus(0,1) = fModulus(0,2) =  fModulus(1,2) = -2.0*fMu*third;
-//		fModulus(1,0) = fModulus(2,0) =  fModulus(2,1) = -2.0*fMu*third;
+	else if (NumSD() == 3) 
+	{
+		//fModulus(0,0) = fModulus(1,1) =  fModulus(2,2) = 2.0*fMu*(1.0 - third);
+		//fModulus(3,3) = fModulus(4,4) =  fModulus(5,5) = fMu;
+		//fModulus(0,1) = fModulus(0,2) =  fModulus(1,2) = -2.0*fMu*third;
+		//fModulus(1,0) = fModulus(2,0) =  fModulus(2,1) = -2.0*fMu*third;
 		fModulus(0,0) = fModulus(1,1) =  fModulus(2,2) = 2.0*fMu;
 		fModulus(3,3) = fModulus(4,4) =  fModulus(5,5) = fMu;
 		fModulus(0,1) = fModulus(0,2) =  fModulus(1,2) = 0.0;
 		fModulus(1,0) = fModulus(2,0) =  fModulus(2,1) = 0.0;
 	}
-return fModulus; 
-
+	return fModulus; 
 }
 
 /* fluid stress */
 const dSymMatrixT& FluidMaterialT::s_ij(void)
 {
-  WriteCallLocation("s_ij"); //DEBUG.symmetrizes
+	//WriteCallLocation("s_ij"); //DEBUG.symmetrizes
 
-  /* should be 1 row */
-  fStrainRate.Symmetrize(fFluidMatSupport->VelGrad());
-  fStress = fStrainRate;
-  fStress *= 2.0*fMu;
+	/* should be 1 row */
+	fStrainRate.Symmetrize(fFluidMatSupport->VelGrad());
+	fStress = fStrainRate;
+	fStress *= 2.0*fMu;
 
-  double pressure = fFluidMatSupport->Pressure();
-  for (int i = 0; i < NumSD(); i++) {
-    fStress[i] -= pressure;
-  }
-  return fStress;
+	double pressure = fFluidMatSupport->Pressure();
+	for (int i = 0; i < NumSD(); i++) 
+	{
+		fStress[i] -= pressure;
+	}
+	return fStress;
 }
 
 /* describe the parameters needed by the interface */
 void FluidMaterialT::DefineParameters(ParameterListT& list) const
 {
-  WriteCallLocation("DefineParameters"); //DEBUG
+	//WriteCallLocation("DefineParameters"); //DEBUG
 
-  /* inherited */
-  ContinuumMaterialT::DefineParameters(list);
+	/* inherited */
+	ContinuumMaterialT::DefineParameters(list);
 
-  /* define parameters */
-  list.AddParameter(fDensity, "density");
-  list.AddParameter(ParameterT::Double, "viscosity");
+	/* define parameters */
+	list.AddParameter(fDensity, "density");
+	list.AddParameter(ParameterT::Double, "viscosity");
 }
 
 /* accept parameter list */
 void FluidMaterialT::TakeParameterList(const ParameterListT& list)
 {
-  WriteCallLocation("TakeParameterList"); //DEBUG
+	//WriteCallLocation("TakeParameterList"); //DEBUG
 
-  /* inherited */
-  ContinuumMaterialT::TakeParameterList(list);
+	/* inherited */
+	ContinuumMaterialT::TakeParameterList(list);
 
-  /* get parameters */
-  fDensity = list.GetParameter("density");
-  fMu = list.GetParameter("viscosity");
+	/* get parameters */
+	fDensity = list.GetParameter("density");
+	fMu = list.GetParameter("viscosity");
 }
 
 /** FOR DEBUGGING PURPOSES ONLY */
 void FluidMaterialT::WriteCallLocation( char* loc ) const
 {
-  //cout << "\n Inside of FluidMaterialT::" << loc << endl;
+	cout << "\n Inside of FluidMaterialT::" << loc << endl;
 }

@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.h,v 1.3 2006-08-04 15:26:44 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMaterialT.h,v 1.4 2006-08-18 01:23:45 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #ifndef _FLUID_MATERIALT_H_
 #define _FLUID_MATERIALT_H_
@@ -17,7 +17,7 @@ namespace Tahoe {
 class ifstreamT;
 class FluidT;
 class FluidMatSupportT;
- 
+
 /** interface for materials for fluid */
 class FluidMaterialT: public ContinuumMaterialT
 {
@@ -29,6 +29,9 @@ public:
 	/** set support */
 	void SetFluidMatSupport(const FluidMatSupportT* support);
 
+	/* form of tangent matrix (symmetric by default) */
+	GlobalT::SystemTypeT TangentType(void) const;
+		
 	/** \name parameters at the current field point */
 	/*@{*/
 	/** viscosity */
@@ -39,7 +42,6 @@ public:
 
 	double Density(void) const;
 	double Shear_Modulus(void) const;
-
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -68,9 +70,9 @@ protected:
 	/** conductivity variation return value */
 	dMatrixT fModulus;  
 	/*@}*/
-  
-  /** FOR DEBUGGING PURPOSES ONLY */
-  void WriteCallLocation( char* loc ) const;
+
+	/** FOR DEBUGGING PURPOSES ONLY */
+	void WriteCallLocation( char* loc ) const;
 };
 
 /* returns the density */

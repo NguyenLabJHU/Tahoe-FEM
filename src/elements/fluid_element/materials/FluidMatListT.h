@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatListT.h,v 1.2 2006-07-18 01:21:21 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatListT.h,v 1.3 2006-08-18 01:23:44 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 #ifndef _FLUID_MAT_LIST_T_H_
 #define _FLUID_MAT_LIST_T_H_
@@ -19,8 +19,9 @@ public:
 
 	/** enum defining material types */
 	enum TypeT {
-        kLinear = 1,
-     kNonLinear = 2};
+		kLinear = 1,
+		kNonLinear = 2
+	};
 
 	/** constructors */
 	FluidMatListT(int length, const FluidMatSupportT& support);
@@ -44,14 +45,14 @@ public:
 
 	/** construct the specified material or NULL if the request cannot be completed */
 	FluidMaterialT* NewFluidMaterial(const StringT& name) const;
-	
+
 private:
 
 	/** support for fluid materials */
 	const FluidMatSupportT* fFluidMatSupport;
 
-  /** FOR DEBUGGING PURPOSES ONLY */
-  void WriteCallLocation( char* loc ) const;
+	/** FOR DEBUGGING PURPOSES ONLY */
+	void WriteCallLocation( char* loc ) const;
 };
 
 } // namespace Tahoe 

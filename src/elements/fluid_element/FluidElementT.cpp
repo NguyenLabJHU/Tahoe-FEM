@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.23 2006-08-09 00:34:03 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.24 2006-08-18 01:23:44 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -23,24 +23,25 @@ using namespace Tahoe;
 /* initialize static data */
 const int FluidElementT::NumNodalOutputCodes = 4;
 static const char* NodalOutputNames[] = {
-  "coordinates",
-  "velocities",
-  "accelerations",
-  "pressures"};
+	"coordinates",
+	"velocities",
+	"accelerations",
+	"pressures"};
 
 const int FluidElementT::NumElementOutputCodes = 0;
 static const char* ElementOutputNames[] = {
-  "NONE"};
+	"NONE"};
 
 const int FluidElementT::NumStabParamCodes = 2;
 static const char* StabParamNames[] = {
-  "tau_m_is_tau_c", /* T.E. Tezduyar, Stabilized Finite Element Formulations for Incompressible Flow Computations, Adv. Appl. Mech. 28(1991) 1-44. */
-  "NONE"}; /* Galerkin formulation; ie \tau_m and \tau_c = 0 { WILL NOT CONVERGE }  */
+	"tau_m_is_tau_c",	/* T.E. Tezduyar, Stabilized Finite Element Formulations for Incompressible Flow Computations, Adv. Appl. Mech. 28(1991) 1-44. */
+	"NONE"};		/* Galerkin formulation; ie \tau_m and \tau_c = 0 { WILL NOT CONVERGE }  */
 
 const int FluidElementT::NumElementLSCodes = 2;
 static const char* ElementLSNames[] = {
-  "spatial_length_scale",
-  "velocity_field_length_scale"}; /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
+	"spatial",
+	"velocity_field",	/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
+	"NONE"};
   
 /* parameters */
 const int FluidElementT::kPressureNDOF = 1;
@@ -49,21 +50,21 @@ const int FluidElementT::kPressureNDOF = 1;
 FluidElementT::FluidElementT(const ElementSupportT& support):
   ContinuumElementT(support),
   /* dofs: vels and press */
-  fLocDisp(LocalArrayT::kDisp),
-  fLocLastDisp(LocalArrayT::kLastDisp),
-  fLocVel(LocalArrayT::kVel),
+	fLocDisp(LocalArrayT::kDisp),
+	fLocLastDisp(LocalArrayT::kLastDisp),
+	fLocVel(LocalArrayT::kVel),
 
-  /* velocity */
-  fLocCurVel(LocalArrayT::kUnspecified),
-  fLocOldVel(LocalArrayT::kUnspecified),
-  /* accelaration */
-  fLocCurAcc(LocalArrayT::kUnspecified),
-  /* pressure */
-  fLocCurPrs(LocalArrayT::kUnspecified),
-  
-  fFluidMatSupport(NULL)
+	/* velocity */
+	fLocCurVel(LocalArrayT::kUnspecified),
+	fLocOldVel(LocalArrayT::kUnspecified),
+	/* accelaration */
+	fLocCurAcc(LocalArrayT::kUnspecified),
+	/* pressure */
+	fLocCurPrs(LocalArrayT::kUnspecified),
+
+	fFluidMatSupport(NULL)
 {
-  SetName("incompressible_newtonian_fluid_element");
+	SetName("incompressible_newtonian_fluid_element");
 }
 
 /* destructor */
@@ -75,120 +76,120 @@ FluidElementT::~FluidElementT(void)
 /* compute nodal force */
 void FluidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
-//  WriteCallLocation("AddNodalForce: not implemented"); //DEBUG
-  //not implemented
-#pragma unused(field)
-#pragma unused(node)
-#pragma unused(force)
+	//WriteCallLocation("AddNodalForce: not implemented"); //DEBUG
+	//not implemented
+	#pragma unused(field)
+	#pragma unused(node)
+	#pragma unused(force)
 }
 
 /* returns the energy as defined by the derived class types */
 double FluidElementT::InternalEnergy(void)
 {
-//  WriteCallLocation("InternalEnergy: not implemented"); //DEBUG
-  //not implemented
-  double energy = 0.0;
-  return energy;
+	//WriteCallLocation("InternalEnergy: not implemented"); //DEBUG
+	//not implemented
+	double energy = 0.0;
+	return energy;
 }
 
 /** compute specified output parameter and send for smoothing */
 void FluidElementT::SendOutput(int kincode)
 {
-//  WriteCallLocation("SendOutput"); //DEBUG
-  /* output flags */
-  iArrayT flags(fNodalOutputCodes.Length());
+	//WriteCallLocation("SendOutput"); //DEBUG
+	/* output flags */
+	iArrayT flags(fNodalOutputCodes.Length());
 
-  /* set flags to get desired output */
-  flags = IOBaseT::kAtNever;
+	/* set flags to get desired output */
+	flags = IOBaseT::kAtNever;
 
-  switch (kincode)
-  {
-    case iNodalCrd:
-      flags[iNodalCrd] = NumSD();   WriteCallLocation("iNodalCrd");
-    break;
-    case iNodalVel:
-      flags[iNodalVel] = NumSD();   WriteCallLocation("iNodalVel");
-    break;
-    case iNodalAcc:
-      flags[iNodalAcc] = NumSD();   WriteCallLocation("iNodalAcc");
-    break;
-    case iNodalPrs:
-      flags[iNodalPrs] = FluidElementT::kPressureNDOF;   WriteCallLocation("iNodalPrs");
-    break;
-    default:
-      cout << "\n FluidElementT::SendOutput: invalid output code: "
-        << kincode << endl;
-    }
+	switch (kincode)
+	{
+		case iNodalOutputCrd:
+			flags[iNodalOutputCrd] = NumSD();   WriteCallLocation("iNodalOutputCrd");
+		break;
+		case iNodalOutputVel:
+			flags[iNodalOutputVel] = NumSD();   WriteCallLocation("iNodalOutputVel");
+		break;
+		case iNodalOutputAcc:
+			flags[iNodalOutputAcc] = NumSD();   WriteCallLocation("iNodalOutputAcc");
+		break;
+		case iNodalOutputPrs:
+			flags[iNodalOutputPrs] = FluidElementT::kPressureNDOF;   WriteCallLocation("iNodalOutputPrs");
+		break;
+		default:
+			cout << "\n FluidElementT::SendOutput: invalid output code: "
+				<< kincode << endl;
+	}
 
-  /* number of output values */
-  iArrayT n_counts;
-  SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
+	/* number of output values */
+	iArrayT n_counts;
+	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
 
-  /* reset averaging workspace */
-  ElementSupport().ResetAverage(n_counts.Sum());
+	/* reset averaging workspace */
+	ElementSupport().ResetAverage(n_counts.Sum());
 
-  /* no element output */
-  iArrayT e_counts(fElementOutputCodes.Length());
-  e_counts = 0;
+	/* no element output */
+	iArrayT e_counts(fElementOutputCodes.Length());
+	e_counts = 0;
 
-  /* generate output */
-  dArray2DT n_values, e_values;
-  ComputeOutput(n_counts, n_values, e_counts, e_values);
+	/* generate output */
+	dArray2DT n_values, e_values;
+	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
 /** initialize local arrays */
 void FluidElementT::SetLocalArrays(void)
 {
-//  WriteCallLocation("SetLocalArrays"); //DEBUG
+	//WriteCallLocation("SetLocalArrays"); //DEBUG
 
-  /* inherited */
-  ContinuumElementT::SetLocalArrays();
+	/* inherited */
+	ContinuumElementT::SetLocalArrays();
 
-  /* allocate */
-  int nen = NumElementNodes();
-  int ndof  = NumDOF();
+	/* allocate */
+	int nen = NumElementNodes();
+	int ndof  = NumDOF();
 
-  fLocDisp.Dimension(nen, ndof);
-  fLocLastDisp.Dimension(nen, ndof);
-  fLocVel.Dimension(nen, ndof);
+	fLocDisp.Dimension(nen, ndof);
+	fLocLastDisp.Dimension(nen, ndof);
+	fLocVel.Dimension(nen, ndof);
 
-  /* set source */
-  Field().RegisterLocal(fLocDisp);
-  Field().RegisterLocal(fLocLastDisp);
+	/* set source */
+	Field().RegisterLocal(fLocDisp);
+	Field().RegisterLocal(fLocLastDisp);
 
-  if (fIntegrator->Order() > 0)
-    Field().RegisterLocal(fLocVel);
+	if (fIntegrator->Order() > 0)
+		Field().RegisterLocal(fLocVel);
 
-  /* map */
-  const double* p_cur_vel = fLocDisp(0);
-  fLocCurVel.Alias(nen, ndof - 1, p_cur_vel);
+	/* map */
+	const double* p_cur_vel = fLocDisp(0);
+	fLocCurVel.Alias(nen, ndof - 1, p_cur_vel);
 
-  const double* p_cur_pres = fLocDisp(ndof-1);
-  fLocCurPrs.Alias(nen, 1, p_cur_pres);
+	const double* p_cur_pres = fLocDisp(ndof-1);
+	fLocCurPrs.Alias(nen, 1, p_cur_pres);
 
-  const double* p_old_vel = fLocLastDisp(0);
-  fLocOldVel.Alias(nen, ndof - 1, p_old_vel);
+	const double* p_old_vel = fLocLastDisp(0);
+	fLocOldVel.Alias(nen, ndof - 1, p_old_vel);
 
-  const double* p_cur_acc = fLocVel(0);
-  fLocCurAcc.Alias(nen, ndof - 1, p_cur_acc);
+	const double* p_cur_acc = fLocVel(0);
+	fLocCurAcc.Alias(nen, ndof - 1, p_cur_acc);
 }
 
 /** allocate and initialize shape function objects */
 void FluidElementT::SetShape(void)
 {
-//  WriteCallLocation("SetShape"); //DEBUG
-  fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
-  if (!fShapes ) throw ExceptionT::kOutOfMemory;
-  fShapes->Initialize();
+	//WriteCallLocation("SetShape"); //DEBUG
+	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
+	if (!fShapes ) throw ExceptionT::kOutOfMemory;
+	fShapes->Initialize();
 }
 
 /** construct a new material support and return a pointer */
 MaterialSupportT* FluidElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
-//  WriteCallLocation("NewMaterialSupport"); //DEBUG
+	//WriteCallLocation("NewMaterialSupport"); //DEBUG
 	/* allocate */
 	if (!p) p = new FluidMatSupportT(NumDOF(), NumIP());
 
@@ -210,7 +211,7 @@ MaterialSupportT* FluidElementT::NewMaterialSupport(MaterialSupportT* p) const
 /* return a pointer to a new material list */
 MaterialListT* FluidElementT::NewMaterialList(const StringT& name, int size)
 {
-//  WriteCallLocation("NewMaterialList"); //DEBUG
+	//WriteCallLocation("NewMaterialList"); //DEBUG
 	/* no match */
 	if (name != "fluid_material")
 		return NULL;
@@ -233,76 +234,76 @@ MaterialListT* FluidElementT::NewMaterialList(const StringT& name, int size)
 
 /* driver for calculating output values */
 void FluidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-  const iArrayT& e_codes, dArray2DT& e_values)
+	const iArrayT& e_codes, dArray2DT& e_values)
 {
-//  WriteCallLocation("ComputeOutput"); //DEBUG
-  /* number of output values */
-  int n_out = n_codes.Sum();
-  int e_out = e_codes.Sum();
+	//WriteCallLocation("ComputeOutput"); //DEBUG
+	/* number of output values */
+	int n_out = n_codes.Sum();
+	int e_out = e_codes.Sum();
 
-  /* nothing to output */
-  if (n_out == 0 && e_out == 0) return;
+	/* nothing to output */
+	if (n_out == 0 && e_out == 0) return;
 
-#pragma unused(e_values)
-  if (e_out > 0)
-	  ExceptionT::GeneralFail("FluidElementT::ComputeOutput", "element output not supported");
+	#pragma unused(e_values)
+	if (e_out > 0)
+		ExceptionT::GeneralFail("FluidElementT::ComputeOutput", "element output not supported");
 
-  /* dimensions */
-  int nen = NumElementNodes();
+	/* dimensions */
+	int nen = NumElementNodes();
 
-  /* reset averaging workspace */
-  ElementSupport().ResetAverage(n_out);
+	/* reset averaging workspace */
+	ElementSupport().ResetAverage(n_out);
 
-  /* work arrays */
-  dArray2DT nodal_space(nen, n_out);
-  dArray2DT nodal_all(nen, n_out);
-  dArray2DT coords, vel, acc, prs;
+	/* work arrays */
+	dArray2DT nodal_space(nen, n_out);
+	dArray2DT nodal_all(nen, n_out);
+	dArray2DT coords, vel, acc, prs;
 
-  /* set shallow copies */
-  double* pall = nodal_space.Pointer();
-  coords.Set(nen, n_codes[iNodalCrd], pall);
-  pall += coords.Length();
-  vel.Set(nen, n_codes[iNodalVel], pall);
-  pall += vel.Length();
-  acc.Set(nen, n_codes[iNodalAcc], pall);
-  pall += acc.Length();
-  prs.Set(nen, n_codes[iNodalPrs], pall);
-  pall += prs.Length();
+	/* set shallow copies */
+	double* pall = nodal_space.Pointer();
+	coords.Set(nen, n_codes[iNodalOutputCrd], pall);
+	pall += coords.Length();
+	vel.Set(nen, n_codes[iNodalOutputVel], pall);
+	pall += vel.Length();
+	acc.Set(nen, n_codes[iNodalOutputAcc], pall);
+	pall += acc.Length();
+	prs.Set(nen, n_codes[iNodalOutputPrs], pall);
+	pall += prs.Length();
 
-  Top();
-  while (NextElement())
-  {
-	/* initialize */
-    nodal_space = 0.0;
-    /* global shape function values */
-    SetGlobalShape();
-    SetLocalU(fLocInitCoords);
+	Top();
+	while (NextElement())
+	{
+		/* initialize */
+		nodal_space = 0.0;
+		/* global shape function values */
+		SetGlobalShape();
+		SetLocalU(fLocInitCoords);
 
-    /* coordinates and displacements all at once */
-    if (n_codes[iNodalCrd])  fLocInitCoords.ReturnTranspose(coords);
-    if (n_codes[iNodalVel])  fLocCurVel.ReturnTranspose(vel);
-    if (n_codes[iNodalAcc])  fLocCurAcc.ReturnTranspose(acc);
-    if (n_codes[iNodalPrs])  fLocCurPrs.ReturnTranspose(prs);
+		/* coordinates and displacements all at once */
+		if (n_codes[iNodalOutputCrd])  fLocInitCoords.ReturnTranspose(coords);
+		if (n_codes[iNodalOutputVel])  fLocCurVel.ReturnTranspose(vel);
+		if (n_codes[iNodalOutputAcc])  fLocCurAcc.ReturnTranspose(acc);
+		if (n_codes[iNodalOutputPrs])  fLocCurPrs.ReturnTranspose(prs);
 
-    /* copy in the cols (in sequence of output) */
-    int colcount = 0;
-    nodal_all.BlockColumnCopyAt(coords, colcount); colcount += coords.MinorDim();
-    nodal_all.BlockColumnCopyAt(vel  , colcount); colcount += vel.MinorDim();
-    nodal_all.BlockColumnCopyAt(acc, colcount); colcount += acc.MinorDim();
-    nodal_all.BlockColumnCopyAt(prs, colcount);
+		/* copy in the cols (in sequence of output) */
+		int colcount = 0;
+		nodal_all.BlockColumnCopyAt(coords, colcount); colcount += coords.MinorDim();
+		nodal_all.BlockColumnCopyAt(vel  , colcount); colcount += vel.MinorDim();
+		nodal_all.BlockColumnCopyAt(acc, colcount); colcount += acc.MinorDim();
+		nodal_all.BlockColumnCopyAt(prs, colcount);
 
-    /* accumulate - extrapolation done from ip's to corners => X nodes */
-    ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
-  }
+		/* accumulate - extrapolation done from ip's to corners => X nodes */
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
+	}
 
-  /* get nodally averaged values */
-  ElementSupport().OutputUsedAverage(n_values);
+	/* get nodally averaged values */
+	ElementSupport().OutputUsedAverage(n_values);
 }
 
 /* current element operations */
 bool FluidElementT::NextElement(void)
 {
-//  WriteCallLocation("NextElement"); //DEBUG
+	//WriteCallLocation("NextElement"); //DEBUG
 	/* inherited */
 	bool result = ContinuumElementT::NextElement();
 
@@ -314,14 +315,13 @@ bool FluidElementT::NextElement(void)
 		/* cast is safe since class contructs materials list */
 		fCurrMaterial = (FluidMaterialT*) pcont_mat;
 	}
-
 	return result;
 }
 
 /* form shape functions and derivatives */
 void FluidElementT::SetGlobalShape(void)
 {
-//  WriteCallLocation("SetGlobalShape"); //DEBUG
+	//WriteCallLocation("SetGlobalShape"); //DEBUG
 	/* inherited */
 	ContinuumElementT::SetGlobalShape();
 
@@ -357,42 +357,41 @@ void FluidElementT::SetGlobalShape(void)
 /* set the \e B matrix at the specified integration point */
 void FluidElementT::B(int ip, dMatrixT& B_matrix) const
 {
-    const dArray2DT& DNa = fShapes->Derivatives_U(ip);
-    int nnd = DNa.MinorDim();
-    double* pB = B_matrix.Pointer();
-    /* 2D */
-    if (DNa.MajorDim() == 2)
-    {
-        const double* pNax = DNa(0);
-        const double* pNay = DNa(1);
-        for (int i = 0; i < nnd; i++)
-        {
-            *pB++ = *pNax++;
-            *pB++ = *pNay++;
-        }
-    }
-    /* 3D */
-    else
-    {
-        const double* pNax = DNa(0);
-        const double* pNay = DNa(1);
-        const double* pNaz = DNa(2);
-        for (int i = 0; i < nnd; i++)
-        {
-            *pB++ = *pNax++;
-            *pB++ = *pNay++;
-            *pB++ = *pNaz++;
-        }
-    }
+	const dArray2DT& DNa = fShapes->Derivatives_U(ip);
+	int nnd = DNa.MinorDim();
+	double* pB = B_matrix.Pointer();
+	/* 2D */
+	if (DNa.MajorDim() == 2)
+	{
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+		for (int i = 0; i < nnd; i++)
+		{
+			*pB++ = *pNax++;
+			*pB++ = *pNay++;
+		}
+	}
+	/* 3D */
+	else
+	{
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+		const double* pNaz = DNa(2);
+		for (int i = 0; i < nnd; i++)
+		{
+			*pB++ = *pNax++;
+			*pB++ = *pNay++;
+			*pB++ = *pNaz++;
+		}
+	}
 }
 
 void FluidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 {
-  WriteCallLocation("Set_B"); //DEBUG
+	//WriteCallLocation("Set_B"); //DEBUG
 #if __option(extended_errorcheck)
-	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
-	    B.Cols() != DNa.Length())
-	    throw ExceptionT::kSizeMismatch;
+	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) || B.Cols() != DNa.Length())
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nnd = DNa.MinorDim();
@@ -458,14 +457,14 @@ void FluidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 /* set initial velocities */
 void FluidElementT::InitialCondition(void)
 {
-//  WriteCallLocation("InitialCondition"); //DEBUG
+	//WriteCallLocation("InitialCondition"); //DEBUG
 	/* inherited */
 	ContinuumElementT::InitialCondition();
 }
  
 void FluidElementT::RHSDriver(void)
 {
-//  WriteCallLocation("RHSDriver"); //DEBUG
+	//WriteCallLocation("RHSDriver"); //DEBUG
 	/* inherited */
 	ContinuumElementT::RHSDriver();
 
@@ -490,11 +489,10 @@ void FluidElementT::RHSDriver(void)
 	double by_dt = (fabs(dt) > kSmall) ? 1.0/dt: 0.0; /* for dt -> 0 */
 
 	Top();
-  int ElementCounter = 0;
+	int ElementCounter = 0;
 	while (NextElement())
 	{
 		const ElementCardT& element = CurrentElement();
-
 		if (element.Flag() != ElementCardT::kOFF)
 		{
 			/* initialize */
@@ -512,24 +510,23 @@ void FluidElementT::RHSDriver(void)
 				double h=0.0;
 				double OldVelMag=0.0;
 
-
 				/* degrees of freedom */
-//				int ndof = NumDOF();
+				//int ndof = NumDOF();
 				/* dimensions */
 				int  nsd = NumSD();
-//				int  nen = NumElementNodes();
+				//int  nen = NumElementNodes();
 				int  nun = fLocDisp.NumberOfNodes();
 
 				const double* Det    = fShapes->IPDets();
 				const double* Weight = fShapes->IPWeights();
-        
+
 				/* loop over integration points */
- 				fShapes->TopIP();
+				fShapes->TopIP();
 				while (fShapes->NextIP())
 				{
-					const double* Na          = fShapes->IPShapeU();                   /* [nun] */
-					const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
-					const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
+					const double* Na          = fShapes->IPShapeU();		/* [nun] */
+					const dArray2DT& GradNa   = fShapes->Derivatives_U();		/* [nsd x nun] */
+					const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];	/* [nsd] */
 
 					/* integration factor */
 					double temp1 = (*Weight++)*(*Det++);
@@ -541,32 +538,32 @@ void FluidElementT::RHSDriver(void)
 						{
 							OldVelMag += temp1*Na[lnd]*sqrt( pow(OldVel[0],2)+pow(OldVel[1],2) );
 							h_nsum += temp1*sqrt( pow(OldVel[0]*GradNa(0,lnd)+OldVel[0]*GradNa(1,lnd)+OldVel[0]*GradNa(2,lnd),2)
-										         +pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2) );
+										+pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2) );
 						}
 						else /* 3D */
 						{
 							OldVelMag += temp1*Na[lnd]*sqrt( pow(OldVel[0],2)+pow(OldVel[1],2)+pow(OldVel[2],2) );
 							h_nsum += temp1*sqrt( pow(OldVel[0]*GradNa(0,lnd)+OldVel[0]*GradNa(1,lnd)+OldVel[0]*GradNa(2,lnd),2)
-											     +pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2)
-												 +pow(OldVel[2]*GradNa(0,lnd)+OldVel[2]*GradNa(1,lnd)+OldVel[2]*GradNa(2,lnd),2) );                   
+										+pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2)
+										+pow(OldVel[2]*GradNa(0,lnd)+OldVel[2]*GradNa(1,lnd)+OldVel[2]*GradNa(2,lnd),2) );                   
 						}
 					}
 				}
-   
+
 				/* check for zero values */
 				if ( h_nsum == 0.0 ) h_nsum = 1e-6;
 				if ( OldVelMag == 0.0 ) OldVelMag = 1e-6;
 
-        if (ElementLSNames[fElementLS]=="velocity_field_length_scale")
-          /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
-				  h=2*OldVelMag*(1/h_nsum);
-        else /* spatial_length_scale */
-          h= fElementLS_list[ElementCounter]; /**< precalculated */
-        
+				if (ElementLSNames[fElementLS]=="velocity_field")
+					/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
+					h=2*OldVelMag*(1/h_nsum);
+				else /* spatial_length_scale */
+					h= fElementLS_list[ElementCounter]; /**< precalculated */
+
 				/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
 				tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
 				/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
-				tau_m=1; /* DEBUG */
+				//tau_m=1; /* DEBUG */
 				tau_c=tau_m;
 			}
 
@@ -584,7 +581,7 @@ void FluidElementT::RHSDriver(void)
 
 			/* assemble */
 			AssembleRHS();
-      ElementCounter++;
+			ElementCounter++;
 		}
 	}
 }
@@ -595,7 +592,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 	const dArray2DT* ip_values,
 	const double* ip_weight)
 {
-//  WriteCallLocation("FormMa"); //DEBUG
+	//WriteCallLocation("FormMa"); //DEBUG
 	const char caller[] = "FluidElementT::FormMa";
 
 	/* quick exit */
@@ -608,8 +605,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 			ExceptionT::SizeMismatch(caller);
 
 	if (ip_values &&
-		(ip_values->MajorDim() != fShapes->NumIP() ||
-		 ip_values->MinorDim() != NumDOF()))
+		(ip_values->MajorDim() != fShapes->NumIP() || ip_values->MinorDim() != NumDOF()))
 			ExceptionT::SizeMismatch(caller);
 #endif
 
@@ -645,10 +641,13 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 
 					/* accumulate in element force vector */
 					double*	pfRHS             = fRHS.Pointer();
-					const double* Na          = fShapes->IPShapeU();                   /* [nun] */
-					const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
-					const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
+					const double* Na          = fShapes->IPShapeU();		/* [nun] */
+					const dArray2DT& GradNa   = fShapes->Derivatives_U();		/* [nsd x nun] */
+					const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];	/* [nsd] */
 					double temp0;
+					double dt = ElementSupport().TimeStep();
+					double p_eps = (fabs(dt) > kSmall) ? 0.0:1.0; /* for dt -> 0 */
+					/* initial condition fix;  when solving for \dot{p} */
 
 					/* integration factor */
 					double temp1 = constM*(*Weight++)*(*Det++);
@@ -672,7 +671,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 							*pfRHS += temp1*(*Na)*(*pacc);
 
 							/* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*\dot{v_{i}} */
-							*pfRHS += temp1*tau_m*temp0*(*pacc); /* NO STAB ON MA */
+							*pfRHS += temp1*tau_m*temp0*(*pacc)*stab_time_der;
 							*pfRHS++;
                 
 							/* temp3 = N_{A,i}*\dot{v_{i}} */
@@ -680,7 +679,8 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 							*pacc++;  
 						}
 						/* term : \tau^{c}*N_{A,i}*\rho*\dot{v_{i}} */
-						*pfRHS += temp1*tau_c*temp3; /* NO STAB ON MA */
+						*pfRHS += temp1*tau_c*temp3*stab_time_der;
+						*pfRHS += temp1*p_eps*(*pacc)*(*Na); /* ZERO ON THE DIAGNAL */
 						*pfRHS++;
 						*pacc++;           
 						*Na++;
@@ -697,7 +697,7 @@ void FluidElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric
 /* calculate the internal force contribution ("-k*d") */
 void FluidElementT::FormKd(double constK)
 {
-//	WriteCallLocation("FormKd"); //DEBUG
+	//WriteCallLocation("FormKd"); //DEBUG
 
 	/* degrees of freedom */
 	int ndof = NumDOF();
@@ -714,20 +714,20 @@ void FluidElementT::FormKd(double constK)
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
-		double*	pfRHS             = fRHS.Pointer();							/* [nun] */
-		const double* Na          = fShapes->IPShapeU();					/* [nun] */
-		const dArray2DT& GradNa   = fShapes->Derivatives_U();				/* [nsd x nun] */
+		double*	pfRHS             = fRHS.Pointer();			/* [nun] */
+		const double* Na          = fShapes->IPShapeU();		/* [nun] */
+		const dArray2DT& GradNa   = fShapes->Derivatives_U();		/* [nsd x nun] */
 
-		const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];		/* [nsd] */
-		const dArrayT& Vel        = fVel_list[fShapes->CurrIP()];			/* [nsd] */
-		const dMatrixT& GradVel   = fGradVel_list[fShapes->CurrIP()];		/* [nsd x nsd] */
+		const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];	/* [nsd] */
+		const dArrayT& Vel        = fVel_list[fShapes->CurrIP()];	/* [nsd] */
+		const dMatrixT& GradVel   = fGradVel_list[fShapes->CurrIP()];	/* [nsd x nsd] */
 
-		const double& Pres        = fPres_list[fShapes->CurrIP()];			/* [1] */
-		const dArrayT& GradPres   = fGradPres_list[fShapes->CurrIP()];		/* [nsd] */
+		const double& Pres        = fPres_list[fShapes->CurrIP()];	/* [1] */
+		const dArrayT& GradPres   = fGradPres_list[fShapes->CurrIP()];	/* [nsd] */
 		double temp0, temp5;
-		dArrayT temp7(nsd), temp4(nsd), temp8(nsd);
-		const dSymMatrixT& s_ij = fCurrMaterial->s_ij();					/* [nsd x nsd] or [numstress] */
-		double viscosity = fCurrMaterial->Shear_Modulus();
+		dArrayT temp7(nsd), temp4(nsd);//, temp8(nsd);
+		const dSymMatrixT& s_ij = fCurrMaterial->s_ij();		/* [nsd x nsd] or [numstress] */
+		//double viscosity = fCurrMaterial->Shear_Modulus();
     
 		/* integration factor */
 		double temp1 = constK*(*Weight++)*(*Det++);
@@ -739,15 +739,15 @@ void FluidElementT::FormKd(double constK)
 
 		if ( nsd ==2 )
 		{
-			temp4[0] = OldVel[0]*GradVel(0,0)+OldVel[1]*GradVel(0,1);
-			temp4[1] = OldVel[0]*GradVel(1,0)+OldVel[1]*GradVel(1,1);
+			temp4[0] = Vel[0]*GradVel(0,0)+Vel[1]*GradVel(0,1);
+			temp4[1] = Vel[0]*GradVel(1,0)+Vel[1]*GradVel(1,1);
 			temp5    = GradVel(0,0)+GradVel(1,1);
 		}
 		else /* 3D */
 		{
-			temp4[0] = OldVel[0]*GradVel(0,0)+OldVel[1]*GradVel(0,1)+OldVel[2]*GradVel(0,2);
-			temp4[1] = OldVel[0]*GradVel(1,0)+OldVel[1]*GradVel(1,1)+OldVel[2]*GradVel(1,2);
-			temp4[2] = OldVel[0]*GradVel(2,0)+OldVel[1]*GradVel(2,1)+OldVel[2]*GradVel(2,2);
+			temp4[0] = Vel[0]*GradVel(0,0)+Vel[1]*GradVel(0,1)+Vel[2]*GradVel(0,2);
+			temp4[1] = Vel[0]*GradVel(1,0)+Vel[1]*GradVel(1,1)+Vel[2]*GradVel(1,2);
+			temp4[2] = Vel[0]*GradVel(2,0)+Vel[1]*GradVel(2,1)+Vel[2]*GradVel(2,2);
 			temp5    = GradVel(0,0)+GradVel(1,1)+GradVel(2,2);
 		}
 
@@ -758,19 +758,19 @@ void FluidElementT::FormKd(double constK)
 			/* temp7[i] = \sigma_{ij}*N_{A,j} */
 			temp7 = 0.0;
 			/* temp8[i] = N_{A,j}*( v_{i,j}+v_{j,i} ) */
-			temp8 = 0.0;
+			//temp8 = 0.0;
 			if ( nsd == 2 )
 			{
 				temp0 += OldVel[0]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd);
 				temp7[0] += s_ij[0]*GradNa(0,lnd) + s_ij[2]*GradNa(1,lnd);
 				temp7[1] += s_ij[1]*GradNa(1,lnd) + s_ij[2]*GradNa(0,lnd);
-
+				/*
 				temp8[0] += GradNa(0,lnd)*(GradVel(0,0)+GradVel(0,0))+
-							GradNa(1,lnd)*(GradVel(0,1)+GradVel(1,0))+
-							GradNa(2,lnd)*(GradVel(0,2)+GradVel(2,0));
+						GradNa(1,lnd)*(GradVel(0,1)+GradVel(1,0))+
+						GradNa(2,lnd)*(GradVel(0,2)+GradVel(2,0));
 				temp8[1] += GradNa(0,lnd)*(GradVel(1,0)+GradVel(0,1))+
-							GradNa(1,lnd)*(GradVel(1,1)+GradVel(1,1))+
-							GradNa(2,lnd)*(GradVel(1,2)+GradVel(2,1)); 
+						GradNa(1,lnd)*(GradVel(1,1)+GradVel(1,1))+
+						GradNa(2,lnd)*(GradVel(1,2)+GradVel(2,1));*/ 
 			}
 			else /* 3D */
 			{
@@ -778,16 +778,16 @@ void FluidElementT::FormKd(double constK)
 				temp7[0] += s_ij[0]*GradNa(0,lnd) + s_ij[4]*GradNa(2,lnd) + s_ij[5]*GradNa(1,lnd);
 				temp7[1] += s_ij[1]*GradNa(1,lnd) + s_ij[3]*GradNa(2,lnd) + s_ij[5]*GradNa(0,lnd);
 				temp7[2] += s_ij[2]*GradNa(2,lnd) + s_ij[3]*GradNa(1,lnd) + s_ij[4]*GradNa(0,lnd);
-
+				/*
 				temp8[0] += GradNa(0,lnd)*(GradVel(0,0)+GradVel(0,0))+
-							GradNa(1,lnd)*(GradVel(0,1)+GradVel(1,0))+
-							GradNa(2,lnd)*(GradVel(0,2)+GradVel(2,0));                   
+						GradNa(1,lnd)*(GradVel(0,1)+GradVel(1,0))+
+						GradNa(2,lnd)*(GradVel(0,2)+GradVel(2,0));                   
 				temp8[1] += GradNa(0,lnd)*(GradVel(1,0)+GradVel(0,1))+
-							GradNa(1,lnd)*(GradVel(1,1)+GradVel(1,1))+
-							GradNa(2,lnd)*(GradVel(1,2)+GradVel(2,1));                 
+						GradNa(1,lnd)*(GradVel(1,1)+GradVel(1,1))+
+						GradNa(2,lnd)*(GradVel(1,2)+GradVel(2,1));                 
 				temp8[2] += GradNa(0,lnd)*(GradVel(2,0)+GradVel(0,2))+
-							GradNa(1,lnd)*(GradVel(2,1)+GradVel(1,2))+
-							GradNa(2,lnd)*(GradVel(2,2)+GradVel(2,2));
+						GradNa(1,lnd)*(GradVel(2,1)+GradVel(1,2))+
+						GradNa(2,lnd)*(GradVel(2,2)+GradVel(2,2));*/
 			}
 
 			/* temp3 = N_{A,i}*[ v_{j}*v_{i,j} ] */
@@ -811,7 +811,7 @@ void FluidElementT::FormKd(double constK)
 		        
 				/** term : -N_{A,i}*p **/
 				//*pfRHS -= temp1*GradNa(dof,lnd)*Pres;
-		                            
+				
 				/* term : \tau^{m}*v_{k,old}*N_{A,k}*p_(,i) */
 				*pfRHS += temp1*tau_m*temp0*GradPres[dof];
 		          
@@ -839,11 +839,12 @@ void FluidElementT::FormKd(double constK)
 			*Na++;
 		}
 	}
+	//cout << "fRHS:" << fRHS << endl;
 }
 
 void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
-//  WriteCallLocation("LHSDriver"); //DEBUG
+	//WriteCallLocation("LHSDriver"); //DEBUG
 	/* inherited */
 	ContinuumElementT::LHSDriver(sys_type);
 	/* set components and weights */
@@ -858,7 +859,7 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	/* loop over elements */
 	bool axisymmetric = Axisymmetric();
 	Top();
-  int ElementCounter = 0;
+	int ElementCounter = 0;
 	while (NextElement())
 	{
 		/* initialize */
@@ -877,10 +878,10 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			double OldVelMag=0.0;
 
 			/* degrees of freedom */
-//			int ndof = NumDOF();
+			//int ndof = NumDOF();
 			/* dimensions */
 			int  nsd = NumSD();
-//			int  nen = NumElementNodes();
+			//int  nen = NumElementNodes();
 			int  nun = fLocDisp.NumberOfNodes();
 
 			const double* Det    = fShapes->IPDets();
@@ -890,9 +891,9 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
-				const double* Na          = fShapes->IPShapeU();                   /* [nun] */
-				const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
-				const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
+				const double* Na          = fShapes->IPShapeU();		/* [nun] */
+				const dArray2DT& GradNa   = fShapes->Derivatives_U();		/* [nsd x nun] */
+				const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];	/* [nsd] */
 
 				/* integration factor */
 				double temp1 = (*Weight++)*(*Det++);
@@ -904,14 +905,14 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					{
 						OldVelMag += temp1*Na[lnd]*sqrt( pow(OldVel[0],2)+pow(OldVel[1],2) );
 						h_nsum += temp1*sqrt( pow(OldVel[0]*GradNa(0,lnd)+OldVel[0]*GradNa(1,lnd)+OldVel[0]*GradNa(2,lnd),2)
-										     +pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2) );
+									+pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2) );
 					}
 					else /* 3D */
 					{
 						OldVelMag += temp1*Na[lnd]*sqrt( pow(OldVel[0],2)+pow(OldVel[1],2)+pow(OldVel[2],2) );
 						h_nsum += temp1*sqrt( pow(OldVel[0]*GradNa(0,lnd)+OldVel[0]*GradNa(1,lnd)+OldVel[0]*GradNa(2,lnd),2)
-									         +pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2)
-											 +pow(OldVel[2]*GradNa(0,lnd)+OldVel[2]*GradNa(1,lnd)+OldVel[2]*GradNa(2,lnd),2) );
+									+pow(OldVel[1]*GradNa(0,lnd)+OldVel[1]*GradNa(1,lnd)+OldVel[1]*GradNa(2,lnd),2)
+									+pow(OldVel[2]*GradNa(0,lnd)+OldVel[2]*GradNa(1,lnd)+OldVel[2]*GradNa(2,lnd),2) );
 					}
 				}
 			}
@@ -920,16 +921,16 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			if ( h_nsum == 0.0 ) h_nsum = 1e-12;
 			if ( OldVelMag == 0.0 ) OldVelMag = 1e-12;
 
-      if (ElementLSNames[fElementLS]=="velocity_field_length_scale")
-        /* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
-			  h=2*OldVelMag*(1/h_nsum);
-      else /* spatial_length_scale */
-        h= fElementLS_list[ElementCounter]; /**< precalculated */
-          
+			if (ElementLSNames[fElementLS]=="velocity_field")
+				/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 54} */
+				h=2*OldVelMag*(1/h_nsum);
+			else /* spatial_length_scale */
+				h= fElementLS_list[ElementCounter]; /**< precalculated */
+			
 			/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
 			tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
 			/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
-			tau_m=1; /* DEBUG */
+			//tau_m=1; /* DEBUG */
 			tau_c=tau_m;
 		}	
 
@@ -942,14 +943,14 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		/* add to global equations */
 		AssembleLHS();
-    ElementCounter++;
+		ElementCounter++;
 	}
 }
 
 /* form the element mass matrix */
 void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
 {
-//  WriteCallLocation("FormMass"); //DEBUG
+	//WriteCallLocation("FormMass"); //DEBUG
 	const char caller[] = "FluidElementT::FormMass";
 #if __option(extended_errorcheck)
 	if (fLocDisp.Length() != fLHS.Rows()) ExceptionT::SizeMismatch(caller);
@@ -983,10 +984,13 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 				while ( fShapes->NextIP() )
 				{
 					/* accumulate in element force vector */
-					const double* Na          = fShapes->IPShapeU();                   /* [nun] */
-					const dArray2DT& GradNa   = fShapes->Derivatives_U();              /* [nsd x nun] */
-					const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];       /* [nsd] */
+					const double* Na          = fShapes->IPShapeU();		/* [nun] */
+					const dArray2DT& GradNa   = fShapes->Derivatives_U();		/* [nsd x nun] */
+					const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];	/* [nsd] */
 					double temp0;
+					double dt = ElementSupport().TimeStep();
+					double p_eps = (fabs(dt) > kSmall) ? 0.0:1.0; /* for dt -> 0 */
+					/* initial condition fix;  when solving for \dot{p} */
 
 					/* integration factor */
 					double temp1 = constM*(*Weight++)*(*Det++);
@@ -1016,7 +1020,7 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 										fLHS(p,q) += temp1*Na[a]*Na[b];
 
 										/* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*N_{B} \delta_{ij} */
-										fLHS(p,q) += temp1*tau_m*temp0*Na[b]; /* NO STAB ON MASS */
+										fLHS(p,q) += temp1*tau_m*temp0*Na[b]*stab_time_der;
 									}
 								}
 							}
@@ -1028,13 +1032,12 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 							for (j = 0; j < nsd; j++)
 							{
 								q = b*ndof + j;
-
 								/* term : \tau^{c}*N_{A,l}*\rho*N_{B} \delta_{jl} */
-								fLHS(p,q) += temp1*tau_c*Na[b]*GradNa(j,a); /* NO STAB ON MASS */
+								fLHS(p,q) += temp1*tau_c*Na[b]*GradNa(j,a)*stab_time_der;
 							}
 							/* j4th term */
 							q = b*ndof + 3;
-							//fLHS(p,q) += 0; /* ZERO ON THE DIAGNAL */
+							fLHS(p,q) += temp1*p_eps*Na[a]*Na[b]; /* ZERO ON THE DIAGNAL */
 						}
 					}
 				}
@@ -1044,56 +1047,60 @@ void FluidElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetr
 		default:
 			ExceptionT::BadInputValue("FluidElementT::FormMass", "unknown mass matrix code");
 	}
-	cout << "\n FormMass: \n" << setprecision(12) << fLHS;
+	//cout << "\n FormMass: \n" << setprecision(12) << fLHS;
 }
 
 /* form the element stiffness matrix */
 void FluidElementT::FormStiffness(double constK)
 {
-//  WriteCallLocation("FormStiffness"); //DEBUG
+	//WriteCallLocation("FormStiffness"); //DEBUG
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format =
 		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
 		dMatrixT::kWhole :
 		dMatrixT::kUpperOnly;
 
-  /* degrees of freedom */
-  int ndof = NumDOF();
-  /* dimensions */
-  int  nsd = NumSD();
-  int  nen = NumElementNodes();
-  int  nun = fLocDisp.NumberOfNodes();
+	/* degrees of freedom */
+	int ndof = NumDOF();
+	/* dimensions */
+	int  nsd = NumSD();
+	int  nen = NumElementNodes();
+	int  nun = fLocDisp.NumberOfNodes();
 
 	/* integration parameters */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 	double Density = fCurrMaterial->Density();
-	double Viscosity = fCurrMaterial->Shear_Modulus();
+	//double Viscosity = fCurrMaterial->Shear_Modulus();
 
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
-		double*	pfRHS             = fRHS.Pointer();							/* [nun] */
-		const double* Na          = fShapes->IPShapeU();					/* [nun] */
-		const dArray2DT& GradNa   = fShapes->Derivatives_U();				/* [nsd x nun] */
+		double*	pfRHS             = fRHS.Pointer();			/* [nun] */
+		const double* Na          = fShapes->IPShapeU();		/* [nun] */
+		const dArray2DT& GradNa   = fShapes->Derivatives_U();		/* [nsd x nun] */
 
-		const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];		/* [nsd] */
-		const dArrayT& Vel        = fVel_list[fShapes->CurrIP()];			/* [nsd] */
-		const dMatrixT& GradVel   = fGradVel_list[fShapes->CurrIP()];		/* [nsd x nsd] */
+		const dArrayT& OldVel     = fOldVel_list[fShapes->CurrIP()];	/* [nsd] */
+		const dArrayT& Vel        = fVel_list[fShapes->CurrIP()];	/* [nsd] */
+		const dMatrixT& GradVel   = fGradVel_list[fShapes->CurrIP()];	/* [nsd x nsd] */
 
-		const double& Pres        = fPres_list[fShapes->CurrIP()];         /* [1] */
-		const dArrayT& GradPres   = fGradPres_list[fShapes->CurrIP()];     /* [nsd] */
-		double temp0, temp2, temp3, temp4, temp6;        
+		const double& Pres        = fPres_list[fShapes->CurrIP()];	/* [1] */
+		const dArrayT& GradPres   = fGradPres_list[fShapes->CurrIP()];	/* [nsd] */
+		double temp0, temp2, temp3, temp4;//, temp6;        
 		dMatrixT temp5(nsd);
 		const dMatrixT& c = fCurrMaterial->c_ijkl();
-       
+
 		/* integration factor */
-		double temp1 = constK*(*Weight++)*(*Det++);
-    
+		double temp1 = constK*(*Weight)*(*Det);
+		
+		/* backward difference/backward Euler for pressure ONLY */
+		double dt = ElementSupport().TimeStep();
+		double temp11 = dt*(*Weight++)*(*Det++);
+
 		int a,i,b,j,p,q;
 		for (a = 0; a < nun; a++)
 		{
-  			/* temp0 = v_{k,old}*N_{A,k} */
+			/* temp0 = v_{k,old}*N_{A,k} */
 			temp0 = 0.0;
 			if ( nsd == 2 )
 			{
@@ -1103,7 +1110,7 @@ void FluidElementT::FormStiffness(double constK)
 			{
 				temp0 += OldVel[0]*GradNa(0,a)+OldVel[1]*GradNa(1,a)+OldVel[2]*GradNa(2,a);
 			}
-        
+
 			for (i = 0; i < nsd; i++)
 			{
 				p = a*ndof + i;
@@ -1114,62 +1121,62 @@ void FluidElementT::FormStiffness(double constK)
 					/* N_{A,k}*c_{ikjl}*N_{B,l} == > B^{T}*D*B */
 					temp5 = 0.0;
 					/* temp6 = N_{A,l}*N_{B,l} */
-					temp6 = 0.0;
+					//temp6 = 0.0;
 					if ( nsd == 2 )
 					{
 						temp2 += Vel[0]*GradNa(0,b)+Vel[1]*GradNa(1,b);
-						temp6 += GradNa(0,a)*GradNa(0,b)+GradNa(1,a)*GradNa(1,b);
+						//temp6 += GradNa(0,a)*GradNa(0,b)+GradNa(1,a)*GradNa(1,b);
 						temp5(0,0) += ( c(0,0)*GradNa(0,a)+c(2,0)*GradNa(1,a) )*GradNa(0,b)+
-									  ( c(0,2)*GradNa(0,a)+c(2,2)*GradNa(1,a) )*GradNa(1,b);
-			                    
+								( c(0,2)*GradNa(0,a)+c(2,2)*GradNa(1,a) )*GradNa(1,b);
+
 						temp5(0,1) += ( c(0,1)*GradNa(0,a)+c(2,1)*GradNa(1,a) )*GradNa(1,b)+
-									  ( c(0,2)*GradNa(0,a)+c(2,2)*GradNa(1,a) )*GradNa(0,b);
+								( c(0,2)*GradNa(0,a)+c(2,2)*GradNa(1,a) )*GradNa(0,b);
 						/**/              
 						temp5(1,0) += ( c(1,0)*GradNa(1,a)+c(2,0)*GradNa(0,a) )*GradNa(0,b)+
-									  ( c(1,2)*GradNa(1,a)+c(2,2)*GradNa(0,a) )*GradNa(1,b);
-			                    
+								( c(1,2)*GradNa(1,a)+c(2,2)*GradNa(0,a) )*GradNa(1,b);
+
 						temp5(1,1) += ( c(1,1)*GradNa(1,a)+c(2,1)*GradNa(0,a) )*GradNa(1,b)+
-									  ( c(1,2)*GradNa(1,a)+c(2,2)*GradNa(0,a) )*GradNa(0,b);
+								( c(1,2)*GradNa(1,a)+c(2,2)*GradNa(0,a) )*GradNa(0,b);
 					}
 					else /* 3D */
 					{
 						temp2 += Vel[0]*GradNa(0,b)+Vel[1]*GradNa(1,b)+Vel[2]*GradNa(2,b);
-						temp6 += GradNa(0,a)*GradNa(0,b)+GradNa(1,a)*GradNa(1,b)+GradNa(2,a)*GradNa(2,b);
+						//temp6 += GradNa(0,a)*GradNa(0,b)+GradNa(1,a)*GradNa(1,b)+GradNa(2,a)*GradNa(2,b);
 						temp5(0,0) += ( c(0,0)*GradNa(0,a)+c(4,0)*GradNa(2,a)+c(5,0)*GradNa(1,a) )*GradNa(0,b)+
-									  ( c(0,4)*GradNa(0,a)+c(4,4)*GradNa(2,a)+c(5,4)*GradNa(1,a) )*GradNa(2,b)+
-									  ( c(0,5)*GradNa(0,a)+c(4,5)*GradNa(2,a)+c(5,5)*GradNa(1,a) )*GradNa(1,b);
-		                        
+								( c(0,4)*GradNa(0,a)+c(4,4)*GradNa(2,a)+c(5,4)*GradNa(1,a) )*GradNa(2,b)+
+								( c(0,5)*GradNa(0,a)+c(4,5)*GradNa(2,a)+c(5,5)*GradNa(1,a) )*GradNa(1,b);
+
 						temp5(0,1) += ( c(0,1)*GradNa(0,a)+c(4,1)*GradNa(2,a)+c(5,1)*GradNa(1,a) )*GradNa(1,b)+
-									  ( c(0,3)*GradNa(0,a)+c(4,3)*GradNa(2,a)+c(5,3)*GradNa(1,a) )*GradNa(2,b)+
-						   			  ( c(0,5)*GradNa(0,a)+c(4,5)*GradNa(2,a)+c(5,5)*GradNa(1,a) )*GradNa(0,b);
-				                        
+								( c(0,3)*GradNa(0,a)+c(4,3)*GradNa(2,a)+c(5,3)*GradNa(1,a) )*GradNa(2,b)+
+								( c(0,5)*GradNa(0,a)+c(4,5)*GradNa(2,a)+c(5,5)*GradNa(1,a) )*GradNa(0,b);
+
 						temp5(0,2) += ( c(0,2)*GradNa(0,a)+c(4,2)*GradNa(2,a)+c(5,2)*GradNa(1,a) )*GradNa(2,b)+
-						  			  ( c(0,3)*GradNa(0,a)+c(4,3)*GradNa(2,a)+c(5,3)*GradNa(1,a) )*GradNa(1,b)+
-									  ( c(0,4)*GradNa(0,a)+c(4,4)*GradNa(2,a)+c(5,4)*GradNa(1,a) )*GradNa(0,b);
+								( c(0,3)*GradNa(0,a)+c(4,3)*GradNa(2,a)+c(5,3)*GradNa(1,a) )*GradNa(1,b)+
+								( c(0,4)*GradNa(0,a)+c(4,4)*GradNa(2,a)+c(5,4)*GradNa(1,a) )*GradNa(0,b);
 						/**/
 						temp5(1,0) += ( c(1,0)*GradNa(1,a)+c(3,0)*GradNa(2,a)+c(5,0)*GradNa(0,a) )*GradNa(0,b)+
-									  ( c(1,4)*GradNa(1,a)+c(3,4)*GradNa(2,a)+c(5,4)*GradNa(0,a) )*GradNa(2,b)+
-									  ( c(1,5)*GradNa(1,a)+c(3,5)*GradNa(2,a)+c(5,5)*GradNa(0,a) )*GradNa(1,b);
-				                        
+								( c(1,4)*GradNa(1,a)+c(3,4)*GradNa(2,a)+c(5,4)*GradNa(0,a) )*GradNa(2,b)+
+								( c(1,5)*GradNa(1,a)+c(3,5)*GradNa(2,a)+c(5,5)*GradNa(0,a) )*GradNa(1,b);
+
 						temp5(1,1) += ( c(1,1)*GradNa(1,a)+c(3,1)*GradNa(2,a)+c(5,1)*GradNa(0,a) )*GradNa(1,b)+
-						 			  ( c(1,3)*GradNa(1,a)+c(3,3)*GradNa(2,a)+c(5,3)*GradNa(0,a) )*GradNa(2,b)+
-									  ( c(1,5)*GradNa(1,a)+c(3,5)*GradNa(2,a)+c(5,5)*GradNa(0,a) )*GradNa(0,b);
-				                        
+								( c(1,3)*GradNa(1,a)+c(3,3)*GradNa(2,a)+c(5,3)*GradNa(0,a) )*GradNa(2,b)+
+								( c(1,5)*GradNa(1,a)+c(3,5)*GradNa(2,a)+c(5,5)*GradNa(0,a) )*GradNa(0,b);
+
 						temp5(1,2) += ( c(1,2)*GradNa(1,a)+c(3,2)*GradNa(2,a)+c(5,2)*GradNa(0,a) )*GradNa(2,b)+
-									  ( c(1,3)*GradNa(1,a)+c(3,3)*GradNa(2,a)+c(5,3)*GradNa(0,a) )*GradNa(1,b)+
-									  ( c(1,4)*GradNa(1,a)+c(3,4)*GradNa(2,a)+c(5,4)*GradNa(0,a) )*GradNa(0,b);
+								( c(1,3)*GradNa(1,a)+c(3,3)*GradNa(2,a)+c(5,3)*GradNa(0,a) )*GradNa(1,b)+
+								( c(1,4)*GradNa(1,a)+c(3,4)*GradNa(2,a)+c(5,4)*GradNa(0,a) )*GradNa(0,b);
 						/**/
 						temp5(2,0) += ( c(2,0)*GradNa(2,a)+c(3,0)*GradNa(1,a)+c(4,0)*GradNa(0,a) )*GradNa(0,b)+
-									  ( c(2,4)*GradNa(2,a)+c(3,4)*GradNa(1,a)+c(4,4)*GradNa(0,a) )*GradNa(2,b)+
-									  ( c(2,5)*GradNa(2,a)+c(3,5)*GradNa(1,a)+c(4,5)*GradNa(0,a) )*GradNa(1,b);
-				                        
+								( c(2,4)*GradNa(2,a)+c(3,4)*GradNa(1,a)+c(4,4)*GradNa(0,a) )*GradNa(2,b)+
+								( c(2,5)*GradNa(2,a)+c(3,5)*GradNa(1,a)+c(4,5)*GradNa(0,a) )*GradNa(1,b);
+
 						temp5(2,1) += ( c(2,1)*GradNa(2,a)+c(3,1)*GradNa(1,a)+c(4,1)*GradNa(0,a) )*GradNa(1,b)+
-									  ( c(2,3)*GradNa(2,a)+c(3,3)*GradNa(1,a)+c(4,3)*GradNa(0,a) )*GradNa(2,b)+
-									  ( c(2,5)*GradNa(2,a)+c(3,5)*GradNa(1,a)+c(4,5)*GradNa(0,a) )*GradNa(0,b);
-				                        
+								( c(2,3)*GradNa(2,a)+c(3,3)*GradNa(1,a)+c(4,3)*GradNa(0,a) )*GradNa(2,b)+
+								( c(2,5)*GradNa(2,a)+c(3,5)*GradNa(1,a)+c(4,5)*GradNa(0,a) )*GradNa(0,b);
+
 						temp5(2,2) += ( c(2,2)*GradNa(2,a)+c(3,2)*GradNa(1,a)+c(4,2)*GradNa(0,a) )*GradNa(2,b)+
-									  ( c(2,3)*GradNa(2,a)+c(3,3)*GradNa(1,a)+c(4,3)*GradNa(0,a) )*GradNa(1,b)+
-									  ( c(2,4)*GradNa(2,a)+c(3,4)*GradNa(1,a)+c(4,4)*GradNa(0,a) )*GradNa(0,b);
+								( c(2,3)*GradNa(2,a)+c(3,3)*GradNa(1,a)+c(4,3)*GradNa(0,a) )*GradNa(1,b)+
+								( c(2,4)*GradNa(2,a)+c(3,4)*GradNa(1,a)+c(4,4)*GradNa(0,a) )*GradNa(0,b);
 					}
 					for (j = 0; j < nsd; j++)
 					{
@@ -1188,7 +1195,7 @@ void FluidElementT::FormStiffness(double constK)
 
 							/* term : \tau^{m}*v_{k,old}*N_{A,k}*\rho*v_{l}*N_{B,l} \delta_{ij} */
 							fLHS(p,q) += temp1*tau_m*temp0*Density*temp2;
-	
+
 							/** term: N_{A,l}*\mu*N_{B,l}* \delta_{ij} **/
 							//fLHS(p,q) += temp1*temp6*Viscosity;
 						}
@@ -1197,7 +1204,7 @@ void FluidElementT::FormStiffness(double constK)
 
 						/* term : N_{A,k}*c_{ikjl}*N_{B,l} */
 						fLHS(p,q) += temp1*temp5(i,j);
-			            
+
 						/* term : \tau^{c}*N_{A,i}*N_{B,j} */
 						fLHS(p,q) += temp1*tau_c*GradNa(i,a)*GradNa(j,b);
 					}
@@ -1205,10 +1212,10 @@ void FluidElementT::FormStiffness(double constK)
 					q = b*ndof + 3;
 
 					/* term : \tau^{m}*v_{k,old}*N_{A,k}*N_{B,i} */
-					fLHS(p,q) += temp1*tau_m*temp0*GradNa(i,b);
+					fLHS(p,q) += temp11*tau_m*temp0*GradNa(i,b);
 
 					/* term : -N_{A,i}*N_{B} NOTE: this is from the stress term */
-					fLHS(p,q) -= temp1*GradNa(i,a)*Na[b];
+					fLHS(p,q) -= temp11*GradNa(i,a)*Na[b];
 				}
 			}
 			/* i4th term */
@@ -1229,7 +1236,7 @@ void FluidElementT::FormStiffness(double constK)
 					temp4 += GradNa(0,a)*GradNa(0,b)+GradNa(1,a)*GradNa(1,b)+GradNa(2,a)*GradNa(2,b);
 					temp2 += Vel[0]*GradNa(0,b)+Vel[1]*GradNa(1,b)+Vel[2]*GradNa(2,b);
 				}
-          
+
 				for (j = 0; j < nsd; j++)
 				{
 					q = b*ndof + j;
@@ -1250,7 +1257,7 @@ void FluidElementT::FormStiffness(double constK)
 
 					/* term : \tau^{c}*N_{A,i}*\rho*v_{l}*N_{B,l} \delta_{ij} */
 					fLHS(p,q) += temp1*tau_c*GradNa(j,a)*Density*temp2;
-			          
+
 					/* term : N_{A}*N_{B,j} */
 					fLHS(p,q) += temp1*Na[a]*GradNa(j,b);
 				}
@@ -1258,87 +1265,93 @@ void FluidElementT::FormStiffness(double constK)
 				q = b*ndof + 3;
 
 				/* term : \tau^{c}*N_{A,i}*N_{B,i} */
-				fLHS(p,q) += temp1*tau_c*temp4;
+				fLHS(p,q) += temp11*tau_c*temp4;
 			}
 		}
 	}
-	cout << "\n FormStiffness: \n" << setprecision(12) << fLHS;
+	//cout << "\n FormStiffness: \n" << setprecision(12) << fLHS;
 }
 
 /** describe the parameters needed by the interface */
 void FluidElementT::DefineParameters(ParameterListT& list) const
 {
-//  WriteCallLocation("DefineParameters"); //DEBUG
-  /* inherited */
-  ElementBaseT::DefineParameters(list);
+	//WriteCallLocation("DefineParameters"); //DEBUG
+	/* inherited */
+	ElementBaseT::DefineParameters(list);
 }
 
 /** information about subordinate parameter lists */
 void FluidElementT::DefineSubs(SubListT& sub_list) const
 {
-//  WriteCallLocation("DefineSubs"); //DEBUG
-  /* inherited */
-  ContinuumElementT::DefineSubs(sub_list);
+	//WriteCallLocation("DefineSubs"); //DEBUG
+	/* inherited */
+	ContinuumElementT::DefineSubs(sub_list);
 
-  sub_list.AddSub("fluid_element_nodal_output", ParameterListT::ZeroOrOnce);
-  sub_list.AddSub("fluid_element_element_output", ParameterListT::ZeroOrOnce);
-  sub_list.AddSub("fluid_element_stab_param");
-  sub_list.AddSub("fluid_element_block", ParameterListT::OnePlus);
+	sub_list.AddSub("fluid_element_nodal_output", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("fluid_element_element_output", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("fluid_element_stab_param");
+	sub_list.AddSub("fluid_element_block", ParameterListT::OnePlus);
 }
 
 /** a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
 {
-//  WriteCallLocation("NewSub"); //DEBUG
+	//WriteCallLocation("NewSub"); //DEBUG
 
-  /* try construct stabilization paramaters */
-  if (name == "fluid_element_stab_param")
-  {
-    ParameterContainerT* stab_param = new ParameterContainerT(name);
-    stab_param->SetListOrder(ParameterListT::Choice);
+	/* try construct stabilization paramaters */
+	if (name == "fluid_element_stab_param")
+	{
+		ParameterContainerT* stab_param = new ParameterContainerT(name);
+		stab_param->SetListOrder(ParameterListT::Choice);
 
-    /* add element length scale type 4 tau_m_is_tau_c */
-    ParameterContainerT element_LS(StabParamNames[0]);
-    element_LS.SetListOrder(ParameterListT::Choice);   
-    for (int i = 0; i < NumElementLSCodes; i++)
-    {
-      //ParameterT LS(ParameterT::Integer, ElementLSNames[i]);
-      //element_LS.AddParameter(LS, ParameterListT::Once);
-      element_LS.AddSub(ParameterContainerT(ElementLSNames[i]));
-    }
-    stab_param->AddSub(element_LS,ParameterListT::Once,false);
-    
-    /* rest of parameters */
-    for (int i = 1; i < NumStabParamCodes; i++)
-      stab_param->AddSub(ParameterContainerT(StabParamNames[i]));
-        
-    return stab_param;
-  }
-  else if (name == "fluid_element_nodal_output")
-  {
-    ParameterContainerT* node_output = new ParameterContainerT(name);
-    /* all false by default */
-    for (int i = 0; i < NumNodalOutputCodes; i++)
-    {
-      ParameterT output(ParameterT::Integer, NodalOutputNames[i]);
-      output.SetDefault(1);
-      node_output->AddParameter(output, ParameterListT::ZeroOrOnce);
-    }
-    return node_output;
-  }
-  else if (name == "fluid_element_element_output")
-  {
-    ParameterContainerT* element_output = new ParameterContainerT(name);
-    /* all false by default */
-    for (int i = 0; i < NumElementOutputCodes; i++)
-    {
-      ParameterT output(ParameterT::Integer, ElementOutputNames[i]);
-      output.SetDefault(1);
-      element_output->AddParameter(output, ParameterListT::ZeroOrOnce);
-    }
-    return element_output;
-  }
-  else if (name == "fluid_element_block")
+		/* add element length scale type for tau_m_is_tau_c */
+		ParameterContainerT stab_param_c(StabParamNames[0]);
+		
+		ParameterT element_LS_type(ParameterT::Enumeration, "length_scale_type");
+		for (int i = 0; i < NumElementLSCodes; i++)
+			element_LS_type.AddEnumeration(ElementLSNames[i], i);
+		element_LS_type.SetDefault(0);
+		stab_param_c.AddParameter(element_LS_type);
+		
+		ParameterT stab_time_der(ParameterT::Enumeration, "stabilize_on_time_derivative_of_v");
+		stab_time_der.AddEnumeration("yes", 1);
+		stab_time_der.AddEnumeration("no", 0);
+		stab_time_der.SetDefault(1);
+		stab_param_c.AddParameter(stab_time_der);
+		
+		stab_param->AddSub(stab_param_c,ParameterListT::Once,false);
+		
+		/* rest of parameters */
+		for (int i = 1; i < NumStabParamCodes; i++)
+			stab_param->AddSub(ParameterContainerT(StabParamNames[i]));
+	
+		return stab_param;
+	}
+	else if (name == "fluid_element_nodal_output")
+	{
+		ParameterContainerT* node_output = new ParameterContainerT(name);
+		/* all false by default */
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+		{
+			ParameterT output(ParameterT::Integer, NodalOutputNames[i]);
+			output.SetDefault(1);
+			node_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
+		return node_output;
+	}
+	else if (name == "fluid_element_element_output")
+	{
+		ParameterContainerT* element_output = new ParameterContainerT(name);
+		/* all false by default */
+		for (int i = 0; i < NumElementOutputCodes; i++)
+		{
+			ParameterT output(ParameterT::Integer, ElementOutputNames[i]);
+			output.SetDefault(1);
+			element_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
+		return element_output;
+	}
+	else if (name == "fluid_element_block")
 	{
 		ParameterContainerT* block = new ParameterContainerT(name);
 
@@ -1353,19 +1366,20 @@ ParameterInterfaceT* FluidElementT::NewSub(const StringT& name) const
 
 		return block;
 	}
-  else /* inherited */
-    return ContinuumElementT::NewSub(name);
+	else /* inherited */
+		return ContinuumElementT::NewSub(name);
 }
 
 /** accept parameter list */
 void FluidElementT::TakeParameterList(const ParameterListT& list)
 {
-//  WriteCallLocation("TakeParameterList"); //DEBUG
+	//WriteCallLocation("TakeParameterList"); //DEBUG
 	const char caller[] = "FluidElementT::TakeParameterList";
 
 	/* inherited */
 	ContinuumElementT::TakeParameterList(list);
 
+	stab_time_der = 0;
 	fPresIndex = NumDOF() - 1;
 	/* allocate work space */
 	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
@@ -1419,93 +1433,145 @@ void FluidElementT::TakeParameterList(const ParameterListT& list)
 
 	/* stabilization parameter codes */
 	const ParameterListT& stab_param = list.GetListChoice(*this, "fluid_element_stab_param");
-  for (int i = 1; i < NumStabParamCodes; i++)
+	for (int i = 0; i < NumStabParamCodes; i++)
 		if (stab_param.Name() == StabParamNames[i])
 			fStabParam = StabParamCodeT(i);
-      
-  if (stab_param.Name() == StabParamNames[0])
-  {
-		fStabParam = StabParamCodeT(0);
-//			const ParameterT* element_ls_value = stab_param.Parameter(StabParamNames[0]);
-//      const ParameterListT& element_ls_value1 = stab_param.GetListChoice(*this, StabParamNames[0]);
-//     const ParameterListT* element_ls_value2 = stab_param.List(StabParamNames[0]);
-//      const ParameterListT& element_ls_value11 = stab_param.GetListChoice(*this, StabParamNames[0]);
-//      const ParameterListT* element_ls_value22 = stab_param.List(StabParamNames[0]);
-    
-		for (int i = 1; i < NumElementLSCodes; i++)
-    {
-      /* look for entry */   
-//			if (element_ls_value)
-				fElementLS = ElementLSCodeT(0);
-    }
-  }
-  
-  if ( ElementLSNames[fElementLS] == "spatial_length_scale" )
-  {
-    /* dimensions */
-    int  nsd = NumSD();
-    int  nen = NumElementNodes();
-    
-    /* precalculate element spatial lengths */
-    fElementLS_list.Dimension(NumElements());
-    Top();
-    int ElementCounter = 0;
-    dArrayT h_sd(nen/2); h_sd = 0.0; /* assuming QUAD/HEX elements */
-                                     /* need TRI/TET element support */
-    while (NextElement())
-    {
-      /* current element */
-      ElementCardT& element = CurrentElement();
-       
-      if (element.Flag() != ElementCardT::kOFF)
-		  {
-        fLocInitCoords.SetLocal(element.NodesX());              
-        if ( nsd == 2 )
-        {
-          /* based on geometry coordinates for QUADRILATERAL */
-          h_sd[0]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(2,0),2.0)
-                      +pow(fLocInitCoords(0,1)-fLocInitCoords(2,1),2.0));
 
-          h_sd[1]=sqrt(pow(fLocInitCoords(1,0)-fLocInitCoords(3,0),2.0)
-                      +pow(fLocInitCoords(1,1)-fLocInitCoords(3,1),2.0));
+	fElementLS = iElementLSNONE;
+	if (StabParamNames[fStabParam] == StabParamNames[0])
+	{
+		fElementLS = ElementLSCodeT((int)stab_param.GetParameter("length_scale_type"));
+		stab_time_der = (int)stab_param.GetParameter("stabilize_on_time_derivative_of_v");
+	}
 
-          h_sd[0] = max(h_sd[0],h_sd[1]);
-        }
-        else /* 3D */
-        {
-          /* based on geometry coordinates for HEXAHEDRON */
-          h_sd[0]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(6,0),2.0)
-                      +pow(fLocInitCoords(0,1)-fLocInitCoords(6,1),2.0)
-                      +pow(fLocInitCoords(0,2)-fLocInitCoords(6,2),2.0));
+	if ( ElementLSNames[fElementLS] == "spatial" )
+	{
+		/* dimensions */
+		int  nsd = NumSD();
+		int  nen = NumElementNodes();
 
-          h_sd[1]=sqrt(pow(fLocInitCoords(1,0)-fLocInitCoords(7,0),2.0)
-                      +pow(fLocInitCoords(1,1)-fLocInitCoords(7,1),2.0)
-                      +pow(fLocInitCoords(1,2)-fLocInitCoords(7,2),2.0));
+		/* precalculate element spatial lengths */
+		fElementLS_list.Dimension(NumElements());
+		Top();
+		int ElementCounter = 0;
+		dArrayT h_sd(4); h_sd = 0.0;     /* assuming QUAD/HEX elements */
+						/* or TRI/TET elements */
+		while (NextElement())
+		{
+			/* current element */
+			ElementCardT& element = CurrentElement();
 
-          h_sd[2]=sqrt(pow(fLocInitCoords(2,0)-fLocInitCoords(4,0),2.0)
-                      +pow(fLocInitCoords(2,1)-fLocInitCoords(4,1),2.0)
-                      +pow(fLocInitCoords(2,2)-fLocInitCoords(4,2),2.0));
+			if (element.Flag() != ElementCardT::kOFF)
+			{
+				fLocInitCoords.SetLocal(element.NodesX());              
+				if ( nsd == 2 )
+				{
+					if ( nen == 4 )
+					{
+						/* based on geometry coordinates for QUADRILATERAL */
+						h_sd[0]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(2,0),2.0)
+								+pow(fLocInitCoords(0,1)-fLocInitCoords(2,1),2.0));
 
-          h_sd[3]=sqrt(pow(fLocInitCoords(3,0)-fLocInitCoords(5,0),2.0)
-                      +pow(fLocInitCoords(3,1)-fLocInitCoords(5,1),2.0)
-                      +pow(fLocInitCoords(3,2)-fLocInitCoords(5,2),2.0));
+						h_sd[1]=sqrt(pow(fLocInitCoords(1,0)-fLocInitCoords(3,0),2.0)
+								+pow(fLocInitCoords(1,1)-fLocInitCoords(3,1),2.0));
+	
+						h_sd[0] = max(h_sd[0],h_sd[1]);
+					}
+					else if ( nen == 3 )
+					{
+						/* based on geometry coordinates for TRIANGLE */
+						h_sd[0]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(1,0),2.0)
+								+pow(fLocInitCoords(0,1)-fLocInitCoords(1,1),2.0));
 
-          double t1 = max(h_sd[0],h_sd[1]);
-          double t2 = max(h_sd[2],h_sd[3]); 
-          h_sd[0] = max(t1,t2);
-        }
-                        
-        fElementLS_list[ElementCounter]=h_sd[0];
-        ElementCounter++;
-      }
-    }
-  }
+						h_sd[1]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(2,0),2.0)
+								+pow(fLocInitCoords(0,1)-fLocInitCoords(2,1),2.0));
+
+						h_sd[2]=sqrt(pow(fLocInitCoords(1,0)-fLocInitCoords(2,0),2.0)
+								+pow(fLocInitCoords(1,1)-fLocInitCoords(2,1),2.0));
+
+						double t1 = max(h_sd[0],h_sd[1]);
+						h_sd[0] = max(t1,h_sd[2]);           
+					}
+					else
+					{
+						ExceptionT::BadInputValue("FluidElementT::TakeParameterList", "element type not supported");
+					}
+				}
+				else /* 3D */
+				{
+					if ( nen == 8 )
+					{
+						/* based on geometry coordinates for HEXAHEDRON */
+						h_sd[0]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(6,0),2.0)
+								+pow(fLocInitCoords(0,1)-fLocInitCoords(6,1),2.0)
+								+pow(fLocInitCoords(0,2)-fLocInitCoords(6,2),2.0));
+
+						h_sd[1]=sqrt(pow(fLocInitCoords(1,0)-fLocInitCoords(7,0),2.0)
+								+pow(fLocInitCoords(1,1)-fLocInitCoords(7,1),2.0)
+								+pow(fLocInitCoords(1,2)-fLocInitCoords(7,2),2.0));
+
+						h_sd[2]=sqrt(pow(fLocInitCoords(2,0)-fLocInitCoords(4,0),2.0)
+								+pow(fLocInitCoords(2,1)-fLocInitCoords(4,1),2.0)
+								+pow(fLocInitCoords(2,2)-fLocInitCoords(4,2),2.0));
+
+						h_sd[3]=sqrt(pow(fLocInitCoords(3,0)-fLocInitCoords(5,0),2.0)
+								+pow(fLocInitCoords(3,1)-fLocInitCoords(5,1),2.0)
+								+pow(fLocInitCoords(3,2)-fLocInitCoords(5,2),2.0));
+
+						double t1 = max(h_sd[0],h_sd[1]);
+						double t2 = max(h_sd[2],h_sd[3]); 
+						h_sd[0] = max(t1,t2);
+					}
+					else if ( nen == 4 )
+					{
+						/* based on geometry coordinates for TETRAHEDRON */
+						h_sd[0]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(1,0),2.0)
+								+pow(fLocInitCoords(0,1)-fLocInitCoords(1,1),2.0)
+								+pow(fLocInitCoords(0,2)-fLocInitCoords(1,2),2.0));
+
+						h_sd[1]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(2,0),2.0)
+								+pow(fLocInitCoords(0,1)-fLocInitCoords(2,1),2.0)
+								+pow(fLocInitCoords(0,2)-fLocInitCoords(2,2),2.0));
+
+						h_sd[2]=sqrt(pow(fLocInitCoords(0,0)-fLocInitCoords(3,0),2.0)
+								+pow(fLocInitCoords(0,1)-fLocInitCoords(3,1),2.0)
+								+pow(fLocInitCoords(0,2)-fLocInitCoords(3,2),2.0));
+
+						h_sd[3]=sqrt(pow(fLocInitCoords(1,0)-fLocInitCoords(2,0),2.0)
+								+pow(fLocInitCoords(1,1)-fLocInitCoords(2,1),2.0)
+								+pow(fLocInitCoords(1,2)-fLocInitCoords(2,2),2.0));
+
+						double t1 = max(h_sd[0],h_sd[1]);
+						double t2 = max(h_sd[2],h_sd[3]);
+
+						h_sd[2]=sqrt(pow(fLocInitCoords(1,0)-fLocInitCoords(3,0),2.0)
+								+pow(fLocInitCoords(1,1)-fLocInitCoords(3,1),2.0)
+								+pow(fLocInitCoords(1,2)-fLocInitCoords(3,2),2.0));
+
+						h_sd[3]=sqrt(pow(fLocInitCoords(2,0)-fLocInitCoords(3,0),2.0)
+								+pow(fLocInitCoords(2,1)-fLocInitCoords(3,1),2.0)
+								+pow(fLocInitCoords(2,2)-fLocInitCoords(3,2),2.0));
+
+						t1 = max(t1,t2);
+						t2 = max(h_sd[2],h_sd[3]);                        
+						h_sd[0] = max(t1,t2);            
+					}
+					else
+					{
+						ExceptionT::BadInputValue("FluidElementT::TakeParameterList", "element type not supported");            
+					}
+				}                       
+				fElementLS_list[ElementCounter]=h_sd[0];
+				ElementCounter++;
+			}
+		}
+	}
 }
 
 /* extract the list of material parameters */
 void FluidElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
 {
-//  WriteCallLocation("CollectMaterialInfo"); //DEBUG
+	//WriteCallLocation("CollectMaterialInfo"); //DEBUG
 	const char caller[] = "FluidElementT::CollectMaterialInfo";
 
 	/* initialize */
@@ -1530,74 +1596,74 @@ void FluidElementT::CollectMaterialInfo(const ParameterListT& all_params, Parame
 
 /* construct output labels array */
 void FluidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-  iArrayT& counts) const
+	iArrayT& counts) const
 {
-//  WriteCallLocation("SetNodalOutputCodes"); //DEBUG
-  if (counts.Sum() == 0)
-    return;
+//	WriteCallLocation("SetNodalOutputCodes"); //DEBUG
+	if (counts.Sum() == 0)
+		return;
 
-  /* initialize */
-  counts.Dimension(flags.Length());
-  counts = 0;
+	/* initialize */
+	counts.Dimension(flags.Length());
+	counts = 0;
 
-  /* set output flags */
-  if (flags[iNodalCrd] == mode) counts[iNodalCrd] = NumSD();
-  if (flags[iNodalVel] == mode) counts[iNodalVel] = NumSD();
-  if (flags[iNodalAcc] == mode) counts[iNodalAcc] = NumSD();
-  if (flags[iNodalPrs] == mode) counts[iNodalPrs] = FluidElementT::kPressureNDOF;
+	/* set output flags */
+	if (flags[iNodalOutputCrd] == mode) counts[iNodalOutputCrd] = NumSD();
+	if (flags[iNodalOutputVel] == mode) counts[iNodalOutputVel] = NumSD();
+	if (flags[iNodalOutputAcc] == mode) counts[iNodalOutputAcc] = NumSD();
+	if (flags[iNodalOutputPrs] == mode) counts[iNodalOutputPrs] = FluidElementT::kPressureNDOF;
 }
 
 void FluidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-  iArrayT& counts) const
+	iArrayT& counts) const
 {
-//  WriteCallLocation("SetElementOutputCodes"); //DEBUG
+//	WriteCallLocation("SetElementOutputCodes"); //DEBUG
 #pragma unused(mode)
 #pragma unused(flags)
-  if (counts.Sum() != 0)
-    ExceptionT::BadInputValue("FluidElementT::SetElementOutputCodes", "not implemented");
+	if (counts.Sum() != 0)
+		ExceptionT::BadInputValue("FluidElementT::SetElementOutputCodes", "not implemented");
 }
 
 void FluidElementT::GenerateOutputLabels(const iArrayT& n_codes,
-    ArrayT<StringT>& n_labels, const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
+	ArrayT<StringT>& n_labels, const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
-//  WriteCallLocation("GenerateOutputLabels"); //DEBUG
-  const char caller[] = "FluidElementT::GenerateOutputLabels";
+//	WriteCallLocation("GenerateOutputLabels"); //DEBUG
+	const char caller[] = "FluidElementT::GenerateOutputLabels";
 
-  /* allocate node labels */
-  n_labels.Dimension(n_codes.Sum());
+	/* allocate node labels */
+	n_labels.Dimension(n_codes.Sum());
 
-  int count = 0;
-  if (n_codes[iNodalCrd])
-  {
-    const char* xlabels[] = {"x1", "x2", "x3"};
-    for (int i = 0; i < NumSD(); i++)
-      n_labels[count++] = xlabels[i];
-  }
+	int count = 0;
+	if (n_codes[iNodalOutputCrd])
+	{
+		const char* xlabels[] = {"x1", "x2", "x3"};
+		for (int i = 0; i < NumSD(); i++)
+			n_labels[count++] = xlabels[i];
+	}
 
-  if (n_codes[iNodalVel])
-  {
-    const char* xlabels[] = {"v1", "v2", "v3"};
-    for (int i = 0; i < NumSD(); i++)
-      n_labels[count++] = xlabels[i];
-  }
+	if (n_codes[iNodalOutputVel])
+	{
+		const char* xlabels[] = {"v1", "v2", "v3"};
+		for (int i = 0; i < NumSD(); i++)
+			n_labels[count++] = xlabels[i];
+	}
 
-  if (n_codes[iNodalAcc])
-  {
-    const char* xlabels[] = {"a1", "a2", "a3"};
-    for (int i = 0; i < NumSD(); i++)
-      n_labels[count++] = xlabels[i];
-  }
+	if (n_codes[iNodalOutputAcc])
+	{
+		const char* xlabels[] = {"a1", "a2", "a3"};
+		for (int i = 0; i < NumSD(); i++)
+			n_labels[count++] = xlabels[i];
+	}
 
-  if (n_codes[iNodalPrs])
-  {
-    const char* xlabels[] = {"p"};
-    for (int i = 0; i < FluidElementT::kPressureNDOF; i++)
-      n_labels[count++] = xlabels[i];
-  }
+	if (n_codes[iNodalOutputPrs])
+	{
+		const char* xlabels[] = {"p"};
+		for (int i = 0; i < FluidElementT::kPressureNDOF; i++)
+			n_labels[count++] = xlabels[i];
+	}
 
-  if (e_codes.Sum() != 0)
-    ExceptionT::GeneralFail("FluidElementT::GenerateOutputLabels",
-      "not expecting any element output codes");
+	if (e_codes.Sum() != 0)
+		ExceptionT::GeneralFail("FluidElementT::GenerateOutputLabels",
+			"not expecting any element output codes");
 
 }
 
@@ -1609,5 +1675,5 @@ void FluidElementT::GenerateOutputLabels(const iArrayT& n_codes,
 /** FOR DEBUGGING PURPOSES ONLY */
 void FluidElementT::WriteCallLocation( char* loc ) const
 {
-  cout << "\n Inside of FluidElementT::" << loc;
+	cout << "\n Inside of FluidElementT::" << loc;
 }

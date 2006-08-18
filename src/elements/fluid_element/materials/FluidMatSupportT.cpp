@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatSupportT.cpp,v 1.2 2006-07-18 01:21:21 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/materials/FluidMatSupportT.cpp,v 1.3 2006-08-18 01:23:44 a-kopacz Exp $ */
 /* created: tdnguye (07/12/2006) */
 
 #include "FluidMatSupportT.h"
@@ -19,31 +19,31 @@ FluidMatSupportT::FluidMatSupportT(int ndof, int nip):
 	fGradPres_list(NULL),
 	fFluid(NULL)
 {
-  WriteCallLocation("FluidMatSupportT"); //DEBUG
+	//WriteCallLocation("FluidMatSupportT"); //DEBUG
 }
 
 /* set the source for the gradient information */
 void FluidMatSupportT::SetField(const ArrayT<dArrayT>* fvel_list, const dArrayT* fpres_list)
 {
-  WriteCallLocation("SetField"); //DEBUG
+	//WriteCallLocation("SetField"); //DEBUG
 
-  fVel_list = fvel_list;
+	fVel_list = fvel_list;
 	fPres_list = fpres_list;
 }
 
 /* set the source for the gradient information */
 void FluidMatSupportT::SetGradient(const ArrayT<dMatrixT>* gradient_vel_list, const ArrayT<dArrayT>* gradient_pres_list)
 {
-  WriteCallLocation("SetGradient"); //DEBUG
+	//WriteCallLocation("SetGradient"); //DEBUG
 
-//NOTE: cannot do dimension checks because source is not initialized
-//      when this is configured 
+	//NOTE: cannot do dimension checks because source is not initialized
+	//      when this is configured 
 #if 0
 	if (!gradient_list ||
-	     gradient_list->Length() != NumIP())
+	gradient_list->Length() != NumIP())
 	{
 		cout << "\n FluidMatSupportT::SetGradient: inconsistent gradient source" 
-		     << endl;
+			<< endl;
 		throw ExceptionT::kGeneralFail;
 	}
 #endif
@@ -55,9 +55,9 @@ void FluidMatSupportT::SetGradient(const ArrayT<dMatrixT>* gradient_vel_list, co
 /* set the element group pointer */
 void FluidMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 {
-  WriteCallLocation("SetContinuumElement"); //DEBUG
+	//WriteCallLocation("SetContinuumElement"); //DEBUG
 
-  /* inherited */
+	/* inherited */
 	MaterialSupportT::SetContinuumElement(p);
 
 #ifdef CONTINUUM_ELEMENT
@@ -67,6 +67,7 @@ void FluidMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 }
 
 /** FOR DEBUGGING PURPOSES ONLY */
-void FluidMatSupportT::WriteCallLocation( char* loc ) const {
-cout << "Inside of FluidMatSupportT::" << loc << endl;
+void FluidMatSupportT::WriteCallLocation( char* loc ) const 
+{
+	cout << "Inside of FluidMatSupportT::" << loc << endl;
 }
