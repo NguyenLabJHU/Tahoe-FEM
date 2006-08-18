@@ -1,4 +1,4 @@
-/* $Header: */
+/* $Id: */
 /* created: a-kopacz (08/08/2006) */
 
 #include "nMixed.h"

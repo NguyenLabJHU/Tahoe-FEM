@@ -1,4 +1,4 @@
-/* $Header: */
+/* $Id: */
 /* created: a-kopacz (08/08/2006) */
 
 #ifndef _N_MIXED_H_
