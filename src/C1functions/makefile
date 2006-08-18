@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.28 2005-08-12 05:36:32 paklein Exp $
+# $Id: makefile,v 1.29 2006-08-18 18:43:15 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -14,7 +14,10 @@ OBJ = \
 	WormLikeChain.o \
 	WLCwRep.o \
 	FungwRep.o \
-	FungType.o 
+	FungType.o \
+	ScaledCsch.o \
+	ScaledSinh.o \
+	PowerTrig.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -32,7 +35,10 @@ SRC = \
 	WormLikeChain.cpp \
 	WLCwRep.cpp \
 	FungwRep.cpp \
-	FungType.cpp
+	FungType.cpp \
+	ScaledCsch.cpp \
+	ScaledSinh.cpp \
+	PowerTrig.cpp
 
 # headers
 HDR = \
@@ -44,7 +50,10 @@ HDR = \
 	WormLikeChain.h \
 	WLCwRep.h \
 	FungwRep.h \
-	FungType.h
+	FungType.h \
+	ScaledCsch.h \
+	ScaledSinh.h \
+	PowerTrig.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

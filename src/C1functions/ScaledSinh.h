@@ -1,7 +1,7 @@
-/* $Id: FungType.h,v 1.2 2006-08-18 18:43:15 thao Exp $ */
+/* $Id: ScaledSinh.h,v 1.1 2006-08-18 18:43:15 thao Exp $ */
 
-#ifndef _FungType_H_
-#define _FungType_H_
+#ifndef _ScaledSinh_H_
+#define _ScaledSinh_H_
 
 /* base class */
 #include "C1FunctionT.h"
@@ -9,13 +9,13 @@
 
 namespace Tahoe {
 
-class FungType: public C1FunctionT
+class ScaledSinh: public C1FunctionT
 {
 public:
 
 	/* constructor */
-	FungType(double A, double B);
-	FungType(void);
+	ScaledSinh(double A, double B);
+	ScaledSinh(void);
 
 	/* I/O */
 	virtual void Print(ostream& out) const;
@@ -36,10 +36,10 @@ public:
 
 private:
 	/* parameters */
-	double fA;
-	double fB;
+	double fieta0;
+	double ftau0;
 };
 
 
 } // namespace Tahoe 
-#endif /* _FungType_H_ */
+#endif /* _ScaledSinh_H_ */
