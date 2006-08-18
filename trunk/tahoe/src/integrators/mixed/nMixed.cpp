@@ -1,4 +1,4 @@
-/* $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/nMixed.cpp,v 1.4 2006-08-18 20:00:40 tdnguye Exp $ */
+/* $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/nMixed.cpp,v 1.5 2006-08-18 20:46:03 tdnguye Exp $ */
 /* created: a-kopacz (08/08/2006) */
 
 #include "nMixed.h"
@@ -229,6 +229,10 @@ void nMixed::nComputeParameters(void)
 {
 	/* predictor */
 	
+	if (fNumDOF <=0)
+		ExceptionT::GeneralFail("nMixed::nComputeParameters",
+			"Dimensions not yet set. fNumDOF = %.",fNumDOF);
+
 	/*sets different corrector and predictor for final degree of freedom*/
 	for (int i = 0; i < fNumDOF-1; i++)
 	{
