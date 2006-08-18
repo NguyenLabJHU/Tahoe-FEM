@@ -1,4 +1,4 @@
-/* $Id: EvenSpacePtsT.cpp,v 1.6 2004-07-15 08:28:03 paklein Exp $ */
+/* $Id: EvenSpacePtsT.cpp,v 1.7 2006-08-18 18:45:11 tdnguye Exp $ */
 /* created: paklein (11/02/1997) */
 #include "EvenSpacePtsT.h"
 
@@ -18,12 +18,31 @@ EvenSpacePtsT::EvenSpacePtsT(int n): fNtheta(n)
 	if (fNtheta < 1) ExceptionT::BadInputValue("EvenSpacePtsT::EvenSpacePtsT");
 	
 	fPoints.Dimension(fNtheta,2);
+	fAngles.Dimension(fNtheta);
 	fJacobians.Dimension(fNtheta);
 	
 	/* all same weight */
 	fJacobians = (2.0*Pi/fNtheta);
 }
 
+const dArrayT& EvenSpacePtsT::Jacobians(const double theta, const C1FunctionT* func) 
+{
+	/* generate direction vectors */
+	double dtheta = (fNtheta == 2) ? Pi/2.0 : (2.0*Pi)/fNtheta;
+	double angle  = theta - dtheta;
+	
+	for (int i = 0; i < fNtheta; i++)
+	{
+		/* orientation */
+		angle += dtheta;
+		double D = func->Function(angle);
+		
+		/* components */
+		fJacobians[i] = D*(2.0*Pi/fNtheta);
+	}
+
+	return fJacobians;
+}
 /*
 * Generate points with the given orientation angle theta.
 */
@@ -48,4 +67,22 @@ const dArray2DT& EvenSpacePtsT::CirclePoints(double theta)
 	}
 
 	return fPoints;
+}
+
+const dArrayT& EvenSpacePtsT::CircleAngles(double theta)
+{
+	/* generate direction vectors */
+	double dtheta = (fNtheta == 2) ? Pi/2.0 : (2.0*Pi)/fNtheta;
+	double angle  = theta - dtheta;
+	
+	for (int i = 0; i < fNtheta; i++)
+	{
+		/* orientation */
+		angle += dtheta;
+	
+		/* components */
+		fAngles[i] = angle;
+	}
+
+	return fAngles;
 }
