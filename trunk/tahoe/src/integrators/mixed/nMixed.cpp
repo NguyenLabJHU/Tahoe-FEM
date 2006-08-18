@@ -1,4 +1,4 @@
-/* $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/nMixed.cpp,v 1.5 2006-08-18 20:46:03 tdnguye Exp $ */
+/* $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/nMixed.cpp,v 1.6 2006-08-18 21:52:30 tdnguye Exp $ */
 /* created: a-kopacz (08/08/2006) */
 
 #include "nMixed.h"
@@ -18,7 +18,7 @@ nMixed::nMixed(void)
 or boundary condition calculations. Note that the predictor is applied to all degrees of freedom, 
 while the correctors are only applied to the active degrees of freedom
 */
-void nMixed::Dimension(BasicFieldT& field)
+void nMixed::Dimension(const BasicFieldT& field)
 {
 	/*inherited*/
 	nIntegratorT::Dimension(field);
@@ -242,6 +242,6 @@ void nMixed::nComputeParameters(void)
 	}
 
 	/* backward difference/backward Euler */
-	dpred_v_[fNumDOF] = 1.0*fdt;
-	dcorr_v_[fNumDOF] = 1.0*fdt;
+	dpred_v_[fNumDOF-1] = 1.0*fdt;
+	dcorr_v_[fNumDOF-1] = 1.0*fdt;
 }
