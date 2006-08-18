@@ -1,4 +1,4 @@
-/* $Id: */
+/* $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/nMixed.h,v 1.3 2006-08-18 01:15:16 a-kopacz Exp $ */
 /* created: a-kopacz (08/08/2006) */
 
 #ifndef _N_MIXED_H_
