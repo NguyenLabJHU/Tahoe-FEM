@@ -1,4 +1,4 @@
-/* $Id: IntegratorT.h,v 1.6 2004-07-15 08:30:33 paklein Exp $ */
+/* $Id: IntegratorT.h,v 1.7 2006-08-18 00:59:00 a-kopacz Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _CONTROLLER_T_H_
 #define _CONTROLLER_T_H_
@@ -27,7 +27,8 @@ public:
     kNonlinearHHT = 4,
       kExplicitCD = 5,
           kVerlet = 6,
-           kGear6 = 7
+           kGear6 = 7,
+	   kMixed = 8
 	};
 
 	/** enum for implicit/explicit attribute */

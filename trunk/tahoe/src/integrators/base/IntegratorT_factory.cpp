@@ -1,4 +1,4 @@
-/* $Id: IntegratorT_factory.cpp,v 1.2 2004-07-15 08:30:33 paklein Exp $ */
+/* $Id: IntegratorT_factory.cpp,v 1.3 2006-08-18 00:59:00 a-kopacz Exp $ */
 #include "IntegratorT.h"
 
 /* integrators */
@@ -10,6 +10,7 @@
 #include "ExplicitCDIntegrator.h"
 #include "VerletIntegrator.h"
 #include "Gear6Integrator.h"
+#include "MixedIntegrator.h"
 
 using namespace Tahoe;
 
@@ -59,6 +60,11 @@ IntegratorT* IntegratorT::New(int type, bool exception_on_fail)
 		case kGear6:
 		{
 			integrator = new Gear6Integrator;
+			break;
+		}
+		case kMixed:
+		{
+			integrator = new MixedIntegrator;
 			break;
 		}
 		default:

@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.49 2006-06-19 15:25:33 r-jones Exp $ */
+/* $Id: FieldT.cpp,v 1.50 2006-08-18 01:07:32 a-kopacz Exp $ */
 
 #include "FieldT.h"
 
@@ -990,6 +990,7 @@ void FieldT::DefineParameters(ParameterListT& list) const
 	integrator.AddEnumeration("central_difference", IntegratorT::kExplicitCD);
 	integrator.AddEnumeration(            "Verlet", IntegratorT::kVerlet);
 	integrator.AddEnumeration(             "Gear6", IntegratorT::kGear6);
+	integrator.AddEnumeration(             "mixed", IntegratorT::kMixed);
 	integrator.SetDefault(IntegratorT::kStatic);
 	list.AddParameter(integrator);
 
