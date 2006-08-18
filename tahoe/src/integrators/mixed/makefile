@@ -1,4 +1,5 @@
-# $Id: makefile,v 1.9 2006-08-18 00:59:00 a-kopacz Exp $
+# $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/makefile,v 1.1 2006-08-18 01:03:00 a-kopacz Exp $
+# created: a-kopacz (08/08/2006)
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -19,25 +20,32 @@ include $(MACRO_DIR)/$(ARCH).macros
 #    (3) comment the OBJ, OBJ_LINK, and DEP macros in the
 #        section (1.1).
 #
-#OBJ = 
-#OBJ_LINK = $(OBJ)
-#DEP = $(OBJ:.o=.d)
+OBJ = \
+	eMixed.o \
+	nMixed.o \
+	MixedIntegrator.o
+
+OBJ_LINK = $(OBJ)
+DEP = $(OBJ:.o=.d)
 
 #
 # (1.2) If there are not object in this directory:
 #    (1) comment the OBJ, OBJ_LINK, and DEP definitions in section (1.1)
 #    (2) uncomment the OBJ, OBJ_LINK, and DEP definitions below
 #
-OBJ = dummy
-OBJ_LINK =
-DEP = $(MACRO_DIR)/empty
+#OBJ = dummy
+#OBJ_LINK =
+#DEP = $(MACRO_DIR)/empty
 
 ##################### (2) sources
 #
 # (2) If there are sources in this directory list them in the
 #     SRC macro; otherwise, comment the SRC macro.
 #
-#SRC = 
+SRC = \
+	eMixed.cpp \
+	nMixed.cpp \
+	MixedIntegrator.cpp
 
 ##################### (3) headers
 #
@@ -48,8 +56,13 @@ DEP = $(MACRO_DIR)/empty
 # If there are no header files in this directory comment both the
 # HDR and HDR_LINK macro   
 #
-#HDR = 
-#HDR_LINK = $(HDR:.h=.h_link)
+HDR = \
+	eMixed.h \
+	nMixed.h \
+	Mixed.h \
+	MixedIntegrator.h
+
+HDR_LINK = $(HDR:.h=.h_link)
 
 ##################### (4) sub-directories
 #
@@ -58,25 +71,16 @@ DEP = $(MACRO_DIR)/empty
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = \
-	base \
-	explicitCD \
-	HHT \
-	static \
-	verlet \
-	gear6 \
-	trapezoid \
-	mixed
-
-subdir_driver: subdir_loop
+#SUB_DIR = 
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 
