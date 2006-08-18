@@ -1,8 +1,8 @@
-# $Id: GNU.HEMISPHERE.mpich.macros,v 1.1 2005-11-10 15:47:37 regueiro Exp $
+# $Id: GNU.HEMISPHERE.mpich.macros,v 1.2 2006-08-18 20:39:22 regueiro Exp $
 # GNU
 #
-COMP_DIR    = /opt/gcc-3.3.2
-MPI_HOME    = /opt/mpich-gcc3-1.2.7p1
+COMP_DIR    = /usr
+MPI_HOME    = /opt/mpich-gcc3-1.2.7p1-gcc
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
 COMP_C      = $(COMP_DIR)/bin/gcc
