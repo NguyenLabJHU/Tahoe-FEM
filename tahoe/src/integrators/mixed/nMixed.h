@@ -1,4 +1,4 @@
-/* $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/nMixed.h,v 1.4 2006-08-18 20:00:40 tdnguye Exp $ */
+/* $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/nMixed.h,v 1.5 2006-08-18 21:52:30 tdnguye Exp $ */
 /* created: a-kopacz (08/08/2006) */
 
 #ifndef _N_MIXED_H_
@@ -19,7 +19,9 @@ public:
 	/* constructor */
 	nMixed(void);
 
-	virtual void Dimension(BasicFieldT& field);
+	/** indicate field dimension to integrator. Allows integrator to redimension
+	 * any internal work space. */
+	virtual void Dimension(const BasicFieldT& field);
 	
 	/** consistent BC's */
 	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
