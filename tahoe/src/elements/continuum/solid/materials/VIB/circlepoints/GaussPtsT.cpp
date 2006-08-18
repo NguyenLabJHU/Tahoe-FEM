@@ -1,4 +1,4 @@
-/* $Id: GaussPtsT.cpp,v 1.5 2004-07-15 08:28:03 paklein Exp $ */
+/* $Id: GaussPtsT.cpp,v 1.6 2006-08-18 18:45:11 tdnguye Exp $ */
 /* created: paklein (11/02/1997) */
 #include "GaussPtsT.h"
 #include <math.h>
@@ -31,6 +31,59 @@ const dArray2DT& GaussPtsT::CirclePoints(double theta)
 	
 	return fPoints;
 }
+
+const dArrayT& GaussPtsT::CircleAngles(double theta)
+{	
+	/* parent domain points*/
+	double p9[]=
+	{-0.96816023950762608984,
+	 -0.83603110732663579430,
+	 -0.61337143270059039731,
+	 -0.32425342340380892904,
+	  0.0,
+	  0.32425342340380892904,
+	  0.61337143270059039731,
+	  0.83603110732663579430,
+	  0.96816023950762608984};
+
+	double p10[]=
+	{-0.97390652851717172008,
+	 -0.86506336668898451073,
+	 -0.67940956829902440623,
+	 -0.43339539412924719080,
+	 -0.14887433898163121089,
+	  0.14887433898163121089,
+	  0.43339539412924719080,
+	  0.67940956829902440623,
+	  0.86506336668898451073,
+	  0.97390652851717172008};
+	
+	double *p;
+	switch (fN)
+	{
+		case 9:
+
+			p = p9;
+			break;
+
+		case 10:
+
+			p = p10;
+			break;
+
+		default:
+			ExceptionT::GeneralFail("GaussPtsT::CircleAngles", "unrecognized Gauss rule %d", fN);
+	}
+
+	/* calculate directions */	
+	fAngles.Dimension(fN);
+	for (int i = 0; i < fN; i++)
+	{		
+		/* set angles ? */
+		fAngles[i] = Pi*p[i] + theta;
+	}
+}
+
 
 /*
 * Returns the correct data pointer for the specified number of
@@ -88,6 +141,64 @@ void GaussPtsT::SetCoords(int numint)
 		/* set direction cosines */
 		xsi[0] = cos(Pi*p[i]);
 		xsi[1] = sin(Pi*p[i]);	
+	}
+}
+
+const dArrayT& GaussPtsT::Jacobians(const double theta, const C1FunctionT* func) 
+{
+	double p9[]=
+	{-0.96816023950762608984,
+	 -0.83603110732663579430,
+	 -0.61337143270059039731,
+	 -0.32425342340380892904,
+	  0.0,
+	  0.32425342340380892904,
+	  0.61337143270059039731,
+	  0.83603110732663579430,
+	  0.96816023950762608984};
+
+	double p10[]=
+	{-0.97390652851717172008,
+	 -0.86506336668898451073,
+	 -0.67940956829902440623,
+	 -0.43339539412924719080,
+	 -0.14887433898163121089,
+	  0.14887433898163121089,
+	  0.43339539412924719080,
+	  0.67940956829902440623,
+	  0.86506336668898451073,
+	  0.97390652851717172008};
+
+	double *p;
+	switch (fN)
+	{
+		case 9:
+
+			p = p9;
+			break;
+
+		case 10:
+
+			p = p10;
+			break;
+
+		default:
+			ExceptionT::GeneralFail("GaussPtsT::SetCoords", "unrecognized Gauss rule %d", fN);
+	}
+	
+	/* temp vector */
+	dArrayT temp(fN,p);
+	temp *= Pi;
+	temp -= theta;
+	
+	SetJacobians(fN);
+	/* copy in */
+
+	for (int i = 0; i < fN; i++)
+	{
+		double jac = fJacobians[i];
+		double D = func->Function(temp[i]);
+		fJacobians[i] = jac*D; 
 	}
 }
 
