@@ -1,4 +1,4 @@
-/* $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/eMixed.cpp,v 1.2 2006-08-18 01:15:50 a-kopacz Exp $ */
+/* $Header: /home/cvs/t/ta/tahoe/tahoe/src/integrators/mixed/eMixed.cpp,v 1.3 2006-08-18 20:00:40 tdnguye Exp $ */
 /* created: a-kopacz (08/08/2006) */
 
 #include "eMixed.h"
@@ -15,6 +15,7 @@ eMixed::eMixed(void) { }
 /* returns 1 if the algorithm requires M, C, or K and sets const equal
 * to the coefficient for the linear combination of components in the
 * element effective mass matrix */
+
 int eMixed::FormM(double& constM) const
 {
 #pragma unused(constM)
