@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.24 2006-08-18 01:23:44 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.cpp,v 1.25 2006-08-21 20:48:08 a-kopacz Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #include "FluidElementT.h"
 
@@ -505,7 +505,8 @@ void FluidElementT::RHSDriver(void)
 
 			if(StabParamNames[fStabParam]=="tau_m_is_tau_c")
 			{ 
-				double viscosity = fCurrMaterial->Shear_Modulus();
+				double viscosity_ = fCurrMaterial->Shear_Modulus();
+				double density_ = fCurrMaterial->Density();
 				double h_nsum=0.0;
 				double h=0.0;
 				double OldVelMag=0.0;
@@ -561,7 +562,7 @@ void FluidElementT::RHSDriver(void)
 					h= fElementLS_list[ElementCounter]; /**< precalculated */
 
 				/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
-				tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
+				tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity_/density_/(h*h),2) );
 				/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
 				//tau_m=1; /* DEBUG */
 				tau_c=tau_m;
@@ -872,7 +873,8 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		if(StabParamNames[fStabParam]=="tau_m_is_tau_c")
 		{
-			double viscosity = fCurrMaterial->Shear_Modulus();
+			double viscosity_ = fCurrMaterial->Shear_Modulus();
+			double density_ = fCurrMaterial->Density();
 			double h_nsum=0.0;
 			double h=0.0;
 			double OldVelMag=0.0;
@@ -928,7 +930,7 @@ void FluidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				h= fElementLS_list[ElementCounter]; /**< precalculated */
 			
 			/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 58} */
-			tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity/(h*h),2) );
+			tau_m = 1/sqrt( pow(2*by_dt,2) + pow(2*OldVelMag/h,2) + pow(4*viscosity_/density_/(h*h),2) );
 			/* T.E. Tezduyar, Y.Osawa / Comput. Methods Appl. Mech. Engrg. 190 (2000) 411-430 {eq. 59} */
 			//tau_m=1; /* DEBUG */
 			tau_c=tau_m;
