@@ -1,4 +1,4 @@
-/* $Id: IsoVECorneaModel.cpp,v 1.1 2006-05-02 00:58:53 thao Exp $ */
+/* $Id: IsoVECorneaModel.cpp,v 1.2 2006-08-21 16:48:32 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVECorneaModel.h"
 
@@ -504,7 +504,7 @@ double IsoVECorneaModel::StrainEnergyDensity(void)
 	Load(element, CurrIP());
 	
 	const dMatrixT& F = F_mechanical();	
-	fiC = fC_v.Inverse();
+	fiC = fC_v[0].Inverse();
 	fbe.MultQBQT(F,fiC);
 	fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
 	fEigs_e = fSpectralDecompSpat.Eigenvalues();
@@ -577,7 +577,7 @@ const dMatrixT& IsoVECorneaModel::c_ijkl(void)
     fModulus.AddScaled(2.0*coeff, fModMat);
 		
 	/*calculates trial stretches*/
-	fiC = fC_vn;
+	fiC = fC_vn[0];
 	fbe.MultQBQT(F, fiC.Inverse());
 	fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
 	fEigs_e = fSpectralDecompSpat.Eigenvalues();  /*trial elastic stretch*/
@@ -588,7 +588,7 @@ const dMatrixT& IsoVECorneaModel::c_ijkl(void)
 	const ArrayT<dArrayT>& eigenvectors_e=fSpectralDecompSpat.Eigenvectors();
 
 	/*calculates elastic stretches*/
-	fiC = fC_v;
+	fiC = fC_v[0];
 	fbe.MultQBQT(F, fiC.Inverse());
 	fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
 	fEigs_e = fSpectralDecompSpat.Eigenvalues(); 
@@ -661,7 +661,7 @@ const dSymMatrixT& IsoVECorneaModel::s_ij(void)
 	if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
 	{		
 		/*calc trial state*/
-		fiC = fC_vn;
+		fiC = fC_vn[0];
 		fbe.MultQBQT(F, fiC.Inverse());
 		fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
 		fEigs_e = fSpectralDecompSpat.Eigenvalues();  /*trial strains*/
@@ -673,13 +673,13 @@ const dSymMatrixT& IsoVECorneaModel::s_ij(void)
 
 		/*Calculate Cv*/
 		fbe = fSpectralDecompSpat.EigsToRank2(fEigs_e); /*be which is colinear with btr*/
-		fC_v.MultQTBQ(F, fbe.Inverse()); 
+		fC_v[0].MultQTBQ(F, fbe.Inverse()); 
 		Store(element, CurrIP());
 	}	
 	else 
 	{
 		/*calc elastic stretch*/
-		fiC = fC_v;
+		fiC = fC_v[0];
 		fbe.MultQBQT(F, fiC.Inverse());
 		fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
 		fEigs_e = fSpectralDecompSpat.Eigenvalues(); 
@@ -741,7 +741,7 @@ void IsoVECorneaModel::ComputeOutput(dArrayT& output)
 	output[0] = 0.0;
 	
 	/*calc elastic stretch*/
-	fiC = fC_v;
+	fiC = fC_v[0];
 	fbe.MultQBQT(F, fiC.Inverse());
 	fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
 	fEigs_e = fSpectralDecompSpat.Eigenvalues(); 
