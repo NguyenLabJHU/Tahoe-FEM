@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.h,v 1.3 2006-08-03 23:13:34 tdnguye Exp $ */
+/* $Id: RGViscoelasticityT.h,v 1.4 2006-08-21 16:46:24 tdnguye Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_VISCO_T_H_
 #define _RG_VISCO_T_H_
@@ -49,14 +49,17 @@ class RGViscoelasticityT: public FSSolidMatT
 	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
+	/* Dimension internal state variables*/
+	/*derived class must call RGViscoelaticity::SetStateVariables(fNumProcess)
+	  to dimension internal state variable arrays if fNumProcess > 1 (default value)*/
+	void SetStateVariables (const int numprocess);
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
-	/* Dimension internal state variables*/
-	void SetStateVariables (const int numprocess);
 	
  protected:
 	

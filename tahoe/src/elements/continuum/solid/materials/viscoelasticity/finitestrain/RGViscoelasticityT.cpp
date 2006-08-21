@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.cpp,v 1.3 2006-08-03 23:13:34 tdnguye Exp $ */
+/* $Id: RGViscoelasticityT.cpp,v 1.4 2006-08-21 16:46:24 tdnguye Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGViscoelasticityT.h"
 
@@ -354,8 +354,8 @@ void RGViscoelasticityT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	FSSolidMatT::TakeParameterList(list);
 
-	/*Dimension state variable arrays*/
-	SetStateVariables(fNumProcess);
+	/* Default Dimension state variable arrays*/
+	if (fNumProcess > 0) SetStateVariables(fNumProcess);
 }
 
 /* accept parameter list */
