@@ -1,4 +1,4 @@
-/* $Id: RGIsoT.h,v 1.1 2006-08-03 23:17:28 tdnguye Exp $ */
+/* $Id: RGIsoT.h,v 1.2 2006-08-21 16:46:24 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _RGIsoT_
 #define _RGIsoT_
@@ -53,6 +53,7 @@ class RGIsoT: public RGViscoelasticityT
 	 * process index refers the nonequilibrium process number.  process_index = -1 denotes eq. process.*/
 	virtual void dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress, const int process_index) = 0;
 
+	/*calculates the derivative 1/lambda_B pdf(S_A)(lambda_B)*/
 	virtual void ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
 		 dSymMatrixT& eigenmod, const int process_index) = 0;
 

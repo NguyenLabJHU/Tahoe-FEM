@@ -1,4 +1,4 @@
-/* $Id: RGIsoT.cpp,v 1.1 2006-08-03 23:17:28 tdnguye Exp $ */
+/* $Id: RGIsoT.cpp,v 1.2 2006-08-21 16:46:24 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGIsoT.h"
@@ -68,13 +68,14 @@ const dMatrixT& RGIsoT::c_ijkl(void)
 
 	/*calculate equilibrium contribution*/
 	/*calculate principle 2nd PK principal stress given 2nd PK principle strains*/
+	/*and the derivative 1/lambda_B pdf(S_A)(lambda_B)*/
 	ddWddE(fEigs,  fdWdE_eq, fddWddE_eq, -1);
 
-	/*convert to tau and dtau_de_eq-2.0*tau*eig2 1*/
 	fdWdE_eq[0] *= fEigs[0];
 	fdWdE_eq[1] *= fEigs[1];
 	fdWdE_eq[2] *= fEigs[2];
 
+	/*convert to tau and dtau_de_eq-2.0*tau*eig2 1*/
 	fddWddE_eq(0,0) *= fddWddE_eq(0,0)*fEigs[0]*fEigs[0];
 	fddWddE_eq(1,1) *= fddWddE_eq(1,1)*fEigs[1]*fEigs[1];
 	fddWddE_eq(2,2) *= fddWddE_eq(2,2)*fEigs[2]*fEigs[2];
