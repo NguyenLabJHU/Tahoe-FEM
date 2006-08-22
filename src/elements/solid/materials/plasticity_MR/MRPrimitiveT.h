@@ -1,4 +1,4 @@
-/* $Id: MRPrimitiveT.h,v 1.5 2006-01-09 20:41:09 kyonten Exp $ */
+/* $Id: MRPrimitiveT.h,v 1.6 2006-08-22 14:39:17 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003)                */
 /*
 /* Base class for a nonassociative, small strain,        */
@@ -38,7 +38,8 @@ class MRPrimitiveT: public ParameterInterfaceT
     /*@}*/
     
     double YieldCondition(const dSymMatrixT& devstress, 
-            const double meanstress) const;
+            const double meanstress, double fchi,
+            double fc, double ftan_phi) const;
 
   protected:
     

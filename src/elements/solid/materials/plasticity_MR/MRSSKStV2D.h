@@ -1,4 +1,4 @@
-/* $Id: MRSSKStV2D.h,v 1.4 2005-10-31 18:02:22 kyonten Exp $ */
+/* $Id: MRSSKStV2D.h,v 1.5 2006-08-22 14:39:17 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003) */
 #ifndef _MR_SS_KSTV_2D_H_
 #define _MR_SS_KSTV_2D_H_
@@ -29,8 +29,6 @@ class MRSSKStV2D: public MRSSKStV
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

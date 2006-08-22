@@ -1,4 +1,4 @@
-/* $Id: MRSSKStV2D.cpp,v 1.4 2005-10-31 18:02:22 kyonten Exp $ */
+/* $Id: MRSSKStV2D.cpp,v 1.5 2006-08-22 14:39:17 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003) */
 #include "MRSSKStV2D.h"
 #include "ElementCardT.h"
@@ -11,7 +11,8 @@ using namespace Tahoe;
 MRSSKStV2D::MRSSKStV2D(void):
 	ParameterInterfaceT("small_strain_StVenant_MR_2D")
 {
-
+	/* reset default value */
+	fConstraint = kPlaneStrain;
 }
 
 /* returns 3D total strain (3D) */
@@ -22,7 +23,6 @@ const dSymMatrixT& MRSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 	fTotalStrain3D.ExpandFrom2D(totalstrain);
 
 	/* inherited */
-	/*return fTotalStrain3D;*/
 	return MRSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
 
 }
@@ -32,7 +32,6 @@ const dMatrixT& MRSSKStV2D::c_ijkl(void)
 {
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(MRSSKStV::c_ijkl());
-//	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 
@@ -40,7 +39,6 @@ const dMatrixT& MRSSKStV2D::c_perfplas_ijkl(void)
 {
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(MRSSKStV::c_perfplas_ijkl());
-//	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 
@@ -49,20 +47,8 @@ const dMatrixT& MRSSKStV2D::c_perfplas_ijkl(void)
 const dSymMatrixT& MRSSKStV2D::s_ij(void)
 {
 	/* 3D -> 2D */
-	fStress2D.ReduceFrom3D(MRSSKStV::s_ij());
-//	fStress2D *= fThickness;  
+	fStress2D.ReduceFrom3D(MRSSKStV::s_ij());  
 	return fStress2D;
-}
-
-/* describe the parameters needed by the interface */
-void MRSSKStV2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	MRSSKStV::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }
 
 /* accept parameter list */

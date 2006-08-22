@@ -1,4 +1,4 @@
-/* $Id: MRSSKStV.h,v 1.6 2005-10-31 18:02:22 kyonten Exp $ */
+/* $Id: MRSSKStV.h,v 1.7 2006-08-22 14:39:17 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2003) */
 #ifndef _MR_SS_KSTV_H_
 #define _MR_SS_KSTV_H_
@@ -25,6 +25,9 @@ class MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 	
+	/** access strains from previous time step */
+	//virtual bool Need_Strain_last(void) const { return true; };
+	
 	/** model has history variables */
 	virtual bool HasHistory(void) const { return true; };
 
@@ -47,6 +50,9 @@ class MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
+	
+	/** initial stress */
+	void InitialStress(dSymMatrixT& Stress0);
 
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
@@ -77,12 +83,16 @@ class MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-
+    
+    /** set flag for writing iteration info */
+	void GetIterationInfo(bool get_iters, int loc_iters);
 protected:
 
 	/* set modulus */
 	virtual void SetModulus(dMatrixT& modulus); 
 	int loccheck;
+	
+	bool fGetItersInfo; // write global and local iteration info 
  
   private:
   
