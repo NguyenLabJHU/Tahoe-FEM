@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.h,v 1.2 2006-07-27 21:56:03 kyonten Exp $ */
+/* $Id: SMRSSNLHardT.h,v 1.3 2006-08-22 14:37:11 kyonten Exp $ */
 /* created: Karma Yonten  */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -59,7 +59,7 @@ public:
     void dqbardq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dqbardq);
     
     /* utility function */
-	double signof(double& r);
+	double signof(double r);
 	
 	/* off-diagonal terms of the reduced vector of the symmetric
 	 * matrix multiplied by 2 before dot-product operation   */
@@ -84,14 +84,12 @@ public:
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
-	enum InternalVariablesT {kchi = 18,  // stress-like internal state variable
-	                         kc   = 19,
-	                      ktanphi = 20,
-	                      ktanpsi = 21,
-                      kstressnorm = 22,  // norm of residuals
-                         kdlambda = 23,  // consistency parameter
-                         kplastic = 24,  // Plastic Index
-                          kftrial = 27}; // yield function value
+	enum InternalVariablesT {ktanphi = 18,
+	                      ktanpsi = 19,
+                      kstressnorm = 23,  // norm of residuals
+                         kdlambda = 21,  // consistency parameter
+                         kplastic = 22,  // Plastic Index
+                          kftrial = 20}; // yield function value
 
 	/** internal variables */
 	dArrayT& Internal(void) { return fInternal; };

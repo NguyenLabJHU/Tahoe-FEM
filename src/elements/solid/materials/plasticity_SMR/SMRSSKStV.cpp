@@ -1,4 +1,4 @@
-/* $Id: SMRSSKStV.cpp,v 1.1 2006-07-27 13:20:08 kyonten Exp $ */
+/* $Id: SMRSSKStV.cpp,v 1.2 2006-08-22 14:37:11 kyonten Exp $ */
 /* created: Majid T. Manzari (04/16/2001) */
 #include "SMRSSKStV.h"
 #include "SSMatSupportT.h"
@@ -22,7 +22,7 @@ static const char* Labels[kNumOutput] = {
 	    "Friction Angle",
 	    "Dilation Angle",
 	    "VM",  // Von Mises stress
-	    "press", // pressurefmo
+	    "press", // pressure
 	    "loccheck"}; // localization check	    
 
 /* constructor */
@@ -117,23 +117,21 @@ void SMRSSKStV::ComputeOutput(dArrayT& output)
 	s_ij();
 
 	/* pressure */
-	output[5] = fStress.Trace()/3.0;
+	output[3] = fStress.Trace()/3.0;
 
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
 	J2 = (J2 < 0.0) ? 0.0 : J2;
-	output[4] = sqrt(3.0*J2);
+	output[2] = sqrt(3.0*J2);
 	
 	/* stress-like internal variable chi */
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
 		dArrayT& internal = fSMR->Internal();
-		output[0] = internal[SMRSSNLHardT::kchi];
-		output[1] = internal[SMRSSNLHardT::kc];
-		output[2] = internal[SMRSSNLHardT::ktanphi];
-		output[3] = internal[SMRSSNLHardT::ktanpsi];
+		output[0] = internal[SMRSSNLHardT::ktanphi];
+		output[1] = internal[SMRSSNLHardT::ktanpsi];
 		
 		// check for localization
 		// compute modulus 
@@ -152,13 +150,13 @@ void SMRSSKStV::ComputeOutput(dArrayT& output)
 		double detA;
 		checkloc = checker.IsLocalized_SS(normals,slipdirs);
 		if (checkloc) output[6] = 1.0;
-		else output[6] = 0.0;
+		else output[4] = 0.0;
 		*/
-		output[6] = 0.0;
+		output[4] = 0.0;
 	}	
 	else
 	{
-		output[6] = 0.0;
+		output[4] = 0.0;
 	}
 }
 
@@ -209,7 +207,7 @@ void SMRSSKStV::TakeParameterList(const ParameterListT& list)
 	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
 	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
 
-	/* construct MR solver */
+	/* construct SMR solver */
 	fSMR = new SMRSSNLHardT(NumIP(), Mu(), Lambda());
 	fSMR->TakeParameterList(list.GetList("SMR_SS_nonlinear_hardening"));
 }

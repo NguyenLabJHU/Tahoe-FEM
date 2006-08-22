@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.cpp,v 1.3 2006-07-27 23:13:18 regueiro Exp $ */
+/* $Id: SMRSSNLHardT.cpp,v 1.4 2006-08-22 14:37:11 kyonten Exp $ */
 /* created: Karma Yonten */
 
 /* Interface for a nonassociative, small strain,      */
@@ -13,12 +13,10 @@
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* class constants */
-
 using namespace Tahoe;
 
-const int    kNumInternal = 31; // number of internal state variables
-const double kYieldTol    = 1.0e-8;
+/* class constants */
+const int    kNumInternal = 26; // number of internal state variables
 const int    kNSD         = 3;
 const int    kNSTR        = dSymMatrixT::NumValues(kNSD);
 const double ratio32      = 3.0/2.0;
@@ -60,23 +58,21 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
       const dSymMatrixT& totalstrain_curr,
       ElementCardT& element, int ip)
 {
-  	int kk, iplastic;
-	double ff, dlam, dlam2, normr;
+  	int kk,iplastic;
+	double ff,dlam,dlam2,normr;
   	
 	/* allocate matrices */
-    dMatrixT KE(6), AA(10), AA_inv(10), KE_Inv(6), CMAT(10);  
-    dMatrixT Auu_inv(6), Auq_inv(6,4), Aqu_inv(4,6), Aqq_inv(4);
-    dMatrixT dQdSig2(6), dQdSigdq(6,4), dqbardq(4), dqbardSig(4,6);
+    dMatrixT KE(6),KE_Inv(6),AA(8),AA_inv(8),Auu_inv(6),Auq_inv(6,2),
+             Aqu_inv(2,6),Aqq_inv(2),dQdSig2(6),dQdSigdq(6,2),
+             dqbardq(2),dqbardSig(2,6);
     
 	/* allocate reduced index vector of symmetric matrices */
-    dSymMatrixT u(3), up(3), upo(3), du(3), dup(3), ue(3);
-    dSymMatrixT Sig(3), Sig_I(3), Sig_trial(3), Sig_e(3);
+    dSymMatrixT u(3),up(3),upo(3),du(3),dup(3),ue(3),Sig(3),dSig(3),
+                Sig_e(3),dfdSig(3),dQdSig(3); 
     
     /* allocate vectors */
-    dArrayT Rvec(10), Cvec(10), R(10), Rmod(10), X(10), Y(10);
-    dArrayT qo(4), qn(4), dq(4), R_up(6), R_q(4), R2(10); 
-    dArrayT dfdSig(6), dfdq(4), dQdSig(6), qbar(4);  
-    dArrayT state(31);
+    dArrayT Rvec(8),Cvec(8),R(8),Rmod(8),X(8),qo(2),qn(2),dq(2),R2(8), 
+            dfdq(2),qbar(2),state(26);
 	
 	/* elastic moduli tensor */
 	KE = 0.0;
@@ -141,43 +137,38 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
 	
 	/* initialize and copy the necessary vectors */
     up.CopyPart(0, state, 12, up.Length());
-    upo = up;
     qn.CopyPart(0, state, 18, qn.Length());
-    qo = qn;
-    
+    upo = up; qo = qn;
     dup = 0.; dq = 0.;
     dlam = 0.; dlam2 = 0.; normr = 0.;
     
     /* calculate stress */
     ue.DiffOf(totalstrain_curr, up);
-    //KE.Multx(ue, Sig_e);
-    Sig_e.A_ijkl_B_kl(KE, ue); 
+    Sig_e.A_ijkl_B_kl(KE, ue);
+    //KE.Multx(ue, Sig_e); 
     Sig = Sig_e; 
     KE_Inv.Inverse(KE);
-  
+   
 /* check the yield function */
     ff = Yield_f(Sig, qn);
-    if (ff < kYieldTol) {
+    if (ff < fTol_1) {
       iplastic = 0;
-      state[27] = ff;
-      normr = 0.;
-      state[25] = normr;
       kk = 0;
     } 
     else {
-      state[27] = ff;
+      state[20] = ff;
       kk = 0;
       iplastic = 1;
       bool NotConverged = true;
       while (NotConverged) 
       {
-        if (kk > 100)
+        if (kk > 20)
         	ExceptionT::GeneralFail("SMRSSNLHardT::StressCorrection","Too Many Iterations");
         
         /* calculate stress */
         ue.DiffOf(totalstrain_curr, up);
-    	//KE.Multx(ue, Sig_e);
-    	Sig_e.A_ijkl_B_kl(KE, ue); 
+    	Sig_e.A_ijkl_B_kl(KE, ue);
+    	//KE.Multx(ue, Sig_e);  
     	Sig = Sig_e;
         
         /* check yield condition */
@@ -187,11 +178,11 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
         dQdSig_f(Sig, qn, dQdSig);
         qbar_f(Sig, qn, qbar);
 
-        for (int i = 0; i < 6; i++) {
+        for (int i=0; i<6; i++) {
           R[i]  = upo[i]-up[i];
           R[i] += dlam*dQdSig[i];
         }
-        for (int i = 0; i < 4; i++) {
+        for (int i=0; i<2; i++) {
           R[i+6]  = qo[i]-qn[i]; 
           R[i+6] += dlam*qbar[i]; 
         }
@@ -217,8 +208,7 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
         AA_inv.AddBlock(Auu_inv.Rows(), Auu_inv.Cols(), Aqq_inv);
        	AA.Inverse(AA_inv);
        	
-        /* calculate dlam2 */
-        dArrayT tmpVec(10); 
+        /* calculate dlam2 */ 
         dfdSig_f(Sig, qn, dfdSig);
         dfdq_f(Sig, dfdq);
         Rvec.CopyIn(0, dfdSig);
@@ -227,44 +217,42 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
         Cvec.CopyIn(dQdSig.Length(), qbar);
         
         /* include contribution of all off diagonal terms 
-         * in reduced vector of  symmetric matrices 
+         * in reduced vectors of symmetric matrices for 
+         * double contraction 
          * dfdSig, dQdSig, up */
         R2=R;
         for(int i = 0; i < 3; i++)
         {
-        	Rvec[i+3] = Rvec[i+3]*2.0;
-        	Cvec[i+3] = Cvec[i+3]*2.0; 
-        	R2[i+3] = R2[i+3]*2.0;
+        	Rvec[i+3] = Rvec[i+3]*2.;
+        	Cvec[i+3] = Cvec[i+3]*2.; 
+        	R2[i+3] = R[i+3]*2.;
         }
         
-        AA.Multx(R2, tmpVec);
-        double topp = (ff - dArrayT::Dot(Rvec, tmpVec));
-        AA.Multx(Cvec, tmpVec);
-        double bott = dArrayT::Dot(Rvec, tmpVec);
+        double topp = ff - AA.MultmBn(Rvec, R2);
+        double bott = AA.MultmBn(Rvec, Cvec);
         dlam2 = topp/bott;
         
         /* calculate dup and dq */
-        dMatrixT I_mat(4);
-        CMAT = 0.0;  
-        I_mat.Identity(-1.0);
-        CMAT.AddBlock(0, 0, KE_Inv);
-        CMAT.AddBlock(KE_Inv.Rows(), KE_Inv.Cols(), I_mat);
         Rmod.CopyIn(0, dQdSig);
         Rmod.CopyIn(dQdSig.Length(), qbar);
         Rmod *= dlam2;
-        Rmod += R; 
+        Rmod += R;
+        Rmod *= -1.; 
         AA.Multx(Rmod, X);
-        CMAT.Multx(X, Y);
-        dup.CopyPart(0, Y, 0, dup.Length());
-        dq.CopyPart(0, Y, dup.Length(), dq.Length());
+        dSig.CopyPart(0, X, 0, dSig.Length());
+        dq.CopyPart(0, X, dSig.Length(), dq.Length());
         
         /* update internal variables and plastic multiplier */
+        KE_Inv.Multx(dSig,dup);
+        dup *= -1.;
         up += dup;
         qn += dq;
-        dlam += dlam2;                                                                                                                                                                                                                                                                                                    
+        dlam += dlam2;
+                                                                                                                                                                                                                                                                                                            
         /*
+        // check the local convergence
         if(ip == 0 ) { 
-        	cout << "ip="<< ip <<" kk=" << kk << " ff=" << ff << " normr=" << normr
+        	cout << "kk=" << kk << " ff=" << ff << " normr=" << normr
              	 << " dlam2=" << dlam2 << " dlam=" << dlam << endl << endl;
         }
         */
@@ -279,24 +267,24 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
         }
         
       } // while (NotConverged)
-    } // if (ff < kYieldTol)
+    } // if (ff < fTol_1)
     
     /* update state variables */
     state.CopyIn(0, Sig);
     state.CopyIn(Sig.Length(), totalstrain_curr); 	   
 	state.CopyIn(12, up);
 	state.CopyIn(18, qn);
-	state[22] = ff;
-	state[23] = dlam;
-	state[24] = double(iplastic);
-	state[25] = normr;
-	state[26] = double(kk);
+	state[20] = ff;
+	state[21] = dlam;
+	state[22] = double(iplastic);
+	state[23] = normr;
+	state[24] = double(kk);
 	
 	fStressCorr = Sig;
 	if (iplastic == 1) {
    		/* indicator during the first elastic to plastic transition
    		 * use qn from the fInternal(i.e. plastic) and not elastic qn in second plastic step */ 
-   		state[30] = 1.; 
+   		state[25] = 1.; 
    		
 	   	fInternal.CopyIn(0, state);
 	   	fPlasticStrain = up;
@@ -313,12 +301,12 @@ double SMRSSNLHardT::Yield_f(const dSymMatrixT& Sig,
 			const dArrayT& qn)
 {
   dSymMatrixT Sig_Dev(3);
-  double ffriction = qn[2]; 
-  double fpress = Sig.Trace()/3.0;
+  double ftan_phi = qn[0]; 
+  double p = Sig.Trace()/3.0;
   
   Sig_Dev.Deviatoric(Sig);
-  double temp  = (Sig_Dev.ScalarProduct())/2.0;
-  double ff = sqrt(3.*temp) + (ffriction*fpress) - fc;
+  double q  = sqrt((Sig_Dev.ScalarProduct())*ratio32);
+  double ff = q + (ftan_phi*p) - fc;
   return ff;
 }
 
@@ -326,12 +314,11 @@ double SMRSSNLHardT::Yield_f(const dSymMatrixT& Sig,
 void SMRSSNLHardT::dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 {
    dSymMatrixT Sig_Dev(3);
-   double ftan_phi = qn[2]; 
+   double ftan_phi = qn[0]; 
    
    Sig_Dev.Deviatoric(Sig);
-   double temp  = (Sig_Dev.ScalarProduct())/2.0;
-   double deno = 2.*sqrt(3.*temp)/3.;
-   Sig_Dev /= deno;
+   double q  = sqrt((Sig_Dev.ScalarProduct())*ratio32);
+   Sig_Dev *= ratio32/q;
    dfdSig=0.0;
    for (int i = 0; i < 6; i++)
    		if (i < 3)  
@@ -343,21 +330,20 @@ void SMRSSNLHardT::dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& 
 /* calculation of dfdq_f */
 void SMRSSNLHardT::dfdq_f(const dSymMatrixT& Sig, dArrayT& dfdq)
 {
-   double Sig_p = Sig.Trace()/3.0;
+   double p = Sig.Trace()/3.0;
    dfdq = 0.0;
-   dfdq[2] = Sig_p;
+   dfdq[0] = p;
 }
 
 /* calculation of dQdSig_f */
 void SMRSSNLHardT::dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig)
 {
    dSymMatrixT Sig_Dev(3);
-   double ftan_psi = qn[3];
+   double ftan_psi = qn[1];
    
    Sig_Dev.Deviatoric(Sig);
-   double temp  = (Sig_Dev.ScalarProduct())/2.0;
-   double deno = 2.*sqrt(3.*temp)/3.;
-   Sig_Dev /= deno;
+   double q  = sqrt((Sig_Dev.ScalarProduct())*ratio32);
+   Sig_Dev *= ratio32/q;
    dQdSig=0.0;
    for (int i = 0; i < 6; i++)
    		if (i < 3)  
@@ -369,28 +355,23 @@ void SMRSSNLHardT::dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& 
 /* calculation of dQdSig2_f */
 void SMRSSNLHardT::dQdSig2_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dQdSig2)
 {
-  dSymMatrixT Sig_Dev(3); 
-  dMatrixT I_mat(6), I(3), matrix2(6);
-  double ftan_psi = qn[3];
+  dSymMatrixT Sig_Dev(3), Ones(3); 
+  dMatrixT I_mat(6),I(3),matrix2(6);
+  double ftan_psi = qn[1];
   
   Sig_Dev.Deviatoric(Sig);
-  double temp  = (Sig_Dev.ScalarProduct())/2.0;
-  double q = sqrt(3.*temp);
-  I_mat = 0.;
-  for (int i = 0; i < 3; i++) 
-  {
-     for (int j = 0; j < 3; j++) 
-     	I_mat(i,j) = 1.;
-  }
-  dQdSig2=0.0;
+  double q  = sqrt((Sig_Dev.ScalarProduct())*ratio32);
+  Ones.Identity();
+  I_mat.Outer(Ones,Ones);
   I_mat /= 3.0;
+  dQdSig2=0.0;
   dQdSig2.Identity(); 
   dQdSig2 -= I_mat;
   dQdSig2 /= q; 
   matrix2.Outer(Sig_Dev,Sig_Dev);
-  matrix2 /= (2.*q*q*q/3.);
+  matrix2 *= ratio32/(q*q*q);
   dQdSig2 -= matrix2;
-  dQdSig2 /= 2./3.;
+  dQdSig2 *= ratio32;
 }
 
 /* calculation of dQdSigdq_f */
@@ -398,52 +379,49 @@ void SMRSSNLHardT::dQdSigdq_f(dMatrixT& dQdSigdq)
 {
   dQdSigdq = 0.;
   for (int i = 0; i < 3; i++)
-  	dQdSigdq(i,3) = 1.0/3.0;
+  	dQdSigdq(i,1) = 1.0/3.0;
 }
 
 /* calculation of qbar_f */
 void SMRSSNLHardT::qbar_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& qbar)
 {
-   dSymMatrixT Sig_Dev(3), B2(3), B3(3), dQdS(3); 
-   double ftan_phi = qn[2];
-   double ftan_psi = qn[3]; 
+   dSymMatrixT Sig_Dev(3),B2(3),B3(3),dQdS(3); 
+   double ftan_phi = qn[0];
+   double ftan_psi = qn[1]; 
    double A3 = -falpha_phi*(ftan_phi - tan(fphi_r));
    double A4 = -falpha_psi*ftan_psi;
    
    Sig_Dev.Deviatoric(Sig);
-   double temp  = (Sig_Dev.ScalarProduct())/2.0;
-   double deno = 2.*sqrt(3.*temp)/3.;
-   dQdS.SetToScaled(1.0/deno,Sig_Dev);
+   double q  = sqrt((Sig_Dev.ScalarProduct())*ratio32);
+   dQdS.SetToScaled(ratio32/q,Sig_Dev);
    B3.SetToScaled(1.0/fGf_II,Sig_Dev);
    qbar = 0.0;   
-   qbar[2]  = A3*B3.ScalarProduct(dQdS); 
-   qbar[3]  = A4*B3.ScalarProduct(dQdS); 
+   qbar[0]  = A3*B3.ScalarProduct(dQdS); 
+   qbar[1]  = A4*B3.ScalarProduct(dQdS); 
  }
  
 /* calculation of dqbardSig_f */
 void SMRSSNLHardT::dqbardSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dqbardSig)
 {
-   dSymMatrixT dhtanphi_dSig(3), dhtanpsi_dSig(3);
-   dSymMatrixT Sig_Dev(3), B2(3), B3(3), dQdS(3), dB3dS_dQdS(3), B3_dQdQ_dSdS(3);
+   dSymMatrixT dhtanphi_dSig(3),dhtanpsi_dSig(3),Sig_Dev(3), 
+               B2(3),B3(3),dQdS(3),dB3dS_dQdS(3),B3_dQdQ_dSdS(3);
    dMatrixT tempmat(6);
    
-   double ftan_phi = qn[2];
-   double ftan_psi = qn[3]; 
+   double ftan_phi = qn[0];
+   double ftan_psi = qn[1]; 
    double A3 = -falpha_phi*(ftan_phi - tan(fphi_r));
    double A4 = -falpha_psi*ftan_psi;
    
    Sig_Dev.Deviatoric(Sig);
-   double temp  = (Sig_Dev.ScalarProduct())/2.0;
-   double q = sqrt(3.*temp);
-   double deno = 2.*q/3.;
-   dQdS.SetToScaled(1.0/deno,Sig_Dev);
+   double q  = sqrt((Sig_Dev.ScalarProduct())*ratio32);
+   dQdS.SetToScaled(ratio32/q,Sig_Dev);
    B3.SetToScaled(1.0/fGf_II, Sig_Dev);
    tempmat.Outer(Sig_Dev,Sig_Dev);
    //tempmat.Multx(Sig_Dev, B3_dQdQ_dSdS);
    Contract4To2(tempmat,Sig_Dev,B3_dQdQ_dSdS);
-   B3_dQdQ_dSdS /= -2.*q*q*q/3.;
+   B3_dQdQ_dSdS *= -ratio32/(q*q*q);
    B3_dQdQ_dSdS.AddScaled(1./q, Sig_Dev);
-   B3_dQdQ_dSdS /= (2.*fGf_II)/3.;
+   B3_dQdQ_dSdS *= ratio32/fGf_II;
    dB3dS_dQdS.SetToScaled(1.0/fGf_II, dQdS);
    dhtanphi_dSig  = B3_dQdQ_dSdS;
    dhtanphi_dSig += dB3dS_dQdS;
@@ -453,39 +431,38 @@ void SMRSSNLHardT::dqbardSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatri
    dhtanpsi_dSig *= A4;
    
    dqbardSig = 0.0;
-   dqbardSig(2,0) = dhtanphi_dSig[0];
-   dqbardSig(2,1) = dhtanphi_dSig[1];
-   dqbardSig(2,2) = dhtanphi_dSig[2];
-   dqbardSig(2,3) = dhtanphi_dSig[3];
-   dqbardSig(2,4) = dhtanphi_dSig[4];
-   dqbardSig(2,5) = dhtanphi_dSig[5];
-   dqbardSig(3,0) = dhtanpsi_dSig[0];
-   dqbardSig(3,1) = dhtanpsi_dSig[1];
-   dqbardSig(3,2) = dhtanpsi_dSig[2];
-   dqbardSig(3,3) = dhtanpsi_dSig[3];
-   dqbardSig(3,4) = dhtanpsi_dSig[4];
-   dqbardSig(3,5) = dhtanpsi_dSig[5];
+   dqbardSig(0,0) = dhtanphi_dSig[0];
+   dqbardSig(0,1) = dhtanphi_dSig[1];
+   dqbardSig(0,2) = dhtanphi_dSig[2];
+   dqbardSig(0,3) = dhtanphi_dSig[3];
+   dqbardSig(0,4) = dhtanphi_dSig[4];
+   dqbardSig(0,5) = dhtanphi_dSig[5];
+   dqbardSig(1,0) = dhtanpsi_dSig[0];
+   dqbardSig(1,1) = dhtanpsi_dSig[1];
+   dqbardSig(1,2) = dhtanpsi_dSig[2];
+   dqbardSig(1,3) = dhtanpsi_dSig[3];
+   dqbardSig(1,4) = dhtanpsi_dSig[4];
+   dqbardSig(1,5) = dhtanpsi_dSig[5];
 }
   
 /* calculation of dqbardq_f */
 void SMRSSNLHardT::dqbardq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dqbardq)
 {
-   dSymMatrixT Sig_Dev(3), B2(3), B3(3), dQdS(3);
+   dSymMatrixT Sig_Dev(3),B2(3),B3(3),dQdS(3);
    
-   double ftan_phi = qn[2];
-   double ftan_psi = qn[3]; 
+   double ftan_phi = qn[0];
+   double ftan_psi = qn[1]; 
    double A3 = -falpha_phi*(ftan_phi - tan(fphi_r));
    double A4 = -falpha_psi*ftan_psi;
    
    Sig_Dev.Deviatoric(Sig);
-   double temp  = (Sig_Dev.ScalarProduct())/2.0;
-   double deno = 2.*sqrt(3.*temp)/3.;
-   dQdS.SetToScaled(1.0/deno,Sig_Dev);
+   double q  = sqrt((Sig_Dev.ScalarProduct())*ratio32);
+   dQdS.SetToScaled(ratio32/q,Sig_Dev);
    B3.SetToScaled(1.0/fGf_II, Sig_Dev);
    double B3dQdS = B3.ScalarProduct(dQdS); 
    dqbardq = 0.0;
-   dqbardq(2,2)  = -falpha_phi*B3dQdS;
-   dqbardq(3,3)  = -falpha_psi*B3dQdS;
+   dqbardq(0,0)  = -falpha_phi*B3dQdS;
+   dqbardq(1,1)  = -falpha_psi*B3dQdS;
 }
 
 /* return the consistent elastoplastic moduli 
@@ -496,24 +473,20 @@ void SMRSSNLHardT::dqbardq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT
 const dMatrixT& SMRSSNLHardT::Moduli(const ElementCardT& element, 
 	int ip)
 {
-	 double dlam;
-	 
 	  /* allocate matrices */
-     dMatrixT KE(6), AA(10), AA_inv(10), CMAT(10), KE_Inv(6); 
-     dMatrixT Auu_inv(6), Auq_inv(6,4), Aqu_inv(4,6), Aqq_inv(4);
-     dMatrixT Auu_Aqu(10,6);
-     dMatrixT dQdSig2(6), dqbardq(4), dQdSigdq(6,4), dqbardSig(4,6);
-     dMatrixT KP(6), KP2(6), KEP(6), KES(6), KES_Inv(6);
-     dMatrixT Ch(4), Ch_Inv(4), KE2(6), KE4(4,6);
+     dMatrixT KE(6),AA(8),AA_inv(8),TT(8),KE_Inv(6), 
+              Auu_inv(6),Auq_inv(6,2),Aqu_inv(2,6),Aqq_inv(2),
+              dQdSig2(6),dqbardq(2),dQdSigdq(6,2),dqbardSig(2,6),
+              KP(6),KEP(6);
      
      /* allocate reduced index vector of symmetric matrices */
-     dSymMatrixT Sig(3);  
+     dSymMatrixT Sig(3),dfdSig(3),dQdSig(3);  
      
      /* allocate vectors */   
-     dArrayT dfdSig(6), dfdq(4), dQdSig(6), qbar(4);
-     dArrayT qn(4), Rvec(10), Rvec2(10), Cvec(10);
+     dArrayT dfdq(2),qbar(2),qn(2),Rvec(8),Cvec(8),
+             vec1(8),vec2(8);
      
-    /* elastic moduli tensor */
+	/* elastic moduli tensor */
 	KE = 0.0;
 	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
 	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
@@ -526,106 +499,70 @@ const dMatrixT& SMRSSNLHardT::Moduli(const ElementCardT& element,
 	  	LoadData(element, ip);
 	  	Sig.CopyPart(0, fInternal, 0, Sig.Length());
     	qn.CopyPart(0, fInternal, 18, qn.Length());
+    	double dlam = fInternal[kdlambda];
 		KE_Inv.Inverse(KE);
 		
-		if(fInternal[kplastic] == 0.) 
-			fModuli = KE;
-		else 
-		{
-			/* calculate the first part of Cep */
-			dlam = fInternal[kdlambda];
-	  		dQdSig2_f(Sig, qn, dQdSig2);
-	    	dqbardSig_f(Sig, qn, dqbardSig);
-	    	dqbardq_f(Sig, qn, dqbardq);
-	    	dQdSigdq_f(dQdSigdq);
-	    	Ch.SetToScaled(-dlam, dqbardq);
-	    	Ch.PlusIdentity();
-	    	Ch_Inv.Inverse(Ch);
-	    	KES.MultABC(dQdSigdq,Ch_Inv,dqbardSig);
-	    	KES *= (dlam*dlam);
-	    	KE2.SetToScaled(dlam, dQdSig2);
-	    	KES += KE2;
-	    	KES += KE_Inv;
-	    	KES_Inv.Inverse(KES);
-	    
-        	/* form AA_inv matrix and calculate AA */
-        	Auu_inv.SetToScaled(dlam, dQdSig2);
-        	Auu_inv += KE_Inv;
-        	Auq_inv.SetToScaled(dlam, dQdSigdq);
-        	Aqu_inv.SetToScaled(dlam, dqbardSig);
-        	Aqq_inv.SetToScaled(dlam, dqbardq);
-        	Aqq_inv.PlusIdentity(-1.0);
-        	AA_inv = 0.0;
-        	AA_inv.AddBlock(0,           0,           Auu_inv);
-        	AA_inv.AddBlock(0,           Auu_inv.Cols(), Auq_inv);
-        	AA_inv.AddBlock(Auu_inv.Rows(), 0,           Aqu_inv);
-        	AA_inv.AddBlock(Auu_inv.Rows(), Auu_inv.Cols(), Aqq_inv);
-        	AA.Inverse(AA_inv);
+		
+	    /* calculate C_EPC */
+        /* form AA_inv matrix and calculate AA */
+        dQdSig2_f(Sig, qn, dQdSig2);
+        dQdSigdq_f(dQdSigdq);
+        dqbardSig_f(Sig, qn, dqbardSig);
+        dqbardq_f(Sig, qn, dqbardq);
+        Auu_inv.SetToScaled(dlam, dQdSig2);
+        Auu_inv += KE_Inv;
+        Auq_inv.SetToScaled(dlam, dQdSigdq);
+        Aqu_inv.SetToScaled(dlam, dqbardSig);
+        Aqq_inv.SetToScaled(dlam, dqbardq);
+        Aqq_inv.PlusIdentity(-1.0);
+        AA_inv = 0.0;
+        AA_inv.AddBlock(0,           0,           Auu_inv);
+        AA_inv.AddBlock(0,           Auu_inv.Cols(), Auq_inv);
+        AA_inv.AddBlock(Auu_inv.Rows(), 0,           Aqu_inv);
+        AA_inv.AddBlock(Auu_inv.Rows(), Auu_inv.Cols(), Aqq_inv);
+       	AA.Inverse(AA_inv);
 	
-        	/* calculate second part of Cep */
-        	dArrayT tmpVec(10), Vvec(6);
-        	dMatrixT Rvec_t(1,10),Vvec_t(1,6);
-        	dfdSig_f(Sig, qn, dfdSig);
-        	dfdq_f(Sig,dfdq);
-        	dQdSig_f(Sig, qn, dQdSig);
-        	qbar_f(Sig, qn, qbar);
-        	Rvec.CopyIn(0, dfdSig);
-        	Rvec.CopyIn(dfdSig.Length(), dfdq);
-        	Cvec.CopyIn(0, dQdSig);
-        	Cvec.CopyIn(dQdSig.Length(), qbar);
+        dfdSig_f(Sig, qn, dfdSig);
+        dfdq_f(Sig, dfdq);
+        dQdSig_f(Sig, qn, dQdSig);
+        qbar_f(Sig, qn, qbar);
         	
-        	/* include contribution of all off diagonal terms 
-             * in reduced vector of  symmetric matrices 
-             * dfdSig and dQdSig  */
-            Rvec2 = Rvec;
-            for(int i = 0; i < 3; i++)
-            {
-        	    Rvec2[i+3] = Rvec2[i+3]*2.0;
-        	    Cvec[i+3] = Cvec[i+3]*2.0; 
-            }
-        	AA.Multx(Cvec, tmpVec);
-        	double H = dArrayT::Dot(Rvec2, tmpVec); /* H (scalar) */
-        	
-        	/* collect Auu and Aqu into Auu_Aqu */
-        	for (int i = 0; i < 10; i++)
-        		for (int j = 0; j < 6; j++) 
-        			Auu_Aqu(i,j) = AA(i,j);
-            for (int i=0; i<10; i++) //transpose Rvec
-        	   Rvec_t(0,i)=Rvec[i];
-            Vvec_t.MultAB(Rvec_t,Auu_Aqu); /* V (vector) */ 
-            for (int i=0; i<6; i++) 
-        	   Vvec[i]=Vvec_t(0,i);     
-        	KP.Outer(dQdSig,Vvec);  
-        	KE4.Outer(qbar,Vvec);
-        	KP2.MultABC(dQdSigdq,Ch_Inv,KE4);
-	    	KP2 *= dlam;
-	    	KP += KP2;
-	    	KP /= -H;
-        	KP.PlusIdentity();
-        
-        	/* calculate Cep */
-        	KEP.MultAB(KES_Inv, KP);
-        	
-        	/* continuum jacobian, i.e., "inconsistent" tangent operator */
-   			dMatrixT dfmat(6,1),dQmat(6,1);
-   			for (int i=0; i<6; i++) {
-   			   if (i>2) {
-   			      dfdSig[i] *= 2.;
-   			      dfdSig[i] *= 2.;
-   			   }
-   			   dfmat(i,0) = dfdSig[i];
-   			   dQmat(i,0) = dQdSig[i];
-   			}
+        /* include contribution of all off diagonal terms 
+         * in reduced vectors of symmetric matrices 
+         * dfdSig and dQdSig  */
+        for (int i=0; i<3; i++) {
+   			 dfdSig[i+3] *= 2.;
+   			 dQdSig[i+3] *= 2.;
+   		}
    			
-   			KP2.MultABCT(KE,dQmat,dfmat);
-   			KP.MultAB(KP2,KE);
-   			double bott=KE.MultmBn(dQdSig,dfdSig);
-   			bott-=dArrayT::Dot(dfdq,qbar);
-   			KP/=bott;
-   			//KEP.DiffOf(KE,KP); //uncomment to activate continuum jacobian
+        Rvec.CopyIn(0, dfdSig);
+        Rvec.CopyIn(dfdSig.Length(), dfdq);
+        Cvec.CopyIn(0, dQdSig);
+        Cvec.CopyIn(dQdSig.Length(), qbar);
+        double H = AA.MultmBn(Rvec, Cvec); /* H (scalar) */
+        AA.Multx(Cvec, vec1);
+        AA.MultTx(Rvec, vec2);
+        TT.Outer(vec1, vec2);
+        TT /= H;
+        AA -= TT;
+        for (int i=0; i<6; i++)
+        	for (int j=0; j<6; j++)
+        	    KEP(i,j) = AA(i,j);
+        	
+        /*************************************************************/
+        /* continuum jacobian, i.e., "inconsistent" tangent operator */
+   		dArrayT KE_dfdSig(6),KE_dQdSig(6);
+   		KE.Multx(dfdSig, KE_dfdSig);
+   		KE.Multx(dQdSig, KE_dQdSig);
+   		KP.Outer(KE_dfdSig, KE_dQdSig);
+   		double bott = KE.MultmBn(dfdSig,dQdSig);
+   		bott -= dArrayT::Dot(dfdq,qbar);
+   		KP /= bott;
+   		//KEP.DiffOf(KE,KP); //uncomment to activate continuum jacobian
+   		/*************************************************************/
    			
-	    	fModuli = KEP;
-	    }
+	    fModuli = KEP;
+	    
 	}
 	else
 		fModuli = KE;
@@ -762,7 +699,7 @@ int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 		double esp  = 0.;
         double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
 		return(YieldCondition(DeviatoricStress(trialstrain,element),
-			       MeanStress(trialstrain,element),ftan_phi,fc) > kYieldTol );
+			       MeanStress(trialstrain,element),ftan_phi,fc) > fTol_1 );
 	}
         /* already plastic */
 	else 
@@ -773,7 +710,7 @@ int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 	/* load internal variables */
 	LoadData(element, ip);
 	
-	if(fInternal[30] == 0.) {
+	if(fInternal[25] == 0.) {
 		double esp = 0.;
     	fInternal[ktanphi] = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
 		fInternal[ktanpsi] = (tan(fphi_p))*exp(-falpha_psi*esp);
@@ -785,7 +722,7 @@ int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 			             MeanStress(elasticstrain,element),fInternal[ktanphi],fc);
 
 		/* plastic */
-		if (fInternal[kftrial] > kYieldTol)
+		if (fInternal[kftrial] > fTol_1)
 		{		
 			/* set flag */
 			Flags[ip] = kIsPlastic;
@@ -801,7 +738,7 @@ int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 	}
 }	
 
-/* Computes the stress corresponding to the given element
+/* computes the stress corresponding to the given element
  * and elastic strain.  The function returns a reference to the
  * stress in fDevStress */
 dSymMatrixT& SMRSSNLHardT::DeviatoricStress(const dSymMatrixT& trialstrain,
@@ -828,7 +765,7 @@ double SMRSSNLHardT::MeanStress(const dSymMatrixT& trialstrain,
   return fMeanStress;
 }
 
-double SMRSSNLHardT::signof(double& r)
+double SMRSSNLHardT::signof(double r)
 {
 	if (fabs(r) < kSmall)
 		return 0.;
