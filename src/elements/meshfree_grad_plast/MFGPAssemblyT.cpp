@@ -1,4 +1,4 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.16 2005-12-23 03:45:43 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.17 2006-08-23 21:59:24 kyonten Exp $ */
 #include "MFGPAssemblyT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -847,8 +847,6 @@ void MFGPAssemblyT::SetLocalArrays(void)
 	/* set local arrays for geometry */
 	fInitCoords_displ.Dimension(nen_displ, nsd);
 	fInitCoords_plast.Dimension(nen_plast, nsd);
-	//fCurrCoords_displ.Dimension(n_en_displ, n_sd);
-	//fCurrCoords_plast.Dimension(n_en_plast, n_sd);
 	
 	/* register local arrays */
 	ElementSupport().RegisterCoordinates(fInitCoords_displ);
@@ -1989,19 +1987,20 @@ void MFGPAssemblyT::ApplyLambdaBC(const iArrayT& nodes)
  before or after penalty number is added */
 void MFGPAssemblyT::PrintStiffness(StringT before_after, int step_num) const
 {
-	StringT file_name; int e = CurrElementNumber(); 
-	if(before_after == "before_penalty") {			
-		/* one output for each element */
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_stiffness.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_stiffness.";
-	}
-	else if (before_after == "after_penalty") {
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_stiffness.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_stiffness.";
-	}
-	file_name.Append(e); // append element number to output string
-	file_name.Append(".");
-	file_name.Append(step_num); // append load step number
+	/* write data */
+	const StringT& input_file = ElementSupport().InputFile();
+	
+	/* output filenames */
+	StringT file_name, fname;
+	int e = CurrElementNumber(); // element number 
+	if(before_after == "before_penalty")		
+		fname = ".bp_stiffness.";
+	else if (before_after == "after_penalty") 
+		fname = ".ap_stiffness.";
+		
+	file_name.Root(input_file);
+	file_name.Append(fname,step_num); 
+	file_name.Append(".",e);
 	file_name.Append(".txt");
 	ofstream output(file_name);
 	if (!output) {
@@ -2053,19 +2052,20 @@ void MFGPAssemblyT::PrintStiffness(StringT before_after, int step_num) const
     before and after applying penalty method on lambda */
 void MFGPAssemblyT::PrintInternalForces(StringT before_after, int step_num) const
 {
-	StringT file_name; int e = CurrElementNumber(); 
-	if(before_after == "before_penalty") {			
-		/* one output for each element */
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/bp_int_force.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/bp_int_force.";
-	}
-	else if (before_after == "after_penalty") {
-		//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/ap_int_force.";
-		file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/ap_int_force.";
-	}
-	file_name.Append(e); // append element number to output string
-	file_name.Append(".");
-	file_name.Append(step_num); // append load step number
+	/* write data */
+	const StringT& input_file = ElementSupport().InputFile();
+	
+	/* output filenames */
+	StringT file_name, fname;
+	int e = CurrElementNumber(); // element number 
+	if(before_after == "before_penalty")		
+		fname = ".bp_iforce.";
+	else if (before_after == "after_penalty") 
+		fname = ".ap_iforce.";
+		
+	file_name.Root(input_file);
+	file_name.Append(fname,step_num); 
+	file_name.Append(".",e);
 	file_name.Append(".txt");
 	ofstream output(file_name);
 	if (!output) {
