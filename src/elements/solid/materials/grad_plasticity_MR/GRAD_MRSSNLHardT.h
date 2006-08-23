@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.h,v 1.14 2005-11-22 18:27:19 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.h,v 1.15 2006-08-23 21:57:03 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -54,11 +54,11 @@ public:
 	    const dSymMatrixT& lap_trialstrain, const dArrayT& traillambda, const dArrayT& lap_triallambda,  
 		ElementCardT& element, int ip); // dlam and lap_dlam at the ip     
 		
-	void yield_f(const dSymMatrixT& Sig, const dArrayT& qn, double& ff);
+	double yield_f(const dSymMatrixT& Sig, const dArrayT& qn);
 	void n_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);
     void r_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdq);
     void m_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig);       
-    void dmdSig_f(const dArrayT& qn, dMatrixT& dmdSig);
+    void dmdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dmdSig);
     void dmdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dmdq);
     void h_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& hh);
     void dhdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dhdSig);
@@ -69,7 +69,12 @@ public:
     void dgdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dgdq);
     
     /* utility function */
-	double signof(double& r);
+	double signof(double r);
+	
+	/* double contraction of fourth order tensor with second
+	 * order tensor    */
+	void Contract4To2(const dMatrixT& mat,const dSymMatrixT& vec, 
+	                  dSymMatrixT& res);
 
 	/* return the correction to moduli due to plasticity (if any)
 	 *

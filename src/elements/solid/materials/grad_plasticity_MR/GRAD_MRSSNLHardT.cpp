@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.30 2006-01-09 21:08:59 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.31 2006-08-23 21:57:03 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -25,6 +25,7 @@ const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 const int    kNSTR        = dSymMatrixT::NumValues(kNSD);
 const double ratio23      = 2.0/3.0;
+const double ratio32      = 3.0/2.0;
 
 /* constructor */
 GRAD_MRSSNLHardT::GRAD_MRSSNLHardT(int num_ip, double mu, double lambda):
@@ -88,23 +89,21 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
   	double ff;
 
     /* define and allocate matrices */ 
-    dMatrixT KE(6), KE_AST(6), dhdSig(4,6), dhdq(4), dhdm(4,6);
-    dMatrixT dgdSig(4,6), dgdq(4);
-    dMatrixT dmdSig(6), dmdq(6,4);
-    dMatrixT dRSig_dSig(6), dRSig_dq(6,4), RSigq_qq(6,4); 
-    dMatrixT dRq_dSig(4,6), dRq_dq(4), dRq_dq_Inv(4); 
-    dMatrixT RRq_dqdSig(4,6), Y(6), Y_Inv(6);
+    dMatrixT KE(6),KE_AST(6),dhdSig(4,6),dhdq(4),dhdm(4,6),
+             dgdSig(4,6),dgdq(4),dmdSig(6),dmdq(6,4),
+             dRSig_dSig(6),dRSig_dq(6,4),RSigq_qq(6,4), 
+             dRq_dSig(4,6),dRq_dq(4),dRq_dq_Inv(4), 
+             RRq_dqdSig(4,6),Y(6),Y_Inv(6);
     
     /* reduced index vectors of symmetric matrices */
-    dSymMatrixT u(3), up(3), du(3), dup(3), upo(3); 
-    dSymMatrixT lap_u(3), lap_up(3), lap_du(3), lap_dup(3), lap_upo(3); 
-    dSymMatrixT Sig(3), dSig(3), Sig_I(3),  Sig_trial(3);
-    dSymMatrixT ue(3), lap_ue(3), Sig_e(3), lap_Sig_e(3); 
+    dSymMatrixT u(3),up(3),du(3),dup(3),upo(3), 
+                lap_u(3),lap_up(3),lap_du(3),lap_dup(3),lap_upo(3), 
+                Sig(3),dSig(3),Sig_I(3),Sig_trial(3),
+                ue(3),lap_ue(3),Sig_e(3),lap_Sig_e(3); 
      
     /* define and allocate vectors */ 
-    dArrayT qn(4), dq(4), qo(4);
-    dArrayT mm(6), rr(4), nn(6), hh(4), gg(4); 
-    dArrayT state(40), ls(2), RSig(6), Rq(4);
+    dArrayT qn(4),dq(4),qo(4),mm(6),rr(4),nn(6),hh(4),gg(4), 
+            state(40),ls(2),RSig(6),Rq(4);
     
     /* initialize */
     fIniInternal = 0.;
@@ -199,7 +198,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
  	//cout << "lap_u = " << lap_u << endl;
  	//cout << "lap_up = " << lap_up << endl;
 /* calculate the yield function */
-    yield_f(Sig, qn, ff);
+    ff = yield_f(Sig, qn);
     //cout << "ff = " << ff << endl;
     
     if (ff < kYieldTol) 
@@ -212,7 +211,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     	cout << "positive dlam " << dlam << endl;
     	/* calculate all the necessary derivatives */
    		m_f(Sig, qn, mm); 
-   		dmdSig_f(qn, dmdSig); 
+   		dmdSig_f(Sig, qn, dmdSig); 
    		dmdq_f(Sig, qn, dmdq);
     	h_f(Sig, qn, hh); 
     	dhdSig_f(Sig, qn, dhdSig); 
@@ -323,8 +322,8 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 }	//end StressCorrection
 
 /* calculation of the yield function */
-void GRAD_MRSSNLHardT::yield_f(const dSymMatrixT& Sig, 
-			const dArrayT& qn, double& ff)
+double GRAD_MRSSNLHardT::yield_f(const dSymMatrixT& Sig, 
+			const dArrayT& qn)
 {
   dSymMatrixT Sig_Dev(3);
   double fchi = qn[0];
@@ -333,104 +332,142 @@ void GRAD_MRSSNLHardT::yield_f(const dSymMatrixT& Sig,
   double fpress = Sig.Trace()/3.0;
   
   Sig_Dev.Deviatoric(Sig);
-  ff = (Sig_Dev.ScalarProduct())/2.0;
-  ff -= pow((fc - ffriction*fpress), 2);
-  ff += pow((fc - ffriction*fchi), 2);
+  double temp  = (Sig_Dev.ScalarProduct())/2.0;
+  double temp2 = fc - ffriction*fchi;
+  double temp3 = temp2 * temp2;
+  temp += temp3;
+  double ff = sqrt(temp)-(fc - ffriction*fpress); 
+  return ff;
 }
 
 /* calculation of dfdSig_f or n_f*/
 void GRAD_MRSSNLHardT::n_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 {
+   dSymMatrixT Sig_Dev(3);
+   double fchi = qn[0];
    double fc = qn[1];
    double ftan_phi = qn[2]; 
    double Sig_p = Sig.Trace()/3.0;
    
-   dfdSig[0] = Sig[0] - Sig_p;
-   dfdSig[1] = Sig[1] - Sig_p;
-   dfdSig[2] = Sig[2] - Sig_p;
-   dfdSig[3] = Sig[3];
-   dfdSig[4] = Sig[4];
-   dfdSig[5] = Sig[5];
-
-   double temp  = ratio23*ftan_phi;
-   temp *= (fc - Sig_p*ftan_phi);
-   for (int i = 0; i < 3; i++) 
-   		dfdSig[i] += temp;
+   Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   double temp2 = fc - ftan_phi*fchi;
+   double temp3 = temp2 * temp2;
+   temp += temp3;
+   double deno = 2.0*sqrt(temp);
+   Sig_Dev /= deno;
+   dfdSig=0.0;
+   for (int i = 0; i < 6; i++) 
+   		if (i < 3)  
+   			dfdSig[i] = Sig_Dev[i] + (ftan_phi/3.0);
+   		else 
+   			dfdSig[i] = Sig_Dev[i];
 }
 
 /* calculation of dfdq_f or r_f*/
 void GRAD_MRSSNLHardT::r_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdq)
 {
+   dSymMatrixT Sig_Dev(3);
    double fchi = qn[0];
    double fc = qn[1];
    double ftan_phi = qn[2];
    double Sig_p = Sig.Trace()/3.0;
    
-   dfdq[0] = -2.*ftan_phi*(fc-fchi*ftan_phi);
-   dfdq[1] = 2.*(Sig_p - fchi)*ftan_phi;
-   dfdq[2] = 2.*Sig_p*(fc - Sig_p*ftan_phi) - 2.*fchi*(fc-fchi*ftan_phi);
-   dfdq[3] = 0.;
+   double const1 = fc-fchi*ftan_phi; 
+   Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   temp += (const1*const1);
+   double deno = sqrt(temp);
+   dfdq=0.0;
+   dfdq[0] = -ftan_phi*const1/deno;
+   dfdq[1] = const1/deno - 1.0;
+   dfdq[2] = -fchi*const1/deno + Sig_p;
 }
 
 /* calculation of dQdSig_f or m_f*/
 void GRAD_MRSSNLHardT::m_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig)
 {
+   dSymMatrixT Sig_Dev(3);
+   double fchi = qn[0];
    double fc = qn[1];
    double ftan_psi = qn[3];
    double Sig_p = Sig.Trace()/3.0;
    
-   dQdSig[0] = Sig[0] - Sig_p;
-   dQdSig[1] = Sig[1] - Sig_p;
-   dQdSig[2] = Sig[2] - Sig_p;
-   dQdSig[3] = Sig[3];
-   dQdSig[4] = Sig[4];
-   dQdSig[5] = Sig[5];
-
-   double temp  = ratio23*ftan_psi;
-   temp *= (fc - Sig_p*ftan_psi);
-   for (int i = 0; i < 3; i++) 
-      dQdSig[i] += temp;
+   Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   double temp2 = fc - ftan_psi*fchi;
+   double temp3 = temp2 * temp2;
+   temp += temp3;
+   double deno = 2.0*sqrt(temp);
+   Sig_Dev /= deno;
+   dQdSig=0.0;
+   for (int i = 0; i < 6; i++)
+   		if (i < 3)  
+   			dQdSig[i] = Sig_Dev[i] + (ftan_psi/3.0);
+   		else 
+   			dQdSig[i] = Sig_Dev[i];
 }
 
 /* calculation of dQdSig2_f or dmdSig_f */
-void GRAD_MRSSNLHardT::dmdSig_f(const dArrayT& qn, dMatrixT& dmdSig)
+void GRAD_MRSSNLHardT::dmdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dQdSig2)
 {
-  double ftan_psi = qn[3];
-  dMatrixT I_mat(6,6);
-  
-  I_mat = 0.;
-  for (int i = 0; i < 3; i++) 
-  {
-     for (int j = 0; j < 3; j++) 
-     	I_mat(i,j) = 1.;
-  }
-  
-  double Fac = ratio23*ftan_psi*ftan_psi;
-  Fac += 1.;
-  Fac /= 3.;
-  I_mat *= Fac;
-  
-  dmdSig = Identity6x6;
-  dmdSig -= I_mat;
-}
-
-/* calculation of dQdSigdq_f or dmdq_f */
-void GRAD_MRSSNLHardT::dmdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dmdq)
-{
+  dSymMatrixT Sig_Dev(3),Ones(3); 
+  dMatrixT I_mat(6),matrix2(6);
+  double fchi = qn[0];
   double fc = qn[1];
   double ftan_psi = qn[3];
   double Sig_p = Sig.Trace()/3.0;
   
-  dmdq = 0.;
-  dmdq(0,1) = dmdq(1,1) = dmdq(2,1) = ratio23*ftan_psi;
-  dmdq(0,3) = ratio23*(fc - 2.*Sig_p*ftan_psi);
-  dmdq(1,3) = dmdq(2,3) = dmdq(0,3); 
+  Sig_Dev.Deviatoric(Sig);
+  double temp  = (Sig_Dev.ScalarProduct())/2.0;
+  double temp2 = fc - ftan_psi*fchi;
+  double temp3 = temp2 * temp2;
+  temp += temp3;
+  double deno = 2.0*sqrt(temp);
+  Ones.Identity();
+  I_mat.Outer(Ones,Ones);
+  I_mat /= 3.0;
+  dQdSig2 = 0.0;
+  dQdSig2.PlusIdentity();
+  dQdSig2 -= I_mat;
+  dQdSig2 /= deno;   
+  matrix2.Outer(Sig_Dev,Sig_Dev);
+  matrix2 /= 4.0*pow(temp, ratio32);
+  
+  dQdSig2 -= matrix2;
 }
 
-/* calculation of h_f vector */
-void GRAD_MRSSNLHardT::h_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& hh)
+/* calculation of dQdSigdq_f or dmdq_f */
+void GRAD_MRSSNLHardT::dmdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq)
 {
-   dSymMatrixT Sig_Dev(3), B2(3), B3(3), dQdS(3); 
+  dSymMatrixT Sig_Dev(3);
+  dMatrixT col_1(6,1),col_2(6,1),col_4(6,1);
+  double fchi = qn[0];
+  double fc = qn[1];
+  double ftan_psi = qn[3];
+  double Sig_p = Sig.Trace()/3.0;
+  double const1 = fc - ftan_psi*fchi;
+  
+  Sig_Dev.Deviatoric(Sig);
+  double temp  = (Sig_Dev.ScalarProduct())/2.0;
+  temp += (const1*const1);
+  const1 /= 2.0*pow(temp, ratio32); 
+       
+  col_1.SetToScaled(ftan_psi*const1, Sig_Dev);
+  col_2.SetToScaled(-1.0*const1, Sig_Dev);
+  col_4.SetToScaled(fchi*const1, Sig_Dev);
+  for (int i=0; i<3; i++)
+     col_4(i,0)/=3.;     
+  dQdSigdq = 0.;
+  dQdSigdq.AddBlock(0, 0, col_1);
+  dQdSigdq.AddBlock(0, 1, col_2); 
+  dQdSigdq.AddBlock(0, 3, col_4);
+}
+
+/* calculation of qbar_f or h_f vector */
+void GRAD_MRSSNLHardT::h_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& qbar)
+{
+   dSymMatrixT Sig_Dev(3),B2(3),B3(3),dQdS(3); 
 
    double fchi = qn[0];
    double fc = qn[1];
@@ -442,29 +479,37 @@ void GRAD_MRSSNLHardT::h_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& h
    double A4 = -falpha_psi*ftan_psi;
    double Sig_p = Sig.Trace()/3.0;
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
+   double dQdP = ftan_psi;
    
    Sig_Dev.Deviatoric(Sig);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   double temp2 = fc - ftan_psi*fchi;
+   double temp3 = temp2 * temp2;
+   temp += temp3;
+   double deno = 2.0*sqrt(temp);
    B2 = Sig_Dev;
    B2 /= fGf_I;
    dQdS = Sig_Dev;
+   dQdS /= deno;
    B3 = Sig_Dev;
-   B3 /= fGf_II;
- 
-   hh[0]  = A1*B1*dQdP; 
-   hh[0] += A1*dMatrixT::Dot(B2,dQdS);
-   hh[1]  = A2*dMatrixT::Dot(B3,dQdS);
-   hh[2]  = A3*dMatrixT::Dot(B3,dQdS);
-   hh[3]  = A4*dMatrixT::Dot(B3,dQdS);
+   B3 /= fGf_II; 
+   qbar=0.0;   
+   qbar[0]  = A1*B1*dQdP; 
+   qbar[0] += A1*B2.ScalarProduct(dQdS); 
+   qbar[1]  = A2*B3.ScalarProduct(dQdS); 
+   qbar[2]  = A3*B3.ScalarProduct(dQdS); 
+   qbar[3]  = A4*B3.ScalarProduct(dQdS); 
  }
  
-/* calculation of dhdSig_f */
-void GRAD_MRSSNLHardT::dhdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dhdSig)
+/* calculation of dqbardSig_f or dhdSig_f */
+void GRAD_MRSSNLHardT::dhdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dqbardSig)
 {
-   dSymMatrixT dhchi_dSig(3), dhc_dSig(3), dhtanphi_dSig(3), dhtanpsi_dSig(3);
-   dSymMatrixT Sig_Dev(3), B2(3), B3(3), dQdS(3), dB2dS_dQdS(3), dB3dS_dQdS(3);
-   dSymMatrixT tempmat(3);
+   dSymMatrixT dhchi_dSig(3),dhc_dSig(3),dhtanphi_dSig(3),dhtanpsi_dSig(3),
+               Sig_Dev(3),dQdS(3),II_S(3),SxS_S(3),tmp1(3),tmp2(3);
+   dMatrixT SxS(6,6),II(6,6);
    
+   II.Identity();
+               
    double fchi = qn[0];
    double fc = qn[1];
    double ftan_phi = qn[2];
@@ -477,65 +522,74 @@ void GRAD_MRSSNLHardT::dhdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatr
    double SN = signof(Sig_p);
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
    double dB1dP = (SN +fabs(SN))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
-   double d2QdP2 =  -2.*ftan_psi*ftan_psi;
+   double dQdP = ftan_psi;
    
    Sig_Dev.Deviatoric(Sig);
-   B2 = Sig_Dev;
-   B2 /= fGf_I;
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   double temp2 = fc - ftan_psi*fchi;
+   double temp3 = temp2 * temp2;
+   temp += temp3;
+   double deno1 = 2.0*sqrt(temp);
+   double deno2 = 4.0*pow(temp, ratio32);
    dQdS = Sig_Dev;
-   B3 = Sig_Dev;
-   B3 /= fGf_II;
-   dB2dS_dQdS  = Sig_Dev;
-   dB2dS_dQdS /= fGf_I;
-   dB3dS_dQdS  = Sig_Dev;
-   dB3dS_dQdS /= fGf_II;
-   dhchi_dSig  = Identity3x3;
-   dhchi_dSig *= (A1*B1*d2QdP2+A1*dQdP*dB1dP)/3.;
-   tempmat =  dB2dS_dQdS; 
-   tempmat += B2; 
-   tempmat *= A1;
-   dhchi_dSig += tempmat;
-   dhc_dSig   = B3;
-   dhc_dSig += dB3dS_dQdS;
-   dhc_dSig  *= A2;
-   dhtanphi_dSig  = B3;
-   dhtanphi_dSig += dB3dS_dQdS;
-   dhtanpsi_dSig *= A3;
-   dhtanpsi_dSig  = B3;
-   dhtanpsi_dSig += dB3dS_dQdS;
-   dhtanpsi_dSig *= A4;
+   dQdS /= deno1;
    
-   dhdSig(0,0) = dhchi_dSig(0,0);
-   dhdSig(0,1) = dhchi_dSig(1,1);
-   dhdSig(0,2) = dhchi_dSig(2,2);
-   dhdSig(0,3) = dhchi_dSig(1,2);
-   dhdSig(0,4) = dhchi_dSig(0,2);
-   dhdSig(0,5) = dhchi_dSig(0,1);
-   dhdSig(1,0) = dhc_dSig(0,0);
-   dhdSig(1,1) = dhc_dSig(1,1);
-   dhdSig(1,2) = dhc_dSig(2,2);
-   dhdSig(1,3) = dhc_dSig(1,2);
-   dhdSig(1,4) = dhc_dSig(0,2);
-   dhdSig(1,5) = dhc_dSig(0,1);
-   dhdSig(2,0) = dhtanphi_dSig(0,0);
-   dhdSig(2,1) = dhtanphi_dSig(1,1);
-   dhdSig(2,2) = dhtanphi_dSig(2,2);
-   dhdSig(2,3) = dhtanphi_dSig(1,2);
-   dhdSig(2,4) = dhtanphi_dSig(0,2);
-   dhdSig(2,5) = dhtanphi_dSig(0,1);
-   dhdSig(3,0) = dhtanpsi_dSig(0,0);
-   dhdSig(3,1) = dhtanpsi_dSig(1,1);
-   dhdSig(3,2) = dhtanpsi_dSig(2,2);
-   dhdSig(3,3) = dhtanpsi_dSig(1,2);
-   dhdSig(3,4) = dhtanpsi_dSig(0,2);
-   dhdSig(3,5) = dhtanpsi_dSig(0,1);
+   II.Multx(Sig_Dev,II_S);
+   II_S /= deno1/2.;
+   SxS.Outer(Sig_Dev,Sig_Dev);
+   //SxS.Multx(Sig_Dev,SxS_S);
+   Contract4To2(SxS,Sig_Dev,SxS_S);
+   SxS_S /= deno2;
+   
+   tmp1 = II_S;
+   tmp1 -= SxS_S;
+   tmp2 = tmp1;
+   tmp1 /= fGf_I;
+   tmp2 /= fGf_II;
+   
+   dhchi_dSig = 0.0;
+   dhchi_dSig = tmp1;
+   for (int i=0; i<3; i++)
+       dhchi_dSig[i] += dQdP*dB1dP/3.;
+   dhchi_dSig *= A1; 
+   dhc_dSig = tmp2;
+   dhc_dSig *= A2;
+   dhtanphi_dSig = tmp2;
+   dhtanphi_dSig *= A3;
+   dhtanpsi_dSig = tmp2;
+   dhtanpsi_dSig *= A4;
+  
+   dqbardSig=0.0;
+   dqbardSig(0,0) = dhchi_dSig(0,0);
+   dqbardSig(0,1) = dhchi_dSig(1,1);
+   dqbardSig(0,2) = dhchi_dSig(2,2);
+   dqbardSig(0,3) = dhchi_dSig(1,2);
+   dqbardSig(0,4) = dhchi_dSig(0,2);
+   dqbardSig(0,5) = dhchi_dSig(0,1);
+   dqbardSig(1,0) = dhc_dSig(0,0);
+   dqbardSig(1,1) = dhc_dSig(1,1);
+   dqbardSig(1,2) = dhc_dSig(2,2);
+   dqbardSig(1,3) = dhc_dSig(1,2);
+   dqbardSig(1,4) = dhc_dSig(0,2);
+   dqbardSig(1,5) = dhc_dSig(0,1);
+   dqbardSig(2,0) = dhtanphi_dSig(0,0);
+   dqbardSig(2,1) = dhtanphi_dSig(1,1);
+   dqbardSig(2,2) = dhtanphi_dSig(2,2);
+   dqbardSig(2,3) = dhtanphi_dSig(1,2);
+   dqbardSig(2,4) = dhtanphi_dSig(0,2);
+   dqbardSig(2,5) = dhtanphi_dSig(0,1);
+   dqbardSig(3,0) = dhtanpsi_dSig(0,0);
+   dqbardSig(3,1) = dhtanpsi_dSig(1,1);
+   dqbardSig(3,2) = dhtanpsi_dSig(2,2);
+   dqbardSig(3,3) = dhtanpsi_dSig(1,2);
+   dqbardSig(3,4) = dhtanpsi_dSig(0,2);
+   dqbardSig(3,5) = dhtanpsi_dSig(0,1);
 }
 
-/* calculation of dhdq_f or dqbardq_f*/
-void GRAD_MRSSNLHardT::dhdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dhdq)
+/* calculation of dqbardq_f or dhdq_f*/
+void GRAD_MRSSNLHardT::dhdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dqbardq)
 {
-   dSymMatrixT Sig_Dev(3), B2(3), B3(3), dQdS(3);
+   dSymMatrixT Sig_Dev(3),B2(3),B3(3),dQdS(3);
    
    double fchi = qn[0];
    double fc = qn[1];
@@ -547,33 +601,47 @@ void GRAD_MRSSNLHardT::dhdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrix
    double A4 = -falpha_psi*ftan_psi;
    double Sig_p = Sig.Trace()/3.0;
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
+   double dQdP = ftan_psi;
+   double const1 = fc - ftan_psi*fchi;
    
    Sig_Dev.Deviatoric(Sig);
-   B2 = Sig_Dev;
-   B2 /= fGf_I;
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   temp += (const1*const1);
+   double deno = 2.0*sqrt(temp);
+   const1 /= 2.0*pow(temp, ratio32);
    dQdS = Sig_Dev;
-   B3 = Sig_Dev;
-   B3 /= fGf_II;
-   double B2dQdS = dMatrixT::Dot(B2,dQdS);
-   double B3dQdS = dMatrixT::Dot(B3,dQdS);
-   dhdq = 0.0;
-   dhdq(0,0) = -falpha_chi*(B1*dQdP + B2dQdS);
-   dhdq(0,1) =  A1*B1*(2.*ftan_psi);
-   dhdq(0,3) =  A1*B1*(2.*fc-4.*Sig_p*ftan_psi);   
-   dhdq(1,1) = -falpha_c*B3dQdS;
-   dhdq(2,2) = -falpha_phi*B3dQdS;
-   dhdq(3,3) = -falpha_psi*B3dQdS;
+   dQdS /= deno;
+   B2.SetToScaled(1.0/fGf_I, Sig_Dev);
+   B3.SetToScaled(1.0/fGf_II, Sig_Dev);
+   double B2S = B2.ScalarProduct(Sig_Dev); 
+   double B3S = B3.ScalarProduct(Sig_Dev); 
+   double B2dQdS = B2.ScalarProduct(dQdS); 
+   double B3dQdS = B3.ScalarProduct(dQdS); 
+   dqbardq = 0.0;
+   dqbardq(0,0)  = -falpha_chi*(B1*dQdP + B2dQdS);
+   dqbardq(0,0) += A1*ftan_psi*const1*B2S;
+   dqbardq(0,1)  =  -A1*const1*B2S;
+   dqbardq(0,3)  =  A1*B1+A1*fchi*const1*B2S;
+   dqbardq(1,0)  = A3*ftan_psi*const1*B3S;   
+   dqbardq(1,1)  = -falpha_c*B3dQdS;
+   dqbardq(1,1) -= A2*const1*B3S;
+   dqbardq(1,3)  = A2*fchi*const1*B3S;
+   dqbardq(2,0)  = A3*ftan_psi*const1*B3S;
+   dqbardq(2,1)  = -A3*const1*B3S;
+   dqbardq(2,2)  = -falpha_phi*B3dQdS;
+   dqbardq(2,3)  = A3*fchi*const1*B3S;
+   dqbardq(3,0)  = A4*ftan_psi*const1*B3S;
+   dqbardq(3,1)  = -A4*const1*B3S;
+   dqbardq(3,3)  = -falpha_psi*B3dQdS;
+   dqbardq(3,3) += A4*fchi*const1*B3S;
 }
 
 /* calculation of dhdm_f */
 void GRAD_MRSSNLHardT::dhdm_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dhdm)
 {
-   dSymMatrixT Sig_Dev(3), B2(3), B3(3), dQdS(3);
-   dSymMatrixT dhchi_dm(3), dhc_dm(3); 
-   dSymMatrixT dhtanphi_dm(3), dhtanpsi_dm(3);
-   dSymMatrixT tempMat(3);
-   
+   dSymMatrixT dhchi_dm(3),dhc_dm(3),dhtanphi_dm(3),dhtanpsi_dm(3),
+               Sig_Dev(3),B2(3),B3(3);
+               
    double fchi = qn[0];
    double fc = qn[1];
    double ftan_phi = qn[2];
@@ -583,26 +651,20 @@ void GRAD_MRSSNLHardT::dhdm_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrix
    double A3 = -falpha_phi*(ftan_phi - tan(fphi_r));
    double A4 = -falpha_psi*ftan_psi;
    double Sig_p = Sig.Trace()/3.0;
+   double SN = signof(Sig_p);
    double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
    
    Sig_Dev.Deviatoric(Sig);
-   B2 = Sig_Dev;
-   B2 /= fGf_I;
-   B3 = Sig_Dev;
-   B3 /= fGf_II;
-   dhchi_dm  = Identity3x3;
-   dhchi_dm *= (A1*B1)/3.;
-   tempMat = B2;
-   tempMat *= A1;
-   dhchi_dm += tempMat;
-   dhc_dm = B3;
-   dhc_dm *= A2;
-   dhtanphi_dm = B3;
-   dhtanphi_dm *= A3;
-   dhtanpsi_dm = B3;
-   dhtanpsi_dm *= A4;
-   
+   B2.SetToScaled(1.0/fGf_I, Sig_Dev);
+   B3.SetToScaled(1.0/fGf_II, Sig_Dev);
+   dhchi_dm.SetToScaled(A1, B2);
+   for (int i=0; i<3; i++)
+       dhchi_dm[i] += A1*B1/3.; 
+   dhc_dm.SetToScaled(A2, B3);
+   dhtanphi_dm.SetToScaled(A3, B3);
+   dhtanpsi_dm.SetToScaled(A4, B3);
+  
+   dhdm = 0.0;
    dhdm(0,0) = dhchi_dm(0,0);
    dhdm(0,1) = dhchi_dm(1,1);
    dhdm(0,2) = dhchi_dm(2,2);
@@ -632,8 +694,8 @@ void GRAD_MRSSNLHardT::dhdm_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrix
 /* calculation of g_f vector */
 void GRAD_MRSSNLHardT::g_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& gg)
 {
-   dSymMatrixT Sig_Dev(3), B2(3), B3(3), dQdS(3); 
-   
+   dSymMatrixT Sig_Dev(3),BB2(3),BB3(3),dQdS(3); 
+
    double fchi = qn[0];
    double fc = qn[1];
    double ftan_phi = qn[2];
@@ -642,40 +704,44 @@ void GRAD_MRSSNLHardT::g_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& g
    double A2 = -falpha_c*(fc - fc_r);
    double A3 = -falpha_phi*(ftan_phi - tan(fphi_r));
    double A4 = -falpha_psi*ftan_psi;
-   double Sig_p = Sig.Trace()/3.0;
-   double B1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
    double lspv2 = flsp_v*flsp_v;
    double lsps2 = flsp_s*flsp_s;
+   double Sig_p = Sig.Trace()/3.0;
+   double BB1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
+   BB1 *= lspv2; 
+   double dQdP = ftan_psi;
    
    Sig_Dev.Deviatoric(Sig);
-   B2 = Sig_Dev;
-   B2 /= fGf_I;
-   B1 *= lspv2;
-   B2 *= lsps2;
-   dQdS = Sig_Dev;
-   B3 = Sig_Dev;
-   B3 /= fGf_II;
-   B3 *= lsps2; 
-   
-   gg[0]  = A1*B1*dQdP; 
-   gg[0] += A1*dMatrixT::Dot(B2, dQdS);
-   gg[1]  = A2*dMatrixT::Dot(B3,dQdS);
-   gg[2]  = A3*dMatrixT::Dot(B3,dQdS);
-   gg[3]  = A4*dMatrixT::Dot(B3,dQdS);
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   double temp2 = fc - ftan_psi*fchi;
+   double temp3 = temp2 * temp2;
+   temp += temp3;
+   double deno = 2.0*sqrt(temp);
+   BB2.SetToScaled(lsps2/fGf_I, Sig_Dev);
+   BB3.SetToScaled(lsps2/fGf_II, Sig_Dev);
+   dQdS.SetToScaled(1./deno, Sig_Dev);
+ 
+   gg=0.0;   
+   gg[0]  = A1*BB1*dQdP; 
+   gg[0] += A1*BB2.ScalarProduct(dQdS); 
+   gg[1]  = A2*BB3.ScalarProduct(dQdS); 
+   gg[2]  = A3*BB3.ScalarProduct(dQdS); 
+   gg[3]  = A4*BB3.ScalarProduct(dQdS); 
  }
 
 /* calculation of dgdSig_f */
 void GRAD_MRSSNLHardT::dgdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dgdSig)
 {
-   dSymMatrixT dgchi_dSig(3), dgc_dSig(3), dgtanphi_dSig(3), dgtanpsi_dSig(3);
-   dSymMatrixT Sig_Dev(3), B2A(3), B3A(3), dQdS(3), dB2AdS_dQdS(3), dB3AdS_dQdS(3);
-   dSymMatrixT tempmat(3);
+   dSymMatrixT dgchi_dSig(3),dgc_dSig(3),dgtanphi_dSig(3),dgtanpsi_dSig(3),
+               Sig_Dev(3),dQdS(3),II_S(3),SxS_S(3),tmp1(3),tmp2(3);
+   dMatrixT SxS(6,6),II(6,6);
    
+   II.Identity();
+               
    double fchi = qn[0];
    double fc = qn[1];
    double ftan_phi = qn[2];
-   double ftan_psi = qn[3];
+   double ftan_psi = qn[3]; 
    double A1 = -falpha_chi*(fchi - fchi_r);
    double A2 = -falpha_c*(fc - fc_r);
    double A3 = -falpha_phi*(ftan_phi - tan(fphi_r));
@@ -684,41 +750,48 @@ void GRAD_MRSSNLHardT::dgdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatr
    double lsps2 = flsp_s*flsp_s;
    double Sig_p = Sig.Trace()/3.0;
    double SN = signof(Sig_p);
-   double B1A = lspv2*(Sig_p+fabs(Sig_p))/2./fGf_I; 
-   double dB1AdP = lspv2*(SN +fabs(SN))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
-   double d2QdP2 =  -2.*ftan_psi*ftan_psi;
+   double BB1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
+   BB1 *= lspv2;
+   double dBB1dP = (SN +fabs(SN))/2./fGf_I;
+   dBB1dP *= lspv2; 
+   double dQdP = ftan_psi;
    
    Sig_Dev.Deviatoric(Sig);
-   B2A = Sig_Dev;
-   B2A /= fGf_I;
-   B2A *= lsps2;
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   double temp2 = fc - ftan_psi*fchi;
+   double temp3 = temp2 * temp2;
+   temp += temp3;
+   double deno1 = 2.0*sqrt(temp);
+   double deno2 = 4.0*pow(temp, ratio32);
    dQdS = Sig_Dev;
-   B3A = Sig_Dev;
-   B3A /= fGf_II;
-   B3A *= lsps2;
-   dB2AdS_dQdS  = Sig_Dev;
-   dB2AdS_dQdS /= fGf_I;
-   dB2AdS_dQdS *= lspv2; 
-   dB3AdS_dQdS  = Sig_Dev;
-   dB3AdS_dQdS /= fGf_II;
-   dB3AdS_dQdS *= lsps2;
-   dgchi_dSig  = Identity3x3;
-   dgchi_dSig *= (A1*B1A*d2QdP2+A1*dQdP*dB1AdP)/3.;
-   tempmat =  dB2AdS_dQdS; 
-   tempmat += B2A;  
-   tempmat *= A1;
-   dgchi_dSig += tempmat;
-   dgc_dSig   = B3A;
-   dgc_dSig += dB3AdS_dQdS;
-   dgc_dSig  *= A2;
-   dgtanphi_dSig  = B3A;
-   dgtanphi_dSig += dB3AdS_dQdS;
-   dgtanpsi_dSig *= A3;
-   dgtanpsi_dSig  = B3A;
-   dgtanpsi_dSig += dB3AdS_dQdS;
-   dgtanpsi_dSig *= A4;
+   dQdS /= deno1;
    
+   II.Multx(Sig_Dev,II_S);
+   II_S /= deno1/2.;
+   SxS.Outer(Sig_Dev,Sig_Dev);
+   //SxS.Multx(Sig_Dev,SxS_S);
+   Contract4To2(SxS,Sig_Dev,SxS_S);
+   SxS_S /= deno2;
+   
+   tmp1 = II_S;
+   tmp1 -= SxS_S;
+   tmp2 = tmp1;
+   tmp1 *= (lsps2/fGf_I);
+   tmp2 *= (lsps2/fGf_II);
+   
+   dgchi_dSig = 0.0;
+   dgchi_dSig = tmp1;
+   for (int i=0; i<3; i++)
+       dgchi_dSig[i] += dQdP*dBB1dP/3.;
+   dgchi_dSig *= A1; 
+   dgc_dSig = tmp2;
+   dgc_dSig *= A2;
+   dgtanphi_dSig = tmp2;
+   dgtanphi_dSig *= A3;
+   dgtanpsi_dSig = tmp2;
+   dgtanpsi_dSig *= A4;
+  
+   dgdSig = 0.;
    dgdSig(0,0) = dgchi_dSig(0,0);
    dgdSig(0,1) = dgchi_dSig(1,1);
    dgdSig(0,2) = dgchi_dSig(2,2);
@@ -742,18 +815,18 @@ void GRAD_MRSSNLHardT::dgdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatr
    dgdSig(3,2) = dgtanpsi_dSig(2,2);
    dgdSig(3,3) = dgtanpsi_dSig(1,2);
    dgdSig(3,4) = dgtanpsi_dSig(0,2);
-   dgdSig(3,5) = dgtanpsi_dSig(0,1);
+   dgdSig(3,5) = dgtanpsi_dSig(0,1);  
 }
 
 /* calculation of dgdq_f */
 void GRAD_MRSSNLHardT::dgdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT& dgdq)
 {
-   dSymMatrixT Sig_Dev(3), B2A(3), B3A(3), dQdS(3);
+   dSymMatrixT Sig_Dev(3),BB2(3),BB3(3),dQdS(3);
    
    double fchi = qn[0];
    double fc = qn[1];
    double ftan_phi = qn[2];
-   double ftan_psi = qn[3];
+   double ftan_psi = qn[3]; 
    double A1 = -falpha_chi*(fchi - fchi_r);
    double A2 = -falpha_c*(fc - fc_r);
    double A3 = -falpha_phi*(ftan_phi - tan(fphi_r));
@@ -761,31 +834,41 @@ void GRAD_MRSSNLHardT::dgdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrix
    double lspv2 = flsp_v*flsp_v;
    double lsps2 = flsp_s*flsp_s;
    double Sig_p = Sig.Trace()/3.0;
-   double SN = signof(Sig_p);
-   double B1A = lspv2*(Sig_p+fabs(Sig_p))/2./fGf_I; 
-   double dB1AdP = lspv2*(SN +fabs(SN))/2./fGf_I;
-   double dQdP = 2.*ftan_psi*(fc - Sig_p*ftan_psi);
-   double d2QdP2 =  -2.*ftan_psi*ftan_psi; 
+   double BB1 = (Sig_p+fabs(Sig_p))/2./fGf_I;
+   BB1 *= lspv2;
+   double dQdP = ftan_psi;
+   double const1 = fc - ftan_psi*fchi;
    
    Sig_Dev.Deviatoric(Sig);
-   B2A = Sig_Dev;
-   B2A /= fGf_I;
-   B2A *= lsps2;
+   double temp  = (Sig_Dev.ScalarProduct())/2.0;
+   temp += (const1*const1);
+   double deno = 2.0*sqrt(temp);
+   const1 /= 2.0*pow(temp, ratio32);
    dQdS = Sig_Dev;
-   B3A = Sig_Dev;
-   B3A /= fGf_II;
-   B3A *= lsps2;
-   
-   double B2AdQdS = dMatrixT::Dot(B2A,dQdS);
-   double B3AdQdS = dMatrixT::Dot(B3A,dQdS);
-   
+   dQdS /= deno;
+   BB2.SetToScaled(lsps2/fGf_I, Sig_Dev);
+   BB3.SetToScaled(lsps2/fGf_II, Sig_Dev);
+   double B2S = BB2.ScalarProduct(Sig_Dev); 
+   double B3S = BB3.ScalarProduct(Sig_Dev); 
+   double B2dQdS = BB2.ScalarProduct(dQdS); 
+   double B3dQdS = BB3.ScalarProduct(dQdS); 
    dgdq = 0.0;
-   dgdq(0,0) = -falpha_chi*(B1A*dQdP + B2AdQdS);
-   dgdq(0,1) =  A1*B1A*(2.*ftan_psi);
-   dgdq(0,3) =  A1*B1A*(2.*fc-4.*Sig_p*ftan_psi);   
-   dgdq(1,1) = -falpha_c*B3AdQdS;
-   dgdq(2,2) = -falpha_phi*B3AdQdS;
-   dgdq(3,3) = -falpha_psi*B3AdQdS;
+   dgdq(0,0)  = -falpha_chi*(BB1*dQdP + B2dQdS);
+   dgdq(0,0) += A1*ftan_psi*const1*B2S;
+   dgdq(0,1)  =  -A1*const1*B2S;
+   dgdq(0,3)  =  A1*BB1+A1*fchi*const1*B2S;
+   dgdq(1,0)  = A3*ftan_psi*const1*B3S;   
+   dgdq(1,1)  = -falpha_c*B3dQdS;
+   dgdq(1,1) -= A2*const1*B3S;
+   dgdq(1,3)  = A2*fchi*const1*B3S;
+   dgdq(2,0)  = A3*ftan_psi*const1*B3S;
+   dgdq(2,1)  = -A3*const1*B3S;
+   dgdq(2,2)  = -falpha_phi*B3dQdS;
+   dgdq(2,3)  = A3*fchi*const1*B3S;
+   dgdq(3,0)  = A4*ftan_psi*const1*B3S;
+   dgdq(3,1)  = -A4*const1*B3S;
+   dgdq(3,3)  = -falpha_psi*B3dQdS;
+   dgdq(3,3) += A4*fchi*const1*B3S;
 }
 
 /* collect the C matrices (C_UU1, C_UU2, C_ULambda1, C_ULambda2, C_LambdaU1, 
@@ -799,23 +882,21 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 {
 
     /* define and allocate matrices */
-    dMatrixT KE(6), KE_AST(6), KE_UU1(6), KE_UU2(6);
-    dMatrixT KE_ULambda1(6,1), KE_ULambda2(6,1); //6x1
-    dMatrixT KE_LambdaU1(1,6), KE_LambdaU2(1,6); //1x6
-    dMatrixT KE_LambdaLambda1(1), KE_LambdaLambda2(1);  
-    dMatrixT dhdSig(4,6), dhdq(4), dhdm(4,6);
-    dMatrixT dgdSig(4,6), dgdq(4);
-    dMatrixT dmdSig(6), dmdq(6,4);
-    dMatrixT dRSig_dSig(6), dRSig_dq(6,4); 
-    dMatrixT dRq_dSig(4,6), dRq_dq(4), dRq_dq_Inv(4);
-    dMatrixT RRq_dqdSig(4,6), RSigq_qq(6,4); 
-    dMatrixT dRR(10), Y(6), Y_Inv(6);
+    dMatrixT KE(6),KE_AST(6),KE_UU1(6),KE_UU2(6),
+             KE_ULambda1(6,1),KE_ULambda2(6,1), //6x1
+             KE_LambdaU1(1,6),KE_LambdaU2(1,6), //1x6
+             KE_LambdaLambda1(1),KE_LambdaLambda2(1),  
+             dhdSig(4,6),dhdq(4),dhdm(4,6),
+             dgdSig(4,6),dgdq(4),dmdSig(6),dmdq(6,4),
+             dRSig_dSig(6),dRSig_dq(6,4), 
+             dRq_dSig(4,6),dRq_dq(4),dRq_dq_Inv(4),
+             RRq_dqdSig(4,6),RSigq_qq(6,4), 
+             dRR(10),Y(6),Y_Inv(6);
     dSymMatrixT Sig(3); 
      
     /* define and allocate vectors */   
-    dArrayT qn(4), RSig(6), Rq(4), T(6);
-    dArrayT mm(6), rr(4), nn(6), hh(4), gg(4); 
-    dArrayT R(10), ls(2);
+    dArrayT qn(4),RSig(6),Rq(4),T(6),mm(6),rr(4),nn(6), 
+            hh(4),gg(4),R(10),ls(2);
     
 	/* elastic moduli tensor */
 	KE = 0.0;
@@ -855,7 +936,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		m_f(Sig, qn, mm);
 		n_f(Sig, qn, nn); 
    		r_f(Sig, qn, rr);  
-		dmdSig_f(qn, dmdSig); 
+		dmdSig_f(Sig, qn, dmdSig); 
 		dmdq_f(Sig, qn, dmdq); 
     	h_f(Sig, qn, hh); 
     	dhdSig_f(Sig, qn, dhdSig); 
@@ -964,10 +1045,11 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 		fModuli_LamLam1 = KE_LambdaLambda1;
 		fModuli_LamLam2 = KE_LambdaLambda2;
 		fModuli = 0.0;
+		
 		//*************debug*********************//
 	StringT file_name;  
-	//file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices";
-	file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices";
+	file_name = "C:/Documents and Settings/kyonten/My Documents/tahoe_xml/C_Matrices";
+	//file_name = "C:/Documents and Settings/Administrator/My Documents/tahoe/C_Matrices";
 	file_name.Append(".txt");
 	ofstream output(file_name);
 	if (!output) {
@@ -1250,8 +1332,14 @@ int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 {
 	/* not yet plastic */
 	if (!element.IsAllocated()) { 
+	    double enp  = 0.;
+        double esp  = 0.;
+        double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
+        double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
+        double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+        double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
 		return(YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
-			   MeanStress(trialstrain,lap_trialstrain,element)) > kYieldTol );
+			   MeanStress(trialstrain,lap_trialstrain,element),fchi,fc,ftan_phi) > kYieldTol );
         /* already plastic */
     }
 	else 
@@ -1261,9 +1349,24 @@ int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 		
 	/* load internal variables */
 	LoadData(element, ip);
+	if(fInternal[30] == 0.) {
+		double enp  = 0.;
+		double esp = 0.;
+    	fInternal[kchi] = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
+        fInternal[kc]   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
+    	fInternal[ktanphi] = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+		fInternal[ktanpsi] = (tan(fphi_p))*exp(-falpha_psi*esp);
+	}
+	
+	dSymMatrixT elasticstrain(3),lap_elasticstrain(3);
+	elasticstrain.DiffOf(trialstrain, fPlasticStrain);
+	lap_elasticstrain.DiffOf(lap_trialstrain, fLapPlasticStrain);
+	fInternal[kftrial] = YieldCondition(DeviatoricStress(elasticstrain,lap_elasticstrain,element),
+			   MeanStress(elasticstrain,lap_elasticstrain,element),fInternal[kchi],
+			             fInternal[kc],fInternal[ktanphi]); 
 
 		/* plastic */
-		if (fInternal[kplastic] == kIsPlastic)
+		if (fInternal[kftrial] > fTol_1)
 		{		
 			/* set flag */
 			Flags[ip] = kIsPlastic;
@@ -1280,7 +1383,7 @@ int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 }	
 
 /* computes the stress corresponding to the given element
- * and elastic strain.  The function returns a reference to the
+ * and elastic strain. The function returns a reference to the
  * stress in fDevStress */
 dSymMatrixT& GRAD_MRSSNLHardT::DeviatoricStress(const dSymMatrixT& trialstrain,
     const dSymMatrixT& lap_trialstrain, const ElementCardT& element)
@@ -1310,10 +1413,21 @@ double GRAD_MRSSNLHardT::MeanStress(const dSymMatrixT& trialstrain,
   return fMeanStress;
 }
 
-double GRAD_MRSSNLHardT::signof(double& r)
+double GRAD_MRSSNLHardT::signof(double r)
 {
 	if (fabs(r) < kSmall)
 		return 0.;
 	else
 		return fabs(r)/r;
+}
+
+void GRAD_MRSSNLHardT::Contract4To2(const dMatrixT& mat,const dSymMatrixT& vec,
+                                      dSymMatrixT& res)
+{
+	dSymMatrixT tmp(3);
+	tmp = vec;
+	for (int i=0; i<3; i++) {
+	   tmp[i+3]=vec[i+3] *2.;
+	}
+	mat.Multx(tmp, res);
 }

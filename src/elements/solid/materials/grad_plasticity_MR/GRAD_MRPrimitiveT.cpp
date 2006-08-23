@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRPrimitiveT.cpp,v 1.5 2005-11-21 13:24:45 kyonten Exp $ */
+/* $Id: GRAD_MRPrimitiveT.cpp,v 1.6 2006-08-23 21:57:03 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -18,6 +18,8 @@
 
 using namespace Tahoe;
 
+/* factor to convert degree to radian */
+const double factor =4.*atan(1.)/180.;
 
 /* constructor */
 GRAD_MRPrimitiveT::GRAD_MRPrimitiveT(void):
@@ -87,21 +89,25 @@ void GRAD_MRPrimitiveT::DefineParameters(ParameterListT& list) const
 	psi_p.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(psi_p);
 	
-	ParameterT alpha_chi(falpha_chi, "alpha_chi");
-	alpha_chi.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(alpha_chi);
-	
-	ParameterT alpha_c(falpha_c, "alpha_c");
-	alpha_c.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(alpha_c);
-	
-	ParameterT alpha_phi(falpha_phi, "alpha_phi");
-	alpha_phi.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(alpha_phi);
-	
-	ParameterT alpha_psi(falpha_psi, "alpha_psi");
-	alpha_psi.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(alpha_psi);
+	//ParameterT alpha_chi(falpha_chi, "alpha_chi");
+    //alpha_chi.AddLimit(0.0, LimitT::LowerInclusive);
+    //list.AddParameter(alpha_chi);
+    list.AddParameter(falpha_chi, "alpha_chi");
+    
+    //ParameterT alpha_c(falpha_c, "alpha_c");
+    //alpha_c.AddLimit(0.0, LimitT::LowerInclusive);
+    //list.AddParameter(alpha_c);
+    list.AddParameter(falpha_c, "alpha_c");
+    
+    //ParameterT alpha_phi(falpha_phi, "alpha_phi");
+    //alpha_phi.AddLimit(0.0, LimitT::LowerInclusive);
+    //list.AddParameter(alpha_phi);
+    list.AddParameter(falpha_phi, "alpha_phi");
+    
+    //ParameterT alpha_psi(falpha_psi, "alpha_psi");
+    //alpha_psi.AddLimit(0.0, LimitT::LowerInclusive);
+    //list.AddParameter(alpha_psi);
+    list.AddParameter(falpha_psi, "alpha_psi");
 	
 	ParameterT Tol_1(fTol_1, "Tol_1");
 	Tol_1.AddLimit(0.0, LimitT::LowerInclusive);
@@ -132,6 +138,11 @@ void GRAD_MRPrimitiveT::TakeParameterList(const ParameterListT& list)
 	falpha_phi = list.GetParameter("alpha_phi");
 	falpha_psi = list.GetParameter("alpha_psi");
 	fTol_1 = list.GetParameter("Tol_1");
+	
+	/* convert degree to radian */
+    fphi_p *= factor;
+    fphi_r *= factor;
+    fpsi_p *= factor;
 }
 
 /***********************************************************************
@@ -143,17 +154,15 @@ void GRAD_MRPrimitiveT::TakeParameterList(const ParameterListT& list)
  * stress vector and state variables
  */
 double GRAD_MRPrimitiveT::YieldCondition(const dSymMatrixT& devstress, 
-			const double meanstress) const
+            const double meanstress, double fchi,
+            double fc, double ftan_phi) const
 {
   double fpress  = meanstress;
-  double enp  = 0.;
-  double esp  = 0.;
-  double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
-  double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
-  double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-  double ffriction = ftan_phi;
-  double ff  = (devstress.ScalarProduct())/2.0;
-  ff -= pow((fc - ffriction*fpress), 2);
-  ff += pow((fc - ffriction*fchi), 2);
+  double temp  = (devstress.ScalarProduct())/2.0;
+  double temp2 = fc - ftan_phi*fchi;
+  double temp3 = temp2 * temp2;
+  temp += temp3;
+  double ff = sqrt(temp); 
+  ff -= (fc - ftan_phi*fpress);
   return  ff;
 }
