@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.h,v 1.3 2005-11-22 18:29:00 kyonten Exp $ */ 
+/* $Id: MFGPElementT.h,v 1.4 2006-08-24 18:20:48 kyonten Exp $ */ 
 //DEVELOPMENT
 #ifndef _MFGP_ELEMENT_T_H_ 
 #define _MFGP_ELEMENT_T_H_ 
@@ -172,7 +172,7 @@ public:
 	virtual void CheckNodalYield(void);
 	
 	/* calculate yield condition at the nodes */ 
-	const double& ComputeNodalYield(const dArrayT& qn, double& ff);
+	double ComputeNodalYield(const dArrayT& qn);
 	/*@}*/
 	
 	/*@}*/
