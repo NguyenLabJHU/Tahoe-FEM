@@ -1,4 +1,4 @@
-/* $Id: TersoffPairT.cpp,v 1.2 2006-07-25 16:29:47 d-farrell2 Exp $ */
+/* $Id: TersoffPairT.cpp,v 1.3 2006-08-25 22:14:13 d-farrell2 Exp $ */
 #include "TersoffPairT.h"
 #include <iostream.h>
 #include <math.h>
@@ -66,7 +66,7 @@ TersoffPropertyT::EnergyFunction TersoffPairT::getEnergyFunction(void)
 }
 
 // return a pointer to the force function
-TersoffPropertyT::ForceFunction TersoffPairT::getForceFunction(void)
+TersoffPropertyT::ForceFunction TersoffPairT::getForceFunction_ij(void)
 {
 	// copy my data to static
 	s_A = f_A;
@@ -83,8 +83,51 @@ TersoffPropertyT::ForceFunction TersoffPairT::getForceFunction(void)
 	s_chi = f_chi;
 
 	// return function pointer
-	return TersoffPairT::Force;
+	return TersoffPairT::Force_ij;
 }
+
+// return a pointer to the force function
+TersoffPropertyT::ForceFunction TersoffPairT::getForceFunction_ik(void)
+{
+	// copy my data to static
+	s_A = f_A;
+	s_lambda = f_lambda;
+	s_R = f_R;
+    s_S = f_S;
+    s_B = f_B;
+	s_mu = f_mu;
+	s_beta = f_beta;
+	s_n = f_n;
+	s_c = f_c;
+	s_d = f_d;
+	s_h = f_h;
+	s_chi = f_chi;
+
+	// return function pointer
+	return TersoffPairT::Force_ik;
+}
+
+// return a pointer to the force function
+TersoffPropertyT::ForceFunction TersoffPairT::getForceFunction_jk(void)
+{
+	// copy my data to static
+	s_A = f_A;
+	s_lambda = f_lambda;
+	s_R = f_R;
+    s_S = f_S;
+    s_B = f_B;
+	s_mu = f_mu;
+	s_beta = f_beta;
+	s_n = f_n;
+	s_c = f_c;
+	s_d = f_d;
+	s_h = f_h;
+	s_chi = f_chi;
+
+	// return function pointer
+	return TersoffPairT::Force_jk;
+}
+
 
 // return a pointer to the stiffness function
 TersoffPropertyT::StiffnessFunction TersoffPairT::getStiffnessFunction(void)
@@ -318,34 +361,36 @@ double TersoffPairT::Energy(double rij, iArrayT neighbors, const int j, const Au
 		double c2 = s_c*s_c;
 		double d2 = s_d*s_d;
 		
-		double g = 1 + c2/d2 - c2/(d2 + pow((s_h - costheta),2));
+		double g = 1 + c2/d2 - c2/(d2 + pow((s_h - costheta),2.0));
 		
 		// Determine value of cutoff function
 		double FCik = 0.0;
 		if (rik < Rik)
-			FCik = 1.0;	
+		{
+			ksi_ij += 1.0 * g;
+		}
 		else if (rik >= Rik && rik < Sik)
+		{
 			FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
+			ksi_ij += FCik * g;
+		}
 		else
-			FCik = 0.0;
-		
-		// now put together the parts
-		ksi_ij += FCik * g;
+			ksi_ij += 0.0;		
 	}
 	
 	// Assemble bond order term
 	double bij = s_chi * pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -1/(2*s_n));
-	
-	
+	if (neighbors.Length() == 3 || ksi_ij == 0.0)
+		bij = 1.0;	// if no ikth bond, assume bond order = 1, results in morselike potential
 	
 	// return the energy
 	double Vij = FCij*FR + bij*FCij*FA;
 	return (.5*Vij);
 }
 
-double TersoffPairT::Force(double rij, iArrayT neighbors, const int j, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords)
+double TersoffPairT::Force_ij(double rij, iArrayT neighbors, const int j, const int kk, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords)
 {
-	// Determine the force
+	// Determine the i,j force contribution
 	
 	// Determine value of cutoff function and its derivative w/respect to rij
 	double FCij = 0.0;
@@ -377,8 +422,10 @@ double TersoffPairT::Force(double rij, iArrayT neighbors, const int j, const Aut
 	double FA = -s_B * exp(-s_mu * rij);
 	double dFAdr = -s_mu * FA;
 	
-	// Determine the bond order parameter - no derivative needed, not function of rij
+	// Determine the bond order parameter and its derivative w/respect to rij
+	// derivative information obtained from Miejie Tang's Thesis, MIT, 1995
 	double ksi_ij = 0.0;
+	double dksi_ijdrij = 0.0;
 	for (int k = 1; k < neighbors.Length(); k++)
 	{
 		// skip if atom_k == atom_j or atom_i
@@ -410,27 +457,276 @@ double TersoffPairT::Force(double rij, iArrayT neighbors, const int j, const Aut
 		double c2 = s_c*s_c;
 		double d2 = s_d*s_d;
 		
-		double g = 1 + c2/d2 - c2/(d2 + pow((s_h - costheta),2));
+		double g = 1 + c2/d2 - c2/(d2 + pow((s_h - costheta),2.0));
+		double dgdrij = (-2.0*c2*(s_h - costheta))/pow((d2 + pow((s_h - costheta),2)),2.0) * ((1/rik) - (costheta/rij)); 
 		
 		// Determine value of cutoff function
 		double FCik = 0.0;
 		if (rik < Rik)
-			FCik = 1.0;	
+		{
+			ksi_ij += 1.0 * g;
+			dksi_ijdrij += 1.0 * dgdrij;
+		}
 		else if (rik >= Rik && rik < Sik)
+		{
 			FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
+			ksi_ij += FCik * g;
+			dksi_ijdrij += FCik * dgdrij;
+		}
 		else
-			FCik = 0.0;
-		
-		// now put together the parts
-		ksi_ij += FCik * g;	
+		{
+			ksi_ij += 0.0;
+			dksi_ijdrij += 0.0;
+		}		
 	}
-
+	
 	// Assemble bond order term
 	double bij = s_chi * pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -1/(2*s_n));
 	
+	double dbijdZij = (-.5*s_chi* pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -(1+(2*s_n))/(2*s_n))) * (pow(s_beta,s_n-1.0)*pow(ksi_ij,s_n-1.0));
+	double dbijdrij = s_beta * dbijdZij * dksi_ijdrij;
+	
+	if (neighbors.Length() == 3 || ksi_ij == 0.0)
+	{
+		bij = 1.0;	// if no ikth bond, assume bond order function = 1, results in morselike potential, no third body effects
+		dbijdrij = 0.0;
+	}
+		
 	// return force
-	double Fij = (dFCijdr*FR) + (FCij*dFRdr) + (dFCijdr*bij*FA) + (FCij*bij*dFAdr);
+	double Fij = (dFCijdr*FR) + (FCij*dFRdr) + (dFCijdr*bij*FA) + (FCij*dbijdrij*FA) + (FCij*bij*dFAdr);
 	return (.5*Fij);
+}
+
+double TersoffPairT::Force_ik(double rij, iArrayT neighbors, const int j, const int kk, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords)
+{
+	// Determine the i,k force contribution
+	
+	// Determine value of cutoff function (derivative w/respect to rik == 0)
+	double FCij = 0.0;
+	
+	// figure out some needed values
+	
+	if (rij < s_R)
+	{
+		FCij = 1.0;
+	}	
+	else if (rij >= s_R && rij < s_S)
+	{
+		FCij = .5 + .5*cos(Pi * (rij - s_R)/(s_S - s_R));
+	}
+	else
+	{
+		FCij = 0.0;
+	}
+	
+	// Determine the attractive part (derivatives and other parts are zero)
+	double FA = -s_B * exp(-s_mu * rij);
+	
+	// Determine the bond order parameter and its derivative w/respect to rij
+	// derivative information obtained from Miejie Tang's Thesis, MIT, 1995
+	double ksi_ij = 0.0;
+	double dksi_ijdrik = 0.0;
+	for (int k = 1; k < neighbors.Length(); k++)
+	{
+		// skip if atom_k == atom_j or atom_i
+		if (k == j || neighbors[k] == neighbors[0])
+			continue;
+		
+		// determine some needed values
+		const double* x_i = coords(neighbors[0]);
+		const double* x_j = coords(neighbors[j]);
+		const double* x_k = coords(neighbors[k]);
+		
+		double r_ij[3], r_ik[3];
+		r_ij[0] = x_j[0] - x_i[0];
+		r_ij[1] = x_j[1] - x_i[1];
+		r_ij[2] = x_j[2] - x_i[2];
+		
+		r_ik[0] = x_k[0] - x_i[0];
+		r_ik[1] = x_k[1] - x_i[1];
+		r_ik[2] = x_k[2] - x_i[2];
+		double rik = sqrt(r_ik[0]*r_ik[0] + r_ik[1]*r_ik[1] + r_ik[2]*r_ik[2]);
+		
+		double costheta = (r_ij[0]*r_ik[0] + r_ij[1]*r_ik[1] + r_ij[2]*r_ik[2])/(rij*rik);
+		
+		// now get the needed interaction info for i-k bonds (the cutoff distance parameters)
+		double Rik = tersoff_properties[properties_map(type[neighbors[0]], type[neighbors[k]])]->GetR();
+		double Sik = tersoff_properties[properties_map(type[neighbors[0]], type[neighbors[k]])]->GetS();
+		
+		// Determine the parts of the bond order parameter
+		double c2 = s_c*s_c;
+		double d2 = s_d*s_d;
+		
+		double g = 1 + c2/d2 - c2/(d2 + pow((s_h - costheta),2.0));
+		
+		// Determine value of cutoff function
+		double FCik = 0.0;
+		if (rik < Rik)
+			ksi_ij += 1.0 * g;
+		else if (rik >= Rik && rik < Sik)
+		{
+			FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
+			ksi_ij += FCik * g;
+		}
+		else
+			ksi_ij += 0.0;
+		
+		// Figure out the i,k derivative of ksi
+		if (k == kk)
+		{
+			double dgdrik = (-2.0*c2*(s_h - costheta))/pow((d2 + pow((s_h - costheta),2)),2.0) * ((1/rij) - (costheta/rik));
+			
+			if (rik < Rik)
+			{
+				dksi_ijdrik = 1.0 * dgdrik;
+			}
+			else if (rik >= Rik && rik < Sik)
+			{
+				FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
+				dksi_ijdrik = FCik * dgdrik - (Pi/(2*(Sik-Rik)))*sin(Pi * (rik - Rik)/(Sik - Rik))*g;
+			}
+			else
+			{
+				dksi_ijdrik = 0.0;
+			}
+		}
+		
+	}
+	
+	// Assemble bond order term
+	double bij = s_chi * pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -1/(2*s_n));
+	
+	double dbijdZij = (-.5*s_chi* pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -(1+(2*s_n))/(2*s_n))) * (pow(s_beta,s_n-1.0)*pow(ksi_ij,s_n-1.0));
+	double dbijdrik = s_beta * dbijdZij * dksi_ijdrik;
+	
+	if (neighbors.Length() == 3 || ksi_ij == 0.0)
+	{
+		bij = 1.0;	// if no ikth bond, assume bond order function = 1, results in morselike potential, no third body effects
+		dbijdrik = 0.0;
+	}
+	
+	// return force
+	double Fik = (FCij*dbijdrik*FA);
+	return (.5*Fik);
+}
+
+double TersoffPairT::Force_jk(double rij, iArrayT neighbors, const int j, const int kk, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords)
+{
+	// Determine the j,k force contribution
+	
+	// Determine value of cutoff function (derivative w/respect to rik == 0)
+	double FCij = 0.0;
+	
+	// figure out some needed values
+	
+	if (rij < s_R)
+	{
+		FCij = 1.0;
+	}	
+	else if (rij >= s_R && rij < s_S)
+	{
+		FCij = .5 + .5*cos(Pi * (rij - s_R)/(s_S - s_R));
+	}
+	else
+	{
+		FCij = 0.0;
+	}
+	
+	// Determine the attractive part (derivatives and other parts are zero)
+	double FA = -s_B * exp(-s_mu * rij);
+	
+	// Determine the bond order parameter and its derivative w/respect to rij
+	// derivative information obtained from Miejie Tang's Thesis, MIT, 1995
+	double ksi_ij = 0.0;
+	double dksi_ijdrjk = 0.0;
+	for (int k = 1; k < neighbors.Length(); k++)
+	{
+		// skip if atom_k == atom_j or atom_i
+		if (k == j || neighbors[k] == neighbors[0])
+			continue;
+		
+		// determine some needed values
+		const double* x_i = coords(neighbors[0]);
+		const double* x_j = coords(neighbors[j]);
+		const double* x_k = coords(neighbors[k]);
+		
+		double r_ij[3], r_ik[3], r_jk[3];
+		r_ij[0] = x_j[0] - x_i[0];
+		r_ij[1] = x_j[1] - x_i[1];
+		r_ij[2] = x_j[2] - x_i[2];
+		
+		r_ik[0] = x_k[0] - x_i[0];
+		r_ik[1] = x_k[1] - x_i[1];
+		r_ik[2] = x_k[2] - x_i[2];
+		
+		r_jk[0] = x_k[0] - x_j[0];
+		r_jk[1] = x_k[1] - x_j[1];
+		r_jk[2] = x_k[2] - x_j[2];
+		
+		double rik = sqrt(r_ik[0]*r_ik[0] + r_ik[1]*r_ik[1] + r_ik[2]*r_ik[2]);
+		double rjk = sqrt(r_jk[0]*r_jk[0] + r_jk[1]*r_jk[1] + r_jk[2]*r_jk[2]);
+		
+		double costheta = (r_ij[0]*r_ik[0] + r_ij[1]*r_ik[1] + r_ij[2]*r_ik[2])/(rij*rik);
+		
+		// now get the needed interaction info for i-k bonds (the cutoff distance parameters)
+		double Rik = tersoff_properties[properties_map(type[neighbors[0]], type[neighbors[k]])]->GetR();
+		double Sik = tersoff_properties[properties_map(type[neighbors[0]], type[neighbors[k]])]->GetS();
+		
+		// Determine the parts of the bond order parameter
+		double c2 = s_c*s_c;
+		double d2 = s_d*s_d;
+		
+		double g = 1 + c2/d2 - c2/(d2 + pow((s_h - costheta),2.0));
+		
+		// Determine value of cutoff function
+		double FCik = 0.0;
+		if (rik < Rik)
+			ksi_ij += 1.0 * g;
+		else if (rik >= Rik && rik < Sik)
+		{
+			FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
+			ksi_ij += FCik * g;
+		}
+		else
+			ksi_ij += 0.0;
+		
+		// Figure out the j,k derivative of ksi
+		if (k == kk)
+		{
+			double dgdrjk = (-2.0*c2*(s_h - costheta))/pow((d2 + pow((s_h - costheta),2)),2.0) * (-rjk/(rij*rik));
+			
+			if (rik < Rik)
+			{
+				dksi_ijdrjk = 1.0 * dgdrjk;
+			}
+			else if (rik >= Rik && rik < Sik)
+			{
+				FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
+				dksi_ijdrjk = FCik * dgdrjk;
+			}
+			else
+			{
+				dksi_ijdrjk = 0.0;
+			}
+		}
+		
+	}
+	
+	// Assemble bond order term
+	double bij = s_chi * pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -1/(2*s_n));
+	
+	double dbijdZij = (-.5*s_chi* pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -(1+(2*s_n))/(2*s_n))) * (pow(s_beta,s_n-1.0)*pow(ksi_ij,s_n-1.0));
+	double dbijdrjk = s_beta * dbijdZij * dksi_ijdrjk;
+	
+	if (neighbors.Length() == 3 || ksi_ij == 0.0)
+	{
+		bij = 1.0;	// if no ikth bond, assume bond order function = 1, results in morselike potential, no third body effects
+		dbijdrjk = 0.0;
+	}
+	
+	// return force
+	double Fjk = (FCij*dbijdrjk*FA);
+	return (.5*Fjk);
 }
 
 double TersoffPairT::Stiffness(double rij, iArrayT neighbors, const int j, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords)
@@ -471,8 +767,12 @@ double TersoffPairT::Stiffness(double rij, iArrayT neighbors, const int j, const
 	double dFAdr = -s_mu * FA;
 	double d2FAdr2 = s_mu * s_mu * FA;
 	
-	// Determine the bond order parameter - no derivative needed, not function of rij
+	// Determine the bond order parameter and its derivative w/respect to rij
+	// derivative information obtained from Miejie Tang's Thesis, MIT, 1995
+	
 	double ksi_ij = 0.0;
+	double dksi_ijdrij = 0.0;
+	double d2ksi_ijdrij2 = 0.0;
 	for (int k = 1; k < neighbors.Length(); k++)
 	{
 		// skip if atom_k == atom_j or atom_i
@@ -504,25 +804,56 @@ double TersoffPairT::Stiffness(double rij, iArrayT neighbors, const int j, const
 		double c2 = s_c*s_c;
 		double d2 = s_d*s_d;
 		
-		double g = 1 + c2/d2 - c2/(d2 + pow((s_h - costheta),2));
+		double g = 1 + c2/d2 - c2/(d2 + pow((s_h - costheta),2.0));
+		double dgdrij = (-2.0*c2*(s_h - costheta))/pow((d2 + pow((s_h - costheta),2)),2.0) * ((1/rik) - (costheta/rij)); 
+		double d2gdrij2_pt1 = (((2.0*c2)/pow((d2 + pow((s_h - costheta),2.0)),2.0)) - ((8.0*c2*pow(s_h-costheta,2))/pow((d2 + pow((s_h - costheta),2.0)),3.0))) * pow(((1/rik) - (costheta/rij)),2.0);
+		double d2gdrij2_pt2 = (-2.0*c2*(s_h - costheta))/pow((d2 + pow((s_h - costheta),2)),2.0) * ((2*costheta/(rij*rij)) - 1/(rij*rik));
+		double d2gdrij2 = d2gdrij2_pt1 + d2gdrij2_pt2;
 		
 		// Determine value of cutoff function
 		double FCik = 0.0;
 		if (rik < Rik)
-			FCik = 1.0;	
+		{
+			ksi_ij += 1.0 * g;
+			dksi_ijdrij += 1.0 * dgdrij;
+			d2ksi_ijdrij2 += 1.0 * d2gdrij2;
+		}
 		else if (rik >= Rik && rik < Sik)
+		{
 			FCik = .5 + .5*cos(Pi * (rik - Rik)/(Sik - Rik));
+			ksi_ij += FCik * g;
+			dksi_ijdrij += FCik * dgdrij;
+			d2ksi_ijdrij2 += FCik * d2gdrij2;
+		}
 		else
-			FCik = 0.0;
+		{
+			ksi_ij += 0.0;
+			dksi_ijdrij += 0.0;
+			d2ksi_ijdrij2 += 0.0;
+		}
 		
-		// now put together the parts
-		ksi_ij += FCik * g;
 	}
 	
 	// Assemble bond order term
 	double bij = s_chi * pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -1/(2*s_n));
 	
+	double dbijdZij = (-.5*s_chi* pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -(1+(2*s_n))/(2*s_n))) * (pow(s_beta,s_n-1.0)*pow(ksi_ij,s_n-1.0));
+	double dbijdrij = s_beta * dbijdZij * dksi_ijdrij;
+	 
+	double d2bijdZij2_pt1a = s_chi * ((2*s_n + 1)/(4*s_n) *pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -(1+(4*s_n))/(2*s_n))*(pow(s_beta,2*s_n-2)*pow(ksi_ij,2*s_n-2)));
+	double d2bijdZij2_pt1b = s_chi * (.5*(s_n - 1)*pow((1 + (pow(s_beta,s_n)*pow(ksi_ij,s_n))), -(1+(2*s_n))/(2*s_n))*(pow(s_beta,s_n-2)*pow(ksi_ij,s_n-2)));
+	double d2bijdrij2_pt1 = pow(s_beta,2) * (d2bijdZij2_pt1a+d2bijdZij2_pt1b) * pow(dksi_ijdrij,2);
+	double d2bijdrij2_pt2 = s_beta * dbijdZij * d2ksi_ijdrij2;
+	double d2bijdrij2 = d2bijdrij2_pt1 + d2bijdrij2_pt2;
+	
+	if (neighbors.Length() == 3 || ksi_ij == 0.0)
+	{
+		bij = 1.0;	// if no ikth bond, assume bond order function = 1, results in morselike potential, no third body effects
+		dbijdrij = 0.0;
+		d2bijdrij2 = 0.0;
+	}
+	
 	// return stiffness
-	double Kij = (d2FCijdr2*FR) + (dFCijdr*dFRdr) + (FCij*d2FRdr2) + (dFCijdr*dFRdr) + (d2FCijdr2*bij*FA) + (dFCijdr*bij*dFAdr) + (FCij*bij*d2FAdr2) + (dFCijdr*bij*dFAdr);
+	double Kij = (d2FCijdr2*FR) + (dFCijdr*dFRdr) + (FCij*d2FRdr2) + (dFCijdr*dFRdr) + (d2FCijdr2*bij*FA) + (dFCijdr*dbijdrij*FA) + (dFCijdr*bij*dFAdr) + (FCij*d2bijdrij2*FA) + (FCij*dbijdrij*dFAdr) + (dFCijdr*dbijdrij*dFAdr) + (FCij*dbijdrij*dFAdr) + (FCij*bij*d2FAdr2);
 	return (.5*Kij);
 }

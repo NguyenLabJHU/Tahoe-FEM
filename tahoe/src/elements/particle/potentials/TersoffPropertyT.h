@@ -1,4 +1,4 @@
-/* $Id: TersoffPropertyT.h,v 1.3 2006-07-31 14:50:30 d-farrell2 Exp $ */
+/* $Id: TersoffPropertyT.h,v 1.4 2006-08-25 22:14:13 d-farrell2 Exp $ */
 #ifndef _TERSOFF_PROPERTY_T_H_
 #define _TERSOFF_PROPERTY_T_H_
 
@@ -64,7 +64,7 @@ public:
 	 * \param coords coordinates of particles
 	 * \return the pair force
 	 */
-	typedef double (*ForceFunction)(double rij, iArrayT neighbors, const int j, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords);
+	typedef double (*ForceFunction)(double rij, iArrayT neighbors, const int j, const int kk, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords);
 
 	/** definition of function that returns the entire contribution to the stiffness
 	 * \param rij distance between particles i,j
@@ -80,7 +80,9 @@ public:
 	virtual EnergyFunction getEnergyFunction(void) = 0; 
 
 	/** return a pointer to the force function */
-	virtual ForceFunction getForceFunction(void) = 0;
+	virtual ForceFunction getForceFunction_ij(void) = 0;
+	virtual ForceFunction getForceFunction_ik(void) = 0;
+	virtual ForceFunction getForceFunction_jk(void) = 0;
 
 	/** return a pointer to the stiffness function */
 	virtual StiffnessFunction getStiffnessFunction(void) = 0;

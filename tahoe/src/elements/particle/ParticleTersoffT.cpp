@@ -1,4 +1,4 @@
-/* $Id: ParticleTersoffT.cpp,v 1.2 2006-07-25 16:29:47 d-farrell2 Exp $ */
+/* $Id: ParticleTersoffT.cpp,v 1.3 2006-08-25 22:14:13 d-farrell2 Exp $ */
 #include "ParticleTersoffT.h"
 
 #include "TersoffPropertyT.h"
@@ -225,7 +225,7 @@ void ParticleTersoffT::WriteOutput(void)
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property) {
 				energy_function = fTersoffProperties[property]->getEnergyFunction();
-				force_function = fTersoffProperties[property]->getForceFunction();
+//				force_function = fTersoffProperties[property]->getForceFunction();
 				current_property = property;
 			}
 		
@@ -242,7 +242,7 @@ void ParticleTersoffT::WriteOutput(void)
 				uby2 = energy_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);			
 				values_i[offsets[kPE]] += uby2;
 			}			
-
+#if 0
 			/* stress contribution */			
 			double Fbyr = 0.0;
 			if (fOutputFlags[kStress])
@@ -254,7 +254,7 @@ void ParticleTersoffT::WriteOutput(void)
 				temp.Outer(r_ij);
 				vs_i.AddScaled(Fbyr, temp);
 			}
-
+#endif
 #if 0
 			/* second node may not be on processor */
 			if (!proc_map || (*proc_map)[tag_j] == rank) 
@@ -535,7 +535,7 @@ void ParticleTersoffT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 				int property = fPropertiesMap(type_i, type_j);
 				if (property != current_property)
 				{
-					force_function = fTersoffProperties[property]->getForceFunction();
+					force_function = fTersoffProperties[property]->getForceFunction_ij();
 					stiffness_function = fTersoffProperties[property]->getStiffnessFunction();
 					current_property = property;
 				}
@@ -549,7 +549,7 @@ void ParticleTersoffT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 				r_ji.SetToScaled(-1.0, r_ij);
 
 				/* interaction functions */
-				double F = force_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
+				double F = force_function(r, neighbors, j, -1, fType, fTersoffProperties, fPropertiesMap, coords);
 				double K = stiffness_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
 				double Fbyr = F/r;
 
@@ -863,7 +863,7 @@ void ParticleTersoffT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				int property = fPropertiesMap(type_i, type_j);
 				if (property != current_property)
 				{
-					force_function = fTersoffProperties[property]->getForceFunction();
+					force_function = fTersoffProperties[property]->getForceFunction_ij();
 					stiffness_function = fTersoffProperties[property]->getStiffnessFunction();
 					current_property = property;
 				}
@@ -877,7 +877,7 @@ void ParticleTersoffT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				double r = r_ij.Magnitude();
 			
 				/* interaction functions */
-				double F = force_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
+				double F = force_function(r, neighbors, j, -1, fType, fTersoffProperties, fPropertiesMap, coords);
 				double K = stiffness_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
 				K = (K < 0.0) ? 0.0 : K;
 				
@@ -952,7 +952,7 @@ void ParticleTersoffT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				int property = fPropertiesMap(type_i, type_j);
 				if (property != current_property)
 				{
-					force_function = fTersoffProperties[property]->getForceFunction();
+					force_function = fTersoffProperties[property]->getForceFunction_ij();
 					stiffness_function = fTersoffProperties[property]->getStiffnessFunction();
 					current_property = property;
 				}
@@ -967,7 +967,7 @@ void ParticleTersoffT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				r_ji.SetToScaled(-1.0, r_ij);
 			
 				/* interaction functions */
-				double F = constK*force_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
+				double F = constK*force_function(r, neighbors, j, -1, fType, fTersoffProperties, fPropertiesMap, coords);
 				double K = constK*stiffness_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
 				double Fbyr = F/r;
 
@@ -1027,7 +1027,12 @@ void ParticleTersoffT::RHSDriver3D(void)
 
 	/* function pointers, etc. */
 	int current_property = -1;
-	TersoffPropertyT::ForceFunction force_function = NULL;
+	TersoffPropertyT::ForceFunction force_function_ij = NULL;
+	TersoffPropertyT::ForceFunction force_function_ik = NULL;
+	TersoffPropertyT::ForceFunction force_function_jk = NULL;
+// DEBUG
+TersoffPropertyT::EnergyFunction energy_function = NULL;
+	
 	const double* Paradyn_table = NULL;
 	double dr = 1.0;
 	int row_size = 0, num_rows = 0;
@@ -1035,6 +1040,24 @@ void ParticleTersoffT::RHSDriver3D(void)
 	/* run through neighbor list */
 	fForce = 0.0;
 	iArrayT neighbors;
+//DEBUG
+dArray2DT coords_pert = coords;
+dArray2DT coords_pert2 = coords;
+dArray2DT coords_pert3 = coords;
+double E0 = 0.0;
+double E1 = 0.0;
+double E02 = 0.0;
+double E12 = 0.0;
+double E03 = 0.0;
+double E13 = 0.0;
+int testtag = 1;
+double* xp = coords_pert(testtag);
+double* xp2 = coords_pert2(testtag);
+double* xp3 = coords_pert3(testtag);
+double perturb = 1e-6;
+xp[0] += perturb;
+xp2[1] += perturb;
+xp3[2] += perturb;
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
 		/* row of neighbor list */
@@ -1045,7 +1068,11 @@ void ParticleTersoffT::RHSDriver3D(void)
 		int  type_i = fType[tag_i];
 		double* f_i = fForce(tag_i);
 		const double* x_i = coords(tag_i);
-		
+//DEBUG
+const double* xp_i = coords_pert(tag_i);
+const double* xp_i2 = coords_pert2(tag_i);
+const double* xp_i3 = coords_pert3(tag_i);
+
 		/* run though neighbors for one atom - first neighbor is self */
 		for (int j = 1; j < neighbors.Length(); j++)
 		{
@@ -1056,38 +1083,169 @@ void ParticleTersoffT::RHSDriver3D(void)
 			/* global tag */
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];
+			double* f_j = fForce(tag_j);
 			const double* x_j = coords(tag_j);
 
-			/* set pair property (if not already set) */
+			/* set i,j pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
-				force_function = fTersoffProperties[property]->getForceFunction();
+				force_function_ij = fTersoffProperties[property]->getForceFunction_ij();				
 				current_property = property;
+// DEBUG
+energy_function = fTersoffProperties[property]->getEnergyFunction();
 			}
-		
+			
 			/* connecting vector */
 			double r_ij_0 = x_j[0] - x_i[0];
 			double r_ij_1 = x_j[1] - x_i[1];
 			double r_ij_2 = x_j[2] - x_i[2];
-			double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
-		
-			/* interaction force */
-			double F;			
-			F = force_function(r, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
+			double r_ij = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
+			
+			// run through kth neighbors
+			for (int k = 1; k < neighbors.Length(); k++)
+			{
+				// skip if atom_k == atom_j or atom_i
+				if (k == j || neighbors[k] == neighbors[0])
+					continue;
 				
-			double Fbyr = formKd*F/r;
+				// global tag
+				int   tag_k = neighbors[k];
+				int  type_k = fType[tag_k];
+				double* f_k = fForce(tag_k);
+				const double* x_k = coords(tag_k);
 
-			r_ij_0 *= Fbyr;
+				// set i,k pair property (if not already set)
+				int property = fPropertiesMap(type_i, type_k);
+				if (property != current_property || force_function_ik == NULL || force_function_jk == NULL)
+				{
+					force_function_ik = fTersoffProperties[property]->getForceFunction_ik();
+					force_function_jk = fTersoffProperties[property]->getForceFunction_jk();
+					current_property = property;
+				}
+				
+				// connecting vectors
+				double r_ik_0 = x_k[0] - x_i[0];
+				double r_ik_1 = x_k[1] - x_i[1];
+				double r_ik_2 = x_k[2] - x_i[2];
+				double r_ik = sqrt(r_ik_0*r_ik_0 + r_ik_1*r_ik_1 + r_ik_2*r_ik_2);
+				
+				double r_jk_0 = x_k[0] - x_j[0];
+				double r_jk_1 = x_k[1] - x_j[1];
+				double r_jk_2 = x_k[2] - x_j[2];
+				double r_jk = sqrt(r_jk_0*r_jk_0 + r_jk_1*r_jk_1 + r_jk_2*r_jk_2);
+				
+				// i,k part of interaction force
+				double F_ik;			
+				F_ik = force_function_ik(r_ij, neighbors, j, k, fType, fTersoffProperties, fPropertiesMap, coords);
+				double F_ikbyr_ik = formKd*F_ik/r_ik;
+				
+				// j,k part of interaction force
+				double F_jk;			
+				F_jk = force_function_jk(r_ij, neighbors, j, k, fType, fTersoffProperties, fPropertiesMap, coords);
+				double F_jkbyr_jk = formKd*F_jk/r_jk;
+				
+				// Compute i,k , j,k parts of force, add to force vector
+				r_ik_0 *= F_ikbyr_ik;
+				f_i[0] += r_ik_0;
+				f_k[0] += -r_ik_0;
+				
+				r_ik_1 *= F_ikbyr_ik;
+				f_i[1] += r_ik_1;
+				f_k[1] += -r_ik_1;
+				
+				r_ik_2 *= F_ikbyr_ik;
+				f_i[2] += r_ik_2;
+				f_k[2] += -r_ik_2;
+				
+				r_jk_0 *= F_jkbyr_jk;
+				f_j[0] += r_jk_0;
+				f_k[0] += -r_jk_0;
+				
+				r_jk_1 *= F_jkbyr_jk;
+				f_j[1] += r_jk_1;
+				f_k[1] += -r_jk_1;
+				
+				r_jk_2 *= F_jkbyr_jk;
+				f_j[2] += r_jk_2;
+				f_k[2] += -r_jk_2;
+				
+			}
+			
+			/* i,j part of interaction force */
+			double F_ij;			
+			F_ij = force_function_ij(r_ij, neighbors, j, -1, fType, fTersoffProperties, fPropertiesMap, coords);
+			double F_ijbyr_ij = formKd*F_ij/r_ij;
+			
+			// Compute i,j parts of force, add to force vector
+			r_ij_0 *= F_ijbyr_ij;
 			f_i[0] += r_ij_0;
+			f_j[0] += -r_ij_0;
 
-			r_ij_1 *= Fbyr;
+			r_ij_1 *= F_ijbyr_ij;
 			f_i[1] += r_ij_1;
+			f_j[1] += -r_ij_1;
 
-			r_ij_2 *= Fbyr;
+			r_ij_2 *= F_ijbyr_ij;
 			f_i[2] += r_ij_2;
-		}		
+			f_j[2] += -r_ij_2;
+//DEBUG
+const double* xp_j = coords_pert(tag_j);
+const double* xp_j2 = coords_pert2(tag_j);
+const double* xp_j3 = coords_pert3(tag_j);
+double r_1_0 = xp_j[0] - xp_i[0];
+double r_1_1 = xp_j[1] - xp_i[1];
+double r_1_2 = xp_j[2] - xp_i[2];
+double r1 = sqrt(r_1_0*r_1_0 + r_1_1*r_1_1 + r_1_2*r_1_2); 
+E0 += energy_function(r_ij, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
+E1 += energy_function(r1, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords_pert);
+
+double r_2_0 = xp_j2[0] - xp_i2[0];
+double r_2_1 = xp_j2[1] - xp_i2[1];
+double r_2_2 = xp_j2[2] - xp_i2[2];
+double r2 = sqrt(r_2_0*r_2_0 + r_2_1*r_2_1 + r_2_2*r_2_2); 
+E02 += energy_function(r_ij, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
+E12 += energy_function(r2, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords_pert2);
+
+double r_3_0 = xp_j3[0] - xp_i3[0];
+double r_3_1 = xp_j3[1] - xp_i3[1];
+double r_3_2 = xp_j3[2] - xp_i3[2];
+double r3 = sqrt(r_3_0*r_3_0 + r_3_1*r_3_1 + r_3_2*r_3_2); 
+E03 += energy_function(r_ij, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
+E13 += energy_function(r3, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords_pert3);
+///////			
+		}	
 	}
+// DEBUG
+double f_num = 0.0;
+double f_num2 = 0.0;
+double f_num3 = 0.0;
+const double* x_0 = coords(testtag);
+double rp_0 = x_0[0] - xp[0];
+double rp_1 = x_0[1] - xp[1];
+double rp_2 = x_0[2] - xp[2];
+double r1 = sqrt(rp_0*rp_0 + rp_1*rp_1 + rp_2*rp_2); 
+f_num = -(E1-E0)/r1;
+
+double rp_02 = x_0[0] - xp2[0];
+double rp_12 = x_0[1] - xp2[1];
+double rp_22 = x_0[2] - xp2[2];
+double r2 = sqrt(rp_02*rp_02 + rp_12*rp_12 + rp_22*rp_22); 
+f_num2 = -(E12-E02)/r2;
+
+double rp_03 = x_0[0] - xp3[0];
+double rp_13 = x_0[1] - xp3[1];
+double rp_23 = x_0[2] - xp3[2];
+double r3 = sqrt(rp_03*rp_03 + rp_13*rp_13 + rp_23*rp_23); 
+f_num3 = -(E13-E03)/r3;
+
+double* f_0 = fForce(testtag);
+double F_i = sqrt(f_0[0]*f_0[0] + f_0[1]*f_0[1] + f_0[2]*f_0[2]);
+cout << "info for atom : " << testtag+1 << endl;
+cout << "F_x : " << f_0[0] << " , F_y : " << f_0[1] << " , F_z : " << f_0[2] << endl;
+cout << "F_num_x: " << f_num << " , F_num_y: " << f_num2 << " , F_num_z: " << f_num3 << endl;
+cout << "F_diff = " << fabs(f_num - f_0[0]) << "    " << fabs(f_num2 - f_0[1]) << "    " << fabs(f_num3 - f_0[2]) << endl;
+///////
 }
 
 /* set neighborlists */

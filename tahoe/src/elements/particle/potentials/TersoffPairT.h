@@ -1,4 +1,4 @@
-/* $Id: TersoffPairT.h,v 1.3 2006-07-31 14:50:30 d-farrell2 Exp $ */
+/* $Id: TersoffPairT.h,v 1.4 2006-08-25 22:14:13 d-farrell2 Exp $ */
 #ifndef _TERSOFF_PAIR_T_H_
 #define _TERSOFF_PAIR_T_H_
 
@@ -29,7 +29,9 @@ public:
 	 * b_ij	: bond order parameter (angle dependance is in here)
 	 * f_A	: attractive part
 	 *
-	 * here I use (f_C * f_R) and (f_C * b_ij * f_A) as an environment dependant 2-body term 
+	 * here I use (f_C * f_R) and (f_C * b_ij * f_A) as an environment dependant 2-body term
+	 * Force implementation, derivatives taken from Miejie Tang's Thesis, MIT, 1995
+	 * Note: this implementation isn't very optimized
 	 */
 	
 	TersoffPairT(void);
@@ -40,7 +42,9 @@ public:
 	virtual TersoffPropertyT::EnergyFunction getEnergyFunction(void);
 
 	/** return a pointer to the force function */
-	virtual TersoffPropertyT::ForceFunction getForceFunction(void);
+	virtual TersoffPropertyT::ForceFunction getForceFunction_ij(void);
+	virtual TersoffPropertyT::ForceFunction getForceFunction_ik(void);
+	virtual TersoffPropertyT::ForceFunction getForceFunction_jk(void);
 
 	/** return a pointer to the stiffness function */
 	virtual TersoffPropertyT::StiffnessFunction getStiffnessFunction(void);
@@ -67,7 +71,9 @@ private:
 	/** \name interaction functions */
 	/*@{*/
 	static double Energy(double rij, iArrayT neighbors, const int j, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords);
-	static double Force(double rij, iArrayT neighbors, const int j, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords);
+	static double Force_ij(double rij, iArrayT neighbors, const int j, const int kk, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords);
+	static double Force_ik(double rij, iArrayT neighbors, const int j, const int kk, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords);
+	static double Force_jk(double rij, iArrayT neighbors, const int j, const int kk, const AutoArrayT<int> type, ArrayT<TersoffPropertyT*> tersoff_properties, nMatrixT<int>& properties_map, const dArray2DT& coords);
 	static double Stiffness(double rij, iArrayT neighbors, const int j, const AutoArrayT<int> typ, ArrayT<TersoffPropertyT*> tersoff_propertiese, nMatrixT<int>& properties_map, const dArray2DT& coords);
 	/*@}*/
 
