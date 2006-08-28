@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.h,v 1.3 2006-08-22 14:37:11 kyonten Exp $ */
+/* $Id: SMRSSNLHardT.h,v 1.4 2006-08-28 14:07:01 kyonten Exp $ */
 /* created: Karma Yonten  */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -45,10 +45,9 @@ public:
 		                             
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
-	const dSymMatrixT& StressCorrection(const dSymMatrixT& totalstrain_curr, 
+	const dSymMatrixT& StressCorrection(const dSymMatrixT& totalstrain, 
 		ElementCardT& element, int ip); 
 
-	double Yield_f(const dSymMatrixT& Sig, const dArrayT& qn);
     void dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);    
     void dfdq_f(const dSymMatrixT& Sig, dArrayT& dfdq); 
     void dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig);   
@@ -84,12 +83,11 @@ public:
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
-	enum InternalVariablesT {ktanphi = 18,
-	                      ktanpsi = 19,
-                      kstressnorm = 23,  // norm of residuals
-                         kdlambda = 21,  // consistency parameter
-                         kplastic = 22,  // Plastic Index
-                          kftrial = 20}; // yield function value
+	enum InternalVariablesT {ktanphi = 12,
+	                      ktanpsi = 13,
+                      kstressnorm = 16,  // norm of residuals
+                         kdlambda = 15,  // consistency parameter
+                          kftrial = 14}; // yield function value
 
 	/** internal variables */
 	dArrayT& Internal(void) { return fInternal; };
@@ -128,7 +126,6 @@ public:
   	/* element level internal state variables */
   	dSymMatrixT fPlasticStrain; //total plastic strain (deviatoric and volumetric)
   	dArrayT     fInternal;      //internal variables
-  	double ftanphi,ftanpsi;
 
   private:
 

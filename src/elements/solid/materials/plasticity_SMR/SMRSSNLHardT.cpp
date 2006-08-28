@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.cpp,v 1.4 2006-08-22 14:37:11 kyonten Exp $ */
+/* $Id: SMRSSNLHardT.cpp,v 1.5 2006-08-28 14:07:01 kyonten Exp $ */
 /* created: Karma Yonten */
 
 /* Interface for a nonassociative, small strain,      */
@@ -16,7 +16,7 @@
 using namespace Tahoe;
 
 /* class constants */
-const int    kNumInternal = 26; // number of internal state variables
+const int    kNumInternal = 18; // number of internal state variables
 const int    kNSD         = 3;
 const int    kNSTR        = dSymMatrixT::NumValues(kNSD);
 const double ratio32      = 3.0/2.0;
@@ -55,259 +55,193 @@ const dSymMatrixT& SMRSSNLHardT::ElasticStrain(const dSymMatrixT& totalstrain,
 /* return correction to stress vector computed by mapping the
  * stress back to the yield surface, if needed */
 const dSymMatrixT& SMRSSNLHardT::StressCorrection(
-      const dSymMatrixT& totalstrain_curr,
+      const dSymMatrixT& totalstrain,
       ElementCardT& element, int ip)
 {
-  	int kk,iplastic;
-	double ff,dlam,dlam2,normr;
-  	
-	/* allocate matrices */
-    dMatrixT KE(6),KE_Inv(6),AA(8),AA_inv(8),Auu_inv(6),Auq_inv(6,2),
-             Aqu_inv(2,6),Aqq_inv(2),dQdSig2(6),dQdSigdq(6,2),
-             dqbardq(2),dqbardSig(2,6);
+  	/* elastic step */
+  	fStressCorr = DeviatoricStress(totalstrain, element);
+    fStressCorr.PlusIdentity(MeanStress(totalstrain,element));
     
-	/* allocate reduced index vector of symmetric matrices */
-    dSymMatrixT u(3),up(3),upo(3),du(3),dup(3),ue(3),Sig(3),dSig(3),
-                Sig_e(3),dfdSig(3),dQdSig(3); 
-    
-    /* allocate vectors */
-    dArrayT Rvec(8),Cvec(8),R(8),Rmod(8),X(8),qo(2),qn(2),dq(2),R2(8), 
-            dfdq(2),qbar(2),state(26);
-	
-	/* elastic moduli tensor */
-	KE = 0.0;
-	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
-	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
-	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
-	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
-        
-	//if(ip == 0)
-		//cout << "ip "<< ip << endl; // ip #
-		
-	/* case 1: element/ip elastic */
-	if (!PlasticLoading(totalstrain_curr, element, ip) && 
-	    !element.IsAllocated())
-	{
-		/* initialize element data */
-        double esp  = 0.;
-        state = 0.;
-        state[ktanphi] = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-        state[ktanpsi] = (tan(fphi_p))*exp(-falpha_psi*esp);
-        //if(ip==0) cout << "elastic step " << endl;
-	}
-	
-	/* case 2: element/ip plastic for the first time */
-	if (PlasticLoading(totalstrain_curr, element, ip) && 
+    /* plastic step */
+    if (PlasticLoading(totalstrain, element, ip) && 
 	    !element.IsAllocated())
 	{
 		/* new plastic element */
 		AllocateElement(element);
 		
 		/* initialize element data */ 
-		PlasticLoading(totalstrain_curr, element, ip); 
-		//if(ip==0) cout << "first plastic step " << endl;
+		PlasticLoading(totalstrain, element, ip); 
 	}
 	
-	/* case 3: element/ip plastic currently and/or previously */
-	// for other ips in the plastic element initialize the internal variables
-	// if same ip of the element is encountered the second time, use the 
-	// previous values of the internal variables/state variables
-	if (PlasticLoading(totalstrain_curr, element, ip) && 
-        element.IsAllocated()) {
-     	
-     	LoadData(element, ip);
-     	
-     	/* fetch internal variables */
-     	state.CopyIn(0, fInternal);
-     	
-        //if(ip==0) cout << "plastic step " << endl;
-    }
+	if (element.IsAllocated()) 
+	{		
+		double normr;
+  	
+		/* allocate matrices */
+    	dMatrixT KE(6),KE_Inv(6),AA(8),AA_inv(8),Auu_inv(6),Auq_inv(6,2),
+             	 Aqu_inv(2,6),Aqq_inv(2),dQdSig2(6),dQdSigdq(6,2),
+                 dqbardq(2),dqbardSig(2,6);
     
-    /* case 4: element/ip previously plastic is unloaded */
-	// set internal variables to previous values
-	if (!PlasticLoading(totalstrain_curr, element, ip) && 
-	    element.IsAllocated())
-	{
-        LoadData(element, ip);
-        
-       	/* fetch internal variables */
-     	state.CopyIn(0, fInternal);
-     	//if(ip==0) cout << "unloading step" << endl;
-	}
+		/* allocate reduced index vector of symmetric matrices */
+    	dSymMatrixT u(3),up(3),upo(3),du(3),dup(3),ue(3),Sig(3),dSig(3),
+                	Sig_e(3),dfdSig(3),dQdSig(3); 
+    
+    	/* allocate vectors */
+    	dArrayT Rvec(8),Cvec(8),R(8),Rmod(8),X(8),qo(2),qn(2),dq(2),R2(8), 
+            	dfdq(2),qbar(2);
 	
-	/* initialize and copy the necessary vectors */
-    up.CopyPart(0, state, 12, up.Length());
-    qn.CopyPart(0, state, 18, qn.Length());
-    upo = up; qo = qn;
-    dup = 0.; dq = 0.;
-    dlam = 0.; dlam2 = 0.; normr = 0.;
+		/* elastic moduli tensor and its inverse */
+		KE = 0.0;
+		KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
+		KE(1,2) = KE(0,1) = KE(0,2) = flambda;
+		KE(2,1) = KE(1,0) = KE(2,0) = flambda;
+		KE(5,5) = KE(4,4) = KE(3,3) = fmu;
+    	KE_Inv.Inverse(KE);    
+		//if(ip == 0)
+			//cout << "ip "<< ip << endl; // ip #
+		
+		/* initialize and copy the necessary vectors */
+    	up.CopyPart(0, fInternal, 6, up.Length());
+    	qn.CopyPart(0, fInternal, 12, qn.Length());
+    	upo = up; qo = qn;
+    	dup = 0.; dq = 0.;
+    	double dlam = 0.; double dlam2 = 0.; 
     
-    /* calculate stress */
-    ue.DiffOf(totalstrain_curr, up);
-    Sig_e.A_ijkl_B_kl(KE, ue);
-    //KE.Multx(ue, Sig_e); 
-    Sig = Sig_e; 
-    KE_Inv.Inverse(KE);
-   
-/* check the yield function */
-    ff = Yield_f(Sig, qn);
-    if (ff < fTol_1) {
-      iplastic = 0;
-      kk = 0;
-    } 
-    else {
-      state[20] = ff;
-      kk = 0;
-      iplastic = 1;
-      bool NotConverged = true;
-      while (NotConverged) 
-      {
-        if (kk > 20)
-        	ExceptionT::GeneralFail("SMRSSNLHardT::StressCorrection","Too Many Iterations");
+    	/* check the yield function */
+    	ue.DiffOf(totalstrain, up);
+    	Sig = DeviatoricStress(ue, element);
+    	Sig.PlusIdentity(MeanStress(ue,element));
+    	double ff = fInternal[kftrial];
+    	
+    	if (ff > fTol_1)
+    	{ /* local Newton iteration */
+      		int kk = 0;
+      		int max_iteration = 15; 
+      		bool NotConverged = true;
+      		while (NotConverged) 
+      		{
+        		/* calculate stress */
+        		ue.DiffOf(totalstrain, up);
+    			Sig = DeviatoricStress(ue, element);
+        		Sig.PlusIdentity(MeanStress(ue,element));
         
-        /* calculate stress */
-        ue.DiffOf(totalstrain_curr, up);
-    	Sig_e.A_ijkl_B_kl(KE, ue);
-    	//KE.Multx(ue, Sig_e);  
-    	Sig = Sig_e;
-        
-        /* check yield condition */
-        ff = Yield_f(Sig, qn);
+        		/* calculate yield condition */
+        		ff = YieldCondition(DeviatoricStress(ue,element),
+			                  MeanStress(ue,element),qn[0],fc);
  
-        /* residuals for plastic strain and internal variables */
-        dQdSig_f(Sig, qn, dQdSig);
-        qbar_f(Sig, qn, qbar);
+        		/* residuals for plastic strain and internal variables */
+        		dQdSig_f(Sig, qn, dQdSig);
+        		qbar_f(Sig, qn, qbar);
 
-        for (int i=0; i<6; i++) {
-          R[i]  = upo[i]-up[i];
-          R[i] += dlam*dQdSig[i];
-        }
-        for (int i=0; i<2; i++) {
-          R[i+6]  = qo[i]-qn[i]; 
-          R[i+6] += dlam*qbar[i]; 
-        }
+        		for (int i=0; i<6; i++) {
+          			R[i]  = upo[i]-up[i];
+          			R[i] += dlam*dQdSig[i];
+        		}
+        		for (int i=0; i<2; i++) {
+          			R[i+6]  = qo[i]-qn[i]; 
+          			R[i+6] += dlam*qbar[i]; 
+        		}
             
-        /* L2 norms of the residual vectors */
-        normr = R.Magnitude();
-        
-        /* form AA_inv matrix  and calculate AA */
-        dQdSig2_f(Sig, qn, dQdSig2);
-        dQdSigdq_f(dQdSigdq);
-        dqbardSig_f(Sig, qn, dqbardSig);
-        dqbardq_f(Sig, qn, dqbardq);
-        Auu_inv.SetToScaled(dlam, dQdSig2);
-        Auu_inv += KE_Inv;
-        Auq_inv.SetToScaled(dlam, dQdSigdq);
-        Aqu_inv.SetToScaled(dlam, dqbardSig);
-        Aqq_inv.SetToScaled(dlam, dqbardq);
-        Aqq_inv.PlusIdentity(-1.0);
-        AA_inv = 0.0;
-        AA_inv.AddBlock(0,           0,           Auu_inv);
-        AA_inv.AddBlock(0,           Auu_inv.Cols(), Auq_inv);
-        AA_inv.AddBlock(Auu_inv.Rows(), 0,           Aqu_inv);
-        AA_inv.AddBlock(Auu_inv.Rows(), Auu_inv.Cols(), Aqq_inv);
-       	AA.Inverse(AA_inv);
+        		/* L2 norms of the residual vectors */
+        		normr = R.Magnitude();
+        	
+        		/* form AA_inv matrix  and calculate AA */
+        		dQdSig2_f(Sig, qn, dQdSig2);
+        		dQdSigdq_f(dQdSigdq);
+        		dqbardSig_f(Sig, qn, dqbardSig);
+        		dqbardq_f(Sig, qn, dqbardq);
+        		Auu_inv.SetToScaled(dlam, dQdSig2);
+        		Auu_inv += KE_Inv;
+        		Auq_inv.SetToScaled(dlam, dQdSigdq);
+        		Aqu_inv.SetToScaled(dlam, dqbardSig);
+        		Aqq_inv.SetToScaled(dlam, dqbardq);
+        		Aqq_inv.PlusIdentity(-1.0);
+        		AA_inv = 0.0;
+        		AA_inv.AddBlock(0,           0,           Auu_inv);
+        		AA_inv.AddBlock(0,           Auu_inv.Cols(), Auq_inv);
+        		AA_inv.AddBlock(Auu_inv.Rows(), 0,           Aqu_inv);
+        		AA_inv.AddBlock(Auu_inv.Rows(), Auu_inv.Cols(), Aqq_inv);
+       			AA.Inverse(AA_inv);
        	
-        /* calculate dlam2 */ 
-        dfdSig_f(Sig, qn, dfdSig);
-        dfdq_f(Sig, dfdq);
-        Rvec.CopyIn(0, dfdSig);
-        Rvec.CopyIn(dfdSig.Length(), dfdq);
-        Cvec.CopyIn(0, dQdSig);
-        Cvec.CopyIn(dQdSig.Length(), qbar);
+        		/* calculate dlam2 */ 
+        		dfdSig_f(Sig, qn, dfdSig);
+        		dfdq_f(Sig, dfdq);
+        		Rvec.CopyIn(0, dfdSig);
+        		Rvec.CopyIn(dfdSig.Length(), dfdq);
+        		Cvec.CopyIn(0, dQdSig);
+        		Cvec.CopyIn(dQdSig.Length(), qbar);
         
-        /* include contribution of all off diagonal terms 
-         * in reduced vectors of symmetric matrices for 
-         * double contraction 
-         * dfdSig, dQdSig, up */
-        R2=R;
-        for(int i = 0; i < 3; i++)
-        {
-        	Rvec[i+3] = Rvec[i+3]*2.;
-        	Cvec[i+3] = Cvec[i+3]*2.; 
-        	R2[i+3] = R[i+3]*2.;
-        }
+        		/* include contribution of all off diagonal terms 
+         		 * in reduced vectors of symmetric matrices for 
+         		 * double contraction 
+         		 * dfdSig, dQdSig, up */
+        		R2=R;
+        		for(int i = 0; i < 3; i++)
+        		{
+        			Rvec[i+3] = Rvec[i+3]*2.;
+        			Cvec[i+3] = Cvec[i+3]*2.; 
+        			R2[i+3] = R[i+3]*2.;
+        		}
         
-        double topp = ff - AA.MultmBn(Rvec, R2);
-        double bott = AA.MultmBn(Rvec, Cvec);
-        dlam2 = topp/bott;
+        		double topp = ff - AA.MultmBn(Rvec, R2);
+        		double bott = AA.MultmBn(Rvec, Cvec);
+        		dlam2 = topp/bott;
         
-        /* calculate dup and dq */
-        Rmod.CopyIn(0, dQdSig);
-        Rmod.CopyIn(dQdSig.Length(), qbar);
-        Rmod *= dlam2;
-        Rmod += R;
-        Rmod *= -1.; 
-        AA.Multx(Rmod, X);
-        dSig.CopyPart(0, X, 0, dSig.Length());
-        dq.CopyPart(0, X, dSig.Length(), dq.Length());
+        		/* calculate dup and dq */
+        		Rmod.CopyIn(0, dQdSig);
+        		Rmod.CopyIn(dQdSig.Length(), qbar);
+        		Rmod *= dlam2;
+        		Rmod += R;
+        		Rmod *= -1.; 
+        		AA.Multx(Rmod, X);
+        		dSig.CopyPart(0, X, 0, dSig.Length());
+        		dq.CopyPart(0, X, dSig.Length(), dq.Length());
         
-        /* update internal variables and plastic multiplier */
-        KE_Inv.Multx(dSig,dup);
-        dup *= -1.;
-        up += dup;
-        qn += dq;
-        dlam += dlam2;
-                                                                                                                                                                                                                                                                                                            
-        /*
-        // check the local convergence
-        if(ip == 0 ) { 
-        	cout << "kk=" << kk << " ff=" << ff << " normr=" << normr
-             	 << " dlam2=" << dlam2 << " dlam=" << dlam << endl << endl;
-        }
-        */
-        kk++;
+        		/* update internal variables and plastic multiplier */
+        		KE_Inv.Multx(dSig,dup);
+        		up -= dup;
+        		qn += dq;
+        		dlam += dlam2;
         
-        /* exit while loop if solution has converged */
-        /* convergence criteria: stresses brought back to the yield 
-         * surface (i.e. ff ~= 0) and residuals of plastic strains 
-         * and internal variables are very small */
-        if (fabs(ff) < fTol_1 && normr < fTol_2) {
-        	NotConverged = false;
-        }
+        		/*                                                                                                                                                                                                                                                                                                    
+        		// check the local convergence
+        		if(ip == 0 ) { 
+        			cout << "kk=" << kk << " ff=" << ff << " normr=" << normr
+             	 	<< " dlam2=" << dlam2 << " dlam=" << dlam << endl << endl;
+        		}
+        		*/
         
-      } // while (NotConverged)
-    } // if (ff < fTol_1)
+        		/* exit while loop if solution has converged */
+        		/* convergence criteria: stresses brought back to the yield 
+         		 * surface (i.e. ff ~= 0) and residuals of plastic strains 
+         		 * and internal variables are very small */
+        		if (fabs(ff) < fTol_1 && normr < fTol_2) 
+        			NotConverged = false; 
+        	
+        		/* terminate iteration */
+        		if (++kk == max_iteration)
+        			ExceptionT::GeneralFail("SMRSSNLHardT::StressCorrection","local iteration failed after %d iterations", max_iteration);
+      		} // while (NotConverged)
+    	} // if (ff < fTol_1)
     
-    /* update state variables */
-    state.CopyIn(0, Sig);
-    state.CopyIn(Sig.Length(), totalstrain_curr); 	   
-	state.CopyIn(12, up);
-	state.CopyIn(18, qn);
-	state[20] = ff;
-	state[21] = dlam;
-	state[22] = double(iplastic);
-	state[23] = normr;
-	state[24] = double(kk);
-	
-	fStressCorr = Sig;
-	if (iplastic == 1) {
-   		/* indicator during the first elastic to plastic transition
-   		 * use qn from the fInternal(i.e. plastic) and not elastic qn in second plastic step */ 
-   		state[25] = 1.; 
+    	/* update state variables */
+    	fInternal.CopyIn(0, Sig); 	   
+		fInternal.CopyIn(Sig.Length(), up);
+		fInternal.CopyIn(12, qn);
+		fInternal[14] = ff;
+		fInternal[15] = dlam;
+		fInternal[16] = normr;
+	    fInternal[17] = 1.; /* indicator for internal variable during the first elastic to plastic transition */ 
    		
-	   	fInternal.CopyIn(0, state);
-	   	fPlasticStrain = up;
-	}	
+   		/* update plastic strain */
+   		fPlasticStrain = up;
+   		
+   		/* update stress */	 
+		fStressCorr = Sig;
+		
+	} // if (element.IsAllocated())
 	
  return fStressCorr;
-}
-
-/*
- * returns the value of the yield function given the
- * stress vector and state variables
- */
-double SMRSSNLHardT::Yield_f(const dSymMatrixT& Sig, 
-			const dArrayT& qn)
-{
-  dSymMatrixT Sig_Dev(3);
-  double ftan_phi = qn[0]; 
-  double p = Sig.Trace()/3.0;
-  
-  Sig_Dev.Deviatoric(Sig);
-  double q  = sqrt((Sig_Dev.ScalarProduct())*ratio32);
-  double ff = q + (ftan_phi*p) - fc;
-  return ff;
 }
 
 /* calculation of dfdSig_f */
@@ -477,7 +411,7 @@ const dMatrixT& SMRSSNLHardT::Moduli(const ElementCardT& element,
      dMatrixT KE(6),AA(8),AA_inv(8),TT(8),KE_Inv(6), 
               Auu_inv(6),Auq_inv(6,2),Aqu_inv(2,6),Aqq_inv(2),
               dQdSig2(6),dqbardq(2),dQdSigdq(6,2),dqbardSig(2,6),
-              KP(6),KEP(6);
+              KP(6);
      
      /* allocate reduced index vector of symmetric matrices */
      dSymMatrixT Sig(3),dfdSig(3),dQdSig(3);  
@@ -486,22 +420,21 @@ const dMatrixT& SMRSSNLHardT::Moduli(const ElementCardT& element,
      dArrayT dfdq(2),qbar(2),qn(2),Rvec(8),Cvec(8),
              vec1(8),vec2(8);
      
-	/* elastic moduli tensor */
+	/* elastic moduli tensor and its inverse */
 	KE = 0.0;
 	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
 	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
 	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
 	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
+	KE_Inv.Inverse(KE);
 	
     if(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic) 
-    {
+    { 
 	  	/* load internal state variables */
 	  	LoadData(element, ip);
 	  	Sig.CopyPart(0, fInternal, 0, Sig.Length());
-    	qn.CopyPart(0, fInternal, 18, qn.Length());
+    	qn.CopyPart(0, fInternal, 12, qn.Length());
     	double dlam = fInternal[kdlambda];
-		KE_Inv.Inverse(KE);
-		
 		
 	    /* calculate C_EPC */
         /* form AA_inv matrix and calculate AA */
@@ -547,7 +480,7 @@ const dMatrixT& SMRSSNLHardT::Moduli(const ElementCardT& element,
         AA -= TT;
         for (int i=0; i<6; i++)
         	for (int j=0; j<6; j++)
-        	    KEP(i,j) = AA(i,j);
+        	   fModuli(i,j) = AA(i,j);
         	
         /*************************************************************/
         /* continuum jacobian, i.e., "inconsistent" tangent operator */
@@ -558,17 +491,17 @@ const dMatrixT& SMRSSNLHardT::Moduli(const ElementCardT& element,
    		double bott = KE.MultmBn(dfdSig,dQdSig);
    		bott -= dArrayT::Dot(dfdq,qbar);
    		KP /= bott;
-   		//KEP.DiffOf(KE,KP); //uncomment to activate continuum jacobian
+   		//fModuli.DiffOf(KE,KP); //uncomment to activate continuum jacobian
    		/*************************************************************/
    			
-	    fModuli = KEP;
+	    return fModuli;
 	    
 	}
-	else
+	else /* return elastic tangent stiffness */
+	{
 		fModuli = KE;
-		
-	//fModuli = KE;  // uncomment to use constant stiffness
-	return fModuli;
+		return fModuli;
+	}	
 }
 
 /* return the correction to modulus Cep~, checking for discontinuous
@@ -690,7 +623,7 @@ void SMRSSNLHardT::LoadData(const ElementCardT& element, int ip)
 
 /* returns 1 if the trial elastic strain state lies outside of the 
  * yield surface */
-int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain, 
+int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& totalstrain, 
 	  ElementCardT& element, int ip)
 {
 	/* not yet plastic */
@@ -698,27 +631,28 @@ int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 	
 		double esp  = 0.;
         double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-		return(YieldCondition(DeviatoricStress(trialstrain,element),
-			       MeanStress(trialstrain,element),ftan_phi,fc) > fTol_1 );
+		return(YieldCondition(DeviatoricStress(totalstrain,element),
+			       MeanStress(totalstrain,element),ftan_phi,fc) > fTol_1 );
 	}
         /* already plastic */
 	else 
 	{
-	/* get flags */
-	 iArrayT& Flags = element.IntegerData();
+	    /* get flags */
+	    iArrayT& Flags = element.IntegerData();
 		
-	/* load internal variables */
-	LoadData(element, ip);
+	    /* load internal variables */
+	    LoadData(element, ip);
 	
-	if(fInternal[25] == 0.) {
-		double esp = 0.;
-    	fInternal[ktanphi] = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-		fInternal[ktanpsi] = (tan(fphi_p))*exp(-falpha_psi*esp);
-	}
+	    if(fInternal[17] == 0.) {
+		    double esp = 0.;
+    	    fInternal[ktanphi] = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+		    fInternal[ktanpsi] = (tan(fphi_p))*exp(-falpha_psi*esp);
+	    }
 	
-	dSymMatrixT elasticstrain(3);
-	elasticstrain.DiffOf(trialstrain, fPlasticStrain);
-	fInternal[kftrial] = YieldCondition(DeviatoricStress(elasticstrain,element),
+	    dSymMatrixT elasticstrain(3),plasticstrain(3); 
+	    plasticstrain.CopyPart(0, fInternal, 12, plasticstrain.Length());
+	    elasticstrain.DiffOf(totalstrain, fPlasticStrain);
+	    fInternal[kftrial] = YieldCondition(DeviatoricStress(elasticstrain,element),
 			             MeanStress(elasticstrain,element),fInternal[ktanphi],fc);
 
 		/* plastic */
@@ -731,8 +665,8 @@ int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 		/* elastic */
 		else
 		{
-			/* set flag */
-		    Flags[ip] = kIsElastic; //removed to avoid resetting 7/01
+			 /* set flag */
+		    Flags[ip] = kIsElastic; //removed to avoid restting 7/01
 			return 0;
 		}
 	}
