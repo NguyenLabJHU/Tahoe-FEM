@@ -1,4 +1,4 @@
-/* $Id: ParticleTersoffT.cpp,v 1.3 2006-08-25 22:14:13 d-farrell2 Exp $ */
+/* $Id: ParticleTersoffT.cpp,v 1.4 2006-08-28 13:39:20 d-farrell2 Exp $ */
 #include "ParticleTersoffT.h"
 
 #include "TersoffPropertyT.h"
@@ -1030,9 +1030,10 @@ void ParticleTersoffT::RHSDriver3D(void)
 	TersoffPropertyT::ForceFunction force_function_ij = NULL;
 	TersoffPropertyT::ForceFunction force_function_ik = NULL;
 	TersoffPropertyT::ForceFunction force_function_jk = NULL;
+#if 0
 // DEBUG
 TersoffPropertyT::EnergyFunction energy_function = NULL;
-	
+#endif	
 	const double* Paradyn_table = NULL;
 	double dr = 1.0;
 	int row_size = 0, num_rows = 0;
@@ -1040,6 +1041,7 @@ TersoffPropertyT::EnergyFunction energy_function = NULL;
 	/* run through neighbor list */
 	fForce = 0.0;
 	iArrayT neighbors;
+#if 0
 //DEBUG
 dArray2DT coords_pert = coords;
 dArray2DT coords_pert2 = coords;
@@ -1058,6 +1060,7 @@ double perturb = 1e-6;
 xp[0] += perturb;
 xp2[1] += perturb;
 xp3[2] += perturb;
+#endif
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
 		/* row of neighbor list */
@@ -1068,10 +1071,12 @@ xp3[2] += perturb;
 		int  type_i = fType[tag_i];
 		double* f_i = fForce(tag_i);
 		const double* x_i = coords(tag_i);
+#if 0
 //DEBUG
 const double* xp_i = coords_pert(tag_i);
 const double* xp_i2 = coords_pert2(tag_i);
 const double* xp_i3 = coords_pert3(tag_i);
+#endif
 
 		/* run though neighbors for one atom - first neighbor is self */
 		for (int j = 1; j < neighbors.Length(); j++)
@@ -1092,8 +1097,10 @@ const double* xp_i3 = coords_pert3(tag_i);
 			{
 				force_function_ij = fTersoffProperties[property]->getForceFunction_ij();				
 				current_property = property;
+#if 0
 // DEBUG
 energy_function = fTersoffProperties[property]->getEnergyFunction();
+#endif
 			}
 			
 			/* connecting vector */
@@ -1189,6 +1196,7 @@ energy_function = fTersoffProperties[property]->getEnergyFunction();
 			r_ij_2 *= F_ijbyr_ij;
 			f_i[2] += r_ij_2;
 			f_j[2] += -r_ij_2;
+#if 0
 //DEBUG
 const double* xp_j = coords_pert(tag_j);
 const double* xp_j2 = coords_pert2(tag_j);
@@ -1213,9 +1221,11 @@ double r_3_2 = xp_j3[2] - xp_i3[2];
 double r3 = sqrt(r_3_0*r_3_0 + r_3_1*r_3_1 + r_3_2*r_3_2); 
 E03 += energy_function(r_ij, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords);
 E13 += energy_function(r3, neighbors, j, fType, fTersoffProperties, fPropertiesMap, coords_pert3);
-///////			
+///////
+#endif
 		}	
 	}
+#if 0
 // DEBUG
 double f_num = 0.0;
 double f_num2 = 0.0;
@@ -1246,6 +1256,7 @@ cout << "F_x : " << f_0[0] << " , F_y : " << f_0[1] << " , F_z : " << f_0[2] << 
 cout << "F_num_x: " << f_num << " , F_num_y: " << f_num2 << " , F_num_z: " << f_num3 << endl;
 cout << "F_diff = " << fabs(f_num - f_0[0]) << "    " << fabs(f_num2 - f_0[1]) << "    " << fabs(f_num3 - f_0[2]) << endl;
 ///////
+#endif
 }
 
 /* set neighborlists */
