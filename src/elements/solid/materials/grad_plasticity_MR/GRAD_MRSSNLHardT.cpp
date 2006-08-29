@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.31 2006-08-23 21:57:03 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.32 2006-08-29 21:18:41 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -20,8 +20,7 @@
 
 using namespace Tahoe;
 
-const int    kNumInternal = 40; // number of internal state variables
-const double kYieldTol    = 1.0e-10;
+const int    kNumInternal = 8; // number of internal state variables
 const int    kNSD         = 3;
 const int    kNSTR        = dSymMatrixT::NumValues(kNSD);
 const double ratio23      = 2.0/3.0;
@@ -81,264 +80,207 @@ const dSymMatrixT& GRAD_MRSSNLHardT::LapElasticStrain(const dSymMatrixT& lap_tot
 
 /* return correction to stress vector computed by mapping the
  * stress back to the yield surface, if needed */
-const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialstrain, 
-                  const dSymMatrixT& lap_trialstrain, const dArrayT& triallambda, const dArrayT& lap_triallambda,
-                  ElementCardT& element, int ip)
+const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& totalstrain, 
+                  const dSymMatrixT& lap_totalstrain, const dArrayT& lambda, 
+                  const dArrayT& lap_lambda, ElementCardT& element, int ip)
 {	
-  	int iplastic;
-  	double ff;
-
-    /* define and allocate matrices */ 
-    dMatrixT KE(6),KE_AST(6),dhdSig(4,6),dhdq(4),dhdm(4,6),
-             dgdSig(4,6),dgdq(4),dmdSig(6),dmdq(6,4),
-             dRSig_dSig(6),dRSig_dq(6,4),RSigq_qq(6,4), 
-             dRq_dSig(4,6),dRq_dq(4),dRq_dq_Inv(4), 
-             RRq_dqdSig(4,6),Y(6),Y_Inv(6);
+  	/* elastic step */
+  	fStressCorr = DeviatoricStress(totalstrain, lap_totalstrain, element);
+    fStressCorr.PlusIdentity(MeanStress(totalstrain, lap_totalstrain, element));
     
-    /* reduced index vectors of symmetric matrices */
-    dSymMatrixT u(3),up(3),du(3),dup(3),upo(3), 
-                lap_u(3),lap_up(3),lap_du(3),lap_dup(3),lap_upo(3), 
-                Sig(3),dSig(3),Sig_I(3),Sig_trial(3),
-                ue(3),lap_ue(3),Sig_e(3),lap_Sig_e(3); 
-     
-    /* define and allocate vectors */ 
-    dArrayT qn(4),dq(4),qo(4),mm(6),rr(4),nn(6),hh(4),gg(4), 
-            state(40),ls(2),RSig(6),Rq(4);
-    
-    /* initialize */
-    fIniInternal = 0.;
-    
-    /* elastic moduli tensor */
-	KE = 0.0;
-	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
-	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
-	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
-	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
-    
-    /* elastic moduli tensor with length scale effect */
-    KE_AST = 0.0;
-	KE_AST(2,2) = KE_AST(1,1) = KE_AST(0,0) = flambda_ast + 2.0*fmu_ast;
-	KE_AST(1,2) = KE_AST(0,1) = KE_AST(0,2) = flambda_ast;
-	KE_AST(2,1) = KE_AST(1,0) = KE_AST(2,0) = flambda_ast;
-	KE_AST(5,5) = KE_AST(4,4) = KE_AST(3,3) = fmu_ast;
-	
-	/* get displacement, plastic multiplier and their laplacians */
-	u = trialstrain;
-	lap_u = lap_trialstrain;   
-	double dlam = triallambda[0]; 
-    double lap_dlam = lap_triallambda[0];
-    
-    bool print = false;
-    if(print) {
-    	cout << "strain" << endl;
-    	cout << u << endl << endl;
-    	cout << "lap strain" << endl;
-    	cout << lap_u << endl << endl;
-    	cout << "lambda = " << dlam << endl << endl;
-    	cout << "lap lambda = " << lap_dlam << endl << endl;
-    }
-    
-	/* initialize element data */
-	double enp  = 0.;
-    double esp  = 0.;
-    double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
-    double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
-    double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-    double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
-    state = 0.; 
-    state[30] = fchi;
-    state[31] = fc;
-    state[32] = ftan_phi;
-    state[33] = ftan_psi;
-    
-	if (dlam > 0.0 || PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
-        element.IsAllocated()) 
-    {
-      LoadData(element, ip);
-      
-       /* fetch internal variables */
-      state.CopyIn(0, fInternal);
-    }
-    
-	if (dlam > 0.0 || PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
+    /* plastic step */
+    if (PlasticLoading(totalstrain, lap_totalstrain, lambda, element, ip) && 
 	    !element.IsAllocated())
-	{ 
+	{
 		/* new plastic element */
-		AllocateElement(element); 
+		AllocateElement(element);
 		
-		/* initialize element data */
-		PlasticLoading(trialstrain, lap_trialstrain, element, ip);
-	} 
-	
-    
-	/* calculate incremental strains and initialize the necessary vectors */
-    for (int i = 0; i < 6; i++) 
-    {
-       du[i] = u[i] - state[i+6];
-       lap_du[i] = lap_u[i] - state[i+12]; //laplacian of du
-    }
-    
-    up.CopyPart(0, state, 18, up.Length());	
-    lap_up.CopyPart(0, state, 24, lap_up.Length());	//laplacian of up
-    upo = up;
-    lap_upo = lap_up;
-    Sig_I = 0.;
-    qn.CopyPart(0, state, 30, qn.Length());
-    qo = qn;
-     
-    /* calculate stress */
-    Sig = Sig_I; 
-    ue.DiffOf(u, up);
-    lap_ue.DiffOf(lap_u, lap_up);
-    KE.Multx(ue, Sig_e);
-    KE_AST.Multx(lap_ue, lap_Sig_e);
-    Sig += Sig_e; 
-    Sig -= lap_Sig_e;
-    Sig_trial = Sig; 
- 	//cout << "lap_u = " << lap_u << endl;
- 	//cout << "lap_up = " << lap_up << endl;
-/* calculate the yield function */
-    ff = yield_f(Sig, qn);
-    //cout << "ff = " << ff << endl;
-    
-    if (ff < kYieldTol) 
-    	iplastic = kIsElastic;
-    else 
-    	iplastic = kIsPlastic;
-  
-    if (dlam > 0.0)
-    {
-    	cout << "positive dlam " << dlam << endl;
-    	/* calculate all the necessary derivatives */
-   		m_f(Sig, qn, mm); 
-   		dmdSig_f(Sig, qn, dmdSig); 
-   		dmdq_f(Sig, qn, dmdq);
-    	h_f(Sig, qn, hh); 
-    	dhdSig_f(Sig, qn, dhdSig); 
-    	dhdq_f(Sig, qn, dhdq); 
-    	dhdm_f(Sig, qn, dhdm);  
-    	g_f(Sig, qn, gg); 
-    	dgdSig_f(Sig, qn, dgdSig); 
-    	dgdq_f(Sig, qn, dgdq);   
-        
-    	/* calculate R_Sig_Sig and R_Sig_q matrices */
-    	dMatrixT RSigMat1(6), RSigMat2(6); /* work space */ 
-    	RSigMat1.SetToScaled(dlam, KE);       
-    	RSigMat2.SetToScaled(lap_dlam, KE_AST);
-    	RSigMat1 -= RSigMat2;  
-    	dRSig_dSig.MultAB(RSigMat1, dmdSig);
-    	dRSig_dSig += Identity6x6;
-         
-    	dRSig_dq.MultAB(RSigMat1, dmdq);
-        
-    	/* calculate R_q_Sig and R_q_q matrices */
-    	dMatrixT RqMat1(4,6), RqMat2(4); /* work space */
-    	dRq_dSig.MultAB(dhdm, dmdSig);
-    	dRq_dSig += dhdSig;
-    	dRq_dSig *= -dlam;
-    	RqMat1.SetToScaled(lap_dlam, dgdSig);
-    	dRq_dSig += RqMat1; 
-        
-    	dRq_dq.MultAB(dhdm, dmdq);
-    	dRq_dq += dhdq;
-    	dRq_dq *= -dlam;
-    	RqMat2.SetToScaled(lap_dlam, dgdq);
-    	dRq_dq += RqMat2;
-    	dRq_dq += Identity4x4;
-         
-    	/* calculate R_Sig vector */
-    	/* work space */
-    	dArrayT RSigTemp1(6), RSigTemp2(6), RSigTemp3(6), RSigTemp4(6);
-    	dArrayT RSigTemp5(6), RSigTemp6(6);
-    	KE.Multx(du, RSigTemp1);
-    	KE_AST.Multx(lap_du, RSigTemp2);
-    	RSig.DiffOf(RSigTemp2, RSigTemp1); // RSigTemp2 - RSigTemp1
-    	KE.Multx(mm, RSigTemp3);  
-    	KE_AST.Multx(mm, RSigTemp4);
-    	RSigTemp5.SetToScaled(dlam, RSigTemp3); // dlam*RSigTemp3;
-    	RSig += RSigTemp5;				   // dlam2 == dlam??
-    	RSigTemp6.SetToScaled(lap_dlam, RSigTemp4); // lap_dlam*RSigTemp4;
-    	RSig -= RSigTemp6;
-        
-    	/* calculate R_q vector */						//lap_dlam2 == lap_dlam?? 
-    	dArrayT Rq_temp(4); /* work space */
-    	Rq.SetToScaled(lap_dlam, gg);  //lap_dlam*gg;
-    	Rq_temp.SetToScaled(dlam, hh);  //dlam2 == dlam??
-    	Rq -= Rq_temp; 
-        
-   		/* solving for dSig and dq */
-   		/* work space */
-   		LAdMatrixT RR(10);
-   		dArrayT RR_vec(10);
-   		RR = 0.0;
-   		RR.AddBlock(0,                 0,                 dRSig_dSig);
-   		RR.AddBlock(0,                 dRSig_dSig.Cols(), dRSig_dq);
-   		RR.AddBlock(dRSig_dSig.Rows(), 0,                 dRq_dSig);
-   		RR.AddBlock(dRSig_dSig.Rows(), dRSig_dSig.Cols(), dRq_dq);
-   		RR_vec.CopyIn(0, RSig);
-   		RR_vec.CopyIn(RSig.Length(), Rq);
-   		RR.LinearSolve(RR_vec);
-   		dSig.CopyPart(0, RR_vec, 0, dSig.Length());
-   		dq.CopyPart(0, RR_vec, dSig.Length(), dq.Length()); 
-   		
-    	/* update plastic strain, gradient plastic strain 
-    	and internal variables 						*/
-   		m_f(dSig, qn, mm);
-    	dup.SetToScaled(dlam, mm);
-    	up += dup;
-    	lap_up.SetToScaled(lap_dlam, mm);  //lap_dlam2 == lap_dlam??
-    	lap_up += lap_dup;
-    	Sig += dSig;   // stress automatically updated when up & lap_up are updated??
-    	qn += dq;
-    	//cout << "dSig = " << dSig << endl;
-    	//cout << "dq = " << dq << endl;
-    } // if (dlam > kYieldTol)
-    
-    /* update state variables */
-    state.CopyIn(0, Sig);
- 	state.CopyIn(Sig.Length(), trialstrain);
- 	state.CopyIn(12, lap_trialstrain);	
-	state.CopyIn(18, up);
-	state.CopyIn(24, lap_up);
-	state.CopyIn(30, qn);
-	state[34] = ff; 
-	state[35] = dlam;
-	state[36] = lap_dlam;
-	state[37] = double(iplastic);
- 	
-	fYield = ff;
-	fStressCorr = Sig;
-	fIniInternal = qn;
-	
-	if (iplastic == kIsPlastic) {
-		fInternal.CopyIn(0, state);
-		
-		/* collect plastic strain and its laplacian */
-	    fPlasticStrain = up;
-	    fLapPlasticStrain = lap_up;
+		/* initialize element data */ 
+		PlasticLoading(totalstrain, lap_totalstrain, lambda, element, ip); 
 	}
-				
+	
+	if (element.IsAllocated()) 
+	{		
+    	/* define and allocate matrices */ 
+    	dMatrixT KE(6),KE_AST(6),dhdSig(4,6),dhdq(4),dhdm(4,6),
+             	 dgdSig(4,6),dgdq(4),dmdSig(6),dmdq(6,4),
+             	 dRSig_dSig(6),dRSig_dq(6,4),RSigq_qq(6,4), 
+             	 dRq_dSig(4,6),dRq_dq(4),dRq_dq_Inv(4), 
+             	 RRq_dqdSig(4,6),Y(6),Y_Inv(6);
+    
+    	/* reduced index vectors of symmetric matrices */
+    	dSymMatrixT up(3),du(3),dup(3),upo(3),lap_up(3),lap_du(3), 
+                	lap_dup(3),lap_upo(3),Sig(3),dSig(3),ue(3), 
+                	lap_ue(3),Sig_e(3),lap_Sig_e(3); 
+     
+    	/* define and allocate vectors */ 
+    	dArrayT qn(4),dq(4),qo(4),mm(6),rr(4),nn(6),hh(4),gg(4), 
+            	ls(2),RSig(6),Rq(4);
+    
+    	/* elastic moduli tensor */
+		KE = 0.0;
+		KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
+		KE(1,2) = KE(0,1) = KE(0,2) = flambda;
+		KE(2,1) = KE(1,0) = KE(2,0) = flambda;
+		KE(5,5) = KE(4,4) = KE(3,3) = fmu;
+    
+    	/* elastic moduli tensor with length scale effect */
+    	KE_AST = 0.0;
+		KE_AST(2,2) = KE_AST(1,1) = KE_AST(0,0) = flambda_ast + 2.0*fmu_ast;
+		KE_AST(1,2) = KE_AST(0,1) = KE_AST(0,2) = flambda_ast;
+		KE_AST(2,1) = KE_AST(1,0) = KE_AST(2,0) = flambda_ast;
+		KE_AST(5,5) = KE_AST(4,4) = KE_AST(3,3) = fmu_ast;
+	
+		/* get plastic multiplier and its laplacian */ 
+		double dlam = lambda[0]; 
+    	double lap_dlam = lap_lambda[0];
+    	
+    	bool print = false;
+    	if(print) {
+    		cout << "strain" << endl;
+    		cout << totalstrain << endl << endl;
+    		cout << "lap strain" << endl;
+    		cout << lap_totalstrain << endl << endl;
+    		cout << "lambda = " << dlam << endl << endl;
+    		cout << "lap lambda = " << lap_dlam << endl << endl;
+    	}
+	
+		/* initialize the necessary vectors */
+    	up = fPlasticStrain;	
+    	lap_up = fLapPlasticStrain;	//laplacian of up
+    	qn.CopyPart(0, fInternal, 0, qn.Length());
+    	upo = up; lap_upo = lap_up;
+    	qo = qn;
+    
+    	/* check the yield function */
+    	ue.DiffOf(totalstrain, up);
+    	lap_ue.DiffOf(lap_totalstrain, lap_up);
+    	Sig = DeviatoricStress(ue, lap_ue, element);
+    	Sig.PlusIdentity(MeanStress(ue, lap_ue, element));
+    	double ff = fInternal[kftrial];  
+    	
+    	if (ff > fTol_1 && dlam > 0.)
+    	{ /* local Newton iteration */
+      		int kk = 0;
+      		int max_iteration = 15; 
+      		while (fabs(ff) > fTol_1) 
+      		{
+        		/* calculate stress */
+        		ue.DiffOf(totalstrain, up);
+    			lap_ue.DiffOf(lap_totalstrain, lap_up);
+    			Sig = DeviatoricStress(ue, lap_ue, element);
+    			Sig.PlusIdentity(MeanStress(ue, lap_ue, element));
+        		
+        		/* calculate yield condition */
+        		ff = YieldCondition(DeviatoricStress(ue, lap_ue, element),
+			         MeanStress(ue, lap_ue, element),qn[0],qn[1],qn[2]);
+ 
+    			/* calculate all the necessary derivatives */
+   				m_f(Sig, qn, mm); 
+   				dmdSig_f(Sig, qn, dmdSig); 
+   				dmdq_f(Sig, qn, dmdq);
+    			h_f(Sig, qn, hh); 
+    			dhdSig_f(Sig, qn, dhdSig); 
+    			dhdq_f(Sig, qn, dhdq); 
+    			dhdm_f(Sig, qn, dhdm);  
+    			g_f(Sig, qn, gg); 
+    			dgdSig_f(Sig, qn, dgdSig); 
+    			dgdq_f(Sig, qn, dgdq);   
+        
+    			/* calculate R_Sig_Sig and R_Sig_q matrices */
+    			dMatrixT RSigMat1(6), RSigMat2(6); /* work space */ 
+    			RSigMat1.SetToScaled(dlam, KE);       
+    			RSigMat2.SetToScaled(lap_dlam, KE_AST);
+    			RSigMat1 -= RSigMat2;  
+    			dRSig_dSig.MultAB(RSigMat1, dmdSig);
+    			dRSig_dSig.PlusIdentity();
+         
+    			dRSig_dq.MultAB(RSigMat1, dmdq);
+        
+    			/* calculate R_q_Sig and R_q_q matrices */
+    			dMatrixT RqMat1(4,6), RqMat2(4); /* work space */
+    			dRq_dSig.MultAB(dhdm, dmdSig);
+    			dRq_dSig += dhdSig;
+    			dRq_dSig *= -dlam;
+    			RqMat1.SetToScaled(lap_dlam, dgdSig);
+    			dRq_dSig += RqMat1; 
+        
+    			dRq_dq.MultAB(dhdm, dmdq);
+    			dRq_dq += dhdq;
+    			dRq_dq *= -dlam;
+    			RqMat2.SetToScaled(lap_dlam, dgdq);
+    			dRq_dq += RqMat2;
+    			dRq_dq.PlusIdentity();
+         
+    			/* calculate R_Sig vector */
+    			/* work space */
+    			dArrayT RSigTemp1(6), RSigTemp2(6), RSigTemp3(6), RSigTemp4(6);
+    			dArrayT RSigTemp5(6), RSigTemp6(6);
+    			KE.Multx(du, RSigTemp1);
+    			KE_AST.Multx(lap_du, RSigTemp2);
+    			RSig.DiffOf(RSigTemp2, RSigTemp1); // RSigTemp2 - RSigTemp1
+    			KE.Multx(mm, RSigTemp3);  
+    			KE_AST.Multx(mm, RSigTemp4);
+    			RSigTemp5.SetToScaled(dlam, RSigTemp3); // dlam*RSigTemp3;
+    			RSig += RSigTemp5;				   // dlam2 == dlam??
+    			RSigTemp6.SetToScaled(lap_dlam, RSigTemp4); // lap_dlam*RSigTemp4;
+    			RSig -= RSigTemp6;
+        
+    			/* calculate R_q vector */						//lap_dlam2 == lap_dlam?? 
+    			dArrayT Rq_temp(4); /* work space */
+    			Rq.SetToScaled(lap_dlam, gg);  //lap_dlam*gg;
+    			Rq_temp.SetToScaled(dlam, hh);  //dlam2 == dlam??
+    			Rq -= Rq_temp; 
+        
+   				/* solving for dSig and dq */
+   				/* work space */
+   				LAdMatrixT RR(10);
+   				dArrayT RR_vec(10);
+   				RR = 0.0;
+   				RR.AddBlock(0,                 0,                 dRSig_dSig);
+   				RR.AddBlock(0,                 dRSig_dSig.Cols(), dRSig_dq);
+   				RR.AddBlock(dRSig_dSig.Rows(), 0,                 dRq_dSig);
+   				RR.AddBlock(dRSig_dSig.Rows(), dRSig_dSig.Cols(), dRq_dq);
+   				RR_vec.CopyIn(0, RSig);
+   				RR_vec.CopyIn(RSig.Length(), Rq);
+   				RR.LinearSolve(RR_vec);
+   				dSig.CopyPart(0, RR_vec, 0, dSig.Length());
+   				dq.CopyPart(0, RR_vec, dSig.Length(), dq.Length()); 
+   		
+    			/* update plastic strain, gradient plastic strain 
+    			and internal variables 						*/
+   				m_f(dSig, qn, mm);
+    			dup.SetToScaled(dlam, mm); //KE_Inv.Multx(dSig,dup);
+    			up += dup;
+    			lap_up.SetToScaled(lap_dlam, mm);  //lap_dlam2 == lap_dlam??
+    			lap_up += lap_dup;
+    			Sig += dSig;   // stress automatically updated when up & lap_up are updated??
+    			qn += dq;
+    			
+        		/* terminate iteration */
+        		if (++kk == max_iteration)
+        			ExceptionT::GeneralFail("MRSSNLHardT::StressCorrection","local iteration failed after %d iterations", max_iteration);
+      		} // while (fabs(ff) > fTol_1)
+    	} // if (ff > fTol_1)
+    
+    	/* update state variables */
+		fInternal.CopyIn(0, qn);
+		fInternal[4] = ff; 
+		fInternal[5] = dlam;
+		fInternal[6] = lap_dlam;
+		fInternal[7] = 1.;
+ 	
+		/* update plastic strain */
+   		fPlasticStrain = up;
+   		fLapPlasticStrain = lap_up;
+   		
+   		/* update stress */	
+   		fStress = Sig; 
+		fStressCorr = Sig;
+		
+	} // if (element.IsAllocated())		
  return fStressCorr;
 }	//end StressCorrection
-
-/* calculation of the yield function */
-double GRAD_MRSSNLHardT::yield_f(const dSymMatrixT& Sig, 
-			const dArrayT& qn)
-{
-  dSymMatrixT Sig_Dev(3);
-  double fchi = qn[0];
-  double fc = qn[1];
-  double ffriction = qn[2]; 
-  double fpress = Sig.Trace()/3.0;
-  
-  Sig_Dev.Deviatoric(Sig);
-  double temp  = (Sig_Dev.ScalarProduct())/2.0;
-  double temp2 = fc - ffriction*fchi;
-  double temp3 = temp2 * temp2;
-  temp += temp3;
-  double ff = sqrt(temp)-(fc - ffriction*fpress); 
-  return ff;
-}
 
 /* calculation of dfdSig_f or n_f*/
 void GRAD_MRSSNLHardT::n_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig)
@@ -926,8 +868,8 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     {
 	  	/* load internal state variables */
 	  	LoadData(element, ip);
-	  	Sig.CopyPart(0, fInternal, 0, Sig.Length());
-	  	qn.CopyPart(0, fInternal, 30, qn.Length());
+	  	Sig = fStress;
+	  	qn.CopyPart(0, fInternal, 0, qn.Length());
 	 
 		double dlam = fInternal[klambda];
 		double lap_dlam = fInternal[klaplambda];
@@ -955,7 +897,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     	tempMat2.SetToScaled(lap_dlam, KE_AST);
     	tempMat1 -= tempMat2;
     	dRSig_dSig.MultAB(tempMat1, dmdSig);
-    	dRSig_dSig += Identity6x6;
+    	dRSig_dSig.PlusIdentity();
          
     	/* dRSig_dq matrix */
     	dRSig_dq.MultAB(tempMat1, dmdq);
@@ -973,7 +915,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     	dRq_dq *= -dlam;
     	tempMat4.SetToScaled(lap_dlam, dgdq);
     	dRq_dq += tempMat4;
-    	dRq_dq += Identity4x4;
+    	dRq_dq.PlusIdentity();
         
     	/* Y and Y_Inv matrix */
     	dRq_dq_Inv.Inverse(dRq_dq);
@@ -1216,7 +1158,7 @@ void GRAD_MRSSNLHardT::AllocateElement(ElementCardT& element)
 	int d_size = 0;
 	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fPlasticStrain
 	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fLapPlasticStrain
-	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fUnitNorm
+	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fStress
 	d_size += kNumInternal*fNumIP;        //fInternal
 
 	/* construct new plastic element */
@@ -1251,15 +1193,7 @@ void GRAD_MRSSNLHardT::TakeParameterList(const ParameterListT& list)
 	fLapDevStress.Dimension(kNSD);
 	fDevStrain.Dimension(kNSD);
 	fLapDevStrain.Dimension(kNSD);
-	Identity3x3.Dimension(kNSD); 
-	Identity4x4.Dimension(kNSD+1);
-	Identity6x6.Dimension(kNSTR);
-	fIniInternal.Dimension(kNSD+1);
-    
-	/* initialize constant matrices */
-	Identity3x3.Identity();
-	Identity4x4.Identity(); 
-	Identity6x6.Identity();
+	fIniInternal.Dimension(4);
 }
 /***********************************************************************
  * Protected
@@ -1319,16 +1253,17 @@ void GRAD_MRSSNLHardT::LoadData(const ElementCardT& element, int ip)
 	int offset    = stressdim*fNumIP;
 	int dex       = ip*stressdim;
 	
-	fPlasticStrain.Alias(dim, &d_array[dex]);
+	fPlasticStrain.Alias(dim, &d_array[dex]); 
 	fLapPlasticStrain.Alias(dim, &d_array[dex]);
-	/*fUnitNorm.Set(kNSD, &d_array[  offset + dex]); */    
-	fInternal.Alias(kNumInternal, &d_array[2*offset + ip*kNumInternal]);
+	fStress.Alias(dim, &d_array[  offset + dex]);     
+	fInternal.Alias(kNumInternal, &d_array[3*offset + ip*kNumInternal]);
 }
 
 /* returns 1 if the trial elastic strain state lies outside of the 
  * yield surface */
-int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain, 
-	  const dSymMatrixT& lap_trialstrain, ElementCardT& element, int ip) 
+int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& totalstrain, 
+	  const dSymMatrixT& lap_totalstrain, const dArrayT& lambda, 
+	  ElementCardT& element, int ip) 
 {
 	/* not yet plastic */
 	if (!element.IsAllocated()) { 
@@ -1338,47 +1273,72 @@ int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
         double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
         double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
         double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
-		return(YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),
-			   MeanStress(trialstrain,lap_trialstrain,element),fchi,fc,ftan_phi) > kYieldTol );
+		
+		/* collect initial internal variables */
+		fIniInternal[0] = fchi;
+		fIniInternal[1] = fc;
+		fIniInternal[2] = ftan_phi;
+		fIniInternal[3] = ftan_psi;
+		
+		/* check if yield condition is satisfied */
+		double ff = YieldCondition(DeviatoricStress(totalstrain,lap_totalstrain,element),
+			        MeanStress(totalstrain,lap_totalstrain,element),fchi,fc,ftan_phi);
+		int iplastic;
+		if (ff < fTol_1 && lambda[0] == 0.) /* elastic */
+			iplastic = 0;
+		else if (ff > fTol_1 && lambda[0] > 0.) /* plastic */
+		    iplastic = 1;
+		else
+			ExceptionT::GeneralFail("GRAD_MRSSNLHardT::PlasticLoading","conditions for elastic/plastic state check not met");
+		return iplastic;
+		
         /* already plastic */
     }
 	else 
 	{
-	/* get flags */
-	 iArrayT& Flags = element.IntegerData();
+		/* get flags */
+	 	iArrayT& Flags = element.IntegerData();
 		
-	/* load internal variables */
-	LoadData(element, ip);
-	if(fInternal[30] == 0.) {
-		double enp  = 0.;
-		double esp = 0.;
-    	fInternal[kchi] = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
-        fInternal[kc]   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
-    	fInternal[ktanphi] = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-		fInternal[ktanpsi] = (tan(fphi_p))*exp(-falpha_psi*esp);
-	}
+		/* load internal variables */
+		LoadData(element, ip);
+		
+		/* first time plasticity is reached */
+		if(fInternal[7] == 0.) {
+			double enp  = 0.;
+			double esp = 0.;
+    		fInternal[kchi] = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
+        	fInternal[kc]   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
+    		fInternal[ktanphi] = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+			fInternal[ktanpsi] = (tan(fphi_p))*exp(-falpha_psi*esp);
+			
+		}
 	
-	dSymMatrixT elasticstrain(3),lap_elasticstrain(3);
-	elasticstrain.DiffOf(trialstrain, fPlasticStrain);
-	lap_elasticstrain.DiffOf(lap_trialstrain, fLapPlasticStrain);
-	fInternal[kftrial] = YieldCondition(DeviatoricStress(elasticstrain,lap_elasticstrain,element),
-			   MeanStress(elasticstrain,lap_elasticstrain,element),fInternal[kchi],
-			             fInternal[kc],fInternal[ktanphi]); 
-
+		/* calculate trial elastic strain */
+		dSymMatrixT elasticstrain(3),lap_elasticstrain(3);
+		elasticstrain.DiffOf(totalstrain, fPlasticStrain);
+		lap_elasticstrain.DiffOf(lap_totalstrain, fLapPlasticStrain);
+		fInternal[kftrial] = YieldCondition(DeviatoricStress(elasticstrain,lap_elasticstrain,element),
+			   				MeanStress(elasticstrain,lap_elasticstrain,element),fInternal[kchi],
+			             	fInternal[kc],fInternal[ktanphi]); 
+		int iplastic; /* plasticity index */
+		
 		/* plastic */
-		if (fInternal[kftrial] > fTol_1)
+		if (fInternal[kftrial] > fTol_1 && lambda[0] > 0.)
 		{		
 			/* set flag */
 			Flags[ip] = kIsPlastic;
-			return 1;
+			iplastic = 1;
 		}
 		/* elastic */
-		else
+		else if (fInternal[kftrial] < fTol_1 && lambda[0] == 0.)
 		{
 			/* set flag */
 		    Flags[ip] = kIsElastic; //removed to avoid restting 7/01
-			return 0;
+			iplastic = 0;
 		}
+		else
+			ExceptionT::GeneralFail("GRAD_MRSSNLHardT::PlasticLoading","conditions for elastic/plastic state check not met");
+		return iplastic;
 	}
 }	
 

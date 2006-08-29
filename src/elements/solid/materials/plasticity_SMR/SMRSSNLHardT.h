@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.h,v 1.4 2006-08-28 14:07:01 kyonten Exp $ */
+/* $Id: SMRSSNLHardT.h,v 1.5 2006-08-29 21:16:56 kyonten Exp $ */
 /* created: Karma Yonten  */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -83,11 +83,11 @@ public:
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
-	enum InternalVariablesT {ktanphi = 12,
-	                      ktanpsi = 13,
-                      kstressnorm = 16,  // norm of residuals
-                         kdlambda = 15,  // consistency parameter
-                          kftrial = 14}; // yield function value
+	enum InternalVariablesT {ktanphi = 0,
+	                      ktanpsi = 1,
+	                      kftrial = 2, // yield function value
+                         kdlambda = 3,  // consistency parameter
+                          kstressnorm = 4}; // norm of residuals
 
 	/** internal variables */
 	dArrayT& Internal(void) { return fInternal; };
@@ -98,7 +98,7 @@ public:
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
-	int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int ip);
+	int PlasticLoading(const dSymMatrixT& totalstrain, ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The function returns a reference to the
@@ -125,6 +125,7 @@ public:
 
   	/* element level internal state variables */
   	dSymMatrixT fPlasticStrain; //total plastic strain (deviatoric and volumetric)
+  	dSymMatrixT fStress;        // updated Cauchy stress
   	dArrayT     fInternal;      //internal variables
 
   private:

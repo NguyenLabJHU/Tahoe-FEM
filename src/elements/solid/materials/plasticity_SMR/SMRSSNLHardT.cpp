@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.cpp,v 1.5 2006-08-28 14:07:01 kyonten Exp $ */
+/* $Id: SMRSSNLHardT.cpp,v 1.6 2006-08-29 21:16:56 kyonten Exp $ */
 /* created: Karma Yonten */
 
 /* Interface for a nonassociative, small strain,      */
@@ -16,7 +16,7 @@
 using namespace Tahoe;
 
 /* class constants */
-const int    kNumInternal = 18; // number of internal state variables
+const int    kNumInternal = 6; // number of internal state variables
 const int    kNSD         = 3;
 const int    kNSTR        = dSymMatrixT::NumValues(kNSD);
 const double ratio32      = 3.0/2.0;
@@ -42,9 +42,8 @@ const dSymMatrixT& SMRSSNLHardT::ElasticStrain(const dSymMatrixT& totalstrain,
 		LoadData(element, ip);
 
 		/* compute elastic strain */
-		/*fElasticStrain.DiffOf(totalstrain, fPlasticStrain);*/
+		//fElasticStrain.DiffOf(totalstrain, fPlasticStrain);
 		fElasticStrain = totalstrain;
-	
 		return fElasticStrain;
 	}	
 	/* no plastic strain */
@@ -75,15 +74,13 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
 	
 	if (element.IsAllocated()) 
 	{		
-		double normr;
-  	
 		/* allocate matrices */
     	dMatrixT KE(6),KE_Inv(6),AA(8),AA_inv(8),Auu_inv(6),Auq_inv(6,2),
              	 Aqu_inv(2,6),Aqq_inv(2),dQdSig2(6),dQdSigdq(6,2),
                  dqbardq(2),dqbardSig(2,6);
     
 		/* allocate reduced index vector of symmetric matrices */
-    	dSymMatrixT u(3),up(3),upo(3),du(3),dup(3),ue(3),Sig(3),dSig(3),
+    	dSymMatrixT up(3),upo(3),dup(3),ue(3),Sig(3),dSig(3),
                 	Sig_e(3),dfdSig(3),dQdSig(3); 
     
     	/* allocate vectors */
@@ -101,11 +98,11 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
 			//cout << "ip "<< ip << endl; // ip #
 		
 		/* initialize and copy the necessary vectors */
-    	up.CopyPart(0, fInternal, 6, up.Length());
-    	qn.CopyPart(0, fInternal, 12, qn.Length());
+		up = fPlasticStrain;
+    	qn.CopyPart(0, fInternal, 0, qn.Length());
     	upo = up; qo = qn;
     	dup = 0.; dq = 0.;
-    	double dlam = 0.; double dlam2 = 0.; 
+    	double dlam = 0.; double dlam2 = 0.; double normr = 0.; 
     
     	/* check the yield function */
     	ue.DiffOf(totalstrain, up);
@@ -224,19 +221,18 @@ const dSymMatrixT& SMRSSNLHardT::StressCorrection(
       		} // while (NotConverged)
     	} // if (ff < fTol_1)
     
-    	/* update state variables */
-    	fInternal.CopyIn(0, Sig); 	   
-		fInternal.CopyIn(Sig.Length(), up);
-		fInternal.CopyIn(12, qn);
-		fInternal[14] = ff;
-		fInternal[15] = dlam;
-		fInternal[16] = normr;
-	    fInternal[17] = 1.; /* indicator for internal variable during the first elastic to plastic transition */ 
+    	/* update state variables */	   
+		fInternal.CopyIn(0, qn);
+		fInternal[2] = ff;
+		fInternal[3] = dlam;
+		fInternal[4] = normr;
+	    fInternal[5] = 1.; /* indicator for internal variable during the first elastic to plastic transition */ 
    		
    		/* update plastic strain */
    		fPlasticStrain = up;
    		
-   		/* update stress */	 
+   		/* update stress */	
+   		fStress = Sig; 
 		fStressCorr = Sig;
 		
 	} // if (element.IsAllocated())
@@ -432,8 +428,8 @@ const dMatrixT& SMRSSNLHardT::Moduli(const ElementCardT& element,
     { 
 	  	/* load internal state variables */
 	  	LoadData(element, ip);
-	  	Sig.CopyPart(0, fInternal, 0, Sig.Length());
-    	qn.CopyPart(0, fInternal, 12, qn.Length());
+	  	Sig = fStress;
+    	qn.CopyPart(0, fInternal, 0, qn.Length());
     	double dlam = fInternal[kdlambda];
 		
 	    /* calculate C_EPC */
@@ -531,7 +527,7 @@ void SMRSSNLHardT::AllocateElement(ElementCardT& element)
 
 	int d_size = 0;
 	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fPlasticStrain
-	//d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fUnitNorm
+	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fStress
 	d_size += kNumInternal*fNumIP;        //fInternal
 
 	/* construct new plastic element */
@@ -617,8 +613,8 @@ void SMRSSNLHardT::LoadData(const ElementCardT& element, int ip)
 	int dex       = ip*stressdim;
 	
 	fPlasticStrain.Alias(        dim, &d_array[           dex]);
-	/*fUnitNorm.Set(        kNSD, &d_array[  offset + dex]); */    
-	fInternal.Alias(kNumInternal, &d_array[offset + ip*kNumInternal]); //2*offset if fUnitNorm
+	fStress.Alias(        dim, &d_array[  offset + dex]);     
+	fInternal.Alias(kNumInternal, &d_array[2*offset + ip*kNumInternal]); 
 }
 
 /* returns 1 if the trial elastic strain state lies outside of the 
@@ -628,7 +624,6 @@ int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& totalstrain,
 {
 	/* not yet plastic */
 	if (!element.IsAllocated()) {
-	
 		double esp  = 0.;
         double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
 		return(YieldCondition(DeviatoricStress(totalstrain,element),
@@ -643,14 +638,15 @@ int SMRSSNLHardT::PlasticLoading(const dSymMatrixT& totalstrain,
 	    /* load internal variables */
 	    LoadData(element, ip);
 	
-	    if(fInternal[17] == 0.) {
+	    /* first time plasticity is reached */
+	    if(fInternal[5] == 0.) { 
 		    double esp = 0.;
     	    fInternal[ktanphi] = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
 		    fInternal[ktanpsi] = (tan(fphi_p))*exp(-falpha_psi*esp);
 	    }
 	
-	    dSymMatrixT elasticstrain(3),plasticstrain(3); 
-	    plasticstrain.CopyPart(0, fInternal, 12, plasticstrain.Length());
+	    /* calculate trial elastic strain */
+	    dSymMatrixT elasticstrain(3); 
 	    elasticstrain.DiffOf(totalstrain, fPlasticStrain);
 	    fInternal[kftrial] = YieldCondition(DeviatoricStress(elasticstrain,element),
 			             MeanStress(elasticstrain,element),fInternal[ktanphi],fc);

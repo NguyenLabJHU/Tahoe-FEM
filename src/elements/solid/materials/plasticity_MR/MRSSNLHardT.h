@@ -1,5 +1,5 @@
-/* $Id: MRSSNLHardT.h,v 1.12 2006-08-22 14:39:17 kyonten Exp $ */
-/* created: Karma Yonten  */
+/* $Id: MRSSNLHardT.h,v 1.13 2006-08-29 21:17:17 kyonten Exp $ */
+/* created: Majid T. Manzari */
 /*  
  * Interface for a nonassociative, small strain,     */
 /* pressure dependent plasticity model with nonlinear 
@@ -45,10 +45,9 @@ public:
 		                             
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
-	const dSymMatrixT& StressCorrection(const dSymMatrixT& totalstrain_curr, 
+	const dSymMatrixT& StressCorrection(const dSymMatrixT& totalstrain, 
 		ElementCardT& element, int ip); 
 
-	double Yield_f(const dSymMatrixT& Sig, const dArrayT& qn);
     void dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);    
     void dfdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdq); 
     void dQdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dQdSig);   
@@ -80,14 +79,13 @@ public:
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
-	enum InternalVariablesT {kchi = 18,  // stress-like internal state variable
-	                         kc   = 19,
-	                      ktanphi = 20,
-	                      ktanpsi = 21,
-                      kstressnorm = 22,  // norm of residuals
-                         kdlambda = 23,  // consistency parameter
-                         kplastic = 24,  // Plastic Index
-                          kftrial = 27}; // yield function value
+	enum InternalVariablesT {kchi = 0,  // stress-like internal state variable
+	                         kc   = 1,
+	                      ktanphi = 2,
+	                      ktanpsi = 3,
+	                      kftrial = 4, // yield function value
+                         kdlambda = 5,  // consistency parameter
+                          kstressnorm = 6}; // norm of residuals 
 
 	/** internal variables */
 	dArrayT& Internal(void) { return fInternal; };
@@ -98,7 +96,7 @@ public:
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
-	int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int ip);
+	int PlasticLoading(const dSymMatrixT& totalstrain, ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The function returns a reference to the
@@ -125,6 +123,7 @@ public:
 
   	/* element level internal state variables */
   	dSymMatrixT fPlasticStrain; //total plastic strain (deviatoric and volumetric)
+  	dSymMatrixT fStress;        // updated Cauchy stress
   	dArrayT     fInternal;      //internal variables
     
   private:
