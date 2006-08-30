@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.25 2006-05-26 20:17:26 tdnguye Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.26 2006-08-30 17:25:39 tdnguye Exp $ */
 /* created: paklein (06/20/1999) */
 #ifndef _SURFACE_POTENTIAL_T_H_
 #define _SURFACE_POTENTIAL_T_H_
@@ -73,6 +73,10 @@ public:
 	 * involves only setting the array to zero. */
 	virtual void InitStateVariables(ArrayT<double>& state);
 	
+	/** initialize the state variable array. By default, initialization
+	 * involves only setting the array to zero. */
+	virtual void UpdateStateVariables(ArrayT<double>& state) {/*do nothing by default*/};
+
 	/** dissipated energy. Total amount of energy dissipated reaching
 	 * the current state. */
 	virtual double FractureEnergy(const ArrayT<double>& state) = 0;
