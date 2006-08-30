@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.40 2006-06-03 16:25:14 tdnguye Exp $ */
+/* $Id: CSEAnisoT.h,v 1.41 2006-08-30 17:29:24 tdnguye Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -36,6 +36,9 @@ public:
 	/* destructor */
 	~CSEAnisoT(void);
 
+	/**get status of CSE**/
+	const ElementCardT::StatusT GetElemStatus(int elem);
+	
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 

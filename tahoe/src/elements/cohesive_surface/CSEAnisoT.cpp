@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.75 2006-06-18 01:05:57 tdnguye Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.76 2006-08-30 17:29:24 tdnguye Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -38,7 +38,7 @@
 #include "YoonAllen2DT.h"
 #include "From2Dto3DT.h"
 #include "TvergHutchRigid2DT.h"
-#include "LinearDamage2DT.h"
+//#include "LinearDamage2DT.h"
 #include "SIMOD_2DT.h"
 #endif
 
@@ -227,6 +227,12 @@ GlobalT::RelaxCodeT CSEAnisoT::ResetStep(void)
 	return relax;
 }
 
+const ElementCardT::StatusT CSEAnisoT::GetElemStatus(int elem)
+{
+	const ElementCardT& element = fElementCards[elem];
+	return (element.Flag());
+}
+
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* write restart data to the output stream. */
 void CSEAnisoT::WriteRestart(ostream& out) const
@@ -368,7 +374,7 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& name) const
 		cz->AddSub("Tijssens_2D");
 		cz->AddSub("Tvergaard-Hutchinson_rate_dep_2D");
 		cz->AddSub("Yoon-Allen_2D");
-		cz->AddSub("Linear_Damage_2D");
+//		cz->AddSub("Linear_Damage_2D");
 
 #ifdef __SIMOD__
 		cz->AddSub("SIMOD_2D");
@@ -724,9 +730,6 @@ void CSEAnisoT::RHSDriver(void)
 	/* set state to start of current step */
 //	TEMP
 	fStateVariables = fStateVariables_last;
-	double* p = fStateVariables.Pointer();
-//	for (int j = 0; j<fStateVariables.Length(); j++)
-//		cout << "\nfStateVariables: "<<p[j];
 	if (freeNodeQ.IsAllocated())
 		freeNodeQ = freeNodeQ_last;
 
@@ -788,7 +791,6 @@ void CSEAnisoT::RHSDriver(void)
 			
 			/* loop over integration points */
 			double* pstate = fStateVariables(CurrElementNumber());
-//			cout << "\nnum state vars: "<<fStateVariables.MinorDim(CurrElementNumber());
 			int all_failed = 1;
 			int ip = 0;
 			fShapes->TopIP();
@@ -799,9 +801,6 @@ void CSEAnisoT::RHSDriver(void)
 				
 				pstate += num_state;
 			
-//				cout << "\nelem: "<<CurrElementNumber()<<"\tip: "<<ip;
-	//			for (int j = 0; j<num_state; j++)
-	//				cout << "\nstate: "<<state[j];
 				/* integration weights */
 				double w = fShapes->IPWeight();
 
@@ -839,12 +838,9 @@ void CSEAnisoT::RHSDriver(void)
 				}
 */
 #endif
-//				cout <<"\nelem: "<<CurrElementNumber()<< "\tIP RHS: "<<fShapes->CurrIP();
-//				for (int k=0; k<state.Length(); k++)
-//					cout << "\nstate: "<<state[k];
-
 				/* traction vector in/out of local frame */
-				fQ.Multx(surfpot->Traction(fdelta, state, localFrameIP, true), fT);
+				const dArrayT& traction = surfpot->Traction(fdelta, state, localFrameIP, true);
+				fQ.Multx(traction, fT);
 				
 				/* expand */
 				fShapes->Grad_d().MultTx(fT, fNEEvec);
@@ -1168,7 +1164,6 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 #endif
 
 					/* compute traction in local frame */
-//					cout <<"\nelem: "<<CurrElementNumber()<< "\nIP OUT: "<<fShapes->CurrIP();
 					const dArrayT& tract = surfpot->Traction(fdelta, state, localFrameIP, false);
 
 					/* transform to global frame */
