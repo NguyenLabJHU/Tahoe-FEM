@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT_factory.cpp,v 1.5 2006-06-03 16:25:14 tdnguye Exp $ */
+/* $Id: SurfacePotentialT_factory.cpp,v 1.6 2006-08-30 17:59:59 tdnguye Exp $ */
 #include "SurfacePotentialT.h"
 
 #ifdef __DEVELOPMENT__
@@ -15,7 +15,7 @@
 #include "YoonAllen2DT.h"
 #include "YoonAllen3DT.h"
 #include "SIMOD_2DT.h"
-#include "LinearDamage2DT.h"
+//#include "LinearDamage2DT.h"
 
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 #include "InelasticDuctile_RP2DT.h"
@@ -46,8 +46,6 @@ SurfacePotentialT* SurfacePotentialT::New(const char* name)
 		return new YoonAllen2DT;
 	else if (strcmp(name, "Yoon-Allen_3D") == 0)
 		return new YoonAllen3DT;
-	else if (strcmp(name, "Linear_Damage_2D") == 0)
-		return new LinearDamage2DT;
 
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 	else if (strcmp(name, "rigid-inelastic_BCJ_2D") == 0)
