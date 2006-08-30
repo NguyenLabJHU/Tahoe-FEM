@@ -1,4 +1,4 @@
-/* $Id: PentahedronT.cpp,v 1.5 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: PentahedronT.cpp,v 1.6 2006-08-30 17:17:49 tdnguye Exp $ */
 /* created: sawimme (10/22/1999) */
 #include "PentahedronT.h"
 
@@ -19,7 +19,15 @@ const int kNumVertexNodes   = 6;
 const int kNumFacets        = 5;
 
 /* constructor */
-PentahedronT::PentahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) {}
+PentahedronT::PentahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) 
+{
+}
+
+const dArray2DT& PentahedronT::ParentCoords(void) const
+{
+	cout << "\n PentahedronT::ParentCoords: not implemented" << endl;
+	throw ExceptionT::kGeneralFail;
+}
 
 /* evaluate the shape functions and gradients. */
 void PentahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const

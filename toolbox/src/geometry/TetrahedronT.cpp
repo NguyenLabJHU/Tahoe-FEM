@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.10 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.11 2006-08-30 17:17:49 tdnguye Exp $ */
 /* created: paklein (10/22/1996) */
 #include "TetrahedronT.h"
 #include "QuadT.h"
@@ -17,7 +17,23 @@ const int kNumVertexNodes	= 4;
 const int kNumFacets        = 4;
 
 /* constructor */
-TetrahedronT::TetrahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) {}
+TetrahedronT::TetrahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) 
+{
+	const char caller[] = "TetrahedronT::TetrahedronT";
+	fCoords.Dimension(3,numnodes);
+	double* x = fCoords(0);
+	double* y = fCoords(1);
+	double* z = fCoords(2);
+	const double ra10[10] = {1.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.0, 0.0};
+	const double sa10[10] = {0.0, 1.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.5, 0.0};
+	const double ta10[10] = {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5};
+	for (int i = 0; i< numnodes; i++)
+	{
+		x[i] = ra10[i];
+		y[i] = sa10[i];
+		z[i] = ta10[i];
+	}
+}
 
 /* evaluate the shape functions and gradients. */
 void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const

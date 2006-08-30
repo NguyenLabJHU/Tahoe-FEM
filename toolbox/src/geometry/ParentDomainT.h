@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.20 2005-12-08 00:10:15 kyonten Exp $ */
+/* $Id: ParentDomainT.h,v 1.21 2006-08-30 17:17:49 tdnguye Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -39,6 +39,8 @@ class ParentDomainT
 	int NumNodes(void) const;
 	GeometryT::CodeT GeometryCode(void) const;
 	/*@}*/
+
+	const dArray2DT& ParentCoords(void) const;
 
 	/** reference to the parent domain geometry */
 	const GeometryBaseT& Geometry(void) const;
@@ -280,6 +282,11 @@ inline GeometryT::CodeT ParentDomainT::GeometryCode(void) const { return fGeomet
 inline const GeometryBaseT& ParentDomainT::Geometry(void) const
 {
 	return *fGeometry;
+}
+
+inline const dArray2DT& ParentDomainT::ParentCoords(void) const
+{
+	return(fGeometry->ParentCoords());
 }
 
 /* access to domain shape functions */

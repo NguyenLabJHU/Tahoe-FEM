@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.h,v 1.9 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: GeometryBaseT.h,v 1.10 2006-08-30 17:17:49 tdnguye Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
@@ -30,6 +30,8 @@ public:
 	/** destructor */
 	virtual ~GeometryBaseT(void);
 
+	virtual const dArray2DT& ParentCoords(void) const;
+	
 	/** returns the number of element facets */
 	int NumFacets(void) const { return fNumFacets; };
 
@@ -147,7 +149,15 @@ protected:
 	/* number of domain nodes */
 	int fNumNodes;
 	int fNumFacets;
+	
+	/*canonical coordinates of element nodes*/
+	dArray2DT fCoords;
 };
+
+inline const dArray2DT& GeometryBaseT::ParentCoords(void) const
+{
+	return(fCoords);
+}
 
 } // namespace Tahoe 
 #endif /* _GEOMETRY_BASE_T_H_ */

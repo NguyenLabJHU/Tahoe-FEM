@@ -1,4 +1,4 @@
-/* $Id: TriT.cpp,v 1.11 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: TriT.cpp,v 1.12 2006-08-30 17:17:49 tdnguye Exp $ */
 /* created: paklein (07/03/1996) */
 #include "TriT.h"
 #include "QuadT.h"
@@ -16,7 +16,20 @@ const int kTrinsd           = 2;
 const int kNumVertexNodes	= 3;
 
 /* constructor */
-TriT::TriT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) {}
+TriT::TriT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) 
+{
+	const char caller[] = "TriT::TriT";
+	fCoords.Dimension(2,numnodes);
+	double* x = fCoords(0);
+	double* y = fCoords(1);
+	const double ra6[6] = {1.0, 0.0, 0.0, 0.5, 0.0, 0.5};
+	const double sa6[6] = {0.0, 1.0, 0.0, 0.5, 0.5, 0.0};
+	for (int i = 0; i< numnodes; i++)
+	{
+		x[i] = ra6[i];
+		y[i] = sa6[i];
+	}
+}
 
 /* evaluate the shape functions and gradients. */
 void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
