@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.h,v 1.5 2006-06-03 16:25:14 tdnguye Exp $ */
+/* $Id: UpLagAdaptiveT.h,v 1.6 2006-08-30 17:33:32 tdnguye Exp $ */
 #ifndef _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 #define _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 
@@ -16,7 +16,7 @@
 namespace Tahoe {
 
 /** forward declarations */
-class CSEAnisoT;
+class CSEAnisoNodal;
 class TiedNodesT;
 
 /** update Lagrangian, finite strain solid */
@@ -65,9 +65,10 @@ protected:
 
 	/** release value */
 	double fReleaseThreshold;
+	double fReleaseTol;
 
 	/** cohesive element group */
-	CSEAnisoT* fCSE;
+	CSEAnisoNodal* fCSE;
 
 	/** nodes used by cohesive elements */
 	iArrayT fCSENodesUsed;
@@ -77,6 +78,7 @@ protected:
 	
 	/** connectivity of cohesive elements in local numbering */
 	iArray2DT fConnectivitiesCSELocal;
+	iArrayT fNodesX;
 	
 	/** active flag */
 	ArrayT<ElementCardT::StatusT> fCSEActive;
@@ -92,10 +94,13 @@ protected:
 
 	/** \name nodal stresses */
 	/*@{*/
+	dArray2DT ftraction;
 	iArrayT   fAvgCount;
 	dArray2DT fNodalValues;
 	dArray2DT fNodalExtrapolation;
 	LocalArrayT ftractions_elem;
+	dArray2DT fStress;
+	
 	/*@}*/
 };
 
