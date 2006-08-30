@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.11 2006-06-03 16:25:15 tdnguye Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.12 2006-08-30 17:20:23 tdnguye Exp $ */
 /* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_
@@ -109,7 +109,14 @@ public:
 	 *                          	[i],[j] = NumNodes*FieldDim */
 	const dMatrixT& Grad_dTGrad_d(void) const;
 
-	/** jacobian of the area transformation using the nodes on the 1st facet */
+	/** compute the jacobian of the nodal values.
+	 * uses externally provided shape function derivatives.
+	 * \param nodal values at the nodes: [nnd] x [nu]
+	 * \param DNa shape function derivatives: [ndim] x [nnd]
+	 * \param jacobian resulting jacobian: [nu] x [ndim] */
+	void Jacobian(const LocalArrayT& nodal, const dArray2DT& DNa, dMatrixT& jacobian) const;
+
+	/** jacobian of the area transformation at integration point using the nodes on the 1st facet */
 	double Jacobian(void);
 
 	/** jacobian of the area transformation using the nodes on the 1st facet 
@@ -137,16 +144,16 @@ public:
 
 	/** local node numbers on each facet */
 	const iArray2DT& NodesOnFacets(void) const;
-	
-private:
-
-	/* configure work space arrays */
-	void Construct(void);
 
 	/* set jump vector, i.e., assignment of element nodes to
 	 * facets: +1 => facet_2, -1 => facet_1. Displacement jump
 	 * is: u_2 - u_1. */
 	 void SetJumpVector(iArrayT& jump) const;
+	 	
+private:
+
+	/* configure work space arrays */
+	void Construct(void);
 
 	/* local node numbers on each facet */
 	void SetNodesOnFacets(iArray2DT& facetnodes);
@@ -199,6 +206,9 @@ private:
 	/* work space for 3D jacobian and derivatives */
 	dMatrixT fM1;
 	dMatrixT fM2;	
+	
+	dMatrixT fdm1_du;
+	dMatrixT fdm2_du;
 };
 
 /* inlines */
@@ -224,6 +234,12 @@ inline const dMatrixT& SurfaceShapeT::Grad_d(void) const
 inline const dMatrixT& SurfaceShapeT::Grad_dTGrad_d(void) const
 {
 	return fgrad_dTgrad_d[fCurrIP];
+}
+
+/*compute the jacobian of the nodal values. Uses externally provided shape function derivatives. */
+inline void SurfaceShapeT::Jacobian(const LocalArrayT& nodal, const dArray2DT& DNa, dMatrixT& jacobian) const
+{
+	fDomain->Jacobian(nodal, DNa, jacobian);
 }
 
 /* jacobian of the area transformation at the current integration
