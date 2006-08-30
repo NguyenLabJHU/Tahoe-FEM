@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.10 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: HexahedronT.cpp,v 1.11 2006-08-30 17:17:49 tdnguye Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -25,7 +25,25 @@ const double sa[8] = {-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0};
 const double ta[8] = {-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0};
 
 /* constructor */
-HexahedronT::HexahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) {}
+HexahedronT::HexahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) 
+{
+	const char caller[] = "HexahedronT::HexahedronT";
+	const double ra20[20] = {-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, -1.0, 1.0, 1.0, -1.0};
+	const double sa20[20] = {-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, -1.0, 1.0, 1.0};
+	const double ta20[20] = {-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+
+	fCoords.Dimension(3, numnodes);
+	double* x = fCoords(0);
+	double* y = fCoords(1);
+	double* z = fCoords(2);
+
+	for (int i = 0; i< numnodes; i++)
+	{
+		x[i] = ra20[i];
+		y[i] = sa20[i];
+		z[i] = ta20[i];
+	}
+}
 
 /* evaluate the shape functions and gradients. */
 void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const

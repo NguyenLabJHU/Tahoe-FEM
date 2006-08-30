@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.11 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.12 2006-08-30 17:17:49 tdnguye Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -20,36 +20,69 @@ const int kNumVertexNodes = 2;
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-LineT::LineT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) { }
+LineT::LineT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) 
+{
+	const char caller[] = "LineT::LineT";
+	fCoords.Dimension(1, numnodes);
+	double* x = fCoords(0);
+	const double ra3[3] = {-1.0, 1.0, 0.0};
+	for (int i = 0; i< numnodes; i++)
+	{
+		x[i] = ra3[i];
+	}
+}
+
 
 /* evaluate the shape functions and gradients. */
 void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
 	/* linear only */
-	if (fNumNodes > 2)
-		ExceptionT::GeneralFail("LineT::EvaluateShapeFunctions", "linear only");
+	if (fNumNodes > 3)
+		ExceptionT::GeneralFail("LineT::EvaluateShapeFunctions", "linear or quad only");
 
 	/* set shape functions */
-	Na[0] = 0.5*(1.0 - coords[0]);
-	Na[1] = 0.5*(1.0 + coords[0]);
+	if (fNumNodes == 2)
+	{
+		Na[0] = 0.5*(1.0 - coords[0]);
+		Na[1] = 0.5*(1.0 + coords[0]);
+	}
+	else 
+	{
+		Na[0] = -coords[0]*0.5*(1.0 - coords[0]);
+		Na[1] = coords[0]*0.5*(1.0 + coords[0]);
+		Na[2] = (1.0 - coords[0])*(1.0 + coords[0]);
+	}
 }
 
 /* evaluate the shape functions and gradients. */
 void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
 {
 	/* linear only */
-	if (fNumNodes > 2)
-		ExceptionT::GeneralFail("LineT::EvaluateShapeFunctions", "linear only");
+	if (fNumNodes > 3)
+		ExceptionT::GeneralFail("LineT::EvaluateShapeFunctions", "linear or quad only");
 
 	/* set shape functions */
-	Na[0] = 0.5*(1.0 - coords[0]);
-	Na[1] = 0.5*(1.0 + coords[0]);
+	if (fNumNodes == 2)
+	{
+		Na[0] = 0.5*(1.0 - coords[0]);
+		Na[1] = 0.5*(1.0 + coords[0]);
 
-	/* shape function derivatives */
-	DNa(0,0) = -0.5*coords[0];
-	DNa(0,1) = 0.5*coords[0];
+		/* shape function derivatives */
+		DNa(0,0) = -0.5;
+		DNa(0,1) = 0.5;
+	}
+	else
+	{
+		Na[0] =-coords[0]*0.5*(1.0 - coords[0]);
+		Na[1] = coords[0]*0.5*(1.0 + coords[0]);
+		Na[2] = (1.0 - coords[0])*(1.0 + coords[0]);
+		
+		/* Na,x */
+		DNa[0] =-0.5 + coords[0];
+		DNa[1] = 0.5 + coords[0];
+		DNa[2] =-2.0*coords[0];
+	}
 }
-
 /* compute local shape functions and derivatives */
 void LineT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	dArrayT& weights) const

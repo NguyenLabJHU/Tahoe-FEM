@@ -1,4 +1,4 @@
-/* $Id: PentahedronT.h,v 1.4 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: PentahedronT.h,v 1.5 2006-08-30 17:17:49 tdnguye Exp $ */
 /* created: sawimme (10/22/1999) */
 #ifndef _PENTAHEDRON_T_H_
 #define _PENTAHEDRON_T_H_
@@ -16,6 +16,8 @@ public:
 
 	/** constructor */
 	PentahedronT(int numnodes);
+
+	virtual const dArray2DT& ParentCoords(void) const;
 
 	/** return the geometry code */
 	virtual GeometryT::CodeT Geometry(void) const { return kPentahedron; };

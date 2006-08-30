@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.18 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.19 2006-08-30 17:17:49 tdnguye Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -23,8 +23,20 @@ const double ra[9] = {-1.0, 1.0, 1.0,-1.0, 0.0, 1.0, 0.0,-1.0, 0.0};
 const double sa[9] = {-1.0,-1.0, 1.0, 1.0,-1.0, 0.0, 1.0, 0.0, 0.0};
 
 /* constructor */
-QuadT::QuadT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) { }
-
+QuadT::QuadT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) 
+{ 
+	const char caller[] = "HexahedronT::HexahedronT";
+	fCoords.Dimension(2,numnodes);
+	double* x = fCoords(0);
+	double* y = fCoords(1);
+	const double ra9[9] = {-1.0, 1.0, 1.0,-1.0, 0.0, 1.0, 0.0, -1.0, 0.0};
+	const double sa9[9] = {-1.0,-1.0, 1.0, 1.0, -1.0, 0.0, 1.0, 0.0,0.0};
+	for (int i = 0; i< numnodes; i++)
+	{
+		x[i] = ra9[i];
+		y[i] = sa9[i];
+	}
+}
 /* evaluate the shape functions and gradients. */
 void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
