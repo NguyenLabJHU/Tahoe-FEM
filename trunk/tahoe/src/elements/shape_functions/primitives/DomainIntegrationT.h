@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.13 2006-06-19 15:25:33 r-jones Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.14 2006-08-30 17:20:23 tdnguye Exp $ */
 /* created: paklein (09/04/1998) */
 #ifndef _DOMAIN_INTEGRATION_T_H_
 #define _DOMAIN_INTEGRATION_T_H_
@@ -113,6 +113,8 @@ public:
 	/** reference to the parent domain */
 	const ParentDomainT& ParentDomain(void) const;
 
+	const dArray2DT& ParentCoords(void) const;
+
 	/** evaluate the shape functions and gradients. Compute the values of the
 	 * shape functions and their gradients at an arbirary point in the
 	 * in the parent domain. Coordinates must fall within the domain.
@@ -226,6 +228,11 @@ inline void DomainIntegrationT::ExtrapolateAll(const dArrayT& IPvalues,
 /* nodal extrapolation matrix */
 inline const dMatrixT& DomainIntegrationT::Extrapolation(void) const {
 	return fDomain->Extrapolation();
+}
+
+inline const dArray2DT& DomainIntegrationT::ParentCoords(void) const
+{
+	return(fDomain->ParentCoords());
 }
 
 /* return the local node numbers for each facet of the element

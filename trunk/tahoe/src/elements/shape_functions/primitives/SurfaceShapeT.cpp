@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.14 2006-06-03 16:25:14 tdnguye Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.15 2006-08-30 17:20:23 tdnguye Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
@@ -188,12 +188,12 @@ void SurfaceShapeT::Interpolate(const LocalArrayT& nodal, dArrayT& u, int ip)
 		/* first face */
 		const double* p = nodal(i);
 		u[i] = scale*shapes.DotRow(ip, p);
-		
 		/* second face */
 		if (both_sides)
 		{
-			for (int j = 0; j < NumFacetNodes(); j++)
+			for (int j = 0; j < NumFacetNodes(); j++) {
 				u[i] += scale*p[face_nodes[j]]*shapes(ip, j);
+			}
 		}
 	}	
 }
@@ -248,7 +248,7 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 	
 		/* unit tangent */
 		fx_vec.Set(2, Q(0));
-		dMatrixT& dtan_du = fgrad_dd(CurrIP(), 0);
+		dMatrixT& dtan_du = fgrad_dd(CurrIP(), 0); /*matrix of 0.5*DShape(0,node) of currIP*/
 		dtan_du.MultTx(fx_vec, fu_vec);
 	
 		/* first component */
