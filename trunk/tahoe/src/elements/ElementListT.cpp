@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.126 2006-08-07 17:57:57 a-kopacz Exp $ */
+/* $Id: ElementListT.cpp,v 1.127 2006-08-30 18:37:33 tdnguye Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -30,9 +30,11 @@
 #include "CSESymAnisoT.h"
 #include "MeshFreeCSEAnisoT.h"
 #include "ThermalSurfaceT.h"
+
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 #include "RigidCSEAnisoT.h"
 #include "NodalRigidCSEAnisoT.h"
+#include "CSEAnisoNodal.h"
 #endif
 #endif
 
@@ -268,6 +270,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 		sub_lists.AddSub("rigid_anisotropic_CSE");
 		sub_lists.AddSub("nodal_rigid_anisotropic_CSE");
+		sub_lists.AddSub("CSE_rigid_aniso_nodal_int");
 #endif /* COHESIVE_SURFACE_ELEMENT_DEV */
 
 #endif
@@ -474,6 +477,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new RigidCSEAnisoT(fSupport);
 	else if (name == "nodal_rigid_anisotropic_CSE")
 		return new NodalRigidCSEAnisoT(fSupport);
+	else if (name == "CSE_rigid_aniso_nodal_int")
+		return new CSEAnisoNodal(fSupport);
 #endif /* COHESIVE_SURFACE_ELEMENT_DEV */
 
 #endif
