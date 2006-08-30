@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoNodal.cpp,v 1.1 2006-08-30 17:32:01 thao Exp $ */
+/* $Id: CSEAnisoNodal.cpp,v 1.2 2006-08-30 17:49:21 thao Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoNodal.h"
 
@@ -26,7 +26,8 @@
 
 /* potential functions */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-#include "LinearDamage2DT.h"
+#include "TvergHutch2DT.h"
+//#include "LinearDamage2DT.h"
 #endif
 
 using namespace Tahoe;
