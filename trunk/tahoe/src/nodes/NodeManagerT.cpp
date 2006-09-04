@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.65 2006-06-19 15:25:34 r-jones Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.66 2006-09-04 01:25:56 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -612,7 +612,6 @@ void NodeManagerT::WriteOutput(void)
 	UpdateCurrentCoordinates();
 
 	/* nodal histories */
-//NOTE - moved here from CloseStep	
 	WriteNodalHistory();
 }
 
@@ -1634,6 +1633,8 @@ void NodeManagerT::WriteNodalHistory(void)
 			/* conjugate force */
 			int ndof = field.NumDOF();
 			dArrayT force(ndof);
+			dArrayT force_sum(ndof);
+			force_sum = 0.0;
 		
 			/* output values */
 			dArray2DT n_values(node_set.Length(), ((field.Order() + 1) + 1)*ndof);
@@ -1648,6 +1649,7 @@ void NodeManagerT::WriteNodalHistory(void)
 						
 				/* compute reaction force */
 				fFEManager.InternalForceOnNode(field, node, force);
+				force_sum += force;
 
 				/* loop over time derivatives */
 				int dex = 0;
@@ -1661,6 +1663,11 @@ void NodeManagerT::WriteNodalHistory(void)
 			
 			/* send for output */
 			fFEManager.WriteOutput(ID, n_values, e_values);
+			
+			/* report total force */
+			if (fFEManager.Logging() != GlobalT::kSilent) {
+				fFEManager.Output() << " field: " << field.FieldName() << " ID: " << ID << " force: " << force_sum.no_wrap() << '\n';
+			}
 		}
 	}
 }
