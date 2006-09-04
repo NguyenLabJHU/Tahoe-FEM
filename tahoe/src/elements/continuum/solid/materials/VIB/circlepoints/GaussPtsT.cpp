@@ -1,4 +1,4 @@
-/* $Id: GaussPtsT.cpp,v 1.6 2006-08-18 18:45:11 tdnguye Exp $ */
+/* $Id: GaussPtsT.cpp,v 1.7 2006-09-04 01:25:20 paklein Exp $ */
 /* created: paklein (11/02/1997) */
 #include "GaussPtsT.h"
 #include <math.h>
@@ -82,6 +82,7 @@ const dArrayT& GaussPtsT::CircleAngles(double theta)
 		/* set angles ? */
 		fAngles[i] = Pi*p[i] + theta;
 	}
+	return fAngles;
 }
 
 
@@ -200,6 +201,7 @@ const dArrayT& GaussPtsT::Jacobians(const double theta, const C1FunctionT* func)
 		double D = func->Function(temp[i]);
 		fJacobians[i] = jac*D; 
 	}
+	return fJacobians;
 }
 
 void GaussPtsT::SetJacobians(int numint)
