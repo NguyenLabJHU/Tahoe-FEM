@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.26 2006-07-05 17:46:58 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.27 2006-09-04 01:30:24 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -62,6 +62,225 @@ TotalLagrangianCBSurfaceT::~TotalLagrangianCBSurfaceT(void)
 		delete fSurfaceCB[i];
 	delete fSurfaceCBSupport;
 	delete fSplitShapes;
+}
+
+/* accumulate the residual force on the specified node */
+void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
+{
+	const char caller[] = "TotalLagrangianCBSurfaceT::AddNodalForce";
+
+	/* bulk forces from inherited function */
+	TotalLagrangianT::AddNodalForce(field, node, force);
+
+	/* not my field */
+	if (&field != &(Field())) return;
+
+	/* quick exit */
+	bool hasnode = false;
+	for (int i=0; i < fBlockData.Length() && !hasnode; i++)
+		if (fConnectivities[i]->HasValue(node)) hasnode = true;
+	if (!hasnode) return;
+
+	/*************** surface force contribution ***************/
+
+	/* temp for nodal force */
+	dArrayT nodalforce;
+
+	/* time integration parameters */
+	double constKd = 0.0;
+	int formKd = fIntegrator->FormKd(constKd);
+	if (!formKd) return;
+
+	/* dimensions */
+	const ShapeFunctionT& shape = ShapeFunction();
+	int nsd = shape.NumSD();                          // # of spatial dimensions in problem
+	int nfs = shape.NumFacets();                      // # of total possible element faces
+	int nsi = shape.FacetShapeFunction(0).NumIP();    // # IPs per surface face
+	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
+	int nen = NumElementNodes();                      // # nodes in bulk element
+
+	/* matrix alias to fNEEvec */
+	dMatrixT WP(nsd, fStressStiff.Rows(), fNEEvec.Pointer());
+
+	/* loop over surface elements */
+	dMatrixT jacobian(nsd, nsd-1);
+	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	iArrayT face_nodes(nfn), face_nodes_index(nfn);
+	ElementSupport().RegisterCoordinates(face_coords);
+	dArrayT ip_coords_X(nsd);
+	dArrayT ip_coords_Xi(nsd);
+	dArrayT Na(nen);
+	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen);
+	dMatrixT DXi_DX(nsd);
+	dMatrixT F_inv(nsd);
+	dMatrixT PK1(nsd), cauchy(nsd);
+	double t_surface;
+	for (int i = 0; i < fSurfaceElements.Length(); i++)
+	{
+		/* bulk element information */
+		int element = fSurfaceElements[i];
+		const ElementCardT& element_card = ElementCard(element);
+		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
+		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
+	
+		/* integrate surface contribution to nodal forces */
+		fRHS = 0.0;
+		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
+			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
+			{
+				/* face parent domain */
+				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
+			
+				/* collect coordinates of face nodes */
+				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
+				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
+				face_nodes.Collect(face_nodes_index, element_card.NodesX());
+
+				const iArrayT& nodes_u = element_card.NodesU();
+				int nodeposition = 0;
+				if (nodes_u.HasValue(node, nodeposition))
+				{
+				
+				/* get coordinates */
+				face_coords.SetLocal(face_nodes);
+
+				/* set up split integration */
+				int normal_type = fSurfaceElementFacesType(i,j);
+				
+				if (fIndicator == "FCC_3D")
+					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+				else if (fIndicator == "FCC_EAM")
+					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
+				else
+					ExceptionT::GeneralFail(caller, "unrecognized SCB \"%s\"", fIndicator.Pointer());
+	
+				fSplitInitCoords = fLocInitCoords;
+				SurfaceLayer(fSplitInitCoords, j, t_surface);
+
+				/* remove bulk contribution to surface layer (see TotalLagrangianT::FormKd) */
+				const double* Det    = fSplitShapes->IPDets();
+				const double* Weight = fSplitShapes->IPWeights();
+				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
+				fSplitShapes->TopIP();
+				fShapes->TopIP(); /* synch bulk shape functions */
+				while (fSplitShapes->NextIP())
+				{
+					/* synch bulk shape functions */
+					fShapes->NextIP();
+				
+					/* ip coordinates in the split domain */
+					fSplitShapes->IPCoords(ip_coords_X);
+					
+					/* map ip coordinates to bulk parent domain */
+					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+
+					/* bulk shape functions/derivatives */
+					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+					DXi_DX.Inverse();
+					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+
+					/* deformation gradient/shape functions/derivatives at the surface ip */
+					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
+					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+					F.PlusIdentity();
+
+					/* F^(-1) */
+					double J = F.Det();
+					if (J <= 0.0)
+						ExceptionT::BadJacobianDet(caller);
+					else
+						F_inv.Inverse(F);
+
+					/* bulk material model */
+					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
+					fCurrMaterial = (SolidMaterialT*) pcont_mat;
+
+					/* get Cauchy stress */
+					(fCurrMaterial->s_ij()).ToMatrix(cauchy);
+
+					/* compute PK1/J */
+					PK1.MultABT(cauchy, F_inv);
+
+					/* Wi,J PiJ */
+					shape.GradNa(DNa_X, fGradNa);
+					WP.MultAB(PK1, fGradNa);
+
+					/* accumulate */
+					fRHS.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
+				}
+
+				/* integrate over the face */
+				int face_ip;
+				fSurfaceCBSupport->SetCurrIP(face_ip);
+				const double* w = surf_shape.Weight();				
+				for (face_ip = 0; face_ip < nsi; face_ip++) {
+
+					/* coordinate mapping on face */
+					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+					double detj = surf_shape.SurfaceJacobian(jacobian);
+				
+					/* ip coordinates on face */
+					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+					
+					/* ip coordinates in bulk parent domain */
+					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+
+					/* bulk shape functions/derivatives */
+					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+					DXi_DX.Inverse();
+					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+
+					/* deformation gradient/shape functions/derivatives at the surface ip */
+					dMatrixT& F = fF_Surf_List[face_ip];
+					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+					F.PlusIdentity();
+					
+					/* F^-1 */
+					double J = F.Det();
+					if (J <= 0.0)
+						ExceptionT::BadJacobianDet(caller);
+					else
+						F_inv.Inverse(F);
+					
+					/* stress at the surface */
+					if (fIndicator == "FCC_3D")
+						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					else if (fIndicator == "FCC_EAM")
+					{
+						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					}
+					else
+						int blah = 0;
+				
+					/* compute PK1/J */
+					PK1.MultABT(cauchy, F_inv);
+					
+					/* Wi,J PiJ */
+					shape.GradNa(DNa_X, fGradNa);
+					WP.MultAB(PK1, fGradNa);
+
+					/* accumulate */
+					fRHS.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
+				}
+				
+				/* assemble force */
+				int dex = 0;
+				for (int i = 0; i < nodes_u.Length(); i++)
+				{
+					if (nodes_u[i] == node)
+					{
+						/* components for node */
+						nodalforce.Set(NumDOF(), fRHS.Pointer(dex));
+		
+						/* accumulate */
+						force += nodalforce;
+					}
+					dex += NumDOF();
+				}			
+				
+				} /* found node */
+			} /* surface face */
+	}	
 }
 
 /* accept parameter list */
@@ -338,7 +557,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				else if (fIndicator == "FCC_EAM")
 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
 				else
-					int blah = 0;
+					ExceptionT::GeneralFail(caller, "unrecognized SCB \"%s\"", fIndicator.Pointer());
 				
 				fSplitInitCoords = fLocInitCoords;
 				SurfaceLayer(fSplitInitCoords, j, t_surface);
@@ -501,7 +720,9 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	
 	/* check wave speed directions */
 	dArrayT normal(3), speeds(3);
-	normal = (0.0,0.0,1.0);
+	normal[0] = 0.0;
+	normal[1] = 0.0;
+	normal[2] = 1.0;
 
 	/* inherited - bulk contribution */
 	TotalLagrangianT::RHSDriver();

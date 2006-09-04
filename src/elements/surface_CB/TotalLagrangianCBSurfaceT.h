@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.8 2006-06-03 23:04:13 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.9 2006-09-04 01:30:24 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -27,6 +27,11 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** accumulate the residual force on the specified node
+	 * \param node test node
+	 * \param force array into which to assemble to the residual force */
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 
 protected:
 
