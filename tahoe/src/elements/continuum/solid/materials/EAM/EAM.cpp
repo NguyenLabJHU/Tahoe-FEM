@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.11 2006-07-27 02:30:55 hspark Exp $ */
+/* $Id: EAM.cpp,v 1.12 2006-09-04 15:09:01 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAM.h"
 #include "CBLatticeT.h"
@@ -52,7 +52,7 @@ void EAM::Initialize(int nsd, int numbonds)
 	fBond6.Dimension(rs2.Length());
 	fBondTensor2b.Dimension(nstrs);
 	//fIntType.Dimension(6,2);
-	fIntType.Dimension(7,2);
+	fIntType.Dimension(9,2);
 }
 
 /*
@@ -82,7 +82,7 @@ double EAM::ComputeUnitEnergy(void)
 		rho    += ci*(*prho++);
 		energy += ci*0.5*(*pphi++);
 	}
-	
+
 	energy += fEmbeddingEnergy->Function(rho);
 	return energy;
 }
@@ -134,20 +134,25 @@ void EAM::ComputeUnitSurfaceStress(dSymMatrixT& stress)
 	ComputeElectronDensity();
 	
 	/* Create interaction table using calculated electron densities */
-	fIntType(0,0) = (fRepRho[1]);
-	fIntType(0,1) = (fRepRho[1]);
-	fIntType(1,0) = (fRepRho[1]);
-	fIntType(1,1) = (fRepRho[2]);
-	fIntType(2,0) = (fRepRho[1]);
-	fIntType(2,1) = (fRepRho[0]);
-	fIntType(3,0) = (fRepRho[2]);
-	fIntType(3,1) = (fRepRho[1]);
-	fIntType(4,0) = (fRepRho[2]);
-	fIntType(4,1) = (fRepRho[2]);
-	fIntType(5,0) = (fRepRho[2]);
-	fIntType(5,1) = (fRepRho[0]);
-	fIntType(6,0) = (fRepRho[0]);	// bulk/bulk interactions for S3 and S4 atoms
-	fIntType(6,1) = (fRepRho[0]);
+	// ADD THREE NEW INTERACTION TYPES HERE
+	fIntType(0,0) = (fRepRho[1]);	// surface1
+	fIntType(0,1) = (fRepRho[1]);	// surface1
+	fIntType(1,0) = (fRepRho[1]);	// surface1
+	fIntType(1,1) = (fRepRho[2]);	// surface2
+	fIntType(2,0) = (fRepRho[1]);	// surface1
+	fIntType(2,1) = (fRepRho[0]);	// bulk
+	fIntType(3,0) = (fRepRho[2]);	// surface2
+	fIntType(3,1) = (fRepRho[1]);	// surface1
+	fIntType(4,0) = (fRepRho[2]);	// surface2
+	fIntType(4,1) = (fRepRho[2]);	// surface2
+	fIntType(5,0) = (fRepRho[2]);	// surface2
+	fIntType(5,1) = (fRepRho[0]);	// bulk
+	fIntType(6,0) = (fRepRho[0]);	// bulk	- new additions for S3 and S4 layers
+	fIntType(6,1) = (fRepRho[1]);	// surface1
+	fIntType(7,0) = (fRepRho[0]);	// bulk
+	fIntType(7,1) = (fRepRho[2]);	// surface2
+	fIntType(8,0) = (fRepRho[0]);	// bulk
+	fIntType(8,1) = (fRepRho[0]);	// bulk
 
 	/* assemble stress */
 	stress = 0.0;
