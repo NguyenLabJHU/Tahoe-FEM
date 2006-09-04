@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.10 2006-07-27 01:56:58 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.11 2006-09-04 15:09:37 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -55,7 +55,7 @@ double EAMFCC3D_surf::EnergyDensity(const dSymMatrixT& strain)
 	ComputeDeformedLengths(strain);
 
 	/* scale by atoms per cell/AREA per cell, split energy by one-half */
-	return (0.5*kEAMFCC3DNumAtomsPerArea/fCellArea)*fEAM->ComputeUnitEnergy();
+	return (kEAMFCC3DNumAtomsPerArea/fCellArea)*fEAM->ComputeUnitEnergy();
 }
 
 /* return the material tangent moduli in Cij */
@@ -71,17 +71,17 @@ void EAMFCC3D_surf::Moduli(dMatrixT& Cij, const dSymMatrixT& strain)
 		fEAM->ComputeUnitModuli(Cij);
 	
 	/* scale by atoms per cell/AREA per cell, split by one half for counting all bonds */
-	Cij	*= 0.5*kEAMFCC3DNumAtomsPerArea/fCellArea;
+	Cij	*= kEAMFCC3DNumAtomsPerArea/fCellArea;
 }
 
 /* return the symmetric 2nd PK surface stress tensor */
 void EAMFCC3D_surf::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 {
 	/* compute deformed lattice geometry */
-	ComputeDeformedLengths(strain);
+	ComputeDeformedBulkBonds(strain);
 
 	/* Compute deformed lattice geometry for surface/bulk unit cells */
-	ComputeDeformedBulkBonds(strain);
+	ComputeDeformedLengths(strain);
 	ComputeDeformedSurf1Bonds(strain);
 	ComputeDeformedSurf2Bonds(strain);
 
