@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.h,v 1.2 2006-08-10 01:46:53 thao Exp $ */
+/* $Id: AnisoCornea.h,v 1.3 2006-09-05 23:10:23 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ANISO_CORNEA_2D_H_
 #define _ANISO_CORNEA_2D_H_
@@ -26,6 +26,11 @@ public:
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 
+	/*compute output variables*/
+	virtual int NumOutputVariables() const;
+	virtual void OutputLabels(ArrayT<StringT>& labels) const;
+	virtual void ComputeOutput(dArrayT& output);
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -44,6 +49,9 @@ public:
 	/*@}*/
 
 protected:
+	/*calculates rotation matrix*/
+	virtual const dMatrixT& GetRotation(void);
+
 	/*calculates  matrix contribution to 2PK stress*/
 	virtual void ComputeMatrixStress(const dSymMatrixT& C, dSymMatrixT& Stress);
 
@@ -55,7 +63,7 @@ protected:
 	
 	/*computes integrated moduli in local frame*/
 	virtual void ComputeFiberMod (const dSymMatrixT& FiberStretch, dSymMatrixT& FiberStress,
-					dSymMatrixT& FiberMod);
+					dMatrixT& FiberMod);
 
 	/* strained lengths in terms of the Lagrangian stretch eigenvalues */
 	void ComputeLengths(const dSymMatrixT& stretch);

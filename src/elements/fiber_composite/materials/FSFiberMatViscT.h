@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.h,v 1.1 2006-08-10 01:35:44 thao Exp $ */
+/* $Id: FSFiberMatViscT.h,v 1.2 2006-09-05 23:10:23 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIBVISC_MAT_T_H_
 #define _FD_FIBVISC_MAT_T_H_
@@ -57,15 +57,12 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 	
 protected:
-	void AssembleFiberNonSymModuli(const dMatrixT& fib_mod, dMatrixT& global_mod,
-				const int fillmode = dSymMatrixT::kAccumulate);
-
 	/*define pure virtual functions in FSFiberMatT*/
 	/*computes eq fiber stress in local frame*/
 	virtual void ComputeFiberStress (const dSymMatrixT& Stretch, dSymMatrixT& Stress);
 	
 	/*computes eq fiber moduli in local frame*/
-	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, dSymMatrixT& dSymMatrixT, dSymMatrixT& Mod);
+	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, dSymMatrixT& dSymMatrixT, dMatrixT& Mod);
 
 	/*computes eq isotropic matrix stress*/
 	virtual void ComputeMatrixStress (const dSymMatrixT& Stretch, dSymMatrixT& Stress);
@@ -89,7 +86,7 @@ protected:
 	
 	/*computes  moduli in local frame*/
 	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress, 
-				dSymMatrixT& Mod,  const int process_index) = 0;
+				dMatrixT& Mod,  const int process_index) = 0;
 				
 	/*compute the algorithmic moduli dSNEQ/dCv deltaCv/deltadC in local fiber coord sys*/
 	virtual void ComputeCalg (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  
@@ -145,7 +142,7 @@ inline void FSFiberMatViscT::ComputeFiberStress (const dSymMatrixT& Stretch, dSy
 	ComputeFiberStress(Stretch, Stretch, Stress, -1);
 }
 
-inline void FSFiberMatViscT::ComputeFiberMod (const dSymMatrixT& Stretch, dSymMatrixT& Stress, dSymMatrixT& Mod)
+inline void FSFiberMatViscT::ComputeFiberMod (const dSymMatrixT& Stretch, dSymMatrixT& Stress, dMatrixT& Mod)
 { 
 	ComputeFiberMod(Stretch, Stretch, Stress, Mod, -1);
 }

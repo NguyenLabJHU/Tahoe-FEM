@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaIVisco.cpp,v 1.1 2006-08-10 01:35:44 thao Exp $ */
+/* $Id: AnisoCorneaIVisco.cpp,v 1.2 2006-09-05 23:10:23 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaIVisco.h"
@@ -125,16 +125,7 @@ void AnisoCorneaIVisco::ComputeCalg(const dSymMatrixT& FiberStretch,
 	fMod2(2,0) = -(fMod1(2,0)*fiK(0,0)+fMod1(2,1)*fiK(1,0)+fMod1(2,2)*fiK(2,0));
 	fMod2(2,1) = -(fMod1(2,0)*fiK(0,1)+fMod1(2,1)*fiK(1,1)+fMod1(2,2)*fiK(2,1));
 	
-	
 	Calg.MultAB(fMod2, fG);
-	
-//	cout <<setprecision(12)<< "\nFiberStretch: "<<FiberStretch;
-//	cout << "\nFiberStretch_v: "<<FiberStretch_v;
-//	cout << "\nfMod2: "<<fMod2;
-//	cout << "\nfG: "<<fG;
-//	cout << "\nfMod1: "<< -fMod1;
-//	cout <<"\nCalg: "<<Calg;
-	
 }
 
 /*local newton loop for viscous stretch tensor*/ 

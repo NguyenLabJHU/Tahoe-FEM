@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.cpp,v 1.2 2006-08-10 01:46:53 thao Exp $ */
+/* $Id: AnisoCornea.cpp,v 1.3 2006-09-05 23:10:23 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "AnisoCornea.h"
 
@@ -14,6 +14,9 @@
 #include "PowerTrig.h"
 
 const double Pi = acos(-1.0);
+
+const int kNumOutputVar = 6;
+static const char* Labels[kNumOutputVar] = {"NT_X", "NT_Y", "NT_Z","IS_X", "IS_Y", "IS_Z"};
 
 using namespace Tahoe;
 
@@ -67,6 +70,39 @@ double AnisoCornea::StrainEnergyDensity(void)
 		energy += (*pU++)*(*pj++);
 	
 	return energy;
+}
+
+int AnisoCornea::NumOutputVariables() const {
+	return kNumOutputVar;
+}
+
+void AnisoCornea::OutputLabels(ArrayT<StringT>& labels) const
+{
+	//allocates space for labels
+	labels.Dimension(kNumOutputVar);
+	
+	//copy labels
+	for (int i = 0; i< kNumOutputVar; i++)
+		labels[i] = Labels[i];
+}
+
+void AnisoCornea::ComputeOutput(dArrayT& output)
+{
+	/*calculates deformed fiber vectors*/
+	const dArray2DT& Fibers = FiberMatSupportT().Fiber_Vec();
+	
+	const double* p_nt = Fibers(0);
+	const double* p_is = Fibers(1);
+	
+	const dMatrixT& F = F_mechanical();
+	double* pb = output.Pointer();
+	
+	/*deformed NT fiber orientation*/
+	F.Multx(p_nt, pb);
+	pb += NumSD();
+	
+	/*deformed IS fiber orientation*/
+	F.Multx(p_is, pb);
 }
 
 /* describe the parameters needed by the interface */
@@ -201,6 +237,15 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	FSFiberMatT::TakeParameterList(list);
 
+	fNumFibStress = dSymMatrixT::NumValues(fNumSD-1);
+	fNumFibModuli = dSymMatrixT::NumValues(fNumFibStress);
+	
+	/* allocate memory */
+	/*2D fiber stress and modulus*/
+	fFiberStretch.Dimension(fNumSD-1);
+	fFiberStress.Dimension(fNumSD-1);
+	fFiberMod.Dimension(fNumFibStress);
+
 	const ParameterListT& matrix = list.GetListChoice(*this, "matrix_material_params");
 	if (matrix.Name() == "Neo-Hookean")
 	{
@@ -238,6 +283,41 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
+const dMatrixT& AnisoCornea::GetRotation(void)
+{
+	const dArray2DT& Fibers = FiberMatSupportT().Fiber_Vec();
+	//int num_fibers = fFiber_list[i].MajorDim();
+/*  Set Rotation Matrix
+	Q_Ia = e_i p_a is rotation matrix, p_1 = fNT, p_2 = fIS, p_3 = fOP
+	fQ(0,0) = fNT[0];
+	fQ(0,1) = fIS[0];
+	fQ(0,2) = fOP[0];
+
+	 fQ(1,0) = fNT[1];
+	 fQ(1,1) = fIS[1];
+	 fQ(1,2) = fOP[1];
+
+	 fQ(2,0) = fNT[2];
+	 fQ(2,1) = fIS[2];
+	 fQ(2,2) = fOP[2];
+*/
+
+	fQ(0,0) = Fibers(0,0);
+	fQ(1,0) = Fibers(0,1);
+	fQ(2,0) = Fibers(0,2);
+	
+	fQ(0,1) = Fibers(1,0);
+	fQ(1,1) = Fibers(1,1);
+	fQ(2,1) = Fibers(1,2);
+
+	const double* A = fQ(0);
+	const double* B = fQ(1);
+	fQ(0,2) = A[1]*B[2] - A[2]*B[1];
+	fQ(1,2) = A[2]*B[0] - A[0]*B[2];
+	fQ(2,2) = A[0]*B[1] - A[1]*B[0];
+
+	return(fQ);
+}
 
 void AnisoCornea::ComputeMatrixStress(const dSymMatrixT& C, dSymMatrixT& Stress)
 {
@@ -344,7 +424,7 @@ void AnisoCornea::ComputeFiberStress (const dSymMatrixT& FiberStretch, dSymMatri
 }
 	
 /*computes integrated moduli in local frame*/
-void AnisoCornea::ComputeFiberMod (const dSymMatrixT& FiberStretch, dSymMatrixT& FiberStress, dSymMatrixT& FiberMod)
+void AnisoCornea::ComputeFiberMod (const dSymMatrixT& FiberStretch, dSymMatrixT& FiberStress, dMatrixT& FiberMod)
 {
 	/* stretched bonds */
 	ComputeLengths(FiberStretch);
@@ -379,13 +459,17 @@ void AnisoCornea::ComputeFiberMod (const dSymMatrixT& FiberStretch, dSymMatrixT&
 	double& s3 = FiberStress[2]; /*sf_12*/
  
 	fFiberMod = 0.0;
-	double& c11 = FiberMod[0]; /*cf_1111*/
-	double& c22 = FiberMod[1]; /*cf_2222*/
-	double& c33 = FiberMod[2]; /*cf_1212*/
-	double& c23 = FiberMod[3]; /*cf_2212*/
-	double& c13 = FiberMod[4]; /*cf_1112*/
-	double& c12 = FiberMod[5]; /*cf_1122*/
+	double& c11 = FiberMod[0]; /*cf_1111*/ 
+	double& c22 = FiberMod[4]; /*cf_2222*/
+	double& c33 = FiberMod[8]; /*cf_1212*/
+	double& c23 = FiberMod[7]; /*cf_2212*/
+	double& c13 = FiberMod[6]; /*cf_1112*/
+	double& c12 = FiberMod[3]; /*cf_1122*/
 
+	/*0  3  6
+	  1  4  7
+	  2  5  8*/
+	  
 	for (int i = 0; i < fI4.Length(); i++)
 	{
 		double sfactor =  (*pj)*(*pdU++)/Pi;
@@ -403,6 +487,10 @@ void AnisoCornea::ComputeFiberMod (const dSymMatrixT& FiberStretch, dSymMatrixT&
 		c13 += cfactor*(*pc13++);
 		c12 += cfactor*(*pc12++);
 	}
+	/*symmetric modulus*/
+	FiberMod[1] = c12;
+	FiberMod[2] = c13;
+	FiberMod[5] = c23;
 }
 
 /* strained lengths in terms of the Lagrangian stretch eigenvalues */

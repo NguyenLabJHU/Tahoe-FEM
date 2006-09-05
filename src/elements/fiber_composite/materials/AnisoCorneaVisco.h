@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.1 2006-08-10 01:35:44 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.2 2006-09-05 23:10:23 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -30,6 +30,11 @@ class AnisoCorneaVisco: public  FSFiberMatViscT
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 
+	/*compute output variables*/
+	virtual int NumOutputVariables() const;
+	virtual void OutputLabels(ArrayT<StringT>& labels) const;
+	virtual void ComputeOutput(dArrayT& output);
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -46,6 +51,9 @@ class AnisoCorneaVisco: public  FSFiberMatViscT
 	/*@}*/
 
 protected:
+	/*retrieves fiber rotation matrix*/
+	virtual const dMatrixT& GetRotation(void);
+
 	/*calculates  matrix contribution to 2PK stress*/
 	virtual void ComputeMatrixStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, 
 				dSymMatrixT& Stress, const int process_index, const int fillmode = dSymMatrixT::kOverwrite);
@@ -59,7 +67,7 @@ protected:
 				const int process_index);
 	
 	/*computes  moduli in local frame*/
-	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress, dSymMatrixT& Mod, 
+	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress, dMatrixT& Mod, 
 				const int process_index);
 
 
@@ -71,24 +79,24 @@ protected:
 
 
 	/*computes flow stress in local frame*/
-	void ComputeFlowStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& FlowStress, 
+	virtual void ComputeFlowStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& FlowStress, 
 				const int process_index);
 
 	/*computes dFlowStress/dC in local frame.  Note for this model, dFlowStress/dC = - dSNEQ/dCv*/
-	void dFlowdC (const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v, dSymMatrixT& FiberMod,  const int pindex);
+	virtual void dFlowdC (const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v, dSymMatrixT& FiberMod,  const int pindex);
 
 	/*computes dFlowStress/dCv in local frame*/
-	void dFlowdCv (const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v, dSymMatrixT& FiberMod,  const int pindex);
+	virtual void dFlowdCv (const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v, dSymMatrixT& FiberMod,  const int pindex);
 
 	/*returns viscosity tensor for given C and Cv in local frame*/
-	void ComputeViscosity(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  dSymMatrixT& Visc, 
+	virtual void ComputeViscosity(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  dSymMatrixT& Visc, 
 				const int process_index);
 
 	/*returns viscosity tensor for given C and Cv in local frame, dV^-1_IK/dCv_J Sig_K/*/
-	void ComputeDViscDCv(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, const dArrayT& Vec, dSymMatrixT& DVisc, 
+	virtual void ComputeDViscDCv(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, const dArrayT& Vec, dSymMatrixT& DVisc, 
 				const int process_index);
 
-	void ComputeDViscDC(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  const dArrayT& Vec, dSymMatrixT& DVisc, 
+	virtual void ComputeDViscDC(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  const dArrayT& Vec, dSymMatrixT& DVisc, 
 				const int process_index);
 				
 	/* strained lengths in terms of the Lagrangian stretch eigenvalues */

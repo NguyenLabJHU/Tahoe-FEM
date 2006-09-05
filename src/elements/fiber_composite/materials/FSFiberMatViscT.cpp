@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.cpp,v 1.1 2006-08-10 01:35:44 thao Exp $ */
+/* $Id: FSFiberMatViscT.cpp,v 1.2 2006-09-05 23:10:23 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatViscT.h"
 #include "FSFiberMatSupportT.h"
@@ -65,16 +65,9 @@ const dMatrixT& FSFiberMatViscT::C_IJKL(void)
 		/*compute dSNEQ/dCv delta Cv/delta C*/
 		ComputeCalg(fFiberStretch, fFiberStretch_v, fCalg, i);
 		
-/*		dMatrixT test(6);
-		AssembleFiberNonSymModuli(fCalg, test,dSymMatrixT::kOverwrite);
-		cout <<"\nCalg: "<<test;
-*/
-		AssembleFiberNonSymModuli(fCalg, fModulus);
+		AssembleFiberModuli(fCalg, fModulus);
 		j++;
 	}
-/*	for (int i = 0; i<6;i++)
-		if( fModulus(i,i)<.1) cout << "\nMod: "<<fModulus;
-*/
 	return fModulus;
 }
 	
@@ -303,9 +296,9 @@ void FSFiberMatViscT::TakeParameterList(const ParameterListT& list)
 	/*2D fiber stress and modulus*/
 	fC_n.Dimension(fNumSD);
 	
-	fFiberStretch_n.Dimension(fNumSD-1);
-	fFiberStretch_v.Dimension(fNumSD-1);
-	fFiberStretch_vn.Dimension(fNumSD-1);
+	fFiberStretch_n.Dimension(fNumSD);
+	fFiberStretch_v.Dimension(fNumSD);
+	fFiberStretch_vn.Dimension(fNumSD);
 
 	/*Dimension work spaces*/
 	fCalg.Dimension(fNumFibStress);
@@ -314,159 +307,3 @@ void FSFiberMatViscT::TakeParameterList(const ParameterListT& list)
 	if (numprocess > 0) SetStateVariables(numprocess);
 }
 
-
-/*********************************************************************************************
- *protected                                                                                  *
- *********************************************************************************************/
-void FSFiberMatViscT::AssembleFiberNonSymModuli(const dMatrixT& cf, dMatrixT& mod, const int fillmode)
-{
-	const double& c11 = cf(0,0);
-	const double& c22 = cf(1,1);
-	const double& c33 = cf(2,2);
-	
-	const double& c23 = cf(1,2);
-	const double& c32 = cf(2,1);
-	const double& c13 = cf(0,2);
-	const double& c31 = cf(2,0);
-	const double& c12 = cf(0,1);
-	const double& c21 = cf(1,0);
-	
-	const dArray2DT& Fibers = FiberMatSupportT().Fiber_Vec();
-
-	const double x1 = Fibers(0,0);
-	const double x2 = Fibers(0,1);
-	const double x3 = Fibers(0,2);
-	
-	const double y1 = Fibers(1,0);
-	const double y2 = Fibers(1,1);
-	const double y3 = Fibers(1,2);
-	
-	/*Rotate moduli from local frame (defined by fibrils) to global cartesian frame*/
-	/*C_IJKL = QIa QJb QKc QLd Cf_abcd*/
-
-	if (fillmode == dSymMatrixT::kOverwrite)
-	mod = 0.0;
-	
-	mod(0,0) += c11*x1*x1*x1*x1 + 2*c13*x1*x1*x1*y1 + 2*c31*x1*x1*x1*y1 + c12*x1*x1*y1*y1 + c21*x1*x1*y1*y1 
-		+ 4*c33*x1*x1*y1*y1 + 2*c23*x1*y1*y1*y1 + 2*c32*x1*y1*y1*y1 + c22*y1*y1*y1*y1;
-
-	mod(1,1) += c11*x2*x2*x2*x2 + 2*c13*x2*x2*x2*y2 + 2*c31*x2*x2*x2*y2 + c12*x2*x2*y2*y2 + c21*x2*x2*y2*y2 
-		+ 4*c33*x2*x2*y2*y2 + 2*c23*x2*y2*y2*y2 + 2*c32*x2*y2*y2*y2 + c22*y2*y2*y2*y2;
-
-	mod(2,2) += c11*x3*x3*x3*x3 + 2*c13*x3*x3*x3*y3 + 2*c31*x3*x3*x3*y3 + c12*x3*x3*y3*y3 + c21*x3*x3*y3*y3 
-		+ 4*c33*x3*x3*y3*y3 + 2*c23*x3*y3*y3*y3 + 2*c32*x3*y3*y3*y3 + c22*y3*y3*y3*y3;
-
-	mod(3,3) += c11*x2*x2*x3*x3 + c13*x2*x3*x3*y2 + c31*x2*x3*x3*y2 + c33*x3*x3*y2*y2 + c13*x2*x2*x3*y3 
-		+ c31*x2*x2*x3*y3 + c12*x2*x3*y2*y3 + c21*x2*x3*y2*y3 + 2*c33*x2*x3*y2*y3 + c23*x3*y2*y2*y3 + c32*x3*y2*y2*y3 
-		+ c33*x2*x2*y3*y3 + c23*x2*y2*y3*y3 + c32*x2*y2*y3*y3 + c22*y2*y2*y3*y3;
-		
-	mod(4,4) += c11*x1*x1*x3*x3 + c13*x1*x3*x3*y1 + c31*x1*x3*x3*y1 + c33*x3*x3*y1*y1 + c13*x1*x1*x3*y3 
-		+ c31*x1*x1*x3*y3 + c12*x1*x3*y1*y3 + c21*x1*x3*y1*y3 + 2*c33*x1*x3*y1*y3 + c23*x3*y1*y1*y3 + c32*x3*y1*y1*y3 
-		+ c33*x1*x1*y3*y3 + c23*x1*y1*y3*y3 + c32*x1*y1*y3*y3 + c22*y1*y1*y3*y3;
-
-	mod(5,5) += c11*x1*x1*x2*x2 + c13*x1*x2*x2*y1 + c31*x1*x2*x2*y1 + c33*x2*x2*y1*y1 + c13*x1*x1*x2*y2 
-		+ c31*x1*x1*x2*y2 + c12*x1*x2*y1*y2 + c21*x1*x2*y1*y2 + 2*c33*x1*x2*y1*y2 + c23*x2*y1*y1*y2 + c32*x2*y1*y1*y2 
-		+ c33*x1*x1*y2*y2 + c23*x1*y1*y2*y2 + c32*x1*y1*y2*y2 + c22*y1*y1*y2*y2;
-		
-		
-	mod(0,1) += c11*x1*x1*x2*x2 + 2*c31*x1*x2*x2*y1 + c21*x2*x2*y1*y1 + 2*c13*x1*x1*x2*y2 + 4*c33*x1*x2*y1*y2 
-		+ 2*c23*x2*y1*y1*y2 + c12*x1*x1*y2*y2 + 2*c32*x1*y1*y2*y2 + c22*y1*y1*y2*y2;
-
-	mod(0,2) += c11*x1*x1*x3*x3 + 2*c31*x1*x3*x3*y1 + c21*x3*x3*y1*y1 + 2*c13*x1*x1*x3*y3 + 4*c33*x1*x3*y1*y3 
-		+ 2*c23*x3*y1*y1*y3 + c12*x1*x1*y3*y3 + 2*c32*x1*y1*y3*y3 + c22*y1*y1*y3*y3;
-
-	mod(0,3) += c11*x1*x1*x2*x3 + 2*c31*x1*x2*x3*y1 + c21*x2*x3*y1*y1 + c13*x1*x1*x3*y2 + 2*c33*x1*x3*y1*y2 + c23*x3*y1*y1*y2 
-		+ c13*x1*x1*x2*y3 + 2*c33*x1*x2*y1*y3 + c23*x2*y1*y1*y3 + c12*x1*x1*y2*y3 + 2*c32*x1*y1*y2*y3 + c22*y1*y1*y2*y3;
-
-	mod(0,4) += c11*x1*x1*x1*x3 + c13*x1*x1*x3*y1 + 2*c31*x1*x1*x3*y1 + c21*x1*x3*y1*y1 + 2*c33*x1*x3*y1*y1 + c23*x3*y1*y1*y1 
-		+ c13*x1*x1*x1*y3 + c12*x1*x1*y1*y3 + 2*c33*x1*x1*y1*y3 + c23*x1*y1*y1*y3 + 2*c32*x1*y1*y1*y3 + c22*y1*y1*y1*y3;
-
-	mod(0,5) += c11*x1*x1*x1*x2 + c13*x1*x1*x2*y1 + 2*c31*x1*x1*x2*y1 + c21*x1*x2*y1*y1 + 2*c33*x1*x2*y1*y1 + c23*x2*y1*y1*y1 
-		+ c13*x1*x1*x1*y2 + c12*x1*x1*y1*y2 + 2*c33*x1*x1*y1*y2 + c23*x1*y1*y1*y2 + 2*c32*x1*y1*y1*y2 + c22*y1*y1*y1*y2;
-
-
-	mod(1,0) += c11*x1*x1*x2*x2 + 2*c13*x1*x2*x2*y1 + c12*x2*x2*y1*y1 + 2*c31*x1*x1*x2*y2 + 4*c33*x1*x2*y1*y2 
-		+ 2*c32*x2*y1*y1*y2 + c21*x1*x1*y2*y2 + 2*c23*x1*y1*y2*y2 + c22*y1*y1*y2*y2;
-
-	mod(1,2) += c11*x2*x2*x3*x3 + 2*c31*x2*x3*x3*y2 + c21*x3*x3*y2*y2 + 2*c13*x2*x2*x3*y3 + 4*c33*x2*x3*y2*y3 
-		+ 2*c23*x3*y2*y2*y3 + c12*x2*x2*y3*y3 + 2*c32*x2*y2*y3*y3 + c22*y2*y2*y3*y3;
-
-	mod(1,3) += c11*x2*x2*x2*x3 + c13*x2*x2*x3*y2 + 2*c31*x2*x2*x3*y2 + c21*x2*x3*y2*y2 + 2*c33*x2*x3*y2*y2 + c23*x3*y2*y2*y2 
-		+ c13*x2*x2*x2*y3 + c12*x2*x2*y2*y3 + 2*c33*x2*x2*y2*y3 + c23*x2*y2*y2*y3 + 2*c32*x2*y2*y2*y3 + c22*y2*y2*y2*y3;
-
-	mod(1,4) += c11*x1*x2*x2*x3 + c13*x2*x2*x3*y1 + 2*c31*x1*x2*x3*y2 + 2*c33*x2*x3*y1*y2 + c21*x1*x3*y2*y2 + c23*x3*y1*y2*y2 
-		+ c13*x1*x2*x2*y3 + c12*x2*x2*y1*y3 + 2*c33*x1*x2*y2*y3 + 2*c32*x2*y1*y2*y3 + c23*x1*y2*y2*y3 + c22*y1*y2*y2*y3;
-	
-	mod(1,5) += c11*x1*x2*x2*x2 + c13*x2*x2*x2*y1 + c13*x1*x2*x2*y2 + 2*c31*x1*x2*x2*y2 + c12*x2*x2*y1*y2 + 2*c33*x2*x2*y1*y2 
-		+ c21*x1*x2*y2*y2 + 2*c33*x1*x2*y2*y2 + c23*x2*y1*y2*y2 + 2*c32*x2*y1*y2*y2 + c23*x1*y2*y2*y2 + c22*y1*y2*y2*y2;
-
-
-	mod(2,0) += c11*x1*x1*x3*x3 + 2*c13*x1*x3*x3*y1 + c12*x3*x3*y1*y1 + 2*c31*x1*x1*x3*y3 + 4*c33*x1*x3*y1*y3 
-		+ 2*c32*x3*y1*y1*y3 + c21*x1*x1*y3*y3 + 2*c23*x1*y1*y3*y3 + c22*y1*y1*y3*y3;
-
-	mod(2,1) += c11*x2*x2*x3*x3 + 2*c13*x2*x3*x3*y2 + c12*x3*x3*y2*y2 + 2*c31*x2*x2*x3*y3 + 4*c33*x2*x3*y2*y3 
-		+ 2*c32*x3*y2*y2*y3 + c21*x2*x2*y3*y3 + 2*c23*x2*y2*y3*y3 + c22*y2*y2*y3*y3;
-
-	mod(2,3) += c11*x2*x3*x3*x3 + c13*x3*x3*x3*y2 + c13*x2*x3*x3*y3 + 2*c31*x2*x3*x3*y3 + c12*x3*x3*y2*y3 + 2*c33*x3*x3*y2*y3 
-		+ c21*x2*x3*y3*y3 + 2*c33*x2*x3*y3*y3 + c23*x3*y2*y3*y3 + 2*c32*x3*y2*y3*y3 + c23*x2*y3*y3*y3 + c22*y2*y3*y3*y3;
-
-	mod(2,4) += c11*x1*x3*x3*x3 + c13*x3*x3*x3*y1 + c13*x1*x3*x3*y3 + 2*c31*x1*x3*x3*y3 + c12*x3*x3*y1*y3 + 2*c33*x3*x3*y1*y3 
-		+ c21*x1*x3*y3*y3 + 2*c33*x1*x3*y3*y3 + c23*x3*y1*y3*y3 + 2*c32*x3*y1*y3*y3 + c23*x1*y3*y3*y3 + c22*y1*y3*y3*y3;
-
-	mod(2,5) += c11*x1*x2*x3*x3 + c13*x2*x3*x3*y1 + c13*x1*x3*x3*y2 + c12*x3*x3*y1*y2 + 2*c31*x1*x2*x3*y3 + 2*c33*x2*x3*y1*y3 
-		+ 2*c33*x1*x3*y2*y3 + 2*c32*x3*y1*y2*y3 + c21*x1*x2*y3*y3 + c23*x2*y1*y3*y3 + c23*x1*y2*y3*y3 + c22*y1*y2*y3*y3;
-
-
-	mod(3,0) += c11*x1*x1*x2*x3 + 2*c13*x1*x2*x3*y1 + c12*x2*x3*y1*y1 + c31*x1*x1*x3*y2 + 2*c33*x1*x3*y1*y2 + c32*x3*y1*y1*y2 
-		+ c31*x1*x1*x2*y3 + 2*c33*x1*x2*y1*y3 + c32*x2*y1*y1*y3 + c21*x1*x1*y2*y3 + 2*c23*x1*y1*y2*y3 + c22*y1*y1*y2*y3;
-
-	mod(3,1) += c11*x2*x2*x2*x3 + 2*c13*x2*x2*x3*y2 + c31*x2*x2*x3*y2 + c12*x2*x3*y2*y2 + 2*c33*x2*x3*y2*y2 + c32*x3*y2*y2*y2 
-		+ c31*x2*x2*x2*y3 + c21*x2*x2*y2*y3 + 2*c33*x2*x2*y2*y3 + 2*c23*x2*y2*y2*y3 + c32*x2*y2*y2*y3 + c22*y2*y2*y2*y3;
-
-	mod(3,2) += c11*x2*x3*x3*x3 + c31*x3*x3*x3*y2 + 2*c13*x2*x3*x3*y3 + c31*x2*x3*x3*y3 + c21*x3*x3*y2*y3 + 2*c33*x3*x3*y2*y3 
-		+ c12*x2*x3*y3*y3 + 2*c33*x2*x3*y3*y3 + 2*c23*x3*y2*y3*y3 + c32*x3*y2*y3*y3 + c32*x2*y3*y3*y3 + c22*y2*y3*y3*y3;
-
-	mod(3,4) += c11*x1*x2*x3*x3 + c13*x2*x3*x3*y1 + c31*x1*x3*x3*y2 + c33*x3*x3*y1*y2 + c13*x1*x2*x3*y3 + c31*x1*x2*x3*y3 
-		+ c12*x2*x3*y1*y3 + c33*x2*x3*y1*y3 + c21*x1*x3*y2*y3 + c33*x1*x3*y2*y3 + c23*x3*y1*y2*y3 + c32*x3*y1*y2*y3 + c33*x1*x2*y3*y3 
-		+ c32*x2*y1*y3*y3 + c23*x1*y2*y3*y3 + c22*y1*y2*y3*y3;
-
-	mod(3,5) += c11*x1*x2*x2*x3 + c13*x2*x2*x3*y1 + c13*x1*x2*x3*y2 + c31*x1*x2*x3*y2 + c12*x2*x3*y1*y2 + c33*x2*x3*y1*y2 
-		+ c33*x1*x3*y2*y2 + c32*x3*y1*y2*y2 + c31*x1*x2*x2*y3 + c33*x2*x2*y1*y3 + c21*x1*x2*y2*y3 + c33*x1*x2*y2*y3 
-		+ c23*x2*y1*y2*y3 + c32*x2*y1*y2*y3 + c23*x1*y2*y2*y3 + c22*y1*y2*y2*y3;
-
-
-	mod(4,0) += c11*x1*x1*x1*x3 + 2*c13*x1*x1*x3*y1 + c31*x1*x1*x3*y1 + c12*x1*x3*y1*y1 + 2*c33*x1*x3*y1*y1 
-		+ c32*x3*y1*y1*y1 + c31*x1*x1*x1*y3 + c21*x1*x1*y1*y3 + 2*c33*x1*x1*y1*y3 + 2*c23*x1*y1*y1*y3 + c32*x1*y1*y1*y3 
-		+ c22*y1*y1*y1*y3;
-
-	mod(4,1) += c11*x1*x2*x2*x3 + c31*x2*x2*x3*y1 + 2*c13*x1*x2*x3*y2 + 2*c33*x2*x3*y1*y2 + c12*x1*x3*y2*y2 + c32*x3*y1*y2*y2 
-		+ c31*x1*x2*x2*y3 + c21*x2*x2*y1*y3 + 2*c33*x1*x2*y2*y3 + 2*c23*x2*y1*y2*y3 + c32*x1*y2*y2*y3 + c22*y1*y2*y2*y3;
-
-	mod(4,2) += c11*x1*x3*x3*x3 + c31*x3*x3*x3*y1 + 2*c13*x1*x3*x3*y3 + c31*x1*x3*x3*y3 + c21*x3*x3*y1*y3 + 2*c33*x3*x3*y1*y3 
-		+ c12*x1*x3*y3*y3 + 2*c33*x1*x3*y3*y3 + 2*c23*x3*y1*y3*y3 + c32*x3*y1*y3*y3 + c32*x1*y3*y3*y3 + c22*y1*y3*y3*y3;
-
-	mod(4,3) += c11*x1*x2*x3*x3 + c31*x2*x3*x3*y1 + c13*x1*x3*x3*y2 + c33*x3*x3*y1*y2 + c13*x1*x2*x3*y3 + c31*x1*x2*x3*y3 
-		+ c21*x2*x3*y1*y3 + c33*x2*x3*y1*y3 + c12*x1*x3*y2*y3 + c33*x1*x3*y2*y3 + c23*x3*y1*y2*y3 + c32*x3*y1*y2*y3 + c33*x1*x2*y3*y3 
-		+ c23*x2*y1*y3*y3 + c32*x1*y2*y3*y3 + c22*y1*y2*y3*y3;
-
-	mod(4,5) += c11*x1*x1*x2*x3 + c13*x1*x2*x3*y1 + c31*x1*x2*x3*y1 + c33*x2*x3*y1*y1 + c13*x1*x1*x3*y2 + c12*x1*x3*y1*y2 
-		+ c33*x1*x3*y1*y2 + c32*x3*y1*y1*y2 + c31*x1*x1*x2*y3 + c21*x1*x2*y1*y3 + c33*x1*x2*y1*y3 + c23*x2*y1*y1*y3 
-		+ c33*x1*x1*y2*y3 + c23*x1*y1*y2*y3 + c32*x1*y1*y2*y3 + c22*y1*y1*y2*y3;
-	
-	mod(5,0) += c11*x1*x1*x1*x2 + 2*c13*x1*x1*x2*y1 + c31*x1*x1*x2*y1 + c12*x1*x2*y1*y1 + 2*c33*x1*x2*y1*y1 + c32*x2*y1*y1*y1 
-		+ c31*x1*x1*x1*y2 + c21*x1*x1*y1*y2 + 2*c33*x1*x1*y1*y2 + 2*c23*x1*y1*y1*y2 + c32*x1*y1*y1*y2 + c22*y1*y1*y1*y2;
-
-	mod(5,1) += c11*x1*x2*x2*x2 + c31*x2*x2*x2*y1 + 2*c13*x1*x2*x2*y2 + c31*x1*x2*x2*y2 + c21*x2*x2*y1*y2 + 2*c33*x2*x2*y1*y2 
-		+ c12*x1*x2*y2*y2 + 2*c33*x1*x2*y2*y2 + 2*c23*x2*y1*y2*y2 + c32*x2*y1*y2*y2 + c32*x1*y2*y2*y2 + c22*y1*y2*y2*y2;
-
-	mod(5,2) += c11*x1*x2*x3*x3 + c31*x2*x3*x3*y1 + c31*x1*x3*x3*y2 + c21*x3*x3*y1*y2 + 2*c13*x1*x2*x3*y3 + 2*c33*x2*x3*y1*y3 
-		+ 2*c33*x1*x3*y2*y3 + 2*c23*x3*y1*y2*y3 + c12*x1*x2*y3*y3 + c32*x2*y1*y3*y3 + c32*x1*y2*y3*y3 + c22*y1*y2*y3*y3;
-
-	mod(5,3) += c11*x1*x2*x2*x3 + c31*x2*x2*x3*y1 + c13*x1*x2*x3*y2 + c31*x1*x2*x3*y2 + c21*x2*x3*y1*y2 + c33*x2*x3*y1*y2 + c33*x1*x3*y2*y2 
-		+ c23*x3*y1*y2*y2 + c13*x1*x2*x2*y3 + c33*x2*x2*y1*y3 + c12*x1*x2*y2*y3 + c33*x1*x2*y2*y3 + c23*x2*y1*y2*y3 + c32*x2*y1*y2*y3 
-		+ c32*x1*y2*y2*y3 + c22*y1*y2*y2*y3;
-
-	mod(5,4) += c11*x1*x1*x2*x3 + c13*x1*x2*x3*y1 + c31*x1*x2*x3*y1 + c33*x2*x3*y1*y1 + c31*x1*x1*x3*y2 + c21*x1*x3*y1*y2 + c33*x1*x3*y1*y2 
-		+ c23*x3*y1*y1*y2 + c13*x1*x1*x2*y3 + c12*x1*x2*y1*y3 + c33*x1*x2*y1*y3 + c32*x2*y1*y1*y3 + c33*x1*x1*y2*y3 
-		+ c23*x1*y1*y2*y3 + c32*x1*y1*y2*y3 + c22*y1*y1*y2*y3;
-}
