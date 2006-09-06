@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.127 2006-08-30 18:37:33 tdnguye Exp $ */
+/* $Id: ElementListT.cpp,v 1.128 2006-09-06 15:45:12 tdnguye Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -67,7 +67,7 @@
 #ifdef SIMPLE_SOLID_DEV
 #include "TotalLagrangianFlatT.h"
 #endif
-#ifdef COHESIVE_SURFACE_ELEMENT
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
 #include "UpLagAdaptiveT.h"
 #endif
 #endif
@@ -579,7 +579,7 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new MeshfreeBridgingT(fSupport);
 #endif
 
-#ifdef COHESIVE_SURFACE_ELEMENT
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
 	else if (name == "updated_lagrangian_adaptive_insertion")
 		return new UpLagAdaptiveT(fSupport);
 #endif
