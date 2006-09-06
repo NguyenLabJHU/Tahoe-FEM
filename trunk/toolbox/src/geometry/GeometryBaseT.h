@@ -1,15 +1,15 @@
-/* $Id: GeometryBaseT.h,v 1.10 2006-08-30 17:17:49 tdnguye Exp $ */
+/* $Id: GeometryBaseT.h,v 1.11 2006-09-06 00:13:30 r-jones Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
 
 /* base class */
 #include "GeometryT.h"
+#include "dArray2DT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-class dArray2DT;
 template <class TYPE> class ArrayT;
 class iArrayT;
 class dArrayT;
