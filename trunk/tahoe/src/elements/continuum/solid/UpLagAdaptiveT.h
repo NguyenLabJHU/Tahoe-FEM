@@ -1,10 +1,12 @@
-/* $Id: UpLagAdaptiveT.h,v 1.7 2006-09-06 15:46:42 tdnguye Exp $ */
+/* $Id: UpLagAdaptiveT.h,v 1.8 2006-09-10 16:32:40 paklein Exp $ */
 #ifndef _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 #define _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 
 /* configuration */
 #include "ElementsConfig.h"
+#ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
+#endif
 
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 /* base class */
