@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alpha_macT.cpp,v 1.4 2006-07-02 03:21:28 regueiro Exp $
+// $Id: APS_kappa_alpha_macT.cpp,v 1.5 2006-09-11 16:58:46 regueiro Exp $
 #include "APS_kappa_alpha_macT.h"
 
 using namespace Tahoe;
@@ -44,6 +44,11 @@ void APS_kappa_alpha_macT::Initialize (int &in_ip, int &in_sd, int &in_en_displ,
 	B_gradgammap.Construct ( kNUM_B_gradgammap_TERMS, n_ip, n_sd, n_sd);  	
 
 	time_step = Initial_Time_Step;
+	
+	/* create output file for viewing local iteration */
+	outputPrecision = 10;
+	outputFileWidth = outputPrecision + 8;
+	aps_local_iter.open("aps.info");
 }
 
 //---------------------------------------------------------------------
@@ -119,7 +124,7 @@ void APS_kappa_alpha_macT::Form_C_List (APS_MaterialT *APS_Matl)
 	C[k1by3] 			= 1.0/3.0;
 	C[k1byRoot3] 		= 1.0/sqrt(3.0);
 	C[kRoot3by3]		= sqrt( 3.0 )/3.0; 
-	C[ksmall]			= 1.0e-8; 
+	C[ksmall]			= 1.0e-10; 
 }
 
 
@@ -276,50 +281,62 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	
 	/* iterate to solve for del_gamma1 */
 	S[kS_Temp11].Abs( S[kS_Temp10] );
+	
+	// output initial residual
+	aps_local_iter	<< endl << "**********************************************************************************************";
+	aps_local_iter	<< endl 
+					<< setw(outputFileWidth) << S[kS_Temp11]
+					<< endl;
+					
 	while (S[kS_Temp11] > C[ksmall]) {
 
-	//calculate jacobian of Newton-Raphson iteration
-	S[kS_Temp12] *= S[kS_Temp13];
-	S[kS_Temp12] *= C[km_rate];
-	S[kS_Temp12] *= S[kmag_m1];
-	S[kS_Temp12] *= S[ksign_del_gamma1];
-	S[kS_Temp12] /= S[kS_Temp9];
-	S[kS_Temp14] = 1.0;
-	S[kS_Temp14] += S[kS_Temp12];
-	
-	// calculate deldel_gamma1
-	S[kdeldel_gamma1] = S[kS_Temp10];
-	S[kdeldel_gamma1] *= -1.0;
-	S[kdeldel_gamma1] /= S[kS_Temp14];
-	
-	// update del_gamma1
-	S[kdel_gamma1] += S[kdeldel_gamma1];
-	
-	// calculate sign of del_gamma1
-	S[ksign_del_gamma1] = S[kdel_gamma1];
-	S[kS_Temp10].Abs( S[kdel_gamma1] );
-	if ( S[kS_Temp10] > C[ksmall]) S[ksign_del_gamma1] /= S[kS_Temp10];
-	
-	// update kappa1
-	S[kIV_kappa1] = S[kIV_kappa1_n];
-	S[kS_Temp12] = S[kS_Temp13];
-	S[kS_Temp12] *= S[kmag_m1];
-	S[kS_Temp5].Abs( S[kdel_gamma1] );
-	S[kS_Temp12] *= S[kS_Temp5];
-	S[kIV_kappa1] += S[kS_Temp12];
-	
-	// update residual
-	S[kS_Temp10] = S[kdel_gamma1];
-	S[kS_Temp9] = C[kkappa0_1];
-	S[kS_Temp9] += S[kIV_kappa1];
-	S[kS_Temp1] = S[kxi_1];
-	S[kS_Temp1] /= S[kS_Temp9];
-	S[kS_Temp12].Pow(S[kS_Temp1],C[km_rate]);
-	S[kS_Temp12] *= C[kgamma0_dot_1];
-	S[kS_Temp12] *= delta_t;
-	S[kS_Temp10] -= S[kS_Temp12];
-	S[kS_Temp11].Abs( S[kS_Temp10] );
-	
+		//calculate jacobian of Newton-Raphson iteration
+		S[kS_Temp12] *= S[kS_Temp13];
+		S[kS_Temp12] *= C[km_rate];
+		S[kS_Temp12] *= S[kmag_m1];
+		S[kS_Temp12] *= S[ksign_del_gamma1];
+		S[kS_Temp12] /= S[kS_Temp9];
+		S[kS_Temp14] = 1.0;
+		S[kS_Temp14] += S[kS_Temp12];
+		
+		// calculate deldel_gamma1
+		S[kdeldel_gamma1] = S[kS_Temp10];
+		S[kdeldel_gamma1] *= -1.0;
+		S[kdeldel_gamma1] /= S[kS_Temp14];
+		
+		// update del_gamma1
+		S[kdel_gamma1] += S[kdeldel_gamma1];
+		
+		// calculate sign of del_gamma1
+		S[ksign_del_gamma1] = S[kdel_gamma1];
+		S[kS_Temp10].Abs( S[kdel_gamma1] );
+		if ( S[kS_Temp10] > C[ksmall]) S[ksign_del_gamma1] /= S[kS_Temp10];
+		
+		// update kappa1
+		S[kIV_kappa1] = S[kIV_kappa1_n];
+		S[kS_Temp12] = S[kS_Temp13];
+		S[kS_Temp12] *= S[kmag_m1];
+		S[kS_Temp5].Abs( S[kdel_gamma1] );
+		S[kS_Temp12] *= S[kS_Temp5];
+		S[kIV_kappa1] += S[kS_Temp12];
+		
+		// update residual
+		S[kS_Temp10] = S[kdel_gamma1];
+		S[kS_Temp9] = C[kkappa0_1];
+		S[kS_Temp9] += S[kIV_kappa1];
+		S[kS_Temp1] = S[kxi_1];
+		S[kS_Temp1] /= S[kS_Temp9];
+		S[kS_Temp12].Pow(S[kS_Temp1],C[km_rate]);
+		S[kS_Temp12] *= C[kgamma0_dot_1];
+		S[kS_Temp12] *= delta_t;
+		S[kS_Temp10] -= S[kS_Temp12];
+		S[kS_Temp11].Abs( S[kS_Temp10] );
+		
+		// output iteration residuals
+		aps_local_iter	<< endl 
+						<< setw(outputFileWidth) << S[kS_Temp11]
+						<< endl;
+		
 	}
 	/* end iteration */
 	

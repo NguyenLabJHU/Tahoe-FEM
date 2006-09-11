@@ -1,8 +1,10 @@
-// $Id: APS_kappa_alpha_macT.h,v 1.2 2006-06-30 18:09:25 regueiro Exp $
+// $Id: APS_kappa_alpha_macT.h,v 1.3 2006-09-11 16:58:46 regueiro Exp $
 #ifndef _APS_KAPPA_ALPHA_MAC_T_H_ 
 #define _APS_KAPPA_ALPHA_MAC_T_H_ 
 
 #include "PlastT.h"
+
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -219,6 +221,14 @@ class APS_kappa_alpha_macT : public PlastT
 		int time_step, n_state, n_str;
 
 		double delta_t;
+		
+	private:
+	
+		/** output file stream */
+		ofstreamT aps_local_iter;
+		
+		/** line output formating variables */
+		int outputPrecision, outputFileWidth;	
 };
 
 } // namespace Tahoe 
