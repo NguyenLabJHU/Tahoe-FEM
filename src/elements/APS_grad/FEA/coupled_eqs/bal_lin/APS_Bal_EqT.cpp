@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.26 2005-05-03 15:54:43 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.27 2006-09-16 15:39:23 regueiro Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -62,9 +62,11 @@ void APS_Bal_EqT::Construct ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Sh
 
 void APS_Bal_EqT::Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd )  
 {
-		Keps 	= Integral.of( B_d[kB], C[kMu], B_eps[kBgamma] );  
+		//Keps 	= Integral.of( B_d[kB], C[kMu], B_eps[kBgamma] ); 
+		Keps 	= Integral.of( B_d[kB], C[kOne], B_eps[kBgamma] );  
 		Keps 	*= -1.0;
-	 	Kd  	= Integral.of( B_d[kB], C[kMu], B_d[kB] );  	
+	 	//Kd  	= Integral.of( B_d[kB], C[kMu], B_d[kB] );  
+	 	Kd  	= Integral.of( B_d[kB], C[kOne], B_d[kB] );  	
 }
 
 //---------------------------------------------------------------------
@@ -75,8 +77,12 @@ void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, APS_VariableT &npt )
 		V[kV_Temp2](0)=B_gradu[kgrad_u](0,0);
 		V[kV_Temp2](1)=B_gradu[kgrad_u](0,1);
 		V[kgammap] = npt.Get ( APS::kgammap );
+		/*
 		F_int = Integral.of( B_d[kB], C[kMu], V[kV_Temp2] ); 
 		F_int -= Integral.of( B_d[kB], C[kMu], V[kgammap] );
+		*/
+		F_int = Integral.of( B_d[kB], C[kOne], V[kV_Temp2] ); 
+		F_int -= Integral.of( B_d[kB], C[kOne], V[kgammap] );
 }
 
 
@@ -96,7 +102,8 @@ void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd_face, FEA_SurfShapeFunctionT &
 
  		V_surf[knueps].Dot( B_d_surf[kB_surf], VB_d[knuB] ); 
  		
-		Kd_face	= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
+		//Kd_face	= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
+		Kd_face	= SurfIntegral.of( VB_d[kN], C[kOne], VB_d[knuB] );
 		Kd_face	*= -1.0;
 }
 
@@ -120,9 +127,11 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int_face, APS_VariableT &npt,
 		V_surf[knueps].Dot( V_surf[kV_surf_Temp2], S[knuepsgradu] );
 		V_surf[knueps].Dot( V_surf[keps], S[knuepseps] );
 		
-		F_int_face = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] );
+		//F_int_face = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] );
+		F_int_face = SurfIntegral.of( VB_d[kN], C[kOne], S[knuepsgradu] );
 		F_int_face *= -1.0;
-		F_int_face += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
+		//F_int_face += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
+		F_int_face += SurfIntegral.of( VB_d[kN], C[kOne], S[knuepseps] );
 }
 
 
@@ -170,6 +179,7 @@ void APS_Bal_EqT::Form_C_List (APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Mat
 		C[km1_y]  = APS_Matl -> Retrieve ( APS_MatlT::km1_y	);
 		C[km2_x]  = APS_Matl -> Retrieve ( APS_MatlT::km2_x	);
 		C[km2_y]  = APS_Matl -> Retrieve ( APS_MatlT::km2_y	);
+		C[kOne] = 1.0;
 }
 
 

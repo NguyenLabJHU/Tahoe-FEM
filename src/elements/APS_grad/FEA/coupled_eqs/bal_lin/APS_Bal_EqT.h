@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.20 2005-05-03 15:54:43 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.21 2006-09-16 15:39:23 regueiro Exp $
 #ifndef _APS_BAL_EQ_T_H_ 
 #define _APS_BAL_EQ_T_H_ 
 
@@ -81,6 +81,7 @@ class APS_Bal_EqT	: public BalLinMomT
 								km1_y,
 								km2_x,
 								km2_y,
+								kOne,
 								kNUM_C_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
 		//--------------------------------------------------------------
