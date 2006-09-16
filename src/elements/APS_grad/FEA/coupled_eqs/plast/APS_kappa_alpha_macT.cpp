@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alpha_macT.cpp,v 1.5 2006-09-11 16:58:46 regueiro Exp $
+// $Id: APS_kappa_alpha_macT.cpp,v 1.6 2006-09-16 13:30:19 regueiro Exp $
 #include "APS_kappa_alpha_macT.h"
 
 using namespace Tahoe;
@@ -48,7 +48,7 @@ void APS_kappa_alpha_macT::Initialize (int &in_ip, int &in_sd, int &in_en_displ,
 	/* create output file for viewing local iteration */
 	outputPrecision = 10;
 	outputFileWidth = outputPrecision + 8;
-	aps_local_iter.open("aps.info");
+	//aps_local_iter.open("aps.info");
 }
 
 //---------------------------------------------------------------------
@@ -283,10 +283,12 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp11].Abs( S[kS_Temp10] );
 	
 	// output initial residual
+	/*
 	aps_local_iter	<< endl << "**********************************************************************************************";
 	aps_local_iter	<< endl 
 					<< setw(outputFileWidth) << S[kS_Temp11]
 					<< endl;
+					*/
 					
 	while (S[kS_Temp11] > C[ksmall]) {
 
@@ -333,9 +335,11 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 		S[kS_Temp11].Abs( S[kS_Temp10] );
 		
 		// output iteration residuals
+		/*
 		aps_local_iter	<< endl 
 						<< setw(outputFileWidth) << S[kS_Temp11]
 						<< endl;
+						*/
 		
 	}
 	/* end iteration */
