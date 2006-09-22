@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.128 2006-09-06 15:45:12 tdnguye Exp $ */
+/* $Id: ElementListT.cpp,v 1.129 2006-09-22 23:29:04 regueiro Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -174,6 +174,10 @@
 
 #ifdef FIBER_COMP_DEV
 #include "UpLagFiberCompT.h"
+#endif
+
+#ifdef SOLID_FLUID_MIX_DEV
+#include "FSSolidFluidMixTT.h"
 #endif
 
 using namespace Tahoe;
@@ -674,6 +678,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef FIBER_COMP_DEV
 	else if (name == "uplag_fiber_comp_planar")
 	  return new UpLagFiberCompT(fSupport);
+#endif
+
+#ifdef SOLID_FLUID_MIX_DEV
+	else if (name == "total_lagrange_solid_fluid_mix")
+	  return new FSSolidFluidMixT(fSupport);
 #endif
 
 	/* default */	
