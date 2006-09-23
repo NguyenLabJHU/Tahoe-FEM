@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.130 2006-09-23 12:46:26 regueiro Exp $ */
+/* $Id: ElementListT.cpp,v 1.131 2006-09-23 14:50:15 regueiro Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -413,6 +413,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("uplag_fiber_comp_planar");
 #endif
 
+#ifdef SOLID_FLUID_MIX_DEV
+		sub_lists.AddSub("total_lagrangian_solid_fluid_mix");
+#endif
+
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
@@ -681,7 +685,7 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #endif
 
 #ifdef SOLID_FLUID_MIX_DEV
-	else if (name == "total_lagrange_solid_fluid_mix")
+	else if (name == "total_lagrangian_solid_fluid_mix")
 	  return new FSSolidFluidMixT(fSupport);
 #endif
 
