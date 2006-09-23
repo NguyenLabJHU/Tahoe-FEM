@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.cpp,v 1.1 2006-09-22 23:08:45 regueiro Exp $ */
+/* $Id: FSSolidFluidMixT.cpp,v 1.2 2006-09-23 12:55:45 regueiro Exp $ */
 #include "FSSolidFluidMixT.h"
 
 #include "OutputSetT.h"
@@ -323,6 +323,7 @@ void FSSolidFluidMixT::AddNodalForce(const FieldT& field, int node, dArrayT& for
 			while (fShapes_displ->NextIP())
 			{
 				//nothing right now
+				fFd_int=0.0;
 			}
 		}
 		else /* pressure nodal force */
@@ -335,6 +336,7 @@ void FSSolidFluidMixT::AddNodalForce(const FieldT& field, int node, dArrayT& for
 			while (fShapes_displ->NextIP())
 			{
 				//nothing right now
+				fFtheta_int=0.0;
 			}
 		}
 
@@ -629,12 +631,18 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			while (fShapes_displ->NextIP())
 			{
 				//nothing right now for fKdtheta, fKdd, fFd_int
+				fKdd=0.0;
+				fKdtheta=0.0;
+				fFd_int=0.0;
 			}
 			
 			fShapes_displ->TopIP();
 			while (fShapes_displ->NextIP())
 			{
 				//nothing right now for fKthetatheta, fKthetad, fFtheta_int
+				fKthetad=0.0;
+				fKthetatheta=0.0;
+				fFtheta_int=0.0;
 			}
 
 			/* equations numbers */
