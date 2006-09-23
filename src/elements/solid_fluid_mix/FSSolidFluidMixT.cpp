@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.cpp,v 1.2 2006-09-23 12:55:45 regueiro Exp $ */
+/* $Id: FSSolidFluidMixT.cpp,v 1.3 2006-09-23 17:23:58 regueiro Exp $ */
 #include "FSSolidFluidMixT.h"
 
 #include "OutputSetT.h"
@@ -30,7 +30,7 @@ FSSolidFluidMixT::FSSolidFluidMixT(const ElementSupportT& support):
 	fKthetatheta(ElementMatrixT::kNonSymmetric),
 	bStep_Complete(0)
 {
-	SetName("total_lagrange_solid_fluid_mix");
+	SetName("total_lagrangian_solid_fluid_mix");
 }
 
 /* destructor */
@@ -298,27 +298,28 @@ void FSSolidFluidMixT::AddNodalForce(const FieldT& field, int node, dArrayT& for
 		del_u.DiffOf (u, u_n);
 		del_press.DiffOf (press, press_n);
 
-	 	// update coordinates and calculate derivatives
-	 	// Davoud: make sure derivatives are calculated with respect to the initial, reference coordinates
+	 	// calculate derivatives based on reference coordinates
 		fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
-		fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
+		//fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
+		fCurrCoords_displ=fInitCoords_displ;
 		fShapes_displ->SetDerivatives(); 
 		//
 		fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
-		fCurrCoords_press.SetToCombination (1.0, fInitCoords_press, 1.0, u); 
+		fCurrCoords_press=fInitCoords_press;
+		//fCurrCoords_press.SetToCombination (1.0, fInitCoords_press, 1.0, u); 
 		fShapes_press->SetDerivatives(); 
 		
 		//update state variables
 		fdstatenew_all.Alias(fNumIP_press, knum_d_state, fdState_new(CurrElementNumber()));
 		fdstate_all.Alias(fNumIP_press, knum_d_state, fdState(CurrElementNumber()));
 
+		const double* Det    = fShapes_displ->IPDets();
+		const double* Weight = fShapes_displ->IPWeights();
 		/* calculate displacement nodal force */
 		if (is_displ)
 		{
 			/* residual for displacement field */
 			//generate this vector fFd_int 
-			const double* Det    = fShapes_displ->IPDets();
-			const double* Weight = fShapes_displ->IPWeights();
 			fShapes_displ->TopIP();
 			while (fShapes_displ->NextIP())
 			{
@@ -330,8 +331,6 @@ void FSSolidFluidMixT::AddNodalForce(const FieldT& field, int node, dArrayT& for
 		{
 			/* residual for pore pressure field */ 
 			// generate this vector fFtheta_int
-			const double* Det    = fShapes_displ->IPDets();
-			const double* Weight = fShapes_displ->IPWeights();
 			fShapes_displ->TopIP();
 			while (fShapes_displ->NextIP())
 			{
@@ -597,14 +596,15 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		del_u.DiffOf (u, u_n);
 		del_press.DiffOf (press, press_n);
 		
-		// update coordinates and calculate derivatives
-	 	// Davoud: make sure derivatives are calculated with respect to the initial, reference coordinates
+		// calculate derivatives based on reference coordinates
 		fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
-		fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
+		fCurrCoords_displ=fInitCoords_displ;
+		//fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
 		fShapes_displ->SetDerivatives(); 
 		//
 		fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
-		fCurrCoords_press.SetToCombination (1.0, fInitCoords_press, 1.0, u); 
+		fCurrCoords_press=fInitCoords_press;
+		//fCurrCoords_press.SetToCombination (1.0, fInitCoords_press, 1.0, u); 
 		fShapes_press->SetDerivatives(); 
 		
 		//update state variables
@@ -956,10 +956,10 @@ void FSSolidFluidMixT::DefineSubs(SubListT& sub_list) const
 	ElementBaseT::DefineSubs(sub_list);
 
 	/* element blocks */
-	sub_list.AddSub("total_lagrange_solid_fluid_mix_element_block");
+	sub_list.AddSub("total_lagrangian_solid_fluid_mix_element_block");
 	
 	/* tractions */
-	sub_list.AddSub("total_lagrange_solid_fluid_mix_natural_bc", ParameterListT::Any);
+	sub_list.AddSub("total_lagrangian_solid_fluid_mix_natural_bc", ParameterListT::Any);
 }
 
 
@@ -979,7 +979,7 @@ ParameterInterfaceT* FSSolidFluidMixT::NewSub(const StringT& name) const
 	/* create non-const this */
 	FSSolidFluidMixT* non_const_this = const_cast<FSSolidFluidMixT*>(this);
 
-	if (name == "total_lagrange_solid_fluid_mix_natural_bc") /* traction bc */
+	if (name == "total_lagrangian_solid_fluid_mix_natural_bc") /* traction bc */
 	{
 		ParameterContainerT* natural_bc = new ParameterContainerT(name);
 
@@ -996,7 +996,7 @@ ParameterInterfaceT* FSSolidFluidMixT::NewSub(const StringT& name) const
 		
 		return natural_bc;
 	}
-	else if (name == "total_lagrange_solid_fluid_mix_element_block")
+	else if (name == "total_lagrangian_solid_fluid_mix_element_block")
 	{
 		ParameterContainerT* element_block = new ParameterContainerT(name);
 		element_block->AddSub("block_ID_list");
