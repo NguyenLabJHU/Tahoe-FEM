@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.129 2006-09-22 23:29:04 regueiro Exp $ */
+/* $Id: ElementListT.cpp,v 1.130 2006-09-23 12:46:26 regueiro Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -177,7 +177,7 @@
 #endif
 
 #ifdef SOLID_FLUID_MIX_DEV
-#include "FSSolidFluidMixTT.h"
+#include "FSSolidFluidMixT.h"
 #endif
 
 using namespace Tahoe;
