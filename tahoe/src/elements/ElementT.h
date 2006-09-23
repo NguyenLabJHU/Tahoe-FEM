@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.51 2006-07-25 16:29:47 d-farrell2 Exp $ */
+/* $Id: ElementT.h,v 1.52 2006-09-23 14:04:59 regueiro Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -69,7 +69,7 @@ kPenaltyContactElement3D = 34,
 			   kAPSVgrad = 80, /* anti-plane shear gradient plasticity, vector element */
 		  kMeshfreeGradP = 85, /* meshfree gradient plasticity */
 		kSS_EnhStrainLoc = 90, /* small strain enhanced strain embedded discontinuity element */
-		kSS_EnhStrainLocCraig = 91, /* small strain enhanced strain embedded discontinuity element */
+	kSS_EnhStrainLocCraig = 91, /* small strain enhanced strain embedded discontinuity element */
             kElasticAxi = 102, /**< small strain axisymmetric solid */
        kHyperElasticAxi = 103, /**<  updated Lagrangian, large strain axisymmetric solid */
  kTotLagHyperElasticAxi = 104, /**<  total Lagrangian, large strain axisymmetric solid */
@@ -82,7 +82,8 @@ kTotLagSplitIntegration = 117,
            kSimoQ1P0Inv = 136, /**< Q1P0, finite strain, mixed element with inverse dilation */
         kSimoQ1P0InvAxi = 137, /**< axisymmetric Q1P0, finite strain, mixed element with inverse dilation */
             kTotLagFlat = 217,  /**< simplified total Lagragian solid */
-            	kTersoff = 138	/**< Particles with Tersoff Potential */
+            	kTersoff = 138,	/**< Particles with Tersoff Potential */
+        kFSSolidFluidMix = 139	/**< 3D dynamic Total Lagrangian solid fluid mixture element */
 	};
 
 	/** convert integer to ElementT::TypeT */

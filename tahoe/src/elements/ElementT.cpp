@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.50 2006-07-25 16:29:47 d-farrell2 Exp $ */
+/* $Id: ElementT.cpp,v 1.51 2006-09-23 14:04:59 regueiro Exp $ */
 #include "ElementT.h"
 #include "ExceptionT.h"
 
@@ -202,6 +202,9 @@ ElementT::TypeT ElementT::int2TypeT(int i)
 		    
 		case ElementT::kTersoff:
 		    return ElementT::kTersoff;
+		    
+		case ElementT::kFSSolidFluidMix:
+		    return ElementT::kFSSolidFluidMix;
 
 		default:
 			ExceptionT::BadInputValue("ElementT::int2TypeT", "unknown type: %d", i);
