@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.26 2006-08-30 17:25:39 tdnguye Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.27 2006-10-04 16:46:02 regueiro Exp $ */
 /* created: paklein (06/20/1999) */
 #ifndef _SURFACE_POTENTIAL_T_H_
 #define _SURFACE_POTENTIAL_T_H_
@@ -43,6 +43,7 @@ public:
            kInelasticDuctile = 9, /**< rate-based ductile fracture model */
            				kMR = 10, /**< Elastoplastic Cohesive Model for Geomaterials*/
            			 kMR_RP = 11, /**< Rigid-plastic Cohesive Model for Geomaterials*/ 
+           		kMR_NodalRP = 12, /**< Nodal, Rigid-plastic Cohesive Model for Geomaterials*/ 
   kTvergaardHutchinsonRigid = 101, /**< tri-linear potential */
        kInelasticDuctile_RP = 109 /**< rate-based ductile fracture model */
   };
