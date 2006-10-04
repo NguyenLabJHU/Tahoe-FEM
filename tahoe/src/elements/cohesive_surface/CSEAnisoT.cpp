@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.76 2006-08-30 17:29:24 tdnguye Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.77 2006-10-04 16:42:57 regueiro Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -45,11 +45,13 @@
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 #include "InelasticDuctile2DT.h"
 #include "InelasticDuctile_RP2DT.h"
+#include "MR2DT.h"
+#include "MR_RP2DT.h"
+#include "MR_NodalRP2DT.h"
 #endif
 
 #ifdef COLORADO_COHESIVE_SURFACE_ELEMENT_DEV	
-#include "MR2DT.h"
-#include "MR_RP2DT.h"
+
 #endif	
 
 #include "TvergHutch3DT.h"
