@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.19 2006-04-05 17:25:58 raregue Exp $*/
+/*$Id: MR2DT.cpp,v 1.20 2006-10-05 17:57:54 regueiro Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -8,20 +8,26 @@
 
 #include "ExceptionT.h"
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "nMatrixT.h"
-
-/* class parameters */
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
+/* class parameters */
 const int knumDOF = 2;
 
 /* constructor */
-MR2DT::MR2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
+MR2DT::MR2DT(void): SurfacePotentialT(knumDOF)
 {
-	/* Elastic and Fracrure Energy parameters */
+	const char caller[] = "MR2DT::MR2DT";
+	
+	SetName("elastoplastic_MR_2D");
+	
+#if 0
+	/* Elastic and Fracture Energy parameters */
 	in >> fE_n; if (fE_n < 0) throw ExceptionT::kBadInputValue;
 	in >> fE_t; if (fE_t < 0) throw ExceptionT::kBadInputValue;
 	in >> fGf_I; if (fGf_I < 0) throw ExceptionT::kBadInputValue;
@@ -48,10 +54,133 @@ MR2DT::MR2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
 	fphi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
 	fpsi = tan(fpsi_p)*exp(-falpha_psi*esp);*/
+#endif	
 }
 
 /* return the number of state variables needed by the model */
 int MR2DT::NumStateVariables(void) const { return 8*knumDOF +1; }
+
+/* describe the parameters needed by the interface */
+void MR2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
+
+	/* model parameters */
+	ParameterT E_n(fE_n, "E_n");
+	E_n.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(E_n);
+	
+	ParameterT E_t(fE_t, "E_t");
+	E_t.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(E_t);
+	
+	ParameterT Gf_I(fGf_I, "Gf_I");
+	Gf_I.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Gf_I);
+	
+	ParameterT Gf_II(fGf_II, "Gf_II");
+	Gf_II.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Gf_II);
+	
+	ParameterT chi_p(fchi_p, "chi_p");
+	chi_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(chi_p);
+	
+	ParameterT chi_r(fchi_r, "chi_r");
+	chi_r.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(chi_r);
+	
+	ParameterT c_p(fc_p, "c_p");
+	c_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(c_p);
+	
+	ParameterT c_r(fc_r, "c_r");
+	c_r.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(c_r);
+	
+	ParameterT phi_p(fphi_p, "phi_p");
+	phi_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(phi_p);
+	
+	ParameterT phi_r(fphi_r, "phi_r");
+	phi_r.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(phi_r);
+	
+	ParameterT psi_p(fpsi_p, "psi_p");
+	psi_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(psi_p);
+
+	ParameterT alpha_chi(falpha_chi, "alpha_chi");
+	alpha_chi.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_chi);
+	
+	ParameterT alpha_c(falpha_c, "alpha_c");
+	alpha_c.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_c);
+	
+	ParameterT alpha_phi(falpha_phi, "alpha_phi");
+	alpha_phi.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_phi);
+	
+	ParameterT alpha_psi(falpha_psi, "alpha_psi");
+	alpha_psi.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_psi);
+	
+	ParameterT Tol_1(fTol_1, "Tol_1");
+	Tol_1.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Tol_1);
+	
+	ParameterT Tol_2(fTol_2, "Tol_2");
+	Tol_2.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Tol_2);
+}
+
+/* information about subordinate parameter lists */
+void MR2DT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineSubs(sub_list);
+
+	/* bulk group information for TiedPotentialBaseT */
+	sub_list.AddSub("bulk_element_groups");
+}
+
+/* a pointer to the ParameterInterfaceT */
+ParameterInterfaceT* MR2DT::NewSub(const StringT& name) const
+{
+	if (name == "bulk_element_groups")
+		return new IntegerListT(name);
+	else /* inherited */
+		return SurfacePotentialT::NewSub(name);
+}
+
+/* accept parameter list */
+void MR2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+	
+	/* extract parameters */
+	fE_t = list.GetParameter("E_t");
+	fE_n = list.GetParameter("E_n");
+	fGf_I = list.GetParameter("Gf_I");
+	fGf_II = list.GetParameter("Gf_II");
+	fchi_p = list.GetParameter("chi_p");
+	fchi_r = list.GetParameter("chi_r");
+	fc_p = list.GetParameter("c_p");
+	fc_r = list.GetParameter("c_r");
+	fphi_p = list.GetParameter("phi_p");
+	fphi_r = list.GetParameter("phi_r");
+	fpsi_p = list.GetParameter("psi_p");
+	falpha_chi = list.GetParameter("alpha_chi");
+	falpha_c = list.GetParameter("alpha_c");
+	falpha_phi = list.GetParameter("alpha_phi");
+	falpha_psi = list.GetParameter("alpha_psi");
+	fTol_1 = list.GetParameter("Tol_1");
+	fTol_2 = list.GetParameter("Tol_2");
+}
+
 
 /* initialize the state variable array */
 void MR2DT::InitStateVariables(ArrayT<double>& state)

@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.h,v 1.14 2006-04-05 17:25:58 raregue Exp $*/
+/*$Id: MR_RP2DT.h,v 1.15 2006-10-05 17:57:54 regueiro Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #ifndef _MR_RP_2D_T_H_
@@ -12,6 +12,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
+class ofstreamT;
 
 /** An elastoplastic Traction-Displacement Model for Geometrials.*/
 
@@ -20,7 +21,7 @@ class MR_RP2DT: public SurfacePotentialT, public TiedPotentialBaseT
 public:
 
 	/** constructor */
-	MR_RP2DT(ifstreamT& in);
+	MR_RP2DT(void);
 
 	/** return the number of state variables needed by the model.
 	 * Need to store the opening displacement from the previous
@@ -85,6 +86,21 @@ public:
 
 	/** location in state variable array of the state flag */
 	virtual int TiedStatusPosition(void) const;
+	/*@}*/
+	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 protected:

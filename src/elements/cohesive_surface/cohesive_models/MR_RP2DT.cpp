@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.27 2006-04-05 17:25:58 raregue Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.28 2006-10-05 17:57:54 regueiro Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -8,21 +8,27 @@
 
 #include "ExceptionT.h"
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "nMatrixT.h"
-
-/* class parameters */
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
+/* class parameters */
 const int knumDOF = 2;
 const int nTiedFlag = 8*knumDOF+1;
 
 /* constructor */
-MR_RP2DT::MR_RP2DT(ifstreamT& in): SurfacePotentialT(knumDOF),
+MR_RP2DT::MR_RP2DT(void): SurfacePotentialT(knumDOF),
 	TiedPotentialBaseT()
 {
+	const char caller[] = "MR_RP2DT::MR_RP2DT";
+	
+	SetName("rigid-plastic_MR_RP2D");
+
+#if 0	
 	/* Elastic and Fracrure Energy parameters */
 	in >> fGf_I; if (fGf_I < 0) throw ExceptionT::kBadInputValue;
 	in >> fGf_II; if (fGf_II < 0) throw ExceptionT::kBadInputValue;
@@ -41,6 +47,7 @@ MR_RP2DT::MR_RP2DT(ifstreamT& in): SurfacePotentialT(knumDOF),
 	in >> falpha_psi; if (falpha_psi < 0) throw ExceptionT::kBadInputValue;
 	in >> fTol_1; if (fTol_1 < 0) throw ExceptionT::kBadInputValue;
 	in >> fTol_2; if (fTol_2 < 0) throw ExceptionT::kBadInputValue;
+#endif	
 	
 	iBulkGroups.Dimension(1);
 	iBulkGroups = 0;
@@ -48,6 +55,118 @@ MR_RP2DT::MR_RP2DT(ifstreamT& in): SurfacePotentialT(knumDOF),
 
 /* return the number of state variables needed by the model */
 int MR_RP2DT::NumStateVariables(void) const { return 8*knumDOF +2; }
+
+/* describe the parameters needed by the interface */
+void MR_RP2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
+
+	/* model parameters */
+	ParameterT Gf_I(fGf_I, "Gf_I");
+	Gf_I.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Gf_I);
+	
+	ParameterT Gf_II(fGf_II, "Gf_II");
+	Gf_II.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Gf_II);
+	
+	ParameterT chi_p(fchi_p, "chi_p");
+	chi_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(chi_p);
+	
+	ParameterT chi_r(fchi_r, "chi_r");
+	chi_r.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(chi_r);
+	
+	ParameterT c_p(fc_p, "c_p");
+	c_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(c_p);
+	
+	ParameterT c_r(fc_r, "c_r");
+	c_r.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(c_r);
+	
+	ParameterT phi_p(fphi_p, "phi_p");
+	phi_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(phi_p);
+	
+	ParameterT phi_r(fphi_r, "phi_r");
+	phi_r.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(phi_r);
+	
+	ParameterT psi_p(fpsi_p, "psi_p");
+	psi_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(psi_p);
+
+	ParameterT alpha_chi(falpha_chi, "alpha_chi");
+	alpha_chi.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_chi);
+	
+	ParameterT alpha_c(falpha_c, "alpha_c");
+	alpha_c.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_c);
+	
+	ParameterT alpha_phi(falpha_phi, "alpha_phi");
+	alpha_phi.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_phi);
+	
+	ParameterT alpha_psi(falpha_psi, "alpha_psi");
+	alpha_psi.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_psi);
+	
+	ParameterT Tol_1(fTol_1, "Tol_1");
+	Tol_1.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Tol_1);
+	
+	ParameterT Tol_2(fTol_2, "Tol_2");
+	Tol_2.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Tol_2);
+}
+
+/* information about subordinate parameter lists */
+void MR_RP2DT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineSubs(sub_list);
+
+	/* bulk group information for TiedPotentialBaseT */
+	sub_list.AddSub("bulk_element_groups");
+}
+
+/* a pointer to the ParameterInterfaceT */
+ParameterInterfaceT* MR_RP2DT::NewSub(const StringT& name) const
+{
+	if (name == "bulk_element_groups")
+		return new IntegerListT(name);
+	else /* inherited */
+		return SurfacePotentialT::NewSub(name);
+}
+
+/* accept parameter list */
+void MR_RP2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+	
+	/* extract parameters */
+	fGf_I = list.GetParameter("Gf_I");
+	fGf_II = list.GetParameter("Gf_II");
+	fchi_p = list.GetParameter("chi_p");
+	fchi_r = list.GetParameter("chi_r");
+	fc_p = list.GetParameter("c_p");
+	fc_r = list.GetParameter("c_r");
+	fphi_p = list.GetParameter("phi_p");
+	fphi_r = list.GetParameter("phi_r");
+	fpsi_p = list.GetParameter("psi_p");
+	falpha_chi = list.GetParameter("alpha_chi");
+	falpha_c = list.GetParameter("alpha_c");
+	falpha_phi = list.GetParameter("alpha_phi");
+	falpha_psi = list.GetParameter("alpha_psi");
+	fTol_1 = list.GetParameter("Tol_1");
+	fTol_2 = list.GetParameter("Tol_2");
+}
+
 
 /* location in state variable array of the state flag */
 int MR_RP2DT::TiedStatusPosition(void) const { return nTiedFlag; }
@@ -254,7 +373,7 @@ else
 	    Yield_f(Sig, qn, ff);
 	    while (ff > fTol_1 | normr > fTol_2) {
 	        if (kk > 500) {
-	        	ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
+	        	ExceptionT::GeneralFail("MR_RP2DT::Traction","Too Many Iterations");
 	        }
 	        
 	        dfdSig_f(Sig, qn, dfdSig);
