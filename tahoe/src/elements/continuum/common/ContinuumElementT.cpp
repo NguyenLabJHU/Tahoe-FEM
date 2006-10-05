@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.52 2006-03-28 18:57:19 regueiro Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.53 2006-10-05 18:01:55 regueiro Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -25,10 +25,6 @@
 /* materials lists */
 #include "MaterialSupportT.h"
 #include "MaterialListT.h"
-
-#ifdef __DEVELOPMENT_COLORADO__
-#include "DevelopmentColoradoElementsConfig.h"
-#endif
 
 const double Pi = acos(-1.0);
 
