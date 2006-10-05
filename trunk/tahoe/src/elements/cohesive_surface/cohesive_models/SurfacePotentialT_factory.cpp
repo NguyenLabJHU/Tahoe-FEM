@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT_factory.cpp,v 1.6 2006-08-30 17:59:59 tdnguye Exp $ */
+/* $Id: SurfacePotentialT_factory.cpp,v 1.7 2006-10-05 17:59:52 regueiro Exp $ */
 #include "SurfacePotentialT.h"
 
 #ifdef __DEVELOPMENT__
@@ -19,6 +19,8 @@
 
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 #include "InelasticDuctile_RP2DT.h"
+#include "MR2DT.h"
+#include "MR_RP2DT.h"
 #endif
 
 #include <string.h>
@@ -50,6 +52,10 @@ SurfacePotentialT* SurfacePotentialT::New(const char* name)
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 	else if (strcmp(name, "rigid-inelastic_BCJ_2D") == 0)
 		return new InelasticDuctile_RP2DT;
+	else if (strcmp(name, "elastoplastic_MR_2D") == 0)
+		return new MR2DT;
+	else if (strcmp(name, "rigid-plastic_MR_RP2D") == 0)
+		return new MR_RP2DT;
 #endif
 
 #ifdef __SIMOD__
