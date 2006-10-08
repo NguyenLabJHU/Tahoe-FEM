@@ -1,13 +1,9 @@
-/* $Id: CSEAnisoNodal.cpp,v 1.2 2006-08-30 17:49:21 thao Exp $ */
+/* $Id: CSEAnisoNodal.cpp,v 1.3 2006-10-08 19:22:18 regueiro Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoNodal.h"
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
-#endif
-
-#ifdef __DEVELOPMENT_COLORADO__
-#include "DevelopmentColoradoElementsConfig.h"
 #endif
 
 #include <math.h>

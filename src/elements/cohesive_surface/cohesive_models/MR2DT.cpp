@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.20 2006-10-05 17:57:54 regueiro Exp $*/
+/*$Id: MR2DT.cpp,v 1.21 2006-10-08 19:22:18 regueiro Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -141,18 +141,12 @@ void MR2DT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	SurfacePotentialT::DefineSubs(sub_list);
-
-	/* bulk group information for TiedPotentialBaseT */
-	sub_list.AddSub("bulk_element_groups");
 }
 
 /* a pointer to the ParameterInterfaceT */
 ParameterInterfaceT* MR2DT::NewSub(const StringT& name) const
 {
-	if (name == "bulk_element_groups")
-		return new IntegerListT(name);
-	else /* inherited */
-		return SurfacePotentialT::NewSub(name);
+	return SurfacePotentialT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.h,v 1.15 2006-10-05 17:57:54 regueiro Exp $*/
+/*$Id: MR_RP2DT.h,v 1.16 2006-10-08 19:22:19 regueiro Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #ifndef _MR_RP_2D_T_H_
@@ -108,7 +108,7 @@ protected:
 	/* utility function */
 	double signof(double r);
 	
-	/** dissipated energy */
+	/** yield  */
 	virtual double YFValue(const ArrayT<double>& state);
     
     /** yield function */

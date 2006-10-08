@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.28 2006-10-05 17:57:54 regueiro Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.29 2006-10-08 19:22:19 regueiro Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -48,9 +48,6 @@ MR_RP2DT::MR_RP2DT(void): SurfacePotentialT(knumDOF),
 	in >> fTol_1; if (fTol_1 < 0) throw ExceptionT::kBadInputValue;
 	in >> fTol_2; if (fTol_2 < 0) throw ExceptionT::kBadInputValue;
 #endif	
-	
-	iBulkGroups.Dimension(1);
-	iBulkGroups = 0;
 }
 
 /* return the number of state variables needed by the model */
@@ -129,18 +126,12 @@ void MR_RP2DT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	SurfacePotentialT::DefineSubs(sub_list);
-
-	/* bulk group information for TiedPotentialBaseT */
-	sub_list.AddSub("bulk_element_groups");
 }
 
 /* a pointer to the ParameterInterfaceT */
 ParameterInterfaceT* MR_RP2DT::NewSub(const StringT& name) const
 {
-	if (name == "bulk_element_groups")
-		return new IntegerListT(name);
-	else /* inherited */
-		return SurfacePotentialT::NewSub(name);
+	return SurfacePotentialT::NewSub(name);
 }
 
 /* accept parameter list */
@@ -221,12 +212,13 @@ double MR_RP2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
     double PT = (jump_u[0]*state[0] + jump_u[1]*state[1]);
     return PT;
 }
+
 /* surface status */
 SurfacePotentialT::StatusT MR_RP2DT::Status(const dArrayT& jump_u, 
 	const ArrayT<double>& state)
 {
     if (state[10]<0.){
-       int Status = 0;
+       int StatusT = 0;
     }
     if (state[10]>0) {
        int StatusT = 1;
@@ -924,7 +916,6 @@ void MR_RP2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 	output[5] = state[10];
 	output[6] = state[13];
 	output[7] = state[16];
-	
 }
 
 bool MR_RP2DT::NeedsNodalInfo(void) const
