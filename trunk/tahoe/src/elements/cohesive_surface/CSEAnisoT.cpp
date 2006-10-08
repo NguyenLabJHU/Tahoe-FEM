@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.79 2006-10-05 17:59:09 regueiro Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.80 2006-10-08 19:14:59 regueiro Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -43,6 +43,7 @@
 #include "InelasticDuctile_RP2DT.h"
 #include "MR2DT.h"
 #include "MR_RP2DT.h"
+#include "MR_NodalRP2DT.h"
 #endif
 
 #include "TvergHutch3DT.h"
@@ -127,6 +128,15 @@ void CSEAnisoT::InitialCondition(void)
 			const double& time_step = ElementSupport().TimeStep();
 			ductile->SetTimeStepPointer(&time_step);
 			ductile->SetAreaPointer(&fIPArea);
+		}
+		MR_NodalRP2DT* geomat = dynamic_cast<MR_NodalRP2DT*>(potential);
+		if (geomat)
+		{
+			const int& iteration = ElementSupport().IterationNumber(Group());
+			geomat->SetIterationPointer(&iteration);
+			const double& time_step = ElementSupport().TimeStep();
+			geomat->SetTimeStepPointer(&time_step);
+			geomat->SetAreaPointer(&fIPArea);
 		}
 	}
 #endif
@@ -377,6 +387,7 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& name) const
 		cz->AddSub("rigid-inelastic_BCJ_2D");
 		cz->AddSub("elastoplastic_MR_2D");
 		cz->AddSub("rigid-plastic_MR_RP2D");
+		cz->AddSub("nodal-rigid-plastic_MR_RP2D");
 #endif
 		return cz;
 	}
