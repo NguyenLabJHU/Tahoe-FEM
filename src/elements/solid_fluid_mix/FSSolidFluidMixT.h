@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.1 2006-09-22 23:08:45 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.2 2006-10-09 23:17:24 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -186,6 +186,11 @@ private:
 	/** Gradients and other matrices */
 	dMatrixT fgrad_u, fgrad_u_n;
 	dArrayT fgrad_theta, fgrad_theta_n;
+	
+	dMatrixT fShapeSolid, fShapeSolidGrad;
+	//dMatrixT fShapeFluid, fShapeFluidGrad;
+	
+	dMatrixT fDefGrad, fDefGradInv, fDefGradInvMatrix;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/
@@ -212,7 +217,7 @@ private:
 	/*@}*/
 
 	// problem size definitions
-	int n_en_displ, n_en_press, n_en_displ_x_n_sd;
+	int n_en_displ, n_en_press, n_en_displ_x_n_sd, n_sd_x_n_sd;
 	int n_el, n_sd, n_sd_surf, n_en_surf;
 	
 	int step_number;
@@ -323,6 +328,15 @@ private:
 
 	/** side set faces */ 
 	ArrayT<iArrayT> fSideSetFaces;
+	/*@}*/
+	
+	/** write output for debugging */
+	/*@{*/
+	/** output file stream */
+	ofstreamT fs_mix_out;
+	
+	/** line output formating variables */
+	int outputPrecision, outputFileWidth;
 	/*@}*/
 
 protected:

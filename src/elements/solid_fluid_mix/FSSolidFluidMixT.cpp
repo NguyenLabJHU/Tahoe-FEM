@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.cpp,v 1.3 2006-09-23 17:23:58 regueiro Exp $ */
+/* $Id: FSSolidFluidMixT.cpp,v 1.4 2006-10-09 23:17:24 regueiro Exp $ */
 #include "FSSolidFluidMixT.h"
 
 #include "OutputSetT.h"
@@ -218,6 +218,15 @@ void FSSolidFluidMixT::CloseStep(void)
 	/* store more recently updated values */
 	fdState = fdState_new;
 	fiState = fiState_new;
+	
+	fs_mix_out	<< endl 
+				<< setw(outputFileWidth) << "time_step"
+				<< endl;
+	step_number = ElementSupport().StepNumber();
+	fs_mix_out	<< setw(outputFileWidth) << step_number
+				<< endl;
+	fs_mix_out	<< endl << "**********************************************************************************************";
+	fs_mix_out	<< endl << "**********************************************************************************************" << endl;
 }
 
 
@@ -634,6 +643,23 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fKdd=0.0;
 				fKdtheta=0.0;
 				fFd_int=0.0;
+				
+				const double* shapes_displ_X = fShapes_displ->IPShapeX();
+				fShapeSolid = 0.0;
+				fShapeSolid(0,0) = shapes_displ_X[0];
+				fShapeSolid(0,3) = shapes_displ_X[1];
+				
+				/* for debugging */
+				const int ip = fShapes_displ->CurrIP()+1;
+				fs_mix_out	<< endl << "IP" << ip
+							<< setw(outputFileWidth) << ", shape function matrix for solid phase: " 
+							<< setw(outputFileWidth) << fShapeSolid;
+				cout		<< endl << "shape function matrix for solid phase: " 
+							<< setw(outputFileWidth) << fShapeSolid;
+							
+				fs_mix_out	<< endl << "terms from shape function matrix for solid phase: " 
+							<< setw(outputFileWidth) << fShapeSolid(0,0) 
+							<< setw(outputFileWidth) << fShapeSolid(0,3);			
 			}
 			
 			fShapes_displ->TopIP();
@@ -932,6 +958,11 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
 	fFd_ext.Dimension 		( n_en_displ_x_n_sd );
 	fFtheta_int.Dimension 	( n_en_press );
 	fFtheta_ext.Dimension 	( n_en_press );
+	
+	/* workspace matricies */
+	fShapeSolid.Dimension (n_sd, n_en_displ_x_n_sd);
+	n_sd_x_n_sd = n_sd*n_sd;
+	fShapeSolidGrad.Dimension (n_sd_x_n_sd, n_en_displ_x_n_sd);
 
 	/* streams */
 	ofstreamT& out = ElementSupport().Output();
@@ -945,6 +976,11 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
 	
 	/* extract natural boundary conditions */
 	TakeNaturalBC(list);
+	
+	/* setup output file and format */
+	outputPrecision = 10;
+	outputFileWidth = outputPrecision + 8;
+	fs_mix_out.open("fs_mix.info");
 }
 
 
