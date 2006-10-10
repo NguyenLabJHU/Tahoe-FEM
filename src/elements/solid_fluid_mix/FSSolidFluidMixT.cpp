@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.cpp,v 1.5 2006-10-10 18:30:25 ebrahimi Exp $ */
+/* $Id: FSSolidFluidMixT.cpp,v 1.6 2006-10-10 19:55:23 regueiro Exp $ */
 #include "FSSolidFluidMixT.h"
 
 #include "OutputSetT.h"
@@ -24,7 +24,6 @@ FSSolidFluidMixT::FSSolidFluidMixT(const ElementSupportT& support):
     fShapes_displ(NULL),
     fShapes_press(NULL),
     fKdd(ElementMatrixT::kNonSymmetric),
-    fKdd_face(ElementMatrixT::kNonSymmetric),
     fKdtheta(ElementMatrixT::kNonSymmetric),
     fKthetad(ElementMatrixT::kNonSymmetric),
     fKthetatheta(ElementMatrixT::kNonSymmetric),
@@ -593,179 +592,178 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
     Top();
     while (NextElement())
     {
-	e = CurrElementNumber();
-	const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
-	const iArrayT& nodes_press = fElementCards_press[e].NodesU();
+		e = CurrElementNumber();
+		const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
+		const iArrayT& nodes_press = fElementCards_press[e].NodesU();
 
-	u.SetLocal(nodes_displ);
-	u_n.SetLocal(nodes_displ);
-	press.SetLocal(nodes_press);
-	press_n.SetLocal(nodes_press);
+		u.SetLocal(nodes_displ);
+		u_n.SetLocal(nodes_displ);
+		press.SetLocal(nodes_press);
+		press_n.SetLocal(nodes_press);
 
-	del_u.DiffOf (u, u_n);
-	del_press.DiffOf (press, press_n);
-		
-	// calculate derivatives based on reference coordinates
-	fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
-	fCurrCoords_displ=fInitCoords_displ;
-	//fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
-	fShapes_displ->SetDerivatives(); 
-	//
-	fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
-	fCurrCoords_press=fInitCoords_press;
-	//fCurrCoords_press.SetToCombination (1.0, fInitCoords_press, 1.0, u); 
-	fShapes_press->SetDerivatives(); 
-		
-	//update state variables
-	fdstatenew_all.Alias(fNumIP_press, knum_d_state, fdState_new(CurrElementNumber()));
-	fdstate_all.Alias(fNumIP_press, knum_d_state, fdState(CurrElementNumber()));
+		del_u.DiffOf (u, u_n);
+		del_press.DiffOf (press, press_n);
 			
-	if (bStep_Complete) { 
+		// calculate derivatives based on reference coordinates
+		fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
+		fCurrCoords_displ=fInitCoords_displ;
+		//fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
+		fShapes_displ->SetDerivatives(); 
+		//
+		fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
+		fCurrCoords_press=fInitCoords_press;
+		//fCurrCoords_press.SetToCombination (1.0, fInitCoords_press, 1.0, u); 
+		fShapes_press->SetDerivatives(); 
 			
-	    //-- Store/Register data in classic tahoe manner 
-	    out_variable_all.Alias(fNumIP_press, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-	    for (l=0; l < fNumIP_press; l++) 
-	    {
-		out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
-		//out_variable=??;
-	    } 
-	
-	}
-	else { //-- Still Iterating
-		
-	    /* residual and tangent for displacements */
-	    const double* Det    = fShapes_displ->IPDets();
-	    const double* Weight = fShapes_displ->IPWeights();
-	    fShapes_displ->TopIP();
-	    while (fShapes_displ->NextIP())
-	    {
-		//nothing right now for fKdtheta, fKdd, fFd_int
-		fKdd=0.0;
-		fKdtheta=0.0;
-		fFd_int=0.0;
+		//update state variables
+		fdstatenew_all.Alias(fNumIP_press, knum_d_state, fdState_new(CurrElementNumber()));
+		fdstate_all.Alias(fNumIP_press, knum_d_state, fdState(CurrElementNumber()));
 				
-		const double* shapes_displ_X = fShapes_displ->IPShapeX();
-		fShapeSolid = 0.0;
-		fShapeSolid(0,0) = shapes_displ_X[0];
-		fShapeSolid(0,3) = shapes_displ_X[1];
-/*		fShapeSolid(0,6) = shapes_displ_X[2];
-		fShapeSolid(0,9) = shapes_displ_X[3];
-		fShapeSolid(0,12) = shapes_displ_X[4];
-		fShapeSolid(0,15) = shapes_displ_X[5];
-		fShapeSolid(0,18) = shapes_displ_X[6];
-		fShapeSolid(0,21) = shapes_displ_X[7];
-		fShapeSolid(0,24) = shapes_displ_X[8];
-		fShapeSolid(0,27) = shapes_displ_X[9];
-		fShapeSolid(0,30) = shapes_displ_X[10];
-		fShapeSolid(0,33) = shapes_displ_X[11];
-		fShapeSolid(0,36) = shapes_displ_X[12];
-		fShapeSolid(0,39) = shapes_displ_X[13];
-		fShapeSolid(0,42) = shapes_displ_X[14];
-		fShapeSolid(0,45) = shapes_displ_X[15];
-		fShapeSolid(0,48) = shapes_displ_X[16];
-		fShapeSolid(0,51) = shapes_displ_X[17];
-		fShapeSolid(0,54) = shapes_displ_X[18];
-		fShapeSolid(0,57) = shapes_displ_X[19];
-		fShapeSolid(0,60) = shapes_displ_X[20];
-		fShapeSolid(0,63) = shapes_displ_X[21];
-		fShapeSolid(0,66) = shapes_displ_X[22];
-		fShapeSolid(0,69) = shapes_displ_X[23];
-		fShapeSolid(0,72) = shapes_displ_X[24];
-		fShapeSolid(0,75) = shapes_displ_X[25];
-		fShapeSolid(0,78) = shapes_displ_X[26];
+		if (bStep_Complete) 
+		{ 
+		    //-- Store/Register data in classic tahoe manner 
+		    out_variable_all.Alias(fNumIP_press, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+		    for (l=0; l < fNumIP_press; l++) 
+		    {
+				out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
+				//out_variable=??;
+		    } 
+		}
+		else 
+		{ //-- Still Iterating
+		    /* residual and tangent for displacements */
+		    const double* Det    = fShapes_displ->IPDets();
+		    const double* Weight = fShapes_displ->IPWeights();
+		    fShapes_displ->TopIP();
+		    while (fShapes_displ->NextIP())
+		    {
+				//nothing right now for fKdtheta, fKdd, fFd_int
+				fKdd=0.0;
+				fKdtheta=0.0;
+				fFd_int=0.0;
+						
+				const double* shapes_displ_X = fShapes_displ->IPShapeX();
+				fShapeSolid = 0.0;
+				fShapeSolid(0,0) = shapes_displ_X[0];
+				fShapeSolid(0,3) = shapes_displ_X[1];
+		/*		fShapeSolid(0,6) = shapes_displ_X[2];
+				fShapeSolid(0,9) = shapes_displ_X[3];
+				fShapeSolid(0,12) = shapes_displ_X[4];
+				fShapeSolid(0,15) = shapes_displ_X[5];
+				fShapeSolid(0,18) = shapes_displ_X[6];
+				fShapeSolid(0,21) = shapes_displ_X[7];
+				fShapeSolid(0,24) = shapes_displ_X[8];
+				fShapeSolid(0,27) = shapes_displ_X[9];
+				fShapeSolid(0,30) = shapes_displ_X[10];
+				fShapeSolid(0,33) = shapes_displ_X[11];
+				fShapeSolid(0,36) = shapes_displ_X[12];
+				fShapeSolid(0,39) = shapes_displ_X[13];
+				fShapeSolid(0,42) = shapes_displ_X[14];
+				fShapeSolid(0,45) = shapes_displ_X[15];
+				fShapeSolid(0,48) = shapes_displ_X[16];
+				fShapeSolid(0,51) = shapes_displ_X[17];
+				fShapeSolid(0,54) = shapes_displ_X[18];
+				fShapeSolid(0,57) = shapes_displ_X[19];
+				fShapeSolid(0,60) = shapes_displ_X[20];
+				fShapeSolid(0,63) = shapes_displ_X[21];
+				fShapeSolid(0,66) = shapes_displ_X[22];
+				fShapeSolid(0,69) = shapes_displ_X[23];
+				fShapeSolid(0,72) = shapes_displ_X[24];
+				fShapeSolid(0,75) = shapes_displ_X[25];
+				fShapeSolid(0,78) = shapes_displ_X[26];
 
-		fShapeSolid(1,1) = shapes_displ_X[0];
-		fShapeSolid(1,4) = shapes_displ_X[1];
-		fShapeSolid(1,7) = shapes_displ_X[2];
-		fShapeSolid(1,10) = shapes_displ_X[3];
-		fShapeSolid(1,13) = shapes_displ_X[4];
-		fShapeSolid(1,16) = shapes_displ_X[5];
-		fShapeSolid(1,19) = shapes_displ_X[6];
-		fShapeSolid(1,22) = shapes_displ_X[7];
-		fShapeSolid(1,25) = shapes_displ_X[8];
-		fShapeSolid(1,28) = shapes_displ_X[9];
-		fShapeSolid(1,31) = shapes_displ_X[10];
-		fShapeSolid(1,34) = shapes_displ_X[11];
-		fShapeSolid(1,37) = shapes_displ_X[12];
-		fShapeSolid(1,40) = shapes_displ_X[13];
-		fShapeSolid(1,43) = shapes_displ_X[14];
-		fShapeSolid(1,46) = shapes_displ_X[15];
-		fShapeSolid(1,49) = shapes_displ_X[16];
-		fShapeSolid(1,52) = shapes_displ_X[17];
-		fShapeSolid(1,55) = shapes_displ_X[18];
-		fShapeSolid(1,58) = shapes_displ_X[19];
-		fShapeSolid(1,61) = shapes_displ_X[20];
-		fShapeSolid(1,64) = shapes_displ_X[21];
-		fShapeSolid(1,67) = shapes_displ_X[22];
-		fShapeSolid(1,70) = shapes_displ_X[23];
-		fShapeSolid(1,73) = shapes_displ_X[24];
-		fShapeSolid(1,76) = shapes_displ_X[25];
-		fShapeSolid(1,79) = shapes_displ_X[26];
+				fShapeSolid(1,1) = shapes_displ_X[0];
+				fShapeSolid(1,4) = shapes_displ_X[1];
+				fShapeSolid(1,7) = shapes_displ_X[2];
+				fShapeSolid(1,10) = shapes_displ_X[3];
+				fShapeSolid(1,13) = shapes_displ_X[4];
+				fShapeSolid(1,16) = shapes_displ_X[5];
+				fShapeSolid(1,19) = shapes_displ_X[6];
+				fShapeSolid(1,22) = shapes_displ_X[7];
+				fShapeSolid(1,25) = shapes_displ_X[8];
+				fShapeSolid(1,28) = shapes_displ_X[9];
+				fShapeSolid(1,31) = shapes_displ_X[10];
+				fShapeSolid(1,34) = shapes_displ_X[11];
+				fShapeSolid(1,37) = shapes_displ_X[12];
+				fShapeSolid(1,40) = shapes_displ_X[13];
+				fShapeSolid(1,43) = shapes_displ_X[14];
+				fShapeSolid(1,46) = shapes_displ_X[15];
+				fShapeSolid(1,49) = shapes_displ_X[16];
+				fShapeSolid(1,52) = shapes_displ_X[17];
+				fShapeSolid(1,55) = shapes_displ_X[18];
+				fShapeSolid(1,58) = shapes_displ_X[19];
+				fShapeSolid(1,61) = shapes_displ_X[20];
+				fShapeSolid(1,64) = shapes_displ_X[21];
+				fShapeSolid(1,67) = shapes_displ_X[22];
+				fShapeSolid(1,70) = shapes_displ_X[23];
+				fShapeSolid(1,73) = shapes_displ_X[24];
+				fShapeSolid(1,76) = shapes_displ_X[25];
+				fShapeSolid(1,79) = shapes_displ_X[26];
 
-		fShapeSolid(2,2) = shapes_displ_X[0];
-		fShapeSolid(2,5) = shapes_displ_X[1];
-		fShapeSolid(2,8) = shapes_displ_X[2];
-		fShapeSolid(2,11) = shapes_displ_X[3];
-		fShapeSolid(2,14) = shapes_displ_X[4];
-		fShapeSolid(2,17) = shapes_displ_X[5];
-		fShapeSolid(2,20) = shapes_displ_X[6];
-		fShapeSolid(2,23) = shapes_displ_X[7];
-		fShapeSolid(2,26) = shapes_displ_X[8];
-		fShapeSolid(2,29) = shapes_displ_X[9];
-		fShapeSolid(2,32) = shapes_displ_X[10];
-		fShapeSolid(2,35) = shapes_displ_X[11];
-		fShapeSolid(2,38) = shapes_displ_X[12];
-		fShapeSolid(2,41) = shapes_displ_X[13];
-		fShapeSolid(2,44) = shapes_displ_X[14];
-		fShapeSolid(2,47) = shapes_displ_X[15];
-		fShapeSolid(2,50) = shapes_displ_X[16];
-		fShapeSolid(2,53) = shapes_displ_X[17];
-		fShapeSolid(2,56) = shapes_displ_X[18];
-		fShapeSolid(2,59) = shapes_displ_X[19];
-		fShapeSolid(2,62) = shapes_displ_X[20];
-		fShapeSolid(2,65) = shapes_displ_X[21];
-		fShapeSolid(2,68) = shapes_displ_X[22];
-		fShapeSolid(2,71) = shapes_displ_X[23];
-		fShapeSolid(2,74) = shapes_displ_X[24];
-		fShapeSolid(2,77) = shapes_displ_X[25];
-		fShapeSolid(2,80) = shapes_displ_X[26]; */
+				fShapeSolid(2,2) = shapes_displ_X[0];
+				fShapeSolid(2,5) = shapes_displ_X[1];
+				fShapeSolid(2,8) = shapes_displ_X[2];
+				fShapeSolid(2,11) = shapes_displ_X[3];
+				fShapeSolid(2,14) = shapes_displ_X[4];
+				fShapeSolid(2,17) = shapes_displ_X[5];
+				fShapeSolid(2,20) = shapes_displ_X[6];
+				fShapeSolid(2,23) = shapes_displ_X[7];
+				fShapeSolid(2,26) = shapes_displ_X[8];
+				fShapeSolid(2,29) = shapes_displ_X[9];
+				fShapeSolid(2,32) = shapes_displ_X[10];
+				fShapeSolid(2,35) = shapes_displ_X[11];
+				fShapeSolid(2,38) = shapes_displ_X[12];
+				fShapeSolid(2,41) = shapes_displ_X[13];
+				fShapeSolid(2,44) = shapes_displ_X[14];
+				fShapeSolid(2,47) = shapes_displ_X[15];
+				fShapeSolid(2,50) = shapes_displ_X[16];
+				fShapeSolid(2,53) = shapes_displ_X[17];
+				fShapeSolid(2,56) = shapes_displ_X[18];
+				fShapeSolid(2,59) = shapes_displ_X[19];
+				fShapeSolid(2,62) = shapes_displ_X[20];
+				fShapeSolid(2,65) = shapes_displ_X[21];
+				fShapeSolid(2,68) = shapes_displ_X[22];
+				fShapeSolid(2,71) = shapes_displ_X[23];
+				fShapeSolid(2,74) = shapes_displ_X[24];
+				fShapeSolid(2,77) = shapes_displ_X[25];
+				fShapeSolid(2,80) = shapes_displ_X[26]; */
+						
+				/* for debugging */
+				const int ip = fShapes_displ->CurrIP()+1;
+				fs_mix_out	<< endl << "IP" << ip
+						<< setw(outputFileWidth) << ", shape function matrix for solid phase: " 
+						<< setw(outputFileWidth) << fShapeSolid;
+				cout		<< endl << "shape function matrix for solid phase: " 
+						<< setw(outputFileWidth) << fShapeSolid;
+									
+				fs_mix_out	<< endl << "terms from shape function matrix for solid phase: " 
+						<< setw(outputFileWidth) << fShapeSolid(0,0) 
+						<< setw(outputFileWidth) << fShapeSolid(0,3);			
+		    }
 				
-		/* for debugging */
-		const int ip = fShapes_displ->CurrIP()+1;
-		fs_mix_out	<< endl << "IP" << ip
-				<< setw(outputFileWidth) << ", shape function matrix for solid phase: " 
-				<< setw(outputFileWidth) << fShapeSolid;
-		cout		<< endl << "shape function matrix for solid phase: " 
-				<< setw(outputFileWidth) << fShapeSolid;
-							
-		fs_mix_out	<< endl << "terms from shape function matrix for solid phase: " 
-				<< setw(outputFileWidth) << fShapeSolid(0,0) 
-				<< setw(outputFileWidth) << fShapeSolid(0,3);			
-	    }
-			
-	    fShapes_displ->TopIP();
-	    while (fShapes_displ->NextIP())
-	    {
-		//nothing right now for fKthetatheta, fKthetad, fFtheta_int
-		fKthetad=0.0;
-		fKthetatheta=0.0;
-		fFtheta_int=0.0;
-	    }
+		    fShapes_displ->TopIP();
+		    while (fShapes_displ->NextIP())
+		    {
+				//nothing right now for fKthetatheta, fKthetad, fFtheta_int
+				fKthetad=0.0;
+				fKthetatheta=0.0;
+				fFtheta_int=0.0;
+		    }
 
-	    /* equations numbers */
-	    const iArrayT& displ_eq = fElementCards_displ[e].Equations();
-	    const iArrayT& press_eq = fElementCards_press[e].Equations();
+		    /* equations numbers */
+		    const iArrayT& displ_eq = fElementCards_displ[e].Equations();
+		    const iArrayT& press_eq = fElementCards_press[e].Equations();
 
-	    /* assemble residuals */
-	    ElementSupport().AssembleRHS(curr_group, fFd_int, displ_eq);
-	    ElementSupport().AssembleRHS(curr_group, fFtheta_int, press_eq);
+		    /* assemble residuals */
+		    ElementSupport().AssembleRHS(curr_group, fFd_int, displ_eq);
+		    ElementSupport().AssembleRHS(curr_group, fFtheta_int, press_eq);
 
-	    /* assemble components of the tangent */
-	    ElementSupport().AssembleLHS(curr_group, fKdd, displ_eq);
-	    ElementSupport().AssembleLHS(curr_group, fKthetatheta, press_eq);
-	    ElementSupport().AssembleLHS(curr_group, fKdtheta, displ_eq, press_eq);
-	    ElementSupport().AssembleLHS(curr_group, fKthetad, press_eq, displ_eq);
-	}
+		    /* assemble components of the tangent */
+		    ElementSupport().AssembleLHS(curr_group, fKdd, displ_eq);
+		    ElementSupport().AssembleLHS(curr_group, fKthetatheta, press_eq);
+		    ElementSupport().AssembleLHS(curr_group, fKdtheta, displ_eq, press_eq);
+		    ElementSupport().AssembleLHS(curr_group, fKthetad, press_eq, displ_eq);
+		}
     }	
 }
 

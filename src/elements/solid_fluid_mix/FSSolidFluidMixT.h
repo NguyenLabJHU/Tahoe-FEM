@@ -1,10 +1,7 @@
-/* $Id: FSSolidFluidMixT.h,v 1.3 2006-10-10 18:30:25 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.4 2006-10-10 19:55:23 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
-
-#include "ContinuumT.h"
-#include "ModelManagerT.h"
 
 /* base classes */
 #include "ElementBaseT.h"
@@ -12,6 +9,8 @@
 #include "Traction_CardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
+
+#include "ModelManagerT.h"
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -30,9 +29,9 @@
 namespace Tahoe {
 
 /* forward declarations */
-    class ShapeFunctionT;
-    class Traction_CardT;	
-    class StringT;
+class ShapeFunctionT;
+class Traction_CardT;	
+class StringT;
 
 /** FSSolidFluidMixT: This class contains a coupled finite deformation solid fluid
  * Total Lagrangian formulation in 3D.  It is assumed the mixture is saturated with 
@@ -41,10 +40,10 @@ namespace Tahoe {
  * hyper-viscoelastic constitutive model.
  **/
 
-    class FSSolidFluidMixT: public ElementBaseT
-    {
+class FSSolidFluidMixT: public ElementBaseT
+{
 	
-    public:
+public:
 
 	enum fMaterial_T 	{ 
 	    kMu,
@@ -142,7 +141,7 @@ namespace Tahoe {
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
-    protected:
+protected:
 	
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
@@ -158,7 +157,7 @@ namespace Tahoe {
 
 	void Select_Equations ( const int &iBalLinMom, const int &iBalMass );
 
-    private:
+private:
 	
 	/** \name solution methods.
 	 * Both of these drivers assemble the LHS as well as the residual.
@@ -171,17 +170,13 @@ namespace Tahoe {
 	void RHSDriver_monolithic(void);
 	/*@}*/
 	
-    public:	
-    protected:
+protected:
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
 	iArrayT	fElementOutputCodes;
 	
-    private:
-
-	/** Data at time steps n and n+1 used by both Coarse and Fine */
-	//APS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
+private:
 
 	/** Gradients and other matrices */
 	dMatrixT fgrad_u, fgrad_u_n;
@@ -246,7 +241,6 @@ namespace Tahoe {
 	ShapeFunctionT* fShapes_displ;
 	ShapeFunctionT* fShapes_press;
 
-	// reference and current coordinates are the same for anti-plane shear
 	/** reference coordinates */
 	LocalArrayT fInitCoords_displ, fInitCoords_press;     
 	/** current coordinates */
@@ -339,7 +333,7 @@ namespace Tahoe {
 	int outputPrecision, outputFileWidth;
 	/*@}*/
 
-    protected:
+protected:
 
 	/** extract natural boundary condition information */
 	void TakeNaturalBC(const ParameterListT& list);
@@ -366,10 +360,10 @@ namespace Tahoe {
 	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
 	/*@}*/
 	
-    };
+};
 
-    inline const ShapeFunctionT& FSSolidFluidMixT::ShapeFunction(void) const 
-    {
+inline const ShapeFunctionT& FSSolidFluidMixT::ShapeFunction(void) const 
+{
 #if __option(extended_errorcheck)
 	if (!fShapes_displ)
 	    ExceptionT::GeneralFail("FSSolidFluidMixT::ShapeFunction", "no displ shape functions");
@@ -378,9 +372,7 @@ namespace Tahoe {
 #endif
 	return *fShapes_displ;
 	return *fShapes_press;
-    }
-
-
+}
 
 } // namespace Tahoe 
 #endif /* _FS_SOLID_FLUID_MIX_T_H_ */
