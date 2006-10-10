@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.2 2006-10-09 23:17:24 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.3 2006-10-10 18:30:25 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -30,9 +30,9 @@
 namespace Tahoe {
 
 /* forward declarations */
-class ShapeFunctionT;
-class Traction_CardT;	
-class StringT;
+    class ShapeFunctionT;
+    class Traction_CardT;	
+    class StringT;
 
 /** FSSolidFluidMixT: This class contains a coupled finite deformation solid fluid
  * Total Lagrangian formulation in 3D.  It is assumed the mixture is saturated with 
@@ -41,26 +41,26 @@ class StringT;
  * hyper-viscoelastic constitutive model.
  **/
 
-class FSSolidFluidMixT: public ElementBaseT
-{
+    class FSSolidFluidMixT: public ElementBaseT
+    {
 	
-public:
+    public:
 
 	enum fMaterial_T 	{ 
-									kMu,
-									kLambda,
-									kAlpha,
-									kRho_sR0,
-									kRho_fR0,
-									kPhi_s0,
-									kPhi_f0,
-									kKf,
-									kNUM_FMATERIAL_TERMS	};
+	    kMu,
+	    kLambda,
+	    kAlpha,
+	    kRho_sR0,
+	    kRho_fR0,
+	    kPhi_s0,
+	    kPhi_f0,
+	    kKf,
+	    kNUM_FMATERIAL_TERMS	};
 									
 	enum fIntegrate_T 	{ 
-									kBeta,
-									kGamma,
-									kNUM_FINTEGRATE_TERMS	};								
+	    kBeta,
+	    kGamma,
+	    kNUM_FINTEGRATE_TERMS	};								
 
 	/** constructor */
 	FSSolidFluidMixT(	const ElementSupportT& support );				
@@ -87,7 +87,7 @@ public:
 	/** collecting element group equation numbers. See ElementBaseT::Equations
 	 * for more information */
 	virtual void Equations( AutoArrayT<const iArray2DT*>& eq_d,
-					AutoArrayT<const RaggedArray2DT<int>*>& eq_theta);
+				AutoArrayT<const RaggedArray2DT<int>*>& eq_theta);
 
 	/** return a const reference to the run state flag */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -128,7 +128,7 @@ public:
 
 	/** return the description of the given inline subordinate parameter list */
 	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-		SubListT& sub_lists) const;
+				     SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
@@ -142,7 +142,7 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
-protected:
+    protected:
 	
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
@@ -158,7 +158,7 @@ protected:
 
 	void Select_Equations ( const int &iBalLinMom, const int &iBalMass );
 
-private:
+    private:
 	
 	/** \name solution methods.
 	 * Both of these drivers assemble the LHS as well as the residual.
@@ -171,14 +171,14 @@ private:
 	void RHSDriver_monolithic(void);
 	/*@}*/
 	
-public:	
-protected:
+    public:	
+    protected:
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
 	iArrayT	fElementOutputCodes;
 	
-private:
+    private:
 
 	/** Data at time steps n and n+1 used by both Coarse and Fine */
 	//APS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
@@ -188,7 +188,7 @@ private:
 	dArrayT fgrad_theta, fgrad_theta_n;
 	
 	dMatrixT fShapeSolid, fShapeSolidGrad;
-	//dMatrixT fShapeFluid, fShapeFluidGrad;
+	dMatrixT fShapeFluid, fShapeFluidGrad;
 	
 	dMatrixT fDefGrad, fDefGradInv, fDefGradInvMatrix;
 
@@ -196,12 +196,12 @@ private:
 	/*@{*/
 	/** element geometry */
 	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ, 
-			fGeometryCode_press, fGeometryCodeSurf_press;
+	    fGeometryCode_press, fGeometryCodeSurf_press;
 	int fGeometryCode_displ_int, fGeometryCodeSurf_displ_int;
 
 	/** number of integration points */
 	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_press, fNumIPSurf_press, 
-		knum_d_state, knum_i_state, knumstress, knumstrain, num_sidesets;
+	    knum_d_state, knum_i_state, knumstress, knumstrain, num_sidesets;
 	/*@}*/
 
 	/** \name element displacements in local ordering */
@@ -254,9 +254,9 @@ private:
 	/*@}*/
 
 	/* Data Storage */
-	ElementMatrixT fKdd, fKdtheta, fKdd_face;
+	ElementMatrixT fKdd, fKdtheta;
 	ElementMatrixT fKthetad, fKthetatheta;
-	dArrayT 	fFd_int, fFd_int_face;
+	dArrayT 	fFd_int;
 	dArrayT 	fFd_ext;
 	dArrayT		fFtheta_int;
 	dArrayT		fFtheta_ext;
@@ -339,12 +339,12 @@ private:
 	int outputPrecision, outputFileWidth;
 	/*@}*/
 
-protected:
+    protected:
 
 	/** extract natural boundary condition information */
 	void TakeNaturalBC(const ParameterListT& list);
 	
-	 /** apply traction boundary conditions to displacement equations */
+	/** apply traction boundary conditions to displacement equations */
 	void ApplyTractionBC(void);
 
   	/** update traction BC data for displacement equations */
@@ -366,19 +366,19 @@ protected:
 	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
 	/*@}*/
 	
-};
+    };
 
-inline const ShapeFunctionT& FSSolidFluidMixT::ShapeFunction(void) const 
-{
+    inline const ShapeFunctionT& FSSolidFluidMixT::ShapeFunction(void) const 
+    {
 #if __option(extended_errorcheck)
 	if (!fShapes_displ)
-		ExceptionT::GeneralFail("FSSolidFluidMixT::ShapeFunction", "no displ shape functions");
+	    ExceptionT::GeneralFail("FSSolidFluidMixT::ShapeFunction", "no displ shape functions");
 	if (!fShapes_press)
-		ExceptionT::GeneralFail("FSSolidFluidMixT::ShapeFunction", "no press shape functions");
+	    ExceptionT::GeneralFail("FSSolidFluidMixT::ShapeFunction", "no press shape functions");
 #endif
 	return *fShapes_displ;
 	return *fShapes_press;
-}
+    }
 
 
 
