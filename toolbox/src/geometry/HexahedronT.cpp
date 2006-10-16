@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.11 2006-08-30 17:17:49 tdnguye Exp $ */
+/* $Id: HexahedronT.cpp,v 1.12 2006-10-16 22:46:44 regueiro Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -31,6 +31,10 @@ HexahedronT::HexahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets)
 	const double ra20[20] = {-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, -1.0, 1.0, 1.0, -1.0};
 	const double sa20[20] = {-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, -1.0, 1.0, 1.0};
 	const double ta20[20] = {-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+// I have copied above lines to add 7 nodes/* Davoud */
+	const double ra27[27] = {-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, -1.0, 1.0, 1.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0};
+	const double sa27[27] = {-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, -1.0, 1.0, 1.0, 0.0, 0.0, -1.0, 1.0, 0.0, 0.0, 0.0};
+	const double ta27[27] = {-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 	fCoords.Dimension(3, numnodes);
 	double* x = fCoords(0);
@@ -39,9 +43,15 @@ HexahedronT::HexahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets)
 
 	for (int i = 0; i< numnodes; i++)
 	{
+		/*
 		x[i] = ra20[i];
 		y[i] = sa20[i];
 		z[i] = ta20[i];
+		*/
+// I have copied above lines to add 7 nodes/* Davoud */
+		x[i] = ra27[i];
+		y[i] = sa27[i];
+		z[i] = ta27[i];
 	}
 }
 
@@ -54,7 +64,7 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) con
 	if (coords.Length() != 3 ||
 	        Na.Length() != fNumNodes) ExceptionT::SizeMismatch(caller);
 	if (fNumNodes != kNumVertexNodes && 
-	    fNumNodes != 20) ExceptionT::GeneralFail(caller);
+	    fNumNodes != 20 && fNumNodes != 27) ExceptionT::GeneralFail(caller);
 #endif
 
 	/* coordinates */	
@@ -203,6 +213,128 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) con
 		na[3] -= N;   
 		na[7] -= N; 
 	}
+	else if (fNumNodes == 27)
+	{
+// instead of creating shape functions magically(by defining shape functions for the new 7 nodes and correcting prviously defined shape functions)
+// they will be defined directly. /* Davoud */
+		na  = Na.Pointer();
+	
+		/* base quadratic factors */
+		double r1=0.5*r*(r-1); double s1=0.5*s*(s-1); double t1=0.5*t*(t-1);
+		double r2=0.5*r*(r+1); double s2=0.5*s*(s+1); double t2=0.5*t*(t+1);
+		double r3=1-r*r;       double s3=1-s*s;       double t3=1-t*t;
+
+		/* local node number */
+		int lnd = 0;
+
+		/* node 1 */
+		na[lnd] = r1*s1*t1;  
+		lnd++;
+
+		/* node 2 */
+		na[lnd] = r2*s1*t1; 
+		lnd++;
+
+		/* node 3 */
+		na[lnd] = r2*s2*t1; 
+		lnd++;
+
+		/* node 4 */
+		na[lnd] = r1*s2*t1; 
+		lnd++;
+
+		/* node 5 */
+		na[lnd] = r1*s1*t2; 
+		lnd++;
+
+		/* node 6 */
+		na[lnd] = r2*s1*t2; 
+		lnd++;
+
+		/* node 7 */
+		na[lnd] = r2*s2*t2; 
+		lnd++;
+
+		/* node 8 */
+		na[lnd] = r1*s2*t2; 
+		lnd++;
+
+		/* node 9 */
+		na[lnd] = r3*s1*t1;
+		lnd++;
+
+		/* node 10 */
+		na[lnd] = r2*s3*t1; 
+		lnd++;
+
+		/* node 11 */
+		na[lnd] = r3*s2*t1; 
+		lnd++;
+
+		/* node 12 */
+		na[lnd] = r1*s3*t1; 
+		lnd++;
+
+		/* node 13 */
+		na[lnd] = r3*s1*t2; 
+		lnd++;
+
+		/* node 14 */
+		na[lnd] = r2*s3*t2; 
+		lnd++;
+
+		/* node 15 */
+		na[lnd] = r3*s2*t2; 
+		lnd++;
+
+		/* node 16 */
+		na[lnd] = r1*s3*t2; 
+		lnd++;
+
+		/* node 17 */
+		na[lnd] = r1*s1*t3; 
+		lnd++;
+
+		/* node 18 */
+		na[lnd] = r2*s1*t3; 
+		lnd++;
+
+		/* node 19 */
+		na[lnd] = r2*s2*t3; 
+		lnd++;
+
+		/* node 20 */
+		na[lnd] = r1*s2*t3; 
+		lnd++;
+
+		/* node 21 */
+		na[lnd] = r3*s3*t1; 
+		lnd++;
+
+		/* node 22 */
+		na[lnd] = r3*s3*t2; 
+		lnd++;
+
+		/* node 23 */
+		na[lnd] = r3*s1*t3; 
+		lnd++;
+
+		/* node 24 */
+		na[lnd] = r3*s2*t3; 
+		lnd++;
+
+		/* node 25 */
+		na[lnd] = r1*s3*t3; 
+		lnd++;
+
+		/* node 26 */
+		na[lnd] = r2*s3*t3; 
+		lnd++;
+
+		/* node 27 */
+		na[lnd] = r3*s3*t3; 
+		lnd++;
+	}
 }
 
 /* evaluate the shape functions and gradients. */
@@ -217,7 +349,7 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 	     DNa.MajorDim() != 3 ||
 	     DNa.MinorDim() != fNumNodes) ExceptionT::SizeMismatch(caller);
 	if (fNumNodes != kNumVertexNodes && 
-	    fNumNodes != 20) ExceptionT::GeneralFail(caller);
+	    fNumNodes != 20 && fNumNodes != 27) ExceptionT::GeneralFail(caller);
 #endif
 
 	/* coordinates */	
@@ -424,6 +556,217 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		nay[3] -= Ny; nay[7] -= Ny; 
 		naz[3] -= Nz; naz[7] -= Nz;
 	}
+	if (fNumNodes == 27)
+	{
+// instead of creating derivatives magically(by defining derivatives for the new 7 nodes and correcting prviously defined derivatives)
+// they will be defined directly. /* Davoud */
+		na  = Na.Pointer();
+		nax = DNa(0);
+		nay = DNa(1);
+		naz = DNa(2);
+	
+		/* base quadratic factors */
+		double r1=0.5*r*(r-1); double s1=0.5*s*(s-1); double t1=0.5*t*(t-1);
+		double r2=0.5*r*(r+1); double s2=0.5*s*(s+1); double t2=0.5*t*(t+1);
+		double r3=1-r*r;       double s3=1-s*s;       double t3=1-t*t;
+
+		/* base derivatives */
+		double dr1=0.5*(2*r-1);double ds1=0.5*(2*s-1);double dt1=0.5*(2*t-1);
+		double dr2=0.5*(2*r+1);double ds2=0.5*(2*s+1);double dt2=0.5*(2*t+1);
+		double dr3=-2*r;       double ds3=-2*s;       double dt3=-2*t;
+		
+		/* local node number */
+		int lnd = 0;
+
+		/* node 1 */
+		na[lnd] = r1*s1*t1;  
+		nax[lnd] = dr1*s1*t1;  
+		nay[lnd] = r1*ds1*t1;
+		naz[lnd] = r1*s1*dt1;
+		lnd++;
+		
+		/* node 2 */
+		na[lnd] = r2*s1*t1; 
+		nax[lnd] = dr2*s1*t1;  
+		nay[lnd] = r2*ds1*t1;
+		naz[lnd] = r2*s1*dt1;
+		lnd++;
+
+		/* node 3 */
+		na[lnd] = r2*s2*t1; 
+		nax[lnd] = dr2*s2*t1;  
+		nay[lnd] = r2*ds2*t1;
+		naz[lnd] = r2*s2*dt1;
+		lnd++;
+
+		/* node 4 */
+		na[lnd] = r1*s2*t1; 
+		nax[lnd] = dr1*s2*t1;  
+		nay[lnd] = r1*ds2*t1;
+		naz[lnd] = r1*s2*dt1;
+		lnd++;
+
+		/* node 5 */
+		na[lnd] = r1*s1*t2; 
+		nax[lnd] = dr1*s1*t2;  
+		nay[lnd] = r1*ds1*t2;
+		naz[lnd] = r1*s1*dt2;
+		lnd++;
+
+		/* node 6 */
+		na[lnd] = r2*s1*t2; 
+		nax[lnd] = dr2*s1*t2;  
+		nay[lnd] = r2*ds1*t2;
+		naz[lnd] = r2*s1*dt2;
+		lnd++;
+
+		/* node 7 */
+		na[lnd] = r2*s2*t2;
+		nax[lnd] = dr2*s2*t2;  
+		nay[lnd] = r2*ds2*t2;
+		naz[lnd] = r2*s2*dt2; 
+		lnd++;
+
+		/* node 8 */
+		na[lnd] = r1*s2*t2; 
+		nax[lnd] = dr1*s2*t2;  
+		nay[lnd] = r1*ds2*t2;
+		naz[lnd] = r1*s2*dt2;
+		lnd++;
+
+		/* node 9 */
+		na[lnd] = r3*s1*t1;
+		nax[lnd] = dr3*s1*t1;  
+		nay[lnd] = r3*ds1*t1;
+		naz[lnd] = r3*s1*dt1;
+		lnd++;
+
+		/* node 10 */
+		na[lnd] = r2*s3*t1;
+		nax[lnd] = dr2*s3*t1;  
+		nay[lnd] = r2*ds3*t1;
+		naz[lnd] = r2*s3*dt1; 
+		lnd++;
+
+		/* node 11 */
+		na[lnd] = r3*s2*t1; 
+		nax[lnd] = dr3*s2*t1;  
+		nay[lnd] = r3*ds2*t1;
+		naz[lnd] = r3*s2*dt1;
+		lnd++;
+
+		/* node 12 */
+		na[lnd] = r1*s3*t1; 
+		nax[lnd] = dr1*s3*t1;  
+		nay[lnd] = r1*ds3*t1;
+		naz[lnd] = r1*s3*dt1;
+		lnd++;
+
+		/* node 13 */
+		na[lnd] = r3*s1*t2; 
+		nax[lnd] = dr3*s1*t2;  
+		nay[lnd] = r3*ds1*t2;
+		naz[lnd] = r3*s1*dt2;
+		lnd++;
+
+		/* node 14 */
+		na[lnd] = r2*s3*t2; 
+		nax[lnd] = dr2*s3*t2;  
+		nay[lnd] = r2*ds3*t2;
+		naz[lnd] = r2*s3*dt2;
+		lnd++;
+
+		/* node 15 */
+		na[lnd] = r3*s2*t2; 
+		nax[lnd] = dr3*s2*t2;  
+		nay[lnd] = r3*ds2*t2;
+		naz[lnd] = r3*s2*dt2;
+		lnd++;
+
+		/* node 16 */
+		na[lnd] = r1*s3*t2; 
+		nax[lnd] = dr1*s3*t2;  
+		nay[lnd] = r1*ds3*t2;
+		naz[lnd] = r1*s3*dt2;
+		lnd++;
+
+		/* node 17 */
+		na[lnd] = r1*s1*t3; 
+		nax[lnd] = dr1*s1*t3;  
+		nay[lnd] = r1*ds1*t3;
+		naz[lnd] = r1*s1*dt3;
+		lnd++;
+
+		/* node 18 */
+		na[lnd] = r2*s1*t3; 
+		nax[lnd] = dr2*s1*t3;  
+		nay[lnd] = r2*ds1*t3;
+		naz[lnd] = r2*s1*dt3;
+		lnd++;
+
+		/* node 19 */
+		na[lnd] = r2*s2*t3;
+		nax[lnd] = dr2*s2*t3;  
+		nay[lnd] = r2*ds2*t3;
+		naz[lnd] = r2*s2*dt3; 
+		lnd++;
+
+		/* node 20 */
+		na[lnd] = r1*s2*t3;
+		nax[lnd] = dr1*s2*t3;  
+		nay[lnd] = r1*ds2*t3;
+		naz[lnd] = r1*s2*dt3; 
+		lnd++;
+
+		/* node 21 */
+		na[lnd] = r3*s3*t1; 
+		nax[lnd] = dr3*s3*t1;  
+		nay[lnd] = r3*ds3*t1;
+		naz[lnd] = r3*s3*dt1;
+		lnd++;
+
+		/* node 22 */
+		na[lnd] = r3*s3*t2;
+		nax[lnd] = dr3*s3*t2;  
+		nay[lnd] = r3*ds3*t2;
+		naz[lnd] = r3*s3*dt2; 
+		lnd++;
+
+		/* node 23 */
+		na[lnd] = r3*s1*t3; 
+		nax[lnd] = dr3*s1*t3;  
+		nay[lnd] = r3*ds1*t3;
+		naz[lnd] = r3*s1*dt3;
+		lnd++;
+
+		/* node 24 */
+		na[lnd] = r3*s2*t3;
+		nax[lnd] = dr3*s2*t3;  
+		nay[lnd] = r3*ds2*t3;
+		naz[lnd] = r3*s2*dt3; 
+		lnd++;
+
+		/* node 25 */
+		na[lnd] = r1*s3*t3; 
+		nax[lnd] = dr1*s3*t3;  
+		nay[lnd] = r1*ds3*t3;
+		naz[lnd] = r1*s3*dt3;
+		lnd++;
+
+		/* node 26 */
+		na[lnd] = r2*s3*t3; 
+		nax[lnd] = dr2*s3*t3;  
+		nay[lnd] = r2*ds3*t3;
+		naz[lnd] = r2*s3*dt3;
+		lnd++;
+
+		/* node 27 */
+		na[lnd] = r3*s3*t3; 
+		nax[lnd] = dr3*s3*t3;  
+		nay[lnd] = r3*ds3*t3;
+		naz[lnd] = r3*s3*dt3;
+		lnd++;
+	}
 }
 
 /* compute local shape functions and derivatives */
@@ -438,7 +781,7 @@ void HexahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	int nsd       = Na_x[0].MajorDim();
 
 	/* dimension checks */
-	if (numnodes != 8 && numnodes != 20)
+	if (numnodes != 8 && numnodes != 20 && numnodes != 27)
 		ExceptionT::GeneralFail(caller, "unsupported number of element nodes: %d", numnodes);
 
 	if (numint != 1 &&
@@ -654,8 +997,8 @@ void HexahedronT::BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const
 void HexahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
 	const char caller[] = "HexahedronT::NodesOnFacet";
-	if (fNumNodes != 8 && fNumNodes != 20)
-		ExceptionT::GeneralFail(caller, "only implemented 8 and 20 element nodes: %d", fNumNodes);
+	if (fNumNodes != 8 && fNumNodes != 20 && fNumNodes != 27)
+		ExceptionT::GeneralFail(caller, "only implemented 8 and 20 and 27 element nodes: %d", fNumNodes);
 
 #if __option(extended_errorcheck)
 	if (facet < 0 || facet > 5) ExceptionT::OutOfRange(caller);
@@ -676,13 +1019,21 @@ void HexahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 		       2,3,7,6,10,19,14,18,
 		       3,0,4,7,11,16,15,19};
 
+	int dat27[] = {0,3,2,1,11,10, 9, 8,20,
+		       4,5,6,7,12,13,14,15,21,
+		       0,1,5,4, 8,17,12,16,22,
+		       1,2,6,5, 9,18,13,17,25,
+		       2,3,7,6,10,19,14,18,23,
+		       3,0,4,7,11,16,15,19,24};
+
 	/* collect facet data */		
 	iArrayT tmp;
 	if (fNumNodes == 8)
 		tmp.Set(4, dat8 + facet*4);
-	else
+	else if (fNumNodes == 20)
 		tmp.Set(8, dat20 + facet*8);
-	
+	else
+	    tmp.Set(9, dat27 + facet*9); // I'm not sure about this line/*Davoud*/
 	/* (allocate and) copy in */
 	facetnodes = tmp;
 }
@@ -722,11 +1073,29 @@ void HexahedronT::NodesOnEdges(iArray2DT& nodes_on_edges) const
 		3,19,7
 	};
 
+	/* edges in 27-node hex */
+	int dat27[12*3] = {
+		0,8,1,
+		1,9,2,
+		2,10,3,
+		3,11,0,
+		4,12,5,
+		5,13,6,
+		6,14,7,
+		7,15,4,
+		0,16,4,
+		1,17,5,
+		2,18,6,
+		3,19,7
+	};
+
 	iArray2DT tmp;
 	if (fNumNodes == 8)
 		tmp.Alias(12, 2, dat8);
 	else if (fNumNodes == 20)
 		tmp.Alias(12, 3, dat20);
+	else if (fNumNodes == 27)
+		tmp.Alias(12, 3, dat27);
 	else
 		ExceptionT::OutOfRange("HexahedronT::NodesOnEdges");
 
@@ -737,14 +1106,16 @@ void HexahedronT::NodesOnEdges(iArray2DT& nodes_on_edges) const
 void HexahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
 //TEMP
-	if (fNumNodes != 8 && fNumNodes != 20)
-		ExceptionT::GeneralFail("HexahedronT::NumNodesOnFacets", "only implemented 8 and 20 element nodes: %d", fNumNodes);
+	if (fNumNodes != 8 && fNumNodes != 20 && fNumNodes != 27)
+		ExceptionT::GeneralFail("HexahedronT::NumNodesOnFacets", "only implemented 8 and 20 and 27 element nodes: %d", fNumNodes);
 
 	num_nodes.Dimension(6);
 	if (fNumNodes == 8)
 		num_nodes = 4;
-	else
+	else if(fNumNodes == 20) 
 		num_nodes = 8;
+	else
+	    num_nodes = 9; //I'm not sure about this line/*Davoud*/
 }
 
 /* returns the nodes on each facet needed to determine neighbors
@@ -766,14 +1137,20 @@ void HexahedronT::NeighborNodeMap(iArray2DT& facetnodes) const
 /* return geometry and number of nodes on each facet */
 void HexahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 {
-	if (fNumNodes != 8 && fNumNodes != 20)
-		ExceptionT::GeneralFail("HexahedronT::FacetGeometry", "only implemented for 8 and 20 nodes: %d", fNumNodes);
+	if (fNumNodes != 8 && fNumNodes != 20 && fNumNodes != 27)
+		ExceptionT::GeneralFail("HexahedronT::FacetGeometry", "only implemented for 8 and 20 and 27 nodes: %d", fNumNodes);
 
 	facet_geom.Dimension(fNumFacets);
 	facet_geom = kQuadrilateral;
 	
 	facet_nodes.Dimension(fNumFacets);
-	facet_nodes = (fNumNodes == 8) ? 4 : 8;
+
+	if (fNumNodes == 8)	
+		facet_nodes = 4;
+	else if(fNumNodes == 20) 
+		facet_nodes = 8;
+	else
+	    facet_nodes = 9; //I'm not sure about this line/*Davoud*/
 }
 
 /* set the values of the nodal extrapolation matrix */
@@ -786,7 +1163,7 @@ void HexahedronT::SetExtrapolation(dMatrixT& extrap) const
 	int numint   = extrap.Cols();
 
 	/* dimension checks */
-	if (numnodes < 8 || numnodes > 20) ExceptionT::GeneralFail(caller);
+	if (numnodes < 8 || numnodes > 27) ExceptionT::GeneralFail(caller);
 
 	/* initialize */
 	extrap = 0.0;
@@ -801,7 +1178,7 @@ void HexahedronT::SetExtrapolation(dMatrixT& extrap) const
 		case 8:
 		{
 			/* smoothin matrix data: [max nen] x [nip = 8] */
-			double data_160[20*8] = {
+			double data_160[27*8] = {
   0.125*(1. + 3.*sqrt3)   , 0.125*(1. + sqrt3)      , 0.125*(1. - 1.*sqrt3)   , 0.125*(1. + sqrt3)
 , 0.125*(1. + sqrt3)      , 0.125*(1. - 1.*sqrt3)   , 0.125*(1. - 3.*sqrt3)   , 0.125*(1. - 1.*sqrt3)
 , 0.125*(1. + 2.*sqrt3)   , 0.125                   , 0.125                   , 0.125*(1. + 2.*sqrt3)
@@ -841,18 +1218,32 @@ void HexahedronT::SetExtrapolation(dMatrixT& extrap) const
 , 0.125*(1. + sqrt3)      , 0.125*(1. - 1.*sqrt3)   , 0.125*(1. + sqrt3)      , 0.125*(1. + 3.*sqrt3)
 , 0.125*(1. - 2.*sqrt3)   , 0.125*(1. - 2.*sqrt3)   , 0.125                   , 0.125
 , 0.125                   , 0.125                   , 0.125*(1. + 2.*sqrt3)   , 0.125*(1. + 2.*sqrt3)
-, 0.125                   , 0.125*(1. - 2.*sqrt3)   , 0.125                   , 0.125*(1. + 2.*sqrt3)	
+, 0.125                   , 0.125*(1. - 2.*sqrt3)   , 0.125                   , 0.125*(1. + 2.*sqrt3)
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
+, 0.125                   , 0.125                   , 0.125                   , 0.125
 	};
 
 			/* copy block out */	
-			dMatrixT smooth_160(20, 8, data_160);
+			dMatrixT smooth_160(27, 8, data_160);
 			smooth_160.CopyBlock(0, 0, extrap);
 			break;
 		}
 		case 9:
 		{
-			/* smoothin matrix data: [max nen] x [nip = 8] */
-			double data_180[20*9] = {
+			/* smoothin matrix data: [max nen] x [nip = 9] */
+			double data_180[27*9] = {
 5.799038105676658, 2.566987298107781, 3.433012701892219, 2.566987298107781, 
 2.566987298107781, 3.433012701892219, 3.200961894323342, 3.433012701892219, 
 0.808012701892219, -0.375, -0.375, 0.808012701892219, 
@@ -898,17 +1289,34 @@ void HexahedronT::SetExtrapolation(dMatrixT& extrap) const
 1., 1., 1., 1., 
 1., 1., 1., 1., 
 1., 1., 1., 1.
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  , 0.111111111111111
+, 0.111111111111111  , 0.111111111111111   , 0.111111111111111  
+
 };
 
 			/* copy block out */	
-			dMatrixT smooth_180(20, 9, data_180);
+			dMatrixT smooth_180(27, 9, data_180);
 			smooth_180.CopyBlock(0, 0, extrap);
 			break;
 		}
 		case 27:
 		{
 			/* smoothin matrix data: [max nen] x [nip = 27] */
-			double data_540[20*27] = {
+			double data_540[27*27] = {
 0.00925925925925926*(175. + 45.*sqrt15), 0.00925925925925926*(25. + 5.*sqrt15), 0.00925925925925926*(25. - 5.*sqrt15), 0.00925925925925926*(25. + 5.*sqrt15), 
 0.00925925925925926*(25. + 5.*sqrt15), 0.00925925925925926*(25. - 5.*sqrt15), 0.00925925925925926*(175. - 45.*sqrt15), 0.00925925925925926*(25. - 5.*sqrt15), 
 0, 0, 0, 0, 
@@ -1044,10 +1452,58 @@ void HexahedronT::SetExtrapolation(dMatrixT& extrap) const
 0, 0, 0, 0, 
 0, 0, 0, 0, 
 0, 0, 0, 0			
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370, 0.0370370370370370, 0.0370370370370370, 0.0370370370370370
+,0.0370370370370370
 			};
 
 			/* copy block out */
-			dMatrixT smooth_540(20, 27, data_540);
+			dMatrixT smooth_540(27, 27, data_540);
 			smooth_540.CopyBlock(0, 0, extrap);
 			break;
 		}
