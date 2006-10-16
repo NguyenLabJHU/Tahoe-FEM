@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.4 2006-10-10 19:55:23 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.5 2006-10-16 21:10:16 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -182,8 +182,9 @@ private:
 	dMatrixT fgrad_u, fgrad_u_n;
 	dArrayT fgrad_theta, fgrad_theta_n;
 	
-	dMatrixT fShapeSolid, fShapeSolidGrad;
-	dMatrixT fShapeFluid, fShapeFluidGrad;
+	dMatrixT fShapeSolid, fShapeSolidGrad, fShapeSolidGrad_temp;
+	dArrayT fShapeFluid;
+	dMatrixT fShapeFluidGrad;
 	
 	dMatrixT fDefGrad, fDefGradInv, fDefGradInvMatrix;
 
@@ -254,6 +255,17 @@ private:
 	dArrayT 	fFd_ext;
 	dArrayT		fFtheta_int;
 	dArrayT		fFtheta_ext;
+
+	dArrayT		fGRAD_disp;
+	dArrayT 	fDefGradInv_Vector;
+	dMatrixT	fDeformation_Gradient;
+	dMatrixT	fCauchy_Green_tensor;
+	dMatrixT	fCauchy_Green_tensor_Inverse;
+	dMatrixT	fDeformation_Gradient_Inverse;
+	dMatrixT	fDeformation_Gradient_Transpose;
+	dMatrixT	fDefGradInv_grad_GRAD;
+	dMatrixT	fDefGradInv_grad_GRAD_Transpose;
+	dMatrixT	fTest_matrix_A;
 
 	/** the solid displacement field */
 	const FieldT* fDispl;

@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.cpp,v 1.6 2006-10-10 19:55:23 regueiro Exp $ */
+/* Id: FSSolidFluidMixT.cpp,v 1.6 2006/10/10 19:55:23 regueiro Exp $ */
 #include "FSSolidFluidMixT.h"
 
 #include "OutputSetT.h"
@@ -592,6 +592,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
     Top();
     while (NextElement())
     {
+// the following line should be deleted later
+		davoud_out.open("davoud.info");
 		e = CurrElementNumber();
 		const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
 		const iArrayT& nodes_press = fElementCards_press[e].NodesU();
@@ -645,8 +647,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				const double* shapes_displ_X = fShapes_displ->IPShapeX();
 				fShapeSolid = 0.0;
 				fShapeSolid(0,0) = shapes_displ_X[0];
-				fShapeSolid(0,3) = shapes_displ_X[1];
-		/*		fShapeSolid(0,6) = shapes_displ_X[2];
+/*				fShapeSolid(0,3) = shapes_displ_X[1];
+				fShapeSolid(0,6) = shapes_displ_X[2];
 				fShapeSolid(0,9) = shapes_displ_X[3];
 				fShapeSolid(0,12) = shapes_displ_X[4];
 				fShapeSolid(0,15) = shapes_displ_X[5];
@@ -727,7 +729,360 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fShapeSolid(2,74) = shapes_displ_X[24];
 				fShapeSolid(2,77) = shapes_displ_X[25];
 				fShapeSolid(2,80) = shapes_displ_X[26]; */
-						
+// defining gradient of solid shape functions
+				fShapes_displ->GradNa(fShapeSolidGrad_temp);
+				fShapeSolidGrad = 0.0;
+
+				fShapeSolidGrad(0,0) = fShapeSolidGrad_temp(0,0);
+/*				fShapeSolidGrad(0,3) = fShapeSolidGrad_temp(0,1);
+				fShapeSolidGrad(0,6) = fShapeSolidGrad_temp(0,2);
+				fShapeSolidGrad(0,9) = fShapeSolidGrad_temp(0,3);
+				fShapeSolidGrad(0,12) = fShapeSolidGrad_temp(0,4);
+				fShapeSolidGrad(0,15) = fShapeSolidGrad_temp(0,5);
+				fShapeSolidGrad(0,18) = fShapeSolidGrad_temp(0,6);
+				fShapeSolidGrad(0,21) = fShapeSolidGrad_temp(0,7);
+				fShapeSolidGrad(0,24) = fShapeSolidGrad_temp(0,8);
+				fShapeSolidGrad(0,27) = fShapeSolidGrad_temp(0,9);
+				fShapeSolidGrad(0,30) = fShapeSolidGrad_temp(0,10);
+				fShapeSolidGrad(0,33) = fShapeSolidGrad_temp(0,11);
+				fShapeSolidGrad(0,36) = fShapeSolidGrad_temp(0,12);
+				fShapeSolidGrad(0,39) = fShapeSolidGrad_temp(0,13);
+				fShapeSolidGrad(0,42) = fShapeSolidGrad_temp(0,14);
+				fShapeSolidGrad(0,45) = fShapeSolidGrad_temp(0,15);
+				fShapeSolidGrad(0,48) = fShapeSolidGrad_temp(0,16);
+				fShapeSolidGrad(0,51) = fShapeSolidGrad_temp(0,17);
+				fShapeSolidGrad(0,54) = fShapeSolidGrad_temp(0,18);
+				fShapeSolidGrad(0,57) = fShapeSolidGrad_temp(0,19);
+				fShapeSolidGrad(0,60) = fShapeSolidGrad_temp(0,20);
+				fShapeSolidGrad(0,63) = fShapeSolidGrad_temp(0,21);
+				fShapeSolidGrad(0,66) = fShapeSolidGrad_temp(0,22);
+				fShapeSolidGrad(0,69) = fShapeSolidGrad_temp(0,23);
+				fShapeSolidGrad(0,72) = fShapeSolidGrad_temp(0,24);
+				fShapeSolidGrad(0,75) = fShapeSolidGrad_temp(0,25);
+				fShapeSolidGrad(0,78) = fShapeSolidGrad_temp(0,26);
+
+				fShapeSolidGrad(1,1) = fShapeSolidGrad_temp(0,0);
+				fShapeSolidGrad(1,4) = fShapeSolidGrad_temp(0,1);
+				fShapeSolidGrad(1,7) = fShapeSolidGrad_temp(0,2);
+				fShapeSolidGrad(1,10) = fShapeSolidGrad_temp(0,3);
+				fShapeSolidGrad(1,13) = fShapeSolidGrad_temp(0,4);
+				fShapeSolidGrad(1,16) = fShapeSolidGrad_temp(0,5);
+				fShapeSolidGrad(1,19) = fShapeSolidGrad_temp(0,6);
+				fShapeSolidGrad(1,22) = fShapeSolidGrad_temp(0,7);
+				fShapeSolidGrad(1,25) = fShapeSolidGrad_temp(0,8);
+				fShapeSolidGrad(1,28) = fShapeSolidGrad_temp(0,9);
+				fShapeSolidGrad(1,31) = fShapeSolidGrad_temp(0,10);
+				fShapeSolidGrad(1,34) = fShapeSolidGrad_temp(0,11);
+				fShapeSolidGrad(1,37) = fShapeSolidGrad_temp(0,12);
+				fShapeSolidGrad(1,40) = fShapeSolidGrad_temp(0,13);
+				fShapeSolidGrad(1,43) = fShapeSolidGrad_temp(0,14);
+				fShapeSolidGrad(1,46) = fShapeSolidGrad_temp(0,15);
+				fShapeSolidGrad(1,49) = fShapeSolidGrad_temp(0,16);
+				fShapeSolidGrad(1,52) = fShapeSolidGrad_temp(0,17);
+				fShapeSolidGrad(1,55) = fShapeSolidGrad_temp(0,18);
+				fShapeSolidGrad(1,58) = fShapeSolidGrad_temp(0,19);
+				fShapeSolidGrad(1,61) = fShapeSolidGrad_temp(0,20);
+				fShapeSolidGrad(1,64) = fShapeSolidGrad_temp(0,21);
+				fShapeSolidGrad(1,67) = fShapeSolidGrad_temp(0,22);
+				fShapeSolidGrad(1,70) = fShapeSolidGrad_temp(0,23);
+				fShapeSolidGrad(1,73) = fShapeSolidGrad_temp(0,24);
+				fShapeSolidGrad(1,76) = fShapeSolidGrad_temp(0,25);
+				fShapeSolidGrad(1,79) = fShapeSolidGrad_temp(0,26);
+
+
+				fShapeSolidGrad(2,2) = fShapeSolidGrad_temp(0,0);
+				fShapeSolidGrad(2,5) = fShapeSolidGrad_temp(0,1);
+				fShapeSolidGrad(2,8) = fShapeSolidGrad_temp(0,2);
+				fShapeSolidGrad(2,11) = fShapeSolidGrad_temp(0,3);
+				fShapeSolidGrad(2,14) = fShapeSolidGrad_temp(0,4);
+				fShapeSolidGrad(2,17) = fShapeSolidGrad_temp(0,5);
+				fShapeSolidGrad(2,20) = fShapeSolidGrad_temp(0,6);
+				fShapeSolidGrad(2,23) = fShapeSolidGrad_temp(0,7);
+				fShapeSolidGrad(2,26) = fShapeSolidGrad_temp(0,8);
+				fShapeSolidGrad(2,29) = fShapeSolidGrad_temp(0,9);
+				fShapeSolidGrad(2,32) = fShapeSolidGrad_temp(0,10);
+				fShapeSolidGrad(2,35) = fShapeSolidGrad_temp(0,11);
+				fShapeSolidGrad(2,38) = fShapeSolidGrad_temp(0,12);
+				fShapeSolidGrad(2,41) = fShapeSolidGrad_temp(0,13);
+				fShapeSolidGrad(2,44) = fShapeSolidGrad_temp(0,14);
+				fShapeSolidGrad(2,47) = fShapeSolidGrad_temp(0,15);
+				fShapeSolidGrad(2,50) = fShapeSolidGrad_temp(0,16);
+				fShapeSolidGrad(2,53) = fShapeSolidGrad_temp(0,17);
+				fShapeSolidGrad(2,56) = fShapeSolidGrad_temp(0,18);
+				fShapeSolidGrad(2,59) = fShapeSolidGrad_temp(0,19);
+				fShapeSolidGrad(2,62) = fShapeSolidGrad_temp(0,20);
+				fShapeSolidGrad(2,65) = fShapeSolidGrad_temp(0,21);
+				fShapeSolidGrad(2,68) = fShapeSolidGrad_temp(0,22);
+				fShapeSolidGrad(2,71) = fShapeSolidGrad_temp(0,23);
+				fShapeSolidGrad(2,74) = fShapeSolidGrad_temp(0,24);
+				fShapeSolidGrad(2,77) = fShapeSolidGrad_temp(0,25);
+				fShapeSolidGrad(2,80) = fShapeSolidGrad_temp(0,26);
+
+				fShapeSolidGrad(3,0) = fShapeSolidGrad_temp(1,0);
+				fShapeSolidGrad(3,3) = fShapeSolidGrad_temp(1,1);
+				fShapeSolidGrad(3,6) = fShapeSolidGrad_temp(1,2);
+				fShapeSolidGrad(3,9) = fShapeSolidGrad_temp(1,3);
+				fShapeSolidGrad(3,12) = fShapeSolidGrad_temp(1,4);
+				fShapeSolidGrad(3,15) = fShapeSolidGrad_temp(1,5);
+				fShapeSolidGrad(3,18) = fShapeSolidGrad_temp(1,6);
+				fShapeSolidGrad(3,21) = fShapeSolidGrad_temp(1,7);
+				fShapeSolidGrad(3,24) = fShapeSolidGrad_temp(1,8);
+				fShapeSolidGrad(3,27) = fShapeSolidGrad_temp(1,9);
+				fShapeSolidGrad(3,30) = fShapeSolidGrad_temp(1,10);
+				fShapeSolidGrad(3,33) = fShapeSolidGrad_temp(1,11);
+				fShapeSolidGrad(3,36) = fShapeSolidGrad_temp(1,12);
+				fShapeSolidGrad(3,39) = fShapeSolidGrad_temp(1,13);
+				fShapeSolidGrad(3,42) = fShapeSolidGrad_temp(1,14);
+				fShapeSolidGrad(3,45) = fShapeSolidGrad_temp(1,15);
+				fShapeSolidGrad(3,48) = fShapeSolidGrad_temp(1,16);
+				fShapeSolidGrad(3,51) = fShapeSolidGrad_temp(1,17);
+				fShapeSolidGrad(3,54) = fShapeSolidGrad_temp(1,18);
+				fShapeSolidGrad(3,57) = fShapeSolidGrad_temp(1,19);
+				fShapeSolidGrad(3,60) = fShapeSolidGrad_temp(1,20);
+				fShapeSolidGrad(3,63) = fShapeSolidGrad_temp(1,21);
+				fShapeSolidGrad(3,66) = fShapeSolidGrad_temp(1,22);
+				fShapeSolidGrad(3,69) = fShapeSolidGrad_temp(1,23);
+				fShapeSolidGrad(3,72) = fShapeSolidGrad_temp(1,24);
+				fShapeSolidGrad(3,75) = fShapeSolidGrad_temp(1,25);
+				fShapeSolidGrad(3,78) = fShapeSolidGrad_temp(1,26);
+
+				fShapeSolidGrad(4,1) = fShapeSolidGrad_temp(1,0);
+				fShapeSolidGrad(4,4) = fShapeSolidGrad_temp(1,1);
+				fShapeSolidGrad(4,7) = fShapeSolidGrad_temp(1,2);
+				fShapeSolidGrad(4,10) = fShapeSolidGrad_temp(1,3);
+				fShapeSolidGrad(4,13) = fShapeSolidGrad_temp(1,4);
+				fShapeSolidGrad(4,16) = fShapeSolidGrad_temp(1,5);
+				fShapeSolidGrad(4,19) = fShapeSolidGrad_temp(1,6);
+				fShapeSolidGrad(4,22) = fShapeSolidGrad_temp(1,7);
+				fShapeSolidGrad(4,25) = fShapeSolidGrad_temp(1,8);
+				fShapeSolidGrad(4,28) = fShapeSolidGrad_temp(1,9);
+				fShapeSolidGrad(4,31) = fShapeSolidGrad_temp(1,10);
+				fShapeSolidGrad(4,34) = fShapeSolidGrad_temp(1,11);
+				fShapeSolidGrad(4,37) = fShapeSolidGrad_temp(1,12);
+				fShapeSolidGrad(4,40) = fShapeSolidGrad_temp(1,13);
+				fShapeSolidGrad(4,43) = fShapeSolidGrad_temp(1,14);
+				fShapeSolidGrad(4,46) = fShapeSolidGrad_temp(1,15);
+				fShapeSolidGrad(4,49) = fShapeSolidGrad_temp(1,16);
+				fShapeSolidGrad(4,52) = fShapeSolidGrad_temp(1,17);
+				fShapeSolidGrad(4,55) = fShapeSolidGrad_temp(1,18);
+				fShapeSolidGrad(4,58) = fShapeSolidGrad_temp(1,19);
+				fShapeSolidGrad(4,61) = fShapeSolidGrad_temp(1,20);
+				fShapeSolidGrad(4,64) = fShapeSolidGrad_temp(1,21);
+				fShapeSolidGrad(4,67) = fShapeSolidGrad_temp(1,22);
+				fShapeSolidGrad(4,70) = fShapeSolidGrad_temp(1,23);
+				fShapeSolidGrad(4,73) = fShapeSolidGrad_temp(1,24);
+				fShapeSolidGrad(4,76) = fShapeSolidGrad_temp(1,25);
+				fShapeSolidGrad(4,79) = fShapeSolidGrad_temp(1,26);
+
+				fShapeSolidGrad(5,2) = fShapeSolidGrad_temp(1,0);
+				fShapeSolidGrad(5,5) = fShapeSolidGrad_temp(1,1);
+				fShapeSolidGrad(5,8) = fShapeSolidGrad_temp(1,2);
+				fShapeSolidGrad(5,11) = fShapeSolidGrad_temp(1,3);
+				fShapeSolidGrad(5,14) = fShapeSolidGrad_temp(1,4);
+				fShapeSolidGrad(5,17) = fShapeSolidGrad_temp(1,5);
+				fShapeSolidGrad(5,20) = fShapeSolidGrad_temp(1,6);
+				fShapeSolidGrad(5,23) = fShapeSolidGrad_temp(1,7);
+				fShapeSolidGrad(5,26) = fShapeSolidGrad_temp(1,8);
+				fShapeSolidGrad(5,29) = fShapeSolidGrad_temp(1,9);
+				fShapeSolidGrad(5,32) = fShapeSolidGrad_temp(1,10);
+				fShapeSolidGrad(5,35) = fShapeSolidGrad_temp(1,11);
+				fShapeSolidGrad(5,38) = fShapeSolidGrad_temp(1,12);
+				fShapeSolidGrad(5,41) = fShapeSolidGrad_temp(1,13);
+				fShapeSolidGrad(5,44) = fShapeSolidGrad_temp(1,14);
+				fShapeSolidGrad(5,47) = fShapeSolidGrad_temp(1,15);
+				fShapeSolidGrad(5,50) = fShapeSolidGrad_temp(1,16);
+				fShapeSolidGrad(5,53) = fShapeSolidGrad_temp(1,17);
+				fShapeSolidGrad(5,56) = fShapeSolidGrad_temp(1,18);
+				fShapeSolidGrad(5,59) = fShapeSolidGrad_temp(1,19);
+				fShapeSolidGrad(5,62) = fShapeSolidGrad_temp(1,20);
+				fShapeSolidGrad(5,65) = fShapeSolidGrad_temp(1,21);
+				fShapeSolidGrad(5,68) = fShapeSolidGrad_temp(1,22);
+				fShapeSolidGrad(5,71) = fShapeSolidGrad_temp(1,23);
+				fShapeSolidGrad(5,74) = fShapeSolidGrad_temp(1,24);
+				fShapeSolidGrad(5,77) = fShapeSolidGrad_temp(1,25);
+				fShapeSolidGrad(5,80) = fShapeSolidGrad_temp(1,26);
+
+				fShapeSolidGrad(6,0) = fShapeSolidGrad_temp(2,0);
+				fShapeSolidGrad(6,3) = fShapeSolidGrad_temp(2,1);
+				fShapeSolidGrad(6,6) = fShapeSolidGrad_temp(2,2);
+				fShapeSolidGrad(6,9) = fShapeSolidGrad_temp(2,3);
+				fShapeSolidGrad(6,12) = fShapeSolidGrad_temp(2,4);
+				fShapeSolidGrad(6,15) = fShapeSolidGrad_temp(2,5);
+				fShapeSolidGrad(6,18) = fShapeSolidGrad_temp(2,6);
+				fShapeSolidGrad(6,21) = fShapeSolidGrad_temp(2,7);
+				fShapeSolidGrad(6,24) = fShapeSolidGrad_temp(2,8);
+				fShapeSolidGrad(6,27) = fShapeSolidGrad_temp(2,9);
+				fShapeSolidGrad(6,30) = fShapeSolidGrad_temp(2,10);
+				fShapeSolidGrad(6,33) = fShapeSolidGrad_temp(2,11);
+				fShapeSolidGrad(6,36) = fShapeSolidGrad_temp(2,12);
+				fShapeSolidGrad(6,39) = fShapeSolidGrad_temp(2,13);
+				fShapeSolidGrad(6,42) = fShapeSolidGrad_temp(2,14);
+				fShapeSolidGrad(6,45) = fShapeSolidGrad_temp(2,15);
+				fShapeSolidGrad(6,48) = fShapeSolidGrad_temp(2,16);
+				fShapeSolidGrad(6,51) = fShapeSolidGrad_temp(2,17);
+				fShapeSolidGrad(6,54) = fShapeSolidGrad_temp(2,18);
+				fShapeSolidGrad(6,57) = fShapeSolidGrad_temp(2,19);
+				fShapeSolidGrad(6,60) = fShapeSolidGrad_temp(2,20);
+				fShapeSolidGrad(6,63) = fShapeSolidGrad_temp(2,21);
+				fShapeSolidGrad(6,66) = fShapeSolidGrad_temp(2,22);
+				fShapeSolidGrad(6,69) = fShapeSolidGrad_temp(2,23);
+				fShapeSolidGrad(6,72) = fShapeSolidGrad_temp(2,24);
+				fShapeSolidGrad(6,75) = fShapeSolidGrad_temp(2,25);
+				fShapeSolidGrad(6,78) = fShapeSolidGrad_temp(2,26);
+
+				fShapeSolidGrad(7,1) = fShapeSolidGrad_temp(2,0);
+				fShapeSolidGrad(7,4) = fShapeSolidGrad_temp(2,1);
+				fShapeSolidGrad(7,7) = fShapeSolidGrad_temp(2,2);
+				fShapeSolidGrad(7,10) = fShapeSolidGrad_temp(2,3);
+				fShapeSolidGrad(7,13) = fShapeSolidGrad_temp(2,4);
+				fShapeSolidGrad(7,16) = fShapeSolidGrad_temp(2,5);
+				fShapeSolidGrad(7,19) = fShapeSolidGrad_temp(2,6);
+				fShapeSolidGrad(7,22) = fShapeSolidGrad_temp(2,7);
+				fShapeSolidGrad(7,25) = fShapeSolidGrad_temp(2,8);
+				fShapeSolidGrad(7,28) = fShapeSolidGrad_temp(2,9);
+				fShapeSolidGrad(7,31) = fShapeSolidGrad_temp(2,10);
+				fShapeSolidGrad(7,34) = fShapeSolidGrad_temp(2,11);
+				fShapeSolidGrad(7,37) = fShapeSolidGrad_temp(2,12);
+				fShapeSolidGrad(7,40) = fShapeSolidGrad_temp(2,13);
+				fShapeSolidGrad(7,43) = fShapeSolidGrad_temp(2,14);
+				fShapeSolidGrad(7,46) = fShapeSolidGrad_temp(2,15);
+				fShapeSolidGrad(7,49) = fShapeSolidGrad_temp(2,16);
+				fShapeSolidGrad(7,52) = fShapeSolidGrad_temp(2,17);
+				fShapeSolidGrad(7,55) = fShapeSolidGrad_temp(2,18);
+				fShapeSolidGrad(7,58) = fShapeSolidGrad_temp(2,19);
+				fShapeSolidGrad(7,61) = fShapeSolidGrad_temp(2,20);
+				fShapeSolidGrad(7,64) = fShapeSolidGrad_temp(2,21);
+				fShapeSolidGrad(7,67) = fShapeSolidGrad_temp(2,22);
+				fShapeSolidGrad(7,70) = fShapeSolidGrad_temp(2,23);
+				fShapeSolidGrad(7,73) = fShapeSolidGrad_temp(2,24);
+				fShapeSolidGrad(7,76) = fShapeSolidGrad_temp(2,25);
+				fShapeSolidGrad(7,79) = fShapeSolidGrad_temp(2,26);
+
+				fShapeSolidGrad(8,2) = fShapeSolidGrad_temp(2,0);
+				fShapeSolidGrad(8,5) = fShapeSolidGrad_temp(2,1);
+				fShapeSolidGrad(8,8) = fShapeSolidGrad_temp(2,2);
+				fShapeSolidGrad(8,11) = fShapeSolidGrad_temp(2,3);
+				fShapeSolidGrad(8,14) = fShapeSolidGrad_temp(2,4);
+				fShapeSolidGrad(8,17) = fShapeSolidGrad_temp(2,5);
+				fShapeSolidGrad(8,20) = fShapeSolidGrad_temp(2,6);
+				fShapeSolidGrad(8,23) = fShapeSolidGrad_temp(2,7);
+				fShapeSolidGrad(8,26) = fShapeSolidGrad_temp(2,8);
+				fShapeSolidGrad(8,29) = fShapeSolidGrad_temp(2,9);
+				fShapeSolidGrad(8,32) = fShapeSolidGrad_temp(2,10);
+				fShapeSolidGrad(8,35) = fShapeSolidGrad_temp(2,11);
+				fShapeSolidGrad(8,38) = fShapeSolidGrad_temp(2,12);
+				fShapeSolidGrad(8,41) = fShapeSolidGrad_temp(2,13);
+				fShapeSolidGrad(8,44) = fShapeSolidGrad_temp(2,14);
+				fShapeSolidGrad(8,47) = fShapeSolidGrad_temp(2,15);
+				fShapeSolidGrad(8,50) = fShapeSolidGrad_temp(2,16);
+				fShapeSolidGrad(8,53) = fShapeSolidGrad_temp(2,17);
+				fShapeSolidGrad(8,56) = fShapeSolidGrad_temp(2,18);
+				fShapeSolidGrad(8,59) = fShapeSolidGrad_temp(2,19);
+				fShapeSolidGrad(8,62) = fShapeSolidGrad_temp(2,20);
+				fShapeSolidGrad(8,65) = fShapeSolidGrad_temp(2,21);
+				fShapeSolidGrad(8,68) = fShapeSolidGrad_temp(2,22);
+				fShapeSolidGrad(8,71) = fShapeSolidGrad_temp(2,23);
+				fShapeSolidGrad(8,74) = fShapeSolidGrad_temp(2,24);
+				fShapeSolidGrad(8,77) = fShapeSolidGrad_temp(2,25);
+				fShapeSolidGrad(8,80) = fShapeSolidGrad_temp(2,26); */
+
+// defining fluid shape functions
+				const double* shapes_press_X = fShapes_press ->IPShapeX();
+				fShapeFluid = 0.0;
+				fShapeFluid(0) = shapes_press_X[0];
+/*				fShapeFluid(1) = shapes_press_X[1];
+				fShapeFluid(2) = shapes_press_X[2];
+				fShapeFluid(3) = shapes_press_X[3];
+				fShapeFluid(4) = shapes_press_X[4];	
+				fShapeFluid(5) = shapes_press_X[5];	
+				fShapeFluid(6) = shapes_press_X[6];	
+				fShapeFluid(7) = shapes_press_X[7];	*/
+
+// defining gradient of fluid shape functions
+				fShapes_press ->GradNa(fShapeFluidGrad);
+
+// forming deformation gradient tensor
+				fShapeSolidGrad.Multx(del_u_vec,fGRAD_disp);
+				fDeformation_Gradient(0,0) = fGRAD_disp(0)+1.0;
+/*				fDeformation_Gradient(0,1) = fGRAD_disp(3); 
+				fDeformation_Gradient(0,2) = fGRAD_disp(6);
+				fDeformation_Gradient(1,0) = fGRAD_disp(1);
+				fDeformation_Gradient(1,1) = fGRAD_disp(4)+1.0;  
+				fDeformation_Gradient(1,2) = fGRAD_disp(7);
+				fDeformation_Gradient(2,0) = fGRAD_disp(2);
+				fDeformation_Gradient(2,1) = fGRAD_disp(5);
+				fDeformation_Gradient(2,2) = fGRAD_disp(8)+1.0; */
+
+// forming inverse and transpose of deformation gradient
+				fDeformation_Gradient_Inverse.Inverse(fDeformation_Gradient);
+				fDeformation_Gradient_Transpose.Transpose(fDeformation_Gradient);
+
+// forming matrix of inverse deformation gradient tensor which is used to change GRAD to grad
+				fDefGradInv_grad_GRAD = 0.0;
+				fDefGradInv_grad_GRAD(0,0) = fDeformation_Gradient_Inverse(0,0);
+/*				fDefGradInv_grad_GRAD(0,3) = fDeformation_Gradient_Inverse(0,1);
+				fDefGradInv_grad_GRAD(0,6) = fDeformation_Gradient_Inverse(0,2);
+				fDefGradInv_grad_GRAD(1,1) = fDeformation_Gradient_Inverse(0,0);
+				fDefGradInv_grad_GRAD(1,4) = fDeformation_Gradient_Inverse(0,1);
+				fDefGradInv_grad_GRAD(1,7) = fDeformation_Gradient_Inverse(0,2);
+				fDefGradInv_grad_GRAD(2,2) = fDeformation_Gradient_Inverse(0,0);
+				fDefGradInv_grad_GRAD(2,5) = fDeformation_Gradient_Inverse(0,1);
+				fDefGradInv_grad_GRAD(2,8) = fDeformation_Gradient_Inverse(0,2);
+				fDefGradInv_grad_GRAD(3,0) = fDeformation_Gradient_Inverse(1,0);
+				fDefGradInv_grad_GRAD(3,3) = fDeformation_Gradient_Inverse(1,1);
+				fDefGradInv_grad_GRAD(3,6) = fDeformation_Gradient_Inverse(1,2);
+				fDefGradInv_grad_GRAD(4,1) = fDeformation_Gradient_Inverse(1,0);
+				fDefGradInv_grad_GRAD(4,4) = fDeformation_Gradient_Inverse(1,1);
+				fDefGradInv_grad_GRAD(4,7) = fDeformation_Gradient_Inverse(1,2);
+				fDefGradInv_grad_GRAD(5,2) = fDeformation_Gradient_Inverse(1,0);
+				fDefGradInv_grad_GRAD(5,5) = fDeformation_Gradient_Inverse(1,1);
+				fDefGradInv_grad_GRAD(5,8) = fDeformation_Gradient_Inverse(1,2);
+				fDefGradInv_grad_GRAD(6,0) = fDeformation_Gradient_Inverse(2,0);
+				fDefGradInv_grad_GRAD(6,3) = fDeformation_Gradient_Inverse(2,1);
+				fDefGradInv_grad_GRAD(6,6) = fDeformation_Gradient_Inverse(2,2);
+				fDefGradInv_grad_GRAD(7,1) = fDeformation_Gradient_Inverse(2,0);
+				fDefGradInv_grad_GRAD(7,4) = fDeformation_Gradient_Inverse(2,1);
+				fDefGradInv_grad_GRAD(7,7) = fDeformation_Gradient_Inverse(2,2);
+				fDefGradInv_grad_GRAD(8,2) = fDeformation_Gradient_Inverse(2,0);
+				fDefGradInv_grad_GRAD(8,5) = fDeformation_Gradient_Inverse(2,1);
+				fDefGradInv_grad_GRAD(8,8) = fDeformation_Gradient_Inverse(2,2); */
+
+// forming transpose matrix of inverse deformation gradient tensor which is used to change GRAD to grad
+				fDefGradInv_grad_GRAD_Transpose.Transpose(fDefGradInv_grad_GRAD);
+
+// calculating Jacobian
+				double J = fDeformation_Gradient.Det();
+
+// forming vector of inverse deformation gradient tensor
+				fDefGradInv_Vector(0) = fDeformation_Gradient_Inverse(0,0);
+/*				fDefGradInv_Vector(1) = fDeformation_Gradient_Inverse(0,1);
+				fDefGradInv_Vector(2) = fDeformation_Gradient_Inverse(0,2);
+				fDefGradInv_Vector(3) = fDeformation_Gradient_Inverse(1,0);
+				fDefGradInv_Vector(4) = fDeformation_Gradient_Inverse(1,1);
+				fDefGradInv_Vector(5) = fDeformation_Gradient_Inverse(1,2);
+				fDefGradInv_Vector(6) = fDeformation_Gradient_Inverse(2,0);
+				fDefGradInv_Vector(7) = fDeformation_Gradient_Inverse(2,1);
+				fDefGradInv_Vector(8) = fDeformation_Gradient_Inverse(2,2); */
+//
+				fTest_matrix_A(0,0)=5;
+				fTest_matrix_A(0,1)=7;
+				fTest_matrix_A(1,0)=9;
+				fTest_matrix_A(1,1)=11;
+				davoud_out	<< fTest_matrix_A << endl;
+//				davoud_out	<< endl << endl;
+/*				davoud_out = fs_mix_out * 3;
+				davoud_out	<< fTest_matrix_A << endl;
+				davoud_out	<< endl << endl;		*/
+
+
+// forming Cauchy Green tensor
+				fCauchy_Green_tensor.MultAB(fDeformation_Gradient_Transpose, fDeformation_Gradient);
+
+// forming Inverse of Cauchy Green tensor
+				fCauchy_Green_tensor_Inverse.Inverse(fCauchy_Green_tensor);
+
+ 
+// defining F_1_T
 				/* for debugging */
 				const int ip = fShapes_displ->CurrIP()+1;
 				fs_mix_out	<< endl << "IP" << ip
@@ -1040,8 +1395,21 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
 	
     /* workspace matricies */
     fShapeSolid.Dimension (n_sd, n_en_displ_x_n_sd);
+    fShapeFluid.Dimension (n_en_press);
     n_sd_x_n_sd = n_sd*n_sd;
+    fShapeSolidGrad_temp.Dimension (n_sd, n_en_displ);
     fShapeSolidGrad.Dimension (n_sd_x_n_sd, n_en_displ_x_n_sd);
+    fShapeFluidGrad.Dimension (n_sd, n_en_press);
+    fDeformation_Gradient.Dimension (n_sd,n_sd);
+    fGRAD_disp.Dimension (n_sd_x_n_sd);
+    fDeformation_Gradient_Inverse.Dimension (n_sd,n_sd);
+    fDeformation_Gradient_Transpose.Dimension (n_sd,n_sd);
+    fDefGradInv_grad_GRAD.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+    fDefGradInv_grad_GRAD_Transpose.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+    fDefGradInv_Vector.Dimension (n_sd_x_n_sd);
+    fCauchy_Green_tensor.Dimension (n_sd,n_sd);
+    fCauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
+    fTest_matrix_A.Dimension (2,2);
 
     /* streams */
     ofstreamT& out = ElementSupport().Output();
