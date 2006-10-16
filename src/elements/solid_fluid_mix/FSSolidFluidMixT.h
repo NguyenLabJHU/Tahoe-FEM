@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.5 2006-10-16 21:10:16 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.6 2006-10-16 22:24:26 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -258,6 +258,7 @@ private:
 
 	dArrayT		fGRAD_disp;
 	dArrayT 	fDefGradInv_Vector;
+	
 	dMatrixT	fDeformation_Gradient;
 	dMatrixT	fCauchy_Green_tensor;
 	dMatrixT	fCauchy_Green_tensor_Inverse;

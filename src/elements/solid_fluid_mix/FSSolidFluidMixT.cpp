@@ -592,8 +592,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
     Top();
     while (NextElement())
     {
-// the following line should be deleted later
-		davoud_out.open("davoud.info");
 		e = CurrElementNumber();
 		const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
 		const iArrayT& nodes_press = fElementCards_press[e].NodesU();
@@ -987,9 +985,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fShapeSolidGrad(8,80) = fShapeSolidGrad_temp(2,26); */
 
 // defining fluid shape functions
-				const double* shapes_press_X = fShapes_press ->IPShapeX();
+				//const double* shapes_press_X = fShapes_press->IPShapeX();
 				fShapeFluid = 0.0;
-				fShapeFluid(0) = shapes_press_X[0];
+				//fShapeFluid[0] = shapes_press_X[0];
 /*				fShapeFluid(1) = shapes_press_X[1];
 				fShapeFluid(2) = shapes_press_X[2];
 				fShapeFluid(3) = shapes_press_X[3];
@@ -999,11 +997,11 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fShapeFluid(7) = shapes_press_X[7];	*/
 
 // defining gradient of fluid shape functions
-				fShapes_press ->GradNa(fShapeFluidGrad);
+				//fShapes_press->GradNa(fShapeFluidGrad);
 
 // forming deformation gradient tensor
 				fShapeSolidGrad.Multx(del_u_vec,fGRAD_disp);
-				fDeformation_Gradient(0,0) = fGRAD_disp(0)+1.0;
+				fDeformation_Gradient(0,0) = fGRAD_disp[0]+1.0;
 /*				fDeformation_Gradient(0,1) = fGRAD_disp(3); 
 				fDeformation_Gradient(0,2) = fGRAD_disp(6);
 				fDeformation_Gradient(1,0) = fGRAD_disp(1);
@@ -1054,7 +1052,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				double J = fDeformation_Gradient.Det();
 
 // forming vector of inverse deformation gradient tensor
-				fDefGradInv_Vector(0) = fDeformation_Gradient_Inverse(0,0);
+				fDefGradInv_Vector[0] = fDeformation_Gradient_Inverse(0,0);
 /*				fDefGradInv_Vector(1) = fDeformation_Gradient_Inverse(0,1);
 				fDefGradInv_Vector(2) = fDeformation_Gradient_Inverse(0,2);
 				fDefGradInv_Vector(3) = fDeformation_Gradient_Inverse(1,0);
@@ -1068,11 +1066,11 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fTest_matrix_A(0,1)=7;
 				fTest_matrix_A(1,0)=9;
 				fTest_matrix_A(1,1)=11;
-				davoud_out	<< fTest_matrix_A << endl;
-//				davoud_out	<< endl << endl;
-/*				davoud_out = fs_mix_out * 3;
-				davoud_out	<< fTest_matrix_A << endl;
-				davoud_out	<< endl << endl;		*/
+				fs_mix_out	<< fTest_matrix_A << endl;
+//				fs_mix_out	<< endl << endl;
+/*				fs_mix_out = fs_mix_out * 3;
+				fs_mix_out	<< fTest_matrix_A << endl;
+				fs_mix_out	<< endl << endl;		*/
 
 
 // forming Cauchy Green tensor
@@ -1088,9 +1086,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fs_mix_out	<< endl << "IP" << ip
 						<< setw(outputFileWidth) << ", shape function matrix for solid phase: " 
 						<< setw(outputFileWidth) << fShapeSolid;
-				cout		<< endl << "shape function matrix for solid phase: " 
-						<< setw(outputFileWidth) << fShapeSolid;
-									
+				
 				fs_mix_out	<< endl << "terms from shape function matrix for solid phase: " 
 						<< setw(outputFileWidth) << fShapeSolid(0,0) 
 						<< setw(outputFileWidth) << fShapeSolid(0,3);			
