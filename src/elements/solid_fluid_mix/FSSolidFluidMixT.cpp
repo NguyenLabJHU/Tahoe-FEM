@@ -635,12 +635,18 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    const double* Det    = fShapes_displ->IPDets();
 		    const double* Weight = fShapes_displ->IPWeights();
 		    fShapes_displ->TopIP();
-		    while (fShapes_displ->NextIP())
+		    fShapes_press->TopIP();
+		    while (fShapes_displ->NextIP() && fShapes_press->NextIP())
 		    {
 				//nothing right now for fKdtheta, fKdd, fFd_int
 				fKdd=0.0;
 				fKdtheta=0.0;
 				fFd_int=0.0;
+				
+				//nothing right now for fKthetatheta, fKthetad, fFtheta_int
+				fKthetad=0.0;
+				fKthetatheta=0.0;
+				fFtheta_int=0.0;
 						
 				const double* shapes_displ_X = fShapes_displ->IPShapeX();
 				fShapeSolid = 0.0;
@@ -985,9 +991,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fShapeSolidGrad(8,80) = fShapeSolidGrad_temp(2,26); */
 
 // defining fluid shape functions
-				//const double* shapes_press_X = fShapes_press->IPShapeX();
+				const double* shapes_press_X = fShapes_press->IPShapeX();
 				fShapeFluid = 0.0;
-				//fShapeFluid[0] = shapes_press_X[0];
+				fShapeFluid[0] = shapes_press_X[0];
 /*				fShapeFluid(1) = shapes_press_X[1];
 				fShapeFluid(2) = shapes_press_X[2];
 				fShapeFluid(3) = shapes_press_X[3];
@@ -997,7 +1003,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fShapeFluid(7) = shapes_press_X[7];	*/
 
 // defining gradient of fluid shape functions
-				//fShapes_press->GradNa(fShapeFluidGrad);
+				fShapes_press->GradNa(fShapeFluidGrad);
 
 // forming deformation gradient tensor
 				fShapeSolidGrad.Multx(del_u_vec,fGRAD_disp);
@@ -1090,15 +1096,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fs_mix_out	<< endl << "terms from shape function matrix for solid phase: " 
 						<< setw(outputFileWidth) << fShapeSolid(0,0) 
 						<< setw(outputFileWidth) << fShapeSolid(0,3);			
-		    }
-				
-		    fShapes_displ->TopIP();
-		    while (fShapes_displ->NextIP())
-		    {
-				//nothing right now for fKthetatheta, fKthetad, fFtheta_int
-				fKthetad=0.0;
-				fKthetatheta=0.0;
-				fFtheta_int=0.0;
 		    }
 
 		    /* equations numbers */
@@ -1284,33 +1281,33 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     //if (n_sd == 2 && nen == 8 && fGeometryCode_displ == GeometryT::kQuadrilateral) 
     if (n_sd == 3 && n_en_press != n_en_displ && fGeometryCode_displ == GeometryT::kHexahedron) 
     {
-	// don't expect reduced integration for both fields 
-	// if (n_ip_displ == 4 && n_ip_press == 4)
-	//	ExceptionT::GeneralFail(caller, "not expecting 4 ips for both fields");
-	//else if (n_ip_displ == 4 || n_ip_press == 4) // create reduced connectivities
-	//{ 
-	// reduce the number of element nodes based on the number ip's
-	int& nen_red = (n_ip_displ == 8) ? n_en_displ : n_en_press;
-	nen_red = 8;
-	ArrayT<const iArray2DT*>& connects_red = (n_ip_displ == 8) ? 
-	    fConnectivities_displ : 
-	    fConnectivities_press;
-		
-	//create reduced connectivities
-	connects_red.Dimension(0);
-	connects_red.Dimension(fConnectivities.Length());
-	fConnectivities_reduced.Dimension(fConnectivities.Length());
-	for (int i = 0; i < fConnectivities_reduced.Length(); i++) {
-	    iArray2DT& connects_red_store = fConnectivities_reduced[i];
-	    const iArray2DT& connects = *(fConnectivities[i]);
-	    connects_red_store.Dimension(connects.MajorDim(), nen_red);				
-	    connects_red[i] = &connects_red_store;
-				
-	    //take 1st eight element nodes (columns)
-	    for (int j = 0; j < nen_red; j++)
-		connects_red_store.ColumnCopy(j, connects, j);
-	}
-	//}
+		// don't expect reduced integration for both fields 
+		// if (n_ip_displ == 4 && n_ip_press == 4)
+		//	ExceptionT::GeneralFail(caller, "not expecting 4 ips for both fields");
+		//else if (n_ip_displ == 4 || n_ip_press == 4) // create reduced connectivities
+		//{ 
+		// reduce the number of element nodes based on the number ip's
+		int& nen_red = (n_ip_displ == 8) ? n_en_displ : n_en_press;
+		nen_red = 8;
+		ArrayT<const iArray2DT*>& connects_red = (n_ip_displ == 8) ? 
+		    fConnectivities_displ : 
+		    fConnectivities_press;
+			
+		//create reduced connectivities
+		connects_red.Dimension(0);
+		connects_red.Dimension(fConnectivities.Length());
+		fConnectivities_reduced.Dimension(fConnectivities.Length());
+		for (int i = 0; i < fConnectivities_reduced.Length(); i++) {
+		    iArray2DT& connects_red_store = fConnectivities_reduced[i];
+		    const iArray2DT& connects = *(fConnectivities[i]);
+		    connects_red_store.Dimension(connects.MajorDim(), nen_red);				
+		    connects_red[i] = &connects_red_store;
+					
+		    //take 1st eight element nodes (columns)
+		    for (int j = 0; j < nen_red; j++)
+			connects_red_store.ColumnCopy(j, connects, j);
+		}
+		//}
     }
 	
 
