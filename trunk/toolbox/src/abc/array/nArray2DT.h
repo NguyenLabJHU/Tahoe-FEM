@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.25 2006-06-19 15:25:34 r-jones Exp $ */
+/* $Id: nArray2DT.h,v 1.26 2006-10-20 19:57:03 tdnguye Exp $ */
 /* created: paklein (07/09/1996) */
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
@@ -714,7 +714,7 @@ nTYPE nArray2DT<nTYPE>::DotRow(int row, const nTYPE* array) const
 		temp  = *p++;
 		temp *= *array++;
 	
-		sum  += temp;
+		sum  += temp;		
 	}
 	return sum;
 }

@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.20 2005-07-29 03:09:33 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.21 2006-10-20 19:57:03 tdnguye Exp $ */
 /* created: paklein (05/24/1996) */
 #include "dMatrixT.h"
 #include <iostream.h>
@@ -530,6 +530,80 @@ void dMatrixT::ReducedI_C(const dSymMatrixT& C)
 
 	}
 }
+
+void dMatrixT::ReducedI_AB(const dSymMatrixT& A, const dSymMatrixT& B)
+{
+      int nummod = dSymMatrixT::NumValues(A.Rows());
+
+#if __option (extended_errorcheck)
+	/* check */
+	if (fRows != fCols || fCols < nummod || A.Rows() != B.Rows()) ExceptionT::GeneralFail(caller);
+#endif
+	
+	const double* pA = A.Pointer();
+	const double* pB = B.Pointer();
+//	fArray = 0.0;
+
+	if (nummod == 3)
+	{
+		fArray[0] = pA[0]*pB[0];
+		fArray[1] = pA[2]*pB[2];
+		fArray[2] = pA[0]*pB[2];
+	
+		fArray[3] = pA[2]*pB[2];
+		fArray[4] = pA[1]*pB[1];
+		fArray[5] = pA[2]*pB[1];
+
+		fArray[6] = 0.5*(pA[0]*pB[2] + pA[2]*pB[0]);
+		fArray[7] = 0.5*(pA[2]*pB[1] + pA[1]*pB[2]);
+		fArray[8] = 0.5*(pA[0]*pB[1] + pA[2]*pB[2]);
+	}
+	else
+	{
+		fArray[0] = pA[0]*pB[0];
+		fArray[1] = pA[5]*pB[5];
+		fArray[2] = pA[4]*pB[4];
+		fArray[3] = pA[5]*pB[4];
+		fArray[4] = pA[0]*pB[4];
+		fArray[5] = pA[0]*pB[5];
+
+		fArray[6] = pA[5]*pB[5];
+		fArray[7] = pA[1]*pB[1];
+		fArray[8] = pA[3]*pB[3];
+		fArray[9] = pA[1]*pB[3];
+		fArray[10] = pA[5]*pB[3];
+		fArray[11] = pA[5]*pB[1];
+
+		fArray[12] = pA[4]*pB[4];
+		fArray[13] = pA[3]*pB[3];
+		fArray[14] = pA[2]*pB[2];
+		fArray[15] = pA[3]*pB[2];
+		fArray[16] = pA[4]*pB[2];
+		fArray[17] = pA[4]*pB[3];
+
+		fArray[18] = 0.5*(pA[5]*pB[4] + pA[4]*pB[5]);
+		fArray[19] = 0.5*(pA[1]*pB[3] + pA[3]*pB[1]);
+		fArray[20] = 0.5*(pA[3]*pB[2] + pA[2]*pB[3]);
+		fArray[21] = 0.5*(pA[1]*pB[2] + pA[3]*pB[3]);
+		fArray[22] = 0.5*(pA[5]*pB[2] + pA[4]*pB[3]);
+		fArray[23] = 0.5*(pA[5]*pB[3] + pA[4]*pB[1]);
+	
+		fArray[24] = 0.5*(pA[0]*pB[4] + pA[4]*pB[0]);
+		fArray[25] = 0.5*(pA[5]*pB[3] + pA[3]*pB[5]);
+		fArray[26] = 0.5*(pA[4]*pB[2] + pA[2]*pB[4]);
+		fArray[27] = 0.5*(pA[5]*pB[2] + pA[3]*pB[4]);
+		fArray[28] = 0.5*(pA[0]*pB[2] + pA[4]*pB[4]);
+		fArray[29] = 0.5*(pA[0]*pB[3] + pA[4]*pB[5]);
+
+		fArray[30] = 0.5*(pA[0]*pB[5] + pA[5]*pB[0]);
+		fArray[31] = 0.5*(pA[5]*pB[1] + pA[1]*pB[5]);
+		fArray[32] = 0.5*(pA[4]*pB[3] + pA[3]*pB[4]);
+		fArray[33] = 0.5*(pA[5]*pB[3] + pA[1]*pB[4]);
+		fArray[34] = 0.5*(pA[0]*pB[3] + pA[5]*pB[4]);
+		fArray[35] = 0.5*(pA[0]*pB[1] + pB[5]*pB[5]);
+	}
+}
+
 /*Evaluates A x B where A and B are both symmetric matrices*/
 dMatrixT&  dMatrixT::DyadAB(const dSymMatrixT& A, const dSymMatrixT& B)
 {
@@ -543,12 +617,71 @@ dMatrixT&  dMatrixT::DyadAB(const dSymMatrixT& A, const dSymMatrixT& B)
 	double* pthis = fArray;
 	const double* pB = B.Pointer();
 	
-	for (int i = 0; i < nummod; i++)
+	if (B.Rows() == 2)
 	{
-	     const double* pA = A.Pointer();
-	     for (int j  = 0; j < nummod; j++)
-	            *pthis++ = (*pA++) * (*pB);
-	     pB++;
+		fArray[0] = A[0]*B[0];
+		fArray[1] = A[1]*B[0];
+		fArray[2] = A[2]*B[0];
+		fArray[3] = A[0]*B[1];
+		fArray[4] = A[1]*B[1];
+		fArray[5] = A[2]*B[1];
+		fArray[6] = A[0]*B[2];
+		fArray[7] = A[1]*B[2];
+		fArray[8] = A[2]*B[2];
+	}
+	else if (B.Rows() == 3)
+	{
+		fArray[0] = A[0]*B[0];
+		fArray[1] = A[1]*B[0];
+		fArray[2] = A[2]*B[0];
+		fArray[3] = A[3]*B[0];
+		fArray[4] = A[4]*B[0];
+		fArray[5] = A[5]*B[0];
+
+		fArray[6] = A[0]*B[1];
+		fArray[7] = A[1]*B[1];
+		fArray[8] = A[2]*B[1];
+		fArray[9] = A[3]*B[1];
+		fArray[10] = A[4]*B[1];
+		fArray[11] = A[5]*B[1];
+
+		fArray[12] = A[0]*B[2];
+		fArray[13] = A[1]*B[2];
+		fArray[14] = A[2]*B[2];
+		fArray[15] = A[3]*B[2];
+		fArray[16] = A[4]*B[2];
+		fArray[17] = A[5]*B[2];
+
+		fArray[18] = A[0]*B[3];
+		fArray[19] = A[1]*B[3];
+		fArray[20] = A[2]*B[3];
+		fArray[21] = A[3]*B[3];
+		fArray[22] = A[4]*B[3];
+		fArray[23] = A[5]*B[3];
+
+		fArray[24] = A[0]*B[4];
+		fArray[25] = A[1]*B[4];
+		fArray[26] = A[2]*B[4];
+		fArray[27] = A[3]*B[4];
+		fArray[28] = A[4]*B[4];
+		fArray[29] = A[5]*B[4];
+		
+		fArray[30] = A[0]*B[5];
+		fArray[31] = A[1]*B[5];
+		fArray[32] = A[2]*B[5];
+		fArray[33] = A[3]*B[5];
+		fArray[34] = A[4]*B[5];
+		fArray[35] = A[5]*B[5];
+	}
+	else
+	{
+		for (int i = 0; i < nummod; i++)
+		{
+			const double* pA = A.Pointer();
+			for (int j  = 0; j < nummod; j++)
+					*pthis++ = (*pA++) * (*pB);
+			pB++;
+		}
 	}
 	return(*this);
 }
