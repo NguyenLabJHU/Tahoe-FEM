@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.2 2006-09-05 23:10:23 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.3 2006-10-20 20:02:38 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -22,11 +22,6 @@ class AnisoCorneaVisco: public  FSFiberMatViscT
 /* destructor */
 	~AnisoCorneaVisco(void);
 	
-	/** required parameter flag. Indicates whether the constitutive model
-	 * requires the deformation gradient from the previous time increment.
-	 * \return false by default. */
-	virtual bool Need_F_last(void) const { return true; };
-
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 
@@ -51,9 +46,6 @@ class AnisoCorneaVisco: public  FSFiberMatViscT
 	/*@}*/
 
 protected:
-	/*retrieves fiber rotation matrix*/
-	virtual const dMatrixT& GetRotation(void);
-
 	/*calculates  matrix contribution to 2PK stress*/
 	virtual void ComputeMatrixStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, 
 				dSymMatrixT& Stress, const int process_index, const int fillmode = dSymMatrixT::kOverwrite);
@@ -61,6 +53,10 @@ protected:
 	/*computes matrix moduli*/
 	virtual void ComputeMatrixMod (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress,
 				dMatrixT& Mod, const int process_index, const int fillmode = dSymMatrixT::kOverwrite);
+
+	/*local newton loop for viscous stretch tensor of matrix.  Do nothing*/ 
+	virtual void ComputeMatrixCv(const dSymMatrixT& C, const dSymMatrixT& Cv_last, 
+			dSymMatrixT& Cv, const int process_index){ };
 
 	/*computes fiber stress in local frame*/
 	virtual void ComputeFiberStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress, 
@@ -71,17 +67,17 @@ protected:
 				const int process_index);
 
 
-	/*compute the algorithmic moduli dSNEQ/dCv deltaCv/deltadC in local fiber coord sys*/
-	virtual void ComputeCalg (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  dMatrixT& Calg, const int process_index); 
-	
 	/*local newton loop for viscous stretch tensor*/ 
-	virtual void Compute_Cv(const dSymMatrixT& C_last, const dSymMatrixT& C, const dSymMatrixT& Cv_last, dSymMatrixT& Cv, const int process_index);
+	virtual void Compute_Cv(const dSymMatrixT& C, const dSymMatrixT& Cv_last, dSymMatrixT& Cv, const int process_index);
 
 
 	/*computes flow stress in local frame*/
 	virtual void ComputeFlowStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& FlowStress, 
 				const int process_index);
 
+	/*compute the algorithmic moduli dSNEQ/dCv deltaCv/deltadC in local fiber coord sys*/
+	virtual void ComputeCalg (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  dMatrixT& Calg, const int process_index); 
+	
 	/*computes dFlowStress/dC in local frame.  Note for this model, dFlowStress/dC = - dSNEQ/dCv*/
 	virtual void dFlowdC (const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v, dSymMatrixT& FiberMod,  const int pindex);
 
@@ -139,6 +135,7 @@ protected:
 	dSymMatrixT fMod1;
 	dMatrixT fMod2;
 	dArrayT fVec;
+	dMatrixT fCalg;
 
 	/* length table */
 	/*I4 */

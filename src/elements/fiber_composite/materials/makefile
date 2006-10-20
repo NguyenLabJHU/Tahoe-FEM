@@ -1,4 +1,4 @@
-# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/materials/makefile,v 1.4 2006-09-05 23:39:01 rjones Exp $
+# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/materials/makefile,v 1.5 2006-10-20 20:02:38 thao Exp $
 # created: a-kopacz (07/04/2006)
 #
 # This makefile is divided into four sections:
@@ -27,6 +27,8 @@ OBJ = \
 	FSFiberMatViscT.o \
 	AnisoCorneaIVisco.o \
 	AnisoCorneaVisco.o \
+	OrthotropicViscT.o \
+	TwoFiberViscT.o \
 	AnisoCornea.o 
 
 OBJ_LINK = $(OBJ)
@@ -53,6 +55,8 @@ SRC = \
 	FSFiberMatViscT.cpp \
 	AnisoCorneaIVisco.cpp \
 	AnisoCorneaVisco.cpp \
+	OrthotropicViscT.cpp \
+	TwoFiberViscT.cpp \
 	AnisoCornea.cpp 
 
 
@@ -72,6 +76,8 @@ HDR = \
 	FSFiberMatViscT.h \
 	AnisoCorneaIVisco.h \
 	AnisoCorneaVisco.h \
+	OrthotropicViscT.h \
+	TwoFiberViscT.h \
 	AnisoCornea.h 
 
 HDR_LINK = $(HDR:.h=.h_link)

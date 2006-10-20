@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatListT.cpp,v 1.3 2006-09-05 23:10:23 thao Exp $ */
+/* $Id: FSFiberMatListT.cpp,v 1.4 2006-10-20 20:02:38 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSFiberMatListT.h"
 #include "FSFiberMatSupportT.h"
@@ -14,6 +14,9 @@
 #include "AnisoCornea.h"
 #include "AnisoCorneaVisco.h"
 #include "AnisoCorneaIVisco.h"
+#include "OrthotropicViscT.h"
+#include "TwoFiberViscT.h"
+
 //#include "AnisoCorneaVisco2.h"
 
 using namespace Tahoe;
@@ -54,6 +57,8 @@ void FSFiberMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListO
 		sub_lists.AddSub("aniso_viscoelastic_cornea");
 		sub_lists.AddSub("aniso_scalar_visco_cornea");
 /*		sub_lists.AddSub("aniso_viscoelastic2_cornea");*/
+		sub_lists.AddSub("two_fiber_viscoelastic");
+		sub_lists.AddSub("orthotropic_viscoelastic");
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(name, order, sub_lists);
@@ -110,6 +115,10 @@ FSFiberMatT* FSFiberMatListT::NewFSFiberMat(const StringT& name) const
 		mat = new AnisoCorneaVisco;
 	else if (name == "aniso_scalar_visco_cornea")
 		mat = new AnisoCorneaIVisco;
+	else if (name == "orthotropic_viscoelastic")
+		mat = new OrthotropicViscT;
+	else if (name == "two_fiber_viscoelastic")
+		mat = new TwoFiberViscT;
 /*	else if (name == "aniso_viscoelastic2_cornea")
 		mat = new AnisoCorneaVisco2;
 */

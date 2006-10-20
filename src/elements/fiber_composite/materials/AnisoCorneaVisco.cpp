@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.2 2006-09-05 23:10:23 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.3 2006-10-20 20:02:38 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -45,8 +45,8 @@ AnisoCorneaVisco::~AnisoCorneaVisco(void)
 	delete fDistribution;
 	/*allocated?*/
 	if (fNumFibProcess > 0) 
-	{	delete fPotential[0];
-	
+	{	
+		delete fPotential[0];	
 		for (int i = 0; i < fNumFibProcess; i++)
 		{
 			delete fPotential[i+1];
@@ -183,7 +183,8 @@ void AnisoCorneaVisco::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
+//	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
+	ParameterInterfaceT* sub = FSFiberMatViscT::NewSub(name);
 	if (sub) 
 	{
 		return sub;
@@ -302,9 +303,6 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	FSFiberMatViscT::TakeParameterList(list);
 
-	fNumFibStress = dSymMatrixT::NumValues(fNumSD-1);
-	fNumFibModuli = dSymMatrixT::NumValues(fNumFibStress);
-
 	int num_neq_pot = list.NumLists("neq_fibril_potential");
 	int num_visc = list.NumLists("viscosity");
 
@@ -374,26 +372,25 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 		if (!fDistribution) throw ExceptionT::kOutOfMemory;
 	}
 		
-	/* point generator */
-	int points = list.GetParameter("n_points");
-	fCircle = new EvenSpacePtsT(points);
-	Construct();
-	
 	/* allocate memory */
-	/*dimension invserse viscosity matrix*/
-	fiVisc.Dimension(fNumFibStress);
-
 	/*2D fiber stress and modulus*/
+	fNumFibStress = dSymMatrixT::NumValues(fNumSD-1);
+	fNumFibModuli = dSymMatrixT::NumValues(fNumFibStress);
 	fFiberStretch.Dimension(fNumSD-1);
 	fFiberStress.Dimension(fNumSD-1);
 	fFiberMod.Dimension(fNumFibStress);
 
-	fFiberStretch_n.Dimension(fNumSD-1);
+	/*viscous fiber stretch at time step n, viscous stretch at time step n and vn*/
 	fFiberStretch_v.Dimension(fNumSD-1);
 	fFiberStretch_vn.Dimension(fNumSD-1);
 
 	/*Dimension work spaces*/
-	fCalg.Dimension(fNumFibStress);
+	fCalg.Dimension(fNumFibStress);	
+	/* allocate memory */
+	/*dimension invserse viscosity matrix*/
+	fiVisc.Dimension(fNumFibStress);
+
+	/*Dimension work spaces*/
 	fFlowStress.Dimension(fNumSD-1);
 	fResidual.Dimension(fNumSD-1);
 	fiK.Dimension(fNumFibStress);
@@ -406,47 +403,16 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 	fNumMatProcess = 0;
 	int numprocess = fNumFibProcess;
 	SetStateVariables(numprocess);
+
+	/* point generator */
+	int points = list.GetParameter("n_points");
+	fCircle = new EvenSpacePtsT(points);
+	Construct();
 }
 	
 /***********************************************************************
  * Protected
  ***********************************************************************/
-const dMatrixT& AnisoCorneaVisco::GetRotation(void)
-{
-	const dArray2DT& Fibers = FiberMatSupportT().Fiber_Vec();
-	//int num_fibers = fFiber_list[i].MajorDim();
-/*  Set Rotation Matrix
-	Q_Ia = e_i p_a is rotation matrix, p_1 = fNT, p_2 = fIS, p_3 = fOP
-	fQ(0,0) = fNT[0];
-	fQ(0,1) = fIS[0];
-	fQ(0,2) = fOP[0];
-
-	 fQ(1,0) = fNT[1];
-	 fQ(1,1) = fIS[1];
-	 fQ(1,2) = fOP[1];
-
-	 fQ(2,0) = fNT[2];
-	 fQ(2,1) = fIS[2];
-	 fQ(2,2) = fOP[2];
-*/
-
-	fQ(0,0) = Fibers(0,0);
-	fQ(1,0) = Fibers(0,1);
-	fQ(2,0) = Fibers(0,2);
-	
-	fQ(0,1) = Fibers(1,0);
-	fQ(1,1) = Fibers(1,1);
-	fQ(2,1) = Fibers(1,2);
-
-	const double* A = fQ(0);
-	const double* B = fQ(1);
-	fQ(0,2) = A[1]*B[2] - A[2]*B[1];
-	fQ(1,2) = A[2]*B[0] - A[0]*B[2];
-	fQ(2,2) = A[0]*B[1] - A[1]*B[0];
-
-	return(fQ);
-}
-
 void AnisoCorneaVisco::ComputeMatrixStress(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, 
 				dSymMatrixT& Stress, const int process_index, const int fillmode)
 {
@@ -605,7 +571,7 @@ void AnisoCorneaVisco::ComputeFiberMod (const dSymMatrixT& FiberStretch, const d
 	double& s2 = FiberStress[1]; /*sf_22*/
 	double& s3 = FiberStress[2]; /*sf_12*/
  
-	fFiberMod = 0.0;
+	FiberMod = 0.0;
 	double& c11 = FiberMod[0]; /*cf_1111*/ 
 	double& c22 = FiberMod[4]; /*cf_2222*/
 	double& c33 = FiberMod[8]; /*cf_1212*/
@@ -659,6 +625,10 @@ void AnisoCorneaVisco::ComputeFiberMod (const dSymMatrixT& FiberStretch, const d
 			c13 += cfactor*(*pc13++);
 			c12 += cfactor*(*pc12++);
 		}
+		/*symmetric modulus*/
+		FiberMod[1] = c12;
+		FiberMod[2] = c13;
+		FiberMod[5] = c23;
 	}
 	else 
 	{
@@ -694,11 +664,15 @@ void AnisoCorneaVisco::ComputeFiberMod (const dSymMatrixT& FiberStretch, const d
 			c13 += cfactor*(*pc13++);
 			c12 += cfactor*(*pc12++);
 		}
+		/*symmetric modulus*/
+		FiberMod[1] = c12;
+		FiberMod[2] = c13;
+		FiberMod[5] = c23;
+		
+		ComputeCalg(FiberStretch, FiberStretch_v, fCalg, pindex);
+		FiberMod += fCalg;
 	}
-	/*symmetric modulus*/
-	FiberMod[1] = c12;
-	FiberMod[2] = c13;
-	FiberMod[5] = c23;
+	
 }
 
 void AnisoCorneaVisco::ComputeCalg(const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v,  dMatrixT& Calg, const int pindex)
@@ -822,51 +796,35 @@ void AnisoCorneaVisco::ComputeCalg(const dSymMatrixT& FiberStretch, const dSymMa
 }
 
 /*local newton loop for viscous stretch tensor*/ 
-void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& C_n, const dSymMatrixT& C, 
-		const dSymMatrixT& C_vn, dSymMatrixT& C_v, const int pindex)
+void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_vn, 
+	dSymMatrixT& FiberStretch_v, const int pindex)
 {
-	/*compute inverse viscosity tensor based on last values of stretch matrices, C_n and Cv_n*/
-	ComputeFiberStretch(C_vn, fFiberStretch_vn);
-	
-	/*store Cv_n in fiber frame*/
-	const double Cfvn0 = fFiberStretch_vn[0];
-	const double Cfvn1 = fFiberStretch_vn[1];
-	const double Cfvn2 = fFiberStretch_vn[2];
-	
 	/*get time step*/
 	const double dt = fFSFiberMatSupport->TimeStep();
-	
-	/*compute current stretch in fiber plane*/
-	ComputeFiberStretch(C, fFiberStretch);
-	const dSymMatrixT& Cf = fFiberStretch;
-
-	/*compute flow stress based on current values of stretch matrices, C and Cv*/
-	ComputeFiberStretch(C_v, fFiberStretch_v);
-	dSymMatrixT& Cfv = fFiberStretch_v;
-	
-	dSymMatrixT& R = fResidual;
-	dSymMatrixT& S = fFlowStress;
-	
+			
 	double error;
 	int iteration  = 0;
 
-	/*Compute viscosity*/
-	ComputeViscosity(Cf, Cfv, fiVisc, pindex);
+	/*compute  viscosity  based on currn values of stretch matrices, C and Cv*/
+	ComputeViscosity(FiberStretch, FiberStretch_v, fiVisc, pindex);
 	fiVisc.Inverse(); 
 
 	/*Compute flow stress*/
-	ComputeFlowStress(Cf, Cfv, S, pindex);
+	ComputeFlowStress(FiberStretch, FiberStretch_v, fFlowStress, pindex);
 
-	R[0] = Cfv[0] - 2.0*dt*(fiVisc(0,0)*S[0] + fiVisc(0,1)*S[1] + fiVisc(0,2)*S[2]) - Cfvn0;
-	R[1] = Cfv[1] - 2.0*dt*(fiVisc(1,0)*S[0] + fiVisc(1,1)*S[1] + fiVisc(1,2)*S[2]) - Cfvn1;
-	R[2] = 2.0*Cfv[2] - 2.0*dt*(fiVisc(2,0)*S[0] + fiVisc(2,1)*S[1] + fiVisc(2,2)*S[2]) - 2.0*Cfvn2;
+	fResidual[0] = FiberStretch_v[0] - 2.0*dt*(fiVisc(0,0)*fFlowStress[0] + fiVisc(0,1)*fFlowStress[1] 
+			+ fiVisc(0,2)*fFlowStress[2]) - FiberStretch_vn[0];
+	fResidual[1] = FiberStretch_v[1] - 2.0*dt*(fiVisc(1,0)*fFlowStress[0] + fiVisc(1,1)*fFlowStress[1] 
+			+ fiVisc(1,2)*fFlowStress[2]) - FiberStretch_vn[1];
+	fResidual[2] = 2.0*FiberStretch_v[2] - 2.0*dt*(fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] 
+			+ fiVisc(2,2)*fFlowStress[2]) - 2.0*FiberStretch_vn[2];
 	
 	do 
 	{
 		/*compute Kij = del_ij - dt*V^-1_ik 2dS_k/dCfvt_j*/
 		/*Cfvt = {Cfv11, Cfv22, 2 Cfv12}*/
 		/*stress term*/
-		dFlowdCv(Cf, Cfv, fMod1, pindex);
+		dFlowdCv(FiberStretch, FiberStretch_v, fMod1, pindex);
 		fMod1.ToMatrix(fMod2);
 		
 		fMod2(0,2) *= 0.5;
@@ -887,11 +845,11 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& C_n, const dSymMatrixT& C,
 
 
 		/*viscosity terms*/
-		fVec[0] = (fiVisc(0,0)*S[0] + fiVisc(0,1)*S[1] + fiVisc(0,2)*S[2]);
-		fVec[1] = (fiVisc(1,0)*S[0] + fiVisc(1,1)*S[1] + fiVisc(1,2)*S[2]);
-		fVec[2] = (fiVisc(2,0)*S[0] + fiVisc(2,1)*S[1] + fiVisc(2,2)*S[2]);
+		fVec[0] = (fiVisc(0,0)*fFlowStress[0] + fiVisc(0,1)*fFlowStress[1] + fiVisc(0,2)*fFlowStress[2]);
+		fVec[1] = (fiVisc(1,0)*fFlowStress[0] + fiVisc(1,1)*fFlowStress[1] + fiVisc(1,2)*fFlowStress[2]);
+		fVec[2] = (fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] + fiVisc(2,2)*fFlowStress[2]);
 
-		ComputeDViscDCv(Cf, Cfv, fVec, fMod1, pindex);
+		ComputeDViscDCv(FiberStretch, FiberStretch_v, fVec, fMod1, pindex);
 		fMod1.ToMatrix(fMod2);
 		fMod2(0,2) *= 0.5;
 		fMod2(1,2) *= 0.5;
@@ -913,14 +871,14 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& C_n, const dSymMatrixT& C,
 		
 		
 		/*calculate increment of Cfvt*/
-		double dCfvt0 = -(fiK(0,0)*R[0] + fiK(0,1)*R[1] + fiK(0,2)*R[2]);
-		double dCfvt1 = -(fiK(1,0)*R[0] + fiK(1,1)*R[1] + fiK(1,2)*R[2]);
-		double dCfvt2 = -(fiK(2,0)*R[0] + fiK(2,1)*R[1] + fiK(2,2)*R[2]);
+		double dCfvt0 = -(fiK(0,0)*fResidual[0] + fiK(0,1)*fResidual[1] + fiK(0,2)*fResidual[2]);
+		double dCfvt1 = -(fiK(1,0)*fResidual[0] + fiK(1,1)*fResidual[1] + fiK(1,2)*fResidual[2]);
+		double dCfvt2 = -(fiK(2,0)*fResidual[0] + fiK(2,1)*fResidual[1] + fiK(2,2)*fResidual[2]);
 		
 		/*calculate update*/
-		Cfv[0] += dCfvt0;
-		Cfv[1] += dCfvt1;
-		Cfv[2] += 0.5*dCfvt2;
+		FiberStretch_v[0] += dCfvt0;
+		FiberStretch_v[1] += dCfvt1;
+		FiberStretch_v[2] += 0.5*dCfvt2;
 		
 //		cout << "\niteration: "<<iteration;
 //		cout <<setprecision(12)<< "\nCf: "<<Cf;			
@@ -933,18 +891,21 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& C_n, const dSymMatrixT& C,
 //		cout << "\nCfv: "<<Cfv;
 
 		/*Compute viscosity*/
-		ComputeViscosity(Cf, Cfv, fiVisc, pindex);
+		ComputeViscosity(FiberStretch, FiberStretch_v, fiVisc, pindex);
 		fiVisc.Inverse(); 
 
 		/*compute flow stress based on current values of stretch matrices, C and Cv*/
-		ComputeFlowStress(Cf, Cfv, S, pindex);
+		ComputeFlowStress(FiberStretch, FiberStretch_v, fFlowStress, pindex);
 		
 		/*residual at the zeroth iteration*/
-		R[0] = Cfv[0] - 2.0*dt*(fiVisc(0,0)*S[0] + fiVisc(0,1)*S[1] + fiVisc(0,2)*S[2]) - Cfvn0;
-		R[1] = Cfv[1] - 2.0*dt*(fiVisc(1,0)*S[0] + fiVisc(1,1)*S[1] + fiVisc(1,2)*S[2]) - Cfvn1;
-		R[2] = 2.0*Cfv[2] - 2.0*dt*(fiVisc(2,0)*S[0] + fiVisc(2,1)*S[1] + fiVisc(2,2)*S[2]) - 2.0*Cfvn2;
+		fResidual[0] = FiberStretch_v[0] - 2.0*dt*(fiVisc(0,0)*fFlowStress[0] + fiVisc(0,1)*fFlowStress[1] 
+				+ fiVisc(0,2)*fFlowStress[2]) - FiberStretch_vn[0];
+		fResidual[1] = FiberStretch_v[1] - 2.0*dt*(fiVisc(1,0)*fFlowStress[0] + fiVisc(1,1)*fFlowStress[1] 
+				+ fiVisc(1,2)*fFlowStress[2]) - FiberStretch_vn[1];
+		fResidual[2] = 2.0*FiberStretch_v[2] - 2.0*dt*(fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] 
+				+ fiVisc(2,2)*fFlowStress[2]) - 2.0*FiberStretch_vn[2];
 		
-		error = sqrt(R[0]*R[0] + R[1]*R[1] + R[2]*R[2]);
+		error = sqrt(fResidual[0]*fResidual[0] + fResidual[1]*fResidual[1] + fResidual[2]*fResidual[2]);
 
 //		cout <<"\niteration: "<<iteration;
 //		cout<< "\nerror: "<<error;

@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.cpp,v 1.3 2006-09-05 23:10:23 thao Exp $ */
+/* $Id: AnisoCornea.cpp,v 1.4 2006-10-20 20:02:37 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "AnisoCornea.h"
 
@@ -283,41 +283,6 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-const dMatrixT& AnisoCornea::GetRotation(void)
-{
-	const dArray2DT& Fibers = FiberMatSupportT().Fiber_Vec();
-	//int num_fibers = fFiber_list[i].MajorDim();
-/*  Set Rotation Matrix
-	Q_Ia = e_i p_a is rotation matrix, p_1 = fNT, p_2 = fIS, p_3 = fOP
-	fQ(0,0) = fNT[0];
-	fQ(0,1) = fIS[0];
-	fQ(0,2) = fOP[0];
-
-	 fQ(1,0) = fNT[1];
-	 fQ(1,1) = fIS[1];
-	 fQ(1,2) = fOP[1];
-
-	 fQ(2,0) = fNT[2];
-	 fQ(2,1) = fIS[2];
-	 fQ(2,2) = fOP[2];
-*/
-
-	fQ(0,0) = Fibers(0,0);
-	fQ(1,0) = Fibers(0,1);
-	fQ(2,0) = Fibers(0,2);
-	
-	fQ(0,1) = Fibers(1,0);
-	fQ(1,1) = Fibers(1,1);
-	fQ(2,1) = Fibers(1,2);
-
-	const double* A = fQ(0);
-	const double* B = fQ(1);
-	fQ(0,2) = A[1]*B[2] - A[2]*B[1];
-	fQ(1,2) = A[2]*B[0] - A[0]*B[2];
-	fQ(2,2) = A[0]*B[1] - A[1]*B[0];
-
-	return(fQ);
-}
 
 void AnisoCornea::ComputeMatrixStress(const dSymMatrixT& C, dSymMatrixT& Stress)
 {

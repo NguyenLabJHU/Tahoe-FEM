@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.h,v 1.3 2006-09-05 23:10:23 thao Exp $ */
+/* $Id: FSFiberMatT.h,v 1.4 2006-10-20 20:02:38 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIB_MAT_T_H_
 #define _FD_FIB_MAT_T_H_
@@ -54,14 +54,15 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 
 protected:
+	/*retrieves fiber rotation matrix*/
+	virtual const dMatrixT& GetRotation(void);
+	
 	/**rotate fiber stress and fiber moduli from local fiber coords to global cartesian coords*/
 	void ComputeFiberStretch(const dSymMatrixT& global_stretch, dSymMatrixT& fib_stretch);
 	void AssembleFiberStress(const dSymMatrixT& fib_stress, dSymMatrixT& global_stress, 
 				const int fillmode = dSymMatrixT::kAccumulate);
 	void AssembleFiberModuli(const dMatrixT& fib_mod, dMatrixT& global_mod,
 				const int fillmode = dSymMatrixT::kAccumulate);
-	/*returns rotation matrix*/
-	virtual const dMatrixT& GetRotation(void)  = 0;
 	/*calculates  matrix contribution to 2PK stress*/
 	virtual void ComputeMatrixStress(const dSymMatrixT& C, dSymMatrixT& Stress) = 0;
 

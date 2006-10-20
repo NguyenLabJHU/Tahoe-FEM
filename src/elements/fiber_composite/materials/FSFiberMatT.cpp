@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.cpp,v 1.3 2006-09-05 23:10:23 thao Exp $ */
+/* $Id: FSFiberMatT.cpp,v 1.4 2006-10-20 20:02:38 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatT.h"
 #include "FSFiberMatSupportT.h"
@@ -114,6 +114,8 @@ void FSFiberMatT::TakeParameterList(const ParameterListT& list)
 
 	/*assuming in-plane fibers*/
 	fQ.Dimension(fNumSD);
+	
+	/*initialize*/
 	fQ = 0.0;
 	fQ[0] = 1.0;
 	fQ[4] = 1.0;
@@ -133,6 +135,42 @@ void FSFiberMatT::TakeParameterList(const ParameterListT& list)
 /*********************************************************************************************
  *protected                                                                                  *
  *********************************************************************************************/
+const dMatrixT& FSFiberMatT::GetRotation(void)
+{
+	const dArray2DT& Fibers = FiberMatSupportT().Fiber_Vec();
+	//int num_fibers = fFiber_list[i].MajorDim();
+/*  Set Rotation Matrix
+	Q_Ia = e_I p_a is rotation matrix
+	fQ(0,0) = P1[0];
+	fQ(0,1) = P2[0];
+	fQ(0,2) = OP[0];
+
+	 fQ(1,0) = P1[1];
+	 fQ(1,1) = P2[1];
+	 fQ(1,2) = OP[1];
+
+	 fQ(2,0) = P1[2];
+	 fQ(2,1) = P2[2];
+	 fQ(2,2) = OP[2];
+*/
+
+	fQ(0,0) = Fibers(0,0);
+	fQ(1,0) = Fibers(0,1);
+	fQ(2,0) = Fibers(0,2);
+	
+	fQ(0,1) = Fibers(1,0);
+	fQ(1,1) = Fibers(1,1);
+	fQ(2,1) = Fibers(1,2);
+
+	const double* A = fQ(0);
+	const double* B = fQ(1);
+	fQ(0,2) = A[1]*B[2] - A[2]*B[1];
+	fQ(1,2) = A[2]*B[0] - A[0]*B[2];
+	fQ(2,2) = A[0]*B[1] - A[1]*B[0];
+
+	return(fQ);
+}
+
 void FSFiberMatT::ComputeFiberStretch(const dSymMatrixT& C, dSymMatrixT& Cf)
 {
 	/*Rotate stretch to plane of fibril families
@@ -168,20 +206,20 @@ void FSFiberMatT::AssembleFiberStress(const dSymMatrixT& sigf, dSymMatrixT& sig,
 	if (fNumFibStress == 6)
 	{
 		/* transform */
-		sig[0] = sigf[0]*Q[0]*Q[0] + 2*sigf[5]*Q[0]*Q[3] + sigf[1]*Q[3]*Q[3] +
+		sig[0] += sigf[0]*Q[0]*Q[0] + 2*sigf[5]*Q[0]*Q[3] + sigf[1]*Q[3]*Q[3] +
 		          2*sigf[4]*Q[0]*Q[6] + 2*sigf[3]*Q[3]*Q[6] + sigf[2]*Q[6]*Q[6];
-		sig[1] = sigf[0]*Q[1]*Q[1] + 2*sigf[5]*Q[1]*Q[4] + sigf[1]*Q[4]*Q[4] +
+		sig[1] += sigf[0]*Q[1]*Q[1] + 2*sigf[5]*Q[1]*Q[4] + sigf[1]*Q[4]*Q[4] +
 		          2*sigf[4]*Q[1]*Q[7] + 2*sigf[3]*Q[4]*Q[7] + sigf[2]*Q[7]*Q[7];	
-		sig[2] = sigf[0]*Q[2]*Q[2] + 2*sigf[5]*Q[2]*Q[5] + sigf[1]*Q[5]*Q[5] +
+		sig[2] += sigf[0]*Q[2]*Q[2] + 2*sigf[5]*Q[2]*Q[5] + sigf[1]*Q[5]*Q[5] +
 		          2*sigf[4]*Q[2]*Q[8] + 2*sigf[3]*Q[5]*Q[8] + sigf[2]*Q[8]*Q[8];
 		
-		sig[3] = Q[5]*(sigf[5]*Q[1] + sigf[1]*Q[4] + sigf[3]*Q[7]) +
+		sig[3] += Q[5]*(sigf[5]*Q[1] + sigf[1]*Q[4] + sigf[3]*Q[7]) +
 		            Q[2]*(sigf[0]*Q[1] + sigf[5]*Q[4] + sigf[4]*Q[7]) +
 		            Q[8]*(sigf[4]*Q[1] + sigf[3]*Q[4] + sigf[2]*Q[7]);
-		sig[4] = Q[5]*(sigf[5]*Q[0] + sigf[1]*Q[3] + sigf[3]*Q[6]) +
+		sig[4] += Q[5]*(sigf[5]*Q[0] + sigf[1]*Q[3] + sigf[3]*Q[6]) +
 		            Q[2]*(sigf[0]*Q[0] + sigf[5]*Q[3] + sigf[4]*Q[6]) +
 		            Q[8]*(sigf[4]*Q[0] + sigf[3]*Q[3] + sigf[2]*Q[6]);
-		sig[5] = Q[4]*(sigf[5]*Q[0] + sigf[1]*Q[3] + sigf[3]*Q[6]) +
+		sig[5] += Q[4]*(sigf[5]*Q[0] + sigf[1]*Q[3] + sigf[3]*Q[6]) +
 		            Q[1]*(sigf[0]*Q[0] + sigf[5]*Q[3] + sigf[4]*Q[6]) +
 		            Q[7]*(sigf[4]*Q[0] + sigf[3]*Q[3] + sigf[2]*Q[6]);	
 

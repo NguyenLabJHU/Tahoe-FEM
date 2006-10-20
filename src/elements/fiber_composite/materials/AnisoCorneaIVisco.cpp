@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaIVisco.cpp,v 1.2 2006-09-05 23:10:23 thao Exp $ */
+/* $Id: AnisoCorneaIVisco.cpp,v 1.3 2006-10-20 20:02:38 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaIVisco.h"
@@ -129,11 +129,9 @@ void AnisoCorneaIVisco::ComputeCalg(const dSymMatrixT& FiberStretch,
 }
 
 /*local newton loop for viscous stretch tensor*/ 
-void AnisoCorneaIVisco::Compute_Cv(const dSymMatrixT& C_n, const dSymMatrixT& C, 
-		const dSymMatrixT& C_vn, dSymMatrixT& C_v, const int pindex)
+void AnisoCorneaIVisco::Compute_Cv(const dSymMatrixT& C, const dSymMatrixT& C_vn, dSymMatrixT& C_v, const int pindex)
 {
-	/*compute inverse viscosity  based on last values of stretch matrices, C_n and Cv_n*/
-	ComputeFiberStretch(C_n, fFiberStretch_n);
+//	ComputeFiberStretch(C_n, fFiberStretch_n);
 	ComputeFiberStretch(C_vn, fFiberStretch_vn);
 	
 	/*store Cv_n in fiber frame*/

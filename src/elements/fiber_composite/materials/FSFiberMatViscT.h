@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.h,v 1.2 2006-09-05 23:10:23 thao Exp $ */
+/* $Id: FSFiberMatViscT.h,v 1.3 2006-10-20 20:02:38 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIBVISC_MAT_T_H_
 #define _FD_FIBVISC_MAT_T_H_
@@ -20,7 +20,6 @@ public:
 	 * \return false by default. */
 
 	virtual GlobalT::SystemTypeT TangentType(void) const{return GlobalT::kNonSymmetric;};
-
 	virtual bool Need_F_last(void) const { return false; };
 
 	/** \name spatial description */
@@ -57,13 +56,8 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 	
 protected:
-	/*define pure virtual functions in FSFiberMatT*/
-	/*computes eq fiber stress in local frame*/
-	virtual void ComputeFiberStress (const dSymMatrixT& Stretch, dSymMatrixT& Stress);
-	
-	/*computes eq fiber moduli in local frame*/
-	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, dSymMatrixT& dSymMatrixT, dMatrixT& Mod);
 
+	/**************************************** matrix ***********************************************************/
 	/*computes eq isotropic matrix stress*/
 	virtual void ComputeMatrixStress (const dSymMatrixT& Stretch, dSymMatrixT& Stress);
 
@@ -72,6 +66,9 @@ protected:
 
 	/*subsequent derived classes must define the following functions*/
 	/*compute neq. values*/
+	/*local newton loop for viscous stretch tensor of matrix*/ 
+	virtual void ComputeMatrixCv(const dSymMatrixT& C, const dSymMatrixT& Cv_last, dSymMatrixT& Cv, const int process_index) = 0;
+
 	/*computes isotropic matrix stress*/
 	virtual void ComputeMatrixStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, 
 				dSymMatrixT& Stress, const int process_index, const int fillmode = dSymMatrixT::kOverwrite) = 0;
@@ -80,6 +77,14 @@ protected:
 	virtual void ComputeMatrixMod (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress,
 				dMatrixT& Mod, const int process_index, const int fillmode = dSymMatrixT::kOverwrite) = 0;
 
+	/********************************************** fiber ******************************************************/
+	/*computes eq fiber stress in local frame*/
+	virtual void ComputeFiberStress (const dSymMatrixT& Stretch, dSymMatrixT& Stress);
+	
+	/*computes eq fiber moduli in local frame*/
+	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, dSymMatrixT& dSymMatrixT, dMatrixT& Mod);
+
+	/*define pure virtual functions in FSFiberMatT*/
 	/*computes fiber stress in local frame*/
 	virtual void ComputeFiberStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress, 
 				const int process_index) = 0;
@@ -88,20 +93,24 @@ protected:
 	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress, 
 				dMatrixT& Mod,  const int process_index) = 0;
 				
-	/*compute the algorithmic moduli dSNEQ/dCv deltaCv/deltadC in local fiber coord sys*/
+	/*compute the algorithmic moduli dSNEQ/dCv deltaCv/deltadC in local fiber coord sys
 	virtual void ComputeCalg (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  
-				dMatrixT& Calg, const int process_index) = 0; 
-
+				dMatrixT& Calg, const int process_index) = 0; */
+				
 	/*local newton loop for viscous stretch tensor*/ 
-	virtual void Compute_Cv(const dSymMatrixT& C_last, const dSymMatrixT& C, 
-				const dSymMatrixT& Cv_last, dSymMatrixT& Cv, const int process_index) = 0;
+	virtual void Compute_Cv(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v_last, dSymMatrixT& Stretch_v,
+				const int process_index) = 0;
+
+	/* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
+  	void MixedRank4_2D(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
+  	void MixedRank4_3D(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
 
 protected:
 
 	/* number of nonequilibrium processes*/
 	/* must be set in derived classes before TakeParameterList is called*/
 	/* default value is 1*/
-
+	
 	int fNumFibProcess;
 	int fNumMatProcess;
 	/*internal state variables. Dimension numprocess<nsd x nsd>*/
@@ -117,12 +126,12 @@ protected:
 	/* internal state variables array*/
 	dArrayT fstatev;
 
-	/*viscous stretch in plane of fiber*/
-	dSymMatrixT fC_n;
+//	dSymMatrixT fC_n;
 
+	/*viscous stretch in plane of fiber*/
 	dSymMatrixT fFiberStretch_v;
 	dSymMatrixT fFiberStretch_vn;
-	dSymMatrixT fFiberStretch_n;
+//	dSymMatrixT fFiberStretch_n;
 
 };
 

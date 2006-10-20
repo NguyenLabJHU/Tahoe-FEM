@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.h,v 1.3 2006-09-05 23:10:23 thao Exp $ */
+/* $Id: AnisoCornea.h,v 1.4 2006-10-20 20:02:38 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ANISO_CORNEA_2D_H_
 #define _ANISO_CORNEA_2D_H_
@@ -49,8 +49,6 @@ public:
 	/*@}*/
 
 protected:
-	/*calculates rotation matrix*/
-	virtual const dMatrixT& GetRotation(void);
 
 	/*calculates  matrix contribution to 2PK stress*/
 	virtual void ComputeMatrixStress(const dSymMatrixT& C, dSymMatrixT& Stress);
