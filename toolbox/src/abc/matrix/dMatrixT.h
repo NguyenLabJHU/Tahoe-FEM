@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.12 2005-07-29 03:09:33 paklein Exp $ */
+/* $Id: dMatrixT.h,v 1.13 2006-10-20 19:57:03 tdnguye Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DMATRIX_T_H_
 #define _DMATRIX_T_H_
@@ -129,7 +129,7 @@ public:
 	/** reduced symmetric 4th rank tensor formed from general symmetric 
 	 * matrix
 	 \f[
-		\left[ \mathbf{I}_\mathbf{C} \right]_{ijkl} =
+		\left[ \mathbf{C} \odot \mathbf{C} \right]_{ijkl} =
 			\frac{1}{2} \left(
 				C_{ik} C_{jl} + C_{il} C_{jk}
 			\right)
@@ -137,6 +137,17 @@ public:
 	 */
 	void ReducedI_C(const dSymMatrixT& C);
   
+	/** reduced nonsymmetric 4th rank tensor formed from general symmetric 
+	 * matrices
+	 \f[
+		\left[  \mathbf{A} \odot \mathbf{B} \right]_{ijkl} =
+			\frac{1}{2} \left(
+				A_{ik} B_{jl} + A_{il} B_{jk}
+			\right)
+	\f]
+	 */
+	void ReducedI_AB(const dSymMatrixT& A, const dSymMatrixT& B);
+
 	/** dyad symmetric A with symmetric B = \f$ \mathbf{A} \otimes \mathbf{B} \f$ */
 	dMatrixT& DyadAB(const dSymMatrixT& A, const dSymMatrixT& B);
 	
