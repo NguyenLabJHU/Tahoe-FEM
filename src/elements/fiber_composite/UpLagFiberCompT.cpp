@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.2 2006-08-10 01:49:40 thao Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.3 2006-10-24 00:01:19 thao Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -219,6 +219,8 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 		dMatrixT jacobian(nsd, nsd - 1);
 		/*rotation tensor*/
 		dMatrixT Q(nsd);
+		dMatrixT Qbar(nsd);
+		Qbar.Identity();
 
 	    /* loop over natural BC's */
 	    int tot_num_sides = 0;
@@ -310,7 +312,7 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 
 						/*get global coordinates of facet nodes*/
 						coords.SetLocal(facet_nodes_glob);
-
+						
 						/* surface shape functions */
 						const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
 						int nip = surf_shape.NumIP();
@@ -325,7 +327,56 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 							{
 								surf_shape.DomainJacobian(coords, l, jacobian);
 								double detj = surf_shape.SurfaceJacobian(jacobian, Q);
-								Q.Multx(p_loc, p_glb, scale, dMatrixT::kAccumulate);
+								/*rotate parent coords such that xi aligns with global x*/
+								/*default*/
+								Qbar = Q;
+								if (nnd == 4 || nnd == 8 || nnd ==9) /*case quad*/
+								{
+									const double x3 = coords(2,0);
+									const double y3 = coords(2,1);
+									const double x1 = coords(0,0);
+									const double y1 = coords(0,1);
+									if (x1 > x3 && y1 < y3)
+									{
+										/*Qhat = {{0,1},{-1,0}}; Qbar = Q.Qhat*/
+										Qbar[0] = -Q[3];
+										Qbar[1] = -Q[4];
+										Qbar[2] = -Q[5];
+										Qbar[3] = Q[0];
+										Qbar[4] = Q[1];
+										Qbar[5] = Q[2];
+										Qbar[6] = Q[6];
+										Qbar[7] = Q[7];
+										Qbar[8] = Q[8];										
+									}
+									else if (x1 > x3 && y1 > y3)
+									{
+										/*Qhat = {{-1,0},{0,-1}}; Qbar = Q.Qhat*/
+										Qbar[0] = -Q[0];
+										Qbar[1] = -Q[1];
+										Qbar[2] = -Q[2];
+										Qbar[3] = -Q[3];
+										Qbar[4] = -Q[4];
+										Qbar[5] = -Q[5];
+										Qbar[6] = Q[6];
+										Qbar[7] = Q[7];
+										Qbar[8] = Q[8];
+									}
+									else if (x1 < x3 && y1 > y3)
+									{
+										/*Qhat = {{0,-1},{1,0}}; Qbar = Q.Qhat*/
+										Qbar[0] = Q[3];
+										Qbar[1] = Q[4];
+										Qbar[2] = Q[5];
+										Qbar[3] = -Q[0];
+										Qbar[4] = -Q[1];
+										Qbar[5] = -Q[2];
+										Qbar[6] = Q[6];
+										Qbar[7] = Q[7];
+										Qbar[8] = Q[8];
+									}
+								}
+								Qbar.Multx(p_loc, p_glb, scale, dMatrixT::kAccumulate);
 							}
 						}
 					}
