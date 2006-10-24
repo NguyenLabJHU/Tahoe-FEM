@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.cpp,v 1.3 2006-10-20 20:02:38 thao Exp $ */
+/* $Id: FSFiberMatViscT.cpp,v 1.4 2006-10-24 17:58:58 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatViscT.h"
 #include "FSFiberMatSupportT.h"
@@ -26,17 +26,17 @@ const dMatrixT& FSFiberMatViscT::C_IJKL(void)
 	/*equilibrium contribution*/
 	/*calculate eq. matrix contribution*/
 	ComputeMatrixMod(fC, fStress, fModulus);
-	
+
 	/* eq. fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
 	ComputeFiberMod(fFiberStretch, fFiberStress, fFiberMod);
-				
+
 	/* rotate and assemble eq. stress to lab coordinates */
 	AssembleFiberStress(fFiberStress, fStress);
 	
 	/* rotate and assemble eq. modulus to lab coordinates */
 	AssembleFiberModuli(fFiberMod, fModulus);
-
+	
 	/*calculate nonequilibrium contribution*/
 	/*Load state variables (Cv and Cvn)*/
     ElementCardT& element = CurrentElement();
@@ -82,6 +82,7 @@ const dSymMatrixT& FSFiberMatViscT::S_IJ(void)
 	
 	/*fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
+
 	ComputeFiberStress(fFiberStretch, fFiberStress);
 	
 	/* rotate and assemble stress to lab coordinates */
