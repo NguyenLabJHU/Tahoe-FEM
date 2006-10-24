@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.3 2006-10-24 00:01:19 thao Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.4 2006-10-24 20:41:35 thao Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -309,7 +309,6 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 
 						facet_nodes_glob.Dimension(nnd);
 						facet_nodes_glob.Collect(facet_nodes_loc,fElementCards[elem].NodesX());
-
 						/*get global coordinates of facet nodes*/
 						coords.SetLocal(facet_nodes_glob);
 						
@@ -328,15 +327,39 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 								surf_shape.DomainJacobian(coords, l, jacobian);
 								double detj = surf_shape.SurfaceJacobian(jacobian, Q);
 								/*rotate parent coords such that xi aligns with global x*/
+						int sense = (Q[8] > .01*kSmall) ? 1 : -1;
+						if(elem == 2650 || elem == 2400)
+						{
+							cout << "\nelem: "<<elem;
+							cout << "\nfacet: "<<facet;
+							cout << "\nfacet nodes loc: "<<facet_nodes_loc;
+							cout << "\nfacet nodes glob: "<<facet_nodes_glob;
+							cout << "\ncoords: "<<coords;
+							cout << "\nQ: "<<Q;
+							cout << "\nsense: "<<sense;
+						}
 								/*default*/
-								Qbar = Q;
+//								Qbar = Q;
 								if (nnd == 4 || nnd == 8 || nnd ==9) /*case quad*/
 								{
 									const double x3 = coords(2,0);
 									const double y3 = coords(2,1);
 									const double x1 = coords(0,0);
 									const double y1 = coords(0,1);
-									if (x1 > x3 && y1 < y3)
+									if ((x3 - x1)*sense >.01*kSmall && (y3 -y1)>0.01*kSmall)
+									{
+										/*Qhat = {{0,1},{-1,0}}; Qbar = Q.Qhat*/
+										Qbar[0] = Q[0];
+										Qbar[1] = Q[1];
+										Qbar[2] = Q[2];
+										Qbar[3] = Q[3];
+										Qbar[4] = Q[4];
+										Qbar[5] = Q[5];
+										Qbar[6] = Q[6];
+										Qbar[7] = Q[7];
+										Qbar[8] = Q[8];										
+									}
+									if ((x1 - x3)*sense > 0.01*kSmall && (y3-y1) >0.01*kSmall)
 									{
 										/*Qhat = {{0,1},{-1,0}}; Qbar = Q.Qhat*/
 										Qbar[0] = -Q[3];
@@ -349,7 +372,7 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 										Qbar[7] = Q[7];
 										Qbar[8] = Q[8];										
 									}
-									else if (x1 > x3 && y1 > y3)
+									else if ((x1 - x3)*sense > 0.01*kSmall && (y1 - y3) > 0.01*kSmall)
 									{
 										/*Qhat = {{-1,0},{0,-1}}; Qbar = Q.Qhat*/
 										Qbar[0] = -Q[0];
@@ -362,7 +385,7 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 										Qbar[7] = Q[7];
 										Qbar[8] = Q[8];
 									}
-									else if (x1 < x3 && y1 > y3)
+									else if ((x3 - x1)*sense > 0.01*kSmall && (y1 - y3) > 0.01*kSmall)
 									{
 										/*Qhat = {{0,-1},{1,0}}; Qbar = Q.Qhat*/
 										Qbar[0] = Q[3];
@@ -376,6 +399,10 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 										Qbar[8] = Q[8];
 									}
 								}
+						if(elem == 2650 || elem == 2400)
+						{
+							cout << "\nQbar: "<<Qbar;
+						}
 								Qbar.Multx(p_loc, p_glb, scale, dMatrixT::kAccumulate);
 							}
 						}
