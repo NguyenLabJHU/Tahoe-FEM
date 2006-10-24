@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.21 2005-12-20 17:26:36 tdnguye Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.22 2006-10-24 00:24:26 tdnguye Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -271,7 +271,7 @@ void FiniteStrainT::SetGlobalShape(void)
 	int material_number = CurrentElement().MaterialNumber();
 	bool needs_F = Needs_F(material_number);
 	bool needs_F_last = Needs_F_last(material_number);
-	
+
 	/* loop over integration points */
 	for (int i = 0; i < NumIP(); i++)
 	{

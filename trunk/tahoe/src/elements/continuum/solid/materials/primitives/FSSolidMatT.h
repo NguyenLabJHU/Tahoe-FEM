@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.23 2005-03-16 20:24:23 cfoster Exp $ */
+/* $Id: FSSolidMatT.h,v 1.24 2006-10-24 00:24:26 tdnguye Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -43,7 +43,9 @@ public:
 	 * FSSolidMatT::c_ijkl computes the tangent moduli in the spatial representation
 	 * using the finite difference approximation developed by Miehe, CMAME \b 134, 1996.
 	 * FSSolidMatT::C_IJKL calls FSSolidMatT::c_ijkl and pulls the result back to the
-	 * material representation. */
+	 * material representation. 
+	 * For elastic materials C_IJKL = 2\pdf{S_IJ}{C_KL} 
+	 * For inelastic material \Delta S_{{IJ}_{n+1}} = C_IJKL \Delta C_{KL} */
 	/*@{*/
 	virtual const dMatrixT& c_ijkl(void);
 	virtual const dMatrixT& C_IJKL(void);

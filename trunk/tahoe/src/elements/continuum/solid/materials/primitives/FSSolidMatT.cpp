@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.20 2005-03-16 20:24:23 cfoster Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.21 2006-10-24 00:24:26 tdnguye Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -365,7 +365,6 @@ void FSSolidMatT::TakeParameterList(const ParameterListT& list)
 	
 	/* check for temperature field */
 	if (fFSMatSupport->Temperatures() && fFSMatSupport->LastTemperatures()) {
-
 		/* set flag */
 		fTemperatureField = true;
 		

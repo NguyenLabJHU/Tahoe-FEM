@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.76 2005-05-10 19:34:12 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.77 2006-10-24 00:24:26 tdnguye Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -724,7 +724,7 @@ void SolidElementT::SetGlobalShape(void)
 	}
 	
 	/* get nodal temperatures if available */
-	if (fLocTemp) SetLocalU(*fLocTemp);
+	if (fLocTemp)SetLocalU(*fLocTemp);
 	if (fLocTemp_last) SetLocalU(*fLocTemp_last);
 }
 
@@ -747,6 +747,7 @@ MaterialSupportT* SolidElementT::NewMaterialSupport(MaterialSupportT* p) const
 
 		/* temperatures if available */
 		if (fLocTemp) ps->SetTemperatures(*fLocTemp);
+
 		if (fLocTemp_last) ps->SetLastTemperatures(*fLocTemp_last);
 	}
 
