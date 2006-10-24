@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.h,v 1.7 2004-08-01 01:04:19 paklein Exp $ */
+/* $Id: SSJ2LinHardBaseT.h,v 1.8 2006-10-24 00:11:20 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -99,7 +99,7 @@ protected:
 	bool fplastic;
 
 	/* element level internal variables */
-	double fnstatev;             // number of internal state variables 
+	int fnstatev;             // number of internal state variables 
 	dArrayT fstatev;             // internal state variable array
 
 	/*current values*/

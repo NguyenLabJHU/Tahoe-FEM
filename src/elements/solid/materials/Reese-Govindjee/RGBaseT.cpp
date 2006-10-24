@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.8 2005-12-17 01:20:24 thao Exp $ */
+/* $Id: RGBaseT.cpp,v 1.9 2006-10-24 00:11:20 thao Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGBaseT.h"
 
@@ -7,7 +7,8 @@ using namespace Tahoe;
 /* constructor */
 RGBaseT::RGBaseT(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("RGBaseT")
-{}
+{
+}
 
 void RGBaseT::Initialize(void)
 {
