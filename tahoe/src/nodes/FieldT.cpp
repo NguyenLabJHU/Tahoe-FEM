@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.50 2006-08-18 01:07:32 a-kopacz Exp $ */
+/* $Id: FieldT.cpp,v 1.51 2006-10-24 00:34:41 tdnguye Exp $ */
 
 #include "FieldT.h"
 
@@ -131,7 +131,6 @@ void FieldT::Dimension(int nnd, bool copy_in)
 {
 	/* inherited */
 	BasicFieldT::Dimension(nnd, copy_in);
-
 	/* set dimensions with integrator */
 	nIntegrator().Dimension(*this);
 }
