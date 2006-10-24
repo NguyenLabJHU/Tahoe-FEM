@@ -1,4 +1,4 @@
-/* $Id: eIntegratorT.h,v 1.5 2003-12-28 08:55:56 paklein Exp $ */
+/* $Id: eIntegratorT.h,v 1.6 2006-10-24 00:34:41 tdnguye Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _E_CONTROLLERT_H_
@@ -21,7 +21,7 @@ public:
 
 	/** destructor */
 	virtual ~eIntegratorT(void);
-
+		
 	/** casting up from IntegratorT */
 	virtual const eIntegratorT& eIntegrator(void) const { return *this; };
 

@@ -1,4 +1,4 @@
-/* $Id: IntegratorT.h,v 1.7 2006-08-18 00:59:00 a-kopacz Exp $ */
+/* $Id: IntegratorT.h,v 1.8 2006-10-24 00:34:41 tdnguye Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _CONTROLLER_T_H_
 #define _CONTROLLER_T_H_
@@ -68,6 +68,7 @@ public:
 	/*@{*/
 	virtual const eIntegratorT& eIntegrator(void) const = 0;
 	virtual const nIntegratorT& nIntegrator(void) const = 0;
+
 	/*@}*/
 
 protected:

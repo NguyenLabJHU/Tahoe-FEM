@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.39 2006-06-18 01:45:53 tdnguye Exp $ */
+/* $Id: NLSolver.cpp,v 1.40 2006-10-24 00:34:41 tdnguye Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -493,6 +493,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 	else
 	{
 		double relerror = error/fError0;
+
 		if (fVerbose) 
 			cout << setw(kIntWidth) << iteration  << ": Relative error = "
 			     << setw(d_width) << relerror << endl;
@@ -511,6 +512,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 		/* converged */
 		else if (relerror < fTolerance || error < fZeroTolerance)
 		{
+
 			if (!fVerbose)
 				cout << setw(kIntWidth) << iteration  << ": Relative error = " 
 				     << setw(d_width) << relerror << " (converged)\n";
