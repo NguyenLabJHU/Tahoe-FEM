@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.4 2006-10-24 20:41:35 thao Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.5 2006-10-24 21:07:19 thao Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -327,17 +327,8 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 								surf_shape.DomainJacobian(coords, l, jacobian);
 								double detj = surf_shape.SurfaceJacobian(jacobian, Q);
 								/*rotate parent coords such that xi aligns with global x*/
-						int sense = (Q[8] > .01*kSmall) ? 1 : -1;
-						if(elem == 2650 || elem == 2400)
-						{
-							cout << "\nelem: "<<elem;
-							cout << "\nfacet: "<<facet;
-							cout << "\nfacet nodes loc: "<<facet_nodes_loc;
-							cout << "\nfacet nodes glob: "<<facet_nodes_glob;
-							cout << "\ncoords: "<<coords;
-							cout << "\nQ: "<<Q;
-							cout << "\nsense: "<<sense;
-						}
+								int sense = (Q[8] > .01*kSmall) ? 1 : -1;
+
 								/*default*/
 //								Qbar = Q;
 								if (nnd == 4 || nnd == 8 || nnd ==9) /*case quad*/
@@ -399,10 +390,6 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 										Qbar[8] = Q[8];
 									}
 								}
-						if(elem == 2650 || elem == 2400)
-						{
-							cout << "\nQbar: "<<Qbar;
-						}
 								Qbar.Multx(p_loc, p_glb, scale, dMatrixT::kAccumulate);
 							}
 						}
