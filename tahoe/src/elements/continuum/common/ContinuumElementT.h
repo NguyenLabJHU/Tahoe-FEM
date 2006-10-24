@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.38 2005-07-20 06:52:07 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.39 2006-10-24 00:24:25 tdnguye Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -181,7 +181,7 @@ protected:
 	 * \param ip_weight array of weights per integration point or NULL
 	 *        if no additional weighting is needed beyond those defined by
 	 *        the integration scheme */
-	void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
+	virtual void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
 		const double* ip_weight);
 
 	/** add contribution from the body force */
@@ -196,7 +196,7 @@ protected:
 	 * \param ip_weight array of weights per integration point or NULL
 	 *        if no additional weighting is needed beyond those defined by
 	 *        the integration scheme */
-	void FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
+	virtual void FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
 		const LocalArrayT* nodal_values,
 		const dArray2DT* ip_values,
 		const double* ip_weight);

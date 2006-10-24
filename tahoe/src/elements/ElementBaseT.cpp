@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.52 2005-05-05 16:39:03 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.53 2006-10-24 00:24:25 tdnguye Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -479,7 +479,7 @@ void ElementBaseT::TakeParameterList(const ParameterListT& list)
 
 	/* get the integrator */
 	fIntegrator = &(fField->Integrator().eIntegrator());
-
+	
 	/* try to load connectivities */
 	ArrayT<StringT> block_ID;
 	ArrayT<int> mat_index;

@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.12 2004-07-15 08:26:18 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.13 2006-10-24 00:24:25 tdnguye Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -10,7 +10,6 @@
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
 #include "dSymMatrixT.h"
-
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {

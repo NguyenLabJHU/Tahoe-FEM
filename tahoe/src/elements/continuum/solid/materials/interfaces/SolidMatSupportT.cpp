@@ -1,4 +1,4 @@
-/* $Id: SolidMatSupportT.cpp,v 1.6 2004-07-15 08:28:22 paklein Exp $ */
+/* $Id: SolidMatSupportT.cpp,v 1.7 2006-10-24 00:24:26 tdnguye Exp $ */
 #include "SolidMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -18,7 +18,6 @@ SolidMatSupportT::SolidMatSupportT(int ndof, int nip):
 	fTemperatures(NULL),
 	fLastTemperatures(NULL)
 {
-
 }
 
 /* set the element group pointer */
