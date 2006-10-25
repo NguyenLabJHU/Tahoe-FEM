@@ -4,6 +4,7 @@
 #include "OutputSetT.h"
 #include "ParameterContainerT.h"
 #include "CommunicatorT.h"
+#include <math.h>
 
 using namespace Tahoe;
 
@@ -311,6 +312,9 @@ void FSSolidFluidMixT::AddNodalForce(const FieldT& field, int node, dArrayT& for
 	    //fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
 	    fCurrCoords_displ=fInitCoords_displ;
 	    fShapes_displ->SetDerivatives(); 
+// the above line should be replaced with this one: Davoud
+// fShapes_displ->SetDerivatives_DN_DDN(); 
+
 	    //
 	    fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
 	    fCurrCoords_press=fInitCoords_press;
@@ -649,9 +653,13 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fFtheta_int=0.0;
 						
 				const double* shapes_displ_X = fShapes_displ->IPShapeX();
+				fs_mix_out	<<"CCCCCCCCCCCCCCCC"<< endl ;			
+				fs_mix_out	<<shapes_displ_X[0]<< endl ;
+				fs_mix_out	<<"CCCCCCCCCCCCCCCC"<< endl ;
+
 				fShapeSolid = 0.0;
 				fShapeSolid(0,0) = shapes_displ_X[0];
-/*				fShapeSolid(0,3) = shapes_displ_X[1];
+				fShapeSolid(0,3) = shapes_displ_X[1];
 				fShapeSolid(0,6) = shapes_displ_X[2];
 				fShapeSolid(0,9) = shapes_displ_X[3];
 				fShapeSolid(0,12) = shapes_displ_X[4];
@@ -732,13 +740,18 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fShapeSolid(2,71) = shapes_displ_X[23];
 				fShapeSolid(2,74) = shapes_displ_X[24];
 				fShapeSolid(2,77) = shapes_displ_X[25];
-				fShapeSolid(2,80) = shapes_displ_X[26]; */
+				fShapeSolid(2,80) = shapes_displ_X[26]; 
 // defining gradient of solid shape functions
 				fShapes_displ->GradNa(fShapeSolidGrad_temp);
 				fShapeSolidGrad = 0.0;
 
+				fs_mix_out	<< endl ;
+				fs_mix_out	<<"BBBBBBBBBBBBBBBBBBBB"<< endl ;			
+				fs_mix_out	<<fShapeSolidGrad_temp(0,0)<< endl ;
+				fs_mix_out	<<"BBBBBBBBBBBBBBBBBBBB"<< endl ; 
+
 				fShapeSolidGrad(0,0) = fShapeSolidGrad_temp(0,0);
-/*				fShapeSolidGrad(0,3) = fShapeSolidGrad_temp(0,1);
+				fShapeSolidGrad(0,3) = fShapeSolidGrad_temp(0,1);
 				fShapeSolidGrad(0,6) = fShapeSolidGrad_temp(0,2);
 				fShapeSolidGrad(0,9) = fShapeSolidGrad_temp(0,3);
 				fShapeSolidGrad(0,12) = fShapeSolidGrad_temp(0,4);
@@ -988,19 +1001,19 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fShapeSolidGrad(8,71) = fShapeSolidGrad_temp(2,23);
 				fShapeSolidGrad(8,74) = fShapeSolidGrad_temp(2,24);
 				fShapeSolidGrad(8,77) = fShapeSolidGrad_temp(2,25);
-				fShapeSolidGrad(8,80) = fShapeSolidGrad_temp(2,26); */
+				fShapeSolidGrad(8,80) = fShapeSolidGrad_temp(2,26); 
 
 // defining fluid shape functions
 				const double* shapes_press_X = fShapes_press->IPShapeX();
 				fShapeFluid = 0.0;
 				fShapeFluid[0] = shapes_press_X[0];
-/*				fShapeFluid(1) = shapes_press_X[1];
-				fShapeFluid(2) = shapes_press_X[2];
-				fShapeFluid(3) = shapes_press_X[3];
-				fShapeFluid(4) = shapes_press_X[4];	
-				fShapeFluid(5) = shapes_press_X[5];	
-				fShapeFluid(6) = shapes_press_X[6];	
-				fShapeFluid(7) = shapes_press_X[7];	*/
+				fShapeFluid[1] = shapes_press_X[1];
+				fShapeFluid[2] = shapes_press_X[2];
+				fShapeFluid[3] = shapes_press_X[3];
+				fShapeFluid[4] = shapes_press_X[4];	
+				fShapeFluid[5] = shapes_press_X[5];	
+				fShapeFluid[6] = shapes_press_X[6];	
+				fShapeFluid[7] = shapes_press_X[7];	
 
 // defining gradient of fluid shape functions
 				fShapes_press->GradNa(fShapeFluidGrad);
@@ -1008,14 +1021,14 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 // forming deformation gradient tensor
 				fShapeSolidGrad.Multx(del_u_vec,fGRAD_disp);
 				fDeformation_Gradient(0,0) = fGRAD_disp[0]+1.0;
-/*				fDeformation_Gradient(0,1) = fGRAD_disp(3); 
-				fDeformation_Gradient(0,2) = fGRAD_disp(6);
-				fDeformation_Gradient(1,0) = fGRAD_disp(1);
-				fDeformation_Gradient(1,1) = fGRAD_disp(4)+1.0;  
-				fDeformation_Gradient(1,2) = fGRAD_disp(7);
-				fDeformation_Gradient(2,0) = fGRAD_disp(2);
-				fDeformation_Gradient(2,1) = fGRAD_disp(5);
-				fDeformation_Gradient(2,2) = fGRAD_disp(8)+1.0; */
+				fDeformation_Gradient(0,1) = fGRAD_disp[3]; 
+				fDeformation_Gradient(0,2) = fGRAD_disp[6];
+				fDeformation_Gradient(1,0) = fGRAD_disp[1];
+				fDeformation_Gradient(1,1) = fGRAD_disp[4]+1.0;  
+				fDeformation_Gradient(1,2) = fGRAD_disp[7];
+				fDeformation_Gradient(2,0) = fGRAD_disp[2];
+				fDeformation_Gradient(2,1) = fGRAD_disp[5];
+				fDeformation_Gradient(2,2) = fGRAD_disp[8]+1.0; 
 
 // forming inverse and transpose of deformation gradient
 				fDeformation_Gradient_Inverse.Inverse(fDeformation_Gradient);
@@ -1024,7 +1037,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 // forming matrix of inverse deformation gradient tensor which is used to change GRAD to grad
 				fDefGradInv_grad_GRAD = 0.0;
 				fDefGradInv_grad_GRAD(0,0) = fDeformation_Gradient_Inverse(0,0);
-/*				fDefGradInv_grad_GRAD(0,3) = fDeformation_Gradient_Inverse(0,1);
+				fDefGradInv_grad_GRAD(0,3) = fDeformation_Gradient_Inverse(0,1);
 				fDefGradInv_grad_GRAD(0,6) = fDeformation_Gradient_Inverse(0,2);
 				fDefGradInv_grad_GRAD(1,1) = fDeformation_Gradient_Inverse(0,0);
 				fDefGradInv_grad_GRAD(1,4) = fDeformation_Gradient_Inverse(0,1);
@@ -1049,7 +1062,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fDefGradInv_grad_GRAD(7,7) = fDeformation_Gradient_Inverse(2,2);
 				fDefGradInv_grad_GRAD(8,2) = fDeformation_Gradient_Inverse(2,0);
 				fDefGradInv_grad_GRAD(8,5) = fDeformation_Gradient_Inverse(2,1);
-				fDefGradInv_grad_GRAD(8,8) = fDeformation_Gradient_Inverse(2,2); */
+				fDefGradInv_grad_GRAD(8,8) = fDeformation_Gradient_Inverse(2,2);
 
 // forming transpose matrix of inverse deformation gradient tensor which is used to change GRAD to grad
 				fDefGradInv_grad_GRAD_Transpose.Transpose(fDefGradInv_grad_GRAD);
@@ -1059,33 +1072,72 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
 // forming vector of inverse deformation gradient tensor
 				fDefGradInv_Vector[0] = fDeformation_Gradient_Inverse(0,0);
-/*				fDefGradInv_Vector(1) = fDeformation_Gradient_Inverse(0,1);
-				fDefGradInv_Vector(2) = fDeformation_Gradient_Inverse(0,2);
-				fDefGradInv_Vector(3) = fDeformation_Gradient_Inverse(1,0);
-				fDefGradInv_Vector(4) = fDeformation_Gradient_Inverse(1,1);
-				fDefGradInv_Vector(5) = fDeformation_Gradient_Inverse(1,2);
-				fDefGradInv_Vector(6) = fDeformation_Gradient_Inverse(2,0);
-				fDefGradInv_Vector(7) = fDeformation_Gradient_Inverse(2,1);
-				fDefGradInv_Vector(8) = fDeformation_Gradient_Inverse(2,2); */
+				fDefGradInv_Vector[1] = fDeformation_Gradient_Inverse(0,1);
+				fDefGradInv_Vector[2] = fDeformation_Gradient_Inverse(0,2);
+				fDefGradInv_Vector[3] = fDeformation_Gradient_Inverse(1,0);
+				fDefGradInv_Vector[4] = fDeformation_Gradient_Inverse(1,1);
+				fDefGradInv_Vector[5] = fDeformation_Gradient_Inverse(1,2);
+				fDefGradInv_Vector[6] = fDeformation_Gradient_Inverse(2,0);
+				fDefGradInv_Vector[7] = fDeformation_Gradient_Inverse(2,1);
+				fDefGradInv_Vector[8] = fDeformation_Gradient_Inverse(2,2); 
+
+// forming Cauchy Green tensor
+				fCauchy_Green_tensor.MultATB(fDeformation_Gradient, fDeformation_Gradient);
+
+// forming Inverse of Cauchy Green tensor
+				fCauchy_Green_tensor_Inverse.Inverse(fCauchy_Green_tensor);
+
+// forming Identity matrix
+				fIdentity_matrix = 0.0;			
+				for (int i=0; i<n_sd ; i++)
+					 fIdentity_matrix(i,i) =1.0;
+
+// forming effective second piola kirchhoff stress tensor
+				fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J)-fMaterial_Params[kMu],fCauchy_Green_tensor_Inverse); 
+				fTemp_matrix.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
+				fEffective_Second_Piola_tensor += fTemp_matrix;
+
+// forming effective kirchhoff stress tensor
+				fEffective_Kirchhoff_tensor.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor,fDeformation_Gradient);
+
+// forming effective kirchoff stress vector
+				fEffective_Kirchhoff_vector[0] = fEffective_Kirchhoff_tensor(0,0);
+				fEffective_Kirchhoff_vector[1] = fEffective_Kirchhoff_tensor(1,0);
+				fEffective_Kirchhoff_vector[2] = fEffective_Kirchhoff_tensor(2,0);
+				fEffective_Kirchhoff_vector[3] = fEffective_Kirchhoff_tensor(0,1);
+				fEffective_Kirchhoff_vector[4] = fEffective_Kirchhoff_tensor(1,1);
+				fEffective_Kirchhoff_vector[5] = fEffective_Kirchhoff_tensor(2,1);
+				fEffective_Kirchhoff_vector[6] = fEffective_Kirchhoff_tensor(0,2);
+				fEffective_Kirchhoff_vector[7] = fEffective_Kirchhoff_tensor(1,2);
+				fEffective_Kirchhoff_vector[8] = fEffective_Kirchhoff_tensor(2,2);
+
+// forming iota temporary matrix
+				fIota_temp_matrix.MultATB(fShapeSolidGrad,fDefGradInv_grad_GRAD);
+
+// forming second derivative of solid shape functions matrix
+
+// forming varpi temporary matrix
+//				for (int I=
+// fVarpi_temp_matrix
+
 //
 				fTest_matrix_A(0,0)=5;
 				fTest_matrix_A(0,1)=7;
 				fTest_matrix_A(1,0)=9;
 				fTest_matrix_A(1,1)=11;
+				fTest_matrix_B=3;
+				fTest_matrix_A.SetToScaled(3,fTest_matrix_A);
 				fs_mix_out	<< fTest_matrix_A << endl;
-//				fs_mix_out	<< endl << endl;
-/*				fs_mix_out = fs_mix_out * 3;
+/*				fs_mix_out	<< endl << endl;
+				fs_mix_out *= 3 ;
 				fs_mix_out	<< fTest_matrix_A << endl;
-				fs_mix_out	<< endl << endl;		*/
+				fs_mix_out	<< endl << endl;	*/	
 
 
-// forming Cauchy Green tensor
-				fCauchy_Green_tensor.MultAB(fDeformation_Gradient_Transpose, fDeformation_Gradient);
 
-// forming Inverse of Cauchy Green tensor
-				fCauchy_Green_tensor_Inverse.Inverse(fCauchy_Green_tensor);
 
- 
+
+
 // defining F_1_T
 				/* for debugging */
 				const int ip = fShapes_displ->CurrIP()+1;
@@ -1320,6 +1372,8 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     ElementSupport().RegisterCoordinates(fInitCoords_displ);	
     fCurrCoords_displ.Dimension(n_en_displ, n_sd);
     fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ);
+// this line should be replaced with the previous line to create first and second derivatives
+//     fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ,1 );
     //fShapes_displ->Initialize();
     // press
     fInitCoords_press.Dimension(n_en_press, n_sd);
@@ -1403,6 +1457,16 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fCauchy_Green_tensor.Dimension (n_sd,n_sd);
     fCauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
     fTest_matrix_A.Dimension (2,2);
+    fTest_matrix_B.Dimension (2,2);
+    fTest_matrix_C.Dimension (2,2);
+    fIdentity_matrix.Dimension (n_sd,n_sd);
+    fEffective_Second_Piola_tensor.Dimension (n_sd,n_sd);
+    fTemp_matrix.Dimension (n_sd,n_sd);
+    fEffective_Kirchhoff_tensor.Dimension (n_sd,n_sd);
+    fEffective_Kirchhoff_vector.Dimension (n_sd_x_n_sd);
+    fIota_temp_matrix.Dimension (n_en_displ_x_n_sd,n_sd_x_n_sd);
+    fVarpi_temp_matrix.Dimension (n_sd, n_en_displ_x_n_sd);
+
 
     /* streams */
     ofstreamT& out = ElementSupport().Output();

@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.6 2006-10-16 22:24:26 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.7 2006-10-25 23:34:19 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -258,6 +258,7 @@ private:
 
 	dArrayT		fGRAD_disp;
 	dArrayT 	fDefGradInv_Vector;
+	dArrayT 	fEffective_Kirchhoff_vector;
 	
 	dMatrixT	fDeformation_Gradient;
 	dMatrixT	fCauchy_Green_tensor;
@@ -266,7 +267,16 @@ private:
 	dMatrixT	fDeformation_Gradient_Transpose;
 	dMatrixT	fDefGradInv_grad_GRAD;
 	dMatrixT	fDefGradInv_grad_GRAD_Transpose;
+	dMatrixT	fIdentity_matrix;
 	dMatrixT	fTest_matrix_A;
+	dMatrixT	fTest_matrix_B;
+	dMatrixT	fTest_matrix_C;
+        dMatrixT	fEffective_Second_Piola_tensor;
+        dMatrixT	fTemp_matrix;
+        dMatrixT	fEffective_Kirchhoff_tensor;
+        dMatrixT	fIota_temp_matrix;
+        dMatrixT	fVarpi_temp_matrix;
+
 
 	/** the solid displacement field */
 	const FieldT* fDispl;
