@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.21 2006-08-30 17:17:49 tdnguye Exp $ */
+/* $Id: ParentDomainT.h,v 1.22 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -80,6 +80,16 @@ class ParentDomainT
 	 * \param DNa shape function derivatives: [ndim] x [nnd]
 	 * \param jacobian resulting jacobian: [nu] x [ndim] */
 	void Jacobian(const LocalArrayT& nodal, const dArray2DT& DNa, dMatrixT& jacobian) const;
+    /* this function calculates derivative of jacobian matrix for n_sd=3, the elements of this matrix are as follows:
+                      first column    second column third column
+        first row:        J11,1           J21,1        J31,1
+	second row:       J12,2           J22,2        J32,2
+	third row:        J13,3           J23,3        J33,3
+	fourth row:       J12,3           J22,3        J32,3
+	fifth row:        J11,3           J21,3        J31,3
+	sixth row:        J11,2           J21,2        J31,2  */
+
+        void Jacobian_Derivative(const LocalArrayT& nodal, const dArray2DT& DDNa,dMatrixT& jacobian_derivative) const;
 
 	/** compute the curl of a vector that is of dimension 3x1
 	 *  Values for vector at the node points must be provided 
@@ -142,6 +152,11 @@ class ParentDomainT
 	void ComputeDNa(const LocalArrayT& coords, ArrayT<dArray2DT>& DNa,
 		dArrayT& det);
 
+    /* the following function will compute first and second derivatives of shape functions
+       note: second derivative has been implemented for 27 node element only */
+	void ComputeDNa_DDNa(const LocalArrayT& coords, ArrayT<dArray2DT>& DNa, ArrayT<dArray2DT>& DDNa,
+		dArrayT& det);
+
 	/** compute nodal values.
 	 * project the integration point values to the nodes 
 	 * \param ipvalues field values from a single integration pt: [numvals]
@@ -174,6 +189,11 @@ class ParentDomainT
 	 *        dimensioned: [nsd] x [nnd] */
 	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
 		dArray2DT& DNa) const;
+
+	/** evaluate the shape functions and their first and second derivatives. the second 
+	 * derivative has been implemented for 27 node element only. */
+	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+		dArray2DT& DNa, dArray2DT& DDNa) const;
 
 	/** print the shape function values to the output stream */
 	void Print(ostream& out) const;
@@ -255,6 +275,7 @@ class ParentDomainT
 	/*@{*/
 	dArray2DT		  fNa;
 	ArrayT<dArray2DT> fDNa;
+	ArrayT<dArray2DT> fDDNa;
 	dArrayT           fWeights; /**< integration weights */
 	/*@}*/
 
@@ -321,6 +342,12 @@ inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT
 	dArray2DT& DNa) const
 {
 	fGeometry->EvaluateShapeFunctions(coords, Na, DNa);
+}
+
+inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+	dArray2DT& DNa, dArray2DT& DDNa) const
+{
+	fGeometry->EvaluateShapeFunctions(coords, Na, DNa, DDNa);
 }
 
 /* return the local node numbers for each facet of the element

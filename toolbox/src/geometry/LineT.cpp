@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.12 2006-08-30 17:17:49 tdnguye Exp $ */
+/* $Id: LineT.cpp,v 1.13 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -83,6 +83,20 @@ void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT
 		DNa[2] =-2.0*coords[0];
 	}
 }
+
+/* evaluate the shape functions and first and second gradients. */
+void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa, dArray2DT& DDNa) const
+{
+#pragma unused(coords)
+#pragma unused(Na)
+#pragma unused(DNa)
+#pragma unused(DDNa)
+
+	cout << "\n LineT::EvaluateShapeFunctions: not implemented" << endl;
+	throw ExceptionT::kGeneralFail;
+}
+
+
 /* compute local shape functions and derivatives */
 void LineT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	dArrayT& weights) const

@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.33 2005-12-08 00:10:14 kyonten Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.34 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -22,6 +22,7 @@ ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numn
 	fNumNodes(numnodes),
 	fNa(fNumIP,fNumNodes),
 	fDNa(fNumIP),
+	fDDNa(fNumIP),
 	fWeights(fNumIP),
 	fNodalExtrap(fNumNodes,fNumIP),
 	fJacobian(fNumSD),
@@ -30,7 +31,10 @@ ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numn
 {
 	/* memory for the derivatives */
 	for (int i = 0; i < fDNa.Length(); i++)
+	{
 		fDNa[i].Dimension(fNumSD, fNumNodes);
+		fDDNa[i].Dimension(fNumSD*2, fNumNodes);
+	}
 		
 	/* initialize parent domain geometry */
 	fGeometry = GeometryT::New(fGeometryCode, fNumNodes);
@@ -482,6 +486,76 @@ void ParentDomainT::ComputeDNa(const LocalArrayT& coords,
 	}
 }
 
+void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
+	ArrayT<dArray2DT>& DNa, ArrayT<dArray2DT>& DDNa, dArrayT& det)
+{
+	/* loop over integration points */
+	int numIP = fDNa.Length();
+	for (int i = 0; i < numIP; i++)	
+	{
+		/* calculate the Jacobian matrix */
+		Jacobian(coords, fDNa[i], fJacobian);
+		det[i] = fJacobian.Det();
+		/* element check */
+		if (det[i] <= 0.0) ExceptionT::BadJacobianDet("ParentDomainT::ComputeDNa", "j = %g",  det[i]);
+
+		dMatrixT& jac_inv = fJacobian.Inverse();
+					
+		/* calculate the global shape function derivatives */
+		if (fNumSD == 3)
+		{
+
+// fDDNa should be initialized. It seems that in the ParentDomain::initializer, the problem is :
+// I can not find "setlocalshape" function in the GeometryBaseT class.
+			double* pLNax = fDNa[i](0);
+			double* pLNay = fDNa[i](1);
+			double* pLNaz = fDNa[i](2);
+
+			double* pLNaxx = fDDNa[i](0);
+			double* pLNayy = fDDNa[i](1);
+			double* pLNazz = fDDNa[i](2);
+			double* pLNayz = fDDNa[i](3);
+			double* pLNaxz = fDDNa[i](4);
+			double* pLNaxy = fDDNa[i](5);
+			
+			double* pNax = DNa[i](0);
+			double* pNay = DNa[i](1);
+			double* pNaz = DNa[i](2);
+			
+			double* pNaxx = DNa[i](0);
+			double* pNayy = DNa[i](1);
+			double* pNazz = DNa[i](2);
+			double* pNayz = DNa[i](0);
+			double* pNaxz = DNa[i](1);
+			double* pNaxy = DNa[i](2);
+
+			double* pj = jac_inv.Pointer();
+		
+			for (int j = 0; j < fNumNodes; j++)
+			{
+				*pNax++ = pj[0]*(*pLNax) + pj[1]*(*pLNay) + pj[2]*(*pLNaz);
+				*pNay++ = pj[3]*(*pLNax) + pj[4]*(*pLNay) + pj[5]*(*pLNaz);
+				*pNaz++ = pj[6]*(*pLNax) + pj[7]*(*pLNay) + pj[8]*(*pLNaz);
+				
+				pLNax++;
+				pLNay++;
+				pLNaz++;
+			}
+		}
+/*		else
+		{
+			const dArray2DT& LNax = fDNa[i];
+			dArray2DT&        Nax = DNa[i];
+			
+			Nax = 0.0;
+			for (int l = 0; l < fNumSD; l++)
+				for (int k = 0; k < fNumSD; k++)
+					for (int j = 0; j < fNumNodes; j++)
+						Nax(l,j) += jac_inv(k,l)*LNax(k,j);
+						}		*/
+	}
+}
+
 /* compute nodal values:
 *
 * ipvalues[numvals] : field values from a single integration pt
@@ -575,7 +649,7 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 	else if (dim == 2)
 	{
 		/* convergence tolerance */
-		double tol = 1.0e-10;  // originally 10-10;
+		double tol = 1.0e-10;  // originally 10-
 
 		/* initial guess */
 		mapped[0] = 0.0;
@@ -722,4 +796,85 @@ double ParentDomainT::AverageRadius(const LocalArrayT& coords, dArrayT& avg) con
 		radius = (dist > radius) ? dist : radius;
 	}
 	return sqrt(radius); // returns largest characteristic domain size
+}
+
+void ParentDomainT::Jacobian_Derivative(const LocalArrayT& nodal, const dArray2DT& DDNa,
+	dMatrixT& jac_derivative) const
+{
+/* this error check has not been implemented, just has been copied from jacobian
+#if __option(extended_errorcheck)
+	// dimension check
+	if (DDNa.MinorDim() != nodal.NumberOfNodes() ||
+        DDNa.MajorDim() != jac_derivative.Cols()            ||
+            jac_derivative.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch("ParentDomainT::Jacobian");
+#endif
+*/
+	double *pjac = jac_derivative.Pointer();
+	const double *pval = nodal.Pointer();
+	
+	int nnd   = nodal.NumberOfNodes();
+	int num_u = jac_derivative.Rows();
+	int num_d = jac_derivative.Cols();
+	
+	if (num_d == 3 && num_u == 6)
+	{
+		double& j11 = *pjac++;
+		double& j12 = *pjac++;
+		double& j13 = *pjac++;
+		double& j21 = *pjac++;
+		double& j22 = *pjac++;
+		double& j23 = *pjac++;
+		double& j31 = *pjac++;
+		double& j32 = *pjac++;
+		double& j33 = *pjac++;
+		double& j41 = *pjac++;
+		double& j42 = *pjac++;
+		double& j43 = *pjac++;
+		double& j51 = *pjac++;
+		double& j52 = *pjac++;
+		double& j53 = *pjac++;
+		double& j61 = *pjac++;
+		double& j62 = *pjac++;
+		double& j63 = *pjac  ;
+	
+		j11 = j12 = j13 = j21 = j22 = j23 = j31 = j32 = j33 = 0.0;
+		j41 = j42 = j43 = j51 = j52 = j53 = j61 = j62 = j63 = 0.0;
+
+		const double* pu1 = nodal(0);
+		const double* pu2 = nodal(1);
+		const double* pu3 = nodal(2);
+		const double* dxx = DDNa(0);
+		const double* dyy = DDNa(1);
+		const double* dzz = DDNa(2);
+		const double* dyz = DDNa(3);
+		const double* dxz = DDNa(4);
+		const double* dxy = DDNa(5);
+
+		for (int i = 0; i < nnd; i++)
+		{
+			j11 += (*pu1)*(*dxx);
+			j12 += (*pu2)*(*dxx);
+			j13 += (*pu3)*(*dxx);
+			j21 += (*pu1)*(*dyy);
+			j22 += (*pu2)*(*dyy);
+			j23 += (*pu3)*(*dyy);
+			j31 += (*pu1)*(*dzz);
+			j32 += (*pu2)*(*dzz);
+			j33 += (*pu3)*(*dzz);
+			j41 += (*pu1)*(*dyz);
+			j42 += (*pu2)*(*dyz);
+			j43 += (*pu3)*(*dyz);
+			j51 += (*pu1)*(*dxz);
+			j52 += (*pu2)*(*dxz);
+			j53 += (*pu3)*(*dxz);
+			j61 += (*pu1)*(*dxy);
+			j62 += (*pu2)*(*dxy);
+			j63 += (*pu3)*(*dxy);
+			
+			pu1++; pu2++; pu3++; 
+			dxx++; dyy++; dzz++;	
+			dyz++; dxz++; dxy++;	
+		}
+		}
+
 }

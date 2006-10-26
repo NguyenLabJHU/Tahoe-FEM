@@ -1,4 +1,4 @@
-/* $Id: LineT.h,v 1.7 2005-12-04 16:56:29 paklein Exp $ */
+/* $Id: LineT.h,v 1.8 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: paklein (04/25/1999) */
 #ifndef _LINE_T_H_
 #define _LINE_T_H_
@@ -27,6 +27,11 @@ public:
 	 * GeometryBaseT::EvaluateShapeFunctions for documentation */
 	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
 		dArray2DT& DNa) const;
+		
+	/** evaluate the shape functions and their first and second derivatives. the second 
+	 * derivative has been implemented for 27 node element only. */
+	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+		dArray2DT& DNa, dArray2DT& DDNa) const;	
 
 	/** evaluate the shape functions and gradients. See 
 	 * GeometryBaseT::SetLocalShape for documentation */

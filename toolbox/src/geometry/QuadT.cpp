@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.19 2006-08-30 17:17:49 tdnguye Exp $ */
+/* $Id: QuadT.cpp,v 1.20 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -244,6 +244,18 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT
         na[7] = lr1*ls2; nax[7]=(r-0.5)*ls2;  nay[7]=lr1*(-2.0*s);
         na[8] = lr2*ls2; nax[8]=(-2.0*r)*ls2; nay[8]=lr2*(-2.0*s);
     }
+}
+
+/* evaluate the shape functions and first and second gradients. */
+void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa, dArray2DT& DDNa) const
+{
+#pragma unused(coords)
+#pragma unused(Na)
+#pragma unused(DNa)
+#pragma unused(DDNa)
+
+	cout << "\n QuadT::EvaluateShapeFunctions: not implemented" << endl;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* compute local shape functions and derivatives */

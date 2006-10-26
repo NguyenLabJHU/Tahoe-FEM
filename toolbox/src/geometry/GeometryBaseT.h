@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.h,v 1.11 2006-09-06 00:13:30 r-jones Exp $ */
+/* $Id: GeometryBaseT.h,v 1.12 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
@@ -59,6 +59,11 @@ public:
 	 *        dimensioned: [nsd] x [nnd] */
 	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
 		dArray2DT& DNa) const = 0;
+
+	/** evaluate the shape functions and their first and second derivatives. the second 
+	 * derivative has been implemented for 27 node element only. */
+	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+		dArray2DT& DNa, dArray2DT& DDNa) const = 0;
 
 	/** compute local shape functions and derivatives. The shape functions
 	 * and their derivatives are evaluated for one of the pre-defined
