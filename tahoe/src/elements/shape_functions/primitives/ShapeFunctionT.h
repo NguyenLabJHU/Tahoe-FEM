@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.26 2005-07-14 07:12:40 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.27 2006-10-26 19:05:24 regueiro Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -29,6 +29,10 @@ public:
 	 * \param B_option strain-displacement option */
 	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
 		const LocalArrayT& coords);
+    // This constructor will do the same job like the previous constructor but it will have a flag to initialize the second derivative
+    // note: second derivative has been implemented for 27 nodes only.
+	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
+		const LocalArrayT& coords, int dummy_flag);
 	
 	/** constructor. 
      * The constructor needs to be followed with a call to ShapeFunctionT::Initialize
@@ -45,6 +49,11 @@ public:
 
 	/** compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);
+
+
+	/** compute global shape derivatives-first and second derivatives, second derivative has been imolemented for 27 node element only */ 	
+	virtual void SetDerivatives_DN_DDN(void);
+
 
 	/** array of jacobian determinant integration points at once */
 	const double* IPDets(void) const; // d(fCoords) = j d(parent domain)
@@ -210,7 +219,10 @@ private:
 	/** configure work space arrays. initializes shape function to be
 	 * isoparametric */
 	void Construct(void);
-	
+
+    // this function will be called by the class constructor to initialize first and second derivatives
+    	void Construct_DN_DDN(void);
+
 	/** hide access to DomainIntegrationT function */
 	const double* IPShape(void) const;
 
@@ -224,10 +236,13 @@ private:
 	/* global shape function derivatives */
 	dArrayT	fDet;	         // d(fCoords) = j d(parent domain)
 	ArrayT<dArray2DT> fDNaX; // geometry: d(phi_X)/d(fCoords)
+	ArrayT<dArray2DT> fDDNaX; // geometry: d(phi_X)/d(fCoords) and  d^2(phi_X)/d(fCoords)^2
+
 
 	/* field shape functions */
 	const dArray2DT*         pNaU;  // phi_U
 	const ArrayT<dArray2DT>* pDNaU; // d(phi_U)/d(fCoords)
+	const ArrayT<dArray2DT>* pDDNaU; // d^2(phi_U)/d(fCoords)^2
 
 	/* return values */
 	const dArray2DT* fGrad_x_temp;
