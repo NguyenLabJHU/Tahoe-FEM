@@ -1,4 +1,4 @@
-/* $Id: TriT.cpp,v 1.12 2006-08-30 17:17:49 tdnguye Exp $ */
+/* $Id: TriT.cpp,v 1.13 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: paklein (07/03/1996) */
 #include "TriT.h"
 #include "QuadT.h"
@@ -95,6 +95,18 @@ void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT&
 	nay[0] = 0.0;
 	nay[1] = 1.0;
 	nay[2] =-1.0;
+}
+
+/* evaluate the shape functions and first and second gradients. */
+void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa, dArray2DT& DDNa) const
+{
+#pragma unused(coords)
+#pragma unused(Na)
+#pragma unused(DNa)
+#pragma unused(DDNa)
+
+	cout << "\n TriT::EvaluateShapeFunctions: not implemented" << endl;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* compute local shape functions and derivatives */

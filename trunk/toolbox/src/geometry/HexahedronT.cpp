@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.13 2006-10-17 21:17:09 regueiro Exp $ */
+/* $Id: HexahedronT.cpp,v 1.14 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -765,6 +765,621 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		nax[lnd] = dr3*s3*t3;  
 		nay[lnd] = r3*ds3*t3;
 		naz[lnd] = r3*s3*dt3;
+		lnd++;
+	}
+}
+
+/* evaluate the shape functions and their first and second derivatives. */
+void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+	dArray2DT& DNa, dArray2DT& DDNa) const
+{
+	const char caller[] = "HexahedronT::EvaluateShapeFunctions";
+
+#if __option(extended_errorcheck)
+	if (coords.Length() != 3 ||
+	        Na.Length() != fNumNodes ||
+	     DNa.MajorDim() != 3 ||
+	     DNa.MinorDim() != fNumNodes) ExceptionT::SizeMismatch(caller);
+	if (fNumNodes != kNumVertexNodes && 
+	    fNumNodes != 20 && fNumNodes != 27) ExceptionT::GeneralFail(caller);
+#endif
+
+	/* coordinates */	
+	double r = coords[0];
+	double s = coords[1];
+	double t = coords[2];
+#if 0
+	if (r < -1.0 || r > 1.0) ExceptionT::OutOfRange(caller, "r = %15.12e", r);
+	if (s < -1.0 || s > 1.0) ExceptionT::OutOfRange(caller, "s = %15.12e", s);
+	if (t < -1.0 || t > 1.0) ExceptionT::OutOfRange(caller, "t = %15.12e", t);
+#endif
+
+	/* vertex nodes */
+	double* na  = Na.Pointer();
+	double* nax = DNa(0);
+	double* nay = DNa(1);
+	double* naz = DNa(2);
+
+
+	for (int lnd = 0; lnd < kNumVertexNodes; lnd++)
+	{
+		double tempr1 = 1.0 + ra[lnd]*r;
+		double temps1 = 1.0 + sa[lnd]*s;
+		double tempt1 = 1.0 + ta[lnd]*t;
+			
+		*na++  = 0.125*tempr1*temps1*tempt1;
+		*nax++ = 0.125*ra[lnd]*temps1*tempt1;
+		*nay++ = 0.125*tempr1*sa[lnd]*tempt1;
+		*naz++ = 0.125*tempr1*temps1*ta[lnd];
+	}
+	
+	/* higher order shape functions */
+	if (fNumNodes == 20)
+	{
+		na  = Na.Pointer();
+		nax = DNa(0);
+		nay = DNa(1);
+		naz = DNa(2);
+	
+		/* linear factors */
+		double r_min = 1.0 - r, r_max = 1.0 + r;
+		double s_min = 1.0 - s, s_max = 1.0 + s;
+		double t_min = 1.0 - t, t_max = 1.0 + t;
+
+		/* bubbles */
+		double r2 = 1.0 - r*r;
+		double s2 = 1.0 - s*s;
+		double t2 = 1.0 - t*t;
+		
+		/* local node number */
+		int lnd = 8;
+
+		/* node 9 */
+		double N  = 0.25*r2*s_min*t_min;
+		double Nx =-0.50*r*s_min*t_min;
+		double Ny =-0.25*r2*t_min;
+		double Nz =-0.25*r2*s_min;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {1,2} */
+		 na[0] -= N;   na[1] -= N; 
+		nax[0] -= Nx; nax[1] -= Nx; 
+		nay[0] -= Ny; nay[1] -= Ny; 
+		naz[0] -= Nz; naz[1] -= Nz;
+
+		/* node 10 */
+		N  = 0.25*r_max*s2*t_min;		
+		Nx = 0.25*s2*t_min;
+		Ny =-0.50*r_max*s*t_min;
+		Nz =-0.25*r_max*s2;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {2,3} */
+		 na[1] -= N;   na[2] -= N; 
+		nax[1] -= Nx; nax[2] -= Nx; 
+		nay[1] -= Ny; nay[2] -= Ny; 
+		naz[1] -= Nz; naz[2] -= Nz;
+
+		/* node 11 */
+		N  = 0.25*r2*s_max*t_min;
+		Nx =-0.50*r*s_max*t_min;
+		Ny = 0.25*r2*t_min;
+		Nz =-0.25*r2*s_max;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {3,4} */
+		 na[2] -= N;   na[3] -= N; 
+		nax[2] -= Nx; nax[3] -= Nx; 
+		nay[2] -= Ny; nay[3] -= Ny; 
+		naz[2] -= Nz; naz[3] -= Nz;
+
+		/* node 12 */
+		N  = 0.25*r_min*s2*t_min;
+		Nx =-0.25*s2*t_min;
+		Ny =-0.50*r_min*s*t_min;
+		Nz =-0.25*r_min*s2;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {4,1} */
+		 na[3] -= N;   na[0] -= N; 
+		nax[3] -= Nx; nax[0] -= Nx; 
+		nay[3] -= Ny; nay[0] -= Ny; 
+		naz[3] -= Nz; naz[0] -= Nz;
+
+		/* node 13 */
+		N  = 0.25*r2*s_min*t_max;
+		Nx =-0.50*r*s_min*t_max;
+		Ny =-0.25*r2*t_max;
+		Nz = 0.25*r2*s_min;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {5,6} */
+		 na[4] -= N;   na[5] -= N; 
+		nax[4] -= Nx; nax[5] -= Nx; 
+		nay[4] -= Ny; nay[5] -= Ny; 
+		naz[4] -= Nz; naz[5] -= Nz;
+
+		/* node 14 */
+		N  = 0.25*r_max*s2*t_max;		
+		Nx = 0.25*s2*t_max;
+		Ny =-0.50*r_max*s*t_max;
+		Nz = 0.25*r_max*s2;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;		
+		/* correct nodes {6,7} */
+		 na[5] -= N;   na[6] -= N; 
+		nax[5] -= Nx; nax[6] -= Nx; 
+		nay[5] -= Ny; nay[6] -= Ny; 
+		naz[5] -= Nz; naz[6] -= Nz;
+
+		/* node 15 */
+		N  = 0.25*r2*s_max*t_max;
+		Nx =-0.50*r*s_max*t_max;
+		Ny = 0.25*r2*t_max;
+		Nz = 0.25*r2*s_max;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {7,8} */
+		 na[6] -= N;   na[7] -= N; 
+		nax[6] -= Nx; nax[7] -= Nx; 
+		nay[6] -= Ny; nay[7] -= Ny; 
+		naz[6] -= Nz; naz[7] -= Nz;
+
+		/* node 16 */
+		N  = 0.25*r_min*s2*t_max;
+		Nx =-0.25*s2*t_max;
+		Ny =-0.50*r_min*s*t_max;
+		Nz = 0.25*r_min*s2;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {8,5} */
+		 na[7] -= N;   na[4] -= N; 
+		nax[7] -= Nx; nax[4] -= Nx; 
+		nay[7] -= Ny; nay[4] -= Ny; 
+		naz[7] -= Nz; naz[4] -= Nz;
+
+		/* node 17 */
+		N  = 0.25*r_min*s_min*t2;
+		Nx =-0.25*s_min*t2;
+		Ny =-0.25*r_min*t2;
+		Nz =-0.50*r_min*s_min*t;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {1,5} */
+		 na[0] -= N;   na[4] -= N; 
+		nax[0] -= Nx; nax[4] -= Nx; 
+		nay[0] -= Ny; nay[4] -= Ny; 
+		naz[0] -= Nz; naz[4] -= Nz;
+
+		/* node 18 */
+		N  = 0.25*r_max*s_min*t2;
+		Nx = 0.25*s_min*t2;
+		Ny =-0.25*r_max*t2;
+		Nz =-0.50*r_max*s_min*t;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {2,6} */
+		 na[1] -= N;   na[5] -= N; 
+		nax[1] -= Nx; nax[5] -= Nx; 
+		nay[1] -= Ny; nay[5] -= Ny; 
+		naz[1] -= Nz; naz[5] -= Nz;
+
+		/* node 19 */
+		N  = 0.25*r_max*s_max*t2;
+		Nx = 0.25*s_max*t2;
+		Ny = 0.25*r_max*t2;
+		Nz =-0.50*r_max*s_max*t;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {3,7} */
+		 na[2] -= N;   na[6] -= N; 
+		nax[2] -= Nx; nax[6] -= Nx; 
+		nay[2] -= Ny; nay[6] -= Ny; 
+		naz[2] -= Nz; naz[6] -= Nz;
+
+		/* node 20 */
+		N  = 0.25*r_min*s_max*t2;
+		Nx =-0.25*s_max*t2;
+		Ny = 0.25*r_min*t2;
+		Nz =-0.50*r_min*s_max*t;
+		na[lnd] = N; nax[lnd] = Nx; nay[lnd] = Ny; naz[lnd] = Nz; lnd++;
+		N *= 0.5; Nx *= 0.5; Ny *= 0.5; Nz *= 0.5;
+		/* correct nodes {4,8} */
+		 na[3] -= N;   na[7] -= N; 
+		nax[3] -= Nx; nax[7] -= Nx; 
+		nay[3] -= Ny; nay[7] -= Ny; 
+		naz[3] -= Nz; naz[7] -= Nz;
+	}
+	if (fNumNodes == 27)
+	{
+// instead of creating derivatives magically(by defining derivatives for the new 7 nodes and correcting prviously defined derivatives)
+// they will be defined directly. /* Davoud */
+// the second derivative of shape functions has been implemented for 27 node element only
+		na  = Na.Pointer();
+		nax = DNa(0);
+		nay = DNa(1);
+		naz = DNa(2);
+		/* vertex nodes */
+
+		double* naxx = DDNa(0);
+		double* nayy = DDNa(1);
+		double* nazz = DDNa(2);
+		double* nayz = DDNa(3);
+		double* naxz = DDNa(4);
+		double* naxy = DDNa(5);
+
+		/* base quadratic factors */
+		double r1=0.5*r*(r-1); double s1=0.5*s*(s-1); double t1=0.5*t*(t-1);
+		double r2=0.5*r*(r+1); double s2=0.5*s*(s+1); double t2=0.5*t*(t+1);
+		double r3=1-r*r;       double s3=1-s*s;       double t3=1-t*t;
+
+		/* first derivatives */
+		double dr1=0.5*(2*r-1);double ds1=0.5*(2*s-1);double dt1=0.5*(2*t-1);
+		double dr2=0.5*(2*r+1);double ds2=0.5*(2*s+1);double dt2=0.5*(2*t+1);
+		double dr3=-2*r;       double ds3=-2*s;       double dt3=-2*t;
+		
+
+		/* second derivatives */
+		double ddr1=1;  double dds1=1;  double ddt1=1;
+		double ddr2=1;  double dds2=1;  double ddt2=1;
+		double ddr3=-2; double dds3=-2; double ddt3=-2;
+
+
+		/* local node number */
+		int lnd = 0;
+
+		/* node 1 */
+		na[lnd] = r1*s1*t1;  
+		nax[lnd] = dr1*s1*t1;  
+		nay[lnd] = r1*ds1*t1;
+		naz[lnd] = r1*s1*dt1;
+		naxx[lnd] = ddr1*s1*t1;  
+		nayy[lnd] = r1*dds1*t1;  
+		nazz[lnd] = r1*s1*ddt1;  
+		nayz[lnd] = r1*ds1*dt1;  
+		naxz[lnd] = dr1*s1*dt1;  
+		naxy[lnd] = dr1*ds1*t1;  
+
+		lnd++;
+		
+		/* node 2 */
+		na[lnd] = r2*s1*t1; 
+		nax[lnd] = dr2*s1*t1;  
+		nay[lnd] = r2*ds1*t1;
+		naz[lnd] = r2*s1*dt1;
+		naxx[lnd] = ddr2*s1*t1;  
+		nayy[lnd] = r2*dds1*t1;
+		nazz[lnd] = r2*s1*ddt1;
+		nayz[lnd] = r2*ds1*dt1;  
+		naxz[lnd] = dr2*s1*dt1;
+		naxy[lnd] = dr2*ds1*t1;
+		lnd++;
+
+		/* node 3 */
+		na[lnd] = r2*s2*t1; 
+		nax[lnd] = dr2*s2*t1;  
+		nay[lnd] = r2*ds2*t1;
+		naz[lnd] = r2*s2*dt1;
+		naxx[lnd] = ddr2*s2*t1;  
+		nayy[lnd] = r2*dds2*t1;
+		nazz[lnd] = r2*s2*ddt1;
+		nayz[lnd] = r2*ds2*dt1;  
+		naxz[lnd] = dr2*s2*dt1;
+		naxy[lnd] = dr2*ds2*t1;
+
+		lnd++;
+
+		/* node 4 */
+		na[lnd] = r1*s2*t1; 
+		nax[lnd] = dr1*s2*t1;  
+		nay[lnd] = r1*ds2*t1;
+		naz[lnd] = r1*s2*dt1;
+		naxx[lnd] = ddr1*s2*t1;  
+		nayy[lnd] = r1*dds2*t1;
+		nazz[lnd] = r1*s2*ddt1;
+		nayz[lnd] = r1*ds2*dt1;  
+		naxz[lnd] = dr1*s2*dt1;
+		naxy[lnd] = dr1*ds2*t1;
+
+		lnd++;
+
+		/* node 5 */
+		na[lnd] = r1*s1*t2; 
+		nax[lnd] = dr1*s1*t2;  
+		nay[lnd] = r1*ds1*t2;
+		naz[lnd] = r1*s1*dt2;
+		naxx[lnd] = ddr1*s1*t2;  
+		nayy[lnd] = r1*dds1*t2;
+		nazz[lnd] = r1*s1*ddt2;
+		nayz[lnd] = r1*ds1*dt2;  
+		naxz[lnd] = dr1*s1*dt2;
+		naxy[lnd] = dr1*ds1*t2;
+		lnd++;
+
+		/* node 6 */
+		na[lnd] = r2*s1*t2; 
+		nax[lnd] = dr2*s1*t2;  
+		nay[lnd] = r2*ds1*t2;
+		naz[lnd] = r2*s1*dt2;
+		naxx[lnd] = ddr2*s1*t2;  
+		nayy[lnd] = r2*dds1*t2;
+		nazz[lnd] = r2*s1*ddt2;
+		nayz[lnd] = r2*ds1*dt2;  
+		naxz[lnd] = dr2*s1*dt2;
+		naxy[lnd] = dr2*ds1*t2;
+		lnd++;
+
+		/* node 7 */
+		na[lnd] = r2*s2*t2;
+		nax[lnd] = dr2*s2*t2;  
+		nay[lnd] = r2*ds2*t2;
+		naz[lnd] = r2*s2*dt2; 
+		naxx[lnd] = ddr2*s2*t2;  
+		nayy[lnd] = r2*dds2*t2;
+		nazz[lnd] = r2*s2*ddt2; 
+		nayz[lnd] = r2*ds2*dt2;  
+		naxz[lnd] = dr2*s2*dt2;
+		naxy[lnd] = dr2*ds2*t2; 
+		lnd++;
+
+		/* node 8 */
+		na[lnd] = r1*s2*t2; 
+		nax[lnd] = dr1*s2*t2;  
+		nay[lnd] = r1*ds2*t2;
+		naz[lnd] = r1*s2*dt2;
+		naxx[lnd] = ddr1*s2*t2;  
+		nayy[lnd] = r1*dds2*t2;
+		nazz[lnd] = r1*s2*ddt2;
+		nayz[lnd] = r1*ds2*dt2;  
+		naxz[lnd] = dr1*s2*dt2;
+		naxy[lnd] = dr1*ds2*t2;
+		lnd++;
+
+		/* node 9 */
+		na[lnd] = r3*s1*t1;
+		nax[lnd] = dr3*s1*t1;  
+		nay[lnd] = r3*ds1*t1;
+		naz[lnd] = r3*s1*dt1;
+		naxx[lnd] = ddr3*s1*t1;  
+		nayy[lnd] = r3*dds1*t1;
+		nazz[lnd] = r3*s1*ddt1;
+		nayz[lnd] = r3*ds1*dt1;  
+		naxz[lnd] = dr3*s1*dt1;
+		naxy[lnd] = dr3*ds1*t1;
+		lnd++;
+
+		/* node 10 */
+		na[lnd] = r2*s3*t1;
+		nax[lnd] = dr2*s3*t1;  
+		nay[lnd] = r2*ds3*t1;
+		naz[lnd] = r2*s3*dt1; 
+		naxx[lnd] = ddr2*s3*t1;  
+		nayy[lnd] = r2*dds3*t1;
+		nazz[lnd] = r2*s3*ddt1; 
+		nayz[lnd] = r2*ds3*dt1;  
+		naxz[lnd] = dr2*s3*dt1;
+		naxy[lnd] = dr2*ds3*t1; 
+		lnd++;
+
+		/* node 11 */
+		na[lnd] = r3*s2*t1; 
+		nax[lnd] = dr3*s2*t1;  
+		nay[lnd] = r3*ds2*t1;
+		naz[lnd] = r3*s2*dt1;
+		naxx[lnd] = ddr3*s2*t1;  
+		nayy[lnd] = r3*dds2*t1;
+		nazz[lnd] = r3*s2*ddt1;
+		nayz[lnd] = r3*ds2*dt1;  
+		naxz[lnd] = dr3*s2*dt1;
+		naxy[lnd] = dr3*ds2*t1;
+		lnd++;
+
+		/* node 12 */
+		na[lnd] = r1*s3*t1; 
+		nax[lnd] = dr1*s3*t1;  
+		nay[lnd] = r1*ds3*t1;
+		naz[lnd] = r1*s3*dt1;
+		naxx[lnd] = ddr1*s3*t1;  
+		nayy[lnd] = r1*dds3*t1;
+		nazz[lnd] = r1*s3*ddt1;
+		nayz[lnd] = r1*ds3*dt1;  
+		naxz[lnd] = dr1*s3*dt1;
+		naxy[lnd] = dr1*ds3*t1;
+		lnd++;
+
+		/* node 13 */
+		na[lnd] = r3*s1*t2; 
+		nax[lnd] = dr3*s1*t2;  
+		nay[lnd] = r3*ds1*t2;
+		naz[lnd] = r3*s1*dt2;
+		naxx[lnd] = ddr3*s1*t2;  
+		nayy[lnd] = r3*dds1*t2;
+		nazz[lnd] = r3*s1*ddt2;
+		nayz[lnd] = r3*ds1*dt2;  
+		naxz[lnd] = dr3*s1*dt2;
+		naxy[lnd] = dr3*ds1*t2;
+		lnd++;
+
+		/* node 14 */
+		na[lnd] = r2*s3*t2; 
+		nax[lnd] = dr2*s3*t2;  
+		nay[lnd] = r2*ds3*t2;
+		naz[lnd] = r2*s3*dt2;
+		naxx[lnd] = ddr2*s3*t2;  
+		nayy[lnd] = r2*dds3*t2;
+		nazz[lnd] = r2*s3*ddt2;
+		nayz[lnd] = r2*ds3*dt2;  
+		naxz[lnd] = dr2*s3*dt2;
+		naxy[lnd] = dr2*ds3*t2;
+		lnd++;
+
+		/* node 15 */
+		na[lnd] = r3*s2*t2; 
+		nax[lnd] = dr3*s2*t2;  
+		nay[lnd] = r3*ds2*t2;
+		naz[lnd] = r3*s2*dt2;
+		naxx[lnd] = ddr3*s2*t2;  
+		nayy[lnd] = r3*dds2*t2;
+		nazz[lnd] = r3*s2*ddt2;
+		nayz[lnd] = r3*ds2*dt2;  
+		naxz[lnd] = dr3*s2*dt2;
+		naxy[lnd] = dr3*ds2*t2;
+		lnd++;
+
+		/* node 16 */
+		na[lnd] = r1*s3*t2; 
+		nax[lnd] = dr1*s3*t2;  
+		nay[lnd] = r1*ds3*t2;
+		naz[lnd] = r1*s3*dt2;
+		naxx[lnd] = ddr1*s3*t2;  
+		nayy[lnd] = r1*dds3*t2;
+		nazz[lnd] = r1*s3*ddt2;
+		nayz[lnd] = r1*ds3*dt2;  
+		naxz[lnd] = dr1*s3*dt2;
+		naxy[lnd] = dr1*ds3*t2;
+		lnd++;
+
+		/* node 17 */
+		na[lnd] = r1*s1*t3; 
+		nax[lnd] = dr1*s1*t3;  
+		nay[lnd] = r1*ds1*t3;
+		naz[lnd] = r1*s1*dt3;
+		naxx[lnd] = ddr1*s1*t3;  
+		nayy[lnd] = r1*dds1*t3;
+		nazz[lnd] = r1*s1*ddt3;
+		nayz[lnd] = r1*ds1*dt3;  
+		naxz[lnd] = dr1*s1*dt3;
+		naxy[lnd] = dr1*ds1*t3;
+		lnd++;
+
+		/* node 18 */
+		na[lnd] = r2*s1*t3; 
+		nax[lnd] = dr2*s1*t3;  
+		nay[lnd] = r2*ds1*t3;
+		naz[lnd] = r2*s1*dt3;
+		naxx[lnd] = ddr2*s1*t3;  
+		nayy[lnd] = r2*dds1*t3;
+		nazz[lnd] = r2*s1*ddt3;
+		nayz[lnd] = r2*ds1*dt3;  
+		naxz[lnd] = dr2*s1*dt3;
+		naxy[lnd] = dr2*ds1*t3;
+		lnd++;
+
+		/* node 19 */
+		na[lnd] = r2*s2*t3;
+		nax[lnd] = dr2*s2*t3;  
+		nay[lnd] = r2*ds2*t3;
+		naz[lnd] = r2*s2*dt3; 
+		naxx[lnd] = ddr2*s2*t3;  
+		nayy[lnd] = r2*dds2*t3;
+		nazz[lnd] = r2*s2*ddt3; 
+		nayz[lnd] = r2*ds2*dt3;  
+		naxz[lnd] = dr2*s2*dt3;
+		naxy[lnd] = dr2*ds2*t3; 
+		lnd++;
+
+		/* node 20 */
+		na[lnd] = r1*s2*t3;
+		nax[lnd] = dr1*s2*t3;  
+		nay[lnd] = r1*ds2*t3;
+		naz[lnd] = r1*s2*dt3; 
+		naxx[lnd] = ddr1*s2*t3;  
+		nayy[lnd] = r1*dds2*t3;
+		nazz[lnd] = r1*s2*ddt3; 
+		nayz[lnd] = r1*ds2*dt3;  
+		naxz[lnd] = dr1*s2*dt3;
+		naxy[lnd] = dr1*ds2*t3; 
+		lnd++;
+
+		/* node 21 */
+		na[lnd] = r3*s3*t1; 
+		nax[lnd] = dr3*s3*t1;  
+		nay[lnd] = r3*ds3*t1;
+		naz[lnd] = r3*s3*dt1;
+		naxx[lnd] = ddr3*s3*t1;  
+		nayy[lnd] = r3*dds3*t1;
+		nazz[lnd] = r3*s3*ddt1;
+		nayz[lnd] = r3*ds3*dt1;  
+		naxz[lnd] = dr3*s3*dt1;
+		naxy[lnd] = dr3*ds3*t1;
+		lnd++;
+
+		/* node 22 */
+		na[lnd] = r3*s3*t2;
+		nax[lnd] = dr3*s3*t2;  
+		nay[lnd] = r3*ds3*t2;
+		naz[lnd] = r3*s3*dt2; 
+		naxx[lnd] = ddr3*s3*t2;  
+		nayy[lnd] = r3*dds3*t2;
+		nazz[lnd] = r3*s3*ddt2; 
+		nayz[lnd] = r3*ds3*dt2;  
+		naxz[lnd] = dr3*s3*dt2;
+		naxy[lnd] = dr3*ds3*t2; 
+		lnd++;
+
+		/* node 23 */
+		na[lnd] = r3*s1*t3; 
+		nax[lnd] = dr3*s1*t3;  
+		nay[lnd] = r3*ds1*t3;
+		naz[lnd] = r3*s1*dt3;
+		naxx[lnd] = ddr3*s1*t3;  
+		nayy[lnd] = r3*dds1*t3;
+		nazz[lnd] = r3*s1*ddt3;
+		nayz[lnd] = r3*ds1*dt3;  
+		naxz[lnd] = dr3*s1*dt3;
+		naxy[lnd] = dr3*ds1*t3;
+		lnd++;
+
+		/* node 24 */
+		na[lnd] = r3*s2*t3;
+		nax[lnd] = dr3*s2*t3;  
+		nay[lnd] = r3*ds2*t3;
+		naz[lnd] = r3*s2*dt3; 
+		naxx[lnd] = ddr3*s2*t3;  
+		nayy[lnd] = r3*dds2*t3;
+		nazz[lnd] = r3*s2*ddt3; 
+		nayz[lnd] = r3*ds2*dt3;  
+		naxz[lnd] = dr3*s2*dt3;
+		naxy[lnd] = dr3*ds2*t3; 
+		lnd++;
+
+		/* node 25 */
+		na[lnd] = r1*s3*t3; 
+		nax[lnd] = dr1*s3*t3;  
+		nay[lnd] = r1*ds3*t3;
+		naz[lnd] = r1*s3*dt3;
+		naxx[lnd] = ddr1*s3*t3;  
+		nayy[lnd] = r1*dds3*t3;
+		nazz[lnd] = r1*s3*ddt3;
+		nayz[lnd] = r1*ds3*dt3;  
+		naxz[lnd] = dr1*s3*dt3;
+		naxy[lnd] = dr1*ds3*t3;
+		lnd++;
+
+		/* node 26 */
+		na[lnd] = r2*s3*t3; 
+		nax[lnd] = dr2*s3*t3;  
+		nay[lnd] = r2*ds3*t3;
+		naz[lnd] = r2*s3*dt3;
+		naxx[lnd] = ddr2*s3*t3;  
+		nayy[lnd] = r2*dds3*t3;
+		nazz[lnd] = r2*s3*ddt3;
+		nayz[lnd] = r2*ds3*dt3;  
+		naxz[lnd] = dr2*s3*dt3;
+		naxy[lnd] = dr2*ds3*t3;
+		lnd++;
+
+		/* node 27 */
+		na[lnd] = r3*s3*t3; 
+		nax[lnd] = dr3*s3*t3;  
+		nay[lnd] = r3*ds3*t3;
+		naz[lnd] = r3*s3*dt3;
+		naxx[lnd] = ddr3*s3*t3;  
+		nayy[lnd] = r3*dds3*t3;
+		nazz[lnd] = r3*s3*ddt3;
+		nayz[lnd] = r3*ds3*dt3;  
+		naxz[lnd] = dr3*s3*dt3;
+		naxy[lnd] = dr3*ds3*t3;
 		lnd++;
 	}
 }

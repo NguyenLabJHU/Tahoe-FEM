@@ -1,4 +1,4 @@
-/* $Id: PentahedronT.cpp,v 1.6 2006-08-30 17:17:49 tdnguye Exp $ */
+/* $Id: PentahedronT.cpp,v 1.7 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: sawimme (10/22/1999) */
 #include "PentahedronT.h"
 
@@ -49,6 +49,20 @@ void PentahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dA
 	cout << "\n PentahedronT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }
+
+
+/* evaluate the shape functions and first and second gradients. */
+void PentahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa, dArray2DT& DDNa) const
+{
+#pragma unused(coords)
+#pragma unused(Na)
+#pragma unused(DNa)
+#pragma unused(DDNa)
+
+	cout << "\n PentahedronT::EvaluateShapeFunctions: not implemented" << endl;
+	throw ExceptionT::kGeneralFail;
+}
+
 
 /* compute local shape functions and derivatives */
 void PentahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,

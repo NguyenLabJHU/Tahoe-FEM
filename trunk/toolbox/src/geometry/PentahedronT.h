@@ -1,4 +1,4 @@
-/* $Id: PentahedronT.h,v 1.5 2006-08-30 17:17:49 tdnguye Exp $ */
+/* $Id: PentahedronT.h,v 1.6 2006-10-26 19:07:04 regueiro Exp $ */
 /* created: sawimme (10/22/1999) */
 #ifndef _PENTAHEDRON_T_H_
 #define _PENTAHEDRON_T_H_
@@ -30,6 +30,11 @@ public:
 	 * GeometryBaseT::EvaluateShapeFunctions for documentation */
 	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
 		dArray2DT& DNa) const;
+		
+	/** evaluate the shape functions and their first and second derivatives. the second 
+	 * derivative has been implemented for 27 node hex element only. */
+	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+		dArray2DT& DNa, dArray2DT& DDNa) const;	
 
 	/** evaluate the shape functions and gradients. See 
 	 * GeometryBaseT::SetLocalShape for documentation */
