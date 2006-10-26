@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.132 2006-10-08 19:16:28 regueiro Exp $ */
+/* $Id: ElementListT.cpp,v 1.133 2006-10-26 01:05:00 tdnguye Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -341,7 +341,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("meshfree_bridging");
 #endif
 
-#ifdef COHESIVE_SURFACE_ELEMENT
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
 		sub_lists.AddSub("updated_lagrangian_adaptive_insertion");
 #endif
 
