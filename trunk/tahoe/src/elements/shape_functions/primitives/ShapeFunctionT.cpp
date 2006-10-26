@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.18 2005-07-14 07:12:40 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.19 2006-10-26 19:05:24 regueiro Exp $ */
 /* created: paklein (06/26/1996) */
 #include "ShapeFunctionT.h"
 #include "ParentDomainT.h"
@@ -24,6 +24,24 @@ ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 
 	/* configure workspace */
 	Construct();
+}
+
+ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
+	const LocalArrayT& coords, int dummy_flag):
+	DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
+	fCoords(coords),
+	fGrad_x_temp(NULL),
+	fStore(false),
+	fCurrElementNumber(NULL)
+{
+	/* consistency */
+	if (GeometryT::GeometryToNumSD(geometry_code) != fCoords.MinorDim())
+		ExceptionT::GeneralFail("ShapeFunctionT::ShapeFunctionT",
+			"geometry code %d does not match coordinates in %d dimensions",
+			geometry_code, fCoords.MinorDim());
+
+	/* configure workspace */
+	Construct_DN_DDN();
 }
 
 ShapeFunctionT::ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords):
@@ -57,6 +75,27 @@ void ShapeFunctionT::SetDerivatives(void)
 	}
 	else /* compute values */
 		fDomain->ComputeDNa(fCoords, fDNaX, fDet);
+}
+
+void ShapeFunctionT::SetDerivatives_DN_DDN(void)
+{
+	/* fetch from storage */
+	if (fStore)
+	{
+		/* check */
+		if (!fCurrElementNumber)
+			ExceptionT::GeneralFail("ShapeFunctionT::SetDerivatives",
+				"current element not set");
+	
+		/* get Jocobian information */
+		fDet_store.RowCopy(*fCurrElementNumber, fDet);
+
+		/* get shape function derivatives */
+		for (int i = 0; i < fDNaX_store.Length(); i++)
+			fDNaX_store[i].RowCopy(*fCurrElementNumber, fDNaX[i]);
+	}
+	else /* compute values */
+		fDomain->ComputeDNa_DDNa(fCoords, fDNaX, fDDNaX, fDet);
 }
 
 /* field gradients at specific parent domain coordinates. */
@@ -280,6 +319,36 @@ void ShapeFunctionT::Construct(void)
 	/* initialize to isoparametric */
 	pNaU  = &(fDomain->Na());
 	pDNaU = &fDNaX;
+	
+	/* work space */
+	fv1.Dimension(numsd);
+	fv2.Dimension(numsd);
+}
+
+void ShapeFunctionT::Construct_DN_DDN(void)
+{
+	/* check local array type (ambiguous for linear geometry) */
+	if (fCoords.Type() != LocalArrayT::kInitCoords &&
+	    fCoords.Type() != LocalArrayT::kCurrCoords) 
+	    ExceptionT::GeneralFail("ShapeFunctionT::Construct");
+
+	/* dimensions */
+	int numXnodes = fCoords.NumberOfNodes();
+	int numUnodes = numXnodes; // assume isoparametric
+	int numsd     = fCoords.MinorDim();
+
+	/* parent domain jacobian */
+	fDet.Dimension(fNumIP),
+
+	/* memory for the derivatives */
+	fDNaX.Dimension(fNumIP);
+	for (int i = 0; i < fNumIP; i++)
+		fDNaX[i].Dimension(numsd, numXnodes);		
+
+	/* initialize to isoparametric */
+	pNaU  = &(fDomain->Na());
+	pDNaU = &fDNaX;
+	pDDNaU = &fDDNaX;
 	
 	/* work space */
 	fv1.Dimension(numsd);
