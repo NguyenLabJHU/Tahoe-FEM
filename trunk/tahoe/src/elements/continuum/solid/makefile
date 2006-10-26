@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.22 2005-08-12 05:20:48 paklein Exp $
+# $Id: makefile,v 1.23 2006-10-26 01:05:00 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -29,7 +29,6 @@ OBJ = \
 	TotalLagrangianT.o \
 	UpdatedLagrangianT.o \
 	UpLagr_ExternalFieldT.o \
-	UpLagAdaptiveT.o \
 	SmallStrainAxiT.o \
 	FiniteStrainAxiT.o \
 	TotalLagrangianAxiT.o \
@@ -65,7 +64,6 @@ SRC = \
 	TotalLagrangianT.cpp \
 	UpdatedLagrangianT.cpp \
 	UpLagr_ExternalFieldT.cpp \
-	UpLagAdaptiveT.cpp \
 	SmallStrainAxiT.cpp \
 	FiniteStrainAxiT.cpp \
 	TotalLagrangianAxiT.cpp \
@@ -93,7 +91,6 @@ HDR = \
 	TotalLagrangianT.h \
 	UpdatedLagrangianT.h \
 	UpLagr_ExternalFieldT.h \
-	UpLagAdaptiveT.h \
 	SmallStrainAxiT.h \
 	FiniteStrainAxiT.h \
 	TotalLagrangianAxiT.h \
