@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2006-10-08 19:22:18 regueiro Exp $
+# $Id: makefile,v 1.6 2006-10-26 01:09:45 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,6 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	CSEAnisoNodal.o \
 	RigidCSEAnisoT.o \
+	UpLagAdaptiveT.o \
 	NodalRigidCSEAnisoT.o \
 	NodalRigidCSEAnisoMRT.o
 
@@ -45,6 +46,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	CSEAnisoNodal.cpp \
 	RigidCSEAnisoT.cpp \
+	UpLagAdaptiveT.cpp \
 	NodalRigidCSEAnisoT.cpp \
 	NodalRigidCSEAnisoMRT.cpp
 
@@ -60,6 +62,7 @@ SRC = \
 HDR = \
 	CSEAnisoNodal.h \
 	RigidCSEAnisoT.h \
+	UpLagAdaptiveT.h \
 	NodalRigidCSEAnisoT.h \
 	NodalRigidCSEAnisoMRT.h
 
