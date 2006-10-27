@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.h,v 1.1 2006-10-08 19:22:19 regueiro Exp $ */
+/* $Id: MR_NodalRP2DT.h,v 1.2 2006-10-27 23:14:44 regueiro Exp $ */
 #ifndef _MR_NODAL_RP_2D_T_H_
 #define _MR_NODAL_RP_2D_T_H_
 
@@ -21,7 +21,7 @@ class ofstreamT;
 
 /** Rigid plastic geomaterial cohesive zone model. Although the model is derived from 
  * TiedPotentialBaseT, it enforces rigid constraints internally using a
- * penalty formulation. */
+ * Lagrange multiplier formulation. */
 class MR_NodalRP2DT: public SurfacePotentialT, public TiedPotentialBaseT
 {
 public:
@@ -73,11 +73,9 @@ public:
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
 	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
-	virtual const dArrayT& Traction_penalty(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
-	virtual const dMatrixT& Stiffness_penalty(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
 
 	/** form of stiffness matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kNonSymmetric; }
@@ -202,9 +200,6 @@ private:
 	double fTol_1;    /*  Tolerance for Yield Function */
 	double fTol_2; /*  Tolerance for Residuals */
 	double fchi, fc, fphi, fpsi;
-
-	/** penalty stiffness for enforcing rigid behavior */
-	double fConstraintStiffness;
 	
 	/** number of iterations between calculating an updated traction vector. For
 	 * MR_NodalRP2DT:: fUpdateIterations > 1, the tractions are assumed
