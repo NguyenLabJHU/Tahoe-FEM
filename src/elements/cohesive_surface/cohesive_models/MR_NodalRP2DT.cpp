@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.2 2006-10-27 23:14:44 regueiro Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.3 2006-10-30 17:33:00 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -358,7 +358,8 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		dMatrixT ZMAT(2,4); dMatrixT ZMATP(4,2); dMatrixT dQdSig2(2,2); 
 		dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(2,4); 
 		dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6); 
-		dMatrixT X(6,1); dMatrixT Y(6,1); 
+		dMatrixT X(6,1); dMatrixT Y(6,1);
+		dMatrixT KP(2,2); dMatrixT KP_Inv(2,2); dMatrixT Z(4,4);
 
 		dArrayT up(2); dArrayT dup(2); dArrayT dSig(2); dArrayT qn(4);
 		dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
@@ -444,6 +445,12 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			dQdSigdq_f(Sig, qn, A_uq);
 			dqbardSig_f(Sig, qn, A_qu);
 			dqbardq_f(Sig, qn, A_qq);
+
+			Z.Outer(dQdSig,dfdSig);
+			KP  = dArrayT::Dot(dfdq,qbar);
+			KP *= -1.;
+			KP /= Z;
+			KP_Inv.Inverse(KP);
 	        
 			for (i = 0; i<=5; ++i) 
 			{
@@ -451,8 +458,8 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 				{
 					if (i<=1 & j<=1)
 					{
-						AA_inv(i,j)  = dQdSig2(i,j);
-						AA_inv(i,j) *= dlam;
+						AA_inv(i,j)  = dlam*dQdSig2(i,j);
+						AA_inv(i,j) += KP_Inv(i,j);
 					}
 					if (i<=1 & j>1)
 					{
@@ -514,11 +521,13 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 	            if (i<=1) dSig[i] = Y[i];
 	            if (i > 1) dq[i-2] = Y[i];
 			}
+			KP_Inv.Multx(dSig,dup);
 	        
 			/*  Update stresses and internal variables */       
 			Sig += dSig;
 			qn  += dq;
 			dlam = dlam + dlam2;
+			up += dup;
 			kk = kk + 1;
 	        
 			/*  Calculation of Yield Function and Residuals for next iteration check */       
@@ -796,32 +805,15 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	
 	int i, j;
 
-	dMatrixT AA(6,6), I_mat(4,4), CMAT(6,6),AA_inv(6,6), 
-	         A_qq(4,4), A_uu(2,2), A_uq(2,4), A_qu(4,2), ZMAT(2,4),
-	         ZMATP(4,2), dQdSig2(2,2), dqdbar(4,4), dqbardSig(4,2),
-	         dQdSigdq(2,4), KP(2,2), KP2(2,2), KEP(2,2);
+	dMatrixT KP(2,2), KP_Inv(2,2), Z(4,4);
+       
+	dArrayT  qn(4), Sig(2), dQdSig(2), dfdq(4), qbar(4), dfdSig(2);
 	         
-	dMatrixT I_m(2,2), Rmat(2,2), R_Inv(2,2), KE(2,2), KE_Inv(2,2),
-	         Ch(4,4), Ch_Inv(4,4), KE1(4,2), KE2(2,2), KE3(2,4);
-	         
-	dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
-	         R(6), Rmod(6), Sig(2), Sig_I(2), dQdSig(2), dfdq(4), qbar(4),
-	         R2(6), X(6), V_sig(2), V_q(4), dfdSig(2), K1(2), K2(2);
-	         
-	double bott, dlam;
-	
 	fStiffness[1] = fStiffness[2] = 0.;
-	I_m(0,0) = 1.; I_m(0,1) =0.; I_m(1,0) = 0.; I_m(1,1) = 1.;
-	I_mat = 0.;
 	qn[0] = state[k_fchi];
 	qn[1] = state[k_fc];
 	qn[2] = state[k_fphi];
 	qn[3] = state[k_fpsi];
-	for (i = 0; i<=3; ++i) 
-	{
-		I_mat(i,i) = 1.;
-	}
-    
 	Sig[0] = state[k_T_t];
 	Sig[1] = state[k_T_n];
     
@@ -833,106 +825,20 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	}
 	else if (state[k_plastic] == 1.) 
 	{
-		dlam = state[k_plast_mult];
-		dQdSig2_f(qn, dQdSig2);
-		dqbardSig_f(Sig, qn, A_qu);
-		dqbardq_f(Sig, qn, A_qq);
-		dQdSigdq_f(Sig, qn, A_uq);
-		Ch  = A_qq;
-		Ch *= -dlam;
-		Ch += I_mat;
-		Ch_Inv.Inverse(Ch);
-		KE1.MultAB(Ch_Inv,A_qu);
-		KE.MultAB(A_uq,KE1);
-		KE *= state[k_plast_mult];
-		KE *= state[k_plast_mult];
-		/*KE = 0.;*/
-		KE2 = dQdSig2;
-		KE2 *=state[k_plast_mult];
-		KE += KE2;
-	        
-		KE_Inv.Inverse(KE);
-	     
-		for (i = 0; i<=5; ++i) 
-		{
-			for (j = 0; j<=5; ++j)
-			{
-				if (i<=1 & j<=1)
-				{
-					AA_inv(i,j)  = 0.;
-					AA_inv(i,j) += dlam*dQdSig2(i,j);
-				}
-				if (i<=1 & j>1)
-				{
-					AA_inv(i,j) = A_uq(i,j-2);
-					AA_inv(i,j) *= dlam;
-				} 
-				if (i>1 & j<=1)
-				{
-					AA_inv(i,j) = A_qu(i-2,j);
-					AA_inv(i,j) *= dlam;
-				} 
-				if (i>1 & j>1)
-				{
-					AA_inv(i,j)  = I_mat(i-2,j-2);
-					AA_inv(i,j)  *= -1.; 
-					AA_inv(i,j) += dlam*A_qq(i-2,j-2);
-				} 
-			}
-		}
-		AA.Inverse(AA_inv);
-	
 		dfdSig_f(Sig, qn, dfdSig);
-		V_sig = dfdSig;
-		dfdq_f(Sig,qn, dfdq);
-		V_q = dfdq;
 		dQdSig_f(Sig, qn, dQdSig);
-		qbar_f(Sig, qn, qbar);  
-		for (i = 0; i<=5; ++i)
-		{
-			if (i<=1)
-			{
-				Rvec[i] = V_sig[i];
-				Cvec[i] = dQdSig[i];
-			}
-			if (i>1)
-			{
-				Rvec[i] = V_q[i-2];
-				Cvec[i] = qbar[i-2];
-			}
-		}
-		dArrayT tmpVec(6), Vvec(2), dVec(2);
-		AA.Multx(Cvec,tmpVec);
-		bott = dArrayT::Dot(Rvec,tmpVec);
-            
-		for (i = 0; i<=1; ++i)
-		{
-			Vvec[i] = 0.;
-			for (j = 0; j<=5; ++j) Vvec[i] += Rvec[j]*AA(j,i);
-		}
-            
-		for (i = 0; i<=1; ++i)
-		{
-			for (j = 0; j<=1; ++j) KP(i,j) = dQdSig[i]*Vvec[j];
-		}
-            
-		KE3.MultAB(A_uq, Ch_Inv);
-		KE3.Multx(qbar,dVec);
-		for (i = 0; i<=1; ++i)
-		{
-			for (j = 0; j<=1; ++j) KP2(i,j) = dVec[i]*Vvec[j];
-		}
-	        
-		KP2 *= state[k_plast_mult];
-		KP += KP2;
-		KP /= -bott;
-		KP += I_m;
-		KEP.MultAB(KE_Inv, KP);
- 
-		fStiffness[0] = KEP(0,0);
-		fStiffness[1] = KEP(0,1);
-		fStiffness[2] = KEP(1,0);
-		fStiffness[3] = KEP(1,1);
+		qbar_f(Sig, qn, qbar);
+		dfdq_f(Sig, qn, dfdq);
+		
+		Z.Outer(dQdSig,dfdSig);
+		KP  = dArrayT::Dot(dfdq,qbar);
+		KP *= -1.;
+		KP /= Z;
+
+ 		fStiffness[0] = KP(0,0);
+		fStiffness[1] = KP(0,1);
+		fStiffness[2] = KP(1,0);
+		fStiffness[3] = KP(1,1);
 	}
 
 	return fStiffness;
