@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2006-10-30 23:32:05 thao Exp $
+# $Id: makefile,v 1.2 2006-10-30 23:39:19 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -26,8 +26,7 @@ include $(SRC_DIR)/config/DevelopmentMaterialsConfig.make
 SUB_DIR = \
 	Ogden \
 	Reese-Govindjee \
-	Simo-Holzapfel \
-	SMP
+	Simo-Holzapfel 
 
 subdir_driver: subdir_loop
 # SUB_DIR is empty
