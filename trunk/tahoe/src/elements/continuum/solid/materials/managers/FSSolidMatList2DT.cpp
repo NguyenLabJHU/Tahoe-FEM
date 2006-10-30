@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.11 2006-05-21 18:39:04 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.12 2006-10-30 23:35:36 tdnguye Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -73,9 +73,6 @@
 #include "RGVIB2D.h"
 #include "RGSplit3D.h"
 #include "FDSV_KStV2D.h"
-#endif
-
-#ifdef ELASTIC_OGDEN_MATERIAL_DEV
 #include "OgdenMaterialT.h"
 #endif
 

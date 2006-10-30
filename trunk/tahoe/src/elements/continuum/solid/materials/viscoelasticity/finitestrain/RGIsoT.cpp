@@ -1,4 +1,4 @@
-/* $Id: RGIsoT.cpp,v 1.2 2006-08-21 16:46:24 tdnguye Exp $ */
+/* $Id: RGIsoT.cpp,v 1.3 2006-10-30 23:35:37 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGIsoT.h"
@@ -340,7 +340,7 @@ const dSymMatrixT& RGIsoT::s_ij(void)
 const dMatrixT& RGIsoT::C_IJKL(void)
 {
     /* deformation gradient */
-    const dMatrixT& Fmat = F();
+    const dMatrixT& Fmat = F_total();
   
     /* transform */
     fModulus.SetToScaled(Fmat.Det(), PullBack(Fmat, c_ijkl()));
@@ -350,7 +350,7 @@ const dMatrixT& RGIsoT::C_IJKL(void)
 const dSymMatrixT& RGIsoT::S_IJ(void)
 {
     /* deformation gradient */
-    const dMatrixT& Fmat = F();
+    const dMatrixT& Fmat = F_total();
   
     /* transform */
     fStress.SetToScaled(Fmat.Det(), PullBack(Fmat, s_ij()));

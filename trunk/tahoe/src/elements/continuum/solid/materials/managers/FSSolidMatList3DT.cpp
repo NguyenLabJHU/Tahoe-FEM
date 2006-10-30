@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.20 2006-10-24 00:24:26 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.21 2006-10-30 23:35:36 tdnguye Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -99,6 +99,7 @@
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "FDSV_KStV3D.h"
 #include "RGSplit3D.h"
+#include "OgdenMaterialT.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -112,9 +113,6 @@
 #endif
 #endif
 
-#ifdef ELASTIC_OGDEN_MATERIAL_DEV
-#include "OgdenMaterialT.h"
-#endif
 
 #endif /* SOLID_ELEMENT_DEV */
 
