@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.5 2006-10-24 21:07:19 thao Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.6 2006-10-31 15:54:10 rjones Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -63,22 +63,75 @@ ParameterInterfaceT* UpLagFiberCompT::NewSub(const StringT& name) const
 		
 		return block;
 	}
-	/* body force */
 	else if (name == "fiber_orientations") /* fiber orientations */
 	{
-		ParameterContainerT* fiber_orient = new ParameterContainerT(name);
+    ParameterContainerT* choice = new ParameterContainerT(name);
+    choice->SetListOrder(ParameterListT::Choice);
+		choice->SetSubSource(this);
 
-		fiber_orient->AddParameter(ParameterT::Word, "side_set_ID");
-		
+		{
+		ParameterContainerT ss_spec("side_set");
+		ss_spec.AddParameter(ParameterT::Word, "side_set_ID");
 		ParameterT coord_sys(ParameterT::Enumeration, "coordinate_system");
 		coord_sys.AddEnumeration("global", Traction_CardT::kCartesian);
 		coord_sys.AddEnumeration( "local", Traction_CardT::kLocal);
 		coord_sys.SetDefault(Traction_CardT::kCartesian);
-		fiber_orient->AddParameter(coord_sys);
+		ss_spec.AddParameter(coord_sys);
+		ss_spec.AddSub("DoubleList", ParameterListT::OnePlus); 		
 
-		fiber_orient->AddSub("DoubleList", ParameterListT::OnePlus); 		
-		
-		return fiber_orient;
+		choice->AddSub(ss_spec);
+		}
+
+		{
+		ParameterContainerT ellipsoid("ellipsoid");
+
+		ParameterT block_ID(fID, "block_ID");
+		block_ID.SetDefault("all");
+		ellipsoid.AddParameter(block_ID);
+
+		LimitT lower(0.0, LimitT::Lower);
+		ParameterT Rx(ParameterT::Double, "Rx");
+		Rx.AddLimit(lower);
+		Rx.SetDefault(1.0);
+		ellipsoid.AddParameter(Rx);
+		ParameterT Ry(ParameterT::Double, "Ry");
+		Ry.AddLimit(lower);
+		Ry.SetDefault(1.0);
+		ellipsoid.AddParameter(Ry);
+		ParameterT Rz(ParameterT::Double, "Rz");
+		Rz.AddLimit(lower);
+		Rz.SetDefault(1.0);
+		ellipsoid.AddParameter(Rz);
+		ParameterT Cx(ParameterT::Double, "Cx");
+		Cx.SetDefault(0.0);
+		ellipsoid.AddParameter(Cx);
+		ParameterT Cy(ParameterT::Double, "Cy");
+		Cy.SetDefault(0.0);
+		ellipsoid.AddParameter(Cy);
+		ParameterT Cz(ParameterT::Double, "Cz");
+		Cz.SetDefault(0.0);
+		ellipsoid.AddParameter(Cz);
+
+		ParameterT normal(ParameterT::Enumeration, "projection_normal");
+		normal.AddEnumeration("x", 1);
+		normal.AddEnumeration("y", 2);
+		normal.AddEnumeration("z", 3);
+		normal.SetDefault(3);
+		ellipsoid.AddParameter(normal);
+
+		ParameterT coord_sys(ParameterT::Enumeration, "coordinate_system");
+		coord_sys.AddEnumeration("cartesian", UpLagFiberCompT::kCartesian);
+		coord_sys.AddEnumeration("polar", UpLagFiberCompT::kPolar);
+		coord_sys.SetDefault(UpLagFiberCompT::kCartesian);
+		ellipsoid.AddParameter(coord_sys);
+		ellipsoid.AddSub("DoubleList", ParameterListT::OnePlus); 		
+
+		ellipsoid.SetDescription("((x-Cx)/Rx)^2 + ((y-Cy)/Ry)^2 + ((z-Cz)/Rz)^2 = 1");
+
+		choice->AddSub(ellipsoid);
+		}
+
+		return choice;
 	}
 	else /* inherited */
 		return SolidElementT::NewSub(name);
@@ -192,21 +245,40 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 	int num_sets = list.NumLists("fiber_orientations");
 	if (num_sets > 0)
 	{
+		for (int i = 0; i < num_sets; i++)
+		{
+			const ParameterListT& fibers = list.GetListChoice(*this, "fiber_orientations",i);
+
+			if (fibers.Name() == "side_set") 
+				ReadSideSetVec(fibers);
+			else if (fibers.Name() == "ellipsoid") 
+				ReadAnalyticVec(fibers);
+			else
+				ExceptionT::GeneralFail(caller, "invalid surface specification");
+		}
+	}
+		else
+			ExceptionT::GeneralFail(caller, "no fibers defined");
+}
+
+void UpLagFiberCompT::ReadSideSetVec(const ParameterListT& fibers)
+{
+	const char caller[] = "UpLagFiberCompT::ReadSideSetVec";
 
 		int nsd = NumSD();
 		/* model manager */
 		ModelManagerT& model = ElementSupport().ModelManager();
 	
 		/* temp space */
-		ArrayT<StringT> block_ID(num_sets);    /*block id of sideset*/
-	    ArrayT<iArray2DT> localsides(num_sets); /*numside x 1 (elem number) + numfacetnodes (node numbers)*/ 
-	    ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_sets);  /*global cartesian or local element coords*/
-	    ArrayT<dArray2DT> values(num_sets);     /*p_vec*/
+		StringT block_ID;    /*block id of sideset*/
+		iArray2DT localsides; /*numside x 1 (elem number) + numfacetnodes (node numbers)*/ 
+		Traction_CardT::CoordSystemT coord_sys;  /*global cartesian or local element coords*/
+		dArray2DT values;     /*p_vec*/
 
-	    /* nodes on element facets */
-	    iArrayT num_facet_nodes;
-	    fShapes->NumNodesOnFacets(num_facet_nodes);
-	    
+		/* nodes on element facets */
+		iArrayT num_facet_nodes;
+		fShapes->NumNodesOnFacets(num_facet_nodes);
+		
 		/* coordinates of facet nodes  register with initial coordinates */
 		LocalArrayT coords(LocalArrayT::kInitCoords);
 		VariLocalArrayT coord_man(25, coords, nsd);
@@ -222,33 +294,27 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 		dMatrixT Qbar(nsd);
 		Qbar.Identity();
 
-	    /* loop over natural BC's */
-	    int tot_num_sides = 0;
-	    for (int i = 0; i < num_sets; i++) 
-	   	{
-	    	const ParameterListT& fibers = list.GetList("fiber_orientations", i);
 			
-	    	/* side set */
-	    	const StringT& ss_ID = fibers.GetParameter("side_set_ID");
-			/*reads in element and facet numbers of sideset SS_ID*/
-			localsides[i] = model.SideSet(ss_ID);
-			/*number of sides in set*/
-			int num_sides = localsides[i].MajorDim();
-			tot_num_sides += num_sides;
-			if (num_sides > 0)
-			{
+		/* side set */
+		const StringT& ss_ID = fibers.GetParameter("side_set_ID");
+		/*reads in element and facet numbers of sideset SS_ID*/
+		localsides = model.SideSet(ss_ID);
+		/*number of sides in set*/
+		int num_sides = localsides.MajorDim();
+		if (num_sides > 0)
+		{
 				/*block ID of set set*/
-				block_ID[i] = model.SideSetGroupID(ss_ID);
-				coord_sys[i] = Traction_CardT::int2CoordSystemT(fibers.GetParameter("coordinate_system"));
+				block_ID = model.SideSetGroupID(ss_ID);
+				coord_sys = Traction_CardT::int2CoordSystemT(fibers.GetParameter("coordinate_system"));
 
 				/* switch to elements numbering within the group */
-				iArray2DT& side_set = localsides[i];            /*sides info for set i*/
-																/* side a: elem #, facet #*/
+				iArray2DT& side_set = localsides;            /*sides info for set i*/
+				/* side a: elem #, facet #*/
 				iArrayT elems(num_sides);
 				/*copy element numbers of sideset into iArrayT elems*/
 				side_set.ColumnCopy(0, elems);
 				/*convert from local block numbering to global group numbering of elements*/
-				BlockToGroupElementNumbers(elems, block_ID[i]);
+				BlockToGroupElementNumbers(elems, block_ID);
 				/*copy group element numbering in side_set array*/
 				side_set.SetColumn(0, elems);
 
@@ -260,7 +326,7 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 							ss_ID.Pointer());
 
 				/* read in fiber orientation vectors*/
-				dArray2DT& p_vec = values[i];
+				dArray2DT& p_vec = values;
 				int num_fibers = fibers.NumLists("DoubleList");
 				p_vec.Dimension(num_fibers, nsd);
 				if (num_fibers < 2)
@@ -280,7 +346,7 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 						p[k] = P.GetList("Double", k).GetParameter("value");
 				}
 
-				if (coord_sys[i] == Traction_CardT::kCartesian)
+				if (coord_sys == Traction_CardT::kCartesian)
 				{	
 					/*store fiber orientation vector in element list*/
 					for (int j = 0; j < num_sides; j++)
@@ -289,7 +355,7 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 						fFiber_list[elem] = p_vec;
 					}	
 				}
-				else if (coord_sys[i] == Traction_CardT::kLocal)
+				else if (coord_sys == Traction_CardT::kLocal)
 				{
 					for (int j = 0; j < num_sides; j++)
 					{
@@ -395,9 +461,140 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 						}
 					}
 				}
-			}
-			else
+		}
+		else
 				ExceptionT::GeneralFail(caller, "empty side set: num sides = 0");
+}
+
+void UpLagFiberCompT::ReadAnalyticVec(const ParameterListT& fibers)
+{
+	const char caller[] = "UpLagFiberCompT::ReadAnalyticVec";
+
+	int nsd = NumSD();
+	const dArray2DT& coordinates = ElementSupport().InitialCoordinates();
+
+	StringT block_ID = fibers.GetParameter("block_ID");
+
+	/*ellipsoid parameters : ((x-Cx)/Rx)^2 + ((y-Cy)/Ry)^2 + ((z-Cz)/Rz)^2 = 1 */
+	double Cx = fibers.GetParameter("Cx");
+	double Cy = fibers.GetParameter("Cy");
+	double Cz = fibers.GetParameter("Cz");
+	dArrayT C(nsd);
+	C[0] = Cx; C[1] = Cy; C[2] = Cz;
+	double Rx = fibers.GetParameter("Rx");
+	double Ry = fibers.GetParameter("Ry");
+	double Rz = fibers.GetParameter("Rz");
+	dArrayT R(nsd);
+	R[0] = Rx; R[1] = Ry; R[2] = Rz;
+	/* projection plane */
+	int inormal = fibers.GetParameter("projection_normal");
+ 	int i1 =0, i2 = 1, i3 = 2;
+	if      (inormal ==1) { i1 =1; i2 = 2; i3 = 0;}
+	else if (inormal ==2) { i1 =2; i2 = 0; i3 = 1;}
+	/* cartesian or polar */
+	int coor_sys = fibers.GetParameter("coordinate_system");
+
+	/* read fiber orientation vectors*/
+	dArray2DT p_vec;
+	int num_fibers = fibers.NumLists("DoubleList");
+	p_vec.Dimension(num_fibers, nsd-1);
+	if (num_fibers < 2)
+		ExceptionT::GeneralFail(caller, "expecting at least two fiber orientations");
+	for (int f = 0; f < num_fibers; f++) 
+	{
+		const ParameterListT& P = fibers.GetList("DoubleList", f);
+		int dim = P.NumLists("Double");
+		if (dim != nsd-1)
+			ExceptionT::GeneralFail(caller, "expecting orientation vector length %d not %d",
+			nsd, dim);
+							
+		double* p = p_vec(f); 
+		/* same for all face nodes */
+		for (int k = 0; k < dim; k++)
+						p[k] = P.GetList("Double", k).GetParameter("value");
+	}
+
+	/* loop over elements in the block */
+	dArrayT xc(nsd),n(nsd),pn(nsd-1),pp(nsd-1);
+	int block_dex = 0;
+	int block_count = 0;
+	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
+	Top();
+	while (NextElement())
+	{
+    /* reset block info (skip empty) */
+    while (block_count == block_data->Dimension()) {
+      block_data = fBlockData.Pointer(++block_dex);
+      block_count = 0;
+    }
+    block_count++;
+
+		if (block_ID == block_data->ID() || block_ID == "all" ) {
+
+			/*dimension and initialize*/
+			dArray2DT& P_vec = fFiber_list[CurrElementNumber()];
+			P_vec.Dimension(num_fibers, nsd);
+			P_vec = 0.0;
+
+			/* calculate element centroid */
+			iArrayT nodes = CurrentElement().NodesX();
+			int nen = NumElementNodes();
+			xc = 0.0;
+			for (int i = 0; i < nen; i++)
+			{
+				for (int j = 0; j < coordinates.MinorDim(); j++)
+					xc [j] += coordinates(nodes[i],j);
+			}
+			xc /= nen;
+
+			/* position to normal map */
+			for (int i = 0; i < nsd; i++) n[i] = (xc[i]-C[i])/(R[i]*R[i]);
+			n /= n.Magnitude();
+
+			if (coor_sys == UpLagFiberCompT::kPolar) 
+			{
+				/* projected normal = e_r */
+				pn[0] = (xc[i1]-C[i1])/(R[i1]*R[i1]);
+				pn[1] = (xc[i2]-C[i2])/(R[i2]*R[i2]);
+				pn /= pn.Magnitude();
+			}
+
+			/* project s.t. in-plane direction unchanged and vector is unit */
+			for (int k = 0; k < num_fibers; k++)
+			{
+				const double* p = p_vec(k); /* in plane direction */
+				dArrayT q;  q.Alias(nsd,P_vec(k)); /* on surface direction */
+
+				if (coor_sys == UpLagFiberCompT::kPolar) 
+				{
+					/* rotate in-plane vector to polar system */
+					pp[0] = p[0]*pn[0] - p[1]*pn[1]; 
+					pp[1] = p[0]*pn[1] + p[1]*pn[0]; 
+					q[i1] =  pp[0]*n[i3];
+					q[i2] =  pp[1]*n[i3];
+					q[i3] = -pp[0]*n[i1]-pp[1]*n[i2];
+				}
+				else
+				{
+					q[i1] =  p[0]*n[i3];
+					q[i2] =  p[1]*n[i3];
+					q[i3] = -p[0]*n[i1]-p[1]*n[i2];
+				}
+				q /= q.Magnitude();
+//#define MY_DEBUG 1
+#ifdef MY_DEBUG
+				cout << "block ID: " << block_data->ID() << "; ID :" << block_ID << "\n";
+				cout << "q: " << q[0] << "  " << q[1] << "  " << q[2] << " " << xc[0] << "  " << xc[1] << "  " << xc[2] << "\n";
+				dArrayT q2(nsd);
+				if(k==0) { q2 = q; }
+				else{
+					cout << "# dot: " << q[0]*q2[0]+q[1]*q2[1]+q[2]*q2[2] << "\n";
+				}
+#endif
+			}
+#ifdef MY_DEBUG
+			cout << "n: " << n[0] << "  " << n[1] << "  " << n[2] << " " << xc[0] << "  " << xc[1] << "  " << xc[2] << "\n";
+#endif
 		}
 	}
 }

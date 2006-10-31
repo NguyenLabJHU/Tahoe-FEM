@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.h,v 1.1 2006-08-03 01:10:40 thao Exp $ */
+/* $Id: UpLagFiberCompT.h,v 1.2 2006-10-31 15:54:10 rjones Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPLAG_FIB_COMP_T_
@@ -52,10 +52,18 @@ public:
 	/** extract the list of material parameters */
 	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 
+	enum CoorSysT {kCartesian =0,
+	               kPolar = 1};
 protected:
 
 	/*Rotates fiber coordinates from local coordinates to element coordinates*/ 
 	void ReadFiberVec(const ParameterListT& list);
+
+	/*reads orientations from side sets*/
+	void ReadSideSetVec(const ParameterListT& fibers);
+
+	/*reads orientations from an analytical surface*/
+	void ReadAnalyticVec(const ParameterListT& fibers);
 
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
@@ -77,6 +85,9 @@ protected:
 	
 	/*material support*/
 	FSFiberMatSupportT* fFiberSupport;
+
+	/** element block ID */
+	StringT fID;
 };
 
 inline const dArray2DT& UpLagFiberCompT::FiberVec(const int elem)
