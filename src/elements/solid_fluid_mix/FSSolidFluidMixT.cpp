@@ -311,9 +311,7 @@ void FSSolidFluidMixT::AddNodalForce(const FieldT& field, int node, dArrayT& for
 	    fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
 	    //fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
 	    fCurrCoords_displ=fInitCoords_displ;
-	    fShapes_displ->SetDerivatives(); 
-// the above line should be replaced with this one: Davoud
-// fShapes_displ->SetDerivatives_DN_DDN(); 
+	    fShapes_displ->SetDerivatives_DN_DDN(); 
 
 	    //
 	    fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
@@ -1115,7 +1113,13 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fIota_temp_matrix.MultATB(fShapeSolidGrad,fDefGradInv_grad_GRAD);
 
 // forming second derivative of solid shape functions matrix
+				fShapes_displ->Grad_GradNa(fShapeSolidGradGrad);
+				fShapeSolidGradGrad = 0.0;
 
+				fs_mix_out	<< endl ;
+				fs_mix_out	<<"SecondDervative"<< endl ;			
+				fs_mix_out	<<fShapeSolidGradGrad(0,0)<< endl ;
+				fs_mix_out	<<"SecondDerivative"<< endl ; 
 // forming varpi temporary matrix
 //				for (int I=
 // fVarpi_temp_matrix
@@ -1125,8 +1129,15 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fTest_matrix_A(0,1)=7;
 				fTest_matrix_A(1,0)=9;
 				fTest_matrix_A(1,1)=11;
-				fTest_matrix_B=3;
-				fTest_matrix_A.SetToScaled(3,fTest_matrix_A);
+				double *pfTest_matrix_A	= fTest_matrix_A.Pointer();
+				fs_mix_out	<<"LLLLLLLLLLLLLLLLLLLLLLL"<< endl ;			
+				fs_mix_out	<<pfTest_matrix_A[0]<< endl ;
+				fs_mix_out	<<pfTest_matrix_A[1]<< endl ;
+				fs_mix_out	<<pfTest_matrix_A[2]<< endl ;
+				fs_mix_out	<<pfTest_matrix_A[3]<< endl ;
+				fs_mix_out	<<"LLLLLLLLLLLLLLLLLLLLLLLLLL"<< endl ;
+//				fTest_matrix_B=3;
+//				fTest_matrix_A.SetToScaled(3,fTest_matrix_A);
 				fs_mix_out	<< fTest_matrix_A << endl;
 /*				fs_mix_out	<< endl << endl;
 				fs_mix_out *= 3 ;
@@ -1371,9 +1382,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fInitCoords_displ.Dimension(n_en_displ, n_sd);
     ElementSupport().RegisterCoordinates(fInitCoords_displ);	
     fCurrCoords_displ.Dimension(n_en_displ, n_sd);
-    fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ);
-// this line should be replaced with the previous line to create first and second derivatives
-//     fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ,1 );
+    fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ,1 );
     //fShapes_displ->Initialize();
     // press
     fInitCoords_press.Dimension(n_en_press, n_sd);
@@ -1446,6 +1455,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     n_sd_x_n_sd = n_sd*n_sd;
     fShapeSolidGrad_temp.Dimension (n_sd, n_en_displ);
     fShapeSolidGrad.Dimension (n_sd_x_n_sd, n_en_displ_x_n_sd);
+    fShapeSolidGradGrad.Dimension (n_sd *2 , n_en_displ);
     fShapeFluidGrad.Dimension (n_sd, n_en_press);
     fDeformation_Gradient.Dimension (n_sd,n_sd);
     fGRAD_disp.Dimension (n_sd_x_n_sd);
