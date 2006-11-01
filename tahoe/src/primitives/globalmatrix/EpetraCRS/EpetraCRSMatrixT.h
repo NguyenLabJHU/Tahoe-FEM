@@ -1,6 +1,6 @@
-/* $Id: EpetraCRSMatrixT.h,v 1.1 2006-10-15 04:14:14 paklein Exp $ */
-#ifndef _SUPER_LU_DIST_MATRIX_T_H_
-#define _SUPER_LU_DIST_MATRIX_T_H_
+/* $Id: EpetraCRSMatrixT.h,v 1.2 2006-11-01 05:15:31 paklein Exp $ */
+#ifndef _EPETRA_CRS_MATRIX_T_H_
+#define _EPETRA_CRS_MATRIX_T_H_
 
 /* library support */
 #ifdef __TRILINOS__
@@ -16,7 +16,7 @@ namespace Tahoe {
 /* forward declarations */
 class MSRBuilderT;
 
-/** interface to SuperLU 2.0 parallel linear solver */
+/** interface for solvers in Trilinos */
 class EpetraCRSMatrixT: public GlobalMatrixT
 {
 public:
@@ -63,16 +63,7 @@ public:
 	/** assignment operator */
 	EpetraCRSMatrixT& operator=(const EpetraCRSMatrixT& rhs);
 
-	/** return a clone of self */
-	virtual GlobalMatrixT* Clone(void) const;
-
 protected:
-
-	/** solution driver. Calls all-in-one driver provided with SuperLU 3.0 which 
-	 * can be called for solving multiple right-hand sides or just resolving
-	 * a matrix with the same sparsity pattern as a previous solve. This driver
-	 * routine is adapted from dlinsolx2.c provided in the SuperLU 3.0 examples. */
-	virtual void BackSubstitute(dArrayT& result);
 
 	/** \name check functions */
 	/*@{*/
@@ -160,4 +151,4 @@ inline double* EpetraCRSMatrixT::operator()(int row, int col)
 } /* namespace Tahoe */
 
 #endif /* __TRILINOS__ */
-#endif /* _SUPER_LU_DIST_MATRIX_T_H_ */
+#endif /* _EPETRA_CRS_MATRIX_T_H_ */
