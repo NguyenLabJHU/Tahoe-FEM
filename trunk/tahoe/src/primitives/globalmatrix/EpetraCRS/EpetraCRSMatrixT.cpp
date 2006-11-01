@@ -1,4 +1,4 @@
-/* $Id: EpetraCRSMatrixT.cpp,v 1.1 2006-10-15 04:14:14 paklein Exp $ */
+/* $Id: EpetraCRSMatrixT.cpp,v 1.2 2006-11-01 05:15:31 paklein Exp $ */
 #include "EpetraCRSMatrixT.h"
 
 /* library support options */
@@ -197,49 +197,9 @@ EpetraCRSMatrixT& EpetraCRSMatrixT::operator=(const EpetraCRSMatrixT&)
 	return *this;
 }
 
-/* return a clone of self */
-GlobalMatrixT* EpetraCRSMatrixT::Clone(void) const {
-	return new EpetraCRSMatrixT(*this);
-}
-
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* solution driver */
-void EpetraCRSMatrixT::BackSubstitute(dArrayT& result)
-{
-	const char caller[] = "EpetraCRSMatrixT::BackSubstitute";
-
-	/* set-up Epetra structures */
-#ifdef __TAHOE_MPI__
-	Epetra_MpiComm epetra_comm(fComm);
-#else
-	Epetra_SerialComm epetra_comm;
-#endif
-	Epetra_Map epetra_map(fTotNumEQ, fLocNumEQ, factive.Pointer(), 1, epetra_comm);
-	iArrayT row_count;
-	// fill values from frowptr
-	//
-	//
-	Epetra_CrsMatrix epetra_matrix(Copy, epetra_map, row_count.Pointer(), true);
-
-	/* copy data into epetra_matrix */
-	for (int i = 0; i < factive.Length(); i++) {
-		int offset = frowptr[i];
-		epetra_matrix.InsertGlobalValues(factive[i], row_count[i], fnzval.Pointer(offset), fcolind.Pointer(offset));
-		
-		// fcolind - 0 or 1 numbering?
-
-	}  
-	epetra_matrix.FillComplete();
-
-	/* call solver */
-
-	/* always fully factorized on exit */
-	fIsSymFactorized = true;
-	fIsNumFactorized = true;
-}
 
 /* check functions */
 void EpetraCRSMatrixT::PrintAllPivots(void) const
