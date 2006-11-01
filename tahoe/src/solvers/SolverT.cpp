@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.34 2005-08-01 03:25:37 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.35 2006-11-01 05:14:36 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -34,6 +34,10 @@
 
 #ifdef __SPOOLES_MT__
 #include "SPOOLESMatrixT_MT.h"
+#endif
+
+#ifdef __TRILINOS__
+#include "TrilinosAztecT.h"
 #endif
 
 using namespace Tahoe;
@@ -260,6 +264,15 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 
 #ifdef __AZTEC__
 		choice->AddSub("Aztec_matrix");
+#endif
+
+#ifdef __TRILINOS__
+		ParameterContainerT Trilinos_Aztec("Trilinos_Aztec_matrix");
+
+		/* options */
+		Trilinos_Aztec.AddParameter(ParameterT::Integer, "dummy");
+
+		choice->AddSub(Trilinos_Aztec);
 #endif
 
 #ifdef __SPOOLES__
@@ -725,6 +738,15 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 #else
 			ExceptionT::GeneralFail(caller, "Aztec solver not installed: %d", fMatrixType);
 #endif /* __AZTEC__ */
+	}
+	else if (params.Name() == "Trilinos_Aztec_matrix")
+	{
+#ifdef __TRILINOS__
+			/* construct */
+			fLHS = new TrilinosAztecT(out, check_code, comm);
+#else
+			ExceptionT::GeneralFail(caller, "Trilinos not installed: %d", fMatrixType);
+#endif /* __TRILINOS__ */
 	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized matrix type \"%s\"", params.Name().Pointer());
