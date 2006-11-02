@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.14 2006-10-26 19:07:04 regueiro Exp $ */
+/* $Id: HexahedronT.cpp,v 1.15 2006-11-02 21:51:34 regueiro Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -799,8 +799,6 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 	double* nax = DNa(0);
 	double* nay = DNa(1);
 	double* naz = DNa(2);
-
-
 	for (int lnd = 0; lnd < kNumVertexNodes; lnd++)
 	{
 		double tempr1 = 1.0 + ra[lnd]*r;
@@ -1018,12 +1016,10 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		double dr2=0.5*(2*r+1);double ds2=0.5*(2*s+1);double dt2=0.5*(2*t+1);
 		double dr3=-2*r;       double ds3=-2*s;       double dt3=-2*t;
 		
-
 		/* second derivatives */
 		double ddr1=1;  double dds1=1;  double ddt1=1;
 		double ddr2=1;  double dds2=1;  double ddt2=1;
 		double ddr3=-2; double dds3=-2; double ddt3=-2;
-
 
 		/* local node number */
 		int lnd = 0;
@@ -1039,7 +1035,6 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		nayz[lnd] = r1*ds1*dt1;  
 		naxz[lnd] = dr1*s1*dt1;  
 		naxy[lnd] = dr1*ds1*t1;  
-
 		lnd++;
 		
 		/* node 2 */
@@ -1066,7 +1061,6 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		nayz[lnd] = r2*ds2*dt1;  
 		naxz[lnd] = dr2*s2*dt1;
 		naxy[lnd] = dr2*ds2*t1;
-
 		lnd++;
 
 		/* node 4 */
@@ -1080,7 +1074,6 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		nayz[lnd] = r1*ds2*dt1;  
 		naxz[lnd] = dr1*s2*dt1;
 		naxy[lnd] = dr1*ds2*t1;
-
 		lnd++;
 
 		/* node 5 */
@@ -1558,6 +1551,186 @@ void HexahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	
 		/* evaluate (static binding) */
 		HexahedronT::EvaluateShapeFunctions(coords, na, Na_x[i]);
+	}
+}
+
+/* compute local shape functions and derivatives */
+void HexahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x, ArrayT<dArray2DT>& Na_xx,
+	dArrayT& weights) const
+{
+	const char caller[] = "HexahedronT::SetLocalShape";
+
+	/* dimensions */
+	int numnodes  = Na.MinorDim();
+	int numint    = weights.Length();
+	int nsd       = Na_x[0].MajorDim();
+
+	/* dimension checks */
+	if (numnodes != 8 && numnodes != 20 && numnodes != 27)
+		ExceptionT::GeneralFail(caller, "unsupported number of element nodes: %d", numnodes);
+
+	if (numint != 1 &&
+	    numint != 8 &&
+	    numint != 9 &&
+	    numint != 27 &&
+	    numint != 64)
+	    ExceptionT::GeneralFail(caller, "unsupported number of integration points: %d", numint);
+	
+	if (nsd != kHexnsd) ExceptionT::GeneralFail(caller);
+
+	/* initialize */
+	Na = 0.0;
+	for (int i = 0; i < Na_x.Length(); i++)
+		Na_x[i] = 0.0;
+
+	for (int i = 0; i < Na_xx.Length(); i++)
+		Na_xx[i] = 0.0;
+
+	/* integration point coordinates */
+	double xa_64[64], ya_64[64], za_64[64];
+	const double *xa, *ya, *za;
+	double 	g;
+	
+	/* integration weights */
+	switch (numint)
+	{
+		case 1:	
+			
+		g = 0.0;
+		xa = ra;
+		ya = sa;
+		za = ta;
+		weights[0] = 8.0;
+		break;
+
+		case 8:
+	
+		g = 1.0/sqrt3;
+		xa = ra;
+		ya = sa;
+		za = ta;
+		weights = 1.0;
+		break;
+
+		case 9:
+		{
+			/* first 8 quadrature points */
+			for (int i = 0; i < 8; i++)
+			{
+				xa_64[i] = ra[i];
+				ya_64[i] = sa[i];
+				za_64[i] = ta[i];
+				weights[i] = 5.0/9.0;
+			}
+			
+			/* the center point */
+			xa_64[8] = 0.0;
+			ya_64[8] = 0.0;
+			za_64[8] = 0.0;
+			weights[8] = 32.0/9.0;
+
+			/* set pointers */
+			xa = xa_64;
+			ya = ya_64;
+			za = za_64;
+			g  = sqrt(3.0/5.0);
+			break;
+		}
+		case 27:
+		{
+			/* coordinates */
+			double b1 = sqrt(3.0/5.0);
+			double b_1D[3] = {-b1, 0.0, b1};
+			
+			/* weights */
+			double w1 = 5.0/9.0;
+			double w2 = 8.0/9.0;
+			double w_1D[3] = {w1, w2, w1};
+			int x_i = 0;
+			int y_i = 0;
+			int z_i = 0;
+			for (int i = 0; i < 27; i++)
+			{
+				xa_64[i]   = b_1D[x_i];
+				ya_64[i]   = b_1D[y_i];
+				za_64[i]   = b_1D[z_i];
+				weights[i] = w_1D[x_i]*w_1D[y_i]*w_1D[z_i];
+							
+				if (++x_i == 3)
+				{
+					x_i = 0;
+					if (++y_i == 3)
+					{
+						y_i = 0;
+						z_i++;
+					}
+				}
+			}						
+		
+			xa = xa_64;
+			ya = ya_64;
+			za = za_64;
+			g  = 1.0;		
+			break;
+			
+		}	
+		case 64:
+		{
+			/* coordinates */
+			double b1 = sqrt((3.0 - 2.0*sqrt(6.0/5.0))/7.0);
+			double b2 = sqrt((3.0 + 2.0*sqrt(6.0/5.0))/7.0);
+			double b_1D[4] = {-b2,-b1, b1, b2};
+
+			/* weights */					
+			double w1 = (18.0 + sqrt(30.0))/36.0;
+			double w2 = (18.0 - sqrt(30.0))/36.0;
+			double w_1D[4] = {w2, w1, w1, w2};
+
+			int x_i = 0;
+			int y_i = 0;
+			int z_i = 0;
+			for (int i = 0; i < 64; i++)
+			{
+				xa_64[i]   = b_1D[x_i];
+				ya_64[i]   = b_1D[y_i];
+				za_64[i]   = b_1D[z_i];
+				weights[i] = w_1D[x_i]*w_1D[y_i]*w_1D[z_i];
+							
+				if (++x_i == 4)
+				{
+					x_i = 0;
+					if (++y_i == 4)
+					{
+						y_i = 0;
+						z_i++;
+					}
+				}
+			}						
+			
+			xa = xa_64;
+			ya = ya_64;
+			za = za_64;
+			g  = 1.0;		
+			break;
+		}	
+		default:
+			ExceptionT::GeneralFail(caller);
+	}
+	
+	/* evaluate shape functions at integration points */
+	dArrayT coords(3), na;
+	for (int i = 0; i < numint; i++)	
+	{
+		/* ip coordinates */
+		coords[0] = g*xa[i];
+		coords[1] = g*ya[i];
+		coords[2] = g*za[i];
+		
+		/* shape function values */
+		Na.RowAlias(i, na);
+	
+		/* evaluate (static binding) */
+		HexahedronT::EvaluateShapeFunctions(coords, na, Na_x[i], Na_xx[i]);
 	}
 }
 

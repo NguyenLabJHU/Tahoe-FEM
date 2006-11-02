@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.34 2006-10-26 19:07:04 regueiro Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.35 2006-11-02 21:51:37 regueiro Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -15,6 +15,8 @@ inline static void CrossProduct(const double* A, const double* B, double* AxB)
 };
 
 /* constructor */
+/* Jacobian derivative has been defined for n_sd = 3 and n_en = 27 hex element(with 3*6 dimension) */
+/* two optional arguments have been added to initialize second derivatives of shape functions: fDDNa and fJacobian_derivative */
 ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numnodes):
 	fGeometryCode(geometry_code),
 	fNumSD(GeometryT::GeometryToNumSD(fGeometryCode)),
@@ -26,6 +28,7 @@ ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numn
 	fWeights(fNumIP),
 	fNodalExtrap(fNumNodes,fNumIP),
 	fJacobian(fNumSD),
+	fJacobian_derivative(3,6),
 	fNa_p(fNumNodes),
 	fDNa_p(fNumSD, fNumNodes)
 {
@@ -46,8 +49,13 @@ ParentDomainT::~ParentDomainT(void) { delete fGeometry; }
 /* set all local parameters */
 void ParentDomainT::Initialize(void)
 {
-	/* local shape functions and derivatives */
-	fGeometry->SetLocalShape(fNa, fDNa, fWeights);
+    if (fNumSD == 3 && fNumNodes == 27)
+    	/* local shape functions and their first and second deivatives only for 
+		 * hex element n_sd = 3 and n_nen = 27 has been implemented */
+		fGeometry->SetLocalShape(fNa, fDNa, fDDNa, fWeights);
+    else
+		/* local shape functions and derivatives */
+		fGeometry->SetLocalShape(fNa, fDNa, fWeights);
 
 	/* nodal extrapolation matrix */
 	fGeometry->SetExtrapolation(fNodalExtrap);
@@ -482,10 +490,12 @@ void ParentDomainT::ComputeDNa(const LocalArrayT& coords,
 				for (int k = 0; k < fNumSD; k++)
 					for (int j = 0; j < fNumNodes; j++)
 						Nax(l,j) += jac_inv(k,l)*LNax(k,j);
-		}		
+		}
 	}
 }
 
+/* chain rule jacobian of shapefunctions and derivatives of jacobian of shapefunctions
+ * wrt coordinates that are passed in, for all integration points at once */
 void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 	ArrayT<dArray2DT>& DNa, ArrayT<dArray2DT>& DDNa, dArrayT& det)
 {
@@ -497,38 +507,25 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 		Jacobian(coords, fDNa[i], fJacobian);
 		det[i] = fJacobian.Det();
 		/* element check */
-		if (det[i] <= 0.0) ExceptionT::BadJacobianDet("ParentDomainT::ComputeDNa", "j = %g",  det[i]);
+		if (det[i] <= 0.0) ExceptionT::BadJacobianDet("ParentDomainT::ComputeDNa_DDNa", "j = %g",  det[i]);
 
 		dMatrixT& jac_inv = fJacobian.Inverse();
-					
+
+		/* calculate derivative of the Jacobian matrix */			
+		Jacobian_Derivative(coords, fDDNa[i], fJacobian_derivative);
+		
 		/* calculate the global shape function derivatives */
-		if (fNumSD == 3)
+		if (fNumSD == 3 && fNumNodes == 27)
 		{
-
-// fDDNa should be initialized. It seems that in the ParentDomain::initializer, the problem is :
-// I can not find "setlocalshape" function in the GeometryBaseT class.
-			double* pLNax = fDNa[i](0);
-			double* pLNay = fDNa[i](1);
-			double* pLNaz = fDNa[i](2);
-
-			double* pLNaxx = fDDNa[i](0);
-			double* pLNayy = fDDNa[i](1);
-			double* pLNazz = fDDNa[i](2);
-			double* pLNayz = fDDNa[i](3);
-			double* pLNaxz = fDDNa[i](4);
-			double* pLNaxy = fDDNa[i](5);
+		    /* calculating derivative of shape functions wrt global coordinate */
+			double* pLNax = fDNa[i](0); // Na,1 wrt natural coordinate
+			double* pLNay = fDNa[i](1); // Na,2 wrt natural coordinate
+			double* pLNaz = fDNa[i](2); // Na,3 wrt natural coordinate
 			
-			double* pNax = DNa[i](0);
-			double* pNay = DNa[i](1);
-			double* pNaz = DNa[i](2);
+			double* pNax = DNa[i](0); // Na,1 wrt global coordinate
+			double* pNay = DNa[i](1); // Na,2 wrt global coordinate
+			double* pNaz = DNa[i](2); // Na,3 wrt global coordinate
 			
-			double* pNaxx = DNa[i](0);
-			double* pNayy = DNa[i](1);
-			double* pNazz = DNa[i](2);
-			double* pNayz = DNa[i](0);
-			double* pNaxz = DNa[i](1);
-			double* pNaxy = DNa[i](2);
-
 			double* pj = jac_inv.Pointer();
 		
 			for (int j = 0; j < fNumNodes; j++)
@@ -540,6 +537,1378 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 				pLNax++;
 				pLNay++;
 				pLNaz++;
+			}
+
+		    /* calculating second derivative of shape functions wrt global coordinate */
+			double* LNax = fDNa[i](0); // Na,1 wrt natural coordinate
+			double* LNay = fDNa[i](1); // Na,2 wrt natural coordinate
+			double* LNaz = fDNa[i](2); // Na,3 wrt natural coordinate
+
+			double* pLNaxx = fDDNa[i](0); // Na,11 wrt natural coordinate
+			double* pLNayy = fDDNa[i](1); // Na,22 wrt natural coordinate
+			double* pLNazz = fDDNa[i](2); // Na,33 wrt natural coordinate
+			double* pLNayz = fDDNa[i](3); // Na,23 wrt natural coordinate
+			double* pLNaxz = fDDNa[i](4); // Na,13 wrt natural coordinate
+			double* pLNaxy = fDDNa[i](5); // Na,12 wrt natural coordinate
+			
+			double* pNaxx = DDNa[i](0); // Na,11 wrt global coordinate
+			double* pNayy = DDNa[i](1); // Na,22 wrt global coordinate
+			double* pNazz = DDNa[i](2); // Na,33 wrt global coordinate
+			double* pNayz = DDNa[i](3); // Na,23 wrt global coordinate
+			double* pNaxz = DDNa[i](4); // Na,13 wrt global coordinate
+			double* pNaxy = DDNa[i](5); // Na,12 wrt global coordinate
+
+			double* pj_der = fJacobian_derivative.Pointer();
+
+			double J_inv_r1,J_inv_r2,J_inv_r3,J_inv_s1,J_inv_s2,J_inv_s3;
+			double Na_rs;		
+
+			for (int j = 0; j < fNumNodes; j++)
+			{
+			    /* two for loops to calculate the first term */
+			    for (int r = 1; r <= fNumSD; r++)
+			    {
+				for (int s = 1; s <= fNumSD; s++)
+				{
+				    switch (r)
+				    {
+				       case 1:
+				       {
+					   switch (s)
+					   {
+					      case 1:
+					      {
+						  Na_rs = *pLNaxx;
+						  J_inv_r1 = J_inv_s1 = pj[0];
+						  J_inv_r2 = J_inv_s2 = pj[3];
+						  J_inv_r3 = J_inv_s3 = pj[6];
+					      }
+					      case 2:
+					      {
+						  Na_rs = *pLNaxy;
+						  J_inv_r1 = pj[0];
+						  J_inv_s1 = pj[1];
+						  J_inv_r2 = pj[3];
+						  J_inv_s2 = pj[4];
+						  J_inv_r3 = pj[6];
+						  J_inv_s3 = pj[7];
+					      }
+					      case 3:
+					      {
+						  Na_rs = *pLNaxz;
+						  J_inv_r1 = pj[0];
+						  J_inv_s1 = pj[2];
+						  J_inv_r2 = pj[3];
+						  J_inv_s2 = pj[5];
+						  J_inv_r3 = pj[6];
+						  J_inv_s3 = pj[8];
+					      }
+					   }
+				       }
+				       case 2:
+				       {
+					   switch (s)
+					   {
+					      case 1:
+					      {
+						  Na_rs = *pLNaxy;
+						  J_inv_r1 = pj[1];
+						  J_inv_s1 = pj[0];
+						  J_inv_r2 = pj[4];
+						  J_inv_s2 = pj[3];
+						  J_inv_r3 = pj[7];
+						  J_inv_s3 = pj[6];
+					      }
+					      case 2:
+					      {
+						  Na_rs = *pLNayy;
+						  J_inv_r1 = J_inv_s1 = pj[1];
+						  J_inv_r2 = J_inv_s2 = pj[4];
+						  J_inv_r3 = J_inv_s3 = pj[7];
+					      }
+					      case 3:
+					      {
+						  Na_rs = *pLNayz;
+						  J_inv_r1 = pj[1];
+						  J_inv_s1 = pj[2];
+						  J_inv_r2 = pj[4];
+						  J_inv_s2 = pj[5];
+						  J_inv_r3 = pj[7];
+						  J_inv_s3 = pj[8];
+					      }
+					   }
+
+				       }
+				       case 3:
+				       {
+					   switch (s)
+					   {
+					      case 1:
+					      {
+						  Na_rs = *pLNaxz;
+						  J_inv_r1 = pj[2];
+						  J_inv_s1 = pj[0];
+						  J_inv_r2 = pj[5];
+						  J_inv_s2 = pj[3];
+						  J_inv_r3 = pj[8];
+						  J_inv_s3 = pj[6];
+					      }
+					      case 2:
+					      {
+						  Na_rs = *pLNayz;
+						  J_inv_r1 = pj[2];
+						  J_inv_s1 = pj[1];
+						  J_inv_r2 = pj[5];
+						  J_inv_s2 = pj[4];
+						  J_inv_r3 = pj[8];
+						  J_inv_s3 = pj[7];
+					      }
+					      case 3:
+					      {
+						  Na_rs = *pLNazz;
+						  J_inv_r1 = J_inv_s1 = pj[2];
+						  J_inv_r2 = J_inv_s2 = pj[5];
+						  J_inv_r3 = J_inv_s3 = pj[8];
+					      }
+					   }
+				       }
+
+				    }
+				    *pNaxx += Na_rs * J_inv_r1 * J_inv_s1 ;
+				    *pNayy += Na_rs * J_inv_r2 * J_inv_s2 ;
+				    *pNazz += Na_rs * J_inv_r3 * J_inv_s3 ;
+				    *pNayz += Na_rs * J_inv_r2 * J_inv_s3 ;
+				    *pNaxz += Na_rs * J_inv_r1 * J_inv_s3 ;
+				    *pNaxy += Na_rs * J_inv_r1 * J_inv_s2 ;
+				}
+
+			    }
+
+			    /* four for loops to calculate the second term */
+			    double J_inv_rM,J_Mm_t, J_inv_t1,J_inv_m1,J_inv_t2;
+			    double J_inv_m2,J_inv_t3, J_inv_m3;
+			    double Na_r;		
+			    for (int r =1; r <= fNumSD; r++)
+			    {
+				for (int M = 1; M <= fNumSD; M++)
+				{
+				    for (int m = 1; m <= fNumSD; m++)    
+				    {
+					for (int t = 1; t <= fNumSD; t++)
+					{
+					    switch (r)
+					    {
+					       case 1:
+					       {
+						   switch (M)
+						   {
+						      case 1:
+						      {
+							  switch (m)
+							  {
+							     case 1:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNax;
+									J_inv_rM = J_inv_m1 = J_inv_t1 = pj[0];
+									J_inv_m2 = J_inv_t2 = pj[3];
+									J_inv_m3 = J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[0];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNax;
+									J_inv_rM = J_inv_m1 = pj[0];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[15];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNax;
+									J_inv_rM = J_inv_m1 = pj[0];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[12];
+								    }
+								 }
+							     }
+							     case 2:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[0];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[15];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[0];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[3];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[0];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[9];
+								    }
+								 }
+							     }
+							     case 3:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[0];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[12];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[0];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[9];
+
+								    }
+								    case 3:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[0];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[6];
+								    }
+								 }
+							     }
+							  }
+						      }
+						      case 2:
+						      {
+							  switch (m)
+							  {
+							     case 1:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[3];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[1];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[3];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[16];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[3];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[13];
+								    }
+								 }
+							     }
+							     case 2:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[3];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[16];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[3];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[4];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[3];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[10];
+								    }
+								 }
+							     }
+							     case 3:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[3];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[13];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[3];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[10];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[3];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[7];
+								    }
+								 }
+							     }
+							  }
+						      }
+						      case 3:
+						      {
+							  switch (m)
+							  {
+							     case 1:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[6];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[2];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[6];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[17];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[6];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[14];
+								    }
+								 }
+							     }
+							     case 2:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[6];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[17];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[6];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[5];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[6];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[11];
+								    }
+								 }
+							     }
+							     case 3:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[6];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[14];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[6];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[11];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNax;
+									J_inv_rM =  pj[6];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[8];
+								    }
+								 }
+							     }
+							  }
+						      }
+						   }
+					       }
+                    			       case 2:
+					       {
+						   switch (M)
+						   {
+						      case 1:
+						      {
+							  switch (m)
+							  {
+							     case 1:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[1];
+									J_inv_m1 = J_inv_t1 = pj[0];
+									J_inv_m2 = J_inv_t2 = pj[3];
+									J_inv_m3 = J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[0];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[1];
+									J_inv_m1 =  pj[0];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[15];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[1];
+									J_inv_m1 =  pj[0];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[12];
+								    }
+								 }
+							     }
+							     case 2:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[1];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[15];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[1];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[3];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[1];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[9];
+								    }
+								 }
+							     }
+							     case 3:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[1];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[12];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[1];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[9];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[1];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[6];
+								    }
+								 }
+							     }
+							  }
+						      }
+						      case 2:
+						      {
+							  switch (m)
+							  {
+							     case 1:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[4];
+									J_inv_m1 = J_inv_t1 = pj[0];
+									J_inv_m2 = J_inv_t2 = pj[3];
+									J_inv_m3 = J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[1];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[4];
+									J_inv_m1 =  pj[0];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[16];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[4];
+									J_inv_m1 =  pj[0];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[13];
+								    }
+								 }
+							     }
+							     case 2:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[4];
+									J_inv_m1 =  pj[1];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[16];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[4];
+									J_inv_m1 =  pj[1];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[4];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[4];
+									J_inv_m1 =  pj[1];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[10];
+								    }
+								 }
+							     }
+							     case 3:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[4];
+									J_inv_m1 =  pj[2];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[13];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[4];
+									J_inv_m1 =  pj[2];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[10];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[4];
+									J_inv_m1 =  pj[2];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[7];
+								    }
+								 }
+							     }
+							  }
+						      }
+						      case 3:
+						      {
+							  switch (m)
+							  {
+							     case 1:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[7];
+									J_inv_m1 = J_inv_t1 = pj[0];
+									J_inv_m2 = J_inv_t2 = pj[3];
+									J_inv_m3 = J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[2];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[7];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[17];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[7];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[14];
+								    }
+								 }
+							     }
+							     case 2:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[7];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[17];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[7];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[5];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[7];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[11];
+								    }
+								 }
+							     }
+							     case 3:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[7];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[14];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[7];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[11];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNay;
+									J_inv_rM = pj[7];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[8];
+								    }
+								 }
+							     }
+							  }
+						      }
+						   }
+					       }
+					       case 3:
+					       {
+						   switch (M)
+						   {
+						      case 1:
+						      {
+							  switch (m)
+							  {
+							     case 1:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[2];
+									J_inv_m1 = J_inv_t1 = pj[0];
+									J_inv_m2 = J_inv_t2 = pj[3];
+									J_inv_m3 = J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[0];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[2];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[15];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[2];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[12];
+								    }
+								 }
+							     }
+							     case 2:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[2];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[15];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[2];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[3];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[2];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[9];
+								    }
+								 }
+							     }
+							     case 3:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[2];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[12];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[2];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[9];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[2];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[6];
+								    }
+								 }
+							     }
+							  }
+						      }
+						      case 2:
+						      {
+							  switch (m)
+							  {
+							     case 1:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[5];
+									J_inv_m1 = J_inv_t1 = pj[0];
+									J_inv_m2 = J_inv_t2 = pj[3];
+									J_inv_m3 = J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[1];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[5];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[16];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[5];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[13];
+								    }
+								 }
+							     }
+							     case 2:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[5];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[16];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[5];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[4];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[5];
+									J_inv_m1 = pj[1];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[10];
+								    }
+								 }
+							     }
+							     case 3:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[5];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[13];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[5];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[10];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[5];
+									J_inv_m1 = pj[2];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[7];
+								    }
+								 }
+							     }
+							  }
+						      }
+						      case 3:
+						      {
+							  switch (m)
+							  {
+							     case 1:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[8];
+									J_inv_m1 = J_inv_t1 = pj[0];
+									J_inv_m2 = J_inv_t2 = pj[3];
+									J_inv_m3 = J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[2];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[8];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[17];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[8];
+									J_inv_m1 = pj[0];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[3];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[6];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[14];
+								    }
+								 }
+							     }
+							     case 2:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[8];
+									J_inv_m1 =  pj[1];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[17];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[8];
+									J_inv_m1 =  pj[1];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[5];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[8];
+									J_inv_m1 =  pj[1];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[4];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[7];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[11];
+								    }
+								 }
+							     }
+							     case 3:
+							     {
+								 switch (t)
+								 {
+								    case 1:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[8];
+									J_inv_m1 =  pj[2];
+									J_inv_t1 = pj[0];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[3];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[6];
+									J_Mm_t = pj_der[14];
+								    }
+								    case 2:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[8];
+									J_inv_m1 =  pj[2];
+									J_inv_t1 = pj[1];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[4];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[7];
+									J_Mm_t = pj_der[11];
+								    }
+								    case 3:
+								    {
+									Na_r = *LNaz;
+									J_inv_rM = pj[8];
+									J_inv_m1 =  pj[2];
+									J_inv_t1 = pj[2];
+									J_inv_m2 = pj[5];
+									J_inv_t2 = pj[5];
+									J_inv_m3 = pj[8];
+									J_inv_t3 = pj[8];
+									J_Mm_t = pj_der[8];
+								    }
+								 }
+							     }
+							  }
+						      }
+						   }
+					       }
+					    }
+					    *pNaxx += -1 * Na_r * J_inv_rM * J_Mm_t * J_inv_t1 * J_inv_m1 ;
+					    *pNayy += -1 * Na_r * J_inv_rM * J_Mm_t * J_inv_t2 * J_inv_m2 ;
+					    *pNazz += -1 * Na_r * J_inv_rM * J_Mm_t * J_inv_t3 * J_inv_m3 ;
+					    *pNayz += -1 * Na_r * J_inv_rM * J_Mm_t * J_inv_t2 * J_inv_m3 ;
+					    *pNaxz += -1 * Na_r * J_inv_rM * J_Mm_t * J_inv_t1 * J_inv_m3 ;
+					    *pNaxy += -1 * Na_r * J_inv_rM * J_Mm_t * J_inv_t1 * J_inv_m2 ;
+					}
+				    }
+				}
+			    }
+			    pNaxx++;
+			    pNayy++;
+			    pNazz++;
+			    pNayz++;
+			    pNaxz++;				
+			    pNaxy++;
+
+			    pLNaxx++;
+			    pLNayy++;
+			    pLNazz++;
+			    pLNayz++;
+			    pLNaxz++;
+			    pLNaxy++;
+		
+			    LNax++;
+			    LNay++;
+			    LNaz++;
 			}
 		}
 /*		else
@@ -801,80 +2170,94 @@ double ParentDomainT::AverageRadius(const LocalArrayT& coords, dArrayT& avg) con
 void ParentDomainT::Jacobian_Derivative(const LocalArrayT& nodal, const dArray2DT& DDNa,
 	dMatrixT& jac_derivative) const
 {
-/* this error check has not been implemented, just has been copied from jacobian
+//this is copied from jacobian
 #if __option(extended_errorcheck)
 	// dimension check
 	if (DDNa.MinorDim() != nodal.NumberOfNodes() ||
         DDNa.MajorDim() != jac_derivative.Cols()            ||
-            jac_derivative.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch("ParentDomainT::Jacobian");
+            jac_derivative.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch("ParentDomainT::Jacobian_Derivative");
 #endif
-*/
-	double *pjac = jac_derivative.Pointer();
+
+	double *pjac_derivative = jac_derivative.Pointer();
 	const double *pval = nodal.Pointer();
 	
 	int nnd   = nodal.NumberOfNodes();
 	int num_u = jac_derivative.Rows();
 	int num_d = jac_derivative.Cols();
 	
-	if (num_d == 3 && num_u == 6)
+	if (num_d == 6 && num_u == 3)
 	{
-		double& j11 = *pjac++;
-		double& j12 = *pjac++;
-		double& j13 = *pjac++;
-		double& j21 = *pjac++;
-		double& j22 = *pjac++;
-		double& j23 = *pjac++;
-		double& j31 = *pjac++;
-		double& j32 = *pjac++;
-		double& j33 = *pjac++;
-		double& j41 = *pjac++;
-		double& j42 = *pjac++;
-		double& j43 = *pjac++;
-		double& j51 = *pjac++;
-		double& j52 = *pjac++;
-		double& j53 = *pjac++;
-		double& j61 = *pjac++;
-		double& j62 = *pjac++;
-		double& j63 = *pjac  ;
+		double& j11_1 = *pjac_derivative++;
+		double& j21_1 = *pjac_derivative++;
+		double& j31_1 = *pjac_derivative++;
+		double& j12_2 = *pjac_derivative++;
+		double& j22_2 = *pjac_derivative++;
+		double& j32_2 = *pjac_derivative++;
+		double& j13_3 = *pjac_derivative++;
+		double& j23_3 = *pjac_derivative++;
+		double& j33_3 = *pjac_derivative++;
+		double& j12_3 = *pjac_derivative++;
+		double& j22_3 = *pjac_derivative++;
+		double& j32_3 = *pjac_derivative++;
+		double& j11_3 = *pjac_derivative++;
+		double& j21_3 = *pjac_derivative++;
+		double& j31_3 = *pjac_derivative++;
+		double& j11_2 = *pjac_derivative++;
+		double& j21_2 = *pjac_derivative++;
+		double& j31_2 = *pjac_derivative  ;
 	
-		j11 = j12 = j13 = j21 = j22 = j23 = j31 = j32 = j33 = 0.0;
-		j41 = j42 = j43 = j51 = j52 = j53 = j61 = j62 = j63 = 0.0;
+		j11_1 = j21_1 = j31_1 = j12_2 = j22_2 = j32_2 = j13_3 = j23_3 = j33_3 = 0.0;
+		j12_3 = j22_3 = j32_3 = j11_3 = j21_3 = j31_3 = j11_2 = j21_2 = j31_2 = 0.0;
 
 		const double* pu1 = nodal(0);
 		const double* pu2 = nodal(1);
 		const double* pu3 = nodal(2);
-		const double* dxx = DDNa(0);
-		const double* dyy = DDNa(1);
-		const double* dzz = DDNa(2);
-		const double* dyz = DDNa(3);
-		const double* dxz = DDNa(4);
-		const double* dxy = DDNa(5);
+		const double* dx11 = DDNa(0);
+		const double* dx22 = DDNa(1);
+		const double* dx33 = DDNa(2);
+		const double* dx23 = DDNa(3);
+		const double* dx13 = DDNa(4);
+		const double* dx12 = DDNa(5);
 
 		for (int i = 0; i < nnd; i++)
 		{
-			j11 += (*pu1)*(*dxx);
-			j12 += (*pu2)*(*dxx);
-			j13 += (*pu3)*(*dxx);
-			j21 += (*pu1)*(*dyy);
-			j22 += (*pu2)*(*dyy);
-			j23 += (*pu3)*(*dyy);
-			j31 += (*pu1)*(*dzz);
-			j32 += (*pu2)*(*dzz);
-			j33 += (*pu3)*(*dzz);
-			j41 += (*pu1)*(*dyz);
-			j42 += (*pu2)*(*dyz);
-			j43 += (*pu3)*(*dyz);
-			j51 += (*pu1)*(*dxz);
-			j52 += (*pu2)*(*dxz);
-			j53 += (*pu3)*(*dxz);
-			j61 += (*pu1)*(*dxy);
-			j62 += (*pu2)*(*dxy);
-			j63 += (*pu3)*(*dxy);
+			j11_1 += (*pu1)*(*dx11);
+			j21_1 += (*pu2)*(*dx11);
+			j31_1 += (*pu3)*(*dx11);
+			j12_2 += (*pu1)*(*dx22);
+			j22_2 += (*pu2)*(*dx22);
+			j32_2 += (*pu3)*(*dx22);
+			j13_3 += (*pu1)*(*dx33);
+			j23_3 += (*pu2)*(*dx33);
+			j33_3 += (*pu3)*(*dx33);
+			j12_3 += (*pu1)*(*dx23);
+			j22_3 += (*pu2)*(*dx23);
+			j32_3 += (*pu3)*(*dx23);
+			j11_3 += (*pu1)*(*dx13);
+			j21_3 += (*pu2)*(*dx13);
+			j31_3 += (*pu3)*(*dx13);
+			j11_2 += (*pu1)*(*dx12);
+			j21_2 += (*pu2)*(*dx12);
+			j31_2 += (*pu3)*(*dx12);
 			
 			pu1++; pu2++; pu3++; 
-			dxx++; dyy++; dzz++;	
-			dyz++; dxz++; dxy++;	
+			dx11++; dx22++; dx33++;	
+			dx23++; dx13++; dx12++;	
 		}
+       	}
+	else
+	{
+		int j_inc = jac_derivative.Rows();
+		for (int i = 0; i < num_u; i++)
+		{
+			double *pjac_j = pjac_derivative;
+			for (int j = 0; j < num_d; j++)
+			{
+				*pjac_j = DDNa.DotRow(j,pval);
+				pjac_j += j_inc;
+			}
+			pjac_derivative++;
+			pval += nnd;
 		}
-
+	}		
 }

@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.h,v 1.9 2006-10-26 19:07:04 regueiro Exp $ */
+/* $Id: HexahedronT.h,v 1.10 2006-11-02 21:51:34 regueiro Exp $ */
 /* created: paklein (10/22/1997) */
 #ifndef _HEXADHEDRON_T_H_
 #define _HEXADHEDRON_T_H_
@@ -37,6 +37,12 @@ public:
 	 * GeometryBaseT::SetLocalShape for documentation */
 	virtual void SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 		dArrayT& weights) const;
+
+	/* this function will be called from ParenDomainT.cpp to initialize 
+	 * local second derivative of shape functions.
+	 * Local derivative of shape functions has been iplemeneted for 27 node hex only */
+	virtual void SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
+		ArrayT<dArray2DT>& Na_xx, dArrayT& weights) const;
 
 	/* compute gradients of the "bubble" modes */
 	virtual void BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const;
