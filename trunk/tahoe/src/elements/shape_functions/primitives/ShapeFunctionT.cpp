@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.19 2006-10-26 19:05:24 regueiro Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.20 2006-11-02 21:50:09 regueiro Exp $ */
 /* created: paklein (06/26/1996) */
 #include "ShapeFunctionT.h"
 #include "ParentDomainT.h"
@@ -84,7 +84,7 @@ void ShapeFunctionT::SetDerivatives_DN_DDN(void)
 	{
 		/* check */
 		if (!fCurrElementNumber)
-			ExceptionT::GeneralFail("ShapeFunctionT::SetDerivatives",
+			ExceptionT::GeneralFail("ShapeFunctionT::SetDerivatives_DN_DDN",
 				"current element not set");
 	
 		/* get Jocobian information */
@@ -143,6 +143,42 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 	for (int i = 0; i < num_u; i++)
 		u[i] = pNaU->DotRow(ip, nodal(i));
 }
+
+/* second derivative of shape functions */
+void ShapeFunctionT::Grad_GradNa(const dArray2DT& DDNa, dMatrixT& grad_grad_Na) const
+{
+#if __option(extended_errorcheck)
+	if (DDNa.MajorDim() != grad_grad_Na.Rows() ||
+	    DDNa.MinorDim() != grad_grad_Na.Cols())
+	    ExceptionT::SizeMismatch("ShapeFunctionT::Grad_GradNa");
+#endif
+
+	int numsd_x_2 = DDNa.MajorDim();
+	int numnodes  = DDNa.MinorDim();
+	double* p     = grad_grad_Na.Pointer();
+
+	if (numsd_x_2 == 6)
+	{
+		const double* pNaxx = DDNa(0);
+		const double* pNayy = DDNa(1);
+		const double* pNazz = DDNa(2);
+		const double* pNayz = DDNa(3);
+		const double* pNaxz = DDNa(4);
+		const double* pNaxy = DDNa(5);
+		
+		for (int i = 0; i < numnodes; i++)
+		{
+			*p++ = *pNaxx++;
+			*p++ = *pNayy++;
+			*p++ = *pNazz++;
+			*p++ = *pNayz++;
+			*p++ = *pNaxz++;
+			*p++ = *pNaxy++;
+		}
+	}
+}
+
+
 
 /* shape function gradients matrix (Hughes,4.90) */
 void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
@@ -340,14 +376,19 @@ void ShapeFunctionT::Construct_DN_DDN(void)
 	/* parent domain jacobian */
 	fDet.Dimension(fNumIP),
 
-	/* memory for the derivatives */
+	/* memory for the first derivatives */
 	fDNaX.Dimension(fNumIP);
 	for (int i = 0; i < fNumIP; i++)
-		fDNaX[i].Dimension(numsd, numXnodes);		
+		fDNaX[i].Dimension(numsd, numXnodes);	
+
+	/* memory for the second derivatives */
+	fDDNaX.Dimension(fNumIP);
+	for (int i = 0; i < fNumIP; i++)
+		fDDNaX[i].Dimension(numsd*2, numXnodes);		
 
 	/* initialize to isoparametric */
-	pNaU  = &(fDomain->Na());
-	pDNaU = &fDNaX;
+	pNaU   = &(fDomain->Na());
+	pDNaU  = &fDNaX;
 	pDDNaU = &fDDNaX;
 	
 	/* work space */
