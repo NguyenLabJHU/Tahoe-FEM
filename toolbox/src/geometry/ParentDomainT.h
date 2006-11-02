@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.22 2006-10-26 19:07:04 regueiro Exp $ */
+/* $Id: ParentDomainT.h,v 1.23 2006-11-02 21:51:37 regueiro Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -80,16 +80,13 @@ class ParentDomainT
 	 * \param DNa shape function derivatives: [ndim] x [nnd]
 	 * \param jacobian resulting jacobian: [nu] x [ndim] */
 	void Jacobian(const LocalArrayT& nodal, const dArray2DT& DNa, dMatrixT& jacobian) const;
-    /* this function calculates derivative of jacobian matrix for n_sd=3, the elements of this matrix are as follows:
-                      first column    second column third column
-        first row:        J11,1           J21,1        J31,1
-	second row:       J12,2           J22,2        J32,2
-	third row:        J13,3           J23,3        J33,3
-	fourth row:       J12,3           J22,3        J32,3
-	fifth row:        J11,3           J21,3        J31,3
-	sixth row:        J11,2           J21,2        J31,2  */
 
-        void Jacobian_Derivative(const LocalArrayT& nodal, const dArray2DT& DDNa,dMatrixT& jacobian_derivative) const;
+    /* this function calculates derivative of jacobian matrix for n_sd=3, the elements of this matrix are as follows:
+                     first column    second column third column  fourth column  fifth column  sixth column
+       first row:        J11,1           J12,2        J13,3         J12,3         J11,3          J11,2
+       second row:       J21,1           J22,2        J23,3         J22,3         J21,3          J21,2
+       third row:        J31,1           J32,2        J33,3         J32,3         J31,3          J31,2               */
+	void Jacobian_Derivative(const LocalArrayT& nodal, const dArray2DT& DDNa, dMatrixT& jacobian_derivative) const;
 
 	/** compute the curl of a vector that is of dimension 3x1
 	 *  Values for vector at the node points must be provided 
@@ -97,7 +94,6 @@ class ParentDomainT
 	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
 	 *  of dimension 2 x num_nodes.
 	 *  Note: Return curl(T) will be 3x1 */
-	 
 	void Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa,dArrayT& curl) const;
 
 	/** compute the curl of a tensor that is of dimension 3x3
@@ -286,6 +282,7 @@ class ParentDomainT
 	/*@{*/
 	dMatrixT  fNodalExtrap; /**< extrapolation matrix */
 	dMatrixT  fJacobian;    /**< jacobian matrix */
+	dMatrixT  fJacobian_derivative;    /**< derivative of jacobian matrix */
 	dArrayT   fNa_p;        /**< array of shape functions */
 	dArray2DT fDNa_p;       /**< array of shape function derivatives */
 	/*@}*/

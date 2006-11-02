@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.12 2006-10-26 19:07:04 regueiro Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.13 2006-11-02 21:51:37 regueiro Exp $ */
 /* created: paklein (10/22/1996) */
 #include "TetrahedronT.h"
 #include "QuadT.h"
@@ -215,6 +215,19 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dA
 	cout << "\n TetrahedronT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }
+
+/* sets first and second derivative of shape functions */
+void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x, ArrayT<dArray2DT>& Na_xx, dArrayT& weights) const
+{
+#pragma unused(Na)
+#pragma unused(Na_x)
+#pragma unused(Na_xx)
+#pragma unused(weights)
+
+	cout << "\n TetrahedronT::SetLocalShape: not implemented" << endl;
+	throw ExceptionT::kGeneralFail;
+} 
+
 
 /* compute local shape functions and derivatives */
 void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,

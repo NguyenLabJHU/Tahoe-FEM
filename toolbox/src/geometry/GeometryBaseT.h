@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.h,v 1.12 2006-10-26 19:07:04 regueiro Exp $ */
+/* $Id: GeometryBaseT.h,v 1.13 2006-11-02 21:51:34 regueiro Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
@@ -74,6 +74,12 @@ public:
 	 * \param weights destination for weights of the integration rule: [nip] */
 	virtual void SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 		dArrayT& weights) const = 0;
+
+	/* this function will be called from ParenDomainT.cpp to initialize 
+	 * local second derivative of shape functions.
+	 * Local derivative of shape functions has been implemented for 27 node hex only */
+	virtual void SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x, 
+		ArrayT<dArray2DT>& Na_xx, dArrayT& weights) const = 0;
 
 	/** compute gradients of the "bubble" modes */
 	virtual void BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const;
