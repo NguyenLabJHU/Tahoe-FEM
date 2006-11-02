@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.27 2006-10-26 19:05:24 regueiro Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.28 2006-11-02 21:50:09 regueiro Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -29,8 +29,9 @@ public:
 	 * \param B_option strain-displacement option */
 	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
 		const LocalArrayT& coords);
-    // This constructor will do the same job like the previous constructor but it will have a flag to initialize the second derivative
-    // note: second derivative has been implemented for 27 nodes only.
+    /** This constructor will do the same job like the previous constructor 
+     *  but it will have a flag to initialize the second derivative
+     *  note: second derivative has been implemented for 27 node hex only. */
 	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
 		const LocalArrayT& coords, int dummy_flag);
 	
@@ -50,10 +51,9 @@ public:
 	/** compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);
 
-
-	/** compute global shape derivatives-first and second derivatives, second derivative has been imolemented for 27 node element only */ 	
+	/** compute global shape derivatives-first and second derivatives, 
+	 *  second derivative has been imolemented for 27 node element only */ 	
 	virtual void SetDerivatives_DN_DDN(void);
-
 
 	/** array of jacobian determinant integration points at once */
 	const double* IPDets(void) const; // d(fCoords) = j d(parent domain)
@@ -184,12 +184,25 @@ public:
 	      \left[\nabla \mathbf{N}\right]_{iA} =
 	          \left( \frac{\partial N_A}{\partial x_i} \right)^{T}
 	   \f] */
-	void GradNa(dMatrixT& grad_Na) const;
-
+	/*@{*/
 	/** shape function gradients matrix as in Hughes (4.90) */
+	void GradNa(dMatrixT& grad_Na) const;
 	void GradNa(const dArray2DT& derivatives, dMatrixT& grad_Na) const;
+	/*@}*/
 
-/*******************************************/
+	/* second derivative of shape functions
+	 * It has been implemented for the 27 node hex element only */
+	/*@{*/
+	/* matrix of second derivatives of shape functions will be as follows: 
+	 * N1,11   N2,11 ....Nn_en,11
+	 * N1,22   N2,22 ....Nn_en,22
+	 * N1,33   N2,33 ....Nn_en,33
+	 * N1,23   N2,23 ....Nn_en,23
+	 * N1,13   N2,13 ....Nn_en,13  
+	 * N1,12   N2,12 ....Nn_en,12     */   
+	void Grad_GradNa(dMatrixT& grad_grad_Na) const;
+   	void Grad_GradNa(const dArray2DT& derivatives, dMatrixT& grad_grad_Na) const;
+	/*@}*/
 
 	/** print the shape function values to the output stream */
 	virtual void Print(ostream& out) const;
@@ -217,11 +230,12 @@ protected:
 private:
 
 	/** configure work space arrays. initializes shape function to be
-	 * isoparametric */
+	 *  isoparametric */
 	void Construct(void);
 
-    // this function will be called by the class constructor to initialize first and second derivatives
-    	void Construct_DN_DDN(void);
+    /** this function will be called by the class constructor to initialize 
+     *  first and second derivatives */
+	void Construct_DN_DDN(void);
 
 	/** hide access to DomainIntegrationT function */
 	const double* IPShape(void) const;
@@ -234,14 +248,14 @@ protected:
 private:
 
 	/* global shape function derivatives */
-	dArrayT	fDet;	         // d(fCoords) = j d(parent domain)
-	ArrayT<dArray2DT> fDNaX; // geometry: d(phi_X)/d(fCoords)
+	dArrayT	fDet;	          // d(fCoords) = j d(parent domain)
+	ArrayT<dArray2DT> fDNaX;  // geometry: d(phi_X)/d(fCoords)
 	ArrayT<dArray2DT> fDDNaX; // geometry: d(phi_X)/d(fCoords) and  d^2(phi_X)/d(fCoords)^2
 
 
 	/* field shape functions */
-	const dArray2DT*         pNaU;  // phi_U
-	const ArrayT<dArray2DT>* pDNaU; // d(phi_U)/d(fCoords)
+	const dArray2DT*         pNaU;   // phi_U
+	const ArrayT<dArray2DT>* pDNaU;  // d(phi_U)/d(fCoords)
 	const ArrayT<dArray2DT>* pDDNaU; // d^2(phi_U)/d(fCoords)^2
 
 	/* return values */
@@ -362,6 +376,11 @@ inline void ShapeFunctionT::GradNa(dMatrixT& grad_Na) const
 	GradNa((*pDNaU)[fCurrIP], grad_Na);
 }
 
+inline void ShapeFunctionT::Grad_GradNa(dMatrixT& grad_grad_Na) const
+{
+	Grad_GradNa((*pDDNaU)[fCurrIP], grad_grad_Na);
+}
+
 #if 0
 inline void ShapeFunctionT::B_q(dMatrixT& B_matrix) const
 {
@@ -396,6 +415,7 @@ inline void ShapeFunctionT::SetUShapeFunctions(const dArray2DT& NaU,
 	/* set pointers to external data */
 	pNaU  = &NaU;
 	pDNaU = &DNaU;
+  
 }
 
 /* access to the (geometry) shape function derivatives */
