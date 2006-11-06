@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.28 2006-11-02 21:50:09 regueiro Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.29 2006-11-06 15:35:54 regueiro Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -29,6 +29,7 @@ public:
 	 * \param B_option strain-displacement option */
 	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
 		const LocalArrayT& coords);
+		
     /** This constructor will do the same job like the previous constructor 
      *  but it will have a flag to initialize the second derivative
      *  note: second derivative has been implemented for 27 node hex only. */
@@ -227,6 +228,9 @@ protected:
 	/** access to the (geometry) shape function derivatives */
 	const ArrayT<dArray2DT>& DNaX(void) const;
 
+	/** access to the (geometry) shape function second derivatives */
+	const ArrayT<dArray2DT>& DDNaX(void) const;
+
 private:
 
 	/** configure work space arrays. initializes shape function to be
@@ -251,7 +255,6 @@ private:
 	dArrayT	fDet;	          // d(fCoords) = j d(parent domain)
 	ArrayT<dArray2DT> fDNaX;  // geometry: d(phi_X)/d(fCoords)
 	ArrayT<dArray2DT> fDDNaX; // geometry: d(phi_X)/d(fCoords) and  d^2(phi_X)/d(fCoords)^2
-
 
 	/* field shape functions */
 	const dArray2DT*         pNaU;   // phi_U
@@ -420,6 +423,9 @@ inline void ShapeFunctionT::SetUShapeFunctions(const dArray2DT& NaU,
 
 /* access to the (geometry) shape function derivatives */
 inline const ArrayT<dArray2DT>& ShapeFunctionT::DNaX(void) const { return fDNaX; }
+
+/* access to the (geometry) shape function second derivatives */
+inline const ArrayT<dArray2DT>& ShapeFunctionT::DDNaX(void) const { return fDDNaX; }
 
 } // namespace Tahoe 
 #endif /* _SHAPE_FUNCTION_T_H_ */
