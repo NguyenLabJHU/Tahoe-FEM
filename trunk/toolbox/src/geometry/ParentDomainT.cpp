@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.35 2006-11-02 21:51:37 regueiro Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.36 2006-11-06 15:34:54 regueiro Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -14,9 +14,10 @@ inline static void CrossProduct(const double* A, const double* B, double* AxB)
 	AxB[2] = A[0]*B[1] - A[1]*B[0];
 };
 
-/* constructor */
-/* Jacobian derivative has been defined for n_sd = 3 and n_en = 27 hex element(with 3*6 dimension) */
-/* two optional arguments have been added to initialize second derivatives of shape functions: fDDNa and fJacobian_derivative */
+/* constructor:
+ * Jacobian_derivative has been defined for n_sd = 3 and n_en = 27 hex element (with 3*6 dimension);
+ * two optional arguments have been added to initialize second derivatives of shape functions: 
+ * fDDNa and fJacobian_derivative */
 ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numnodes):
 	fGeometryCode(geometry_code),
 	fNumSD(GeometryT::GeometryToNumSD(fGeometryCode)),
@@ -525,24 +526,6 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 			double* pNax = DNa[i](0); // Na,1 wrt global coordinate
 			double* pNay = DNa[i](1); // Na,2 wrt global coordinate
 			double* pNaz = DNa[i](2); // Na,3 wrt global coordinate
-			
-			double* pj = jac_inv.Pointer();
-		
-			for (int j = 0; j < fNumNodes; j++)
-			{
-				*pNax++ = pj[0]*(*pLNax) + pj[1]*(*pLNay) + pj[2]*(*pLNaz);
-				*pNay++ = pj[3]*(*pLNax) + pj[4]*(*pLNay) + pj[5]*(*pLNaz);
-				*pNaz++ = pj[6]*(*pLNax) + pj[7]*(*pLNay) + pj[8]*(*pLNaz);
-				
-				pLNax++;
-				pLNay++;
-				pLNaz++;
-			}
-
-		    /* calculating second derivative of shape functions wrt global coordinate */
-			double* LNax = fDNa[i](0); // Na,1 wrt natural coordinate
-			double* LNay = fDNa[i](1); // Na,2 wrt natural coordinate
-			double* LNaz = fDNa[i](2); // Na,3 wrt natural coordinate
 
 			double* pLNaxx = fDDNa[i](0); // Na,11 wrt natural coordinate
 			double* pLNayy = fDDNa[i](1); // Na,22 wrt natural coordinate
@@ -562,9 +545,18 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 
 			double J_inv_r1,J_inv_r2,J_inv_r3,J_inv_s1,J_inv_s2,J_inv_s3;
 			double Na_rs;		
+			
+			double* pj = jac_inv.Pointer();
 
+			double J_inv_rM,J_Mm_t, J_inv_t1,J_inv_m1,J_inv_t2;
+			double J_inv_m2,J_inv_t3, J_inv_m3;
+			double Na_r;
+		
 			for (int j = 0; j < fNumNodes; j++)
 			{
+				*pNax = pj[0]*(*pLNax) + pj[1]*(*pLNay) + pj[2]*(*pLNaz);
+				*pNay = pj[3]*(*pLNax) + pj[4]*(*pLNay) + pj[5]*(*pLNaz);
+				*pNaz = pj[6]*(*pLNax) + pj[7]*(*pLNay) + pj[8]*(*pLNaz);
 			    /* two for loops to calculate the first term */
 			    for (int r = 1; r <= fNumSD; r++)
 			    {
@@ -582,7 +574,7 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 						  J_inv_r1 = J_inv_s1 = pj[0];
 						  J_inv_r2 = J_inv_s2 = pj[3];
 						  J_inv_r3 = J_inv_s3 = pj[6];
-					      }
+					      }break;
 					      case 2:
 					      {
 						  Na_rs = *pLNaxy;
@@ -592,7 +584,7 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 						  J_inv_s2 = pj[4];
 						  J_inv_r3 = pj[6];
 						  J_inv_s3 = pj[7];
-					      }
+					      }break;
 					      case 3:
 					      {
 						  Na_rs = *pLNaxz;
@@ -602,9 +594,9 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 						  J_inv_s2 = pj[5];
 						  J_inv_r3 = pj[6];
 						  J_inv_s3 = pj[8];
-					      }
+					      }break;
 					   }
-				       }
+				       }break;
 				       case 2:
 				       {
 					   switch (s)
@@ -618,14 +610,14 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 						  J_inv_s2 = pj[3];
 						  J_inv_r3 = pj[7];
 						  J_inv_s3 = pj[6];
-					      }
+					      }break;
 					      case 2:
 					      {
 						  Na_rs = *pLNayy;
 						  J_inv_r1 = J_inv_s1 = pj[1];
 						  J_inv_r2 = J_inv_s2 = pj[4];
 						  J_inv_r3 = J_inv_s3 = pj[7];
-					      }
+					      }break;
 					      case 3:
 					      {
 						  Na_rs = *pLNayz;
@@ -635,10 +627,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 						  J_inv_s2 = pj[5];
 						  J_inv_r3 = pj[7];
 						  J_inv_s3 = pj[8];
-					      }
+					      }break;
 					   }
 
-				       }
+				       }break;
 				       case 3:
 				       {
 					   switch (s)
@@ -652,7 +644,7 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 						  J_inv_s2 = pj[3];
 						  J_inv_r3 = pj[8];
 						  J_inv_s3 = pj[6];
-					      }
+					      }break;
 					      case 2:
 					      {
 						  Na_rs = *pLNayz;
@@ -662,16 +654,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 						  J_inv_s2 = pj[4];
 						  J_inv_r3 = pj[8];
 						  J_inv_s3 = pj[7];
-					      }
+					      }break;
 					      case 3:
 					      {
 						  Na_rs = *pLNazz;
 						  J_inv_r1 = J_inv_s1 = pj[2];
 						  J_inv_r2 = J_inv_s2 = pj[5];
 						  J_inv_r3 = J_inv_s3 = pj[8];
-					      }
+					      }break;
 					   }
-				       }
+				       }break;
 
 				    }
 				    *pNaxx += Na_rs * J_inv_r1 * J_inv_s1 ;
@@ -685,9 +677,6 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 			    }
 
 			    /* four for loops to calculate the second term */
-			    double J_inv_rM,J_Mm_t, J_inv_t1,J_inv_m1,J_inv_t2;
-			    double J_inv_m2,J_inv_t3, J_inv_m3;
-			    double Na_r;		
 			    for (int r =1; r <= fNumSD; r++)
 			    {
 				for (int M = 1; M <= fNumSD; M++)
@@ -712,15 +701,15 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 								 {
 								    case 1:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM = J_inv_m1 = J_inv_t1 = pj[0];
 									J_inv_m2 = J_inv_t2 = pj[3];
 									J_inv_m3 = J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[0];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM = J_inv_m1 = pj[0];
 									J_inv_t1 = pj[1];
 									J_inv_m2 = pj[3];
@@ -728,10 +717,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[15];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM = J_inv_m1 = pj[0];
 									J_inv_t1 = pj[2];
 									J_inv_m2 = pj[3];
@@ -739,16 +728,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[12];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 2:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[0];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[0];
@@ -757,10 +746,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[15];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[0];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[1];
@@ -769,10 +758,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[3];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[0];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[2];
@@ -781,16 +770,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[9];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 3:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[0];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[0];
@@ -799,10 +788,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[12];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[0];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[1];
@@ -812,10 +801,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[9];
 
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[0];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[2];
@@ -824,11 +813,11 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[6];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							  }
-						      }
+						      }break;
 						      case 2:
 						      {
 							  switch (m)
@@ -839,7 +828,7 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 								 {
 								    case 1:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[3];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[0];
@@ -848,10 +837,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[1];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[3];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[1];
@@ -860,10 +849,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[16];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[3];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[2];
@@ -872,16 +861,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[13];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 2:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[3];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[0];
@@ -890,10 +879,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[16];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[3];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[1];
@@ -902,10 +891,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[4];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[3];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[2];
@@ -914,16 +903,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[10];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 3:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[3];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[0];
@@ -932,10 +921,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[13];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[3];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[1];
@@ -944,10 +933,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[10];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[3];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[2];
@@ -956,11 +945,11 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[7];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							  }
-						      }
+						      }break;
 						      case 3:
 						      {
 							  switch (m)
@@ -971,7 +960,7 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 								 {
 								    case 1:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[6];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[0];
@@ -980,10 +969,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[2];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[6];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[1];
@@ -992,10 +981,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[17];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[6];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[2];
@@ -1004,16 +993,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[14];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 2:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[6];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[0];
@@ -1022,10 +1011,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[17];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[6];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[1];
@@ -1034,10 +1023,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[5];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[6];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[2];
@@ -1046,16 +1035,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[11];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 3:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[6];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[0];
@@ -1064,10 +1053,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[14];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[6];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[1];
@@ -1076,10 +1065,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[11];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNax;
+									Na_r = *pLNax;
 									J_inv_rM =  pj[6];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[2];
@@ -1088,13 +1077,13 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[8];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							  }
-						      }
+						      }break;
 						   }
-					       }
+					       }break;
                     			       case 2:
 					       {
 						   switch (M)
@@ -1109,16 +1098,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 								 {
 								    case 1:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[1];
 									J_inv_m1 = J_inv_t1 = pj[0];
 									J_inv_m2 = J_inv_t2 = pj[3];
 									J_inv_m3 = J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[0];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[1];
 									J_inv_m1 =  pj[0];
 									J_inv_t1 = pj[1];
@@ -1127,10 +1116,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[15];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[1];
 									J_inv_m1 =  pj[0];
 									J_inv_t1 = pj[2];
@@ -1139,16 +1128,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[12];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 2:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[1];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[0];
@@ -1157,10 +1146,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[15];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[1];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[1];
@@ -1169,10 +1158,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[3];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[1];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[2];
@@ -1181,16 +1170,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[9];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 3:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[1];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[0];
@@ -1199,10 +1188,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[12];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[1];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[1];
@@ -1211,10 +1200,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[9];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[1];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[2];
@@ -1223,11 +1212,11 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[6];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							  }
-						      }
+						      }break;
 						      case 2:
 						      {
 							  switch (m)
@@ -1238,16 +1227,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 								 {
 								    case 1:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[4];
 									J_inv_m1 = J_inv_t1 = pj[0];
 									J_inv_m2 = J_inv_t2 = pj[3];
 									J_inv_m3 = J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[1];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[4];
 									J_inv_m1 =  pj[0];
 									J_inv_t1 = pj[1];
@@ -1256,10 +1245,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[16];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[4];
 									J_inv_m1 =  pj[0];
 									J_inv_t1 = pj[2];
@@ -1268,16 +1257,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[13];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 2:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[4];
 									J_inv_m1 =  pj[1];
 									J_inv_t1 = pj[0];
@@ -1286,10 +1275,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[16];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[4];
 									J_inv_m1 =  pj[1];
 									J_inv_t1 = pj[1];
@@ -1298,10 +1287,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[4];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[4];
 									J_inv_m1 =  pj[1];
 									J_inv_t1 = pj[2];
@@ -1310,16 +1299,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[10];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 3:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[4];
 									J_inv_m1 =  pj[2];
 									J_inv_t1 = pj[0];
@@ -1328,10 +1317,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[13];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[4];
 									J_inv_m1 =  pj[2];
 									J_inv_t1 = pj[1];
@@ -1340,10 +1329,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[10];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[4];
 									J_inv_m1 =  pj[2];
 									J_inv_t1 = pj[2];
@@ -1352,11 +1341,11 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[7];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							  }
-						      }
+						      }break;
 						      case 3:
 						      {
 							  switch (m)
@@ -1367,16 +1356,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 								 {
 								    case 1:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[7];
 									J_inv_m1 = J_inv_t1 = pj[0];
 									J_inv_m2 = J_inv_t2 = pj[3];
 									J_inv_m3 = J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[2];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[7];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[1];
@@ -1385,10 +1374,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[17];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[7];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[2];
@@ -1397,16 +1386,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[14];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 2:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[7];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[0];
@@ -1415,10 +1404,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[17];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[7];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[1];
@@ -1427,10 +1416,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[5];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[7];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[2];
@@ -1439,16 +1428,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[11];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 3:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[7];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[0];
@@ -1457,10 +1446,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[14];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[7];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[1];
@@ -1469,10 +1458,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[11];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNay;
+									Na_r = *pLNay;
 									J_inv_rM = pj[7];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[2];
@@ -1481,13 +1470,13 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[8];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							  }
-						      }
+						      }break;
 						   }
-					       }
+					       }break;
 					       case 3:
 					       {
 						   switch (M)
@@ -1502,16 +1491,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 								 {
 								    case 1:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[2];
 									J_inv_m1 = J_inv_t1 = pj[0];
 									J_inv_m2 = J_inv_t2 = pj[3];
 									J_inv_m3 = J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[0];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[2];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[1];
@@ -1520,10 +1509,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[15];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[2];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[2];
@@ -1532,16 +1521,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[12];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 2:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[2];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[0];
@@ -1550,10 +1539,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[15];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[2];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[1];
@@ -1562,10 +1551,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[3];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[2];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[2];
@@ -1574,16 +1563,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[9];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 3:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[2];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[0];
@@ -1592,10 +1581,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[12];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[2];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[1];
@@ -1604,10 +1593,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[9];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[2];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[2];
@@ -1616,11 +1605,11 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[6];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							  }
-						      }
+						      }break;
 						      case 2:
 						      {
 							  switch (m)
@@ -1631,16 +1620,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 								 {
 								    case 1:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[5];
 									J_inv_m1 = J_inv_t1 = pj[0];
 									J_inv_m2 = J_inv_t2 = pj[3];
 									J_inv_m3 = J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[1];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[5];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[1];
@@ -1649,10 +1638,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[16];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[5];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[2];
@@ -1661,16 +1650,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[13];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 2:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[5];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[0];
@@ -1679,10 +1668,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[16];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[5];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[1];
@@ -1691,10 +1680,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[4];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[5];
 									J_inv_m1 = pj[1];
 									J_inv_t1 = pj[2];
@@ -1703,16 +1692,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[10];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 3:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[5];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[0];
@@ -1721,10 +1710,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[13];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[5];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[1];
@@ -1733,10 +1722,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[10];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[5];
 									J_inv_m1 = pj[2];
 									J_inv_t1 = pj[2];
@@ -1745,11 +1734,11 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[7];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							  }
-						      }
+						      }break;
 						      case 3:
 						      {
 							  switch (m)
@@ -1760,16 +1749,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 								 {
 								    case 1:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[8];
 									J_inv_m1 = J_inv_t1 = pj[0];
 									J_inv_m2 = J_inv_t2 = pj[3];
 									J_inv_m3 = J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[2];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[8];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[1];
@@ -1778,10 +1767,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[17];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[8];
 									J_inv_m1 = pj[0];
 									J_inv_t1 = pj[2];
@@ -1790,16 +1779,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[6];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[14];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 2:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[8];
 									J_inv_m1 =  pj[1];
 									J_inv_t1 = pj[0];
@@ -1808,10 +1797,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[17];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[8];
 									J_inv_m1 =  pj[1];
 									J_inv_t1 = pj[1];
@@ -1820,10 +1809,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[5];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[8];
 									J_inv_m1 =  pj[1];
 									J_inv_t1 = pj[2];
@@ -1832,16 +1821,16 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[7];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[11];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							     case 3:
 							     {
 								 switch (t)
 								 {
 								    case 1:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[8];
 									J_inv_m1 =  pj[2];
 									J_inv_t1 = pj[0];
@@ -1850,10 +1839,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[6];
 									J_Mm_t = pj_der[14];
-								    }
+								    }break;
 								    case 2:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[8];
 									J_inv_m1 =  pj[2];
 									J_inv_t1 = pj[1];
@@ -1862,10 +1851,10 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[7];
 									J_Mm_t = pj_der[11];
-								    }
+								    }break;
 								    case 3:
 								    {
-									Na_r = *LNaz;
+									Na_r = *pLNaz;
 									J_inv_rM = pj[8];
 									J_inv_m1 =  pj[2];
 									J_inv_t1 = pj[2];
@@ -1874,13 +1863,13 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 									J_inv_m3 = pj[8];
 									J_inv_t3 = pj[8];
 									J_Mm_t = pj_der[8];
-								    }
+								    }break;
 								 }
-							     }
+							     }break;
 							  }
-						      }
+						      }break;
 						   }
-					       }
+					       }break;
 					    }
 					    *pNaxx += -1 * Na_r * J_inv_rM * J_Mm_t * J_inv_t1 * J_inv_m1 ;
 					    *pNayy += -1 * Na_r * J_inv_rM * J_Mm_t * J_inv_t2 * J_inv_m2 ;
@@ -1905,12 +1894,19 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 			    pLNayz++;
 			    pLNaxz++;
 			    pLNaxy++;
-		
-			    LNax++;
-			    LNay++;
-			    LNaz++;
-			}
+
+			    pNax++;
+			    pNay++;
+			    pNaz++;		
+
+			    pLNax++;
+			    pLNay++;
+			    pLNaz++;
+			}				
+
 		}
+
+
 /*		else
 		{
 			const dArray2DT& LNax = fDNa[i];
