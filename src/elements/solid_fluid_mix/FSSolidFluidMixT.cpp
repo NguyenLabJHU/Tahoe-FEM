@@ -610,7 +610,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
 		fCurrCoords_displ=fInitCoords_displ;
 		//fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
-		fShapes_displ->SetDerivatives(); 
+		fShapes_displ->SetDerivatives_DN_DDN(); 
 		//
 		fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
 		fCurrCoords_press=fInitCoords_press;
@@ -1114,11 +1114,16 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
 // forming second derivative of solid shape functions matrix
 				fShapes_displ->Grad_GradNa(fShapeSolidGradGrad);
-				fShapeSolidGradGrad = 0.0;
 
 				fs_mix_out	<< endl ;
 				fs_mix_out	<<"SecondDervative"<< endl ;			
 				fs_mix_out	<<fShapeSolidGradGrad(0,0)<< endl ;
+				fs_mix_out	<<fShapeSolidGradGrad(5,6)<< endl ;
+				fs_mix_out	<<fShapeSolidGradGrad(4,9)<< endl ;
+				fs_mix_out	<<fShapeSolidGradGrad(1,11)<< endl ;
+				fs_mix_out	<<fShapeSolidGradGrad(3,18)<< endl ;
+				fs_mix_out	<<fShapeSolidGradGrad(2,20)<< endl ;
+				fs_mix_out	<<fShapeSolidGradGrad(5,26)<< endl ;
 				fs_mix_out	<<"SecondDerivative"<< endl ; 
 // forming varpi temporary matrix
 //				for (int I=
@@ -1187,7 +1192,7 @@ void FSSolidFluidMixT::SetGlobalShape(void)
     SetLocalX(fLocInitCoords);
 	
     /* compute shape function derivatives */
-    fShapes_displ->SetDerivatives();
+    fShapes_displ->SetDerivatives_DN_DDN();
     fShapes_press->SetDerivatives();
 }
 
