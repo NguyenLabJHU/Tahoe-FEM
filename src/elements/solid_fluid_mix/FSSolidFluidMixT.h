@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.8 2006-11-01 23:04:14 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.9 2006-11-07 17:37:20 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -44,7 +44,7 @@ class FSSolidFluidMixT: public ElementBaseT
 {
 	
 public:
-
+/* isotropic hydraulic conductivity assumed */
 	enum fMaterial_T 	{ 
 	    kMu,
 	    kLambda,
@@ -54,6 +54,8 @@ public:
 	    kPhi_s0,
 	    kPhi_f0,
 	    kKf,
+	    kK,
+	    kg,
 	    kNUM_FMATERIAL_TERMS	};
 									
 	enum fIntegrate_T 	{ 
@@ -259,12 +261,23 @@ private:
 	dArrayT		fGRAD_disp;
 	dArrayT 	fDefGradInv_Vector;
 	dArrayT 	fEffective_Kirchhoff_vector;
+        dArrayT	        fChi_temp_vector;
+        dArrayT	        fN_d_vartheta1_vector;
+        dArrayT	        fN_d_vartheta2_vector;
+        dArrayT	        fN_d_vartheta_temp_vector;
+        dArrayT         fN_vartheta_d1_vector;
+        dArrayT         fN_vartheta_d2_vector;
+        dArrayT         fN_vartheta_d_temp_vector;
+        dArrayT	        Test_vector_A;
+        dArrayT	        Test_vector_B;
+
 	
 	dMatrixT	fDeformation_Gradient;
 	dMatrixT	fCauchy_Green_tensor;
 	dMatrixT	fCauchy_Green_tensor_Inverse;
 	dMatrixT	fDeformation_Gradient_Inverse;
 	dMatrixT	fDeformation_Gradient_Transpose;
+	dMatrixT        fDeformation_Gradient_Inverse_Transpose;
 	dMatrixT	fDefGradInv_grad_GRAD;
 	dMatrixT	fDefGradInv_grad_GRAD_Transpose;
 	dMatrixT	fIdentity_matrix;
@@ -272,11 +285,19 @@ private:
 	dMatrixT	fTest_matrix_B;
 	dMatrixT	fTest_matrix_C;
         dMatrixT	fEffective_Second_Piola_tensor;
-        dMatrixT	fTemp_matrix;
+        dMatrixT	fTemp_matrix_nsd_x_nsd;
+        dMatrixT	fTemp_matrix_nen_press_x_nsd;
+        dMatrixT	fTemp_matrix_nen_press_x_nen_press;
         dMatrixT	fEffective_Kirchhoff_tensor;
         dMatrixT	fIota_temp_matrix;
         dMatrixT	fVarpi_temp_matrix;
+        /* current coordinate hydraulic conductivity */
+        dMatrixT	fk_hydraulic_conductivity_matrix;
+        /* reference coordinate hydraulic conductivity */
+        dMatrixT	fK_hydraulic_conductivity_matrix; 
+        dMatrixT	fLambda_temp_matrix;
 
+        double          phi_s,phi_f;
 
 	/** the solid displacement field */
 	const FieldT* fDispl;
@@ -356,6 +377,14 @@ private:
 	int outputPrecision, outputFileWidth;
 	/*@}*/
 
+	void Form_solid_shape_functions(const double* &shapes_displ_X);
+        void Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeSolidGrad_temp);
+        void Form_fluid_shape_functions(const double* &shapes_press_X);
+        void Form_deformation_gradient_tensor(void);
+        void Form_GRAD_grad_transformation_matrix(void);
+        void Form_deformation_gradient_vector(void);
+        void Form_effective_kirchhoff_stress_vector(void);
+        void Form_varpi_temp_matrix(void);
 protected:
 
 	/** extract natural boundary condition information */
