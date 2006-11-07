@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.4 2006-11-06 19:43:23 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.5 2006-11-07 00:07:31 regueiro Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -220,6 +220,17 @@ void MR_NodalRP2DT::TakeParameterList(const ParameterListT& list)
 	falpha_psi = list.GetParameter("alpha_psi");
 	fTol_1 = list.GetParameter("Tol_1");
 	fTol_2 = list.GetParameter("Tol_2");
+	
+	/* calculate limits on fc_p and fc_r */
+	double const1 = tan(fphi_p)*fchi_p;
+	if (fc_p < const1) fc_p = const1;
+	const1 = tan(fphi_r)*fchi_r;
+	if (fc_r < const1) fc_r = const1;
+	
+	/* setup output file and format */
+    outputPrecision = 10;
+    outputFileWidth = outputPrecision + 8;
+    mr_rp_2d_out.open("mr_rp_2d.info");
 }
 
 /* initialize the state variable array. By default, initialization
@@ -429,8 +440,14 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		kk = 0;
 		iplastic = 1;
 		Yield_f(Sig, qn, ff);
+		
+		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
+				<< setw(outputFileWidth) << "norm_R = " << normr
+				<< endl;
+		
 		//begin iteration loop
-		while (ff > fTol_1 || ff < 0.0 || normr > fTol_2)
+		//while (ff > fTol_1 || ff < 0.0 || normr > fTol_2)
+		while (ff > fTol_1 || normr > fTol_2)
 		{
 			if (kk > 500) {
 				ExceptionT::GeneralFail("MR_NodalRP2DT::Traction","Too Many Iterations");

@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.h,v 1.2 2006-10-27 23:14:44 regueiro Exp $ */
+/* $Id: MR_NodalRP2DT.h,v 1.3 2006-11-07 00:07:31 regueiro Exp $ */
 #ifndef _MR_NODAL_RP_2D_T_H_
 #define _MR_NODAL_RP_2D_T_H_
 
@@ -12,6 +12,9 @@
 #include "VariArrayT.h"
 
 #include "GlobalT.h"
+
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -218,6 +221,15 @@ private:
 	
 	/** 1 or 0 depending on where that equation is active */
 	dArrayT feq_active;
+	/*@}*/
+	
+	/** write output for debugging */
+	/*@{*/
+	/** output file stream */
+	ofstreamT mr_rp_2d_out;
+	
+	/** line output formating variables */
+	int outputPrecision, outputFileWidth;
 	/*@}*/
 };
 
