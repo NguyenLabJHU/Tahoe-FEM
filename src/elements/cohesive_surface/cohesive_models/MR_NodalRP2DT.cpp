@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.5 2006-11-07 00:07:31 regueiro Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.6 2006-11-08 16:49:06 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -446,8 +446,8 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 				<< endl;
 		
 		//begin iteration loop
-		//while (ff > fTol_1 || ff < 0.0 || normr > fTol_2)
-		while (ff > fTol_1 || normr > fTol_2)
+		while (ff > fTol_1 || ff < 0.0 || normr > fTol_2)
+		//while (ff > fTol_1 || normr > fTol_2)
 		{
 			if (kk > 500) {
 				ExceptionT::GeneralFail("MR_NodalRP2DT::Traction","Too Many Iterations");
