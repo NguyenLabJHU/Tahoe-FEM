@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.24 2006-10-24 00:24:26 tdnguye Exp $ */
+/* $Id: FSSolidMatT.h,v 1.25 2006-11-12 18:23:42 tdnguye Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -185,6 +185,9 @@ protected:
 	 * \param E return value */
 	void Compute_E(dSymMatrixT& E) const;
 
+	/*compute temperature*/
+	double Compute_Temperature(void);
+	
 	/** acoustical tensor.
 	 * \param normal wave propagation direction
 	 * \return acoustical tensor */
@@ -232,6 +235,9 @@ protected:
 	dMatrixT fModulus;
 	/*@}*/
 
+	/** true if temperature field found during FSSolidMatT::Initialize */
+	bool fTemperatureField;
+	dArrayT fTemperature;
 private:
 
 	/** return value for FSSolidMatT::AcousticalTensor */
@@ -250,8 +256,8 @@ private:
 	dMatrixT fF_mechanical;
 	
 	/** true if temperature field found during FSSolidMatT::Initialize */
-	bool fTemperatureField;
-	dArrayT fTemperature;
+//	bool fTemperatureField;
+//	dArrayT fTemperature;
 	
 	/** \name FSSolidMatT::c_ijkl work space */
 	/*@{*/

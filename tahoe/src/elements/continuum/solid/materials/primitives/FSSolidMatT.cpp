@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.21 2006-10-24 00:24:26 tdnguye Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.22 2006-11-12 18:23:42 tdnguye Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -358,10 +358,6 @@ void FSSolidMatT::TakeParameterList(const ParameterListT& list)
 	F_0_.Dimension(nsd);
 	vec_.Dimension(nsd);
 	stress_.Dimension(nsd);
-
-	/* set multiplicative thermal transformation */
-	SetInverseThermalTransformation(fF_therm_inv);
-	fF_therm_inv_last = fF_therm_inv;
 	
 	/* check for temperature field */
 	if (fFSMatSupport->Temperatures() && fFSMatSupport->LastTemperatures()) {
@@ -374,6 +370,10 @@ void FSSolidMatT::TakeParameterList(const ParameterListT& list)
 		/* disable prescribed dilatation */
 		fThermal->SetSchedule(NULL);
 	}	
+
+	/* set multiplicative thermal transformation */
+	SetInverseThermalTransformation(fF_therm_inv);
+	fF_therm_inv_last = fF_therm_inv;
 }
 
 /***********************************************************************
@@ -503,6 +503,18 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 		E[0] = 0.5*(F[0]*F[0] - 1.0);
 	else
 		ExceptionT::GeneralFail(caller, "unsupported dimension %d", nsd);
+}
+
+double FSSolidMatT::Compute_Temperature()
+{
+	if (fTemperatureField)
+	{
+		/* integration point temperature */
+		fFSMatSupport->Interpolate(*(fFSMatSupport->Temperatures()), fTemperature);
+		return(fTemperature[0]);
+	}
+	else 
+		return(0.0);
 }
 
 /* return the acoustical tensor and wave speeds */
