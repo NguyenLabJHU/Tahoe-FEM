@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.cpp,v 1.7 2006-10-30 23:35:37 tdnguye Exp $ */
+/* $Id: RGSplitT.cpp,v 1.8 2006-11-12 18:29:46 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
@@ -20,13 +20,10 @@ static const char* Labels[kNumOutputVar] = {"Dvisc"};
  ***********************************************************************/
 
 /* constructors */
-/* constructors */
 RGSplitT::RGSplitT(void):
   ParameterInterfaceT("Reese-Govindjee_split"),
   fSpectralDecompSpat(3)
-{
-
-}
+{}
 
 int RGSplitT::NumOutputVariables() const {return kNumOutputVar;} 
 
@@ -191,25 +188,19 @@ const dMatrixT& RGSplitT::c_ijkl(void)
 		fEigs_dev = fEigs_e;
 		fEigs_dev *= pow(Je,-2.0*third);
     
-		DevStress(fEigs_dev, ftau_NEQ, kNEQ);
-		ftau_NEQ += MeanStress(Je, kNEQ);    
-		DevMod(fEigs_dev, fDtauDe_NEQ, kNEQ);
-		double cm = MeanMod(Je, kNEQ);
-	    
-		ComputeiKAB(fDtauDe_NEQ, cm);
-		dSymMatrixT& DAB = fDtauDe_NEQ;
-		DAB += cm; 
-	
-		fCalg(0,0) = DAB(0,0)*fiKAB(0,0) + DAB(0,1)*fiKAB(1,0) + DAB(0,2)*fiKAB(2,0) - 2.0*ftau_NEQ[0];
-		fCalg(1,0) = DAB(1,0)*fiKAB(0,0) + DAB(1,1)*fiKAB(1,0) + DAB(1,2)*fiKAB(2,0);
-		fCalg(2,0) = DAB(2,0)*fiKAB(0,0) + DAB(2,1)*fiKAB(1,0) + DAB(2,2)*fiKAB(2,0);
-		fCalg(0,1) = DAB(0,0)*fiKAB(0,1) + DAB(0,1)*fiKAB(1,1) + DAB(0,2)*fiKAB(2,1);
-		fCalg(1,1) = DAB(1,0)*fiKAB(0,1) + DAB(1,1)*fiKAB(1,1) + DAB(1,2)*fiKAB(2,1) - 2.0*ftau_NEQ[1];
-		fCalg(2,1) = DAB(2,0)*fiKAB(0,1) + DAB(2,1)*fiKAB(1,1) + DAB(2,2)*fiKAB(2,1);
-		fCalg(0,2) = DAB(0,0)*fiKAB(0,2) + DAB(0,1)*fiKAB(1,2) + DAB(0,2)*fiKAB(2,2);
-		fCalg(1,2) = DAB(1,0)*fiKAB(0,2) + DAB(1,1)*fiKAB(1,2) + DAB(1,2)*fiKAB(2,2);
-		fCalg(2,2) = DAB(2,0)*fiKAB(0,2) + DAB(2,1)*fiKAB(1,2) + DAB(2,2)*fiKAB(2,2) - 2.0*ftau_NEQ[2];
-	   
+		/*stresses*/
+		DevStress(fEigs_dev, ftau_NEQ, i);
+		double sm =  MeanStress(Je, i);    
+
+		DevMod(fEigs_dev, fDtauDe_NEQ, i);
+		double cm = MeanMod(Je, i);
+		
+		/*Calculate Calg_AB*/
+		Compute_Calg(ftau_NEQ, fDtauDe_NEQ, sm, cm, fCalg, i);
+
+		ftau_NEQ += sm;
+		fDtauDe_NEQ += cm;
+			   
 		fModulus3D += fSpectralDecompSpat.NonSymEigsToRank4(fCalg);
     
 		double dl_tr;
@@ -258,7 +249,8 @@ const dMatrixT& RGSplitT::c_ijkl(void)
 	}
 	else fModulus = fModulus3D;
 
-	fModulus *= 1.0/J;
+	const dMatrixT& Ftotal = F_total();	
+	fModulus *= 1.0/Ftotal.Det();
 
     return fModulus;
 }
@@ -267,6 +259,7 @@ const dMatrixT& RGSplitT::c_ijkl(void)
 const dSymMatrixT& RGSplitT::s_ij(void)
 {
 	const dMatrixT& F = F_mechanical();
+	const dMatrixT& F_thermal = F_thermal_inverse();
 	if (NumSD() == 2)
 	{
 		fF3D[0] = F[0];
@@ -364,8 +357,9 @@ const dSymMatrixT& RGSplitT::s_ij(void)
         fStress[2] = fStress3D[5];
     }
     else fStress = fStress3D;
-
-    fStress *= 1.0/J;
+	
+	const dMatrixT& Ftotal = F_total();	
+    fStress *= 1.0/Ftotal.Det();
 	return fStress;
 }
 
@@ -514,8 +508,79 @@ void RGSplitT::ComputeOutput(dArrayT& output)
 }
 
 /***********************************************************************
+ * Protected
+ ***********************************************************************/
+void RGSplitT::Initialize(void)
+{
+ /* dimension work space */
+  fInverse.Dimension(3);
+  fb.Dimension(3);
+  fbe.Dimension(3);
+  fb_tr.Dimension(3);
+  fF3D.Dimension(3);
+  fEigs_dev.Dimension(3);
+  fEigs.Dimension(3);
+  fEigs_e.Dimension(3);
+  fEigs_tr.Dimension(3);
+  ftau_EQ.Dimension(3);
+  ftau_NEQ.Dimension(3);
+  fDtauDe_EQ.Dimension(3);
+  fDtauDe_NEQ.Dimension(3);
+  fCalg.Dimension(3);
+  fModulus3D.Dimension(6);
+  fModMat.Dimension(6);
+  fModulus.Dimension(dSymMatrixT::NumValues(NumSD()));
+  fStress.Dimension(NumSD());
+  fStress3D.Dimension(3);
+  fiKAB.Dimension(3);
+}
+
+/***********************************************************************
  * Private
  ***********************************************************************/
+ void RGSplitT::Compute_Calg(const dArrayT& tau_dev, const dSymMatrixT& dtau_dev, const double& tau_m, 
+	const double& dtau_m, dMatrixT& Calg, const int type)
+ {
+		double c0 = dtau_dev(0,0);
+		double c1 = dtau_dev(1,1);
+		double c2 = dtau_dev(2,2);
+
+		double c12 = dtau_dev(1,2);
+		double c02 = dtau_dev(0,2);
+		double c01 = dtau_dev(0,1);
+	    
+		double cm = dtau_m;
+		
+		/*calculates  KAB = 1+dt*D(dWdE_Idev/nD+isostress/nV)/Dep_e*/
+		double dt = fFSMatSupport->TimeStep();
+		fiKAB(0,0) = 1+0.5*fietaS*dt*c0+third*fietaB*dt*cm;
+		fiKAB(1,1) = 1+0.5*fietaS*dt*c1+third*fietaB*dt*cm;
+		fiKAB(2,2) = 1+0.5*fietaS*dt*c2+third*fietaB*dt*cm;
+
+		fiKAB(1,2) = 0.5*fietaS*dt*c12+third*fietaB*dt*cm;
+		fiKAB(0,2) = 0.5*fietaS*dt*c02+third*fietaB*dt*cm;
+		fiKAB(0,1) = 0.5*fietaS*dt*c01+third*fietaB*dt*cm;
+       
+		fiKAB(2,1) = fiKAB(1,2);
+		fiKAB(2,0) = fiKAB(0,2);
+		fiKAB(1,0) = fiKAB(0,1);
+	
+		/*inverts KAB*/
+		fiKAB.Inverse();
+
+		dSymMatrixT& DAB = fDtauDe_NEQ;
+		DAB += cm; 
+	
+		Calg(0,0) = (c0+cm)*fiKAB(0,0) + (c01+cm)*fiKAB(1,0) + (c02+cm)*fiKAB(2,0) - 2.0*(tau_dev[0]+tau_m);
+		Calg(1,0) = (c01+cm)*fiKAB(0,0) + (c1+cm)*fiKAB(1,0) + (c12+cm)*fiKAB(2,0);
+		Calg(2,0) = (c02+cm)*fiKAB(0,0) + (c12+cm)*fiKAB(1,0) + (c2+cm)*fiKAB(2,0);
+		Calg(0,1) = (c0+cm)*fiKAB(0,1) + (c01+cm)*fiKAB(1,1) + (c02+cm)*fiKAB(2,1);
+		Calg(1,1) = (c01+cm)*fiKAB(0,1) + (c1+cm)*fiKAB(1,1) + (c12+cm)*fiKAB(2,1) - 2.0*(tau_dev[1]+tau_m);
+		Calg(2,1) = (c02+cm)*fiKAB(0,1) + (c12+cm)*fiKAB(1,1) + (c2+cm)*fiKAB(2,1);
+		Calg(0,2) = (c0+cm)*fiKAB(0,2) + (c01+cm)*fiKAB(1,2) + (c02+cm)*fiKAB(2,2);
+		Calg(1,2) = (c01+cm)*fiKAB(0,2) + (c1+cm)*fiKAB(1,2) + (c12+cm)*fiKAB(2,2);
+		Calg(2,2) = (c02+cm)*fiKAB(0,2) + (c12+cm)*fiKAB(1,2) + (c2+cm)*fiKAB(2,2) - 2.0*(tau_dev[2]+tau_m);
+}
 
 void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
 			     dArrayT& eigenstress, dSymMatrixT& eigenmodulus, const int type) 
@@ -555,15 +620,36 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	    double& s2 = eigenstress[2];
 	    
 	    DevMod(fEigs_dev,eigenmodulus, type);
+		/*deviatoric values*/
+		double& c0 = eigenmodulus(0,0);
+		double& c1 = eigenmodulus(1,1);
+		double& c2 = eigenmodulus(2,2);
+
+		double& c12 = eigenmodulus(1,2);
+		double& c02 = eigenmodulus(0,2);
+		double& c01 = eigenmodulus(0,1);
 	    
 	    /*caculate means*/
 	    double sm = MeanStress(Je, type);
 	    double cm = MeanMod(Je, type);
 	    
-	    ComputeiKAB(eigenmodulus,cm);
+		double dt = fFSMatSupport->TimeStep();
+		fiKAB(0,0) = 1+0.5*fietaS*dt*c0+third*fietaB*dt*cm;
+		fiKAB(1,1) = 1+0.5*fietaS*dt*c1+third*fietaB*dt*cm;
+		fiKAB(2,2) = 1+0.5*fietaS*dt*c2+third*fietaB*dt*cm;
+
+		fiKAB(1,2) = 0.5*fietaS*dt*c12+third*fietaB*dt*cm;
+		fiKAB(0,2) = 0.5*fietaS*dt*c02+third*fietaB*dt*cm;
+		fiKAB(0,1) = 0.5*fietaS*dt*c01+third*fietaB*dt*cm;
+       
+		fiKAB(2,1) = fiKAB(1,2);
+		fiKAB(2,0) = fiKAB(0,2);
+		fiKAB(1,0) = fiKAB(0,1);
+	
+		/*inverts KAB*/
+		fiKAB.Inverse();
 	    
 	    /*calculate the residual*/
-	    double dt = fFSMatSupport->TimeStep();
 	    double res0 = ep_e0 + dt*(0.5*fietaS*s0 +
 			  third*fietaB*sm) - ep_tr0;
 	    double res1 = ep_e1 + dt*(0.5*fietaS*s1 +
@@ -590,43 +676,6 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	    /*Check that the L2 norm of the residual is less than tolerance*/
 	    tol = sqrt(res0*res0 + res1*res1+res2*res2);
 	}while (tol>ctol); 
-}
-
-void RGSplitT::ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus)
-{	
-        /*inverse viscosities*/
-
-	/*deviatoric values*/
-	double& c0 = eigenmodulus(0,0);
-	double& c1 = eigenmodulus(1,1);
-	double& c2 = eigenmodulus(2,2);
-
-	double& c12 = eigenmodulus(1,2);
-	double& c02 = eigenmodulus(0,2);
-	double& c01 = eigenmodulus(0,1);
-	
-	/*mean value*/
-	double& cm = bulkmodulus;
-
-	dMatrixT& KAB = fiKAB;
-		
-	/*calculates  KAB = 1+dt*D(dWdE_Idev/nD+isostress/nV)/Dep_e*/
-
-	double dt = fFSMatSupport->TimeStep();
-	KAB(0,0) = 1+0.5*fietaS*dt*c0+third*fietaB*dt*cm;
-	KAB(1,1) = 1+0.5*fietaS*dt*c1+third*fietaB*dt*cm;
-	KAB(2,2) = 1+0.5*fietaS*dt*c2+third*fietaB*dt*cm;
-
-	KAB(1,2) = 0.5*fietaS*dt*c12+third*fietaB*dt*cm;
-	KAB(0,2) = 0.5*fietaS*dt*c02+third*fietaB*dt*cm;
-	KAB(0,1) = 0.5*fietaS*dt*c01+third*fietaB*dt*cm;
-       
-	KAB(2,1) = KAB(1,2);
-	KAB(2,0) = KAB(0,2);
-	KAB(1,0) = KAB(0,1);
-	
-	/*inverts KAB*/
-	fiKAB.Inverse(KAB);
 }
 
 /* describe the parameters needed by the interface */
@@ -668,28 +717,6 @@ void RGSplitT::TakeParameterList(const ParameterListT& list)
   fNumProcess = 1;
   RGViscoelasticityT::TakeParameterList(list);
 
-  /* dimension work space */
-  fInverse.Dimension(3);
-  fb.Dimension(3);
-  fbe.Dimension(3);
-  fb_tr.Dimension(3);
-  fF3D.Dimension(3);
-  fEigs_dev.Dimension(3);
-  fEigs.Dimension(3);
-  fEigs_e.Dimension(3);
-  fEigs_tr.Dimension(3);
-  ftau_EQ.Dimension(3);
-  ftau_NEQ.Dimension(3);
-  fDtauDe_EQ.Dimension(3);
-  fDtauDe_NEQ.Dimension(3);
-  fCalg.Dimension(3);
-  fModulus3D.Dimension(6);
-  fModMat.Dimension(6);
-  fModulus.Dimension(dSymMatrixT::NumValues(NumSD()));
-  fStress.Dimension(NumSD());
-  fStress3D.Dimension(3);
-  fiKAB.Dimension(3);
-
   /* viscosities */
   double etaS = list.GetParameter("eta_shear");
   double etaB = list.GetParameter("eta_bulk");
@@ -702,6 +729,9 @@ void RGSplitT::TakeParameterList(const ParameterListT& list)
 
   fmu_neq = list.GetParameter("mu_NEQ");
   fkappa_neq = list.GetParameter("kappa_NEQ");
+  
+  /*Dimension work space*/
+  Initialize();
 }
 
 
