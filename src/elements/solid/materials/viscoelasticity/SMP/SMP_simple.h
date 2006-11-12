@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.h,v 1.1 2006-11-12 18:26:00 thao Exp $ */
+/* $Id: SMP_simple.h,v 1.2 2006-11-12 22:48:53 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _SMP_simple_
 #define _SMP_simple_
@@ -15,7 +15,8 @@ class SMP_simple: public RGSplitT
 	enum EnergyType {kMooneyRivlin=0,
 					kLangevin=1};
 					 
-	enum ViscType {kSimple=0, 
+	enum ViscType {kNone = -1, 
+		       kSimple=0, 
 					kPower=1,
 					kBergStromBoyce=2}; 
   

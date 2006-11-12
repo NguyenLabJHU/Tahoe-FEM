@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.1 2006-11-12 18:26:00 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.2 2006-11-12 22:48:53 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -251,9 +251,17 @@ void SMP_simple::ComputeOutput(dArrayT& output)
 	const dMatrixT& F_thermal = F_thermal_inverse();
 	double dialation = F_thermal.Det();
 	output[1] = 1.0/dialation;
-	Viscosity(fietaS, fietaB, 0);
-	output[2] = 1.0/fietaB;
-	output[3] = 1.0/fietaS;
+	if (fViscType != SMP_simple::kNone)
+	{
+	  Viscosity(fietaS, fietaB, 0);
+	  output[2] = 1.0/fietaB;
+	  output[3] = 1.0/fietaS;
+	}
+	else
+	  {
+	    output[2] = 0.0;
+	    output[3] = 0.0;
+	  }
 
 }
 
@@ -383,11 +391,9 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
   const ParameterListT& eq = list.GetListChoice(*this, "eq_potential_params");
   if (eq.Name() == "Mooney-Rivlin")
   {
-		fPotType = kMooneyRivlin;
+		fPotType = SMP_simple::kMooneyRivlin;
 		double c1 = eq.GetParameter("c1");
 		double c2 = eq.GetParameter("c2");
-//		fPot(0,0) = 0.5*c1;
-//		fPot(0,1) = 0.5*c2;
 		fPot(0,0) = c1;
 		fPot(0,1) = c2;
 		fPot(0,2) = eq.GetParameter("gamma");
@@ -400,8 +406,6 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
 	  {
 		  double c1 = neq.GetParameter("c1");
 		  double c2 = neq.GetParameter("c2");
-//		  fPot(i+1,0) = 0.5*c1;
-//		  fPot(i+1,1) = 0.5*c2;
 		  fPot(i+1,0) = c1;
 		  fPot(i+1,1) = c2;
 		  fPot(i+1,0) = neq.GetParameter("c1");
@@ -412,13 +416,15 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
 	 const ParameterListT& visc  = list.GetListChoice(*this, "viscosity", i);
 	 if (visc.Name() == "temp_dependence_only")
 	 {
-		fViscType = kSimple;
+		fViscType = SMP_simple::kSimple;
 		fVisc(i,0) = visc.GetParameter("etaS_high");
 		fVisc(i,1) = visc.GetParameter("etaS_low");
 		fVisc(i,2) = visc.GetParameter("etaB_high");
 		fVisc(i,3) = visc.GetParameter("etaB_low");
 		fVisc(i,4) = visc.GetParameter("a");
 	 }
+	 else
+	   fViscType = SMP_simple::kNone;
   }
 
 
@@ -571,7 +577,6 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	    double res2 = ep_e2 + dt*(0.5*fietaS*s2 +
 			  third*fietaB*sm) - ep_tr2;
 		
-	    //cout << "\n residual1 "<< res0;
 	    /*solve for the principal strain increments*/
 	    double dep_e0=-fiKAB(0,0)*res0-fiKAB(0,1)*res1-fiKAB(0,2)*res2;
 	    double dep_e1=-fiKAB(1,0)*res0-fiKAB(1,1)*res1-fiKAB(1,2)*res2;
@@ -581,7 +586,6 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	    ep_e0 += dep_e0;
 	    ep_e1 += dep_e1;
 	    ep_e2 += dep_e2;
-	    //	cout << "\n depsilon1 "<< dep_e0;
 	    
 	    le0 = exp(2.0*ep_e0);
 	    le1 = exp(2.0*ep_e1);
