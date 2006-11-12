@@ -1,4 +1,4 @@
-/* $Id: IsoVECorneaModel.h,v 1.1 2006-05-02 00:58:53 thao Exp $ */
+/* $Id: IsoVECorneaModel.h,v 1.2 2006-11-12 18:26:54 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _IsoVECornea_
 #define _IsoVECornea_
@@ -7,7 +7,9 @@
 #include "ParameterInterfaceT.h"
 #include "RGViscoelasticityT.h"
 #include "SpectralDecompT.h"
+#include "SolidMaterialsConfig.h"
 
+#ifdef VIB_MATERIAL
 
 namespace Tahoe {
 
@@ -139,3 +141,4 @@ private:
 
 } // namespace Tahoe 
 #endif /* _IsoVECornea_ */
+#endif VIB_MATERIAL

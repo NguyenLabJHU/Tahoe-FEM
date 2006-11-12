@@ -1,8 +1,10 @@
-/* $Id: RGVIB2D.h,v 1.1 2006-10-30 23:32:05 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.2 2006-11-12 18:26:55 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
 #define _RG_VIB_2D_H_
+
+#ifdef VIB_MATERIAL
 
 /* base classes */
 #include "RGBaseT.h"
@@ -129,3 +131,4 @@ class RGVIB2D: public RGBaseT, public ViscVIB
 };
 }
 #endif /* _RG_VIB_2D_H_ */
+#endif /*VIB_MATERIAL*/

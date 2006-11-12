@@ -1,12 +1,15 @@
-/* $Id: IsoCorneaModel.h,v 1.1 2006-05-02 00:58:53 thao Exp $ */
+/* $Id: IsoCorneaModel.h,v 1.2 2006-11-12 18:26:54 thao Exp $ */
 /* created: paklein (11/08/1997) */
+
 #ifndef _ISO_CORNEA_H_
 #define _ISO_CORNEA_H_
 
 /* base classes */
 #include "ParameterInterfaceT.h"
 #include "OgdenIsotropicT.h"
+#include "SolidMaterialsConfig.h"
 
+#ifdef VIB_MATERIAL
 
 namespace Tahoe {
 
@@ -100,3 +103,4 @@ protected:
 
 } // namespace Tahoe 
 #endif /* _ISO_CORNEA_H_ */
+#endif /*VIB_MATERIAL*/

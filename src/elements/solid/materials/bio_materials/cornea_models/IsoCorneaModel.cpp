@@ -1,7 +1,7 @@
-/* $Id: IsoCorneaModel.cpp,v 1.1 2006-05-02 00:58:53 thao Exp $ */
+/* $Id: IsoCorneaModel.cpp,v 1.2 2006-11-12 18:26:54 thao Exp $ */
 /* created: paklein (11/08/1997) */
-#include "IsoCorneaModel.h"
 
+#include "IsoCorneaModel.h"
 #include <math.h>
 #include <iostream.h>
 #include "ParameterContainerT.h"
@@ -16,6 +16,7 @@
 #include "FungType.h"
 #include "FungwRep.h"
 
+#ifdef VIB_MATERIAL
 /* point generators */
 #include "LatLongPtsT.h"
 #include "IcosahedralPtsT.h"
@@ -33,6 +34,10 @@ IsoCorneaModel::IsoCorneaModel(void):
 	fSphere(NULL),
 	fPotential(NULL)
 {
+#ifndef VIB_MATERIAL
+	ExceptionT::BadInputValue("IsoCorneaModel::IsoCorneaModel", 
+		"VIB_MATERIAL must be enabled");
+#endif
 }
 
 /* destructor */
@@ -515,3 +520,4 @@ void IsoCorneaModel::Construct(void)
 		c01[i] = s0[i]*s1[i];
 	}
 }
+#endif /*VIB_MATERIAL*/

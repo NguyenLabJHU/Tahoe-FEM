@@ -1,4 +1,4 @@
-/* $Id: IsoVECorneaModel.cpp,v 1.2 2006-08-21 16:48:32 thao Exp $ */
+/* $Id: IsoVECorneaModel.cpp,v 1.3 2006-11-12 18:26:54 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVECorneaModel.h"
 
@@ -16,6 +16,7 @@
 #include "FungType.h"
 #include "FungwRep.h"
 
+#ifdef VIB_MATERIAL
 /* point generators */
 #include "LatLongPtsT.h"
 #include "IcosahedralPtsT.h"
@@ -54,6 +55,10 @@ IsoVECorneaModel::IsoVECorneaModel(void):
 	fModMat(6),
 	fiKAB(3)	
 {
+#ifndef VIB_MATERIAL
+	ExceptionT::BadInputValue("IsoVECorneaModel::IsoVECorneaModel", 
+		"VIB_MATERIAL must be enabled");
+#endif
 }
 
 /* destructor */
@@ -1075,3 +1080,4 @@ void IsoVECorneaModel::Construct(void)
 		c01[i] = s0[i]*s1[i];
 	}
 }
+#endif /*VIB_MATERIAL*/
