@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.h,v 1.4 2006-08-03 23:16:01 tdnguye Exp $ */
+/* $Id: RGSplitT.h,v 1.5 2006-11-12 18:29:46 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _RGSplitT_
 #define _RGSplitT_
@@ -21,7 +21,7 @@ class RGSplitT: public RGViscoelasticityT
 	/* constructor/destructor */
 	RGSplitT(void);
 
-	enum EnergyType {kEQ=0, kNEQ=1}; 
+//	enum EnergyType {kEQ=0, kNEQ=1}; 
 	
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
@@ -57,18 +57,21 @@ class RGSplitT: public RGViscoelasticityT
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
+   protected:
+   virtual void Initialize(void);
+   
    private:
-	void ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
-	                   dArrayT& eigenstress, dSymMatrixT& eigenmodulus, const int process_num);
-	void ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus);
-    
+	virtual void Compute_Calg(const dArrayT& tau_dev, const dSymMatrixT& dtau_dev, const double& tau_m, 
+						const double& dtau_m, dMatrixT& Calg, const int type);
+	virtual void ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
+	                   dArrayT& eigenstress, dSymMatrixT& eigenmodulus, const int process_num);    
    protected:
 
 	/* return values */
 	dMatrixT fModulus;
 	dSymMatrixT fStress;
 	
-   private:  
+//   private:  
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
 
