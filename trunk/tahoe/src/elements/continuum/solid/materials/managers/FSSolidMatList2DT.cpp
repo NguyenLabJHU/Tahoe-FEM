@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.12 2006-10-30 23:35:36 tdnguye Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.13 2006-11-12 18:24:15 tdnguye Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -74,6 +74,7 @@
 #include "RGSplit3D.h"
 #include "FDSV_KStV2D.h"
 #include "OgdenMaterialT.h"
+#include "SMP_simple.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -176,6 +177,9 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("Reese-Govindjee_split");
+#endif
+#ifdef VISCOELASTIC_MATERIALS_DEV
+		sub_lists.AddSub("SMP_simple");
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -293,6 +297,10 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "Reese-Govindjee_split")
 		mat= new RGSplitT;
+#endif
+#ifdef VISCOELASTIC_MATERIALS_DEV
+	else if (name == "SMP_simple")
+		mat= new SMP_simple;
 #endif
 
 #ifdef FINITE_ANISOTROPY
