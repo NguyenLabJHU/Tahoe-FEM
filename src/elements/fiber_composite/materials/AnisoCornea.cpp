@@ -1,11 +1,13 @@
-/* $Id: AnisoCornea.cpp,v 1.4 2006-10-20 20:02:37 thao Exp $ */
+/* $Id: AnisoCornea.cpp,v 1.5 2006-11-12 18:28:36 thao Exp $ */
 /* created: paklein (11/08/1997) */
-#include "AnisoCornea.h"
 
+#include "AnisoCornea.h"
 #include <math.h>
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "ParameterContainerT.h"
+
+#if defined(VIB_MATERIAL)
 
 /* point generator */
 #include "EvenSpacePtsT.h"
@@ -28,6 +30,10 @@ AnisoCornea::AnisoCornea(void):
 	fPotential(NULL),
 	fDistribution(NULL)
 {
+#ifndef VIB_MATERIAL
+	ExceptionT::BadInputValue("AnisoCornea::AnisoCornea", 
+		"VIB_MATERIAL must be enabled");
+#endif
 
 }
 
@@ -556,3 +562,5 @@ void AnisoCornea::Construct(void)
 		c12[i] = s2[i]*s1[i];
 	}
 }
+#endif /*VIB_MATERIAL*/
+

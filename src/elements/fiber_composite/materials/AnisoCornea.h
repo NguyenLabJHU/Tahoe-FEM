@@ -1,11 +1,13 @@
-/* $Id: AnisoCornea.h,v 1.4 2006-10-20 20:02:38 thao Exp $ */
+/* $Id: AnisoCornea.h,v 1.5 2006-11-12 18:28:36 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ANISO_CORNEA_2D_H_
 #define _ANISO_CORNEA_2D_H_
 
 /* base classes */
 #include "FSFiberMatT.h"
+#include "SolidMaterialsConfig.h"
 
+#if defined(VIB_MATERIAL)
 namespace Tahoe {
 
 /* forward declarations */
@@ -108,3 +110,4 @@ protected:
 
 } // namespace Tahoe 
 #endif /* _ISO_VIB_2D_H_ */
+#endif /*VIB_MATERIAL*/

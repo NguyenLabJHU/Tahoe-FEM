@@ -1,7 +1,11 @@
-/* $Id: AnisoCorneaVisco.h,v 1.3 2006-10-20 20:02:38 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.4 2006-11-12 18:28:36 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
+
+#include "SolidMaterialsConfig.h"
+
+#ifdef VIB_MATERIAL
  
 /* base class */
 #include "FSFiberMatViscT.h"
@@ -159,3 +163,4 @@ protected:
 	
 }
 #endif /* _AnisoCorneaVisco_ */
+#endif /*VIB_MATERIAL*/

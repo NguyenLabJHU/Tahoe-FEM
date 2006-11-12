@@ -1,11 +1,12 @@
-/* $Id: AnisoCorneaIVisco.h,v 1.2 2006-10-20 20:02:38 thao Exp $ */
+/* $Id: AnisoCorneaIVisco.h,v 1.3 2006-11-12 18:28:36 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaIVisco_
 #define _AnisoCorneaIVisco_ 
- 
+
 /* base class */
 #include "AnisoCorneaVisco.h"
 
+#ifdef VIB_MATERIAL
 
 namespace Tahoe {
 /*forward declarations*/
@@ -42,3 +43,4 @@ protected:
 	
 }
 #endif /* _AnisoCorneaIVisco_ */
+#endif /*VIB_MATERIAL*/

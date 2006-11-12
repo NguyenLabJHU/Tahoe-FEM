@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.3 2006-10-20 20:02:38 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.4 2006-11-12 18:28:36 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -6,6 +6,8 @@
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "ParameterContainerT.h"
+
+#ifdef VIB_MATERIAL
 
 /* point generator */
 #include "EvenSpacePtsT.h"
@@ -36,6 +38,11 @@ AnisoCorneaVisco::AnisoCorneaVisco(void):
 	/*reset default*/
 	fNumFibProcess = 0;
 	fNumMatProcess = 0;
+
+#ifndef VIB_MATERIAL
+	ExceptionT::BadInputValue("AnisoCorneaVisco::AnisoCorneaVisco", 
+		"VIB_MATERIAL must be enabled");
+#endif
 }
 
 /* destructor */
@@ -1363,3 +1370,4 @@ void AnisoCorneaVisco::Construct(void)
 		c12[i] = s2[i]*s1[i];
 	}
 }
+#endif /*VIB_MATERIAL*/

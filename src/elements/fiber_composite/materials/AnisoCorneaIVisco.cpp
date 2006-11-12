@@ -1,11 +1,12 @@
-/* $Id: AnisoCorneaIVisco.cpp,v 1.3 2006-10-20 20:02:38 thao Exp $ */
+/* $Id: AnisoCorneaIVisco.cpp,v 1.4 2006-11-12 18:28:36 thao Exp $ */
 /* created: TDN (01/22/2001) */
-
 #include "AnisoCorneaIVisco.h"
 #include <math.h>
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "ParameterContainerT.h"
+
+#ifdef VIB_MATERIAL
 
 /* point generator */
 #include "EvenSpacePtsT.h"
@@ -28,7 +29,12 @@ using namespace Tahoe;
 AnisoCorneaIVisco::AnisoCorneaIVisco(void):
   AnisoCorneaVisco(),
   ParameterInterfaceT("aniso_scalar_visco_cornea")
-{}
+{
+#ifndef VIB_MATERIAL
+	ExceptionT::BadInputValue("AnisoCorneaIVisco::AnisoCorneaIVisco", 
+		"VIB_MATERIAL must be enabled");
+#endif
+}
 	
 void AnisoCorneaIVisco::TakeParameterList(const ParameterListT& list)
 {
@@ -264,4 +270,5 @@ void AnisoCorneaIVisco::Compute_Cv(const dSymMatrixT& C, const dSymMatrixT& C_vn
 		ExceptionT::GeneralFail("AnisoCorneaIVisco::Compute_Cv", 
 			"number of iteration exceeds maximum of 10");
 }
+#endif /*VIB_MATERIAL*/
 
