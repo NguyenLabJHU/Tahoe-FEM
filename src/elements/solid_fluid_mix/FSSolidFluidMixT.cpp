@@ -625,6 +625,19 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		u_n.SetLocal(nodes_displ);
 		press.SetLocal(nodes_press);
 		press_n.SetLocal(nodes_press);
+                /* populate solid displacement in a vector */
+		int index = 0;
+		for (int i=0; i<n_en_displ; i++)
+		{
+		    for (int j=0; j<n_sd; j++)
+		    {
+			u_vec[index++] = u(i,j);
+		    }
+		}
+
+                /* populate fluid displacement in a vector */
+		for (int i=0; i<n_en_press; i++)
+		    press_vec[i] = press(i,1);
 
 		del_u.DiffOf (u, u_n);
 		del_press.DiffOf (press, press_n);
@@ -699,11 +712,11 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fDeformation_Gradient_Inverse_Transpose.Transpose(fDeformation_Gradient_Inverse);
 				fDeformation_Gradient_Transpose.Transpose(fDeformation_Gradient);
 
-                                /* [fDefGradInv_grad_GRAD] will be formed */
+                                /* [fDefGradInv_GRAD_grad] will be formed */
 				Form_GRAD_grad_transformation_matrix();
 
-                                /* [fDefGradInv_grad_GRAD_Transpose] will be formed */
-				fDefGradInv_grad_GRAD_Transpose.Transpose(fDefGradInv_grad_GRAD);
+                                /* [fDefGradInv_GRAD_grad_Transpose] will be formed */
+				fDefGradInv_GRAD_grad_Transpose.Transpose(fDefGradInv_GRAD_grad);
 
                                 /* calculating Jacobian */
 				double J = fDeformation_Gradient.Det();
@@ -735,7 +748,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
 
 				/* [fIota_temp_matrix] will be formed */
-				fIota_temp_matrix.MultATB(fShapeSolidGrad,fDefGradInv_grad_GRAD);
+				fIota_temp_matrix.MultATB(fShapeSolidGrad,fDefGradInv_GRAD_grad);
 
 				/* second derivatives of solid shape functions, [fShapeSolidGradGrad] will be formed */
 				fShapes_displ->Grad_GradNa(fShapeSolidGradGrad);
@@ -753,7 +766,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fLambda_temp_matrix.MultATBC(fShapeFluidGrad,fDeformation_Gradient_Inverse,fk_hydraulic_conductivity_matrix);
 
 				/* {fChi_temp_vector} will be formed */
-				fVarpi_temp_matrix.Multx(del_u_vec,fChi_temp_vector);
+				fVarpi_temp_matrix.Multx(u_vec,fChi_temp_vector);
 
                                 /* [fChi_temp_column_matrix] will be formed */
                                 for (int i=0; i<3 ; i++)
@@ -765,15 +778,15 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fFd_int_N1_vector += fTemp_vector_ndof_se;
 
                                 /* {fFd_int_N2_vector} will be formed */
-				theta = fShapeFluid.Dot(fShapeFluid, del_press_vec);				
-				fShapeSolidGrad.MultTx(fDefGradInv_Vector,fTemp_vector_ndof_se,theta*(*Weight++)*(*Det++));
+				theta = fShapeFluid.Dot(fShapeFluid, press_vec);				
+				fShapeSolidGrad.MultTx(fDefGradInv_Vector,fTemp_vector_ndof_se,-1*theta*(*Weight++)*(*Det++));
 				/* accumulate */
 				fFd_int_N2_vector += fTemp_vector_ndof_se; 
 
 
                                 /* {fFtheta_int_N1_vector} will be formed */
-				phi_f = 1.0 - (1.0-fMaterial_Params[kPhi_f0])/J;
-				phi_s = 1-phi_f;
+				phi_s = fMaterial_Params[kPhi_s0]/J;
+				phi_f = 1.0 - phi_s;
 				double scale = theta*-1.0/fMaterial_Params[kg] * (phi_s/phi_f-1);
 				fTemp_matrix_nen_press_x_nsd.MultAB(fLambda_temp_matrix,fDeformation_Gradient_Inverse_Transpose);
 				fTemp_matrix_nen_press_x_nsd.Multx(fChi_temp_vector, fTemp_vector_nen_press,scale*(*Weight++)*(*Det++));
@@ -782,7 +795,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
                                 /* {fFtheta_int_N2_vector} will be formed */
 				fTemp_matrix_nen_press_x_nen_press.MultAB(fTemp_matrix_nen_press_x_nsd,fShapeFluidGrad);
-				fTemp_matrix_nen_press_x_nen_press.Multx(del_press_vec, fTemp_vector_nen_press,-1.0/fMaterial_Params[kg]*(*Weight++)*(*Det++));
+				fTemp_matrix_nen_press_x_nen_press.Multx(press_vec, fTemp_vector_nen_press,-1.0/fMaterial_Params[kg]*(*Weight++)*(*Det++));
                                 /* accumulate */
 				fFtheta_int_N2_vector += fTemp_vector_nen_press;
 
@@ -834,9 +847,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fK_dd_G3_4_matrix += fTemp_matrix_ndof_se_x_ndof_se; 
 
 				/* [fK_dd_G3_5_matrix] will be formed */
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fShapeSolidGrad_t_Transpose,fDefGradInv_grad_GRAD,fIota_temp_matrix);
-				scale = fShapeFluid.Dot(fShapeFluid, del_press_vec);
-				fTemp_matrix_ndof_se_x_ndof_se *= scale * fIntegration_Params[kBeta] * (*Weight++)*(*Det++);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fShapeSolidGrad_t_Transpose,fDefGradInv_GRAD_grad,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se *= theta * fIntegration_Params[kBeta] * (*Weight++)*(*Det++);
                                 /* accumulate */
 				fK_dd_G3_5_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 
@@ -847,16 +859,15 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fK_dtheta_G3_matrix += fTemp_matrix_ndof_se_x_nen_press;
 
                                 /* {fGrad_1_J_vector} will be filled */
-				fVarpi_temp_matrix.Multx(del_u_vec,fGrad_1_J_vector, -1.0/J);
+				fVarpi_temp_matrix.Multx(u_vec,fGrad_1_J_vector, -1.0/J);
 
                                 /* {fGrad_theta_vector} will be filled */
-				fShapeFluidGrad.Multx(del_press_vec, fGrad_theta_vector);
+				fShapeFluidGrad.Multx(press_vec, fGrad_theta_vector);
 
                                 /* {fGrad_phi_f_vector} will be filled */
 				fGrad_phi_f_vector.SetToScaled(-1* fMaterial_Params[kPhi_s0],fGrad_1_J_vector);
 
                                 /* {fGrad_Omega_vector} will be filled */
-				phi_f = 1.0 - fMaterial_Params[kPhi_s0]/J;
 				fTemp_nsd_vector.SetToScaled(theta/J,fGrad_phi_f_vector) ; 
 				fGrad_Omega_vector = fTemp_nsd_vector;
 				fTemp_nsd_vector.SetToScaled(phi_f/J,fGrad_theta_vector) ;
@@ -874,18 +885,13 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				Form_Wp_temp_matrix(); 
 
                                 /* [fK_thetad_H3_1_matrix] will be formed */
-				phi_s = fMaterial_Params[kPhi_s0]/J;
 				scale = (fIntegration_Params[kBeta]/fMaterial_Params[kg]/phi_f)*((fMaterial_Params[kPhi_s0]/J-phi_f)*phi_s/phi_f+2*fMaterial_Params[kPhi_s0]/J);
-				scale *= (*Weight++)*(*Det++);
+				scale *= theta*(*Weight++)*(*Det++);
 				fTemp_matrix_nen_press_x_nsd.MultAB(fLambda_temp_matrix,fDeformation_Gradient_Inverse_Transpose);
 				fTemp_matrix_nen_press_x_ndof_se.MultABC(fTemp_matrix_nen_press_x_nsd,fChi_temp_column_matrix,fPi_temp_row_matrix);
 				fTemp_matrix_nen_press_x_ndof_se *= scale;
                                 /* accumulate */
 				fK_thetad_H3_1_matrix += fTemp_matrix_nen_press_x_ndof_se;
-
-                                /* [del_press_column_matrix] will be formed */
-				for (int i=0; i<n_en_press; i++)
-				    del_press_column_matrix(i,0) = del_press_vec[i];
 
                                 /* [fK_thetad_H3_2_matrix] will be formed */
 				scale = -1*fIntegration_Params[kBeta]/fMaterial_Params[kg]*theta*(fMaterial_Params[kPhi_s0]/(J*phi_f)-1);
@@ -1239,6 +1245,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     del_u.Dimension (n_en_displ, n_sd);
     n_en_displ_x_n_sd = n_en_displ*n_sd;
     del_u_vec.Dimension (n_en_displ_x_n_sd);
+    u_vec.Dimension (n_en_displ_x_n_sd);
     //ElementSupport().RegisterCoordinates(fInitCoords_displ);
     fDispl->RegisterLocal(u);
     fDispl->RegisterLocal(u_n);
@@ -1249,6 +1256,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     press_n.Dimension (n_en_press, dum);
     del_press.Dimension (n_en_press, dum);
     del_press_vec.Dimension (n_en_press);
+    press_vec.Dimension (n_en_press);
     //ElementSupport().RegisterCoordinates(fInitCoords_press);
     fPress->RegisterLocal(press);
     fPress->RegisterLocal(press_n);
@@ -1300,12 +1308,12 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fShapeSolidGradGrad.Dimension (n_sd *2 , n_en_displ);
     fShapeFluidGrad.Dimension (n_sd, n_en_press);
     fDeformation_Gradient.Dimension (n_sd,n_sd);
-    fGRAD_disp.Dimension (n_sd_x_n_sd);
+    fGRAD_disp_vector.Dimension (n_sd_x_n_sd);
     fDeformation_Gradient_Inverse.Dimension (n_sd,n_sd);
     fDeformation_Gradient_Transpose.Dimension (n_sd,n_sd);
     fDeformation_Gradient_Inverse_Transpose.Dimension (n_sd,n_sd);
-    fDefGradInv_grad_GRAD.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
-    fDefGradInv_grad_GRAD_Transpose.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+    fDefGradInv_GRAD_grad.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+    fDefGradInv_GRAD_grad_Transpose.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fDefGradInv_Vector.Dimension (n_sd_x_n_sd);
     fRight_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fRight_Cauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
@@ -1359,14 +1367,12 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fK_thetad_H3_3_matrix.Dimension (n_en_press,n_en_displ_x_n_sd);
     fK_thetad_H3_4_matrix.Dimension (n_en_press,n_en_displ_x_n_sd);
     fChi_temp_column_matrix.Dimension (n_sd, 1);
-    del_press_column_matrix.Dimension (n_en_press,1); 
     fTemp_matrix_nsd_x_1.Dimension (n_sd,1); 
     fTemp_matrix_nen_press_x_ndof_se.Dimension (n_en_press,n_en_displ_x_n_sd);
     fTemp_matrix_ndof_se_x_ndof_se.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fTemp_matrix_ndof_se_x_nen_press.Dimension (n_en_displ_x_n_sd,n_en_press);
     fK_thetatheta_H3_1_matrix.Dimension (n_en_press,n_en_press);
     fK_thetatheta_H3_2_matrix.Dimension (n_en_press,n_en_press);
-
 
     Test_vector_A.Dimension(3);
     Test_vector_B.Dimension(3);
@@ -2145,47 +2151,47 @@ void FSSolidFluidMixT::	Form_fluid_shape_functions(const double* &shapes_press_X
 
 void FSSolidFluidMixT::	Form_deformation_gradient_tensor(void)
 {
-    fShapeSolidGrad.Multx(del_u_vec,fGRAD_disp);
-    fDeformation_Gradient(0,0) = fGRAD_disp[0]+1.0;
-    fDeformation_Gradient(0,1) = fGRAD_disp[3]; 
-    fDeformation_Gradient(0,2) = fGRAD_disp[6];
-    fDeformation_Gradient(1,0) = fGRAD_disp[1];
-    fDeformation_Gradient(1,1) = fGRAD_disp[4]+1.0;  
-    fDeformation_Gradient(1,2) = fGRAD_disp[7];
-    fDeformation_Gradient(2,0) = fGRAD_disp[2];
-    fDeformation_Gradient(2,1) = fGRAD_disp[5];
-    fDeformation_Gradient(2,2) = fGRAD_disp[8]+1.0; 
+    fShapeSolidGrad.Multx(u_vec,fGRAD_disp_vector);
+    fDeformation_Gradient(0,0) = fGRAD_disp_vector[0]+1.0;
+    fDeformation_Gradient(0,1) = fGRAD_disp_vector[3]; 
+    fDeformation_Gradient(0,2) = fGRAD_disp_vector[6];
+    fDeformation_Gradient(1,0) = fGRAD_disp_vector[1];
+    fDeformation_Gradient(1,1) = fGRAD_disp_vector[4]+1.0;  
+    fDeformation_Gradient(1,2) = fGRAD_disp_vector[7];
+    fDeformation_Gradient(2,0) = fGRAD_disp_vector[2];
+    fDeformation_Gradient(2,1) = fGRAD_disp_vector[5];
+    fDeformation_Gradient(2,2) = fGRAD_disp_vector[8]+1.0; 
 }
 void FSSolidFluidMixT::Form_GRAD_grad_transformation_matrix(void)
 {
-    fDefGradInv_grad_GRAD = 0.0;
-    fDefGradInv_grad_GRAD(0,0) = fDeformation_Gradient_Inverse(0,0);
-    fDefGradInv_grad_GRAD(0,3) = fDeformation_Gradient_Inverse(0,1);
-    fDefGradInv_grad_GRAD(0,6) = fDeformation_Gradient_Inverse(0,2);
-    fDefGradInv_grad_GRAD(1,1) = fDeformation_Gradient_Inverse(0,0);
-    fDefGradInv_grad_GRAD(1,4) = fDeformation_Gradient_Inverse(0,1);
-    fDefGradInv_grad_GRAD(1,7) = fDeformation_Gradient_Inverse(0,2);
-    fDefGradInv_grad_GRAD(2,2) = fDeformation_Gradient_Inverse(0,0);
-    fDefGradInv_grad_GRAD(2,5) = fDeformation_Gradient_Inverse(0,1);
-    fDefGradInv_grad_GRAD(2,8) = fDeformation_Gradient_Inverse(0,2);
-    fDefGradInv_grad_GRAD(3,0) = fDeformation_Gradient_Inverse(1,0);
-    fDefGradInv_grad_GRAD(3,3) = fDeformation_Gradient_Inverse(1,1);
-    fDefGradInv_grad_GRAD(3,6) = fDeformation_Gradient_Inverse(1,2);
-    fDefGradInv_grad_GRAD(4,1) = fDeformation_Gradient_Inverse(1,0);
-    fDefGradInv_grad_GRAD(4,4) = fDeformation_Gradient_Inverse(1,1);
-    fDefGradInv_grad_GRAD(4,7) = fDeformation_Gradient_Inverse(1,2);
-    fDefGradInv_grad_GRAD(5,2) = fDeformation_Gradient_Inverse(1,0);
-    fDefGradInv_grad_GRAD(5,5) = fDeformation_Gradient_Inverse(1,1);
-    fDefGradInv_grad_GRAD(5,8) = fDeformation_Gradient_Inverse(1,2);
-    fDefGradInv_grad_GRAD(6,0) = fDeformation_Gradient_Inverse(2,0);
-    fDefGradInv_grad_GRAD(6,3) = fDeformation_Gradient_Inverse(2,1);
-    fDefGradInv_grad_GRAD(6,6) = fDeformation_Gradient_Inverse(2,2);
-    fDefGradInv_grad_GRAD(7,1) = fDeformation_Gradient_Inverse(2,0);
-    fDefGradInv_grad_GRAD(7,4) = fDeformation_Gradient_Inverse(2,1);
-    fDefGradInv_grad_GRAD(7,7) = fDeformation_Gradient_Inverse(2,2);
-    fDefGradInv_grad_GRAD(8,2) = fDeformation_Gradient_Inverse(2,0);
-    fDefGradInv_grad_GRAD(8,5) = fDeformation_Gradient_Inverse(2,1);
-    fDefGradInv_grad_GRAD(8,8) = fDeformation_Gradient_Inverse(2,2);
+    fDefGradInv_GRAD_grad = 0.0;
+    fDefGradInv_GRAD_grad(0,0) = fDeformation_Gradient_Inverse(0,0);
+    fDefGradInv_GRAD_grad(0,3) = fDeformation_Gradient_Inverse(0,1);
+    fDefGradInv_GRAD_grad(0,6) = fDeformation_Gradient_Inverse(0,2);
+    fDefGradInv_GRAD_grad(1,1) = fDeformation_Gradient_Inverse(0,0);
+    fDefGradInv_GRAD_grad(1,4) = fDeformation_Gradient_Inverse(0,1);
+    fDefGradInv_GRAD_grad(1,7) = fDeformation_Gradient_Inverse(0,2);
+    fDefGradInv_GRAD_grad(2,2) = fDeformation_Gradient_Inverse(0,0);
+    fDefGradInv_GRAD_grad(2,5) = fDeformation_Gradient_Inverse(0,1);
+    fDefGradInv_GRAD_grad(2,8) = fDeformation_Gradient_Inverse(0,2);
+    fDefGradInv_GRAD_grad(3,0) = fDeformation_Gradient_Inverse(1,0);
+    fDefGradInv_GRAD_grad(3,3) = fDeformation_Gradient_Inverse(1,1);
+    fDefGradInv_GRAD_grad(3,6) = fDeformation_Gradient_Inverse(1,2);
+    fDefGradInv_GRAD_grad(4,1) = fDeformation_Gradient_Inverse(1,0);
+    fDefGradInv_GRAD_grad(4,4) = fDeformation_Gradient_Inverse(1,1);
+    fDefGradInv_GRAD_grad(4,7) = fDeformation_Gradient_Inverse(1,2);
+    fDefGradInv_GRAD_grad(5,2) = fDeformation_Gradient_Inverse(1,0);
+    fDefGradInv_GRAD_grad(5,5) = fDeformation_Gradient_Inverse(1,1);
+    fDefGradInv_GRAD_grad(5,8) = fDeformation_Gradient_Inverse(1,2);
+    fDefGradInv_GRAD_grad(6,0) = fDeformation_Gradient_Inverse(2,0);
+    fDefGradInv_GRAD_grad(6,3) = fDeformation_Gradient_Inverse(2,1);
+    fDefGradInv_GRAD_grad(6,6) = fDeformation_Gradient_Inverse(2,2);
+    fDefGradInv_GRAD_grad(7,1) = fDeformation_Gradient_Inverse(2,0);
+    fDefGradInv_GRAD_grad(7,4) = fDeformation_Gradient_Inverse(2,1);
+    fDefGradInv_GRAD_grad(7,7) = fDeformation_Gradient_Inverse(2,2);
+    fDefGradInv_GRAD_grad(8,2) = fDeformation_Gradient_Inverse(2,0);
+    fDefGradInv_GRAD_grad(8,5) = fDeformation_Gradient_Inverse(2,1);
+    fDefGradInv_GRAD_grad(8,8) = fDeformation_Gradient_Inverse(2,2);
 }
 
 void FSSolidFluidMixT::Form_deformation_gradient_inv_vector(void)

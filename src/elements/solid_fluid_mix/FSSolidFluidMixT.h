@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.10 2006-11-09 12:57:48 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.11 2006-11-13 10:32:01 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -212,6 +212,9 @@ private:
 	LocalArrayT del_press;	//pore pressure increment
 	dArrayT		del_u_vec;  	// vector form 
 	dArrayT		del_press_vec;	// vector form
+	dArrayT		u_vec;  	// solid displacement in vector form 
+	dArrayT		press_vec;	// fluid displacement in vector form
+
 	/*@}*/
 
 	// problem size definitions
@@ -258,7 +261,7 @@ private:
 	dArrayT		fFtheta_int;
 	dArrayT		fFtheta_ext;
 
-	dArrayT		fGRAD_disp;
+	dArrayT		fGRAD_disp_vector;
 	dArrayT 	fDefGradInv_Vector;
 	dArrayT 	fEffective_Kirchhoff_vector;
         dArrayT	        fChi_temp_vector;
@@ -287,8 +290,8 @@ private:
 	dMatrixT	fDeformation_Gradient_Inverse;
 	dMatrixT	fDeformation_Gradient_Transpose;
 	dMatrixT        fDeformation_Gradient_Inverse_Transpose;
-	dMatrixT	fDefGradInv_grad_GRAD;
-	dMatrixT	fDefGradInv_grad_GRAD_Transpose;
+	dMatrixT	fDefGradInv_GRAD_grad;
+	dMatrixT	fDefGradInv_GRAD_grad_Transpose;
 	dMatrixT	fIdentity_matrix;
 	dMatrixT	fTest_matrix_A;
 	dMatrixT	fTest_matrix_B;
@@ -330,7 +333,7 @@ private:
         dMatrixT	fK_thetatheta_H3_1_matrix;
         dMatrixT	fK_thetatheta_H3_2_matrix;
         dMatrixT	fChi_temp_column_matrix;
-        dMatrixT	del_press_column_matrix;
+
 
 
         double          phi_s,phi_f,theta;
