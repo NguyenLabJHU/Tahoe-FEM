@@ -631,13 +631,14 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		{
 		    for (int j=0; j<n_sd; j++)
 		    {
-			u_vec[index++] = u(i,j);
+			u_vec[index] = u(i,j);
+			index += 1;
 		    }
 		}
 
                 /* populate fluid displacement in a vector */
 		for (int i=0; i<n_en_press; i++)
-		    press_vec[i] = press(i,1);
+		    press_vec[i] = press(i,0);
 
 		del_u.DiffOf (u, u_n);
 		del_press.DiffOf (press, press_n);
@@ -2653,7 +2654,10 @@ void FSSolidFluidMixT::Form_Jmath_temp_matrix(void)
 	for (int j=0; j< 3; j++)
 	    sum += fk_hydraulic_conductivity_matrix(i,j)*fgrad_Omega_vector[j];
 	for (int k; k<3; k++)
-	    fJmath_temp_matrix(k,col++) = sum;
+	{
+	    fJmath_temp_matrix(k,col) = sum;
+	    col += 1;
+	}
 	 
     }
 }
@@ -2667,31 +2671,31 @@ void FSSolidFluidMixT::Form_Wp_temp_matrix(void)
 	    switch (j)
 	    {
 	    case (0):
-		fWp_temp_matrix(i,j) = fk_hydraulic_conductivity_matrix(i,0) * fgrad_Omega_vector[j]; 
+		fWp_temp_matrix(i,0) = fk_hydraulic_conductivity_matrix(i,0) * fgrad_Omega_vector[0]; 
 		break;
 	    case (1):
-		fWp_temp_matrix(i,j) = fk_hydraulic_conductivity_matrix(i,0) * fgrad_Omega_vector[j]; 
+		fWp_temp_matrix(i,1) = fk_hydraulic_conductivity_matrix(i,0) * fgrad_Omega_vector[1]; 
 		break;
 	    case (2):
-		fWp_temp_matrix(i,j) = fk_hydraulic_conductivity_matrix(i,0) * fgrad_Omega_vector[j]; 
+		fWp_temp_matrix(i,2) = fk_hydraulic_conductivity_matrix(i,0) * fgrad_Omega_vector[2]; 
 		break;
 	    case (3):
-		fWp_temp_matrix(i,j) = fk_hydraulic_conductivity_matrix(i,1) * fgrad_Omega_vector[j-3]; 
+		fWp_temp_matrix(i,3) = fk_hydraulic_conductivity_matrix(i,1) * fgrad_Omega_vector[0]; 
 		break;	    
 	    case (4):
-		fWp_temp_matrix(i,j) = fk_hydraulic_conductivity_matrix(i,1) * fgrad_Omega_vector[j-3]; 
+		fWp_temp_matrix(i,4) = fk_hydraulic_conductivity_matrix(i,1) * fgrad_Omega_vector[1]; 
 		break;	    
 	    case (5):
-		fWp_temp_matrix(i,j) = fk_hydraulic_conductivity_matrix(i,1) * fgrad_Omega_vector[j-3]; 
+		fWp_temp_matrix(i,5) = fk_hydraulic_conductivity_matrix(i,1) * fgrad_Omega_vector[2]; 
 		break;	    
 	    case (6):
-		fWp_temp_matrix(i,j) = fk_hydraulic_conductivity_matrix(i,2) * fgrad_Omega_vector[j-6]; 
+		fWp_temp_matrix(i,6) = fk_hydraulic_conductivity_matrix(i,2) * fgrad_Omega_vector[0]; 
 		break;
 	    case (7):
-		fWp_temp_matrix(i,j) = fk_hydraulic_conductivity_matrix(i,2) * fgrad_Omega_vector[j-6]; 
+		fWp_temp_matrix(i,7) = fk_hydraulic_conductivity_matrix(i,2) * fgrad_Omega_vector[1]; 
 		break;
 	    case (8):
-		fWp_temp_matrix(i,j) = fk_hydraulic_conductivity_matrix(i,2) * fgrad_Omega_vector[j-6]; 
+		fWp_temp_matrix(i,8) = fk_hydraulic_conductivity_matrix(i,2) * fgrad_Omega_vector[2]; 
 		break;	    
 	    }
 	}
