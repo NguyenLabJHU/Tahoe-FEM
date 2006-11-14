@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.11 2006-11-13 10:32:01 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.12 2006-11-14 19:05:23 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -458,6 +458,7 @@ protected:
 	/*@}*/
 	
 };
+
 
 inline const ShapeFunctionT& FSSolidFluidMixT::ShapeFunction(void) const 
 {
