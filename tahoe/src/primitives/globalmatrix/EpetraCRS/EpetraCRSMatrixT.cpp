@@ -1,4 +1,4 @@
-/* $Id: EpetraCRSMatrixT.cpp,v 1.2 2006-11-01 05:15:31 paklein Exp $ */
+/* $Id: EpetraCRSMatrixT.cpp,v 1.3 2006-11-14 04:31:05 paklein Exp $ */
 #include "EpetraCRSMatrixT.h"
 
 /* library support options */
@@ -34,12 +34,20 @@ EpetraCRSMatrixT::EpetraCRSMatrixT(ostream& out, int check_code, const Communica
 	GlobalMatrixT(out, check_code, comm),
 	fBuilder(NULL),
 	fIsSymFactorized(false),
-	fIsNumFactorized(false)
+	fIsNumFactorized(false),
+	fepetra_comm(NULL),
+	fepetra_map(NULL)
 {
 	const char caller[] = "EpetraCRSMatrixT::EpetraCRSMatrixT";
 
 	fBuilder = new MSRBuilderT(false);
 	if (!fBuilder) ExceptionT::OutOfMemory(caller);
+
+#ifdef __TAHOE_MPI__
+	fepetra_comm = new Epetra_MpiComm(fComm);
+#else
+	fepetra_comm = new Epetra_SerialComm;
+#endif
 }
 
 /* copy constructor */
@@ -51,9 +59,50 @@ EpetraCRSMatrixT::EpetraCRSMatrixT(const EpetraCRSMatrixT& rhs):
 }
 
 /* Destructor */	
-EpetraCRSMatrixT::~EpetraCRSMatrixT(void)
-{
+EpetraCRSMatrixT::~EpetraCRSMatrixT(void) {
 	delete fBuilder;
+	delete fepetra_comm;
+	delete fepetra_map;
+}
+
+/* translate GlobalMatrixT to a Epetra_CrsMatrix */
+Epetra_CrsMatrix* EpetraCRSMatrixT::Translate(void) const {
+
+	const char caller[] = "EpetraCRSMatrixT::Translate";
+
+	/* quick exit */
+	if (! fepetra_map) return NULL;
+
+	/* dimensions */
+	int tot_num_eq = NumTotEquations();
+	int loc_num_eq = NumEquations();
+	int start_eq = StartEquation();
+
+	/* init Epetra matrix */
+	iArrayT row_count(loc_num_eq);
+	for (int i = 0; i < fLocNumEQ - 1; i++) {
+		row_count[i] = frowptr[i+1] - frowptr[i];
+	}
+	row_count[loc_num_eq-1] = fnzval.Length() - frowptr[fLocNumEQ-1];
+	Epetra_CrsMatrix* A = new Epetra_CrsMatrix(Copy, *fepetra_map, row_count.Pointer(), true);
+
+	/* copy data into epetra_matrix */
+	iArrayT active_tmp;
+	active_tmp.Alias(factive);
+	active_tmp--; /* solver uses 0 indexing */	
+	for (int i = 0; i < factive.Length(); i++) {
+		int offset = frowptr[i];
+		int ret = A->InsertGlobalValues(factive[i], row_count[i], (double*) fnzval.Pointer(offset), (int*) fcolind.Pointer(offset));
+		if (ret != 0) {
+			ExceptionT::GeneralFail(caller, "InsertGlobalValues: error %d in row %d", ret, i+1);
+		}
+	}
+	active_tmp++; /* restore first active row = 1 */	
+	int ret = A->FillComplete();
+	if (ret != 0) {
+		ExceptionT::GeneralFail(caller, "FillComplete: error %d", ret);
+	}
+	return A;
 }
 
 /* add to structure */
@@ -88,6 +137,14 @@ void EpetraCRSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* reset flags/options */
 	fIsSymFactorized = false;
 	fIsNumFactorized = false;
+	
+	/* set the Epetra map */
+	delete fepetra_map;
+	iArrayT active_tmp;
+	active_tmp.Alias(factive);
+	active_tmp--; /* solver uses 0 indexing */
+	fepetra_map = new Epetra_Map(fTotNumEQ, fLocNumEQ, active_tmp.Pointer(), 0, *fepetra_comm);
+	active_tmp++; /* reset */
 }
 
 /* set all matrix values to 0.0 */
@@ -200,6 +257,14 @@ EpetraCRSMatrixT& EpetraCRSMatrixT::operator=(const EpetraCRSMatrixT&)
 /***********************************************************************
  * Protected
  ***********************************************************************/
+
+/* solution driver. Not implemented. Added only because BackSubstitute is a pure virtual
+ * function, and we would like to use this class to generate translate to Epetra_CrsMatrix  */
+void EpetraCRSMatrixT::BackSubstitute(dArrayT& result)
+{
+#pragma unused(result)
+	ExceptionT::GeneralFail("EpetraCRSMatrixT::BackSubstitute", "not implemented");
+}
 
 /* check functions */
 void EpetraCRSMatrixT::PrintAllPivots(void) const
