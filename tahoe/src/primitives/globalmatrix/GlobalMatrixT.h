@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.20 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.21 2006-11-14 04:29:51 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -31,7 +31,8 @@ public:
                     kPrintLHS = 3,
                     kPrintRHS = 4,
                kPrintSolution = 5,
-                    kCheckLHS = 6};
+                    kCheckLHS = 6,
+				  kEigenmodes = 7};
 
 	/** equation numbering scope */
 	enum EquationNumberScopeT {
@@ -75,6 +76,9 @@ public:
 	/*@{*/
 	virtual void AddEquationSet(const iArray2DT& eqset) = 0;
 	virtual void AddEquationSet(const RaggedArray2DT<int>& eqset) = 0;
+
+	void EquationSets(ArrayT<const iArray2DT*>& eqsets);
+	void EquationSets(ArrayT<const RaggedArray2DT<int>*>& eqsets);
 	/*@}*/
 
 	/** \name assemble operators
@@ -119,7 +123,14 @@ public:
 	/** \name accessors */
 	/*@{*/
 	int CheckCode(void) const;
+
+	/** number equations in this partition */
 	int NumEquations(void) const;
+
+	/** total number equations across partitions */
+	int NumTotEquations(void) const;
+
+	/** first equation number in this partition */
 	int StartEquation(void) const;
 	
 	/** return the form of the matrix */
@@ -210,6 +221,7 @@ protected:
 /* return the check code */
 inline int GlobalMatrixT::CheckCode(void) const { return fCheckCode; }
 inline int GlobalMatrixT::NumEquations(void) const { return fLocNumEQ; }
+inline int GlobalMatrixT::NumTotEquations(void) const { return fTotNumEQ; }
 inline int GlobalMatrixT::StartEquation(void) const { return fStartEQ; }
 
 /* Inline functions: Protected */
