@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.h,v 1.2 2006-11-12 22:48:53 thao Exp $ */
+/* $Id: SMP_simple.h,v 1.3 2006-11-14 22:58:06 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _SMP_simple_
 #define _SMP_simple_
@@ -33,6 +33,8 @@ class SMP_simple: public RGSplitT
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+	
+	virtual void InitStep(void);
 
 	/*compute output variables*/ 
 	virtual int NumOutputVariables() const; 
@@ -72,6 +74,11 @@ class SMP_simple: public RGSplitT
 //	dArrayT fTemperature;
 	
 	/*moduli for Mooney Rivlin Potential, n_process x 2 (c1, c2)*/
+    /*rubber moduli at reference temperature
+	double fc1_eq;         
+	double fc2_eq;         
+	double fgamma_eq;
+	*/
 	dArray2DT fPot;
 	dArray2DT fVisc;
 	int fPotType;

@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.2 2006-11-12 22:48:53 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.3 2006-11-14 22:58:06 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -86,9 +86,11 @@ double SMP_simple::Energy(const dArrayT& lambda_bar, const double J, const int t
 			}
 			else
 			{
-				c1 = fPot(0,0);
-				c2 = fPot(0,1);
-				gamma = fPot(0,2);
+				double T = Compute_Temperature();
+				double r = (1.0+T/fRefTemperature);
+				c1 = fPot(0,0)*r;
+				c2 = fPot(0,1)*r;
+				gamma = fPot(0,2)*r;
 			beta = fPot(0,3);
 			}
 
@@ -123,13 +125,16 @@ void SMP_simple::DevStress(const dArrayT& lambda_bar,dArrayT& tau, const int typ
 			double c1, c2;
 			if (type > -1)
 			{
+				/*get delta temperature*/
 				c1 = fPot(type+1,0);
 				c2 = fPot(type+1,1);
 			}
 			else
 			{
-				c1 = fPot(0,0);
-				c2 = fPot(0,1);
+				double T = Compute_Temperature();
+				double r = (1.0+T/fRefTemperature);
+				c1 = fPot(0,0)*r;
+				c2 = fPot(0,1)*r;
 			}
 
 			/*c1(I1bar - 3.0) eigen kirchhoff stress*/
@@ -163,7 +168,9 @@ double SMP_simple::MeanStress(const double J, const int type)
 	}
 	else
 	{
-		gamma = fPot(0,2);
+		double T = Compute_Temperature();
+		double r = (1.0+T/fRefTemperature);
+		gamma = fPot(0,2)*r;
 		beta = fPot(0,3);
 	}
 
@@ -190,8 +197,10 @@ void SMP_simple::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus, co
 			}
 			else
 			{
-				c1 = fPot(0,0);
-				c2 = fPot(0,1);
+				double T = Compute_Temperature();
+				double r = (1.0+T/fRefTemperature);
+				c1 = fPot(0,0)*r;
+				c2 = fPot(0,1)*r;
 			}
 	
 			const double& l0 = lambda_bar[0];
@@ -239,7 +248,9 @@ double SMP_simple::MeanMod(const double J, const int type)
 	}
 	else
 	{
-		gamma = fPot(0,2);
+		double T = Compute_Temperature();
+		double r = (1.0+T/fRefTemperature);
+		gamma = fPot(0,2)*r;
 		beta = fPot(0,3);
 	}
 	return(gamma*(J*J+beta*pow(J, -2.0*beta)));
@@ -392,10 +403,8 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
   if (eq.Name() == "Mooney-Rivlin")
   {
 		fPotType = SMP_simple::kMooneyRivlin;
-		double c1 = eq.GetParameter("c1");
-		double c2 = eq.GetParameter("c2");
-		fPot(0,0) = c1;
-		fPot(0,1) = c2;
+		fPot(0,0) = eq.GetParameter("c1");
+		fPot(0,1) = eq.GetParameter("c2");
 		fPot(0,2) = eq.GetParameter("gamma");
 		fPot(0,3) = eq.GetParameter("beta");
   }
@@ -404,10 +413,8 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
 	  const ParameterListT& neq = list.GetListChoice(*this, "neq_potential_params",i);
 	  if (neq.Name() == "Mooney-Rivlin")
 	  {
-		  double c1 = neq.GetParameter("c1");
-		  double c2 = neq.GetParameter("c2");
-		  fPot(i+1,0) = c1;
-		  fPot(i+1,1) = c2;
+		  fPot(i+1,0) = neq.GetParameter("c1");
+		  fPot(i+1,1) = neq.GetParameter("c2");
 		  fPot(i+1,0) = neq.GetParameter("c1");
 		  fPot(i+1,1) = neq.GetParameter("c2");
 		  fPot(i+1,2) = neq.GetParameter("gamma");
@@ -432,29 +439,16 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
   Initialize();
 }
 
+void SMP_simple::InitStep(void)
+{
+	/*inherited*/
+	RGSplitT::InitStep();
+}
+
 /***********************************************************************
  * Private
  ***********************************************************************/
 /* set inverse of thermal transformation - return true if active */
-/*bool SMP_simple::SetInverseThermalTransformation(dMatrixT& F_trans_inv)
-{
-	if (fThermal->IsActive())
-	{
-		double Fii_inv = 1.0/(1.0 + fThermal->PercentElongation());
-		F_trans_inv.Identity(Fii_inv);
-		return true;
-	}
-	else
-	{
-		double Temperature = Compute_Temperature();
-
-		double dilation = 1.0 + fCTE*(Temperature - fRefTemperature);
-		double Fii_inv = pow(dilation,-third);
-		F_trans_inv.Identity(Fii_inv);		
-		return false;
-	}
-}
-*/
  void SMP_simple::Compute_Calg(const dArrayT& tau_dev, const dSymMatrixT& dtau_dev, const double& tau_m, 
 	const double& dtau_m, dMatrixT& Calg, const int type)
  {
