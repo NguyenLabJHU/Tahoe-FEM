@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.35 2006-11-01 05:14:36 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.36 2006-11-14 04:27:54 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -38,6 +38,10 @@
 
 #ifdef __TRILINOS__
 #include "TrilinosAztecT.h"
+#include "NodeManagerT.h"
+#include "FieldT.h"
+#include "nIntegratorT.h"
+#include "eStaticIntegrator.h"
 #endif
 
 using namespace Tahoe;
@@ -57,7 +61,8 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 	fLHS_lock(kOpen),
 	fLHS_update(true),
 	fRHS_lock(kOpen),
-	fPerturbation(0.0)
+	fPerturbation(0.0),
+	fNumModes(0)
 {
 	/* console */
 	iSetName("solver");
@@ -104,7 +109,63 @@ void SolverT::InitStep(void)
 /* end solution step */
 void SolverT::CloseStep(void)
 {
-	/* do nothing */ 
+	const char caller[] = "SolverT::CloseStep";
+
+#ifdef __TRILINOS__
+	int check_code = fLHS->CheckCode();
+	if (check_code != GlobalMatrixT::kEigenmodes || fNumModes < 1) return;
+
+	/* get time integrator */
+	const NodeManagerT* nodes = fFEManager.NodeManager();
+	ArrayT<FieldT*> fields;
+	nodes->CollectFields(fGroup, fields);
+	
+	/* calculate K only */
+	for (int i = 0; i < fields.Length(); i++) {
+		eIntegratorT& e_int = const_cast<eIntegratorT&>(fields[i]->nIntegrator().eIntegrator());
+		eStaticIntegrator* e_static = TB_DYNAMIC_CAST(eStaticIntegrator*, &e_int);
+		if (! e_static) ExceptionT::GeneralFail(caller, "Could not cast integrator to eStaticIntegrator for field \"%s\"", fields[i]->FieldName().Pointer());
+		e_static->SetLHSMode(eStaticIntegrator::kFormKOnly);
+	}
+	
+	/* calc K and store */
+	fLHS->Clear();
+	fLHS_lock = kOpen;
+	fFEManager.FormLHS(Group(), fLHS->MatrixType());
+	fLHS_lock = kLocked;
+	// ------------> store
+	
+	/* calculate M only */
+	for (int i = 0; i < fields.Length(); i++) {
+		eIntegratorT& e_int = const_cast<eIntegratorT&>(fields[i]->nIntegrator().eIntegrator());
+		eStaticIntegrator* e_static = TB_DYNAMIC_CAST(eStaticIntegrator*, &e_int);
+		if (! e_static) ExceptionT::GeneralFail(caller, "Could not cast integrator to eStaticIntegrator for field \"%s\"", fields[i]->FieldName().Pointer());
+		e_static->SetLHSMode(eStaticIntegrator::kFormMOnly);
+	}
+	
+	/* calc M and store */
+	fLHS->Clear();
+	fLHS_lock = kOpen;
+	fFEManager.FormLHS(Group(), fLHS->MatrixType());
+	fLHS_lock = kLocked;
+	// ------------> store
+	
+	/* restore integrators */
+	for (int i = 0; i < fields.Length(); i++) {
+		eIntegratorT& e_int = const_cast<eIntegratorT&>(fields[i]->nIntegrator().eIntegrator());
+		eStaticIntegrator* e_static = TB_DYNAMIC_CAST(eStaticIntegrator*, &e_int);
+		if (! e_static) ExceptionT::GeneralFail(caller, "Could not cast integrator to eStaticIntegrator for field \"%s\"", fields[i]->FieldName().Pointer());
+		e_static->SetLHSMode(eStaticIntegrator::kNormal);
+	}
+	
+	// set up eigensolver
+	
+	// solve
+	
+	// set up output
+	
+	// loop over modes and write modes and write e-vals to .out
+#endif
 }
 
 /* error handler */
@@ -229,6 +290,9 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	check_code.AddEnumeration("print_RHS", GlobalMatrixT::kPrintRHS);
 	check_code.AddEnumeration("print_solution", GlobalMatrixT::kPrintSolution);
 	check_code.AddEnumeration("check_LHS", GlobalMatrixT::kCheckLHS);
+#ifdef __TRILINOS__
+	check_code.AddEnumeration("eigenmodes", GlobalMatrixT::kEigenmodes);
+#endif
 	check_code.SetDefault(GlobalMatrixT::kNoCheck);
 	list.AddParameter(check_code);
 	
@@ -237,6 +301,14 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	check_LHS_perturbation.AddLimit(0.0, LimitT::LowerInclusive);
 	check_LHS_perturbation.SetDefault(1.0e-08);
 	list.AddParameter(check_LHS_perturbation);
+
+#ifdef __TRILINOS__
+	/* number of eigenmodes to calculate */
+	ParameterT num_modes(fNumModes, "max_eigenmodes");
+	num_modes.AddLimit(0, LimitT::LowerInclusive);
+	num_modes.SetDefault(10);
+	list.AddParameter(num_modes);
+#endif
 }
 
 /* information about subordinate parameter lists */
