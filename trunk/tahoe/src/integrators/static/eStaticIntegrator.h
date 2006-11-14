@@ -1,4 +1,4 @@
-/* $Id: eStaticIntegrator.h,v 1.5 2002-07-05 22:27:55 paklein Exp $ */
+/* $Id: eStaticIntegrator.h,v 1.6 2006-11-14 03:28:56 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _E_STATIC_CONTROLLER_H_
@@ -36,11 +36,24 @@ public:
 	virtual int FormKd(double& constKd) const;
 	/*@}*/
 
+	/*@{*/
+	enum LHSModeT {
+		kNormal = 0,
+		kFormKOnly = 1,
+		kFormMOnly = 2
+	};
+	void SetLHSMode(LHSModeT mode) { fLHSMode = mode; }
+	/*@}*/
+
 protected:  	
 	
 	/** recalculate constants */
 	virtual void eComputeParameters(void);
 
+private:
+
+	/** allow calculation of unscaled K or M */
+	LHSModeT fLHSMode;
 };
 
 } // namespace Tahoe 

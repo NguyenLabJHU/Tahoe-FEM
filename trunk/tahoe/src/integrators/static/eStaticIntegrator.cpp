@@ -1,23 +1,29 @@
-/* $Id: eStaticIntegrator.cpp,v 1.5 2002-10-20 22:48:12 paklein Exp $ */
+/* $Id: eStaticIntegrator.cpp,v 1.6 2006-11-14 03:28:56 paklein Exp $ */
 /* created: paklein (10/14/1996) */
-
 #include "eStaticIntegrator.h"
 #include "Environment.h"
 #include "ExceptionT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-eStaticIntegrator::eStaticIntegrator(void) { }
+/* constructor */
+eStaticIntegrator::eStaticIntegrator(void):
+	fLHSMode(kNormal)
+{ 
+
+}
 
 /* returns 1 if the algorithm requires M, C, or K and sets const equal
 * to the coefficient for the linear combination of components in the
 * element effective mass matrix */
 int eStaticIntegrator::FormM(double& constM) const
 {
-#pragma unused(constM)
-	return 0;
+	if (fLHSMode == kFormMOnly) {
+		constM = 1;
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 int eStaticIntegrator::FormC(double& constC) const
@@ -28,8 +34,12 @@ int eStaticIntegrator::FormC(double& constC) const
 
 int eStaticIntegrator::FormK(double& constK) const
 {
-	constK = 1.0;
-	return 1;
+	if (fLHSMode == kFormMOnly) {
+		return 0;
+	} else {
+		constK = 1.0;
+		return 1;
+	}
 }
 
 /* components of the internal force vector */
