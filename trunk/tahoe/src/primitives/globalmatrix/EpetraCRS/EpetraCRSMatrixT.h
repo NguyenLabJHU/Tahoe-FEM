@@ -1,4 +1,4 @@
-/* $Id: EpetraCRSMatrixT.h,v 1.2 2006-11-01 05:15:31 paklein Exp $ */
+/* $Id: EpetraCRSMatrixT.h,v 1.3 2006-11-14 04:31:05 paklein Exp $ */
 #ifndef _EPETRA_CRS_MATRIX_T_H_
 #define _EPETRA_CRS_MATRIX_T_H_
 
@@ -7,6 +7,7 @@
 
 /* base class */
 #include "GlobalMatrixT.h"
+#include "Epetra_CrsMatrix.h"
 
 /* direct members */
 #include "AutoArrayT.h"
@@ -29,6 +30,10 @@ public:
 
 	/** destructor */
 	~EpetraCRSMatrixT(void);
+	
+	/** translate this to an Epetra_CrsMatrix. Requestor is responsible for
+	 * freeing the returned object */
+	Epetra_CrsMatrix* Translate(void) const;
 
 	/** set the internal matrix structure */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
@@ -65,6 +70,10 @@ public:
 
 protected:
 
+	/** solution driver. Not implemented. Added only because BackSubstitute is a pure virtual
+	 * function, and we would like to use this class to generate translate to Epetra_CrsMatrix  */
+	virtual void BackSubstitute(dArrayT& result);
+
 	/** \name check functions */
 	/*@{*/
 	virtual void PrintAllPivots(void) const;
@@ -82,6 +91,12 @@ protected:
 
 	/** matrix structure builder */
 	MSRBuilderT* fBuilder;
+
+	/** \name Epetra components */
+	/*@{*/
+	Epetra_Comm* fepetra_comm;
+	Epetra_Map* fepetra_map;
+	/*@}*/
 
 	/** \name matrix and factors in SuperLU formats */
 	/*@{*/
