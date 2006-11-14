@@ -1,4 +1,4 @@
-/* $Id: GraphT.h,v 1.6 2003-04-07 17:30:50 cjkimme Exp $ */
+/* $Id: GraphT.h,v 1.7 2006-11-14 03:27:38 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 /* generates graphs for the connectivities registered with AddGroup().    */
 /* connectivies can have an arbitrary MinorDim(), but the labels in       */
@@ -26,10 +26,20 @@ public:
 	/* constructor */
 	GraphT(bool verbose = false);
 
-	/* add a group to the graph */
+	/** \name structure data */
+	/*@{*/
+	/** add a regular group to the graph */
 	void AddGroup(const iArray2DT& groupdata);
+
+	/** add a irregular group to the graph */
 	void AddGroup(const RaggedArray2DT<int>& groupdata);
+
+	/** reset structure information */
 	void ClearGroups(void);
+
+	void GetGroups(ArrayT<const iArray2DT*>& group_data);
+	void GetGroups(ArrayT<const RaggedArray2DT<int>*>& group_data);
+	/*@}*/
 	
 	/* add nodes whose connectivities should be copied to each other */
 	void AddEquivalentNodes(const iArray2DT& equivalentNodes);

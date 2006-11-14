@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.16 2005-01-13 01:44:31 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.17 2006-11-14 03:27:38 paklein Exp $ */
 #include "GraphT.h"
 
 #include <time.h>
@@ -49,6 +49,30 @@ void GraphT::ClearGroups(void)
 {
 	fGroupData_1.Clear();
 	fGroupData_2.Clear();
+}
+
+void GraphT::GetGroups(ArrayT<const iArray2DT*>& group_data)
+{
+	group_data.Dimension(fGroupData_1.Length());
+	const iArray2DT* currgroup = NULL;
+	fGroupData_1.Top();
+	int i = 0;
+	while ( fGroupData_1.Next(currgroup) ) {
+		group_data[i] = currgroup;
+		i++;
+	}
+}
+
+void GraphT::GetGroups(ArrayT<const RaggedArray2DT<int>*>& group_data)
+{
+	group_data.Dimension(fGroupData_2.Length());
+	const RaggedArray2DT<int>* raggroup =NULL;
+	fGroupData_2.Top();
+	int i = 0;
+	while ( fGroupData_2.Next(raggroup) ) {
+		group_data[i] = raggroup;
+		i++;
+	}
 }
 
 /* add a group to the graph */
