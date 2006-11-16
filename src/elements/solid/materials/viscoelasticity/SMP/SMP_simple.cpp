@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.3 2006-11-14 22:58:06 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.4 2006-11-16 17:46:56 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -519,8 +519,10 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	
 
 	/*initializes principle viscous stretch*/
+	int iteration = 0;
 	do 
 	{
+		iteration ++;
 	    double Je=sqrt(le0*le1*le2);
 	    fEigs_dev = eigenstretch_e;
 	    fEigs_dev *= pow(Je,-2.0*third);
@@ -587,5 +589,8 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	    
 	    /*Check that the L2 norm of the residual is less than tolerance*/
 	    tol = sqrt(res0*res0 + res1*res1+res2*res2);
-	}while (tol>ctol); 
+	}while (tol>ctol && iteration < 10); 
+	if (iteration >= 10) 
+		ExceptionT::GeneralFail("SMP_simple::ComputeEigs_e", 
+			"number of iteration exceeds maximum of 10");
 }
