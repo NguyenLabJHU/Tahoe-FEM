@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.cpp,v 1.8 2006-11-12 18:29:46 tdnguye Exp $ */
+/* $Id: RGSplitT.cpp,v 1.9 2006-11-16 17:43:36 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
@@ -606,8 +606,10 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	
 
 	/*initializes principle viscous stretch*/
+	int iteration  = 0;	
 	do 
 	{
+		iteration ++;
 	    double Je=sqrt(le0*le1*le2);
 	    fEigs_dev = eigenstretch_e;
 	    fEigs_dev *= pow(Je,-2.0*third);
@@ -675,7 +677,10 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	    
 	    /*Check that the L2 norm of the residual is less than tolerance*/
 	    tol = sqrt(res0*res0 + res1*res1+res2*res2);
-	}while (tol>ctol); 
+	}while (tol>ctol && iteration < 10); 
+	if (iteration >= 10) 
+		ExceptionT::GeneralFail("RGSplitT::ComputeEigs_e", 
+			"number of iteration exceeds maximum of 10");
 }
 
 /* describe the parameters needed by the interface */
