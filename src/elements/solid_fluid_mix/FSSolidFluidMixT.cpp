@@ -698,9 +698,23 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    const double* Weight = fShapes_displ->IPWeights();
 		    fShapes_displ->TopIP();
 		    fShapes_press->TopIP();
+		    int IntegrationPointNumber =0;
 		    while (fShapes_displ->NextIP() && fShapes_press->NextIP())
 		    {
-
+				IntegrationPointNumber++ ;
+				dArrayT SolidIPCoordinate(n_sd),FluidIPCoordinate(n_sd);
+				fShapes_displ->IPCoords(SolidIPCoordinate);
+				fShapes_press->IPCoords(FluidIPCoordinate);
+				fs_mix_out	<<"Solid Integration Point "<< IntegrationPointNumber <<endl ;
+				fs_mix_out	<<SolidIPCoordinate<< endl ;
+				fs_mix_out	<<"Solid Integration Point"<< endl ;
+				fs_mix_out	<<"Fluid Integration Point "<< IntegrationPointNumber <<endl ;
+				fs_mix_out	<<FluidIPCoordinate<< endl ;
+				fs_mix_out	<<"Fluid Integration Point"<< endl ;
+				fs_mix_out	<<"Weight & Jacobian determinent"<< endl ;
+				fs_mix_out	<<"Weight = "<<(*Weight++)<< endl ;
+				fs_mix_out	<<"Jacobian determinent(for change of coordinate from global to natural) = "<<(*Det++)<< endl ;
+				fs_mix_out	<<"Weight & Jacobian determinent"<< endl ; 
 						
 				const double* shapes_displ_X = fShapes_displ->IPShapeX();
                                 /* [fShapeSolid]will be formed */
