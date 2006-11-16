@@ -1,4 +1,4 @@
-/* $Id: PressureBCT.cpp,v 1.2 2006-11-16 00:59:52 r-jones Exp $ */
+/* $Id: PressureBCT.cpp,v 1.3 2006-11-16 16:29:42 r-jones Exp $ */
 #include "PressureBCT.h"
 
 #include <math.h>
@@ -333,7 +333,7 @@ void PressureBCT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 			for (int ii = 0; ii < fSurfaces.Length(); ii++)
 			{
 	  		iArray2DT& faces2 = fSurfaces[ii];
-				for (int jj = 0; jj < faces.MajorDim(); jj++)
+				for (int jj = 0; jj < faces2.MajorDim(); jj++)
 				{		
 					const int* pface = faces2(jj);
 					eqns2.RowCollect(pface, Eqnos);
