@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.4 2006-11-16 17:46:56 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.5 2006-11-16 20:03:32 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -303,7 +303,7 @@ void SMP_simple::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("neq_potential_params", ParameterListT::Any);
 
 	/* choice of viscosity */
-	sub_list.AddSub("viscosity", ParameterListT::Any);
+	sub_list.AddSub("temp_dep_viscosity", ParameterListT::Any);
 }
 
 
@@ -345,7 +345,7 @@ ParameterInterfaceT* SMP_simple::NewSub(const StringT& name) const
 		choice->AddSub(matrix);
 		return choice;
 	}
-	else if (name == "viscosity")
+	else if (name == "temp_dep_viscosity")
 	{
 		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetListOrder(ParameterListT::Choice);
@@ -386,7 +386,7 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
 
   /*allows one neq process: */
   int num_pot = list.NumLists("neq_potential_params");
-  int num_visc = list.NumLists("viscosity");
+  int num_visc = list.NumLists("temp_dep_viscosity");
   
   if (num_pot != num_visc)
 		ExceptionT::GeneralFail("SMP_simple::TakeParameterList", 
@@ -420,7 +420,7 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
 		  fPot(i+1,2) = neq.GetParameter("gamma");
 		  fPot(i+1,3) = neq.GetParameter("beta");
 	 }
-	 const ParameterListT& visc  = list.GetListChoice(*this, "viscosity", i);
+	 const ParameterListT& visc  = list.GetListChoice(*this, "temp_dep_viscosity", i);
 	 if (visc.Name() == "temp_dependence_only")
 	 {
 		fViscType = SMP_simple::kSimple;
