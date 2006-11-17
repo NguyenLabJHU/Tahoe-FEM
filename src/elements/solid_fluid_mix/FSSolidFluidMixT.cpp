@@ -697,6 +697,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    }
 		}
 
+
                 /* populate fluid displacement in a vector */
 		for (int i=0; i<n_en_press; i++)
 		    press_vec[i] = press(i,0);
@@ -892,7 +893,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
 
                                 /* [fEffective_Second_Piola_tensor] will be formed */
-				fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
+				fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(fabs(J))-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
 				fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
 				fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
 				fs_mix_out	<<"fEffective_Second_Piola_tensor"<< endl ;
@@ -1728,6 +1729,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fTemp_matrix_ndof_se_x_nen_press.Dimension (n_en_displ_x_n_sd,n_en_press);
     fK_thetatheta_H3_1_matrix.Dimension (n_en_press,n_en_press);
     fK_thetatheta_H3_2_matrix.Dimension (n_en_press,n_en_press);
+
 
     Test_vector_A.Dimension(3);
     Test_vector_B.Dimension(3);
