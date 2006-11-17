@@ -625,6 +625,28 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		u_n.SetLocal(nodes_displ);
 		press.SetLocal(nodes_press);
 		press_n.SetLocal(nodes_press);
+
+               /* print solid displacement from previous step */
+		fs_mix_out	<<"nodal solid displacement from previous step"<< endl ;
+		for (int i=0; i<n_en_displ; i++)
+		{
+		    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
+		    for (int j=0; j<n_sd; j++)
+			fs_mix_out << u(i,j) << "\t";
+		    fs_mix_out	<< endl ;
+		}
+		 
+                /* print fluid displacement from previous step */
+		fs_mix_out	<<"nodal fluid pressure from previous step"<< endl ;
+		for (int i=0; i<n_en_press; i++)
+		{
+		    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
+		    fs_mix_out	<< press_vec[i] << endl;
+		}
+
+
+
+
                 /* applying solid boundary condition */
                 /* predefined displacement */
 		    u(2,1)=-0.1;
@@ -678,15 +700,27 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    press(7,0)=0;
 
 
-               /* print solid displacement */
-		fs_mix_out	<<"nodal solid displacement"<< endl ;
-		fs_mix_out	<< u << endl ;
+               /* print solid displacement after applying BCs */
+		fs_mix_out	<<"nodal solid displacement after applying BCs"<< endl ;
+		for (int i=0; i<n_en_displ; i++)
+		{
+		    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
+		    for (int j=0; j<n_sd; j++)
+			fs_mix_out << u(i,j) << "\t";
+		    fs_mix_out	<< endl ;
+		}
 
-                /* print fluid displacement */
-		fs_mix_out	<<"nodal fluid pressure"<< endl ;
-		fs_mix_out	<< press << endl ;
 
-                /* populate solid displacement in a vector */
+                /* print fluid displacement after applying BCs */
+		fs_mix_out	<<"nodal fluid pressure after applying BCs"<< endl ;
+		for (int i=0; i<n_en_press; i++)
+		{
+		    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
+		    fs_mix_out	<< press_vec[i] << endl;
+		}
+
+
+                /* populate solid displacement in a vector after applying BCs */
 		int index = 0;
 		for (int i=0; i<n_en_displ; i++)
 		{
