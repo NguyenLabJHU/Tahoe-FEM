@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.4 2006-11-12 18:28:36 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.5 2006-11-17 17:44:44 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -89,14 +89,14 @@ protected:
 	virtual void dFlowdCv (const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v, dSymMatrixT& FiberMod,  const int pindex);
 
 	/*returns viscosity tensor for given C and Cv in local frame*/
-	virtual void ComputeViscosity(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  dSymMatrixT& Visc, 
+	virtual void ComputeViscosity(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  dMatrixT& Visc, 
 				const int process_index);
 
 	/*returns viscosity tensor for given C and Cv in local frame, dV^-1_IK/dCv_J Sig_K/*/
-	virtual void ComputeDViscDCv(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, const dArrayT& Vec, dSymMatrixT& DVisc, 
+	virtual void ComputeDViscDCv(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, const dArrayT& Vec, dMatrixT& DVisc, 
 				const int process_index);
 
-	virtual void ComputeDViscDC(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  const dArrayT& Vec, dSymMatrixT& DVisc, 
+	virtual void ComputeDViscDC(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v,  const dArrayT& Vec, dMatrixT& DVisc, 
 				const int process_index);
 				
 	/* strained lengths in terms of the Lagrangian stretch eigenvalues */
@@ -128,7 +128,7 @@ protected:
 	/*dimension fNumProcess*/
 	ArrayT<C1FunctionT*> fViscosity;
 	/*invserse of the viscosity*/
-	dSymMatrixT fiVisc;
+	dMatrixT fiVisc;
 	
 	/*workspaces*/
 	/*workspaces*/
@@ -138,6 +138,7 @@ protected:
 	dMatrixT fG;
 	dSymMatrixT fMod1;
 	dMatrixT fMod2;
+	dMatrixT fMod3;
 	dArrayT fVec;
 	dMatrixT fCalg;
 

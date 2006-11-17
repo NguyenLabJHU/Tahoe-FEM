@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.4 2006-11-12 18:28:36 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.5 2006-11-17 17:44:44 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -404,6 +404,7 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 	fG.Dimension(fNumFibStress);
 	fMod1.Dimension(fNumFibStress);
 	fMod2.Dimension(fNumFibStress);
+	fMod3.Dimension(fNumFibStress);
 	fVec.Dimension(fNumFibStress);
 
 	/*dimension state variable storage arrays*/
@@ -689,43 +690,43 @@ void AnisoCorneaVisco::ComputeCalg(const dSymMatrixT& FiberStretch, const dSymMa
 
 	/*Compute viscosity*/
 	ComputeViscosity(FiberStretch, FiberStretch_v, fiVisc, pindex);
+	fiVisc(0,2) *= 2.0;
+	fiVisc(1,2) *= 2.0;
+	fiVisc(2,2) *= 2.0;
 	fiVisc.Inverse(); 
-
-	/*Compute flow stress*/
-	ComputeFlowStress(FiberStretch, FiberStretch_v, fFlowStress, pindex);
-
-	fVec[0] = (fiVisc(0,0)*fFlowStress[0] + fiVisc(0,1)*fFlowStress[1] + fiVisc(0,2)*fFlowStress[2]);
-	fVec[1] = (fiVisc(1,0)*fFlowStress[0] + fiVisc(1,1)*fFlowStress[1] + fiVisc(1,2)*fFlowStress[2]);
-	fVec[2] = (fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] + fiVisc(2,2)*fFlowStress[2]);
-
 	/*compute Kij = del_ij - dt*V^-1_ik 2dS_k/dCfvt_j*/
 	/*Cfvt = {Cfv11, Cfv22, 2 Cfv12}*/
 	/*stress term*/
 	dFlowdCv(FiberStretch, FiberStretch_v, fMod1, pindex);
 	fMod1.ToMatrix(fMod2);
 		
-	fMod2(0,2) *= 0.5;
-	fMod2(1,2) *= 0.5;
-	fMod2(2,2) *= 0.5;
+	fMod2(0,2) *= 2.0;
+	fMod2(1,2) *= 2.0;
+	fMod2(2,2) *= 2.0;
 
-	fiK(0,0) = 1.0-dt*(fiVisc(0,0)*fMod2(0,0)+fiVisc(0,1)*fMod2(1,0)+fiVisc(0,2)*fMod2(2,0));
-	fiK(1,1) = 1.0-dt*(fiVisc(1,0)*fMod2(0,1)+fiVisc(1,1)*fMod2(1,1)+fiVisc(1,2)*fMod2(2,1));
-	fiK(2,2) = 1.0-dt*(fiVisc(2,0)*fMod2(0,2)+fiVisc(2,1)*fMod2(1,2)+fiVisc(2,2)*fMod2(2,2));
+	fiK(0,0) = 1.0 - dt*(fiVisc(0,0)*fMod2(0,0)+fiVisc(0,1)*fMod2(1,0)+fiVisc(0,2)*fMod2(2,0));
+	fiK(1,1) = 1.0 - dt*(fiVisc(1,0)*fMod2(0,1)+fiVisc(1,1)*fMod2(1,1)+fiVisc(1,2)*fMod2(2,1));
+	fiK(2,2) = 1.0 - dt*(fiVisc(2,0)*fMod2(0,2)+fiVisc(2,1)*fMod2(1,2)+fiVisc(2,2)*fMod2(2,2));
 
-	fiK(0,1) = - dt*(fiVisc(0,0)*fMod2(0,1)+fiVisc(0,1)*fMod2(1,1)+fiVisc(0,2)*fMod2(2,1));
-	fiK(0,2) = - dt*(fiVisc(0,0)*fMod2(0,2)+fiVisc(0,1)*fMod2(1,2)+fiVisc(0,2)*fMod2(2,2));
-	fiK(1,2) = - dt*(fiVisc(1,0)*fMod2(0,2)+fiVisc(1,1)*fMod2(1,2)+fiVisc(1,2)*fMod2(2,2));
+	fiK(0,1) = -dt*(fiVisc(0,0)*fMod2(0,1)+fiVisc(0,1)*fMod2(1,1)+fiVisc(0,2)*fMod2(2,1));
+	fiK(0,2) = -dt*(fiVisc(0,0)*fMod2(0,2)+fiVisc(0,1)*fMod2(1,2)+fiVisc(0,2)*fMod2(2,2));
+	fiK(1,2) = -dt*(fiVisc(1,0)*fMod2(0,2)+fiVisc(1,1)*fMod2(1,2)+fiVisc(1,2)*fMod2(2,2));
 
-	fiK(1,0) = - dt*(fiVisc(1,0)*fMod2(0,0)+fiVisc(1,1)*fMod2(1,0)+fiVisc(1,2)*fMod2(2,0));
-	fiK(2,0) = - dt*(fiVisc(2,0)*fMod2(0,0)+fiVisc(2,1)*fMod2(1,0)+fiVisc(2,2)*fMod2(2,0));
-	fiK(2,1) = - dt*(fiVisc(2,0)*fMod2(0,1)+fiVisc(2,1)*fMod2(1,1)+fiVisc(2,2)*fMod2(2,1));
+	fiK(1,0) = -dt*(fiVisc(1,0)*fMod2(0,0)+fiVisc(1,1)*fMod2(1,0)+fiVisc(1,2)*fMod2(2,0));
+	fiK(2,0) = -dt*(fiVisc(2,0)*fMod2(0,0)+fiVisc(2,1)*fMod2(1,0)+fiVisc(2,2)*fMod2(2,0));
+	fiK(2,1) = -dt*(fiVisc(2,0)*fMod2(0,1)+fiVisc(2,1)*fMod2(1,1)+fiVisc(2,2)*fMod2(2,1));
 
 	/*viscosity terms*/
-	ComputeDViscDCv(FiberStretch, FiberStretch_v, fVec, fMod1, pindex);
-	fMod1.ToMatrix(fMod2);
-	fMod2(0,2) *= 0.5;
-	fMod2(1,2) *= 0.5;
-	fMod2(2,2) *= 0.5;
+	/*Compute flow stress*/
+	ComputeFlowStress(FiberStretch, FiberStretch_v, fFlowStress, pindex);
+	fVec[0] = (fiVisc(0,0)*fFlowStress[0] + fiVisc(0,1)*fFlowStress[1] + fiVisc(0,2)*fFlowStress[2]);
+	fVec[1] = (fiVisc(1,0)*fFlowStress[0] + fiVisc(1,1)*fFlowStress[1] + fiVisc(1,2)*fFlowStress[2]);
+	fVec[2] = (fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] + fiVisc(2,2)*fFlowStress[2]);
+
+	ComputeDViscDCv(FiberStretch, FiberStretch_v, fVec, fMod2, pindex);
+	fMod2(0,2) *= 2.0;
+	fMod2(1,2) *= 2.0;
+	fMod2(2,2) *= 2.0;
 
 	fiK(0,0) += dt*(fiVisc(0,0)*fMod2(0,0)+fiVisc(0,1)*fMod2(1,0)+fiVisc(0,2)*fMod2(2,0));
 	fiK(1,1) += dt*(fiVisc(1,0)*fMod2(0,1)+fiVisc(1,1)*fMod2(1,1)+fiVisc(1,2)*fMod2(2,1));
@@ -745,9 +746,9 @@ void AnisoCorneaVisco::ComputeCalg(const dSymMatrixT& FiberStretch, const dSymMa
 	/*stress term*/
 	dFlowdC(FiberStretch, FiberStretch_v, fMod1,  pindex);
 	fMod1.ToMatrix(fMod2);
-	fMod2(0,2) *= 0.5;
-	fMod2(1,2) *= 0.5;
-	fMod2(2,2) *= 0.5;
+	fMod2(0,2) *= 2.0;
+	fMod2(1,2) *= 2.0;
+	fMod2(2,2) *= 2.0;
 
 	/*compute dt V^-1_KL 2dFlow_L/dCft_J*/
 	fG(0,0) = dt*(fiVisc(0,0)*fMod2(0,0)+fiVisc(0,1)*fMod2(1,0)+fiVisc(0,2)*fMod2(2,0));
@@ -763,11 +764,10 @@ void AnisoCorneaVisco::ComputeCalg(const dSymMatrixT& FiberStretch, const dSymMa
 	fG(2,1) = dt*(fiVisc(2,0)*fMod2(0,1)+fiVisc(2,1)*fMod2(1,1)+fiVisc(2,2)*fMod2(2,1));
 
 	/*viscosity terms*/
-	ComputeDViscDC(FiberStretch, FiberStretch_v, fVec, fMod1, pindex);
-	fMod1.ToMatrix(fMod2);
-	fMod2(0,2) *= 0.5;
-	fMod2(1,2) *= 0.5;
-	fMod2(2,2) *= 0.5;
+	ComputeDViscDC(FiberStretch, FiberStretch_v, fVec, fMod2, pindex);
+	fMod2(0,2) *= 2.0;
+	fMod2(1,2) *= 2.0;
+	fMod2(2,2) *= 2.0;
 	
 //	cout << "\ncomputeCalg: ";
 //	cout << "\nfMod2: "<<fMod2;
@@ -783,23 +783,33 @@ void AnisoCorneaVisco::ComputeCalg(const dSymMatrixT& FiberStretch, const dSymMa
 	fG(1,0) += -dt*(fiVisc(1,0)*fMod2(0,0)+fiVisc(1,1)*fMod2(1,0)+fiVisc(1,2)*fMod2(2,0));
 	fG(2,0) += -dt*(fiVisc(2,0)*fMod2(0,0)+fiVisc(2,1)*fMod2(1,0)+fiVisc(2,2)*fMod2(2,0));
 	fG(2,1) += -dt*(fiVisc(2,0)*fMod2(0,1)+fiVisc(2,1)*fMod2(1,1)+fiVisc(2,2)*fMod2(2,1));
-
 		
-	/*compute dSNEQ_I/dCfv_M K^-1_MK */
+	/*compute Calg = dSNEQ_I/dCfv.(K^-1.G) */
 	dFlowdC(FiberStretch, FiberStretch_v, fMod1,  pindex);
-	fMod2(0,0) = -(fMod1(0,0)*fiK(0,0)+fMod1(0,1)*fiK(1,0)+fMod1(0,2)*fiK(2,0));
-	fMod2(1,1) = -(fMod1(1,0)*fiK(0,1)+fMod1(1,1)*fiK(1,1)+fMod1(1,2)*fiK(2,1));
-	fMod2(2,2) = -(fMod1(2,0)*fiK(0,2)+fMod1(2,1)*fiK(1,2)+fMod1(2,2)*fiK(2,2));
 
-	fMod2(0,1) = -(fMod1(0,0)*fiK(0,1)+fMod1(0,1)*fiK(1,1)+fMod1(0,2)*fiK(2,1));
-	fMod2(0,2) = -(fMod1(0,0)*fiK(0,2)+fMod1(0,1)*fiK(1,2)+fMod1(0,2)*fiK(2,2));
-	fMod2(1,2) = -(fMod1(1,0)*fiK(0,2)+fMod1(1,1)*fiK(1,2)+fMod1(1,2)*fiK(2,2));
+	fMod1.ToMatrix(fMod3);
+	fMod3(0,2) *= 2.0;
+	fMod3(1,2) *= 2.0;
+	fMod3(2,2) *= 2.0;
 
-	fMod2(1,0) = -(fMod1(1,0)*fiK(0,0)+fMod1(1,1)*fiK(1,0)+fMod1(1,2)*fiK(2,0));
-	fMod2(2,0) = -(fMod1(2,0)*fiK(0,0)+fMod1(2,1)*fiK(1,0)+fMod1(2,2)*fiK(2,0));
-	fMod2(2,1) = -(fMod1(2,0)*fiK(0,1)+fMod1(2,1)*fiK(1,1)+fMod1(2,2)*fiK(2,1));
+	fMod2(0,0) = -(fMod3(0,0)*fiK(0,0)+fMod3(0,1)*fiK(1,0)+fMod3(0,2)*fiK(2,0));
+	fMod2(1,1) = -(fMod3(1,0)*fiK(0,1)+fMod3(1,1)*fiK(1,1)+fMod3(1,2)*fiK(2,1));
+	fMod2(2,2) = -(fMod3(2,0)*fiK(0,2)+fMod3(2,1)*fiK(1,2)+fMod3(2,2)*fiK(2,2));
+
+	fMod2(0,1) = -(fMod3(0,0)*fiK(0,1)+fMod3(0,1)*fiK(1,1)+fMod3(0,2)*fiK(2,1));
+	fMod2(0,2) = -(fMod3(0,0)*fiK(0,2)+fMod3(0,1)*fiK(1,2)+fMod3(0,2)*fiK(2,2));
+	fMod2(1,2) = -(fMod3(1,0)*fiK(0,2)+fMod3(1,1)*fiK(1,2)+fMod3(1,2)*fiK(2,2));
+
+	fMod2(1,0) = -(fMod3(1,0)*fiK(0,0)+fMod3(1,1)*fiK(1,0)+fMod3(1,2)*fiK(2,0));
+	fMod2(2,0) = -(fMod3(2,0)*fiK(0,0)+fMod3(2,1)*fiK(1,0)+fMod3(2,2)*fiK(2,0));
+	fMod2(2,1) = -(fMod3(2,0)*fiK(0,1)+fMod3(2,1)*fiK(1,1)+fMod3(2,2)*fiK(2,1));
 		
 	Calg.MultAB(fMod2, fG);
+	/*convert Calg back to matrix system*/
+	Calg(0,2) *= 0.5;
+	Calg(1,2) *= 0.5;
+	Calg(2,2) *= 0.5; 
+
 }
 
 /*local newton loop for viscous stretch tensor*/ 
@@ -814,6 +824,9 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMat
 
 	/*compute  viscosity  based on currn values of stretch matrices, C and Cv*/
 	ComputeViscosity(FiberStretch, FiberStretch_v, fiVisc, pindex);
+	fiVisc(0,2) *= 2.0;
+	fiVisc(1,2) *= 2.0;
+	fiVisc(2,2) *= 2.0;	
 	fiVisc.Inverse(); 
 
 	/*Compute flow stress*/
@@ -823,8 +836,8 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMat
 			+ fiVisc(0,2)*fFlowStress[2]) - FiberStretch_vn[0];
 	fResidual[1] = FiberStretch_v[1] - 2.0*dt*(fiVisc(1,0)*fFlowStress[0] + fiVisc(1,1)*fFlowStress[1] 
 			+ fiVisc(1,2)*fFlowStress[2]) - FiberStretch_vn[1];
-	fResidual[2] = 2.0*FiberStretch_v[2] - 2.0*dt*(fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] 
-			+ fiVisc(2,2)*fFlowStress[2]) - 2.0*FiberStretch_vn[2];
+	fResidual[2] = FiberStretch_v[2] - 2.0*dt*(fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] 
+			+ fiVisc(2,2)*fFlowStress[2]) - FiberStretch_vn[2];
 	
 	do 
 	{
@@ -834,33 +847,34 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMat
 		dFlowdCv(FiberStretch, FiberStretch_v, fMod1, pindex);
 		fMod1.ToMatrix(fMod2);
 		
-		fMod2(0,2) *= 0.5;
-		fMod2(1,2) *= 0.5;
-		fMod2(2,2) *= 0.5;
+		fMod2(0,2) *= 2.0;
+		fMod2(1,2) *= 2.0;
+		fMod2(2,2) *= 2.0;
+		
+		fiK(0,0) = 1.0 - dt*(fiVisc(0,0)*fMod2(0,0)+fiVisc(0,1)*fMod2(1,0)+fiVisc(0,2)*fMod2(2,0));
+		fiK(1,1) = 1.0 - dt*(fiVisc(1,0)*fMod2(0,1)+fiVisc(1,1)*fMod2(1,1)+fiVisc(1,2)*fMod2(2,1));
+		fiK(2,2) = 1.0 - dt*(fiVisc(2,0)*fMod2(0,2)+fiVisc(2,1)*fMod2(1,2)+fiVisc(2,2)*fMod2(2,2));
 
-		fiK(0,0) = 1.0-dt*(fiVisc(0,0)*fMod2(0,0)+fiVisc(0,1)*fMod2(1,0)+fiVisc(0,2)*fMod2(2,0));
-		fiK(1,1) = 1.0-dt*(fiVisc(1,0)*fMod2(0,1)+fiVisc(1,1)*fMod2(1,1)+fiVisc(1,2)*fMod2(2,1));
-		fiK(2,2) = 1.0-dt*(fiVisc(2,0)*fMod2(0,2)+fiVisc(2,1)*fMod2(1,2)+fiVisc(2,2)*fMod2(2,2));
+		fiK(0,1) = -dt*(fiVisc(0,0)*fMod2(0,1)+fiVisc(0,1)*fMod2(1,1)+fiVisc(0,2)*fMod2(2,1));
+		fiK(0,2) = -dt*(fiVisc(0,0)*fMod2(0,2)+fiVisc(0,1)*fMod2(1,2)+fiVisc(0,2)*fMod2(2,2));
+		fiK(1,2) = -dt*(fiVisc(1,0)*fMod2(0,2)+fiVisc(1,1)*fMod2(1,2)+fiVisc(1,2)*fMod2(2,2));
 
-		fiK(0,1) = - dt*(fiVisc(0,0)*fMod2(0,1)+fiVisc(0,1)*fMod2(1,1)+fiVisc(0,2)*fMod2(2,1));
-		fiK(0,2) = - dt*(fiVisc(0,0)*fMod2(0,2)+fiVisc(0,1)*fMod2(1,2)+fiVisc(0,2)*fMod2(2,2));
-		fiK(1,2) = - dt*(fiVisc(1,0)*fMod2(0,2)+fiVisc(1,1)*fMod2(1,2)+fiVisc(1,2)*fMod2(2,2));
-
-		fiK(1,0) = - dt*(fiVisc(1,0)*fMod2(0,0)+fiVisc(1,1)*fMod2(1,0)+fiVisc(1,2)*fMod2(2,0));
-		fiK(2,0) = - dt*(fiVisc(2,0)*fMod2(0,0)+fiVisc(2,1)*fMod2(1,0)+fiVisc(2,2)*fMod2(2,0));
-		fiK(2,1) = - dt*(fiVisc(2,0)*fMod2(0,1)+fiVisc(2,1)*fMod2(1,1)+fiVisc(2,2)*fMod2(2,1));
+		fiK(1,0) = -dt*(fiVisc(1,0)*fMod2(0,0)+fiVisc(1,1)*fMod2(1,0)+fiVisc(1,2)*fMod2(2,0));
+		fiK(2,0) = -dt*(fiVisc(2,0)*fMod2(0,0)+fiVisc(2,1)*fMod2(1,0)+fiVisc(2,2)*fMod2(2,0));
+		fiK(2,1) = -dt*(fiVisc(2,0)*fMod2(0,1)+fiVisc(2,1)*fMod2(1,1)+fiVisc(2,2)*fMod2(2,1));
 
 
 		/*viscosity terms*/
+		/*V^-1.Sig*/
 		fVec[0] = (fiVisc(0,0)*fFlowStress[0] + fiVisc(0,1)*fFlowStress[1] + fiVisc(0,2)*fFlowStress[2]);
 		fVec[1] = (fiVisc(1,0)*fFlowStress[0] + fiVisc(1,1)*fFlowStress[1] + fiVisc(1,2)*fFlowStress[2]);
 		fVec[2] = (fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] + fiVisc(2,2)*fFlowStress[2]);
 
-		ComputeDViscDCv(FiberStretch, FiberStretch_v, fVec, fMod1, pindex);
-		fMod1.ToMatrix(fMod2);
-		fMod2(0,2) *= 0.5;
-		fMod2(1,2) *= 0.5;
-		fMod2(2,2) *= 0.5;
+		/*2 d(V)/dC.V^-1.Sig*/
+		ComputeDViscDCv(FiberStretch, FiberStretch_v, fVec, fMod2, pindex);
+		fMod2(0,2) *= 2.0;
+		fMod2(1,2) *= 2.0;
+		fMod2(2,2) *= 2.0;
 
 		fiK(0,0) += dt*(fiVisc(0,0)*fMod2(0,0)+fiVisc(0,1)*fMod2(1,0)+fiVisc(0,2)*fMod2(2,0));
 		fiK(1,1) += dt*(fiVisc(1,0)*fMod2(0,1)+fiVisc(1,1)*fMod2(1,1)+fiVisc(1,2)*fMod2(2,1));
@@ -875,8 +889,7 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMat
 		fiK(2,1) += dt*(fiVisc(2,0)*fMod2(0,1)+fiVisc(2,1)*fMod2(1,1)+fiVisc(2,2)*fMod2(2,1));
 	
 		fiK.Inverse();
-		
-		
+				
 		/*calculate increment of Cfvt*/
 		double dCfvt0 = -(fiK(0,0)*fResidual[0] + fiK(0,1)*fResidual[1] + fiK(0,2)*fResidual[2]);
 		double dCfvt1 = -(fiK(1,0)*fResidual[0] + fiK(1,1)*fResidual[1] + fiK(1,2)*fResidual[2]);
@@ -885,7 +898,7 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMat
 		/*calculate update*/
 		FiberStretch_v[0] += dCfvt0;
 		FiberStretch_v[1] += dCfvt1;
-		FiberStretch_v[2] += 0.5*dCfvt2;
+		FiberStretch_v[2] += dCfvt2;
 		
 //		cout << "\niteration: "<<iteration;
 //		cout <<setprecision(12)<< "\nCf: "<<Cf;			
@@ -899,6 +912,9 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMat
 
 		/*Compute viscosity*/
 		ComputeViscosity(FiberStretch, FiberStretch_v, fiVisc, pindex);
+		fiVisc(0,2) *= 2.0;
+		fiVisc(1,2) *= 2.0;
+		fiVisc(2,2) *= 2.0;
 		fiVisc.Inverse(); 
 
 		/*compute flow stress based on current values of stretch matrices, C and Cv*/
@@ -906,17 +922,17 @@ void AnisoCorneaVisco::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMat
 		
 		/*residual at the zeroth iteration*/
 		fResidual[0] = FiberStretch_v[0] - 2.0*dt*(fiVisc(0,0)*fFlowStress[0] + fiVisc(0,1)*fFlowStress[1] 
-				+ fiVisc(0,2)*fFlowStress[2]) - FiberStretch_vn[0];
+			+ fiVisc(0,2)*fFlowStress[2]) - FiberStretch_vn[0];
 		fResidual[1] = FiberStretch_v[1] - 2.0*dt*(fiVisc(1,0)*fFlowStress[0] + fiVisc(1,1)*fFlowStress[1] 
-				+ fiVisc(1,2)*fFlowStress[2]) - FiberStretch_vn[1];
-		fResidual[2] = 2.0*FiberStretch_v[2] - 2.0*dt*(fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] 
-				+ fiVisc(2,2)*fFlowStress[2]) - 2.0*FiberStretch_vn[2];
+			+ fiVisc(1,2)*fFlowStress[2]) - FiberStretch_vn[1];
+		fResidual[2] = FiberStretch_v[2] - 2.0*dt*(fiVisc(2,0)*fFlowStress[0] + fiVisc(2,1)*fFlowStress[1] 
+			+ fiVisc(2,2)*fFlowStress[2]) - FiberStretch_vn[2];
 		
 		error = sqrt(fResidual[0]*fResidual[0] + fResidual[1]*fResidual[1] + fResidual[2]*fResidual[2]);
 
 //		cout <<"\niteration: "<<iteration;
 //		cout<< "\nerror: "<<error;
-
+	
 		iteration++;
 	}while (error > kSmall && iteration < 6);
 	if (iteration >= 10) 
@@ -1072,7 +1088,7 @@ void AnisoCorneaVisco::dFlowdCv (const dSymMatrixT& FiberStretch, const dSymMatr
 }
 
 void AnisoCorneaVisco::ComputeViscosity(const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v,  
-			dSymMatrixT& Visc,  const int pindex)
+			dMatrixT& Visc,  const int pindex)
 {
 	/*calculate I4e and I4v*/
 	CompI4(FiberStretch, FiberStretch_v);
@@ -1092,12 +1108,12 @@ void AnisoCorneaVisco::ComputeViscosity(const dSymMatrixT& FiberStretch, const d
 	double* pc12  = fModuliTable(5);
 	
 	Visc = 0.0;
-	double& v11 = Visc[0]; /*cf_1111*/
-	double& v22 = Visc[1]; /*cf_2222*/
-	double& v33 = Visc[2]; /*cf_1212*/
-	double& v23 = Visc[3]; /*cf_2212*/
-	double& v13 = Visc[4]; /*cf_1112*/
-	double& v12 = Visc[5]; /*cf_1122*/
+	double& v11 = Visc(0,0); /*cf_1111*/
+	double& v22 = Visc(1,1); /*cf_2222*/
+	double& v33 = Visc(2,2); /*cf_1212*/
+	double& v23 = Visc(1,2); /*cf_2212*/
+	double& v13 = Visc(0,2); /*cf_1112*/
+	double& v12 = Visc(0,1); /*cf_1122*/
 
 	for (int i = 0; i < I4e.Length(); i++)
 	{
@@ -1117,12 +1133,15 @@ void AnisoCorneaVisco::ComputeViscosity(const dSymMatrixT& FiberStretch, const d
 		v13 += vfactor*(*pc13++);
 		v12 += vfactor*(*pc12++);
 	}
+	Visc(2,1) = Visc(1,2);
+	Visc(2,0) = Visc(0,2);
+	Visc(1,0) = Visc(0,1);
 }
 				
 
 /*returns viscosity tensor for given C and Cv in local frame, dV^-1_IK/dCv_J Sig_K/*/
 void  AnisoCorneaVisco::ComputeDViscDCv(const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v,
-		const dArrayT& Vec, dSymMatrixT& DVisc, const int pindex)
+		const dArrayT& Vec, dMatrixT& DVisc, const int pindex)
 {
 	/*calculate I4e and I4v*/
 	CompI4(FiberStretch, FiberStretch_v);
@@ -1159,12 +1178,12 @@ void  AnisoCorneaVisco::ComputeDViscDCv(const dSymMatrixT& FiberStretch, const d
 	double* pc12  = fModuliTable(5);
 	
 	DVisc = 0.0;
-	double& dv11 = DVisc[0]; /*cf_1111*/
-	double& dv22 = DVisc[1]; /*cf_2222*/
-	double& dv33 = DVisc[2]; /*cf_1212*/
-	double& dv23 = DVisc[3]; /*cf_2212*/
-	double& dv13 = DVisc[4]; /*cf_1112*/
-	double& dv12 = DVisc[5]; /*cf_1122*/
+	double& dv11 = DVisc(0,0); /*cf_1111*/
+	double& dv22 = DVisc(1,1); /*cf_2222*/
+	double& dv33 = DVisc(2,2); /*cf_1212*/
+	double& dv23 = DVisc(1,2); /*cf_2212*/
+	double& dv13 = DVisc(0,2); /*cf_1112*/
+	double& dv12 = DVisc(0,1); /*cf_1122*/
 
 	for (int i = 0; i < I4e.Length(); i++)
 	{
@@ -1174,7 +1193,7 @@ void  AnisoCorneaVisco::ComputeDViscDCv(const dSymMatrixT& FiberStretch, const d
 		double dvisc = fViscosity[pindex]->DFunction(tau);
 
 		double coeff1 = - (dvisc*dtau*(*ple) + 4.0*visc)/((*plv)*(*plv)*(*plv));
-		double coeff2 =  coeff1*((*p1++)*Vec[0]+(*p2++)*Vec[1]+(*p3++)*Vec[2]);
+		double coeff2 =  coeff1*((*p1++)*Vec[0]+(*p2++)*Vec[1]+2.0*(*p3++)*Vec[2]);
 		double coeff3 =  coeff2*(*pj++)*0.5/Pi;
 		
 		ple++;
@@ -1196,11 +1215,14 @@ void  AnisoCorneaVisco::ComputeDViscDCv(const dSymMatrixT& FiberStretch, const d
 		dv13 += coeff3*(*pc13++);
 		dv12 += coeff3*(*pc12++);
 	}
+	DVisc(2,1) = DVisc(1,2);
+	DVisc(2,0) = DVisc(0,2);
+	DVisc(1,0) = DVisc(0,1);
 }
 				
 /*returns viscosity tensor for given C and Cv in local frame, dV^-1_IK/dC_J Sig_K/*/
 void  AnisoCorneaVisco::ComputeDViscDC(const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v,
-		const dArrayT& Vec, dSymMatrixT& DVisc, const int pindex)
+		const dArrayT& Vec, dMatrixT& DVisc, const int pindex)
 {
 	/*calculate I4e and I4v*/
 	CompI4(FiberStretch, FiberStretch_v);
@@ -1237,12 +1259,12 @@ void  AnisoCorneaVisco::ComputeDViscDC(const dSymMatrixT& FiberStretch, const dS
 	double* pc12  = fModuliTable(5);
 	
 	DVisc = 0.0;
-	double& dv11 = DVisc[0]; /*cf_1111*/
-	double& dv22 = DVisc[1]; /*cf_2222*/
-	double& dv33 = DVisc[2]; /*cf_1212*/
-	double& dv23 = DVisc[3]; /*cf_2212*/
-	double& dv13 = DVisc[4]; /*cf_1112*/
-	double& dv12 = DVisc[5]; /*cf_1122*/
+	double& dv11 = DVisc(0,0); /*cf_1111*/
+	double& dv22 = DVisc(1,1); /*cf_2222*/
+	double& dv33 = DVisc(2,2); /*cf_1212*/
+	double& dv23 = DVisc(1,2); /*cf_2212*/
+	double& dv13 = DVisc(0,2); /*cf_1112*/
+	double& dv12 = DVisc(0,1); /*cf_1122*/
 
 	for (int i = 0; i < I4e.Length(); i++)
 	{
@@ -1252,7 +1274,7 @@ void  AnisoCorneaVisco::ComputeDViscDC(const dSymMatrixT& FiberStretch, const dS
 		double dvisc = fViscosity[pindex]->DFunction(tau);
 
 		double coeff1 = (dvisc*dtau)/((*plv)*(*plv)*(*plv));
-		double coeff2 =  coeff1*((*p1++)*Vec[0]+(*p2++)*Vec[1]+(*p3++)*Vec[2]);
+		double coeff2 =  coeff1*((*p1++)*Vec[0]+(*p2++)*Vec[1]+2.0*(*p3++)*Vec[2]);
 		double coeff3 =  coeff2*(*pj++)*0.5/Pi;
 		
 		ple++;
@@ -1274,6 +1296,9 @@ void  AnisoCorneaVisco::ComputeDViscDC(const dSymMatrixT& FiberStretch, const dS
 		dv13 += coeff3*(*pc13++);
 		dv12 += coeff3*(*pc12++);
 	}
+	DVisc(2,1) = DVisc(1,2);
+	DVisc(2,0) = DVisc(0,2);
+	DVisc(1,0) = DVisc(0,1);
 }
 
 /*calculates  I4=C:M*/
