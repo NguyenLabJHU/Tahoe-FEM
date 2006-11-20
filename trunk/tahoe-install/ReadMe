@@ -1,4 +1,4 @@
-# $Id: ReadMe,v 1.4 2005-09-29 01:59:10 paklein Exp $
+# $Id: ReadMe,v 1.5 2006-11-20 16:18:55 r-jones Exp $
 
 0. QUICKSTART
 Run:
@@ -99,3 +99,12 @@ TAHOE_BUILD = [if this is "default" only the core modules will be built]
 ... none of these variables are required, but the can speed up initial
 configuration if they are placing in a shell start-up script like ".cshrc".
 The "PATH" and "USER" environmental variables are also used.
+
+
+3. DOCUMENTATION
+Also, the file "tahoe.doxygen" can create source code documentation via the 
+program "doxygen":
+$> doxygen tahoe.doxygen
+will create an "html" subdirectory. Point your browser at 
+"<TAHOE_HOME>/html/index.html"
+and enjoy!
