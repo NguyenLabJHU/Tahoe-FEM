@@ -1,13 +1,11 @@
-/* $Id: PressureBCT.h,v 1.2 2006-11-16 00:59:52 r-jones Exp $ */
+/* $Id: PressureBCT.h,v 1.3 2006-11-20 17:27:35 r-jones Exp $ */
 
 #ifndef _PRESSURE_BC_T_H_
 #define _PRESSURE_BC_T_H_
 
 /* base class */
 #include "FBC_ControllerT.h"
-#if 0
 #include "DOFElementT.h"
-#endif
 
 /* direct members */
 #include "iArrayT.h"
@@ -25,10 +23,7 @@ class ScheduleT;
 class XDOF_ManagerT;
 
 
-#if 0
 class PressureBCT: public FBC_ControllerT, public DOFElementT
-#endif
-class PressureBCT: public FBC_ControllerT
 {
 public:
 
@@ -93,7 +88,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+//	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
@@ -102,7 +97,6 @@ public:
 	enum ControlTypesT { kPressureControl = 0,
 	                     kVolumeControl = 1 };
 
-#if 0
   /** \name implementation of the DOFElementT interface */
   /*@{*/
   /* returns the array for the DOF tags needed for the current config */
@@ -128,36 +122,36 @@ public:
 	 * freedom belong. */
 	virtual int Group(void) const;
 	/*@}*/
-#endif
 
 private:
-	void InputSideSets(const ParameterListT& list, 
-			GeometryT::CodeT geom_code, 
-			iArray2DT& facets);
-	void ComputeVolume(DomainIntegrationT& domain, dArray2DT& coord,
-			                double& volume, double& area);
-	void ComputeForce(DomainIntegrationT& domain, dArray2DT& coord,
-			                dArray2DT& force);
-	void ComputeStiffness(DomainIntegrationT& domain, dArray2DT& coord, 
-			                ElementMatrixT& stiffness);
-	void ComputeVolumeStiffness(DomainIntegrationT& domain, dArray2DT& coord, 
-			                dArray2DT& delV);
-	int Connectivities(iArray2DT& conn);
+	void ComputeVolume(dArray2DT& coord, double& volume, double& area);
+	void ComputeForce(dArray2DT& coord, dArray2DT& force);
+	void ComputeStiffness(dArray2DT& coord, ElementMatrixT& stiffness);
+	void ComputeVolumeStiffness(dArray2DT& coord, dArray2DT& delV);
+	void SetConnectivities(void);
 
+	// workspace
+	dArray2DT fcoord;
+	dArray2DT fforce;
+	iArray2DT feqns;
+	iArray2DT feqns2;
+	dArray2DT fdelV;
+	dArray2DT fdelP;
 
 protected:
 
-	ArrayT<iArray2DT> fSurfaces;
-	ArrayT<DomainIntegrationT*> fDomains;
+	ArrayT<StringT> fssetIDs; /** id's of all the side sets */
+	DomainIntegrationT* fDomain; /** integration domain, e.g. 4node quad */
+	iArray2DT fFaces; /** all the faces in the affected surface */
 	const ScheduleT* fSchedule ; /**< NULL if there is no time dependence */
 	double fScheduleScale; /**< schedule scaling to get pressure (or change in volumee */
-	int fNumNodes; /**< number of nodes */
-	int fNumSurfaces; /**< number of surfaces */
 	int fOutputID; /** output ID */
 	int fControlType; /** control pressure or volume */
+	int fUseMultipliers; /** use Lagrange multipliers */
 	double fPenalty; /** penalty for volume control */
 	int fndir; /** gross normal direction for surfae, used to compute volume */
 	int fnsd; /** number of spatial dimensions */
+	int fnnodes; /** number of nodes in a face */
 	double fPressure; /** pressure on surface */
 	double fVolume0; /** initial enclosed volume in normal direction */
 	double fVolume; /** enclosed volume in normal direction */
@@ -165,9 +159,10 @@ protected:
 	dArrayT fReaction; /** reaction forces */
 	iArray2DT fConnectivities;
 	iArray2DT fEquationNumbers;
+	iArrayT fMultiplierNodes;
 	iArrayT fMultiplierTags;
 	iArray2DT fMultiplierConnects;
-	
+	dArrayT fLastDOF;
 };
 
 } // namespace Tahoe 

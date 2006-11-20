@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.36 2006-11-14 04:27:54 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.37 2006-11-20 17:27:35 r-jones Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -466,6 +466,7 @@ GlobalMatrixT* SolverT::ApproximateLHS(const GlobalMatrixT& template_LHS)
 {
 	/* create matrix with same structure as the template */
 	GlobalMatrixT* approx_LHS = template_LHS.Clone();
+	//approx_LHS->SetPrintTag("approximate_LHS.");
 
 	/* open locks */
 	fRHS_lock = kOpen;
@@ -541,10 +542,10 @@ void SolverT::CompareLHS(const GlobalMatrixT& ref_LHS, const GlobalMatrixT& test
 {
 	ofstreamT& out = fFEManager.Output();
 
-	out << "\nreference LHS:\n";
+	out << "\nreference LHS (even suffix):\n";
 	ref_LHS.PrintLHS(true);
 
-	out << "\ntest LHS:\n";
+	out << "\ntest LHS (odd suffix):\n";
 	test_LHS.PrintLHS(true);
 	
 	out.flush();

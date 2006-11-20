@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.21 2006-11-14 04:29:51 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.22 2006-11-20 17:27:35 r-jones Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -6,6 +6,7 @@
 #include "GlobalT.h"
 #include "Environment.h"
 #include "ios_fwd_decl.h"
+#include "StringT.h"
 
 namespace Tahoe {
 
@@ -174,6 +175,7 @@ public:
 	/** write matrix if check code is GlobalMatrixT::kPrintLHS or if force is true */
 	virtual void PrintLHS(bool force = false) const = 0;
 	/*@}*/	
+	void SetPrintTag(const char* tag);
 
 protected:
 
@@ -216,6 +218,9 @@ protected:
 	
 	/** number output counts */
 	static int sOutputCount;
+
+	/** tag for check_RHS/LHS file dumps */
+	StringT fPrintTag;
 };
 
 /* return the check code */

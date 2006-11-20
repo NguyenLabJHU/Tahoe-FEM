@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.22 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.23 2006-11-20 17:27:35 r-jones Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -373,7 +373,10 @@ void FullMatrixT::PrintLHS(bool force) const
 
 	/* output stream */
 	StringT file = fstreamT::Root();
-	file.Append("FullMatrixT.LHS.", sOutputCount);
+	if (fPrintTag != "") 
+		file.Append(fPrintTag, sOutputCount);
+	else
+		file.Append("FullMatrixT.LHS.", sOutputCount);
 	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());	
 	ofstreamT out(file);
 	out.precision(14);

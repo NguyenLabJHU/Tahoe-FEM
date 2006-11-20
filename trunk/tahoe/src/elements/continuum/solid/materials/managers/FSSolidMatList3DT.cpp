@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.22 2006-11-12 18:24:15 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.23 2006-11-20 17:27:35 r-jones Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -189,13 +189,14 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("Reese-Govindjee_split");
 #endif
+
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
 #endif
 #ifdef BIO_MODELS
 		sub_lists.AddSub("veronda_westmann");
-		sub_lists.AddSub("Isotropic_Cornea_Model");
-		sub_lists.AddSub("Isotropic_Viscoelastic_Cornea_Model");
+    sub_lists.AddSub("Isotropic_Cornea_Model");
+    sub_lists.AddSub("Isotropic_Viscoelastic_Cornea_Model");
 #endif
 
 #ifdef FINITE_ANISOTROPY
