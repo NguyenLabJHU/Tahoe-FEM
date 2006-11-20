@@ -1,0 +1,33 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 16
+ Labels:
+	D_X
+	D_Y
+	D_Z
+	x1
+	x2
+	x3
+	s11
+	s22
+	s33
+	s23
+	s13
+	s12
+	s1
+	s2
+	s3
+	phi
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 75
+ Number of elements. . . . . . . . . . . . . . . = 32
+
+ O U T P U T   D A T A :  T O C
+bulge_vc.io0.run.ps0000

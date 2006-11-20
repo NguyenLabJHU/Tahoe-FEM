@@ -19,7 +19,8 @@
             <kinematic_BC dof="1" node_ID="20" type="fixed"/>
             <kinematic_BC dof="2" node_ID="20" type="fixed"/>
             <kinematic_BC dof="3" node_ID="20" type="fixed"/>
-            <pressure_bc schedule="1" schedule_scale="0.1">
+            <pressure_bc control="volume" normal="y" penalty="0.01E0"
+                schedule="1" schedule_scale="0.1" use_multiplier="true">
                 <side_set_ID_list>
                     <String value="10"/>
                 </side_set_ID_list>
