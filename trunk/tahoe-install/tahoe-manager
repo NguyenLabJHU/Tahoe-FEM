@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.67 2006-06-19 18:21:26 r-jones Exp $
+# $Id: tahoe-manager,v 1.68 2006-11-20 17:01:22 r-jones Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -19,6 +19,11 @@ $tahoe_sf = "tahoe.cvs.sourceforge.net";
 
 # Colorado server
 $tahoe_co = "tahoe.colorado.edu"; 
+
+# core modules (for rebuild)
+@core_modules = (
+"toolbox",
+"tahoe");
 
 # modules in order of dependency
 @modulebydepend = (
@@ -186,7 +191,7 @@ foreach my $tool (@required_tools) {
 
 # if TAHOE_HOME is set, change to that location
 $tahoe_home = cwd();
-if( !(-e $config_file) && defined($dir = findENV("TAHOE_HOME") ) ) {
+if(defined($dir = findENV("TAHOE_HOME") ) ) {
 	$tahoe_home = $dir;
 	print "* changing to directory TAHOE_HOME = $tahoe_home\n";
 	chdir $tahoe_home;
@@ -206,7 +211,8 @@ ARG: while (@ARGV) {
 		if (/^u|^update/i)          { update(); next ARG; }
 		if (/^co|config/i)         { config(); next ARG; }
 		if (/^i|init/i)            { init(); next ARG; }
-		if (/^b|build/i)           { build(); next ARG; }
+		if (/^b|^build/i)           { build(); next ARG; }
+		if (/^r|rebuild/i)         { rebuild(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
 		if (/^cl|clean/i)          { clean(); next ARG; }
 		if (/^u|usage|help|^h/i)   { usage();}
@@ -716,6 +722,26 @@ sub update_http {
 		# clean up
 		do_system("rm $dir.tar");
 		print " ok\n";
+	}
+}
+
+##############################################################################
+sub rebuild {
+	$time = (split(/ +/,localtime()))[3];
+	print "($count) rebuilding: @core_modules (other modules NOT checked), at $time \n";
+	foreach my $dir (@core_modules) {
+		print "\tmaking $dir...";
+		my $cwd = cwd();
+		chdir $dir; 
+		do_system("make build > build.log 2>&1");
+    if ($? > 0) {
+			print " ERROR $?. See $dir/build.log for details.\n";
+			$script_status++;
+    }
+		else {
+			print " ok\n";
+		}
+		chdir($cwd);
 	}
 }
 
