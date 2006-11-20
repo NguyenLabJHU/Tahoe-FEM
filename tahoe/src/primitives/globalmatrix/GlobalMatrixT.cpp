@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.24 2006-11-14 04:29:51 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.25 2006-11-20 17:27:35 r-jones Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -6,6 +6,7 @@
 #include <iomanip.h>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
+#include "StringT.h"
 
 using namespace Tahoe;
 
@@ -19,7 +20,8 @@ GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code, const CommunicatorT& 
 	fCheckCode(check_code),
 	fLocNumEQ(0),	
 	fTotNumEQ(0),
-	fStartEQ(0)
+	fStartEQ(0),
+	fPrintTag("")
 {
 
 }
@@ -30,7 +32,8 @@ GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
 	fCheckCode(kNoCheck),
 	fLocNumEQ(0),	
 	fTotNumEQ(0),
-	fStartEQ(0)
+	fStartEQ(0),
+	fPrintTag("")
 {
 	GlobalMatrixT::operator=(source);
 }
@@ -248,3 +251,9 @@ void GlobalMatrixT::PrintSolution(const dArrayT& solution) const
 	/* restore stream precision */
 	fOut.precision(kPrecision);
 }
+
+void GlobalMatrixT::SetPrintTag(const char* tag)
+{
+  fPrintTag = tag;
+}
+

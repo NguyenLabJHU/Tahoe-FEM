@@ -1,4 +1,5 @@
-/* $Id: PressureBCT.cpp,v 1.3 2006-11-16 16:29:42 r-jones Exp $ */
+/* $Id: PressureBCT.cpp,v 1.4 2006-11-20 17:27:35 r-jones Exp $ */
+// created : rjones 2006
 #include "PressureBCT.h"
 
 #include <math.h>
@@ -11,6 +12,7 @@
 #include "FieldT.h"
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
+#include "XDOF_ManagerT.h"
 
 #include "ScheduleT.h"
 #include "eIntegratorT.h"
@@ -26,12 +28,9 @@
 
 #include "RaggedArray2DT.h"
 
-#define LOCAL_DEBUG
+//#define LOCAL_DEBUG
 
 // 2 DO:
-// * add penalty to enforce volume constraint
-// * add multipler to enforce volume constraint
-// look at: tahoe/src/elements/constant_volume
 
 using namespace Tahoe;
 
@@ -58,6 +57,7 @@ const double psign[3][3] =
  -1, 0, 1,
   1,-1, 0};
 
+
 /* vector functions */
 inline static void CrossProduct(const double* A, const double* B, double* AxB)
 { AxB[0] = A[1]*B[2] - A[2]*B[1];
@@ -78,10 +78,12 @@ inline static void Vector(const double* start, const double* end, double* v)
 
 PressureBCT::PressureBCT(void):
 	fScheduleScale(1.0),
-	fPenalty(1.0),
+	fPenalty(0.0),
 	fControlType(kPressureControl),
+	fUseMultipliers(false),
 	fndir(2),
 	fnsd(3)
+// NOTE: should initialize all member data
 {
 	SetName("pressure_bc");
 }
@@ -105,10 +107,24 @@ void PressureBCT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	// for volume control all faces affect each other 
 	if (fControlType == kVolumeControl) {
 		// equation numnbers
-		if (true) {
-			Field().SetLocalEqnos(fConnectivities, fEquationNumbers);
+		if (fUseMultipliers) {
+			int nuconn = fConnectivities.Length() -1;
+			int ndof_u = Field().NumDOF();
+			iArray2DT tmp_conn;
+			tmp_conn.Alias(1,nuconn,fConnectivities.Pointer());
+			iArray2DT tmp_eqnum;
+			tmp_eqnum.Alias(1,nuconn*ndof_u,fEquationNumbers.Pointer());
+			Field().SetLocalEqnos(tmp_conn, tmp_eqnum);
+			const iArray2DT& xeqs = FieldSupport().XDOF_Manager().XDOF_Eqnos(this, 0);
+			fEquationNumbers(0,nuconn*ndof_u) = xeqs(0,0);
+#ifdef LOCAL_DEBUG
+			cout << "x dof:  " << xeqs(0,0) << "\n";
+			cout << "x node: " << fMultiplierConnects(0,0) << "\n";
+			cout << "x tag:  " << fMultiplierConnects(0,1) << "\n";
+#endif
 		}
-		else { // multiplier
+		else {
+			Field().SetLocalEqnos(fConnectivities, fEquationNumbers);
 		}
 		eq_1.Append(&fEquationNumbers);
 	}
@@ -129,29 +145,30 @@ void PressureBCT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
 //	FBC_ControllerT::Connectivities(connects_1,connects_2,equivalent_nodes);
 }
 
-int PressureBCT::Connectivities(iArray2DT& connectivities)
+void PressureBCT::SetConnectivities(void)
 {
-	// connectivities : one vector of all nodes 
+	// displacement connectivities : one vector of all nodes 
 	int size = 0;
 	if (fControlType == kVolumeControl) {
-		// connectivities : one vector of all nodes 
-		for (int i = 0; i < fSurfaces.Length(); i++) {
-			size += fSurfaces[i].Length();
-		}
-		connectivities.Dimension(1,size);
+		// connectivities : one vector of all nodes (plus mutliplier tag)
+		size = fFaces.Length();
+		if (fUseMultipliers) { size++;}
+		fConnectivities.Dimension(1,size);
 		int ii=0;
-		for (int i = 0; i < fSurfaces.Length(); i++) {
-			const iArray2DT& faces = fSurfaces[i];
-			for (int j = 0; j < faces.MajorDim(); j++)
+		for (int j = 0; j < fFaces.MajorDim(); j++)
+		{		
+			for (int k = 0; k < fFaces.MinorDim(); k++)
 			{		
-				for (int k = 0; k < faces.MinorDim(); k++)
-				{		
-					connectivities(0,ii++) = faces(j,k);
-				}
+				fConnectivities(0,ii++) = fFaces(j,k);
 			}
 		}
+		if (fUseMultipliers) {fConnectivities(0,ii) = fMultiplierTags[0];}
+		// equation numbers
+		int ndof_u = Field().NumDOF();
+		size = ndof_u*ii;
+		if (fUseMultipliers) { size++;}
+		fEquationNumbers.Dimension(1,size);
 	}
-	return size;
 }
 
 void PressureBCT::InitialCondition(void)
@@ -161,25 +178,16 @@ void PressureBCT::InitialCondition(void)
 
 	const dArray2DT& Coords = FieldSupport().InitialCoordinates();
 	const iArray2DT& Eqnos  = Field().Equations();
-	dArray2DT coord;
 
 	/* compute initial volume */
 	double volume,area;
 	fVolume0 = 0.0;
-	for (int i = 0; i < fSurfaces.Length(); i++)
+	for (int j = 0; j < fFaces.MajorDim(); j++)
 	{		
-		iArray2DT& faces = fSurfaces[i];
-		int nnodes = faces.MinorDim();
-		DomainIntegrationT& domain = *(fDomains[i]);
-		coord.Dimension(nnodes,fnsd);
-
-		for (int j = 0; j < faces.MajorDim(); j++)
-		{		
-			const int* pface = faces(j);
-			coord.RowCollect(pface, Coords);
-			ComputeVolume(domain,coord,volume,area);
+			const int* pface = fFaces(j);
+			fcoord.RowCollect(pface, Coords);
+			ComputeVolume(fcoord,volume,area);
 			fVolume0 += volume;
-		}
 	}
 }
 
@@ -203,33 +211,18 @@ void PressureBCT::ApplyRHS(void)
 	int formK = fIntegrator->FormKd(constK);
 	if (!formK) return;
 
-	const dArray2DT& Coords = FieldSupport().CurrentCoordinates();
-	const iArray2DT& Eqnos  = Field().Equations();
-	dArray2DT coord;
-	dArray2DT force;
-	iArray2DT eqns;
-
-
 	/* compute volume */
+	const dArray2DT& Coords = FieldSupport().CurrentCoordinates();
 	fVolume = 0.0;
 	fArea = 0.0;
 	double volume, area;
-	for (int i = 0; i < fSurfaces.Length(); i++)
+	for (int j = 0; j < fFaces.MajorDim(); j++)
 	{		
-		iArray2DT& faces = fSurfaces[i];
-		int nnodes = faces.MinorDim();
-		DomainIntegrationT& domain = *(fDomains[i]);
-		coord.Dimension(nnodes,fnsd);
-		eqns.Dimension(nnodes,fnsd);
-
-		for (int j = 0; j < faces.MajorDim(); j++)
-		{		
-			const int* pface = faces(j);
-			coord.RowCollect(pface, Coords);
-			ComputeVolume(domain,coord,volume,area);
-			fVolume += volume;
-			fArea += area;
-		}
+		const int* pface = fFaces(j);
+		fcoord.RowCollect(pface, Coords);
+		ComputeVolume(fcoord,volume,area);
+		fVolume += volume;
+		fArea += area;
 	}
 	if (fArea < 0) fArea = -fArea;
 
@@ -238,7 +231,21 @@ void PressureBCT::ApplyRHS(void)
 		double target_volume_change = fScheduleScale*(fSchedule->Value());
 		target_volume_change *= constK;
 		// penalty
-		fPressure = fPenalty * (fVolume - fVolume0 - target_volume_change);
+		double constraint = fVolume - fVolume0 - target_volume_change;
+		fPressure = fPenalty * constraint;
+		// add multiplier
+		if (fUseMultipliers) {
+			const dArray2DT& multipliers 
+				= FieldSupport().XDOF_Manager().XDOF(this, 0);
+			fPressure += multipliers(0,0);
+			// constraint
+			const iArray2DT& xeqns 
+				= FieldSupport().XDOF_Manager().XDOF_Eqnos(this, 0);
+			dArray2DT xforce;
+			xforce.Dimension(1,1);
+			xforce(0,0) = constraint;
+			FieldSupport().AssembleRHS(fGroup, xforce, xeqns);
+		}
 	}
 	else {
 		fPressure = fScheduleScale*(fSchedule->Value());
@@ -246,28 +253,20 @@ void PressureBCT::ApplyRHS(void)
 	}
 
 	/* compute forces */
+	const iArray2DT& Eqnos  = Field().Equations();
 	fReaction = 0.0;
-	for (int i = 0; i < fSurfaces.Length(); i++)
+	for (int j = 0; j < fFaces.MajorDim(); j++)
 	{		
-		iArray2DT& faces = fSurfaces[i];
-		int nnodes = faces.MinorDim();
-		DomainIntegrationT& domain = *(fDomains[i]);
-		coord.Dimension(nnodes,fnsd);
-		force.Dimension(nnodes,fnsd);
-		eqns.Dimension(nnodes,fnsd);
-
-		for (int j = 0; j < faces.MajorDim(); j++)
-		{		
-			const int* pface = faces(j);
-			coord.RowCollect(pface, Coords);
-			ComputeForce(domain,coord,force);
-			force *= fPressure;
-			eqns.RowCollect(pface, Eqnos);
-			FieldSupport().AssembleRHS(fGroup, force, eqns);
-			for (int k = 0; k < nnodes; k++) {
-				for (int l = 0; l < fnsd; l++) { fReaction[l] += force(k,l); }
+			const int* pface = fFaces(j);
+			fcoord.RowCollect(pface, Coords);
+			ComputeForce(fcoord,fforce);
+			fforce *= fPressure;
+			feqns.RowCollect(pface, Eqnos);
+			FieldSupport().AssembleRHS(fGroup, fforce, feqns);
+			// compute reactions
+			for (int k = 0; k < fnnodes; k++) {
+				for (int l = 0; l < fnsd; l++) { fReaction[l] += fforce(k,l); }
 			}
-		}
 	}
 }
 
@@ -282,82 +281,84 @@ void PressureBCT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 
 	const dArray2DT& Coords = FieldSupport().CurrentCoordinates();
 	const iArray2DT& Eqnos  = Field().Equations();
-	dArray2DT coord;
+	// NOTE : global matrix looks symmetric
 	ElementMatrixT stiffness(ElementMatrixT::kNonSymmetric);
-	iArray2DT eqns;
+	// can use SetFormat after construction
+	stiffness.Dimension(fnnodes*fnsd);
 
-	/* compute stiffness */
-	for (int i = 0; i < fSurfaces.Length(); i++)
+	/* compute stiffness: int N p Delta( n da )*/
+	for (int j = 0; j < fFaces.MajorDim(); j++)
 	{		
-	  iArray2DT& faces = fSurfaces[i];
-		int nnodes = faces.MinorDim();
-		DomainIntegrationT& domain = *(fDomains[i]);
-		coord.Dimension(nnodes,fnsd);
-		stiffness.Dimension(nnodes*fnsd);
-		eqns.Dimension(nnodes,fnsd);
-
-		for (int j = 0; j < faces.MajorDim(); j++)
-		{		
-			const int* pface = faces(j);
-			coord.RowCollect(pface, Coords);
-			ComputeStiffness(domain,coord,stiffness);
+			const int* pface = fFaces(j);
+			fcoord.RowCollect(pface, Coords);
+			ComputeStiffness(fcoord,stiffness);
 			stiffness *= -fPressure ;
-			eqns.RowCollect(pface, Eqnos);
-			FieldSupport().AssembleLHS(fGroup, stiffness, eqns);
-		}
+			feqns.RowCollect(pface, Eqnos);
+			FieldSupport().AssembleLHS(fGroup, stiffness, feqns);
 	}
 
-	if (fControlType == kVolumeControl) {
-	iArray2DT eqns2;
-	dArray2DT force;
-	dArray2DT delV;
-	for (int i = 0; i < fSurfaces.Length(); i++)
-	{		
-	  iArray2DT& faces = fSurfaces[i];
-		int nnodes = faces.MinorDim();
-		DomainIntegrationT& domain = *(fDomains[i]);
-		coord.Dimension(nnodes,fnsd);
-		force.Dimension(nnodes,fnsd);
-		delV.Dimension(nnodes,fnsd);
-		stiffness.Dimension(nnodes*fnsd);
-		eqns.Dimension(nnodes,fnsd);
-		eqns2.Dimension(nnodes,fnsd);
-
-		for (int j = 0; j < faces.MajorDim(); j++)
+	// stiffness due to volume constraint: int N pen Delta V da
+	// where V = int z da
+if (fControlType == kVolumeControl) {
+	bool xdof_not_assembled = false;
+	if ( fUseMultipliers ) {
+		xdof_not_assembled = true;
+	}
+	for (int j = 0; j < fFaces.MajorDim(); j++)
+	{
+		const int* pface = fFaces(j);
+		feqns.RowCollect(pface, Eqnos);
+		fcoord.RowCollect(pface, Coords);
+		ComputeForce(fcoord,fforce);
+		if ( fUseMultipliers ) {
+			fdelP = fforce;
+		}
+		fforce *= -fPenalty;
+		for (int jj = 0; jj < fFaces.MajorDim(); jj++)
 		{		
-			const int* pface = faces(j);
-			eqns.RowCollect(pface, Eqnos);
-			coord.RowCollect(pface, Coords);
-			ComputeForce(domain,coord,force);
-			force *= -fPenalty;
-			for (int ii = 0; ii < fSurfaces.Length(); ii++)
-			{
-	  		iArray2DT& faces2 = fSurfaces[ii];
-				for (int jj = 0; jj < faces2.MajorDim(); jj++)
-				{		
-					const int* pface = faces2(jj);
-					eqns2.RowCollect(pface, Eqnos);
-					coord.RowCollect(pface, Coords);
-					ComputeVolumeStiffness(domain,coord,delV);
-					stiffness.Outer(force,delV);
-					FieldSupport().AssembleLHS(fGroup, stiffness, eqns, eqns2);
-				}
+			const int* pface = fFaces(jj);
+			feqns2.RowCollect(pface, Eqnos);
+			fcoord.RowCollect(pface, Coords);
+			ComputeVolumeStiffness(fcoord, fdelV);
+			if ( fUseMultipliers &&  xdof_not_assembled  ) {
+				ElementMatrixT Vstiffness(ElementMatrixT::kNonSymmetric);
+				Vstiffness.Alias(1,fnnodes*fnsd,fdelV.Pointer());
+				Vstiffness *= -1;
+				const iArray2DT& xeqns 
+					= FieldSupport().XDOF_Manager().XDOF_Eqnos(this, 0);
+				FieldSupport().AssembleLHS(fGroup, Vstiffness, xeqns, feqns2);
 			}
+			stiffness.Outer(fforce,fdelV);
+			FieldSupport().AssembleLHS(fGroup, stiffness, feqns, feqns2);
+		}
+		xdof_not_assembled = false; // assemble delV once
+		if ( fUseMultipliers ) {
+			ElementMatrixT Pstiffness(ElementMatrixT::kNonSymmetric);
+			Pstiffness.Alias(fnnodes*fnsd,1,fdelP.Pointer());
+			Pstiffness *= -1;
+			const iArray2DT& xeqns 
+				= FieldSupport().XDOF_Manager().XDOF_Eqnos(this, 0);
+			FieldSupport().AssembleLHS(fGroup, Pstiffness, feqns, xeqns);
 		}
 	}
-	}
+
+}
 }
 
 /* apply kinematic boundary conditions */
 void PressureBCT::InitStep(void)
 {
-	/* the time step */
-	//double time_step = FieldSupport().TimeStep();
 }
 
 /* finalize step */
 void PressureBCT::CloseStep(void)
 {
+  /* store last converged DOF array */
+  if (fUseMultipliers) {
+    dArrayT xdof;
+    xdof.Alias(FieldSupport().XDOF_Manager().XDOF(this, 0));
+    fLastDOF = xdof;
+  }
 }
 
 /* reset to the last known solution */
@@ -403,6 +404,11 @@ void PressureBCT::WriteOutput(ostream& out) const
 	out << " reaction: " << fReaction[fndir] 
 	    << " area: " <<  fArea 
 	    << " r/a: " << fReaction[fndir]/fArea;
+	if (fUseMultipliers) {
+		const dArray2DT& multipliers 
+			= FieldSupport().XDOF_Manager().XDOF(this, 0);
+		out << " multiplier: " << multipliers(0,0);
+	}
 #endif
 	out << "\n";
 	
@@ -426,6 +432,12 @@ void PressureBCT::DefineParameters(ParameterListT& list) const
 	control.SetDefault(kPressureControl);
 	list.AddParameter(control);
 
+	ParameterT use_multiplier(ParameterT::Enumeration, "use_multiplier");
+	use_multiplier.AddEnumeration("false", 0);
+	use_multiplier.AddEnumeration("true", 1);
+	use_multiplier.SetDefault(0);
+	list.AddParameter(use_multiplier);
+
 	ParameterT penalty(ParameterT::Double, "penalty");
 	penalty.SetDefault(1.0);
 	penalty.AddLimit(0.0, LimitT::LowerInclusive);
@@ -446,32 +458,8 @@ void PressureBCT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	FBC_ControllerT::DefineSubs(sub_list);
 
-	/* surface */
-	sub_list.AddSub("surfaces",ParameterListT::OnePlus);	
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* PressureBCT::NewSub(const StringT& name) const
-{
-	if (name == "surfaces")
-	{
-		ParameterContainerT* surface = new ParameterContainerT(name);
-		surface->SetListOrder(ParameterListT::Choice);
-
-		/* surface from side set  */
-		ParameterContainerT surface_side_set("surface_side_set");
-		surface_side_set.AddParameter(ParameterT::Word, "side_set_ID");
-		surface->AddSub(surface_side_set);
-
-		/* surfaces from body boundary */
-		ParameterContainerT body_boundary("body_boundary");
-		body_boundary.AddParameter(ParameterT::Integer, "body_element_group");
-		surface->AddSub(body_boundary);
-
-		return surface;
-	}
-	else /* inherited */
-		return FBC_ControllerT::NewSub(name);
+	/* surface : a collection of side sets */
+	sub_list.AddSub("side_set_ID_list");// str list must end in "_list"
 }
 
 /* accept parameter list */
@@ -482,7 +470,7 @@ void PressureBCT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	FBC_ControllerT::TakeParameterList(list);
 
-
+	/* basic parameters */
 	int schedule = list.GetParameter("schedule");
 	schedule--;
 	fSchedule = FieldSupport().Schedule(schedule);
@@ -491,9 +479,13 @@ void PressureBCT::TakeParameterList(const ParameterListT& list)
 
 	fControlType =  list.GetParameter("control");
 
-  fPenalty = list.GetParameter("penalty");
+	if (fControlType == kVolumeControl) {
+	fUseMultipliers = list.GetParameter("use_multiplier");
+
+	fPenalty = list.GetParameter("penalty");
 
 	fndir = list.GetParameter("normal");
+	}
 
 	/* dimension */
 	fnsd = FieldSupport().NumSD();
@@ -501,94 +493,97 @@ void PressureBCT::TakeParameterList(const ParameterListT& list)
 	  ExceptionT::GeneralFail(caller, " only valid for 3D problems");
 
 
-	/* get parameters */
-	const ParameterListT* surfaces = list.List("surfaces");
-	if (surfaces) {
-		/* get surfaces */
-		int num_surfaces = list.NumLists("surfaces");
-		fSurfaces.Dimension(num_surfaces);
-		fDomains.Dimension(num_surfaces);
-		GeometryT::CodeT geometry = GeometryT::kQuadrilateral;
-		for (int i = 0; i < fSurfaces.Length(); i++)
+	/* surface : collection of side sets/faces */
+	StringListT::Extract(list.GetList("side_set_ID_list"),  fssetIDs);
+	ModelManagerT& model = FieldSupport().ModelManager();
+	if (fssetIDs.Length()) {
+		// size
+		int nfaces = 0;
+		for (int i = 0; i < fssetIDs.Length(); i++)
 		{
-			const ParameterListT& surface_spec 
-				= list.GetListChoice(*this, "surfaces", i);
-
-			if (surface_spec.Name() == "surface_side_set")
-				InputSideSets(surface_spec, geometry,fSurfaces[i]);
-			else if (surface_spec.Name() == "body_boundary")
-			{
-				ExceptionT::GeneralFail(caller, " body boundary method not implemented");
-/*
-				// may resize the surfaces array 
-				InputBodyBoundary(surface_spec, fSurfaces, i);
-				num_surfaces = fSurfaces.Length();
-*/
+			nfaces += model.SideSetLength(fssetIDs[i]);
+		}
+		// fill
+		GeometryT::CodeT geometry;
+		iArrayT fFaces_alias;
+		int size = 0;	
+		for (int i = 0; i < fssetIDs.Length(); i++)
+		{
+			ArrayT<GeometryT::CodeT> face_geom;
+			iArrayT face_nodes;
+			iArray2DT faces;
+			model.SideSet(fssetIDs[i], face_geom, face_nodes, faces);
+			if (i == 0) {
+				geometry = face_geom[0];
+				fnnodes = faces.MinorDim();
+				fFaces.Dimension(nfaces, fnnodes);
+				fFaces_alias.Alias(fFaces.Length(),fFaces.Pointer());
+				int nip = fnnodes;
+				fDomain = new DomainIntegrationT(geometry, nip, fnnodes);
+				fDomain->Initialize();
 			}
-			else
-				ExceptionT::GeneralFail(caller, "unrecognized surface \"%s\"",
-					surface_spec.Name().Pointer());
-
-			int nnodes = fSurfaces[i].MinorDim();
-			int nip = nnodes;
-			fDomains[i] = 
-				new DomainIntegrationT(geometry, nip, nnodes);
-			(fDomains[i])->Initialize();
+			else {
+				if (face_geom[0] != geometry) { 
+					ExceptionT::GeneralFail(caller, " all faces must be same type");
+				}
+			}
+			// copy
+			iArrayT faces_alias;
+			faces_alias.Alias(faces.Length(),faces.Pointer());
+			fFaces_alias.CopyIn(size,faces_alias);
+			size += faces.Length();
 		}
 	}
+	else {
+		ExceptionT::GeneralFail(caller, " no surfaces defined");
+	}
 
+#ifdef LOCAL_DEBUG
 	/* output stream */
 	ofstreamT& out = FieldSupport().Output();
  	bool print_input = FieldSupport().PrintInput();
 
 	/* echo data  */
-	out << " Pressure surfaces:\n";
+	out << " Pressure surface: " << fFaces.MajorDim() << " faces\n";
 	out << setw(kIntWidth) << "surface"
-	    << setw(kIntWidth) << "facets"
+	    << setw(kIntWidth) << "faces"
 	    << setw(kIntWidth) << "size" << '\n';
-	for (int j = 0; j < fSurfaces.Length(); j++)
-	{
-			iArray2DT& surface = fSurfaces[j];
-
-			out << setw(kIntWidth) << j+1
-			    << setw(kIntWidth) << surface.MajorDim()
-			    << setw(kIntWidth) << surface.MinorDim() << "\n\n";
-
-#ifdef LOCAL_DEBUG
-		/* verbose */
-		if (true) {
-			surface++;
-			surface.WriteNumbered(out);
-			surface--;
-			out << '\n';
-		}
+	/* verbose */
+	fFaces++;
+	fFaces.WriteNumbered(out);
+	fFaces--;
+	out << '\n';
 #endif
+
+	// attach single pressure multiplier to first node
+	if (fUseMultipliers) {
+		fMultiplierNodes.Dimension(1);
+		fMultiplierNodes[0] = fFaces(0,0);
+		/* register with node manager - sets initial fContactDOFtags */
+		iArrayT set_dims(1);
+		set_dims = 1; // one pressure multiplier
+		FieldSupport().XDOF_Manager().XDOF_Register(this, set_dims);
 	}
 
 	// set-up connectivities
-	int size = Connectivities(fConnectivities);
-	fEquationNumbers.Dimension(1,fnsd*size);
+	SetConnectivities();
+
+	// set-up workspace
+	fcoord.Dimension(fnnodes,fnsd);
+	fforce.Dimension(fnnodes,fnsd);
+	feqns.Dimension(fnnodes,fnsd);
+	if (fControlType == kVolumeControl) {
+	feqns2.Dimension(fnnodes,fnsd);
+	fdelV.Dimension(fnnodes,fnsd);
+	if (fUseMultipliers) {
+	fdelP.Dimension(fnnodes,fnsd);
+	}
+	}
 }
 
-void PressureBCT::InputSideSets(const ParameterListT& list, 
-		GeometryT::CodeT geom_code, iArray2DT& facets)
+void PressureBCT:: ComputeVolume(dArray2DT& coord, double& volume, double& area)
 {
-	/* extract side set ID */
-	StringT ss_ID;
-	ss_ID = list.GetParameter("side_set_ID");
-
-	/* read side set faces */
-	ModelManagerT& model = FieldSupport().ModelManager();
-	ArrayT<GeometryT::CodeT> facet_geom;
-	iArrayT facet_nodes;
-	model.SideSet(ss_ID, facet_geom, facet_nodes, facets);
-	geom_code = facet_geom[0];
-	//cout << "GEOMETRY CODE: " << geom_code << "\n";
-}
-
-void PressureBCT:: ComputeVolume(DomainIntegrationT& domain, dArray2DT& coord, 
-		double& volume, double& area)
-{
+	DomainIntegrationT domain = *fDomain;
 	volume = 0.0;
 	area = 0.0;
 	domain.TopIP();
@@ -618,9 +613,9 @@ void PressureBCT:: ComputeVolume(DomainIntegrationT& domain, dArray2DT& coord,
 	}
 }
 
-void PressureBCT:: ComputeForce(DomainIntegrationT& domain, dArray2DT& coord, 
-		dArray2DT& force)
+void PressureBCT:: ComputeForce(dArray2DT& coord, dArray2DT& force)
 {
+	DomainIntegrationT domain = *fDomain;
 	force = 0.0;
 	domain.TopIP();
 	const double* wgs = domain.IPWeights();
@@ -650,12 +645,11 @@ void PressureBCT:: ComputeForce(DomainIntegrationT& domain, dArray2DT& coord,
 	}
 }
 
-void PressureBCT:: ComputeStiffness(DomainIntegrationT& domain, dArray2DT& coord, 
-		ElementMatrixT& stiffness)
+void PressureBCT:: ComputeStiffness(dArray2DT& coord, ElementMatrixT& stiffness)
 {
+	DomainIntegrationT domain = *fDomain;
 	stiffness = 0.0;
 	domain.TopIP();
-	int nnodes =  domain.ParentDomain().NumNodes();
 	const double* wgs = domain.IPWeights();
 	while (domain.NextIP())
 	{		
@@ -673,10 +667,10 @@ void PressureBCT:: ComputeStiffness(DomainIntegrationT& domain, dArray2DT& coord
 		const double* S = domain.IPShape();
 		const double wg = wgs[domain.CurrIP()];
 		int row = 0, col = 0, k =0;
-		for (int I = 0; I < nnodes; I++) { 
+		for (int I = 0; I < fnnodes; I++) { 
 			for (int i = 0; i < fnsd; i++) {
 				col = 0;
-				for (int J = 0; J < nnodes; J++) {		
+				for (int J = 0; J < fnnodes; J++) {		
 					for (int j = 0; j < fnsd; j++) {
 						if ((k = iperm[i][j]) > -1 ) 
 							stiffness(row,col) += S[I]*
@@ -690,12 +684,11 @@ void PressureBCT:: ComputeStiffness(DomainIntegrationT& domain, dArray2DT& coord
 	}
 }
 
-void PressureBCT:: ComputeVolumeStiffness(DomainIntegrationT& domain, dArray2DT& coord, 
-		dArray2DT& delV)
+void PressureBCT:: ComputeVolumeStiffness(dArray2DT& coord, dArray2DT& delV)
 {
+	DomainIntegrationT domain = *fDomain;
 	delV = 0.0;
 	domain.TopIP();
-	int nnodes =  domain.ParentDomain().NumNodes();
 	const double* wgs = domain.IPWeights();
 	// quadrature
 	while (domain.NextIP())
@@ -719,7 +712,7 @@ void PressureBCT:: ComputeVolumeStiffness(DomainIntegrationT& domain, dArray2DT&
 		const double* S = domain.IPShape();
 		const double wg = wgs[domain.CurrIP()];
 		int k;
-		for (int J = 0; J < nnodes; J++) { 
+		for (int J = 0; J < fnnodes; J++) { 
 			// (e_3 . n da) (e_3 . N)
 			delV(J,fndir) -= n[fndir]*S[J]*wg; 
 			// (e_3 . x)  (e_3 .  ee (t1 T2 - t2 T1))
@@ -732,8 +725,7 @@ void PressureBCT:: ComputeVolumeStiffness(DomainIntegrationT& domain, dArray2DT&
 	}
 }
 
-// functions needed for the single pressure multiplier --------------------
-#if 0
+// functions for the single pressure multiplier of the volume constraint
 
 void PressureBCT::SetDOFTags(void) { fMultiplierTags.Dimension(1); }
 
@@ -741,26 +733,23 @@ iArrayT& PressureBCT::DOFTags(int tag_set) { return fMultiplierTags; }
 
 void PressureBCT::GenerateElementData(void)
 {
-	fMultiplierTags(1,2);
-//  fMultiplierTags.SetColumn(0, fContactNodes);
-  fMultiplierTags.SetColumn(1, fMultiplierTags);
+	fMultiplierConnects.Dimension(1,2);
+  fMultiplierConnects.SetColumn(0, fMultiplierNodes);
+  fMultiplierConnects.SetColumn(1, fMultiplierTags);
 
 }
 
 const iArray2DT& PressureBCT::DOFConnects(int tag_set) const
-{
-	return fMultiplierConnects;
-}
+{ return fMultiplierConnects; }
 
 void PressureBCT::ResetDOF(dArray2DT& DOF, int tag_set) const
 {
 	dArrayT constraints;
 	constraints.Alias(DOF);
-//	constraints = fLastDOF;
+	constraints = fLastDOF;
 }
 
 int PressureBCT::Reconfigure(void) { return 0; }
 
 int PressureBCT::Group(void) const { return Field().Group(); };
-#endif
 

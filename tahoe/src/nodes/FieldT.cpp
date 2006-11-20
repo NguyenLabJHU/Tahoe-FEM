@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.51 2006-10-24 00:34:41 tdnguye Exp $ */
+/* $Id: FieldT.cpp,v 1.52 2006-11-20 17:27:35 r-jones Exp $ */
 
 #include "FieldT.h"
 
@@ -147,6 +147,7 @@ void FieldT::EquationSets(AutoArrayT<const iArray2DT*>& eq_1,
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->Equations(eq_1, eq_2);
+
 }
 
 /* set the time step */
@@ -164,6 +165,7 @@ void FieldT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->Connectivities(connects_1, connects_2, equivalents);
+
 }
 
 /* return the GlobalT::SystemTypeT for the  group */
