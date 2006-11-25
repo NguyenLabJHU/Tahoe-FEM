@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2006-11-25 22:06:11 paklein Exp $
+# $Id: makefile,v 1.1 2006-11-25 22:06:12 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,12 +20,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	CCNSMatrixT.o \
-	CCSMatrixT.o \
-	DiagonalMatrixT.o \
-	FullMatrixT.o \
-	GlobalMatrixT.o \
-	MSRMatrixT.o
+	TrilinosAztecT.o \
+	EpetraCRSMatrixT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,12 +41,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	CCNSMatrixT.cpp \
-	CCSMatrixT.cpp \
-	DiagonalMatrixT.cpp \
-	FullMatrixT.cpp \
-	GlobalMatrixT.cpp \
-	MSRMatrixT.cpp
+	TrilinosAztecT.cpp \
+	EpetraCRSMatrixT.cpp
 
 ##################### (3) headers
 #
@@ -62,12 +54,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	CCNSMatrixT.h \
-	CCSMatrixT.h \
-	DiagonalMatrixT.h \
-	FullMatrixT.h \
-	GlobalMatrixT.h \
-	MSRMatrixT.h
+	TrilinosAztecT.h \
+	EpetraCRSMatrixT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -78,22 +66,17 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = \
-	aztec \
-	SPOOLES \
-	PSPASES \
-	SuperLU \
-	EpetraCRS
+#SUB_DIR = 
+#subdir_driver: subdir_loop
 
-subdir_driver: subdir_loop
-
+#
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 
