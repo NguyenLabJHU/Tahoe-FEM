@@ -1,4 +1,4 @@
-/* $Id: EpetraCRSMatrixT.h,v 1.3 2006-11-14 04:31:05 paklein Exp $ */
+/* $Id: EpetraCRSMatrixT.h,v 1.4 2006-11-25 22:06:11 paklein Exp $ */
 #ifndef _EPETRA_CRS_MATRIX_T_H_
 #define _EPETRA_CRS_MATRIX_T_H_
 
@@ -35,6 +35,9 @@ public:
 	 * freeing the returned object */
 	Epetra_CrsMatrix* Translate(void) const;
 
+	/** return a pointer to the processor map */
+	Epetra_Map* Map(void) { return fepetra_map; }
+
 	/** set the internal matrix structure */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 
@@ -67,6 +70,9 @@ public:
 
 	/** assignment operator */
 	EpetraCRSMatrixT& operator=(const EpetraCRSMatrixT& rhs);
+
+	/** return a clone of self */
+	virtual GlobalMatrixT* Clone(void) const;
 
 protected:
 

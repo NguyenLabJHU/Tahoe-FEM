@@ -1,4 +1,4 @@
-/* $Id: EpetraCRSMatrixT.cpp,v 1.3 2006-11-14 04:31:05 paklein Exp $ */
+/* $Id: EpetraCRSMatrixT.cpp,v 1.4 2006-11-25 22:06:11 paklein Exp $ */
 #include "EpetraCRSMatrixT.h"
 
 /* library support options */
@@ -252,6 +252,11 @@ EpetraCRSMatrixT& EpetraCRSMatrixT::operator=(const EpetraCRSMatrixT&)
 {
 	ExceptionT::GeneralFail("EpetraCRSMatrixT::operator=", "not implemented");
 	return *this;
+}
+
+/* return a clone of self */
+GlobalMatrixT* EpetraCRSMatrixT::Clone(void) const {
+	return new EpetraCRSMatrixT(*this);
 }
 
 /***********************************************************************
