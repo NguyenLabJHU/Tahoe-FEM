@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.37 2006-11-20 17:27:35 r-jones Exp $ */
+/* $Id: SolverT.cpp,v 1.38 2006-11-25 22:05:54 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -37,12 +37,24 @@
 #endif
 
 #ifdef __TRILINOS__
+/* Trilinos-Anasazi headers */
+#define HAVE_CONFIG_H
+#include "AnasaziConfigDefs.hpp"
+#include "AnasaziBasicEigenproblem.hpp"
+#include "AnasaziSimpleLOBPCGSolMgr.hpp"
+#include "AnasaziBlockDavidsonSolMgr.hpp"
+#include "AnasaziBasicOutputManager.hpp"
+#include "AnasaziEpetraAdapter.hpp"
+#include "Epetra_CrsMatrix.h"
+#include "Teuchos_CommandLineProcessor.hpp"
+
 #include "TrilinosAztecT.h"
 #include "NodeManagerT.h"
 #include "FieldT.h"
 #include "nIntegratorT.h"
 #include "eStaticIntegrator.h"
-#endif
+using namespace Anasazi;
+#endif /* __TRILINOS__ */
 
 using namespace Tahoe;
 
@@ -115,6 +127,15 @@ void SolverT::CloseStep(void)
 	int check_code = fLHS->CheckCode();
 	if (check_code != GlobalMatrixT::kEigenmodes || fNumModes < 1) return;
 
+	/* temporarily replace LHS */
+	EpetraCRSMatrixT epetra(fFEManager.Output(), GlobalMatrixT::kNoCheck, fLHS->Communicator());
+	GlobalMatrixT* p_lhs = fLHS;
+	fLHS = &epetra;
+	
+	/* set storage */
+	fFEManager.SendEqnsToSolver(fGroup);	
+	epetra.Initialize(p_lhs->NumTotEquations(), p_lhs->NumEquations(), p_lhs->StartEquation());
+	
 	/* get time integrator */
 	const NodeManagerT* nodes = fFEManager.NodeManager();
 	ArrayT<FieldT*> fields;
@@ -127,13 +148,13 @@ void SolverT::CloseStep(void)
 		if (! e_static) ExceptionT::GeneralFail(caller, "Could not cast integrator to eStaticIntegrator for field \"%s\"", fields[i]->FieldName().Pointer());
 		e_static->SetLHSMode(eStaticIntegrator::kFormKOnly);
 	}
-	
+
 	/* calc K and store */
 	fLHS->Clear();
 	fLHS_lock = kOpen;
 	fFEManager.FormLHS(Group(), fLHS->MatrixType());
 	fLHS_lock = kLocked;
-	// ------------> store
+	Epetra_CrsMatrix* K = epetra.Translate();
 	
 	/* calculate M only */
 	for (int i = 0; i < fields.Length(); i++) {
@@ -148,7 +169,10 @@ void SolverT::CloseStep(void)
 	fLHS_lock = kOpen;
 	fFEManager.FormLHS(Group(), fLHS->MatrixType());
 	fLHS_lock = kLocked;
-	// ------------> store
+	Epetra_CrsMatrix* M = epetra.Translate();
+
+	/* restore LHS */
+	fLHS = p_lhs;
 	
 	/* restore integrators */
 	for (int i = 0; i < fields.Length(); i++) {
@@ -158,13 +182,140 @@ void SolverT::CloseStep(void)
 		e_static->SetLHSMode(eStaticIntegrator::kNormal);
 	}
 	
-	// set up eigensolver
+	/* set up eigensolver */
+	Teuchos::RefCountPtr<Epetra_CrsMatrix> rcp_K = Teuchos::rcp(K);
+	Teuchos::RefCountPtr<Epetra_CrsMatrix> rcp_M = Teuchos::rcp(M);
 	
-	// solve
+	/* write matricies to files */
+	if (true) {
+		ofstreamT out;
+		out.precision(12);
+
+		StringT root = fFEManager.InputFile();
+		root.Root();
+
+		StringT k_file = root;
+		k_file.Append(".K.", fFEManager.StepNumber(), 2);
+		k_file.Append(".dat");
+		out.open(k_file);
+		K->Print(out);
+		out.close();
+		
+		StringT m_file = root;
+		m_file.Append(".M.", fFEManager.StepNumber(), 2);
+		m_file.Append(".dat");
+		out.open(m_file);
+		M->Print(out);
+		out.close();
+	}
+
+#if 1
+	// Variables used for the LOBPCG Method
+	const int    nev       = fNumModes;
+	const int    blockSize = 5;
+	const int    maxIters  = 5000;
+	const double tol       = 1.0e-10;
+#else
+	//  Variables used for the Block Davidson Method
+	const int    nev         = fNumModes;
+	const int    blockSize   = 5;
+	const int    numBlocks   = 8;
+	const int    maxRestarts = 100;
+	const double tol         = 1.0e-10;
+#endif
+
+	typedef Epetra_MultiVector MV;
+	typedef Epetra_Operator OP;
+	typedef MultiVecTraits<double, Epetra_MultiVector> MVT;
+
+	// Create an Epetra_MultiVector for an initial vector to start the solver.
+	// Note:  This needs to have the same number of columns as the blocksize.
+	Teuchos::RefCountPtr<Epetra_MultiVector> ivec = Teuchos::rcp( new Epetra_MultiVector(*(epetra.Map()), blockSize) );
+	ivec->Random();
+
+	// Create the eigenproblem.
+	Teuchos::RefCountPtr<BasicEigenproblem<double, MV, OP> > MyProblem =
+		Teuchos::rcp( new BasicEigenproblem<double, MV, OP>(rcp_K, rcp_M, ivec) );
+
+	/* global system properties */
+	GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
+	if (type == GlobalT::kSymmetric)
+		MyProblem->setHermitian(true);
+	else
+		MyProblem->setHermitian(false);
+
+	// Set the number of eigenvalues requested
+	MyProblem->setNEV(nev);
+
+	// Inform the eigenproblem that you are finishing passing it information
+	bool boolret = MyProblem->setProblem();
+	if (boolret != true) {
+		ExceptionT::GeneralFail(caller, "Anasazi::BasicEigenproblem::setProblem() returned an error");
+	}
+
+	/* which 	[in] The eigenvalues of interest for this eigenproblem.
+	* "LM" - Largest Magnitude [ default ]
+	* "SM" - Smallest Magnitude
+	* "LR" - Largest Real
+	* "SR" - Smallest Real
+	* "LI" - Largest Imaginary
+	* "SI" - Smallest Imaginary */
+	std::string which("SM"); /* get lowest modes */
+
+	// Create parameter list to pass into the solver manager
+	Teuchos::ParameterList MyPL;
+#if 1
+	// Variables used for the LOBPCG Method
+	MyPL.set( "Which", which );
+	MyPL.set( "Block Size", blockSize );
+	MyPL.set( "Maximum Iterations", maxIters );
+	MyPL.set( "Convergence Tolerance", tol );
+	MyPL.set( "Verbosity", Anasazi::IterationDetails );
+
+	// Create the solver manager
+	SimpleLOBPCGSolMgr<double, MV, OP> MySolverMan(MyProblem, MyPL);
+#else
+	MyPL.set( "Which", which );
+	MyPL.set( "Block Size", blockSize );
+	MyPL.set( "Num Blocks", numBlocks );
+	MyPL.set( "Maximum Restarts", maxRestarts );
+	MyPL.set( "Convergence Tolerance", tol );
+	MyPL.set( "Verbosity", Anasazi::IterationDetails );
+
+	// Create the solver manager
+	Anasazi::BlockDavidsonSolMgr<double, MV, OP> MySolverMan(MyProblem, MyPL);
+#endif
+
+	// Solve the problem
+	try {
+		ReturnType returnCode = MySolverMan.solve();
+		if (returnCode != Anasazi::Converged) {
+			cout << caller << ": SimpleLOBPCGSolMgr.solve did not converge" << endl;
+		}
+
+		// Get the eigenvalues and eigenvectors from the eigenproblem
+		Eigensolution<double,MV> sol = MyProblem->getSolution();
+		std::vector<Value<double> > evals = sol.Evals;
+		Teuchos::RefCountPtr<MV> evecs = sol.Evecs;
+
+		for (int i = 0; i <  sol.numVecs; i++) {
+			double re = evals[i].realpart;
+			double im = evals[i].imagpart;
+			cout << i << ": " << re << ", " << im << '\n';
+		}
+		cout.flush();
+	}
+	catch (std::exception e) {
+		cout << caller << ": caught exception from Trilinos" << endl;
+	}
 	
 	// set up output
 	
 	// loop over modes and write modes and write e-vals to .out
+	
+	/* clean up */
+//	delete K;
+//	delete M;
 #endif
 }
 
@@ -440,6 +591,10 @@ void SolverT::TakeParameterList(const ParameterListT& list)
 	int check_code = list.GetParameter("check_code");
 	fPerturbation = list.GetParameter("check_LHS_perturbation");
 	SetGlobalMatrix(list.GetListChoice(*this, "matrix_type_choice"), check_code);
+
+#ifdef __TRILINOS__
+	fNumModes = list.GetParameter("max_eigenmodes");
+#endif
 }
 
 /*************************************************************************
