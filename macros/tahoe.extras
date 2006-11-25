@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.20 2005-08-01 03:27:55 paklein Exp $
+# $Id: tahoe.extras,v 1.21 2006-11-25 22:01:40 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -89,3 +89,9 @@ touch_SIMOD:
 	- $(RM) $(BLD_SRC_DIR)/elements/cohesive_surface/cohesive_models/SIMOD_2DT.o
 	- $(RM) $(BLD_SRC_DIR)/elements/cohesive_surface/cohesive_models/SurfacePotentialT_factory.o
 	- $(RM) $(BLD_SRC_DIR)/elements/cohesive_surface/CSEAnisoT.o
+
+touch_TRILINOS:
+	@ $(PRINTF) "removing object files depending on the Trilinos module\n"
+	- $(RM) $(BLD_SRC_DIR)/primitives/globalmatrix/GlobalMatrixT.o
+	- $(RM) $(BLD_SRC_DIR)/primitives/globalmatrix/EpetraCRS/*.o
+	- $(RM) $(BLD_SRC_DIR)/solvers/SolverT.o
