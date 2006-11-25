@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.68 2006-11-20 17:01:22 r-jones Exp $
+# $Id: tahoe-manager,v 1.69 2006-11-25 22:07:03 paklein Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -41,6 +41,7 @@ $tahoe_co = "tahoe.colorado.edu";
 "SuperLU_CBLAS",
 "SuperLU",
 "SuperLU_DIST",
+"Trilinos",
 "toolbox",
 "qhull",
 "Sierra",
@@ -79,6 +80,7 @@ bravais NODEFINE
 SuperLU_CBLAS SUPERLUCBLAS_
 SuperLU SUPERLU_
 SuperLU_DIST SUPERLUDIST_
+Trilinos TRILINOS_
 );
 
 # location of module on the server
@@ -119,6 +121,7 @@ metis touch_METIS
 SIMOD touch_SIMOD
 SuperLU touch_SuperLU
 SuperLU_DIST touch_SuperLU
+Trilinos touch_TRILINOS
 );
 
 # modules in the UP_TO_DATE macro
@@ -157,14 +160,16 @@ contrib 1
 #@staticlibs = complement(\@allmodules, \@activemodules);
 @nonbuildmodules = ("macros");
 
-%syslib2module = qw(
-ACCESS	access
-SIMOD_HOME   SIMOD
-);
+# %syslib2module = qw(
+# ACCESS	access
+# SIMOD_HOME   SIMOD
+# TRILINOS_HOME Trilinos
+# );
 
 %module2syslib = qw(
 access ACCESS
 SIMOD  SIMOD_HOME
+Trilinos TRILINOS_HOME
 );
 
 #%connect2command = qw(
@@ -236,17 +241,6 @@ sub selfupdate {
 ###############################################################################
 sub initialize {
 
-# search for system libs 
-foreach my $key (sort(keys %ENV)) {
-	foreach my $lib (keys %syslib2module) {
-		if ($key =~ /$lib/ ) { 
-			my $loc = $ENV{$key};
-			print "* found system library $lib \@ $loc \n"; 
-#			push(@syslibs,$lib);
-		}
-	}
-}
-
 # configuration file
 if(-e "$config_file") { read_config(); }
 else                  { write_default_config(); }
@@ -275,6 +269,29 @@ while (scalar(@req_missing) > 0) {
 	write_config();
 	@req_missing = get_missing_modules();
 }
+
+# search for required system libs
+foreach my $module (@modules) {
+	if (defined($module2syslib{$module})) { # is syslib that requires environmental variable
+		my $syslib = $module2syslib{$module};
+		if (defined($ENV{$syslib})) {
+			print "* found system library $syslib \@ $ENV{$syslib}\n"; 		
+		} else {
+			print STDOUT "ERROR: missing environmental variable $syslib needed for module $module\n";
+			exit 1;
+		}
+	}
+}
+
+# foreach my $key (sort(keys %ENV)) {
+# 	foreach my $lib (keys %syslib2module) {
+# 		if ($key =~ /$lib/ ) { 
+# 			my $loc = $ENV{$key};
+# 			print "* found system library $lib \@ $loc \n"; 
+# #			push(@syslibs,$lib);
+# 		}
+# 	}
+# }
 
 print "*--------------------------------------------------\n";
 print "*  Sourceforge name: $tahoe_sf_name\@$tahoe_sf\n";
