@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.25 2006-11-20 17:27:35 r-jones Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.26 2006-11-25 22:05:17 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -110,17 +110,6 @@ bool GlobalMatrixT::Solve(dArrayT& result)
 		return false;
 	}
 	return true;
-}
-
-void GlobalMatrixT::EquationSets(ArrayT<const iArray2DT*>& eqsets)
-{
-#pragma unused(eqsets)
-	ExceptionT::GeneralFail("GlobalMatrixT::EquationSets", "not implemented");
-}
-void GlobalMatrixT::EquationSets(ArrayT<const RaggedArray2DT<int>*>& eqsets)
-{
-#pragma unused(eqsets)
-	ExceptionT::GeneralFail("GlobalMatrixT::EquationSets", "not implemented");
 }
 
 /* strong manipulation functions 
