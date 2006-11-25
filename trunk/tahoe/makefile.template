@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.45 2005-08-01 03:23:39 paklein Exp $
+# $Id: makefile.template,v 1.46 2006-11-25 22:03:25 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) copy makefile.template to a local makefile
@@ -233,6 +233,12 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 #SIMOD_LIB_NAME = simod
 #SIMOD_LIB      = $(SIMOD_HOME)/lib$(SIMOD_LIB_NAME).a
 #SIMOD_LFLAGS   = -L$(SIMOD_HOME) -l$(SIMOD_LIB_NAME)
+
+#### TRILINOS
+#TRILINOS_INC      = -I$(TRILINOS_HOME)/include 
+#TRILINOS_DEFINES  = -D__TRILINOS__
+#TRILINOS_CFLAGS   = $(TRILINOS_INC) $(TRILINOS_DEFINES)
+#TRILINOS_LFLAGS   = -L$(TRILINOS_HOME)/lib -laztecoo -lepetra -lteuchos -framework vecLib
 
 ##### keeping optional modules up to date
 UP_TO_DATE = NONE
