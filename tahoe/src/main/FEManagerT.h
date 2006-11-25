@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.50 2005-03-12 08:41:35 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.51 2006-11-25 22:03:04 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -416,6 +416,9 @@ public:
 	/** collect computation effort for each node */
 	void WeightNodalCost(iArrayT& weight) const;
 
+	/** collect element equations and send to solver */
+	void SendEqnsToSolver(int group) const;
+
 protected:
 
 	/** "const" function that sets the status flag */
@@ -435,9 +438,6 @@ protected:
 	/** (re-) set cached value of the total number of equations for the given
 	 * group. This value is cached because communication is required. */
 	virtual int GetGlobalNumEquations(int group) const;
-	
-	/** collect element equations and send to solver */
-	void SendEqnsToSolver(int group) const;
 
 	/** construct a new CommManagerT. Should be called some time after the
 	 * ModelManagerT has been constructed */

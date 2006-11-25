@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.98 2006-05-26 20:17:26 tdnguye Exp $ */
+/* $Id: FEManagerT.cpp,v 1.99 2006-11-25 22:03:04 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1719,6 +1719,26 @@ bool FEManagerT::CommandLineOption(const char* str, int& index) const
 	return false;
 }
 
+void FEManagerT::SendEqnsToSolver(int group) const
+{
+	/* dynamic arrays */
+	AutoArrayT<const iArray2DT*> eq_1;
+	AutoArrayT<const RaggedArray2DT<int>*> eq_2;
+	
+	/* collect equation sets */
+	fNodeManager->Equations(group, eq_1, eq_2);
+	for (int i = 0 ; i < fElementGroups->Length(); i++)
+		if ((*fElementGroups)[i]->InGroup(group))
+			(*fElementGroups)[i]->Equations(eq_1, eq_2);
+
+	/* send lists to solver */
+	for (int j = 0; j < eq_1.Length(); j++)
+		fSolvers[group]->ReceiveEqns(*(eq_1[j]));
+
+	for (int k = 0; k < eq_2.Length(); k++)
+		fSolvers[group]->ReceiveEqns(*(eq_2[k]));
+}
+
 /*************************************************************************
  * Protected
  *************************************************************************/
@@ -2091,26 +2111,6 @@ void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 
 //DEBUG
 //cout << "FEManagerT::SetEquationSystem: END" << endl;
-}
-
-void FEManagerT::SendEqnsToSolver(int group) const
-{
-	/* dynamic arrays */
-	AutoArrayT<const iArray2DT*> eq_1;
-	AutoArrayT<const RaggedArray2DT<int>*> eq_2;
-	
-	/* collect equation sets */
-	fNodeManager->Equations(group, eq_1, eq_2);
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		if ((*fElementGroups)[i]->InGroup(group))
-			(*fElementGroups)[i]->Equations(eq_1, eq_2);
-
-	/* send lists to solver */
-	for (int j = 0; j < eq_1.Length(); j++)
-		fSolvers[group]->ReceiveEqns(*(eq_1[j]));
-
-	for (int k = 0; k < eq_2.Length(); k++)
-		fSolvers[group]->ReceiveEqns(*(eq_2[k]));
 }
 
 /* construct a new CommManagerT */
