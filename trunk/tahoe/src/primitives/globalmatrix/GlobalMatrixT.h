@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.22 2006-11-20 17:27:35 r-jones Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.23 2006-11-25 22:05:17 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -77,9 +77,6 @@ public:
 	/*@{*/
 	virtual void AddEquationSet(const iArray2DT& eqset) = 0;
 	virtual void AddEquationSet(const RaggedArray2DT<int>& eqset) = 0;
-
-	void EquationSets(ArrayT<const iArray2DT*>& eqsets);
-	void EquationSets(ArrayT<const RaggedArray2DT<int>*>& eqsets);
 	/*@}*/
 
 	/** \name assemble operators
@@ -176,6 +173,9 @@ public:
 	virtual void PrintLHS(bool force = false) const = 0;
 	/*@}*/	
 	void SetPrintTag(const char* tag);
+
+	/** the MP communicator */
+	const CommunicatorT& Communicator(void) const { return fComm; };
 
 protected:
 
