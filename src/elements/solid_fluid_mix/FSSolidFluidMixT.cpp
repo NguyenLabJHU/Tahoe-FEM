@@ -649,15 +649,15 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
                 /* applying solid boundary condition */
                 /* predefined displacement */
-		    u(2,1)=-0.1;
-		    u(3,1)=-0.1;
-		    u(6,1)=-0.1;
-		    u(7,1)=-0.1;
-		    u(10,1)=-0.1;
-		    u(14,1)=-0.1;
-		    u(18,1)=-0.1;
-		    u(19,1)=-0.1;
-		    u(23,1)=-0.1; 
+		    u(2,1)=-1;
+		    u(3,1)=-1;
+		    u(6,1)=-1;
+		    u(7,1)=-1;
+		    u(10,1)=-1;
+		    u(14,1)=-1;
+		    u(18,1)=-1;
+		    u(19,1)=-1;
+		    u(23,1)=-1; 
                 /* fixed dof */
 		    u(0,2)=0;
 		    u(1,2)=0;
@@ -692,12 +692,12 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
                 /* applying fluid boundary condition */
 		    press(0,0)=0;
 		    press(1,0)=0;
-		    press(2,0)=0;
-		    press(3,0)=0;
+		    press(2,0)=2;
+		    press(3,0)=5;
 		    press(4,0)=0;
 		    press(5,0)=0;
-		    press(6,0)=0;
-		    press(7,0)=0;
+		    press(6,0)=2;
+		    press(7,0)=3;
 
 
                /* print solid displacement after applying BCs */
@@ -3043,7 +3043,7 @@ void FSSolidFluidMixT::Form_Jmath_temp_matrix(void)
 	sum =0.0;
 	for (int j=0; j< 3; j++)
 	    sum += fk_hydraulic_conductivity_matrix(i,j)*fgrad_Omega_vector[j];
-	for (int k; k<3; k++)
+	for (int k=0; k<3; k++)
 	{
 	    fJmath_temp_matrix(k,col) = sum;
 	    col += 1;
