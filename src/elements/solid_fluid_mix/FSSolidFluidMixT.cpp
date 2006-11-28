@@ -1156,7 +1156,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fs_mix_out	<<"fK_dd_G3_4_matrix"<< endl ;
 
 				/* [fK_dd_G3_5_matrix] will be formed */
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fShapeSolidGrad_t_Transpose,fDefGradInv_GRAD_grad,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fShapeSolidGrad_t_Transpose,fDefGradInv_GRAD_grad_Transpose,fIota_temp_matrix);
 				scale = theta * fIntegration_Params[kBeta] * (*Weight)*(*Det);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
                                 /* accumulate */
