@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.69 2006-11-25 22:07:03 paklein Exp $
+# $Id: tahoe-manager,v 1.70 2006-11-28 22:12:29 jzimmer Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -98,7 +98,7 @@ f2c		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
 CBLAS		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
 access		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
 development	tahoe.colorado.edu:/cvs/private/tahoe
-Sierra		tahoe.colorado.edu:/cvs/private/tahoe
+Sierra		tahoe.ca.sandia.gov:/cvs/private/tahoe
 qhull		tahoe.ca.sandia.gov:/cvs/private/tahoe
 benchmark_XML	tahoe.cvs.sourceforge.net:/cvsroot/tahoe
 development_benchmark_XML tahoe.colorado.edu:/cvs/private/tahoe
