@@ -43,7 +43,7 @@ FSSolidFluidMixT::~FSSolidFluidMixT(void)
 
 void FSSolidFluidMixT::Echo_Input_Data(void) {
 
-    cout << "#######################################################" << endl; 
+	cout << "#######################################################" << endl; 
     cout << "############### ECHO FSSolidFluidMix DATA #########################" << endl; 
     cout << "#######################################################" << endl; 
 
@@ -104,70 +104,72 @@ void FSSolidFluidMixT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
     /* doing monolithic solution */
     if (fDispl->Group() == fPress->Group())
     {
-	int ndof_press = fPress->NumDOF();
-	int ndof_displ = fDispl->NumDOF();
-	
-	/* loop over connectivity blocks */
-	fEqnos_displ.Dimension(fEqnos.Length());
-	fEqnos_press.Dimension(fEqnos.Length());
-	for (int i = 0; i < fEqnos.Length(); i++)
-	{
-	    /* connectivities */
-	    const iArray2DT& connects_displ = *(fConnectivities_displ[i]);
-	    const iArray2DT& connects_press = *(fConnectivities_press[i]);
-	    int nel = connects_displ.MajorDim();
+		int ndof_press = fPress->NumDOF();
+		int ndof_displ = fDispl->NumDOF();
 		
-	    /* dimension */ 
-	    fEqnos[i].Dimension(nel, n_en_displ*ndof_displ + n_en_press*ndof_press);
-	    iArray2DT& displ_eq = fEqnos_displ[i];
-	    iArray2DT& press_eq = fEqnos_press[i];
-	    displ_eq.Dimension(nel, n_en_displ*ndof_displ);
-	    press_eq.Dimension(nel, n_en_press*ndof_press);
+		/* loop over connectivity blocks */
+		fEqnos_displ.Dimension(fEqnos.Length());
+		fEqnos_press.Dimension(fEqnos.Length());
+		for (int i = 0; i < fEqnos.Length(); i++)
+		{
+		    /* connectivities */
+		    const iArray2DT& connects_displ = *(fConnectivities_displ[i]);
+		    const iArray2DT& connects_press = *(fConnectivities_press[i]);
+		    int nel = connects_displ.MajorDim();
 			
-	    /* get equation numbers */
-	    fDispl->SetLocalEqnos(connects_displ, displ_eq);
-	    fPress->SetLocalEqnos(connects_press, press_eq);
-			
-	    /* write into one array */
-	    fEqnos[i].BlockColumnCopyAt(displ_eq, 0);
-	    fEqnos[i].BlockColumnCopyAt(press_eq, displ_eq.MinorDim());
+		    /* dimension */ 
+		    fEqnos[i].Dimension(nel, n_en_displ*ndof_displ + n_en_press*ndof_press);
+		    iArray2DT& displ_eq = fEqnos_displ[i];
+		    iArray2DT& press_eq = fEqnos_press[i];
+		    displ_eq.Dimension(nel, n_en_displ*ndof_displ);
+		    press_eq.Dimension(nel, n_en_press*ndof_press);
+				
+		    /* get equation numbers */
+		    fDispl->SetLocalEqnos(connects_displ, displ_eq);
+		    fPress->SetLocalEqnos(connects_press, press_eq);
+				
+		    /* write into one array */
+		    fEqnos[i].BlockColumnCopyAt(displ_eq, 0);
+		    fEqnos[i].BlockColumnCopyAt(press_eq, displ_eq.MinorDim());
 
-	    /* add to list of equation numbers */
-	    eq_d.Append(&fEqnos[i]);
-	}
-	
-	/* reset pointers to element cards */
-	SetElementCards(fBlockData, fConnectivities_displ, fEqnos_displ, fElementCards_displ);
-	SetElementCards(fBlockData, fConnectivities_press, fEqnos_press, fElementCards_press);
+		    /* add to list of equation numbers */
+		    eq_d.Append(&fEqnos[i]);
+		}
+		
+		/* reset pointers to element cards */
+		SetElementCards(fBlockData, fConnectivities_displ, fEqnos_displ, fElementCards_displ);
+		SetElementCards(fBlockData, fConnectivities_press, fEqnos_press, fElementCards_press);
     }
     else
 	/* doing staggered */
     {
 #pragma message("initialization for staggered solution needs to be corrected")
 	
-	/* ElementBaseT handles equation array for displacements */
-	if (ElementSupport().CurrentGroup() == fDispl->Group())
-	    ElementBaseT::Equations(eq_d, eq_theta);
+		/* ElementBaseT handles equation array for displacements */
+		if (ElementSupport().CurrentGroup() == fDispl->Group())
+		    ElementBaseT::Equations(eq_d, eq_theta);
 
-	/* pore pressure equation */
-	if (ElementSupport().CurrentGroup() == fPress->Group())
-	{
-	    /* collect local equation numbers */
-	    //fPress.SetLocalEqnos(fConnectivities_press, fEqnos_press);
-		
-	    //eq_d.Append(&fEqnos_press);
-	}
+		/* pore pressure equation */
+		if (ElementSupport().CurrentGroup() == fPress->Group())
+		{
+		    /* collect local equation numbers */
+		    //fPress.SetLocalEqnos(fConnectivities_press, fEqnos_press);
+			
+		    //eq_d.Append(&fEqnos_press);
+		}
     }
 	
     /* get the equation number for the nodes on the faces */
+    /*
     for (int i = 0; i < fPorePressureFaceEqnos.Length(); i++)
     {
-	iArray2DT& faces = fPorePressureFaces[i];
-	iArray2DT& eqnos = fPorePressureFaceEqnos[i];
-	eqnos.Dimension(faces.MajorDim(), faces.MajorDim()*fDispl->NumDOF());
-	
-	fDispl->SetLocalEqnos(faces, eqnos);
+		iArray2DT& faces = fPorePressureFaces[i];
+		iArray2DT& eqnos = fPorePressureFaceEqnos[i];
+		eqnos.Dimension(faces.MajorDim(), faces.MajorDim()*fDispl->NumDOF());
+		
+		fDispl->SetLocalEqnos(faces, eqnos);
     }
+    */
 }
 
 
@@ -209,8 +211,7 @@ void FSSolidFluidMixT::Select_Equations (const int &iBalLinChoice, const int &iM
  * given group. */
 bool FSSolidFluidMixT::InGroup(int group) const
 {
-    return group == fDispl->Group() ||
-	group == fPress->Group();
+    return group == fDispl->Group() || group == fPress->Group();
 }
 
 //---------------------------------------------------------------------
@@ -269,15 +270,17 @@ void FSSolidFluidMixT::AddNodalForce(const FieldT& field, int node, dArrayT& for
     bool is_displ = false;
     dArrayT* element_force = NULL;
     int num_force = 0;
-    if (field.FieldName() == fDispl->FieldName()) {
-	is_displ = true;
-	element_force = &fFd_int;
-	num_force = fDispl->NumDOF();
+    if (field.FieldName() == fDispl->FieldName()) 
+    {
+		is_displ = true;
+		element_force = &fFd_int;
+		num_force = fDispl->NumDOF();
     }
-    else if (field.FieldName() == fPress->FieldName()) {
-	is_displ = false;
-	element_force = &fFtheta_int;
-	num_force = fPress->NumDOF();
+    else if (field.FieldName() == fPress->FieldName()) 
+    {
+		is_displ = false;
+		element_force = &fFtheta_int;
+		num_force = fPress->NumDOF();
     }
     else
 	return;
@@ -297,79 +300,79 @@ void FSSolidFluidMixT::AddNodalForce(const FieldT& field, int node, dArrayT& for
     Top();
     while (NextElement())
     {
-	int nodeposition;
-	const iArrayT& nodes_u = CurrentElement().NodesU();
-	if (nodes_u.HasValue(node, nodeposition))
-	{
-	    e = CurrElementNumber();
-	    const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
-	    const iArrayT& nodes_press = fElementCards_press[e].NodesU();
-
-	    u.SetLocal(nodes_displ);
-	    u_n.SetLocal(nodes_displ);
-	    press.SetLocal(nodes_press);
-	    press_n.SetLocal(nodes_press);
-
-	    del_u.DiffOf (u, u_n);
-	    del_press.DiffOf (press, press_n);
-
-	    // calculate derivatives based on reference coordinates
-	    fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
-	    //fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
-	    fCurrCoords_displ=fInitCoords_displ;
-	    fShapes_displ->SetDerivatives_DN_DDN(); 
-
-	    //
-	    fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
-	    fCurrCoords_press=fInitCoords_press;
-	    //fCurrCoords_press.SetToCombination (1.0, fInitCoords_press, 1.0, u); 
-	    fShapes_press->SetDerivatives(); 
-		
-	    //update state variables
-	    fdstatenew_all.Alias(fNumIP_press, knum_d_state, fdState_new(CurrElementNumber()));
-	    fdstate_all.Alias(fNumIP_press, knum_d_state, fdState(CurrElementNumber()));
-
-	    const double* Det    = fShapes_displ->IPDets();
-	    const double* Weight = fShapes_displ->IPWeights();
-	    /* calculate displacement nodal force */
-	    if (is_displ)
-	    {
-		/* residual for displacement field */
-		//generate this vector fFd_int 
-		fShapes_displ->TopIP();
-		while (fShapes_displ->NextIP())
+		int nodeposition;
+		const iArrayT& nodes_u = CurrentElement().NodesU();
+		if (nodes_u.HasValue(node, nodeposition))
 		{
-		    //nothing right now
-		    fFd_int=0.0;
-		}
-	    }
-	    else /* pressure nodal force */
-	    {
-		/* residual for pore pressure field */ 
-		// generate this vector fFtheta_int
-		fShapes_displ->TopIP();
-		while (fShapes_displ->NextIP())
-		{
-		    //nothing right now
-		    fFtheta_int=0.0;
-		}
-	    }
+		    e = CurrElementNumber();
+		    const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
+		    const iArrayT& nodes_press = fElementCards_press[e].NodesU();
 
-	    /* loop over nodes (double-noding OK) */
-	    int dex = 0;
-	    for (int i = 0; i < nodes_u.Length(); i++)
-	    {
-		if (nodes_u[i] == node)
-		{
-		    /* components for node */
-		    nodalforce.Set(num_force, element_force->Pointer(dex));
+		    u.SetLocal(nodes_displ);
+		    u_n.SetLocal(nodes_displ);
+		    press.SetLocal(nodes_press);
+		    press_n.SetLocal(nodes_press);
 
-		    /* accumulate */
-		    force += nodalforce;
+		    del_u.DiffOf (u, u_n);
+		    del_press.DiffOf (press, press_n);
+
+		    // calculate derivatives based on reference coordinates
+		    fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
+		    //fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
+		    fCurrCoords_displ=fInitCoords_displ;
+		    fShapes_displ->SetDerivatives_DN_DDN(); 
+
+		    //
+		    fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
+		    fCurrCoords_press=fInitCoords_press;
+		    //fCurrCoords_press.SetToCombination (1.0, fInitCoords_press, 1.0, u); 
+		    fShapes_press->SetDerivatives(); 
+			
+		    //update state variables
+		    fdstatenew_all.Alias(fNumIP_press, knum_d_state, fdState_new(CurrElementNumber()));
+		    fdstate_all.Alias(fNumIP_press, knum_d_state, fdState(CurrElementNumber()));
+
+		    const double* Det    = fShapes_displ->IPDets();
+		    const double* Weight = fShapes_displ->IPWeights();
+		    /* calculate displacement nodal force */
+		    if (is_displ)
+		    {
+				/* residual for displacement field */
+				//generate this vector fFd_int 
+				fShapes_displ->TopIP();
+				while (fShapes_displ->NextIP())
+				{
+				    //nothing right now
+				    fFd_int=0.0;
+				}
+		    }
+		    else /* pressure nodal force */
+		    {
+				/* residual for pore pressure field */ 
+				// generate this vector fFtheta_int
+				fShapes_displ->TopIP();
+				while (fShapes_displ->NextIP())
+				{
+				    //nothing right now
+				    fFtheta_int=0.0;
+				}
+		    }
+
+		    /* loop over nodes (double-noding OK) */
+		    int dex = 0;
+		    for (int i = 0; i < nodes_u.Length(); i++)
+		    {
+				if (nodes_u[i] == node)
+				{
+				    /* components for node */
+				    nodalforce.Set(num_force, element_force->Pointer(dex));
+
+				    /* accumulate */
+				    force += nodalforce;
+				}
+				dex += NumDOF();
+		    }			
 		}
-		dex += NumDOF();
-	    }			
-	}
     }
 //	cout << "F_int = \n" << fFd_int << endl;
 }
@@ -419,7 +422,7 @@ void FSSolidFluidMixT::RegisterOutput(void)
     ArrayT<StringT> e_labels(fNumIP_press*(knumstrain+knumstress+knum_d_state));
 
     /* over integration points */
-    //enter what values you need at integration points
+    // enter what values you need at integration points
     // stress and strain
     const char* slabels3D[] = {"s11", "s22", "s33"};
     // state variables; kappa is fictitious right now
@@ -427,24 +430,24 @@ void FSSolidFluidMixT::RegisterOutput(void)
     int count = 0;
     for (int j = 0; j < fNumIP_press; j++)
     {
-	StringT ip_label;
-	ip_label.Append("ip", j+1);
+		StringT ip_label;
+		ip_label.Append("ip", j+1);
+				
+		/* over strain and stress components */
+		for (int i = 0; i < knumstrain+knumstress; i++)
+		{
+		    e_labels[count].Clear();
+		    e_labels[count].Append(ip_label, ".", slabels3D[i]);
+		    count++;
+		}
 			
-	/* over strain and stress components */
-	for (int i = 0; i < knumstrain+knumstress; i++)
-	{
-	    e_labels[count].Clear();
-	    e_labels[count].Append(ip_label, ".", slabels3D[i]);
-	    count++;
-	}
-		
-	/* over state variables */
-	for (int i = 0; i < knum_d_state; i++)
-	{
-	    e_labels[count].Clear();
-	    e_labels[count].Append(ip_label, ".", svlabels3D[i]);
-	    count++;
-	}
+		/* over state variables */
+		for (int i = 0; i < knum_d_state; i++)
+		{
+		    e_labels[count].Clear();
+		    e_labels[count].Append(ip_label, ".", svlabels3D[i]);
+		    count++;
+		}
     }		
 
     /* output per node */
@@ -453,7 +456,7 @@ void FSSolidFluidMixT::RegisterOutput(void)
     count = 0;
 
     /* labels from pressic gradient */
-     const ArrayT<StringT>& press_labels = fPress->Labels();
+    const ArrayT<StringT>& press_labels = fPress->Labels();
     for (int i = 0; i < press_labels.Length(); i++)
 	n_labels[count++] = press_labels[i];
 
@@ -508,18 +511,18 @@ void FSSolidFluidMixT::WriteOutput(void)
     Top();
     while (NextElement())
     {
-	/* extrapolate */
-	nd_var = 0.0;
-	out_variable_all.Alias(fNumIP_press, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-	fShapes_displ->TopIP();
-	while (fShapes_displ->NextIP())
-	{
-	    out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes_displ->CurrIP()));
-	    fShapes_displ->Extrapolate(out_variable, nd_var);
-	}
-	
-	/* accumulate - extrapolation done from ip's to corners => X nodes  */
-	ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_var);
+		/* extrapolate */
+		nd_var = 0.0;
+		out_variable_all.Alias(fNumIP_press, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+		fShapes_displ->TopIP();
+		while (fShapes_displ->NextIP())
+		{
+			out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes_displ->CurrIP()));
+			fShapes_displ->Extrapolate(out_variable, nd_var);
+		}
+		
+		/* accumulate - extrapolation done from ip's to corners => X nodes  */
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_var);
     }
 
     /* get nodally averaged values */
@@ -535,22 +538,21 @@ void FSSolidFluidMixT::WriteOutput(void)
     const dArray2DT& fU = (*fDispl)[0];
     for (int i = 0; i < nodes_used.Length(); i++)
     {
-	int node = nodes_used[i];
-	double* row = n_values(i);
-	for (int j = 0; j < fPressure.MinorDim(); j++)
-	    *row++ = fPressure(node,j);
+		int node = nodes_used[i];
+		double* row = n_values(i);
+		for (int j = 0; j < fPressure.MinorDim(); j++)
+		    *row++ = fPressure(node,j);
 
-	for (int j = 0; j < fU.MinorDim(); j++)
-	    *row++ = fU(node,j);
+		for (int j = 0; j < fU.MinorDim(); j++)
+		    *row++ = fU(node,j);
 
-	double* p_stress = extrap_values(i);
-	for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
-	    *row++ = p_stress[j];
+		double* p_stress = extrap_values(i);
+		for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
+		    *row++ = p_stress[j];
     }
 
     /* send */
     ElementSupport().WriteOutput(fOutputID, n_values, fIPVariable);
-
 }	
 
 
@@ -626,7 +628,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		press.SetLocal(nodes_press);
 		press_n.SetLocal(nodes_press);
 
-               /* print solid displacement from previous step */
+		/* print solid displacement from previous step */
 		fs_mix_out	<<"nodal solid displacement from previous step"<< endl ;
 		for (int i=0; i<n_en_displ; i++)
 		{
@@ -636,7 +638,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fs_mix_out	<< endl ;
 		}
 		 
-                /* print fluid displacement from previous step */
+		/* print fluid displacement from previous step */
 		fs_mix_out	<<"nodal fluid pressure from previous step"<< endl ;
 		for (int i=0; i<n_en_press; i++)
 		{
@@ -649,6 +651,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
                 /* applying solid boundary condition */
                 /* predefined displacement */
+                /*
 		    u(2,1)=-1;
 		    u(3,1)=-1;
 		    u(6,1)=-1;
@@ -658,7 +661,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    u(18,1)=-1;
 		    u(19,1)=-1;
 		    u(23,1)=-1; 
+		    */
                 /* fixed dof */
+                /*
 		    u(0,2)=0;
 		    u(1,2)=0;
 		    u(2,2)=0;
@@ -686,10 +691,12 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    u(12,1)=0;
 		    u(17,1)=0;
 		    u(22,1)=0;
+		    */
 
 
 		   
                 /* applying fluid boundary condition */
+                /*
 		    press(0,0)=0;
 		    press(1,0)=0;
 		    press(2,0)=2;
@@ -698,6 +705,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    press(5,0)=0;
 		    press(6,0)=2;
 		    press(7,0)=3;
+		    */
 
 
                /* print solid displacement after applying BCs */
@@ -724,17 +732,16 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		int index = 0;
 		for (int i=0; i<n_en_displ; i++)
 		{
-		    for (int j=0; j<n_sd; j++)
+			for (int j=0; j<n_sd; j++)
 		    {
-			u_vec[index] = u(i,j);
-			index += 1;
+				u_vec[index] = u(i,j);
+				index += 1;
 		    }
 		}
 
 
                 /* populate fluid displacement in a vector */
-		for (int i=0; i<n_en_press; i++)
-		    press_vec[i] = press(i,0);
+		for (int i=0; i<n_en_press; i++) press_vec[i] = press(i,0);
 
 		del_u.DiffOf (u, u_n);
 		del_press.DiffOf (press, press_n);
