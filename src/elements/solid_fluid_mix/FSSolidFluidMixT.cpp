@@ -1024,7 +1024,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
 				/* {fFd_int_N1_vector} will be formed */
 				double scale = (*Weight)*(*Det);
-				fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector,fTemp_vector_ndof_se,scale);
+				fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector,fTemp_vector_ndof_se,-1*scale);
                                 /* accumulate */
 				fFd_int_N1_vector += fTemp_vector_ndof_se;
 				fs_mix_out	<<"fFd_int_N1_vector"<< endl ;
@@ -1040,7 +1040,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fs_mix_out	<<theta<< endl ;
 				fs_mix_out	<<"theta"<< endl ;
 				scale = -1*theta*(*Weight)*(*Det);
-				fShapeSolidGrad.MultTx(fDefGradInv_Vector,fTemp_vector_ndof_se,scale);
+				fShapeSolidGrad.MultTx(fDefGradInv_Vector,fTemp_vector_ndof_se,-1*scale);
 				/* accumulate */
 				fFd_int_N2_vector += fTemp_vector_ndof_se; 
 				fs_mix_out	<<"fFd_int_N2_vector"<< endl ;
@@ -1058,7 +1058,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				else
 				    scale = 0.0;
 				fTemp_matrix_nen_press_x_nsd.MultAB(fLambda_temp_matrix,fDeformation_Gradient_Inverse_Transpose);
-				fTemp_matrix_nen_press_x_nsd.Multx(fChi_temp_vector, fTemp_vector_nen_press,scale);
+				fTemp_matrix_nen_press_x_nsd.Multx(fChi_temp_vector, fTemp_vector_nen_press,-1*scale);
                                 /* accumulate */
 				fFtheta_int_N1_vector += fTemp_vector_nen_press;
 				fs_mix_out	<<"fFtheta_int_N1_vector"<< endl ;
@@ -1069,7 +1069,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
                                 /* {fFtheta_int_N2_vector} will be formed */
 				fTemp_matrix_nen_press_x_nen_press.MultAB(fTemp_matrix_nen_press_x_nsd,fShapeFluidGrad);
 				scale = -1.0/fMaterial_Params[kg]*(*Weight)*(*Det); 
-				fTemp_matrix_nen_press_x_nen_press.Multx(press_vec, fTemp_vector_nen_press,scale);
+				fTemp_matrix_nen_press_x_nen_press.Multx(press_vec, fTemp_vector_nen_press,-1*scale);
                                 /* accumulate */
 				fFtheta_int_N2_vector += fTemp_vector_nen_press;
 				fs_mix_out	<<"fFtheta_int_N2_vector"<< endl ;
