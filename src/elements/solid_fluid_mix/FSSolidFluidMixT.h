@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.12 2006-11-14 19:05:23 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.13 2006-12-04 13:01:29 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -183,6 +183,8 @@ private:
 	/** Gradients and other matrices */
 	dMatrixT fgrad_u, fgrad_u_n;
 	dArrayT fgrad_theta, fgrad_theta_n;
+	int C1;
+
 	
 	dMatrixT fShapeSolid, fShapeSolidGrad, fShapeSolidGrad_t,fShapeSolidGrad_t_Transpose, fShapeSolidGradGrad, fShapeSolidGrad_temp;
 	dArrayT fShapeFluid;
@@ -280,6 +282,7 @@ private:
         dArrayT	        fGrad_phi_f_vector;
         dArrayT	        fGrad_1_J_vector;
         dArrayT	        fTemp_nsd_vector;
+        dArrayT	        fFd_int_SmallStrain_vector;
 
 
 	
@@ -333,8 +336,12 @@ private:
         dMatrixT	fK_thetatheta_H3_1_matrix;
         dMatrixT	fK_thetatheta_H3_2_matrix;
         dMatrixT	fChi_temp_column_matrix;
-
-
+        dMatrixT	fc_matrix;
+        dMatrixT	fC_matrix;
+        dMatrixT	fIm_Prim_temp_matrix;
+        dMatrixT	fB_matrix;
+        dMatrixT	fD_matrix;
+        dMatrixT	fK_dd_BTDB_matrix;
 
         double          phi_s,phi_f,theta;
 
@@ -430,6 +437,11 @@ private:
         void Form_Eth_temp_matrix(void);
         void Form_Jmath_temp_matrix(void);
         void Form_Wp_temp_matrix(void);
+        void Form_C_matrix(const double& J_Prim);
+        void Form_c_matrix(void);
+        void Form_Im_Prim_temp_matrix(void);
+        void Form_D_matrix(void);
+        void Form_B_matrix(void);
 protected:
 
 	/** extract natural boundary condition information */
