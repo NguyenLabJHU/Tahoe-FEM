@@ -1354,7 +1354,17 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 //				fK_dd_G3_3_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 //				fs_mix_out	<<"Accumulative fK_dd_G3_3_matrix "<< "until IP no. "<< IntegrationPointNumber <<endl ;
 //				fs_mix_out	<<fK_dd_G3_3_matrix<< endl ;
-//				fs_mix_out	<<"Accumulative fK_dd_G3_3_matrix"<< "until IP no. "<< IntegrationPointNumber << endl ;
+//
+				fs_mix_out	<<"Accumulative fK_dd_G3_3_matrix"<< "until IP no. "<< IntegrationPointNumber << endl ;
+
+
+
+
+/*********************************************************************************************************************************************
+ *********************************************************************************************************************************************
+ *********************************************************************************************************************************************/
+
+
 
                                 /* implementing small strain deformation of an elastic media  for solid phase */
 
@@ -1385,7 +1395,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fs_mix_out	<<"Accumulative fK_dd_BTDB_matrix "<< "until IP no. "<< IntegrationPointNumber << endl ;
 
                                 /* {fFd_int_SmallStrain_vector} will be formed */
-				scale = (*Weight)*(*Det);
+				scale = 1;
 				fK_dd_BTDB_matrix.MultTx(u_vec,fTemp_vector_ndof_se,-1*scale);
 				/* fFd_int_SmallStrain_vector for the current IP */
 				fs_mix_out	<<"fFd_int_SmallStrain_vector "<<" for IP no."<< IntegrationPointNumber << endl ;
@@ -1396,7 +1406,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fs_mix_out	<<"Accumulative fFd_int_SmallStrain_vector until IP no. "<< IntegrationPointNumber<<endl ;
 				fs_mix_out	<<fFd_int_SmallStrain_vector<< endl ;
 				fs_mix_out	<<"Accumulative fFd_int_SmallStrain_vector until IP no. "<< IntegrationPointNumber<<endl ;
-
                                 
 
 
