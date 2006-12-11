@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alpha_macT.cpp,v 1.6 2006-09-16 13:30:19 regueiro Exp $
+// $Id: APS_kappa_alpha_macT.cpp,v 1.7 2006-12-11 23:23:41 regueiro Exp $
 #include "APS_kappa_alpha_macT.h"
 
 using namespace Tahoe;
@@ -48,7 +48,7 @@ void APS_kappa_alpha_macT::Initialize (int &in_ip, int &in_sd, int &in_en_displ,
 	/* create output file for viewing local iteration */
 	outputPrecision = 10;
 	outputFileWidth = outputPrecision + 8;
-	//aps_local_iter.open("aps.info");
+	aps_local_iter.open("aps.info");
 }
 
 //---------------------------------------------------------------------
@@ -192,6 +192,12 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	V[kV_Temp2].Magnitude(S[kS_Temp11]);
 	V_out[kstressstate](6) = S[kS_Temp11];
 	
+	// output backstress
+	V_out[kstressstate](7) = S[kgammap_curl];
+	V_out[kstressstate](7) *= C[kMu];
+	V_out[kstressstate](7) *= C[kl];
+	V_out[kstressstate](7) *= -1.0;
+	
 	// calculate effective strain
 	V_out[kV_out_Temp1](0) = V[kV_Temp4](0);
 	V_out[kV_out_Temp1](0) *= V[kV_Temp4](0);
@@ -232,6 +238,8 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp13] *= C[kMu];
 	
 	
+	
+	
 	/* slip system 1 */
 	
 	S[kIV_kappa1_n] = V_state[kstate_n](1);
@@ -257,7 +265,7 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	V_state[kstate](0) = S[kxi_1];
 	
 	// output relative stress
-	V_out[kstressstate](7) = S[kxi_1];
+	V_out[kstressstate](8) = S[kxi_1];
 	
 	// calculate sign of del_gamma1
 	S[ksign_del_gamma1] = S[kdel_gamma1_n];
@@ -283,12 +291,11 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	S[kS_Temp11].Abs( S[kS_Temp10] );
 	
 	// output initial residual
-	/*
 	aps_local_iter	<< endl << "**********************************************************************************************";
 	aps_local_iter	<< endl 
 					<< setw(outputFileWidth) << S[kS_Temp11]
 					<< endl;
-					*/
+					
 					
 	while (S[kS_Temp11] > C[ksmall]) {
 
@@ -335,18 +342,18 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 		S[kS_Temp11].Abs( S[kS_Temp10] );
 		
 		// output iteration residuals
-		/*
+	
 		aps_local_iter	<< endl 
 						<< setw(outputFileWidth) << S[kS_Temp11]
 						<< endl;
-						*/
+						
 		
 	}
 	/* end iteration */
 	
 	//output gamma1_dot
-	V_out[kstressstate](9) = S[kdel_gamma1];
-	V_out[kstressstate](9) /= delta_t;
+	V_out[kstressstate](10) = S[kdel_gamma1];
+	V_out[kstressstate](10) /= delta_t;
 	
 	// save increment of slip along slip system
 	V_state[kstate](2) = S[kdel_gamma1];
@@ -355,8 +362,8 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	V_state[kstate](1) = S[kIV_kappa1];
 	
 	// output kappa1
-	V_out[kstressstate](8) = C[kkappa0_1];
-	V_out[kstressstate](8) += S[kIV_kappa1];
+	V_out[kstressstate](9) = C[kkappa0_1];
+	V_out[kstressstate](9) += S[kIV_kappa1];
 	
 
 
@@ -385,7 +392,7 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	V_state[kstate](3) = S[kxi_2];
 	
 	// output relative stress
-	V_out[kstressstate](10) = S[kxi_2];
+	V_out[kstressstate](11) = S[kxi_2];
 	
 	// calculate sign of del_gamma2
 	S[ksign_del_gamma2] = S[kdel_gamma2_n];
@@ -457,8 +464,8 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	/* end iteration */
 	
 	//output gamma2_dot
-	V_out[kstressstate](12) = S[kdel_gamma2];
-	V_out[kstressstate](12) /= delta_t;
+	V_out[kstressstate](13) = S[kdel_gamma2];
+	V_out[kstressstate](13) /= delta_t;
 	
 	// save increment of slip along slip system
 	V_state[kstate](5) = S[kdel_gamma2];
@@ -467,8 +474,8 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	V_state[kstate](4) = S[kIV_kappa2];
 	
 	// output kappa2
-	V_out[kstressstate](11) = C[kkappa0_2];
-	V_out[kstressstate](11) += S[kIV_kappa2];
+	V_out[kstressstate](12) = C[kkappa0_2];
+	V_out[kstressstate](12) += S[kIV_kappa2];
 	
 
 	
@@ -499,7 +506,7 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	V_state[kstate](6) = S[kxi_3];
 	
 	// output relative stress
-	V_out[kstressstate](13) = S[kxi_3];
+	V_out[kstressstate](14) = S[kxi_3];
 	
 	// calculate sign of del_gamma3
 	S[ksign_del_gamma3] = S[kdel_gamma3_n];
@@ -571,8 +578,8 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	/* end iteration */
 	
 	//output gamma3_dot
-	V_out[kstressstate](15) = S[kdel_gamma3];
-	V_out[kstressstate](15) /= delta_t;
+	V_out[kstressstate](16) = S[kdel_gamma3];
+	V_out[kstressstate](16) /= delta_t;
 	
 	// save increment of slip along slip system
 	V_state[kstate](8) = S[kdel_gamma3];
@@ -581,8 +588,8 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 	V_state[kstate](7) = S[kIV_kappa3];
 	
 	// output kappa3
-	V_out[kstressstate](14) = C[kkappa0_3];
-	V_out[kstressstate](14) += S[kIV_kappa3];
+	V_out[kstressstate](15) = C[kkappa0_3];
+	V_out[kstressstate](15) += S[kIV_kappa3];
 	
 
 	

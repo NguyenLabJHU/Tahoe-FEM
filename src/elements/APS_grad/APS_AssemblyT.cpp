@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.67 2006-06-30 18:09:24 regueiro Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.68 2006-12-11 23:23:40 regueiro Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -510,7 +510,7 @@ void APS_AssemblyT::RegisterOutput(void)
 	ArrayT<StringT> e_labels(fNumIP_plast*(knumstrain+knumstress+knum_d_state));
 
 	/* over integration points */
-	const char* slabels2D[] = {"gamma_x", "gamma_y", "gammap_curl", "effstr", "s_xz", "s_yz", "J2"};
+	const char* slabels2D[] = {"gamma_x", "gamma_y", "gammap_curl", "effstr", "s_xz", "s_yz", "J2", "backstress"};
 	const char* svlabels2D[] = {"xi_1", "kappa_1", "gamma_dot_1", "xi_2", "kappa_2", "gamma_dot_2", "xi_3", "kappa_3", "gamma_dot_3"};
 	int count = 0;
 	for (int j = 0; j < fNumIP_plast; j++)
@@ -1240,7 +1240,7 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	knum_i_state = 0; // int's needed per ip, state variables
 	
 	knumstrain = 4; // number of strain outputs
-	knumstress = 3; // number of stress outputs
+	knumstress = 4; // number of stress outputs
 	
 	output = "out";
 	
