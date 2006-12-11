@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.13 2006-12-04 13:01:29 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.14 2006-12-11 20:37:29 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -290,6 +290,7 @@ private:
 	dMatrixT	fRight_Cauchy_Green_tensor;
 	dMatrixT	fRight_Cauchy_Green_tensor_Inverse;
 	dMatrixT	fLeft_Cauchy_Green_tensor;
+	dMatrixT	fLeft_Cauchy_Green_tensor_Inverse;
 	dMatrixT	fDeformation_Gradient_Inverse;
 	dMatrixT	fDeformation_Gradient_Transpose;
 	dMatrixT        fDeformation_Gradient_Inverse_Transpose;
@@ -341,7 +342,25 @@ private:
         dMatrixT	fIm_Prim_temp_matrix;
         dMatrixT	fB_matrix;
         dMatrixT	fD_matrix;
+        dArrayT         fTemp_six_values;
         dMatrixT	fK_dd_BTDB_matrix;
+        /* to store fEulerian_effective_strain_tensor_current_IP */
+        dMatrixT	fEulerian_effective_strain_tensor_current_IP;
+        /* to store fEulerian_effective_strain_IPs for each of the 27 IPs of each element */
+        dArray2DT	fEulerian_effective_strain_IPs;
+        /* to store fCauchy_effective_stress_tensor_current_IP */
+        dMatrixT	fCauchy_effective_stress_tensor_current_IP;
+        /* to store fCauchy_effective_stress_IPs for each of the 27 IPs of each element */
+        dArray2DT	fCauchy_effective_stress_IPs;
+        /* volume fractions of the solid phase and fluid phase for each of the 27 IP nodes of element is stored */
+        dArray2DT	fState_variables_IPs;
+        dArray2DT	fEulerian_effective_strain_Elements_IPs;
+        dArray2DT	fCauchy_effective_stress_Elements_IPs;
+        dArray2DT	fState_variables_Elements_IPs;
+
+
+
+
 
         double          phi_s,phi_f,theta;
 
@@ -442,6 +461,8 @@ private:
         void Form_Im_Prim_temp_matrix(void);
         void Form_D_matrix(void);
         void Form_B_matrix(void);
+        void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
+        void Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
 protected:
 
 	/** extract natural boundary condition information */
