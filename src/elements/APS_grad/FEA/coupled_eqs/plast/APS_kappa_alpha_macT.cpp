@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alpha_macT.cpp,v 1.8 2006-12-11 23:59:19 regueiro Exp $
+// $Id: APS_kappa_alpha_macT.cpp,v 1.9 2006-12-12 00:10:31 regueiro Exp $
 #include "APS_kappa_alpha_macT.h"
 
 using namespace Tahoe;
@@ -344,10 +344,11 @@ void APS_kappa_alpha_macT::Form_V_S_Lists (  APS_VariableT &npt, APS_VariableT &
 		S[kS_Temp11].Abs( S[kS_Temp10] );
 		
 		// output iteration residuals
-	
+		/*
 		aps_local_iter	<< endl 
 						<< setw(outputFileWidth) << S[kS_Temp11]
 						<< endl;
+						*/
 						
 		
 	}
