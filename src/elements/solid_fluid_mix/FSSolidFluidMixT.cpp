@@ -425,7 +425,7 @@ void FSSolidFluidMixT::RegisterOutput(void)
     /* over integration points */
     // enter what values you need at integration points
     // stress and strain
-    const char* slabels3D[] = {"e11","e22","e33","e23","e13","e12","s11", "s22", "s33","s23","s13","s12"};
+    const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","e11","e22","e33","e23","e13","e12"};
     // state variables; kappa is fictitious right now
     const char* svlabels3D[] = {"phi_s","phi_f"};
     int count = 0;
@@ -695,9 +695,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    for (l=0; l < fNumIP_press; l++) 
 		    {
 				out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
-				Put_values_In_dArrayT_vector(fEulerian_effective_strain_Elements_IPs, e,l,fTemp_six_values);
-				out_variable.CopyIn(0,fTemp_six_values);
 				Put_values_In_dArrayT_vector(fCauchy_effective_stress_Elements_IPs, e,l,fTemp_six_values);
+				out_variable.CopyIn(0,fTemp_six_values);
+				Put_values_In_dArrayT_vector(fEulerian_effective_strain_Elements_IPs, e,l,fTemp_six_values);
 				out_variable.CopyIn(6,fTemp_six_values);
 				out_variable[12]=fState_variables_Elements_IPs(e,l*2+0);
 				out_variable[13]=fState_variables_Elements_IPs(e,l*2+1);
