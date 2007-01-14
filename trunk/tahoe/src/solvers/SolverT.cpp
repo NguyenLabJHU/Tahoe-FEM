@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.38 2006-11-25 22:05:54 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.39 2007-01-14 22:43:25 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -54,6 +54,27 @@
 #include "nIntegratorT.h"
 #include "eStaticIntegrator.h"
 using namespace Anasazi;
+
+/* translate integer to Anasazi message type */
+static Anasazi::MsgType int2MsgType(int i) {
+	switch (i) {
+		case Anasazi::Warnings:
+			return Anasazi::Warnings;
+		case Anasazi::IterationDetails:
+			return Anasazi::IterationDetails;
+		case Anasazi::OrthoDetails:
+			return Anasazi::OrthoDetails;
+		case Anasazi::FinalSummary:
+			return Anasazi::FinalSummary;
+		case Anasazi::TimingDetails:
+			return Anasazi::TimingDetails;
+		case Anasazi::StatusTestDetails:
+			return Anasazi::StatusTestDetails;
+		case Anasazi::Debug:
+			return Anasazi::Debug;
+	}
+	return Anasazi::Errors;
+};
 #endif /* __TRILINOS__ */
 
 using namespace Tahoe;
@@ -74,7 +95,7 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 	fLHS_update(true),
 	fRHS_lock(kOpen),
 	fPerturbation(0.0),
-	fNumModes(0)
+	fEigenSolverParameters(NULL)
 {
 	/* console */
 	iSetName("solver");
@@ -82,7 +103,10 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 }
 
 /* destructor */
-SolverT::~SolverT(void) { delete fLHS; }
+SolverT::~SolverT(void) {
+	delete fLHS;
+	delete fEigenSolverParameters;
+}
 
 /* configure the global equation system */
 void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
@@ -124,8 +148,7 @@ void SolverT::CloseStep(void)
 	const char caller[] = "SolverT::CloseStep";
 
 #ifdef __TRILINOS__
-	int check_code = fLHS->CheckCode();
-	if (check_code != GlobalMatrixT::kEigenmodes || fNumModes < 1) return;
+	if (!fEigenSolverParameters) return; /* no eigenmode solver defined */
 
 	/* temporarily replace LHS */
 	EpetraCRSMatrixT epetra(fFEManager.Output(), GlobalMatrixT::kNoCheck, fLHS->Communicator());
@@ -187,7 +210,8 @@ void SolverT::CloseStep(void)
 	Teuchos::RefCountPtr<Epetra_CrsMatrix> rcp_M = Teuchos::rcp(M);
 	
 	/* write matricies to files */
-	if (true) {
+	bool output_matricies = fEigenSolverParameters->GetParameter("output_matricies");
+	if (output_matricies) {
 		ofstreamT out;
 		out.precision(12);
 
@@ -209,28 +233,18 @@ void SolverT::CloseStep(void)
 		out.close();
 	}
 
-#if 1
-	// Variables used for the LOBPCG Method
-	const int    nev       = fNumModes;
-	const int    blockSize = 5;
-	const int    maxIters  = 5000;
-	const double tol       = 1.0e-10;
-#else
-	//  Variables used for the Block Davidson Method
-	const int    nev         = fNumModes;
-	const int    blockSize   = 5;
-	const int    numBlocks   = 8;
-	const int    maxRestarts = 100;
-	const double tol         = 1.0e-10;
-#endif
+	/* parameters common to all solvers */
+	int nev = fEigenSolverParameters->GetParameter("max_eigenmodes");
+	int block_size = fEigenSolverParameters->GetParameter("block_size");
 
+	/* work space */
 	typedef Epetra_MultiVector MV;
 	typedef Epetra_Operator OP;
 	typedef MultiVecTraits<double, Epetra_MultiVector> MVT;
 
 	// Create an Epetra_MultiVector for an initial vector to start the solver.
 	// Note:  This needs to have the same number of columns as the blocksize.
-	Teuchos::RefCountPtr<Epetra_MultiVector> ivec = Teuchos::rcp( new Epetra_MultiVector(*(epetra.Map()), blockSize) );
+	Teuchos::RefCountPtr<Epetra_MultiVector> ivec = Teuchos::rcp( new Epetra_MultiVector(*(epetra.Map()), block_size) );
 	ivec->Random();
 
 	// Create the eigenproblem.
@@ -253,7 +267,7 @@ void SolverT::CloseStep(void)
 		ExceptionT::GeneralFail(caller, "Anasazi::BasicEigenproblem::setProblem() returned an error");
 	}
 
-	/* which 	[in] The eigenvalues of interest for this eigenproblem.
+	/* which [in] The eigenvalues of interest for this eigenproblem.
 	* "LM" - Largest Magnitude [ default ]
 	* "SM" - Smallest Magnitude
 	* "LR" - Largest Real
@@ -262,35 +276,53 @@ void SolverT::CloseStep(void)
 	* "SI" - Smallest Imaginary */
 	std::string which("SM"); /* get lowest modes */
 
-	// Create parameter list to pass into the solver manager
+	/* Create parameter list to pass into the solver manager */
 	Teuchos::ParameterList MyPL;
-#if 1
-	// Variables used for the LOBPCG Method
-	MyPL.set( "Which", which );
-	MyPL.set( "Block Size", blockSize );
-	MyPL.set( "Maximum Iterations", maxIters );
-	MyPL.set( "Convergence Tolerance", tol );
-	MyPL.set( "Verbosity", Anasazi::IterationDetails );
+	MyPL.set("Which", which);
+	MyPL.set( "Block Size", block_size);
+	Anasazi::SolverManager<double, MV, OP>* solver_man = NULL;
+	
+	/* construct solver */
+	if (fEigenSolverParameters->Name() == "LOBPCG_solver") {
 
-	// Create the solver manager
-	SimpleLOBPCGSolMgr<double, MV, OP> MySolverMan(MyProblem, MyPL);
-#else
-	MyPL.set( "Which", which );
-	MyPL.set( "Block Size", blockSize );
-	MyPL.set( "Num Blocks", numBlocks );
-	MyPL.set( "Maximum Restarts", maxRestarts );
-	MyPL.set( "Convergence Tolerance", tol );
-	MyPL.set( "Verbosity", Anasazi::IterationDetails );
+		/* resolve parameters */
+		const int max_iter = fEigenSolverParameters->GetParameter("max_iter");
+		const double tol   = fEigenSolverParameters->GetParameter("tolerance");
+		Anasazi::MsgType verbosity = int2MsgType(fEigenSolverParameters->GetParameter("verbosity"));
 
-	// Create the solver manager
-	Anasazi::BlockDavidsonSolMgr<double, MV, OP> MySolverMan(MyProblem, MyPL);
-#endif
+		/* LOBPCG parameters */
+		MyPL.set("Maximum Iterations", max_iter);
+		MyPL.set("Convergence Tolerance", tol);
+		MyPL.set("Verbosity", verbosity);
 
-	// Solve the problem
+		/* Create the solver manager */
+		solver_man = new SimpleLOBPCGSolMgr<double, MV, OP>(MyProblem, MyPL);
+	
+	} else if (fEigenSolverParameters->Name() == "Block_Davidson_solver") {
+
+		/* resolve parameters */
+		const int max_restart = fEigenSolverParameters->GetParameter("max_restart");
+		const int num_blocks = fEigenSolverParameters->GetParameter("num_blocks");
+		const double tol   = fEigenSolverParameters->GetParameter("tolerance");
+		Anasazi::MsgType verbosity = int2MsgType(fEigenSolverParameters->GetParameter("verbosity"));
+
+		/* Block Davidson parameters */
+		MyPL.set("Num Blocks", num_blocks);
+		MyPL.set("Maximum Restarts", max_restart);
+		MyPL.set("Convergence Tolerance", tol);
+		MyPL.set("Verbosity", verbosity);
+
+		/* Create the solver manager */
+		solver_man = new Anasazi::BlockDavidsonSolMgr<double, MV, OP>(MyProblem, MyPL);
+
+	} else
+		ExceptionT::GeneralFail(caller, "unrecognized solver name [%s]", fEigenSolverParameters->Name().Pointer());
+
+	/* Solve the problem */
 	try {
-		ReturnType returnCode = MySolverMan.solve();
+		ReturnType returnCode = solver_man->solve();
 		if (returnCode != Anasazi::Converged) {
-			cout << caller << ": SimpleLOBPCGSolMgr.solve did not converge" << endl;
+			cout << caller << ": eigensystem solve did not converge" << endl;
 		}
 
 		// Get the eigenvalues and eigenvectors from the eigenproblem
@@ -314,6 +346,7 @@ void SolverT::CloseStep(void)
 	// loop over modes and write modes and write e-vals to .out
 	
 	/* clean up */
+	delete solver_man;
 //	delete K;
 //	delete M;
 #endif
@@ -452,14 +485,6 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	check_LHS_perturbation.AddLimit(0.0, LimitT::LowerInclusive);
 	check_LHS_perturbation.SetDefault(1.0e-08);
 	list.AddParameter(check_LHS_perturbation);
-
-#ifdef __TRILINOS__
-	/* number of eigenmodes to calculate */
-	ParameterT num_modes(fNumModes, "max_eigenmodes");
-	num_modes.AddLimit(0, LimitT::LowerInclusive);
-	num_modes.SetDefault(10);
-	list.AddParameter(num_modes);
-#endif
 }
 
 /* information about subordinate parameter lists */
@@ -470,6 +495,11 @@ void SolverT::DefineSubs(SubListT& sub_list) const
 
 	/* linear solver choice */
 	sub_list.AddSub("matrix_type_choice", ParameterListT::Once, true);
+
+#ifdef __TRILINOS__
+	/* eigenvalue solver options */
+	sub_list.AddSub("eigensolver_choice", ParameterListT::ZeroOrOnce, true);
+#endif
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -576,6 +606,96 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 	else if (name == "Aztec_matrix")
 		return new AztecParamsT;
 #endif
+
+#ifdef __TRILINOS__
+	else if (name == "eigensolver_choice") {
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetListOrder(ParameterListT::Choice);
+		choice->SetSubSource(this);
+		
+		/* number of eigenmodes */
+		ParameterT num_modes(ParameterT::Integer, "max_eigenmodes");
+		num_modes.AddLimit(0, LimitT::LowerInclusive);
+		num_modes.SetDefault(10);
+
+		/* block size */
+		ParameterT block_size(ParameterT::Integer, "block_size");
+		block_size.AddLimit(0, LimitT::LowerInclusive);
+		block_size.SetDefault(5);
+
+		/* convergence tolerance */
+		ParameterT tol(ParameterT::Double, "tolerance");
+		tol.SetDefault(1.0e-10);
+
+		/* write matricies to files */
+		ParameterT output(ParameterT::Boolean, "output_matricies");
+		output.SetDefault(false);
+
+		/* solver verbosity */
+		ParameterT verbosity(ParameterT::Enumeration, "verbosity");
+		verbosity.AddEnumeration(           "Errors", Anasazi::Errors);
+		verbosity.AddEnumeration(         "Warnings", Anasazi::Warnings);
+		verbosity.AddEnumeration( "IterationDetails", Anasazi::IterationDetails);
+		verbosity.AddEnumeration(     "OrthoDetails", Anasazi::OrthoDetails);
+		verbosity.AddEnumeration(     "FinalSummary", Anasazi::FinalSummary);
+		verbosity.AddEnumeration(    "TimingDetails", Anasazi::TimingDetails);
+		verbosity.AddEnumeration("StatusTestDetails", Anasazi::StatusTestDetails);
+		verbosity.AddEnumeration(            "Debug", Anasazi::Debug);
+		verbosity.SetDefault(Anasazi::Errors);
+// from AnasaziTypes.hpp
+#if 0
+  enum MsgType 
+  {
+    Errors = 0,                 /*!< Errors [ always printed ] */
+    Warnings = 0x1,             /*!< Internal warnings */
+    IterationDetails = 0x2,     /*!< Approximate eigenvalues, errors */
+    OrthoDetails = 0x4,         /*!< Orthogonalization/orthonormalization details */
+    FinalSummary = 0x8,         /*!< Final computational summary */
+    TimingDetails = 0x10,       /*!< Timing details */
+    StatusTestDetails = 0x20,   /*!< Status test details */
+    Debug = 0x40                /*!< Debugging information */
+  };
+#endif
+
+		/* LOBPCG Method */
+		ParameterContainerT LOBPCG("LOBPCG_solver");
+		LOBPCG.AddParameter(num_modes);
+		LOBPCG.AddParameter(block_size);
+		LOBPCG.AddParameter(tol);
+		LOBPCG.AddParameter(output);
+		LOBPCG.AddParameter(verbosity);
+
+		ParameterT max_iter(ParameterT::Integer, "max_iter");
+		max_iter.AddLimit(0, LimitT::LowerInclusive);
+		max_iter.SetDefault(500);
+		LOBPCG.AddParameter(max_iter);
+		
+		choice->AddSub(LOBPCG);
+
+		/* Block Davidson Method */
+		ParameterContainerT BlockDavidson("Block_Davidson_solver");
+		BlockDavidson.AddParameter(num_modes);
+		BlockDavidson.AddParameter(block_size);
+		BlockDavidson.AddParameter(tol);
+		BlockDavidson.AddParameter(output);		
+		BlockDavidson.AddParameter(verbosity);
+
+		ParameterT max_restart(ParameterT::Integer, "max_restart");
+		max_restart.AddLimit(0, LimitT::LowerInclusive);
+		max_restart.SetDefault(500);
+		BlockDavidson.AddParameter(max_restart);
+
+		ParameterT num_blocks(ParameterT::Integer, "num_blocks");
+		num_blocks.AddLimit(0, LimitT::LowerInclusive);
+		num_blocks.SetDefault(8);
+		BlockDavidson.AddParameter(num_blocks);
+
+		choice->AddSub(BlockDavidson);
+		
+		return choice;
+	}
+#endif
+
 	else /* inherited */
 		return ParameterInterfaceT::NewSub(name);
 }
@@ -593,7 +713,12 @@ void SolverT::TakeParameterList(const ParameterListT& list)
 	SetGlobalMatrix(list.GetListChoice(*this, "matrix_type_choice"), check_code);
 
 #ifdef __TRILINOS__
-	fNumModes = list.GetParameter("max_eigenmodes");
+	/* look for eigenmodes solver */
+	const ParameterListT* eig_solve = list.ListChoice(*this, "eigensolver_choice");
+	if (eig_solve) {
+		delete fEigenSolverParameters;
+		fEigenSolverParameters = new ParameterListT(*eig_solve);
+	}
 #endif
 }
 
