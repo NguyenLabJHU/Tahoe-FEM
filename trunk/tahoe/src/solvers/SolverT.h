@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.21 2006-11-14 04:27:54 paklein Exp $ */
+/* $Id: SolverT.h,v 1.22 2007-01-14 22:42:35 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -223,8 +223,8 @@ protected:
 	/** runtime data */
 	int fNumIteration;
 	
-	/** number of eigenmodes */
-	int fNumModes;
+	/** eigenvolsver parameters */
+	ParameterListT* fEigenSolverParameters;
 };
 
 /* inlines */
