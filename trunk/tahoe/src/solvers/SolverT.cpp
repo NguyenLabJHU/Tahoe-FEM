@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.40 2007-01-15 05:54:13 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.41 2007-01-15 19:27:53 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -529,9 +529,6 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	check_code.AddEnumeration("print_RHS", GlobalMatrixT::kPrintRHS);
 	check_code.AddEnumeration("print_solution", GlobalMatrixT::kPrintSolution);
 	check_code.AddEnumeration("check_LHS", GlobalMatrixT::kCheckLHS);
-#ifdef __TRILINOS__
-	check_code.AddEnumeration("eigenmodes", GlobalMatrixT::kEigenmodes);
-#endif
 	check_code.SetDefault(GlobalMatrixT::kNoCheck);
 	list.AddParameter(check_code);
 	

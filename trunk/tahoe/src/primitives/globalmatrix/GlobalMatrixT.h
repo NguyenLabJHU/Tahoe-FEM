@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.23 2006-11-25 22:05:17 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.24 2007-01-15 19:27:53 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -32,8 +32,7 @@ public:
                     kPrintLHS = 3,
                     kPrintRHS = 4,
                kPrintSolution = 5,
-                    kCheckLHS = 6,
-				  kEigenmodes = 7};
+                    kCheckLHS = 6};
 
 	/** equation numbering scope */
 	enum EquationNumberScopeT {
