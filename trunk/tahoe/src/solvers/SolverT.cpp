@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.41 2007-01-15 19:27:53 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.42 2007-01-15 22:38:13 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -45,6 +45,7 @@
 #include "AnasaziConfigDefs.hpp"
 #include "AnasaziBasicEigenproblem.hpp"
 #include "AnasaziSimpleLOBPCGSolMgr.hpp"
+#include "AnasaziLOBPCGSolMgr.hpp"
 #include "AnasaziBlockDavidsonSolMgr.hpp"
 #include "AnasaziBasicOutputManager.hpp"
 #include "AnasaziEpetraAdapter.hpp"
@@ -291,15 +292,25 @@ void SolverT::CloseStep(void)
 		/* resolve parameters */
 		const int max_iter = fEigenSolverParameters->GetParameter("max_iter");
 		const double tol   = fEigenSolverParameters->GetParameter("tolerance");
+		const bool rel_tol = fEigenSolverParameters->GetParameter("use_relative_tolerance");
 		Anasazi::MsgType verbosity = int2MsgType(fEigenSolverParameters->GetParameter("verbosity"));
+		const bool recover = fEigenSolverParameters->GetParameter("recover");
+		const bool full_ortho = fEigenSolverParameters->GetParameter("full_ortho");
+		const bool use_locking = fEigenSolverParameters->GetParameter("use_locking");
+		const int locking_quorum = fEigenSolverParameters->GetParameter("locking_quorum");
 
 		/* LOBPCG parameters */
 		MyPL.set("Maximum Iterations", max_iter);
 		MyPL.set("Convergence Tolerance", tol);
+		MyPL.set("Relative Convergence Tolerance", rel_tol);
 		MyPL.set("Verbosity", verbosity);
+		MyPL.set("Recover", recover);
+		MyPL.set("Full Ortho", full_ortho);
+		MyPL.set("Use Locking", use_locking);
+		MyPL.set("Locking Quorum", locking_quorum);
 
 		/* Create the solver manager */
-		solver_man = new SimpleLOBPCGSolMgr<double, MV, OP>(MyProblem, MyPL);
+		solver_man = new LOBPCGSolMgr<double, MV, OP>(MyProblem, MyPL);
 	
 	} else if (fEigenSolverParameters->Name() == "Block_Davidson_solver") {
 
@@ -394,7 +405,7 @@ void SolverT::CloseStep(void)
 		io_man->ClearInsertNodalData();
 	}
 	catch (std::exception e) {
-		cout << caller << ": caught exception from Trilinos" << endl;
+		cout << caller << ": caught exception from Trilinos: [" << e.what() << "]"<< endl;
 	}
 	catch (ExceptionT::CodeT exc) {
 		cout << caller << ": caught exception: " << ExceptionT::ToString(exc) << endl;
@@ -713,7 +724,12 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 		ParameterContainerT LOBPCG("LOBPCG_solver");
 		LOBPCG.AddParameter(num_modes);
 		LOBPCG.AddParameter(block_size);
+
 		LOBPCG.AddParameter(tol);
+		ParameterT use_relative_tolerance(ParameterT::Boolean, "use_relative_tolerance");
+		use_relative_tolerance.SetDefault(true);
+		LOBPCG.AddParameter(use_relative_tolerance);
+
 		LOBPCG.AddParameter(output);
 		LOBPCG.AddParameter(verbosity);
 
@@ -721,6 +737,27 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 		max_iter.AddLimit(0, LimitT::LowerInclusive);
 		max_iter.SetDefault(500);
 		LOBPCG.AddParameter(max_iter);
+		
+		ParameterT use_locking(ParameterT::Boolean, "use_locking");
+		use_locking.SetDefault(false);
+		LOBPCG.AddParameter(use_locking);
+
+//		ParameterT max_locked(ParameterT::Integer, "max_locked");
+//		max_locked.AddLimit(0, LimitT::LowerInclusive);
+//		LOBPCG.AddParameter(max_locked, ParameterListT::ZeroOrOnce);
+
+		ParameterT locking_quorum(ParameterT::Integer, "locking_quorum");
+		locking_quorum.AddLimit(1, LimitT::LowerInclusive);
+		locking_quorum.SetDefault(1);
+		LOBPCG.AddParameter(locking_quorum);
+
+		ParameterT full_ortho(ParameterT::Boolean, "full_ortho");
+		full_ortho.SetDefault(true);
+		LOBPCG.AddParameter(full_ortho);
+
+		ParameterT recover(ParameterT::Boolean, "recover");
+		recover.SetDefault(true);
+		LOBPCG.AddParameter(recover);
 		
 		choice->AddSub(LOBPCG);
 
