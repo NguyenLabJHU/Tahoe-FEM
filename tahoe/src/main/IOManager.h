@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.20 2005-03-12 08:41:35 paklein Exp $ */
+/* $Id: IOManager.h,v 1.21 2007-01-15 05:55:33 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #ifndef _IOMANAGER_H_
 #define _IOMANAGER_H_
@@ -124,6 +124,12 @@ public:
 	 * \param ID set ID returned from the call to IOManager::AddElementSet */
 	const OutputSetT& OutputSet(int ID) const;
 
+	/** \name inserted output data */
+	/*@{*/
+	void InsertNodalData(const ArrayT<StringT>& labels, const dArray2DT& data);
+	void ClearInsertNodalData(void);
+	/*@}*/
+
 protected:
 
 	ostream& fLog;
@@ -152,7 +158,13 @@ private:
 	double fOutputTime;
 
 	/** store main out during diversions set with IOManager::DivertOutput */
-	OutputBaseT* fOutput_tmp;	
+	OutputBaseT* fOutput_tmp;
+	
+	/** \name inserted output data */
+	/*@{*/
+	ArrayT<StringT> fInsertNodalLabels;
+	dArray2DT fInsertNodalData;
+	/*@}*/
 };
 
 /* inlines */

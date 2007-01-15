@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.24 2005-03-12 08:41:35 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.25 2007-01-15 05:55:33 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #include "IOManager.h"
 
@@ -121,12 +121,44 @@ void IOManager::WriteGeometryFile(const StringT& file_name,
 }
 
 void IOManager::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) {
-	fOutput->WriteOutput(fOutputTime, ID, n_values, e_values);
+	if (fInsertNodalLabels.Length() == 0) {
+		fOutput->WriteOutput(fOutputTime, ID, n_values, e_values);
+	} else {
+		/* initialize by copying in */
+		dArray2DT node_values = n_values;
+
+		/* get output set data */
+		const iArrayT& nodes_used = fOutput->NodesUsed(ID);
+		const OutputSetT& output_set = fOutput->OutputSet(ID);
+		const ArrayT<StringT>& node_output_labels = output_set.NodeOutputLabels();
+
+		/* fill output data */
+		dArrayT vals(nodes_used.Length());
+		dArrayT column(fInsertNodalData.MajorDim());
+		for (int i = 0; i < fInsertNodalLabels.Length(); i++) {
+			int col = -1;
+			for (int j = 0; j < node_output_labels.Length() && col == -1; j++)
+				if (fInsertNodalLabels[i] == node_output_labels[j])
+					col = j;
+
+			if (col != -1) {
+				/* collect values */
+				fInsertNodalData.ColumnCopy(col, column);
+				vals.Collect(nodes_used, column);
+			
+				/* write into data */
+				node_values.SetColumn(col, vals);
+			}
+		}
+
+		/* send to output */
+		fOutput->WriteOutput(fOutputTime, ID, node_values, e_values);	
+	}
 }
 
 void IOManager::WriteOutput(int ID, const dArray2DT& n_values) {
 	dArray2DT e_values;
-	fOutput->WriteOutput(fOutputTime, ID, n_values, e_values);
+	WriteOutput(ID, n_values, e_values);	
 }
 
 void IOManager::WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
@@ -193,5 +225,23 @@ void IOManager::RestoreOutput(void)
 const OutputSetT& IOManager::OutputSet(int ID) const
 {
 	return fOutput->OutputSet(ID);
+}
+
+void IOManager::InsertNodalData(const ArrayT<StringT>& labels, const dArray2DT& data) {
+	const char caller[] = "IOManager::InsertNodalData";
+	if (!fOutput) ExceptionT::GeneralFail(caller, "output not set");
+	if (labels.Length() != data.MinorDim())
+		ExceptionT::SizeMismatch(caller, "number of labels does not match data dimension");
+	if (data.MajorDim() != fOutput->Coordinates().MajorDim())
+		ExceptionT::SizeMismatch(caller, "major dimension");
+	
+	 /* copy */
+	fInsertNodalLabels = labels;
+	fInsertNodalData = data;
+}
+
+void IOManager::ClearInsertNodalData(void) {
+	fInsertNodalLabels.Dimension(0);
+	fInsertNodalData.Dimension(0,0);
 }
 
