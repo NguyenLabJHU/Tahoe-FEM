@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.39 2007-01-14 22:43:25 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.40 2007-01-15 05:54:13 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -37,6 +37,9 @@
 #endif
 
 #ifdef __TRILINOS__
+/* extra Tahoe headers */
+#include "IOManager.h"
+
 /* Trilinos-Anasazi headers */
 #define HAVE_CONFIG_H
 #include "AnasaziConfigDefs.hpp"
@@ -320,31 +323,83 @@ void SolverT::CloseStep(void)
 
 	/* Solve the problem */
 	try {
+	
+		/* check */
+		if (fields.Length() != 1) ExceptionT::GeneralFail(caller, "group contains more than 1 field");
+
 		ReturnType returnCode = solver_man->solve();
 		if (returnCode != Anasazi::Converged) {
 			cout << caller << ": eigensystem solve did not converge" << endl;
 		}
 
-		// Get the eigenvalues and eigenvectors from the eigenproblem
+// writing out eigenvectors:
+// (1) set x -> X in iomanager
+// (2) divert output to temporary file
+// *(3) call normal output, BUT somehow write eigenvector into displacements of element output
+//  --------> modify IOManagerT to substitute values during WriteOutput?
+// (4) restore X in iomanager and the normal output file
+
+		/* divert output */
+		IOManager* io_man = fFEManager.OutputManager();
+		io_man->SetCoordinates(nodes->CurrentCoordinates(), NULL); /* want modes off deformed configuration */
+		StringT outfile;
+		outfile.Root(fFEManager.InputFile());
+		outfile.Append(".eig");
+		outfile.Append(".gp", Group());
+		outfile.Append(".", fFEManager.StepNumber());
+		outfile.Append("of", fFEManager.NumberOfSteps());
+		io_man->DivertOutput(outfile);
+		
+		/* insert eigenvectors as displacement */
+		const ArrayT<StringT>& field_labels = fields[0]->Labels();
+		dArray2DT field_values(nodes->CurrentCoordinates().MajorDim(), fields[0]->NumDOF());
+		const iArray2DT& eqnos = fields[0]->Equations();
+
+		/* eigenvalues and eigenvectors from the eigenproblem */
 		Eigensolution<double,MV> sol = MyProblem->getSolution();
 		std::vector<Value<double> > evals = sol.Evals;
 		Teuchos::RefCountPtr<MV> evecs = sol.Evecs;
 
+		/* extract vectors */
+		dArray2DT eigen_vecs(sol.numVecs, fRHS.Length()); /* in rows */
+		evecs->ExtractCopy(eigen_vecs.Pointer(), fRHS.Length());
+
+		/* write out */
+		dArrayT vec(fRHS.Length());
 		for (int i = 0; i <  sol.numVecs; i++) {
 			double re = evals[i].realpart;
 			double im = evals[i].imagpart;
 			cout << i << ": " << re << ", " << im << '\n';
+
+			/* assemble mode into 'displacement' array */
+			eigen_vecs.RowCopy(i, vec);
+			field_values = 0.0;
+			for (int j = 0; j < eqnos.Length(); j++) {
+				int eq = eqnos[j] - 1; /* local equation - assuming 1st equation is 1 */
+				if (eq > -1)
+					field_values[j] = vec[eq];
+			}
+
+			/* insert eigenvector */
+			io_man->InsertNodalData(field_labels, field_values);
+			
+			/* 'time' is the mode number */
+			fFEManager.WriteOutput(i+1);
 		}
 		cout.flush();
+		
+		/* restore */
+		io_man->SetCoordinates(nodes->InitialCoordinates(), NULL);
+		io_man->RestoreOutput();
+		io_man->ClearInsertNodalData();
 	}
 	catch (std::exception e) {
 		cout << caller << ": caught exception from Trilinos" << endl;
 	}
-	
-	// set up output
-	
-	// loop over modes and write modes and write e-vals to .out
-	
+	catch (ExceptionT::CodeT exc) {
+		cout << caller << ": caught exception: " << ExceptionT::ToString(exc) << endl;
+	}
+
 	/* clean up */
 	delete solver_man;
 //	delete K;
