@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.21 2007-01-15 05:55:33 paklein Exp $ */
+/* $Id: IOManager.h,v 1.22 2007-01-18 06:24:51 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #ifndef _IOMANAGER_H_
 #define _IOMANAGER_H_
@@ -10,6 +10,7 @@
 /* direct members */
 #include "StringT.h"
 #include "iArrayT.h"
+#include "dArray2DT.h"
 #include "iAutoArrayT.h"
 #include "IOBaseT.h"
 #include "GeometryT.h"
