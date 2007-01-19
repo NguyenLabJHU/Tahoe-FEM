@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.14 2006-12-11 20:37:29 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.15 2007-01-19 21:17:53 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -56,6 +56,9 @@ public:
 	    kKf,
 	    kK,
 	    kg,
+	    kg1,
+	    kg2,
+	    kg3,
 	    kNUM_FMATERIAL_TERMS	};
 									
 	enum fIntegrate_T 	{ 
@@ -183,7 +186,7 @@ private:
 	/** Gradients and other matrices */
 	dMatrixT fgrad_u, fgrad_u_n;
 	dArrayT fgrad_theta, fgrad_theta_n;
-	int C1;
+	int TempC;
 
 	
 	dMatrixT fShapeSolid, fShapeSolidGrad, fShapeSolidGrad_t,fShapeSolidGrad_t_Transpose, fShapeSolidGradGrad, fShapeSolidGrad_temp;
@@ -208,14 +211,26 @@ private:
 	/*@{*/
 	LocalArrayT u;		//solid displacement
 	LocalArrayT u_n; 	//solid displacement from time t_n
+	LocalArrayT u_dot; 	//solid velocity 
+	LocalArrayT u_dot_n; 	//solid velocity from time t_n
+	LocalArrayT u_dotdot; 	//solid acceleration
+	LocalArrayT u_dotdot_n; 	//solid acceleration from time t_n
 	LocalArrayT del_u;	//displacement increment including Newton-R update, i.e. del_u = u_{n+1}^{k+1} - u_n
 	LocalArrayT press;	//fluid pore pressure
+	LocalArrayT press_dot;	//fluid pore pressure first derivative
+	LocalArrayT press_dot_n;	//fluid pore pressure first derivative from time t_n
+	LocalArrayT press_dotdot;	//fluid pore pressure second derivative  
+	LocalArrayT press_dotdot_n;	//fluid pore pressure second derivative from time t_n 
 	LocalArrayT press_n;	//fluid pore pressure from time t_n
 	LocalArrayT del_press;	//pore pressure increment
 	dArrayT		del_u_vec;  	// vector form 
 	dArrayT		del_press_vec;	// vector form
 	dArrayT		u_vec;  	// solid displacement in vector form 
-	dArrayT		press_vec;	// fluid displacement in vector form
+	dArrayT		u_dot_vec;  	// solid velocity in vector form 
+	dArrayT		u_dotdot_vec;  	// solid acceleration in vector form 
+	dArrayT		press_vec;	// fluid pressure in vector form
+	dArrayT		press_dot_vec;	// first derivative of fluid pressure in vector form
+	dArrayT		press_dotdot_vec;	// second derivative of fluid pressure in vector form
 
 	/*@}*/
 
@@ -237,6 +252,10 @@ private:
 	
 	//-- Material Parameters 
 	dArrayT fMaterial_Params;
+	double fRho0,fRho_f,fRho;
+
+
+	double fC1,fC2,fC3;
 	
 	//-- Newmark Time Integration Parameters 
 	dArrayT fIntegration_Params;
@@ -263,15 +282,20 @@ private:
 	dArrayT		fFtheta_int;
 	dArrayT		fFtheta_ext;
 
-	dArrayT		fGRAD_disp_vector;
-	dArrayT 	fDefGradInv_Vector;
+	dArrayT		fGrad_disp_vector;
+	dArrayT 	fDefGradInv_vector;
 	dArrayT 	fEffective_Kirchhoff_vector;
         dArrayT	        fChi_temp_vector;
         dArrayT	        fFd_int_N1_vector;
         dArrayT	        fFd_int_N2_vector;
+        dArrayT	        fFd_int_M_vector;
+        dArrayT	        fFd_int_C_vector;
         dArrayT	        fTemp_vector_ndof_se;
         dArrayT         fFtheta_int_N1_vector;
         dArrayT         fFtheta_int_N2_vector;
+        dArrayT         fFtheta_int_M_vector;
+        dArrayT         fFtheta_int_C1_vector;
+        dArrayT         fFtheta_int_C2_vector;
         dArrayT         fTemp_vector_nen_press;
         dArrayT	        Test_vector_A;
         dArrayT	        Test_vector_B;
@@ -282,8 +306,13 @@ private:
         dArrayT	        fGrad_phi_f_vector;
         dArrayT	        fGrad_1_J_vector;
         dArrayT	        fTemp_nsd_vector;
-        dArrayT	        fFd_int_SmallStrain_vector;
-
+        dArrayT	        fFd_int_smallstrain_vector;
+        dArrayT	        fGravity_vector;
+        dArrayT	        fFd_int_G4_vector;
+        dArrayT	        fFtheta_int_H4_vector;
+        dArrayT         fTemp_six_values;
+        dArrayT         fGradv_vector;
+        dArrayT         fgradv_vector;
 
 	
 	dMatrixT	fDeformation_Gradient;
@@ -294,8 +323,8 @@ private:
 	dMatrixT	fDeformation_Gradient_Inverse;
 	dMatrixT	fDeformation_Gradient_Transpose;
 	dMatrixT        fDeformation_Gradient_Inverse_Transpose;
-	dMatrixT	fDefGradInv_GRAD_grad;
-	dMatrixT	fDefGradInv_GRAD_grad_Transpose;
+	dMatrixT	fDefGradInv_Grad_grad;
+	dMatrixT	fDefGradInv_Grad_grad_Transpose;
 	dMatrixT	fIdentity_matrix;
 	dMatrixT	fTest_matrix_A;
 	dMatrixT	fTest_matrix_B;
@@ -305,9 +334,14 @@ private:
         dMatrixT	fTemp_matrix_nen_press_x_nsd;
         dMatrixT	fTemp_matrix_nen_press_x_nen_press;
         dMatrixT	fTemp_matrix_nsd_x_1;
+        dMatrixT	fTemp_matrix_nen_press_x_1;
         dMatrixT	fTemp_matrix_nen_press_x_ndof_se;
         dMatrixT	fTemp_matrix_ndof_se_x_ndof_se;
+        dMatrixT	fTemp_matrix1_ndof_se_x_ndof_se;
         dMatrixT	fTemp_matrix_ndof_se_x_nen_press;
+        dMatrixT	fTemp_matrix1_nen_press_x_ndof_se;
+        dMatrixT	fTemp_matrix_nsd_x_ndof_se;
+        dMatrixT	fTemp_matrix_nsd_x_nen_press;
         dMatrixT	fEffective_Kirchhoff_tensor;
         dMatrixT	fIota_temp_matrix;
         dMatrixT	fVarpi_temp_matrix;
@@ -318,14 +352,23 @@ private:
         dMatrixT	fLambda_temp_matrix;
         dMatrixT	fIm_temp_matrix;
         dMatrixT	fHbar_temp_matrix;
-        dMatrixT	fEth_temp_matrix;
+        dMatrixT	fEll_temp_matrix;
         dMatrixT	fPi_temp_row_matrix;
         dMatrixT	fK_dd_G3_1_matrix;
         dMatrixT	fK_dd_G3_2_matrix;
         dMatrixT	fK_dd_G3_3_matrix;
         dMatrixT	fK_dd_G3_4_matrix;
         dMatrixT	fK_dd_G3_5_matrix;
+        dMatrixT	fK_dd_G1_1_matrix;
+        dMatrixT	fK_dd_G1_2_matrix;
+        dMatrixT	fK_dd_G2_1_matrix;
+        dMatrixT	fK_dd_G2_2_matrix;
+        dMatrixT	fK_dd_G2_3_matrix;
+        dMatrixT	fK_dd_G2_4_matrix;
+        dMatrixT	fK_dd_G4_matrix;
         dMatrixT	fK_dtheta_G3_matrix;
+        dMatrixT	fK_dtheta_G1_matrix;
+        dMatrixT	fK_dtheta_G4_matrix;
         dMatrixT	fI_ij_column_matrix;
         dMatrixT	fShapeFluid_row_matrix;
         dMatrixT	fJmath_temp_matrix;
@@ -334,16 +377,52 @@ private:
         dMatrixT	fK_thetad_H3_2_matrix;
         dMatrixT	fK_thetad_H3_3_matrix;
         dMatrixT	fK_thetad_H3_4_matrix;
+        dMatrixT	fK_thetad_H1_1_matrix;
+        dMatrixT	fK_thetad_H1_2_matrix;
+        dMatrixT	fK_thetad_H1_3_matrix;
+        dMatrixT	fK_thetad_H1_4_matrix;
+        dMatrixT	fK_thetad_H2_1_matrix;
+        dMatrixT	fK_thetad_H2_2_matrix;
+        dMatrixT	fK_thetad_H2_3_matrix;
+        dMatrixT	fK_thetad_H2_4_matrix;
+        dMatrixT	fK_thetad_H2_5_matrix;
+        dMatrixT	fK_thetad_H4_1_matrix;
+        dMatrixT	fK_thetad_H4_2_matrix;
+        dMatrixT	fK_thetad_H4_3_matrix;
         dMatrixT	fK_thetatheta_H3_1_matrix;
         dMatrixT	fK_thetatheta_H3_2_matrix;
+        dMatrixT	fK_thetatheta_H1_matrix;
+        dMatrixT	fK_thetatheta_H2_1_matrix;
+        dMatrixT	fK_thetatheta_H2_2_matrix;
+        dMatrixT	fK_thetatheta_H2_3_matrix;
+        dMatrixT	fK_thetatheta_H4_matrix;
         dMatrixT	fChi_temp_column_matrix;
         dMatrixT	fc_matrix;
         dMatrixT	fC_matrix;
         dMatrixT	fIm_Prim_temp_matrix;
         dMatrixT	fB_matrix;
         dMatrixT	fD_matrix;
-        dArrayT         fTemp_six_values;
         dMatrixT	fK_dd_BTDB_matrix;
+        dMatrixT	fM_dd_matrix;
+        dMatrixT	fM_thetad_matrix;
+        dMatrixT	fUpsilon_temp_matrix;
+        dMatrixT	fC_dd_matrix;
+        dMatrixT	fC_thetatheta_matrix;
+        dMatrixT	fC_thetad_matrix;
+	dMatrixT 	fDefGradInv_column_matrix;
+	dMatrixT 	fDefGradInv_column_matrix_Transpose;
+	dMatrixT	u_dotdot_column_matrix;        
+	dMatrixT	fXi_temp_matrix;      
+	dMatrixT	fVarsigma_temp_matrix;   
+	dMatrixT	fI_ijkl_matrix; 
+	dMatrixT	u_dot_column_matrix;  
+	dMatrixT	u_dot_column_matrix_Transpose;  
+	dMatrixT	fGravity_column_matrix; 
+	dMatrixT	fAleph_temp_matrix; 
+	dMatrixT	press_dot_column_matrix;
+	dMatrixT	fImath_temp_matrix;    
+
+
         /* to store fEulerian_effective_strain_tensor_current_IP */
         dMatrixT	fEulerian_effective_strain_tensor_current_IP;
         /* to store fEulerian_effective_strain_IPs for each of the 27 IPs of each element */
@@ -447,13 +526,13 @@ private:
         void Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeSolidGrad_temp);
         void Form_fluid_shape_functions(const double* &shapes_press_X);
         void Form_deformation_gradient_tensor(void);
-        void Form_GRAD_grad_transformation_matrix(void);
+        void Form_Grad_grad_transformation_matrix(void);
         void Form_deformation_gradient_inv_vector(void);
         void Form_effective_kirchhoff_stress_vector(void);
         void Form_Varpi_temp_matrix(void);
         void Form_Im_temp_matrix(void);
         void Form_Hbar_temp_matrix(void);
-        void Form_Eth_temp_matrix(void);
+        void Form_Ell_temp_matrix(void);
         void Form_Jmath_temp_matrix(void);
         void Form_Wp_temp_matrix(void);
         void Form_C_matrix(const double& J_Prim);
@@ -463,6 +542,13 @@ private:
         void Form_B_matrix(void);
         void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
         void Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
+        void Form_gradv_vector(void);
+        void Form_Xi_temp_matrix(void);
+        void Form_Varsigma_temp_matrix(void);
+        void Form_I_ijkl_matrix(void);
+        void Form_Aleph_temp_matrix(const int& IP);
+        void Form_Imath_temp_matrix(void);
+
 protected:
 
 	/** extract natural boundary condition information */
