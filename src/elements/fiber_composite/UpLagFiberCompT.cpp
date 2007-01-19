@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.6 2006-10-31 15:54:10 rjones Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.7 2007-01-19 05:23:39 thao Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -23,7 +23,7 @@ using namespace Tahoe;
 
 /* constructor */
 UpLagFiberCompT::UpLagFiberCompT(const ElementSupportT& support):
-	UpdatedLagrangianT(support),
+	SimoQ1P0(support),
 	fFiberSupport(NULL)
 {
 	SetName("uplag_fiber_comp_planar");
@@ -141,14 +141,14 @@ ParameterInterfaceT* UpLagFiberCompT::NewSub(const StringT& name) const
 void UpLagFiberCompT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	UpdatedLagrangianT::DefineParameters(list);
+	SimoQ1P0::DefineParameters(list);
 }
 
 /* accept parameter list */
 void UpLagFiberCompT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	UpdatedLagrangianT::TakeParameterList(list);
+	SimoQ1P0::TakeParameterList(list);
 	/*store fibers in element list*/
 	int num_elem = NumElements();
 	fFiber_list.Dimension(num_elem);

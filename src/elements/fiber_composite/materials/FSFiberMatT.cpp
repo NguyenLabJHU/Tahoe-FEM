@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.cpp,v 1.6 2006-10-31 18:09:35 rjones Exp $ */
+/* $Id: FSFiberMatT.cpp,v 1.7 2007-01-19 05:23:40 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatT.h"
 #include "FSFiberMatSupportT.h"
@@ -168,7 +168,7 @@ const dMatrixT& FSFiberMatT::GetRotation(void)
 	fQ(1,2) = A[2]*B[0] - A[0]*B[2];
 	fQ(2,2) = A[0]*B[1] - A[1]*B[0];
 
-  /* out-of-plane normal */
+  /* out-of-plane normal*/ 
   {
 	const double* A = fQ(0);
 	const double* B = fQ(1);
@@ -182,7 +182,7 @@ const dMatrixT& FSFiberMatT::GetRotation(void)
 	fQ(2,2) *= scale;
 	}
 
-  /* orthogonalize entire triad */
+  /* orthogonalize entire triad*/ 
 	{
 	const double* A = fQ(2);
 	const double* B = fQ(0);
@@ -190,7 +190,7 @@ const dMatrixT& FSFiberMatT::GetRotation(void)
 	fQ(1,1) = A[2]*B[0] - A[0]*B[2];
 	fQ(2,1) = A[0]*B[1] - A[1]*B[0];
 	}
-
+	
 	return(fQ);
 }
 

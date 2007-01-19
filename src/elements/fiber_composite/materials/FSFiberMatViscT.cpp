@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.cpp,v 1.4 2006-10-24 17:58:58 thao Exp $ */
+/* $Id: FSFiberMatViscT.cpp,v 1.5 2007-01-19 05:23:40 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatViscT.h"
 #include "FSFiberMatSupportT.h"
@@ -79,15 +79,18 @@ const dSymMatrixT& FSFiberMatViscT::S_IJ(void)
 	/*matrix contribution*/
 	/*calculate matrix contribution*/
 	ComputeMatrixStress(fC, fStress);
-	
+//	cout << "\nfC: "<<fC;
+//	cout << "\nMatStress: "<<fStress;
 	/*fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
 
 	ComputeFiberStress(fFiberStretch, fFiberStress);
-	
+//	cout<< "\nFiberStretch: "<<fFiberStretch;
 	/* rotate and assemble stress to lab coordinates */
 	AssembleFiberStress(fFiberStress, fStress);
-
+//	cout << "\nfFiberStress: "<<fFiberStress;
+//	cout << "\nTotStress: "<<fStress;
+	
 	/*calculate nonequilibrium contribution*/
 	/*Load state variables (Cv and Cvn)*/
     ElementCardT& element = CurrentElement();

@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.5 2006-11-16 20:03:32 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.6 2007-01-19 05:23:41 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -321,7 +321,7 @@ ParameterInterfaceT* SMP_simple::NewSub(const StringT& name) const
 		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetListOrder(ParameterListT::Choice);
 
-		ParameterContainerT matrix("Mooney-Rivlin");
+		ParameterContainerT matrix("Mooney-Rivlin2");
 		matrix.SetDescription("Psi=0.5*c1(I1_bar-3) - 0.5*c2(I2_bar -3) + 0.25*gamma*(J^2 + 1/beta * J^(-2*beta) )");
 		/* bound */
 		LimitT lower(0.0, LimitT::Lower);
@@ -400,7 +400,7 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
   fTg = list.GetParameter("glass_transition_temperature");
   
   const ParameterListT& eq = list.GetListChoice(*this, "eq_potential_params");
-  if (eq.Name() == "Mooney-Rivlin")
+  if (eq.Name() == "Mooney-Rivlin2")
   {
 		fPotType = SMP_simple::kMooneyRivlin;
 		fPot(0,0) = eq.GetParameter("c1");
@@ -411,7 +411,7 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
   for (int i = 0; i < fNumProcess; i++)
   {
 	  const ParameterListT& neq = list.GetListChoice(*this, "neq_potential_params",i);
-	  if (neq.Name() == "Mooney-Rivlin")
+	  if (neq.Name() == "Mooney-Rivlin2")
 	  {
 		  fPot(i+1,0) = neq.GetParameter("c1");
 		  fPot(i+1,1) = neq.GetParameter("c2");
