@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.15 2007-01-19 21:17:53 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.16 2007-01-25 23:24:32 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -252,7 +252,7 @@ private:
 	
 	//-- Material Parameters 
 	dArrayT fMaterial_Params;
-	double fRho0,fRho_f,fRho;
+	double fRho_0,fRho_f,fRho;
 
 
 	double fC1,fC2,fC3;
@@ -263,8 +263,7 @@ private:
 	/** \name shape functions wrt to current coordinates */
 	/*@{*/
 	/** shape functions and derivatives. The derivatives are wrt to the 
-	 * coordinates in FSSolidFluidMixT::fCurrCoords, which are the
-	 * current coordinates */
+	  * reference coordinates */
 	ShapeFunctionT* fShapes_displ;
 	ShapeFunctionT* fShapes_press;
 
@@ -313,6 +312,7 @@ private:
         dArrayT         fTemp_six_values;
         dArrayT         fGradv_vector;
         dArrayT         fgradv_vector;
+        dArrayT         fP0_temp_value;
 
 	
 	dMatrixT	fDeformation_Gradient;
@@ -420,7 +420,8 @@ private:
 	dMatrixT	fGravity_column_matrix; 
 	dMatrixT	fAleph_temp_matrix; 
 	dMatrixT	press_dot_column_matrix;
-	dMatrixT	fImath_temp_matrix;    
+	dMatrixT	fImath_temp_matrix;  
+	dMatrixT	fPf_0_matrix;   
 
 
         /* to store fEulerian_effective_strain_tensor_current_IP */

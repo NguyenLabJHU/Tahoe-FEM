@@ -635,9 +635,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
     while (NextElement())
     {
-        /* 1 is temporary value for fRho0, it should be calculated */
-	fRho0 = 1;
-	fRho_f = 1;
 	*Counter = *Counter+1;
 	fs_mix_out	<<"Counter"<< endl ;
 	fs_mix_out	<<*Counter<< endl ;
@@ -839,8 +836,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 	for (int i=0; i<n_en_displ_x_n_sd; i++)
 	    u_dotdot_column_matrix(i,0) = u_dotdot_vec[i];
 	
-	/* populate fluid displacement, first derivative of fluid displacement and 
-	   second derivative of fluid displacement in vector form*/
+	/* populate fluid pressure, first and second derivatives of fluid pressure 
+	   in vector form*/
 	for (int i=0; i<n_en_press; i++) 
 	{
 	    press_vec[i] = press(i,0);
@@ -912,6 +909,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fs_mix_out	<<scale_const<< endl ;
 		fs_mix_out	<<"scale_const"<< endl ;
 
+
 		
 		const int IP = fShapes_displ->CurrIP();	
 		fs_mix_out	<<"Integration point number"<< endl ;
@@ -920,7 +918,17 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		dArrayT SolidIPCoordinate(n_sd),FluidIPCoordinate(n_sd);
 		fShapes_displ->IPCoords(SolidIPCoordinate);
 		fShapes_press->IPCoords(FluidIPCoordinate);
+
+                /* Interpolating initial nodal values of pressures to integration points and saving them in a nel*num_ip matrix */
+		if (time == 0)
+		{
+		    fShapes_press->InterpolateU(press_n,fP0_temp_value);
+		    fPf_0_matrix(CurrElementNumber(),IP)=fP0_temp_value[0];
+		}
+
+
 		
+
 		const double* shapes_displ_X = fShapes_displ->IPShapeX();
 		/* [fShapeSolid]will be formed */
 		Form_solid_shape_functions(shapes_displ_X);
@@ -989,13 +997,51 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		/* [fDefGradInv_Grad_grad_Transpose] will be formed */
 		fDefGradInv_Grad_grad_Transpose.Transpose(fDefGradInv_Grad_grad);
 		
+                /* Calculating theta */
+		theta = fShapeFluid[0]*press_vec[0];
+		for (int i=1; i<8; i++)
+		    theta += fShapeFluid[i]*press_vec[i];
+		fs_mix_out	<<"theta"<< endl ;
+		fs_mix_out	<<theta<< endl ;
+		fs_mix_out	<<"theta"<< endl ;
 		
-		/* calculating Jacobian */
+		/* Calculating Jacobian */
 		double J = fDeformation_Gradient.Det();
 		fs_mix_out	<<"Jacobian"<< endl ;
 		fs_mix_out	<<J<< endl ;
 		fs_mix_out	<<"Jacobian"<< endl ;
+
+                /* Calculating fP_f */
+		double fP_f=theta/J;
 		
+                /* Calculating fRho_f */
+		fRho_f = fMaterial_Params[kRho_fR0]*exp((fP_f-fPf_0_matrix(CurrElementNumber(),IP))/
+							fMaterial_Params[kKf]);
+		fs_mix_out	<<"fRho_f"<< endl ;
+		fs_mix_out	<<fRho_f<< endl ;
+		fs_mix_out	<<"fRho_f"<< endl ;
+
+
+
+		/* Calculating phi_s and phi_f, volume fractions */ 
+		phi_s = fMaterial_Params[kPhi_s0]/J;
+		phi_f = 1.0 - phi_s;
+
+
+                /*  Calculating fRho */
+		fRho = phi_f*fRho_f+ phi_s*fMaterial_Params[kRho_sR0];
+		fs_mix_out	<<"fRho"<< endl ;
+		fs_mix_out	<<fRho<< endl ;
+		fs_mix_out	<<"fRho"<< endl ;
+
+
+                /* Calculating fRho_0 */
+		fRho_0 = J*fRho;
+		fs_mix_out	<<"fRho_0"<< endl ;
+		fs_mix_out	<<fRho_0<< endl ;
+		fs_mix_out	<<"fRho_0"<< endl ;
+
+
 		
 		/* [fRight_Cauchy_Green_tensor] will be formed */
 		fRight_Cauchy_Green_tensor.MultATB(fDeformation_Gradient, fDeformation_Gradient);
@@ -1118,12 +1164,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fFd_int_N1_vector += fTemp_vector_ndof_se;
 		
 		/* {fFd_int_N2_vector} will be formed */
-		theta = fShapeFluid[0]*press_vec[0];
-		for (int i=1; i<8; i++)
-		    theta += fShapeFluid[i]*press_vec[i];
-		fs_mix_out	<<"theta"<< endl ;
-		fs_mix_out	<<theta<< endl ;
-		fs_mix_out	<<"theta"<< endl ;
 		scale = -1.0*theta*scale_const;
 		fShapeSolidGrad.MultTx(fDefGradInv_vector,fTemp_vector_ndof_se);
 		fTemp_vector_ndof_se *= scale;
@@ -1131,9 +1171,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		/* accumulate */
 		fFd_int_N2_vector += fTemp_vector_ndof_se; 
 		
-		/* phi_s and phi_f, volume fractions will be calculated */ 
-		phi_s = fMaterial_Params[kPhi_s0]/J;
-		phi_f = 1.0 - phi_s;
 		
 		/* state vaiables(volume fractions) for the current IP will be saved */
 		fState_variables_IPs(IP,0)=phi_s;
@@ -1361,7 +1398,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
                 /* [fM_dd_matrix] will be formed */
 		fTemp_matrix_ndof_se_x_ndof_se = fUpsilon_temp_matrix;
-		scale = fRho0*scale_const;
+		scale = fRho_0*scale_const;
 		fTemp_matrix_ndof_se_x_ndof_se *= scale;
 		/* accumulate */
 		fM_dd_matrix += fTemp_matrix_ndof_se_x_ndof_se;
@@ -1383,7 +1420,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
                 /* {fFd_int_G4_vector} will be formed */
 		fShapeSolid.MultTx(fGravity_vector,fTemp_vector_ndof_se);
-		scale = -1*fRho0*scale_const;
+		scale = -1*fRho_0*scale_const;
 		fTemp_vector_ndof_se *= scale; 
 		fTemp_vector_ndof_se *= -1;
 		/* accumulate */
@@ -1451,7 +1488,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
                 /* [fK_dd_G1_1_matrix] will be formed */
 		fTemp_matrix_ndof_se_x_ndof_se = fUpsilon_temp_matrix;
 		if (fabs(beta_delta_t2)>1e-16)
-		    scale = fRho0*scale_const/beta_delta_t2;
+		    scale = fRho_0*scale_const/beta_delta_t2;
 		else 
 		    scale =0.0;
 		fTemp_matrix_ndof_se_x_ndof_se *= scale;
@@ -1464,7 +1501,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
                 /* [fK_dd_G1_2_matrix] will be formed */
 		fTemp_matrix_ndof_se_x_ndof_se.MultABC(fUpsilon_temp_matrix,u_dotdot_column_matrix,fPi_temp_row_matrix);
-		scale = J*(fC3 + fRho0)*scale_const;
+		scale = J*(fC3 + fRho_0)*scale_const;
 		fTemp_matrix_ndof_se_x_ndof_se *= scale;
 		/* accumulate */
 		fK_dd_G1_2_matrix += fTemp_matrix_ndof_se_x_ndof_se;
@@ -1561,11 +1598,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fs_mix_out	<<"fK_dd_G2_4_matrix"<< endl ;
 
 
-                /*  fRho will be calculated */
-		fRho = phi_f*fRho_f+ phi_s*fMaterial_Params[kRho_sR0];
-		fs_mix_out	<<"fRho"<< endl ;
-		fs_mix_out	<<fRho<< endl ;
-		fs_mix_out	<<"fRho"<< endl ;
 
 
                 /* [fK_dd_G4_matrix] will be formed */
@@ -1969,6 +2001,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			fFd_int = fTemp_vector_ndof_se;
 			fFd_int *= -1.0; */
 
+            /* printing [fPf_0_matrix] */
+	    fs_mix_out	<<"fPf_0_matrix"<< endl ;
+	    fs_mix_out	<<fPf_0_matrix<< endl ;
+	    fs_mix_out	<<"fPf_0_matrix"<< endl ;
 
             /* [fKdd] will be formed */
 	    fKdd = fK_dd_G1_1_matrix;
@@ -2613,6 +2649,8 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fK_thetad_H4_2_matrix.Dimension (n_en_press,n_en_displ_x_n_sd);
     fK_thetad_H4_3_matrix.Dimension (n_en_press,n_en_displ_x_n_sd);
     fK_thetatheta_H4_matrix.Dimension (n_en_press,n_en_press);
+    fPf_0_matrix.Dimension (NumElements(),fNumIP_displ);
+    fP0_temp_value.Dimension (1);
 
     Test_vector_A.Dimension(3);
     Test_vector_B.Dimension(3);
