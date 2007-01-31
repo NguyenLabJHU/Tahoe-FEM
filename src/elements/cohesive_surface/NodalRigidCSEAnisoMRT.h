@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.h,v 1.1 2006-10-08 19:22:18 regueiro Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.h,v 1.2 2007-01-31 03:07:06 skyu Exp $ */
 #ifndef _NODAL_RIGID_CSE_ANISO_MR_T_H_
 #define _NODAL_RIGID_CSE_ANISO_MR_T_H_
 
@@ -158,6 +158,10 @@ protected:
 
 	/** the cohesive relation */
 	MR_NodalRP2DT* fCZRelation;
+
+	/** coordinate transformation */
+	dMatrixT Q;
+	ArrayT<dMatrixT> dQ;
 	
 private:
 
