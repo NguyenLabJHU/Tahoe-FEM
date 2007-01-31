@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.16 2007-01-25 23:24:32 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.17 2007-01-31 17:01:59 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -73,7 +73,8 @@ public:
 	~FSSolidFluidMixT(void);
 	
 	/** reference to element shape functions */
-	const ShapeFunctionT& ShapeFunction(void) const;
+	const ShapeFunctionT& ShapeFunctionDispl(void) const;
+	const ShapeFunctionT& ShapeFunctionPress(void) const;
 
 	/** echo input */
 	void Echo_Input_Data (void); 
@@ -84,9 +85,14 @@ public:
 	virtual bool InGroup(int group) const;
 
 	/* initialize/finalize time increment */
-	//virtual void InitStep(void);
+	/*@{*/
+	virtual void InitStep(void);
 	virtual void CloseStep(void);
-	//virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+	
+	/** element level reconfiguration for the current time increment */
+	virtual GlobalT::RelaxCodeT RelaxSystem(void);
+	/*@}*/
 
 	/** collecting element group equation numbers. See ElementBaseT::Equations
 	 * for more information */
@@ -104,6 +110,8 @@ public:
 	/** returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);
 
+	/** \name writing output */
+	/*@{*/
 	/** register element for output */
 	virtual void RegisterOutput(void);
 
@@ -113,6 +121,25 @@ public:
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 	/*@}*/
+	
+	/** return geometry and number of nodes on each facet */
+	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
+
+	/** return the geometry code */
+	virtual GeometryT::CodeT GeometryCode(void) const;
+	
+	/*set active elements*/
+	virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
+	
+	/** initial condition/restart functions (per time sequence) */
+	virtual void InitialCondition(void);
+	
+	/** mass types */
+	enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
+            kConsistentMass = 1, /**< variationally consistent mass matrix */
+                kLumpedMass = 2, /**< diagonally lumped mass */
+             kAutomaticMass = 3  /**< select the mass type base on the time integration scheme */};
+	MassTypeT static int2MassTypeT(int i);
 
 	/** \name restart functions */
 	/*@{*/
@@ -580,17 +607,29 @@ protected:
 };
 
 
-inline const ShapeFunctionT& FSSolidFluidMixT::ShapeFunction(void) const 
+inline const ShapeFunctionT& FSSolidFluidMixT::ShapeFunctionDispl(void) const 
 {
 #if __option(extended_errorcheck)
 	if (!fShapes_displ)
-	    ExceptionT::GeneralFail("FSSolidFluidMixT::ShapeFunction", "no displ shape functions");
-	if (!fShapes_press)
-	    ExceptionT::GeneralFail("FSSolidFluidMixT::ShapeFunction", "no press shape functions");
+	    ExceptionT::GeneralFail("FSSolidFluidMixT::ShapeFunctionDispl", "no displ shape functions");
 #endif
 	return *fShapes_displ;
+}
+
+inline const ShapeFunctionT& FSSolidFluidMixT::ShapeFunctionPress(void) const 
+{
+#if __option(extended_errorcheck)
+	if (!fShapes_press)
+	    ExceptionT::GeneralFail("FSSolidFluidMixT::ShapeFunctionPress", "no press shape functions");
+#endif
 	return *fShapes_press;
 }
+
+/* return the geometry code */
+inline GeometryT::CodeT FSSolidFluidMixT::GeometryCode(void) const
+{ return fGeometryCode_displ; }
+
+
 
 } // namespace Tahoe 
 #endif /* _FS_SOLID_FLUID_MIX_T_H_ */

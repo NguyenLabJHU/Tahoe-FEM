@@ -230,6 +230,15 @@ bool FSSolidFluidMixT::InGroup(int group) const
 
 //---------------------------------------------------------------------
 
+
+/* initialize/finalize step */
+void FSSolidFluidMixT::InitStep(void)
+{
+	/* inherited */
+	ElementBaseT::InitStep();
+}
+
+
 /* close current time increment */
 void FSSolidFluidMixT::CloseStep(void)
 {
@@ -251,10 +260,52 @@ void FSSolidFluidMixT::CloseStep(void)
 }
 
 
+/* resets to the last converged solution */
+GlobalT::RelaxCodeT FSSolidFluidMixT::ResetStep(void)
+{
+	const char caller[] = "FSSolidFluidMixT::ResetStep";
+	
+	/* inherited */
+	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
+
+	/* update material internal variables */
+	//needs to be implemented
+#pragma message("reseting internal variables not implemented")	
+	//ExceptionT::GeneralFail(caller, "reseting internal variables not implemented");
+
+	return relax;
+}
+
+/* element level reconfiguration for the current time increment */
+GlobalT::RelaxCodeT FSSolidFluidMixT::RelaxSystem(void)
+{
+	const char caller[] = "FSSolidFluidMixT::RelaxSystem";
+	
+	/* inherited */
+	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
+
+	/* loop over materials */
+	//needs to be implemented
+#pragma message("relax step for materials not implemented")	
+	//ExceptionT::GeneralFail(caller, "relax step for materials not implemented");
+
+	return relax;
+}
+
+
 void FSSolidFluidMixT::SendOutput(int kincode)
 {
 #pragma unused(kincode)
 //not implemented
+}
+
+
+/* return geometry and number of nodes on each facet */
+void FSSolidFluidMixT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, 
+	iArrayT& num_facet_nodes) const
+{
+	/* from integration domain */
+	ShapeFunctionDispl().FacetGeometry(facet_geometry, num_facet_nodes);
 }
 
 
@@ -263,6 +314,33 @@ GlobalT::SystemTypeT FSSolidFluidMixT::TangentType(void) const
 {
     return GlobalT::kNonSymmetric; 
 }
+
+void FSSolidFluidMixT::SetStatus(const ArrayT<ElementCardT::StatusT>& status)
+{
+	/* loop over elements and initial state variables */
+	int elem_num = 0;
+	Top();
+	while (NextElement())
+	{
+		/* current element */
+		ElementCardT::StatusT& flag = CurrentElement().Flag();
+		flag = status[elem_num++];
+
+		if (flag == ElementCardT::kMarkON)
+			flag = ElementCardT::kON;
+		else if (flag == ElementCardT::kMarkOFF)
+			flag = ElementCardT::kOFF;
+	}
+}
+
+/* initial condition/restart functions (per time sequence) */
+void FSSolidFluidMixT::InitialCondition(void)
+{
+	/* inherited */
+	ElementBaseT::InitialCondition();
+}
+
+
 
 
 //#############################################################################
@@ -2962,7 +3040,7 @@ void FSSolidFluidMixT::ApplyTractionBC(void)
 	    double thick = 1.0;
 			
 	    /* boundary shape functions */
-	    const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
+	    const ParentDomainT& surf_shape = ShapeFunctionDispl().FacetShapeFunction(facet);
 	    int nip = surf_shape.NumIP();
 			
 	    /* all ip tractions: (nip x ndof) */
