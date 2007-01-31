@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.17 2007-01-31 17:01:59 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.18 2007-01-31 17:30:02 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -88,10 +88,10 @@ public:
 	/*@{*/
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
-	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+	//virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 	
 	/** element level reconfiguration for the current time increment */
-	virtual GlobalT::RelaxCodeT RelaxSystem(void);
+	//virtual GlobalT::RelaxCodeT RelaxSystem(void);
 	/*@}*/
 
 	/** collecting element group equation numbers. See ElementBaseT::Equations
@@ -129,7 +129,7 @@ public:
 	virtual GeometryT::CodeT GeometryCode(void) const;
 	
 	/*set active elements*/
-	virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
+	//virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
 	
 	/** initial condition/restart functions (per time sequence) */
 	virtual void InitialCondition(void);

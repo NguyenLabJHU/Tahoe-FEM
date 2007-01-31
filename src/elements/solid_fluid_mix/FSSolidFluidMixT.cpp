@@ -261,36 +261,40 @@ void FSSolidFluidMixT::CloseStep(void)
 
 
 /* resets to the last converged solution */
+/*
 GlobalT::RelaxCodeT FSSolidFluidMixT::ResetStep(void)
 {
 	const char caller[] = "FSSolidFluidMixT::ResetStep";
 	
-	/* inherited */
+	// inherited 
 	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
 
-	/* update material internal variables */
+	// update material internal variables 
 	//needs to be implemented
 #pragma message("reseting internal variables not implemented")	
 	//ExceptionT::GeneralFail(caller, "reseting internal variables not implemented");
 
 	return relax;
 }
+*/
 
 /* element level reconfiguration for the current time increment */
+/*
 GlobalT::RelaxCodeT FSSolidFluidMixT::RelaxSystem(void)
 {
 	const char caller[] = "FSSolidFluidMixT::RelaxSystem";
 	
-	/* inherited */
+	// inherited 
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
 
-	/* loop over materials */
+	// loop over materials 
 	//needs to be implemented
 #pragma message("relax step for materials not implemented")	
 	//ExceptionT::GeneralFail(caller, "relax step for materials not implemented");
 
 	return relax;
 }
+*/
 
 
 void FSSolidFluidMixT::SendOutput(int kincode)
@@ -315,14 +319,15 @@ GlobalT::SystemTypeT FSSolidFluidMixT::TangentType(void) const
     return GlobalT::kNonSymmetric; 
 }
 
+/*
 void FSSolidFluidMixT::SetStatus(const ArrayT<ElementCardT::StatusT>& status)
 {
-	/* loop over elements and initial state variables */
+	// loop over elements and initial state variables
 	int elem_num = 0;
 	Top();
 	while (NextElement())
 	{
-		/* current element */
+		// current element
 		ElementCardT::StatusT& flag = CurrentElement().Flag();
 		flag = status[elem_num++];
 
@@ -332,6 +337,7 @@ void FSSolidFluidMixT::SetStatus(const ArrayT<ElementCardT::StatusT>& status)
 			flag = ElementCardT::kOFF;
 	}
 }
+*/
 
 /* initial condition/restart functions (per time sequence) */
 void FSSolidFluidMixT::InitialCondition(void)
