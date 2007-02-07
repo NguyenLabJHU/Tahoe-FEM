@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.3 2007-02-07 02:10:06 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.4 2007-02-07 02:31:24 skyu Exp $ */
 #include "NodalRigidCSEAnisoMRT.h"
 
 #include "XDOF_ManagerT.h"
@@ -989,19 +989,40 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				// lhs(2,1) = Q;
 				// lhs(0,2) =-Q;
 				// lhs(1,2) = Q;
-				lhs(0,0) = fr*Q(0,i);
-				lhs(1,0) =-fr*Q(0,i);
-				lhs(2,0) =-Q(0,i);
-				lhs(0,1) = fr*Q(1,i);
-				lhs(1,1) =-fr*Q(1,i);
-				lhs(2,1) =-Q(1,i);
+				lhs(0,i) = fr*Q(i,i);
+				lhs(1,i) =-fr*Q(i,i);
+				lhs(2,i) =-Q(i,i);
 				lhs(0,2) = 1;
 				lhs(1,2) =-1;
 				lhs(2,2) = 0;
 
+				if (i == 0)
+				{
+					if (constraint_status[1] == kActive)
+					{
+						lhs(0,1) = fr*Q(1,i);
+						lhs(1,1) =-fr*Q(1,i);
+						lhs(2,1) =-Q(1,i);
+					}
+					else
+						lhs(0,1) = lhs(1,1) = lhs(2,1) = 0;
+				}
+
+				if (i == 1)
+				{
+					if (constraint_status[0] == kActive)
+					{
+						lhs(0,0) = fr*Q(0,i);
+						lhs(1,0) =-fr*Q(0,i);
+						lhs(2,0) =-Q(0,i);
+					}
+					else
+						lhs(0,0) = lhs(1,0) = lhs(2,0) = 0;
+				}
+
 				/* assemble */
 				ElementSupport().AssembleLHS(Group(), lhs, eqnos);
-			
+
 				/* next constraint */
 				constraint_dex++;
 				num_constrained++;
