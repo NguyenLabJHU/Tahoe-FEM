@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.2 2007-01-31 03:07:05 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.3 2007-02-07 02:10:06 skyu Exp $ */
 #include "NodalRigidCSEAnisoMRT.h"
 
 #include "XDOF_ManagerT.h"
@@ -810,17 +810,6 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 		int num_failed = 0;
 		int max_num_constrained = ndof;
 
-		/* constraint and multiplier */
-		for (int i = 0; i < ndof; i++)
-		{
-		h[i] = jump[i] - jump_last[i];
-		f[i] = constraints[constraint_dex];
-		l[i] = f[i] + fr*h[i];
-		}
-
-		QT.Transpose(Q);
-		QT.MultTx(l, l);
-
 		for (int i = 0; i < ndof; i++)
 			if (constraint_status[i] == kActive) /* enforce constraint */
 			{
@@ -828,7 +817,10 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 				// double h = jump[i] - jump_last[i];
 				// double f = constraints[constraint_dex];
 				// double l = f + fr*h;
-				
+				h[i] = jump[i] - jump_last[i];
+				f[i] = constraints[constraint_dex];
+				l[i] = f[i] + fr*h[i];
+
 				/* update traction in the state variable array */
 				// traction[i] = f/fCZNodeAreas[j];
 				traction[i] = f[i]/fCZNodeAreas[j];
@@ -836,12 +828,34 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 				/* residual of the displacement equations */
 				// rhs[0] = l*Q; /* -1*-l */
 				// rhs[1] =-l*Q; /* +1*-l */
-				rhs[0] = l[i];
-				rhs[1] =-l[i];
-					
+				rhs[0] = l[i]*Q(i,i);
+				rhs[1] =-l[i]*Q(i,i);
+
 				/* residual of the constraint equation */
 				// rhs[2] =-h;
-				rhs[2] =-h[i];
+				rhs[2] =-h[i]*Q(i,i);
+
+				if (i == 0 && constraint_status[1] == kActive)
+				{
+					h[1] = jump[1] - jump_last[1];
+					f[1] = constraints[constraint_dex+1];
+					l[1] = f[1] + fr*h[1];
+
+					rhs[0] += l[1]*Q(1,0);
+					rhs[1] +=-l[1]*Q(1,0);
+					rhs[2] +=-h[1]*Q(1,0);
+				}
+
+				if (i == 1 && constraint_status[0] == kActive)
+				{
+					h[0] = jump[0] - jump_last[0];
+					f[0] = constraints[constraint_dex-1];
+					l[0] = f[0] + fr*h[0];
+
+					rhs[0] += l[0]*Q(0,1);
+					rhs[1] +=-l[0]*Q(0,1);
+					rhs[2] +=-h[0]*Q(0,1);
+				}
 
 				/* get equation numbers */
 				fXDOFEqnos.RowAlias(constraint_dex, eqnos);
@@ -926,7 +940,7 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	vec_nee = 0.0;
 	// ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kSymmetric);
 	// ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kSymmetric);
-	ElementMatrixT lhs(fXDOFEqnos.MinorDim(), 2*fXDOFEqnos.MinorDim(), ElementMatrixT::kNonSymmetric);
+	ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kNonSymmetric);
 	ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kNonSymmetric);
 	dMatrixT stiffness(ndof), djump_du(ndof, 2*ndof);
 	djump_du = 0.0;
@@ -941,17 +955,6 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	// lhs(0,1) =-fr;
 	// lhs(1,1) = fr;
 	// lhs(2,2) = 0;
-	lhs(0,0) = fr;
-	lhs(0,1) = 0;
-	lhs(0,2) =-fr;
-	lhs(0,3) = 0;
-	lhs(1,0) =-fr;
-	lhs(1,1) = 0;
-	lhs(1,2) = fr;
-	lhs(1,3) = 0;
-
-	lhs(2,4) = 0;
-	lhs(2,5) = 0;
 
 	int constraint_dex = 0;
 	ArrayT<char> constraint_status;
@@ -963,7 +966,7 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		fCurrPair = j;
 		int n0 = fCZNodePairs(j,0);
 		int n1 = fCZNodePairs(j,1);
-	
+
 		/* pair state */
 		fConstraintStatus.RowAlias(j, constraint_status);
 		fStateVariables.RowAlias(j, state);
@@ -986,15 +989,15 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				// lhs(2,1) = Q;
 				// lhs(0,2) =-Q;
 				// lhs(1,2) = Q;
-				lhs(0,4) = Q(0,i);
-				lhs(0,5) = Q(1,i);
-				lhs(1,4) =-Q(0,i);
-				lhs(1,5) =-Q(1,i);
-
-				lhs(2,0) =-Q(i,0);
-				lhs(2,1) =-Q(i,1);
-				lhs(2,2) = Q(i,0);
-				lhs(2,3) = Q(i,1);
+				lhs(0,0) = fr*Q(0,i);
+				lhs(1,0) =-fr*Q(0,i);
+				lhs(2,0) =-Q(0,i);
+				lhs(0,1) = fr*Q(1,i);
+				lhs(1,1) =-fr*Q(1,i);
+				lhs(2,1) =-Q(1,i);
+				lhs(0,2) = 1;
+				lhs(1,2) =-1;
+				lhs(2,2) = 0;
 
 				/* assemble */
 				ElementSupport().AssembleLHS(Group(), lhs, eqnos);
