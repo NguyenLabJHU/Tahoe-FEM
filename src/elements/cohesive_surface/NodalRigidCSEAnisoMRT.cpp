@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.4 2007-02-07 02:31:24 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.5 2007-02-07 20:40:06 skyu Exp $ */
 #include "NodalRigidCSEAnisoMRT.h"
 
 #include "XDOF_ManagerT.h"
@@ -940,8 +940,8 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	vec_nee = 0.0;
 	// ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kSymmetric);
 	// ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kSymmetric);
-	ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kNonSymmetric);
-	ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kNonSymmetric);
+	ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kSymmetric);
+	ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kSymmetric);
 	dMatrixT stiffness(ndof), djump_du(ndof, 2*ndof);
 	djump_du = 0.0;
 
