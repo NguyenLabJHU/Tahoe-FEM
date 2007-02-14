@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.5 2007-02-07 20:40:06 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.6 2007-02-14 17:14:53 skyu Exp $ */
 #include "NodalRigidCSEAnisoMRT.h"
 
 #include "XDOF_ManagerT.h"
@@ -430,7 +430,7 @@ void NodalRigidCSEAnisoMRT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_v
 		
 		/* coordinate transformation */
 		// double Q = fCZDirection[i];
-		double j1 = fCurrShapes->Jacobian(Q);
+		// double j1 = fCurrShapes->Jacobian(Q);
 
 	
 		/* coordinates - same for both nodes in pair */
@@ -777,7 +777,7 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 	ArrayT<char> constraint_status;
 	iArrayT eqnos;
 	dArrayT h(ndof), f(ndof), l(ndof);
-	dMatrixT QT(NumSD());
+	// dMatrixT QT(NumSD());
 	for (int j = 0; j < fCZNodePairs.MajorDim(); j++)
 	{
 		/* node pair */
@@ -796,7 +796,7 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 
 		/* coordinate transformation */
 		// double Q = fCZDirection[j];
-		double j1 = fCurrShapes->Jacobian(Q);
+		// double j1 = fCurrShapes->Jacobian(Q);
 
 		// jump[0] *= Q;
 		// jump[1] *= Q;
@@ -940,8 +940,8 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	vec_nee = 0.0;
 	// ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kSymmetric);
 	// ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kSymmetric);
-	ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kSymmetric);
-	ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kSymmetric);
+	ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kNonSymmetric);
+	ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kNonSymmetric);
 	dMatrixT stiffness(ndof), djump_du(ndof, 2*ndof);
 	djump_du = 0.0;
 
@@ -973,7 +973,7 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		/* coordinate transformation */
 		// double Q = fCZDirection[j];
-		double j1 = fCurrShapes->Jacobian(Q, dQ);
+		// double j1 = fCurrShapes->Jacobian(Q, dQ);
 
 		/* loop over dof */
 		int num_constrained = 0;
