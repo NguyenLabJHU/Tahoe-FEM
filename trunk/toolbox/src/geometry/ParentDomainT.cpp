@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.36 2006-11-06 15:34:54 regueiro Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.37 2007-02-19 20:35:58 regueiro Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -666,12 +666,24 @@ void ParentDomainT::ComputeDNa_DDNa(const LocalArrayT& coords,
 				       }break;
 
 				    }
-				    *pNaxx += Na_rs * J_inv_r1 * J_inv_s1 ;
-				    *pNayy += Na_rs * J_inv_r2 * J_inv_s2 ;
-				    *pNazz += Na_rs * J_inv_r3 * J_inv_s3 ;
-				    *pNayz += Na_rs * J_inv_r2 * J_inv_s3 ;
-				    *pNaxz += Na_rs * J_inv_r1 * J_inv_s3 ;
-				    *pNaxy += Na_rs * J_inv_r1 * J_inv_s2 ;
+				    if (r==1 && s==1)
+				    {
+					*pNaxx = Na_rs * J_inv_r1 * J_inv_s1 ;
+					*pNayy = Na_rs * J_inv_r2 * J_inv_s2 ;
+					*pNazz = Na_rs * J_inv_r3 * J_inv_s3 ;
+					*pNayz = Na_rs * J_inv_r2 * J_inv_s3 ;
+					*pNaxz = Na_rs * J_inv_r1 * J_inv_s3 ;
+					*pNaxy = Na_rs * J_inv_r1 * J_inv_s2 ;
+				    }
+				    else
+				    {
+					*pNaxx += Na_rs * J_inv_r1 * J_inv_s1 ;
+					*pNayy += Na_rs * J_inv_r2 * J_inv_s2 ;
+					*pNazz += Na_rs * J_inv_r3 * J_inv_s3 ;
+					*pNayz += Na_rs * J_inv_r2 * J_inv_s3 ;
+					*pNaxz += Na_rs * J_inv_r1 * J_inv_s3 ;
+					*pNaxy += Na_rs * J_inv_r1 * J_inv_s2 ;
+				    }
 				}
 
 			    }
