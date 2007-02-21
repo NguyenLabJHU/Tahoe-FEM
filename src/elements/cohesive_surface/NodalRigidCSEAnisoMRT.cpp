@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.6 2007-02-14 17:14:53 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.7 2007-02-21 17:10:07 skyu Exp $ */
 #include "NodalRigidCSEAnisoMRT.h"
 
 #include "XDOF_ManagerT.h"
@@ -777,6 +777,7 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 	ArrayT<char> constraint_status;
 	iArrayT eqnos;
 	dArrayT h(ndof), f(ndof), l(ndof);
+	dMatrixT djump_du(ndof, 2*ndof);
 	// dMatrixT QT(NumSD());
 	for (int j = 0; j < fCZNodePairs.MajorDim(); j++)
 	{
@@ -846,7 +847,7 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 					rhs[2] +=-h[1]*Q(1,0);
 				}
 
-				if (i == 1 && constraint_status[0] == kActive)
+				else if (i == 1 && constraint_status[0] == kActive)
 				{
 					h[0] = jump[0] - jump_last[0];
 					f[0] = constraints[constraint_dex-1];
@@ -876,12 +877,13 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 		if (num_failed == 0 && num_constrained < max_num_constrained)
 		{
 			/* call traction */
+			// traction in local frame
 			const dArrayT& traction = fCZRelation->Traction(jump, state, dummy, true);
 
-			Q.Multx(traction, ftraction);
+			// Q.Multx(traction, ftraction);
 
 			/* expand */
-			fShapes->Grad_d().MultTx(ftraction, ftraction); // need to be checked
+			// fShapes->Grad_d().MultTx(ftraction, ftraction); // need to be checked
 
 			/* loop over directions */
 			for (int i = 0; i < ndof; i++)
@@ -894,8 +896,14 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 				else /* contributon from cz tractions */
 				{
 					/* equivalent nodal force */
+					// equivalent nodal force in global frame
 					// double f =-Q*traction[i]*fCZNodeAreas[j];
-					double f1 =-ftraction[i]*fCZNodeAreas[j];
+					double f1 =-traction[i]*Q(i,i)*fCZNodeAreas[j];
+
+					if (i = 0 && constraint_status[1] != kActive)
+						f1 = f1 - traction[1]*Q(1,0)*fCZNodeAreas[j];
+					else if (i == 1 && constraint_status[0] != kActive)
+						f1 = f1 - traction[0]*Q(0,1)*fCZNodeAreas[j];
 
 					/* equal and opposite */
 					rhs_disp[i] = -f1;
@@ -1008,7 +1016,7 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 						lhs(0,1) = lhs(1,1) = lhs(2,1) = 0;
 				}
 
-				if (i == 1)
+				else if (i == 1)
 				{
 					if (constraint_status[0] == kActive)
 					{
@@ -1034,7 +1042,7 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		if (num_failed == 0 && num_constrained < ndof)
 		{		
 			/* loop over directions */
-			djump_du = fShapes->Grad_d();   //need to be checked
+			// djump_du = fShapes->Grad_d();   //need to be checked
 
 			for (int i = 0; i < ndof; i++)
 			{
@@ -1047,6 +1055,8 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				{
 					// djump_du(i,i) = -Q;
 					// djump_du(i,i+ndof) = Q;
+					djump_du(i,i) = -1.0;
+					djump_du(i,i+ndof) = 1.0;
 				}
 			}
 
@@ -1054,7 +1064,7 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			jump.DiffOf(disp(n1), disp(n0));
 			// jump[0] *= Q;
 			// jump[1] *= Q;
-			Q.MultTx(jump, jump);
+			Q.MultTx(jump, jump);	// jump displacement in local frame
 
 			/* stiffness in local frame */
 			const dMatrixT& K = fCZRelation->Stiffness(jump, state, sigma);
