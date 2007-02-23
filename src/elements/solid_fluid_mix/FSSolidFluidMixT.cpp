@@ -1024,8 +1024,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fShapes_press->InterpolateU(press_n,fP0_temp_value);
 		    fPf_0_matrix(CurrElementNumber(),IP)=fP0_temp_value[0];
 		}
-		else
-		{
 		
 
 		const double* shapes_displ_X = fShapes_displ->IPShapeX();
@@ -1809,7 +1807,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		/* accumulate */
 		fK_dd_BTDB_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 		
-		}
+
 
 		
 		
