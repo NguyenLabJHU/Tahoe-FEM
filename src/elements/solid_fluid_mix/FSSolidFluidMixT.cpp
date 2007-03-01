@@ -107,7 +107,7 @@ void FSSolidFluidMixT::RHSDriver(void)
     /* choose solution method */
     if (ElementSupport().Time()==0)
 	RHSDriver_staggered();
-    if (fDispl->Group() == fPress->Group())
+    else if (fDispl->Group() == fPress->Group())
 	RHSDriver_monolithic();
     else
 	RHSDriver_staggered();
