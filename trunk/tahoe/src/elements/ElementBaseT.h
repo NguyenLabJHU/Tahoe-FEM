@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.47 2005-07-20 06:52:50 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.48 2007-03-02 01:26:18 tdnguye Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -132,6 +132,9 @@ public:
 	/** collect the list of element block ID's used by the element group */
 	void ElementBlockIDs(ArrayT<StringT>& IDs) const;
 	
+	/** return pointer to block data given the ID */
+	const ElementBlockDataT& BlockData(const StringT& ID) const;
+
 	/** return the number of degrees of freedom per node */
 	int NumDOF(void) const;
 	/*@}*/
@@ -411,9 +414,6 @@ protected: /* for derived classes only */
 	
 	virtual void ReadConnectivity(void);
 #endif
-
-	/** return pointer to block data given the ID */
-	const ElementBlockDataT& BlockData(const StringT& ID) const;
 
 	/** write all current element information to the stream */
 	virtual void CurrElementInfo(ostream& out) const;
