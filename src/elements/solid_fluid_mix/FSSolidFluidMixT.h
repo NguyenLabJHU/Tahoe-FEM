@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.18 2007-01-31 17:30:02 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.19 2007-03-02 09:17:40 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -576,6 +576,7 @@ private:
         void Form_I_ijkl_matrix(void);
         void Form_Aleph_temp_matrix(const int& IP);
         void Form_Imath_temp_matrix(void);
+        void Compute_norm_of_array(double& norm,const LocalArrayT& B);
 
 protected:
 
