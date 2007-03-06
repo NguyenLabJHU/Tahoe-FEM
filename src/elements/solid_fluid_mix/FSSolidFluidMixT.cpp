@@ -52,7 +52,7 @@ FSSolidFluidMixT::~FSSolidFluidMixT(void)
 
 void FSSolidFluidMixT::Echo_Input_Data(void) {
 
-	cout << "#######################################################" << endl; 
+    cout << "#######################################################" << endl; 
     cout << "############### ECHO FSSolidFluidMix DATA #########################" << endl; 
     cout << "#######################################################" << endl; 
 
@@ -721,6 +721,12 @@ void FSSolidFluidMixT::RHSDriver_staggered(void)
 	/* loop over elements */
 	int e,l;
 	Top();
+
+	/* {fGravity_vector} will be formed */
+	fGravity_vector[0]= fMaterial_Params[kg1];
+	fGravity_vector[1]= fMaterial_Params[kg2];
+	fGravity_vector[2]= fMaterial_Params[kg3];
+
 	while (NextElement())
 	{
         /* zero all element matrices */
@@ -1069,7 +1075,10 @@ void FSSolidFluidMixT::RHSDriver_staggered(void)
 		
 		
 				/* [fLeft_Cauchy_Green_tensor] will be formed */
-				fLeft_Cauchy_Green_tensor.Transpose(fRight_Cauchy_Green_tensor);
+				fLeft_Cauchy_Green_tensor.MultABT(fDeformation_Gradient, fDeformation_Gradient);
+				/* [fLeft_Cauchy_Green_tensor_Inverse] will be formed */
+				if (fLeft_Cauchy_Green_tensor.Det()==0)
+				    fLeft_Cauchy_Green_tensor = fIdentity_matrix;
 				fLeft_Cauchy_Green_tensor_Inverse.Inverse(fLeft_Cauchy_Green_tensor);
 		
 		
@@ -1378,37 +1387,31 @@ void FSSolidFluidMixT::RHSDriver_staggered(void)
 			    fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
 
 	    
-			    /* {fFd_int_M_vector} will be formed */	    
-			    fM_dd_matrix.Multx(u_dotdot_vec,fFd_int_M_vector);
-
-
 			    /* {fFd_int_C_vector} will be formed */
 			    fC_dd_matrix.Multx(u_dot_vec,fFd_int_C_vector);
 
-
 			    /* {fFd_int} will be formed */
-			    fFd_int = fFd_int_M_vector;
-			    fFd_int += fFd_int_C_vector;
+			    fFd_int = fFd_int_C_vector;
 			    fFd_int += fFd_int_N1_vector;
 			    fFd_int += fFd_int_N2_vector; 
 			    fFd_int += fFd_int_G4_vector;
 			    fs_mix_out	<<"Accumulative fFd_int for all 27 IP"<< endl ;
 			    fs_mix_out	<< fFd_int<< endl ;
 			    fs_mix_out	<<"Accumulative fFd_int for all 27 IP"<< endl ;
-			    fFd_int *=-1;
+                            /* "0.5" coefficient will be doubled and canceled when program solves for derivative of pressure(count==2) */
+ 			    fFd_int *=-0.5;
 	    
 			    /* [fKdd] will be formed */
 			    fKdd = fK_dd_G1_1_matrix;
 			    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
 			    fs_mix_out	<< fKdd<< endl ;
 			    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
-
 			    /* equations numbers */
 			    const iArrayT& displ_eq = fElementCards_displ[e].Equations();
-			    
-			    /* assemble residual*/
+	    
+			    /* assemble residuals */
 			    ElementSupport().AssembleRHS(curr_group, fFd_int, displ_eq);
-			    
+	    
 			    /* assemble components of the tangent */
 			    ElementSupport().AssembleLHS(curr_group, fKdd, displ_eq);
 
@@ -1569,9 +1572,12 @@ void FSSolidFluidMixT::RHSDriver_staggered(void)
 			    
 			    
 			    /* [fLeft_Cauchy_Green_tensor] will be formed */
-			    fLeft_Cauchy_Green_tensor.Transpose(fRight_Cauchy_Green_tensor);
+			    fLeft_Cauchy_Green_tensor.MultABT(fDeformation_Gradient, fDeformation_Gradient);
+			    /* [fLeft_Cauchy_Green_tensor_Inverse] will be formed */
+			    if (fLeft_Cauchy_Green_tensor.Det()==0)
+				fLeft_Cauchy_Green_tensor = fIdentity_matrix;
 			    fLeft_Cauchy_Green_tensor_Inverse.Inverse(fLeft_Cauchy_Green_tensor);
-			    
+
 			    
 			    /* [fEulerian_effective_strain_tensor_current_IP] will be formed */
 			    fEulerian_effective_strain_tensor_current_IP = fLeft_Cauchy_Green_tensor_Inverse;
@@ -1819,7 +1825,6 @@ void FSSolidFluidMixT::RHSDriver_staggered(void)
 			    /* accumulate */
 			    fFtheta_int_H4_vector += fTemp_vector_nen_press;
 			    
-			    
 			    /* fC1, fC2 and fC3 will be formed */
 			    fC1 = phi_f*fRho_f/(fMaterial_Params[kKf]*J);
 			    fC2 = 1/J*(fRho_f*fMaterial_Params[kPhi_s0]-
@@ -1884,22 +1889,16 @@ void FSSolidFluidMixT::RHSDriver_staggered(void)
 			
 			/* [fKthetad] will be formed */
 			fKthetad = fK_thetad_H1_1_matrix;	
-			fs_mix_out	<<"Accumulative fKthetad for all 27 IP"<< endl ;
-			fs_mix_out	<< fKthetad<< endl ;
-			fs_mix_out	<<"Accumulative fKthetad for all 27 IP"<< endl ;
-			
+
 			/* {fFtheta_int_M_vector} will be formed */
 			fM_thetad_matrix.Multx(u_dotdot_vec,fFtheta_int_M_vector);
-			
-			
-			/* {fFtheta_int_C1_vector} will be formed */
-			fC_thetatheta_matrix.Multx(press_dot_vec,fFtheta_int_C1_vector);
 			
 			
 			/* {fFtheta_int_C2_vector} will be formed */
 			fC_thetad_matrix.Multx(u_dot_vec,fFtheta_int_C2_vector);
 			
-			
+                        /* acceleration which comes from previous step(Count==1) should be doubled at the time of solving for first derivative of pressure */
+			fFtheta_int_M_vector *=2;
 			/* {fFtheta_int} will be formed */
 			fFtheta_int = fFtheta_int_M_vector;
 			fFtheta_int += fFtheta_int_C2_vector; 
@@ -1912,15 +1911,21 @@ void FSSolidFluidMixT::RHSDriver_staggered(void)
 			fFtheta_int *=-1;	
 
 			fKthetatheta = fC_thetatheta_matrix;
+			fs_mix_out	<<"Accumulative fC_thetatheta_matrix for all 27 IP"<< endl ;
+			fs_mix_out	<< fC_thetatheta_matrix<< endl ;
+			fs_mix_out	<<"Accumulative fC_thetatheta_matrix for all 27 IP"<< endl ;
+
+
+
 			/* equations numbers */
 			const iArrayT& press_eq = fElementCards_press[e].Equations();
-			
+	    
 			/* assemble residuals */
 			ElementSupport().AssembleRHS(curr_group, fFtheta_int, press_eq);
-			
+	    
 			/* assemble components of the tangent */
 			ElementSupport().AssembleLHS(curr_group, fKthetatheta, press_eq);
-			
+
 		    }
 		}
 	}
@@ -2384,9 +2389,12 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		
 		
 		/* [fLeft_Cauchy_Green_tensor] will be formed */
-		fLeft_Cauchy_Green_tensor.Transpose(fRight_Cauchy_Green_tensor);
+		fLeft_Cauchy_Green_tensor.MultABT(fDeformation_Gradient, fDeformation_Gradient);
+		/* [fLeft_Cauchy_Green_tensor_Inverse] will be formed */
+		if (fLeft_Cauchy_Green_tensor.Det()==0)
+		    fLeft_Cauchy_Green_tensor = fIdentity_matrix;
 		fLeft_Cauchy_Green_tensor_Inverse.Inverse(fLeft_Cauchy_Green_tensor);
-		
+
 		
 		/* [fEulerian_effective_strain_tensor_current_IP] will be formed */
 		fEulerian_effective_strain_tensor_current_IP = fLeft_Cauchy_Green_tensor_Inverse;
