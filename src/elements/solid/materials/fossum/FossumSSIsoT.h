@@ -79,7 +79,11 @@ protected:
 
 	double fPsi;       // Ratio of failure strength in tension to f. s. in compr.
 	double fN;         // offset from initial yield to failure
-        double fFluidity;   //fluidity parameter, relation time = fFluidity/(2*fmu)
+	double fFluidity;   //fluidity parameter, relation time = fFluidity/(2*fmu)
+	
+	double fL;         // plastic potential parameter analogous to fB
+	double fPhi;        // plastic potential parameter analogous to fTheta
+	double fQ;         // plastic potential parameter analogous to fR
 	bool fFossumDebug;
 
 	/* form of tangent matrix (symmetric by default) */
@@ -232,6 +236,11 @@ private:
 	int HeavisideFn(double arg);
 	double Xfn(const double kappa);
 	double YieldFnFf(double I1);
+	
+	double PlasticPotGfMinusN(double I1);
+	double PlasticPotGc(double I1, const double kappa);
+	double X_G(const double kappa);
+	double PlasticPotGf(double I1);		
 
 	/* auxiliaries to s_ij */
 	bool StressPointIteration(double initialYieldCheck, dArrayT& iterationVars, dSymMatrixT workingBackStress, double workingKappa);
@@ -245,9 +254,13 @@ private:
 	double KappaHardening(double I1, double kappa);
 	double dfdDevStressA (double I1, double J2, double J3, double sigmaA);
 	double dfdSigmaA(double I1, double J2, double J3, double sigmaA, double kappa);
+	double dGdSigmaA(double I1, double J2, double J3, double sigmaA, double kappa);
 	double dfdI1(double I1, double kappa);
+	double dGdI1(double I1, double kappa);
 	double dFfdI1(double I1);
+	double dGfdI1(double I1);
 	double dFcdI1(double I1, double kappa);
+	double dGcdI1(double I1, double kappa);
 	double dfdJ2(double J2, double J3);
 	double dGammadJ2 (double J2, double J3);
 	double dfdJ3(double J2, double J3);
@@ -259,30 +272,32 @@ private:
 
     /* derivatives for FormdRdX */
 	int KroneckerDelta (int A, int B);
-	double d2fdSigmaBdSigmaC (double I1, double J2, double J3, double principalEqStressA, double principalEqStressB, int A, int B, double kappa);
-	double d2fdDevStressdSigmaB (double I1, double J2, double J3, double principalEqStressA, double principalEqStressB, int A, int B);
-	double d2fdI1dI1(double I1, double kappa);
-	double d2FfdI1dI1(double I1);
-	double d2FcdI1dI1(double I1, double kappa);
-	double d2fdJ2dJ2 (double J2, double J3);
+	double d2GdSigmaBdSigmaC (double I1, double J2, double J3, double principalEqStressA, double principalEqStressB, int A, int B, double kappa);
+	double d2GdDevStressdSigmaB (double I1, double J2, double J3, double principalEqStressA, double principalEqStressB, int A, int B);
+	double d2GdI1dI1(double I1, double kappa);
+	double d2GfdI1dI1(double I1);
+	double d2GcdI1dI1(double I1, double kappa);
+	double d2GdJ2dJ2 (double J2, double J3);
 	double d2GammadJ2dJ2(double J2, double J3);
-	double d2fdJ2dJ3 (double J2, double J3);
+	double d2GdJ2dJ3 (double J2, double J3);
 	double d2GammadJ2dJ3 (double J2);
 	double dGammadJ3(double J2);
-	double d2fdJ3dJ3 (double J2, double J3);
-	double d2fdSigmaCdKappa (double I1, double kappa);
-	double d2FcdI1dKappa(double I1, double kappa);
+	double d2GdJ3dJ3 (double J2, double J3);
+	double d2GdSigmaCdKappa (double I1, double kappa);
+	double d2GcdI1dKappa(double I1, double kappa);
 	double dGalphadAlphaB (dSymMatrixT alpha, dArrayT principalEqStress, int B, ArrayT<dSymMatrixT> m);
-	double d2fdI1dKappa (double I1, double kappa);
+	double d2GdI1dKappa (double I1, double kappa);
 	double dFcdKappa (double I1, double kappa);
+	double dGcdKappa (double I1, double kappa);
 	double d2XdKappadKappa( double kappa);
 	double d2PlasticVolStraindXdX(double kappa);
 	double dfdKappa(double I1, double kappa);
 	double InnerProduct(dSymMatrixT A, dSymMatrixT B);
 
 	/*tensor-valued derviatives for consistent tangent */
-	dMatrixT D2fdSigmadSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
+	dMatrixT D2GdSigmadSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
 	dSymMatrixT DfdSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
+	dSymMatrixT DGdSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
 	dSymMatrixT DfdAlpha(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
 	dArrayT Hardening(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m, dSymMatrixT alpha);
 };
