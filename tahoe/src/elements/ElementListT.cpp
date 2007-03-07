@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.133 2006-10-26 01:05:00 tdnguye Exp $ */
+/* $Id: ElementListT.cpp,v 1.134 2007-03-07 16:25:44 cfoster01 Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -142,6 +142,7 @@
 #ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
 #include "SSEnhLocCraigT.h"
 #include "SSEnhLocDieterichT.h"
+#include "SSEnhLocOpenT.h"
 #endif
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -382,6 +383,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
 		sub_lists.AddSub("small_strain_enh_loc_craig");
 		sub_lists.AddSub("small_strain_enh_loc_dieterich");
+		sub_lists.AddSub("small_strain_enh_loc_open");
 #endif
 
 #if defined(SOLID_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
@@ -640,8 +642,10 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
 	else if (name == "small_strain_enh_loc_craig")
 		return new SSEnhLocCraigT(fSupport);
-		else if (name == "small_strain_enh_loc_dieterich")
+	else if (name == "small_strain_enh_loc_dieterich")
 		return new SSEnhLocDieterichT(fSupport);
+	else if (name == "small_strain_enh_loc_open")
+		return new SSEnhLocOpenT(fSupport);
 #endif
 
 #ifdef MIXTURE_THEORY_DEV
