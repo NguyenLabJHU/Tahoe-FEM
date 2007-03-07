@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.15 2006-03-12 07:33:36 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.16 2007-03-07 16:22:30 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -68,7 +68,7 @@ protected:
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/** calculate the internal force contribution ("-k*d") */
-	void FormKd(double constK);
+	virtual void FormKd(double constK);
 
 	/** form the element stiffness matrix */
 	virtual void FormStiffness(double constK);

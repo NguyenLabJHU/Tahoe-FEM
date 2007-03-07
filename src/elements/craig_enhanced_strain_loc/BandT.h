@@ -64,7 +64,7 @@ class BandT
     double fResidualCohesion;
     double fH_delta;
     double fEffectiveSoftening;
-    double fIsBandActive;
+    bool fIsBandActive;
     SSEnhLocCraigT *currentElement;
 
   };

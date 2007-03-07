@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.24 2006-07-02 18:47:33 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.25 2007-03-07 16:22:30 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -157,7 +157,7 @@ void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
   fMultiBand = list.GetParameter("Allow_Multiple_Bands");
   fBVPType = list.GetParameter("BVP_type");
   fFirstElementToLocalize = list.GetParameter("First_element_to_localize");
-  fFirstElementToLocalize -= 1;	
+  //fFirstElementToLocalize -= 1;	
 
   if (fBVPType == kPreFailed)
     {

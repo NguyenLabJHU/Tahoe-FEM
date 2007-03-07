@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2005-08-12 05:38:02 paklein Exp $
+# $Id: makefile,v 1.4 2007-03-07 16:22:30 cfoster Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,9 @@ OBJ = \
 	SSEnhLocCraigT.o \
 	BandT.o	\
 	SSEnhLocDieterichT.o \
-	DieterichBandT.o 	
+	DieterichBandT.o \
+        SSEnhLocOpenT.o \
+        OpenBandT.o	
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +48,9 @@ SRC = \
 	SSEnhLocCraigT.cpp \
 	BandT.cpp \
 	SSEnhLocDieterichT.cpp \
-	DieterichBandT.cpp 
+	DieterichBandT.cpp \
+        SSEnhLocOpenT.cpp \
+        OpenBandT.cpp
 
 
 ##################### (3) headers
@@ -62,7 +66,9 @@ HDR = \
 	SSEnhLocCraigT.h \
 	BandT.h \
 	SSEnhLocDieterichT.h \
-	DieterichBandT.h 
+	DieterichBandT.h \
+        SSEnhLocOpenT.h \
+        OpenBandT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
