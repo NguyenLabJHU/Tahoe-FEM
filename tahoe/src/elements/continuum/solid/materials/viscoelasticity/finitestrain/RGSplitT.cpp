@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.cpp,v 1.9 2006-11-16 17:43:36 tdnguye Exp $ */
+/* $Id: RGSplitT.cpp,v 1.10 2007-03-08 18:13:01 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
@@ -349,8 +349,7 @@ const dSymMatrixT& RGSplitT::s_ij(void)
 		}
     }
 
-    
-    if (NumSD() == 2)
+	if (NumSD() == 2)
     {
         fStress[0] = fStress3D[0];
         fStress[1] = fStress3D[1];
@@ -659,7 +658,6 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	    double res2 = ep_e2 + dt*(0.5*fietaS*s2 +
 			  third*fietaB*sm) - ep_tr2;
 		
-	    //cout << "\n residual1 "<< res0;
 	    /*solve for the principal strain increments*/
 	    double dep_e0=-fiKAB(0,0)*res0-fiKAB(0,1)*res1-fiKAB(0,2)*res2;
 	    double dep_e1=-fiKAB(1,0)*res0-fiKAB(1,1)*res1-fiKAB(1,2)*res2;
@@ -669,7 +667,6 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	    ep_e0 += dep_e0;
 	    ep_e1 += dep_e1;
 	    ep_e2 += dep_e2;
-	    //	cout << "\n depsilon1 "<< dep_e0;
 	    
 	    le0 = exp(2.0*ep_e0);
 	    le1 = exp(2.0*ep_e1);

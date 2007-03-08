@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2006-08-03 23:17:28 tdnguye Exp $
+# $Id: makefile,v 1.6 2007-03-08 18:13:01 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,7 +22,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = RGViscoelasticityT.o \
 	RGSplitT.o \
 	RGIsoT.o \
-	VWPotentialT.o
+	VWPotentialT.o \
+	BoyceViscoPlasticity.o \
+	BoyceBaseT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,7 +47,10 @@ DEP = $(OBJ:.o=.d)
 SRC = RGViscoelasticityT.cpp \
 	RGSplitT.cpp \
 	RGIsoT.cpp \
-	VWPotentialT.cpp
+	VWPotentialT.cpp \
+        BoyceViscoPlasticity.cpp \
+        BoyceBaseT.cpp
+
 
 ##################### (3) headers
 #
@@ -59,7 +64,10 @@ SRC = RGViscoelasticityT.cpp \
 HDR = RGViscoelasticityT.h \
 	RGSplitT.h \
 	RGIsoT.h \
-	VWPotentialT.h
+	VWPotentialT.h \
+        BoyceViscoPlasticity.h \
+        BoyceBaseT.h
+
 
 
 HDR_LINK = $(HDR:.h=.h_link)
