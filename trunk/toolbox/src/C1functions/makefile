@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.29 2005-08-12 05:15:20 paklein Exp $
+# $Id: makefile,v 1.30 2007-03-08 18:43:48 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -41,7 +41,9 @@ OBJ = \
 	SF2.o \
 	PiecewiseLinearT.o \
 	PowerLawT.o\
-	CosineT.o
+	CosineT.o \
+        InvLangevin.o
+
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -82,7 +84,8 @@ SRC = \
 	SF2.cpp \
 	PiecewiseLinearT.cpp \
 	PowerLawT.cpp \
-	CosineT.cpp
+	CosineT.cpp \
+        InvLangevin.cpp
 
 ##################### (3) headers
 #
@@ -114,7 +117,8 @@ HDR = \
 	SF2.h \
 	PiecewiseLinearT.h \
 	PowerLawT.h \
-	CosineT.h
+	CosineT.h \
+        InvLangevin.o
 
 HDR_LINK = $(HDR:.h=.h_link)
 
