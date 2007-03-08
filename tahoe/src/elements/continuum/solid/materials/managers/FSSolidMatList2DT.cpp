@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.13 2006-11-12 18:24:15 tdnguye Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.14 2007-03-08 18:14:04 tdnguye Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -55,6 +55,7 @@
 
 #ifdef VISCOELASTICITY
 #include "RGSplitT.h"
+#include "BoyceViscoPlasticity.h"
 #endif
 
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
@@ -177,6 +178,7 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("Reese-Govindjee_split");
+		sub_lists.AddSub("boyce_viscoplasticity");
 #endif
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
@@ -297,6 +299,8 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "Reese-Govindjee_split")
 		mat= new RGSplitT;
+	else if (name == "boyce_viscoplasticity")
+		mat = new BoyceViscoPlasticity;
 #endif
 #ifdef VISCOELASTIC_MATERIALS_DEV
 	else if (name == "SMP_simple")

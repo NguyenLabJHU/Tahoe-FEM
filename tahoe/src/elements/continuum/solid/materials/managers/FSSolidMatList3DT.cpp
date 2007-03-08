@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.23 2006-11-20 17:27:35 r-jones Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.24 2007-03-08 18:14:04 tdnguye Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -112,6 +112,9 @@
 #ifdef ABAQUS_TI_DEV
 #include "ABAQUS_Ti.h"
 #endif
+#ifdef ABAQUS_XTAL_DEV
+#include "ABAQUS_UMAT_Xtal.h"
+#endif
 #endif
 
 
@@ -211,6 +214,9 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #endif
 #ifdef ABAQUS_TI_DEV
 		sub_lists.AddSub("ABAQUS_UMAT_Ti");
+#endif
+#ifdef ABAQUS_XTAL_DEV
+		sub_lists.AddSub("ABAQUS_UMAT_Xtal");
 #endif
 #endif
 
@@ -359,6 +365,10 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef ABAQUS_TI_DEV
 	else if (name == "ABAQUS_UMAT_Ti")
 		mat= new ABAQUS_Ti;
+#endif
+#ifdef ABAQUS_XTAL_DEV
+	else if (name == "ABAQUS_UMAT_Xtal")
+		mat= new ABAQUS_UMAT_Xtal;
 #endif
 #endif
 
