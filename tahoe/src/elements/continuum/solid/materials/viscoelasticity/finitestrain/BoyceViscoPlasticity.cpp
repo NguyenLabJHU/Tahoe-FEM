@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.1 2007-03-08 18:13:01 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.2 2007-03-08 20:21:27 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -332,8 +332,8 @@ const dSymMatrixT& BoyceViscoPlasticity::s_ij(void)
 		fInverse.Inverse();
 		fFe.MultAB(F,fInverse); /*trial elastic deformation gradient*/
 
-/*		cout << "\nFv_n: "<<fFv_n;
-		cout << "\nF: "<<F;
+/*
+		cout << "\nFv_n: "<<fFv_n;
 		cout << "\nfFe: "<<fFe;
 */
 		/*compute polar decomposition to obtain elatic rotation tensor*/
@@ -345,7 +345,6 @@ const dSymMatrixT& BoyceViscoPlasticity::s_ij(void)
 		const ArrayT<dArrayT>& eigenvectors_e=fSpectralDecompSpat.Eigenvectors();
 
 //		cout << "\nF: "<<F;
-//		cout << "\nfFe: "<<fFe;
 		/*calc elastic stretch tensor*/
 		ComputeEigs_e(fEigs, fEigs_e);
 
@@ -361,7 +360,7 @@ const dSymMatrixT& BoyceViscoPlasticity::s_ij(void)
 		fEigs_Stress[0] = fmu*Je23*(le0-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
 		fEigs_Stress[1] = fmu*Je23*(le1-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
 		fEigs_Stress[2] = fmu*Je23*(le2-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
-
+		
 		/*calculate Fv_n+1*/
 		fEigs_e[0] = sqrt(fEigs_e[0]);
 		fEigs_e[1] = sqrt(fEigs_e[1]);
@@ -757,7 +756,7 @@ void BoyceViscoPlasticity::Initialize(void)
 
 void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e) 
 {		
-	const double ctol = 1.00e-14;
+	const double ctol = 1.00e-11;
 	
 	const double l0 = eigenstretch[0];		
 	const double l1 = eigenstretch[1];		
@@ -813,10 +812,21 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 	double s_bar = s + falpha*p;
 	double r56 = pow(tau/s_bar, 2.5*third);
 	double r16 = pow(tau/s_bar, 0.5*third);
-	double gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
-	double g = fh*(1.0 - s/fs_ss)*gammadot;
-	double f;
-	(tau > kSmall) ? f = gammadot/(sqrt(2)*tau):f=0;
+	double gammadot = 0;
+	double f = 0;
+	double g = 0;
+	if (tau > kSmall) 
+	{ 
+		gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
+		g = fh*(1.0 - s/fs_ss)*gammadot;
+		f = gammadot/(sqrt(2)*tau);
+	} 
+	else 
+	{
+		gammadot = 0;
+		g = 0;
+		f = 0; 
+	}
 
 	/*calculate the residual*/
 	double dt = fFSMatSupport->TimeStep();
@@ -829,6 +839,7 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 
 	int iteration  = 0;	
 	int max_iteration = 20;
+	
 /*	cout << setprecision(16)<<"\ntotal stretch: "<<l0<<"\t"<<l1<<"\t"<<l2;
 	cout <<"\nelastic stretch: "<<le0<<"\t"<<le1<<"\t"<<le2;
 	cout <<"\nelastic stress: "<<Te0<<"\t"<<Te1<<"\t"<<Te2;
