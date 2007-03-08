@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.24 2007-03-08 18:14:04 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.25 2007-03-08 18:23:21 tdnguye Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -33,6 +33,7 @@
 
 #ifdef VISCOELASTICITY
 #include "RGSplitT.h"
+#include "BoyceViscoPlasticity.h"
 #endif
 
 #ifdef FINITE_ANISOTROPY
@@ -191,6 +192,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("Reese-Govindjee_split");
+                sub_lists.AddSub("boyce_viscoplasticity");
 #endif
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
@@ -341,6 +343,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "Reese-Govindjee_split")
 		mat= new RGSplitT;
+        else if (name == "boyce_viscoplasticity")
+                mat = new BoyceViscoPlasticity;
 #endif
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
