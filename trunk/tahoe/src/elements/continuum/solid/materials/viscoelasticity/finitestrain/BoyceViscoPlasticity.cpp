@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.2 2007-03-08 20:21:27 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.3 2007-03-08 20:59:12 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -614,27 +614,46 @@ void BoyceViscoPlasticity::Initialize(void)
 	double s_bar = *fs + falpha*p;
 	double r56 = pow(tau/s_bar, 2.5*third);
 	double r16 = pow(tau/s_bar, 0.5*third);
-	double gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
-	double g = fh*(1.0 - *fs/fs_ss)*gammadot;
-	double f;
-	(tau > kSmall) ? f = gammadot/(sqrt(2)*tau):f=0;
-		
+	double gammadot = 0;
+	double f = 0;
+	double g = 0;
+	if (tau > kSmall) 
+	{ 
+		gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
+		g = fh*(1.0 - *fs/fs_ss)*gammadot;
+		f = gammadot/(sqrt(2)*tau);
+	} 
+			
 	/*calculate the residual*/
 	double dt = fFSMatSupport->TimeStep();
 		
 	/*calculate stiffness matrix*/		
-	double dgamdtau = gammadot*(5.0*fA/(6.0*fT*r16));
-	double dgamdp = -gammadot*(5.0*fA*falpha*tau/(6.0*s_bar*fT*r16) + fA*falpha/fT*(1.0-r56));
-	double dgamds = -gammadot*(5.0*fA*tau/(6.0*s_bar*fT*r16) + fA/fT*(1.0-r56));
+	double dgamdtau = 0.0;
+	double dgamdp = 0.0;
+	double dgamds = 0.0;
 		
-	double dfdtau = (dgamdtau - gammadot/tau)/(sqrt(2.0)*tau);
-	double dfdp = dgamdp/(sqrt(2.0)*tau);
-	double dfds = dgamds/(sqrt(2.0)*tau);
+	double dfdtau = 0.0;
+	double dfdp = 0.0;
+	double dfds = 0.0;
 				
-	double dgdtau = fh*(1.0-*fs/fs_ss)*dgamdtau;
-	double dgdp = fh*(1.0-*fs/fs_ss)*dgamdp;
-	double dgds = -fh/fs_ss*gammadot + fh*(1.0-*fs/fs_ss)*dgamds;
+	double dgdtau = 0.0;
+	double dgdp = 0.0;
+	double dgds = 0.0;
 		
+	if (tau > kSmall) 
+	{ 
+		dgamdtau = gammadot*(5.0*fA/(6.0*fT*r16));
+		dgamdp = -gammadot*(5.0*fA*falpha*tau/(6.0*s_bar*fT*r16) + fA*falpha/fT*(1.0-r56));
+		dgamds = -gammadot*(5.0*fA*tau/(6.0*s_bar*fT*r16) + fA/fT*(1.0-r56));
+
+		dfdtau = (dgamdtau - gammadot/tau)/(sqrt(2.0)*tau);
+		dfdp = dgamdp/(sqrt(2.0)*tau);
+		dfds = dgamds/(sqrt(2.0)*tau);
+				
+		dgdtau = fh*(1.0-*fs/fs_ss)*dgamdtau;
+		dgdp = fh*(1.0-*fs/fs_ss)*dgamdp;
+		dgds = -fh/fs_ss*gammadot + fh*(1.0-*fs/fs_ss)*dgamds;
+	} 
 	/*********************partials with respect to lambda^e_B*******************/	
 	/*dp = dp/dlambda^e_B lambda^e_B*/
 	double dp  = -(fkappa/J) * (le0*le1*le2);
@@ -677,12 +696,21 @@ void BoyceViscoPlasticity::Initialize(void)
 				- third*lv1/(flambda_L*sqrt(lvb))*fInvL.DFunction(r)) + 2.0*third*lv1*fInvL.Function(r) );
 
 	/*dtau_B = dtau/dlambda^e_B lambda^e_B*/
-	double dtau0 = (Te0*(dSe00-dSb00) + Te1*(dSe10-dSb10) + Te2*(dSe20-dSb20))/(2*tau);					
-	double dtau1 = (Te0*(dSe01-dSb01) + Te1*(dSe11-dSb11) + Te2*(dSe21-dSb21))/(2*tau);					
-	double dtau2 = (Te0*(dSe02-dSb02) + Te1*(dSe12-dSb12) + Te2*(dSe22-dSb22))/(2*tau);	
+	double dtau0 = 0.0;					
+	double dtau1 = 0.0;					
+	double dtau2 = 0.0;	
+	double ct = 0.0;
+	double cp = 0.0;
+	if (tau > kSmall) 
+	{ 
+		dtau0 = (Te0*(dSe00-dSb00) + Te1*(dSe10-dSb10) + Te2*(dSe20-dSb20))/(2*tau);					
+		dtau1 = (Te0*(dSe01-dSb01) + Te1*(dSe11-dSb11) + Te2*(dSe21-dSb21))/(2*tau);					
+		dtau2 = (Te0*(dSe02-dSb02) + Te1*(dSe12-dSb12) + Te2*(dSe22-dSb22))/(2*tau);	
+
+		ct = dfdtau + dfds*(dt/(1.0 - dt*dgds))*dgdtau;
+		cp = dfdp + dfds*(dt/(1.0 - dt*dgds))*dgdp;
+	} 
 	
-	double ct = dfdtau + dfds*(dt/(1.0 - dt*dgds))*dgdtau;
-	double cp = dfdp + dfds*(dt/(1.0 - dt*dgds))*dgdp;
 
 	/*\sum_B H_AB delta \epsilon^e_B*/
 	fH(0,0) = 1.0 + dt*(f*(dSe00-dSb00) + Te0*(ct*dtau0 + cp*dp));
@@ -719,9 +747,12 @@ void BoyceViscoPlasticity::Initialize(void)
 	dSb21 *= -1.0;
 
 	/*dtau_B = dtau/dlambda^e_B lambda^e_B*/
-	dtau0 = -(Te0*dSb00 + Te1*dSb10 + Te2*dSb20)/(2*tau);					
-	dtau1 = -(Te0*dSb01 + Te1*dSb11 + Te2*dSb21)/(2*tau);					
-	dtau2 = -(Te0*dSb02 + Te1*dSb12 + Te2*dSb22)/(2*tau);					
+	if (tau > kSmall) 
+	{ 
+		dtau0 = -(Te0*dSb00 + Te1*dSb10 + Te2*dSb20)/(2*tau);					
+		dtau1 = -(Te0*dSb01 + Te1*dSb11 + Te2*dSb21)/(2*tau);					
+		dtau2 = -(Te0*dSb02 + Te1*dSb12 + Te2*dSb22)/(2*tau);					
+	} 
 
 	/*\sum_B G_AB delta delta\epsilon_B; delta \epsilon_B = \delta\epsilon^e_tr_B */
 	fG(0,0) = 1.0 - dt*(f*(-dSb00) + Te0*(ct*dtau0 + cp*dp));
@@ -756,7 +787,7 @@ void BoyceViscoPlasticity::Initialize(void)
 
 void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e) 
 {		
-	const double ctol = 1.00e-11;
+	const double ctol = 1.00e-14;
 	
 	const double l0 = eigenstretch[0];		
 	const double l1 = eigenstretch[1];		
