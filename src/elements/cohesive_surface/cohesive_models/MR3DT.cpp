@@ -1,4 +1,4 @@
-/*$Id: MR3DT.cpp,v 1.2 2007-03-09 21:44:24 skyu Exp $*/
+/*$Id: MR3DT.cpp,v 1.3 2007-03-09 21:54:48 skyu Exp $*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR3DT.h"
 
@@ -653,7 +653,6 @@ dMatrixT& MR3DT::dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQd
 
 dMatrixT& MR3DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig)
 {
-
 	double A1 = -falpha_chi*(qn[0] - fchi_r);
 	double B1 = (Sig[2]+fabs(Sig[2]))/2./fGf_I;
 	double B2 = Sig[0]/fGf_I;
@@ -699,7 +698,6 @@ dMatrixT& MR3DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dq
 
 dMatrixT& MR3DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq)
 {
-
 	double A1 = -falpha_chi*(qn[0] - fchi_r);
 	double B1 = (Sig[2]+fabs(Sig[2]))/2./fGf_I;
 	double B2 = Sig[0]/fGf_I;
@@ -724,16 +722,6 @@ dMatrixT& MR3DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqba
 	double DQDTN = 0.;
 	double DQDNT = 0.;
 	double SN = signof(Sig[2]);
-	double DB1DN = (SN +fabs(SN))/2./fGf_I;
-
-	double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/fGf_II/2.;
-	double DB3_DTt = 1./fGf_II;
-	double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
-	double DQDN2 = -2.*qn[3]*qn[3];
-	double DQDT2 = 2.;
-	double DQDTN = 0.;
-	double DQDNT = 0.;
-	double SN = signof(Sig[1]);
 	double DB1DN = (SN +fabs(SN))/2./fGf_I;
 
 	// need to be re-defined
