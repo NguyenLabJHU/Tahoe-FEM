@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.3 2007-03-08 20:59:12 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.4 2007-03-09 00:34:08 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -12,8 +12,8 @@
 using namespace Tahoe;
 
 const double third = 1.0/3.0; 
-const int kNumOutputVar =3; 
-static const char* Labels[kNumOutputVar] = {"VM", "Sback", "lp_bar"}; 
+const int kNumOutputVar =4; 
+static const char* Labels[kNumOutputVar] = {"VM", "Sback","lp","Lang"}; 
 
 /***********************************************************************
  * Public
@@ -332,10 +332,6 @@ const dSymMatrixT& BoyceViscoPlasticity::s_ij(void)
 		fInverse.Inverse();
 		fFe.MultAB(F,fInverse); /*trial elastic deformation gradient*/
 
-/*
-		cout << "\nFv_n: "<<fFv_n;
-		cout << "\nfFe: "<<fFe;
-*/
 		/*compute polar decomposition to obtain elatic rotation tensor*/
 		fSpectralDecompSpat.PolarDecomp(fFe, fRe, fStretch_e,false);
 		/*eigenvalues of trial elastic stretch*/
@@ -458,18 +454,20 @@ void BoyceViscoPlasticity::ComputeOutput(dArrayT& output)
 
 	/*total stretch*/
 	fStretch.MultAAT(F); /*B*/
+	fSpectralDecompSpat.SpectralDecomp_Jacobi(fStretch, false);	
 	fEigs = fSpectralDecompSpat.Eigenvalues(); /*intermediate config*/		
 
 	/*elastic stretch*/
 	fInverse.Inverse(fFv);
 	fFe.MultAB(F,fInverse);
 	fStretch_e.MultAAT(fFe); /*Be*/
+	fSpectralDecompSpat.SpectralDecomp_Jacobi(fStretch_e, false);	
 	fEigs_e = fSpectralDecompSpat.Eigenvalues(); /*intermediate config*/		
 
 	const double l0 = fEigs[0];		
 	const double l1 = fEigs[1];		
 	const double l2 = fEigs[2];		
-
+	
 	/*set references to principle stretches*/
 	const double le0 = fEigs_e[0];
 	const double le1 = fEigs_e[1];
@@ -492,7 +490,6 @@ void BoyceViscoPlasticity::ComputeOutput(dArrayT& output)
 	double Sback0 = coeff*fInvL.Function(r)*(l0/le0 - lvb);
 	double Sback1 = coeff*fInvL.Function(r)*(l1/le1 - lvb);
 	double Sback2 = coeff*fInvL.Function(r)*(l2/le2 - lvb);
-		
 	/*calculate driving stress*/
 	double Te0 = fmu*Je23*(le0-leb)/le0 - Sback0;
 	double Te1 = fmu*Je23*(le1-leb)/le1 - Sback1;
@@ -501,7 +498,13 @@ void BoyceViscoPlasticity::ComputeOutput(dArrayT& output)
 	output[0] = sqrt(Te0*Te0 + Te1*Te1 + Te2*Te2);
 	output[1] = sqrt(Sback0*Sback0 + Sback1*Sback1 + Sback2*Sback2);
 	output[2] = sqrt(third*(lv0+lv1+lv2));
-	
+	output[3] = fInvL.Function(r);
+/*	output[1] = Sback0;
+	output[2] = Sback1;
+	output[3] = Sback2;
+	output[4] = lv0;
+	output[5] = lv1;
+	output[6] = lv2;*/
 }
 
 /***********************************************************************
