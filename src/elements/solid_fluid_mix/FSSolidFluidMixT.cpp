@@ -1455,22 +1455,17 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fs_mix_out	<<"Accumulative fFd_int for all 27 IP"<< endl ;
 		    fs_mix_out	<< fFd_int<< endl ;
 		    fs_mix_out	<<"Accumulative fFd_int for all 27 IP"<< endl ;
-		    /* "0.5" coefficient will be doubled and canceled when program solves for derivative of pressure(count==2) */
-		    fFd_int *=-0.5;
+		    fFd_int *=-1;
 		    
 		    /* [fKdd] will be formed */
-		    fKdd = fK_dd_G1_1_matrix;
+//		    fKdd = fK_dd_G1_1_matrix;
+
+		    fKdd = fM_dd_matrix;
 		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
 		    fs_mix_out	<< fKdd<< endl ;
 		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
-		    /* equations numbers */
-		    const iArrayT& displ_eq = fElementCards_displ[e].Equations();
 		    
-		    /* assemble residuals */
-		    ElementSupport().AssembleRHS(curr_group, fFd_int, displ_eq);
-		    
-		    /* assemble components of the tangent */
-		    ElementSupport().AssembleLHS(curr_group, fKdd, displ_eq);
+
 
 /***************************************************************************************************************************
 *********************************************************************************************************************************
@@ -1484,7 +1479,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			
 		    /* [fKthetad] will be formed */
-		    fKthetad = fK_thetad_H1_1_matrix;	
+//		    fKthetad = fK_thetad_H1_1_matrix;	
 
 		    /* {fFtheta_int_M_vector} will be formed */
 		    fM_thetad_matrix.Multx(u_dotdot_vec,fFtheta_int_M_vector);
@@ -1493,8 +1488,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    /* {fFtheta_int_C2_vector} will be formed */
 		    fC_thetad_matrix.Multx(u_dot_vec,fFtheta_int_C2_vector);
 		    
-		    /* acceleration which comes from previous step should be doubled at the time of solving for first derivative of pressure */
-		    fFtheta_int_M_vector *=2;
+
 		    /* {fFtheta_int} will be formed */
 		    fFtheta_int = fFtheta_int_C2_vector; 
 		    fFtheta_int += fFtheta_int_N1_vector;
@@ -1513,20 +1507,25 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
 
 		    /* equations numbers */
+		    const iArrayT& displ_eq = fElementCards_displ[e].Equations();
 		    const iArrayT& press_eq = fElementCards_press[e].Equations();
+
 		    
 		    /* assemble residuals */
+		    ElementSupport().AssembleRHS(curr_group, fFd_int, displ_eq);
 		    ElementSupport().AssembleRHS(curr_group, fFtheta_int, press_eq);
 		    
-		    /* assemble components of the tangent */
-		    ElementSupport().AssembleLHS(curr_group, fKthetatheta, press_eq);
 
 		    fKdtheta = 0.0;
 
 		    fKthetad = fM_thetad_matrix;
 		    /* assemble components of the tangent */
+		    ElementSupport().AssembleLHS(curr_group, fKdd, displ_eq);
+		    ElementSupport().AssembleLHS(curr_group, fKthetatheta, press_eq);
 		    ElementSupport().AssembleLHS(curr_group, fKthetad, press_eq, displ_eq);
 		    ElementSupport().AssembleLHS(curr_group, fKdtheta, displ_eq, press_eq);
+
+
 		    
 		}
 		
