@@ -104,6 +104,7 @@ void FSSolidFluidMixT::RHSDriver(void)
     if (curr_group == fDispl->Group()) 
 	ApplyTractionBC();
 
+    /* choose solution method */
     if (fDispl->Group() == fPress->Group())
 	RHSDriver_monolithic();
     else
@@ -670,23 +671,7 @@ void FSSolidFluidMixT::WriteOutput(void)
 /* form group contribution to the stiffness matrix and RHS */
 void FSSolidFluidMixT::RHSDriver_staggered(void)
 {
-
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
-//******************* started to implement on 27 Feb 2007 *********************
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
 	const char caller[] = "FSSolidFluidMixT::RHSDriver_staggered";
-/* ? I don't know if this line is necessary or not.
-	if (fDispl->Group() == fPlast->Group())
-		ExceptionT::GeneralFail(caller, "displacement and plastic gradient groups must be different: %d == %d",
-		fDispl->Group(), fPlast->Group()); */
-
-// Probably the next line should be eliminated /*Davoud*/27 Feb 2007  
 #pragma message("staggered solution not implemented")
 }
 
@@ -1394,14 +1379,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			fC3 = fC2 - fMaterial_Params[kRho_sR0]*fMaterial_Params[kPhi_s0]/J;
 			
 			
-			/* [fK_dd_G1_1_matrix] will be formed */
-			fTemp_matrix_ndof_se_x_ndof_se = fUpsilon_temp_matrix;
-			scale = fRho_0*scale_const;
-			fTemp_matrix_ndof_se_x_ndof_se *= scale;
-			/* accumulate */
-			fK_dd_G1_1_matrix += fTemp_matrix_ndof_se_x_ndof_se;
-			
-			
 			/* {fgradv_vector} will be formed */
 			Form_gradv_vector();
 			
@@ -1422,14 +1399,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			Form_Aleph_temp_matrix(IP);
 			
 			
-			/* [fK_thetad_H1_1_matrix] will be formed */
-			fTemp_matrix_nen_press_x_ndof_se.MultAB(fLambda_temp_matrix,fShapeSolid);
-			scale = -1/fMaterial_Params[kg]*J*fRho_f*scale_const;
-			fTemp_matrix_nen_press_x_ndof_se *= scale;
-			/* accumulate */
-			fK_thetad_H1_1_matrix += fTemp_matrix_nen_press_x_ndof_se;
-			
-			
 		    }
 		    
 		    
@@ -1445,11 +1414,16 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
 		    
 		    
+		    /* {fFd_int_M_vector} will be formed */	    
+		    fM_dd_matrix.Multx(u_dotdot_vec,fFd_int_M_vector);
+			
+			
 		    /* {fFd_int_C_vector} will be formed */
 		    fC_dd_matrix.Multx(u_dot_vec,fFd_int_C_vector);
-		    
+			
 		    /* {fFd_int} will be formed */
-		    fFd_int = fFd_int_C_vector;
+		    fFd_int = fFd_int_M_vector;
+		    fFd_int += fFd_int_C_vector;
 		    fFd_int += fFd_int_N1_vector;
 		    fFd_int += fFd_int_N2_vector; 
 		    fFd_int += fFd_int_G4_vector;
@@ -1458,30 +1432,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fs_mix_out	<<"Accumulative fFd_int for all 27 IP"<< endl ;
 		    fFd_int *=-1;
 		    
-		    /* [fKdd] will be formed */
-//		    fKdd = fK_dd_G1_1_matrix;
-
-		    fKdd = fM_dd_matrix;
-		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
-		    fs_mix_out	<< fKdd<< endl ;
-		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
-		    
-
-
-/***************************************************************************************************************************
-*********************************************************************************************************************************
-******************************************************************************************************************/
-		    /* {fFd_int_M_vector} will be formed */	    
-		    fM_dd_matrix.Multx(u_dotdot_vec,fFd_int_M_vector);
-			
-			
-		    /* {fFd_int_C_vector} will be formed */
-		    fC_dd_matrix.Multx(u_dot_vec,fFd_int_C_vector);
-			
-			
-		    /* [fKthetad] will be formed */
-//		    fKthetad = fK_thetad_H1_1_matrix;	
-
 		    /* {fFtheta_int_M_vector} will be formed */
 		    fM_thetad_matrix.Multx(u_dotdot_vec,fFtheta_int_M_vector);
 		    
@@ -1489,9 +1439,13 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    /* {fFtheta_int_C2_vector} will be formed */
 		    fC_thetad_matrix.Multx(u_dot_vec,fFtheta_int_C2_vector);
 		    
+		    /* {fFtheta_int_C1_vector} will be formed */
+		    fC_thetatheta_matrix.Multx(press_dotdot_vec,fFtheta_int_C1_vector);
 
 		    /* {fFtheta_int} will be formed */
-		    fFtheta_int = fFtheta_int_C2_vector; 
+		    fFtheta_int = fFtheta_int_C1_vector;
+		    fFtheta_int += fFtheta_int_M_vector; 
+		    fFtheta_int += fFtheta_int_C2_vector; 
 		    fFtheta_int += fFtheta_int_N1_vector;
 		    fFtheta_int += fFtheta_int_N2_vector;
 		    fFtheta_int += fFtheta_int_H4_vector;
@@ -1500,12 +1454,20 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fs_mix_out	<<"Accumulative fFtheta_int for all 27 IP"<< endl ;
 		    fFtheta_int *=-1;	
 		    
+
+		    fKdd = fM_dd_matrix;
+		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
+		    fs_mix_out	<< fKdd<< endl ;
+		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
+		    
 		    fKthetatheta = fC_thetatheta_matrix;
 		    fs_mix_out	<<"Accumulative fC_thetatheta_matrix for all 27 IP"<< endl ;
 		    fs_mix_out	<< fC_thetatheta_matrix<< endl ;
 		    fs_mix_out	<<"Accumulative fC_thetatheta_matrix for all 27 IP"<< endl ;
 
+		    fKdtheta = 0.0;
 
+		    fKthetad = fM_thetad_matrix;
 
 		    /* equations numbers */
 		    const iArrayT& displ_eq = fElementCards_displ[e].Equations();
@@ -1516,16 +1478,11 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    ElementSupport().AssembleRHS(curr_group, fFd_int, displ_eq);
 		    ElementSupport().AssembleRHS(curr_group, fFtheta_int, press_eq);
 		    
-
-		    fKdtheta = 0.0;
-
-		    fKthetad = fM_thetad_matrix;
 		    /* assemble components of the tangent */
 		    ElementSupport().AssembleLHS(curr_group, fKdd, displ_eq);
 		    ElementSupport().AssembleLHS(curr_group, fKthetatheta, press_eq);
 		    ElementSupport().AssembleLHS(curr_group, fKthetad, press_eq, displ_eq);
 		    ElementSupport().AssembleLHS(curr_group, fKdtheta, displ_eq, press_eq);
-
 
 		    
 		}
