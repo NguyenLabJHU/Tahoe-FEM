@@ -1,4 +1,4 @@
-/* $Id: InvLangevin.cpp,v 1.1 2007-03-08 18:43:48 tdnguye Exp $ */
+/* $Id: InvLangevin.cpp,v 1.2 2007-03-10 01:18:50 tdnguye Exp $ */
 
 #include "InvLangevin.h"
 #include <iostream.h>
@@ -38,8 +38,8 @@ double InvLangevin::DFunction(double x) const
 {
 	if (fabs(x) < 0.84136)
 	{
-		double sec = 2.08981/cos(1.58986*x);
-		return(0.91209+sec*sec);
+		double sec = 1.0/cos(1.58986*x);
+		return(0.91209+2.0898073756*sec*sec);
 	}
 	else if(fabs(x) < 1.0 && fabs(x) > 0.84136)
 	{
