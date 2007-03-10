@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.4 2007-03-09 00:34:08 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.5 2007-03-10 18:32:48 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -251,9 +251,9 @@ const dMatrixT& BoyceViscoPlasticity::c_ijkl(void)
 	double J = sqrt(l0*l1*l2);
 
 	/*Kirchoff stress*/	
-	double T0 = fmu*Je23*(le0-leb) - 0.5*fkappa*(le0*le1*le2 - 1.0);
-	double T1 = fmu*Je23*(le1-leb) - 0.5*fkappa*(le0*le1*le2 - 1.0);
-	double T2 = fmu*Je23*(le2-leb) - 0.5*fkappa*(le0*le1*le2 - 1.0);	
+	double T0 = fmu*Je23*(le0-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
+	double T1 = fmu*Je23*(le1-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
+	double T2 = fmu*Je23*(le2-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);	
 
 	/*Calg_AB*/
 	Compute_Calg(fEigs, fEigs_e);
@@ -582,9 +582,9 @@ void BoyceViscoPlasticity::Initialize(void)
 	double leb = third*(le0+le1+le2);
 	double Je23 = pow(le0*le1*le2, -third);
 
-	double T0 = fmu*Je23*(le0-leb) - 0.5*fkappa*(le0*le1*le2 - 1.0);
-	double T1 = fmu*Je23*(le1-leb) - 0.5*fkappa*(le0*le1*le2 - 1.0);
-	double T2 = fmu*Je23*(le2-leb) - 0.5*fkappa*(le0*le1*le2 - 1.0);
+	double T0 = fmu*Je23*(le0-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
+	double T1 = fmu*Je23*(le1-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
+	double T2 = fmu*Je23*(le2-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
 	
 	/*plastic stretch*/
 	double lv0 = l0/le0;
@@ -728,7 +728,15 @@ void BoyceViscoPlasticity::Initialize(void)
 
 	fH(2,0) = dt*(f*(dSe20-dSb20) + Te2*(ct*dtau0 + cp*dp));
 	fH(2,1) = dt*(f*(dSe21-dSb21) + Te2*(ct*dtau1 + cp*dp));
-//	cout << "\nfH: "<<fH;
+
+/*	cout << "\neigs: "<<eigenstretch;
+	cout << "\neigs_e: "<<eigenstretch_e;
+	cout << "\nSe2: "<< Te2-Sback2;
+	cout << "\nSback2: "<< Sback2;
+	cout << "\ndtau2: "<<dtau2;
+	cout << "\ndSe22: "<<dSe22;
+	cout << "\ndSb22: "<<dSb22;
+	cout << "\nfH: "<<fH;*/
 	fH.Inverse();
 
 	/*********************partials with respect to lambda_B*******************/	
@@ -771,6 +779,7 @@ void BoyceViscoPlasticity::Initialize(void)
 	fG(2,0) = -dt*(f*(-dSb20) + Te2*(ct*dtau0 + cp*dp));
 	fG(2,1) = -dt*(f*(-dSb21) + Te2*(ct*dtau1 + cp*dp));
 
+//	cout << "\nfG: "<<fG;
 	/*dT_A/depsilon^e_B*/
 	fM(0,0) = 2.0*fmu*third*third*Je23*(4.0*le0 + le1 + le2) + fkappa*(le0*le1*le2);
 	fM(1,1) = 2.0*fmu*third*third*Je23*(4.0*le1 + le2 + le0) + fkappa*(le0*le1*le2);
@@ -783,14 +792,14 @@ void BoyceViscoPlasticity::Initialize(void)
 	fM(1,0) = fM(0,1);
 	fM(2,0) = fM(0,2);
 	fM(2,1) = fM(1,2);
-	
+//	cout << "\nfM: "<<fM;
 	/*Calg_AB*/
 	fCalg.MultABC(fM, fH, fG);
 }
 
 void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e) 
 {		
-	const double ctol = 1.00e-14;
+	const double ctol = 1.00e-12;
 	
 	const double l0 = eigenstretch[0];		
 	const double l1 = eigenstretch[1];		
@@ -855,12 +864,6 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 		g = fh*(1.0 - s/fs_ss)*gammadot;
 		f = gammadot/(sqrt(2)*tau);
 	} 
-	else 
-	{
-		gammadot = 0;
-		g = 0;
-		f = 0; 
-	}
 
 	/*calculate the residual*/
 	double dt = fFSMatSupport->TimeStep();
@@ -873,10 +876,12 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 
 	int iteration  = 0;	
 	int max_iteration = 20;
-	
-/*	cout << setprecision(16)<<"\ntotal stretch: "<<l0<<"\t"<<l1<<"\t"<<l2;
-	cout <<"\nelastic stretch: "<<le0<<"\t"<<le1<<"\t"<<le2;
-	cout <<"\nelastic stress: "<<Te0<<"\t"<<Te1<<"\t"<<Te2;
+
+/*	cout << "\niteration 0:";
+	cout << setprecision(16)<<"\ntotal stretch: "<<l0<<"\t"<<l1<<"\t"<<l2;
+	cout <<"\ntrial stretch: "<<exp(2.0*ep_tr0)<<"\t"<<exp(2.0*ep_tr1)<<"\t"<<exp(2.0*ep_tr2);
+	cout <<"\nelastic stress: "<<Te0+Sback0<<"\t"<<Te1+Sback1<<"\t"<<Te2+Sback2;
+	cout <<"\nsn: "<<s_n;
 	cout << "\nback stress: "<<Sback0<<"\t"<<Sback1<<"\t"<<Sback2;
 	cout << "\ntau: "<<tau;
 	cout << "\np: "<<p;
@@ -885,7 +890,7 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 	cout << "\ngammadot: "<<gammadot;
 	cout << "\nf: "<<f;
 	cout << "\nfRes: "<<fRes;
-	cout <<"\n\niteration: "<<iteration<<"\terror: "<<tol;
+	cout << "\nerror: "<<tol;
 */
 	/*initializes principle viscous stretch*/
 	while (tol>ctol && iteration < max_iteration) 
@@ -977,6 +982,7 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 		cout << "\ndtau: "<<dtau0<<"\t"<<dtau1<<"\t"<<dtau2;
 		cout << "\ndSe: "<<dSe00<<"\t"<<dSe01<< "\t"<<dSe02<<"\n"<<dSe10<<"\t"<<dSe11<<"\t"<<dSe12
 			<<"\n"<<dSe20<<"\t"<<dSe21<<"\t"<<dSe22;
+	cout << "\nlang: "<<r<<"\t"<<fInvL.Function(r)<<"\t"<<fInvL.DFunction(r);
 		cout << "\ndSb: "<<dSb00<<"\t"<<dSb01<< "\t"<<dSb02<<"\n"<<dSb10<<"\t"<<dSb11<<"\t"<<dSb12
 			<<"\n"<<dSb20<<"\t"<<dSb21<<"\t"<<dSb22;
 		cout << "\nfK: "<<fK;
@@ -1048,7 +1054,20 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 
 	    /*Check that the L2 norm of the residual is less than tolerance*/
 	    tol = sqrt(fRes[0]*fRes[0] + fRes[1]*fRes[1] + fRes[2]*fRes[2] + fRes[3]*fRes[3]);
-//		cout <<"\n\niteration: "<<iteration<<"\terror: "<<tol;
+
+/*	cout <<"\nelastic stretch: "<<le0<<"\t"<<le1<<"\t"<<le2;
+	cout <<"\nelastic stress: "<<Te0+Sback0<<"\t"<<Te1+Sback1<<"\t"<<Te2+Sback2;
+	cout << "\nlang: "<<r<<"\t"<<fInvL.Function(r);
+	cout << "\nback stress: "<<Sback0<<"\t"<<Sback1<<"\t"<<Sback2;
+	cout << "\ntau: "<<tau;
+	cout << "\np: "<<p;
+	cout << "\ns: "<<s;
+	cout << "\nsbar: "<<s_bar;
+	cout << "\ngammadot: "<<gammadot;
+	cout << "\nf: "<<f;
+	cout << "\nfRes: "<<fRes;
+	cout <<"\n\niteration: "<<iteration<<"\terror: "<<tol;
+*/
 	} 
 	if (iteration >= max_iteration) 
 		ExceptionT::GeneralFail("BoyceViscoPlasticity::ComputeEigs_e", 
