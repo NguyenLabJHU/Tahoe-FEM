@@ -1008,10 +1008,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		if (time == 0)
 		{
 
-		    const int IP = fShapes_displ->CurrIP();	
-		    /* Interpolating initial nodal values of pressures to integration points and saving them in a nel*num_ip matrix */
-		    fShapes_press->InterpolateU(press_n,fP0_temp_value);
-		    fPf_0_matrix(CurrElementNumber(),IP)=fP0_temp_value[0];
 		    /* residual and tangent for displacements */
 		    const double* Det    = fShapes_displ->IPDets();
 		    const double* Weight = fShapes_displ->IPWeights();
@@ -1019,6 +1015,11 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fShapes_press->TopIP();
 		    while (fShapes_displ->NextIP() && fShapes_press->NextIP())
 		    {
+			const int IP = fShapes_displ->CurrIP();	
+			/* Interpolating initial nodal values of pressures to integration points and saving them in a nel*num_ip matrix */
+			fShapes_press->InterpolateU(press_n,fP0_temp_value);
+			fPf_0_matrix(CurrElementNumber(),IP)=fP0_temp_value[0];
+
 			double scale_const = (*Weight++)*(*Det++);
 			
 
