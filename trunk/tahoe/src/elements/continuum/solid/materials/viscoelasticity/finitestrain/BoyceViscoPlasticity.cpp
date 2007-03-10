@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.5 2007-03-10 18:32:48 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.6 2007-03-10 18:41:38 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -875,7 +875,7 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 	double tol = sqrt(fRes[0]*fRes[0] + fRes[1]*fRes[1] + fRes[2]*fRes[2] + fRes[3]*fRes[3]);
 
 	int iteration  = 0;	
-	int max_iteration = 20;
+	int max_iteration = 100;
 
 /*	cout << "\niteration 0:";
 	cout << setprecision(16)<<"\ntotal stretch: "<<l0<<"\t"<<l1<<"\t"<<l2;
