@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.6 2007-03-10 18:41:38 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.7 2007-03-12 23:56:17 r-jones Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -624,7 +624,7 @@ void BoyceViscoPlasticity::Initialize(void)
 	{ 
 		gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
 		g = fh*(1.0 - *fs/fs_ss)*gammadot;
-		f = gammadot/(sqrt(2)*tau);
+		f = gammadot/(sqrt(2.0)*tau);
 	} 
 			
 	/*calculate the residual*/
@@ -862,7 +862,7 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 	{ 
 		gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
 		g = fh*(1.0 - s/fs_ss)*gammadot;
-		f = gammadot/(sqrt(2)*tau);
+		f = gammadot/(sqrt(2.0)*tau);
 	} 
 
 	/*calculate the residual*/
@@ -1043,8 +1043,8 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 		r16 = pow(tau/s_bar, 0.5*third);
 		gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
 		g = fh*(1.0 - s/fs_ss)*gammadot;
-		f;
-		(tau > kSmall) ? f = gammadot/(sqrt(2)*tau):f=0;
+		//f;
+		(tau > kSmall) ? f = gammadot/(sqrt(2.0)*tau):f=0;
 
 	    /*update the residual*/
 	    fRes[0] = ep_e0 + dt*f*Te0 - ep_tr0;
