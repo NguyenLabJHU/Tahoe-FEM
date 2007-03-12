@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.54 2006-11-29 23:07:37 jzimmer Exp $ */
+/* $Id: DetCheckT.cpp,v 1.55 2007-03-12 23:56:17 r-jones Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -338,7 +338,7 @@ bool DetCheckT::DetCheck2D_SS(AutoArrayT <dArrayT> &normals,
         dMatrixT A(2), Ae(2);
 
         /* set up sweep angles for approx minima */
-        int numSweepChecks = 18;
+        const int numSweepChecks = 18;
         double sweepIncrement = Pi/numSweepChecks;
 
         double detA [numSweepChecks]; //determinant of acoustic tensor at each increment
