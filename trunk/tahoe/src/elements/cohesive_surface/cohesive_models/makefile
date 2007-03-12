@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.22 2006-08-30 17:25:39 tdnguye Exp $
+# $Id: makefile,v 1.23 2007-03-12 02:20:08 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -33,6 +33,7 @@ OBJ = \
 	YoonAllen2DT.o \
 	YoonAllen3DT.o \
 	TvergHutch3DT.o \
+	TvergHutchIrrev3DT.o \
 	TiedPotentialBaseT.o \
 	From2Dto3DT.o \
 	TvergHutchRigid2DT.o \
@@ -69,6 +70,7 @@ SRC = \
 	YoonAllen2DT.cpp \
 	YoonAllen3DT.cpp \
 	TvergHutch3DT.cpp \
+	TvergHutchIrrev3DT.cpp \
 	TiedPotentialBaseT.cpp \
 	From2Dto3DT.cpp \
 	TvergHutchRigid2DT.cpp \
@@ -96,6 +98,7 @@ HDR = \
 	YoonAllen2DT.h \
 	YoonAllen3DT.h \
 	TvergHutch3DT.h \
+	TvergHutchIrrev3DT.h \
 	TiedPotentialBaseT.h \
 	From2Dto3DT.h \
 	TvergHutchRigid2DT.h \

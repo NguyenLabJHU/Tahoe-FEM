@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.80 2006-10-08 19:14:59 regueiro Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.81 2007-03-12 02:20:04 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -47,6 +47,7 @@
 #endif
 
 #include "TvergHutch3DT.h"
+#include "TvergHutchIrrev3DT.h"
 #include "YoonAllen3DT.h"
 #include "XuNeedleman3DT.h"
 
@@ -401,6 +402,7 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& name) const
 		/* choices */
 		cz->AddSub("Xu-Needleman_3D");
 		cz->AddSub("Tvergaard-Hutchinson_3D");
+		cz->AddSub("Tvergaard-Hutchinson_Irreversible_3D");
 		cz->AddSub("Yoon-Allen_3D");
 	
 		return cz;	

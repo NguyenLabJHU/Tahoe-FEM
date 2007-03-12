@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT_factory.cpp,v 1.8 2006-10-08 19:14:59 regueiro Exp $ */
+/* $Id: SurfacePotentialT_factory.cpp,v 1.9 2007-03-12 02:20:07 cjkimme Exp $ */
 #include "SurfacePotentialT.h"
 
 #ifdef __DEVELOPMENT__
@@ -9,6 +9,7 @@
 #include "XuNeedleman3DT.h"
 #include "TvergHutch2DT.h"
 #include "TvergHutch3DT.h"
+#include "TvergHutchIrrev3DT.h"
 #include "ViscTvergHutch2DT.h"
 #include "Tijssens2DT.h"
 #include "RateDep2DT.h"
@@ -39,6 +40,8 @@ SurfacePotentialT* SurfacePotentialT::New(const char* name)
 		return new TvergHutch2DT;
 	else if (strcmp(name, "Tvergaard-Hutchinson_3D") == 0)
 		return new TvergHutch3DT;
+	else if (strcmp(name, "Tvergaard-Hutchinson_Irreversible_3D") == 0)
+	        return new TvergHutchIrrev3DT;
 	else if (strcmp(name, "viscous_Tvergaard-Hutchinson_2D") == 0)
 		return new ViscTvergHutch2DT;
 	else if (strcmp(name, "Tijssens_2D") == 0)
