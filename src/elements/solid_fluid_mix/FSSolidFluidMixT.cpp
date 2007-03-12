@@ -998,6 +998,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    const double* Weight = fShapes_displ->IPWeights();
 		    fShapes_displ->TopIP();
 		    fShapes_press->TopIP();
+		    press_dot.SetGlobal((*fPress)[2]);
 		    while (fShapes_displ->NextIP() && fShapes_press->NextIP())
 		    {
 			const int IP = fShapes_displ->CurrIP();	
