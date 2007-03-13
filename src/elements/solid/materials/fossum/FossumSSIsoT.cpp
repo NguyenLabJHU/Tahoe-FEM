@@ -1190,7 +1190,7 @@ double FossumSSIsoT::Galpha(dSymMatrixT alpha)
 
 double FossumSSIsoT::KappaHardening(double I1, double kappa)
 {
-	return 3 * dGdI1 (I1, kappa) / (dPlasticVolStraindX(kappa) * dXdKappa(kappa));
+	return 3 * dGdI1 (I1, kappa) / (dPlasticVolStraindX(kappa) * dX_GdKappa(kappa));
 }
 
 double FossumSSIsoT::dfdDevStressA (double I1, double J2, double J3, double sigmaA)
@@ -1245,18 +1245,25 @@ double FossumSSIsoT::dfdJ3(double J2, double J3)
 
 double FossumSSIsoT::dPlasticVolStraindX(double kappa) 
 {
-	double XLessX0 = Xfn(kappa) - Xfn(fKappa0);
+	double X_GLessX_G0 = X_G(kappa) - X_G(fKappa0);
 	double returnValue = fW;
-	returnValue *= fD1 - 2*fD2*(XLessX0);
-	returnValue *= exp (fD1* XLessX0);
-	returnValue *= exp ( -fD2 * XLessX0 * XLessX0);
+	returnValue *= fD1 - 2*fD2*(X_GLessX_G0);
+	returnValue *= exp (fD1* X_GLessX_G0);
+	returnValue *= exp ( -fD2 * X_GLessX_G0 * X_GLessX_G0);
 
 	return returnValue;
 }
 
+/*
 double FossumSSIsoT::dXdKappa(double kappa)
 {
 	return  1 - fR * dFfdI1(kappa); 
+}
+*/
+
+double FossumSSIsoT::dX_GdKappa(double kappa)
+{
+	return  1 - fQ * dGfdI1(kappa); 
 }
 
 /* Matrix for Stress point NR iteration*/
@@ -1322,19 +1329,12 @@ LAdMatrixT FossumSSIsoT::FormdRdX(double I1, double J2, double J3, dArrayT princ
 
 	for ( A = 0; A < kNSD; A++)
 		dRdX (5, A) = 3 * dGamma * d2GdI1dI1(I1, workingKappa) 
-				/ (dPlasticVolStraindX( workingKappa) * dXdKappa (workingKappa));
-                 
-	double c1 = dPlasticVolStraindX(workingKappa);
-	double c2 = dXdKappa(workingKappa); 
-	double c3 = d2GdI1dKappa (I1, workingKappa);
-	double c4 =  dGdI1(I1, workingKappa);
-	double c5 = d2PlasticVolStraindXdX(workingKappa);
-	double c6 = d2XdKappadKappa(workingKappa);
+				/ (dPlasticVolStraindX( workingKappa) * dX_GdKappa (workingKappa));
 
-	dRdX (5, 5) = dPlasticVolStraindX(workingKappa) * dXdKappa(workingKappa) * d2GdI1dKappa (I1, workingKappa);
-	dRdX (5, 5) -= dGdI1(I1, workingKappa) * dPlasticVolStraindX(workingKappa) * d2XdKappadKappa(workingKappa);
-	dRdX (5, 5) -= dGdI1(I1, workingKappa) * dXdKappa(workingKappa) * dXdKappa(workingKappa) * d2PlasticVolStraindXdX(workingKappa);
-	dRdX (5, 5) *= 3 * dGamma / (dPlasticVolStraindX(workingKappa) * dPlasticVolStraindX(workingKappa) * dXdKappa (workingKappa) * dXdKappa (workingKappa));
+	dRdX (5, 5) = dPlasticVolStraindX(workingKappa) * dX_GdKappa(workingKappa) * d2GdI1dKappa (I1, workingKappa);
+	dRdX (5, 5) -= dGdI1(I1, workingKappa) * dPlasticVolStraindX(workingKappa) * d2X_GdKappadKappa(workingKappa);
+	dRdX (5, 5) -= dGdI1(I1, workingKappa) * dX_GdKappa(workingKappa) * dX_GdKappa(workingKappa) * d2PlasticVolStraindXdX(workingKappa);
+	dRdX (5, 5) *= 3 * dGamma / (dPlasticVolStraindX(workingKappa) * dPlasticVolStraindX(workingKappa) * dX_GdKappa (workingKappa) * dX_GdKappa (workingKappa));
  	dRdX (5, 5) -= 1;
  
 	dRdX (5, 6) = KappaHardening(I1, workingKappa);
@@ -1491,14 +1491,14 @@ double FossumSSIsoT::dGcdKappa(double I1, double kappa)
 	return 2 * HeavisideFn(kappa - I1) * ( I1 - kappa) * ((X_GminusKappa) + fQ * (I1 - kappa) * ( fPhi + fL * fC * exp (fL * kappa))) / (X_GminusKappa * X_GminusKappa * X_GminusKappa);
 }
 
-double FossumSSIsoT::d2XdKappadKappa( double kappa)
+double FossumSSIsoT::d2X_GdKappadKappa( double kappa)
 {
-	return fR * fB * fB * fC * exp(fB * kappa);
+	return fQ * fL * fL * fC * exp(fL * kappa);
 }
 
 double FossumSSIsoT::d2PlasticVolStraindXdX(double kappa)
 {
-	double XminusX0 = Xfn (kappa) - Xfn (fKappa0);
+	double XminusX0 = X_G (kappa) - X_G (fKappa0);
 	double work = fD1 - 2*fD2*XminusX0;
 
 	return fW * ((-2*fD2 + work * work) * exp ( fD1 * XminusX0 - fD2 * XminusX0 * XminusX0));  

@@ -265,7 +265,9 @@ private:
 	double dGammadJ2 (double J2, double J3);
 	double dfdJ3(double J2, double J3);
 	double dPlasticVolStraindX(double kappa);
-	double dXdKappa(double kappa);
+	//double dXdKappa(double kappa);
+	double dX_GdKappa(double kappa);
+
 
     /* Matrix for stress point NR iteration */
 	LAdMatrixT FormdRdX(double I1, double J2, double J3, dArrayT principalEqStress, double workingKappa, dSymMatrixT workingStress, dSymMatrixT workingBackStress, double dGamma, ArrayT<dSymMatrixT> m);
@@ -289,7 +291,7 @@ private:
 	double d2GdI1dKappa (double I1, double kappa);
 	double dFcdKappa (double I1, double kappa);
 	double dGcdKappa (double I1, double kappa);
-	double d2XdKappadKappa( double kappa);
+	double d2X_GdKappadKappa( double kappa);
 	double d2PlasticVolStraindXdX(double kappa);
 	double dfdKappa(double I1, double kappa);
 	double InnerProduct(dSymMatrixT A, dSymMatrixT B);
