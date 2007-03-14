@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.82 2007-03-14 18:17:16 regueiro Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.83 2007-03-14 18:22:12 regueiro Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -405,6 +405,10 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& name) const
 		cz->AddSub("Tvergaard-Hutchinson_3D");
 		cz->AddSub("Tvergaard-Hutchinson_Irreversible_3D");
 		cz->AddSub("Yoon-Allen_3D");
+		
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+		cz->AddSub("elastoplastic_MR_3D");
+#endif
 	
 		return cz;	
 	}
