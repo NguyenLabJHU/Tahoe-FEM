@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.81 2007-03-12 02:20:04 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.82 2007-03-14 18:17:16 regueiro Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -42,6 +42,7 @@
 #include "InelasticDuctile2DT.h"
 #include "InelasticDuctile_RP2DT.h"
 #include "MR2DT.h"
+#include "MR3DT.h"
 #include "MR_RP2DT.h"
 #include "MR_NodalRP2DT.h"
 #endif
