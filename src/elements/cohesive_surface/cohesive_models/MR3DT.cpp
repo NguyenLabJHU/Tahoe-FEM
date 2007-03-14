@@ -1,4 +1,4 @@
-/*$Id: MR3DT.cpp,v 1.3 2007-03-09 21:54:48 skyu Exp $*/
+/*$Id: MR3DT.cpp,v 1.4 2007-03-14 18:27:35 regueiro Exp $*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR3DT.h"
 
@@ -71,12 +71,12 @@ void MR3DT::DefineParameters(ParameterListT& list) const
 	E_n.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(E_n);
 	
-	ParameterT E_t(fE_t, "E_t1");
-	E_t.AddLimit(0.0, LimitT::LowerInclusive);
+	ParameterT E_t1(fE_t1, "E_t1");
+	E_t1.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(E_t1);
 
-	ParameterT E_t(fE_t, "E_t2");
-	E_t.AddLimit(0.0, LimitT::LowerInclusive);
+	ParameterT E_t2(fE_t2, "E_t2");
+	E_t2.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(E_t2);
 
 
