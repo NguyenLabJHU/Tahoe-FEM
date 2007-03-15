@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.44 2006-07-27 13:37:42 kyonten Exp $ */
+/* $Id: SolidT.cpp,v 1.45 2007-03-15 18:50:40 cfoster01 Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 #include "ExceptionT.h"
@@ -90,6 +90,9 @@ SolidT::TypeT SolidT::int2TypeT(int i)
 
 		case SolidT::kFossumSSIso:
 			return SolidT::kFossumSSIso;
+
+		case SolidT::kGeoModelSS:
+			return SolidT::kGeoModelSS;
 
 		case SolidT::kFCC:
 			return SolidT::kFCC;

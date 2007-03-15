@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.14 2006-07-27 13:37:42 kyonten Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.15 2007-03-15 18:50:39 cfoster01 Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -22,6 +22,10 @@
 
 #ifdef PLASTICITY_DP_MATERIAL
 #include "DPSSKStV2D.h"
+#endif
+
+#ifdef GEOMODEL_MATERIAL
+#include "GEOMODELSS2DT.h"
 #endif
 
 #ifdef VISCOELASTICITY
@@ -150,6 +154,10 @@ void SSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("small_strain_StVenant_DP_2D");
 #endif
 
+#ifdef GEOMODEL_MATERIAL
+		sub_lists.AddSub("small_strain_GeoModel_2D");
+#endif
+
 #ifdef PLASTICITY_MR_MATERIAL_DEV
 		sub_lists.AddSub("small_strain_StVenant_MR_2D");
 #endif
@@ -250,6 +258,11 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& name) const
 #ifdef PLASTICITY_DP_MATERIAL
 	else if (name == "small_strain_StVenant_DP_2D")
 		mat = new DPSSKStV2D;
+#endif
+
+#ifdef GEOMODEL_MATERIAL
+	else if (name == "small_strain_GeoModel_2D")
+		mat = new GeoModelSS2DT;
 #endif
 
 #ifdef PLASTICITY_MR_MATERIAL_DEV
