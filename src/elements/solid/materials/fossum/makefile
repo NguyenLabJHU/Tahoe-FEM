@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2005-08-12 05:40:20 paklein Exp $
+# $Id: makefile,v 1.4 2007-03-15 17:49:53 cfoster Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,8 +20,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	FossumSSIsoT.o \
-	FossumSSIso2DT.o
+	GeoModelSST.o \
+	GeoModelSS2DT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,8 +41,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	FossumSSIsoT.cpp \
-	FossumSSIso2DT.cpp
+	GeoModelSST.cpp \
+	GeoModelSS2DT.cpp
 
 ##################### (3) headers
 #
@@ -54,8 +54,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	FossumSSIsoT.h \
-	FossumSSIso2DT.h
+	GeoModelSST.h \
+	GeoModelSS2DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
