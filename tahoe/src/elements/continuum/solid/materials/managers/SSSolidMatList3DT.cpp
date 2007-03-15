@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.13 2006-07-27 13:37:42 kyonten Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.14 2007-03-15 18:50:40 cfoster01 Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 #include "SolidMaterialsConfig.h"
@@ -23,6 +23,10 @@
 
 #ifdef PLASTICITY_DP_MATERIAL
 #include "DPSSKStV.h"
+#endif
+
+#ifdef GEOMODEL_MATERIAL
+#include "GeoModelSST.h"
 #endif
 
 /* development module materials require solid element development to be enabled */
@@ -107,6 +111,10 @@ void SSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef PLASTICITY_DP_MATERIAL
 		sub_lists.AddSub("small_strain_StVenant_DP");
+#endif
+
+#ifdef GEOMODEL_MATERIAL
+		sub_lists.AddSub("small_strain_GeoModel");
 #endif
 
 #ifdef PLASTICITY_MR_MATERIAL_DEV
@@ -202,6 +210,11 @@ SSSolidMatT* SSSolidMatList3DT::NewSSSolidMat(const StringT& name) const
 #ifdef PLASTICITY_DP_MATERIAL
 	else if (name == "small_strain_StVenant_DP")
 		mat = new DPSSKStV;
+#endif
+
+#ifdef GEOMODEL_MATERIAL
+	else if (name == "small_strain_GeoModel")
+		mat = new GeoModelSST;
 #endif
 
 #ifdef PLASTICITY_MR_MATERIAL_DEV

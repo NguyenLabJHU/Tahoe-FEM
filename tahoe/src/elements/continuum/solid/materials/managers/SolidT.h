@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.46 2006-07-27 13:37:42 kyonten Exp $ */
+/* $Id: SolidT.h,v 1.47 2007-03-15 18:50:40 cfoster01 Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -37,6 +37,7 @@ kmodCauchyBornDC = 15,
       kSSHookean = 24,
       kFSHookean = 25,
     kFossumSSIso = 26,
+	 kGeoModelSS = 27,
        kMRSSKStV = 28,
       kSMRSSKStV = 29,
 kThermoViscoPlastic = 30,
