@@ -480,7 +480,7 @@ const dMatrixT& GeoModelSST::ModuliCorrection(const ElementCardT& element, int i
 	fModuliCorr = 0.0;
 	
 	dArrayT hardeningFns(7), dfdq(7);
-	dSymMatrixT dfdSigma(3), dfdAlpha(3);
+	dSymMatrixT dfdSigma(3), dGdSigma(3), dfdAlpha(3);
 	dMatrixT Ce = HookeanMatT::Modulus();
 
 	if (element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic)
@@ -504,19 +504,21 @@ const dMatrixT& GeoModelSST::ModuliCorrection(const ElementCardT& element, int i
 		}
 
 		dfdSigma = DfdSigma(I1,J2,J3, kappa, principalEqStress, m);
+		dGdSigma = DGdSigma(I1,J2,J3, kappa, principalEqStress, m);
 		dfdAlpha = DfdAlpha(I1,J2,J3, kappa, principalEqStress, m);
 		hardeningFns = Hardening(I1,J2,J3, kappa, principalEqStress, m, alpha);                             
 		for (int i = 0; i < 6; i++) dfdq[i] = dfdAlpha[i];
 		dfdq[6] = dfdKappa(I1, kappa);
 
-		double chi = dfdSigma.B_ij_A_ijkl_B_kl(Ce) - dfdq.Dot(dfdq,hardeningFns);
-		dSymMatrixT CeTimesdfdSigma(3);
+
+		dSymMatrixT CeTimesdfdSigma(3), CeTimesdGdSigma(3);
 		CeTimesdfdSigma.A_ijkl_B_kl(Ce, dfdSigma);
+		CeTimesdGdSigma.A_ijkl_B_kl(Ce, dGdSigma);
+		double chi = dfdSigma.ScalarProduct(CeTimesdGdSigma) - dfdq.Dot(dfdq,hardeningFns); 		
 		dMatrixT corr(6);
-		corr.Outer(CeTimesdfdSigma, CeTimesdfdSigma);
+		corr.Outer(CeTimesdGdSigma, CeTimesdfdSigma);  
 
 		fModuliCorr.AddScaled(-1.0/chi, corr);
-		
 	}
 
 	return fModuliCorr;
@@ -528,7 +530,7 @@ const dMatrixT& GeoModelSST::ModuliCorrPerfPlas(const ElementCardT& element, int
 	/* initialize */
 	fModuliCorrPerfPlas = 0.0;
 
-	dSymMatrixT dfdSigma(3);
+	dSymMatrixT dfdSigma(3), dGdSigma(3);
 	dMatrixT Ce = HookeanMatT::Modulus();
 
 	if (element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic)
@@ -550,12 +552,15 @@ const dMatrixT& GeoModelSST::ModuliCorrPerfPlas(const ElementCardT& element, int
 		}
 
 		dfdSigma = DfdSigma(I1,J2,J3, kappa, principalEqStress, m);
-
-		double chi = dfdSigma.B_ij_A_ijkl_B_kl(Ce);
-		dSymMatrixT CeTimesdfdSigma(3);
+		dGdSigma = DGdSigma(I1,J2,J3, kappa, principalEqStress, m);
+		
+      
+		dSymMatrixT CeTimesdfdSigma(3), CeTimesdGdSigma(3);
 		CeTimesdfdSigma.A_ijkl_B_kl(Ce, dfdSigma);
+		CeTimesdGdSigma.A_ijkl_B_kl(Ce, dGdSigma);
+		double chi = dGdSigma.ScalarProduct(CeTimesdGdSigma); 
 		dMatrixT corr(6);
-		corr.Outer(CeTimesdfdSigma, CeTimesdfdSigma);
+		corr.Outer(CeTimesdGdSigma, CeTimesdfdSigma); 
 
 		fModuliCorrPerfPlas.AddScaled(-1.0/chi, corr);		
 	}
