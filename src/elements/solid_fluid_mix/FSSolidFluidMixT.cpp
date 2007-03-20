@@ -722,6 +722,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
     for (int i=0; i<n_sd; i++)
 	fGravity_column_matrix(i,0)=fGravity_vector[i];
 
+
     while (NextElement())
     {
 	fFd_int_N1_vector = 0.0;
@@ -998,7 +999,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    const double* Weight = fShapes_displ->IPWeights();
 		    fShapes_displ->TopIP();
 		    fShapes_press->TopIP();
-		    press_dot.SetGlobal((*fPress)[2]);
+
 		    while (fShapes_displ->NextIP() && fShapes_press->NextIP())
 		    {
 			const int IP = fShapes_displ->CurrIP();	
