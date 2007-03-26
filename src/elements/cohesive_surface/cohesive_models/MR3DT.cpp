@@ -1,4 +1,4 @@
-/*$Id: MR3DT.cpp,v 1.5 2007-03-15 00:54:53 skyu Exp $*/
+/*$Id: MR3DT.cpp,v 1.6 2007-03-26 19:58:42 skyu Exp $*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR3DT.h"
 
@@ -379,19 +379,19 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 
 				for (i = 0; i<=6; ++i) {
 					for (j = 0; j<=6; ++j) {
-						if (i<=2 & j<=2){
+						if(i<=2 & j<=2){
 							AA_inv(i,j)  = KE_Inv(i,j);
 							AA_inv(i,j) += dlam*dQdSig2(i,j);
 						}
-						if (i<=2 & j>2){
+						if(i<=2 & j >2){
 							AA_inv(i,j) = A_uq(i,j-3);
 							AA_inv(i,j) *= dlam;
 						}
-						if(i>2 & j<=2){
+						if(i >2 & j<=2){
 							AA_inv(i,j) = A_qu(i-3,j);
 							AA_inv(i,j) *= dlam;
 						}
-						if(i>2 & j >2) {
+						if(i >2 & j >2) {
 							AA_inv(i,j)  = I_mat(i-3,j-3);
 							AA_inv(i,j)  *= -1.;
 							AA_inv(i,j) += dlam*A_qq(i-3,j-3);
@@ -410,9 +410,9 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 						Rvec[i] = V_sig[i];
 						Cvec[i] = dQdSig[i];
 					}
-					if (i > 2){
-					Rvec[i] = V_q[i-3];
-					Cvec[i] = qbar[i-3];
+					if (i >2){
+						Rvec[i] = V_q[i-3];
+						Cvec[i] = qbar[i-3];
 					}
 				}
 
@@ -429,13 +429,13 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 						if (i<=2 & j<=2){
 							CMAT(i,j) = KE_Inv(i,j);
 						}
-						if (i<=2 & j>2) {
+						if(i<=2 & j >2) {
 							CMAT(i,j) = ZMAT(i,j-3);
 						}
-						if(i>2 & j<=2) {
+						if(i >2 & j<=2) {
 							CMAT(i,j) = ZMATP(i-3,j);
 						}
-						if(i>2 & j >2) {
+						if(i >2 & j >2) {
 							CMAT(i,j) = -I_mat(i-3,j-3);
 						}
 					}
@@ -935,11 +935,11 @@ void MR3DT::Print(ostream& out) const
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int MR3DT::NumOutputVariables(void) const { return 8; }
+int MR3DT::NumOutputVariables(void) const { return 9; }
 
 void MR3DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Dimension(8);
+	labels.Dimension(9);
 	labels[0] = "up_t1";
 	labels[1] = "up_t2";
 	labels[2] = "up_n";
