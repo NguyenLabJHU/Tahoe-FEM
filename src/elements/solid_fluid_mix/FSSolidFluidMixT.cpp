@@ -244,6 +244,11 @@ void FSSolidFluidMixT::CloseStep(void)
 {
     /* inherited */
     ElementBaseT::CloseStep();
+    
+    /* reassign initial 2nd time derivative of pressure to 1st derivative */
+    //this may not be the correct function in which to place this reassignment
+    FieldT* fpress = const_cast <FieldT*> (fPress);
+    (*fpress)[1] = (*fpress)[2];
 
     /* store more recently updated values */
     fdState = fdState_new;
