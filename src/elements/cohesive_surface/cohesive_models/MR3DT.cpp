@@ -1,4 +1,4 @@
-/*$Id: MR3DT.cpp,v 1.6 2007-03-26 19:58:42 skyu Exp $*/
+/*$Id: MR3DT.cpp,v 1.7 2007-03-27 21:47:08 skyu Exp $*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR3DT.h"
 
@@ -179,6 +179,17 @@ void MR3DT::TakeParameterList(const ParameterListT& list)
 	falpha_psi = list.GetParameter("alpha_psi");
 	fTol_1 = list.GetParameter("Tol_1");
 	fTol_2 = list.GetParameter("Tol_2");
+
+	/* calculate limits on fc_p and fc_r */
+	double const1 = tan(fphi_p)*fchi_p;
+	if (fc_p < const1) fc_p = const1;
+	const1 = tan(fphi_r)*fchi_r;
+	if (fc_r < const1) fc_r = const1;
+
+	/* setup output file and format */
+	outputPrecision = 10;
+	outputFileWidth = outputPrecision + 8;
+	mr_ep_3d_out.open("mr_ep_3d.info");
 }
 
 
@@ -901,6 +912,10 @@ double bott, dlam;
 		fStiffness[7] = KEP(2,1);
 		fStiffness[8] = KEP(2,2);
 	}
+
+	mr_ep_3d_out << setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0] << endl;
+	mr_ep_3d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[4] << endl;
+	mr_ep_3d_out << setw(outputFileWidth) << "KEP(2,2) = " << fStiffness[8] << endl;
 
 	return fStiffness;
 

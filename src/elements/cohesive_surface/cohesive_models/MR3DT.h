@@ -1,4 +1,4 @@
-/*$Id: MR3DT.h,v 1.1 2007-03-05 23:58:50 skyu Exp $*/
+/*$Id: MR3DT.h,v 1.2 2007-03-27 21:46:31 skyu Exp $*/
 /* created by manzari*/
 /* Elastoplastic Cohesive Model for Geomaterials*/
 #ifndef _MR_3D_T_H_
@@ -6,6 +6,10 @@
 
 /* base class */
 #include "SurfacePotentialT.h"
+
+/* direct members */
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -46,7 +50,7 @@ public:
 	 * time step. */	
 
 	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
-  
+
 	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
 	dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
 	dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
@@ -137,6 +141,16 @@ private:
 	
 	int fGroup;		/* element group to obtain hydrostatic stress from */
 	double fSteps;		/* number of steps for k_n to go to 0 after failure */
+
+
+	/** write output for debugging */
+	/*@{*/
+	/** output file stream */
+	ofstreamT mr_ep_3d_out;
+
+	/** line output formating variables */
+	int outputPrecision, outputFileWidth;
+	/*@}*/
 };
 
 } // namespace Tahoe 
