@@ -104,9 +104,6 @@ protected:
 
 	/* stress, including possibility of localized deformation */
 	virtual const dSymMatrixT& s_ij(void);
-	
-	/* stress for return map */
-	const dSymMatrixT& sigma_ij(void);
 
 	/** return the pressure associated with the last call to 
 	* SolidMaterialT::s_ij. See SolidMaterialT::Pressure
