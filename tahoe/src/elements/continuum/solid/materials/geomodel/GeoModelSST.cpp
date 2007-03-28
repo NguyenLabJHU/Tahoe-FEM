@@ -770,42 +770,12 @@ double GeoModelSST::PlasticPotGf(double I1)
 }
 
 
-/* --------------------------------------------------------------------*/
-
-/* stress */
-const dSymMatrixT& GeoModelSST::s_ij(void)
-{
-	int ip = CurrIP();
-	ElementCardT& element = CurrentElement();
-	int elem = CurrElementNumber();
-   
-#ifdef ENHANCED_STRAIN_LOC_DEV	
-	int element_locflag = 0;
-	if (element.IsAllocated()) 
-	{
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
-	}
-	if ( element_locflag == 2 )
-	{
-		fStress = fSSEnhLocMatSupport->ElementStress(elem,ip);
-	}
-	else
-	{
-		fStress = sigma_ij();
-	}
-#else
-	fStress = sigma_ij();
-#endif
-
-	return fStress;
-}
-
 
 /*-------------------------------------------------------------*/
 /*Return Mapping algorithm */
 
 /* stress for non-localized elements */
-const dSymMatrixT& GeoModelSST::sigma_ij(void)
+const dSymMatrixT& GeoModelSST::s_ij(void)
 {
 
   double yieldFnTol = 1.0e-8; 
@@ -845,6 +815,7 @@ const dSymMatrixT& GeoModelSST::sigma_ij(void)
   /*check for yielding */
   double initialYieldCheck;
   initialYieldCheck = YieldCondition(fSigma, workingKappa, workingBackStress);
+
   if ( initialYieldCheck < yieldFnTol)
     {
       if (element.IsAllocated())
@@ -869,6 +840,7 @@ const dSymMatrixT& GeoModelSST::sigma_ij(void)
 
       int &flag = (element.IntegerData())[ip]; 
       flag = kIsPlastic; 
+	  
 
       /*initialize increment variables */
       fInternal[kdgamma] = 0.0;
@@ -942,7 +914,8 @@ const dSymMatrixT& GeoModelSST::sigma_ij(void)
       fDeltaAlpha *= fTimeFactor;
       fInternal[kdeltakappa] *= fTimeFactor;
     }
-    
+
+  fStress = fSigma; //needed to update, fSigma is leftover from development version
   return fSigma;
 }
 
@@ -975,7 +948,7 @@ bool GeoModelSST::StressPointIteration(double initialYieldCheck, dArrayT& iterat
 	while(!ResidualIsConverged(residual, residual0))
 	  {
 	    /* check to see if not converging */
-	    if (newtonCounter++ > maxIter && fFossumDebug)
+	    if (newtonCounter++ > maxIter)
 	      {
 			cout << "GeoModelSST::StressPointIteration, Newton Iteration failed to converge\n" << flush;
 			return false;
@@ -1380,8 +1353,8 @@ double GeoModelSST::d2GdI1dI1(double I1, double kappa)
 	double GfMinusN = PlasticPotGfMinusN(I1);
 	double dGfbydI1 = dGfdI1(I1);
 
-	return -1*(2 * Gc * dGfbydI1 * dGfbydI1 + 4 * GfMinusN * dGfbydI1 * dGcdI1(I1, kappa)
-          + 2 * GfMinusN * Gc * d2GfdI1dI1(I1) + GfMinusN*GfMinusN*d2GcdI1dI1(I1, kappa));
+	return -1.0*(2.0 * Gc * dGfbydI1 * dGfbydI1 + 4.0 * GfMinusN * dGfbydI1 * dGcdI1(I1, kappa)
+          + 2.0 * GfMinusN * Gc * d2GfdI1dI1(I1) + GfMinusN*GfMinusN*d2GcdI1dI1(I1, kappa));
 }
 
 double GeoModelSST::d2GfdI1dI1(double I1)
