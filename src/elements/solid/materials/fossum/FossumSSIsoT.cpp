@@ -855,6 +855,7 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
   /*check for yielding */
   double initialYieldCheck;
   initialYieldCheck = YieldCondition(fSigma, workingKappa, workingBackStress);
+
   if ( initialYieldCheck < yieldFnTol)
     {
       if (element.IsAllocated())
@@ -905,6 +906,7 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
 			fSigma.AddScaled(iterationVars[0],m[0]);
 			fSigma.AddScaled(iterationVars[1],m[1]);
 			fSigma.AddScaled(iterationVars[2],m[2]);
+			
 	  
 			fDeltaAlpha.AddScaled(iterationVars[3],m[0]);
 			fDeltaAlpha.AddScaled(iterationVars[4],m[1]);
