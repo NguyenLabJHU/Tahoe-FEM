@@ -9,9 +9,6 @@
 
 namespace Tahoe {
 
-/* forward declarations */
-class SSEnhLocMatSupportT;
-
 class GeoModelSS2DT: public GeoModelSST
 {
 public:
