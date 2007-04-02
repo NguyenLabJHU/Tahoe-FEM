@@ -1,9 +1,9 @@
 #include "GeoModelSS2DT.h"
 
-#include "SSEnhLocMatSupportT.h"
-#include "ElementCardT.h"
-#include "StringT.h"
-#include "DevelopmentElementsConfig.h"
+#include "SSMatSupportT.h"
+//#include "ElementCardT.h"
+//#include "StringT.h"
+
 
 using namespace Tahoe;
 
@@ -98,28 +98,7 @@ const dMatrixT& GeoModelSS2DT::con_perfplas_ijkl(void)
 /* stress */
 const dSymMatrixT& GeoModelSS2DT::s_ij(void)
 {
-#ifdef ENHANCED_STRAIN_LOC_DEV
-	int ip = CurrIP();
-	ElementCardT& element = CurrentElement();
-	int elem = CurrElementNumber();
-	int element_locflag = 0;
-	if (element.IsAllocated())
-	{
-		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
-	}
-	if ( element_locflag == 2 )
-	{
-		fStress2D = fSSEnhLocMatSupport->ElementStress(elem,ip);
-	}
-	else
-	{
-		/* 3D -> 2D */
-		fStress2D.ReduceFrom3D(GeoModelSST::s_ij());
-	}
-#else
-	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(GeoModelSST::s_ij());
-#endif
 	return fStress2D;
 }
 
