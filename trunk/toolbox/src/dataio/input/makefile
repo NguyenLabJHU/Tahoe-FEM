@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2005-08-12 05:15:24 paklein Exp $
+# $Id: makefile,v 1.13 2007-04-04 17:05:45 sawimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -25,6 +25,7 @@ OBJ = \
 	ExodusInputT.o \
 	EnSightInputT.o \
 	AbaqusInputT.o \
+	AbaqusINPInputT.o \
 	TextInputT.o
 
 OBJ_LINK = $(OBJ)
@@ -50,6 +51,7 @@ SRC = \
 	ExodusInputT.cpp \
 	EnSightInputT.cpp \
 	AbaqusInputT.cpp \
+	AbaqusINPInputT.cpp \
 	TextInputT.cpp
 
 ##################### (3) headers
@@ -68,6 +70,7 @@ HDR = \
 	ExodusInputT.h \
 	EnSightInputT.h \
 	AbaqusInputT.h \
+	AbaqusINPInputT.h \
 	TextInputT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
