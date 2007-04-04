@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.19 2005-04-30 21:11:00 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.20 2007-04-04 17:07:07 sawimme Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -16,6 +16,7 @@
 #include "EnSightInputT.h"
 #include "AbaqusInputT.h"
 #include "TextInputT.h"
+#include "AbaqusINPInputT.h"
 
 /* output formats */
 #include "TextOutputT.h"
@@ -65,6 +66,8 @@ IOBaseT::FileTypeT IOBaseT::int_to_FileTypeT(int i)
 	                return IOBaseT::kTahoeResults;
 	       case 12:
 	                return IOBaseT::kParaDyn;
+	       case 13:
+	                return IOBaseT::kAbaqusINP;
 		default:
 			ExceptionT::OutOfRange("IOBaseT::int_to_FileTypeT", 
 				"could not convert %d", i);
@@ -117,6 +120,7 @@ void IOBaseT::InputFormats (ostream& log)
 //log << "    eq. " << setw (2) << IOBaseT::kAVS           << ". AVS UCD ASCII\n";
 //log << "    eq. " << setw (2) << IOBaseT::kAVSBinary     << ". AVS UCD Binary\n";
   log << "    eq. " << setw (2) << IOBaseT::kPatranNeutral << ". PATRAN Neutral\n";
+  log << "    eq. " << setw (2) << IOBaseT::kAbaqusINP     << ". Abaqus Input (.inp)\n";
   log << "    eq. " << setw (2) << IOBaseT::kTahoeResults  << ". Tahoe Results (.geo/.run)\n";
 }
 
@@ -152,6 +156,8 @@ IOBaseT::FileTypeT IOBaseT::name_to_FileTypeT(const char* file_name)
 		return kTahoeResults;
 	else if (ext == ".atoms")
 		return kParaDyn;
+	else if (ext == ".inp")
+		return kAbaqusINP;
 	else
 		ExceptionT::GeneralFail("IOBaseT::name_to_FileTypeT",
 			"could not guess file type from \"%s\"", file_name);
@@ -202,6 +208,10 @@ InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
 
 		case kTahoeResults:
 			input = new TextInputT(message);
+			break;
+			
+		case kAbaqusINP:
+			input = new AbaqusINPInputT (message);
 			break;
 
 		case kAutomatic:
