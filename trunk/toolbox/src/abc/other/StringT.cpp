@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.47 2005-06-08 17:20:20 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.48 2007-04-04 17:11:14 sawimme Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -98,6 +98,7 @@ void StringT::Clear(void)
 	
 	/* zero string length */
 	fArray[0] = '\0';
+	fLength = 0;
 }
 
 /* copy what fits without resizing. new string length */
