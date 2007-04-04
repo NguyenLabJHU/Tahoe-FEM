@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2005-08-12 05:15:24 paklein Exp $
+# $Id: makefile,v 1.12 2007-04-04 17:03:50 sawimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,6 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	AVST.o \
 	AbaqusResultsT.o \
+	AbaqusINPT.o \
 	EnSightT.o \
 	ExodusT.o \
 	ModelFileT.o \
@@ -49,6 +50,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	AVST.cpp \
 	AbaqusResultsT.cpp \
+	AbaqusINPT.cpp \
 	EnSightT.cpp \
 	ExodusT.cpp \
 	ModelFileT.cpp \
@@ -69,6 +71,7 @@ HDR = \
 	AVST.h \
 	AbaqusResultsT.h \
 	AbaqusVariablesT.h \
+	AbaqusINPT.h \
 	EnSightT.h \
 	ExodusT.h \
 	ModelFileT.h \
