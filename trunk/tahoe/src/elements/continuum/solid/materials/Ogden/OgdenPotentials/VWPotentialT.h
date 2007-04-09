@@ -1,23 +1,21 @@
-/* $Id: NeoHookean.h,v 1.3 2007-04-09 23:33:26 tdnguye Exp $ */
-/* created: TDN (01/22/2001) */
-#ifndef _NeoHookean_
-#define _NeoHookean_
+/* $Id: VWPotentialT.h,v 1.1 2007-04-09 23:33:26 tdnguye Exp $ */
+#ifndef _VWPotentialT_
+#define _VWPotentialT_
 
 /* base class */
 #include "PotentialT.h"
 
 namespace Tahoe {
 
-class NeoHookean: public PotentialT
+class VWPotentialT: public PotentialT
 {
   public:
 
 	/* constructor */
-	NeoHookean(void);
+	VWPotentialT(void);
 
 	/* set parameters */
 	void SetKappaMu(double kappa, double mu);
-
 	virtual void DefineParameters(ParameterListT& list) const;
 	virtual void TakeParameterList(const ParameterListT& list);
 
@@ -31,6 +29,10 @@ class NeoHookean: public PotentialT
 
   private:  
 
+  	/*elastic moduli*/
+	double falpha;
+	double fbeta;
+	double fgamma;
 };
 }
-#endif /* _RG_NeoHookean3D_ */
+#endif /* _VWPotentialT_ */

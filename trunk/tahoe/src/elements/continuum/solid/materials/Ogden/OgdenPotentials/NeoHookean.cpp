@@ -1,4 +1,4 @@
-/* $Id: NeoHookean.cpp,v 1.5 2004-07-15 08:27:26 paklein Exp $ */
+/* $Id: NeoHookean.cpp,v 1.6 2007-04-09 23:33:26 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -12,38 +12,46 @@
 using namespace Tahoe;
 const double third = 1.0/3.0;
 
-NeoHookean::NeoHookean(void):
-	fMu(0.0),
-	fKappa(0.0)
+NeoHookean::NeoHookean(void)
 {
-
+	SetName("neo-hookean");
 }
 
 /* set parameters */
 void NeoHookean::SetKappaMu(double kappa, double mu)
 {
 	fMu = mu;
-	fKappa = kappa;
+	SetKappa(kappa);
 }
 
-void NeoHookean::Print(ostream& out) const
+void NeoHookean::DefineParameters(ParameterListT& list) const
 {
-  out<<"      Shear Modulus = "<<fMu<<'\n';
-  out<<"      Bulk Modulus = "<<fKappa<<'\n';
+	/* inherited */
+	PotentialT::DefineParameters(list);
+
+	list.AddParameter(fMu, "mu");
+	
+	/* set the description */
+	list.SetDescription("Psi(Cbar) = 0.3*mu(I1bar-3)");	
 }
 
-void NeoHookean::PrintName(ostream& out) const
+void NeoHookean::TakeParameterList(const ParameterListT& list)
 {
-  out << "Compressible Neo-Hookean Potential\n";
-  out<<"        Phi = mu/2*(I1_bar - 3) + kappa/4*(J^2-1-2lnJ)\n";
+	/* inherited */
+	PotentialT::TakeParameterList(list);
+
+	fMu = list.GetParameter("mu");
+
+	/* check */
+	if (fMu < kSmall) ExceptionT::BadInputValue("NeoHookean::TakeParameterList",
+		"expecting a non-negative value mu: %d", fMu);
 }
-void NeoHookean::Initialize(void)
-{}
 
 double NeoHookean::Energy(const dArrayT& lambda_bar, const double& J)
 {
   double I1 = lambda_bar[0]+lambda_bar[1]+lambda_bar[2];
-  double phi = 0.5*fMu*(I1-3)+0.25*fKappa*(J*J-1-2*log(J));
+  double phi = 0.5*fMu*(I1-3);
+  phi += MeanEnergy(J);
   return(phi);
 }
 void NeoHookean::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
@@ -60,8 +68,6 @@ void NeoHookean::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
   if (nsd == 3)
     tau[2] = fMu*third*(2.0*l2-l0-l1);
 }
-
-double NeoHookean::MeanStress(const double& J) {return(0.5*fKappa*(J*J-1));}
 
 void NeoHookean::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
 {
@@ -87,5 +93,4 @@ void NeoHookean::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
   }
 }
 
-double NeoHookean::MeanMod(const double& J) {return(fKappa*J*J);}
 
