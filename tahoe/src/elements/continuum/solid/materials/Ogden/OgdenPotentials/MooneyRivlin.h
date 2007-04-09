@@ -1,22 +1,23 @@
-/* $Id: NeoHookean.h,v 1.3 2007-04-09 23:33:26 tdnguye Exp $ */
+/* $Id: MooneyRivlin.h,v 1.1 2007-04-09 23:33:26 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
-#ifndef _NeoHookean_
-#define _NeoHookean_
+#ifndef _MooneyRivlin_
+#define _MooneyRivlin_
 
 /* base class */
 #include "PotentialT.h"
 
 namespace Tahoe {
 
-class NeoHookean: public PotentialT
+class MooneyRivlin: public PotentialT
 {
   public:
 
 	/* constructor */
-	NeoHookean(void);
+	MooneyRivlin(void);
 
 	/* set parameters */
 	void SetKappaMu(double kappa, double mu);
+
 
 	virtual void DefineParameters(ParameterListT& list) const;
 	virtual void TakeParameterList(const ParameterListT& list);
@@ -31,6 +32,9 @@ class NeoHookean: public PotentialT
 
   private:  
 
+  	/*inelastic moduli*/
+	double fc1;
+	double fc2;
 };
 }
-#endif /* _RG_NeoHookean3D_ */
+#endif /* _RG_MooneyRivlin3D_ */
