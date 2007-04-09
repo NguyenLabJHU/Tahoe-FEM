@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.5 2006-11-17 17:44:44 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.6 2007-04-09 22:10:04 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -190,8 +190,8 @@ void AnisoCorneaVisco::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
 {
 	/* inherited */
-//	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
-	ParameterInterfaceT* sub = FSFiberMatViscT::NewSub(name);
+	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
+//	ParameterInterfaceT* sub = FSFiberMatViscT::NewSub(name);
 	if (sub) 
 	{
 		return sub;
@@ -256,7 +256,7 @@ ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
 		sinh.SetDescription("f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)");	
 		choice->AddSub(sinh);
 		
-		ParameterContainerT exp("linear_exponential");
+		ParameterContainerT exp("linear-exponential");
  
 		ParameterT a(ParameterT::Double, "a");
 		ParameterT b(ParameterT::Double, "b");
@@ -349,7 +349,7 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 		}
 		
 		const ParameterListT& visc = list.GetListChoice(*this, "viscosity", i);
-		if (visc.Name() == "linear_exponential")
+		if (visc.Name() == "linear-exponential")
 		{
 			double a = visc.GetParameter("a");
 			double b = visc.GetParameter("b");

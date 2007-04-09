@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.cpp,v 1.7 2007-01-19 05:23:40 thao Exp $ */
+/* $Id: FSFiberMatT.cpp,v 1.8 2007-04-09 22:10:04 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatT.h"
 #include "FSFiberMatSupportT.h"
@@ -213,8 +213,7 @@ void FSFiberMatT::ComputeFiberStretch(const dSymMatrixT& C, dSymMatrixT& Cf)
 
 		Cf[0] = C[0]*x[0]*x[0] + C[1]*x[1]*x[1] + C[2]*x[2]*x[2] + 2.0*(C[3]*x[1]*x[2] + C[4]*x[0]*x[2] + C[5]*x[0]*x[1]);
 		Cf[1] = C[0]*y[0]*y[0] + C[1]*y[1]*y[1] + C[2]*y[2]*y[2] + 2.0*(C[3]*y[1]*y[2] + C[4]*y[0]*y[2] + C[5]*y[0]*y[1]);
-		Cf[2] = C[0]*x[0]*y[0] + C[1]*x[1]*y[1] + C[2]*x[2]*y[2]
-			+ C[3]*(x[1]*y[2] + y[1]*x[2]) + C[4]*(x[0]*y[2] + y[0]*x[2])   + C[5]*(x[0]*y[1] + y[0]*x[1]);
+		Cf[2] = C[0]*x[0]*y[0] + C[1]*x[1]*y[1] + C[2]*x[2]*y[2] + C[3]*(x[1]*y[2] + y[1]*x[2]) + C[4]*(x[0]*y[2] + y[0]*x[2]) + C[5]*(x[0]*y[1] + y[0]*x[1]);
 	}
 }
 

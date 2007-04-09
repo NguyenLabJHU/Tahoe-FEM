@@ -1,10 +1,14 @@
-/* $Id: FSFiberMatViscT.h,v 1.3 2006-10-20 20:02:38 thao Exp $ */
+/* $Id: FSFiberMatViscT.h,v 1.4 2007-04-09 22:10:04 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIBVISC_MAT_T_H_
 #define _FD_FIBVISC_MAT_T_H_
 
 /* base class */
 #include "FSFiberMatT.h"
+
+#include "SpectralDecompT.h"
+#include "C1FunctionT.h"
+#include "PotentialT.h"
 
 namespace Tahoe {
 
@@ -53,6 +57,12 @@ public:
 	  to dimension internal state variable arrays if fNumProcess > 1 (default value)*/
 	void SetStateVariables (const int numprocess);
 
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	
 protected:
@@ -67,15 +77,15 @@ protected:
 	/*subsequent derived classes must define the following functions*/
 	/*compute neq. values*/
 	/*local newton loop for viscous stretch tensor of matrix*/ 
-	virtual void ComputeMatrixCv(const dSymMatrixT& C, const dSymMatrixT& Cv_last, dSymMatrixT& Cv, const int process_index) = 0;
+	virtual void ComputeMatrixCv(const dSymMatrixT& C, const dSymMatrixT& Cv_last, dSymMatrixT& Cv, const int process_index);
 
 	/*computes isotropic matrix stress*/
 	virtual void ComputeMatrixStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, 
-				dSymMatrixT& Stress, const int process_index, const int fillmode = dSymMatrixT::kOverwrite) = 0;
+				dSymMatrixT& Stress, const int process_index, const int fillmode = dSymMatrixT::kOverwrite);
 
 	/*computes matrix moduli*/
 	virtual void ComputeMatrixMod (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress,
-				dMatrixT& Mod, const int process_index, const int fillmode = dSymMatrixT::kOverwrite) = 0;
+				dMatrixT& Mod, const int process_index, const int fillmode = dSymMatrixT::kOverwrite);
 
 	/********************************************** fiber ******************************************************/
 	/*computes eq fiber stress in local frame*/
@@ -113,9 +123,16 @@ protected:
 	
 	int fNumFibProcess;
 	int fNumMatProcess;
+
 	/*internal state variables. Dimension numprocess<nsd x nsd>*/
 	ArrayT<dSymMatrixT> fC_v;
 	ArrayT<dSymMatrixT> fC_vn;
+
+  	/*constant viscosities for now*/
+	ArrayT<C1FunctionT*> fVisc_m;
+	
+	/*moduli for Mooney Rivlin Potential, n_process x 2 (c1, c2)*/
+	ArrayT<PotentialT*> fPot_m;
 
 	/*algorithmic modulus*/
 	dMatrixT fCalg;
@@ -126,13 +143,25 @@ protected:
 	/* internal state variables array*/
 	dArrayT fstatev;
 
-//	dSymMatrixT fC_n;
-
 	/*viscous stretch in plane of fiber*/
 	dSymMatrixT fFiberStretch_v;
 	dSymMatrixT fFiberStretch_vn;
-//	dSymMatrixT fFiberStretch_n;
 
+ 	/* work space needed to compute matrix viscoelastic behavior*/
+	/* spectral operations for integration of matrix elastic stretch*/
+	SpectralDecompT fSpectralDecompSpat;
+
+	dSymMatrixT fInverse;
+	dMatrixT fModMat;
+	dMatrixT fMod3;
+
+	dSymMatrixT fb;
+	dArrayT fEigs;
+	dArrayT	ftau;
+	dSymMatrixT fdtau_dep;
+
+  	dMatrixT fiK_m;
+	dMatrixT fCalg_m;
 };
 
 /*equilibrium values*/
