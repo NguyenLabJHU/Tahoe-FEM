@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.7 2007-03-12 23:56:17 r-jones Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.8 2007-04-09 22:27:06 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -1043,6 +1043,7 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 		r16 = pow(tau/s_bar, 0.5*third);
 		gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
 		g = fh*(1.0 - s/fs_ss)*gammadot;
+
 		//f;
 		(tau > kSmall) ? f = gammadot/(sqrt(2.0)*tau):f=0;
 
