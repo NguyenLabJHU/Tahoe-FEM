@@ -1,4 +1,4 @@
-/* $Id: ParabolaT.h,v 1.5 2003-08-04 01:27:27 thao Exp $ */
+/* $Id: ParabolaT.h,v 1.6 2007-04-09 21:06:15 tdnguye Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #ifndef _PARABOLA_T_H_
@@ -16,6 +16,7 @@ public:
 
         /* constructor */
         ParabolaT(double k, double B=0.0, double l0=0.0);
+		ParabolaT(void);
 
         /* I/O */
         virtual void Print(ostream& out) const;
@@ -30,6 +31,15 @@ public:
         virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
         virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
         virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@{*/
 
 private:
 
