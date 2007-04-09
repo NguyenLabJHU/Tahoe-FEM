@@ -1,4 +1,4 @@
-/* $Id: RGSplit3D.cpp,v 1.1 2006-10-30 23:32:05 thao Exp $ */
+/* $Id: RGSplit3D.cpp,v 1.2 2007-04-09 23:38:56 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplit3D.h"
@@ -103,12 +103,7 @@ ExceptionT::GeneralFail("RGSplit3D::Initialize", "out of date");
 void RGSplit3D::Print(ostream& out) const
 {
   RGBaseT::Print(out);
-  out<<"Equilibrium free energy potential\n";
-  fPot_EQ->Print(out);
-  out<<"Non Equilibrium free energy potential\n";
-  fPot_NEQ->Print(out);
-  
-  out<<"Constant Viscosity \n";
+   out<<"Constant Viscosity \n";
   out<<"     Shear Viscosity: "<<1.0/fietaS<<'\n';
   out<<"     Bulk Viscosity: "<<1.0/fietaB<<'\n';
 }
@@ -118,10 +113,6 @@ void RGSplit3D::PrintName(ostream& out) const
 {
   /* inherited */
   RGBaseT::PrintName(out);
-  out<<"Equilibrium free energy potential\n";
-  fPot_EQ->PrintName(out);
-  out<<"Non Equilibrium free energy potential\n";
-  fPot_NEQ->PrintName(out);
 }
 
 int RGSplit3D::NumOutputVariables() const {return kNumOutputVar;} 
