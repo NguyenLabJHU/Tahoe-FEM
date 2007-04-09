@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.25 2007-03-08 18:23:21 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.26 2007-04-09 22:28:10 tdnguye Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -33,6 +33,7 @@
 
 #ifdef VISCOELASTICITY
 #include "RGSplitT.h"
+#include "RGSplitT2.h"
 #include "BoyceViscoPlasticity.h"
 #endif
 
@@ -192,6 +193,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("Reese-Govindjee_split");
+		sub_lists.AddSub("RG_split_general");
                 sub_lists.AddSub("boyce_viscoplasticity");
 #endif
 
@@ -199,7 +201,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("SMP_simple");
 #endif
 #ifdef BIO_MODELS
-		sub_lists.AddSub("veronda_westmann");
+		sub_lists.AddSub("veronda_westmann_potential");
     sub_lists.AddSub("Isotropic_Cornea_Model");
     sub_lists.AddSub("Isotropic_Viscoelastic_Cornea_Model");
 #endif
@@ -343,6 +345,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "Reese-Govindjee_split")
 		mat= new RGSplitT;
+	else if (name == "RG_split_general")
+		mat= new RGSplitT2;
         else if (name == "boyce_viscoplasticity")
                 mat = new BoyceViscoPlasticity;
 #endif
@@ -398,7 +402,7 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 
 
 #ifdef BIO_MODELS
-	else if (name == "veronda_westmann")
+	else if (name == "veronda_westmann_potential")
 		mat = new VerondaWestmannT;
 	else if (name == "Isotropic_Viscoelastic_Cornea_Model")
 	  mat= new IsoVECorneaModel;
