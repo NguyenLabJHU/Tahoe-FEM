@@ -1,4 +1,4 @@
-/* $Id: ScaledCsch.cpp,v 1.1 2006-08-18 18:43:15 thao Exp $ */
+/* $Id: ScaledCsch.cpp,v 1.2 2007-04-09 22:05:47 thao Exp $ */
 
 #include "ScaledCsch.h"
 #include <iostream.h>
@@ -16,13 +16,13 @@ ScaledCsch::ScaledCsch(double A, double B):
 	feta0(A),
 	ftau0(B)
 { 
-	SetName("scaled_csch");
+	SetName("scaled-csch");
 
 }
 
 ScaledCsch::ScaledCsch(void):feta0(0.0), ftau0(0.0) 
 { 
-	SetName("scaled_csch");
+	SetName("scaled-csch");
 }
 
 /* I/O */

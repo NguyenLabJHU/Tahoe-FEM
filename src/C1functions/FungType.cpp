@@ -1,4 +1,4 @@
-/* $Id: FungType.cpp,v 1.3 2006-08-18 18:43:15 thao Exp $ */
+/* $Id: FungType.cpp,v 1.4 2007-04-09 22:05:47 thao Exp $ */
 
 #include "FungType.h"
 #include <iostream.h>
@@ -16,14 +16,14 @@ FungType::FungType(double A, double B):
 	fA(A), 
 	fB(B) 
 { 
-	SetName("fung_type");
+	SetName("fung-type");
 }
 
 FungType::FungType(void): 
 	fA(0.0), 
 	fB(0.0) 
 { 
-	SetName("fung_type");
+	SetName("fung-type");
 }
 
 /* I/O */
@@ -36,7 +36,7 @@ void FungType::Print(ostream& out) const
 
 void FungType::PrintName(ostream& out) const
 {
-	out << "    Worm Like Chain Statistics\n";
+	out << "    Fung Type\n";
 }
 
 /*
