@@ -14,7 +14,7 @@
 #include "ifstreamT.h"
 #include <ctype.h>
 #include "iAutoArrayT.h"
-#include "iArray2dT.h"
+#include "iArray2DT.h"
 #include "GeometryT.h"
 
 using namespace Tahoe;
