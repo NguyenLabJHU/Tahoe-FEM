@@ -1,4 +1,4 @@
-/* $Id: IsoVECorneaModel.h,v 1.2 2006-11-12 18:26:54 thao Exp $ */
+/* $Id: IsoVECorneaModel.h,v 1.3 2007-04-12 16:49:32 regueiro Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _IsoVECornea_
 #define _IsoVECornea_
@@ -140,5 +140,8 @@ private:
 };
 
 } // namespace Tahoe 
+
+#endif //VIB_MATERIAL
+
 #endif /* _IsoVECornea_ */
-#endif VIB_MATERIAL
+
