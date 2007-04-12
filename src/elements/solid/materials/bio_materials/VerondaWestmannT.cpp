@@ -1,4 +1,4 @@
-/* $Id: VerondaWestmannT.cpp,v 1.1 2006-05-02 00:58:53 thao Exp $ */
+/* $Id: VerondaWestmannT.cpp,v 1.2 2007-04-12 16:32:43 thao Exp $ */
 /* created: paklein (02/17/2001) */
 #include "VerondaWestmannT.h"
 
@@ -8,7 +8,7 @@ using namespace Tahoe;
 
 /* constructor */
 VerondaWestmannT::VerondaWestmannT(void):
-	ParameterInterfaceT("veronda_westmann"),
+	ParameterInterfaceT("veronda_westmann_potential"),
 	fIk(3),
 	fdWdIk(3),
 	fddWddIk(3),
