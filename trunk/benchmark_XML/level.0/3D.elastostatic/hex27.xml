@@ -27,7 +27,7 @@
     <element_list>
         <small_strain field_name="displacement">
             <hexahedron num_ip="27"/>
-            <solid_element_element_output stress="1"/>
+            <solid_element_nodal_output stress="1"/>
             <small_strain_element_block>
                 <block_ID_list>
                     <String value="1"/>
