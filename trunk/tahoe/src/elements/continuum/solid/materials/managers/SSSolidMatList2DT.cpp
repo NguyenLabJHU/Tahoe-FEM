@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.15 2007-03-15 18:50:39 cfoster01 Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.16 2007-04-16 11:00:50 cfoster01 Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -25,7 +25,7 @@
 #endif
 
 #ifdef GEOMODEL_MATERIAL
-#include "GEOMODELSS2DT.h"
+#include "GeoModelSS2DT.h"
 #endif
 
 #ifdef VISCOELASTICITY
