@@ -467,18 +467,36 @@ void FSSolidFluidMixT::AddNodalForce(const FieldT& field, int node, dArrayT& for
 
 		    /* loop over nodes (double-noding OK) */
 		    int dex = 0;
-		    for (int i = 0; i < nodes_u.Length(); i++)
+		    if (is_displ)
 		    {
-				if (nodes_u[i] == node)
-				{
-				    /* components for node */
-				    nodalforce.Set(num_force, element_force->Pointer(dex));
+			    for (int i = 0; i < nodes_displ.Length(); i++)
+			    {
+					if (nodes_displ[i] == node)
+					{
+					    /* components for node */
+					    nodalforce.Set(num_force, element_force->Pointer(dex));
 
-				    /* accumulate */
-				    force += nodalforce;
-				}
-				dex += NumDOF();
-		    }			
+					    /* accumulate */
+					    force += nodalforce;
+					}
+					dex += fDispl->NumDOF();
+			    }		
+		    }
+		    else /* pressure nodal dof */
+			{
+			    for (int i = 0; i < nodes_press.Length(); i++)
+			    {
+					if (nodes_press[i] == node)
+					{
+					    /* components for node */
+					    nodalforce.Set(num_force, element_force->Pointer(dex));
+
+					    /* accumulate */
+					    force += nodalforce;
+					}
+					dex += fPress->NumDOF();
+			    }		
+			}
 		}
     }
 //	cout << "F_int = \n" << fFd_int << endl;
