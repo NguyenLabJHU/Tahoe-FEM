@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.19 2007-03-02 09:17:40 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.20 2007-04-20 02:32:54 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -213,7 +213,6 @@ private:
 	/** Gradients and other matrices */
 	dMatrixT fgrad_u, fgrad_u_n;
 	dArrayT fgrad_theta, fgrad_theta_n;
-	int TempC;
 
 	
 	dMatrixT fShapeSolid, fShapeSolidGrad, fShapeSolidGrad_t,fShapeSolidGrad_t_Transpose, fShapeSolidGradGrad, fShapeSolidGrad_temp;

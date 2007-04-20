@@ -36,8 +36,7 @@ FSSolidFluidMixT::FSSolidFluidMixT(const ElementSupportT& support):
     fKdtheta(ElementMatrixT::kNonSymmetric),
     fKthetad(ElementMatrixT::kNonSymmetric),
     fKthetatheta(ElementMatrixT::kNonSymmetric),
-    bStep_Complete(0),
-    TempC(0)
+    bStep_Complete(0)
 {
     SetName("total_lagrangian_solid_fluid_mix");
 }
@@ -246,7 +245,7 @@ void FSSolidFluidMixT::CloseStep(void)
     ElementBaseT::CloseStep();
     
     /* reassign initial 2nd time derivative of pressure to 1st derivative */
-    //this may not be the correct function in which to place this reassignment
+
 if ( ElementSupport().Time()==0 )
  {
     FieldT* fpress = const_cast <FieldT*> (fPress);
@@ -258,14 +257,14 @@ if ( ElementSupport().Time()==0 )
     fdState = fdState_new;
     fiState = fiState_new;
 	
-    fs_mix_out	<< endl 
-		<< setw(outputFileWidth) << "time_step"
-		<< endl;
+//    fs_mix_out	<< endl 
+//		<< setw(outputFileWidth) << "time_step"
+//		<< endl;
     step_number = ElementSupport().StepNumber();
-    fs_mix_out	<< setw(outputFileWidth) << step_number
-		<< endl;
-    fs_mix_out	<< endl << "**********************************************************************************************";
-    fs_mix_out	<< endl << "**********************************************************************************************" << endl;
+//    fs_mix_out	<< setw(outputFileWidth) << step_number
+//		<< endl;
+//    fs_mix_out	<< endl << "**********************************************************************************************";
+//    fs_mix_out	<< endl << "**********************************************************************************************" << endl;
 }
 
 
@@ -712,11 +711,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fDispl->Group(), fPress->Group());
 
     int curr_group = ElementSupport().CurrentGroup();
-    int* Counter=&TempC;
-    *Counter = *Counter+1;
-    fs_mix_out	<<"Counter"<< endl ;
-    fs_mix_out	<<*Counter<< endl ;
-    fs_mix_out	<<"Counter"<< endl ;
+
 
     /* stress output work space */
     dArray2DT	out_variable_all, fdstatenew_all, fdstate_all;
@@ -727,13 +722,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
     time = ElementSupport().Time();
     step_number = ElementSupport().StepNumber();
 
-
-    /* print delta_t,time and step_number */
-    fs_mix_out	<< "delta_t,time and step_number" << endl;	
-    fs_mix_out	<< "delta_t = " << delta_t << endl;
-    fs_mix_out	<< "time = " << time << endl;
-    fs_mix_out	<< "step_number = " << step_number << endl;
-    fs_mix_out	<< "delta_t,time and step_number" << endl;
 
     /* loop over elements */
     int e,l;
@@ -827,119 +815,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 	if (press_dot_n.IsRegistered()) press_dot_n.SetLocal(nodes_press);
 	if (press_dotdot.IsRegistered()) press_dotdot.SetLocal(nodes_press);
 	if (press_dotdot_n.IsRegistered()) press_dotdot_n.SetLocal(nodes_press);
-
-	
-	/* print solid displacement from previous step (u)*/
-	fs_mix_out	<<"nodal solid displacement from previous step(u)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
-	    for (int j=0; j<n_sd; j++)
-		fs_mix_out << u(i,j) << "\t";
-	    fs_mix_out	<< endl ;
-	}
-	
-	/* print solid displacement from previous step (u_n)*/
-	fs_mix_out	<<"nodal solid displacement from previous step(u_n)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
-	    for (int j=0; j<n_sd; j++)
-		fs_mix_out << u_n(i,j) << "\t";
-	    fs_mix_out	<< endl ;
-	}
-	
-	/* print solid velocity from previous step (u_dot)*/
-	fs_mix_out	<<"nodal solid velocity from previous step(u_dot)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
-	    for (int j=0; j<n_sd; j++)
-		fs_mix_out << u_dot(i,j) << "\t";
-	    fs_mix_out	<< endl ;
-	}
-
-	/* print solid velocity from previous step (u_dot_n)*/
-	fs_mix_out	<<"nodal solid velocity from previous step(u_dot_n)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
-	    for (int j=0; j<n_sd; j++)
-		fs_mix_out << u_dot_n(i,j) << "\t";
-	    fs_mix_out	<< endl ;
-	}
-
-
-	/* print solid acceleration from previous step (u_dotdot)*/
-	fs_mix_out	<<"nodal solid velocity from previous step(u_dotdot)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
-	    for (int j=0; j<n_sd; j++)
-		fs_mix_out << u_dotdot(i,j) << "\t";
-	    fs_mix_out	<< endl ;
-	}
-
-	/* print solid acceleration from previous step (u_dotdot_n)*/
-	fs_mix_out	<<"nodal solid velocity from previous step(u_dotdot_n)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
-	    for (int j=0; j<n_sd; j++)
-		fs_mix_out << u_dotdot_n(i,j) << "\t";
-	    fs_mix_out	<< endl ;
-	}
-
-
-		 
-	/* print fluid pressure from previous step (press)*/
-	fs_mix_out	<<"nodal fluid pressure from previous step(press)"<< endl ;
-	for (int i=0; i<n_en_press; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
-	    fs_mix_out	<< press(i,0) << endl;
-	}
-
-	/* print fluid pressure from previous step (press_n)*/
-	fs_mix_out	<<"nodal fluid pressure from previous step(press_n)"<< endl ;
-	for (int i=0; i<n_en_press; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
-	    fs_mix_out	<< press_n(i,0) << endl;
-	}
-	
-	/* print first derivative of pressure from previous step (press_dot)*/
-	fs_mix_out	<<"first derivative of nodal fluid pressure from previous step(press_dot)"<< endl ;
-	for (int i=0; i<n_en_press; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
-	    fs_mix_out	<< press_dot(i,0) << endl;
-	}
-
-	/* print first derivative of pressure from previous step (press_dot_n)*/
-	fs_mix_out	<<"first derivative of nodal fluid pressure from previous step(press_dot_n)"<< endl ;
-	for (int i=0; i<n_en_press; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
-	    fs_mix_out	<< press_dot_n(i,0) << endl;
-	}
-
-
-	/* print second derivative of pressure from previous step (press_dotdot)*/
-	fs_mix_out	<<"second derivative of nodal fluid pressure from previous step(press_dotdot)"<< endl ;
-	for (int i=0; i<n_en_press; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
-	    fs_mix_out	<< press_dotdot(i,0) << endl;
-	}
-
-	/* print second derivative of pressure from previous step (press_dotdot_n)*/
-	fs_mix_out	<<"second derivative of nodal fluid pressure from previous step(press_dotdot_n)"<< endl ;
-	for (int i=0; i<n_en_press; i++)
-	{
-	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
-	    fs_mix_out	<< press_dotdot_n(i,0) << endl;
-	}
 
 	
 	/* populate solid displacement,solid velocity and 
@@ -1395,7 +1270,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFtheta_int_H4_vector} will be formed */
 			fLambda_temp_matrix.Multx(fGravity_vector,fTemp_vector_nen_press);
-			scale = J*fRho_f*scale_const;
+			scale = 1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
 			fTemp_vector_nen_press *= scale ;
 			/* accumulate */
 			fFtheta_int_H4_vector += fTemp_vector_nen_press;
@@ -1456,9 +1331,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fFd_int += fFd_int_N1_vector;
 		    fFd_int += fFd_int_N2_vector; 
 		    fFd_int += fFd_int_G4_vector;
-		    fs_mix_out	<<"Accumulative fFd_int for all 27 IP"<< endl ;
-		    fs_mix_out	<< fFd_int<< endl ;
-		    fs_mix_out	<<"Accumulative fFd_int for all 27 IP"<< endl ;
 		    fFd_int *=-1;
 		    
 		    /* {fFtheta_int_M_vector} will be formed */
@@ -1478,21 +1350,12 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fFtheta_int += fFtheta_int_N1_vector;
 		    fFtheta_int += fFtheta_int_N2_vector;
 		    fFtheta_int += fFtheta_int_H4_vector;
-		    fs_mix_out	<<"Accumulative fFtheta_int for all 27 IP"<< endl ;
-		    fs_mix_out	<< fFtheta_int<< endl ;
-		    fs_mix_out	<<"Accumulative fFtheta_int for all 27 IP"<< endl ;
 		    fFtheta_int *=-1;	
 		    
 
 		    fKdd = fM_dd_matrix;
-		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
-		    fs_mix_out	<< fKdd<< endl ;
-		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
 		    
 		    fKthetatheta = fC_thetatheta_matrix;
-		    fs_mix_out	<<"Accumulative fC_thetatheta_matrix for all 27 IP"<< endl ;
-		    fs_mix_out	<< fC_thetatheta_matrix<< endl ;
-		    fs_mix_out	<<"Accumulative fC_thetatheta_matrix for all 27 IP"<< endl ;
 
 		    fKdtheta = 0.0;
 
@@ -1530,19 +1393,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			beta_delta_t2 = fIntegration_Params[kBeta]*delta_t*delta_t;
 			beta_delta_t = fIntegration_Params[kBeta]*delta_t;
 			gamma_delta_t = fIntegration_Params[kGamma]*delta_t;
-			fs_mix_out	<<"CurrElementNumber and NumElements"<< endl ;
-			fs_mix_out	<<CurrElementNumber()<< endl ;
-			fs_mix_out	<<NumElements()<< endl ;
-			fs_mix_out	<<"CurrElementNumber and NumElements"<< endl ;
-			fs_mix_out	<<"beta_delta_t and beta_delta_t2 and gamma_delta_t"<< endl ;
-			fs_mix_out	<<"beta_delta_t="<<beta_delta_t<<"   beta_delta_t2="<<beta_delta_t2<< "    gamma_delta_t=" <<gamma_delta_t<<endl ;
-			fs_mix_out	<<"beta_delta_t and beta_delta_t2"<< endl ;
 
 		
 			const int IP = fShapes_displ->CurrIP();	
-			fs_mix_out	<<"Integration point number"<< endl ;
-			fs_mix_out	<<IP<< endl ;
-			fs_mix_out	<<"Integration point number"<< endl ;
 			dArrayT SolidIPCoordinate(n_sd),FluidIPCoordinate(n_sd);
 			fShapes_displ->IPCoords(SolidIPCoordinate);
 			fShapes_press->IPCoords(FluidIPCoordinate);
@@ -2017,7 +1870,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFtheta_int_H4_vector} will be formed */
 			fLambda_temp_matrix.Multx(fGravity_vector,fTemp_vector_nen_press);
-			scale = J*fRho_f*scale_const;
+			scale = 1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
 			fTemp_vector_nen_press *= scale ;
 			/* accumulate */
 			fFtheta_int_H4_vector += fTemp_vector_nen_press;
@@ -2280,41 +2133,13 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			
 
-		/* Creating G3 matrix based on article's formulation */
-		/* [fK_dd_G3_1_matrix] will be formed */
-//				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fc_matrix,fIota_temp_matrix);
-//				scale = scale_const;
-//				fTemp_matrix_ndof_se_x_ndof_se *= scale;
-		/* accumulate */
-//				fK_dd_G3_1_matrix += fTemp_matrix_ndof_se_x_ndof_se;
-		
-		
-		/* [fK_dd_G3_2_matrix] will be formed */
-//				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fIm_Prim_temp_matrix,fIota_temp_matrix);
-//				scale = scale_const;
-//				fTemp_matrix_ndof_se_x_ndof_se *= scale;
-		/* accumulate */
-//				fK_dd_G3_2_matrix += fTemp_matrix_ndof_se_x_ndof_se;
-		
-		
-		/* [fK_dd_G3_3_matrix] will be formed */
-//				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fShapeSolidGrad_t_Transpose,fDefGradInv_Grad_grad_Transpose,fIota_temp_matrix);
-//				scale = theta * scale_const;
-//				fTemp_matrix_ndof_se_x_ndof_se *= scale;
-		/* accumulate */
-//				fK_dd_G3_3_matrix += fTemp_matrix_ndof_se_x_ndof_se;
-		
-		
-		
-
-		
 /*********************************************************************************************************************************************
  *********************************************************************************************************************************************
  *********************************************************************************************************************************************/
 		
 		
 		
-			/* implementing small strain deformation of an elastic media  for solid phase */
+			/* implementing small strain deformation of an elastic media  for solid phase just for debugging */
 			
 			/* [fD_matrix] will be formed */
 			Form_D_matrix();
@@ -2341,13 +2166,13 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 // defining F_1_T
 			/* for debugging */
 			const int ip = fShapes_displ->CurrIP()+1;
-			fs_mix_out	<< endl << "IP" << ip
-					<< setw(outputFileWidth) << ", shape function matrix for solid phase: " 
-					<< setw(outputFileWidth) << fShapeSolid;
+//			fs_mix_out	<< endl << "IP" << ip
+//					<< setw(outputFileWidth) << ", shape function matrix for solid phase: " 
+//					<< setw(outputFileWidth) << fShapeSolid;
 			
-			fs_mix_out	<< endl << "terms from shape function matrix for solid phase: " 
-					<< setw(outputFileWidth) << fShapeSolid(0,0) 
-					<< setw(outputFileWidth) << fShapeSolid(0,3);	
+//			fs_mix_out	<< endl << "terms from shape function matrix for solid phase: " 
+//					<< setw(outputFileWidth) << fShapeSolid(0,0) 
+//					<< setw(outputFileWidth) << fShapeSolid(0,3);	
 		    }		
 	    
 		    /* saving eulerian effective strain for each IPs of the current element */
@@ -2376,9 +2201,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fFd_int += fFd_int_N1_vector;
 		    fFd_int += fFd_int_N2_vector; 
 		    fFd_int += fFd_int_G4_vector;
-		    fs_mix_out	<<"Accumulative fFd_int for all 27 IP"<< endl ;
-		    fs_mix_out	<< fFd_int<< endl ;
-		    fs_mix_out	<<"Accumulative fFd_int for all 27 IP"<< endl ;
 		    fFd_int *= -1;
 	    
 /*			fK_dd_BTDB_matrix.MultTx(u_vec,fTemp_vector_ndof_se);
@@ -2399,11 +2221,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fKdd += fK_dd_G3_4_matrix;
 		    fKdd += fK_dd_G3_5_matrix; 
 		    fKdd += fK_dd_G4_matrix; 
-		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
-		    fs_mix_out	<< fKdd<< endl ;
-		    fs_mix_out	<<"Accumulative fKdd for all 27 IP"<< endl ;
-
-
 
 
 
@@ -2414,10 +2231,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fKdtheta = fK_dtheta_G1_matrix;	    
 		    fKdtheta += fK_dtheta_G3_matrix;
 		    fKdtheta += fK_dtheta_G4_matrix;
-		    fs_mix_out	<<"Accumulative fKdtheta for all 27 IP"<< endl ;
-		    fs_mix_out	<< fKdtheta<< endl ;
-		    fs_mix_out	<<"Accumulative fKdtheta for all 27 IP"<< endl ;
-
 	    
 	    
 		    /* [fKthetad] will be formed */
@@ -2437,10 +2250,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fKthetad += fK_thetad_H4_1_matrix;
 		    fKthetad += fK_thetad_H4_2_matrix;
 		    fKthetad += fK_thetad_H4_3_matrix;
-		    fs_mix_out	<<"Accumulative fKthetad for all 27 IP"<< endl ;
-		    fs_mix_out	<< fKthetad<< endl ;
-		    fs_mix_out	<<"Accumulative fKthetad for all 27 IP"<< endl ;
-
 
 
 		    /* [fKthetatheta] will be formed */
@@ -2451,10 +2260,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fKthetatheta += fK_thetatheta_H3_1_matrix;
 		    fKthetatheta += fK_thetatheta_H3_2_matrix;
 		    fKthetatheta += fK_thetatheta_H4_matrix;	
-		    fs_mix_out	<<"Accumulative fKthetatheta for all 27 IP"<< endl ;
-		    fs_mix_out	<< fKthetatheta<< endl ;
-		    fs_mix_out	<<"Accumulative fKthetatheta for all 27 IP"<< endl ;
-    
 
 
 		    /* {fFtheta_int_M_vector} will be formed */
@@ -2476,9 +2281,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fFtheta_int += fFtheta_int_N1_vector;
 		    fFtheta_int += fFtheta_int_N2_vector;
 		    fFtheta_int += fFtheta_int_H4_vector;
-		    fs_mix_out	<<"Accumulative fFtheta_int for all 27 IP"<< endl ;
-		    fs_mix_out	<< fFtheta_int<< endl ;
-		    fs_mix_out	<<"Accumulative fFtheta_int for all 27 IP"<< endl ;
 		    fFtheta_int *= -1;
 		    
 
@@ -2991,7 +2793,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     /* setup output file and format */
     outputPrecision = 10;
     outputFileWidth = outputPrecision + 8;
-    fs_mix_out.open("fs_mix.info");
+//    fs_mix_out.open("fs_mix.info");
 }
 
 
