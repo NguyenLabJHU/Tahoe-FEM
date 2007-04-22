@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.9 2006-09-04 01:30:24 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.10 2007-04-22 16:43:16 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -24,6 +24,9 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/

@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.27 2006-09-04 01:30:24 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.28 2007-04-22 16:43:16 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -11,6 +11,9 @@
 #include "EAMFCC3DMatT_surf.h"
 #include "MaterialListT.h"
 #include "eIntegratorT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
+#include "InverseMapT.h"
 
 using namespace Tahoe;
 
@@ -283,6 +286,18 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 	}	
 }
 
+/* information about subordinate parameter lists */
+void TotalLagrangianCBSurfaceT::DefineSubs(SubListT& sub_list) const
+{
+	const char caller[] = "TotalLagrangianCBSurfaceT::TakeParameterList";
+	
+	/* inherited */
+	TotalLagrangianT::DefineSubs(sub_list);
+
+	/* list of passivated surfaces - side set list */
+	sub_list.AddSub("passivated_surface_ID_list", ParameterListT::ZeroOrOnce);	
+}
+
 /* accept parameter list */
 void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 {
@@ -472,6 +487,61 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 				fSurfaceElementFacesType(i,j) = normal_type;
 			}
 	}
+	
+	/* process passivated surfaces */
+	const ParameterListT* passivated_surfaces = list.List("passivated_surface_ID_list");
+	if (passivated_surfaces) {
+		ArrayT<StringT> ss_ID;
+		StringListT::Extract(*passivated_surfaces, ss_ID);
+		if (ss_ID.Length() > 0) {
+
+			/* need map into the surface element list */
+			InverseMapT surf_elem_map;
+			surf_elem_map.SetOutOfRange(InverseMapT::Throw);
+			surf_elem_map.SetMap(fSurfaceElements);
+
+			/* model manager */
+			ModelManagerT& model = ElementSupport().ModelManager();
+
+			/* loop over side set ID's */
+			for (int i = 0; i < ss_ID.Length(); i++) {
+				const StringT& id = ss_ID[i];
+				
+				/* side set parameters */
+				iArray2DT sides = model.SideSet(id);
+				const StringT& block_id = model.SideSetGroupID(id);
+
+				if (sides.MajorDim() > 0) {
+
+					/* convert to element numbering within the group */
+					iArrayT elems(sides.MajorDim());
+					sides.ColumnCopy(0, elems);
+					BlockToGroupElementNumbers(elems, block_id);
+					sides.SetColumn(0, elems);
+			
+					/* mark passivated faces */
+					for (int j = 0; j < sides.MajorDim(); j++) {
+						int elem = sides(j,0);
+						int s_elem = surf_elem_map.Map(elem);
+						int side = sides(j,1);
+						
+						/* mark as non-surface (by giving negative neighbor id) */
+						fSurfaceElementNeighbors(s_elem,side) = -2;
+					}
+				}
+			}
+		}
+	}
+
+//TEMP
+if (0) {
+fSurfaceElements++;
+cout << "surface elements:\n" << fSurfaceElements.wrap(10) << "\n";
+fSurfaceElementNeighbors.WriteNumbered(cout);
+fSurfaceElements--;
+cout << endl;
+ExceptionT::Stop();
+}
 
 	/* initialize data for split integration */
 	fSplitInitCoords.Dimension(nen, nsd);
