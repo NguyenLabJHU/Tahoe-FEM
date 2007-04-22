@@ -1,4 +1,4 @@
-/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.11 2006-08-18 01:23:44 a-kopacz Exp $ */
+/* $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fluid_element/FluidElementT.h,v 1.12 2007-04-22 16:42:02 paklein Exp $ */
 /* created: a-kopacz (07/04/2006) */
 #ifndef _FLUID_ELEMENT_H_
 #define _FLUID_ELEMENT_H_
@@ -97,7 +97,7 @@ protected:
 	virtual bool NextElement(void);
 
 	/** set initial velocities */
-	void FluidElementT::InitialCondition(void);
+	void InitialCondition(void);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
