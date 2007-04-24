@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.28 2007-04-22 16:43:16 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.29 2007-04-24 01:15:05 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -104,7 +104,7 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 
 	/* matrix alias to fNEEvec */
 	dMatrixT WP(nsd, fStressStiff.Rows(), fNEEvec.Pointer());
-
+	
 	/* loop over surface elements */
 	dMatrixT jacobian(nsd, nsd-1);
 	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
@@ -118,6 +118,13 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 	dMatrixT F_inv(nsd);
 	dMatrixT PK1(nsd), cauchy(nsd);
 	double t_surface;
+	
+	/* TEMPORARY */
+//	dArrayT force1, force2;
+//	force1.Dimension(24);
+//	force2.Dimension(24);
+//	int count = 0;
+	
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
 		/* bulk element information */
@@ -210,6 +217,15 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 
 					/* accumulate */
 					fRHS.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
+					
+					/* If normal code = 1, check what happens */
+					if (normal_type == 1)
+					{
+						//force1.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
+						//cout << "Sum of force1 = " << force1.Sum() << endl;
+						//count ++;
+						//cout << "count = " << count << endl;
+					}
 				}
 
 				/* integrate over the face */
@@ -264,6 +280,15 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 
 					/* accumulate */
 					fRHS.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
+					
+					/* If normal code = 1, check what happens */
+					if (normal_type == 1)
+					{
+						//force2.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
+						//cout << "Sum of force2 = " << force2.Sum() << endl;
+						//count ++;
+						//cout << "count = " << count << endl;
+					}
 				}
 				
 				/* assemble force */
@@ -826,6 +851,13 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	dMatrixT F_inv(nsd);
 	dMatrixT PK1(nsd), cauchy(nsd);
 	double t_surface;
+	
+	/* TEMPORARY */
+//	dArrayT force1,force2;
+//	force1.Dimension(24);
+//	force2.Dimension(24);
+//	int count = 0;
+	
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
 		/* bulk element information */
@@ -850,6 +882,7 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 
 				/* set up split integration */
 				int normal_type = fSurfaceElementFacesType(i,j);
+				//cout << "normal_type = " << normal_type << endl;
 				
 				if (fIndicator == "FCC_3D")
 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
@@ -911,6 +944,15 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 
 					/* accumulate */
 					fRHS.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
+					
+					/* If normal code = 1, check what happens */
+					if (normal_type == 1)
+					{
+						//force1.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
+						//cout << "Sum of force1 = " << force1.Sum() << endl;
+						//count ++;
+						//cout << "count = " << count << endl;
+					}
 				}
 
 				/* integrate over the face */
@@ -967,6 +1009,15 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 
 					/* accumulate */
 					fRHS.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
+					
+					/* If normal code = 1, check what happens */
+					if (normal_type == 1)
+					{
+						//force2.AddScaled(J*constKd*w[face_ip]*detj, fNEEvec);
+						//cout << "Sum of force2 = " << force2.Sum() << endl;
+						//count++;
+						//cout << "count = " << count << endl;
+					}
 				}				
 			}
 			

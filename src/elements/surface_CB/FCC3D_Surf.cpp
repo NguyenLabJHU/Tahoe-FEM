@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.18 2006-07-05 17:46:57 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.19 2007-04-24 01:15:05 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -180,7 +180,8 @@ void FCC3D_Surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {	
 	fFCCLattice_Surf->ComputeDeformedLengths(E);
 	const dArrayT& bond_length = fFCCLattice_Surf->DeformedLengths();
-
+	const dArray2DT& bonds = fFCCLattice_Surf->Bonds();
+	
 	/* fetch function pointers */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
 	PairPropertyT::StiffnessFunction stiffness = fPairProperty->getStiffnessFunction();
