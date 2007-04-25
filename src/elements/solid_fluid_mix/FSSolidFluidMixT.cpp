@@ -548,9 +548,9 @@ void FSSolidFluidMixT::RegisterOutput(void)
     /* over integration points */
     // enter what values you need at integration points
     // stress and strain
-    const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","e11","e22","e33","e23","e13","e12"};
-    // state variables; kappa is fictitious right now
-    const char* svlabels3D[] = {"phi_s","phi_f"};
+    const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","p","e11","e22","e33","e23","e13","e12"};
+    // state variables; phi_s and phi_f
+    const char* svlabels3D[] = {"phi_s","phi_f","J"};
     int count = 0;
     for (int j = 0; j < fNumIP_press; j++)
     {
@@ -884,10 +884,12 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
 		Put_values_In_dArrayT_vector(fCauchy_effective_stress_Elements_IPs, e,l,fTemp_six_values);
 		out_variable.CopyIn(0,fTemp_six_values);
+		out_variable[6]=fPhysical_pore_water_pressure_Elements_IPs(e,l);
 		Put_values_In_dArrayT_vector(fEulerian_effective_strain_Elements_IPs, e,l,fTemp_six_values);
-		out_variable.CopyIn(6,fTemp_six_values);
-		out_variable[12]=fState_variables_Elements_IPs(e,l*2+0);
-		out_variable[13]=fState_variables_Elements_IPs(e,l*2+1);
+		out_variable.CopyIn(7,fTemp_six_values);
+		out_variable[13]=fState_variables_Elements_IPs(e,l*2+0);
+		out_variable[14]=fState_variables_Elements_IPs(e,l*2+1);
+		out_variable[15]=fState_variables_Elements_IPs(e,l*2+2);
 	    } 
 	}
 	else 
@@ -989,9 +991,17 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* Calculating Jacobian */
 			double J = fDeformation_Gradient.Det();
+
+			
+			/* Jacobian for the current IP will be saved */
+			fState_variables_IPs(IP,2)=J;
+
 			
 			/* Calculating fP_f */
 			double fP_f=theta/J;
+
+                        /* Physical pore water pressure for the current IP will be saved */
+			fPhysical_pore_water_pressure_IPs(IP,0)=fP_f;
 			
 			/* Calculating fRho_f */
 			fRho_f = fMaterial_Params[kRho_fR0]*exp((fP_f-fPf_0_matrix(CurrElementNumber(),IP))/
@@ -1133,7 +1143,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* {fFtheta_int_N1_vector} will be formed */
 			double const1 = fMaterial_Params[kg]* phi_f;
 			if (fabs(const1)>1.0e-16)
-			    scale = theta*(-1.0/fMaterial_Params[kg]) * ((phi_s/phi_f)-1) * scale_const;
+			    scale = theta*(1.0/fMaterial_Params[kg]) * ((phi_s/phi_f)-1) * scale_const;
 			else
 			    scale = 0.0;
 			fTemp_matrix_nen_press_x_nsd.MultAB(fLambda_temp_matrix,fDeformation_Gradient_Inverse_Transpose);
@@ -1144,7 +1154,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFtheta_int_N2_vector} will be formed */
 			fTemp_matrix_nen_press_x_nen_press.MultAB(fTemp_matrix_nen_press_x_nsd,fShapeFluidGrad);
-			scale = -1.0/fMaterial_Params[kg]*scale_const; 
+			scale = 1.0/fMaterial_Params[kg]*scale_const; 
 			fTemp_matrix_nen_press_x_nen_press.Multx(press_vec, fTemp_vector_nen_press,scale);
 			/* accumulate */
 			fFtheta_int_N2_vector += fTemp_vector_nen_press;
@@ -1246,7 +1256,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fM_thetad_matrix] will be formed */
 			fTemp_matrix_nen_press_x_ndof_se.MultAB(fLambda_temp_matrix,fShapeSolid);
-			scale = -1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
+			scale = 1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
 			fTemp_matrix_nen_press_x_ndof_se *= scale;
 			/* accumulate */
 			fM_thetad_matrix += fTemp_matrix_nen_press_x_ndof_se;
@@ -1270,7 +1280,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFtheta_int_H4_vector} will be formed */
 			fLambda_temp_matrix.Multx(fGravity_vector,fTemp_vector_nen_press);
-			scale = 1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
+			scale = -1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
 			fTemp_vector_nen_press *= scale ;
 			/* accumulate */
 			fFtheta_int_H4_vector += fTemp_vector_nen_press;
@@ -1312,7 +1322,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    
 		    /* saving cauchy effective stress for each IPs of the current element */
 		    fCauchy_effective_stress_Elements_IPs.SetRow(e,fCauchy_effective_stress_IPs);
-		    
+
+                    /* saving physical pore water pressure for each IPs of the current element */
+		    fPhysical_pore_water_pressure_Elements_IPs.SetRow(e,fPhysical_pore_water_pressure_IPs);
 		    
 		    /* saving state variables for each IPs of the current element */
 		    fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
@@ -1473,9 +1485,17 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* Calculating Jacobian */
 			double J = fDeformation_Gradient.Det();
+
+			/* Jacobian for the current IP will be saved */
+			fState_variables_IPs(IP,2)=J;
+
 			
 			/* Calculating fP_f */
 			double fP_f=theta/J;
+
+                        /* Physical pore water pressure for the current IP will be saved */
+			fPhysical_pore_water_pressure_IPs(IP,0)=fP_f;
+
 			
 			/* Calculating fRho_f */
 			fRho_f = fMaterial_Params[kRho_fR0]*exp((fP_f-fPf_0_matrix(CurrElementNumber(),IP))/
@@ -1617,7 +1637,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* {fFtheta_int_N1_vector} will be formed */
 			double const1 = fMaterial_Params[kg]* phi_f;
 			if (fabs(const1)>1.0e-16)
-			    scale = theta*(-1.0/fMaterial_Params[kg]) * ((phi_s/phi_f)-1) * scale_const;
+			    scale = theta*(1.0/fMaterial_Params[kg]) * ((phi_s/phi_f)-1) * scale_const;
 			else
 			    scale = 0.0;
 			fTemp_matrix_nen_press_x_nsd.MultAB(fLambda_temp_matrix,fDeformation_Gradient_Inverse_Transpose);
@@ -1628,7 +1648,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFtheta_int_N2_vector} will be formed */
 			fTemp_matrix_nen_press_x_nen_press.MultAB(fTemp_matrix_nen_press_x_nsd,fShapeFluidGrad);
-			scale = -1.0/fMaterial_Params[kg]*scale_const; 
+			scale = 1.0/fMaterial_Params[kg]*scale_const; 
 			fTemp_matrix_nen_press_x_nen_press.Multx(press_vec, fTemp_vector_nen_press,scale);
 			/* accumulate */
 			fFtheta_int_N2_vector += fTemp_vector_nen_press;
@@ -1743,7 +1763,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fK_thetad_H3_1_matrix] will be formed */
 			const1 = fMaterial_Params[kg]*phi_f;
 			if (fabs(const1) > 1e-16) 
-			    scale = (theta*phi_s/(fMaterial_Params[kg]*phi_f))*
+			    scale = (-1*theta*phi_s/(fMaterial_Params[kg]*phi_f))*
 				(phi_s/phi_f +1)*beta_delta_t2*scale_const;
 			else
 			    scale = 0.0;
@@ -1757,7 +1777,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fK_thetad_H3_2_matrix] will be formed */
 			const1 = fMaterial_Params[kg]*phi_f ;
 			if (fabs(const1) > 1e-16)
-			    scale = -1*(theta/fMaterial_Params[kg])*
+			    scale = 1*(theta/fMaterial_Params[kg])*
 				(phi_s/phi_f -1)*beta_delta_t2*scale_const;
 			else
 			    scale = 0.0;
@@ -1770,7 +1790,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fK_thetad_H3_3_matrix] will be formed */
 			const1 = fMaterial_Params[kg]*phi_f;
 			if (fabs(const1) > 1e-16)
-			    scale = J/(fMaterial_Params[kg]*phi_f)*beta_delta_t2*scale_const;
+			    scale = -1*J/(fMaterial_Params[kg]*phi_f)*beta_delta_t2*scale_const;
 			else
 			    scale = 0.0;
 			fTemp_matrix_nen_press_x_nsd.MultATB(fShapeFluidGrad,fDeformation_Gradient_Inverse);
@@ -1788,7 +1808,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			
 			/* [fK_thetatheta_H3_1_matrix] will be formed */
-			scale = -1*(1/fMaterial_Params[kg])*beta_delta_t2*scale_const;
+			scale = (1/fMaterial_Params[kg])*beta_delta_t2*scale_const;
 			fTemp_matrix_nen_press_x_nsd.MultAB(fLambda_temp_matrix,fDeformation_Gradient_Inverse_Transpose);
 			fTemp_matrix_nen_press_x_nen_press.MultAB(fTemp_matrix_nen_press_x_nsd,fShapeFluidGrad);
 			fTemp_matrix_nen_press_x_nen_press *= scale;
@@ -1798,7 +1818,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fK_thetatheta_H3_2_matrix] will be formed */
 			const1 = fMaterial_Params[kg] * phi_f ;
 			if (fabs(const1)> 1e-16)
-			    scale =  -1*(1/fMaterial_Params[kg])*
+			    scale =  (1/fMaterial_Params[kg])*
 				(phi_s/phi_f -1)*beta_delta_t2*scale_const;
 			else
 			    scale = 0.0;
@@ -1846,7 +1866,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fM_thetad_matrix] will be formed */
 			fTemp_matrix_nen_press_x_ndof_se.MultAB(fLambda_temp_matrix,fShapeSolid);
-			scale = -1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
+			scale = 1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
 			fTemp_matrix_nen_press_x_ndof_se *= scale;
 			/* accumulate */
 			fM_thetad_matrix += fTemp_matrix_nen_press_x_ndof_se;
@@ -1870,7 +1890,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFtheta_int_H4_vector} will be formed */
 			fLambda_temp_matrix.Multx(fGravity_vector,fTemp_vector_nen_press);
-			scale = 1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
+			scale = -1/(fMaterial_Params[kg])*J*fRho_f*scale_const;
 			fTemp_vector_nen_press *= scale ;
 			/* accumulate */
 			fFtheta_int_H4_vector += fTemp_vector_nen_press;
@@ -1978,7 +1998,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
 			/* [fK_thetad_H1_1_matrix] will be formed */
 			fTemp_matrix_nen_press_x_ndof_se.MultAB(fLambda_temp_matrix,fShapeSolid);
-			scale = -1/fMaterial_Params[kg]*J*fRho_f*scale_const;
+			scale = 1/fMaterial_Params[kg]*J*fRho_f*scale_const;
 			fTemp_matrix_nen_press_x_ndof_se *= scale;
 			/* accumulate */
 			fK_thetad_H1_1_matrix += fTemp_matrix_nen_press_x_ndof_se;
@@ -1987,7 +2007,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fK_thetad_H1_2_matrix] will be formed */
 			fTemp_matrix_nsd_x_ndof_se.MultABC(fShapeSolid,u_dotdot_column_matrix,fPi_temp_row_matrix);
 			fTemp_matrix_nen_press_x_ndof_se.MultAB(fLambda_temp_matrix,fTemp_matrix_nsd_x_ndof_se);
-			scale = -1/fMaterial_Params[kg]*J*fRho_f*beta_delta_t2*scale_const;
+			scale = 1/fMaterial_Params[kg]*J*fRho_f*beta_delta_t2*scale_const;
 			fTemp_matrix_nen_press_x_ndof_se *= scale;
 			/* accumulate */
 			fK_thetad_H1_2_matrix += fTemp_matrix_nen_press_x_ndof_se;
@@ -1996,7 +2016,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fK_thetad_H1_3_matrix] will be formed */
 			fTemp_matrix_nsd_x_ndof_se.MultABCT(fDeformation_Gradient_Inverse,fAleph_temp_matrix,fIota_temp_matrix);
 			fTemp_matrix_nen_press_x_ndof_se.MultATB(fShapeFluidGrad,fTemp_matrix_nsd_x_ndof_se);
-			scale = 1/fMaterial_Params[kg]*J*fRho_f*beta_delta_t2*scale_const;
+			scale = -1/fMaterial_Params[kg]*J*fRho_f*beta_delta_t2*scale_const;
 			fTemp_matrix_nen_press_x_ndof_se *= scale;
 			/* accumulate */
 			fK_thetad_H1_3_matrix += fTemp_matrix_nen_press_x_ndof_se;
@@ -2005,7 +2025,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fK_thetad_H1_4_matrix] will be formed */
 			fTemp_matrix_nsd_x_ndof_se.MultABC(fShapeSolid,u_dotdot_column_matrix,fPi_temp_row_matrix);
 			fTemp_matrix_nen_press_x_ndof_se.MultAB(fLambda_temp_matrix,fTemp_matrix_nsd_x_ndof_se);
-			scale = -1/(fMaterial_Params[kKf]*fMaterial_Params[kg])*
+			scale = 1/(fMaterial_Params[kKf]*fMaterial_Params[kg])*
 			    fRho_f*theta*beta_delta_t2*scale_const;
 			fTemp_matrix_nen_press_x_ndof_se *= scale;
 			/* accumulate */
@@ -2015,7 +2035,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fK_thetatheta_H1_matrix] will be formed */
 			fTemp_matrix_nsd_x_nen_press.MultABC(fShapeSolid,u_dotdot_column_matrix,fShapeFluid_row_matrix);
 			fTemp_matrix_nen_press_x_nen_press.MultAB(fLambda_temp_matrix,fTemp_matrix_nsd_x_nen_press);
-			scale = -1/(fMaterial_Params[kg]*fMaterial_Params[kKf])*
+			scale = 1/(fMaterial_Params[kg]*fMaterial_Params[kKf])*
 			    fRho_f*beta_delta_t2*scale_const;
 			fTemp_matrix_nen_press_x_nen_press *= scale;
 			/* accumulate */
@@ -2099,7 +2119,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fK_thetad_H4_1_matrix] will be formed */
 			fTemp_matrix_nen_press_x_ndof_se.MultABC(fLambda_temp_matrix,fGravity_column_matrix,fPi_temp_row_matrix);
-			scale = -1/(fMaterial_Params[kg]*fMaterial_Params[kKf])*
+			scale = 1/(fMaterial_Params[kg]*fMaterial_Params[kKf])*
 			    fRho_f*theta*beta_delta_t2*scale_const;
 			fTemp_matrix_nen_press_x_ndof_se *= scale;
 			/* accumulate */
@@ -2109,7 +2129,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fK_thetad_H4_2_matrix] will be formed */
 			fTemp_matrix_nsd_x_ndof_se.MultABCT(fDeformation_Gradient_Inverse,fImath_temp_matrix,fIota_temp_matrix);
 			fTemp_matrix_nen_press_x_ndof_se.MultATB(fShapeFluidGrad,fTemp_matrix_nsd_x_ndof_se);
-			scale = -1/(fMaterial_Params[kg])*J*fRho_f*beta_delta_t2*scale_const;
+			scale = 1/(fMaterial_Params[kg])*J*fRho_f*beta_delta_t2*scale_const;
 			fTemp_matrix_nen_press_x_ndof_se *= scale;
 			/* accumulate */
 			fK_thetad_H4_2_matrix += fTemp_matrix_nen_press_x_ndof_se;
@@ -2117,7 +2137,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fK_thetad_H4_3_matrix] will be formed */
 			fTemp_matrix_nen_press_x_ndof_se.MultABC(fLambda_temp_matrix,fGravity_column_matrix,fPi_temp_row_matrix);
-			scale = 1/(fMaterial_Params[kg])*J*fRho_f*beta_delta_t2*scale_const;
+			scale = -1/(fMaterial_Params[kg])*J*fRho_f*beta_delta_t2*scale_const;
 			fTemp_matrix_nen_press_x_ndof_se *= scale;
 			/* accumulate */
 			fK_thetad_H4_3_matrix += fTemp_matrix_nen_press_x_ndof_se;
@@ -2125,7 +2145,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fK_thetatheta_H4_matrix] will be formed */
 			fTemp_matrix_nen_press_x_nen_press.MultABC(fLambda_temp_matrix,fGravity_column_matrix,fShapeFluid_row_matrix);
-			scale = 1/(fMaterial_Params[kg]*fMaterial_Params[kKf])*
+			scale = -1/(fMaterial_Params[kg]*fMaterial_Params[kKf])*
 			    fRho_f*beta_delta_t2*scale_const;
 			fTemp_matrix_nen_press_x_nen_press *= scale;
 			/* accumulate */
@@ -2181,6 +2201,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 	    
 		    /* saving cauchy effective stress for each IPs of the current element */
 		    fCauchy_effective_stress_Elements_IPs.SetRow(e,fCauchy_effective_stress_IPs);
+
+                    /* saving physical pore water pressure for each IPs of the current element */
+		    fPhysical_pore_water_pressure_Elements_IPs.SetRow(e,fPhysical_pore_water_pressure_IPs);
 	    
 	    
 		    /* saving state variables for each IPs of the current element */
@@ -2456,12 +2479,12 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
 	
     Echo_Input_Data();
 	
-    knum_d_state = 2; // evolving volume fractions for solid and fluid phases are 
+    knum_d_state = 3; // evolving volume fractions for solid and fluid phases and Jacobian are 
                       // printed as internal state variables
     knum_i_state = 0; // int's needed per ip, state variables
 	
     knumstrain = 6; // number of strain outputs
-    knumstress = 6; // number of stress outputs
+    knumstress = 7; // number of stress outputs + physical pore water pressure
 	
     output = "out";
 	
@@ -2641,9 +2664,6 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fRight_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fRight_Cauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
     fLeft_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
-    fTest_matrix_A.Dimension (2,2);
-    fTest_matrix_B.Dimension (2,2);
-    fTest_matrix_C.Dimension (2,2);
     fIdentity_matrix.Dimension (n_sd,n_sd);
     fEffective_Second_Piola_tensor.Dimension (n_sd,n_sd);
     fTemp_matrix_nsd_x_nsd.Dimension (n_sd,n_sd);
@@ -2707,11 +2727,13 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fCauchy_effective_stress_tensor_current_IP.Dimension (n_sd,n_sd);
     fEulerian_effective_strain_IPs.Dimension (fNumIP_displ,6);
     fCauchy_effective_stress_IPs.Dimension (fNumIP_displ,6);
-    fState_variables_IPs.Dimension (fNumIP_displ,2);
+    fPhysical_pore_water_pressure_IPs.Dimension (fNumIP_displ,1);
+    fState_variables_IPs.Dimension (fNumIP_displ,3);
     fTemp_six_values.Dimension (6);
     fEulerian_effective_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
     fCauchy_effective_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
-    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*2);
+    fPhysical_pore_water_pressure_Elements_IPs.Dimension (NumElements(),fNumIP_displ);
+    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*3);
     fM_dd_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fUpsilon_temp_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fC_dd_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
@@ -2773,9 +2795,6 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fK_thetatheta_H4_matrix.Dimension (n_en_press,n_en_press);
     fPf_0_matrix.Dimension (NumElements(),fNumIP_displ);
     fP0_temp_value.Dimension (1);
-
-    Test_vector_A.Dimension(3);
-    Test_vector_B.Dimension(3);
 
     /* streams */
     ofstreamT& out = ElementSupport().Output();

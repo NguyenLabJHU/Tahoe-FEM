@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.20 2007-04-20 02:32:54 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.21 2007-04-25 19:37:11 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -322,8 +322,6 @@ private:
         dArrayT         fFtheta_int_C1_vector;
         dArrayT         fFtheta_int_C2_vector;
         dArrayT         fTemp_vector_nen_press;
-        dArrayT	        Test_vector_A;
-        dArrayT	        Test_vector_B;
         dArrayT	        fPi_temp_transpose_vector;
         dArrayT	        fGrad_Omega_vector;
         dArrayT	        fgrad_Omega_vector;
@@ -352,9 +350,6 @@ private:
 	dMatrixT	fDefGradInv_Grad_grad;
 	dMatrixT	fDefGradInv_Grad_grad_Transpose;
 	dMatrixT	fIdentity_matrix;
-	dMatrixT	fTest_matrix_A;
-	dMatrixT	fTest_matrix_B;
-	dMatrixT	fTest_matrix_C;
         dMatrixT	fEffective_Second_Piola_tensor;
         dMatrixT	fTemp_matrix_nsd_x_nsd;
         dMatrixT	fTemp_matrix_nen_press_x_nsd;
@@ -458,10 +453,13 @@ private:
         dMatrixT	fCauchy_effective_stress_tensor_current_IP;
         /* to store fCauchy_effective_stress_IPs for each of the 27 IPs of each element */
         dArray2DT	fCauchy_effective_stress_IPs;
+        /* to store fPhysical_pore_water_pressure_IPs for each of the 27 IPs of each element */
+        dArray2DT	fPhysical_pore_water_pressure_IPs;
         /* volume fractions of the solid phase and fluid phase for each of the 27 IP nodes of element is stored */
         dArray2DT	fState_variables_IPs;
         dArray2DT	fEulerian_effective_strain_Elements_IPs;
         dArray2DT	fCauchy_effective_stress_Elements_IPs;
+        dArray2DT	fPhysical_pore_water_pressure_Elements_IPs;
         dArray2DT	fState_variables_Elements_IPs;
 
 
