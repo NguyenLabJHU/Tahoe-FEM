@@ -887,9 +887,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		out_variable[6]=fPhysical_pore_water_pressure_Elements_IPs(e,l);
 		Put_values_In_dArrayT_vector(fEulerian_effective_strain_Elements_IPs, e,l,fTemp_six_values);
 		out_variable.CopyIn(7,fTemp_six_values);
-		out_variable[13]=fState_variables_Elements_IPs(e,l*2+0);
-		out_variable[14]=fState_variables_Elements_IPs(e,l*2+1);
-		out_variable[15]=fState_variables_Elements_IPs(e,l*2+2);
+		out_variable[13]=fState_variables_Elements_IPs(e,l*3+0);
+		out_variable[14]=fState_variables_Elements_IPs(e,l*3+1);
+		out_variable[15]=fState_variables_Elements_IPs(e,l*3+2);
 	    } 
 	}
 	else 
@@ -999,6 +999,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* Calculating fP_f */
 			double fP_f=theta/J;
+
 
                         /* Physical pore water pressure for the current IP will be saved */
 			fPhysical_pore_water_pressure_IPs(IP,0)=fP_f;
@@ -1485,6 +1486,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* Calculating Jacobian */
 			double J = fDeformation_Gradient.Det();
+
 
 			/* Jacobian for the current IP will be saved */
 			fState_variables_IPs(IP,2)=J;
