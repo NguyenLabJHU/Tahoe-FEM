@@ -1,4 +1,4 @@
-/* $Id: RGSplitT2.cpp,v 1.1 2007-04-09 22:27:06 tdnguye Exp $ */
+/* $Id: RGSplitT2.cpp,v 1.2 2007-04-26 03:48:32 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT2.h"
@@ -15,7 +15,9 @@
 #include "VWPotentialT.h"
 
 #include "LinearExponentialT.h"
+#ifdef __DEVELOPMENT__
 #include "ScaledCsch.h"
+#endif
 
 using namespace Tahoe;
 
@@ -725,10 +727,12 @@ ParameterInterfaceT* RGSplitT2::NewSub(const StringT& name) const
 		return pot;
 
 	C1FunctionT* func = NULL;
-	if (name == "scaled-csch")
-		func = new ScaledCsch;
-	else if (name == "linear_exponential")
+	if (name == "linear_exponential")
 		func = new LinearExponentialT;
+#ifdef __DEVELOPMENT__
+	else if (name == "scaled-csch")
+		func = new ScaledCsch;
+#endif
 
 	if (func)
 		return func;
@@ -819,8 +823,12 @@ void RGSplitT2::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& shear_visc = list.GetListChoice(*this, "rg_shear_viscosity", i);
 		if (shear_visc.Name() == "linear_exponential")
 			fVisc_s[i] = new LinearExponentialT;
+
+#ifdef __DEVELOPMENT__
 		else if (shear_visc.Name() == "scaled-csch")
 			fVisc_s[i] = new ScaledCsch;
+#endif
+
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fVisc_s[i]) throw ExceptionT::kOutOfMemory;
@@ -829,8 +837,12 @@ void RGSplitT2::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& bulk_visc = list.GetListChoice(*this, "rg_bulk_viscosity", i);
 		if (bulk_visc.Name() == "linear_exponential")
 			fVisc_b[i] = new LinearExponentialT;
+
+#ifdef __DEVELOPMENT__
 		else if (bulk_visc.Name() == "scaled-csch")
 			fVisc_b[i] = new ScaledCsch;
+#endif
+
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fVisc_b[i]) throw ExceptionT::kOutOfMemory;
