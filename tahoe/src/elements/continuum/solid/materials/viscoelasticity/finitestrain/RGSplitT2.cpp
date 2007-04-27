@@ -1,4 +1,4 @@
-/* $Id: RGSplitT2.cpp,v 1.2 2007-04-26 03:48:32 paklein Exp $ */
+/* $Id: RGSplitT2.cpp,v 1.3 2007-04-27 00:56:09 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT2.h"
@@ -756,7 +756,9 @@ ParameterInterfaceT* RGSplitT2::NewSub(const StringT& name) const
 		choice->SetListOrder(ParameterListT::Choice);
 		choice->SetSubSource(this);
 		
+#ifdef __DEVELOPMENT__
 		choice->AddSub("scaled-csch");
+#endif
 		choice->AddSub("linear_exponential");
 		return(choice);
 	}
@@ -767,7 +769,9 @@ ParameterInterfaceT* RGSplitT2::NewSub(const StringT& name) const
 		choice->SetListOrder(ParameterListT::Choice);
 		choice->SetSubSource(this);
 		
+#ifdef __DEVELOPMENT__
 		choice->AddSub("scaled-csch");
+#endif
 		choice->AddSub("linear_exponential");
 		return(choice);
 	}
