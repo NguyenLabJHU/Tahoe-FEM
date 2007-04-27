@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.29 2007-04-24 01:15:05 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.30 2007-04-27 00:56:08 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -70,6 +70,7 @@ TotalLagrangianCBSurfaceT::~TotalLagrangianCBSurfaceT(void)
 /* accumulate the residual force on the specified node */
 void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+	/* fRHS != 0 AT BEGINNING - WHY? */
 	const char caller[] = "TotalLagrangianCBSurfaceT::AddNodalForce";
 
 	/* bulk forces from inherited function */
@@ -120,10 +121,19 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 	double t_surface;
 	
 	/* TEMPORARY */
-//	dArrayT force1, force2;
-//	force1.Dimension(24);
-//	force2.Dimension(24);
-//	int count = 0;
+	dArrayT force1, force2, reactionforce, force3, totalforce;
+	force1.Dimension(24);
+	force2.Dimension(24);
+	reactionforce.Dimension(3);	
+	force3.Dimension(3);
+	totalforce.Dimension(24);
+	force1 = 0.0;
+	force2 = 0.0;
+	reactionforce = 0.0;
+	force3 = 0.0;
+	totalforce = 0.0;
+	
+	int count = 0;
 	
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
@@ -148,8 +158,8 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 
 				const iArrayT& nodes_u = element_card.NodesU();
 				int nodeposition = 0;
-				if (nodes_u.HasValue(node, nodeposition))
-				{
+//				if (nodes_u.HasValue(node, nodeposition))
+//				{
 				
 				/* get coordinates */
 				face_coords.SetLocal(face_nodes);
@@ -173,6 +183,7 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
 				fSplitShapes->TopIP();
 				fShapes->TopIP(); /* synch bulk shape functions */
+//				cout << "fNEEvec before = " << fNEEvec << endl;
 				while (fSplitShapes->NextIP())
 				{
 					/* synch bulk shape functions */
@@ -219,14 +230,10 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 					fRHS.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
 					
 					/* If normal code = 1, check what happens */
-					if (normal_type == 1)
-					{
-						//force1.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
-						//cout << "Sum of force1 = " << force1.Sum() << endl;
-						//count ++;
-						//cout << "count = " << count << endl;
-					}
+					//force1.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
 				}
+
+//				cout << "fNEEvec = " << fNEEvec << endl;
 
 				/* integrate over the face */
 				int face_ip;
@@ -282,33 +289,53 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 					fRHS.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
 					
 					/* If normal code = 1, check what happens */
-					if (normal_type == 1)
-					{
-						//force2.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
-						//cout << "Sum of force2 = " << force2.Sum() << endl;
-						//count ++;
-						//cout << "count = " << count << endl;
-					}
+					/* USING ADD SCALED SCREWS STUFF UP FOR SOME REASON */			
+					//force2.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
+					count ++;
+
 				}
 				
+				/* MOVED HERE TEMPORARILIY */
+				//totalforce -= force1;
+				//totalforce += force2;
+				
+				/* fRHS different from totalforce - WHY? */
+				//cout << "fRHS = " << fRHS << endl;
+				//cout << "totalforce = " << totalforce << endl;
+			
 				/* assemble force */
 				int dex = 0;
-				for (int i = 0; i < nodes_u.Length(); i++)
+				dArrayT asdf(3);
+				asdf = 0.0;
+			
+				if (nodes_u.HasValue(node, nodeposition))
 				{
-					if (nodes_u[i] == node)
+					for (int i = 0; i < nodes_u.Length(); i++)
 					{
-						/* components for node */
-						nodalforce.Set(NumDOF(), fRHS.Pointer(dex));
-		
-						/* accumulate */
-						force += nodalforce;
-					}
-					dex += NumDOF();
-				}			
+					//	cout << "nodes_u = " << nodes_u << endl;
+						if (nodes_u[i] == node)
+						{
+							/* components for node */
+							//nodalforce.Set(NumDOF(), fRHS.Pointer(dex));
+							//force3.Set(NumDOF(), fRHS.Pointer(dex));
+							//force3 += nodalforce;
+							/* accumulate */
+							//force += force3;
+							asdf.CopyPart(0,fRHS,dex,3);
+						//cout << "asdf = " << asdf << endl;
+							reactionforce += asdf;
+							force += asdf;
+							//cout << "reactionforce = " << reactionforce << endl;
+							//cout << "nodalforce = " << force << endl;
+						}
+						dex += NumDOF();
+					}			
 				
 				} /* found node */
 			} /* surface face */
 	}	
+//	cout << "nodalforce = " << force << endl;
+//	cout << "reactionforce = " << reactionforce << endl;
 }
 
 /* information about subordinate parameter lists */
@@ -853,10 +880,17 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	double t_surface;
 	
 	/* TEMPORARY */
-//	dArrayT force1,force2;
-//	force1.Dimension(24);
-//	force2.Dimension(24);
-//	int count = 0;
+	dArrayT force1,force2,reactionforce,totalforce;
+	force1.Dimension(24);
+	force2.Dimension(24);
+	reactionforce.Dimension(3);
+	totalforce.Dimension(24);
+	force2 = 0.0;
+	force1 = 0.0;
+	reactionforce = 0.0;
+	totalforce = 0.0;
+	
+	int count = 0;
 	
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
@@ -873,6 +907,9 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 			{
 				/* face parent domain */
 				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
+				
+				/* TEMPORARY BY HSP TO TEST REACTION FORCE OUTPUT */
+				const iArrayT& nodes_u = element_card.NodesU();
 			
 				/* collect coordinates of face nodes */
 				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
@@ -946,13 +983,8 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					fRHS.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
 					
 					/* If normal code = 1, check what happens */
-					if (normal_type == 1)
-					{
-						//force1.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
-						//cout << "Sum of force1 = " << force1.Sum() << endl;
-						//count ++;
-						//cout << "count = " << count << endl;
-					}
+
+					//force1.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
 				}
 
 				/* integrate over the face */
@@ -1011,20 +1043,46 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					fRHS.AddScaled(-J*constKd*w[face_ip]*detj, fNEEvec);
 					
 					/* If normal code = 1, check what happens */
-					if (normal_type == 1)
+
+					//force2.AddScaled(J*constKd*w[face_ip]*detj, fNEEvec);
+					count++;
+
+				}	
+//				cout << "force2 = " << force2 << endl;
+				/* assemble force */
+				//totalforce += force1;
+				//totalforce += force2;
+				
+				int dex = 0;
+				dArrayT asdf(3);
+				asdf = 0.0;
+				for (int i = 0; i < nodes_u.Length(); i++)
+				{
+					/* JUST TRY A SINGLE NODE */
+					if (nodes_u[i] == 8)
 					{
-						//force2.AddScaled(J*constKd*w[face_ip]*detj, fNEEvec);
-						//cout << "Sum of force2 = " << force2.Sum() << endl;
-						//count++;
-						//cout << "count = " << count << endl;
+						//cout << "nodes_u = " << nodes_u << endl;
+						/* components for node */
+						//reactionforce.Set(NumDOF(), fRHS.Pointer(dex));
+						//cout << "dex = " << dex << endl;
+						asdf.CopyPart(0,fRHS,dex,3);
+						//cout << "asdf = " << asdf << endl;
+						reactionforce += asdf;
+						
+						/* accumulate */
+						//force += nodalforce;
 					}
-				}				
+					dex += NumDOF();
+				}	
+//			cout << "reactionforce_RHDS = " << reactionforce << endl;
 			}
-			
+			//cout << "reactionforce_RHDS= " << reactionforce << endl;
 		/* assemble forces */
 		ElementSupport().AssembleRHS(Group(), fRHS, element_card.Equations());
+//	cout << "reactionforce_RHDS = " << reactionforce << endl;
 	}
 }
+	
 
 /***********************************************************************
  * Private
@@ -1038,7 +1096,7 @@ void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, doub
 		ExceptionT::GeneralFail(caller, "implemented for hex geometry only");
 	int nen = NumElementNodes();
 	if (nen != 8 && nen != 20)
-		ExceptionT::GeneralFail(caller, "implemented for 4 or 20 node hexes only: %d", nen);
+		ExceptionT::GeneralFail(caller, "implemented for 8 or 20 node hexes only: %d", nen);
 
 	/* transpose coordinate data */
 	double d60[3*20]; /* oversize */
