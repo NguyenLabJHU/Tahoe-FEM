@@ -66,17 +66,22 @@ void AbaqusINPT::Coordinates (dArray2DT& coords) const
 			double *p = coords.Pointer();
 			for (int i = 0; i < coords.MajorDim(); i++)
 			{
-				in >> id >> c >> *p++ >> c >> *p >> c;
+				in >> id >> c >> *p >> c >> *(p+1) >> c;
 				
 				// is there a third coordinate to read?
-				// if second coordinate is zero and there is no comma, no third coordinate
+				// if there is no comma, no third coordinate?
 				if (c != ',') 
 				{
 					in.putback (c);
-					*p++ = 0;
+					*(p+2) = 0;
 				}
 				else
-					in >> *p++;
+					in >> *(p+2);
+
+				//cout << id << " " << c << " ";
+				//coords.PrintRow(i,cout);
+				
+				p += 3;
 			}
 			return;
 		}
