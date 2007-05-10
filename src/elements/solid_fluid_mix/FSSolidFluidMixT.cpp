@@ -252,6 +252,37 @@ void FSSolidFluidMixT::CloseStep(void)
 	FieldT* fdispl = const_cast <FieldT*> (fDispl);
 	(*fdispl)[2] = 0;
 	(*fpress)[2] = 0;
+
+	/* stress output work space */
+	dArray2DT	out_variable_all, fdstatenew_all, fdstate_all;
+	dArrayT		out_variable;
+	
+	/* loop over elements */
+	int e,l;
+	Top();
+
+	while (NextElement())
+	{
+	    e = CurrElementNumber();
+	    //-- Store/Register initial values in classic tahoe manner 
+	    //update state variables
+	    fdstatenew_all.Alias(fNumIP_press, knum_d_state, fdState_new(CurrElementNumber()));
+	    fdstate_all.Alias(fNumIP_press, knum_d_state, fdState(CurrElementNumber()));
+
+	    out_variable_all.Alias(fNumIP_press, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+	    for (l=0; l < fNumIP_press; l++) 
+	    {
+		out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
+		Put_values_In_dArrayT_vector(fCauchy_effective_stress_Elements_IPs, e,l,fTemp_six_values);
+		out_variable.CopyIn(0,fTemp_six_values);
+		out_variable[6]=fPhysical_pore_water_pressure_Elements_IPs(e,l);
+		Put_values_In_dArrayT_vector(fEulerian_effective_strain_Elements_IPs, e,l,fTemp_six_values);
+		out_variable.CopyIn(7,fTemp_six_values);
+		out_variable[13]=fState_variables_Elements_IPs(e,l*3+0);
+		out_variable[14]=fState_variables_Elements_IPs(e,l*3+1);
+		out_variable[15]=fState_variables_Elements_IPs(e,l*3+2);
+	    } 
+	}
     }
 
     /* store more recently updated values */
