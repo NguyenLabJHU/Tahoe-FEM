@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.21 2007-04-25 19:37:11 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.22 2007-05-11 20:18:00 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -61,10 +61,10 @@ public:
 	    kg3,
 	    kNUM_FMATERIAL_TERMS	};
 									
-	enum fIntegrate_T 	{ 
-	    kBeta,
-	    kGamma,
-	    kNUM_FINTEGRATE_TERMS	};								
+//	enum fIntegrate_T 	{ 
+//	    kBeta,
+//	    kGamma,
+//	    kNUM_FINTEGRATE_TERMS	};								
 
 	/** constructor */
 	FSSolidFluidMixT(	const ElementSupportT& support );				
@@ -230,7 +230,8 @@ private:
 
 	/** number of integration points */
 	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_press, fNumIPSurf_press, 
-	    knum_d_state, knum_i_state, knumstress, knumstrain, num_sidesets;
+	    knum_d_state, knum_i_state, knumstress, knumstrain, num_sidesets,kAnalysisType,kInitialConditionType;
+
 	/*@}*/
 
 	/** \name element displacements in local ordering */
