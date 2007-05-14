@@ -323,6 +323,7 @@ void FSSolidFluidMixT::CloseStep(void)
     {
 	FieldT* fpress = const_cast <FieldT*> (fPress);
 	FieldT* fdispl = const_cast <FieldT*> (fDispl);
+
 	(*fdispl)[1] = 0;
 	(*fpress)[1] = 0;
     }   
@@ -815,8 +816,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
     step_number = ElementSupport().StepNumber();
 
     /* print time */
-    fs_mix_out	<<"delta_t "<<delta_t << endl ;
-    fs_mix_out	<<"time "<<time << endl ;
+//    fs_mix_out	<<"delta_t "<<delta_t << endl ;
+//    fs_mix_out	<<"time "<<time << endl ;
 
 
 
@@ -835,8 +836,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 	fGravity_column_matrix(i,0)=fGravity_vector[i];
 
 
-   fs_mix_out	<<"kInitialConditionType "<<kInitialConditionType << endl ;
-   fs_mix_out	<<"kAnalysisType "<<kAnalysisType << endl ;
+//   fs_mix_out	<<"kInitialConditionType "<<kInitialConditionType << endl ;
+//   fs_mix_out	<<"kAnalysisType "<<kAnalysisType << endl ;
 
     /* at time=0 when geostatic initial condition is calculated, trapezoidal integrator will calculate first time derivative of fields which by setting alpha_delta_t = 1 will be changed to 
        displacement and pressure which should be assigned to them, note that at time=0, delta_t=0 and Trapezoidal scheme which is embeded in the integrator will do nothing by itself(in changing previous iteration values)*/
@@ -938,7 +939,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 	if (press_dotdot_n.IsRegistered()) press_dotdot_n.SetLocal(nodes_press);
 
 	/* print solid displacement from previous step (u)*/
-	fs_mix_out	<<"nodal solid displacement from previous step(u)"<< endl ;
+/*	fs_mix_out	<<"nodal solid displacement from previous step(u)"<< endl ;
 	for (int i=0; i<n_en_displ; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
@@ -946,10 +947,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fs_mix_out << u(i,j) << "\t";
 	    fs_mix_out	<< endl ;
 	}
-
+*/
 
 	/* print solid displacement from previous step (u_n)*/
-	fs_mix_out	<<"nodal solid displacement from previous step(u_n)"<< endl ;
+/*	fs_mix_out	<<"nodal solid displacement from previous step(u_n)"<< endl ;
 	for (int i=0; i<n_en_displ; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
@@ -957,10 +958,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fs_mix_out << u_n(i,j) << "\t";
 	    fs_mix_out	<< endl ;
 	}
-
+*/
 	
 	/* print solid velocity from previous step (u_dot)*/
-	fs_mix_out	<<"nodal solid velocity from previous step(u_dot)"<< endl ;
+/*	fs_mix_out	<<"nodal solid velocity from previous step(u_dot)"<< endl ;
 	for (int i=0; i<n_en_displ; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
@@ -968,10 +969,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fs_mix_out << u_dot(i,j) << "\t";
 	    fs_mix_out	<< endl ;
 	}
-
+*/
 
 	/* print solid velocity from previous step (u_dot_n)*/
-	fs_mix_out	<<"nodal solid velocity from previous step(u_dot_n)"<< endl ;
+/*	fs_mix_out	<<"nodal solid velocity from previous step(u_dot_n)"<< endl ;
 	for (int i=0; i<n_en_displ; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
@@ -979,11 +980,11 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fs_mix_out << u_dot_n(i,j) << "\t";
 	    fs_mix_out	<< endl ;
 	}
-
+*/
 
 
 	/* print solid acceleration from previous step (u_dotdot)*/
-	fs_mix_out	<<"nodal solid velocity from previous step(u_dotdot)"<< endl ;
+/*	fs_mix_out	<<"nodal solid velocity from previous step(u_dotdot)"<< endl ;
 	for (int i=0; i<n_en_displ; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
@@ -991,10 +992,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fs_mix_out << u_dotdot(i,j) << "\t";
 	    fs_mix_out	<< endl ;
 	}
-
+*/
 
 	/* print solid acceleration from previous step (u_dotdot_n)*/
-	fs_mix_out	<<"nodal solid velocity from previous step(u_dotdot_n)"<< endl ;
+/*	fs_mix_out	<<"nodal solid velocity from previous step(u_dotdot_n)"<< endl ;
 	for (int i=0; i<n_en_displ; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;		
@@ -1002,64 +1003,64 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fs_mix_out << u_dotdot_n(i,j) << "\t";
 	    fs_mix_out	<< endl ;
 	}
-
+*/
 
 
 		 
 	/* print fluid pressure from previous step (press)*/
-	fs_mix_out	<<"nodal fluid pressure from previous step(press)"<< endl ;
+/*	fs_mix_out	<<"nodal fluid pressure from previous step(press)"<< endl ;
 	for (int i=0; i<n_en_press; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
 	    fs_mix_out	<< press(i,0) << endl;
 	}
-
+*/
 
 	/* print fluid pressure from previous step (press_n)*/
-	fs_mix_out	<<"nodal fluid pressure from previous step(press_n)"<< endl ;
+/*	fs_mix_out	<<"nodal fluid pressure from previous step(press_n)"<< endl ;
 	for (int i=0; i<n_en_press; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
 	    fs_mix_out	<< press_n(i,0) << endl;
 	}
-
+*/
 	
 	/* print first derivative of pressure from previous step (press_dot)*/
-	fs_mix_out	<<"first derivative of nodal fluid pressure from previous step(press_dot)"<< endl ;
+/*	fs_mix_out	<<"first derivative of nodal fluid pressure from previous step(press_dot)"<< endl ;
 	for (int i=0; i<n_en_press; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
 	    fs_mix_out	<< press_dot(i,0) << endl;
 	}
-
+*/
 
 	/* print first derivative of pressure from previous step (press_dot_n)*/
-	fs_mix_out	<<"first derivative of nodal fluid pressure from previous step(press_dot_n)"<< endl ;
+/*	fs_mix_out	<<"first derivative of nodal fluid pressure from previous step(press_dot_n)"<< endl ;
 	for (int i=0; i<n_en_press; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
 	    fs_mix_out	<< press_dot_n(i,0) << endl;
 	}
-
+*/
 
 
 	/* print second derivative of pressure from previous step (press_dotdot)*/
-	fs_mix_out	<<"second derivative of nodal fluid pressure from previous step(press_dotdot)"<< endl ;
+/*	fs_mix_out	<<"second derivative of nodal fluid pressure from previous step(press_dotdot)"<< endl ;
 	for (int i=0; i<n_en_press; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
 	    fs_mix_out	<< press_dotdot(i,0) << endl;
 	}
-
+*/
 
 	/* print second derivative of pressure from previous step (press_dotdot_n)*/
-	fs_mix_out	<<"second derivative of nodal fluid pressure from previous step(press_dotdot_n)"<< endl ;
+/*	fs_mix_out	<<"second derivative of nodal fluid pressure from previous step(press_dotdot_n)"<< endl ;
 	for (int i=0; i<n_en_press; i++)
 	{
 	    fs_mix_out	<< "node number " << i+1 <<" :  " ;	
 	    fs_mix_out	<< press_dotdot_n(i,0) << endl;
 	}
-
+*/
 	
 	
 	/* populate solid displacement,solid velocity and 
@@ -2269,7 +2270,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 
 		    
 		}
-		else if(kAnalysisType=1)
+		else if(kAnalysisType==1)
 		{
 		    /* residual and tangent for displacements */
                     /* solving consolidation problem */
@@ -3115,7 +3116,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    ElementSupport().AssembleLHS(curr_group, fKthetad, press_eq, displ_eq);
 		}
 
-		else if(kAnalysisType=2)
+		else if(kAnalysisType==2)
 		{
 		    /* residual and tangent for displacements */
                     /* solving dynamic problem */
@@ -4313,6 +4314,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fDispl->RegisterLocal(u_n);
 
 
+
     if (fIntegrator->Order() == 1)
     {
 	fDispl->RegisterLocal(u_dot);
@@ -4566,7 +4568,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     /* setup output file and format */
     outputPrecision = 10;
     outputFileWidth = outputPrecision + 8;
-    fs_mix_out.open("fs_mix.info");
+//    fs_mix_out.open("fs_mix.info");
 }
 
 
