@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.52 2007-03-13 12:15:22 cfoster01 Exp $ */
+/* $Id: ElementT.cpp,v 1.53 2007-05-17 17:01:56 cfoster01 Exp $ */
 #include "ElementT.h"
 #include "ExceptionT.h"
 
@@ -202,6 +202,9 @@ ElementT::TypeT ElementT::int2TypeT(int i)
 
 		case ElementT::kSS_EnhStrainLocOpen:
 		    return ElementT::kSS_EnhStrainLocOpen;
+
+		case ElementT::kSS_EnhStrainLocLinear:
+		    return ElementT::kSS_EnhStrainLocLinear;
 
 		case ElementT::kTotLagFlat:
 		    return ElementT::kTotLagFlat;

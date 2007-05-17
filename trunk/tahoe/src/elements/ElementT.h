@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.53 2007-03-13 12:15:22 cfoster01 Exp $ */
+/* $Id: ElementT.h,v 1.54 2007-05-17 17:01:56 cfoster01 Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -71,7 +71,8 @@ kPenaltyContactElement3D = 34,
 		kSS_EnhStrainLoc = 90, /* small strain enhanced strain embedded discontinuity element */
    kSS_EnhStrainLocCraig = 91, /* small strain enhanced strain embedded discontinuity element */
 kSS_EnhStrainLocDieterich = 92, /* small strain enhanced strain embedded discontinuity element */
-    kSS_EnhStrainLocOpen = 93, /* small strain enhanced strain embedded discontinuity element */
+   kSS_EnhStrainLocOpen = 93, /* small strain enhanced strain embedded discontinuity element */
+ kSS_EnhStrainLocLinear = 94, /* small strain embedded discontinuity element w/ linear jump*/
             kElasticAxi = 102, /**< small strain axisymmetric solid */
        kHyperElasticAxi = 103, /**<  updated Lagrangian, large strain axisymmetric solid */
  kTotLagHyperElasticAxi = 104, /**<  total Lagrangian, large strain axisymmetric solid */
