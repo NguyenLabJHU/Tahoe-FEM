@@ -12,7 +12,7 @@
 
 #include "ofstreamT.h"
 
-namespace Tahoe{
+namespace Tahoe {
 
   /* forward declarations */
   class SSMatSupportT;

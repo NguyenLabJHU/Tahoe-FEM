@@ -37,10 +37,6 @@ fCurrentElement(element)
 	
   fEffectiveSoftening = fH_delta;
 
-  ActivateNodes(coord);
-  ActivateBulkIPs(coord);
-  SetEndPoints(coord);
-
   /* get stresses */ 
   /* should create deep copy */
   fStress_List = stressList;
@@ -64,8 +60,11 @@ fCurrentElement(element)
 	
 	fSlipDir[i] = slipDir;
 	fPerpSlipDir[i] = perpSlipDir;
-	if (fSurfaceIPTractions[i] [1] < 0.0) FlipSlipDir(i); 
   }
+  
+  ActivateNodes(coord);
+  ActivateBulkIPs(coord);
+  SetEndPoints(coord);
 }
 
 const iAutoArrayT& LinearBandT::ActiveNodes() const
@@ -106,6 +105,7 @@ double LinearBandT::Jump(int ip) const
 
 double LinearBandT::JumpIncrement(int ip) const
 {
+  //cout << "fJumpIncrement = \n" << fJumpIncrement << endl; 
   return fJumpIncrement[ip];
 }
 
@@ -119,6 +119,7 @@ void LinearBandT::IncrementJump (int ip)
 void LinearBandT::StoreJumpIncrement(double increment, int bandIP)
 {
   fJumpIncrement[bandIP] = increment;
+  //cout << "fJumpIncrement = " << fJumpIncrement << endl;
 }
 
 void LinearBandT::SetEffectiveSoftening(double effectiveSoftening, int bandIP)
@@ -312,8 +313,8 @@ switch (fCurrentElement -> GeometryCode())
    }
 }
 
-  ArrayT<dArrayT> endPoints(kNumSurfaceIPs);
-  for (int i=0; i < kNumSurfaceIPs; i++)
+  ArrayT<dArrayT> endPoints(2);//2 okay for 2D, fix for 3D
+  for (int i=0; i < 2; i++)
 	(endPoints[i]).Dimension(kNSD);
   
   dArrayT nodalCoord1(kNSD), nodalCoord2(kNSD);
@@ -342,8 +343,8 @@ switch (fCurrentElement -> GeometryCode())
 		alpha /= sideVector[1] * fPerpSlipDir[0][0] - sideVector[0] *
 		fPerpSlipDir[0][1];
 		
-		endPoints[i] = fCoords;
-		endPoints[i].AddScaled(alpha, fPerpSlipDir[0]);
+		endPoints[sideNumber] = fCoords;
+		endPoints[sideNumber].AddScaled(alpha, fPerpSlipDir[0]);
 	  
 	  sideNumber++;
 	}
@@ -369,9 +370,10 @@ switch (fCurrentElement -> GeometryCode())
 	fSurfaceIPCoords[0].AddScaled(fDistanceBetweenSurfaceIPs/-2.0, fPerpSlipDir[0]);
 	
 	fSurfaceIPCoords[1] = fCoords;
-	fSurfaceIPCoords[1].AddScaled(fDistanceBetweenSurfaceIPs/2.0, fPerpSlipDir[1]);
+	fSurfaceIPCoords[1].AddScaled(fDistanceBetweenSurfaceIPs/2.0, fPerpSlipDir[0]);
 	
 	/* determine surface coordinate of bulk IPs */
+	fIPBandCoords.Dimension(fCurrentElement -> NumIP());
 	fCurrentElement -> fShapes -> TopIP();
 	//fShapes -> TopIP();
 	for (int i = 0; i < fCurrentElement -> NumIP(); i++)
@@ -379,24 +381,25 @@ switch (fCurrentElement -> GeometryCode())
 		fCurrentElement -> fShapes -> NextIP();
 		
 		/* get ip coordinate */
-		dArrayT ipCoord;
-		fCurrentElement -> fShapes -> IPCoords(ipCoord);
+		dArrayT ipCoord(kNSD);
+		fCurrentElement -> fShapes -> IPCoords(ipCoord);	
 		
 		/* subtract band center */
 		ipCoord -= fCoords;
 		
-		fIPBandCoords[i] = dArrayT::Dot(ipCoord, fPerpSlipDir[i]);
+		fIPBandCoords[i] = dArrayT::Dot(ipCoord, fPerpSlipDir[0]);
 	}
 
 	/*extrapolate bulk ip stresses to nodal values */
-	ArrayT<dSymMatrixT> nodalStressList = NodalStressList();	
+	ArrayT<dSymMatrixT> nodalStressList = NodalStressList();
+	fSurfaceIPTractions.Dimension(kNumSurfaceIPs);	
 	
 	/* interpolate nodal stresses to surface ip's */
 	for (int i = 0; i < kNumSurfaceIPs; i ++)
 	{
 
 		/* transform coordinates to Parent Domain (Local Coordinates)*/
-		dArrayT localCoords;
+		dArrayT localCoords(kNSD);
 		if (! fCurrentElement -> fShapes -> ParentDomain().MapToParentDomain(fCurrentElement->InitialCoordinates(),
 				fSurfaceIPCoords[i], localCoords))
 		{
@@ -418,17 +421,18 @@ switch (fCurrentElement -> GeometryCode())
 		int numNodes = fCurrentElement -> ElementSupport().NumNodes();
 		
 		for (int j = 0; j < numNodes; j++)
-			for (int k = 0; j < dSymMatrixT::NumValues(kNSD); k++)
+			for (int k = 0; k < dSymMatrixT::NumValues(kNSD); k++)
 				bandIPStress [k] += Na [j] * nodalStressList[j] [k];	
 	  
 		  
 		/* calculate and record tractions */
-	    bandIPStress.Multx(fNormal, fSurfaceIPTractions[i]);
-	
+		fSurfaceIPTractions[i].Dimension(kNSD);
+		bandIPStress.Multx(fNormal, fSurfaceIPTractions[i]);
 	}
 	
-	
 	/* determine residual cohesion at surface IPs */
+	fResidualCohesion.Dimension(kNumSurfaceIPs);
+	
 	for (int i = 0; i < kNumSurfaceIPs; i++)
 	{
 		double normalTraction = dArrayT::Dot(fSurfaceIPTractions[i], fNormal);
@@ -441,7 +445,7 @@ switch (fCurrentElement -> GeometryCode())
 		}
 		
 		if (normalTraction < 0.0)
-			fResidualCohesion = shearTraction +
+			fResidualCohesion[i] = shearTraction +
 			 (fCurrentElement -> fLocalizedFrictionCoeff) * normalTraction;
 		else
 			fResidualCohesion[i] = shearTraction;
