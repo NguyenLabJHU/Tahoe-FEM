@@ -229,6 +229,7 @@ void LinearBandT::CloseStep()
 {
   //update jump
   fJump += fJumpIncrement;
+  cout << "fJumpIncrement =\n" << fJumpIncrement << endl;
 
   //update cohesion
   for (int i = 0; i < kNumSurfaceIPs; i++)

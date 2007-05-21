@@ -1,4 +1,3 @@
-cd
 #include "SSEnhLocLinearT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -230,15 +229,13 @@ void SSEnhLocLinearT::FormKd(double constK)
 
 		double avgJumpIncr = 0.0;
 		for (int i = 0; i < fBand -> NumSurfaceIPs(); i ++)
-		{
 			avgJumpIncr += fBand -> JumpIncrement(i);
-		    cout << "avgJumpIncr = " << avgJumpIncr << endl;
-		}
+			
 		avgJumpIncr /= fBand -> NumSurfaceIPs();	
 
 		//cout << "strainIncr = \n" << strainIncr << endl;
 		//cout << "gradActiveTensorFlowDir = \n" << gradActiveTensorFlowDir << endl;
-		cout << "avgJumpIncr = " << avgJumpIncr << endl;
+		//cout << "avgJumpIncr = " << avgJumpIncr << endl;
 		
 	    strainIncr.AddScaled(-1.0*avgJumpIncr, gradActiveTensorFlowDir);
 		
@@ -258,7 +255,7 @@ void SSEnhLocLinearT::FormKd(double constK)
 		
 	    strainIncr.AddScaled(-1.0*linearModifier, perpSlipDirOuter);
 		
-		cout << "strainIncr = \n" << strainIncr << endl;
+		//cout << "strainIncr = \n" << strainIncr << endl;
 		
 		/* stress increment */
 	    dSymMatrixT stressIncr(NumSD());
@@ -474,12 +471,11 @@ void SSEnhLocLinearT::SetGlobalShape(void)
 double SSEnhLocLinearT::CalculateJumpIncrement(int bandIP)
 {
 	int ndof = NumDOF();
-	cout << "jumpIncrement = " << fBand -> JumpIncrement(bandIP) << endl;
   
 	/* calculate conforming Strain increment*/
 	dSymMatrixT conformingStrainIncrement = ConformingStrainIncrAtCoord(fBand -> SurfaceIPCoords(bandIP));
   
-    cout << "conformingStrainIncrement = \n" << conformingStrainIncrement << endl;
+    //cout << "conformingStrainIncrement = \n" << conformingStrainIncrement << endl;
   
 	/*determine trial traction*/
 	dArrayT workingTraction = fBand -> SurfaceIPTraction(bandIP); 
@@ -512,16 +508,19 @@ double SSEnhLocLinearT::CalculateJumpIncrement(int bandIP)
 	double jumpIncrement;
 	double denom = gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);
 	
-	cout << "workingTraction = " << workingTraction << endl;
-	cout << "denom = " << denom << endl; 
+	//cout << "workingTraction = " << workingTraction << endl;
+	//cout << "denom = " << denom << endl; 
+	double normalTraction = workingTraction.Dot(workingTraction, fBand -> Normal());
+	double shearTraction = workingTraction.Dot(workingTraction, fBand -> PerpSlipDir(bandIP));
 	
-  	
+	//cout << "shearTraction = " << shearTraction << ", normalTraction = " << normalTraction << endl;
+	
 	/* assuming there is still cohesion softening softening */
 	if (fBand -> ResidualCohesion(bandIP) > 0.0)
 	{
   
 		/* calculate jumpIncrement */
-		jumpIncrement = workingTraction[1] + fLocalizedFrictionCoeff * workingTraction[0]
+		jumpIncrement = shearTraction + fLocalizedFrictionCoeff * normalTraction
 					- fBand -> ResidualCohesion(bandIP);
 		jumpIncrement /= denom + fH_delta_0;
 	
@@ -537,7 +536,7 @@ double SSEnhLocLinearT::CalculateJumpIncrement(int bandIP)
 	/* if softening done, recalculate jump increment*/
    
 	/* calculate jumpIncrement for the case of completed softening */
-	jumpIncrement = workingTraction[1] + fLocalizedFrictionCoeff * workingTraction[0];
+	jumpIncrement = shearTraction + fLocalizedFrictionCoeff * normalTraction;
 	jumpIncrement /= denom;
    
 	fBand->SetEffectiveSoftening(0.0, bandIP); 
@@ -547,15 +546,18 @@ double SSEnhLocLinearT::CalculateJumpIncrement(int bandIP)
 
 bool SSEnhLocLinearT::IsBandActive(dArrayT workingTraction, int bandIP)
 {
+  double normalTraction = workingTraction.Dot(workingTraction, fBand -> Normal());
+  double shearTraction = workingTraction.Dot(workingTraction, fBand -> PerpSlipDir(bandIP));  
+
   
   /* check for yielding */
-  if (workingTraction[1] < 0.0)
+  if (shearTraction < 0.0)
   {
 	fBand -> FlipSlipDir(bandIP);
-    workingTraction[1] *= -1.0;
+    shearTraction *= -1.0;
   }
   
-  if (workingTraction[1] > fLocalizedFrictionCoeff * -1.0 * workingTraction[0] 
+  if (shearTraction > fLocalizedFrictionCoeff * -1.0 * normalTraction 
 		+ fBand -> ResidualCohesion(bandIP))
   {
     fBand -> SetActive(bandIP, true);
