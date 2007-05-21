@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.cpp,v 1.6 2007-04-09 22:10:04 thao Exp $ */
+/* $Id: FSFiberMatViscT.cpp,v 1.7 2007-05-21 18:39:04 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatViscT.h"
 #include "FSFiberMatSupportT.h"
@@ -342,7 +342,6 @@ void FSFiberMatViscT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	FSFiberMatT::TakeParameterList(list);
-
 	StringT caller = "FSFiberMatViscT::TakeParameterList";
 	int num_mat_neq =  list.NumLists("neq_matrix_potential");
 	int num_mat_visc = list.NumLists("matrix_visc_potential");
