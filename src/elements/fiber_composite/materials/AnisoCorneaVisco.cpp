@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.6 2007-04-09 22:10:04 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.7 2007-05-26 00:30:54 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -308,7 +308,7 @@ ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
 void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FSFiberMatViscT::TakeParameterList(list);
+	FSFiberMatT::TakeParameterList(list);
 
 	int num_neq_pot = list.NumLists("neq_fibril_potential");
 	int num_visc = list.NumLists("viscosity");
