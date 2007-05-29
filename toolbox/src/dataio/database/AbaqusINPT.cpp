@@ -350,10 +350,10 @@ void AbaqusINPT::ScanFile (void)
 	fSetsinElSets.Dimension (fNumElSets);
 	fSetsinNSets.Dimension (fNumNodeSets);
 	
-	cout << "\n  Number of NODES   : " << fNumNodes << endl;
-	cout <<   "  Number of ELSETS  : " << fNumElSets << endl;
-	cout <<   "  Number of NSETS   : " << fNumNodeSets << endl;
-	cout <<   "  Number of SURFACES: " << fNumSurfaces << endl << endl;
+	//cout << "\n  Number of NODES   : " << fNumNodes << endl;
+	//cout <<   "  Number of ELSETS  : " << fNumElSets << endl;
+	//cout <<   "  Number of NSETS   : " << fNumNodeSets << endl;
+	//cout <<   "  Number of SURFACES: " << fNumSurfaces << endl << endl;
 	
 	GatherSimpleData ();
 }
@@ -553,7 +553,7 @@ void AbaqusINPT::ReadSetData(ifstream& in, iAutoArrayT& ids, sArrayT& names, Str
 						names[nc].ToUpper();
 						nc++;
 					}
-					else
+					else if (isdigit (temp[0]))
 						ids.Append (atoi (temp.Pointer()));
 					temp.Clear();
 				}
@@ -561,6 +561,8 @@ void AbaqusINPT::ReadSetData(ifstream& in, iAutoArrayT& ids, sArrayT& names, Str
 		}
 		line.GetLineFromStream(in);
 	}
+	//cout << "\n\n" << ids << "\n";
+	//throw ExceptionT::kGeneralFail;
 }
 
 void AbaqusINPT::ReadGeneratedSetData (ifstreamT& in, iAutoArrayT& ids, StringT& line)
