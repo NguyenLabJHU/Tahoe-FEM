@@ -1197,6 +1197,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fDeformation_Gradient] will be formed */
 			Form_deformation_gradient_tensor();
+
+                        /* [fDefGradT_9x9_matrix] will be formed */
+			Form_fDefGradT_9x9_matrix();
 			
 			
 			/* [fIdentity_matrix] will be formed */
@@ -1307,32 +1310,18 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			double TempJ_Prim=fRight_Cauchy_Green_tensor.Det();
 			double J_Prim=sqrt(fabs(TempJ_Prim));
 			
-			/* [fEffective_Second_Piola_tensor] will be formed */
-			fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
+			/* [fEffective_Second_Piola_tensor_inviscid] will be formed */
+			fEffective_Second_Piola_tensor_inviscid.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
 			fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
-			fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
+			fEffective_Second_Piola_tensor_inviscid += fTemp_matrix_nsd_x_nsd;
 			
 			
-			/* [fEffective_Kirchhoff_tensor] will be formed */
-			fEffective_Kirchhoff_tensor.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor,fDeformation_Gradient);
+			/* [fEffective_Kirchhoff_tensor_inviscid] will be formed */
+			fEffective_Kirchhoff_tensor_inviscid.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor_inviscid,fDeformation_Gradient);
 			
 			
-			/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
-			fCauchy_effective_stress_tensor_current_IP = fEffective_Kirchhoff_tensor;
-			fCauchy_effective_stress_tensor_current_IP *= 1/J;
-			
-			
-			/* extract six values of stress from symmetric cauchy stress tensor */
-			Extract_six_values_from_symmetric_tensor(fCauchy_effective_stress_tensor_current_IP,fTemp_six_values);
-			
-			
-			
-			/* Save Cauchy effective stress tensor of the current IP */ 
-			fCauchy_effective_stress_IPs.SetRow(IP,fTemp_six_values); 
-			
-			
-			/* {fEffective_Kirchhoff_vector} will be formed */
-			Form_effective_kirchhoff_stress_vector();
+			/* {fEffective_Kirchhoff_vector_inviscid} will be formed */
+			Form_effective_kirchhoff_stress_vector_inviscid();
 			
 			
 			/* [fIota_temp_matrix] will be formed */
@@ -1353,7 +1342,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			fk_hydraulic_conductivity_matrix.SetToScaled(1/J,fK_hydraulic_conductivity_matrix); 
 			fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,fk_hydraulic_conductivity_matrix,fDeformation_Gradient);
 			fk_hydraulic_conductivity_matrix = fTemp_matrix_nsd_x_nsd;
-			
+
+//			fk_hydraulic_conductivity_matrix = fK_hydraulic_conductivity_matrix;
+		
 			
 			/* [fLambda_temp_matrix] will be formed */
 			fLambda_temp_matrix.MultATBC(fShapeFluidGrad,fDeformation_Gradient_Inverse,fk_hydraulic_conductivity_matrix);
@@ -1370,7 +1361,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFd_int_N1_vector} will be formed */
 			double scale = scale_const;
-			fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector,fTemp_vector_ndof_se,scale);
+			fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector_inviscid,fTemp_vector_ndof_se,scale);
 			/* fFd_int_N1_vector for the current IP */
 			/* accumulate */
 			fFd_int_N1_vector += fTemp_vector_ndof_se;
@@ -1584,6 +1575,33 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* Creating Second tangential elasticity tensor in the Ref. coordinate [fC_matrix] */
 			Form_C_matrix(J_Prim);
+
+                        /* [fEffective_Second_Piola_tensor_viscous] will be formed */
+			double fAlpha = fMaterial_Params[kAlpha];
+			Form_fEffective_Second_Piola_tensor_viscous(fAlpha);
+
+			/* [fEffective_Kirchhoff_tensor_viscous] will be formed */
+			fEffective_Kirchhoff_tensor_viscous.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor_viscous,fDeformation_Gradient);
+
+                        /* [fEffective_Kirchhoff_tensor] will be formed */
+			fEffective_Kirchhoff_tensor = fEffective_Kirchhoff_tensor_inviscid;
+			fEffective_Kirchhoff_tensor += fEffective_Kirchhoff_tensor_viscous;
+
+			
+			/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
+			fCauchy_effective_stress_tensor_current_IP = fEffective_Kirchhoff_tensor;
+			fCauchy_effective_stress_tensor_current_IP *= 1/J;
+			
+			
+			/* extract six values of stress from symmetric cauchy stress tensor */
+			Extract_six_values_from_symmetric_tensor(fCauchy_effective_stress_tensor_current_IP,fTemp_six_values);
+			
+			
+			
+			/* Save Cauchy effective stress tensor of the current IP */ 
+			fCauchy_effective_stress_IPs.SetRow(IP,fTemp_six_values); 
+			
+
 			/* Creating Second tangential elasticity tensor in the Current coordinate [fc_matrix]*/
 			Form_c_matrix();
 		
@@ -1829,6 +1847,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fDeformation_Gradient] will be formed */
 			Form_deformation_gradient_tensor();
+
+                       /* [fDefGradT_9x9_matrix] will be formed */
+			Form_fDefGradT_9x9_matrix();
 			
 			
 			/* [fIdentity_matrix] will be formed */
@@ -1939,32 +1960,19 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			double TempJ_Prim=fRight_Cauchy_Green_tensor.Det();
 			double J_Prim=sqrt(fabs(TempJ_Prim));
 			
-			/* [fEffective_Second_Piola_tensor] will be formed */
-			fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
+			/* [fEffective_Second_Piola_tensor_inviscid] will be formed */
+			fEffective_Second_Piola_tensor_inviscid.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
 			fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
-			fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
+			fEffective_Second_Piola_tensor_inviscid += fTemp_matrix_nsd_x_nsd;
 			
 			
-			/* [fEffective_Kirchhoff_tensor] will be formed */
-			fEffective_Kirchhoff_tensor.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor,fDeformation_Gradient);
-			
-			
-			/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
-			fCauchy_effective_stress_tensor_current_IP = fEffective_Kirchhoff_tensor;
-			fCauchy_effective_stress_tensor_current_IP *= 1/J;
-			
-			
-			/* extract six values of stress from symmetric cauchy stress tensor */
-			Extract_six_values_from_symmetric_tensor(fCauchy_effective_stress_tensor_current_IP,fTemp_six_values);
+			/* [fEffective_Kirchhoff_tensor_inviscid] will be formed */
+			fEffective_Kirchhoff_tensor_inviscid.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor_inviscid,fDeformation_Gradient);
 			
 			
 			
-			/* Save Cauchy effective stress tensor of the current IP */ 
-			fCauchy_effective_stress_IPs.SetRow(IP,fTemp_six_values); 
-			
-			
-			/* {fEffective_Kirchhoff_vector} will be formed */
-			Form_effective_kirchhoff_stress_vector();
+			/* {fEffective_Kirchhoff_vector_inviscid} will be formed */
+			Form_effective_kirchhoff_stress_vector_inviscid();
 			
 			
 			/* [fIota_temp_matrix] will be formed */
@@ -1985,7 +1993,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			fk_hydraulic_conductivity_matrix.SetToScaled(1/J,fK_hydraulic_conductivity_matrix); 
 			fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,fk_hydraulic_conductivity_matrix,fDeformation_Gradient);
 			fk_hydraulic_conductivity_matrix = fTemp_matrix_nsd_x_nsd;
-			
+
+//			fk_hydraulic_conductivity_matrix = fK_hydraulic_conductivity_matrix;
 			
 			/* [fLambda_temp_matrix] will be formed */
 			fLambda_temp_matrix.MultATBC(fShapeFluidGrad,fDeformation_Gradient_Inverse,fk_hydraulic_conductivity_matrix);
@@ -2002,7 +2011,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFd_int_N1_vector} will be formed */
 			double scale = scale_const;
-			fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector,fTemp_vector_ndof_se,scale);
+			fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector_inviscid,fTemp_vector_ndof_se,scale);
 			/* fFd_int_N1_vector for the current IP */
 			/* accumulate */
 			fFd_int_N1_vector += fTemp_vector_ndof_se;
@@ -2100,6 +2109,33 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* Creating Second tangential elasticity tensor in the Ref. coordinate [fC_matrix] */
 			Form_C_matrix(J_Prim);
+
+                        /* [fEffective_Second_Piola_tensor_viscous] will be formed */
+			double fAlpha = fMaterial_Params[kAlpha];
+			Form_fEffective_Second_Piola_tensor_viscous(fAlpha);
+
+			/* [fEffective_Kirchhoff_tensor_viscous] will be formed */
+			fEffective_Kirchhoff_tensor_viscous.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor_viscous,fDeformation_Gradient);
+
+                         /* [fEffective_Kirchhoff_tensor] will be formed */
+			fEffective_Kirchhoff_tensor = fEffective_Kirchhoff_tensor_inviscid;
+			fEffective_Kirchhoff_tensor += fEffective_Kirchhoff_tensor_viscous;
+
+
+			/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
+			fCauchy_effective_stress_tensor_current_IP = fEffective_Kirchhoff_tensor;
+			fCauchy_effective_stress_tensor_current_IP *= 1/J;
+			
+			
+			/* extract six values of stress from symmetric cauchy stress tensor */
+			Extract_six_values_from_symmetric_tensor(fCauchy_effective_stress_tensor_current_IP,fTemp_six_values);
+			
+			
+			
+			/* Save Cauchy effective stress tensor of the current IP */ 
+			fCauchy_effective_stress_IPs.SetRow(IP,fTemp_six_values); 
+			
+
 			/* Creating Second tangential elasticity tensor in the Current coordinate [fc_matrix]*/
 			Form_c_matrix();
 			
@@ -2325,6 +2361,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fDeformation_Gradient] will be formed */
 			Form_deformation_gradient_tensor();
+
+                       /* [fDefGradT_9x9_matrix] will be formed */
+			Form_fDefGradT_9x9_matrix();
 			
 			
 			/* [fIdentity_matrix] will be formed */
@@ -2435,32 +2474,18 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			double TempJ_Prim=fRight_Cauchy_Green_tensor.Det();
 			double J_Prim=sqrt(fabs(TempJ_Prim));
 			
-			/* [fEffective_Second_Piola_tensor] will be formed */
-			fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
+			/* [fEffective_Second_Piola_tensor_inviscid] will be formed */
+			fEffective_Second_Piola_tensor_inviscid.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
 			fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
-			fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
+			fEffective_Second_Piola_tensor_inviscid += fTemp_matrix_nsd_x_nsd;
 			
 			
-			/* [fEffective_Kirchhoff_tensor] will be formed */
-			fEffective_Kirchhoff_tensor.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor,fDeformation_Gradient);
+			/* [fEffective_Kirchhoff_tensor_inviscid] will be formed */
+			fEffective_Kirchhoff_tensor_inviscid.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor_inviscid,fDeformation_Gradient);
 			
 			
-			/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
-			fCauchy_effective_stress_tensor_current_IP = fEffective_Kirchhoff_tensor;
-			fCauchy_effective_stress_tensor_current_IP *= 1/J;
-			
-			
-			/* extract six values of stress from symmetric cauchy stress tensor */
-			Extract_six_values_from_symmetric_tensor(fCauchy_effective_stress_tensor_current_IP,fTemp_six_values);
-			
-			
-			
-			/* Save Cauchy effective stress tensor of the current IP */ 
-			fCauchy_effective_stress_IPs.SetRow(IP,fTemp_six_values); 
-			
-			
-			/* {fEffective_Kirchhoff_vector} will be formed */
-			Form_effective_kirchhoff_stress_vector();
+			/* {fEffective_Kirchhoff_vector_inviscid} will be formed */
+			Form_effective_kirchhoff_stress_vector_inviscid();
 			
 			
 			/* [fIota_temp_matrix] will be formed */
@@ -2481,6 +2506,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			fk_hydraulic_conductivity_matrix.SetToScaled(1/J,fK_hydraulic_conductivity_matrix); 
 			fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,fk_hydraulic_conductivity_matrix,fDeformation_Gradient);
 			fk_hydraulic_conductivity_matrix = fTemp_matrix_nsd_x_nsd;
+
+//			fk_hydraulic_conductivity_matrix = fK_hydraulic_conductivity_matrix;
 			
 			
 			/* [fLambda_temp_matrix] will be formed */
@@ -2498,7 +2525,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFd_int_N1_vector} will be formed */
 			double scale = scale_const;
-			fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector,fTemp_vector_ndof_se,scale);
+			fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector_inviscid,fTemp_vector_ndof_se,scale);
 			/* fFd_int_N1_vector for the current IP */
 			/* accumulate */
 			fFd_int_N1_vector += fTemp_vector_ndof_se;
@@ -2712,6 +2739,33 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* Creating Second tangential elasticity tensor in the Ref. coordinate [fC_matrix] */
 			Form_C_matrix(J_Prim);
+ 
+                       /* [fEffective_Second_Piola_tensor_viscous] will be formed */
+			double fAlpha = fMaterial_Params[kAlpha];
+			Form_fEffective_Second_Piola_tensor_viscous(fAlpha);
+
+			/* [fEffective_Kirchhoff_tensor_viscous] will be formed */
+			fEffective_Kirchhoff_tensor_viscous.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor_viscous,fDeformation_Gradient);
+
+
+                         /* [fEffective_Kirchhoff_tensor] will be formed */
+			fEffective_Kirchhoff_tensor = fEffective_Kirchhoff_tensor_inviscid;
+			fEffective_Kirchhoff_tensor += fEffective_Kirchhoff_tensor_viscous;
+			
+			/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
+			fCauchy_effective_stress_tensor_current_IP = fEffective_Kirchhoff_tensor;
+			fCauchy_effective_stress_tensor_current_IP *= 1/J;
+			
+			
+			/* extract six values of stress from symmetric cauchy stress tensor */
+			Extract_six_values_from_symmetric_tensor(fCauchy_effective_stress_tensor_current_IP,fTemp_six_values);
+			
+			
+			
+			/* Save Cauchy effective stress tensor of the current IP */ 
+			fCauchy_effective_stress_IPs.SetRow(IP,fTemp_six_values); 
+			
+
 			/* Creating Second tangential elasticity tensor in the Current coordinate [fc_matrix]*/
 			Form_c_matrix();
 		
@@ -3170,6 +3224,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fDeformation_Gradient] will be formed */
 			Form_deformation_gradient_tensor();
+
+                       /* [fDefGradT_9x9_matrix] will be formed */
+			Form_fDefGradT_9x9_matrix();
 			
 			
 			/* [fIdentity_matrix] will be formed */
@@ -3280,32 +3337,18 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			double TempJ_Prim=fRight_Cauchy_Green_tensor.Det();
 			double J_Prim=sqrt(fabs(TempJ_Prim));
 			
-			/* [fEffective_Second_Piola_tensor] will be formed */
-			fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
+			/* [fEffective_Second_Piola_tensor_inviscid] will be formed */
+			fEffective_Second_Piola_tensor_inviscid.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
 			fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
-			fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
+			fEffective_Second_Piola_tensor_inviscid += fTemp_matrix_nsd_x_nsd;
 			
 			
-			/* [fEffective_Kirchhoff_tensor] will be formed */
-			fEffective_Kirchhoff_tensor.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor,fDeformation_Gradient);
+			/* [fEffective_Kirchhoff_tensor_inviscid] will be formed */
+			fEffective_Kirchhoff_tensor_inviscid.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor_inviscid,fDeformation_Gradient);
 			
 			
-			/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
-			fCauchy_effective_stress_tensor_current_IP = fEffective_Kirchhoff_tensor;
-			fCauchy_effective_stress_tensor_current_IP *= 1/J;
-			
-			
-			/* extract six values of stress from symmetric cauchy stress tensor */
-			Extract_six_values_from_symmetric_tensor(fCauchy_effective_stress_tensor_current_IP,fTemp_six_values);
-			
-			
-			
-			/* Save Cauchy effective stress tensor of the current IP */ 
-			fCauchy_effective_stress_IPs.SetRow(IP,fTemp_six_values); 
-			
-			
-			/* {fEffective_Kirchhoff_vector} will be formed */
-			Form_effective_kirchhoff_stress_vector();
+			/* {fEffective_Kirchhoff_vector_inviscid} will be formed */
+			Form_effective_kirchhoff_stress_vector_inviscid();
 			
 			
 			/* [fIota_temp_matrix] will be formed */
@@ -3326,7 +3369,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			fk_hydraulic_conductivity_matrix.SetToScaled(1/J,fK_hydraulic_conductivity_matrix); 
 			fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,fk_hydraulic_conductivity_matrix,fDeformation_Gradient);
 			fk_hydraulic_conductivity_matrix = fTemp_matrix_nsd_x_nsd;
-			
+
+
+//			fk_hydraulic_conductivity_matrix = fK_hydraulic_conductivity_matrix;
 			
 			/* [fLambda_temp_matrix] will be formed */
 			fLambda_temp_matrix.MultATBC(fShapeFluidGrad,fDeformation_Gradient_Inverse,fk_hydraulic_conductivity_matrix);
@@ -3343,7 +3388,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* {fFd_int_N1_vector} will be formed */
 			double scale = scale_const;
-			fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector,fTemp_vector_ndof_se,scale);
+			fIota_temp_matrix.Multx(fEffective_Kirchhoff_vector_inviscid,fTemp_vector_ndof_se,scale);
 			/* fFd_int_N1_vector for the current IP */
 			/* accumulate */
 			fFd_int_N1_vector += fTemp_vector_ndof_se;
@@ -3557,6 +3602,34 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* Creating Second tangential elasticity tensor in the Ref. coordinate [fC_matrix] */
 			Form_C_matrix(J_Prim);
+
+                       /* [fEffective_Second_Piola_tensor_viscous] will be formed */
+			double fAlpha = fMaterial_Params[kAlpha];
+			Form_fEffective_Second_Piola_tensor_viscous(fAlpha);
+
+			/* [fEffective_Kirchhoff_tensor_viscous] will be formed */
+			fEffective_Kirchhoff_tensor_viscous.MultABCT(fDeformation_Gradient,fEffective_Second_Piola_tensor_viscous,fDeformation_Gradient);
+
+
+                         /* [fEffective_Kirchhoff_tensor] will be formed */
+			fEffective_Kirchhoff_tensor = fEffective_Kirchhoff_tensor_inviscid;
+			fEffective_Kirchhoff_tensor += fEffective_Kirchhoff_tensor_viscous;
+
+
+			/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
+			fCauchy_effective_stress_tensor_current_IP = fEffective_Kirchhoff_tensor;
+			fCauchy_effective_stress_tensor_current_IP *= 1/J;
+			
+			
+			/* extract six values of stress from symmetric cauchy stress tensor */
+			Extract_six_values_from_symmetric_tensor(fCauchy_effective_stress_tensor_current_IP,fTemp_six_values);
+			
+			
+			
+			/* Save Cauchy effective stress tensor of the current IP */ 
+			fCauchy_effective_stress_IPs.SetRow(IP,fTemp_six_values); 
+			
+
 			/* Creating Second tangential elasticity tensor in the Current coordinate [fc_matrix]*/
 			Form_c_matrix();
 		
@@ -4416,23 +4489,28 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fDeformation_Gradient_Inverse_Transpose.Dimension (n_sd,n_sd);
     fDefGradInv_Grad_grad.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fDefGradInv_Grad_grad_Transpose.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+    fDefGradT_9x9_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fDefGradInv_vector.Dimension (n_sd_x_n_sd);
     fRight_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fRight_Cauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
     fLeft_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fIdentity_matrix.Dimension (n_sd,n_sd);
-    fEffective_Second_Piola_tensor.Dimension (n_sd,n_sd);
+    fEffective_Second_Piola_tensor_inviscid.Dimension (n_sd,n_sd);
+    fEffective_Second_Piola_tensor_viscous.Dimension (n_sd,n_sd);
     fTemp_matrix_nsd_x_nsd.Dimension (n_sd,n_sd);
     fTemp_matrix_nen_press_x_nsd.Dimension (n_en_press,n_sd);
     fTemp_matrix_nen_press_x_nen_press.Dimension (n_en_press,n_en_press);
-    fEffective_Kirchhoff_tensor.Dimension (n_sd,n_sd);
-    fEffective_Kirchhoff_vector.Dimension (n_sd_x_n_sd);
+    fEffective_Kirchhoff_tensor_inviscid.Dimension (n_sd,n_sd);
+    fEffective_Kirchhoff_tensor_viscous.Dimension (n_sd,n_sd);
+    fEffective_Kirchhoff_vector_inviscid.Dimension (n_sd_x_n_sd);
+    fEffective_Second_Piola_vector_viscous.Dimension (n_sd_x_n_sd);
     fIota_temp_matrix.Dimension (n_en_displ_x_n_sd,n_sd_x_n_sd);
     fVarpi_temp_matrix.Dimension (n_sd, n_en_displ_x_n_sd);
     fk_hydraulic_conductivity_matrix.Dimension (n_sd,n_sd);
     fK_hydraulic_conductivity_matrix.Dimension (n_sd,n_sd);
     fLambda_temp_matrix.Dimension (n_en_press,n_sd);
     fChi_temp_vector.Dimension (n_sd);
+    fTemp_vector_9x1.Dimension (n_sd_x_n_sd);
     fFd_int_N1_vector.Dimension (n_en_displ_x_n_sd);
     fFd_int_N2_vector.Dimension (n_en_displ_x_n_sd); 
     fTemp_vector_ndof_se.Dimension (n_en_displ_x_n_sd); 
@@ -5051,6 +5129,42 @@ void FSSolidFluidMixT::Form_Grad_grad_transformation_matrix(void)
     fDefGradInv_Grad_grad(8,8) = fDeformation_Gradient_Inverse(2,2);
 }
 
+void FSSolidFluidMixT::Form_fDefGradT_9x9_matrix(void)
+{
+    fDefGradT_9x9_matrix = 0.0;
+    fDefGradT_9x9_matrix(0,0) = fDeformation_Gradient(0,0);
+    fDefGradT_9x9_matrix(0,1) = fDeformation_Gradient(1,0);
+    fDefGradT_9x9_matrix(0,2) = fDeformation_Gradient(2,0);
+    fDefGradT_9x9_matrix(1,3) = fDeformation_Gradient(0,0);
+    fDefGradT_9x9_matrix(1,4) = fDeformation_Gradient(1,0);
+    fDefGradT_9x9_matrix(1,5) = fDeformation_Gradient(2,0);
+    fDefGradT_9x9_matrix(2,6) = fDeformation_Gradient(0,0);
+    fDefGradT_9x9_matrix(2,7) = fDeformation_Gradient(1,0);
+    fDefGradT_9x9_matrix(2,8) = fDeformation_Gradient(2,0);
+
+    fDefGradT_9x9_matrix(3,0) = fDeformation_Gradient(0,1);
+    fDefGradT_9x9_matrix(3,1) = fDeformation_Gradient(1,1);
+    fDefGradT_9x9_matrix(3,2) = fDeformation_Gradient(2,1);
+    fDefGradT_9x9_matrix(4,3) = fDeformation_Gradient(0,1);
+    fDefGradT_9x9_matrix(4,4) = fDeformation_Gradient(1,1);
+    fDefGradT_9x9_matrix(4,5) = fDeformation_Gradient(2,1);
+    fDefGradT_9x9_matrix(5,6) = fDeformation_Gradient(0,1);
+    fDefGradT_9x9_matrix(5,7) = fDeformation_Gradient(1,1);
+    fDefGradT_9x9_matrix(5,8) = fDeformation_Gradient(2,1);
+
+    fDefGradT_9x9_matrix(6,0) = fDeformation_Gradient(0,2);
+    fDefGradT_9x9_matrix(6,1) = fDeformation_Gradient(1,2);
+    fDefGradT_9x9_matrix(6,2) = fDeformation_Gradient(2,2);
+    fDefGradT_9x9_matrix(7,3) = fDeformation_Gradient(0,2);
+    fDefGradT_9x9_matrix(7,4) = fDeformation_Gradient(1,2);
+    fDefGradT_9x9_matrix(7,5) = fDeformation_Gradient(2,2);
+    fDefGradT_9x9_matrix(8,6) = fDeformation_Gradient(0,2);
+    fDefGradT_9x9_matrix(8,7) = fDeformation_Gradient(1,2);
+    fDefGradT_9x9_matrix(8,8) = fDeformation_Gradient(2,2);
+
+}
+
+
 void FSSolidFluidMixT::Form_deformation_gradient_inv_vector(void)
 {
     fDefGradInv_vector[0] = fDeformation_Gradient_Inverse(0,0);
@@ -5065,18 +5179,36 @@ void FSSolidFluidMixT::Form_deformation_gradient_inv_vector(void)
     
 }
 
-void FSSolidFluidMixT::Form_effective_kirchhoff_stress_vector()
+void FSSolidFluidMixT::Form_effective_kirchhoff_stress_vector_inviscid()
 {
-    fEffective_Kirchhoff_vector[0] = fEffective_Kirchhoff_tensor(0,0);
-    fEffective_Kirchhoff_vector[1] = fEffective_Kirchhoff_tensor(1,0);
-    fEffective_Kirchhoff_vector[2] = fEffective_Kirchhoff_tensor(2,0);
-    fEffective_Kirchhoff_vector[3] = fEffective_Kirchhoff_tensor(0,1);
-    fEffective_Kirchhoff_vector[4] = fEffective_Kirchhoff_tensor(1,1);
-    fEffective_Kirchhoff_vector[5] = fEffective_Kirchhoff_tensor(2,1);
-    fEffective_Kirchhoff_vector[6] = fEffective_Kirchhoff_tensor(0,2);
-    fEffective_Kirchhoff_vector[7] = fEffective_Kirchhoff_tensor(1,2);
-    fEffective_Kirchhoff_vector[8] = fEffective_Kirchhoff_tensor(2,2);
+    fEffective_Kirchhoff_vector_inviscid[0] = fEffective_Kirchhoff_tensor_inviscid(0,0);
+    fEffective_Kirchhoff_vector_inviscid[1] = fEffective_Kirchhoff_tensor_inviscid(1,0);
+    fEffective_Kirchhoff_vector_inviscid[2] = fEffective_Kirchhoff_tensor_inviscid(2,0);
+    fEffective_Kirchhoff_vector_inviscid[3] = fEffective_Kirchhoff_tensor_inviscid(0,1);
+    fEffective_Kirchhoff_vector_inviscid[4] = fEffective_Kirchhoff_tensor_inviscid(1,1);
+    fEffective_Kirchhoff_vector_inviscid[5] = fEffective_Kirchhoff_tensor_inviscid(2,1);
+    fEffective_Kirchhoff_vector_inviscid[6] = fEffective_Kirchhoff_tensor_inviscid(0,2);
+    fEffective_Kirchhoff_vector_inviscid[7] = fEffective_Kirchhoff_tensor_inviscid(1,2);
+    fEffective_Kirchhoff_vector_inviscid[8] = fEffective_Kirchhoff_tensor_inviscid(2,2);
 }
+
+void FSSolidFluidMixT::Form_fEffective_Second_Piola_tensor_viscous(const double& fAlpha)
+{
+    fShapeSolidGrad.Multx(u_dot_vec,fGradv_vector);
+    fDefGradT_9x9_matrix.Multx(fGradv_vector,fTemp_vector_9x1);
+    fC_matrix.Multx(fTemp_vector_9x1,fEffective_Second_Piola_vector_viscous);
+    fEffective_Second_Piola_vector_viscous *= fAlpha;
+    fEffective_Second_Piola_tensor_viscous(0,0) = fEffective_Second_Piola_vector_viscous[0];
+    fEffective_Second_Piola_tensor_viscous(1,0) = fEffective_Second_Piola_vector_viscous[1];
+    fEffective_Second_Piola_tensor_viscous(2,0) = fEffective_Second_Piola_vector_viscous[2];
+    fEffective_Second_Piola_tensor_viscous(0,1) = fEffective_Second_Piola_vector_viscous[3];
+    fEffective_Second_Piola_tensor_viscous(1,1) = fEffective_Second_Piola_vector_viscous[4];
+    fEffective_Second_Piola_tensor_viscous(2,1) = fEffective_Second_Piola_vector_viscous[5];
+    fEffective_Second_Piola_tensor_viscous(0,2) = fEffective_Second_Piola_vector_viscous[6];
+    fEffective_Second_Piola_tensor_viscous(1,2) = fEffective_Second_Piola_vector_viscous[7];
+    fEffective_Second_Piola_tensor_viscous(2,2) = fEffective_Second_Piola_vector_viscous[8];
+}
+
 
 void FSSolidFluidMixT::Form_Varpi_temp_matrix()
 {
@@ -5144,41 +5276,41 @@ void FSSolidFluidMixT::Form_Gradient_t_of_solid_shape_functions(const dMatrixT &
 void FSSolidFluidMixT::Form_Im_temp_matrix()
 {
     fIm_temp_matrix = 0.0;
-    fIm_temp_matrix(0,0) = fEffective_Kirchhoff_tensor(0,0);
-    fIm_temp_matrix(1,0) = fEffective_Kirchhoff_tensor(1,0);
-    fIm_temp_matrix(2,0) = fEffective_Kirchhoff_tensor(2,0);
+    fIm_temp_matrix(0,0) = fEffective_Kirchhoff_tensor_inviscid(0,0);
+    fIm_temp_matrix(1,0) = fEffective_Kirchhoff_tensor_inviscid(1,0);
+    fIm_temp_matrix(2,0) = fEffective_Kirchhoff_tensor_inviscid(2,0);
     
-    fIm_temp_matrix(3,1) = fEffective_Kirchhoff_tensor(0,0);
-    fIm_temp_matrix(4,1) = fEffective_Kirchhoff_tensor(1,0);
-    fIm_temp_matrix(5,1) = fEffective_Kirchhoff_tensor(2,0);
+    fIm_temp_matrix(3,1) = fEffective_Kirchhoff_tensor_inviscid(0,0);
+    fIm_temp_matrix(4,1) = fEffective_Kirchhoff_tensor_inviscid(1,0);
+    fIm_temp_matrix(5,1) = fEffective_Kirchhoff_tensor_inviscid(2,0);
     
-    fIm_temp_matrix(6,2) = fEffective_Kirchhoff_tensor(0,0);
-    fIm_temp_matrix(7,2) = fEffective_Kirchhoff_tensor(1,0);
-    fIm_temp_matrix(8,2) = fEffective_Kirchhoff_tensor(2,0);
+    fIm_temp_matrix(6,2) = fEffective_Kirchhoff_tensor_inviscid(0,0);
+    fIm_temp_matrix(7,2) = fEffective_Kirchhoff_tensor_inviscid(1,0);
+    fIm_temp_matrix(8,2) = fEffective_Kirchhoff_tensor_inviscid(2,0);
     
-    fIm_temp_matrix(0,3) = fEffective_Kirchhoff_tensor(0,1);
-    fIm_temp_matrix(1,3) = fEffective_Kirchhoff_tensor(1,1);
-    fIm_temp_matrix(2,3) = fEffective_Kirchhoff_tensor(2,1);
+    fIm_temp_matrix(0,3) = fEffective_Kirchhoff_tensor_inviscid(0,1);
+    fIm_temp_matrix(1,3) = fEffective_Kirchhoff_tensor_inviscid(1,1);
+    fIm_temp_matrix(2,3) = fEffective_Kirchhoff_tensor_inviscid(2,1);
     
-    fIm_temp_matrix(3,4) = fEffective_Kirchhoff_tensor(0,1);
-    fIm_temp_matrix(4,4) = fEffective_Kirchhoff_tensor(1,1);
-    fIm_temp_matrix(5,4) = fEffective_Kirchhoff_tensor(2,1);
+    fIm_temp_matrix(3,4) = fEffective_Kirchhoff_tensor_inviscid(0,1);
+    fIm_temp_matrix(4,4) = fEffective_Kirchhoff_tensor_inviscid(1,1);
+    fIm_temp_matrix(5,4) = fEffective_Kirchhoff_tensor_inviscid(2,1);
     
-    fIm_temp_matrix(6,5) = fEffective_Kirchhoff_tensor(0,1);
-    fIm_temp_matrix(7,5) = fEffective_Kirchhoff_tensor(1,1);
-    fIm_temp_matrix(8,5) = fEffective_Kirchhoff_tensor(2,1);
+    fIm_temp_matrix(6,5) = fEffective_Kirchhoff_tensor_inviscid(0,1);
+    fIm_temp_matrix(7,5) = fEffective_Kirchhoff_tensor_inviscid(1,1);
+    fIm_temp_matrix(8,5) = fEffective_Kirchhoff_tensor_inviscid(2,1);
     
-    fIm_temp_matrix(0,6) = fEffective_Kirchhoff_tensor(0,2);
-    fIm_temp_matrix(1,6) = fEffective_Kirchhoff_tensor(1,2);
-    fIm_temp_matrix(2,6) = fEffective_Kirchhoff_tensor(2,2);
+    fIm_temp_matrix(0,6) = fEffective_Kirchhoff_tensor_inviscid(0,2);
+    fIm_temp_matrix(1,6) = fEffective_Kirchhoff_tensor_inviscid(1,2);
+    fIm_temp_matrix(2,6) = fEffective_Kirchhoff_tensor_inviscid(2,2);
     
-    fIm_temp_matrix(3,7) = fEffective_Kirchhoff_tensor(0,2);
-    fIm_temp_matrix(4,7) = fEffective_Kirchhoff_tensor(1,2);
-    fIm_temp_matrix(5,7) = fEffective_Kirchhoff_tensor(2,2);
+    fIm_temp_matrix(3,7) = fEffective_Kirchhoff_tensor_inviscid(0,2);
+    fIm_temp_matrix(4,7) = fEffective_Kirchhoff_tensor_inviscid(1,2);
+    fIm_temp_matrix(5,7) = fEffective_Kirchhoff_tensor_inviscid(2,2);
     
-    fIm_temp_matrix(6,8) = fEffective_Kirchhoff_tensor(0,2);
-    fIm_temp_matrix(7,8) = fEffective_Kirchhoff_tensor(1,2);
-    fIm_temp_matrix(8,8) = fEffective_Kirchhoff_tensor(2,2);
+    fIm_temp_matrix(6,8) = fEffective_Kirchhoff_tensor_inviscid(0,2);
+    fIm_temp_matrix(7,8) = fEffective_Kirchhoff_tensor_inviscid(1,2);
+    fIm_temp_matrix(8,8) = fEffective_Kirchhoff_tensor_inviscid(2,2);
 }
 
 void FSSolidFluidMixT::Form_Hbar_temp_matrix()
@@ -5477,41 +5609,41 @@ void FSSolidFluidMixT::Form_c_matrix()
 void FSSolidFluidMixT::Form_Im_Prim_temp_matrix()
 {
     fIm_Prim_temp_matrix = 0.0;
-    fIm_Prim_temp_matrix(0,0) = fEffective_Kirchhoff_tensor(0,0);
-    fIm_Prim_temp_matrix(3,0) = fEffective_Kirchhoff_tensor(1,0);
-    fIm_Prim_temp_matrix(6,0) = fEffective_Kirchhoff_tensor(2,0);
+    fIm_Prim_temp_matrix(0,0) = fEffective_Kirchhoff_tensor_inviscid(0,0);
+    fIm_Prim_temp_matrix(3,0) = fEffective_Kirchhoff_tensor_inviscid(1,0);
+    fIm_Prim_temp_matrix(6,0) = fEffective_Kirchhoff_tensor_inviscid(2,0);
     
-    fIm_Prim_temp_matrix(1,1) = fEffective_Kirchhoff_tensor(0,0);
-    fIm_Prim_temp_matrix(4,1) = fEffective_Kirchhoff_tensor(1,0);
-    fIm_Prim_temp_matrix(7,1) = fEffective_Kirchhoff_tensor(2,0);
+    fIm_Prim_temp_matrix(1,1) = fEffective_Kirchhoff_tensor_inviscid(0,0);
+    fIm_Prim_temp_matrix(4,1) = fEffective_Kirchhoff_tensor_inviscid(1,0);
+    fIm_Prim_temp_matrix(7,1) = fEffective_Kirchhoff_tensor_inviscid(2,0);
     
-    fIm_Prim_temp_matrix(2,2) = fEffective_Kirchhoff_tensor(0,0);
-    fIm_Prim_temp_matrix(5,2) = fEffective_Kirchhoff_tensor(1,0);
-    fIm_Prim_temp_matrix(8,2) = fEffective_Kirchhoff_tensor(2,0);
+    fIm_Prim_temp_matrix(2,2) = fEffective_Kirchhoff_tensor_inviscid(0,0);
+    fIm_Prim_temp_matrix(5,2) = fEffective_Kirchhoff_tensor_inviscid(1,0);
+    fIm_Prim_temp_matrix(8,2) = fEffective_Kirchhoff_tensor_inviscid(2,0);
     
-    fIm_Prim_temp_matrix(0,3) = fEffective_Kirchhoff_tensor(0,1);
-    fIm_Prim_temp_matrix(3,3) = fEffective_Kirchhoff_tensor(1,1);
-    fIm_Prim_temp_matrix(6,3) = fEffective_Kirchhoff_tensor(2,1);
+    fIm_Prim_temp_matrix(0,3) = fEffective_Kirchhoff_tensor_inviscid(0,1);
+    fIm_Prim_temp_matrix(3,3) = fEffective_Kirchhoff_tensor_inviscid(1,1);
+    fIm_Prim_temp_matrix(6,3) = fEffective_Kirchhoff_tensor_inviscid(2,1);
     
-    fIm_Prim_temp_matrix(1,4) = fEffective_Kirchhoff_tensor(0,1);
-    fIm_Prim_temp_matrix(4,4) = fEffective_Kirchhoff_tensor(1,1);
-    fIm_Prim_temp_matrix(7,4) = fEffective_Kirchhoff_tensor(2,1);
+    fIm_Prim_temp_matrix(1,4) = fEffective_Kirchhoff_tensor_inviscid(0,1);
+    fIm_Prim_temp_matrix(4,4) = fEffective_Kirchhoff_tensor_inviscid(1,1);
+    fIm_Prim_temp_matrix(7,4) = fEffective_Kirchhoff_tensor_inviscid(2,1);
     
-    fIm_Prim_temp_matrix(2,5) = fEffective_Kirchhoff_tensor(0,1);
-    fIm_Prim_temp_matrix(5,5) = fEffective_Kirchhoff_tensor(1,1);
-    fIm_Prim_temp_matrix(8,5) = fEffective_Kirchhoff_tensor(2,1);
+    fIm_Prim_temp_matrix(2,5) = fEffective_Kirchhoff_tensor_inviscid(0,1);
+    fIm_Prim_temp_matrix(5,5) = fEffective_Kirchhoff_tensor_inviscid(1,1);
+    fIm_Prim_temp_matrix(8,5) = fEffective_Kirchhoff_tensor_inviscid(2,1);
     
-    fIm_Prim_temp_matrix(0,6) = fEffective_Kirchhoff_tensor(0,2);
-    fIm_Prim_temp_matrix(3,6) = fEffective_Kirchhoff_tensor(1,2);
-    fIm_Prim_temp_matrix(6,6) = fEffective_Kirchhoff_tensor(2,2);
+    fIm_Prim_temp_matrix(0,6) = fEffective_Kirchhoff_tensor_inviscid(0,2);
+    fIm_Prim_temp_matrix(3,6) = fEffective_Kirchhoff_tensor_inviscid(1,2);
+    fIm_Prim_temp_matrix(6,6) = fEffective_Kirchhoff_tensor_inviscid(2,2);
     
-    fIm_Prim_temp_matrix(1,7) = fEffective_Kirchhoff_tensor(0,2);
-    fIm_Prim_temp_matrix(4,7) = fEffective_Kirchhoff_tensor(1,2);
-    fIm_Prim_temp_matrix(7,7) = fEffective_Kirchhoff_tensor(2,2);
+    fIm_Prim_temp_matrix(1,7) = fEffective_Kirchhoff_tensor_inviscid(0,2);
+    fIm_Prim_temp_matrix(4,7) = fEffective_Kirchhoff_tensor_inviscid(1,2);
+    fIm_Prim_temp_matrix(7,7) = fEffective_Kirchhoff_tensor_inviscid(2,2);
     
-    fIm_Prim_temp_matrix(2,8) = fEffective_Kirchhoff_tensor(0,2);
-    fIm_Prim_temp_matrix(5,8) = fEffective_Kirchhoff_tensor(1,2);
-    fIm_Prim_temp_matrix(8,8) = fEffective_Kirchhoff_tensor(2,2);
+    fIm_Prim_temp_matrix(2,8) = fEffective_Kirchhoff_tensor_inviscid(0,2);
+    fIm_Prim_temp_matrix(5,8) = fEffective_Kirchhoff_tensor_inviscid(1,2);
+    fIm_Prim_temp_matrix(8,8) = fEffective_Kirchhoff_tensor_inviscid(2,2);
 }
 
 void FSSolidFluidMixT::Form_D_matrix(void)

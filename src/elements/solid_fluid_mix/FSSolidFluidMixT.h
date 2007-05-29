@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.23 2007-05-14 16:02:15 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.24 2007-05-29 14:04:49 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -310,7 +310,8 @@ private:
 
 	dArrayT		fGrad_disp_vector;
 	dArrayT 	fDefGradInv_vector;
-	dArrayT 	fEffective_Kirchhoff_vector;
+	dArrayT 	fEffective_Kirchhoff_vector_inviscid;
+	dArrayT 	fEffective_Second_Piola_vector_viscous;
         dArrayT	        fChi_temp_vector;
         dArrayT	        fFd_int_N1_vector;
         dArrayT	        fFd_int_N2_vector;
@@ -323,6 +324,7 @@ private:
         dArrayT         fFtheta_int_C1_vector;
         dArrayT         fFtheta_int_C2_vector;
         dArrayT         fTemp_vector_nen_press;
+        dArrayT         fTemp_vector_9x1;
         dArrayT	        fPi_temp_transpose_vector;
         dArrayT	        fGrad_Omega_vector;
         dArrayT	        fgrad_Omega_vector;
@@ -341,6 +343,7 @@ private:
 
 	
 	dMatrixT	fDeformation_Gradient;
+	dMatrixT	fDefGradT_9x9_matrix;
 	dMatrixT	fRight_Cauchy_Green_tensor;
 	dMatrixT	fRight_Cauchy_Green_tensor_Inverse;
 	dMatrixT	fLeft_Cauchy_Green_tensor;
@@ -351,7 +354,8 @@ private:
 	dMatrixT	fDefGradInv_Grad_grad;
 	dMatrixT	fDefGradInv_Grad_grad_Transpose;
 	dMatrixT	fIdentity_matrix;
-        dMatrixT	fEffective_Second_Piola_tensor;
+        dMatrixT	fEffective_Second_Piola_tensor_inviscid;
+        dMatrixT	fEffective_Second_Piola_tensor_viscous;
         dMatrixT	fTemp_matrix_nsd_x_nsd;
         dMatrixT	fTemp_matrix_nen_press_x_nsd;
         dMatrixT	fTemp_matrix_nen_press_x_nen_press;
@@ -364,6 +368,8 @@ private:
         dMatrixT	fTemp_matrix1_nen_press_x_ndof_se;
         dMatrixT	fTemp_matrix_nsd_x_ndof_se;
         dMatrixT	fTemp_matrix_nsd_x_nen_press;
+        dMatrixT	fEffective_Kirchhoff_tensor_inviscid;
+        dMatrixT	fEffective_Kirchhoff_tensor_viscous;
         dMatrixT	fEffective_Kirchhoff_tensor;
         dMatrixT	fIota_temp_matrix;
         dMatrixT	fVarpi_temp_matrix;
@@ -553,8 +559,10 @@ private:
         void Form_fluid_shape_functions(const double* &shapes_press_X);
         void Form_deformation_gradient_tensor(void);
         void Form_Grad_grad_transformation_matrix(void);
+        void Form_fDefGradT_9x9_matrix(void);
         void Form_deformation_gradient_inv_vector(void);
-        void Form_effective_kirchhoff_stress_vector(void);
+        void Form_effective_kirchhoff_stress_vector_inviscid(void);
+        void Form_fEffective_Second_Piola_tensor_viscous(const double& fAlpha);
         void Form_Varpi_temp_matrix(void);
         void Form_Im_temp_matrix(void);
         void Form_Hbar_temp_matrix(void);
