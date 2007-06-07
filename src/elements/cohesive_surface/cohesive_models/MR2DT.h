@@ -1,4 +1,4 @@
-/*$Id: MR2DT.h,v 1.16 2006-10-05 17:57:54 regueiro Exp $*/
+/*$Id: MR2DT.h,v 1.17 2007-06-07 04:23:42 skyu Exp $*/
 /* created by manzari*/
 /* Elastoplastic Cohesive Model for Geomaterials*/
 #ifndef _MR_2D_T_H_
@@ -6,6 +6,10 @@
 
 /* base class */
 #include "SurfacePotentialT.h"
+
+/* direct members */
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -47,15 +51,15 @@ public:
 
 	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
   
-    double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
-    dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
-    dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
-    dArrayT& dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig);    
-    dArrayT& dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq);    
-    dMatrixT& dQdSig2_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSig2);
-    dMatrixT& dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
-    dMatrixT& dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
-    dMatrixT& dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq);
+	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
+	dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
+	dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
+	dArrayT& dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig);
+	dArrayT& dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq);
+	dMatrixT& dQdSig2_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSig2);
+	dMatrixT& dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
+	dMatrixT& dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
+	dMatrixT& dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
@@ -105,6 +109,14 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+
+	/** write output for debugging */
+	/*@{*/
+	/** output file stream */
+	ofstreamT mr_ep_2d_out;
+
+	/** line output formating variables */
+	int outputPrecision, outputFileWidth;
 	/*@}*/
 	
 	
@@ -130,9 +142,9 @@ private:
 	double falpha_c; /* Coefficient of c degredation */
 	double falpha_phi; /*  Coefficient of phi degredation */
 	double falpha_psi; /*  Coefficient of psi degredatione */
-    double fTol_1;    /*  Tolerance for Yield Function */
-    double fTol_2; /*  Tolerance for Residuals */
-    double fchi, fc, fphi, fpsi;	
+	double fTol_1;    /*  Tolerance for Yield Function */
+	double fTol_2; /*  Tolerance for Residuals */
+	double fchi, fc, fphi, fpsi;
 	
 	int fGroup; /* element group to obtain hydrostatic stress from */
 	double fSteps; /* number of steps for k_n to go to 0 after failure */
