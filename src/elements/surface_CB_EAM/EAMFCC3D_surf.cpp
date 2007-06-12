@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.11 2006-09-04 15:09:37 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.12 2007-06-12 01:50:02 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -17,10 +17,10 @@
 using namespace Tahoe;
 
 /* bond parameters */
-const int kEAMFCC3DSurfBonds        = 78;
-const int kEAMFCC3DNumBonds			= 54;
-const int kEAMFCC3DSurf1Bonds       = 33;
-const int kEAMFCC3DSurf2Bonds       = 45;
+const int kEAMFCC3DSurfBonds        = 62;	// 78
+const int kEAMFCC3DNumBonds			= 42;	// 54
+const int kEAMFCC3DSurf1Bonds       = 25;	// 33
+const int kEAMFCC3DSurf2Bonds       = 37;	// 45
 const int kEAMFCC3DNumLatticeDim 	=  3;
 const int kEAMFCC3DNumAtomsPerCell	=  4;
 const int kEAMFCC3DNumAtomsPerArea  =  2;
@@ -165,18 +165,6 @@ void EAMFCC3D_surf::LoadBondTable(void)
 		{-0.5, 0.5, 0},
 		{0.5, -0.5, 0},
 		{0.5, 0.5, 0},
-		{-1., 0, -1.},
-		{-1., 0, 1.},
-		{1., 0, -1.},
-		{1., 0, 1.},
-		{0, -1., -1.},
-		{0, -1., 1.},
-		{0, 1., -1.},
-		{0, 1., 1.},
-		{-1., -1., 0},
-		{-1., 1., 0},
-		{1., -1., 0},
-		{1., 1., 0},
 		{-0.5, -0.5, -1.},
 		{-0.5, -0.5, 1.},
 		{-0.5, 0.5, -1.},
@@ -234,15 +222,15 @@ void EAMFCC3D_surf::LoadBondTable(void)
 		{0.5, -0.5, 1.0},
 		{1.0, -0.5, -0.5},
 		{0.5, -1.0, -0.5},
-		{0.5, -0.5, -1.0},
-		{0.0, 1.0, -1.0}, // Surface cluster (8 4th shell neighbors)
-		{0.0, 1.0, 1.0},
-		{1.0, 1.0, 0.0},
-		{1.0, -1.0, 0.0},
-		{1.0, 0.0, 1.0},
-		{1.0, 0.0, -1.0},
-		{0.0, -1.0, -1.0},
-		{0.0, -1.0, 1.0}
+		{0.5, -0.5, -1.0}
+//		{0.0, 1.0, -1.0}, // Surface cluster (8 4th shell neighbors)
+//		{0.0, 1.0, 1.0},
+//		{1.0, 1.0, 0.0},
+//		{1.0, -1.0, 0.0},
+//		{1.0, 0.0, 1.0},
+//		{1.0, 0.0, -1.0},
+//		{0.0, -1.0, -1.0},
+//		{0.0, -1.0, 1.0}
 	};
 
 	/* Copy bond table into array */
@@ -288,15 +276,15 @@ void EAMFCC3D_surf::LoadBondTable(void)
 		{-0.5, -0.5, 1.0},
 		{-0.5, -0.5, -1.0},
 		{-0.5, -1.0, 0.5},
-		{-0.5, -1.0, -0.5},
-		{0.0, 1.0, -1.0}, // Surface cluster (8 4th shell neighbors)
-		{0.0, 1.0, 1.0},
-		{1.0, 1.0, 0.0},
-		{1.0, -1.0, 0.0},
-		{1.0, 0.0, 1.0},
-		{1.0, 0.0, -1.0},
-		{0.0, -1.0, -1.0},
-		{0.0, -1.0, 1.0}
+		{-0.5, -1.0, -0.5}
+//		{0.0, 1.0, -1.0}, // Surface cluster (8 4th shell neighbors)
+//		{0.0, 1.0, 1.0},
+//		{1.0, 1.0, 0.0},
+//		{1.0, -1.0, 0.0},
+//		{1.0, 0.0, 1.0},
+//		{1.0, 0.0, -1.0},
+//		{0.0, -1.0, -1.0},
+//		{0.0, -1.0, 1.0}
 	};
 
 	/* Copy bond table into array */
@@ -368,23 +356,23 @@ void EAMFCC3D_surf::LoadBondTable(void)
 		{-0.5, -0.5, 1.0},
 		{-0.5, -0.5, -1.0},
 		{-0.5, -1.0, 0.5},
-		{-0.5, -1.0, -0.5},
-		{0.0, 1.0, -1.0}, // Surface cluster (8 4th shell neighbors)
-		{0.0, 1.0, 1.0},
-		{1.0, 1.0, 0.0},
-		{1.0, -1.0, 0.0},
-		{1.0, 0.0, 1.0},
-		{1.0, 0.0, -1.0},
-		{0.0, -1.0, -1.0},
-		{0.0, -1.0, 1.0},
-		{0.0, 1.0, -1.0}, // Repeat cluster here - one atomic thickness into the bulk
-		{0.0, 1.0, 1.0},
-		{1.0, 1.0, 0.0},
-		{1.0, -1.0, 0.0},
-		{1.0, 0.0, 1.0},
-		{1.0, 0.0, -1.0},
-		{0.0, -1.0, -1.0},
-		{0.0, -1.0, 1.0}
+		{-0.5, -1.0, -0.5}
+//		{0.0, 1.0, -1.0}, // Surface cluster (8 4th shell neighbors)
+//		{0.0, 1.0, 1.0},
+//		{1.0, 1.0, 0.0},
+//		{1.0, -1.0, 0.0},
+//		{1.0, 0.0, 1.0},
+//		{1.0, 0.0, -1.0},
+//		{0.0, -1.0, -1.0},
+//		{0.0, -1.0, 1.0},
+//		{0.0, 1.0, -1.0}, // Repeat cluster here - one atomic thickness into the bulk
+//		{0.0, 1.0, 1.0},
+//		{1.0, 1.0, 0.0},
+//		{1.0, -1.0, 0.0},
+//		{1.0, 0.0, 1.0},
+//		{1.0, 0.0, -1.0},
+//		{0.0, -1.0, -1.0},
+//		{0.0, -1.0, 1.0}
 	};
 	
 	/* Rotate Bond Tables based on fNormalCode and rotation matrices */

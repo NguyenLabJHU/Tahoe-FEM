@@ -1,22 +1,23 @@
-/* $Id: EAMFCC3DSym_surf.cpp,v 1.9 2007-06-12 01:50:02 hspark Exp $ */
+/* $Id: EAMFCC3DSym_110surf.cpp,v 1.1 2007-06-12 01:50:01 hspark Exp $ */
 /* created: paklein (12/06/1996) */
-#include "EAMFCC3DSym_surf.h"
+#include "EAMFCC3DSym_110surf.h"
 
 using namespace Tahoe;
 
 /* Bond table parameters */
-//const int kEAMFCC3DSurfBonds        = 78;
-const int kEAMFCC3DSurfBonds        = 146;	// updated to include surface3 and surface4 atoms (186)
+/* This file assumes <100> bulk with {110} surfaces */
+const int kEAMFCC3DSurfBonds        = 135;	// updated to include surface3 and surface4 atoms (186)
 const int kEAMFCC3DNumBonds			= 42;	// 54
-const int kEAMFCC3DSurf1Bonds       = 25;	// 33
-const int kEAMFCC3DSurf2Bonds       = 37;	// 45
+const int kEAMFCC3DSurf1Bonds       = 21;	// 33
+const int kEAMFCC3DSurf2Bonds       = 30;	// 45
 const int kEAMFCC3DNumLatticeDim 	=  3;
 const int kEAMFCC3DNumAtomsPerCell	=  4;
 const int kEAMFCC3DNumAtomsPerArea  =  2;
 const double piby2 = 4.0 * atan(1.0) / 2.0;
+const double root2 = sqrt(2.0);
 
 /* constructor */
-EAMFCC3DSym_surf::EAMFCC3DSym_surf(int nshells, int normal):
+EAMFCC3DSym_110surf::EAMFCC3DSym_110surf(int nshells, int normal):
 	EAMFCC3D_surf(nshells, normal),
 	fNormalCode(normal)
 {
@@ -27,7 +28,7 @@ EAMFCC3DSym_surf::EAMFCC3DSym_surf(int nshells, int normal):
  * Protected
  **********************************************************************/
 	
-void EAMFCC3DSym_surf::LoadBondTable(void)
+void EAMFCC3DSym_110surf::LoadBondTable(void)
 {
 	/* dimension work space - ARE THESE DIMENSIONS CORRECT? */
 	fBondCounts.Dimension(kEAMFCC3DSurfBonds);
@@ -632,7 +633,7 @@ void EAMFCC3DSym_surf::LoadBondTable(void)
  *************************************************************************/
  
  /* Rotate bonds with [-1,0,0] normal to bonds with [0,1,0]-type normals */
-dMatrixT EAMFCC3DSym_surf::RotationMatrixA(const double angle)
+dMatrixT EAMFCC3DSym_110surf::RotationMatrixA(const double angle)
  {
 	dMatrixT rmatrix(3);
 	rmatrix = 0.0;
@@ -646,7 +647,7 @@ dMatrixT EAMFCC3DSym_surf::RotationMatrixA(const double angle)
  }
  
 /* Rotate bonds with [-1,0,0] normal to bonds with [0,0,1]-type normals */
-dMatrixT EAMFCC3DSym_surf::RotationMatrixB(const double angle)
+dMatrixT EAMFCC3DSym_110surf::RotationMatrixB(const double angle)
 {
 	dMatrixT rmatrix(3);
 	rmatrix = 0.0;
