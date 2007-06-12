@@ -1,10 +1,10 @@
-/* $Id: EAMFCC3DSym_110surf.h,v 1.1 2007-06-12 01:50:02 hspark Exp $ */
+/* $Id: EAMFCC3DSym_110surf.h,v 1.2 2007-06-12 22:06:43 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #ifndef _EAMFCC3DSYM_110SURF_H_
 #define _EAMFCC3DSYM_110SURF_H_
 
 /* base class */
-/* This class defines {110} surfaces for <100> oriented nanostructures
+/* This class defines {110} surfaces for <100> oriented nanostructures */
 #include "EAMFCC3D_surf.h"
 
 namespace Tahoe {
