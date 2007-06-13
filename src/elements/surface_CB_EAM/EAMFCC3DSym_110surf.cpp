@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_110surf.cpp,v 1.2 2007-06-12 22:06:43 hspark Exp $ */
+/* $Id: EAMFCC3DSym_110surf.cpp,v 1.3 2007-06-13 01:50:32 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym_110surf.h"
 
@@ -7,7 +7,7 @@ using namespace Tahoe;
 /* Bond table parameters */
 /* This file assumes <100> bulk with {110} surfaces */
 /* Need 6 layers for {110} instead of 4 for {100} */
-const int kEAMFCC3DSurfBonds        = 146;	// updated to include surface3 and surface4 atoms (186)
+const int kEAMFCC3DSurfBonds        = 222;	// updated to include surface3 and surface4 atoms (186)
 const int kEAMFCC3DNumBonds			= 42;	// 54
 const int kEAMFCC3DSurf1Bonds       = 25;	// 33
 const int kEAMFCC3DSurf2Bonds       = 33;	// 45
@@ -83,55 +83,54 @@ void EAMFCC3DSym_110surf::LoadBondTable(void)
 
 	/* undeformed bond data for bulk atom with 4th neighbor interactions */
 	double bulkbond[kEAMFCC3DNumBonds][kEAMFCC3DNumLatticeDim] = {
-		{0, 0, -1.},
-		{0, 0, 1.},
-		{0, -1., 0},
-		{0, 1., 0},
-		{-1., 0, 0},
-		{1., 0, 0},
-		{-0.5, 0, -0.5},
-		{-0.5, 0, 0.5},
-		{0.5, 0, -0.5},
-		{0.5, 0, 0.5},
-		{0, -0.5, -0.5},
-		{0, -0.5, 0.5},
-		{0, 0.5, -0.5},
-		{0, 0.5, 0.5},
-		{-0.5, -0.5, 0},
-		{-0.5, 0.5, 0},
-		{0.5, -0.5, 0},
-		{0.5, 0.5, 0},
-		{-0.5, -0.5, -1.},
-		{-0.5, -0.5, 1.},
-		{-0.5, 0.5, -1.},
-		{-0.5, 0.5, 1.},
-		{0.5, -0.5, -1.},
-		{0.5, -0.5, 1.},
-		{0.5, 0.5, -1.},
-		{0.5, 0.5, 1.},
-		{-0.5, -1., -0.5},
-		{-0.5, -1., 0.5},
-		{-0.5, 1., -0.5},
-		{-0.5, 1., 0.5},
-		{0.5, -1., -0.5},
-		{0.5, -1., 0.5},
-		{0.5, 1., -0.5},
-		{0.5, 1., 0.5},
-		{-1., -0.5, -0.5},
-		{-1., -0.5, 0.5},
-		{-1., 0.5, -0.5},
-		{-1., 0.5, 0.5},
-		{1., -0.5, -0.5},
-		{1., -0.5, 0.5},
-		{1., 0.5, -0.5},
-		{1., 0.5, 0.5}
+		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors)
+		{0.0, -root2by2, 0.0},
+		{0.0, 0.0, -root2by2},
+		{0.5, root2by4, -root2by4},
+		{0.5, -root2by4, -root2by4},
+		{-0.5, root2by4, -root2by4},
+		{-0.5, -root2by4, -root2by4},
+		{1.0, 0.0, 0.0},	// Surface cluster (4 2nd shell neighbors)
+		{-1.0, 0.0, 0.0},
+		{0.0, root2by2, -root2by2},
+		{0.0, -root2by2, -root2by2},
+		{1.0, root2by2, 0.0},	// Surface cluster (14 3rd shell neighbors)
+		{1.0, -root2by2, 0.0},
+		{-1.0, root2by2, 0.0},
+		{-1.0, -root2by2, 0.0},
+		{1.0, 0.0, -root2by2},
+		{-1.0, 0.0, -root2by2},
+		{0.5, root2by4, -threeroot2by4},
+		{0.5, -root2by4, -threeroot2by4},
+		{-0.5, root2by4, -threeroot2by4},
+		{-0.5, -root2by4, -threeroot2by4},
+		{0.5, threeroot2by4, -root2by4},
+		{0.5, -threeroot2by4, -root2by4},
+		{-0.5, threeroot2by4, -root2by4},
+		{-0.5, -threeroot2by4, -root2by4},
+		{0.5, root2by4, root2by4},	// New NN for second layer atoms
+		{0.5, -root2by4, root2by4},
+		{-0.5, root2by4, root2by4},
+		{-0.5, -root2by4, root2by4},
+		{0.5, threeroot2by4, root2by4},	// New 3NN for second layer atoms
+		{0.5, -threeroot2by4, root2by4},
+		{-0.5, threeroot2by4, root2by4},
+		{-0.5, -threeroot2by4, root2by4},
+		{0.0, 0.0, root2by2},	// New NN for third layer atoms
+		{0.0, root2by2, root2by2},	// New 2NN for third layer atoms
+		{0.0, -root2by2, root2by2},
+		{1.0, 0.0, root2by2},	// New 3NN for third layer atoms
+		{-1.0, 0.0, root2by2},
+		{0.5, root2by4, threeroot2by4},	// New 3NN to complete bulk
+		{0.5, -root2by4, threeroot2by4},
+		{-0.5, root2by4, threeroot2by4},
+		{-0.5, -root2by4, threeroot2by4}
 	};
-	
-	/* Workspace for calculating S3 and S4 interactions */
-	//iArrayT s3bonds(54), s4bonds(54);
-	//int surf3[54]={6,6,6,6,2,6,5,5,6,6,6,6,6,6,5,5,6,6,2,2,6,6,6,6,6,6,2,2,6,6,5,5,5,5,6,6,6,6,5,5,5,5,6,6,6,6,2,2,2,2,6,6,6,6};
-	//int surf4[54]={6,6,6,6,5,6,6,6,6,6,6,6,6,6,6,6,6,6,5,5,6,6,6,6,6,6,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,5,5,5,5,6,6,6,6};
 
+//	int bulk4[42] = {15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,14,14,14,14,14,14,14,14,13,13,13,13,13,12,12,12,12};
+//	int bulk5[42] = {15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,14,14,14,14,14,13,13,13,13};
+//	int bulk6[42] = {15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,14,14,14,14};
+	
 	/* Copy bond table into array */
 	for (int i = 0; i < kEAMFCC3DNumBonds; i++)
 		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
@@ -142,7 +141,7 @@ void EAMFCC3DSym_110surf::LoadBondTable(void)
 	double surf1bond[kEAMFCC3DSurf1Bonds][kEAMFCC3DNumLatticeDim] = {
 		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors)
 		{0.0, -root2by2, 0.0},
-		{0.0, 0.0, root2by2},
+		{0.0, 0.0, -root2by2},
 		{0.5, root2by4, -root2by4},
 		{0.5, -root2by4, -root2by4},
 		{-0.5, root2by4, -root2by4},
@@ -167,6 +166,8 @@ void EAMFCC3DSym_110surf::LoadBondTable(void)
 		{-0.5, -threeroot2by4, -root2by4}
 	};
 
+//	int surf1[25] = {0,0,2,1,1,1,1,0,0,2,2,0,0,0,0,2,2,3,3,3,3,1,1,1,1};
+
 	/* Copy bond table into array */
 	for (int i = 0; i < kEAMFCC3DSurf1Bonds; i++)
 		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
@@ -176,15 +177,11 @@ void EAMFCC3DSym_110surf::LoadBondTable(void)
 	double surf2bond[kEAMFCC3DSurf2Bonds][kEAMFCC3DNumLatticeDim] = {
 		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors)
 		{0.0, -root2by2, 0.0},
-		{0.0, 0.0, root2by2},
+		{0.0, 0.0, -root2by2},
 		{0.5, root2by4, -root2by4},
 		{0.5, -root2by4, -root2by4},
 		{-0.5, root2by4, -root2by4},
 		{-0.5, -root2by4, -root2by4},
-		{0.5, root2by4, root2by4},	// New NN for second layer atoms
-		{0.5, -root2by4, root2by4},
-		{-0.5, root2by4, root2by4},
-		{-0.5, -root2by4, root2by4},
 		{1.0, 0.0, 0.0},	// Surface cluster (4 2nd shell neighbors)
 		{-1.0, 0.0, 0.0},
 		{0.0, root2by2, -root2by2},
@@ -203,11 +200,17 @@ void EAMFCC3DSym_110surf::LoadBondTable(void)
 		{0.5, -threeroot2by4, -root2by4},
 		{-0.5, threeroot2by4, -root2by4},
 		{-0.5, -threeroot2by4, -root2by4},
+		{0.5, root2by4, root2by4},	// New NN for second layer atoms
+		{0.5, -root2by4, root2by4},
+		{-0.5, root2by4, root2by4},
+		{-0.5, -root2by4, root2by4},
 		{0.5, threeroot2by4, root2by4},	// New 3NN for second layer atoms
 		{0.5, -threeroot2by4, root2by4},
 		{-0.5, threeroot2by4, root2by4},
 		{-0.5, -threeroot2by4, root2by4}
 	};
+
+//	int surf2[33] = {4,4,6,5,5,5,5,4,4,6,6,4,4,4,4,6,6,7,7,7,7,5,5,5,5,7,7,7,7,7,7,7,7};
 
 	/* Copy bond table into array */
 	for (int i = 0; i < kEAMFCC3DSurf2Bonds; i++)
@@ -218,22 +221,15 @@ void EAMFCC3DSym_110surf::LoadBondTable(void)
 	double surf3bond[kEAMFCC3DSurf3Bonds][kEAMFCC3DNumLatticeDim] = {
 		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors)
 		{0.0, -root2by2, 0.0},
-		{0.0, 0.0, root2by2},
+		{0.0, 0.0, -root2by2},
 		{0.5, root2by4, -root2by4},
 		{0.5, -root2by4, -root2by4},
 		{-0.5, root2by4, -root2by4},
 		{-0.5, -root2by4, -root2by4},
-		{0.5, root2by4, root2by4},	// New NN for second layer atoms
-		{0.5, -root2by4, root2by4},
-		{-0.5, root2by4, root2by4},
-		{-0.5, -root2by4, root2by4},
 		{1.0, 0.0, 0.0},	// Surface cluster (4 2nd shell neighbors)
 		{-1.0, 0.0, 0.0},
 		{0.0, root2by2, -root2by2},
 		{0.0, -root2by2, -root2by2},
-		{0.0, 0.0, 1.0},	// New 2NN for third layer atoms
-		{0.0, root2by2, root2by2},
-		{0.0, -root2by2, root2by2},
 		{1.0, root2by2, 0.0},	// Surface cluster (14 3rd shell neighbors)
 		{1.0, -root2by2, 0.0},
 		{-1.0, root2by2, 0.0},
@@ -248,13 +244,22 @@ void EAMFCC3DSym_110surf::LoadBondTable(void)
 		{0.5, -threeroot2by4, -root2by4},
 		{-0.5, threeroot2by4, -root2by4},
 		{-0.5, -threeroot2by4, -root2by4},
+		{0.5, root2by4, root2by4},	// New NN for second layer atoms
+		{0.5, -root2by4, root2by4},
+		{-0.5, root2by4, root2by4},
+		{-0.5, -root2by4, root2by4},
 		{0.5, threeroot2by4, root2by4},	// New 3NN for second layer atoms
 		{0.5, -threeroot2by4, root2by4},
 		{-0.5, threeroot2by4, root2by4},
 		{-0.5, -threeroot2by4, root2by4},
+		{0.0, 0.0, root2by2},	// New NN for third layer atoms
+		{0.0, root2by2, root2by2},	// New 2NN for third layer atoms
+		{0.0, -root2by2, root2by2},
 		{1.0, 0.0, root2by2},	// New 3NN for third layer atoms
 		{-1.0, 0.0, root2by2}
 	};
+
+//	int surf3[38] = {8,8,9,9,9,9,9,8,8,9,9,8,8,8,8,9,9,11,11,11,11,9,9,9,9,11,11,11,11,11,11,11,11,10,10,10,10,10};
 
 	/* Copy bond table into array */
 	for (int i = 0; i < kEAMFCC3DSurf3Bonds; i++)
@@ -264,21 +269,28 @@ void EAMFCC3DSym_110surf::LoadBondTable(void)
 
 	/* work space arrays for storing interaction types */
 	// OTHER BOND TABLES ARE USED TO CALCULATE REPRESENTATIVE ELECTRON DENSITIES FOR VARIOUS
-	// SURFACE LAYERS
-	//iArrayT allbonds(78);
-	iArrayT allbonds(146);
+	// SURFACE LAYERS - CORRELATE TO THOSE USED IN EAMT.CPP
+	iArrayT allbonds(222);
 	/* Interaction type key */
 	// 0 = surface1/surface1
 	// 1 = surface1/surface2
-	// 2 = surface1/bulk
-	// 3 = surface2/surface1
-	// 4 = surface2/surface2
-	// 5 = surface2/bulk
-	// 6 = bulk/bulk - CHANGE TO bulk/surface1
-	// ADD THESE NEW ONES
-	// 7 = bulk/surface2
-	// 8 = bulk/bulk
-	int surf1n[146]={1,1,1,1,0,0,0,0,5,5,5,5,4,4,4,4,3,3,3,3,2,0,0,0,0,5,4,4,4,4,2,1,1,2,1,1,2,1,1,2,1,1,5,5,5,5,5,5,5,5,5,5,5,5,3,3,3,3,3,3,3,3,8,8,8,8,6,8,7,7,8,8,8,8,8,8,7,7,8,8,7,7,7,7,8,8,8,8,7,7,7,7,8,8,8,8,6,6,6,6,8,8,8,8,8,8,8,8,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,7,7,7,7,8,8,8,8};
+	// 2 = surface1/surface3
+	// 3 = surface1/bulk
+	// 4 = surface2/surface1
+	// 5 = surface2/surface2
+	// 6 = surface2/surface3
+	// 7 = surface2/bulk
+	// 8 = surface3/surface3
+	// 9 = surface3/bulk
+	// 10= surface3/surface1
+	// 11= surface3/surface2
+	// 12= bulk/surface1
+	// 13= bulk/surface2
+	// 14= bulk/surface3
+	// 15= bulk/bulk
+
+	/* FILL THIS IN WITH ALL BOND TABLE INTERACTIONS */
+	int surf1n[222]={0,0,2,1,1,1,1,0,0,2,2,0,0,0,0,2,2,3,3,3,3,1,1,1,1,4,4,6,5,5,5,5,4,4,6,6,4,4,4,4,6,6,7,7,7,7,5,5,5,5,7,7,7,7,7,7,7,7,8,8,9,9,9,9,9,8,8,9,9,8,8,8,8,9,9,11,11,11,11,9,9,9,9,11,11,11,11,11,11,11,11,10,10,10,10,10,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,14,14,14,14,14,14,14,14,13,13,13,13,13,12,12,12,12,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,14,14,14,14,14,13,13,13,13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,14,14,14,14};
 	for (int i = 0; i < kEAMFCC3DSurfBonds; i++)
 		allbonds[i] = surf1n[i];
 	
@@ -286,152 +298,228 @@ void EAMFCC3DSym_110surf::LoadBondTable(void)
 	
 	/* New bond table for surface clusters - change dimensions! */
 	double bonddata[kEAMFCC3DSurfBonds][kEAMFCC3DNumLatticeDim] = {
-		{0.5, 0.5, 0.0}, // Surface cluster (8 nearest neighbors)
-		{0.5, -0.5, 0.0},
-		{0.5, 0.0, 0.5},
-		{0.5, 0.0, -0.5},
-		{0.0, 0.5, 0.5},
-		{0.0, -0.5, 0.5},
-		{0.0, 0.5, -0.5},
-		{0.0, -0.5, -0.5},
-		{0.5, 0.5, 0.0}, // Repeat cluster here - one atomic thickness into bulk
-		{0.5, -0.5, 0.0}, // Total of 12 nearest neighbors
-		{0.5, 0.0, 0.5},
-		{0.5, 0.0, -0.5},
-		{0.0, 0.5, 0.5},
-		{0.0, -0.5, 0.5},
-		{0.0, 0.5, -0.5},
-		{0.0, -0.5, -0.5},
-		{-0.5, -0.5, 0.0}, // New bonds for second surface cluster begin here
-		{-0.5, 0.5, 0.0},
-		{-0.5, 0.0, 0.5},
-		{-0.5, 0.0, -0.5},
-		{1.0, 0.0, 0.0}, // Surface cluster (5 2nd shell neighbors)
-		{0.0, 1.0, 0.0},
-		{0.0, 0.0, 1.0},
-		{0.0, -1.0, 0.0},
-		{0.0, 0.0, -1.0},
-		{1.0, 0.0, 0.0}, // Repeat cluster here - one atomic thickness into bulk
-		{0.0, 1.0, 0.0}, // Total of 5 2nd shell neighbors
-		{0.0, 0.0, 1.0},
-		{0.0, -1.0, 0.0},
-		{0.0, 0.0, -1.0},
-		{1.0, 0.5, 0.5}, // Surface cluster (12 3rd shell neighbors)
-		{0.5, 1.0, 0.5},
-		{0.5, 0.5, 1.0},
-		{1.0, 0.5, -0.5},
-		{0.5, 1.0, -0.5},
-		{0.5, 0.5, -1.0},
-		{1.0, -0.5, 0.5},
-		{0.5, -1.0, 0.5},
-		{0.5, -0.5, 1.0},
-		{1.0, -0.5, -0.5},
-		{0.5, -1.0, -0.5},
-		{0.5, -0.5, -1.0},
-		{1.0, 0.5, 0.5}, // Repeat cluster here - one atomic thickness into bulk
-		{0.5, 1.0, 0.5}, // Total of 20 3rd shell neighbors
-		{0.5, 0.5, 1.0},
-		{1.0, 0.5, -0.5},
-		{0.5, 1.0, -0.5},
-		{0.5, 0.5, -1.0},
-		{1.0, -0.5, 0.5},
-		{0.5, -1.0, 0.5},
-		{0.5, -0.5, 1.0},
-		{1.0, -0.5, -0.5},
-		{0.5, -1.0, -0.5},
-		{0.5, -0.5, -1.0},
-		{-0.5, 1.0, 0.5}, // New bonds for second surface cluster begin here
-		{-0.5, 1.0, -0.5},
-		{-0.5, 0.5, 1.0},
-		{-0.5, 0.5, -1.0},
-		{-0.5, -0.5, 1.0},
-		{-0.5, -0.5, -1.0},
-		{-0.5, -1.0, 0.5},
-		{-0.5, -1.0, -0.5},
-		{0, 0, -1.}, // s3 starts here
-		{0, 0, 1.},
-		{0, -1., 0},
-		{0, 1., 0},
-		{-1., 0, 0},
-		{1., 0, 0},
-		{-0.5, 0, -0.5},
-		{-0.5, 0, 0.5},
-		{0.5, 0, -0.5},
-		{0.5, 0, 0.5},
-		{0, -0.5, -0.5},
-		{0, -0.5, 0.5},
-		{0, 0.5, -0.5},
-		{0, 0.5, 0.5},
-		{-0.5, -0.5, 0},
-		{-0.5, 0.5, 0},
-		{0.5, -0.5, 0},
-		{0.5, 0.5, 0},
-		{-0.5, -0.5, -1.},
-		{-0.5, -0.5, 1.},
-		{-0.5, 0.5, -1.},
-		{-0.5, 0.5, 1.},
-		{0.5, -0.5, -1.},
-		{0.5, -0.5, 1.},
-		{0.5, 0.5, -1.},
-		{0.5, 0.5, 1.},
-		{-0.5, -1., -0.5},
-		{-0.5, -1., 0.5},
-		{-0.5, 1., -0.5},
-		{-0.5, 1., 0.5},
-		{0.5, -1., -0.5},
-		{0.5, -1., 0.5},
-		{0.5, 1., -0.5},
-		{0.5, 1., 0.5},
-		{-1., -0.5, -0.5},
-		{-1., -0.5, 0.5},
-		{-1., 0.5, -0.5},
-		{-1., 0.5, 0.5},
-		{1., -0.5, -0.5},
-		{1., -0.5, 0.5},
-		{1., 0.5, -0.5},
-		{1., 0.5, 0.5}, // next line is S4
-		{0, 0, -1.},  // S4 starts here
-		{0, 0, 1.},
-		{0, -1., 0},
-		{0, 1., 0},
-		{-1., 0, 0},
-		{1., 0, 0},
-		{-0.5, 0, -0.5},
-		{-0.5, 0, 0.5},
-		{0.5, 0, -0.5},
-		{0.5, 0, 0.5},
-		{0, -0.5, -0.5},
-		{0, -0.5, 0.5},
-		{0, 0.5, -0.5},
-		{0, 0.5, 0.5},
-		{-0.5, -0.5, 0},
-		{-0.5, 0.5, 0},
-		{0.5, -0.5, 0},
-		{0.5, 0.5, 0},
-		{-0.5, -0.5, -1.},
-		{-0.5, -0.5, 1.},
-		{-0.5, 0.5, -1.},
-		{-0.5, 0.5, 1.},
-		{0.5, -0.5, -1.},
-		{0.5, -0.5, 1.},
-		{0.5, 0.5, -1.},
-		{0.5, 0.5, 1.},
-		{-0.5, -1., -0.5},
-		{-0.5, -1., 0.5},
-		{-0.5, 1., -0.5},
-		{-0.5, 1., 0.5},
-		{0.5, -1., -0.5},
-		{0.5, -1., 0.5},
-		{0.5, 1., -0.5},
-		{0.5, 1., 0.5},
-		{-1., -0.5, -0.5},
-		{-1., -0.5, 0.5},
-		{-1., 0.5, -0.5},
-		{-1., 0.5, 0.5},
-		{1., -0.5, -0.5},
-		{1., -0.5, 0.5},
-		{1., 0.5, -0.5},
-		{1., 0.5, 0.5}
+		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors)	// LAYER 1 STARTS
+		{0.0, -root2by2, 0.0},
+		{0.0, 0.0, -root2by2},
+		{0.5, root2by4, -root2by4},
+		{0.5, -root2by4, -root2by4},
+		{-0.5, root2by4, -root2by4},
+		{-0.5, -root2by4, -root2by4},
+		{1.0, 0.0, 0.0},	// Surface cluster (4 2nd shell neighbors)
+		{-1.0, 0.0, 0.0},
+		{0.0, root2by2, -root2by2},
+		{0.0, -root2by2, -root2by2},
+		{1.0, root2by2, 0.0},	// Surface cluster (14 3rd shell neighbors)
+		{1.0, -root2by2, 0.0},
+		{-1.0, root2by2, 0.0},
+		{-1.0, -root2by2, 0.0},
+		{1.0, 0.0, -root2by2},
+		{-1.0, 0.0, -root2by2},
+		{0.5, root2by4, -threeroot2by4},
+		{0.5, -root2by4, -threeroot2by4},
+		{-0.5, root2by4, -threeroot2by4},
+		{-0.5, -root2by4, -threeroot2by4},
+		{0.5, threeroot2by4, -root2by4},
+		{0.5, -threeroot2by4, -root2by4},
+		{-0.5, threeroot2by4, -root2by4},
+		{-0.5, -threeroot2by4, -root2by4},	// LAYER 1 ENDS
+		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors)	// LAYER 2 STARTS
+		{0.0, -root2by2, 0.0},
+		{0.0, 0.0, -root2by2},
+		{0.5, root2by4, -root2by4},
+		{0.5, -root2by4, -root2by4},
+		{-0.5, root2by4, -root2by4},
+		{-0.5, -root2by4, -root2by4},
+		{1.0, 0.0, 0.0},	// Surface cluster (4 2nd shell neighbors)
+		{-1.0, 0.0, 0.0},
+		{0.0, root2by2, -root2by2},
+		{0.0, -root2by2, -root2by2},
+		{1.0, root2by2, 0.0},	// Surface cluster (14 3rd shell neighbors)
+		{1.0, -root2by2, 0.0},
+		{-1.0, root2by2, 0.0},
+		{-1.0, -root2by2, 0.0},
+		{1.0, 0.0, -root2by2},
+		{-1.0, 0.0, -root2by2},
+		{0.5, root2by4, -threeroot2by4},
+		{0.5, -root2by4, -threeroot2by4},
+		{-0.5, root2by4, -threeroot2by4},
+		{-0.5, -root2by4, -threeroot2by4},
+		{0.5, threeroot2by4, -root2by4},
+		{0.5, -threeroot2by4, -root2by4},
+		{-0.5, threeroot2by4, -root2by4},
+		{-0.5, -threeroot2by4, -root2by4},
+		{0.5, root2by4, root2by4},	// New NN for second layer atoms
+		{0.5, -root2by4, root2by4},
+		{-0.5, root2by4, root2by4},
+		{-0.5, -root2by4, root2by4},
+		{0.5, threeroot2by4, root2by4},	// New 3NN for second layer atoms
+		{0.5, -threeroot2by4, root2by4},
+		{-0.5, threeroot2by4, root2by4},
+		{-0.5, -threeroot2by4, root2by4},	// LAYER 2 ENDS
+		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors) // LAYER 3 STARTS
+		{0.0, -root2by2, 0.0},
+		{0.0, 0.0, -root2by2},
+		{0.5, root2by4, -root2by4},
+		{0.5, -root2by4, -root2by4},
+		{-0.5, root2by4, -root2by4},
+		{-0.5, -root2by4, -root2by4},
+		{1.0, 0.0, 0.0},	// Surface cluster (4 2nd shell neighbors)
+		{-1.0, 0.0, 0.0},
+		{0.0, root2by2, -root2by2},
+		{0.0, -root2by2, -root2by2},
+		{1.0, root2by2, 0.0},	// Surface cluster (14 3rd shell neighbors)
+		{1.0, -root2by2, 0.0},
+		{-1.0, root2by2, 0.0},
+		{-1.0, -root2by2, 0.0},
+		{1.0, 0.0, -root2by2},
+		{-1.0, 0.0, -root2by2},
+		{0.5, root2by4, -threeroot2by4},
+		{0.5, -root2by4, -threeroot2by4},
+		{-0.5, root2by4, -threeroot2by4},
+		{-0.5, -root2by4, -threeroot2by4},
+		{0.5, threeroot2by4, -root2by4},
+		{0.5, -threeroot2by4, -root2by4},
+		{-0.5, threeroot2by4, -root2by4},
+		{-0.5, -threeroot2by4, -root2by4},
+		{0.5, root2by4, root2by4},	// New NN for second layer atoms
+		{0.5, -root2by4, root2by4},
+		{-0.5, root2by4, root2by4},
+		{-0.5, -root2by4, root2by4},
+		{0.5, threeroot2by4, root2by4},	// New 3NN for second layer atoms
+		{0.5, -threeroot2by4, root2by4},
+		{-0.5, threeroot2by4, root2by4},
+		{-0.5, -threeroot2by4, root2by4},
+		{0.0, 0.0, root2by2},	// New NN for third layer atoms
+		{0.0, root2by2, root2by2},	// New 2NN for third layer atoms
+		{0.0, -root2by2, root2by2},
+		{1.0, 0.0, root2by2},	// New 3NN for third layer atoms
+		{-1.0, 0.0, root2by2},	// LAYER 3 ENDS
+		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors) // BULK 4 STARTS
+		{0.0, -root2by2, 0.0},
+		{0.0, 0.0, -root2by2},
+		{0.5, root2by4, -root2by4},
+		{0.5, -root2by4, -root2by4},
+		{-0.5, root2by4, -root2by4},
+		{-0.5, -root2by4, -root2by4},
+		{1.0, 0.0, 0.0},	// Surface cluster (4 2nd shell neighbors)
+		{-1.0, 0.0, 0.0},
+		{0.0, root2by2, -root2by2},
+		{0.0, -root2by2, -root2by2},
+		{1.0, root2by2, 0.0},	// Surface cluster (14 3rd shell neighbors)
+		{1.0, -root2by2, 0.0},
+		{-1.0, root2by2, 0.0},
+		{-1.0, -root2by2, 0.0},
+		{1.0, 0.0, -root2by2},
+		{-1.0, 0.0, -root2by2},
+		{0.5, root2by4, -threeroot2by4},
+		{0.5, -root2by4, -threeroot2by4},
+		{-0.5, root2by4, -threeroot2by4},
+		{-0.5, -root2by4, -threeroot2by4},
+		{0.5, threeroot2by4, -root2by4},
+		{0.5, -threeroot2by4, -root2by4},
+		{-0.5, threeroot2by4, -root2by4},
+		{-0.5, -threeroot2by4, -root2by4},
+		{0.5, root2by4, root2by4},	// New NN for second layer atoms
+		{0.5, -root2by4, root2by4},
+		{-0.5, root2by4, root2by4},
+		{-0.5, -root2by4, root2by4},
+		{0.5, threeroot2by4, root2by4},	// New 3NN for second layer atoms
+		{0.5, -threeroot2by4, root2by4},
+		{-0.5, threeroot2by4, root2by4},
+		{-0.5, -threeroot2by4, root2by4},
+		{0.0, 0.0, root2by2},	// New NN for third layer atoms
+		{0.0, root2by2, root2by2},	// New 2NN for third layer atoms
+		{0.0, -root2by2, root2by2},
+		{1.0, 0.0, root2by2},	// New 3NN for third layer atoms
+		{-1.0, 0.0, root2by2},
+		{0.5, root2by4, threeroot2by4},	// New 3NN to complete bulk
+		{0.5, -root2by4, threeroot2by4},
+		{-0.5, root2by4, threeroot2by4},
+		{-0.5, -root2by4, threeroot2by4},	// BULK 4 ENDS
+		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors) // BULK 5 STARTS
+		{0.0, -root2by2, 0.0},
+		{0.0, 0.0, -root2by2},
+		{0.5, root2by4, -root2by4},
+		{0.5, -root2by4, -root2by4},
+		{-0.5, root2by4, -root2by4},
+		{-0.5, -root2by4, -root2by4},
+		{1.0, 0.0, 0.0},	// Surface cluster (4 2nd shell neighbors)
+		{-1.0, 0.0, 0.0},
+		{0.0, root2by2, -root2by2},
+		{0.0, -root2by2, -root2by2},
+		{1.0, root2by2, 0.0},	// Surface cluster (14 3rd shell neighbors)
+		{1.0, -root2by2, 0.0},
+		{-1.0, root2by2, 0.0},
+		{-1.0, -root2by2, 0.0},
+		{1.0, 0.0, -root2by2},
+		{-1.0, 0.0, -root2by2},
+		{0.5, root2by4, -threeroot2by4},
+		{0.5, -root2by4, -threeroot2by4},
+		{-0.5, root2by4, -threeroot2by4},
+		{-0.5, -root2by4, -threeroot2by4},
+		{0.5, threeroot2by4, -root2by4},
+		{0.5, -threeroot2by4, -root2by4},
+		{-0.5, threeroot2by4, -root2by4},
+		{-0.5, -threeroot2by4, -root2by4},
+		{0.5, root2by4, root2by4},	// New NN for second layer atoms
+		{0.5, -root2by4, root2by4},
+		{-0.5, root2by4, root2by4},
+		{-0.5, -root2by4, root2by4},
+		{0.5, threeroot2by4, root2by4},	// New 3NN for second layer atoms
+		{0.5, -threeroot2by4, root2by4},
+		{-0.5, threeroot2by4, root2by4},
+		{-0.5, -threeroot2by4, root2by4},
+		{0.0, 0.0, root2by2},	// New NN for third layer atoms
+		{0.0, root2by2, root2by2},	// New 2NN for third layer atoms
+		{0.0, -root2by2, root2by2},
+		{1.0, 0.0, root2by2},	// New 3NN for third layer atoms
+		{-1.0, 0.0, root2by2},
+		{0.5, root2by4, threeroot2by4},	// New 3NN to complete bulk
+		{0.5, -root2by4, threeroot2by4},
+		{-0.5, root2by4, threeroot2by4},
+		{-0.5, -root2by4, threeroot2by4},	// BULK 5 ENDS
+		{0.0, root2by2, 0.0}, // Surface cluster (7 nearest neighbors) // BULK 6 STARTS
+		{0.0, -root2by2, 0.0},
+		{0.0, 0.0, -root2by2},
+		{0.5, root2by4, -root2by4},
+		{0.5, -root2by4, -root2by4},
+		{-0.5, root2by4, -root2by4},
+		{-0.5, -root2by4, -root2by4},
+		{1.0, 0.0, 0.0},	// Surface cluster (4 2nd shell neighbors)
+		{-1.0, 0.0, 0.0},
+		{0.0, root2by2, -root2by2},
+		{0.0, -root2by2, -root2by2},
+		{1.0, root2by2, 0.0},	// Surface cluster (14 3rd shell neighbors)
+		{1.0, -root2by2, 0.0},
+		{-1.0, root2by2, 0.0},
+		{-1.0, -root2by2, 0.0},
+		{1.0, 0.0, -root2by2},
+		{-1.0, 0.0, -root2by2},
+		{0.5, root2by4, -threeroot2by4},
+		{0.5, -root2by4, -threeroot2by4},
+		{-0.5, root2by4, -threeroot2by4},
+		{-0.5, -root2by4, -threeroot2by4},
+		{0.5, threeroot2by4, -root2by4},
+		{0.5, -threeroot2by4, -root2by4},
+		{-0.5, threeroot2by4, -root2by4},
+		{-0.5, -threeroot2by4, -root2by4},
+		{0.5, root2by4, root2by4},	// New NN for second layer atoms
+		{0.5, -root2by4, root2by4},
+		{-0.5, root2by4, root2by4},
+		{-0.5, -root2by4, root2by4},
+		{0.5, threeroot2by4, root2by4},	// New 3NN for second layer atoms
+		{0.5, -threeroot2by4, root2by4},
+		{-0.5, threeroot2by4, root2by4},
+		{-0.5, -threeroot2by4, root2by4},
+		{0.0, 0.0, root2by2},	// New NN for third layer atoms
+		{0.0, root2by2, root2by2},	// New 2NN for third layer atoms
+		{0.0, -root2by2, root2by2},
+		{1.0, 0.0, root2by2},	// New 3NN for third layer atoms
+		{-1.0, 0.0, root2by2},
+		{0.5, root2by4, threeroot2by4},	// New 3NN to complete bulk
+		{0.5, -root2by4, threeroot2by4},
+		{-0.5, root2by4, threeroot2by4},
+		{-0.5, -root2by4, threeroot2by4}	// BULK 6 ENDS
 	};
 	
 	/* Rotate Bond Tables based on fNormalCode and rotation matrices */
