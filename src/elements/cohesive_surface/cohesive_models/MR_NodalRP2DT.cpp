@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.11 2006-11-22 22:46:02 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.12 2007-06-15 16:58:25 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -460,8 +460,9 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		//while (ff > fTol_1 || normr > fTol_2)
 		{
 			//check for the local iteration
-			if (kk <= 1)
+			if (kk <= 4)
 			{
+			/*
 			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
 				<< setw(outputFileWidth) << "Tt = " << Sig[0]
 				<< endl;
@@ -544,6 +545,38 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 
 			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
 				<< setw(outputFileWidth) << "R[5] = " << R[5]
+				<< endl;
+			*/
+
+			// Check the stiffness at each local iteration
+			Stiffness(jump_u, state, sigma);
+
+			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
+				<< setw(outputFileWidth) << "norm_R = ----------"
+				<< endl;
+
+			mr_rp_2d_out << setw(outputFileWidth) << "global iteration # = " << (*fIteration) << "     "
+				<< setw(outputFileWidth) << "local iteration # = " << kk
+				<< endl;
+
+			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
+				<< setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0]
+				<< endl;
+
+			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
+				<< setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1]
+				<< endl;
+
+			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
+				<< setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2]
+				<< endl;
+
+			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
+				<< setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3]
+				<< endl;
+
+			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
+				<< setw(outputFileWidth) << "norm_R = ----------"
 				<< endl;
 			}
 
@@ -707,8 +740,16 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		}
 
 		//check for yield and norm_R after convergence is achieved
+		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = **********" << "     "
+				<< setw(outputFileWidth) << "norm_R = **********"
+				<< endl;
+
 		mr_rp_2d_out << setw(outputFileWidth) << "yield_f is converged " << "     "
 				<< setw(outputFileWidth) << "norm_R is converged "
+				<< endl;
+
+		mr_rp_2d_out << setw(outputFileWidth) << "global iteration # = " << (*fIteration) << "     "
+				<< setw(outputFileWidth) << "local iteration # = " << kk
 				<< endl;
 
 		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
@@ -1027,42 +1068,39 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 
 	//check for the yield and tied flag
 	Yield_f(Sig, qn, ff);
-	mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
-				<< setw(outputFileWidth) << "state[k_tied_flag] = ----------"
-				<< endl;
 
-	mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
+	mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff << "     "
 				<< setw(outputFileWidth) << "state[k_tied_flag] = " << state[k_tied_flag]
-				<< endl;
-
-	mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
-				<< setw(outputFileWidth) << "state[k_tied_flag] = ----------"
 				<< endl;
 	//End
 
 	/* not free */
 	/*
 	//value of Parameter fUpdateIterations doesn't be obtained from the input
-	if (fabs(state[k_tied_flag] - kFreeNode) > kSmall ||
-		jump_u[0] < kSmall && jump_u[1] < kSmall ||
-		fUpdateIterations > 1) //subiterations
+	// if (fabs(state[k_tied_flag] - kFreeNode) > kSmall ||
+	//	jump_u[0] < kSmall && jump_u[1] < kSmall ||
+	//	fUpdateIterations > 1) //subiterations
 	*/
-
 	if (fabs(state[k_tied_flag] - kFreeNode) > kSmall ||
 		jump_u[0] < kSmall && jump_u[1] < kSmall)
 	{
 		//no contribution to the stiffness
-		fStiffness = 0.0;
+		fStiffness = 0.;
+
 		return fStiffness;
 	}
 
 	//check for the plastic flag
-	if (state[k_plastic] == 0.) 
+	
+	if (state[k_plastic] == 0.)
 	{
-		fStiffness[3] = 1.e20;
-		fStiffness[0] = 1.e20;
+		//no contribution to the stiffness
+		// fStiffness[0] = 1.e20;
+		// fStiffness[3] = 1.e20;
+		fStiffness[0] = 0.;
+		fStiffness[3] = 0.;
 	}
-	else if (state[k_plastic] == 1.) 
+	else if (state[k_plastic] == 1.)
 	{
 		dlam = state[k_plast_mult];
 		dQdSig2_f(qn, dQdSig2);
