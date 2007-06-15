@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.12 2007-06-15 16:58:25 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.13 2007-06-15 17:14:10 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -1032,8 +1032,7 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
 #endif
 
-
-
+	/*
 	int i, j;
 
 	dMatrixT AA(6,6), I_mat(4,4), CMAT(6,6),AA_inv(6,6),
@@ -1074,13 +1073,13 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 				<< endl;
 	//End
 
-	/* not free */
-	/*
+	// not free 
+	
 	//value of Parameter fUpdateIterations doesn't be obtained from the input
 	// if (fabs(state[k_tied_flag] - kFreeNode) > kSmall ||
 	//	jump_u[0] < kSmall && jump_u[1] < kSmall ||
 	//	fUpdateIterations > 1) //subiterations
-	*/
+	
 	if (fabs(state[k_tied_flag] - kFreeNode) > kSmall ||
 		jump_u[0] < kSmall && jump_u[1] < kSmall)
 	{
@@ -1115,7 +1114,7 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		KE.MultAB(A_uq,KE1);
 		KE *= state[k_plast_mult];
 		KE *= state[k_plast_mult];
-		/*KE = 0.;*/
+		// KE = 0.;
 		KE2 = dQdSig2;
 		KE2 *=state[k_plast_mult];
 		KE += KE2;
@@ -1197,7 +1196,66 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		KP /= -bott;
 		KP += I_m;
 		KEP.MultAB(KE_Inv, KP);
- 
+	*/
+
+ 	int i, j;
+
+	dMatrixT KEP(2,2), KEP_Inv(2,2);
+
+	dArrayT qn(4), Sig(2), dQdSig(2), dfdq(4), qbar(4), dfdSig(2);
+
+	double ff, HP;
+
+	fStiffness[1] = fStiffness[2] = 0.;
+	HP = 0.;
+	Sig[0] = state[k_T_t];
+	Sig[1] = state[k_T_n];
+	qn[0] = state[k_fchi];
+	qn[1] = state[k_fc];
+	qn[2] = state[k_fphi];
+	qn[3] = state[k_fpsi];
+
+	//check for the yield and tied flag
+	Yield_f(Sig, qn, ff);
+
+	mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff << "     "
+				<< setw(outputFileWidth) << "state[k_tied_flag] = " << state[k_tied_flag]
+				<< endl;
+
+	// not free
+	if (fabs(state[k_tied_flag] - kFreeNode) > kSmall ||
+		jump_u[0] < kSmall && jump_u[1] < kSmall)
+	{
+		//no contribution to the stiffness
+		fStiffness = 0.;
+
+		return fStiffness;
+	}
+
+	if (state[k_plastic] == 0.)
+	{
+		//no contribution to the stiffness
+		fStiffness[0] = 0.;
+		fStiffness[3] = 0.;
+	}
+	else if (state[k_plastic] == 1.)
+	{
+		dfdSig_f(Sig, qn, dfdSig);
+		dQdSig_f(Sig, qn, dQdSig);
+		qbar_f(Sig, qn, qbar);
+		dfdq_f(Sig, qn, dfdq);
+
+		HP = dArrayT::Dot(dfdq,qbar);
+
+		KEP.Outer(dQdSig,dfdSig);
+		KEP_Inv.Inverse(KP);
+
+		for (i = 0; i <= 1; ++i){
+			for (j = 0; j<=1; ++j){
+				KEP(i,j) = KEP_Inv(i,j)*HP;
+			}
+		}
+
 		fStiffness[0] = KEP(0,0);
 		fStiffness[1] = KEP(0,1);
 		fStiffness[2] = KEP(1,0);
