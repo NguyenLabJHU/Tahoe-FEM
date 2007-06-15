@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.13 2007-06-15 17:14:10 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.14 2007-06-15 17:27:44 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -1245,10 +1245,10 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		qbar_f(Sig, qn, qbar);
 		dfdq_f(Sig, qn, dfdq);
 
-		HP = dArrayT::Dot(dfdq,qbar);
+		HP -= dArrayT::Dot(dfdq,qbar);
 
 		KEP.Outer(dQdSig,dfdSig);
-		KEP_Inv.Inverse(KP);
+		KEP_Inv.Inverse(KEP);
 
 		for (i = 0; i <= 1; ++i){
 			for (j = 0; j<=1; ++j){
