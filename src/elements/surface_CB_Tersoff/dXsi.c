@@ -1,4 +1,4 @@
-/* $Id: dXsi.c,v 1.2 2007-06-17 03:59:44 paklein Exp $ */
+/* $Id: dXsi.c,v 1.3 2007-06-17 21:08:58 paklein Exp $ */
 #include "Tersoff_inc.h"
 
 #include <math.h>
@@ -7,7 +7,7 @@ static double z[1496];
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */
-void get_dXsi(double* params, double *Xsi, double *Xa, double *Ya, double *Za, double* Cmat, double* dXsi, double* ddXsi) { 
+void get_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi) { 
 
 /* common definitions */
 #include "Tersoff_common_defines.h"

@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.h,v 1.2 2007-06-17 04:03:59 paklein Exp $ */
+/* $Id: TersoffSolverT.h,v 1.3 2007-06-17 21:08:58 paklein Exp $ */
 /* created: paklein (05/27/1997) */
 #ifndef _TERSOFF_SOLVER_T_H_
 #define _TERSOFF_SOLVER_T_H_
@@ -8,7 +8,7 @@
 
 /* direct members */
 #include "iArray2DT.h"
-#include "LengthsAndAnglesT.h"
+//#include "LengthsAndAnglesT.h"
 //#include "SWDataT.h" //TEMP
 
 namespace Tahoe {
@@ -49,10 +49,10 @@ public:
 	virtual void DefineParameters(ParameterListT& list) const;
  
   	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
+	//virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	//virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
@@ -76,7 +76,7 @@ private:
 	const iArray2DT fPairs;
 
 	/** lattice geometry */
-	LengthsAndAnglesT* fGeometry;
+	//LengthsAndAnglesT* fGeometry;
 	
 	/** thermal dilatation */
 	const ThermalDilatationT* fThermal;
@@ -84,7 +84,8 @@ private:
 	/* derivatives wrt. Xsi */
 	dArrayT		dXsi;
 	dMatrixT	dXsidXsi;
-	
+
+#if 0	
 	/* derivatives wrt. C */
 	dMatrixT	dCdC_hat;
 
@@ -95,14 +96,24 @@ private:
 	ArrayT<nArrayT<double>*>  fMatrices; //linear combo
 	dMatrixT	fMat1, fMat2;
 	dMatrixT	fGradl_i;
-	dArrayT		fVec;
-	dSymMatrixT	fSymMat1;
+//	dSymMatrixT	fSymMat1;
 	dMatrixT	fTempRank4;
 	dMatrixT	fTempMixed;
 	dMatrixT	fGradl_C;
+#endif
+
+	dArrayT		fVec;
+	dMatrixT    fMat1;	
+
+	/** unit cell coordinates (reference). X,Y,Z coordinates of the unit
+	 * cell atoms as column vectors */
+	dMatrixT fUnitCellCoords;
 	
 	/** \name user-defined parameters */
 	/*@{*/
+	/** parameter vector to pass to C code */
+	dArrayT fParams;
+	
 	/** lattice parameter */
 	double f_a0;
 	

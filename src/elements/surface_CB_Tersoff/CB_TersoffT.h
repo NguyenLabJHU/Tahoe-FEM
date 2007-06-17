@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT.h,v 1.1 2007-03-25 15:02:26 hspark Exp $ */
+/* $Id: CB_TersoffT.h,v 1.2 2007-06-17 21:08:58 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #ifndef _CB_TERSOFF_T_H_
 #define _CB_TERSOFF_T_H_
@@ -20,6 +20,14 @@ public:
 
 	/* destructor */
 	virtual ~CB_TersoffT(void);
+
+	/** \name tangent moduli
+	 * TEMP: use finite difference approximation for now.
+	 */
+	/*@{*/
+	virtual const dMatrixT& c_ijkl(void) { return FSSolidMatT::c_ijkl(); };
+	virtual const dMatrixT& C_IJKL(void) { return FSSolidMatT::C_IJKL(); };
+	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

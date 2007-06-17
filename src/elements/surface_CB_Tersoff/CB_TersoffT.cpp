@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT.cpp,v 1.1 2007-03-25 15:02:26 hspark Exp $ */
+/* $Id: CB_TersoffT.cpp,v 1.2 2007-06-17 21:08:58 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffT.h"
 
@@ -70,6 +70,10 @@ void CB_TersoffT::TakeParameterList(const ParameterListT& list)
 
 void CB_TersoffT::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {
+//TEMP: shouldn't get here. Using finite difference approximation of the tangent
+ExceptionT::GeneralFail("CB_TersoffT::ComputeModuli", "not implemented");
+
+#if 0
 	/* zero initial guess */
 	fXsi = 0.0;
 
@@ -78,6 +82,7 @@ void CB_TersoffT::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 
 	/* compute moduli */
 	fTersoffSolver->SetModuli(fC, fXsi, moduli);
+#endif
 }
 
 /* returns the stress corresponding to the given strain - the strain

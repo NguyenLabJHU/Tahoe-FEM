@@ -1,10 +1,8 @@
-/* $Id: TersoffSolverT.cpp,v 1.2 2007-06-17 04:03:59 paklein Exp $ */
-/* created: paklein (05/27/1997) */
+/* $Id: TersoffSolverT.cpp,v 1.3 2007-06-17 21:08:58 paklein Exp $ */
 #include "TersoffSolverT.h"
-
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
-//#include "FCCLatticeT.h" /* needed for lattice orientation */
+#include "Tersoff_inc.h"
 
 using namespace Tahoe;
 
@@ -34,7 +32,7 @@ TersoffSolverT::TersoffSolverT(const ThermalDilatationT* thermal):
 	fEquilibrate(true),
 	fThermal(thermal),
 	fPairs(kNumAngles, 2, pairdata),
-	fGeometry(NULL),
+//	fGeometry(NULL),
 	f_A(0.0),
 	f_B(0.0),
 	f_lambda(0.0),
@@ -54,12 +52,13 @@ TersoffSolverT::TersoffSolverT(const ThermalDilatationT* thermal):
 /* Destructor */
 TersoffSolverT::~TersoffSolverT(void)
 {
-	delete fGeometry;
+//	delete fGeometry;
 }
 
 /* moduli - assume Xsi already determined */
 void TersoffSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& moduli)
 {
+#if 0
 	/* set internal equilibrium */
 	if (fEquilibrate)
 		Equilibrate(CIJ, Xsi);
@@ -79,75 +78,29 @@ void TersoffSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& modu
 		fTempRank4.MultABT(fTempMixed,dCdXsi_hat);
 		moduli -= fTempRank4;
 	}
-
 	moduli *= 4.0;
+#endif
+	ExceptionT::GeneralFail("TersoffSolverT::SetModuli", "not implemented");
 }
 
 //for now return symmetric matrix
 void TersoffSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stress)
 {
 	/* set internal equilibrium */
-	if (fEquilibrate)
-		Equilibrate(CIJ, Xsi);
-	else
-		SetdXsi(CIJ, Xsi);
+	if (fEquilibrate) Equilibrate(CIJ, Xsi);
 
-	/* Compute all needed derivatives */
-	fGeometry->SetdC(CIJ);
-
-	/* Initialize stress */
-	stress = 0.0;
-
-	/* scalar derivatives */
-	const dArray2DT& dlh_dC   = fGeometry->dl_hat_dC();
-	const dArray2DT& dCosh_dC = fGeometry->dCos_hat_dC();
-
-	/* shallow work temps */
-	dMatrixT dl1hdC, dl2hdC, dCoshdC;
-
-	/* 2-body derivatives */
-// 	const dArrayT& dPhi_2 = f2Body->dPhi();
-// 	for (int i = 0 ; i < dPhi_2.Length(); i++)
-// 	{
-// 		/* stress */
-// 		dl1hdC.Alias(kNSD, kNSD, dlh_dC(i));
-// 
-// 		stress.AddScaled(dPhi_2[i], dl1hdC);	
-// 	}
-// 
-// 	/* for the linear combinations */
-// 	dArrayT  coeffs;
-// 
-// 	fMatrices[0] = &dl1hdC;
-// 	fMatrices[1] = &dl2hdC;
-// 	fMatrices[2] = &dCoshdC;
-// 
-// 	/* 3-body derivatives */
-// 	const dArray2DT& dPhi_3  = f3Body->dPhi();
-// 	for (int j = 0 ; j < dPhi_3.MajorDim(); j++)
-// 	{
-// 		int n1 = fPairs(j,0);
-// 		int n2 = fPairs(j,1);
-// 
-// 		coeffs.Alias(kNumDOF, dPhi_3(j));
-// 	
-// 		/* stress */
-// 		dl1hdC.Alias(kNSD, kNSD, dlh_dC(n1));
-// 		dl2hdC.Alias(kNSD, kNSD, dlh_dC(n2));
-// 		dCoshdC.Alias(kNSD, kNSD, dCosh_dC(j));
-// 	
-// 		stress.AddScaled(coeffs[0],dl1hdC);
-// 		stress.AddCombination(coeffs[1],dl2hdC,
-// 		                      coeffs[2],dCoshdC);
-// 	}
-// 	
-	/* factor of 2 to get to PK2 */
+	/* call C function */
+	get_dUdC(fParams.Pointer(), Xsi.Pointer(), 
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer(),
+		stress.Pointer()); 
 	stress *= 2.0;
 }
 
 /* strain energy density */
 double TersoffSolverT::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
 {
+#if 0
 	/* set internal equilibrium */
 	if (fEquilibrate)
 		Equilibrate(CIJ, Xsi);
@@ -155,6 +108,10 @@ double TersoffSolverT::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
 		SetdXsi(CIJ, Xsi);
 
 // 	return( (f2Body->Phi()).Sum() + (f3Body->Phi()).Sum() );
+#endif
+
+//not implemented
+return 0.0;
 }
 
 /* describe the parameters needed by the interface */
@@ -226,21 +183,21 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 }
 
 /* information about subordinate parameter lists */
-void TersoffSolverT::DefineSubs(SubListT& sub_list) const
-{
+//void TersoffSolverT::DefineSubs(SubListT& sub_list) const
+//{
 	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
+//	ParameterInterfaceT::DefineSubs(sub_list);
 
 	/* crystal orientation */
-	sub_list.AddSub("FCC_lattice_orientation", ParameterListT::Once, true);
+//	sub_list.AddSub("FCC_lattice_orientation", ParameterListT::Once, true);
 
 	/* choice of potentials */
-	sub_list.AddSub("DC_potential_choice", ParameterListT::Once, true);
-}
+//	sub_list.AddSub("DC_potential_choice", ParameterListT::Once, true);
+//}
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* TersoffSolverT::NewSub(const StringT& name) const
-{
+//ParameterInterfaceT* TersoffSolverT::NewSub(const StringT& name) const
+//{
 // 	if (name == "DC_potential_choice")
 // 	{
 // 		ParameterContainerT* choice = new ParameterContainerT(name);
@@ -270,8 +227,8 @@ ParameterInterfaceT* TersoffSolverT::NewSub(const StringT& name) const
 // 	else if (name == "Stillinger-Weber")
 // 		return new SWDataT;
 // 	else /* inherited */
- 		return ParameterInterfaceT::NewSub(name);
-}
+// 		return ParameterInterfaceT::NewSub(name);
+//}
 
 /* accept parameter list */
 void TersoffSolverT::TakeParameterList(const ParameterListT& list)
@@ -282,17 +239,39 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	/* dimension work space */
 	dXsi.Dimension(kNumDOF);
 	dXsidXsi.Dimension(kNumDOF);
+#if 0
 	dCdC_hat.Dimension(kStressDim);
 	dCdXsi_hat.Dimension(kStressDim,kNumDOF);
 	fMatrices.Dimension(kNumDOF);
-	fMat1.Dimension(kNumDOF); 
 	fMat2.Dimension(kNumDOF);
 	fGradl_i.Dimension(3,kNumDOF); 
-	fVec.Dimension(kNumDOF);
 	fSymMat1.Dimension(kNSD);
 	fTempRank4.Dimension(kStressDim);
 	fTempMixed.Dimension(kStressDim, kNumDOF);
 	fGradl_C.Dimension(3,kStressDim);
+#endif
+	fMat1.Dimension(kNumDOF); 
+	fVec.Dimension(kNumDOF);
+
+	/* unit cell coordinates */
+	fUnitCellCoords.Dimension(5, 3); /* [5 atoms] x [3 dim]: first atom is 'center' */
+	fUnitCellCoords(0,0) = 0.25;
+	fUnitCellCoords(1,0) = 0.00;
+	fUnitCellCoords(2,0) = 0.50;
+	fUnitCellCoords(3,0) = 0.50;
+	fUnitCellCoords(4,0) = 0.00;
+
+	fUnitCellCoords(0,1) = 0.25;
+	fUnitCellCoords(1,1) = 0.00;
+	fUnitCellCoords(2,1) = 0.50;
+	fUnitCellCoords(3,1) = 0.00;
+	fUnitCellCoords(4,0) = 0.50;
+
+	fUnitCellCoords(0,2) = 0.25;
+	fUnitCellCoords(1,2) = 0.00;
+	fUnitCellCoords(2,2) = 0.00;
+	fUnitCellCoords(3,2) = 0.50;
+	fUnitCellCoords(4,2) = 0.50;
 
 	/* flag */
 	fEquilibrate = list.GetParameter("equilibrate");
@@ -307,7 +286,7 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 // 	fGeometry = new LengthsAndAnglesT(Q,fPairs);
 
 	/* set potentials */
-	const ParameterListT& potential = list.GetListChoice(*this, "DC_potential_choice");
+//	const ParameterListT& potential = list.GetListChoice(*this, "DC_potential_choice");
 
 	/* All parameters required */
 	f_a0 = list.GetParameter("a0");
@@ -324,6 +303,25 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	f_chi = list.GetParameter("bond_order_scaling_chi_ij");
 	f_R = list.GetParameter("cutoff_func_length_1_Rij");
 	f_S = list.GetParameter("cutoff_func_length_2_Sij");
+	
+	/* scale unit cell coordinates */
+	fUnitCellCoords *= f_a0;
+
+	/* write into vector to pass to C code */
+	fParams.Dimension(13);
+	fParams[ 0] = f_A;
+	fParams[ 1] = f_B;
+	fParams[ 2] = fMass;
+	fParams[ 3] = f_lambda;
+	fParams[ 4] = f_mu;
+	fParams[ 5] = f_beta;
+	fParams[ 6] = f_n;
+	fParams[ 7] = f_c;
+	fParams[ 8] = f_d;
+	fParams[ 9] = f_h;
+	fParams[10] = f_chi;
+	fParams[11] = f_R;
+	fParams[12] = f_S;	
 }
 
 /**********************************************************************
@@ -355,110 +353,25 @@ void TersoffSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 /* set free dof - triggers recomputation */
 void TersoffSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 {
-	/* set geometry */
-	fGeometry->SetdXsi(CIJ,Xsi);
-
-	/* potentials and derivatives */
-// 	f2Body->Set();
-// 	f3Body->Set();
-	
-	/* initialize */
-	dXsi     = 0.0;
-	dXsidXsi = 0.0;
-		
-	/* scalar derivatives */
-	const dArray2DT& dl_dXsi      = fGeometry->dl_dXsi();
-	const dArray2DT& d2l_dXsidXsi = fGeometry->d2l_dXsidXsi();
-
-	const dArray2DT& dc_dXsi      = fGeometry->dCos_dXsi();
-	const dArray2DT& d2c_dXsidXsi = fGeometry->d2Cos_dXsidXsi();
-		
-	/* shallow work temps */
-	dArrayT dl1dXsi, dl2dXsi, dCosdXsi;
-	dMatrixT d2ldXsidXsi;
-
-	/* 2-body derivatives */
-// 	const dArrayT& dPhi_2  = f2Body->dPhi();
-// 	const dArrayT& ddPhi_2 = f2Body->ddPhi();	
-// 	for (int i = 0 ; i < dPhi_2.Length(); i++)
-// 	{
-// 		/* gradient */
-// 		dl1dXsi.Alias(kNumDOF, dl_dXsi(i));
-// 
-// 		dXsi.AddScaled(dPhi_2[i], dl1dXsi);
-// 	
-// 		/* hessian */
-// 		d2ldXsidXsi.Alias(kNumDOF,kNumDOF,d2l_dXsidXsi(i));
-// 		fMat1.Outer(dl1dXsi,dl1dXsi);
-// 	
-// 		dXsidXsi.AddCombination(ddPhi_2[i], fMat1, dPhi_2[i], d2ldXsidXsi);
-// 	}
-// 
-// 	/* for the linear combinations */
-// 	dArrayT  coeffs;
-// 	dMatrixT ddl1, ddl2, ddc12;
-// 	fMatrices[0] = &ddl1;
-// 	fMatrices[1] = &ddl2;
-// 	fMatrices[2] = &ddc12;
-// 	
-// 	/* shallow temps */
-// 	dMatrixT ddPhi3;
-// 
-// 	/* 3-body derivatives */
-// 	const dArray2DT& dPhi_3  = f3Body->dPhi();
-// 	const dArray2DT& ddPhi_3 = f3Body->ddPhi();
-// 	for (int j = 0 ; j < dPhi_3.MajorDim(); j++)
-// 	{
-// 		int n1 = fPairs(j,0);
-// 		int n2 = fPairs(j,1);
-// 
-// 		coeffs.Alias(kNumDOF, dPhi_3(j));
-// 	
-// 		/* gradient */
-// 		dl1dXsi.Alias(kNumDOF, dl_dXsi(n1));
-// 		dl2dXsi.Alias(kNumDOF, dl_dXsi(n2));
-// 		dCosdXsi.Alias(kNumDOF, dc_dXsi(j));
-// 	
-// 		fGradl_i.SetRow(0, dl1dXsi );
-// 		fGradl_i.SetRow(1, dl2dXsi );
-// 		fGradl_i.SetRow(2, dCosdXsi);
-// 
-// 		fGradl_i.MultTx(coeffs, fVec);
-// 		
-// 		dXsi += fVec;
-// 		
-// 		/* hessian */
-// 		ddPhi3.Alias(kNumDOF,kNumDOF,ddPhi_3(j));
-// 		fMat1.MultATB(fGradl_i,ddPhi3);
-// 		fMat2.MultAB(fMat1,fGradl_i);
-// 	
-// 		//testing
-// 		//dXsidXsi += fMat2;
-// 		
-// 		ddl1.Alias(kNumDOF , kNumDOF, d2l_dXsidXsi(n1));
-// 		ddl2.Alias(kNumDOF , kNumDOF, d2l_dXsidXsi(n2));
-// 		ddc12.Alias(kNumDOF, kNumDOF, d2c_dXsidXsi(j));
-// 		
-// 		//testing
-// 		//dXsidXsi.AddCombination(coeffs, fMatrices);
-// 		
-// 		dXsidXsi.AddCombination(1.0,fMat2, coeffs[0], ddl1);
-// 		dXsidXsi.AddCombination(coeffs[1], ddl2,
-// 		                        coeffs[2], ddc12);
-// 	}
+	/* call C function */
+	get_dXsi(fParams.Pointer(), Xsi.Pointer(), 
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer(), 
+		dXsi.Pointer(), dXsidXsi.Pointer());
 }
 
 /* set free dof - triggers recomputation */
 void TersoffSolverT::SetAll(const dMatrixT& CIJ)
 {
 	/* set geometry */
-	fGeometry->SetAll(CIJ);
-	
+//	fGeometry->SetAll(CIJ);
+
+#if 0	
 	/* Initialize */
 	dCdC_hat   = 0.0;
 	dCdXsi_hat = 0.0;
-	
-		/* scalar derivatives */
+
+	/* scalar derivatives */
 	const dArray2DT& dl_dXsi      = fGeometry->dl_dXsi();
 	const dArray2DT& d2l_dXsidXsi = fGeometry->d2l_dXsidXsi();
 
@@ -477,6 +390,7 @@ void TersoffSolverT::SetAll(const dMatrixT& CIJ)
 	dMatrixT	d2ldCdC, dldC;
 	dArrayT		dldXsi;
 	dMatrixT	d2ldCdXsi;
+#endif
 
 	/* 2-body derivatives */
 // 	const dArrayT& dPhi_2  = f2Body->dPhi();
