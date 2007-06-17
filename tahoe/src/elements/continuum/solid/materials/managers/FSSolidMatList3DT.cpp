@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.26 2007-04-09 22:28:10 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.27 2007-06-17 21:09:58 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -95,6 +95,10 @@
 #include "FSSolidMixtureT.h"
 #endif
 
+#ifdef SURFACE_CB_TERSOFF_DEV
+#include "CB_TersoffT.h"
+#endif
+
 /* development module materials require solid element development to be enabled */
 #ifdef SOLID_ELEMENT_DEV
 
@@ -118,7 +122,6 @@
 #include "ABAQUS_UMAT_Xtal.h"
 #endif
 #endif
-
 
 #endif /* SOLID_ELEMENT_DEV */
 
@@ -237,6 +240,10 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef MIXTURE_THEORY_DEV
 		sub_lists.AddSub("large_strain_solid_mixture");
+#endif
+
+#ifdef SURFACE_CB_TERSOFF_DEV
+		sub_lists.AddSub("Tersoff_CB");
 #endif
 	}
 	else /* inherited */
@@ -400,7 +407,6 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 		mat= new FSSolidMixtureT;
 #endif
 
-
 #ifdef BIO_MODELS
 	else if (name == "veronda_westmann_potential")
 		mat = new VerondaWestmannT;
@@ -410,9 +416,13 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	  mat= new IsoCorneaModel;
 #endif
 
+#ifdef SURFACE_CB_TERSOFF_DEV
+	else if (name == "Tersoff_CB")
+	  mat= new CB_TersoffT;
+#endif
+
 	/* set support */
 	if (mat) mat->SetFSMatSupport(fFSMatSupport);
 
 	return mat;
-
 }
