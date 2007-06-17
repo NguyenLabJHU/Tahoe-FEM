@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.1 2007-03-25 15:02:26 hspark Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.2 2007-06-17 04:03:59 paklein Exp $ */
 /* created: paklein (05/27/1997) */
 #include "TersoffSolverT.h"
 
@@ -167,57 +167,62 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 	equilibrate.SetDefault(true);
 	list.AddParameter(equilibrate);
 
-	/* Copied from TersoffPairT.cpp */
+	/* lattice parameter */
+	ParameterT a0(f_a0, "a0");
+	a0.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(a0);
+
+	/* Revised from TersoffPairT.cpp */
 	ParameterT mass(fMass, "mass");
 	mass.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(mass, ParameterListT::ZeroOrOnce);
+	list.AddParameter(mass);
 
 	ParameterT A(f_A, "rep_energy_scale_Aij");
 	A.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(A, ParameterListT::ZeroOrOnce);
+	list.AddParameter(A);
 	
 	ParameterT B(f_B, "attr_energy_scale_Bij");
 	B.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(B, ParameterListT::ZeroOrOnce);
+	list.AddParameter(B);
 	
 	ParameterT lambda(f_lambda, "rep_energy_exponent_lambdaij");
 	lambda.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(lambda, ParameterListT::ZeroOrOnce);
+	list.AddParameter(lambda);
 	
 	ParameterT mu(f_mu, "attr_energy_exponent_muij");
 	mu.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(mu, ParameterListT::ZeroOrOnce);
+	list.AddParameter(mu);
 	
 	ParameterT beta(f_beta, "bond_order_coeff1_betai");
 	beta.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(beta, ParameterListT::ZeroOrOnce);
+	list.AddParameter(beta);
 	
 	ParameterT n(f_n, "bond_order_exponent_ni");
 	n.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(n, ParameterListT::ZeroOrOnce);
+	list.AddParameter(n);
 	
 	ParameterT c(f_c, "bond_order_coeff2_ci");
 	c.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(c, ParameterListT::ZeroOrOnce);
+	list.AddParameter(c);
 	
 	ParameterT d(f_d, "bond_order_coeff3_di");
 	d.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(d, ParameterListT::ZeroOrOnce);
+	list.AddParameter(d);
 	
 	ParameterT h(f_h, "bond_order_coeff4_hi");
-	list.AddParameter(h, ParameterListT::ZeroOrOnce);
+	list.AddParameter(h);
 	
 	ParameterT chi(f_chi, "bond_order_scaling_chi_ij");
 	chi.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(chi, ParameterListT::ZeroOrOnce);
+	list.AddParameter(chi);
 	
 	ParameterT R(f_R, "cutoff_func_length_1_Rij");
 	R.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(R, ParameterListT::ZeroOrOnce);
+	list.AddParameter(R);
 	
 	ParameterT S(f_S, "cutoff_func_length_2_Sij");
 	S.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(S, ParameterListT::ZeroOrOnce);
+	list.AddParameter(S);
 }
 
 /* information about subordinate parameter lists */
@@ -304,86 +309,21 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	/* set potentials */
 	const ParameterListT& potential = list.GetListChoice(*this, "DC_potential_choice");
 
-	/* All parameters default to Si unless specified
-	 * Si Parameters taken from Devanathan et al, Journal of Nuclear Materials, 1998
-	 */
-	const ParameterT* opt_param = list.Parameter("mass");
-	if (opt_param)
-		fMass = *opt_param;
-	else
-		fMass = 28.0855; // mass in amu (from webelements)
-	
-	opt_param = list.Parameter("rep_energy_scale_Aij");
-	if (opt_param)
-		f_A = *opt_param;
-	else
-		f_A = 3264.7; // scaling term in eV
-	
-	opt_param = list.Parameter("attr_energy_scale_Bij");
-	if (opt_param)
-		f_B = *opt_param;
-	else
-		f_B = 95.373; // scaling term in eV
-		
-	opt_param = list.Parameter("rep_energy_exponent_lambdaij");
-	if (opt_param)
-		f_lambda = *opt_param;
-	else
-		f_lambda = 3.2394; // exponent in angstrom^-1
-		
-	opt_param = list.Parameter("attr_energy_exponent_muij");
-	if (opt_param)
-		f_mu = *opt_param;
-	else
-		f_mu = 1.3258; // exponent in angstrom^-1
-		
-	opt_param = list.Parameter("bond_order_coeff1_betai");
-	if (opt_param)
-		f_beta = *opt_param;
-	else
-		f_beta = 0.33675; // bond order coeff 1 - pure number
-	
-	opt_param = list.Parameter("bond_order_exponent_ni");
-	if (opt_param)
-		f_n = *opt_param;
-	else
-		f_n = 22.956; // bond order exponent - pure number
-	
-	opt_param = list.Parameter("bond_order_coeff2_ci");
-	if (opt_param)
-		f_c = *opt_param;
-	else
-		f_c = 4.8381; // bond order coeff 2 - pure number
-	
-	opt_param = list.Parameter("bond_order_coeff3_di");
-	if (opt_param)
-		f_d = *opt_param;
-	else
-		f_d = 2.0417; // bond order coeff 3 - pure number
-	
-	opt_param = list.Parameter("bond_order_coeff4_hi");
-	if (opt_param)
-		f_h = *opt_param;
-	else
-		f_h = 0.0; // bond order coeff 4 - pure number
-		
-	opt_param = list.Parameter("bond_order_scaling_chi_ij");
-	if (opt_param)
-		f_chi = *opt_param;
-	else
-		f_chi = 1.0; // bond order scaling coeff (for identical atoms = 1)- pure number
-		
-	opt_param = list.Parameter("cutoff_func_length_1_Rij");
-	if (opt_param)
-		f_R = *opt_param;
-	else
-		f_R = 3.0; // Cutoff length parameter 1 - angstrom
-	
-	opt_param = list.Parameter("cutoff_func_length_2_Sij");
-	if (opt_param)
-		f_S = *opt_param;
-	else
-		f_S = 0.2; // Cutoff length parameter 2 - angstrom	
+	/* All parameters required */
+	f_a0 = list.GetParameter("a0");
+	fMass = list.GetParameter("mass");
+	f_A = list.GetParameter("rep_energy_scale_Aij");
+	f_B = list.GetParameter("attr_energy_scale_Bij");
+	f_lambda = list.GetParameter("rep_energy_exponent_lambdaij");
+	f_mu = list.GetParameter("attr_energy_exponent_muij");
+	f_beta = list.GetParameter("bond_order_coeff1_betai");
+	f_n = list.GetParameter("bond_order_exponent_ni");
+	f_c = list.GetParameter("bond_order_coeff2_ci");
+	f_d = list.GetParameter("bond_order_coeff3_di");
+	f_h = list.GetParameter("bond_order_coeff4_hi");
+	f_chi = list.GetParameter("bond_order_scaling_chi_ij");
+	f_R = list.GetParameter("cutoff_func_length_1_Rij");
+	f_S = list.GetParameter("cutoff_func_length_2_Sij");
 }
 
 /**********************************************************************

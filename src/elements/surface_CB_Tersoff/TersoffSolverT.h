@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.h,v 1.1 2007-03-25 15:02:26 hspark Exp $ */
+/* $Id: TersoffSolverT.h,v 1.2 2007-06-17 04:03:59 paklein Exp $ */
 /* created: paklein (05/27/1997) */
 #ifndef _TERSOFF_SOLVER_T_H_
 #define _TERSOFF_SOLVER_T_H_
@@ -103,6 +103,9 @@ private:
 	
 	/** \name user-defined parameters */
 	/*@{*/
+	/** lattice parameter */
+	double f_a0;
+	
 	/** Repulsive part energy scaling term. When atoms i & j are different species A = sqrt(A_i * A_j). Part of the 2-body term */
 	double f_A;
 	
