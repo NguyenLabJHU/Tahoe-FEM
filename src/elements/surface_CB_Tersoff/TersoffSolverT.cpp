@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.3 2007-06-17 21:08:58 paklein Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.4 2007-06-18 00:19:14 paklein Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -95,6 +95,10 @@ void TersoffSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stre
 		CIJ.Pointer(),
 		stress.Pointer()); 
 	stress *= 2.0;
+	
+#if 1
+	cout << "stress: " << stress.no_wrap() << endl;
+#endif
 }
 
 /* strain energy density */
@@ -265,7 +269,7 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	fUnitCellCoords(1,1) = 0.00;
 	fUnitCellCoords(2,1) = 0.50;
 	fUnitCellCoords(3,1) = 0.00;
-	fUnitCellCoords(4,0) = 0.50;
+	fUnitCellCoords(4,1) = 0.50;
 
 	fUnitCellCoords(0,2) = 0.25;
 	fUnitCellCoords(1,2) = 0.00;
@@ -358,6 +362,12 @@ void TersoffSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dXsi.Pointer(), dXsidXsi.Pointer());
+
+//debugging
+#if 1
+cout << dXsi.no_wrap() << ":" << dXsidXsi.no_wrap() << endl;
+
+#endif
 }
 
 /* set free dof - triggers recomputation */
