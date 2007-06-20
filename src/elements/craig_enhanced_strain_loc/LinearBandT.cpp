@@ -1,5 +1,6 @@
 #include "LinearBandT.h"
 #include "SSEnhLocLinearT.h"
+#include "ModelManagerT.h"
 
 #include "ShapeFunctionT.h"
 
@@ -185,11 +186,13 @@ double LinearBandT::IPBandCoord(int ip)
 void LinearBandT::IncrementStress(dSymMatrixT stressIncr, int ip)
 {
   fStress_List [ip] += stressIncr;
+  //cout << "fStress_List[" << ip << "] =\n" << fStress_List[ip] << endl;
 }
 
 void LinearBandT::IncrementTractionAtBandIP(dArrayT increment, int bandIP)
 {
 	fSurfaceIPTractions [bandIP] += increment;
+	//cout << "fSurfaceIPTractions[" << bandIP << "] =\n" << fSurfaceIPTractions[bandIP] << endl;
 }
 
 
@@ -229,7 +232,7 @@ void LinearBandT::CloseStep()
 {
   //update jump
   fJump += fJumpIncrement;
-  cout << "fJumpIncrement =\n" << fJumpIncrement << endl;
+  cout << "Element " << fCurrentElement -> CurrElementNumber() << ", fJumpIncrement =\n" << fJumpIncrement << endl;
 
   //update cohesion
   for (int i = 0; i < kNumSurfaceIPs; i++)
@@ -242,6 +245,7 @@ void LinearBandT::CloseStep()
       fH_delta[i] = 0.0; //no more softening possible
     }
   }
+  //cout << "fResidualCohesion = " << fResidualCohesion << endl;
   //update stress list - currently done separately
 }
 
@@ -275,6 +279,19 @@ void LinearBandT::ActivateNodes(dArrayT& coord)
   int nen = fCurrentElement->NumElementNodes();
   //cout << "fNormal = " << fNormal << endl;
   //cout << "fSlipDir = " << fSlipDir << endl << endl; 
+  
+  
+  //temp
+  /*
+  if (fNormal[0]*fNormal[1] > 0.0)
+  {
+	fNormal[1] *= -1.0;
+	fPerpSlipDir[0] *= -1.0;
+	fSlipDir[0] *= -1.0;
+  }
+  */
+  
+  fActiveNodes.Free();
 
   dArrayT nodalCoord(kNSD);
 
@@ -293,8 +310,9 @@ void LinearBandT::ActivateNodes(dArrayT& coord)
     }
 
 //////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
+
 int numSides;
+//cout << "GeometryCode = " << fCurrentElement -> GeometryCode() << endl;
 switch (fCurrentElement -> GeometryCode())
 {
  case GeometryT::kQuadrilateral:
@@ -313,6 +331,96 @@ switch (fCurrentElement -> GeometryCode())
      throw ExceptionT::kGeneralFail;
    }
 }
+
+//////////////////////////////////////////////////////////////////////
+
+#if 0
+/* specific to 6-node triangle */
+
+int numVertexNodesActive = 0;
+
+for (int i = 0; i < numSides; i++)
+	if (fActiveNodes.HasValue(i))
+		++numVertexNodesActive;
+
+if (numVertexNodesActive > 1)
+{
+	fNormal *= -1.0;
+	for (int i = 0; i < nen; i++)
+	{
+		if (fActiveNodes.HasValue(i))
+			fActiveNodes.DeleteAt(fActiveNodes.PositionOf(i));
+		else
+			fActiveNodes.Append(i);
+    }
+}
+
+fActiveNodes.Top();
+if (fActiveNodes.Length() == 1)
+{
+	/* add a node */
+	fActiveNodes.Next();
+	if (fActiveNodes.Current() > numSides)
+	{
+		cout << "LinearBandT::ActivateNodes: Only active node is not a vertex node\n";
+		throw ExceptionT::kGeneralFail;
+	}
+	
+	ModelManagerT& model = fCurrentElement -> ElementSupport().ModelManager();
+	iArray2DT neighbors;
+	ArrayT<StringT> ids;
+  
+	fCurrentElement -> ElementBlockIDs(ids);  
+	model.ElementNeighbors(ids, neighbors);
+	int i = fActiveNodes.Current();
+	
+	if (!fCurrentElement -> IsElementTraced(neighbors(fCurrentElement -> CurrElementNumber(),
+			i + numSides )))	
+		fActiveNodes.Append(i+numSides);
+	else if (!fCurrentElement -> IsElementTraced(neighbors(fCurrentElement -> CurrElementNumber(),
+			(i - 1 )%( numSides ) + numSides)))	
+		fActiveNodes.Append((i - 1 )%( numSides ) + numSides);
+	else
+	{
+		cout << "LinearBandT::ActivateNodes: Unable to add necessary node\n";
+		throw ExceptionT::kGeneralFail;
+	}	
+}
+
+while (fActiveNodes.Length() > 2)
+{
+	/* delete a node */
+    if (!fActiveNodes.Next())
+	{
+		cout << "LinearBandT::ActivateNodes: Not enough noes deleted - error\n";
+		throw ExceptionT::kGeneralFail;
+	}
+	
+	int i = fActiveNodes.Current();
+	
+	if (i >= numSides)
+	{
+		ModelManagerT& model = fCurrentElement -> ElementSupport().ModelManager();
+		iArray2DT neighbors;
+		ArrayT<StringT> ids;
+  
+		fCurrentElement -> ElementBlockIDs(ids);  
+		model.ElementNeighbors(ids, neighbors);
+	
+		if (!fCurrentElement -> IsElementTraced
+				(neighbors(fCurrentElement -> CurrElementNumber(), i - numSides)))
+			fActiveNodes.DeleteAt(fActiveNodes.PositionOf(i));
+	}
+
+}
+
+#endif
+
+cout << "fNormal =\n" << fNormal << endl; 
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
 
   ArrayT<dArrayT> endPoints(2);//2 okay for 2D, fix for 3D
   for (int i=0; i < 2; i++)
@@ -394,19 +502,34 @@ switch (fCurrentElement -> GeometryCode())
 	/*extrapolate bulk ip stresses to nodal values */
 	ArrayT<dSymMatrixT> nodalStressList = NodalStressList();
 	fSurfaceIPTractions.Dimension(kNumSurfaceIPs);	
+
+  /*
+	for (int i = 0; i < fStress_List.Length(); i++)
+		cout << "fStress_List =\n" << fStress_List[i] << endl;
+	
+	for (int i = 0; i < fCurrentElement -> NumElementNodes(); i++)
+		cout << "nodalStressList =\n" << nodalStressList[i] << endl;
+   */	
 	
 	/* interpolate nodal stresses to surface ip's */
 	for (int i = 0; i < kNumSurfaceIPs; i ++)
 	{
 
+		//cout << "InitialCoordinates = " << fCurrentElement -> ElementSupport().InitialCoordinates() << endl;
+
+
 		/* transform coordinates to Parent Domain (Local Coordinates)*/
 		dArrayT localCoords(kNSD);
+		/*
 		if (! fCurrentElement -> fShapes -> ParentDomain().MapToParentDomain(fCurrentElement->InitialCoordinates(),
 				fSurfaceIPCoords[i], localCoords))
 		{
 			cout << "LinearBandT::StrainAtCoord, failed to map to local coordinates\n " << flush;
 			throw ExceptionT::kGeneralFail;
-		}
+		}*/
+		
+		fCurrentElement -> fShapes -> ParentDomain().MapToParentDomain(fCurrentElement->InitialCoordinates(),
+				fSurfaceIPCoords[i], localCoords);
 	
 		/*evaluate shape functions */
 		dMatrixT grad_U_local(kNSD); //grad_U_global(kNSD); 
@@ -416,24 +539,39 @@ switch (fCurrentElement -> GeometryCode())
 		fCurrentElement -> fShapes -> 
 			GradU(fCurrentElement -> Displacements(), grad_U_local, fSurfaceIPCoords[i], Na, DNa); 
 		
+		//cout << "Na =\n" << Na << endl;
+		//cout << "fSurfaceIPCoords[" << i << "] =\n" << fSurfaceIPCoords[i]  << endl;
+		
 		/* evaluate stress */
 	    dSymMatrixT bandIPStress(kNSD);
 		bandIPStress = 0.0;
-		int numNodes = fCurrentElement -> ElementSupport().NumNodes();
+		int numNodes = fCurrentElement -> NumElementNodes();
+		
+		//cout << "numNodes = " << numNodes << endl;
+		//cout << "InitialCoordinates = " << fCurrentElement -> ElementSupport().InitialCoordinates() << endl;
 		
 		for (int j = 0; j < numNodes; j++)
 			for (int k = 0; k < dSymMatrixT::NumValues(kNSD); k++)
 				bandIPStress [k] += Na [j] * nodalStressList[j] [k];	
 	  
-		  
+		//cout << "bandIPStress =\n" << bandIPStress << endl;
+		
 		/* calculate and record tractions */
 		fSurfaceIPTractions[i].Dimension(kNSD);
 		bandIPStress.Multx(fNormal, fSurfaceIPTractions[i]);
+		
+		//cout << "surfaceIPTractions[" << i <<"] =\n" << fSurfaceIPTractions[i] << endl;
 	}
+	
+
+
 	
 	/* determine residual cohesion at surface IPs */
 	fResidualCohesion.Dimension(kNumSurfaceIPs);
 	
+	if (fCurrentElement -> fBVPType == 2) //2 = kPrefailed
+		fResidualCohesion = 0.0;
+	else
 	for (int i = 0; i < kNumSurfaceIPs; i++)
 	{
 		double normalTraction = dArrayT::Dot(fSurfaceIPTractions[i], fNormal);
@@ -444,6 +582,9 @@ switch (fCurrentElement -> GeometryCode())
 			FlipSlipDir(i);
 			shearTraction *= -1.0;
 		}
+		
+		//cout << "fNormal = \n" << fNormal << endl;
+		//cout << "shearTraction = " << shearTraction << ", normalTraction = " << normalTraction << endl;
 		
 		if (normalTraction < 0.0)
 			fResidualCohesion[i] = shearTraction +
@@ -457,7 +598,7 @@ switch (fCurrentElement -> GeometryCode())
 
 ArrayT<dSymMatrixT> LinearBandT::NodalStressList()
 {
-	int numNodes = fCurrentElement -> ElementSupport().NumNodes();
+	int numNodes = fCurrentElement -> NumElementNodes();
 	ArrayT<dSymMatrixT> nodalStressList(numNodes);
 	
 	for(int j = 0; j < numNodes; j++)
@@ -471,15 +612,21 @@ ArrayT<dSymMatrixT> LinearBandT::NodalStressList()
 	{
 	    stressComponentAtIP = 0.0;
 		for (int j = 0; j < numIP; j ++)
-			stressComponentAtIP[j] = fStress_List[i] [j];
+			stressComponentAtIP[j] = fStress_List[j] [i];
 		
 		/*extrapolate*/
 		fCurrentElement->IP_ExtrapolateAll(stressComponentAtIP, stressComponentAtNode);
 		
 		/* put into nodal array */
 		for (int j = 0; j < numNodes; j ++)
-			nodalStressList [i] [j] = stressComponentAtNode [j];
+			nodalStressList [j] [i] = stressComponentAtNode [j];
 	}
+
+    //for (int i = 0; i < numIP; i++)
+	//	cout << "stressList[" << i << "] = \n" << fStress_List[i] << endl;
+
+    //for (int i = 0; i < numNodes; i++)
+	//	cout << "nodalStressList[" << i << "] = \n" << nodalStressList[i] << endl;
 
 	return nodalStressList;
 }

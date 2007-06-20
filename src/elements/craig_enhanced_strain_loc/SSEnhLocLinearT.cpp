@@ -1,6 +1,7 @@
-#include "SSEnhLocLinearT.h"
+ #include "SSEnhLocLinearT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
+#include "dTensor4DT.h"
 
 /* materials lists */
 #include "SSSolidMatList1DT.h"
@@ -197,7 +198,7 @@ MaterialListT* SSEnhLocLinearT::NewMaterialList(const StringT& name, int size)
 void SSEnhLocLinearT::FormKd(double constK)
 {
 
-  if(!IsElementTraced())
+  if(!IsElementTraced() ||  (fBand -> JumpIncrement(0) == 0.0 && fBand -> JumpIncrement(1) == 0.0))
     SmallStrainT::FormKd(constK);
   else 
       {
@@ -227,22 +228,42 @@ void SSEnhLocLinearT::FormKd(double constK)
 	    FormGradActiveTensorFlowDir(NumSD(), CurrIP());
 	    gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
 
-		double avgJumpIncr = 0.0;
-		for (int i = 0; i < fBand -> NumSurfaceIPs(); i ++)
-			avgJumpIncr += fBand -> JumpIncrement(i);
-			
-		avgJumpIncr /= fBand -> NumSurfaceIPs();	
+		//double avgJumpIncr = 0.0;
+		//for (int i = 0; i < fBand -> NumSurfaceIPs(); i ++)
+		//	avgJumpIncr += fBand -> JumpIncrement(i);
+		//avgJumpIncr /= fBand -> NumSurfaceIPs();	
 
 		//cout << "strainIncr = \n" << strainIncr << endl;
 		//cout << "gradActiveTensorFlowDir = \n" << gradActiveTensorFlowDir << endl;
 		//cout << "avgJumpIncr = " << avgJumpIncr << endl;
+		//cout << "JumpIncrAtBulkIP(CurrIP()) = " << JumpIncrAtBulkIP(CurrIP()) << endl;
 		
-	    strainIncr.AddScaled(-1.0*avgJumpIncr, gradActiveTensorFlowDir);
+	    strainIncr.AddScaled(-1.0*JumpIncrAtBulkIP(CurrIP()), gradActiveTensorFlowDir);
+
+		//cout << "strainIncr = \n" << strainIncr << endl;
 		
 		/* modify strain increment for jump increment gradient */
 		dSymMatrixT perpSlipDirOuter(NumSD());
-		perpSlipDirOuter.Outer(fBand -> PerpSlipDir(0));
+		dArrayT perpSlipDir = fBand -> PerpSlipDir(0);
+		perpSlipDirOuter.Outer(perpSlipDir);
 		
+		dMatrixT ce_inverse = fCurrMaterial->ce_ijkl();
+		ce_inverse.Inverse(); 
+		double denom = QuadContraction(ce_inverse, perpSlipDir, perpSlipDir, perpSlipDir, perpSlipDir);
+
+		double linearModifier;
+		if (fBand -> IsBulkIPActive(CurrIP()))
+			linearModifier = 1.0; 
+		else
+			linearModifier = 0.0;
+				
+		linearModifier -= F_hAtBulkIP(CurrIP());		
+		linearModifier = (fBand -> JumpIncrement(1) - fBand -> JumpIncrement(0))/
+								(fBand -> DistanceBetweenIPs() * denom);
+								
+		//cout << "linearModifier = " << linearModifier << endl;
+		
+		/*
 		double linearModifier;
 		if (fBand -> IsBulkIPActive(CurrIP()))
 			linearModifier = 1.0; 
@@ -253,18 +274,22 @@ void SSEnhLocLinearT::FormKd(double constK)
 		linearModifier /= fBand -> DistanceBetweenIPs();
 		linearModifier *= (fBand -> JumpIncrement(1) - fBand -> JumpIncrement(0));
 		
-	    strainIncr.AddScaled(-1.0*linearModifier, perpSlipDirOuter);
+	    strainIncr.AddScaled(1.0*linearModifier, perpSlipDirOuter);
+		*/
 		
 		//cout << "strainIncr = \n" << strainIncr << endl;
 		
 		/* stress increment */
 	    dSymMatrixT stressIncr(NumSD());
 	    stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
-	    stressIncr += fBand->Stress_List(CurrIP());
+	    stressIncr.AddScaled(linearModifier, perpSlipDirOuter);
+		stressIncr += fBand->Stress_List(CurrIP());
 	    fB.MultTx(stressIncr, fNEEvec);
 	    
 	    /* accumulate */
 	    fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+		
+		//cout << "fRHS = \n" << fRHS << endl;
 	    
 	    /* incremental heat generation */
 	    if (need_heat) 
@@ -279,7 +304,7 @@ void SSEnhLocLinearT::FormStiffness(double constK)
   if (fStrainDispOpt == kMeanDilBbar)
     cout << "Warning SSEnhLocLinearT::FormStiffness, b-bar integration not implemented for enhanced strain element, postlocalization results may be garbage.";
 
-  if (!IsElementTraced() || (!fBand->IsActive(0) && !fBand -> IsActive(1)))//todo - more elegant?
+  if (!IsElementTraced() || (fBand->JumpIncrement(0) == 0.0 && fBand -> JumpIncrement(1) == 0.0))//todo - more elegant?
     {
       /* form stiffness in standard way */
       SmallStrainT::FormStiffness(constK);
@@ -339,11 +364,16 @@ void SSEnhLocLinearT::FormStiffness(double constK)
     perpSlipDirOuter.ScaleOffDiagonal(2.0);
 
 	for (int bandIP = 0; bandIP < fBand -> NumSurfaceIPs(); bandIP++)
+	if (fBand -> JumpIncrement(bandIP) != 0.0)
 	{
 		k_d_zeta = 0.0;
 		k_zeta_d = 0.0;
 		k_zeta_zeta = 0.0;
 		double modifier;
+
+		/*reset IP Dets and Weights */
+		Det    = fShapes->IPDets();
+		Weight = fShapes->IPWeights();
 	
 		fShapes->TopIP();
 		while ( fShapes->NextIP() )
@@ -353,6 +383,23 @@ void SSEnhLocLinearT::FormStiffness(double constK)
 			FormGradActiveTensorFlowDir(ndof, CurrIP());
 
 			/*  modify to account for linear band */
+			double bandIPcoord = fBand -> IPBandCoord(CurrIP());
+			
+			double interpolant;
+			if (bandIP == 0)
+				interpolant = 0.5 - bandIPcoord/(fBand -> DistanceBetweenIPs());
+			else if (bandIP == 1 )
+				interpolant = 0.5 + bandIPcoord/(fBand -> DistanceBetweenIPs());
+			else 
+			{
+				cout << "SSEnhLocLinearT::FormStiffness: invalid band IP" << flush;
+				throw ExceptionT::kGeneralFail;
+			}
+			//cout << "interpolant = " << interpolant << endl;
+			
+			gradActiveTensorFlowDir *= interpolant;
+			
+			
 			if (fBand -> IsBulkIPActive(CurrIP()))
 				modifier = 1.0; 
 			else
@@ -364,7 +411,16 @@ void SSEnhLocLinearT::FormStiffness(double constK)
 			if (bandIP == 1)
 				modifier *= -1.0;
 			
+			/*
 			gradActiveTensorFlowDir.AddScaled(modifier, perpSlipDirOuter);
+		    */
+			
+			dMatrixT ce_inverse = fCurrMaterial->ce_ijkl();
+			ce_inverse.Inverse(); 
+			dArrayT perpSlipDir = fBand -> PerpSlipDir(0);
+			double denom = QuadContraction(ce_inverse, perpSlipDir, perpSlipDir, perpSlipDir, perpSlipDir);
+		
+			modifier /= (fBand -> DistanceBetweenIPs() * denom);
 		
 			double scale = constK*(*Det++)*(*Weight++);
 		
@@ -379,9 +435,19 @@ void SSEnhLocLinearT::FormStiffness(double constK)
 
 			/* multiply b(transpose) * db, taking account of symmetry, */
 			fDfB.MultAB(fD, fB);
+			
+			//cout << "fB = \n" << fB << endl;
 
 			fDfB.MultTx(gradActiveTensorFlowDir, k_d_zeta_work);
 			k_d_zeta += k_d_zeta_work;
+			
+			/* reset */
+			k_d_zeta_work = 0.0;
+			fB.Multx(perpSlipDirOuter, k_d_zeta_work);
+			k_d_zeta_work *= scale * modifier;
+			
+			k_d_zeta += k_d_zeta_work; 
+			
         }
 
 		//form k_zeta_d
@@ -391,24 +457,36 @@ void SSEnhLocLinearT::FormStiffness(double constK)
 		dMatrixT bB = B_at_surfaceIP(bandIP);	
 		fDfB.MultAB(fD, bB);
 		
+		//cout << "bB = \n" << bB << endl;
+		
 		//fDfB.MultTx(dGdSigma, k_zeta_d_work, dMatrixT::kOverwrite);
 		fDfB.MultTx(dGdSigma, k_zeta_d_work);
 		k_zeta_d += k_zeta_d_work;
 		
 		gradActiveTensorFlowDir = FormGradActiveTensorFlowDirAtBandIP(ndof, bandIP);
 
+        //cout << "gradActiveTensorFlowDir =\n" << gradActiveTensorFlowDir << endl;
+        //cout << "dGdSigma =\n" << dGdSigma << endl;		
 		//form k_zeta_zeta
 		k_zeta_zeta = fD.MultmBn(dGdSigma,gradActiveTensorFlowDir);
 
 		//k_zeta_d *= 1.0/area;
 		//k_zeta_zeta *= 1.0/area;
 		
+		/*
+		cout << "k_d_zeta = " << k_d_zeta << endl;
+		cout << "k_zeta_d  = " << k_zeta_d << endl;
+		cout << "k_zeta_zeta = " << k_zeta_zeta << endl;
+		*/
+		
 		k_zeta_zeta += fBand->EffectiveSoftening(bandIP);
-
+		//cout << "fLHS =\n" << fLHS << endl;
 		fLHS.Outer(k_d_zeta, k_zeta_d, -1.0/k_zeta_zeta, dMatrixT::kAccumulate);
     }
    //cout << "Element Number " << CurrElementNumber() << ". InitialCoodinates() =\n" << InitialCoordinates() << endl;
-    }
+
+	}
+			//cout << "fLHS =\n" << fLHS << endl;
 }
 
 /* compute the measures of strain/deformation over the element */
@@ -430,7 +508,10 @@ void SSEnhLocLinearT::SetGlobalShape(void)
 	  const ArrayT<bool>& needs = fMaterialNeeds[material_number];
 	  
 	  for (int i = 0; i < fBand -> NumSurfaceIPs(); i++)
+	  {
+	    //cout << "i = " << i << endl;
 		double jumpIncrement = CalculateJumpIncrement(i);
+	  }
 
 #if 0
 	  /* loop over integration points again */
@@ -490,6 +571,7 @@ double SSEnhLocLinearT::CalculateJumpIncrement(int bandIP)
 	
 	if (!IsBandActive(workingTraction, bandIP))
 	{
+		//cout << "Band IP inactive, bandIP = " << bandIP << "jumpIncrement = 0.0" << endl;
 		fBand -> StoreJumpIncrement(0.0, bandIP);
 		return 0.0;
 	}
@@ -500,6 +582,8 @@ double SSEnhLocLinearT::CalculateJumpIncrement(int bandIP)
     
 	/* calculate flow direction at IP */
 	gradActiveTensorFlowDir = FormGradActiveTensorFlowDirAtBandIP(ndof, bandIP);
+	
+	//cout << "gradActiveTensorFlowDir =\n" << gradActiveTensorFlowDir << endl;
 	
 	fD.SetToScaled(1.0, fCurrMaterial->ce_ijkl());
 	dArrayT dGfD(fD.Rows());
@@ -514,6 +598,7 @@ double SSEnhLocLinearT::CalculateJumpIncrement(int bandIP)
 	double shearTraction = workingTraction.Dot(workingTraction, fBand -> PerpSlipDir(bandIP));
 	
 	//cout << "shearTraction = " << shearTraction << ", normalTraction = " << normalTraction << endl;
+	//cout << "Resid cohesion = " << fBand -> ResidualCohesion(bandIP) << endl;
 	
 	/* assuming there is still cohesion softening softening */
 	if (fBand -> ResidualCohesion(bandIP) > 0.0)
@@ -522,18 +607,23 @@ double SSEnhLocLinearT::CalculateJumpIncrement(int bandIP)
 		/* calculate jumpIncrement */
 		jumpIncrement = shearTraction + fLocalizedFrictionCoeff * normalTraction
 					- fBand -> ResidualCohesion(bandIP);
-		jumpIncrement /= denom + fH_delta_0;
+		//cout << "bandIP = " << bandIP << ", jumpIncrement = " << jumpIncrement << endl;
+		//cout << "Resid cohesion = " << fBand -> ResidualCohesion(bandIP) << endl;
+	
+		jumpIncrement /= (denom + fH_delta_0);
 	
 		/* check to see if cohesion softening done */
-		if (fBand -> ResidualCohesion(bandIP) > fH_delta_0 * jumpIncrement)
+		if (fBand -> ResidualCohesion(bandIP) > -1.0 * fH_delta_0 * jumpIncrement)
 		{
-			fBand->SetEffectiveSoftening(fBand->H_delta(bandIP), bandIP); 
+			fBand->SetEffectiveSoftening(fH_delta_0, bandIP); 
 			fBand -> StoreJumpIncrement(jumpIncrement, bandIP);
+			//cout << "bandIP = " << bandIP << ", jumpIncrement = " << jumpIncrement << endl;
 			return jumpIncrement;
 		}
 	}
    
 	/* if softening done, recalculate jump increment*/
+	/* todo - verify that this works for cohesion transition -seems to, but I'm skeptical */ 
    
 	/* calculate jumpIncrement for the case of completed softening */
 	jumpIncrement = shearTraction + fLocalizedFrictionCoeff * normalTraction;
@@ -541,11 +631,14 @@ double SSEnhLocLinearT::CalculateJumpIncrement(int bandIP)
    
 	fBand->SetEffectiveSoftening(0.0, bandIP); 
 	fBand -> StoreJumpIncrement(jumpIncrement, bandIP);
+	cout << "Softening done, bandIP = " << bandIP << "jumpIncrement = " << jumpIncrement << endl;
 	return jumpIncrement;  
 }
 
 bool SSEnhLocLinearT::IsBandActive(dArrayT workingTraction, int bandIP)
 {
+  //return true;
+
   double normalTraction = workingTraction.Dot(workingTraction, fBand -> Normal());
   double shearTraction = workingTraction.Dot(workingTraction, fBand -> PerpSlipDir(bandIP));  
 
@@ -574,7 +667,11 @@ void SSEnhLocLinearT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                const iArrayT& e_codes, dArray2DT& e_values)
 {
 
-  cout << "ComputeOutput \n\n";
+//cout << "ComputeOutput \n";
+//SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+//return;
+
+  cout << "ComputeOutput \n";
 
 
 /* number of output values */
@@ -1097,23 +1194,27 @@ if (fLocalizationHasBegun)
 				/* Conforming Strain Increment */
 				dSymMatrixT strainIncr = fStrain_List [CurrIP()];
 				strainIncr -= fStrain_last_List [CurrIP()];
+				
+				//cout << "strainIncr =\n" << strainIncr; 
 
 				/* modify strain increment for avg jump Increment */
 				dSymMatrixT gradActiveTensorFlowDir =
 				FormGradActiveTensorFlowDir(NumSD(), CurrIP());
 				gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
 
-				double avgJumpIncr = 0.0;
-				for (int i = 0; i < fBand -> NumSurfaceIPs(); i ++)
-					avgJumpIncr += fBand -> JumpIncrement(i);
-				avgJumpIncr /= fBand -> NumSurfaceIPs();	
+				//double avgJumpIncr = 0.0;
+				//for (int i = 0; i < fBand -> NumSurfaceIPs(); i ++)
+				//	avgJumpIncr += fBand -> JumpIncrement(i);
+				//avgJumpIncr /= fBand -> NumSurfaceIPs();	
 		
-				strainIncr.AddScaled(-1.0*avgJumpIncr, gradActiveTensorFlowDir);
+				strainIncr.AddScaled(-1.0*JumpIncrAtBulkIP(CurrIP()), gradActiveTensorFlowDir);
 		
 				/* modify strain increment for jump increment gradient */
 				dSymMatrixT perpSlipDirOuter(NumSD());
 				perpSlipDirOuter.Outer(fBand -> PerpSlipDir(0));
 		
+		
+				/*
 				double linearModifier;
 				if (fBand -> IsBulkIPActive(CurrIP()))
 					linearModifier = 1.0; 
@@ -1123,27 +1224,54 @@ if (fLocalizationHasBegun)
 				linearModifier -= F_hAtBulkIP(CurrIP());
 				linearModifier /= fBand -> DistanceBetweenIPs();
 				linearModifier *= (fBand -> JumpIncrement(1) - fBand -> JumpIncrement(0));
+				*/
 		
-				strainIncr.AddScaled(-1.0*linearModifier, perpSlipDirOuter);		
+				dMatrixT ce_inverse = fCurrMaterial->ce_ijkl();
+				ce_inverse.Inverse();
+				dArrayT perpSlipDir = fBand -> PerpSlipDir(0); 
+				double denom = QuadContraction(ce_inverse, perpSlipDir, perpSlipDir, perpSlipDir, perpSlipDir);
+
+				double linearModifier;
+				if (fBand -> IsBulkIPActive(CurrIP()))
+					linearModifier = 1.0; 
+				else
+					linearModifier = 0.0;
+				
+				linearModifier -= F_hAtBulkIP(CurrIP());		
+				linearModifier = (fBand -> JumpIncrement(1) - fBand -> JumpIncrement(0))/
+								(fBand -> DistanceBetweenIPs() * denom);
+		
+				//strainIncr.AddScaled(-1.0*linearModifier, perpSlipDirOuter);		
 	      
+				//cout << "strainIncr =\n" << strainIncr;
+		  
 				dSymMatrixT stressIncr(NumSD());
 				stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
+				stressIncr.AddScaled(linearModifier, perpSlipDirOuter);
 				fBand -> IncrementStress(stressIncr, CurrIP());
+				//cout << "stressIncr = \n" << stressIncr << endl;
 	      	}
 			
 			/* update band traction */
 			for (int bandIP = 0; bandIP < fBand -> NumSurfaceIPs(); bandIP ++)
 			{
 				dSymMatrixT strainIncr = ConformingStrainIncrAtCoord(fBand -> SurfaceIPCoords(bandIP));
+				
+				//cout << "strainIncr =\n" << strainIncr;  
+				
 				dSymMatrixT gradActiveTensorFlowDir =  
 					FormGradActiveTensorFlowDirAtBandIP(NumSD(), bandIP);
+				gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
 				strainIncr.AddScaled(-1.0 * fBand -> JumpIncrement(bandIP), gradActiveTensorFlowDir);
-				
+				 
+				//cout << "strainIncr =\n" << strainIncr; 
+				 
 				dSymMatrixT stressIncr(NumSD());
 				stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
 				
 				dArrayT tractionIncr(NumSD());
 				stressIncr.Multx(fBand -> Normal(), tractionIncr);
+				//cout << "tractionIncr = \n" << tractionIncr << endl;
 				
 				fBand -> IncrementTractionAtBandIP(tractionIncr, bandIP);				
 			}
@@ -1300,9 +1428,10 @@ dSymMatrixT SSEnhLocLinearT::FormGradActiveTensorFlowDir(int ndof, int ip)
     {
       activeNodes.Top();
 
-      while(activeNodes.Next())      
+      while(activeNodes.Next()) 
 	{
 	  A = activeNodes.Current();  
+	  //cout << "active node " << A << endl;
 	  grad_f[i] += fB(i, (A)*ndof +i);
 	}
     }
@@ -1330,11 +1459,15 @@ dSymMatrixT SSEnhLocLinearT::FormGradActiveTensorFlowDirAtBandIP(int ndof, int b
   
 	/* transform coordinates to Parent Domain (Local Coordinates)*/
 	dArrayT localCoords(NumSD());
+	/*
 	if (!fShapes -> ParentDomain().MapToParentDomain(InitialCoordinates(), fBand -> SurfaceIPCoords(bandIP) , localCoords))
 	{
-		cout << "SSEnhLocLinearT::StrainAtCoord, failed to map to local coordinates\n " << flush;
+		cout << "SSEnhLocLinearT::FormGradACtiveTensorFlowDirAtBandIP, failed to map to local coordinates\n " << flush;
 		throw ExceptionT::kGeneralFail;
-	}
+	}*/
+	
+	fShapes -> ParentDomain().MapToParentDomain(InitialCoordinates(), fBand -> SurfaceIPCoords(bandIP) , localCoords);
+	
 
   /* Get Local-to-Global transformation */
   dArrayT shapeFunctions;
@@ -1343,13 +1476,20 @@ dSymMatrixT SSEnhLocLinearT::FormGradActiveTensorFlowDirAtBandIP(int ndof, int b
   
   fShapes -> GradU(InitialCoordinates(), jacobian, 
 	localCoords, shapeFunctions, shapeFunctionGradients); 
+
+  //cout << "jacobian =\n" << jacobian << endl;
 	
   jacobian.Inverse();
 
   /* Calculate Global Derivatives */
   
+  //cout << "jacobian =\n" << jacobian << endl;
+  //cout << "shapeFunctionGradients = \n" << shapeFunctionGradients << endl;
+	  
   fShapes -> TransformDerivatives(jacobian, shapeFunctionGradients, globalShapeFunctionGradients);
   //calls for dArray2DTs for 2nd 2 args */
+
+  //cout << "globalShapeFunctionGradients = \n" << globalShapeFunctionGradients << endl;
 
   for (int i=0; i<ndof; i++)
     {
@@ -1570,6 +1710,10 @@ void SSEnhLocLinearT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <d
       prod = fabs( avgGradU.MultmBn(slipDirs.Current(), normals.Current()));
 	  //cout << "prod = " << prod << endl;
       //prod = (normals.Current() [1]) * (normals.Current() [2]);
+	  
+	  //temp -overwrite - todo - delete
+	  //prod = normals.Current() [0] * 7.646947e-01 - normals.Current() [0] * 6.443928e-01;
+	  
       if (prod > maxProd)
 	{
 	  //cout << "best normal = \n" << normals.Current() << endl; 
@@ -1580,8 +1724,8 @@ void SSEnhLocLinearT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <d
     }
 
  //1 For propagating band normal in same direction
- #if 0
-   BandT* fBandTemp = fBand;
+ #if 1
+   LinearBandT* fBandTemp = fBand;
  
    //get element neighbors array
    ModelManagerT& model = ElementSupport().ModelManager();
@@ -1885,11 +2029,15 @@ dSymMatrixT SSEnhLocLinearT::ConformingStrainAtCoord(dArrayT coord)
 {
 	/* transform coordinates to Parent Domain (Local Coordinates)*/
 	dArrayT localCoords(NumSD());
+	/*
 	if (!(fShapes -> ParentDomain().MapToParentDomain(InitialCoordinates(),coord, localCoords)))
 	{
 		cout << "SSEnhLocLinearT::StrainAtCoord, failed to map to local coordinates\n " << flush;
 		throw ExceptionT::kGeneralFail;
-	}
+	}*/
+	
+	fShapes -> ParentDomain().MapToParentDomain(InitialCoordinates(),coord, localCoords);
+	
 	/* Calculate Strain at Coordinates */
 	dMatrixT grad_U_local(NumSD()), grad_U_global(NumSD()); 
 	dArray2DT DNa; //DNa - shape function gradients wrt local coords
@@ -1916,15 +2064,18 @@ dSymMatrixT SSEnhLocLinearT::ConformingStrainAtCoord(dArrayT coord)
 
 dSymMatrixT SSEnhLocLinearT::ConformingStrainIncrAtCoord(dArrayT coord)
 {
-    dArrayT incr = ConformingStrainAtCoord(coord);
+    dSymMatrixT incr = ConformingStrainAtCoord(coord);
 
 	/* transform coordinates to Parent Domain (Local Coordinates)*/
 	dArrayT localCoords(NumSD());
+	/*
 	if (!fShapes -> ParentDomain().MapToParentDomain(InitialCoordinates(),coord, localCoords))
 	{
 		cout << "SSEnhLocLinearT::StrainAtCoord, failed to map to local coordinates\n " << flush;
 		throw ExceptionT::kGeneralFail;
-	}
+	}*/
+	
+	fShapes -> ParentDomain().MapToParentDomain(InitialCoordinates(),coord, localCoords);
 	
 	/* Calculate Strain at Coordinates */
 	dMatrixT grad_U_local(NumSD()), grad_U_global(NumSD()); 
@@ -1945,10 +2096,12 @@ dSymMatrixT SSEnhLocLinearT::ConformingStrainIncrAtCoord(dArrayT coord)
 	//fShapes -> TransformDerivatives(jacobian, grad_U_local, grad_U_global);
 	
 	/* Symmetrize */
-	dSymMatrixT strain(NumSD());
-	strain.Symmetrize(grad_U_global);
+	dSymMatrixT strainLast(NumSD());
+	strainLast.Symmetrize(grad_U_global);
 	
-	return strain;
+	incr -= strainLast;
+	
+	return incr;
 }
 
 /* usually evaluated at bulk ip coordinates */
@@ -1977,11 +2130,14 @@ dMatrixT SSEnhLocLinearT::B_at_surfaceIP(int bandIP)
 	dArrayT localCoords(NumSD());
 	dArrayT coord = fBand -> SurfaceIPCoords(bandIP);
 	
+	/*
 	if (!fShapes -> ParentDomain().MapToParentDomain(InitialCoordinates(),coord, localCoords))
 	{
 		cout << "SSEnhLocLinearT::StrainAtCoord, failed to map to local coordinates\n " << flush;
 		throw ExceptionT::kGeneralFail;
-	}
+	}*/
+	
+	fShapes -> ParentDomain().MapToParentDomain(InitialCoordinates(),coord, localCoords);
 	
 	/* Get Local-to-Global transformation */
   dArrayT shapeFunctions;
@@ -2007,8 +2163,8 @@ dMatrixT SSEnhLocLinearT::B_at_surfaceIP(int bandIP)
   {
 		 bB.Dimension(3, nnd*2);
 		 double* pB = bB.Pointer();
-         const double* pNax = shapeFunctionGradients(0);
-         const double* pNay = shapeFunctionGradients(1);
+         const double* pNax = globalShapeFunctionGradients(0);
+         const double* pNay = globalShapeFunctionGradients(1);
          for (int i = 0; i < nnd; i++)
          {             /* see Hughes (2.8.20) */
              *pB++ = *pNax;
@@ -2027,4 +2183,31 @@ dMatrixT SSEnhLocLinearT::B_at_surfaceIP(int bandIP)
    }
    
   return bB;
+}
+
+double SSEnhLocLinearT::JumpIncrAtBulkIP(int ip)
+{
+	double coord = fBand -> IPBandCoord(ip);
+	double distance = fBand -> DistanceBetweenIPs();
+	
+	return (0.5 - coord/distance) * fBand -> JumpIncrement(0)
+		+ (0.5 + coord/distance) * fBand -> JumpIncrement(1);
+}
+
+double SSEnhLocLinearT::QuadContraction(dMatrixT c_ijkl, 
+		dArrayT vector1, dArrayT vector2, dArrayT vector3, dArrayT vector4)
+{
+    int ndof = NumDOF(); //change to vector1 length
+	dTensor4DT C(ndof, ndof, ndof, ndof);
+	
+	C.ConvertTangentFrom2DTo4D(C, fCurrMaterial->ce_ijkl());
+	
+	double d = 0.0;
+	
+	for (int i = 0; i < ndof; i++)
+		for (int j = 0; j < ndof; j++)
+			for (int k = 0; k < ndof; k++)
+				for (int l = 0; l < ndof; l++)
+					d += C(i,j,k,l) * vector1[i] * vector2[j] * vector3[k] * vector4[l];
+	return d;
 }

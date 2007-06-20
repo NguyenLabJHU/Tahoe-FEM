@@ -155,6 +155,9 @@ protected:
 	
 	virtual double F_hAtBulkIP(int ip);
 	virtual dMatrixT B_at_surfaceIP(int bandIP);
+	virtual double JumpIncrAtBulkIP(int ip);
+	virtual double QuadContraction(dMatrixT c_ijkl, 
+		dArrayT vector1, dArrayT vector2, dArrayT vector3, dArrayT vector4);
 
 };
 

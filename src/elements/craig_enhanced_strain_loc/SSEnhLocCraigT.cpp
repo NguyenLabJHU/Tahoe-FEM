@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.25 2007-03-07 16:22:30 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.26 2007-06-20 10:16:55 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -325,9 +325,13 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 	//k_zeta_zeta *= -1.0;
 
 	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0/k_zeta_zeta, dMatrixT::kAccumulate);
+	//cout << "fLHS =\n" << fLHS << endl;
+	//cout << "k_d_zeta = " << k_d_zeta << endl;
+	//cout << "k_zeta_d  = " << k_zeta_d << endl;
+	//cout << "k_zeta_zeta = " << k_zeta_zeta << endl;
     }
    //cout << "Element Number " << CurrElementNumber() << ". InitialCoodinates() =\n" << InitialCoordinates() << endl;
-
+   
 }
 
 /* compute the measures of strain/deformation over the element */
@@ -416,15 +420,27 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
       area += scale;
       dSymMatrixT strainIncr = fStrain_List [i];
       strainIncr -= fStrain_last_List [i];
+	  
+	  //cout << "strainIncr = \n" << strainIncr << endl;
+	  
       strainIncr.ScaleOffDiagonal(2.0);
 
       gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof, i);
-      
+	  	//cout << "gradActiveTensorFlowDir =\n" << gradActiveTensorFlowDir << endl;
+			      
       jumpIncrement += scale * strainIncr.Dot(dGfD, strainIncr);
       jumpWork += scale * gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);		  
     }
 
-  jumpIncrement /= (jumpWork + area * fBand->H_delta());
+  //jumpIncrement /= (jumpWork + area * fBand->H_delta());
+
+  jumpIncrement /= area;
+  jumpWork /= area;
+  
+  //cout << "jumpIncrement = " << jumpIncrement << ", jumpWork = " << jumpWork << endl;
+  //cout << "Resid cohesion = " << fBand -> ResidualCohesion() << endl;
+
+  jumpIncrement /= (jumpWork + fBand -> H_delta());
 
   double trialDeltaResidCohesion = -1.0*fabs(jumpIncrement)*fBand->H_delta();
   /* check to see that residual cohsion does not drop below 0, adjust if nec */

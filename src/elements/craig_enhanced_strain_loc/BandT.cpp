@@ -164,6 +164,11 @@ dSymMatrixT BandT::Stress_List(int ip)
 void BandT::IncrementStress(dSymMatrixT stressIncr, int ip)
 {
   fStress_List [ip] += stressIncr;
+    //cout << "fStress_List[" << ip << "] =\n" << fStress_List[ip] << endl;
+	
+	dArrayT traction(2);
+	fStress_List[ip].Multx(fNormal, traction);
+	//	cout << "traction =\n" << traction << endl;
 }
 
 /*
