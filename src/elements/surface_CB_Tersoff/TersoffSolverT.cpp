@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.4 2007-06-18 00:19:14 paklein Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.5 2007-06-24 18:11:17 paklein Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -96,7 +96,7 @@ void TersoffSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stre
 		stress.Pointer()); 
 	stress *= 2.0;
 	
-#if 1
+#if 0
 	cout << "stress: " << stress.no_wrap() << endl;
 #endif
 }
@@ -335,10 +335,13 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 /* Minimize the energy wrt Xsi using the initial value passed */
 void TersoffSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 {
+	bool debug = false;
+
 	/* check initial value */
 	SetdXsi(CIJ, Xsi);
 
-	int count = 0;	
+	int count = 0;
+	if (debug) cout << dXsi.Magnitude() << '\n';
 	while (count++ < 15 && dXsi.Magnitude() > 1.0e-12)
 	{
 		fMat1.Inverse(dXsidXsi);
@@ -348,6 +351,7 @@ void TersoffSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 		
 		/* recompute */
 		SetdXsi(CIJ, Xsi);
+		if (debug) cout << dXsi.Magnitude() << '\n';
 	}
 
 	/* assume not converged */
@@ -364,9 +368,8 @@ void TersoffSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 		dXsi.Pointer(), dXsidXsi.Pointer());
 
 //debugging
-#if 1
+#if 0
 cout << dXsi.no_wrap() << ":" << dXsidXsi.no_wrap() << endl;
-
 #endif
 }
 
