@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.h,v 1.3 2007-06-17 21:08:58 paklein Exp $ */
+/* $Id: TersoffSolverT.h,v 1.4 2007-06-24 21:25:14 paklein Exp $ */
 /* created: paklein (05/27/1997) */
 #ifndef _TERSOFF_SOLVER_T_H_
 #define _TERSOFF_SOLVER_T_H_
@@ -65,7 +65,6 @@ private:
 
 	/* set free dof - triggers recomputation */
 	void SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi);
-	void SetAll(const dMatrixT& CIJ);		
 
 private:
 
@@ -85,20 +84,21 @@ private:
 	dArrayT		dXsi;
 	dMatrixT	dXsidXsi;
 
-#if 0	
 	/* derivatives wrt. C */
 	dMatrixT	dCdC_hat;
 
 	/* mixed derivatives wrt. C and Xsi */
 	dMatrixT	dCdXsi_hat;
+	dMatrixT	fTempRank4;
+	dMatrixT	fTempMixed;
+
+#if 0	
 	
 	/* work space */
 	ArrayT<nArrayT<double>*>  fMatrices; //linear combo
 	dMatrixT	fMat1, fMat2;
 	dMatrixT	fGradl_i;
 //	dSymMatrixT	fSymMat1;
-	dMatrixT	fTempRank4;
-	dMatrixT	fTempMixed;
 	dMatrixT	fGradl_C;
 #endif
 

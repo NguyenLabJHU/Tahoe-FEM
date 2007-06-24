@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2007-06-17 04:01:36 paklein Exp $
+# $Id: makefile,v 1.3 2007-06-24 21:25:14 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,8 @@ OBJ = \
 	CB_TersoffT.o \
 	TersoffSolverT.o \
 	dUdC.o \
-	dXsi.o	
+	dXsi.o \
+	ddC.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +47,8 @@ SRC = \
 	CB_TersoffT.cpp \
 	TersoffSolverT.cpp \
 	dUdC.c \
-	dXsi.c	
+	dXsi.c \
+	ddC.c
 
 ##################### (3) headers
 #

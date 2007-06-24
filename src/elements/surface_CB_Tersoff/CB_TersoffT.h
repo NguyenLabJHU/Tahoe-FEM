@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT.h,v 1.2 2007-06-17 21:08:58 paklein Exp $ */
+/* $Id: CB_TersoffT.h,v 1.3 2007-06-24 21:25:14 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #ifndef _CB_TERSOFF_T_H_
 #define _CB_TERSOFF_T_H_
@@ -25,8 +25,8 @@ public:
 	 * TEMP: use finite difference approximation for now.
 	 */
 	/*@{*/
-	virtual const dMatrixT& c_ijkl(void) { return FSSolidMatT::c_ijkl(); };
-	virtual const dMatrixT& C_IJKL(void) { return FSSolidMatT::C_IJKL(); };
+//	virtual const dMatrixT& c_ijkl(void) { return FSSolidMatT::c_ijkl(); };
+//	virtual const dMatrixT& C_IJKL(void) { return FSSolidMatT::C_IJKL(); };
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */

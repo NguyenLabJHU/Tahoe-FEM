@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.5 2007-06-24 18:11:17 paklein Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.6 2007-06-24 21:25:14 paklein Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -58,15 +58,17 @@ TersoffSolverT::~TersoffSolverT(void)
 /* moduli - assume Xsi already determined */
 void TersoffSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& moduli)
 {
-#if 0
 	/* set internal equilibrium */
 	if (fEquilibrate)
 		Equilibrate(CIJ, Xsi);
 	else
 		SetdXsi(CIJ, Xsi);
 
-	/* Compute all needed derivatives */
-	SetAll(CIJ);
+	/* compute second derivatives wrt {C,C} and {C,Xsi} */
+	get_ddC(fParams.Pointer(), Xsi.Pointer(), 
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer(), 
+		dCdC_hat.Pointer(), dCdXsi_hat.Pointer());
 
 	/* Compute moduli */
 	moduli = dCdC_hat;
@@ -79,8 +81,6 @@ void TersoffSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& modu
 		moduli -= fTempRank4;
 	}
 	moduli *= 4.0;
-#endif
-	ExceptionT::GeneralFail("TersoffSolverT::SetModuli", "not implemented");
 }
 
 //for now return symmetric matrix
@@ -243,15 +243,16 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	/* dimension work space */
 	dXsi.Dimension(kNumDOF);
 	dXsidXsi.Dimension(kNumDOF);
-#if 0
 	dCdC_hat.Dimension(kStressDim);
 	dCdXsi_hat.Dimension(kStressDim,kNumDOF);
+	fTempRank4.Dimension(kStressDim);
+	fTempMixed.Dimension(kStressDim, kNumDOF);
+
+#if 0
 	fMatrices.Dimension(kNumDOF);
 	fMat2.Dimension(kNumDOF);
 	fGradl_i.Dimension(3,kNumDOF); 
 	fSymMat1.Dimension(kNSD);
-	fTempRank4.Dimension(kStressDim);
-	fTempMixed.Dimension(kStressDim, kNumDOF);
 	fGradl_C.Dimension(3,kStressDim);
 #endif
 	fMat1.Dimension(kNumDOF); 
@@ -371,140 +372,4 @@ void TersoffSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 #if 0
 cout << dXsi.no_wrap() << ":" << dXsidXsi.no_wrap() << endl;
 #endif
-}
-
-/* set free dof - triggers recomputation */
-void TersoffSolverT::SetAll(const dMatrixT& CIJ)
-{
-	/* set geometry */
-//	fGeometry->SetAll(CIJ);
-
-#if 0	
-	/* Initialize */
-	dCdC_hat   = 0.0;
-	dCdXsi_hat = 0.0;
-
-	/* scalar derivatives */
-	const dArray2DT& dl_dXsi      = fGeometry->dl_dXsi();
-	const dArray2DT& d2l_dXsidXsi = fGeometry->d2l_dXsidXsi();
-
-	const dArray2DT& dl_dC        = fGeometry->dl_hat_dC();
-	const dArray2DT& d2l_dCdC     = fGeometry->d2l_hat_dCdC();
-	const dArray2DT& d2l_dCdXsi   = fGeometry->d2l_hat_dCdXsi();
-
-	const dArray2DT& dc_dXsi      = fGeometry->dCos_dXsi();
-	const dArray2DT& d2c_dXsidXsi = fGeometry->d2Cos_dXsidXsi();
-
-	const dArray2DT& dc_dC        = fGeometry->dCos_hat_dC();
-	const dArray2DT& d2c_dCdC     = fGeometry->d2Cos_hat_dCdC();
-	const dArray2DT& d2c_dCdXsi   = fGeometry->d2Cos_hat_dCdXsi();
-		
-	/* shallow work temps */
-	dMatrixT	d2ldCdC, dldC;
-	dArrayT		dldXsi;
-	dMatrixT	d2ldCdXsi;
-#endif
-
-	/* 2-body derivatives */
-// 	const dArrayT& dPhi_2  = f2Body->dPhi();
-// 	const dArrayT& ddPhi_2 = f2Body->ddPhi();	
-// 	for (int i = 0 ; i < dPhi_2.Length(); i++)
-// 	{
-// 		/* d2/dCdC */
-// 		dldC.Alias(kNSD, kNSD, dl_dC(i));
-// 		fSymMat1.FromMatrix(dldC);
-// 		fTempRank4.Outer(fSymMat1,fSymMat1);
-// 
-// 		d2ldCdC.Alias(kStressDim, kStressDim, d2l_dCdC(i));		
-// 
-// 		dCdC_hat.AddCombination(dPhi_2[i], d2ldCdC, ddPhi_2[i], fTempRank4);
-// 	
-// 		/* d2/dCdXsi */
-// 		dldXsi.Alias(kNumDOF, dl_dXsi(i));
-// 		fTempMixed.Outer(fSymMat1,dldXsi);
-// 		
-// 		d2ldCdXsi.Alias(kStressDim, kNumDOF, d2l_dCdXsi(i));
-// 			
-// 		dCdXsi_hat.AddCombination(dPhi_2[i], d2ldCdXsi, ddPhi_2[i], fTempMixed);
-// 	}
-// 
-// 	/* for the linear combinations */
-// 	dArrayT  coeffs;
-// 	dMatrixT ddl1, ddl2, ddc12;
-// 	fMatrices[0] = &ddl1;
-// 	fMatrices[1] = &ddl2;
-// 	fMatrices[2] = &ddc12;
-// 	
-// 	/* shallow temps */
-// 	dMatrixT ddPhi3;
-// 	dArrayT	 dl1dXsi, dl2dXsi, dCosdXsi;
-// 	dMatrixT dl1dC  , dl2dC  , dCosdC;
-// 
-// 	/* 3-body derivatives */
-// 	const dArray2DT& dPhi_3  = f3Body->dPhi();
-// 	const dArray2DT& ddPhi_3 = f3Body->ddPhi();
-// 	for (int j = 0 ; j < dPhi_3.MajorDim(); j++)
-// 	{
-// 		int n1 = fPairs(j,0);
-// 		int n2 = fPairs(j,1);
-// 
-// 		coeffs.Alias(kNumDOF, dPhi_3(j));
-// 	
-// 		/* d2/dCdC */
-// 		ddPhi3.Alias(kNumDOF, kNumDOF, ddPhi_3(j));
-// 		
-// 		dl1dC.Alias(kNSD, kNSD, dl_dC(n1));		
-// 		dl2dC.Alias(kNSD, kNSD, dl_dC(n2));
-// 		dCosdC.Alias(kNSD, kNSD, dc_dC(j));
-// 	
-// 		fSymMat1.FromMatrix(dl1dC);
-// 		fGradl_C.SetRow(0, fSymMat1);
-// 		fSymMat1.FromMatrix(dl2dC);
-// 		fGradl_C.SetRow(1, fSymMat1 );
-// 		fSymMat1.FromMatrix(dCosdC);
-// 		fGradl_C.SetRow(2, fSymMat1);
-// 
-// 		fTempMixed.MultATB(fGradl_C,ddPhi3);
-// 		fTempRank4.MultAB(fTempMixed,fGradl_C);
-// 		
-// 		//testing
-// 		//dCdC_hat += fTempRank4;
-// 		
-// 		ddl1.Alias(kStressDim, kStressDim, d2l_dCdC(n1));
-// 		ddl2.Alias(kStressDim, kStressDim, d2l_dCdC(n2));
-// 		ddc12.Alias(kStressDim, kStressDim, d2c_dCdC(j));
-// 		
-// 		//testing
-// 		//dCdC_hat.AddCombination(coeffs,fMatrices);
-// 		
-// 		dCdC_hat.AddCombination(1.0,fTempRank4,coeffs[0],ddl1);
-// 		dCdC_hat.AddCombination(coeffs[1],ddl2,
-// 		                        coeffs[2],ddc12);		
-// 				
-// 		/* d2/dCdXsi */
-// 		dl1dXsi.Alias(kNumDOF, dl_dXsi(n1));
-// 		dl2dXsi.Alias(kNumDOF, dl_dXsi(n2));
-// 		dCosdXsi.Alias(kNumDOF, dc_dXsi(j));
-// 		
-// 		fGradl_i.SetRow(0, dl1dXsi);
-// 		fGradl_i.SetRow(1, dl2dXsi );
-// 		fGradl_i.SetRow(2, dCosdXsi);
-// 
-// 		fMat1.MultAB(ddPhi3,fGradl_i);
-// 		fTempMixed.MultATB(fGradl_C,fMat1);
-// 	
-// 		//testing
-// 		//dCdXsi_hat += fTempMixed;
-// 		
-// 		ddl1.Alias(kStressDim , kNumDOF, d2l_dCdXsi(n1));
-// 		ddl2.Alias(kStressDim , kNumDOF, d2l_dCdXsi(n2));
-// 		ddc12.Alias(kStressDim, kNumDOF, d2c_dCdXsi(j));
-// 		
-// 		//testing
-// 		//dCdC_hat.AddCombination(coeffs,fMatrices);
-// 		
-// 		dCdXsi_hat.AddCombination(1.0, fTempMixed, coeffs[0],ddl1);
-// 		dCdXsi_hat.AddCombination(coeffs[1],ddl2,
-// 		                          coeffs[2],ddc12);
-// 	}
 }

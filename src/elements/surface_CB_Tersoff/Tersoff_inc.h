@@ -1,4 +1,4 @@
-/* $Id: Tersoff_inc.h,v 1.3 2007-06-17 21:08:58 paklein Exp $ */
+/* $Id: Tersoff_inc.h,v 1.4 2007-06-24 21:25:14 paklein Exp $ */
 #ifndef TERSOFF_INC_H
 #define TERSOFF_INC_H
 
@@ -26,9 +26,11 @@ extern "C" {
  * internal degrees of freedom */
 void get_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi); 
 
-/* function to compute derivatives of the potential function wrt to the
- * internal degrees of freedom */
+/* function to compute derivatives of the potential function wrt to the stretch tensor */
 void get_dUdC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC); 
+
+/* function to compute all second order derivatives of the potential function needed for the modulus */
+void get_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi);
 
 #ifdef __cplusplus
 }
