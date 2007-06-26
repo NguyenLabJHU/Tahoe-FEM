@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.22 2007-06-07 04:23:42 skyu Exp $*/
+/*$Id: MR2DT.cpp,v 1.23 2007-06-26 15:54:44 skyu Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -964,8 +964,8 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 		for (i = 0; i <= 1; ++i){
 			KEP1[i] = KEE(i,0)*dQdSig[0] + KEE(i,1)*dQdSig[1];
 		}
-		// KEP1[0] = KEE(0,0)*dQdSig[0] + KEE(0,1)*dQdSig[0];
-		// KEP1[1] = KEE(1,0)*dQdSig[1] + KEE(1,1)*dQdSig[1];
+		// KEP1[0] = KEE(0,0)*dQdSig[0] + KEE(0,1)*dQdSig[1];
+		// KEP1[1] = KEE(1,0)*dQdSig[0] + KEE(1,1)*dQdSig[1];
 
 		KEP.Outer(KEP1,H1);
 
