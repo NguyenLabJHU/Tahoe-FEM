@@ -1,4 +1,4 @@
-/*$Id: MR3DT.cpp,v 1.8 2007-06-07 04:23:42 skyu Exp $*/
+/*$Id: MR3DT.cpp,v 1.9 2007-06-26 15:56:36 skyu Exp $*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR3DT.h"
 
@@ -352,6 +352,49 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 			while (ff > fTol_1 | normr > fTol_2) {
 				if (kk > 500) {
 					ExceptionT::GeneralFail("MR3DT::Traction","Too Many Iterations");
+				}
+
+				if (kk <= 5) {
+				mr_ep_3d_out << setw(outputFileWidth) << "**********" << endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "local iteration # = " << kk << endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "norm = " << normr
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "T_t1 = " << Sig[0]
+					<< setw(outputFileWidth) << "T_t2 = " << Sig[1]
+					<< setw(outputFileWidth) << "T_n = " << Sig[2]
+					<< endl;
+
+				//check the stiffness at each local iteration
+				Stiffness(jump_u, state, sigma);
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0]
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1]
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "KEP(0,2) = " << fStiffness[2]
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[3]
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[4]
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "KEP(1,2) = " << fStiffness[5]
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "KEP(2,0) = " << fStiffness[6]
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "KEP(2,1) = " << fStiffness[7]
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "KEP(2,2) = " << fStiffness[8]
+					<< endl;
+				mr_ep_3d_out << setw(outputFileWidth) << "**********" << endl;
 				}
 
 				Sig = Sig_I;
@@ -765,23 +808,23 @@ const dMatrixT& MR3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
+	/*
+	int i, j;
 
-int i, j;
+	dMatrixT AA(7,7), I_mat(4,4), CMAT(7,7),AA_inv(7,7),
+		A_qq(4,4), A_uu(3,3), A_uq(3,4), A_qu(4,3), ZMAT(3,4),
+		ZMATP(4,3), dQdSig2(3,3), dqdbar(4,4), dqbardSig(4,3),
+		dQdSigdq(3,4), KP(3,3), KP2(3,3), KEP(3,3);
 
-dMatrixT AA(7,7), I_mat(4,4), CMAT(7,7),AA_inv(7,7),
-         A_qq(4,4), A_uu(3,3), A_uq(3,4), A_qu(4,3), ZMAT(3,4),
-         ZMATP(4,3), dQdSig2(3,3), dqdbar(4,4), dqbardSig(4,3),
-         dQdSigdq(3,4), KP(3,3), KP2(3,3), KEP(3,3);
-         
-dMatrixT I_m(3,3), Rmat(3,3), R_Inv(3,3), KE(3,3), KE_Inv(3,3),
-         Ch(4,4), Ch_Inv(4,4), KE1(4,3), KE2(3,3), KE3(3,4), KEE(3,3),
-         KEE_Inv(3,3);
-         
-dArrayT  u(3), up(3), du(3), dup(3), qn(4), qo(4), Rvec(7),Cvec(7),
-         R(7), Rmod(7), Sig(3), Sig_I(3), dQdSig(3), dfdq(4), qbar(4),
-         R2(7), X(7), V_sig(3), V_q(4), dfdSig(3), K1(3), K2(3);
-         
-double bott, dlam;
+	dMatrixT I_m(3,3), Rmat(3,3), R_Inv(3,3), KE(3,3), KE_Inv(3,3),
+		Ch(4,4), Ch_Inv(4,4), KE1(4,3), KE2(3,3), KE3(3,4), KEE(3,3),
+		KEE_Inv(3,3);
+
+	dArrayT  u(3), up(3), du(3), dup(3), qn(4), qo(4), Rvec(7),Cvec(7),
+		R(7), Rmod(7), Sig(3), Sig_I(3), dQdSig(3), dfdq(4), qbar(4),
+		R2(7), X(7), V_sig(3), V_q(4), dfdSig(3), K1(3), K2(3);
+
+	double bott, dlam;
 
 	fStiffness[1] = fStiffness[2] = fStiffness[3] = fStiffness[5] = fStiffness[6] = fStiffness[7] = 0.;
 	I_m = 0.;
@@ -901,6 +944,65 @@ double bott, dlam;
 		KP /= -bott;
 		KP += I_m;
 		KEP.MultAB(KE_Inv, KP);
+	*/
+	int i, j;
+
+	dMatrixT KEP(3,3), KEE(3,3);
+
+	dArrayT qn(4), Sig(3), dQdSig(3), dfdq(4), qbar(4), dfdSig(3), H1(3), KEP1(3);
+
+	double H2;
+
+	fStiffness[1] = fStiffness[2] = fStiffness[3] = fStiffness[5] = fStiffness[6] = fStiffness[7] = 0.;
+	Sig[0] = state[0];
+	Sig[1] = state[1];
+	Sig[2] = state[2];
+	KEE = 0.;
+	KEE(0,0) = fE_t1;
+	KEE(1,1) = fE_t2;
+	KEE(2,2) = fE_n;
+
+	for (i = 0; i<=3; ++i) {
+		qn[i] = state[i+9];
+	}
+
+	if (state[15] == 0.) {
+		fStiffness[0] = fE_t1;
+		fStiffness[4] = fE_t2;
+		fStiffness[8] = fE_n;
+	}
+	else if (state[15] == 1.) {
+
+		dfdSig_f(Sig, qn, dfdSig);
+		dQdSig_f(Sig, qn, dQdSig);
+		qbar_f(Sig, qn, qbar);
+		dfdq_f(Sig, qn, dfdq);
+
+		for (i = 0; i <= 2; ++i){
+			H1[i] = dfdSig[0]*KEE(0,i) + dfdSig[1]*KEE(1,i) + dfdSig[2]*KEE(2,i);
+		}
+		// H1[0] = dfdSig[0]*KEE(0,0) + dfdSig[1]*KEE(1,0) + dfdSig[2]*KEE(2,0);
+		// H1[1] = dfdSig[0]*KEE(0,1) + dfdSig[1]*KEE(1,1) + dfdSig[2]*KEE(2,1);
+		// H1[2] = dfdSig[0]*KEE(0,2) + dfdSig[1]*KEE(1,2) + dfdSig[2]*KEE(2,2);
+
+		H2 = dArrayT::Dot(H1,dQdSig);
+		H2 -= dArrayT::Dot(dfdq,qbar);
+
+		for (i = 0; i <= 2; ++i){
+			KEP1[i] = KEE(i,0)*dQdSig[0] + KEE(i,1)*dQdSig[1] + KEE(i,2)*dQdSig[2];
+		}
+		// KEP1[0] = KEE(0,0)*dQdSig[0] + KEE(0,1)*dQdSig[1] + KEE(0,2)*dQdSig[2];
+		// KEP1[1] = KEE(1,0)*dQdSig[0] + KEE(1,1)*dQdSig[1] + KEE(1,2)*dQdSig[2];
+		// KEP1[1] = KEE(2,0)*dQdSig[0] + KEE(2,1)*dQdSig[1] + KEE(2,2)*dQdSig[2];
+
+		KEP.Outer(KEP1,H1);
+
+		for (i = 0; i <= 2; ++i){
+			for (j = 0; j<=2; ++j){
+				KEP(i,j) = KEP(i,j)/H2;
+				KEP(i,j) = KEE(i,j) - KEP(i,j);
+			}
+		}
 
 		fStiffness[0] = KEP(0,0);
 		fStiffness[1] = KEP(0,1);
@@ -912,115 +1014,6 @@ double bott, dlam;
 		fStiffness[7] = KEP(2,1);
 		fStiffness[8] = KEP(2,2);
 	}
-
-	mr_ep_3d_out << setw(outputFileWidth) << "plastic flag = " << state[15] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dlam = " << dlam << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "qn[0] = " << qn[0] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "qn[1] = " << qn[1] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "qn[2] = " << qn[2] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "qn[3] = " << qn[3] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig2(0,0) = " << dQdSig2(0,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig2(0,1) = " << dQdSig2(0,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig2(0,2) = " << dQdSig2(0,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig2(1,0) = " << dQdSig2(1,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig2(1,1) = " << dQdSig2(1,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig2(1,2) = " << dQdSig2(1,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig2(2,0) = " << dQdSig2(2,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig2(2,1) = " << dQdSig2(2,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig2(2,2) = " << dQdSig2(2,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "qbar[0] = " << qbar[0] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "qbar[1] = " << qbar[1] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "qbar[2] = " << qbar[2] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "qbar[3] = " << qbar[3] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(0,0) = " << A_qu(0,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(0,1) = " << A_qu(0,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(0,2) = " << A_qu(0,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(1,0) = " << A_qu(1,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(1,1) = " << A_qu(1,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(1,2) = " << A_qu(1,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(2,0) = " << A_qu(2,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(2,1) = " << A_qu(2,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(2,2) = " << A_qu(2,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(3,0) = " << A_qu(3,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(3,1) = " << A_qu(3,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardSig(3,2) = " << A_qu(3,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(0,0) = " << A_qq(0,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(0,1) = " << A_qq(0,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(0,2) = " << A_qq(0,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(0,3) = " << A_qq(0,3) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(1,0) = " << A_qq(1,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(1,1) = " << A_qq(1,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(1,2) = " << A_qq(1,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(1,3) = " << A_qq(1,3) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(2,0) = " << A_qq(2,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(2,1) = " << A_qq(2,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(2,2) = " << A_qq(2,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(2,3) = " << A_qq(2,3) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(3,0) = " << A_qq(3,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(3,1) = " << A_qq(3,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(3,2) = " << A_qq(3,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dqbardq(3,3) = " << A_qq(3,3) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(0,0) = " << A_uq(0,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(0,1) = " << A_uq(0,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(0,2) = " << A_uq(0,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(0,3) = " << A_uq(0,3) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(1,0) = " << A_uq(1,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(1,1) = " << A_uq(1,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(1,2) = " << A_uq(1,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(1,3) = " << A_uq(1,3) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(2,0) = " << A_uq(2,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(2,1) = " << A_uq(2,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(2,2) = " << A_uq(2,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSigdq(2,3) = " << A_uq(2,3) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dfdSig[0] = " << dfdSig[0] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dfdSig[1] = " << dfdSig[1] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dfdSig[2] = " << dfdSig[2] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig[0] = " << dQdSig[0] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig[1] = " << dQdSig[1] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dQdSig[2] = " << dQdSig[2] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dfdq[0] = " << dfdq[0] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dfdq[1] = " << dfdq[1] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dfdq[2] = " << dfdq[2] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "dfdq[3] = " << dfdq[3] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KE_Inv(0,0) = " << KE_Inv(0,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KE_Inv(0,1) = " << KE_Inv(0,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KE_Inv(0,2) = " << KE_Inv(0,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KE_Inv(1,0) = " << KE_Inv(1,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KE_Inv(1,1) = " << KE_Inv(1,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KE_Inv(1,2) = " << KE_Inv(1,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KE_Inv(2,0) = " << KE_Inv(2,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KE_Inv(2,1) = " << KE_Inv(2,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KE_Inv(2,2) = " << KE_Inv(2,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KP(0,0) = " << KP(0,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KP(0,1) = " << KP(0,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KP(0,2) = " << KP(0,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KP(1,0) = " << KP(1,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KP(1,1) = " << KP(1,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KP(1,2) = " << KP(1,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KP(2,0) = " << KP(1,0) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KP(2,1) = " << KP(1,1) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KP(2,2) = " << KP(1,2) << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "------------- " << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KEP(0,2) = " << fStiffness[2] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[3] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[4] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KEP(1,2) = " << fStiffness[5] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KEP(2,0) = " << fStiffness[6] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KEP(2,1) = " << fStiffness[7] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "KEP(2,2) = " << fStiffness[8] << endl;
-	mr_ep_3d_out << setw(outputFileWidth) << "***********" << endl;
 
 	return fStiffness;
 }
