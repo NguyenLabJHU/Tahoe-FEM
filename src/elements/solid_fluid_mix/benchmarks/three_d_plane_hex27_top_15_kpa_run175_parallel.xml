@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="ebrahimi" echo_input="true"
+    geometry_file="../geometry/three_d_plane_hex27_10m.geom"
+    geometry_format="TahoeII" output_format="ExodusII"
+    title="ten 27-node elements 3D compression" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="70" num_steps="200" output_inc="1" time_step="0.025">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0" y="0"/>
+                <OrderedPair x="0.3" y="1"/>
+                <OrderedPair x="7" y="1"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displ" integrator="nonlinear_HHT">
+            <dof_labels>
+                <String value="d_x"/>
+                <String value="d_y"/>
+                <String value="d_z"/>
+            </dof_labels>
+            <kinematic_BC dof="3" node_ID="1" type="fixed"/>
+            <kinematic_BC dof="3" node_ID="2" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="3" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="4" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="6" type="fixed"/>
+            <force_BC dof="2" node_ID="7" schedule="1" value="-416.666666666666666"/>
+            <force_BC dof="2" node_ID="8" schedule="1" value="-1.666666666666666e3"/>
+            <force_BC dof="2" node_ID="9" schedule="1" value="-6.666666666666666e3"/>
+            <force_BC dof="2" node_ID="10" schedule="1" value="-3.333333333333333e3"/>
+            <force_BC dof="2" node_ID="15" schedule="1" value="-833.333333333333333"/>
+        </field>
+        <field field_name="press" integrator="nonlinear_HHT">
+            <dof_labels>
+                <String value="pore_press"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="20" type="fixed"/>
+        </field>
+    </nodes>
+    <element_list>
+        <total_lagrangian_solid_fluid_mix GeometryCodeSurf_displ="1"
+            GeometryCode_displ="3" K="0.1" Kf="2.2e10"
+            NumIPSurf_displ="9" NumIP_displ="27" alpha="0.0"
+            constitutive_mod_type="1" field_name="displ" g="9.81" g1="0"
+            g2="0" g3="0"
+            initial_condition_1geostatic_2displ_vel_press="1"
+            lambda="8.4e6" mu="5.6e6" n_en_displ="27" n_en_press="8"
+            phi_f0="0.42" phi_s0="0.58" pore_pressure_field_name="press"
+            rho_fR0="1000" rho_sR0="2700" type_of_analysis_1consolidation_2dynamic="2">
+            <total_lagrangian_solid_fluid_mix_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+            </total_lagrangian_solid_fluid_mix_element_block>
+        </total_lagrangian_solid_fluid_mix>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-20"
+        divergence_tolerance="1.0e+2" max_iterations="10" rel_tolerance="1.0e-8">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>
