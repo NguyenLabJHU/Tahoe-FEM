@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT.cpp,v 1.3 2007-06-24 21:25:14 paklein Exp $ */
+/* $Id: CB_TersoffT.cpp,v 1.4 2007-06-27 19:43:21 hspark Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffT.h"
 
@@ -70,6 +70,8 @@ void CB_TersoffT::TakeParameterList(const ParameterListT& list)
 
 void CB_TersoffT::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {
+	/* Temporary FD approximation to test new stress */
+	//moduli = FSSolidMatT::c_ijkl();
 	/* zero initial guess */
 	fXsi = 0.0;
 
