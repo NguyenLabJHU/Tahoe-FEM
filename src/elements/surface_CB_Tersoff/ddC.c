@@ -1,4 +1,4 @@
-/* $Id: ddC.c,v 1.2 2007-06-27 19:43:22 hspark Exp $ */
+/* $Id: ddC.c,v 1.3 2007-06-29 02:55:07 hspark Exp $ */
 #include "Tersoff_inc.h"
 
 #include <math.h>
@@ -8585,88 +8585,70 @@ void get_ddC(const double* params, const double *Xsi, const double *Xa, const do
 	z[16] = 0.5*z[16];
 	z[5] = 0.5*z[5];
 	
-	/* output 
-	{
-	{z32, z25, z13, z26, z30, z6},
-	{z25, z7, z19, z34, z28, z35},
-	{z13, z19, z18, z21, z20, z15},
-	{z26, z34, z21, z17, z14, z27},
-	{z30, z28, z20, z14, z10, z8},
-	{z6, z35, z15, z27, z8, z3}
-	}
-	
-	{
-	{z11, z23, z33},
-	{z36, z9, z2},
-	{z31, z22, z1},
-	{z24, z37, z5},
-	{z16, z29, z12},
-	{z39, z38, z4}
-	}
-	*/
+	/* output */
 	
 	/* dCdC: 6 x 6 */
-	dCdC[ 0] = z[32];
-	dCdC[ 1] = z[25];
-	dCdC[ 2] = z[13];
-	dCdC[ 3] = z[26];
-	dCdC[ 4] = z[30];
-	dCdC[ 5] = z[6];
+	dCdC[ 0] = z[33];
+	dCdC[ 1] = z[13];
+	dCdC[ 2] = z[20];
+	dCdC[ 3] = z[27];
+	dCdC[ 4] = z[38];
+	dCdC[ 5] = z[23];
 
-	dCdC[ 6] = z[25];
-	dCdC[ 7] = z[7];
-	dCdC[ 8] = z[19];
-	dCdC[ 9] = z[34];
-	dCdC[10] = z[28];
-	dCdC[11] = z[35];
+	dCdC[ 6] = z[13];
+	dCdC[ 7] = z[37];
+	dCdC[ 8] = z[21];
+	dCdC[ 9] = z[4];
+	dCdC[10] = z[34];
+	dCdC[11] = z[24];
 
-	dCdC[12] = z[13];
-	dCdC[13] = z[19];
-	dCdC[14] = z[18];
-	dCdC[15] = z[21];
-	dCdC[16] = z[20];
-	dCdC[17] = z[15];
+	dCdC[12] = z[20];
+	dCdC[13] = z[21];
+	dCdC[14] = z[1];
+	dCdC[15] = z[28];
+	dCdC[16] = z[35];
+	dCdC[17] = z[25];
 
-	dCdC[18] = z[26];
-	dCdC[19] = z[34];
-	dCdC[20] = z[21];
-	dCdC[21] = z[17];
-	dCdC[22] = z[14];
-	dCdC[23] = z[27];
+	dCdC[18] = z[27];
+	dCdC[19] = z[4];
+	dCdC[20] = z[28];
+	dCdC[21] = z[2];
+	dCdC[22] = z[30];
+	dCdC[23] = z[29];
 
-	dCdC[24] = z[30];
-	dCdC[25] = z[28];
-	dCdC[26] = z[20];
-	dCdC[27] = z[14];
-	dCdC[28] = z[10];
-	dCdC[29] = z[8];
+	dCdC[24] = z[38];
+	dCdC[25] = z[34];
+	dCdC[26] = z[35];
+	dCdC[27] = z[30];
+	dCdC[28] = z[18];
+	dCdC[29] = z[36];
 
-	dCdC[30] = z[6];
-	dCdC[31] = z[35];
-	dCdC[32] = z[15];
-	dCdC[33] = z[27];
-	dCdC[34] = z[8];
-	dCdC[35] = z[3];
+	dCdC[30] = z[23];
+	dCdC[31] = z[24];
+	dCdC[32] = z[25];
+	dCdC[33] = z[29];
+	dCdC[34] = z[36];
+	dCdC[35] = z[6];
 
 	/* dCdXsi: 6 x 3 */
-	dCdXsi[ 0] = z[11];
-	dCdXsi[ 1] = z[36];
-	dCdXsi[ 2] = z[31];
-	dCdXsi[ 3] = z[24];
-	dCdXsi[ 4] = z[16];
-	dCdXsi[ 5] = z[39];
+	dCdXsi[ 0] = z[14];
+	dCdXsi[ 1] = z[9];
+	dCdXsi[ 2] = z[15];
+	dCdXsi[ 3] = z[22];
+	dCdXsi[ 4] = z[11];
+	dCdXsi[ 5] = z[12];
 
-	dCdXsi[ 6] = z[23];
-	dCdXsi[ 7] = z[9];
-	dCdXsi[ 8] = z[22];
-	dCdXsi[ 9] = z[37];
-	dCdXsi[10] = z[29];
-	dCdXsi[11] = z[38];
+	dCdXsi[ 6] = z[8];
+	dCdXsi[ 7] = z[19];
+	dCdXsi[ 8] = z[17];
+	dCdXsi[ 9] = z[16];
+	dCdXsi[10] = z[31];
+	dCdXsi[11] = z[10];
 
-	dCdXsi[12] = z[33];
-	dCdXsi[13] = z[2];
-	dCdXsi[14] = z[1];
-	dCdXsi[15] = z[5];
-	dCdXsi[16] = z[12];
-	dCdXsi[17] = z[4];
+	dCdXsi[12] = z[32];
+	dCdXsi[13] = z[39];
+	dCdXsi[14] = z[5];
+	dCdXsi[15] = z[7];
+	dCdXsi[16] = z[26];
+	dCdXsi[17] = z[3];
 }

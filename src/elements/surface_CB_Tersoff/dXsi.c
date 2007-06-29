@@ -1,4 +1,4 @@
-/* $Id: dXsi.c,v 1.5 2007-06-27 19:43:22 hspark Exp $ */
+/* $Id: dXsi.c,v 1.6 2007-06-29 02:55:07 hspark Exp $ */
 #include "Tersoff_inc.h"
 
 #include <math.h>
@@ -2098,23 +2098,23 @@ void get_dXsi(const double* params, const double *Xsi, const double *Xa, const d
 	z[1] = 0.5*z[1];
 	
 	/* output */
-	/* dXsi  = {z4, z6, z8} */
-	/* ddXsi = {{z7, z3, z1},
-	            {z3, z9, z5},
-				{z1, z5, z2}} */
+	/* dXsi  = {z7, z8, z9} */
+	/* ddXsi = {{z5, z2, z3},
+	            {z2, z6, z4},
+				{z3, z4, z1}} */
 
 	/* return values */
-	dXsi[0] = z[4];
-	dXsi[1] = z[6];
-	dXsi[2] = z[8];
+	dXsi[0] = z[7];
+	dXsi[1] = z[8];
+	dXsi[2] = z[9];
 	
-	ddXsi[0] = z[7];
-	ddXsi[1] = z[3];
-	ddXsi[2] = z[1];
-	ddXsi[3] = z[3];
-	ddXsi[4] = z[9];
-	ddXsi[5] = z[5];
-	ddXsi[6] = z[1];
-	ddXsi[7] = z[5];
-	ddXsi[8] = z[2];
+	ddXsi[0] = z[5];
+	ddXsi[1] = z[2];
+	ddXsi[2] = z[3];
+	ddXsi[3] = z[2];
+	ddXsi[4] = z[6];
+	ddXsi[5] = z[4];
+	ddXsi[6] = z[3];
+	ddXsi[7] = z[4];
+	ddXsi[8] = z[1];
 }

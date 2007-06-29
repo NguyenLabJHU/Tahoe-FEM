@@ -1,4 +1,4 @@
-/* $Id: dUdC.c,v 1.4 2007-06-27 19:43:21 hspark Exp $ */
+/* $Id: dUdC.c,v 1.5 2007-06-29 02:55:07 hspark Exp $ */
 #include "Tersoff_inc.h"
 
 #include <math.h>
@@ -1200,19 +1200,19 @@ void get_dUdC(const double* params, const double *Xsi, const double *Xa, const d
 	z[1] = 0.5*z[1];
 	
 	/* output */
-	/* {{z2, z5, z6},
-	 *  {z5, z1, z4},
-	 *  {z6, z4, z3}}
+	/* {{z5, z2, z6},
+	 *  {z2, z1, z3},
+	 *  {z6, z3, z4}}
 	 */
 	 
 	/* return values */
-	dUdC[0] = z[2];
-	dUdC[1] = z[5];
+	dUdC[0] = z[5];
+	dUdC[1] = z[2];
 	dUdC[2] = z[6];
-	dUdC[3] = z[5];
+	dUdC[3] = z[2];
 	dUdC[4] = z[1];
-	dUdC[5] = z[4];
+	dUdC[5] = z[3];
 	dUdC[6] = z[6];
-	dUdC[7] = z[4];
-	dUdC[8] = z[3];
+	dUdC[7] = z[3];
+	dUdC[8] = z[4];
 }
