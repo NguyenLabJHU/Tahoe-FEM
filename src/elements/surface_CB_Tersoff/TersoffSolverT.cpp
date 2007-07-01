@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.6 2007-06-24 21:25:14 paklein Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.7 2007-07-01 17:28:25 hspark Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -44,7 +44,8 @@ TersoffSolverT::TersoffSolverT(const ThermalDilatationT* thermal):
 	f_h(0.0),
 	f_chi(0.0),
 	f_R(0.0),
-	f_S(0.0)
+	f_S(0.0),
+	f_omega0(0.0)
 {
 
 }
@@ -81,6 +82,7 @@ void TersoffSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& modu
 		moduli -= fTempRank4;
 	}
 	moduli *= 4.0;
+	moduli *= f_omega0;
 }
 
 //for now return symmetric matrix
@@ -95,6 +97,7 @@ void TersoffSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stre
 		CIJ.Pointer(),
 		stress.Pointer()); 
 	stress *= 2.0;
+	stress *= f_omega0;
 	
 #if 0
 	cout << "stress: " << stress.no_wrap() << endl;
@@ -311,6 +314,10 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	
 	/* scale unit cell coordinates */
 	fUnitCellCoords *= f_a0;
+
+	/* Calculate atomic volume = a^{3}/8 */
+	double asdf = f_a0*f_a0*f_a0/8.0;
+	f_omega0 = 1.0/asdf;
 
 	/* write into vector to pass to C code */
 	fParams.Dimension(13);
