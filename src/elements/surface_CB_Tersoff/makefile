@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2007-06-24 21:25:14 paklein Exp $
+# $Id: makefile,v 1.4 2007-07-03 03:14:48 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,10 +21,15 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	CB_TersoffT.o \
+	CB_TersoffT_surf.o \
 	TersoffSolverT.o \
+	TersoffSolverT_surf.o \
 	dUdC.o \
+	dUdC_surf.o \
 	dXsi.o \
-	ddC.o
+	dXsi_surf.o \
+	ddC.o \
+	ddC_surf.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,10 +50,15 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	CB_TersoffT.cpp \
+	CB_TersoffT_surf.cpp \
 	TersoffSolverT.cpp \
+	TersoffSolverT_surf.cpp \
 	dUdC.c \
+	dUdC_surf.c \
 	dXsi.c \
-	ddC.c
+	dXsi_surf.c \
+	ddC.c \
+	ddC_surf.c
 
 ##################### (3) headers
 #
@@ -61,9 +71,12 @@ SRC = \
 #
 HDR = \
 	CB_TersoffT.h \
+	CB_TersoffT_surf.h \
 	TersoffSolverT.h \
+	TersoffSolverT_surf.h \
 	Tersoff_common_defines.h \
-	Tersoff_inc.h
+	Tersoff_inc.h \
+	Tersoff_inc_surf.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
