@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.31 2007-04-27 03:12:04 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.32 2007-07-03 03:13:07 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -9,6 +9,10 @@
 #include "EAMFCC3D.h"
 #include "EAMFCC3DMatT.h"
 #include "EAMFCC3DMatT_surf.h"
+#include "CB_TersoffT_surf.h"
+#include "CB_TersoffT.h"
+#include "TersoffSolverT_surf.h"
+#include "TersoffSolverT.h"
 #include "MaterialListT.h"
 #include "eIntegratorT.h"
 #include "ParameterContainerT.h"
@@ -154,6 +158,8 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
 				else if (fIndicator == "FCC_EAM")
 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
+				else if (fIndicator == "Tersoff_CB")
+					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
 				else
 					ExceptionT::GeneralFail(caller, "unrecognized SCB \"%s\"", fIndicator.Pointer());
 	
@@ -249,9 +255,9 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 					if (fIndicator == "FCC_3D")
 						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else if (fIndicator == "FCC_EAM")
-					{
 						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-					}
+					else if (fIndicator == "Tersoff_CB")
+						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else
 						int blah = 0;
 				
@@ -349,7 +355,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	};
 	dArray2DT normals(6, 3, normals_dat);
 
-	/* START DISTINGUISHING HERE BETWEEN FCCEAMCB AND FCC3D */
+	/* START DISTINGUISHING HERE BETWEEN EAMCB, FCC3D and TersoffCB */
 	/* find parameter list for the bulk material */
 	int num_blocks = list.NumLists("large_strain_element_block");
 	if (num_blocks > 1)
@@ -364,7 +370,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	//if (fIndicator != "FCC_3D")
 	//	ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM\" not \"%s\"", bulk_params.Name().Pointer());
 	
-	/* Initialize either fSurfaceCB or fEAMSurfaceCB depending on fIndicator */
+	/* Initialize either fSurfaceCB, fEAMSurfaceCB or fTersoffSurfaceCB depending on fIndicator */
 	if (fIndicator == "FCC_3D")
 	{
 		/* initialize surface information & create all possible (6) surface clusters */
@@ -439,7 +445,42 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 			fEAMSurfaceCB[i]->TakeParameterList(surf_params);
 		}
 	}
-	else ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM\" not \"%s\"", bulk_params.Name().Pointer());
+	else if (fIndicator == "TERSOFF_CB")
+	{
+		/* initialize surface information & create all possible (6) surface clusters */
+		fNormal.Dimension(nfs);
+		fTersoffSurfaceCB.Dimension(nfs);
+		fTersoffSurfaceCB = NULL;
+
+		/* get pointer to the bulk model */
+		CB_TersoffT* TersoffCB = NULL;
+		if (fMaterialList->Length() == 1) {
+			ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
+			TersoffCB = TB_DYNAMIC_CAST(CB_TersoffT*, pcont_mat);
+			if (!TersoffCB) ExceptionT::GeneralFail(caller, "could not resolve TERSOFFCB material");
+		} else ExceptionT::GeneralFail(caller, "expecting 1 not %d materials", fMaterialList->Length());
+
+		/* Update parameter list for CBTersoffT_Surf to include the surface normal codes */
+		for (int i = 0; i < nfs; i++)
+		{
+			/* face normal */
+			fNormal[i].Dimension(nsd);
+			fNormal[i] = normals(i);
+	
+			/* face C-B model */
+			fTersoffSurfaceCB[i] = new CB_TersoffT_surf;
+			fTersoffSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
+
+			/* pass parameters to the surface model, including surface normal code */
+			ParameterListT surf_params = bulk_params;
+			surf_params.SetName("Tersoff_CB_Surf");
+			surf_params.AddParameter(i, "normal_code");
+
+			/* Initialize a different CB_TersoffT_Surf for each different surface normal type (6 total) */
+			fTersoffSurfaceCB[i]->TakeParameterList(surf_params);
+		}
+	}
+	else ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM or TERSOFF_CB\" not \"%s\"", bulk_params.Name().Pointer());
 
 	/* collect surface element information */
 	ArrayT<StringT> block_ID;
@@ -631,6 +672,8 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
 				else if (fIndicator == "FCC_EAM")
 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
+				else if (fIndicator == "Tersoff_CB")
+					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
 				else
 					ExceptionT::GeneralFail(caller, "unrecognized SCB \"%s\"", fIndicator.Pointer());
 				
@@ -702,7 +745,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 					/* Get D Matrix */
 					fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
-
+					
 					/* accumulate */
 					fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
 				}
@@ -749,6 +792,8 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else if (fIndicator == "FCC_EAM")
 						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					else if (fIndicator == "Tersoff_CB")
+						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else
 						int blah = 0;
 					
@@ -772,6 +817,8 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 						fD.SetToScaled(scale, fSurfaceCB[normal_type]->c_ijkl());
 					else if (fIndicator == "FCC_EAM")
 						fD.SetToScaled(scale, fEAMSurfaceCB[normal_type]->c_ijkl());
+					else if (fIndicator == "Tersoff_CB")
+						fD.SetToScaled(scale, fTersoffSurfaceCB[normal_type]->c_ijkl());
 					else
 						int blah = 0;
 					
@@ -860,6 +907,8 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
 				else if (fIndicator == "FCC_EAM")
 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
+				else if (fIndicator == "Tersoff_CB")
+					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
 				else
 					int blah = 0;
 	
@@ -955,11 +1004,9 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					if (fIndicator == "FCC_3D")
 						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else if (fIndicator == "FCC_EAM")
-					{
 						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-						//fEAMSurfaceCB[normal_type]->WaveSpeeds(normal, speeds);
-						//cout << "wave speeds are " << speeds << endl;
-					}
+					else if (fIndicator == "Tersoff_CB")
+						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else
 						int blah = 0;
 				
