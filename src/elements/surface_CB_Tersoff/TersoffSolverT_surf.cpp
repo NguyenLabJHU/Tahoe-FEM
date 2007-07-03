@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.1 2007-07-03 03:14:48 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.2 2007-07-03 17:47:23 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -28,7 +28,7 @@ static int pairdata[kNumAngles*2] =
 
 /* Constructor */
 TersoffSolverT_surf::TersoffSolverT_surf(const ThermalDilatationT* thermal, int normal):
-	ParameterInterfaceT("Tersoff_CB_surf_solver"),
+	ParameterInterfaceT("Tersoff_CB_solver_surf"),
 	fEquilibrate(true),
 	fThermal(thermal),
 	fPairs(kNumAngles, 2, pairdata),
@@ -50,7 +50,7 @@ TersoffSolverT_surf::TersoffSolverT_surf(const ThermalDilatationT* thermal, int 
 	fNormalCode(normal),
 	f_area0(0.0)
 {
-
+	SetName("Tersoff_CB_solver_surf");
 }
 
 /* Destructor */
