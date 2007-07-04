@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT_surf.cpp,v 1.2 2007-07-03 17:47:23 hspark Exp $ */
+/* $Id: CB_TersoffT_surf.cpp,v 1.3 2007-07-04 02:16:18 hspark Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffT_surf.h"
 
@@ -34,18 +34,16 @@ CB_TersoffT_surf::~CB_TersoffT_surf(void) { delete fTersoffSolver_surf; }
 /* information about subordinate parameter lists */
 void CB_TersoffT_surf::DefineSubs(SubListT& sub_list) const
 {
-	cout << "CB_TersoffT_surf::DefineSubs" << endl;
 	/* inherited */
 	NL_E_MatT::DefineSubs(sub_list);
 	
-	sub_list.AddSub("Tersoff_CB_solver_surf");
+	sub_list.AddSub("Tersoff_CB_solver");
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* CB_TersoffT_surf::NewSub(const StringT& name) const
 {
-	cout << "CB_TersoffT_surf::NewSub" << endl;
-	if (name == "Tersoff_CB_solver_surf")
+	if (name == "Tersoff_CB_solver")
 		return new TersoffSolverT_surf(NULL,0);
 	else /* inherited */
 		return NL_E_MatT::NewSub(name);
@@ -54,7 +52,6 @@ ParameterInterfaceT* CB_TersoffT_surf::NewSub(const StringT& name) const
 /* accept parameter list */
 void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 {
-	cout << "CB_TersoffT_surf::TakeParameterList" << endl;
 	/* inherited */
 	NL_E_MatT::TakeParameterList(list);
 
@@ -63,12 +60,10 @@ void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 	fC.Dimension(kNSD);
 	fPK2.Dimension(kNSD);
 	
-	cout << "Before construction" << endl;
 	/* construct Surface Cauchy-Born solver */
 	int normal_code = list.GetParameter("normal_code");
 	fTersoffSolver_surf = new TersoffSolverT_surf(fThermal,normal_code);
-	fTersoffSolver_surf->TakeParameterList(list.GetList("Tersoff_CB_solver_surf"));
-	cout << "After construction" << endl;
+	fTersoffSolver_surf->TakeParameterList(list.GetList("Tersoff_CB_solver"));
 	
 	/* Get surface thickness */
 	fSurfaceThickness = fTersoffSolver_surf->SurfaceThickness();
@@ -80,7 +75,6 @@ void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 
 void CB_TersoffT_surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {
-	cout << "CB_TersoffT_surf::ComputeModuli" << endl;
 	/* zero initial guess */
 	fXsi = 0.0;
 
