@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.12 2006-07-06 01:20:06 hspark Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.13 2007-07-04 17:51:54 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
@@ -48,6 +48,9 @@ void EAMFCC3DMatT::TakeParameterList(const ParameterListT& list)
 	/* construct Cauchy-Born EAM solver */
 	fEAM = new EAMFCC3DSym;
 	fEAM->TakeParameterList(list.GetList("FCC_EAM_Cauchy-Born"));
+
+	/* reset the density based on the potential parameters */
+	if (fEAM->HasDensity()) fDensity = fEAM->Density();
 }
 
 /*************************************************************************

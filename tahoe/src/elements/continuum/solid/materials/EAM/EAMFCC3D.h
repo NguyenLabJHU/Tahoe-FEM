@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.h,v 1.5 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAMFCC3D.h,v 1.6 2007-07-04 17:51:54 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAMFCC3D_H_
 #define _EAMFCC3D_H_
@@ -43,6 +43,12 @@ public:
 
 	/* calculate electron density at ghost atom */
 	void ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce);
+
+	/** density defined by atomistic parameters */
+	/*@{*/
+	bool HasDensity(void) { return (fEAM_particle != NULL); }
+	double Density(void);
+	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

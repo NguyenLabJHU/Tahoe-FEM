@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.h,v 1.3 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAM_particle.h,v 1.4 2007-07-04 17:51:54 paklein Exp $ */
 /* created: hspark(02/25/2004) */
 #ifndef _EAM_PARTICLE_H_
 #define _EAM_PARTICLE_H_
@@ -52,6 +52,9 @@ public:
 	/* unstressed lattice parameter */
 	double LatticeParameter(void) const { return fLatticeParameter; };
 
+	/** atomic mass */
+	double Mass(void) const { return fMass; }
+
 	/* compute the total electron density - moved public by HSP 3/5/04 */
 	double TotalElectronDensity(void);
 
@@ -94,6 +97,7 @@ private:
 //	int		fNumBonds;
 //	int		fModuliDim;
 	double  fLatticeParameter;
+	double  fMass;
 	
 	dMatrixT	fBondTensor4;
 	dMatrixT	fAmn; /* mixed derivative matrix */

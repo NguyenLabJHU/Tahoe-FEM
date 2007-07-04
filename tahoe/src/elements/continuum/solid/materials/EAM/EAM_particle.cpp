@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.3 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAM_particle.cpp,v 1.4 2007-07-04 17:51:54 paklein Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -39,6 +39,9 @@ EAM_particle::EAM_particle(CBLatticeT& lattice, const StringT& param_file):
 	
 	/* set lattice parameter */
 	fLatticeParameter = fEAMProperty->GetLatticeParameter();
+	
+	/* set the atomic mass */
+	fMass = fEAMProperty->Mass();
 }
 
 /* Destructor */
