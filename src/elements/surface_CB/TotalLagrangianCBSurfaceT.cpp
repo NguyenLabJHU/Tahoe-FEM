@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.32 2007-07-03 03:13:07 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.33 2007-07-04 02:15:48 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -445,7 +445,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 			fEAMSurfaceCB[i]->TakeParameterList(surf_params);
 		}
 	}
-	else if (fIndicator == "TERSOFF_CB")
+	else if (fIndicator == "Tersoff_CB")
 	{
 		/* initialize surface information & create all possible (6) surface clusters */
 		fNormal.Dimension(nfs);
@@ -473,7 +473,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 
 			/* pass parameters to the surface model, including surface normal code */
 			ParameterListT surf_params = bulk_params;
-			surf_params.SetName("Tersoff_CB_Surf");
+			surf_params.SetName("Tersoff_CB_surf");
 			surf_params.AddParameter(i, "normal_code");
 
 			/* Initialize a different CB_TersoffT_Surf for each different surface normal type (6 total) */
