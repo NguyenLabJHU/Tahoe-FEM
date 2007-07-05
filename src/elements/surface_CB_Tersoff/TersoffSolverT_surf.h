@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.h,v 1.1 2007-07-03 03:14:48 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.h,v 1.2 2007-07-05 16:09:37 hspark Exp $ */
 /* created: paklein (05/27/1997) */
 #ifndef _TERSOFF_SOLVER_T_SURF_H_
 #define _TERSOFF_SOLVER_T_SURF_H_
@@ -68,6 +68,12 @@ private:
 
 	/* set free dof - triggers recomputation */
 	void SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi);
+	
+	/** Return rotation matrix for bond table */
+	dMatrixT RotationMatrixA(const double angle);
+	
+	/** Return other rotation matrix for bond table */
+	dMatrixT RotationMatrixB(const double angle);
 
 private:
 

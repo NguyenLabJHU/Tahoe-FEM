@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.4 2007-07-05 14:35:15 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.5 2007-07-05 16:09:37 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -10,6 +10,7 @@ const int kNSD       = 3;
 const int kNumDOF    = 3;
 const int kNumAngles = 12;
 const int kStressDim =dSymMatrixT::NumValues(kNSD);
+const double piby2 = 4.0 * atan(1.0) / 2.0;
 
 /* set pair numbers */
 static int pairdata[kNumAngles*2] =
@@ -242,7 +243,7 @@ void TersoffSolverT_surf::DefineParameters(ParameterListT& list) const
 
 /* accept parameter list */
 void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
-{
+{	
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
@@ -266,37 +267,40 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 
 	/* unit cell coordinates - FOR IDEAL, UNRECONSTRUCTED {100} SURFACE */
 	/* NORMAL IS IN [001] DIRECTION */
+	dMatrixT tempUnitCellCoords, temp_bonds2;
+	temp_bonds2.Dimension(9, 3);
+	tempUnitCellCoords.Dimension(9, 3);	// temporary until bond rotation
 	fUnitCellCoords.Dimension(9, 3); /* [9 atoms] x [3 dim]: first atom is 'center' */
-	fUnitCellCoords(0,0) = 0.00;
-	fUnitCellCoords(1,0) = 0.25;
-	fUnitCellCoords(2,0) = 0.00;
-	fUnitCellCoords(3,0) = 0.50;
-	fUnitCellCoords(4,0) = 0.50;
-	fUnitCellCoords(5,0) = -0.25;
-	fUnitCellCoords(6,0) = -0.50;
-	fUnitCellCoords(7,0) = -0.50;
-	fUnitCellCoords(8,0) = 0.00;
+	tempUnitCellCoords(0,0) = 0.00;
+	tempUnitCellCoords(1,0) = 0.25;
+	tempUnitCellCoords(2,0) = 0.00;
+	tempUnitCellCoords(3,0) = 0.50;
+	tempUnitCellCoords(4,0) = 0.50;
+	tempUnitCellCoords(5,0) = -0.25;
+	tempUnitCellCoords(6,0) = -0.50;
+	tempUnitCellCoords(7,0) = -0.50;
+	tempUnitCellCoords(8,0) = 0.00;
 
-	fUnitCellCoords(0,1) = 0.00;
-	fUnitCellCoords(1,1) = -0.25;
-	fUnitCellCoords(2,1) = -0.50;
-	fUnitCellCoords(3,1) = 0.00;
-	fUnitCellCoords(4,1) = -0.50;
-	fUnitCellCoords(5,1) = 0.25;
-	fUnitCellCoords(6,1) = 0.50;
-	fUnitCellCoords(7,1) = 0.00;
-	fUnitCellCoords(8,1) = 0.50;
+	tempUnitCellCoords(0,1) = 0.00;
+	tempUnitCellCoords(1,1) = -0.25;
+	tempUnitCellCoords(2,1) = -0.50;
+	tempUnitCellCoords(3,1) = 0.00;
+	tempUnitCellCoords(4,1) = -0.50;
+	tempUnitCellCoords(5,1) = 0.25;
+	tempUnitCellCoords(6,1) = 0.50;
+	tempUnitCellCoords(7,1) = 0.00;
+	tempUnitCellCoords(8,1) = 0.50;
 
-	fUnitCellCoords(0,2) = 0.00;
-	fUnitCellCoords(1,2) = -0.25;
-	fUnitCellCoords(2,2) = -0.50;
-	fUnitCellCoords(3,2) = -0.50;
-	fUnitCellCoords(4,2) = 0.00;
-	fUnitCellCoords(5,2) = -0.25;
-	fUnitCellCoords(6,2) = 0.00;
-	fUnitCellCoords(7,2) = -0.50;
-	fUnitCellCoords(8,2) = -0.50;
-
+	tempUnitCellCoords(0,2) = 0.00;
+	tempUnitCellCoords(1,2) = -0.25;
+	tempUnitCellCoords(2,2) = -0.50;
+	tempUnitCellCoords(3,2) = -0.50;
+	tempUnitCellCoords(4,2) = 0.00;
+	tempUnitCellCoords(5,2) = -0.25;
+	tempUnitCellCoords(6,2) = 0.00;
+	tempUnitCellCoords(7,2) = -0.50;
+	tempUnitCellCoords(8,2) = -0.50;
+	
 	/* flag */
 	fEquilibrate = list.GetParameter("equilibrate");
 
@@ -327,9 +331,6 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	f_chi = list.GetParameter("bond_order_scaling_chi_ij");
 	f_R = list.GetParameter("cutoff_func_length_1_Rij");
 	f_S = list.GetParameter("cutoff_func_length_2_Sij");
-	
-	/* scale unit cell coordinates */
-	fUnitCellCoords *= f_a0;
 
 	/* Calculate atomic volume = a^{3}/8 */
 	double asdf = f_a0*f_a0*f_a0/8.0;
@@ -356,6 +357,50 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	fParams[10] = f_chi;
 	fParams[11] = f_R;
 	fParams[12] = f_S;	
+	
+	/* ROTATE UNIT CELL COORDS DEPENDING ON UNIT NORMAL */
+	/* WILL THIS BE CALLED FOR EACH SURFACE? CHECK!!! */
+	
+	/* Now manipulate temp_bonds */
+	dMatrixT blah1(3);
+	
+	if (fNormalCode == 0)	// rotate [0,0,1] to [1,0,0]
+	{
+		temp_bonds2 = tempUnitCellCoords;
+		blah1 = RotationMatrixA(piby2);
+		fUnitCellCoords.MultABT(temp_bonds2,blah1);
+	}
+	else if (fNormalCode == 1) // rotate [0,0,1] to [-1,0,0]
+	{
+		temp_bonds2 = tempUnitCellCoords;
+		blah1 = RotationMatrixA(-piby2);
+		fUnitCellCoords.MultABT(temp_bonds2,blah1);
+	}
+	else if (fNormalCode == 2)	// rotate [0,0,1] to [0,1,0]
+	{
+		temp_bonds2 = tempUnitCellCoords;
+		blah1 = RotationMatrixB(piby2);
+		fUnitCellCoords.MultABT(temp_bonds2,blah1);
+	}
+	else if (fNormalCode == 3)	// rotate [0,0,1] to [0,-1,0]
+	{
+		temp_bonds2 = tempUnitCellCoords;
+		blah1 = RotationMatrixB(-piby2);
+		fUnitCellCoords.MultABT(temp_bonds2,blah1);
+	}
+	else if (fNormalCode == 4)	// this is the default orientation
+	{
+		fUnitCellCoords = tempUnitCellCoords;
+	}	
+	else if (fNormalCode == 5)	// rotate [0,0,1] to [0,0,-1]
+	{
+		temp_bonds2 = tempUnitCellCoords;
+		fUnitCellCoords = temp_bonds2;
+		fUnitCellCoords *= -1.0;
+	}	
+
+	/* scale to correct lattice parameter */				     		
+	fUnitCellCoords *= f_a0;
 }
 
 /**********************************************************************
@@ -402,3 +447,34 @@ void TersoffSolverT_surf::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 cout << dXsi.no_wrap() << ":" << dXsidXsi.no_wrap() << endl;
 #endif
 }
+
+ /* Rotate bonds with [0,0,1] normal to bonds with [1,0,0]-type normals */
+ /* Use positive piby2 to go to [1,0,0], -piby2 to go to [-1,0,0] */
+dMatrixT TersoffSolverT_surf::RotationMatrixA(const double angle)
+ {
+	dMatrixT rmatrix(3);
+	rmatrix = 0.0;
+    rmatrix(0,0) = cos(angle);
+	rmatrix(0,2) = sin(angle);
+	rmatrix(1,1) = 1.0;
+	rmatrix(2,0) = -sin(angle);
+	rmatrix(2,2) = cos(angle);
+	
+	return rmatrix;
+ }
+ 
+/* Rotate bonds with [0,0,1] normal to bonds with [0,1,0]-type normals */
+/* Use positive piby2 to go to [0,1,0], -piby2 to go to [0,-1,0] */
+dMatrixT TersoffSolverT_surf::RotationMatrixB(const double angle)
+{
+	dMatrixT rmatrix(3);
+	rmatrix = 0.0;
+    rmatrix(0,0) = 1.0;
+	rmatrix(1,1) = cos(angle);
+	rmatrix(1,2) = sin(angle);
+	rmatrix(2,1) = -sin(angle);
+	rmatrix(2,2) = cos(angle);
+	
+	return rmatrix;
+}
+
