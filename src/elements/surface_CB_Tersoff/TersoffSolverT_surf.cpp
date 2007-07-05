@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.3 2007-07-04 02:16:18 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.4 2007-07-05 14:35:15 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -264,25 +264,38 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	fMat1.Dimension(kNumDOF); 
 	fVec.Dimension(kNumDOF);
 
-	/* unit cell coordinates - NEED TO MODIFY! */
-	fUnitCellCoords.Dimension(5, 3); /* [5 atoms] x [3 dim]: first atom is 'center' */
-	fUnitCellCoords(0,0) = 0.25;
-	fUnitCellCoords(1,0) = 0.00;
-	fUnitCellCoords(2,0) = 0.50;
+	/* unit cell coordinates - FOR IDEAL, UNRECONSTRUCTED {100} SURFACE */
+	/* NORMAL IS IN [001] DIRECTION */
+	fUnitCellCoords.Dimension(9, 3); /* [9 atoms] x [3 dim]: first atom is 'center' */
+	fUnitCellCoords(0,0) = 0.00;
+	fUnitCellCoords(1,0) = 0.25;
+	fUnitCellCoords(2,0) = 0.00;
 	fUnitCellCoords(3,0) = 0.50;
-	fUnitCellCoords(4,0) = 0.00;
+	fUnitCellCoords(4,0) = 0.50;
+	fUnitCellCoords(5,0) = -0.25;
+	fUnitCellCoords(6,0) = -0.50;
+	fUnitCellCoords(7,0) = -0.50;
+	fUnitCellCoords(8,0) = 0.00;
 
-	fUnitCellCoords(0,1) = 0.25;
-	fUnitCellCoords(1,1) = 0.00;
-	fUnitCellCoords(2,1) = 0.50;
+	fUnitCellCoords(0,1) = 0.00;
+	fUnitCellCoords(1,1) = -0.25;
+	fUnitCellCoords(2,1) = -0.50;
 	fUnitCellCoords(3,1) = 0.00;
-	fUnitCellCoords(4,1) = 0.50;
+	fUnitCellCoords(4,1) = -0.50;
+	fUnitCellCoords(5,1) = 0.25;
+	fUnitCellCoords(6,1) = 0.50;
+	fUnitCellCoords(7,1) = 0.00;
+	fUnitCellCoords(8,1) = 0.50;
 
-	fUnitCellCoords(0,2) = 0.25;
-	fUnitCellCoords(1,2) = 0.00;
-	fUnitCellCoords(2,2) = 0.00;
-	fUnitCellCoords(3,2) = 0.50;
-	fUnitCellCoords(4,2) = 0.50;
+	fUnitCellCoords(0,2) = 0.00;
+	fUnitCellCoords(1,2) = -0.25;
+	fUnitCellCoords(2,2) = -0.50;
+	fUnitCellCoords(3,2) = -0.50;
+	fUnitCellCoords(4,2) = 0.00;
+	fUnitCellCoords(5,2) = -0.25;
+	fUnitCellCoords(6,2) = 0.00;
+	fUnitCellCoords(7,2) = -0.50;
+	fUnitCellCoords(8,2) = -0.50;
 
 	/* flag */
 	fEquilibrate = list.GetParameter("equilibrate");

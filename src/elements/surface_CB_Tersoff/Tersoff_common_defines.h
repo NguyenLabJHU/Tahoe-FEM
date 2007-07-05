@@ -1,4 +1,4 @@
-/* $Id: Tersoff_common_defines.h,v 1.1 2007-06-17 03:39:19 paklein Exp $ */
+/* $Id: Tersoff_common_defines.h,v 1.2 2007-07-05 14:35:15 hspark Exp $ */
 #ifndef TERSOFF_COMMON_DEFINES_H
 #define TERSOFF_COMMON_DEFINES_H
 
@@ -39,6 +39,9 @@ double S      = params[12];
 double Xs1 = Xsi[0];
 double Ys1 = Xsi[1];
 double Zs1 = Xsi[2];
+double Xs2 = Xsi[3];
+double Ys2 = Xsi[4];
+double Zs2 = Xsi[5];
 
 /* atom coordinates (reference) */
 double X1 = Xa[0];	
@@ -46,19 +49,31 @@ double X2 = Xa[1];
 double X3 = Xa[2];	
 double X4 = Xa[3];	
 double X5 = Xa[4];	
+double X6 = Xa[5];	
+double X7 = Xa[6];	
+double X8 = Xa[7];	
+double X9 = Xa[8];	
 
 double Y1 = Ya[0];	
 double Y2 = Ya[1];	
 double Y3 = Ya[2];	
 double Y4 = Ya[3];	
 double Y5 = Ya[4];	
+double Y6 = Ya[5];	
+double Y7 = Ya[6];	
+double Y8 = Ya[7];	
+double Y9 = Ya[8];	
 
 double Z1 = Za[0];	
 double Z2 = Za[1];	
 double Z3 = Za[2];	
 double Z4 = Za[3];	
 double Z5 = Za[4];	
-	
+double Z6 = Za[5];	
+double Z7 = Za[6];	
+double Z8 = Za[7];	
+double Z9 = Za[8];	
+
 /* deformation */
 double C11 = Cmat[0];
 double C12 = Cmat[1];
