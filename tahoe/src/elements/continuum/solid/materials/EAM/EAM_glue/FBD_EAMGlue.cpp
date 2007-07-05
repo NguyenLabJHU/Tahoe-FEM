@@ -1,4 +1,4 @@
-/* $Id: FBD_EAMGlue.cpp,v 1.6 2007-07-05 00:03:19 paklein Exp $ */
+/* $Id: FBD_EAMGlue.cpp,v 1.7 2007-07-05 00:10:54 hspark Exp $ */
 /* created: paklein (01/30/2000) */
 #include "FBD_EAMGlue.h"
 
@@ -28,6 +28,10 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	    nr < 2   ||
 	    dr < 0.0 ||
 	 r_cut < 0.0) throw ExceptionT::kBadInputValue;
+	
+	/* Scale mass - convert from amu */
+	double conmas = 1.0365e-4;
+	fMass *= conmas;
 	
 	/* work space */
 	dArrayT tmp;

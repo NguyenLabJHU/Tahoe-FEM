@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.h,v 1.4 2007-07-04 17:51:54 paklein Exp $ */
+/* $Id: EAM_particle.h,v 1.5 2007-07-05 00:10:54 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #ifndef _EAM_PARTICLE_H_
 #define _EAM_PARTICLE_H_
@@ -42,7 +42,13 @@ public:
 	 *     unit 2nd PK stress = SIJ*(volume per cell/atoms per cell)
 	 */
 	void ComputeUnitStress(dSymMatrixT& stress);
-	   	    	
+	   
+	/* compute unit 2nd PK surface stress:
+	 *
+	 *     unit 2nd PK surface stress = SIJ*(area per cell/atoms per cell)
+	 */
+	void ComputeUnitSurfaceStress(dSymMatrixT& stress);	   
+	   
 	/* compute unit material tangent moduli:
 	 *
 	 *   unit material tangent moduli = CIJKL*(volume per cell/atoms per cell)
@@ -57,6 +63,9 @@ public:
 
 	/* compute the total electron density - moved public by HSP 3/5/04 */
 	double TotalElectronDensity(void);
+
+	/** calculate representative electron densities for bulk, surface1 and surface2 atoms */
+	void ComputeElectronDensity(void);
 
 	/* return the embedding force for a given electron density */
 	double ReturnEmbeddingForce(double rho);
@@ -103,15 +112,22 @@ private:
 	dMatrixT	fAmn; /* mixed derivative matrix */
 
 	dArrayT		fBondTensor2;
-//	dArrayT		fBondTensor2b;
+	dArrayT		fBondTensor2b;
 
 	/* 2nk rank bond component tensor */
 	dArray2DT	fTensor2Table;	
+
+	/* interactiont table for surface clusters */
+	dArray2DT fIntType;
 
 	/* for batch evaluation of bond data */
 	dArrayT	fBond1;
 	dArrayT	fBond2;
 	dArrayT	fBond3;
+	dArrayT fBond4;
+	dArrayT fBond5;
+	dArrayT fBond6;
+	dArrayT fRepRho;
 };
 
 } // namespace Tahoe 
