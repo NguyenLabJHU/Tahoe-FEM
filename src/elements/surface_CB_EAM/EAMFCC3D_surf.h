@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.h,v 1.5 2006-06-29 20:11:15 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.h,v 1.6 2007-07-05 00:04:02 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAMFCC3D_SURF_H_
 #define _EAMFCC3D_SURF_H_
@@ -46,6 +46,9 @@ public:
 
 	/** thickness of surface layer to subtract off of bulk */
 	double SurfaceThickness(void) const { return fSurfaceThickness; };
+
+	/** density computed from the potential parameters */
+	double Density(void) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

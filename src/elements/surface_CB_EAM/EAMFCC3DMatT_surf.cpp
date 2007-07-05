@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.cpp,v 1.5 2006-07-03 20:20:09 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.cpp,v 1.6 2007-07-05 00:04:01 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT_surf.h"
 
@@ -72,6 +72,9 @@ void EAMFCC3DMatT_surf::TakeParameterList(const ParameterListT& list)
 	
 	/* TEMP - GET SURFACE THICKNESS FROM EAMFCC3D_SURF */
 	fSurfaceThickness = fEAM->SurfaceThickness();
+	
+	/* reset density from the atomistic parameters */
+	fDensity = fEAM->Density();
 }
 
 /*************************************************************************

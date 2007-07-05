@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.12 2007-06-12 01:50:02 hspark Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.13 2007-07-05 00:04:01 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -111,6 +111,15 @@ void EAMFCC3D_surf::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 //	else
 //		edensity = fEAM->TotalElectronDensity();	
 //}
+
+/* density computed from the potential parameters */
+double EAMFCC3D_surf::Density(void) const {
+	if (fEAM_particle) {
+		return kEAMFCC3DNumAtomsPerCell*fEAM_particle->Mass()/fCellVolume;
+	} else {
+		return kEAMFCC3DNumAtomsPerCell*fEAM->Mass()/fCellVolume;
+	}
+}
 
 /**********************************************************************
  * Protected
