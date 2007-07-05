@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.8 2007-07-05 00:03:19 paklein Exp $ */
+/* $Id: EAM.h,v 1.9 2007-07-05 00:10:54 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAM_H_
 #define _EAM_H_
@@ -59,10 +59,10 @@ public:
 	void ComputeUnitModuli(dMatrixT& moduli); 	    	
 
 	/* unstressed lattice parameter */
-	 virtual double LatticeParameter(void) const = 0;
+	virtual double LatticeParameter(void) const = 0;
 
 	/* atomic mass */
-	 virtual double Mass(void) const = 0;
+	virtual double Mass(void) const = 0;
 
 	/** \name access glue functions */
 	/*@{*/

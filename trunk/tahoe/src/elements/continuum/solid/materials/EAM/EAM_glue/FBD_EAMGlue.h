@@ -1,4 +1,4 @@
-/* $Id: FBD_EAMGlue.h,v 1.5 2007-07-05 00:03:19 paklein Exp $ */
+/* $Id: FBD_EAMGlue.h,v 1.6 2007-07-05 00:10:54 hspark Exp $ */
 /* created: paklein (01/30/2000) */
 #ifndef _FBD_EAM_GLUE_H_
 #define _FBD_EAM_GLUE_H_
@@ -36,8 +36,6 @@ private:
 
 	/* lattice parameters */
 	double fLatticeParameter;
-	
-	/* atomic mass (amu) */
 	double fMass;
 };
 

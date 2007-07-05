@@ -1,4 +1,4 @@
-/* $Id: VoterChenCu.h,v 1.4 2007-07-05 00:03:19 paklein Exp $ */
+/* $Id: VoterChenCu.h,v 1.5 2007-07-05 00:10:54 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _VOTERCHEN_CU_H_
 #define _VOTERCHEN_CU_H_
@@ -21,7 +21,7 @@ public:
 
 	/* atomic mass */
 	 virtual double Mass(void) const;
-		
+
 private:
 
 	/* set the spline data - called by the constructor */
