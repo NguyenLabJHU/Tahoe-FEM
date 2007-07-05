@@ -1,4 +1,4 @@
-/* $Id: FBD_EAMGlue.cpp,v 1.5 2004-07-15 08:26:52 paklein Exp $ */
+/* $Id: FBD_EAMGlue.cpp,v 1.6 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (01/30/2000) */
 #include "FBD_EAMGlue.h"
 
@@ -81,15 +81,9 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	if (!fElectronDensity) throw ExceptionT::kOutOfMemory;
 }
 
-/* lattice parameter */
-double FBD_EAMGlue::LatticeParameter(void) const
-{
-	return fLatticeParameter;
-}
-
 /**********************************************************************
-* Private
-**********************************************************************/
+ * Private
+ **********************************************************************/
 
 /* glue functions initialized from stream in constructor */
 void FBD_EAMGlue::SetPairPotential(void) { }

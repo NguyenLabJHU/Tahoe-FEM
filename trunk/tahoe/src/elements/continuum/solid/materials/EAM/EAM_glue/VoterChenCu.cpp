@@ -1,4 +1,4 @@
-/* $Id: VoterChenCu.cpp,v 1.5 2004-07-15 08:26:52 paklein Exp $ */
+/* $Id: VoterChenCu.cpp,v 1.6 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #include "VoterChenCu.h"
 #include <math.h>
@@ -9,6 +9,7 @@ using namespace Tahoe;
 /* lattice parameters */
 const double kLatticeParameterCu = 3.615;  /* angstrom */
 const double kCutoffRadiusCu     = 4.961;  /* angstrom */
+const double kMassCu             = 63.546; /* amu */
 
 /* JonnyZ's embedding energy spline data */
 #include "VoterChenCu.dat"
@@ -24,6 +25,12 @@ VoterChenCu::VoterChenCu(CBLatticeT& lattice):
 double VoterChenCu::LatticeParameter(void) const
 {
 	return(kLatticeParameterCu);
+}
+
+/* atomic mass */
+double VoterChenCu::Mass(void) const
+{
+	return kMassCu;
 }
 
 /**********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: ErcolessiAdamsAl.cpp,v 1.4 2004-07-15 08:26:52 paklein Exp $ */
+/* $Id: ErcolessiAdamsAl.cpp,v 1.5 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "ErcolessiAdamsAl.h"
 #include <iostream.h> //TEMP
@@ -9,6 +9,7 @@ using namespace Tahoe;
 /* lattice parameters - angstrom */
 //const double kLatticeParameterAl = 4.032; //given by E&A
 const double kLatticeParameterAl = 4.03515412; //zero stress
+const double kMassAl             = 26.981539;  /* amu */
 
 /* Constructor */
 ErcolessiAdamsAl::ErcolessiAdamsAl(CBLatticeT& lattice):
@@ -17,12 +18,14 @@ ErcolessiAdamsAl::ErcolessiAdamsAl(CBLatticeT& lattice):
 
 }
 
-/*
-* Unstressed lattice parameter.
-*/
-double ErcolessiAdamsAl::LatticeParameter(void) const
-{
+/* unstressed lattice parameter */
+double ErcolessiAdamsAl::LatticeParameter(void) const {
 	return kLatticeParameterAl;
+}
+
+/* unstressed lattice parameter */
+double ErcolessiAdamsAl::Mass(void) const {
+	return kMassAl;
 }
 
 /**********************************************************************

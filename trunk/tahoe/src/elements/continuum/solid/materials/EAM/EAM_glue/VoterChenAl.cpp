@@ -1,4 +1,4 @@
-/* $Id: VoterChenAl.cpp,v 1.5 2004-07-15 08:26:52 paklein Exp $ */
+/* $Id: VoterChenAl.cpp,v 1.6 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #include "VoterChenAl.h"
 #include <math.h>
@@ -9,6 +9,7 @@ using namespace Tahoe;
 /* lattice parameters */
 const double kLatticeParameterAl = 4.05; /* angstrom */
 const double kCutoffRadiusAl 	 = 5.5550; /* angstrom */
+const double kMassAl             = 26.981539;  /* amu */
 
 /* constructor */
 VoterChenAl::VoterChenAl(CBLatticeT& lattice):
@@ -21,6 +22,12 @@ VoterChenAl::VoterChenAl(CBLatticeT& lattice):
 double VoterChenAl::LatticeParameter(void) const
 {
 	return(kLatticeParameterAl);
+}
+
+/* atomic mass */
+double VoterChenAl::Mass(void) const
+{
+	return kMassAl;
 }
 
 /**********************************************************************

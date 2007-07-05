@@ -1,4 +1,4 @@
-/* $Id: FBD_EAMGlue.h,v 1.4 2004-07-15 08:26:52 paklein Exp $ */
+/* $Id: FBD_EAMGlue.h,v 1.5 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (01/30/2000) */
 #ifndef _FBD_EAM_GLUE_H_
 #define _FBD_EAM_GLUE_H_
@@ -20,7 +20,10 @@ public:
 	FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in);
 
 	/* ustressed lattice parameter */
-	 virtual double LatticeParameter(void) const;
+	 virtual double LatticeParameter(void) const { return fLatticeParameter; }
+
+	/* atomic mass */
+	 virtual double Mass(void) const { return fMass; };
 
 private:
 

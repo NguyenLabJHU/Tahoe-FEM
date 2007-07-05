@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.13 2007-07-04 17:51:54 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.14 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
@@ -50,7 +50,7 @@ void EAMFCC3DMatT::TakeParameterList(const ParameterListT& list)
 	fEAM->TakeParameterList(list.GetList("FCC_EAM_Cauchy-Born"));
 
 	/* reset the density based on the potential parameters */
-	if (fEAM->HasDensity()) fDensity = fEAM->Density();
+	fDensity = fEAM->Density();
 }
 
 /*************************************************************************
