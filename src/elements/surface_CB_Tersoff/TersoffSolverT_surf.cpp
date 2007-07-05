@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.5 2007-07-05 16:09:37 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.6 2007-07-05 20:37:58 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -86,7 +86,7 @@ void TersoffSolverT_surf::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT&
 		moduli -= fTempRank4;
 	}
 	moduli *= 4.0;
-	moduli *= f_omega0;
+	moduli *= f_area0;
 }
 
 //for now return symmetric matrix
@@ -101,7 +101,7 @@ void TersoffSolverT_surf::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT&
 		CIJ.Pointer(),
 		stress.Pointer()); 
 	stress *= 2.0;
-	stress *= f_omega0;
+	stress *= f_area0;
 	
 #if 0
 	cout << "stress: " << stress.no_wrap() << endl;
@@ -248,12 +248,14 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	ParameterInterfaceT::TakeParameterList(list);
 
 	/* dimension work space */
-	dXsi.Dimension(kNumDOF);
-	dXsidXsi.Dimension(kNumDOF);
+	/* DOUBLE DIMENSIONS OF XSI-RELATED MATRICES DUE TO 2 SETS OF
+	XDOFS FOR SURFACES */
+	dXsi.Dimension(2*kNumDOF);
+	dXsidXsi.Dimension(2*kNumDOF);
 	dCdC_hat.Dimension(kStressDim);
-	dCdXsi_hat.Dimension(kStressDim,kNumDOF);
+	dCdXsi_hat.Dimension(kStressDim,kNumDOF*2);
 	fTempRank4.Dimension(kStressDim);
-	fTempMixed.Dimension(kStressDim, kNumDOF);
+	fTempMixed.Dimension(kStressDim, kNumDOF*2);
 
 #if 0
 	fMatrices.Dimension(kNumDOF);
@@ -262,8 +264,8 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	fSymMat1.Dimension(kNSD);
 	fGradl_C.Dimension(3,kStressDim);
 #endif
-	fMat1.Dimension(kNumDOF); 
-	fVec.Dimension(kNumDOF);
+	fMat1.Dimension(kNumDOF*2); 
+	fVec.Dimension(kNumDOF*2);
 
 	/* unit cell coordinates - FOR IDEAL, UNRECONSTRUCTED {100} SURFACE */
 	/* NORMAL IS IN [001] DIRECTION */
@@ -336,10 +338,11 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	double asdf = f_a0*f_a0*f_a0/8.0;
 	f_omega0 = 1.0/asdf;
 
-	/* CALCULATE ATOMIC AREA!! */
-	f_area0 = 1.0;
-
-	/* Calculate surface thickness - TEMPORARY VALUE! */
+	/* Area calculated from RamstadPRB1995, Figure 1 */
+	double asdf2 = f_a0*f_a0;
+	f_area0 = 1.0/asdf2;
+	
+	/* Calculate surface thickness */
 	fSurfaceThickness = 0.375*f_a0;
 
 	/* write into vector to pass to C code */
@@ -359,34 +362,31 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	fParams[12] = f_S;	
 	
 	/* ROTATE UNIT CELL COORDS DEPENDING ON UNIT NORMAL */
-	/* WILL THIS BE CALLED FOR EACH SURFACE? CHECK!!! */
-	
-	/* Now manipulate temp_bonds */
 	dMatrixT blah1(3);
 	
 	if (fNormalCode == 0)	// rotate [0,0,1] to [1,0,0]
 	{
 		temp_bonds2 = tempUnitCellCoords;
-		blah1 = RotationMatrixA(piby2);
-		fUnitCellCoords.MultABT(temp_bonds2,blah1);
+		blah1 = RotationMatrixA(-piby2);
+		fUnitCellCoords.MultAB(temp_bonds2,blah1);
 	}
 	else if (fNormalCode == 1) // rotate [0,0,1] to [-1,0,0]
 	{
 		temp_bonds2 = tempUnitCellCoords;
-		blah1 = RotationMatrixA(-piby2);
-		fUnitCellCoords.MultABT(temp_bonds2,blah1);
+		blah1 = RotationMatrixA(piby2);
+		fUnitCellCoords.MultAB(temp_bonds2,blah1);
 	}
 	else if (fNormalCode == 2)	// rotate [0,0,1] to [0,1,0]
 	{
 		temp_bonds2 = tempUnitCellCoords;
-		blah1 = RotationMatrixB(piby2);
-		fUnitCellCoords.MultABT(temp_bonds2,blah1);
+		blah1 = RotationMatrixB(-piby2);
+		fUnitCellCoords.MultAB(temp_bonds2,blah1);
 	}
 	else if (fNormalCode == 3)	// rotate [0,0,1] to [0,-1,0]
 	{
 		temp_bonds2 = tempUnitCellCoords;
-		blah1 = RotationMatrixB(-piby2);
-		fUnitCellCoords.MultABT(temp_bonds2,blah1);
+		blah1 = RotationMatrixB(piby2);
+		fUnitCellCoords.MultAB(temp_bonds2,blah1);
 	}
 	else if (fNormalCode == 4)	// this is the default orientation
 	{
@@ -459,7 +459,7 @@ dMatrixT TersoffSolverT_surf::RotationMatrixA(const double angle)
 	rmatrix(1,1) = 1.0;
 	rmatrix(2,0) = -sin(angle);
 	rmatrix(2,2) = cos(angle);
-	
+
 	return rmatrix;
  }
  

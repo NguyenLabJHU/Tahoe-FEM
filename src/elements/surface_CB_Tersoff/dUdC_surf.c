@@ -1,4 +1,4 @@
-/* $Id: dUdC_surf.c,v 1.2 2007-07-05 14:35:15 hspark Exp $ */
+/* $Id: dUdC_surf.c,v 1.3 2007-07-05 20:37:58 hspark Exp $ */
 #include "Tersoff_inc_surf.h"
 
 #include <math.h>
@@ -10,7 +10,7 @@ static double z[655];
 void get_dUdC_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC) {
 
 /* common definitions */
-#include "Tersoff_common_defines.h"
+#include "Tersoff_common_defines_surf.h"
 
 	z[1] = c*c;
 	z[2] = 1./(d*d);
