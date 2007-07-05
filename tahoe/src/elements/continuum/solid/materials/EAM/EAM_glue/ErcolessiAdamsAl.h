@@ -1,4 +1,4 @@
-/* $Id: ErcolessiAdamsAl.h,v 1.3 2004-07-15 08:26:52 paklein Exp $ */
+/* $Id: ErcolessiAdamsAl.h,v 1.4 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #ifndef _ERCOLESSIADAMS_AL_H_
 #define _ERCOLESSIADAMS_AL_H_
@@ -16,10 +16,11 @@ public:
 	/* Constructor */
 	ErcolessiAdamsAl(CBLatticeT& lattice);
 
-	/*
-	 * Unstressed lattice parameter.
-	 */
+	/** unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const;
+
+	/** atomic mass */
+	 virtual double Mass(void) const;
 
 private:
 

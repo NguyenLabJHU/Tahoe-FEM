@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.10 2007-07-04 17:51:54 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.11 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
@@ -95,11 +95,11 @@ void EAMFCC3D::ElectronDensity(const dSymMatrixT& strain, double& edensity, doub
 		edensity = fEAM->TotalElectronDensity();	
 }
 
-double EAMFCC3D::Density(void) {
+double EAMFCC3D::Density(void) const {
 	if (fEAM_particle) {
 		return kEAMFCC3DNumAtomsPerCell*fEAM_particle->Mass()/fCellVolume;
 	} else {
-		return 0;
+		return kEAMFCC3DNumAtomsPerCell*fEAM->Mass()/fCellVolume;
 	}
 }
 

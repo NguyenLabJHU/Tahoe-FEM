@@ -1,4 +1,4 @@
-/* $Id: VoterChenCu.h,v 1.3 2004-07-15 08:26:52 paklein Exp $ */
+/* $Id: VoterChenCu.h,v 1.4 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _VOTERCHEN_CU_H_
 #define _VOTERCHEN_CU_H_
@@ -18,6 +18,9 @@ public:
 
 	/* unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const;
+
+	/* atomic mass */
+	 virtual double Mass(void) const;
 		
 private:
 

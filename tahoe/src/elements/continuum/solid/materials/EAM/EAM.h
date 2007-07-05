@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.7 2006-07-03 20:19:32 hspark Exp $ */
+/* $Id: EAM.h,v 1.8 2007-07-05 00:03:19 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAM_H_
 #define _EAM_H_
@@ -60,6 +60,9 @@ public:
 
 	/* unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const = 0;
+
+	/* atomic mass */
+	 virtual double Mass(void) const = 0;
 
 	/** \name access glue functions */
 	/*@{*/
