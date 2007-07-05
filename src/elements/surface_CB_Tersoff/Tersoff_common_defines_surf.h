@@ -1,4 +1,4 @@
-/* $Id: Tersoff_common_defines_surf.h,v 1.1 2007-07-05 20:37:58 hspark Exp $ */
+/* $Id: Tersoff_common_defines_surf.h,v 1.2 2007-07-05 20:49:54 hspark Exp $ */
 #ifndef TERSOFF_COMMON_DEFINES_SURF_H
 #define TERSOFF_COMMON_DEFINES_SURF_H
 
@@ -36,12 +36,12 @@ double R      = params[11];
 double S      = params[12];
 
 /* degrees of freedom */
-/* ARE THESE ACTUALLY IN XS1,XS2,YS1,YS2,ZS1,ZS2 ORDER? */
+/* ARE THESE ACTUALLY IN XS1,XS2,YS1,YS2,ZS1,ZS2 ORDER? I THINK SO... */
 double Xs1 = Xsi[0];
-double Ys1 = Xsi[1];
-double Zs1 = Xsi[2];
-double Xs2 = Xsi[3];
-double Ys2 = Xsi[4];
+double Xs2 = Xsi[1];
+double Ys1 = Xsi[2];
+double Ys2 = Xsi[3];
+double Zs1 = Xsi[4];
 double Zs2 = Xsi[5];
 
 /* atom coordinates (reference) */

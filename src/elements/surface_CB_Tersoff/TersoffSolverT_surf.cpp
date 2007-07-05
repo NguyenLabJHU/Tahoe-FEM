@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.6 2007-07-05 20:37:58 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.7 2007-07-05 20:49:54 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -449,7 +449,7 @@ cout << dXsi.no_wrap() << ":" << dXsidXsi.no_wrap() << endl;
 }
 
  /* Rotate bonds with [0,0,1] normal to bonds with [1,0,0]-type normals */
- /* Use positive piby2 to go to [1,0,0], -piby2 to go to [-1,0,0] */
+ /* Use positive piby2 to go to [-1,0,0], -piby2 to go to [1,0,0] */
 dMatrixT TersoffSolverT_surf::RotationMatrixA(const double angle)
  {
 	dMatrixT rmatrix(3);
@@ -464,7 +464,7 @@ dMatrixT TersoffSolverT_surf::RotationMatrixA(const double angle)
  }
  
 /* Rotate bonds with [0,0,1] normal to bonds with [0,1,0]-type normals */
-/* Use positive piby2 to go to [0,1,0], -piby2 to go to [0,-1,0] */
+/* Use positive piby2 to go to [0,-1,0], -piby2 to go to [0,1,0] */
 dMatrixT TersoffSolverT_surf::RotationMatrixB(const double angle)
 {
 	dMatrixT rmatrix(3);
