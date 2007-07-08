@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.24 2007-07-08 02:05:28 skyu Exp $*/
+/*$Id: MR2DT.cpp,v 1.25 2007-07-08 19:44:51 skyu Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -330,7 +330,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
     
 		int iplastic;
 		dlam = 0.; dlam2 = 0.; normr = 0.;
-
+    
 		/* Check the yield function */
      
 		Yield_f(Sig, qn, ff);
@@ -384,14 +384,14 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 
 				qbar_f(Sig, qn, qbar);
 				for (i = 0; i<=1; ++i) {
-					R[i]  = upo[i];
-					R[i] -= up[i];
-					R[i] += dlam*dQdSig[i];
+					R[i] = upo[i];
+					R[i] -=up[i];
+					R[i] +=dlam*dQdSig[i];
 				}
 				for (i = 0; i<=3; ++i) {
-					R[i+2]  = qo[i];
-					R[i+2] -= qn[i];
-					R[i+2] += dlam*qbar[i];
+					R[i+2] = qo[i];
+					R[i+2] -=qn[i];
+					R[i+2] +=dlam*qbar[i];
 				}
 				/*R[0] = -up[0] + upo[0] + dlam*dQdSig[0];
 				R[1] = -up[1] + upo[1] + dlam*dQdSig[1];
@@ -405,7 +405,6 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				dQdSigdq_f(Sig, qn, A_uq);
 				dqbardSig_f(Sig, qn, A_qu);
 				dqbardq_f(Sig, qn, A_qq);
-
 				for (i = 0; i<=5; ++i) {
 					for (j = 0; j<=5; ++j) {
 						if (i<=1 & j<=1){
@@ -413,16 +412,16 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 							AA_inv(i,j) += dlam*dQdSig2(i,j);
 						}
 						if (i<=1 & j>1){
-							AA_inv(i,j)  = A_uq(i,j-2);
+							AA_inv(i,j) = A_uq(i,j-2);
 							AA_inv(i,j) *= dlam;
 						}
 						if(i>1 & j<=1){
-							AA_inv(i,j)  = A_qu(i-2,j);
+							AA_inv(i,j) = A_qu(i-2,j);
 							AA_inv(i,j) *= dlam;
 						}
 						if(i>1 & j >1) {
 							AA_inv(i,j)  = I_mat(i-2,j-2);
-							AA_inv(i,j) *= -1.;
+							AA_inv(i,j)  *= -1.;
 							AA_inv(i,j) += dlam*A_qq(i-2,j-2);
 						}
 					}
@@ -433,7 +432,6 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				V_sig = dfdSig;
 				dfdq_f(Sig, qn, dfdq);
 				V_q = dfdq;
-
 				for (i = 0; i<=5; ++i) {
 					if (i<=1){
 						Rvec[i] = V_sig[i];
@@ -483,7 +481,6 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				R2 += Rmod;
 				AA.Multx(R2,X);
 				CMAT.Multx(X,Y);
-
 				for (i = 0; i<=5; ++i) {
 					if (i<=1) {
 						dup[i] = Y[i];
@@ -597,20 +594,20 @@ double& MR2DT::Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff)
 	tmp22  = Sig[0];
 	tmp22 *= Sig[0];
 
-	tmp3   = qn[1];
-	tmp31  = qn[0];
+	tmp3  = qn[1];
+	tmp31 = qn[0];
 	tmp31 *= qn[2];
-	tmp3  -= tmp31;
-	tmp32  = tmp3;
-	tmp32 *= tmp3;
+	tmp3 -= tmp31;
+	tmp32 = tmp3;
+	tmp32 *=tmp3;
 
 	tmp4  = tmp22;
 	tmp4 += tmp32;
 
 	tmp5 = sqrt(tmp4);
 
-	ff  = tmp5;
-	ff -= tmp1;
+	ff = tmp5;
+	ff -=tmp1;
 
 	return ff;
 }
@@ -621,12 +618,12 @@ double& MR2DT::Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff)
 dArrayT& MR2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar)
 {
 	double A1 = -falpha_chi*(qn[0] - fchi_r);
-	double B1 = (Sig[1] + fabs(Sig[1]))/2./fGf_I;
+	double B1 = (Sig[1]+fabs(Sig[1]))/2./fGf_I;
 	double B2 = Sig[0]/fGf_I;
 	double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
 	double DQDT = 2.*Sig[0];
 	double A2 = -falpha_c*(qn[1] - fc_r);
-	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
+	double TNA = (Sig[1]-fabs(Sig[1]))/2.;
 	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
 	double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
 	double A4 = -falpha_psi*qn[3];
@@ -635,7 +632,6 @@ dArrayT& MR2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar)
 	qbar[1] = A2*B3*DQDT;
 	qbar[2] = A3*B3*DQDT;
 	qbar[3] = A4*B3*DQDT;
-
 	return qbar;
  }
 
@@ -657,7 +653,7 @@ dMatrixT& MR2DT::dQdSig2_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdS
 
 dArrayT& MR2DT::dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 {
-	double Shear = Sig[0]*Sig[0] + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);
+	double Shear = Sig[0]*Sig[0]+(qn[1]-qn[0]*qn[2])*(qn[1]-qn[0]*qn[2]);
 	dfdSig[0] = Sig[0]/sqrt(Shear);
 	dfdSig[1] = qn[2];
 
@@ -679,7 +675,7 @@ dArrayT& MR2DT::dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig)
 
 dArrayT& MR2DT::dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq)
 {
-	double Shear = Sig[0]*Sig[0] + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);
+	double Shear = Sig[0]*Sig[0]+(qn[1]-qn[0]*qn[2])*(qn[1]-qn[0]*qn[2]);
 	double zeta = (qn[1] - qn[0]*qn[2])/sqrt(Shear);
 	dfdq[0] = -qn[2]*zeta;
 	dfdq[1] = zeta - 1.;
@@ -710,12 +706,12 @@ dMatrixT& MR2DT::dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQd
 dMatrixT& MR2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig)
 {
 	double A1 = -falpha_chi*(qn[0] - fchi_r);
-	double B1 = (Sig[1] + fabs(Sig[1]))/2./fGf_I;
+	double B1 = (Sig[1]+fabs(Sig[1]))/2./fGf_I;
 	double B2 = Sig[0]/fGf_I;
 	double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
 	double DQDT = 2.*Sig[0];
 	double A2 = -falpha_c*(qn[1] - fc_r);
-	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
+	double TNA = (Sig[1]-fabs(Sig[1]))/2.;
 	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
 	double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
 	double A4 = -falpha_psi*qn[3];
@@ -727,7 +723,7 @@ dMatrixT& MR2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dq
 	double DQDTN = 0.;
 	double DQDNT = 0.;
 	double SN = signof(Sig[1]);
-	double DB1DN = (SN + fabs(SN))/2./fGf_I;
+	double DB1DN = (SN +fabs(SN))/2./fGf_I;
 
 	dqbardSig(0,0) = A1*B2*DQDT2 + A1*DQDT/fGf_I;
 	dqbardSig(0,1) = A1*B1*DQDN2 + A1*DQDN*DB1DN;
@@ -746,12 +742,12 @@ dMatrixT& MR2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dq
 dMatrixT& MR2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq)
 {
 	double A1 = -falpha_chi*(qn[0] - fchi_r);
-	double B1 = (Sig[1] + fabs(Sig[1]))/2./fGf_I;
+	double B1 = (Sig[1]+fabs(Sig[1]))/2./fGf_I;
 	double B2 = Sig[0]/fGf_I;
 	double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
 	double DQDT = 2.*Sig[0];
 	double A2 = -falpha_c*(qn[1] - fc_r);
-	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
+	double TNA = (Sig[1]-fabs(Sig[1]))/2.;
 	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
 	double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
 	double A4 = -falpha_psi*qn[3];
@@ -763,12 +759,12 @@ dMatrixT& MR2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqba
 	double DQDTN = 0.;
 	double DQDNT = 0.;
 	double SN = signof(Sig[1]);
-	double DB1DN = (SN + fabs(SN))/2./fGf_I;
+	double DB1DN = (SN +fabs(SN))/2./fGf_I;
 
 	dqbardq(0,0) = -falpha_chi*(B1*DQDN + B2*DQDT);
 	dqbardq(0,1) =  A1*B1*(2.*qn[3]);
 	dqbardq(0,2) = 0.;
-	dqbardq(0,3) =  A1*B1*(2.*qn[1] - 4.*Sig[1]*qn[3]);
+	dqbardq(0,3) =  A1*B1*(2.*qn[1]-4.*Sig[1]*qn[3]);
 	dqbardq(1,0) = 0.;
 	dqbardq(1,1) = -falpha_c*B3*DQDT;
 	dqbardq(1,2) = A2*DQDT*DB3_DTanphi;
@@ -962,7 +958,7 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 		// H1[0] = dfdSig[0]*KEE(0,0) + dfdSig[1]*KEE(1,0);
 		// H1[1] = dfdSig[0]*KEE(0,1) + dfdSig[1]*KEE(1,1);
 
-		H2  = dArrayT::Dot(H1,dQdSig);
+		H2 = dArrayT::Dot(H1,dQdSig);
 		H2 -= dArrayT::Dot(dfdq,qbar);
 
 		for (i = 0; i <= 1; ++i){
@@ -1050,6 +1046,7 @@ void MR2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 	output[6] = state[10];
 	output[7] = state[13];
 	output[8] = state[16];
+	
 }
 
 
