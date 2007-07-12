@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.15 2007-07-08 02:15:48 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.16 2007-07-12 21:26:27 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -12,49 +12,49 @@ const int   knumDOF = 2;
 
 /* state variable information */
 const int kNumState =
-    knumDOF /* \bT */
-  + knumDOF /* \bDelta */
-        + 1 /* \epsilon^p_n */
-        + 1 /* \epsilon^p_s */
-        + 1 /* \chi */
-        + 1 /* c */
-        + 1 /* \phi */
-        + 1 /* \psi */
-        + 1 /* yield */
-        + 1 /* norm of residual */
-  + knumDOF /* \bu^p */
-        + 1 /* plastic multiplier */
-        + 1 /* plasticity flag */
-        + 1 /* iteration number */
-        + 1 /* quantity A? */
-        + 1 /* quantity B? */
-		+ 1 /* status flag */
-		+ 1 /* tied node flag (last slot) */
-  + (knumDOF + 2); /* 0.0/1.0 for active local equations (\bT, up_t and up_n) */
+	  knumDOF 	/* \bT */
+	+ knumDOF 	/* \bDelta */
+	+ 1 		/* \epsilon^p_n */
+	+ 1 		/* \epsilon^p_s */
+	+ 1 		/* \chi */
+	+ 1 		/* c */
+	+ 1 		/* \phi */
+	+ 1 		/* \psi */
+	+ 1 		/* yield */
+	+ 1 		/* norm of residual */
+	+ knumDOF 	/* \bu^p */
+	+ 1 		/* plastic multiplier */
+	+ 1 		/* plasticity flag */
+	+ 1 		/* iteration number */
+	+ 1 		/* quantity A? */
+	+ 1 		/* quantity B? */
+	+ 1 		/* status flag */
+	+ 1 		/* tied node flag (last slot) */
+	+ (knumDOF+2);	/* 0.0/1.0 for active local equations (\bT, up_t and up_n) */
 
 /* indices in state variable array */
-const int	       k_T_t = 0;
-const int	       k_T_n = 1;
-const int	   k_Delta_t = 2;
-const int	   k_Delta_n = 3;
-const int	       k_esp = 4;
-const int	       k_enp = 5;
-const int	      k_fchi = 6;
-const int	        k_fc = 7;
-const int	      k_fphi = 8;
-const int	      k_fpsi = 9;
-const int	     k_yield = 10;
-const int   k_norm_resid = 11;
-const int	      k_up_t = 12;
-const int	      k_up_n = 13;
-const int   k_plast_mult = 14;
-const int	   k_plastic = 15;
-const int    k_iteration = 16;
-const int	         k_A = 17;
-const int	         k_B = 18;
-const int  k_status_flag = 19;
-const int    k_tied_flag = 20;
-const int k_active_flags = 21;
+const int	         k_T_t = 0;
+const int	         k_T_n = 1;
+const int	     k_Delta_t = 2;
+const int	     k_Delta_n = 3;
+const int	         k_esp = 4;
+const int	         k_enp = 5;
+const int	        k_fchi = 6;
+const int	          k_fc = 7;
+const int	        k_fphi = 8;
+const int	        k_fpsi = 9;
+const int	       k_yield = 10;
+const int	  k_norm_resid = 11;
+const int	        k_up_t = 12;
+const int	        k_up_n = 13;
+const int	  k_plast_mult = 14;
+const int	     k_plastic = 15;
+const int	   k_iteration = 16;
+const int	           k_A = 17;
+const int	           k_B = 18;
+const int	 k_status_flag = 19;
+const int	   k_tied_flag = 20;
+const int	k_active_flags = 21;
 
 /* code for material output */
 const int kMaterialOutputCode = 6;
@@ -275,7 +275,7 @@ double MR_NodalRP2DT::signof(double r)
 double MR_NodalRP2DT::YFValue(const ArrayT<double>& state)
 {
 	return state[k_yield];
-}	
+}
 
 /** dissipated energy. Total amount of energy dissipated reaching
 	 * the current state. */
@@ -294,8 +294,7 @@ double MR_NodalRP2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state,
-										const dArrayT& sigma, bool qIntegrate)
+const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 	const char caller[] = "MR_NodalRP2DT::Traction";
 
@@ -392,8 +391,8 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		    
 		up[0] = jump_u[0];
 		up[1] = jump_u[1];
-		dup[0] = up[0] - state[k_Delta_t];
-		dup[1] = up[1] - state[k_Delta_n];
+		dup[0] = up[0] - state[k_up_t];
+		dup[1] = up[1] - state[k_up_n];
 		upo[0] = state[k_up_t];
 		upo[1] = state[k_up_n];
 		Sig_I[0] = state[k_T_t];
@@ -424,6 +423,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		{
 			fTraction[0] = state[k_T_t];
 			fTraction[1] = state[k_T_n];
+
 			return fTraction;
 		}
 	    
@@ -434,6 +434,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			R[i] -= up[i];
 			R[i] += dlam*dQdSig[i];
 		}
+
 		for (i = 0; i<=3; ++i) 
 		{
 			R[i+2]  = qo[i];
@@ -444,15 +445,18 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 	    
 		/* Local Iteration */
 		kk = 0;
-		iplastic = 1;
+		// iplastic = 1;
 		Yield_f(Sig, qn, ff); //check for yield and correct the tied flag
+
 		if (ff >= 0.0)
 		{
-		state[k_tied_flag] = kFreeNode;
+			state[k_tied_flag] = kFreeNode;
+			iplastic = 1;
 		}
 		else
 		{
-		state[k_tied_flag] = kTiedNode;
+			state[k_tied_flag] = kTiedNode;
+			iplastic = 0;
 		}
 
 		//begin iteration loop
@@ -462,127 +466,80 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			//check for the local iteration
 			if (kk <= 10)
 			{
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
-				<< setw(outputFileWidth) << "norm_R = ----------"
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
+					<< setw(outputFileWidth) << "norm_R = ----------"
+					<< endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "global iteration # = " << (*fIteration) << "     "
-				<< setw(outputFileWidth) << "local iteration # = " << kk
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "global iteration # = " << (*fIteration) << "     "
+					<< setw(outputFileWidth) << "local iteration # = " << kk
+					<< endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "Tt = " << Sig[0]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
+						<< setw(outputFileWidth) << "norm_R = " << normr
+						<< endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "Tn = " << Sig[1]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "Tt = " << Sig[0] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "up_t = " << up[0]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "Tn = " << Sig[1] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "up_n = " << up[1]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "jump_u[0] = " << jump_u[0] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "dlam = " << dlam
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "jump_u[1] = " << jump_u[1] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "qn[0] = " << qn[0]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "up_t = " << up[0] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "qn[1] = " << qn[1]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "up_n = " << up[1] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "qn[2] = " << qn[2]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "dlam = " << dlam << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "qn[3] = " << qn[3]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "qn[0] = " << qn[0] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "dT[0] = " << dSig[0]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "qn[1] = " << qn[1] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "dT[1] = " << dSig[1]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "qn[2] = " << qn[2] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "qbar[0] = " << qbar[0]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "qn[3] = " << qn[3] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "qbar[1] = " << qbar[1]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "qbar[0] = " << qbar[0] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "qbar[2] = " << qbar[2]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "qbar[1] = " << qbar[1] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "qbar[3] = " << qbar[3]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "qbar[2] = " << qbar[2] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "R[0] = " << R[0]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "qbar[3] = " << qbar[3] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "R[1] = " << R[1]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "R[0] = " << R[0] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "R[2] = " << R[2]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "R[1] = " << R[1] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "R[3] = " << R[3]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "R[2] = " << R[2] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "R[4] = " << R[4]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "R[3] = " << R[3] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "R[5] = " << R[5]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "R[4] = " << R[4] << endl;
 
-			// Check the stiffness at each local iteration
-			Stiffness(jump_u, state, sigma);
+				mr_rp_2d_out << setw(outputFileWidth) << "R[5] = " << R[5] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0]
-				<< endl;
+				// Check the stiffness at each local iteration
+				Stiffness(jump_u, state, sigma);
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3]
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2] << endl;
 
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
-				<< setw(outputFileWidth) << "norm_R = ----------"
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3] << endl;
+
+				mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
+					<< setw(outputFileWidth) << "norm_R = ----------"
+					<< endl;
 			}
-
 			else
 			{
-			mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "norm_R = " << normr
-				<< endl;
+				mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
+					<< setw(outputFileWidth) << "norm_R = " << normr
+					<< endl;
 			}
 			//End
 
@@ -598,10 +555,10 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			dQdSigdq_f(Sig, qn, A_uq);
 			dqbardSig_f(Sig, qn, A_qu);
 			dqbardq_f(Sig, qn, A_qq);
-	        
-			for (i = 0; i<=5; ++i) 
+
+			for (i = 0; i<=5; ++i)
 			{
-				for (j = 0; j<=5; ++j) 
+				for (j = 0; j<=5; ++j)
 				{
 					if (i<=1 & j<=1)
 					{
@@ -612,7 +569,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 					{
 						AA_inv(i,j)  = A_uq(i,j-2);
 						AA_inv(i,j) *= dlam;
-					} 
+					}
 					if (i>1 & j<=1)
 					{
 						AA_inv(i,j)  = A_qu(i-2,j);
@@ -631,6 +588,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 	        
 			V_sig = dfdSig;
 			V_q = dfdq;
+
 			for (i = 0; i<=5; ++i) 
 			{
 				if (i<=1)
@@ -638,6 +596,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 					Rvec[i] = V_sig[i];
 					Cvec[i] = dQdSig[i];
 				}
+
 				if (i > 1)
 				{
 					Rvec[i] = V_q[i-2];
@@ -653,40 +612,55 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			AA.Multx(Cvec,tmpVec);
 			bott = dArrayT::Dot(Rvec,tmpVec); 		
 			dlam2 = topp/bott;
+
 			for (i = 0; i<=5; ++i)
 			{
 				if (i<=1) Rmod[i] = dQdSig[i];
 				if (i >1) Rmod[i] = qbar[i-2];
 			}
+
 			Rmod *= dlam2;
 			R2 = R;
 			R2 += Rmod;
 			AA.Multx(R2,X);
 			Y = 0.;
 			Y -= X;
+
 			for (i = 0; i<=5; ++i)
 			{
-	            if (i<=1) dSig[i] = Y[i];
-	            if (i > 1) dq[i-2] = Y[i];
+				if (i<=1) dSig[i] = Y[i];
+				if (i > 1) dq[i-2] = Y[i];
 			}
 	        
-			/*  Update stresses and internal variables */       
+			/*  Update stresses and internal variables */
 			Sig += dSig;
 			qn  += dq;
 			dlam = dlam + dlam2;
 			kk = kk + 1;
 	        
-			/*  Calculation of Yield Function and Residuals for next iteration check */       
+			/*  Calculation of Yield Function and Residuals for next iteration check */
 			Yield_f(Sig, qn, ff);
 			dQdSig_f(Sig, qn, dQdSig);
 			qbar_f(Sig, qn, qbar);
-	        
+
+			if (ff >= 0.0)
+			{
+				state[k_tied_flag] = kFreeNode;
+				iplastic = 1;
+			}
+			else
+			{
+				state[k_tied_flag] = kTiedNode;
+				iplastic = 0;
+			}
+
 			for (i = 0; i<=1; ++i)
 			{
 				R[i]  = upo[i];
 				R[i] -= up[i];
 				R[i] += dlam*dQdSig[i];
 			}
+
 			for (i = 0; i<=3; ++i)
 			{
 				R[i+2]  = qo[i];
@@ -704,6 +678,8 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		fTraction[1] = state[k_T_n];
 		state[k_Delta_t] = jump_u[0];
 		state[k_Delta_n] = jump_u[1];
+		// state[k_Delta_t] = up[0];
+		// state[k_Delta_n] = up[1];
 		state[k_up_t] = up[0];
 		state[k_up_n] = up[1];
 		state[k_fchi] = qn[0];
@@ -728,13 +704,14 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 
 		// upadte the state variable of tied flag
 		Yield_f(Sig, qn, ff);
+		
 		if (ff >= 0.0)
 		{
-		state[k_tied_flag] = kFreeNode;
+			state[k_tied_flag] = kFreeNode;
 		}
 		else
 		{
-		state[k_tied_flag] = kTiedNode;
+			state[k_tied_flag] = kTiedNode;
 		}
 
 		//check for yield and norm_R after convergence is achieved
@@ -756,55 +733,35 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 				<< setw(outputFileWidth) << "norm_R = " << normr
 				<< endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "state[k_T_t] = " << state[k_T_t]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_T_t] = " << state[k_T_t] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "state[k_T_n] = " << state[k_T_n]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_T_n] = " << state[k_T_n] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "state[k_up_t] = " << state[k_up_t]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_Delta_t] = " << state[k_Delta_t] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "state[k_up_n] = " << state[k_up_n]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_Delta_n] = " << state[k_Delta_n] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "state[k_fchi] = " << state[k_fchi]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_up_t] = " << state[k_up_t] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "state[k_fc] = " << state[k_fc]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_up_n] = " << state[k_up_n] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "state[k_fphi] = " << state[k_fphi]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_fchi] = " << state[k_fchi] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "state[k_fpsi] = " << state[k_fpsi]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_fc] = " << state[k_fc] << endl;
+
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_fphi] = " << state[k_fphi] << endl;
+
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_fpsi] = " << state[k_fpsi] << endl;
 
 		// check for the stiffness after convergence is achieved
 		Stiffness(jump_u, state, sigma);
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2] << endl;
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3]
-				<< endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3] << endl;
 
 		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = **********" << "     "
 				<< setw(outputFileWidth) << "norm_R = **********"
@@ -818,34 +775,34 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 
 	else
 	{
-	dArrayT Sig(2); dArrayT qn(4);
-	double ff;
+		dArrayT Sig(2); dArrayT qn(4);
+		double ff;
 
-	Sig[0] = state[k_T_t];
-	Sig[1] = state[k_T_n];
-	qn[0] = state[k_fchi];
-	qn[1] = state[k_fc];
-	qn[2] = state[k_fphi];
-	qn[3] = state[k_fpsi];
+		Sig[0] = state[k_T_t];
+		Sig[1] = state[k_T_n];
+		qn[0] = state[k_fchi];
+		qn[1] = state[k_fc];
+		qn[2] = state[k_fphi];
+		qn[3] = state[k_fpsi];
 
-	// upadte the state variable of tied flag
-	Yield_f(Sig, qn, ff);
-	
+		// upadte the state variable of tied flag
+		Yield_f(Sig, qn, ff);
+
 		if (ff >= 0.0)
 		{
-		state[k_tied_flag] = kFreeNode;
+			state[k_tied_flag] = kFreeNode;
 		}
 		else
 		{
-		state[k_tied_flag] = kTiedNode;
+			state[k_tied_flag] = kTiedNode;
 		}
 
-	// Nothing to do for tractions
-	fTraction[0] = state[k_T_t];
-	fTraction[1] = state[k_T_n];
-	return fTraction;
+		// Nothing to do for tractions
+		fTraction[0] = state[k_T_t];
+		fTraction[1] = state[k_T_n];
+
+		return fTraction;
 	}
-	
 }
 
 
@@ -861,20 +818,20 @@ double& MR_NodalRP2DT::Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff
 	tmp22  = Sig[0];
 	tmp22 *= Sig[0];
   
-	tmp3  = qn[1];
-	tmp31 = qn[0];
+	tmp3   = qn[1];
+	tmp31  = qn[0];
 	tmp31 *= qn[2];
-	tmp3 -= tmp31;
-	tmp32 = tmp3;
-	tmp32 *=tmp3;
-  
+	tmp3  -= tmp31;
+	tmp32  = tmp3;
+	tmp32 *= tmp3;
+
 	tmp4  = tmp22;
 	tmp4 += tmp32;
   
 	tmp5 = sqrt(tmp4);
   
-	ff = tmp5;
-	ff -=tmp1;
+	ff  = tmp5;
+	ff -= tmp1;
   
 	return ff;
 }
@@ -883,12 +840,12 @@ double& MR_NodalRP2DT::Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff
 dArrayT& MR_NodalRP2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar)
 {
 	double A1 = -falpha_chi*(qn[0] - fchi_r);
-	double B1 = (Sig[1]+fabs(Sig[1]))/2./fGf_I;
+	double B1 = (Sig[1] + fabs(Sig[1]))/2./fGf_I;
 	double B2 = Sig[0]/fGf_I;
 	double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
 	double DQDT = 2.*Sig[0];
 	double A2 = -falpha_c*(qn[1] - fc_r);
-	double TNA = (Sig[1]-fabs(Sig[1]))/2.;
+	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
 	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
 	double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
 	double A4 = -falpha_psi*qn[3];
@@ -897,6 +854,7 @@ dArrayT& MR_NodalRP2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& q
 	qbar[1] = A2*B3*DQDT;
 	qbar[2] = A3*B3*DQDT;
 	qbar[3] = A4*B3*DQDT;
+
 	return qbar;
 }
 
@@ -915,7 +873,7 @@ dMatrixT& MR_NodalRP2DT::dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2)
 /* calculation of dfdSig_f */
 dArrayT& MR_NodalRP2DT::dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 {
-	double Shear = Sig[0]*Sig[0]+(qn[1]-qn[0]*qn[2])*(qn[1]-qn[0]*qn[2]);
+	double Shear = Sig[0]*Sig[0] + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);
 	dfdSig[0] = Sig[0]/sqrt(Shear);
 	dfdSig[1] = qn[2];
   
@@ -935,7 +893,7 @@ dArrayT& MR_NodalRP2DT::dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT&
 /* calculation of dfdq_f */
 dArrayT& MR_NodalRP2DT::dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq)
 {
-	double Shear = Sig[0]*Sig[0]+(qn[1]-qn[0]*qn[2])*(qn[1]-qn[0]*qn[2]);
+	double Shear = Sig[0]*Sig[0] + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);
 	double zeta = (qn[1] - qn[0]*qn[2])/sqrt(Shear);
 	dfdq[0] = -qn[2]*zeta;
 	dfdq[1] = zeta - 1.;
@@ -964,12 +922,12 @@ dMatrixT& MR_NodalRP2DT::dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatr
 dMatrixT& MR_NodalRP2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig)
 {
 	double A1 = -falpha_chi*(qn[0] - fchi_r);
-	double B1 = (Sig[1]+fabs(Sig[1]))/2./fGf_I;
+	double B1 = (Sig[1] + fabs(Sig[1]))/2./fGf_I;
 	double B2 = Sig[0]/fGf_I;
 	double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
 	double DQDT = 2.*Sig[0];
 	double A2 = -falpha_c*(qn[1] - fc_r);
-	double TNA = (Sig[1]-fabs(Sig[1]))/2.;
+	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
 	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
 	double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
 	double A4 = -falpha_psi*qn[3];
@@ -981,7 +939,7 @@ dMatrixT& MR_NodalRP2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMat
 	double DQDTN = 0.;
 	double DQDNT = 0.;
 	double SN = signof(Sig[1]);
-	double DB1DN = (SN +fabs(SN))/2./fGf_I;
+	double DB1DN = (SN + fabs(SN))/2./fGf_I;
    
 	dqbardSig(0,0) = A1*B2*DQDT2 + A1*DQDT/fGf_I;
 	dqbardSig(0,1) = A1*B1*DQDN2 + A1*DQDN*DB1DN;
@@ -999,12 +957,12 @@ dMatrixT& MR_NodalRP2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMat
 dMatrixT& MR_NodalRP2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq)
 {
 	double A1 = -falpha_chi*(qn[0] - fchi_r);
-	double B1 = (Sig[1]+fabs(Sig[1]))/2./fGf_I;
+	double B1 = (Sig[1] + fabs(Sig[1]))/2./fGf_I;
 	double B2 = Sig[0]/fGf_I;
 	double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
 	double DQDT = 2.*Sig[0];
 	double A2 = -falpha_c*(qn[1] - fc_r);
-	double TNA = (Sig[1]-fabs(Sig[1]))/2.;
+	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
 	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
 	double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
 	double A4 = -falpha_psi*qn[3];
@@ -1016,12 +974,12 @@ dMatrixT& MR_NodalRP2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatri
 	double DQDTN = 0.;
 	double DQDNT = 0.;
 	double SN = signof(Sig[1]);
-	double DB1DN = (SN +fabs(SN))/2./fGf_I;
+	double DB1DN = (SN + fabs(SN))/2./fGf_I;
    
 	dqbardq(0,0) = -falpha_chi*(B1*DQDN + B2*DQDT);
 	dqbardq(0,1) =  A1*B1*(2.*qn[3]);
 	dqbardq(0,2) = 0.;
-	dqbardq(0,3) =  A1*B1*(2.*qn[1]-4.*Sig[1]*qn[3]);   
+	dqbardq(0,3) =  A1*B1*(2.*qn[1] - 4.*Sig[1]*qn[3]);
 	dqbardq(1,0) = 0.;
 	dqbardq(1,1) = -falpha_c*B3*DQDT;
 	dqbardq(1,2) = A2*DQDT*DB3_DTanphi;
@@ -1082,21 +1040,13 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	Sig[0] = state[k_T_t];
 	Sig[1] = state[k_T_n];
 
-	//check for the yield and tied flag
-	Yield_f(Sig, qn, ff);
-
-	mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff << "     "
-				<< setw(outputFileWidth) << "state[k_tied_flag] = " << state[k_tied_flag]
-				<< endl;
-	//End
-
-	// not free 
+	// not free
 	
 	//value of Parameter fUpdateIterations doesn't be obtained from the input
 	// if (fabs(state[k_tied_flag] - kFreeNode) > kSmall ||
 	//	jump_u[0] < kSmall && jump_u[1] < kSmall ||
 	//	fUpdateIterations > 1) //subiterations
-	
+
 	if (fabs(state[k_tied_flag] - kFreeNode) > kSmall ||
 		jump_u[0] < kSmall && jump_u[1] < kSmall)
 	{
@@ -1111,10 +1061,10 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	if (state[k_plastic] == 0.)
 	{
 		//no contribution to the stiffness
-		fStiffness[0] = 1.e20;
-		fStiffness[3] = 1.e20;
-		// fStiffness[0] = 0.;
-		// fStiffness[3] = 0.;
+		// fStiffness[0] = 1.e20;
+		// fStiffness[3] = 1.e20;
+		fStiffness[0] = 0.;
+		fStiffness[3] = 0.;
 	}
 	else if (state[k_plastic] == 1.)
 	{
@@ -1132,9 +1082,9 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		KE *= state[k_plast_mult];
 		KE *= state[k_plast_mult];
 		// KE = 0.;
-		KE2 = dQdSig2;
-		KE2 *=state[k_plast_mult];
-		KE += KE2;
+		KE2  = dQdSig2;
+		KE2 *= state[k_plast_mult];
+		KE  += KE2;
 	        
 		KE_Inv.Inverse(KE);
 	     
@@ -1149,18 +1099,18 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 				}
 				if (i<=1 & j>1)
 				{
-					AA_inv(i,j) = A_uq(i,j-2);
+					AA_inv(i,j)  = A_uq(i,j-2);
 					AA_inv(i,j) *= dlam;
 				} 
 				if (i>1 & j<=1)
 				{
-					AA_inv(i,j) = A_qu(i-2,j);
+					AA_inv(i,j)  = A_qu(i-2,j);
 					AA_inv(i,j) *= dlam;
 				} 
 				if (i>1 & j>1)
 				{
 					AA_inv(i,j)  = I_mat(i-2,j-2);
-					AA_inv(i,j)  *= -1.; 
+					AA_inv(i,j) *= -1.;
 					AA_inv(i,j) += dlam*A_qq(i-2,j-2);
 				} 
 			}
@@ -1172,7 +1122,8 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		dfdq_f(Sig,qn, dfdq);
 		V_q = dfdq;
 		dQdSig_f(Sig, qn, dQdSig);
-		qbar_f(Sig, qn, qbar);  
+		qbar_f(Sig, qn, qbar);
+
 		for (i = 0; i<=5; ++i)
 		{
 			if (i<=1)
@@ -1186,6 +1137,7 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 				Cvec[i] = qbar[i-2];
 			}
 		}
+
 		dArrayT tmpVec(6), Vvec(2), dVec(2);
 		AA.Multx(Cvec,tmpVec);
 		bott = dArrayT::Dot(Rvec,tmpVec);
@@ -1203,15 +1155,16 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
             
 		KE3.MultAB(A_uq, Ch_Inv);
 		KE3.Multx(qbar,dVec);
+
 		for (i = 0; i<=1; ++i)
 		{
 			for (j = 0; j<=1; ++j) KP2(i,j) = dVec[i]*Vvec[j];
 		}
 	        
 		KP2 *= state[k_plast_mult];
-		KP += KP2;
-		KP /= -bott;
-		KP += I_m;
+		KP  += KP2;
+		KP  /= -bott;
+		KP  += I_m;
 		KEP.MultAB(KE_Inv, KP);
 	/*
  	int i, j;
@@ -1279,7 +1232,6 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	}
 
 	return fStiffness;
-
 }
 
 /* surface status */
