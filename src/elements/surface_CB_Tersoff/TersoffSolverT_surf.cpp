@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.7 2007-07-05 20:49:54 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.8 2007-07-12 15:13:56 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -334,12 +334,12 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	f_R = list.GetParameter("cutoff_func_length_1_Rij");
 	f_S = list.GetParameter("cutoff_func_length_2_Sij");
 
-	/* Calculate atomic volume = a^{3}/8 */
+	/* Calculate atomic volume = a^{3}/8:  8 atoms per unit volume */
 	double asdf = f_a0*f_a0*f_a0/8.0;
 	f_omega0 = 1.0/asdf;
 
 	/* Area calculated from RamstadPRB1995, Figure 1 */
-	double asdf2 = f_a0*f_a0;
+	double asdf2 = f_a0*f_a0/2.0;
 	f_area0 = 1.0/asdf2;
 	
 	/* Calculate surface thickness */
@@ -363,30 +363,93 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	
 	/* ROTATE UNIT CELL COORDS DEPENDING ON UNIT NORMAL */
 	dMatrixT blah1(3);
+	dArrayT temp(9);
 	
 	if (fNormalCode == 0)	// rotate [0,0,1] to [1,0,0]
 	{
-		temp_bonds2 = tempUnitCellCoords;
-		blah1 = RotationMatrixA(-piby2);
-		fUnitCellCoords.MultAB(temp_bonds2,blah1);
+		/* CHECKED HSP 7/12/07 - FINE */
+		fUnitCellCoords(0,0) = 0.00;
+		fUnitCellCoords(1,0) = -0.25;
+		fUnitCellCoords(2,0) = -0.50;
+		fUnitCellCoords(3,0) = -0.50;
+		fUnitCellCoords(4,0) = 0.00;
+		fUnitCellCoords(5,0) = -0.25;
+		fUnitCellCoords(6,0) = 0.00;
+		fUnitCellCoords(7,0) = -0.50;
+		fUnitCellCoords(8,0) = -0.50;
+
+		fUnitCellCoords(0,1) = 0.00;
+		fUnitCellCoords(1,1) = -0.25;
+		fUnitCellCoords(2,1) = 0.00;
+		fUnitCellCoords(3,1) = -0.50;
+		fUnitCellCoords(4,1) = -0.50;
+		fUnitCellCoords(5,1) = 0.25;
+		fUnitCellCoords(6,1) = 0.50;
+		fUnitCellCoords(7,1) = 0.50;
+		fUnitCellCoords(8,1) = 0.00;
+
+		fUnitCellCoords(0,2) = 0.00;
+		fUnitCellCoords(1,2) = 0.25;
+		fUnitCellCoords(2,2) = 0.50;
+		fUnitCellCoords(3,2) = 0.00;
+		fUnitCellCoords(4,2) = 0.50;
+		fUnitCellCoords(5,2) = -0.25;
+		fUnitCellCoords(6,2) = -0.50;
+		fUnitCellCoords(7,2) = 0.00;
+		fUnitCellCoords(8,2) = -0.50;
 	}
 	else if (fNormalCode == 1) // rotate [0,0,1] to [-1,0,0]
 	{
-		temp_bonds2 = tempUnitCellCoords;
-		blah1 = RotationMatrixA(piby2);
-		fUnitCellCoords.MultAB(temp_bonds2,blah1);
+		/* CHECKED HSP 7/12/07 - FINE */
+		fUnitCellCoords(0,0) = 0.00;
+		fUnitCellCoords(1,0) = 0.25;
+		fUnitCellCoords(2,0) = 0.50;
+		fUnitCellCoords(3,0) = 0.50;
+		fUnitCellCoords(4,0) = 0.00;
+		fUnitCellCoords(5,0) = 0.25;
+		fUnitCellCoords(6,0) = 0.00;
+		fUnitCellCoords(7,0) = 0.50;
+		fUnitCellCoords(8,0) = 0.50;
+
+		fUnitCellCoords(0,1) = 0.00;
+		fUnitCellCoords(1,1) = 0.25;
+		fUnitCellCoords(2,1) = 0.00;
+		fUnitCellCoords(3,1) = 0.50;
+		fUnitCellCoords(4,1) = 0.50;
+		fUnitCellCoords(5,1) = -0.25;
+		fUnitCellCoords(6,1) = -0.50;
+		fUnitCellCoords(7,1) = -0.50;
+		fUnitCellCoords(8,1) = 0.00;
+
+		fUnitCellCoords(0,2) = 0.00;
+		fUnitCellCoords(1,2) = 0.25;
+		fUnitCellCoords(2,2) = 0.50;
+		fUnitCellCoords(3,2) = 0.00;
+		fUnitCellCoords(4,2) = 0.50;
+		fUnitCellCoords(5,2) = -0.25;
+		fUnitCellCoords(6,2) = -0.50;
+		fUnitCellCoords(7,2) = 0.00;
+		fUnitCellCoords(8,2) = -0.50;
 	}
 	else if (fNormalCode == 2)	// rotate [0,0,1] to [0,1,0]
 	{
+		/* CHECKED HSP 7/12/07 - FINE */
 		temp_bonds2 = tempUnitCellCoords;
 		blah1 = RotationMatrixB(-piby2);
 		fUnitCellCoords.MultAB(temp_bonds2,blah1);
+		fUnitCellCoords.CopyColumn(2,temp);
+		temp *= -1.0;
+		fUnitCellCoords.SetCol(2,temp);
 	}
 	else if (fNormalCode == 3)	// rotate [0,0,1] to [0,-1,0]
 	{
+		/* CHECKED HSP 7/12/07 - FINE */
 		temp_bonds2 = tempUnitCellCoords;
 		blah1 = RotationMatrixB(piby2);
 		fUnitCellCoords.MultAB(temp_bonds2,blah1);
+		fUnitCellCoords.CopyColumn(0,temp);
+		temp *= -1.0;
+		fUnitCellCoords.SetCol(0,temp);
 	}
 	else if (fNormalCode == 4)	// this is the default orientation
 	{
@@ -394,9 +457,13 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	}	
 	else if (fNormalCode == 5)	// rotate [0,0,1] to [0,0,-1]
 	{
+		/* HSP - KEEP Y CONSTANT */
 		temp_bonds2 = tempUnitCellCoords;
 		fUnitCellCoords = temp_bonds2;
 		fUnitCellCoords *= -1.0;
+		fUnitCellCoords.CopyColumn(1,temp);
+		temp *= -1.0;
+		fUnitCellCoords.SetCol(1,temp);
 	}	
 
 	/* scale to correct lattice parameter */				     		
