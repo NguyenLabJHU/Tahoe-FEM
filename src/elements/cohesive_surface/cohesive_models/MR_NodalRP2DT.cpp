@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.16 2007-07-12 21:26:27 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.17 2007-07-15 02:55:35 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -253,7 +253,7 @@ void MR_NodalRP2DT::InitStateVariables(ArrayT<double>& state)
 	double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
 	double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
 	double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
-	double ftan_psi = (tan(fpsi_p))*exp(-falpha_psi*esp);	
+	double ftan_psi = (tan(fpsi_p))*exp(-falpha_psi*esp);
 	state[k_fchi]  = fchi;
 	state[k_fc]  = fc ;
 	state[k_fphi]  = ftan_phi;
@@ -375,6 +375,8 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6);
 		dMatrixT X(6,1); dMatrixT Y(6,1);
 
+		// dMatrixT KP(2,2), KP2(2,2), KEP(2,2), KEP_Inv(2,2), I_m(2,2), KE1(4,2), KE2(2,2), KE3(2,4), Ch(4,4), Ch_Inv(4,4);
+
 		dArrayT up(2); dArrayT dup(2); dArrayT dSig(2); dArrayT qn(4);
 		dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
 		dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2);
@@ -390,7 +392,14 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		ZMAT = 0.; ZMATP = 0.; dlam = 0.; dlam2 = 0.; normr = 0.;
 		    
 		up[0] = jump_u[0];
-		up[1] = jump_u[1];
+		// up[1] = jump_u[1];
+		if (jump_u[1] >= fabs(up[0])*state[k_fpsi]) {
+			up[1] = jump_u[1];
+		}
+
+		if (jump_u[1] < fabs(up[0])*state[k_fpsi]) {
+			up[1] = fabs(up[0])*state[k_fpsi];
+		}
 		dup[0] = up[0] - state[k_up_t];
 		dup[1] = up[1] - state[k_up_n];
 		upo[0] = state[k_up_t];
@@ -408,7 +417,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			qo[i] = qn[i];
 			I_mat(i,i) = 1.;
 		}
-	    
+
 		Sig = Sig_I;
 		dQdSig_f(Sig, qn, dQdSig);
 		qbar_f(Sig, qn, qbar);
@@ -428,7 +437,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		}
 	    
 		/* calculate residuals */    
-		for (i = 0; i<=1; ++i) 
+		for (i = 0; i<=1; ++i)
 		{
 			R[i]  = upo[i];
 			R[i] -= up[i];
@@ -543,7 +552,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			}
 			//End
 
-			if (kk > 500) {
+			if (kk > 10000) {
 				ExceptionT::GeneralFail("MR_NodalRP2DT::Traction","Too Many Iterations");
 			}
 
@@ -608,9 +617,9 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			dArrayT tmpVec(6);
 			AA.Multx(R,tmpVec);
 			topp = ff;
-			topp -= dArrayT::Dot(Rvec,tmpVec);        
+			topp -= dArrayT::Dot(Rvec,tmpVec);
 			AA.Multx(Cvec,tmpVec);
-			bott = dArrayT::Dot(Rvec,tmpVec); 		
+			bott = dArrayT::Dot(Rvec,tmpVec);
 			dlam2 = topp/bott;
 
 			for (i = 0; i<=5; ++i)
@@ -631,13 +640,22 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 				if (i<=1) dSig[i] = Y[i];
 				if (i > 1) dq[i-2] = Y[i];
 			}
-	        
+
 			/*  Update stresses and internal variables */
 			Sig += dSig;
 			qn  += dq;
 			dlam = dlam + dlam2;
 			kk = kk + 1;
-	        
+
+			/*  Update up[1] */
+			if (jump_u[1] >= fabs(up[0])*qn[3]) {
+				up[1] = jump_u[1];
+			}
+
+			if (jump_u[1] < fabs(up[0])*qn[3]) {
+				up[1] = fabs(up[0])*qn[3];
+			}
+
 			/*  Calculation of Yield Function and Residuals for next iteration check */
 			Yield_f(Sig, qn, ff);
 			dQdSig_f(Sig, qn, dQdSig);
@@ -668,7 +686,6 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 				R[i+2] += dlam*qbar[i];
 			}
 			normr = R.Magnitude();
-	        
 		} //end iteration loop
 
 		/* update the state variables after convergence is achieved */
@@ -933,11 +950,11 @@ dMatrixT& MR_NodalRP2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMat
 	double A4 = -falpha_psi*qn[3];
 	double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/fGf_II/2.;
 	double DB3_DTt = 1./fGf_II;
-	double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
+	// double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
 	double DQDN2 = -2.*qn[3]*qn[3];
 	double DQDT2 = 2.;
-	double DQDTN = 0.;
-	double DQDNT = 0.;
+	// double DQDTN = 0.;
+	// double DQDNT = 0.;
 	double SN = signof(Sig[1]);
 	double DB1DN = (SN + fabs(SN))/2./fGf_I;
    
@@ -966,15 +983,15 @@ dMatrixT& MR_NodalRP2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatri
 	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
 	double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
 	double A4 = -falpha_psi*qn[3];
-	double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/fGf_II/2.;
-	double DB3_DTt = 1./fGf_II;
+	// double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/fGf_II/2.;
+	// double DB3_DTt = 1./fGf_II;
 	double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
-	double DQDN2 = -2.*qn[3]*qn[3];
-	double DQDT2 = 2.;
-	double DQDTN = 0.;
-	double DQDNT = 0.;
-	double SN = signof(Sig[1]);
-	double DB1DN = (SN + fabs(SN))/2./fGf_I;
+	// double DQDN2 = -2.*qn[3]*qn[3];
+	// double DQDT2 = 2.;
+	// double DQDTN = 0.;
+	// double DQDNT = 0.;
+	// double SN = signof(Sig[1]);
+	// double DB1DN = (SN + fabs(SN))/2./fGf_I;
    
 	dqbardq(0,0) = -falpha_chi*(B1*DQDN + B2*DQDT);
 	dqbardq(0,1) =  A1*B1*(2.*qn[3]);
@@ -1014,7 +1031,7 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	         A_qq(4,4), A_uu(2,2), A_uq(2,4), A_qu(4,2), ZMAT(2,4),
 	         ZMATP(4,2), dQdSig2(2,2), dqdbar(4,4), dqbardSig(4,2),
 	         dQdSigdq(2,4), KP(2,2), KP2(2,2), KEP(2,2);
-	         
+
 	dMatrixT I_m(2,2), Rmat(2,2), R_Inv(2,2), KE(2,2), KE_Inv(2,2),
 	         Ch(4,4), Ch_Inv(4,4), KE1(4,2), KE2(2,2), KE3(2,4);
 
@@ -1022,7 +1039,7 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	         R(6), Rmod(6), Sig(2), Sig_I(2), dQdSig(2), dfdq(4), qbar(4),
 	         R2(6), X(6), V_sig(2), V_q(4), dfdSig(2), K1(2), K2(2);
 
-	double bott, dlam, ff;
+	double bott, dlam;
 
 	fStiffness[1] = fStiffness[2] = 0.;
 	I_m(0,0) = 1.; I_m(0,1) =0.; I_m(1,0) = 0.; I_m(1,1) = 1.;
@@ -1057,7 +1074,6 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	}
 
 	//check for the plastic flag
-	
 	if (state[k_plastic] == 0.)
 	{
 		//no contribution to the stiffness
@@ -1085,10 +1101,10 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		KE2  = dQdSig2;
 		KE2 *= state[k_plast_mult];
 		KE  += KE2;
-	        
+
 		KE_Inv.Inverse(KE);
-	     
-		for (i = 0; i<=5; ++i) 
+
+		for (i = 0; i<=5; ++i)
 		{
 			for (j = 0; j<=5; ++j)
 			{
@@ -1101,22 +1117,22 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 				{
 					AA_inv(i,j)  = A_uq(i,j-2);
 					AA_inv(i,j) *= dlam;
-				} 
+				}
 				if (i>1 & j<=1)
 				{
 					AA_inv(i,j)  = A_qu(i-2,j);
 					AA_inv(i,j) *= dlam;
-				} 
+				}
 				if (i>1 & j>1)
 				{
 					AA_inv(i,j)  = I_mat(i-2,j-2);
 					AA_inv(i,j) *= -1.;
 					AA_inv(i,j) += dlam*A_qq(i-2,j-2);
-				} 
+				}
 			}
 		}
 		AA.Inverse(AA_inv);
-	
+
 		dfdSig_f(Sig, qn, dfdSig);
 		V_sig = dfdSig;
 		dfdq_f(Sig,qn, dfdq);
@@ -1141,13 +1157,13 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		dArrayT tmpVec(6), Vvec(2), dVec(2);
 		AA.Multx(Cvec,tmpVec);
 		bott = dArrayT::Dot(Rvec,tmpVec);
-            
+
 		for (i = 0; i<=1; ++i)
 		{
 			Vvec[i] = 0.;
 			for (j = 0; j<=5; ++j) Vvec[i] += Rvec[j]*AA(j,i);
 		}
-            
+
 		for (i = 0; i<=1; ++i)
 		{
 			for (j = 0; j<=1; ++j) KP(i,j) = dQdSig[i]*Vvec[j];
@@ -1286,19 +1302,20 @@ void MR_NodalRP2DT::Print(ostream& out) const
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int MR_NodalRP2DT::NumOutputVariables(void) const { return 8; }
+int MR_NodalRP2DT::NumOutputVariables(void) const { return 9; }
 
 void MR_NodalRP2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Dimension(8);
+	labels.Dimension(9);
 	labels[0] = "up_t";
 	labels[1] = "up_n";
 	labels[2] = "Chi";
 	labels[3] = "Cohesion";
 	labels[4] = "Friction Angle";
-	labels[5] = "Yield Function Value";
-	labels[6] = "Norm of residuals";
-	labels[7] = "No. of Iterations";
+	labels[5] = "Dilation Angle";
+	labels[6] = "Yield Function Value";
+	labels[7] = "Norm of residuals";
+	labels[8] = "No. of Iterations";
 }
 
 /* release condition depends on this quantity */
@@ -1326,8 +1343,9 @@ void MR_NodalRP2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& s
 	output[3] = state[k_fc];
 	//output[4] = state[k_fphi];
 	output[4] = atan(state[k_fphi]);  // state[k_fphi] = ftan_phi
-	output[5] = state[k_yield];
-	output[6] = state[k_norm_resid];
-	output[7] = state[k_iteration];
+	output[5] = atan(state[k_fpsi]);
+	output[6] = state[k_yield];
+	output[7] = state[k_norm_resid];
+	output[8] = state[k_iteration];
 }
 
