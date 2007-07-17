@@ -1,14 +1,15 @@
-/* $Id: SMP_simple.h,v 1.3 2006-11-14 22:58:06 thao Exp $ */
+/* $Id: SMP_simple.h,v 1.4 2007-07-17 20:14:00 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _SMP_simple_
 #define _SMP_simple_
 
 /* base class */
-#include "RGSplitT.h"
+#include "RGSplitT2.h"
+#include "InvLangevin.h"
 
 namespace Tahoe {
 
-class SMP_simple: public RGSplitT
+class SMP_simple: public RGSplitT2
 {
    public:
 
@@ -23,14 +24,20 @@ class SMP_simple: public RGSplitT
 	/* constructor/destructor */
 	SMP_simple(void);
 
+	/* initialize, update/reset internal variables */
+	virtual void PointInitialize(void);              
+	virtual void UpdateHistory(void); // element at a time
+	virtual void ResetHistory(void);  // element at a time
+
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	
@@ -41,21 +48,18 @@ class SMP_simple: public RGSplitT
 	virtual void OutputLabels(ArrayT<StringT>& labels) const; 
 	virtual void ComputeOutput(dArrayT& output);
 
+	/*fictive temperature*/
+	virtual double FictiveTemperature(const double deltaneq);
+	
 	/*viscosity*/
-	virtual void Viscosity(double& ietaS, double& ietaB, const int type);
+	virtual double RetardationTime(const double Temperature, const double deltaneq);
+	virtual double ShearViscosity(const double Temperature, const double deltaneq, const double smag, const double sy);	
 	
-	/*free energy density*/
-	virtual double Energy(const dArrayT& lambda_bar, const double J, const int type);
-	
-	/*calculates principal values of deviatoric Kirchoff stress given principal values of deviatoric stretch tensor*/
-	virtual void DevStress(const dArrayT& lambda_bar, dArrayT& tau, const int type);
-	/*calculates mean Kirchhoff stress tensor given J*/
-	virtual double MeanStress(const double J, const int type);
+	/**compute thermal strains*/
+	virtual const dMatrixT& ThermalDeformation_Inverse(void);
 
-	/*calculates principal values of deviatoric stiffness given principal values of deviatoric stretch tensor*/
- 	virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus, const int type);
-	/*calculates bulk mod given J*/
-	virtual double MeanMod(const double J, const int type);
+	protected:
+	virtual void Initialize(void);
 
    private:
 	/* set inverse of thermal transformation - return true if active */
@@ -69,20 +73,48 @@ class SMP_simple: public RGSplitT
     
    protected:
 	/*Reference Temperature*/
-	double fRefTemperature;
-	double fTg;
-//	dArrayT fTemperature;
+	double fT0; /*Temperature at To*/
 	
-	/*moduli for Mooney Rivlin Potential, n_process x 2 (c1, c2)*/
-    /*rubber moduli at reference temperature
-	double fc1_eq;         
-	double fc2_eq;         
-	double fgamma_eq;
-	*/
-	dArray2DT fPot;
-	dArray2DT fVisc;
-	int fPotType;
-	int fViscType;
+	/*thermal expansion*/
+	double fT2;			/*zero entropy temperature*/
+	double falphar;		/*high temp CTE*/
+	double falphag;		/*low temp CTE*/
+	double fQR;			/*Activation energy for structural relaxation*/
+	double ftauR0;		/*reference retardation time for structural relaxation*/
+	double ftauRL, ftauRH; /*high and low limits of retardation time*/ 	
+	
+	double fTg;			/* glass transition temperature*/
+	double fC1, fC2;	/*WLF constants*/
+	double ftaug;		/*retardation time at Tg*/
+	
+	/*high temp stress response*/
+//	double fmuN;		/*network stiffness*/
+//	double flambdaL;	/*locking stretch*/
+//	double fkappa;			/*bulk modulus*/
+//	double fmueq;
+	
+	/*low temp viscous flow*/
+//	double fmuneq;		/*nonequilibrium stiffness*/
+	double fetaS0;		/*reference shear viscosity*/
+//	double fetaSL, fetaSH;		/*high and low limits of etaSR*/
+	double fQS;			/*activation energy for the viscoplastic flow*/
+	double fsy0;		/*initial yield strength*/;
+	double fsinf;		/*steady state limit of the yield strength*/
+	double fh;			/*hardening modulus*/
+		
+	/*accessors for internal variables*/
+	double* fsy;
+	double* fsy_n;
+	double* fdelneq;
+	double* fdelneq_n;
+	
+	/*Residual*/
+	dArrayT fRes;
+	dArrayT fDelta;
+	dMatrixT fGAB;
+	dMatrixT fDAB;
+	dMatrixT fDABbar;
+	dMatrixT fMat;
 };
 }
 #endif /* _SMP_simple_ */
