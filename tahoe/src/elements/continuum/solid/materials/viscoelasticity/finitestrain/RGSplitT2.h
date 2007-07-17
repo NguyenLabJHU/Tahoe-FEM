@@ -1,4 +1,4 @@
-/* $Id: RGSplitT2.h,v 1.1 2007-04-09 22:27:06 tdnguye Exp $ */
+/* $Id: RGSplitT2.h,v 1.2 2007-07-17 20:21:18 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _RGSplitT2_
 #define _RGSplitT2_
@@ -46,6 +46,12 @@ class RGSplitT2: public RGViscoelasticityT
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+
+	/**compute mechanical strains*/
+	virtual const dMatrixT& MechanicalDeformation(void);
+
+	/**compute thermal strains*/
+	virtual const dMatrixT& ThermalDeformation_Inverse(void);
 	
 	/*@}*/
 
@@ -66,6 +72,12 @@ class RGSplitT2: public RGViscoelasticityT
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
 
+	/*mechanical strains*/
+	dMatrixT fF_M;
+	
+	/*thermal strains*/
+	dMatrixT fF_T_inv;
+	
 	/*work space*/
 	dSymMatrixT fb;
 	dSymMatrixT fbe;
@@ -98,5 +110,6 @@ class RGSplitT2: public RGViscoelasticityT
 	double fietaS;
 	double fietaB;
 };
+
 }
 #endif /* _RGSplitT2_ */

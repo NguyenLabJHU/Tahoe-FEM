@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.cpp,v 1.10 2007-03-08 18:13:01 tdnguye Exp $ */
+/* $Id: RGSplitT.cpp,v 1.11 2007-07-17 20:21:18 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
@@ -567,9 +567,9 @@ void RGSplitT::Initialize(void)
 		/*inverts KAB*/
 		fiKAB.Inverse();
 
-		dSymMatrixT& DAB = fDtauDe_NEQ;
+/*		dSymMatrixT& DAB = fDtauDe_NEQ;
 		DAB += cm; 
-	
+*/	
 		Calg(0,0) = (c0+cm)*fiKAB(0,0) + (c01+cm)*fiKAB(1,0) + (c02+cm)*fiKAB(2,0) - 2.0*(tau_dev[0]+tau_m);
 		Calg(1,0) = (c01+cm)*fiKAB(0,0) + (c1+cm)*fiKAB(1,0) + (c12+cm)*fiKAB(2,0);
 		Calg(2,0) = (c02+cm)*fiKAB(0,0) + (c12+cm)*fiKAB(1,0) + (c2+cm)*fiKAB(2,0);

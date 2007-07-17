@@ -1,4 +1,4 @@
-/* $Id: RGSplitT2.cpp,v 1.3 2007-04-27 00:56:09 paklein Exp $ */
+/* $Id: RGSplitT2.cpp,v 1.4 2007-07-17 20:21:18 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT2.h"
@@ -47,10 +47,25 @@ void RGSplitT2::OutputLabels(ArrayT<StringT>& labels) const
        labels[i] = Labels[i]; 
 } 
 
+const dMatrixT& RGSplitT2::MechanicalDeformation(void)
+{
+	const dMatrixT& F_T_inv = ThermalDeformation_Inverse();
+	const dMatrixT& F = F_total();
+//	cout << "\nF_total(): "<<F;
+	fF_M.MultAB(F, F_T_inv);
+	return(fF_M);
+}
+
+const dMatrixT& RGSplitT2::ThermalDeformation_Inverse(void)
+{
+	fF_T_inv = F_thermal_inverse();
+	return(fF_T_inv);
+}
+
 double RGSplitT2::StrainEnergyDensity(void)
 {
 	/*calculates equilibrium part*/
-	const dMatrixT& F = F_mechanical();
+	const dMatrixT& F = MechanicalDeformation();
 	if (NumSD() == 2)
 	{
 		fF3D[0] = F[0];
@@ -108,7 +123,7 @@ const dMatrixT& RGSplitT2::c_ijkl(void)
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
     
-	const dMatrixT& F = F_mechanical();
+	const dMatrixT& F = MechanicalDeformation();
 	if (NumSD() == 2)
 	{
 	    fF3D[0] = F[0];
@@ -147,7 +162,6 @@ const dMatrixT& RGSplitT2::c_ijkl(void)
     Gamma(2,2) -= 2.0*ftau_EQ[2];
    
 	fModulus3D = fSpectralDecompSpat.EigsToRank4(Gamma);	
-  
 	double dl, coeff;
 
     double& l0 = fEigs[0];
@@ -178,6 +192,7 @@ const dMatrixT& RGSplitT2::c_ijkl(void)
     MixedRank4_3D(eigenvectors[1], eigenvectors[2], fModMat);
     fModulus3D.AddScaled(2.0*coeff, fModMat);
 
+//   cout << "\nc_eq: "<<fModulus3D;
 	/*calc NEQ component of stress and moduli*/
 	/*calcualte principal values of elastic stretch*/
 	for (int i = 0; i < fNumProcess; i++)
@@ -211,6 +226,7 @@ const dMatrixT& RGSplitT2::c_ijkl(void)
 		ftau_NEQ += sm;
 		fDtauDe_NEQ += cm;
 			   
+//		cout << "\nCalg: "<<fCalg;
 		fModulus3D += fSpectralDecompSpat.NonSymEigsToRank4(fCalg);
     
 		double dl_tr;
@@ -244,6 +260,7 @@ const dMatrixT& RGSplitT2::c_ijkl(void)
 		MixedRank4_3D(eigenvectors_e[1], eigenvectors_e[2], fModMat);
 		fModulus3D.AddScaled(2.0*coeff, fModMat);
     }
+//   cout << "\nc_tot: "<<fModulus3D;
 	if (NumSD() == 2)
 	{
 		fModulus[0] = fModulus3D[0];
@@ -268,8 +285,11 @@ const dMatrixT& RGSplitT2::c_ijkl(void)
 /* stresses */
 const dSymMatrixT& RGSplitT2::s_ij(void)
 {
-	const dMatrixT& F = F_mechanical();
-	const dMatrixT& F_thermal = F_thermal_inverse();
+	const dMatrixT& F = MechanicalDeformation();
+	
+/*	cout << "\nfF_T_inv: "<<fF_T_inv;
+	cout << "\nFm: "<<F;
+*/
 	if (NumSD() == 2)
 	{
 		fF3D[0] = F[0];
@@ -290,21 +310,27 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 	fb.MultAAT(fF3D);
 	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
 	fEigs = fSpectralDecompSpat.Eigenvalues();
-
+//	cout << "\nfEigs: "<<fEigs;
+	
 	/*jacobian determinant*/
 	double J = sqrt(fEigs.Product());
+	
 	fEigs_dev = fEigs;
 	fEigs_dev *= pow(J,-2.0*third);
-    
+	
 	fPot[0]->DevStress(fEigs_dev, ftau_EQ);
+//	cout << "\neq_dev_stress: "<<ftau_EQ;
 	ftau_EQ += fPot[0]->MeanStress(J);
+//	cout << "\n_eq_tot_stress: "<<ftau_EQ;
+	
 /*		const double mu_eq = fPot[0]->GetMu();
 		const double kappa_eq = fPot[0]->GetKappa();
 		cout << "\neq mu: "<< mu_eq;
 		cout << "\neq kappa: "<< kappa_eq;
 */	
 	fStress3D = fSpectralDecompSpat.EigsToRank2(ftau_EQ);
-
+//	cout << "\nstress eq: "<<fStress3D;
+	
     /*load the viscoelastic principal stretches from state variable arrays*/
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
@@ -322,21 +348,21 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 
 			/*calc elastic stretch*/
 			fEigs_e = fEigs_tr; /*initial condition*/
+//			cout << "\nfEigs_tr: "<<fEigs_tr;
 			ComputeEigs_e(fEigs, fEigs_e, ftau_NEQ, fDtauDe_NEQ, i);
-
+//			cout << "\nfEigs_e: "<<fEigs_e;
 			double Je = sqrt(fEigs_e.Product());
 			fEigs_dev = fEigs_e;
 			fEigs_dev *= pow(Je,-2.0*third);
 	
 			fPot[i+1]->DevStress(fEigs_dev, ftau_NEQ);
+//			cout << "\nneq_dev_stress: "<<ftau_NEQ;
 			ftau_NEQ += fPot[i+1]->MeanStress(Je);
+//			cout << "\nneq_tot_stress: "<<ftau_NEQ;
 			fStress3D += fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
 
-/*		const double mu_neq = fPot[i+1]->GetMu();
-		const double kappa_neq = fPot[i+1]->GetKappa();
-		cout << "\nneq mu: "<< mu_neq;
-		cout << "\nneq kappa: "<< kappa_neq;
-*/
+//			cout << "\nneq_tot_stress: "<<fStress3D;
+
 	
 			/*Calculate Cv*/
 			fInverse = fSpectralDecompSpat.EigsToRank2(fEigs_e); /*be which is colinear with btr*/
@@ -377,6 +403,7 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
     else fStress = fStress3D;
 	
 	const dMatrixT& Ftotal = F_total();	
+//	cout << "\nFtot: "<<Ftotal;
     fStress *= 1.0/Ftotal.Det();
 	return fStress;
 }
@@ -404,7 +431,7 @@ const dSymMatrixT& RGSplitT2::S_IJ(void)
 
 void RGSplitT2::ComputeOutput(dArrayT& output)
 {
-	const dMatrixT& F = F_mechanical();
+	const dMatrixT& F = MechanicalDeformation();
 	if (NumSD() == 2)
 	{
 		fF3D[0] = F[0];
@@ -461,26 +488,37 @@ void RGSplitT2::ComputeOutput(dArrayT& output)
 void RGSplitT2::Initialize(void)
 {
  /* dimension work space */
+  
+  fF_M.Dimension(3);
+  fF_T_inv.Dimension(3);
+
+  fF3D.Dimension(3);
   fInverse.Dimension(3);
+
   fb.Dimension(3);
   fbe.Dimension(3);
   fb_tr.Dimension(3);
-  fF3D.Dimension(3);
+
   fEigs_dev.Dimension(3);
   fEigs.Dimension(3);
   fEigs_e.Dimension(3);
   fEigs_tr.Dimension(3);
+
   ftau_EQ.Dimension(3);
   ftau_NEQ.Dimension(3);
+
+  fStress.Dimension(NumSD());
+  fStress3D.Dimension(3);
+
   fDtauDe_EQ.Dimension(3);
   fDtauDe_NEQ.Dimension(3);
+
+  fiKAB.Dimension(3);
   fCalg.Dimension(3);
+
   fModulus3D.Dimension(6);
   fModMat.Dimension(6);
   fModulus.Dimension(dSymMatrixT::NumValues(NumSD()));
-  fStress.Dimension(NumSD());
-  fStress3D.Dimension(3);
-  fiKAB.Dimension(3);
 }
 
 /***********************************************************************
@@ -554,8 +592,8 @@ void RGSplitT2::Initialize(void)
 		/*inverts KAB*/
 		fiKAB.Inverse();
 
-		dSymMatrixT& DAB = fDtauDe_NEQ;
-		DAB += cm; 
+//		dSymMatrixT& DAB = fDtauDe_NEQ;
+//		DAB += cm; 
 	
 		Calg(0,0) = (c0+cm)*fiKAB(0,0) + (c01+cm)*fiKAB(1,0) + (c02+cm)*fiKAB(2,0) - 2.0*(tau_dev[0]+tau_m);
 		Calg(1,0) = (c01+cm)*fiKAB(0,0) + (c1+cm)*fiKAB(1,0) + (c12+cm)*fiKAB(2,0);
