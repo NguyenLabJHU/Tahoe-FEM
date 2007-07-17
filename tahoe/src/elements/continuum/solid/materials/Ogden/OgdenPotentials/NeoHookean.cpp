@@ -1,4 +1,4 @@
-/* $Id: NeoHookean.cpp,v 1.6 2007-04-09 23:33:26 tdnguye Exp $ */
+/* $Id: NeoHookean.cpp,v 1.7 2007-07-17 20:12:30 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -43,7 +43,7 @@ void NeoHookean::TakeParameterList(const ParameterListT& list)
 	fMu = list.GetParameter("mu");
 
 	/* check */
-	if (fMu < kSmall) ExceptionT::BadInputValue("NeoHookean::TakeParameterList",
+	if (fMu < -kSmall) ExceptionT::BadInputValue("NeoHookean::TakeParameterList",
 		"expecting a non-negative value mu: %d", fMu);
 }
 
@@ -91,6 +91,18 @@ void NeoHookean::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
     eigenmodulus[4] = 2.0*fMu*ninth*(-2.0*l0-2.0*l2+l1);
     eigenmodulus[5] = 2.0*fMu*ninth*(-2.0*l0-2.0*l1+l2);
   }
+}
+
+/* set parameters */
+void NeoHookean::SetMu(double mu)
+{
+	fMu = mu;
+}
+
+/* set parameters */
+double NeoHookean::GetMu(void)
+{
+	return(fMu);
 }
 
 

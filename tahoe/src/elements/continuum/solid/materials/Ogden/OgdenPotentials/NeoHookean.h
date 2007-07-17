@@ -1,4 +1,4 @@
-/* $Id: NeoHookean.h,v 1.3 2007-04-09 23:33:26 tdnguye Exp $ */
+/* $Id: NeoHookean.h,v 1.4 2007-07-17 20:12:30 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _NeoHookean_
 #define _NeoHookean_
@@ -29,6 +29,9 @@ class NeoHookean: public PotentialT
 	/*derivative of Kirchoff stress with log strain*/
 	virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus);
 
+	protected:
+		void SetMu(double mu);
+		double GetMu (void);
   private:  
 
 };
