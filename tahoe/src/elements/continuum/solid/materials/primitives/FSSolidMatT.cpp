@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.22 2006-11-12 18:23:42 tdnguye Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.23 2007-07-17 20:24:01 tdnguye Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -511,6 +511,18 @@ double FSSolidMatT::Compute_Temperature()
 	{
 		/* integration point temperature */
 		fFSMatSupport->Interpolate(*(fFSMatSupport->Temperatures()), fTemperature);
+		return(fTemperature[0]);
+	}
+	else 
+		return(0.0);
+}
+
+double FSSolidMatT::Compute_Temperature_last()
+{
+	if (fTemperatureField)
+	{
+		/* integration point temperature */
+		fFSMatSupport->Interpolate(*(fFSMatSupport->LastTemperatures()), fTemperature);
 		return(fTemperature[0]);
 	}
 	else 
