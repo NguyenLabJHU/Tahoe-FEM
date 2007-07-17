@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.25 2006-11-12 18:23:42 tdnguye Exp $ */
+/* $Id: FSSolidMatT.h,v 1.26 2007-07-17 20:24:01 tdnguye Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -187,6 +187,7 @@ protected:
 
 	/*compute temperature*/
 	double Compute_Temperature(void);
+	double Compute_Temperature_last(void);
 	
 	/** acoustical tensor.
 	 * \param normal wave propagation direction
