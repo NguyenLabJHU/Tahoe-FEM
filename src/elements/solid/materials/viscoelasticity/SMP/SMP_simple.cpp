@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.7 2007-07-17 20:14:00 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.8 2007-07-18 03:08:26 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -31,7 +31,7 @@ SMP_simple::SMP_simple(void):
   ParameterInterfaceT("SMP_simple")
 {
 	fNumProcess = 1;
-	cout << setprecision(16);
+//	cout << setprecision(16);
 }
 
 double SMP_simple::FictiveTemperature(const double deltaneq)
