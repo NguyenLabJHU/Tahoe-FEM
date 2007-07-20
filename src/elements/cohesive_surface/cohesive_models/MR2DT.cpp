@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.25 2007-07-08 19:44:51 skyu Exp $*/
+/*$Id: MR2DT.cpp,v 1.26 2007-07-20 17:12:36 skyu Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -334,7 +334,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		/* Check the yield function */
      
 		Yield_f(Sig, qn, ff);
-		if (ff <0.) {
+		if (ff < 0.) {
 			iplastic = 0;
 			state[10] = ff;
 			normr = 0.;
@@ -344,7 +344,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		else {
 			kk = 0;
 			iplastic = 1;
-			while (ff > fTol_1 | normr > fTol_2) {
+			while (ff > fTol_1 || normr > fTol_2) {
 
 				mr_ep_2d_out << setw(outputFileWidth) << "local iteration # = " << kk << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
@@ -356,18 +356,10 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 
 				//check the stiffness at each local iteration
 				Stiffness(jump_u, state, sigma);
-				mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-					<< setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0]
-					<< endl;
-				mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-					<< setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1]
-					<< endl;
-				mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-					<< setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2]
-					<< endl;
-				mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-					<< setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3]
-					<< endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1]	<< endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2]	<< endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3]	<< endl;
 
 				if (kk > 500) {
 					ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
@@ -534,43 +526,33 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 			<< setw(outputFileWidth) << "norm_R is converged "
 			<< endl;
 
+		mr_ep_2d_out << setw(outputFileWidth) << "local iteration # = " << kk << endl;
+
 		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
 			<< setw(outputFileWidth) << "norm_R = " << normr
 			<< endl;
 
-		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-			<< setw(outputFileWidth) << "Tt = " << Sig[0]
-			<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "Tt = " << state[0] << endl;
 
-		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-			<< setw(outputFileWidth) << "Tn = " << Sig[1]
-			<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "Tn = " << state[1] << endl;
 
-		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-			<< setw(outputFileWidth) << "state[k_up_t] = " << up[0]
-			<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "jump_u[0] = " << state[2] << endl;
 
-		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-			<< setw(outputFileWidth) << "state[k_up_n] = " << up[1]
-			<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "jump_u[1] = " << state[3] << endl;
+
+		mr_ep_2d_out << setw(outputFileWidth) << "state[k_up_t] = " << state[4] << endl;
+
+		mr_ep_2d_out << setw(outputFileWidth) << "state[k_up_n] = " << state[5] << endl;
 
 		// check for the stiffness after convergence is achieved
 		Stiffness(jump_u, state, sigma);
-		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-			<< setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0]
-			<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0]	<< endl;
 
-		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-			<< setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1]
-			<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1]	<< endl;
 
-		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-			<< setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2]
-			<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2]	<< endl;
 
-		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-			<< setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3]
-			<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3]	<< endl;
 
 		mr_ep_2d_out << setw(outputFileWidth) << "yield_f = **********" << "     "
 			<< setw(outputFileWidth) << "norm_R = **********"
