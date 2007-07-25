@@ -1,0 +1,29 @@
+%
+*VERBOSE
+1	# write extra to log file
+
+*outputformat
+5 # output file format
+
+*inputformat
+5 Ktest1.exo
+
+*boundary
+2 1 4
+
+*renumber
+2
+
+*blocktonodeset
+4
+
+*mapnodesets
+1 1 
+2 1 
+3 1 
+4 1
+
+*contact
+4
+
+*EOF

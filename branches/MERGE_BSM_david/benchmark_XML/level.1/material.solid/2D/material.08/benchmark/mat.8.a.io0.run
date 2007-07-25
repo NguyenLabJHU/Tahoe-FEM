@@ -1,0 +1,26 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 8
+ Labels:
+	D_X
+	D_Y
+	s11
+	s22
+	s12
+	alpha
+	VM
+	press
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 16
+ Number of elements. . . . . . . . . . . . . . . = 9
+
+ O U T P U T   D A T A :  T O C
+mat.8.a.io0.run.ps0000
+mat.8.a.io0.run.ps0001

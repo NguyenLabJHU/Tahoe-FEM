@@ -1,0 +1,32 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 5
+ Labels:
+	D_X
+	D_Y
+	s11
+	s22
+	s12
+ Number of element values. . . . . . . . . . . . = 2
+ Labels:
+	L_X
+	L_Y
+ Number of blocks. . . . . . . . . . . . . . . . = 3
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 15
+ Number of elements. . . . . . . . . . . . . . . = 8
+ Block ID. . . . . . . . . . . . . . . . . . . . = 2
+ Number of nodes . . . . . . . . . . . . . . . . = 9
+ Number of elements. . . . . . . . . . . . . . . = 4
+ Block ID. . . . . . . . . . . . . . . . . . . . = 3
+ Number of nodes . . . . . . . . . . . . . . . . = 9
+ Number of elements. . . . . . . . . . . . . . . = 4
+
+ O U T P U T   D A T A :  T O C
+3_grain.io0.run.ps0000
+3_grain.io0.run.ps0001

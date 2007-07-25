@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="./geometry/cube.0.geom" title="3D plain strain Q1/P0 test">
+    <time num_steps="2" output_inc="1" time_step="0.5">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <kinematic_BC dof="3" node_ID="2"/>
+            <mapped_nodes schedule="1">
+                <Matrix_3x3 A_1_1="1.0" A_2_2="1.0"/>
+                <mapped_node_ID_list>
+                    <String value="1"/>
+                </mapped_node_ID_list>
+            </mapped_nodes>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian_Q1P0 field_name="displacement">
+            <hexahedron/>
+            <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <Simo_isotropic density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    </Simo_isotropic>
+                </large_strain_material_3D>
+            </large_strain_element_block>
+        </updated_lagrangian_Q1P0>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+</tahoe>

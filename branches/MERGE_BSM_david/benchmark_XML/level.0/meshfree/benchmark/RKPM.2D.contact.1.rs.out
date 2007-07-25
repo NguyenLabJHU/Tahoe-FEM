@@ -1,0 +1,1196 @@
+
+ Input file version: v3.4.1
+
+ T i t l e : 2D finite deformation RKPM with contact to FE body
+
+ E x e c u t i o n   C o n t r o l   I n f o r m a t i o n :
+
+ Analysis code . . . . . . . . . . . . . . . . . = 7
+    eq. 1, linear elastostatic
+    eq. 2, linear elastodynamic
+    eq. 3, nonlinear elastostatic
+    eq. 4, nonlinear elastodynamic
+    eq. 5, dynamic relaxation
+    eq. 6, linear explicit dynamic
+    eq. 7, nonlinear explicit dynamic
+    eq. 30, perfectly matched layer (PML)
+    eq. 99, general multiple field problem
+ Input format. . . . . . . . . . . . . . . . . . = 1
+    eq.  0. Tahoe
+    eq.  1. Tahoe II
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq. 10. PATRAN Neutral
+    eq. 11. Tahoe Results (.geo/.run)
+ Geometry file . . . . . . . . . . . . . . . . . = ../geometry/square.1x2.a.geom
+ Output format . . . . . . . . . . . . . . . . . = 0
+    eq.  1. Tahoe II
+    eq.  2. TecPlot 7.5
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq.  8. AVS UCD ASCII
+    eq. 10. PATRAN Neutral
+    eq. 12. PARADYN
+ Read restart file code  . . . . . . . . . . . . = 1
+    eq. 0, do not read restart file
+    eq. 1, read restart file
+ Restart file. . . . . . . . . . . . . . . . . . = RKPM.2D.contact.1.rs50of100
+ Restart file increment (at current step size) . = 0
+ Input data print code . . . . . . . . . . . . . = 1
+    eq. 0, non verbose echo of input data
+    eq. 1, echo all input data
+ Number of solver groups . . . . . . . . . . . . = 1
+
+
+ T i m e   S e q u e n c e   D a t a :
+
+ Number of time sequences  . . . . . . . . . . . = 1
+
+ Sequence number . . . . . . . . . . . . . . . . = 1
+ Number of time steps. . . . . . . . . . . . . . = 50
+ Output print increment (< 0: current step size) = 25
+ Maximum number of load step cuts. . . . . . . . = 0
+ Time step . . . . . . . . . . . . . . . . . . . = 1.000000e-02
+
+
+ L o a d - T i m e   F u n c t i o n   D a t a :
+
+ Number of load-time functions . . . . . . . . . = 1
+ Loadtime function number. . . . . . . . . . . . = 1
+
+           time         factor
+   0.000000e+00   1.000000e+00
+
+
+ T i m e   I n t e g r a t o r s:
+
+ Explicit central-difference parameters: NONE
+
+ N o d a l   D a t a :
+
+ Number of nodal points. . . . . . . . . . . . . = 8
+ Number of spatial dimensions. . . . . . . . . . = 2
+    node gl.node    proc           x[1]           x[2]
+       1       1       0  -1.000000e+00   0.000000e+00
+       2       2       0   2.000000e+00   0.000000e+00
+       3       3       0  -1.000000e+00   1.000000e+00
+       4       4       0   2.000000e+00   1.000000e+00
+       5       5       0   0.000000e+00   1.000000e+00
+       6       6       0   1.000000e+00   1.000000e+00
+       7       7       0   0.000000e+00   2.000000e+00
+       8       8       0   1.000000e+00   2.000000e+00
+
+ Initial conditions:
+
+ Number of initial condition cards . . . . . . . = 0
+
+
+ Kinematic boundary conditions:
+
+ Number of node sets . . . . . . . . . . . . . . = 4
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 100
+ Number of cards . . . . . . . . . . . . . . . . = 2
+ Node Set Name . . . . . . . . . . . . . . . . . = 100
+ Number of cards . . . . . . . . . . . . . . . . = 2
+ Node Set Name . . . . . . . . . . . . . . . . . = 101
+ Number of cards . . . . . . . . . . . . . . . . = 2
+ Node Set Name . . . . . . . . . . . . . . . . . = 101
+ Number of cards . . . . . . . . . . . . . . . . = 2
+
+ Number of kinematic boundary condition cards. . = 8
+
+    node     dof    code     LTf          value
+       1       1       0       1   0.000000e+00
+       2       1       0       1   0.000000e+00
+       1       2       0       1   0.000000e+00
+       2       2       0       1   0.000000e+00
+       7       1       0       1   0.000000e+00
+       8       1       0       1   0.000000e+00
+       7       2       2       1  -1.000000e-01
+       8       2       2       1  -1.000000e-01
+
+ K i n e m a t i c   B C   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ Force boundary conditions:
+
+ Number of nodal force cards . . . . . . . . . . = 0
+
+
+ N o d a l   F o r c e   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ N o d a l   H i s t o r i e s :
+
+
+ E l e m e n t   G r o u p   D a t a :
+
+ Number of element groups. . . . . . . . . . . . = 3
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Element type code . . . . . . . . . . . . . . . = 3
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 68, Strict Anti-plane Shear gradient plasticity 
+    eq. 85, Meshfree gradient plasticity 
+    eq. 90, Enhanced strain embedded discontinuity 
+    eq. 70, Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 71, Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Associated field. . . . . . . . . . . . . . . . = "displacement"
+ Element geometry code . . . . . . . . . . . . . = 1
+    eq.-1, point
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+    eq.3, hexahedron
+    eq.4, tetrahedron
+ Number of integration points. . . . . . . . . . = 4
+ Mass type code. . . . . . . . . . . . . . . . . = 2
+    eq.0, no mass matrix
+    eq.1, consistent mass matrix
+    eq.2, lumped mass matrix
+ Strain-displacement option. . . . . . . . . . . = 0
+    eq.0, standard
+    eq.1, B-bar (mean dilatation)
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 1
+                   material number: 1
+                element block name: 1
+ Number of elements. . . . . . . . . . . . . . . = 1
+ Block dimensions:
+      ID    size
+       1       1
+
+     no.    mat.    n[1]    n[2]    n[3]    n[4]
+       1       1       1       2       4       3
+
+ Number of nodal output codes. . . . . . . . . . = 7
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal stresses
+    [0]: nodal principal stresses
+    [0]: nodal strain energy density
+    [0]: wave speeds
+    [0]: nodal material output parameters
+ Number of element output codes. . . . . . . . . = 7
+    [0]: reference centroid
+    [0]: ip mass
+    [0]: strain energy
+    [0]: kinetic energy
+    [0]: linear momentum
+    [0]: ip stresses and strains
+    [0]: ip material output parameters
+
+ Body force vector:
+ Body force load-time function number. . . . . . = 1
+ Body force vector components:
+   x[1] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+   x[2] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+
+ Traction boundary conditions:
+ Number of traction BC side sets . . . . . . . . = 0
+
+
+ Material Data:
+ Number of materials . . . . . . . . . . . . . . = 1
+
+ Material number . . . . . . . . . . . . . . . . = 1
+ Material name:
+    Large strain
+    Kirchhoff-St.Venant
+ Mass damping coefficient. . . . . . . . . . . . = 0.000000e+00
+ Stiffness damping coefficient . . . . . . . . . = 0.000000e+00
+ Density . . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ Dilatation LTf. . . . . . . . . . . . . . . . . = 0
+ Percent elongation. . . . . . . . . . . . . . . = 0.000000e+00
+ Young's modulus . . . . . . . . . . . . . . . . = 1.000000e+02
+ Poisson's ratio . . . . . . . . . . . . . . . . = 2.500000e-01
+ Shear modulus . . . . . . . . . . . . . . . . . = 4.000000e+01
+ Bulk modulus. . . . . . . . . . . . . . . . . . = 6.666667e+01
+ Lame modulus  . . . . . . . . . . . . . . . . . = 4.000000e+01
+ Thickness . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ 2D constraint option. . . . . . . . . . . . . . = 1
+    eq.1, plane stress
+    eq.2, plane strain
+
+ Group number. . . . . . . . . . . . . . . . . . = 2
+ Element type code . . . . . . . . . . . . . . . = 19
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 68, Strict Anti-plane Shear gradient plasticity 
+    eq. 85, Meshfree gradient plasticity 
+    eq. 90, Enhanced strain embedded discontinuity 
+    eq. 70, Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 71, Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Associated field. . . . . . . . . . . . . . . . = "displacement"
+ Element geometry code . . . . . . . . . . . . . = 1
+    eq.-1, point
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+    eq.3, hexahedron
+    eq.4, tetrahedron
+ Number of integration points. . . . . . . . . . = 16
+ Mass type code. . . . . . . . . . . . . . . . . = 2
+    eq.0, no mass matrix
+    eq.1, consistent mass matrix
+    eq.2, lumped mass matrix
+ Strain-displacement option. . . . . . . . . . . = 0
+    eq.0, standard
+    eq.1, B-bar (mean dilatation)
+ Auto selection/generation of border transition. = 0 (INACTIVE)
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 1
+                   material number: 1
+                element block name: 2
+ Number of elements. . . . . . . . . . . . . . . = 1
+ Block dimensions:
+      ID    size
+       2       1
+
+     no.    mat.    n[1]    n[2]    n[3]    n[4]
+       1       1       5       6       8       7
+
+
+ Meshfree support parameters:
+ Store shape functions . . . . . . . . . . . . . = TRUE
+ Meshfree formulation. . . . . . . . . . . . . . = 1
+    [0]: Element-free Galerkin (EFG)
+    [1]: Reproducing Kernel Particle Method (RPKM)
+ Order of completeness . . . . . . . . . . . . . = 1
+ Window function type. . . . . . . . . . . . . . = 0
+ Window function name. . . . . . . . . . . . . . = Gaussian
+ Window function parameters:
+ Dilation scaling factor . . . . . . . . . . . . = 1.500000e+00
+ Window function sharpening factor . . . . . . . = 4.000000e-01
+ Neighbor cutoff factor. . . . . . . . . . . . . = 2.000000e+00
+
+ Number of nodal output codes. . . . . . . . . . = 7
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal stresses
+    [0]: nodal principal stresses
+    [0]: nodal strain energy density
+    [0]: wave speeds
+    [0]: nodal material output parameters
+ Number of element output codes. . . . . . . . . = 7
+    [0]: reference centroid
+    [0]: ip mass
+    [0]: strain energy
+    [0]: kinetic energy
+    [0]: linear momentum
+    [0]: ip stresses and strains
+    [0]: ip material output parameters
+
+ Body force vector:
+ Body force load-time function number. . . . . . = 0
+ Body force vector components:
+   x[1] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+   x[2] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+
+ Traction boundary conditions:
+ Number of traction BC side sets . . . . . . . . = 0
+
+
+ Material Data:
+ Number of materials . . . . . . . . . . . . . . = 1
+
+ Material number . . . . . . . . . . . . . . . . = 1
+ Material name:
+    Large strain
+    Kirchhoff-St.Venant
+ Mass damping coefficient. . . . . . . . . . . . = 0.000000e+00
+ Stiffness damping coefficient . . . . . . . . . = 0.000000e+00
+ Density . . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ Dilatation LTf. . . . . . . . . . . . . . . . . = 0
+ Percent elongation. . . . . . . . . . . . . . . = 0.000000e+00
+ Young's modulus . . . . . . . . . . . . . . . . = 1.000000e+02
+ Poisson's ratio . . . . . . . . . . . . . . . . = 2.500000e-01
+ Shear modulus . . . . . . . . . . . . . . . . . = 4.000000e+01
+ Bulk modulus. . . . . . . . . . . . . . . . . . = 6.666667e+01
+ Lame modulus  . . . . . . . . . . . . . . . . . = 4.000000e+01
+ Thickness . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ 2D constraint option. . . . . . . . . . . . . . = 1
+    eq.1, plane stress
+    eq.2, plane strain
+
+ Number of nodes off the integration grid. . . . = 0
+ Number of interpolant shape function nodes. . . = 0
+ Number of pure EFG shape function nodes . . . . = 0
+ Final number of interpolant nodes . . . . . . . = 0
+ Number of cutting facets. . . . . . . . . . . . = 0
+ Number of sampling surfaces . . . . . . . . . . = 0
+
+ MLS shape function data:
+ Minimum number of nodal neighbors . . . . . . . = 4
+ Maximum number of nodal neighbors . . . . . . . = 4
+ Average number of nodal neighbors . . . . . . . = 4
+ Nodal neighbor number distribution:
+  number   count
+       0       4
+       1       0
+       2       0
+       3       0
+       4       4
+ Support size distribution:
+            min            max            avg
+   1.428356e+00   1.428356e+00   7.141778e-01
+
+ MLS storage requirements:
+ Total number of nodal neighbors . . . . . . . . = 16
+ Nodal shape function storage. . . . . . . . . . = 128 bytes
+ Nodal shape function derivatives storage. . . . = 256 bytes
+ Total number of integration point neighbors . . = 4
+ i.p. shape function storage . . . . . . . . . . = 512 bytes
+ i.p. shape function derivatives storage . . . . = 1024 bytes
+
+ Search grid statistics:
+ Number of grid cells. . . . . . . . . . . . . . = 4
+     dx = 5.001000e-01 (2)
+     dy = 5.001000e-01 (2)
+ Number of NULL or empty cells . . . . . . . . . = 0
+ Minimum number of occupants per cell. . . . . . = 1
+ Maximum number of occupants per cell. . . . . . = 1
+ Average number of occupants per cell. . . . . . = 1
+
+ Group number. . . . . . . . . . . . . . . . . . = 3
+ Element type code . . . . . . . . . . . . . . . = 115
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 68, Strict Anti-plane Shear gradient plasticity 
+    eq. 85, Meshfree gradient plasticity 
+    eq. 90, Enhanced strain embedded discontinuity 
+    eq. 70, Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 71, Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Number of facet nodes . . . . . . . . . . . . . = 2
+ Regularization parameter. . . . . . . . . . . . = 2.000000e+02
+ Meshfree element group. . . . . . . . . . . . . = 2
+ Number of contact surfaces. . . . . . . . . . . = 1
+ Side Set Name . . . . . . . . . . . . . . . . . = 1
+ Side Set Index. . . . . . . . . . . . . . . . . = 0
+ Side Set Element Group Name . . . . . . . . . . = 1
+ Side Set Length . . . . . . . . . . . . . . . . = 4
+ Contact surfaces:
+ surface  facets    size
+       1       4       2
+
+       1       1       2
+       2       2       4
+       3       4       3
+       4       3       1
+
+
+ Striker meshfree nodes: ALL
+
+ Striker nodes:
+       5       6       7       8
+
+ Search grid: group 3
+
+ Search grid statistics:
+ Number of grid cells. . . . . . . . . . . . . . = 4
+     dx = 5.001000e-01 (2)
+     dy = 5.001000e-01 (2)
+ Number of NULL or empty cells . . . . . . . . . = 4
+ Minimum number of occupants per cell. . . . . . = -1
+ Maximum number of occupants per cell. . . . . . = 0
+ Average number of occupants per cell. . . . . . = 0
+
+            time: 0.000000e+00
+ previous active: 0
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ S o l v e r   p a r a m e t e r s:
+
+ Group . . . . . . . . . . . . . . . . . . . . . = 0
+ Global equation type. . . . . . . . . . . . . . = 0
+    eq. 0, diagonal matrix
+    eq. 1, profile solver (symmetric and nonsymmetric)
+    eq. 2, full matrix (most general)
+    eq. 3, NOT AVAILABLE
+    eq. 4, NOT AVAILABLE
+    eq. 5, sparse matrix with direct solver: SPOOLES
+ Output global equation numbers. . . . . . . . . = 0
+ Check code. . . . . . . . . . . . . . . . . . . = 0
+    eq. 0, no check
+    eq. 1, print zero/negative pivots
+    eq. 2, print all pivots
+    eq. 3, print LHS matrix
+    eq. 4, print RHS vector
+    eq. 5, print vector
+    eq. 6, check LHS matrix
+
+ Multi-solver parameters: 1
+    rank   group       loop its.       pass its.
+       1       0              -1              -1
+ Maximum number of solver loops. . . . . . . . . = 1
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+ T i m e   S e q u e n c e : 1
+
+
+ Contact tracking: group 3
+ Time                           = 5.000000e-01
+ Active strikers                = 2
+ striker surface   facet     facet nodes          force
+       5       1       3       4       3   0.000000e+00
+       6       1       3       4       3   0.000000e+00
+
+ Number of contact interactions = --
+ Maximum penetration depth      = --
+
+            time: 5.000000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 5.100000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 5.200000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 5.300000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 5.400000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 5.500000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 5.600000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 5.700000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 5.800000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 5.900000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.000000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.100000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.200000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.300000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.400000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.500000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.600000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.700000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.800000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 6.900000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 7.000000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 7.100000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 7.200000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 7.300000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 7.400000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+ Contact tracking: group 3
+ Time                           = 7.500000e-01
+ Active strikers                = 2
+ striker surface   facet     facet nodes          force
+       5       1       3       4       3   0.000000e+00
+       6       1       3       4       3   0.000000e+00
+
+ Number of contact interactions = 2
+ Maximum penetration depth      = -1.105475e-02
+
+            time: 7.500000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+ Time = 7.500000e-01
+ Step 25 of 50
+
+ time = 7.500000e-01
+ Crack path data:
+
+            time: 7.600000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 7.700000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 7.800000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 7.900000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.000000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.100000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.200000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.300000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.400000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.500000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.600000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.700000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.800000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 8.900000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.000000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.100000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.200000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.300000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.400000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.500000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.600000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.700000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.800000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+            time: 9.900000e-01
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+ Contact tracking: group 3
+ Time                           = 1.000000e+00
+ Active strikers                = 2
+ striker surface   facet     facet nodes          force
+       5       1       3       4       3   0.000000e+00
+       6       1       3       4       3   0.000000e+00
+
+ Number of contact interactions = 2
+ Maximum penetration depth      = -1.529128e-02
+
+            time: 1.000000e+00
+ previous active: 2
+  current active: 2
+    node surface    face
+       5       1       3
+       6       1       3
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 8
+ Total number of equations . . . . . . . . . . . = 8
+
+ Time = 1.000000e+00
+ Step 50 of 50
+
+ time = 1.000000e+00
+ Crack path data:
+
+   Start time: Fri Jun 25 19:49:23 2004
+ Construction: 2.000000e-02 sec.
+     Solution: 5.000000e-02 sec.
+    Stop time: Fri Jun 25 19:49:23 2004
+
+ End Execution
+

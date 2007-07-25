@@ -1,0 +1,21 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 2
+ Labels:
+	W
+	KE
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 1
+ Number of elements. . . . . . . . . . . . . . . = 1
+
+ O U T P U T   D A T A :  T O C
+explicit.1.restart.io1.run.ps0000
+explicit.1.restart.io1.run.ps0001
+explicit.1.restart.io1.run.ps0002

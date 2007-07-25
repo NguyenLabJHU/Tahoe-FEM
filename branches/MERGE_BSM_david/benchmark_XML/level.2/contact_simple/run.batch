@@ -1,0 +1,17 @@
+@
+# $Id: run.batch,v 1.4 2004-04-27 07:47:47 paklein Exp $
+3_grain.xml
+cubes.1.AL.xml
+cubes.1.xml
+cubes.2.AL.xml
+cubes.2.xml
+ring.AL.2.xml
+ring.AL.xml
+ring.penalty.xml
+sliding.2D.xml
+sliding.3D.xml
+sliding_drag.2D.xml
+sliding_drag.3D.xml
+squares.2.AL.xml
+squares.2.xml
+

@@ -1,0 +1,22 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 5
+ Labels:
+	D_X
+	D_Y
+	F_X
+	F_Y
+	h
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 14
+ Number of elements. . . . . . . . . . . . . . . = 14
+
+ O U T P U T   D A T A :  T O C
+sphere.roller.io1.run.ps0000

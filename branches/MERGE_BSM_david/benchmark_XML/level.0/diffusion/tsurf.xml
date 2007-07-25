@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" geometry_file="../geometry/square.1x2.geom">
+    <time num_steps="1" output_inc="1" time_step="2.0">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="temperature">
+            <dof_labels>
+                <String value="T"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="100" schedule="1" type="u" value="-1.0"/>
+            <kinematic_BC dof="1" node_ID="101" schedule="1" type="u" value="1.0"/>
+        </field>
+    </nodes>
+    <element_list>
+        <diffusion field_name="temperature">
+            <quadrilateral/>
+            <diffusion_element_nodal_output displacement="1" material_output="1"/>
+            <diffusion_element_block>
+                <block_ID_list>
+                    <String value="10"/>
+                </block_ID_list>
+                <diffusion_material>
+                    <linear_diffusion_material conductivity="1.0" density="1.0" specific_heat="1.0"/>
+                </diffusion_material>
+            </diffusion_element_block>
+        </diffusion>
+        <thermal_CSE field_name="temperature">
+            <line/>
+            <surface_element_nodal_output displacement_jump="1" displacements="1" material_output="1" traction="1"/>
+			<surface_element_element_output centroid='1' avg_traction='1'/>            
+			<thermal_CSE_element_block K_0="100.0" d_c="0.10">
+                <block_ID_list>
+                    <String value="11"/>
+                </block_ID_list>
+            </thermal_CSE_element_block>
+        </thermal_CSE>
+    </element_list>
+    <linear_solver><profile_matrix/></linear_solver>
+</tahoe>

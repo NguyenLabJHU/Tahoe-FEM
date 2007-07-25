@@ -1,0 +1,233 @@
+
+ Input file version: v3.4.1
+
+ T i t l e : Test of EAM Potential - Fixed BC - 3D
+
+ E x e c u t i o n   C o n t r o l   I n f o r m a t i o n :
+
+ Analysis code . . . . . . . . . . . . . . . . . = 99
+    eq. 1, linear elastostatic
+    eq. 2, linear elastodynamic
+    eq. 3, nonlinear elastostatic
+    eq. 4, nonlinear elastodynamic
+    eq. 5, dynamic relaxation
+    eq. 6, linear explicit dynamic
+    eq. 7, nonlinear explicit dynamic
+    eq. 30, perfectly matched layer (PML)
+    eq. 99, general multiple field problem
+ Input format. . . . . . . . . . . . . . . . . . = 1
+    eq.  0. Tahoe
+    eq.  1. Tahoe II
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq. 10. PATRAN Neutral
+    eq. 11. Tahoe Results (.geo/.run)
+ Geometry file . . . . . . . . . . . . . . . . . = bravais_eam/3D/fcc_Fix_3D.geom
+ Output format . . . . . . . . . . . . . . . . . = 1
+    eq.  1. Tahoe II
+    eq.  2. TecPlot 7.5
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq.  8. AVS UCD ASCII
+    eq. 10. PATRAN Neutral
+    eq. 12. PARADYN
+ Read restart file code  . . . . . . . . . . . . = 0
+    eq. 0, do not read restart file
+    eq. 1, read restart file
+ Restart file increment (at current step size) . = 0
+ Input data print code . . . . . . . . . . . . . = 0
+    eq. 0, non verbose echo of input data
+    eq. 1, echo all input data
+ Number of solver groups . . . . . . . . . . . . = 1
+
+
+ T i m e   S e q u e n c e   D a t a :
+
+ Number of time sequences  . . . . . . . . . . . = 1
+
+ Sequence number . . . . . . . . . . . . . . . . = 1
+ Number of time steps. . . . . . . . . . . . . . = 1
+ Output print increment (< 0: current step size) = 1
+ Maximum number of load step cuts. . . . . . . . = 5
+ Time step . . . . . . . . . . . . . . . . . . . = 1.000000e-03
+
+
+ L o a d - T i m e   F u n c t i o n   D a t a :
+
+ Number of load-time functions . . . . . . . . . = 1
+ Loadtime function number. . . . . . . . . . . . = 1
+
+           time         factor
+   0.000000e+00   0.000000e+00
+   1.000000e+00   1.000000e+00
+
+
+ T i m e   I n t e g r a t o r s:
+
+ Gear6 parameters: NONE
+
+ N o d a l   D a t a :
+
+ Number of nodal points. . . . . . . . . . . . . = 864
+ Number of spatial dimensions. . . . . . . . . . = 3
+
+ F i e l d : "displacement"
+
+ Number of degrees of freedom. . . . . . . . . . = 3
+	D_X
+	D_Y
+	D_Z
+ Number of time derivatives. . . . . . . . . . . = 5
+ Group number. . . . . . . . . . . . . . . . . . = 0
+
+ Initial conditions:
+
+ Number of initial condition cards . . . . . . . = 0
+
+
+ Kinematic boundary conditions:
+
+
+ Number of kinematic boundary condition cards. . = 0
+
+
+ K i n e m a t i c   B C   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ Force boundary conditions:
+
+ Number of nodal force cards . . . . . . . . . . = 0
+
+
+ N o d a l   F o r c e   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ N o d a l   H i s t o r i e s :
+
+
+ E l e m e n t   G r o u p   D a t a :
+
+ Number of element groups. . . . . . . . . . . . = 1
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Element type code . . . . . . . . . . . . . . . = 39
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 68, Strict Anti-plane Shear gradient plasticity 
+    eq. 70, Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 71, Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Neighbor cut-off distance . . . . . . . . . . . = 5.000000e+00
+ Re-neighboring displacement trigger . . . . . . = 1.000000e+00
+ Re-neighboring interval . . . . . . . . . . . . = -1
+ Periodic boundary conditions:
+     dir            min            max
+       1              -              -
+       2              -              -
+       3              -              -
+
+ Particle properties:
+
+ Number of properties. . . . . . . . . . . . . . = 1
+ Property: 1
+Paradyn: Ni function (universal 3)
+ Atomic number . . . . . . . . . . . . . . . . . = 28
+ Lattice parameter . . . . . . . . . . . . . . . = 3.520000e+00
+ Lattice structure . . . . . . . . . . . . . . . = FCC
+ Cut-off distance. . . . . . . . . . . . . . . . = 4.800000e+00
+ # intervals in the electron density table . . . = 500
+ # intervals in the potential table. . . . . . . = 500
+ Interval size . . . . . . . . . . . . . . . . . = 9.696970e-03
+
+ Neighbor statistics:
+ Total number of neighbors . . . . . . . . . . . = 18240
+ Minimum number of neighbors . . . . . . . . . . = 1
+ Maximum number of neighbors . . . . . . . . . . = 28
+ Average number of neighbors . . . . . . . . . . = 2.111111e+01
+
+ S o l v e r   p a r a m e t e r s:
+
+ Group . . . . . . . . . . . . . . . . . . . . . = 0
+ Global equation type. . . . . . . . . . . . . . = 0
+    eq. 0, diagonal matrix
+    eq. 1, profile solver (symmetric and nonsymmetric)
+    eq. 2, full matrix (most general)
+    eq. 3, NOT AVAILABLE
+    eq. 4, NOT AVAILABLE
+    eq. 5, NOT AVAILABLE
+ Output global equation numbers. . . . . . . . . = 0
+ Check code. . . . . . . . . . . . . . . . . . . = 0
+    eq. 0, no check
+    eq. 1, print zero/negative pivots
+    eq. 2, print all pivots
+    eq. 3, print LHS matrix
+    eq. 4, print RHS vector
+    eq. 5, print vector
+    eq. 6, check LHS matrix
+
+ Multi-solver parameters: 1
+    rank   group       loop its.       pass its.
+       1       0              -1              -1
+ Maximum number of solver loops. . . . . . . . . = 1
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 2592
+ Total number of equations . . . . . . . . . . . = 2592
+
+ T i m e   S e q u e n c e : 1
+
+
+ Time = 1.000000e-03
+ Step 1 of 1
+
+ Maximum displacement since last re-neighboring. = 1.177482e-04
+ Periodic bounds:
+1: {0.000000e+00, 0.000000e+00}
+2: {0.000000e+00, 0.000000e+00}
+3: {0.000000e+00, 0.000000e+00}
+
+   Start time: Tue Mar 30 14:36:58 2004
+ Construction: 3.000000e-01 sec.
+     Solution: 8.700000e-01 sec.
+    Stop time: Tue Mar 30 14:37:00 2004
+
+ End Execution
+
