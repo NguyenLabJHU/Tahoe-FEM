@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/CSE.1.geom" title="2D cohesive element test">
+    <time num_steps="100" output_inc="10" time_step="0.1">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="10.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="2" node_ID="1" schedule="1" type="u" value="-0.05"/>
+            <kinematic_BC dof="2" node_ID="2" schedule="1" type="u" value="0.05"/>
+            <kinematic_BC dof="1" node_ID="3"/>
+            <kinematic_BC dof="1" node_ID="4"/>
+        </field>
+    </nodes>
+    <element_list>
+        <small_strain field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1" stress="1"/>
+            <small_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <small_strain_material_2D>
+                    <small_strain_StVenant_2D density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    </small_strain_StVenant_2D>
+                </small_strain_material_2D>
+            </small_strain_element_block>
+        </small_strain>
+        <anisotropic_CSE field_name="displacement">
+            <line/>
+            <surface_element_nodal_output displacement_jump="1" displacements="1" material_output="1" traction="1"/>
+            <anisotropic_CSE_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <cohesive_relation_2D>
+                    <Tijssens_2D A_0="1.0" B_0="1.0" Delta_0="0.001" Delta_n_ccr="0.005" Q_A="1.0" Q_B="1.0" a_star="1.0" bulk_element_group="1" c_1="50.0" failure_decay_steps="15" k_n="50.0" k_t0="100.0" sigma_c="1.0" temperature="5.0"/>
+                </cohesive_relation_2D>
+            </anisotropic_CSE_element_block>
+        </anisotropic_CSE>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+</tahoe>

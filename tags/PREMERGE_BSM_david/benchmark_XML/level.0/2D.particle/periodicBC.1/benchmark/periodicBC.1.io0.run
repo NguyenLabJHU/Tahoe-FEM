@@ -1,0 +1,49 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 13
+ Labels:
+	D_X
+	D_Y
+	PE
+	KE
+	s11
+	s22
+	s12
+	e11
+	e12
+	e22
+	SV_X
+	SV_Y
+	CS
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodes . . . . . . . . . . . . . . . . = 5
+ Number of elements. . . . . . . . . . . . . . . = 5
+
+ O U T P U T   D A T A :  T O C
+periodicBC.1.io0.run.ps0000
+periodicBC.1.io0.run.ps0001
+periodicBC.1.io0.run.ps0002
+periodicBC.1.io0.run.ps0003
+periodicBC.1.io0.run.ps0004
+periodicBC.1.io0.run.ps0005
+periodicBC.1.io0.run.ps0006
+periodicBC.1.io0.run.ps0007
+periodicBC.1.io0.run.ps0008
+periodicBC.1.io0.run.ps0009
+periodicBC.1.io0.run.ps0010
+periodicBC.1.io0.run.ps0011
+periodicBC.1.io0.run.ps0012
+periodicBC.1.io0.run.ps0013
+periodicBC.1.io0.run.ps0014
+periodicBC.1.io0.run.ps0015
+periodicBC.1.io0.run.ps0016
+periodicBC.1.io0.run.ps0017
+periodicBC.1.io0.run.ps0018
+periodicBC.1.io0.run.ps0019

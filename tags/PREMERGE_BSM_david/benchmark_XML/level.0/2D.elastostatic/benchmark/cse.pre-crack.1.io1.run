@@ -1,0 +1,21 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 2
+ Labels:
+	T_t
+	T_n
+ Number of element values. . . . . . . . . . . . = 1
+ Labels:
+	phi
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 2
+ Number of nodes . . . . . . . . . . . . . . . . = 8
+ Number of elements. . . . . . . . . . . . . . . = 3
+
+ O U T P U T   D A T A :  T O C
+cse.pre-crack.1.io1.run.ps0000

@@ -1,0 +1,27 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 1
+ Labels:
+	T
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 21
+ Number of elements. . . . . . . . . . . . . . . = 4
+
+ O U T P U T   D A T A :  T O C
+heat.hyper.1.io0.run.ps0000
+heat.hyper.1.io0.run.ps0001
+heat.hyper.1.io0.run.ps0002
+heat.hyper.1.io0.run.ps0003
+heat.hyper.1.io0.run.ps0004
+heat.hyper.1.io0.run.ps0005
+heat.hyper.1.io0.run.ps0006
+heat.hyper.1.io0.run.ps0007
+heat.hyper.1.io0.run.ps0008
+heat.hyper.1.io0.run.ps0009

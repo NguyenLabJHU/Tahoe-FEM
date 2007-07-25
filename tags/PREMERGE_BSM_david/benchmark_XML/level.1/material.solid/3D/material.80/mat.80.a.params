@@ -1,0 +1,44 @@
+*****************************************
+*MATERIAL, NAME=6061
+**
+** 6061 parameters from J.W. Foulk
+** units: MKS
+**
+*USER MATERIAL, CONSTANTS=30
+**
+**  props(1) thru props(5) are constants for Johnson/Bammann
+**  formulas for shear and bulk moduli
+**  props(1) = mu zero         , props(2) = a
+**  props(3) = K zero          , props(4) = b
+**  props(5) = T melt          , props(6) = C1
+**  props(7) = C2              , props(8) = C3
+**  props(9) = C4              , props(10)= C5
+**  props(11)= C6              , props(12)= C7
+**  props(13)= C8              , props(14)= C9
+**  props(15)= C10             , props(16)= C11
+**  props(17)= C12             , props(18)= C13
+**  props(19)= C14             , props(20)= C15
+**  props(21)= C16             , props(22)= C17
+**  props(23)= C18             , props(24)= C19
+**  props(25)= C20             , props(26)= C21
+**  props(27)= initial temperature
+**  props(28)= heat generation coefficient
+**  props(29)= initial damage
+**  props(30)= damage growth exponent
+**
+**       G         a      Bulk         b  melttemp
+**      C1        C2        C3        C4        C5
+**      C6        C7        C8        C9       C10
+**     C11       C12       C13       C14       C15
+**     C16       C17       C18       C19       C20
+**     C21
+**  T_init  heat_gen  phi_init  dphi_exp
+ 2.592E+04 1.000E+00 6.763E+04 0.000E+00 5.556E+03 
+ 0.0000000 0.0000000 159.95836 161.66666 1.0000000
+ 0.0000000 1.9144982 694.44445 1027.3187 0.0000000
+ 0.0000000 0.0000000 0.0442365 855.55556 83.426559
+ 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+ 0.0000000
+ 297.00000 0.0000000 1.000e-04 8.0000000
+*DEPVAR
+11

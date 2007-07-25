@@ -1,0 +1,894 @@
+
+ Input file version: v3.4.1
+
+ T i t l e : thermal element
+
+ E x e c u t i o n   C o n t r o l   I n f o r m a t i o n :
+
+ Analysis code . . . . . . . . . . . . . . . . . = 99
+    eq. 1, linear elastostatic
+    eq. 2, linear elastodynamic
+    eq. 3, nonlinear elastostatic
+    eq. 4, nonlinear elastodynamic
+    eq. 5, dynamic relaxation
+    eq. 6, linear explicit dynamic
+    eq. 7, nonlinear explicit dynamic
+    eq. 30, perfectly matched layer (PML)
+    eq. 99, general multiple field problem
+ Input format. . . . . . . . . . . . . . . . . . = 1
+    eq.  0. Tahoe
+    eq.  1. Tahoe II
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq. 10. PATRAN Neutral
+    eq. 11. Tahoe Results (.geo/.run)
+ Geometry file . . . . . . . . . . . . . . . . . = ./geometry/square.1x10.geom
+ Output format . . . . . . . . . . . . . . . . . = 0
+    eq.  1. Tahoe II
+    eq.  2. TecPlot 7.5
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq.  8. AVS UCD ASCII
+ Read restart file code  . . . . . . . . . . . . = 0
+    eq. 0, do not read restart file
+    eq. 1, read restart file
+ Restart file increment (at current step size) . = 0
+ Input data print code . . . . . . . . . . . . . = 1
+    eq. 0, non verbose echo of input data
+    eq. 1, echo all input data
+ Number of solver groups . . . . . . . . . . . . = 2
+
+
+ T i m e   S e q u e n c e   D a t a :
+
+ Number of time sequences  . . . . . . . . . . . = 1
+
+ Sequence number . . . . . . . . . . . . . . . . = 1
+ Number of time steps. . . . . . . . . . . . . . = 75
+ Output print increment (< 0: current step size) = 25
+ Maximum number of load step cuts. . . . . . . . = 5
+ Time step . . . . . . . . . . . . . . . . . . . = 5.000000e-01
+
+
+ L o a d - T i m e   F u n c t i o n   D a t a :
+
+ Number of load-time functions . . . . . . . . . = 2
+ Loadtime function number. . . . . . . . . . . . = 1
+
+           time         factor
+   0.000000e+00   1.000000e+00
+
+ Loadtime function number. . . . . . . . . . . . = 2
+
+           time         factor
+   0.000000e+00   0.000000e+00
+   2.000000e+01   2.000000e+00
+
+
+ T i m e   I n t e g r a t o r s:
+
+ Static controller parameters: NONE
+
+ Trapezoid parameters: NONE
+
+ N o d a l   D a t a :
+
+ Number of nodal points. . . . . . . . . . . . . = 24
+ Number of spatial dimensions. . . . . . . . . . = 2
+    node           x[1]           x[2]
+       1   0.000000e+00   0.000000e+00
+       2   1.000000e+00   0.000000e+00
+       3   0.000000e+00   1.000000e+00
+       4   1.000000e+00   1.000000e+00
+       5   0.000000e+00   2.000000e+00
+       6   1.000000e+00   2.000000e+00
+       7   0.000000e+00   3.000000e+00
+       8   1.000000e+00   3.000000e+00
+       9   0.000000e+00   4.000000e+00
+      10   1.000000e+00   4.000000e+00
+      11   0.000000e+00   5.000000e+00
+      12   1.000000e+00   5.000000e+00
+      13   0.000000e+00  -5.000000e+00
+      14   1.000000e+00  -5.000000e+00
+      15   0.000000e+00  -4.000000e+00
+      16   1.000000e+00  -4.000000e+00
+      17   0.000000e+00  -3.000000e+00
+      18   1.000000e+00  -3.000000e+00
+      19   0.000000e+00  -2.000000e+00
+      20   1.000000e+00  -2.000000e+00
+      21   0.000000e+00  -1.000000e+00
+      22   1.000000e+00  -1.000000e+00
+      23   0.000000e+00   0.000000e+00
+      24   1.000000e+00   0.000000e+00
+
+
+ F i e l d : "displacement"
+
+ Number of degrees of freedom. . . . . . . . . . = 2
+	D_X
+	D_Y
+ Number of time derivatives. . . . . . . . . . . = 0
+ Group number. . . . . . . . . . . . . . . . . . = 0
+
+ Initial conditions:
+
+ Number of initial condition cards . . . . . . . = 0
+
+
+ Kinematic boundary conditions:
+
+ Number of node sets . . . . . . . . . . . . . . = 4
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 100
+ Number of cards . . . . . . . . . . . . . . . . = 2
+ Node Set Name . . . . . . . . . . . . . . . . . = 101
+ Number of cards . . . . . . . . . . . . . . . . = 2
+ Node Set Name . . . . . . . . . . . . . . . . . = 102
+ Number of cards . . . . . . . . . . . . . . . . = 12
+ Node Set Name . . . . . . . . . . . . . . . . . = 103
+ Number of cards . . . . . . . . . . . . . . . . = 12
+
+ Number of kinematic boundary condition cards. . = 28
+
+    node     dof    code     LTf          value
+      11       2       1       2   2.000000e-01
+      12       2       1       2   2.000000e-01
+      13       2       1       2  -2.000000e-01
+      14       2       1       2  -2.000000e-01
+       1       1       0       1   0.000000e+00
+       3       1       0       1   0.000000e+00
+       5       1       0       1   0.000000e+00
+       7       1       0       1   0.000000e+00
+       9       1       0       1   0.000000e+00
+      11       1       0       1   0.000000e+00
+      13       1       0       1   0.000000e+00
+      15       1       0       1   0.000000e+00
+      17       1       0       1   0.000000e+00
+      19       1       0       1   0.000000e+00
+      21       1       0       1   0.000000e+00
+      23       1       0       1   0.000000e+00
+       2       1       0       1   0.000000e+00
+       4       1       0       1   0.000000e+00
+       6       1       0       1   0.000000e+00
+       8       1       0       1   0.000000e+00
+      10       1       0       1   0.000000e+00
+      12       1       0       1   0.000000e+00
+      14       1       0       1   0.000000e+00
+      16       1       0       1   0.000000e+00
+      18       1       0       1   0.000000e+00
+      20       1       0       1   0.000000e+00
+      22       1       0       1   0.000000e+00
+      24       1       0       1   0.000000e+00
+
+ K i n e m a t i c   B C   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ Force boundary conditions:
+
+ Number of nodal force cards . . . . . . . . . . = 0
+
+
+ N o d a l   F o r c e   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ F i e l d : "temperature"
+
+ Number of degrees of freedom. . . . . . . . . . = 1
+	T
+ Number of time derivatives. . . . . . . . . . . = 1
+ Group number. . . . . . . . . . . . . . . . . . = 1
+
+ Initial conditions:
+
+ Number of initial condition cards . . . . . . . = 0
+
+
+ Kinematic boundary conditions:
+
+ Number of node sets . . . . . . . . . . . . . . = 1
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 100
+ Number of cards . . . . . . . . . . . . . . . . = 2
+
+ Number of kinematic boundary condition cards. . = 2
+
+    node     dof    code     LTf          value
+      11       1       1       1   0.000000e+00
+      12       1       1       1   0.000000e+00
+
+ K i n e m a t i c   B C   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ Force boundary conditions:
+
+ Number of nodal force cards . . . . . . . . . . = 0
+
+
+ N o d a l   F o r c e   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ N o d a l   H i s t o r i e s :
+
+
+ E l e m e n t   G r o u p   D a t a :
+
+ Number of element groups. . . . . . . . . . . . = 4
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Associated field. . . . . . . . . . . . . . . . = "temperature"
+ Element type code . . . . . . . . . . . . . . . = 21
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Variational Multi-Scale (VMS) Element 
+    eq. 32, Coarse Scale Element (for VMS) 
+    eq. 33, Fine Sclale Phenomenological Str. Grad
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+ Element geometry code . . . . . . . . . . . . . = 1
+    eq.-1, point
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+    eq.3, hexahedron
+    eq.4, tetrahedron
+ Number of integration points. . . . . . . . . . = 4
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 1
+                   material number: 1
+                element block name: 10
+ Number of elements. . . . . . . . . . . . . . . = 10
+     no.    mat.    n[1]    n[2]    n[3]    n[4]
+       1       1       1       2       4       3
+       2       1       3       4       6       5
+       3       1       5       6       8       7
+       4       1       7       8      10       9
+       5       1       9      10      12      11
+       6       1      13      14      16      15
+       7       1      15      16      18      17
+       8       1      17      18      20      19
+       9       1      19      20      22      21
+      10       1      21      22      24      23
+
+ Number of nodal output codes. . . . . . . . . . = 3
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal material output parameters
+
+ Body force vector:
+ Body force load-time function number. . . . . . = 0
+ Body force vector components:
+   x[1] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+
+ Traction boundary conditions:
+ Number of traction BC side sets . . . . . . . . = 0
+
+
+ Material Data:
+ Number of materials . . . . . . . . . . . . . . = 1
+
+ Material number . . . . . . . . . . . . . . . . = 1
+ Material name:
+    Linear diffusion material
+ Density . . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ Specific Heat . . . . . . . . . . . . . . . . . = 1.000000e+00
+ Conductivity:
+   5.000000e+00   0.000000e+00
+   0.000000e+00   5.000000e+00
+
+ Group number. . . . . . . . . . . . . . . . . . = 2
+ Associated field. . . . . . . . . . . . . . . . = "displacement"
+ Element type code . . . . . . . . . . . . . . . = 3
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Variational Multi-Scale (VMS) Element 
+    eq. 32, Coarse Scale Element (for VMS) 
+    eq. 33, Fine Sclale Phenomenological Str. Grad
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+ Element geometry code . . . . . . . . . . . . . = 1
+    eq.-1, point
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+    eq.3, hexahedron
+    eq.4, tetrahedron
+ Number of integration points. . . . . . . . . . = 4
+ Mass type code. . . . . . . . . . . . . . . . . = 1
+    eq.0, no mass matrix
+    eq.1, consistent mass matrix
+    eq.2, lumped mass matrix
+ Strain-displacement option. . . . . . . . . . . = 0
+    eq.0, standard
+    eq.1, B-bar (mean dilatation)
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 1
+                   material number: 1
+                element block name: 10
+ Number of elements. . . . . . . . . . . . . . . = 10
+     no.    mat.    n[1]    n[2]    n[3]    n[4]
+       1       1       1       2       4       3
+       2       1       3       4       6       5
+       3       1       5       6       8       7
+       4       1       7       8      10       9
+       5       1       9      10      12      11
+       6       1      13      14      16      15
+       7       1      15      16      18      17
+       8       1      17      18      20      19
+       9       1      19      20      22      21
+      10       1      21      22      24      23
+
+ Number of nodal output codes. . . . . . . . . . = 7
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal stresses
+    [0]: nodal principal stresses
+    [0]: nodal strain energy density
+    [0]: wave speeds
+    [0]: nodal material output parameters
+ Number of element output codes. . . . . . . . . = 7
+    [0]: reference centroid
+    [0]: ip mass
+    [0]: strain energy
+    [0]: kinetic energy
+    [0]: linear momentum
+    [0]: ip stresses
+    [0]: ip material output parameters
+
+ Body force vector:
+ Body force load-time function number. . . . . . = 0
+ Body force vector components:
+   x[1] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+   x[2] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+
+ Traction boundary conditions:
+ Number of traction BC side sets . . . . . . . . = 0
+
+
+ Material Data:
+ Number of materials . . . . . . . . . . . . . . = 1
+
+ Material number . . . . . . . . . . . . . . . . = 1
+ Material name:
+    Large strain
+    Kirchhoff-St.Venant
+ Mass damping coefficient. . . . . . . . . . . . = 0.000000e+00
+ Stiffness damping coefficient . . . . . . . . . = 0.000000e+00
+ Density . . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ Dilatation LTf. . . . . . . . . . . . . . . . . = 0
+ Percent elongation. . . . . . . . . . . . . . . = 0.000000e+00
+ Young's modulus . . . . . . . . . . . . . . . . = 1.000000e+02
+ Poisson's ratio . . . . . . . . . . . . . . . . = 2.500000e-01
+ Shear modulus . . . . . . . . . . . . . . . . . = 4.000000e+01
+ Bulk modulus. . . . . . . . . . . . . . . . . . = 6.666667e+01
+ Thickness . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ 2D constraint option. . . . . . . . . . . . . . = 1
+    eq.1, plane stress
+    eq.2, plane strain
+
+ Group number. . . . . . . . . . . . . . . . . . = 3
+ Associated field. . . . . . . . . . . . . . . . = "displacement"
+ Element type code . . . . . . . . . . . . . . . = 11
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Variational Multi-Scale (VMS) Element 
+    eq. 32, Coarse Scale Element (for VMS) 
+    eq. 33, Fine Sclale Phenomenological Str. Grad
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+ Cohesive surface formulation code . . . . . . . = 1
+    eq. 0, isotropic
+    eq. 1, anisotropic
+    eq. 2, fixed-frame anisotropic
+ Element geometry code . . . . . . . . . . . . . = 0
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+ Number of integration points. . . . . . . . . . = 2
+ Initial surface closure flag. . . . . . . . . . = 0
+ Output fracture surface area. . . . . . . . . . = 0
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 1
+                   material number: 1
+                element block name: 11
+ Number of elements. . . . . . . . . . . . . . . = 1
+     no.    mat.    n[1]    n[2]    n[3]    n[4]
+       1       1      23      24       2       1
+
+ Number of nodal output codes. . . . . . . . . . = 5
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal gap (magnitude)
+    [1]: nodal traction magnitude
+    [1]: constitutive output data
+ Number of element output codes. . . . . . . . . = 3
+    [0]: centroid
+    [0]: dissipated cohesive energy
+    [0]: average traction
+ Rotating local coordinate frame . . . . . . . . = ACTIVE
+
+ Cohesive surface potentials:
+ Number of potentials. . . . . . . . . . . . . . = 1
+
+ Potential number. . . . . . . . . . . . . . . . = 1
+ Potential name:
+    Tvergaard-Hutchinson 2D with viscous damping
+ Cohesive stress . . . . . . . . . . . . . . . . = 5.000000e+00
+ Normal opening to failure . . . . . . . . . . . = 5.000000e-01
+ Tangential opening to failure . . . . . . . . . = 5.000000e-01
+ Non-dimensional opening to peak traction. . . . = 2.000000e-01
+ Non-dimensional opening to declining traction . = 2.000000e-01
+ Non-dimensional opening to failure. . . . . . . = 1.010000e+00
+ Damping parameter . . . . . . . . . . . . . . . = 0.000000e+00
+ Penetration stiffness multiplier. . . . . . . . = 1.000000e+01
+
+ Group number. . . . . . . . . . . . . . . . . . = 4
+ Associated field. . . . . . . . . . . . . . . . = "temperature"
+ Element type code . . . . . . . . . . . . . . . = 12
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Variational Multi-Scale (VMS) Element 
+    eq. 32, Coarse Scale Element (for VMS) 
+    eq. 33, Fine Sclale Phenomenological Str. Grad
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+ Element geometry code . . . . . . . . . . . . . = 0
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+ Number of integration points. . . . . . . . . . = 2
+ Initial surface closure flag. . . . . . . . . . = 0
+ Output fracture surface area. . . . . . . . . . = 0
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 1
+                   material number: 1
+                element block name: 11
+ Number of elements. . . . . . . . . . . . . . . = 1
+     no.    mat.    n[1]    n[2]    n[3]    n[4]
+       1       1      23      24       2       1
+
+ Number of nodal output codes. . . . . . . . . . = 5
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal gap (magnitude)
+    [1]: nodal traction magnitude
+    [1]: constitutive output data
+ Number of element output codes. . . . . . . . . = 3
+    [0]: centroid
+    [0]: dissipated cohesive energy
+    [0]: average traction
+
+ Surface conduction:
+     set            K_0            d_c
+       1   1.000000e+02   5.000000e-01
+
+ S o l v e r   p a r a m e t e r s:
+
+ Group . . . . . . . . . . . . . . . . . . . . . = 0
+ Global equation type. . . . . . . . . . . . . . = 0
+    eq. 0, diagonal matrix
+    eq. 1, profile solver (symmetric and nonsymmetric)
+    eq. 2, full matrix (most general)
+    eq. 3, Aztec-based, sparse matrix with iterative solvers
+    eq. 4, NOT AVAILABLE
+    eq. 5, sparse matrix with direct solver: SPOOLES
+ Output global equation numbers. . . . . . . . . = 0
+ Check code. . . . . . . . . . . . . . . . . . . = 0
+    eq. 0, do not perform rank check
+    eq. 1, zero/negative pivots
+    eq. 2, all pivots
+    eq. 3, entire LHS matrix
+    eq. 4, entire RHS vector
+    eq. 5, solution vector
+
+ O p t i m i z a t i o n   P a r a m e t e r s :
+
+ Maximum number of iterations. . . . . . . . . . = 300
+ Absolute convergence tolerance. . . . . . . . . = 1.000000e-12
+ Relative convergence tolerance. . . . . . . . . = 1.000000e-12
+ Divergence tolerance. . . . . . . . . . . . . . = 1.000000e+01
+ Quick solution iteration count. (-1 to disable) = 100
+ Number of quick solutions before step increase. = 3
+ Iteration output print increment. . . . . . . . = 0
+ CG restart count. . . . . . . . . . . . . . . . = 50
+ Maximum number of line search iterations. . . . = 10
+ Line search orthoginality tolerance . . . . . . = 1.000000e-01
+ Maximum update step size. . . . . . . . . . . . = 2.500000e+00
+
+ S o l v e r   p a r a m e t e r s:
+
+ Group . . . . . . . . . . . . . . . . . . . . . = 1
+ Global equation type. . . . . . . . . . . . . . = 1
+    eq. 0, diagonal matrix
+    eq. 1, profile solver (symmetric and nonsymmetric)
+    eq. 2, full matrix (most general)
+    eq. 3, Aztec-based, sparse matrix with iterative solvers
+    eq. 4, NOT AVAILABLE
+    eq. 5, sparse matrix with direct solver: SPOOLES
+ Output global equation numbers. . . . . . . . . = 0
+ Check code. . . . . . . . . . . . . . . . . . . = 0
+    eq. 0, do not perform rank check
+    eq. 1, zero/negative pivots
+    eq. 2, all pivots
+    eq. 3, entire LHS matrix
+    eq. 4, entire RHS vector
+    eq. 5, solution vector
+
+ O p t i m i z a t i o n   P a r a m e t e r s :
+
+ Maximum number of iterations. . . . . . . . . . = 10
+ Absolute convergence tolerance. . . . . . . . . = 1.000000e-10
+ Relative convergence tolerance. . . . . . . . . = 1.000000e-12
+ Divergence tolerance. . . . . . . . . . . . . . = 1.000000e+01
+ Quick solution iteration count. (-1 to disable) = 6
+ Number of quick solutions before step increase. = 3
+ Iteration output print increment. . . . . . . . = 0
+
+ Multi-solver parameters: 2
+    rank   group       loop its.       pass its.
+       1       0              50               0
+       2       1               2               0
+ Maximum number of solver loops. . . . . . . . . = 10
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 20
+ Total number of equations . . . . . . . . . . . = 20
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 22
+ Total number of equations . . . . . . . . . . . = 22
+ Number of terms in global matrix. . . . . . . . = 136
+ Mean half bandwidth . . . . . . . . . . . . . . = 7
+ Bandwidth . . . . . . . . . . . . . . . . . . . = 10
+ Storage efficiency (% non-zero) . . . . . . . . = 9.117647e+01
+
+
+ T i m e   S e q u e n c e : 1
+
+
+ Converged at time = 5.000000e-01
+
+ Converged at time = 5.000000e-01
+
+ Converged at time = 5.000000e-01
+
+ Converged at time = 1.000000e+00
+
+ Converged at time = 1.000000e+00
+
+ Converged at time = 1.500000e+00
+
+ Converged at time = 1.500000e+00
+
+ Converged at time = 2.000000e+00
+
+ Converged at time = 2.000000e+00
+
+ Converged at time = 2.000000e+00
+
+ Converged at time = 2.500000e+00
+
+ Converged at time = 2.500000e+00
+
+ Converged at time = 3.000000e+00
+
+ Converged at time = 3.000000e+00
+
+ Converged at time = 3.500000e+00
+
+ Converged at time = 3.500000e+00
+
+ Converged at time = 4.000000e+00
+
+ Converged at time = 4.000000e+00
+
+ Converged at time = 4.500000e+00
+
+ Converged at time = 4.500000e+00
+
+ Converged at time = 4.500000e+00
+
+ Converged at time = 5.000000e+00
+
+ Converged at time = 5.000000e+00
+
+ Converged at time = 5.500000e+00
+
+ Converged at time = 5.500000e+00
+
+ Converged at time = 6.000000e+00
+
+ Converged at time = 6.000000e+00
+
+ Converged at time = 6.500000e+00
+
+ Converged at time = 6.500000e+00
+
+ Converged at time = 7.000000e+00
+
+ Converged at time = 7.000000e+00
+
+ Converged at time = 7.500000e+00
+
+ Converged at time = 7.500000e+00
+
+ Converged at time = 8.000000e+00
+
+ Converged at time = 8.000000e+00
+
+ Converged at time = 8.500000e+00
+
+ Converged at time = 8.500000e+00
+
+ Converged at time = 9.000000e+00
+
+ Converged at time = 9.000000e+00
+
+ Converged at time = 9.000000e+00
+
+ Converged at time = 9.500000e+00
+
+ Converged at time = 9.500000e+00
+
+ Converged at time = 9.500000e+00
+
+ Converged at time = 1.000000e+01
+
+ Converged at time = 1.000000e+01
+
+ Converged at time = 1.050000e+01
+
+ Converged at time = 1.050000e+01
+
+ Converged at time = 1.100000e+01
+
+ Converged at time = 1.100000e+01
+
+ Converged at time = 1.150000e+01
+
+ Converged at time = 1.150000e+01
+
+ Converged at time = 1.200000e+01
+
+ Converged at time = 1.200000e+01
+
+ Converged at time = 1.250000e+01
+
+ Converged at time = 1.250000e+01
+
+ Converged at time = 1.250000e+01
+
+ Converged at time = 1.300000e+01
+
+ Converged at time = 1.300000e+01
+
+ Converged at time = 1.300000e+01
+
+ Converged at time = 1.350000e+01
+
+ Converged at time = 1.350000e+01
+
+ Converged at time = 1.400000e+01
+
+ Converged at time = 1.400000e+01
+
+ Converged at time = 1.450000e+01
+
+ Converged at time = 1.450000e+01
+
+ Converged at time = 1.500000e+01
+
+ Converged at time = 1.500000e+01
+
+ Converged at time = 1.550000e+01
+
+ Converged at time = 1.550000e+01
+
+ Converged at time = 1.600000e+01
+
+ Converged at time = 1.600000e+01
+
+ Converged at time = 1.650000e+01
+
+ Converged at time = 1.650000e+01
+
+ Converged at time = 1.700000e+01
+
+ Converged at time = 1.700000e+01
+
+ Converged at time = 1.750000e+01
+
+ Converged at time = 1.750000e+01
+
+ Converged at time = 1.800000e+01
+
+ Converged at time = 1.800000e+01
+
+ Converged at time = 1.850000e+01
+
+ Converged at time = 1.850000e+01
+
+ Converged at time = 1.900000e+01
+
+ Converged at time = 1.900000e+01
+
+ Converged at time = 1.950000e+01
+
+ Converged at time = 1.950000e+01
+
+ Converged at time = 2.000000e+01
+
+ Converged at time = 2.000000e+01
+
+ Converged at time = 2.050000e+01
+
+ Converged at time = 2.100000e+01
+
+ Converged at time = 2.150000e+01
+
+ Converged at time = 2.200000e+01
+
+ Converged at time = 2.250000e+01
+
+ Converged at time = 2.300000e+01
+
+ Converged at time = 2.350000e+01
+
+ Converged at time = 2.400000e+01
+
+ Converged at time = 2.450000e+01
+
+ Converged at time = 2.500000e+01
+
+ Converged at time = 2.550000e+01
+
+ Converged at time = 2.600000e+01
+
+ Converged at time = 2.650000e+01
+
+ Converged at time = 2.700000e+01
+
+ Converged at time = 2.750000e+01
+
+ Converged at time = 2.800000e+01
+
+ Converged at time = 2.850000e+01
+
+ Converged at time = 2.900000e+01
+
+ Converged at time = 2.950000e+01
+
+ Converged at time = 3.000000e+01
+
+ Converged at time = 3.050000e+01
+
+ Converged at time = 3.100000e+01
+
+ Converged at time = 3.150000e+01
+
+ Converged at time = 3.200000e+01
+
+ Converged at time = 3.250000e+01
+
+ Converged at time = 3.300000e+01
+
+ Converged at time = 3.350000e+01
+
+ Converged at time = 3.400000e+01
+
+ Converged at time = 3.450000e+01
+
+ Converged at time = 3.500000e+01
+
+ Converged at time = 3.550000e+01
+
+ Converged at time = 3.600000e+01
+
+ Converged at time = 3.650000e+01
+
+ Converged at time = 3.700000e+01
+
+ Converged at time = 3.750000e+01
+
+   Start time: Fri Jun  7 20:28:12 2002
+ Construction: 1.000000e-02 sec.
+     Solution: 1.770000e+00 sec.
+    Stop time: Fri Jun  7 20:28:26 2002
+
+ End Execution
+

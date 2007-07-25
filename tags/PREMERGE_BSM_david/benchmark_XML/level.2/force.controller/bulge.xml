@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe geometry_file="../geometry/bulge.geom"
+    title="pressure induced bulging of a thick plate" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="2" num_steps="1" output_inc="1" time_step="0.1">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="20" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="20" type="fixed"/>
+            <kinematic_BC dof="3" node_ID="20" type="fixed"/>
+            <pressure_bc schedule="1" schedule_scale="0.1">
+                <side_set_ID_list>
+                    <String value="10"/>
+                </side_set_ID_list>
+            </pressure_bc>
+        </field>
+        <history_node_ID_list>
+            <String name="bottom" value="20"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <updated_lagrangian_Q1P0 field_name="displacement">
+            <hexahedron/>
+            <solid_element_nodal_output coordinates="1"
+                displacements="1" principal_stress="1"
+                strain_energy_density="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <large_strain_StVenant density="1.0">
+                        <E_and_nu Poisson_ratio="0.4" Young_modulus="1.0"/>
+                    </large_strain_StVenant>
+                </large_strain_material_3D>
+            </large_strain_element_block>
+        </updated_lagrangian_Q1P0>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+03" max_iterations="15" rel_tolerance="1.0e-12">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

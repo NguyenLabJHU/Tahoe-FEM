@@ -1,0 +1,16 @@
+@
+# $Id: run.batch,v 1.7 2006-11-20 17:28:40 r-jones Exp $
+AL.indent2D.0.xml
+AL.wall2D.0.xml
+AL.wall2D.1.xml
+cylinder.0.xml
+cylinder.AL.0.xml
+cylinder.AL.1.xml
+indent2D.0.xml
+wall2D.0.xml
+sphere.roller.xml
+sphere.AL.roller.xml
+particle.xml
+bulge.xml
+bulge_vc.xml
+

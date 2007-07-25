@@ -1,0 +1,25 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 7
+ Labels:
+	D_X
+	D_Y
+	d_t
+	d_n
+	T_t
+	T_n
+	lambda
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 2
+ Number of nodes . . . . . . . . . . . . . . . . = 100
+ Number of elements. . . . . . . . . . . . . . . = 50
+
+ O U T P U T   D A T A :  T O C
+conveyor.0.io1.run.ps0000
+conveyor.0.io1.run.ps0001

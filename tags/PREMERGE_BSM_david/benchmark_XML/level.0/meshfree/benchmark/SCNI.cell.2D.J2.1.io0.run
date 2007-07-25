@@ -1,0 +1,24 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 6
+ Labels:
+	D_X
+	D_Y
+	alpha
+	norm_beta
+	VM_Kirch
+	press
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodes . . . . . . . . . . . . . . . . = 66
+ Number of elements. . . . . . . . . . . . . . . = 66
+
+ O U T P U T   D A T A :  T O C
+SCNI.cell.2D.J2.1.io0.run.ps0000
+SCNI.cell.2D.J2.1.io0.run.ps0001

@@ -1,0 +1,25 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 2
+ Labels:
+	D_X
+	D_Y
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 2
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 250
+ Number of elements. . . . . . . . . . . . . . . = 218
+ Block ID. . . . . . . . . . . . . . . . . . . . = 2
+ Number of nodes . . . . . . . . . . . . . . . . = 256
+ Number of elements. . . . . . . . . . . . . . . = 224
+
+ O U T P U T   D A T A :  T O C
+adhesion.3.io0.run.ps0000
+adhesion.3.io0.run.ps0001
+adhesion.3.io0.run.ps0002
+adhesion.3.io0.run.ps0003

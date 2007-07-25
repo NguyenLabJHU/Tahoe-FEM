@@ -1,0 +1,21 @@
+@
+# $Id: run.batch,v 1.17 2005-11-06 00:38:41 paklein Exp $
+matrix_check/run.batch
+2D.spring/run.batch
+3D.spring/run.batch
+2D.elastostatic/run.batch
+2D.elastodynamic/run.batch
+3D.elastostatic/run.batch
+3D.elastodynamic/run.batch
+diffusion/run.batch
+coupled/run.batch
+enhanced.strain/run.batch
+integrator/run.batch
+2D.particle/run.batch
+3D.particle/run.batch
+adhesion/run.batch
+axisymmetric/run.batch
+meshfree/run.batch
+inputoutput/run.batch
+bridging/run.batch
+

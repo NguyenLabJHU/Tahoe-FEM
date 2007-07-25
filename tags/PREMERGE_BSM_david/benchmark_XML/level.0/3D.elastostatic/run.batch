@@ -1,0 +1,15 @@
+@
+# $Id: run.batch,v 1.8 2006-10-16 22:44:49 regueiro Exp $
+MPS.0.xml
+beam.B_bar.xml
+beam.Newton.xml
+beam.Newton.TotLag.xml
+beam.Newton.TotLag.store.xml
+beam.PCG.xml
+beam.PCG.K.xml
+beam.quasi-Newton.xml
+traction.a.xml
+traction.b.xml
+tet4.xml
+tet10.xml
+hex27.xml

@@ -1,0 +1,24 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 3
+ Labels:
+	T
+	jump
+	Tmag
+ Number of element values. . . . . . . . . . . . = 3
+ Labels:
+	xc_1
+	xc_2
+	Tmag
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 11
+ Number of nodes . . . . . . . . . . . . . . . . = 4
+ Number of elements. . . . . . . . . . . . . . . = 1
+
+ O U T P U T   D A T A :  T O C
+tsurf.io1.run.ps0000

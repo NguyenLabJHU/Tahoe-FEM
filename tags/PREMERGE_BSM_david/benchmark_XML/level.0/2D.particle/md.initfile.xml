@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="d-farrell2" geometry_file="./geometry/two-atoms.geom"
+    geometry_format="TahoeII" output_format="Tahoe"
+    title="Initial condition file test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time num_steps="1" output_inc="1" time_step=".00001"/>
+    <nodes>
+        <field field_name="displacement" integrator="central_difference">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <initial_condition dof="1" ic_file="init_x_disp_set_2.dat" node_ID="2" type="u"/>
+        </field>
+    </nodes>
+    <element_list>
+        <particle_pair field_name="displacement" lattice_parameter=".5"
+            max_neighbor_distance=".51" re-neighbor_displacement=".1">
+            <particle_type all_particles="true" label="A"/>
+            <pair_particle_interaction label_1="A" label_2="A">
+                <harmonic mass="1.0" rest_length="0.5" stiffness=".2"/>
+            </pair_particle_interaction>
+            <particle_pair_output centrosymmetry="1" displacement="1"
+                kinetic_energy="1" potential_energy="1" slip_vector="1"
+                strain="1" stress="1"/>
+        </particle_pair>
+    </element_list>
+    <linear_solver>
+        <diagonal_matrix/>
+    </linear_solver>
+</tahoe>

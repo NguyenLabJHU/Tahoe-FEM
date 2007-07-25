@@ -1,0 +1,25 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 4
+ Labels:
+	D_X
+	D_X_t
+	D_X_tt
+	F_D_X
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodes . . . . . . . . . . . . . . . . = 1
+ Number of elements. . . . . . . . . . . . . . . = 1
+
+ O U T P U T   D A T A :  T O C
+implicit.1a.io0.run.ps0000
+implicit.1a.io0.run.ps0001
+implicit.1a.io0.run.ps0002
+implicit.1a.io0.run.ps0003
+implicit.1a.io0.run.ps0004

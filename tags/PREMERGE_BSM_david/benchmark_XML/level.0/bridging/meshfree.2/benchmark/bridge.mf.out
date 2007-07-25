@@ -1,0 +1,47 @@
+
+ S o l v e r   p a r a m e t e r s:
+
+ Group . . . . . . . . . . . . . . . . . . . . . = 0
+ Global equation type. . . . . . . . . . . . . . = 0
+    eq. 0, diagonal matrix
+    eq. 1, profile solver (symmetric and nonsymmetric)
+    eq. 2, full matrix (most general)
+    eq. 3, NOT AVAILABLE
+    eq. 4, NOT AVAILABLE
+    eq. 5, sparse matrix with direct solver: SPOOLES
+ Output global equation numbers. . . . . . . . . = 0
+ Check code. . . . . . . . . . . . . . . . . . . = 0
+    eq. 0, no check
+    eq. 1, print zero/negative pivots
+    eq. 2, print all pivots
+    eq. 3, print LHS matrix
+    eq. 4, print RHS vector
+    eq. 5, print vector
+    eq. 6, check LHS matrix
+
+ O p t i m i z a t i o n   P a r a m e t e r s :
+
+ Maximum number of iterations. . . . . . . . . . = 1000
+ Minimum number of iterations. . . . . . . . . . = 0
+ Absolute convergence tolerance. . . . . . . . . = 1.000000e-12
+ Relative convergence tolerance. . . . . . . . . = 1.000000e-12
+ Divergence tolerance. . . . . . . . . . . . . . = 1.000000e+15
+ Quick solution iteration count. (-1 to disable) = 500
+ Number of quick solutions before step increase. = 3
+ Iteration output print increment. . . . . . . . = 0
+ CG restart count. . . . . . . . . . . . . . . . = 100
+ Maximum number of line search iterations. . . . = 10
+ Line search orthoginality tolerance . . . . . . = 1.000000e-01
+ Maximum update step size. . . . . . . . . . . . = 2.500000e+00
+
+ Multi-solver parameters: 1
+    rank   group       loop its.       pass its.
+       1       0              -1               0
+ Maximum number of solver loops. . . . . . . . . = 1
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 257
+ Total number of equations . . . . . . . . . . . = 257
+
+ Converged at time = 1.000000e+00

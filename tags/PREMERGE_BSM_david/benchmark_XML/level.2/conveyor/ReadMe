@@ -1,0 +1,6 @@
+# $Id: ReadMe,v 1.2 2004-12-27 07:08:40 paklein Exp $
+Notes:
+(1) conveyor calculations require use of a mesh that has been "wrapped" to
+    connect the nodes on the left and right edges using the wrap program
+    in contrib/wrap.
+

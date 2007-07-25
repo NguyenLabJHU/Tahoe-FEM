@@ -1,0 +1,22 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 5
+ Labels:
+	D_X
+	D_Y
+	s11
+	s22
+	s12
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 2
+ Number of nodes . . . . . . . . . . . . . . . . = 297
+ Number of elements. . . . . . . . . . . . . . . = 235
+
+ O U T P U T   D A T A :  T O C
+ring.penalty.io1.run.ps0000

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="paklein" geometry_file="../geometry/plate.geom"
+    title="cube in contact with rigid cylinder" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="2" num_steps="4" output_inc="4" time_step="0.25">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="2"/>
+            <kinematic_BC dof="2" node_ID="2"/>
+            <sphere_penalty radius="0.2" friction_coefficient="0" stiffness="1.0e+2">
+                <bc_initial_position>
+                    <Vector_2 v_1="0.25" v_2="0.2"/>
+                </bc_initial_position>
+                <bc_velocity>
+                    <Vector_2 v_1="0.0" v_2="0.05"/>
+                </bc_velocity>
+                <velocity_constant/>
+                <roller_condition direction="1" force_tolerance="1.0e-12"/>
+                <node_ID_list>
+                    <String value="1"/>
+                </node_ID_list>
+            </sphere_penalty>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <Simo_isotropic_2D density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    </Simo_isotropic_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+05" max_iterations="500" rel_tolerance="1.0e-12">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

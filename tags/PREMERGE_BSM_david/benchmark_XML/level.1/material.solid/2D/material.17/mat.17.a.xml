@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/square.1.geom" title="2D uniaxial tension">
+    <time num_steps="2" output_inc="1" time_step="0.5">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="2" node_ID="1"/>
+            <kinematic_BC dof="2" node_ID="2" schedule="1" type="u" value="0.01"/>
+            <kinematic_BC dof="1" node_ID="3"/>
+            <kinematic_BC dof="1" node_ID="4"/>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <isotropic_VIB_2D density="1.0" n_points="11">
+                        <Smith-Ferrante a="4.775" b="0.0643" x_0="1.0"/>
+                    </isotropic_VIB_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-09" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+</tahoe>
