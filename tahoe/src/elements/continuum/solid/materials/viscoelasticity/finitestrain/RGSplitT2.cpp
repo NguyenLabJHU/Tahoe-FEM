@@ -1,4 +1,4 @@
-/* $Id: RGSplitT2.cpp,v 1.4 2007-07-17 20:21:18 tdnguye Exp $ */
+/* $Id: RGSplitT2.cpp,v 1.5 2007-07-25 14:47:29 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT2.h"
@@ -13,6 +13,7 @@
 #include "MooneyRivlin.h"
 #include "NeoHookean.h"
 #include "VWPotentialT.h"
+#include "ArrudaBoyce.h"
 
 #include "LinearExponentialT.h"
 #ifdef __DEVELOPMENT__
@@ -58,6 +59,10 @@ const dMatrixT& RGSplitT2::MechanicalDeformation(void)
 
 const dMatrixT& RGSplitT2::ThermalDeformation_Inverse(void)
 {
+	/*calculates mechanical and thermal strains in FSSolidMat*/
+	const dMatrixT& F_mech = F_mechanical();
+
+	/*retrieves thermal strains*/
 	fF_T_inv = F_thermal_inverse();
 	return(fF_T_inv);
 }
@@ -321,7 +326,7 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 	fPot[0]->DevStress(fEigs_dev, ftau_EQ);
 //	cout << "\neq_dev_stress: "<<ftau_EQ;
 	ftau_EQ += fPot[0]->MeanStress(J);
-//	cout << "\n_eq_tot_stress: "<<ftau_EQ;
+//	cout << "\neq_tot_stress: "<<ftau_EQ;
 	
 /*		const double mu_eq = fPot[0]->GetMu();
 		const double kappa_eq = fPot[0]->GetKappa();
@@ -761,6 +766,8 @@ ParameterInterfaceT* RGSplitT2::NewSub(const StringT& name) const
 		pot = new MooneyRivlin;
 	else if (name == "veronda-westmann")
 		pot = new VWPotentialT;
+	else if (name == "arruda-boyce")
+		pot = new ArrudaBoyce;
 	if (pot)
 		return pot;
 
@@ -785,6 +792,7 @@ ParameterInterfaceT* RGSplitT2::NewSub(const StringT& name) const
 		choice->AddSub("neo-hookean");
 		choice->AddSub("mooney-rivlin");
 		choice->AddSub("veronda-westmann");
+		choice->AddSub("arruda-boyce");
 		return(choice);
 	}
 	else if (name == "rg_shear_viscosity")
@@ -842,6 +850,8 @@ void RGSplitT2::TakeParameterList(const ParameterListT& list)
 		fPot[0] = new MooneyRivlin;
 	else if(eq_pot.Name() == "veronda-westmann")
 		fPot[0] = new VWPotentialT;
+	else if(eq_pot.Name() == "arruda-boyce")
+		fPot[0] = new ArrudaBoyce;
 	else 
 		ExceptionT::GeneralFail(caller, "no such potential");
 	if (!fPot[0]) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", eq_pot.Name().Pointer());			
@@ -857,6 +867,8 @@ void RGSplitT2::TakeParameterList(const ParameterListT& list)
 			fPot[i+1] = new NeoHookean;
 		else if(pot_neq.Name() == "veronda-westmann")
 			fPot[i+1] = new VWPotentialT;
+		else if(pot_neq.Name() == "arruda-boyce")
+			fPot[i+1] = new ArrudaBoyce;
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fPot[i+1]) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pot_neq.Name().Pointer());			

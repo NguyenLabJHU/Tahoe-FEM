@@ -1,4 +1,4 @@
-/* $Id: BoyceBaseT.h,v 1.1 2007-03-08 18:13:01 tdnguye Exp $ */
+/* $Id: BoyceBaseT.h,v 1.2 2007-07-25 14:47:29 tdnguye Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _BOYCE_BASE_T_H_
 #define _BOYCE_BASE_T_H_
@@ -17,6 +17,11 @@ class BoyceBaseT: public FSSolidMatT
   
 	/* constructor */
 	BoyceBaseT(void);
+
+	enum LocIntCodeT {
+    kExplicit = 0,
+          kImplicit = 1
+	};
 
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij. \note NOT IMPLEMENTED */
