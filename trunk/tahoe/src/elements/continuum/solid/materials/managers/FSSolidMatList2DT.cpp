@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.14 2007-03-08 18:14:04 tdnguye Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.15 2007-07-25 06:45:47 tdnguye Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -55,6 +55,7 @@
 
 #ifdef VISCOELASTICITY
 #include "RGSplitT.h"
+#include "RGSplitT2.h"
 #include "BoyceViscoPlasticity.h"
 #endif
 
@@ -76,6 +77,7 @@
 #include "FDSV_KStV2D.h"
 #include "OgdenMaterialT.h"
 #include "SMP_simple.h"
+#include "ModBoyceVisco.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -178,10 +180,12 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("Reese-Govindjee_split");
+		sub_lists.AddSub("RG_split_general");
 		sub_lists.AddSub("boyce_viscoplasticity");
 #endif
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
+		sub_lists.AddSub("ModBoyceVisco");
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -297,14 +301,18 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 #endif
 
 #ifdef VISCOELASTICITY
-	else if (name == "Reese-Govindjee_split")
+	else if (name == "Reese-Govindjee_split")	
 		mat= new RGSplitT;
+	else if (name == "RG_split_general")
+		mat= new RGSplitT2;
 	else if (name == "boyce_viscoplasticity")
 		mat = new BoyceViscoPlasticity;
 #endif
 #ifdef VISCOELASTIC_MATERIALS_DEV
 	else if (name == "SMP_simple")
 		mat= new SMP_simple;
+	else if (name == "ModBoyceVisco")
+		mat= new ModBoyceVisco;
 #endif
 
 #ifdef FINITE_ANISOTROPY
