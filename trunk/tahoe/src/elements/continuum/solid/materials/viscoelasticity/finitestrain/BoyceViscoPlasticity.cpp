@@ -1,7 +1,8 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.8 2007-04-09 22:27:06 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.9 2007-07-25 14:47:29 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
+#include "ParameterContainerT.h"
 
 #include "ifstreamT.h"
 #include "ExceptionT.h"
@@ -23,7 +24,9 @@ static const char* Labels[kNumOutputVar] = {"VM", "Sback","lp","Lang"};
 BoyceViscoPlasticity::BoyceViscoPlasticity(void):
   ParameterInterfaceT("boyce_viscoplasticity"),
   fSpectralDecompSpat(3)
-{}
+{
+	fexplicit = false;
+}
 
 /*initializes history variable */
 void  BoyceViscoPlasticity::PointInitialize(void)
@@ -87,12 +90,18 @@ void BoyceViscoPlasticity::ResetHistory(void)
 		Store(element, ip);
 	}
 }
-
 /* describe the parameters needed by the interface */
 void BoyceViscoPlasticity::DefineParameters(ParameterListT& list) const
 {
   /* inherited */
   BoyceBaseT::DefineParameters(list);
+
+	/* local integrator */
+	ParameterT loc_integrator(ParameterT::Enumeration, "loc_integrator");
+	loc_integrator.AddEnumeration(     "implicit", BoyceBaseT::kImplicit);
+	loc_integrator.AddEnumeration(            "explicit", BoyceBaseT::kExplicit);
+	loc_integrator.SetDefault(BoyceBaseT::kImplicit);
+	list.AddParameter(loc_integrator);
 
   /* common limit */
   LimitT positive(0.0, LimitT::Lower);
@@ -146,7 +155,10 @@ void BoyceViscoPlasticity::TakeParameterList(const ParameterListT& list)
 {
   /* inherited */
   /*allows one neq process: */
+ StringT caller = "BoyceViscoPlasticity::TakeParameterList";
   BoyceBaseT::TakeParameterList(list);
+
+	fIntegration = list.GetParameter("loc_integrator");
 
   fgammadot0 = list.GetParameter("gamma_0_dot");
   fs0 = list.GetParameter("yield_stress");
@@ -308,6 +320,10 @@ const dMatrixT& BoyceViscoPlasticity::c_ijkl(void)
 
 	const dMatrixT& Ftotal = F_total();	
 	fModulus *= 1.0/Ftotal.Det();
+
+	/*reset fexplicit*/
+	if(fIntegration == BoyceBaseT::kImplicit && fexplicit)
+		fexplicit = false;
 
     return fModulus;
 }
@@ -569,6 +585,214 @@ void BoyceViscoPlasticity::Initialize(void)
  ***********************************************************************/
  void BoyceViscoPlasticity::Compute_Calg(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e) 
  {
+	const char caller[] = "BoyceViscoPlasticity::Compute_Calg";
+	if(fIntegration == BoyceBaseT::kImplicit && !fexplicit)
+		Compute_Calg_Implicit(eigenstretch, eigenstretch_e);
+	else if (fIntegration == BoyceBaseT::kExplicit || fexplicit)
+		Compute_Calg_Explicit(eigenstretch, eigenstretch_e);
+	else
+		ExceptionT::GeneralFail(caller, "invalid choice of local integrators");
+ }
+ void BoyceViscoPlasticity::Compute_Calg_Explicit(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e) 
+ {
+	const dMatrixT& F = DefGrad();
+
+	/*calculate eigenvalues of total stretch tensor*/
+	fStretch.MultAAT(F);
+	fSpectralDecompSpat.SpectralDecomp_Jacobi(fStretch, false);	
+	fEigs = fSpectralDecompSpat.Eigenvalues();
+
+	const double l0 = fEigs[0];
+	const double l1 = fEigs[1];
+	const double l2 = fEigs[2];
+
+	/*calculate trial state*/
+	fInverse = fFv_n;
+	fInverse.Inverse();
+	fFe.MultAB(F,fInverse); /*trial elastic deformation gradient*/
+	fStretch_e.MultAAT(fFe); /*Be_tr*/
+	fSpectralDecompSpat.SpectralDecomp_Jacobi(fStretch_e, false);	
+	fEigs_e = fSpectralDecompSpat.Eigenvalues();
+	double le0 = fEigs_e[0];
+	double le1 = fEigs_e[1];
+	double le2 = fEigs_e[2];
+
+	/*plastic stretch, previous values*/
+	double lv0 = l0/le0;
+	double lv1 = l1/le1;
+	double lv2 = l2/le2;
+	
+	/*Kirchoff stress*/	
+	double leb = third*(le0+le1+le2);
+	double Je23 = pow(le0*le1*le2, -third);
+
+/*	double T0 = fmu*Je23*(le0-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
+	double T1 = fmu*Je23*(le1-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
+	double T2 = fmu*Je23*(le2-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
+*/	
+	/*calculate mean stretches*/
+	double lvb = third*(lv0+lv1+lv2);
+	double J = sqrt(l0*l1*l2);
+	
+	/*calculate back stress*/
+	double r = sqrt(lvb)/flambda_L;
+	double coeff = fmu_R/r*third;
+		
+	double Sback0 = coeff*fInvL.Function(r)*(lv0 - lvb);
+	double Sback1 = coeff*fInvL.Function(r)*(lv1 - lvb);
+	double Sback2 = coeff*fInvL.Function(r)*(lv2 - lvb);
+		
+	/*calculate driving stress*/
+	double Te0 = fmu*Je23*(le0-leb)/le0 - Sback0;
+	double Te1 = fmu*Je23*(le1-leb)/le1 - Sback1;
+	double Te2 = fmu*Je23*(le2-leb)/le2 - Sback2;
+	/*norm of driving stress*/
+	double tau = sqrt(0.5*(Te0*Te0 + Te1*Te1 + Te2*Te2));
+	
+	/*pressure*/
+	double p = -0.5*fkappa/J*(le0*le1*le2 - 1.0);
+		
+	/*plastic stretch rate/driving stress norm*/
+	double s_bar = *fs_n + falpha*p;
+	double r56 = pow(tau/s_bar, 2.5*third);
+	double r16 = pow(tau/s_bar, 0.5*third);
+	double gammadot = 0;
+	double f = 0;
+	double g = 0;
+	if (tau > kSmall) 
+	{ 
+		gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
+		g = fh*(1.0 - *fs_n/fs_ss)*gammadot;
+		f = gammadot/(sqrt(2.0)*tau);
+	} 
+			
+	/*calculate the residual*/
+	double dt = fFSMatSupport->TimeStep();
+		
+	/*calculate stiffness matrix*/		
+	double dgamdtau = 0.0;
+	double dgamdp = 0.0;
+	double dgamds = 0.0;
+		
+	double dfdtau = 0.0;
+	double dfdp = 0.0;
+	double dfds = 0.0;
+				
+	double dgdtau = 0.0;
+	double dgdp = 0.0;
+	double dgds = 0.0;
+		
+	if (tau > kSmall) 
+	{ 
+		dgamdtau = gammadot*(5.0*fA/(6.0*fT*r16));
+		dgamdp = -gammadot*(5.0*fA*falpha*tau/(6.0*s_bar*fT*r16) + fA*falpha/fT*(1.0-r56));
+		dgamds = -gammadot*(5.0*fA*tau/(6.0*s_bar*fT*r16) + fA/fT*(1.0-r56));
+
+		dfdtau = (dgamdtau - gammadot/tau)/(sqrt(2.0)*tau);
+		dfdp = dgamdp/(sqrt(2.0)*tau);
+		dfds = dgamds/(sqrt(2.0)*tau);
+				
+		dgdtau = fh*(1.0-*fs_n/fs_ss)*dgamdtau;
+		dgdp = fh*(1.0-*fs_n/fs_ss)*dgamdp;
+		dgds = 0.0;
+	} 
+	/*********************partials with respect to lambda^e_B*******************/	
+	/*dp = dp/dlambda^e_B lambda^e_B*/
+	double dp  = -(fkappa/J) * (le0*le1*le2);
+			
+	/*dSe_AB = dSe_A/dlambda^e_B lambda^e_B*/
+	double dSe00 = -4.0*third*third*fmu*Je23/le0 *(le0 - 2.0*le1 - 2.0*le2);
+	double dSe11 = -4.0*third*third*fmu*Je23/le1 *(le1 - 2.0*le2 - 2.0*le0);
+	double dSe22 = -4.0*third*third*fmu*Je23/le2 *(le2 - 2.0*le0 - 2.0*le1);
+		
+	double dSe01 = -2.0*third*third*fmu*Je23/le0 *(2.0*le1 + 2.0*le0 - le2);
+	double dSe02 = -2.0*third*third*fmu*Je23/le0 *(2.0*le2 + 2.0*le0 - le1);
+	
+	double dSe10 = -2.0*third*third*fmu*Je23/le1 *(2.0*le0 + 2.0*le1 - le2);
+	double dSe12 = -2.0*third*third*fmu*Je23/le1 *(2.0*le2 + 2.0*le1 - le0);
+		
+	double dSe20 = -2.0*third*third*fmu*Je23/le2 *(2.0*le0 + 2.0*le2 - le1);
+	double dSe21 = -2.0*third*third*fmu*Je23/le2 *(2.0*le1 + 2.0*le2 - le0);
+		
+	/*dtau_B = dtau/dlambda^e_B lambda^e_B*/
+	double dtau0 = 0.0;					
+	double dtau1 = 0.0;					
+	double dtau2 = 0.0;	
+	double ct = 0.0;
+	double cp = 0.0;
+	if (tau > kSmall) 
+	{ 
+		dtau0 = (Te0*(dSe00) + Te1*(dSe10) + Te2*(dSe20))/(2*tau);					
+		dtau1 = (Te0*(dSe01) + Te1*(dSe11) + Te2*(dSe21))/(2*tau);					
+		dtau2 = (Te0*(dSe02) + Te1*(dSe12) + Te2*(dSe22))/(2*tau);	
+
+		ct = dfdtau + dfds*(dt/(1.0 - dt*dgds))*dgdtau;
+		cp = dfdp + dfds*(dt/(1.0 - dt*dgds))*dgdp;
+	} 
+	
+
+	/*\sum_B H_AB delta \epsilon^e_trB*/
+	fG(0,0) = 1.0 - dt*(f*(dSe00) + Te0*(ct*dtau0 + cp*dp));
+	fG(1,1) = 1.0 - dt*(f*(dSe11) + Te1*(ct*dtau1 + cp*dp));
+	fG(2,2) = 1.0 - dt*(f*(dSe22) + Te2*(ct*dtau2 + cp*dp));
+	
+	fG(0,1) = -dt*(f*(dSe01) + Te0*(ct*dtau1 + cp*dp));
+	fG(0,2) = -dt*(f*(dSe02) + Te0*(ct*dtau2 + cp*dp));
+	
+	fG(1,0) = -dt*(f*(dSe10) + Te1*(ct*dtau0 + cp*dp));
+	fG(1,2) = -dt*(f*(dSe12) + Te1*(ct*dtau2 + cp*dp));
+
+	fG(2,0) = -dt*(f*(dSe20) + Te2*(ct*dtau0 + cp*dp));
+	fG(2,1) = -dt*(f*(dSe21) + Te2*(ct*dtau1 + cp*dp));
+
+	/*********************partials with respect to lambda_B*******************/	
+	/*dp/dlambda_B*/
+	dp  = 0.5*fkappa/J * (le0*le1*le2 - 1.0);
+	
+	/*\sum_B G_AB delta delta\epsilon_B; delta \epsilon_B = \delta\epsilon^e_tr_B */
+	fG(0,0) -= dt*(Te0*(cp*dp));
+	fG(1,1) -= dt*(Te1*(cp*dp));
+	fG(2,2) -= dt*(Te2*(cp*dp));
+	
+	fG(0,1) -= dt*(Te0*(cp*dp));
+	fG(0,2) -= dt*(Te0*(cp*dp));
+	
+	fG(1,0) -= dt*(Te1*(cp*dp));
+	fG(1,2) -= dt*(Te1*(cp*dp));
+
+	fG(2,0) -= dt*(Te2*(cp*dp));
+	fG(2,1) -= dt*(Te2*(cp*dp));
+
+//	cout << "\nfG: "<<fG;
+	/*dT_A/depsilon^e_B*/
+	le0 = eigenstretch_e[0];
+	le1 = eigenstretch_e[1];
+	le2 = eigenstretch_e[2];
+	
+	fM(0,0) = 2.0*fmu*third*third*Je23*(4.0*le0 + le1 + le2) + fkappa*(le0*le1*le2);
+	fM(1,1) = 2.0*fmu*third*third*Je23*(4.0*le1 + le2 + le0) + fkappa*(le0*le1*le2);
+	fM(2,2) = 2.0*fmu*third*third*Je23*(4.0*le2 + le0 + le1) + fkappa*(le0*le1*le2);
+	
+	fM(0,1) = 2.0*fmu*third*third*Je23*(-2.0*le0 - 2.0*le1 + le2) + fkappa*(le0*le1*le2);
+	fM(0,2) = 2.0*fmu*third*third*Je23*(-2.0*le0 - 2.0*le2 + le1) + fkappa*(le0*le1*le2);
+	fM(1,2) = 2.0*fmu*third*third*Je23*(-2.0*le1 - 2.0*le2 + le0) + fkappa*(le0*le1*le2);
+	
+	fM(1,0) = fM(0,1);
+	fM(2,0) = fM(0,2);
+	fM(2,1) = fM(1,2);
+//	cout << "\nfM: "<<fM;
+	/*Calg_AB*/
+	fCalg.MultAB(fM, fG);
+
+	fInverse.Inverse(fFv);
+	fFe.MultAB(F,fInverse);
+	fStretch_e.MultAAT(fFe); /*Be*/
+	fSpectralDecompSpat.SpectralDecomp_Jacobi(fStretch_e, false);	
+	fEigs_e = fSpectralDecompSpat.Eigenvalues(); /*intermediate config*/		
+
+}
+ void BoyceViscoPlasticity::Compute_Calg_Implicit(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e) 
+ {
 	const double& l0 = eigenstretch[0];
 	const double& l1 = eigenstretch[1];
 	const double& l2 = eigenstretch[2];
@@ -796,10 +1020,99 @@ void BoyceViscoPlasticity::Initialize(void)
 	/*Calg_AB*/
 	fCalg.MultABC(fM, fH, fG);
 }
-
 void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e) 
 {		
-	const double ctol = 1.00e-12;
+	const char caller[] = "BoyceViscoPlasticity::Compute_Calg";
+	if(fIntegration == BoyceBaseT::kImplicit)
+	{
+		fexplicit = ComputeEigs_e_Implicit(eigenstretch, eigenstretch_e);
+		if(fexplicit)
+			fexplicit = ComputeEigs_e_Explicit(eigenstretch, eigenstretch_e); 
+	}
+	else if (fIntegration == BoyceBaseT::kExplicit)
+		fexplicit = ComputeEigs_e_Explicit(eigenstretch, eigenstretch_e);
+	else
+		ExceptionT::GeneralFail(caller, "invalid choice of local integrators");
+}
+
+bool BoyceViscoPlasticity::ComputeEigs_e_Explicit(const dArrayT& eigenstretch, dArrayT& eigenstretch_e) 
+{		
+	const double l0 = eigenstretch[0];		
+	const double l1 = eigenstretch[1];		
+	const double l2 = eigenstretch[2];		
+
+	/*set references to principle stretches.  These are trial values*/
+	double& le0 = eigenstretch_e[0];
+	double& le1 = eigenstretch_e[1];
+	double& le2 = eigenstretch_e[2];
+
+	double& s = *fs;
+	const double& s_n = *fs_n;
+
+	/*plastic stretch.  These are previous values*/
+	double lv0 = l0/le0;
+	double lv1 = l1/le1;
+	double lv2 = l2/le2;
+
+	/*initialize principle elastic and trial elastic log strains */
+	double ep_tr0 = 0.5*log(le0);
+	double ep_tr1 = 0.5*log(le1);
+	double ep_tr2 = 0.5*log(le2);
+
+	/*calculate mean stretches*/
+	double leb = third*(le0+le1+le2);
+	double lvb = third*(lv0+lv1+lv2);
+	double Je23 = pow(le0*le1*le2, -third);
+	double J = sqrt(l0*l1*l2);
+	
+	/*calculate back stress*/
+	double r = sqrt(lvb)/flambda_L;
+	double coeff = fmu_R/r*third;
+		
+	double Sback0 = coeff*fInvL.Function(r)*(l0/le0 - lvb);
+	double Sback1 = coeff*fInvL.Function(r)*(l1/le1 - lvb);
+	double Sback2 = coeff*fInvL.Function(r)*(l2/le2 - lvb);
+		
+	/*calculate driving stress*/
+	double Te0 = fmu*Je23*(le0-leb)/le0 - Sback0;
+	double Te1 = fmu*Je23*(le1-leb)/le1 - Sback1;
+	double Te2 = fmu*Je23*(le2-leb)/le2 - Sback2;
+	/*norm of driving stress*/
+	double tau = sqrt(0.5*(Te0*Te0 + Te1*Te1 + Te2*Te2));
+	
+	/*pressure*/
+	double p = -0.5*fkappa/J*(le0*le1*le2 - 1.0);
+		
+	/*plastic stretch rate/driving stress norm*/
+	double s_bar = s_n + falpha*p;
+	double r56 = pow(tau/s_bar, 2.5*third);
+	double r16 = pow(tau/s_bar, 0.5*third);
+	double gammadot = 0;
+	double f = 0;
+	double g = 0;
+	if (tau > kSmall) 
+	{ 
+		gammadot = fgammadot0*exp(-fA/fT*s_bar*(1.0-r56));
+		g = fh*(1.0 - s_n/fs_ss)*gammadot;
+		f = gammadot/(sqrt(2.0)*tau);
+	} 
+
+	/*calculate the residual*/
+	double dt = fFSMatSupport->TimeStep();
+	double ep_e0 = -dt*f*Te0 + ep_tr0;
+	double ep_e1 = -dt*f*Te1 + ep_tr1;
+	double ep_e2 = -dt*f*Te2 + ep_tr2;
+	s = dt*g + s_n;
+	le0 = exp(2.0*ep_e0);
+	le1 = exp(2.0*ep_e1);
+	le2 = exp(2.0*ep_e2);
+	
+	return(true);
+}
+
+bool BoyceViscoPlasticity::ComputeEigs_e_Implicit(const dArrayT& eigenstretch, dArrayT& eigenstretch_e) 
+{		
+	const double ctol = 1.00e-14;
 	
 	const double l0 = eigenstretch[0];		
 	const double l1 = eigenstretch[1];		
@@ -877,21 +1190,6 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 	int iteration  = 0;	
 	int max_iteration = 100;
 
-/*	cout << "\niteration 0:";
-	cout << setprecision(16)<<"\ntotal stretch: "<<l0<<"\t"<<l1<<"\t"<<l2;
-	cout <<"\ntrial stretch: "<<exp(2.0*ep_tr0)<<"\t"<<exp(2.0*ep_tr1)<<"\t"<<exp(2.0*ep_tr2);
-	cout <<"\nelastic stress: "<<Te0+Sback0<<"\t"<<Te1+Sback1<<"\t"<<Te2+Sback2;
-	cout <<"\nsn: "<<s_n;
-	cout << "\nback stress: "<<Sback0<<"\t"<<Sback1<<"\t"<<Sback2;
-	cout << "\ntau: "<<tau;
-	cout << "\np: "<<p;
-	cout << "\ns: "<<s;
-	cout << "\nsbar: "<<s_bar;
-	cout << "\ngammadot: "<<gammadot;
-	cout << "\nf: "<<f;
-	cout << "\nfRes: "<<fRes;
-	cout << "\nerror: "<<tol;
-*/
 	/*initializes principle viscous stretch*/
 	while (tol>ctol && iteration < max_iteration) 
 	{
@@ -978,16 +1276,6 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 		fK(1,3) = dt*dfds*Te1;
 		fK(2,3) = dt*dfds*Te2;
 	
-/*		cout << "\ndp: "<<dp;
-		cout << "\ndtau: "<<dtau0<<"\t"<<dtau1<<"\t"<<dtau2;
-		cout << "\ndSe: "<<dSe00<<"\t"<<dSe01<< "\t"<<dSe02<<"\n"<<dSe10<<"\t"<<dSe11<<"\t"<<dSe12
-			<<"\n"<<dSe20<<"\t"<<dSe21<<"\t"<<dSe22;
-	cout << "\nlang: "<<r<<"\t"<<fInvL.Function(r)<<"\t"<<fInvL.DFunction(r);
-		cout << "\ndSb: "<<dSb00<<"\t"<<dSb01<< "\t"<<dSb02<<"\n"<<dSb10<<"\t"<<dSb11<<"\t"<<dSb12
-			<<"\n"<<dSb20<<"\t"<<dSb21<<"\t"<<dSb22;
-		cout << "\nfK: "<<fK;
-*/
-
 	    /*solve for the principal strain increments*/
 		fK.Inverse();
 		fK.Multx(fRes,fdel,-1.0);
@@ -1003,10 +1291,6 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 	    le1 = exp(2.0*ep_e1);
 	    le2 = exp(2.0*ep_e2);
 	    
-/*		cout << "\nfdel: "<<fdel;
-		cout << "\neig: "<<le0<<"\t"<<le1<<"\t"<<le2;
-		cout <<"\ns: "<<s;
-*/
 		/*update plastic stretch*/
 		lv0 = l0/le0;
 		lv1 = l1/le1;
@@ -1056,23 +1340,18 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 	    /*Check that the L2 norm of the residual is less than tolerance*/
 	    tol = sqrt(fRes[0]*fRes[0] + fRes[1]*fRes[1] + fRes[2]*fRes[2] + fRes[3]*fRes[3]);
 
-/*	cout <<"\nelastic stretch: "<<le0<<"\t"<<le1<<"\t"<<le2;
-	cout <<"\nelastic stress: "<<Te0+Sback0<<"\t"<<Te1+Sback1<<"\t"<<Te2+Sback2;
-	cout << "\nlang: "<<r<<"\t"<<fInvL.Function(r);
-	cout << "\nback stress: "<<Sback0<<"\t"<<Sback1<<"\t"<<Sback2;
-	cout << "\ntau: "<<tau;
-	cout << "\np: "<<p;
-	cout << "\ns: "<<s;
-	cout << "\nsbar: "<<s_bar;
-	cout << "\ngammadot: "<<gammadot;
-	cout << "\nf: "<<f;
-	cout << "\nfRes: "<<fRes;
-	cout <<"\n\niteration: "<<iteration<<"\terror: "<<tol;
-*/
 	} 
 	if (iteration >= max_iteration) 
-		ExceptionT::GeneralFail("BoyceViscoPlasticity::ComputeEigs_e", 
-			"number of iteration exceeds maximum of 10");
+	{
+		cout << "\nLocal iteration failed to converge in "<<max_iteration<<" iterations";
+		cout <<"\nvisc stretch: "<<lv0<<"\t"<<lv1<<"\t"<<lv2;
+		return(false);
+//		cout << "\nfRes: "<<fRes;
+//		ExceptionT::GeneralFail("BoyceViscoPlasticity::ComputeEigs_e", 
+//			"number of iteration exceeds maximum.");
+	}
+	else 
+		return(true);
 }
 
 dMatrixT BoyceViscoPlasticity::DefGrad(void)

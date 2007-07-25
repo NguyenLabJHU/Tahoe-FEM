@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.h,v 1.1 2007-03-08 18:13:01 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.h,v 1.2 2007-07-25 14:47:29 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _BoyceViscoPlasticity_
 #define _BoyceViscoPlasticity_
@@ -54,7 +54,11 @@ class BoyceViscoPlasticity: public BoyceBaseT
    
    private:
 	virtual void Compute_Calg(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e);
+	void Compute_Calg_Implicit(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e);
+	void Compute_Calg_Explicit(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e);
 	virtual void ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e);    
+	bool ComputeEigs_e_Implicit(const dArrayT& eigenstretch, dArrayT& eigenstretch_e);    
+	bool ComputeEigs_e_Explicit(const dArrayT& eigenstretch, dArrayT& eigenstretch_e);    
 	dMatrixT DefGrad(void);
 
    protected:
@@ -68,6 +72,8 @@ class BoyceViscoPlasticity: public BoyceBaseT
    private:  
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
+	
+	bool fexplicit;
 
 	/*internal variable*/
 	double* fs;
@@ -123,6 +129,8 @@ class BoyceViscoPlasticity: public BoyceBaseT
 	/*moduli for NeoHookean Potential*/
 	double fmu;
 	double fkappa;
+	
+	int fIntegration;
 };
 }
 #endif /* _BoyceViscoPlasticity_ */
