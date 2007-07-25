@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.27 2007-06-17 21:09:58 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.28 2007-07-25 06:45:47 tdnguye Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -107,6 +107,7 @@
 #include "RGSplit3D.h"
 #include "OgdenMaterialT.h"
 #include "SMP_simple.h"
+#include "ModBoyceVisco.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -202,6 +203,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
+		sub_lists.AddSub("ModBoyceVisco");
 #endif
 #ifdef BIO_MODELS
 		sub_lists.AddSub("veronda_westmann_potential");
@@ -361,6 +363,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTIC_MATERIALS_DEV
 	else if (name == "SMP_simple")
 		mat= new SMP_simple;
+	else if (name == "ModBoyceVisco")
+		mat= new ModBoyceVisco;
 #endif
 
 #ifdef FINITE_ANISOTROPY
