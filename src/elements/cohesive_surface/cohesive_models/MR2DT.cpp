@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.28 2007-07-29 04:45:41 skyu Exp $*/
+/*$Id: MR2DT.cpp,v 1.29 2007-07-31 02:17:52 skyu Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -367,7 +367,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2] << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3] << endl;
 
-				if (kk > 500) {
+				if (kk > 50000) {
 					ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
 				}
 
@@ -1135,20 +1135,22 @@ void MR2DT::Print(ostream& out) const
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int MR2DT::NumOutputVariables(void) const { return 9; }
+int MR2DT::NumOutputVariables(void) const { return 11; }
 
 void MR2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Dimension(9);
-	labels[0] = "up_t";
-	labels[1] = "up_n";
-	labels[2] = "Chi";
-	labels[3] = "Cohesion";
-	labels[4] = "Friction Angle";
-	labels[5] = "Dilation Angle";
-	labels[6] = "Yield Function Value";
-	labels[7] = "Norm of residuals";
-	labels[8] = "No. of Iterations";
+	labels.Dimension(11);
+	labels[0] = "u_t";
+	labels[1] = "u_n";
+	labels[2] = "up_t";
+	labels[3] = "up_n";
+	labels[4] = "Chi";
+	labels[5] = "Cohesion";
+	labels[6] = "Friction Angle";
+	labels[7] = "Dilation Angle";
+	labels[8] = "Yield Function Value";
+	labels[9] = "Norm of residuals";
+	labels[10] = "No. of Iterations";
 }
 
 void MR2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
@@ -1158,16 +1160,18 @@ void MR2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
-	output[0] = state[4];
-	output[1] = state[5];
-	output[2] = state[6];
-	output[3] = state[7];
-	// output[4] = state[8];
-	output[4] = atan(state[8]);  // state[8] = ftan_phi
-	output[5] = atan(state[9]);
-	output[6] = state[10];
-	output[7] = state[13];
-	output[8] = state[16];
+	output[0] = state[2];
+	output[1] = state[3];
+	output[2] = state[4];
+	output[3] = state[5];
+	output[4] = state[6];
+	output[5] = state[7];
+	// output[6] = state[8];
+	output[6] = atan(state[8]); // state[8] = ftan_phi
+	output[7] = atan(state[9]);
+	output[8] = state[10];
+	output[9] = state[13];
+	output[10] = state[16];
 	
 }
 
