@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.29 2007-07-31 02:17:52 skyu Exp $*/
+/*$Id: MR2DT.cpp,v 1.30 2007-08-08 18:58:04 skyu Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -912,7 +912,7 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
-	/*
+
 	int i, j;
 
 	dMatrixT AA(6,6), I_mat(4,4), CMAT(6,6),AA_inv(6,6),
@@ -965,7 +965,7 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 			KE.MultAB(A_uq,KE1);
 			KE *= state[11];
 			KE *= state[11];
-			KE = 0.;
+			// KE = 0.;
 			KE2 = dQdSig2;
 			KE2 *=state[11];
 			KE += KE2;
@@ -1043,7 +1043,7 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 			KP /= -bott;
 			KP += I_m;
 			KEP.MultAB(KE_Inv, KP);
-	*/
+	/*
 	int i, j;
 
 	dMatrixT KEP(2,2), KEE(2,2);
@@ -1097,7 +1097,7 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 				KEP(i,j) = KEE(i,j) - KEP(i,j);
 			}
 		}
-
+	*/
 		fStiffness[0] = KEP(0,0);
 		fStiffness[1] = KEP(0,1);
 		fStiffness[2] = KEP(1,0);
