@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe_bridging_scale atom_input="atom.2D.0.xml" continuum_input="continuum.2D.0.xml"
+    bridging_field="displacement" coarse_to_fine="false"
+    fine_to_coarse="false" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <ghost_atom_ID_list>
+        <String value="5"/>
+        <String value="6"/>
+    </ghost_atom_ID_list>
+    <prescribe_overlap bond_density="1.0"/>
+</tahoe_bridging_scale>

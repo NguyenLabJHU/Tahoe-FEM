@@ -1,0 +1,4 @@
+@
+# $Id: run.batch,v 1.1.2.1 2007-08-10 16:38:05 d-farrell2 Exp $
+./2D_shear/run.batch
+./2D_simple_wave/run.batch        
