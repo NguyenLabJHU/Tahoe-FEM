@@ -1,4 +1,4 @@
-# $Id: ReadMe,v 1.1 2004-07-22 00:46:18 paklein Exp $
+# $Id: ReadMe,v 1.2 2007-08-10 18:14:56 d-farrell2 Exp $
 This directory contains tests of the coupled-atomistic continuum capability in 
 Tahoe. The tests in each of the directories is described below:
 (1) simple tests of projecting the atomistic solution onto a FE mesh
@@ -30,3 +30,5 @@ Tahoe. The tests in each of the directories is described below:
 	solving the atomistic and continuum problem until the total problem converges), 
 	without cross terms or overlap correction in the for the bond density. This converges
 	so slowly it is not included in the run.batch.
+
+(5) BSM - examples/benchmarks of the Wagner-Karpov-Liu Bridging Scale Method, with MD comparison files.

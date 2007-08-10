@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.New.cpp,v 1.4 2005-04-06 15:43:39 paklein Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.5 2007-08-10 18:14:14 d-farrell2 Exp $ */
 #include "FEManagerT.h"
 
 /* element configuration header */
@@ -47,10 +47,10 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 	}
 	else if (name == "tahoe_bridging_scale")
 	{
-#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
+#if defined(BRIDGING_ELEMENT)
 		return new BridgingScaleManagerT(input_file, output, comm, argv, task);
 #else
-		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT and __DEVELOPMENT__",
+		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT",
 			name.Pointer());
 		return NULL;
 #endif
@@ -67,10 +67,10 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 	}
 	else if (name == "tahoe_THK")
 	{
-#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
+#if defined(BRIDGING_ELEMENT)
 		return new FEManagerT_THK(input_file, output, comm, argv, task);
 #else
-		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT and __DEVELOPMENT__",
+		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT",
 			name.Pointer());
 		return NULL;
 #endif
