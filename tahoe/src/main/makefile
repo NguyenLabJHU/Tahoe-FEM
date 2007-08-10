@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.14 2005-08-12 05:21:00 paklein Exp $
+# $Id: makefile,v 1.15 2007-08-10 18:14:14 d-farrell2 Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -39,7 +39,9 @@ OBJ = \
 	TimeManagerT.o \
 	CommManagerT.o \
 	MultiManagerT.o \
-	SpatialGridT.o
+	SpatialGridT.o \
+	FEManagerT_THK.o \
+	BridgingScaleManagerT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -78,7 +80,9 @@ SRC = \
 	TimeManagerT.cpp \
 	CommManagerT.cpp \
 	MultiManagerT.cpp \
-	SpatialGridT.cpp
+	SpatialGridT.cpp \
+	FEManagerT_THK.cpp \
+	BridgingScaleManagerT.cpp
 
 ##################### (3) headers
 #
@@ -101,7 +105,9 @@ HDR = \
 	TimeManagerT.h \
 	CommManagerT.h \
 	MultiManagerT.h \
-	SpatialGridT.h
+	SpatialGridT.h \
+	FEManagerT_THK.h \
+	BridgingScaleManagerT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

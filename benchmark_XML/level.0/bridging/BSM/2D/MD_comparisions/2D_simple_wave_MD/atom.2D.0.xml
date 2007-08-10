@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="d-farrell2" geometry_file="geometry/lattice.geom"
+    output_format="EnSight"
+    title="2D hexagonal benchmark, MD" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time num_steps="20000" output_inc="200" time_step="0.0005">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="central_difference">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <initial_condition dof="2" node_ID="2" type="u" value=".2"/>
+            <kinematic_BC dof="1" node_ID="1"  type="fixed"/>
+            <kinematic_BC dof="2" node_ID="1"  type="fixed"/>
+            <kinematic_BC dof="1" node_ID="3"  type="fixed"/>
+            <kinematic_BC dof="1" node_ID="4"  type="fixed"/>
+        </field>
+    </nodes>
+    <element_list>
+        <particle_pair field_name="displacement"
+            lattice_parameter="1.1224620483094"
+            max_neighbor_distance="1.2" re-neighbor_displacement="1000">
+            <particle_type label="real">
+                <node_ID_list>
+                    <String value="5"/>
+                </node_ID_list>
+            </particle_type>
+            <pair_particle_interaction label_1="real" label_2="real">
+                <Lennard_Jones energy_scaling="1.0" length_scaling="1.0" mass="1.0"/>
+            </pair_particle_interaction>
+            <particle_pair_output centrosymmetry="0"
+                coordination_number="0" displacement="1"
+                kinetic_energy="1" potential_energy="1" slip_vector="0"
+                strain="0" stress="0"/>
+        </particle_pair>
+    </element_list>
+    <linear_solver>
+        <diagonal_matrix/>
+    </linear_solver>
+</tahoe>
