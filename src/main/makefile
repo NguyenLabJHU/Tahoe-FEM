@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2005-08-12 05:40:52 paklein Exp $
+# $Id: makefile,v 1.5 2007-08-10 18:12:13 d-farrell2 Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,8 +20,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	FEManagerT_THK.o \
-	BridgingScaleManagerT.o \
 	ThermomechanicalCouplingManagerT.o
 
 OBJ_LINK = $(OBJ)
@@ -42,8 +40,6 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	FEManagerT_THK.cpp \
-	BridgingScaleManagerT.cpp \
 	ThermomechanicalCouplingManagerT.cpp
 
 ##################### (3) headers
@@ -56,8 +52,6 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	FEManagerT_THK.h \
-	BridgingScaleManagerT.h \
 	ThermomechanicalCouplingManagerT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
