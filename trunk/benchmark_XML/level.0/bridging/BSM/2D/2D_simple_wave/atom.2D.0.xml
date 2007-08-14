@@ -3,7 +3,7 @@
     author="d-farrell2" geometry_file="geometry/lattice.geom" interplanar_parameter="1.0"
     lattice_parameter=".5612310242"
     title="2D hexagonal benchmark, BSM" xmlns:x0="http://www.w3.org/2001/XMLSchema">
-    <time num_steps="20" output_inc="10" time_step="0.0005"/>
+    <time num_steps="40" output_inc="20" time_step="0.01"/>
     <nodes>
         <field field_name="displacement" integrator="central_difference">
             <dof_labels>

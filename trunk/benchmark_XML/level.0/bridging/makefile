@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2005-04-29 00:14:09 paklein Exp $
+# $Id: makefile,v 1.4 2007-08-14 16:16:43 d-farrell2 Exp $
 #
 # type "make clean" to remove test results
 #
@@ -13,7 +13,8 @@ projection \
 meshfree \
 meshfree.1 \
 meshfree.2 \
-meshfree.3
+meshfree.3 \
+BSM
 
 all:
 	@echo "make clean to remove test results"
