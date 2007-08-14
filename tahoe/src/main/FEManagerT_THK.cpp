@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.2 2007-08-10 18:14:14 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.3 2007-08-14 16:22:44 d-farrell2 Exp $ */
 
 #include "FEManagerT_THK.h"
 #if defined(BRIDGING_ELEMENT)
@@ -20,6 +20,19 @@
 #include <iostream.h>
 #include <fstream.h>
 #include <math.h>
+
+/* File related to calculation using the Wagner-Karpov-Liu Bridging Scale Method
+* If you make use of this code, please cite the following publications (they are also handy references for the method and implementation):
+* 
+*		1)	Wagner GJ, WK Liu. "Coupling of Atomistic and Continuum Simulations using a Bridging Scale Decomposition", Journal of Computational Physics, 190:249-274 (2003)
+*		2)	Wagner GJ, EG Karpov, WK Liu. "Molecular Dynamics Boundary Conditions for Regular Crystal Lattices", CMAME, 193(17-20):1579-1601 (2004)
+*		3)	Park HS, WK Liu. "An Introduction and Tutorial on Multiple Scale Analysis in Solids", CMAME, 193(17-20):1733-1772 (2004)
+*		4)	Park HS, EG Karpov, PA Klein, WK Liu. "Three-Dimensional Bridging Scale Analysis of Dynamic Fracture", Journal of Computational Physics, 207(2):588-609 (2005)
+*		5)	Park HS, EG Karpov, WK Liu, PA Klein. "The Bridging Scale for Two-Dimensional Atomistic/Continuum Coupling", Philosophical Magazine, 85(1):79-113 (2005)
+*		6)	Farrell DE, HS Park, WK Liu. "Implementation Aspects of the Bridging Scale Method and Application to Intersonic Crack Propagation", IJNME 71:583-605 (2007)
+*		7)	Farrell DE, EG Karpov, WK Liu. "Algorithms for Bridging Scale Method Parameters", Computational Mechanics, in print DOI: 10.1007/s00466-007-0156-z (2007)
+*/
+
 
 using namespace Tahoe;
 
@@ -815,6 +828,17 @@ void FEManagerT_THK::DoGhostMap(void)
 	 * the ghost atoms. To do this, you must set the entry corresponding to the atom type to a interaction value which will produce
 	 * no force (i.e. k=0 for harmonic, epsilon = 0 for LJ). the ghostoffmapfile contains the coordinates for the entries which need
 	 * to change, as well as the value they need to be set to. all the other interactions remain the same as the input file.
+	 * 
+	 * For example - in the benchmark_XML/level.0/bridging/BSM/2D/2D_shear benchmark, there are 3 interations:
+	 *	0 - real-real
+	 *	1 - ghost-ghost (zero-force, since epsilon = 0)
+	 *	2 - real-ghost
+	 * There are 2 atom types:
+	 *	0 - real
+	 *	1 - ghost
+	 * So, in order to turn off the interactions involving the ghost and real atoms (i.e. during force calculations), we have the following entries in the ghostoffmap file:
+	 *		1 0 1	- set the (1,0) entry in the 2x2 matrix to 1... i.e. set the ghost-real interactions to zero-force.
+	 *		0 1 1	- set the (0,1) entry in the 2x2 matrix to 1... i.e. set the real-ghost interactions to zero-force.
 	 */ 
 	for (int ghostk = 0; ghostk < 2*(promap_dim-1); ghostk++)
 	{
