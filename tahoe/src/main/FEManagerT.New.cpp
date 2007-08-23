@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.New.cpp,v 1.5 2007-08-10 18:14:14 d-farrell2 Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.6 2007-08-23 14:07:50 d-farrell2 Exp $ */
 #include "FEManagerT.h"
 
 /* element configuration header */
@@ -7,10 +7,10 @@
 #ifdef BRIDGING_ELEMENT
 #include "MultiManagerT.h"
 #include "FEManagerT_bridging.h"
-#ifdef __DEVELOPMENT__
-#include "DevelopmentElementsConfig.h"
 #include "BridgingScaleManagerT.h"
 #include "FEManagerT_THK.h"
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
 #include "ThermomechanicalCouplingManagerT.h"
 #endif
 #endif
