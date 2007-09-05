@@ -1,4 +1,4 @@
-/* $Id: RowAutoFill2DT.h,v 1.9 2005-07-29 03:09:34 paklein Exp $ */
+/* $Id: RowAutoFill2DT.h,v 1.10 2007-09-05 00:22:47 paklein Exp $ */
 
 #ifndef _ROW_AUTO_ARRAY2D_T_H_
 #define _ROW_AUTO_ARRAY2D_T_H_
@@ -330,7 +330,7 @@ int RowAutoFill2DT<TYPE>::AppendUnique(int major_dim, const TYPE& value)
 template <class TYPE>
 inline int RowAutoFill2DT<TYPE>::AppendUnique(int major_dim, const ArrayT<TYPE>& source)
 {	
-	TYPE* psrc = source.Pointer();
+	const TYPE* psrc = source.Pointer();
 	int length = source.Length();
 	int count = 0;
 	for (int i = 0; i < length; i++)
