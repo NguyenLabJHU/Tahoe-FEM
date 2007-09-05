@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT_surf.cpp,v 1.4 2007-07-05 20:37:58 hspark Exp $ */
+/* $Id: CB_TersoffT_surf.cpp,v 1.5 2007-09-05 00:24:50 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffT_surf.h"
 
@@ -9,7 +9,7 @@ using namespace Tahoe;
 
 /* material parameters */
 const int kNSD  = 3;
-const int kNDOF = 3;
+const int kNDOF = 2 * kNSD; /* 2 lattice displacements */
 
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
@@ -56,8 +56,7 @@ void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 	NL_E_MatT::TakeParameterList(list);
 
 	/* dimension work space */
-	/* FOR SURFACE, ARE 2 SETS OF Xsi, SO DOUBLE LENGTH */
-	fXsi.Dimension(kNDOF*2);
+	fXsi.Dimension(kNDOF);
 	fC.Dimension(kNSD);
 	fPK2.Dimension(kNSD);
 	
@@ -68,6 +67,36 @@ void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 	
 	/* Get surface thickness */
 	fSurfaceThickness = fTersoffSolver_surf->SurfaceThickness();
+}
+
+/* return the number of constitutive model output parameters */
+int CB_TersoffT_surf::NumOutputVariables(void) const { return kNDOF; }
+
+/* return the labels for model output parameters */
+void CB_TersoffT_surf::OutputLabels(Tahoe::ArrayT<StringT>& labels) const
+{
+	int n_atom = kNDOF/kNSD;
+	StringT xsi = "Xsi";
+	labels.Dimension(kNDOF);
+	int dex = 0;
+	for (int i = 1; i <= n_atom; i++) {
+		for (int j = 1; j <= kNSD; j++) {
+			StringT label = xsi;
+			label.Append(i);
+			label.Append("_", j);
+			labels[dex++] = label;
+		}
+	}
+}
+
+/* return material output variables */
+void CB_TersoffT_surf::ComputeOutput(Tahoe::dArrayT& output)
+{
+	/* set internal DOF's by calculating the stress */
+	s_ij();
+
+	/* copy */
+	output = fXsi;
 }
 
 /*************************************************************************

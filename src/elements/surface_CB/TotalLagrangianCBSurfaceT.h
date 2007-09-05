@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.11 2007-07-03 03:13:07 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.12 2007-09-05 00:24:49 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -23,8 +23,20 @@ public:
 	/** destructor */
 	virtual ~TotalLagrangianCBSurfaceT(void);
 
+	/** \name writing output */
+	/*@{*/
+	/** register self for output */
+	virtual void RegisterOutput(void);
+
+	/** send output */
+	virtual void WriteOutput(void);
+	/*@}*/
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/* describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -89,6 +101,15 @@ protected:
 	/*@{*/
 	LocalArrayT fSplitInitCoords;
 	ShapeFunctionT* fSplitShapes;
+	/*@}*/
+	
+	/** \name surface output */
+	/*@{*/
+	/** ID obtained during ElementBaseT::RegisterOutput. Each surface type has its own output. */
+	iArrayT fSurfaceOutputID;
+
+	/** list of nodes on each surface type (by normal) */
+	ArrayT<iArrayT> fSurfaceNodes;
 	/*@}*/
 };
 

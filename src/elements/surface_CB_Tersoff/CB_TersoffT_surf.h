@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT_surf.h,v 1.1 2007-07-03 03:14:48 hspark Exp $ */
+/* $Id: CB_TersoffT_surf.h,v 1.2 2007-09-05 00:24:50 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #ifndef _CB_TERSOFF_T_SURF_H_
 #define _CB_TERSOFF_T_SURF_H_
@@ -20,6 +20,18 @@ public:
 
 	/* destructor */
 	virtual ~CB_TersoffT_surf(void);
+
+	/** \name material output variables */
+	/*@{*/
+	/** return the number of constitutive model output parameters */
+	virtual int NumOutputVariables(void) const;
+
+	/** return the labels for model output parameters */
+	virtual void OutputLabels(Tahoe::ArrayT<StringT>& labels) const;
+
+	/** return material output variables */
+	virtual void ComputeOutput(Tahoe::dArrayT& output);
+	/*@}*/	
 
 	/** \name tangent moduli
 	 * TEMP: use finite difference approximation for now.

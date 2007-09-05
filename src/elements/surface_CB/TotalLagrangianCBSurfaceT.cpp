@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.33 2007-07-04 02:15:48 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.34 2007-09-05 00:24:49 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -18,6 +18,7 @@
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
 #include "InverseMapT.h"
+#include "RowAutoFill2DT.h"
 
 using namespace Tahoe;
 
@@ -69,6 +70,26 @@ TotalLagrangianCBSurfaceT::~TotalLagrangianCBSurfaceT(void)
 		delete fSurfaceCB[i];
 	delete fSurfaceCBSupport;
 	delete fSplitShapes;
+}
+
+/* register self for output */
+void TotalLagrangianCBSurfaceT::RegisterOutput(void)
+{
+	/* inherited */
+	TotalLagrangianT::RegisterOutput();
+
+	// collect nodes per surface type
+	
+	// register each set of nodes as separate output set
+}
+
+/* send output */
+void TotalLagrangianCBSurfaceT::WriteOutput(void)
+{
+	/* inherited */
+	TotalLagrangianT::WriteOutput();
+
+	// calculate smoothed material output variables at the surface nodes
 }
 
 /* accumulate the residual force on the specified node */
@@ -297,6 +318,18 @@ void TotalLagrangianCBSurfaceT::AddNodalForce(const FieldT& field, int node, dAr
 	}	
 }
 
+/* describe the parameters needed by the interface */
+void TotalLagrangianCBSurfaceT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	TotalLagrangianT::DefineParameters(list);
+
+	/* associated fields */
+	ParameterT output_surface(ParameterT::Boolean, "output_surface");
+	output_surface.SetDefault(false);
+	list.AddParameter(output_surface);
+}
+
 /* information about subordinate parameter lists */
 void TotalLagrangianCBSurfaceT::DefineSubs(SubListT& sub_list) const
 {
@@ -364,8 +397,7 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	const ParameterListT& mat_list = block.GetListChoice(*this, "large_strain_material_choice");
 	const ArrayT<ParameterListT>& mat = mat_list.Lists();
 	const ParameterListT& bulk_params = mat[0];
-	const char* blah = bulk_params.Name();
-	fIndicator = blah;
+	fIndicator = bulk_params.Name();
 	//if (bulk_params.Name() != "FCC_3D")
 	//if (fIndicator != "FCC_3D")
 	//	ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM\" not \"%s\"", bulk_params.Name().Pointer());
@@ -482,6 +514,12 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	}
 	else ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM or TERSOFF_CB\" not \"%s\"", bulk_params.Name().Pointer());
 
+	/* output surface parameters */
+	bool output_surface = list.GetParameter("output_surface");
+	if (fIndicator != "Tersoff_CB") { /* no surface output for the other surface types */
+		output_surface = false;
+	}
+
 	/* collect surface element information */
 	ArrayT<StringT> block_ID;
 	ElementBlockIDs(block_ID);
@@ -496,6 +534,9 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 	ElementSupport().RegisterCoordinates(face_coords);
 	fSurfaceElementFacesType = fSurfaceElementNeighbors;
 	fSurfaceElementFacesType = -1;
+	
+	/* nodes per surface type */
+	RowAutoFill2DT<int> nodes_on_surfaces(nfs, 25);
 
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
@@ -531,7 +572,19 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 
 				/* store */
 				fSurfaceElementFacesType(i,j) = normal_type;
+				
+				/* collect face nodes */
+				if (output_surface) nodes_on_surfaces.AppendUnique(normal_type, face_nodes);
 			}
+	}
+	
+	/* copy nodes on face types data */
+	if (output_surface) {
+		fSurfaceNodes.Dimension(nodes_on_surfaces.MajorDim());
+		for (int i = 0; i < fSurfaceNodes.Length(); i++) {
+			fSurfaceNodes[i].Dimension(nodes_on_surfaces.MinorDim(i));
+			fSurfaceNodes[i].Copy(nodes_on_surfaces(i));
+		}
 	}
 	
 	/* process passivated surfaces */
