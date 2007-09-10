@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.34 2007-09-05 00:24:49 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.35 2007-09-10 03:52:45 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -19,6 +19,7 @@
 #include "ParameterUtils.h"
 #include "InverseMapT.h"
 #include "RowAutoFill2DT.h"
+#include "OutputSetT.h"
 
 using namespace Tahoe;
 
@@ -77,19 +78,153 @@ void TotalLagrangianCBSurfaceT::RegisterOutput(void)
 {
 	/* inherited */
 	TotalLagrangianT::RegisterOutput();
-
-	// collect nodes per surface type
 	
-	// register each set of nodes as separate output set
+	/* quick exit */
+	if (fTersoffSurfaceCB.Length() == 0 || fTersoffSurfaceCB.Length() != fSurfaceNodes.Length()) {
+		fSurfaceOutputID.Dimension(0);
+		return;
+	}
+
+	/* initialize */
+	fSurfaceOutputID.Dimension(fSurfaceNodes.Length());
+	fSurfaceOutputID = -1;
+	
+	/* register each surface type separate output set */
+	for (int i = 0; i < fSurfaceOutputID.Length(); i++) {
+	
+		/* nodal output labels */
+		ArrayT<StringT> n_labels;
+		fTersoffSurfaceCB[i]->OutputLabels(n_labels);
+		
+		/* register output set */
+		OutputSetT output_set(fSurfaceNodes[i], n_labels);
+		fSurfaceOutputID[i] = ElementSupport().RegisterOutput(output_set);
+	}
 }
 
 /* send output */
 void TotalLagrangianCBSurfaceT::WriteOutput(void)
 {
+	const char caller[] = "TotalLagrangianCBSurfaceT::WriteOutput";
+
 	/* inherited */
 	TotalLagrangianT::WriteOutput();
 
-	// calculate smoothed material output variables at the surface nodes
+	/* quick exit */
+	if (fTersoffSurfaceCB.Length() == 0 || fSurfaceOutputID.Length() == 0) return;
+
+	/* time integration parameters */
+	double constKd = 0.0;
+	int formKd = fIntegrator->FormKd(constKd);
+	if (!formKd) return;
+
+	/* dimensions */
+	const ShapeFunctionT& shape = ShapeFunction();
+	int nsd = shape.NumSD();                          // # of spatial dimensions in problem
+	int nfs = shape.NumFacets();                      // # of total possible element faces
+	int nsi = shape.FacetShapeFunction(0).NumIP();    // # IPs per surface face
+	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
+	int nen = NumElementNodes();                      // # nodes in bulk element
+
+	/* work space */
+	iArrayT face_nodes(nfn), face_nodes_index(nfn);	
+	dMatrixT F_inv(nsd);
+	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	ElementSupport().RegisterCoordinates(face_coords);	
+	dMatrixT jacobian(nsd, nsd-1);
+	dArrayT ip_coords_X(nsd);
+	dArrayT ip_coords_Xi(nsd);
+	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen);
+	dMatrixT DXi_DX(nsd);
+	dArrayT Na(nen);
+
+	/* nodal output */
+	dArrayT ip_values;
+	dArray2DT n_values;
+
+	/* loop over surface types */
+	for (int ii = 0; ii < fSurfaceOutputID.Length(); ii++) {
+	
+		/* nodal output labels */
+		int n_out = fTersoffSurfaceCB[ii]->NumOutputVariables();
+
+		/* reset nodal averaging workspace */
+		ElementSupport().ResetAverage(n_out);
+
+		/* collect nodal values */
+		n_values.Dimension(nfn, n_out);
+		for (int i = 0; i < fSurfaceElements.Length(); i++)
+		{
+			for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
+			{
+				/* surface type */
+				int normal_type = fSurfaceElementFacesType(i,j);
+				if (fSurfaceElementNeighbors(i,j) == -1 && normal_type == ii) /* no neighbor => surface */
+				{
+					/* face parent domain */
+					const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
+			
+					/* collect coordinates of face nodes */
+					ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
+					shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
+					face_nodes.Collect(face_nodes_index, element_card.NodesX());
+					face_coords.SetLocal(face_nodes);
+				
+					/* integrate over the face */
+					n_values = 0.0;
+					int face_ip;
+					fSurfaceCBSupport->SetCurrIP(face_ip);
+					const double* w = surf_shape.Weight();				
+					for (face_ip = 0; face_ip < nsi; face_ip++) {
+
+						/* coordinate mapping on face */
+						surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+						double detj = surf_shape.SurfaceJacobian(jacobian);
+				
+						/* ip coordinates on face */
+						surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+					
+						/* ip coordinates in bulk parent domain */
+						shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+
+						/* bulk shape functions/derivatives */
+						shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+						DXi_DX.Inverse();
+						shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+
+						/* deformation gradient/shape functions/derivatives at the surface ip */
+						dMatrixT& F = fF_Surf_List[face_ip];
+						shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+						F.PlusIdentity();
+					
+						/* F^-1 */
+						double J = F.Det();
+						if (J <= 0.0)
+							ExceptionT::BadJacobianDet(caller);
+						else
+							F_inv.Inverse(F);
+					
+						/* output variables */
+						fTersoffSurfaceCB[normal_type]->ComputeOutput(ip_values);
+					
+						/* extrapolate/accumulate */
+						surf_shape.NodalValues(ip_values, n_values, face_ip);
+					}
+				
+					/* accumulate (global) */
+					ElementSupport().AssembleAverage(face_nodes, n_values);
+				}
+			}
+		}
+		
+		/* get nodally averaged values */
+		dArray2DT n_values_all;
+		ElementSupport().OutputUsedAverage(n_values_all);
+
+		/* send to output */
+		dArray2DT e_values;
+		ElementSupport().WriteOutput(fSurfaceOutputID[ii], n_values_all, e_values);
+	}
 }
 
 /* accumulate the residual force on the specified node */
