@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.8 2007-07-12 15:13:56 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.9 2007-09-12 03:59:33 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -252,10 +252,14 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	XDOFS FOR SURFACES */
 	dXsi.Dimension(2*kNumDOF);
 	dXsidXsi.Dimension(2*kNumDOF);
+//	dXsi.Dimension(kNumDOF);
+//	dXsidXsi.Dimension(kNumDOF);
 	dCdC_hat.Dimension(kStressDim);
 	dCdXsi_hat.Dimension(kStressDim,kNumDOF*2);
+//	dCdXsi_hat.Dimension(kStressDim,kNumDOF);
 	fTempRank4.Dimension(kStressDim);
 	fTempMixed.Dimension(kStressDim, kNumDOF*2);
+//	fTempMixed.Dimension(kStressDim, kNumDOF);
 
 #if 0
 	fMatrices.Dimension(kNumDOF);
@@ -264,8 +268,11 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	fSymMat1.Dimension(kNSD);
 	fGradl_C.Dimension(3,kStressDim);
 #endif
+	/* DOUBLE DIMENSIONS FOR 2 SETS OF XDOFS */
 	fMat1.Dimension(kNumDOF*2); 
 	fVec.Dimension(kNumDOF*2);
+//	fMat1.Dimension(kNumDOF); 
+//	fVec.Dimension(kNumDOF);
 
 	/* unit cell coordinates - FOR IDEAL, UNRECONSTRUCTED {100} SURFACE */
 	/* NORMAL IS IN [001] DIRECTION */
@@ -481,7 +488,7 @@ void TersoffSolverT_surf::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 
 	/* check initial value */
 	SetdXsi(CIJ, Xsi);
-
+	
 	int count = 0;
 	if (debug) cout << dXsi.Magnitude() << '\n';
 	while (count++ < 15 && dXsi.Magnitude() > 1.0e-12)
@@ -490,12 +497,11 @@ void TersoffSolverT_surf::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 		fMat1.Multx(dXsi, fVec);
 		
 		Xsi -= fVec;
-		
 		/* recompute */
 		SetdXsi(CIJ, Xsi);
 		if (debug) cout << dXsi.Magnitude() << '\n';
 	}
-
+	
 	/* assume not converged */
 	if (count == 15) ExceptionT::GeneralFail("TersoffSolverT_surf::Equilibrate", "failed");
 }
