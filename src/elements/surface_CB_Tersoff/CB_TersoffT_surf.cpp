@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT_surf.cpp,v 1.6 2007-09-12 03:59:33 hspark Exp $ */
+/* $Id: CB_TersoffT_surf.cpp,v 1.7 2007-09-13 03:48:06 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffT_surf.h"
 
@@ -56,9 +56,7 @@ void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 	NL_E_MatT::TakeParameterList(list);
 
 	/* dimension work space */
-	/* FOR SURFACE, ARE 2 SETS OF Xsi, SO DOUBLE LENGTH */
-	fXsi.Dimension(kNDOF*2);
-//	fXsi.Dimension(kNDOF);
+	fXsi.Dimension(kNDOF);
 	fC.Dimension(kNSD);
 	fPK2.Dimension(kNSD);
 	
