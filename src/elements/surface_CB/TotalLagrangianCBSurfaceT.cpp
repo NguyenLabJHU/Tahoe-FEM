@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.35 2007-09-10 03:52:45 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.36 2007-09-19 05:03:01 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -155,6 +155,12 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 		n_values.Dimension(nfn, n_out);
 		for (int i = 0; i < fSurfaceElements.Length(); i++)
 		{
+			/* bulk element information */
+			int element = fSurfaceElements[i];
+			const ElementCardT& element_card = ElementCard(element);
+			fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
+			fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
+
 			for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
 			{
 				/* surface type */
