@@ -1,7 +1,6 @@
-# $Id: GNU.SOILS.macros,v 1.1 2006-11-08 22:16:06 regueiro Exp $
+# $Id: GNU.SOILS.macros,v 1.2 2007-09-21 23:29:46 regueiro Exp $
 # GNU
 #
-#COMP_DIR    = /usr/local/gnu
 COMP_DIR    = /usr
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
