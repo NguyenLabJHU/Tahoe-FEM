@@ -1,14 +1,13 @@
-# $Id: GNU.SOILS.mpich.macros,v 1.1 2007-09-21 19:51:22 regueiro Exp $
+# $Id: GNU.SOILS.mpich.macros,v 1.2 2007-09-21 23:29:46 regueiro Exp $
 # GNU
 #
-COMP_DIR1   = /usr
-COMP_DIR2   = /usr/local/gcc
+COMP_DIR    = /usr
 MPI_HOME    = /usr/local/mpich
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
-COMP_C      = $(COMP_DIR2)/bin/gcc
-COMP_CC     = $(COMP_DIR2)/bin/g++
-COMP_F      = $(COMP_DIR1)/bin/g77
+COMP_C      = $(COMP_DIR)/bin/gcc
+COMP_CC     = $(COMP_DIR)/bin/g++
+COMP_F      = $(COMP_DIR)/bin/g77
 COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)  -Wunused -Wuninitialized -Wno-deprecated -I$(MPI_HOME)/include
@@ -17,13 +16,13 @@ CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -L$(MPI_HOME)/lib -lmpich -lpthread
-MAKEDEPEND_C         = $(COMP_DIR2)/bin/gcc -MM
+MAKEDEPEND_C         = $(COMP_DIR)/bin/gcc -MM
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES) -I$(MPI_HOME)/include
 MAKEDEPEND_OUTPUT_C  = -MF
-MAKEDEPEND_CC        = $(COMP_DIR2)/bin/g++ -MM
+MAKEDEPEND_CC        = $(COMP_DIR)/bin/g++ -MM
 MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES) -I$(MPI_HOME)/include -Wno-deprecated
 MAKEDEPEND_OUTPUT_CC = -MF
-MAKEDEPEND_F         = $(COMP_DIR1)/bin/g77 -MM
+MAKEDEPEND_F         = $(COMP_DIR)/bin/g77 -MM
 MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES) -I$(MPI_HOME)/include
 MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
