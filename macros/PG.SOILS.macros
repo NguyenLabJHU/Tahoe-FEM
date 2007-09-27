@@ -1,15 +1,15 @@
-# $Id: PG.SOILS.macros,v 1.1 2007-09-27 19:28:13 regueiro Exp $
+# $Id: PG.SOILS.macros,v 1.2 2007-09-27 19:36:17 regueiro Exp $
 # Portland Group
 #
 COMP_DIR    = /usr/local/pgi/linux86-64/7.0-7
 MAKE        = make
-DEFINES     = -DNON_UNIX_STDIO -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
+DEFINES     = -D__PGI -DNON_UNIX_STDIO
 COMP_C      = $(COMP_DIR)/bin/pgcc
 COMP_CC     = $(COMP_DIR)/bin/pgCC
 COMP_F      = $(COMP_DIR)/bin/pgf77
 COMP_FLAG   = -c
-MORE_CFLAGS = -O3 -DNDEBUG
-LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)  -Wunused -Wuninitialized -Wno-deprecated
+MORE_CFLAGS = -O2 -DNDEBUG
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized -Wno-deprecated
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
