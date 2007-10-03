@@ -1,4 +1,4 @@
-# $Id: GNU.SOILS.mpich.macros,v 1.2 2007-09-21 23:29:46 regueiro Exp $
+# $Id: GNU.SOILS.mpich.macros,v 1.3 2007-10-03 23:34:44 regueiro Exp $
 # GNU
 #
 COMP_DIR    = /usr
@@ -7,7 +7,7 @@ MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
 COMP_C      = $(COMP_DIR)/bin/gcc
 COMP_CC     = $(COMP_DIR)/bin/g++
-COMP_F      = $(COMP_DIR)/bin/g77
+COMP_F      = $(COMP_DIR)/bin/gfortran
 COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)  -Wunused -Wuninitialized -Wno-deprecated -I$(MPI_HOME)/include
@@ -22,7 +22,7 @@ MAKEDEPEND_OUTPUT_C  = -MF
 MAKEDEPEND_CC        = $(COMP_DIR)/bin/g++ -MM
 MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES) -I$(MPI_HOME)/include -Wno-deprecated
 MAKEDEPEND_OUTPUT_CC = -MF
-MAKEDEPEND_F         = $(COMP_DIR)/bin/g77 -MM
+MAKEDEPEND_F         = $(COMP_DIR)/bin/gfortran -MM
 MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES) -I$(MPI_HOME)/include
 MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
