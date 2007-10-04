@@ -1,4 +1,4 @@
-# $Id: PG.SOILS.macros,v 1.4 2007-10-04 15:20:12 regueiro Exp $
+# $Id: PGI.SOILS.macros,v 1.1 2007-10-04 22:49:46 regueiro Exp $
 # Portland Group
 #
 COMP_DIR    = /usr/local/pgi/linux86-64/7.0-7
