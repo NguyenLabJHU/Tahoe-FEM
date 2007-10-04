@@ -1,7 +1,7 @@
-# $Id: GNU.SOILS.mpich.macros,v 1.3 2007-10-03 23:34:44 regueiro Exp $
+# $Id: GNU.SOILS.mpich.macros,v 1.4 2007-10-04 21:13:48 regueiro Exp $
 # GNU
 #
-COMP_DIR    = /usr
+COMP_DIR    = /usr/local/gcc
 MPI_HOME    = /usr/local/mpich
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
@@ -10,7 +10,7 @@ COMP_CC     = $(COMP_DIR)/bin/g++
 COMP_F      = $(COMP_DIR)/bin/gfortran
 COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
-LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)  -Wunused -Wuninitialized -Wno-deprecated -I$(MPI_HOME)/include
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized -Wno-deprecated -I$(MPI_HOME)/include
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
