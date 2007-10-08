@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.47 2005-02-11 18:33:11 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.48 2007-10-08 20:02:23 jzimmer Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -242,20 +242,26 @@
        TmpSort.Dimension(nSD);
        TmpSort = WhichSort;
 
-       WhichSort[0] = 1;
-       WhichSort[1] = 2;
-       WhichSort[2] = 0;
-       SortLattice(pcl);
+       switch(nlsd)
+	{
+	case 3:
+           WhichSort[0] = 1;
+           WhichSort[1] = 2;
+           WhichSort[2] = 0;
+           SortLattice(pcl);
 
-       WhichSort[0] = 2;
-       WhichSort[1] = 0;
-       WhichSort[2] = 1;
-       SortLattice(pcl);
+           WhichSort[0] = 2;
+           WhichSort[1] = 0;
+           WhichSort[2] = 1;
+           SortLattice(pcl);
 
-       WhichSort[0] = 0;
-       WhichSort[1] = 1;
-       WhichSort[2] = 2;
-       SortLattice(pcl);
+           WhichSort[0] = 0;
+           WhichSort[1] = 1;
+           WhichSort[2] = 2;
+           SortLattice(pcl);
+
+           break;
+	}
        cout << "\n";
 
        WhichSort = TmpSort;
@@ -484,7 +490,7 @@
       }
 
       
-      cout << "Periodic distance in " << WhichSort[2] << ": " << z[1] - z[0] << "\n";
+      if (nlsd == 3) cout << "Periodic distance in " << WhichSort[2] << ": " << z[1] - z[0] << "\n";
 
    
    // Update sorted atoms
