@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.77 2006-10-24 00:24:26 tdnguye Exp $ */
+/* $Id: SolidElementT.cpp,v 1.78 2007-10-09 23:17:43 r-jones Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1291,6 +1291,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dSymMatrixT cauchy((nstrs != 4) ? nsd : dSymMatrixT::k3D_plane), nstr_tmp;
 	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
 	dArrayT ipspeed(nsd), ipprincipal(nsd), ipPoynting(nsd);
+	dMatrixT ippvector(nsd);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
@@ -1495,6 +1496,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				{
 					/* compute eigenvalues */
 					cauchy.PrincipalValues(ipprincipal);
+//        cauchy.Eigensystem(ipprincipal,ippvector,true);
 					if (qNoExtrap)
 						for (int k = 0; k < nen; k++)
 							princstress.AddToRowScaled(k,Na_X_ip_w(k,0),ipprincipal);
@@ -1655,6 +1657,15 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			/* store results */
 			e_values.SetRow(CurrElementNumber(), element_values);
 		}
+
+#if 0
+				/* nodal reactions */
+				if (n_codes[iReaction])
+				{
+					AddNodalForce(FieldT(), node, dArrayT& force)
+				}
+#endif
+
 
 	/* get nodally averaged values */
 	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
