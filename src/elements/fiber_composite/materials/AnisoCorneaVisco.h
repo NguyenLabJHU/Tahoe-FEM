@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.5 2006-11-17 17:44:44 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.6 2007-10-09 23:24:48 rjones Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -19,6 +19,8 @@ class C1FunctionT;
 class AnisoCorneaVisco: public  FSFiberMatViscT
 {
    public:
+
+	enum InhomoDistributionT { kHomogeneous=0, kBlend,  kCornea};
   
 	/* constructor/destructor */
 	AnisoCorneaVisco(void);
@@ -47,7 +49,11 @@ class AnisoCorneaVisco: public  FSFiberMatViscT
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+
 	/*@}*/
+
+	/* non-equilibrium strain energy density */
+	double NonequilibriumStrainEnergyDensity(void);
 
 protected:
 	/*calculates  matrix contribution to 2PK stress*/
@@ -154,6 +160,12 @@ protected:
 
 	/* jacobian table */
 	dArrayT	fjacobian;
+
+  /* for inhomogeneous material */
+	int finhomogeneous; // flag
+  ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
+	double a2,b2,c2,c3,n2,r1,r2,r3,r4; // for spatial dependent distribution
+
 
 	/* STRESS angle tables for fiber stress - by associated stress component */
 	dArray2DT fStressTable;

@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.37 2005-04-14 01:18:53 paklein Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.38 2007-10-09 23:24:47 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -109,7 +109,8 @@ void SurfaceT::PrintConnectivityData(ostream& out)
 
 /* surface input functions */
 void SurfaceT::InputSideSets 
-(const ElementSupportT& support, ArrayT<StringT>& ss_ID, ostream& out)
+//(const ElementSupportT& support, ArrayT<StringT>& ss_ID, ostream& out)
+(const ElementSupportT& support, StringT ss_ID, ostream& out)
 {
 //TEMP
 //	int elem_group;
@@ -135,46 +136,46 @@ void SurfaceT::InputSideSets
 	int num_faces = faces_tmp.MajorDim();
 
 	/* make node list and convert connectivities to local numbering */
-    int num_nodes = support.NumNodes();
-    iArrayT counts(num_nodes);
-    iArrayT global2local(num_nodes);
-    counts = 0;
+  int num_nodes = support.NumNodes();
+  iArrayT counts(num_nodes);
+  iArrayT global2local(num_nodes);
+  counts = 0;
 
-    /* tally occurrences */
-    int* pnode  = faces_tmp.Pointer();
-    int  length = faces_tmp.Length();
-    for (int j = 0; j < length; j++)
-    {
-                counts[*pnode]++;
-                pnode++;
-    }
+  /* tally occurrences */
+  int* pnode  = faces_tmp.Pointer();
+  int  length = faces_tmp.Length();
+  for (int j = 0; j < length; j++)
+  {
+		counts[*pnode]++;
+		pnode++;
+  }
 
-    /* count surface nodes */
-    int  node_count = 0;
-    int* pcount = counts.Pointer();
-    for (int j = 0; j < num_nodes; j++)
+	/* count surface nodes */
+	int  node_count = 0;
+	int* pcount = counts.Pointer();
+	for (int j = 0; j < num_nodes; j++)
 	{
-                if (*pcount++ > 0) node_count++;
+		if (*pcount++ > 0) node_count++;
 	}
 
-    /* collect */
-    fGlobalNodes.Dimension(node_count);
-    pcount = counts.Pointer();
-    int nsurf_nodes = 0;
-    for (int k = 0; k < num_nodes; k++)
+	/* collect */
+	fGlobalNodes.Dimension(node_count);
+	pcount = counts.Pointer();
+	int nsurf_nodes = 0;
+	for (int k = 0; k < num_nodes; k++)
 	{
-                if (*pcount++ > 0)
-                {
-                        fGlobalNodes[nsurf_nodes] = k;
-                        global2local[k] = nsurf_nodes;
-                        nsurf_nodes++;
-                }
+		if (*pcount++ > 0)
+		{
+			fGlobalNodes[nsurf_nodes] = k;
+			global2local[k] = nsurf_nodes;
+			nsurf_nodes++;
+		}
 	}
     /* convert connectvities to local numbering */
-    for (int k = 0; k < length; k++) 
+	for (int k = 0; k < length; k++) 
 	{
-                faces_tmp[k] = global2local[faces_tmp[k]];
-    }
+		faces_tmp[k] = global2local[faces_tmp[k]];
+	}
 
 	/* create faces */
 	fFaces.Dimension(num_faces);
@@ -253,10 +254,10 @@ void SurfaceT::InputSideSets
 	  }
 	}
 
-    fGlobalNodeNumbers.Dimension(fGlobalNodes.Length(),1);
+	fGlobalNodeNumbers.Dimension(fGlobalNodes.Length(),1);
 	fGlobalNodeNumbers= -1;
-    for (int k = 0; k < fGlobalNodes.Length(); k++) {
-          fGlobalNodeNumbers(k,0) = fGlobalNodes[k];
+	for (int k = 0; k < fGlobalNodes.Length(); k++) {
+		fGlobalNodeNumbers(k,0) = fGlobalNodes[k];
 	}
 
 }

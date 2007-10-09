@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.7 2007-01-19 05:23:39 thao Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.8 2007-10-09 23:24:47 rjones Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -230,6 +230,9 @@ MaterialListT* UpLagFiberCompT::NewMaterialList(const StringT& name, int size)
 			fFiberSupport = TB_DYNAMIC_CAST(FSFiberMatSupportT*, NewMaterialSupport());
 			if (!fFiberSupport) ExceptionT::GeneralFail("UpLagFiberCompT::NewMaterialList");
 		}
+
+		fFiberSupport->SetElementCards(&fElementCards);
+
 		/* allocate */
 		return new FSFiberMatListT(size, *fFiberSupport);
 	}

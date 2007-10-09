@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement3DT.cpp,v 1.4 2005-04-14 01:18:53 paklein Exp $ */
+/* $Id: MultiplierContactElement3DT.cpp,v 1.5 2007-10-09 23:24:47 rjones Exp $ */
 #include "MultiplierContactElement3DT.h"
 
 #include <math.h>
@@ -32,44 +32,6 @@ void MultiplierContactElement3DT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	ContactElementT::TakeParameterList(list);
-
-    /* write out search parameter matrix */
-    ofstreamT& out = ElementSupport().Output();
-    out << " Interaction parameters ............................\n";
-    int num_surfaces = fSearchParameters.Rows();
-    for (int i = 0; i < num_surfaces ; i++)
-    {
-        for (int j = i ; j < num_surfaces ; j++)
-        {
-            const dArrayT& search_parameters = fSearchParameters(i,j);
-            const dArrayT& enf_parameters = fEnforcementParameters(i,j);
-			if (enf_parameters.Length() != kNumEnfParameters)
-				ExceptionT::GeneralFail("MultiplierContactElement3DT::TakeParameterList",
-					"expecting %d enforcement parameters not %d",
-					kNumEnfParameters, enf_parameters.Length());
-
-            /* only print allocated parameter arrays */
-            if (search_parameters.Length() == kSearchNumParameters) {
-              out << "  surface pair: ("  << i << "," << j << ")\n" ;
-              out << "  gap tolerance:      "
-                    << search_parameters[kGapTol] << '\n';
-              out << "  xi tolerance :      "
-                    << search_parameters[kXiTol] << '\n';
-			  out << "  pass flag    :      "
-                    << (int) search_parameters[kPass] << '\n';
-              out << "  consistent tangent: "
-                    << (int) enf_parameters[kConsistentTangent] << '\n';
-              out << "  penalty :           "
-                    << enf_parameters[kPenalty] << '\n';
-              out << "  gap scale :         "
-                    << enf_parameters[kGScale] << '\n';
-              out << "  pressure scale:     "
-                    << enf_parameters[kPScale] << '\n';
-              out << "  pressure tolerance: "
-                    << enf_parameters[kTolP] << '\n';
-			}
-		}
-	}
 }
 
 /***********************************************************************

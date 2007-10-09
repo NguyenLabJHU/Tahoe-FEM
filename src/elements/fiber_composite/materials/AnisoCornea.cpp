@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.cpp,v 1.5 2006-11-12 18:28:36 thao Exp $ */
+/* $Id: AnisoCornea.cpp,v 1.6 2007-10-09 23:24:48 rjones Exp $ */
 /* created: paklein (11/08/1997) */
 
 #include "AnisoCornea.h"
@@ -182,6 +182,7 @@ ParameterInterfaceT* AnisoCornea::NewSub(const StringT& name) const
 		choice->AddSub(fung);
 		return(choice);
 	}
+  // NOTE : this definition _masks_ the definition in AnisoViscoCornea
 	else if (name == "fibril_distribution")
 	{
 		ParameterContainerT* choice = new ParameterContainerT(name);
@@ -209,6 +210,104 @@ ParameterInterfaceT* AnisoCornea::NewSub(const StringT& name) const
 		/* set the description */
 		powertrig.SetDescription("f(theta) = a*cos(theta+phi)^n + b*sin(theta+phi)^n + c");	
 		choice->AddSub(powertrig);
+
+    ParameterContainerT blend_powertrig("blend_power_trig");
+
+    ParameterT a1(ParameterT::Double, "a1");
+    ParameterT b1(ParameterT::Double, "b1");
+    ParameterT c1(ParameterT::Double, "c1");
+    ParameterT n1(ParameterT::Double, "n1");
+
+    blend_powertrig.AddParameter(a1);
+    blend_powertrig.AddParameter(b1);
+    blend_powertrig.AddParameter(c1);
+    blend_powertrig.AddParameter(n1);
+    c1.AddLimit(lower);
+    c1.AddLimit(upper);
+    n1.AddLimit(lower);
+
+    ParameterT a2(ParameterT::Double, "a2");
+    ParameterT b2(ParameterT::Double, "b2");
+    ParameterT c2(ParameterT::Double, "c2");
+    ParameterT n2(ParameterT::Double, "n2");
+
+    blend_powertrig.AddParameter(a2);
+    blend_powertrig.AddParameter(b2);
+    blend_powertrig.AddParameter(c2);
+    blend_powertrig.AddParameter(n2);
+    c2.AddLimit(lower);
+    c2.AddLimit(upper);
+    n2.AddLimit(lower);
+
+    ParameterT r1(ParameterT::Double, "r1");
+    ParameterT r2(ParameterT::Double, "r2");
+    blend_powertrig.AddParameter(r1);
+    blend_powertrig.AddParameter(r2);
+    r1.AddLimit(lower);
+    r2.AddLimit(lower);
+
+    /* set the description */
+    blend_powertrig.SetDescription("f(theta) = dist1(theta,phi=0)*(r-r2)/(r1-r2) + dist1(theta,phi(x))*(r-r1)/(r2-r1) ");
+    choice->AddSub(blend_powertrig);
+
+    /* a full map of a cornea's distributions */
+    ParameterContainerT cornea("cornea");
+		{
+    ParameterT a1(ParameterT::Double, "a1");
+    ParameterT b1(ParameterT::Double, "b1");
+    ParameterT c1(ParameterT::Double, "c1");
+    ParameterT n1(ParameterT::Double, "n1");
+
+    cornea.AddParameter(a1);
+    cornea.AddParameter(b1);
+    cornea.AddParameter(c1);
+    cornea.AddParameter(n1);
+    c1.AddLimit(lower);
+    c1.AddLimit(upper);
+    n1.AddLimit(lower);
+
+    ParameterT a2(ParameterT::Double, "a2");
+    ParameterT b2(ParameterT::Double, "b2");
+    ParameterT c2(ParameterT::Double, "c2");
+    ParameterT n2(ParameterT::Double, "n2");
+
+    cornea.AddParameter(a2);
+    cornea.AddParameter(b2);
+    cornea.AddParameter(c2);
+    cornea.AddParameter(n2);
+    c2.AddLimit(lower);
+    c2.AddLimit(upper);
+    n2.AddLimit(lower);
+
+    ParameterT c3(ParameterT::Double, "c3");
+    cornea.AddParameter(c3);
+    c3.AddLimit(lower);
+
+
+    ParameterT r1(ParameterT::Double, "r1"); // NT-IS end
+    cornea.AddParameter(r1);
+    r1.AddLimit(lower);
+    ParameterT r2(ParameterT::Double, "r2"); // circumferential begin
+    cornea.AddParameter(r2);
+    r2.AddLimit(lower);
+    ParameterT r3(ParameterT::Double, "r3"); // circumferential end
+    cornea.AddParameter(r3);
+    r3.AddLimit(lower);
+    ParameterT r4(ParameterT::Double, "r4"); // uniform begin
+    cornea.AddParameter(r4);
+    r4.AddLimit(lower);
+		}
+    /* set the description */
+    cornea.SetDescription("f(theta) = distNT-IS(0:r1) + distCIRC(r2:r3) + distISO(r4:)  ");
+    choice->AddSub(cornea);
+
+    /* element distributions read from a file */
+    ParameterContainerT inhomo_dist("inhomogeneous_distribution");
+    ParameterT dist_file(ParameterT::String, "element_distributions_file");
+    inhomo_dist.AddParameter(dist_file);
+    inhomo_dist.SetDescription("read element distributions from file");
+    choice->AddSub(inhomo_dist);
+
 		return(choice);
 	}
 	else if (name == "matrix_material_params")
@@ -276,9 +375,49 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 		double c = distr.GetParameter("c");
 		double n = distr.GetParameter("n");
 		double phi = distr.GetParameter("phi");
-		fDistribution = new PowerTrig(a,b,c,n,phi); 
+	 	fDistribution = new PowerTrig(a,b,c,n,phi); 
 		if (!fDistribution) throw ExceptionT::kOutOfMemory;
 	}
+  else if (distr.Name() == "blend_power_trig")
+  {
+    double a1 = distr.GetParameter("a1");
+    double b1 = distr.GetParameter("b1");
+    double c1 = distr.GetParameter("c1");     
+		double n1 = distr.GetParameter("n1");
+    fDistribution = new PowerTrig(a1,b1,c1,n1,0.0);
+    if (!fDistribution) throw ExceptionT::kOutOfMemory;
+
+    a2 = distr.GetParameter("a2");
+    b2 = distr.GetParameter("b2");
+    c2 = distr.GetParameter("c2");
+    n2 = distr.GetParameter("n2");
+
+    r1 = distr.GetParameter("r1");
+    r2 = distr.GetParameter("r2");
+    finhomogeneous = true;
+  }
+  else if (distr.Name() == "cornea")
+  {
+    double a1 = distr.GetParameter("a1");
+    double b1 = distr.GetParameter("b1");
+    double c1 = distr.GetParameter("c1");
+    double n1 = distr.GetParameter("n1");
+    fDistribution = new PowerTrig(a1,b1,c1,n1,0.0);
+    if (!fDistribution) throw ExceptionT::kOutOfMemory;
+
+    a2 = distr.GetParameter("a2");
+    b2 = distr.GetParameter("b2");
+    c2 = distr.GetParameter("c2");
+    n2 = distr.GetParameter("n2");
+
+		c3 = distr.GetParameter("c3");
+
+    r1 = distr.GetParameter("r1");
+    r2 = distr.GetParameter("r2");
+    r3 = distr.GetParameter("r3");
+    r4 = distr.GetParameter("r4");
+    finhomogeneous = true;
+  }
 
 	/* point generator */
 	int points = list.GetParameter("n_points");

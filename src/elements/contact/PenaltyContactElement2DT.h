@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.23 2005-04-14 01:18:53 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.24 2007-10-09 23:24:47 rjones Exp $ */
 // created by : rjones 2001
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -10,8 +10,6 @@
 
 namespace Tahoe {
 
-class C1FunctionT;
-
 class PenaltyContactElement2DT: public ContactElementT
 {
   public:
@@ -21,12 +19,6 @@ class PenaltyContactElement2DT: public ContactElementT
 
 	/* writing output */
 	virtual void WriteOutput(void);
-
-    enum EnforcementParametersT { 
-                                kConsistentTangent = 0 ,
-                                kPenalty ,
-                                kMaterialType ,
-								kNumEnfParameters}; 
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/	
@@ -49,10 +41,6 @@ class PenaltyContactElement2DT: public ContactElementT
 	dArrayT fRealArea; 
 	dArrayT fContactArea; 
 	dArrayT fPlasticArea; 
-
-    /* penalty models */
-	pArrayT<C1FunctionT*> fPenaltyFunctions;
-
 
 };
 

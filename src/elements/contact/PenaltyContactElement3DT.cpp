@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.15 2005-04-14 01:18:53 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.16 2007-10-09 23:24:47 rjones Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -36,121 +36,8 @@ void PenaltyContactElement3DT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ContactElementT::TakeParameterList(list);
 
-    /* write out search parameter matrix */
-    ofstreamT& out = ElementSupport().Output();
-	out << " Interaction parameters ............................\n";
-	int num_surfaces = fSearchParameters.Rows();
-    for (int i = 0; i < num_surfaces ; i++)
-	{
-		for (int j = i ; j < num_surfaces ; j++)
-		{
-			const dArrayT& search_parameters = fSearchParameters(i,j);
-			const dArrayT& enf_parameters = fEnforcementParameters(i,j);
-			if (enf_parameters.Length() != kNumEnfParameters)
-				ExceptionT::GeneralFail("PenaltyContactElement3DT::TakeParameterList",
-					"expecting %d enforcement parameters not %d",
-					kNumEnfParameters, enf_parameters.Length());
-			
-			/* only print allocated parameter arrays */
-			if (search_parameters.Length() == kSearchNumParameters) {
-		  	  out << "  surface pair: ("  << i << "," << j << ")\n" ;
-			  out << "  gap tolerance:    "
-					<< search_parameters[kGapTol] << '\n';
-			  out << "  xi tolerance :    "
-					<< search_parameters[kXiTol] << '\n';
-			  out << "  pass flag    :    "
-					<< (int) search_parameters[kPass] << '\n';
-			  out << "  consis. tangent:  "
-                    << (int) enf_parameters[kConsistentTangent] << '\n';
-			  out << "  penalty :         "
-					<< enf_parameters[kPenalty] << '\n';
-			  out << "  penalty types:\n"
-				  << "     Default (linear)    " 
- 				  << PenaltyContactElement3DT::kDefault << "\n"
-				  << "     ModSmithFerrante    " 
-				  << PenaltyContactElement3DT::kModSmithFerrante << "\n"
-				  << "     GreenwoodWilliamson " 
-			      << PenaltyContactElement3DT::kGreenwoodWilliamson << "\n";
-			  out << "  penalty Type :         "
-					<< (int) enf_parameters[kMaterialType] << '\n';
-			  switch ((int) enf_parameters[kMaterialType]) 
-			  {
-			  case kDefault: // no other parameters
-			    out << "  <no parameters> \n";
-				break;	
-			  case kModSmithFerrante:
-				out << "  Smith-Ferrante A : "
-					<< enf_parameters[kSmithFerranteA] << '\n';
-				out << "  Smith-Ferrante B : "
-					<< enf_parameters[kSmithFerranteB] << '\n';
-				break;	
-			  case kGreenwoodWilliamson:
-				out << "  Average asperity height            : "
-					<< enf_parameters[kAsperityHeightMean] << '\n';
-				out << "  Asperity height standard deviation : "
-					<< enf_parameters[kAsperityHeightStandardDeviation] << '\n';
-				out << "  Asperity density                   : "
-					<< enf_parameters[kAsperityDensity] << '\n';
-				out << "  Asperity Radius                    : "
-					<< enf_parameters[kAsperityTipRadius] << '\n';
-				out << "  Hertzian Modulus                   : "
-					<< enf_parameters[kHertzianModulus] << '\n';
-				break;	
-			  default:
-				throw ExceptionT::kBadInputValue;
-		  	  }
-			}
-		}
-	}
-	out <<'\n';
-
-	/* set up Penalty functions */
-	fPenaltyFunctions.Dimension(num_surfaces*(num_surfaces-1));
-    for (int i = 0; i < num_surfaces ; i++)
-    {
-        for (int j = 0 ; j < num_surfaces ; j++)
-        {
-          dArrayT& enf_parameters = fEnforcementParameters(i,j);
-		  if (enf_parameters.Length()) {
-            dArrayT& parameters = fEnforcementParameters(i,j);
-			switch ((int) enf_parameters[kMaterialType]) 
-			{
-			case PenaltyContactElement3DT::kDefault:
-				// Macauley bracket:  <-x> ???
-				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new ParabolaT(1.0);
-				break;
-			case PenaltyContactElement3DT::kModSmithFerrante:
-				{
-                double A = parameters[kSmithFerranteA];
-                double B = parameters[kSmithFerranteB];
-				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new ModSmithFerrante(A,B);
-				//parameters[kPenalty] = 1.0; // overwrite pen value
-				}
-				break;
-			case PenaltyContactElement3DT::kGreenwoodWilliamson:
-				{
-                /* parameters for Greenwood-Williamson load formulation */
-                double gw_m = parameters[kAsperityHeightMean];
-                double gw_s = parameters[kAsperityHeightStandardDeviation];
-                double gw_dens = parameters[kAsperityDensity];
-                double gw_mod = parameters[kHertzianModulus];
-                double gw_rad = parameters[kAsperityTipRadius];
-                double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad);
-          		double area_coeff = PI*gw_dens*gw_rad;
-				parameters[kPenalty] *= material_coeff; // overwrite pen value
-				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
-                                        = new GreenwoodWilliamson(1.5,gw_m,gw_s);
-				}
-				break;
-			default:
-				throw ExceptionT::kBadInputValue;
-			}
-		  }
-		}
-	}
-
 	/* subsidary data for GW models */
-    fRealArea.Dimension(fSurfaces.Length());
+  fRealArea.Dimension(fSurfaces.Length());
 	fRealArea = 0.0;
 }
 

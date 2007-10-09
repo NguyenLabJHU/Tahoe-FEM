@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.37 2005-04-14 01:18:53 paklein Exp $ */
+/* $Id: ContactElementT.h,v 1.38 2007-10-09 23:24:46 rjones Exp $ */
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 
@@ -24,6 +24,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class XDOF_ManagerT;
+class C1FunctionT;
 
 /**
 ContactElementT is a "super element" of sorts since it is is made up
@@ -107,71 +108,84 @@ public:
 
 
 	iArrayT fOutputFlags;
-	enum OutputFlagsT {kGaps = 0,
-			kNormals,
-			kStatus,
-			kMultipliers,
-			kArea,
-			kNumOutputFlags};
+	enum OutputFlagsT {
+		kGaps = 0,
+		kNormals,
+		kStatus,
+		kMultipliers,
+		kArea,
+		kNumOutputFlags};
 
-	enum SearchParametersT { 	kGapTol = 0,
-								kXiTol ,
-								kPass,
-								kSearchNumParameters};
+	enum SearchParametersT { 	
+		kGapTol = 0,
+		kXiTol ,
+		kPass,
+		kNumSearchParameters};
+
 	int fNumEnfParameters;
+	enum EnforcementParametersT {
+		kConsistentTangent = 0 ,
+		kPenalty ,
+		kGScale,
+		kPScale,
+		kTolP,
+		kMaterialType ,
+		kNumEnfParameters};
 
-    enum PassTypeT {kSymmetric = 0,
-                    kPrimary,
-                    kSecondary,
-                    kDeformable,
-                    kRigid};
+	enum PassTypeT {
+		kSymmetric = 0,
+		kPrimary,
+		kSecondary,
+		kDeformable,
+		kRigid};
 
+  enum StatusT {  
+		kNoP = -1,
+		kPZero,
+		kPJump,
+		kGapZero};
 
 	enum MaterialTypes {
-								kDefault = 0,
-								kModSmithFerrante,
-								kGreenwoodWilliamson,
-								kMajumdarBhushan,
-								kGWPlastic,
-								kNumMaterialTypes};
+		kDefault = 0,
+		kModSmithFerrante,
+		kGreenwoodWilliamson,
+		kMajumdarBhushan,
+		kGWPlastic,
+		kNumMaterialTypes};
 	
 // material constants for the various penalty types
 	enum SFParametersT {
-								kSmithFerranteA=0,
-								kSmithFerranteB,
-								knSF
-						};
+		kSmithFerranteA=0,
+		kSmithFerranteB,
+		knSF };
 	
 	enum GWParametersT {
-                                kAsperityHeightMean=0,
-                                kAsperityHeightStandardDeviation,
-                               	kAsperityDensity,
-                               	kAsperityTipRadius,
-                               	kHertzianModulus,
-							  	knGW	
-						};
+		kAsperityHeightMean=0,
+		kAsperityHeightStandardDeviation,
+		kAsperityDensity,
+		kAsperityTipRadius,
+		kHertzianModulus,
+		knGW	};
 						
 	enum MBParametersT {
-								kSigma=0,
-								kFractalDimension,
-								kRoughnessScale,
-								kEPrime,
-								kAreaFraction,
-								knMB
-						};
+		kSigma=0,
+		kFractalDimension,
+		kRoughnessScale,
+		kEPrime,
+		kAreaFraction,
+		knMB };
 	 	
 	enum GPParametersT {
-                                kMean=0,
-                                kStandardDeviation,
-                               	kDensity,
-                               	kModulus,
-                               	kYield,
-							  	kLength,
-								kAsperityArea,
-								kAdhesionEnergy,
-								kAdhesionModulus,
-								knGP
-						};
+		kMean=0,
+		kStandardDeviation,
+		kDensity,
+		kModulus,
+		kYield,
+		kLength,
+		kAsperityArea,
+		kAdhesionEnergy,
+		kAdhesionModulus,
+		knGP };
 
 	int fNumMaterialModelParameters[kNumMaterialTypes]; 
 
@@ -188,6 +202,7 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+	virtual void TakePairData(const ParameterListT& list);
 	/*@}*/
 	
 protected:
@@ -196,7 +211,7 @@ protected:
 	ArrayT<ContactSurfaceT> fSurfaces; 
 
 	/* interaction parameters, symmetric matrix */
-  	nMatrixT<dArrayT> fSearchParameters ;
+	nMatrixT<dArrayT> fSearchParameters ;
 	nMatrixT<dArrayT> fEnforcementParameters ;
 	nMatrixT<dArrayT> fMaterialParameters ;
 
@@ -206,11 +221,15 @@ protected:
 
 	/* read element group data */
 	void ReadControlData(void);
+
 	/* initialization steps */
 //	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
 	/* returns pass type for surface pair */
-    int PassType(int s1,int s2) const;
+	int PassType(int s1,int s2) const;
+
+	/* penalty models */
+	pArrayT<C1FunctionT*> fPenaltyFunctions;
 
 	bool fFirstPass;
 

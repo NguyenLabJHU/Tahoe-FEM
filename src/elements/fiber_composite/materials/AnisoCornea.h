@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.h,v 1.5 2006-11-12 18:28:36 thao Exp $ */
+/* $Id: AnisoCornea.h,v 1.6 2007-10-09 23:24:48 rjones Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ANISO_CORNEA_2D_H_
 #define _ANISO_CORNEA_2D_H_
@@ -99,6 +99,11 @@ protected:
 
 	/* jacobian table */
 	dArrayT	fjacobian;
+
+  /* for inhomogeneous material */
+  ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
+  bool finhomogeneous; // flag
+  double a2,b2,c2,n2,c3,r1,r2,r3,r4; // for spatial dependent distribution
 
 	/* STRESS angle tables for fiber stress - by associated stress component */
 	dArray2DT fStressTable;

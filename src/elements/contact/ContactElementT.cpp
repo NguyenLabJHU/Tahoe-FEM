@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.50 2005-08-02 19:37:24 paklein Exp $ */
+/* $Id: ContactElementT.cpp,v 1.51 2007-10-09 23:24:46 rjones Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -12,12 +12,32 @@
 #include "XDOF_ManagerT.h"
 #include "ExodusT.h"
 #include "ModelFileT.h"
-#include "SurfaceT.h"
-#include "ContactSearchT.h"
-#include "ContactNodeT.h"
 #include "OutputSetT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
+
+#include "SurfaceT.h"
+#include "ContactSearchT.h"
+#include "ContactNodeT.h"
+#include "PenaltyContactElement2DT.h"
+#include "PenaltyContactElement3DT.h"
+#include "MultiplierContactElement2DT.h"
+#include "MultiplierContactElement3DT.h"
+
+#include "ParabolaT.h"
+#include "ModSmithFerrante.h"
+#include "GreenwoodWilliamson.h"
+#include "MajumdarBhushan.h"
+#include "GWPlastic.h"
+
+#include "ofstreamT.h"
+
+/* vector functions */
+#include "vector2D.h"
+
+/* constants */
+const double PI = 2.0*acos(0.0);
+
 
 #undef TEXT_OUTPUT
 #define TEXT_OUTPUT 0
@@ -38,8 +58,8 @@ ContactElementT::ContactElementT(const ElementSupportT& support):
 {
 	SetName("Jones_contact");
 
-    fNumEnfParameters = 0;
-    fNumMultipliers = 0;
+	fNumEnfParameters = 0;
+	fNumMultipliers = 0;
 
 	fNumMaterialModelParameters[kDefault] = 0;
 	fNumMaterialModelParameters[kModSmithFerrante] = knSF;
@@ -81,7 +101,7 @@ GlobalT::SystemTypeT ContactElementT::TangentType(void) const
 }
 
 void ContactElementT::SetWorkspace(void)
-{ 	/* workspace matrices */ 
+{	/* workspace matrices */ 
 	int nsd = NumSD();
 	n1.Dimension(nsd);
 	int size_of_eqnum = kMaxNumFaceNodes*nsd;
@@ -444,22 +464,85 @@ ParameterInterfaceT* ContactElementT::NewSub(const StringT& name) const
 		pair->AddParameter(ParameterT::Integer, "surface_1");
 		pair->AddParameter(ParameterT::Integer, "surface_2");
 
-        /* general parameters for search */
-        pair->AddSub("Jones_search");
+		/* general parameters for search */
+		pair->AddSub("Jones_search");
 
-        /* parameters specific to enforcement */
-        pair->AddSub("Jones_enforcement");
+		/* parameters specific to enforcement */
+		pair->AddSub("Jones_enforcement");
 
-        /* constitutive parameters */
-        pair->AddSub("Jones_properties");
+		/* constitutive parameters */
+		pair->AddSub("Jones_material");
 
 		return pair;	
 	}
-	else if (name == "Jones_search")
-		return new DoubleListT(name);
-	else if (name == "Jones_enforcement")
-		return new DoubleListT(name);
-	else if (name == "Jones_properties")
+	else if (name == "Jones_search") {
+		ParameterContainerT* search = new ParameterContainerT(name);
+    LimitT lower(0.0, LimitT::Lower);
+
+		ParameterT gap_tol(ParameterT::Double, "gap_tol");
+    gap_tol.AddLimit(lower);
+    gap_tol.SetDefault(1.0);
+		search->AddParameter(gap_tol);
+
+		ParameterT xi_tol(ParameterT::Double, "xi_tol");
+    xi_tol.AddLimit(lower);
+    xi_tol.SetDefault(0.1);
+		search->AddParameter(xi_tol);
+
+		ParameterT pass_type(ParameterT::Enumeration, "pass_type");
+    pass_type.AddEnumeration("symmetric", ContactElementT::kSymmetric);
+    pass_type.AddEnumeration("primary", ContactElementT::kPrimary);
+    pass_type.AddEnumeration("secondary", ContactElementT::kSecondary);
+		pass_type.AddEnumeration("deformable", ContactElementT::kDeformable);
+    pass_type.AddEnumeration("rigid", ContactElementT::kRigid);
+    pass_type.SetDefault(ContactElementT::kSymmetric);
+    search->AddParameter(pass_type);
+
+		return search;
+	}
+	else if (name == "Jones_enforcement") {
+		ParameterContainerT* enf = new ParameterContainerT(name);
+    LimitT lower(0.0, LimitT::Lower);
+
+		ParameterT tangent(ParameterT::Enumeration, "consistent_tangent");
+    tangent.AddEnumeration("true", 0);
+    tangent.AddEnumeration("false", 1);
+    tangent.SetDefault(1);
+		enf->AddParameter(tangent);
+
+		ParameterT penalty(ParameterT::Double, "penalty");
+    penalty.AddLimit(lower);
+    penalty.SetDefault(1.0);
+		enf->AddParameter(penalty);
+
+		ParameterT gscale(ParameterT::Double, "Gscale");
+    gscale.AddLimit(lower);
+    gscale.SetDefault(1.0);
+		enf->AddParameter(gscale);
+
+		ParameterT pscale(ParameterT::Double, "Pscale");
+    pscale.AddLimit(lower);
+    pscale.SetDefault(1.0);
+		enf->AddParameter(pscale);
+
+		ParameterT p_tol(ParameterT::Double, "p_tol");
+    p_tol.AddLimit(lower);
+    p_tol.SetDefault(1.0);
+		enf->AddParameter(p_tol);
+
+		ParameterT mat_type(ParameterT::Enumeration, "material_type");
+    mat_type.AddEnumeration("none", ContactElementT::kDefault);
+    mat_type.AddEnumeration("mod_SmithFerrante", ContactElementT::kModSmithFerrante);
+    mat_type.AddEnumeration("GreenwoodWilliamson", ContactElementT::kGreenwoodWilliamson);
+		mat_type.AddEnumeration("MajumdarBhushan", ContactElementT::kMajumdarBhushan);
+    mat_type.SetDefault(ContactElementT::kDefault);
+    enf->AddParameter(mat_type);
+
+		return enf;
+	}
+	else if (name == "Jones_material")
+		// make default zero
+		// or move into contact pair
 		return new DoubleListT(name);
 	else /* inherited */
 		return ElementBaseT::NewSub(name);
@@ -472,65 +555,85 @@ void ContactElementT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	ElementBaseT::TakeParameterList(list);
-
+    
 	/* output flags */
-    fOutputFlags.Dimension(kNumOutputFlags);
-    fOutputFlags = 0;
-    const ParameterListT* output = list.List("Jones_contact_output");
-    if (output) {
+	fOutputFlags.Dimension(kNumOutputFlags);
+	fOutputFlags = 0;
+	const ParameterListT* output = list.List("Jones_contact_output");
+	if (output) {
 		const char* labels[kNumOutputFlags] = {"gaps", "normals", "status", "multipliers", "contact_area"};
 		for (int i = 0; i < kNumOutputFlags; i++)
 			fOutputFlags[i] = output->GetParameter(labels[i]);
-    }
+	}
 
 	/* dimension check */
 	const ParameterListT& contact_surface = list.GetList("Jones_contact_surfaces");
 	int num_surfaces = contact_surface.GetList("side_set_ID_list").NumLists("String");
+	fSurfaces.Dimension(num_surfaces);
 	int num_pairs = list.NumLists("Jones_contact_surface_pairs");
-    if (num_pairs < 1 || num_pairs > num_surfaces*(num_surfaces-1))
-        ExceptionT::BadInputValue(caller);
+	if (num_pairs < 1 || num_pairs > num_surfaces*(num_surfaces-1))
+		ExceptionT::BadInputValue(caller);
 
 	/* extract pair data */
-    fSearchParameters.Dimension(num_surfaces);
-    fEnforcementParameters.Dimension(num_surfaces);
-    fMaterialParameters.Dimension(num_surfaces);
-    for (int i = 0; i < num_pairs ; i++)
+	fSearchParameters.Dimension(num_surfaces);
+	fEnforcementParameters.Dimension(num_surfaces);
+	fMaterialParameters.Dimension(num_surfaces);
+	for (int i = 0; i < num_pairs ; i++)
 	{
 		/* pair parameters */
 		const ParameterListT& pair = list.GetList("Jones_contact_surface_pairs", i);
 		int s1 = pair.GetParameter("surface_1");
 		int s2 = pair.GetParameter("surface_2");
-        s1--; s2--;
+		s1--; s2--;
 
-        /* general parameters for search */
-        dArrayT& search_parameters = fSearchParameters(s1,s2);
-        const ParameterListT& search = pair.GetList("Jones_search");
-        search_parameters.Dimension(search.NumLists());
-        for (int i = 0; i < search_parameters.Length(); i++)
-        	search_parameters[i] = search.GetList(i).GetParameter("value");
+		/* general parameters for search */
+		dArrayT& search_parameters = fSearchParameters(s1,s2);
+		const ParameterListT& search = pair.GetList("Jones_search");
+		search_parameters.Dimension(kNumSearchParameters);
+		search_parameters[kGapTol] = search.GetParameter("gap_tol");
+		search_parameters[kXiTol] = search.GetParameter("xi_tol");
+		//search_parameters[kPass] = (double) search.GetParameter("pass_type");
+		switch ((int) search.GetParameter("pass_type")) {
+		case kSymmetric : { search_parameters[kPass] = kSymmetric ;}
+		case kPrimary :   { search_parameters[kPass] = kPrimary ;}
+		case kSecondary : { search_parameters[kPass] = kSecondary ;}
+		}
 
-        /* parameters specific to enforcement */
-        dArrayT& enf_parameters = fEnforcementParameters(s1,s2);
-        const ParameterListT& enforcement = pair.GetList("Jones_enforcement");
-        enf_parameters.Dimension(enforcement.NumLists());
-        for (int i = 0; i < enf_parameters.Length(); i++)
-        	enf_parameters[i] = enforcement.GetList(i).GetParameter("value");
+		/* parameters specific to enforcement */
+		dArrayT& enf_parameters = fEnforcementParameters(s1,s2);
+		const ParameterListT& enforcement = pair.GetList("Jones_enforcement");
+		enf_parameters.Dimension(kNumEnfParameters);
+		switch ((int) enforcement.GetParameter("consistent_tangent")) {
+		case 0 : { enf_parameters[kConsistentTangent] = 0.0 ;}
+		case 1 : { enf_parameters[kConsistentTangent] = 1.0 ;}
+		}
+		enf_parameters[kPenalty] = enforcement.GetParameter("penalty");
+		enf_parameters[kGScale] = enforcement.GetParameter("Gscale");
+		enf_parameters[kPScale] = enforcement.GetParameter("Pscale");
+		enf_parameters[kTolP] = enforcement.GetParameter("p_tol");
+		enf_parameters[kMaterialType] = (int) enforcement.GetParameter("material_type");
 
 		/* material parameters */
-		const ParameterListT& properties = pair.GetList("Jones_properties");
-		int material_code = (int) enf_parameters[enf_parameters.Length()-1];
+		const ParameterListT& material = pair.GetList("Jones_material");
+		int material_code = (int) enf_parameters[kMaterialType];
 		int NumMatParameters = Num_of_Parameters(material_code);
-		if (NumMatParameters != properties.NumLists())
-			ExceptionT::BadInputValue(caller, "expecting %d values in \"Jones_properties\" not %d",
-				NumMatParameters, properties.NumLists());
-		dArrayT& mat_parameters = fMaterialParameters(s1,s2);
-		mat_parameters.Dimension(NumMatParameters);
-		for (int i = 0; i < mat_parameters.Length(); i++)
-			mat_parameters[i] = properties.GetList(i).GetParameter("value");
-    }
+		if (NumMatParameters != material.NumLists())
+			ExceptionT::BadInputValue(caller, "expecting %d values in \"Jones_material\" not %d", NumMatParameters, material.NumLists());
+		if (NumMatParameters > 0 ) {
+			dArrayT& mat_parameters = fMaterialParameters(s1,s2);
+			mat_parameters.Dimension(NumMatParameters);
+			for (int ii = 0; ii < mat_parameters.Length(); ii++)
+				mat_parameters[ii] = material.GetList(ii).GetParameter("value");
+		}
+	}
 	fSearchParameters.CopySymmetric();
 	fEnforcementParameters.CopySymmetric();
 	fMaterialParameters.CopySymmetric();
+
+	/* get side set ID's */
+	const ParameterListT& surface_params = list.GetList("Jones_contact_surfaces");
+	ArrayT<StringT> ss_ID;
+	StringListT::Extract(surface_params.GetList("side_set_ID_list"), ss_ID);
 
 	/* initialize surfaces, connect nodes to coordinates */
 	for (int i = 0; i < fSurfaces.Length(); i++)
@@ -538,13 +641,8 @@ void ContactElementT::TakeParameterList(const ParameterListT& list)
 		ContactSurfaceT& surface = fSurfaces[i];
 		surface.SetTag(i);
 
-		/* get side set ID's */
-		const ParameterListT& surface_params = list.GetList("Jones_contact_surfaces", i);
-		ArrayT<StringT> ss_ID;
-		StringListT::Extract(surface_params.GetList("side_set_ID_list"), ss_ID);
-
 		/* translate ID list */
-		surface.InputSideSets(ElementSupport(), ss_ID, ElementSupport().Output());
+		surface.InputSideSets(ElementSupport(), ss_ID[i], ElementSupport().Output());
 		surface.PrintConnectivityData(ElementSupport().Output());
 	
 		/* initialize */
@@ -585,6 +683,195 @@ void ContactElementT::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
+void ContactElementT::TakePairData(const ParameterListT& list)
+{
+  /* write out search parameter matrix */
+	ofstreamT& out = ElementSupport().Output();
+	out << " Interaction parameters ............................\n";
+	int num_surfaces = fSearchParameters.Rows();
+  for (int i = 0; i < num_surfaces ; i++)
+	{
+		for (int j = i ; j < num_surfaces ; j++)
+		{
+			const dArrayT& search_parameters = fSearchParameters(i,j);
+			const dArrayT& enf_parameters = fEnforcementParameters(i,j);
+			const dArrayT& mat_parameters = fMaterialParameters(i,j);
+			if (enf_parameters.Length() != kNumEnfParameters)
+				ExceptionT::GeneralFail("PenaltyContactElement2DT::TakeParameterList",
+					"expecting %d enforcement parameters not %d",
+					kNumEnfParameters, enf_parameters.Length());
+
+			/* only print allocated parameter arrays */
+			if (search_parameters.Length() == kNumSearchParameters) {
+		  	  out << "  surface pair: ("  << i << "," << j << ")\n" ;
+			  out << "  gap tolerance:    "
+					<< search_parameters[kGapTol] << '\n';
+			  out << "  xi tolerance :    "
+					<< search_parameters[kXiTol] << '\n';
+			  out << "  pass flag    :    "
+					<< (int) search_parameters[kPass] << '\n';
+			  out << "  consis. tangent:  "
+                    << (int) enf_parameters[kConsistentTangent] << '\n';
+			  out << "  penalty :         "
+					<< enf_parameters[kPenalty] << '\n';
+			  out << "  penalty types:\n"
+				  << "     Linear              " 
+ 				  << PenaltyContactElement2DT::kDefault << "\n"
+				  << "     ModSmithFerrante    " 
+				  << PenaltyContactElement2DT::kModSmithFerrante << "\n"
+				  << "     GreenwoodWilliamson " 
+			      << PenaltyContactElement2DT::kGreenwoodWilliamson << "\n"
+			      << "     MajumdarBhushan     " 
+			      << PenaltyContactElement2DT::kMajumdarBhushan << "\n"
+				  << "     GWPlastic           " 
+			      << PenaltyContactElement2DT::kGWPlastic           << "\n";
+			  out << "  penalty Type :         "
+					<< (int) enf_parameters[kMaterialType] << '\n';
+			  switch ((int) enf_parameters[kMaterialType]) 
+			  {
+			  case kDefault: // no other parameters
+			    out << "  <no parameters> \n";
+				break;	
+			  case kModSmithFerrante:
+				out << "  Smith-Ferrante A : "
+					<< mat_parameters[kSmithFerranteA] << '\n';
+				out << "  Smith-Ferrante B : "
+					<< mat_parameters[kSmithFerranteB] << '\n';
+				break;	
+			  case kGreenwoodWilliamson:
+				out << "  Average asperity height            : "
+					<< mat_parameters[kAsperityHeightMean] << '\n';
+				out << "  Asperity height standard deviation : "
+					<< mat_parameters[kAsperityHeightStandardDeviation] << '\n';
+				out << "  Asperity density                   : "
+					<< mat_parameters[kAsperityDensity] << '\n';
+				out << "  Asperity Radius                    : "
+					<< mat_parameters[kAsperityTipRadius] << '\n';
+				out << "  Hertzian Modulus                   : "
+					<< mat_parameters[kHertzianModulus] << '\n';
+				break;	
+			  case kMajumdarBhushan:
+			  	out << " Asperity height standard deviation : "
+			  		<< mat_parameters[kSigma] << '\n';
+			  	out << "  Asperity roughness scale : "
+			  		<< mat_parameters[kRoughnessScale] << '\n';
+			  	out << "  Fractal dimension : "
+			  		<< mat_parameters[kFractalDimension] << '\n';
+			  	out << "  Hertzian Modulus                   : "
+					<< mat_parameters[kEPrime] << '\n';
+				out << "  Area Fraction                   : "
+					<< mat_parameters[kAreaFraction] << '\n';
+				break;	
+			  case kGWPlastic:
+				out << "  Mean height                        : "
+					<< mat_parameters[kMean] << '\n';
+				out << "  Standard deviation                 : "
+					<< mat_parameters[kStandardDeviation] << '\n';
+				out << "  Asperity density                   : "
+					<< mat_parameters[kDensity] << '\n';
+				out << "  Elastic modulus                    : "
+					<< mat_parameters[kModulus] << '\n';
+				out << "  Yield value                        : "
+					<< mat_parameters[kYield] << '\n';
+				out << "  Length-scale                       : "
+					<< mat_parameters[kLength] << '\n';
+				out << "  AsperityArea                       : "
+					<< mat_parameters[kAsperityArea] << '\n';
+				break;	
+			  default:
+				throw ExceptionT::kBadInputValue;
+		  	  }
+			}
+		}
+	}
+	out <<'\n';
+
+	/* set up Penalty functions */
+	fPenaltyFunctions.Dimension(num_surfaces*(num_surfaces-1));
+  for (int i = 0; i < num_surfaces ; i++)
+  {
+        for (int j = 0 ; j < num_surfaces ; j++)
+        {
+          dArrayT& enf_parameters = fEnforcementParameters(i,j);
+          dArrayT& mat_parameters = fMaterialParameters(i,j);
+		  if (enf_parameters.Length()) {
+			switch ((int) enf_parameters[kMaterialType]) 
+			{
+			case PenaltyContactElement2DT::kDefault:
+				// Macauley bracket:  <-x> ???  linear force
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)] 
+						= new ParabolaT(1.0);
+				break;
+			case PenaltyContactElement2DT::kModSmithFerrante:
+				{
+                double A = mat_parameters[kSmithFerranteA];
+                double B = mat_parameters[kSmithFerranteB];
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)] 
+						= new ModSmithFerrante(A,B);
+				}
+				break;
+			case PenaltyContactElement2DT::kGreenwoodWilliamson:
+				{
+                /* parameters for Greenwood-Williamson load formulation */
+                double gw_m = mat_parameters[kAsperityHeightMean];
+                double gw_s = mat_parameters[kAsperityHeightStandardDeviation];
+                double gw_dens = mat_parameters[kAsperityDensity];
+                double gw_mod = mat_parameters[kHertzianModulus];
+                double gw_rad = mat_parameters[kAsperityTipRadius];
+                double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad);
+          		double area_coeff = PI*gw_dens*gw_rad;
+				enf_parameters[kPenalty] *= material_coeff; // overwrite
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
+                         = new GreenwoodWilliamson(1.5,gw_m,gw_s);
+				}
+				break;
+			case PenaltyContactElement2DT::kMajumdarBhushan:
+				{
+                /* parameters for Majumdar-Bhushan load formulation */
+                double mb_s = mat_parameters[kSigma];
+                double mb_g = mat_parameters[kRoughnessScale];
+                double mb_mod = mat_parameters[kEPrime];
+                double mb_f = mat_parameters[kFractalDimension];
+                double mb_c = mat_parameters[kAreaFraction];
+                double material_coeff;
+                if (mb_f==1.5)
+                	material_coeff=sqrt(PI*mb_g)*mb_mod;
+                else
+                	material_coeff=(4.0/3.0)*sqrt(PI)*mb_mod
+							*pow(mb_g,mb_f-1)*mb_f/(3.0-2.0*mb_f);
+                double area_coeff = 0.5/mb_f;
+				enf_parameters[kPenalty] *= material_coeff;// overwrite
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
+                                        = new MajumdarBhushan(mb_f,mb_s,mb_c);
+				}
+				break;
+			case PenaltyContactElement2DT::kGWPlastic:
+				{
+                /* parameters for cyclic formulation */
+                double gp_mu = mat_parameters[kMean];
+                double gp_sigma = mat_parameters[kStandardDeviation];
+                double gp_dens = mat_parameters[kDensity];
+                double gp_mod = mat_parameters[kModulus];
+                double gp_len = mat_parameters[kLength];
+                double gp_yld = mat_parameters[kYield];
+                double gp_aa = mat_parameters[kAsperityArea];
+                double gp_ade = mat_parameters[kAdhesionEnergy];
+                double gp_adm = mat_parameters[kAdhesionModulus];
+                double material_coeff=gp_dens;
+          		double area_coeff = gp_dens;
+				enf_parameters[kPenalty] *= material_coeff; // overwrite
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
+                     = new GWPlastic(gp_mu,gp_sigma,gp_mod,gp_yld,gp_len,gp_aa,
+									 gp_ade,gp_adm);
+				}
+				break;
+			default:
+				throw ExceptionT::kBadInputValue;
+			}
+		  }
+		}
+	}
+}
 
 #if 0
 /* echo contact surfaces */
@@ -644,7 +931,7 @@ bool ContactElementT::UpdateContactConfiguration(void)
 
 int ContactElementT::PassType (int s1, int s2) const
 {
-	const dArrayT& parameters = fSearchParameters(s1,s2);
+    const dArrayT& parameters = fSearchParameters(s1,s2);
     int pass_code = (int) parameters[kPass];
     if (s1 == s2 || pass_code == 0) {
         return kSymmetric;

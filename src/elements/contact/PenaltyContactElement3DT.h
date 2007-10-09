@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.h,v 1.9 2005-04-14 01:18:53 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.h,v 1.10 2007-10-09 23:24:47 rjones Exp $ */
 // created by : rjones 2002
 #ifndef _PENALTY_CONTACT_ELEMENT_3D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_3D_T_H_
@@ -10,8 +10,6 @@
 
 namespace Tahoe {
 
-class C1FunctionT;
-
 class PenaltyContactElement3DT: public ContactElementT
 {
   public:
@@ -21,13 +19,6 @@ class PenaltyContactElement3DT: public ContactElementT
 
 	/* writing output */
 	virtual void WriteOutput(void);
-
-    enum EnforcementParametersT { 
-                                kConsistentTangent = 0 ,
-                                kPenalty ,
-                                kMaterialType ,
-								kNumEnfParameters};
-
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/	
@@ -46,8 +37,6 @@ class PenaltyContactElement3DT: public ContactElementT
 	/* total _real_ area of contact for each surface */
 	dArrayT fRealArea; 
 
-    /* penalty models */
-	pArrayT<C1FunctionT*> fPenaltyFunctions;
 };
 
 } // namespace Tahoe

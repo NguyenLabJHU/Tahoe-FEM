@@ -1,4 +1,4 @@
-/* $Id: FrictionalContactElement2DT.cpp,v 1.4 2005-04-14 01:18:53 paklein Exp $ */
+/* $Id: FrictionalContactElement2DT.cpp,v 1.5 2007-10-09 23:24:46 rjones Exp $ */
 // created by : rjones 2003
 #include "FrictionalContactElement2DT.h"
 
@@ -59,7 +59,7 @@ void FrictionalContactElement2DT::TakeParameterList(const ParameterListT& list)
 					kNumEnfParameters, enf_parameters.Length());
 
             /* only print allocated parameter arrays */
-            if (search_parameters.Length() == kSearchNumParameters) {
+            if (search_parameters.Length() == kNumSearchParameters) {
               out << "  surface pair: ("  << i << "," << j << ")\n" ;
               out << "  gap tolerance:      "
                     << search_parameters[kGapTol] << '\n';

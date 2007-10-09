@@ -1,7 +1,7 @@
-/* $Id: PowerTrig.cpp,v 1.1 2006-08-18 18:43:15 thao Exp $ */
+/* $Id: PowerTrig.cpp,v 1.2 2007-10-09 23:24:45 rjones Exp $ */
 
 #include "PowerTrig.h"
-#include <iostream.h>
+//#include <iostream.h>
 #include <math.h>
 #include "ExceptionT.h"
 #include "dArrayT.h"

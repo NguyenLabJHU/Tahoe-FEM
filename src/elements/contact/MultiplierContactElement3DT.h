@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement3DT.h,v 1.3 2005-04-14 01:18:53 paklein Exp $ */
+/* $Id: MultiplierContactElement3DT.h,v 1.4 2007-10-09 23:24:47 rjones Exp $ */
 // created by : rjones 2003
 #ifndef _MULTIPLIER_CONTACT_ELEMENT_3D_T_H_
 #define _MULTIPLIER_CONTACT_ELEMENT_3D_T_H_
@@ -14,20 +14,6 @@ class MultiplierContactElement3DT: public ContactElementT
 
 	/* constructor */
 	MultiplierContactElement3DT(const ElementSupportT& support);
-
-	enum EnforcementParametersT { 
-                                kConsistentTangent = 0 ,
-                                kPenalty ,
-								kGScale,
-								kPScale,
-								kTolP,
-								kMaterialType,
-                                kNumEnfParameters};
-
-	enum StatusT {	kNoP = -1,	
-					kPZero,
-					kPJump,
-					kGapZero};
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/	
