@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.15 2005-12-20 17:26:36 tdnguye Exp $ */
+/* $Id: MaterialSupportT.h,v 1.16 2007-10-09 23:17:43 r-jones Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -78,6 +78,11 @@ public:
 	/** return the current card.  If the element cards pointer
 	 * is not set with MaterialSupportT::SetElementCards, this will return NULL */
 	ElementCardT* CurrentElement(void) const;
+
+	/**  iterator for element cards.  If the element cards pointer
+	 * is not set with MaterialSupportT::SetElementCards, this will not work */
+	void TopElement(void) const;
+	bool NextElement(void) const; 
 
 	/** return a pointer the specified local array, or NULL if the array is not
 	 * available. During calls the materials routines these will contain the
@@ -201,6 +206,11 @@ inline int MaterialSupportT::CurrIP(void) const {
 }
 
 inline void MaterialSupportT::SetCurrIP(const int& curr_ip) { fCurrIP = &curr_ip; }
+
+ 
+inline void MaterialSupportT::TopElement(void) const { fElementCards->Top();}
+inline bool MaterialSupportT::NextElement(void) const { return fElementCards->Next();}
+
 
 } /* namespace Tahoe */
 

@@ -1,4 +1,4 @@
-/* $Id: extract_1D.cpp,v 1.4 2004-12-19 17:18:41 paklein Exp $ */
+/* $Id: extract_1D.cpp,v 1.5 2007-10-09 23:17:43 r-jones Exp $ */
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -22,10 +22,10 @@ int main(int argc, char** argv)
 	/* check command line arguments */
 	if (argc < 4) {
 		cout << "\n usage: " << caller << " [force file] [displacement file] [output file]\n\n"
-		     << "[output file] = [name][ _X | _Y | _Z ].[ fvsd | fvst ]\n"
+		     << "[output file] = [name][ _X | _Y | _Z ].[ fvsd | fvst | dvst ]\n"
 		     << "The name of the output file is used to determine which component of the force\n"
-			 << "and displacement to extract, as well as whether the force is tabulated over time\n"
-			 << "time or distance.\n";
+			 << "and displacement to extract, as well as whether the force or displacement is tabulated\n"
+			 << " over time or each other.\n";
 		return 1;
 	}
 
@@ -92,9 +92,11 @@ int main(int argc, char** argv)
 	//TEMP
 	cout << "num_steps = " << num_steps << endl;
 
-	bool plot_fvst = false;
-	if(strstr(argv[3],".fvst")) { plot_fvst = true;  cout << "f vs t\n";}
-	else if(strstr(argv[3],".fvsd")) cout << "f vs d\n";
+  enum PLOT_TYPE {FvsT=0,UvsT,FvsU};
+	int plot_type = FvsU;
+	if     (strstr(argv[3],"fvst")) { plot_type = FvsT;  cout << "f vs t\n";}
+	else if(strstr(argv[3],"uvst")) { plot_type = UvsT;  cout << "u vs t\n";}
+	else if(strstr(argv[3],"fvsd")) { plot_type = FvsU;  cout << "f vs u\n";}
 	
 	for (int i = 0; i < num_steps; i++)
 	{
@@ -110,8 +112,9 @@ int main(int argc, char** argv)
 		disp_values.ColumnCopy(D_X_index, d_x);
 
 		/* output */
-		if (plot_fvst) out << time  << ' ' << f_d_x.Sum() << '\n';
-	  	else      out << d_x.Max() << ' ' << f_d_x.Sum() << '\n';
+		if      (plot_type == FvsT) out << time  << ' ' << f_d_x.Sum() << '\n';
+		else if (plot_type == UvsT) out << time  << ' ' << d_x.Max() << '\n';
+	  else      out << d_x.Max() << ' ' << f_d_x.Sum() << '\n';
 	}
 	out.flush();
 

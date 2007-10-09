@@ -1,4 +1,4 @@
-/* $Id: PressureBCT.cpp,v 1.4 2006-11-20 17:27:35 r-jones Exp $ */
+/* $Id: PressureBCT.cpp,v 1.5 2007-10-09 23:17:47 r-jones Exp $ */
 // created : rjones 2006
 #include "PressureBCT.h"
 
@@ -381,6 +381,15 @@ GlobalT::RelaxCodeT PressureBCT::RelaxSystem(void)
 /* register data for output */
 void PressureBCT::RegisterOutput(void)
 {
+#if 0
+  ArrayT<StringT> n_labels(fnsd);
+  n_labels[0] = "normal_X";
+  n_labels[1] = "normal_Y";
+  n_labels[2] = "normal_Z";
+
+  OutputSetT output_set(GeometryT::kPoint, fFlattenedNodeSets, n_labels);
+  fOutputID = field_support.RegisterOutput(output_set);
+#endif
 }
 
 /* writing results */
@@ -411,7 +420,12 @@ void PressureBCT::WriteOutput(ostream& out) const
 	}
 #endif
 	out << "\n";
-	
+
+#if 0
+  /* send output */
+  dArray2DT e_values;
+  field_support.WriteOutput(fOutputID, n_values, e_values);
+#endif
 }
 
 /* describe the parameters needed by the interface */
@@ -492,7 +506,6 @@ void PressureBCT::TakeParameterList(const ParameterListT& list)
 	if (fnsd != 3) 
 	  ExceptionT::GeneralFail(caller, " only valid for 3D problems");
 
-
 	/* surface : collection of side sets/faces */
 	StringListT::Extract(list.GetList("side_set_ID_list"),  fssetIDs);
 	ModelManagerT& model = FieldSupport().ModelManager();
@@ -513,6 +526,13 @@ void PressureBCT::TakeParameterList(const ParameterListT& list)
 			iArrayT face_nodes;
 			iArray2DT faces;
 			model.SideSet(fssetIDs[i], face_geom, face_nodes, faces);
+#if 0
+			if (model.IsSideSetLocal(fssetIDs[i]) ) {
+					ExceptionT::GeneralFail(caller, " all faces must globally numbered");
+			}
+// void 	SideSetLocalToGlobal (const StringT &element_ID, const iArray2DT
+// &local, iArray2DT &global)
+#endif
 			if (i == 0) {
 				geometry = face_geom[0];
 				fnnodes = faces.MinorDim();
@@ -610,6 +630,12 @@ void PressureBCT:: ComputeVolume(dArray2DT& coord, double& volume, double& area)
 		// enclosed volume has opposite outward unit normal from the surface
 		volume -= n[fndir]*x_ndir;
 		area   += n[fndir];
+#ifdef LOCAL_DEBUG
+		double  x[3] = {0.0,0.0,0.0};
+		for (int j = 0; j < fnsd; j++) x[j] = coord.DotColumn(j,N);
+		cout << "x: " << x[0] << " " << x[1] << " " << x[2] << " "
+		     << "n: " << n[0] << " " << n[1] << " " << n[2] << "\n";
+#endif
 	}
 }
 
