@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.18 2007-08-06 17:44:01 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.19 2007-10-10 20:35:45 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -393,15 +393,6 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		    
 		up[0] = jump_u[0];
 		up[1] = jump_u[1];
-		/*
-		if (jump_u[1] >= fabs(up[0])*state[k_fpsi]) {
-			up[1] = jump_u[1];
-		}
-
-		if (jump_u[1] < fabs(up[0])*state[k_fpsi]) {
-			up[1] = fabs(up[0])*state[k_fpsi];
-		}
-		*/
 		dup[0] = up[0] - state[k_up_t];
 		dup[1] = up[1] - state[k_up_n];
 		upo[0] = state[k_up_t];
@@ -475,7 +466,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		//while (ff > fTol_1 || normr > fTol_2)
 		{
 			//check for the local iteration
-			if (kk <= 10)
+			if (kk <= 2)
 			{
 				mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
 					<< setw(outputFileWidth) << "norm_R = ----------"
@@ -638,7 +629,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			kk = kk + 1;
 
 			/*  Update up[1] */
-			/*
+
 			if (jump_u[1] >= fabs(up[0])*qn[3]) {
 				up[1] = jump_u[1];
 			}
@@ -646,7 +637,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			if (jump_u[1] < fabs(up[0])*qn[3]) {
 				up[1] = fabs(up[0])*qn[3];
 			}
-			*/
+			
 
 			/*  Calculation of Yield Function and Residuals for next iteration check */
 			Yield_f(Sig, qn, ff);
