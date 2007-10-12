@@ -1,4 +1,4 @@
-# $Id: GNU.SOILS.macros,v 1.5 2007-10-12 14:48:18 regueiro Exp $
+# $Id: GNU.SOILS.macros,v 1.6 2007-10-12 22:01:51 regueiro Exp $
 # GNU
 #
 #COMP_DIR    = /usr/local/gcc
@@ -10,8 +10,8 @@ COMP_CC     = $(COMP_DIR)/bin/g++
 #COMP_F      = $(COMP_DIR)/bin/gfortran
 COMP_F      = $(COMP_DIR)/bin/g77
 COMP_FLAG   = -c
-MORE_CFLAGS = -m32 -O3 -DNDEBUG
-#MORE_CFLAGS = -O3 -DNDEBUG
+#MORE_CFLAGS = -m32 -O3 -DNDEBUG
+MORE_CFLAGS = -O3 -DNDEBUG
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)  -Wunused -Wuninitialized -Wno-deprecated
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
