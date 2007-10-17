@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.19 2007-10-10 20:35:45 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.20 2007-10-17 17:53:35 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -627,17 +627,6 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			qn  += dq;
 			dlam = dlam + dlam2;
 			kk = kk + 1;
-
-			/*  Update up[1] */
-
-			if (jump_u[1] >= fabs(up[0])*qn[3]) {
-				up[1] = jump_u[1];
-			}
-
-			if (jump_u[1] < fabs(up[0])*qn[3]) {
-				up[1] = fabs(up[0])*qn[3];
-			}
-			
 
 			/*  Calculation of Yield Function and Residuals for next iteration check */
 			Yield_f(Sig, qn, ff);
