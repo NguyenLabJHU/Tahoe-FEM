@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.37 2007-11-06 17:46:42 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.38 2007-11-06 21:21:14 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -325,9 +325,9 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 
 					/* get Cauchy stress */
 					//(fCurrMaterial->s_ij()).ToMatrix(cauchy);
-					//cauchy *= -1.0;
 					const dSymMatrixT& stress = fCurrMaterial->s_ij(); 
 					tstress.Translate(stress);
+					tstress *= -1.0;
 					
 					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF */
 					fShapes->Extrapolate(tstress,nodalstress);
@@ -385,9 +385,12 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* ACCUMULATE STRESSES */
 					/* extrapolate/accumulate */
 					surf_shape.NodalValues(stress2, n_values, face_ip);
-				}				
+				}
+			/* accumulate - extrapolation done from ip's to corners => X nodes */
+			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodalstress);	
+			
+			ElementSupport().AssembleAverage(face_nodes, n_values);
 			}
-		
 	}
 	/* Above is end of loop copied from RHSDriver */
 
