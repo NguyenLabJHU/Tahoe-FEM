@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.28 2007-07-25 06:45:47 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.29 2007-11-08 22:42:44 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -97,6 +97,14 @@
 
 #ifdef SURFACE_CB_TERSOFF_DEV
 #include "CB_TersoffT.h"
+#endif
+
+#ifdef SURFACE_CB_WURTZITE_DEV
+#include "CB_WurtziteT.h"
+#endif
+
+#ifdef SURFACE_CB_ZB_DEV
+#include "CB_ZBT.h"
 #endif
 
 /* development module materials require solid element development to be enabled */
@@ -246,6 +254,12 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef SURFACE_CB_TERSOFF_DEV
 		sub_lists.AddSub("Tersoff_CB");
+#endif
+#ifdef SURFACE_CB_WURTZITE_DEV
+		sub_lists.AddSub("Wurtzite_CB");
+#endif
+#ifdef SURFACE_CB_ZB_DEV
+		sub_lists.AddSub("ZB_CB");
 #endif
 	}
 	else /* inherited */
@@ -424,7 +438,14 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	else if (name == "Tersoff_CB")
 	  mat= new CB_TersoffT;
 #endif
-
+#ifdef SURFACE_CB_WURTZITE_DEV
+	else if (name == "Wurtzite_CB")
+	  mat= new CB_WurtziteT;
+#endif
+#ifdef SURFACE_CB_ZB_DEV
+	else if (name == "ZB_CB")
+	  mat= new CB_ZBT;
+#endif
 	/* set support */
 	if (mat) mat->SetFSMatSupport(fFSMatSupport);
 
