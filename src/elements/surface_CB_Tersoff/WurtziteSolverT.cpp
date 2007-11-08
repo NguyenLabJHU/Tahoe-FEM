@@ -1,8 +1,8 @@
-/* $Id: TersoffSolverT.cpp,v 1.7 2007-07-01 17:28:25 hspark Exp $ */
-#include "TersoffSolverT.h"
+/* $Id: WurtziteSolverT.cpp,v 1.1 2007-11-08 19:32:49 hspark Exp $ */
+#include "WurtziteSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
-#include "Tersoff_inc.h"
+#include "Wurtzite_inc.h"
 
 using namespace Tahoe;
 
@@ -27,37 +27,37 @@ static int pairdata[kNumAngles*2] =
 					0,  4};
 
 /* Constructor */
-TersoffSolverT::TersoffSolverT(const ThermalDilatationT* thermal):
-	ParameterInterfaceT("Tersoff_CB_solver"),
+WurtziteSolverT::WurtziteSolverT(const ThermalDilatationT* thermal):
+	ParameterInterfaceT("Wurtzite_CB_solver"),
 	fEquilibrate(true),
 	fThermal(thermal),
 	fPairs(kNumAngles, 2, pairdata),
 //	fGeometry(NULL),
-	f_A(0.0),
-	f_B(0.0),
-	f_lambda(0.0),
-	f_mu(0.0),
+	f_Caxis(0.0),
+	f_Aaxis(0,0),
+	f_D0(0.0),
+	f_S0(0.0),
+	f_r0(0.0),
 	f_beta(0.0),
-	f_n(0.0),
+	f_gamma(0.0),
 	f_c(0.0),
 	f_d(0.0),
 	f_h(0.0),
-	f_chi(0.0),
 	f_R(0.0),
-	f_S(0.0),
+	f_D(0.0),
 	f_omega0(0.0)
 {
 
 }
 
 /* Destructor */
-TersoffSolverT::~TersoffSolverT(void)
+WurtziteSolverT::~WurtziteSolverT(void)
 {
 //	delete fGeometry;
 }
 
 /* moduli - assume Xsi already determined */
-void TersoffSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& moduli)
+void WurtziteSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& moduli)
 {
 	/* set internal equilibrium */
 	if (fEquilibrate)
@@ -86,7 +86,7 @@ void TersoffSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& modu
 }
 
 //for now return symmetric matrix
-void TersoffSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stress)
+void WurtziteSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stress)
 {
 	/* set internal equilibrium */
 	if (fEquilibrate) Equilibrate(CIJ, Xsi);
@@ -105,7 +105,7 @@ void TersoffSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stre
 }
 
 /* strain energy density */
-double TersoffSolverT::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
+double WurtziteSolverT::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
 {
 #if 0
 	/* set internal equilibrium */
@@ -122,7 +122,7 @@ return 0.0;
 }
 
 /* describe the parameters needed by the interface */
-void TersoffSolverT::DefineParameters(ParameterListT& list) const
+void WurtziteSolverT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list);
@@ -131,39 +131,39 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 	equilibrate.SetDefault(true);
 	list.AddParameter(equilibrate);
 
-	/* lattice parameter */
-	ParameterT a0(f_a0, "a0");
-	a0.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(a0);
+	/* lattice parameters */
+	ParameterT Caxis(f_Caxis, "Caxis");
+	Caxis.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(Caxis);
 
-	/* Revised from TersoffPairT.cpp */
+	ParameterT Aaxis(f_Aaxis, "Aaxis");
+	Aaxis.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(Aaxis);
+
+	/* Revised from WurtzitePairT.cpp */
 	ParameterT mass(fMass, "mass");
 	mass.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(mass);
 
-	ParameterT A(f_A, "rep_energy_scale_Aij");
-	A.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(A);
+	ParameterT D0(f_D0, "energy_scale_d0");
+	D0.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(D0);
 	
-	ParameterT B(f_B, "attr_energy_scale_Bij");
-	B.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(B);
+	ParameterT S0(f_S0, "energy_scale_s0");
+	S0.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(S0);
 	
-	ParameterT lambda(f_lambda, "rep_energy_exponent_lambdaij");
-	lambda.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(lambda);
-	
-	ParameterT mu(f_mu, "attr_energy_exponent_muij");
-	mu.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(mu);
+	ParameterT r0(f_r0, "dimer_length_r0");
+	r0.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(r0);
 	
 	ParameterT beta(f_beta, "bond_order_coeff1_betai");
 	beta.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(beta);
 	
-	ParameterT n(f_n, "bond_order_exponent_ni");
-	n.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(n);
+	ParameterT gamma(f_gamma, "bond_order_coeff0_gamma");
+	gamma.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(gamma);
 	
 	ParameterT c(f_c, "bond_order_coeff2_ci");
 	c.AddLimit(0.0, LimitT::LowerInclusive);
@@ -176,21 +176,17 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 	ParameterT h(f_h, "bond_order_coeff4_hi");
 	list.AddParameter(h);
 	
-	ParameterT chi(f_chi, "bond_order_scaling_chi_ij");
-	chi.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(chi);
-	
 	ParameterT R(f_R, "cutoff_func_length_1_Rij");
 	R.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(R);
 	
-	ParameterT S(f_S, "cutoff_func_length_2_Sij");
-	S.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(S);
+	ParameterT D(f_D, "cutoff_func_length_2_Dij");
+	D.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(D);
 }
 
 /* information about subordinate parameter lists */
-//void TersoffSolverT::DefineSubs(SubListT& sub_list) const
+//void WurtziteSolverT::DefineSubs(SubListT& sub_list) const
 //{
 	/* inherited */
 //	ParameterInterfaceT::DefineSubs(sub_list);
@@ -203,7 +199,7 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 //}
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-//ParameterInterfaceT* TersoffSolverT::NewSub(const StringT& name) const
+//ParameterInterfaceT* WurtziteSolverT::NewSub(const StringT& name) const
 //{
 // 	if (name == "DC_potential_choice")
 // 	{
@@ -222,7 +218,7 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 // 		PTHT.AddParameter(ParameterT::Double, "Z");
 // 		choice->AddSub(PTHT);
 // 
-// 		//choice->AddSub(ParameterContainerT("Tersoff"));
+// 		//choice->AddSub(ParameterContainerT("Wurtzite"));
 // 
 // 		return choice;
 // 	}
@@ -238,7 +234,7 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 //}
 
 /* accept parameter list */
-void TersoffSolverT::TakeParameterList(const ParameterListT& list)
+void WurtziteSolverT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
@@ -297,43 +293,42 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 //	const ParameterListT& potential = list.GetListChoice(*this, "DC_potential_choice");
 
 	/* All parameters required */
-	f_a0 = list.GetParameter("a0");
+	f_Caxis = list.GetParameter("Caxis");
+	f_Aaxis = list.GetParameter("Aaxis");
 	fMass = list.GetParameter("mass");
-	f_A = list.GetParameter("rep_energy_scale_Aij");
-	f_B = list.GetParameter("attr_energy_scale_Bij");
-	f_lambda = list.GetParameter("rep_energy_exponent_lambdaij");
-	f_mu = list.GetParameter("attr_energy_exponent_muij");
+	f_D0 = list.GetParameter("energy_scale_d0");
+	f_S0 = list.GetParameter("energy_scale_s0");
+	f_r0 = list.GetParameter("dimer_length_r0");
 	f_beta = list.GetParameter("bond_order_coeff1_betai");
-	f_n = list.GetParameter("bond_order_exponent_ni");
+	f_gamma = list.GetParameter("bond_order_coeff0_gamma");
 	f_c = list.GetParameter("bond_order_coeff2_ci");
 	f_d = list.GetParameter("bond_order_coeff3_di");
 	f_h = list.GetParameter("bond_order_coeff4_hi");
-	f_chi = list.GetParameter("bond_order_scaling_chi_ij");
 	f_R = list.GetParameter("cutoff_func_length_1_Rij");
-	f_S = list.GetParameter("cutoff_func_length_2_Sij");
+	f_D = list.GetParameter("cutoff_func_length_2_Dij");
 	
 	/* scale unit cell coordinates */
 	fUnitCellCoords *= f_a0;
 
-	/* Calculate atomic volume = a^{3}/8 */
+	/* Calculate atomic volume - FIX FOR WURTZITE! */
 	double asdf = f_a0*f_a0*f_a0/8.0;
 	f_omega0 = 1.0/asdf;
 
 	/* write into vector to pass to C code */
 	fParams.Dimension(13);
-	fParams[ 0] = f_A;
-	fParams[ 1] = f_B;
+	fParams[ 0] = f_Caxis;
+	fParams[ 1] = f_Aaxis;
 	fParams[ 2] = fMass;
-	fParams[ 3] = f_lambda;
-	fParams[ 4] = f_mu;
-	fParams[ 5] = f_beta;
-	fParams[ 6] = f_n;
-	fParams[ 7] = f_c;
-	fParams[ 8] = f_d;
-	fParams[ 9] = f_h;
-	fParams[10] = f_chi;
+	fParams[ 3] = f_D0;
+	fParams[ 4] = f_S0;
+	fParams[ 5] = f_r0;
+	fParams[ 6] = f_beta;
+	fParams[ 7] = f_gamma;
+	fParams[ 8] = f_c;
+	fParams[ 9] = f_d;
+	fParams[10] = f_h;
 	fParams[11] = f_R;
-	fParams[12] = f_S;	
+	fParams[12] = f_D;	
 }
 
 /**********************************************************************
@@ -341,7 +336,7 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
  **********************************************************************/
 
 /* Minimize the energy wrt Xsi using the initial value passed */
-void TersoffSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
+void WurtziteSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 {
 	bool debug = false;
 
@@ -363,11 +358,11 @@ void TersoffSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 	}
 
 	/* assume not converged */
-	if (count == 15) ExceptionT::GeneralFail("TersoffSolverT::Equilibrate", "failed");
+	if (count == 15) ExceptionT::GeneralFail("WurtziteSolverT::Equilibrate", "failed");
 }
 
 /* set free dof - triggers recomputation */
-void TersoffSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
+void WurtziteSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 {
 	/* call C function */
 	get_dXsi(fParams.Pointer(), Xsi.Pointer(), 

@@ -1,7 +1,7 @@
-/* $Id: CB_TersoffT.h,v 1.3 2007-06-24 21:25:14 paklein Exp $ */
+/* $Id: CB_WurtziteT.h,v 1.1 2007-11-08 19:32:49 hspark Exp $ */
 /* created: paklein (10/14/1998) */
-#ifndef _CB_TERSOFF_T_H_
-#define _CB_TERSOFF_T_H_
+#ifndef _CB_WURTZITE_T_H
+#define _CB_WURTZITE_T_H
 
 /* base class */
 #include "NL_E_MatT.h"
@@ -9,17 +9,17 @@
 namespace Tahoe {
 
 /* forward declarations */
-class TersoffSolverT;
+class WurtziteSolverT;
 
-class CB_TersoffT: public NL_E_MatT
+class CB_WurtziteT: public NL_E_MatT
 {
 public:
 
 	/** constructor */
-	CB_TersoffT(void);
+	CB_WurtziteT(void);
 
 	/* destructor */
-	virtual ~CB_TersoffT(void);
+	virtual ~CB_WurtziteT(void);
 
 	/** \name tangent moduli
 	 * TEMP: use finite difference approximation for now.
@@ -60,8 +60,8 @@ private:
 	
 private:
 	
-	/** Tersoff solver */
-	TersoffSolverT* fTersoffSolver;
+	/** Wurtzite solver */
+	WurtziteSolverT* fWurtziteSolver;
 	
 	/* work space */
 	dArrayT	 fXsi; //internal DOF vector
@@ -70,4 +70,4 @@ private:
 };
 
 } // namespace Tahoe 
-#endif /* _CB_TERSOFF_T_H_ */
+#endif /* _CB_WURTZITE_T_H_ */

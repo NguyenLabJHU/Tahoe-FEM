@@ -1,39 +1,39 @@
-/* $Id: Tersoff_common_defines.h,v 1.3 2007-07-05 20:37:58 hspark Exp $ */
-#ifndef TERSOFF_COMMON_DEFINES_H
-#define TERSOFF_COMMON_DEFINES_H
+/* $Id: Wurtzite_common_defines.h,v 1.1 2007-11-08 19:32:49 hspark Exp $ */
+#ifndef WURTZITE_COMMON_DEFINES_H
+#define WURTZITE_COMMON_DEFINES_H
 
 /* Sequence of parameters is:
- * A
- * B
+ * C-axis
+ * A-axis
  * Mass
- * lambda
- * mu
+ * D0
+ * S0
+ * r0
  * beta
- * n
+ * gamma
  * c
  * d
  * h
- * chi
  * R
- * S
+ * D
  */
 
 /* common variable defintion/mappings for auto-generated C code */
 
 /* potential parameters */
-double A      = params[ 0];
-double B      = params[ 1];
+double Caxis      = params[ 0];
+double Aaxis      = params[ 1];
 double Mass   = params[ 2];
-double lam    = params[ 3];
-double mu     = params[ 4];
-double beta   = params[ 5];
-double n      = params[ 6];
-double c      = params[ 7];
-double d      = params[ 8];
-double h      = params[ 9];
-double chi    = params[10];
+double D0    = params[ 3];
+double S0     = params[ 4];
+double r0   = params[ 5];
+double beta      = params[ 6];
+double gamma      = params[ 7];
+double c      = params[ 8];
+double d      = params[ 9];
+double h    = params[10];
 double R      = params[11];
-double S      = params[12];
+double D      = params[12];
 
 /* degrees of freedom */
 double Xs1 = Xsi[0];
@@ -70,4 +70,4 @@ double C31 = Cmat[6];
 double C32 = Cmat[7];
 double C33 = Cmat[8];
 
-#endif /* TERSOFF_COMMON_DEFINES_H */
+#endif /* WURTZITE_COMMON_DEFINES_H */

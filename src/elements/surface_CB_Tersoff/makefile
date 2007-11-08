@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2007-07-03 03:14:48 hspark Exp $
+# $Id: makefile,v 1.5 2007-11-08 19:32:50 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,16 +20,11 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	CB_TersoffT.o \
-	CB_TersoffT_surf.o \
-	TersoffSolverT.o \
-	TersoffSolverT_surf.o \
+	CB_WurtziteT.o \
+	WurtziteSolverT.o \
 	dUdC.o \
-	dUdC_surf.o \
 	dXsi.o \
-	dXsi_surf.o \
-	ddC.o \
-	ddC_surf.o
+	ddC.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -49,16 +44,11 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	CB_TersoffT.cpp \
-	CB_TersoffT_surf.cpp \
-	TersoffSolverT.cpp \
-	TersoffSolverT_surf.cpp \
+	CB_WurtziteT.cpp \
+	WurtziteSolverT.cpp \
 	dUdC.c \
-	dUdC_surf.c \
 	dXsi.c \
-	dXsi_surf.c \
-	ddC.c \
-	ddC_surf.c
+	ddC.c 
 
 ##################### (3) headers
 #
@@ -70,13 +60,10 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	CB_TersoffT.h \
-	CB_TersoffT_surf.h \
-	TersoffSolverT.h \
-	TersoffSolverT_surf.h \
-	Tersoff_common_defines.h \
-	Tersoff_inc.h \
-	Tersoff_inc_surf.h
+	CB_WurtziteT.h \
+	WurtziteSolverT.h \
+	Wurtzite_common_defines.h \
+	Wurtzite_inc.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

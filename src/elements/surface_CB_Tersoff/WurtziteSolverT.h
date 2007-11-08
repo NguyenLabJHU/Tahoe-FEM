@@ -1,7 +1,7 @@
-/* $Id: TersoffSolverT_surf.h,v 1.2 2007-07-05 16:09:37 hspark Exp $ */
+/* $Id: WurtziteSolverT.h,v 1.1 2007-11-08 19:32:49 hspark Exp $ */
 /* created: paklein (05/27/1997) */
-#ifndef _TERSOFF_SOLVER_T_SURF_H_
-#define _TERSOFF_SOLVER_T_SURF_H_
+#ifndef _WURTZITE_SOLVER_T_H_
+#define _WURTZITE_SOLVER_T_H_
 
 /* base class */
 #include "ParameterInterfaceT.h"
@@ -16,20 +16,20 @@ namespace Tahoe {
 /* forward declaration */
 class ThermalDilatationT;
 
-class TersoffSolverT_surf: public ParameterInterfaceT
+class WurtziteSolverT: public ParameterInterfaceT
 {
 public:
 
 	/* potential type */
 	enum PotentialTypeT {kSW = 0,
                        kPTHT = 1,
-                    kTersoff = 2};
+                    kWurtzite = 2};
 
 	/** constructor */
-	TersoffSolverT_surf(const ThermalDilatationT* thermal, int normal);
+	WurtziteSolverT(const ThermalDilatationT* thermal);
 
 	/** destructor */
-	~TersoffSolverT_surf(void);
+	~WurtziteSolverT(void);
 
 	/** \name constitutive properties */
 	/*@{*/
@@ -48,9 +48,6 @@ public:
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
  
-	/** thickness of surface layer to subtract off of bulk */
-	double SurfaceThickness(void) const { return fSurfaceThickness; }; 
- 
   	/** information about subordinate parameter lists */
 	//virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -68,29 +65,17 @@ private:
 
 	/* set free dof - triggers recomputation */
 	void SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi);
-	
-	/** Return rotation matrix for bond table */
-	dMatrixT RotationMatrixA(const double angle);
-	
-	/** Return other rotation matrix for bond table */
-	dMatrixT RotationMatrixB(const double angle);
 
 private:
 
 	/* mod CB flag */
 	bool fEquilibrate;
 
-	/** normal code to do bond table (stress?) rotation */
-	int fNormalCode;
-	
 	/* pairs for 3-body potentials */
 	const iArray2DT fPairs;
 
 	/** lattice geometry */
 	//LengthsAndAnglesT* fGeometry;
-	
-	/** surface thickness */
-	double fSurfaceThickness;
 	
 	/** thermal dilatation */
 	const ThermalDilatationT* fThermal;
@@ -129,35 +114,32 @@ private:
 	/** parameter vector to pass to C code */
 	dArrayT fParams;
 	
-	/** lattice parameter */
-	double f_a0;
+	/** C-parameter for Wurtzite crystals */
+	double f_Caxis;
+	
+	/** A-parameter for Wurtzite crystals */
+	double f_Aaxis;
 	
 	/** Atomic volume */
 	double f_omega0;
 	
-	/** Atomic area */
-	double f_area0;
+	/** Part of energy scaling for both attractive and repulsive terms */
+	double f_D0;
 	
-	/** Repulsive part energy scaling term. When atoms i & j are different species A = sqrt(A_i * A_j). Part of the 2-body term */
-	double f_A;
+	/** Part of energy scaling for both attractive and repulsive terms */
+	double f_S0;
 	
-	/** Attractive part energy scaling term. When atoms i & j are different species B = sqrt(B_i * B_j). Part of '3-body' term */
-	double f_B;
+	/** Equilibrium dimer length */
+	double f_r0;
 	
 	/** Mass */
 	double fMass;
 	
-	/** Repulsive part energy exponent term. When atoms i & j are different species lambda = 1/2 (lambda_i + lambda_j).*/
-	double f_lambda;
-	
-	/** Attractive part energy exponent term. When atoms i & j are different species mu = 1/2 (mu_i + mu_j).*/
-	double f_mu;
-	
-	/** Bond order parameter coefficient 1. */
+	/** Bond order exponent scaling term */
 	double f_beta;
 	
-	/** Bond order parameter exponent term. */
-	double f_n;
+	/** Bond order parameter coefficient 1. */
+	double f_gamma;
 	
 	/** Bond order parameter coefficient 2. */
 	double f_c;
@@ -168,17 +150,14 @@ private:
 	/** Bond order parameter coefficient 4. */
 	double f_h;
 	
-	/** Bond order paramter scaling coefficient. When atoms i & j are the same species, chi = 1.0 */
-	double f_chi;
-	
 	/** Cutoff function length parameter 1. When atoms i & j are different species R = sqrt(R_i * R_j).*/
 	double f_R;
 	
-	/** Cutoff function length parameter 2. When atoms i & j are different species S = sqrt(S_i * S_j).*/
-	double f_S;
+	/** Cutoff function length parameter 2. When atoms i & j are different species D = sqrt(D_i * D_j).*/
+	double f_D;
 	/*@}*/
 };
 
 } /* namespace Tahoe */
 
-#endif /* _TERSOFF_SOLVER_T_SURF_H_ */
+#endif /* _WURTZITE_SOLVER_T_H_ */

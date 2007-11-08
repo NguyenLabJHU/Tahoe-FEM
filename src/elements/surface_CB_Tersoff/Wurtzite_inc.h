@@ -1,25 +1,25 @@
-/* $Id: Tersoff_inc.h,v 1.4 2007-06-24 21:25:14 paklein Exp $ */
-#ifndef TERSOFF_INC_H
-#define TERSOFF_INC_H
+/* $Id: Wurtzite_inc.h,v 1.1 2007-11-08 19:32:49 hspark Exp $ */
+#ifndef WURTZITE_INC_H
+#define WURTZITE_INC_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Sequence of parameters is:
- * A
- * B
+ * C-axis
+ * A-axis
  * Mass
- * lambda
- * mu
+ * D0
+ * S0
+ * r0
  * beta
- * n
+ * gamma
  * c
  * d
  * h
- * chi
  * R
- * S
+ * D
  */
 
 /* function to compute derivatives of the potential function wrt to the
@@ -36,4 +36,4 @@ void get_ddC(const double* params, const double *Xsi, const double *Xa, const do
 }
 #endif
 
-#endif /* TERSOFF_INC_H */
+#endif /* WURTZITE_INC_H */
