@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.42 2007-01-15 22:38:13 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.43 2007-11-09 15:45:31 regueiro Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -210,8 +210,10 @@ void SolverT::CloseStep(void)
 	}
 	
 	/* set up eigensolver */
-	Teuchos::RefCountPtr<Epetra_CrsMatrix> rcp_K = Teuchos::rcp(K);
-	Teuchos::RefCountPtr<Epetra_CrsMatrix> rcp_M = Teuchos::rcp(M);
+	//Teuchos::RefCountPtr<Epetra_CrsMatrix> rcp_K = Teuchos::rcp(K);
+	//Teuchos::RefCountPtr<Epetra_CrsMatrix> rcp_M = Teuchos::rcp(M);
+	Teuchos::RCP<Epetra_CrsMatrix> rcp_K = Teuchos::rcp(K);
+	Teuchos::RCP<Epetra_CrsMatrix> rcp_M = Teuchos::rcp(M);
 	
 	/* write matricies to files */
 	bool output_matricies = fEigenSolverParameters->GetParameter("output_matricies");
@@ -248,11 +250,13 @@ void SolverT::CloseStep(void)
 
 	// Create an Epetra_MultiVector for an initial vector to start the solver.
 	// Note:  This needs to have the same number of columns as the blocksize.
-	Teuchos::RefCountPtr<Epetra_MultiVector> ivec = Teuchos::rcp( new Epetra_MultiVector(*(epetra.Map()), block_size) );
+	//Teuchos::RefCountPtr<Epetra_MultiVector> ivec = Teuchos::rcp( new Epetra_MultiVector(*(epetra.Map()), block_size) );
+	Teuchos::RCP<Epetra_MultiVector> ivec = Teuchos::rcp( new Epetra_MultiVector(*(epetra.Map()), block_size) );
 	ivec->Random();
 
 	// Create the eigenproblem.
-	Teuchos::RefCountPtr<BasicEigenproblem<double, MV, OP> > MyProblem =
+	//Teuchos::RefCountPtr<BasicEigenproblem<double, MV, OP> > MyProblem =
+	Teuchos::RCP<BasicEigenproblem<double, MV, OP> > MyProblem =
 		Teuchos::rcp( new BasicEigenproblem<double, MV, OP>(rcp_K, rcp_M, ivec) );
 
 	/* global system properties */
@@ -369,7 +373,8 @@ void SolverT::CloseStep(void)
 		/* eigenvalues and eigenvectors from the eigenproblem */
 		Eigensolution<double,MV> sol = MyProblem->getSolution();
 		std::vector<Value<double> > evals = sol.Evals;
-		Teuchos::RefCountPtr<MV> evecs = sol.Evecs;
+		//Teuchos::RefCountPtr<MV> evecs = sol.Evecs;
+		Teuchos::RCP<MV> evecs = sol.Evecs;
 
 		/* extract vectors */
 		dArray2DT eigen_vecs(sol.numVecs, fRHS.Length()); /* in rows */
