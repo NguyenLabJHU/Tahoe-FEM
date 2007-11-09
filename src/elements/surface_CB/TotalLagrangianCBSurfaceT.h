@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.12 2007-09-05 00:24:49 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.13 2007-11-09 18:54:02 hspark Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -10,6 +10,7 @@ namespace Tahoe {
 class FCC3D_Surf;
 class EAMFCC3DMatT_surf;
 class CB_TersoffT_surf;
+class CB_TersoffDimerT_surf;
 
 /** total Lagrangian, finite strain element for working with Cauchy-Born approach
  * for modeling surface effects */
@@ -81,6 +82,9 @@ protected:
 
 	/** Tersoff CB model */
 	ArrayT<CB_TersoffT_surf*> fTersoffSurfaceCB;
+
+	/** Tersoff CB model for reconstructions */
+	ArrayT<CB_TersoffDimerT_surf*> fTersoffDimerSurfaceCB;
 
     /** EAM Surface CB model */
 	ArrayT<EAMFCC3DMatT_surf*> fEAMSurfaceCB;
