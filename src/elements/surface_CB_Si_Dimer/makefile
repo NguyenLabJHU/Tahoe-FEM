@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2007-11-09 16:53:55 hspark Exp $
+# $Id: makefile,v 1.2 2007-11-09 21:09:30 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,12 +24,12 @@ OBJ = \
 	CB_TersoffDimerT_surf.o \
 	TersoffDimerSolverT.o \
 	TersoffDimerSolverT_surf.o \
-	dUdC.o \
-	dUdC_surf.o \
-	dXsi.o \
-	dXsi_surf.o \
-	ddC.o \
-	ddC_surf.o
+	TDdUdC.o \
+	TDdUdC_surf.o \
+	TDdXsi.o \
+	TDdXsi_surf.o \
+	TDddC.o \
+	TDddC_surf.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -53,12 +53,12 @@ SRC = \
 	CB_TersoffDimerT_surf.cpp \
 	TersoffSolverDimerT.cpp \
 	TersoffSolverDimerT_surf.cpp \
-	dUdC.c \
-	dUdC_surf.c \
-	dXsi.c \
-	dXsi_surf.c \
-	ddC.c \
-	ddC_surf.c
+	TDdUdC.c \
+	TDdUdC_surf.c \
+	TDdXsi.c \
+	TDdXsi_surf.c \
+	TDddC.c \
+	TDddC_surf.c
 
 ##################### (3) headers
 #

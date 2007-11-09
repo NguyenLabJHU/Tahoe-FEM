@@ -1,4 +1,4 @@
-/* $Id: TersoffDimerSolverT_surf.cpp,v 1.3 2007-11-09 19:21:24 hspark Exp $ */
+/* $Id: TersoffDimerSolverT_surf.cpp,v 1.4 2007-11-09 21:09:29 hspark Exp $ */
 #include "TersoffDimerSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -70,7 +70,7 @@ void TersoffDimerSolverT_surf::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMat
 		SetdXsi(CIJ, Xsi);
 
 	/* compute second derivatives wrt {C,C} and {C,Xsi} */
-	get_ddC_surf(fParams.Pointer(), Xsi.Pointer(), 
+	TDget_ddC_surf(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dCdC_hat.Pointer(), dCdXsi_hat.Pointer());
@@ -96,7 +96,7 @@ void TersoffDimerSolverT_surf::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMat
 	if (fEquilibrate) Equilibrate(CIJ, Xsi);
 
 	/* call C function */
-	get_dUdC_surf(fParams.Pointer(), Xsi.Pointer(), 
+	TDget_dUdC_surf(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(),
 		stress.Pointer()); 
@@ -572,7 +572,7 @@ void TersoffDimerSolverT_surf::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 void TersoffDimerSolverT_surf::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 {
 	/* call C function */
-	get_dXsi_surf(fParams.Pointer(), Xsi.Pointer(), 
+	TDget_dXsi_surf(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dXsi.Pointer(), dXsidXsi.Pointer());

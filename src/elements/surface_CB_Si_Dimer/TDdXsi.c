@@ -1,4 +1,4 @@
-/* $Id: dXsi.c,v 1.1 2007-11-09 16:53:55 hspark Exp $ */
+/* $Id: TDdXsi.c,v 1.1 2007-11-09 21:09:28 hspark Exp $ */
 #include "TersoffDimer_inc.h"
 
 #include <math.h>
@@ -7,7 +7,7 @@ static double z[701];
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */
-void get_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi) { 
+void TDget_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi) { 
 
 /* common definitions */
 #include "TersoffDimer_common_defines.h"

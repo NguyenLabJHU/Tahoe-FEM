@@ -1,4 +1,4 @@
-/* $Id: dUdC.c,v 1.1 2007-11-09 16:53:55 hspark Exp $ */
+/* $Id: TDdUdC.c,v 1.1 2007-11-09 21:09:28 hspark Exp $ */
 #include "TersoffDimer_inc.h"
 
 #include <math.h>
@@ -7,7 +7,7 @@ static double z[296];
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */
-void get_dUdC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC) {
+void TDget_dUdC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC) {
 
 /* common definitions */
 #include "TersoffDimer_common_defines.h"

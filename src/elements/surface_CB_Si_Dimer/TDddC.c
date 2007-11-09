@@ -1,4 +1,4 @@
-/* $Id: ddC.c,v 1.1 2007-11-09 16:53:55 hspark Exp $ */
+/* $Id: TDddC.c,v 1.1 2007-11-09 21:09:28 hspark Exp $ */
 #include "TersoffDimer_inc.h"
 
 #include <math.h>
@@ -6,7 +6,7 @@
 static double z[3770];
 
 /* function to compute all second order derivatives of the potential function needed for the modulus */
-void get_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi) {
+void TDget_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi) {
 
 /* common definitions */
 #include "TersoffDimer_common_defines.h"

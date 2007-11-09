@@ -1,4 +1,4 @@
-/* $Id: dXsi_surf.c,v 1.2 2007-11-09 19:21:24 hspark Exp $ */
+/* $Id: TDdXsi_surf.c,v 1.1 2007-11-09 21:09:28 hspark Exp $ */
 #include "TersoffDimer_inc_surf.h"
 
 #include <math.h>
@@ -9,7 +9,7 @@ static double z[6898];
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */
-void get_dXsi_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi) { 
+void TDget_dXsi_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi) { 
 
 /* common definitions */
 #include "TersoffDimer_common_defines_surf.h"
