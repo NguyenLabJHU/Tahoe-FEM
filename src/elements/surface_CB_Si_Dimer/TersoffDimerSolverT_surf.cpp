@@ -1,4 +1,4 @@
-/* $Id: TersoffDimerSolverT_surf.cpp,v 1.2 2007-11-09 18:28:42 hspark Exp $ */
+/* $Id: TersoffDimerSolverT_surf.cpp,v 1.3 2007-11-09 19:21:24 hspark Exp $ */
 #include "TersoffDimerSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -317,9 +317,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	/* unit cell coordinates - FOR RECONSTRUCTED {100} SURFACE */
 	/* NORMAL IS IN [001] DIRECTION */
 	dMatrixT tempUnitCellCoords, temp_bonds2;
-	temp_bonds2.Dimension(15, 3);
-	tempUnitCellCoords.Dimension(15, 3);	// temporary until bond rotation
-	fUnitCellCoords.Dimension(15, 3); /* [15 atoms] x [3 dim]: first atom is 'center' */
+	temp_bonds2.Dimension(16, 3);
+	tempUnitCellCoords.Dimension(16, 3);	// temporary until bond rotation
+	fUnitCellCoords.Dimension(16, 3); /* [16 atoms] x [3 dim]: first atom is 'center' */
 	tempUnitCellCoords(0,0) = 0.521845/f_a0;
 	tempUnitCellCoords(1,0) = 0.5-0.521845/f_a0;
 	tempUnitCellCoords(2,0) = -0.5+0.521845/f_a0;
@@ -392,7 +392,7 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	
 	/* ROTATE UNIT CELL COORDS DEPENDING ON UNIT NORMAL */
 	dMatrixT blah1(3);
-	dArrayT temp(9);
+	dArrayT temp(16);
 	
 	if (fNormalCode == 0)	// rotate [0,0,1] to [1,0,0]
 	{

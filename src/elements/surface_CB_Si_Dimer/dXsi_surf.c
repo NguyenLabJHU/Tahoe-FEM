@@ -1,11 +1,11 @@
-/* $Id: dXsi_surf.c,v 1.1 2007-11-09 16:53:55 hspark Exp $ */
+/* $Id: dXsi_surf.c,v 1.2 2007-11-09 19:21:24 hspark Exp $ */
 #include "TersoffDimer_inc_surf.h"
 
 #include <math.h>
 
-static double z[1519];
+static double z[6898];
 
-/* 4 XDOFs in the surface cluster */
+/* 4 XDOFs in the surface cluster - none for dimers though */
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */

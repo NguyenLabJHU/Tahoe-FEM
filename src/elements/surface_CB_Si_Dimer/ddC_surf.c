@@ -1,11 +1,11 @@
-/* $Id: ddC_surf.c,v 1.1 2007-11-09 16:53:55 hspark Exp $ */
+/* $Id: ddC_surf.c,v 1.2 2007-11-09 19:21:25 hspark Exp $ */
 #include "TersoffDimer_inc_surf.h"
 
 #include <math.h>
 
 static double z[23666];
 
-/* 4 XDOFs in this surface cluster */
+/* 4 XDOFs in this surface cluster - none for dimers though */
 
 /* function to compute all second order derivatives of the potential function needed for the modulus */
 void get_ddC_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi) {
