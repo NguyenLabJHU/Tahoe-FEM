@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2007-11-09 15:32:05 hspark Exp $
+# $Id: makefile,v 1.2 2007-11-09 19:55:25 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -74,6 +74,7 @@ HDR = \
 	CB_TersoffT_surf.h \
 	TersoffSolverT.h \
 	TersoffSolverT_surf.h \
+	Tersoff_common_defines_surf.h \
 	Tersoff_common_defines.h \
 	Tersoff_inc.h \
 	Tersoff_inc_surf.h
