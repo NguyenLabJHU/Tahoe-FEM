@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.29 2007-11-08 22:42:44 hspark Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.30 2007-11-09 16:01:09 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -95,7 +95,7 @@
 #include "FSSolidMixtureT.h"
 #endif
 
-#ifdef SURFACE_CB_TERSOFF_DEV
+#ifdef SURFACE_CB_SI_DEV
 #include "CB_TersoffT.h"
 #endif
 
@@ -252,7 +252,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("large_strain_solid_mixture");
 #endif
 
-#ifdef SURFACE_CB_TERSOFF_DEV
+#ifdef SURFACE_CB_SI_DEV
 		sub_lists.AddSub("Tersoff_CB");
 #endif
 #ifdef SURFACE_CB_WURTZITE_DEV
@@ -434,7 +434,7 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	  mat= new IsoCorneaModel;
 #endif
 
-#ifdef SURFACE_CB_TERSOFF_DEV
+#ifdef SURFACE_CB_SI_DEV
 	else if (name == "Tersoff_CB")
 	  mat= new CB_TersoffT;
 #endif
