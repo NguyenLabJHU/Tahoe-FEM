@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.30 2007-11-09 16:01:09 hspark Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.31 2007-11-09 17:12:03 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -97,6 +97,10 @@
 
 #ifdef SURFACE_CB_SI_DEV
 #include "CB_TersoffT.h"
+#endif
+
+#ifdef SURFACE_CB_SI_DIMER_DEV
+#include "CB_TersoffDimerT.h"
 #endif
 
 #ifdef SURFACE_CB_WURTZITE_DEV
@@ -254,6 +258,9 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef SURFACE_CB_SI_DEV
 		sub_lists.AddSub("Tersoff_CB");
+#endif
+#ifdef SURFACE_CB_SI_DIMER_DEV
+		sub_lists.AddSub("TersoffDimer_CB");
 #endif
 #ifdef SURFACE_CB_WURTZITE_DEV
 		sub_lists.AddSub("Wurtzite_CB");
@@ -437,6 +444,10 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef SURFACE_CB_SI_DEV
 	else if (name == "Tersoff_CB")
 	  mat= new CB_TersoffT;
+#endif
+#ifdef SURFACE_CB_SI_DIMER_DEV
+	else if (name == "TersoffDimer_CB")
+	  mat= new CB_TersoffDimerT;
 #endif
 #ifdef SURFACE_CB_WURTZITE_DEV
 	else if (name == "Wurtzite_CB")
