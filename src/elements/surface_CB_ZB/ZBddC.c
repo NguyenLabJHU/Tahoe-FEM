@@ -1,15 +1,15 @@
-/* $Id: ddC.c,v 1.1 2007-11-08 19:37:46 hspark Exp $ */
-#include "Wurtzite_inc.h"
+/* $Id: ZBddC.c,v 1.1 2007-11-09 21:32:14 hspark Exp $ */
+#include "ZB_inc.h"
 
 #include <math.h>
 
-static double z[3770];
+static double z[3766];
 
 /* function to compute all second order derivatives of the potential function needed for the modulus */
-void get_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi) {
+void ZBget_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi) {
 
 /* common definitions */
-#include "Wurtzite_common_defines.h"
+#include "ZB_common_defines.h"
 
 	z[1] = 1./sqrt(2.);
 	z[2] = sqrt(2.);
@@ -8365,72 +8365,111 @@ void get_ddC(const double* params, const double *Xsi, const double *Xa, const do
 	z[14] = z[14] + z[18] + z[326] + z[67];
 	z[1] = z[1] + z[16] + z[34] + z[7];
 	z[2] = z[15] + z[17] + z[2] + z[41];
-	
+	z[4] = 0.5*z[4];
+	z[5] = 0.5*z[5];
+	z[7] = 0.5*z[22];
+	z[15] = 0.5*z[23];
+	z[16] = 0.5*z[31];
+	z[6] = 0.5*z[6];
+	z[8] = 0.5*z[8];
+	z[9] = 0.5*z[9];
+	z[17] = 0.5*z[19];
+	z[10] = 0.5*z[10];
+	z[18] = 0.5*z[20];
+	z[19] = 0.5*z[27];
+	z[20] = 0.5*z[28];
+	z[22] = 0.5*z[29];
+	z[23] = 0.5*z[30];
+	z[27] = 0.5*z[33];
+	z[28] = 0.5*z[38];
+	z[29] = 0.5*z[43];
+	z[30] = 0.5*z[48];
+	z[31] = 0.5*z[49];
+	z[32] = 0.5*z[50];
+	z[33] = 0.5*z[51];
+	z[34] = 0.5*z[53];
+	z[35] = 0.5*z[54];
+	z[36] = 0.5*z[55];
+	z[21] = 0.5*z[21];
+	z[37] = 0.5*z[58];
+	z[38] = 0.5*z[59];
+	z[39] = 0.5*z[39];
+	z[3] = 0.5*z[3];
+	z[24] = 0.5*z[24];
+	z[11] = 0.5*z[11];
+	z[25] = 0.5*z[25];
+	z[12] = 0.5*z[12];
+	z[13] = 0.5*z[13];
+	z[26] = 0.5*z[26];
+	z[14] = 0.5*z[14];
+	z[1] = 0.5*z[1];
+	z[2] = 0.5*z[2];
+
 	/* output */
 	
 	/* dCdC: 6 x 6 */
-	dCdC[ 0] = z[33];
-	dCdC[ 1] = z[13];
-	dCdC[ 2] = z[20];
-	dCdC[ 3] = z[27];
-	dCdC[ 4] = z[38];
-	dCdC[ 5] = z[23];
+	dCdC[ 0] = z[4];
+	dCdC[ 1] = z[8];
+	dCdC[ 2] = z[19];
+	dCdC[ 3] = z[18];
+	dCdC[ 4] = z[39];
+	dCdC[ 5] = z[37];
 
-	dCdC[ 6] = z[13];
-	dCdC[ 7] = z[37];
-	dCdC[ 8] = z[21];
-	dCdC[ 9] = z[4];
-	dCdC[10] = z[34];
-	dCdC[11] = z[24];
+	dCdC[ 6] = z[8];
+	dCdC[ 7] = z[7];
+	dCdC[ 8] = z[23];
+	dCdC[ 9] = z[3];
+	dCdC[10] = z[17];
+	dCdC[11] = z[27];
 
-	dCdC[12] = z[20];
-	dCdC[13] = z[21];
-	dCdC[14] = z[1];
-	dCdC[15] = z[28];
-	dCdC[16] = z[35];
-	dCdC[17] = z[25];
+	dCdC[12] = z[19];
+	dCdC[13] = z[23];
+	dCdC[14] = z[6];
+	dCdC[15] = z[38];
+	dCdC[16] = z[28];
+	dCdC[17] = z[22];
 
-	dCdC[18] = z[27];
-	dCdC[19] = z[4];
-	dCdC[20] = z[28];
-	dCdC[21] = z[2];
-	dCdC[22] = z[30];
-	dCdC[23] = z[29];
+	dCdC[18] = z[18];
+	dCdC[19] = z[3];
+	dCdC[20] = z[38];
+	dCdC[21] = z[16];
+	dCdC[22] = z[20];
+	dCdC[23] = z[9];
 
-	dCdC[24] = z[38];
-	dCdC[25] = z[34];
-	dCdC[26] = z[35];
-	dCdC[27] = z[30];
-	dCdC[28] = z[18];
-	dCdC[29] = z[36];
+	dCdC[24] = z[39];
+	dCdC[25] = z[17];
+	dCdC[26] = z[28];
+	dCdC[27] = z[20];
+	dCdC[28] = z[15];
+	dCdC[29] = z[10];
 
-	dCdC[30] = z[23];
-	dCdC[31] = z[24];
-	dCdC[32] = z[25];
-	dCdC[33] = z[29];
-	dCdC[34] = z[36];
-	dCdC[35] = z[6];
+	dCdC[30] = z[37];
+	dCdC[31] = z[27];
+	dCdC[32] = z[22];
+	dCdC[33] = z[9];
+	dCdC[34] = z[10];
+	dCdC[35] = z[5];
 
 	/* dCdXsi: 6 x 3 */
-	dCdXsi[ 0] = z[14];
-	dCdXsi[ 1] = z[9];
-	dCdXsi[ 2] = z[15];
-	dCdXsi[ 3] = z[22];
-	dCdXsi[ 4] = z[11];
-	dCdXsi[ 5] = z[12];
+	dCdXsi[ 0] = z[25];
+	dCdXsi[ 1] = z[32];
+	dCdXsi[ 2] = z[34];
+	dCdXsi[ 3] = z[33];
+	dCdXsi[ 4] = z[14];
+	dCdXsi[ 5] = z[13];
 
-	dCdXsi[ 6] = z[8];
-	dCdXsi[ 7] = z[19];
-	dCdXsi[ 8] = z[17];
-	dCdXsi[ 9] = z[16];
-	dCdXsi[10] = z[31];
-	dCdXsi[11] = z[10];
+	dCdXsi[ 6] = z[35];
+	dCdXsi[ 7] = z[26];
+	dCdXsi[ 8] = z[21];
+	dCdXsi[ 9] = z[1];
+	dCdXsi[10] = z[36];
+	dCdXsi[11] = z[11];
 
-	dCdXsi[12] = z[32];
-	dCdXsi[13] = z[39];
-	dCdXsi[14] = z[5];
-	dCdXsi[15] = z[7];
-	dCdXsi[16] = z[26];
-	dCdXsi[17] = z[3];
+	dCdXsi[12] = z[29];
+	dCdXsi[13] = z[31];
+	dCdXsi[14] = z[2];
+	dCdXsi[15] = z[12];
+	dCdXsi[16] = z[24];
+	dCdXsi[17] = z[30];
 }
 

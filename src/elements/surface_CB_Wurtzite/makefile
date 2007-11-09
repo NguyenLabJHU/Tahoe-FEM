@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2007-11-08 19:37:46 hspark Exp $
+# $Id: makefile,v 1.2 2007-11-09 21:31:36 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,9 +22,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	CB_WurtziteT.o \
 	WurtziteSolverT.o \
-	dUdC.o \
-	dXsi.o \
-	ddC.o 
+	WZdUdC.o \
+	WZdXsi.o \
+	WZddC.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,9 +46,9 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	CB_WurtziteT.cpp \
 	WurtziteSolverT.cpp \
-	dUdC.c \
-	dXsi.c \
-	ddC.c 
+	WZdUdC.c \
+	WZdXsi.c \
+	WZddC.c 
 
 ##################### (3) headers
 #

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2007-11-08 22:42:24 hspark Exp $
+# $Id: makefile,v 1.2 2007-11-09 21:32:15 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,9 +22,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	CB_ZBT.o \
 	ZBSolverT.o \
-	dUdC.o \
-	dXsi.o \
-	ddC.o 
+	ZBdUdC.o \
+	ZBdXsi.o \
+	ZBddC.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,9 +46,9 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	CB_ZBT.cpp \
 	ZBSolverT.cpp \
-	dUdC.c \
-	dXsi.c \
-	ddC.c 
+	ZBdUdC.c \
+	ZBdXsi.c \
+	ZBddC.c 
 
 ##################### (3) headers
 #

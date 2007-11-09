@@ -1,4 +1,4 @@
-/* $Id: WurtziteSolverT.cpp,v 1.1 2007-11-08 19:37:46 hspark Exp $ */
+/* $Id: WurtziteSolverT.cpp,v 1.2 2007-11-09 21:31:36 hspark Exp $ */
 #include "WurtziteSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -34,7 +34,7 @@ WurtziteSolverT::WurtziteSolverT(const ThermalDilatationT* thermal):
 	fPairs(kNumAngles, 2, pairdata),
 //	fGeometry(NULL),
 	f_Caxis(0.0),
-	f_Aaxis(0,0),
+	f_Aaxis(0.0),
 	f_D0(0.0),
 	f_S0(0.0),
 	f_r0(0.0),
@@ -66,7 +66,7 @@ void WurtziteSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& mod
 		SetdXsi(CIJ, Xsi);
 
 	/* compute second derivatives wrt {C,C} and {C,Xsi} */
-	get_ddC(fParams.Pointer(), Xsi.Pointer(), 
+	WZget_ddC(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dCdC_hat.Pointer(), dCdXsi_hat.Pointer());
@@ -92,7 +92,7 @@ void WurtziteSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& str
 	if (fEquilibrate) Equilibrate(CIJ, Xsi);
 
 	/* call C function */
-	get_dUdC(fParams.Pointer(), Xsi.Pointer(), 
+	WZget_dUdC(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(),
 		stress.Pointer()); 
@@ -257,29 +257,6 @@ void WurtziteSolverT::TakeParameterList(const ParameterListT& list)
 	fMat1.Dimension(kNumDOF); 
 	fVec.Dimension(kNumDOF);
 
-	/* unit cell coordinates */
-	fUnitCellCoords.Dimension(5, 3); /* [5 atoms] x [3 dim]: first atom is 'center' */
-	fUnitCellCoords(0,0) = 0.25;
-	fUnitCellCoords(1,0) = 0.00;
-	fUnitCellCoords(2,0) = 0.50;
-	fUnitCellCoords(3,0) = 0.50;
-	fUnitCellCoords(4,0) = 0.00;
-
-	fUnitCellCoords(0,1) = 0.25;
-	fUnitCellCoords(1,1) = 0.00;
-	fUnitCellCoords(2,1) = 0.50;
-	fUnitCellCoords(3,1) = 0.00;
-	fUnitCellCoords(4,1) = 0.50;
-
-	fUnitCellCoords(0,2) = 0.25;
-	fUnitCellCoords(1,2) = 0.00;
-	fUnitCellCoords(2,2) = 0.00;
-	fUnitCellCoords(3,2) = 0.50;
-	fUnitCellCoords(4,2) = 0.50;
-
-	/* flag */
-	fEquilibrate = list.GetParameter("equilibrate");
-
 	/* resolve orientation */
 // 	FCCLatticeT lattice(0);
 // 	const ParameterListT& orientation = list.GetListChoice(lattice, "FCC_lattice_orientation");
@@ -306,12 +283,34 @@ void WurtziteSolverT::TakeParameterList(const ParameterListT& list)
 	f_h = list.GetParameter("bond_order_coeff4_hi");
 	f_R = list.GetParameter("cutoff_func_length_1_Rij");
 	f_D = list.GetParameter("cutoff_func_length_2_Dij");
+
+	/* unit cell coordinates - FIX FOR WURTZITE! */
+	fUnitCellCoords.Dimension(5, 3); /* [5 atoms] x [3 dim]: first atom is 'center' */
+	fUnitCellCoords(0,0) = 0.00;
+	fUnitCellCoords(1,0) = 0.5*f_Aaxis;
+	fUnitCellCoords(2,0) = -0.5*f_Aaxis;
+	fUnitCellCoords(3,0) = 0.00;
+	fUnitCellCoords(4,0) = 0.00;
+
+	fUnitCellCoords(0,1) = 2.0*f_Aaxis/sqrt(3);
+	fUnitCellCoords(1,1) = 2.5*f_Aaxis/sqrt(3);
+	fUnitCellCoords(2,1) = 2.5*f_Aaxis/sqrt(3);
+	fUnitCellCoords(3,1) = f_Aaxis/sqrt(3);
+	fUnitCellCoords(4,1) = 2.0*f_Aaxis/sqrt(3);
+
+	fUnitCellCoords(0,2) = f_Caxis*f_Aaxis*0.5;
+	fUnitCellCoords(1,2) = f_Caxis*f_Aaxis;
+	fUnitCellCoords(2,2) = f_Caxis*f_Aaxis;
+	fUnitCellCoords(3,2) = f_Caxis*f_Aaxis;
+	fUnitCellCoords(4,2) = 0.5*f_Caxis*f_Aaxis+f_Caxis*f_Aaxis;
+
+	/* flag */
+	fEquilibrate = list.GetParameter("equilibrate");
 	
-	/* scale unit cell coordinates */
-	fUnitCellCoords *= f_a0;
+	/* scale unit cell coordinates - ALREADY SCALED */
 
 	/* Calculate atomic volume - FIX FOR WURTZITE! */
-	double asdf = f_a0*f_a0*f_a0/8.0;
+	double asdf = 1.0;
 	f_omega0 = 1.0/asdf;
 
 	/* write into vector to pass to C code */
@@ -365,7 +364,7 @@ void WurtziteSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 void WurtziteSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 {
 	/* call C function */
-	get_dXsi(fParams.Pointer(), Xsi.Pointer(), 
+	WZget_dXsi(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dXsi.Pointer(), dXsidXsi.Pointer());

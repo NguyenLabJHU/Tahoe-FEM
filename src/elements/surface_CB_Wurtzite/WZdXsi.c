@@ -1,16 +1,16 @@
-/* $Id: dXsi.c,v 1.1 2007-11-08 22:42:23 hspark Exp $ */
-#include "ZB_inc.h"
+/* $Id: WZdXsi.c,v 1.1 2007-11-09 21:31:36 hspark Exp $ */
+#include "Wurtzite_inc.h"
 
 #include <math.h>
 
-static double z[699];
+static double z[701];
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */
-void get_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi) { 
+void WZget_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi) { 
 
 /* common definitions */
-#include "ZB_common_defines.h"
+#include "Wurtzite_common_defines.h"
 
 	z[1] = 1./sqrt(2.);
 	z[2] = sqrt(2.);
@@ -2054,39 +2054,26 @@ void get_dXsi(const double* params, const double *Xsi, const double *Xa, const d
 	z[3] = z[11] + z[22] + z[32] + z[6];
 	z[6] = z[13] + z[24] + z[33] + z[7];
 	z[1] = z[1] + z[26] + z[41] + z[5];
-	z[5] = 0.5*z[8];
-	z[7] = 0.5*z[17];
-	z[8] = 0.5*z[23];
-	z[4] = 0.5*z[4];
-	z[9] = 0.5*z[16];
-	z[2] = 0.5*z[2];
-	z[3] = 0.5*z[3];
-	z[6] = 0.5*z[6];
-	z[1] = 0.5*z[1];
-
-	/* output - for some reason MMA spit out 2 different solution.....*/
-	/* dXsi  = {z4, z6, z8} */
-	/* ddXsi = {{z7, z3, z1},
-	            {z3, z9, z5},
-				{z1, z5, z2}} */
-
-	/* dXsi  = {z4, z6, z8} */
-	/* ddXsi = {{z7, z3, z1},
-	            {z3, z9, z5},
-				{z1, z5, z2}} */
+	
+	/* output */
+	/* dXsi  = {z7, z8, z9} */
+	/* ddXsi = {{z5, z2, z3},
+	            {z2, z6, z4},
+				{z3, z4, z1}} */
 
 	/* return values */
-	dXsi[0] = z[4];
-	dXsi[1] = z[6];
-	dXsi[2] = z[8];
+	dXsi[0] = z[7];
+	dXsi[1] = z[8];
+	dXsi[2] = z[9];
 	
-	ddXsi[0] = z[7];
-	ddXsi[1] = z[3];
-	ddXsi[2] = z[1];
-	ddXsi[3] = z[3];
-	ddXsi[4] = z[9];
-	ddXsi[5] = z[5];
-	ddXsi[6] = z[1];
-	ddXsi[7] = z[5];
-	ddXsi[8] = z[2];
+	ddXsi[0] = z[5];
+	ddXsi[1] = z[2];
+	ddXsi[2] = z[3];
+	ddXsi[3] = z[2];
+	ddXsi[4] = z[6];
+	ddXsi[5] = z[4];
+	ddXsi[6] = z[3];
+	ddXsi[7] = z[4];
+	ddXsi[8] = z[1];
 }
+

@@ -1,4 +1,4 @@
-/* $Id: ZBSolverT.cpp,v 1.1 2007-11-08 22:42:23 hspark Exp $ */
+/* $Id: ZBSolverT.cpp,v 1.2 2007-11-09 21:32:14 hspark Exp $ */
 #include "ZBSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -65,7 +65,7 @@ void ZBSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& moduli)
 		SetdXsi(CIJ, Xsi);
 
 	/* compute second derivatives wrt {C,C} and {C,Xsi} */
-	get_ddC(fParams.Pointer(), Xsi.Pointer(), 
+	ZBget_ddC(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dCdC_hat.Pointer(), dCdXsi_hat.Pointer());
@@ -91,7 +91,7 @@ void ZBSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stress)
 	if (fEquilibrate) Equilibrate(CIJ, Xsi);
 
 	/* call C function */
-	get_dUdC(fParams.Pointer(), Xsi.Pointer(), 
+	ZBget_dUdC(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(),
 		stress.Pointer()); 
@@ -358,7 +358,7 @@ void ZBSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 void ZBSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 {
 	/* call C function */
-	get_dXsi(fParams.Pointer(), Xsi.Pointer(), 
+	ZBget_dXsi(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dXsi.Pointer(), dXsidXsi.Pointer());

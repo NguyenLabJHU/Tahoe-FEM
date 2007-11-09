@@ -1,16 +1,16 @@
-/* $Id: dUdC.c,v 1.1 2007-11-08 19:37:46 hspark Exp $ */
-#include "Wurtzite_inc.h"
+/* $Id: ZBdUdC.c,v 1.1 2007-11-09 21:32:14 hspark Exp $ */
+#include "ZB_inc.h"
 
 #include <math.h>
 
-static double z[296];
+static double z[300];
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */
-void get_dUdC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC) {
+void ZBget_dUdC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC) {
 
 /* common definitions */
-#include "Wurtzite_common_defines.h"
+#include "ZB_common_defines.h"
 
 	z[1] = 1./sqrt(2.);
 	z[2] = sqrt(2.);
@@ -1187,21 +1187,27 @@ void get_dUdC(const double* params, const double *Xsi, const double *Xa, const d
 	z[8] = z[132] + z[137] + z[8];
 	z[3] = z[12] + z[18] + z[24] + z[25] + z[26] + z[28] + z[3] + z[4] + z[54] + z[68];
 	z[2] = z[2] + z[3] + z[43];
-	
+	z[1] = 0.5*z[1];
+	z[3] = 0.5*z[5];
+	z[4] = 0.5*z[6];
+	z[5] = 0.5*z[7];
+	z[6] = 0.5*z[8];
+	z[2] = 0.5*z[2];
+
 	/* output */
-	/* {{z5, z2, z6},
-	 *  {z2, z1, z3},
-	 *  {z6, z3, z4}}
+	/* {{z1, z3, z5},
+	 *  {z3, z4, z6},
+	 *  {z5, z6, z2}}
 	 */
 	 
 	/* return values */
-	dUdC[0] = z[5];
-	dUdC[1] = z[2];
-	dUdC[2] = z[6];
-	dUdC[3] = z[2];
-	dUdC[4] = z[1];
-	dUdC[5] = z[3];
-	dUdC[6] = z[6];
-	dUdC[7] = z[3];
-	dUdC[8] = z[4];
+	dUdC[0] = z[1];
+	dUdC[1] = z[3];
+	dUdC[2] = z[5];
+	dUdC[3] = z[3];
+	dUdC[4] = z[4];
+	dUdC[5] = z[6];
+	dUdC[6] = z[5];
+	dUdC[7] = z[6];
+	dUdC[8] = z[2];
 }

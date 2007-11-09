@@ -1,4 +1,4 @@
-/* $Id: Wurtzite_inc.h,v 1.1 2007-11-08 19:37:46 hspark Exp $ */
+/* $Id: Wurtzite_inc.h,v 1.2 2007-11-09 21:31:36 hspark Exp $ */
 #ifndef WURTZITE_INC_H
 #define WURTZITE_INC_H
 
@@ -24,13 +24,13 @@ extern "C" {
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */
-void get_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi); 
+void WZget_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi); 
 
 /* function to compute derivatives of the potential function wrt to the stretch tensor */
-void get_dUdC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC); 
+void WZget_dUdC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC); 
 
 /* function to compute all second order derivatives of the potential function needed for the modulus */
-void get_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi);
+void WZget_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi);
 
 #ifdef __cplusplus
 }

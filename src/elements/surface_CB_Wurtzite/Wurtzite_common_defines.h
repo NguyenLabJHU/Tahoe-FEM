@@ -1,4 +1,4 @@
-/* $Id: Wurtzite_common_defines.h,v 1.1 2007-11-08 19:37:46 hspark Exp $ */
+/* $Id: Wurtzite_common_defines.h,v 1.2 2007-11-09 21:31:36 hspark Exp $ */
 #ifndef WURTZITE_COMMON_DEFINES_H
 #define WURTZITE_COMMON_DEFINES_H
 
@@ -21,19 +21,19 @@
 /* common variable defintion/mappings for auto-generated C code */
 
 /* potential parameters */
-double Caxis      = params[ 0];
-double Aaxis      = params[ 1];
+double ca      = params[ 0];
+double A      = params[ 1];
 double Mass   = params[ 2];
-double D0    = params[ 3];
-double S0     = params[ 4];
-double r0   = params[ 5];
+double dzero    = params[ 3];
+double s     = params[ 4];
+double rzero   = params[ 5];
 double beta      = params[ 6];
 double gamma      = params[ 7];
 double c      = params[ 8];
 double d      = params[ 9];
 double h    = params[10];
 double R      = params[11];
-double D      = params[12];
+double cut      = params[12];
 
 /* degrees of freedom */
 double Xs1 = Xsi[0];

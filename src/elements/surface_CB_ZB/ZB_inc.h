@@ -1,4 +1,4 @@
-/* $Id: ZB_inc.h,v 1.1 2007-11-08 22:42:23 hspark Exp $ */
+/* $Id: ZB_inc.h,v 1.2 2007-11-09 21:32:14 hspark Exp $ */
 #ifndef ZB_INC_H
 #define ZB_INC_H
 
@@ -23,13 +23,13 @@ extern "C" {
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */
-void get_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi); 
+void ZBget_dXsi(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dXsi, double* ddXsi); 
 
 /* function to compute derivatives of the potential function wrt to the stretch tensor */
-void get_dUdC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC); 
+void ZBget_dUdC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC); 
 
 /* function to compute all second order derivatives of the potential function needed for the modulus */
-void get_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi);
+void ZBget_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi);
 
 #ifdef __cplusplus
 }
