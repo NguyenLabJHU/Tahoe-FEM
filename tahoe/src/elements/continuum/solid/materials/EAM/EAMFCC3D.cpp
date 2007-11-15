@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.11 2007-07-05 00:03:19 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.12 2007-11-15 15:26:55 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
@@ -77,6 +77,13 @@ void EAMFCC3D::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 	
 	/* scale by atoms per cell/volume per cell */
 	stress *= kEAMFCC3DNumAtomsPerCell/fCellVolume;
+//	cout << "PK2 in EAMFCC3D = " << stress << endl;
+	/* Compute stretch tensor C from Green strain E */
+//	dSymMatrixT stretch;
+//	stretch.Dimension(3);
+//	stretch.SetToScaled(2.0, strain);
+//	stretch.PlusIdentity(1.0);
+//	cout << "C = " << stretch << endl;
 }
 
 /* compute electron density at ghost atom */
