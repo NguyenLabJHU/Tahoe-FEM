@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_surf.cpp,v 1.13 2007-07-05 00:04:01 paklein Exp $ */
+/* $Id: EAMFCC3D_surf.cpp,v 1.14 2007-11-15 15:26:08 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D_surf.h"
 
@@ -55,7 +55,7 @@ double EAMFCC3D_surf::EnergyDensity(const dSymMatrixT& strain)
 	ComputeDeformedLengths(strain);
 
 	/* scale by atoms per cell/AREA per cell, split energy by one-half */
-	return (kEAMFCC3DNumAtomsPerArea/fCellArea)*fEAM->ComputeUnitEnergy();
+	return (kEAMFCC3DNumAtomsPerArea/fCellArea)*fEAM->ComputeUnitSurfaceEnergy();
 }
 
 /* return the material tangent moduli in Cij */
