@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.9 2007-07-05 00:10:54 hspark Exp $ */
+/* $Id: EAM.h,v 1.10 2007-11-15 15:26:55 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAM_H_
 #define _EAM_H_
@@ -39,6 +39,12 @@ public:
 	 *     unit strain energy = energy/atom
 	 */
 	double ComputeUnitEnergy(void);
+
+	/* compute unit surface strain energy density:
+	 *
+	 *     unit strain energy = energy/atom
+	 */
+	double ComputeUnitSurfaceEnergy(void);
 	
 	/* compute unit 2nd PK stress:
 	 *
@@ -132,6 +138,9 @@ private:
 	dArrayT fBond4;
 	dArrayT fBond5;
 	dArrayT fBond6;
+	dArrayT fBond7;
+	dArrayT fBond8;
+	dArrayT fBond9;
 	dArrayT fRepRho;
 };
 

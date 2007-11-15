@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.12 2006-09-04 15:09:01 hspark Exp $ */
+/* $Id: EAM.cpp,v 1.13 2007-11-15 15:26:55 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAM.h"
 #include "CBLatticeT.h"
@@ -50,6 +50,9 @@ void EAM::Initialize(int nsd, int numbonds)
 	fBond4.Dimension(rb.Length());
 	fBond5.Dimension(rs1.Length());
 	fBond6.Dimension(rs2.Length());
+	fBond7.Dimension(rb.Length());
+	fBond8.Dimension(rs1.Length());
+	fBond9.Dimension(rs2.Length());
 	fBondTensor2b.Dimension(nstrs);
 	//fIntType.Dimension(6,2);
 	fIntType.Dimension(9,2);
@@ -88,6 +91,83 @@ double EAM::ComputeUnitEnergy(void)
 }
 
 /*
+* Compute unit surface strain energy density:
+*
+*     unit strain energy = energy/atom
+*/
+double EAM::ComputeUnitSurfaceEnergy(void)
+{
+	/* Get deformed lengths for bulk, surface1 and surface2 clusters */
+	const dArrayT& rb = fLattice.DeformedBulk();
+	const dArrayT& rs1 = fLattice.DeformedSurf1();
+	const dArrayT& rs2 = fLattice.DeformedSurf2();
+	
+	/* Get bond counts for each cluster type */
+	const iArrayT& countsb = fLattice.BulkCounts();
+	const iArrayT& countss1 = fLattice.Surf1Counts();
+	const iArrayT& countss2 = fLattice.Surf2Counts();
+	
+	/* values of electron density, pair potential */
+	double rhob = 0.0;
+	double rhos1 = 0.0;
+	double rhos2 = 0.0;
+	double energyb = 0.0;
+	double energys1 = 0.0;
+	double energys2 = 0.0;
+	double totalgamma = 0.0;
+
+	/* compute electron density and pair potential at each neighbor for each atom type */
+	dArrayT& ElecDensBulk = fElectronDensity->MapFunction(rb, fBond4);
+	dArrayT& ElecDensSurf1 = fElectronDensity->MapFunction(rs1, fBond5);
+	dArrayT& ElecDensSurf2 = fElectronDensity->MapFunction(rs2, fBond6);
+	dArrayT& PairBulk = fPairPotential->MapFunction(rb, fBond7);
+	dArrayT& PairSurf1 = fPairPotential->MapFunction(rs1, fBond8);
+	dArrayT& PairSurf2 = fPairPotential->MapFunction(rs2, fBond9);
+
+	const int* pcountb = countsb.Pointer();
+	const int* pcounts1 = countss1.Pointer();
+	const int* pcounts2 = countss2.Pointer();
+	double* pedensb = ElecDensBulk.Pointer();
+	double* pedenss1 = ElecDensSurf1.Pointer();
+	double* pedenss2 = ElecDensSurf2.Pointer();
+	double* pphib = PairBulk.Pointer();
+	double* pphis1 = PairSurf1.Pointer();
+	double* pphis2 = PairSurf2.Pointer();
+
+	for (int i = 0; i < rb.Length(); i++)
+	{
+		int    cib = *pcountb++;
+		rhob    += cib*(*pedensb++);
+		energyb += cib*0.5*(*pphib++);
+	}
+	energyb += fEmbeddingEnergy->Function(rhob);
+	energyb *= 2.0;	// Double due to 2 bulk layers 3 and 4
+
+	for (int i = 0; i < rs1.Length(); i++)
+	{
+		int    cis1 = *pcounts1++;
+		rhos1    += cis1*(*pedenss1++);
+		energys1 += cis1*0.5*(*pphis1++);
+	}
+	energys1 += fEmbeddingEnergy->Function(rhos1);
+
+	for (int i = 0; i < rs2.Length(); i++)
+	{
+		int    cis2 = *pcounts2++;
+		rhos2    += cis2*(*pedenss2++);
+		energys2 += cis2*0.5*(*pphis2++);
+	}
+	energys2 += fEmbeddingEnergy->Function(rhos2);
+
+	totalgamma += energyb;
+	totalgamma += energys1;
+	totalgamma += energys2;
+
+	return totalgamma;
+}
+
+
+/*
 * Compute unit 2nd PK stress - used by bulk CB solver
 *
 *     unit 2nd PK stress = SIJ*(volume per cell/atoms per cell)
@@ -106,7 +186,7 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 	dArrayT& DPotential = fPairPotential->MapDFunction(r, fBond1);
 	dArrayT& DDensity   = fElectronDensity->MapDFunction(r, fBond2);
 	int nb = r.Length();
-
+	
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = r[i];
@@ -116,6 +196,7 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
 	}
+	double asdf = ComputeUnitEnergy();
 }
 
 /*
@@ -129,7 +210,7 @@ void EAM::ComputeUnitSurfaceStress(dSymMatrixT& stress)
 	const iArrayT& counts = fLattice.BondCounts();
 	const iArrayT& atom_type = fLattice.AtomTypes();	// added by HSP
 	const dArray2DT& bonds = fLattice.Bonds();	// can access initial bonds
-		
+	
 	/* calculate representative electron densities */
 	ComputeElectronDensity();
 	
@@ -174,6 +255,7 @@ void EAM::ComputeUnitSurfaceStress(dSymMatrixT& stress)
 		fLattice.BondComponentTensor2(i,fBondTensor2b);
 		stress.AddScaled(coeff,fBondTensor2b);
 	}
+	double asdf = ComputeUnitSurfaceEnergy();
 }
 	   	    	
 /*
