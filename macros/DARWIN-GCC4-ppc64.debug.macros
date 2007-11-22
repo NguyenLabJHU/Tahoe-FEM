@@ -1,4 +1,4 @@
-# $Id: DARWIN-GCC4-64.macros,v 1.1 2007-11-18 16:15:38 paklein Exp $
+# $Id: DARWIN-GCC4-ppc64.debug.macros,v 1.1 2007-11-22 19:29:35 paklein Exp $
 # macros for Tiger (GCC 4.x)
 MAKE        = make
 DEFINES     = -DEIGHT_BYTE_REAL -D__DARWIN__ -DNON_UNIX_STDIO -D__POSIX_THREADS__
@@ -6,7 +6,7 @@ COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
 COMP_FLAG   = -c -pipe
-MORE_CFLAGS = -O3 -DNDEBUG -arch ppc64
+MORE_CFLAGS = -g -arch ppc64 -mpowerpc64
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_PCH  = $(LOC_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
