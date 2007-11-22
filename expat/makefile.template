@@ -1,4 +1,10 @@
-# $Id: makefile.template,v 1.6 2005-04-08 17:30:28 paklein Exp $
+################################################################################
+#### NOTE: This makefile is automatically generated from makefile.template. ####
+####       Changes to the MOD_ macros are preserved. All other changes will ####
+####       be lost.                                                         ####
+################################################################################
+
+# $Id: makefile.template,v 1.7 2007-11-22 19:54:04 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # NOTE: this is makefile just wraps the configure/build system
@@ -74,7 +80,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 init:
 	cd expat; gunzip $(EXPAT_CURRENT).tar.gz; tar xvf $(EXPAT_CURRENT).tar; gzip $(EXPAT_CURRENT).tar
-	cd expat/$(EXPAT_CURRENT); ./configure --prefix=$(HOME_DIR)/local --disable-shared CC=$(COMP_C)
+	cd expat/$(EXPAT_CURRENT); ./configure --prefix=$(HOME_DIR)/local --disable-shared CC=$(COMP_C) CFLAGS="$(MORE_CFLAGS)"
 	make install
 	
 build:
@@ -85,17 +91,19 @@ install:
 	make include
 	make lib
 
-include:
+include: force
 	if [ ! -d include ]; then mkdir include; fi
-	cp local/include/* include
+	cp -f local/include/* include
 
-lib:
+lib: force
 	if [ ! -d lib ]; then mkdir lib; fi
-	cp local/lib/* lib
+	cp -f local/lib/* lib
 
 clean:
 	rm -rf expat/$(EXPAT_CURRENT)
 	rm -rf pch bin include lib local
+
+force:
 
 # init extras target
 update_config: nothing
