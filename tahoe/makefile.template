@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.46 2006-11-25 22:03:25 paklein Exp $
+# $Id: makefile.template,v 1.47 2007-11-25 20:34:19 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) copy makefile.template to a local makefile
@@ -81,7 +81,7 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 #DEV_CFLAGS   = $(DEV_INC) $(DEV_DEFINES)
 #DEV_LIB_NAME = development
 #DEV_LIB      = $(DEV_DIR)/lib/lib$(DEV_LIB_NAME).a
-#DEV_LFLAGS   = -L$(DEV_DIR)/lib -l$(DEV_LIB_NAME) -l$(TARGET)
+#DEV_LFLAGS   = -L$(DEV_DIR)/lib -l$(DEV_LIB_NAME)
 
 ##### Sierra models module
 #SIERRA_DIR      = $(HOME_DIR)/../Sierra
