@@ -1,29 +1,30 @@
-/* $Id: AnisoCornea.h,v 1.7 2007-12-19 23:35:54 thao Exp $ */
+/* $Id: AnisoFiber3D.h,v 1.1 2007-12-19 23:35:54 thao Exp $ */
 /* created: paklein (11/08/1997) */
-#ifndef _ANISO_CORNEA_2D_H_
-#define _ANISO_CORNEA_2D_H_
+#ifndef _ANISO_FIBER_3D_H_
+#define _ANISO_FIBER_3D_H_
 
 /* base classes */
 #include "FSFiberMatT.h"
 #include "SolidMaterialsConfig.h"
 
 #if defined(VIB_MATERIAL)
+
 namespace Tahoe {
 
 /* forward declarations */
-class CirclePointsT;
+class SpherePointsT;
 class C1FunctionT;
 
 /** 2D Isotropic VIB solver using spectral decomposition formulation */
-class AnisoCornea: public FSFiberMatT
+class AnisoFiber3D: public FSFiberMatT
 {
 public:
 
 	/* constructor */
-	AnisoCornea(void);
+	AnisoFiber3D(void);
 
 	/* destructor */
-	~AnisoCornea(void);
+	~AnisoFiber3D(void);
 	
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
@@ -64,10 +65,10 @@ protected:
 	/*computes integrated moduli in local frame*/
 	virtual void ComputeFiberMod (const dSymMatrixT& FiberStretch, dSymMatrixT& FiberStress,
 					dMatrixT& FiberMod);
-
-	/* strained lengths in terms of the Lagrangian stretch eigenvalues */
-	void ComputeLengths(const dSymMatrixT& stretch);
 	
+	/* strained lengths in terms of the Lagrangian stretch eigenvalues */
+	void ComputeLengths(const dSymMatrixT& FiberStretch);
+
 private:
 
 	/* initialize angle tables */
@@ -78,15 +79,12 @@ protected:
 	/*constitutive values for matrix*/
 	double fMu;
 	double fGamma;
-	
-	/* integration point generator */
-	CirclePointsT*	fCircle;
-	
+
 	/* potential function */
 	C1FunctionT* fPotential;
 
 	/* fibril distribution function */
-	C1FunctionT* fDistribution;
+//	C1FunctionT* fDistribution;
 
 	/* length table */
 	/*I4*/
@@ -100,16 +98,16 @@ protected:
 	/* jacobian table */
 	dArrayT	fjacobian;
 
-  /* for inhomogeneous material */
-  ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
-  bool finhomogeneous; // flag
-  double a2,b2,c2,n2,c3,r1,r2,r3,r4,aa2,bb2,xi; // for spatial dependent distribution
-
-	/* STRESS angle tables for fiber stress - by associated stress component */
+	/* STRESS angle tables - by associated stress component */
+	int fNumStress;
 	dArray2DT fStressTable;
 	  	
-	/* MODULI angle tables for fiber moduli */
+	/* MODULI angle tables */
+	int fNumModuli; 	
 	dArray2DT fModuliTable;	
+
+	/* integration point generator */
+	SpherePointsT* fSphere;
 
 };
 

@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.h,v 1.4 2006-10-20 20:02:38 thao Exp $ */
+/* $Id: FSFiberMatT.h,v 1.5 2007-12-19 23:35:54 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIB_MAT_T_H_
 #define _FD_FIB_MAT_T_H_
@@ -89,6 +89,8 @@ protected:
 
 	/*dimension*/
 	int fNumSD;
+	int fNumStress;
+	int fNumModuli;
 	int fNumFibStress;
 	int fNumFibModuli; 	
 	

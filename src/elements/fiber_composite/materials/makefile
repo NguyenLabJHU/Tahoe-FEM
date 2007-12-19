@@ -1,4 +1,4 @@
-# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/materials/makefile,v 1.6 2007-04-09 22:10:04 thao Exp $
+# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/materials/makefile,v 1.7 2007-12-19 23:35:55 thao Exp $
 # created: a-kopacz (07/04/2006)
 #
 # This makefile is divided into four sections:
@@ -22,6 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	FSFiberMatT.o \
+	AnisoFiber3D.o \
 	FSFiberMatListT.o \
 	FSFiberMatSupportT.o \
 	FSFiberMatViscT.o \
@@ -50,6 +51,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	FSFiberMatT.cpp \
+	AnisoFiber3D.cpp \
 	FSFiberMatListT.cpp \
 	FSFiberMatSupportT.cpp \
 	FSFiberMatViscT.cpp \
@@ -71,6 +73,7 @@ SRC = \
 #
 HDR = \
 	FSFiberMatT.h \
+	AnisoFiber3D.h \
 	FSFiberMatListT.h \
 	FSFiberMatSupportT.h \
 	FSFiberMatViscT.h \

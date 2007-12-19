@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.cpp,v 1.8 2007-04-09 22:10:04 thao Exp $ */
+/* $Id: FSFiberMatT.cpp,v 1.9 2007-12-19 23:35:54 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatT.h"
 #include "FSFiberMatSupportT.h"
@@ -9,7 +9,10 @@ using namespace Tahoe;
 /* constructor */
 FSFiberMatT::FSFiberMatT(void):
 	ParameterInterfaceT("fiber_composite_material"),
-	fFSFiberMatSupport(NULL)
+	fFSFiberMatSupport(NULL),
+	fNumSD(3),
+	fNumStress(3),
+	fNumModuli(6)
 {
 
 }
@@ -107,7 +110,6 @@ void FSFiberMatT::TakeParameterList(const ParameterListT& list)
 	FSSolidMatT::TakeParameterList(list);
 
 	/* dimension work space */
-	fNumSD = 3;
 	fC.Dimension(fNumSD);
 	fModulus.Dimension(dSymMatrixT::NumValues(fNumSD));
 	fStress.Dimension(fNumSD);

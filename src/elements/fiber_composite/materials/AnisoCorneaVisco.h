@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.6 2007-10-09 23:24:48 rjones Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.7 2007-12-19 23:35:54 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -164,7 +164,7 @@ protected:
   /* for inhomogeneous material */
 	int finhomogeneous; // flag
   ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
-	double a2,b2,c2,c3,n2,r1,r2,r3,r4; // for spatial dependent distribution
+	double a2,b2,c2,n2,c3,r1,r2,r3,r4,aa2,xi; // for spatial dependent distribution
 
 
 	/* STRESS angle tables for fiber stress - by associated stress component */

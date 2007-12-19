@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatListT.cpp,v 1.5 2007-04-09 22:10:04 thao Exp $ */
+/* $Id: FSFiberMatListT.cpp,v 1.6 2007-12-19 23:35:54 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSFiberMatListT.h"
 #include "FSFiberMatSupportT.h"
@@ -11,6 +11,7 @@
 #endif
 
 #include "FSFiberMatT.h"
+#include "AnisoFiber3D.h"
 #include "AnisoCornea.h"
 #include "AnisoCorneaVisco.h"
 #include "AnisoCorneaIVisco.h"
@@ -54,6 +55,7 @@ void FSFiberMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListO
 		order = ParameterListT::Choice;
 	
 		sub_lists.AddSub("aniso_cornea");
+		sub_lists.AddSub("aniso_fiber_3D");
 		sub_lists.AddSub("aniso_viscoelastic_cornea");
 		sub_lists.AddSub("aniso_scalar_visco_cornea");
 /*		sub_lists.AddSub("aniso_viscoelastic2_cornea");*/
@@ -77,7 +79,7 @@ ParameterInterfaceT* FSFiberMatListT::NewSub(const StringT& name) const
 
 /* accept parameter list */
 void FSFiberMatListT::TakeParameterList(const ParameterListT& list)
-{	
+{		
 	/* inherited */
 	SolidMatListT::TakeParameterList(list);
 
@@ -111,6 +113,8 @@ FSFiberMatT* FSFiberMatListT::NewFSFiberMat(const StringT& name) const
 
 	if (name == "aniso_cornea")
 		mat = new AnisoCornea;
+	else if (name == "aniso_fiber_3D")
+		mat = new AnisoFiber3D;
 	else if (name == "aniso_viscoelastic_cornea")
 		mat = new AnisoCorneaVisco;
 	else if (name == "aniso_scalar_visco_cornea")
@@ -119,9 +123,7 @@ FSFiberMatT* FSFiberMatListT::NewFSFiberMat(const StringT& name) const
 		mat = new C2FiberViscT;
 	else if (name == "fiberI4_viscoelastic")
 		mat = new CFiberViscT;
-/*	else if (name == "aniso_viscoelastic2_cornea")
-		mat = new AnisoCorneaVisco2;
-*/
+
 	/* set support */
 	if (mat) mat->SetFSFiberMatSupport(fFSFiberMatSupport);
 
