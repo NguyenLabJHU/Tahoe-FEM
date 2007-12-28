@@ -1,5 +1,6 @@
 @
-# $Id: run.batch,v 1.3 2007-09-20 23:52:18 jzimmer Exp $
+# $Id: run.batch,v 1.4 2007-12-28 03:51:05 paklein Exp $
+-xsd
 mat.8.a.xml
 mat.8.b.xml
 mat.8.c.xml
