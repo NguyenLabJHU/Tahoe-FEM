@@ -1,4 +1,4 @@
-/* $Id: TersoffDimerSolverT_surf.cpp,v 1.4 2007-11-09 21:09:29 hspark Exp $ */
+/* $Id: TersoffDimerSolverT_surf.cpp,v 1.5 2008-01-05 21:00:58 hspark Exp $ */
 #include "TersoffDimerSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -354,12 +354,12 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	tempUnitCellCoords(14,1) = 0.50;
 	tempUnitCellCoords(15,1) = 0.00;
 
-	tempUnitCellCoords(0,2) = 0.00;
-	tempUnitCellCoords(1,2) = 0.00;
-	tempUnitCellCoords(2,2) = 0.00;
-	tempUnitCellCoords(3,2) = 0.00;
-	tempUnitCellCoords(4,2) = 0.00;
-	tempUnitCellCoords(5,2) = 0.00;
+	tempUnitCellCoords(0,2) = -0.196;
+	tempUnitCellCoords(1,2) = -0.196;
+	tempUnitCellCoords(2,2) = -0.196;
+	tempUnitCellCoords(3,2) = -0.196;
+	tempUnitCellCoords(4,2) = -0.196;
+	tempUnitCellCoords(5,2) = -0.196;
 	tempUnitCellCoords(6,2) = -0.25;
 	tempUnitCellCoords(7,2) = -0.25;
 	tempUnitCellCoords(8,2) = -0.25;
