@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.40 2008-01-23 05:24:48 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.41 2008-01-23 16:01:01 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -335,9 +335,8 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					tstress.Translate(stress);
 					tstress *= -1.0;
 					
-					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF */
+					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
 					fShapes->Extrapolate(tstress,nodalstress);
-					/* HOW TO COMBINE WITH SURFACE? */
 				}
 
 				/* integrate over the face - calculate surface stress contribution */
@@ -388,9 +387,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					else
 						int blah = 0;
 				
-					/* NEED A COMPUTEOUTPUT COMMAND */
-				
-					/* ACCUMULATE STRESSES */
+					/* ADD SURFACE STRESS TO NODES */
 					/* extrapolate/accumulate */
 					/* only face nodes get affected - not interior nodes */
 					//surf_shape.NodalValues(stress2, n_values, face_ip);
@@ -400,13 +397,33 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
 			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodalstress);	
 			}
-	 /* SEND TO OUTPUT */
- 	/* get nodally averaged values */
+	 /* SEND TO OUTPUT - HOW TO OVERWRITE STRESSES? */
+	 /* NEED TO DO SOMETHING LIKE SolidElementT line 1658-1666? */
+	 /* get nodally averaged values */
  	dArray2DT n_values_all;
  	ElementSupport().OutputUsedAverage(n_values_all);	
  	
+ 	/* SOMETHING LIKE SWDiamondT::RegisterOutput to get the outputID for the stresses */
+ 	ArrayT<StringT> n_labels(6);
+ 	/* output labels */
+ 	n_labels[0] = "s11";
+ 	n_labels[1] = "s22";
+ 	n_labels[2] = "s33";
+ 	n_labels[3] = "s23";
+ 	n_labels[4] = "s13";
+ 	n_labels[5] = "s12";
+ 	
+ 	/* now figure out relevant output nodes (CurrentElement().NodesX()? for each surface element */
+ 	/* Need an iArray2DT here instead of CurrentElement....which is an iArrayT */
+ 	/* Do I need to register the output? */
+// 	OutputSetT output(GeometryT::kPoint, CurrentElement().NodesX(), n_labels);
+// 	fOutputID = ElementSupport().RegisterOutput(output);
+//	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+// 	const iArrayT& nodes_used = output_set.NodesUsed();
+ 	
  	dArray2DT e_values;
- 	ElementSupport().WriteOutput(element, n_values_all, e_values);
+ 	/* Need the group ID instead of element - fOutputID? */
+ 	ElementSupport().WriteOutput(fOutputID, n_values_all, e_values);
 	}
 
 }
@@ -1249,7 +1266,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		/* assemble stiffness */
 		ElementSupport().AssembleLHS(Group(), fLHS, element_card.Equations());		
 	}
-	/* Dummy call WriteOutput to test code */
+	/* Dummy call WriteOutput to test code - added by HSP 1/22/08 */
 	WriteOutput();
 }
 
