@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.42 2008-01-23 16:36:28 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.43 2008-01-23 22:26:10 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -241,193 +241,193 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 
 	/* ADDING CODE TO OUTPUT SCB STRESSES - HSP 1/22/08 */		
 	/* loop over surface elements */
-	dSymMatrixT stress2(nsd), tstress(nsd), tstress2(nsd);
-	dMatrixT cauchy(nsd), cauchy2(nsd);
-	double t_surface;
-	
-	/* Define output matrix for subtraction of bulk stress */
-	dArray2DT nodalstress;
-	iArray2DT tempconnect;
-	iArrayT nodes_used;
-	nodalstress.Dimension(nen,2*nsd);	// # nodes/element X 6 stress components in 3D
-	nodalstress = 0.0;
-	tempconnect.Dimension(nen,1);	// used to register the nodes - HSP 1/23/08
-	
- 	/* SOMETHING LIKE SWDiamondT::RegisterOutput to get the outputID for the stresses */
- 	ArrayT<StringT> n_labels(6);
- 	/* output labels - assign now so don't have to repeat */
- 	n_labels[0] = "s11";
- 	n_labels[1] = "s22";
- 	n_labels[2] = "s33";
- 	n_labels[3] = "s23";
- 	n_labels[4] = "s13";
- 	n_labels[5] = "s12";
-	
-	/* Define output matrix for surface stress contribution */
-	/* Assume that have # nodes/element X 6 stress components in 3D, i.e. surface stresses
-	interpolate to all nodes of an element */
-	n_values.Dimension(nen,nsd*2);
-	for (int i = 0; i < fSurfaceElements.Length(); i++)
-	{
-		/* bulk element information */
-		int element = fSurfaceElements[i];
-		const ElementCardT& element_card = ElementCard(element);
-		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
-		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
-	
-		/* integrate surface contribution to nodal forces */
-
-		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
-			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
-			{
-				/* face parent domain */
-				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
-			
-				/* collect coordinates of face nodes */
-				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
-				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
-				face_nodes.Collect(face_nodes_index, element_card.NodesX());
-				face_coords.SetLocal(face_nodes);
-
-				/* set up split integration */
-				int normal_type = fSurfaceElementFacesType(i,j);
-				
-				if (fIndicator == "FCC_3D")
-					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
-				else if (fIndicator == "FCC_EAM")
-					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
-				else if (fIndicator == "Tersoff_CB")
-					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
-				else
-					int blah = 0;
-	
-				fSplitInitCoords = fLocInitCoords;
-				SurfaceLayer(fSplitInitCoords, j, t_surface);
-
-				/* remove bulk contribution to surface layer (see TotalLagrangianT::FormKd) */
-				const double* Det    = fSplitShapes->IPDets();
-				const double* Weight = fSplitShapes->IPWeights();
-				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
-				fSplitShapes->TopIP();
-				fShapes->TopIP(); /* synch bulk shape functions */
-				while (fSplitShapes->NextIP())
-				{
-					/* synch bulk shape functions */
-					fShapes->NextIP();
-				
-					/* ip coordinates in the split domain */
-					fSplitShapes->IPCoords(ip_coords_X);
-					
-					/* map ip coordinates to bulk parent domain */
-					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
-
-					/* bulk shape functions/derivatives */
-					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
-					DXi_DX.Inverse();
-					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
-
-					/* deformation gradient/shape functions/derivatives at the surface ip */
-					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
-					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
-					F.PlusIdentity();
-
-					/* F^(-1) */
-					double J = F.Det();
-					if (J <= 0.0)
-						ExceptionT::BadJacobianDet(caller);
-					else
-						F_inv.Inverse(F);
-
-					/* bulk material model */
-					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
-					fCurrMaterial = (SolidMaterialT*) pcont_mat;
-
-					/* get Cauchy stress - SOME CHANGES MADE HERE BY HSP */
-					//(fCurrMaterial->s_ij()).ToMatrix(cauchy);
-					const dSymMatrixT& stress = fCurrMaterial->s_ij(); 
-					tstress.Translate(stress);
-					tstress *= -1.0;
-					
-					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
-					fShapes->Extrapolate(tstress,nodalstress);
-				}
-
-				/* integrate over the face - calculate surface stress contribution */
-				int face_ip;
-				fSurfaceCBSupport->SetCurrIP(face_ip);
-				n_values = 0.0;
-				const double* w = surf_shape.Weight();				
-				for (face_ip = 0; face_ip < nsi; face_ip++) {
-
-					/* coordinate mapping on face */
-					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
-					double detj = surf_shape.SurfaceJacobian(jacobian);
-				
-					/* ip coordinates on face */
-					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
-					
-					/* ip coordinates in bulk parent domain */
-					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
-
-					/* bulk shape functions/derivatives */
-					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
-					DXi_DX.Inverse();
-					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
-
-					/* deformation gradient/shape functions/derivatives at the surface ip */
-					dMatrixT& F = fF_Surf_List[face_ip];
-					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
-					F.PlusIdentity();
-					
-					/* F^-1 */
-					double J = F.Det();
-					if (J <= 0.0)
-						ExceptionT::BadJacobianDet(caller);
-					else
-						F_inv.Inverse(F);
-					
-					/* stress at the surface */
-					if (fIndicator == "FCC_3D")
-						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-					else if (fIndicator == "FCC_EAM")
-					{
-						//(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-						const dSymMatrixT& blah = fCurrMaterial->s_ij();
-						stress2 = blah;
-					}
-					else if (fIndicator == "Tersoff_CB")
-						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-					else
-						int blah = 0;
-				
-					/* ADD SURFACE STRESS TO NODES */
-					/* extrapolate/accumulate */
-					/* only face nodes get affected - not interior nodes */
-					//surf_shape.NodalValues(stress2, n_values, face_ip);
-					tstress2.Translate(stress2);
-					fShapes->Extrapolate(tstress2,nodalstress);
-				}
-			/* accumulate - extrapolation done from ip's to corners => X nodes */
-			ElementSupport().AssembleAverage(element_card.NodesX(), nodalstress);	
-			}
-	 /* NEED TO DO SOMETHING LIKE SolidElementT line 1658-1666? */
-	 /* get nodally averaged values */
- 	dArray2DT n_values_all;
- 	ElementSupport().OutputUsedAverage(n_values_all);	
- 	 	
- 	/* Need to set up a iArray2DT with dimensions (all surface nodes, 1), and somehow collect
- 	all the surface nodes - can't register output unless initialization */
-// 	nodes_used = element_card.NodesX();
-// 	tempconnect.SetColumn(0, nodes_used);
-// 	OutputSetT output(GeometryT::kPoint, tempconnect, n_labels);
-// 	fOutputID = ElementSupport().RegisterOutput(output);
-//	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
-// 	const iArrayT& nodes_used = output_set.NodesUsed();
- 	
- 	dArray2DT e_values;
- 	/* Need the group ID instead of element - fOutputID? */
- 	ElementSupport().WriteOutput(fOutputID, n_values_all, e_values);
-	}
+// 	dSymMatrixT stress2(nsd), tstress(nsd), tstress2(nsd);
+// 	dMatrixT cauchy(nsd), cauchy2(nsd);
+// 	double t_surface;
+// 	
+// 	/* Define output matrix for subtraction of bulk stress */
+// 	dArray2DT nodalstress;
+// 	iArray2DT tempconnect;
+// 	iArrayT nodes_used;
+// 	nodalstress.Dimension(nen,2*nsd);	// # nodes/element X 6 stress components in 3D
+// 	nodalstress = 0.0;
+// 	tempconnect.Dimension(nen,1);	// used to register the nodes - HSP 1/23/08
+// 	
+//  	/* SOMETHING LIKE SWDiamondT::RegisterOutput to get the outputID for the stresses */
+//  	ArrayT<StringT> n_labels(6);
+//  	/* output labels - assign now so don't have to repeat */
+//  	n_labels[0] = "s11";
+//  	n_labels[1] = "s22";
+//  	n_labels[2] = "s33";
+//  	n_labels[3] = "s23";
+//  	n_labels[4] = "s13";
+//  	n_labels[5] = "s12";
+// 	
+// 	/* Define output matrix for surface stress contribution */
+// 	/* Assume that have # nodes/element X 6 stress components in 3D, i.e. surface stresses
+// 	interpolate to all nodes of an element */
+// 	n_values.Dimension(nen,nsd*2);
+// 	for (int i = 0; i < fSurfaceElements.Length(); i++)
+// 	{
+// 		/* bulk element information */
+// 		int element = fSurfaceElements[i];
+// 		const ElementCardT& element_card = ElementCard(element);
+// 		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
+// 		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
+// 	
+// 		/* integrate surface contribution to nodal forces */
+// 
+// 		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
+// 			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
+// 			{
+// 				/* face parent domain */
+// 				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
+// 			
+// 				/* collect coordinates of face nodes */
+// 				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
+// 				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
+// 				face_nodes.Collect(face_nodes_index, element_card.NodesX());
+// 				face_coords.SetLocal(face_nodes);
+// 
+// 				/* set up split integration */
+// 				int normal_type = fSurfaceElementFacesType(i,j);
+// 				
+// 				if (fIndicator == "FCC_3D")
+// 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+// 				else if (fIndicator == "FCC_EAM")
+// 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
+// 				else if (fIndicator == "Tersoff_CB")
+// 					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
+// 				else
+// 					int blah = 0;
+// 	
+// 				fSplitInitCoords = fLocInitCoords;
+// 				SurfaceLayer(fSplitInitCoords, j, t_surface);
+// 
+// 				/* remove bulk contribution to surface layer (see TotalLagrangianT::FormKd) */
+// 				const double* Det    = fSplitShapes->IPDets();
+// 				const double* Weight = fSplitShapes->IPWeights();
+// 				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
+// 				fSplitShapes->TopIP();
+// 				fShapes->TopIP(); /* synch bulk shape functions */
+// 				while (fSplitShapes->NextIP())
+// 				{
+// 					/* synch bulk shape functions */
+// 					fShapes->NextIP();
+// 				
+// 					/* ip coordinates in the split domain */
+// 					fSplitShapes->IPCoords(ip_coords_X);
+// 					
+// 					/* map ip coordinates to bulk parent domain */
+// 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+// 
+// 					/* bulk shape functions/derivatives */
+// 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+// 					DXi_DX.Inverse();
+// 					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+// 
+// 					/* deformation gradient/shape functions/derivatives at the surface ip */
+// 					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
+// 					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+// 					F.PlusIdentity();
+// 
+// 					/* F^(-1) */
+// 					double J = F.Det();
+// 					if (J <= 0.0)
+// 						ExceptionT::BadJacobianDet(caller);
+// 					else
+// 						F_inv.Inverse(F);
+// 
+// 					/* bulk material model */
+// 					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
+// 					fCurrMaterial = (SolidMaterialT*) pcont_mat;
+// 
+// 					/* get Cauchy stress - SOME CHANGES MADE HERE BY HSP */
+// 					//(fCurrMaterial->s_ij()).ToMatrix(cauchy);
+// 					const dSymMatrixT& stress = fCurrMaterial->s_ij(); 
+// 					tstress.Translate(stress);
+// 					tstress *= -1.0;
+// 					
+// 					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
+// 					fShapes->Extrapolate(tstress,nodalstress);
+// 				}
+// 
+// 				/* integrate over the face - calculate surface stress contribution */
+// 				int face_ip;
+// 				fSurfaceCBSupport->SetCurrIP(face_ip);
+// 				n_values = 0.0;
+// 				const double* w = surf_shape.Weight();				
+// 				for (face_ip = 0; face_ip < nsi; face_ip++) {
+// 
+// 					/* coordinate mapping on face */
+// 					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+// 					double detj = surf_shape.SurfaceJacobian(jacobian);
+// 				
+// 					/* ip coordinates on face */
+// 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+// 					
+// 					/* ip coordinates in bulk parent domain */
+// 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+// 
+// 					/* bulk shape functions/derivatives */
+// 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+// 					DXi_DX.Inverse();
+// 					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+// 
+// 					/* deformation gradient/shape functions/derivatives at the surface ip */
+// 					dMatrixT& F = fF_Surf_List[face_ip];
+// 					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+// 					F.PlusIdentity();
+// 					
+// 					/* F^-1 */
+// 					double J = F.Det();
+// 					if (J <= 0.0)
+// 						ExceptionT::BadJacobianDet(caller);
+// 					else
+// 						F_inv.Inverse(F);
+// 					
+// 					/* stress at the surface */
+// 					if (fIndicator == "FCC_3D")
+// 						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+// 					else if (fIndicator == "FCC_EAM")
+// 					{
+// 						//(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+// 						const dSymMatrixT& blah = fCurrMaterial->s_ij();
+// 						stress2 = blah;
+// 					}
+// 					else if (fIndicator == "Tersoff_CB")
+// 						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+// 					else
+// 						int blah = 0;
+// 				
+// 					/* ADD SURFACE STRESS TO NODES */
+// 					/* extrapolate/accumulate */
+// 					/* only face nodes get affected - not interior nodes */
+// 					//surf_shape.NodalValues(stress2, n_values, face_ip);
+// 					tstress2.Translate(stress2);
+// 					fShapes->Extrapolate(tstress2,nodalstress);
+// 				}
+// 			/* accumulate - extrapolation done from ip's to corners => X nodes */
+// 			ElementSupport().AssembleAverage(element_card.NodesX(), nodalstress);	
+// 			}
+// 	 /* NEED TO DO SOMETHING LIKE SolidElementT line 1658-1666? */
+// 	 /* get nodally averaged values */
+//  	dArray2DT n_values_all;
+//  	ElementSupport().OutputUsedAverage(n_values_all);	
+//  	 	
+//  	/* Need to set up a iArray2DT with dimensions (all surface nodes, 1), and somehow collect
+//  	all the surface nodes - can't register output unless initialization */
+// // 	nodes_used = element_card.NodesX();
+// // 	tempconnect.SetColumn(0, nodes_used);
+// // 	OutputSetT output(GeometryT::kPoint, tempconnect, n_labels);
+// // 	fOutputID = ElementSupport().RegisterOutput(output);
+// //	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+// // 	const iArrayT& nodes_used = output_set.NodesUsed();
+//  	
+//  	dArray2DT e_values;
+//  	/* Need the group ID instead of element - fOutputID? */
+//  	ElementSupport().WriteOutput(fOutputID, n_values_all, e_values);
+// 	}
 
 }
 
@@ -1270,7 +1270,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		ElementSupport().AssembleLHS(Group(), fLHS, element_card.Equations());		
 	}
 	/* Dummy call WriteOutput to test code - added by HSP 1/22/08 */
-	WriteOutput();
+//	WriteOutput();
 }
 
 /* form group contribution to the residual */
