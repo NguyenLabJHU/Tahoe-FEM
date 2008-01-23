@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.1 2007-11-09 15:32:05 hspark Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.2 2008-01-23 21:13:16 hspark Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -334,6 +334,11 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	fParams[10] = f_chi;
 	fParams[11] = f_R;
 	fParams[12] = f_S;	
+}
+
+double TersoffSolverT::Density(void) const
+{
+	return 8.0*fMass*1.0365e-4/(f_a0*f_a0*f_a0);
 }
 
 /**********************************************************************

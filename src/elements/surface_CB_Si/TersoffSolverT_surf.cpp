@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.1 2007-11-09 15:32:05 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.2 2008-01-23 21:13:16 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -475,6 +475,11 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 
 	/* scale to correct lattice parameter */				     		
 	fUnitCellCoords *= f_a0;
+}
+
+double TersoffSolverT_surf::Density(void) const
+{
+	return 8.0*fMass*1.0365e-4/(f_a0*f_a0*f_a0);
 }
 
 /**********************************************************************

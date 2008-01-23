@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.h,v 1.1 2007-11-09 15:32:05 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.h,v 1.2 2008-01-23 21:13:16 hspark Exp $ */
 /* created: paklein (05/27/1997) */
 #ifndef _TERSOFF_SOLVER_T_SURF_H_
 #define _TERSOFF_SOLVER_T_SURF_H_
@@ -38,6 +38,9 @@ public:
 
 	/** stress - S_IJ (2nd PK) */
 	void SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stress);
+
+	/** density defined by atomistic parameters */
+	double Density(void) const;
 
 	/** strain energy density */
 	double StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi);

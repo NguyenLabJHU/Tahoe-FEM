@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT.cpp,v 1.1 2007-11-09 15:32:05 hspark Exp $ */
+/* $Id: CB_TersoffT.cpp,v 1.2 2008-01-23 21:13:16 hspark Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffT.h"
 
@@ -62,6 +62,9 @@ void CB_TersoffT::TakeParameterList(const ParameterListT& list)
 	/* construct Caucby-Born solver */
 	fTersoffSolver = new TersoffSolverT(fThermal);
 	fTersoffSolver->TakeParameterList(list.GetList("Tersoff_CB_solver"));
+	
+	/* Calculate density */
+	fDensity = fTersoffSolver->Density();
 }
 
 /*************************************************************************

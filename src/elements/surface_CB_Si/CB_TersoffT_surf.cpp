@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT_surf.cpp,v 1.1 2007-11-09 15:32:05 hspark Exp $ */
+/* $Id: CB_TersoffT_surf.cpp,v 1.2 2008-01-23 21:13:16 hspark Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffT_surf.h"
 
@@ -67,6 +67,9 @@ void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 	
 	/* Get surface thickness */
 	fSurfaceThickness = fTersoffSolver_surf->SurfaceThickness();
+	
+	/* Calculate Density */
+	fDensity = fTersoffSolver_surf->Density();
 }
 
 /* return the number of constitutive model output parameters */
