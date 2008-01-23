@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.41 2008-01-23 16:01:01 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.42 2008-01-23 16:36:28 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -247,8 +247,21 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	
 	/* Define output matrix for subtraction of bulk stress */
 	dArray2DT nodalstress;
+	iArray2DT tempconnect;
+	iArrayT nodes_used;
 	nodalstress.Dimension(nen,2*nsd);	// # nodes/element X 6 stress components in 3D
 	nodalstress = 0.0;
+	tempconnect.Dimension(nen,1);	// used to register the nodes - HSP 1/23/08
+	
+ 	/* SOMETHING LIKE SWDiamondT::RegisterOutput to get the outputID for the stresses */
+ 	ArrayT<StringT> n_labels(6);
+ 	/* output labels - assign now so don't have to repeat */
+ 	n_labels[0] = "s11";
+ 	n_labels[1] = "s22";
+ 	n_labels[2] = "s33";
+ 	n_labels[3] = "s23";
+ 	n_labels[4] = "s13";
+ 	n_labels[5] = "s12";
 	
 	/* Define output matrix for surface stress contribution */
 	/* Assume that have # nodes/element X 6 stress components in 3D, i.e. surface stresses
@@ -395,28 +408,18 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					fShapes->Extrapolate(tstress2,nodalstress);
 				}
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
-			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodalstress);	
+			ElementSupport().AssembleAverage(element_card.NodesX(), nodalstress);	
 			}
-	 /* SEND TO OUTPUT - HOW TO OVERWRITE STRESSES? */
 	 /* NEED TO DO SOMETHING LIKE SolidElementT line 1658-1666? */
 	 /* get nodally averaged values */
  	dArray2DT n_values_all;
  	ElementSupport().OutputUsedAverage(n_values_all);	
- 	
- 	/* SOMETHING LIKE SWDiamondT::RegisterOutput to get the outputID for the stresses */
- 	ArrayT<StringT> n_labels(6);
- 	/* output labels */
- 	n_labels[0] = "s11";
- 	n_labels[1] = "s22";
- 	n_labels[2] = "s33";
- 	n_labels[3] = "s23";
- 	n_labels[4] = "s13";
- 	n_labels[5] = "s12";
- 	
- 	/* now figure out relevant output nodes (CurrentElement().NodesX()? for each surface element */
- 	/* Need an iArray2DT here instead of CurrentElement....which is an iArrayT */
- 	/* Do I need to register the output? */
-// 	OutputSetT output(GeometryT::kPoint, CurrentElement().NodesX(), n_labels);
+ 	 	
+ 	/* Need to set up a iArray2DT with dimensions (all surface nodes, 1), and somehow collect
+ 	all the surface nodes - can't register output unless initialization */
+// 	nodes_used = element_card.NodesX();
+// 	tempconnect.SetColumn(0, nodes_used);
+// 	OutputSetT output(GeometryT::kPoint, tempconnect, n_labels);
 // 	fOutputID = ElementSupport().RegisterOutput(output);
 //	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
 // 	const iArrayT& nodes_used = output_set.NodesUsed();
