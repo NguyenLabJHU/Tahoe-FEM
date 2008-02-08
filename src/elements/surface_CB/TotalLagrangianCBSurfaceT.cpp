@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.44 2008-02-07 22:50:40 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.45 2008-02-08 17:20:04 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -249,25 +249,27 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	/* Define output matrix for subtraction of bulk stress */
 	dArray2DT nodalstress;	// define similar to SolidElementT.cpp
 	iArray2DT tempconnect;
-	iArrayT nodes_used;
 	tempconnect.Dimension(nen,1);	// used to register the nodes - HSP 1/23/08
 	
 	/* reset averaging workspace */
-//	ElementSupport().ResetAverage(6);	// causes 8 output nodal values to be expected?
+	ElementSupport().ResetAverage(9);	// causes 8 output nodal values to be expected?
 	// NEED TO DEFINE SIMO MASS
 	dArray2DT simo_mass, simo_space, simo_all;
 	dArray2DT simoNa_bar(nen, 1);
 	dArray2DT simo_force;
 	iArrayT simo_counts;
-	simo_space.Dimension(nen,6);	// 6 stress components in 3D to output
-	simo_all.Dimension(nen,6);	// same as nodal_space
+	simo_space.Dimension(nen, 6);
+	simo_all.Dimension(nen,9);	// same as nodal_space
 	simo_force.Dimension(ElementSupport().NumNodes(), 6);
 	simo_mass.Dimension(ElementSupport().NumNodes(), 1);	
 	simo_counts.Dimension(ElementSupport().NumNodes());
+	simo_mass = 0.;
+	simo_force = 0.;
+	simo_counts = 0;;
 	
 	/* set shallow copies */
 	double* pall = simo_space.Pointer();
-	pall += 3;	// shift to avoid writing into displacements - DOES NOT WORK!
+//	pall += 3;	// shift to avoid writing into displacements - DOES NOT WORK!
 	nodalstress.Alias(nen, 6, pall);	// 6 output coordinates
 	
  	/* SOMETHING LIKE SWDiamondT::RegisterOutput to get the outputID for the stresses */
@@ -279,11 +281,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  	n_labels[3] = "s23";
  	n_labels[4] = "s13";
  	n_labels[5] = "s12";
-	
-	/* Define output matrix for surface stress contribution */
-	/* Assume that have # nodes/element X 6 stress components in 3D, i.e. surface stresses
-	interpolate to all nodes of an element */
-	n_values.Dimension(nen,nsd*2);
+
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
 		/* bulk element information */
@@ -293,7 +291,10 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
 	
 		/* integrate surface contribution to nodal forces */
-
+		simoNa_bar = 0.;
+		simo_all = 0.;
+		simo_space = 0.;
+		
 		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
 			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
 			{
@@ -327,13 +328,12 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
 				fSplitShapes->TopIP();
 				
-				/* More Simo Definitions - USE SPLIT SHAPES? */
+				/* More Simo Definitions - USE SPLIT SHAPES? 2/7/08 */
 				const double* j = fSplitShapes->IPDets();
 				const double* w = fSplitShapes->IPWeights();
 				dArray2DT Na_X_ip_w;
 				
 				fShapes->TopIP(); /* synch bulk shape functions */
-
 				
 				while (fSplitShapes->NextIP())
 				{
@@ -374,9 +374,10 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					tstress *= -1.0;
 					
 					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
+					/* EXTRAPOLATE USING SPLIT SHAPES? */
 					fShapes->Extrapolate(tstress,nodalstress);
 					
-					/* Calculate Simo Mass - 2/7/08 */
+					/* Calculate Simo Mass - 2/7/08 - USE SPLIT SHAPES? */
 					Na_X_ip_w.Dimension(nen,1);
 					const double* Na_X = fSplitShapes->IPShapeX();
 					double ip_w = (*j++)*(*w++);
@@ -384,13 +385,11 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					for (int k = 0; k < nen; k++)
 						Na_X_ip_w(k,0) *= *Na_X++;
 					simoNa_bar += Na_X_ip_w;
-					
 				}
 
 				/* integrate over the face - calculate surface stress contribution */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
-				n_values = 0.0;
 //				const double* w = surf_shape.Weight();				
 				for (face_ip = 0; face_ip < nsi; face_ip++) {
 
@@ -436,27 +435,24 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 						int blah = 0;
 				
 					/* ADD SURFACE STRESS TO NODES */
-					/* extrapolate/accumulate */
-					/* only face nodes get affected - not interior nodes */
-					//surf_shape.NodalValues(stress2, n_values, face_ip);
 					/* Note that this distributes equally amongst the nodes?  HSP 2/7/08 */
 					tstress2.Translate(stress2);
 					fShapes->Extrapolate(tstress2,nodalstress);
-				}
+				}	// end of IP loop
 			/* copy in the columns */
-			simo_all.BlockColumnCopyAt(nodalstress, 3);
-				
+			/* How to write into the stress part of the output only? */
+			simo_all.BlockColumnCopyAt(nodalstress, 3);	// offset for 0 displacements
+			
 			/* ADDITIONAL SIMO STUFF 2/7/08 IDENTICAL TO SOLIDELEMENTT line 1643 */
-			iArrayT currIndices = CurrentElement().NodesX();
+			iArrayT currIndices = element_card.NodesX();
 			simo_force.Accumulate(currIndices,simo_all);
 			simo_mass.Accumulate(currIndices,simoNa_bar);
 			for (int i = 0; i < currIndices.Length(); i++)
 				simo_counts[currIndices[i]]++;
 			
-			
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
 			ElementSupport().AssembleAverage(element_card.NodesX(), simo_all);	
-			}	// end of IP loop
+			}	
 	}	// end of element loop
 	
 	 /* NEED TO DO SOMETHING LIKE SolidElementT line 1669? */
@@ -470,35 +466,41 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 // 	tempconnect.SetColumn(0, nodes_used);
 // 	OutputSetT output(GeometryT::kPoint, tempconnect, n_labels);
 // 	fOutputID = ElementSupport().RegisterOutput(output);
-//	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
-// 	const iArrayT& nodes_used = output_set.NodesUsed();
+
+	/* HOW TO GET ONLY THE SURFACE NODES FOR OUTPUT? 2/8/08 */
+	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+ 	const iArrayT& nodes_used = output_set.NodesUsed();
  	
  	/* FINAL SIMO STUFF - 2/7/08 - IDENTICAL TO SOLIDELEMENTT LINE 1678 */
- 	/* ISSUES BECAUSE NEED TO GET NODES USED */
-//  	dArray2DT extrap_values(nodes_used.Length(), 6);
-//  	extrap_values.RowCollect(nodes_used, ElementSupport().OutputAverage());
-//  	int tmpDim = extrap_values.MajorDim();
-//  	n_values.Dimension(tmpDim,6);
-//  	n_values.BlockColumnCopyAt(extrap_values,0);
-//  	int rowNum = 0;
-//  	dArray2DT tmp_simo(tmpDim, 6);
-//  	for (int i = 0; i < simo_force.MajorDim(); i++)
-//  		if (simo_counts[i] > 0)
-//  		{
-//  			simo_force.ScaleRow(i, 1./simo_mass(i,0));
-//  			tmp_simo.SetRow(rowNum, simo_force(i));
-//  			rowNum++;
-//  		}
-//  		
-//  	/* Collect final values */
-//  	n_values.BlockColumnCopyAt(tmp_simo, 0);	// simo offset = 0 because no disp or coords
-//  	
+ 	dArray2DT extrap_values(nodes_used.Length(), 6);
+ 	extrap_values.RowCollect(nodes_used, ElementSupport().OutputAverage());
+ 	int tmpDim = extrap_values.MajorDim();
+ 	n_values.Dimension(tmpDim,9);	// Add 3 columns for displacements?
+ 	n_values = 0.0;
+ 	n_values.BlockColumnCopyAt(extrap_values,3);
+ 	int rowNum = 0;
+ 	dArray2DT tmp_simo(tmpDim, 6);
+ 	for (int i = 0; i < simo_force.MajorDim(); i++)
+ 		if (simo_counts[i] > 0)
+ 		{
+ 			simo_force.ScaleRow(i, 1./simo_mass(i,0));
+ 			tmp_simo.SetRow(rowNum, simo_force(i));
+ 			rowNum++;
+ 		}
+
+ 	/* Collect final values */
+ 	n_values.BlockColumnCopyAt(tmp_simo, 3);	// simo offset = 0 because no disp or coords
+
  	/* write final values back into the averaging process */
+ 	/* NEED TO DO SOMETHING LIKE SOLIDELEMENTT LINE 1697? */
+ 	/* DOES THIS WRITE INTO THE FIELD? IS IT NECESSARY? */
+ 	ElementSupport().ResetAverage(n_values.MinorDim());
+ 	ElementSupport().AssembleAverage(nodes_used, n_values);
  	
- 	
-//  	dArray2DT e_values;
-//  	/* Need the group ID instead of element - fOutputID? */
-//  	ElementSupport().WriteOutput(fOutputID, n_values_all, e_values);
+ 	dArray2DT e_values, n_values_all;
+  	/* Need the group ID instead of element - fOutputID? */
+  	/* THIS WRITES INTO A SEPARATE OUTPUT FILE - HOW TO COMBINE WITH USUAL OUTPUT? */
+  	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* accumulate the residual force on the specified node */
