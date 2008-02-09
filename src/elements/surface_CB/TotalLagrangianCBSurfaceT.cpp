@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.46 2008-02-09 20:49:31 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.47 2008-02-09 21:56:11 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -175,7 +175,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	dArray2DT simo_mass, simo_space, simo_all, nodal_space, nodal_all;
 	dArray2DT simoNa_bar(nen, 1);
 	dArray2DT simo_force, nodal_force, energy, nodal_energy;
-	dArrayT ipenergy(1), ipenergy2(1);	// strain energy density for bulk, surface
+	dArrayT ipenergy(1), ipenergy2(1), ipenergy3(1);	// strain energy density for bulk, surface
 	iArrayT simo_counts, nodal_counts;
 	simo_space.Dimension(nen, 7);	// 6 stresses and 1 strain energy
 	nodal_space.Dimension(nen,7);
@@ -257,6 +257,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy);
 						
 			}	// IP look ends here
+			
 		int colcount = 0;
 		simo_all.BlockColumnCopyAt(nodalstress, colcount); colcount += 6;
 		simo_all.BlockColumnCopyAt(energy, colcount); colcount += 1;
@@ -318,10 +319,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 				const double* Weight = fSplitShapes->IPWeights();
 				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
 				fSplitShapes->TopIP();
-				
-				/* More Simo Definitions - USE SPLIT SHAPES? 2/8/08 */
-				const double* j = fSplitShapes->IPDets();
-				const double* w = fSplitShapes->IPWeights();
 				dArray2DT Na_X_ip_w, Na_X_ip_w2;
 				
 				fShapes->TopIP(); /* synch bulk shape functions */
@@ -334,25 +331,26 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* ip coordinates in the split domain */
 					fSplitShapes->IPCoords(ip_coords_X);
 					
-					/* map ip coordinates to bulk parent domain */
-					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
-
-					/* bulk shape functions/derivatives */
-					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
-					DXi_DX.Inverse();
-					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
-
-					/* deformation gradient/shape functions/derivatives at the surface ip */
-					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
-					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
-					F.PlusIdentity();
-
-					/* F^(-1) */
-					double J = F.Det();
-					if (J <= 0.0)
-						ExceptionT::BadJacobianDet(caller);
-					else
-						F_inv.Inverse(F);
+					/* IS THIS NECESSARY? HSP 2/9/08 */
+// 					/* map ip coordinates to bulk parent domain */
+// 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+// 
+// 					/* bulk shape functions/derivatives */
+// 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+// 					DXi_DX.Inverse();
+// 					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+// 
+// 					/* deformation gradient/shape functions/derivatives at the surface ip */
+// 					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
+// 					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+// 					F.PlusIdentity();
+// 
+// 					/* F^(-1) */
+// 					double J = F.Det();
+// 					if (J <= 0.0)
+// 						ExceptionT::BadJacobianDet(caller);
+// 					else
+// 						F_inv.Inverse(F);
 
 					/* bulk material model */
 					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
@@ -363,11 +361,11 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					const dSymMatrixT& stress = fCurrMaterial->s_ij(); 
 					tstress.Translate(stress);
 					tstress *= -1.0;
-					
+
 					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
 					/* EXTRAPOLATE USING SIMO METHODOLOGY USING SPLIT SHAPES */
 					Na_X_ip_w.Dimension(nen,1);
-					double ip_w = (*j++)*(*w++);
+					double ip_w = (*Det++)*(*Weight++);
 					const double* Na_X = fSplitShapes->IPShapeX();
 					Na_X_ip_w = ip_w;
 					for (int k = 0; k < nen; k++)
@@ -379,6 +377,9 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* strain energy density */
 					double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
 					ipenergy2[0] = ip_strain_energy;
+					/* negative sign to subtract back off */
+					ipenergy2*=-1.0;
+
 					for (int k = 0; k < nen; k++)
 						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);
 				}
@@ -386,47 +387,45 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 				/* integrate over the face - calculate surface stress contribution */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
-//				const double* w = surf_shape.Weight();				
+				const double* w = surf_shape.Weight();		
+
 				for (face_ip = 0; face_ip < nsi; face_ip++) {
 
 					/* coordinate mapping on face */
 					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
 					double detj = surf_shape.SurfaceJacobian(jacobian);
 				
-					/* ip coordinates on face */
-					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+					/* SEEMINGLY UNNECESSARY HSP 2/9/08 */
+// 					/* ip coordinates on face */
+// 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+// 					
+// 					/* ip coordinates in bulk parent domain */
+// 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+// 
+// 					/* bulk shape functions/derivatives */
+// 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+// 					DXi_DX.Inverse();
+// 					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+// 
+// 					/* deformation gradient/shape functions/derivatives at the surface ip */
+// 					dMatrixT& F = fF_Surf_List[face_ip];
+// 					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+// 					F.PlusIdentity();
 					
-					/* ip coordinates in bulk parent domain */
-					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
-
-					/* bulk shape functions/derivatives */
-					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
-					DXi_DX.Inverse();
-					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
-
-					/* deformation gradient/shape functions/derivatives at the surface ip */
-					dMatrixT& F = fF_Surf_List[face_ip];
-					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
-					F.PlusIdentity();
-					
-					/* F^-1 */
-					double J = F.Det();
-					if (J <= 0.0)
-						ExceptionT::BadJacobianDet(caller);
-					else
-						F_inv.Inverse(F);
+// 					/* F^-1 */
+// 					double J = F.Det();
+// 					if (J <= 0.0)
+// 						ExceptionT::BadJacobianDet(caller);
+// 					else
+// 						F_inv.Inverse(F);
 					
 					/* stress at the surface */
 					if (fIndicator == "FCC_3D")
-						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+						stress2 = fSurfaceCB[normal_type]->s_ij();
 					else if (fIndicator == "FCC_EAM")
-					{
-						//(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-						const dSymMatrixT& blah = fCurrMaterial->s_ij();
-						stress2 = blah;
-					}
+						stress2 = fEAMSurfaceCB[normal_type]->s_ij();
 					else if (fIndicator == "Tersoff_CB")
-						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+						stress2 = fTersoffSurfaceCB[normal_type]->s_ij();
 					else
 						int blah = 0;
 				
@@ -437,8 +436,8 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* EXTRAPOLATE USING SIMO METHODOLOGY USING SPLIT SHAPES */
 					/* SHOULD THIS BE USING THE FACE IPS?  */
 					Na_X_ip_w2.Dimension(nen,1);
-					double ip_w = (*j++)*(*w++);
-					const double* Na_X = fSplitShapes->IPShapeX();
+					double ip_w = w[face_ip]*detj;
+					const double* Na_X = surf_shape.Shape(face_ip);
 					Na_X_ip_w2 = ip_w;
 					for (int k = 0; k < nen; k++)
 						Na_X_ip_w2(k,0) *= *Na_X++;
@@ -447,11 +446,19 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 						nodalstress2.AddToRowScaled(k,Na_X_ip_w2(k,0),tstress2);
 						
 					/* strain energy density */
-					double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
-					ipenergy2[0] = ip_strain_energy;
+					if (fIndicator == "FCC_3D")
+						ipenergy3[0] = fSurfaceCB[normal_type]->StrainEnergyDensity();
+					else if (fIndicator == "FCC_EAM")
+						ipenergy3[0]=fEAMSurfaceCB[normal_type]->StrainEnergyDensity();
+					else if (fIndicator == "Tersoff_CB")
+						ipenergy3[0] =fTersoffSurfaceCB[normal_type]->StrainEnergyDensity();
+					else
+						int blah = 0;
+//					cout << "surface energy to add back = " << ipenergy3 << endl;
 					for (int k = 0; k < nen; k++)
-						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);						
+						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy3);						
 				}	// end of IP loop
+
 			/* copy in the columns */
 			int colcount = 0;
 			nodal_all.BlockColumnCopyAt(nodalstress2, colcount); colcount += 6;
@@ -467,7 +474,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 //	cout << "simo_force before = " << simo_force << endl;
 //	cout << "nodal_force before = " << nodal_force << endl;
 	/* Combine Bulk + Correction for output, i.e. nodal_force and simo_force */
-//	simo_force+=nodal_force;
+	simo_force+=nodal_force;
  	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
  	const iArrayT& nodes_used = output_set.NodesUsed();	 	 
  	 	 
