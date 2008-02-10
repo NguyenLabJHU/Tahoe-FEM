@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.47 2008-02-09 21:56:11 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.48 2008-02-10 03:08:51 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -222,7 +222,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 			simo_all = 0.;
 			simo_space = 0.;
 			
-
 			/* global shape function values */
 			SetGlobalShape();
 			const double* j = fShapes->IPDets();
@@ -271,7 +270,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 			
 		// scale by simo mass altogether with corrections to follow
 		}	// end of element loop
-
 
 	/* Surface correction to bulk for Simo stress and strain energy */
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
@@ -331,12 +329,11 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* ip coordinates in the split domain */
 					fSplitShapes->IPCoords(ip_coords_X);
 					
-					/* IS THIS NECESSARY? HSP 2/9/08 */
-// 					/* map ip coordinates to bulk parent domain */
-// 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
-// 
-// 					/* bulk shape functions/derivatives */
-// 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+ 					/* map ip coordinates to bulk parent domain */
+					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+ 
+ 					/* bulk shape functions/derivatives */
+ 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
 // 					DXi_DX.Inverse();
 // 					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
 // 
@@ -357,19 +354,18 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					fCurrMaterial = (SolidMaterialT*) pcont_mat;
 
 					/* get Cauchy stress - SOME CHANGES MADE HERE BY HSP */
-					//(fCurrMaterial->s_ij()).ToMatrix(cauchy);
 					const dSymMatrixT& stress = fCurrMaterial->s_ij(); 
 					tstress.Translate(stress);
 					tstress *= -1.0;
 
 					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
-					/* EXTRAPOLATE USING SIMO METHODOLOGY USING SPLIT SHAPES */
+					/* EVALUATE BULK SHAPE FUNCTIONS AT SPLIT INTEGRATION POINTS */
 					Na_X_ip_w.Dimension(nen,1);
 					double ip_w = (*Det++)*(*Weight++);
-					const double* Na_X = fSplitShapes->IPShapeX();
+//					const double* Na_X = fSplitShapes->IPShapeX();
 					Na_X_ip_w = ip_w;
 					for (int k = 0; k < nen; k++)
-						Na_X_ip_w(k,0) *= *Na_X++;
+						Na_X_ip_w(k,0) *= Na[k];
 						
 					for (int k = 0; k < nen; k++)
 						nodalstress2.AddToRowScaled(k,Na_X_ip_w(k,0),tstress);
@@ -394,16 +390,15 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* coordinate mapping on face */
 					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
 					double detj = surf_shape.SurfaceJacobian(jacobian);
-				
-					/* SEEMINGLY UNNECESSARY HSP 2/9/08 */
-// 					/* ip coordinates on face */
-// 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
-// 					
-// 					/* ip coordinates in bulk parent domain */
-// 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
-// 
-// 					/* bulk shape functions/derivatives */
-// 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+
+ 					/* ip coordinates on face */
+ 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+ 					
+ 					/* ip coordinates in bulk parent domain */
+ 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+ 
+ 					/* bulk shape functions/derivatives */
+ 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
 // 					DXi_DX.Inverse();
 // 					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
 // 
@@ -437,10 +432,10 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* SHOULD THIS BE USING THE FACE IPS?  */
 					Na_X_ip_w2.Dimension(nen,1);
 					double ip_w = w[face_ip]*detj;
-					const double* Na_X = surf_shape.Shape(face_ip);
+//					const double* Na_X = surf_shape.Shape(face_ip);
 					Na_X_ip_w2 = ip_w;
 					for (int k = 0; k < nen; k++)
-						Na_X_ip_w2(k,0) *= *Na_X++;
+						Na_X_ip_w2(k,0) *= Na[k];
 						
 					for (int k = 0; k < nen; k++)
 						nodalstress2.AddToRowScaled(k,Na_X_ip_w2(k,0),tstress2);
@@ -491,7 +486,9 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  		if (simo_counts[i] > 0)
  		{
  			simo_force.ScaleRow(i, 1./simo_mass(i,0));
+// 			nodal_force.ScaleRow(i, 1./simo_mass(i,0));
  			tmp_simo.SetRow(rowNum, simo_force(i));
+//			tmp_simo.SetRow(rowNum, nodal_force(i));
  			rowNum++;
  		}
 
