@@ -1,4 +1,4 @@
-/* $Id: BinaryTreeT.h,v 1.4 2003-03-09 20:37:19 paklein Exp $ */
+/* $Id: BinaryTreeT.h,v 1.5 2008-02-11 14:01:31 paklein Exp $ */
 #ifndef _BINARY_TREE_T_H_
 #define _BINARY_TREE_T_H_
 
@@ -86,6 +86,8 @@ public:
 	/** return the tree node with the given value or NULL if not present */
 	BTreeNodeT<TYPE>* Find(const TYPE& value) const;
 
+	/** tree root */
+	const BTreeNodeT<TYPE>* Root(void) { return fRoot; }
 private:
 
 	/** \name not allowed */

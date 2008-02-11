@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2005-08-12 05:15:25 paklein Exp $
+# $Id: makefile,v 1.9 2008-02-11 14:01:31 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -50,6 +50,7 @@ DEP = $(MACRO_DIR)/empty
 #
 HDR = \
 	MapT.h \
+	MapIteratorT.h \
 	MapNodeT.h \
 	LinkedListT.h \
 	ListNodeT.h \

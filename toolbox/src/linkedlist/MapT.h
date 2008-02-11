@@ -1,9 +1,10 @@
-/* $Id: MapT.h,v 1.6 2003-04-26 19:19:46 paklein Exp $ */
+/* $Id: MapT.h,v 1.7 2008-02-11 14:01:31 paklein Exp $ */
 #ifndef _MAP_T_H_
 #define _MAP_T_H_
 
 /* base class */
 #include "BinaryTreeT.h"
+#include "MapIteratorT.h"
 
 /* direct members */
 #include "MapNodeT.h"
@@ -18,6 +19,8 @@ namespace Tahoe {
 template <class key_TYPE, class value_TYPE>
 class MapT: protected BinaryTreeT<MapNodeT<key_TYPE, value_TYPE> >
 {
+	friend class MapIteratorT<key_TYPE, value_TYPE>;
+
 public:
 
 	/** constructor */
@@ -55,6 +58,11 @@ public:
 	void SetCompareFunction(int (*compare)(
 		const MapNodeT<key_TYPE, value_TYPE>& tree_node, 
 		const MapNodeT<key_TYPE, value_TYPE>& test_node));
+
+protected:
+
+	/** cast to BinaryTreeT */
+	BinaryTreeT<MapNodeT<key_TYPE, value_TYPE> >& BTree(void) { return *this; }
 
 private:
 
