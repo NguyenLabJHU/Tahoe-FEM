@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.48 2007-04-04 17:11:14 sawimme Exp $ */
+/* $Id: StringT.cpp,v 1.49 2008-02-11 23:24:19 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -206,6 +206,23 @@ void StringT::Replace(char find, char replace)
 		if (*p == find) *p = replace;
 		p++;
 	}
+}
+
+/* reverse the order of the characters */
+const StringT& StringT::Reverse(void)
+{
+	int num_chars = strlen(*this);
+	if (num_chars < 2) return *this;
+	char* a = Pointer();
+	char* b = a + num_chars - 1;
+	while (a < b) {
+		char tmp = *a;
+		*a = *b;
+		*b = tmp;
+		a++;
+		b--;
+	}
+	return *this;
 }
 
 /* read a line from the input stream, where a line is the next
