@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.25 2005-06-08 17:20:20 paklein Exp $ */
+/* $Id: StringT.h,v 1.26 2008-02-11 23:24:19 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
@@ -102,6 +102,9 @@ public:
 
 	/** replace one character with another */
 	void Replace(char find, char replace);
+	
+	/** reverse the order of the characters */
+	const StringT& Reverse(void);
 	/*@}*/
 
 	/** read a line from the input stream, where a line is the next
