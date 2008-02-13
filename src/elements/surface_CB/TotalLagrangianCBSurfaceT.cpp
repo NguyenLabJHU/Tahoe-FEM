@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.49 2008-02-13 17:07:46 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.50 2008-02-13 21:54:25 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -345,11 +345,12 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
 					ipenergy2[0] = ip_strain_energy;
 					/* negative sign to subtract back off */
-//					ipenergy2[0]*=-1.0;
+					ipenergy2[0]*=-1.0;
 
-					for (int k = 0; k < nen; k++)
-						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);						
+//					for (int k = 0; k < nen; k++)
+//						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);						
 				}
+//				cout << "bulk subtract = " << nodal_energy.Sum() << endl;
 				/* integrate over the face - calculate surface stress contribution */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
@@ -360,29 +361,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* coordinate mapping on face */
 					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
 					double detj = surf_shape.SurfaceJacobian(jacobian);
-
- 					/* ip coordinates on face */
- 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
- 					
- 					/* ip coordinates in bulk parent domain */
- 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
- 
- 					/* bulk shape functions/derivatives */
- 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
-// 					DXi_DX.Inverse();
-// 					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
-// 
-// 					/* deformation gradient/shape functions/derivatives at the surface ip */
-// 					dMatrixT& F = fF_Surf_List[face_ip];
-// 					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
-// 					F.PlusIdentity();
-					
-// 					/* F^-1 */
-// 					double J = F.Det();
-// 					if (J <= 0.0)
-// 						ExceptionT::BadJacobianDet(caller);
-// 					else
-// 						F_inv.Inverse(F);
 					
 					/* stress at the surface */
 					if (fIndicator == "FCC_3D")
@@ -398,16 +376,14 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					tstress2.Translate(stress2);
 					
 					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
-					/* EXTRAPOLATE USING SIMO METHODOLOGY USING SPLIT SHAPES */
-					/* SHOULD THIS BE USING THE FACE IPS?  */
-					Na_X_ip_w2.Dimension(nen,1);
-					double ip_w = w[face_ip]*detj;
-//					const double* Na_X = surf_shape.Shape(face_ip);
+					Na_X_ip_w2.Dimension(nfn,1);
+					double ip_w = w[face_ip]*detj;	// integration area
+					const double* Na_X = surf_shape.Shape(face_ip);
 					Na_X_ip_w2 = ip_w;
-					for (int k = 0; k < nen; k++)
-						Na_X_ip_w2(k,0) *= Na[k];
+					for (int k = 0; k < nfn; k++)
+						Na_X_ip_w2(k,0) *= *Na_X++;
 						
-					for (int k = 0; k < nen; k++)
+					for (int k = 0; k < nfn; k++)
 						nodalstress2.AddToRowScaled(k,Na_X_ip_w2(k,0),tstress2);
 						
 					/* strain energy density */
@@ -419,9 +395,9 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 						ipenergy3[0] =fTersoffSurfaceCB[normal_type]->StrainEnergyDensity();
 					else
 						int blah = 0;
-//					cout << "surface energy to add back = " << ipenergy3 << endl;
-					for (int k = 0; k < nen; k++)
-						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy3);						
+
+					for (int k = 0; k < nfn; k++)
+						nodal_energy.AddToRowScaled(k,Na_X_ip_w2(k,0),ipenergy3);						
 				}	// end of IP loop
 
 			/* copy in the columns */
@@ -436,10 +412,10 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 				nodal_counts[currIndices[i]]++;				
 			}	
 	}	// end of element loop
-//	cout << "simo_force before = " << simo_force << endl;
-//	cout << "nodal_force before = " << nodal_force << endl;
+	cout << "simo_force before = " << simo_force << endl;
+	cout << "nodal_force before = " << nodal_force << endl;
 	/* Combine Bulk + Correction for output, i.e. nodal_force and simo_force */
-//	simo_force+=nodal_force;
+	simo_force+=nodal_force;
  	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
  	const iArrayT& nodes_used = output_set.NodesUsed();	 	 
  	 	 
