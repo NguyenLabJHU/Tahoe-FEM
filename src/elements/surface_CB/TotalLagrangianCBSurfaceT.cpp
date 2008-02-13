@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.50 2008-02-13 21:54:25 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.51 2008-02-13 23:15:28 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -255,6 +255,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 		iArrayT currIndices = CurrentElement().NodesX();
 		simo_force.Accumulate(currIndices,simo_all);	// DO THIS LATER?
 		simo_mass.Accumulate(currIndices,simoNa_bar);
+
 		for (int i = 0; i < currIndices.Length(); i++)
 			simo_counts[currIndices[i]]++;
 			
@@ -347,10 +348,10 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* negative sign to subtract back off */
 					ipenergy2[0]*=-1.0;
 
-//					for (int k = 0; k < nen; k++)
-//						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);						
+					for (int k = 0; k < nen; k++)
+						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);						
 				}
-//				cout << "bulk subtract = " << nodal_energy.Sum() << endl;
+				
 				/* integrate over the face - calculate surface stress contribution */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
@@ -383,8 +384,9 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					for (int k = 0; k < nfn; k++)
 						Na_X_ip_w2(k,0) *= *Na_X++;
 						
+					/* Need to map face nodes 1-4 to nodes numbers 1-8 of the volume element */
 					for (int k = 0; k < nfn; k++)
-						nodalstress2.AddToRowScaled(k,Na_X_ip_w2(k,0),tstress2);
+						nodalstress2.AddToRowScaled(face_nodes_index[k],Na_X_ip_w2(k,0),tstress2);
 						
 					/* strain energy density */
 					if (fIndicator == "FCC_3D")
@@ -397,14 +399,14 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 						int blah = 0;
 
 					for (int k = 0; k < nfn; k++)
-						nodal_energy.AddToRowScaled(k,Na_X_ip_w2(k,0),ipenergy3);						
+						nodal_energy.AddToRowScaled(face_nodes_index[k],Na_X_ip_w2(k,0),ipenergy3);						
 				}	// end of IP loop
-
+//			cout << "nodal_energy = " << nodal_energy << endl;
 			/* copy in the columns */
 			int colcount = 0;
 			nodal_all.BlockColumnCopyAt(nodalstress2, colcount); colcount += 6;
 			nodal_all.BlockColumnCopyAt(nodal_energy, colcount); colcount += 1;
-			
+
 			/* Obtain surface nodes to write into correct part of nodal_all */
 			iArrayT currIndices = element_card.NodesX();
 			nodal_force.Accumulate(currIndices,nodal_all);	// DO THIS LATER?
@@ -412,8 +414,8 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 				nodal_counts[currIndices[i]]++;				
 			}	
 	}	// end of element loop
-	cout << "simo_force before = " << simo_force << endl;
-	cout << "nodal_force before = " << nodal_force << endl;
+//	cout << "simo_force before = " << simo_force << endl;
+//	cout << "nodal_force before = " << nodal_force << endl;
 	/* Combine Bulk + Correction for output, i.e. nodal_force and simo_force */
 	simo_force+=nodal_force;
  	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
@@ -432,9 +434,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  		if (simo_counts[i] > 0)
  		{
  			simo_force.ScaleRow(i, 1./simo_mass(i,0));
-// 			nodal_force.ScaleRow(i, 1./simo_mass(i,0));
  			tmp_simo.SetRow(rowNum, simo_force(i));
-//			tmp_simo.SetRow(rowNum, nodal_force(i));
  			rowNum++;
  		}
 //	cout << "tmp_simo = " << tmp_simo << endl;
