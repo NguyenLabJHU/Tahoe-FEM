@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.48 2008-02-10 03:08:51 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.49 2008-02-13 17:07:46 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -166,8 +166,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	
 	/* Define output matrix for subtraction of bulk stress */
 	dArray2DT nodalstress, nodalstress2;	// define similar to SolidElementT.cpp
-	iArray2DT tempconnect;
-	tempconnect.Dimension(nen,1);	// used to register the nodes - HSP 1/23/08
 	
 	/* reset averaging workspace */
 	ElementSupport().ResetAverage(10);	// 3 displacements and 6 stress components and 1 strain energy
@@ -201,16 +199,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	pall2 += nodalstress2.Length();
 	energy.Alias(nen,1,pall);	// 1 output for strain energy density
 	nodal_energy.Alias(nen,1,pall2);
-	
- 	/* SOMETHING LIKE SWDiamondT::RegisterOutput to get the outputID for the stresses */
- 	ArrayT<StringT> n_labels(6);
- 	/* output labels - assign now so don't have to repeat */
- 	n_labels[0] = "s11";
- 	n_labels[1] = "s22";
- 	n_labels[2] = "s33";
- 	n_labels[3] = "s23";
- 	n_labels[4] = "s13";
- 	n_labels[5] = "s12";
 
 	/* Calculate Simo stress and strain energy and mass for ALL elements here */
 	Top();
@@ -230,15 +218,18 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 			/* integrate */
 			dArray2DT Na_X_ip_w;
 			fShapes->TopIP();
+
 			while (fShapes->NextIP())
 			{
 				/* element integration weight */
-				double ip_w = (*j++)*(*w++);
+				double ip_w = (*j++)*(*w++); 
 				Na_X_ip_w.Dimension(nen,1);
 				const double* Na_X = fShapes->IPShapeX();
+
 				Na_X_ip_w = ip_w;
 				for (int k = 0; k < nen; k++)
         			Na_X_ip_w(k,0) *= *Na_X++;
+
 				simoNa_bar += Na_X_ip_w;
 
 				/* get Cauchy stress */
@@ -256,7 +247,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy);
 						
 			}	// IP look ends here
-			
 		int colcount = 0;
 		simo_all.BlockColumnCopyAt(nodalstress, colcount); colcount += 6;
 		simo_all.BlockColumnCopyAt(energy, colcount); colcount += 1;
@@ -279,10 +269,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 		const ElementCardT& element_card = ElementCard(element);
 		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
 		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
-		
-		/* initialize variables */
-		nodal_all = 0.;
-		nodal_space = 0.;
 		
 		/* integrate surface contribution to nodal forces */
 		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
@@ -308,7 +294,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
 				else
 					int blah = 0;
-	
+
 				fSplitInitCoords = fLocInitCoords;
 				SurfaceLayer(fSplitInitCoords, j, t_surface);
 
@@ -318,8 +304,11 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
 				fSplitShapes->TopIP();
 				dArray2DT Na_X_ip_w, Na_X_ip_w2;
-				
 				fShapes->TopIP(); /* synch bulk shape functions */
+				
+				/* initialize variables */
+				nodal_all = 0.;
+				nodal_space = 0.;
 				
 				while (fSplitShapes->NextIP())
 				{
@@ -334,24 +323,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  
  					/* bulk shape functions/derivatives */
  					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
-// 					DXi_DX.Inverse();
-// 					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
-// 
-// 					/* deformation gradient/shape functions/derivatives at the surface ip */
-// 					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
-// 					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
-// 					F.PlusIdentity();
-// 
-// 					/* F^(-1) */
-// 					double J = F.Det();
-// 					if (J <= 0.0)
-// 						ExceptionT::BadJacobianDet(caller);
-// 					else
-// 						F_inv.Inverse(F);
-
-					/* bulk material model */
-					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
-					fCurrMaterial = (SolidMaterialT*) pcont_mat;
 
 					/* get Cauchy stress - SOME CHANGES MADE HERE BY HSP */
 					const dSymMatrixT& stress = fCurrMaterial->s_ij(); 
@@ -362,10 +333,10 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* EVALUATE BULK SHAPE FUNCTIONS AT SPLIT INTEGRATION POINTS */
 					Na_X_ip_w.Dimension(nen,1);
 					double ip_w = (*Det++)*(*Weight++);
-//					const double* Na_X = fSplitShapes->IPShapeX();
+					const double* Na_X = fSplitShapes->IPShapeX();
 					Na_X_ip_w = ip_w;
 					for (int k = 0; k < nen; k++)
-						Na_X_ip_w(k,0) *= Na[k];
+						Na_X_ip_w(k,0) *= *Na_X++;
 						
 					for (int k = 0; k < nen; k++)
 						nodalstress2.AddToRowScaled(k,Na_X_ip_w(k,0),tstress);
@@ -374,12 +345,11 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
 					ipenergy2[0] = ip_strain_energy;
 					/* negative sign to subtract back off */
-					ipenergy2*=-1.0;
+//					ipenergy2[0]*=-1.0;
 
 					for (int k = 0; k < nen; k++)
-						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);
+						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);						
 				}
-
 				/* integrate over the face - calculate surface stress contribution */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
@@ -469,7 +439,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 //	cout << "simo_force before = " << simo_force << endl;
 //	cout << "nodal_force before = " << nodal_force << endl;
 	/* Combine Bulk + Correction for output, i.e. nodal_force and simo_force */
-	simo_force+=nodal_force;
+//	simo_force+=nodal_force;
  	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
  	const iArrayT& nodes_used = output_set.NodesUsed();	 	 
  	 	 
@@ -491,7 +461,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 //			tmp_simo.SetRow(rowNum, nodal_force(i));
  			rowNum++;
  		}
-
+//	cout << "tmp_simo = " << tmp_simo << endl;
 	/* THIS OUTPUT PART FOR PATRICK TO FINALIZE 2/9/08 */
  	/* Collect final values */
  	n_values.BlockColumnCopyAt(tmp_simo, 3);	// simo offset = 0 because no disp or coords
