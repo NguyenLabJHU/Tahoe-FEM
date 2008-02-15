@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.3 2008-02-15 05:15:49 hspark Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.4 2008-02-15 05:25:38 hspark Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -119,6 +119,7 @@ double TersoffSolverT::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
 		CIJ.Pointer());
 		
 	energy *= f_omega0;		// scale by atomic volume
+	return energy;
 }
 
 /* describe the parameters needed by the interface */
