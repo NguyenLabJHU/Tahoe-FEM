@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.3 2008-02-15 05:15:49 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.4 2008-02-15 15:34:03 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -117,11 +117,15 @@ double TersoffSolverT_surf::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xs
 	else
 		SetdXsi(CIJ, Xsi);
 
-	double surf_energy;
+	double surf_energy, surf_energy2;
 	surf_energy = get_energy_surf(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer());
+	surf_energy2 = get_energy_surf_bulk(fParams.Pointer(), Xsi.Pointer(), 
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer());
 	surf_energy *= f_area0;
+	surf_energy2 *= f_area0;	// scale this further by 1/2 or something
 	return surf_energy;
 }
 

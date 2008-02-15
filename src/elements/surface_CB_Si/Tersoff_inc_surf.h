@@ -1,4 +1,4 @@
-/* $Id: Tersoff_inc_surf.h,v 1.2 2008-02-15 05:15:49 hspark Exp $ */
+/* $Id: Tersoff_inc_surf.h,v 1.3 2008-02-15 15:34:03 hspark Exp $ */
 #ifndef TERSOFF_INC_SURF_H
 #define TERSOFF_INC_SURF_H
 
@@ -34,6 +34,9 @@ void get_ddC_surf(const double* params, const double *Xsi, const double *Xa, con
 
 /* function to compute the surface strain energy density */
 double get_energy_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat); 
+
+/* function to compute the bulk strain energy density for the second surface layer silicon atoms */
+double get_energy_surf_bulk(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat); 
 
 #ifdef __cplusplus
 }
