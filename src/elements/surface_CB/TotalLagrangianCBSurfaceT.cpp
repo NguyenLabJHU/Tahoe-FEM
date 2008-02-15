@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.51 2008-02-13 23:15:28 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.52 2008-02-15 18:00:16 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -245,7 +245,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 				ipenergy[0] = ip_strain_energy;
 				for (int k = 0; k < nen; k++)
 					energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy);
-						
+
 			}	// IP look ends here
 		int colcount = 0;
 		simo_all.BlockColumnCopyAt(nodalstress, colcount); colcount += 6;
@@ -279,11 +279,11 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
 			
 				/* collect coordinates of face nodes */
-				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
+				ElementCardT& element_surf = ElementCard(fSurfaceElements[i]);
 				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
-				face_nodes.Collect(face_nodes_index, element_card.NodesX());
+				face_nodes.Collect(face_nodes_index, element_surf.NodesX());
 				face_coords.SetLocal(face_nodes);
-
+				
 				/* set up split integration */
 				int normal_type = fSurfaceElementFacesType(i,j);
 				
@@ -345,14 +345,15 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* strain energy density */
 					double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
 					ipenergy2[0] = ip_strain_energy;
+
 					/* negative sign to subtract back off */
 					ipenergy2[0]*=-1.0;
 
 					for (int k = 0; k < nen; k++)
 						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);						
 				}
-				
-				/* integrate over the face - calculate surface stress contribution */
+
+				/* integrate over the face - calculate surface contribution to stress and energy */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
 				const double* w = surf_shape.Weight();		
@@ -377,7 +378,8 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					tstress2.Translate(stress2);
 					
 					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
-					Na_X_ip_w2.Dimension(nfn,1);
+					/* WHAT IS THE NODE ORDER? */
+					Na_X_ip_w2.Dimension(nen,1);
 					double ip_w = w[face_ip]*detj;	// integration area
 					const double* Na_X = surf_shape.Shape(face_ip);
 					Na_X_ip_w2 = ip_w;
@@ -401,26 +403,33 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					for (int k = 0; k < nfn; k++)
 						nodal_energy.AddToRowScaled(face_nodes_index[k],Na_X_ip_w2(k,0),ipenergy3);						
 				}	// end of IP loop
-//			cout << "nodal_energy = " << nodal_energy << endl;
-			/* copy in the columns */
+			/* copy in the columns for the bulk subtract */
 			int colcount = 0;
 			nodal_all.BlockColumnCopyAt(nodalstress2, colcount); colcount += 6;
 			nodal_all.BlockColumnCopyAt(nodal_energy, colcount); colcount += 1;
 
 			/* Obtain surface nodes to write into correct part of nodal_all */
-			iArrayT currIndices = element_card.NodesX();
-			nodal_force.Accumulate(currIndices,nodal_all);	// DO THIS LATER?
-			for (int i = 0; i < currIndices.Length(); i++)
-				nodal_counts[currIndices[i]]++;				
+			iArrayT currIndices = element_surf.NodesX();
+			nodal_force.Accumulate(currIndices,nodal_all);	// DO THIS LATER?		
 			}	
 	}	// end of element loop
-//	cout << "simo_force before = " << simo_force << endl;
-//	cout << "nodal_force before = " << nodal_force << endl;
+	
 	/* Combine Bulk + Correction for output, i.e. nodal_force and simo_force */
+	/* Calculate energy before combination */
+	dArrayT asdf2(ElementSupport().NumNodes());
+	dArrayT asdf3(ElementSupport().NumNodes());
+	simo_force.ColumnCopy(6, asdf2);
 	simo_force+=nodal_force;
+	simo_force.ColumnCopy(6, asdf3);
+//	cout << "simo_force before = " << asdf2 << endl;
+//	cout << "sum of simo force before = " << asdf2.Sum() << endl;
+//	cout << "simo force after = " << asdf3 << endl;
+//	cout << "sum of simo force after = " << asdf3.Sum() << endl;
+//	cout << "simo mass = " << simo_mass.Sum() << endl;
  	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
  	const iArrayT& nodes_used = output_set.NodesUsed();	 	 
  	 	 
+ 	/* Add up total energy bulk - bulk subtract + surface add */
  	/* FINAL SIMO STUFF - 2/7/08 - IDENTICAL TO SOLIDELEMENTT LINE 1678 */
  	dArray2DT extrap_values(nodes_used.Length(), 10);
  	extrap_values.RowCollect(nodes_used, ElementSupport().OutputAverage());
@@ -438,6 +447,9 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  			rowNum++;
  		}
 //	cout << "tmp_simo = " << tmp_simo << endl;
+	dArrayT asdf(ElementSupport().NumNodes());
+ 	tmp_simo.ColumnCopy(6, asdf);
+// 	cout << "average of energy/atom = " << asdf.Average() << endl;
 	/* THIS OUTPUT PART FOR PATRICK TO FINALIZE 2/9/08 */
  	/* Collect final values */
  	n_values.BlockColumnCopyAt(tmp_simo, 3);	// simo offset = 0 because no disp or coords
