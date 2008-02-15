@@ -5,7 +5,7 @@
 static double z[437];
 
 /* calculate the surface strain energy density */
-void get_energy_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* surf_energy) {
+double get_energy_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat) {
 
 /* common definitions */
 #include "Tersoff_common_defines_surf.h"
@@ -1066,5 +1066,5 @@ void get_energy_surf(const double* params, const double *Xsi, const double *Xa, 
 	z[1] = 0.5*z[1];
 
 	/* output */
-	surf_energy = z[1];
+	return z[1];
 }

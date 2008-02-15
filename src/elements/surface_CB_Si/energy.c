@@ -5,7 +5,7 @@
 static double z[197];
 
 /* function to compute bulk strain energy density for silicon */
-void get_energy(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* energy) { 
+double get_energy(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat) { 
 
 /* common definitions */
 #include "Tersoff_common_defines.h"
@@ -484,5 +484,5 @@ void get_energy(const double* params, const double *Xsi, const double *Xa, const
 	z[1] = 0.5*z[1];
 
 	/* return values */
-	energy = z[1];
+	return z[1];
 }

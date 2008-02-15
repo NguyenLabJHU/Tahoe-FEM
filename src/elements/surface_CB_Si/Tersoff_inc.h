@@ -1,4 +1,4 @@
-/* $Id: Tersoff_inc.h,v 1.1 2007-11-09 15:32:05 hspark Exp $ */
+/* $Id: Tersoff_inc.h,v 1.2 2008-02-15 05:15:49 hspark Exp $ */
 #ifndef TERSOFF_INC_H
 #define TERSOFF_INC_H
 
@@ -31,6 +31,9 @@ void get_dUdC(const double* params, const double *Xsi, const double *Xa, const d
 
 /* function to compute all second order derivatives of the potential function needed for the modulus */
 void get_ddC(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi);
+
+/* function to get the bulk strain energy density */
+double get_energy(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat); 
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.2 2008-01-23 21:13:16 hspark Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.3 2008-02-15 05:15:49 hspark Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -107,18 +107,18 @@ void TersoffSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stre
 /* strain energy density */
 double TersoffSolverT::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
 {
-#if 0
 	/* set internal equilibrium */
 	if (fEquilibrate)
 		Equilibrate(CIJ, Xsi);
 	else
 		SetdXsi(CIJ, Xsi);
-
-// 	return( (f2Body->Phi()).Sum() + (f3Body->Phi()).Sum() );
-#endif
-
-//not implemented
-return 0.0;
+	
+	/* compute bulk energy */
+	double energy = get_energy(fParams.Pointer(), Xsi.Pointer(), 
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer());
+		
+	energy *= f_omega0;		// scale by atomic volume
 }
 
 /* describe the parameters needed by the interface */
