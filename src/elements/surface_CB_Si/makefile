@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2008-02-15 15:34:03 hspark Exp $
+# $Id: makefile,v 1.5 2008-02-16 16:26:15 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -31,7 +31,6 @@ OBJ = \
 	ddC.o \
 	ddC_surf.o \
 	energy.o \
-	energy_surf_bulk.o \
 	surf_energy.o
 
 OBJ_LINK = $(OBJ)
@@ -63,7 +62,6 @@ SRC = \
 	ddC.c \
 	ddC_surf.c \
 	energy.c \
-	energy_surf_bulk.c \
 	surf_energy.c
 
 ##################### (3) headers
