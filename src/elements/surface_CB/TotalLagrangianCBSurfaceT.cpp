@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.53 2008-02-15 20:09:21 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.54 2008-02-17 20:35:41 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -334,9 +334,8 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* EVALUATE BULK SHAPE FUNCTIONS AT SPLIT INTEGRATION POINTS */
 					Na_X_ip_w.Dimension(nen,1);
 					double ip_w = (*Det++)*(*Weight++);
-//					const double* Na_X = fSplitShapes->IPShapeX();
 
-					/* USE Na or Na_X? */
+					/* Use Na */
 					Na_X_ip_w = ip_w;
 					for (int k = 0; k < nen; k++)
 						Na_X_ip_w(k,0) *= Na[k];
@@ -391,16 +390,13 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
 					Na_X_ip_w2.Dimension(nen,1);
 					double ip_w = w[face_ip]*detj;	// integration area
-//					const double* Na_X = surf_shape.Shape(face_ip);
 					
 					Na_X_ip_w2 = ip_w;
 					for (int k = 0; k < nen; k++)
 						Na_X_ip_w2(k,0) *= Na[k];
-//						Na_X_ip_w2(k,0) *= *Na_X++;
 						
-					/* Need to map face nodes 1-4 to nodes numbers 1-8 of the volume element */
+					/* Map face nodes 1-4 to nodes numbers 1-8 of the volume element */
 					for (int k = 0; k < nen; k++)
-//						nodalstress2.AddToRowScaled(face_nodes_index[k],Na_X_ip_w2(k,0),tstress2);
 						nodalstress2.AddToRowScaled(k,Na_X_ip_w2(k,0),tstress2);
 	
 					/* strain energy density */
@@ -414,8 +410,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 						int blah = 0;
 
 					for (int k = 0; k < nen; k++)
-						nodal_energy.AddToRowScaled(k,Na_X_ip_w2(k,0),ipenergy3);
-//						nodal_energy.AddToRowScaled(face_nodes_index[k],Na_X_ip_w2(k,0),ipenergy3);						
+						nodal_energy.AddToRowScaled(k,Na_X_ip_w2(k,0),ipenergy3);					
 				}	// end of IP loop
 			/* copy in the columns for the bulk subtract */
 			int colcount = 0;
@@ -429,20 +424,19 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	}	// end of element loop
 	
 	/* Combine Bulk + Correction for output, i.e. nodal_force and simo_force */
-	/* Calculate energy before combination */
-	dArrayT asdf2(ElementSupport().NumNodes());
-	dArrayT asdf3(ElementSupport().NumNodes());
-	dArrayT blah(ElementSupport().NumNodes());
-	nodal_force.ColumnCopy(6, blah);
-	cout << "nodal force = " << nodal_force << endl;
-	cout << "sum of energy = " << blah.Sum() << endl;
-	simo_force.ColumnCopy(6, asdf2);
 	simo_force+=nodal_force;
-	simo_force.ColumnCopy(6, asdf3);
-	cout << "simo_force before = " << asdf2 << endl;
-	cout << "sum of simo force before = " << asdf2.Sum() << endl;
-	cout << "simo force after = " << asdf3 << endl;
-	cout << "sum of simo force after = " << asdf3.Sum() << endl;
+	
+	/* Debugging code */
+//	simo_force.ColumnCopy(6, asdf3);
+//	cout << "simo_force before = " << asdf2 << endl;
+//	cout << "sum of simo force before = " << asdf2.Sum() << endl;
+//	cout << "simo force after = " << asdf3 << endl;
+//	double volume = 16218450.35;		// for 640.56x159.12x159.12 gold
+//	double volume = 13653304.23;		// for 956.033 x 119.504 x 119.504 silicon	
+//	int numatoms = 982958;	// for gold
+//	int numatoms = 698149;	// for silicon
+//	cout << "energy per volume = " << asdf3.Sum()/volume << endl;
+//	cout << "energy per atom = " << asdf3.Sum()/numatoms << endl;
 
  	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
  	const iArrayT& nodes_used = output_set.NodesUsed();	 	 
@@ -457,6 +451,9 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  	n_values.BlockColumnCopyAt(extrap_values,3);
  	int rowNum = 0;
  	dArray2DT tmp_simo(tmpDim, 7);
+ 	
+ 	/* Output total energy/node instead of total energy per volume per node */
+ 	
  	for (int i = 0; i < simo_force.MajorDim(); i++)
  		if (simo_counts[i] > 0)
  		{
@@ -464,10 +461,10 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  			tmp_simo.SetRow(rowNum, simo_force(i));
  			rowNum++;
  		}
-	cout << "tmp_simo = " << tmp_simo << endl;
+
 	dArrayT asdf(ElementSupport().NumNodes());
  	tmp_simo.ColumnCopy(6, asdf);
- 	cout << "average of energy/atom = " << asdf.Average() << endl;
+
 	/* THIS OUTPUT PART FOR PATRICK TO FINALIZE 2/9/08 */
  	/* Collect final values */
  	n_values.BlockColumnCopyAt(tmp_simo, 3);	// simo offset = 0 because no disp or coords
