@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.15 2008-02-16 16:27:30 hspark Exp $ */
+/* $Id: EAM.cpp,v 1.16 2008-02-18 22:52:59 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAM.h"
 #include "CBLatticeT.h"
@@ -141,8 +141,8 @@ double EAM::ComputeUnitSurfaceEnergy(void)
 		energyb += cib*0.5*(*pphib++);
 	}
 	energyb += fEmbeddingEnergy->Function(rhob);
-	energyb *= 2.0;	
-	//1.5 due to splitting of layer 4 bulk energy
+	energyb *= 1.5;	
+	//1.5 due to splitting of layer 4 bulk energy to balance # atoms subtracted
 
 	for (int i = 0; i < rs1.Length(); i++)
 	{
@@ -159,8 +159,6 @@ double EAM::ComputeUnitSurfaceEnergy(void)
 		energys2 += cis2*0.5*(*pphis2++);
 	}
 	energys2 += fEmbeddingEnergy->Function(rhos2);
-//	energys1 *= 0.975;
-//	energys1 *= 0.975;
 
 	totalgamma += energyb;
 	totalgamma += energys1;
