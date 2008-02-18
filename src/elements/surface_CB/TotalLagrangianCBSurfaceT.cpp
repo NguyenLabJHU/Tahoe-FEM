@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.54 2008-02-17 20:35:41 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.55 2008-02-18 23:14:31 paklein Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -80,6 +80,33 @@ TotalLagrangianCBSurfaceT::~TotalLagrangianCBSurfaceT(void)
 /* register self for output */
 void TotalLagrangianCBSurfaceT::RegisterOutput(void)
 {
+	/* collect variable labels */
+	ArrayT<StringT> n_labels(10);
+	n_labels[0] = "D_X";
+	n_labels[1] = "D_Y";
+	n_labels[2] = "D_Z";
+	n_labels[3] = "S_11";
+	n_labels[4] = "S_22";
+	n_labels[5] = "S_33";
+	n_labels[6] = "S_23";
+	n_labels[7] = "S_13";
+	n_labels[8] = "S_12";
+	n_labels[9] = "PHI";
+	
+	ArrayT<StringT> e_labels; /* none */
+
+	/* block ID's used by the group */
+	ArrayT<StringT> block_ID(fBlockData.Length());
+	for (int i = 0; i < block_ID.Length(); i++)
+		block_ID[i] = fBlockData[i].ID();
+
+	/* set output specifier */
+	OutputSetT output_set(GeometryCode(), block_ID, fConnectivities, n_labels, e_labels, false);
+		
+	/* register and get output ID */
+	fOutputID = ElementSupport().RegisterOutput(output_set);
+
+#if 0
 	/* inherited */
 	TotalLagrangianT::RegisterOutput();
 	
@@ -115,7 +142,7 @@ void TotalLagrangianCBSurfaceT::RegisterOutput(void)
 // 	fOutputID = ElementSupport().RegisterOutput(output);
 	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
  	const iArrayT& nodes_used = output_set.NodesUsed();
-	
+#endif
 }
 
 /* send output */
@@ -124,7 +151,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	const char caller[] = "TotalLagrangianCBSurfaceT::WriteOutput";
 
 	/* inherited */
-	TotalLagrangianT::WriteOutput();
+//	TotalLagrangianT::WriteOutput();
 
 	/* quick exit - TEMPORARILY DISABLE TO TEST EAM SCB OUTPUT */
 //	if (fTersoffSurfaceCB.Length() == 0 || fSurfaceOutputID.Length() == 0) return;
@@ -141,6 +168,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	int nsi = shape.FacetShapeFunction(0).NumIP();    // # IPs per surface face
 	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
 	int nen = NumElementNodes();                      // # nodes in bulk element
+	const int n_output = 7;
 
 	/* work space */
 	iArrayT face_nodes(nfn), face_nodes_index(nfn);	
@@ -156,7 +184,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 
 	/* nodal output */
 	dArrayT ip_values;
-	dArray2DT n_values;
+//	dArray2DT n_values;
 
 	/* Start adding Simo stuff for stress and energy output 2/7/08 */
 	/* loop over surface elements */
@@ -168,19 +196,19 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	dArray2DT nodalstress, nodalstress2;	// define similar to SolidElementT.cpp
 	
 	/* reset averaging workspace */
-	ElementSupport().ResetAverage(10);	// 3 displacements and 6 stress components and 1 strain energy
+//	ElementSupport().ResetAverage(10);	// 3 displacements and 6 stress components and 1 strain energy
 	// NEED TO DEFINE SIMO MASS
 	dArray2DT simo_mass, simo_space, simo_all, nodal_space, nodal_all;
 	dArray2DT simoNa_bar(nen, 1);
 	dArray2DT simo_force, nodal_force, energy, nodal_energy;
 	dArrayT ipenergy(1), ipenergy2(1), ipenergy3(1);	// strain energy density for bulk, surface
 	iArrayT simo_counts, nodal_counts;
-	simo_space.Dimension(nen, 7);	// 6 stresses and 1 strain energy
-	nodal_space.Dimension(nen,7);
-	simo_all.Dimension(nen,7);	// 6 stresses and 1 strain energy
-	nodal_all.Dimension(nen,7);
-	simo_force.Dimension(ElementSupport().NumNodes(), 7);
-	nodal_force.Dimension(ElementSupport().NumNodes(), 7);
+	simo_space.Dimension(nen, n_output);	// 6 stresses and 1 strain energy
+	nodal_space.Dimension(nen,n_output);
+	simo_all.Dimension(nen,n_output);	// 6 stresses and 1 strain energy
+	nodal_all.Dimension(nen,n_output);
+	simo_force.Dimension(ElementSupport().NumNodes(), n_output);
+	nodal_force.Dimension(ElementSupport().NumNodes(), n_output);
 	simo_mass.Dimension(ElementSupport().NumNodes(), 1);	
 	simo_counts.Dimension(ElementSupport().NumNodes());
 	nodal_counts.Dimension(ElementSupport().NumNodes());
@@ -438,9 +466,36 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 //	cout << "energy per volume = " << asdf3.Sum()/volume << endl;
 //	cout << "energy per atom = " << asdf3.Sum()/numatoms << endl;
 
- 	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
- 	const iArrayT& nodes_used = output_set.NodesUsed();	 	 
- 	 	 
+	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+	const iArrayT& nodes_used = output_set.NodesUsed();
+	if (output_set.NumNodeValues() != 10) /* check */
+		ExceptionT::GeneralFail(caller, "expecting 10 nodal values defined in the output set");
+
+	/* collect nodal values for nodes in this element group */
+	dArray2DT n_values(nodes_used.Length(), 10);
+	n_values = 0.0;
+	int row = 0;
+	dArrayT row_tmp;
+ 	for (int i = 0; i < simo_force.MajorDim(); i++)
+ 		if (simo_mass(i,0) > 0) {
+			row_tmp.Alias(n_output, n_values(row) + 3);
+			row_tmp.SetToScaled(1./simo_mass(i,0), simo_force(i));
+ 			row++;
+ 		}	
+
+	/* collect the displacement field */
+	LocalArrayT loc_disp_all(LocalArrayT::kDisp, nodes_used.Length(), 3);
+	Field().RegisterLocal(loc_disp_all);
+	loc_disp_all.SetLocal(nodes_used);
+	n_values.SetColumn(0, loc_disp_all(0));
+	n_values.SetColumn(1, loc_disp_all(1));
+	n_values.SetColumn(2, loc_disp_all(2));
+	
+	/* write output */
+	dArray2DT e_values;
+	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+
+#if 0
  	/* Add up total energy bulk - bulk subtract + surface add */
  	/* FINAL SIMO STUFF - 2/7/08 - IDENTICAL TO SOLIDELEMENTT LINE 1678 */
  	dArray2DT extrap_values(nodes_used.Length(), 10);
@@ -453,7 +508,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  	dArray2DT tmp_simo(tmpDim, 7);
  	
  	/* Output total energy/node instead of total energy per volume per node */
- 	
  	for (int i = 0; i < simo_force.MajorDim(); i++)
  		if (simo_counts[i] > 0)
  		{
@@ -476,13 +530,11 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  	ElementSupport().AssembleAverage(nodes_used, n_values);
 
  	dArray2DT e_values, n_values_all;
+#endif
 
 	/* Dimension error when writing - probably due to incorrect RegisterOutput - 2/9/08 */
 //  	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
-  
-  
-  
-  
+
   // /* PUT SOMETHING HERE TO DO ONLY IF TERSOFF SCB */
 // /*
 // 	/* OUTPUT XDOFS AT SURFACE FOR TERSOFF SCB */
@@ -575,8 +627,6 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 // 		dArray2DT e_values;
 // 		ElementSupport().WriteOutput(fSurfaceOutputID[ii], n_values_all, e_values);
 // 	}
-
-  	
 }
 
 /* accumulate the residual force on the specified node */
