@@ -603,11 +603,12 @@ double get_energy_surf(const double* params, const double *Xsi, const double *Xa
 	z[3] = z[10]*z[14]*z[3];
 	z[5] = z[12]*z[14]*z[9];
 	z[4] = z[14]*z[4]*z[8];
-	z[1] = z[1] + z[2] + z[25] + z[26] + z[27] + z[28] + z[29] + z[3] + z[30] + z[7];
-	z[1] = z[1] + z[4] + z[5];
+	z[1] = z[1] + z[26] + z[27] + z[7];
+	z[2] = z[2] + z[25] + z[28] + z[29] + z[3] + z[30] + z[4] + z[5];
 	z[1] = 0.5*z[1];
+	z[2] = 0.25*z[2];
+	z[1] = z[1] + z[2];
 
 	/* output */
 	return z[1];
-
 }
