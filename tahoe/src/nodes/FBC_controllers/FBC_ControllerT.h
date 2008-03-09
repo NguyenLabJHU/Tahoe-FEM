@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.18 2006-06-19 15:25:34 r-jones Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.19 2008-03-09 02:59:01 tdnguye Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -41,7 +41,8 @@ public:
                kMFAugLagMult = 6,
              kAugLagCylinder = 7,
           kFieldMFAugLagMult = 8,
-	  kPressureBC        = 9};
+	  kPressureBC        = 9,
+	  kAngledBC = 10};
 
 	/** converts strings to FBC_ControllerT::CodeT */
 	static CodeT Code(const char* name);

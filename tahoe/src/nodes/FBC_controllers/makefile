@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2006-06-19 15:25:34 r-jones Exp $
+# $Id: makefile,v 1.13 2008-03-09 02:59:02 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -31,7 +31,8 @@ OBJ = \
 	AugLagCylinderT.o \
 	MFAugLagMultT.o \
 	PressureBCT.o \
-	FieldMFAugLagMultT.o
+	FieldMFAugLagMultT.o \
+	Penalty_AngledBC.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -62,7 +63,8 @@ SRC = \
 	AugLagCylinderT.cpp \
 	MFAugLagMultT.cpp \
 	PressureBCT.cpp \
-	FieldMFAugLagMultT.cpp
+	FieldMFAugLagMultT.cpp \
+	Penalty_AngledBC.cpp 
 
 ##################### (3) headers
 #
@@ -85,7 +87,8 @@ HDR = \
 	AugLagCylinderT.h \
 	MFAugLagMultT.h \
 	PressureBCT.h \
-	FieldMFAugLagMultT.h
+	FieldMFAugLagMultT.h \
+	Penalty_AngledBC.h  
 
 HDR_LINK = $(HDR:.h=.h_link)
 
