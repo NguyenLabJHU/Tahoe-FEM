@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.14 2006-06-19 15:25:34 r-jones Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.15 2008-03-09 02:59:01 tdnguye Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
@@ -38,6 +38,8 @@ FBC_ControllerT::CodeT FBC_ControllerT::Code(const char* name)
 		return kFieldMFAugLagMult;
 	else if (strcmp("pressure_bc", name) == 0)
 		return kPressureBC;
+	else if (strcmp("angled_bc", name) == 0)
+		return kAngledBC;
 	else
 		return kNone;
 }
