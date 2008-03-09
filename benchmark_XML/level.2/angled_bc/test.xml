@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="tdnguye" geometry_file="geometry/angled_square.geom"
+    geometry_format="TahoeII" output_format="Tahoe"
+    title="angled_bc_test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="4" num_steps="1" output_inc="1" time_step="1">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0" y="0.0"/>
+                <OrderedPair x="2.0" y="2.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="3" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="2" schedule="1" type="u" value=".1"/>
+            <angled_bc penalty_parameter="10000">
+                <side_set_ID_list>
+                    <String value="1"/>
+                </side_set_ID_list>
+            </angled_bc>
+        </field>
+    </nodes>
+    <element_list>
+        <small_strain field_name="displacement" strain_displacement="standard">
+            <quadrilateral num_ip="4"/>
+            <solid_element_nodal_output coordinates="1"
+                displacements="1" stress="1"/>
+            <small_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <small_strain_material_2D>
+                    <small_strain_StVenant_2D
+                        constraint_2D="plane_strain" density="1">
+                        <E_and_nu Poisson_ratio="0.33" Young_modulus="100"/>
+                    </small_strain_StVenant_2D>
+                </small_strain_material_2D>
+            </small_strain_element_block>
+        </small_strain>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1e-8" divergence_tolerance="100"
+        max_iterations="200" rel_tolerance="1e-8">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

@@ -1,5 +1,6 @@
-<?xml version="1.0"?>
-<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" geometry_file="../geometry/square.1.geom">
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe geometry_file="../geometry/square.1.geom"
+    output_format="ExodusII" xmlns:x0="http://www.w3.org/2001/XMLSchema">
     <time num_steps="4" output_inc="2" time_step="0.25">
         <schedule_function>
             <piecewise_linear>
@@ -46,5 +47,8 @@
             </large_strain_element_block>
         </updated_lagrangian>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+05" max_iterations="15" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+05" max_iterations="15" rel_tolerance="1.0e-12">
+        <profile_matrix/>
+    </nonlinear_solver>
 </tahoe>

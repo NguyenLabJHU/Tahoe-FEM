@@ -1,5 +1,6 @@
-<?xml version="1.0"?>
-<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/ring.geom" title="ring squeezed between platens">
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="paklein" geometry_file="../geometry/ring.geom"
+    output_format="ExodusII" title="ring squeezed between platens" xmlns:x0="http://www.w3.org/2001/XMLSchema">
     <time max_step_cuts="3" num_steps="5" output_inc="5" time_step="0.05">
         <schedule_function>
             <piecewise_linear>
@@ -68,5 +69,8 @@
             </contact_nodes>
         </contact_2D_multiplier>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+03" max_iterations="20" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+03" max_iterations="20" rel_tolerance="1.0e-12">
+        <profile_matrix/>
+    </nonlinear_solver>
 </tahoe>
