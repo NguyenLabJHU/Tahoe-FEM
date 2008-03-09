@@ -1,0 +1,19 @@
+#{L=1}
+create brick x {L} y {L} z {L}
+merge all 
+move volume all x {L/2}
+move volume all y {L/2}
+move volume all z {-L/2}
+
+block 1 surface with z_coord = 0
+block 1 element type quad4
+surface 14 scheme map interval size 0.5
+mesh surface with z_coord = 0
+sideset 1 curve with y_coord=0 and z_coord = 0
+nodeset 1 curve with y_coord=0 and z_coord = 0
+nodeset 11 vertex with x_coord=0 and y_coord=0 and z_coord=0
+nodeset 2 curve with y_coord={L} and z_coord = 0
+nodeset 3 curve with x_coord=0 and z_coord =0
+nodeset 4 curve with x_coord={L} and z_coord =0
+
+export genesis "square.exo" overwrite
