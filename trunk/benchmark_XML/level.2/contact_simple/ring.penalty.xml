@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tahoe author="paklein" geometry_file="../geometry/ring.geom"
-    output_format="ExodusII" title="ring squeezed between platens" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    title="ring squeezed between platens" xmlns:x0="http://www.w3.org/2001/XMLSchema">
     <time max_step_cuts="3" num_steps="5" output_inc="5" time_step="0.05">
         <schedule_function>
             <piecewise_linear>
