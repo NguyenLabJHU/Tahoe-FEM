@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tahoe geometry_file="../geometry/square.1.geom"
-    output_format="ExodusII" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    xmlns:x0="http://www.w3.org/2001/XMLSchema">
     <time num_steps="4" output_inc="2" time_step="0.25">
         <schedule_function>
             <piecewise_linear>
