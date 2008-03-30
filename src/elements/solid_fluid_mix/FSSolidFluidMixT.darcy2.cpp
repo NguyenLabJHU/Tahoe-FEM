@@ -643,7 +643,7 @@ void FSSolidFluidMixT::RegisterOutput(void)
     // stress and strain
     const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","p","e11","e22","e33","e23","e13","e12"};
     // state variables; phi_s and phi_f
-    const char* svlabels3D[] = {"phi_s","phi_f","J"};
+    const char* svlabels3D[] = {"phi_s","phi_f","J","k"};
     int count = 0;
     for (int j = 0; j < fNumIP_press; j++)
     {
@@ -1145,9 +1145,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		out_variable[6]=fPhysical_pore_water_pressure_Elements_IPs(e,l);
 		Put_values_In_dArrayT_vector(fEulerian_effective_strain_Elements_IPs, e,l,fTemp_six_values);
 		out_variable.CopyIn(7,fTemp_six_values);
-		out_variable[13]=fState_variables_Elements_IPs(e,l*3+0);
-		out_variable[14]=fState_variables_Elements_IPs(e,l*3+1);
-		out_variable[15]=fState_variables_Elements_IPs(e,l*3+2);
+		out_variable[13]=fState_variables_Elements_IPs(e,l*4+0);
+		out_variable[14]=fState_variables_Elements_IPs(e,l*4+1);
+		out_variable[15]=fState_variables_Elements_IPs(e,l*4+2);
+		out_variable[16]=fState_variables_Elements_IPs(e,l*4+3);
 	    } 
 	}
 	else 
@@ -1361,6 +1362,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			double coef_porosity= pow(phi_f,3)/pow(fMaterial_Params[kPhi_f0],3)*(1-fMaterial_Params[kPhi_f0]*fMaterial_Params[kPhi_f0])/(1-phi_f*phi_f);
 			fk_hydraulic_conductivity_matrix.SetToScaled(coef_porosity,fK_hydraulic_conductivity_matrix);
                         /* important note:in the second darcy's law implementation, k is not hydraulic conductivity. It's a coefficient which relates to intrinsic permeability and dynamic viscosity with [m2/(pa.s)] dimension */
+
+                        /* saving intrinsic permeability for the current IP */
+			fState_variables_IPs(IP,3)=coef_porosity*fMaterial_Params[kK];
 
 
 //			fk_hydraulic_conductivity_matrix = fK_hydraulic_conductivity_matrix;
@@ -2077,6 +2081,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			double coef_porosity= pow(phi_f,3)/pow(fMaterial_Params[kPhi_f0],3)*(1-fMaterial_Params[kPhi_f0]*fMaterial_Params[kPhi_f0])/(1-phi_f*phi_f);
 			fk_hydraulic_conductivity_matrix.SetToScaled(coef_porosity,fK_hydraulic_conductivity_matrix);
                         /* important note:in the second darcy's law implementation, k is not hydraulic conductivity. It's a coefficient which relates to intrinsic permeability and dynamic viscosity with [m2/(pa.s)] dimension */
+
+                        /* saving intrinsic permeability for the current IP */
+			fState_variables_IPs(IP,3)=coef_porosity*fMaterial_Params[kK];
 
 
 //			fk_hydraulic_conductivity_matrix = fK_hydraulic_conductivity_matrix;
@@ -2996,6 +3003,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			double coef_porosity= pow(phi_f,3)/pow(fMaterial_Params[kPhi_f0],3)*(1-fMaterial_Params[kPhi_f0]*fMaterial_Params[kPhi_f0])/(1-phi_f*phi_f);
 			fk_hydraulic_conductivity_matrix.SetToScaled(coef_porosity,fK_hydraulic_conductivity_matrix);
                         /* important note:in the second darcy's law implementation, k is not hydraulic conductivity. It's a coefficient which relates to intrinsic permeability and dynamic viscosity with [m2/(pa.s)] dimension */
+
+                        /* saving intrinsic permeability for the current IP */
+			fState_variables_IPs(IP,3)=coef_porosity*fMaterial_Params[kK];
 
 
 //			fk_hydraulic_conductivity_matrix = fK_hydraulic_conductivity_matrix;
@@ -3972,7 +3982,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
 	
     Echo_Input_Data();
 	
-    knum_d_state = 3; // evolving volume fractions for solid and fluid phases and Jacobian are 
+    knum_d_state = 4; // evolving volume fractions for solid and fluid phases and Jacobian and permeability are 
                       // printed as internal state variables
     knum_i_state = 0; // int's needed per ip, state variables
 	
@@ -4248,12 +4258,12 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fEulerian_effective_strain_IPs.Dimension (fNumIP_displ,6);
     fCauchy_effective_stress_IPs.Dimension (fNumIP_displ,6);
     fPhysical_pore_water_pressure_IPs.Dimension (fNumIP_displ,1);
-    fState_variables_IPs.Dimension (fNumIP_displ,3);
+    fState_variables_IPs.Dimension (fNumIP_displ,4);
     fTemp_six_values.Dimension (6);
     fEulerian_effective_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
     fCauchy_effective_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
     fPhysical_pore_water_pressure_Elements_IPs.Dimension (NumElements(),fNumIP_displ);
-    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*3);
+    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*4);
     fM_dd_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fUpsilon_temp_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fC_dd_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
