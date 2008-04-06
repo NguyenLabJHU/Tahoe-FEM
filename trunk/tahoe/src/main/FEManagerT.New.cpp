@@ -1,5 +1,6 @@
-/* $Id: FEManagerT.New.cpp,v 1.6 2007-08-23 14:07:50 d-farrell2 Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.7 2008-04-06 21:57:44 regueiro Exp $ */
 #include "FEManagerT.h"
+#include "FEDEManagerT.h"
 
 /* element configuration header */
 #include "ElementsConfig.h"
@@ -73,6 +74,16 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT",
 			name.Pointer());
 		return NULL;
+#endif
+	}
+	else if (name == "tahoe_DEM_coupling")
+	{
+#if defined(DEM_COUPLING_DEV)
+	    return new FEDEManagerT(input_file, output, comm, argv, task);
+#else
+	    ExceptionT::GeneralFail(caller, "\"%s\" requires DEM_COUPLING_DEV",
+				    name.Pointer());
+	    return NULL;
 #endif
 	}
 	else
