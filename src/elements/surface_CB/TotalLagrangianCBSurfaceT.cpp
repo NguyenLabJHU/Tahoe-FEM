@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.55 2008-02-18 23:14:31 paklein Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.56 2008-04-17 03:54:57 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -62,6 +62,7 @@ TotalLagrangianCBSurfaceT::TotalLagrangianCBSurfaceT(const ElementSupportT& supp
 	fSurfaceCBSupport(NULL),
 	fSplitInitCoords(LocalArrayT::kInitCoords),
 	fIndicator(0),
+	fAlpha(0.0),
 	fSplitShapes(NULL)
 {
 	SetName("total_lagrangian_CBsurface");
@@ -451,14 +452,19 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 			}	
 	}	// end of element loop
 	
+	dArrayT asdf3(ElementSupport().NumNodes());
+	dArrayT asdf2(ElementSupport().NumNodes());
+	simo_force.ColumnCopy(6, asdf2);
+	
 	/* Combine Bulk + Correction for output, i.e. nodal_force and simo_force */
 	simo_force+=nodal_force;
 	
 	/* Debugging code */
-//	simo_force.ColumnCopy(6, asdf3);
+	simo_force.ColumnCopy(6, asdf3);
 //	cout << "simo_force before = " << asdf2 << endl;
+	cout.precision(12);
 //	cout << "sum of simo force before = " << asdf2.Sum() << endl;
-//	cout << "simo force after = " << asdf3 << endl;
+//	cout << "total system energy including surface effects = " << asdf3.Sum() << endl;
 //	double volume = 16218450.35;		// for 640.56x159.12x159.12 gold
 //	double volume = 13653304.23;		// for 956.033 x 119.504 x 119.504 silicon	
 //	int numatoms = 982958;	// for gold
@@ -1222,6 +1228,17 @@ ExceptionT::Stop();
 	fSplitInitCoords.Dimension(nen, nsd);
 	fSplitShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fSplitInitCoords);
 	fSplitShapes->Initialize();
+	
+	/* Call zero strain stiffness - HSP 4/16/2008 */
+	/* Calculate and store for each of the 6 normal orientations */
+	fSS0 = fEAMSurfaceCB[0]->c_ijkl();
+	fSS1 = fEAMSurfaceCB[1]->c_ijkl();
+	fSS2 = fEAMSurfaceCB[2]->c_ijkl();
+	fSS3 = fEAMSurfaceCB[3]->c_ijkl();
+	fSS4 = fEAMSurfaceCB[4]->c_ijkl();
+	fSS5 = fEAMSurfaceCB[5]->c_ijkl();	
+	fAlpha = 0.5;	// Amount of strain-dependence to remove
+
 }
 
 /*************************************************************************
@@ -1237,7 +1254,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	TotalLagrangianT::LHSDriver(sys_type);
 	
 	/* time integration parameters */
-	double constK = 0.0;
+ 	double constK = 0.0;
 	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 	
@@ -1267,6 +1284,11 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	dMatrixT DXi_DX(nsd);
 	dMatrixT F_inv(nsd);
 	dMatrixT PK1(nsd), cauchy(nsd);
+	
+	/* New variables for subtracting strain-dependent stuff - HSP 4/16/08 */
+	dSymMatrixT tempstress(3), product(3), tempstrain(3);
+	dMatrixT tempstiff(6), tempstiff2(6);
+	
 	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
@@ -1275,7 +1297,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		const ElementCardT& element_card = ElementCard(element);
 		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
 		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
-	
+
 		/* initialize */
 		fStressStiff = 0.0;
 		fLHS = 0.0;
@@ -1295,8 +1317,6 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 				/* set up split integration */
 				int normal_type = fSurfaceElementFacesType(i,j);
-
-				//double t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
 				
 				if (fIndicator == "FCC_3D")
 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
@@ -1431,6 +1451,17 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					else
 						int blah = 0;
 					
+					/* bulk material model */
+					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
+					fCurrMaterial = (SolidMaterialT*) pcont_mat;					
+					
+					/* REMOVE THE STRAIN-DEPENDENT:  HSP 4/18/08 */
+					fCurrMaterial->Strain(tempstrain);		
+					SurfaceStiffness(normal_type,tempstiff);
+					tempstiff*=fAlpha;
+					SurfaceStressCorrect(tempstiff,tempstrain,product);
+					cauchy-=product;
+					
 					/* integration weight */
 					double scale = constK*detj*w[face_ip]*J;
 					
@@ -1450,7 +1481,12 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					if (fIndicator == "FCC_3D")
 						fD.SetToScaled(scale, fSurfaceCB[normal_type]->c_ijkl());
 					else if (fIndicator == "FCC_EAM")
-						fD.SetToScaled(scale, fEAMSurfaceCB[normal_type]->c_ijkl());
+					{
+						tempstiff2 = fEAMSurfaceCB[normal_type]->c_ijkl();
+						tempstiff2-=tempstiff;
+						fD.SetToScaled(scale, tempstiff2);
+//						fD.SetToScaled(scale, (fEAMSurfaceCB[normal_type]->c_ijkl());
+					}	
 					else if (fIndicator == "Tersoff_CB")
 						fD.SetToScaled(scale, fTersoffSurfaceCB[normal_type]->c_ijkl());
 					else if (fIndicator == "TersoffDimer_CB")
@@ -1513,6 +1549,11 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	dMatrixT DXi_DX(nsd);
 	dMatrixT F_inv(nsd);
 	dMatrixT PK1(nsd), cauchy(nsd);
+	
+	/* HSP added 4/18/08 for remove strain-dependence */
+	dSymMatrixT tempstress(3), tempstrain(3);
+	dMatrixT tempstiff(6);
+	
 	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
@@ -1560,50 +1601,50 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 				fSplitShapes->TopIP();
 				fShapes->TopIP(); /* synch bulk shape functions */
 				while (fSplitShapes->NextIP())
-				{
-					/* synch bulk shape functions */
-					fShapes->NextIP();
-				
-					/* ip coordinates in the split domain */
-					fSplitShapes->IPCoords(ip_coords_X);
-					
-					/* map ip coordinates to bulk parent domain */
-					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
-
-					/* bulk shape functions/derivatives */
-					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
-					DXi_DX.Inverse();
-					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
-
-					/* deformation gradient/shape functions/derivatives at the surface ip */
-					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
-					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
-					F.PlusIdentity();
-
-					/* F^(-1) */
-					double J = F.Det();
-					if (J <= 0.0)
-						ExceptionT::BadJacobianDet(caller);
-					else
-						F_inv.Inverse(F);
-
-					/* bulk material model */
-					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
-					fCurrMaterial = (SolidMaterialT*) pcont_mat;
-
-					/* get Cauchy stress */
-					(fCurrMaterial->s_ij()).ToMatrix(cauchy);
-
-					/* compute PK1/J */
-					PK1.MultABT(cauchy, F_inv);
-
-					/* Wi,J PiJ */
-					shape.GradNa(DNa_X, fGradNa);
-					WP.MultAB(PK1, fGradNa);
-
-					/* accumulate */
-					fRHS.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
-				}
+  				{
+  					/* synch bulk shape functions */
+  					fShapes->NextIP();
+  				
+  					/* ip coordinates in the split domain */
+  					fSplitShapes->IPCoords(ip_coords_X);
+  					
+  					/* map ip coordinates to bulk parent domain */
+  					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+  
+  					/* bulk shape functions/derivatives */
+  					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+  					DXi_DX.Inverse();
+  					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+  
+  					/* deformation gradient/shape functions/derivatives at the surface ip */
+  					dMatrixT& F = fF_List[fSplitShapes->CurrIP()];
+  					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+  					F.PlusIdentity();
+  
+  					/* F^(-1) */
+  					double J = F.Det();
+  					if (J <= 0.0)
+  						ExceptionT::BadJacobianDet(caller);
+  					else
+  						F_inv.Inverse(F);
+  
+  					/* bulk material model */
+  					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
+  					fCurrMaterial = (SolidMaterialT*) pcont_mat;
+  
+  					/* get Cauchy stress */
+  					(fCurrMaterial->s_ij()).ToMatrix(cauchy);
+  
+  					/* compute PK1/J */
+  					PK1.MultABT(cauchy, F_inv);
+  
+  					/* Wi,J PiJ */
+  					shape.GradNa(DNa_X, fGradNa);
+  					WP.MultAB(PK1, fGradNa);
+  
+  					/* accumulate */
+  					fRHS.AddScaled(J*constKd*(*Weight++)*(*Det++), fNEEvec);
+  				}
 
 				/* integrate over the face */
 				int face_ip;
@@ -1640,16 +1681,24 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					
 					/* stress at the surface */
 					if (fIndicator == "FCC_3D")
-						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-					else if (fIndicator == "FCC_EAM")
-						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-					else if (fIndicator == "Tersoff_CB")
-						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-					else if (fIndicator == "TersoffDimer_CB")
-						(fTersoffDimerSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-					else
-						int blah = 0;
+ 						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+ 					else if (fIndicator == "FCC_EAM")
+ 						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+ 					else if (fIndicator == "Tersoff_CB")
+ 						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+ 					else if (fIndicator == "TersoffDimer_CB")
+ 						(fTersoffDimerSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+ 					else
+ 						int blah = 0;
 				
+  					/* bulk material model */
+  					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
+  					fCurrMaterial = (SolidMaterialT*) pcont_mat;				
+					fCurrMaterial->Strain(tempstrain);	
+					SurfaceStiffness(normal_type,tempstiff);
+					SurfaceStressCorrect(tempstiff,tempstrain,tempstress);
+					cauchy-=tempstress;
+					
 					/* compute PK1/J */
 					PK1.MultABT(cauchy, F_inv);
 					
@@ -1748,4 +1797,37 @@ void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, doub
 	
 	/* write back */
 	coords.FromTranspose(coords_tmp);	
+}
+
+void TotalLagrangianCBSurfaceT::SurfaceStressCorrect(const dMatrixT& stiff, const dSymMatrixT& strain, dSymMatrixT& product) const
+{
+	/* first convert strain matrix to a 6 x 1 array - perhaps not necessary */
+	dArrayT temp(6);
+	stiff.Multx(strain,temp);
+
+	/* convert temp to a dSymMatrixT */
+	product[0] = temp[0];
+	product[1] = temp[1];
+	product[2] = temp[2];
+	product[3] = temp[3];
+	product[4] = temp[4];
+	product[5] = temp[5];	
+}
+
+void TotalLagrangianCBSurfaceT::SurfaceStiffness(const int normalnumber, dMatrixT& stiff) const
+{
+	if (normalnumber == 0)
+		stiff = fSS0;
+	else if (normalnumber == 1)
+		stiff = fSS1;
+	else if (normalnumber == 2)
+		stiff = fSS2;
+	else if (normalnumber == 3)
+		stiff = fSS3;
+	else if (normalnumber == 4)
+		stiff = fSS4;
+	else if (normalnumber == 5)
+		stiff = fSS5;
+	else
+		int blah = 0;
 }

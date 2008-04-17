@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.13 2007-11-09 18:54:02 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.14 2008-04-17 03:54:57 hspark Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -66,6 +66,11 @@ protected:
 	 *       returns with the coordinates defining the surface layer */
 	void SurfaceLayer(LocalArrayT& coords, int face, double thickness) const;
 
+	/** Return amount to subtract from surface stress due to strain-dependence */
+	void SurfaceStressCorrect(const dMatrixT& stiff, const dSymMatrixT& strain, dSymMatrixT& product) const;
+
+	void SurfaceStiffness(const int normalnumber, dMatrixT& stiff) const;
+
 protected:
 
 	/** list of elements on the surface */
@@ -115,6 +120,17 @@ protected:
 	/** list of nodes on each surface type (by normal) */
 	ArrayT<iArrayT> fSurfaceNodes;
 	/*@}*/
+	
+	/** surface stiffness evaluated at zero strain for 6 surfaces */
+	dMatrixT fSS0;
+	dMatrixT fSS1;
+	dMatrixT fSS2;
+	dMatrixT fSS3;
+	dMatrixT fSS4;
+	dMatrixT fSS5;
+	dMatrixT fSSReturn;
+	double fAlpha;	
+
 };
 
 } /* namespace Tahoe */
