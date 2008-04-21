@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.56 2008-04-17 03:54:57 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.57 2008-04-21 14:26:20 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -62,6 +62,12 @@ TotalLagrangianCBSurfaceT::TotalLagrangianCBSurfaceT(const ElementSupportT& supp
 	fSurfaceCBSupport(NULL),
 	fSplitInitCoords(LocalArrayT::kInitCoords),
 	fIndicator(0),
+	fSS0(6),
+	fSS1(6),
+	fSS2(6),
+	fSS3(6),
+	fSS4(6),
+	fSS5(6),
 	fAlpha(0.0),
 	fSplitShapes(NULL)
 {
@@ -1237,8 +1243,7 @@ ExceptionT::Stop();
 	fSS3 = fEAMSurfaceCB[3]->c_ijkl();
 	fSS4 = fEAMSurfaceCB[4]->c_ijkl();
 	fSS5 = fEAMSurfaceCB[5]->c_ijkl();	
-	fAlpha = 0.5;	// Amount of strain-dependence to remove
-
+	fAlpha = 0.5;	// amount of strain-dependence to remove
 }
 
 /*************************************************************************
@@ -1286,8 +1291,8 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	dMatrixT PK1(nsd), cauchy(nsd);
 	
 	/* New variables for subtracting strain-dependent stuff - HSP 4/16/08 */
-	dSymMatrixT tempstress(3), product(3), tempstrain(3);
-	dMatrixT tempstiff(6), tempstiff2(6);
+	dSymMatrixT tempstrain(3);
+	dMatrixT tempstiff(6), tempstiff2(6), product(3);
 	
 	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
@@ -1458,8 +1463,10 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					/* REMOVE THE STRAIN-DEPENDENT:  HSP 4/18/08 */
 					fCurrMaterial->Strain(tempstrain);		
 					SurfaceStiffness(normal_type,tempstiff);
-					tempstiff*=fAlpha;
 					SurfaceStressCorrect(tempstiff,tempstrain,product);
+					product*=fAlpha;
+
+					/* Subtract surface stress correction from regular surface stress */
 					cauchy-=product;
 					
 					/* integration weight */
@@ -1482,7 +1489,9 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 						fD.SetToScaled(scale, fSurfaceCB[normal_type]->c_ijkl());
 					else if (fIndicator == "FCC_EAM")
 					{
+						/* subtract the surface stiffness correction from the regular surface stiffness */
 						tempstiff2 = fEAMSurfaceCB[normal_type]->c_ijkl();
+						tempstiff*=fAlpha;
 						tempstiff2-=tempstiff;
 						fD.SetToScaled(scale, tempstiff2);
 //						fD.SetToScaled(scale, (fEAMSurfaceCB[normal_type]->c_ijkl());
@@ -1551,8 +1560,8 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	dMatrixT PK1(nsd), cauchy(nsd);
 	
 	/* HSP added 4/18/08 for remove strain-dependence */
-	dSymMatrixT tempstress(3), tempstrain(3);
-	dMatrixT tempstiff(6);
+	dSymMatrixT tempstrain(3);
+	dMatrixT tempstiff(6), tempstress(3);
 	
 	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
@@ -1691,12 +1700,14 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
  					else
  						int blah = 0;
 				
-  					/* bulk material model */
+  					/* bulk material model - STRAIN INDEPENDENT PART 4/18/08 */
   					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
   					fCurrMaterial = (SolidMaterialT*) pcont_mat;				
 					fCurrMaterial->Strain(tempstrain);	
 					SurfaceStiffness(normal_type,tempstiff);
 					SurfaceStressCorrect(tempstiff,tempstrain,tempstress);
+					tempstress*=fAlpha;
+					/* Subtract surface stress correction from regular surface stress */
 					cauchy-=tempstress;
 					
 					/* compute PK1/J */
@@ -1799,19 +1810,28 @@ void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, doub
 	coords.FromTranspose(coords_tmp);	
 }
 
-void TotalLagrangianCBSurfaceT::SurfaceStressCorrect(const dMatrixT& stiff, const dSymMatrixT& strain, dSymMatrixT& product) const
+void TotalLagrangianCBSurfaceT::SurfaceStressCorrect(const dMatrixT& stiff, const dSymMatrixT& strain, dMatrixT& product) const
 {
 	/* first convert strain matrix to a 6 x 1 array - perhaps not necessary */
-	dArrayT temp(6);
-	stiff.Multx(strain,temp);
+	dArrayT temp(6), temp2(6);
+	temp[0] = strain(0,0);	// epsilon 11
+	temp[1] = strain(1,1);	// epsilon 22
+	temp[2] = strain(2,2);	// epsilon 33
+	temp[3] = strain(1,2);	// epsilon 23
+	temp[4] = strain(0,2);	// epsilon 13
+	temp[5] = strain(0,1);	// epsilon 12
+	stiff.Multx(temp,temp2);
 
-	/* convert temp to a dSymMatrixT */
-	product[0] = temp[0];
-	product[1] = temp[1];
-	product[2] = temp[2];
-	product[3] = temp[3];
-	product[4] = temp[4];
-	product[5] = temp[5];	
+	/* convert temp to a dMatrixT */
+	product(0,0) = temp2[0];	// sigma 11
+	product(1,1) = temp2[1];	// sigma 22
+	product(2,2) = temp2[2];	// sigma 33
+	product(1,2) = temp2[3];	// sigma 23
+	product(0,2) = temp2[4];	// sigma 13
+	product(0,1) = temp2[5];	// sigma 12
+	product(1,0) = temp2[5];	// sigma 21
+	product(2,0) = temp2[4];	// sigma 31
+	product(2,1) = temp2[3];	// sigma 32
 }
 
 void TotalLagrangianCBSurfaceT::SurfaceStiffness(const int normalnumber, dMatrixT& stiff) const
