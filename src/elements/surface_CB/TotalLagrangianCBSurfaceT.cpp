@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.57 2008-04-21 14:26:20 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.58 2008-04-23 13:14:00 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -1812,26 +1812,45 @@ void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, doub
 
 void TotalLagrangianCBSurfaceT::SurfaceStressCorrect(const dMatrixT& stiff, const dSymMatrixT& strain, dMatrixT& product) const
 {
-	/* first convert strain matrix to a 6 x 1 array - perhaps not necessary */
-	dArrayT temp(6), temp2(6);
+ 	/* first convert strain matrix to a 6 x 1 array - perhaps not necessary */
+ 	dArrayT temp(6), temp2(6);
+// 	temp[0] = strain(0,0);	// epsilon 11
+// 	temp[1] = strain(1,1);	// epsilon 22
+// 	temp[2] = strain(2,2);	// epsilon 33
+// 	temp[3] = strain(1,2);	// epsilon 23
+// 	temp[4] = strain(0,2);	// epsilon 13
+// 	temp[5] = strain(0,1);	// epsilon 12
+// 	stiff.Multx(temp,temp2);
+// 
+// 	/* convert temp to a dMatrixT */
+// 	product(0,0) = temp2[0];	// sigma 11
+// 	product(1,1) = temp2[1];	// sigma 22
+// 	product(2,2) = temp2[2];	// sigma 33
+// 	product(1,2) = temp2[3];	// sigma 23
+// 	product(0,2) = temp2[4];	// sigma 13
+// 	product(0,1) = temp2[5];	// sigma 12
+// 	product(1,0) = temp2[5];	// sigma 21
+// 	product(2,0) = temp2[4];	// sigma 31
+// 	product(2,1) = temp2[3];	// sigma 32
+
+	/* Note that Miehe uses 11, 22, 33, 12, 23, 13 notation */
 	temp[0] = strain(0,0);	// epsilon 11
 	temp[1] = strain(1,1);	// epsilon 22
 	temp[2] = strain(2,2);	// epsilon 33
-	temp[3] = strain(1,2);	// epsilon 23
-	temp[4] = strain(0,2);	// epsilon 13
-	temp[5] = strain(0,1);	// epsilon 12
+	temp[3] = strain(0,1);	// epsilon 12
+	temp[4] = strain(1,2);	// epsilon 23
+	temp[5] = strain(0,2);	// epsilon 13
+	
 	stiff.Multx(temp,temp2);
-
-	/* convert temp to a dMatrixT */
 	product(0,0) = temp2[0];	// sigma 11
 	product(1,1) = temp2[1];	// sigma 22
 	product(2,2) = temp2[2];	// sigma 33
-	product(1,2) = temp2[3];	// sigma 23
-	product(0,2) = temp2[4];	// sigma 13
-	product(0,1) = temp2[5];	// sigma 12
-	product(1,0) = temp2[5];	// sigma 21
-	product(2,0) = temp2[4];	// sigma 31
-	product(2,1) = temp2[3];	// sigma 32
+	product(1,2) = temp2[4];	// sigma 23
+	product(0,2) = temp2[5];	// sigma 13
+	product(0,1) = temp2[3];	// sigma 12
+	product(1,0) = temp2[3];	// sigma 21
+	product(2,0) = temp2[5];	// sigma 31
+	product(2,1) = temp2[4];	// sigma 32
 }
 
 void TotalLagrangianCBSurfaceT::SurfaceStiffness(const int normalnumber, dMatrixT& stiff) const
