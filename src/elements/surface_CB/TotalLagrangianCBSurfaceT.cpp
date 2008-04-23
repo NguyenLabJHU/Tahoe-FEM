@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.58 2008-04-23 13:14:00 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.59 2008-04-23 15:02:00 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -1243,7 +1243,7 @@ ExceptionT::Stop();
 	fSS3 = fEAMSurfaceCB[3]->c_ijkl();
 	fSS4 = fEAMSurfaceCB[4]->c_ijkl();
 	fSS5 = fEAMSurfaceCB[5]->c_ijkl();	
-	fAlpha = 0.5;	// amount of strain-dependence to remove
+	fAlpha = 1.0;	// amount of strain-dependence to remove
 }
 
 /*************************************************************************
@@ -1291,8 +1291,9 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	dMatrixT PK1(nsd), cauchy(nsd);
 	
 	/* New variables for subtracting strain-dependent stuff - HSP 4/16/08 */
-	dSymMatrixT tempstrain(3);
+	dMatrixT tempstrain(3), eye(3);
 	dMatrixT tempstiff(6), tempstiff2(6), product(3);
+	eye.Identity();
 	
 	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
@@ -1454,14 +1455,13 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					else if (fIndicator == "TersoffDimer_CB")
 						(fTersoffDimerSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else
-						int blah = 0;
-					
-					/* bulk material model */
-					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
-					fCurrMaterial = (SolidMaterialT*) pcont_mat;					
+						int blah = 0;				
 					
 					/* REMOVE THE STRAIN-DEPENDENT:  HSP 4/18/08 */
-					fCurrMaterial->Strain(tempstrain);		
+					/* Calculate the Green Strain */
+					tempstrain.MultATB(F,F);
+					tempstrain-=eye;
+					tempstrain*=0.5;					
 					SurfaceStiffness(normal_type,tempstiff);
 					SurfaceStressCorrect(tempstiff,tempstrain,product);
 					product*=fAlpha;
@@ -1560,8 +1560,9 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	dMatrixT PK1(nsd), cauchy(nsd);
 	
 	/* HSP added 4/18/08 for remove strain-dependence */
-	dSymMatrixT tempstrain(3);
+	dMatrixT tempstrain(3), eye(3);
 	dMatrixT tempstiff(6), tempstress(3);
+	eye.Identity();
 	
 	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
@@ -1701,9 +1702,9 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
  						int blah = 0;
 				
   					/* bulk material model - STRAIN INDEPENDENT PART 4/18/08 */
-  					ContinuumMaterialT* pcont_mat = (*fMaterialList)[element_card.MaterialNumber()];
-  					fCurrMaterial = (SolidMaterialT*) pcont_mat;				
-					fCurrMaterial->Strain(tempstrain);	
+					tempstrain.MultATB(F,F);	
+					tempstrain-=eye;
+					tempstrain*=0.5;
 					SurfaceStiffness(normal_type,tempstiff);
 					SurfaceStressCorrect(tempstiff,tempstrain,tempstress);
 					tempstress*=fAlpha;
@@ -1810,7 +1811,7 @@ void TotalLagrangianCBSurfaceT::SurfaceLayer(LocalArrayT& coords, int face, doub
 	coords.FromTranspose(coords_tmp);	
 }
 
-void TotalLagrangianCBSurfaceT::SurfaceStressCorrect(const dMatrixT& stiff, const dSymMatrixT& strain, dMatrixT& product) const
+void TotalLagrangianCBSurfaceT::SurfaceStressCorrect(const dMatrixT& stiff, const dMatrixT& strain, dMatrixT& product) const
 {
  	/* first convert strain matrix to a 6 x 1 array - perhaps not necessary */
  	dArrayT temp(6), temp2(6);
