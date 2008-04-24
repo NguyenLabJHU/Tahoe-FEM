@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.h,v 1.4 2006-07-05 17:46:58 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.h,v 1.5 2008-04-24 22:26:26 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_SURF_H_
 #define _EAMFCC3DMatT_SURF_H_
@@ -59,6 +59,12 @@ protected:
 
 	/** surface thickness accesssor */
 	double fSurfaceThickness;
+	
+	/** strain-independent subtraction parameter */
+	double fAlpha;
+	
+	/** zero strain surface stiffness */
+	dMatrixT fSS0;
 	
 	/** Cauchy-Born EAM solver */
 	EAMFCC3DSym_surf* fEAM;
