@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.60 2008-04-24 20:54:54 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.61 2008-04-24 21:16:57 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -1243,7 +1243,7 @@ ExceptionT::Stop();
 	fSS3 = fEAMSurfaceCB[3]->c_ijkl();
 	fSS4 = fEAMSurfaceCB[4]->c_ijkl();
 	fSS5 = fEAMSurfaceCB[5]->c_ijkl();	
-	fAlpha = 1.0;	// amount of strain-dependence to remove
+	fAlpha = 0.5;	// amount of strain-dependence to remove
 }
 
 /*************************************************************************
@@ -1493,7 +1493,6 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 						tempstiff2 = fEAMSurfaceCB[normal_type]->c_ijkl();
 						SurfaceStiffness(normal_type,tempstiff3);
 						tempstiff3*=fAlpha;
-						tempstiff3*=0.5;
 						tempstiff2-=tempstiff3;
 						fD.SetToScaled(scale, tempstiff2);
 //						fD.SetToScaled(scale, (fEAMSurfaceCB[normal_type]->c_ijkl());
