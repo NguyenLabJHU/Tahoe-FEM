@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.59 2008-04-23 15:02:00 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.60 2008-04-24 20:54:54 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -1292,7 +1292,7 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	
 	/* New variables for subtracting strain-dependent stuff - HSP 4/16/08 */
 	dMatrixT tempstrain(3), eye(3);
-	dMatrixT tempstiff(6), tempstiff2(6), product(3);
+	dMatrixT tempstiff(6), tempstiff2(6), product(3), tempstiff3(6);
 	eye.Identity();
 	
 	double t_surface;
@@ -1491,8 +1491,10 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					{
 						/* subtract the surface stiffness correction from the regular surface stiffness */
 						tempstiff2 = fEAMSurfaceCB[normal_type]->c_ijkl();
-						tempstiff*=fAlpha;
-						tempstiff2-=tempstiff;
+						SurfaceStiffness(normal_type,tempstiff3);
+						tempstiff3*=fAlpha;
+						tempstiff3*=0.5;
+						tempstiff2-=tempstiff3;
 						fD.SetToScaled(scale, tempstiff2);
 //						fD.SetToScaled(scale, (fEAMSurfaceCB[normal_type]->c_ijkl());
 					}	
