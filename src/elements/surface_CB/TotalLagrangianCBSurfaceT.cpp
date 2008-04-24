@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.61 2008-04-24 21:16:57 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.62 2008-04-24 22:26:43 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -1237,13 +1237,13 @@ ExceptionT::Stop();
 	
 	/* Call zero strain stiffness - HSP 4/16/2008 */
 	/* Calculate and store for each of the 6 normal orientations */
-	fSS0 = fEAMSurfaceCB[0]->c_ijkl();
-	fSS1 = fEAMSurfaceCB[1]->c_ijkl();
-	fSS2 = fEAMSurfaceCB[2]->c_ijkl();
-	fSS3 = fEAMSurfaceCB[3]->c_ijkl();
-	fSS4 = fEAMSurfaceCB[4]->c_ijkl();
-	fSS5 = fEAMSurfaceCB[5]->c_ijkl();	
-	fAlpha = 0.5;	// amount of strain-dependence to remove
+// 	fSS0 = fEAMSurfaceCB[0]->c_ijkl();
+// 	fSS1 = fEAMSurfaceCB[1]->c_ijkl();
+// 	fSS2 = fEAMSurfaceCB[2]->c_ijkl();
+// 	fSS3 = fEAMSurfaceCB[3]->c_ijkl();
+// 	fSS4 = fEAMSurfaceCB[4]->c_ijkl();
+// 	fSS5 = fEAMSurfaceCB[5]->c_ijkl();	
+// 	fAlpha = 0.5;	// amount of strain-dependence to remove
 }
 
 /*************************************************************************
@@ -1291,9 +1291,9 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	dMatrixT PK1(nsd), cauchy(nsd);
 	
 	/* New variables for subtracting strain-dependent stuff - HSP 4/16/08 */
-	dMatrixT tempstrain(3), eye(3);
-	dMatrixT tempstiff(6), tempstiff2(6), product(3), tempstiff3(6);
-	eye.Identity();
+// 	dMatrixT tempstrain(3), eye(3);
+// 	dMatrixT tempstiff(6), tempstiff2(6), product(3), tempstiff3(6);
+// 	eye.Identity();
 	
 	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
@@ -1459,15 +1459,15 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					
 					/* REMOVE THE STRAIN-DEPENDENT:  HSP 4/18/08 */
 					/* Calculate the Green Strain */
-					tempstrain.MultATB(F,F);
-					tempstrain-=eye;
-					tempstrain*=0.5;					
-					SurfaceStiffness(normal_type,tempstiff);
-					SurfaceStressCorrect(tempstiff,tempstrain,product);
-					product*=fAlpha;
-
-					/* Subtract surface stress correction from regular surface stress */
-					cauchy-=product;
+// 					tempstrain.MultATB(F,F);
+// 					tempstrain-=eye;
+// 					tempstrain*=0.5;					
+// 					SurfaceStiffness(normal_type,tempstiff);
+// 					SurfaceStressCorrect(tempstiff,tempstrain,product);
+// 					product*=fAlpha;
+// 
+// 					/* Subtract surface stress correction from regular surface stress */
+// 					cauchy-=product;
 					
 					/* integration weight */
 					double scale = constK*detj*w[face_ip]*J;
@@ -1490,12 +1490,12 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					else if (fIndicator == "FCC_EAM")
 					{
 						/* subtract the surface stiffness correction from the regular surface stiffness */
-						tempstiff2 = fEAMSurfaceCB[normal_type]->c_ijkl();
-						SurfaceStiffness(normal_type,tempstiff3);
-						tempstiff3*=fAlpha;
-						tempstiff2-=tempstiff3;
-						fD.SetToScaled(scale, tempstiff2);
-//						fD.SetToScaled(scale, (fEAMSurfaceCB[normal_type]->c_ijkl());
+// 						tempstiff2 = fEAMSurfaceCB[normal_type]->c_ijkl();
+// 						SurfaceStiffness(normal_type,tempstiff3);
+// 						tempstiff3*=fAlpha;
+// 						tempstiff2-=tempstiff3;
+// 						fD.SetToScaled(scale, tempstiff2);
+						fD.SetToScaled(scale, fEAMSurfaceCB[normal_type]->c_ijkl());
 					}	
 					else if (fIndicator == "Tersoff_CB")
 						fD.SetToScaled(scale, fTersoffSurfaceCB[normal_type]->c_ijkl());
@@ -1561,9 +1561,9 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 	dMatrixT PK1(nsd), cauchy(nsd);
 	
 	/* HSP added 4/18/08 for remove strain-dependence */
-	dMatrixT tempstrain(3), eye(3);
-	dMatrixT tempstiff(6), tempstress(3);
-	eye.Identity();
+// 	dMatrixT tempstrain(3), eye(3);
+// 	dMatrixT tempstiff(6), tempstress(3);
+// 	eye.Identity();
 	
 	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
@@ -1702,15 +1702,15 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
  					else
  						int blah = 0;
 				
-  					/* bulk material model - STRAIN INDEPENDENT PART 4/18/08 */
-					tempstrain.MultATB(F,F);	
-					tempstrain-=eye;
-					tempstrain*=0.5;
-					SurfaceStiffness(normal_type,tempstiff);
-					SurfaceStressCorrect(tempstiff,tempstrain,tempstress);
-					tempstress*=fAlpha;
-					/* Subtract surface stress correction from regular surface stress */
-					cauchy-=tempstress;
+//   					/* bulk material model - STRAIN INDEPENDENT PART 4/18/08 */
+// 					tempstrain.MultATB(F,F);	
+// 					tempstrain-=eye;
+// 					tempstrain*=0.5;
+// 					SurfaceStiffness(normal_type,tempstiff);
+// 					SurfaceStressCorrect(tempstiff,tempstrain,tempstress);
+// 					tempstress*=fAlpha;
+// 					/* Subtract surface stress correction from regular surface stress */
+// 					cauchy-=tempstress;
 					
 					/* compute PK1/J */
 					PK1.MultABT(cauchy, F_inv);
