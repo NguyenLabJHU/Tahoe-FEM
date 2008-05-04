@@ -1,6 +1,5 @@
-/* $Id: FEManagerT.New.cpp,v 1.7 2008-04-06 21:57:44 regueiro Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.8 2008-05-04 21:51:34 regueiro Exp $ */
 #include "FEManagerT.h"
-#include "FEDEManagerT.h"
 
 /* element configuration header */
 #include "ElementsConfig.h"
@@ -13,6 +12,7 @@
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
 #include "ThermomechanicalCouplingManagerT.h"
+#include "FEDEManagerT.h"
 #endif
 #endif
 
