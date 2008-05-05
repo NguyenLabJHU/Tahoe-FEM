@@ -1,0 +1,33 @@
+1. FEDEManagerT
+
+FEDEManagerT::Solve() overidden to include DemComputeStep() and GhostDisplaceStep().
+
+FEDEManagerT::SolveStep() overridden to take into account ghost particle contributions.
+   status = fSolvers[fCurrentGroup]->Solve(iter, *this, fGhostFBC);
+
+FEDEManagerT::FormRHS() overridden to take into account fGhostFBC.
+
+2. SolverT::Solve() overloaded to be an interface which can accept both fFEDEManager and fGhostFBC.
+	virtual SolutionStatusT Solve(int max_iterations, FEDEManagerT&	fFEDEManager, ArrayT<FBC_CardT>& fGhostFBC) {};
+
+3. LinearSolver::Solve() overloaded to take into account both fGhostFBC and fFBC, using fFEDEManager and fFEManager respectively.
+	/* initialize */
+	fRHS = 0.0;
+			
+	/* form the residual force vector from ghost particles */
+	fFEDEManager.FormRHS(Group(), fGhostFBC);
+
+	/* form the residual force vector */
+	fFEManager.FormRHS(Group());
+
+4. NLSolver::Solve() overloaded to take into account both fGhostFBC and fFBC, using fFEDEManager and fFEManager respectively.
+	fRHS = 0.0;
+	fFEDEManager.FormRHS(Group(), fGhostFBC);
+	fFEManager.FormRHS(Group());
+
+5. NodeManagerT::FormRHS() overloaded to assemble only ghost particle contributions to the residual force.
+
+6. FieldT::FormRHS() overloaded to assemble only ghost particle contributions to the residual force.
+
+7. FBC_CardT adds memeber functions: ClearValues(), AddValues(), Value().
+
