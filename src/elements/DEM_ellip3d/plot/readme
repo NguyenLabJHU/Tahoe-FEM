@@ -1,0 +1,36 @@
+plot:  
+it plots all particles at a time as a snapshot. Animations can be made by combining snapshots.
+
+plotsec:
+it plots half of all particles from a cross-sectional perspective. Animations can be made by
+combining snapshots.
+
+plotmz:  
+it plots each particle as a zone.
+
+plot1pc: (plot-1-particle-contacting) 
+it plots one particle and its contacting neighbours as a snapshot. Animations can be made by
+combining snapshots, however, it plots a neighour only when the neighbour is in contact with
+it, so a neighbour may first appear and  then disappear in animation.
+
+plot1pp: (plot-1-particle-possible)
+it plots a particle and its possible neighbours as a snapshot. Animations can be made by
+combining snapshots.
+
+plot1pmz: (plot-1-particle-multiple_zones)
+it plots one particle and its contacting neighbours as a snapshot, each particle being a zone.
+
+plotvec: 
+it plots vectors such as force and velocity.
+
+probe1p:
+it extracts a particle's information.
+
+probedual:
+it extracts contact info between two particles.
+
+plotpile, plotsecpile:
+it plots for the case of rectangular pile specifically.
+
+initfree:
+it extracts free particles' information for the case of fixed-particle-boundary.

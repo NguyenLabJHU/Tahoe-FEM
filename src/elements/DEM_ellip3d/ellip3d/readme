@@ -1,0 +1,51 @@
+1. HOW TO RUN:
+   step 1) revise main.cxx per your need
+   step 2) make
+   step 3) ./ellip3d or ./ellip3d > tmp &
+
+2. HISTORY:
+all files:  header files in std space; use const instead of #define; add const for constant member functions
+
+assembly.cxx:
+01. create, use (dimension - len), a smaller space for generating particles. 
+02. deposit/isocompress, use reach of ambient pressure or displacement condition to stop iterations.
+03. output information as progress, particles and contacts.
+04. createContact() 1. remove PossContact. 2. include only true contacts.
+05. createsample(), can optionally set up initail velocity/angular velocity and constant force/moment.
+06. gravity can be considered or not, depending on a boolean variable.
+07. checkinPreShearForce() and checkoutShearForce() in createContact() and internforce(), respectively.
+08. OpenMP implementation in createContact().
+
+contact.h:
+01. in ContactForce(), addMoment use global frame.
+02. correct code errors in Hertz-Mindlin formula between particles
+03. delete innermostPoint(), then isOverlapped() and ContactForce() use root6() directly.
+04. delete update(), which is completely unnecessary.
+05. define a variable val for calculating shear force, assure it is less than 1.
+06. define class cnttangt to store PreShearForce, working for both particle-particle (and particle-wall) contacts.
+
+particle.cxx:
+01. update(), change itegration algorithm, considering damping.
+02. update(), don't set force/moment as zero at the end; instead, setForceZero() at the beginning of each iteration.
+03. intersectionWithLine() rewrote.
+04. getRadius() rewrote, and osculating circle radius r= r1*r2/(r1+r2).
+05. planeRBForce() and cylinderRBFroce() use global frame.
+06. update() converts between global frame and local frame.
+07. constructor particle() is revised to satisfy QQ'=I.
+08. ensure a/b/c corresond to x/y/z
+09. constructor and update(): acos() and normalize
+10. correct errors in Hertz-Mindlin formula between particle and walls.
+11. setZero() can designate force or moment; add private members const_force and const_moment.
+12. contact.h-06, store PreShearForce for particle-wall contacts.
+
+others:
+vec.cxx:      acos() and normalize()
+root6.cxx:    return bool instead of vector, algorithm revised to skip case of zero determinant.
+
+numerical recipes in C: 
+zrhqr.cxx (6 files) and ran.cxx:
+	rename .c to .cxx
+	#include <cmath>
+	using namespace std;
+	return bool
+	replace float with long double
