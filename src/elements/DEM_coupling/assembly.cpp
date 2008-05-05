@@ -2822,8 +2822,8 @@ void assembly::Run(int total_steps, char* particlefile, char* contactfile, int r
 	    createContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	setForceZero(Gravity); // apply constant force in 1 step
-	//setForceZero(Gravity, rumtimes); // apply constant force in 100 steps
+	//setForceZero(Gravity); // apply constant force in 1 step
+	setForceZero(Gravity, rumtimes); // apply constant force in 100 steps
 
 	// 3. calculate contact forces/moments and apply them to particles.
 	internForce(avgNormal, avgTangt);
