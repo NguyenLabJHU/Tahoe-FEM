@@ -1,4 +1,4 @@
-# $Id: GNU-3.4.macros,v 1.1 2005-10-05 22:49:44 cjkimme Exp $
+# $Id: GNU-3.4.macros,v 1.2 2008-05-06 22:42:43 paklein Exp $
 # GNU 2.9x
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO
@@ -9,7 +9,7 @@ COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
-CFLAGS_CC   = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS) -Wno-deprecated
 CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 LINK        = $(COMP_CC)
 MAKEDEPEND_C         = makedepend
