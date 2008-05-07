@@ -29,7 +29,7 @@ void FEDEManagerT::TakeParameterList(const ParameterListT& list)
     FEManagerT::TakeParameterList(list);
     
     /* read DEM data */
-    fDEManager.TakeParameter("de_parameter", fGhostElemSet);
+    fDEManager.TakeParameter("dem.dat", fGhostElemSet);
 
     /* calculate parent domain coordinates for ghost particles */
     fDEManager.MapToParentDomain(ModelManager(), fGhostElemSet);
