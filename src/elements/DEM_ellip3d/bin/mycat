@@ -1,0 +1,12 @@
+#!/usr/bin/perl -w
+
+for ($loop=0;$loop<100;$loop++)
+{
+	$num=sprintf("%03d",$loop);
+	$v1 = "dem_particle_".$num.".dat";
+	$v2 = "fem_mesh_".$num.".dat";
+	$v3 = "defe_".$num.".dat";
+	print "cat $v1 $v2 > $v3\n";
+	system("cat $v1 $v2 > $v3");
+}
+
