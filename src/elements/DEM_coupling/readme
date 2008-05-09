@@ -1,3 +1,7 @@
+GNU.SUSE.debug.macros
+DevelopmentElementsConfig.conf
+FEManagerT.New.cpp
+
 1. FEDEManagerT
 
 FEDEManagerT::Solve() overidden to include DemComputeStep() and GhostDisplaceStep().
@@ -30,4 +34,5 @@ FEDEManagerT::FormRHS() overridden to take into account fGhostFBC.
 6. FieldT::FormRHS() overloaded to assemble only ghost particle contributions to the residual force.
 
 7. FBC_CardT adds memeber functions: ClearValues(), AddValues(), Value().
+
 
