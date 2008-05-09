@@ -31,15 +31,14 @@ public:
 
     void MapToParentDomain(ModelManagerT* fModelManager, iArray2DT& fGhostElemSet);
 
+    void PrintFE(NodeManagerT* fNodeManager);
+
     virtual void Run();
 
     void GhostForce(ArrayT<FBC_CardT>& fGhostFBC, ModelManagerT* fModelManager, iArray2DT& fGhostElemSet);
 
-    void PrintFE(NodeManagerT* fNodeManager);
-
     void GhostDisplace(NodeManagerT* fNodeManager, iArray2DT& fGhostElemSet);
     
-
 protected:
     double TimeStep;
     int NumStep;
@@ -50,6 +49,7 @@ protected:
     int NumElemNodes;
     iArray2DT fElementSet;
     GeometryT::CodeT fGeometryCode;
+    GeometryBaseT* fGeometryBase;
 
     int RunTimes;
 };

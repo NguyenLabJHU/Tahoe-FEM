@@ -51,8 +51,9 @@ void DEManagerT::MapToParentDomain(ModelManagerT* fModelManager, iArray2DT& fGho
     fElementSet = fModelManager->ElementGroup(fString);
     NumElemNodes = fElementSet.MinorDim();
 
-    // set up fParentDomain
+    // set up fGeometryBase and fParentDomain
     fGeometryCode = fModelManager->ElementGroupGeometry(fString);
+    fGeometryBase = GeometryT::New(fGeometryCode, NumElemNodes);
     ParentDomainT fParentDomain(fGeometryCode, 8, NumElemNodes);
 
     // for each ghost particle
@@ -122,7 +123,6 @@ void DEManagerT::GhostForce(ArrayT<FBC_CardT>& fGhostFBC, ModelManagerT* fModelM
     // set up shape function's dimension
     dArrayT Na;
     Na.Dimension(NumElemNodes);
-    GeometryBaseT* fGeometryBase = GeometryT::New(fGeometryCode, NumElemNodes);
 
     for (int fg = 0; fg < fGhostElemSet.MajorDim(); fg++)
     {
@@ -186,7 +186,6 @@ void DEManagerT::GhostDisplace(NodeManagerT* fNodeManager, iArray2DT& fGhostElem
     // set up shape function's dimension
     dArrayT Na;
     Na.Dimension(NumElemNodes);
-    GeometryBaseT* fGeometryBase = GeometryT::New(fGeometryCode, NumElemNodes);
 
     // for each ghost particle
     list< particle* >::iterator it;
