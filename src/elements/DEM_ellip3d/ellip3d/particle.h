@@ -58,6 +58,7 @@ public:
 	long double getPotEnergy(long double ref) const;
 
 	void   setID(int n);
+	void   setType(int n);
 	void   setA(long double dd);
 	void   setB(long double dd);
 	void   setC(long double dd);

@@ -234,6 +234,10 @@ public:
 		  char* particlefile,
 		  char* boundaryfile);
 
+	void TrimPtclBdryByHeight(double height,
+				  char* iniptclfile,
+				  char* particlefile);
+
         // Isotropically compress floating particles to a specific ambient pressure, which is usually a low
         // value in order to create an intial status. Force boundaries are used. This process may be not 
         // physically true.

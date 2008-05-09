@@ -305,6 +305,7 @@ long double particle::getPotEnergy(long double ref) const{
 
 
 void   particle::setID(int n){ID=n;}
+void   particle::setType(int n) {type=n;}
 void   particle::setA(long double dd){a=dd;}
 void   particle::setB(long double dd){b=dd;}
 void   particle::setC(long double dd){c=dd;}

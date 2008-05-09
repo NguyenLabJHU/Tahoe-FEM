@@ -2385,6 +2385,34 @@ void assembly::trim(int   rors,
 }
 
 
+void assembly::TrimPtclBdryByHeight(double height,
+			    char* iniptclfile,
+			    char* particlefile)
+{
+    createSample(iniptclfile);
+
+    list<particle*>::iterator itr, itp;
+    for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
+	if ( (*itr)->getType() == 1 ) { // 1-fixed
+	    vec center=(*itr)->getCurrPosition();
+	    if(center.getz() > height)
+	    {
+		itp = itr;
+		--itr;
+		delete (*itp); // release memory
+		ParticleList.erase(itp); 
+	    }
+	    else
+		(*itr)->setType(10); // 10-ghost
+	}
+    }
+
+    TotalNum = ParticleList.size();
+    
+    printPtcl(particlefile);
+}
+
+
 // deposit floating particles into a container through applying gravity,
 // the container can be as simple as a bottom plate
 void assembly::deposit(int   total_steps,  

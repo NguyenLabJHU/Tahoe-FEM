@@ -107,8 +107,13 @@ int main()
 // 4-special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Various types of simulation, copy them into main() to run, only one block at at time.
+// Various types of simulation, copy them into part 2 of main() to run, only one block at at time.
 /*
+
+    A.TrimPtclBdryByHeight(0.061,
+			   "pile_particle_ini",
+			   "pile_particle_trimmed");
+
 
     // size, shape, and gradation of particles
     int rorc             = 1;     // rectangular = 1 or cylindrical = 0
