@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.22 2007-01-14 22:42:35 paklein Exp $ */
+/* $Id: SolverT.h,v 1.23 2008-05-12 22:32:27 regueiro Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -14,6 +14,14 @@
 #include "dArrayT.h"
 #include "GlobalMatrixT.h"
 #include "GlobalT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#ifdef DEM_COUPLING_DEV
+#include "FEDEManagerT.h"
+#include "FBC_CardT.h"
+#endif
+#endif
 
 namespace Tahoe {
 
@@ -80,6 +88,10 @@ public:
 	 *        also indicate the solution procedure has failed.
 	 * \return one of SolverT::IterationsStatusT */
 	virtual SolutionStatusT Solve(int max_iterations) = 0;
+
+#ifdef DEM_COUPLING_DEV
+	virtual SolutionStatusT Solve(int max_iterations, FEDEManagerT& fFEDEManager, ArrayT<FBC_CardT>& fGhostFBC) {};
+#endif
 
 	/** end solution step */
 	virtual void CloseStep(void);

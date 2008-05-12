@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.12 2004-12-20 02:21:15 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.13 2008-05-12 22:32:27 regueiro Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -28,6 +28,10 @@ public:
 	 *        also indicate the solution procedure has failed.
 	 * \return one of SolverT::IterationsStatusT */
 	virtual SolutionStatusT Solve(int max_iterations);
+
+#ifdef DEM_COUPLING_DEV
+	virtual SolutionStatusT Solve(int num_iterations, FEDEManagerT& fFEDEManager, ArrayT<FBC_CardT>& fGhostFBC);
+#endif
 
 	/** end solution step */
 	virtual void CloseStep(void);

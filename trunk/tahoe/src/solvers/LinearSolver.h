@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.h,v 1.8 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: LinearSolver.h,v 1.9 2008-05-12 22:32:27 regueiro Exp $ */
 /* created: paklein (05/30/1996) */
 #ifndef _LINEAR_SOLVER_H_
 #define _LINEAR_SOLVER_H_
@@ -28,6 +28,10 @@ public:
 	 *        also indicate the solution procedure has failed.
 	 * \return one of SolverT::IterationsStatusT */
 	virtual SolutionStatusT Solve(int num_iterations);
+
+#ifdef DEM_COUPLING_DEV
+	virtual SolutionStatusT Solve(int num_iterations, FEDEManagerT& fFEDEManager, ArrayT<FBC_CardT>& fGhostFBC);
+#endif
 
 	/** signal time step change. Chance to clear cached values that may depend on the
 	 * time increment. LinearSolver::SetTimeStep triggers recalculation of the LHS
