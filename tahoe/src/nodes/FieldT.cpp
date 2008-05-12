@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.52 2006-11-20 17:27:35 r-jones Exp $ */
+/* $Id: FieldT.cpp,v 1.53 2008-05-12 22:30:59 regueiro Exp $ */
 
 #include "FieldT.h"
 
@@ -375,6 +375,28 @@ void FieldT::FormRHS(void)
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->ApplyRHS();
 }
+
+/* assemble only ghost particle contributions to the residual */
+#ifdef DEM_COUPLING_DEV
+void FieldT::FormRHS(ArrayT<FBC_CardT>& fGhostFBC)
+{
+    int size = fGhostFBC.Length();
+    if (size > 0) {
+	    dArrayT fGhostFBCValues;
+	    iArrayT fGhostEqnos;
+	    
+	    fGhostFBCValues.Dimension(size);
+	    fGhostEqnos.Dimension(size);
+
+	    for(int i = 0; i < size; i++) {
+		fGhostFBCValues[i] = fGhostFBC[i].CurrentValue();
+		fGhostEqnos[i] = fEqnos(fGhostFBC[i].Node(), fGhostFBC[i].DOF());
+	    }
+
+	    fFieldSupport.AssembleRHS(Group(), fGhostFBCValues, fGhostEqnos);
+	}
+}
+#endif
 
 /* assemble contributions to the tangent */
 void FieldT::FormLHS(GlobalT::SystemTypeT sys_type)

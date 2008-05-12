@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.25 2007-01-15 05:53:18 paklein Exp $ */
+/* $Id: FieldT.h,v 1.26 2008-05-12 22:30:59 regueiro Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -14,6 +14,13 @@
 #include "FBC_CardT.h"
 #include "GlobalT.h"
 #include "AutoArrayT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#ifdef DEM_COUPLING_DEV
+#include "FBC_CardT.h"
+#endif
+#endif
 
 namespace Tahoe {
 
@@ -145,6 +152,11 @@ public:
 	/** compute RHS-side, residual force vector and assemble to solver
 	 * \param support host information */
 	void FormRHS(void);
+
+	/* assemble only ghost particle contributions to the residual */
+#ifdef DEM_COUPLING_DEV
+	void FormRHS(ArrayT<FBC_CardT>& fGhostFBC);
+#endif
 
 	/** call to signal end of RHS calculation to allow NodeManagerT to post-process
 	 * the total system force */
