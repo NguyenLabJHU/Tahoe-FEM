@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT_surf.h,v 1.1 2007-11-09 15:32:05 hspark Exp $ */
+/* $Id: CB_TersoffT_surf.h,v 1.2 2008-05-12 01:23:03 hspark Exp $ */
 /* created: paklein (10/14/1998) */
 #ifndef _CB_TERSOFF_T_SURF_H_
 #define _CB_TERSOFF_T_SURF_H_
@@ -66,6 +66,12 @@ protected:
 
 	/* returns the strain energy density for the specified strain */
 	virtual double ComputeEnergyDensity(const dSymMatrixT& E);
+	
+	/** strain-independent subtraction parameter */
+	double fAlpha;
+	
+	/** zero strain surface stiffness */
+	dMatrixT fSS0;
 	
 private:
 

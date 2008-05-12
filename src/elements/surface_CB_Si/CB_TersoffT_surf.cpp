@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT_surf.cpp,v 1.2 2008-01-23 21:13:16 hspark Exp $ */
+/* $Id: CB_TersoffT_surf.cpp,v 1.3 2008-05-12 01:23:03 hspark Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffT_surf.h"
 
@@ -23,6 +23,7 @@ const int	kDC111		= 2;
 CB_TersoffT_surf::CB_TersoffT_surf(void):
 	ParameterInterfaceT("Tersoff_CB_surf"),
 	fSurfaceThickness(-1),
+	fAlpha(0.0),
 	fTersoffSolver_surf(NULL)
 {
 
@@ -52,6 +53,10 @@ ParameterInterfaceT* CB_TersoffT_surf::NewSub(const StringT& name) const
 /* accept parameter list */
 void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 {
+	/* Dimension */
+	fSS0.Dimension(6);
+	fSS0 = 0.0;
+
 	/* inherited */
 	NL_E_MatT::TakeParameterList(list);
 
@@ -70,6 +75,11 @@ void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 	
 	/* Calculate Density */
 	fDensity = fTersoffSolver_surf->Density();
+	
+	/* Calculate strain-independent subtraction values */
+	fAlpha = 0.0;
+	fSS0 = FSSolidMatT::C_IJKL();
+	fSS0*=fAlpha;
 }
 
 /* return the number of constitutive model output parameters */
@@ -107,7 +117,7 @@ void CB_TersoffT_surf::ComputeOutput(Tahoe::dArrayT& output)
  *************************************************************************/
 
 void CB_TersoffT_surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
-{
+{	
 	/* zero initial guess */
 	fXsi = 0.0;
 
@@ -116,6 +126,9 @@ void CB_TersoffT_surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 
 	/* compute moduli */
 	fTersoffSolver_surf->SetModuli(fC, fXsi, moduli);
+
+	/* Strain-independent correction */
+	moduli-=fSS0;
 }
 
 /* returns the stress corresponding to the given strain - the strain
@@ -131,9 +144,14 @@ void CB_TersoffT_surf::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 
 	/* compute stress */
 	fTersoffSolver_surf->SetStress(fC, fXsi, fPK2);
-	
+
 	/* shape change */
 	PK2.FromMatrix(fPK2);
+	
+	/* Strain-independent correction */
+	dSymMatrixT product(3);
+	product.A_ijkl_B_kl(fSS0,E);
+	PK2-=product;
 }
 
 /* returns the strain energy density for the specified strain */
