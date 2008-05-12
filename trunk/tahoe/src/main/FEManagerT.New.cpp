@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.New.cpp,v 1.9 2008-05-08 01:28:29 paklein Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.10 2008-05-12 22:28:36 regueiro Exp $ */
 #include "FEManagerT.h"
 
 /* element configuration header */
@@ -12,11 +12,13 @@
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
 #include "ThermomechanicalCouplingManagerT.h"
-
-#ifdef DEM_COUPLING_DEV
-#include "FEDEManagerT.h"
+#endif
 #endif
 
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#ifdef DEM_COUPLING_DEV
+#include "FEDEManagerT.h"
 #endif
 #endif
 
@@ -89,6 +91,7 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 				    name.Pointer());
 	    return NULL;
 #endif
+
 	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized name \"%s\"",
