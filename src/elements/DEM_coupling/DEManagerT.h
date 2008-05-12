@@ -27,11 +27,11 @@ public:
 
     int GetNumStep() { return NumStep; };
 
-    int GetNumPrint() { return NumPrint; };
-
     void MapToParentDomain(ModelManagerT* fModelManager, iArray2DT& fGhostElemSet);
 
     void PrintFE(NodeManagerT* fNodeManager);
+
+    void PrintDE();
 
     virtual void Run();
 
@@ -42,7 +42,6 @@ public:
 protected:
     double TimeStep;
     int NumStep;
-    int NumPrint;
     std::list<dem::particle*> fGhostParticleList;
 
     int NumSD;
@@ -51,7 +50,7 @@ protected:
     GeometryT::CodeT fGeometryCode;
     GeometryBaseT* fGeometryBase;
 
-    int RunTimes;
+    int PrintNum;
 };
 
 } /* namespace Tahoe */

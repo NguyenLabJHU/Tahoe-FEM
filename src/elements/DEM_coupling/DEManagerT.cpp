@@ -22,7 +22,7 @@ namespace Tahoe {
 
 /* constructor */
 DEManagerT::DEManagerT()
-    :RunTimes(0)
+    :PrintNum(0)
 {
 
 }
@@ -35,7 +35,7 @@ DEManagerT::~DEManagerT(void)
 
 void DEManagerT::TakeParameter(char* database, iArray2DT& fGhostElemSet)
 {
-    ReadSample(database, TimeStep, NumStep, NumPrint, fGhostElemSet, fGhostParticleList);
+    ReadSample(database, TimeStep, NumStep, fGhostElemSet, fGhostParticleList);
 }
 
 void DEManagerT::MapToParentDomain(ModelManagerT* fModelManager, iArray2DT& fGhostElemSet)
@@ -99,18 +99,52 @@ void DEManagerT::MapToParentDomain(ModelManagerT* fModelManager, iArray2DT& fGho
 
 }
 
-void DEManagerT::Run()
+void DEManagerT::PrintFE(NodeManagerT* fNodeManager)
 {
-    cout<<endl<<" DEM part is running..."<<endl;
+    char fefile[50];
+    char stepstr[4];
+    sprintf(stepstr, "%03d", PrintNum++); 
+    strcpy(fefile, "fem_mesh_"); strcat(fefile, stepstr); strcat(fefile,".dat");
+    ofstream ofs(fefile);
+    if(!ofs) {
+	cout<<"stream error in PrintFE!"<<endl; exit(-1);
+    }
+    ofs.setf(ios::scientific, ios::floatfield);
 
+    const dArray2DT& fCurrCoords = fNodeManager->CurrentCoordinates();
+    ofs << "ZONE N=" << fCurrCoords.MajorDim() << ", E=" << fElementSet.MajorDim() << ", DATAPACKING=POINT, ZONETYPE=FEBRICK" << endl;
+
+    for (int i = 0; i< fCurrCoords.MajorDim(); i++) {
+	for (int j = 0; j < fCurrCoords.MinorDim(); j++)
+	    ofs << setw(16) << fCurrCoords(i,j);
+	ofs << endl;
+    }
+
+    for (int i = 0; i< fElementSet.MajorDim(); i++) {
+	for (int j = 0; j < fElementSet.MinorDim(); j++)
+	    ofs << setw(10) << fElementSet(i,j) + 1;
+	ofs << endl;
+    }
+
+    ofs.close();
+}
+
+void DEManagerT::PrintDE()
+{
     char pfile[50];
     char cfile[50];
     char stepstr[4];
-    sprintf(stepstr, "%03d", RunTimes-1); 
+    sprintf(stepstr, "%03d", PrintNum-1); 
     strcpy(pfile, "dem_particle_"); strcat(pfile, stepstr);
     strcpy(cfile, "dem_contact_");  strcat(cfile, stepstr);
+    printPtcl(pfile);
+    printCntct(cfile);
+}
 
-    assembly::Run(NumStep, pfile, cfile, RunTimes-1);
+void DEManagerT::Run()
+{
+    cout<<endl<<" DEM part is running..."<<endl;
+    assembly::Run(NumStep, PrintNum-1);
 }
 
 void DEManagerT::GhostForce(ArrayT<FBC_CardT>& fGhostFBC, ModelManagerT* fModelManager, iArray2DT& fGhostElemSet)
@@ -228,36 +262,6 @@ void DEManagerT::GhostDisplace(NodeManagerT* fNodeManager, iArray2DT& fGhostElem
 	tmp.print();
     }
 */
-}
-
-void DEManagerT::PrintFE(NodeManagerT* fNodeManager)
-{
-    char fefile[50];
-    char stepstr[4];
-    sprintf(stepstr, "%03d", RunTimes++); 
-    strcpy(fefile, "fem_mesh_"); strcat(fefile, stepstr); strcat(fefile,".dat");
-    ofstream ofs(fefile);
-    if(!ofs) {
-	cout<<"stream error in PrintFE!"<<endl; exit(-1);
-    }
-    ofs.setf(ios::scientific, ios::floatfield);
-
-    const dArray2DT& fCurrCoords = fNodeManager->CurrentCoordinates();
-    ofs << "ZONE N=" << fCurrCoords.MajorDim() << ", E=" << fElementSet.MajorDim() << ", DATAPACKING=POINT, ZONETYPE=FEBRICK" << endl;
-
-    for (int i = 0; i< fCurrCoords.MajorDim(); i++) {
-	for (int j = 0; j < fCurrCoords.MinorDim(); j++)
-	    ofs << setw(16) << fCurrCoords(i,j);
-	ofs << endl;
-    }
-
-    for (int i = 0; i< fElementSet.MajorDim(); i++) {
-	for (int j = 0; j < fElementSet.MinorDim(); j++)
-	    ofs << setw(10) << fElementSet(i,j) + 1;
-	ofs << endl;
-    }
-
-    ofs.close();
 }
 
 } /* namespace Tahoe ends */

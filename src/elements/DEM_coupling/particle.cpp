@@ -588,9 +588,9 @@ void particle::setZero(bool gravity){
 }
 
 
-void particle::setZero(bool gravity, int runtimes){
-    force  = const_force * (runtimes+1)/100;
-    moment = const_moment * (runtimes+1)/100;
+void particle::setZero(bool gravity, int PrintNum){
+    force  = const_force * (PrintNum+1)/100;
+    moment = const_moment * (PrintNum+1)/100;
     if (gravity) {
 	force += vec(0,0,-9.8*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
 	if (getType()==3)
