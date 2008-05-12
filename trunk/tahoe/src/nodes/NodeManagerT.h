@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.29 2005-05-24 22:12:13 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.30 2008-05-12 22:30:59 regueiro Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -20,6 +20,13 @@
 #include "IntegratorT.h"
 #include "nVariArray2DT.h"
 #include "FieldSupportT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#ifdef DEM_COUPLING_DEV
+#include "FBC_CardT.h"
+#endif
+#endif
 
 namespace Tahoe {
 
@@ -162,6 +169,11 @@ public:
 	/** compute RHS-side, residual force vector and assemble to solver
 	 * \param group equation group to solve */
 	virtual void FormRHS(int group);
+
+        /* compute only the ghost particle contribution to the residual force vector */
+#ifdef DEM_COUPLING_DEV
+	virtual void FormRHS(int group, ArrayT<FBC_CardT>& fGhostFBC);
+#endif
 
 	/** call to signal end of RHS calculation to allow NodeManagerT to post-process
 	 * the total system force */

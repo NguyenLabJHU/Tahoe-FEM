@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.66 2006-09-04 01:25:56 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.67 2008-05-12 22:30:59 regueiro Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -376,6 +376,16 @@ void NodeManagerT::FormRHS(int group)
 			fFields[i]->FormRHS();
 }
 
+/* compute only the ghost particle contribution to the residual force vector */
+#ifdef DEM_COUPLING_DEV
+void NodeManagerT::FormRHS(int group, ArrayT<FBC_CardT>& fGhostFBC)
+{
+	for (int i = 0; i < fFields.Length(); i++)
+		if (fFields[i]->Group() == group)
+			fFields[i]->FormRHS(fGhostFBC);
+}
+#endif
+
 /* call to signal end of RHS calculation to allow NodeManagerT to post-process
  * the total system force */
 void NodeManagerT::EndRHS(int group)
@@ -466,7 +476,7 @@ void NodeManagerT::UpdateCurrentCoordinates(void)
 		{
 			/* update coordinates of owned nodes */
 			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], field_start, field_end);
-			
+
 			/* update coordinates of image nodes */
 			int first_ghost = fCommManager.NumRealNodes();
 			int offset = first_ghost*NumSD();
