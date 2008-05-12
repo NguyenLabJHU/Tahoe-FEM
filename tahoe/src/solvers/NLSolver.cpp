@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.40 2006-10-24 00:34:41 tdnguye Exp $ */
+/* $Id: NLSolver.cpp,v 1.41 2008-05-12 22:32:27 regueiro Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -261,6 +261,225 @@ approx_LHS = tmp;
 		return kFailed;
 	}
 }
+
+/* generate the solution for the current time sequence */
+#ifdef DEM_COUPLING_DEV
+SolverT::SolutionStatusT NLSolver::Solve(int max_iterations, FEDEManagerT& fFEDEManager, ArrayT<FBC_CardT>& fGhostFBC)
+{
+	/* write some header information */
+	if (fLHS->CheckCode() != GlobalMatrixT::kNoCheck) {
+		ofstreamT& out = fFEManager.Output();
+		out << " NLSolver::Solve:\n"
+		    << "      group = " << fGroup+1 << '\n'
+		    << " iterations = " << max_iterations << '\n';	
+	}
+
+	try
+	{ 	
+
+	/* counters */
+	int num_iterations = 0;
+	int tan_iterations = 0;
+
+	/* form the first residual force vector */
+	fRHS_lock = kOpen;
+	if (fLHS_update) {
+		fLHS->Clear();
+		fLHS_lock = kOpen; /* LHS open for assembly, too! */
+	}
+	else
+		fLHS_lock = kIgnore; /* ignore assembled values */
+	fRHS = 0.0;
+	/* form the residual force vector from ghost particles */
+	fFEDEManager.FormRHS(Group(), fGhostFBC);
+	fFEManager.FormRHS(Group());	
+	fLHS_lock = kLocked;
+	fRHS_lock = kLocked;
+
+	/* initial error */
+	double error = Residual(fRHS);
+	SolutionStatusT solutionflag = ExitIteration(error, fNumIteration);
+
+	/* check for relaxation */
+	if (solutionflag == kConverged) {
+		GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+
+		/* reset global equations */
+		if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
+			fFEManager.SetEquationSystem(Group());
+			
+		/* recompute force and continue iterating */
+		if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
+
+			/* set marker */
+			fRestartIteration = IterationNumber();
+
+			/* tangent reformed next iteration? */
+			if (tan_iterations + 1 == fReformTangentIterations)
+				fLHS_update = true;
+			else
+				fLHS_update = false;
+
+			/* recalculate residual */
+			if (fLHS_update) {
+				fLHS->Clear();
+				fLHS_lock = kOpen; /* LHS open for assembly, too! */
+			}
+			else
+				fLHS_lock = kIgnore; /* ignore assembled values */
+			fRHS = 0.0;
+			/* form the residual force vector from ghost particles */
+			fFEDEManager.FormRHS(Group(), fGhostFBC);
+			fFEManager.FormRHS(Group());	
+			fLHS_lock = kLocked;
+			fRHS_lock = kLocked;
+			
+			/* new error */
+			error = Residual(fRHS);		
+
+			/* test for convergence */
+			solutionflag = ExitIteration(error, fNumIteration);
+		}
+		
+		if(relaxcode == GlobalT::kFailReset)
+			solutionflag = kFailed;
+		
+	}
+			
+	/* loop on error */
+	while (solutionflag == kContinue &&
+		(max_iterations == -1 || num_iterations < max_iterations))
+	{
+		/* increment counters */
+		num_iterations++;
+		tan_iterations++;
+	
+		/* recompute LHS? */
+		if (num_iterations == 1 || tan_iterations >= fReformTangentIterations) {
+			fLHS_update = true;
+			tan_iterations = 0;
+		}
+		else fLHS_update = false;
+
+		/* reform the LHS matrix */
+		if (fLHS_update) {
+		
+			/* recalculate */
+			fLHS_lock = kOpen;
+			fFEManager.FormLHS(Group(), fLHS->MatrixType());
+			fLHS_lock = kLocked;
+		
+			/* compare with approximate LHS */
+			if (fLHS->CheckCode() == GlobalMatrixT::kCheckLHS) {
+				const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
+				CompareLHS(*fLHS, *approx_LHS);
+
+//TEMP - use the approximate matrix
+GlobalMatrixT* tmp = fLHS;
+fLHS = (GlobalMatrixT*) approx_LHS;
+approx_LHS = tmp;
+
+				delete approx_LHS;
+			}
+		}
+
+		/* update solution */
+		Iterate();
+		fNumIteration++;
+
+		/* tangent reformed next iteration? */
+		if (tan_iterations + 1 == fReformTangentIterations)
+			fLHS_update = true;
+		else
+			fLHS_update = false;
+
+		/* recalculate residual */
+		if (fLHS_update) {
+			fLHS->Clear();
+			fLHS_lock = kOpen; /* LHS open for assembly, too! */
+		}
+		else
+			fLHS_lock = kIgnore; /* ignore assembled values */
+		fRHS = 0.0;
+		/* form the residual force vector from ghost particles */
+		fFEDEManager.FormRHS(Group(), fGhostFBC);
+		fFEManager.FormRHS(Group());	
+		fLHS_lock = kLocked;
+		fRHS_lock = kLocked;
+		
+		/* new error */
+		error = Residual(fRHS);		
+
+		/* test for convergence */
+		solutionflag = ExitIteration(error, fNumIteration);
+
+		/* check for relaxation */
+		if (solutionflag == kConverged) {
+			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+		
+			/* reset global equations */
+			if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
+				fFEManager.SetEquationSystem(Group());
+			
+			/* recompute force and continue iterating */
+			if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
+
+				/* set marker */
+				fRestartIteration = IterationNumber();
+
+				/* tangent reformed next iteration? */
+				if (tan_iterations + 1 == fReformTangentIterations)
+					fLHS_update = true;
+				else
+					fLHS_update = false;
+
+				/* recalculate residual */
+				if (fLHS_update) {
+					fLHS->Clear();
+					fLHS_lock = kOpen; /* LHS open for assembly, too! */
+				}
+				else
+					fLHS_lock = kIgnore; /* ignore assembled values */
+				fRHS = 0.0;
+				/* form the residual force vector from ghost particles */
+				fFEDEManager.FormRHS(Group(), fGhostFBC);
+				fFEManager.FormRHS(Group());	
+				fLHS_lock = kLocked;
+				fRHS_lock = kLocked;
+				
+				/* new error */
+				error = Residual(fRHS);		
+
+				/* test for convergence */
+				solutionflag = ExitIteration(error, fNumIteration);
+			}
+			if(relaxcode == GlobalT::kFailReset)
+				solutionflag = kFailed;
+		}
+	}
+
+	/* found solution - check relaxation */
+	if (solutionflag == kConverged)
+		solutionflag = DoConverged();
+			
+	return solutionflag;
+	}
+		
+	/* abnormal ending */
+	catch (ExceptionT::CodeT code)
+	{
+		cout << "\n NLSolver::Solve: exception at step number "
+             << fFEManager.StepNumber() << " with step "
+             << fFEManager.TimeStep() 
+             << "\n     " << code << ": " << ExceptionT::ToString(code) << endl;
+
+		/* error occurred here -> trip checksum */
+		if (code != ExceptionT::kBadHeartBeat) fFEManager.Communicator().Sum(code);
+		
+		return kFailed;
+	}
+}
+#endif
 
 /* end solution step */
 void NLSolver::CloseStep(void)
