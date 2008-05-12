@@ -61,9 +61,8 @@ public:
 
 	void createSample(char* str);
 	void ReadSample(char* str, 
-			double& time_step,
-			int& num_step,
-			int& num_print,
+			double& TimeStep,
+			int& NumStep,
 			Tahoe::iArray2DT& fGhostElemSet,
 			std::list<particle*>& fGhostParticleList);
 	void createContact();
@@ -209,10 +208,7 @@ public:
 		       char* progressfile ="dep_progress",    // output file, progress statistic information
 		       char* exceptionfile="dep_exception");  // output file, progress float exceptions
 
-	virtual void Run(int   total_steps,  // total_steps
-			 char* particlefile, // output file, resulted particles, including snapshots 
-			 char* contactfile,  // output file, resulted contacts, including snapshots
-			 int runtimes);
+	virtual void Run(int total_steps, int PrintNum);
 	
         //squeeze paticles inside a container by moving the boundaries
 	void squeeze(int   total_steps  =20000,             // total_steps

@@ -392,7 +392,6 @@ void assembly::createSample(char* str){
 void assembly::ReadSample(char* str,
 			  double& TimeStep,
 			  int& NumStep,
-			  int& NumPrint,
 			  Tahoe::iArray2DT& fGhostElemSet,
 			  std::list<particle*>& fGhostParticleList){
     ifstream ifs(str);
@@ -406,7 +405,6 @@ void assembly::ReadSample(char* str,
     ifs >> s
 
 	>> s >> s >> NUM_STEP
-	>> s >> s >> NUM_PRINT
 	>> s >> s >> TIMESTEP
 	>> s >> s >> MASS_SCL
 	>> s >> s >> MNT_SCL
@@ -455,10 +453,10 @@ void assembly::ReadSample(char* str,
 	    pt = new particle(ID,type,vec(a,b,c),vec(px,py,pz),vec(dax,day,daz),vec(dbx,dby,dbz),vec(dcx,dcy,dcz));
 
 //      optional settings for a particle's initial status
-	pt->setPrevVelocity(vec(vx,vy,vz));
-	pt->setCurrVelocity(vec(vx,vy,vz));
-	pt->setPrevOmga(vec(omx,omy,omz));
-	pt->setCurrOmga(vec(omx,omy,omz));
+//	pt->setPrevVelocity(vec(vx,vy,vz));
+//	pt->setCurrVelocity(vec(vx,vy,vz));
+//	pt->setPrevOmga(vec(omx,omy,omz));
+//	pt->setCurrOmga(vec(omx,omy,omz));
 	pt->setConstForce(vec(fx,fy,fz));  // constant force, not initial force
 //	pt->setConstMoment(vec(mx,my,mz)); // constant moment, not initial moment
 
@@ -467,7 +465,6 @@ void assembly::ReadSample(char* str,
 
     TimeStep = TIMESTEP;
     NumStep  = NUM_STEP;
-    NumPrint = NUM_PRINT;
 
     ifs >> s
 	>> Major
@@ -512,7 +509,9 @@ void assembly::createContact(){ // OpenMP version
 	    u=(*it)->getCurrPosition();
 	    for (pt=it,++pt;pt!=ParticleList.end();++pt){
 		v=(*pt)->getCurrPosition();
-		if (vfabsl(v-u) < (*it)->getA() + (*pt)->getA() ) {
+		if (   ( vfabsl(v-u) < (*it)->getA() + (*pt)->getA())
+		    && ( (*it)->getType() !=  1 || (*pt)->getType() != 1  )      // not both are fixed particles
+		    && ( (*it)->getType() != 10 || (*pt)->getType() != 10 )  ) { // not both are ghost particles
 		    contact<particle> tmpct(*it, *pt); // a local and temparory object
 		    ++PossCntctNum;
 		    if(tmpct.isOverlapped())
@@ -546,7 +545,9 @@ void assembly::createContact(){ // serial version
 	u=(*it)->getCurrPosition();
 	for (pt=it,++pt;pt!=ParticleList.end();++pt){
 	    v=(*pt)->getCurrPosition();
-	    if (vfabsl(v-u) < (*it)->getA() + (*pt)->getA() ) {
+	    if (   ( vfabsl(v-u) < (*it)->getA() + (*pt)->getA())
+		&& ( (*it)->getType() !=  1 || (*pt)->getType() != 1  )      // not both are fixed particles
+		&& ( (*it)->getType() != 10 || (*pt)->getType() != 10 )  ) { // not both are ghost particles
 		contact<particle> tmpct(*it, *pt); // a local and temparory object
 		++PossCntctNum;
 		if(tmpct.isOverlapped())
@@ -839,9 +840,9 @@ void assembly::setForceZero(bool gravity){
 }
 
 
-void assembly::setForceZero(bool gravity, int runtimes){
+void assembly::setForceZero(bool gravity, int PrintNum){
     for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
-	(*it)->setZero(gravity, runtimes);
+	(*it)->setZero(gravity, PrintNum);
     }
 }
 
@@ -2795,21 +2796,17 @@ void assembly::deposit_p(int   total_steps,
 }
 
 
-void assembly::Run(int total_steps, char* particlefile, char* contactfile, int rumtimes)
+void assembly::Run(int total_steps, int PrintNum)
 {
     // pre_0.
     g_exceptioninf.open("dem_exception");
     if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1); }
     g_exceptioninf.setf(ios::scientific, ios::floatfield);
 
-    // pre_1. snapshot of particles & contacts.
-    printPtcl(particlefile);
-    printCntct(contactfile);
-
-    // pre_2. Consider gravity, it determins how setForceZero(Gravity) works.
+    // pre_1. Consider gravity, it determins how setForceZero(Gravity) works.
     Gravity = true;
 
-    // pre_3: define variables used in iterations.
+    // pre_2: define variables used in iterations.
     long double avgNormal=0;
     long double avgTangt=0;
 
@@ -2823,7 +2820,7 @@ void assembly::Run(int total_steps, char* particlefile, char* contactfile, int r
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
 	//setForceZero(Gravity); // apply constant force in 1 step
-	setForceZero(Gravity, rumtimes); // apply constant force in 100 steps
+	setForceZero(Gravity, PrintNum); // apply constant force in 100 steps
 
 	// 3. calculate contact forces/moments and apply them to particles.
 	internForce(avgNormal, avgTangt);
@@ -2835,9 +2832,7 @@ void assembly::Run(int total_steps, char* particlefile, char* contactfile, int r
 
 	// 6. loop break conditions.
 
-
     } while (++g_iteration < total_steps);
-
 
     // post_0. close streams
     g_exceptioninf.close();
