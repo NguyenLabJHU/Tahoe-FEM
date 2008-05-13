@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.23 2008-05-12 22:32:27 regueiro Exp $ */
+/* $Id: SolverT.h,v 1.24 2008-05-13 20:00:08 regueiro Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -17,10 +17,11 @@
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
+#endif
+
 #ifdef DEM_COUPLING_DEV
 #include "FEDEManagerT.h"
 #include "FBC_CardT.h"
-#endif
 #endif
 
 namespace Tahoe {
