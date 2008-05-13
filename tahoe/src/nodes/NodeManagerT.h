@@ -1,7 +1,15 @@
-/* $Id: NodeManagerT.h,v 1.30 2008-05-12 22:30:59 regueiro Exp $ */
+/* $Id: NodeManagerT.h,v 1.31 2008-05-13 22:36:56 regueiro Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
+
+#ifdef DEM_COUPLING_DEV
+#include "FBC_CardT.h"
+#endif
 
 /* base classes */
 #include "iConsoleObjectT.h"
@@ -20,13 +28,6 @@
 #include "IntegratorT.h"
 #include "nVariArray2DT.h"
 #include "FieldSupportT.h"
-
-#ifdef __DEVELOPMENT__
-#include "DevelopmentElementsConfig.h"
-#ifdef DEM_COUPLING_DEV
-#include "FBC_CardT.h"
-#endif
-#endif
 
 namespace Tahoe {
 
