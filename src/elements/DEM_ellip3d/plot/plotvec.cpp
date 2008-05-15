@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
     int ID, type, TotalNum, RORS;
     long double cx, cy, cz, rd, wd, lt, ht;
-    long double a, b, c, x0, y0, z0, l1, l2, l3, m1, m2, m3, n1, n2, n3, v1, v2, v3, w1, w2, w3, f1, f2, f3, mt1, mt2, mt3,tmp;
+    long double a, b, c, x0, y0, z0, l1, l2, l3, m1, m2, m3, n1, n2, n3, v1, v2, v3, w1, w2, w3, f1, f2, f3, mt1, mt2, mt3;
     int n, k;
 
     for(n=first; n<=last; n+=incre)
@@ -77,6 +77,24 @@ int main(int argc, char *argv[])
 
 	ifs>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
 	   >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
+
+	ofs << "VARIABLES=" << endl
+	    << setfill(' ') << setw(16) << "x"
+	    << setfill(' ') << setw(16) << "y"
+	    << setfill(' ') << setw(16) << "z"
+	    << setfill(' ') << setw(16) << "velocity_x"
+	    << setfill(' ') << setw(16) << "velocity_y"
+	    << setfill(' ') << setw(16) << "velocity_z"
+	    << setfill(' ') << setw(16) << "force_x"
+	    << setfill(' ') << setw(16) << "force_y"
+	    << setfill(' ') << setw(16) << "force_z"
+	    << setfill(' ') << setw(16) << "omga_x"
+	    << setfill(' ') << setw(16) << "omga_y"
+	    << setfill(' ') << setw(16) << "omga_z"
+	    << setfill(' ') << setw(16) << "moment_x"
+	    << setfill(' ') << setw(16) << "moment_y"
+	    << setfill(' ') << setw(16) << "moment_z"
+	    << endl;
 
 	ofs << "ZONE I=" << TotalNum <<", DATAPACKING=POINT" << endl;
 	for(k = 0; k < TotalNum; ++k)
