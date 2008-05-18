@@ -305,23 +305,25 @@ void plnrgd_bdry<T>::createPBL(std::list<T*>& ptcls){
     long double dist, r;
     vec posi, ndirc;
     for (it=ptcls.begin();it!=ptcls.end();++it){
-	posi=(*it)->getCurrPosition();
-	dist=distToBdry(posi);
-	if(dist>=0 || fabsl(dist) > (*it)->getA()) // outside to CoefOfLimits[0] or inside too much
-	    continue;
-	next=true;
-	//g_exceptioninf<<std::setw(10)<<g_iteration <<std::setw(10)<<getBdryID()<<std::setw(10)<<(*it)->getID();
-	for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){ // CoefOfLimits[1,2,...]
-	    ndirc=normalize((*bt).dirc);
-	    r=vfabsl((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
-	    if((*bt).order==1 && (posi-(*bt).apt)%(*bt).dirc >= 0 ||
-	       (*bt).order==2 && (r-(*bt).rad)*(*bt).side<0){
-		next=false; // the particle is out of boundary, process next particle
-		break;
+	if ( (*it)->getType() == 0 ) { // only process free particles, excluding type 5
+	    posi=(*it)->getCurrPosition();
+	    dist=distToBdry(posi);
+	    if(dist>=0 || fabsl(dist) > (*it)->getA()) // outside to CoefOfLimits[0] or inside too much
+		continue;
+	    next=true;
+	    //g_exceptioninf<<std::setw(10)<<g_iteration <<std::setw(10)<<getBdryID()<<std::setw(10)<<(*it)->getID();
+	    for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){ // CoefOfLimits[1,2,...]
+		ndirc=normalize((*bt).dirc);
+		r=vfabsl((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
+		if((*bt).order==1 && (posi-(*bt).apt)%(*bt).dirc >= 0 ||
+		   (*bt).order==2 && (r-(*bt).rad)*(*bt).side<0){
+		    next=false; // the particle is out of boundary, process next particle
+		    break;
+		}
 	    }
+	    if(next)
+		PBList.push_back(*it);
 	}
-	if(next)
-	    PBList.push_back(*it);
     }
 
 };
