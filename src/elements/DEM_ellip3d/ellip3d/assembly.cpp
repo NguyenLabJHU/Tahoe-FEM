@@ -410,7 +410,10 @@ void assembly::createContact(){ // OpenMP version
 	    u=(*it)->getCurrPosition();
 	    for (pt=it,++pt;pt!=ParticleList.end();++pt){
 		v=(*pt)->getCurrPosition();
-		if (vfabsl(v-u) < (*it)->getA() + (*pt)->getA() ) {
+		if (   ( vfabsl(v-u) < (*it)->getA() + (*pt)->getA())
+		    && ( (*it)->getType() !=  1 || (*pt)->getType() != 1  )      // not both are fixed particles
+		    && ( (*it)->getType() !=  5 || (*pt)->getType() != 5  )      // not both are free boundary particles
+		    && ( (*it)->getType() != 10 || (*pt)->getType() != 10 )  ) { // not both are ghost particles
 		    contact<particle> tmpct(*it, *pt); // a local and temparory object
 		    ++PossCntctNum;
 		    if(tmpct.isOverlapped())
@@ -444,7 +447,10 @@ void assembly::createContact(){ // serial version
 	u=(*it)->getCurrPosition();
 	for (pt=it,++pt;pt!=ParticleList.end();++pt){
 	    v=(*pt)->getCurrPosition();
-	    if (vfabsl(v-u) < (*it)->getA() + (*pt)->getA() ) {
+	    if (   ( vfabsl(v-u) < (*it)->getA() + (*pt)->getA())
+		&& ( (*it)->getType() !=  1 || (*pt)->getType() != 1  )      // not both are fixed particles
+		&& ( (*it)->getType() !=  5 || (*pt)->getType() != 5  )      // not both are free boundary particles
+		&& ( (*it)->getType() != 10 || (*pt)->getType() != 10 )  ) { // not both are ghost particles
 		contact<particle> tmpct(*it, *pt); // a local and temparory object
 		++PossCntctNum;
 		if(tmpct.isOverlapped())
@@ -730,9 +736,9 @@ long double assembly::potEnergy(long double ref) const{
 }
 
 
-void assembly::setForceZero(bool gravity){
+void assembly::setForceZero(){
     for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
-	(*it)->setZero(gravity);
+	(*it)->setZero();
     }
 }
 
@@ -2452,10 +2458,7 @@ void assembly::deposit(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries.
 
-    // pre_3. Consider gravity, it determins how setForceZero(Gravity) works.
-    Gravity = true;
-
-    // pre_4: define variables used in iterations.
+    // pre_3: define variables used in iterations.
     long double l13, l24, l56;
     long double avgNormal=0;
     long double avgTangt=0;
@@ -2487,7 +2490,7 @@ void assembly::deposit(int   total_steps,
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
 	internForce(avgNormal, avgTangt);
@@ -2615,10 +2618,7 @@ void assembly::deposit_p(int   total_steps,
     // pre_2. create particles and boundaries from existing files.
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
 
-    // pre_3. Consider gravity, it determins how setForceZero(Gravity) works.
-    Gravity = true;
-
-    // pre_4: define variables used in iterations.
+    // pre_3: define variables used in iterations.
     long double l13, l24, l56;
     long double avgNormal=0;
     long double avgTangt=0;
@@ -2643,7 +2643,7 @@ void assembly::deposit_p(int   total_steps,
 	    createContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
 	internForce(avgNormal, avgTangt);
@@ -2756,10 +2756,7 @@ void assembly::squeeze(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries.
 
-    // pre_3. Consider gravity, it determins how setForceZero(Gravity) works.
-    Gravity = true;
-
-    // pre_4: define variables used in iterations.
+    // pre_3: define variables used in iterations.
     long double l13, l24, l56;
     long double avgNormal=0;
     long double avgTangt=0;
@@ -2794,7 +2791,7 @@ void assembly::squeeze(int   total_steps,
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
 	internForce(avgNormal, avgTangt);
@@ -2955,10 +2952,7 @@ void assembly::isotropic(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
 
-    // pre_3. no gravity, it determins how setForceZero(Gravity) works.
-    Gravity = false;
-
-    // pre_4: define variables used in iterations
+    // pre_3: define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
     long double L0 = getApt(1).getx()-getApt(3).getx();
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -3002,7 +2996,7 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -3261,10 +3255,7 @@ void assembly::isotropic(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
 
-    // pre_3. no gravity, it determins how setForceZero(Gravity) works.
-    Gravity = false;
-
-    // pre_4: define variables used in iterations
+    // pre_3: define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
     long double L0 = getApt(1).getx()-getApt(3).getx();
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -3311,7 +3302,7 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -3576,10 +3567,7 @@ void assembly::isotropic(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
 
-    // pre_3. no gravity, it determins how setForceZero(Gravity) works.
-    Gravity = false;
-
-    // pre_4: define variables used in iterations
+    // pre_3: define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
     long double L0 = getApt(1).getx()-getApt(3).getx();
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -3628,7 +3616,7 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -3901,10 +3889,7 @@ void assembly::odometer(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
  
-    // pre_3. no gravity, it determins how setForceZero(Gravity) works.
-    Gravity = false;
-
-    // pre_4 define variables used in iterations
+    // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
     long double L0 = getApt(1).getx()-getApt(3).getx();
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -3947,7 +3932,7 @@ void assembly::odometer(int   total_steps,
 	}
 
 	// 2. set particles' forces and moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces and moments
 	internForce(avgNormal, avgTangt);
@@ -4174,10 +4159,7 @@ void assembly::odometer(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
  
-    // pre_3. no gravity, it determins how setForceZero(Gravity) works.
-    Gravity = false;
-
-    // pre_4 define variables used in iterations
+    // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
     long double L0 = getApt(1).getx()-getApt(3).getx();
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -4223,7 +4205,7 @@ void assembly::odometer(int   total_steps,
 	}
 
 	// 2. set particles' forces and moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces and moments
 	internForce(avgNormal, avgTangt);
@@ -4425,10 +4407,7 @@ void assembly::unconfined(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
  
-    // pre_3. no gravity, it determins how setForceZero(Gravity) works.
-    Gravity = false;
-
-    // pre_4 define variables used in iterations
+    // pre_3. define variables used in iterations
     long double sigma3_1, sigma3_2;
     int    stepsnum=0;
     char   stepsstr[4];
@@ -4456,7 +4435,7 @@ void assembly::unconfined(int   total_steps,
 	}
 
 	// 2. set particles' forces and moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces and moments
 	internForce(avgNormal, avgTangt);
@@ -4533,6 +4512,376 @@ void assembly::unconfined(int   total_steps,
 }
 
 
+// The ambient pressure is 500kPa. This function initializes triaxial compression test.
+void assembly::triaxialPtclBdryIni(int   total_steps,  
+				   int   snapshots, 
+				   char* iniptclfile, 
+				   char* inibdryfile,
+				   char* particlefile,
+				   char* boundaryfile,
+				   char* contactfile, 
+				   char* progressfile,
+				   char* exceptionfile) 
+{
+    // pre_1: open streams for output
+    // particlefile and contactfile are used for snapshots at the end.
+    progressinf.open(progressfile);
+    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf<<"triaxial..."<<endl
+	       <<"     iteration possible  actual      average	    average         average         average"
+	       <<"         average         average         average        sample            sample     "
+	       <<"     sample          sample          sample          sample          sample          "
+	       <<"sample          sample         sample           sample          sample          sample     "
+	       <<"     sample          sample          sample          void            sample        coordinate"
+	       <<endl
+	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	       <<"          omga            force           moment        density          "
+	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	       <<"sigma3_1        sigma3_2           p             width          length           "
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"        ratio          porosity         number"
+	       <<endl;
+
+    g_exceptioninf.open(exceptionfile);
+    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+
+    // pre_2. create particles and boundaries from files
+    createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
+    createBdry(inibdryfile);   // create boundaries
+
+    // pre_3. define variables used in iterations
+    long double H0 = getApt(5).getz()-getApt(6).getz();
+    long double l56= 0;
+    long double sigma3_1, sigma3_2;
+    long double epsilon_h;
+    long double avgNormal=0;
+    long double avgTangt=0;
+    int         stepsnum=0;
+    char        stepsstr[4];
+    char        stepsfp[50];
+    
+    int         min[2]={5,6};    // boundary 5 and 6
+    UPDATECTL   minctl[2];
+
+    long double sigma = 5e5;
+
+    // iterations start here...
+    g_iteration=0;
+    do
+    {
+	if (g_iteration % 10 == 0){
+	    toprintstep = true;
+	    cout<<"triaxial... "<<g_iteration<<endl;
+	}
+	else
+	    toprintstep = false;
+
+	// 1. create possible boundary particles and contacts between particles
+	if (g_iteration%UPDATE_CNT==0){
+	    createContact();
+	    createPBL();
+	}
+
+	// 2. set particles' forces/moments as zero before each re-calculation
+	setForceZero();	
+
+	// 3. calculate contact forces/moments and apply them to particles
+	internForce(avgNormal, avgTangt);
+	
+	// 4. calculate boundary forces/moments and apply them to particles
+	rbForce();
+
+	// 5. update particles' velocity/omga/position/orientation based on force/moment
+	particleUpdate();
+	
+	// 6. update boundaries' position and orientation
+	sigma3_1=vfabsl(getNormal(5))/2.5e-3; sigma3_2=vfabsl(getNormal(6))/2.5e-3;
+
+	// force control
+	if (sigma3_1 < sigma)
+	    minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
+	else
+	    minctl[0].tran=vec(0,0, TIMESTEP*COMPRESS_RATE);
+
+	if (sigma3_2 < sigma)
+	    minctl[1].tran=vec(0,0, TIMESTEP*COMPRESS_RATE);
+	else
+	    minctl[1].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
+
+	updateRB(min,minctl,2);
+	
+	// 7. (1) output particles and contacts information
+	if (g_iteration % (total_steps/snapshots) == 0){
+	    sprintf(stepsstr, "%03d", stepsnum); 
+	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	    printPtcl(stepsfp);
+	    
+	    sprintf(stepsstr, "%03d", stepsnum); 
+	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	    printCntct(stepsfp);
+	    ++stepsnum;
+	}
+
+	// 7. (2) output stress and strain info
+	l56=getApt(5).getz()-getApt(6).getz();
+	epsilon_h = (H0-l56)/H0;
+	if (toprintstep ){
+	    progressinf<<setw(10)<<g_iteration
+		       <<setw(10)<<getPossCntctNum()
+		       <<setw(10)<<getActualCntctNum()
+		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<avgNormal
+		       <<setw(16)<<avgTangt
+		       <<setw(16)<<avgVelocity() 
+		       <<setw(16)<<avgOmga()
+		       <<setw(16)<<avgForce()   
+		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<density()
+		       <<setw(16)<<0<<setw(16)<<0
+		       <<setw(16)<<0<<setw(16)<<0
+		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
+		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<0<<setw(16)<<0<<setw(16)<<l56
+		       <<setw(16)<<0
+		       <<setw(16)<<0
+		       <<setw(16)<<0
+		       <<setw(16)<<epsilon_h
+		       <<setw(16)<<epsilon_h
+		       <<setw(16)<<0
+		       <<setw(16)<<0
+		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
+		       <<endl;
+
+	}
+
+	// 9. loop break condition: through displacement control mechanism
+	if (   fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR )
+	       break;
+	
+    } while (++g_iteration < total_steps);
+
+    // post_1. store the final snapshot of particles, contacts and boundaries.
+    strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
+    printPtcl(stepsfp);
+
+    strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
+    printCntct(stepsfp);
+
+    strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
+    printBdry(stepsfp);
+    
+    // post_2. close streams
+    progressinf.close();
+    g_exceptioninf.close();
+}
+
+
+// The ambient pressure is 500kPa. This function performs triaxial compression test.
+// Displacement boundaries are used in axial direction.
+void assembly::triaxialPtclBdry(int   total_steps,  
+				int   snapshots, 
+				char* iniptclfile, 
+				char* inibdryfile,
+				char* particlefile,
+				char* boundaryfile,
+				char* contactfile, 
+				char* progressfile,
+				char* balancedfile,
+				char* exceptionfile) 
+{
+    // pre_1: open streams for output
+    // particlefile and contactfile are used for snapshots at the end.
+    progressinf.open(progressfile);
+    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf<<"triaxial..."<<endl
+	       <<"     iteration possible  actual      average	    average         average         average"
+	       <<"         average         average         average        sample            sample     "
+	       <<"     sample          sample          sample          sample          sample          "
+	       <<"sample          sample         sample           sample          sample          sample     "
+	       <<"     sample          sample          sample          void            sample        coordinate"
+	       <<endl
+	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	       <<"          omga            force           moment        density          "
+	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	       <<"sigma3_1        sigma3_2           p             width          length           "
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"        ratio          porosity         number"
+	       <<endl;
+
+    ofstream balancedinf(balancedfile);
+    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf<<"triaxial..."<<endl
+	       <<"     iteration possible  actual      average	    average         average         average"
+	       <<"         average         average         average        sample            sample     "
+	       <<"     sample          sample          sample          sample          sample          "
+	       <<"sample          sample         sample           sample          sample          sample     "
+	       <<"     sample          sample          sample          void            sample        coordinate"
+	       <<endl
+	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	       <<"          omga            force           moment        density          "
+	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	       <<"sigma3_1        sigma3_2           p             width          length           "
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"        ratio          porosity         number"
+	       <<endl;
+
+    g_exceptioninf.open(exceptionfile);
+    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+
+    // pre_2. create particles and boundaries from files
+    createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
+    createBdry(inibdryfile);   // create boundaries
+
+    // pre_3. define variables used in iterations
+    long double H0 = getApt(5).getz()-getApt(6).getz();
+    long double l56= 0;
+    long double sigma3_1, sigma3_2;
+    long double epsilon_h;
+    long double avgNormal=0;
+    long double avgTangt=0;
+    int         stepsnum=0;
+    char        stepsstr[4];
+    char        stepsfp[50];
+    
+    int         min[2]={5,6};    // boundary 5 and 6
+    UPDATECTL   minctl[2];
+
+    // iterations start here...
+    g_iteration=0;
+    do
+    {
+	if (g_iteration % 10 == 0){
+	    toprintstep = true;
+	    cout<<"triaxial... "<<g_iteration<<endl;
+	}
+	else
+	    toprintstep = false;
+
+	// 1. create possible boundary particles and contacts between particles
+	if (g_iteration%UPDATE_CNT==0){
+	    createContact();
+	    createPBL();
+	}
+
+	// 2. set particles' forces/moments as zero before each re-calculation
+	setForceZero();	
+
+	// 3. calculate contact forces/moments and apply them to particles
+	internForce(avgNormal, avgTangt);
+	
+	// 4. calculate boundary forces/moments and apply them to particles
+	rbForce();
+
+	// 5. update particles' velocity/omga/position/orientation based on force/moment
+	particleUpdate();
+	
+	// 6. update boundaries' position and orientation
+	sigma3_1=vfabsl(getNormal(5))/2.5e-3; sigma3_2=vfabsl(getNormal(6))/2.5e-3;
+
+	// displacement control
+	minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
+	minctl[1].tran=vec(0,0, TIMESTEP*COMPRESS_RATE);
+
+	updateRB(min,minctl,2);
+	
+	// 7. (1) output particles and contacts information
+	if (g_iteration % (total_steps/snapshots) == 0){
+	    sprintf(stepsstr, "%03d", stepsnum); 
+	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	    printPtcl(stepsfp);
+	    
+	    sprintf(stepsstr, "%03d", stepsnum); 
+	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	    printCntct(stepsfp);
+	    ++stepsnum;
+	}
+
+	// 7. (2) output stress and strain info
+	l56=getApt(5).getz()-getApt(6).getz();
+	epsilon_h = (H0-l56)/H0;
+	if (toprintstep ){
+	    progressinf<<setw(10)<<g_iteration
+		       <<setw(10)<<getPossCntctNum()
+		       <<setw(10)<<getActualCntctNum()
+		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<avgNormal
+		       <<setw(16)<<avgTangt
+		       <<setw(16)<<avgVelocity() 
+		       <<setw(16)<<avgOmga()
+		       <<setw(16)<<avgForce()   
+		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<density()
+		       <<setw(16)<<0<<setw(16)<<0
+		       <<setw(16)<<0<<setw(16)<<0
+		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
+		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<0<<setw(16)<<0<<setw(16)<<l56
+		       <<setw(16)<<0
+		       <<setw(16)<<0
+		       <<setw(16)<<0
+		       <<setw(16)<<epsilon_h
+		       <<setw(16)<<epsilon_h
+		       <<setw(16)<<0
+		       <<setw(16)<<0
+		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
+		       <<endl;
+
+	}
+
+/* Most time it is balanced, so use progressinf instead.
+	// 8. find the balanced status and increase ambient pressure
+	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
+	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
+	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
+	    balancedinf<<setw(10)<<g_iteration
+		       <<setw(10)<<getPossCntctNum()
+		       <<setw(10)<<getActualCntctNum()
+		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<avgNormal
+		       <<setw(16)<<avgTangt
+		       <<setw(16)<<avgVelocity() 
+		       <<setw(16)<<avgOmga()
+		       <<setw(16)<<avgForce()    
+		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<density()
+		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
+		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
+		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
+		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
+		       <<setw(16)<<Volume
+		       <<setw(16)<<epsilon_w
+		       <<setw(16)<<epsilon_l
+		       <<setw(16)<<epsilon_h
+		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
+	}
+*/
+	// 9. loop break condition: through displacement control mechanism
+	
+    } while (++g_iteration < total_steps);
+
+    // post_1. store the final snapshot of particles, contacts and boundaries.
+    strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
+    printPtcl(stepsfp);
+
+    strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
+    printCntct(stepsfp);
+
+    strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
+    printBdry(stepsfp);
+    
+    // post_2. close streams
+    progressinf.close();
+    balancedinf.close();
+    g_exceptioninf.close();
+}
+
+
 // The specimen has been isotropically compressed to ambient pressure sigma_a. This function
 // performs triaxial compression test. Displacement boundaries are used in axial direction.
 void assembly::triaxial(int   total_steps,  
@@ -4593,10 +4942,7 @@ void assembly::triaxial(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
 
-    // pre_3. no gravity, it determins how setForceZero(Gravity) works.
-    Gravity = false;
-
-    // pre_4: define variables used in iterations
+    // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
     long double L0 = getApt(1).getx()-getApt(3).getx();
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -4640,7 +4986,7 @@ void assembly::triaxial(int   total_steps,
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -4864,10 +5210,7 @@ void assembly::triaxial(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
 
-    // pre_3. no gravity, it determins how setForceZero(Gravity) works.
-    Gravity = false;
-
-    // pre_4: define variables used in iterations
+    // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
     long double L0 = getApt(1).getx()-getApt(3).getx();
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -4912,7 +5255,7 @@ void assembly::triaxial(int   total_steps,
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -5131,10 +5474,7 @@ void assembly::rectPile_Disp(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
 
-    // pre_3. it determins how setForceZero(Gravity) works.
-    Gravity = true;
-
-    // pre_4: define variables used in iterations
+    // pre_3. define variables used in iterations
     int    stepsnum=0;
     char   stepsstr[4];
     char   stepsfp[50];
@@ -5162,7 +5502,7 @@ void assembly::rectPile_Disp(int   total_steps,
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -5289,10 +5629,7 @@ void assembly::ellipPile_Disp(int   total_steps,
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
 
-    // pre_3. it determins how setForceZero(Gravity) works.
-    Gravity = true;
-
-    // pre_4: define variables used in iterations
+    // pre_3. define variables used in iterations
     long double l13, l24, l56;
     long double avgNormal=0;
     long double avgTangt=0;
@@ -5317,7 +5654,7 @@ void assembly::ellipPile_Disp(int   total_steps,
 	    createContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -5435,10 +5772,7 @@ void assembly::ellipPile_Impact(int   total_steps,
     createSample(iniptclfile); // create container and particles
     createBdry(inibdryfile);   // create boundaries.
 
-    // pre_3. it determins how setForceZero(Gravity) works.
-    Gravity = true;
-
-    // pre_4: define variables used in iterations
+    // pre_3. define variables used in iterations
     long double l13, l24, l56;
     long double avgNormal=0;
     long double avgTangt=0;
@@ -5468,7 +5802,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 	    createContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -5603,10 +5937,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles
 
-    // pre_3. it determins how setForceZero(Gravity) works.
-    Gravity = true;
-
-    // pre_4: define variables used in iterations
+    // pre_3. define variables used in iterations
     long double l13, l24, l56;
     long double avgNormal=0;
     long double avgTangt=0;
@@ -5631,7 +5962,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 	    createContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -5759,10 +6090,7 @@ void assembly::ellipPile_Force(int   total_steps,
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
 
-    // pre_3. it determins how setForceZero(Gravity) works.
-    Gravity = true;
-
-    // pre_4: define variables used in iterations
+    // pre_3. define variables used in iterations
     long double l13, l24, l56;
     long double avgNormal=0;
     long double avgTangt=0;
@@ -5790,7 +6118,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	    createContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -5948,10 +6276,7 @@ void assembly::truetriaxial(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
     createBdry(inibdryfile);   // create boundaries
 
-    // pre_3. no gravity, it determins how setForceZero(Gravity) works.
-    Gravity = false;
-
-    // pre_4: define variables used in iterations
+    // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
     long double L0 = getApt(1).getx()-getApt(3).getx();
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -6002,7 +6327,7 @@ void assembly::truetriaxial(int   total_steps,
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero(Gravity);	
+	setForceZero();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internForce(avgNormal, avgTangt);
@@ -6220,7 +6545,7 @@ void assembly::dircShear(long double rate, long double roterate,long double stre
 	FILE* fp;
 	fp=fopen(trackfile,"w");
 
-	setForceZero(Gravity);
+	setForceZero();
 
 	int upanddown[2]={5,6};
 	UPDATECTL updownctl[2];
@@ -6348,7 +6673,7 @@ void assembly::soft_tric(long double _sigma3,long double _b,char* iniptclfile,
 	FILE* fprslt=fopen(responsefile,"w");
 	FILE* fp=fopen(trackfile,"w");
 	
-	setForceZero(Gravity);
+	setForceZero();
 
 	int pre_it=0;
 	int pre_snap=0;
@@ -6450,7 +6775,7 @@ void assembly::shallowFoundation(char* iniptclfile, char* boundaryfile,char* res
 	int snapnum=0;
 	char snapfile[80];
 
-	setForceZero(Gravity);
+	setForceZero();
 
 	list<RGDBDRY*>::iterator rt;
 
@@ -6553,7 +6878,7 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 	FILE* fp;
 	fp=fopen(trackfile,"w");
 
-	setForceZero(Gravity);
+	setForceZero();
 
 	int pre_it=0;
 	int pre_snap=0;
@@ -6752,7 +7077,7 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 	int pre_snap=0;
 	int snapnum=0;
 	char snapfile[80];
-	setForceZero(Gravity);
+	setForceZero();
 
 	list<RGDBDRY*>::iterator rt;
 

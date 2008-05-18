@@ -66,7 +66,7 @@ public:
 	void createPLL();
 	void createFlbNet();
 
-	void setForceZero(bool gravity);
+	void setForceZero();
 	void fbForceZero();
 	void initFBForce();
 	void internForce(long double& avgnm, long double& avgsh);
@@ -321,6 +321,30 @@ public:
 		      char*  progressfile  ="odo_progress",
 		      char*  balancedfile  ="odo_balanced", 
 		      char*  exceptionfile ="odo_exception");
+
+        // The ambient pressure is 500kPa. This function initializes triaxial compression test.
+	void triaxialPtclBdryIni(int    total_steps  =10000,
+				 int    snapshots    =100,
+				 char*  iniptclfile  ="iso_particle_100k",
+				 char*  inibdryfile  ="iso_boundary_100k",
+				 char*  particlefile ="tri_particle", 
+				 char*  boundaryfile ="tri_boundary", 
+				 char*  contactfile  ="tri_contact",
+				 char*  progressfile ="tri_progress",
+				 char*  exceptionfile="tri_exception");
+
+        // The ambient pressure is 500kPa. This function performs triaxial compression test.
+        // Displacement boundaries are used in axial direction.
+	void triaxialPtclBdry(int    total_steps  =100000,
+			      int    snapshots    =100,
+			      char*  iniptclfile  ="iso_particle_100k",
+			      char*  inibdryfile  ="iso_boundary_100k",
+			      char*  particlefile ="tri_particle", 
+			      char*  boundaryfile ="tri_boundary", 
+			      char*  contactfile  ="tri_contact",
+			      char*  progressfile ="tri_progress",
+			      char*  balancedfile ="tri_balanced", 
+			      char*  exceptionfile="tri_exception");
 
         // The specimen has been isotropically compressed to ambient pressure sigma_a. This function
         // performs triaxial compression test. Displacement boundaries are used in axial direction.
