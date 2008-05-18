@@ -559,14 +559,13 @@ long double particle::getRadius(vec v) const{
 }
 
 
-void particle::setZero(bool gravity){
+void particle::setZero(){
     force=const_force;
     moment=const_moment;
-    if (gravity) {
-	force += vec(0,0,-9.8*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
-	if (getType()==3)
-	    force -= vec(0,0,-9.8*mass*GRVT_SCL); 
-    }
+
+    force += vec(0,0,-9.8*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
+    if (getType()==3) // pile
+	force -= vec(0,0,-9.8*mass*GRVT_SCL); 
 
 #ifdef MOMENT
 	long double m[20]={ 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
@@ -592,7 +591,7 @@ void particle::setZero(bool gravity){
 // central difference integration method
 void particle::update() {
 
-    if (getType()==0) { // 0-free, 1-fixed
+    if (getType()==0 || getType()==5) { // 0-free, 1-fixed, 5-free bounary particle
 	// It is essential to distinguish global frame from local frame!
 	vec prev_local_omga;
 	vec curr_local_omga;

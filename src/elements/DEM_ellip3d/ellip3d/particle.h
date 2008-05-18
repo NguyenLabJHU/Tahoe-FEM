@@ -88,7 +88,7 @@ public:
 	void   setConstForce(vec vv);
 	void   setConstMoment(vec vv);
 
-	void   setZero(bool gravity);
+	void   setZero();
 	void   addForce(vec vv) {force+=vv;}
 	void   addMoment(vec vv) {moment+=vv;}
 	void   update();
