@@ -558,14 +558,12 @@ long double particle::getRadius(vec v) const{
 }
 
 
-void particle::setZero(bool gravity){
+void particle::setZero(){
     force=const_force;
     moment=const_moment;
-    if (gravity) {
-	force += vec(0,0,-9.8*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
-	if (getType()==3)
-	    force -= vec(0,0,-9.8*mass*GRVT_SCL); 
-    }
+    force += vec(0,0,-9.8*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
+    if (getType()==3) // pile
+	force -= vec(0,0,-9.8*mass*GRVT_SCL); 
 
 #ifdef MOMENT
 	long double m[20]={ 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
@@ -588,15 +586,12 @@ void particle::setZero(bool gravity){
 }
 
 
-void particle::setZero(bool gravity, int PrintNum){
+void particle::setZero(int PrintNum){
     force  = const_force * (PrintNum+1)/100;
     moment = const_moment * (PrintNum+1)/100;
-    if (gravity) {
-	force += vec(0,0,-9.8*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
-	if (getType()==3)
-	    force -= vec(0,0,-9.8*mass*GRVT_SCL); 
-    }
-
+    force += vec(0,0,-9.8*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
+    if (getType()==3) // pile
+	force -= vec(0,0,-9.8*mass*GRVT_SCL); 
 }
 
 

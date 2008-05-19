@@ -73,8 +73,8 @@ public:
 	void createPLL();
 	void createFlbNet();
 
-	void setForceZero(bool gravity);
-	void setForceZero(bool gravity, int runtimes);
+	void setForceZero();
+	void setForceZero(int runtimes);
 	void fbForceZero();
 	void initFBForce();
 	void internForce(long double& avgnm, long double& avgsh);
