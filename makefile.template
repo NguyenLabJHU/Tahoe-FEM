@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.10 2005-08-01 05:21:39 paklein Exp $
+# $Id: makefile.template,v 1.11 2008-05-24 19:46:52 beichuan Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -70,6 +70,15 @@ TB_LFLAGS   = -L$(TAHOE_DIR)/lib -l$(TAHOE_LIB_NAME) -L$(TB_DIR)/lib -l$(TB_LIB_
 #EXPAT_LIB_NAME = expat
 #EXPAT_LIB      = $(EXPAT_PREFIX)/lib/lib$(EXPAT_LIB_NAME).a
 #EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
+
+##### development
+DEV_DIR      = $(HOME_DIR)/../development
+DEV_INC      = -I$(DEV_DIR)/inc
+DEV_DEFINES  = -D__DEVELOPMENT__
+DEV_CFLAGS   = $(DEV_INC) $(DEV_DEFINES)
+DEV_LIB_NAME = development
+DEV_LIB      = $(DEV_DIR)/lib/lib$(DEV_LIB_NAME).a
+DEV_LFLAGS   = -L$(DEV_DIR)/lib -l$(DEV_LIB_NAME) -l$(TARGET)
 
 ##### F2C 1.4.3
 #F2C_DIR      = $(HOME_DIR)/../f2c
