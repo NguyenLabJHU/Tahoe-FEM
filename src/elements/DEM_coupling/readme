@@ -1,4 +1,8 @@
+changes to Tahoe:
+
 GNU.SUSE.debug.macros
+GUN.SUSE.macros
+makefile.template in development
 DevelopmentElementsConfig.conf
 FEManagerT.New.cpp
 
