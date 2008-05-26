@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.cpp,v 1.8 2008-05-26 21:52:59 thao Exp $ */
+/* $Id: AnisoCornea.cpp,v 1.9 2008-05-26 22:02:20 thao Exp $ */
 /* created: paklein (11/08/1997) */
 
 #include "AnisoCornea.h"
@@ -6,6 +6,7 @@
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "ParameterContainerT.h"
+#include "ofstreamT.h"
 
 #if defined(VIB_MATERIAL)
 
@@ -18,6 +19,7 @@
 const double Pi = acos(-1.0);
 
 const int kNumOutputVar = 6;
+static const int perm[3][3] = {0,1,2,1,2,0,2,0,1};
 static const char* Labels[kNumOutputVar] = {"NT_X", "NT_Y", "NT_Z","IS_X", "IS_Y", "IS_Z"};
 
 using namespace Tahoe;
@@ -419,13 +421,6 @@ ParameterInterfaceT* AnisoCornea::NewSub(const StringT& name) const
     cornea_mod.SetDescription("f(theta) = distNT-IS(0:r1) + distCIRC(r2:r3) ");
     choice->AddSub(cornea_mod);
 
-    /* element distributions read from a file */
-    ParameterContainerT inhomo_dist("inhomogeneous_distribution");
-    ParameterT dist_file(ParameterT::String, "element_distributions_file");
-    inhomo_dist.AddParameter(dist_file);
-    inhomo_dist.SetDescription("read element distributions from file");
-    choice->AddSub(inhomo_dist);
-
 	return(choice);
 	}
 }
@@ -435,19 +430,6 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	FSFiberMatT::TakeParameterList(list);
-
-	/*initializing some parameters for cornea_mod fibril distribution*/
-	int num_neq_pot = list.NumLists("neq_fibril_potential");
-	int num_visc = list.NumLists("viscosity");
-
-	if (num_visc != num_neq_pot)
-		ExceptionT::GeneralFail("AnisoCorneaVisco::TakeParameterList", 
-			"number of viscosity functions does not match number of nonequilibrium potentials");
-
-	fNumFibProcess = num_neq_pot;
-	fPotential.Dimension(fNumFibProcess+1);
-	if(fNumFibProcess > 0)
-		fViscosity.Dimension(fNumFibProcess);
 		
 	const ParameterListT& matrix = list.GetListChoice(*this, "matrix_material_params");
 	if (matrix.Name() == "Neo-Hookean")
@@ -461,38 +443,8 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 	{
 		double alpha = potential.GetParameter("alpha");
 		double beta = potential.GetParameter("beta");
-		fPotential[0] = new FungType(alpha, beta);
-		if (!fPotential[0]) throw ExceptionT::kOutOfMemory;
-	}
-
-	for (int i = 0; i < fNumFibProcess; i++)
-	{
-		const ParameterListT& neq_potential = list.GetListChoice(*this, "neq_fibril_potential", i);
-		if (neq_potential.Name() == "fung_type")
-		{
-			double alpha = neq_potential.GetParameter("alpha");
-			double beta = neq_potential.GetParameter("beta");
-			fPotential[i+1] = new FungType(alpha,beta);
-			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
-		}
-		
-		const ParameterListT& visc = list.GetListChoice(*this, "viscosity", i);
-		if (visc.Name() == "linear-exponential")
-		{
-			double a = visc.GetParameter("a");
-			double b = visc.GetParameter("b");
-			double c = visc.GetParameter("c");
-			double d = visc.GetParameter("d");			
-			fViscosity[i] = new LinearExponentialT(a,b,c,d);
-			if (!fViscosity[i]) throw ExceptionT::kOutOfMemory;
-		}
-		else if (visc.Name() == "scaled_csch")
-		{
-			double a = visc.GetParameter("eta0");
-			double b = visc.GetParameter("tau0");
-			fViscosity[i] = new ScaledCsch(a,b);
-			if (!fViscosity[i]) throw ExceptionT::kOutOfMemory;
-		}
+		fPotential = new FungType(alpha, beta);
+		if (!fPotential) throw ExceptionT::kOutOfMemory;
 	}
 	
 	const ParameterListT& distr = list.GetListChoice(*this, "fibril_distribution");
@@ -590,31 +542,6 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 	fFiberStretch.Dimension(fNumSD-1);
 	fFiberStress.Dimension(fNumSD-1);
 	fFiberMod.Dimension(fNumFibStress);
-
-	/*viscous fiber stretch at time step n, viscous stretch at time step n and vn*/
-	fFiberStretch_v.Dimension(fNumSD-1);
-	fFiberStretch_vn.Dimension(fNumSD-1);
-
-	/*Dimension work spaces*/
-	fCalg.Dimension(fNumFibStress);	
-	/* allocate memory */
-	/*dimension invserse viscosity matrix*/
-	fiVisc.Dimension(fNumFibStress);
-
-	/*Dimension work spaces*/
-	fFlowStress.Dimension(fNumSD-1);
-	fResidual.Dimension(fNumSD-1);
-	fiK.Dimension(fNumFibStress);
-	fG.Dimension(fNumFibStress);
-	fMod1.Dimension(fNumFibStress);
-	fMod2.Dimension(fNumFibStress);
-	fMod3.Dimension(fNumFibStress);
-	fVec.Dimension(fNumFibStress);
-
-	/*dimension state variable storage arrays*/
-	fNumMatProcess = 0;
-	int numprocess = fNumFibProcess;
-	SetStateVariables(numprocess);
 
 	/* point generator */
 	int points = list.GetParameter("n_points");
@@ -832,8 +759,7 @@ void AnisoCornea::Construct(void)
 		
 	/* length table */
 	fI4.Dimension(numbonds);
-	fI4v.Dimension(numbonds);
-
+	
 	/* potential tables */
 	fU.Dimension(numbonds);
 	fdU.Dimension(numbonds);
