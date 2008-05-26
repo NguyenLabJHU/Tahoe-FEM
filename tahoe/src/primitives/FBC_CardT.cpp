@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.16 2008-05-26 19:07:58 bcyansfn Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.17 2008-05-26 19:09:34 bcyansfn Exp $ */
 /* created: paklein (06/15/1996) */
 #include "FBC_CardT.h"
 #include "ScheduleT.h"
@@ -29,7 +29,6 @@ void FBC_CardT::SetValues(int node, int dof, const ScheduleT* schedule, double v
 	fSchedule = schedule;
 	fValue    = value;
 }
-
 
 #ifdef DEM_COUPLING_DEV
 void FBC_CardT::AddValues(int node, int dof, const ScheduleT* schedule, double value)

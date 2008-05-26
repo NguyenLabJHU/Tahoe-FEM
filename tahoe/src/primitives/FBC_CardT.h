@@ -1,8 +1,7 @@
-/* $Id: FBC_CardT.h,v 1.8 2008-05-26 19:07:58 bcyansfn Exp $ */
+/* $Id: FBC_CardT.h,v 1.9 2008-05-26 19:09:34 bcyansfn Exp $ */
 /* created: paklein (06/15/1996) */
 #ifndef _FBC_CARD_T_H_
 #define _FBC_CARD_T_H_
-
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
