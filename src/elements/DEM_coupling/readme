@@ -1,10 +1,52 @@
-changes to Tahoe:
+Summary of changes to Tahoe:
 
+//////////////////////////////////////////////////////////////////////////
+A. macros definition
 GNU.SUSE.debug.macros
 GUN.SUSE.macros
-makefile.template in development
+//////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+B. development module configuration
+makefile.template
 DevelopmentElementsConfig.conf
-FEManagerT.New.cpp
+//////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+C. code modification to Tahoe
+
+1. FEManagerT.New.cpp
+
+2. SolverT.h::Solve() overloaded to be an interface which can accept both fFEDEManager and fGhostFBC.
+	virtual SolutionStatusT Solve(int max_iterations, FEDEManagerT&	fFEDEManager, ArrayT<FBC_CardT>& fGhostFBC) {};
+
+3. LinearSolver.h.cpp::Solve() overloaded to take into account both fGhostFBC and fFBC, using fFEDEManager and fFEManager respectively.
+	/* initialize */
+	fRHS = 0.0;
+			
+	/* form the residual force vector from ghost particles */
+	fFEDEManager.FormRHS(Group(), fGhostFBC);
+
+	/* form the residual force vector */
+	fFEManager.FormRHS(Group());
+
+4. NLSolver.h.cpp::Solve() overloaded to take into account both fGhostFBC and fFBC, using fFEDEManager and fFEManager respectively.
+	fRHS = 0.0;
+	fFEDEManager.FormRHS(Group(), fGhostFBC);
+	fFEManager.FormRHS(Group());
+
+5. NodeManagerT.h.cpp::FormRHS() overloaded to assemble only ghost particle contributions to the residual force.
+
+6. FieldT.h.cpp::FormRHS() overloaded to assemble only ghost particle contributions to the residual force.
+
+7. FBC_CardT.h.cpp add memeber functions: ClearValues(), AddValues(), Value().
+//////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+D. DE-FE coupling code
 
 1. FEDEManagerT
 
@@ -15,28 +57,7 @@ FEDEManagerT::SolveStep() overridden to take into account ghost particle contrib
 
 FEDEManagerT::FormRHS() overridden to take into account fGhostFBC.
 
-2. SolverT::Solve() overloaded to be an interface which can accept both fFEDEManager and fGhostFBC.
-	virtual SolutionStatusT Solve(int max_iterations, FEDEManagerT&	fFEDEManager, ArrayT<FBC_CardT>& fGhostFBC) {};
+2. DEManagerT
 
-3. LinearSolver::Solve() overloaded to take into account both fGhostFBC and fFBC, using fFEDEManager and fFEManager respectively.
-	/* initialize */
-	fRHS = 0.0;
-			
-	/* form the residual force vector from ghost particles */
-	fFEDEManager.FormRHS(Group(), fGhostFBC);
-
-	/* form the residual force vector */
-	fFEManager.FormRHS(Group());
-
-4. NLSolver::Solve() overloaded to take into account both fGhostFBC and fFBC, using fFEDEManager and fFEManager respectively.
-	fRHS = 0.0;
-	fFEDEManager.FormRHS(Group(), fGhostFBC);
-	fFEManager.FormRHS(Group());
-
-5. NodeManagerT::FormRHS() overloaded to assemble only ghost particle contributions to the residual force.
-
-6. FieldT::FormRHS() overloaded to assemble only ghost particle contributions to the residual force.
-
-7. FBC_CardT adds memeber functions: ClearValues(), AddValues(), Value().
-
-
+3. GhostParticleT
+//////////////////////////////////////////////////////////////////////////
