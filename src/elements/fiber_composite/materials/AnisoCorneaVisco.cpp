@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.9 2007-12-19 23:35:54 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.10 2008-05-26 15:51:17 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -239,13 +239,14 @@ void AnisoCorneaVisco::DefineSubs(SubListT& sub_list) const
 
 	/* choice of energy potential for fibrils */
 	sub_list.AddSub("eq_fibril_potential", ParameterListT::Once);
-	sub_list.AddSub("neq_fibril_potential", ParameterListT::OnePlus);
+	sub_list.AddSub("neq_fibril_potential", ParameterListT::Any);
 
 	/* choice of energy potential for fibrils */
-	sub_list.AddSub("viscosity", ParameterListT::OnePlus);
+	sub_list.AddSub("viscosity", ParameterListT::Any);
 
 	/* choice of fibril distribution funcion */
 	sub_list.AddSub("fibril_distribution", ParameterListT::Once);
+	
 }
 
 
@@ -533,7 +534,8 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 
 	fNumFibProcess = num_neq_pot;
 	fPotential.Dimension(fNumFibProcess+1);
-	fViscosity.Dimension(fNumFibProcess);
+	if(fNumFibProcess > 0)
+		fViscosity.Dimension(fNumFibProcess);
 		
 	const ParameterListT& matrix = list.GetListChoice(*this, "matrix_material_params");
 	if (matrix.Name() == "Neo-Hookean")
@@ -1741,12 +1743,17 @@ void AnisoCorneaVisco::Construct(void)
 
 			// blending function : assuming linear radial weighting function
 			double wg;
-			if (r3 > 0.0 && r > r3) {
+			if (r3 > 0.0 && r > r3) {  /*the point is in the sclera*/
 				// distribution three : uniform
 				wg = (r-r3)/(r4-r3); 
 				wg = min(max(wg,0.0),1.0);
 				jac = fCircle->Jacobians(0.0, iso_distribution);
-			} else {
+			} 
+			if (fabs(r1-r2)<kSmall){  /*if there are central and peripheral regions*/
+				wg = 0.0;
+				jac = fCircle->Jacobians(0.0, fDistribution);  /*Cos[theta]^8 + Sin[theta]^8+c1*/
+			}
+			else {
 				// distribution one : aligned w/ "NT-IS" system
 				wg = (r-r2)/(r1-r2); // HACK : use ellipsoidal coord system
 				wg = min(max(wg,0.0),1.0);

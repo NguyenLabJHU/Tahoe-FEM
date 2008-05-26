@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.cpp,v 1.7 2007-05-21 18:39:04 thao Exp $ */
+/* $Id: FSFiberMatViscT.cpp,v 1.8 2008-05-26 15:51:17 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatViscT.h"
 #include "FSFiberMatSupportT.h"
@@ -48,6 +48,8 @@ const dMatrixT& FSFiberMatViscT::C_IJKL(void)
 	/* rotate and assemble eq. modulus to lab coordinates */
 	AssembleFiberModuli(fFiberMod, fModulus);
 	
+if (fNumFibProcess+fNumMatProcess > 0)
+{
 	/*calculate nonequilibrium contribution*/
 	/*Load state variables (Cv and Cvn)*/
     ElementCardT& element = CurrentElement();
@@ -75,8 +77,8 @@ const dMatrixT& FSFiberMatViscT::C_IJKL(void)
 		AssembleFiberModuli(fFiberMod, fModulus);
 
 		j++;
-
 	}
+}
 	return fModulus;
 }
 	
@@ -104,6 +106,8 @@ const dSymMatrixT& FSFiberMatViscT::S_IJ(void)
 	
 	/*calculate nonequilibrium contribution*/
 	/*Load state variables (Cv and Cvn)*/
+if (fNumMatProcess + fNumFibProcess > 0)
+{
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
 
@@ -163,6 +167,7 @@ const dSymMatrixT& FSFiberMatViscT::S_IJ(void)
 			j++;
 		}
 	}
+}
 	return(fStress);
 }
 
@@ -191,9 +196,10 @@ const dSymMatrixT& FSFiberMatViscT::s_ij(void)
 /*initializes history variable */
 void  FSFiberMatViscT::PointInitialize(void)
 {
+	int numprocess = fNumFibProcess+fNumMatProcess;
 	/* allocate element storage */
 	ElementCardT& element = CurrentElement();	
-	if (CurrIP() == 0)
+	if (CurrIP() == 0 && numprocess > 0)
 	{
 		ElementCardT& element = CurrentElement();
 		element.Dimension(0, fnstatev*NumIP());
@@ -204,7 +210,6 @@ void  FSFiberMatViscT::PointInitialize(void)
 		      /* load state variables */
 		      Load(element, ip);
 		      
-			  int numprocess = fNumFibProcess+fNumMatProcess;
 			  for (int i = 0; i < numprocess; i++)
 			  {
 				fC_vn[i].Identity();
@@ -219,14 +224,14 @@ void  FSFiberMatViscT::PointInitialize(void)
  
 void FSFiberMatViscT::UpdateHistory(void)
 {
+	int numprocess = fNumFibProcess+fNumMatProcess;
 	/* current element */
 	ElementCardT& element = CurrentElement();	
-	for (int ip = 0; ip < NumIP(); ip++)
+	for (int ip = 0; ip < NumIP() && numprocess > 0; ip++)
 	{
 		/* load state variables */
 		Load(element, ip);
 	
-		int numprocess = fNumFibProcess+fNumMatProcess;
 		/* assign "current" to "last" */	
 		for (int i = 0; i < numprocess; i++)
 			fC_vn[i] = fC_v[i];
@@ -238,9 +243,10 @@ void FSFiberMatViscT::UpdateHistory(void)
 
 void FSFiberMatViscT::ResetHistory(void)
 {
+	int numprocess = fNumFibProcess+fNumMatProcess;
 	/* current element */
 	ElementCardT& element = CurrentElement();	
-	for (int ip = 0; ip < NumIP(); ip++)
+	for (int ip = 0; ip < NumIP() && numprocess > 0; ip++)
 	{
 		/* load state variables*/
 		Load(element, ip);
