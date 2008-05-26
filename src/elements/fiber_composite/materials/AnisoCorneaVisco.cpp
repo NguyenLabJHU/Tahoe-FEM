@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.10 2008-05-26 15:51:17 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.11 2008-05-26 21:30:12 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -465,47 +465,46 @@ ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
 		choice->AddSub(inhomo_dist);
 
 	  /* a full map of a cornea's distributions */
-    ParameterContainerT cornea_mod("cornea_mod");
+		ParameterContainerT cornea_mod("cornea_mod");
 		{
-    ParameterT a1(ParameterT::Double, "a1");
-    ParameterT b1(ParameterT::Double, "b1");
-    ParameterT c1(ParameterT::Double, "c1");
-    ParameterT n1(ParameterT::Double, "n1");
+			ParameterT a1(ParameterT::Double, "a1");
+			ParameterT b1(ParameterT::Double, "b1");
+			ParameterT c1(ParameterT::Double, "c1");
+			ParameterT n1(ParameterT::Double, "n1");
 
-    cornea_mod.AddParameter(a1);
-    cornea_mod.AddParameter(b1);
-    cornea_mod.AddParameter(c1);
-    cornea_mod.AddParameter(n1);
-    c1.AddLimit(lower);
-    c1.AddLimit(upper);
-    n1.AddLimit(lower);
+			cornea_mod.AddParameter(a1);
+			cornea_mod.AddParameter(b1);
+			cornea_mod.AddParameter(c1);
+			cornea_mod.AddParameter(n1);
+			c1.AddLimit(lower);
+			c1.AddLimit(upper);
+			n1.AddLimit(lower);
 
-    ParameterT a2(ParameterT::Double, "a2");
-    ParameterT b2(ParameterT::Double, "b2");
-    ParameterT aa2(ParameterT::Double, "aa2");
-    ParameterT c2(ParameterT::Double, "c2");
-    ParameterT n2(ParameterT::Double, "n2");
-	ParameterT xi(ParameterT::Double, "xi");
+			ParameterT a2(ParameterT::Double, "a2");
+			ParameterT b2(ParameterT::Double, "b2");
+			ParameterT c2(ParameterT::Double, "c2");
+			ParameterT n2(ParameterT::Double, "n2");
 
-    cornea_mod.AddParameter(a2);
-    cornea_mod.AddParameter(b2);
-    cornea_mod.AddParameter(aa2);
-    cornea_mod.AddParameter(c2);
-    cornea_mod.AddParameter(n2);
-	cornea_mod.AddParameter(xi);
-    c2.AddLimit(lower);
-    c2.AddLimit(upper);
-    n2.AddLimit(lower);
+			cornea_mod.AddParameter(a2);
+			cornea_mod.AddParameter(b2);
+			cornea_mod.AddParameter(c2);
+			cornea_mod.AddParameter(n2);
+			c2.AddLimit(lower);
+			c2.AddLimit(upper);
+			n2.AddLimit(lower);
 
-    ParameterT r1(ParameterT::Double, "r1"); // NT-IS end
-    cornea_mod.AddParameter(r1);
-    r1.AddLimit(lower);
-    ParameterT r2(ParameterT::Double, "r2"); // circumferential begin
-    cornea_mod.AddParameter(r2);
-    r2.AddLimit(lower);
-    ParameterT r3(ParameterT::Double, "r3"); // circumferential end
-    cornea_mod.AddParameter(r3);
-    r3.AddLimit(lower);
+			ParameterT r1(ParameterT::Double, "r1"); // NT-IS end
+			cornea_mod.AddParameter(r1);
+			r1.AddLimit(lower);
+			ParameterT r2(ParameterT::Double, "r2"); // circumferential begin
+			cornea_mod.AddParameter(r2);
+			r2.AddLimit(lower);
+			ParameterT r3(ParameterT::Double, "R_IS"); // circumferential end
+			cornea_mod.AddParameter(r3);
+			r3.AddLimit(lower);
+			ParameterT r4(ParameterT::Double, "R_NT"); // circumferential end
+			cornea_mod.AddParameter(r4);
+			r4.AddLimit(lower);
 		}
 	
     /* set the description */
@@ -523,8 +522,6 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 	FSFiberMatT::TakeParameterList(list);
 
 	/*initializing some parameters for cornea_mod fibril distribution*/
-	xi = 0;aa2=0;
-
 	int num_neq_pot = list.NumLists("neq_fibril_potential");
 	int num_visc = list.NumLists("viscosity");
 
@@ -632,7 +629,7 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 		r2 = distr.GetParameter("r2");
 		r3 = distr.GetParameter("r3");
 		r4 = distr.GetParameter("r4");
-		finhomogeneous = true;
+		finhomogeneous = kBlend;
 	}
   else if (distr.Name() == "cornea_mod")
   {
@@ -645,20 +642,25 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 
     a2 = distr.GetParameter("a2");
     b2 = distr.GetParameter("b2");
-    aa2 = distr.GetParameter("aa2");
     c2 = distr.GetParameter("c2");
     n2 = distr.GetParameter("n2");
-	xi = distr.GetParameter("xi");
-	xi *= 3.1415926536/180;
+
     r1 = distr.GetParameter("r1");
     r2 = distr.GetParameter("r2");
-    r3 = distr.GetParameter("r3");
+    r3 = distr.GetParameter("R_IS");
+    r4 = distr.GetParameter("R_NT");
+	
+	if (r2 < r1) 
+			ExceptionT::GeneralFail("AnisoCorneaVisco::TakeParameterList", 
+			"radius of limbal annulus has to be greater than radius of central region");
+	if (r3 < r2) 
+			ExceptionT::GeneralFail("AnisoCorneaVisco::TakeParameterList", 
+			"IS meridan has to be greater than radius of limbal annulus");
+	if (r4 < r3) 
+			ExceptionT::GeneralFail("AnisoCorneaVisco::TakeParameterList", 
+			"NT meridan has to be greater than IS meridian");
 
-
-	/*extraneous parameters;*/
-	r4=1.25*r3;
-	c3 = 1.0;
-    finhomogeneous = true;
+    finhomogeneous = kBlend_Mod;
   }
 	else if (distr.Name() == "inhomogeneous_distribution") {
     ParameterContainerT inhomo_dist("inhomogeneous_distribution");
@@ -1703,78 +1705,99 @@ void AnisoCorneaVisco::Construct(void)
 }
 #endif
 
-	if (finhomogeneous) {
+	if (finhomogeneous == kBlend || finhomogeneous == kBlend_Mod) 
+	{
 		const dArray2DT& coordinates = fFSFiberMatSupport->InitialCoordinates();
 		int nelm = fFSFiberMatSupport->NumElements(); 
 		fjacobians.Dimension(nelm);
 		dArrayT jac(numbonds);
-//		StringT name(fFSFiberMatSupport->InputManager().DatabaseName());
-//		StringT name(fFSFiberMatSupport->IOManager().OutputRoot());
-//		name.Append("distributions");
 		StringT name("distributions.dat");
 		ofstreamT dist_out(name);
-//  	ofstreamT dist_out("distributions.dat");
 		dArrayT xc(3);
 		fFSFiberMatSupport->TopElement();
+
 		double inv_d_wg = numbonds/(2.0*Pi);
-		C1FunctionT* distribution, * iso_distribution, * distribution1, * distribution2;
-		iso_distribution = new PowerTrig(0.0,0.0,c3,0,0.0);
-		while (fFSFiberMatSupport->NextElement()) {
+		while (fFSFiberMatSupport->NextElement()) 
+		{
 			int ielm = fFSFiberMatSupport->CurrElementNumber();
 			fjacobians[ielm].Dimension(numbonds);
 			fjacobians[ielm] = 0.0;
-
-      /* calculate element centroid */
-      iArrayT nodes = fFSFiberMatSupport->CurrentElement()->NodesX();
-      int nen = NumElementNodes();       
+			
+			/* calculate element centroid */
+			iArrayT nodes = fFSFiberMatSupport->CurrentElement()->NodesX();
+			int nen = NumElementNodes();       
 			xc = 0.0;
-      for (int i = 0; i < nen; i++) {
-        for (int j = 0; j < coordinates.MinorDim(); j++)
-          xc[j] += coordinates(nodes[i],j);
-      }
-      xc /= nen;
+			for (int i = 0; i < nen; i++) 
+			{
+				for (int j = 0; j < coordinates.MinorDim(); j++)
+				xc[j] += coordinates(nodes[i],j);
+			}
+			xc /= nen;
 
 			int inormal = 2; // HACK
 			double x1 = xc[perm[inormal][1]];
 			double x2 = xc[perm[inormal][2]];
+
 			// projected polar coordinates
 			double r = sqrt(x1*x1 + x2*x2);
 			double phi = atan2(x2,x1);
+			double wg = 1.0;
 
-			// blending function : assuming linear radial weighting function
-			double wg;
-			if (r3 > 0.0 && r > r3) {  /*the point is in the sclera*/
-				// distribution three : uniform
-				wg = (r-r3)/(r4-r3); 
-				wg = min(max(wg,0.0),1.0);
-				jac = fCircle->Jacobians(0.0, iso_distribution);
-			} 
-			if (fabs(r1-r2)<kSmall){  /*if there are central and peripheral regions*/
-				wg = 0.0;
-				jac = fCircle->Jacobians(0.0, fDistribution);  /*Cos[theta]^8 + Sin[theta]^8+c1*/
+			if (finhomogeneous == kBlend)
+			{
+				C1FunctionT* distribution, * iso_distribution;
+				iso_distribution = new PowerTrig(0.0,0.0,c3,0,0.0);
+
+				// blending function : assuming linear radial weighting function
+				if (r3 > 0.0 && r > r3) {  /*the point is in the sclera*/
+					// distribution three : uniform
+					wg = (r-r3)/(r4-r3); 
+					wg = min(max(wg,0.0),1.0);
+					jac = fCircle->Jacobians(0.0, iso_distribution);
+				} 
+				else {
+					// distribution one : aligned w/ "NT-IS" system
+					wg = (r-r2)/(r1-r2); // HACK : use ellipsoidal coord system
+					wg = min(max(wg,0.0),1.0);
+					jac = fCircle->Jacobians(0.0, fDistribution);  /*Cos[theta]^8 + Sin[theta]^8+c1*/
+				}
+				fjacobians[ielm].AddScaled(wg,jac);
+
+				// distribution two : rotated wrt/ "NT-IS" system
+				wg = 1.0 - wg;
+				distribution = new PowerTrig(a2,b2,c2,n2,-phi); // assuming power trig
+				jac = fCircle->Jacobians(0.0, distribution);
+				delete distribution;
+				fjacobians[ielm].AddScaled(wg,jac);
 			}
-			else {
-				// distribution one : aligned w/ "NT-IS" system
-				wg = (r-r2)/(r1-r2); // HACK : use ellipsoidal coord system
-				wg = min(max(wg,0.0),1.0);
-				jac = fCircle->Jacobians(0.0, fDistribution);  /*Cos[theta]^8 + Sin[theta]^8+c1*/
+			if (finhomogeneous == kBlend_Mod)
+			{
+				// projected polar coordinates
+				double ecc = sqrt(1.0 - r3*r3/(r4*r4)); //eccentricity: sqrt( 1 - RIS^2/RNT^2 )
+				r = sqrt( (1.0 - ecc*ecc) * x1*x1 + x2*x2); /*map r to ellipse*/
+				phi = atan2(x2,x1);
+
+				C1FunctionT* Dlimbus, *Dcentral;
+				Dlimbus = new PowerTrig(a2,b2,c2,n2,-phi);
+				Dcentral = fDistribution;
+				// blending function : assuming linear radial weighting function
+				if (r < r1){  /*central region*/
+					fjacobians[ielm] = fCircle->Jacobians(0.0, Dcentral);  
+				}
+				else if (r > r2 && (r2-r1) > kSmall) { /*limbus*/
+					// distribution one : aligned w/ "NT-IS" system
+					fjacobians[ielm] = fCircle->Jacobians(0.0, Dlimbus); 
+				}				
+				else { /*peripheral region: linear blending*/
+					wg = (r2-r)/(r2-r1); 
+					jac = fCircle->Jacobians(0.0, Dcentral);  
+					fjacobians[ielm].AddScaled(wg,jac);
+
+					wg = (r-r1)/(r2-r1); 
+					jac = fCircle->Jacobians(0.0, Dlimbus);
+					fjacobians[ielm].AddScaled(wg,jac);
+				}
 			}
-			fjacobians[ielm].AddScaled(wg,jac);
-
-			// distribution two : rotated wrt/ "NT-IS" system
-      wg = 1.0 - wg;
-			distribution = new PowerTrig(a2,b2,c2,n2,-phi); // assuming power trig
-			distribution1 = new PowerTrig(aa2,aa2,0.0,n2,-phi); // assuming power trig
-			double shift = phi+xi;
-			distribution2 = new PowerTrig(aa2,0.0,0.0,n2,-shift); // assuming power trig
-			jac = fCircle->Jacobians(0.0, distribution);
-			jac += fCircle->Jacobians(0.0, distribution1);
-			jac += fCircle->Jacobians(0.0, distribution2);
-			delete distribution;
-			delete distribution1;
-			delete distribution2;
-			fjacobians[ielm].AddScaled(wg,jac);
-
 #ifdef MY_DEBUG
 {
 			out << "element: " << ielm << " x: " << x1 << " " << x2 << " r: " << r << " phi: " << phi << " wg: " << wg << "\n";
