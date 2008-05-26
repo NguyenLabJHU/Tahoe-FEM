@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.8 2007-10-09 23:24:47 rjones Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.9 2008-05-26 16:02:39 thao Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -598,6 +598,9 @@ void UpLagFiberCompT::ReadAnalyticVec(const ParameterListT& fibers)
 #ifdef MY_DEBUG
 			cout << "n: " << n[0] << "  " << n[1] << "  " << n[2] << " " << xc[0] << "  " << xc[1] << "  " << xc[2] << "\n";
 #endif
+//		cout << "\nelement: "<<CurrElementNumber();
+//		cout << "\nfibervec: "<<P_vec;
+
 		}
 	}
 }
