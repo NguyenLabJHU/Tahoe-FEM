@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.42 2008-05-26 18:54:45 bcyansfn Exp $ */
+/* $Id: NLSolver.cpp,v 1.43 2008-05-26 18:55:50 bcyansfn Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -261,7 +261,6 @@ approx_LHS = tmp;
 		return kFailed;
 	}
 }
-
 
 /* generate the solution for the current time sequence */
 #ifdef DEM_COUPLING_DEV
