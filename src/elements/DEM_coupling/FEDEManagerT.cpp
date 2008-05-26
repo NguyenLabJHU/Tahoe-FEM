@@ -12,12 +12,16 @@ FEDEManagerT::FEDEManagerT(const StringT& input_file, ofstreamT& output, Communi
     FEManagerT(input_file, output, comm, argv, task)
 {
     SetName("tahoe_DEM_coupling");
+
+    dem::g_exceptioninf.open("dem_exception");
+    if(! dem::g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1); }
+    dem::g_exceptioninf.setf(ios::scientific, ios::floatfield);
 }
 
 /* destructor */
 FEDEManagerT::~FEDEManagerT(void)
 {
-    
+    dem::g_exceptioninf.close();    
 }
 
 /* accept parameter list */
@@ -38,8 +42,15 @@ void FEDEManagerT::TakeParameterList(const ParameterListT& list)
 /* perform DEM simulation and calculate ghost forces */
 void FEDEManagerT::DemComputeStep(void)
 {
-    /* print FE mesh info */
-    fDEManager.PrintFE(NodeManager());
+
+    if (fTimeManager->WriteOutput()) {
+
+	/* print FE mesh info */
+	fDEManager.PrintFE(NodeManager());
+
+	/* print DE particle info */
+	fDEManager.PrintDE();
+    }
 
     /* perform DEM simulation*/
     fDEManager.Run();
