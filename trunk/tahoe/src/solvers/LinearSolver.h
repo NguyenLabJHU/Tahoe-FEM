@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.h,v 1.10 2008-05-26 18:51:27 bcyansfn Exp $ */
+/* $Id: LinearSolver.h,v 1.11 2008-05-26 18:52:27 bcyansfn Exp $ */
 /* created: paklein (05/30/1996) */
 #ifndef _LINEAR_SOLVER_H_
 #define _LINEAR_SOLVER_H_
@@ -28,7 +28,6 @@ public:
 	 *        also indicate the solution procedure has failed.
 	 * \return one of SolverT::IterationsStatusT */
 	virtual SolutionStatusT Solve(int num_iterations);
-
 
 #ifdef DEM_COUPLING_DEV
 	virtual SolutionStatusT Solve(int num_iterations, FEDEManagerT& fFEDEManager, ArrayT<FBC_CardT>& fGhostFBC);
