@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.h,v 1.8 2008-05-26 21:52:59 thao Exp $ */
+/* $Id: AnisoCornea.h,v 1.9 2008-05-26 22:02:20 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ANISO_CORNEA_2D_H_
 #define _ANISO_CORNEA_2D_H_
@@ -19,6 +19,7 @@ class AnisoCornea: public FSFiberMatT
 {
 public:
 
+	enum InhomoDistributionT { kHomogeneous=0, kBlend=1,  kCornea=2, kBlend_Mod=3};
 	/* constructor */
 	AnisoCornea(void);
 

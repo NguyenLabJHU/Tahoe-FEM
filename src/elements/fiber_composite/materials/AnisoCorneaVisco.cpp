@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.12 2008-05-26 21:52:59 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.13 2008-05-26 22:02:20 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -510,13 +510,6 @@ ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
     /* set the description */
     cornea_mod.SetDescription("f(theta) = distNT-IS(0:r1) + distCIRC(r2:r3) ");
     choice->AddSub(cornea_mod);
-
-    /* element distributions read from a file */
-    ParameterContainerT inhomo_dist("inhomogeneous_distribution");
-    ParameterT dist_file(ParameterT::String, "element_distributions_file");
-    inhomo_dist.AddParameter(dist_file);
-    inhomo_dist.SetDescription("read element distributions from file");
-    choice->AddSub(inhomo_dist);
 
 	return(choice);
 	}

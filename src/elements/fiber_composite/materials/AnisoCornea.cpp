@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.cpp,v 1.9 2008-05-26 22:02:20 thao Exp $ */
+/* $Id: AnisoCornea.cpp,v 1.10 2008-05-26 22:07:08 thao Exp $ */
 /* created: paklein (11/08/1997) */
 
 #include "AnisoCornea.h"
@@ -189,7 +189,7 @@ ParameterInterfaceT* AnisoCornea::NewSub(const StringT& name) const
 		choice->AddSub(matrix);
 		return choice;
 	}
-	else if (name == "eq_fibril_potential" || name == "neq_fibril_potential")
+	else if (name == "fibril_potential")
 	{
 		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetListOrder(ParameterListT::Choice);
@@ -438,7 +438,7 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 		fGamma = matrix.GetParameter("bulk_modulus");
 	}
 
-	const ParameterListT& potential = list.GetListChoice(*this, "eq_fibril_potential");
+	const ParameterListT& potential = list.GetListChoice(*this, "fibril_potential");
 	if (potential.Name() == "fung_type")
 	{
 		double alpha = potential.GetParameter("alpha");
