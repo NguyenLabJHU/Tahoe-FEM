@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.13 2008-05-12 22:32:27 regueiro Exp $ */
+/* $Id: LinearSolver.cpp,v 1.14 2008-05-26 18:51:27 bcyansfn Exp $ */
 /* created: paklein (05/30/1996) */
 #include "LinearSolver.h"
 #include "FEManagerT.h"
@@ -94,6 +94,7 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 		return kFailed;
 	}
 }
+
 
 /* solve the current step, including ghost particle force */
 #ifdef DEM_COUPLING_DEV
