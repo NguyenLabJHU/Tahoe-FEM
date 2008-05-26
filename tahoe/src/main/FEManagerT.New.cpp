@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.New.cpp,v 1.11 2008-05-13 22:38:04 regueiro Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.12 2008-05-26 18:25:55 bcyansfn Exp $ */
 #include "FEManagerT.h"
 
 /* element configuration header */
@@ -9,15 +9,18 @@
 #include "FEManagerT_bridging.h"
 #include "BridgingScaleManagerT.h"
 #include "FEManagerT_THK.h"
-#endif
-
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
 #include "ThermomechanicalCouplingManagerT.h"
 #endif
+#endif
 
+/* DE-FE coupling */
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
 #ifdef DEM_COUPLING_DEV
 #include "FEDEManagerT.h"
+#endif
 #endif
 
 using namespace Tahoe;
