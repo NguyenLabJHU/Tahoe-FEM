@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.h,v 1.7 2007-12-19 23:35:54 thao Exp $ */
+/* $Id: AnisoCornea.h,v 1.8 2008-05-26 21:52:59 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ANISO_CORNEA_2D_H_
 #define _ANISO_CORNEA_2D_H_
@@ -103,7 +103,7 @@ protected:
   /* for inhomogeneous material */
   ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
   bool finhomogeneous; // flag
-  double a2,b2,c2,n2,c3,r1,r2,r3,r4,aa2,bb2,xi; // for spatial dependent distribution
+  double a2,b2,c2,n2,c3,r1,r2,r3,r4,bb2; // for spatial dependent distribution
 
 	/* STRESS angle tables for fiber stress - by associated stress component */
 	dArray2DT fStressTable;

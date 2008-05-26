@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.cpp,v 1.7 2007-12-19 23:35:54 thao Exp $ */
+/* $Id: AnisoCornea.cpp,v 1.8 2008-05-26 21:52:59 thao Exp $ */
 /* created: paklein (11/08/1997) */
 
 #include "AnisoCornea.h"
@@ -161,200 +161,12 @@ void AnisoCornea::DefineSubs(SubListT& sub_list) const
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* AnisoCornea::NewSub(const StringT& name) const
 {
-	if (name == "fibril_potential")
+	/* inherited */
+	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
+//	ParameterInterfaceT* sub = FSFiberMatViscT::NewSub(name);
+	if (sub) 
 	{
-		ParameterContainerT* choice = new ParameterContainerT(name);
-		choice->SetListOrder(ParameterListT::Choice);
-
-		ParameterContainerT fung("fung_type");		
-		LimitT lower(0.0, LimitT::Lower);
-
-		ParameterT alpha(ParameterT::Double, "alpha");
-		ParameterT beta(ParameterT::Double, "beta");
-
-		fung.AddParameter(alpha);
-		fung.AddParameter(beta);
-		alpha.AddLimit(lower);
-		beta.AddLimit(lower);
-
-		/* set the description */
-		fung.SetDescription("f(I) = alpha*(exp(beta*(I - 1.0)) + beta/I)");	
-		choice->AddSub(fung);
-		return(choice);
-	}
-  // NOTE : this definition _masks_ the definition in AnisoViscoCornea
-	else if (name == "fibril_distribution")
-	{
-		ParameterContainerT* choice = new ParameterContainerT(name);
-		choice->SetListOrder(ParameterListT::Choice);
-
-		ParameterContainerT powertrig("power_trig");		
-		LimitT lower(0.0, LimitT::Lower);
-		LimitT upper(1.0, LimitT::Upper);
-
-		ParameterT a(ParameterT::Double, "a");
-		ParameterT b(ParameterT::Double, "b");
-		ParameterT c(ParameterT::Double, "c");
-		ParameterT n(ParameterT::Double, "n");
-		ParameterT phi(ParameterT::Double, "phi");
-
-		powertrig.AddParameter(a);
-		powertrig.AddParameter(b);
-		powertrig.AddParameter(c);
-		powertrig.AddParameter(n);
-		powertrig.AddParameter(phi);
-		c.AddLimit(lower);
-		c.AddLimit(upper);
-		n.AddLimit(lower);
-
-		/* set the description */
-		powertrig.SetDescription("f(theta) = a*cos(theta+phi)^n + b*sin(theta+phi)^n + c");	
-		choice->AddSub(powertrig);
-
-    ParameterContainerT blend_powertrig("blend_power_trig");
-    {
-    ParameterT a1(ParameterT::Double, "a1");
-    ParameterT b1(ParameterT::Double, "b1");
-    ParameterT c1(ParameterT::Double, "c1");
-    ParameterT n1(ParameterT::Double, "n1");
-
-    blend_powertrig.AddParameter(a1);
-    blend_powertrig.AddParameter(b1);
-    blend_powertrig.AddParameter(c1);
-    blend_powertrig.AddParameter(n1);
-    c1.AddLimit(lower);
-    c1.AddLimit(upper);
-    n1.AddLimit(lower);
-
-    ParameterT a2(ParameterT::Double, "a2");
-    ParameterT b2(ParameterT::Double, "b2");
-    ParameterT c2(ParameterT::Double, "c2");
-    ParameterT n2(ParameterT::Double, "n2");
-
-    blend_powertrig.AddParameter(a2);
-    blend_powertrig.AddParameter(b2);
-    blend_powertrig.AddParameter(c2);
-    blend_powertrig.AddParameter(n2);
-    c2.AddLimit(lower);
-    c2.AddLimit(upper);
-    n2.AddLimit(lower);
-
-    ParameterT r1(ParameterT::Double, "r1");
-    ParameterT r2(ParameterT::Double, "r2");
-    blend_powertrig.AddParameter(r1);
-    blend_powertrig.AddParameter(r2);
-    r1.AddLimit(lower);
-    r2.AddLimit(lower);
-	}
-    /* set the description */
-    blend_powertrig.SetDescription("f(theta) = dist1(theta,phi=0)*(r-r2)/(r1-r2) + dist1(theta,phi(x))*(r-r1)/(r2-r1) ");
-    choice->AddSub(blend_powertrig);
-
-    /* a full map of a cornea's distributions */
-    ParameterContainerT cornea("cornea");
-		{
-    ParameterT a1(ParameterT::Double, "a1");
-    ParameterT b1(ParameterT::Double, "b1");
-    ParameterT c1(ParameterT::Double, "c1");
-    ParameterT n1(ParameterT::Double, "n1");
-
-    cornea.AddParameter(a1);
-    cornea.AddParameter(b1);
-    cornea.AddParameter(c1);
-    cornea.AddParameter(n1);
-    c1.AddLimit(lower);
-    c1.AddLimit(upper);
-    n1.AddLimit(lower);
-
-    ParameterT a2(ParameterT::Double, "a2");
-    ParameterT b2(ParameterT::Double, "b2");
-    ParameterT c2(ParameterT::Double, "c2");
-    ParameterT n2(ParameterT::Double, "n2");
-
-    cornea.AddParameter(a2);
-    cornea.AddParameter(b2);
-    cornea.AddParameter(c2);
-    cornea.AddParameter(n2);
-    c2.AddLimit(lower);
-    c2.AddLimit(upper);
-    n2.AddLimit(lower);
-
-    ParameterT c3(ParameterT::Double, "c3");
-    cornea.AddParameter(c3);
-    c3.AddLimit(lower);
-    choice->AddSub(cornea);
-
-
-    ParameterT r1(ParameterT::Double, "r1"); // NT-IS end
-    cornea.AddParameter(r1);
-    r1.AddLimit(lower);
-    ParameterT r2(ParameterT::Double, "r2"); // circumferential begin
-    cornea.AddParameter(r2);
-    r2.AddLimit(lower);
-    ParameterT r3(ParameterT::Double, "r3"); // circumferential end
-    cornea.AddParameter(r3);
-    r3.AddLimit(lower);
-    ParameterT r4(ParameterT::Double, "r4"); // uniform begin
-    cornea.AddParameter(r4);
-    r4.AddLimit(lower);
-		}
-		
-	  /* a full map of a cornea's distributions */
-    ParameterContainerT cornea_mod("cornea_mod");
-		{
-    ParameterT a1(ParameterT::Double, "a1");
-    ParameterT b1(ParameterT::Double, "b1");
-    ParameterT c1(ParameterT::Double, "c1");
-    ParameterT n1(ParameterT::Double, "n1");
-
-    cornea_mod.AddParameter(a1);
-    cornea_mod.AddParameter(b1);
-    cornea_mod.AddParameter(c1);
-    cornea_mod.AddParameter(n1);
-    c1.AddLimit(lower);
-    c1.AddLimit(upper);
-    n1.AddLimit(lower);
-
-    ParameterT a2(ParameterT::Double, "a2");
-    ParameterT b2(ParameterT::Double, "b2");
-    ParameterT aa2(ParameterT::Double, "aa2");
-    ParameterT c2(ParameterT::Double, "c2");
-    ParameterT n2(ParameterT::Double, "n2");
-	ParameterT xi(ParameterT::Double, "xi");
-
-    cornea_mod.AddParameter(a2);
-    cornea_mod.AddParameter(b2);
-    cornea_mod.AddParameter(aa2);
-    cornea_mod.AddParameter(c2);
-    cornea_mod.AddParameter(n2);
-	cornea_mod.AddParameter(xi);
-    c2.AddLimit(lower);
-    c2.AddLimit(upper);
-    n2.AddLimit(lower);
-
-    ParameterT r1(ParameterT::Double, "r1"); // NT-IS end
-    cornea_mod.AddParameter(r1);
-    r1.AddLimit(lower);
-    ParameterT r2(ParameterT::Double, "r2"); // circumferential begin
-    cornea_mod.AddParameter(r2);
-    r2.AddLimit(lower);
-    ParameterT r3(ParameterT::Double, "r3"); // circumferential end
-    cornea_mod.AddParameter(r3);
-    r3.AddLimit(lower);
-		}
-	
-    /* set the description */
-    cornea_mod.SetDescription("f(theta) = distNT-IS(0:r1) + distCIRC(r2:r3) ");
-    choice->AddSub(cornea_mod);
-
-    /* element distributions read from a file */
-    ParameterContainerT inhomo_dist("inhomogeneous_distribution");
-    ParameterT dist_file(ParameterT::String, "element_distributions_file");
-    inhomo_dist.AddParameter(dist_file);
-    inhomo_dist.SetDescription("read element distributions from file");
-    choice->AddSub(inhomo_dist);
-
-		return(choice);
+		return sub;
 	}
 	else if (name == "matrix_material_params")
 	{
@@ -375,10 +187,246 @@ ParameterInterfaceT* AnisoCornea::NewSub(const StringT& name) const
 		choice->AddSub(matrix);
 		return choice;
 	}
-	else /* inherited */
+	else if (name == "eq_fibril_potential" || name == "neq_fibril_potential")
 	{
-		/*Need to create new sub*/
-		return ParameterInterfaceT::NewSub(name);
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetListOrder(ParameterListT::Choice);
+
+		ParameterContainerT fung("fung_type");		
+		LimitT lower(0.0, LimitT::Lower);
+
+		ParameterT alpha(ParameterT::Double, "alpha");
+		ParameterT beta(ParameterT::Double, "beta");
+
+		fung.AddParameter(alpha);
+		fung.AddParameter(beta);
+		alpha.AddLimit(lower);
+		beta.AddLimit(lower);
+
+		/* set the description */
+		fung.SetDescription("f(I) = alpha*(exp(beta*(I - 1.0)) + beta/I)");	
+		choice->AddSub(fung);
+		return(choice);
+	}
+	else if (name == "viscosity")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetListOrder(ParameterListT::Choice);
+
+		ParameterContainerT sinh("scaled_csch");		
+		LimitT lower(0.0, LimitT::Lower);
+
+		ParameterT eta0(ParameterT::Double, "eta0");
+		ParameterT tau0(ParameterT::Double, "tau0");
+
+		sinh.AddParameter(eta0);
+		sinh.AddParameter(tau0);
+		eta0.AddLimit(lower);
+		tau0.AddLimit(lower);
+
+		/* set the description */
+		sinh.SetDescription("f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)");	
+		choice->AddSub(sinh);
+		
+		ParameterContainerT exp("linear-exponential");
+ 
+		ParameterT a(ParameterT::Double, "a");
+		ParameterT b(ParameterT::Double, "b");
+		ParameterT c(ParameterT::Double, "c");
+		ParameterT d(ParameterT::Double, "d");
+
+		exp.AddParameter(a);
+		exp.AddParameter(b);
+		exp.AddParameter(c);
+		exp.AddParameter(d);
+		/* set the description */
+		exp.SetDescription("f(x) = a + b x + c (1 - exp[-x/d])");	
+		choice->AddSub(exp);
+
+		return(choice);
+	}
+	else if (name == "fibril_distribution")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetListOrder(ParameterListT::Choice);
+		LimitT lower(0.0, LimitT::Lower);
+		LimitT upper(1.0, LimitT::Upper);
+
+
+		/* sine & cosine raised to a power */
+		ParameterContainerT powertrig("power_trig");		
+
+		ParameterT a(ParameterT::Double, "a");
+		ParameterT b(ParameterT::Double, "b");
+		ParameterT c(ParameterT::Double, "c");
+		ParameterT n(ParameterT::Double, "n");
+		ParameterT phi(ParameterT::Double, "phi");
+
+		powertrig.AddParameter(a);
+		powertrig.AddParameter(b);
+		powertrig.AddParameter(c);
+		powertrig.AddParameter(n);
+		powertrig.AddParameter(phi);
+		c.AddLimit(lower);
+		c.AddLimit(upper);
+		n.AddLimit(lower);
+
+		/* set the description */
+		powertrig.SetDescription("f(theta) = a*cos(theta+phi)^n + b*sin(theta+phi)^n + c");	
+		choice->AddSub(powertrig);
+
+		/* spatially interpolated blending of two distributions */
+		ParameterContainerT blend_powertrig("blend_power_trig");		
+		{
+		ParameterT a1(ParameterT::Double, "a1");
+		ParameterT b1(ParameterT::Double, "b1");
+		ParameterT c1(ParameterT::Double, "c1");
+		ParameterT n1(ParameterT::Double, "n1");
+
+		blend_powertrig.AddParameter(a1);
+		blend_powertrig.AddParameter(b1);
+		blend_powertrig.AddParameter(c1);
+		blend_powertrig.AddParameter(n1);
+		c1.AddLimit(lower);
+		c1.AddLimit(upper);
+		n1.AddLimit(lower);
+
+		ParameterT a2(ParameterT::Double, "a2");
+		ParameterT b2(ParameterT::Double, "b2");
+		ParameterT c2(ParameterT::Double, "c2");
+		ParameterT n2(ParameterT::Double, "n2");
+
+		blend_powertrig.AddParameter(a2);
+		blend_powertrig.AddParameter(b2);
+		blend_powertrig.AddParameter(c2);
+		blend_powertrig.AddParameter(n2);
+		c2.AddLimit(lower);
+		c2.AddLimit(upper);
+		n2.AddLimit(lower);
+
+		ParameterT r1(ParameterT::Double, "r1");
+		ParameterT r2(ParameterT::Double, "r2");
+		blend_powertrig.AddParameter(r1);
+		blend_powertrig.AddParameter(r2);
+		r1.AddLimit(lower);
+		r2.AddLimit(lower);
+		}
+		/* set the description */
+		blend_powertrig.SetDescription("f(theta) = dist1(theta,phi=0)*(r-r2)/(r1-r2) + dist1(theta,phi(x))*(r-r1)/(r2-r1) ");	
+		choice->AddSub(blend_powertrig);
+
+		/* a full map of a cornea's distributions */
+		ParameterContainerT cornea("cornea");		
+		{
+		ParameterT a1(ParameterT::Double, "a1");
+		ParameterT b1(ParameterT::Double, "b1");
+		ParameterT c1(ParameterT::Double, "c1");
+		ParameterT n1(ParameterT::Double, "n1");
+
+		cornea.AddParameter(a1);
+		cornea.AddParameter(b1);
+		cornea.AddParameter(c1);
+		cornea.AddParameter(n1);
+		c1.AddLimit(lower);
+		c1.AddLimit(upper);
+		n1.AddLimit(lower);
+
+		ParameterT a2(ParameterT::Double, "a2");
+		ParameterT b2(ParameterT::Double, "b2");
+		ParameterT c2(ParameterT::Double, "c2");
+		ParameterT n2(ParameterT::Double, "n2");
+
+		cornea.AddParameter(a2);
+		cornea.AddParameter(b2);
+		cornea.AddParameter(c2);
+		cornea.AddParameter(n2);
+		c2.AddLimit(lower);
+		c2.AddLimit(upper);
+		n2.AddLimit(lower);
+
+		ParameterT c3(ParameterT::Double, "c3");
+		cornea.AddParameter(c3);
+		c3.AddLimit(lower);
+
+		ParameterT r1(ParameterT::Double, "r1"); // NT-IS end
+		cornea.AddParameter(r1);
+		r1.AddLimit(lower);
+		ParameterT r2(ParameterT::Double, "r2"); // circumferential begin
+		cornea.AddParameter(r2);
+		r2.AddLimit(lower);
+		ParameterT r3(ParameterT::Double, "r3"); // circumferential end
+		cornea.AddParameter(r3);
+		r3.AddLimit(lower);
+		ParameterT r4(ParameterT::Double, "r4"); // uniform begin
+		cornea.AddParameter(r4);
+		r4.AddLimit(lower);
+		}
+		/* set the description */
+		cornea.SetDescription("f(theta) = distNT-IS(0:r1) + distCIRC(r2:r3) + distISO(r4:)  ");	
+		choice->AddSub(cornea);
+
+		/* element distributions read from a file */
+		ParameterContainerT inhomo_dist("inhomogeneous_distribution");		
+		ParameterT dist_file(ParameterT::String, "element_distributions_file");
+		inhomo_dist.AddParameter(dist_file);
+		inhomo_dist.SetDescription("read element distributions from file");	
+		choice->AddSub(inhomo_dist);
+
+	  /* a full map of a cornea's distributions */
+		ParameterContainerT cornea_mod("cornea_mod");
+		{
+			ParameterT a1(ParameterT::Double, "a1");
+			ParameterT b1(ParameterT::Double, "b1");
+			ParameterT c1(ParameterT::Double, "c1");
+			ParameterT n1(ParameterT::Double, "n1");
+
+			cornea_mod.AddParameter(a1);
+			cornea_mod.AddParameter(b1);
+			cornea_mod.AddParameter(c1);
+			cornea_mod.AddParameter(n1);
+			c1.AddLimit(lower);
+			c1.AddLimit(upper);
+			n1.AddLimit(lower);
+
+			ParameterT a2(ParameterT::Double, "a2");
+			ParameterT b2(ParameterT::Double, "b2");
+			ParameterT c2(ParameterT::Double, "c2");
+			ParameterT n2(ParameterT::Double, "n2");
+
+			cornea_mod.AddParameter(a2);
+			cornea_mod.AddParameter(b2);
+			cornea_mod.AddParameter(c2);
+			cornea_mod.AddParameter(n2);
+			c2.AddLimit(lower);
+			c2.AddLimit(upper);
+			n2.AddLimit(lower);
+
+			ParameterT r1(ParameterT::Double, "r1"); // NT-IS end
+			cornea_mod.AddParameter(r1);
+			r1.AddLimit(lower);
+			ParameterT r2(ParameterT::Double, "r2"); // circumferential begin
+			cornea_mod.AddParameter(r2);
+			r2.AddLimit(lower);
+			ParameterT r3(ParameterT::Double, "R_IS"); // circumferential end
+			cornea_mod.AddParameter(r3);
+			r3.AddLimit(lower);
+			ParameterT r4(ParameterT::Double, "R_NT"); // circumferential end
+			cornea_mod.AddParameter(r4);
+			r4.AddLimit(lower);
+		}
+	
+    /* set the description */
+    cornea_mod.SetDescription("f(theta) = distNT-IS(0:r1) + distCIRC(r2:r3) ");
+    choice->AddSub(cornea_mod);
+
+    /* element distributions read from a file */
+    ParameterContainerT inhomo_dist("inhomogeneous_distribution");
+    ParameterT dist_file(ParameterT::String, "element_distributions_file");
+    inhomo_dist.AddParameter(dist_file);
+    inhomo_dist.SetDescription("read element distributions from file");
+    choice->AddSub(inhomo_dist);
+
+	return(choice);
 	}
 }
 
@@ -388,17 +436,19 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	FSFiberMatT::TakeParameterList(list);
 
-	fNumFibStress = dSymMatrixT::NumValues(fNumSD-1);
-	fNumFibModuli = dSymMatrixT::NumValues(fNumFibStress);
-	
-	/* allocate memory */
-	/*2D fiber stress and modulus*/
-	fFiberStretch.Dimension(fNumSD-1);
-	fFiberStress.Dimension(fNumSD-1);
-	fFiberMod.Dimension(fNumFibStress);
-	
 	/*initializing some parameters for cornea_mod fibril distribution*/
-	xi = 0;aa2=0;
+	int num_neq_pot = list.NumLists("neq_fibril_potential");
+	int num_visc = list.NumLists("viscosity");
+
+	if (num_visc != num_neq_pot)
+		ExceptionT::GeneralFail("AnisoCorneaVisco::TakeParameterList", 
+			"number of viscosity functions does not match number of nonequilibrium potentials");
+
+	fNumFibProcess = num_neq_pot;
+	fPotential.Dimension(fNumFibProcess+1);
+	if(fNumFibProcess > 0)
+		fViscosity.Dimension(fNumFibProcess);
+		
 	const ParameterListT& matrix = list.GetListChoice(*this, "matrix_material_params");
 	if (matrix.Name() == "Neo-Hookean")
 	{
@@ -406,13 +456,43 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 		fGamma = matrix.GetParameter("bulk_modulus");
 	}
 
-	const ParameterListT& potential = list.GetListChoice(*this, "fibril_potential");
+	const ParameterListT& potential = list.GetListChoice(*this, "eq_fibril_potential");
 	if (potential.Name() == "fung_type")
 	{
 		double alpha = potential.GetParameter("alpha");
 		double beta = potential.GetParameter("beta");
-		fPotential = new FungType(alpha,beta);
-		if (!fPotential) throw ExceptionT::kOutOfMemory;
+		fPotential[0] = new FungType(alpha, beta);
+		if (!fPotential[0]) throw ExceptionT::kOutOfMemory;
+	}
+
+	for (int i = 0; i < fNumFibProcess; i++)
+	{
+		const ParameterListT& neq_potential = list.GetListChoice(*this, "neq_fibril_potential", i);
+		if (neq_potential.Name() == "fung_type")
+		{
+			double alpha = neq_potential.GetParameter("alpha");
+			double beta = neq_potential.GetParameter("beta");
+			fPotential[i+1] = new FungType(alpha,beta);
+			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
+		}
+		
+		const ParameterListT& visc = list.GetListChoice(*this, "viscosity", i);
+		if (visc.Name() == "linear-exponential")
+		{
+			double a = visc.GetParameter("a");
+			double b = visc.GetParameter("b");
+			double c = visc.GetParameter("c");
+			double d = visc.GetParameter("d");			
+			fViscosity[i] = new LinearExponentialT(a,b,c,d);
+			if (!fViscosity[i]) throw ExceptionT::kOutOfMemory;
+		}
+		else if (visc.Name() == "scaled_csch")
+		{
+			double a = visc.GetParameter("eta0");
+			double b = visc.GetParameter("tau0");
+			fViscosity[i] = new ScaledCsch(a,b);
+			if (!fViscosity[i]) throw ExceptionT::kOutOfMemory;
+		}
 	}
 	
 	const ParameterListT& distr = list.GetListChoice(*this, "fibril_distribution");
@@ -423,49 +503,49 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 		double c = distr.GetParameter("c");
 		double n = distr.GetParameter("n");
 		double phi = distr.GetParameter("phi");
-	 	fDistribution = new PowerTrig(a,b,c,n,phi); 
+		fDistribution = new PowerTrig(a,b,c,n,phi); 
 		if (!fDistribution) throw ExceptionT::kOutOfMemory;
 	}
-  else if (distr.Name() == "blend_power_trig")
-  {
-    double a1 = distr.GetParameter("a1");
-    double b1 = distr.GetParameter("b1");
-    double c1 = distr.GetParameter("c1");     
+	else if (distr.Name() == "blend_power_trig")
+	{
+		double a1 = distr.GetParameter("a1");
+		double b1 = distr.GetParameter("b1");
+		double c1 = distr.GetParameter("c1");
 		double n1 = distr.GetParameter("n1");
-    fDistribution = new PowerTrig(a1,b1,c1,n1,0.0);
-    if (!fDistribution) throw ExceptionT::kOutOfMemory;
+		fDistribution = new PowerTrig(a1,b1,c1,n1,0.0); 
+		if (!fDistribution) throw ExceptionT::kOutOfMemory;
 
-    a2 = distr.GetParameter("a2");
-    b2 = distr.GetParameter("b2");
-    c2 = distr.GetParameter("c2");
-    n2 = distr.GetParameter("n2");
+		a2 = distr.GetParameter("a2");
+		b2 = distr.GetParameter("b2");
+		c2 = distr.GetParameter("c2");
+		n2 = distr.GetParameter("n2");
 
-    r1 = distr.GetParameter("r1");
-    r2 = distr.GetParameter("r2");
-    finhomogeneous = true;
-  }
-  else if (distr.Name() == "cornea")
-  {
-    double a1 = distr.GetParameter("a1");
-    double b1 = distr.GetParameter("b1");
-    double c1 = distr.GetParameter("c1");
-    double n1 = distr.GetParameter("n1");
-    fDistribution = new PowerTrig(a1,b1,c1,n1,0.0);
-    if (!fDistribution) throw ExceptionT::kOutOfMemory;
+		r1 = distr.GetParameter("r1");
+		r2 = distr.GetParameter("r2");
+		finhomogeneous = kBlend;
+	}
+	else if (distr.Name() == "cornea")
+	{
+		double a1 = distr.GetParameter("a1");
+		double b1 = distr.GetParameter("b1");
+		double c1 = distr.GetParameter("c1");
+		double n1 = distr.GetParameter("n1");
+		fDistribution = new PowerTrig(a1,b1,c1,n1,0.0); 
+		if (!fDistribution) throw ExceptionT::kOutOfMemory;
 
-    a2 = distr.GetParameter("a2");
-    b2 = distr.GetParameter("b2");
-    c2 = distr.GetParameter("c2");
-    n2 = distr.GetParameter("n2");
+		a2 = distr.GetParameter("a2");
+		b2 = distr.GetParameter("b2");
+		c2 = distr.GetParameter("c2");
+		n2 = distr.GetParameter("n2");
 
 		c3 = distr.GetParameter("c3");
 
-    r1 = distr.GetParameter("r1");
-    r2 = distr.GetParameter("r2");
-    r3 = distr.GetParameter("r3");
-    r4 = distr.GetParameter("r4");
-    finhomogeneous = true;
-  }
+		r1 = distr.GetParameter("r1");
+		r2 = distr.GetParameter("r2");
+		r3 = distr.GetParameter("r3");
+		r4 = distr.GetParameter("r4");
+		finhomogeneous = kBlend;
+	}
   else if (distr.Name() == "cornea_mod")
   {
     double a1 = distr.GetParameter("a1");
@@ -477,20 +557,64 @@ void AnisoCornea::TakeParameterList(const ParameterListT& list)
 
     a2 = distr.GetParameter("a2");
     b2 = distr.GetParameter("b2");
-    aa2 = distr.GetParameter("aa2");
     c2 = distr.GetParameter("c2");
     n2 = distr.GetParameter("n2");
-	xi = distr.GetParameter("xi");
+
     r1 = distr.GetParameter("r1");
     r2 = distr.GetParameter("r2");
-    r3 = distr.GetParameter("r3");
+    r3 = distr.GetParameter("R_IS");
+    r4 = distr.GetParameter("R_NT");
+	
+	if (r2 < r1) 
+			ExceptionT::GeneralFail("AnisoCorneaVisco::TakeParameterList", 
+			"radius of limbal annulus has to be greater than radius of central region");
+	if (r3 < r2) 
+			ExceptionT::GeneralFail("AnisoCorneaVisco::TakeParameterList", 
+			"IS meridan has to be greater than radius of limbal annulus");
+	if (r4 < r3) 
+			ExceptionT::GeneralFail("AnisoCorneaVisco::TakeParameterList", 
+			"NT meridan has to be greater than IS meridian");
 
-
-/*	extraneous parameters;*/
-	r4=1.25*r3;
-	c3 = 1.0;
-    finhomogeneous = true;
+    finhomogeneous = kBlend_Mod;
   }
+	else if (distr.Name() == "inhomogeneous_distribution") {
+    ParameterContainerT inhomo_dist("inhomogeneous_distribution");
+    StringT dist_file =  distr.GetParameter("element_distributions_file");
+		finhomogeneous = kCornea;
+	}
+		
+	/* allocate memory */
+	/*2D fiber stress and modulus*/
+	fNumFibStress = dSymMatrixT::NumValues(fNumSD-1);
+	fNumFibModuli = dSymMatrixT::NumValues(fNumFibStress);
+	fFiberStretch.Dimension(fNumSD-1);
+	fFiberStress.Dimension(fNumSD-1);
+	fFiberMod.Dimension(fNumFibStress);
+
+	/*viscous fiber stretch at time step n, viscous stretch at time step n and vn*/
+	fFiberStretch_v.Dimension(fNumSD-1);
+	fFiberStretch_vn.Dimension(fNumSD-1);
+
+	/*Dimension work spaces*/
+	fCalg.Dimension(fNumFibStress);	
+	/* allocate memory */
+	/*dimension invserse viscosity matrix*/
+	fiVisc.Dimension(fNumFibStress);
+
+	/*Dimension work spaces*/
+	fFlowStress.Dimension(fNumSD-1);
+	fResidual.Dimension(fNumSD-1);
+	fiK.Dimension(fNumFibStress);
+	fG.Dimension(fNumFibStress);
+	fMod1.Dimension(fNumFibStress);
+	fMod2.Dimension(fNumFibStress);
+	fMod3.Dimension(fNumFibStress);
+	fVec.Dimension(fNumFibStress);
+
+	/*dimension state variable storage arrays*/
+	fNumMatProcess = 0;
+	int numprocess = fNumFibProcess;
+	SetStateVariables(numprocess);
 
 	/* point generator */
 	int points = list.GetParameter("n_points");
@@ -705,14 +829,10 @@ void AnisoCornea::Construct(void)
 	/* fetch points */
 	const dArray2DT& points = fCircle->CirclePoints(0.0);
 	int numbonds = points.MajorDim();
-	
-	/* allocate memory */
-	/*2D fiber stress and modulus*/
-	fFiberStress.Dimension(fNumFibStress);
-	fFiberMod.Dimension(fNumFibStress);
-	
+		
 	/* length table */
 	fI4.Dimension(numbonds);
+	fI4v.Dimension(numbonds);
 
 	/* potential tables */
 	fU.Dimension(numbonds);
@@ -721,8 +841,6 @@ void AnisoCornea::Construct(void)
 
 	/* jacobian table */
 	fjacobian.Dimension(numbonds);
-	/* angles table */
-//	fangles.Dimension(numbonds);
 
 	/* STRESS angle tables - by associated stress component */
 	fStressTable.Dimension(fNumFibStress, numbonds);
@@ -742,16 +860,134 @@ void AnisoCornea::Construct(void)
 	double *c13 = fModuliTable(4);
 	double *c12 = fModuliTable(5);
 
-	/* fetch jacobians */
-/*	fjacobian = fCircle->Jacobians();
-	fangles = fCircle->CircleAngles(0.0);
-	fDistribution->MapFunction(fangles,fU);
-	const double* pd = fU.Pointer();
-	double* pj = fjacobian.Pointer();	
-	for (int i = 0; i < fangles.Length(); i++)
-		pj[i] = fU[i]*pj[i];
-*/
+	/* fetch jacobians with fibril distribution function */
 	fjacobian = fCircle->Jacobians(0.0, fDistribution);
+#ifdef MY_DEBUG
+  /* output stream */
+  ofstreamT& out   = fFSFiberMatSupport->Output();
+  bool print_input = fFSFiberMatSupport->PrintInput();
+{
+	out << "#DISTRIBUTION: " ;
+  for (int i = 0; i < numbonds; i++) {
+		out << fjacobian[i] << " ";
+	}
+	out << "\n";
+}
+#endif
+
+	if (finhomogeneous == kBlend || finhomogeneous == kBlend_Mod) 
+	{
+		const dArray2DT& coordinates = fFSFiberMatSupport->InitialCoordinates();
+		int nelm = fFSFiberMatSupport->NumElements(); 
+		fjacobians.Dimension(nelm);
+		dArrayT jac(numbonds);
+		StringT name("distributions.dat");
+		ofstreamT dist_out(name);
+		dArrayT xc(3);
+		fFSFiberMatSupport->TopElement();
+
+		double inv_d_wg = numbonds/(2.0*Pi);
+		while (fFSFiberMatSupport->NextElement()) 
+		{
+			int ielm = fFSFiberMatSupport->CurrElementNumber();
+			fjacobians[ielm].Dimension(numbonds);
+			fjacobians[ielm] = 0.0;
+			
+			/* calculate element centroid */
+			iArrayT nodes = fFSFiberMatSupport->CurrentElement()->NodesX();
+			int nen = NumElementNodes();       
+			xc = 0.0;
+			for (int i = 0; i < nen; i++) 
+			{
+				for (int j = 0; j < coordinates.MinorDim(); j++)
+				xc[j] += coordinates(nodes[i],j);
+			}
+			xc /= nen;
+
+			int inormal = 2; // HACK
+			double x1 = xc[perm[inormal][1]];
+			double x2 = xc[perm[inormal][2]];
+
+			// projected polar coordinates
+			double r = sqrt(x1*x1 + x2*x2);
+			double phi = atan2(x2,x1);
+			double wg = 1.0;
+
+			if (finhomogeneous == kBlend)
+			{
+				C1FunctionT* distribution, * iso_distribution;
+				iso_distribution = new PowerTrig(0.0,0.0,c3,0,0.0);
+
+				// blending function : assuming linear radial weighting function
+				if (r3 > 0.0 && r > r3) {  /*the point is in the sclera*/
+					// distribution three : uniform
+					wg = (r-r3)/(r4-r3); 
+					wg = min(max(wg,0.0),1.0);
+					jac = fCircle->Jacobians(0.0, iso_distribution);
+				} 
+				else {
+					// distribution one : aligned w/ "NT-IS" system
+					wg = (r-r2)/(r1-r2); // HACK : use ellipsoidal coord system
+					wg = min(max(wg,0.0),1.0);
+					jac = fCircle->Jacobians(0.0, fDistribution);  /*Cos[theta]^8 + Sin[theta]^8+c1*/
+				}
+				fjacobians[ielm].AddScaled(wg,jac);
+
+				// distribution two : rotated wrt/ "NT-IS" system
+				wg = 1.0 - wg;
+				distribution = new PowerTrig(a2,b2,c2,n2,-phi); // assuming power trig
+				jac = fCircle->Jacobians(0.0, distribution);
+				delete distribution;
+				fjacobians[ielm].AddScaled(wg,jac);
+			}
+			if (finhomogeneous == kBlend_Mod)
+			{
+				// projected polar coordinates
+				double ecc = sqrt(1.0 - r3*r3/(r4*r4)); //eccentricity: sqrt( 1 - RIS^2/RNT^2 )
+				r = sqrt( (1.0 - ecc*ecc) * x1*x1 + x2*x2); /*map r to ellipse*/
+				phi = atan2(x2,x1);
+
+				C1FunctionT* Dlimbus, *Dcentral;
+				Dlimbus = new PowerTrig(a2,b2,c2,n2,-phi);
+				Dcentral = fDistribution;
+				// blending function : assuming linear radial weighting function
+				if (r < r1){  /*central region*/
+					fjacobians[ielm] = fCircle->Jacobians(0.0, Dcentral);  
+				}
+				else if (r > r2 && (r2-r1) > kSmall) { /*limbus*/
+					// distribution one : aligned w/ "NT-IS" system
+					fjacobians[ielm] = fCircle->Jacobians(0.0, Dlimbus); 
+				}				
+				else { /*peripheral region: linear blending*/
+					wg = (r2-r)/(r2-r1); 
+					jac = fCircle->Jacobians(0.0, Dcentral);  
+					fjacobians[ielm].AddScaled(wg,jac);
+
+					wg = (r-r1)/(r2-r1); 
+					jac = fCircle->Jacobians(0.0, Dlimbus);
+					fjacobians[ielm].AddScaled(wg,jac);
+				}
+			}
+#ifdef MY_DEBUG
+{
+			out << "element: " << ielm << " x: " << x1 << " " << x2 << " r: " << r << " phi: " << phi << " wg: " << wg << "\n";
+			out << "#distribution: " << ielm << " ";
+      for (int i = 0; i < numbonds; i++) {
+				out << fjacobians[ielm][i] << " ";
+			}
+			out << "\n";
+}
+#endif
+			dist_out << "element: " << ielm+1 << " x: " << x1 << " " << x2 
+           << " r: " << r << " phi: " << phi << " wg: " << wg << "\n";
+			dist_out << "#distribution: " << ielm << " ";
+      for (int i = 0; i < numbonds; i++) {
+				dist_out << inv_d_wg*fjacobians[ielm][i] << " ";
+			}
+			dist_out << inv_d_wg*fjacobians[ielm][0] << " ";
+			dist_out << "\n";
+		}
+	}
 
 	for (int i = 0; i < numbonds; i++)
 	{
