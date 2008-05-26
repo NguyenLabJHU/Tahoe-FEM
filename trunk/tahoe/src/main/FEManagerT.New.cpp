@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.New.cpp,v 1.12 2008-05-26 18:25:55 bcyansfn Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.13 2008-05-26 18:47:53 bcyansfn Exp $ */
 #include "FEManagerT.h"
 
 /* element configuration header */
@@ -15,7 +15,6 @@
 #endif
 #endif
 
-/* DE-FE coupling */
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
 #ifdef DEM_COUPLING_DEV
