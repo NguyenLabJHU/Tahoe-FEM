@@ -1,14 +1,6 @@
-/* $Id: FieldT.h,v 1.27 2008-05-13 22:36:56 regueiro Exp $ */
+/* $Id: FieldT.h,v 1.28 2008-05-26 19:04:08 bcyansfn Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
-
-#ifdef __DEVELOPMENT__
-#include "DevelopmentElementsConfig.h"
-#endif
-
-#ifdef DEM_COUPLING_DEV
-#include "FBC_CardT.h"
-#endif
 
 /* base class */
 #include "BasicFieldT.h"
@@ -22,6 +14,13 @@
 #include "FBC_CardT.h"
 #include "GlobalT.h"
 #include "AutoArrayT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#ifdef DEM_COUPLING_DEV
+#include "FBC_CardT.h"
+#endif
+#endif
 
 namespace Tahoe {
 

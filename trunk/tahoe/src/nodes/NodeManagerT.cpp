@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.68 2008-05-26 19:02:00 bcyansfn Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.69 2008-05-26 19:04:08 bcyansfn Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -375,7 +375,6 @@ void NodeManagerT::FormRHS(int group)
 		if (fFields[i]->Group() == group)
 			fFields[i]->FormRHS();
 }
-
 
 /* compute only the ghost particle contribution to the residual force vector */
 #ifdef DEM_COUPLING_DEV

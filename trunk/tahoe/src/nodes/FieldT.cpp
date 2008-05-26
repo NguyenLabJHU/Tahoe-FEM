@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.54 2008-05-26 19:02:00 bcyansfn Exp $ */
+/* $Id: FieldT.cpp,v 1.55 2008-05-26 19:04:08 bcyansfn Exp $ */
 
 #include "FieldT.h"
 
@@ -375,7 +375,6 @@ void FieldT::FormRHS(void)
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->ApplyRHS();
 }
-
 
 /* assemble only ghost particle contributions to the residual */
 #ifdef DEM_COUPLING_DEV
