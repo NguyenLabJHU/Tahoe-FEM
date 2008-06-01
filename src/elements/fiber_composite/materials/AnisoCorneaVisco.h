@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.8 2008-05-26 21:30:12 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.9 2008-06-01 01:05:34 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -20,7 +20,7 @@ class AnisoCorneaVisco: public  FSFiberMatViscT
 {
    public:
 
-	enum InhomoDistributionT { kHomogeneous=0, kBlend=1,  kCornea=2, kBlend_Mod=3};
+	enum InhomoDistributionT { kHomogeneous=0, kFile=1, kBlend=2,  kCornea=3, kCornea_Mod=4};
   
 	/* constructor/destructor */
 	AnisoCorneaVisco(void);
@@ -164,7 +164,7 @@ protected:
   /* for inhomogeneous material */
 	int finhomogeneous; // flag
   ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
-	double a2,b2,c2,n2,c3,r1,r2,r3,r4; // for spatial dependent distribution
+	double a2,b2,c2,n2,c3,r1,r2,r3,r4,xi; // for spatial dependent distribution
 
 
 	/* STRESS angle tables for fiber stress - by associated stress component */

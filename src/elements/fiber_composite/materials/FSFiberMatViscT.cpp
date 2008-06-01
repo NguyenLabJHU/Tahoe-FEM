@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.cpp,v 1.8 2008-05-26 15:51:17 thao Exp $ */
+/* $Id: FSFiberMatViscT.cpp,v 1.9 2008-06-01 01:05:34 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatViscT.h"
 #include "FSFiberMatSupportT.h"
@@ -31,12 +31,25 @@ FSFiberMatViscT::FSFiberMatViscT(void):
 /* modulus */
 const dMatrixT& FSFiberMatViscT::C_IJKL(void)
 {
+	int elem = CurrElementNumber();
+	int ip = CurrIP();
 	/* stretch */
 	Compute_C(fC);
 	
 	/*equilibrium contribution*/
 	/*calculate eq. matrix contribution*/
 	ComputeMatrixMod(fC, fStress, fModulus);
+
+#ifdef MY_DEBUG
+	if (elem == 0 || elem == 2209)
+	{
+		cout << "\nelem: "<<elem<<"\tip: "<<ip;
+		cout << "\nQ: "<<GetRotation();
+		cout << "\nfC: "<<fC;
+		cout<< "\nFiberStretch: "<<fFiberStretch;
+		cout <<"\nMatrixMod: "<<fModulus;
+	}
+#endif
 
 	/* eq. fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
@@ -48,6 +61,12 @@ const dMatrixT& FSFiberMatViscT::C_IJKL(void)
 	/* rotate and assemble eq. modulus to lab coordinates */
 	AssembleFiberModuli(fFiberMod, fModulus);
 	
+
+	if (elem == 0 || elem == 2209)
+	{
+		cout << "\nFiberMod: "<<fFiberMod;
+		cout << "\nModulus: "<<fModulus;
+	}
 if (fNumFibProcess+fNumMatProcess > 0)
 {
 	/*calculate nonequilibrium contribution*/
@@ -85,25 +104,19 @@ if (fNumFibProcess+fNumMatProcess > 0)
 /* stress */
 const dSymMatrixT& FSFiberMatViscT::S_IJ(void)
 {
-	
+		
 	/* stretch */
 	Compute_C(fC);
 
 	/*matrix contribution*/
 	/*calculate matrix contribution*/
 	ComputeMatrixStress(fC, fStress);
-//	cout << "\nfC: "<<fC;
-//	cout << "\nMatStress: "<<fStress;
 	/*fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
 
 	ComputeFiberStress(fFiberStretch, fFiberStress);
-//	cout<< "\nFiberStretch: "<<fFiberStretch;
 	/* rotate and assemble stress to lab coordinates */
 	AssembleFiberStress(fFiberStress, fStress);
-//	cout << "\nfFiberStress: "<<fFiberStress;
-//	cout << "\nTotStress: "<<fStress;
-	
 	/*calculate nonequilibrium contribution*/
 	/*Load state variables (Cv and Cvn)*/
 if (fNumMatProcess + fNumFibProcess > 0)

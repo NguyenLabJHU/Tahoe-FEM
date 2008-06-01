@@ -1,4 +1,4 @@
-/* $Id: AnisoCornea.h,v 1.9 2008-05-26 22:02:20 thao Exp $ */
+/* $Id: AnisoCornea.h,v 1.10 2008-06-01 01:05:34 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ANISO_CORNEA_2D_H_
 #define _ANISO_CORNEA_2D_H_
@@ -19,7 +19,7 @@ class AnisoCornea: public FSFiberMatT
 {
 public:
 
-	enum InhomoDistributionT { kHomogeneous=0, kBlend=1,  kCornea=2, kBlend_Mod=3};
+	enum InhomoDistributionT { kHomogeneous=0, kFile=1, kBlend=2,  kCornea=3, kCornea_Mod=4};
 	/* constructor */
 	AnisoCornea(void);
 
@@ -104,7 +104,7 @@ protected:
   /* for inhomogeneous material */
   ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
   bool finhomogeneous; // flag
-  double a2,b2,c2,n2,c3,r1,r2,r3,r4,bb2; // for spatial dependent distribution
+  double a2,b2,c2,n2,c3,r1,r2,r3,r4,xi; // for spatial dependent distribution
 
 	/* STRESS angle tables for fiber stress - by associated stress component */
 	dArray2DT fStressTable;

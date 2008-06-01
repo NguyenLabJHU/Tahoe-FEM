@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.9 2008-05-26 16:02:39 thao Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.10 2008-06-01 01:05:32 thao Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -584,8 +584,8 @@ void UpLagFiberCompT::ReadAnalyticVec(const ParameterListT& fibers)
 					q[i3] = -p[0]*n[i1]-p[1]*n[i2];
 				}
 				q /= q.Magnitude();
-//#define MY_DEBUG 1
-#ifdef MY_DEBUG
+#define MY_DEBUG 1
+#ifdef MY_DEBUG_2
 				cout << "block ID: " << block_data->ID() << "; ID :" << block_ID << "\n";
 				cout << "q: " << q[0] << "  " << q[1] << "  " << q[2] << " " << xc[0] << "  " << xc[1] << "  " << xc[2] << "\n";
 				dArrayT q2(nsd);
@@ -596,9 +596,16 @@ void UpLagFiberCompT::ReadAnalyticVec(const ParameterListT& fibers)
 #endif
 			}
 #ifdef MY_DEBUG
-			cout << "n: " << n[0] << "  " << n[1] << "  " << n[2] << " " << xc[0] << "  " << xc[1] << "  " << xc[2] << "\n";
+			double x1 = xc[i1];
+			double x2 = xc[i2];
+			double phi = atan2(x2,x1);
+			int elem = CurrElementNumber();
+			if(elem == 0 || elem==2209)
+			{
+				cout <<"\nelem: "<<elem << "\tx: " << xc[0] << "  " << xc[1] << "  " << xc[2] << "\tphi: "<<phi*180/3.14159
+				<< "\tn: " << n[0] << "  " << n[1] << "  " << n[2];
+			}
 #endif
-//		cout << "\nelement: "<<CurrElementNumber();
 //		cout << "\nfibervec: "<<P_vec;
 
 		}
