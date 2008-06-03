@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffT_surf.cpp,v 1.3 2008-05-12 01:23:03 hspark Exp $ */
+/* $Id: CB_TersoffT_surf.cpp,v 1.4 2008-06-03 21:30:17 hspark Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffT_surf.h"
 
@@ -24,6 +24,7 @@ CB_TersoffT_surf::CB_TersoffT_surf(void):
 	ParameterInterfaceT("Tersoff_CB_surf"),
 	fSurfaceThickness(-1),
 	fAlpha(0.0),
+	fBeta(0.0),
 	fTersoffSolver_surf(NULL)
 {
 
@@ -77,9 +78,12 @@ void CB_TersoffT_surf::TakeParameterList(const ParameterListT& list)
 	fDensity = fTersoffSolver_surf->Density();
 	
 	/* Calculate strain-independent subtraction values */
+	/* Alpha = 0, Beta = 1 are normal SCB values */
 	fAlpha = 0.0;
+	fBeta = 1.0;
 	fSS0 = FSSolidMatT::C_IJKL();
 	fSS0*=fAlpha;
+	fSS0*=fBeta;
 }
 
 /* return the number of constitutive model output parameters */
@@ -127,6 +131,9 @@ void CB_TersoffT_surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	/* compute moduli */
 	fTersoffSolver_surf->SetModuli(fC, fXsi, moduli);
 
+	/* Strain-dependent correction */
+	moduli*=fBeta;
+
 	/* Strain-independent correction */
 	moduli-=fSS0;
 }
@@ -147,6 +154,9 @@ void CB_TersoffT_surf::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 
 	/* shape change */
 	PK2.FromMatrix(fPK2);
+	
+	/* strain-dependent correction */
+	PK2*=fBeta;
 	
 	/* Strain-independent correction */
 	dSymMatrixT product(3);
