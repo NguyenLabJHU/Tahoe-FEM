@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.8 2007-02-21 17:24:28 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.9 2008-06-06 17:09:01 skyu Exp $ */
 #include "NodalRigidCSEAnisoMRT.h"
 
 #include "XDOF_ManagerT.h"
@@ -429,7 +429,7 @@ void NodalRigidCSEAnisoMRT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_v
 		int n1 = fCZNodePairs(i,1);
 		
 		/* coordinate transformation */
-		double Q = fCZDirection[i];
+		// double Q = fCZDirection[i];
 	
 		/* coordinates - same for both nodes in pair */
 		if (n_codes[NodalCoord])
@@ -439,8 +439,10 @@ void NodalRigidCSEAnisoMRT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_v
 		disp_field.RowAlias(n0, d0);
 		disp_field.RowAlias(n1, d1);
 		diff_d0d1.DiffOf(d1,d0);
-		diff_d0d1[0] *= Q;
-		diff_d0d1[1] *= Q;
+		// diff_d0d1[0] *= Q;
+		// diff_d0d1[1] *= Q;
+		fQ.MultTx(diff_d0d1, diff_d0d1);
+
 		if (n_codes[NodalDispJump])
 			jump = diff_d0d1;
 
@@ -626,8 +628,9 @@ void NodalRigidCSEAnisoMRT::TakeParameterList(const ParameterListT& list)
 	fCZNodeAreas = 0.0;
 	fCZDirection.Dimension(fCZNodePairs.MajorDim());
 	fCZDirection = 0.0;
-	dMatrixT Q(NumSD());
+
 	dArrayT area(NumElementNodes()), Na(NumElementNodes());
+
 	for (int i = 0; i < nel; i++) 
 	{
 		/* element information */
@@ -638,19 +641,28 @@ void NodalRigidCSEAnisoMRT::TakeParameterList(const ParameterListT& list)
 		fNodes1.Collect(face1, nodes_X);
 		fLocInitCoords1.SetLocal(fNodes1);
 
+		/* get current geometry */
+ 	        SetLocalX(fLocCurrCoords);
+
 		/* integrate */
 		area = 0.0;
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{  
 			/* integration weights */
-			double w = fShapes->IPWeight();	
-			double j0 = fShapes->Jacobian(Q);
+			double w = fShapes->IPWeight();
 
+			/* coordinate transformations */
+			// double j0 = fShapes->Jacobian(Q);
+
+			double j0 = fShapes->Jacobian();
+ 	        	double j1 = fCurrShapes->Jacobian(fQ, fdQ);
+			    d_delta = fShapes->Grad_d();
+		/*
 			//TEMP - require normal to be in the x2 direction:
 			if (fabs(fabs(Q(1,1)) - 1.0) > kSmall)
 				ExceptionT::GeneralFail(caller, "surface normals must be in the x2 direction");
-
+		*/
 			/* get shape functions */
 			fShapes->Shapes(Na);
 			
@@ -668,8 +680,9 @@ void NodalRigidCSEAnisoMRT::TakeParameterList(const ParameterListT& list)
 				fCZNodeAreas[pair] += area[j];
 				
 				/* direction from the last ip */
-				if (fabs(fCZDirection[pair]) < 0.5)
+		/*		if (fabs(fCZDirection[pair]) < 0.5)
 					fCZDirection[pair] = Q(1,1);
+		*/
 			}
 		}
 	}
@@ -752,12 +765,17 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 	/* compute nodal forces */
 	int ndof = NumDOF();
 	dArrayT jump(ndof), jump_last(ndof);
-	dArrayT rhs(fXDOFEqnos.MinorDim()), rhs_disp(2*ndof);
+	// dArrayT rhs(fXDOFEqnos.MinorDim()), rhs_disp(2*ndof);
+	dArrayT rhs(2*fXDOFEqnos.MinorDim()), rhs_disp(2*ndof);
 	int constraint_dex = 0;
-	dArrayT state, traction;
+	// dArrayT state, traction;
+	dArrayT state, traction, ftraction;
 	dArrayT dummy;
 	ArrayT<char> constraint_status;
 	iArrayT eqnos;
+	dArrayT h(ndof), f(ndof), l(ndof);
+ 	dMatrixT djump_du(ndof, 2*ndof);
+
 	for (int j = 0; j < fCZNodePairs.MajorDim(); j++)
 	{
 		/* node pair */
@@ -775,42 +793,69 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 		jump_last.DiffOf(disp_last(n1), disp_last(n0));
 
 		/* coordinate transformation */
-		double Q = fCZDirection[j];
+	/*	double Q = fCZDirection[j];
 		jump[0] *= Q;
 		jump[1] *= Q;
 		jump_last[0] *= Q;
 		jump_last[1] *= Q;
+	*/
+		fQ.MultTx(jump, jump);
+		fQ.MultTx(jump_last, jump_last);
 
 		/* loop over dof */
 		int num_constrained = 0;
 		int num_failed = 0;
 		int max_num_constrained = ndof;
+
+		for (int i = 0; i < ndof; i++)
+			if (constraint_status[i] == kActive)
+			{
+				f[i] = constraints[constraint_dex];
+
+				/* next constraint */
+				constraint_dex++;
+			}
+
 		for (int i = 0; i < ndof; i++)
 			if (constraint_status[i] == kActive) /* enforce constraint */
 			{
 				/* constraint and multiplier */
-				double h = jump[i] - jump_last[i];
-				double f = constraints[constraint_dex];
-				double l = f + fr*h;
+			//	double h = jump[i] - jump_last[i];
+			//	double f = constraints[constraint_dex];
+			//	double l = f + fr*h;
+				
+				h[0] = jump[0] - jump_last[0];
+				h[1] = jump[1] - jump_last[1];
+				l[0] = f[0] + fr*h[0];
+				l[1] = f[1] + fr*h[1];
 				
 				/* update traction in the state variable array */
-				traction[i] = f/fCZNodeAreas[j];
+			//	traction[i] = f/fCZNodeAreas[j];
+				traction[i] = f[i]/fCZNodeAreas[j];
 
 				/* residual of the displacement equations */
-				rhs[0] = l*Q; /* -1*-l */
-				rhs[1] =-l*Q; /* +1*-l */
+			//	rhs[0] = l*Q; /* -1*-l */
+			//	rhs[1] =-l*Q; /* +1*-l */
+				fQ.MultTx(l, l);
+				rhs[0] = l[0];
+				rhs[1] = l[1];
+				rhs[2] =-l[0];
+				rhs[3] =-l[1];
 					
 				/* residual of the constraint equation */
-				rhs[2] =-h;
+			//	rhs[2] =-h;
+				rhs[4] =-h[0];
+				rhs[5] =-h[1];
 
 				/* get equation numbers */
 				fXDOFEqnos.RowAlias(constraint_dex, eqnos);
 	
 				/* assemble */
+			//	ElementSupport().AssembleRHS(Group(), rhs, eqnos);
 				ElementSupport().AssembleRHS(Group(), rhs, eqnos);
 			
 				/* next constraint */
-				constraint_dex++;
+			//	constraint_dex++;
 				num_constrained++;
 			}
 			else if (constraint_status[i] == kFailed)
@@ -822,6 +867,7 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 		if (num_failed == 0 && num_constrained < max_num_constrained)
 		{
 			/* call traction */
+			// traction in local frame
 			const dArrayT& traction = fCZRelation->Traction(jump, state, dummy, true);
 
 			/* loop over directions */
@@ -835,11 +881,14 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 				else /* contributon from cz tractions */
 				{
 					/* equivalent nodal force */
-					double f =-Q*traction[i]*fCZNodeAreas[j];
+			//		double f =-Q*traction[i]*fCZNodeAreas[j];
+					fQ.MultTx(traction, ftraction);
+					double f =-ftraction[i]*fCZNodeAreas[j];
 				
 					/* equal and opposite */
 					rhs_disp[i] = -f;
-					rhs_disp[i+ndof] = f;					
+					rhs_disp[i+ndof] = f;
+				
 				}
 #ifdef DEBUG
 ElementSupport().Output() << "jmp = " << jump.no_wrap() << '\n';
@@ -860,6 +909,14 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
 #pragma unused(sys_type)
 
+	// const char caller[] = "NodalRigidCSEAnisoMRT::LHSDriver";
+ 	 
+	/* matrix format */
+	/*
+	dMatrixT::SymmetryFlagT format = (fRotate) ?
+		dMatrixT::kWhole : dMatrixT::kUpperOnly;
+	*/
+
 	/* time-integration parameters */
 	double constK = 1.0;
 	int formK = fIntegrator->FormK(constK);
@@ -871,8 +928,10 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	/* workspace */
 	dArrayT vec_nee(fXDOFEqnos.MinorDim());
 	vec_nee = 0.0;
-	ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kSymmetric);
-	ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kSymmetric);
+	// ElementMatrixT lhs(fXDOFEqnos.MinorDim(), ElementMatrixT::kSymmetric);
+	// ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kSymmetric);
+	ElementMatrixT lhs(2*fXDOFEqnos.MinorDim(), ElementMatrixT::kNonSymmetric);
+	ElementMatrixT lhs_disp(2*ndof, ElementMatrixT::kNonSymmetric);
 	dMatrixT stiffness(ndof), djump_du(ndof, 2*ndof);
 	djump_du = 0.0;
 
@@ -881,17 +940,44 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	const dArray2DT& disp = field(0,0);
 
 	/* constraint stiffness matrix is constant */
+	/*
 	lhs(0,0) = fr;
 	lhs(1,0) =-fr;
 	lhs(0,1) =-fr;
 	lhs(1,1) = fr;
 
 	lhs(2,2) = 0;
+	*/
+	lhs(0,0) = fr*fQ(0,0);
+	lhs(0,1) = fr*fQ(0,1);
+	lhs(0,2) =-fr*fQ(0,0);
+	lhs(0,3) =-fr*fQ(0,1);
+
+	lhs(1,0) = fr*fQ(1,0);
+	lhs(1,1) = fr*fQ(1,1);
+	lhs(1,2) =-fr*fQ(1,0);
+	lhs(1,3) =-fr*fQ(1,1);
+
+	lhs(2,0) =-fr*fQ(0,0);
+	lhs(2,1) =-fr*fQ(0,1);
+	lhs(2,2) = fr*fQ(0,0);
+	lhs(2,3) = fr*fQ(0,1);
+
+	lhs(3,0) =-fr*fQ(1,0);
+	lhs(3,1) =-fr*fQ(1,1);
+	lhs(3,2) = fr*fQ(1,0);
+	lhs(3,3) = fr*fQ(1,1);
+
+	lhs(4,4) = 0;
+	lhs(4,5) = 0;
+	lhs(5,4) = 0;
+	lhs(5,5) = 0;
 
 	int constraint_dex = 0;
 	ArrayT<char> constraint_status;
 	iArrayT eqnos;
 	dArrayT jump(ndof), state, sigma;
+
 	for (int j = 0; j < fCZNodePairs.MajorDim(); j++)
 	{
 		/* node pair */
@@ -904,7 +990,7 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		fStateVariables.RowAlias(j, state);
 
 		/* coordinate transformation */
-		double Q = fCZDirection[j];
+	//	double Q = fCZDirection[j];
 
 		/* loop over dof */
 		int num_constrained = 0;
@@ -916,12 +1002,34 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				fXDOFEqnos.RowAlias(constraint_dex, eqnos);
 
 				/* constraint gradient */
+				/*
 				lhs(2,0) =-Q;
 				lhs(2,1) = Q;
 				lhs(0,2) =-Q;
 				lhs(1,2) = Q;
+				*/
+				lhs(0,4) =-fQ(0,0);
+				lhs(0,5) =-fQ(0,1);
+				lhs(1,4) =-fQ(1,0);
+				lhs(1,5) =-fQ(1,1);
+
+				lhs(2,4) = fQ(0,0);
+				lhs(2,5) = fQ(0,1);
+				lhs(3,4) = fQ(1,0);
+				lhs(3,5) = fQ(1,1);
+
+				lhs(4,0) =-fQ(0,0);
+				lhs(4,1) =-fQ(0,1);
+				lhs(4,2) = fQ(0,0);
+				lhs(4,3) = fQ(0,1);
+
+				lhs(5,0) =-fQ(1,0);
+				lhs(5,1) =-fQ(1,1);
+				lhs(5,2) = fQ(1,0);
+				lhs(5,3) = fQ(1,1);
 	
 				/* assemble */
+				// ElementSupport().AssembleLHS(Group(), lhs, eqnos);
 				ElementSupport().AssembleLHS(Group(), lhs, eqnos);
 			
 				/* next constraint */
@@ -944,15 +1052,22 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				}
 				else /* contributon from cz tractions */
 				{
+				/*
 					djump_du(i,i) = -Q;
 					djump_du(i,i+ndof) = Q;
+				*/
+					djump_du = d_delta;
 				}
 			}
 
 			/* call stiffness */
 			jump.DiffOf(disp(n1), disp(n0));
+		/*
 			jump[0] *= Q;
 			jump[1] *= Q;
+		*/
+			fQ.MultTx(jump, jump);
+
 			stiffness.SetToScaled(fCZNodeAreas[j], fCZRelation->Stiffness(jump, state, sigma));
 		
 			/* compute element stiffness */

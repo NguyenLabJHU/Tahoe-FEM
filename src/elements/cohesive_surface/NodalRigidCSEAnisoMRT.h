@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.h,v 1.3 2007-02-21 17:24:28 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.h,v 1.4 2008-06-06 17:09:01 skyu Exp $ */
 #ifndef _NODAL_RIGID_CSE_ANISO_MR_T_H_
 #define _NODAL_RIGID_CSE_ANISO_MR_T_H_
 
@@ -156,8 +156,15 @@ protected:
 	dArray2DT fStateVariables_n;
 	/*@}*/
 
+	/** coordinate transformation */
+ 	dMatrixT fQ;
+ 	ArrayT<dMatrixT> fdQ;
+
 	/** the cohesive relation */
 	MR_NodalRP2DT* fCZRelation;
+
+	/** gap gradient */
+	dMatrixT d_delta;
 	
 private:
 
