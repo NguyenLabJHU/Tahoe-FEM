@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.20 2005-12-20 17:26:36 tdnguye Exp $ */
+/* $Id: FiniteStrainT.h,v 1.21 2008-06-16 18:14:43 lxmota Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -104,12 +104,11 @@ class FiniteStrainT: public SolidElementT
 	virtual void CurrElementInfo(ostream& out) const;
 
   private:
+  protected:
 
 	/** indicies of elements in the list of material needs */
 	enum MaterialNeedsT {kF = 0,
 	                kF_last = 1};
-
-  protected:
 
   	/** \name work space  */
   	/*@{*/
