@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.26 2007-07-17 20:24:01 tdnguye Exp $ */
+/* $Id: FSSolidMatT.h,v 1.27 2008-06-16 20:26:30 lxmota Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -56,7 +56,7 @@ public:
 
 	/** compute the 2nd Piola-Kirchhoff stress by pulling back the result computed with
 	 * SolidMaterialT::s_ij */
-	const dSymMatrixT& S_IJ(void);
+	virtual const dSymMatrixT& S_IJ(void);
 	
 	/** test for localization. check for bifurvation using current
 	 * Cauchy stress and the spatial tangent moduli.
