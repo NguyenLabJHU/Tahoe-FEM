@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.31 2007-11-09 17:12:03 hspark Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.32 2008-06-16 18:23:05 lxmota Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -109,6 +109,10 @@
 
 #ifdef SURFACE_CB_ZB_DEV
 #include "CB_ZBT.h"
+#endif
+
+#ifdef PIEZOELECTRIC
+#include "FSNeoHookePZLinT.h"
 #endif
 
 /* development module materials require solid element development to be enabled */
@@ -268,6 +272,11 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef SURFACE_CB_ZB_DEV
 		sub_lists.AddSub("ZB_CB");
 #endif
+
+#ifdef PIEZOELECTRIC
+		sub_lists.AddSub(FSNeoHookePZLinT::Name);
+#endif
+
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(name, order, sub_lists);
@@ -456,6 +465,11 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef SURFACE_CB_ZB_DEV
 	else if (name == "ZB_CB")
 	  mat= new CB_ZBT;
+#endif
+
+#ifdef PIEZOELECTRIC
+	else if (name == FSNeoHookePZLinT::Name)
+	  mat = new FSNeoHookePZLinT;
 #endif
 	/* set support */
 	if (mat) mat->SetFSMatSupport(fFSMatSupport);
