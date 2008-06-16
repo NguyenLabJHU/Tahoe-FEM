@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2005-08-12 05:20:50 paklein Exp $
+# $Id: makefile,v 1.6 2008-06-16 18:22:02 lxmota Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,8 @@ OBJ = \
 	SolidMatSupportT.o \
 	FSMatSupportT.o \
 	SSMatSupportT.o \
-	D2FSMatSupportT.o
+	D2FSMatSupportT.o \
+	FSPZMatSupportT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +47,8 @@ SRC = \
 	SolidMatSupportT.cpp \
 	FSMatSupportT.cpp \
 	SSMatSupportT.cpp \
-	D2FSMatSupportT.cpp
+	D2FSMatSupportT.cpp \
+	FSPZMatSupportT.cpp
 
 ##################### (3) headers
 #
@@ -61,7 +63,9 @@ HDR = \
 	SolidMatSupportT.h \
 	FSMatSupportT.h \
 	SSMatSupportT.h \
-	D2FSMatSupportT.h
+	D2FSMatSupportT.h \
+	FSPZMatSupportT.h \
+	FSPZMatSupportT.i.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
