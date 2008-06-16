@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.23 2007-07-17 20:24:01 tdnguye Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.24 2008-06-16 20:40:20 lxmota Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -265,7 +265,7 @@ const dMatrixT& FSSolidMatT::F_mechanical(int ip)
 
 		/* remove thermal strain */
 		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(ip), fF_therm_inv);
 		return fF_mechanical;
 	}
 	/* has thermal strain */
