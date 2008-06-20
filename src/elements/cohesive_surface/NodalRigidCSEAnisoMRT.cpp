@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.10 2008-06-20 17:16:24 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.11 2008-06-20 17:33:28 skyu Exp $ */
 #include "NodalRigidCSEAnisoMRT.h"
 
 #include "XDOF_ManagerT.h"
@@ -1094,7 +1094,9 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 			/* 3rd term */
 			//stiffness.SetToScaled(fCZNodeAreas[j], fCZRelation->Stiffness(jump, state, sigma));
-		
+			stiffness.MultQBQT(fQ, K);
+			stiffness.SetToScaled(fCZNodeAreas[j], stiffness);
+
 			/* compute element stiffness */
 			//lhs_disp.MultQTBQ(djump_du, stiffness);
 			lhs_disp.MultQTBQ(djump_du, stiffness, format, dMatrixT::kAccumulate);
