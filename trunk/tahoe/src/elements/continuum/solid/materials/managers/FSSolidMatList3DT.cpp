@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.32 2008-06-16 18:23:05 lxmota Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.33 2008-07-14 17:38:33 lxmota Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -113,6 +113,7 @@
 
 #ifdef PIEZOELECTRIC
 #include "FSNeoHookePZLinT.h"
+#include "FSPZMatSupportT.h"
 #endif
 
 /* development module materials require solid element development to be enabled */
@@ -163,19 +164,19 @@ void FSSolidMatList3DT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	SolidMatListT::DefineSubs(sub_list);
-	
+
 	/* choice of 2D materials */
 	sub_list.AddSub("fs_material_list_3D", ParameterListT::Once, true);
 }
 
 /* return the description of the given inline subordinate parameter list */
-void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
 		SubListT& sub_lists) const
 {
 	if (name == "fs_material_list_3D")
 	{
 		order = ParameterListT::Choice;
-	
+
 		sub_lists.AddSub("large_strain_Hookean");
 		sub_lists.AddSub("large_strain_cubic");
 		sub_lists.AddSub("large_strain_StVenant");
@@ -198,7 +199,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef CAUCHY_BORN_MATERIAL
 		sub_lists.AddSub("FCC_3D");
-		sub_lists.AddSub("FCC_EAM");		
+		sub_lists.AddSub("FCC_EAM");
 #endif
 
 #ifdef MODCBSW_MATERIAL
@@ -307,7 +308,7 @@ void FSSolidMatList3DT::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& sub = subs[i];
 		FSSolidMatT* mat = NewFSSolidMat(sub.Name());
 		if (mat) {
-			
+
 			/* store pointer */
 			(*this)[count++] = mat;
 
@@ -315,7 +316,7 @@ void FSSolidMatList3DT::TakeParameterList(const ParameterListT& list)
 			mat->TakeParameterList(sub);
 
 			/* set flags */
-			if (mat->HasHistory()) fHasHistory = true;	
+			if (mat->HasHistory()) fHasHistory = true;
 			if (mat->HasThermalStrain()) fHasThermal = true;
 			if (mat->HasLocalization()) fHasLocalizers = true;
 		}
@@ -468,8 +469,15 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #endif
 
 #ifdef PIEZOELECTRIC
-	else if (name == FSNeoHookePZLinT::Name)
-	  mat = new FSNeoHookePZLinT;
+	else if (name == FSNeoHookePZLinT::Name) {
+	  FSNeoHookePZLinT* pzmat = new FSNeoHookePZLinT;
+	  if (pzmat != 0) {
+	    FSMatSupportT* pms = const_cast<FSMatSupportT*>(fFSMatSupport);
+	    const FSPZMatSupportT* ppzms = dynamic_cast<FSPZMatSupportT*>(pms);
+	    pzmat->setFSPZMatSupport(ppzms);
+	    mat = pzmat;
+	  }
+	}
 #endif
 	/* set support */
 	if (mat) mat->SetFSMatSupport(fFSMatSupport);
