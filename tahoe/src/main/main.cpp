@@ -1,10 +1,11 @@
-/* $Id: main.cpp,v 1.29 2005-05-01 19:28:31 paklein Exp $ */
+/* $Id: main.cpp,v 1.30 2008-07-14 18:26:00 lxmota Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
 
 #include "Environment.h"
 #include "ExceptionT.h"
+#include "FloatingPointT.h"
 
 #ifdef __MWERKS__
 #if __option(profile)
@@ -43,10 +44,16 @@ char **xargv;
 
 int main(int argc, char* argv[])
 {
+  FloatingPointT fp;
+
+  fp.trapDivbyzero();
+  fp.trapInvalid();
+  fp.trapOverflow();
+
 	/* f2c library global variables */
 	xargc = argc;
 	xargv = argv;
-	
+
 	/* MP */
 	CommunicatorT::SetArgv(&argc, &argv);
 	CommunicatorT comm;
@@ -54,7 +61,7 @@ int main(int argc, char* argv[])
 	StartUp(&argc, &argv, comm);
 
 	FEExecutionManagerT FEExec(argc, argv, '%', '@', comm);
-	FEExec.Run();		
+	FEExec.Run();
 
 	ShutDown(comm);
 	return 0;
@@ -95,7 +102,7 @@ static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 #endif /* __MACOS__ && __INTEL__ */
 
 	/* write license to screen */
-	DumpLicense();	
+	DumpLicense();
 
 	/* output build date and time */
 	cout << "\n build: " __TIME__ ", " << __DATE__ << '\n';
@@ -139,7 +146,7 @@ static void ShutDown(CommunicatorT& comm)
 {
 	cout << "\nExit.\n" << endl;
 
-#if __option (profile)		
+#if __option (profile)
 	ProfilerTerm();
 #endif
 
@@ -159,7 +166,7 @@ void DumpLicense(void)
 {
 	const char version[] = "Tahoe 2.1";
 	cout << "\n " << version << "\n\n"
-         << " Copyright 2003, Sandia Corporation.\n" 
+         << " Copyright 2003, Sandia Corporation.\n"
 	     << " All rights reserved.\n\n"
 	     << " Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive\n"
 	     << " license for use of this work by or on behalf of the U.S. Government. Export\n"
