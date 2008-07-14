@@ -1,7 +1,10 @@
 //
-// $Id: FSPiezoElectricSolidT.i.h,v 1.1 2008-06-16 18:15:10 lxmota Exp $
+// $Id: FSPiezoElectricSolidT.i.h,v 1.2 2008-07-14 17:37:23 lxmota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/06/16 18:15:10  lxmota
+// Piezoelectric solid. Initial source.
+//
 //
 
 namespace Tahoe {
@@ -14,12 +17,22 @@ namespace Tahoe {
     FiniteStrainT(support),
     fFSPZMatSupport(0),
     fLocVectorPotential(LocalArrayT::kEVP),
-    fLocLastVectorPotential(LocalArrayT::kLastEVP)
+    fLocLastVectorPotential(LocalArrayT::kLastEVP),
+    fCurrMaterial(0),
+    fElectricVectorPotentialField(0)
   {
 
-    SetName("Finite-deformation piezoelectric");
-    Initialize();
+    SetName("piezoelectric");
 
+  }
+
+  //
+  //
+  //
+  inline int
+  FSPiezoElectricSolidT::TotalNumDOF() const
+  {
+    return ManifoldDim() + ElectricalDim();
   }
 
   //
@@ -66,6 +79,7 @@ namespace Tahoe {
 
   }
 
+#if 0
   //
   //
   //
@@ -90,6 +104,38 @@ namespace Tahoe {
 
     return needs[fNeedsOffset + kD_last];
 
+  }
+
+#endif
+
+
+  //
+  //
+  //
+  inline const int
+  FSPiezoElectricSolidT::ManifoldDim() const
+  {
+    return FSPZMatSupportT::ManifoldDim();
+  }
+
+
+  //
+  //
+  //
+  inline const int
+  FSPiezoElectricSolidT::StrainDim() const
+  {
+    return FSPZMatSupportT::StrainDim();
+  }
+
+
+  //
+  //
+  //
+  inline const int
+  FSPiezoElectricSolidT::ElectricalDim() const
+  {
+    return FSPZMatSupportT::ElectricalDim();
   }
 
 } // namespace Tahoe

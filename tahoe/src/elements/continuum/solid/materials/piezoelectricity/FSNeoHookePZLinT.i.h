@@ -1,14 +1,18 @@
 //
-// $Id: FSNeoHookePZLinT.i.h,v 1.1 2008-06-16 18:10:49 lxmota Exp $
+// $Id: FSNeoHookePZLinT.i.h,v 1.2 2008-07-14 17:37:44 lxmota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/06/16 18:10:49  lxmota
+// Piezoelectric material. Initial sources.
+//
 //
 
 namespace Tahoe{
 
   inline
   FSNeoHookePZLinT::FSNeoHookePZLinT() :
-    ParameterInterfaceT("Neohookean elastic linear piezoelectric")
+    ParameterInterfaceT("Neohookean elastic linear piezoelectric"),
+    fFSPZMatSupport(0)
   {
     SetName(FSNeoHookePZLinT::Name);
     initialize();
@@ -93,6 +97,42 @@ namespace Tahoe{
   //
   //
   //
+  inline void
+  FSNeoHookePZLinT::setFSPZMatSupport(const FSPZMatSupportT* support)
+  {
+    fFSPZMatSupport = support;
+  }
+
+  //
+  //
+  //
+  inline const int
+  FSNeoHookePZLinT::ManifoldDim() const
+  {
+    return FSPZMatSupportT::ManifoldDim();
+  }
+
+  //
+  //
+  //
+  inline const int
+  FSNeoHookePZLinT::StrainDim() const
+  {
+    return FSPZMatSupportT::StrainDim();
+  }
+
+  //
+  //
+  //
+  inline const int
+  FSNeoHookePZLinT::ElectricalDim() const
+  {
+    return FSPZMatSupportT::ElectricalDim();
+  }
+
+  //
+  //
+  //
   inline double
   FSNeoHookePZLinT::energyDensity(const dSymMatrixT& C, const dArrayT& D) const
   {
@@ -116,7 +156,7 @@ namespace Tahoe{
     const double Wedev = energyDensityElasticDev(C);
 
     return Wevol + Wedev;
- 
+
   }
 
   //
@@ -131,7 +171,7 @@ namespace Tahoe{
     const double Wevol    = 0.25 * fBulkModulus * (Jsqr - 1.0 - twotheta);
 
     return Wevol;
- 
+
   }
 
   //
@@ -144,13 +184,13 @@ namespace Tahoe{
     const double Jsqr = C.Det();
     const double Jm23 = pow(Jsqr, -1.0 / 3.0);
 
-    dSymMatrixT Cbar;
+    dSymMatrixT Cbar(ManifoldDim());
     Cbar.SetToScaled(Jm23, C);
 
     const double Wedev = 0.5 * fShearModulus * (Cbar.Trace() - 3.0);
 
     return Wedev;
- 
+
   }
 
   //
@@ -165,7 +205,7 @@ namespace Tahoe{
     const double Wr = 0.5 * C.MultmBn(D, D) / J / fElectricPermittivity;
 
     return Wr;
- 
+
   }
 
   //
@@ -265,10 +305,10 @@ namespace Tahoe{
 				     const dArrayT& D) const
   {
 
-    dMatrixT D_x_D;
+    dMatrixT D_x_D( ElectricalDim() );
     D_x_D.Outer(D, D);
 
-    dSymMatrixT Sr;
+    dSymMatrixT Sr( ManifoldDim() );
     Sr.FromMatrix(D_x_D);
 
     const double J  = sqrt(C.Det());
@@ -280,7 +320,7 @@ namespace Tahoe{
     WrCinv.Inverse();
     WrCinv *= Wr;
 
-    Sr -= WrCinv;    
+    Sr -= WrCinv;
 
     return Sr;
 
@@ -294,21 +334,19 @@ namespace Tahoe{
 					  const dArrayT& D) const
   {
 
-    const int StrainDim = dSymMatrixT::NumValues(NumSD());
+    dArrayT DG( StrainDim() );
 
-    dArrayT DG( StrainDim );
-
-    for (int i = 0; i < StrainDim; ++i) {
+    for (int i = 0; i < StrainDim(); ++i) {
 
       DG[i] =
-	fPiezoelectricTensor(0,i) * D[0] +
-	fPiezoelectricTensor(1,i) * D[1] +
-	fPiezoelectricTensor(2,i) * D[2];
+        fPiezoelectricTensor(0,i) * D[0] +
+        fPiezoelectricTensor(1,i) * D[1] +
+        fPiezoelectricTensor(2,i) * D[2];
 
 
     }
 
-    dSymMatrixT Sz;
+    dSymMatrixT Sz( ManifoldDim() );
 
     Sz(0,0) = DG[0];
     Sz(1,1) = DG[1];
@@ -348,7 +386,7 @@ namespace Tahoe{
 					    const dArrayT& D) const
   {
 
-    dArrayT Er;
+    dArrayT Er( ElectricalDim() );
     C.Multx(D, Er);
 
     const double J  = sqrt(C.Det());
@@ -364,26 +402,24 @@ namespace Tahoe{
   //
   inline const dArrayT
   FSNeoHookePZLinT::electricFieldPiezoelectrical(const dSymMatrixT& C,
-						 const dArrayT& D) const
+      const dArrayT& D) const
   {
 
     dSymMatrixT E = C;
     E.PlusIdentity(-1.0);
     E *= 0.5;
 
-    const int ElectricalDim = NumSD();
+    dArrayT Ez( ElectricalDim() );
 
-    dArrayT Ez( ElectricalDim );
-
-    for (int i = 0; i < ElectricalDim; ++i) {
+    for (int i = 0; i < ElectricalDim(); ++i) {
 
       Ez[i] =
-	fPiezoelectricTensor(i,0) * E(0,0) +
-	fPiezoelectricTensor(i,1) * E(1,1) +
-	fPiezoelectricTensor(i,2) * E(2,2) +
-	fPiezoelectricTensor(i,3) * E(1,2) +
-	fPiezoelectricTensor(i,4) * E(0,2) +
-	fPiezoelectricTensor(i,5) * E(1,1);
+        fPiezoelectricTensor(i,0) * E(0,0) +
+        fPiezoelectricTensor(i,1) * E(1,1) +
+        fPiezoelectricTensor(i,2) * E(2,2) +
+        fPiezoelectricTensor(i,3) * E(1,2) +
+        fPiezoelectricTensor(i,4) * E(0,2) +
+        fPiezoelectricTensor(i,5) * E(1,1);
 
     }
 
@@ -421,10 +457,10 @@ namespace Tahoe{
     dSymMatrixT Cinv = C;
     Cinv.Inverse();
 
-    dMatrixT Cinv_x_Cinv;
+    dMatrixT Cinv_x_Cinv( StrainDim() );
     Cinv_x_Cinv.DyadAB(Cinv, Cinv);
 
-    dMatrixT Cinv_o_Cinv;
+    dMatrixT Cinv_o_Cinv( StrainDim() );
     Cinv_o_Cinv.ReducedI_C(Cinv);
 
     const double Jsqr = C.Det();
@@ -448,18 +484,18 @@ namespace Tahoe{
     dSymMatrixT Cinv = C;
     Cinv.Inverse();
 
-    dMatrixT Cinv_x_Cinv;
+    dMatrixT Cinv_x_Cinv( StrainDim() );
     Cinv_x_Cinv.DyadAB(Cinv, Cinv);
 
-    dMatrixT Cinv_o_Cinv;
+    dMatrixT Cinv_o_Cinv( StrainDim() );
     Cinv_o_Cinv.ReducedI_C(Cinv);
 
     dSymMatrixT I = C;
     I.Identity(1.0);
-    dMatrixT Cinv_x_I;
+    dMatrixT Cinv_x_I( StrainDim() );
     Cinv_x_I.DyadAB(Cinv, I);
 
-    dMatrixT I_x_Cinv;
+    dMatrixT I_x_Cinv( StrainDim() );
     I_x_Cinv.DyadAB(I, Cinv);
 
     Cinv_x_Cinv /= 3.0;
@@ -487,22 +523,22 @@ namespace Tahoe{
     dSymMatrixT Cinv = C;
     Cinv.Inverse();
 
-    dMatrixT Cinv_x_Cinv;
+    dMatrixT Cinv_x_Cinv( StrainDim() );
     Cinv_x_Cinv.DyadAB(Cinv, Cinv);
 
 
-    dMatrixT Cinv_o_Cinv;
+    dMatrixT Cinv_o_Cinv( StrainDim() );
     Cinv_o_Cinv.ReducedI_C(Cinv);
 
-    dMatrixT DxD;
+    dMatrixT DxD( ElectricalDim() );
     DxD.Outer(D, D);
-    dSymMatrixT D_x_D;
+    dSymMatrixT D_x_D( ManifoldDim() );
     D_x_D.FromMatrix(DxD);
 
-    dMatrixT Cinv_x_D_x_D;
+    dMatrixT Cinv_x_D_x_D( StrainDim() );
     Cinv_x_D_x_D.DyadAB(Cinv, D_x_D);
 
-    dMatrixT D_x_D_x_Cinv;
+    dMatrixT D_x_D_x_Cinv( StrainDim() );
     D_x_D_x_Cinv.DyadAB(D_x_D, Cinv);
 
     const double Wr = energyDensityElectrical(C, D);
@@ -528,7 +564,7 @@ namespace Tahoe{
 				      const dArrayT& D) const
   {
 
-    dMatrixT beta;
+    dMatrixT beta( ElectricalDim() );
     C.ToMatrix(beta);
     const double J  = sqrt(C.Det());
     beta /= (J * fElectricPermittivity);
@@ -547,10 +583,10 @@ namespace Tahoe{
     dSymMatrixT Cinv = C;
     Cinv.Inverse();
 
-    dMatrixT C_x_Cinv;
+    dMatrixT C_x_Cinv( StrainDim() );
     C_x_Cinv.DyadAB(C, Cinv);
 
-    dMatrixT S2mCoCinv;
+    dMatrixT S2mCoCinv( StrainDim() );
     S2mCoCinv.ReducedIndexI();
     S2mCoCinv *= 2.0;
     S2mCoCinv -= C_x_Cinv;
@@ -559,21 +595,18 @@ namespace Tahoe{
 
     S2mCoCinv *= (1.0 / J / fElectricPermittivity);
 
-    const int ElectricalDim = NumSD();
-    const int StrainDim = dSymMatrixT::NumValues(NumSD());
+    dMatrixT tangent( ElectricalDim(), StrainDim() );
 
-    dMatrixT tangent = dMatrixT(ElectricalDim, StrainDim);
-
-    for (int j = 0; j < StrainDim; ++j) {
+    for (int j = 0; j < StrainDim(); ++j) {
 
       tangent(0,j) =
-	D[0] * S2mCoCinv(0,j) + D[1] * S2mCoCinv(5,j) + D[2] * S2mCoCinv(4,j);
+        D[0] * S2mCoCinv(0,j) + D[1] * S2mCoCinv(5,j) + D[2] * S2mCoCinv(4,j);
 
       tangent(1,j) =
-	D[0] * S2mCoCinv(5,j) + D[1] * S2mCoCinv(1,j) + D[2] * S2mCoCinv(3,j);
+        D[0] * S2mCoCinv(5,j) + D[1] * S2mCoCinv(1,j) + D[2] * S2mCoCinv(3,j);
 
       tangent(2,j) =
-	D[0] * S2mCoCinv(4,j) + D[1] * S2mCoCinv(4,j) + D[2] * S2mCoCinv(2,j);
+        D[0] * S2mCoCinv(4,j) + D[1] * S2mCoCinv(4,j) + D[2] * S2mCoCinv(2,j);
 
     }
 
@@ -592,7 +625,7 @@ namespace Tahoe{
 
     fElectricDisplacement = fFSPZMatSupport->ElectricDisplacement();
     return fElectricDisplacement;
- 
+
   }
 
   //
@@ -615,7 +648,7 @@ namespace Tahoe{
 
     fElectricDisplacement = fFSPZMatSupport->ElectricDisplacement_last();
     return fElectricDisplacement;
- 
+
   }
 
   //
@@ -627,7 +660,7 @@ namespace Tahoe{
 
     fElectricDisplacement = fFSPZMatSupport->ElectricDisplacement_last(ip);
     return fElectricDisplacement;
- 
+
   }
 
   //
@@ -638,9 +671,9 @@ namespace Tahoe{
   {
 
     const dMatrixT F = F_mechanical();
-    dMatrixT FTF;
+    dMatrixT FTF( ManifoldDim() );
     FTF.MultATB(F, F);
-    dSymMatrixT C;
+    dSymMatrixT C( ManifoldDim() );
     C.Symmetrize(FTF);
 
     return C;
@@ -658,7 +691,7 @@ namespace Tahoe{
     const dArrayT D     = electricDisplacement();
     fEnergyDensity      = energyDensity(C, D);
 
-    return fEnergyDensity; 
+    return fEnergyDensity;
 
   }
 
@@ -723,6 +756,21 @@ namespace Tahoe{
   }
 
   //
+  // Electric field
+  //
+  inline const dArrayT&
+  FSNeoHookePZLinT::E_i()
+  {
+
+    const dSymMatrixT C = rightCauchyGreenDeformation();
+    const dArrayT D     = electricDisplacement();
+    fElectricField      = electricField(C, D);
+
+    return fElectricField;
+
+  }
+
+  //
   // spatial tangent modulus
   //
   inline const dMatrixT&
@@ -768,5 +816,5 @@ namespace Tahoe{
     return fStress.Trace() / 3.0;
 
   }
-    
+
 } //namespace Tahoe
