@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.h,v 1.8 2005-02-13 22:11:50 paklein Exp $ */
+/* $Id: ElementCardT.h,v 1.9 2008-07-14 18:23:19 lxmota Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENT_CARD_T_H_
 #define _ELEMENT_CARD_T_H_
@@ -30,13 +30,13 @@ public:
 	/* constructors */
 	ElementCardT(void);
 	ElementCardT(const ElementCardT& source);
-	
+
 	/* destructor */
 	~ElementCardT(void);
 
 	/* assignment operator */
 	ElementCardT& operator=(const ElementCardT& rhs);
-	
+
 	/* set material number */
 	void SetMaterialNumber(int matnum);
 
@@ -45,7 +45,7 @@ public:
 	StatusT& Flag(void);
 	const StatusT& Flag(void) const;
 	/*@}*/
-						
+
 	/* accessors */
 	int MaterialNumber(void) const;
 	iArrayT& NodesX(void);             // geometry nodes
@@ -57,7 +57,7 @@ public:
 
 	/* reset field nodes array pointer (non-isoparametric) */
 	void SetNodesU(iArrayT& nodesU);
-		
+
 	/* restart operations */
 	void ReadRestart(istream& in);
 	void WriteRestart(ostream& out) const;
@@ -71,9 +71,9 @@ public:
 	const iArrayT& IntegerData(void) const;
 	dArrayT& DoubleData(void);
 	const dArrayT& DoubleData(void) const;
-	
+
 private:
-	
+
 	int fMatNum;
 	StatusT fFlag;
 
@@ -83,7 +83,7 @@ private:
 	/* field nodes */
 	iArrayT* fNodesU; // &fNodesX by default
 	iArrayT	 fEqnos;
-	
+
 	/* element storage */
 	ElementStorageT* fData;
 
@@ -105,10 +105,10 @@ private:
 	ElementStorageT(int i_size, int d_size);
 	ElementStorageT(const ElementStorageT& source);
 	/*@}*/
-	
+
 	/** make arrays alias to other data */
 	void Set(int i_size, int* i_data, int d_size, double* d_data);
-	
+
 	/** \name I/O operators */
 	/*@{*/
 	friend istream& operator>>(istream& in, ElementStorageT& data);
@@ -117,7 +117,7 @@ private:
 
 	/** assignment operator */
 	ElementStorageT& operator=(const ElementStorageT& rhs);
-	
+
 private:
 
 	/** storage */
@@ -188,5 +188,5 @@ inline ElementStorageT& ElementStorageT::operator=(const ElementStorageT& rhs)
 	return *this;
 }
 
-} // namespace Tahoe 
+} // namespace Tahoe
 #endif /* _ELEMENT_CARD_T_H_ */

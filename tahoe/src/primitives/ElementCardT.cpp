@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.15 2005-02-13 22:11:50 paklein Exp $ */
+/* $Id: ElementCardT.cpp,v 1.16 2008-07-14 18:23:19 lxmota Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementCardT.h"
 #include <iostream.h>
@@ -24,7 +24,7 @@ dArrayT ElementCardT::d_junk;
 
 ElementCardT::StatusT ElementCardT::int2StatusT(int i)
 {
-	if (i < kOFF || i > kMarkOFF) 
+	if (i < kOFF || i > kMarkOFF)
 		ExceptionT::GeneralFail("ElementCardT::int2StatusT", "unrecognized status %d", i);
 	StatusT int2status[5] = {kOFF, kON, kMarked, kMarkON, kMarkOFF};
 	return int2status[i];
@@ -56,16 +56,16 @@ ElementCardT& ElementCardT::operator=(const ElementCardT& rhs)
 	/* copy material number */
 	fMatNum = rhs.fMatNum;
 	fFlag = rhs.fFlag;
-	
+
 	/* shallow copies of grouped data */
 	fNodesX.Alias(rhs.fNodesX);
 	fEqnos.Alias(rhs.fEqnos);
-	
+
 	if (rhs.fNodesU == &(rhs.fNodesX))
 		fNodesU = &fNodesX;    // keep isoparametric
 	else
 		fNodesU = rhs.fNodesU; // trust external fNodesU
-	
+
 	/* element storage */
 	if (rhs.fData)
 	{
@@ -95,7 +95,7 @@ void ElementCardT::ReadRestart(istream& in)
 	/* read data size */
 	int i_size, d_size;
 	in >> i_size >> d_size;
-	
+
 	/* allocate space */
 	Dimension(i_size,d_size);
 
@@ -129,7 +129,7 @@ void ElementCardT::Dimension(int i_size, int d_size)
 #if __option(extended_errorcheck)
 	/* warning */
 	if (fData != NULL) {
-		cout << "\n ElementCardT::Allocate: WARNING: element data already exists\n" 
+		cout << "\n ElementCardT::Allocate: WARNING: element data already exists\n"
 		     <<   "     and will be overwritten." << endl;
 	}
 #endif
@@ -149,7 +149,7 @@ void ElementCardT::Set(int i_size, int* i_data, int d_size, double* d_data)
 {
 	/* allocate storage card */
 	if (!fData) fData = new ElementStorageT();
-	
+
 	/* NOTE: exisintg data gone */
 	fData->Set(i_size, i_data, d_size, d_data);
 }
@@ -174,7 +174,7 @@ istream& operator>>(istream& in, ElementStorageT& data)
 
 ostream& operator<<(ostream& out, const ElementStorageT& data)
 {
-	out << data.fIntegerData.wrap_tight(1) << '\n' 
+	out << data.fIntegerData.wrap_tight(1) << '\n'
 	    << data.fDoubleData.wrap_tight(1) << '\n';
 
 	return out;
