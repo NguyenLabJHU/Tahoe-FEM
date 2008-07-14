@@ -1,7 +1,10 @@
 //
-// $Id: FloatingPointT.cpp,v 1.1 2008-07-14 17:50:46 lxmota Exp $
+// $Id: FloatingPointT.cpp,v 1.2 2008-07-14 23:33:53 lxmota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/07/14 17:50:46  lxmota
+// Initial sources.
+//
 //
 
 //
@@ -149,6 +152,8 @@ namespace Tahoe {
 
 #else
 
+#if defined(linux)
+
 //
 // subset of ISO/IEC C99; (linux)
 //
@@ -196,6 +201,64 @@ void Tahoe::FloatingPointT::setMask(unsigned mask)
   return;
 }
 
+#else
+
+//
+// dummy interfaces
+//
+
+void Tahoe::FloatingPointT::trapInexact()
+{
+
+  return;
+
+}
+
+void Tahoe::FloatingPointT::trapDivbyzero()
+{
+
+  return;
+
+}
+
+void Tahoe::FloatingPointT::trapUnderflow()
+{
+
+  return;
+
+}
+
+void Tahoe::FloatingPointT::trapOverflow()
+{
+
+  return;
+
+}
+
+void Tahoe::FloatingPointT::trapInvalid()
+{
+
+  return;
+
+}
+
+unsigned Tahoe::FloatingPointT::getCurrentMask()
+{
+
+  return emptyMask_;
+
+}
+
+// set mask
+
+void Tahoe::FloatingPointT::setMask(unsigned mask)
+{
+
+  return;
+
+}
+
+#endif // linux
 
 #endif // HAVE_FESETTRAPENABLE
 
@@ -271,61 +334,3 @@ void Tahoe::FloatingPointT::setMask(unsigned mask)
 
 #endif // sgi
 
-//
-// dummy interfaces
-//
-
-#if defined(_AIX)
-
-void Tahoe::FloatingPointT::trapInexact()
-{
-
-  return;
-
-}
-
-void Tahoe::FloatingPointT::trapDivbyzero()
-{
-
-  return;
-
-}
-
-void Tahoe::FloatingPointT::trapUnderflow()
-{
-
-  return;
-
-}
-
-void Tahoe::FloatingPointT::trapOverflow()
-{
-
-  return;
-
-}
-
-void Tahoe::FloatingPointT::trapInvalid()
-{
-
-  return;
-
-}
-
-unsigned Tahoe::FloatingPointT::getCurrentMask()
-{
-
-  return emptyMask_;
-
-}
-
-// set mask
-
-void Tahoe::FloatingPointT::setMask(unsigned mask)
-{
-
-  return;
-
-}
-
-#endif // _AIX
