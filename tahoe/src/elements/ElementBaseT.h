@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.48 2007-03-02 01:26:18 tdnguye Exp $ */
+/* $Id: ElementBaseT.h,v 1.49 2008-07-14 17:43:16 lxmota Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -50,16 +50,16 @@ class SolidElementT;
 
 /** base class for element types. Initialization of the element classes
  * is accomplished by first setting the time integration controller with
- * ElementBaseT::SetController followed by calling the function 
- * ElementBaseT::Initialize immediately after the constructor. This gives 
+ * ElementBaseT::SetController followed by calling the function
+ * ElementBaseT::Initialize immediately after the constructor. This gives
  * derived classes the opportunity to override derived class behavior since
  * both functions are virtual. A sequence of time steps begins with a call
- * to ElementBaseT::InitialCondition. A single time step begins with a call to 
+ * to ElementBaseT::InitialCondition. A single time step begins with a call to
  * ElementBaseT::InitStep, followed by one or more calls to ElementBaseT::FormRHS
  * and ElementBaseT::FormLHS (in that order) depending on the solution method.
  * A time step closes with a call to ElementBaseT::CloseStep or ElementBaseT::ResetStep,
- * depending on whether the integration of the step was successful. 
- * ElementBaseT::ResetStep must return the element to its state at the start 
+ * depending on whether the integration of the step was successful.
+ * ElementBaseT::ResetStep must return the element to its state at the start
  * of the current time increment. There are number of purely virtual
  * functions that must be implemented by derived classes. */
 class ElementBaseT: public iConsoleObjectT, public ParameterInterfaceT
@@ -80,7 +80,7 @@ public:
 	/*@{*/
 	/** the index of this element group within the FEManagerT */
 	int ElementGroupNumber(void) const;
-	
+
 	/** number of elements */
 	int NumElements(void) const { return fElementCards.Length(); };
 
@@ -94,7 +94,7 @@ public:
 
 	/** indicate whether element formulation is axisymmetric */
 	virtual bool Axisymmetric(void) const { return false; };
-	
+
 	/** return the block ID for the specified element */
 	const StringT& ElementBlockID(int element) const;
 
@@ -116,7 +116,7 @@ public:
 
 	/** the iteration number for the current time increment */
 	const int& IterationNumber(void) const;
-	
+
 	/** return true if the element contributes to the solution of the
 	 * given group. ElementBaseT::InGroup returns true if group is the
 	 * same as the group of the FieldT passed in to ElementBaseT::ElementBaseT. */
@@ -131,12 +131,16 @@ public:
 
 	/** collect the list of element block ID's used by the element group */
 	void ElementBlockIDs(ArrayT<StringT>& IDs) const;
-	
+
 	/** return pointer to block data given the ID */
 	const ElementBlockDataT& BlockData(const StringT& ID) const;
 
 	/** return the number of degrees of freedom per node */
 	int NumDOF(void) const;
+
+	// Number of total DOFs per node for all fields
+	virtual int TotalNumDOF() const { return NumDOF(); };
+
 	/*@}*/
 
 	/** \name element status */
@@ -160,7 +164,7 @@ public:
 	/** compute RHS-side, residual force vector and assemble to solver
 	 * \param group equation group to solve */
 	void FormRHS(void);
-	
+
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** accumulate the residual force on the specified node
 	 * \param node test node
@@ -178,7 +182,7 @@ public:
 	/** restore the element group to its state at the beginning of the
 	 * current time step. Called if the integration over the
 	 * current time increment was unsuccessful. */
-	virtual GlobalT::RelaxCodeT ResetStep(void); 
+	virtual GlobalT::RelaxCodeT ResetStep(void);
 
 	/** element level reconfiguration for the current time increment. This
 	 * provides an interface for element-level adaptivity. The nature of
@@ -194,18 +198,18 @@ public:
 	 * associated with the nodes in each element and \em appends the group's
 	 * equation numbers to the AutoArrayT's that are passed in.
 	 * \param eq_1 list for element equations numbers with a \em fixed number of
-	 *        equations numbers per element: [nel] x [nen*ndof] 
+	 *        equations numbers per element: [nel] x [nen*ndof]
 	 * \param eq_2 list for element equations numbers with a \em variable number of
 	 *        equations numbers per element: [nel] x [nen_i*ndof] (i = 0,...,nel) */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
 	/** \name writing output */
-	/*@{*/	
+	/*@{*/
 	/** register element for output. An interface to indicate the element group
 	 * must create an OutputSetT and register it with FEManagerT::RegisterOutput
 	 * to obtain an output ID that is used to write data to the current
-	 * output destination. By default, the ElementBaseT::RegisterOutput registers 
+	 * output destination. By default, the ElementBaseT::RegisterOutput registers
 	 * output of the nodal field values over the elements defined in fConnectivities. */
 	virtual void RegisterOutput(void);
 
@@ -222,7 +226,7 @@ public:
 	 * The output code and offset will return -1 if the variable is not found. */
 	virtual void ResolveOutputVariable(const StringT& variable, int& code, int& offset);
 	/*@}*/
-	
+
 	/** \name connectivities
 	 * Element groups are queries for connectivities for two reasons:
 	 * -# ConnectsU are used when reordering equation numbers for minimizing
@@ -230,7 +234,7 @@ public:
 	 * -# ConnectsX are used to compute a load-balanced domain decomposition.
 	 *    Note: an experimental version of FEManagerT_mpi::Decompose also used
 	 *    ConnectsU to compute the domain decomposition, but this is not usually
-	 *    the case. 
+	 *    the case.
 	 */
 	/*@{*/
 	/** collecting element connectivities for geometry. The element group should collect
@@ -239,7 +243,7 @@ public:
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 
 	/** collecting element connectivities for the field. The element group should collect
-	 * the connectivities defining the field variables over the elements and 
+	 * the connectivities defining the field variables over the elements and
 	 * \em append them to the AutoArrayT that is passed in. */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	             AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
@@ -247,7 +251,7 @@ public:
 	/** return the geometry code */
 	virtual GeometryT::CodeT GeometryCode(void) const { return GeometryT::kPoint; };
 	/*@}*/
-		
+
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);
 
@@ -305,8 +309,8 @@ public:
 	virtual void LumpedMass(const iArrayT& nodes, dArrayT& mass) const;
 
 	/** contribution to the nodal residual forces. Return the contribution of this element
-	 * group to the residual for the given solver group. 
-	 * \note ElementBaseT::InternalForce is not implemented and throws ExceptionT::kGeneralFail. 
+	 * group to the residual for the given solver group.
+	 * \note ElementBaseT::InternalForce is not implemented and throws ExceptionT::kGeneralFail.
 	 *       Subclasses need to implemented this method if it is required. This may turn out to
 	 *       be a more general approach for collecting the total residual for the given solver
 	 *       group and could replace the current approach implemented through ElementBaseT::FormRHS. */
@@ -320,7 +324,7 @@ public:
 	 * default implementation for ElementBaseT::CollectBlockInfo. Otherwise, ElementBaseT::CollectBlockInfo
 	 * must be overridden. */
 	virtual void DefineParameters(ParameterListT& list) const;
-	
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
@@ -345,7 +349,7 @@ protected: /* for derived classes only */
 	/*@{*/
 	/** extract element block info from parameter list to be used. The method is
 	 * used in conjunction with ElementBaseT::DefineElements to initialize
-	 * the element group connectivities. By default, ElementBaseT::CollectBlockInfo 
+	 * the element group connectivities. By default, ElementBaseT::CollectBlockInfo
 	 * looks for block declarations as ParameterListT's within the source list
 	 * with names containing "_element_block". The source list can contain any number
 	 * of these block declatations. The element block ID's are assumed to
@@ -397,21 +401,21 @@ protected: /* for derived classes only */
 	void AssembleRHS(void) const;
 	void AssembleLHS(void) const;
 	/*@}*/
-	
+
 	/** \name element loop operations */
 	/*@{*/
 	/** reset loop */
 	virtual void Top(void);
-	
-	/** advance to next element. \return true if there is another element, 
-	 * false otherwise */ 
+
+	/** advance to next element. \return true if there is another element,
+	 * false otherwise */
 	virtual bool NextElement(void);
 	/*@}*/
 
 #ifdef _FRACTURE_INTERFACE_LIBRARY_
 	/* For SIERRA, we don't need ifstreamT to exist */
 	virtual void EchoConnectivityData(void);
-	
+
 	virtual void ReadConnectivity(void);
 #endif
 
@@ -419,9 +423,9 @@ protected: /* for derived classes only */
 	virtual void CurrElementInfo(ostream& out) const;
 
 	/** (re-)set element cards array */
-	void SetElementCards(const ArrayT<ElementBlockDataT>& block_data, const ArrayT<const iArray2DT*>& connectivities,		
+	void SetElementCards(const ArrayT<ElementBlockDataT>& block_data, const ArrayT<const iArray2DT*>& connectivities,
 		const ArrayT<iArray2DT>& eqnos, AutoArrayT<ElementCardT>& element_cards) const;
-	
+
 private:
 
 	/** return the default number of element nodes. This function is needed
@@ -429,7 +433,7 @@ private:
 	 * empty element groups, which causes trouble for parallel execution
 	 * when a partition contains no element from a group. */
 	virtual int DefaultNumElemNodes(void) const;
-	
+
 protected:
 
 	/** time integrator */
@@ -437,19 +441,19 @@ protected:
 
 	/** element-by-element info */
 	AutoArrayT<ElementCardT> fElementCards;
-	
+
 	/** \name grouped element arrays */
 	/*@{*/
 	ArrayT<const iArray2DT*> fConnectivities;
-	ArrayT<iArray2DT> fEqnos;			
+	ArrayT<iArray2DT> fEqnos;
 	/*@}*/
-	
-	/** \name element tangent matrix and force vector */								
+
+	/** \name element tangent matrix and force vector */
 	/*@{*/
 	ElementMatrixT fLHS;
 	dArrayT        fRHS;
 	/*@}*/
-	
+
 	/** data for multiple connectivity blocks. Each row contains the
 	 * information for a block of connectivities. The content of each
 	 * row is set by ElementBaseT::BlockIndexT. */
@@ -520,7 +524,7 @@ inline const FieldT& ElementBaseT::Field(void) const {
 /* solver group */
 inline int ElementBaseT::Group(void) const {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return Field().Group(); 
+	return Field().Group();
 #else
 	return 0;
 #endif
@@ -528,12 +532,12 @@ inline int ElementBaseT::Group(void) const {
 
 /* return the number of degrees of freedom per node */
 inline int ElementBaseT::NumDOF(void) const
-{ 
+{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	return Field().NumDOF();
 #else
 	return fSupport.NumSD();
-#endif 
+#endif
 };
 
 } /* namespace Tahoe */

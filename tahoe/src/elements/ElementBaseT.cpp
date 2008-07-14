@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.53 2006-10-24 00:24:25 tdnguye Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.54 2008-07-14 17:43:16 lxmota Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -39,7 +39,7 @@ ElementBaseT::ElementBaseT(ElementSupportT& support):
 	fIntegrator(NULL),
 	fElementCards(0),
 	fLHS(ElementMatrixT::kSymmetric),
-	fOutputID(-1)	
+	fOutputID(-1)
 {
 	/* do nothing */
 }
@@ -121,17 +121,17 @@ void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 		cout << "\n ElementBaseT::FormLHS: " << ExceptionT::ToString(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
-		
+
 		if (fElementCards.InRange())
 		{
 			ostream& out = fSupport.Output();
-		
+
 			/* header */
 			out << "\n ElementBaseT::FormLHS: caught exception " << error << '\n';
 			out <<   "      Time: " << fSupport.Time() << '\n';
 			out <<   "      Step: " << fSupport.StepNumber() << '\n';
 			out <<   " Time step: " << fSupport.TimeStep() << '\n';
-		
+
 			/* write current element information to main out */
 			CurrElementInfo(out);
 			cout << "     See output file for current element information\n";
@@ -153,17 +153,17 @@ void ElementBaseT::FormRHS(void)
 		cout << "\n ElementBaseT::FormRHS: " << ExceptionT::ToString(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
-		
+
 		if (fElementCards.InRange())
-		{	
+		{
 			ostream& out = fSupport.Output();
-	
+
 			/* header */
 			out << "\n ElementBaseT::FormRHS: caught exception " << error << '\n';
 			out <<   "      Time: " << fSupport.Time() << '\n';
 			out <<   "      Step: " << fSupport.StepNumber() << '\n';
 			out <<   " Time step: " << fSupport.TimeStep() << '\n';
-		
+
 			/* write current element information to main out */
 			CurrElementInfo(out);
 			cout << "     See output file for current element information\n";
@@ -179,8 +179,8 @@ void ElementBaseT::FormRHS(void)
 /* initialize/finalize time increment */
 void ElementBaseT::InitStep(void) { }
 void ElementBaseT::CloseStep(void) { }
-GlobalT::RelaxCodeT ElementBaseT::ResetStep(void) 
-{ 
+GlobalT::RelaxCodeT ElementBaseT::ResetStep(void)
+{
 	/* no relaxation */
 	return GlobalT::kNoRelax;
 }
@@ -234,7 +234,7 @@ void ElementBaseT::RegisterOutput(void)
 
 	/* set output specifier */
 	OutputSetT output_set(code, block_ID, fConnectivities, n_labels, e_labels, false);
-		
+
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
@@ -261,7 +261,7 @@ void ElementBaseT::WriteOutput(void)
 		/* accumulate */
 		ElementSupport().AssembleAverage(CurrentElement().NodesU(), u_e);
 	}
-	
+
 	/* get nodally averaged values */
 	dArray2DT n_values;
 	ElementSupport().OutputUsedAverage(n_values);
@@ -370,7 +370,7 @@ const StringT& ElementBaseT::ElementBlockID(int element) const
 	const char caller[] = "ElementBaseT::ElementBlockID";
 	if (element < 0 || element >= NumElements())
 		ExceptionT::OutOfRange(caller, "element number %d is out of range {0,%d}", element, NumElements() - 1);
-	
+
 	bool found = false;
 	for (int i = 0; i < fBlockData.Length(); i++)
 		if (element >= fBlockData[i].StartNumber() &&
@@ -393,7 +393,7 @@ void ElementBaseT::WeightNodalCost(iArrayT& weight) const
 		const iArrayT& elemnodes = fElementCards[i].NodesX();
 		const int* p = elemnodes.Pointer();
 		for (int n=0; n < elemnodes.Length(); n++)
-			if (weight[*p] < base_weight) 
+			if (weight[*p] < base_weight)
 				weight[*p] = base_weight;
 	}
 }
@@ -479,7 +479,7 @@ void ElementBaseT::TakeParameterList(const ParameterListT& list)
 
 	/* get the integrator */
 	fIntegrator = &(fField->Integrator().eIntegrator());
-	
+
 	/* try to load connectivities */
 	ArrayT<StringT> block_ID;
 	ArrayT<int> mat_index;
@@ -488,7 +488,7 @@ void ElementBaseT::TakeParameterList(const ParameterListT& list)
 
 	/* dimension */
 	int neq = NumElementNodes()*NumDOF();
-	fLHS.Dimension(neq);	
+	fLHS.Dimension(neq);
 	fRHS.Dimension(neq);
 }
 
@@ -497,7 +497,7 @@ void ElementBaseT::TakeParameterList(const ParameterListT& list)
  ***********************************************************************/
 
 /* extract element block info from parameter list */
-void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
+void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,
 	ArrayT<int>& mat_index) const
 {
 	/* search for a block declarations */
@@ -518,7 +518,7 @@ void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>&
 		ParameterListT material_list; /* collected material parameters */
 		for (int i = 0; i < num_blocks; i++) {
 
-			/* block information */	
+			/* block information */
 			const ParameterListT& block = list.GetList(block_name, i);
 
 			/* collect block ID's */
@@ -528,7 +528,7 @@ void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>&
 				mat_index_tmp.Append(i);
 			}
 		}
-	
+
 		/* transfer */
 		block_ID.Swap(block_ID_tmp);
 		mat_index.Swap(mat_index_tmp);
@@ -549,7 +549,7 @@ void ElementBaseT::BlockToGroupElementNumbers(iArrayT& elems, const StringT& blo
 	if (min < 0 || max > block_data.Dimension())
 		ExceptionT::BadInputValue(caller, "element numbers {%d,%d} are out of range",
 			min, max);
-	
+
 	/* map to group numbering is just a shift */
 	elems += block_data.StartNumber();
 }
@@ -582,7 +582,7 @@ void ElementBaseT::AssembleLHS(void) const
 {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	fSupport.AssembleLHS(fField->Group(), fLHS, CurrentElement().Equations());
-#else	
+#else
 	fSupport.AssembleLHS(fElementCards.Position(),fLHS,CurrentElement().Equations());
 #endif
 }
@@ -616,11 +616,11 @@ void ElementBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<
 	    /* set if unset */
 	    if (nen == 0)
 	    	nen = num_nodes;
-	    
+
 	    /* consistency check */
 	    if (num_nodes != 0 && nen != num_nodes)
 			ExceptionT::BadInputValue(caller, "minor dimension %d of block %d does not match previous %d", num_nodes, b+1, nen);
-	    
+
 	    /* store block data */
 	    fBlockData[b].Set(block_ID[b], elem_count, num_elems, mat_index[b]);
 
@@ -634,18 +634,18 @@ void ElementBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<
 	/* connectivities came back empty */
 	if (nen == 0)  nen = DefaultNumElemNodes();
 	for (int i = 0; i < fConnectivities.Length(); i++)
-		if (fConnectivities[i]->MinorDim() == 0) 
+		if (fConnectivities[i]->MinorDim() == 0)
 		{
 			/* not really violating const-ness */
 			iArray2DT* connects = const_cast<iArray2DT*>(fConnectivities[i]);
 			connects->Dimension(0, nen);
 		}
-	  
+
 	/* set dimensions */
 	fElementCards.Dimension(elem_count);
 
 	/* derived dimensions */
-	int neq = NumElementNodes()*NumDOF();
+	int neq = NumElementNodes()*TotalNumDOF();
 	fEqnos.Dimension(fBlockData.Length());
 	for (int be = 0; be < fEqnos.Length(); be++) {
 		int numblockelems = fConnectivities[be]->MajorDim();
@@ -659,7 +659,7 @@ void ElementBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<
 
 #ifdef _FRACTURE_INTERFACE_LIBRARY_
 void ElementBaseT::EchoConnectivityData(void)
-{	
+{
 	/* read */
 	ReadConnectivity();
 
@@ -690,7 +690,7 @@ void ElementBaseT::ReadConnectivity(void)
 	elem_ID[0] = fSupport.BlockID();
 
 	/*Might have to generalize this later*/
-	matnums = 1; 
+	matnums = 1;
 
 	/* allocate block map */
 	int num_blocks = elem_ID.Length();
@@ -705,16 +705,16 @@ void ElementBaseT::ReadConnectivity(void)
 	    /* check number of nodes */
 	    int num_elems, num_nodes;
 		num_elems = fSupport.NumElements();
-		num_nodes = model.NumNodes(); 
+		num_nodes = model.NumNodes();
 
 	    /* set if unset */
 	    if (nen == 0) nen = num_nodes;
-	    
+
 	    /* consistency check */
 	    if (num_nodes != 0 && nen != num_nodes)
 			ExceptionT::BadInputValue("ElementBaseT::ReadConnectivity",
 				"minor dimension %d of block %d does not match previous %d", num_nodes, b+1, nen);
-	    
+
 	    /* store block data */
 	    fBlockData[b].Set(elem_ID[b], elem_count, num_elems, matnums[b] - 1); // offset
 
@@ -734,7 +734,7 @@ void ElementBaseT::ReadConnectivity(void)
 			iArray2DT* connects = const_cast<iArray2DT*>(fConnectivities[i]);
 			connects->Dimension(0, nen);
 		}
-	  
+
 	/* set dimensions */
 	fElementCards.Dimension(elem_count);
 }
@@ -781,7 +781,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	if (!fElementCards.InRange()) return;
-	
+
 	out << "\n element group: " << fSupport.ElementGroupNumber(this) + 1 << '\n';
 	out << "\n element (in group): " << fElementCards.Position() + 1 << '\n';
 
@@ -839,14 +839,14 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	out << (CurrentElement().Equations()).wrap(4) << '\n';
 #else
 #pragma unused(out)
-#endif 
+#endif
 }
 
 /* set element cards array */
 void ElementBaseT::SetElementCards(
-	const ArrayT<ElementBlockDataT>& block_data, 
-	const ArrayT<const iArray2DT*>& connectivities,		
-	const ArrayT<iArray2DT>& eqnos, 
+	const ArrayT<ElementBlockDataT>& block_data,
+	const ArrayT<const iArray2DT*>& connectivities,
+	const ArrayT<iArray2DT>& eqnos,
 	AutoArrayT<ElementCardT>& element_cards) const
 {
 	const char caller[] = "ElementBaseT::SetElementCards";
@@ -854,7 +854,7 @@ void ElementBaseT::SetElementCards(
     {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
       cout << "ElementBaseT::SetElementCards length mismatch ";
-      cout << "\n           element group: " << fSupport.ElementGroupNumber(this) + 1;      
+      cout << "\n           element group: " << fSupport.ElementGroupNumber(this) + 1;
       cout << "\n connectivities length = " << connectivities.Length();
       cout << "\n         eqnos length = " << eqnos.Length() << endl;
 #endif
@@ -875,7 +875,7 @@ void ElementBaseT::SetElementCards(
 		  {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 		    cout << "ElementBaseT::SetElementCards length mismatch ";
-		    cout << "\n   element group: " << fSupport.ElementGroupNumber(this) + 1; 
+		    cout << "\n   element group: " << fSupport.ElementGroupNumber(this) + 1;
 		    cout << "\n           block: " << i+1;
 		    cout << "\n  blockconn dim = " << blockconn->MajorDim() << " " << blockconn->MinorDim();
 		    cout << "\n blockeqnos dim = " << blockeqnos.MajorDim() << " " << blockeqnos.MinorDim() << endl;
@@ -886,7 +886,7 @@ void ElementBaseT::SetElementCards(
 		for (int j = 0; j < dim; j++)
 		{
 			ElementCardT& element_card = element_cards[count];
-	
+
 			/* material number */
 			element_card.SetMaterialNumber(mat);
 
@@ -894,7 +894,7 @@ void ElementBaseT::SetElementCards(
 			iArrayT& nodes = element_card.NodesX();
 			blockconn->RowAlias(j, nodes);
 			blockeqnos.RowAlias(j, element_card.Equations());
-			
+
 			/* check node numbers */
 			int min, max;
 			nodes.MinMax(min, max);
