@@ -1,7 +1,10 @@
 //
-// $Id: FSPiezoElectricSolidT.h,v 1.1 2008-06-16 18:15:10 lxmota Exp $
+// $Id: FSPiezoElectricSolidT.h,v 1.2 2008-07-14 17:37:23 lxmota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/06/16 18:15:10  lxmota
+// Piezoelectric solid. Initial source.
+//
 //
 
 
@@ -25,9 +28,9 @@ namespace Tahoe {
   //
   class FSPiezoElectricSolidT : public FiniteStrainT
   {
-    
+
   public:
-      
+
     //
     // constructor
     //
@@ -37,6 +40,16 @@ namespace Tahoe {
     // destructor
     //
     virtual ~FSPiezoElectricSolidT();
+
+    //
+    // specify parameters needed by the interface
+    //
+    virtual void DefineParameters(ParameterListT& list) const;
+
+    //
+    //
+    //
+    virtual int TotalNumDOF() const;
 
     //
     // \name Electric displacements
@@ -65,6 +78,7 @@ namespace Tahoe {
     //
     const dArrayT& ElectricDisplacement_last(int ip) const;
 
+#if 0
     //
     // @}
     //
@@ -79,7 +93,7 @@ namespace Tahoe {
     // parameter list
     //
     virtual void DefineInlineSub(const StringT& name,
-				 ParameterListT::ListOrderT& order, 
+				 ParameterListT::ListOrderT& order,
 				 SubListT& sub_lists) const;
 
     //
@@ -87,6 +101,14 @@ namespace Tahoe {
     // parameter list
     //
     virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+    //
+    // extract the list of material parameters
+    //
+    virtual void CollectMaterialInfo(const ParameterListT& all_params,
+             ParameterListT& mat_params) const;
+
+#endif
 
     //
     // accept parameter list
@@ -102,7 +124,7 @@ namespace Tahoe {
     // increment current element
     //
     virtual bool NextElement();
-    
+
     //
     // element stiffness matrix
     //
@@ -118,16 +140,16 @@ namespace Tahoe {
     //
 
     //
-    // extract the list of material parameters
-    //
-    virtual void CollectMaterialInfo(const ParameterListT& all_params,
-				     ParameterListT& mat_params) const;
-	
-    //
     //
     //
     const ShapeFunctionT& CurrShapeFunction(void) const;
 
+#if 0
+    virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
+       AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
+#endif
+
+#if 0
     //
     //
     //
@@ -139,7 +161,11 @@ namespace Tahoe {
 
     bool Needs_D(int materialNumber) const;
     bool Needs_D_last(int materialNumber) const;
+#endif
 
+    const int ManifoldDim() const;
+    const int StrainDim() const;
+    const int ElectricalDim() const;
 
   protected:
 
@@ -159,7 +185,7 @@ namespace Tahoe {
     //
     // Return a pointer to a new material list. Recipient is
     // responsible for freeing the pointer.
-    // 
+    //
     // \param name list identifier
     // \param size length of the list
     //
@@ -205,10 +231,10 @@ namespace Tahoe {
     //
     ArrayT<dArrayT> fD_List;       // < deformation gradient
     dArrayT         fD_all;        // < grouped memory for all
-				   // < deformation gradients
+				                           // < electric displacements
     ArrayT<dArrayT> fD_last_List;  // < last deformation gradient
     dArrayT         fD_last_all;   // < grouped memory for all last
-				   // < deformation gradients
+				                           // < electric displacements
     //
     // @}
     //
@@ -222,7 +248,9 @@ namespace Tahoe {
 
   private:
 
+#if 0
     int fNeedsOffset;
+#endif
     LocalArrayT fLocVectorPotential;
     LocalArrayT fLocLastVectorPotential;
     FSNeoHookePZLinT* fCurrMaterial;
@@ -236,8 +264,13 @@ namespace Tahoe {
     dMatrixT fElectric2MechanicalTangent;
     dMatrixT fElectricTangent;
 
+    //
+    // Electric field
+    //
+    const FieldT* fElectricVectorPotentialField;
+
   };
-  
+
 } // namespace Tahoe
 
 #include "FSPiezoElectricSolidT.i.h"

@@ -1,7 +1,10 @@
 //
-// $Id: FSPZMatSupportT.h,v 1.1 2008-06-16 18:21:41 lxmota Exp $
+// $Id: FSPZMatSupportT.h,v 1.2 2008-07-14 17:38:53 lxmota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/06/16 18:21:41  lxmota
+// Piezoelectric material support. Initial sources.
+//
 //
 
 #if !defined(_FSPZMatSupportT_)
@@ -119,6 +122,10 @@ namespace Tahoe {
     //
     // @}
     //
+
+    static const int ManifoldDim() { return 3; };
+    static const int StrainDim() { return 6; };
+    static const int ElectricalDim() { return 3; };
     
   private:
     

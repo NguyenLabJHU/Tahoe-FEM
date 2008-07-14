@@ -1,7 +1,10 @@
 //
-// $Id: FSNeoHookePZLinT.h,v 1.1 2008-06-16 18:10:49 lxmota Exp $
+// $Id: FSNeoHookePZLinT.h,v 1.2 2008-07-14 17:37:44 lxmota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/06/16 18:10:49  lxmota
+// Piezoelectric material. Initial sources.
+//
 //
 
 #if !defined(_FSNeoHookePZLinT_)
@@ -16,7 +19,7 @@
 #include "FSPZMatSupportT.h"
 
 namespace Tahoe {
-  
+
   class FSNeoHookePZLinT: public FSIsotropicMatT
   {
 
@@ -25,7 +28,7 @@ namespace Tahoe {
     //
 
   public:
-    
+
     //
     // constructors
     //
@@ -35,7 +38,7 @@ namespace Tahoe {
     // \name Interface to Tahoe. Member functions inherited from Tahoe
     // to serve as interface with other parts of the code.
     //
-    
+
     //
     // @{
     //
@@ -77,6 +80,11 @@ namespace Tahoe {
     const dSymMatrixT& S_ij();
 
     //
+    // electric field
+    //
+    const dArrayT& E_i();
+
+    //
     // spatial mechanical tangent modulus
     //
     const dMatrixT& c_ijkl();
@@ -92,8 +100,8 @@ namespace Tahoe {
     double Pressure() const;
 
     //
-    // @} 
-    //    
+    // @}
+    //
 
     //
     //
@@ -105,7 +113,7 @@ namespace Tahoe {
     // Helmholtz free energy density
     //
     double energyDensity(const dSymMatrixT& C, const dArrayT& D) const;
-    
+
     //
     // 2nd Piola-Kirchhoff stress measures
     //
@@ -127,7 +135,7 @@ namespace Tahoe {
 
     const dMatrixT tangentPiezoelectrical(const dSymMatrixT& C,
 					  const dArrayT& D) const;
-    
+
     //
     // accesors and mutators for material constants
     //
@@ -140,7 +148,16 @@ namespace Tahoe {
     void setPiezoelectricConstant(int i, int j, double gij);
     double getPiezoelectricConstant(int i, int j) const;
 
+    void setFSPZMatSupport(const FSPZMatSupportT* support);
+
+    const int ManifoldDim() const;
+    const int StrainDim() const;
+    const int ElectricalDim() const;
+
   protected:
+
+    const FSPZMatSupportT* fFSPZMatSupport;
+
   private:
 
     void initialize();
@@ -152,7 +169,7 @@ namespace Tahoe {
 
     double energyDensityPiezoelectrical(const dSymMatrixT& C,
 					const dArrayT& D) const;
-    
+
     double energyDensityElasticVol(const dSymMatrixT& C) const;
     double energyDensityElasticDev(const dSymMatrixT& C) const;
 
@@ -193,8 +210,6 @@ namespace Tahoe {
     static const char* Name;
 
   protected:
-
-    const FSPZMatSupportT* fFSPZMatSupport;
 
   private:
 

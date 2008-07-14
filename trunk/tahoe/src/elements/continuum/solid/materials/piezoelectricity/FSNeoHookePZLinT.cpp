@@ -1,7 +1,10 @@
 //
-// $Id: FSNeoHookePZLinT.cpp,v 1.1 2008-06-16 18:10:49 lxmota Exp $
+// $Id: FSNeoHookePZLinT.cpp,v 1.2 2008-07-14 17:37:44 lxmota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/06/16 18:10:49  lxmota
+// Piezoelectric material. Initial sources.
+//
 //
 
 #include "ExceptionT.h"
@@ -22,14 +25,10 @@ namespace Tahoe {
   FSNeoHookePZLinT::initialize()
   {
 
-    const int nsd = NumSD();
-    const int ElectricalDim = nsd;
-    const int StrainDim = dSymMatrixT::NumValues(nsd);
-
     fShearModulus = 0.0;
     fBulkModulus = 0.0;
     fElectricPermittivity = 0.0;
-    fPiezoelectricTensor = dMatrixT(ElectricalDim, StrainDim);
+    fPiezoelectricTensor = dMatrixT(ElectricalDim(), StrainDim());
     fPiezoelectricTensor = 0.0;
 
   }
@@ -47,21 +46,17 @@ namespace Tahoe {
     list.AddParameter(fBulkModulus, "kappa");
     list.AddParameter(fElectricPermittivity, "epsilon");
   
-    const int nsd = NumSD();
-    const int ElectricalDim = nsd;
-    const int StrainDim = dSymMatrixT::NumValues(nsd);
+    char p[4] = "g11";
 
-    char p[4] = "g00";
+    for (int i = 0; i < ElectricalDim(); ++i) {
 
-    for (int i = 0; i < ElectricalDim; ++i) {
+      p[1] = '1' + i;
 
-      p[1] = '0' + i;
+      for (int j = 0; j < StrainDim(); ++j) {
 
-      for (int j = 0; j < StrainDim; ++j) {
+        p[2] = '1' + j;
 
-        p[2] = '0' + j;
-
-        double gij = fPiezoelectricTensor(i,j);
+        const double & gij = fPiezoelectricTensor(i,j);
         list.AddParameter(gij, p);
 
       }
@@ -89,19 +84,15 @@ namespace Tahoe {
     fBulkModulus  = list.GetParameter("kappa");
     fElectricPermittivity = list.GetParameter("epsilon");
 
-    const int nsd = NumSD();
-    const int ElectricalDim = nsd;
-    const int StrainDim = dSymMatrixT::NumValues(nsd);
+    char p[4] = "g11";
 
-    char p[4] = "g00";
+    for (int i = 0; i < ElectricalDim(); ++i) {
 
-    for (int i = 0; i < ElectricalDim; ++i) {
+      p[1] = '1' + i;
 
-      p[1] = '0' + i;
+      for (int j = 0; j < StrainDim(); ++j) {
 
-      for (int j = 0; j < StrainDim; ++j) {
-
-        p[2] = '0' + j;
+        p[2] = '1' + j;
 
         fPiezoelectricTensor(i,j) = list.GetParameter(p);
 
@@ -138,6 +129,7 @@ namespace Tahoe {
   void
   FSNeoHookePZLinT::DefineSubs(SubListT& sub_list) const
   {
+    FSIsotropicMatT::DefineSubs(sub_list);
     return;
   }
 
@@ -148,13 +140,9 @@ namespace Tahoe {
   FSNeoHookePZLinT::setPiezoelectricConstant(int i, int j, double gij)
   {
 
-    const int nsd = NumSD();
-    const int ElectricalDim = nsd;
-    const int StrainDim = dSymMatrixT::NumValues(nsd);
+    bool validI = (0 <= i && i < StrainDim()) == true;
 
-    bool validI = (0 <= i && i < StrainDim) == true;
-
-    bool validJ = (0 <= j && j < ElectricalDim) == true;
+    bool validJ = (0 <= j && j < ElectricalDim()) == true;
 
     if (validI == false) {
       ExceptionT::BadInputValue("FSNeoHookePZLinT::setPiezoelectricConstant",
@@ -179,13 +167,9 @@ namespace Tahoe {
   FSNeoHookePZLinT::getPiezoelectricConstant(int i, int j) const
   {
 
-    const int nsd = NumSD();
-    const int ElectricalDim = nsd;
-    const int StrainDim = dSymMatrixT::NumValues(nsd);
+    bool validI = (0 <= i && i < StrainDim()) == true;
 
-    bool validI = (0 <= i && i < StrainDim) == true;
-
-    bool validJ = (0 <= j && j < ElectricalDim) == true;
+    bool validJ = (0 <= j && j < ElectricalDim()) == true;
 
     if (validI == false) {
       ExceptionT::BadInputValue("FSNeoHookePZLinT::setPiezoelectricConstant",

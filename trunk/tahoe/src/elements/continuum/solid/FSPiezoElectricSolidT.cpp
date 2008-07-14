@@ -1,7 +1,10 @@
 //
-// $Id: FSPiezoElectricSolidT.cpp,v 1.1 2008-06-16 18:15:51 lxmota Exp $
+// $Id: FSPiezoElectricSolidT.cpp,v 1.2 2008-07-14 17:37:23 lxmota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/06/16 18:15:51  lxmota
+// Piezoelectric solid. Initial source.
+//
 //
 
 #include "FSNeoHookePZLinT.h"
@@ -9,6 +12,7 @@
 #include "FSPZMatSupportT.h"
 #include "ParameterContainerT.h"
 #include "ShapeFunctionT.h"
+#include "XDOF_ManagerT.h"
 
 //
 // materials lists (3D only)
@@ -23,7 +27,7 @@ namespace Tahoe {
   //
   FSPiezoElectricSolidT::~FSPiezoElectricSolidT()
   {
-  
+
     delete fFSPZMatSupport;
 
   }
@@ -39,6 +43,8 @@ namespace Tahoe {
     const int nsd = NumSD();
     const int nel = nen * nsd;
     const int nme = nen * nsd;
+    const int dof = ManifoldDim() + ElectricalDim();
+    const int neq = nen * dof;
 
     fMaterialTangent.Dimension(nme, nme);
     fGeometricTangent.Dimension(nme, nme);
@@ -46,8 +52,27 @@ namespace Tahoe {
     fElectric2MechanicalTangent.Dimension(nme, nel);
     fElectricTangent.Dimension(nel, nel);
 
+    fLHS.Dimension(neq);
+    fRHS.Dimension(neq);
+
+
   }
 
+  //
+  // specify parameters needed by the interface
+  //
+  void
+  FSPiezoElectricSolidT::DefineParameters(ParameterListT& list) const
+  {
+    // inherited
+    FiniteStrainT::DefineParameters(list);
+
+    // additional fields
+    list.AddParameter(ParameterT::Word, "electric_field_name");
+
+  }
+
+#if 0
   //
   // information about subordinate parameter lists
   //
@@ -58,8 +83,8 @@ namespace Tahoe {
     //
     // inherited
     //
-    FiniteStrainT::DefineSubs(sub_list);	
-    
+    FiniteStrainT::DefineSubs(sub_list);
+
     //
     // element block/material specification
     //
@@ -73,20 +98,20 @@ namespace Tahoe {
   //
   void
   FSPiezoElectricSolidT::DefineInlineSub(const StringT& name,
-					 ParameterListT::ListOrderT& order, 
-					 SubListT& sub_lists) const
-  {
+      ParameterListT::ListOrderT& order,
+      SubListT& sub_lists) const
+      {
 
     if (name == "piezoelectric_material_choice") {
-      
+
       order = ParameterListT::Choice;
-      
+
       //
       // list of choices
       //
       sub_lists.AddSub("piezoelectric_material_3D");
 
-    } else { 
+    } else {
 
       //
       // inherited
@@ -95,7 +120,7 @@ namespace Tahoe {
 
     }
 
-  }
+      }
 
   //
   // return the description of the given inline subordinate parameter
@@ -106,27 +131,27 @@ namespace Tahoe {
   {
 
     ParameterInterfaceT* pip = 0;
-    
+
     if (name == "piezoelectric_material_choice") {
-      
+
       ParameterContainerT* block = new ParameterContainerT(name);
-      
-      //	
+
+      //
       // list of element block ID's (defined by ElementBaseT)
       //
       block->AddSub("block_ID_list", ParameterListT::Once);
-	
+
       //
       // choice of materials lists (inline)
       //
       block->AddSub("piezoelectric_material_choice",
-		    ParameterListT::Once, true);
-	
+          ParameterListT::Once, true);
+
       //
       // set this as source of subs
       //
       block->SetSubSource(this);
-		
+
       pip = block;
 
     } else {
@@ -143,6 +168,59 @@ namespace Tahoe {
   }
 
   //
+  // extract the list of material parameters
+  //
+  void
+  FSPiezoElectricSolidT::CollectMaterialInfo(const ParameterListT& all_params,
+      ParameterListT& mat_params) const
+  {
+
+    const char caller[] = "FiniteStrainT::CollectMaterialInfo";
+
+    //
+    // initialize
+    //
+    mat_params.Clear();
+
+    //
+    // collected material parameters
+    //
+    const int num_blocks = all_params.NumLists("piezoelectric_element_block");
+
+    for (int i = 0; i < num_blocks; ++i) {
+
+      //
+      // block information
+      //
+      const ParameterListT& block =
+        all_params.GetList("piezoelectric_element_block", i);
+
+      if (i == 0) {
+
+        //
+        // resolve material list name
+        //
+        const ParameterListT& mat_list_params =
+          block.GetListChoice(*this, "piezoelectric_material_choice");
+
+        mat_params.SetName(mat_list_params.Name());
+
+      }
+
+      //
+      // collect material parameters
+      //
+      const ParameterListT& mat_list = block.GetList(mat_params.Name());
+      const ArrayT<ParameterListT>& mat = mat_list.Lists();
+      mat_params.AddList(mat[0]);
+
+    }
+
+  }
+
+#endif
+
+  //
   // accept parameter list
   //
   void
@@ -153,13 +231,29 @@ namespace Tahoe {
     // inherited
     //
     FiniteStrainT::TakeParameterList(list);
-    
+
+    //
+    // get electric vector potential field
+    //
+    // for now use same integration and interpolation schemes as primary field
+    //
+    const StringT& electric_field_name =
+      list.GetParameter("electric_field_name");
+
+    fElectricVectorPotentialField = ElementSupport().Field(electric_field_name);
+    if (!fElectricVectorPotentialField) {
+      ExceptionT::GeneralFail("FSPiezoElectricSolidT::TakeParameterList",
+          "could not resolve \"%s\" field",
+          electric_field_name.Pointer());
+    }
+
+#if 0
     //
     // offset to class needs flags
     //
     fNeedsOffset = fMaterialNeeds[0].Length();
 
-    //	
+    //
     // set material needs
     //
     for (int i = 0; i < fMaterialNeeds.Length(); ++i) {
@@ -182,15 +276,15 @@ namespace Tahoe {
       //
       needs[fNeedsOffset + kD     ] = mat->Need_D();
       needs[fNeedsOffset + kD_last] = mat->Need_D_last();
-		
+
       //
       // consistency
       //
       needs[kNeedVectorPotential] =
-	needs[kNeedVectorPotential] || needs[fNeedsOffset + kD];
+        needs[kNeedVectorPotential] || needs[fNeedsOffset + kD];
 
       needs[kNeedLastVectorPotential] =
-	needs[kNeedLastVectorPotential] || needs[fNeedsOffset + kD_last];
+        needs[kNeedLastVectorPotential] || needs[fNeedsOffset + kD_last];
 
     }
 
@@ -202,10 +296,11 @@ namespace Tahoe {
 
     for (int i = 0; i < fMaterialList->Length(); ++i) {
 
-      need_D      = need_D || Needs_D(i);		
+      need_D      = need_D || Needs_D(i);
       need_D_last = need_D_last || Needs_D_last(i);
 
-    }	
+    }
+
 
     //
     // allocate electric displacement list
@@ -220,12 +315,12 @@ namespace Tahoe {
 
       for (int i = 0; i < nip; ++i) {
 
-	fD_List[i].Set(nsd, fD_all.Pointer(i*nsd));
+        fD_List[i].Set(nsd, fD_all.Pointer(i*nsd));
 
       }
 
     }
-	
+
     //
     // allocate "last" electric displacement list
     //
@@ -239,65 +334,82 @@ namespace Tahoe {
 
       for (int i = 0; i < nip; ++i) {
 
-	fD_last_List[i].Set(nsd, fD_last_all.Pointer(i*nsd));
+        fD_last_List[i].Set(nsd, fD_last_all.Pointer(i*nsd));
 
       }
 
     }
+#endif
 
+    const int nip = NumIP();
+    const int nsd = NumSD();
+
+    fD_all.Dimension(nip*nsd);
+    fD_List.Dimension(nip);
+
+    for (int i = 0; i < nip; ++i) {
+
+      fD_List[i].Set(nsd, fD_all.Pointer(i*nsd));
+
+    }
+
+    fD_last_all.Dimension(nip*nsd);
+    fD_last_List.Dimension(nip);
+
+    for (int i = 0; i < nip; ++i) {
+
+      fD_last_List[i].Set(nsd, fD_last_all.Pointer(i*nsd));
+
+    }
+
+    // Allocate workspace
+    Initialize();
   }
 
+#if 0
   //
-  // extract the list of material parameters
   //
-  void
-  FSPiezoElectricSolidT::CollectMaterialInfo(const ParameterListT& all_params,
-					     ParameterListT& mat_params) const
+  //
+  void FSPiezoElectricSolidT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
+    AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
   {
 
-    const char caller[] = "FiniteStrainT::CollectMaterialInfo";
-	
-    //
-    // initialize
-    //
-    mat_params.Clear();
-	
-    //
-    // collected material parameters
-    //
-    const int num_blocks = all_params.NumLists("piezoelectric_element_block");
+    // loop over connectivity blocks
+    int element_count = 0;
+    for (int i = 0; i < fConnectivities.Length(); i++)
+    {
+      // block connectivities and equations
+      const iArray2DT& connects = *fConnectivities[i];
+      iArray2DT& eqnos = fEqnos[i];
 
-    for (int i = 0; i < num_blocks; ++i) {
+      // resize equations array
+      const int neq = NumElementNodes() * ( ManifoldDim() + ElectricalDim() );
+      eqnos.Dimension( connects.MajorDim(), neq );
 
-      //
-      // block information
-      //
-      const ParameterListT& block =
-	all_params.GetList("piezoelectric_element_block", i);
+      // set displacement equations
+      Field().SetLocalEqnos(connects, eqnos);
 
-      if (i == 0) {
+      // xdof equations for the block
+      const iArray2DT xdof_eqnos(connects.MajorDim(),
+          xdof_eqnos_all.MinorDim(), xdof_eqnos_all(element_count));
+      element_count += connects.MajorDim();
 
-	//
-	// resolve material list name
-	//
-	const ParameterListT& mat_list_params =
-	  block.GetListChoice(*this, "piezoelectric_material_choice");
-	
-	mat_params.SetName(mat_list_params.Name());
-	
+      // fill columns with xdof equations
+      iArrayT tmp(xdof_eqnos.MajorDim());
+      for (int i = neq; i < eqnos.MinorDim(); i++)
+      {
+        xdof_eqnos.ColumnCopy(i - neq, tmp);
+        eqnos.SetColumn(i, tmp);
       }
 
-      //	
-      // collect material parameters
-      //
-      const ParameterListT& mat_list = block.GetList(mat_params.Name());
-      const ArrayT<ParameterListT>& mat = mat_list.Lists();
-      mat_params.AddList(mat[0]);
-
+      // add to list
+      eq_1.AppendUnique(&eqnos);
     }
 
+    // reset element cards
+    SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
   }
-
+#endif
 
   //
   // Protected
@@ -319,7 +431,7 @@ namespace Tahoe {
     // inherited initializations
     //
     FiniteStrainT::NewMaterialSupport(p);
-	
+
     //
     // set parent class fields
     //
@@ -329,7 +441,7 @@ namespace Tahoe {
 
       ps->SetElectricDisplacement(&fD_List);
       ps->SetElectricDisplacement_last(&fD_last_List);
-      
+
     }
 
     return p;
@@ -343,10 +455,9 @@ namespace Tahoe {
   FSPiezoElectricSolidT::NewMaterialList(const StringT& name, int size)
   {
 
-    //
-    // determine number of spatial dimensions
-    //
-    const int nsd = NumSD();
+    if (name != "large_strain_material_3D") {
+      return 0;
+    }
 
     MaterialListT* mlp = 0;
 
@@ -357,13 +468,13 @@ namespace Tahoe {
       //
       if (0 == fFSPZMatSupport) {
 
-	fFSPZMatSupport = dynamic_cast<FSPZMatSupportT*>(NewMaterialSupport());
+        fFSPZMatSupport = dynamic_cast<FSPZMatSupportT*>(NewMaterialSupport());
 
-	if (0 == fFSPZMatSupport) {
+        if (0 == fFSPZMatSupport) {
 
-	  ExceptionT::GeneralFail("FSPiezoElectricSolidT::NewMaterialList");
+          ExceptionT::GeneralFail("FSPiezoElectricSolidT::NewMaterialList");
 
-	}
+        }
 
       }
 
@@ -374,7 +485,7 @@ namespace Tahoe {
       mlp = new FSSolidMatList3DT;
 
     }
-	
+
     return mlp;
 
   }
@@ -394,87 +505,93 @@ namespace Tahoe {
     //
     // what needs to be computed
     //
+#if 0
     int material_number = CurrentElement().MaterialNumber();
     bool needs_D        = Needs_D(material_number);
     bool needs_D_last   = Needs_D_last(material_number);
+#endif
 
+    SetLocalU(fLocVectorPotential);
+    SetLocalU(fLocLastVectorPotential);
 
     for (int i = 0; i < NumIP(); i++) {
 
       //
       // electric displacement
       //
-      if (needs_D) {
-	
-	dArrayT& D = fD_List[i];
+      { //if (needs_D) {
 
-	//
-	// curl of vector potential
-	//
-	int m = fLocVectorPotential.NumberOfNodes();
-	int n = fLocVectorPotential.MinorDim();
+        dArrayT& D = fD_List[i];
 
-	ArrayT<dArrayT> vp(m);
+        //
+        // curl of vector potential
+        //
+        int m = fLocVectorPotential.NumberOfNodes();
+        int n = fLocVectorPotential.MinorDim();
 
-	for (int j = 0; j < m; ++j) {
+        ArrayT<dArrayT> vp(m);
 
-	  vp[j].Dimension(n);
+        for (int j = 0; j < m; ++j) {
 
-	  for (int k = 0; k < n; ++k) {
+          vp[j].Dimension(n);
 
-	    vp[j][k] = fLocVectorPotential(j,k);
+          for (int k = 0; k < n; ++k) {
 
-	  }
+            vp[j][k] = fLocVectorPotential(j,k);
 
-	}
+          }
 
-	fShapes->CurlU(vp, D, i);
+        }
 
-	//
-	// reverse sign
-	//
-	D *= -1.0;
+        fShapes->CurlU(vp, D, i);
+
+        //
+        // reverse sign
+        //
+        D *= -1.0;
 
       }
 
       //
       // "last" electric displacement
       //
-      if (needs_D_last)	{
 
-	dArrayT& D = fD_last_List[i];
+      { //if (needs_D_last)	{
 
-	//
-	// curl of vector potential
-	//
-	int m = fLocLastVectorPotential.NumberOfNodes();
-	int n = fLocLastVectorPotential.MinorDim();
 
-	ArrayT<dArrayT> vp(m);
+        dArrayT& D = fD_last_List[i];
 
-	for (int j = 0; j < m; ++j) {
+        //
+        // curl of vector potential
+        //
+        int m = fLocLastVectorPotential.NumberOfNodes();
+        int n = fLocLastVectorPotential.MinorDim();
 
-	  vp[j].Dimension(n);
+        ArrayT<dArrayT> vp(m);
 
-	  for (int k = 0; k < n; ++k) {
+        for (int j = 0; j < m; ++j) {
 
-	    vp[j][k] = fLocLastVectorPotential(j,k);
+          vp[j].Dimension(n);
 
-	  }
+          for (int k = 0; k < n; ++k) {
 
-	}
+            vp[j][k] = fLocLastVectorPotential(j,k);
 
-	fShapes->CurlU(vp, D, i);
+          }
 
-	//
-	// reverse sign
-	//
-	D *= -1.0;
+        }
+
+        fShapes->CurlU(vp, D, i);
+
+        //
+        // reverse sign
+        //
+        D *= -1.0;
 
       }
 
     }
-    
+
   }
 
   //
@@ -484,11 +601,11 @@ namespace Tahoe {
   FSPiezoElectricSolidT::CurrElementInfo(ostream& out) const
   {
 
-    //	
+    //
     // inherited
     //
     FiniteStrainT::CurrElementInfo(out);
-	
+
     //
     // write deformation gradients
     //
@@ -514,7 +631,14 @@ namespace Tahoe {
     //
     // look for an electric vector potential field
     //
-    const FieldT* evp = ElementSupport().Field("electric vector potential");
+    const FieldT* evp = 0;
+
+    if (0 == fElectricVectorPotentialField) {
+      evp = ElementSupport().Field("electric_vector_potential");
+      fElectricVectorPotentialField = evp;
+    } else {
+      evp = fElectricVectorPotentialField;
+    }
 
     if (0 == evp) {
 
@@ -574,32 +698,32 @@ namespace Tahoe {
 
 
     for (int ij = 0; ij < StrainDim; ++ij) {
-      
+
       const int i = ij2i[ij];
       const int j = ij2j[ij];
-      
+
       for (int a = 0; a < nnd; ++a) {
-	
-	for (int k = 0; k < nsd; ++k) {
-	  
-	  int ka = a * nsd + k;
-	  
-	  B_C(ij, ka) = 0.5 * (DNaX(i, a) * F(k, j) + DNaX(j, a) * F(k, i));
-	  
-	  // Shear components doubled to conform with Voigt
-	  // convention
-	  if (ij >= nsd) {
-	  
-	    B_C(ij, ka) *= 2.0;
-	    
-	  }
-	  
-	}
-	
+
+        for (int k = 0; k < nsd; ++k) {
+
+          int ka = a * nsd + k;
+
+          B_C(ij, ka) = 0.5 * (DNaX(i, a) * F(k, j) + DNaX(j, a) * F(k, i));
+
+          // Shear components doubled to conform with Voigt
+          // convention
+          if (ij >= nsd) {
+
+            B_C(ij, ka) *= 2.0;
+
+          }
+
+        }
+
       }
-      
+
     }
-    
+
   }
 
   //
@@ -628,31 +752,31 @@ namespace Tahoe {
     for (int a = 0; a < nnd; ++a) {
 
       const int ka = nsd * a;
-      
+
       B_D(0, ka + 0) = 0.0;
       B_D(0, ka + 1) = DNaX(2, a);
       B_D(0, ka + 2) = - DNaX(1, a);
-      
+
       B_D(1, ka + 0) = - DNaX(2, a);
       B_D(1, ka + 1) = 0.0;
       B_D(1, ka + 2) = DNaX(0, a);
-      
+
       B_D(2, ka + 0) = DNaX(1, a);
       B_D(2, ka + 1) = - DNaX(0, a);
       B_D(2, ka + 2) = 0.0;
-      
+
     }
-    
+
   }
-  
+
 
   //
   // Geometric stiffness
   //
   void
   FSPiezoElectricSolidT::AccumulateGeometricStiffness(dMatrixT& Kg,
-						      const dArray2DT& DNaX,
-						      dSymMatrixT& S)
+      const dArray2DT& DNaX,
+      dSymMatrixT& S)
   {
 
     const int nsd = NumSD();
@@ -661,28 +785,25 @@ namespace Tahoe {
 
     assert(nen == nnd);
 
-    dMatrixT GradNa;
-    GradNa.Dimension(nsd, nnd);
+    dMatrixT GradNa(nsd, nnd);
     fShapes->GradNa(DNaX, GradNa);
 
-    dMatrixT DNaS;
-    DNaS.Dimension(nnd, nnd);
+    dMatrixT DNaS(nnd, nnd);
 
-    dMatrixT Sm;
+    dMatrixT Sm(ManifoldDim());
     S.ToMatrix(Sm);
 
     DNaS.MultQTBQ(GradNa, Sm);
 
-    dMatrixT SI;
-    SI.Dimension(nsd);
+    dMatrixT SI(nsd);
 
     for (int i = 0; i < nen; ++i) {
 
       for (int j = 0; j < nen; ++j) {
 
-	SI.Identity(DNaS(i,j));
+        SI.Identity(DNaS(i,j));
 
-	Kg.AddBlock(nsd*i, nsd*j, SI);
+        Kg.AddBlock(nsd*i, nsd*j, SI);
 
       }
 
@@ -699,10 +820,9 @@ namespace Tahoe {
   {
 
     const int nsd = NumSD();
-    const int StrainDim = dSymMatrixT::NumValues(nsd);
     const int nen = NumElementNodes();
 
-    B.Dimension(StrainDim + nsd, nsd * nen);
+    B.Dimension(StrainDim() + ElectricalDim(), nsd * nen);
 
     dMatrixT B_C;
 
@@ -714,7 +834,7 @@ namespace Tahoe {
 
     Set_B_D(DNaX, B_D);
 
-    B.SetBlock(StrainDim, 0, B_C);
+    B.SetBlock(StrainDim(), 0, B_C);
 
   }
 
@@ -755,8 +875,8 @@ namespace Tahoe {
     //
     dMatrixT::SymmetryFlagT format =
       (fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
-      dMatrixT::kWhole :
-      dMatrixT::kUpperOnly;
+          dMatrixT::kWhole :
+    dMatrixT::kUpperOnly;
 
     //
     // integration
@@ -788,16 +908,16 @@ namespace Tahoe {
       //
       // get material tangent moduli
       //
-      dMatrixT C;
+      dMatrixT C(StrainDim());
       C.SetToScaled(sw, fCurrMaterial->C_ijkl());
 
-      dMatrixT H;
+      dMatrixT H(ElectricalDim(), StrainDim());
       H.SetToScaled(sw, fCurrMaterial->H_ijk());
 
-      dMatrixT B;
+      dMatrixT B(ElectricalDim());
       B.SetToScaled(sw, fCurrMaterial->B_ij());
 
-      dSymMatrixT S;
+      dSymMatrixT S(ManifoldDim());
       S.SetToScaled(sw, fCurrMaterial->S_ij());
 
       //
@@ -831,7 +951,7 @@ namespace Tahoe {
       // Piezoelectric coupling tangents
       //
       fMechanical2ElectricTangent.MultATBC(B_D, H, B_C, dMatrixT::kWhole,
-					   dMatrixT::kAccumulate);
+          dMatrixT::kAccumulate);
 
       //
       // Purely electric tangent
@@ -845,20 +965,19 @@ namespace Tahoe {
     //
     // Add geometric stiffness
     //
-    fMaterialTangent.Expand(fGeometricTangent, 2*NumSD(),
-			    dMatrixT::kAccumulate);
+    fMaterialTangent.Expand(fGeometricTangent, 1, dMatrixT::kAccumulate);
 
     //
     // Assemble into element stiffness matrix
     //
     fLHS.AddBlock(0, 0,
-		  fMaterialTangent);
+        fMaterialTangent);
 
     fLHS.AddBlock(fMaterialTangent.Rows(), fMaterialTangent.Cols(),
-		  fElectricTangent);
+        fElectricTangent);
 
     fLHS.AddBlock(0, fMaterialTangent.Cols(),
-		  fElectric2MechanicalTangent);
+        fElectric2MechanicalTangent);
 
     //
     // non-symmetric
@@ -866,7 +985,7 @@ namespace Tahoe {
     if (format != dMatrixT::kUpperOnly) {
 
       fLHS.AddBlock(fMaterialTangent.Rows(), 0,
-		    fMechanical2ElectricTangent);
+          fMechanical2ElectricTangent);
 
     }
 
@@ -882,9 +1001,8 @@ namespace Tahoe {
     //
     //
     //
-    const int neq = NumElementNodes()*NumDOF();
+    const int neq = NumElementNodes()*(ManifoldDim() + ElectricalDim());
     const int nsd = NumSD();
-    dArrayT RHS(neq, fRHS.Pointer());
 
     //
     // integration scheme
@@ -902,23 +1020,27 @@ namespace Tahoe {
       const double w = constK * (*Weight++) * (*Det++);
 
       dSymMatrixT S = fCurrMaterial->S_ij();
+      dArrayT E     = fCurrMaterial->E_i();
 
-      dMatrixT s;
-      s.Dimension(dSymMatrixT::NumValues(nsd), 1);
-      s(0,0)=S(0,0);
-      s(1,0)=S(1,1);
-      s(2,0)=S(2,2);
-      s(3,0)=S(2,1);
-      s(4,0)=S(2,0);
-      s(5,0)=S(1,0);
+      dArrayT s(dSymMatrixT::NumValues(nsd));
+      s[0]=S(0,0);
+      s[1]=S(1,1);
+      s[2]=S(2,2);
+      s[3]=S(2,1);
+      s[4]=S(2,0);
+      s[5]=S(1,0);
 
       const dArray2DT & DNa = fShapes->Derivatives_X();
+
+      //
+      // AQUI: Residuo necesita adicion de campo electrico.
+      //
 
       dMatrixT B_C;
 
       Set_B_C(DNa, B_C);
 
-      B_C.Multx(s, RHS, dMatrixT::kAccumulate);
+      B_C.MultTx(s, fRHS, dMatrixT::kAccumulate);
 
     }
 
