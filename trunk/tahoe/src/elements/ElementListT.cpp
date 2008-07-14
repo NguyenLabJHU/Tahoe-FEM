@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.135 2007-05-17 17:01:55 cfoster01 Exp $ */
+/* $Id: ElementListT.cpp,v 1.136 2008-07-14 17:43:16 lxmota Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -65,6 +65,7 @@
 #include "SS_SCNIMF_AxiT.h"
 #include "FS_SCNIMF_AxiT.h"
 #include "UpLagr_ExternalFieldT.h"
+#include "FSPiezoElectricSolidT.h"
 #ifdef SIMPLE_SOLID_DEV
 #include "TotalLagrangianFlatT.h"
 #endif
@@ -337,6 +338,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("fd_mfparticle");
 		sub_lists.AddSub("ss_mfparticle_axi");
 		sub_lists.AddSub("fd_mfparticle_axi");
+    sub_lists.AddSub("piezoelectric");
 
 #ifdef BRIDGING_ELEMENT
 		sub_lists.AddSub("bridging");
@@ -587,6 +589,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new SS_SCNIMF_AxiT(fSupport);
 	else if (name == "fd_mfparticle_axi")
 	  return new FS_SCNIMF_AxiT(fSupport);
+  else if (name == "piezoelectric")
+    return new FSPiezoElectricSolidT(fSupport);
 
 #ifdef BRIDGING_ELEMENT
 	else if (name == "bridging")
