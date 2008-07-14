@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2005-08-12 05:15:20 paklein Exp $
+# $Id: makefile,v 1.12 2008-07-14 18:17:25 lxmota Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -73,7 +73,8 @@ SUB_DIR = \
 	search \
 	dataio \
 	parallel \
-	param_tree
+	param_tree \
+	FloatingPoint
 
 subdir_driver: subdir_loop
 
