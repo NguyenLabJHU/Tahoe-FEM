@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.55 2008-05-26 19:04:08 bcyansfn Exp $ */
+/* $Id: FieldT.cpp,v 1.56 2008-07-14 18:24:09 lxmota Exp $ */
 
 #include "FieldT.h"
 
@@ -110,6 +110,16 @@ void FieldT::RegisterLocal(LocalArrayT& array) const
 			array.SetGlobal(fField_last[2]);
 			break;			
 		}
+    case LocalArrayT::kEVP:
+    {
+      array.SetGlobal(fField[0]);
+      break;
+    }
+    case LocalArrayT::kLastEVP:
+    {
+      array.SetGlobal(fField_last[0]);
+      break;
+    }
 		default:
 			ExceptionT::GeneralFail(caller, "unrecognized type: %d", array.Type());
 	}
