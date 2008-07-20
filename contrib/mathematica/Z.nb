@@ -41,15 +41,15 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[     44632,       1673]*)
-(*NotebookOutlinePosition[     45480,       1702]*)
-(*  CellTagsIndexPosition[     45436,       1698]*)
+(*NotebookOptionsPosition[     50481,       1782]*)
+(*NotebookOutlinePosition[     51329,       1811]*)
+(*  CellTagsIndexPosition[     51285,       1807]*)
 (*WindowFrame->Normal*)
 
 
 
 Notebook[{
-Cell[" $Id: Z.nb,v 1.1 2005-04-27 06:32:57 paklein Exp $", "Subsubsection",
+Cell[" $Id: Z.nb,v 1.2 2008-07-20 23:31:46 paklein Exp $", "Subsubsection",
   ImageRegion->{{0, 1}, {0, 1}}],
 
 Cell[CellGroupData[{
@@ -328,6 +328,9 @@ ToZ[rawexpr_, z_Symbol, nz_Integer, opts___] := Module[
 \t\t\t\t
 \t\t\t\tnz2++;
 \t\t\t\tznstr = StringJoin[zstr,ToString[nz2]];
+\t\t\t\tIf[Mod[nz2,1000]==0,
+\t\t\t\tPrint[\"Z count = \",nz2]
+\t\t\t\t];
 \t\t\t\t
 \t\t\t\tnextparse = parse[[1]];
 \t\t\t\t
@@ -894,7 +897,7 @@ ToZSimple[expr_] := ToZSimple[expr,z];\t\
 \>", "Input",
   ImageRegion->{{0, 1}, {0, 1}}]
 }, Closed]]
-}, Closed]],
+}, Open  ]],
 
 Cell[CellGroupData[{
 
@@ -1223,18 +1226,124 @@ Cell["User functions:", "Subsubsection"],
 
 Cell[BoxData[
     \(OutputZCForm[filename_String, \ zout_, opts___]\  := \ 
-      Module[\[IndentingNewLine]{fp, zout2, rules, rtot, Zopt, \ 
-          Defaults}, \[IndentingNewLine]\[IndentingNewLine] (*\ 
-          Defaults\ *) \[IndentingNewLine]Defaults\  = \ {OutputArray \[Rule] 
-              False}; \[IndentingNewLine]Zopt\  = \ \(OutputArray\  /. \ \
-{opts}\)\  /. \ Defaults; \[IndentingNewLine]Zopt\  = 
-          If[Zopt\  \[NotEqual] \ True\  && \ Zopt\  \[NotEqual] \ False, 
-            OutputArray /. Defaults, \ 
-            Zopt]; \[IndentingNewLine]\[IndentingNewLine]fp = 
-          OpenWrite[filename]; \[IndentingNewLine]{zout2, rules, rtot} = 
-          zout; \[IndentingNewLine]Map[
-          WriteString[fp, \(ZToString[CForm]\)[#, Zopt] <> "\<\n\>"] &, 
-          rules]; \[IndentingNewLine]Close[fp]\[IndentingNewLine]]\)], "Input"],
+      Module[\[IndentingNewLine]{fp}, \[IndentingNewLine]fp = 
+          OpenWrite[filename]; \[IndentingNewLine]OutputZCForm[fp, zout, 
+          opts]; \[IndentingNewLine]Close[fp]\[IndentingNewLine]]\)], "Input"],
+
+Cell[BoxData[
+    \(\(OutputZCForm[fp_OutputStream, \ zout_, 
+          opts___]\  := \[IndentingNewLine]Module[\[IndentingNewLine]{zout2, 
+            rules, rtot, Zopt, \ 
+            Defaults}, \[IndentingNewLine]\[IndentingNewLine] (*\ 
+            Defaults\ *) \[IndentingNewLine]Defaults\  = \ {OutputArray \
+\[Rule] False}; \[IndentingNewLine]Zopt\  = \ \(OutputArray\  /. \ {opts}\)\  \
+/. \ Defaults; \[IndentingNewLine]Zopt\  = 
+            If[Zopt\  \[NotEqual] \ True\  && \ Zopt\  \[NotEqual] \ False, 
+              OutputArray /. Defaults, \ Zopt]; \[IndentingNewLine]{zout2, 
+              rules, rtot} = zout; \[IndentingNewLine]Map[
+            WriteString[fp, \(ZToString[CForm]\)[#, Zopt] <> "\<\n\>"] &, 
+            rules];\[IndentingNewLine]];\)\)], "Input"],
+
+Cell[BoxData[
+    \(LastWord[strIn_String] := 
+      Module[\[IndentingNewLine]{str, pos, 
+          last}, \[IndentingNewLine]\[IndentingNewLine]str = 
+          strIn; \[IndentingNewLine]While[
+          StringTake[str, \(-1\)] == "\< \>", \[IndentingNewLine]str = 
+            StringDrop[
+              str, \(-1\)]\[IndentingNewLine]]; \[IndentingNewLine]\
+\[IndentingNewLine]pos = StringPosition[str, "\< \>"]; \[IndentingNewLine]If[
+          Length[pos] \[Equal] 0, \[IndentingNewLine]last = 
+            str, \[IndentingNewLine]pos = 
+            Last[Last[pos]]; \[IndentingNewLine]last = 
+            StringTake[
+              str, {pos + 1, 
+                StringLength[
+                  str]}]\[IndentingNewLine]]; \[IndentingNewLine]last\
+\[IndentingNewLine]]\)], "Input"],
+
+Cell[BoxData[
+    \(OutputZCCode[\[IndentingNewLine]funcname_String, \ \
+\[IndentingNewLine]commonfile_String, \[IndentingNewLine]arglist_List, \ \
+\[IndentingNewLine]maxZ_, \[IndentingNewLine]zout_] \
+:= \[IndentingNewLine]Module[\[IndentingNewLine]{common, \ zopts, nz, 
+          i}, \[IndentingNewLine]\[IndentingNewLine] (*\ 
+          must\ output\ Z' s\ as\ an\ array\ *) \[IndentingNewLine]zopts = 
+          OutputArray \[Rule] 
+            True; \[IndentingNewLine]\[IndentingNewLine] (*\ 
+          get\ the\ common\ code\ to\ be\ inserted\ at\ the\ top\ of\ ever\ \
+function\ *) \[IndentingNewLine]fpc\  = \ 
+          OpenRead[commonfile]; \[IndentingNewLine]If[
+          fpc === $Failed, \[IndentingNewLine]Print["\<Could not open common \
+file:\>" <> 
+              commonfile]; \[IndentingNewLine]Return[]\[IndentingNewLine]]; \
+\[IndentingNewLine]common = ReadList[fpc, Record]; \[IndentingNewLine]Close[
+          fpc]; \[IndentingNewLine]\[IndentingNewLine] (*\ 
+          setup\ *) \[IndentingNewLine]nz = 
+          zout[\([3]\)]; \[IndentingNewLine]zoutParts = 
+          Partition[zout[\([2]\)], maxZ, 
+            maxZ, {1, 1}, {}]; \[IndentingNewLine]args = 
+          Apply[StringJoin, 
+            Append[Drop[Map[\((# <> "\<,\>")\) &, \ arglist], \(-1\)], 
+              arglist[\([\(-1\)]\)]]]; \[IndentingNewLine]arglistAll = 
+          Append[arglist, "\<double* z\>"]; \[IndentingNewLine]argsAll = 
+          Apply[StringJoin, 
+            Append[Drop[Map[\((# <> "\<,\>")\) &, \ arglistAll], \(-1\)], 
+              arglistAll[\([\(-1\)]\)]]]; \[IndentingNewLine]arglistAllname = 
+          Map[LastWord, arglistAll]; \[IndentingNewLine]arglAllname = 
+          Apply[StringJoin, 
+            Append[Drop[Map[\((# <> "\<,\>")\) &, \ arglistAllname], \(-1\)], 
+              arglistAllname[\([\(-1\)]\)]]]; \[IndentingNewLine]\
+\[IndentingNewLine] (*\ driver\ function\ *) \[IndentingNewLine]fpd\  = \ 
+          OpenWrite[
+            funcname <> "\<_driver.c\>"]; \[IndentingNewLine]WriteString[
+          fpd, "\<#include <stdlib.h>\n\>"]; \[IndentingNewLine]WriteString[
+          fpd, "\<void \>" <> funcname <> "\<_driver(\>" <> 
+            args <> "\<);\n\>"]; \[IndentingNewLine]For[i = 1, \ 
+          i \[LessEqual] 
+            Length[zoutParts], \ \(i++\), \[IndentingNewLine]WriteString[
+            fpd, "\<void \>" <> funcname <> "\<_\>" <> 
+              ToString[i] <> "\<(\>" <> 
+              argsAll <> "\<);\n\>"]\[IndentingNewLine]]; \
+\[IndentingNewLine]WriteString[
+          fpd, "\<void \>" <> funcname <> "\<_driver(\>" <> 
+            args <> "\<) {\n\>"]; \[IndentingNewLine]WriteString[
+          fpd, "\<\t\>" <> "\<double* z = (double*) malloc(\>" <> 
+            ToString[
+              nz + 1] <> "\<*sizeof(double));\n\>"]; \[IndentingNewLine]For[
+          i = 1, \ i \[LessEqual] 
+            Length[zoutParts], \ \(i++\), \[IndentingNewLine]WriteString[
+            fpd, "\<\t\>" <> funcname <> "\<_\>" <> ToString[i] <> "\<(\>" <> 
+              arglAllname <> "\<);\n\>"]\[IndentingNewLine]]; \
+\[IndentingNewLine] (*\ close\ function\ *) \[IndentingNewLine]WriteString[
+          fpd, "\<\t\>" <> "\<free(z);\n\>"]; \[IndentingNewLine]WriteString[
+          fpd, "\<}\n\>"]; \[IndentingNewLine]Close[
+          fpd]; \[IndentingNewLine]\[IndentingNewLine] (*\ 
+          write\ each\ block\ to\ a\ separate\ file, \ 
+          add\ calls\ to\ the\ driver\ function\ *) \[IndentingNewLine]For[
+          i = 1, \ i \[LessEqual] 
+            Length[zoutParts], \ \(i++\), \[IndentingNewLine]\
+\[IndentingNewLine] (*\ open\ out\ file\ *) \[IndentingNewLine]fpd\  = \ 
+            OpenWrite[
+              funcname <> "\<_\>" <> 
+                ToString[i] <> "\<.c\>"]; \[IndentingNewLine]WriteString[
+            fpd, "\<#include <math.h>\n\>"]; \[IndentingNewLine]WriteString[
+            fpd, "\<void \>" <> funcname <> "\<_\>" <> 
+              ToString[i] <> "\<(\>" <> 
+              argsAll <> "\<);\n\>"]; \[IndentingNewLine]WriteString[
+            fpd, "\<void \>" <> funcname <> "\<_\>" <> 
+              ToString[i] <> "\<(\>" <> 
+              argsAll <> "\<) {\n\>"]; \[IndentingNewLine]\[IndentingNewLine] \
+(*\ common\ code\ *) \[IndentingNewLine]Map[
+            WriteString[fpd, # <> "\<\n\>"] &, 
+            common]; \[IndentingNewLine]\[IndentingNewLine] (*\ 
+            write\ the\ Z\ code\ *) \[IndentingNewLine]OutputZCForm[
+            fpd, \ {0, zoutParts[\([i]\)], 0}, 
+            zopts]; \[IndentingNewLine]\[IndentingNewLine] (*\ 
+            close\ out\ file\ *) \[IndentingNewLine]WriteString[
+            fpd, "\<}\n\>"]; \[IndentingNewLine]Close[
+            fpd]\[IndentingNewLine]]; \[IndentingNewLine]\[IndentingNewLine]i\
+\[IndentingNewLine]]\)], "Input"],
 
 Cell[BoxData[
     \(OutputZFortranForm[filename_String, \ zout_, opts___]\  := \ 
@@ -1481,7 +1590,7 @@ Cell[BoxData[
               Zopt] <> LineEnding[
               FortranForm]\[IndentingNewLine]];\)\)], "Input"]
 }, Closed]]
-}, Closed]],
+}, Open  ]],
 
 Cell[CellGroupData[{
 
@@ -1672,10 +1781,10 @@ Cell[BoxData[{
 }, Closed]]
 },
 FrontEndVersion->"5.0 for Macintosh",
-ScreenRectangle->{{51, 1280}, {0, 832}},
+ScreenRectangle->{{0, 1635}, {0, 1028}},
 WindowToolbars->{},
-WindowSize->{675, 730},
-WindowMargins->{{1, Automatic}, {Automatic, 0}},
+WindowSize->{655, 966},
+WindowMargins->{{Automatic, 0}, {Automatic, 0}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowSelection->True,
 ShowCellLabel->True,
@@ -1701,7 +1810,7 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 108, 1, 28, "Subsubsection"],
+Cell[1754, 51, 108, 1, 44, "Subsubsection"],
 
 Cell[CellGroupData[{
 Cell[1887, 56, 69, 1, 38, "Subsection"],
@@ -1718,187 +1827,190 @@ Cell[CellGroupData[{
 Cell[8670, 278, 59, 1, 30, "Subsection"],
 
 Cell[CellGroupData[{
-Cell[8754, 283, 73, 1, 28, "Subsubsection"],
-Cell[8830, 286, 2613, 95, 1497, "Input"],
-Cell[11446, 383, 215, 6, 72, "Input"]
+Cell[8754, 283, 73, 1, 44, "Subsubsection"],
+Cell[8830, 286, 2687, 98, 1542, "Input"],
+Cell[11520, 386, 215, 6, 72, "Input"]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[11698, 394, 68, 1, 22, "Subsubsection"],
-Cell[11769, 397, 68, 1, 27, "Input"],
-Cell[11840, 400, 84, 1, 32, "Text"],
-Cell[11927, 403, 72, 1, 27, "Input"],
-Cell[12002, 406, 128, 4, 27, "Input"],
-Cell[12133, 412, 131, 4, 42, "Input"],
-Cell[12267, 418, 140, 4, 42, "Input"],
-Cell[12410, 424, 144, 4, 42, "Input"],
-Cell[12557, 430, 405, 18, 252, "Input"],
-Cell[12965, 450, 223, 11, 147, "Input"],
-Cell[13191, 463, 426, 23, 327, "Input"],
-Cell[13620, 488, 65, 1, 32, "Text"],
-Cell[13688, 491, 108, 1, 27, "Input"]
+Cell[11772, 397, 68, 1, 38, "Subsubsection"],
+Cell[11843, 400, 68, 1, 27, "Input"],
+Cell[11914, 403, 84, 1, 32, "Text"],
+Cell[12001, 406, 72, 1, 27, "Input"],
+Cell[12076, 409, 128, 4, 27, "Input"],
+Cell[12207, 415, 131, 4, 42, "Input"],
+Cell[12341, 421, 140, 4, 42, "Input"],
+Cell[12484, 427, 144, 4, 42, "Input"],
+Cell[12631, 433, 405, 18, 252, "Input"],
+Cell[13039, 453, 223, 11, 147, "Input"],
+Cell[13265, 466, 426, 23, 327, "Input"],
+Cell[13694, 491, 65, 1, 32, "Text"],
+Cell[13762, 494, 108, 1, 27, "Input"]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[13833, 497, 87, 1, 22, "Subsubsection"],
-Cell[13923, 500, 266, 11, 32, "Text"],
-Cell[14192, 513, 302, 12, 162, "Input"],
-Cell[14497, 527, 636, 26, 387, "Input"],
-Cell[15136, 555, 341, 15, 32, "Text"],
-Cell[15480, 572, 95, 1, 32, "Text"],
-Cell[15578, 575, 182, 5, 72, "Input"],
-Cell[15763, 582, 158, 7, 32, "Text"],
-Cell[15924, 591, 167, 5, 57, "Input"],
-Cell[16094, 598, 66, 1, 27, "Input"],
-Cell[16163, 601, 170, 7, 32, "Text"],
-Cell[16336, 610, 699, 39, 552, "Input",
+Cell[13907, 500, 87, 1, 38, "Subsubsection"],
+Cell[13997, 503, 266, 11, 32, "Text"],
+Cell[14266, 516, 302, 12, 162, "Input"],
+Cell[14571, 530, 636, 26, 387, "Input"],
+Cell[15210, 558, 341, 15, 32, "Text"],
+Cell[15554, 575, 95, 1, 32, "Text"],
+Cell[15652, 578, 182, 5, 72, "Input"],
+Cell[15837, 585, 158, 7, 32, "Text"],
+Cell[15998, 594, 167, 5, 57, "Input"],
+Cell[16168, 601, 66, 1, 27, "Input"],
+Cell[16237, 604, 170, 7, 32, "Text"],
+Cell[16410, 613, 699, 39, 552, "Input",
   Evaluatable->False],
-Cell[17038, 651, 257, 7, 87, "Input"],
-Cell[17298, 660, 477, 19, 267, "Input"],
-Cell[17778, 681, 100, 1, 32, "Text"],
-Cell[17881, 684, 133, 4, 42, "Input"],
-Cell[18017, 690, 103, 1, 27, "Input"],
-Cell[18123, 693, 72, 1, 27, "Input"],
-Cell[18198, 696, 64, 1, 32, "Text"],
-Cell[18265, 699, 331, 19, 267, "Input"]
+Cell[17112, 654, 257, 7, 87, "Input"],
+Cell[17372, 663, 477, 19, 267, "Input"],
+Cell[17852, 684, 100, 1, 32, "Text"],
+Cell[17955, 687, 133, 4, 42, "Input"],
+Cell[18091, 693, 103, 1, 27, "Input"],
+Cell[18197, 696, 72, 1, 27, "Input"],
+Cell[18272, 699, 64, 1, 32, "Text"],
+Cell[18339, 702, 331, 19, 267, "Input"]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[18633, 723, 70, 1, 22, "Subsubsection"],
-Cell[18706, 726, 2394, 88, 1377, "Input"],
-Cell[21103, 816, 247, 6, 72, "Input"]
+Cell[18707, 726, 70, 1, 38, "Subsubsection"],
+Cell[18780, 729, 2394, 88, 1377, "Input"],
+Cell[21177, 819, 247, 6, 72, "Input"]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[21387, 827, 83, 1, 22, "Subsubsection"],
-Cell[21473, 830, 347, 20, 282, "Input"],
-Cell[21823, 852, 944, 42, 627, "Input"]
+Cell[21461, 830, 83, 1, 38, "Subsubsection"],
+Cell[21547, 833, 347, 20, 282, "Input"],
+Cell[21897, 855, 944, 42, 627, "Input"]
 }, Closed]]
-}, Closed]],
+}, Open  ]],
 
 Cell[CellGroupData[{
-Cell[22816, 900, 65, 1, 30, "Subsection"],
+Cell[22890, 903, 65, 1, 38, "Subsection"],
 
 Cell[CellGroupData[{
-Cell[22906, 905, 73, 1, 28, "Subsubsection"],
-Cell[22982, 908, 1921, 76, 1152, "Input"],
-Cell[24906, 986, 106, 2, 27, "Input"],
-Cell[25015, 990, 94, 1, 32, "Text"],
-Cell[25112, 993, 1968, 71, 1077, "Input",
+Cell[22980, 908, 73, 1, 28, "Subsubsection"],
+Cell[23056, 911, 1921, 76, 1122, "Input"],
+Cell[24980, 989, 106, 2, 27, "Input"],
+Cell[25089, 993, 94, 1, 30, "Text"],
+Cell[25186, 996, 1968, 71, 1032, "Input",
   Evaluatable->False]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[27117, 1069, 68, 1, 22, "Subsubsection"],
-Cell[27188, 1072, 203, 10, 132, "Input"],
-Cell[27394, 1084, 93, 1, 27, "Input"],
-Cell[27490, 1087, 345, 19, 267, "Input"],
-Cell[27838, 1108, 58, 1, 32, "Text"],
-Cell[27899, 1111, 367, 19, 252, "Input",
+Cell[27191, 1072, 68, 1, 22, "Subsubsection"],
+Cell[27262, 1075, 203, 10, 132, "Input"],
+Cell[27468, 1087, 93, 1, 27, "Input"],
+Cell[27564, 1090, 345, 19, 267, "Input"],
+Cell[27912, 1111, 58, 1, 32, "Text"],
+Cell[27973, 1114, 367, 19, 252, "Input",
   Evaluatable->False],
-Cell[28269, 1132, 360, 19, 252, "Input",
+Cell[28343, 1135, 360, 19, 252, "Input",
   Evaluatable->False],
-Cell[28632, 1153, 193, 7, 87, "Input"],
-Cell[28828, 1162, 202, 7, 87, "Input"],
-Cell[29033, 1171, 214, 10, 132, "Input"],
-Cell[29250, 1183, 162, 4, 42, "Input"],
-Cell[29415, 1189, 550, 22, 312, "Input"]
+Cell[28706, 1156, 193, 7, 87, "Input"],
+Cell[28902, 1165, 202, 7, 87, "Input"],
+Cell[29107, 1174, 214, 10, 132, "Input"],
+Cell[29324, 1186, 162, 4, 42, "Input"],
+Cell[29489, 1192, 550, 22, 312, "Input"]
 }, Closed]]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[30014, 1217, 30, 0, 30, "Subsection"],
+Cell[30088, 1220, 30, 0, 30, "Subsection"],
 
 Cell[CellGroupData[{
-Cell[30069, 1221, 40, 0, 28, "Subsubsection"],
-Cell[30112, 1223, 860, 13, 235, "Input"],
-Cell[30975, 1238, 872, 13, 267, "Input"],
-Cell[31850, 1253, 134, 4, 42, "Input"]
+Cell[30143, 1224, 40, 0, 44, "Subsubsection"],
+Cell[30186, 1226, 291, 4, 123, "Input"],
+Cell[30480, 1232, 781, 12, 235, "Input"],
+Cell[31264, 1246, 787, 16, 267, "Input"],
+Cell[32054, 1264, 4767, 81, 1483, "Input"],
+Cell[36824, 1347, 872, 13, 299, "Input"],
+Cell[37699, 1362, 134, 4, 42, "Input"]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[32021, 1262, 44, 0, 22, "Subsubsection"],
-Cell[32068, 1264, 1201, 23, 267, "Input"],
-Cell[33272, 1289, 521, 10, 171, "Input"],
-Cell[33796, 1301, 452, 11, 162, "Input"],
-Cell[34251, 1314, 318, 7, 87, "Input"]
+Cell[37870, 1371, 44, 0, 38, "Subsubsection"],
+Cell[37917, 1373, 1201, 23, 379, "Input"],
+Cell[39121, 1398, 521, 10, 203, "Input"],
+Cell[39645, 1410, 452, 11, 177, "Input"],
+Cell[40100, 1423, 318, 7, 87, "Input"]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[34606, 1326, 45, 0, 22, "Subsubsection"],
-Cell[34654, 1328, 263, 8, 27, "Input"],
-Cell[34920, 1338, 253, 4, 75, "Input"],
-Cell[35176, 1344, 124, 4, 27, "Input"],
-Cell[35303, 1350, 263, 4, 75, "Input"]
+Cell[40455, 1435, 45, 0, 38, "Subsubsection"],
+Cell[40503, 1437, 263, 8, 27, "Input"],
+Cell[40769, 1447, 253, 4, 75, "Input"],
+Cell[41025, 1453, 124, 4, 27, "Input"],
+Cell[41152, 1459, 263, 4, 75, "Input"]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[35603, 1359, 31, 0, 22, "Subsubsection"],
-Cell[35637, 1361, 106, 1, 32, "Text"],
-Cell[35746, 1364, 306, 11, 147, "Input"],
-Cell[36055, 1377, 522, 11, 132, "Input"],
-Cell[36580, 1390, 234, 4, 75, "Input"],
-Cell[36817, 1396, 740, 12, 171, "Input"]
+Cell[41452, 1468, 31, 0, 38, "Subsubsection"],
+Cell[41486, 1470, 106, 1, 32, "Text"],
+Cell[41595, 1473, 306, 11, 147, "Input"],
+Cell[41904, 1486, 522, 11, 132, "Input"],
+Cell[42429, 1499, 234, 4, 75, "Input"],
+Cell[42666, 1505, 740, 12, 171, "Input"]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[37594, 1413, 33, 0, 22, "Subsubsection"],
+Cell[43443, 1522, 33, 0, 38, "Subsubsection"],
 
 Cell[CellGroupData[{
-Cell[37652, 1417, 339, 11, 147, "Input"],
-Cell[37994, 1430, 58, 1, 70, "Output"]
+Cell[43501, 1526, 339, 11, 147, "Input"],
+Cell[43843, 1539, 58, 1, 70, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[38089, 1436, 577, 13, 147, "Input"],
-Cell[38669, 1451, 355, 5, 70, "Message"]
+Cell[43938, 1545, 577, 13, 147, "Input"],
+Cell[44518, 1560, 355, 5, 70, "Message"]
 }, Open  ]],
-Cell[39039, 1459, 261, 4, 75, "Input"],
-Cell[39303, 1465, 980, 16, 219, "Input"]
+Cell[44888, 1568, 261, 4, 75, "Input"],
+Cell[45152, 1574, 980, 16, 219, "Input"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[46181, 1596, 71, 1, 38, "Subsection"],
+
+Cell[CellGroupData[{
+Cell[46277, 1601, 73, 1, 28, "Subsubsection"],
+Cell[46353, 1604, 592, 21, 297, "Input"],
+
+Cell[CellGroupData[{
+Cell[46970, 1629, 403, 19, 267, "Input"],
+Cell[47376, 1650, 363, 5, 70, "Message"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[47788, 1661, 66, 1, 22, "Subsubsection"],
+Cell[47857, 1664, 661, 32, 462, "Input"]
 }, Closed]]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[40332, 1487, 71, 1, 30, "Subsection"],
+Cell[48567, 1702, 62, 1, 30, "Subsection"],
 
 Cell[CellGroupData[{
-Cell[40428, 1492, 73, 1, 28, "Subsubsection"],
-Cell[40504, 1495, 592, 21, 297, "Input"],
+Cell[48654, 1707, 68, 1, 28, "Subsubsection"],
 
 Cell[CellGroupData[{
-Cell[41121, 1520, 403, 19, 267, "Input"],
-Cell[41527, 1541, 363, 5, 70, "Message"]
-}, Open  ]]
-}, Closed]],
-
-Cell[CellGroupData[{
-Cell[41939, 1552, 66, 1, 22, "Subsubsection"],
-Cell[42008, 1555, 661, 32, 462, "Input"]
-}, Closed]]
-}, Closed]],
-
-Cell[CellGroupData[{
-Cell[42718, 1593, 62, 1, 30, "Subsection"],
-
-Cell[CellGroupData[{
-Cell[42805, 1598, 68, 1, 28, "Subsubsection"],
-
-Cell[CellGroupData[{
-Cell[42898, 1603, 361, 18, 252, "Input"],
-Cell[43262, 1623, 359, 5, 70, "Message"],
-Cell[43624, 1630, 359, 5, 70, "Message"]
+Cell[48747, 1712, 361, 18, 252, "Input"],
+Cell[49111, 1732, 359, 5, 70, "Message"],
+Cell[49473, 1739, 359, 5, 70, "Message"]
 }, Open  ]]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[44032, 1641, 68, 1, 28, "Subsubsection"],
-Cell[44103, 1644, 296, 16, 222, "Input"]
+Cell[49881, 1750, 68, 1, 28, "Subsubsection"],
+Cell[49952, 1753, 296, 16, 222, "Input"]
 }, Open  ]]
 }, Closed]],
 
 Cell[CellGroupData[{
-Cell[44448, 1666, 49, 0, 30, "Subsection"],
-Cell[44500, 1668, 116, 2, 43, "Input"]
+Cell[50297, 1775, 49, 0, 30, "Subsection"],
+Cell[50349, 1777, 116, 2, 43, "Input"]
 }, Closed]]
 }
 ]
