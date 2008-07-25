@@ -1,4 +1,4 @@
-/* Id: FSSolidFluidMixT.cpp,v 1.6 2006/10/10 19:55:23 regueiro Exp $ */
+/* Id: FSSolidFluidMixT.cpp,v 1.6 2008/24/07 19:55:23 ebrahimi Exp $ */
 #include "FSSolidFluidMixT.h"
 
 #include "OutputSetT.h"
@@ -93,6 +93,19 @@ void FSSolidFluidMixT::Echo_Input_Data(void) {
     //-- Initial volume fractions
     cout << "fMaterial_Params[kPhi_s0] " 			<< fMaterial_Params[kPhi_s0] << endl;
     cout << "fMaterial_Params[kPhi_f0] " 			<< fMaterial_Params[kPhi_f0] << endl;
+
+    // new parameters after plasticity
+    cout << "fMaterial_Params[kHk] "  				<< fMaterial_Params[kHk] 	 << endl;
+    cout << "fMaterial_Params[kHc] "  				<< fMaterial_Params[kHc] 	 << endl;
+    cout << "fMaterial_Params[kPhi] "  				<< fMaterial_Params[kPhi] 	 << endl;
+    cout << "fMaterial_Params[kPsi] "  				<< fMaterial_Params[kPsi] 	 << endl;
+    cout << "fMaterial_Params[kR] "  				<< fMaterial_Params[kR] 	 << endl;
+    cout << "fMaterial_Params[kBeta] "  		        << fMaterial_Params[kBeta] 	 << endl;
+    cout << "fMaterial_Params[kk0] "  				<< fMaterial_Params[kk0] 	 << endl;
+    cout << "fMaterial_Params[kc0] "  				<< fMaterial_Params[kc0] 	 << endl;
+    cout << "fMaterial_Params[kZ0k] "  				<< fMaterial_Params[kZ0k] 	 << endl;
+    cout << "fMaterial_Params[kZ0c] "  		                << fMaterial_Params[kZ0c] 	 << endl;
+
 	
     //################## Newmark time integration parameters ##################
 //    cout << "fIntegration_Params[kBeta] " 		<< fIntegration_Params[kBeta] 	<< endl;
@@ -3860,7 +3873,7 @@ void FSSolidFluidMixT::DefineParameters(ParameterListT& list) const
 
 	
     double shearMu, sLambda, sAlpha, Rho_sR0, Rho_fR0, Phi_s0, Phi_f0, bulkK, 
-	newBeta, newGamma, conductivityK,gravity_g ,gravity_g1,gravity_g2,gravity_g3;
+	newBeta, newGamma, conductivityK,gravity_g ,gravity_g1,gravity_g2,gravity_g3, H_c, H_k, Phi, Psi, R, Beta, k0, c0, Z0k, Z0c;
 			
 
     // solid elasticity
@@ -3891,6 +3904,21 @@ void FSSolidFluidMixT::DefineParameters(ParameterListT& list) const
     // initial volume fractions
     list.AddParameter(Phi_s0, "phi_s0");
     list.AddParameter(Phi_f0, "phi_f0");
+
+    // parameters added after plasticity
+    list.AddParameter(H_c, "H_c");
+    list.AddParameter(H_k, "H_k");
+    list.AddParameter(Phi, "Phi");
+    list.AddParameter(Psi, "Psi");
+    list.AddParameter(R, "R");
+    list.AddParameter(Beta, "Beta");
+    list.AddParameter(k0, "k0");
+    list.AddParameter(c0, "c0");
+    list.AddParameter(Z0k, "Z0k");
+    list.AddParameter(Z0c, "Z0c");
+
+
+
 	
     // Newmark time integration parameters
 //    list.AddParameter(newBeta, "beta");
@@ -3976,6 +4004,49 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kRho_fR0] = list.GetParameter("rho_fR0");
     fMaterial_Params[kPhi_s0] = list.GetParameter("phi_s0");
     fMaterial_Params[kPhi_f0] = list.GetParameter("phi_f0");
+    fMaterial_Params[kHk] = list.GetParameter("Hk");
+    fMaterial_Params[kHc] = list.GetParameter("Hc");
+    fMaterial_Params[kPhi] = list.GetParameter("Phi");
+    fMaterial_Params[kPsi] = list.GetParameter("Psi");
+    fMaterial_Params[kR] = list.GetParameter("R");
+    fMaterial_Params[kBeta] = list.GetParameter("Beta");
+    fMaterial_Params[kk0] = list.GetParameter("k0");
+    fMaterial_Params[kc0] = list.GetParameter("c0");
+    fMaterial_Params[kZ0k] = list.GetParameter("Z0k");
+    fMaterial_Params[kZ0c] = list.GetParameter("Z0c");
+
+    /* initialize parameters */
+    dArrayT fTemp1_ArrayT_values;
+    fTemp1_ArrayT_values.Dimension (1);
+    fTemp1_ArrayT_values =fMaterial_Params[kk0]; 
+    Initialize_IPs_dArray2DT(fkn_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fkn_Elements_IPs,fkn_IPs); 
+    fTemp1_ArrayT_values =fMaterial_Params[kc0]; 
+    Initialize_IPs_dArray2DT(fcn_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fcn_Elements_IPs,fcn_IPs); 
+    fTemp1_ArrayT_values =fMaterial_Params[kZ0k]; 
+    Initialize_IPs_dArray2DT(fZnk_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fZnk_Elements_IPs,fZnk_IPs);  
+    fTemp1_ArrayT_values =fMaterial_Params[kZ0c]; 
+    Initialize_IPs_dArray2DT(fZnc_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fZnc_Elements_IPs,fZnc_IPs); 
+
+    fTemp1_ArrayT_values =1; 
+    Initialize_IPs_dArray2DT(fpn_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fpn_Elements_IPs,fpn_IPs);    
+   
+    fFpn_current_IP(1,1)=1;
+    fFpn_current_IP(2,2)=1;
+    fFpn_current_IP(3,3)=1;
+    dArrayT fTemp2_ArrayT_values;
+    fTemp2_ArrayT_values.Dimension (6);
+    fTemp2_ArrayT_values=1; 
+    Initialize_IPs_dArray2DT(fFpn_IPs,fTemp2_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fFpn_Elements_IPs,fFpn_IPs);    
+  
+   
+
+
 	
 //    fIntegration_Params[kBeta] = list.GetParameter("beta");
 //    fIntegration_Params[kGamma] = list.GetParameter("gamma");
@@ -4256,6 +4327,19 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fEulerian_effective_strain_tensor_current_IP.Dimension (n_sd,n_sd);
     fCauchy_effective_stress_tensor_current_IP.Dimension (n_sd,n_sd);
     fEulerian_effective_strain_IPs.Dimension (fNumIP_displ,6);
+    fkn_IPs.Dimension (fNumIP_displ,1);
+    fkn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fcn_IPs.Dimension (fNumIP_displ,1);
+    fcn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fZnk_IPs.Dimension (fNumIP_displ,1);
+    fZnk_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fZnc_IPs.Dimension (fNumIP_displ,1);
+    fZnc_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fpn_IPs.Dimension (fNumIP_displ,1);
+    fpn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fFpn_current_IP.Dimension (n_sd,n_sd);
+    fFpn_IPs.Dimension (fNumIP_displ,6);
+    fFpn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
     fCauchy_effective_stress_IPs.Dimension (fNumIP_displ,6);
     fPhysical_pore_water_pressure_IPs.Dimension (fNumIP_displ,1);
     fState_variables_IPs.Dimension (fNumIP_displ,4);
@@ -5848,4 +5932,27 @@ void FSSolidFluidMixT::Compute_norm_of_array(double& norm,const LocalArrayT& B)
 	    sum = sum + u_dotdot(i,j)*u_dotdot(i,j);
     }
     norm = sqrt(sum);
+}
+
+
+
+void FSSolidFluidMixT::Initialize_IPs_dArray2DT(dArray2DT& fTemp_IPs,const dArrayT& fTemp_ArrayT_values)
+{
+    fShapes_displ->TopIP();
+    while (fShapes_displ->NextIP())
+    {
+	const int IP = fShapes_displ->CurrIP();	
+	fTemp_IPs.SetRow(IP,fTemp_ArrayT_values);
+    }	    
+}
+
+void FSSolidFluidMixT::Initialize_Elements_IPs_dArray2DT(dArray2DT& fTemp_Elements_IPs,const dArray2DT& fTemp_IPs)
+{
+    Top();
+    while (NextElement())
+    {
+	int e;
+	e = CurrElementNumber();		
+	fTemp_Elements_IPs.SetRow(e,fTemp_IPs);		
+    }	    
 }
