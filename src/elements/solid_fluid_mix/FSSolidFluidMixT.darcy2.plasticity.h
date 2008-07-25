@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.darcy2.plasticity.h,v 1.3 2008-07-25 17:58:48 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.darcy2.plasticity.h,v 1.4 2008-07-25 18:00:00 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -59,7 +59,18 @@ public:
 	    kg1,
 	    kg2,
 	    kg3,
-	    kNUM_FMATERIAL_TERMS	};
+	    kNUM_FMATERIAL_TERMS,
+	    kHk,
+	    kHc,
+	    kPhi,
+	    kPsi,
+	    kR,
+	    kBeta,
+	    kk0,
+	    kc0,
+	    kZ0k,
+	    kZ0c
+	};
 									
 //	enum fIntegrate_T 	{ 
 //	    kBeta,
@@ -475,6 +486,44 @@ private:
         dArray2DT	fPhysical_pore_water_pressure_Elements_IPs;
         dArray2DT	fState_variables_Elements_IPs;
 
+        /* to store fkn_current_IP */
+	double fkn_current_IP;
+        /* to store fkn_IPs */
+	dArray2DT	fkn_IPs;
+        /* to store fkn_Elements_IPs */
+        dArray2DT	fkn_Elements_IPs;
+        /* to store fcn_current_IP */
+	double fcn_current_IP;
+        /* to store fcn_IPs */
+	dArray2DT	fcn_IPs;
+        /* to store fcn_Elements_IPs */
+        dArray2DT	fcn_Elements_IPs;
+        /* to store fZnk_current_IP */
+	double fZnk_current_IP;
+        /* to store fZnk_IPs */
+	dArray2DT	fZnk_IPs;
+        /* to store fZnk_Elements_IPs */
+        dArray2DT	fZnk_Elements_IPs;
+        /* to store fZnc_current_IP */
+	double fZnc_current_IP;
+        /* to store fZnc_IPs */
+	dArray2DT	fZnc_IPs;
+        /* to store fZnc_Elements_IPs */
+        dArray2DT	fZnc_Elements_IPs;
+        /* to store fpn_current_IP */
+	double fpn_current_IP;
+        /* to store fpn_IPs */
+	dArray2DT	fpn_IPs;
+        /* to store fpn_Elements_IPs */
+        dArray2DT	fpn_Elements_IPs;
+        /* to store fFpn_current_IP */
+	dMatrixT fFpn_current_IP;
+        /* to store fFpn_IPs */
+	dArray2DT	fFpn_IPs;
+        /* to store fFpn_Elements_IPs */
+        dArray2DT	fFpn_Elements_IPs;
+
+
 
 
 
@@ -591,6 +640,8 @@ private:
         void Form_Aleph_temp_matrix(const int& IP);
         void Form_Imath_temp_matrix(void);
         void Compute_norm_of_array(double& norm,const LocalArrayT& B);
+        void Initialize_IPs_dArray2DT(dArray2DT& fTemp_IPs,const dArrayT& fTemp_ArrayT_values);
+        void Initialize_Elements_IPs_dArray2DT(dArray2DT& fTemp_Elements_IPs,const dArray2DT& fTemp_IPs);
 
 protected:
 
