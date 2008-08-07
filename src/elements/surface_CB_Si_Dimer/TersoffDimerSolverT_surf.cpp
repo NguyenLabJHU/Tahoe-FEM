@@ -1,4 +1,4 @@
-/* $Id: TersoffDimerSolverT_surf.cpp,v 1.6 2008-08-07 15:15:24 hspark Exp $ */
+/* $Id: TersoffDimerSolverT_surf.cpp,v 1.7 2008-08-07 18:14:46 hspark Exp $ */
 #include "TersoffDimerSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -193,54 +193,6 @@ void TersoffDimerSolverT_surf::DefineParameters(ParameterListT& list) const
 	list.AddParameter(S);
 }
 
-/* information about subordinate parameter lists */
-//void TersoffDimerSolverT_surf::DefineSubs(SubListT& sub_list) const
-//{
-	/* inherited */
-//	ParameterInterfaceT::DefineSubs(sub_list);
-
-	/* crystal orientation */
-//	sub_list.AddSub("FCC_lattice_orientation", ParameterListT::Once, true);
-
-	/* choice of potentials */
-//	sub_list.AddSub("DC_potential_choice", ParameterListT::Once, true);
-//}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-//ParameterInterfaceT* TersoffDimerSolverT_surf::NewSub(const StringT& name) const
-//{
-// 	if (name == "DC_potential_choice")
-// 	{
-// 		ParameterContainerT* choice = new ParameterContainerT(name);
-// 		choice->SetSubSource(this);
-// 		choice->SetListOrder(ParameterListT::Choice);
-// 	
-// 		choice->AddSub("Stillinger-Weber");
-// 
-// 		ParameterContainerT PTHT("PTHT");
-// 		PTHT.AddParameter(ParameterT::Double, "A");
-// 		PTHT.AddParameter(ParameterT::Double, "A1");
-// 		PTHT.AddParameter(ParameterT::Double, "A2");
-// 		
-// 		PTHT.AddParameter(ParameterT::Double, "B");
-// 		PTHT.AddParameter(ParameterT::Double, "Z");
-// 		choice->AddSub(PTHT);
-// 
-// 		//choice->AddSub(ParameterContainerT("TersoffDimer"));
-// 
-// 		return choice;
-// 	}
-// 	else if (name == "FCC_lattice_orientation")
-// 	{
-// 		FCCLatticeT lattice(0);
-// 		return lattice.NewSub(name);
-// 	}
-// 	else if (name == "Stillinger-Weber")
-// 		return new SWDataT;
-// 	else /* inherited */
-// 		return ParameterInterfaceT::NewSub(name);
-//}
-
 /* accept parameter list */
 void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 {	
@@ -252,14 +204,10 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	XDOFS FOR SURFACES */
 	dXsi.Dimension(4*kNumDOF);
 	dXsidXsi.Dimension(4*kNumDOF);
-//	dXsi.Dimension(kNumDOF);
-//	dXsidXsi.Dimension(kNumDOF);
 	dCdC_hat.Dimension(kStressDim);
 	dCdXsi_hat.Dimension(kStressDim,kNumDOF*4);
-//	dCdXsi_hat.Dimension(kStressDim,kNumDOF);
 	fTempRank4.Dimension(kStressDim);
 	fTempMixed.Dimension(kStressDim, kNumDOF*4);
-//	fTempMixed.Dimension(kStressDim, kNumDOF);
 
 #if 0
 	fMatrices.Dimension(kNumDOF);
@@ -271,20 +219,6 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	/* QUADRUPLE DIMENSIONS FOR 2 SETS OF XDOFS */
 	fMat1.Dimension(kNumDOF*4); 
 	fVec.Dimension(kNumDOF*4);
-//	fMat1.Dimension(kNumDOF); 
-//	fVec.Dimension(kNumDOF);
-
-	/* resolve orientation */
-// 	FCCLatticeT lattice(0);
-// 	const ParameterListT& orientation = list.GetListChoice(lattice, "FCC_lattice_orientation");
-// 	dMatrixT Q;
-// 	FCCLatticeT::SetQ(orientation, Q);
-// 	
-// 	/* construct bond lattice */
-// 	fGeometry = new LengthsAndAnglesT(Q,fPairs);
-
-	/* set potentials */
-//	const ParameterListT& potential = list.GetListChoice(*this, "DC_potential_choice");
 
 	/* All parameters required */
 	f_a0 = list.GetParameter("a0");
@@ -322,7 +256,7 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	fUnitCellCoords.Dimension(16, 3); /* [16 atoms] x [3 dim]: first atom is 'center' */
 	tempUnitCellCoords(0,0) = -0.521845/f_a0;
 	tempUnitCellCoords(1,0) = -0.5+0.521845/f_a0;
-	tempUnitCellCoords(2,0) = -0.5+0.521845/f_a0;
+	tempUnitCellCoords(2,0) = 0.5-0.521845/f_a0;
 	tempUnitCellCoords(3,0) = 0.521845/f_a0;
 	tempUnitCellCoords(4,0) = -0.50-0.521845/f_a0;
 	tempUnitCellCoords(5,0) = -1.0+0.521845/f_a0;
@@ -333,9 +267,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	tempUnitCellCoords(10,0) = 0.00;
 	tempUnitCellCoords(11,0) = -0.50;
 	tempUnitCellCoords(12,0) = -1.0;
-	tempUnitCellCoords(13,0) = 0.50;
+	tempUnitCellCoords(13,0) = -0.50;
 	tempUnitCellCoords(14,0) = 0.00;
-	tempUnitCellCoords(15,0) = -0.50;
+	tempUnitCellCoords(15,0) = 0.50;
 	
 	tempUnitCellCoords(0,1) = -0.521845/f_a0;
 	tempUnitCellCoords(1,1) = -0.5+0.521845/f_a0;
@@ -344,15 +278,15 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	tempUnitCellCoords(4,1) = 0.50-0.521845/f_a0;
 	tempUnitCellCoords(5,1) = 0.521845/f_a0;
 	tempUnitCellCoords(6,1) = -0.25;
-	tempUnitCellCoords(7,1) = 0.75;
+	tempUnitCellCoords(7,1) = -0.75;
 	tempUnitCellCoords(8,1) = 0.25;
 	tempUnitCellCoords(9,1) = -0.25;
-	tempUnitCellCoords(10,1) = -0.50;
+	tempUnitCellCoords(10,1) = 0.50;
 	tempUnitCellCoords(11,1) = 0.00;
 	tempUnitCellCoords(12,1) = -0.50;
-	tempUnitCellCoords(13,1) = 0.00;
+	tempUnitCellCoords(13,1) = -1.00;
 	tempUnitCellCoords(14,1) = -0.50;
-	tempUnitCellCoords(15,1) = -1.00;
+	tempUnitCellCoords(15,1) = 0.00;
 
 	/* also assume z-coordinates are initially reconstructed */
 	/* HSP:  could change top 6 values to 0 so no z-relaxation */
@@ -428,9 +362,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,1) = 0.00;
 		fUnitCellCoords(11,1) = 0.50;
 		fUnitCellCoords(12,1) = 1.0;
-		fUnitCellCoords(13,1) = -0.50;
+		fUnitCellCoords(13,1) = 0.50;
 		fUnitCellCoords(14,1) = 0.00;
-		fUnitCellCoords(15,1) = 0.50;
+		fUnitCellCoords(15,1) = -0.50;
 	
 		fUnitCellCoords(0,2) = 0.521845/f_a0;
 		fUnitCellCoords(1,2) = 0.5-0.521845/f_a0;
@@ -445,9 +379,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,2) = -0.50;
 		fUnitCellCoords(11,2) = 0.00;
 		fUnitCellCoords(12,2) = 0.50;
-		fUnitCellCoords(13,2) = 0.00;
+		fUnitCellCoords(13,2) = 1.00;
 		fUnitCellCoords(14,2) = 0.50;
-		fUnitCellCoords(15,2) = 1.00;
+		fUnitCellCoords(15,2) = 0.00;
 	}
 	else if (fNormalCode == 1) // rotate [0,0,1] to [-1,0,0]
 	{
@@ -481,9 +415,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,1) = 0.00;
 		fUnitCellCoords(11,1) = -0.50;
 		fUnitCellCoords(12,1) = -1.0;
-		fUnitCellCoords(13,1) = 0.50;
+		fUnitCellCoords(13,1) = -0.50;
 		fUnitCellCoords(14,1) = 0.00;
-		fUnitCellCoords(15,1) = -0.50;
+		fUnitCellCoords(15,1) = 0.50;
 	
 		fUnitCellCoords(0,2) = 0.521845/f_a0;
 		fUnitCellCoords(1,2) = 0.5-0.521845/f_a0;
@@ -498,9 +432,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,2) = -0.50;
 		fUnitCellCoords(11,2) = 0.00;
 		fUnitCellCoords(12,2) = 0.50;
-		fUnitCellCoords(13,2) = 0.00;
+		fUnitCellCoords(13,2) = 1.00;
 		fUnitCellCoords(14,2) = 0.50;
-		fUnitCellCoords(15,2) = 1.00;
+		fUnitCellCoords(15,2) = 0.00;
 	}
 	else if (fNormalCode == 2)	// rotate [0,0,1] to [0,1,0]
 	{	
@@ -517,9 +451,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,0) = 0.50;
 		fUnitCellCoords(11,0) = 0.0;
 		fUnitCellCoords(12,0) = -0.50;
-		fUnitCellCoords(13,0) = 0.00;
+		fUnitCellCoords(13,0) = -1.00;
 		fUnitCellCoords(14,0) = -0.50;
-		fUnitCellCoords(15,0) = -1.00;
+		fUnitCellCoords(15,0) = 0.00;
 
 		fUnitCellCoords(0,1) = 0.00;
 		fUnitCellCoords(1,1) = 0.00;
@@ -551,9 +485,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,2) = 0.0;
 		fUnitCellCoords(11,2) = -0.50;
 		fUnitCellCoords(12,2) = -1.00;
-		fUnitCellCoords(13,2) = 0.50;
+		fUnitCellCoords(13,2) = -0.50;
 		fUnitCellCoords(14,2) = 0.00;
-		fUnitCellCoords(15,2) = -0.50;
+		fUnitCellCoords(15,2) = 0.50;
 	}
 	else if (fNormalCode == 3)	// rotate [0,0,1] to [0,-1,0]
 	{
@@ -570,9 +504,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,0) = -0.50; 
 		fUnitCellCoords(11,0) = 0.0;
 		fUnitCellCoords(12,0) = 0.50;
-		fUnitCellCoords(13,0) = 0.00;
+		fUnitCellCoords(13,0) = 1.00;
 		fUnitCellCoords(14,0) = 0.50;
-		fUnitCellCoords(15,0) = 1.00;
+		fUnitCellCoords(15,0) = 0.00;
 
 		fUnitCellCoords(0,1) = 0.00;
 		fUnitCellCoords(1,1) = 0.00;
@@ -604,9 +538,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,2) = 0.0;
 		fUnitCellCoords(11,2) = -0.50;
 		fUnitCellCoords(12,2) = -1.00;
-		fUnitCellCoords(13,2) = 0.50;
+		fUnitCellCoords(13,2) = -0.50;
 		fUnitCellCoords(14,2) = 0.00;
-		fUnitCellCoords(15,2) = -0.50;
+		fUnitCellCoords(15,2) = 0.50;
 	}
 	else if (fNormalCode == 4)	// this is the default orientation
 	{
@@ -627,9 +561,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,0) = 0.00;
 		fUnitCellCoords(11,0) = -0.50;
 		fUnitCellCoords(12,0) = -1.0;
-		fUnitCellCoords(13,0) = 0.50;
+		fUnitCellCoords(13,0) = -0.50;
 		fUnitCellCoords(14,0) = 0.00;
-		fUnitCellCoords(15,0) = -0.50;
+		fUnitCellCoords(15,0) = 0.50;
 	
 		fUnitCellCoords(0,1) = 0.521845/f_a0;
 		fUnitCellCoords(1,1) = 0.5-0.521845/f_a0;
@@ -644,9 +578,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(10,1) = -0.50;
 		fUnitCellCoords(11,1) = 0.00;
 		fUnitCellCoords(12,1) = 0.50;
-		fUnitCellCoords(13,1) = 0.00;
+		fUnitCellCoords(13,1) = 1.00;
 		fUnitCellCoords(14,1) = 0.50;
-		fUnitCellCoords(15,1) = 1.00;
+		fUnitCellCoords(15,1) = 0.00;
 
 		fUnitCellCoords(0,2) = 0.00;	// -0.196/f_a0
 		fUnitCellCoords(1,2) = 0.00;
@@ -681,15 +615,15 @@ void TersoffDimerSolverT_surf::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 
 	/* check initial value */
 	SetdXsi(CIJ, Xsi);
-	
+
 	int count = 0;
 	if (debug) cout << dXsi.Magnitude() << '\n';
 	while (count++ < 15 && dXsi.Magnitude() > 1.0e-12)
 	{
 		fMat1.Inverse(dXsidXsi);
 		fMat1.Multx(dXsi, fVec);
-		
 		Xsi -= fVec;
+
 		/* recompute */
 		SetdXsi(CIJ, Xsi);
 		if (debug) cout << dXsi.Magnitude() << '\n';
