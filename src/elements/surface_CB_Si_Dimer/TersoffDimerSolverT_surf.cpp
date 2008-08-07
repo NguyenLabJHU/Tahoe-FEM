@@ -1,4 +1,4 @@
-/* $Id: TersoffDimerSolverT_surf.cpp,v 1.5 2008-01-05 21:00:58 hspark Exp $ */
+/* $Id: TersoffDimerSolverT_surf.cpp,v 1.6 2008-08-07 15:15:24 hspark Exp $ */
 #include "TersoffDimerSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -320,46 +320,48 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	temp_bonds2.Dimension(16, 3);
 	tempUnitCellCoords.Dimension(16, 3);	// temporary until bond rotation
 	fUnitCellCoords.Dimension(16, 3); /* [16 atoms] x [3 dim]: first atom is 'center' */
-	tempUnitCellCoords(0,0) = 0.521845/f_a0;
-	tempUnitCellCoords(1,0) = 0.5-0.521845/f_a0;
+	tempUnitCellCoords(0,0) = -0.521845/f_a0;
+	tempUnitCellCoords(1,0) = -0.5+0.521845/f_a0;
 	tempUnitCellCoords(2,0) = -0.5+0.521845/f_a0;
-	tempUnitCellCoords(3,0) = -0.521845/f_a0;
-	tempUnitCellCoords(4,0) = 0.50+0.521845/f_a0;
-	tempUnitCellCoords(5,0) = 1.0-0.521845/f_a0;
-	tempUnitCellCoords(6,0) = -0.25;
-	tempUnitCellCoords(7,0) = 0.25;
-	tempUnitCellCoords(8,0) = 0.25;
-	tempUnitCellCoords(9,0) = 0.75;
+	tempUnitCellCoords(3,0) = 0.521845/f_a0;
+	tempUnitCellCoords(4,0) = -0.50-0.521845/f_a0;
+	tempUnitCellCoords(5,0) = -1.0+0.521845/f_a0;
+	tempUnitCellCoords(6,0) = 0.25;
+	tempUnitCellCoords(7,0) = -0.25;
+	tempUnitCellCoords(8,0) = -0.25;
+	tempUnitCellCoords(9,0) = -0.75;
 	tempUnitCellCoords(10,0) = 0.00;
-	tempUnitCellCoords(11,0) = 0.50;
-	tempUnitCellCoords(12,0) = 1.0;
+	tempUnitCellCoords(11,0) = -0.50;
+	tempUnitCellCoords(12,0) = -1.0;
 	tempUnitCellCoords(13,0) = 0.50;
 	tempUnitCellCoords(14,0) = 0.00;
 	tempUnitCellCoords(15,0) = -0.50;
 	
-	tempUnitCellCoords(0,1) = 0.521845/f_a0;
-	tempUnitCellCoords(1,1) = 0.5-0.521845/f_a0;
-	tempUnitCellCoords(2,1) = 0.5+0.521845/f_a0;
-	tempUnitCellCoords(3,1) = 1.0-0.521845/f_a0;
-	tempUnitCellCoords(4,1) = -0.50+0.521845/f_a0;
-	tempUnitCellCoords(5,1) = -0.521845/f_a0;
-	tempUnitCellCoords(6,1) = 0.25;
+	tempUnitCellCoords(0,1) = -0.521845/f_a0;
+	tempUnitCellCoords(1,1) = -0.5+0.521845/f_a0;
+	tempUnitCellCoords(2,1) = -0.5-0.521845/f_a0;
+	tempUnitCellCoords(3,1) = -1.0+0.521845/f_a0;
+	tempUnitCellCoords(4,1) = 0.50-0.521845/f_a0;
+	tempUnitCellCoords(5,1) = 0.521845/f_a0;
+	tempUnitCellCoords(6,1) = -0.25;
 	tempUnitCellCoords(7,1) = 0.75;
-	tempUnitCellCoords(8,1) = -0.25;
-	tempUnitCellCoords(9,1) = 0.25;
+	tempUnitCellCoords(8,1) = 0.25;
+	tempUnitCellCoords(9,1) = -0.25;
 	tempUnitCellCoords(10,1) = -0.50;
 	tempUnitCellCoords(11,1) = 0.00;
-	tempUnitCellCoords(12,1) = 0.50;
-	tempUnitCellCoords(13,1) = 1.00;
-	tempUnitCellCoords(14,1) = 0.50;
-	tempUnitCellCoords(15,1) = 0.00;
+	tempUnitCellCoords(12,1) = -0.50;
+	tempUnitCellCoords(13,1) = 0.00;
+	tempUnitCellCoords(14,1) = -0.50;
+	tempUnitCellCoords(15,1) = -1.00;
 
-	tempUnitCellCoords(0,2) = -0.196;
-	tempUnitCellCoords(1,2) = -0.196;
-	tempUnitCellCoords(2,2) = -0.196;
-	tempUnitCellCoords(3,2) = -0.196;
-	tempUnitCellCoords(4,2) = -0.196;
-	tempUnitCellCoords(5,2) = -0.196;
+	/* also assume z-coordinates are initially reconstructed */
+	/* HSP:  could change top 6 values to 0 so no z-relaxation */
+	tempUnitCellCoords(0,2) = 0.00;	// -0.196/f_a0 or 0.0?
+	tempUnitCellCoords(1,2) = 0.00;
+	tempUnitCellCoords(2,2) = 0.00;
+	tempUnitCellCoords(3,2) = 0.00;
+	tempUnitCellCoords(4,2) = 0.00;
+	tempUnitCellCoords(5,2) = 0.00;
 	tempUnitCellCoords(6,2) = -0.25;
 	tempUnitCellCoords(7,2) = -0.25;
 	tempUnitCellCoords(8,2) = -0.25;
@@ -413,39 +415,39 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(14,0) = -0.50;
 		fUnitCellCoords(15,0) = -0.50;
 		
-		fUnitCellCoords(0,1) = -0.521845/f_a0;
-		fUnitCellCoords(1,1) = -0.5+0.521845/f_a0;
-		fUnitCellCoords(2,1) = 0.5-0.521845/f_a0;
-		fUnitCellCoords(3,1) = 0.521845/f_a0;
-		fUnitCellCoords(4,1) = -0.50-0.521845/f_a0;
-		fUnitCellCoords(5,1) = -1.0+0.521845/f_a0;
-		fUnitCellCoords(6,1) = 0.25;
-		fUnitCellCoords(7,1) = -0.25;
-		fUnitCellCoords(8,1) = -0.25;
-		fUnitCellCoords(9,1) = -0.75;
+		fUnitCellCoords(0,1) = 0.521845/f_a0;
+		fUnitCellCoords(1,1) = 0.5-0.521845/f_a0;
+		fUnitCellCoords(2,1) = -0.5+0.521845/f_a0;
+		fUnitCellCoords(3,1) = -0.521845/f_a0;
+		fUnitCellCoords(4,1) = 0.50+0.521845/f_a0;
+		fUnitCellCoords(5,1) = 1.0-0.521845/f_a0;
+		fUnitCellCoords(6,1) = -0.25;
+		fUnitCellCoords(7,1) = 0.25;
+		fUnitCellCoords(8,1) = 0.25;
+		fUnitCellCoords(9,1) = 0.75;
 		fUnitCellCoords(10,1) = 0.00;
-		fUnitCellCoords(11,1) = -0.50;
-		fUnitCellCoords(12,1) = -1.0;
+		fUnitCellCoords(11,1) = 0.50;
+		fUnitCellCoords(12,1) = 1.0;
 		fUnitCellCoords(13,1) = -0.50;
 		fUnitCellCoords(14,1) = 0.00;
 		fUnitCellCoords(15,1) = 0.50;
 	
-		fUnitCellCoords(0,2) = -0.521845/f_a0;
-		fUnitCellCoords(1,2) = -0.5+0.521845/f_a0;
-		fUnitCellCoords(2,2) = -0.5-0.521845/f_a0;
-		fUnitCellCoords(3,2) = -1.0+0.521845/f_a0;
-		fUnitCellCoords(4,2) = 0.50-0.521845/f_a0;
-		fUnitCellCoords(5,2) = 0.521845/f_a0;
-		fUnitCellCoords(6,2) = -0.25;
-		fUnitCellCoords(7,2) = -0.75;
-		fUnitCellCoords(8,2) = 0.25;
-		fUnitCellCoords(9,2) = -0.25;
-		fUnitCellCoords(10,2) = 0.50;
+		fUnitCellCoords(0,2) = 0.521845/f_a0;
+		fUnitCellCoords(1,2) = 0.5-0.521845/f_a0;
+		fUnitCellCoords(2,2) = 0.5+0.521845/f_a0;
+		fUnitCellCoords(3,2) = 1.0-0.521845/f_a0;
+		fUnitCellCoords(4,2) = -0.50+0.521845/f_a0;
+		fUnitCellCoords(5,2) = -0.521845/f_a0;
+		fUnitCellCoords(6,2) = 0.25;
+		fUnitCellCoords(7,2) = 0.75;
+		fUnitCellCoords(8,2) = -0.25;
+		fUnitCellCoords(9,2) = 0.25;
+		fUnitCellCoords(10,2) = -0.50;
 		fUnitCellCoords(11,2) = 0.00;
-		fUnitCellCoords(12,2) = -0.50;
-		fUnitCellCoords(13,2) = -1.00;
-		fUnitCellCoords(14,2) = -0.50;
-		fUnitCellCoords(15,2) = 0.00;
+		fUnitCellCoords(12,2) = 0.50;
+		fUnitCellCoords(13,2) = 0.00;
+		fUnitCellCoords(14,2) = 0.50;
+		fUnitCellCoords(15,2) = 1.00;
 	}
 	else if (fNormalCode == 1) // rotate [0,0,1] to [-1,0,0]
 	{
@@ -466,59 +468,145 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 		fUnitCellCoords(14,0) = 0.50;
 		fUnitCellCoords(15,0) = 0.50;
 		
-		fUnitCellCoords(0,1) = 0.521845/f_a0;
-		fUnitCellCoords(1,1) = 0.5-0.521845/f_a0;
-		fUnitCellCoords(2,1) = -0.5+0.521845/f_a0;
-		fUnitCellCoords(3,1) = -0.521845/f_a0;
-		fUnitCellCoords(4,1) = 0.50+0.521845/f_a0;
-		fUnitCellCoords(5,1) = 1.0-0.521845/f_a0;
-		fUnitCellCoords(6,1) = -0.25;
-		fUnitCellCoords(7,1) = 0.25;
-		fUnitCellCoords(8,1) = 0.25;
-		fUnitCellCoords(9,1) = 0.75;
+		fUnitCellCoords(0,1) = -0.521845/f_a0;
+		fUnitCellCoords(1,1) = -0.5+0.521845/f_a0;
+		fUnitCellCoords(2,1) = 0.5-0.521845/f_a0;
+		fUnitCellCoords(3,1) = 0.521845/f_a0;
+		fUnitCellCoords(4,1) = -0.50-0.521845/f_a0;
+		fUnitCellCoords(5,1) = -1.0+0.521845/f_a0;
+		fUnitCellCoords(6,1) = 0.25;
+		fUnitCellCoords(7,1) = -0.25;
+		fUnitCellCoords(8,1) = -0.25;
+		fUnitCellCoords(9,1) = -0.75;
 		fUnitCellCoords(10,1) = 0.00;
-		fUnitCellCoords(11,1) = 0.50;
-		fUnitCellCoords(12,1) = 1.0;
+		fUnitCellCoords(11,1) = -0.50;
+		fUnitCellCoords(12,1) = -1.0;
 		fUnitCellCoords(13,1) = 0.50;
 		fUnitCellCoords(14,1) = 0.00;
 		fUnitCellCoords(15,1) = -0.50;
 	
-		fUnitCellCoords(0,2) = -0.521845/f_a0;
-		fUnitCellCoords(1,2) = -0.5+0.521845/f_a0;
-		fUnitCellCoords(2,2) = -0.5-0.521845/f_a0;
-		fUnitCellCoords(3,2) = -1.0+0.521845/f_a0;
-		fUnitCellCoords(4,2) = 0.50-0.521845/f_a0;
-		fUnitCellCoords(5,2) = 0.521845/f_a0;
-		fUnitCellCoords(6,2) = -0.25;
-		fUnitCellCoords(7,2) = -0.75;
-		fUnitCellCoords(8,2) = 0.25;
-		fUnitCellCoords(9,2) = -0.25;
-		fUnitCellCoords(10,2) = 0.50;
+		fUnitCellCoords(0,2) = 0.521845/f_a0;
+		fUnitCellCoords(1,2) = 0.5-0.521845/f_a0;
+		fUnitCellCoords(2,2) = 0.5+0.521845/f_a0;
+		fUnitCellCoords(3,2) = 1.0-0.521845/f_a0;
+		fUnitCellCoords(4,2) = -0.50+0.521845/f_a0;
+		fUnitCellCoords(5,2) = -0.521845/f_a0;
+		fUnitCellCoords(6,2) = 0.25;
+		fUnitCellCoords(7,2) = 0.75;
+		fUnitCellCoords(8,2) = -0.25;
+		fUnitCellCoords(9,2) = 0.25;
+		fUnitCellCoords(10,2) = -0.50;
 		fUnitCellCoords(11,2) = 0.00;
-		fUnitCellCoords(12,2) = -0.50;
-		fUnitCellCoords(13,2) = -1.00;
-		fUnitCellCoords(14,2) = -0.50;
-		fUnitCellCoords(15,2) = 0.00;
+		fUnitCellCoords(12,2) = 0.50;
+		fUnitCellCoords(13,2) = 0.00;
+		fUnitCellCoords(14,2) = 0.50;
+		fUnitCellCoords(15,2) = 1.00;
 	}
 	else if (fNormalCode == 2)	// rotate [0,0,1] to [0,1,0]
-	{
-		/* CHECKED HSP 7/12/07 - FINE */
-		temp_bonds2 = tempUnitCellCoords;
-		blah1 = RotationMatrixB(-piby2);
-		fUnitCellCoords.MultAB(temp_bonds2,blah1);
-		fUnitCellCoords.CopyColumn(2,temp);
-		temp *= -1.0;
-		fUnitCellCoords.SetCol(2,temp);
+	{	
+		fUnitCellCoords(0,0) = -0.521845/f_a0;
+		fUnitCellCoords(1,0) = -0.5+0.521845/f_a0;
+		fUnitCellCoords(2,0) = -0.5-0.521845/f_a0;
+		fUnitCellCoords(3,0) = -1.0+0.521845/f_a0;
+		fUnitCellCoords(4,0) = 0.50-0.521845/f_a0;
+		fUnitCellCoords(5,0) = 0.521845/f_a0;
+		fUnitCellCoords(6,0) = -0.25;
+		fUnitCellCoords(7,0) = -0.75;
+		fUnitCellCoords(8,0) = 0.25;
+		fUnitCellCoords(9,0) = -0.25;
+		fUnitCellCoords(10,0) = 0.50;
+		fUnitCellCoords(11,0) = 0.0;
+		fUnitCellCoords(12,0) = -0.50;
+		fUnitCellCoords(13,0) = 0.00;
+		fUnitCellCoords(14,0) = -0.50;
+		fUnitCellCoords(15,0) = -1.00;
+
+		fUnitCellCoords(0,1) = 0.00;
+		fUnitCellCoords(1,1) = 0.00;
+		fUnitCellCoords(2,1) = 0.00;
+		fUnitCellCoords(3,1) = 0.00;
+		fUnitCellCoords(4,1) = 0.00;
+		fUnitCellCoords(5,1) = 0.00;
+		fUnitCellCoords(6,1) = -0.25;
+		fUnitCellCoords(7,1) = -0.25;
+		fUnitCellCoords(8,1) = -0.25;
+		fUnitCellCoords(9,1) = -0.25;
+		fUnitCellCoords(10,1) = -0.50;
+		fUnitCellCoords(11,1) = -0.50;
+		fUnitCellCoords(12,1) = -0.50;
+		fUnitCellCoords(13,1) = -0.50;
+		fUnitCellCoords(14,1) = -0.50;
+		fUnitCellCoords(15,1) = -0.50;
+	
+		fUnitCellCoords(0,2) = -0.521845/f_a0;
+		fUnitCellCoords(1,2) = -0.5+0.521845/f_a0;
+		fUnitCellCoords(2,2) = 0.5-0.521845/f_a0;
+		fUnitCellCoords(3,2) = 0.521845/f_a0;
+		fUnitCellCoords(4,2) = -0.50-0.521845/f_a0;
+		fUnitCellCoords(5,2) = -1.0+0.521845/f_a0;
+		fUnitCellCoords(6,2) = 0.25;
+		fUnitCellCoords(7,2) = -0.25;
+		fUnitCellCoords(8,2) = -0.25;
+		fUnitCellCoords(9,2) = -0.75;
+		fUnitCellCoords(10,2) = 0.0;
+		fUnitCellCoords(11,2) = -0.50;
+		fUnitCellCoords(12,2) = -1.00;
+		fUnitCellCoords(13,2) = 0.50;
+		fUnitCellCoords(14,2) = 0.00;
+		fUnitCellCoords(15,2) = -0.50;
 	}
 	else if (fNormalCode == 3)	// rotate [0,0,1] to [0,-1,0]
 	{
-		/* CHECKED HSP 7/12/07 - FINE */
-		temp_bonds2 = tempUnitCellCoords;
-		blah1 = RotationMatrixB(piby2);
-		fUnitCellCoords.MultAB(temp_bonds2,blah1);
-		fUnitCellCoords.CopyColumn(0,temp);
-		temp *= -1.0;
-		fUnitCellCoords.SetCol(0,temp);
+		fUnitCellCoords(0,0) = 0.521845/f_a0;
+		fUnitCellCoords(1,0) = 0.5-0.521845/f_a0;
+		fUnitCellCoords(2,0) = 0.5+0.521845/f_a0;
+		fUnitCellCoords(3,0) = 1.0-0.521845/f_a0;
+		fUnitCellCoords(4,0) = -0.50+0.521845/f_a0;
+		fUnitCellCoords(5,0) = -0.521845/f_a0;
+		fUnitCellCoords(6,0) = 0.25;
+		fUnitCellCoords(7,0) = 0.75;
+		fUnitCellCoords(8,0) = -0.25;
+		fUnitCellCoords(9,0) = 0.25;
+		fUnitCellCoords(10,0) = -0.50; 
+		fUnitCellCoords(11,0) = 0.0;
+		fUnitCellCoords(12,0) = 0.50;
+		fUnitCellCoords(13,0) = 0.00;
+		fUnitCellCoords(14,0) = 0.50;
+		fUnitCellCoords(15,0) = 1.00;
+
+		fUnitCellCoords(0,1) = 0.00;
+		fUnitCellCoords(1,1) = 0.00;
+		fUnitCellCoords(2,1) = 0.00;
+		fUnitCellCoords(3,1) = 0.00;
+		fUnitCellCoords(4,1) = 0.00;
+		fUnitCellCoords(5,1) = 0.00;
+		fUnitCellCoords(6,1) = 0.25;
+		fUnitCellCoords(7,1) = 0.25;
+		fUnitCellCoords(8,1) = 0.25;
+		fUnitCellCoords(9,1) = 0.25;
+		fUnitCellCoords(10,1) = 0.50;
+		fUnitCellCoords(11,1) = 0.50;
+		fUnitCellCoords(12,1) = 0.50;
+		fUnitCellCoords(13,1) = 0.50;
+		fUnitCellCoords(14,1) = 0.50;
+		fUnitCellCoords(15,1) = 0.50;
+	
+		fUnitCellCoords(0,2) = -0.521845/f_a0;
+		fUnitCellCoords(1,2) = -0.5+0.521845/f_a0;
+		fUnitCellCoords(2,2) = 0.5-0.521845/f_a0;
+		fUnitCellCoords(3,2) = 0.521845/f_a0;
+		fUnitCellCoords(4,2) = -0.50-0.521845/f_a0;
+		fUnitCellCoords(5,2) = -1.0+0.521845/f_a0;
+		fUnitCellCoords(6,2) = 0.25;
+		fUnitCellCoords(7,2) = -0.25;
+		fUnitCellCoords(8,2) = -0.25;
+		fUnitCellCoords(9,2) = -0.75;
+		fUnitCellCoords(10,2) = 0.0;
+		fUnitCellCoords(11,2) = -0.50;
+		fUnitCellCoords(12,2) = -1.00;
+		fUnitCellCoords(13,2) = 0.50;
+		fUnitCellCoords(14,2) = 0.00;
+		fUnitCellCoords(15,2) = -0.50;
 	}
 	else if (fNormalCode == 4)	// this is the default orientation
 	{
@@ -526,13 +614,56 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	}	
 	else if (fNormalCode == 5)	// rotate [0,0,1] to [0,0,-1]
 	{
-		/* HSP - KEEP Y CONSTANT */
-		temp_bonds2 = tempUnitCellCoords;
-		fUnitCellCoords = temp_bonds2;
-		fUnitCellCoords *= -1.0;
-		fUnitCellCoords.CopyColumn(1,temp);
-		temp *= -1.0;
-		fUnitCellCoords.SetCol(1,temp);
+		fUnitCellCoords(0,0) = -0.521845/f_a0;
+		fUnitCellCoords(1,0) = -0.5+0.521845/f_a0;
+		fUnitCellCoords(2,0) = 0.5-0.521845/f_a0;
+		fUnitCellCoords(3,0) = 0.521845/f_a0;
+		fUnitCellCoords(4,0) = -0.50-0.521845/f_a0;
+		fUnitCellCoords(5,0) = -1.0+0.521845/f_a0;
+		fUnitCellCoords(6,0) = 0.25;
+		fUnitCellCoords(7,0) = -0.25;
+		fUnitCellCoords(8,0) = -0.25;
+		fUnitCellCoords(9,0) = -0.75;
+		fUnitCellCoords(10,0) = 0.00;
+		fUnitCellCoords(11,0) = -0.50;
+		fUnitCellCoords(12,0) = -1.0;
+		fUnitCellCoords(13,0) = 0.50;
+		fUnitCellCoords(14,0) = 0.00;
+		fUnitCellCoords(15,0) = -0.50;
+	
+		fUnitCellCoords(0,1) = 0.521845/f_a0;
+		fUnitCellCoords(1,1) = 0.5-0.521845/f_a0;
+		fUnitCellCoords(2,1) = 0.5+0.521845/f_a0;
+		fUnitCellCoords(3,1) = 1.0-0.521845/f_a0;
+		fUnitCellCoords(4,1) = -0.50+0.521845/f_a0;
+		fUnitCellCoords(5,1) = -0.521845/f_a0;
+		fUnitCellCoords(6,1) = 0.25;
+		fUnitCellCoords(7,1) = 0.75;
+		fUnitCellCoords(8,1) = -0.25;
+		fUnitCellCoords(9,1) = 0.25;
+		fUnitCellCoords(10,1) = -0.50;
+		fUnitCellCoords(11,1) = 0.00;
+		fUnitCellCoords(12,1) = 0.50;
+		fUnitCellCoords(13,1) = 0.00;
+		fUnitCellCoords(14,1) = 0.50;
+		fUnitCellCoords(15,1) = 1.00;
+
+		fUnitCellCoords(0,2) = 0.00;	// -0.196/f_a0
+		fUnitCellCoords(1,2) = 0.00;
+		fUnitCellCoords(2,2) = 0.00;
+		fUnitCellCoords(3,2) = 0.00;
+		fUnitCellCoords(4,2) = 0.00;
+		fUnitCellCoords(5,2) = 0.00;
+		fUnitCellCoords(6,2) = 0.25;
+		fUnitCellCoords(7,2) = 0.25;
+		fUnitCellCoords(8,2) = 0.25;
+		fUnitCellCoords(9,2) = 0.25;
+		fUnitCellCoords(10,2) = 0.50;
+		fUnitCellCoords(11,2) = 0.50;
+		fUnitCellCoords(12,2) = 0.50;
+		fUnitCellCoords(13,2) = 0.50;
+		fUnitCellCoords(14,2) = 0.50;
+		fUnitCellCoords(15,2) = 0.50;
 	}	
 
 	/* scale to correct lattice parameter */				     		
