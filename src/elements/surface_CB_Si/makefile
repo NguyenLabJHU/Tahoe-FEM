@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2008-02-16 16:26:15 hspark Exp $
+# $Id: makefile,v 1.6 2008-08-08 19:25:40 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -28,7 +28,9 @@ OBJ = \
 	dUdC_surf.o \
 	dXsi.o \
 	dXsi_surf.o \
-	ddC.o \
+	ddC_driver.o \
+	ddC_1.o \
+	ddC_2.o \
 	ddC_surf.o \
 	energy.o \
 	surf_energy.o
@@ -59,7 +61,9 @@ SRC = \
 	dUdC_surf.c \
 	dXsi.c \
 	dXsi_surf.c \
-	ddC.c \
+	ddC_driver.c \
+	ddC_1.c \
+	ddC_2.c \
 	ddC_surf.c \
 	energy.c \
 	surf_energy.c

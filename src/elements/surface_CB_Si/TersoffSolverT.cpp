@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.5 2008-02-16 16:26:15 hspark Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.6 2008-08-08 19:25:39 hspark Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -66,7 +66,7 @@ void TersoffSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& modu
 		SetdXsi(CIJ, Xsi);
 
 	/* compute second derivatives wrt {C,C} and {C,Xsi} */
-	get_ddC(fParams.Pointer(), Xsi.Pointer(), 
+	ddC_driver(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dCdC_hat.Pointer(), dCdXsi_hat.Pointer());
@@ -190,54 +190,6 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(S);
 }
 
-/* information about subordinate parameter lists */
-//void TersoffSolverT::DefineSubs(SubListT& sub_list) const
-//{
-	/* inherited */
-//	ParameterInterfaceT::DefineSubs(sub_list);
-
-	/* crystal orientation */
-//	sub_list.AddSub("FCC_lattice_orientation", ParameterListT::Once, true);
-
-	/* choice of potentials */
-//	sub_list.AddSub("DC_potential_choice", ParameterListT::Once, true);
-//}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-//ParameterInterfaceT* TersoffSolverT::NewSub(const StringT& name) const
-//{
-// 	if (name == "DC_potential_choice")
-// 	{
-// 		ParameterContainerT* choice = new ParameterContainerT(name);
-// 		choice->SetSubSource(this);
-// 		choice->SetListOrder(ParameterListT::Choice);
-// 	
-// 		choice->AddSub("Stillinger-Weber");
-// 
-// 		ParameterContainerT PTHT("PTHT");
-// 		PTHT.AddParameter(ParameterT::Double, "A");
-// 		PTHT.AddParameter(ParameterT::Double, "A1");
-// 		PTHT.AddParameter(ParameterT::Double, "A2");
-// 		
-// 		PTHT.AddParameter(ParameterT::Double, "B");
-// 		PTHT.AddParameter(ParameterT::Double, "Z");
-// 		choice->AddSub(PTHT);
-// 
-// 		//choice->AddSub(ParameterContainerT("Tersoff"));
-// 
-// 		return choice;
-// 	}
-// 	else if (name == "FCC_lattice_orientation")
-// 	{
-// 		FCCLatticeT lattice(0);
-// 		return lattice.NewSub(name);
-// 	}
-// 	else if (name == "Stillinger-Weber")
-// 		return new SWDataT;
-// 	else /* inherited */
-// 		return ParameterInterfaceT::NewSub(name);
-//}
-
 /* accept parameter list */
 void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 {
@@ -284,18 +236,6 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 
 	/* flag */
 	fEquilibrate = list.GetParameter("equilibrate");
-
-	/* resolve orientation */
-// 	FCCLatticeT lattice(0);
-// 	const ParameterListT& orientation = list.GetListChoice(lattice, "FCC_lattice_orientation");
-// 	dMatrixT Q;
-// 	FCCLatticeT::SetQ(orientation, Q);
-// 	
-// 	/* construct bond lattice */
-// 	fGeometry = new LengthsAndAnglesT(Q,fPairs);
-
-	/* set potentials */
-//	const ParameterListT& potential = list.GetListChoice(*this, "DC_potential_choice");
 
 	/* All parameters required */
 	f_a0 = list.GetParameter("a0");
