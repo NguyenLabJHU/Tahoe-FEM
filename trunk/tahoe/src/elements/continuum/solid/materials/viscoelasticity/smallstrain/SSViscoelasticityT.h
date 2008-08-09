@@ -1,27 +1,21 @@
-/* $Id: SSViscoelasticityT.h,v 1.3 2004-07-15 08:29:34 paklein Exp $ */
+/* $Id: SSViscoelasticityT.h,v 1.4 2008-08-09 15:00:38 tdnguye Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_VISCO_H_
 #define _SS_VISCO_H_
  
 #include "SSSolidMatT.h"
+#include "SS_Visc_Support.h"
 #include "dSymMatrixT.h"
 
 namespace Tahoe {
 
 /** small strain linear viscoelastic constitutive law */
-class SSViscoelasticityT: public SSSolidMatT
+class SSViscoelasticityT: public SSSolidMatT, public SS_Visc_Support
 {
 	public:
 
 	/** constructor */
 	SSViscoelasticityT(void);
-
-	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. \note NOT IMPLEMENTED */
-	virtual double Pressure(void) const {
-		ExceptionT::GeneralFail("SSViscoelasticT::Pressure", "not implemented");
-		return 0.0;
-	};
 			
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void){SSSolidMatT::InitStep();}
@@ -36,43 +30,48 @@ class SSViscoelasticityT: public SSSolidMatT
 	/* update/reset internal variables */
 	virtual void UpdateHistory(void); // element at a time
 	virtual void ResetHistory(void);  // element at a time
-	void Load(ElementCardT& element, int ip);
-	void Store(ElementCardT& element, int ip);
 
-	protected:
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
 	
-	enum Spring {kEquilibrium = 0, kNonEquilibrium};
-	protected:
-	 
-	/*Internal state variables*/	
-	/*fh - denotes the overstress while 
-	 *fs - is the inelastic stress, defined as the the modulus 
-	 *of the Maxwell element times the total strain*/
-
-	/*preceding values*/		 
-	dSymMatrixT    fdevQ_n;
-	dSymMatrixT    fdevSin_n;
-	dArrayT        fmeanQ_n;
-	dArrayT        fmeanSin_n;
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	
-	/*current values*/
-	dSymMatrixT   fdevQ;
-	dSymMatrixT   fdevSin;
-	dArrayT       fmeanQ;
-	dArrayT       fmeanSin;
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 
-	/* Internal state variables array*/
-	int fnstatev;
-	dArrayT fstatev;
+	virtual double StrainEnergyDensity(void);
 
- 	/*relaxation times*/
-	double ftauS;
-	double ftauB;
+	/** return the pressure associated with the last call to 
+	 * SolidMaterialT::s_ij. \note NOT IMPLEMENTED */
+	virtual double Pressure(void) const {return(1.0/3.0*fStress.Trace());	};
+ 
+	/* spatial description */ 
+	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli 
+	virtual const dSymMatrixT& s_ij(void); // Cauchy stress 
+ 
+	/* material description */ 
+	virtual const dMatrixT& C_IJKL(void); // material tangent moduli 
+	virtual const dSymMatrixT& S_IJ(void); // PK2 stress 
+	
+	/*compute output variables*/
+	virtual int NumOutputVariables() const;
+	virtual void OutputLabels(ArrayT<StringT>& labels) const;
+	virtual void ComputeOutput(dArrayT& output);
 
-	/* dt/tau*/
-	double fndtS;
-	double fndtB;	
-  };
+	/*@}*/
+
+	protected: 
+	/* strain */
+	dSymMatrixT fStrain3D;
+
+	/* stress/modulus */
+	dMatrixT fModulus; 
+	dSymMatrixT fStress; 
+
+};
 
 } // namespace Tahoe 
 #endif /*_SS_VISCO_H_*/
