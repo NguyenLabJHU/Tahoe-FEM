@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE2D.h,v 1.4 2006-07-21 20:54:31 tdnguye Exp $ */
+/* $Id: SSLinearVE2D.h,v 1.5 2008-08-09 15:00:37 tdnguye Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_LINEAR_VE_2D_H_
 #define _SS_LINEAR_VE_2D_H_
@@ -17,57 +17,21 @@ class SSLinearVE2D: public SSViscoelasticityT
 	/** constructor */
 	SSLinearVE2D(void);
 		
-	/*initilize internal variables*/
-	virtual void PointInitialize(void);
-
-	virtual double StrainEnergyDensity(void);
-
-	/* spatial description */ 
-	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli 
-	virtual const dSymMatrixT& s_ij(void); // Cauchy stress 
-	
-	/* material description */ 
-	virtual const dMatrixT& C_IJKL(void); // material tangent moduli 
-	virtual const dSymMatrixT& S_IJ(void); // PK2 stress 
-
-	/*compute output variables*/
-	virtual int NumOutputVariables() const;
-	virtual void OutputLabels(ArrayT<StringT>& labels) const;
-	virtual void ComputeOutput(dArrayT& output);
-
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-	 
-    protected: 
-	
-	/*strain energy potentials*/ 
-	dArrayT fMu;
-	dArrayT fKappa;
-
-	/*stress/modulus*/ 
-	dMatrixT fModulus; 
-	dSymMatrixT fStress;
-    
-	/*work spaces*/
-	dMatrixT fModMat; 
-	dSymMatrixT fStress3D;
-	dSymMatrixT fStrain3D;
- 
-	/*relaxation times*/ 
-	double ftauS; 
-	double ftauB; 
-
-	/* exp(-a* dt/tau)*/ 
-	double falphaS; 
-	double falphaB; 
-	double fbetaS; 
-	double fbetaB; 
 };
+
 }
 #endif  /* _SS_LINEAR_VE_2D_H_ */
