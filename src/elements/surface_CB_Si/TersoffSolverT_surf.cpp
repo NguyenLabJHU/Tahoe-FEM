@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.5 2008-02-16 16:26:15 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.6 2008-08-09 12:50:55 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -70,7 +70,7 @@ void TersoffSolverT_surf::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT&
 		SetdXsi(CIJ, Xsi);
 
 	/* compute second derivatives wrt {C,C} and {C,Xsi} */
-	get_ddC_surf(fParams.Pointer(), Xsi.Pointer(), 
+	ddC_driver_surf(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dCdC_hat.Pointer(), dCdXsi_hat.Pointer());
@@ -195,54 +195,6 @@ void TersoffSolverT_surf::DefineParameters(ParameterListT& list) const
 	list.AddParameter(S);
 }
 
-/* information about subordinate parameter lists */
-//void TersoffSolverT_surf::DefineSubs(SubListT& sub_list) const
-//{
-	/* inherited */
-//	ParameterInterfaceT::DefineSubs(sub_list);
-
-	/* crystal orientation */
-//	sub_list.AddSub("FCC_lattice_orientation", ParameterListT::Once, true);
-
-	/* choice of potentials */
-//	sub_list.AddSub("DC_potential_choice", ParameterListT::Once, true);
-//}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-//ParameterInterfaceT* TersoffSolverT_surf::NewSub(const StringT& name) const
-//{
-// 	if (name == "DC_potential_choice")
-// 	{
-// 		ParameterContainerT* choice = new ParameterContainerT(name);
-// 		choice->SetSubSource(this);
-// 		choice->SetListOrder(ParameterListT::Choice);
-// 	
-// 		choice->AddSub("Stillinger-Weber");
-// 
-// 		ParameterContainerT PTHT("PTHT");
-// 		PTHT.AddParameter(ParameterT::Double, "A");
-// 		PTHT.AddParameter(ParameterT::Double, "A1");
-// 		PTHT.AddParameter(ParameterT::Double, "A2");
-// 		
-// 		PTHT.AddParameter(ParameterT::Double, "B");
-// 		PTHT.AddParameter(ParameterT::Double, "Z");
-// 		choice->AddSub(PTHT);
-// 
-// 		//choice->AddSub(ParameterContainerT("Tersoff"));
-// 
-// 		return choice;
-// 	}
-// 	else if (name == "FCC_lattice_orientation")
-// 	{
-// 		FCCLatticeT lattice(0);
-// 		return lattice.NewSub(name);
-// 	}
-// 	else if (name == "Stillinger-Weber")
-// 		return new SWDataT;
-// 	else /* inherited */
-// 		return ParameterInterfaceT::NewSub(name);
-//}
-
 /* accept parameter list */
 void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 {	
@@ -250,17 +202,11 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	ParameterInterfaceT::TakeParameterList(list);
 
 	/* dimension work space */
-	/* DOUBLE DIMENSIONS OF XSI-RELATED MATRICES DUE TO 2 SETS OF
-	XDOFS FOR SURFACES */
-//	dXsi.Dimension(2*kNumDOF);
-//	dXsidXsi.Dimension(2*kNumDOF);
 	dXsi.Dimension(kNumDOF);
 	dXsidXsi.Dimension(kNumDOF);
 	dCdC_hat.Dimension(kStressDim);
-//	dCdXsi_hat.Dimension(kStressDim,kNumDOF*2);
 	dCdXsi_hat.Dimension(kStressDim,kNumDOF);
 	fTempRank4.Dimension(kStressDim);
-//	fTempMixed.Dimension(kStressDim, kNumDOF*2);
 	fTempMixed.Dimension(kStressDim, kNumDOF);
 
 #if 0
@@ -270,9 +216,7 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	fSymMat1.Dimension(kNSD);
 	fGradl_C.Dimension(3,kStressDim);
 #endif
-	/* DOUBLE DIMENSIONS FOR 2 SETS OF XDOFS */
-//	fMat1.Dimension(kNumDOF*2); 
-//	fVec.Dimension(kNumDOF*2);
+
 	fMat1.Dimension(kNumDOF); 
 	fVec.Dimension(kNumDOF);
 
@@ -314,18 +258,6 @@ void TersoffSolverT_surf::TakeParameterList(const ParameterListT& list)
 	
 	/* flag */
 	fEquilibrate = list.GetParameter("equilibrate");
-
-	/* resolve orientation */
-// 	FCCLatticeT lattice(0);
-// 	const ParameterListT& orientation = list.GetListChoice(lattice, "FCC_lattice_orientation");
-// 	dMatrixT Q;
-// 	FCCLatticeT::SetQ(orientation, Q);
-// 	
-// 	/* construct bond lattice */
-// 	fGeometry = new LengthsAndAnglesT(Q,fPairs);
-
-	/* set potentials */
-//	const ParameterListT& potential = list.GetListChoice(*this, "DC_potential_choice");
 
 	/* All parameters required */
 	f_a0 = list.GetParameter("a0");
