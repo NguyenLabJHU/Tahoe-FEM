@@ -4218,4 +4218,69 @@ void ddC_surf_4(const double* params,const double* Xsi,const double* Xa,const do
 	z[13] = 0.5*z[13];
 	z[14] = 0.5*z[14];
 	z[17] = 0.5*z[17];
+	
+	/* dCdC: 6 x 6 */
+	dCdC[ 0] = z[6];
+	dCdC[ 1] = z[4];
+	dCdC[ 2] = z[39];
+	dCdC[ 3] = z[38];
+	dCdC[ 4] = z[30];
+	dCdC[ 5] = z[26];
+
+	dCdC[ 6] = z[4];
+	dCdC[ 7] = z[2];
+	dCdC[ 8] = z[29];
+	dCdC[ 9] = z[28];
+	dCdC[10] = z[22];
+	dCdC[11] = z[8];
+
+	dCdC[12] = z[39];
+	dCdC[13] = z[29];
+	dCdC[14] = z[11];
+	dCdC[15] = z[7];
+	dCdC[16] = z[12];
+	dCdC[17] = z[33];
+
+	dCdC[18] = z[38];
+	dCdC[19] = z[28];
+	dCdC[20] = z[7];
+	dCdC[21] = z[18];
+	dCdC[22] = z[34];
+	dCdC[23] = z[21];
+
+	dCdC[24] = z[30];
+	dCdC[25] = z[22];
+	dCdC[26] = z[12];
+	dCdC[27] = z[34];
+	dCdC[28] = z[19];
+	dCdC[29] = z[37];
+
+	dCdC[30] = z[26];
+	dCdC[31] = z[8];
+	dCdC[32] = z[33];
+	dCdC[33] = z[21];
+	dCdC[34] = z[37];
+	dCdC[35] = z[5];
+
+	/* dCdXsi: 6 x 3 */
+	dCdXsi[ 0] = z[17];
+	dCdXsi[ 1] = z[1];
+	dCdXsi[ 2] = z[24];
+	dCdXsi[ 3] = z[23];
+	dCdXsi[ 4] = z[14];
+	dCdXsi[ 5] = z[27];
+
+	dCdXsi[ 6] = z[35];
+	dCdXsi[ 7] = z[3];
+	dCdXsi[ 8] = z[15];
+	dCdXsi[ 9] = z[10];
+	dCdXsi[10] = z[16];
+	dCdXsi[11] = z[9];
+
+	dCdXsi[12] = z[36];
+	dCdXsi[13] = z[31];
+	dCdXsi[14] = z[25];
+	dCdXsi[15] = z[20];
+	dCdXsi[16] = z[13];
+	dCdXsi[17] = z[32];	
 }
