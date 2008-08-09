@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT_surf.cpp,v 1.6 2008-08-09 12:50:55 hspark Exp $ */
+/* $Id: TersoffSolverT_surf.cpp,v 1.7 2008-08-09 12:56:37 hspark Exp $ */
 #include "TersoffSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -70,7 +70,7 @@ void TersoffSolverT_surf::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT&
 		SetdXsi(CIJ, Xsi);
 
 	/* compute second derivatives wrt {C,C} and {C,Xsi} */
-	ddC_driver_surf(fParams.Pointer(), Xsi.Pointer(), 
+	ddC_surf_driver(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dCdC_hat.Pointer(), dCdXsi_hat.Pointer());

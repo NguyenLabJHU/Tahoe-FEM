@@ -1,4 +1,4 @@
-/* $Id: Tersoff_inc_surf.h,v 1.5 2008-08-09 12:50:55 hspark Exp $ */
+/* $Id: Tersoff_inc_surf.h,v 1.6 2008-08-09 12:56:37 hspark Exp $ */
 #ifndef TERSOFF_INC_SURF_H
 #define TERSOFF_INC_SURF_H
 
@@ -30,7 +30,7 @@ void get_dXsi_surf(const double* params, const double *Xsi, const double *Xa, co
 void get_dUdC_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dUdC); 
 
 /* function to compute all second order derivatives of the potential function needed for the modulus */
-void ddC_driver_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi);
+void ddC_surf_driver(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat, double* dCdC, double* dCdXsi);
 
 /* function to compute the surface strain energy density */
 double get_energy_surf(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat); 
