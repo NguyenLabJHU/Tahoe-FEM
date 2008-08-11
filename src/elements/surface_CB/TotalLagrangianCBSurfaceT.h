@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.16 2008-04-23 15:02:00 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.17 2008-08-11 19:52:28 hspark Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -65,11 +65,6 @@ protected:
 	 *\param coords should enter with the coordinates of entire element and
 	 *       returns with the coordinates defining the surface layer */
 	void SurfaceLayer(LocalArrayT& coords, int face, double thickness) const;
-
-	/** Return amount to subtract from surface stress due to strain-dependence */
-	void SurfaceStressCorrect(const dMatrixT& stiff, const dMatrixT& strain, dMatrixT& product) const;
-
-	void SurfaceStiffness(const int normalnumber, dMatrixT& stiff) const;
 
 protected:
 
