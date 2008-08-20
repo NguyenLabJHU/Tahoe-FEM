@@ -1,4 +1,4 @@
-/* $Id: TersoffDimer_common_defines_surf.h,v 1.1 2007-11-09 16:53:55 hspark Exp $ */
+/* $Id: TersoffDimer_common_defines_surf.h,v 1.2 2008-08-20 16:38:16 hspark Exp $ */
 #ifndef TERSOFFDIMER_COMMON_DEFINES_SURF_H
 #define TERSOFFDIMER_COMMON_DEFINES_SURF_H
 
@@ -35,19 +35,16 @@ double chi    = params[10];
 double R      = params[11];
 double S      = params[12];
 
-/* 4 XDOFs */
+/* 3 XDOFs */
 double Xs1 = Xsi[0];
 double Xs2 = Xsi[1];
 double Xs3 = Xsi[2];
-double Xs4 = Xsi[3];
-double Ys1 = Xsi[4];
-double Ys2 = Xsi[5];
-double Ys3 = Xsi[6];
-double Ys4 = Xsi[7];
-double Zs1 = Xsi[8];
-double Zs2 = Xsi[9];
-double Zs3 = Xsi[10];
-double Zs4 = Xsi[11];
+double Ys1 = Xsi[3];
+double Ys2 = Xsi[4];
+double Ys3 = Xsi[5];
+double Zs1 = Xsi[6];
+double Zs2 = Xsi[7];
+double Zs3 = Xsi[8];
 
 /* atom coordinates (reference) */
 double X1 = Xa[0];	

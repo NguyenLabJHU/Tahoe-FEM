@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2007-11-09 21:09:30 hspark Exp $
+# $Id: makefile,v 1.3 2008-08-20 16:38:16 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -27,9 +27,25 @@ OBJ = \
 	TDdUdC.o \
 	TDdUdC_surf.o \
 	TDdXsi.o \
-	TDdXsi_surf.o \
+	TDdXsi_surf_driver.o \
+	TDdXsi_surf_1.o \
+	TDdXsi_surf_2.o \
+	TDdXsi_surf_3.o \
+	TDdXsi_surf_4.o \
 	TDddC.o \
-	TDddC_surf.o
+	TDddC_surf_driver.o \
+	TDddC_surf_1.o \
+	TDddC_surf_2.o \
+	TDddC_surf_3.o \
+	TDddC_surf_4.o \
+	TDddC_surf_5.o \
+	TDddC_surf_6.o \
+	TDddC_surf_7.o \
+	TDddC_surf_8.o \
+	TDddC_surf_9.o \
+	TDddC_surf_10.o \
+	TDddC_surf_11.o \
+	si_dimer_energy.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -56,9 +72,26 @@ SRC = \
 	TDdUdC.c \
 	TDdUdC_surf.c \
 	TDdXsi.c \
-	TDdXsi_surf.c \
+	TDdXsi_surf_driver.c \
+	TDdXsi_surf_1.c \
+	TDdXsi_surf_2.c \
+	TDdXsi_surf_3.c \
+	TDdXsi_surf_4.c \
 	TDddC.c \
-	TDddC_surf.c
+	TDddC_surf_driver.c \
+	TDddC_surf_1.c \
+	TDddC_surf_2.c \
+	TDddC_surf_3.c \
+	TDddC_surf_4.c \
+	TDddC_surf_5.c \
+	TDddC_surf_6.c \
+	TDddC_surf_7.c \
+	TDddC_surf_8.c \
+	TDddC_surf_9.c \
+	TDddC_surf_10.c \
+	TDddC_surf_11.c \
+	si_dimer_energy.c
+
 
 ##################### (3) headers
 #

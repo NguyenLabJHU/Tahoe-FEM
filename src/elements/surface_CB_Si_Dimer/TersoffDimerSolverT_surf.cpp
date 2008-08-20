@@ -1,4 +1,4 @@
-/* $Id: TersoffDimerSolverT_surf.cpp,v 1.7 2008-08-07 18:14:46 hspark Exp $ */
+/* $Id: TersoffDimerSolverT_surf.cpp,v 1.8 2008-08-20 16:38:16 hspark Exp $ */
 #include "TersoffDimerSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -70,7 +70,7 @@ void TersoffDimerSolverT_surf::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMat
 		SetdXsi(CIJ, Xsi);
 
 	/* compute second derivatives wrt {C,C} and {C,Xsi} */
-	TDget_ddC_surf(fParams.Pointer(), Xsi.Pointer(), 
+	TDddC_surf_driver(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dCdC_hat.Pointer(), dCdXsi_hat.Pointer());
@@ -111,18 +111,18 @@ void TersoffDimerSolverT_surf::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMat
 /* strain energy density */
 double TersoffDimerSolverT_surf::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
 {
-#if 0
 	/* set internal equilibrium */
 	if (fEquilibrate)
 		Equilibrate(CIJ, Xsi);
 	else
 		SetdXsi(CIJ, Xsi);
 
-// 	return( (f2Body->Phi()).Sum() + (f3Body->Phi()).Sum() );
-#endif
+	double surf_energy;
+	surf_energy = get_energy_dimer(fParams.Pointer(), Xsi.Pointer(),
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer());
 
-//not implemented
-return 0.0;
+	return surf_energy;
 }
 
 /* describe the parameters needed by the interface */
@@ -200,14 +200,14 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	ParameterInterfaceT::TakeParameterList(list);
 
 	/* dimension work space */
-	/* DOUBLE DIMENSIONS OF XSI-RELATED MATRICES DUE TO 4 SETS OF
+	/* DOUBLE DIMENSIONS OF XSI-RELATED MATRICES DUE TO 3 SETS OF
 	XDOFS FOR SURFACES */
-	dXsi.Dimension(4*kNumDOF);
-	dXsidXsi.Dimension(4*kNumDOF);
+	dXsi.Dimension(3*kNumDOF);
+	dXsidXsi.Dimension(3*kNumDOF);
 	dCdC_hat.Dimension(kStressDim);
-	dCdXsi_hat.Dimension(kStressDim,kNumDOF*4);
+	dCdXsi_hat.Dimension(kStressDim,kNumDOF*3);
 	fTempRank4.Dimension(kStressDim);
-	fTempMixed.Dimension(kStressDim, kNumDOF*4);
+	fTempMixed.Dimension(kStressDim, kNumDOF*3);
 
 #if 0
 	fMatrices.Dimension(kNumDOF);
@@ -216,9 +216,9 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	fSymMat1.Dimension(kNSD);
 	fGradl_C.Dimension(3,kStressDim);
 #endif
-	/* QUADRUPLE DIMENSIONS FOR 2 SETS OF XDOFS */
-	fMat1.Dimension(kNumDOF*4); 
-	fVec.Dimension(kNumDOF*4);
+	/* TRIPLE DIMENSIONS FOR 2 SETS OF XDOFS */
+	fMat1.Dimension(kNumDOF*3); 
+	fVec.Dimension(kNumDOF*3);
 
 	/* All parameters required */
 	f_a0 = list.GetParameter("a0");
@@ -332,12 +332,12 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	
 	if (fNormalCode == 0)	// rotate [0,0,1] to [1,0,0]
 	{
-		fUnitCellCoords(0,0) = 0.00;
-		fUnitCellCoords(1,0) = 0.00;
-		fUnitCellCoords(2,0) = 0.00;
-		fUnitCellCoords(3,0) = 0.00;
-		fUnitCellCoords(4,0) = 0.00;
-		fUnitCellCoords(5,0) = 0.00;
+		fUnitCellCoords(0,0) = -0.196/f_a0;
+		fUnitCellCoords(1,0) = -0.196/f_a0;
+		fUnitCellCoords(2,0) = -0.196/f_a0;
+		fUnitCellCoords(3,0) = -0.196/f_a0;
+		fUnitCellCoords(4,0) = -0.196/f_a0;
+		fUnitCellCoords(5,0) = -0.196/f_a0;
 		fUnitCellCoords(6,0) = -0.25;
 		fUnitCellCoords(7,0) = -0.25;
 		fUnitCellCoords(8,0) = -0.25;
@@ -385,12 +385,12 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	}
 	else if (fNormalCode == 1) // rotate [0,0,1] to [-1,0,0]
 	{
-		fUnitCellCoords(0,0) = 0.00;
-		fUnitCellCoords(1,0) = 0.00;
-		fUnitCellCoords(2,0) = 0.00;
-		fUnitCellCoords(3,0) = 0.00;
-		fUnitCellCoords(4,0) = 0.00;
-		fUnitCellCoords(5,0) = 0.00;
+		fUnitCellCoords(0,0) = 0.196/f_a0;
+		fUnitCellCoords(1,0) = 0.196/f_a0;
+		fUnitCellCoords(2,0) = 0.196/f_a0;
+		fUnitCellCoords(3,0) = 0.196/f_a0;
+		fUnitCellCoords(4,0) = 0.196/f_a0;
+		fUnitCellCoords(5,0) = 0.196/f_a0;
 		fUnitCellCoords(6,0) = 0.25;
 		fUnitCellCoords(7,0) = 0.25;
 		fUnitCellCoords(8,0) = 0.25;
@@ -637,7 +637,7 @@ void TersoffDimerSolverT_surf::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 void TersoffDimerSolverT_surf::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 {
 	/* call C function */
-	TDget_dXsi_surf(fParams.Pointer(), Xsi.Pointer(), 
+	TDdXsi_surf_driver(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dXsi.Pointer(), dXsidXsi.Pointer());
