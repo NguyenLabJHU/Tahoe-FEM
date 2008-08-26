@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.64 2008-08-13 16:22:40 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.65 2008-08-26 02:06:52 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -13,10 +13,10 @@
 #include "CB_TersoffT.h"
 #include "TersoffSolverT_surf.h"
 #include "TersoffSolverT.h"
-// #include "CB_TersoffDimerT_surf.h"
-// #include "CB_TersoffDimerT.h"
-// #include "TersoffDimerSolverT_surf.h"
-// #include "TersoffDimerSolverT.h"
+#include "CB_TersoffDimerT_surf.h"
+#include "CB_TersoffDimerT.h"
+#include "TersoffDimerSolverT_surf.h"
+#include "TersoffDimerSolverT.h"
 #include "MaterialListT.h"
 #include "eIntegratorT.h"
 #include "ParameterContainerT.h"
@@ -378,9 +378,13 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  					/* Use Na */
  					Na_X_ip_w = ip_w;
  					for (int k = 0; k < nen; k++)
+ 					{
  						Na_X_ip_w(k,0) *= *blah++;
- 						//Na_X_ip_w(k,0) *= Na[k];
+ //						Na_X_ip_w(k,0) *= Na[k];
+ 					}	
  						
+ 					/* HSP 8/17/08: the problem is that the mapping is needed that relates
+ 					the global node number with the local integration points */
  					for (int k = 0; k < nen; k++)
  						nodalstress2.AddToRowScaled(k,Na_X_ip_w(k,0),tstress);
  						
@@ -438,8 +442,8 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  						Na_X_ip_w2(k,0) *= Na[k];
  						
  					/* Map face nodes 1-4 to node numbers 1-8 of the volume element */
-					for (int k = 0; k < nen; k++)
- 						nodalstress2.AddToRowScaled(k,Na_X_ip_w2(k,0),tstress2);
+//					for (int k = 0; k < nen; k++)
+// 						nodalstress2.AddToRowScaled(k,Na_X_ip_w2(k,0),tstress2);
  	
  					/* strain energy density */
  					if (fIndicator == "FCC_3D")
@@ -451,8 +455,8 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  					else
  						int blah = 0;
  
- 					for (int k = 0; k < nen; k++)
- 						nodal_energy.AddToRowScaled(k,Na_X_ip_w2(k,0),ipenergy3);					
+// 					for (int k = 0; k < nen; k++)
+// 						nodal_energy.AddToRowScaled(k,Na_X_ip_w2(k,0),ipenergy3);					
  
 				}	// end of IP loop
 
@@ -462,10 +466,8 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
  			nodal_all.BlockColumnCopyAt(nodal_energy, colcount); colcount += 1;
  
  			/* Obtain surface nodes to write into correct part of nodal_all */
- 			iArrayT currIndices = element_surf.NodesX();
+ 			iArrayT currIndices = element_surf.NodesX(); // THIS MAPPING IS WRONG HSP 8/17/08
  			nodal_force.Accumulate(currIndices,nodal_all);	// DO THIS LATER?
-// 			cout << "nodal force = " << endl;
-// 			cout << nodal_force << endl;
  			}	
  	}	// end of element loop
 
@@ -1060,41 +1062,41 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 			fTersoffSurfaceCB[i]->TakeParameterList(surf_params);
 		}
 	}
-// 	else if (fIndicator == "TersoffDimer_CB")
-// 	{
-// 		/* initialize surface information & create all possible (6) surface clusters */
-// 		fNormal.Dimension(nfs);
-// 		fTersoffDimerSurfaceCB.Dimension(nfs);
-// 		fTersoffDimerSurfaceCB = NULL;
-// 
-// 		/* get pointer to the bulk model */
-// 		CB_TersoffDimerT* TersoffDimerCB = NULL;
-// 		if (fMaterialList->Length() == 1) {
-// 			ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
-// 			TersoffDimerCB = TB_DYNAMIC_CAST(CB_TersoffDimerT*, pcont_mat);
-// 			if (!TersoffDimerCB) ExceptionT::GeneralFail(caller, "could not resolve TERSOFF_DIMER_CB material");
-// 		} else ExceptionT::GeneralFail(caller, "expecting 1 not %d materials", fMaterialList->Length());
-// 
-// 		/* Update parameter list for CBTersoffT_Surf to include the surface normal codes */
-// 		for (int i = 0; i < nfs; i++)
-// 		{
-// 			/* face normal */
-// 			fNormal[i].Dimension(nsd);
-// 			fNormal[i] = normals(i);
-// 	
-// 			/* face C-B model */
-// 			fTersoffDimerSurfaceCB[i] = new CB_TersoffDimerT_surf;
-// 			fTersoffDimerSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
-// 
-// 			/* pass parameters to the surface model, including surface normal code */
-// 			ParameterListT surf_params = bulk_params;
-// 			surf_params.SetName("TersoffDimer_CB_surf");
-// 			surf_params.AddParameter(i, "normal_code");
-// 
-// 			/* Initialize a different CB_TersoffT_Surf for each different surface normal type (6 total) */
-// 			fTersoffDimerSurfaceCB[i]->TakeParameterList(surf_params);
-// 		}
-// 	}
+	else if (fIndicator == "TersoffDimer_CB")
+	{
+		/* initialize surface information & create all possible (6) surface clusters */
+		fNormal.Dimension(nfs);
+		fTersoffDimerSurfaceCB.Dimension(nfs);
+		fTersoffDimerSurfaceCB = NULL;
+
+		/* get pointer to the bulk model */
+		CB_TersoffDimerT* TersoffDimerCB = NULL;
+		if (fMaterialList->Length() == 1) {
+			ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
+			TersoffDimerCB = TB_DYNAMIC_CAST(CB_TersoffDimerT*, pcont_mat);
+			if (!TersoffDimerCB) ExceptionT::GeneralFail(caller, "could not resolve TERSOFF_DIMER_CB material");
+		} else ExceptionT::GeneralFail(caller, "expecting 1 not %d materials", fMaterialList->Length());
+
+		/* Update parameter list for CBTersoffT_Surf to include the surface normal codes */
+		for (int i = 0; i < nfs; i++)
+		{
+			/* face normal */
+			fNormal[i].Dimension(nsd);
+			fNormal[i] = normals(i);
+	
+			/* face C-B model */
+			fTersoffDimerSurfaceCB[i] = new CB_TersoffDimerT_surf;
+			fTersoffDimerSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
+
+			/* pass parameters to the surface model, including surface normal code */
+			ParameterListT surf_params = bulk_params;
+			surf_params.SetName("TersoffDimer_CB_surf");
+			surf_params.AddParameter(i, "normal_code");
+
+			/* Initialize a different CB_TersoffT_Surf for each different surface normal type (6 total) */
+			fTersoffDimerSurfaceCB[i]->TakeParameterList(surf_params);
+		}
+	}
 	else ExceptionT::GeneralFail(caller, "expecting \"FCC_3D or FCC_EAM or TERSOFF_CB\" not \"%s\"", bulk_params.Name().Pointer());
 
 	/* output surface parameters */
@@ -1310,8 +1312,8 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
 				else if (fIndicator == "Tersoff_CB")
 					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
-// 				else if (fIndicator == "TersoffDimer_CB")
-// 					t_surface = fTersoffDimerSurfaceCB[normal_type]->SurfaceThickness();
+				else if (fIndicator == "TersoffDimer_CB")
+					t_surface = fTersoffDimerSurfaceCB[normal_type]->SurfaceThickness();
 				else
 					ExceptionT::GeneralFail(caller, "unrecognized SCB \"%s\"", fIndicator.Pointer());
 				
@@ -1432,8 +1434,8 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else if (fIndicator == "Tersoff_CB")
 						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-// 					else if (fIndicator == "TersoffDimer_CB")
-// 						(fTersoffDimerSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+					else if (fIndicator == "TersoffDimer_CB")
+						(fTersoffDimerSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
 					else
 						int blah = 0;				
 					
@@ -1459,8 +1461,8 @@ void TotalLagrangianCBSurfaceT::LHSDriver(GlobalT::SystemTypeT sys_type)
 						fD.SetToScaled(scale, fEAMSurfaceCB[normal_type]->c_ijkl());
 					else if (fIndicator == "Tersoff_CB")
 						fD.SetToScaled(scale, fTersoffSurfaceCB[normal_type]->c_ijkl());
-// 					else if (fIndicator == "TersoffDimer_CB")
-// 						fD.SetToScaled(scale, fTersoffDimerSurfaceCB[normal_type]->c_ijkl());
+					else if (fIndicator == "TersoffDimer_CB")
+						fD.SetToScaled(scale, fTersoffDimerSurfaceCB[normal_type]->c_ijkl());
 					else
 						int blah = 0;
 					
@@ -1552,8 +1554,8 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
 				else if (fIndicator == "Tersoff_CB")
 					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
-// 				else if (fIndicator == "TersoffDimer_CB")
-// 					t_surface = fTersoffDimerSurfaceCB[normal_type]->SurfaceThickness();
+				else if (fIndicator == "TersoffDimer_CB")
+					t_surface = fTersoffDimerSurfaceCB[normal_type]->SurfaceThickness();
 				else
 					int blah = 0;
 	
@@ -1649,11 +1651,15 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					if (fIndicator == "FCC_3D")
  						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
  					else if (fIndicator == "FCC_EAM")
+ 					{
  						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+ 						//fEAMSurfaceCB[normal_type]->WaveSpeeds(normal, speeds);
+                        //cout << "wave speeds are " << speeds << endl;
+					}	
  					else if (fIndicator == "Tersoff_CB")
  						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
-//  					else if (fIndicator == "TersoffDimer_CB")
-//  						(fTersoffDimerSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
+ 					else if (fIndicator == "TersoffDimer_CB")
+ 						(fTersoffDimerSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
  					else
  						int blah = 0;
 					
