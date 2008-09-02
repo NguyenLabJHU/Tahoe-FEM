@@ -1,4 +1,4 @@
-/* $Id: si_dimer_energy.c,v 1.2 2008-09-02 13:34:33 hspark Exp $ */
+/* $Id: si_dimer_energy.c,v 1.3 2008-09-02 13:48:35 hspark Exp $ */
 #include "TersoffDimer_inc_surf.h"
 
 #include <math.h>
@@ -9,7 +9,7 @@ static double z[989];
 
 /* function to compute derivatives of the potential function wrt to the
  * internal degrees of freedom */
-void get_energy_dimer(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat) {
+double get_energy_dimer(const double* params, const double *Xsi, const double *Xa, const double *Ya, const double *Za, const double* Cmat) {
 
 /* common definitions */
 #include "TersoffDimer_common_defines_surf.h"
@@ -2392,3 +2392,4 @@ void get_energy_dimer(const double* params, const double *Xsi, const double *Xa,
 	z[5] = z[15] + z[16] + z[17] + z[21] + z[22] + z[23] + z[25] + z[7] + z[8] + z[9];
 	z[1] = z[1] + z[18] + z[19] + z[2] + z[3] + z[4] + z[5] + z[6];
 	z[1] = 0.5*z[1];
+}

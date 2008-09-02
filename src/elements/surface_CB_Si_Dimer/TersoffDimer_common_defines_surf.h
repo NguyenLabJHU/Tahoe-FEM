@@ -1,4 +1,4 @@
-/* $Id: TersoffDimer_common_defines_surf.h,v 1.3 2008-09-02 13:34:33 hspark Exp $ */
+/* $Id: TersoffDimer_common_defines_surf.h,v 1.4 2008-09-02 13:48:35 hspark Exp $ */
 #ifndef TERSOFFDIMER_COMMON_DEFINES_SURF_H
 #define TERSOFFDIMER_COMMON_DEFINES_SURF_H
 
@@ -39,7 +39,7 @@ double S      = params[12];
 double Xs1 = Xsi[0];
 double Xs2 = Xsi[1];
 double Xs3 = Xsi[2];
-double Xs4 = Xsi[3]
+double Xs4 = Xsi[3];
 double Ys1 = Xsi[4];
 double Ys2 = Xsi[5];
 double Ys3 = Xsi[6];
