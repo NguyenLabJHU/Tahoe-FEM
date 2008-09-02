@@ -1,4 +1,4 @@
-/* $Id: TersoffDimerSolverT_surf.cpp,v 1.8 2008-08-20 16:38:16 hspark Exp $ */
+/* $Id: TersoffDimerSolverT_surf.cpp,v 1.9 2008-09-02 13:34:33 hspark Exp $ */
 #include "TersoffDimerSolverT_surf.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -202,12 +202,12 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	/* dimension work space */
 	/* DOUBLE DIMENSIONS OF XSI-RELATED MATRICES DUE TO 3 SETS OF
 	XDOFS FOR SURFACES */
-	dXsi.Dimension(3*kNumDOF);
-	dXsidXsi.Dimension(3*kNumDOF);
+	dXsi.Dimension(4*kNumDOF);
+	dXsidXsi.Dimension(4*kNumDOF);
 	dCdC_hat.Dimension(kStressDim);
-	dCdXsi_hat.Dimension(kStressDim,kNumDOF*3);
+	dCdXsi_hat.Dimension(kStressDim,kNumDOF*4);
 	fTempRank4.Dimension(kStressDim);
-	fTempMixed.Dimension(kStressDim, kNumDOF*3);
+	fTempMixed.Dimension(kStressDim, kNumDOF*4);
 
 #if 0
 	fMatrices.Dimension(kNumDOF);
@@ -217,8 +217,8 @@ void TersoffDimerSolverT_surf::TakeParameterList(const ParameterListT& list)
 	fGradl_C.Dimension(3,kStressDim);
 #endif
 	/* TRIPLE DIMENSIONS FOR 2 SETS OF XDOFS */
-	fMat1.Dimension(kNumDOF*3); 
-	fVec.Dimension(kNumDOF*3);
+	fMat1.Dimension(kNumDOF*4); 
+	fVec.Dimension(kNumDOF*4);
 
 	/* All parameters required */
 	f_a0 = list.GetParameter("a0");

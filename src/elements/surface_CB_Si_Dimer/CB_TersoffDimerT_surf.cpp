@@ -1,4 +1,4 @@
-/* $Id: CB_TersoffDimerT_surf.cpp,v 1.2 2008-08-20 16:38:14 hspark Exp $ */
+/* $Id: CB_TersoffDimerT_surf.cpp,v 1.3 2008-09-02 13:34:30 hspark Exp $ */
 /* created: paklein (10/14/1998) */
 #include "CB_TersoffDimerT_surf.h"
 
@@ -9,7 +9,7 @@ using namespace Tahoe;
 
 /* material parameters */
 const int kNSD  = 3;
-const int kNDOF = 3*kNSD; /* 3 XDOFs */
+const int kNDOF = 4*kNSD; /* 4 XDOFs */
 
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);

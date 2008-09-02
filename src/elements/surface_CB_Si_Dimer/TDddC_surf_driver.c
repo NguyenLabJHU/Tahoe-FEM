@@ -11,8 +11,12 @@ void TDddC_surf_8(const double* params,const double* Xsi,const double* Xa,const 
 void TDddC_surf_9(const double* params,const double* Xsi,const double* Xa,const double* Ya,const double* Za,const double* Cmat,double* dCdC,double* dCdXsi,double* z);
 void TDddC_surf_10(const double* params,const double* Xsi,const double* Xa,const double* Ya,const double* Za,const double* Cmat,double* dCdC,double* dCdXsi,double* z);
 void TDddC_surf_11(const double* params,const double* Xsi,const double* Xa,const double* Ya,const double* Za,const double* Cmat,double* dCdC,double* dCdXsi,double* z);
+void TDddC_surf_12(const double* params,const double* Xsi,const double* Xa,const double* Ya,const double* Za,const double* Cmat,double* dCdC,double* dCdXsi,double* z);
+void TDddC_surf_13(const double* params,const double* Xsi,const double* Xa,const double* Ya,const double* Za,const double* Cmat,double* dCdC,double* dCdXsi,double* z);
+void TDddC_surf_14(const double* params,const double* Xsi,const double* Xa,const double* Ya,const double* Za,const double* Cmat,double* dCdC,double* dCdXsi,double* z);
+void TDddC_surf_15(const double* params,const double* Xsi,const double* Xa,const double* Ya,const double* Za,const double* Cmat,double* dCdC,double* dCdXsi,double* z);
 void TDddC_surf_driver(const double* params,const double* Xsi,const double* Xa,const double* Ya,const double* Za,const double* Cmat,double* dCdC,double* dCdXsi) {
-	double* z = (double*) malloc(21123*sizeof(double));
+	double* z = (double*) malloc(29757*sizeof(double));
 	TDddC_surf_1(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
 	TDddC_surf_2(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
 	TDddC_surf_3(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
@@ -24,5 +28,9 @@ void TDddC_surf_driver(const double* params,const double* Xsi,const double* Xa,c
 	TDddC_surf_9(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
 	TDddC_surf_10(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
 	TDddC_surf_11(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
+	TDddC_surf_12(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
+	TDddC_surf_13(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
+	TDddC_surf_14(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
+	TDddC_surf_15(params,Xsi,Xa,Ya,Za,Cmat,dCdC,dCdXsi,z);
 	free(z);
 }
