@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.24 2008-06-16 18:20:29 lxmota Exp $
+# $Id: makefile,v 1.25 2008-09-03 17:58:40 bcyansfn Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -35,8 +35,7 @@ OBJ = \
 	UpdatedLagrangianAxiT.o \
 	SimoQ1P0Axi.o \
 	SimoQ1P0_inv.o \
-	SimoQ1P0Axi_inv.o \
-	FSPiezoElectricSolidT.o
+	SimoQ1P0Axi_inv.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -71,9 +70,7 @@ SRC = \
 	UpdatedLagrangianAxiT.cpp \
 	SimoQ1P0Axi.cpp \
 	SimoQ1P0_inv.cpp \
-	SimoQ1P0Axi_inv.cpp \
-	FSPiezoElectricSolidT.cpp \
-	FSHuWashizuUSCT.cpp
+	SimoQ1P0Axi_inv.cpp
 
 ##################### (3) headers
 #
@@ -100,11 +97,7 @@ HDR = \
 	UpdatedLagrangianAxiT.h \
 	SimoQ1P0Axi.h \
 	SimoQ1P0_inv.h \
-	SimoQ1P0Axi_inv.h \
-	FSPiezoElectricSolidT.h \
-	FSPiezoElectricSolidT.i.h \
-	FSHuWashizuUSCT.h \
-	FSHuWashizuUSCT.i.h
+	SimoQ1P0Axi_inv.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
