@@ -4004,8 +4004,8 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kRho_fR0] = list.GetParameter("rho_fR0");
     fMaterial_Params[kPhi_s0] = list.GetParameter("phi_s0");
     fMaterial_Params[kPhi_f0] = list.GetParameter("phi_f0");
-    fMaterial_Params[kHk] = list.GetParameter("Hk");
-    fMaterial_Params[kHc] = list.GetParameter("Hc");
+    fMaterial_Params[kHk] = list.GetParameter("H_k");
+    fMaterial_Params[kHc] = list.GetParameter("H_c");
     fMaterial_Params[kPhi] = list.GetParameter("Phi");
     fMaterial_Params[kPsi] = list.GetParameter("Psi");
     fMaterial_Params[kR] = list.GetParameter("R");
@@ -4015,36 +4015,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kZ0k] = list.GetParameter("Z0k");
     fMaterial_Params[kZ0c] = list.GetParameter("Z0c");
 
-    /* initialize parameters */
-    dArrayT fTemp1_ArrayT_values;
-    fTemp1_ArrayT_values.Dimension (1);
-    fTemp1_ArrayT_values =fMaterial_Params[kk0]; 
-    Initialize_IPs_dArray2DT(fkn_IPs,fTemp1_ArrayT_values);
-    Initialize_Elements_IPs_dArray2DT(fkn_Elements_IPs,fkn_IPs); 
-    fTemp1_ArrayT_values =fMaterial_Params[kc0]; 
-    Initialize_IPs_dArray2DT(fcn_IPs,fTemp1_ArrayT_values);
-    Initialize_Elements_IPs_dArray2DT(fcn_Elements_IPs,fcn_IPs); 
-    fTemp1_ArrayT_values =fMaterial_Params[kZ0k]; 
-    Initialize_IPs_dArray2DT(fZnk_IPs,fTemp1_ArrayT_values);
-    Initialize_Elements_IPs_dArray2DT(fZnk_Elements_IPs,fZnk_IPs);  
-    fTemp1_ArrayT_values =fMaterial_Params[kZ0c]; 
-    Initialize_IPs_dArray2DT(fZnc_IPs,fTemp1_ArrayT_values);
-    Initialize_Elements_IPs_dArray2DT(fZnc_Elements_IPs,fZnc_IPs); 
-
-    fTemp1_ArrayT_values =1; 
-    Initialize_IPs_dArray2DT(fpn_IPs,fTemp1_ArrayT_values);
-    Initialize_Elements_IPs_dArray2DT(fpn_Elements_IPs,fpn_IPs);    
-   
-    fFpn_current_IP(1,1)=1;
-    fFpn_current_IP(2,2)=1;
-    fFpn_current_IP(3,3)=1;
-    dArrayT fTemp2_ArrayT_values;
-    fTemp2_ArrayT_values.Dimension (6);
-    fTemp2_ArrayT_values=1; 
-    Initialize_IPs_dArray2DT(fFpn_IPs,fTemp2_ArrayT_values);
-    Initialize_Elements_IPs_dArray2DT(fFpn_Elements_IPs,fFpn_IPs);    
-  
-   
+ 
 
 
 	
@@ -4121,6 +4092,106 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     ElementSupport().RegisterCoordinates(fInitCoords_displ);	
     fCurrCoords_displ.Dimension(n_en_displ, n_sd);
     fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ,1 );
+
+
+// open a temporary file for debugging
+    fs_mix_out.open("fs_mix.info");
+
+
+/* define dimentions of variables which should be initiated at the first time step */
+    fkn_IPs.Dimension (fNumIP_displ,1);
+    fkn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fcn_IPs.Dimension (fNumIP_displ,1);
+    fcn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fZnk_IPs.Dimension (fNumIP_displ,1);
+    fZnk_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fZnc_IPs.Dimension (fNumIP_displ,1);
+    fZnc_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fpn_IPs.Dimension (fNumIP_displ,1);
+    fpn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
+    fFpn_current_IP.Dimension (n_sd,n_sd);
+    fFpn_IPs.Dimension (fNumIP_displ,9);
+    fFpn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*9);
+
+
+
+
+    /* initialize parameters */
+    dArrayT fTemp1_ArrayT_values;
+    fTemp1_ArrayT_values.Dimension (1);
+    fTemp1_ArrayT_values =fMaterial_Params[kk0]; 
+    Initialize_IPs_dArray2DT(fkn_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fkn_Elements_IPs,fkn_IPs); 
+    fTemp1_ArrayT_values =fMaterial_Params[kc0]; 
+    Initialize_IPs_dArray2DT(fcn_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fcn_Elements_IPs,fcn_IPs); 
+    fTemp1_ArrayT_values =fMaterial_Params[kZ0k]; 
+    Initialize_IPs_dArray2DT(fZnk_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fZnk_Elements_IPs,fZnk_IPs);  
+    fTemp1_ArrayT_values =fMaterial_Params[kZ0c]; 
+    Initialize_IPs_dArray2DT(fZnc_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fZnc_Elements_IPs,fZnc_IPs); 
+
+    fTemp1_ArrayT_values =1; 
+    Initialize_IPs_dArray2DT(fpn_IPs,fTemp1_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fpn_Elements_IPs,fpn_IPs);    
+   
+    dArrayT fTemp2_ArrayT_values;
+    fTemp2_ArrayT_values.Dimension (9);
+    for (int i=0; i<9; i++)
+	fTemp2_ArrayT_values[i] = 0;
+    fTemp2_ArrayT_values[0]=1;
+    fTemp2_ArrayT_values[4]=1;
+    fTemp2_ArrayT_values[8]=1; 
+    Initialize_IPs_dArray2DT(fFpn_IPs,fTemp2_ArrayT_values);
+    Initialize_Elements_IPs_dArray2DT(fFpn_Elements_IPs,fFpn_IPs);    
+   
+   
+    /* print initiated value to check */
+    fs_mix_out	<<"fZnk_Elements_IPs"<< endl ;
+    Top();
+    while (NextElement())
+    {
+	int e;
+	e = CurrElementNumber();		
+	fs_mix_out	<<"element number : "<< e << endl ;
+	fShapes_displ->TopIP();
+	while (fShapes_displ->NextIP())
+	{
+	    const int IP = fShapes_displ->CurrIP();	
+	    fs_mix_out	<<"gause point "<< IP << "= " << fZnk_Elements_IPs(e,IP) << "\t" ;
+	}	    
+	fs_mix_out << endl ;
+    }	    
+
+
+    fs_mix_out	<<"fFpn_Elements_IPs"<< endl ;
+    Top();
+    while (NextElement())
+    {
+	int e;
+	e = CurrElementNumber();		
+	fs_mix_out	<<"element number : "<< e << endl ;
+	fs_mix_out << endl ;
+	fShapes_displ->TopIP();
+	while (fShapes_displ->NextIP())
+	{
+	    const int IP = fShapes_displ->CurrIP();
+	    fs_mix_out	<<"gause point "<< IP << "= "<< endl;	
+	    for 	(int i=0; i<9; i++)
+		fs_mix_out	<< fFpn_Elements_IPs(e,IP*9+i) << "\t" ;
+	    fs_mix_out << endl ;
+	}	    
+    }	    
+  
+
+// stop program after this check
+
+    cout<<"program stopped here"<<endl;
+    abort();
+
+
+
     //fShapes_displ->Initialize();
     // press
     fInitCoords_press.Dimension(n_en_press, n_sd);
@@ -4327,19 +4398,6 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fEulerian_effective_strain_tensor_current_IP.Dimension (n_sd,n_sd);
     fCauchy_effective_stress_tensor_current_IP.Dimension (n_sd,n_sd);
     fEulerian_effective_strain_IPs.Dimension (fNumIP_displ,6);
-    fkn_IPs.Dimension (fNumIP_displ,1);
-    fkn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
-    fcn_IPs.Dimension (fNumIP_displ,1);
-    fcn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
-    fZnk_IPs.Dimension (fNumIP_displ,1);
-    fZnk_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
-    fZnc_IPs.Dimension (fNumIP_displ,1);
-    fZnc_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
-    fpn_IPs.Dimension (fNumIP_displ,1);
-    fpn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
-    fFpn_current_IP.Dimension (n_sd,n_sd);
-    fFpn_IPs.Dimension (fNumIP_displ,6);
-    fFpn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
     fCauchy_effective_stress_IPs.Dimension (fNumIP_displ,6);
     fPhysical_pore_water_pressure_IPs.Dimension (fNumIP_displ,1);
     fState_variables_IPs.Dimension (fNumIP_displ,4);
@@ -4426,7 +4484,8 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     /* setup output file and format */
     outputPrecision = 10;
     outputFileWidth = outputPrecision + 8;
-//    fs_mix_out.open("fs_mix.info");
+
+
 }
 
 
