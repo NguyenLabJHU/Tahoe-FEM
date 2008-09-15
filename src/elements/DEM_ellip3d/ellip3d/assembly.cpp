@@ -368,10 +368,10 @@ void assembly::createSample(char* str){
 	particle* pt= new particle(ID,type,vec(a,b,c),vec(px,py,pz),vec(dax,day,daz),vec(dbx,dby,dbz),vec(dcx,dcy,dcz));
 
 //      optional settings for a particle's initial status
-	pt->setPrevVelocity(vec(vx,vy,vz));
-	pt->setCurrVelocity(vec(vx,vy,vz));
-	pt->setPrevOmga(vec(omx,omy,omz));
-	pt->setCurrOmga(vec(omx,omy,omz));
+//	pt->setPrevVelocity(vec(vx,vy,vz));
+//	pt->setCurrVelocity(vec(vx,vy,vz));
+//	pt->setPrevOmga(vec(omx,omy,omz));
+//	pt->setCurrOmga(vec(omx,omy,omz));
 //	pt->setConstForce(vec(fx,fy,fz));  // constant force, not initial force
 //	pt->setConstMoment(vec(mx,my,mz)); // constant moment, not initial moment
 
@@ -1255,6 +1255,7 @@ void assembly::init(gradation&  grad,
 	if (grad.ratio_ba==1.0 && grad.ratio_ca==1.0)
 	    offset = dimn/2/5/5;
 	for (z=dimn/2; z<dimn/2 + dimn*ht; z+=dimn/2/5) {
+//	for (z=-dimn/2*4/5; z<dimn/2 + dimn*ht; z+=dimn/2/10) { // spheres
 	    for (x=-dimn/2*(grid-1)/10+offset; x<dimn/2*(grid-1)/10*est; x+=dimn/2/5)
 		for (y=-dimn/2*(grid-1)/10+offset; y<dimn/2*(grid-1)/10*est; y+=dimn/2/5){
 		    newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
@@ -2891,7 +2892,7 @@ void assembly::squeeze(int   total_steps,
 }
 
 
-// Isotropically compress floating particles to a specific ambient pressure, which is usually a low
+// Isotropically compress floating particles to a specific confining pressure, which is usually a low
 // value in order to create an intial status. Force boundaries are used. This process may be not 
 // physically true.
 void assembly::isotropic(int   total_steps,
@@ -3192,9 +3193,9 @@ void assembly::isotropic(int   total_steps,
 }
 
 
-// The specimen has been isotropically compressed to ambient pressure sigma_a. This function
-// increases ambient pressure step by step to sigma_b, thus making it possible to find out
-// balanced status where particle pressure equals ambient pressure. Force boundaries are used.
+// The specimen has been isotropically compressed to confining pressure sigma_a. This function
+// increases confining pressure step by step to sigma_b, thus making it possible to find out
+// balanced status where particle pressure equals confining pressure. Force boundaries are used.
 void assembly::isotropic(int   total_steps,
 			 int   snapshots, 
 			 long double sigma_a,
@@ -3418,7 +3419,7 @@ void assembly::isotropic(int   total_steps,
 			  <<endl;
 	}
 
-	// 8. find the balanced status and increase ambient pressure
+	// 8. find the balanced status and increase confining pressure
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
@@ -3732,7 +3733,7 @@ void assembly::isotropic(int   total_steps,
 			  <<endl;
 	}
 
-	// 8. find the balanced status and increase ambient pressure
+	// 8. find the balanced status and increase confining pressure
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
@@ -3825,7 +3826,7 @@ void assembly::isotropic(int   total_steps,
 }
 
 
-// The specimen has been isotropically compressed to ambient pressure sigma_3. This function
+// The specimen has been isotropically compressed to confining pressure sigma_3. This function
 // increases vertical pressure step by step to sigma_1, thus making it possible to find out
 // balanced status where top & bottom particle pressure equals major principle stress. 
 // Side boundaries are fixed, top and bottom plates are force-controlled.
@@ -4094,7 +4095,7 @@ void assembly::odometer(int   total_steps,
 }
 
 
-// The specimen has been isotropically compressed to ambient pressure sigma_3. This function
+// The specimen has been isotropically compressed to confining pressure sigma_3. This function
 // increases vertical pressure step by step to sigma_1, thus making it possible to find out
 // balanced status where top & bottom particle pressure equals major principle stress. 
 // Side boundaries are fixed, top and bottom plates are force-controlled. Unloading path is
@@ -4512,9 +4513,10 @@ void assembly::unconfined(int   total_steps,
 }
 
 
-// The ambient pressure is 500kPa. This function initializes triaxial compression test.
+// The confining pressure is 500kPa. This function initializes triaxial compression test.
 void assembly::triaxialPtclBdryIni(int   total_steps,  
 				   int   snapshots, 
+				   double sigma,
 				   char* iniptclfile, 
 				   char* inibdryfile,
 				   char* particlefile,
@@ -4564,8 +4566,6 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
     
     int         min[2]={5,6};    // boundary 5 and 6
     UPDATECTL   minctl[2];
-
-    long double sigma = 5e5;
 
     // iterations start here...
     g_iteration=0;
@@ -4678,7 +4678,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 }
 
 
-// The ambient pressure is 500kPa. This function performs triaxial compression test.
+// The confining pressure is 500kPa. This function performs triaxial compression test.
 // Displacement boundaries are used in axial direction.
 void assembly::triaxialPtclBdry(int   total_steps,  
 				int   snapshots, 
@@ -4834,7 +4834,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	}
 
 /* Most time it is balanced, so use progressinf instead.
-	// 8. find the balanced status and increase ambient pressure
+	// 8. find the balanced status and increase confining pressure
 	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
@@ -4882,7 +4882,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 }
 
 
-// The specimen has been isotropically compressed to ambient pressure sigma_a. This function
+// The specimen has been isotropically compressed to confining pressure sigma_a. This function
 // performs triaxial compression test. Displacement boundaries are used in axial direction.
 void assembly::triaxial(int   total_steps,  
 			int   snapshots, 
@@ -5081,6 +5081,7 @@ void assembly::triaxial(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
+
 	    g_exceptioninf<<setw(10)<<g_iteration
 			  <<setw(16)<<transEnergy()
 			  <<setw(16)<<rotaEnergy()
@@ -5097,10 +5098,11 @@ void assembly::triaxial(int   total_steps,
 			  <<setw(16)<<bdry_cntnum[5]
 			  <<setw(16)<<bdry_cntnum[6]
 			  <<endl;
+
 	}
 
-/* Most time it is balanced, so use progressinf instead.
-	// 8. find the balanced status and increase ambient pressure
+	// Most time it is balanced, so use progressinf instead.
+	// 8. find the balanced status and increase confining pressure
 	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
@@ -5125,8 +5127,9 @@ void assembly::triaxial(int   total_steps,
 		       <<setw(16)<<epsilon_l
 		       <<setw(16)<<epsilon_h
 		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
+
 	}
-*/
+
 	// 9. loop break condition: through displacement control mechanism
 	
     } while (++g_iteration < total_steps);
@@ -5148,7 +5151,7 @@ void assembly::triaxial(int   total_steps,
 }
 
 
-// The specimen has been isotropically compressed to ambient pressure sigma_a. This function
+// The specimen has been isotropically compressed to confining pressure sigma_a. This function
 // performs triaxial compression test with unloading. Displacement boundaries are used in 
 // axial direction.
 void assembly::triaxial(int   total_steps,  
@@ -5385,7 +5388,7 @@ void assembly::triaxial(int   total_steps,
 	}
 
 /*
-	// 8. find the balanced status and increase ambient pressure
+	// 8. find the balanced status and increase confining pressure
 	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
@@ -5899,7 +5902,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 }
 
 
-// The specimen has been deposited with gravitation within rigid boundaries.
+// The specimen has been deposited with gravitation within particle boundaries.
 // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
 void assembly::ellipPile_Impact_p(int   total_steps,  
 				  int   snapshots, 
@@ -6212,7 +6215,7 @@ void assembly::ellipPile_Force(int   total_steps,
 }
 
 
-// The specimen has been isotropically compressed to ambient pressure sigma_a. This function
+// The specimen has been isotropically compressed to confining pressure sigma_a. This function
 // performs true triaxial test. Force boundaries are used.
 void assembly::truetriaxial(int   total_steps,  
 			    int   snapshots, 
@@ -6443,7 +6446,7 @@ void assembly::truetriaxial(int   total_steps,
 			  <<endl;
 	}
 
-	// 8. find the balanced status and increase ambient pressure
+	// 8. find the balanced status and increase confining pressure
 	if (   fabsl(sigma1_1-sigma_w1)/sigma_w1 < STRESS_ERROR && fabsl(sigma1_2-sigma_w1)/sigma_w1 < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_l1)/sigma_l1 < STRESS_ERROR && fabsl(sigma2_2-sigma_l1)/sigma_l1 < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma_h1)/sigma_h1 < STRESS_ERROR && fabsl(sigma3_2-sigma_h1)/sigma_h1 < STRESS_ERROR ) {

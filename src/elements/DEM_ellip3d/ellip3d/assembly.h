@@ -238,7 +238,7 @@ public:
 				  char* iniptclfile,
 				  char* particlefile);
 
-        // Isotropically compress floating particles to a specific ambient pressure, which is usually a low
+        // Isotropically compress floating particles to a specific confining pressure, which is usually a low
         // value in order to create an intial status. Force boundaries are used. This process may be not 
         // physically true.
 	void isotropic(int    total_steps  =100000,
@@ -253,9 +253,9 @@ public:
 		       char*  balancedfile ="iso_balanced",
 		       char*  exceptionfile="iso_exception");
 
-        // The specimen has been isotropically compressed to ambient pressure sigma_a. This function
-        // increases ambient pressure step by step to sigma_b, thus making it possible to find out
-        // balanced status where particle pressure equals ambient pressure. Force boundaries are used.
+        // The specimen has been isotropically compressed to confining pressure sigma_a. This function
+        // increases confining pressure step by step to sigma_b, thus making it possible to find out
+        // balanced status where particle pressure equals confining pressure. Force boundaries are used.
 	void isotropic(int    total_steps   =100000,
 		       int    snapshots     =100,
 		       long double sigma_a  =1.0e+4,
@@ -270,7 +270,7 @@ public:
 		       char*  balancedfile  ="iso_balanced", 
 		       char*  exceptionfile ="iso_exception");
 	
-        // The specimen has been isotropically compressed to ambient pressure sigma_a. This function
+        // The specimen has been isotropically compressed to confining pressure sigma_a. This function
 	// follows an unloading-reloading stress path. Force boundaries are used.
 	void isotropic(int    total_steps,
 		       int    snapshots,
@@ -286,8 +286,8 @@ public:
 		       char*  balancedfile  ="iso_balanced", 
 		       char*  exceptionfile ="iso_exception");
 	
-        // The specimen has been isotropically compressed to ambient pressure sigma_3. This function
-        // increases ambient pressure step by step to sigma_1, thus making it possible to find out
+        // The specimen has been isotropically compressed to confining pressure sigma_3. This function
+        // increases confining pressure step by step to sigma_1, thus making it possible to find out
         // balanced status where top & bottom particle pressure equals major principle stress. 
         // Side boundaries are fixed, top and bottom plates are force-controlled.
 	void odometer(int    total_steps    =100000,
@@ -304,8 +304,8 @@ public:
 		      char*  balancedfile   ="odo_balanced", 
 		      char*  exceptionfile  ="odo_exception");
 
-        // The specimen has been isotropically compressed to ambient pressure sigma_3. This function
-        // increases ambient pressure step by step to sigma_1, thus making it possible to find out
+        // The specimen has been isotropically compressed to confining pressure sigma_3. This function
+        // increases confining pressure step by step to sigma_1, thus making it possible to find out
         // balanced status where top & bottom particle pressure equals major principle stress. 
         // Side boundaries are fixed, top and bottom plates are force-controlled. Unloading is applied.
 	void odometer(int    total_steps,
@@ -322,18 +322,19 @@ public:
 		      char*  balancedfile  ="odo_balanced", 
 		      char*  exceptionfile ="odo_exception");
 
-        // The ambient pressure is 500kPa. This function initializes triaxial compression test.
+        // The confining pressure is 500kPa. This function initializes triaxial compression test.
 	void triaxialPtclBdryIni(int    total_steps  =10000,
 				 int    snapshots    =100,
-				 char*  iniptclfile  ="iso_particle_100k",
-				 char*  inibdryfile  ="iso_boundary_100k",
-				 char*  particlefile ="tri_particle", 
-				 char*  boundaryfile ="tri_boundary", 
-				 char*  contactfile  ="tri_contact",
-				 char*  progressfile ="tri_progress",
-				 char*  exceptionfile="tri_exception");
+				 double sigma        =5.0e+5,
+				 char*  iniptclfile  ="ini_particle_ini",
+				 char*  inibdryfile  ="ini_boundary_ini",
+				 char*  particlefile ="ini_particle", 
+				 char*  boundaryfile ="ini_boundary", 
+				 char*  contactfile  ="ini_contact",
+				 char*  progressfile ="ini_progress",
+				 char*  exceptionfile="ini_exception");
 
-        // The ambient pressure is 500kPa. This function performs triaxial compression test.
+        // The confining pressure is 500kPa. This function performs triaxial compression test.
         // Displacement boundaries are used in axial direction.
 	void triaxialPtclBdry(int    total_steps  =100000,
 			      int    snapshots    =100,
@@ -346,7 +347,7 @@ public:
 			      char*  balancedfile ="tri_balanced", 
 			      char*  exceptionfile="tri_exception");
 
-        // The specimen has been isotropically compressed to ambient pressure sigma_a. This function
+        // The specimen has been isotropically compressed to confining pressure sigma_a. This function
         // performs triaxial compression test. Displacement boundaries are used in axial direction.
 	void triaxial(int    total_steps  =100000,
 		      int    snapshots    =100,
@@ -360,7 +361,7 @@ public:
 		      char*  balancedfile ="tri_balanced", 
 		      char*  exceptionfile="tri_exception");
 	
-        // The specimen has been isotropically compressed to ambient pressure sigma_a. This function
+        // The specimen has been isotropically compressed to confining pressure sigma_a. This function
         // performs triaxial compression test with unloading. Displacement boundaries are used in 
         // axial direction.
 	void triaxial(int    total_steps  =200000,
