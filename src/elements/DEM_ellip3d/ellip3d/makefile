@@ -1,4 +1,4 @@
-RECOMMEND = -O3 -funroll-all-loops -fpeel-loops
+RECOMMEND = -O3 -funroll-all-loops -fpeel-loops -DNDEBUG
 OPTIMIZE1 = -fprofile-arcs
 OPTIMIZE2 = -fbranch-probalilities
 
