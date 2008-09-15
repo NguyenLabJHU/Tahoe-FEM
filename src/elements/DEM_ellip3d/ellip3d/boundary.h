@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
+#include <cstdlib>
 
 #include "vec.h"
 #include "cylinder.h"
