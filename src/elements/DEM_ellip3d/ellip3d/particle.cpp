@@ -13,6 +13,8 @@ const int START = 10000;  // at which time step to apply moment? for moment rota
 #endif
 //ellip3d.cxx: dem::TIMESTEP = 5.0e-07; A.deposit(12000,... 
 
+//#define MINDLIN_ASSUMED
+
 using namespace std;
 
 namespace dem {
@@ -848,14 +850,13 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	addMoment(((pt1+pt2)/2-curr_position)*NormalForce);
 	
 	// obtain normal damping force
-	vec cp = (pt1+pt2)/2;        
-	vec veloc2 = getCurrVelocity() + getCurrOmga()*(cp-getCurrPosition());
+	vec veloc2 = getCurrVelocity() + getCurrOmga()*((pt1+pt2)/2-getCurrPosition());
 	long double kn = powl(6*vfabsl(NormalForce)*R0*powl(E0,2),1.0/3.0);
 	long double DMP_CRTC = 2*sqrtl(getMass()*kn); // critical damping
 	vec CntDampingForce  = DMP_CNT * DMP_CRTC * ((-veloc2)%NormDirc)*NormDirc;
 
 	// apply normal damping force
-	addForce(CntDampingForce) ;
+	addForce(CntDampingForce);
 
 	vec TgtForce = 0;
 	if (BDRYFRIC != 0){
@@ -881,10 +882,9 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 		
 	    // obtain tangtential force
 	    long double G0 = YOUNG/2/(1+POISSON);
-	    vec cp = (pt1+pt2)/2;
 	    // Vr = Vb + w (crossdot) r, each item needs to be in either global or local frame; 
 	    //      here global frame is used for better convenience.
-	    vec RelaDispInc = (curr_velocity+curr_omga*(cp-curr_position))*TIMESTEP;  
+	    vec RelaDispInc = (curr_velocity+curr_omga*((pt1+pt2)/2-curr_position))*TIMESTEP;  
 	    vec TgtDispInc = RelaDispInc-(RelaDispInc%NormDirc)*NormDirc;
 	    vec TgtDisp    = PreTgtDisp + TgtDispInc; // PreTgtDisp read by checkin
 	    vec TgtDirc;
@@ -899,13 +899,96 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	    long double fP  = BDRYFRIC*vfabsl(NormalForce);
 	    long double ks  = 4*G0*contact_radius/(2-POISSON);
 	    TgtForce = PreTgtForce + ks*(-TgtDispInc); // PreTgtForce read by checkin
-	    if (vfabsl(TgtForce) > fP)
+
+	    vec FricDampingForce = 0;
+	    if (vfabsl(TgtForce) > fP) // slide case
 		TgtForce = fP*TgtDirc;
+	    else { // adhered/slip case
+		
+		// obtain tangential damping force
+		vec RelaVel = curr_velocity + curr_omga*((pt1+pt2)/2-curr_position);  
+		vec TgtVel  = RelaVel - (RelaVel%NormDirc)*NormDirc;
+		long double DMP_CRTC = 2*sqrtl(getMass()*ks); // critical damping
+		FricDampingForce = 1.0 * DMP_CRTC * (-TgtVel);
+	    }
+
+	    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+	    // Mindlin's model (loading/unloading condition assumed)
+	    // This model is not recommended as it is impossible to strictly determine loading/unloading condition
+            // unless load is known (the case of pure moment rotation).
+#ifdef MINDLIN_ASSUMED
+	    long double val = 0;
+	    fP = FRICTION*vfabsl(NormalForce);
+	    TgtLoading = (PreTgtDisp%TgtDispInc >= 0); 
+	    
+	    if (TgtLoading) {              // loading
+		if (!PreTgtLoading) {      // pre-step is unloading
+		    val = 8*G0*contact_radius*vfabsl(TgtDispInc)/(3*(2-POISSON)*fP);
+		    TgtDispStart = PreTgtDisp;
+		}
+		else                       // pre-step is loading
+		    val = 8*G0*contact_radius*vfabsl(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
+		
+		if (val > 1.0)              
+		    TgtForce = fP*TgtDirc;
+		else {
+		    ks = 4*G0*contact_radius/(2-POISSON)*sqrtl(1-val);
+		    //incremental method
+		    TgtForce = PreTgtForce + ks*(-TgtDispInc); // TgtDispInc determines signs
+		    //total value method: TgtForce = fP*(1-powl(1-val, 1.5))*TgtDirc;
+		}
+	    }
+	    else {                         // unloading
+		if (PreTgtLoading) {       // pre-step is loading
+		    val = 8*G0*contact_radius*vfabsl(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
+		    TgtPeak = vfabsl(PreTgtForce);
+		}
+		else                       // pre-step is unloading
+		    val = 8*G0*contact_radius*vfabsl(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
+		
+		if (val > 1.0 || TgtPeak > fP)  
+		    TgtForce = fP*TgtDirc;
+		else {
+		    ks = 2*sqrtl(2)*G0*contact_radius/(2-POISSON) * sqrtl(1+powl(1-TgtPeak/fP,2.0/3.0)+val);
+		    //incremental method
+		    TgtForce = PreTgtForce + ks*(-TgtDispInc); // TgtDispInc determines signs
+		    //total value method: TgtForce = (TgtPeak-2*fP*(1-sqrtl(2)/4*powl(1+ powl(1-TgtPeak/fP,2.0/3.0) + val,1.5)))*TgtDirc;
+		}
+	    }
+	    
+	    if (vfabsl(TgtForce) > fP) // slice case
+		TgtForce = fP*TgtDirc;
+	    else { // adhered/slip case
+		
+		// obtain tangential damping force
+		vec RelaVel = curr_velocity + curr_omga*((pt1+pt2)/2-curr_position);  
+		vec TgtVel  = RelaVel - (RelaVel%NormDirc)*NormDirc;
+		long double DMP_CRTC = 2*sqrtl(getMass()*ks); // critical damping
+		FricDampingForce = 1.0 * DMP_CRTC * (-TgtVel);
+	    }
+
+#endif
+	    /////////////////////////////////////////////////////////////////////////////////////////////////////////	
+
+	    /*
+	    if (g_iteration%100==0)  
+	    g_exceptioninf<<g_iteration
+			  <<"  "<<vfabsl(NormalForce)
+			  <<"  "<<vfabsl(CntDampingForce)
+			  <<"  "<<kn
+			  <<"  "<<vfabsl(TgtForce)
+			  <<"  "<<vfabsl(FricDampingForce)
+			  <<"  "<<ks
+			  <<endl;
+	    */
 	    /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	    // apply tangential force
 	    addForce(TgtForce);
 	    addMoment(((pt1+pt2)/2-curr_position)*TgtForce); 
+
+	    // apply tangential damping force for adhered/slip case
+	    addForce(FricDampingForce);
 
 	    // update current tangential force and displacement, don't checkout.
 	    // checkout in rigidBF() ensures BdryTgtMap update after each particles
