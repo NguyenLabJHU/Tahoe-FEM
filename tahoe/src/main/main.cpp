@@ -1,11 +1,11 @@
-/* $Id: main.cpp,v 1.30 2008-07-14 18:26:00 lxmota Exp $ */
+/* $Id: main.cpp,v 1.31 2008-09-22 14:31:59 regueiro Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
 
 #include "Environment.h"
 #include "ExceptionT.h"
-#include "FloatingPointT.h"
+//#include "FloatingPointT.h"
 
 #ifdef __MWERKS__
 #if __option(profile)
@@ -44,11 +44,11 @@ char **xargv;
 
 int main(int argc, char* argv[])
 {
-  FloatingPointT fp;
+  //FloatingPointT fp;
 
-  fp.trapDivbyzero();
-  fp.trapInvalid();
-  fp.trapOverflow();
+  //fp.trapDivbyzero();
+  //fp.trapInvalid();
+  //fp.trapOverflow();
 
 	/* f2c library global variables */
 	xargc = argc;
