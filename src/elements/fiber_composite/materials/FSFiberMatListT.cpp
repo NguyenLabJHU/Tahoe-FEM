@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatListT.cpp,v 1.6 2007-12-19 23:35:54 thao Exp $ */
+/* $Id: FSFiberMatListT.cpp,v 1.7 2008-09-24 18:41:25 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSFiberMatListT.h"
 #include "FSFiberMatSupportT.h"
@@ -15,8 +15,9 @@
 #include "AnisoCornea.h"
 #include "AnisoCorneaVisco.h"
 #include "AnisoCorneaIVisco.h"
-#include "CFiberViscT.h"
-#include "C2FiberViscT.h"
+#include "NLV_Nfibers.h"
+#include "QLV_Nfibers.h"
+#include "NLV_Ortho.h"
 
 //#include "AnisoCorneaVisco2.h"
 
@@ -54,13 +55,14 @@ void FSFiberMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListO
 	{
 		order = ParameterListT::Choice;
 	
-		sub_lists.AddSub("aniso_cornea");
+		//		sub_lists.AddSub("aniso_cornea");
 		sub_lists.AddSub("aniso_fiber_3D");
 		sub_lists.AddSub("aniso_viscoelastic_cornea");
 		sub_lists.AddSub("aniso_scalar_visco_cornea");
 /*		sub_lists.AddSub("aniso_viscoelastic2_cornea");*/
-		sub_lists.AddSub("fiberI4_viscoelastic");
-		sub_lists.AddSub("fiberI5_viscoelastic");
+		sub_lists.AddSub("quasilinear_viscoelasticity_Nfibers");
+		sub_lists.AddSub("nonlinear_viscoelasticity_Nfibers");
+		sub_lists.AddSub("nonlinear_viscoelasticity_ortho");
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(name, order, sub_lists);
@@ -111,18 +113,20 @@ FSFiberMatT* FSFiberMatListT::NewFSFiberMat(const StringT& name) const
 {
 	FSFiberMatT* mat = NULL;
 
-	if (name == "aniso_cornea")
-		mat = new AnisoCornea;
-	else if (name == "aniso_fiber_3D")
+	//	if (name == "aniso_cornea")
+	//		mat = new AnisoCornea;
+	if (name == "aniso_fiber_3D")
 		mat = new AnisoFiber3D;
 	else if (name == "aniso_viscoelastic_cornea")
 		mat = new AnisoCorneaVisco;
 	else if (name == "aniso_scalar_visco_cornea")
 		mat = new AnisoCorneaIVisco;
-	else if (name == "fiberI5_viscoelastic")
-		mat = new C2FiberViscT;
-	else if (name == "fiberI4_viscoelastic")
-		mat = new CFiberViscT;
+	else if (name == "quasilinear_viscoelasticity_Nfibers")
+		mat = new QLV_Nfibers;
+	else if (name == "nonlinear_viscoelasticity_ortho")
+		mat = new NLV_Ortho;
+	else if (name == "nonlinear_viscoelasticity_Nfibers")
+		mat = new NLV_Nfibers;
 
 	/* set support */
 	if (mat) mat->SetFSFiberMatSupport(fFSFiberMatSupport);
