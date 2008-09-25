@@ -1,10 +1,11 @@
-/* $Id: FSFiberMatT.h,v 1.5 2007-12-19 23:35:54 thao Exp $ */
+/* $Id: FSFiberMatT.h,v 1.6 2008-09-25 13:30:13 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIB_MAT_T_H_
 #define _FD_FIB_MAT_T_H_
 
 /* base class */
 #include "FSSolidMatT.h"
+#include "SpectralDecompT.h"
 
 /* direct members */
 #include "FSFiberMatSupportT.h"
@@ -54,6 +55,10 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 
 protected:
+	/* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
+  	void MixedRank4_2D(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
+  	void MixedRank4_3D(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
+
 	/*retrieves fiber rotation matrix*/
 	virtual const dMatrixT& GetRotation(void);
 	
@@ -82,7 +87,7 @@ protected:
 
 	/* stretch */
 	dSymMatrixT fC;
-
+	
 	/* return values */
 	dMatrixT    fModulus;
 	dSymMatrixT fStress;
@@ -101,7 +106,6 @@ protected:
 	dSymMatrixT fFiberStretch;
 	dSymMatrixT fFiberStress;
 	dMatrixT fFiberMod;
-
 };
 
 /* fiber element materials support */

@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.h,v 1.4 2007-04-09 22:10:04 thao Exp $ */
+/* $Id: FSFiberMatViscT.h,v 1.5 2008-09-25 13:30:13 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIBVISC_MAT_T_H_
 #define _FD_FIBVISC_MAT_T_H_
@@ -6,7 +6,6 @@
 /* base class */
 #include "FSFiberMatT.h"
 
-#include "SpectralDecompT.h"
 #include "C1FunctionT.h"
 #include "PotentialT.h"
 
@@ -18,6 +17,7 @@ public:
 
 	/** constructor */
 	FSFiberMatViscT(void);
+	~FSFiberMatViscT(void);
 
 	/** required parameter flag. Indicates whether the constitutive model
 	 * requires the deformation gradient from the previous time increment.
@@ -110,10 +110,6 @@ protected:
 	/*local newton loop for viscous stretch tensor*/ 
 	virtual void Compute_Cv(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v_last, dSymMatrixT& Stretch_v,
 				const int process_index) = 0;
-
-	/* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
-  	void MixedRank4_2D(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
-  	void MixedRank4_3D(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
 
 protected:
 

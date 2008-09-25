@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.9 2008-06-01 01:05:34 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.10 2008-09-25 13:30:13 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -20,7 +20,15 @@ class AnisoCorneaVisco: public  FSFiberMatViscT
 {
    public:
 
-	enum InhomoDistributionT { kHomogeneous=0, kFile=1, kBlend=2,  kCornea=3, kCornea_Mod=4};
+	enum DistributionT {kCircumferential = 0,
+							   kOrthogonal,
+							   kOneFiber,
+							   kPowerTrig, 							   
+							   kFile, 
+							   kBlend,  
+							   kCornea, 
+							   kCornea_Mod, 
+							   kCornea_Three};
   
 	/* constructor/destructor */
 	AnisoCorneaVisco(void);
@@ -110,10 +118,9 @@ protected:
 	void CompI4(const dSymMatrixT& stretch, const dSymMatrixT& stretch_v);
 	
 private:
-
 	/* initialize angle tables */
 	void Construct(void);
-
+	
 protected:
 	
 	/*constitutive values for matrix*/
@@ -158,20 +165,23 @@ protected:
 	dArrayT	fdU;
 	dArrayT	fddU;
 
-	/* jacobian table */
-	dArrayT	fjacobian;
+	int fDType; // flag
 
-  /* for inhomogeneous material */
-	int finhomogeneous; // flag
-  ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
-	double a2,b2,c2,n2,c3,r1,r2,r3,r4,xi; // for spatial dependent distribution
-
+	/* for inhomogeneous material */
+	ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
+	double a2,b2,c2,n2,a1,b1,c1,c3,n1,r1,r2,r3,r4,xi,phi3; // for spatial dependent distribution
 
 	/* STRESS angle tables for fiber stress - by associated stress component */
 	dArray2DT fStressTable;
 	  	
 	/* MODULI angle tables for fiber moduli */
 	dArray2DT fModuliTable;	
+
+	dArrayT fjaciso; // for an inhomogeneous material
+	dArrayT fjacaniso; // for an inhomogeneous material
+
+
+
 };
 	
 }
