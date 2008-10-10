@@ -2861,10 +2861,20 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* [fShapeFluidGrad] will be formed */
 			fShapes_press->GradNa(fShapeFluidGrad);
 			
-			
-			
+			 
+
 			/* [fDeformation_Gradient] will be formed */
 			Form_deformation_gradient_tensor();
+
+                       /* [fFpn_Inverse] will be formed */
+			fFpn_Inverse.Inverse(fFpn);
+
+                       /* [fFetr] will be formed */
+			fFetr.MultAB(fDeformation_Gradient,fFpn_Inverse);
+
+                       /* [fFetr_Transpose] will be formed */
+			fFetr_Transpose.Transpose(fFetr);
+
 
                        /* [fDefGradT_9x9_matrix] will be formed */
 			Form_fDefGradT_9x9_matrix();
@@ -2910,6 +2920,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			/* Calculating Jacobian */
 			double J = fDeformation_Gradient.Det();
 
+			/* Calculating Jacobian_etr */
+			double J_etr = fFetr.Det();
+
+
 
 			/* Jacobian for the current IP will be saved */
 			fState_variables_IPs(IP,2)=J;
@@ -2942,12 +2956,23 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			
 			/* [fRight_Cauchy_Green_tensor] will be formed */
 			fRight_Cauchy_Green_tensor.MultATB(fDeformation_Gradient, fDeformation_Gradient);
+
+			/* [fCetr_Right_Cauchy_Green_tensor] will be formed */
+			fCetr_Right_Cauchy_Green_tensor.MultATB(fFetr, fFetr);
+
 		
 		
 			/* [fRight_Cauchy_Green_tensor_Inverse] will be formed */
 			if (fRight_Cauchy_Green_tensor.Det()==0)
 			    fRight_Cauchy_Green_tensor = fIdentity_matrix;
 			fRight_Cauchy_Green_tensor_Inverse.Inverse(fRight_Cauchy_Green_tensor);
+
+
+			/* [fCetr_Right_Cauchy_Green_tensor_Inverse] will be formed */
+			if (fCetr_Right_Cauchy_Green_tensor.Det()==0)
+			    fCetr_Right_Cauchy_Green_tensor = fIdentity_matrix;
+			fCetr_Right_Cauchy_Green_tensor_Inverse.Inverse(fCetr_Right_Cauchy_Green_tensor);
+
 			
 			
 			/* [fLeft_Cauchy_Green_tensor] will be formed */
@@ -2982,6 +3007,12 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			fEffective_Second_Piola_tensor_inviscid.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
 			fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
 			fEffective_Second_Piola_tensor_inviscid += fTemp_matrix_nsd_x_nsd;
+
+			/* [fStr_Effective_Second_Piola_tensor_inviscid] will be formed */
+			fStr_Effective_Second_Piola_tensor_inviscid.SetToScaled(fMaterial_Params[kLambda]*log(J_etr)-fMaterial_Params[kMu],fCetr_Right_Cauchy_Green_tensor_Inverse); 
+			fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
+			fStr_Effective_Second_Piola_tensor_inviscid += fTemp_matrix_nsd_x_nsd;
+
 			
 			
 			/* [fEffective_Kirchhoff_tensor_inviscid] will be formed */
@@ -3297,7 +3328,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			Form_C_matrix(J_Prim);
 
                        /* [fEffective_Second_Piola_tensor_viscous] will be formed */
-			double fAlpha = fMaterial_Params[kAlpha];
+			//	double fAlpha = fMaterial_Params[kAlpha];
+// note: visosity removed from implementation,after submiting article 10/2008
+			double fAlpha=0;
 			Form_fEffective_Second_Piola_tensor_viscous(fAlpha);
 
 			/* [fEffective_Kirchhoff_tensor_viscous] will be formed */
@@ -4109,7 +4142,10 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fZnc_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
     fpn_IPs.Dimension (fNumIP_displ,1);
     fpn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*1);
-    fFpn_current_IP.Dimension (n_sd,n_sd);
+    fFpn.Dimension (n_sd,n_sd);
+    fFpn_Inverse.Dimension (n_sd,n_sd);
+    fFetr.Dimension (n_sd,n_sd);
+    fFetr_Transpose.Dimension (n_sd,n_sd);
     fFpn_IPs.Dimension (fNumIP_displ,9);
     fFpn_Elements_IPs.Dimension (NumElements(),fNumIP_displ*9);
 
@@ -4324,10 +4360,13 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fDefGradT_9x9_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fDefGradInv_vector.Dimension (n_sd_x_n_sd);
     fRight_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
+    fCetr_Right_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fRight_Cauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
+    fCetr_Right_Cauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
     fLeft_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fIdentity_matrix.Dimension (n_sd,n_sd);
     fEffective_Second_Piola_tensor_inviscid.Dimension (n_sd,n_sd);
+    fStr_Effective_Second_Piola_tensor_inviscid.Dimension (n_sd,n_sd);
     fEffective_Second_Piola_tensor_viscous.Dimension (n_sd,n_sd);
     fTemp_matrix_nsd_x_nsd.Dimension (n_sd,n_sd);
     fTemp_matrix_nen_press_x_nsd.Dimension (n_en_press,n_sd);

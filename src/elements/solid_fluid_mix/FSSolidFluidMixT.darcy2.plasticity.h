@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.darcy2.plasticity.h,v 1.4 2008-07-25 18:00:00 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.darcy2.plasticity.h,v 1.5 2008-10-10 07:16:58 ebrahimi Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -358,7 +358,9 @@ private:
 	dMatrixT	fDeformation_Gradient;
 	dMatrixT	fDefGradT_9x9_matrix;
 	dMatrixT	fRight_Cauchy_Green_tensor;
+	dMatrixT	fCetr_Right_Cauchy_Green_tensor;
 	dMatrixT	fRight_Cauchy_Green_tensor_Inverse;
+	dMatrixT	fCetr_Right_Cauchy_Green_tensor_Inverse;
 	dMatrixT	fLeft_Cauchy_Green_tensor;
 	dMatrixT	fLeft_Cauchy_Green_tensor_Inverse;
 	dMatrixT	fDeformation_Gradient_Inverse;
@@ -368,6 +370,7 @@ private:
 	dMatrixT	fDefGradInv_Grad_grad_Transpose;
 	dMatrixT	fIdentity_matrix;
         dMatrixT	fEffective_Second_Piola_tensor_inviscid;
+        dMatrixT	fStr_Effective_Second_Piola_tensor_inviscid;
         dMatrixT	fEffective_Second_Piola_tensor_viscous;
         dMatrixT	fTemp_matrix_nsd_x_nsd;
         dMatrixT	fTemp_matrix_nen_press_x_nsd;
@@ -516,8 +519,14 @@ private:
 	dArray2DT	fpn_IPs;
         /* to store fpn_Elements_IPs */
         dArray2DT	fpn_Elements_IPs;
-        /* to store fFpn_current_IP */
-	dMatrixT fFpn_current_IP;
+        /* to store fFpn */
+	dMatrixT fFpn;
+        /* to store fFpn_Inverse */
+	dMatrixT fFpn_Inverse;
+        /* to store fFetr */
+	dMatrixT fFetr;
+        /* to store fFetr_Transpose */
+	dMatrixT fFetr_Transpose;
         /* to store fFpn_IPs */
 	dArray2DT	fFpn_IPs;
         /* to store fFpn_Elements_IPs */
