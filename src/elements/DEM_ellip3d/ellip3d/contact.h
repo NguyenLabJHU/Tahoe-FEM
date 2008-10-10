@@ -70,6 +70,8 @@ public:
     void checkoutTgt(std::vector<cnttgt>& CntTgtVec);
     void checkinPreTgt(std::vector<cnttgt>& CntTgtVec);
     void print() const;
+    vec NormalForceVec() const {return NormalForce;}
+    vec TgtForceVec() const {return TgtForce;}
     
  private:
     T*   p1;                     // particle 1

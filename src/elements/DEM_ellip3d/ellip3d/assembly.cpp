@@ -233,7 +233,11 @@ void assembly::printCntct(char* str) const
     ofs<<"    ptcl_1     ptcl_2     point1_x        point1_y        point1_z        "
        <<"point2_x       point2_y        point2_z         radius_1        radius_2      "
        <<"penetration    tangt_dispmt     contact_radius       R0              E0         "
-       <<"normal_force     tangt_force"<<endl;
+       <<"normal_force     tangt_force"
+       <<"         x0              y0              z0     "
+       <<"         n1              n2              n3     "
+       <<"         t1              t2              t3"
+       <<endl;
     list<CONTACT>::const_iterator it;
     for (it=ContactList.begin();it!=ContactList.end();++it)
 	ofs<<setw(10)<<(*it).getP1()->getID()
@@ -253,6 +257,15 @@ void assembly::printCntct(char* str) const
 	   <<setw(16)<<(*it).getE0()
 	   <<setw(16)<<(*it).getNormalForce()
 	   <<setw(16)<<(*it).getTgtForce()
+	   <<setw(16)<<( (*it).getPoint1().getx()+(*it).getPoint2().getx() )/2
+	   <<setw(16)<<( (*it).getPoint1().gety()+(*it).getPoint2().gety() )/2
+	   <<setw(16)<<( (*it).getPoint1().getz()+(*it).getPoint2().getz() )/2
+	   <<setw(16)<<(*it).NormalForceVec().getx()
+	   <<setw(16)<<(*it).NormalForceVec().gety()
+	   <<setw(16)<<(*it).NormalForceVec().getz()
+	   <<setw(16)<<(*it).TgtForceVec().getx()
+	   <<setw(16)<<(*it).TgtForceVec().gety()
+	   <<setw(16)<<(*it).TgtForceVec().getz()
 	   <<endl;
     ofs.close();
 }
@@ -3114,6 +3127,7 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 8. loop break condition
+/*
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
@@ -3174,6 +3188,7 @@ void assembly::isotropic(int   total_steps,
 	    break;
 	}
 	
+*/
     } while (++g_iteration < total_steps);
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
