@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.136 2008-07-14 17:43:16 lxmota Exp $ */
+/* $Id: ElementListT.cpp,v 1.137 2008-10-15 19:12:02 bcyansfn Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -65,7 +65,7 @@
 #include "SS_SCNIMF_AxiT.h"
 #include "FS_SCNIMF_AxiT.h"
 #include "UpLagr_ExternalFieldT.h"
-#include "FSPiezoElectricSolidT.h"
+//#include "FSPiezoElectricSolidT.h"
 #ifdef SIMPLE_SOLID_DEV
 #include "TotalLagrangianFlatT.h"
 #endif
@@ -589,8 +589,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new SS_SCNIMF_AxiT(fSupport);
 	else if (name == "fd_mfparticle_axi")
 	  return new FS_SCNIMF_AxiT(fSupport);
-  else if (name == "piezoelectric")
-    return new FSPiezoElectricSolidT(fSupport);
+//  else if (name == "piezoelectric")
+//    return new FSPiezoElectricSolidT(fSupport);
 
 #ifdef BRIDGING_ELEMENT
 	else if (name == "bridging")
