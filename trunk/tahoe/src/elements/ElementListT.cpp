@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.137 2008-10-15 19:12:02 bcyansfn Exp $ */
+/* $Id: ElementListT.cpp,v 1.138 2008-10-22 17:32:37 bcyansfn Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -338,7 +338,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("fd_mfparticle");
 		sub_lists.AddSub("ss_mfparticle_axi");
 		sub_lists.AddSub("fd_mfparticle_axi");
-    sub_lists.AddSub("piezoelectric");
+//    sub_lists.AddSub("piezoelectric");
 
 #ifdef BRIDGING_ELEMENT
 		sub_lists.AddSub("bridging");
