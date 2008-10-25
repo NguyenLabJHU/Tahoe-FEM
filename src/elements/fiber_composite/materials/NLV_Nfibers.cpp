@@ -1,4 +1,4 @@
-/* $Id: NLV_Nfibers.cpp,v 1.1 2008-09-25 13:32:32 thao Exp $ */
+/* $Id: NLV_Nfibers.cpp,v 1.2 2008-10-25 20:44:53 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "NLV_Nfibers.h"
@@ -216,7 +216,7 @@ void NLV_Nfibers::DefineSubs(SubListT& sub_list) const
 	FSFiberMatViscT::DefineSubs(sub_list);
 
 	/* choice of energy potential for fibrils */
-	sub_list.AddSub("fibers_params", ParameterListT::OnePlus);
+	sub_list.AddSub("nlv_fibers_params", ParameterListT::OnePlus);
 }
 
 
@@ -261,7 +261,7 @@ ParameterInterfaceT* NLV_Nfibers::NewSub(const StringT& name) const
 		return func;
 
 	/* inherited */
-	if (name == "fibers_params")
+	if (name == "nlv_fibers_params")
 	{
 		ParameterContainerT* fiber = new ParameterContainerT(name);
 //		fiber->SetListOrder(ParameterListT::Sequence);
@@ -335,7 +335,7 @@ void NLV_Nfibers::TakeParameterList(const ParameterListT& list)
 	fNumFibStress = dSymMatrixT::NumValues(fNumSD);
 	
 
-	int num_fibers = list.NumLists("fibers_params");
+	int num_fibers = list.NumLists("nlv_fibers_params");
 	fsame = false;
 	fsame = list.GetParameter("use_for_all_fibers");
 	if (fsame & num_fibers > 1)
@@ -344,7 +344,7 @@ void NLV_Nfibers::TakeParameterList(const ParameterListT& list)
 	
 	for (int i = 0; i< num_fibers; i++)
 	{
-		const ParameterListT& fiberlist = list.GetList("fibers_params",i);
+		const ParameterListT& fiberlist = list.GetList("nlv_fibers_params",i);
 		int num_fib_neq =  fiberlist.NumLists("neq_fiber_pot");
 		int num_fib_visc =  fiberlist.NumLists("fiber_visc_potential");
 		
@@ -367,7 +367,6 @@ void NLV_Nfibers::TakeParameterList(const ParameterListT& list)
 		if (!fPot_f(i,0)) throw ExceptionT::kOutOfMemory;
 		fPot_f(i,0)->TakeParameterList(fiber_pot);
 
-
 		for (int j = 0; j < fNumFibProcess; j++)
 		{
 			const ParameterListT& fiber_neq = fiberlist.GetListChoice(*this, "neq_fiber_pot",j);
@@ -379,18 +378,18 @@ void NLV_Nfibers::TakeParameterList(const ParameterListT& list)
 				fPot_f(i,j+1) = new FungType2;
 			else 
 				ExceptionT::GeneralFail(caller, "no such potential");
-			if (!fPot_f(j,i+1)) throw ExceptionT::kOutOfMemory;
+			if (!fPot_f(i,j+1)) throw ExceptionT::kOutOfMemory;
 			fPot_f(i,j+1)->TakeParameterList(fiber_neq);
 
 			const ParameterListT& fiber_visc = fiberlist.GetListChoice(*this, "fiber_visc_potential", j);
 			if (fiber_visc.Name() == "linear_exponential")
-				fVisc_f(j,i) = new LinearExponentialT;
+				fVisc_f(i,j) = new LinearExponentialT;
 			else if (fiber_visc.Name() == "scaled-csch")
-				fVisc_f(j,i) = new ScaledCsch;
+				fVisc_f(i,j) = new ScaledCsch;
 			else 
 				ExceptionT::GeneralFail(caller, "no such potential");
-			if (!fVisc_f(j,i)) throw ExceptionT::kOutOfMemory;
-			fVisc_f(j,i)->TakeParameterList(fiber_visc);
+			if (!fVisc_f(i,j)) throw ExceptionT::kOutOfMemory;
+			fVisc_f(i,j)->TakeParameterList(fiber_visc);
 		}
 	}
 	

@@ -1,4 +1,4 @@
-/* $Id: QLV_Nfibers.cpp,v 1.1 2008-09-25 13:32:32 thao Exp $ */
+/* $Id: QLV_Nfibers.cpp,v 1.2 2008-10-25 20:44:53 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "QLV_Nfibers.h"
@@ -384,7 +384,7 @@ void QLV_Nfibers::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("matrix_relax_time", ParameterListT::Any);
 
 	/* choice of energy potential for fibrils */
-	sub_list.AddSub("fibers_params", ParameterListT::OnePlus);
+	sub_list.AddSub("qlv_fibers_params", ParameterListT::OnePlus);
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -454,7 +454,7 @@ ParameterInterfaceT* QLV_Nfibers::NewSub(const StringT& name) const
 		return(tau_m);
 	}
 	/* inherited */
-	else if (name == "fibers_params")
+	else if (name == "qlv_fibers_params")
 	{
 		ParameterContainerT* fiber = new ParameterContainerT(name);
 //		fiber->SetListOrder(ParameterListT::Sequence);
@@ -522,7 +522,7 @@ void QLV_Nfibers::TakeParameterList(const ParameterListT& list)
 	fNumFibStress = dSymMatrixT::NumValues(fNumSD);
 	
 
-	int num_fibers = list.NumLists("fibers_params");
+	int num_fibers = list.NumLists("qlv_fibers_params");
 	fsame = false;
 	fsame = list.GetParameter("use_for_all_fibers");
 	if (fsame & num_fibers > 1)
@@ -531,7 +531,7 @@ void QLV_Nfibers::TakeParameterList(const ParameterListT& list)
 	
 	for (int i = 0; i< num_fibers; i++)
 	{
-		const ParameterListT& fiberlist = list.GetList("fibers_params",i);
+		const ParameterListT& fiberlist = list.GetList("qlv_fibers_params",i);
 		int num_fib_neq =  fiberlist.NumLists("neq_fiber_pot");
 		int num_fib_visc =  fiberlist.NumLists("fiber_relax_time");
 		

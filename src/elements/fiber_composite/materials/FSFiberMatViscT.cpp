@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.cpp,v 1.10 2008-09-25 13:30:13 thao Exp $ */
+/* $Id: FSFiberMatViscT.cpp,v 1.11 2008-10-25 20:44:53 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatViscT.h"
 #include "FSFiberMatSupportT.h"
@@ -53,17 +53,7 @@ const dMatrixT& FSFiberMatViscT::C_IJKL(void)
 	
 	/*equilibrium contribution*/
 	/*calculate eq. matrix contribution*/
-	ComputeMatrixMod(fC, fStress, fModulus);
-
-	/*	if (0)
-	{
-		cout << "\nelem: "<<elem<<"\tip: "<<ip;
-		cout << "\nQ: "<<GetRotation();
-		cout << "\nfC: "<<fC;
-		cout<< "\nFiberStretch: "<<fFiberStretch;
-		cout <<"\nMatrixMod: "<<fModulus;
-	}
-	*/
+	ComputeMatrixMod(fC, fStress, fModulus);	
 
 	/* eq. fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
@@ -200,6 +190,15 @@ if (fNumMatProcess + fNumFibProcess > 0)
 		}
 	}
 }
+		if (0)
+	{
+		cout << "\nelem: "<<CurrElementNumber()<<"\tip: "<<CurrIP();
+//		cout << "\nQ: "<<GetRotation();
+		cout << "\nfC: "<<fC;
+		cout << "\nS: "<<fStress;
+//		cout<< "\nFiberStretch: "<<fFiberStretch;
+//		cout <<"\nMatrixMod: "<<fModulus;
+	}
 	return(fStress);
 }
 
