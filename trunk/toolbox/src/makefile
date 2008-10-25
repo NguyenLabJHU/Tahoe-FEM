@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2008-07-14 18:17:25 lxmota Exp $
+# $Id: makefile,v 1.13 2008-10-25 19:47:59 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -62,6 +62,7 @@ SUB_DIR = \
 	common \
 	linkedlist \
 	abc \
+	bessel \
 	geometry \
 	fstreamT \
 	console \
