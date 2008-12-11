@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.11 2005-07-14 00:51:09 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.12 2008-12-11 01:48:00 lxmota Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -81,22 +81,24 @@ public:
 	/** apply pre-conditions at the current time step. Called once for
 	 * the model at the beginning of a time increment */
 	virtual void InitStep(void);
+	virtual void BeginStep(iArrayT& iv, dArrayT& dv, int nip, int ip) {};
 
-	/** finalize the current time step. Called once for the model at 
+	/** finalize the current time step. Called once for the model at
 	 * the end of a time increment */
 	virtual void CloseStep(void);
+  virtual void EndStep(iArrayT& iv, dArrayT& dv, int nip, int ip) {};
 
 	/** \name history variables */
 	/*@{*/
 	/** return true if the material has history variables.
 	 * \return false by default. */
 	virtual bool HasHistory(void) const { return false; };
-	
+
 	/** return true if model needs ContinuumMaterialT::PointInitialize
 	 * to be called for every integration point of every element as
 	 * part of the model initialization. \return false by default. */
 	virtual bool NeedsPointInitialization(void) const;
-	
+
 	/** model initialization. Called per integration point for every
 	 * element using the model. Deformation variables are available
 	 * during this call. */
@@ -106,13 +108,18 @@ public:
 	 * elements using the model, hence no deformation variables are
 	 * available during this call. */
 	virtual void UpdateHistory(void);
+  virtual void UpdateHistory(iArrayT& iv, dArrayT& dv, int nip, int ip) {};
 
 	/** restore internal variables to their state at the beginning of
 	 * the current time increment. Called once per element for all
 	 * elements using the model, hence no deformation variables are
 	 * available during this call. */
 	virtual void ResetHistory(void);
+  virtual void ResetHistory(iArrayT& iv, dArrayT& dv, int nip, int ip) {};
 	/*@}*/
+
+  virtual iArrayT InitialIntegerData() const { return iArrayT(); };
+  virtual dArrayT InitialDoubleData() const { return dArrayT(); };
 
 	/** \name material output variables */
 	/*@{*/
@@ -132,7 +139,7 @@ public:
 	 *        with length ContinuumMaterialT::NumOutputVariables */
 	virtual void OutputLabels(Tahoe::ArrayT<StringT>& labels) const;
 
-	/** return material output variables. Used by the host element group 
+	/** return material output variables. Used by the host element group
 	 * in conjunction with ContinuumMaterialT::NumOutputVariables and
 	 * ContinuumMaterialT::OutputLabels to collect model variables
 	 * for output. Called per integration point. Deformation variables
@@ -147,18 +154,18 @@ public:
 	 * requesting model-specific, materials output. */
 	static bool CompatibleOutput(const ContinuumMaterialT& m1, const ContinuumMaterialT& m2);
 	/*@}*/
-	
+
 protected:
 
 	/** support from the host code */
 	const MaterialSupportT* fMaterialSupport;
-	
+
 	/** number of degrees of freedom */
 	int fNumDOF;
 
 	/** number of degrees of spatial dimensions */
 	int fNumSD;
-	
+
 	/** number of integration points */
 	int fNumIP;
 };
@@ -169,20 +176,20 @@ inline int ContinuumMaterialT::NumSD(void) const { return fNumSD; }
 inline int ContinuumMaterialT::NumIP(void) const { return fNumIP; }
 
 inline const MaterialSupportT& ContinuumMaterialT::MaterialSupport(void) const
-{ 
+{
 #if __option(extended_errorcheck)
 	if (!fMaterialSupport)
 		ExceptionT::GeneralFail("ContinuumMaterialT::MaterialSupport", "material support not set");
 #endif
-	return *fMaterialSupport; 
+	return *fMaterialSupport;
 }
 
 inline int ContinuumMaterialT::CurrIP(void) const { return MaterialSupport().CurrIP(); };
 
-inline const ContinuumElementT& ContinuumMaterialT::ContinuumElement(void) const { 
-	return *(MaterialSupport().ContinuumElement()); 
+inline const ContinuumElementT& ContinuumMaterialT::ContinuumElement(void) const {
+	return *(MaterialSupport().ContinuumElement());
 }
 
-} // namespace Tahoe 
+} // namespace Tahoe
 
 #endif /* _CONTINUUM_MATERIAL_T_H_ */
