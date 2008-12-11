@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.31 2005-03-16 10:20:10 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.32 2008-12-11 19:09:29 lxmota Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -22,7 +22,7 @@ class StringT;
 class SolidElementT: public ContinuumElementT
 {
 public:
-	
+
 	/** list/index of nodal outputs */
 	enum NodalOutputCodeT {
 		iNodalCoord = 0, /**< (reference) coordinates */
@@ -32,9 +32,13 @@ public:
      iEnergyDensity = 4, /**< extrapolated strain energy density */
         iWaveSpeeds = 5, /**< extrapolated local wave speeds */
       iMaterialData = 6, /**< extrapolated model output */
-    iPoyntingVector = 7  /**< extrapolated Poynting vector */
+    iPoyntingVector = 7,  /**< extrapolated Poynting vector */
+     ND_ELEC_POT = 8,
+     ND_DIV_POT  = 9,
+     ND_ELEC_DISP = 10,
+     ND_ELEC_FLD  = 11,
 		};
-	
+
 	/** list/index of element outputs */
 	enum ElementOutputCodeT {
 	      iCentroid = 0, /**< (reference) centroid coordinates */
@@ -43,8 +47,10 @@ public:
 	 iKineticEnergy = 3, /**< integrated kinetic energy */
     iLinearMomentum = 4, /**< integrated linear momentum */
           iIPStress = 5, /**< integration point stresses */
-    iIPMaterialData = 6  /**< integration point material model output */
-      	};
+    iIPMaterialData = 6,  /**< integration point material model output */
+    IP_ELEC_DISP = 7,
+    IP_ELEC_FLD = 8
+	};
 
 	/** constructor */
 	SolidElementT(const ElementSupportT& support);
@@ -65,7 +71,7 @@ public:
 	/** nodal temperatures. Returns NULL if not available */
 	const LocalArrayT* Temperatures(void) const { return fLocTemp; };
 
-	/** nodal temperatures from the last time step. Returns NULL if 
+	/** nodal temperatures from the last time step. Returns NULL if
 	 * not available */
 	const LocalArrayT* LastTemperatures(void) const { return fLocTemp_last; };
 	/*@}*/
@@ -76,7 +82,7 @@ public:
 	/* solution calls */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 	virtual void AddLinearMomentum(dArrayT& momentum);
-	
+
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);
 
@@ -87,7 +93,7 @@ public:
 	void SetStoreInternalForce(bool do_store) { fStoreInternalForce = do_store; };
 
 	/** contribution to the nodal residual forces. Return the contribution of this element
-	 * group to the residual for the given solver group. ParticleT::InternalForce 
+	 * group to the residual for the given solver group. ParticleT::InternalForce
 	 * returns the internal force calculated with the latest call to ElementBaseT::FormRHS. */
 	virtual const dArray2DT& InternalForce(int group);
 
@@ -110,7 +116,7 @@ public:
 	/** cast this to SolidElementT* */
 	virtual SolidElementT* dynamic_cast_SolidElementT(void) { return this; };
 #endif
-	
+
 protected:
 
 	/** estimate the largest eigenvalue */
@@ -144,11 +150,11 @@ protected:
 	void Set_B_axi(const dArrayT& shapes, const dArray2DT& derivatives, double r, dMatrixT& B) const;
 
 	/** set B-bar as given by Hughes (4.5.11-16) */
-	void Set_B_bar(const dArray2DT& derivatives, const dArray2DT& mean_gradient, 
+	void Set_B_bar(const dArray2DT& derivatives, const dArray2DT& mean_gradient,
 		dMatrixT& B) const;
 
 	/** set B-bar for axisymmetric deformations */
-	void Set_B_bar_axi(const dArrayT& shapes, const dArray2DT& derivatives, const dArray2DT& mean_gradient, 
+	void Set_B_bar_axi(const dArrayT& shapes, const dArray2DT& derivatives, const dArray2DT& mean_gradient,
 		double r, dMatrixT& B) const;
 
 	/** \name construct the effective mass matrix */
@@ -164,8 +170,8 @@ protected:
 	/*@}*/
 
 	/** increment current element */
-	virtual bool NextElement(void);	
-	
+	virtual bool NextElement(void);
+
 	/** form the element stiffness matrix
 	 * Compute the linearization of the force calculated by SolidElementT::FormKd */
 	virtual void FormStiffness(double constK) = 0;
@@ -179,7 +185,7 @@ protected:
 	/** driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	                           const iArrayT& e_codes, dArray2DT& e_values);
-	
+
 	/** indicies of elements in the list of material needs */
 	enum MaterialNeedsT {kNeedDisp = 0,
 	                     kNeedVel  = 1,
@@ -191,25 +197,25 @@ protected:
 		iArrayT& counts) const;
 	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const;
-	virtual void GenerateOutputLabels(const iArrayT& n_counts, ArrayT<StringT>& n_labels, 
+	virtual void GenerateOutputLabels(const iArrayT& n_counts, ArrayT<StringT>& n_labels,
 		const iArrayT& e_counts, ArrayT<StringT>& e_labels) const;
 	/*@}*/
 
 protected:
 
 	/** mass type */
-	MassTypeT fMassType;	
+	MassTypeT fMassType;
 
 	/** propagation direction for output of wave speeds */
 	dArrayT fNormal;
-	
+
 	/** steady state speed, along the x-axis, for calculation of Poynting vector */
 	double fv_ss;
 
 	/** mass density
 	 * The contents of the array depends on how the constitutive models respond to
-	 * SolidMaterialT::HasChangingDensity. If they return true, this array will be 
-	 * dimensioned to the number of integration points which can then be used to store 
+	 * SolidMaterialT::HasChangingDensity. If they return true, this array will be
+	 * dimensioned to the number of integration points which can then be used to store
 	 * the varying density of the material. Otherwise, this array will be empty. */
 	dArrayT fDensity;
 
@@ -235,10 +241,10 @@ protected:
 	dArrayT fElementHeat; /**< destination for heat generation. If not length nip, heat not needed */
 	dMatrixT fD; /**< constitutive matrix */
 	dMatrixT fB; /**< strain-displacement matrix */
-	dSymMatrixT fStress; /**< stress vector */	
+	dSymMatrixT fStress; /**< stress vector */
 	/*@}*/
-	
-	/** \name total force 
+
+	/** \name total force
 	 * Storage for the internal force calculated by this element group. */
 	/*@{*/
 	bool fStoreInternalForce;
@@ -251,7 +257,7 @@ protected:
 
 	/* flags for stress smoothing */
 	bool qUseSimo, qNoExtrap;
-	
+
 	/** eigenvalue estimation increment */
 	int fEigenvalueInc;
 };
@@ -261,5 +267,5 @@ inline const LocalArrayT& SolidElementT::LastDisplacements(void) const { return 
 inline const LocalArrayT& SolidElementT::Velocities(void) const { return fLocVel; }
 inline const LocalArrayT& SolidElementT::Accelerations(void) const { return fLocAcc; }
 
-} // namespace Tahoe 
+} // namespace Tahoe
 #endif /* _ELASTIC_T_H_ */
