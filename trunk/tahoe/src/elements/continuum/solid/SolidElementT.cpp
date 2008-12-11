@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.78 2007-10-09 23:17:43 r-jones Exp $ */
+/* $Id: SolidElementT.cpp,v 1.79 2008-12-11 19:10:46 lxmota Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -33,7 +33,7 @@
 using namespace Tahoe;
 
 /* initialize static data */
-const int SolidElementT::NumNodalOutputCodes = 8;
+const int SolidElementT::NumNodalOutputCodes = 12;
 static const char* NodalOutputNames[] = {
 	"coordinates",
 	"displacements",
@@ -42,9 +42,13 @@ static const char* NodalOutputNames[] = {
 	"strain_energy_density",
 	"wave_speeds",
 	"material_output",
-	"Poynting_vector"};
+	"Poynting_vector",
+	"electric_vector_potential",
+	"divergence_vector_potential",
+	"electric_displacement",
+	"electric_field"};
 
-const int SolidElementT::NumElementOutputCodes = 7;
+const int SolidElementT::NumElementOutputCodes = 9;
 static const char* ElementOutputNames[] = {
 	"centroid",
 	"mass",
@@ -52,7 +56,9 @@ static const char* ElementOutputNames[] = {
 	"kinetic_energy",
 	"linear_momentum",
 	"stress",
-	"material_output"};
+	"material_output",
+	"electric_displacement",
+	"electric_field"};
 
 /* constructor */
 SolidElementT::SolidElementT(const ElementSupportT& support):
@@ -83,7 +89,7 @@ void SolidElementT::CloseStep(void)
 {
 	/* inherited */
 	ContinuumElementT::CloseStep();
-	
+
 	/* check eigenvalue */
 	if (fEigenvalueInc > 0 && ElementSupport().StepNumber() % fEigenvalueInc == 0)
 	{
@@ -108,7 +114,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	/* set components and weights */
 	double constMa = 0.0;
 	double constKd = 0.0;
-	
+
 	/* components dicated by the algorithm */
 	int formMa = fIntegrator->FormMa(constMa);
 	int formKd = fIntegrator->FormKd(constKd);
@@ -117,17 +123,17 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	int formBody = 0;
 	if (fMassType != kNoMass &&
 	   (fBodySchedule && fBody.Magnitude() > kSmall))
-	{	
+	{
 		formBody = 1;
 		if (!formMa) constMa = 1.0; /* override */
 	}
 
 	/* override controller */
 	if (fMassType == kNoMass) formMa = 0;
-	
+
 	/* temp for nodal force */
 	dArrayT nodalforce;
-	
+
 	bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
@@ -142,7 +148,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			/* global shape function values */
 			SetGlobalShape();
 
-			/* internal force contribution */	
+			/* internal force contribution */
 			if (formKd) FormKd(constKd);
 
 			/* inertia forces */
@@ -151,12 +157,12 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				/* nodal accelerations */
 				if (formMa)
 					SetLocalU(fLocAcc);
-				else 
+				else
 					fLocAcc = 0.0;
-			
+
 				/* body force contribution */
 				if (formBody) AddBodyForce(fLocAcc);
-				
+
 				/* calculate inertial forces */
 				if (!fCurrMaterial->HasChangingDensity())
 					FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
@@ -179,7 +185,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				{
 					/* components for node */
 					nodalforce.Set(NumDOF(), fRHS.Pointer(dex));
-	
+
 					/* accumulate */
 					force += nodalforce;
 				}
@@ -193,24 +199,24 @@ void SolidElementT::AddLinearMomentum(dArrayT& momentum)
 {
 	/* check */
 	if (momentum.Length() != NumDOF()) throw ExceptionT::kSizeMismatch;
-		
+
 	/* loop over elements */
 	Top();
 	while (NextElement())
 	{
 		/* global shape function derivatives, jacobians, local coords */
 		SetGlobalShape();
-		
+
 		/* get velocities */
 		SetLocalU(fLocVel);
 
 		/* integration */
 		const double* Det    = fShapes->IPDets();
 		const double* Weight = fShapes->IPWeights();
-	
+
 		fShapes->TopIP();
 		while ( fShapes->NextIP() )
-		{					
+		{
 			/* density could change with position */
 			double density = fCurrMaterial->Density();
 
@@ -220,8 +226,8 @@ void SolidElementT::AddLinearMomentum(dArrayT& momentum)
 			fShapes->InterpolateU(fLocVel, fDOFvec);
 
 			double* p    = momentum.Pointer();
-			double* pvel = fDOFvec.Pointer();					
-			for (int dof = 0; dof < NumDOF(); dof++)			
+			double* pvel = fDOFvec.Pointer();
+			for (int dof = 0; dof < NumDOF(); dof++)
 				*p++ += temp*(*pvel++);
 		}
 	}
@@ -246,7 +252,7 @@ double SolidElementT::InternalEnergy(void)
 		while ( fShapes->NextIP() )
 			energy += fCurrMaterial->StrainEnergyDensity()*(*Det++)*(*Weight++);
 	}
-	
+
 	return energy;
 }
 
@@ -274,8 +280,20 @@ void SolidElementT::SendOutput(int kincode)
 		case iMaterialData:
 			flags[iMaterialData] = 1;
 			break;
+		case ND_ELEC_POT:
+		  flags[ND_ELEC_POT] = 1;
+		  break;
+    case ND_DIV_POT:
+      flags[ND_DIV_POT] = 1;
+      break;
+    case ND_ELEC_DISP:
+      flags[ND_ELEC_DISP] = 1;
+      break;
+    case ND_ELEC_FLD:
+      flags[ND_ELEC_FLD] = 1;
+      break;
 		default:
-			cout << "\n SolidElementT::SendOutput: invalid output code: " 
+			cout << "\n SolidElementT::SendOutput: invalid output code: "
 			     << kincode << endl;
 	}
 
@@ -285,7 +303,7 @@ void SolidElementT::SendOutput(int kincode)
 
 	/* reset averaging workspace */
 	ElementSupport().ResetAverage(n_counts.Sum());
-      
+
 	/* no element output */
 	iArrayT e_counts(fElementOutputCodes.Length());
 	e_counts = 0;
@@ -302,13 +320,13 @@ const dArray2DT& SolidElementT::InternalForce(int group)
 
 	/* check */
 	if (group != Group())
-		ExceptionT::GeneralFail(caller, "expecting solver group %d not %d", 
+		ExceptionT::GeneralFail(caller, "expecting solver group %d not %d",
 			Group(), group);
-			
+
 	/* must be storing force */
 	if (!fStoreInternalForce)
 		ExceptionT::GeneralFail(caller, "internal force not being stored");
-			
+
 	return fForce;
 }
 
@@ -326,7 +344,7 @@ void SolidElementT::DefineParameters(ParameterListT& list) const
     mass_type.AddEnumeration("lumped_mass", kLumpedMass);
     mass_type.SetDefault(fMassType);
 	list.AddParameter(mass_type);
-	
+
 	/* eigenvalue estimation increment */
 	ParameterT eig_inc(fEigenvalueInc, "eigenvalue_inc");
 	eig_inc.SetDefault(fEigenvalueInc);
@@ -351,7 +369,7 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& name) const
 	if (name == "solid_element_nodal_output")
 	{
 		ParameterContainerT* node_output = new ParameterContainerT(name);
-		
+
 		/* wave speed sampling direction */
 		ParameterContainerT wave_direction("wave_direction");
 		wave_direction.SetListOrder(ParameterListT::Choice);
@@ -361,7 +379,7 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& name) const
 
 		/* steady-state speed for calculating Poynting vector */
 		node_output->AddParameter(ParameterT::Double, "v1_ss", ParameterListT::ZeroOrOnce);
-		
+
 		/* all false by default */
 		for (int i = 0; i < NumNodalOutputCodes; i++) {
 			ParameterT output(ParameterT::Integer, NodalOutputNames[i]);
@@ -374,7 +392,7 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& name) const
 	else if (name == "solid_element_element_output")
 	{
 		ParameterContainerT* element_output = new ParameterContainerT(name);
-		
+
 		/* all false by default */
 		for (int i = 0; i < NumElementOutputCodes; i++) {
 			ParameterT output(ParameterT::Integer, ElementOutputNames[i]);
@@ -382,7 +400,7 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& name) const
 			element_output->AddParameter(output, ParameterListT::ZeroOrOnce);
 		}
 
-		return element_output;	
+		return element_output;
 	}
 	else /* inherited */
 		return ContinuumElementT::NewSub(name);
@@ -416,20 +434,20 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 		else
 			fMassType = kLumpedMass;
 	}
-	
+
 	/* eigenvalue output increment */
 	fEigenvalueInc = list.GetParameter("eigenvalue_inc");
 
 	/* allocate work space */
 	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
 	fD.Dimension(dSymMatrixT::NumValues(NumSD()));
-	
+
 	/* nodal output codes */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
 	fNodalOutputCodes = IOBaseT::kAtNever;
-	qUseSimo = qNoExtrap = false;	
+	qUseSimo = qNoExtrap = false;
 	const ParameterListT* node_output = list.List("solid_element_nodal_output");
-	if (node_output) 
+	if (node_output)
 	{
 		/* set flags */
 		for (int i = 0; i < NumNodalOutputCodes; i++)
@@ -452,7 +470,7 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	    			fNodalOutputCodes[i] = IOBaseT::kAtInc;
 			}
 		}
-	
+
 		/* wave speed sampling direction */
 		if (fNodalOutputCodes[iWaveSpeeds])
 		{
@@ -460,14 +478,14 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 			ParameterInterfaceT* n_output = NewSub(node_output->Name());
 			const ParameterListT& vec_params = node_output->GetListChoice(*n_output, "wave_direction");
 			delete n_output;
-			
+
 			/* extract unit vector */
 			VectorParameterT::Extract(vec_params, fNormal);
 			if (fNormal.Length() != NumSD()) ExceptionT::GeneralFail(caller, "expecting normal length %d not %d",
 				NumSD(), fNormal.Length());
 			fNormal.UnitVector();
 		}
-		
+
 		/* steady state crack speed */
 		if (fNodalOutputCodes[iPoyntingVector])
 		{
@@ -513,14 +531,14 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 		needs[kNeedDisp] = mat->NeedDisp();
 		needs[kNeedVel] = mat->NeedVel();
 		needs[KNeedLastDisp] = mat->NeedLastDisp();
-		
+
 		/* changing density */
-		if (mat->HasChangingDensity()) 
+		if (mat->HasChangingDensity())
 			changing_density = true;
 		else /* constant density */
 			constant_density = true;
 	}
-	
+
 	/* all must be the same */
 	if (changing_density == constant_density)
 		ExceptionT::GeneralFail(caller, "cannot mix materials with constant/changing density");
@@ -539,7 +557,7 @@ double SolidElementT::MaxEigenvalue(void)
 
 	/* set up K */
 	CCSMatrixT K(ElementSupport().Output(), CCSMatrixT::kNoCheck, ElementSupport().Communicator());
-	
+
 	/* collection equation numbers */
 	AutoArrayT<const iArray2DT*> eq_1;
 	AutoArrayT<const RaggedArray2DT<int>*> eq_2;
@@ -551,7 +569,7 @@ double SolidElementT::MaxEigenvalue(void)
 	int num_eq = ElementSupport().NodeManager().NumEquations(Group());
 	K.Initialize(num_eq, num_eq, 1);
 	K.Clear();
-	
+
 	/* mass matrix */
 	dArrayT M(num_eq);
 	M = 0.0;
@@ -564,13 +582,13 @@ double SolidElementT::MaxEigenvalue(void)
 		{
 			/* element equations */
 			const iArrayT& eqs = CurrentElement().Equations();
-		
+
 			/* set shape function derivatives */
 			SetGlobalShape();
 
 			/* assemble element stiffness */
 			fLHS = 0.0;
-			FormStiffness(1.0);	
+			FormStiffness(1.0);
 			K.Assemble(fLHS, eqs);
 
 			/* assemble element mass */
@@ -582,7 +600,7 @@ double SolidElementT::MaxEigenvalue(void)
 				/* collect densities */
 				fShapes->TopIP();
 				while (fShapes->NextIP())
-					fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();			
+					fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();
 				FormMass(fMassType, 1.0, axisymmetric, fDensity.Pointer());
 			}
 			for (int i = 0; i < eqs.Length(); i++)
@@ -634,6 +652,23 @@ void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
 		counts[iMaterialData] = (*fMaterialList)[0]->NumOutputVariables();
 	if (flags[iPoyntingVector] == mode)
 		counts[iPoyntingVector] = NumSD();
+
+	if (flags[ND_ELEC_POT] == mode) {
+    counts[ND_ELEC_POT] = NumSD();
+  }
+
+  if (flags[ND_DIV_POT] == mode) {
+    counts[ND_DIV_POT] = 1;
+  }
+
+  if (flags[ND_ELEC_DISP] == mode) {
+    counts[ND_ELEC_DISP] = NumSD();
+  }
+
+  if (flags[ND_ELEC_FLD] == mode) {
+    counts[ND_ELEC_FLD] = NumSD();
+  }
+
 }
 
 void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
@@ -650,8 +685,17 @@ void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArra
 	if (fElementOutputCodes[iKineticEnergy] == mode) counts[iKineticEnergy] = 1;
 	if (fElementOutputCodes[iLinearMomentum] == mode) counts[iLinearMomentum] = NumDOF();
 	if (fElementOutputCodes[iIPStress] == mode) counts[iIPStress] = 2*fB.Rows()*NumIP();
-	if (fElementOutputCodes[iIPMaterialData] == mode) 
+	if (fElementOutputCodes[iIPMaterialData] == mode)
 		counts[iIPMaterialData] = (*fMaterialList)[0]->NumOutputVariables()*NumIP();
+
+	if (fElementOutputCodes[IP_ELEC_DISP] == mode) {
+    counts[IP_ELEC_DISP] = NumIP() * NumSD();
+  }
+
+  if (fElementOutputCodes[IP_ELEC_FLD] == mode) {
+    counts[IP_ELEC_FLD] = NumIP() * NumSD();
+  }
+
 }
 
 /* initialize local arrays */
@@ -677,7 +721,7 @@ void SolidElementT::SetLocalArrays(void)
 	/* look for a temperature field */
 	const FieldT* temperature = ElementSupport().Field("temperature");
 	if (temperature) {
-	
+
 		/* construct */
 		fLocTemp = new LocalArrayT(LocalArrayT::kDisp, nen, temperature->NumDOF());
 		fLocTemp_last = new LocalArrayT(LocalArrayT::kLastDisp, nen, temperature->NumDOF());
@@ -709,8 +753,8 @@ void SolidElementT::SetGlobalShape(void)
 	const ArrayT<bool>& needs = fMaterialNeeds[CurrentElement().MaterialNumber()];
 
 	/* material dependent local arrays */
-	if (needs[kNeedDisp])     SetLocalU(fLocDisp);	
-	if (needs[KNeedLastDisp]) SetLocalU(fLocLastDisp);	
+	if (needs[kNeedDisp])     SetLocalU(fLocDisp);
+	if (needs[KNeedLastDisp]) SetLocalU(fLocLastDisp);
 	if (needs[kNeedVel])
 	{
 		/* have velocity */
@@ -722,7 +766,7 @@ void SolidElementT::SetGlobalShape(void)
 			fLocVel.SetToCombination(onebydt, fLocDisp, -onebydt, fLocLastDisp);
 		}
 	}
-	
+
 	/* get nodal temperatures if available */
 	if (fLocTemp)SetLocalU(*fLocTemp);
 	if (fLocTemp_last) SetLocalU(*fLocTemp_last);
@@ -791,7 +835,7 @@ void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 		}
 	}
 	/* 3D */
-	else		
+	else
 	{
 		const double* pNax = DNa(0);
 		const double* pNay = DNa(1);
@@ -824,7 +868,7 @@ void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 }
 
 /* set the \e B matrix for axisymmetric deformations */
-void SolidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa, 
+void SolidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa,
 	double r, dMatrixT& B) const
 {
 #if __option(extended_errorcheck)
@@ -857,7 +901,7 @@ void SolidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa,
 }
 
 /* set B-bar as given by Hughes (4.5.11-16) */
-void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradient, 
+void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradient,
 	dMatrixT& B) const
 {
 #if __option(extended_errorcheck)
@@ -882,29 +926,29 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 	{
 		const double* pNax = DNa(0);
 		const double* pNay = DNa(1);
-			
+
 		const double* pBmx = mean_gradient(0);
 		const double* pBmy = mean_gradient(1);
-			
+
 		for (int i = 0; i < nnd; i++)
 		{
 			double factx = ((*pBmx++) - (*pNax))/3.0;
 			double facty = ((*pBmy++) - (*pNay))/3.0;
-			
+
 			/* Hughes (4.5.11-16) */
 			*pB++ = *pNax + factx;
 			*pB++ = factx;
 			*pB++ = *pNay;
-	
+
 			*pB++ = facty;
 			*pB++ = *pNay + facty;
 			*pB++ = *pNax;
-				
+
 			pNax++; pNay++;
 		}
 	}
 	/* 3D */
-	else		
+	else
 	{
 		const double* pNax = DNa(0);
 		const double* pNay = DNa(1);
@@ -913,7 +957,7 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 		const double* pBmx = mean_gradient(0);
 		const double* pBmy = mean_gradient(1);
 		const double* pBmz = mean_gradient(2);
-			
+
 		for (int i = 0; i < nnd; i++)
 		{
 			double factx = ((*pBmx++) - (*pNax))/3.0;
@@ -934,24 +978,24 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 			*pB++ = *pNaz;
 			*pB++ = 0.0;
 			*pB++ = *pNax;
-	
+
 			*pB++ = factz;
 			*pB++ = factz;
 			*pB++ = *pNaz + factz;
 			*pB++ = *pNay;
 			*pB++ = *pNax;
 			*pB++ = 0.0;
-				
+
 			pNax++; pNay++; pNaz++;
 		}
 	}
 }
 
-void SolidElementT::Set_B_bar_axi(const dArrayT& Na, const dArray2DT& DNa, const dArray2DT& mean_gradient, 
+void SolidElementT::Set_B_bar_axi(const dArrayT& Na, const dArray2DT& DNa, const dArray2DT& mean_gradient,
 	double r, dMatrixT& B) const
 {
 	const char caller[] = "SolidElementT::Set_B_bar_axi";
-	
+
 #if __option(extended_errorcheck)
 	if (B.Rows() != 4 || /* (number of stress 2D components) + 1 */
 	    B.Cols() != DNa.Length() ||
@@ -966,27 +1010,27 @@ void SolidElementT::Set_B_bar_axi(const dArrayT& Na, const dArray2DT& DNa, const
 	double* pB = B.Pointer();
 
 	const double* pNax = DNa(0);
-	const double* pNay = DNa(1);			
+	const double* pNay = DNa(1);
 	const double* pNa  = Na.Pointer();
 
 	const double* pBmx = mean_gradient(0);
-	const double* pBmy = mean_gradient(1);			
+	const double* pBmy = mean_gradient(1);
 	for (int i = 0; i < nnd; i++)
 	{
 		/* exchange volumetric part: b_bar_vol - b_vol */
 		double factx = ((*pBmx++) - (*pNax + *pNa/r))/3.0;
 		double facty = ((*pBmy++) - (*pNay))/3.0;
-			
+
 		*pB++ = *pNax + factx;
 		*pB++ = factx;
 		*pB++ = *pNay; /* shear */
 		*pB++ = *pNa/r + factx; /* about y-axis: u_r = u_x */
-	
+
 		*pB++ = facty;
 		*pB++ = *pNay + facty;
 		*pB++ = *pNax; /* shear */
 		*pB++ = facty;
-				
+
 		pNax++; pNay++; pNa++;
 	}
 }
@@ -1006,7 +1050,7 @@ void SolidElementT::ElementLHSDriver(void)
 	/* set components and weights */
 	double constM = 0.0;
 	double constK = 0.0;
-	
+
 	int formM = fIntegrator->FormM(constM);
 	int formK = fIntegrator->FormK(constK);
 
@@ -1026,10 +1070,10 @@ void SolidElementT::ElementLHSDriver(void)
 		{
 			double constKe = constK;
 			double constMe = constM;
-	
+
 			/* initialize */
 			fLHS = 0.0;
-		
+
 			/* set shape function derivatives */
 			SetGlobalShape();
 
@@ -1043,7 +1087,7 @@ void SolidElementT::ElementLHSDriver(void)
 					fShapes->TopIP();
 					while (fShapes->NextIP())
 						fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();
-				
+
 					FormMass(fMassType, constMe, axisymmetric, fDensity.Pointer());
 				}
 			}
@@ -1074,10 +1118,10 @@ void SolidElementT::ElementRHSDriver(void)
 
 	/* initialize sources */
 	if (temperature && fIncrementalHeat.Length() == 0) {
-	
+
 		/* allocate the element heat */
 		fElementHeat.Dimension(fShapes->NumIP());
-			
+
 		/* initialize heat source arrays */
 		fIncrementalHeat.Dimension(fBlockData.Length());
 		for (int i = 0; i < fIncrementalHeat.Length(); i++)
@@ -1089,18 +1133,18 @@ void SolidElementT::ElementRHSDriver(void)
 			temperature->RegisterSource(fBlockData[i].ID(), fIncrementalHeat[i]);
 		}
 	}
-	
+
 	/* storage for entire internal force */
 	if (fStoreInternalForce) {
 		fForce.Dimension(ElementSupport().NumNodes(), NumDOF());
-		fForce = 0.0;	
-	} else 
+		fForce = 0.0;
+	} else
 		fForce.Dimension(0, NumDOF());
 
 	/* set components and weights */
 	double constMa = 0.0;
 	double constKd = 0.0;
-	
+
 	/* components dicated by the algorithm */
 	int formMa = fIntegrator->FormMa(constMa);
 	int formKd = fIntegrator->FormKd(constKd);
@@ -1109,7 +1153,7 @@ void SolidElementT::ElementRHSDriver(void)
 	int formBody = 0;
 	if (fMassType != kNoMass &&
 	   (fBodySchedule && fBody.Magnitude() > kSmall))
-	{	
+	{
 		formBody = 1;
 		if (!formMa) constMa = 1.0; /* override */
 	}
@@ -1122,7 +1166,7 @@ void SolidElementT::ElementRHSDriver(void)
 	Top();
 	while (NextElement())
 	{
-		/* advance to block [skip empty blocks] */		
+		/* advance to block [skip empty blocks] */
 		while (block_count == fBlockData[block_dex].Dimension()) {
 			block_count = 0;
 			block_dex++;
@@ -1136,25 +1180,25 @@ void SolidElementT::ElementRHSDriver(void)
 			/* initialize */
 			fRHS = 0.0;
 			fElementHeat = 0.0;
-		
+
 			/* global shape function values */
 			SetGlobalShape();
-		
-			/* internal force contribution */	
+
+			/* internal force contribution */
 			if (formKd) FormKd(-constKd);
-				
+
 			/* inertia forces */
 			if (formMa || formBody)
 			{
 				/* nodal accelerations */
 				if (formMa)
 					SetLocalU(fLocAcc);
-				else 
+				else
 					fLocAcc = 0.0;
-			
+
 				/* body force contribution */
 				if (formBody) AddBodyForce(fLocAcc);
-		
+
 				if (!fCurrMaterial->HasChangingDensity())
 					FormMa(fMassType, -constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
 				else
@@ -1163,22 +1207,22 @@ void SolidElementT::ElementRHSDriver(void)
 					fShapes->TopIP();
 					while (fShapes->NextIP())
 						fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();
-				
+
 					FormMa(fMassType, -constMa, axisymmetric, &fLocAcc, NULL, fDensity.Pointer());
 				}
 			}
-		
+
 			/* store incremental heat */
 			if (temperature)
 				fIncrementalHeat[block_dex].SetRow(block_count, fElementHeat);
 
 			/* global assembly */
-			if (fStoreInternalForce) 
+			if (fStoreInternalForce)
 			{
 				double* pRHS = fRHS.Pointer();
 				int ndof = NumDOF();
 				const iArrayT& nodes_u = CurrentElement().NodesU();
-				for (int i = 0; i < nodes_u.Length(); i++) 
+				for (int i = 0; i < nodes_u.Length(); i++)
 				{
 					double* pForce = fForce(nodes_u[i]);
 					for (int j = 0; j < ndof; j++)
@@ -1188,11 +1232,11 @@ void SolidElementT::ElementRHSDriver(void)
 			else /* assemble element-by-element */
 				AssembleRHS();
 		}
-		
+
 		/* next block */
 		block_count++;
 	}
-	
+
 	/* assemble all at once */
 	if (fStoreInternalForce)
 		ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
@@ -1203,16 +1247,16 @@ bool SolidElementT::NextElement(void)
 {
 	/* inherited */
 	bool result = ContinuumElementT::NextElement();
-	
+
 	/* get material pointer */
 	if (result)
 	{
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[CurrentElement().MaterialNumber()];
-	
+
 		/* cast is safe since class contructs materials list */
 		fCurrMaterial = (SolidMaterialT*) pcont_mat;
 	}
-	
+
 	return result;
 }
 
@@ -1227,7 +1271,7 @@ GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 			mass_type = kConsistentMass;
 		else
 			mass_type = kLumpedMass;
-	}	
+	}
 
 	/* special case */
 	if (fIntegrator->Order() > 0 &&
@@ -1253,7 +1297,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	/* number of output values */
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();
-        
+
 	int n_simo, n_extrap;
 	if (qUseSimo) {
 		n_simo = n_out - n_codes[iNodalDisp] - n_codes[iNodalCoord];
@@ -1262,7 +1306,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		n_simo = 0;
 		n_extrap = n_out;
 	}
-            
+
 	/* nothing to output */
 	if (n_out == 0 && e_out == 0) return;
 
@@ -1286,7 +1330,6 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArray2DT nodalstress, princstress, matdat;
 	dArray2DT energy, speed;
 	dArray2DT Poynting;
-
 	/* ip values */
 	dSymMatrixT cauchy((nstrs != 4) ? nsd : dSymMatrixT::k3D_plane), nstr_tmp;
 	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
@@ -1314,35 +1357,28 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArray2DT simo_force;
 	dArray2DT simo_mass;
 	iArrayT simo_counts;
-        
-	if (!qUseSimo) 
-	{
-		nodalstress.Alias(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
-		princstress.Alias(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
-		energy.Alias(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
-		speed.Alias(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
-		matdat.Alias(nen, n_codes[iMaterialData], pall)    ; pall += matdat.Length();
-		Poynting.Alias(nen, n_codes[iPoyntingVector], pall);
-	}
-	else
-	{
-		simo_force.Dimension(ElementSupport().NumNodes(),qUseSimo ? n_simo : 0);
-		simo_mass.Dimension(ElementSupport().NumNodes(),qUseSimo ? 1 : 0);
-		simo_counts.Dimension(ElementSupport().NumNodes());
 
-		pall = simo_space.Pointer();
-		nodalstress.Alias(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
-		princstress.Alias(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
-		energy.Alias(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
-		speed.Alias(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
-		matdat.Alias(nen, n_codes[iMaterialData], pall)    ; pall += matdat.Length();
-		Poynting.Alias(nen, n_codes[iPoyntingVector], pall);
-
-		simo_mass = 0.;
-		simo_force = 0.;
-		simo_counts = 0;
+	if (qUseSimo) {
+	  simo_force.Dimension(ElementSupport().NumNodes(),qUseSimo ? n_simo : 0);
+    simo_mass.Dimension(ElementSupport().NumNodes(),qUseSimo ? 1 : 0);
+    simo_counts.Dimension(ElementSupport().NumNodes());
+    pall = simo_space.Pointer();
 	}
-        
+
+  nodalstress.Alias(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
+  princstress.Alias(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
+  energy.Alias(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
+  speed.Alias(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
+  matdat.Alias(nen, n_codes[iMaterialData], pall)    ; pall += matdat.Length();
+  Poynting.Alias(nen, n_codes[iPoyntingVector], pall); pall += Poynting.Length();
+
+  if (qUseSimo) {
+    simo_mass = 0.0;
+    simo_force = 0.0;
+    simo_counts = 0;
+  }
+
+
 	/* element work arrays */
 	dArrayT element_values(e_values.MinorDim());
 	pall = element_values.Pointer();
@@ -1354,7 +1390,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		ip_centroid.Dimension(nsd);
 	}
 	if (e_codes[iMass]) {
-		ip_mass.Alias(NumIP(), pall); 
+		ip_mass.Alias(NumIP(), pall);
 		pall += NumIP();
 	}
 	double w_tmp, ke_tmp;
@@ -1362,6 +1398,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	double& strain_energy = (e_codes[iStrainEnergy]) ? *pall++ : w_tmp;
 	double& kinetic_energy = (e_codes[iKineticEnergy]) ? *pall++ : ke_tmp;
 	dArrayT linear_momentum, ip_velocity;
+
 	if (e_codes[iLinearMomentum])
 	{
 		linear_momentum.Alias(ndof, pall); pall += ndof;
@@ -1418,7 +1455,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				else
 					NodalDOFs(CurrentElement().NodesX(), disp);
 			}
- 
+
 			/* initialize element values */
 			mass = strain_energy = kinetic_energy = 0;
 			if (e_codes[iCentroid]) centroid = 0.0;
@@ -1462,7 +1499,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				cauchy.Translate(stress);
 
 				/* stresses */
-				if (n_codes[iNodalStress]) {        
+				if (n_codes[iNodalStress]) {
 					if (qNoExtrap)
 						for (int k = 0; k < nen; k++)
 							nodalstress.AddToRowScaled(k,Na_X_ip_w(k,0),cauchy);
@@ -1501,7 +1538,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 						for (int k = 0; k < nen; k++)
 							princstress.AddToRowScaled(k,Na_X_ip_w(k,0),ipprincipal);
 					else
-						fShapes->Extrapolate(ipprincipal, princstress);        
+						fShapes->Extrapolate(ipprincipal, princstress);
 				}
 
 				/* strain energy density */
@@ -1523,7 +1560,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					/* integrate over element */
 					if (e_codes[iStrainEnergy])
 						strain_energy += ip_w*ip_strain_energy;
-						
+
 					/* Poynting vector */
 					if (n_codes[iPoyntingVector]) {
 						ipPoynting = 0.0;
@@ -1543,7 +1580,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 						if (qNoExtrap)
 							for (int k = 0; k < nen; k++)
 								matdat.AddToRowScaled(k,Na_X_ip_w(k,0),ipmat);
-						else 
+						else
 							fShapes->Extrapolate(ipmat, matdat);
 					}
 
@@ -1571,17 +1608,17 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum] || n_codes[iPoyntingVector])
 				{
 					/* velocity at integration point */
-					fShapes->InterpolateU(fLocVel, ip_velocity);					
+					fShapes->InterpolateU(fLocVel, ip_velocity);
 					double ke_density = 0.5*density*dArrayT::Dot(ip_velocity, ip_velocity);
 
 					/* kinetic energy */
 					if (e_codes[iKineticEnergy])
 						kinetic_energy += ip_w*ke_density;
-        
+
 					/* linear momentum */
 					if (e_codes[iLinearMomentum])
 						linear_momentum.AddScaled(ip_w*density, ip_velocity);
-				
+
 					/* Poynting vector */
 					if (n_codes[iPoyntingVector]) {
 						ipPoynting[0] += fv_ss*ke_density;
@@ -1594,13 +1631,13 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 							cauchy.ToMatrix(stress_mat);
 							F_inv.Inverse(fs_mat->F());
 							PbyJ.MultABT(stress_mat, F_inv);
-						
+
 							PbyJ.Multx(ip_velocity, ipPoynting, 1.0/F_inv.Det(), dMatrixT::kAccumulate);
-						} 
+						}
 						else { /* small strain */
 							cauchy.Multx(ip_velocity, ipPoynting, 1.0, dMatrixT::kAccumulate);
 						}
-						
+
 						/* extrapolate */
 						ipPoynting *= -1; /* positive toward crack tip */
 						fShapes->Extrapolate(ipPoynting, Poynting);
@@ -1632,7 +1669,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				nodal_all.BlockColumnCopyAt(Poynting   , colcount); colcount += Poynting.MinorDim();
 			}
 			else
-			{        
+			{
 				colcount = 0;
 				simo_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
 				simo_all.BlockColumnCopyAt(princstress, colcount); colcount += princstress.MinorDim();
@@ -1677,7 +1714,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	n_values.Dimension(tmpDim,n_out);
 	n_values.BlockColumnCopyAt(extrap_values,0);
 	if (qUseSimo)
-	{        
+	{
 		int rowNum = 0;
 //		iArrayT nodes_used(tmpDim);
 		dArray2DT tmp_simo(tmpDim, n_simo);
@@ -1705,7 +1742,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 ***********************************************************************/
 
 /* construct output labels array */
-void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
+void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
 	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
 	const char caller[] = "SolidElementT::GenerateOutputLabels";
@@ -1751,14 +1788,14 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		for (int i = 0; i < nstrs; i++)
 			n_labels[count++] = slabels[i];
 	}
-		
+
 	if (n_codes[iPrincipal])
 	{
 		const char* plabels[] = {"s1", "s2", "s3"};
 		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = plabels[i];
 	}
-		
+
 	if (n_codes[iEnergyDensity]) n_labels[count++] = "phi";
 	if (n_codes[iWaveSpeeds])
 	{
@@ -1766,26 +1803,58 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		const char* clabels3D[] = {"cd", "cs_min", "cs_max"};
 		const char**    clabels = (NumSD() == 2) ? clabels2D : clabels3D;
 		for (int i = 0; i < NumSD(); i++)
-			n_labels[count++] = clabels[i];		
+			n_labels[count++] = clabels[i];
 	}
 
 	/* material output labels */
 	if (n_codes[iMaterialData]) {
 		ArrayT<StringT> matlabels;
-		(*fMaterialList)[0]->OutputLabels(matlabels);	
-		
+		(*fMaterialList)[0]->OutputLabels(matlabels);
+
 		for (int i = 0; i < matlabels.Length(); i++)
 			n_labels[count++] = matlabels[i];
 	}
-	
+
 	/* Poynting vector */
 	if (n_codes[iPoyntingVector]) {
 		const char* fp_labels[] = {"Fp_X", "Fp_Y", "Fp_Z"};
 		for (int i = 0; i < NumSD(); i++)
-			n_labels[count++] = fp_labels[i];		
+			n_labels[count++] = fp_labels[i];
 	}
 
-	/* allocate */
+	// Electric vector potential
+  if (n_codes[ND_ELEC_POT]) {
+    const char* labels[] = {"Psi1", "Psi2", "Psi3"};
+    for (int i = 0; i < NumSD(); i++) {
+      n_labels[count++] = labels[i];
+    }
+  }
+
+  // Divergence vector potential
+  if (n_codes[ND_DIV_POT]) {
+    const char* labels[] = {"Log10AbsDivPsi"};
+    for (int i = 0; i < 1; i++) {
+      n_labels[count++] = labels[i];
+    }
+  }
+
+  // Electric displacements
+  if (n_codes[ND_ELEC_DISP]) {
+    const char* labels[] = {"D1", "D2", "D3"};
+    for (int i = 0; i < NumSD(); i++) {
+      n_labels[count++] = labels[i];
+    }
+  }
+
+  // Electric field
+  if (n_codes[ND_ELEC_FLD]) {
+    const char* labels[] = {"E1", "E2", "E3"};
+    for (int i = 0; i < NumSD(); i++) {
+      n_labels[count++] = labels[i];
+    }
+  }
+
+  /* allocate */
 	e_labels.Dimension(e_codes.Sum());
 	count = 0;
 	if (e_codes[iCentroid])
@@ -1801,7 +1870,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		{
 			StringT ip_label;
 			ip_label.Append("ip", j+1);
-			ip_label.Append(".mass");	
+			ip_label.Append(".mass");
 			e_labels[count++] = ip_label;
 		}
 	}
@@ -1837,7 +1906,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		{
 			StringT ip_label;
 			ip_label.Append("ip", j+1);
-			
+
 			/* over stress/strain components */
 			for (int i = 0; i < 2*nstrs; i++)
 			{
@@ -1845,21 +1914,53 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 				e_labels[count].Append(ip_label, ".", slabels[i]);
 				count++;
 			}
-		}		
+		}
 	}
 
-	/* material output labels */
+  if (e_codes[IP_ELEC_DISP]) {
+
+    const char* labels[] = {"D1", "D2", "D3"};
+
+    for (int j = 0; j < NumIP(); j++) {
+      StringT ip_label;
+      ip_label.Append("ip", j+1);
+
+      for (int i = 0; i < NumSD(); i++) {
+        e_labels[count].Clear();
+        e_labels[count].Append(ip_label, ".", labels[i]);
+        count++;
+      }
+    }
+  }
+
+  if (e_codes[IP_ELEC_FLD]) {
+
+    const char* labels[] = {"E1", "E2", "E3"};
+
+    for (int j = 0; j < NumIP(); j++) {
+      StringT ip_label;
+      ip_label.Append("ip", j+1);
+
+      for (int i = 0; i < NumSD(); i++) {
+        e_labels[count].Clear();
+        e_labels[count].Append(ip_label, ".", labels[i]);
+        count++;
+      }
+    }
+  }
+
+  /* material output labels */
 	if (e_codes[iIPMaterialData])
 	{
 		ArrayT<StringT> matlabels;
-		(*fMaterialList)[0]->OutputLabels(matlabels);	
+		(*fMaterialList)[0]->OutputLabels(matlabels);
 
 		/* over integration points */
 		for (int j = 0; j < NumIP(); j++)
 		{
 			StringT ip_label;
 			ip_label.Append("ip", j+1);
-			
+
 			/* over stress components */
 			for (int i = 0; i < matlabels.Length(); i++)
 			{
@@ -1867,6 +1968,6 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 				e_labels[count].Append(ip_label, ".", matlabels[i]);
 				count++;
 			}
-		}		
+		}
 	}
 }
