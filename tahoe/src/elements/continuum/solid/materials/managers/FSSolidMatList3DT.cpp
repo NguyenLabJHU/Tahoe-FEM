@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.33 2008-07-14 17:38:33 lxmota Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.34 2008-12-11 19:17:42 lxmota Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -114,6 +114,10 @@
 #ifdef PIEZOELECTRIC
 #include "FSNeoHookePZLinT.h"
 #include "FSPZMatSupportT.h"
+#endif
+
+#ifdef NEOHOOKEDAMAGE
+#include "FSNeoHookeDamageT.h"
 #endif
 
 /* development module materials require solid element development to be enabled */
@@ -276,6 +280,10 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef PIEZOELECTRIC
 		sub_lists.AddSub(FSNeoHookePZLinT::Name);
+#endif
+
+#ifdef NEOHOOKEDAMAGE
+    sub_lists.AddSub(FSNeoHookeDamageT::Name);
 #endif
 
 	}
@@ -474,12 +482,19 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	  if (pzmat != 0) {
 	    FSMatSupportT* pms = const_cast<FSMatSupportT*>(fFSMatSupport);
 	    const FSPZMatSupportT* ppzms = dynamic_cast<FSPZMatSupportT*>(pms);
-	    pzmat->setFSPZMatSupport(ppzms);
+	    pzmat->SetFSPZMatSupport(ppzms);
 	    mat = pzmat;
 	  }
 	}
 #endif
-	/* set support */
+
+#ifdef NEOHOOKEDAMAGE
+  else if (name == FSNeoHookeDamageT::Name) {
+    mat = new FSNeoHookeDamageT;
+  }
+#endif
+
+  /* set support */
 	if (mat) mat->SetFSMatSupport(fFSMatSupport);
 
 	return mat;
