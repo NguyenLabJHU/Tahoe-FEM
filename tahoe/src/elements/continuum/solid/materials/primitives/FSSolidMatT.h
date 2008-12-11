@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.27 2008-06-16 20:26:30 lxmota Exp $ */
+/* $Id: FSSolidMatT.h,v 1.28 2008-12-11 23:59:41 lxmota Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -39,32 +39,33 @@ public:
 	/** finite strain materials support */
 	const FSMatSupportT& FSMatSupport(void) const;
 
-	/** \name tangent moduli 
+	/** \name tangent moduli
 	 * FSSolidMatT::c_ijkl computes the tangent moduli in the spatial representation
 	 * using the finite difference approximation developed by Miehe, CMAME \b 134, 1996.
 	 * FSSolidMatT::C_IJKL calls FSSolidMatT::c_ijkl and pulls the result back to the
-	 * material representation. 
-	 * For elastic materials C_IJKL = 2\pdf{S_IJ}{C_KL} 
+	 * material representation.
+	 * For elastic materials C_IJKL = 2\pdf{S_IJ}{C_KL}
 	 * For inelastic material \Delta S_{{IJ}_{n+1}} = C_IJKL \Delta C_{KL} */
 	/*@{*/
 	virtual const dMatrixT& c_ijkl(void);
 	virtual const dMatrixT& C_IJKL(void);
 	/*@}*/
-	
+
 	/** just returns full modulus by default */
 	virtual const dMatrixT& ce_ijkl(void);
 
 	/** compute the 2nd Piola-Kirchhoff stress by pulling back the result computed with
 	 * SolidMaterialT::s_ij */
 	virtual const dSymMatrixT& S_IJ(void);
-	
+	virtual const dSymMatrixT& S_IJ(const dSymMatrixT& C) {return S_IJ();};
+
 	/** test for localization. check for bifurvation using current
 	 * Cauchy stress and the spatial tangent moduli.
 	 * \param normal orientation of the localization if localized
 	 * \return 1 if the determinant of the acoustical tensor is negative
 	 * or 0 if the determinant is positive. */
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &DetA);
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs,
                         AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
@@ -88,14 +89,14 @@ public:
 
 	/** total deformation gradient. \note This function is on its
 	 * way out. Use FSSolidMatT::F_total */
-	const dMatrixT& F(void) const; 
+	const dMatrixT& F(void) const;
 
-	/** total deformation gradient at the given integration point. \note This 
+	/** total deformation gradient at the given integration point. \note This
 	 * function is on its way out. Use FSSolidMatT::F_total */
-	const dMatrixT& F(int ip) const; 
+	const dMatrixT& F(int ip) const;
 
 	/** total deformation gradient */
-	const dMatrixT& F_total(void) const; 
+	const dMatrixT& F_total(void) const;
 
 	/** total deformation gradient at the given integration point */
 	const dMatrixT& F_total(int ip) const;
@@ -103,20 +104,20 @@ public:
 	/** mechanical part of the deformation gradient. The part of the
 	 * deformation gradient not associated with an imposed thermal
 	 * strain. */
-	const dMatrixT& F_mechanical(void); 
+	const dMatrixT& F_mechanical(void);
 
 	/** mechanical part of the deformation gradient at the given integration
-	 * point. The part of the deformation gradient not associated with an 
+	 * point. The part of the deformation gradient not associated with an
 	 * imposed thermal strain. */
 	const dMatrixT& F_mechanical(int ip);
 
 	/** total deformation gradient from end of previous step */
-	const dMatrixT& F_total_last(void) const; 
+	const dMatrixT& F_total_last(void) const;
 
-	/** total deformation gradient at the given integration point 
+	/** total deformation gradient at the given integration point
 	 * from end of previous step */
 	const dMatrixT& F_total_last(int ip) const;
-	
+
 	/** inverse of the deformation gradient associated with the
 	 * imposed thermal strain */
 	const dMatrixT& F_thermal_inverse(void) const { return fF_therm_inv; };
@@ -126,17 +127,17 @@ public:
 	const dMatrixT& F_thermal_inverse_last(void) const { return fF_therm_inv_last; };
 
 	/** mechanical part of the deformation gradient from the previous
-	 * time increment. The part of the deformation gradient not associated 
+	 * time increment. The part of the deformation gradient not associated
 	 * with an imposed thermal strain. */
-	const dMatrixT& F_mechanical_last(void); 
+	const dMatrixT& F_mechanical_last(void);
 
 	/** mechanical part of the deformation gradient from the previous
-	 * time increment at the given integration point. The part of the 
-	 * deformation gradient not associated 
+	 * time increment at the given integration point. The part of the
+	 * deformation gradient not associated
 	 * with an imposed thermal strain. */
 	const dMatrixT& F_mechanical_last(int ip);
 
-	/** return the strain in the material at the current integration point. 
+	/** return the strain in the material at the current integration point.
 	 * Returns the Green-Lagrangian strain. */
 	virtual void Strain(dSymMatrixT& strain) { Compute_E(F_mechanical(), strain);}
 	virtual void Stretch(dSymMatrixT& stretch) {Compute_C(F_mechanical(), stretch);}
@@ -157,7 +158,7 @@ protected:
 	 * \param b return value */
 	void Compute_b(const dMatrixT& F, dSymMatrixT& b) const;
 
-	/** right stretch tensor. 
+	/** right stretch tensor.
 	 * \param F the deformation gradient
 	 * \param C return value */
 	void Compute_C(const dMatrixT& F, dSymMatrixT& C) const;
@@ -173,13 +174,13 @@ protected:
 	 * \param b return value */
 	void Compute_b(dSymMatrixT& b) const;
 
-	/** right stretch tensor. 
+	/** right stretch tensor.
 	 * \note this version of is being removed. Use the version
 	 * which requires the deformation to be passed in
 	 * \param C return value */
 	void Compute_C(dSymMatrixT& C) const;
 
-	/** Green-Lagrangian strain. 
+	/** Green-Lagrangian strain.
 	 * \note this version is being removed. Use the version
 	 * which requires the deformation to be passed in
 	 * \param E return value */
@@ -188,7 +189,7 @@ protected:
 	/*compute temperature*/
 	double Compute_Temperature(void);
 	double Compute_Temperature_last(void);
-	
+
 	/** acoustical tensor.
 	 * \param normal wave propagation direction
 	 * \return acoustical tensor */
@@ -209,7 +210,7 @@ private:
 
 	/** compute acoustical tensor in 2D.
 	 * \param CIJKL material tangent modulus
-	 * \param SIJ 2nd Piola-Kirchhoff stress 
+	 * \param SIJ 2nd Piola-Kirchhoff stress
 	 * \param FkK deformation gradient
 	 * \param N wave propogation direction
 	 * \param Q resulting acoustical tensor */
@@ -218,7 +219,7 @@ private:
 
 	/** compute acoustical tensor in 3D.
 	 * \param CIJKL material tangent modulus
-	 * \param SIJ 2nd Piola-Kirchhoff stress 
+	 * \param SIJ 2nd Piola-Kirchhoff stress
 	 * \param FkK deformation gradient
 	 * \param N wave propogation direction
 	 * \param Q resulting acoustical tensor */
@@ -242,7 +243,7 @@ protected:
 private:
 
 	/** return value for FSSolidMatT::AcousticalTensor */
-	dSymMatrixT fQ;  
+	dSymMatrixT fQ;
 
 	/** inverse of the multiplicative thermal deformation gradient */
 	dMatrixT fF_therm_inv;
@@ -250,16 +251,16 @@ private:
 	/** inverse of the multiplicative thermal deformation gradient
 	 * from the previous time increment. */
 	dMatrixT fF_therm_inv_last;
-	
+
 	/** return value. Used as the return value of the mechanical part
 	 * of the deformation gradient, if there are thermal strain. Otherwise,
 	 * is unused. */
 	dMatrixT fF_mechanical;
-	
+
 	/** true if temperature field found during FSSolidMatT::Initialize */
 //	bool fTemperatureField;
 //	dArrayT fTemperature;
-	
+
 	/** \name FSSolidMatT::c_ijkl work space */
 	/*@{*/
 	dMatrixT F_0_;
@@ -270,13 +271,13 @@ private:
 
 /* finite strain materials support */
 inline const FSMatSupportT& FSSolidMatT::FSMatSupport(void) const
-{ 
+{
 #if __option(extended_errorcheck)
-	if (!fFSMatSupport) 
+	if (!fFSMatSupport)
 		ExceptionT::GeneralFail("FSSolidMatT::FSMatSupport", "pointer not set");
 #endif
 
-	return *fFSMatSupport; 
+	return *fFSMatSupport;
 }
 
 } /* namespace Tahoe */
