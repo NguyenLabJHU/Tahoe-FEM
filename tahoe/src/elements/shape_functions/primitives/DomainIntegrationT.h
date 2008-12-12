@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.14 2006-08-30 17:20:23 tdnguye Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.15 2008-12-12 00:33:59 lxmota Exp $ */
 /* created: paklein (09/04/1998) */
 #ifndef _DOMAIN_INTEGRATION_T_H_
 #define _DOMAIN_INTEGRATION_T_H_
@@ -19,19 +19,20 @@ class DomainIntegrationT
 {
 public:
 
-	/** constructor. 
+	/** constructor.
      * The constructor needs to be followed with a call to ShapeFunctionT::Initialize
      * to set the internal data structures.
 	 * \param geometry_code geometry of the parent domain
-	 * \param numIP number of integration points 
+	 * \param numIP number of integration points
 	 * \param numnodes number of domain nodes */
-	DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP, int numnodes);
+	DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP, int numnodes,
+        bool is_open_set = true);
 
-	/** constructor. 
+	/** constructor.
      * The constructor needs to be followed with a call to ShapeFunctionT::Initialize
      * to set the internal data structures.
 	 * \param link shared parent domain and "synch-ed" CurrIP */
-	DomainIntegrationT(const DomainIntegrationT& link);
+	DomainIntegrationT(const DomainIntegrationT& link, bool is_closed_set = true);
 
 	/** destructor */
 	virtual ~DomainIntegrationT(void);
@@ -65,12 +66,12 @@ public:
 	double IPWeight(void) const;
 
 	/** extrapolate values from the "current" integration point to the nodes.
-	 * \param IPvalues values from the integration point: [nval] 
+	 * \param IPvalues values from the integration point: [nval]
 	 * \param nodalvalues extrapolated values: [nnd] x [nval] */
 	void Extrapolate(const dArrayT& IPvalues, dArray2DT& nodalvalues) const;
 
 	/** extrapolate values the integration point values to the nodes.
-	 * \param IPvalues values from the integration points: [nip] 
+	 * \param IPvalues values from the integration points: [nip]
 	 * \param nodalvalues extrapolated values: [nnd] */
 	void ExtrapolateAll(const dArrayT& IPvalues, dArrayT& nodalvalues) const;
 
@@ -84,12 +85,12 @@ public:
 	/** return the number of domain facets */
 	int  NumFacets(void) const;
 
-	/** list of number of nodes on each domain facet */ 
+	/** list of number of nodes on each domain facet */
 	void NumNodesOnFacets(iArrayT& num_nodes) const;
-	
+
 	/** local node numbering over facets.
 	 * \param facet cannonical domain facet number
-	 * \param facetnodes list of number of nodes on each facet 
+	 * \param facetnodes list of number of nodes on each facet
 	 * \note facetnodes does not need to be dimensioned */
 	void NodesOnFacet(int facet, iArrayT& facetnodes) const;
 
@@ -109,7 +110,7 @@ public:
 
 	/** shape functions for the specified face */
 	const ParentDomainT& FacetShapeFunction(int facet) const;
-	
+
 	/** reference to the parent domain */
 	const ParentDomainT& ParentDomain(void) const;
 
@@ -121,10 +122,13 @@ public:
 	 * \param coords point in the parent domain
 	 * \param Na destination for shape function values for each of the domain
 	 *        nodes. Must be dimensioned: [nnd]
-	 * \param DNa destination for shape function derivatives. Must be 
+	 * \param DNa destination for shape function derivatives. Must be
 	 *        dimensioned: [nsd] x [nnd] */
-	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
-		dArray2DT& DNa) const;
+	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const;
+  void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
+    dArray2DT& DNa) const;
+
+  bool IsClosedSet() const { return fIsClosedSet; };
 
 protected:
 
@@ -141,15 +145,18 @@ protected:
 	/* integration management */
 	int  fNumIP;  /**< number of integration points */
 	int& fCurrIP; /**< current integration point number */
-	
+
 	/** parent geometry */
 	ParentDomainT* fDomain;
-	
+
 	/** face shapefunctions */
 	ArrayT<ParentDomainT*> fSurfShapes;
 
 	/** flags to make duplicated face shape functions */
 	iArrayT fDelete;
+
+	// determines if the domain is an open or closed set
+	bool fIsClosedSet;
 
 private:
 
@@ -169,9 +176,9 @@ return fDomain->Weight();
 /* accessors */
 inline int DomainIntegrationT::NumSD(void) const { return fDomain->NumSD(); }
 inline int DomainIntegrationT::NumIP(void) const { return fNumIP; }
-inline GeometryT::CodeT DomainIntegrationT::GeometryCode(void) const 
-{ 
-	return fDomain->GeometryCode(); 
+inline GeometryT::CodeT DomainIntegrationT::GeometryCode(void) const
+{
+	return fDomain->GeometryCode();
 }
 
 /* integration management */
@@ -217,13 +224,13 @@ inline void DomainIntegrationT::Extrapolate(const dArrayT& IPvalues,
 	dArray2DT& nodalvalues) const
 {
 	fDomain->NodalValues(IPvalues, nodalvalues, CurrIP());
-}	
+}
 
 inline void DomainIntegrationT::ExtrapolateAll(const dArrayT& IPvalues,
 	dArrayT& nodalvalues) const
 {
 	fDomain->NodalValues(IPvalues, nodalvalues);
-}	
+}
 
 /* nodal extrapolation matrix */
 inline const dMatrixT& DomainIntegrationT::Extrapolation(void) const {
@@ -286,17 +293,23 @@ inline const ParentDomainT& DomainIntegrationT::ParentDomain(void) const
 }
 
 /* evaluate the shape functions and gradients. */
-inline void DomainIntegrationT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
-	dArray2DT& DNa) const
+inline void DomainIntegrationT::EvaluateShapeFunctions(const dArrayT& coords,
+  dArrayT& Na) const
 {
-	fDomain->EvaluateShapeFunctions(coords, Na, DNa);
+	fDomain->EvaluateShapeFunctions(coords, Na);
+}
+
+inline void DomainIntegrationT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
+  dArray2DT& DNa) const
+{
+  fDomain->EvaluateShapeFunctions(coords, Na, DNa);
 }
 
 /* access to domain shape functions */
 inline const dArray2DT& DomainIntegrationT::Na(void) const
-{	
+{
 	return fDomain->Na();
 }
 
-} // namespace Tahoe 
+} // namespace Tahoe
 #endif /* _DOMAIN_INTEGRATION_T_H_ */
