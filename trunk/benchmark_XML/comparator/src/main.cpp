@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.5 2002-10-20 22:44:08 paklein Exp $ */
+/* $Id: main.cpp,v 1.6 2008-12-12 17:50:43 lxmota Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 	StartUp(&argc, &argv);
 
 	ComparatorT compare(argc, argv, '%', '@');
-	compare.Run();		
+	compare.Run();
 
 	ShutDown();
 	return 0;
@@ -66,7 +66,7 @@ static void ShutDown(void)
 {
 	cout << "\nExit.\n" << endl;
 
-#if __option (profile)		
+#if __option (profile)
 	ProfilerDump("\ptahoe.prof");
 	ProfilerTerm();
 #endif
