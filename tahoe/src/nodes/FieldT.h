@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.28 2008-05-26 19:04:08 bcyansfn Exp $ */
+/* $Id: FieldT.h,v 1.29 2008-12-12 00:49:12 lxmota Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -37,7 +37,7 @@ class ofstreamT;
 class FieldSupportT;
 class GlobalMatrixT;
 
-/** field with time integration. Includes application of initial and 
+/** field with time integration. Includes application of initial and
  * boundary conditions, and force boundary conditions. */
 class FieldT: public BasicFieldT, public ParameterInterfaceT
 {
@@ -46,12 +46,12 @@ public:
 	/** inactive equation number codes */
 	enum EquationCodeT {
 	          kInit = 0, /**< uninitialized equation number */
-		kPrescribed =-1, /**< dof has prescribed value */ 
+		kPrescribed =-1, /**< dof has prescribed value */
 	      kExternal =-2  /**< node is external */ };
 
 	/** constructor */
 	FieldT(const FieldSupportT& field_support);
-	
+
 	/** destructor */
 	~FieldT(void);
 
@@ -59,7 +59,7 @@ public:
 	/*@{*/
 	/** configure the field */
 	void Initialize(const StringT& name, int ndof, int order);
-	
+
 	/** register the local array with its source */
 	void RegisterLocal(LocalArrayT& array) const;
 
@@ -71,24 +71,24 @@ public:
 
 	/** set all field values to 0.0 */
 	virtual void Clear(void);
-	
+
 	/* support class */
 	const FieldSupportT& FieldSupport(void) const { return fFieldSupport; };
 	/*@}*/
-	
+
 	/** \name accessors */
 	/*@{*/
 	/** reference to the specified derivative of the field of the given
 	 * relative time increment. step = 0 is the current step, -1 is the
-	 * previous step */ 
+	 * previous step */
 	dArray2DT& operator()(int step, int order);
 
-	/** const reference to the specified derivative of the field at given step */ 
+	/** const reference to the specified derivative of the field at given step */
 	const dArray2DT& operator()(int step, int order) const;
 
 	/** set the group number */
-	int Group(void) const { return fGroup; };	
-	
+	int Group(void) const { return fGroup; };
+
 	/** \name time integrator */
 	/*@{*/
 	IntegratorT& Integrator(void);
@@ -113,7 +113,7 @@ public:
 
 	/** initial condition cards */
 	ArrayT<IC_CardT>& InitialConditions(void) { return fIC; };
-	
+
 	/** kinematic boundary condition cards */
 	ArrayT<KBC_CardT>& KinematicBC(void) { return fKBC; };
 
@@ -133,10 +133,10 @@ public:
 	/*@{*/
 	/** beginning of time series */
 	void InitialCondition(void);
-	
+
 	/** apply predictor to all degrees of freedom */
 //	void InitStep(void);
-	
+
 	/** apply predictor to all degrees of freedom */
 	void InitStep(int fieldstart, int fieldend);
 
@@ -170,30 +170,30 @@ public:
 	/** \name update array.
 	 * Updates are applied to the field by calling FieldT::Update. Values can be written
 	 * into the update array in three ways:
-	 * -# FieldT::AssembleUpdate overwrites values for the equations corresponding to 
-	 *    the parameters passed to FieldT::FinalizeEquations 
+	 * -# FieldT::AssembleUpdate overwrites values for the equations corresponding to
+	 *    the parameters passed to FieldT::FinalizeEquations
 	 * -# values can be written directly into the update array by accessing it
 	 *    with FieldT::Update
-	 * Also, field values can be copied from node to node using FieldT::CopyNodeToNode 
+	 * Also, field values can be copied from node to node using FieldT::CopyNodeToNode
 	 */
 	/*@{*/
 	/** read/write access to the update array */
 	dArray2DT& Update(void) { return fUpdate; };
-	
+
 	/** overwrite the update values in the FieldT::Update array. The update
 	 * array corresponds to the parameters passed in to FieldT::FinalizeEquations.
 	 * The algorithm properly assembles duplicated numbers in the equations array. */
 	void AssembleUpdate(const dArrayT& update);
-	
+
 	/** apply the full update to the field, only do for specfied group */
-	
+
 	void ApplyUpdate(int fPartFieldStart = 0, int fPartFieldEnd = -1);
 
-	/** copy nodal information. Copy all field information from the source 
+	/** copy nodal information. Copy all field information from the source
 	 * nodes to the targets. Equation are not copied. */
 	void CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target);
 	/*@}*/
-	
+
 	/** check for relaxation */
 	GlobalT::RelaxCodeT RelaxSystem(void);
 
@@ -204,7 +204,7 @@ public:
 	GlobalT::RelaxCodeT ResetStep(void);
 
 	/** \name equation numbers
-	 * FieldT assumes equation numbers will be assigned by the host. The array can be 
+	 * FieldT assumes equation numbers will be assigned by the host. The array can be
 	 * accessed using BasicFieldT::Equations. Configuring the equations requires the
 	 * following step:
 	 * -# call FieldT::InitEquations to dimension the equations array and initialize
@@ -215,7 +215,7 @@ public:
 	 *    equations array. */
 	/*@{*/
 	/** initialize internal equations array. The array is dimensioned for the number
-	 * of nodes and dof's. Prescribed equations are marked FieldT::kPrescribed. All 
+	 * of nodes and dof's. Prescribed equations are marked FieldT::kPrescribed. All
 	 * others are marked FieldT::kInit. Prescribed values are marked first
 	 * using the nodally prescribed kinematic boundary conditions
 	 * followed by the KBC_ControllerT's. Equation numbers for prescribed
@@ -229,12 +229,12 @@ public:
 	 * \param eq_start first active equation in the group to which the field belongs
 	 * \param num_eq number of active equations in the group to which the field belongs */
 	void FinalizeEquations(int eq_start, int num_eq);
-	
-	/** access to the number of active equations in the group to which the field belongs. 
+
+	/** access to the number of active equations in the group to which the field belongs.
 	 * Returns the value set using FieldT::FinalizeEquations. */
 	int NumEquations(void) const { return fNumEquations; };
 
-	/** first active equation number in the group to which the field belongs. Returns 
+	/** first active equation number in the group to which the field belongs. Returns
 	 * the value set using FieldT::FinalizeEquations. */
 	int EquationStart(void) const { return fEquationStart; };
 
@@ -242,34 +242,36 @@ public:
 	 * generated by the KBC_ControllerT's and FBC_ControllerT's. This call
 	 * signals to the field that FieldT::Equations has been filled with
 	 * up to date equation numbers. */
-	void EquationSets(AutoArrayT<const iArray2DT*>& eq_1, 
+	void EquationSets(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
 	/** collect equation numbers.
 	 * \param nodes element connectivities: [nel] x [nen]
-	 * \param eqnos destination for equation numbers: [nel] x [nen*ndof] */
-	void SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const;
-	
+	 * \param eqnos destination for equation numbers: [nel] x [nen*ndof]
+	 * \param offset equation number offset for multiple fields*/
+	void SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos,
+	    const int offset = 0) const;
+
 	/** collect equation numbers.
 	 * \param nodes element connectivities: [ngr] x [nel_i] x [nen]
 	 * \param eqnos destination for equation numbers: [nel_0 + nel_1 + ...] x [nen*ndof] */
 	void SetLocalEqnos(ArrayT<const iArray2DT*> nodes, iArray2DT& eqnos) const;
 
-	/** collect equation numbers. Connectivities are passed in a RaggedArray2DT, 
+	/** collect equation numbers. Connectivities are passed in a RaggedArray2DT,
 	 * which allows an arbitrary number of nodes per element.
 	 * \param nodes element connectivities: [nel] x [nen_i]
 	 * \param eqnos destination for equation numbers: [nel] x [nen_i*n_dof] */
 	void SetLocalEqnos(const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos) const;
-	
-	/** collect equation numbers for specific dofs specified for each row of the array. 
-	 * Connectivities are passed in a RaggedArray2DT, 
+
+	/** collect equation numbers for specific dofs specified for each row of the array.
+	 * Connectivities are passed in a RaggedArray2DT,
 	 * which allows an arbitrary number of nodes per element.
 	 * \param nodes element connectivities: [nel] x [nen_i]
 	 * \param eqnos destination for equation numbers: [nel] x [nen_i] */
 	void SetLocalEqnos(const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos, const iArrayT& which_dofs) const;
 
 	/** collect equation numbers. Connectivities are passed in a LinkedListT
-	 * which allows an arbitrary number of nodes per element. 
+	 * which allows an arbitrary number of nodes per element.
 	 * \param nodes element connectivities: [nel] x [nen_i]
 	 * \param eqnos destination for equation numbers: [nel] x [nen_i*ndof] */
 	void SetLocalEqnos(ArrayT< LinkedListT<int> >& nodes, RaggedArray2DT<int>& eqnos) const;
@@ -280,13 +282,13 @@ public:
 
 	/** \name restart functions
 	 * The restart functions should read/write any data that overrides the
-	 * default values 
+	 * default values
 	 * \param nodes list of nodes for which field information should be read/written. If
 	 *        the pointer is NULL, read/write info for \e all nodes. */
-	/*@{*/ 
+	/*@{*/
 	void WriteRestart(ofstreamT& out, const ArrayT<int>* nodes) const;
 	void ReadRestart(ifstreamT& in, const ArrayT<int>* nodes);
-	/*@}*/ 
+	/*@}*/
 
 	/** register results for output */
 	void RegisterOutput(void);
@@ -296,14 +298,14 @@ public:
 
 	/** write field parameters to output stream */
 	void WriteParameters(ostream& out) const;
-	
-	/** \name source terms 
+
+	/** \name source terms
 	 * Support multiple sources to the same block ID. The current
 	 * implementation assumes the contributors of source terms have
 	 * the same time increment as the users of the sources. That is,
 	 * the most recently calculated values in the source arrays are
 	 * assumed to be up to date. There is no separate accumulation
-	 * for sub-steps. 
+	 * for sub-steps.
 	 * \note Could add some information about the interval. This
 	 *       would allow contributors to decide whether or not
 	 *       source terms need to be accumulated or overwritten. */
@@ -313,8 +315,8 @@ public:
 	 * the same source array can be registered. Arrays registered more
 	 * that once will contribute more than once. */
 	void RegisterSource(const StringT& ID, const dArray2DT& source) const;
-	
-	/** element source terms. return a pointer to the source terms for the 
+
+	/** element source terms. return a pointer to the source terms for the
 	 * given element block ID, or NULL if no source terms exist for that
 	 * block. This accumulates all source contributions to the given
 	 * block ID. */
@@ -338,7 +340,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
 		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
@@ -351,7 +353,7 @@ public:
 	// some accessors to the external FBC information
 	const dArrayT GetfFBCValues(void) { return fFBCValues ; };
 	const iArrayT GetfFBCEqnos(void) { return fFBCEqnos ; };
-	
+
 private:
 
 	/** apply the IC_CardT to the field. Return false if any initial conditions where
@@ -381,15 +383,15 @@ private:
 
 	/** nodal interface to time integrator in FieldT::fIntegrator */
 	const nIntegratorT* fnIntegrator;
-	
+
 	/** field history. BasicFieldT::fField from the previous time step. */
 	ArrayT<dArray2DT> fField_last;
-	
+
 	/** \name initial and kinematic boundary conditions */
 	/*@{*/
 	/** initial conditions */
 	ArrayT<IC_CardT> fIC;
-	  	
+
 	/** kinematic boundary conditions */
 	ArrayT<KBC_CardT> fKBC;
 
@@ -411,14 +413,14 @@ private:
 	/** special FBC objects */
 	AutoArrayT<FBC_ControllerT*> fFBC_Controllers;
 	/*@}*/
-	
+
 	/** \name update array */
 	/*@{*/
 	dArray2DT fUpdate;
 	int fEquationStart;
 	int fNumEquations;
 	/*@}*/
-	
+
 	/** \name source terms */
 	/*@{*/
 	/** ID's for the elements blocks in fSource. This array is
@@ -429,10 +431,10 @@ private:
 	 * contributions to the given block are accumulated and passed back.
 	 * Each entry is: [nen] x [nip*nval] */
 	AutoArrayT<dArray2DT*> fSourceOutput;
-	
+
 	/** ID's for the sources registerered with FieldT::RegisterSource */
 	AutoArrayT<StringT> fSourceID;
-	
+
 	/** block source terms registerered with FieldT::RegisterSource.
 	 * Each entry is: [nen] x [nip*nval] */
 	AutoArrayT<const dArray2DT*> fSourceBlocks;
@@ -453,7 +455,7 @@ private:
 
 /* inlines */
 
-/* accessors */ 
+/* accessors */
 inline dArray2DT& FieldT::operator()(int step, int order)
 {
 	if (step != 0 && step != -1) ExceptionT::OutOfRange("FieldT::operator()");
