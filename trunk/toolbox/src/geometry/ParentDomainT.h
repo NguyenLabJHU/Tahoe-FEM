@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.23 2006-11-02 21:51:37 regueiro Exp $ */
+/* $Id: ParentDomainT.h,v 1.24 2008-12-12 17:41:50 lxmota Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -41,6 +41,8 @@ class ParentDomainT
 	/*@}*/
 
 	const dArray2DT& ParentCoords(void) const;
+	const LocalArrayT& ParamCoords() const;
+	void SetParamCoords() const;
 
 	/** reference to the parent domain geometry */
 	const GeometryBaseT& Geometry(void) const;
@@ -48,7 +50,7 @@ class ParentDomainT
 	/** reference to the entire shape function array.
 	 * \return 2D array: [nip] x [nnd] */
 	const dArray2DT& Na(void) const;
-	
+
 	/** pointer to the shape functions.
 	 * \param IPnum integration point number
 	 * \return pointer to array length numnodes */
@@ -68,7 +70,7 @@ class ParentDomainT
 	 * \param interp result of the interpolation
 	 * \param IPnum integration point number */
 	void Interpolate(const LocalArrayT& nodal, dArrayT& interp, int IPnum) const;
-	
+
 	/** interpolation of nodal values to all integration points.
 	 * \param nodal values at the nodes
 	 * \param interp interpolation to all ip's: [nip] x [nu] */
@@ -89,7 +91,7 @@ class ParentDomainT
 	void Jacobian_Derivative(const LocalArrayT& nodal, const dArray2DT& DDNa, dMatrixT& jacobian_derivative) const;
 
 	/** compute the curl of a vector that is of dimension 3x1
-	 *  Values for vector at the node points must be provided 
+	 *  Values for vector at the node points must be provided
 	 *  T is of dimension num_nodes x (3x1) -- an array of vectors
 	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
 	 *  of dimension 2 x num_nodes.
@@ -97,7 +99,7 @@ class ParentDomainT
 	void Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa,dArrayT& curl) const;
 
 	/** compute the curl of a tensor that is of dimension 3x3
-	 *  Values for tensor at the node points must be provided 
+	 *  Values for tensor at the node points must be provided
 	 *  T is of dimension num_nodes x (3x3) -- an array of tensors
 	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
 	 *  of dimension 2 x num_nodes.
@@ -132,7 +134,7 @@ class ParentDomainT
 	 * compute the coordinate transformation and the norm of the
 	 * surface mapping for the given jacobian.
 	 * \param jacobian surface jacobian: [nsd] x [nsd - 1]
-	 * \param  Q transformation from global to local(') coordinates, i.e., 
+	 * \param  Q transformation from global to local(') coordinates, i.e.,
 	 * t'_i = Q_ik t_k, where t'_j (j = nsd) is the "normal" direction
 	 * \return jacobian of the surface transformation */
 	double SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) const;
@@ -142,7 +144,7 @@ class ParentDomainT
 	 * to the given coordinates by the chain rule for all integration
 	 * points at once.
 	 * \param coords nodal coordinates
-	 * \param DNa shape function derivatives with respect to given 
+	 * \param DNa shape function derivatives with respect to given
 	 *        coordinates: [nip] : [nsd] x [nnd]
 	 * \param det determinant of the transformation: [nip] */
 	void ComputeDNa(const LocalArrayT& coords, ArrayT<dArray2DT>& DNa,
@@ -154,18 +156,18 @@ class ParentDomainT
 		dArrayT& det);
 
 	/** compute nodal values.
-	 * project the integration point values to the nodes 
+	 * project the integration point values to the nodes
 	 * \param ipvalues field values from a single integration pt: [numvals]
 	 * \param nodalvalues extrapolated values: [nnd] x [numvals]
 	 * \param IPnum integration point number */
 	void NodalValues(const dArrayT& IPvalues, dArray2DT& nodalvalues,
-		int IPnum) const; 	
+		int IPnum) const;
 
 	/** compute nodal values.
-	 * project all integration point values to the nodes 
+	 * project all integration point values to the nodes
 	 * \param ipvalues field values from a single integration pt: [nip]
 	 * \param nodalvalues extrapolated values: [nnd] */
-	void NodalValues(const dArrayT& IPvalues, dArrayT& nodalvalues) const; 	
+	void NodalValues(const dArrayT& IPvalues, dArrayT& nodalvalues) const;
 
 	/** evaluate the shape functions. Compute the values of the
 	 * shape functions at an arbirary point in the
@@ -181,24 +183,24 @@ class ParentDomainT
 	 * \param coords point in the parent domain
 	 * \param Na destination for shape function values for each of the domain
 	 *        nodes. Must be dimensioned: [nnd]
-	 * \param DNa destination for shape function derivatives. Must be 
+	 * \param DNa destination for shape function derivatives. Must be
 	 *        dimensioned: [nsd] x [nnd] */
-	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		dArray2DT& DNa) const;
 
-	/** evaluate the shape functions and their first and second derivatives. the second 
+	/** evaluate the shape functions and their first and second derivatives. the second
 	 * derivative has been implemented for 27 node element only. */
-	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		dArray2DT& DNa, dArray2DT& DDNa) const;
 
 	/** print the shape function values to the output stream */
 	void Print(ostream& out) const;
-	
+
 	/** number of element facets */
 	int NumFacets(void) const;
-	
+
 	/** return the local node numbers per facet.
-	 * local nodes are numbered to produce at outward normal in the 
+	 * local nodes are numbered to produce at outward normal in the
 	 * order: vertex nodes, mid-edge nodes, mid-face nodes
 	 * \param facet element face number
 	 * \param facetnodes local node number on the facet */
@@ -215,7 +217,7 @@ class ParentDomainT
 	/** return the nodes on each facet needed to determine neighbors
 	 * across facets */
 	void NeighborNodeMap(iArray2DT& facetnodes) const;
-	
+
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geom, iArrayT& facet_nodes) const;
 
@@ -229,7 +231,7 @@ class ParentDomainT
 	 * Return true if the given point is within the domain defined by
 	 * the list of coordinates
 	 * \param coords list of coordinates defining the domain
-	 * \param point test point coordinates 
+	 * \param point test point coordinates
 	 * \param mapped point coordinates in the parent coordinates */
 	bool MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
 		dArrayT& mapped) const;
@@ -239,7 +241,7 @@ class ParentDomainT
 	int IPDomain(const dArrayT& coords) const;
 
 	/** calculate a characteristic domain size. Calculate the maximum distance
-	 * between the average nodal position and each of the nodes. 
+	 * between the average nodal position and each of the nodes.
 	 * \param coords coordinates of the domain nodes
 	 * \param avg returns with the coordinate average */
 	double AverageRadius(const LocalArrayT& coords, dArrayT& avg) const;
@@ -251,12 +253,20 @@ class ParentDomainT
 
 	/** number of nodes defining the nodal subdomain */
 	int NodalSubDomainNumPoints(void) const;
-	
+
 	/** compute the coordinates of the points defining the nodal subdomain */
 	void NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
 		LocalArrayT& subdomain_coords) const;
 	/*@}*/
-	
+
+	void SetStoredJacobianDets(const dArrayT& dets)
+	{
+    if (fDNa.Length() != dets.Length()) {
+      ExceptionT::SizeMismatch("ParentDomainT::SetStoredJacobianDets");
+    }
+	  fStoredJacobianDets = dets;
+	}
+
   private:
 
 	/** \name dimensions */
@@ -286,6 +296,13 @@ class ParentDomainT
 	dArrayT   fNa_p;        /**< array of shape functions */
 	dArray2DT fDNa_p;       /**< array of shape function derivatives */
 	/*@}*/
+
+  // Stored Jacobian determinants wrt to parametric coordinates
+	// for mixed formulations that have one node in mixed
+	// interpolation functions.
+	dArrayT fStoredJacobianDets;
+
+
 };
 
 /* inlines */
@@ -307,12 +324,22 @@ inline const dArray2DT& ParentDomainT::ParentCoords(void) const
 	return(fGeometry->ParentCoords());
 }
 
+inline const LocalArrayT& ParentDomainT::ParamCoords() const
+{
+  return(fGeometry->ParamCoords());
+}
+
+inline void ParentDomainT::SetParamCoords() const
+{
+  fGeometry->SetParamCoords();
+}
+
 /* access to domain shape functions */
 inline const dArray2DT& ParentDomainT::Na(void) const { return fNa; }
 inline const double* ParentDomainT::Shape(int IPnum) const { return fNa(IPnum); }
 inline const double* ParentDomainT::DShape(int IPnum, int dim) const
 {
-	return (fDNa[IPnum])(dim);	
+	return (fDNa[IPnum])(dim);
 }
 inline const double* ParentDomainT::Weight(void)     const { return fWeights.Pointer(); }
 
@@ -335,13 +362,13 @@ inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT
 	fGeometry->EvaluateShapeFunctions(coords, Na);
 }
 
-inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 	dArray2DT& DNa) const
 {
 	fGeometry->EvaluateShapeFunctions(coords, Na, DNa);
 }
 
-inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 	dArray2DT& DNa, dArray2DT& DDNa) const
 {
 	fGeometry->EvaluateShapeFunctions(coords, Na, DNa, DDNa);
@@ -410,12 +437,12 @@ inline GeometryT::CodeT ParentDomainT::NodalSubDomainGeometry(void) const {
 inline int ParentDomainT::NodalSubDomainNumPoints(void) const {
 	return fGeometry->NodalSubDomainNumPoints();
 }
-	
+
 /* compute the coordinates of the points defining the nodal subdomain */
 inline void ParentDomainT::NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
 	LocalArrayT& subdomain_coords) const {
 	fGeometry->NodalSubDomainCoordinates(coords, node, subdomain_coords);
-}	
+}
 
 } /* namespace Tahoe */
 
