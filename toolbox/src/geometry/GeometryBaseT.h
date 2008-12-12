@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.h,v 1.13 2006-11-02 21:51:34 regueiro Exp $ */
+/* $Id: GeometryBaseT.h,v 1.14 2008-12-12 17:44:27 lxmota Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
@@ -6,6 +6,7 @@
 /* base class */
 #include "GeometryT.h"
 #include "dArray2DT.h"
+#include "LocalArrayT.h"
 
 namespace Tahoe {
 
@@ -18,7 +19,7 @@ class iArray2DT;
 template <class TYPE> class ArrayT;
 class LocalArrayT;
 
-/** base class for parent domain geometries. Derived classes must 
+/** base class for parent domain geometries. Derived classes must
  * initialize shape function arrays with geometry specific values. */
 class GeometryBaseT: public GeometryT
 {
@@ -31,13 +32,15 @@ public:
 	virtual ~GeometryBaseT(void);
 
 	virtual const dArray2DT& ParentCoords(void) const;
-	
+  virtual const LocalArrayT& ParamCoords(void) const;
+  virtual void SetParamCoords();
+
 	/** returns the number of element facets */
 	int NumFacets(void) const { return fNumFacets; };
 
 	/** returns the number of element nodes */
 	int NumNodes(void) const { return fNumNodes; };
-	
+
 	/** return the geometry code */
 	virtual GeometryT::CodeT Geometry(void) const = 0;
 
@@ -48,21 +51,21 @@ public:
 	 * \param Na destination for shape function values for each of the domain
 	 *        nodes. Must be dimensioned: [nnd] */
 	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const = 0;
-	
+
 	/** evaluate the shape functions and gradients. Compute the values of the
 	 * shape functions and their gradients at an arbirary point in the
 	 * in the parent domain. Coordinates must fall within the domain.
 	 * \param coords point in the parent domain
 	 * \param Na destination for shape function values for each of the domain
 	 *        nodes. Must be dimensioned: [nnd]
-	 * \param DNa destination for shape function derivatives. Must be 
+	 * \param DNa destination for shape function derivatives. Must be
 	 *        dimensioned: [nsd] x [nnd] */
-	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		dArray2DT& DNa) const = 0;
 
-	/** evaluate the shape functions and their first and second derivatives. the second 
+	/** evaluate the shape functions and their first and second derivatives. the second
 	 * derivative has been implemented for 27 node element only. */
-	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
+	virtual void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 		dArray2DT& DNa, dArray2DT& DDNa) const = 0;
 
 	/** compute local shape functions and derivatives. The shape functions
@@ -75,10 +78,10 @@ public:
 	virtual void SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 		dArrayT& weights) const = 0;
 
-	/* this function will be called from ParenDomainT.cpp to initialize 
+	/* this function will be called from ParenDomainT.cpp to initialize
 	 * local second derivative of shape functions.
 	 * Local derivative of shape functions has been implemented for 27 node hex only */
-	virtual void SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x, 
+	virtual void SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 		ArrayT<dArray2DT>& Na_xx, dArrayT& weights) const = 0;
 
 	/** compute gradients of the "bubble" modes */
@@ -145,8 +148,8 @@ public:
 
 	/** number of nodes defining the nodal subdomain */
 	virtual int NodalSubDomainNumPoints(void) const;
-	
-	/** compute the coordinates of the points defining the nodal subdomain 
+
+	/** compute the coordinates of the points defining the nodal subdomain
 	 * \param coords coordinates of the nodes over the entire parent domain
 	 * \param node \e local number of node for which to compute the subdomain
 	 * \param subdomain_coords returns with the coordinates of the points
@@ -160,9 +163,10 @@ protected:
 	/* number of domain nodes */
 	int fNumNodes;
 	int fNumFacets;
-	
+
 	/*canonical coordinates of element nodes*/
 	dArray2DT fCoords;
+	LocalArrayT fParamCoords;
 };
 
 inline const dArray2DT& GeometryBaseT::ParentCoords(void) const
@@ -170,5 +174,17 @@ inline const dArray2DT& GeometryBaseT::ParentCoords(void) const
 	return(fCoords);
 }
 
-} // namespace Tahoe 
+inline const LocalArrayT& GeometryBaseT::ParamCoords() const
+{
+  return fParamCoords;
+}
+
+inline void GeometryBaseT::SetParamCoords() {
+
+  fParamCoords.Dimension(fCoords.MinorDim(), fCoords.MajorDim());
+  fParamCoords.Copy(fCoords.MinorDim(), fCoords.MajorDim(), fCoords);
+
+}
+
+} // namespace Tahoe
 #endif /* _GEOMETRY_BASE_T_H_ */
