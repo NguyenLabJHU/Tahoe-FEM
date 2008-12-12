@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.29 2006-11-06 15:35:54 regueiro Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.30 2008-12-12 00:37:17 lxmota Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -20,50 +20,48 @@ class ShapeFunctionT: public DomainIntegrationT
 {
 public:
 
-	/** constructor. 
+	/** constructor.
      * The constructor needs to be followed with a call to ShapeFunctionT::Initialize
      * to set the internal data structures.
 	 * \param geometry_code geometry of the parent domain
-	 * \param numIP number of integration points 
+	 * \param numIP number of integration points
 	 * \param coords array of nodal coordinates in local ordering
 	 * \param B_option strain-displacement option */
-	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
-		const LocalArrayT& coords);
-		
-    /** This constructor will do the same job like the previous constructor 
+	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
+		const LocalArrayT& coords, bool is_closed_set = true);
+
+    /** This constructor will do the same job like the previous constructor
      *  but it will have a flag to initialize the second derivative
      *  note: second derivative has been implemented for 27 node hex only. */
-	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
-		const LocalArrayT& coords, int dummy_flag);
-	
-	/** constructor. 
+	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
+		const LocalArrayT& coords, int dummy_flag, bool is_closed_set = true);
+
+	/** constructor.
      * The constructor needs to be followed with a call to ShapeFunctionT::Initialize
      * to set the internal data structures.
 	 * \param link shared parent domain and "synch-ed" CurrIP
 	 * \param coords array of nodal coordinates in local ordering */
-	ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords);
+	ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords,
+        bool is_closed_set = true);
 
 	/** type of the domain coordinates */
 	LocalArrayT::TypeT DomainCoordType(void) const;
-	
+
 	/** domain coordinates */
 	const LocalArrayT& Coordinates(void) const { return fCoords; };
 
-	/** compute global shape derivatives */ 	
+	/** compute global shape derivatives */
 	virtual void SetDerivatives(void);
 
-	/** compute global shape derivatives-first and second derivatives, 
-	 *  second derivative has been imolemented for 27 node element only */ 	
+	/** compute global shape derivatives-first and second derivatives,
+	 *  second derivative has been imolemented for 27 node element only */
 	virtual void SetDerivatives_DN_DDN(void);
 
 	/** array of jacobian determinant integration points at once */
 	const double* IPDets(void) const; // d(fCoords) = j d(parent domain)
 
-//DEV - not used
-#if 0
-	/** jacobian of the mapping to the parent domain */
+	/** jacobian determinant of the current integration point */
 	double IPDet(void) const; // d(fCoords) = j d(parent domain)
-#endif
 
 	/** \name shape function gradients
 	 * Return the matrix of shape function gradients for the specified
@@ -81,21 +79,31 @@ public:
 
 	/** coordinates of the current integration point */
 	void IPCoords(dArrayT& coordinates) const;
-	
-	/** interpolate field values to the current integration point 
+
+  // parametric coordinates of the given integration point
+  void IPParamCoords(dArrayT& coordinates, int ip) const;
+
+  // parametric coordinates of the current integration point
+  void IPParamCoords(dArrayT& coordinates) const;
+
+  // Set parametric coordinates for integration points.
+  // Implementation may be inefficient but works for most domains.
+  void SetIPParamCoords() const;
+
+	/** interpolate field values to the current integration point
 	 * \param nodal array of nodal values: [nnd] x [nu]
 	 * \param u interpolation of the nodal values */
 	void InterpolateU(const LocalArrayT& nodal, ArrayT<double>& u) const;
 
-	/** interpolate field values to the specified integration point 
+	/** interpolate field values to the specified integration point
 	 * \param nodal array of nodal values: [nnd] x [nu]
-	 * \param u interpolation of the nodal values 
+	 * \param u interpolation of the nodal values
 	 * \param ip integration point number */
 	void InterpolateU(const LocalArrayT& nodal, ArrayT<double>& u, int ip) const;
-	
+
 	/* Allow stand-alone use of class ShapeFunctionT */
 	void InitializeDomain(void) const;
-	
+
 	/** \name shape function values */
 	/*@{*/
 	/** shape functions defining the geometry at the current integration point */
@@ -110,40 +118,40 @@ public:
 	/** shape functions defining the field at the given integration point */
 	const double* IPShapeU(int ip) const;
 	/*@}*/
-	
+
 	/* not active yet */
     /* laplacian of field at current ip */
     //void LaplaceU(const LocalArrayT& field, dArrayT& laplacian) const;
 
     /* laplacian of strain at current ip */
     //void LaplaceStrain(const dSymMatrixT& field, dSymMatrixT& laplacian) const;
-	
+
 	/** \name field gradients */
 	/*@{*/
-	/** field gradients at the current integration point. 
+	/** field gradients at the current integration point.
 	 * \param nodal array of nodal values: [nnd] x [nu]
 	 * \param grad_U field gradient matrix: [nu] x [nsd] */
 	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U) const;
 
-	/** field gradients at the specified integration point. 
+	/** field gradients at the specified integration point.
 	 * \param nodal array of nodal values: [nnd] x [nu]
-	 * \param grad_U field gradient matrix: [nu] x [nsd] 
+	 * \param grad_U field gradient matrix: [nu] x [nsd]
 	 * \param IPnumber integration point number */
 	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, int IPnumber) const;
 
-	/** field gradients at arbitrary parent domain coordinates. 
+	/** field gradients at arbitrary parent domain coordinates.
 	 * \param nodal array of nodal values: [nnd] x [nu]
-	 * \param grad_U returns with the field gradient matrix: [nu] x [nsd] 
+	 * \param grad_U returns with the field gradient matrix: [nu] x [nsd]
 	 * \param coord coordinates in the parent domain
 	 * \param Na returns with array of nodal shape functions (dimensioned during the call): [nnd]
-	 * \param DNa returns with array of shape function derivatives 
+	 * \param DNa returns with array of shape function derivatives
 	 *        (dimensioned during the call): [nsd] x [nnd] */
-	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord, 
+	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord,
 		dArrayT& Na, dArray2DT& DNa) const;
 	/*@}*/
 
 	/** compute the curl of a vector that is of dimension 3x1
-	 *  Values for vector at the node points must be provided 
+	 *  Values for vector at the node points must be provided
 	 *  T is of dimension num_nodes x (3x1) -- an array of vectors
 	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
 	 *  of dimension 2 x num_nodes.
@@ -151,7 +159,7 @@ public:
 	void CurlU(const ArrayT<dArrayT>& T, dArrayT& curl_T, int IPnumber) const;
 
 	/** compute the curl of a tensor that is of dimension 3x3
-	 *  Values for tensor at the node points must be provided 
+	 *  Values for tensor at the node points must be provided
 	 *  T is of dimension num_nodes x (3x3) -- an array of tensors
 	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
 	 *  of dimension 2 x num_nodes.
@@ -194,13 +202,13 @@ public:
 	/* second derivative of shape functions
 	 * It has been implemented for the 27 node hex element only */
 	/*@{*/
-	/* matrix of second derivatives of shape functions will be as follows: 
+	/* matrix of second derivatives of shape functions will be as follows:
 	 * N1,11   N2,11 ....Nn_en,11
 	 * N1,22   N2,22 ....Nn_en,22
 	 * N1,33   N2,33 ....Nn_en,33
 	 * N1,23   N2,23 ....Nn_en,23
-	 * N1,13   N2,13 ....Nn_en,13  
-	 * N1,12   N2,12 ....Nn_en,12     */   
+	 * N1,13   N2,13 ....Nn_en,13
+	 * N1,12   N2,12 ....Nn_en,12     */
 	void Grad_GradNa(dMatrixT& grad_grad_Na) const;
    	void Grad_GradNa(const dArray2DT& derivatives, dMatrixT& grad_grad_Na) const;
 	/*@}*/
@@ -215,15 +223,19 @@ public:
 	void CloseStore(void);
 	/*@}*/
 
+  // compute jacobian determinants wrt to
+	// parametric coordinates at integration points
+  virtual void JacobianDets(dArrayT& dets);
+
 protected:
 
 	/** set Grad_x matrix. used by the meshfree classes to substitutite a set
-	 * of shape function derivatives. the set values are retained until the next 
+	 * of shape function derivatives. the set values are retained until the next
 	 * TopIP/NextIP loop */
 	void SetGrad_x(const dArray2DT& Grad_x);
 
 	/** replace field shape function for non-isoparametric formulations */
-	void SetUShapeFunctions(const dArray2DT& NaU, const ArrayT<dArray2DT>& DNaU);	
+	void SetUShapeFunctions(const dArray2DT& NaU, const ArrayT<dArray2DT>& DNaU);
 
 	/** access to the (geometry) shape function derivatives */
 	const ArrayT<dArray2DT>& DNaX(void) const;
@@ -237,7 +249,7 @@ private:
 	 *  isoparametric */
 	void Construct(void);
 
-    /** this function will be called by the class constructor to initialize 
+    /** this function will be called by the class constructor to initialize
      *  first and second derivatives */
 	void Construct_DN_DDN(void);
 
@@ -249,10 +261,11 @@ protected:
 	/* local coordinates */
 	const LocalArrayT& fCoords;
 
+  dArrayT fDet;           // d(fCoords) = j d(parent domain)
+
 private:
 
 	/* global shape function derivatives */
-	dArrayT	fDet;	          // d(fCoords) = j d(parent domain)
 	ArrayT<dArray2DT> fDNaX;  // geometry: d(phi_X)/d(fCoords)
 	ArrayT<dArray2DT> fDDNaX; // geometry: d(phi_X)/d(fCoords) and  d^2(phi_X)/d(fCoords)^2
 
@@ -263,7 +276,7 @@ private:
 
 	/* return values */
 	const dArray2DT* fGrad_x_temp;
-	
+
 	/* work space */
 	dArrayT fv1, fv2;
 
@@ -290,8 +303,6 @@ inline const double* ShapeFunctionT::IPDets(void) const
 
 /************************ for the current integration point *********************/
 
-//DEV - not used
-#if 0
 inline double ShapeFunctionT::IPDet(void) const
 {
 #if __option(extended_errorcheck)
@@ -301,7 +312,6 @@ if (fCurrIP < 0 || fCurrIP >= fNumIP) throw ExceptionT::kOutOfRange;
 
 	return *(fDet.Pointer() + fCurrIP);
 }
-#endif
 
 inline void ShapeFunctionT::InitializeDomain(void) const
 {
@@ -337,6 +347,21 @@ inline void ShapeFunctionT::IPCoords(dArrayT& coordinates) const
 inline void ShapeFunctionT::IPCoords(dArrayT& coordinates, int ip) const
 {
 	fDomain->Interpolate(fCoords, coordinates, ip);
+}
+
+inline void ShapeFunctionT::IPParamCoords(dArrayT& coordinates) const
+{
+  fDomain->Interpolate(fDomain->ParamCoords(), coordinates, fCurrIP);
+}
+
+inline void ShapeFunctionT::IPParamCoords(dArrayT& coordinates, int ip) const
+{
+  fDomain->Interpolate(fDomain->ParamCoords(), coordinates, ip);
+}
+
+inline void ShapeFunctionT::SetIPParamCoords() const
+{
+  fDomain->SetParamCoords();
 }
 
 /* spatial gradients */
@@ -391,7 +416,7 @@ inline void ShapeFunctionT::B_q(dMatrixT& B_matrix) const
 }
 #endif
 
-inline void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar, 
+inline void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar,
 	dArray2DT& transformed) const {
 	TransformDerivatives(changeofvar, (*pDNaU)[fCurrIP], transformed);
 }
@@ -418,7 +443,7 @@ inline void ShapeFunctionT::SetUShapeFunctions(const dArray2DT& NaU,
 	/* set pointers to external data */
 	pNaU  = &NaU;
 	pDNaU = &DNaU;
-  
+
 }
 
 /* access to the (geometry) shape function derivatives */
@@ -427,5 +452,5 @@ inline const ArrayT<dArray2DT>& ShapeFunctionT::DNaX(void) const { return fDNaX;
 /* access to the (geometry) shape function second derivatives */
 inline const ArrayT<dArray2DT>& ShapeFunctionT::DDNaX(void) const { return fDDNaX; }
 
-} // namespace Tahoe 
+} // namespace Tahoe
 #endif /* _SHAPE_FUNCTION_T_H_ */
