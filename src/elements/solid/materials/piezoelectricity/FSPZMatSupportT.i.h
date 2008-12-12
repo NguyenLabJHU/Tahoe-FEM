@@ -1,5 +1,5 @@
 //
-// $Id: FSPZMatSupportT.i.h,v 1.1 2008-09-03 18:40:50 beichuan Exp $
+// $Id: FSPZMatSupportT.i.h,v 1.2 2008-12-12 18:58:15 amota Exp $
 //
 // $Log: not supported by cvs2svn $
 // Revision 1.2  2008/07/14 17:38:53  lxmota
@@ -10,17 +10,14 @@
 //
 //
 
-namespace Tahoe{
-  
+namespace Tahoe {
+
   //
   //
   //
-  inline
-  FSPZMatSupportT::FSPZMatSupportT(int ndof, int nip) :
-    FSMatSupportT(ndof, nip),
-    fD_List(0),
-    fD_last_List(0),
-    fFSPiezoElectricSolid(0)
+  inline FSPZMatSupportT::FSPZMatSupportT(int ndof, int nip) :
+    FSMatSupportT(ndof, nip), fD_List(0), fDivPhi_List(0),
+        fFSPiezoElectricSolid(0)
   {
   }
 
@@ -28,10 +25,9 @@ namespace Tahoe{
   //
   //
   inline const FSPiezoElectricSolidT*
-  FSPZMatSupportT::FSPiezoElectricSolid() const {
-
+  FSPZMatSupportT::FSPiezoElectricSolid() const
+  {
     return fFSPiezoElectricSolid;
-
   }
 
   //
@@ -40,15 +36,11 @@ namespace Tahoe{
   inline const dArrayT&
   FSPZMatSupportT::ElectricDisplacement() const
   {
-
     if (fD_List == 0) {
-
       throw ExceptionT::kGeneralFail;
-
     }
 
     return (*fD_List)[CurrIP()];
-
   }
 
   //
@@ -57,74 +49,55 @@ namespace Tahoe{
   inline const dArrayT&
   FSPZMatSupportT::ElectricDisplacement(int ip) const
   {
-
     if (fD_List == 0) {
-
       throw ExceptionT::kGeneralFail;
-
     }
 
     return (*fD_List)[ip];
-
   }
 
   //
   //
   //
-  inline const dArrayT&
-  FSPZMatSupportT::ElectricDisplacement_last() const
+  inline void FSPZMatSupportT::SetElectricDisplacement(
+      const ArrayT<dArrayT>* D_List)
   {
-
-    if (fD_List == 0) {
-
-      throw ExceptionT::kGeneralFail;
-
-    }
-
-    return (*fD_last_List)[CurrIP()];
-
-  }
-    
-  //
-  //
-  //
-  inline const dArrayT&
-  FSPZMatSupportT::ElectricDisplacement_last(int ip) const
-  {
-
-    if (fD_List == 0) {
-
-      throw ExceptionT::kGeneralFail;
-
-    }
-
-    return (*fD_last_List)[ip];
-
-  }
-
-  //
-  //
-  //
-  inline void
-  FSPZMatSupportT::SetElectricDisplacement(const ArrayT<dArrayT>* D_List)
-  {
-
     fD_List = D_List;
-
   }
-    
+
   //
   //
   //
-  inline void
-  FSPZMatSupportT::SetElectricDisplacement_last(const ArrayT<dArrayT>*
-						D_last_List)
+  inline double FSPZMatSupportT::DivergenceVectorPotential() const
   {
+    if (fDivPhi_List == 0) {
+      throw ExceptionT::kGeneralFail;
+    }
 
-    fD_last_List = D_last_List;
-
+    return (*fDivPhi_List)[CurrIP()];
   }
-  
+
+  //
+  //
+  //
+  inline double FSPZMatSupportT::DivergenceVectorPotential(int ip) const
+  {
+    if (fDivPhi_List == 0) {
+      throw ExceptionT::kGeneralFail;
+    }
+
+    return (*fDivPhi_List)[ip];
+  }
+
+  //
+  //
+  //
+  inline void FSPZMatSupportT::SetDivergenceVectorPotential(
+      const dArrayT* DivPhi_List)
+  {
+    fDivPhi_List = DivPhi_List;
+  }
+
   //
   // Return pointer to specified local array
   //
@@ -136,10 +109,6 @@ namespace Tahoe{
 
     switch (t) {
 
-    case LocalArrayT::kLastEVP:
-      pla = fLastEVP;
-      break;
-
     case LocalArrayT::kEVP:
       pla = fEVP;
       break;
@@ -149,7 +118,7 @@ namespace Tahoe{
       // Inherited
       //
       pla = FSMatSupportT::LocalArray(t);
-      
+
     }
 
     return pla;
@@ -159,15 +128,10 @@ namespace Tahoe{
   //
   // Set pointer to local array
   //
-  inline void
-  FSPZMatSupportT::SetLocalArray(const LocalArrayT& array)
+  inline void FSPZMatSupportT::SetLocalArray(const LocalArrayT& array)
   {
 
     switch (array.Type()) {
-
-    case LocalArrayT::kLastEVP:
-      fLastEVP = &array;
-      break;
 
     case LocalArrayT::kEVP:
       fEVP = &array;
@@ -178,10 +142,9 @@ namespace Tahoe{
       // Inherited
       //
       FSMatSupportT::SetLocalArray(array);
-      
 
     }
-    
+
   }
 
   //
@@ -194,40 +157,16 @@ namespace Tahoe{
     return fEVP;
 
   }
-  
-  
-  //
-  // Last nodal electric vector potentials
-  //
-  inline const LocalArrayT*
-  FSPZMatSupportT::LastVectorPotentials() const
-  {
-
-    return fLastEVP;
-
-  }
 
   //
   //
   //
-  inline void
-  FSPZMatSupportT::SetVectorPotentials(const LocalArrayT& vectorPotentials)
+  inline void FSPZMatSupportT::SetVectorPotentials(
+      const LocalArrayT& vectorPotentials)
   {
 
     fEVP = &vectorPotentials;
 
   }
-  
-  //
-  //
-  //
-  inline void
-  FSPZMatSupportT::SetLastVectorPotentials(const LocalArrayT&
-					 last_vectorPotentials)
-  {
 
-    fLastEVP = &last_vectorPotentials;
-
-  }
-  
 } //namespace Tahoe

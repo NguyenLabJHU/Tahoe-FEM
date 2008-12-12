@@ -1,5 +1,5 @@
 //
-// $Id: FSNeoHookePZLinT.cpp,v 1.1 2008-09-03 18:40:50 beichuan Exp $
+// $Id: FSNeoHookePZLinT.cpp,v 1.2 2008-12-12 18:58:15 amota Exp $
 //
 // $Log: not supported by cvs2svn $
 // Revision 1.2  2008/07/14 17:37:44  lxmota
@@ -19,37 +19,34 @@ namespace Tahoe {
   //
   //
   static const char NPZ[] = "Neohookean-piezoelectric";
+  const bool FSNeoHookePZLinT::dependsOnC = true;
   const char* FSNeoHookePZLinT::Name = NPZ;
 
   //
   //
   //
-  void
-  FSNeoHookePZLinT::initialize()
+  void FSNeoHookePZLinT::Initialize()
   {
 
-    fShearModulus = 0.0;
-    fBulkModulus = 0.0;
     fElectricPermittivity = 0.0;
     fPiezoelectricTensor = dMatrixT(ElectricalDim(), StrainDim());
     fPiezoelectricTensor = 0.0;
+    fPenaltyCoefficient = 0.0;
 
   }
 
   //
   //
   //
-  void
-  FSNeoHookePZLinT::DefineParameters(ParameterListT& list) const
+  void FSNeoHookePZLinT::DefineParameters(ParameterListT& list) const
   {
-    
+
     FSIsotropicMatT::DefineParameters(list);
 
-    list.AddParameter(fShearModulus, "mu");
-    list.AddParameter(fBulkModulus, "kappa");
     list.AddParameter(fElectricPermittivity, "epsilon");
-  
-    char p[4] = "g11";
+    list.AddParameter(fPenaltyCoefficient, "penalty");
+
+    char p[4] = "h11";
 
     for (int i = 0; i < ElectricalDim(); ++i) {
 
@@ -59,14 +56,13 @@ namespace Tahoe {
 
         p[2] = '1' + j;
 
-        const double & gij = fPiezoelectricTensor(i,j);
+        const double & gij = fPiezoelectricTensor(i, j);
         list.AddParameter(gij, p);
 
       }
 
     }
 
-        
     //
     // set the description
     //
@@ -77,17 +73,15 @@ namespace Tahoe {
   //
   //
   //
-  void
-  FSNeoHookePZLinT::TakeParameterList(const ParameterListT& list)
+  void FSNeoHookePZLinT::TakeParameterList(const ParameterListT& list)
   {
-    
-    FSIsotropicMatT::TakeParameterList(list);
-  
-    fShearModulus = list.GetParameter("mu");
-    fBulkModulus  = list.GetParameter("kappa");
-    fElectricPermittivity = list.GetParameter("epsilon");
 
-    char p[4] = "g11";
+    FSIsotropicMatT::TakeParameterList(list);
+
+    fElectricPermittivity = list.GetParameter("epsilon");
+    fPenaltyCoefficient = list.GetParameter("penalty");
+
+    char p[4] = "h11";
 
     for (int i = 0; i < ElectricalDim(); ++i) {
 
@@ -97,7 +91,7 @@ namespace Tahoe {
 
         p[2] = '1' + j;
 
-        fPiezoelectricTensor(i,j) = list.GetParameter(p);
+        fPiezoelectricTensor(i, j) = list.GetParameter(p);
 
       }
 
@@ -106,22 +100,15 @@ namespace Tahoe {
     //
     // check
     //
-    if (fShearModulus < -kSmall) {
-      ExceptionT::BadInputValue("FSNeoHookePZLinT::TakeParameterList",
-				"expecting a non-negative value mu: %e",
-				fShearModulus);
-    }
-  
-    if (fBulkModulus < -kSmall) {
-      ExceptionT::BadInputValue("FSNeoHookePZLinT::TakeParameterList",
-				"expecting a non-negative value kappa: %e",
-				fBulkModulus);
-    }
-
     if (fElectricPermittivity < -kSmall) {
       ExceptionT::BadInputValue("FSNeoHookePZLinT::TakeParameterList",
-				"expecting a non-negative value epsilon: %e",
-				fElectricPermittivity);
+          "expecting a non-negative epsilon: %e", fElectricPermittivity);
+    }
+
+    if (fPenaltyCoefficient < -kSmall) {
+      ExceptionT::BadInputValue("FSNeoHookePZLinT::TakeParameterList",
+          "expecting a non-negative penalty coefficient: %e",
+          fPenaltyCoefficient);
     }
 
   }
@@ -129,8 +116,7 @@ namespace Tahoe {
   //
   // information about subordinate parameter lists
   //
-  void
-  FSNeoHookePZLinT::DefineSubs(SubListT& sub_list) const
+  void FSNeoHookePZLinT::DefineSubs(SubListT& sub_list) const
   {
     FSIsotropicMatT::DefineSubs(sub_list);
     return;
@@ -139,54 +125,104 @@ namespace Tahoe {
   //
   // Set piezoelectric constants
   //
-  void
-  FSNeoHookePZLinT::setPiezoelectricConstant(int i, int j, double gij)
+  void FSNeoHookePZLinT::SetPiezoelectricConstant(int i, int j, double gij)
   {
 
     bool validI = (0 <= i && i < StrainDim()) == true;
-
     bool validJ = (0 <= j && j < ElectricalDim()) == true;
 
     if (validI == false) {
       ExceptionT::BadInputValue("FSNeoHookePZLinT::setPiezoelectricConstant",
-				"invalid piezoelectric index i: %d",
-				i);
-    }
-  
-    if (validJ == false) {
-      ExceptionT::BadInputValue("FSNeoHookePZLinT::setPiezoelectricConstant",
-				"invalid piezoelectric index j: %d",
-				j);
+          "invalid piezoelectric index i: %d", i);
     }
 
-    fPiezoelectricTensor(i,j) = gij;
+    if (validJ == false) {
+      ExceptionT::BadInputValue("FSNeoHookePZLinT::setPiezoelectricConstant",
+          "invalid piezoelectric index j: %d", j);
+    }
+
+    fPiezoelectricTensor(i, j) = gij;
 
   }
 
   //
   // Get piezoelectric constants
   //
-  double
-  FSNeoHookePZLinT::getPiezoelectricConstant(int i, int j) const
+  double FSNeoHookePZLinT::GetPiezoelectricConstant(int i, int j) const
   {
 
     bool validI = (0 <= i && i < StrainDim()) == true;
-
     bool validJ = (0 <= j && j < ElectricalDim()) == true;
 
     if (validI == false) {
       ExceptionT::BadInputValue("FSNeoHookePZLinT::setPiezoelectricConstant",
-				"invalid piezoelectric index i: %d",
-				i);
-    }
-  
-    if (validJ == false) {
-      ExceptionT::BadInputValue("FSNeoHookePZLinT::setPiezoelectricConstant",
-				"invalid piezoelectric index j: %d",
-				j);
+          "invalid piezoelectric index i: %d", i);
     }
 
-    return fPiezoelectricTensor(i,j);
+    if (validJ == false) {
+      ExceptionT::BadInputValue("FSNeoHookePZLinT::setPiezoelectricConstant",
+          "invalid piezoelectric index j: %d", j);
+    }
+
+    return fPiezoelectricTensor(i, j);
+
+  }
+
+  //
+  //
+  //
+  const dSymMatrixT FSNeoHookePZLinT::StressNum(const dSymMatrixT& C,
+      const dArrayT& D) const
+  {
+    const double eps = 1e-6;
+    dSymMatrixT Cm(ManifoldDim());
+    dSymMatrixT Cp(ManifoldDim());
+    dSymMatrixT S(ManifoldDim());
+
+    for (int i = 0; i < StrainDim(); ++i) {
+      Cm = C;
+      Cm[i] -= i < ManifoldDim() ? (0.5 * eps) : (0.25 * eps);
+      const double Wm = EnergyDensity(Cm, D);
+
+      Cp = C;
+      Cp[i] += i < ManifoldDim() ? (0.5 * eps) : (0.25 * eps);
+      const double Wp = EnergyDensity(Cp, D);
+
+      S[i] = 2.0 * (Wp - Wm) / eps;
+    }
+
+    return S;
+
+  }
+
+  //
+  //
+  //
+  const dMatrixT FSNeoHookePZLinT::TangentMechanicalNum(
+      const dSymMatrixT& C, const dArrayT& D) const
+  {
+
+    const double eps = 1e-6;
+    dSymMatrixT Cm(ManifoldDim());
+    dSymMatrixT Cp(ManifoldDim());
+    dMatrixT CC(StrainDim());
+
+    for (int i = 0; i < StrainDim(); ++i) {
+      Cm = C;
+      Cm[i] -= i < ManifoldDim() ? (0.5 * eps) : (0.25 * eps);
+      const dSymMatrixT Sm = Stress(Cm, D);
+
+      Cp = C;
+      Cp[i] += i < ManifoldDim() ? (0.5 * eps) : (0.25 * eps);
+      const dSymMatrixT Sp = Stress(Cp, D);
+
+      for (int j = 0; j < StrainDim(); ++j) {
+        CC(i, j) = 2.0 * (Sp[j] - Sm[j]) / eps;
+      }
+
+    }
+
+    return CC;
 
   }
 

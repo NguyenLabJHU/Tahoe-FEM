@@ -19,7 +19,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	FSPiezoElectricSolidT.o \
 	FSPZMatSupportT.o \
 	FSNeoHookePZLinT.o
 
@@ -41,8 +40,6 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	FSPiezoElectricSolidT.cpp \
-	FSHuWashizuUSCT.cpp \
 	FSPZMatSupportT.cpp \
 	FSNeoHookePZLinT.cpp
 
@@ -56,10 +53,6 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	FSPiezoElectricSolidT.h \
-	FSPiezoElectricSolidT.i.h \
-	FSHuWashizuUSCT.h \
-	FSHuWashizuUSCT.i.h \
 	FSPZMatSupportT.h \
 	FSPZMatSupportT.i.h \
 	FSNeoHookePZLinT.h \

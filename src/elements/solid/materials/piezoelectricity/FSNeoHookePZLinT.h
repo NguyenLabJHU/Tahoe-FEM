@@ -1,7 +1,10 @@
 //
-// $Id: FSNeoHookePZLinT.h,v 1.1 2008-09-03 18:40:50 beichuan Exp $
+// $Id: FSNeoHookePZLinT.h,v 1.2 2008-12-12 18:58:15 amota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/09/03 18:40:50  beichuan
+// Piezoelectricity
+//
 // Revision 1.2  2008/07/14 17:37:44  lxmota
 // Various corrections related to initialization.
 //
@@ -65,37 +68,50 @@ namespace Tahoe {
     //
     // material mechanical tangent modulus
     //
-    const dMatrixT& C_ijkl();
+    virtual const dMatrixT& C_IJKL();
+    virtual const dMatrixT& C_IJKL_Num();
 
     //
     // material piezoelectric tangent modulus
     //
-    const dMatrixT& H_ijk();
+    virtual const dMatrixT& H_IJK();
 
     //
     // material electric tangent modulus
     //
-    const dMatrixT& B_ij();
+    virtual const dMatrixT& B_IJ();
 
     //
     // Second Piola-Kirchhoff stress
     //
-    const dSymMatrixT& S_ij();
+    virtual const dSymMatrixT& S_IJ();
+    virtual const dSymMatrixT& S_IJ_Num();
+    virtual const dSymMatrixT& S_IJ(const dSymMatrixT& C);
+
+    //
+    // electric displacement
+    //
+    virtual const dArrayT& D_I();
 
     //
     // electric field
     //
-    const dArrayT& E_i();
+    virtual const dArrayT& E_I();
+
+    //
+    // divergence vector potential
+    //
+    virtual double DivPhi();
 
     //
     // spatial mechanical tangent modulus
     //
-    const dMatrixT& c_ijkl();
+    virtual const dMatrixT& c_ijkl();
 
     //
     // Cauchy stress
     //
-    const dSymMatrixT& s_ij();
+    virtual const dSymMatrixT& s_ij();
 
     //
     // pressure associated with the last computed stress
@@ -107,51 +123,32 @@ namespace Tahoe {
     //
 
     //
-    //
-    //
-    virtual bool Need_D() const;
-    virtual bool Need_D_last() const;
-
-    //
     // Helmholtz free energy density
     //
-    double energyDensity(const dSymMatrixT& C, const dArrayT& D) const;
+    double EnergyDensity(const dSymMatrixT& C, const dArrayT& D) const;
 
     //
     // 2nd Piola-Kirchhoff stress measures
     //
-    const dSymMatrixT stress2PK(const dSymMatrixT& C, const dArrayT& D) const;
+    const dSymMatrixT Stress(const dSymMatrixT& C, const dArrayT& D) const;
 
     //
     // Material electric field
     //
-    const dArrayT electricField(const dSymMatrixT& C, const dArrayT& D) const;
+    const dArrayT ElectricField(const dSymMatrixT& C, const dArrayT& D) const;
 
     //
-    // Tangent moduli
+    // accessors and mutators for material constants
     //
-    const dMatrixT tangentMechanical(const dSymMatrixT& C,
-				     const dArrayT& D) const;
+    void SetElectricPermittivity(double epsilon);
+    double GetElectricPermittivity() const;
+    void SetPiezoelectricConstant(int i, int j, double gij);
+    double GetPiezoelectricConstant(int i, int j) const;
 
-    const dMatrixT tangentElectrical(const dSymMatrixT& C,
-				     const dArrayT& D) const;
+    void SetPenaltyCoeffifient(double k);
+    double GetPenaltyCoefficient() const;
 
-    const dMatrixT tangentPiezoelectrical(const dSymMatrixT& C,
-					  const dArrayT& D) const;
-
-    //
-    // accesors and mutators for material constants
-    //
-    void setShearModulus(double mu);
-    double getShearModulus() const;
-    void setBulkModulus(double kappa);
-    double getBulkModulus() const;
-    void setElectricPermittivity(double epsilon);
-    double getElectricPermittivity() const;
-    void setPiezoelectricConstant(int i, int j, double gij);
-    double getPiezoelectricConstant(int i, int j) const;
-
-    void setFSPZMatSupport(const FSPZMatSupportT* support);
+    void SetFSPZMatSupport(const FSPZMatSupportT* support);
 
     const int ManifoldDim() const;
     const int StrainDim() const;
@@ -163,46 +160,64 @@ namespace Tahoe {
 
   private:
 
-    void initialize();
+    void Initialize();
 
-    double energyDensityMechanical(const dSymMatrixT& C) const;
+    double EnergyDensityMechanical(const dSymMatrixT& C) const;
 
-    double energyDensityElectrical(const dSymMatrixT& C,
+    double EnergyDensityElectrical(const dSymMatrixT& C,
 				   const dArrayT& D) const;
 
-    double energyDensityPiezoelectrical(const dSymMatrixT& C,
+    double EnergyDensityPiezoelectrical(const dSymMatrixT& C,
 					const dArrayT& D) const;
 
-    double energyDensityElasticVol(const dSymMatrixT& C) const;
-    double energyDensityElasticDev(const dSymMatrixT& C) const;
+    double EnergyDensityElasticVol(const dSymMatrixT& C) const;
+    double EnergyDensityElasticDev(const dSymMatrixT& C) const;
 
-    const dSymMatrixT stressMechanical(const dSymMatrixT& C) const;
+    const dSymMatrixT StressNum(const dSymMatrixT& C, const dArrayT& D) const;
 
-    const dSymMatrixT stressElectrical(const dSymMatrixT& C,
+    const dSymMatrixT StressMechanical(const dSymMatrixT& C) const;
+
+    const dSymMatrixT StressElectrical(const dSymMatrixT& C,
 				       const dArrayT& D) const;
 
-    const dSymMatrixT stressPiezoelectrical(const dSymMatrixT& C,
+    const dSymMatrixT StressPiezoelectrical(const dSymMatrixT& C,
 					    const dArrayT& D) const;
 
-    const dSymMatrixT stressElasticVol(const dSymMatrixT& C) const;
-    const dSymMatrixT stressElasticDev(const dSymMatrixT& C) const;
+    const dSymMatrixT StressElasticVol(const dSymMatrixT& C) const;
+    const dSymMatrixT StressElasticDev(const dSymMatrixT& C) const;
 
-    const dArrayT electricFieldElectrical(const dSymMatrixT& C,
+    const dArrayT ElectricFieldElectrical(const dSymMatrixT& C,
 					  const dArrayT& D) const;
 
-    const dArrayT electricFieldPiezoelectrical(const dSymMatrixT& C,
+    const dArrayT ElectricFieldPiezoelectrical(const dSymMatrixT& C,
 					       const dArrayT& D) const;
 
-    const dMatrixT tangentMechanicalElasticVol(const dSymMatrixT& C) const;
-    const dMatrixT tangentMechanicalElasticDev(const dSymMatrixT& C) const;
-    const dMatrixT tangentMechanicalElectrical(const dSymMatrixT& C,
+    //
+    // Tangent moduli
+    //
+    const dMatrixT TangentMechanical(const dSymMatrixT& C,
+             const dArrayT& D) const;
+
+    const dMatrixT TangentMechanicalNum(const dSymMatrixT& C,
+             const dArrayT& D) const;
+
+    const dMatrixT TangentElectrical(const dSymMatrixT& C,
+             const dArrayT& D) const;
+
+    const dMatrixT TangentPiezoelectrical(const dSymMatrixT& C,
+            const dArrayT& D) const;
+
+    const dMatrixT TangentMechanicalElasticVol(const dSymMatrixT& C) const;
+    const dMatrixT TangentMechanicalElasticDev(const dSymMatrixT& C) const;
+    const dMatrixT TangentMechanicalElectrical(const dSymMatrixT& C,
 					       const dArrayT& D) const;
 
-    const dSymMatrixT rightCauchyGreenDeformation();
-    const dArrayT electricDisplacement();
-    const dArrayT electricDisplacement(int ip);
-    const dArrayT electricDisplacement_last();
-    const dArrayT electricDisplacement_last(int ip);
+    const dSymMatrixT RightCauchyGreenDeformation();
+    const dArrayT ElectricDisplacement();
+    const dArrayT ElectricDisplacement(int ip);
+
+    double DivergenceVectorPotential();
+    double DivergenceVectorPotential(int ip);
 
     //
     // data
@@ -216,8 +231,8 @@ namespace Tahoe {
 
   private:
 
-    double fShearModulus;
-    double fBulkModulus;
+    static const bool dependsOnC;
+
     double fElectricPermittivity;
     dMatrixT fPiezoelectricTensor;
 
@@ -225,11 +240,15 @@ namespace Tahoe {
 
     dArrayT fElectricField;
     dArrayT fElectricDisplacement;
+    double  fDivergenceVectorPotential;
 
     dSymMatrixT fStress;
     dMatrixT fTangentMechanical;
     dMatrixT fTangentPiezoelectrical;
     dMatrixT fTangentElectrical;
+
+    // To enforce divergence-free vector potential
+    double fPenaltyCoefficient;
 
   };
 

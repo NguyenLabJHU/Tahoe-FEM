@@ -1,5 +1,5 @@
 //
-// $Id: FSPZMatSupportT.h,v 1.1 2008-09-03 18:40:50 beichuan Exp $
+// $Id: FSPZMatSupportT.h,v 1.2 2008-12-12 18:58:15 amota Exp $
 //
 // $Log: not supported by cvs2svn $
 // Revision 1.2  2008/07/14 17:38:53  lxmota
@@ -18,7 +18,7 @@
 #include "FSMatSupportT.h"
 
 namespace Tahoe {
-  
+
   //
   // forward declarations
   //
@@ -36,7 +36,7 @@ namespace Tahoe {
     // constructors
     //
     FSPZMatSupportT(int ndof, int nip);
-    
+
     //
     // \name host code information
     // @{
@@ -49,7 +49,7 @@ namespace Tahoe {
     // set the element group pointer
     //
     virtual void SetContinuumElement(const ContinuumElementT* p);
-    
+
     //
     // @}
     //
@@ -70,27 +70,20 @@ namespace Tahoe {
     const dArrayT& ElectricDisplacement(int ip) const;
 
     //
-    // Electric displacement from end of previous time step at current
-    // integration point
-    //
-    const dArrayT& ElectricDisplacement_last() const;
-
-    //
-    // Electric displacement from end of previous time step at given
-    // integration point
-    //
-    const dArrayT& ElectricDisplacement_last(int ip) const;
-
-    //
     // Set source for electric displacement
     //
     void SetElectricDisplacement(const ArrayT<dArrayT>* D_List);
 
     //
-    // Set source for electric displacement from end of previous time
-    // step
+    // accessors for divergence of vector potential
     //
-    void SetElectricDisplacement_last(const ArrayT<dArrayT>* D_last_List);
+    double DivergenceVectorPotential() const;
+    double DivergenceVectorPotential(int ip) const;
+
+    //
+    // mutators for divergence of vector potential
+    //
+    void SetDivergenceVectorPotential(const dArrayT* DivPhi_List);
 
     //
     // Return pointer to specified local array
@@ -108,19 +101,9 @@ namespace Tahoe {
     const LocalArrayT* VectorPotentials() const;
 
     //
-    // Last nodal electric vector potentials
-    //
-    const LocalArrayT* LastVectorPotentials() const;
-
-    //
     //
     //
     void SetVectorPotentials(const LocalArrayT& vectorPotentials);
-
-    //
-    //
-    //
-    void SetLastVectorPotentials(const LocalArrayT& last_vectorPotentials);
 
     //
     // @}
@@ -129,9 +112,9 @@ namespace Tahoe {
     static const int ManifoldDim() { return 3; };
     static const int StrainDim() { return 6; };
     static const int ElectricalDim() { return 3; };
-    
+
   private:
-    
+
     //
     // \name Sources for electric displacements and pointers to local
     // arrays
@@ -144,15 +127,12 @@ namespace Tahoe {
     //
     const ArrayT<dArrayT>* fD_List;
 
-    //
-    // Last electric displacement
-    //
-    const ArrayT<dArrayT>* fD_last_List;
+    // divergence of vector potential
+    const dArrayT* fDivPhi_List;
 
     //
     // Pointers to local arrays
     //
-    const LocalArrayT* fLastEVP;
     const LocalArrayT* fEVP;
 
     //
