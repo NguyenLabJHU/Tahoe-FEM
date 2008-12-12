@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2005-08-12 05:39:18 paklein Exp $
+# $Id: makefile,v 1.5 2008-12-12 18:55:09 amota Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,7 +21,9 @@ DEP = $(MACRO_DIR)/empty
 
 # subdirectories
 SUB_DIR = \
-	materials
+	materials \
+	piezoelectric \
+	HuWashizu
 
 subdir_driver: subdir_loop
 # SUB_DIR is empty
