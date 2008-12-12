@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.43 2008-05-26 18:55:50 bcyansfn Exp $ */
+/* $Id: NLSolver.cpp,v 1.44 2008-12-12 00:54:37 lxmota Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -48,7 +48,7 @@ void NLSolver::InitStep(void)
 
 	/* open iteration output */
 	InitIterationOutput();
-	
+
 	/* reset marker */
 	fRestartIteration = IterationNumber();
 }
@@ -61,11 +61,11 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 		ofstreamT& out = fFEManager.Output();
 		out << " NLSolver::Solve:\n"
 		    << "      group = " << fGroup+1 << '\n'
-		    << " iterations = " << max_iterations << '\n';	
+		    << " iterations = " << max_iterations << '\n';
 	}
 
 	try
-	{ 	
+	{
 
 	/* counters */
 	int num_iterations = 0;
@@ -80,7 +80,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 	else
 		fLHS_lock = kIgnore; /* ignore assembled values */
 	fRHS = 0.0;
-	fFEManager.FormRHS(Group());	
+	fFEManager.FormRHS(Group());
 	fLHS_lock = kLocked;
 	fRHS_lock = kLocked;
 
@@ -95,7 +95,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
 			fFEManager.SetEquationSystem(Group());
-			
+
 		/* recompute force and continue iterating */
 		if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
 
@@ -116,22 +116,22 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 			else
 				fLHS_lock = kIgnore; /* ignore assembled values */
 			fRHS = 0.0;
-			fFEManager.FormRHS(Group());	
+			fFEManager.FormRHS(Group());
 			fLHS_lock = kLocked;
 			fRHS_lock = kLocked;
-			
+
 			/* new error */
-			error = Residual(fRHS);		
+			error = Residual(fRHS);
 
 			/* test for convergence */
 			solutionflag = ExitIteration(error, fNumIteration);
 		}
-		
+
 		if(relaxcode == GlobalT::kFailReset)
 			solutionflag = kFailed;
-		
+
 	}
-			
+
 	/* loop on error */
 	while (solutionflag == kContinue &&
 		(max_iterations == -1 || num_iterations < max_iterations))
@@ -139,7 +139,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 		/* increment counters */
 		num_iterations++;
 		tan_iterations++;
-	
+
 		/* recompute LHS? */
 		if (num_iterations == 1 || tan_iterations >= fReformTangentIterations) {
 			fLHS_update = true;
@@ -149,12 +149,12 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 
 		/* reform the LHS matrix */
 		if (fLHS_update) {
-		
+
 			/* recalculate */
 			fLHS_lock = kOpen;
 			fFEManager.FormLHS(Group(), fLHS->MatrixType());
 			fLHS_lock = kLocked;
-		
+
 			/* compare with approximate LHS */
 			if (fLHS->CheckCode() == GlobalMatrixT::kCheckLHS) {
 				const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
@@ -187,12 +187,12 @@ approx_LHS = tmp;
 		else
 			fLHS_lock = kIgnore; /* ignore assembled values */
 		fRHS = 0.0;
-		fFEManager.FormRHS(Group());	
+		fFEManager.FormRHS(Group());
 		fLHS_lock = kLocked;
 		fRHS_lock = kLocked;
-		
+
 		/* new error */
-		error = Residual(fRHS);		
+		error = Residual(fRHS);
 
 		/* test for convergence */
 		solutionflag = ExitIteration(error, fNumIteration);
@@ -200,11 +200,11 @@ approx_LHS = tmp;
 		/* check for relaxation */
 		if (solutionflag == kConverged) {
 			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
-		
+
 			/* reset global equations */
 			if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
 				fFEManager.SetEquationSystem(Group());
-			
+
 			/* recompute force and continue iterating */
 			if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
 
@@ -225,12 +225,12 @@ approx_LHS = tmp;
 				else
 					fLHS_lock = kIgnore; /* ignore assembled values */
 				fRHS = 0.0;
-				fFEManager.FormRHS(Group());	
+				fFEManager.FormRHS(Group());
 				fLHS_lock = kLocked;
 				fRHS_lock = kLocked;
-				
+
 				/* new error */
-				error = Residual(fRHS);		
+				error = Residual(fRHS);
 
 				/* test for convergence */
 				solutionflag = ExitIteration(error, fNumIteration);
@@ -243,21 +243,21 @@ approx_LHS = tmp;
 	/* found solution - check relaxation */
 	if (solutionflag == kConverged)
 		solutionflag = DoConverged();
-			
+
 	return solutionflag;
 	}
-		
+
 	/* abnormal ending */
 	catch (ExceptionT::CodeT code)
 	{
 		cout << "\n NLSolver::Solve: exception at step number "
              << fFEManager.StepNumber() << " with step "
-             << fFEManager.TimeStep() 
+             << fFEManager.TimeStep()
              << "\n     " << code << ": " << ExceptionT::ToString(code) << endl;
 
 		/* error occurred here -> trip checksum */
 		if (code != ExceptionT::kBadHeartBeat) fFEManager.Communicator().Sum(code);
-		
+
 		return kFailed;
 	}
 }
@@ -271,11 +271,11 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations, FEDEManagerT& fFEDE
 		ofstreamT& out = fFEManager.Output();
 		out << " NLSolver::Solve:\n"
 		    << "      group = " << fGroup+1 << '\n'
-		    << " iterations = " << max_iterations << '\n';	
+		    << " iterations = " << max_iterations << '\n';
 	}
 
 	try
-	{ 	
+	{
 
 	/* counters */
 	int num_iterations = 0;
@@ -292,7 +292,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations, FEDEManagerT& fFEDE
 	fRHS = 0.0;
 	/* form the residual force vector from ghost particles */
 	fFEDEManager.FormRHS(Group(), fGhostFBC);
-	fFEManager.FormRHS(Group());	
+	fFEManager.FormRHS(Group());
 	fLHS_lock = kLocked;
 	fRHS_lock = kLocked;
 
@@ -307,7 +307,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations, FEDEManagerT& fFEDE
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
 			fFEManager.SetEquationSystem(Group());
-			
+
 		/* recompute force and continue iterating */
 		if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
 
@@ -330,22 +330,22 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations, FEDEManagerT& fFEDE
 			fRHS = 0.0;
 			/* form the residual force vector from ghost particles */
 			fFEDEManager.FormRHS(Group(), fGhostFBC);
-			fFEManager.FormRHS(Group());	
+			fFEManager.FormRHS(Group());
 			fLHS_lock = kLocked;
 			fRHS_lock = kLocked;
-			
+
 			/* new error */
-			error = Residual(fRHS);		
+			error = Residual(fRHS);
 
 			/* test for convergence */
 			solutionflag = ExitIteration(error, fNumIteration);
 		}
-		
+
 		if(relaxcode == GlobalT::kFailReset)
 			solutionflag = kFailed;
-		
+
 	}
-			
+
 	/* loop on error */
 	while (solutionflag == kContinue &&
 		(max_iterations == -1 || num_iterations < max_iterations))
@@ -353,7 +353,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations, FEDEManagerT& fFEDE
 		/* increment counters */
 		num_iterations++;
 		tan_iterations++;
-	
+
 		/* recompute LHS? */
 		if (num_iterations == 1 || tan_iterations >= fReformTangentIterations) {
 			fLHS_update = true;
@@ -363,12 +363,12 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations, FEDEManagerT& fFEDE
 
 		/* reform the LHS matrix */
 		if (fLHS_update) {
-		
+
 			/* recalculate */
 			fLHS_lock = kOpen;
 			fFEManager.FormLHS(Group(), fLHS->MatrixType());
 			fLHS_lock = kLocked;
-		
+
 			/* compare with approximate LHS */
 			if (fLHS->CheckCode() == GlobalMatrixT::kCheckLHS) {
 				const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
@@ -403,12 +403,12 @@ approx_LHS = tmp;
 		fRHS = 0.0;
 		/* form the residual force vector from ghost particles */
 		fFEDEManager.FormRHS(Group(), fGhostFBC);
-		fFEManager.FormRHS(Group());	
+		fFEManager.FormRHS(Group());
 		fLHS_lock = kLocked;
 		fRHS_lock = kLocked;
-		
+
 		/* new error */
-		error = Residual(fRHS);		
+		error = Residual(fRHS);
 
 		/* test for convergence */
 		solutionflag = ExitIteration(error, fNumIteration);
@@ -416,11 +416,11 @@ approx_LHS = tmp;
 		/* check for relaxation */
 		if (solutionflag == kConverged) {
 			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
-		
+
 			/* reset global equations */
 			if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
 				fFEManager.SetEquationSystem(Group());
-			
+
 			/* recompute force and continue iterating */
 			if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
 
@@ -443,12 +443,12 @@ approx_LHS = tmp;
 				fRHS = 0.0;
 				/* form the residual force vector from ghost particles */
 				fFEDEManager.FormRHS(Group(), fGhostFBC);
-				fFEManager.FormRHS(Group());	
+				fFEManager.FormRHS(Group());
 				fLHS_lock = kLocked;
 				fRHS_lock = kLocked;
-				
+
 				/* new error */
-				error = Residual(fRHS);		
+				error = Residual(fRHS);
 
 				/* test for convergence */
 				solutionflag = ExitIteration(error, fNumIteration);
@@ -461,21 +461,21 @@ approx_LHS = tmp;
 	/* found solution - check relaxation */
 	if (solutionflag == kConverged)
 		solutionflag = DoConverged();
-			
+
 	return solutionflag;
 	}
-		
+
 	/* abnormal ending */
 	catch (ExceptionT::CodeT code)
 	{
 		cout << "\n NLSolver::Solve: exception at step number "
              << fFEManager.StepNumber() << " with step "
-             << fFEManager.TimeStep() 
+             << fFEManager.TimeStep()
              << "\n     " << code << ": " << ExceptionT::ToString(code) << endl;
 
 		/* error occurred here -> trip checksum */
 		if (code != ExceptionT::kBadHeartBeat) fFEManager.Communicator().Sum(code);
-		
+
 		return kFailed;
 	}
 }
@@ -487,7 +487,7 @@ void NLSolver::CloseStep(void)
 	/* inherited */
 	SolverT::CloseStep();
 
-	/* close iteration output */	
+	/* close iteration output */
 	CloseIterationOutput();
 }
 
@@ -520,7 +520,7 @@ NLSolver::SolutionStatusT NLSolver::DoConverged(void)
 	/* increase time step ? (for multi-step sequences) */
 	if (fQuickSolveTol > 1 && fNumIteration < fQuickSolveTol)
 	{
-		fQuickConvCount++;		
+		fQuickConvCount++;
 		cout << "\n NLSolver::DoConverged: quick converged count: ";
 		cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
 
@@ -531,13 +531,13 @@ NLSolver::SolutionStatusT NLSolver::DoConverged(void)
 	else
 	{
 		/* restart count if convergence is slow */
-		fQuickConvCount = 0;	
+		fQuickConvCount = 0;
 		cout << "\n NLSolver::DoConverged: reset quick converged: ";
-		cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;	
+		cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
 	}
 
 	/* success */
-	return kConverged;						
+	return kConverged;
 }
 
 /* divert output for iterations */
@@ -548,20 +548,20 @@ void NLSolver::InitIterationOutput(void)
 		/* root of output files */
 		StringT root;
 		root.Root(fFEManager.InputFile());
-		
-		/* remove processor designation */ 
+
+		/* remove processor designation */
 		if (fFEManager.Size() > 1) root.Root();
-		
+
 		/* solver group */
 		root.Append(".gp", Group());
-		
+
 		/* increment */
 		root.Append(".", fFEManager.StepNumber());
 		root.Append("of", fFEManager.NumberOfSteps());
 
 		/* set temporary output */
 		fFEManager.DivertOutput(root);
-		
+
 		/* reset count */
 		fIterationOutputCount = 0;
 	}
@@ -683,10 +683,10 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 		fFEManager.WriteOutput(double(iteration));
 		fIterationOutputCount = 0;
 	}
-	
+
 	/* return value */
 	SolutionStatusT status = kContinue;
-	
+
 	/* first pass */
 	if (iteration == -1)
 	{
@@ -695,7 +695,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 		cout <<   " Relative error :\n\n";
 
 		fError0 = error;
-		
+
 		/* hit on first try */
 		if (fError0 < fZeroTolerance)
 		{
@@ -713,14 +713,14 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 	{
 		double relerror = error/fError0;
 
-		if (fVerbose) 
+		if (fVerbose)
 			cout << setw(kIntWidth) << iteration  << ": Relative error = "
 			     << setw(d_width) << relerror << endl;
 
-		/* diverging solution */	
+		/* diverging solution */
 		if (relerror > fDivTolerance)
 		{
-			cout << "\n NLSolver::ExitIteration: diverging solution detected" << endl;			
+			cout << "\n NLSolver::ExitIteration: diverging solution detected" << endl;
 			status = kFailed;
 		}
 		/* required number of iterations */
@@ -733,17 +733,17 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 		{
 
 			if (!fVerbose)
-				cout << setw(kIntWidth) << iteration  << ": Relative error = " 
+				cout << setw(kIntWidth) << iteration  << ": Relative error = "
 				     << setw(d_width) << relerror << " (converged)\n";
-	
+
 			fFEManager.Output() << "\n Converged at time = " << fFEManager.Time() << endl;
 			status = kConverged;
 		}
 		/* iteration limit hit */
 		else if (iteration >= fMaxIterations)
 		{
-			cout << setw(kIntWidth) << fNumIteration 
-			     << ": Relative error = " << setw(d_width) << error/fError0 << '\n';	
+			cout << setw(kIntWidth) << fNumIteration
+			     << ": Relative error = " << setw(d_width) << error/fError0 << '\n';
 			cout << "\n NLSolver::ExitIteration: max iterations hit" << endl;
 			status = kFailed;
 		}
