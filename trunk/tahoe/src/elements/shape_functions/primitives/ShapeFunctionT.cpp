@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.20 2006-11-02 21:50:09 regueiro Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.21 2008-12-12 00:38:13 lxmota Exp $ */
 /* created: paklein (06/26/1996) */
 #include "ShapeFunctionT.h"
 #include "ParentDomainT.h"
@@ -9,12 +9,10 @@ using namespace Tahoe;
 
 /* constructor */
 ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
-	const LocalArrayT& coords):
-	DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
-	fCoords(coords),
-	fGrad_x_temp(NULL),
-	fStore(false),
-	fCurrElementNumber(NULL)
+    const LocalArrayT& coords, bool is_closed_set) :
+      DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes(),
+          is_closed_set), fCoords(coords), fGrad_x_temp(NULL), fStore(false),
+      fCurrElementNumber(NULL)
 {
 	/* consistency */
 	if (GeometryT::GeometryToNumSD(geometry_code) != fCoords.MinorDim())
@@ -27,12 +25,10 @@ ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 }
 
 ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
-	const LocalArrayT& coords, int dummy_flag):
-	DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
-	fCoords(coords),
-	fGrad_x_temp(NULL),
-	fStore(false),
-	fCurrElementNumber(NULL)
+    const LocalArrayT& coords, int dummy_flag, bool is_closed_set) :
+      DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes(),
+          is_closed_set), fCoords(coords), fGrad_x_temp(NULL), fStore(false),
+      fCurrElementNumber(NULL)
 {
 	/* consistency */
 	if (GeometryT::GeometryToNumSD(geometry_code) != fCoords.MinorDim())
@@ -44,18 +40,19 @@ ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	Construct_DN_DDN();
 }
 
-ShapeFunctionT::ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords):
-	DomainIntegrationT(link),
+ShapeFunctionT::ShapeFunctionT(const ShapeFunctionT& link,
+    const LocalArrayT& coords, bool is_closed_set) :
+	DomainIntegrationT(link, is_closed_set),
 	fCoords(coords),
 	fGrad_x_temp(NULL),
 	fStore(false),
-	fCurrElementNumber(NULL)	
+	fCurrElementNumber(NULL)
 {
 	/* configure workspace */
 	Construct();
-}	
+}
 
-/* compute local shape functions and derivatives */ 	
+/* compute local shape functions and derivatives */
 void ShapeFunctionT::SetDerivatives(void)
 {
 	/* fetch from storage */
@@ -65,7 +62,7 @@ void ShapeFunctionT::SetDerivatives(void)
 		if (!fCurrElementNumber)
 			ExceptionT::GeneralFail("ShapeFunctionT::SetDerivatives",
 				"current element not set");
-	
+
 		/* get Jocobian information */
 		fDet_store.RowCopy(*fCurrElementNumber, fDet);
 
@@ -86,7 +83,7 @@ void ShapeFunctionT::SetDerivatives_DN_DDN(void)
 		if (!fCurrElementNumber)
 			ExceptionT::GeneralFail("ShapeFunctionT::SetDerivatives_DN_DDN",
 				"current element not set");
-	
+
 		/* get Jocobian information */
 		fDet_store.RowCopy(*fCurrElementNumber, fDet);
 
@@ -99,7 +96,7 @@ void ShapeFunctionT::SetDerivatives_DN_DDN(void)
 }
 
 /* field gradients at specific parent domain coordinates. */
-void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord, 
+void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord,
 	dArrayT& Na, dArray2DT& DNa) const
 {
 	/* dimensions */
@@ -165,7 +162,7 @@ void ShapeFunctionT::Grad_GradNa(const dArray2DT& DDNa, dMatrixT& grad_grad_Na) 
 		const double* pNayz = DDNa(3);
 		const double* pNaxz = DDNa(4);
 		const double* pNaxy = DDNa(5);
-		
+
 		for (int i = 0; i < numnodes; i++)
 		{
 			*p++ = *pNaxx++;
@@ -197,7 +194,7 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 	{
 		const double* pNax = DNa(0);
 		const double* pNay = DNa(1);
-		
+
 		for (int i = 0; i < numnodes; i++)
 		{
 			*p++ = *pNax++;
@@ -209,7 +206,7 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 		const double* pNax = DNa(0);
 		const double* pNay = DNa(1);
 		const double* pNaz = DNa(2);
-		
+
 		for (int i = 0; i < numnodes; i++)
 		{
 			*p++ = *pNax++;
@@ -219,8 +216,8 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 	}
 	else /* 1D case defaults to this */
 	{
-		for (int i = 0; i < numsd; i++)	
-			for (int a = 0; a < numnodes; a++)	
+		for (int i = 0; i < numsd; i++)
+			for (int a = 0; a < numnodes; a++)
 				grad_Na(i,a) = DNa(i,a);
 	}
 }
@@ -230,7 +227,7 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 /*
 void ShapeFunctionT::LaplaceU(const LocalArrayT& field, dArrayT& laplacian) const
 {
-	
+
 }
 */
 
@@ -238,10 +235,10 @@ void ShapeFunctionT::LaplaceU(const LocalArrayT& field, dArrayT& laplacian) cons
 /*
 void ShapeFunctionT::LaplaceStrain(const dSymMatrixT& strain, dSymMatrixT& laplacian) const
 {
-	
+
 }
 */
-	
+
 
 /********************************************************************************/
 
@@ -258,7 +255,7 @@ void ShapeFunctionT::Print(ostream& out) const
 	out << "\n Field shape function derivatives:\n";
 	if (fDNaX.Pointer() == pDNaU->Pointer())
 	    out << " isoparametric \n";
-	else	
+	else
 	    for (int i = 0; i < pDNaU->Length(); i++)
 			(*pDNaU)[i].WriteNumbered(out);
 }
@@ -283,7 +280,7 @@ void ShapeFunctionT::InitStore(int num_elements, const int* curr_element)
 void ShapeFunctionT::Store(void)
 {
 	/* check */
-	if (!fCurrElementNumber) 
+	if (!fCurrElementNumber)
 		ExceptionT::GeneralFail("ShapeFunctionT::Store", "current element not set");
 
 	/* store Jocobian information */
@@ -300,7 +297,7 @@ void ShapeFunctionT::CloseStore(void)
 	fStore = true;
 }
 
-void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar, 
+void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar,
 	const dArray2DT& original, dArray2DT& transformed) const
 {
 	int  numnodes = original.MinorDim();
@@ -320,8 +317,8 @@ void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar,
 
 		/* transform */
 		changeofvar.MultTx(v1,v2);
-		
-		/* write back */	
+
+		/* write back */
 		transformed.SetColumn(i,v2);
 	}
 }
@@ -336,7 +333,7 @@ void ShapeFunctionT::Construct(void)
 {
 	/* check local array type (ambiguous for linear geometry) */
 	if (fCoords.Type() != LocalArrayT::kInitCoords &&
-	    fCoords.Type() != LocalArrayT::kCurrCoords) 
+	    fCoords.Type() != LocalArrayT::kCurrCoords)
 	    ExceptionT::GeneralFail("ShapeFunctionT::Construct");
 
 	/* dimensions */
@@ -350,12 +347,12 @@ void ShapeFunctionT::Construct(void)
 	/* memory for the derivatives */
 	fDNaX.Dimension(fNumIP);
 	for (int i = 0; i < fNumIP; i++)
-		fDNaX[i].Dimension(numsd, numXnodes);		
+		fDNaX[i].Dimension(numsd, numXnodes);
 
 	/* initialize to isoparametric */
 	pNaU  = &(fDomain->Na());
 	pDNaU = &fDNaX;
-	
+
 	/* work space */
 	fv1.Dimension(numsd);
 	fv2.Dimension(numsd);
@@ -365,7 +362,7 @@ void ShapeFunctionT::Construct_DN_DDN(void)
 {
 	/* check local array type (ambiguous for linear geometry) */
 	if (fCoords.Type() != LocalArrayT::kInitCoords &&
-	    fCoords.Type() != LocalArrayT::kCurrCoords) 
+	    fCoords.Type() != LocalArrayT::kCurrCoords)
 	    ExceptionT::GeneralFail("ShapeFunctionT::Construct");
 
 	/* dimensions */
@@ -379,19 +376,34 @@ void ShapeFunctionT::Construct_DN_DDN(void)
 	/* memory for the first derivatives */
 	fDNaX.Dimension(fNumIP);
 	for (int i = 0; i < fNumIP; i++)
-		fDNaX[i].Dimension(numsd, numXnodes);	
+		fDNaX[i].Dimension(numsd, numXnodes);
 
 	/* memory for the second derivatives */
 	fDDNaX.Dimension(fNumIP);
 	for (int i = 0; i < fNumIP; i++)
-		fDDNaX[i].Dimension(numsd*2, numXnodes);		
+		fDDNaX[i].Dimension(numsd*2, numXnodes);
 
 	/* initialize to isoparametric */
 	pNaU   = &(fDomain->Na());
 	pDNaU  = &fDNaX;
 	pDDNaU = &fDDNaX;
-	
+
 	/* work space */
 	fv1.Dimension(numsd);
 	fv2.Dimension(numsd);
+}
+
+//
+// compute jacobians wrt parametric space at integration points
+//
+void ShapeFunctionT::JacobianDets(dArrayT& dets)
+{
+
+  const int nsd = NumSD();
+  const int nip = NumIP();
+
+  dets.Dimension(nip);
+
+  fDomain->ComputeDNa(fCoords, fDNaX, dets);
+
 }
