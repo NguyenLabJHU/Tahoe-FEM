@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.h,v 1.8 2004-07-15 08:29:19 paklein Exp $ */
+/* $Id: IsotropicT.h,v 1.9 2008-12-12 00:01:59 lxmota Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _ISOTROPIC_T_H_
 #define _ISOTROPIC_T_H_
@@ -29,7 +29,7 @@ public:
 	void Set_mu_kappa(double mu, double kappa);
 	void Set_PurePlaneStress_mu_lambda(double mu, double lambda);
 	/*@}*/
-	
+
 	/** \name accessors */
 	/*@{*/
 	double Young(void) const;
@@ -38,7 +38,7 @@ public:
 	double Kappa(void) const;
 	double Lambda(void) const;
 	/*@}*/
-	
+
 	/* print parameters */
 	void Print(ostream& out) const;
 
@@ -62,9 +62,7 @@ protected:
 	void ComputeModuli1D(dMatrixT& moduli) const;
 
 	/* scale factor for constrained dilatation */
-	double DilatationFactor2D(SolidMaterialT::ConstraintT constraint) const;   	
-
-private:
+	double DilatationFactor2D(SolidMaterialT::ConstraintT constraint) const;
 
 	/** \name moduli */
 	/*@{*/
@@ -82,5 +80,5 @@ inline double IsotropicT::Poisson(void) const { return fPoisson; }
 inline double IsotropicT::Mu(void) const { return fMu; }
 inline double IsotropicT::Kappa(void) const { return fKappa; }
 inline double IsotropicT::Lambda(void) const { return fLambda; }
-} // namespace Tahoe 
+} // namespace Tahoe
 #endif /* _ISOTROPIC_T_H_ */
