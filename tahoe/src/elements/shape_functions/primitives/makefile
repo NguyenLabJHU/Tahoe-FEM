@@ -1,4 +1,6 @@
-# $Id: makefile,v 1.8 2005-08-12 05:20:56 paklein Exp $
+# $Id: makefile,v 1.9 2008-12-12 00:41:37 lxmota Exp $
+#
+# $Log: not supported by cvs2svn $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +25,8 @@ OBJ = \
 	DomainIntegrationT.o \
 	ShapeFunctionT.o \
 	SimoShapeFunctionT.o \
-	SurfaceShapeT.o
+	SurfaceShapeT.o \
+	MixedShapeFunctionT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +49,8 @@ SRC = \
 	DomainIntegrationT.cpp \
 	ShapeFunctionT.cpp \
 	SimoShapeFunctionT.cpp \
-	SurfaceShapeT.cpp
+	SurfaceShapeT.cpp \
+	MixedShapeFunctionT.cpp
 
 ##################### (3) headers
 #
@@ -61,7 +65,9 @@ HDR = \
 	DomainIntegrationT.h \
 	ShapeFunctionT.h \
 	SimoShapeFunctionT.h \
-	SurfaceShapeT.h
+	SurfaceShapeT.h \
+	MixedShapeFunctionT.h \
+	MixedShapeFunctionT.i.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
