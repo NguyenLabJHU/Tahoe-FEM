@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.26 2008-05-26 18:10:48 bcyansfn Exp $ */
+/* $Id: SolverT.h,v 1.27 2008-12-12 00:53:15 lxmota Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -98,7 +98,7 @@ public:
 
 	/** error handler */
 	virtual void ResetStep(void);
-	
+
 	/** signal time step change. Chance to clear cached values that may depend on the
 	 * time increment. */
 	virtual void SetTimeStep(double dt);
@@ -110,7 +110,7 @@ public:
 	void LockRHS(void) { fRHS_lock = kLocked; };
 	void UnlockLHS(void) { fLHS_lock = kOpen; };
 	void LockLHS(void) { fLHS_lock = kLocked; };
-	
+
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
@@ -141,7 +141,7 @@ public:
 
 	/** returns true if solver prefers reordered equations */
 	bool RenumberEquations(void);
-	
+
 	/** my group */
 	int Group(void) const { return fGroup; };
 
@@ -172,13 +172,13 @@ protected:
 	/** return the magnitude of the residual force */
 	double Residual(const dArrayT& force) const;
 
-	/** inner product */	
+	/** inner product */
 	double InnerProduct(const dArrayT& v1, const dArrayT& v2) const;
 
 	/** \name method needed for check code GlobalMatrixT::kCheckLHS */
 	/*@{*/
 	/** return approximate stiffness matrix. Compute and approximate stiffness
-	 * matrix by perturbing each degree of freedom in the system. Caller is 
+	 * matrix by perturbing each degree of freedom in the system. Caller is
 	 * responsible for disposing of the matrix. */
 	GlobalMatrixT* ApproximateLHS(const GlobalMatrixT& template_LHS);
 
@@ -198,7 +198,7 @@ private:
 
 protected:
 
-	/** the Boss */	
+	/** the Boss */
 	FEManagerT& fFEManager;
 
 	/** equation group number */
@@ -214,27 +214,27 @@ protected:
 	/*@{*/
 	/** global LHS matrix */
 	GlobalMatrixT* fLHS;
-	
+
 	/** write protection for the LHS matrix */
 	LockStateT fLHS_lock;
 
 	/** runtime flag. Set to true to signal LHS matrix needs to be recalculated. By
 	 * default, this is set to true during the call to SolverT::InitStep. */
 	bool fLHS_update;
-	
+
 	/** perturbation for computing finite difference version of LHS */
 	double fPerturbation;
 
 	/** residual */
 	dArrayT fRHS;
-	
+
 	/** write protection for the RHS vector */
 	LockStateT fRHS_lock;
 	/*@}*/
 
 	/** runtime data */
 	int fNumIteration;
-	
+
 	/** eigenvolsver parameters */
 	ParameterListT* fEigenSolverParameters;
 };
@@ -308,7 +308,7 @@ inline int SolverT::Check(void) const { return fLHS->CheckCode(); }
 inline const dArrayT& SolverT::RHS(void) const { return fRHS; }
 inline const GlobalMatrixT& SolverT::LHS(void) const {
 	if (!fLHS) ExceptionT::GeneralFail("SolverT::LHS", "LHS not set");
-	return *fLHS; 
+	return *fLHS;
 }
 
 /* accessor */
