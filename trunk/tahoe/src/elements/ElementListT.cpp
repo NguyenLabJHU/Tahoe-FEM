@@ -1,5 +1,8 @@
-/* $Id: ElementListT.cpp,v 1.139 2008-12-12 00:30:41 lxmota Exp $ */
-/* $Log: not supported by cvs2svn $ */
+/* $Id: ElementListT.cpp,v 1.140 2008-12-12 01:00:38 lxmota Exp $ */
+/* $Log: not supported by cvs2svn $
+/* Revision 1.139  2008/12/12 00:30:41  lxmota
+/* Added conditional support for piezoelectric and HuWashizu elements.
+/* */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -66,7 +69,6 @@
 #include "SS_SCNIMF_AxiT.h"
 #include "FS_SCNIMF_AxiT.h"
 #include "UpLagr_ExternalFieldT.h"
-<<<<<<< ElementListT.cpp
 
 #ifdef PIEZOELECTRIC
 #include "FSPiezoElectricSolidT.h"
@@ -76,9 +78,6 @@
 #include "FSHuWashizuUSCT.h"
 #endif
 
-=======
-//#include "FSPiezoElectricSolidT.h"
->>>>>>> 1.138
 #ifdef SIMPLE_SOLID_DEV
 #include "TotalLagrangianFlatT.h"
 #endif
@@ -351,7 +350,6 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("fd_mfparticle");
 		sub_lists.AddSub("ss_mfparticle_axi");
 		sub_lists.AddSub("fd_mfparticle_axi");
-<<<<<<< ElementListT.cpp
 
 #ifdef PIEZOELECTRIC
     sub_lists.AddSub("piezoelectric");
@@ -360,9 +358,6 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef NEOHOOKEDAMAGE
     sub_lists.AddSub("Hu_Washizu_USC");
 #endif
-=======
-//    sub_lists.AddSub("piezoelectric");
->>>>>>> 1.138
 
 #ifdef BRIDGING_ELEMENT
 		sub_lists.AddSub("bridging");
@@ -613,7 +608,6 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new SS_SCNIMF_AxiT(fSupport);
 	else if (name == "fd_mfparticle_axi")
 	  return new FS_SCNIMF_AxiT(fSupport);
-<<<<<<< ElementListT.cpp
 
 #ifdef PIEZOELECTRIC
   else if (name == "piezoelectric")
@@ -624,10 +618,6 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
   else if (name == "Hu_Washizu_USC")
     return new FSHuWashizuUSCT(fSupport);
 #endif
-=======
-//  else if (name == "piezoelectric")
-//    return new FSPiezoElectricSolidT(fSupport);
->>>>>>> 1.138
 
 #ifdef BRIDGING_ELEMENT
 	else if (name == "bridging")
