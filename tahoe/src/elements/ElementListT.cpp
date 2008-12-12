@@ -1,4 +1,5 @@
-/* $Id: ElementListT.cpp,v 1.138 2008-10-22 17:32:37 bcyansfn Exp $ */
+/* $Id: ElementListT.cpp,v 1.139 2008-12-12 00:30:41 lxmota Exp $ */
+/* $Log: not supported by cvs2svn $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -65,7 +66,19 @@
 #include "SS_SCNIMF_AxiT.h"
 #include "FS_SCNIMF_AxiT.h"
 #include "UpLagr_ExternalFieldT.h"
+<<<<<<< ElementListT.cpp
+
+#ifdef PIEZOELECTRIC
+#include "FSPiezoElectricSolidT.h"
+#endif
+
+#ifdef NEOHOOKEDAMAGE
+#include "FSHuWashizuUSCT.h"
+#endif
+
+=======
 //#include "FSPiezoElectricSolidT.h"
+>>>>>>> 1.138
 #ifdef SIMPLE_SOLID_DEV
 #include "TotalLagrangianFlatT.h"
 #endif
@@ -220,7 +233,7 @@ bool ElementListT::InterpolantDOFs(void) const
 void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
 {
 	/* first time */
-	if (fAllElementGroups.Length() == 0) 
+	if (fAllElementGroups.Length() == 0)
 	{
 		/* cache all pointers */
 		fAllElementGroups.Dimension(Length());
@@ -241,7 +254,7 @@ void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
 	for (int i = 0; i < mask.Length(); i++)
 		if (mask[i])
 			num_active++;
-			
+
 	/* cast this to an ArrayT */
 	ArrayT<ElementBaseT*>& element_list = *this;
 	element_list.Dimension(num_active);
@@ -262,7 +275,7 @@ void ElementListT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
 	SubListT& sub_lists) const
 {
 	if (name == "element_groups")
@@ -338,7 +351,18 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("fd_mfparticle");
 		sub_lists.AddSub("ss_mfparticle_axi");
 		sub_lists.AddSub("fd_mfparticle_axi");
+<<<<<<< ElementListT.cpp
+
+#ifdef PIEZOELECTRIC
+    sub_lists.AddSub("piezoelectric");
+#endif
+
+#ifdef NEOHOOKEDAMAGE
+    sub_lists.AddSub("Hu_Washizu_USC");
+#endif
+=======
 //    sub_lists.AddSub("piezoelectric");
+>>>>>>> 1.138
 
 #ifdef BRIDGING_ELEMENT
 		sub_lists.AddSub("bridging");
@@ -437,7 +461,7 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& name) const
 	ElementBaseT* element = NewElement(name);
 	if (element)
 		return element;
-	else /* inherited */	
+	else /* inherited */
 		return ParameterInterfaceT::NewSub(name);
 }
 
@@ -456,12 +480,12 @@ void ElementListT::TakeParameterList(const ParameterListT& list)
 		ElementBaseT* element = NewElement(subs[i].Name());
 		if (!element)
 			ExceptionT::GeneralFail("ElementListT::TakeParameterList", "could not construct \"%s\"");
-		
+
 		/* store */
 		fArray[i] = element;
 
 		/* initialize */
-		element->TakeParameterList(subs[i]);		
+		element->TakeParameterList(subs[i]);
 	}
 }
 
@@ -475,10 +499,10 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	if (false) /* dummy */
 		return NULL;
 
-#ifdef COHESIVE_SURFACE_ELEMENT	
+#ifdef COHESIVE_SURFACE_ELEMENT
 	else if (name == "isotropic_CSE")
 		return new CSEIsoT(fSupport);
-		
+
 	else if (name == "anisotropic_CSE")
 		return new CSEAnisoT(fSupport);
 
@@ -556,7 +580,7 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	else if (name == "hyperbolic_diffusion")
 		return new HyperbolicDiffusionElementT(fSupport);
 	else if (name == "small_strain")
-		return new SmallStrainT(fSupport);	
+		return new SmallStrainT(fSupport);
 	else if (name == "updated_lagrangian")
 		return new UpdatedLagrangianT(fSupport);
 	else if (name == "updated_lagrangian_Q1P0")
@@ -589,8 +613,21 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new SS_SCNIMF_AxiT(fSupport);
 	else if (name == "fd_mfparticle_axi")
 	  return new FS_SCNIMF_AxiT(fSupport);
+<<<<<<< ElementListT.cpp
+
+#ifdef PIEZOELECTRIC
+  else if (name == "piezoelectric")
+    return new FSPiezoElectricSolidT(fSupport);
+#endif
+
+#ifdef NEOHOOKEDAMAGE
+  else if (name == "Hu_Washizu_USC")
+    return new FSHuWashizuUSCT(fSupport);
+#endif
+=======
 //  else if (name == "piezoelectric")
 //    return new FSPiezoElectricSolidT(fSupport);
+>>>>>>> 1.138
 
 #ifdef BRIDGING_ELEMENT
 	else if (name == "bridging")
@@ -614,7 +651,7 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef GRAD_SMALL_STRAIN_DEV
 	else if (name == "grad_small_strain")
 		return new GradSmallStrainT(fSupport);
-#endif	
+#endif
 
 /*
 #ifdef MULTISCALE_ELEMENT_DEV
@@ -705,7 +742,7 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	  return new FSSolidFluidMixT(fSupport);
 #endif
 
-	/* default */	
+	/* default */
 	else
 		return NULL;
 }
