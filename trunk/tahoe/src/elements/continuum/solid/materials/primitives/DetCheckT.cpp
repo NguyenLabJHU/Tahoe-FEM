@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.55 2007-03-12 23:56:17 r-jones Exp $ */
+/* $Id: DetCheckT.cpp,v 1.56 2008-12-12 16:29:42 regueiro Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -697,7 +697,8 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
                                         /* if too many iterations */
                                         if (newtoncounter > maxcount)
                                         {
-                                                if (fDeBug) cout << "Warning: Bifurcation check failed. Newton refinement did not converge after 100 iterations. \n";
+                                                //if (fDeBug) cout << "Warning: Bifurcation check failed. Newton refinement did not converge after 100 iterations. \n";
+                                                if (fDeBug) normal_out << "Warning: Bifurcation check failed. Newton refinement did not converge after 100 iterations. \n";
                                                 if (fDeBug) normal_out << setw(2*outputFileWidth) << "Did not converge";
                                                 //return 8;
                                                 //normal=0.0;
