@@ -1,4 +1,4 @@
-/* $Id: ExceptionT.cpp,v 1.13 2004-02-05 18:42:35 paklein Exp $ */
+/* $Id: ExceptionT.cpp,v 1.14 2008-12-12 17:47:28 lxmota Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -19,7 +19,7 @@ int ExceptionT::NumExceptions = 12;
 DEFINE_TEMPLATE_STATIC const bool ArrayT<ExceptionT::CodeT>::fByteCopy = true;
 
 /* exceptions strings */
-const char* ExceptionT::fExceptionStrings[13] = 
+const char* ExceptionT::fExceptionStrings[13] =
 {
 /* 0 */ "no error",
 /* 1 */ "general fail",
@@ -41,12 +41,12 @@ static char message_buffer[255];
 /* write exception codes to output stream */
 void ExceptionT::WriteExceptionCodes(ostream& out)
 {
-	out << "\nE x c e p t i o n   c o d e s :\n\n";	
+	out << "\nE x c e p t i o n   c o d e s :\n\n";
 	for (int i = 0; i < NumExceptions; i++)
 	{
 		out << setw(kIntWidth) << i << " : ";
 		out << fExceptionStrings[i] << '\n';
-	}	
+	}
 		out << endl;
 }
 
@@ -183,9 +183,9 @@ void ExceptionT::Throw_(ExceptionT::CodeT code, const char* caller, const char* 
 	if (message)
 	cout <<   "     message: " << message << '\n';
 #endif
-	
+
 	/* do the throw */
 	throw code;
 }
 
-} /* namespace Tahoe */ 
+} /* namespace Tahoe */
