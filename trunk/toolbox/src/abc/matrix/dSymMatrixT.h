@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.22 2005-12-23 03:44:33 kyonten Exp $ */
+/* $Id: dSymMatrixT.h,v 1.23 2008-12-12 17:49:27 lxmota Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
@@ -11,7 +11,7 @@ namespace Tahoe {
 /* forward declarations */
 class dMatrixT;
 
-/** interface for a 1D/2D/3D reduced index symmetric matrix stored as 
+/** interface for a 1D/2D/3D reduced index symmetric matrix stored as
  * a reduced index vector */
 class dSymMatrixT: public dArrayT
 {
@@ -48,8 +48,8 @@ public:
 	dSymMatrixT(DimensionT nsd, const double* array);
 	/*@}*/
 
-	/** dimension the matrix for the number of spatial dimensions. No change 
-	 * occurs if the array is already the specified length. The previous contents 
+	/** dimension the matrix for the number of spatial dimensions. No change
+	 * occurs if the array is already the specified length. The previous contents
 	 * of the array is not preserved. */
 	void Dimension(DimensionT nsd);
 
@@ -78,17 +78,17 @@ public:
 		if (nsd < kNone || nsd > k3D_plane) ExceptionT::OutOfRange("dSymMatrixT::NumValues");
 #endif
 		int map[5] = {0, 1, 3, 6, 4};
-		return map[nsd];	
+		return map[nsd];
 	};
-	/* resolves index ij into i and j 
+	/* resolves index ij into i and j
 	 * max ij = nstr (using symmetry) */
 	static void ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2);
-	
+
 	/* resolves index ijk into i, j, k, ij, jk and ik
 	 * max ijk = nsd*nsd (1D/2D) or nsd*nsd+1 (3D) (using symmetry) */
-	static void ExpandIndex3(DimensionT nsd, int dex, int& dex_1, int& dex_2, int& dex_3, int& dex_12, 
+	static void ExpandIndex3(DimensionT nsd, int dex, int& dex_1, int& dex_2, int& dex_3, int& dex_12,
                              int& dex_23, int& dex_13);
-    
+
     /* resolves index i and j into ij */
     static void ExpandIndex2(int nsd, int dex_1, int dex_2, int& dex_12);
 
@@ -97,7 +97,7 @@ public:
 	int Rows(void) const;
 	int Cols(void) const;
 	/*@}*/
-	
+
 	/* I/O operators */
 	friend ostream& operator<<(ostream& out, const dSymMatrixT& array);
 	friend istream& operator>>(istream& in, dSymMatrixT& array);
@@ -113,11 +113,11 @@ public:
 	 *             T:T = T_ij T_ij
 	 */
 	double ScalarProduct(void) const;
-	/* 
+	/*
 	 *             A:B = A_ij B_ij
 	 */
 	double ScalarProduct(const dSymMatrixT& matrix) const;
-	
+
 	/* the second invariant */
 	double Invariant2(void) const;
 
@@ -133,7 +133,7 @@ public:
 	/* identity operations */
 	void PlusIdentity(double value = 1.0);
 	dSymMatrixT& Identity(double value = 1.0);
-	
+
 	/* returns the deviatoric part of *this.
 	 *
 	 * Note: This function should only be called when working in
@@ -149,7 +149,7 @@ public:
 	/* take the symmetric part of the matrix */
 	dSymMatrixT& Symmetrize(const dMatrixT& matrix);
 
-	/* reduced index <-> matrix transformations */	
+	/* reduced index <-> matrix transformations */
 	void ToMatrix(dMatrixT& matrix) const;
 	dSymMatrixT& FromMatrix(const dMatrixT& matrix);
 
@@ -208,13 +208,13 @@ private:
 	int Eigenvalues3D(dArrayT& evals, bool sort_descending, int max_iterations = 15) const;
 	int Eigensystem3D(dArrayT& evals, dMatrixT& evecs, bool sort_descending,
 		int max_iterations = 15) const; // append algorithm name
-		
+
 	/* closed form eigenvalues - unstable for repeated roots */
 	void Eigenvalues3D_Cardano(dArrayT& evals) const;
-	
+
 private:
 
-	DimensionT fNumSD;	
+	DimensionT fNumSD;
 };
 
 /* inlines */
@@ -241,11 +241,11 @@ inline dSymMatrixT& dSymMatrixT::operator=(const double value)
 }
 
 /* dimensions */
-inline int dSymMatrixT::Rows(void) const { 
-  return (fNumSD<3) ? fNumSD:3; 
+inline int dSymMatrixT::Rows(void) const {
+  return (fNumSD<3) ? fNumSD:3;
 }
-inline int dSymMatrixT::Cols(void) const { 
-return (fNumSD<3) ? fNumSD:3; 
+inline int dSymMatrixT::Cols(void) const {
+return (fNumSD<3) ? fNumSD:3;
 }
 inline dSymMatrixT& dSymMatrixT::Deviatoric(void) { return Deviatoric(*this); }
 inline dSymMatrixT& dSymMatrixT::Inverse(void) { return Inverse(*this); }
@@ -257,8 +257,8 @@ inline void dSymMatrixT::ScaleOffDiagonal(double factor)
 		fArray[2] *= factor;
 	else if (fNumSD == 3) {
 		fArray[3] *= factor;
-		fArray[4] *= factor;	
-		fArray[5] *= factor;	
+		fArray[4] *= factor;
+		fArray[5] *= factor;
 	}
 }
 
@@ -267,7 +267,7 @@ inline void dSymMatrixT::Alias(DimensionT nsd, const double* array)
 {
 	fNumSD = int2DimensionT(nsd);
 #if __option(extended_errorcheck)
-	if (fNumSD < 1 || fNumSD > 4) 
+	if (fNumSD < 1 || fNumSD > 4)
 		ExceptionT::GeneralFail("dSymMatrixT::Alias", "invalid dimension %d", nsd);
 #endif
 	/* inherited */
@@ -278,7 +278,7 @@ inline void dSymMatrixT::Set(DimensionT nsd, double* array)
 {
 	fNumSD = int2DimensionT(nsd);
 #if __option(extended_errorcheck)
-	if (fNumSD < 1 || fNumSD > 4) 
+	if (fNumSD < 1 || fNumSD > 4)
 		ExceptionT::GeneralFail("dSymMatrixT::Set", "invalid dimension %d", nsd);
 #endif
 	/* inherited */
@@ -287,7 +287,7 @@ inline void dSymMatrixT::Set(DimensionT nsd, double* array)
 
 inline void dSymMatrixT::Set(int nsd, double* array)
 {
-	Set(int2DimensionT(nsd), array); 
+	Set(int2DimensionT(nsd), array);
 };
 
 /* const element accessor */
@@ -303,10 +303,10 @@ inline void dSymMatrixT::ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& d
 	const char caller[] = "dSymMatrixT::ExpandIndex";
 	if (dex >= NumValues(nsd)) ExceptionT::OutOfRange(caller, "bad index %d", dex);
 #endif
-	
+
 	int  map_1D[2] = {0,0};
 	int  map_2D[6] = {0,0,1,1,0,1};
-	int map_3D[18] = {0,0,1,1,2,2,1,2,0,2,0,1};
+	int map_3D[12] = {0,0,1,1,2,2,1,2,0,2,0,1};
 	int* map_list[4] = {NULL, map_1D, map_2D, map_3D};
 	int* map = map_list[nsd];
 	int* p = map + 2*dex;
@@ -314,8 +314,8 @@ inline void dSymMatrixT::ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& d
 	dex_2 = p[1];
 }
 
-inline void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) { 
-	ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2); 
+inline void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) {
+	ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2);
 };
 
 inline void dSymMatrixT::ExpandIndex3(DimensionT nsd, int dex, int& dex_1, int& dex_2, int& dex_3,
@@ -331,7 +331,7 @@ inline void dSymMatrixT::ExpandIndex3(DimensionT nsd, int dex, int& dex_1, int& 
 		max_dex = nsd*nsd;
 	if (dex >= max_dex) ExceptionT::OutOfRange(caller, "bad index %d", dex);
 #endif
-	
+
 	int  map_1D[3] = {0,0,0};
 	int  map_2D[12] = {0,0,0,1,1,0,0,0,1,1,1,1};
 	int map_3D[30] = {0,0,0,1,1,0,2,2,0,
@@ -339,19 +339,19 @@ inline void dSymMatrixT::ExpandIndex3(DimensionT nsd, int dex, int& dex_1, int& 
 	                  0,0,2,1,1,2,2,2,2,0,1,2};
 	int* map_list[4] = {NULL, map_1D, map_2D, map_3D};
 	int* map = map_list[nsd];
-	int* p = map + 3*dex; 
+	int* p = map + 3*dex;
 	dex_1 = p[0];
 	dex_2 = p[1];
 	dex_3 = p[2];
-	
+
 	ExpandIndex2(nsd, dex_1, dex_2, dex_12);
 	ExpandIndex2(nsd, dex_2, dex_3, dex_23);
 	ExpandIndex2(nsd, dex_1, dex_3, dex_13);
 }
 
 inline void dSymMatrixT::ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, int& dex_3,
-								int& dex_12, int& dex_23, int& dex_13) { 
-	ExpandIndex3(int2DimensionT(nsd), dex, dex_1, dex_2, dex_3, dex_12, dex_23, dex_13); 
+								int& dex_12, int& dex_23, int& dex_13) {
+	ExpandIndex3(int2DimensionT(nsd), dex, dex_1, dex_2, dex_3, dex_12, dex_23, dex_13);
 };
 
 } /* namespace Tahoe */
