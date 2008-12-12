@@ -1,4 +1,4 @@
-/* $Id: ExodusT.h,v 1.7 2002-07-05 22:26:25 paklein Exp $ */
+/* $Id: ExodusT.h,v 1.8 2008-12-12 17:46:36 lxmota Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #ifndef _EXODUS_T_H_
@@ -30,7 +30,7 @@ public:
   ExodusT(ostream& message_out, int float_size = sizeof(double));
 
   /** destructor */
-  ~ExodusT(void);	
+  ~ExodusT(void);
 
   /** opens an existing file for reading */
   bool OpenRead(const StringT& filename);
@@ -38,7 +38,7 @@ public:
   /** opens an existing file for appending/updating */
   bool OpenWrite (const StringT& filename);
 
-  /** create a new output database 
+  /** create a new output database
    * \param filename name of file created
    * \param title title of simulation
    * \param info optional destriptors
@@ -66,17 +66,17 @@ public:
   void ElementBlockID(nArrayT<int>& ID) const;/**< returns a list of element block ID numbers */
   void NodeSetID(nArrayT<int>& ID) const;/**< returns a list of node set ID numbers */
   void SideSetID(nArrayT<int>& ID) const;/**< returns a list of side set ID numbers */
-	
+
   void ReadCoordinates(dArray2DT& coords) const; /**< returns the coordinates */
   void WriteCoordinates(const dArray2DT& coords, const nArrayT<int>* node_map = NULL) const; /**< write coordinates and node map (list of node IDs) */
   void ReadNodeMap(nArrayT<int>& node_map) const; /**< returns list of node IDs */
 
   /** returns dimensions of element block */
-  void ReadElementBlockDims(int block_ID, int& num_elems, int& num_elem_nodes) const; 
+  void ReadElementBlockDims(int block_ID, int& num_elems, int& num_elem_nodes) const;
   /** read an element block and its geometry code */
   void ReadConnectivities(int block_ID, GeometryT::CodeT& code, iArray2DT& connects) const;
   /** write an element block and its element map (list of element IDs) */
-  void WriteConnectivities(int block_ID, GeometryT::CodeT code, const iArray2DT& connects, const nArrayT<int>* elem_map = NULL); 
+  void WriteConnectivities(int block_ID, GeometryT::CodeT code, const iArray2DT& connects, const nArrayT<int>* elem_map = NULL);
 
   /** return the number of nodes in a node set */
   int  NumNodesInSet(int set_ID) const;
@@ -86,7 +86,7 @@ public:
   void ReadNodeSets(const nArrayT<int>& set_ID, nArrayT<int>& nodes) const;
   /** write a node set, use consecutive numbering starting at 1 */
   void WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const;
-	
+
   /** return number of element facets in a side set */
   int  NumSidesInSet(int set_ID) const;
   /** read the side set and the element block the facets are contained within */
@@ -149,6 +149,7 @@ private:
 
   /** maximum limits */
   enum DimensionsT { MAX_QA_REC = 5, MAX_INFO = 5 };
+  enum IOModeT {READ = 0, WRITE = 1};
 
   /** Write Quality Assurance data strings */
   void WriteQA(const ArrayT<StringT>& records) const;
@@ -161,11 +162,11 @@ private:
   void ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const;
 
   /* convert element numbering from/to fe++ numbering convention */
-  void ConvertElementNumbering (iArray2DT& conn, int code) const;
-			
+  void ConvertElementNumbering (iArray2DT& conn, int code, IOModeT mode) const;
+
   /** clear all parameter data */
   void Clear(void);
-	
+
   /** process return values - (do_warning == 1) prints
    * warning message for (code > 0) */
   void Try(const char* caller, int code, bool do_warning) const;
@@ -202,5 +203,5 @@ inline int ExodusT::NumNodeSets(void) const { return num_node_sets; }
 inline int ExodusT::NumElementBlocks(void) const { return num_elem_blk; }
 inline int ExodusT::NumSideSets(void) const { return num_side_sets; }
 
-} // namespace Tahoe 
+} // namespace Tahoe
 #endif /* _EXODUS_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.29 2005-10-05 22:53:07 cjkimme Exp $ */
+/* $Id: ExodusT.cpp,v 1.30 2008-12-12 17:46:47 lxmota Exp $ */
 /* created: sawimme (12/04/1998) */
 #include "ExodusT.h"
 
@@ -7,6 +7,7 @@
 #include <iomanip.h>
 #include <time.h>
 
+#include "iArrayT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
@@ -64,7 +65,7 @@ bool ExodusT::OpenRead(const StringT& filename)
 		/* check floating point number format */
 		if (io_ws != sizeof(float) && io_ws != sizeof(double))
 			ExceptionT::BadInputValue("ExodusT::OpenRead", "known float size %d", io_ws);
-	
+
 		/* get initialization data */
 	 	ArrayT<char> title(MAX_LINE_LENGTH);
 		Try("ExodusT::OpenRead",
@@ -125,7 +126,7 @@ bool ExodusT::Create(const StringT& filename, const StringT& title,
 		num_elem_blk = num_blks;
 		num_node_sets = node_sets;
 		num_side_sets = side_sets;
-	
+
 		/* write parameters to the database */
 		Try("ExodusT::WriteParameters",
 			ex_put_init(exoid, title, num_dim, num_nodes,
@@ -134,7 +135,7 @@ bool ExodusT::Create(const StringT& filename, const StringT& title,
 
 		/* write QA */
 		WriteQA(QA);
-		
+
 		/* write info */
 		WriteInfo(info);
 
@@ -163,7 +164,7 @@ void ExodusT::ElementBlockID(nArrayT<int>& ID) const
 	/* non-empty */
 	if (num_elem_blk > 0)
 	{
-		/* access */	
+		/* access */
 		Try(caller, ex_get_elem_blk_ids(exoid, ID.Pointer()), true);
 	}
 }
@@ -179,7 +180,7 @@ void ExodusT::NodeSetID(nArrayT<int>& ID) const
 	/* non-empty */
 	if (num_node_sets > 0)
 	{
-		/* access */	
+		/* access */
 		Try(caller, ex_get_node_set_ids(exoid, ID.Pointer()), true);
 	}
 }
@@ -195,7 +196,7 @@ void ExodusT::SideSetID(nArrayT<int>& ID) const
 	/* non-empty */
 	if (num_side_sets > 0)
 	{
-		/* access */	
+		/* access */
 		Try(caller, ex_get_side_set_ids(exoid, ID.Pointer()), true);
 	}
 }
@@ -214,7 +215,7 @@ void ExodusT::ReadCoordinates(dArray2DT& coords) const
 	double* px = xyz(0);
 	double* py = (num_dim > 1) ? xyz(1) : NULL;
 	double* pz = (num_dim > 2) ? xyz(2) : NULL;
-	
+
 	/* read coordinate data */
 	Try(caller, ex_get_coord(exoid, px, py, pz), true);
 
@@ -255,7 +256,7 @@ void ExodusT::WriteCoordinates(const dArray2DT& coords,
 	{
 		/* check */
 		if (node_map->Length() != coords.MajorDim()) ExceptionT::SizeMismatch(caller);
-	
+
 		Try("ExodusT::WriteCoordinates: ex_put_node_map",
 			ex_put_node_num_map(exoid, (int*) node_map->Pointer()),
 			true);
@@ -296,7 +297,7 @@ void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code,
 
 	if (exoid < 0) ExceptionT::GeneralFail(caller);
 
-	/* read attributues */		
+	/* read attributues */
 	char elem_type[MAX_STR_LENGTH];
 	int num_elems;
 	int num_elem_nodes;
@@ -325,7 +326,7 @@ void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code,
 			ex_get_elem_conn(exoid, block_ID, connects.Pointer()),
 			true);
 
-		ConvertElementNumbering (connects, code);	
+		ConvertElementNumbering (connects, code, READ);
 	}
 	else
 		code = GeometryT::kNone;
@@ -359,7 +360,7 @@ void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
 	}
 	else
 		tempconn.Alias(connects);
-	
+
 	/* write element block attributes */
 	int num_attr = 0; // set to zero for now
 	Try ("ExodusT::WriteConnectivities: ex_put_elem_block",
@@ -370,20 +371,20 @@ void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
 	/* non-empty */
 	if (tempconn.MajorDim() > 0)
 	{
-		ConvertElementNumbering (tempconn, code);
-	
+		ConvertElementNumbering (tempconn, code, WRITE);
+
 		/* write connectivities */
 		Try ("ExodusT::WriteConnectivities: ex_put_elem_conn",
 			ex_put_elem_conn(exoid, block_ID, tempconn.Pointer()),
 			true);
 	}
-		
+
 	/* optional element map */
 	if (elem_map && elem_map->Length() > 0)
 	{
 		/* check */
 		if (elem_map->Length() != connects.MajorDim()) ExceptionT::SizeMismatch(caller);
-	
+
 		Try("ExodusT::WriteConnectivities: ex_put_elem_num_map",
 			ex_put_elem_num_map(exoid, (int*) elem_map->Pointer()),
 			true);
@@ -400,7 +401,7 @@ int ExodusT::NumNodesInSet(int set_ID) const
 	/* read set parameters */
 	int num_set_nodes, num_dist;
 	Try(caller, ex_get_node_set_param(exoid, set_ID, &num_set_nodes, &num_dist), true);
-	
+
 	return num_set_nodes;
 }
 
@@ -471,7 +472,7 @@ int ExodusT::NumSidesInSet(int set_ID) const
 	/* read set parameters */
 	int num_sides, num_dist;
 	Try(caller, ex_get_side_set_param(exoid, set_ID, &num_sides, &num_dist), true);
-	
+
 	return num_sides;
 }
 
@@ -506,7 +507,7 @@ void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const
 			Try("ExodusT::ReadSideSet: ex_get_elem_block",
 				ex_get_elem_block(exoid, block_ID, type,
 					&nel, &nen, &num_attr),
-				true);	
+				true);
 
 			/* convert facet numbering */
 			nArrayT<int> facets;
@@ -536,7 +537,7 @@ void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) con
 	/* write parameters */
 	Try("ExodusT::WriteSideSet: ex_put_side_set",
 		ex_put_side_set_param(exoid, set_ID, sides.MajorDim(), 0),
-		true);	
+		true);
 
 	/* non-empty set */
 	if (sides.MajorDim() > 0)
@@ -557,12 +558,12 @@ void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) con
 		nArrayT<int> facets;
 		temp.RowAlias(1, facets);
 		ConvertSideSetIn(type, facets);
-	
+
 		/* convert to global numbering */
 		nArrayT<int> elements;
 		temp.RowAlias(0, elements);
 		BlockToGlobalElementNumbers(block_ID, elements);
-	
+
 		/* write */
 		Try("ExodusT::WriteSideSet: ex_put_side_set",
 			ex_put_side_set(exoid, set_ID, temp(0), temp(1)),
@@ -598,11 +599,11 @@ void ExodusT::WriteLabels(const ArrayT<StringT>& labels, ExodusT::VariableTypeT 
 			ex_put_var_names(exoid, &type, labels.Length(), (char**) var_names.Pointer()),
 			true);
 	}
-}	
+}
 
 void ExodusT::WriteTime(int step, double time) const
 {
-	const char caller[] = "ExodusT::WriteTime";	
+	const char caller[] = "ExodusT::WriteTime";
 
 	if (exoid < 0) ExceptionT::GeneralFail(caller);
 
@@ -637,7 +638,7 @@ void ExodusT::WriteElementVariable(int step, int block_ID, int index,
 
 	/* the time_step must correspond to the time_value of the printed increment
 	 * index corresponds to the variable name list */
-	Try(caller, 
+	Try(caller,
 		ex_put_elem_var (exoid, step, index, block_ID, fValues.Length(), (double*) fValues.Pointer()),
 		true);
 }
@@ -652,7 +653,7 @@ void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const
 	if (fValues.Length() == 0) return;
 
 	/* the time_step must correspond to the time_value of the printed increment */
-	Try(caller, 
+	Try(caller,
 		ex_put_glob_vars (exoid, step, fValues.Length(), (double*) fValues.Pointer()),
 		true);
 }
@@ -689,16 +690,16 @@ void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) cons
 		Try("ExodusT::ReadLabels: ex_get_var_names",
 			ex_get_var_names(exoid, &type, var_names.Length(), var_names.Pointer()),
 			true);
-			
+
 		/* copy in */
 		labels.Dimension(num_labels);
 		for (int j = 0; j < num_labels; j++)
-		{	
+		{
 			char* str = var_names[j];
 			labels[j] = str;
 		}
 	}
-}	
+}
 
 int ExodusT::NumTimeSteps(void) const
 {
@@ -749,7 +750,7 @@ void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const
 
 	/* the time_step must correspond to the time_value of the printed increment
 	 * index corresponds to the variable name list */
-	Try(caller, 
+	Try(caller,
 		ex_get_nodal_var(exoid, step, index, fValues.Length(), fValues.Pointer()),
 		true);
 }
@@ -760,7 +761,7 @@ void ExodusT::ReadElementVariable(int step, int block_ID, int index,
 	const char caller[] = "ExodusT::ReadElementVariable";
 
 	if (exoid < 0) ExceptionT::GeneralFail(caller);
-	
+
 	/* check dimensions */
 	int num_elems, num_elem_nodes;
 	ReadElementBlockDims(block_ID, num_elems, num_elem_nodes);
@@ -813,7 +814,7 @@ char *recs[MAX_QA_REC][4];
 
 	/* read records */
 	Try("ExodusBaseT::ReadQA", ex_get_qa(exoid, recs), 1);
-	
+
 	int m=0;
 	qa_records.Dimension(4*num_qa_rec);
 	for (int ii=0; ii < num_qa_rec; ii++)
@@ -854,11 +855,11 @@ if (num_info > MAX_INFO)
 void ExodusT::GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements) const
 {
 	int start_num = elements[0];
-	
+
 	/* get element block ID's */
 	nArrayT<int> all_block_ID(num_elem_blk);
 	ex_get_elem_blk_ids(exoid, all_block_ID.Pointer());
-	
+
 	/* find element number offset */
 	int curr_blk = 0;
 	int shift = 0;
@@ -868,16 +869,16 @@ void ExodusT::GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements)
 		/* fetch block dimensions */
 		int num_elems, num_elem_nodes;
 		ReadElementBlockDims(all_block_ID[i], num_elems, num_elem_nodes);
-	
+
 		/* next numbering shift */
 		curr_blk = i;
 		shift = next_shift;
 		next_shift += num_elems;
 	}
-	
+
 	/* shift to block local numbers */
 	elements -= shift;
-	
+
 	/* check */
 	block_ID = all_block_ID[curr_blk];
 	int num_elems, num_elem_nodes;
@@ -909,11 +910,11 @@ void ExodusT::BlockToGlobalElementNumbers(int block_ID, nArrayT<int>& elements) 
 		/* fetch block dimensions */
 		int num_elems, num_elem_nodes;
 		ReadElementBlockDims(all_block_ID[i], num_elems, num_elem_nodes);
-	
+
 		/* accumulate shift */
 		shift += num_elems;
 	}
-	
+
 	/* apply shift */
 	elements += shift;
 }
@@ -932,7 +933,7 @@ void ExodusT::WriteQA(const ArrayT<StringT>& qa_records_) const
 				qa_records[k].Take(qa_records_[k], MAX_STR_LENGTH - 1);
 			else
 				qa_records[k] = qa_records_[k];
-			
+
 
 	/* DEC will not allow allocation based on passed constant */
 	int num_recs = qa_records.Length()/4;
@@ -956,7 +957,7 @@ void ExodusT::WriteInfo(const ArrayT<StringT>& info_records_) const
 			info_records[k].Take(info_records_[k], MAX_LINE_LENGTH - 1);
 		else
 			info_records[k] = info_records_[k];
-	
+
 	/* DEC will not allow allocation based on passed constant */
 	int num_recs = info_records.Length();
 	if (num_recs > MAX_INFO)
@@ -983,7 +984,7 @@ void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code,
 	    	    if (num_dim == 1)
 	      		elem_name = "CIRCLE";
 			else
-				elem_name = "SPHERE";	
+				elem_name = "SPHERE";
 			num_output_nodes = 1;
 		    break;
 
@@ -1053,7 +1054,7 @@ GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const
 
 	StringT elem_name_upper(elem_name);
 	elem_name_upper.ToUpper();
-	
+
 	GeometryT::CodeT code = GeometryT::kNone;
 	for (int i = 0; i < num_elem_codes && code == GeometryT::kNone; i++)
 		if (strncmp(elem_name_upper, elem_names[i], 3) == 0)
@@ -1078,7 +1079,7 @@ void ExodusT::ConvertSideSetOut(const char* elem_type, nArrayT<int>& sides) cons
 	{
 		/* facet numbering map: tahoe[exodusII] */
 		int hex_map[7] = {-1,3,4,5,6,1,2};
-		
+
 		int*  p = sides.Pointer();
 		int dim = sides.Length();
 		for (int i = 0; i < dim; i++)
@@ -1095,7 +1096,7 @@ void ExodusT::ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const
 	{
 		/* facet numbering map: exodusII[tahoe] */
 		int hex_map[7] = {-1,5,6,1,2,3,4};
-		
+
 		int*  p = sides.Pointer();
 		int dim = sides.Length();
 		for (int i = 0; i < dim; i++)
@@ -1106,47 +1107,106 @@ void ExodusT::ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const
 	}
 }
 
+//
+// helper for swapping
+//
+inline void Swap(int& m, int& n)
+{
+  int tmp = m;
+  m = n;
+  n = tmp;
+}
+
 /* convert element numbering to/from tahoe/ensight/abaqus convention */
-void ExodusT::ConvertElementNumbering (iArray2DT& conn, int fcode) const
+void ExodusT::ConvertElementNumbering(iArray2DT& conn, int fcode, IOModeT mode) const
 {
-int convert = 0;
-int dimension = 4;
-int start = 0;
+  int convert = 0;
+  int dimension = 4;
+  int start = 0;
 
-/* hex20 is divided into 5 sets of 4 numbers */
-if (fcode == GeometryT::kHexahedron && conn.MinorDim() >= 20)
-{
-convert = 1;
-dimension = 4;
-start = 12;
-}
-/* wedge15 is divided into 5 sets of 3 numbers */
-if (fcode == GeometryT::kPentahedron && conn.MinorDim() >= 15)
-{
-convert = 1;
-dimension = 3;
-start = 9;
-}
+  /* hex20 is divided into 5 sets of 4 numbers */
+  if (fcode == GeometryT::kHexahedron && conn.MinorDim() >= 20) {
+    convert = 1;
+    dimension = 4;
+    start = 12;
+  }
+  /* wedge15 is divided into 5 sets of 3 numbers */
+  if (fcode == GeometryT::kPentahedron && conn.MinorDim() >= 15) {
+    convert = 1;
+    dimension = 3;
+    start = 9;
+  }
 
-/* basically swapping last two sets of numbers, set length = dimension */
-if (convert)
-{
-nArrayT<int> temp (2*dimension);
-for (int i=0; i < conn.MajorDim(); i++)
-	{
-	  /* transfer to temp space */
-	  int *ptemp = temp.Pointer();
-	  int *pconn = conn (i) + start;
-	  for (int j=0; j < 2*dimension; j++)
-	    *ptemp++ = *(pconn + j);
+  // hex27 canonical to Hughes convention used by Tahoe
+  if (fcode == GeometryT::kHexahedron && conn.MinorDim() == 27) {
+    for (int i = 0; i < conn.MajorDim(); ++i) {
+      iArrayT tmp(conn.MinorDim());
+      for (int j = 0; j < conn.MinorDim(); ++j) {
+        tmp[j] = conn(i, j);
+      }
 
-	  /* rewrite connectivity */
-	  for (int k=0; k < dimension; k++)
-	    *pconn++ = temp [k + dimension];
-	  for (int k2=0; k2 < dimension; k2++)
-	    *pconn++ = temp [k2];
-	}
-}
+      switch (mode) {
+      case READ:
+        conn(i, 12) = tmp[16];
+        conn(i, 13) = tmp[17];
+        conn(i, 14) = tmp[18];
+        conn(i, 15) = tmp[19];
+        conn(i, 16) = tmp[12];
+        conn(i, 17) = tmp[13];
+        conn(i, 18) = tmp[14];
+        conn(i, 19) = tmp[15];
+        conn(i, 20) = tmp[21];
+        conn(i, 21) = tmp[22];
+        conn(i, 22) = tmp[25];
+        conn(i, 23) = tmp[26];
+        conn(i, 24) = tmp[23];
+        conn(i, 25) = tmp[24];
+        conn(i, 26) = tmp[20];
+        break;
+      case WRITE:
+        conn(i, 16) = tmp[12];
+        conn(i, 17) = tmp[13];
+        conn(i, 18) = tmp[14];
+        conn(i, 19) = tmp[15];
+        conn(i, 12) = tmp[16];
+        conn(i, 13) = tmp[17];
+        conn(i, 14) = tmp[18];
+        conn(i, 15) = tmp[19];
+        conn(i, 21) = tmp[20];
+        conn(i, 22) = tmp[21];
+        conn(i, 25) = tmp[22];
+        conn(i, 26) = tmp[23];
+        conn(i, 23) = tmp[24];
+        conn(i, 24) = tmp[25];
+        conn(i, 20) = tmp[26];
+        break;
+      default:
+        ExceptionT::GeneralFail("ExodusT::ConvertElementNumbering",
+            "unknown I/O mode %d", mode);
+        break;
+      }
+
+    }
+    convert = 0;
+  }
+
+  /* basically swapping last two sets of numbers, set length = dimension */
+  if (convert) {
+    nArrayT<int> temp(2 * dimension);
+    for (int i = 0; i < conn.MajorDim(); i++) {
+      /* transfer to temp space */
+      int *ptemp = temp.Pointer();
+      int *pconn = conn(i) + start;
+      for (int j = 0; j < 2 * dimension; j++)
+        *ptemp++ = *(pconn + j);
+
+      /* rewrite connectivity */
+      for (int k = 0; k < dimension; k++)
+        *pconn++ = temp[k + dimension];
+      for (int k2 = 0; k2 < dimension; k2++)
+        *pconn++ = temp[k2];
+    }
+  }
 }
 
 /* clear all parameter data */
@@ -1174,7 +1234,7 @@ void ExodusT::Try(const char* caller, int code, bool do_warning) const
 {
 	if (code < 0)
 	{
-		ExceptionT::GeneralFail(caller, "exodus returned code %d with file %s", 
+		ExceptionT::GeneralFail(caller, "exodus returned code %d with file %s",
 			code, file_name.Pointer());
 	}
 	if (code > 0 && do_warning)
@@ -1197,14 +1257,14 @@ bool ExodusT::OpenRead(const StringT& filename) {
 }
 bool ExodusT::OpenWrite(const StringT& filename) {
 	ExceptionT::GeneralFail("ExodusT::OpenWrite", "file format not available");
-	return false; 
+	return false;
 }
 bool ExodusT::Create(const StringT& filename, const StringT& title,
 		ArrayT<StringT>& info, ArrayT<StringT>& QA, int dim, int nodes,
 		int elem, int num_blks, int node_sets, int side_sets)
 {
 	ExceptionT::GeneralFail("ExodusT::Create", "file format not available");
-	return false; 
+	return false;
 }
 void ExodusT::Close(void) { ExceptionT::GeneralFail(caller); }
 void ExodusT::ElementBlockID(nArrayT<int>& ID) const { ExceptionT::GeneralFail(caller); }
@@ -1242,7 +1302,7 @@ void ExodusT::BlockToGlobalElementNumbers(int block_ID, nArrayT<int>& elements) 
 void ExodusT::WriteQA(const ArrayT<StringT>& qa_records) const { ExceptionT::GeneralFail(caller); }
 void ExodusT::WriteInfo(const ArrayT<StringT>& info_records) const { ExceptionT::GeneralFail(caller); }
 void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code, StringT& elem_name, int& num_output_nodes) const { ExceptionT::GeneralFail(caller); }
-#ifndef SIERRA_PARALLEL_MPI 
+#ifndef SIERRA_PARALLEL_MPI
 GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const { ExceptionT::GeneralFail(caller); }
 #else
 void ExodusT::ToGeometryCode(const StringT& elem_name) const { ExceptionT::GeneralFail(caller); }
