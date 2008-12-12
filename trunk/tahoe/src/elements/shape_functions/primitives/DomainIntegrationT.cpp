@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.cpp,v 1.6 2005-07-21 16:16:35 paklein Exp $ */
+/* $Id: DomainIntegrationT.cpp,v 1.7 2008-12-12 00:34:47 lxmota Exp $ */
 /* created: paklein (09/04/1998)                                          */
 /* class to manage the parent domain including construction for           */
 /* shared parent domains, integration point iterations, and some          */
@@ -13,29 +13,32 @@
 
 using namespace Tahoe;
 
-DomainIntegrationT::DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP, int numnodes):
-	fNumIP(numIP),
-	fCurrIP(frefCurrIP),
-	fDeleteDomain(1),
-	frefCurrIP(-1)
+DomainIntegrationT::DomainIntegrationT(GeometryT::CodeT geometry_code,
+    int numIP, int numnodes, bool is_closed_set) :
+  fNumIP(numIP), fCurrIP(frefCurrIP), fDeleteDomain(1), frefCurrIP(-1),
+      fIsClosedSet(is_closed_set)
 {
 	/* set parent geometry */
 	fDomain = new ParentDomainT(geometry_code, fNumIP, numnodes);
 	if (!fDomain) throw ExceptionT::kOutOfMemory;
-	
+
 	/* set parent domain shape functions and derivatives */
 	fDomain->Initialize();
 
 	/* set surface shapefunctions */
-	if (fDomain->GeometryCode() != GeometryT::kLine) SetSurfaceShapes();
+	if (fDomain->GeometryCode() != GeometryT::kLine && fIsClosedSet == true) {
+	  SetSurfaceShapes();
+	}
 }
 
-DomainIntegrationT::DomainIntegrationT(const DomainIntegrationT& link):
+DomainIntegrationT::DomainIntegrationT(const DomainIntegrationT& link,
+    bool is_closed_set) :
 	fNumIP(link.fNumIP),
 	fCurrIP(link.fCurrIP),
 	fDomain(link.fDomain),
 	fDeleteDomain(0),
-	frefCurrIP(-1) // won't be used
+	frefCurrIP(-1), // won't be used
+  fIsClosedSet(is_closed_set)
 {
 	/* set surface shapefunctions */
 	if (fDomain->GeometryCode() != GeometryT::kLine)
@@ -84,7 +87,7 @@ void DomainIntegrationT::SetSurfaceShapes(void)
 	int num_facets = NumFacets();
 	fSurfShapes.Dimension(num_facets);
 	fDelete.Dimension(num_facets);
-	
+
 	/* surface shape information */
 	ArrayT<GeometryT::CodeT> facet_geom;
 	iArrayT num_facet_nodes;
@@ -95,11 +98,11 @@ void DomainIntegrationT::SetSurfaceShapes(void)
 	{
 		GeometryT::CodeT geo = facet_geom[i];
 		int nnd = num_facet_nodes[i];
-	
+
 		int same_shape = -1;
 		for (int j = 0; j < i && same_shape < 0; j++)
 			if (facet_geom[j] == geo &&
-			    num_facet_nodes[j] == nnd) same_shape = j;	
+			    num_facet_nodes[j] == nnd) same_shape = j;
 
 		/* duplicate surface shape */
 		if (same_shape > -1)
@@ -117,7 +120,7 @@ void DomainIntegrationT::SetSurfaceShapes(void)
 				case 1:
 				case 2:
 					nip = nnd;
-					break;				
+					break;
 				case 3:
 					if (volume_geom == GeometryT::kHexahedron)
 						nip = (nnd <= 4) ? 4 : 9;
@@ -129,7 +132,7 @@ void DomainIntegrationT::SetSurfaceShapes(void)
 			}
 			fSurfShapes[i] = new ParentDomainT(geo, nip, nnd);
 			if (!fSurfShapes[i]) ExceptionT::OutOfMemory(caller);
-	
+
 			/* set shape functions and derivatives */
 			fSurfShapes[i]->Initialize();
 
