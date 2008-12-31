@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.23 2005-11-08 04:10:44 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.24 2008-12-31 20:34:39 regueiro Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -119,6 +119,18 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 * state). If localization is detected, the normals (current config)
 * to the various surfaces are returned in normals */
 bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+								AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
+{
+#pragma unused(normals)
+#pragma unused(slipdirs)
+#pragma unused(detAs)
+#pragma unused(dissipations_fact)
+
+	/* by default, no localization */
+	return false;
+}
+
+bool SolidMaterialT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
 								AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
 {
 #pragma unused(normals)
