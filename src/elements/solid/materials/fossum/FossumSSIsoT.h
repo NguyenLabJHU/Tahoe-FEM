@@ -125,6 +125,10 @@ protected:
 	/* test for localization */
 	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 	 
 			AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
+			
+	/* test for discontinuous bifurcation (weak discontinuity) */
+	bool IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 	 
+			AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);		
 
 protected:
 
@@ -139,6 +143,7 @@ private:
 	dSymMatrixT fStress; // stress choice between continuum model and localization model
 	dSymMatrixT fSigma; // stress from itegration
 	dSymMatrixT fStrain;
+	dSymMatrixT fdGdSigma; // direction of plastic flow, not normalized
 	dMatrixT fModulus;
 	dMatrixT fModulusCe;
 	dMatrixT fModulusPerfPlas;
@@ -169,8 +174,11 @@ protected:
 	*       internal variable values */
 	const dMatrixT& ModuliCorrection(const ElementCardT& element, int ip); 
 
-	/* Modulus for checking discontinuous bifurcation */
+	/* Modulus for checking strong discontinuity bifurcation */
 	const dMatrixT& ModuliCorrPerfPlas(const ElementCardT& element, int ip);
+	
+	/* plastic flow direction */
+	const dSymMatrixT& PlasFlowDir(void);
 
 	/* return a pointer to a new plastic element object constructed with
 	* the data from element */

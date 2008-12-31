@@ -9,10 +9,12 @@
 
 using namespace Tahoe;
 
+/* constants */
 const int kNumInternal = 3; // number of internal state variables
 const double sqrt3 = sqrt(3.0);
 const double kYieldTol = 1.0e-10;
 const int kNSD = 3;
+const double Pi = acos(-1.0);
 
 /* element output data */
 const int kNumOutput = 11;
@@ -161,6 +163,7 @@ void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
     fStress.Dimension(3);
     fSigma.Dimension(3);
     fStrain.Dimension(3);
+    fdGdSigma.Dimension(3);
     fModulus.Dimension(dSymMatrixT::NumValues(3));
     fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
     fModulusContinuum.Dimension(dSymMatrixT::NumValues(3));
@@ -301,12 +304,12 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
  bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 	 
                              AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact) 	 
  { 	 
-     /* stress tensor */ 	 
-     const dSymMatrixT& stress = s_ij(); 	 
+     /* stress tensor */
+     const dSymMatrixT& stress = s_ij(); 
               	 
      /* elasto-plastic tangent moduli */ 	 
-     const dMatrixT& modulus = con_perfplas_ijkl(); 	 
-     //const dMatrixT& modulus = c_ijkl(); 	 
+     //const dMatrixT& modulus = con_perfplas_ijkl(); 	 
+     const dMatrixT& modulus = c_ijkl(); 	 
       	 
      /* elastic modulus */ 	 
      const dMatrixT& modulus_e = ce_ijkl(); 	 
@@ -362,11 +365,168 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
              dissipations_fact.Append(dissip); 	 
          } 	 
      } 	 
-      	 
+     
      return checkloc; 	 
  } 	 
-  
 
+
+
+/* return plastic flow direction */
+const dSymMatrixT& FossumSSIsoT::PlasFlowDir(void)
+{
+	/* initialize */
+	fdGdSigma = 0.0;
+	
+	int ip = CurrIP();
+	ElementCardT& element = CurrentElement();
+
+	if (element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic)
+	{
+		/* load internal state variables */
+		LoadData(element,ip);
+		
+		//double kappa = fInternal[kkappa] + fInternal[kdeltakappa];
+		double kappa = fInternal[kkappa];
+
+		/*Find Invariants */
+		double I1 = 0.0, J2 =0.0, J3 = 1.0;
+		for (int i = 0; i < kNSD; i++)
+			I1 += principalEqStress[i];
+		for (int i = 0; i < kNSD; i++)
+		{
+			J2 += 0.5*(principalEqStress[i] - I1/3.0) * (principalEqStress[i] - I1/3.0);
+			J3 *= (principalEqStress[i] - I1/3.0);
+		}
+
+		fdGdSigma = DGdSigma(I1,J2,J3, kappa, principalEqStress, m);	
+	}
+
+	return fdGdSigma;
+} 
+
+
+  
+  
+/* 	 
+ * Test for discontinuous bifurcation (weak) using current values for 	 
+ * the plastic flow direction. Returns true if the 	 
+ * determinant of the acoustic tensor is negative and returns 	 
+ * the normals and slipdirs. Returns false if the determinant is positive.
+ *
+ * implemented currently only for 2.5D plane strain condition in 3D element 	 
+ */ 	 
+bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 	 
+                             AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact) 	 
+{
+     /* plastic flow direction 
+      * this call generates fdGdSigma */ 	 
+     const dSymMatrixT& plasticflow = PlasFlowDir();	
+     double AA=0.0,BB=0.0;
+     // the following line will give error if 2D element
+     //AA = 2.0*plasticflow[5];
+     //BB = plasticflow[0]-plasticflow[1];
+     AA = 2.0*fdGdSigma[5];
+     BB = fdGdSigma[0]-fdGdSigma[1];
+     
+     dArrayT normal(NumSD()), slipdir(NumSD()); 
+     double detA, theta, dissip;
+     
+     /* lame parameters: use fmu, flambda */ 	 
+  	 
+     /* localization condition checker */ 	  	 
+     normals.Dimension(NumSD()); 	 
+     slipdirs.Dimension(NumSD());
+     normals.Free();
+     slipdirs.Free(); 	 
+     detAs.Free(); 	
+     dissipations_fact.Free(); 
+     dissip=0.0;
+     dissipations_fact.Append(dissip);
+     dissipations_fact.Append(dissip);	  
+     
+     double ksmallnum = 1.0e-8;
+     
+     /* analyze four cases */
+     bool checkloc = false;
+     if (abs(AA)<ksmallnum && abs(BB)<ksmallnum)
+     {
+     	normal=0.0;
+     	normals.Append(normal);
+     	normals.Append(normal);
+     	slipdir=0.0;
+     	slipdirs.Append(slipdir);
+     	slipdirs.Append(slipdir);
+     	detA=fmu*(flambda+2*fmu);
+     	detAs.Append(detA);
+     	detAs.Append(detA);
+     	checkloc = false;
+     }
+     else if (abs(AA)<ksmallnum && abs(BB)>ksmallnum)
+     {
+     	theta=Pi/4;
+     	normal[0]=sin(theta);
+     	normal[1]=cos(theta);
+     	normal[2]=0.0;
+     	normals.Append(normal);
+     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	if (detA<0.0) checkloc = true;
+     	detAs.Append(detA);
+     	
+     	theta=-Pi/4;
+     	normal[0]=sin(theta);
+     	normal[1]=cos(theta);
+     	normal[2]=0.0;
+     	normals.Append(normal);
+     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	if (detA<0.0) checkloc = true;
+     	detAs.Append(detA);
+     	
+     	slipdir=0.0;
+     	slipdirs.Append(slipdir);
+     	slipdirs.Append(slipdir);
+     }
+     else if (abs(AA)>ksmallnum && abs(BB)<ksmallnum)
+     {
+     	theta=0.0;
+     	normal[0]=sin(theta);
+     	normal[1]=cos(theta);
+     	normal[2]=0.0;
+     	normals.Append(normal);
+     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	if (detA<0.0) checkloc = true;
+     	detAs.Append(detA);
+     	
+     	theta=Pi/2;
+     	normal[0]=sin(theta);
+     	normal[1]=cos(theta);
+     	normal[2]=0.0;
+     	normals.Append(normal);
+     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	if (detA<0.0) checkloc = true;
+     	detAs.Append(detA);
+     	
+     	slipdir=0.0;
+     	slipdirs.Append(slipdir);
+     	slipdirs.Append(slipdir);
+     }
+     else if (abs(AA)>ksmallnum && abs(BB)>ksmallnum)
+     {
+     	theta=0.5*atan(BB/AA);
+     	normal[0]=sin(theta);
+     	normal[1]=cos(theta);
+     	normal[2]=0.0;
+     	normals.Append(normal);
+     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	if (detA<0.0) checkloc = true;
+     	detAs.Append(detA);
+     	
+     	slipdir=0.0;
+     	slipdirs.Append(slipdir);
+     }
+     
+     return checkloc; 	 
+} 	
+ 
 /* returns the strain energy density for the specified strain */
 double FossumSSIsoT::StrainEnergyDensity(void)
 {
@@ -577,6 +737,10 @@ const dMatrixT& FossumSSIsoT::ModuliCorrPerfPlas(const ElementCardT& element, in
 
 	return fModuliCorrPerfPlas;
 }       
+
+
+
+
 
                  
 /* return a pointer to a new plastic element object constructed with

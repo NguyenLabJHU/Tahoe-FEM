@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.47 2008-02-28 16:10:20 regueiro Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.48 2008-12-31 20:35:26 regueiro Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -758,6 +758,7 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem, LocalArrayT& displ_elem)
 		//bool checkloc = fCurrMaterial->IsLocalized(normals,slipdirs);
 		//bool checkloc = fCurrMaterial->IsLocalized(normals,slipdirs,detAmin);
 		bool checkloc = fCurrMaterial->IsLocalized(normals,slipdirs,detAs,dissipations_fact);
+		//bool checkloc = fCurrMaterial->IsLocalized_DB(normals,slipdirs,detAs,dissipations_fact);
 		
 		/* check if localized and if has minimum determinant for IPs */
 		//if (checkloc && detAmin < fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin])
