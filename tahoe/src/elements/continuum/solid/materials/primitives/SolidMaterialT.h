@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.26 2005-03-11 20:32:15 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.27 2008-12-31 20:34:39 regueiro Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -139,6 +139,8 @@ public:
 							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA);
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
+	virtual bool IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
