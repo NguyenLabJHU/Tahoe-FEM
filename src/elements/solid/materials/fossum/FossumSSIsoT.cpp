@@ -308,8 +308,8 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
      const dSymMatrixT& stress = s_ij(); 
               	 
      /* elasto-plastic tangent moduli */ 	 
-     //const dMatrixT& modulus = con_perfplas_ijkl(); 	 
-     const dMatrixT& modulus = c_ijkl(); 	 
+     const dMatrixT& modulus = con_perfplas_ijkl(); 	 
+     //const dMatrixT& modulus = c_ijkl(); 	 
       	 
      /* elastic modulus */ 	 
      const dMatrixT& modulus_e = ce_ijkl(); 	 
@@ -426,7 +426,7 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      //AA = 2.0*plasticflow[5];
      //BB = plasticflow[0]-plasticflow[1];
      AA = 2.0*fdGdSigma[5];
-     BB = fdGdSigma[0]-fdGdSigma[1];
+     BB = fdGdSigma[1]-fdGdSigma[0];
      
      dArrayT normal(NumSD()), slipdir(NumSD()); 
      double detA, theta, dissip;
@@ -442,7 +442,7 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      dissipations_fact.Free(); 
      dissip=0.0;
      dissipations_fact.Append(dissip);
-     dissipations_fact.Append(dissip);	  
+     dissipations_fact.Append(dissip); 
      
      double ksmallnum = 1.0e-8;
      
@@ -456,7 +456,7 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      	slipdir=0.0;
      	slipdirs.Append(slipdir);
      	slipdirs.Append(slipdir);
-     	detA=fmu*(flambda+2*fmu);
+     	detA=fmu*fmu*(flambda+2*fmu);
      	detAs.Append(detA);
      	detAs.Append(detA);
      	checkloc = false;
@@ -464,20 +464,20 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      else if (abs(AA)<ksmallnum && abs(BB)>ksmallnum)
      {
      	theta=Pi/4;
-     	normal[0]=sin(theta);
-     	normal[1]=cos(theta);
+     	normal[1]=sin(theta);
+     	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
      	theta=-Pi/4;
-     	normal[0]=sin(theta);
-     	normal[1]=cos(theta);
+     	normal[1]=sin(theta);
+     	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
@@ -488,20 +488,20 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      else if (abs(AA)>ksmallnum && abs(BB)<ksmallnum)
      {
      	theta=0.0;
-     	normal[0]=sin(theta);
-     	normal[1]=cos(theta);
+     	normal[1]=sin(theta);
+     	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
      	theta=Pi/2;
-     	normal[0]=sin(theta);
-     	normal[1]=cos(theta);
+     	normal[1]=sin(theta);
+     	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
@@ -512,15 +512,27 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      else if (abs(AA)>ksmallnum && abs(BB)>ksmallnum)
      {
      	theta=0.5*atan(BB/AA);
-     	normal[0]=sin(theta);
-     	normal[1]=cos(theta);
+     	//theta=atan((-AA/BB)+sqrt(AA*AA+BB*BB)/BB);
+     	normal[1]=sin(theta);
+     	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*(flambda+2*fmu)*(1-AA*cos(2*theta)-BB*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
+     	if (detA<0.0) checkloc = true;
+     	detAs.Append(detA);
+     	
+     	theta=0.5*atan(BB/AA)+Pi/2;
+     	//theta=atan((-AA/BB)-sqrt(AA*AA+BB*BB)/BB);
+     	normal[1]=sin(theta);
+     	normal[0]=cos(theta);
+     	normal[2]=0.0;
+     	normals.Append(normal);
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
      	slipdir=0.0;
+     	slipdirs.Append(slipdir);
      	slipdirs.Append(slipdir);
      }
      
