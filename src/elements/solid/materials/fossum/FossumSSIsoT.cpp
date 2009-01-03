@@ -448,7 +448,7 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      
      /* analyze four cases */
      bool checkloc = false;
-     if (abs(AA)<ksmallnum && abs(BB)<ksmallnum)
+     if (fabs(AA)<ksmallnum && fabs(BB)<ksmallnum)
      {
      	normal=0.0;
      	normals.Append(normal);
@@ -461,14 +461,14 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      	detAs.Append(detA);
      	checkloc = false;
      }
-     else if (abs(AA)<ksmallnum && abs(BB)>ksmallnum)
+     else if (fabs(AA)<ksmallnum && fabs(BB)>ksmallnum)
      {
      	theta=Pi/4;
      	normal[1]=sin(theta);
      	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+fabs(AA)*cos(2*theta)+fabs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
@@ -477,7 +477,7 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+fabs(AA)*cos(2*theta)+fabs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
@@ -485,14 +485,14 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      	slipdirs.Append(slipdir);
      	slipdirs.Append(slipdir);
      }
-     else if (abs(AA)>ksmallnum && abs(BB)<ksmallnum)
+     else if (fabs(AA)>ksmallnum && fabs(BB)<ksmallnum)
      {
      	theta=0.0;
      	normal[1]=sin(theta);
      	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+fabs(AA)*cos(2*theta)+fabs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
@@ -501,7 +501,7 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+fabs(AA)*cos(2*theta)+fabs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
@@ -509,7 +509,7 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      	slipdirs.Append(slipdir);
      	slipdirs.Append(slipdir);
      }
-     else if (abs(AA)>ksmallnum && abs(BB)>ksmallnum)
+     else if (fabs(AA)>ksmallnum && fabs(BB)>ksmallnum)
      {
      	theta=0.5*atan(BB/AA);
      	//theta=atan((-AA/BB)+sqrt(AA*AA+BB*BB)/BB);
@@ -517,7 +517,7 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+fabs(AA)*cos(2*theta)+fabs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
@@ -527,7 +527,7 @@ bool FossumSSIsoT::IsLocalized_DB(AutoArrayT <dArrayT> &normals, AutoArrayT <dAr
      	normal[0]=cos(theta);
      	normal[2]=0.0;
      	normals.Append(normal);
-     	detA=fmu*fmu*(flambda+2*fmu)*(1+abs(AA)*cos(2*theta)+abs(BB)*sin(2*theta));
+     	detA=fmu*fmu*(flambda+2*fmu)*(1+fabs(AA)*cos(2*theta)+fabs(BB)*sin(2*theta));
      	if (detA<0.0) checkloc = true;
      	detAs.Append(detA);
      	
