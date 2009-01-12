@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.30 2008-12-12 17:46:47 lxmota Exp $ */
+/* $Id: ExodusT.cpp,v 1.31 2009-01-12 19:16:11 lxmota Exp $ */
 /* created: sawimme (12/04/1998) */
 #include "ExodusT.h"
 
@@ -1309,7 +1309,7 @@ void ExodusT::ToGeometryCode(const StringT& elem_name) const { ExceptionT::Gener
 #endif
 void ExodusT::ConvertSideSetOut(const char* elem_type, nArrayT<int>& sides) const { ExceptionT::GeneralFail(caller); }
 void ExodusT::ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const { ExceptionT::GeneralFail(caller); }
-void ExodusT::ConvertElementNumbering (iArray2DT& conn, int fcode) const { ExceptionT::GeneralFail(caller); }
+void ExodusT::ConvertElementNumbering (iArray2DT& conn, int fcode, IOModeT mode) const { ExceptionT::GeneralFail(caller); }
 void ExodusT::Clear(void) { ExceptionT::GeneralFail(caller); }
 void ExodusT::Try(const char* caller, int code, bool do_warning) const { ExceptionT::GeneralFail(caller); }
 #pragma warn_unusedarg reset
