@@ -3127,7 +3127,6 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 8. loop break condition
-/*
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
@@ -3187,8 +3186,7 @@ void assembly::isotropic(int   total_steps,
 		       <<endl;
 	    break;
 	}
-	
-*/
+
     } while (++g_iteration < total_steps);
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
@@ -4528,7 +4526,7 @@ void assembly::unconfined(int   total_steps,
 }
 
 
-// The confining pressure is 500kPa. This function initializes triaxial compression test.
+// This function initializes triaxial sample to a certain confining pressure.
 void assembly::triaxialPtclBdryIni(int   total_steps,  
 				   int   snapshots, 
 				   double sigma,
@@ -4693,7 +4691,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 }
 
 
-// The confining pressure is 500kPa. This function performs triaxial compression test.
+// This function performs triaxial compression test.
 // Displacement boundaries are used in axial direction.
 void assembly::triaxialPtclBdry(int   total_steps,  
 				int   snapshots, 
@@ -4799,11 +4797,12 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	sigma3_1=vfabsl(getNormal(5))/2.5e-3; sigma3_2=vfabsl(getNormal(6))/2.5e-3;
 
 	// displacement control
+	if(g_iteration < 100001) {
 	minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
 	minctl[1].tran=vec(0,0, TIMESTEP*COMPRESS_RATE);
 
 	updateRB(min,minctl,2);
-	
+	}
 	// 7. (1) output particles and contacts information
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
