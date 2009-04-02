@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.79 2008-12-11 19:10:46 lxmota Exp $ */
+/* $Id: SolidElementT.cpp,v 1.80 2009-04-02 00:31:31 lxmota Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1832,7 +1832,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 
   // Divergence vector potential
   if (n_codes[ND_DIV_POT]) {
-    const char* labels[] = {"Log10AbsDivPsi"};
+    const char* labels[] = {"DivPsi"};
     for (int i = 0; i < 1; i++) {
       n_labels[count++] = labels[i];
     }
