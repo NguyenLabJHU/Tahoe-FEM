@@ -1,5 +1,8 @@
-/* $Id: ElementListT.cpp,v 1.140 2008-12-12 01:00:38 lxmota Exp $ */
+/* $Id: ElementListT.cpp,v 1.141 2009-04-02 00:35:08 lxmota Exp $ */
 /* $Log: not supported by cvs2svn $
+/* Revision 1.140  2008/12/12 01:00:38  lxmota
+/* Add support for neohookean elasticity with simple damage model.
+/*
 /* Revision 1.139  2008/12/12 00:30:41  lxmota
 /* Added conditional support for piezoelectric and HuWashizu elements.
 /* */
@@ -74,7 +77,7 @@
 #include "FSPiezoElectricSolidT.h"
 #endif
 
-#ifdef NEOHOOKEDAMAGE
+#ifdef HUWASHIZU
 #include "FSHuWashizuUSCT.h"
 #endif
 
@@ -355,7 +358,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
     sub_lists.AddSub("piezoelectric");
 #endif
 
-#ifdef NEOHOOKEDAMAGE
+#ifdef HUWASHIZU
     sub_lists.AddSub("Hu_Washizu_USC");
 #endif
 
@@ -614,7 +617,7 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
     return new FSPiezoElectricSolidT(fSupport);
 #endif
 
-#ifdef NEOHOOKEDAMAGE
+#ifdef HUWASHIZU
   else if (name == "Hu_Washizu_USC")
     return new FSHuWashizuUSCT(fSupport);
 #endif
