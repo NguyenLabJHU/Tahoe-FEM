@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.30 2008-12-12 00:37:17 lxmota Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.31 2009-04-02 00:36:55 lxmota Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -100,6 +100,13 @@ public:
 	 * \param u interpolation of the nodal values
 	 * \param ip integration point number */
 	void InterpolateU(const LocalArrayT& nodal, ArrayT<double>& u, int ip) const;
+
+  // interpolate field values to arbitrary point in parametric coordinates
+  // \param nodal array of nodal values: [nnd] x [nu]
+  // \param u interpolation of the nodal values
+  // \param ip integration point number
+  void InterpolateU(const LocalArrayT& nodal, ArrayT<double>& u,
+      const dArrayT& coordinates) const;
 
 	/* Allow stand-alone use of class ShapeFunctionT */
 	void InitializeDomain(void) const;
