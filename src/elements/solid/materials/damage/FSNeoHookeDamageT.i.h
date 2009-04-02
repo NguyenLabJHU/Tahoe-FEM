@@ -1,7 +1,10 @@
 //
-// $Id: FSNeoHookeDamageT.i.h,v 1.1 2008-12-12 18:59:06 amota Exp $
+// $Id: FSNeoHookeDamageT.i.h,v 1.2 2009-04-02 00:51:15 amota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2008/12/12 18:59:06  amota
+// Initial sources.
+//
 //
 
 #include <algorithm>
@@ -537,8 +540,11 @@ namespace Tahoe {
   // Second Piola-Kirchhoff stress
   //
   inline const dSymMatrixT&
-  FSNeoHookeDamageT::S_IJ(const dSymMatrixT& C, double damage)
+  FSNeoHookeDamageT::S_IJ(const dSymMatrixT& C, const dArrayT& iv)
   {
+
+    const double alpha = iv[kAlpha];
+    const double damage = Damage(alpha);
 
     fStress = Stress(C, damage);
 
