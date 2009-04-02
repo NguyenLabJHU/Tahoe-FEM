@@ -1,7 +1,10 @@
 //
-// $Id: FSNeoHookePZLinT.i.h,v 1.2 2008-12-12 18:58:15 amota Exp $
+// $Id: FSNeoHookePZLinT.i.h,v 1.3 2009-04-02 00:52:36 amota Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.2  2008/12/12 18:58:15  amota
+// Numerous changes.
+//
 // Revision 1.1  2008/09/03 18:40:50  beichuan
 // Piezoelectricity
 //
@@ -304,24 +307,24 @@ namespace Tahoe {
       const dSymMatrixT& C, const dArrayT& D) const
   {
 
-    dArrayT DG(StrainDim());
+    dArrayT DH(StrainDim());
 
     for (int i = 0; i < StrainDim(); ++i) {
 
-      DG[i] = fPiezoelectricTensor(0, i) * D[0] + fPiezoelectricTensor(1, i)
+      DH[i] = fPiezoelectricTensor(0, i) * D[0] + fPiezoelectricTensor(1, i)
           * D[1] + fPiezoelectricTensor(2, i) * D[2];
 
     }
 
     dSymMatrixT Sz(ManifoldDim());
 
-    Sz(0, 0) = DG[0];
-    Sz(1, 1) = DG[1];
-    Sz(2, 2) = DG[2];
+    Sz(0, 0) = DH[0];
+    Sz(1, 1) = DH[1];
+    Sz(2, 2) = DH[2];
 
-    Sz(0, 1) = Sz(1, 0) = DG[5];
-    Sz(0, 2) = Sz(2, 0) = DG[4];
-    Sz(1, 2) = Sz(2, 1) = DG[3];
+    Sz(0, 1) = Sz(1, 0) = DH[5];
+    Sz(0, 2) = Sz(2, 0) = DH[4];
+    Sz(1, 2) = Sz(2, 1) = DH[3];
 
     return Sz;
 
@@ -385,10 +388,13 @@ namespace Tahoe {
 
     for (int i = 0; i < ElectricalDim(); ++i) {
 
-      Ez[i] = fPiezoelectricTensor(i, 0) * E(0, 0) + fPiezoelectricTensor(i, 1)
-          * E(1, 1) + fPiezoelectricTensor(i, 2) * E(2, 2)
-          + fPiezoelectricTensor(i, 3) * E(1, 2) + fPiezoelectricTensor(i, 4)
-          * E(0, 2) + fPiezoelectricTensor(i, 5) * E(1, 1);
+      Ez[i] =
+        fPiezoelectricTensor(i, 0) * E(0, 0) +
+        fPiezoelectricTensor(i, 1) * E(1, 1) +
+        fPiezoelectricTensor(i, 2) * E(2, 2) +
+        fPiezoelectricTensor(i, 3) * E(1, 2) +
+        fPiezoelectricTensor(i, 4) * E(0, 2) +
+        fPiezoelectricTensor(i, 5) * E(0, 1);
 
     }
 
