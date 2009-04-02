@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.28 2008-12-11 23:59:41 lxmota Exp $ */
+/* $Id: FSSolidMatT.h,v 1.29 2009-04-02 00:33:28 lxmota Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -58,6 +58,8 @@ public:
 	 * SolidMaterialT::s_ij */
 	virtual const dSymMatrixT& S_IJ(void);
 	virtual const dSymMatrixT& S_IJ(const dSymMatrixT& C) {return S_IJ();};
+  virtual const dSymMatrixT& S_IJ(const dSymMatrixT& C, const dArrayT& iv)
+  {return S_IJ();};
 
 	/** test for localization. check for bifurvation using current
 	 * Cauchy stress and the spatial tangent moduli.
