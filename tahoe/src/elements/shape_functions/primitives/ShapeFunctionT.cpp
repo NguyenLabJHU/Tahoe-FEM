@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.21 2008-12-12 00:38:13 lxmota Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.22 2009-04-02 00:37:39 lxmota Exp $ */
 /* created: paklein (06/26/1996) */
 #include "ShapeFunctionT.h"
 #include "ParentDomainT.h"
@@ -139,6 +139,35 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 	int num_u = nodal.MinorDim();
 	for (int i = 0; i < num_u; i++)
 		u[i] = pNaU->DotRow(ip, nodal(i));
+}
+
+// interpolate field values to arbitrary point in parametric coordinates
+// \param nodal array of nodal values: [nnd] x [nu]
+// \param u interpolation of the nodal values
+// \param ip integration point number
+void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal, ArrayT<double>& u,
+    const dArrayT& coordinates) const
+{
+  int nnd = nodal.NumberOfNodes();
+  int nnv = nodal.MinorDim();
+
+#if __option(extended_errorcheck)
+  if (nnv != u.Length() || nnd != pNaU->MinorDim()) {
+    ExceptionT::SizeMismatch("ShapeFunctionT::InterpolateU");
+  }
+#endif
+
+  dArrayT Na;
+  Na.Dimension(nnd);
+
+  EvaluateShapeFunctions(coordinates, Na);
+
+  for (int i = 0; i < nnv; ++i) {
+    u[i] = 0.0;
+    for (int j = 0; j < nnd; ++j) {
+      u[i] += nodal(j, i) * Na[j];
+    }
+  }
 }
 
 /* second derivative of shape functions */
