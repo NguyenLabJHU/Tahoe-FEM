@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.31 2009-01-12 19:16:11 lxmota Exp $ */
+/* $Id: ExodusT.cpp,v 1.32 2009-04-02 00:40:51 lxmota Exp $ */
 /* created: sawimme (12/04/1998) */
 #include "ExodusT.h"
 
@@ -976,57 +976,110 @@ void ExodusT::WriteInfo(const ArrayT<StringT>& info_records_) const
 /* return the element name and number of output nodes for the given
 * geometry and number of element nodes */
 void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code,
-	StringT& elem_name, int& num_output_nodes) const
+    StringT& elem_name, int& num_output_nodes) const
 {
-	switch (code)
-	{
-		case GeometryT::kPoint:
-	    	    if (num_dim == 1)
-	      		elem_name = "CIRCLE";
-			else
-				elem_name = "SPHERE";
-			num_output_nodes = 1;
-		    break;
+  switch (code) {
+  case GeometryT::kPoint:
+    if (num_dim == 1)
+      elem_name = "CIRCLE";
+    else
+      elem_name = "SPHERE";
+    num_output_nodes = 1;
+    break;
 
-	        case GeometryT::kLine:
-		        elem_name = "BEAM";
-		        num_output_nodes = (elemnodes < 3) ? 2 : 3;
-		        break;
+  case GeometryT::kLine:
+    elem_name = "BEAM";
+    switch (elemnodes) {
+    case 2:
+    case 3:
+      num_output_nodes = elemnodes;
+      break;
+    default:
+      num_output_nodes = 0;
+      ExceptionT::GeneralFail("ExodusT::GetElementName",
+          "unrecognized geometry %d", code);
+    }
+    break;
 
-		case GeometryT::kTriangle:
-			elem_name =  "TRIANGLE";
-			num_output_nodes = (elemnodes < 6) ? 3 : 6;
-	    	        break;
+  case GeometryT::kTriangle:
+    elem_name = "TRIANGLE";
+    switch (elemnodes) {
+    case 3:
+    case 6:
+      num_output_nodes = elemnodes;
+      break;
+    default:
+      num_output_nodes = 0;
+      ExceptionT::GeneralFail("ExodusT::GetElementName",
+          "unrecognized geometry %d", code);
+    }
+    break;
 
-		case GeometryT::kQuadrilateral:
-			elem_name =  "QUAD";
-			if (elemnodes == 9)
-				num_output_nodes = 9;
-			else
-				num_output_nodes = (elemnodes < 8) ? 4 : 8;
-			break;
+  case GeometryT::kQuadrilateral:
+    elem_name = "QUAD";
+    switch (elemnodes) {
+    case 4:
+    case 8:
+    case 9:
+      num_output_nodes = elemnodes;
+      break;
+    default:
+      num_output_nodes = 0;
+      ExceptionT::GeneralFail("ExodusT::GetElementName",
+          "unrecognized geometry %d", code);
+    }
+    break;
 
-		case GeometryT::kHexahedron:
-	    	elem_name = "HEX";
-			num_output_nodes = (elemnodes < 20) ? 8 : 20;
-			break;
+  case GeometryT::kHexahedron:
+    elem_name = "HEX";
+    switch (elemnodes) {
+    case 8:
+    case 20:
+    case 27:
+      num_output_nodes = elemnodes;
+      break;
+    default:
+      num_output_nodes = 0;
+      ExceptionT::GeneralFail("ExodusT::GetElementName",
+          "unrecognized geometry %d", code);
+    }
+    break;
 
-		case GeometryT::kTetrahedron:
-			elem_name =  "TETRA";
-			num_output_nodes = (elemnodes < 10) ? 4 : 10;
-			break;
+  case GeometryT::kTetrahedron:
+    elem_name = "TETRA";
+    switch (elemnodes) {
+    case 4:
+    case 10:
+      num_output_nodes = elemnodes;
+      break;
+    default:
+      num_output_nodes = 0;
+      ExceptionT::GeneralFail("ExodusT::GetElementName",
+          "unrecognized geometry %d", code);
+    }
+    break;
 
-		case GeometryT::kPentahedron:
-			elem_name = "WEDGE";
-	    	num_output_nodes = (elemnodes < 15) ? 6 : 15;
-			break;
+  case GeometryT::kPentahedron:
+    elem_name = "WEDGE";
+    switch (elemnodes) {
+    case 6:
+    case 15:
+      num_output_nodes = elemnodes;
+      break;
+    default:
+      num_output_nodes = 0;
+      ExceptionT::GeneralFail("ExodusT::GetElementName",
+          "unrecognized geometry %d", code);
+    }
+    break;
 
-	    //case GeometryT::kSHELL:
-	    //elem_name = "SHELL";
+    //case GeometryT::kSHELL:
+    //elem_name = "SHELL";
 
-		default:
-			ExceptionT::GeneralFail("ExodusT::GetElementName", "unrecognized geometry %d", code);
-	  }
+  default:
+    ExceptionT::GeneralFail("ExodusT::GetElementName",
+        "unrecognized geometry %d", code);
+  }
 }
 
 /* return the geometry code for the given element name */
@@ -1164,21 +1217,21 @@ void ExodusT::ConvertElementNumbering(iArray2DT& conn, int fcode, IOModeT mode) 
         conn(i, 26) = tmp[20];
         break;
       case WRITE:
-        conn(i, 16) = tmp[12];
-        conn(i, 17) = tmp[13];
-        conn(i, 18) = tmp[14];
-        conn(i, 19) = tmp[15];
         conn(i, 12) = tmp[16];
         conn(i, 13) = tmp[17];
         conn(i, 14) = tmp[18];
         conn(i, 15) = tmp[19];
+        conn(i, 16) = tmp[12];
+        conn(i, 17) = tmp[13];
+        conn(i, 18) = tmp[14];
+        conn(i, 19) = tmp[15];
+        conn(i, 20) = tmp[26];
         conn(i, 21) = tmp[20];
         conn(i, 22) = tmp[21];
-        conn(i, 25) = tmp[22];
-        conn(i, 26) = tmp[23];
         conn(i, 23) = tmp[24];
         conn(i, 24) = tmp[25];
-        conn(i, 20) = tmp[26];
+        conn(i, 25) = tmp[22];
+        conn(i, 26) = tmp[23];
         break;
       default:
         ExceptionT::GeneralFail("ExodusT::ConvertElementNumbering",
