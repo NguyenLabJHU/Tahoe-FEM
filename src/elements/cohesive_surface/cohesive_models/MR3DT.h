@@ -1,4 +1,4 @@
-/*$Id: MR3DT.h,v 1.2 2007-03-27 21:46:31 skyu Exp $*/
+/*$Id: MR3DT.h,v 1.3 2009-04-17 00:39:21 skyu Exp $*/
 /* created by manzari*/
 /* Elastoplastic Cohesive Model for Geomaterials*/
 #ifndef _MR_3D_T_H_
@@ -52,14 +52,17 @@ public:
 	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
 
 	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
-	dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
+	//dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
+	dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& dup, dArrayT& qbar);	
 	dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
 	dArrayT& dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig);
 	dArrayT& dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq);
 	dMatrixT& dQdSig2_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSig2);
 	dMatrixT& dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
-	dMatrixT& dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
-	dMatrixT& dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq);
+	//dMatrixT& dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
+	//dMatrixT& dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq);
+	dMatrixT& dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& dup, dMatrixT& dqbardSig);
+	dMatrixT& dqbardq_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& dup, dMatrixT& dqbardq);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
