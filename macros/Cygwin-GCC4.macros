@@ -1,10 +1,10 @@
-# $Id: Cygwin-GCC4.macros,v 1.1 2009-04-16 16:22:28 jwfoulk Exp $
+# $Id: Cygwin-GCC4.macros,v 1.2 2009-04-20 02:00:35 jwfoulk Exp $
 # macros for Cygwin with precompiled headers (GCC 4.x)
 MAKE        = make
 DEFINES     = -DEIGHT_BYTE_REAL -D__DARWIN__ -DNON_UNIX_STDIO -D__POSIX_THREADS__
 COMP_C      = gcc-4
 COMP_CC     = g++-4
-COMP_F      = g77-4
+COMP_F      = g77
 COMP_FLAG   = -c -pipe
 MORE_CFLAGS = -O3 -DNDEBUG
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
