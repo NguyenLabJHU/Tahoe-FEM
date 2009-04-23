@@ -1,12 +1,12 @@
-/* $Id: UpLagFiberCompT.h,v 1.3 2007-01-19 05:23:39 thao Exp $ */
+/* $Id: UpLagFiberCompT.h,v 1.4 2009-04-23 14:56:15 thao Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPLAG_FIB_COMP_T_
 #define _UPLAG_FIB_COMP_T_
 
 /* base class */
-//#include "UpdatedLagrangianT.h"
-#include "SimoQ1P0.h"
+//#include "SimoQ1P0.h"
+#include "UpdatedLagrangianT.h"
 
 /* direct members */
 #include "dArray2DT.h"
@@ -19,7 +19,8 @@ class FSFiberMatSupportT;
 	to line in the plane of the element. Fiber orientations are specified in  *
 	input using sidesets and can be specified either in global (lab) or       *
 	local (parent) element coordinates.                                       */
-class UpLagFiberCompT: public SimoQ1P0
+//class UpLagFiberCompT: public SimoQ1P0
+class UpLagFiberCompT: public UpdatedLagrangianT
 {
 public:
 
@@ -66,6 +67,8 @@ protected:
 	/*reads orientations from an analytical surface*/
 	void ReadAnalyticVec(const ParameterListT& fibers);
 
+	/*reads orientations from an analytical surface*/
+	void BrickVec(const ParameterListT& fibers);
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.

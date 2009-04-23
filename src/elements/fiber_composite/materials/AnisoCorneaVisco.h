@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.10 2008-09-25 13:30:13 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.11 2009-04-23 14:56:19 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -21,19 +21,14 @@ class AnisoCorneaVisco: public  FSFiberMatViscT
    public:
 
 	enum DistributionT {kCircumferential = 0,
-							   kOrthogonal,
-							   kOneFiber,
-							   kPowerTrig, 							   
-							   kFile, 
-							   kBlend,  
-							   kCornea, 
-							   kCornea_Mod, 
-							   kCornea_Three};
+							   kMeridional,
+							   kMixed,
+							   kFile};
   
 	/* constructor/destructor */
 	AnisoCorneaVisco(void);
 	
-/* destructor */
+	/* destructor */
 	~AnisoCorneaVisco(void);
 	
 	/* strain energy density */
@@ -134,9 +129,6 @@ protected:
 	/*dimension fNumProcess + 1*/
 	ArrayT<C1FunctionT*> fPotential;
 
-	/* fibril distribution function */
-	C1FunctionT* fDistribution;
-
 	/* inverse viscosity function */
 	/*dimension fNumProcess*/
 	ArrayT<C1FunctionT*> fViscosity;
@@ -169,7 +161,8 @@ protected:
 
 	/* for inhomogeneous material */
 	ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
-	double a2,b2,c2,n2,a1,b1,c1,c3,n1,r1,r2,r3,r4,xi,phi3; // for spatial dependent distribution
+	double fk, fphi, fm; // paramters of von mises distribution function
+	
 
 	/* STRESS angle tables for fiber stress - by associated stress component */
 	dArray2DT fStressTable;
@@ -183,7 +176,19 @@ protected:
 
 
 };
-	
+
+//ATTIC:
+/*	enum DistributionT {kCircumferential = 0,
+							   kCircumferential,
+							   kOneFiber,
+							   kPowerTrig, 							   
+							   kFile, 
+							   kBlend,  
+							   kCornea, 
+							   kCornea_Mod, 
+							   kCornea_Three};
+	double a2,b2,c2,n2,a1,b1,c1,c3,n1,r1,r2,r3,r4,xi,phi3; // for spatial dependent distribution
+*/	
 }
 #endif /* _AnisoCorneaVisco_ */
 #endif /*VIB_MATERIAL*/
