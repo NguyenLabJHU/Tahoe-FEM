@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2007-07-25 06:43:26 thao Exp $
+# $Id: makefile,v 1.3 2009-04-23 15:00:26 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -19,9 +19,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #    (3) comment the OBJ, OBJ_LINK, and DEP macros in the
 #        section (1.1).
 #
-OBJ = RGBaseT.o \
-	RGSplit3D.o \
-	ModBoyceVisco.o
+OBJ = 	ModBoyceVisco.o \
+	BergstromBoyce.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,9 +40,8 @@ DEP = $(OBJ:.o=.d)
 # (2) If there are sources in this directory list them in the
 #     SRC macro; otherwise, comment the SRC macro.
 #
-SRC = RGBaseT.cpp \
-	RGSplit3D.cpp \
-	ModBoyceVisco.cpp
+SRC = 	ModBoyceVisco.cpp \
+	BergstromBoyce.cpp 
 
 ##################### (3) headers
 #
@@ -54,10 +52,8 @@ SRC = RGBaseT.cpp \
 # If there are no header files in this directory comment both the
 # HDR and HDR_LINK macro   
 #
-HDR = RGBaseT.h \
-	RGSplit3D.h \
-	ModBoyceVisco.h
-
+HDR = ModBoyceVisco.h \
+	BergstromBoyce.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -68,7 +64,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = VIB 
+# SUB_DIR = VIB 
 
 subdir_driver: subdir_loop
 

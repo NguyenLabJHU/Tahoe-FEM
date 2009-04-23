@@ -1,4 +1,4 @@
-/* $Id: ModBoyceVisco.cpp,v 1.1 2007-07-25 06:43:26 thao Exp $ */
+/* $Id: ModBoyceVisco.cpp,v 1.2 2009-04-23 15:00:25 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "ModBoyceVisco.h"
@@ -407,7 +407,7 @@ void ModBoyceVisco::Initialize(void)
 						
 	    		
 	    /*caculate smag*/
-	    double smag = sqrt(s0*s0 + s1*s1 + s2*s2);
+	    double smag = sqrt(0.5*(s0*s0 + s1*s1 + s2*s2));
 
 		double etaS = ShearViscosity(smag, sy);
 		double ietaS = 1.0/etaS;
@@ -423,9 +423,9 @@ void ModBoyceVisco::Initialize(void)
 		fiKAB = 0.0;
 		
 		/*K_epA_epB*/
-		double coef0 = (s0*c0 + s1*c01 + s2*c02);
-		double coef1 = (s0*c01 + s1*c1 + s2*c12);
-		double coef2 = (s0*c02 + s1*c12 + s2*c2);
+		double coef0 = 0.5*(s0*c0 + s1*c01 + s2*c02);
+		double coef1 = 0.5*(s0*c01 + s1*c1 + s2*c12);
+		double coef2 = 0.5*(s0*c02 + s1*c12 + s2*c2);
 		if (smag > kSmall)
 		{
 			coef0 /= smag;
@@ -571,7 +571,7 @@ void ModBoyceVisco::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstr
 		double c01 = iJ*eigenmodulus(0,1);
 	    		
 	    /*caculate smag*/
-	    double smag = sqrt(s0*s0 + s1*s1 + s2*s2);
+	    double smag = sqrt(0.5*(s0*s0 + s1*s1 + s2*s2));
 //		cout << "\nsmag: "<<smag;
 
 		/*calculate mobilities*/
@@ -598,9 +598,9 @@ void ModBoyceVisco::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstr
 		fiKAB = 0.0;
 		
 		/*K_epA_epB*/
-		double coef0 = (s0*c0 + s1*c01 + s2*c02);
-		double coef1 = (s0*c01 + s1*c1 + s2*c12);
-		double coef2 = (s0*c02 + s1*c12 + s2*c2);
+		double coef0 = 0.5*(s0*c0 + s1*c01 + s2*c02);
+		double coef1 = 0.5*(s0*c01 + s1*c1 + s2*c12);
+		double coef2 = 0.5*(s0*c02 + s1*c12 + s2*c2);
 		if (smag > kSmall)
 		{
 			coef0 /= smag;
