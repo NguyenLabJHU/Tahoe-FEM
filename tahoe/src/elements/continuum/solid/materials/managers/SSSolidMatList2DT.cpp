@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.16 2007-04-16 11:00:50 cfoster01 Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.17 2009-04-23 22:20:35 tdnguye Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -30,6 +30,7 @@
 
 #ifdef VISCOELASTICITY
 #include "SSLinearVE2D.h"
+#include "SSViscoelasticityT.h"
 #endif
 
 /* development module materials require solid element development to be enabled */
@@ -49,11 +50,6 @@
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "SSSV_KStV2D.h"
-#endif
-
-#ifdef J2PLASTICITY_MATERIALS_DEV
-#include "SSJ2LinHard2D.h"
-#include "SSJ2LinHard3Dplane.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -172,6 +168,7 @@ void SSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("linear_viscoelastic_2D");
+		sub_lists.AddSub("linear_prony_series_viscoelasticity");
 #endif
 	
 #ifdef FOSSUM_MATERIAL_DEV
@@ -283,6 +280,8 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "linear_viscoelastic_2D")
 		mat = new SSLinearVE2D;
+	else if (name == "linear_prony_series_viscoelasticity")
+		mat = new SSViscoelasticityT;
 #endif
 	
 #ifdef FOSSUM_MATERIAL_DEV

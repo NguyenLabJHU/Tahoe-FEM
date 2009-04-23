@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.34 2008-12-11 19:17:42 lxmota Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.35 2009-04-23 22:20:35 tdnguye Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -43,8 +43,6 @@
 
 #ifdef BIO_MODELS
 #include "VerondaWestmannT.h"
-#include "IsoCorneaModel.h"
-#include "IsoVECorneaModel.h"
 #endif
 
 #ifdef PLASTICITY_CRYSTAL_MATERIAL
@@ -125,10 +123,9 @@
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "FDSV_KStV3D.h"
-#include "RGSplit3D.h"
-#include "OgdenMaterialT.h"
 #include "SMP_simple.h"
 #include "ModBoyceVisco.h"
+#include "BergstromBoyce.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -225,11 +222,10 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
 		sub_lists.AddSub("ModBoyceVisco");
+		sub_lists.AddSub("BergstromBoyce");
 #endif
 #ifdef BIO_MODELS
 		sub_lists.AddSub("veronda_westmann_potential");
-    sub_lists.AddSub("Isotropic_Cornea_Model");
-    sub_lists.AddSub("Isotropic_Viscoelastic_Cornea_Model");
 #endif
 
 #ifdef FINITE_ANISOTROPY
@@ -404,6 +400,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 		mat= new SMP_simple;
 	else if (name == "ModBoyceVisco")
 		mat= new ModBoyceVisco;
+	else if (name == "BergstromBoyce")
+		mat= new BergstromBoyce;
 #endif
 
 #ifdef FINITE_ANISOTROPY
@@ -453,10 +451,6 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef BIO_MODELS
 	else if (name == "veronda_westmann_potential")
 		mat = new VerondaWestmannT;
-	else if (name == "Isotropic_Viscoelastic_Cornea_Model")
-	  mat= new IsoVECorneaModel;
-	else if (name == "Isotropic_Cornea_Model")
-	  mat= new IsoCorneaModel;
 #endif
 
 #ifdef SURFACE_CB_SI_DEV

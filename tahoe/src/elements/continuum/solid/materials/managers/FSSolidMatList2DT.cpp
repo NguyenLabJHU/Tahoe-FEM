@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.15 2007-07-25 06:45:47 tdnguye Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.16 2009-04-23 22:20:35 tdnguye Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -72,12 +72,10 @@
 #ifdef SOLID_ELEMENT_DEV
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
-#include "RGVIB2D.h"
-#include "RGSplit3D.h"
 #include "FDSV_KStV2D.h"
-#include "OgdenMaterialT.h"
 #include "SMP_simple.h"
 #include "ModBoyceVisco.h"
+#include "BergstromBoyce.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -186,6 +184,7 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
 		sub_lists.AddSub("ModBoyceVisco");
+		sub_lists.AddSub("BergstromBoyce");
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -313,6 +312,8 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 		mat= new SMP_simple;
 	else if (name == "ModBoyceVisco")
 		mat= new ModBoyceVisco;
+	else if (name == "BergstromBoyce")
+		mat= new BergstromBoyce;
 #endif
 
 #ifdef FINITE_ANISOTROPY
