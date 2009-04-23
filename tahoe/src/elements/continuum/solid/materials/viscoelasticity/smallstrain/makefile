@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2008-08-13 12:48:33 tdnguye Exp $
+# $Id: makefile,v 1.7 2009-04-23 14:38:49 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,7 +22,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = SSViscoelasticityT.o \
 	SS_Visc_Support.o \
 	SSLinearVE2D.o \
-	SSLinearVE3D.o 
+	SSLinearVE3D.o \
+	SSVE_test.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,7 +46,8 @@ DEP = $(OBJ:.o=.d)
 SRC = SSViscoelasticityT.cpp \
 	SS_Visc_Support.cpp \
 	SSLinearVE2D.cpp \
-	SSLinearVE3D.cpp 
+	SSLinearVE3D.cpp \
+	SSVE_test.cpp
 
 ##################### (3) headers
 #
@@ -59,7 +61,8 @@ SRC = SSViscoelasticityT.cpp \
 HDR = SSViscoelasticityT.h \
 	SS_Visc_Support.h \
 	SSLinearVE2D.h \
-	SSLinearVE3D.h 
+	SSLinearVE3D.h \
+	SSVE_test.h  
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,4 +1,4 @@
-/* $Id: SS_Visc_Support.h,v 1.1 2008-08-13 12:45:41 tdnguye Exp $ */
+/* $Id: SS_Visc_Support.h,v 1.2 2009-04-23 14:38:49 tdnguye Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_VISC_SUPPORT_H_
 #define _SS_VISC_SUPPORT_H_
@@ -24,12 +24,11 @@ class SS_Visc_Support
 	
 
 	protected:
-	void ComputeStress(const dSymMatrixT& strain,  dSymMatrixT& stress, double dt, int index);
-	void ComputeStress2D(const dSymMatrixT& strain,  dSymMatrixT& stress, double dt, 
-							int constraint, int index);
+	void ComputeStress(const dSymMatrixT& strain,  dSymMatrixT& stress, int index);
+	void ComputeStress2D(const dSymMatrixT& strain,  dSymMatrixT& stress, int constraint, int index);
 	
-	void SetModulus(dMatrixT& modulus, double dt, int index);
-	void SetModulus2D(dMatrixT& modulus, double dt, int constraint, int index);
+	void SetModulus(dMatrixT& modulus,  int index);
+	void SetModulus2D(dMatrixT& modulus, int constraint, int index);
 	
 	enum Spring {kEquilibrium = 0, kNonEquilibrium};
 	protected:
@@ -64,6 +63,7 @@ class SS_Visc_Support
 	dArrayT ftauS;
 	dArrayT ftauB;
 
+	double fdt;
 	private:
 	/*workspace*/
 	dSymMatrixT fStress3D;

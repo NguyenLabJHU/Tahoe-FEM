@@ -1,8 +1,9 @@
- /* $Id: SSViscoelasticityT.cpp,v 1.3 2008-08-09 15:00:37 tdnguye Exp $ */
+ /* $Id: SSViscoelasticityT.cpp,v 1.4 2009-04-23 14:38:49 tdnguye Exp $ */
 #include "SSViscoelasticityT.h"
 #include "ExceptionT.h"
 #include "ParameterContainerT.h"
 #include "SSMatSupportT.h"
+#include "TimeManagerT.h"
 
 #include <math.h>
 #include <iostream.h>
@@ -26,8 +27,51 @@ SSViscoelasticityT::SSViscoelasticityT(void):
 		fConstraint = kPlaneStrain;
 }	
 
+void SSViscoelasticityT::InitStep(void)
+{
+	/*inherited*/
+	SSSolidMatT::InitStep();
+
+	/*set timestep*/
+	const TimeManagerT& time_manager = fSSMatSupport->TimeManager();
+	
+	if (time_manager.TimeScaling() == TimeManagerT::kLinear)
+		fdt = time_manager.TimeStep();
+	else 
+	{
+		double time = time_manager.Time();
+		if (time_manager.StepNumber() == 1)
+			fdt = time;
+		else
+		{
+			double temp = pow(10,time_manager.TimeStep());
+			double time_n = time/temp;
+			fdt = time - time_n;
+		}
+	}
+}
+
 void SSViscoelasticityT::PointInitialize(void)
 {
+	
+	/*set timestep*/
+	const TimeManagerT& time_manager = fSSMatSupport->TimeManager();
+	
+	if (time_manager.TimeScaling() == TimeManagerT::kLinear)
+		fdt = time_manager.TimeStep();
+	else 
+	{
+		double time = time_manager.Time();
+		if (time_manager.StepNumber() == 1)
+			fdt = time;
+		else
+		{
+			double temp = pow(10,time_manager.TimeStep());
+			double time_n = time/temp;
+			fdt = time - time_n;
+		}
+	}
+	
 	int ip = CurrIP();
 	/* allocate element storage */
 	ElementCardT& element = CurrentElement();
@@ -67,7 +111,6 @@ void SSViscoelasticityT::PointInitialize(void)
 		double muEQ = fMu[kEquilibrium];
 		double kappaEQ = fKappa[kEquilibrium];
 
-		double dt = fSSMatSupport->TimeStep();
 		for (int k = 0; k < fnumprocess; k++)
 		{
 			fmeanQ[k] = 0.0;
@@ -78,8 +121,8 @@ void SSViscoelasticityT::PointInitialize(void)
 			double muNEQ = fMu[k+1];
 			double kappaNEQ = fKappa[k+1];
 
-			double taudtS = dt/ftauS[k];
-			double taudtB = dt/ftauB[k];
+			double taudtS = fdt/ftauS[k];
+			double taudtB = fdt/ftauB[k];
 		
 			double alphaS = exp(-0.5*taudtS);
 			double alphaB = exp(-0.5*taudtB);
@@ -243,32 +286,30 @@ const dSymMatrixT& SSViscoelasticityT::S_IJ(void)
 }
 
 const dMatrixT& SSViscoelasticityT::c_ijkl(void)
-{        
- 	double dt = fSSMatSupport->TimeStep();
+{   	
 	if (NumSD()==2)
 	{
 		/*equilibrium*/
-		SetModulus2D(fModulus, dt, Constraint(), -1);
+		SetModulus2D(fModulus, Constraint(), -1);
 
 		/*nonequilibrium*/
 		for (int i = 0; i< fnumprocess; i++)
-			SetModulus2D(fModulus,dt, Constraint(), i);
+			SetModulus2D(fModulus, Constraint(), i);
 	}
 	else
 	{
 		/*equilibrium*/
-		SetModulus(fModulus,dt, -1);
+		SetModulus(fModulus, -1);
 	
 		/*nonequilibrium*/
 		for (int i = 0; i< fnumprocess; i++)
-			SetModulus(fModulus,dt, i);
+			SetModulus(fModulus, i);
 	}
 	return(fModulus);
 }
 
 const dSymMatrixT& SSViscoelasticityT::s_ij(void)
 {
-	double dt = fSSMatSupport->TimeStep();
 	const dSymMatrixT& strain = e();
 	
 	ElementCardT& element = CurrentElement();
@@ -277,13 +318,13 @@ const dSymMatrixT& SSViscoelasticityT::s_ij(void)
 	if (NumSD() == 2)
 	{
 		/*equilibrium components*/
-		ComputeStress2D(strain, fStress, dt, Constraint(), -1);
+		ComputeStress2D(strain, fStress, Constraint(), -1);
 	
 		/*add nonequilibrium component*/
 		if(fSSMatSupport->RunState() == GlobalT::kFormRHS)
 		{
 			for (int i = 0; i < fnumprocess; i++)
-				ComputeStress2D(strain, fStress, dt, Constraint(), i);
+				ComputeStress2D(strain, fStress, Constraint(), i);
 			Store(element,CurrIP());
 		}
 		else
@@ -305,7 +346,7 @@ const dSymMatrixT& SSViscoelasticityT::s_ij(void)
 	else
 	{
 		/*equilibrium components*/
-		ComputeStress(strain, fStress, dt, -1);
+		ComputeStress(strain, fStress,  -1);
 	
 		/*non-equilibrium components*/
 		ElementCardT& element = CurrentElement();
@@ -315,7 +356,7 @@ const dSymMatrixT& SSViscoelasticityT::s_ij(void)
 		if(fSSMatSupport->RunState() == GlobalT::kFormRHS)
 		{
 			for (int i = 0; i< fnumprocess; i++)
-				ComputeStress(strain, fStress, dt, i);
+				ComputeStress(strain, fStress,  i);
 
 			Store(element,CurrIP());
 		}
@@ -331,6 +372,7 @@ const dSymMatrixT& SSViscoelasticityT::s_ij(void)
 			}
 		}
 	}
+	
 	return(fStress);
 }
 
