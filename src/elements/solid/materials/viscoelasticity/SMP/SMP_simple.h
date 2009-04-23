@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.h,v 1.4 2007-07-17 20:14:00 thao Exp $ */
+/* $Id: SMP_simple.h,v 1.5 2009-04-23 02:34:46 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _SMP_simple_
 #define _SMP_simple_
@@ -24,13 +24,16 @@ class SMP_simple: public RGSplitT2
 	/* constructor/destructor */
 	SMP_simple(void);
 
-	/* initialize, update/reset internal variables */
+	/*Bookkeeping: initialize, update/reset internal variables and the beginning and end of each time step */
 	virtual void PointInitialize(void);              
 	virtual void UpdateHistory(void); // element at a time
 	virtual void ResetHistory(void);  // element at a time
 
 
-	/** \name implementation of the ParameterInterfaceT interface */
+	/** \name Input/Output: 
+		Defines the model parameters
+		Reads in model parameters input file
+		Overloads ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
@@ -40,22 +43,36 @@ class SMP_simple: public RGSplitT2
 	virtual void DefineParameters(ParameterListT& list) const;
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
-	
+	/*do nothing*/
 	virtual void InitStep(void);
 
+	/*define outputs*/
 	/*compute output variables*/ 
 	virtual int NumOutputVariables() const; 
 	virtual void OutputLabels(ArrayT<StringT>& labels) const; 
 	virtual void ComputeOutput(dArrayT& output);
 
+	/*These are the main functions*/
+	/*stress response*/
+	/*returns the free energy density the current deformation and internal state variables*/
+	virtual double StrainEnergyDensity(void); 
+	/*returns the spatial tangent modulus in reduced matrix form*/
+	virtual const dMatrixT& c_ijkl(void);
+	/*returns the symmetric Cauchy stress tensor*/
+	virtual const dSymMatrixT& s_ij(void);
+	
 	/*fictive temperature*/
+	/*returns the fictive temperature Tf given the departure from equilibrium delta_bar_neq.*/
 	virtual double FictiveTemperature(const double deltaneq);
 	
 	/*viscosity*/
+	/*returns  tau_R, the strutural relaxation time*/
 	virtual double RetardationTime(const double Temperature, const double deltaneq);
+	/*returns  eta_S, the shear viscosity*/
 	virtual double ShearViscosity(const double Temperature, const double deltaneq, const double smag, const double sy);	
 	
 	/**compute thermal strains*/
+	/*returns inverse(F_T)*/
 	virtual const dMatrixT& ThermalDeformation_Inverse(void);
 
 	protected:
@@ -64,21 +81,21 @@ class SMP_simple: public RGSplitT2
    private:
 	/* set inverse of thermal transformation - return true if active */
 //	virtual bool SetInverseThermalTransformation(dMatrixT& F_trans_inv);  			
-
+	/*Computes the algorithmic tangent for the nonequilibrium stress response*/
 	virtual void Compute_Calg(const dArrayT& tau_dev, const dSymMatrixT& dtau_dev, const double& tau_m, 
 						const double& dtau_m, dMatrixT& Calg, const int type);
-
+	/*Numerical integration of the evolution equations for the eigenvalues of the elastic deformation tensor be, and delta_bar_neq*/
 	virtual void ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
 	                   dArrayT& eigenstress, dSymMatrixT& eigenmodulus, const int process_num);
     
    protected:
 	/*Reference Temperature*/
-	double fT0; /*Temperature at To*/
+	double fT0; /*Temperature at which rubbery elastic properties are measured, not to be confused with the initial temperature at time = 0.*/
 	
 	/*thermal expansion*/
-	double fT2;			/*zero entropy temperature*/
-	double falphar;		/*high temp CTE*/
-	double falphag;		/*low temp CTE*/
+	double falphar;		/*the rubbery, high temperature CTE*/
+	double falphag;		/*the glassy, low temperature CTE*/
+	double fT2;
 	double fQR;			/*Activation energy for structural relaxation*/
 	double ftauR0;		/*reference retardation time for structural relaxation*/
 	double ftauRL, ftauRH; /*high and low limits of retardation time*/ 	
@@ -86,12 +103,6 @@ class SMP_simple: public RGSplitT2
 	double fTg;			/* glass transition temperature*/
 	double fC1, fC2;	/*WLF constants*/
 	double ftaug;		/*retardation time at Tg*/
-	
-	/*high temp stress response*/
-//	double fmuN;		/*network stiffness*/
-//	double flambdaL;	/*locking stretch*/
-//	double fkappa;			/*bulk modulus*/
-//	double fmueq;
 	
 	/*low temp viscous flow*/
 //	double fmuneq;		/*nonequilibrium stiffness*/

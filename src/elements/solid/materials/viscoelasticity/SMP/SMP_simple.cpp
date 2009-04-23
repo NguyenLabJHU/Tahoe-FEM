@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.8 2007-07-18 03:08:26 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.9 2009-04-23 02:34:46 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -18,8 +18,9 @@ using namespace Tahoe;
 
 const double loge = log10(exp(1.0));
 const double third = 1.0/3.0; 
-const int kNumOutputVar = 4; 
-static const char* Labels[kNumOutputVar] = {"thermal_dialation", "deltaneq", "lv_eff", "sy"}; 
+const double small = 1.0e-12;
+const int kNumOutputVar = 11; 
+static const char* Labels[kNumOutputVar] = {"thermal_dialation", "deltaneq", "lm1","lm2","lm3", "lmv1","lmv2","lmv3", "sy","T","gamdot"}; 
 
 /***********************************************************************
  * Public
@@ -45,11 +46,11 @@ double SMP_simple::RetardationTime(const double Temperature, const double deltan
 {
 	/*calculate fictive temperature*/
 	double Tf = FictiveTemperature(deltaneq);
+
 	/*Hodge's Model*/
-//	double Teff = Temperature*(1.0 - fT2/Tf);
-//	double tauR = ftauR0*exp(fQR/Teff);
 	double coeff = -fC1/log10(exp(1))*(fC2*(Temperature - Tf) + Temperature*(Tf-fTg))/(Temperature*(fC2 + Tf - fTg));
 	double tauR = ftaug*exp(coeff);
+
 	/*check the limits*/
 	if (tauR > ftauRH)
 		tauR = ftauRH;
@@ -67,9 +68,80 @@ double SMP_simple::ShearViscosity(const double Temperature, const double deltane
 	double Tf = FictiveTemperature(deltaneq);
 	double coeff = -fC1/log10(exp(1.0))*(fC2*(Temperature - Tf) + Temperature*(Tf-fTg))/(Temperature*(fC2 + Tf - fTg));
 	double g = exp(coeff);
-	double etaS = fetaS0*g*exp(-fQS/Temperature * smag/sy);
-	
+//	double etaS = fetaS0*g*exp(-fQS/Temperature * smag/sy);
+	/*Eyringen model*/
+	double etaS;	
+
+	double taumag = smag/sqrt(2.0);
+	if (smag > small)
+	{
+		etaS = fetaS0*g*taumag/sinh(fQS/Temperature * taumag/sy);
+		etaS *= fQS/(sy*Temperature);
+	}
+	else
+	{
+		etaS = fetaS0*g;
+	}
+			
 	return(etaS);
+}
+
+double SMP_simple::StrainEnergyDensity(void)
+{
+	/*calculates equilibrium part*/
+	double T = Compute_Temperature();
+	const dMatrixT& F = MechanicalDeformation();
+	if (NumSD() == 2)
+	{
+		fF3D[0] = F[0];
+		fF3D[1] = F[1];
+		fF3D[2] = 0.0;
+	    
+		fF3D[3] = F[2];
+		fF3D[4] = F[3];
+		fF3D[5] = 0.0;
+	    
+		fF3D[6] = 0.0;
+		fF3D[7] = 0.0;
+		fF3D[8] = 1.0;
+	}
+	else fF3D = F;
+
+	/*elastic stretch*/
+	fb.MultAAT(fF3D);
+	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
+	fEigs = fSpectralDecompSpat.Eigenvalues();
+	
+	double J = sqrt(fEigs.Product());
+	fEigs_dev = fEigs;
+	fEigs_dev *= pow(J, -2.0*third);
+     
+	double energy = 0.0;
+	energy = fPot[0]->Energy(fEigs_dev, J, T);
+  
+if (fNumProcess > 0)
+{
+	/*adds nonequilibrium part */
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
+  
+	for (int i = 0; i < fNumProcess; i++)
+	{
+		/*calculate be*/
+		fInverse.Inverse(fC_v[i]);
+		fbe.MultQBQT(fF3D,fInverse);
+
+		fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
+		fEigs_e = fSpectralDecompSpat.Eigenvalues();
+	
+		double Je = sqrt(fEigs_e.Product());
+		fEigs_dev = fEigs_e;
+		fEigs_dev *= pow(Je,-2.0*third);
+  
+		energy += fPot[i+1]->Energy(fEigs_dev, Je);
+	}
+}
+	return(energy);
 }
 
 const dMatrixT& SMP_simple::ThermalDeformation_Inverse(void)
@@ -77,14 +149,318 @@ const dMatrixT& SMP_simple::ThermalDeformation_Inverse(void)
 	/*load the viscoelastic principal stretches from state variable arrays*/
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
-
 	double Temp = Compute_Temperature();
 	
 	/*thermal volume deformation*/
 	double ThetaT = 1.0 + falphar*(Temp-fT0) + (-(falphar-falphag)*(Temp-fT0)+*fdelneq);
-//	cout << "\nTheta: "<<ThetaT;
 	fF_T_inv.Identity(pow(ThetaT,-1.0*third));
 	return(fF_T_inv);
+}
+
+/* stresses */
+const dSymMatrixT& SMP_simple::s_ij(void)
+{
+	const dMatrixT& F = MechanicalDeformation();
+	double T = Compute_Temperature();
+	
+/*	cout << "\nfF_T_inv: "<<fF_T_inv;
+	cout << "\nFm: "<<F;
+*/
+	if (NumSD() == 2)
+	{
+		fF3D[0] = F[0];
+		fF3D[1] = F[1];
+		fF3D[2] = 0.0;
+	    
+		fF3D[3] = F[2];
+		fF3D[4] = F[3];
+		fF3D[5] = 0.0;
+	    
+		fF3D[6] = 0.0;
+		fF3D[7] = 0.0;
+		fF3D[8] = 1.0;
+	}
+	else fF3D = F;
+//	cout << "\nfF3D: "<< fF3D;
+	
+	/*calculate EQ part of the stress*/
+	fb.MultAAT(fF3D);
+	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
+	fEigs = fSpectralDecompSpat.Eigenvalues();
+//	cout << "\nfEigs: "<<fEigs;
+	
+	/*jacobian determinant*/
+	double J = sqrt(fEigs.Product());
+	
+	fEigs_dev = fEigs;
+	fEigs_dev *= pow(J,-2.0*third);
+	
+	fPot[0]->DevStress(fEigs_dev, ftau_EQ, T);	
+	ftau_EQ += fPot[0]->MeanStress(J);
+	
+/*		const double mu_eq = fPot[0]->GetMu();
+		const double kappa_eq = fPot[0]->GetKappa();
+		cout << "\neq mu: "<< mu_eq;
+		cout << "\neq kappa: "<< kappa_eq;
+*/	
+	fStress3D = fSpectralDecompSpat.EigsToRank2(ftau_EQ);
+//	cout << "\nstress eq: "<<fStress3D;
+//	cout << "\neqstress: "<<fStress3D;
+    /*load the viscoelastic principal stretches from state variable arrays*/
+if (fNumProcess > 0 )
+{
+    ElementCardT& element = CurrentElement();
+    Load(element, CurrIP());
+    if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
+    {		
+		/*calc NEQ component of stress and moduli*/
+		for (int i = 0; i < fNumProcess; i++)
+		{
+			/*calc trial state*/
+//			cout << "\nproces: "<<i<<endl;
+//			cout << "\nfCv_n: "<<fC_vn[i]<<endl;
+			
+			fInverse.Inverse(fC_vn[i]);
+//			cout << "\nfInverse: "<<fInverse<<endl;
+//			cout << "\nfF3D: "<<fF3D;
+			fb_tr.MultQBQT(fF3D, fInverse);
+			
+			fSpectralDecompSpat.SpectralDecomp_Jacobi(fb_tr, false);	
+			fEigs_tr = fSpectralDecompSpat.Eigenvalues(); 
+
+			/*calc elastic stretch*/
+			fEigs_e = fEigs_tr; /*initial condition*/
+			ComputeEigs_e(fEigs, fEigs_e, ftau_NEQ, fDtauDe_NEQ, i);
+//			cout << "\nfEigs_e: "<<fEigs_e;
+			double Je = sqrt(fEigs_e.Product());
+			fEigs_dev = fEigs_e;
+			fEigs_dev *= pow(Je,-2.0*third);
+	
+			fPot[i+1]->DevStress(fEigs_dev, ftau_NEQ);
+//			cout << "\nneq_dev_stress: "<<ftau_NEQ;
+			ftau_NEQ += fPot[i+1]->MeanStress(Je);
+//			cout << "\nneq_tot_stress: "<<ftau_NEQ;
+			fStress3D += fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
+
+//			cout << "\nneq_tot_stress: "<<fStress3D;
+
+	
+			/*Calculate Cv*/
+			fInverse = fSpectralDecompSpat.EigsToRank2(fEigs_e); /*be which is colinear with btr*/
+			fInverse.Inverse();
+			fC_v[i].MultQTBQ(fF3D, fInverse); 
+		}
+		Store(element, CurrIP());
+	}	
+    else 
+    {
+		/*calc NEQ component of stress and moduli*/
+		for (int i = 0; i < fNumProcess; i++)
+		{
+			/*calc elastic stretch*/
+			fInverse.Inverse(fC_v[i]);
+			fbe.MultQBQT(fF3D, fInverse);
+			fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
+			fEigs_e = fSpectralDecompSpat.Eigenvalues(); 
+
+	//		fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
+
+			double Je = sqrt(fEigs_e.Product());
+			fEigs_dev = fEigs_e;
+			fEigs_dev *= pow(Je,-2.0*third);
+		
+			fPot[i+1]->DevStress(fEigs_dev, ftau_NEQ);
+			ftau_NEQ += fPot[i+1]->MeanStress(Je);
+			fStress3D += fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
+		}
+    }
+}
+
+	if (NumSD() == 2)
+    {
+        fStress[0] = fStress3D[0];
+        fStress[1] = fStress3D[1];
+        fStress[2] = fStress3D[5];
+    }
+    else fStress = fStress3D;
+	
+	const dMatrixT& Ftotal = F_total();	
+//	cout << "\nFtot: "<<Ftotal;
+    fStress *= 1.0/Ftotal.Det();
+	return fStress;
+}
+
+
+/* modulus */
+const dMatrixT& SMP_simple::c_ijkl(void)
+{
+    
+	double T = Compute_Temperature();
+	const dMatrixT& F = MechanicalDeformation();
+	if (NumSD() == 2)
+	{
+	    fF3D[0] = F[0];
+	    fF3D[1] = F[1];
+	    fF3D[2] = 0.0;
+	    
+	    fF3D[3] = F[2];
+	    fF3D[4] = F[3];
+	    fF3D[5] = 0.0;
+	    
+	    fF3D[6] = 0.0;
+	    fF3D[7] = 0.0;
+	    fF3D[8] = 1.0;
+	}
+	else fF3D = F;
+
+	/*calcualte total stretch*/
+    fb.MultAAT(fF3D);
+    fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
+    fEigs = fSpectralDecompSpat.Eigenvalues();
+    const ArrayT<dArrayT>& eigenvectors=fSpectralDecompSpat.Eigenvectors();
+
+	/*calc EQ component of stress and moduli*/
+    double J = sqrt(fEigs.Product());
+    fEigs_dev = fEigs;
+    fEigs_dev *= pow(J, -2.0*third);
+	
+    fPot[0]->DevStress(fEigs_dev, ftau_EQ, T);
+	ftau_EQ += fPot[0]->MeanStress(J);    
+    
+	fPot[0]->DevMod(fEigs_dev,fDtauDe_EQ, T);
+    fDtauDe_EQ += fPot[0]->MeanMod(J);
+
+    dSymMatrixT& Gamma = fDtauDe_EQ;
+    Gamma(0,0) -= 2.0*ftau_EQ[0];
+    Gamma(1,1) -= 2.0*ftau_EQ[1];
+    Gamma(2,2) -= 2.0*ftau_EQ[2];
+   
+	fModulus3D = fSpectralDecompSpat.EigsToRank4(Gamma);	
+	double dl, coeff;
+
+    double& l0 = fEigs[0];
+    double& l1 = fEigs[1];
+    double& l2 = fEigs[2];
+	
+	dl = l0 - l1;
+    if (fabs(dl) > kSmall)
+		coeff = (ftau_EQ[0]*l1 - ftau_EQ[1]*l0)/dl;
+    else 
+		coeff = 0.5*(Gamma(0,0)-Gamma(0,1))-ftau_EQ[0];
+    MixedRank4_3D(eigenvectors[0], eigenvectors[1], fModMat);
+    fModulus3D.AddScaled(2.0*coeff, fModMat);
+    
+    dl = l0 - l2;
+    if (fabs(dl) > kSmall)
+      coeff = (ftau_EQ[0]*l2 - ftau_EQ[2]*l0)/dl;
+    else 
+      coeff = 0.5*(Gamma(0,0)-Gamma(0,2))-ftau_EQ[2];	
+    MixedRank4_3D(eigenvectors[0], eigenvectors[2], fModMat);
+    fModulus3D.AddScaled(2.0*coeff, fModMat);
+    
+    dl = l1 - l2;
+   if (fabs(dl) > kSmall)
+		coeff  = (ftau_EQ[1]*l2 - ftau_EQ[2]*l1)/dl;
+    else
+      coeff = 0.5*(Gamma(1,1)-Gamma(1,2))-ftau_EQ[1];	
+    MixedRank4_3D(eigenvectors[1], eigenvectors[2], fModMat);
+    fModulus3D.AddScaled(2.0*coeff, fModMat);
+
+//   cout << "\nc_eq: "<<fModulus3D;
+	/*calc NEQ component of stress and moduli*/
+	/*calcualte principal values of elastic stretch*/
+
+if (fNumProcess > 0)
+{
+    ElementCardT& element = CurrentElement();
+    Load(element, CurrIP());
+    
+	for (int i = 0; i < fNumProcess; i++)
+	{
+		fInverse.Inverse(fC_vn[i]);
+		fb_tr.MultQBQT(fF3D, fInverse);
+
+		fSpectralDecompSpat.SpectralDecomp_Jacobi(fb_tr, false);	
+		fEigs_tr = fSpectralDecompSpat.Eigenvalues(); 		
+
+		fInverse.Inverse(fC_v[i]);
+		fbe.MultQBQT(fF3D, fInverse);
+		fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
+		fEigs_e = fSpectralDecompSpat.Eigenvalues(); 
+		const ArrayT<dArrayT>& eigenvectors_e=fSpectralDecompSpat.Eigenvectors();
+		
+		double Je = sqrt(fEigs_e.Product());
+		fEigs_dev = fEigs_e;
+		fEigs_dev *= pow(Je,-2.0*third);
+    
+		/*stresses*/
+		fPot[i+1]->DevStress(fEigs_dev, ftau_NEQ);
+		double sm =  fPot[i+1]->MeanStress(Je);    
+
+		fPot[i+1]->DevMod(fEigs_dev, fDtauDe_NEQ);
+		double cm = fPot[i+1]->MeanMod(Je);
+		
+		/*Calculate Calg_AB*/
+		Compute_Calg(ftau_NEQ, fDtauDe_NEQ, sm, cm, fCalg, i);
+
+		ftau_NEQ += sm;
+		fDtauDe_NEQ += cm;
+			   
+//		cout << "\nCalg: "<<fCalg;
+		fModulus3D += fSpectralDecompSpat.NonSymEigsToRank4(fCalg);
+    
+		double dl_tr;
+
+		double& l0_tr = fEigs_tr[0];
+		double& l1_tr = fEigs_tr[1];
+		double& l2_tr = fEigs_tr[2];
+	
+	
+		dl_tr = l0_tr - l1_tr;
+		if (fabs(dl_tr) > kSmall)
+			coeff = (ftau_NEQ[0]*l1_tr - ftau_NEQ[1]*l0_tr)/dl_tr;
+		else 
+			coeff = 0.5*(fCalg(0,0)-fCalg(0,1))-ftau_NEQ[0];
+		MixedRank4_3D(eigenvectors_e[0], eigenvectors_e[1], fModMat);
+		fModulus3D.AddScaled(2.0*coeff, fModMat);
+    
+		dl_tr = l0_tr - l2_tr;
+		if (fabs(dl_tr) > kSmall)
+			coeff =(ftau_NEQ[0]*l2_tr - ftau_NEQ[2]*l0_tr)/dl_tr;
+		else 
+			coeff = 0.5*(fCalg(0,0)-fCalg(0,2))-ftau_NEQ[2];	
+		MixedRank4_3D(eigenvectors_e[0], eigenvectors_e[2], fModMat);
+		fModulus3D.AddScaled(2.0*coeff, fModMat);
+    
+		dl_tr = l1_tr - l2_tr;
+		if (fabs(dl_tr) > kSmall)
+			coeff  = (ftau_NEQ[1]*l2_tr - ftau_NEQ[2]*l1_tr)/dl_tr;
+		else
+			coeff = 0.5*(fCalg(1,1)-fCalg(1,2))-ftau_NEQ[1];	
+		MixedRank4_3D(eigenvectors_e[1], eigenvectors_e[2], fModMat);
+		fModulus3D.AddScaled(2.0*coeff, fModMat);
+    }
+}
+//   cout << "\nc_tot: "<<fModulus3D;
+	if (NumSD() == 2)
+	{
+		fModulus[0] = fModulus3D[0];
+		fModulus[1] = fModulus3D[1];
+		fModulus[2] = fModulus3D[5];
+
+		fModulus[3] = fModulus3D[6];
+		fModulus[4] = fModulus3D[7];
+		fModulus[5] = fModulus3D[11];
+		fModulus[6] = fModulus3D[30];
+		fModulus[7] = fModulus3D[31];
+		fModulus[8] = fModulus3D[35];
+	}
+	else fModulus = fModulus3D;
+
+	const dMatrixT& Ftotal = F_total();	
+	fModulus *= 1.0/Ftotal.Det();
+
+    return fModulus;
 }
 
 void SMP_simple::ComputeOutput(dArrayT& output)
@@ -94,6 +470,22 @@ void SMP_simple::ComputeOutput(dArrayT& output)
     Load(element, CurrIP());
 
 	double Temp = Compute_Temperature();
+		const dMatrixT& F = MechanicalDeformation();
+	if (NumSD() == 2)
+	{
+		fF3D[0] = F[0];
+		fF3D[1] = F[1];
+		fF3D[2] = 0.0;
+	    
+		fF3D[3] = F[2];
+		fF3D[4] = F[3];
+		fF3D[5] = 0.0;
+	    
+		fF3D[6] = 0.0;
+		fF3D[7] = 0.0;
+		fF3D[8] = 1.0;
+	}
+	else fF3D = F;
 	
 	/*thermal volume deformation*/
 	output[0] = 1.0 + falphar*(Temp-fT0) + (*fdelneq);
@@ -101,13 +493,59 @@ void SMP_simple::ComputeOutput(dArrayT& output)
 	/*neq thermal dilatation*/
 	output[1] = (*fdelneq);
 
-	/*effective viscous stretch*/
+	/*maximum eigenvalue of mechanical stretch*/
+	fInverse.MultATA(fF3D);
+    fSpectralDecompSpat.SpectralDecomp_Jacobi(fInverse, false);	
+    fEigs = fSpectralDecompSpat.Eigenvalues();
+	
+	output[2] = fEigs[0];
+	output[3] = fEigs[1];
+	output[4] = fEigs[2];
+	
+	/*maximum eigenvalue of viscous stretch*/
     fSpectralDecompSpat.SpectralDecomp_Jacobi(fC_v[0], false);	
     fEigs = fSpectralDecompSpat.Eigenvalues();
-	output[2] = sqrt(third*(fEigs[0]+fEigs[1]+fEigs[2]));
+	output[5] = fEigs[0];
+	output[6] = fEigs[1];
+	output[7] = fEigs[2];
+	
 	
 	/*yield strength*/
-	output[3] = *fsy;
+	output[8] = *fsy;
+	output[9] = Temp;
+
+	/*calc elastic stretch*/
+	fInverse.Inverse(fC_v[0]);
+	fbe.MultQBQT(fF3D, fInverse);
+	fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
+	fEigs_e = fSpectralDecompSpat.Eigenvalues(); 
+
+	//	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
+
+	double Je = sqrt(fEigs_e.Product());
+	fEigs_dev = fEigs_e;
+	fEigs_dev *= pow(Je,-2.0*third);
+	fPot[1]->DevStress(fEigs_dev, ftau_NEQ);
+	
+	const dMatrixT& Ftot = F_total();
+	double J = Ftot.Det();
+	
+	double s0 = ftau_NEQ[0]/J;
+	double s1 = ftau_NEQ[1]/J;
+	double s2 = ftau_NEQ[2]/J;
+	double smag = sqrt(s0*s0 + s1*s1 + s2*s2);
+//		cout << "\nsmag: "<<smag;
+
+	/*calculate mobilities*/
+	double Tf = FictiveTemperature(*fdelneq);
+	double etaS = ShearViscosity(Temp, *fdelneq, smag, *fsy);
+//	cout << "\ntauR: "<<tauR;
+//	cout << "\netaS: "<<etaS;
+		
+	double ietaS = 1.0/etaS;
+						
+	double gamdot = 0.5*smag*ietaS;
+	output[10] = gamdot;
 }
 
 /*************************************************************************
@@ -185,7 +623,8 @@ ParameterInterfaceT* SMP_simple::NewSub(const StringT& name) const
 		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetListOrder(ParameterListT::Choice);
 		choice->SetSubSource(this);
-	
+		choice->SetDescription("temperature normalized network stiffness");
+		
 		/* choice of parameters */
 		choice->AddSub("arruda-boyce");
 		return(choice);
@@ -228,14 +667,17 @@ ParameterInterfaceT* SMP_simple::NewSub(const StringT& name) const
 		ParameterT sy_0(ParameterT::Double, "init_yield_strength");
 		ParameterT sy_ss(ParameterT::Double, "sat_yield_strength");
 		ParameterT h(ParameterT::Double, "hardening_modulus");
-		
+			
 		etaSR.AddLimit(zero);
+//		etaSrub.AddLimit(positive);
+//		etaSrub.SetDefault(0.0);
 		A.AddLimit(zero);
 		sy_0.AddLimit(zero);
 		sy_ss.AddLimit(zero);
 		h.AddLimit(positive);
 
 		etaS->AddParameter(etaSR);
+//		etaS->AddParameter(etaSrub);
 		etaS->AddParameter(A);
 		etaS->AddParameter(sy_0);
 		etaS->AddParameter(sy_ss);
@@ -406,6 +848,7 @@ void SMP_simple::Initialize(void)
 	fC_v.Dimension(1);
 	fC_vn.Dimension(1);
 	
+	int nsd = NumSD();
 	int ndof = 3;
 	int numstress = dSymMatrixT::NumValues(ndof);
 
@@ -435,8 +878,8 @@ void SMP_simple::Initialize(void)
 	pstatev++;
 
 
-  fF_M.Dimension(ndof);
-  fF_T_inv.Dimension(ndof);
+  fF_M.Dimension(nsd);
+  fF_T_inv.Dimension(nsd);
 
   fF3D.Dimension(ndof);
   fInverse.Dimension(ndof);
@@ -514,7 +957,7 @@ void SMP_simple::Initialize(void)
 						
 	    		
 	    /*caculate smag*/
-	    double smag = sqrt(s0*s0 + s1*s1 + s2*s2);
+	    double smag = sqrt(0.5*(s0*s0 + s1*s1 + s2*s2));
 
 		/*calculate mobilities*/
 		double Tf = FictiveTemperature(delneq);
@@ -529,9 +972,16 @@ void SMP_simple::Initialize(void)
 		/*calculate stiffness matrix*/
 		/*derivative of retardation time wrt to Tf*/
 		double dtauR_dTf = tauR*fC1*fC2*(fC2 - fTg)*log(10)/(Temp*(fC2 + Tf - fTg)*(fC2 + Tf - fTg));
-		double detaS_dTf = etaS*fC1*fC2*(fC2 - fTg)*log(10)/(Temp*(fC2 + Tf - fTg)*(fC2 + Tf - fTg));
-		double detaS_dsmag = -etaS*fQS / (Temp*sy);
-		double detaS_dsy = etaS*fQS*smag / (Temp*sy*sy);
+		double detaS_dTf = (etaS)*fC1*fC2*(fC2 - fTg)*log(10)/(Temp*(fC2 + Tf - fTg)*(fC2 + Tf - fTg));
+		double x = fQS*smag/(Temp*sy*sqrt(2.0));
+		double detaS_dsmag = 0.0;
+		double detaS_dsy = (etaS)/sy;
+		if (smag > small)
+		{
+			double cothx = cosh(x)/sinh(x);
+			detaS_dsmag = (etaS)*(1.0-x*cothx)/smag;
+			detaS_dsy *= (-1.0 + x*cothx);
+		}
 		
 		/*initialize*/
 		fiKAB = 0.0;
@@ -546,10 +996,10 @@ void SMP_simple::Initialize(void)
 		fiKAB(3,0) = -0.5*dt*ietaS*s2* 1.0/dalpha*ietaS*detaS_dTf;
 
 		/*K_epA_epB*/
-		double coef0 = (s0*c0 + s1*c01 + s2*c02);
-		double coef1 = (s0*c01 + s1*c1 + s2*c12);
-		double coef2 = (s0*c02 + s1*c12 + s2*c2);
-		if (smag > kSmall)
+		double coef0 = 0.5*(s0*c0 + s1*c01 + s2*c02);
+		double coef1 = 0.5*(s0*c01 + s1*c1 + s2*c12);
+		double coef2 = 0.5*(s0*c02 + s1*c12 + s2*c2);
+		if (smag > small)
 		{
 			coef0 /= smag;
 			coef1 /= smag;
@@ -637,7 +1087,7 @@ void SMP_simple::Initialize(void)
 void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
 			     dArrayT& eigenstress, dSymMatrixT& eigenmodulus,  const int type) 
 {		
-	const double ctol = 1.00e-12;
+	const double ctol = 1.00e-8;
 		
 	/*set references to principle stretches*/
      
@@ -675,25 +1125,71 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	
 	double dalpha = falphar-falphag;
 	int maxiteration = 100;
+
 	/*initializes principle viscous stretch*/
+	double Je=sqrt(le0*le1*le2);
+	fEigs_dev = eigenstretch_e;
+	fEigs_dev *= pow(Je,-2.0*third);
+
+	/*calculate stresses and moduli*/
+	fPot[1]->DevStress(fEigs_dev, eigenstress);
+	    
+	double s0 = iJ*eigenstress[0];
+	double s1 = iJ*eigenstress[1];
+	double s2 = iJ*eigenstress[2];
+		    		
+	/*caculate smag*/
+	double smag = sqrt(0.5*(s0*s0 + s1*s1 + s2*s2));
+//	cout << "\nsmag: "<<smag;
+	
+	/*calculate mobilities*/
+	double Tf = FictiveTemperature(delneq);
+	double tauR = RetardationTime(Temp, delneq);
+	double etaS = ShearViscosity(Temp, delneq, smag, sy);
+//	cout << "\ntauR: "<<tauR;
+//	cout << "\netaS: "<<etaS;
+		
+	double itauR = 1.0/tauR;
+	double ietaS = 1.0/etaS;
+					
+	double gamdot = 0.5*smag*ietaS;
+
+	/*calculate the residual*/
+	fRes[0] = delneq + dt*itauR*(delneq-dalpha*(Temp-fT0)) - delneq_n;
+	
+	fRes[1] = ep_e0 + 0.5*dt*ietaS*s0 - ep_tr0;
+	fRes[2] = ep_e1 + 0.5*dt*ietaS*s1 - ep_tr1;
+	fRes[3] = ep_e2 + 0.5*dt*ietaS*s2 - ep_tr2;
+	
+	fRes[4] = sy - dt*fh*(1.0-sy/fsinf)*gamdot - syn;
+	tol = sqrt(dArrayT::Dot(fRes, fRes));
+/*	cout << "\ntol: "<<tol;
+	cout << "\neps_e: "<<eigenstretch_e;
+*/
 	int iteration = 0;
-	do 
+	while (tol>ctol && iteration < maxiteration)
 	{
 		iteration ++;
-	    double Je=sqrt(le0*le1*le2);
-	    fEigs_dev = eigenstretch_e;
-	    fEigs_dev *= pow(Je,-2.0*third);
+//		cout << "\nfRes: "<<fRes;
+		/*calculate stiffness matrix*/
+		/*derivative of retardation time wrt to Tf*/
+		double dtauR_dTf = tauR*fC1*fC2*(fC2 - fTg)*log(10)/(Temp*(fC2 + Tf - fTg)*(fC2 + Tf - fTg));
+		double detaS_dTf = (etaS)*fC1*fC2*(fC2 - fTg)*log(10)/(Temp*(fC2 + Tf - fTg)*(fC2 + Tf - fTg));
+		double x = fQS*smag/(Temp*sy*sqrt(2.0));
+		double detaS_dsmag = 0.0;
+		double detaS_dsy = (etaS)/sy;
+		if (smag > small)
+		{
+			double cothx = cosh(x)/sinh(x);
+			detaS_dsmag = (etaS)*(1.0-x*cothx)/smag;
+			detaS_dsy *= (-1.0 + x*cothx);
+		}
+//		cout << "\ndtauR_dTf: "<<dtauR_dTf;
+//		cout << "\ndetaS_dTf: "<<detaS_dTf;
+//		cout << "\ndetaS_dsmag: "<<detaS_dsmag;
+//		cout << "\ndetaS_dsy: "<<detaS_dsy;
 
-//	cout << "\neigenstretch_edev: "<<fEigs_dev;
-
-	    /*calculate stresses and moduli*/
-	    fPot[1]->DevStress(fEigs_dev, eigenstress);
-	    
-	    double s0 = iJ*eigenstress[0];
-	    double s1 = iJ*eigenstress[1];
-	    double s2 = iJ*eigenstress[2];
-	    
-	    fPot[1]->DevMod(fEigs_dev,eigenmodulus);
+		fPot[1]->DevMod(fEigs_dev,eigenmodulus);
 		/*deviatoric values*/
 		double c0 = iJ*eigenmodulus(0,0);
 		double c1 = iJ*eigenmodulus(1,1);
@@ -702,42 +1198,6 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 		double c12 = iJ*eigenmodulus(1,2);
 		double c02 = iJ*eigenmodulus(0,2);
 		double c01 = iJ*eigenmodulus(0,1);
-	    		
-	    /*caculate smag*/
-	    double smag = sqrt(s0*s0 + s1*s1 + s2*s2);
-//		cout << "\nsmag: "<<smag;
-
-		/*calculate mobilities*/
-		double Tf = FictiveTemperature(delneq);
-		double tauR = RetardationTime(Temp, delneq);
-		double etaS = ShearViscosity(Temp, delneq, smag, sy);
-//		cout << "\ntauR: "<<tauR;
-//		cout << "\netaS: "<<etaS;
-		
-		double itauR = 1.0/tauR;
-		double ietaS = 1.0/etaS;
-						
-		double gamdot = 0.5*smag*ietaS;
-
-	    /*calculate the residual*/
-		fRes[0] = delneq + dt*itauR*(delneq-dalpha*(Temp-fT0)) - delneq_n;
-		
-	    fRes[1] = ep_e0 + 0.5*dt*ietaS*s0 - ep_tr0;
-	    fRes[2] = ep_e1 + 0.5*dt*ietaS*s1 - ep_tr1;
-	    fRes[3] = ep_e2 + 0.5*dt*ietaS*s2 - ep_tr2;
-		
-		fRes[4] = sy - dt*fh*(1.0-sy/fsinf)*gamdot - syn;
-//		cout << "\nfRes: "<<fRes;
-		/*calculate stiffness matrix*/
-		/*derivative of retardation time wrt to Tf*/
-		double dtauR_dTf = tauR*fC1*fC2*(fC2 - fTg)*log(10)/(Temp*(fC2 + Tf - fTg)*(fC2 + Tf - fTg));
-		double detaS_dTf = etaS*fC1*fC2*(fC2 - fTg)*log(10)/(Temp*(fC2 + Tf - fTg)*(fC2 + Tf - fTg));
-		double detaS_dsmag = -etaS*fQS / (Temp*sy);
-		double detaS_dsy = etaS*fQS*smag / (Temp*sy*sy);
-//		cout << "\ndtauR_dTf: "<<dtauR_dTf;
-//		cout << "\ndetaS_dTf: "<<detaS_dTf;
-//		cout << "\ndetaS_dsmag: "<<detaS_dsmag;
-//		cout << "\ndetaS_dsy: "<<detaS_dsy;
 		
 		/*initialize*/
 		fiKAB = 0.0;
@@ -752,10 +1212,10 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 		fiKAB(3,0) = -0.5*dt*ietaS*s2* 1.0/dalpha*ietaS*detaS_dTf;
 
 		/*K_epA_epB*/
-		double coef0 = (s0*c0 + s1*c01 + s2*c02);
-		double coef1 = (s0*c01 + s1*c1 + s2*c12);
-		double coef2 = (s0*c02 + s1*c12 + s2*c2);
-		if (smag > kSmall)
+		double coef0 = 0.5*(s0*c0 + s1*c01 + s2*c02);
+		double coef1 = 0.5*(s0*c01 + s1*c1 + s2*c12);
+		double coef2 = 0.5*(s0*c02 + s1*c12 + s2*c2);
+		if (smag > small)
 		{
 			coef0 /= smag;
 			coef1 /= smag;
@@ -779,7 +1239,7 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 		fiKAB(3,4) = -0.5*dt*ietaS*s2 *ietaS*detaS_dsy;
 	
 		/*K_sy_del*/ 
-		fiKAB(4,0) = 0.5*dt*ietaS*fh*(1.0 - sy/fsinf)*smag*ietaS *1.0/dalpha*detaS_dTf;
+		fiKAB(4,0) = sqrt(0.5)*dt*ietaS*fh*(1.0 - sy/fsinf)*smag*ietaS *1.0/dalpha*detaS_dTf;
 
 		/*K_sy_epB*/
 		fiKAB(4,1) = -0.5*dt*ietaS*fh*(1.0 - sy/fsinf)*coef0*(1.0 - smag*ietaS*detaS_dsmag);
@@ -810,13 +1270,52 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	    le1 = exp(2.0*ep_e1);
 	    le2 = exp(2.0*ep_e2);
 	    
+		Je=sqrt(le0*le1*le2);
+	    fEigs_dev = eigenstretch_e;
+	    fEigs_dev *= pow(Je,-2.0*third);
+
+//	cout << "\neigenstretch_edev: "<<fEigs_dev;
+
+	    /*calculate stresses and moduli*/
+	    fPot[1]->DevStress(fEigs_dev, eigenstress);
+	    
+	    s0 = iJ*eigenstress[0];
+	    s1 = iJ*eigenstress[1];
+	    s2 = iJ*eigenstress[2];
+	    
+	    		
+	    /*caculate smag*/
+	    smag = sqrt(0.5*(s0*s0 + s1*s1 + s2*s2));
+//		cout << "\nsmag: "<<smag;
+
+		/*calculate mobilities*/
+		Tf = FictiveTemperature(delneq);
+		tauR = RetardationTime(Temp, delneq);
+		etaS = ShearViscosity(Temp, delneq, smag, sy);
+//		cout << "\ntauR: "<<tauR;
+//		cout << "\netaS: "<<etaS;
+		
+		itauR = 1.0/tauR;
+		ietaS = 1.0/etaS;
+						
+		gamdot =0.5*smag*ietaS;
+//		cout << "\ngamdot: "<<gamdot;
+
+	    /*calculate the residual*/
+		fRes[0] = delneq + dt*itauR*(delneq-dalpha*(Temp-fT0)) - delneq_n;
+		
+	    fRes[1] = ep_e0 + 0.5*dt*ietaS*s0 - ep_tr0;
+	    fRes[2] = ep_e1 + 0.5*dt*ietaS*s1 - ep_tr1;
+	    fRes[3] = ep_e2 + 0.5*dt*ietaS*s2 - ep_tr2;
+		
+		fRes[4] = sy - dt*fh*(1.0-sy/fsinf)*gamdot - syn;
 	    /*Check that the L2 norm of the residual is less than tolerance*/
 	    tol = sqrt(dArrayT::Dot(fRes, fRes));
 /*		cout << "\ntol: "<<tol;
 		cout << "\neps_e: "<<eigenstretch_e;
 */
-	}while (tol>ctol && iteration < maxiteration); 
-	if (iteration >= 10) 
+	}
+	if (iteration >= maxiteration) 
 		ExceptionT::GeneralFail("SMP_simple::ComputeEigs_e", 
 			"number of iteration exceeds maximum");
 }
