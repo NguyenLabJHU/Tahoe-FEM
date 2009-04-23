@@ -1,4 +1,4 @@
-/* $Id: ScaledCsch.cpp,v 1.2 2007-04-09 22:05:47 thao Exp $ */
+/* $Id: ScaledCsch.cpp,v 1.3 2009-04-23 14:51:52 thao Exp $ */
 
 #include "ScaledCsch.h"
 #include <iostream.h>
@@ -143,9 +143,14 @@ void ScaledCsch::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	C1FunctionT::DefineParameters(list);
 
-	list.AddParameter(feta0, "viscosity");
-	list.AddParameter(ftau0, "activation_stress");
+	ParameterT eta0(ParameterT::Double, "viscosity");
+	ParameterT tau0(ParameterT::Double, "activation_stress");
 	
+	eta0.AddLimit(0.0,LimitT::Lower);
+	tau0.AddLimit(0.0,LimitT::Lower);
+	list.AddParameter(eta0);
+	list.AddParameter(tau0);
+
 	/* set the description */
 	list.SetDescription("f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)");	
 }
@@ -161,10 +166,5 @@ void ScaledCsch::TakeParameterList(const ParameterListT& list)
 	feta0 = list.GetParameter("viscosity");
 	ftau0 = list.GetParameter("activation_stress");
 
-	/* check */
-	if (feta0 < kSmall) ExceptionT::BadInputValue("ScaledCsch::TakeParameterList",
-		"expecting a positive value for the  viscosity: %d", feta0);
-	if (ftau0 < kSmall) ExceptionT::BadInputValue("ScaledCsch::TakeParameterList",
-		"expecting a positive value for the activation stress: %d", ftau0);
 }
 

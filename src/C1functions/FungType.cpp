@@ -1,4 +1,4 @@
-/* $Id: FungType.cpp,v 1.4 2007-04-09 22:05:47 thao Exp $ */
+/* $Id: FungType.cpp,v 1.5 2009-04-23 14:51:51 thao Exp $ */
 
 #include "FungType.h"
 #include <iostream.h>
@@ -44,17 +44,17 @@ void FungType::PrintName(ostream& out) const
 */
 double FungType::Function(double r) const
 {
-	return (fA*(exp(fB*(r - 1.0))+ fB/r) );
+	return (fA/fB*(exp(fB*(r - 1.0))+ fB/r) );
 }
 
 double FungType::DFunction(double r) const
 {
-	return ( fA*fB* (exp(fB*(r-1.0)) - 1.0/(r*r) ));
+	return ( fA* (exp(fB*(r-1.0)) - 1.0/(r*r) ));
 }
 
 double FungType::DDFunction(double r) const
 {
-	return (fA*fB*( fB*exp(fB*(r-1.0)) + 2.0/(r*r*r)) );
+	return (fA*( fB*exp(fB*(r-1.0)) + 2.0/(r*r*r)) );
 }
 
 /* returning values in groups */
@@ -69,7 +69,7 @@ dArrayT& FungType::MapFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = (*pr++);
-		*pU++ = (fA*(exp(fB*(r - 1.0))+ fB/r));
+		*pU++ = (fA/fB*(exp(fB*(r - 1.0))+ fB/r));
 	}
 	return(out);
 }
@@ -87,7 +87,7 @@ dArrayT& FungType::MapDFunction(const dArrayT& in, dArrayT& out) const
 		double r = (*pr++);
 //		cout <<"\nr: "<<r;
 //		cout<<"\ndU: "<<(r-1.0);
-		*pdU++ = ( fA*fB* (exp(fB*(r-1.0)) - 1.0/(r*r) ) );
+		*pdU++ = ( fA* (exp(fB*(r-1.0)) - 1.0/(r*r) ) );
 	}
 	return(out);
 }
@@ -103,7 +103,7 @@ dArrayT& FungType::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = (*pr++);
-		*pddU++ = (fA*fB*( fB*exp(fB*(r-1.0)) + 2.0/(r*r*r)) );
+		*pddU++ = (fA*( fB*exp(fB*(r-1.0)) + 2.0/(r*r*r)) );
 	}
 	return(out);
 }
@@ -113,11 +113,16 @@ void FungType::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	C1FunctionT::DefineParameters(list);
 
-	list.AddParameter(fA, "alpha");
-	list.AddParameter(fB, "beta");
+	ParameterT alpha(ParameterT::Double, "alpha");
+	ParameterT beta(ParameterT::Double, "beta");
+	
+	alpha.AddLimit(0.0,LimitT::Lower);
+	beta.AddLimit(0.0,LimitT::LowerInclusive);
+	list.AddParameter(alpha);
+	list.AddParameter(beta);
 	
 	/* set the description */
-	list.SetDescription("f(I) = alpha*(exp(beta*(I - 1.0)) + beta/I)");	
+	list.SetDescription("f(I) = alpha/beta*(exp(beta*(I - 1.0)) + beta/I)");	
 }
 
 void FungType::TakeParameterList(const ParameterListT& list)
@@ -128,10 +133,5 @@ void FungType::TakeParameterList(const ParameterListT& list)
 	fA = list.GetParameter("alpha");
 	fB = list.GetParameter("beta");
 
-	/* check */
-	if (fA < kSmall) ExceptionT::BadInputValue("ScaledSinh::TakeParameterList",
-		"expecting a positive value alpha: %d", fA);
-	if (fB < kSmall) ExceptionT::BadInputValue("ScaledSinh::TakeParameterList",
-		"expecting a positive value for beta: %d", fB);
 }
 

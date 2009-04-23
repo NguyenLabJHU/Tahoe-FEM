@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.31 2007-04-09 22:05:47 thao Exp $
+# $Id: makefile,v 1.32 2009-04-23 14:51:52 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -18,6 +18,7 @@ OBJ = \
 	FungType2.o \
 	ScaledCsch.o \
 	ScaledSinh.o \
+	LanirFiber.o \
 	PowerTrig.o
 
 OBJ_LINK = $(OBJ)
@@ -39,6 +40,7 @@ SRC = \
 	FungType.cpp \
 	FungType2.cpp \
 	ScaledCsch.cpp \
+	LanirFiber.cpp \
 	ScaledSinh.cpp \
 	PowerTrig.cpp 
 
@@ -57,6 +59,7 @@ HDR = \
 	FungType2.h \
 	ScaledCsch.h \
 	ScaledSinh.h \
+	LanirFiber.h \
 	PowerTrig.h 
 
 
