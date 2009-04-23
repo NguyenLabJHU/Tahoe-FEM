@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.14 2007-03-15 18:50:40 cfoster01 Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.15 2009-04-23 22:20:35 tdnguye Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 #include "SolidMaterialsConfig.h"
@@ -13,6 +13,8 @@
 
 #ifdef VISCOELASTICITY
 #include "SSLinearVE3D.h"
+#include "SSViscoelasticityT.h"
+#include "SSVE_test.h"
 #endif
 
 #ifdef PLASTICITY_J2_MATERIAL
@@ -34,10 +36,6 @@
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "SSSV_KStV3D.h"
-#endif
-
-#ifdef J2PLASTICITY_MATERIALS_DEV
-#include "SSJ2LinHardT.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -131,6 +129,8 @@ void SSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("linear_viscoelastic");
+		sub_lists.AddSub("linear_prony_series_viscoelasticity");
+		sub_lists.AddSub("ssve_test");
 #endif
 
 #ifdef FOSSUM_MATERIAL_DEV
@@ -235,6 +235,10 @@ SSSolidMatT* SSSolidMatList3DT::NewSSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "linear_viscoelastic")
 		mat = new SSLinearVE3D;
+	else if (name == "linear_prony_series_viscoelasticity")
+		mat = new SSViscoelasticityT;
+	else if (name == "ssve_test")
+		mat = new SSVE_test;
 #endif
 
 #ifdef FOSSUM_MATERIAL_DEV
