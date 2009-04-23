@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.32 2008-12-17 19:48:59 skyu Exp $*/
+/*$Id: MR2DT.cpp,v 1.33 2009-04-23 20:06:36 regueiro Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -340,6 +340,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		Yield_f(Sig, qn, ff);
 
 		// Check for initial data
+#if __option(extended_errorcheck)
 		mr_ep_2d_out << setw(outputFileWidth) << "******check for initial data*****" << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "jump_u_t = " << u[0] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "jump_u_n = " << u[1] << endl;	
@@ -363,6 +364,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		mr_ep_2d_out << setw(outputFileWidth) << "qo[3] = " << qo[3] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "F = " << ff << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
+#endif
 
 		if (ff < 0.) {
 			iplastic = 0;
@@ -377,6 +379,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 			while (ff > fTol_1 || normr > fTol_2) {
 
 				// Check for data of local iteration
+#if __option(extended_errorcheck)
 				mr_ep_2d_out << setw(outputFileWidth) << "******check for data of local iteration*****" << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "local iteration # = " << kk << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "jump_u_t = " << u[0] << endl;
@@ -395,6 +398,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				mr_ep_2d_out << setw(outputFileWidth) << "F = " << ff << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "norm = " << normr << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
+#endif
 
 				if (kk > 50000) {
 					ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
@@ -439,6 +443,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				  R[5] = -qn[3] + qo[3] + dlam*qbar[3];   */
 
 				// Check for the residual
+#if __option(extended_errorcheck)
 				mr_ep_2d_out << setw(outputFileWidth) << "******check for the residual*****" << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "R[0] = " << R[0] << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "R[1] = " << R[1] << endl;
@@ -447,6 +452,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				mr_ep_2d_out << setw(outputFileWidth) << "R[4] = " << R[4] << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "R[5] = " << R[5] << endl;
 				mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
+#endif
 
 				normr = R.Magnitude();
 				dQdSig2_f(Sig,qn,dQdSig2);
@@ -636,6 +642,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		state[16] = double(kk);
 
 		// Check for yield and norm_R after convergence is achieved
+#if __option(extended_errorcheck)
 		mr_ep_2d_out << setw(outputFileWidth) << "*************Results are converged*************" << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "Tt = state[0] " << state[0] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "Tn = state[1] " << state[1] << endl;
@@ -659,6 +666,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2]	<< endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3]	<< endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "*************End of results*************" << endl;
+#endif
 
 		return fTraction;
 	}
@@ -1276,6 +1284,7 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 
 	/*
 	// Check for the consistent tangent
+#if __option(extended_errorcheck)
 	mr_ep_2d_out << setw(outputFileWidth) << "**********Check for consistent tangent**********" << endl;
 	mr_ep_2d_out << setw(outputFileWidth) << "Tt = Sig[0] = state[0] = " << state[0] << endl;
 	mr_ep_2d_out << setw(outputFileWidth) << "Tn = Sig[1] = state[1] = " << state[1] << endl;
@@ -1298,6 +1307,7 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 	mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << KEP(1,0) << endl;
 	mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,1) = " << KEP(1,1) << endl;
 	mr_ep_2d_out << setw(outputFileWidth) << "**********End of check**********" << endl;
+#endif
 	*/
 
 	/*
