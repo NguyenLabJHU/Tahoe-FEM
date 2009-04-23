@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.20 2005-03-09 19:25:48 raregue Exp $ */
+/* $Id: SSSolidMatT.h,v 1.21 2009-04-23 14:36:20 tdnguye Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -64,9 +64,6 @@ public:
 	/** return the strain in the material at the current integration point. 
 	 * Returns the small strain tensor. */
 	virtual void Strain(dSymMatrixT& strain) { strain = e(); };
-
-	/*inquire if dissipation variables used in material force calculation are needed*/
-	virtual bool HasDissipVar(void) const {return false;};
 
 	/** small strain material support additive split of thermal strains by default */
 	virtual bool SupportsThermalStrain(void) const { return true; };
