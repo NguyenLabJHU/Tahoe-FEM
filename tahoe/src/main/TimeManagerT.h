@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.14 2004-07-22 08:41:39 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.15 2009-04-23 15:01:09 tdnguye Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
@@ -91,6 +91,11 @@ public:
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	/*@}*/
+	
+	const int TimeScaling(void) const { return fTimeScaling;};
+
+	enum ScalingT { kLinear = 1,
+                       kLog = 2};
 
 private:	
 
@@ -98,7 +103,7 @@ private:
 	enum StatusT { kDecreaseStep =-1,
                        kSameStep = 0,
                    kIncreaseStep = 1};
-
+				   
 	/* increment the time and reset the load factors */
 	void IncrementTime(double dt);
 
@@ -139,6 +144,9 @@ private:
 	/** will be IntegratorT::kExplicit if all integrators are explicit
 	 * otherwise will be IntegratorT::kImplicit */
 	IntegratorT::ImpExpFlagT fImpExp;
+	
+	int fTimeScaling;
+	double fInitTime;
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.25 2004-10-14 20:20:06 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.26 2009-04-23 15:01:09 tdnguye Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -228,6 +228,17 @@ void TimeManagerT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list);
 
+	ParameterT scaling(ParameterT::Enumeration, "scaling");
+	scaling.AddEnumeration("linear", kLinear);
+	scaling.AddEnumeration("logarithmic", kLog);
+	scaling.SetDefault(kLinear);
+	list.AddParameter(scaling);
+	
+	ParameterT init_time(ParameterT::Double, "init_time");
+	init_time.AddLimit(0, LimitT::LowerInclusive);
+	init_time.SetDefault(0.0);
+	list.AddParameter(init_time);
+	
 	/* number of steps */
 	ParameterT num_steps(ParameterT::Integer, "num_steps");
 	num_steps.AddLimit(0, LimitT::LowerInclusive);
@@ -256,6 +267,9 @@ void TimeManagerT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
+	fTimeScaling = list.GetParameter("scaling");
+	fInitTime = list.GetParameter("init_time");
+	
 	/* set time parameters */
 	fNumSteps  = list.GetParameter("num_steps");
 	fOutputInc = list.GetParameter("output_inc");
@@ -312,8 +326,16 @@ ParameterInterfaceT* TimeManagerT::NewSub(const StringT& name) const
 void TimeManagerT::IncrementTime(double dt)
 {
 	/* Increment the time */
-	fTime += dt;
-
+	if (fTimeScaling == kLinear)
+		fTime += dt;
+	else 
+	{
+		if (StepNumber() == 1)
+			fTime = fInitTime;
+		else
+			fTime *= pow(10, dt);
+	}
+		
 	/* set load factors */
 	for (int i = 0; i < fSchedule.Length(); i++)
 		fSchedule[i]->SetTime(fTime);
