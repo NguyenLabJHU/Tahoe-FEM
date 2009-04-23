@@ -1,4 +1,4 @@
-/* $Id: SSViscoelasticityT.h,v 1.4 2008-08-09 15:00:38 tdnguye Exp $ */
+/* $Id: SSViscoelasticityT.h,v 1.5 2009-04-23 14:38:49 tdnguye Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_VISCO_H_
 #define _SS_VISCO_H_
@@ -18,7 +18,7 @@ class SSViscoelasticityT: public SSSolidMatT, public SS_Visc_Support
 	SSViscoelasticityT(void);
 			
 	/* apply pre-conditions at the current time step */
-	virtual void InitStep(void){SSSolidMatT::InitStep();}
+	virtual void InitStep(void);
 
 	/** return true if the material has history variables */
 	virtual bool HasHistory(void) const { return true; };

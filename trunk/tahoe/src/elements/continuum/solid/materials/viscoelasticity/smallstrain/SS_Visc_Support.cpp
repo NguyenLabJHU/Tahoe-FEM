@@ -1,4 +1,4 @@
- /* $Id: SS_Visc_Support.cpp,v 1.1 2008-08-13 12:45:41 tdnguye Exp $ */
+ /* $Id: SS_Visc_Support.cpp,v 1.2 2009-04-23 14:38:49 tdnguye Exp $ */
 #include "SS_Visc_Support.h"
 #include "ExceptionT.h"
 #include "SolidMaterialT.h"
@@ -146,7 +146,7 @@ void SS_Visc_Support::Store(ElementCardT& element, int ip)
 
 /*************** protected *****************/
 
-void SS_Visc_Support::ComputeStress(const dSymMatrixT& strain, dSymMatrixT& stress, double dt, int pindex)
+void SS_Visc_Support::ComputeStress(const dSymMatrixT& strain, dSymMatrixT& stress, int pindex)
 {
 
 	fStrain3D = strain;
@@ -177,8 +177,8 @@ void SS_Visc_Support::ComputeStress(const dSymMatrixT& strain, dSymMatrixT& stre
 		double mu = fMu[pindex+1];
 		double kappa = fKappa[pindex+1];
 
-		double taudtS = dt/ftauS[pindex];
-		double taudtB = dt/ftauB[pindex];
+		double taudtS = fdt/ftauS[pindex];
+		double taudtB = fdt/ftauB[pindex];
 
 		double alphaS = exp(-0.5*taudtS);
 		double alphaB = exp(-0.5*taudtB);
@@ -218,8 +218,9 @@ void SS_Visc_Support::ComputeStress(const dSymMatrixT& strain, dSymMatrixT& stre
 	
 }
 
-void SS_Visc_Support::ComputeStress2D(const dSymMatrixT& strain, dSymMatrixT& stress, double dt, int constraint, int pindex)
+void SS_Visc_Support::ComputeStress2D(const dSymMatrixT& strain, dSymMatrixT& stress, int constraint, int pindex)
 {
+	
 	double muEQ = fMu[kEquilibrium];
 	double kappaEQ = fKappa[kEquilibrium];
 
@@ -239,8 +240,8 @@ void SS_Visc_Support::ComputeStress2D(const dSymMatrixT& strain, dSymMatrixT& st
 		double muNEQ = fMu[kNonEquilibrium];
 		double kappaNEQ = fKappa[kNonEquilibrium];
 
-		double taudtS = dt/ftauS[kNonEquilibrium-1];
-		double taudtB = dt/ftauB[kNonEquilibrium-1];
+		double taudtS = fdt/ftauS[kNonEquilibrium-1];
+		double taudtB = fdt/ftauB[kNonEquilibrium-1];
 		double alphaS = exp(-0.5*taudtS);
 		double alphaB = exp(-0.5*taudtB);
 		double betaS = exp(-taudtS);
@@ -279,8 +280,8 @@ void SS_Visc_Support::ComputeStress2D(const dSymMatrixT& strain, dSymMatrixT& st
 		double muNEQ = fMu[pindex+1];
 		double kappaNEQ = fKappa[pindex+1];
 
-		double taudtS = dt/ftauS[pindex];
-		double taudtB = dt/ftauB[pindex];
+		double taudtS = fdt/ftauS[pindex];
+		double taudtB = fdt/ftauB[pindex];
 		double alphaS = exp(-0.5*taudtS);
 		double alphaB = exp(-0.5*taudtB);
 		double betaB = exp(-taudtB);
@@ -318,7 +319,7 @@ void SS_Visc_Support::ComputeStress2D(const dSymMatrixT& strain, dSymMatrixT& st
 
 }
 
-void SS_Visc_Support::SetModulus(dMatrixT& modulus, double dt, int pindex)
+void SS_Visc_Support::SetModulus(dMatrixT& modulus,  int pindex)
 {
 	/*equilibrium component*/
 	if (pindex == -1)
@@ -340,8 +341,8 @@ void SS_Visc_Support::SetModulus(dMatrixT& modulus, double dt, int pindex)
 	}
 	else 		/*non-equilibrium component moduli are accumulated*/
 	{
-		double taudtS = dt/ftauS[pindex];
-		double taudtB = dt/ftauB[pindex];
+		double taudtS = fdt/ftauS[pindex];
+		double taudtB = fdt/ftauB[pindex];
 	
 		double alphaS, alphaB;
 
@@ -381,17 +382,16 @@ void SS_Visc_Support::SetModulus(dMatrixT& modulus, double dt, int pindex)
 	}
 }
 
-void SS_Visc_Support::SetModulus2D(dMatrixT& modulus, double dt, int constraint, int pindex)
-{
-
+void SS_Visc_Support::SetModulus2D(dMatrixT& modulus,  int constraint, int pindex)
+{		
         double muEQ = fMu[kEquilibrium];
         double kappaEQ = fKappa[kEquilibrium];
 
         double r = 0.0;
         if (constraint == SolidMaterialT::kPlaneStress)
         {
-			double taudtS = dt/ftauS[kNonEquilibrium-1];
-			double taudtB = dt/ftauB[kNonEquilibrium-1];
+			double taudtS = fdt/ftauS[kNonEquilibrium-1];
+			double taudtB = fdt/ftauB[kNonEquilibrium-1];
 
 			double alphaS, alphaB;
 		
@@ -421,8 +421,8 @@ void SS_Visc_Support::SetModulus2D(dMatrixT& modulus, double dt, int constraint,
 		}
 		else
 		{
-			double taudtS = dt/ftauS[pindex];
-			double taudtB = dt/ftauB[pindex];
+			double taudtS = fdt/ftauS[pindex];
+			double taudtB = fdt/ftauB[pindex];
 
 			double alphaS, alphaB;
 		
