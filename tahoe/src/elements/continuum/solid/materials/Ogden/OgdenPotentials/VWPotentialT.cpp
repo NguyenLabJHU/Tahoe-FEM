@@ -1,4 +1,4 @@
-/* $Id: VWPotentialT.cpp,v 1.1 2007-04-09 23:33:26 tdnguye Exp $ */
+/* $Id: VWPotentialT.cpp,v 1.2 2009-04-23 03:22:46 tdnguye Exp $ */
 #include "VWPotentialT.h"
 #include "ExceptionT.h"
 
@@ -54,7 +54,7 @@ void VWPotentialT::TakeParameterList(const ParameterListT& list)
 		"expecting a positive value gamma: %d", fMu);
 }
 
-double VWPotentialT::Energy(const dArrayT& lambda_bar, const double& J)
+double VWPotentialT::Energy(const dArrayT& lambda_bar, const double& J,  double temperature)
 {
   double I1 = lambda_bar[0]+lambda_bar[1]+lambda_bar[2];
   double I2 = lambda_bar[0]*lambda_bar[1]+lambda_bar[1]*lambda_bar[2]+lambda_bar[0]*lambda_bar[2];
@@ -64,7 +64,7 @@ double VWPotentialT::Energy(const dArrayT& lambda_bar, const double& J)
   phi += MeanEnergy(J);
   return(phi);
 }
-void VWPotentialT::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
+void VWPotentialT::DevStress(const dArrayT& lambda_bar,dArrayT& tau,  double temperature)
 {
   int nsd = tau.Length();
   
@@ -89,7 +89,7 @@ void VWPotentialT::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
   }
 }
 
-void VWPotentialT::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
+void VWPotentialT::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus,  double temperature)
 {
   int nsd = eigenmodulus.Rows();
   double ninth = third*third;

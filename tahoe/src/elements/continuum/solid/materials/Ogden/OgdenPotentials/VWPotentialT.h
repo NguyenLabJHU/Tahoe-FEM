@@ -1,4 +1,4 @@
-/* $Id: VWPotentialT.h,v 1.1 2007-04-09 23:33:26 tdnguye Exp $ */
+/* $Id: VWPotentialT.h,v 1.2 2009-04-23 03:22:46 tdnguye Exp $ */
 #ifndef _VWPotentialT_
 #define _VWPotentialT_
 
@@ -20,12 +20,12 @@ class VWPotentialT: public PotentialT
 	virtual void TakeParameterList(const ParameterListT& list);
 
 	/*free energy density*/
-	virtual double Energy(const dArrayT& lambda_bar,const double& J);
+	virtual double Energy(const dArrayT& lambda_bar,const double& J,  double temperature=1.0);
 
 	/*Kirchoff stress measures*/
-	virtual void DevStress(const dArrayT& lambda_bar, dArrayT& tau);
+	virtual void DevStress(const dArrayT& lambda_bar, dArrayT& tau,  double temperature=1.0);
 	/*derivative of Kirchoff stress with log strain*/
-	virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus);
+	virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus,  double temperature=1.0);
 
   private:  
 

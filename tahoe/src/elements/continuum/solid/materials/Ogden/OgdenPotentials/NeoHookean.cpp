@@ -1,4 +1,4 @@
-/* $Id: NeoHookean.cpp,v 1.7 2007-07-17 20:12:30 tdnguye Exp $ */
+/* $Id: NeoHookean.cpp,v 1.8 2009-04-23 03:22:46 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -47,14 +47,14 @@ void NeoHookean::TakeParameterList(const ParameterListT& list)
 		"expecting a non-negative value mu: %d", fMu);
 }
 
-double NeoHookean::Energy(const dArrayT& lambda_bar, const double& J)
+double NeoHookean::Energy(const dArrayT& lambda_bar, const double& J,  double temperature)
 {
   double I1 = lambda_bar[0]+lambda_bar[1]+lambda_bar[2];
   double phi = 0.5*fMu*(I1-3);
   phi += MeanEnergy(J);
   return(phi);
 }
-void NeoHookean::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
+void NeoHookean::DevStress(const dArrayT& lambda_bar, dArrayT& tau,  double temperature)
 {
   int nsd = tau.Length();
   
@@ -69,7 +69,7 @@ void NeoHookean::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
     tau[2] = fMu*third*(2.0*l2-l0-l1);
 }
 
-void NeoHookean::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
+void NeoHookean::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus,  double temperature)
 {
   int nsd = eigenmodulus.Rows();
   double ninth = third*third;
