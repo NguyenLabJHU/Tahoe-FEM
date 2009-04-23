@@ -1,4 +1,4 @@
-/* $Id: ArrudaBoyce.cpp,v 1.1 2007-07-17 20:11:49 tdnguye Exp $ */
+/* $Id: ArrudaBoyce.cpp,v 1.2 2009-04-23 03:22:46 tdnguye Exp $ */
 /* created:   TDN (7/2007) */
 /* Arruda, E.M and Boyce, M.C., JMPS, v41, pp. 389-412*/
 #include "ArrudaBoyce.h"
@@ -51,7 +51,7 @@ void ArrudaBoyce::TakeParameterList(const ParameterListT& list)
 	fMu = fmuN*flambdaL*fLangevin.Function(1.0/flambdaL);
 }
 
-double ArrudaBoyce::Energy(const dArrayT& lambda_bar, const double& J)
+double ArrudaBoyce::Energy(const dArrayT& lambda_bar, const double& J, double temperature)
 {
   double lam_eff = sqrt(1.0/3.0*(lambda_bar[0]+lambda_bar[1]+lambda_bar[2]));
   double r = lam_eff/flambdaL;
@@ -59,19 +59,21 @@ double ArrudaBoyce::Energy(const dArrayT& lambda_bar, const double& J)
   double x = fLangevin.Function(r);
   double y = fLangevin.Function(r0);
   
-  double phi = fmuN*flambdaL*flambdaL*(r*x + log(x/sinh(x)) - 1.0/flambdaL*y - log(y/sinh(y)));
+  double phi = fmuN*temperature*flambdaL*flambdaL*(r*x + log(x/sinh(x)) - 1.0/flambdaL*y - log(y/sinh(y)));
   phi += MeanEnergy(J);
 
   return(phi);
 }
-void ArrudaBoyce::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
+
+
+void ArrudaBoyce::DevStress(const dArrayT& lambda_bar,dArrayT& tau, double temperature)
 {
   int nsd = tau.Length();
   
   double lam_eff = sqrt(1.0/3.0*(lambda_bar[0]+lambda_bar[1]+lambda_bar[2]));
   double r = lam_eff/flambdaL;
   
-  fMu = fmuN/r*fLangevin.Function(r);
+  fMu = fmuN*temperature/r*fLangevin.Function(r);
   
   const double& l0 = lambda_bar[0];
   const double& l1 = lambda_bar[1];
@@ -84,7 +86,7 @@ void ArrudaBoyce::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
     tau[2] = fMu*third*(2.0*l2-l0-l1);
 }
 
-void ArrudaBoyce::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
+void ArrudaBoyce::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus,  double temperature)
 {
 
 	/*dtau_A/depsilon_B*/
@@ -95,7 +97,7 @@ void ArrudaBoyce::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
   double lam_eff = sqrt(1.0/3.0*(lambda_bar[0]+lambda_bar[1]+lambda_bar[2]));
   double r = lam_eff/flambdaL;
   
-  fMu = fmuN/r*fLangevin.Function(r);
+  fMu = fmuN*temperature/r*fLangevin.Function(r);
   double dMu_dleff = fmuN/(lam_eff) * (1.0/lam_eff*fLangevin.DFunction(r) - fLangevin.Function(r)/r);
 
   const double& l0 = lambda_bar[0];

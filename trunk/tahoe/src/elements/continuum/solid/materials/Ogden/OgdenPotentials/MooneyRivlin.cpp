@@ -1,4 +1,4 @@
-/* $Id: MooneyRivlin.cpp,v 1.1 2007-04-09 23:33:26 tdnguye Exp $ */
+/* $Id: MooneyRivlin.cpp,v 1.2 2009-04-23 03:22:46 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -54,7 +54,7 @@ void MooneyRivlin::TakeParameterList(const ParameterListT& list)
 }
 
 
-double MooneyRivlin::Energy(const dArrayT& lambda_bar, const double& J)
+double MooneyRivlin::Energy(const dArrayT& lambda_bar, const double& J,  double temperature)
 {
   double I1 = lambda_bar[0]+lambda_bar[1]+lambda_bar[2];
   double I2 = lambda_bar[0]*lambda_bar[1]+lambda_bar[1]*lambda_bar[2]+lambda_bar[0]*lambda_bar[2];
@@ -63,7 +63,7 @@ double MooneyRivlin::Energy(const dArrayT& lambda_bar, const double& J)
   phi += MeanEnergy(J);
   return(phi);
 }
-void MooneyRivlin::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
+void MooneyRivlin::DevStress(const dArrayT& lambda_bar,dArrayT& tau,  double temperature)
 {
   int nsd = tau.Length();
   
@@ -86,7 +86,7 @@ void MooneyRivlin::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
 	}
 }
 
-void MooneyRivlin::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
+void MooneyRivlin::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus, double temperature)
 {
   int nsd = eigenmodulus.Rows();
   double ninth = third*third;

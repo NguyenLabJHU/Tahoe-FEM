@@ -25,11 +25,11 @@ class PotentialT:public ParameterInterfaceT
 	virtual void TakeParameterList(const ParameterListT& list);
   
   /*free energy density*/
-  virtual double Energy(const dArrayT& lambda_bar,const double& J) = 0;
+  virtual double Energy(const dArrayT& lambda_bar, const double& J, double temperature = 1.0) = 0;
   
   /*Kirchoff stress measures*/
-  virtual void DevStress(const dArrayT& lambda_bar, dArrayT& tau) = 0;
-  virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus) = 0;
+  virtual void DevStress(const dArrayT& lambda_bar, dArrayT& tau, double temperature = 1.0) = 0;
+  virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus, double temperature = 1.0) = 0;
   
   /*derivative of Kirchoff stress with log strain*/
   virtual double MeanMod(const double& J);

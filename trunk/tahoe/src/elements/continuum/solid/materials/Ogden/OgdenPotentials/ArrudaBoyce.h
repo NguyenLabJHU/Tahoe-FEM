@@ -1,4 +1,4 @@
-/* $Id: ArrudaBoyce.h,v 1.1 2007-07-17 20:11:49 tdnguye Exp $ */
+/* $Id: ArrudaBoyce.h,v 1.2 2009-04-23 03:22:46 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _ArrudaBoyce_
 #define _ArrudaBoyce_
@@ -24,12 +24,12 @@ class ArrudaBoyce: public PotentialT
 	virtual void TakeParameterList(const ParameterListT& list);
 
 	/*free energy density*/
-	virtual double Energy(const dArrayT& lambda_bar,const double& J);
+	virtual double Energy(const dArrayT& lambda_bar,const double& J,  double temperature=1.0);
 
 	/*Kirchoff stress measures*/
-	virtual void DevStress(const dArrayT& lambda_bar, dArrayT& tau);
+	virtual void DevStress(const dArrayT& lambda_bar, dArrayT& tau,  double temperature=1.0);
 	/*derivative of Kirchoff stress with log strain*/
-	virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus);
+	virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus,  double temperature=1.0);
 
 	protected:
 		double GetMu (void);
