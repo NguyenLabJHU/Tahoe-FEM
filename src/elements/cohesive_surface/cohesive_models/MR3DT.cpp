@@ -1,4 +1,4 @@
-/*$Id: MR3DT.cpp,v 1.10 2009-04-17 00:39:21 skyu Exp $*/
+/*$Id: MR3DT.cpp,v 1.11 2009-04-24 15:44:21 regueiro Exp $*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR3DT.h"
 
@@ -356,6 +356,7 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				}
 
 				if (kk <= 50) {
+#if __option(extended_errorcheck)
 				mr_ep_3d_out << setw(outputFileWidth) << "**********" << endl;
 				mr_ep_3d_out << setw(outputFileWidth) << "local iteration # = " << kk << endl;
 				mr_ep_3d_out << setw(outputFileWidth) << "yield_f = " << ff
@@ -374,6 +375,7 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				mr_ep_3d_out << setw(outputFileWidth) << "qn[0] = " << qn[2] << endl;
 				mr_ep_3d_out << setw(outputFileWidth) << "qn[0] = " << qn[3] << endl;
 				mr_ep_3d_out << setw(outputFileWidth) << "**********" << endl;
+#endif
 				}
 
 				/*
@@ -568,6 +570,7 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		state[21] = dup[1];
 		state[22] = dup[2];
 
+#if __option(extended_errorcheck)
 		mr_ep_3d_out << setw(outputFileWidth) << "          " << endl;
 		mr_ep_3d_out << setw(outputFileWidth) << "----------" << endl;
 		mr_ep_3d_out << setw(outputFileWidth) << "yield_f is converged " << "     "
@@ -588,8 +591,10 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		mr_ep_3d_out << setw(outputFileWidth) << "qn[0] = " << qn[1] << endl;
 		mr_ep_3d_out << setw(outputFileWidth) << "qn[0] = " << qn[2] << endl;
 		mr_ep_3d_out << setw(outputFileWidth) << "qn[0] = " << qn[3] << endl;
+#endif
 		// Check the stiffness
 		Stiffness(jump_u, state, sigma);
+#if __option(extended_errorcheck)
 		mr_ep_3d_out << setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0] << endl;
 		mr_ep_3d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1] << endl;
 		mr_ep_3d_out << setw(outputFileWidth) << "KEP(0,2) = " << fStiffness[2] << endl;
@@ -600,6 +605,7 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		mr_ep_3d_out << setw(outputFileWidth) << "KEP(2,1) = " << fStiffness[7] << endl;
 		mr_ep_3d_out << setw(outputFileWidth) << "KEP(2,2) = " << fStiffness[8] << endl;
 		mr_ep_3d_out << setw(outputFileWidth) << "----------" << endl;
+#endif
 
 		return fTraction;
 	}
