@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 2.6)
+
+FIND_PACKAGE(ParaView REQUIRED)
+INCLUDE(${PARAVIEW_USE_FILE})
+
+ADD_PARAVIEW_PLUGIN(Ellip3dReaderSM "1.0" 
+   SERVER_MANAGER_XML serverManager.xml
+   SERVER_MANAGER_SOURCES vtkEllip3dReader.cxx)

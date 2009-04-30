@@ -1,0 +1,54 @@
+<ServerManagerConfiguration>
+   <ProxyGroup name="sources">
+
+      <SourceProxy name="Ellip3dReader" class="vtkEllip3dReader"
+                 label="Ellip3d Reader">
+
+         <IntVectorProperty
+            name="Resolution"
+            command="SetResolution"
+            number_of_elements="1"
+            default_values="16">
+         </IntVectorProperty>
+
+         <StringVectorProperty
+            name="FileName"
+            animateable="0"
+            command="SetFileName"
+            number_of_elements="1"
+            default_values="">
+            <FileListDomain name="files"/>
+         </StringVectorProperty>
+      </SourceProxy>
+
+      <FileSeriesReaderProxy name="Ellip3dSeriesReader"
+                          class="vtkFileSeriesReader"
+                          label="Ellip3d Series Reader" 
+                           file_name_method="SetFileName">
+
+         <SubProxy>
+            <Proxy name="Reader"
+               proxygroup="sources" proxyname="Ellip3dReader">
+            </Proxy>
+         </SubProxy>
+ 
+         <StringVectorProperty
+            name="FileNames"
+            clean_command="RemoveAllFileNames"
+            command="AddFileName"
+            animateable="0"
+            number_of_elements="0" 
+            repeat_command="1">
+            <FileListDomain name="files"/>
+         </StringVectorProperty>
+    
+         <DoubleVectorProperty 
+            name="TimestepValues"
+            repeatable="1"
+            information_only="1">
+            <TimeStepsInformationHelper/>
+         </DoubleVectorProperty>
+      </FileSeriesReaderProxy>
+
+   </ProxyGroup>
+</ServerManagerConfiguration>

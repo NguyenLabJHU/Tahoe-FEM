@@ -1,0 +1,81 @@
+Ellip3d Reader for ParaView
+Written by Tom Buzbee
+2-06-09
+
+INFORMATION
+-------------
+This is a plugin for ParaView, <http://paraview.org>, that will
+render output files from ellip3d.  It shows the same data as the
+older TecPlot setup, but instead of calculating the geometry and
+saving it to disk as a separate step, it reads the particle files
+directly. This can save quite a bit of disk space for larger
+simulations.
+
+The plugin automatically recognizes files with the .elp extension.
+It also recognizes a series of .els files and renders them as a
+step-by-step animation. I modified my copy of ellip3d to always use
+the .els extension for particle files.
+
+Unfortunately, ParaView doesn't really support drag-and-drop portable
+plugins.  Each user has to compile both ParaView and the plugins
+manually. I tried really hard to make a Python plugin since it would
+be portable, but there were several roadblocks I hit on the way.
+
+
+BUILDING
+-------------
+First, you need to build ParaView. Obtain the source from
+<http://paraview.org>, then follow the instructions in either the
+wiki or the included text files. The commands to build it look
+something like this:
+
+cd path/to/paraview_source
+mkdir bin
+cd bin
+ccmake ..
+-> c to configure
+-> c to configure (usually need to do it more than once)
+-> g to generate makefiles
+make
+
+If it complains about missing libraries, you probably need to install
+them separately.
+
+Building the plugin follows a similar process. First, though, you
+need to set the ParaView_DIR environment variable to point to the
+ParaView build directory. The sequence of commands should look like
+this:
+
+export ParaView_DIR="/path/to/paraview_source/bin"
+cd path/to/Ellip3dReader/Server
+mkdir bin
+cd bin
+ccmake ..
+-> c to configure
+-> c to configure (usually need to do it more than once)
+-> g to generate makefiles
+make
+
+This should generate a binary library (.so, .dylib, .dll, etc.
+depending on your platform) that you can load into ParaView.
+
+Now you need the client resources. You should be able to use the
+.bqrc file in the Client directory as-is. You can build it yourself,
+too. This requires a working Qt installation. If you have one, you
+can just issue the 'make' command in the Client directory. This
+should produce a .bqrc file you can load into ParaView.
+
+
+USAGE
+-------------
+Once you have the binary library and the .bqrc resources, you can
+load them into ParaView. This can either be done each session through
+ParaView's 'Tools > Manage Plugins' menu or automatically when it
+loads using the PV_PLUGIN_PATH environment variable. Consult the wiki
+for further details.
+
+You can open .elp or .els files with the standard 'File > Open'
+dialog. If your .els files are numbered appropriately, they will
+show up as a collapsed item in the dialog. Pick the whole group and
+it will load as an animation. You can now use the animation controls
+in the toolbar to control it.
