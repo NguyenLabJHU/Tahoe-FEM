@@ -248,7 +248,7 @@ void FSMicromorphic2DT::CloseStep(void)
 	{
 	    /* extrapolate */
 	    nd_var = 0.0;
-	    out_variable_all.Alias(fNumIP_micro, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+	    out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
 	    fShapes_displ->TopIP();
 	    while (fShapes_displ->NextIP())
 	    {
@@ -504,8 +504,8 @@ void FSMicromorphic2DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
 		    fShapes_micro->SetDerivatives();
 			
 		    //update state variables
-		    fdstatenew_all.Alias(fNumIP_micro, knum_d_state, fdState_new(CurrElementNumber()));
-		    fdstate_all.Alias(fNumIP_micro, knum_d_state, fdState(CurrElementNumber()));
+		    fdstatenew_all.Alias(fNumIP_displ, knum_d_state, fdState_new(CurrElementNumber()));
+		    fdstate_all.Alias(fNumIP_displ, knum_d_state, fdState(CurrElementNumber()));
 
 		    const double* Det    = fShapes_displ->IPDets();
 		    const double* Weight = fShapes_displ->IPWeights();
@@ -612,16 +612,16 @@ void FSMicromorphic2DT::RegisterOutput(void)
 	block_ID[i] = fBlockData[i].ID();
 
     /* output per element - strain, stress, and ISVs at the integration points */
-    ArrayT<StringT> e_labels(fNumIP_micro*(knumstrain+knumstress+knum_d_state));
+    ArrayT<StringT> e_labels(fNumIP_displ*(knumstrain+knumstress+knum_d_state));
 
     /* over integration points */
     // enter what values you need at integration points
     // stress and strain
-    const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","p","e11","e22","e33","e23","e13","e12"};
+    const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","e11","e22","e33","e23","e13","e12"};
     // state variables; ?
-    const char* svlabels3D[] = {"thing1","thing2"};
+    const char* svlabels3D[] = {"thing1","thing2","J"};
     int count = 0;
-    for (int j = 0; j < fNumIP_micro; j++)
+    for (int j = 0; j < fNumIP_displ; j++)
     {
 		StringT ip_label;
 		ip_label.Append("ip", j+1);
@@ -706,7 +706,7 @@ void FSMicromorphic2DT::WriteOutput(void)
     {
 		/* extrapolate */
 		nd_var = 0.0;
-		out_variable_all.Alias(fNumIP_micro, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+		out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
 		fShapes_displ->TopIP();
 		while (fShapes_displ->NextIP())
 		{
@@ -1050,20 +1050,14 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 	fShapes_micro->SetDerivatives(); 
 	
 	//update state variables
-	/*
 	fdstatenew_all.Alias(fNumIP_displ, knum_d_state, fdState_new(CurrElementNumber()));
 	fdstate_all.Alias(fNumIP_displ, knum_d_state, fdState(CurrElementNumber()));
-	*/
-	fdstatenew_all.Alias(fNumIP_micro, knum_d_state, fdState_new(CurrElementNumber()));
-	fdstate_all.Alias(fNumIP_micro, knum_d_state, fdState(CurrElementNumber()));
 	
 	if (bStep_Complete) 
 	{ 
 	    //-- Store/Register data in classic tahoe manner 
-	    //out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-	    out_variable_all.Alias(fNumIP_micro, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-	    //for (l=0; l < fNumIP_displ; l++) 
-	    for (l=0; l < fNumIP_micro; l++) 
+	    out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+	    for (l=0; l < fNumIP_displ; l++) 
 	    {
 			out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
 			Put_values_In_dArrayT_vector(fCauchy_stress_Elements_IPs, e,l,fTemp_six_values);
@@ -1617,7 +1611,7 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     knum_i_state = 0; // int's needed per ip, state variables
 	
     knumstrain = 6; // number of strain outputs
-    knumstress = 7; // number of stress outputs + higher order = ??
+    knumstress = 6; // number of stress outputs + higher order = ??
 	
     output = "out";
 	
@@ -1751,10 +1745,8 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
 
 	
     /* allocate state variable storage */
-    // state variables are calculated at IPs for micro-displacement-gradient field??
-    // or for displacement field??
-    //int num_ip = fNumIP_displ;
-    int num_ip = fNumIP_micro;
+    // state variables are calculated at IPs displacement field
+    int num_ip = fNumIP_displ;
     fdState_new.Dimension(n_el, num_ip*knum_d_state);
     fdState.Dimension(n_el, num_ip*knum_d_state);
     fiState_new.Dimension(n_el, num_ip*knum_i_state);
@@ -1852,13 +1844,13 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     fFd_int_smallstrain_vector.Dimension (n_en_displ_x_n_sd);
     fEulerian_strain_tensor_current_IP.Dimension (n_sd,n_sd);
     fCauchy_stress_tensor_current_IP.Dimension (n_sd,n_sd);
-    fEulerian_strain_IPs.Dimension (fNumIP_displ,6);
-    fCauchy_stress_IPs.Dimension (fNumIP_displ,6);
-    fState_variables_IPs.Dimension (fNumIP_displ,3);
+    fEulerian_strain_IPs.Dimension (fNumIP_displ,knumstrain);
+    fCauchy_stress_IPs.Dimension (fNumIP_displ,knumstress);
+    fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
     fTemp_six_values.Dimension (6);
-    fEulerian_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
-    fCauchy_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
-    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*3);
+    fEulerian_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstrain);
+    fCauchy_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstress);
+    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
     fGravity_vector.Dimension (n_sd);
     fFd_int_G4_vector.Dimension (n_en_displ_x_n_sd);
     fDefGradInv_column_matrix.Dimension (n_sd_x_n_sd,1);
@@ -1883,8 +1875,7 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     ofstreamT& out = ElementSupport().Output();
 
     /* storage for integration point strain, stress, and ISVs*/
-    //fIPVariable.Dimension (n_el, fNumIP_displ*(knumstrain+knumstress+knum_d_state));
-    fIPVariable.Dimension (n_el, fNumIP_micro*(knumstrain+knumstress+knum_d_state));
+    fIPVariable.Dimension (n_el, fNumIP_displ*(knumstrain+knumstress+knum_d_state));
     fIPVariable = 0.0;
 
     /* allocate storage for nodal forces */
