@@ -1501,11 +1501,8 @@ void FSMicromorphic2DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(ndof_per_nd_micro, "ndof_per_nd_micro");
 	
     list.AddParameter(iConstitutiveModelType, "constitutive_mod_type");
-    // type of analysis
-    list.AddParameter(kAnalysisType, "type_of_analysis_1consolidation_2dynamic");
-
-    // type of initial condition
-    list.AddParameter(kInitialConditionType, "initial_condition_1geostatic_2displ_vel_press");
+  
+    
 
     double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2, gravity_g3;
 
