@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2009-05-11 15:02:23 regueiro Exp $
+# $Id: makefile,v 1.2 2009-05-11 15:18:50 regueiro Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-FSMicromorphic2DT.o
+FSMicromorphic2DT.o \
 FSMicromorphic3DT.o
 
 OBJ_LINK = $(OBJ)
@@ -42,7 +42,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-FSMicromorphic2DT.cpp
+FSMicromorphic2DT.cpp \
 FSMicromorphic3DT.cpp
 
 ##################### (3) headers
@@ -55,7 +55,7 @@ FSMicromorphic3DT.cpp
 # HDR and HDR_LINK macro   
 #
 HDR = \
-FSMicromorphic2DT.h
+FSMicromorphic2DT.h \
 FSMicromorphic3DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
