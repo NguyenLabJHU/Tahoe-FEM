@@ -1,5 +1,8 @@
-/* $Id: ElementListT.cpp,v 1.141 2009-04-02 00:35:08 lxmota Exp $ */
+/* $Id: ElementListT.cpp,v 1.142 2009-05-11 14:24:50 regueiro Exp $ */
 /* $Log: not supported by cvs2svn $
+/* Revision 1.141  2009/04/02 00:35:08  lxmota
+/* Changed symbol name for mixed Hu-Washizu element.
+/*
 /* Revision 1.140  2008/12/12 01:00:38  lxmota
 /* Add support for neohookean elasticity with simple damage model.
 /*
@@ -197,6 +200,11 @@
 
 #ifdef SOLID_FLUID_MIX_DEV
 #include "FSSolidFluidMixT.h"
+#endif
+
+#ifdef MICROMORPHIC_DEV
+#include "FSMicromorphic2DT.h"
+#include "FSMicromorphic3DT.h"
 #endif
 
 using namespace Tahoe;
@@ -445,6 +453,11 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 
 #ifdef SOLID_FLUID_MIX_DEV
 		sub_lists.AddSub("total_lagrangian_solid_fluid_mix");
+#endif
+
+#ifdef MICROMORPHIC_DEV
+		sub_lists.AddSub("micromorphic_FS_2D");
+		sub_lists.AddSub("micromorphic_FS_3D");
 #endif
 
 	}
@@ -733,6 +746,13 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef SOLID_FLUID_MIX_DEV
 	else if (name == "total_lagrangian_solid_fluid_mix")
 	  return new FSSolidFluidMixT(fSupport);
+#endif
+
+#ifdef MICROMORPHIC_DEV
+	else if (name == "micromorphic_FS_2D")
+	  return new FSMicromorphic2DT(fSupport);
+	else if (name == "micromorphic_FS_3D")
+	  return new FSMicromorphic3DT(fSupport);
 #endif
 
 	/* default */
