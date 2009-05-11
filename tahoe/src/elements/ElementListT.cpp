@@ -1,5 +1,9 @@
-/* $Id: ElementListT.cpp,v 1.142 2009-05-11 14:24:50 regueiro Exp $ */
+/* $Id: ElementListT.cpp,v 1.143 2009-05-11 21:43:28 regueiro Exp $ */
 /* $Log: not supported by cvs2svn $
+/* Revision 1.142  2009/05/11 14:24:50  regueiro
+/*
+/* adding micromorphic element option
+/*
 /* Revision 1.141  2009/04/02 00:35:08  lxmota
 /* Changed symbol name for mixed Hu-Washizu element.
 /*
@@ -205,6 +209,10 @@
 #ifdef MICROMORPHIC_DEV
 #include "FSMicromorphic2DT.h"
 #include "FSMicromorphic3DT.h"
+#endif
+
+#ifdef XFEM_DEV
+#include "SSXfem2DT.h"
 #endif
 
 using namespace Tahoe;
@@ -458,6 +466,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef MICROMORPHIC_DEV
 		sub_lists.AddSub("micromorphic_FS_2D");
 		sub_lists.AddSub("micromorphic_FS_3D");
+#endif
+
+#ifdef XFEM_DEV
+		sub_lists.AddSub("xfem_SS_2D");
 #endif
 
 	}
@@ -753,6 +765,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	  return new FSMicromorphic2DT(fSupport);
 	else if (name == "micromorphic_FS_3D")
 	  return new FSMicromorphic3DT(fSupport);
+#endif
+
+#ifdef XFEM_DEV
+	else if (name == "xfem_SS_2D")
+	  return new SSXfem2DT(fSupport);
 #endif
 
 	/* default */
