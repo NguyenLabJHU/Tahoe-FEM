@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.24 2007-05-29 14:04:49 ebrahimi Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.25 2009-05-18 16:35:30 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -36,8 +36,8 @@ class StringT;
 /** FSSolidFluidMixT: This class contains a coupled finite deformation solid fluid
  * Total Lagrangian formulation in 3D.  It is assumed the mixture is saturated with 
  * the fluid phase, and that the solid and fluid phases are incompressible, whereas
- * the mixture is not.  Currently, the implementation is limited to a simple 
- * hyper-viscoelastic constitutive model.
+ * the mixture is not.  Currently, this implementation is limited to a simple 
+ * hyper-elastic, pressure-sensitive, cap plasticity model.
  **/
 
 class FSSolidFluidMixT: public ElementBaseT
@@ -48,18 +48,55 @@ public:
 	enum fMaterial_T 	{ 
 	    kMu,
 	    kLambda,
-	    kAlpha,
 	    kRho_sR0,
 	    kRho_fR0,
 	    kPhi_s0,
 	    kPhi_f0,
+	    //bulk modulus for fluid
 	    kKf,
+	    //permeability
 	    kK,
+	    //gravity
 	    kg,
 	    kg1,
 	    kg2,
 	    kg3,
-	    kNUM_FMATERIAL_TERMS	};
+	    //for plasticity
+	    kalphak,
+	    kHk,
+	    kHc,
+	    kPhi,
+	    kPsi,
+	    kR,
+	    kBeta,
+	    kkappa0,
+	    kc0,
+	    kZ0k,
+	    kZ0c,
+	    kAphi,
+	    kBphi,
+	    kApsi,
+	    kBpsi,
+	    kNUM_FMATERIAL_TERMS
+	};
+	
+	enum fMaterialState_T 	{ 
+	    kkappa,
+	    kc,
+	    kZkappa,
+	    kZc,
+	    khkappa,
+	    khc,
+	    kIntrinsic_Perm,
+	    kJ,
+	    kJp,
+	    kphi_s,
+	    kphi_f,
+	    kDevSS,
+	    kMeanS,
+	    kEpsVolp,
+	    kNUM_FMATERIAL_STATE_TERMS
+	};
 									
 //	enum fIntegrate_T 	{ 
 //	    kBeta,
@@ -67,7 +104,7 @@ public:
 //	    kNUM_FINTEGRATE_TERMS	};								
 
 	/** constructor */
-	FSSolidFluidMixT(	const ElementSupportT& support );				
+	FSSolidFluidMixT( const ElementSupportT& support );				
 
 	/** destructor */
 	~FSSolidFluidMixT(void);
@@ -213,9 +250,9 @@ private:
 	/** Gradients and other matrices */
 	dMatrixT fgrad_u, fgrad_u_n;
 	dArrayT fgrad_theta, fgrad_theta_n;
-
 	
-	dMatrixT fShapeSolid, fShapeSolidGrad, fShapeSolidGrad_t,fShapeSolidGrad_t_Transpose, fShapeSolidGradGrad, fShapeSolidGrad_temp;
+	dMatrixT fShapeSolid, fShapeSolidGrad, fShapeSolidGrad_t,fShapeSolidGrad_t_Transpose;
+	dMatrixT fShapeSolidGradGrad, fShapeSolidGrad_temp;
 	dArrayT fShapeFluid;
 	dMatrixT fShapeFluidGrad;
 	
@@ -229,8 +266,9 @@ private:
 	int fGeometryCode_displ_int, fGeometryCodeSurf_displ_int;
 
 	/** number of integration points */
-	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_press, fNumIPSurf_press, 
-	    knum_d_state, knum_i_state, knumstress, knumstrain, num_sidesets,kAnalysisType,kInitialConditionType;
+	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_press, fNumIPSurf_press;
+	int knum_d_state, knum_i_state, knumstress, knumstrain, num_sidesets;
+	int kAnalysisType, kInitialConditionType;
 
 	/*@}*/
 
@@ -258,7 +296,6 @@ private:
 	dArrayT		press_vec;	// fluid pressure in vector form
 	dArrayT		press_dot_vec;	// first derivative of fluid pressure in vector form
 	dArrayT		press_dotdot_vec;	// second derivative of fluid pressure in vector form
-
 	/*@}*/
 
 	// problem size definitions
@@ -273,15 +310,14 @@ private:
 	
 	dArrayT fForces_at_Node;
 	bool bStep_Complete;
- 	double time, kappa;
+	
+ 	double time;
  	
- 	void Get_Fd_ext 	( dArrayT &fFd_ext );
+ 	void Get_Fd_ext ( dArrayT &fFd_ext );
 	
 	//-- Material Parameters 
 	dArrayT fMaterial_Params;
 	double fRho_0,fRho_f,fRho;
-
-
 	double fC1,fC2,fC3;
 	
 	//-- Newmark Time Integration Parameters 
@@ -310,38 +346,45 @@ private:
 
 	dArrayT		fGrad_disp_vector;
 	dArrayT 	fDefGradInv_vector;
-	dArrayT 	fEffective_Kirchhoff_vector_inviscid;
-	dArrayT 	fEffective_Second_Piola_vector_viscous;
-        dArrayT	        fChi_temp_vector;
-        dArrayT	        fFd_int_N1_vector;
-        dArrayT	        fFd_int_N2_vector;
-        dArrayT	        fFd_int_M_vector;
-        dArrayT	        fFd_int_C_vector;
-        dArrayT	        fTemp_vector_ndof_se;
-        dArrayT         fFtheta_int_N1_vector;
-        dArrayT         fFtheta_int_N2_vector;
-        dArrayT         fFtheta_int_M_vector;
-        dArrayT         fFtheta_int_C1_vector;
-        dArrayT         fFtheta_int_C2_vector;
-        dArrayT         fTemp_vector_nen_press;
-        dArrayT         fTemp_vector_9x1;
-        dArrayT	        fPi_temp_transpose_vector;
-        dArrayT	        fGrad_Omega_vector;
-        dArrayT	        fgrad_Omega_vector;
-        dArrayT	        fGrad_theta_vector;
-        dArrayT	        fGrad_phi_f_vector;
-        dArrayT	        fGrad_1_J_vector;
-        dArrayT	        fTemp_nsd_vector;
-        dArrayT	        fFd_int_smallstrain_vector;
-        dArrayT	        fGravity_vector;
-        dArrayT	        fFd_int_G4_vector;
-        dArrayT	        fFtheta_int_H4_vector;
-        dArrayT         fTemp_six_values;
-        dArrayT         fGradv_vector;
-        dArrayT         fgradv_vector;
-        dArrayT         fP0_temp_value;
+	dArrayT		fChi_temp_vector;
+	dArrayT		fFd_int_N1_vector;
+	dArrayT		fFd_int_N2_vector;
+	dArrayT		fFd_int_M_vector;
+	dArrayT		fFd_int_C_vector;
+	dArrayT		fTemp_vector_ndof_se;
+	dArrayT		fFtheta_int_N1_vector;
+	dArrayT		fFtheta_int_N2_vector;
+	dArrayT		fFtheta_int_M_vector;
+	dArrayT		fFtheta_int_C1_vector;
+	dArrayT		fFtheta_int_C2_vector;
+	dArrayT		fTemp_vector_nen_press;
+	dArrayT		fTemp_vector_9x1;
+	dArrayT		fPi_temp_transpose_vector;
+	dArrayT		fGrad_Omega_vector;
+	dArrayT		fgrad_Omega_vector;
+	dArrayT		fGrad_Omega_prim_vector;
+	dArrayT		fgrad_Omega_prim_vector;
+	dArrayT		fGrad_theta_vector;
+	dArrayT		fGrad_phi_f_vector;
+	dArrayT		fGrad_1_J_vector;
+	dArrayT		fTemp_nsd_vector;
+	dArrayT		fGravity_vector;
+	dArrayT		fFd_int_G4_vector;
+	dArrayT		fFtheta_int_H4_vector;
+	dArrayT		fTemp_six_values;
+	dArrayT		fGradv_vector;
+	dArrayT		fgradv_vector;
+	dArrayT		fP0_temp_value;
 
+	//stress
+	dArrayT 	fEffective_Kirchhoff_vector;
+	dMatrixT	fEffective_Kirchhoff_tensor;
+	dMatrixT	fEffective_Second_Piola_tensor;
+	dMatrixT	fDev_Effective_Second_Piola_tensor;
+	dMatrixT	fTrial_Effective_Second_Piola_tensor;
+	dMatrixT	fTrial_Dev_Effective_Second_Piola_tensor;
 	
+	//F, Finv
 	dMatrixT	fDeformation_Gradient;
 	dMatrixT	fDefGradT_9x9_matrix;
 	dMatrixT	fRight_Cauchy_Green_tensor;
@@ -350,93 +393,92 @@ private:
 	dMatrixT	fLeft_Cauchy_Green_tensor_Inverse;
 	dMatrixT	fDeformation_Gradient_Inverse;
 	dMatrixT	fDeformation_Gradient_Transpose;
-	dMatrixT        fDeformation_Gradient_Inverse_Transpose;
+	dMatrixT	fDeformation_Gradient_Inverse_Transpose;
 	dMatrixT	fDefGradInv_Grad_grad;
 	dMatrixT	fDefGradInv_Grad_grad_Transpose;
 	dMatrixT	fIdentity_matrix;
-        dMatrixT	fEffective_Second_Piola_tensor_inviscid;
-        dMatrixT	fEffective_Second_Piola_tensor_viscous;
-        dMatrixT	fTemp_matrix_nsd_x_nsd;
-        dMatrixT	fTemp_matrix_nen_press_x_nsd;
-        dMatrixT	fTemp_matrix_nen_press_x_nen_press;
-        dMatrixT	fTemp_matrix_nsd_x_1;
-        dMatrixT	fTemp_matrix_nen_press_x_1;
-        dMatrixT	fTemp_matrix_nen_press_x_ndof_se;
-        dMatrixT	fTemp_matrix_ndof_se_x_ndof_se;
-        dMatrixT	fTemp_matrix1_ndof_se_x_ndof_se;
-        dMatrixT	fTemp_matrix_ndof_se_x_nen_press;
-        dMatrixT	fTemp_matrix1_nen_press_x_ndof_se;
-        dMatrixT	fTemp_matrix_nsd_x_ndof_se;
-        dMatrixT	fTemp_matrix_nsd_x_nen_press;
-        dMatrixT	fEffective_Kirchhoff_tensor_inviscid;
-        dMatrixT	fEffective_Kirchhoff_tensor_viscous;
-        dMatrixT	fEffective_Kirchhoff_tensor;
-        dMatrixT	fIota_temp_matrix;
-        dMatrixT	fVarpi_temp_matrix;
-        /* current coordinate hydraulic conductivity */
-        dMatrixT	fk_hydraulic_conductivity_matrix;
-        /* reference coordinate hydraulic conductivity */
-        dMatrixT	fK_hydraulic_conductivity_matrix; 
-        dMatrixT	fLambda_temp_matrix;
-        dMatrixT	fIm_temp_matrix;
-        dMatrixT	fHbar_temp_matrix;
-        dMatrixT	fEll_temp_matrix;
-        dMatrixT	fPi_temp_row_matrix;
-        dMatrixT	fK_dd_G3_1_matrix;
-        dMatrixT	fK_dd_G3_2_matrix;
-        dMatrixT	fK_dd_G3_3_matrix;
-        dMatrixT	fK_dd_G3_4_matrix;
-        dMatrixT	fK_dd_G3_5_matrix;
-        dMatrixT	fK_dd_G1_1_matrix;
-        dMatrixT	fK_dd_G1_2_matrix;
-        dMatrixT	fK_dd_G2_1_matrix;
-        dMatrixT	fK_dd_G2_2_matrix;
-        dMatrixT	fK_dd_G2_3_matrix;
-        dMatrixT	fK_dd_G2_4_matrix;
-        dMatrixT	fK_dd_G4_matrix;
-        dMatrixT	fK_dtheta_G3_matrix;
-        dMatrixT	fK_dtheta_G1_matrix;
-        dMatrixT	fK_dtheta_G4_matrix;
-        dMatrixT	fI_ij_column_matrix;
-        dMatrixT	fShapeFluid_row_matrix;
-        dMatrixT	fJmath_temp_matrix;
-        dMatrixT	fWp_temp_matrix;
-        dMatrixT	fK_thetad_H3_1_matrix;
-        dMatrixT	fK_thetad_H3_2_matrix;
-        dMatrixT	fK_thetad_H3_3_matrix;
-        dMatrixT	fK_thetad_H3_4_matrix;
-        dMatrixT	fK_thetad_H1_1_matrix;
-        dMatrixT	fK_thetad_H1_2_matrix;
-        dMatrixT	fK_thetad_H1_3_matrix;
-        dMatrixT	fK_thetad_H1_4_matrix;
-        dMatrixT	fK_thetad_H2_1_matrix;
-        dMatrixT	fK_thetad_H2_2_matrix;
-        dMatrixT	fK_thetad_H2_3_matrix;
-        dMatrixT	fK_thetad_H2_4_matrix;
-        dMatrixT	fK_thetad_H2_5_matrix;
-        dMatrixT	fK_thetad_H4_1_matrix;
-        dMatrixT	fK_thetad_H4_2_matrix;
-        dMatrixT	fK_thetad_H4_3_matrix;
-        dMatrixT	fK_thetatheta_H3_1_matrix;
-        dMatrixT	fK_thetatheta_H3_2_matrix;
-        dMatrixT	fK_thetatheta_H1_matrix;
-        dMatrixT	fK_thetatheta_H2_1_matrix;
-        dMatrixT	fK_thetatheta_H2_2_matrix;
-        dMatrixT	fK_thetatheta_H2_3_matrix;
-        dMatrixT	fK_thetatheta_H4_matrix;
-        dMatrixT	fChi_temp_column_matrix;
-        dMatrixT	fc_matrix;
-        dMatrixT	fC_matrix;
-        dMatrixT	fIm_Prim_temp_matrix;
-        dMatrixT	fB_matrix;
-        dMatrixT	fD_matrix;
-        dMatrixT	fK_dd_BTDB_matrix;
-        dMatrixT	fM_dd_matrix;
-        dMatrixT	fM_thetad_matrix;
-        dMatrixT	fUpsilon_temp_matrix;
-        dMatrixT	fC_dd_matrix;
-        dMatrixT	fC_thetatheta_matrix;
-        dMatrixT	fC_thetad_matrix;
+	
+	//for plasticity
+	dMatrixT	fFp_n,fFp,fdGdS_n,fdGdS;
+	dMatrixT 	fFp_n_Inverse,fFp_Inverse;
+	dMatrixT 	fFe_tr,fFe;
+	dMatrixT 	fFe_tr_Transpose, fFe_Transpose, fFe_Transpose_Inverse;
+	dMatrixT	fTrial_Elastic_Right_Cauchy_Green_tensor,fElastic_Right_Cauchy_Green_tensor;
+	dMatrixT	fTrial_Elastic_Right_Cauchy_Green_tensor_Inverse,fElastic_Right_Cauchy_Green_tensor_Inverse;
+	dMatrixT	dDevSdDelgamma, dSdDelgamma, dFedDelgamma, dCedDelgamma;
+
+	dMatrixT	fTemp_matrix_nsd_x_nsd;
+	dMatrixT	fTemp_matrix_nen_press_x_nsd;
+	dMatrixT	fTemp_matrix_nen_press_x_nen_press;
+	dMatrixT	fTemp_matrix_nsd_x_1;
+	dMatrixT	fTemp_matrix_nen_press_x_1;
+	dMatrixT	fTemp_matrix_nen_press_x_ndof_se;
+	dMatrixT	fTemp_matrix_ndof_se_x_ndof_se;
+	dMatrixT	fTemp_matrix1_ndof_se_x_ndof_se;
+	dMatrixT	fTemp_matrix_ndof_se_x_nen_press;
+	dMatrixT	fTemp_matrix1_nen_press_x_ndof_se;
+	dMatrixT	fTemp_matrix_nsd_x_ndof_se;
+	dMatrixT	fTemp_matrix_nsd_x_nen_press;
+	dMatrixT	fIota_temp_matrix;
+	dMatrixT	fVarpi_temp_matrix;
+	dMatrixT	fk_hydraulic_conductivity_matrix; //current config
+	dMatrixT	fK_hydraulic_conductivity_matrix; //ref config
+	dMatrixT	fLambda_temp_matrix;
+	dMatrixT	fIm_temp_matrix;
+	dMatrixT	fHbar_temp_matrix;
+	dMatrixT	fEll_temp_matrix;
+	dMatrixT	fPi_temp_row_matrix;
+	dMatrixT	fK_dd_G3_1_matrix;
+	dMatrixT	fK_dd_G3_2_matrix;
+	dMatrixT	fK_dd_G3_3_matrix;
+	dMatrixT	fK_dd_G3_4_matrix;
+	dMatrixT	fK_dd_G3_5_matrix;
+	dMatrixT	fK_dd_G1_1_matrix;
+	dMatrixT	fK_dd_G1_2_matrix;
+	dMatrixT	fK_dd_G4_matrix;
+	dMatrixT	fK_dtheta_G3_matrix;
+	dMatrixT	fK_dtheta_G1_matrix;
+	dMatrixT	fK_dtheta_G4_matrix;
+	dMatrixT	fI_ij_column_matrix;
+	dMatrixT	fShapeFluid_row_matrix;
+	dMatrixT	fJmath_temp_matrix;
+	dMatrixT	fWp_temp_matrix;
+	dMatrixT	fJmath_prim_temp_matrix;
+	dMatrixT	fWp_prim_temp_matrix;
+	dMatrixT	fK_thetad_H3_1_matrix;
+	dMatrixT	fK_thetad_H3_2_matrix;
+	dMatrixT	fK_thetad_H3_3_matrix;
+	dMatrixT	fK_thetad_H3_4_matrix;
+	dMatrixT	fK_thetad_H3_5_matrix;
+	dMatrixT	fK_thetad_H1_1_matrix;
+	dMatrixT	fK_thetad_H1_2_matrix;
+	dMatrixT	fK_thetad_H1_3_matrix;
+	dMatrixT	fK_thetad_H1_4_matrix;
+	dMatrixT	fK_thetad_H2_1_matrix;
+	dMatrixT	fK_thetad_H2_2_matrix;
+	dMatrixT	fK_thetad_H2_3_matrix;
+	dMatrixT	fK_thetad_H2_4_matrix;
+	dMatrixT	fK_thetad_H2_5_matrix;
+	dMatrixT	fK_thetad_H4_1_matrix;
+	dMatrixT	fK_thetad_H4_2_matrix;
+	dMatrixT	fK_thetad_H4_3_matrix;
+	dMatrixT	fK_thetatheta_H3_1_matrix;
+	dMatrixT	fK_thetatheta_H3_2_matrix;
+	dMatrixT	fK_thetatheta_H3_3_matrix;
+	dMatrixT	fK_thetatheta_H1_matrix;
+	dMatrixT	fK_thetatheta_H2_1_matrix;
+	dMatrixT	fK_thetatheta_H2_2_matrix;
+	dMatrixT	fK_thetatheta_H2_3_matrix;
+	dMatrixT	fK_thetatheta_H4_matrix;
+	dMatrixT	fChi_temp_column_matrix;
+	dMatrixT	fc_matrix;
+	dMatrixT	fC_matrix;
+	dMatrixT	fIm_Prim_temp_matrix;
+	dMatrixT	fM_dd_matrix;
+	dMatrixT	fM_thetad_matrix;
+	dMatrixT	fUpsilon_temp_matrix;
+	dMatrixT	fC_thetatheta_matrix;
+	dMatrixT	fC_thetad_matrix;
 	dMatrixT 	fDefGradInv_column_matrix;
 	dMatrixT 	fDefGradInv_column_matrix_Transpose;
 	dMatrixT	u_dotdot_column_matrix;        
@@ -451,29 +493,43 @@ private:
 	dMatrixT	fImath_temp_matrix;  
 	dMatrixT	fPf_0_matrix;   
 
-
-        /* to store fEulerian_effective_strain_tensor_current_IP */
-        dMatrixT	fEulerian_effective_strain_tensor_current_IP;
-        /* to store fEulerian_effective_strain_IPs for each of the 27 IPs of each element */
-        dArray2DT	fEulerian_effective_strain_IPs;
-        /* to store fCauchy_effective_stress_tensor_current_IP */
-        dMatrixT	fCauchy_effective_stress_tensor_current_IP;
-        /* to store fCauchy_effective_stress_IPs for each of the 27 IPs of each element */
-        dArray2DT	fCauchy_effective_stress_IPs;
-        /* to store fPhysical_pore_water_pressure_IPs for each of the 27 IPs of each element */
-        dArray2DT	fPhysical_pore_water_pressure_IPs;
-        /* volume fractions of the solid phase and fluid phase for each of the 27 IP nodes of element is stored */
-        dArray2DT	fState_variables_IPs;
-        dArray2DT	fEulerian_effective_strain_Elements_IPs;
-        dArray2DT	fCauchy_effective_stress_Elements_IPs;
-        dArray2DT	fPhysical_pore_water_pressure_Elements_IPs;
-        dArray2DT	fState_variables_Elements_IPs;
-
-
-
-
-
-        double          phi_s,phi_f,theta;
+	//store at IPs
+	dMatrixT	fEulerian_effective_strain_tensor_current_IP;
+	dArray2DT	fEulerian_effective_strain_IPs;
+	dArray2DT	fEulerian_effective_strain_Elements_IPs;
+	dMatrixT	fCauchy_effective_stress_tensor_current_IP;
+	dArray2DT	fCauchy_effective_stress_IPs;
+	dArray2DT	fCauchy_effective_stress_Elements_IPs;
+	dArray2DT	fPhysical_pore_water_pressure_IPs;
+	dArray2DT	fPhysical_pore_water_pressure_Elements_IPs;
+	dArray2DT	fState_variables_IPs;
+	dArray2DT	fState_variables_Elements_IPs;
+	dArray2DT	fState_variables_n_IPs;
+	dArray2DT	fState_variables_n_Elements_IPs;
+	dArray2DT	fFp_IPs;
+	dArray2DT	fFp_Elements_IPs;
+	dArray2DT	fFp_n_IPs;
+	dArray2DT	fFp_n_Elements_IPs;
+	dArray2DT	fdGdS_IPs;
+	dArray2DT	fdGdS_Elements_IPs;
+	dArray2DT	fdGdS_n_IPs;
+	dArray2DT	fdGdS_n_Elements_IPs;
+	
+	double phi_s, phi_f, theta;
+	
+	/* for plasticity solution */
+	double meanstress_tr, meanstress, devstress_inprod_tr, devstress_inprod;
+	double fXphi, fXphi_n, fXphi_m_kappa, fMacFunc, fFphicap_tr, fFphicap, fF_tr, fF;
+	int iter_count, global_iteration;
+	double fXpsi, fXpsi_m_kappa, fFpsicap;
+	double fCpsi, fDelgamma, signMacFunc, fdelDelgamma, dfFdDelgamma;
+	double fTemp_scalar, dMeanStressdDelgamma;
+	double dFphicapdDelgamma, dXphikappadDelgamma, dkappadDelgamma, dAphidDelgamma;
+	double Je, Je_tr, Jp;
+	
+	/* for local Newton-Raphson iteration */
+	int iIterationMax;
+	double dRelTol, dAbsTol;
 
 	/** the solid displacement field */
 	const FieldT* fDispl;
@@ -547,42 +603,41 @@ private:
 	/** write output for debugging */
 	/*@{*/
 	/** output file stream */
-	ofstreamT fs_mix_out;
+	ofstreamT fs_plast_mix_out;
 	
 	/** line output formating variables */
 	int outputPrecision, outputFileWidth;
 	/*@}*/
 
 	void Form_solid_shape_functions(const double* &shapes_displ_X);
-        void Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeSolidGrad_temp);
-        void Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeSolidGrad_temp);
-        void Form_fluid_shape_functions(const double* &shapes_press_X);
-        void Form_deformation_gradient_tensor(void);
-        void Form_Grad_grad_transformation_matrix(void);
-        void Form_fDefGradT_9x9_matrix(void);
-        void Form_deformation_gradient_inv_vector(void);
-        void Form_effective_kirchhoff_stress_vector_inviscid(void);
-        void Form_fEffective_Second_Piola_tensor_viscous(const double& fAlpha);
-        void Form_Varpi_temp_matrix(void);
-        void Form_Im_temp_matrix(void);
-        void Form_Hbar_temp_matrix(void);
-        void Form_Ell_temp_matrix(void);
-        void Form_Jmath_temp_matrix(void);
-        void Form_Wp_temp_matrix(void);
-        void Form_C_matrix(const double& J_Prim);
-        void Form_c_matrix(void);
-        void Form_Im_Prim_temp_matrix(void);
-        void Form_D_matrix(void);
-        void Form_B_matrix(void);
-        void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
-        void Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
-        void Form_gradv_vector(void);
-        void Form_Xi_temp_matrix(void);
-        void Form_Varsigma_temp_matrix(void);
-        void Form_I_ijkl_matrix(void);
-        void Form_Aleph_temp_matrix(const int& IP);
-        void Form_Imath_temp_matrix(void);
-        void Compute_norm_of_array(double& norm,const LocalArrayT& B);
+	void Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeSolidGrad_temp);
+	void Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeSolidGrad_temp);
+	void Form_fluid_shape_functions(const double* &shapes_press_X);
+	void Form_deformation_gradient_tensor(void);
+	void Form_Grad_grad_transformation_matrix(void);
+	void Form_fDefGradT_9x9_matrix(void);
+	void Form_deformation_gradient_inv_vector(void);
+	void Form_effective_kirchhoff_stress_vector(void);
+	void Form_Varpi_temp_matrix(void);
+	void Form_Im_temp_matrix(void);
+	void Form_Hbar_temp_matrix(void);
+	void Form_Ell_temp_matrix(void);
+	void Form_Jmath_temp_matrix(void);
+	void Form_Wp_temp_matrix(void);
+	void Form_Jmath_prim_temp_matrix(void);
+	void Form_Wp_prim_temp_matrix(void);
+	void Form_C_matrix(const double& J_Prim);
+	void Form_c_matrix(void);
+	void Form_Im_Prim_temp_matrix(void);
+	void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
+	void Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
+	void Form_gradv_vector(void);
+	void Form_Xi_temp_matrix(void);
+	void Form_Varsigma_temp_matrix(void);
+	void Form_I_ijkl_matrix(void);
+	void Form_Aleph_temp_matrix(const int& IP);
+	void Form_Imath_temp_matrix(void);
+	void Compute_norm_of_array(double& norm,const LocalArrayT& B);
 
 protected:
 
