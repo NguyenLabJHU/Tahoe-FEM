@@ -1506,9 +1506,11 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			    				+ fDelgamma*fState_variables_n_IPs(IP,khkappa);
 				    		fState_variables_IPs(IP,kZc) = fState_variables_n_IPs(IP,kZc) 
 				    			+ fDelgamma*fState_variables_n_IPs(IP,khc);
-							fState_variables_IPs(IP,kkappa) = fMaterial_Params[kHk]*fState_variables_IPs(IP,kZkappa);
-				    		fState_variables_IPs(IP,kc) = fMaterial_Params[kHc]*fState_variables_IPs(IP,kZc);
-						if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
+				    		fState_variables_IPs(IP,kkappa) = fState_variables_n_IPs(IP,kkappa) 
+			    				+ fDelgamma*fState_variables_n_IPs(IP,khkappa)*fMaterial_Params[kHk];
+				    		fState_variables_IPs(IP,kc) = fState_variables_n_IPs(IP,kc) 
+				    			+ fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+							if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
 			    			
 			    			/* update fFp */
 			    			fTemp_matrix_nsd_x_nsd.SetToScaled(fDelgamma,fdGdS_n); 
@@ -2516,10 +2518,10 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kalphak] = list.GetParameter("alpha_k");
     fMaterial_Params[kkappa0] = list.GetParameter("kappa0");
     fMaterial_Params[kHk] = -fMaterial_Params[kalphak]*fMaterial_Params[kkappa0];
-    fMaterial_Params[kZ0k] = -1/fMaterial_Params[kalphak];
+    fMaterial_Params[kZ0k] = 0.0;
     fMaterial_Params[kHc] = list.GetParameter("H_c");
     fMaterial_Params[kc0] = list.GetParameter("c0");
-    fMaterial_Params[kZ0c] = fMaterial_Params[kc0]/fMaterial_Params[kHc];
+    fMaterial_Params[kZ0c] = 0.0;
     fMaterial_Params[kPhi] = list.GetParameter("Phi");
     fMaterial_Params[kPsi] = list.GetParameter("Psi");
     fMaterial_Params[kR] = list.GetParameter("R");
