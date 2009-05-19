@@ -655,7 +655,7 @@ void FSSolidFluidMixT::RegisterOutput(void)
     // stress and strain:
     const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","p_f","e11","e22","e33","e23","e13","e12"};
     // state variables:
-    const char* svlabels3D[] = {"phi_s","phi_f","J","k","kappa","c","p_prime","sdev_sdev"};
+    const char* svlabels3D[] = {"phi_s","phi_f","J","k","kappa","c","p_prime","sdev_sdev","eps_vol_p"};
     int count = 0;
     for (int j = 0; j < fNumIP_displ; j++)
     {
@@ -1147,7 +1147,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				out_variable[6]=fPhysical_pore_water_pressure_Elements_IPs(e,l);
 				Put_values_In_dArrayT_vector(fEulerian_effective_strain_Elements_IPs, e,l,fTemp_six_values);
 				out_variable.CopyIn(7,fTemp_six_values);
-				//"phi_s","phi_f","J","k","kappa","c","p_prime","sdev_sdev"
+				//"phi_s","phi_f","J","k","kappa","c","p_prime","sdev_sdev","eps_vol_p"
 				out_variable[13]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kphi_s);
 				out_variable[14]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kphi_f);
 				out_variable[15]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kJ);
@@ -1156,6 +1156,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				out_variable[18]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc);
 				out_variable[19]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kMeanS);
 				out_variable[20]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDevSS);
+				out_variable[21]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kEpsVolp);
 		    } 
 		}
 		else 
@@ -2546,9 +2547,9 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
 	
 	/* evolving volume fractions for solid and fluid phases and Jacobian and permeability are 
 	   printed as internal state variables 
-	   {"phi_s","phi_f","J","k","kappa","c","p_prime","sdev_sdev"}
+	   {"phi_s","phi_f","J","k","kappa","c","p_prime","sdev_sdev","eps_vol_p"}
 	 */
-    knum_d_state = 8; 
+    knum_d_state = 9; 
     knum_i_state = 0; // int's needed per ip, state variables
 	
     knumstrain = 6; // number of strain outputs
