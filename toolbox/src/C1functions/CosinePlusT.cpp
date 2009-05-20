@@ -1,4 +1,4 @@
-/* $Id: CosinePlusT.cpp,v 1.1 2009-05-20 17:48:26 regueiro Exp $ */
+/* $Id: CosinePlusT.cpp,v 1.2 2009-05-20 21:09:17 regueiro Exp $ */
 #include "CosinePlusT.h"
 #include "dArrayT.h"
 #include <math.h>
@@ -38,7 +38,7 @@ CosinePlusT::CosinePlusT(void):
 /** evaluate function */
 double CosinePlusT::Function(double x) const
 {
-	return fa + fb*cos(fc*x) + fd*sin(fe*x) + ff*x*cos(fg*x) + fp*x*cos(fq*x);
+	return fa + fb*cos(fc*x) + fd*sin(fe*x) + ff*x*cos(fg*x) + fp*x*sin(fq*x);
 }
 
 /** evaluate first derivative function */
@@ -70,7 +70,7 @@ dArrayT& CosinePlusT::MapFunction(const dArrayT& in, dArrayT& out) const
 	{
 		double r = *x++;
 		
-		*y++ = fa + fb*cos(fc*r) + fd*sin(fe*r) + ff*r*cos(fg*r) + fp*r*cos(fq*r);
+		*y++ = fa + fb*cos(fc*r) + fd*sin(fe*r) + ff*r*cos(fg*r) + fp*r*sin(fq*r);
 	}
 
 	return out;
