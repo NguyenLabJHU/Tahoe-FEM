@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.31 2007-03-08 19:07:27 tdnguye Exp $
+# $Id: makefile,v 1.32 2009-05-20 17:48:26 regueiro Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -42,6 +42,7 @@ OBJ = \
 	PiecewiseLinearT.o \
 	PowerLawT.o\
 	CosineT.o \
+	CosinePlusT.o \
         InvLangevin.o
 
 OBJ_LINK = $(OBJ)
@@ -84,6 +85,7 @@ SRC = \
 	PiecewiseLinearT.cpp \
 	PowerLawT.cpp \
 	CosineT.cpp \
+	CosinePlusT.cpp \
         InvLangevin.cpp
 
 ##################### (3) headers
@@ -117,6 +119,7 @@ HDR = \
 	PiecewiseLinearT.h \
 	PowerLawT.h \
 	CosineT.h \
+	CosinePlusT.h \
         InvLangevin.h
 
 HDR_LINK = $(HDR:.h=.h_link)
