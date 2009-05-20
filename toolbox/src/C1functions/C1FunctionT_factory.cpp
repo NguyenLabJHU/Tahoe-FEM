@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT_factory.cpp,v 1.8 2004-06-29 16:15:43 paklein Exp $ */
+/* $Id: C1FunctionT_factory.cpp,v 1.9 2009-05-20 17:49:00 regueiro Exp $ */
 #include "C1FunctionT.h"
 #include <string.h>
 
@@ -16,6 +16,7 @@
 #include "GaoVicky.h"
 #include "SF2.h"
 #include "CosineT.h"
+#include "CosinePlusT.h"
 
 using namespace Tahoe;
 
@@ -48,6 +49,8 @@ C1FunctionT* C1FunctionT::New(const char* name)
 		return new SF2;
 	else if (strcmp(name, "cosine") == 0)
 		return new CosineT;
+	else if (strcmp(name, "cosine_plus") == 0)
+		return new CosinePlusT;
 	else
 		return NULL;
 }
