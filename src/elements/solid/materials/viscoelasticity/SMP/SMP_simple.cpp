@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.9 2009-04-23 02:34:46 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.10 2009-05-21 22:25:07 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -18,7 +18,7 @@ using namespace Tahoe;
 
 const double loge = log10(exp(1.0));
 const double third = 1.0/3.0; 
-const double small = 1.0e-12;
+const double small = 1.0e-20;
 const int kNumOutputVar = 11; 
 static const char* Labels[kNumOutputVar] = {"thermal_dialation", "deltaneq", "lm1","lm2","lm3", "lmv1","lmv2","lmv3", "sy","T","gamdot"}; 
 
@@ -1140,14 +1140,11 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 		    		
 	/*caculate smag*/
 	double smag = sqrt(0.5*(s0*s0 + s1*s1 + s2*s2));
-//	cout << "\nsmag: "<<smag;
 	
 	/*calculate mobilities*/
 	double Tf = FictiveTemperature(delneq);
 	double tauR = RetardationTime(Temp, delneq);
 	double etaS = ShearViscosity(Temp, delneq, smag, sy);
-//	cout << "\ntauR: "<<tauR;
-//	cout << "\netaS: "<<etaS;
 		
 	double itauR = 1.0/tauR;
 	double ietaS = 1.0/etaS;
@@ -1162,16 +1159,15 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	fRes[3] = ep_e2 + 0.5*dt*ietaS*s2 - ep_tr2;
 	
 	fRes[4] = sy - dt*fh*(1.0-sy/fsinf)*gamdot - syn;
+	fRes[4] /= fsy0;
+	
 	tol = sqrt(dArrayT::Dot(fRes, fRes));
-/*	cout << "\ntol: "<<tol;
-	cout << "\neps_e: "<<eigenstretch_e;
-*/
 	int iteration = 0;
 	while (tol>ctol && iteration < maxiteration)
 	{
 		iteration ++;
-//		cout << "\nfRes: "<<fRes;
 		/*calculate stiffness matrix*/
+
 		/*derivative of retardation time wrt to Tf*/
 		double dtauR_dTf = tauR*fC1*fC2*(fC2 - fTg)*log(10)/(Temp*(fC2 + Tf - fTg)*(fC2 + Tf - fTg));
 		double detaS_dTf = (etaS)*fC1*fC2*(fC2 - fTg)*log(10)/(Temp*(fC2 + Tf - fTg)*(fC2 + Tf - fTg));
@@ -1240,11 +1236,17 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	
 		/*K_sy_del*/ 
 		fiKAB(4,0) = sqrt(0.5)*dt*ietaS*fh*(1.0 - sy/fsinf)*smag*ietaS *1.0/dalpha*detaS_dTf;
-
+		fiKAB(4,0) /= fsy0;
+		
 		/*K_sy_epB*/
 		fiKAB(4,1) = -0.5*dt*ietaS*fh*(1.0 - sy/fsinf)*coef0*(1.0 - smag*ietaS*detaS_dsmag);
+		fiKAB(4,1) /= fsy0;
+
 		fiKAB(4,2) = -0.5*dt*ietaS*fh*(1.0 - sy/fsinf)*coef1*(1.0 - smag*ietaS*detaS_dsmag);
+		fiKAB(4,2) /= fsy0;
+
 		fiKAB(4,3) = -0.5*dt*ietaS*fh*(1.0 - sy/fsinf)*coef2*(1.0 - smag*ietaS*detaS_dsmag);
+		fiKAB(4,3) /= fsy0;
 		
 		/*K_sy_sy*/
 	    fiKAB(4,4) = 1.0 + 0.5*dt*ietaS*fh* (smag/fsinf + (1.0 - sy/fsinf)*smag*ietaS*detaS_dsy);
@@ -1264,7 +1266,7 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	    ep_e1 += fDelta[2];
 	    ep_e2 += fDelta[3];
 	    
-		sy += fDelta[4];
+		sy += fDelta[4]*fsy0;
 		
 	    le0 = exp(2.0*ep_e0);
 	    le1 = exp(2.0*ep_e1);
@@ -1273,8 +1275,6 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 		Je=sqrt(le0*le1*le2);
 	    fEigs_dev = eigenstretch_e;
 	    fEigs_dev *= pow(Je,-2.0*third);
-
-//	cout << "\neigenstretch_edev: "<<fEigs_dev;
 
 	    /*calculate stresses and moduli*/
 	    fPot[1]->DevStress(fEigs_dev, eigenstress);
@@ -1286,21 +1286,34 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	    		
 	    /*caculate smag*/
 	    smag = sqrt(0.5*(s0*s0 + s1*s1 + s2*s2));
-//		cout << "\nsmag: "<<smag;
 
 		/*calculate mobilities*/
 		Tf = FictiveTemperature(delneq);
 		tauR = RetardationTime(Temp, delneq);
 		etaS = ShearViscosity(Temp, delneq, smag, sy);
-//		cout << "\ntauR: "<<tauR;
-//		cout << "\netaS: "<<etaS;
+
 		
 		itauR = 1.0/tauR;
 		ietaS = 1.0/etaS;
 						
 		gamdot =0.5*smag*ietaS;
-//		cout << "\ngamdot: "<<gamdot;
 
+/*		if (CurrElementNumber()==2 && CurrIP()==1)
+		{
+			cout <<"\niterations: "<<iteration;
+			cout << "\nfRes: "<<fRes;
+			cout << "\ntol: "<<tol;
+			cout << "\nsmag: "<<smag;
+			cout << "\ntauR: "<<tauR;
+			cout << "\netaS: "<<etaS;
+			cout << "\nTf: "<<Tf;
+			cout << "\ngamdot: "<<gamdot;
+			cout << "\nfDelta: "<<fDelta;
+			cout <<"\nsy: "<<sy;
+			cout << "\neigenstretch_e: "<<sqrt(le0)-1<<"\t"<<sqrt(le1)-1<<"\t"<<sqrt(le2)-1<<"\t";
+			cout << "\niK "<<fiKAB;
+		}	
+*/
 	    /*calculate the residual*/
 		fRes[0] = delneq + dt*itauR*(delneq-dalpha*(Temp-fT0)) - delneq_n;
 		
@@ -1309,13 +1322,22 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 	    fRes[3] = ep_e2 + 0.5*dt*ietaS*s2 - ep_tr2;
 		
 		fRes[4] = sy - dt*fh*(1.0-sy/fsinf)*gamdot - syn;
+		fRes[4]/=fsy0; //normalize the stress;
+		
+/*		if (CurrElementNumber()==2 && CurrIP()==1)
+		{
+		cout << "\nsy-syn: "<<sy-syn;
+		cout << "\nthe rest: "<<dt*fh*(1.0-sy/fsinf)*gamdot;
+		}
+*/
 	    /*Check that the L2 norm of the residual is less than tolerance*/
 	    tol = sqrt(dArrayT::Dot(fRes, fRes));
-/*		cout << "\ntol: "<<tol;
-		cout << "\neps_e: "<<eigenstretch_e;
-*/
 	}
 	if (iteration >= maxiteration) 
+	{
+//		cout << "\n elem: "<<CurrElementNumber();
+//		cout << "\n ip: "<<CurrIP();
 		ExceptionT::GeneralFail("SMP_simple::ComputeEigs_e", 
 			"number of iteration exceeds maximum");
+	}
 }
