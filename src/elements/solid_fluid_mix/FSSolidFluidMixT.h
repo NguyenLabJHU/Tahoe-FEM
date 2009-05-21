@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.25 2009-05-18 16:35:30 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.26 2009-05-21 15:42:57 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -519,7 +519,8 @@ private:
 	
 	/* for plasticity solution */
 	double meanstress_tr, meanstress, devstress_inprod_tr, devstress_inprod;
-	double fXphi, fXphi_n, fXphi_m_kappa, fMacFunc, fFphicap_tr, fFphicap, fF_tr, fF;
+	double fXphi, fXphi_n, fXphi_m_kappa, fMacFunc, fFphicap_tr, fFphicap;
+	double fF_tr, fF_tr_fact, fF;
 	int iter_count, global_iteration;
 	double fXpsi, fXpsi_m_kappa, fFpsicap;
 	double fCpsi, fDelgamma, signMacFunc, fdelDelgamma, dfFdDelgamma;
@@ -530,6 +531,9 @@ private:
 	/* for local Newton-Raphson iteration */
 	int iIterationMax;
 	double dRelTol, dAbsTol;
+	
+	/* for local trial yield check */
+	double dYieldTrialTol;
 
 	/** the solid displacement field */
 	const FieldT* fDispl;

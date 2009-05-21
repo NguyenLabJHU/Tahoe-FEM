@@ -1431,14 +1431,17 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 						*(fMaterial_Params[kAphi]*fState_variables_n_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress_tr)
 						*(fMaterial_Params[kAphi]*fState_variables_n_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress_tr);
 					
-					//test elastic
-					//if (fF_tr > 0) fF_tr=-1.0;
-					if (global_iteration < 0) fF_tr=-1.0;
+					//fF_tr_fact = fF_tr/(fMaterial_Params[kMu]*fMaterial_Params[kMu]);
+					fF_tr_fact = fF_tr/(fMaterial_Params[kMu]);
+					
+					//if (global_iteration < 0) fF_tr = -1.0;
+					if (global_iteration < 0) fF_tr_fact = -1.0;
 					
 					if (fMacFunc > 0.0) signMacFunc = 1.0;
 					else signMacFunc = 0.0;
 					
-					if (fF_tr > 0)	//plastic
+					//if (fF_tr > 0.0)	//plastic
+					if (fF_tr_fact > dYieldTrialTol) //plastic
 					{
 			    		/* retrieve dGdS_n at integration point */
 	    				fdGdS_n_IPs.RowCopy(IP,fdGdS_n);
@@ -2396,6 +2399,9 @@ void FSSolidFluidMixT::DefineParameters(ParameterListT& list) const
     // convergence tolerances for local Newton-Raphson iteration
     list.AddParameter(dAbsTol, "local_tol_absolute");
     list.AddParameter(dRelTol, "local_tol_relative");
+    
+    // tolerance for yield check
+    list.AddParameter(dYieldTrialTol, "local_yield_tr_tol");
 
     // solid elasticity
     list.AddParameter(shearMu, "mu");
@@ -2497,6 +2503,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
 	iIterationMax = list.GetParameter("max_local_iterations");
 	dAbsTol = list.GetParameter("local_tol_absolute");
     dRelTol = list.GetParameter("local_tol_relative");
+    dYieldTrialTol = list.GetParameter("local_yield_tr_tol");
 
     fGeometryCode_press = fGeometryCode_displ; 
     fNumIP_press = fNumIP_displ;
