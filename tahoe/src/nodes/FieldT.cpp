@@ -1,7 +1,10 @@
 //
-// $Id: FieldT.cpp,v 1.57 2008-12-12 00:52:11 lxmota Exp $
+// $Id: FieldT.cpp,v 1.58 2009-05-21 22:30:27 tdnguye Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.57  2008/12/12 00:52:11  lxmota
+// Added offset in numbering of equations for multi-field formulations.
+//
 //
 
 #include "FieldT.h"
@@ -1084,8 +1087,8 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 
 		/* choices - KBC_ControllerT::Code must translate names */
 #ifdef CONTINUUM_ELEMENT
-		sub_lists.AddSub("K-field");
-		sub_lists.AddSub("bi-material_K-field");
+		sub_lists.AddSub("K-field");	
+		sub_lists.AddSub("bi-material_K-field");	
 #endif
 		sub_lists.AddSub("torsion");
 		sub_lists.AddSub("mapped_nodes");
@@ -1107,6 +1110,7 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 #ifdef CONTINUUM_ELEMENT
 		sub_lists.AddSub("augmented_Lagrangian_KBC_meshfree");
 		sub_lists.AddSub("field_augmented_Lagrangian_KBC_meshfree");
+		sub_lists.AddSub("angled_bc");
 #endif
 		sub_lists.AddSub("wall_augmented_Lagrangian");
 		sub_lists.AddSub("cylinder_penalty");

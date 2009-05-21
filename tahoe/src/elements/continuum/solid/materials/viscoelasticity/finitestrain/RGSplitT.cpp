@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.cpp,v 1.11 2007-07-17 20:21:18 tdnguye Exp $ */
+/* $Id: RGSplitT.cpp,v 1.12 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
@@ -23,7 +23,9 @@ static const char* Labels[kNumOutputVar] = {"Dvisc"};
 RGSplitT::RGSplitT(void):
   ParameterInterfaceT("Reese-Govindjee_split"),
   fSpectralDecompSpat(3)
-{}
+{
+	fNumProcess = 1;
+}
 
 int RGSplitT::NumOutputVariables() const {return kNumOutputVar;} 
 
@@ -714,6 +716,8 @@ void RGSplitT::DefineParameters(ParameterListT& list) const
 
 void RGSplitT::TakeParameterList(const ParameterListT& list)
 {
+	cout << "\n RGSpliT is no longer supported.  Use the more general implementation RGSplitT2";	
+
   /* inherited */
   /*allows one neq process: */
   fNumProcess = 1;

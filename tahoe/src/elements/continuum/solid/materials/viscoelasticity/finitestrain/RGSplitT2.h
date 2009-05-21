@@ -1,9 +1,10 @@
-/* $Id: RGSplitT2.h,v 1.2 2007-07-17 20:21:18 tdnguye Exp $ */
+/* $Id: RGSplitT2.h,v 1.3 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _RGSplitT2_
 #define _RGSplitT2_
 
-/**Reese and Govindjee IJSS 1998:  nonlinear viscoelasticity model with  **
+/**S Reese, S Govindjee (1998) IJSS 35:3455-3482:  
+ **nonlinear viscoelasticity model with  **
  **constant isotropic viscosity tensor. Volumetric/Deviatoric split formulation/ **
  **Constitutive relation is calculated by default using a compressible Neo-Hookean 
  **potential.  Other potentials can be implemented in derived classes by overloading 

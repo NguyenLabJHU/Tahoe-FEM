@@ -1,4 +1,4 @@
-/* $Id: SpherePointsT.h,v 1.4 2004-07-15 08:28:09 paklein Exp $ */
+/* $Id: SpherePointsT.h,v 1.5 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -12,6 +12,7 @@
 
 
 namespace Tahoe {
+//class C1FunctionT;
 
 class SpherePointsT
 {
@@ -40,6 +41,8 @@ public:
 
 	/* list of jacobian determinants */
 	const dArrayT& Jacobians(void) const;
+
+//	virtual const dArrayT& Jacobians(const double theta, const double phi, const C1FunctionT* func_theta, const C1FunctionT* func_phi);
 	
 protected:
 

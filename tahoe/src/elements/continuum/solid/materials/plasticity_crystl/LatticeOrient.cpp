@@ -53,6 +53,45 @@ LatticeOrient::LatticeOrient(PolyCrystalMatT& poly)
 
 LatticeOrient::~LatticeOrient() {}
 
+void LatticeOrient::AssignEulerAngles_block(int nelem, int start_elem, int nint, 
+		int ngrn, ArrayT<Array2DT<dArrayT> >& euler)
+{
+	// same ODF for all ELs and IPs of elem block
+	for (int ig = 0; ig < ngrn; ig++)
+	{
+	  int random = (int) (rand()/(RAND_MAX+1.0)*fNumAngle);
+      for (int ie = 0; ie < nelem; ie++)
+		for (int ip = 0; ip < nint; ip++)
+		{
+			euler[ie+start_elem](ip,ig).SetToScaled(1.0, fAngles[random]);
+		}
+	}
+	// open output file for texture
+    fTextOut.open_append(fOutFilename);
+    SetStreamPrefs(fTextOut);
+
+    // print initial assigned orientations
+    fTextOut << "\nINITIAL ASSIGNED ORIENTATIONS " << endl;
+    fTextOut <<"\nstart_elem: "<<start_elem <<endl;
+    fTextOut <<"\nnum elem: "<<nelem<<endl;
+
+    fTextOut << "   ang1      ang2      ang3    elem   intpt   ngrn " << endl;
+
+    for (int ie = 0; ie < nelem; ie++)
+      for (int ip = 0; ip < nint; ip++)
+        for (int ig = 0; ig < ngrn; ig++)
+          {
+             dArrayT& angles = euler[ie+start_elem](ip,ig);
+             fTextOut << angles[0]/pi180 << "  "
+                      << angles[1]/pi180 << "  "
+                      << angles[2]/pi180 << "    "
+                      << ie+start_elem << "   " << ip << "   " << ig << endl;
+          }
+
+    // close file
+     fTextOut.close();
+}
+
 void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint, 
                   int ngrn, ArrayT<Array2DT<dArrayT> >& euler)
 {
@@ -60,11 +99,18 @@ void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint,
     {
     case kODF_same_all: 
       // same ODF in all ELs and IPs
+	for (int ig = 0; ig < ngrn; ig++)
+	{
+		int random = (int) (rand()/(RAND_MAX+1.0)*fNumAngle);
       for (int ie = 0; ie < nelem; ie++)
-	for (int ip = 0; ip < nint; ip++)
-	  for (int ig = 0; ig < ngrn; ig++)
-	    euler[ie](ip,ig).SetToScaled(1.0, fAngles[ig]);
-      break;
+		for (int ip = 0; ip < nint; ip++)
+		{
+//			euler[ie](ip,ig).SetToScaled(1.0, fAngles[ig]);
+			euler[ie](ip,ig).SetToScaled(1.0, fAngles[random]);
+//	cout << "\neuler: "<<euler[ie](ip,ig);
+		}
+	}
+	break;
 
     case kODF_diff_elems:
       // different ODF in all ELs; same ODF in all IPs
@@ -89,7 +135,6 @@ void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint,
 	      euler[ie](ip,ig).SetToScaled(1.0, fAngles[random]);
 	    }
       break;
-
     case kODF_from_file:
       // ODF read from file for all ELs, IPs, and GRs
       AssignAnglesFromFile(nelem, nint, ngrn, euler);

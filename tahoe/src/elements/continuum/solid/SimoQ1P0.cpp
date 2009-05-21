@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.13 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.14 2009-05-21 22:30:27 tdnguye Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -163,6 +163,7 @@ void SimoQ1P0::SetGlobalShape(void)
 		{
 			/* "replace" dilatation */
 			dMatrixT& F = fF_last_List[i];
+
 			double J = F.Det();
 			F *= pow(v_last/(H*J), 1.0/3.0);
 		}
@@ -318,6 +319,7 @@ void SimoQ1P0::SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v) c
 	/* H and current volume */
 	H = 0.0;
 	v = 0.0;
+
 	for (int i = 0; i < nip; i++)
 	{
 		H += w[i]*det_0[i];

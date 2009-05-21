@@ -185,7 +185,6 @@ void Penalty_AngledBC::ReadAngledBC(const ParameterListT& list)
 
 	fDisp.SetType(LocalArrayT::kDisp);
 	fDisp.Dimension(fNumFacetNodes,nsd);
-	fField->RegisterLocal(fDisp);
 	
 	fnodes.Dimension(fNumFacetNodes);
 	feqnos.Dimension(fNumFacetNodes*nsd);
@@ -201,6 +200,7 @@ void Penalty_AngledBC::InitialCondition(void)
 	
 	ModelManagerT& model_manager = fFieldSupport->ModelManager();
 	iArray2DT nd_tmp, eq_tmp;
+	fField->RegisterLocal(fDisp);
 
 
 	for (int i = 0; i< numlist; i++)
@@ -225,6 +225,7 @@ void Penalty_AngledBC::InitialCondition(void)
 
 		/*number integration points*/
 		int group = model_manager.ElementGroupIndex(elemID);
+		group--;
 		ElementBaseT& element = fFieldSupport->ElementGroup(group);
 		ContinuumElementT* continuum = (ContinuumElementT*) &element;
 		int nip = continuum->NumIP();
@@ -282,7 +283,7 @@ void Penalty_AngledBC::ApplyLHS(GlobalT::SystemTypeT sys_type)
 		/*get element group number*/
 		elemID = model_manager.SideSetGroupID(fside_set_IDs[i]);
 		int group = model_manager.ElementGroupIndex(elemID);
-
+		group--;
 		const iArray2DT& side_set = fBC_sides[i];
 		const iArray2DT& global_nodes = fBC_global_nodes[i];
 		const iArray2DT& local_nodes = fBC_local_nodes[i];
@@ -383,7 +384,7 @@ void Penalty_AngledBC::ApplyRHS(void)
 		/*get element group number*/
 		elemID = model_manager.SideSetGroupID(fside_set_IDs[i]);
 		int group = model_manager.ElementGroupIndex(elemID);
-
+		group--;
 		const iArray2DT& side_set = fBC_sides[i];
 		const iArray2DT& global_nodes = fBC_global_nodes[i];
 		const iArray2DT& local_nodes = fBC_local_nodes[i];

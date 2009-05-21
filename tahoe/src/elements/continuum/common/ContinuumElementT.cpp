@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.54 2008-07-14 17:40:23 lxmota Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.55 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1256,6 +1256,7 @@ void ContinuumElementT::DefineSubs(SubListT& sub_list) const
 void ContinuumElementT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
 	SubListT& sub_lists) const
 {
+//	cout << "\n ContinuumElementT::DefineInlineSub "<< name;
 	/* geometry and integration rule (inline) */
 	if (name == "element_geometry")
 	{

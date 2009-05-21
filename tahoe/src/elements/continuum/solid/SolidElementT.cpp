@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.80 2009-04-02 00:31:31 lxmota Exp $ */
+/* $Id: SolidElementT.cpp,v 1.81 2009-05-21 22:30:27 tdnguye Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -361,6 +361,7 @@ void SolidElementT::DefineSubs(SubListT& sub_list) const
 	/* nodal output codes (optional) */
 	sub_list.AddSub("solid_element_nodal_output", ParameterListT::ZeroOrOnce);
 	sub_list.AddSub("solid_element_element_output", ParameterListT::ZeroOrOnce);
+
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.11 2004-11-18 16:36:47 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.12 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _K_FIELD_T_H_
 #define _K_FIELD_T_H_
@@ -87,7 +87,7 @@ protected:
 	virtual void ComputeDisplacementFactors(const dArrayT& tip_coords);
 	
 	/* set BC cards with current displacement field */
-	void SetBCCards(void);
+	virtual void SetBCCards(void);
 	
 protected:
 

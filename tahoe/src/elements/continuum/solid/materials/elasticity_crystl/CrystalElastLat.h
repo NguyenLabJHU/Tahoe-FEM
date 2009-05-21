@@ -1,4 +1,4 @@
-/* $Id: CrystalElastLat.h,v 1.3 2002-07-02 19:56:03 cjkimme Exp $ */
+/* $Id: CrystalElastLat.h,v 1.4 2009-05-21 22:30:27 tdnguye Exp $ */
 /*
   File: CrystalElastLat.h
 */
@@ -46,7 +46,8 @@ class CrystalElastLat
   enum ODFDist { kODF_same_all   = 1,     // same ODF in all ELs/IPs  
  		 kODF_diff_elems = 2,     // diff ODF in all ELs; same ODF in all IPs 
 		 kODF_diff_inpts = 3,     // diff ODF in all ELs/IPs
-		 kODF_from_file  = 4 };   // ODF read from file for all Els/IPs/GRs
+		 kODF_from_file  = 4,     // ODF read from file for all Els/IPs/GRs
+		 kDOF_diff_blocks = 5 };  
 
   // input Euler angles
   void ReadTexture(ifstreamT& in, int numgrain);

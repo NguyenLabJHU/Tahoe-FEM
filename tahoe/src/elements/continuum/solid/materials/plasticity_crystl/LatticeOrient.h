@@ -31,6 +31,8 @@ class LatticeOrient
   // assign Euler angles to grain/elem/IPs 
   void AssignEulerAngles(int kcode, int nelem, int nint, int ngrn,
 			 ArrayT<Array2DT<dArrayT> >& euler); 
+  void AssignEulerAngles_block(int nelem, int start_elem, int nint, int ngrn,
+			 ArrayT<Array2DT<dArrayT> >& euler); 
 
   // output Euler angles 
   void WriteTexture(int group, int elem, int intpt, int ngrn, int step,
@@ -47,7 +49,8 @@ class LatticeOrient
   enum ODFDist { kODF_same_all   = 1,     // same ODF in all ELs/IPs  
  		 kODF_diff_elems = 2,     // diff ODF in all ELs; same ODF in all IPs 
 		 kODF_diff_inpts = 3,     // diff ODF in all ELs/IPs
-		 kODF_from_file  = 4 };   // ODF read from file for all Els/IPs/GRs
+		 kODF_from_file  = 4,     // ODF read from file for all Els/IPs/GRs
+		 kDOF_diff_blocks = 5 };   
 
   // input Euler angles
   void ReadTexture(ifstreamT& in, int numgrain);

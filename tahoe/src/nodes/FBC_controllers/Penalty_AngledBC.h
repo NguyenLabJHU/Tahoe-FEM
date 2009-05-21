@@ -88,7 +88,7 @@ class Penalty_AngledBC: public FBC_ControllerT
 	/*integration domain*/
 	ArrayT<DomainIntegrationT*> fDomain;
 
-	/*Use Traction Card to store angled BC.  The applied normal displacement is analogous to the pressure*/
+	/*Use traction card scheme to store angled BC.  The applied normal displacement is analogous to the pressure*/
 	ArrayT<StringT> fside_set_IDs;
 	ArrayT<iArray2DT> fBC_sides;
 	ArrayT<iArray2DT> fBC_global_nodes;

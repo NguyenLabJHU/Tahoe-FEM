@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.25 2006-04-28 16:37:12 tdnguye Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.26 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -244,7 +244,6 @@ void DiffusionElementT::RHSDriver(void)
 	{
 		/* capacity */
 		double pc = fCurrMaterial->Capacity();
-
 		/* reset block info (skip empty) */
 		while (block_count == block_data->Dimension()) {
 			block_data = fBlockData.Pointer(++block_dex);

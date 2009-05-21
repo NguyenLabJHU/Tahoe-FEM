@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.21 2005-01-21 16:51:22 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.22 2009-05-21 22:30:27 tdnguye Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -10,6 +10,9 @@
 #include "VoceHardening.h"
 #include "HaasenHardening.h"
 #include "ElementCardT.h"
+#include "ElementBlockDataT.h"
+#include "FSMatSupportT.h"
+#include "FiniteStrainT.h"
 
 #include "Utils.h"
 #include "CommunicatorT.h"
@@ -26,7 +29,7 @@ const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
 const int kNumOutput = 3;
-static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"};
+static const char* Labels[kNumOutput] = {"VM_stress", "abs_dg", "dg"};
 
 /* to output some messages */
 const bool XTAL_MESSAGES = true;
@@ -57,6 +60,7 @@ int LocalCrystalPlastFp::NumVariablesPerElement()
   d_size += kNSD*kNSD;                       // fFp     (t)
   d_size += kNSD*kNSD;                       // fFe     (t)
   d_size += fNumSlip;                        // fDGamma (t)
+  d_size += fNumSlip;                        // fGamma (t)
   d_size += dim;                             // fs_ij   (t)
   d_size += fHardening->NumberOfVariables(); // Hard Vars at t_n and t
 
@@ -99,6 +103,8 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
       Compute_Ftot_last_3D(fFtot_n);
       Compute_Ftot_3D(fFtot);
 
+//	cout << "\nF: "<<fFtot;
+
       for (int igrn = 0; igrn < fNumGrain; igrn++)
 	{
 	  // recover local data
@@ -124,16 +130,18 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
 	       // defomation gradient
                fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
 	       fFt.SetToCombination(1., fFtot_n, 100.0 / 100.0, fMatx1);
-
+//			cout << "\nfFt: "<<fFt;
 	       // elastic tensors
                fFpi.Inverse(fFp_n);
+//			cout << "\nfFpi: "<<fFpi;
 	       fFe.MultAB(fFt, fFpi);
 	       fCeBar.MultATA(fFe);
 
 	       // 2nd Piola Kirchhoff stress
                fEeBar.SetToCombination(0.5, fCeBar, -0.5, fISym);
+//			cout << "\nfEeBar: "<<fEeBar;
 	       fSBar.A_ijkl_B_kl(fcBar_ijkl, fEeBar);
-
+//			cout << "\nfSBar: "<<fSBar;
 	       // Cauchy stress
                fs_ij.MultQBQT(fFe, fSBar);
                fs_ij /= fFe.Det();
@@ -332,15 +340,17 @@ void LocalCrystalPlastFp::UpdateHistory()
     {
       // ... at each crystal
       for (int igrn = 0; igrn < fNumGrain; igrn++)
-	{
+	  {
 	  // recover local data
 	  LoadCrystalData(element, intpt, igrn);
 	  
 	  // update state
 	  fFp_n = fFp;
 	  fFe_n = fFe;
-          fHardening->UpdateHistory();
-	}
+	  for (int i = 0; i < fNumSlip; i++)
+		fGamma[i] += fDGamma[i];
+	  fHardening->UpdateHistory();
+	  }	
     }
 }
 
@@ -361,6 +371,8 @@ void LocalCrystalPlastFp::ResetHistory()
 	  // reset state
 	  fFp = fFp_n;
 	  fFe = fFe_n;
+//	  for (int i = 0; i < fNumSlip; i++)
+//		fGamma[i] -= fDGamma[i];
           fHardening->ResetHistory();
 	}
     }
@@ -398,10 +410,24 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
   if (elem == 0 && intpt == 0) fAvgStress = 0.0;
   fAvgStress += fsavg_ij;
 
+	ArrayT<StringT> block_id;
+	FSMatSupport().FiniteStrain()->ElementBlockIDs(block_id);
+	int num_block = block_id.Length();
+	int max_elem_num = 0;
+	for (int i = 0; i< num_block; i++)
+	{
+		const ElementBlockDataT& block_data = FSMatSupport().FiniteStrain()->BlockData(block_id[i]);
+		int num_elem = block_data.Dimension();
+		int start_elem = block_data.StartNumber();
+		if (start_elem+num_elem > max_elem_num)
+			max_elem_num = start_elem+num_elem;
+	}
+
   // cout << " elem = " << elem << "   intpt = " << intpt << endl;
   // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
-  if (elem == (NumElements()-1) && intpt == (NumIP()-1))
+//  if (elem == (NumElements()-1) && intpt == (NumIP()-1))
+  if (elem == max_elem_num-1 && intpt == (NumIP()-1))
 	{
 	const CommunicatorT* comm = fFSMatSupport->GroupCommunicator();
 	dArrayT stress_sum(fAvgStress.Length());
@@ -415,10 +441,22 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
           << "    S_eq_avg = " 
           << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 	}
 
-  // iteration counter for nlcsolver and state
-  output[1] = fIterCount;
-  output[2] = fIterState;
-
+       double absgamma = 0.0;
+       double gamma  = 0.0;
+       for (int igrn = 0; igrn < fNumGrain; igrn++)
+	{
+	  // recover local data
+	  LoadCrystalData(element, intpt, igrn);
+	  for (int i = 0; i< fNumSlip; i++)
+	  {
+	    absgamma += fabs(fGamma[i]);
+	    gamma += fGamma[i];
+	  }
+	}
+       absgamma/= fNumGrain;
+       gamma /=fNumGrain;
+       output[1] = absgamma;
+       output[2] = gamma;
   // compute texture of aggregate, if requested
   int step = fFSMatSupport->StepNumber();
   int nsteps = fFSMatSupport->NumberOfSteps();
@@ -639,7 +677,7 @@ void LocalCrystalPlastFp::LoadCrystalData(ElementCardT& element,
   
   // decode
   int stressdim   = dSymMatrixT::NumValues(kNSD);
-  int blockPerGrn = 5*kNSD*kNSD + fNumSlip + stressdim + fHardening->NumberOfVariables();
+  int blockPerGrn = 5*kNSD*kNSD + 2*fNumSlip + stressdim + fHardening->NumberOfVariables();
   int blockPerAgg = stressdim + stressdim*stressdim;
   int dex = intpt*(fNumGrain*blockPerGrn + blockPerAgg) + igrain*blockPerGrn;
 
@@ -649,6 +687,7 @@ void LocalCrystalPlastFp::LoadCrystalData(ElementCardT& element,
   fFp.Set        (kNSD,kNSD, &d_array[dex += kNSD*kNSD]);
   fFe.Set        (kNSD,kNSD, &d_array[dex += kNSD*kNSD]);
   fDGamma.Set    (fNumSlip,  &d_array[dex += kNSD*kNSD]);
+  fGamma.Set    (fNumSlip,  &d_array[dex += fNumSlip]);
   fs_ij.Set      (kNSD,      &d_array[dex += fNumSlip ]);     
   fHardening->LoadHardData(stressdim, dex, d_array);
 }
@@ -660,7 +699,7 @@ void LocalCrystalPlastFp::LoadAggregateData(ElementCardT& element, int intpt)
   
   // decode
   int stressdim = dSymMatrixT::NumValues(kNSD);
-  int blockPerGrn = 5*kNSD*kNSD + fNumSlip + stressdim + fHardening->NumberOfVariables();
+  int blockPerGrn = 5*kNSD*kNSD + 2*fNumSlip + stressdim + fHardening->NumberOfVariables();
   int blockPerAgg = stressdim + stressdim*stressdim;
   int dex = intpt*(fNumGrain*blockPerGrn + blockPerAgg) + fNumGrain*blockPerGrn;
 

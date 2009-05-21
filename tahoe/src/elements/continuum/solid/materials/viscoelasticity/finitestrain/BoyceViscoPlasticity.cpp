@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.9 2007-07-25 14:47:29 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.10 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -1343,8 +1343,8 @@ bool BoyceViscoPlasticity::ComputeEigs_e_Implicit(const dArrayT& eigenstretch, d
 	} 
 	if (iteration >= max_iteration) 
 	{
-		cout << "\nLocal iteration failed to converge in "<<max_iteration<<" iterations";
-		cout <<"\nvisc stretch: "<<lv0<<"\t"<<lv1<<"\t"<<lv2;
+//		cout << "\nLocal iteration failed to converge in "<<max_iteration<<" iterations";
+//		cout <<"\nvisc stretch: "<<lv0<<"\t"<<lv1<<"\t"<<lv2;
 		return(false);
 //		cout << "\nfRes: "<<fRes;
 //		ExceptionT::GeneralFail("BoyceViscoPlasticity::ComputeEigs_e", 

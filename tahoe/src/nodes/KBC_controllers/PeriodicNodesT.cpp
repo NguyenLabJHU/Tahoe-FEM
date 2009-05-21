@@ -1,4 +1,4 @@
-/* $Id: PeriodicNodesT.cpp,v 1.6 2004-09-01 10:46:27 paklein Exp $ */
+/* $Id: PeriodicNodesT.cpp,v 1.7 2009-05-21 22:30:27 tdnguye Exp $ */
 #include "PeriodicNodesT.h"
 #include "BasicSupportT.h"
 #include "ParameterContainerT.h"
@@ -109,6 +109,8 @@ void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 		else
 			dx[i] = 0.0;
 
+	double tol = kSmall;
+	
 	for (int i = 0; i <= FLength; i++)
 	{
 		const double* x_f = coords(follower_nodes[i]);
@@ -126,9 +128,9 @@ void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 			for (int k = 0; OK && k < nsd; k++)
 			{
 				/* try all periodic images */
-				OK = (fabs(x_f[k] - x_l[k]) < kSmall) ||
-					 (fabs(x_f[k] - x_l[k] + dx[k]) < kSmall) ||
-					 (fabs(x_f[k] - x_l[k] - dx[k]) < kSmall);
+				OK = (fabs(x_f[k] - x_l[k]) < tol) ||
+					 (fabs(x_f[k] - x_l[k] + dx[k]) < tol) ||
+					 (fabs(x_f[k] - x_l[k] - dx[k]) < tol);
 			}
 				
 			/* found */

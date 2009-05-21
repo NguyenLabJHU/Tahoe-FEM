@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.16 2005-03-02 17:38:36 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.17 2009-05-21 22:30:27 tdnguye Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -74,10 +74,10 @@ class SmallStrainT: public SolidElementT
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/** calculate the internal force contribution ("-k*d") */
-	void FormKd(double constK);
+	virtual void FormKd(double constK);
 
 	/** form the element stiffness matrix */
-	void FormStiffness(double constK);
+	virtual void FormStiffness(double constK);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);

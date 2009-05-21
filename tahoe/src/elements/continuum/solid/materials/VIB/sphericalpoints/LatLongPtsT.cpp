@@ -1,10 +1,10 @@
-/* $Id: LatLongPtsT.cpp,v 1.6 2004-07-15 08:28:09 paklein Exp $ */
+/* $Id: LatLongPtsT.cpp,v 1.7 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: paklein (10/31/1997) */
 #include "LatLongPtsT.h"
 
 #include <math.h>
 #include "ExceptionT.h"
-
+//#include "C1FunctionT.h"
 using namespace Tahoe;
 
 const double Pi = acos(-1.0);
@@ -77,3 +77,49 @@ const dArray2DT& LatLongPtsT::SpherePoints(double phi_tr, double theta_tr)
 	
 	return fPoints;
 }
+
+/*const dArrayT& LatLongPtsT::Jacobians(const double theta_tr, const double phi_tr, const C1FunctionT* func_theta, const C1FunctionT* func_phi) 
+{
+	double dphi    = (2.0*Pi)/fNphi;	
+	double dtheta  = Pi/fNtheta;
+	double jfactor = dphi*dtheta;
+	
+	double theta  =-dtheta/2.0-theta_tr;
+
+	int    thetacount = fNtheta - 1;
+	double jsum = 0.0;
+	double jac = 0;
+	double D;
+	
+	dArrayT	xsi;
+	int Ntot = fJacobians.Length();
+	for (int i = 0; i < Ntot-2; i++) //skip caps
+	{
+		double phi;
+		if (++thetacount == fNtheta)
+		{
+			phi    = -phi_tr;
+			theta += dtheta;
+			thetacount = 0;			
+		}
+		else
+			phi += dphi;
+
+		jac = jfactor*sin(theta);
+		jsum += jac;
+		D = func_theta->Function(theta)*func_phi->Function(phi);
+		fJacobians[i] = jac*D; 
+
+	}
+
+	double xsi3 = 1.0;
+	for (int j = Ntot-2; j < Ntot; j++) //caps
+	{
+		jac = (4.0*Pi - jsum)/2.0;      //correct total area
+		fJacobians[j] = jac; 
+
+	}
+	
+	return fJacobians;
+}
+*/
