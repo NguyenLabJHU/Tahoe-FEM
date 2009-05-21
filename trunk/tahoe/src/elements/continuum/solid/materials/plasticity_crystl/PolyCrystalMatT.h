@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.h,v 1.13 2005-01-21 18:13:17 paklein Exp $ */
+/* $Id: PolyCrystalMatT.h,v 1.14 2009-05-21 22:30:27 tdnguye Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -197,6 +197,7 @@ class PolyCrystalMatT : public FDHookeanMatT
 
   // incremental slip shearing rate / resolve shear stres
   dArrayT fDGamma;
+  dArrayT fGamma; //integrated plastic slip
   dArrayT fTau;
 
   // Schmidt tensor in crystal/sample coords

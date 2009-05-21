@@ -1,4 +1,4 @@
-/* $Id: CrystalElastLat.cpp,v 1.5 2004-07-15 08:28:16 paklein Exp $ */
+/* $Id: CrystalElastLat.cpp,v 1.6 2009-05-21 22:30:27 tdnguye Exp $ */
 /*
   File: CrystalElastLat.cpp
 */
@@ -59,11 +59,18 @@ void CrystalElastLat::AssignEulerAngles(int kcode, int nelem, int nint,
     {
     case kODF_same_all: 
       // same ODF in all ELs and IPs
+	for (int ig = 0; ig < ngrn; ig++)
+	{
+		int random = (int) (rand()/(RAND_MAX+1.0)*fNumAngle);
       for (int ie = 0; ie < nelem; ie++)
-	for (int ip = 0; ip < nint; ip++)
-	  for (int ig = 0; ig < ngrn; ig++)
-	    euler[ie](ip,ig).SetToScaled(1.0, fAngles[ig]);
-      break;
+		for (int ip = 0; ip < nint; ip++)
+		{
+//			euler[ie](ip,ig).SetToScaled(1.0, fAngles[ig]);
+			euler[ie](ip,ig).SetToScaled(1.0, fAngles[random]);
+//	cout << "\neuler: "<<euler[ie](ip,ig);
+		}
+	}
+	break;
 
     case kODF_diff_elems:
       // different ODF in all ELs; same ODF in all IPs

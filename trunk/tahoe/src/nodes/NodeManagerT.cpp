@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.70 2008-12-12 00:47:43 lxmota Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.71 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -35,6 +35,7 @@
 #include "MFAugLagMultT.h"
 #include "FieldMFAugLagMultT.h"
 #include "PressureBCT.h"
+#include "Penalty_AngledBC.h"
 
 /* kinematic BC controllers */
 #include "K_FieldT.h"
@@ -1529,6 +1530,13 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			return kbc;
 		}
 #if 0
+		case KBC_ControllerT::kAngledBC:
+		{
+			Penalty_AngledBC* kbc = new Penalty_AngledBC(fFieldSupport, field);
+			return kbc;
+		}
+#endif
+#if 0
                 case KBC_ControllerT::kConveyorSym:
                 {
                         ConveyorSymT* kbc = new ConveyorSymT(fFieldSupport, field);
@@ -1591,6 +1599,9 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(int code)
 	    	fbc = new PressureBCT;
 	    	break;
 
+	    case FBC_ControllerT::kAngledBC:
+	    	fbc = new Penalty_AngledBC;
+	    	break;
 
 		default:
 			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);

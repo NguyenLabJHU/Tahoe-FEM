@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.16 2004-12-21 17:24:51 thao Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.17 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 #include "BasicSupportT.h"
@@ -20,6 +20,8 @@ KBC_ControllerT::CodeT KBC_ControllerT::Code(const char* name)
 		return kK_Field;
 	else if (strcmp("bi-material_K-field", name) == 0)
 		return kBimaterialK_Field;
+	else if (strcmp("K-field_3D", name) == 0)
+		return kK_Field_3D;
 	else if (strcmp("torsion", name) == 0)
 		return kTorsion;
 	else if (strcmp("mapped_nodes", name) == 0)
@@ -34,6 +36,8 @@ KBC_ControllerT::CodeT KBC_ControllerT::Code(const char* name)
 		return kConveyor;
 	else if (strcmp("symmetric_conveyor", name) == 0)
 		return kConveyorSym;
+//	else if (strcmp("angled_bc", name) == 0)
+//		return kAngledBC;
 	else
 		return kNone;
 }

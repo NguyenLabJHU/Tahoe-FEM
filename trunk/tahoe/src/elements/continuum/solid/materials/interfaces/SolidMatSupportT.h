@@ -1,4 +1,4 @@
-/* $Id: SolidMatSupportT.h,v 1.6 2004-07-15 08:28:22 paklein Exp $ */
+/* $Id: SolidMatSupportT.h,v 1.7 2009-05-21 22:30:27 tdnguye Exp $ */
 #ifndef _STRUCT_MAT_SUPPORT_T_H_
 #define _STRUCT_MAT_SUPPORT_T_H_
 
@@ -31,7 +31,7 @@ public:
 	virtual const LocalArrayT* LocalArray(LocalArrayT::TypeT t) const;
 
 	/** nodal temperatures. Returns NULL if not available */
-	const LocalArrayT* Temperatures(void) const { return fTemperatures; };
+	const LocalArrayT* Temperatures(void) const { return fTemperatures;};
 
 	/** nodal temperatures from the last time step. Returns NULL if 
 	 * not available */

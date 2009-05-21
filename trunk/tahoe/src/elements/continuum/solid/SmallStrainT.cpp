@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.15 2005-03-02 17:38:36 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.16 2009-05-21 22:30:27 tdnguye Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -52,7 +52,6 @@ void SmallStrainT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("small_strain_element_block", ParameterListT::OnePlus);
 }
 
-/* return the description of the given inline subordinate parameter list */
 ParameterInterfaceT* SmallStrainT::NewSub(const StringT& name) const
 {
 	if (name == "small_strain_element_block")
@@ -77,7 +76,7 @@ ParameterInterfaceT* SmallStrainT::NewSub(const StringT& name) const
 /* return the description of the given inline subordinate parameter list. */
 void SmallStrainT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
 	SubListT& sub_lists) const
-{
+{	
 	if (name == "small_strain_material_choice")
 	{
 		order = ParameterListT::Choice;

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.24 2004-11-18 16:36:47 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.25 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -531,7 +531,14 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 			
 					/* crack extension increment */
 					initial_coordinates.RowAlias(i, x_node);
-					advance.DiffOf(x_node, fTipCoords);
+					int nsd = fSupport.NumSD();
+					if (nsd == 2)
+						advance.DiffOf(x_node, fTipCoords);
+					else if (nsd == 3)
+					{	
+						advance[0] = x_node[0]-fTipCoords[0];
+						advance[1] = x_node[1]-fTipCoords[1];
+					}
 					double growth = dArrayT::Dot(fGrowthDirection, advance);
 			
 					/* maximum extension */
@@ -539,6 +546,8 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 						max_growth = growth;
 						tip_coords = x_node;
 					}
+					if (nsd == 3)
+						tip_coords[2] = 0.0;
 				}
 
 			break;

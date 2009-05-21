@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.18 2005-08-12 05:21:01 paklein Exp $
+# $Id: makefile,v 1.19 2009-05-21 22:30:27 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,13 +23,14 @@ OBJ = \
 	BimaterialK_FieldT.o \
 	KBC_ControllerT.o \
 	K_FieldT.o \
+	K_FieldT_3D.o \
 	MappedPeriodicT.o \
 	TiedNodesT.o \
 	PeriodicNodesT.o \
 	ScaledVelocityNodesT.o \
 	SetOfNodesKBCT.o \
 	TorsionKBCT.o \
-	ConveyorT.o
+	ConveyorT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -52,13 +53,14 @@ SRC = \
 	BimaterialK_FieldT.cpp \
 	KBC_ControllerT.cpp \
 	K_FieldT.cpp \
+	K_FieldT_3D.cpp \
 	MappedPeriodicT.cpp \
 	TiedNodesT.cpp \
 	PeriodicNodesT.cpp \
 	ScaledVelocityNodesT.cpp \
 	SetOfNodesKBCT.cpp \
 	TorsionKBCT.cpp \
-	ConveyorT.cpp
+	ConveyorT.cpp 
 
 ##################### (3) headers
 #
@@ -73,13 +75,14 @@ HDR = \
 	BimaterialK_FieldT.h \
 	KBC_ControllerT.h \
 	K_FieldT.h \
+	K_FieldT_3D.h \
 	MappedPeriodicT.h \
 	TiedNodesT.h \
 	PeriodicNodesT.h \
 	ScaledVelocityNodesT.h \
 	SetOfNodesKBCT.h \
 	TorsionKBCT.h \
-	ConveyorT.h
+	ConveyorT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

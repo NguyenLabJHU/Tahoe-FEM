@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.cpp,v 1.4 2006-08-21 16:46:24 tdnguye Exp $ */
+/* $Id: RGViscoelasticityT.cpp,v 1.5 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGViscoelasticityT.h"
 
@@ -12,7 +12,7 @@ RGViscoelasticityT::RGViscoelasticityT(void):
 	/*set default value*/ 
 	/*overide in derived element classes before calling *
 	 *RGViscoelasticity::TakeParameterLis               */
-	fNumProcess = 1;
+	fNumProcess = 0;
 }
 
 /*initializes history variable */
@@ -20,7 +20,7 @@ void  RGViscoelasticityT::PointInitialize(void)
 {
 	/* allocate element storage */
 	ElementCardT& element = CurrentElement();	
-	if (CurrIP() == 0)
+	if (CurrIP() == 0 && fNumProcess > 0)
 	{
 		ElementCardT& element = CurrentElement();
 		element.Dimension(0, fnstatev*NumIP());
@@ -47,7 +47,7 @@ void RGViscoelasticityT::UpdateHistory(void)
 {
 	/* current element */
 	ElementCardT& element = CurrentElement();	
-	for (int ip = 0; ip < NumIP(); ip++)
+	for (int ip = 0; ip < NumIP() && fNumProcess > 0; ip++)
 	{
 		/* load state variables */
 		Load(element, ip);
@@ -65,12 +65,14 @@ void RGViscoelasticityT::ResetHistory(void)
 {
 	/* current element */
 	ElementCardT& element = CurrentElement();	
-	for (int ip = 0; ip < NumIP(); ip++)
+	for (int ip = 0; ip < NumIP() && fNumProcess > 0; ip++)
 	{
 		/* load state variables*/
 		Load(element, ip);
 	
 		/* assign "last" to "current" */
+		for (int i = 0; i < fNumProcess; i++)
+			fC_v[i] = fC_vn[i];
 		
 		/* write to storage */
 		Store(element, ip);

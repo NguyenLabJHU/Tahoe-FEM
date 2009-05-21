@@ -1,4 +1,4 @@
-/* $Id: RGSplitT2.cpp,v 1.5 2007-07-25 14:47:29 tdnguye Exp $ */
+/* $Id: RGSplitT2.cpp,v 1.6 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT2.h"
@@ -52,7 +52,6 @@ const dMatrixT& RGSplitT2::MechanicalDeformation(void)
 {
 	const dMatrixT& F_T_inv = ThermalDeformation_Inverse();
 	const dMatrixT& F = F_total();
-//	cout << "\nF_total(): "<<F;
 	fF_M.MultAB(F, F_T_inv);
 	return(fF_M);
 }
@@ -99,6 +98,8 @@ double RGSplitT2::StrainEnergyDensity(void)
 	double energy = 0.0;
 	energy = fPot[0]->Energy(fEigs_dev, J);
   
+if (fNumProcess > 0)
+{
 	/*adds nonequilibrium part */
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
@@ -118,15 +119,13 @@ double RGSplitT2::StrainEnergyDensity(void)
   
 		energy += fPot[i+1]->Energy(fEigs_dev, Je);
 	}
+}
 	return(energy);
 }
 
 /* modulus */
 const dMatrixT& RGSplitT2::c_ijkl(void)
 {
-    
-    ElementCardT& element = CurrentElement();
-    Load(element, CurrIP());
     
 	const dMatrixT& F = MechanicalDeformation();
 	if (NumSD() == 2)
@@ -200,6 +199,12 @@ const dMatrixT& RGSplitT2::c_ijkl(void)
 //   cout << "\nc_eq: "<<fModulus3D;
 	/*calc NEQ component of stress and moduli*/
 	/*calcualte principal values of elastic stretch*/
+
+if (fNumProcess > 0)
+{
+    ElementCardT& element = CurrentElement();
+    Load(element, CurrIP());
+    
 	for (int i = 0; i < fNumProcess; i++)
 	{
 		fInverse.Inverse(fC_vn[i]);
@@ -265,6 +270,7 @@ const dMatrixT& RGSplitT2::c_ijkl(void)
 		MixedRank4_3D(eigenvectors_e[1], eigenvectors_e[2], fModMat);
 		fModulus3D.AddScaled(2.0*coeff, fModMat);
     }
+}
 //   cout << "\nc_tot: "<<fModulus3D;
 	if (NumSD() == 2)
 	{
@@ -310,7 +316,8 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 		fF3D[8] = 1.0;
 	}
 	else fF3D = F;
-
+//	cout << "\nfF3D: "<< fF3D;
+	
 	/*calculate EQ part of the stress*/
 	fb.MultAAT(fF3D);
 	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
@@ -324,9 +331,7 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 	fEigs_dev *= pow(J,-2.0*third);
 	
 	fPot[0]->DevStress(fEigs_dev, ftau_EQ);
-//	cout << "\neq_dev_stress: "<<ftau_EQ;
 	ftau_EQ += fPot[0]->MeanStress(J);
-//	cout << "\neq_tot_stress: "<<ftau_EQ;
 	
 /*		const double mu_eq = fPot[0]->GetMu();
 		const double kappa_eq = fPot[0]->GetKappa();
@@ -335,8 +340,10 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 */	
 	fStress3D = fSpectralDecompSpat.EigsToRank2(ftau_EQ);
 //	cout << "\nstress eq: "<<fStress3D;
-	
+//	cout << "\neqstress: "<<fStress3D;
     /*load the viscoelastic principal stretches from state variable arrays*/
+if (fNumProcess > 0 )
+{
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
     if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
@@ -345,7 +352,12 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 		for (int i = 0; i < fNumProcess; i++)
 		{
 			/*calc trial state*/
+//			cout << "\nproces: "<<i<<endl;
+//			cout << "\nfCv_n: "<<fC_vn[i]<<endl;
+			
 			fInverse.Inverse(fC_vn[i]);
+//			cout << "\nfInverse: "<<fInverse<<endl;
+//			cout << "\nfF3D: "<<fF3D;
 			fb_tr.MultQBQT(fF3D, fInverse);
 			
 			fSpectralDecompSpat.SpectralDecomp_Jacobi(fb_tr, false);	
@@ -353,7 +365,6 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 
 			/*calc elastic stretch*/
 			fEigs_e = fEigs_tr; /*initial condition*/
-//			cout << "\nfEigs_tr: "<<fEigs_tr;
 			ComputeEigs_e(fEigs, fEigs_e, ftau_NEQ, fDtauDe_NEQ, i);
 //			cout << "\nfEigs_e: "<<fEigs_e;
 			double Je = sqrt(fEigs_e.Product());
@@ -398,6 +409,7 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 			fStress3D += fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
 		}
     }
+}
 
 	if (NumSD() == 2)
     {
@@ -459,6 +471,8 @@ void RGSplitT2::ComputeOutput(dArrayT& output)
 
 	output[0] = 0.0;
 	/*load the viscoelastic principal stretches from state variable arrays*/
+if (fNumProcess > 0)
+{
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
    
@@ -487,6 +501,8 @@ void RGSplitT2::ComputeOutput(dArrayT& output)
     }
 }
 
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -494,8 +510,8 @@ void RGSplitT2::Initialize(void)
 {
  /* dimension work space */
   
-  fF_M.Dimension(3);
-  fF_T_inv.Dimension(3);
+  fF_M.Dimension(NumSD());
+  fF_T_inv.Dimension(NumSD());
 
   fF3D.Dimension(3);
   fInverse.Dimension(3);

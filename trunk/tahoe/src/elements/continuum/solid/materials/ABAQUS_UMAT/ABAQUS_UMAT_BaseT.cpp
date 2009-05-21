@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.20 2005-08-04 07:06:02 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.21 2009-05-21 22:30:27 tdnguye Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -532,6 +532,8 @@ void ABAQUS_UMAT_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 		out << setw(10) << " stress: " << fstress.no_wrap() << '\n';
 		out << setw(10) << " strain: " << fstrain.no_wrap() << '\n';
 		out << setw(10) << "dstrain: " << fdstran.no_wrap() << '\n';
+		out << setw(10) << "fdfgrd0: " << fdfgrd0.no_wrap() << '\n';
+		out << setw(10) << "fdfgrd1: " << fdfgrd1.no_wrap() << '\n';
 		out << setw(10) << "  state:\n";
 		out << fstatv.wrap(5) << '\n';
 	}

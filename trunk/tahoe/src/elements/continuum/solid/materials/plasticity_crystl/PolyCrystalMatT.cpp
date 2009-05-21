@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.18 2005-01-21 18:13:17 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.19 2009-05-21 22:30:27 tdnguye Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -8,6 +8,7 @@
 #include "SlipKinetics.h"
 #include "SlipHardening.h"
 #include "Utils.h"
+#include "ElementBlockDataT.h"
 
 #include "FSMatSupportT.h"
 #include "FiniteStrainT.h"
@@ -229,6 +230,8 @@ void PolyCrystalMatT::SetSlipSystems()
 
   // allocate space for slip shearing rate and resolve shear stress
   fDGamma.Dimension(fNumSlip);
+  fGamma.Dimension(fNumSlip);
+  fGamma = 0.0;
   fTau.Dimension(fNumSlip);
 
   // copy Schmidt tensor in crystal coords
@@ -255,6 +258,7 @@ void PolyCrystalMatT::SetLatticeOrientation()
   int numelem = NumElements();
   int numint = NumIP();
 
+	 
   // allocate array for euler angles at integration point
   fangles.Dimension(fNumGrain);
   for (int i = 0; i < fNumGrain; i++)
@@ -270,9 +274,24 @@ void PolyCrystalMatT::SetLatticeOrientation()
 	  fEuler[i](j,k).Dimension(3);
     }
 
+  
+  // assign orientation angles to each elemgroup
+  if (fODFCode == 5)
+  {
+	ArrayT<StringT> block_id;
+	FSMatSupport().FiniteStrain()->ElementBlockIDs(block_id);
+	int num_block = block_id.Length();
+	for (int i = 0; i< num_block; i++)
+	{
+		const ElementBlockDataT& block_data = FSMatSupport().FiniteStrain()->BlockData(block_id[i]);
+		int num_elem = block_data.Dimension();
+		int start_elem = block_data.StartNumber();
+		fLatticeOrient->AssignEulerAngles_block(num_elem, start_elem, numint, fNumGrain, fEuler);
+	}
+  }
+  else
   // assign orientation angles to each IP/ELEM
-  fLatticeOrient->AssignEulerAngles(fODFCode, numelem, numint,
-				    fNumGrain, fEuler);
+	fLatticeOrient->AssignEulerAngles(fODFCode, numelem, numint, fNumGrain, fEuler);
 }
 
 void PolyCrystalMatT::SetCrystalElasticity()
@@ -417,11 +436,11 @@ void PolyCrystalMatT::Compute_Ftot_3D(dMatrixT& F_3D) const
 {
 	int nsd = NumSD();
 	if (nsd == 3)
-		F_3D =  F();
+		F_3D =  F_total();
 	else if (nsd == 2)
 	{
 		// expand total deformation gradient: 2D -> 3D (plane strain)
-		F_3D.Rank2ExpandFrom2D(F());    // fFtot or fFtot_n
+		F_3D.Rank2ExpandFrom2D(F_total());    // fFtot or fFtot_n
 		F_3D(2, 2) = 1.0;
 	}
 	else 
@@ -432,11 +451,11 @@ void PolyCrystalMatT::Compute_Ftot_3D(dMatrixT& F_3D, int ip) const
 {
 	int nsd = NumSD();
 	if (nsd == 3)
-		F_3D =  F(ip);
+		F_3D =  F_total(ip);
 	else if (nsd == 2)
 	{
 		// expand total deformation gradient: 2D -> 3D (plane strain)
-		F_3D.Rank2ExpandFrom2D(F(ip));    // fFtot or fFtot_n
+		F_3D.Rank2ExpandFrom2D(F_total(ip));    // fFtot or fFtot_n
 		F_3D(2, 2) = 1.0;
 	}
 	else 
