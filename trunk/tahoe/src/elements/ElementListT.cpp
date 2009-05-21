@@ -1,5 +1,9 @@
-/* $Id: ElementListT.cpp,v 1.143 2009-05-11 21:43:28 regueiro Exp $ */
+/* $Id: ElementListT.cpp,v 1.144 2009-05-21 23:24:45 tdnguye Exp $ */
 /* $Log: not supported by cvs2svn $
+/* Revision 1.143  2009/05/11 21:43:28  regueiro
+/*
+/* adding xfem development option
+/*
 /* Revision 1.142  2009/05/11 14:24:50  regueiro
 /*
 /* adding micromorphic element option
@@ -204,6 +208,14 @@
 
 #ifdef SOLID_FLUID_MIX_DEV
 #include "FSSolidFluidMixT.h"
+#endif
+
+#ifdef SOLID_OPTIMIZATION_DEV
+//#include "SS_Optimize_Primal.h";
+#include "SS_Optimize_Dual.h";
+#include "FSFiber_Optimize_Dual.h";
+#include "FSFiber_OptSurf.h";
+#include "FSFiber_OptNS.h";
 #endif
 
 #ifdef MICROMORPHIC_DEV
@@ -461,6 +473,13 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 
 #ifdef SOLID_FLUID_MIX_DEV
 		sub_lists.AddSub("total_lagrangian_solid_fluid_mix");
+#endif
+
+#ifdef SOLID_OPTIMIZATION_DEV
+	sub_lists.AddSub("small_strain_optimize_dual");
+	sub_lists.AddSub("uplag_fiber_optimize_dual");
+	sub_lists.AddSub("uplag_fiber_optsurf");
+	sub_lists.AddSub("uplag_fiber_opt_ns");
 #endif
 
 #ifdef MICROMORPHIC_DEV
@@ -760,6 +779,21 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	  return new FSSolidFluidMixT(fSupport);
 #endif
 
+#ifdef SOLID_OPTIMIZATION_DEV
+//	else if (name == "small_strain_optimize_primal")
+//	  return new SS_Optimize_Primal(fSupport);
+	else if (name == "small_strain_optimize_dual")
+	  return new SS_Optimize_Dual(fSupport);
+	  
+	else if (name == "uplag_fiber_optimize_dual")
+	  return new FSFiber_Optimize_Dual(fSupport);
+
+	else if (name == "uplag_fiber_optsurf")
+	  return new FSFiber_OptSurf(fSupport);
+
+	else if (name == "uplag_fiber_opt_ns")
+	  return new FSFiber_OptNS(fSupport);
+#endif
 #ifdef MICROMORPHIC_DEV
 	else if (name == "micromorphic_FS_2D")
 	  return new FSMicromorphic2DT(fSupport);
@@ -773,6 +807,7 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #endif
 
 	/* default */
+
 	else
 		return NULL;
 }
