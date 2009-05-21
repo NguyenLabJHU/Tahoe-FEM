@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.38 2007-10-09 23:24:47 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.39 2009-05-21 22:29:44 thao Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -132,7 +132,7 @@ void SurfaceT::InputSideSets
 	ArrayT <GeometryT::CodeT> geometry_code;
 	iArrayT num_face_nodes;
 	ModelManagerT& model = support.ModelManager();
-	model.SideSet(ss_ID[0], geometry_code, num_face_nodes, faces_tmp);
+	model.SideSet(ss_ID, geometry_code, num_face_nodes, faces_tmp);
 	int num_faces = faces_tmp.MajorDim();
 
 	/* make node list and convert connectivities to local numbering */

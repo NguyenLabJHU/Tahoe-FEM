@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.h,v 1.1 2006-10-30 23:32:06 thao Exp $ */
+/* $Id: SSSimoViscoT.h,v 1.2 2009-05-21 22:29:48 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
@@ -43,7 +43,6 @@ class SSSimoViscoT: public SSSolidMatT
 	void Store(ElementCardT& element, int ip);
 
 	/*inquire if dissipation variables used in material force calculation are needed*/
-	virtual bool HasDissipVar(void) const {return true;}
 	virtual const iArrayT& InternalDOF(void) const;
 			
 	protected:

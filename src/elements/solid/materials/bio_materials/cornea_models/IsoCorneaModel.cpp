@@ -1,4 +1,4 @@
-/* $Id: IsoCorneaModel.cpp,v 1.2 2006-11-12 18:26:54 thao Exp $ */
+/* $Id: IsoCorneaModel.cpp,v 1.3 2009-05-21 22:29:46 thao Exp $ */
 /* created: paklein (11/08/1997) */
 
 #include "IsoCorneaModel.h"
@@ -270,8 +270,7 @@ void IsoCorneaModel::TakeParameterList(const ParameterListT& list)
   else if (points.Name() == "fcc_points")
     {
       int num_shells = points.GetParameter("shells");
-      double bond_length = points.GetParameter("nearest_neighbor_distanc\
-e");
+      double bond_length = points.GetParameter("nearest_neighbor_distance");
       fSphere = new FCCPtsT(num_shells, bond_length);
     }
   else

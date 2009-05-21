@@ -1,4 +1,4 @@
-/* $Id: FSFiber_OptNS.cpp,v 1.1 2009-04-23 03:03:42 thao Exp $ */
+/* $Id: FSFiber_OptNS.cpp,v 1.2 2009-05-21 22:29:45 thao Exp $ */
 
 #include "FSFiber_OptNS.h"
 
@@ -348,10 +348,6 @@ void FSFiber_OptNS::Compute_Cost(void)
 				diff = displacement(node,j) - fData(node, j);
 			}				
 			tot += 0.5*diff*diff*fweight_cost[j];
-//			cout << "\ndisp: "<<displacement(node,j);
-//			cout << "\ndiff: "<<diff;
-//			cout << "\ndata: "<<fData(node, j);
-//			cout << "\ntot: "<<tot;
 		}
 	}
 	fCostFunction += tot/fNumNodes;

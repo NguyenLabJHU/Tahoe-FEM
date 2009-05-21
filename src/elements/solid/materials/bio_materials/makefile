@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2006-05-02 00:58:53 thao Exp $
+# $Id: makefile,v 1.2 2009-05-21 22:29:46 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -63,7 +63,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR =  cornea_models
+#SUB_DIR =  cornea_models
 subdir_driver: subdir_loop
 
 #
