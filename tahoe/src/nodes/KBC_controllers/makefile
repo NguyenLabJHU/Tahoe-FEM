@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.19 2009-05-21 22:30:27 tdnguye Exp $
+# $Id: makefile,v 1.20 2009-05-26 12:29:42 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,6 @@ OBJ = \
 	BimaterialK_FieldT.o \
 	KBC_ControllerT.o \
 	K_FieldT.o \
-	K_FieldT_3D.o \
 	MappedPeriodicT.o \
 	TiedNodesT.o \
 	PeriodicNodesT.o \
@@ -53,7 +52,6 @@ SRC = \
 	BimaterialK_FieldT.cpp \
 	KBC_ControllerT.cpp \
 	K_FieldT.cpp \
-	K_FieldT_3D.cpp \
 	MappedPeriodicT.cpp \
 	TiedNodesT.cpp \
 	PeriodicNodesT.cpp \
@@ -75,7 +73,6 @@ HDR = \
 	BimaterialK_FieldT.h \
 	KBC_ControllerT.h \
 	K_FieldT.h \
-	K_FieldT_3D.h \
 	MappedPeriodicT.h \
 	TiedNodesT.h \
 	PeriodicNodesT.h \
