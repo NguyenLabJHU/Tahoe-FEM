@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.26 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.27 2009-05-26 13:03:26 tdnguye Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -43,7 +43,7 @@ public:
                 kTorsion = 9,
 		       kConveyor = 10,
 		       kConveyorSym = 11,
-	            kK_Field_3D = 12,
+//	            kK_Field_3D = 12,
 //				kAngledBC = 13
                 };
 
