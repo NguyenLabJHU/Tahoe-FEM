@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_edge.h,v 1.1 2009-06-03 03:17:02 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_edge.h,v 1.2 2009-06-03 03:20:31 hspark Exp $ */
 /* created: hspark (6/2/2009) */
 #ifndef _EAMFCC3DMatT_EDGE_H_
 #define _EAMFCC3DMatT_EDGE_H_
@@ -64,7 +64,7 @@ protected:
 	double fAlpha;
 	
 	/** Cauchy-Born EAM solver */
-	EAMFCC3DSym_surf* fEAM;
+	EAMFCC3D_edge* fEAM;
 };
 
 } /* namespace Tahoe */
