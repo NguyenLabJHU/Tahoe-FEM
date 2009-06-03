@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_edge.cpp,v 1.1 2009-06-03 04:25:30 hspark Exp $ */
+/* $Id: EAMFCC3DSym_edge.cpp,v 1.2 2009-06-03 04:28:09 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym_edge.h"
 
@@ -17,7 +17,7 @@ const double piby2 = 4.0 * atan(1.0) / 2.0;
 
 /* constructor */
 EAMFCC3DSym_edge::EAMFCC3DSym_edge(int nshells, int normal):
-	EAMFCC3D_surf(nshells, normal),
+	EAMFCC3D_edge(nshells, normal),
 	fNormalCode(normal)
 {
 	SetName("FCC_EAM_Cauchy-Born");
