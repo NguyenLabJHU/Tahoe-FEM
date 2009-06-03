@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2009-06-03 03:17:03 hspark Exp $
+# $Id: makefile,v 1.6 2009-06-03 04:25:30 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -25,6 +25,7 @@ OBJ = \
 	EAMFCC3DMatT_surf.o \
 	EAMFCC3DMatT_edge.o \
 	EAMFCC3DSym_surf.o \
+	EAMFCC3DSym_edge.o \
 	EAMFCC3DSym_110surf.o
 
 OBJ_LINK = $(OBJ)
@@ -50,6 +51,7 @@ SRC = \
 	EAMFCC3DMatT_surf.cpp \
 	EAMFCC3DMatT_edge.cpp \
 	EAMFCC3DSym_surf.cpp \
+	EAMFCC3DSym_edge.cpp \
 	EAMFCC3DSym_110surf.cpp
 
 ##################### (3) headers
@@ -67,6 +69,7 @@ HDR = \
 	EAMFCC3DMatT_surf.h \
 	EAMFCC3DMatT_edge.h \
 	EAMFCC3DSym_surf.h \
+	EAMFCC3DSym_edge.h \
 	EAMFCC3DSym_110surf.h
 
 HDR_LINK = $(HDR:.h=.h_link)
