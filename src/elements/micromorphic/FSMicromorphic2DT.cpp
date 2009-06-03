@@ -1607,8 +1607,8 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     knum_d_state = 3; // #? internal state variables
     knum_i_state = 0; // int's needed per ip, state variables
 	
-    knumstrain = 6; // number of strain outputs
-    knumstress = 6; // number of stress outputs + higher order = ??
+    knumstrain = 3; // number of strain outputs
+    knumstress = 3; // number of stress outputs + higher order = ??
 	
     output = "out";
 	
@@ -1835,8 +1835,9 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     fc_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fC_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fIm_Prim_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
-    fB_matrix.Dimension (6 ,n_en_displ_x_n_sd);
-    fD_matrix.Dimension (6,6);
+    fB_matrix.Dimension (3 ,n_en_displ_x_n_sd);
+    fD_matrix.Dimension (3,3);
+
     fK_dd_BTDB_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fFd_int_smallstrain_vector.Dimension (n_en_displ_x_n_sd);
     fEulerian_strain_tensor_current_IP.Dimension (n_sd,n_sd);
@@ -1844,7 +1845,7 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     fEulerian_strain_IPs.Dimension (fNumIP_displ,knumstrain);
     fCauchy_stress_IPs.Dimension (fNumIP_displ,knumstress);
     fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
-    fTemp_six_values.Dimension (6);
+    fTemp_six_values.Dimension (3);
     fEulerian_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstrain);
     fCauchy_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstress);
     fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
@@ -2849,9 +2850,9 @@ void FSMicromorphic2DT::Extract_six_values_from_symmetric_tensor(const dMatrixT 
 {
     fTemp_six_values[0]=fTensor(0,0);
     fTemp_six_values[1]=fTensor(1,1);
-    fTemp_six_values[2]=fTensor(2,2);
+   /* fTemp_six_values[2]=fTensor(2,2);
     fTemp_six_values[3]=fTensor(1,2);
-    fTemp_six_values[4]=fTensor(2,0);
+    fTemp_six_values[4]=fTensor(2,0);*/
     fTemp_six_values[5]=fTensor(0,1);
 }
 
