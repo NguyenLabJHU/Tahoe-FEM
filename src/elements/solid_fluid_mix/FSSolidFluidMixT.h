@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.26 2009-05-21 15:42:57 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.27 2009-06-04 20:14:01 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -11,6 +11,9 @@
 #include "eIntegratorT.h"
 
 #include "ModelManagerT.h"
+#include "DetCheckT.h"
+#include "dMatrixT.h"
+#include "dSymMatrixT.h"
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -95,6 +98,7 @@ public:
 	    kDevSS,
 	    kMeanS,
 	    kEpsVolp,
+	    kDelgamma,
 	    kNUM_FMATERIAL_STATE_TERMS
 	};
 									
@@ -399,13 +403,23 @@ private:
 	dMatrixT	fIdentity_matrix;
 	
 	//for plasticity
-	dMatrixT	fFp_n,fFp,fdGdS_n,fdGdS;
+	dMatrixT	fFp_n,fFp,fdGdS_n,fdGdS,fdFdS;
 	dMatrixT 	fFp_n_Inverse,fFp_Inverse;
 	dMatrixT 	fFe_tr,fFe;
-	dMatrixT 	fFe_tr_Transpose, fFe_Transpose, fFe_Transpose_Inverse;
+	dMatrixT 	fFe_tr_Transpose, fFe_Transpose, fFe_Transpose_Inverse, fFe_Inverse;
 	dMatrixT	fTrial_Elastic_Right_Cauchy_Green_tensor,fElastic_Right_Cauchy_Green_tensor;
+	dMatrixT	fElastic_Left_Cauchy_Green_tensor;
 	dMatrixT	fTrial_Elastic_Right_Cauchy_Green_tensor_Inverse,fElastic_Right_Cauchy_Green_tensor_Inverse;
 	dMatrixT	dDevSdDelgamma, dSdDelgamma, dFedDelgamma, dCedDelgamma;
+	
+	//for localization analysis
+	AutoArrayT <dArrayT> normals;
+	AutoArrayT <dArrayT> slipdirs;
+	AutoArrayT <double> detAs;
+	dArray2DT	fc_IPs;
+	dArray2DT	fc_Elements_IPs;
+	dArray2DT	fce_IPs;
+	dArray2DT	fce_Elements_IPs;
 
 	dMatrixT	fTemp_matrix_nsd_x_nsd;
 	dMatrixT	fTemp_matrix_nen_press_x_nsd;
@@ -523,7 +537,7 @@ private:
 	double fF_tr, fF_tr_fact, fF;
 	int iter_count, global_iteration;
 	double fXpsi, fXpsi_m_kappa, fFpsicap;
-	double fCpsi, fDelgamma, signMacFunc, fdelDelgamma, dfFdDelgamma;
+	double fCpsi, fCphi, fDelgamma, signMacFunc, fdelDelgamma, dfFdDelgamma;
 	double fTemp_scalar, dMeanStressdDelgamma;
 	double dFphicapdDelgamma, dXphikappadDelgamma, dkappadDelgamma, dAphidDelgamma;
 	double Je, Je_tr, Jp;

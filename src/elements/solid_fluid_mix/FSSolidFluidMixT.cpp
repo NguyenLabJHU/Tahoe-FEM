@@ -288,11 +288,12 @@ void FSSolidFluidMixT::CloseStep(void)
 		    /* extrapolate */
 		    nd_var = 0.0;
 		    out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+		    
 		    fShapes_displ->TopIP();
 		    while (fShapes_displ->NextIP())
 		    {
-			out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes_displ->CurrIP()));
-			fShapes_displ->Extrapolate(out_variable, nd_var);
+				out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes_displ->CurrIP()));
+				fShapes_displ->Extrapolate(out_variable, nd_var);
 		    }
 		    
 		    /* accumulate - extrapolation done from ip's to corners => X nodes  */
@@ -328,6 +329,69 @@ void FSSolidFluidMixT::CloseStep(void)
 		/* send */
 		ElementSupport().WriteOutput(fOutputID, n_values, fIPVariable);
     }
+    else if ( ElementSupport().Time()>0 ) //check for localization
+    {
+    	Top();
+		while (NextElement())
+		{
+		    int e = CurrElementNumber();
+		    fCauchy_effective_stress_Elements_IPs.RowCopy(e,fCauchy_effective_stress_IPs);
+		    fState_variables_Elements_IPs.RowCopy(e,fState_variables_IPs);
+		    fc_Elements_IPs.RowCopy(e,fc_IPs);
+		    fce_Elements_IPs.RowCopy(e,fce_IPs);
+		    fShapes_displ->TopIP();
+		    while (fShapes_displ->NextIP())
+		    {
+				int IP = fShapes_displ->CurrIP();
+				if (fState_variables_IPs(IP,kDelgamma) > 0.0) // check for localization
+				{
+					/* retrieve Cauchy effective stress and moduli at IP */
+					//dSymMatrixT::NumValues(NumSD())
+					dMatrixT fStressPrime(3,3);
+					fCauchy_effective_stress_IPs.RowCopy(IP,fStressPrime);
+					dSymMatrixT fSymStressPrime;
+					fSymStressPrime.Dimension(3);
+					//symmetrize not working correctly, but doesn't matter because don't need stress
+					fSymStressPrime.Symmetrize(fStressPrime);
+					dMatrixT fModulus(6,6), fModulus_e(6,6);
+					fc_IPs.RowCopy(IP,fModulus);
+					fce_IPs.RowCopy(IP,fModulus_e);
+
+					/* localization condition checker */ 
+					const dSymMatrixT& stress = fSymStressPrime;
+					const dMatrixT& modulus_ep = fModulus;
+					const dMatrixT& modulus_e = fModulus_e;
+					DetCheckT checker(stress, modulus_ep, modulus_e); 	 
+					normals.Dimension(NumSD()); 	 
+					slipdirs.Dimension(NumSD()); 	 
+					normals.Free(); 	 
+					slipdirs.Free(); 	 
+					detAs.Free(); 	 
+					bool checkloc = checker.IsLocalized_SS(normals,slipdirs,detAs); 
+					if (checkloc)
+					{
+						//determine minimum determinant among normals at different IPs
+						double detAmin = 1.0e99;
+						double detA_tmp;
+						dArrayT normal_tmp(3);
+						detAs.Top();
+						while (detAs.Next() && normals.Next())
+						{
+							detA_tmp = detAs.Current();
+							normal_tmp = normals.Current();
+							if (detA_tmp < detAmin)
+							{
+								detAmin = detA_tmp;
+								fs_plast_mix_out	<< endl << "detA_min" << detA_tmp; 			
+								fs_plast_mix_out	<< endl << "normal: " << setw(outputFileWidth) << normal_tmp[0] 
+										<< setw(outputFileWidth) << normal_tmp[1] <<  setw(outputFileWidth) << normal_tmp[2]; 
+							}
+						}
+					} // if (checkloc)
+				} // if (fState_variables_IPs(IP,kDelgamma) > 0.0)
+		    } // while (fShapes_displ->NextIP())
+		} // while (NextElement())
+    } // time>0
 
     /* zero first derivative of fields which are created at time=0 during calculating geostatic equilibrium(Trapezoidal rule) */    
     if ( ElementSupport().Time()==0 &&  kInitialConditionType==1 && kAnalysisType==1)
@@ -364,13 +428,10 @@ void FSSolidFluidMixT::CloseStep(void)
     fFp_n_Elements_IPs = fFp_Elements_IPs;
     fdGdS_n_Elements_IPs = fdGdS_Elements_IPs;
     
-    /*
 	step_number = ElementSupport().StepNumber();
-	fs_plast_mix_out	<< endl << setw(outputFileWidth) << "time_step" << endl;
-	fs_plast_mix_out	<< setw(outputFileWidth) << step_number << endl;
-	fs_plast_mix_out	<< endl << "**********************************************************************************************";
+	fs_plast_mix_out	<< endl << setw(outputFileWidth) << "time_step" << setw(outputFileWidth) << step_number << endl;
 	fs_plast_mix_out	<< endl << "**********************************************************************************************" << endl;
-	*/
+	
 }
 
 
@@ -1143,6 +1204,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    {
 				out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
 				Put_values_In_dArrayT_vector(fCauchy_effective_stress_Elements_IPs, e,l,fTemp_six_values);
+				//"s11", "s22", "s33","s23","s13","s12","p_f","e11","e22","e33","e23","e13","e12"
 				out_variable.CopyIn(0,fTemp_six_values);
 				out_variable[6]=fPhysical_pore_water_pressure_Elements_IPs(e,l);
 				Put_values_In_dArrayT_vector(fEulerian_effective_strain_Elements_IPs, e,l,fTemp_six_values);
@@ -1306,7 +1368,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				phi_f = 1.0 - phi_s;
 				
 				/*  Calculating fRho */
-				fRho = phi_f*fRho_f+ phi_s*fMaterial_Params[kRho_sR0];
+				fRho = phi_f*fRho_f + phi_s*fMaterial_Params[kRho_sR0];
 				
 				/* Calculating fRho_0 */
 				fRho_0 = J*fRho;
@@ -1504,6 +1566,9 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			    			/* update fDelgamma */
 			    			fDelgamma += fdelDelgamma;
 			    			if (fDelgamma < 0.0) fDelgamma = 0.0;
+			    			fState_variables_IPs(IP,kDelgamma) = fDelgamma;
+			    			
+			    			double scalar_res = fabs(fF/fF_tr);
 			    			
 			    			/* update kappa and c ISVs */
 			    			fState_variables_IPs(IP,kZkappa) = fState_variables_n_IPs(IP,kZkappa) 
@@ -1529,11 +1594,13 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 							/* calculate elastic Jacobian */
 							Je = fFe.Det();
 
-							/* calculate Fe_Transpose */
+							/* calculate Fe_Transpose and Inverse */
 							fFe_Transpose.Transpose(fFe);
+							fFe_Inverse.Inverse(fFe);
 							fFe_Transpose_Inverse.Inverse(fFe_Transpose);
 							/* [fElastic_Right_Cauchy_Green_tensor] will be formed */
 							fElastic_Right_Cauchy_Green_tensor.MultATB(fFe, fFe);
+							fElastic_Left_Cauchy_Green_tensor.MultABT(fFe, fFe);
 							
 							/* calculate [fTrial_Right_Cauchy_Green_tensor_Inverse] */
 							if (fElastic_Right_Cauchy_Green_tensor.Det()==0)
@@ -1587,6 +1654,174 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			    		/* update Kirchhoff stress */
 						fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fEffective_Second_Piola_tensor,fFe);
 						fEffective_Kirchhoff_tensor.SetToScaled(Jp,fTemp_matrix_nsd_x_nsd);
+						
+						/* save continuum tangents for localization analysis at end of time step */
+						/* elasto-plastic tangent moduli */ 
+						fCauchy_effective_stress_tensor_current_IP.SetToScaled(1/J,fEffective_Kirchhoff_tensor);
+						
+						dMatrixT fC(6), fCe(6);
+						
+						/* form continuum elastic modulus tensor */
+						fCe=0.0;
+						double scalar1 = 2*(fMaterial_Params[kMu]-fMaterial_Params[kLambda]*log(Je))+fMaterial_Params[kLambda];
+						double scalar2 = fMaterial_Params[kMu]-fMaterial_Params[kLambda]*log(Je);
+						fCe(0,0)=scalar1;
+						fCe(1,1)=scalar1;
+						fCe(2,2)=scalar1;
+						fCe(0,1)=fMaterial_Params[kLambda];
+						fCe(0,2)=fMaterial_Params[kLambda];
+						fCe(1,0)=fMaterial_Params[kLambda];
+						fCe(1,2)=fMaterial_Params[kLambda];
+						fCe(2,0)=fMaterial_Params[kLambda];
+						fCe(2,1)=fMaterial_Params[kLambda];
+						fCe(3,3)=scalar2;
+						fCe(4,4)=scalar2;
+						fCe(5,5)=scalar2;
+						fce_IPs.SetRow(IP,fCe);
+						
+						/* form continuum elastoplastic-like modulus tensor */
+						fC=0.0;
+						double scalar0 = fMaterial_Params[kLambda]*log(Je)-fMaterial_Params[kMu];
+						
+						/* calculate stress derivative of yield function */
+						fdFdS = 0.0;
+						fXphi = fState_variables_IPs(IP,kkappa)-fMaterial_Params[kR]*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)
+							-fMaterial_Params[kBphi]*fState_variables_IPs(IP,kkappa));
+						fXphi_m_kappa = fXphi - fState_variables_IPs(IP,kkappa);
+						fMacFunc = (fabs(fState_variables_IPs(IP,kkappa)-3*meanstress)+fState_variables_IPs(IP,kkappa)-3*meanstress)/2;
+						fFphicap = 1.0 - fMacFunc*(fState_variables_IPs(IP,kkappa)-3*meanstress)/(fXphi_m_kappa*fXphi_m_kappa);
+						fCphi = 2*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress)
+							*(fFphicap*(fMaterial_Params[kBphi]/3)-(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)
+							-fMaterial_Params[kBphi]*meanstress)*(fMacFunc/(fXphi_m_kappa*fXphi_m_kappa)));
+						fdFdS.SetToScaled(2.0,fDev_Effective_Second_Piola_tensor); 
+						fTemp_matrix_nsd_x_nsd.SetToScaled(fCphi,fIdentity_matrix);
+						fdFdS += fTemp_matrix_nsd_x_nsd;
+						double trace_fdFdS = fdFdS.Trace();
+						//map to current configuration
+						dMatrixT fdfds(n_sd,n_sd);
+						fdfds.MultABCT(fFe_Transpose_Inverse,fdFdS,fFe_Transpose_Inverse);
+						double trace_fdfds = fdfds.Trace();
+						
+						/* calculate direction of plastic flow */
+						fdGdS = 0.0;
+						fXpsi = fState_variables_IPs(IP,kkappa)-fMaterial_Params[kR]*(fMaterial_Params[kApsi]*fState_variables_IPs(IP,kc)
+							-fMaterial_Params[kBpsi]*fState_variables_IPs(IP,kkappa));
+						fXpsi_m_kappa = fXpsi - fState_variables_IPs(IP,kkappa);
+						fMacFunc = (fabs(fState_variables_IPs(IP,kkappa)-3*meanstress)+fState_variables_IPs(IP,kkappa)-3*meanstress)/2;
+						fFpsicap = 1.0 - fMacFunc*(fState_variables_IPs(IP,kkappa)-3*meanstress)/(fXpsi_m_kappa*fXpsi_m_kappa);
+						fCpsi = 2*(fMaterial_Params[kApsi]*fState_variables_IPs(IP,kc)-fMaterial_Params[kBpsi]*meanstress)
+							*(fFpsicap*(fMaterial_Params[kBpsi]/3)-(fMaterial_Params[kApsi]*fState_variables_IPs(IP,kc)
+							-fMaterial_Params[kBpsi]*meanstress)*(fMacFunc/(fXpsi_m_kappa*fXpsi_m_kappa)));
+						fdGdS.SetToScaled(2.0,fDev_Effective_Second_Piola_tensor); 
+						fTemp_matrix_nsd_x_nsd.SetToScaled(fCpsi,fIdentity_matrix);
+						fdGdS += fTemp_matrix_nsd_x_nsd;
+						double trace_fdGdS = fdGdS.Trace();
+						//map to current configuration
+						dMatrixT fdgds(n_sd,n_sd);
+						fdgds.MultABCT(fFe_Transpose_Inverse,fdGdS,fFe_Transpose_Inverse);
+						
+						/* form e_matrix */
+						dMatrixT e_matrix(3,3);
+						e_matrix = 0.0;
+						e_matrix.SetToScaled(trace_fdGdS,fCauchy_effective_stress_tensor_current_IP);
+						fTemp_matrix_nsd_x_nsd.MultABC(fCauchy_effective_stress_tensor_current_IP,fdgds,fElastic_Left_Cauchy_Green_tensor);
+						e_matrix -= fTemp_matrix_nsd_x_nsd;
+						fTemp_matrix_nsd_x_nsd.MultABC(fElastic_Left_Cauchy_Green_tensor,fdgds,fCauchy_effective_stress_tensor_current_IP);
+						e_matrix -= fTemp_matrix_nsd_x_nsd;
+						fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kLambda]*trace_fdGdS/Je,fIdentity_matrix);
+						e_matrix -= fTemp_matrix_nsd_x_nsd;
+						fTemp_matrix_nsd_x_nsd.SetToScaled(2*scalar0/Je,fdgds);
+						e_matrix += fTemp_matrix_nsd_x_nsd;
+						
+						/* form fChi_scalar */
+						double fChi_scalar = 1.0;
+						double fdfds_fdgds = dMatrixT::Dot(fdfds,fdgds);
+						
+						double dFcapdkappa = -signMacFunc*(fState_variables_IPs(IP,kkappa)-3*meanstress)/(fXphi_m_kappa*fXphi_m_kappa)
+							-fMacFunc*(
+							1/(fXphi_m_kappa*fXphi_m_kappa)+(fState_variables_IPs(IP,kkappa)-3*meanstress)
+							*(-2*fMaterial_Params[kR]*fMaterial_Params[kBphi]/(fXphi_m_kappa*fXphi_m_kappa*fXphi_m_kappa))
+							);
+						double dFdkappa = -dFcapdkappa
+							*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress)
+							*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress);
+						double dFdc = -2*fFphicap*fMaterial_Params[kAphi]
+							*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress);
+							
+						fChi_scalar = fMaterial_Params[kLambda]*trace_fdGdS*trace_fdfds - 2*scalar0*fdfds_fdgds
+							- dFdkappa*fState_variables_n_IPs(IP,khkappa)*fMaterial_Params[kHk] 
+							- dFdc*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+							
+						fC(0,0) = fMaterial_Params[kLambda]/Je + 2*scalar0/Je + e_matrix(0,0)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(0,0))/fChi_scalar;
+						fC(0,1) = fMaterial_Params[kLambda]/Je + scalar0/Je + e_matrix(0,0)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(1,1))/fChi_scalar;
+						fC(0,2) = fMaterial_Params[kLambda]/Je + scalar0/Je + e_matrix(0,0)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(2,2))/fChi_scalar;
+						fC(0,3) = e_matrix(0,0)*(-2*scalar0*fdfds(1,2))/fChi_scalar;
+						fC(0,4) = e_matrix(0,0)*(-2*scalar0*fdfds(0,2))/fChi_scalar;
+						fC(0,5) = e_matrix(0,0)*(-2*scalar0*fdfds(0,1))/fChi_scalar;
+						
+						fC(1,0) = fMaterial_Params[kLambda]/Je + scalar0/Je + e_matrix(1,1)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(0,0))/fChi_scalar;
+						fC(1,1) = fMaterial_Params[kLambda]/Je + 2*scalar0/Je + e_matrix(1,1)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(1,1))/fChi_scalar;
+						fC(1,2) = fMaterial_Params[kLambda]/Je + scalar0/Je + e_matrix(1,1)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(2,2))/fChi_scalar;
+						fC(1,3) = e_matrix(1,1)*(-2*scalar0*fdfds(1,2))/fChi_scalar;
+						fC(1,4) = e_matrix(1,1)*(-2*scalar0*fdfds(0,2))/fChi_scalar;
+						fC(1,5) = e_matrix(1,1)*(-2*scalar0*fdfds(0,1))/fChi_scalar;
+						
+						fC(2,0) = fMaterial_Params[kLambda]/Je + scalar0/Je + e_matrix(2,2)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(0,0))/fChi_scalar;
+						fC(2,1) = fMaterial_Params[kLambda]/Je + scalar0/Je + e_matrix(2,2)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(1,1))/fChi_scalar;
+						fC(2,2) = fMaterial_Params[kLambda]/Je + 2*scalar0/Je + e_matrix(2,2)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(2,2))/fChi_scalar;
+						fC(2,3) = e_matrix(2,2)*(-2*scalar0*fdfds(1,2))/fChi_scalar;
+						fC(2,4) = e_matrix(2,2)*(-2*scalar0*fdfds(0,2))/fChi_scalar;
+						fC(2,5) = e_matrix(2,2)*(-2*scalar0*fdfds(0,1))/fChi_scalar;
+						
+						fC(3,0) = e_matrix(1,2)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(0,0))/fChi_scalar;
+						fC(3,1) = e_matrix(1,2)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(1,1))/fChi_scalar;
+						fC(3,2) = e_matrix(1,2)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(2,2))/fChi_scalar;
+						fC(3,3) = e_matrix(1,2)*(-2*scalar0*fdfds(1,2))/fChi_scalar;
+						//	+ scalar0/Je;
+						fC(3,4) = e_matrix(1,2)*(-2*scalar0*fdfds(0,2))/fChi_scalar;
+						fC(3,5) = e_matrix(1,2)*(-2*scalar0*fdfds(0,1))/fChi_scalar;
+						
+						fC(4,0) = e_matrix(0,2)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(0,0))/fChi_scalar;
+						fC(4,1) = e_matrix(0,2)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(1,1))/fChi_scalar;
+						fC(4,2) = e_matrix(0,2)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(2,2))/fChi_scalar;
+						fC(4,3) = e_matrix(0,2)*(-2*scalar0*fdfds(1,2))/fChi_scalar;
+						fC(4,4) = e_matrix(0,2)*(-2*scalar0*fdfds(0,2))/fChi_scalar;
+						//	+ scalar0/Je;
+						fC(4,5) = e_matrix(0,2)*(-2*scalar0*fdfds(0,1))/fChi_scalar;
+						
+						fC(5,0) = e_matrix(0,1)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(0,0))/fChi_scalar;
+						fC(5,1) = e_matrix(0,1)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(1,1))/fChi_scalar;
+						fC(5,2) = e_matrix(0,1)
+							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(2,2))/fChi_scalar;
+						fC(5,3) = e_matrix(0,1)*(-2*scalar0*fdfds(1,2))/fChi_scalar;
+						fC(5,4) = e_matrix(0,1)*(-2*scalar0*fdfds(0,2))/fChi_scalar;
+						fC(5,5) = e_matrix(0,1)*(-2*scalar0*fdfds(0,1))/fChi_scalar;
+						//	+ scalar0/Je;
+						
+						
+						
+						// for testing localization analysis (shouldn't localize)
+						//fC=fCe;
+						
+						fc_IPs.SetRow(IP,fC);
+						
 					}
 					else //elastic
 					{
@@ -1602,6 +1837,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 					}
 					
 					/* calculate direction of plastic flow for next step */
+					fdGdS = 0.0;
 					fXpsi = fState_variables_IPs(IP,kkappa)-fMaterial_Params[kR]*(fMaterial_Params[kApsi]*fState_variables_IPs(IP,kc)
 						-fMaterial_Params[kBpsi]*fState_variables_IPs(IP,kkappa));
 					fXpsi_m_kappa = fXpsi - fState_variables_IPs(IP,kkappa);
@@ -1830,8 +2066,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				const1 = J*fMaterial_Params[kKf]*(1-phi_f*phi_f);
 				if (fabs(const1) > 1e-16) 
 					scale = (
-				    -1*theta*fRho_f/(J*fMaterial_Params[kKf])+
-					fMaterial_Params[kPhi_s0]*(fRho_f/J)*
+				    theta*theta*fRho_f/(J*fMaterial_Params[kKf])-
+					fMaterial_Params[kPhi_s0]*theta*(fRho_f/J)*
 					(1/(1-pow(phi_f,2)))*
 					(3*pow(phi_f,2)+2*pow(phi_f,4)/(1-pow(phi_f,2)))
 					)*integrate_param*scale_const;
@@ -2210,6 +2446,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    
 		    /* saving dGdS for each IP of the current element */
 		    fdGdS_Elements_IPs.SetRow(e,fdGdS_IPs);
+		    
+		    /* saving continuum moduli of the current element */
+		    fc_Elements_IPs.SetRow(e,fc_IPs);
+		    fce_Elements_IPs.SetRow(e,fce_IPs);
 	    
 		    /* {fFd_int_M_vector} will be formed */	    
 		    fM_dd_matrix.Multx(u_dotdot_vec,fFd_int_M_vector);
@@ -2879,10 +3119,14 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fCauchy_effective_stress_tensor_current_IP.Dimension (n_sd,n_sd);
     fEulerian_effective_strain_IPs.Dimension (fNumIP_displ,6);
     fCauchy_effective_stress_IPs.Dimension (fNumIP_displ,6);
+    fc_IPs.Dimension (fNumIP_displ,36);
+    fce_IPs.Dimension (fNumIP_displ,36);
     fPhysical_pore_water_pressure_IPs.Dimension (fNumIP_displ,1);
     fTemp_six_values.Dimension (6);
     fEulerian_effective_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
     fCauchy_effective_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*6);
+    fc_Elements_IPs.Dimension (NumElements(),fNumIP_displ*36);
+    fce_Elements_IPs.Dimension (NumElements(),fNumIP_displ*36);
     fPhysical_pore_water_pressure_Elements_IPs.Dimension (NumElements(),fNumIP_displ);
     fM_dd_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fUpsilon_temp_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
@@ -2942,6 +3186,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fP0_temp_value.Dimension (1);
     
     /* for plasticity */
+    fElastic_Left_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fElastic_Right_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fElastic_Right_Cauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
     fTrial_Elastic_Right_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
@@ -2953,11 +3198,13 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fFp.Dimension (n_sd,n_sd);
     fdGdS_n.Dimension (n_sd,n_sd);
     fdGdS.Dimension (n_sd,n_sd);
+    fdFdS.Dimension (n_sd,n_sd);
     fFp_Inverse.Dimension (n_sd,n_sd);
     fFp_n_Inverse.Dimension (n_sd,n_sd);
     fFe_tr.Dimension (n_sd,n_sd);
     fFe_tr_Transpose.Dimension (n_sd,n_sd);
     fFe.Dimension (n_sd,n_sd);
+    fFe_Inverse.Dimension (n_sd,n_sd);
     fFe_Transpose.Dimension (n_sd,n_sd);
     fFe_Transpose_Inverse.Dimension (n_sd,n_sd);
     dDevSdDelgamma.Dimension (n_sd,n_sd);
