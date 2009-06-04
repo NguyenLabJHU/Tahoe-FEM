@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_edge.h,v 1.2 2009-06-03 03:20:31 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_edge.h,v 1.3 2009-06-04 16:25:46 hspark Exp $ */
 /* created: hspark (6/2/2009) */
 #ifndef _EAMFCC3DMatT_EDGE_H_
 #define _EAMFCC3DMatT_EDGE_H_
@@ -9,7 +9,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class EAMFCC3D_edge;
+class EAMFCC3DSym_edge;
 
 /** plane strain EAM material */
 class EAMFCC3DMatT_edge: public NL_E_MatT
@@ -64,7 +64,7 @@ protected:
 	double fAlpha;
 	
 	/** Cauchy-Born EAM solver */
-	EAMFCC3D_edge* fEAM;
+	EAMFCC3DSym_edge* fEAM;
 };
 
 } /* namespace Tahoe */

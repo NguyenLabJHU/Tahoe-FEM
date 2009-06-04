@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_edge.cpp,v 1.3 2009-06-04 04:28:00 hspark Exp $ */
+/* $Id: EAMFCC3DSym_edge.cpp,v 1.4 2009-06-04 16:25:46 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym_edge.h"
 
@@ -14,6 +14,7 @@ const int kEAMFCC3DEdgeBonds5        = 25;	// 25 atoms in type-5 unit cell x 1 a
 const int kEAMFCC3DEdgeBonds6        = 32;	// 32 atoms in type-6 unit cell x 3 atoms = 96
 const int kEAMFCC3DEdgeBonds7        = 37;	// 37 atoms in type-7 unit cell x 2 atoms = 74
 const int kEAMFCC3DEdgeBonds8        = 37;	// 37 atoms in type-8 unit cell x 2 atoms = 74
+const int kEAMFCC3DBulkBonds         = 42;	// 42 atoms in a bulk unit cell
 const int kEAMFCC3DNumLatticeDim 	=  3;
 const int kEAMFCC3DNumAtomsPerCell	=  4;
 const int kEAMFCC3DNumAtomsPerArea  =  2;
@@ -33,32 +34,83 @@ EAMFCC3DSym_edge::EAMFCC3DSym_edge(int nshells, int normal):
 	
 void EAMFCC3DSym_edge::LoadBondTable(void)
 {
-	/* dimension work space - ARE THESE DIMENSIONS CORRECT? */
 	/* RENAME VARIABLES IN BondTableT!!! */
-	fBondCounts.Dimension(kEAMFCC3DEdgeBonds);
-	fEdgeCounts.Dimension(kEAMFCC3DEdgeBonds);
+//	fEdgeBondCounts.Dimension(kEAMFCC3DEdgeBonds); // all edge bonds (412)
+	fBondCounts.Dimension(kEAMFCC3DEdgeBonds);	// all edge bonds (412)
+	fBulkBondCounts.Dimension(kEAMFCC3DBulkBonds); // all bulk bonds (42)
+	fEdge1Counts.Dimension(kEAMFCC3DEdgeBonds1);
+	fEdge2Counts.Dimension(kEAMFCC3DEdgeBonds2);
+	fEdge3Counts.Dimension(kEAMFCC3DEdgeBonds3);
+	fEdge4Counts.Dimension(kEAMFCC3DEdgeBonds4);
+	fEdge5Counts.Dimension(kEAMFCC3DEdgeBonds5);
+	fEdge6Counts.Dimension(kEAMFCC3DEdgeBonds6);
+	fEdge7Counts.Dimension(kEAMFCC3DEdgeBonds7);
+	fEdge8Counts.Dimension(kEAMFCC3DEdgeBonds8);	
+//	fDefEdgeLength.Dimension(kEAMFCC3DEdgeBonds);	// all deformed edge lengths (412)
 	fDefLength.Dimension(kEAMFCC3DEdgeBonds);
-	fDefEdge.Dimension(kEAMFCC3DEdgeBonds);
-	fBonds.Dimension(kEAMFCC3DEdgeBonds, kEAMFCC3DNumLatticeDim);
-	fEdgeBonds.Dimension(kEAMFCC3DEdgeBonds,3);
+	fDefBulkLength.Dimension(kEAMFCC3DBulkBonds);
+	fDefEdge1.Dimension(kEAMFCC3DEdgeBonds1);
+	fDefEdge2.Dimension(kEAMFCC3DEdgeBonds2);
+	fDefEdge3.Dimension(kEAMFCC3DEdgeBonds3);
+	fDefEdge4.Dimension(kEAMFCC3DEdgeBonds4);
+	fDefEdge5.Dimension(kEAMFCC3DEdgeBonds5);
+	fDefEdge6.Dimension(kEAMFCC3DEdgeBonds6);
+	fDefEdge7.Dimension(kEAMFCC3DEdgeBonds7);
+	fDefEdge8.Dimension(kEAMFCC3DEdgeBonds8);	
+//	fAllEdgeBonds.Dimension(kEAMFCC3DEdgeBonds,3);
+	fBonds.Dimension(kEAMFCC3DEdgeBonds,3);
+	fAllBulkBonds.Dimension(kEAMFCC3DBulkBonds,3);
+	fEdgeBonds1.Dimension(kEAMFCC3DEdgeBonds1,3);
+	fEdgeBonds2.Dimension(kEAMFCC3DEdgeBonds2,3);
+	fEdgeBonds3.Dimension(kEAMFCC3DEdgeBonds3,3);
+	fEdgeBonds4.Dimension(kEAMFCC3DEdgeBonds4,3);
+	fEdgeBonds5.Dimension(kEAMFCC3DEdgeBonds5,3);
+	fEdgeBonds6.Dimension(kEAMFCC3DEdgeBonds6,3);
+	fEdgeBonds7.Dimension(kEAMFCC3DEdgeBonds7,3);
+	fEdgeBonds8.Dimension(kEAMFCC3DEdgeBonds8,3);
 	fEdgeType.Dimension(kEAMFCC3DEdgeBonds);
 
-	dArray2DT temp_edge, temp_edge1, temp_edge2, tempedge;
-	temp_edge.Dimension(kEAMFCC3DEdgeBonds, 3);
-	temp_edge1.Dimension(kEAMFCC3DEdgeBonds, 3);
-	temp_edge2.Dimension(kEAMFCC3DEdgeBonds, 3);
+	dArray2DT temp_edge1, temp_edge2, temp_edge3, temp_edge4, temp_edge5, temp_edge6, temp_edge7, temp_edge8, temp_bulk; 
+	dArray2DT tempedge;
+	temp_edge1.Dimension(kEAMFCC3DEdgeBonds1, 3);
+	temp_edge2.Dimension(kEAMFCC3DEdgeBonds2, 3);
+	temp_edge3.Dimension(kEAMFCC3DEdgeBonds3, 3);
+	temp_edge4.Dimension(kEAMFCC3DEdgeBonds4, 3);
+	temp_edge5.Dimension(kEAMFCC3DEdgeBonds5, 3);
+	temp_edge6.Dimension(kEAMFCC3DEdgeBonds6, 3);
+	temp_edge7.Dimension(kEAMFCC3DEdgeBonds7, 3);
+	temp_edge8.Dimension(kEAMFCC3DEdgeBonds8, 3);
+	temp_bulk.Dimension(kEAMFCC3DBulkBonds, 3);
 	tempedge.Dimension(kEAMFCC3DEdgeBonds, 3);
 
 	/* all bonds appear once */
+//	fEdgeBondCounts = 1;
 	fBondCounts = 1;
-	fEdgeCounts = 1;
+	fBulkBondCounts = 1;
+	fEdge1Counts = 1;
+	fEdge2Counts = 1;
+	fEdge3Counts = 1;
+	fEdge4Counts = 1;
+	fEdge5Counts = 1;
+	fEdge6Counts = 1;
+	fEdge7Counts = 1;
+	fEdge8Counts = 1;
 	
 	/* clear deformed lengths for now */
+//	fDefEdgeLength = 0.0;
 	fDefLength = 0.0;
-	fDefEdge = 0.0;
+	fDefBulkLength = 0.0;
+	fDefEdge1 = 0.0;
+	fDefEdge2 = 0.0;
+	fDefEdge3 = 0.0;
+	fDefEdge4 = 0.0;
+	fDefEdge5 = 0.0;
+	fDefEdge6 = 0.0;
+	fDefEdge7 = 0.0;
+	fDefEdge8 = 0.0;	
 
 	/* undeformed bond data for bulk atom with 4th neighbor interactions */
-	double bulkbond[kEAMFCC3DNumBonds][kEAMFCC3DNumLatticeDim] = {
+	double bulkbond[kEAMFCC3DBulkBonds][kEAMFCC3DNumLatticeDim] = {
 		{0, 0, -1.},
 		{0, 0, 1.},
 		{0, -1., 0},
@@ -103,8 +155,13 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{1., 0.5, 0.5}
 	};
 
-	/* Bond table for an atom on the edge */
-	double edgebond[kEAMFCC3DEdgeBonds1][kEAMFCC3DNumLatticeDim] = {
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DBulkBonds; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_bulk(i,j) = bulkbond[i][j];
+
+	/* Bond table for an atom on the edge (2 atoms) */
+	double edgebond1[kEAMFCC3DEdgeBonds1][kEAMFCC3DNumLatticeDim] = {
 		{0.5, 0.5, 0.0}, // Surface cluster (8 nearest neighbors)
 		{0.5, -0.5, 0.0},
 		{0.5, 0.0, -0.5},
@@ -121,8 +178,14 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{0.5, -1.0, -0.5},
 		{0.5, -0.5, -1.0}
 	};
-	/* temporary edgebond interaction map */
-	// edgebondmap = {1,1,3,1,1,2,0,0,2,4,3,4,4,3,4};
+	
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DEdgeBonds1; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_edge1(i,j) = edgebond1[i][j];
+			
+	/* temporary edgebond1 interaction map */
+	// edgebond1map = {1,1,3,1,1,2,0,0,2,4,3,4,4,3,4};
 
 	/* Bond table for z=-0.5, x=0, y=variable (2 atoms) */
 	double edgebond2[kEAMFCC3DEdgeBonds2][kEAMFCC3DNumLatticeDim] = {
@@ -149,8 +212,14 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{1., 0.5, -0.5}, // 9
 		{1., 0.5, 0.5} // 5
 	};	
-	/* temporary edgebond1 interaction map */
-	// edgebond1map = {5,6,6,8,8,6,5,1,5,1,7,7,8,8,8,6,8,6,9,5,9,5};
+	
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DEdgeBonds2; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_edge2(i,j) = edgebond2[i][j];
+			
+	/* temporary edgebond2 interaction map */
+	// edgebond2map = {5,6,6,8,8,6,5,1,5,1,7,7,8,8,8,6,8,6,9,5,9,5};
 
 	/* Bond table for z=-1.0, x=0, y=variable (1 atom) */
 	double edgebond3[kEAMFCC3DEdgeBonds3][kEAMFCC3DNumLatticeDim] = {
@@ -180,8 +249,14 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{1., 0.5, -0.5}, // 13
 		{1., 0.5, 0.5} // 12
 	};	
+	
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DEdgeBonds3; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_edge3(i,j) = edgebond3[i][j];
+			
 	/* temporary edgebond3 interaction map */
-	// edgebond2map = {10,2,10,10,13,12,11,10,5,10,5,12,12,12,5,12,5,12,11,12,11,13,12,13,12}
+	// edgebond3map = {10,2,10,10,13,12,11,10,5,10,5,12,12,12,5,12,5,12,11,12,11,13,12,13,12}
 	
 	/* Bond table for z=0, x=0.5, y=variable (2 atoms) */
 	double edgebond4[kEAMFCC3DEdgeBonds4][kEAMFCC3DNumLatticeDim] = {
@@ -208,6 +283,12 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{1., -0.5, -0.5}, // 8
 		{1., 0.5, -0.5} // 8
 	};	
+	
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DEdgeBonds4; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_edge4(i,j) = edgebond4[i][j];
+			
 	/* temporary edgebond4 interaction map */
 	// edgebond4map = {8,6,6,5,6,8,7,7,1,1,5,5,5,5,9,9,6,6,8,8,8,8};
 
@@ -239,6 +320,12 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{1., -0.5, -0.5}, // 12
 		{1., 0.5, -0.5} // 12
 	};	
+	
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DEdgeBonds5; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_edge5(i,j) = edgebond5[i][j];
+			
 	/* temporary edgebond5 interaction map */
 	// edgebond5map = {13,10,10,2,10,11,12,12,12,5,5,10,10,12,12,13,13,11,11,12,12,5,5,12,12};
 
@@ -277,6 +364,12 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{1., 0.5, -0.5}, // 16
 		{1., 0.5, 0.5} // 11
 	};	
+	
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DEdgeBonds6; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_edge6(i,j) = edgebond6[i][j];
+			
 	/* temporary edgebond6 interaction map */
 	// edgebond6map = {15,14,14,15,11,3,16,11,15,7,15,7,3,3,15,15,11,11,16,16,11,3,11,3,16,11,16,11,16,11,16,11}
 
@@ -320,6 +413,12 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{1., 0.5, -0.5}, // 17
 		{1., 0.5, 0.5} // 18
 	};	
+	
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DEdgeBonds7; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_edge7(i,j) = edgebond7[i][j];
+			
 	/* temporary edgebond7 interaction map */
 	// edgebond7map = {18,8,18,18,17,12,8,17,18,18,15,18,15,12,12,17,17,12,4,12,4,17,12,17,12,12,8,12,8,17,18,17,18,17,18,17,18}
 
@@ -363,18 +462,17 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{1., 0.5, -0.5}, // 17
 		{1., 0.5, 0.5} // 12
 	};
+	
+	/* Copy bond table into array */
+	for (int i = 0; i < kEAMFCC3DEdgeBonds8; i++)
+		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+			temp_edge8(i,j) = edgebond8[i][j];
+			
 	/* temporary edgebond8 interaction map */
 	// edgebond8map = {17,18,18,8,18,18,8,17,12,17,12,17,12,15,15,18,18,18,18,17,17,18,8,18,8,17,12,17,12,12,4,12,4,17,12,17,12};
 
-	/* Copy bond table into array */
-	for (int i = 0; i < kEAMFCC3DSurf1Bonds; i++)
-		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
-			temp_edge(i,j) = edgebond[i][j];
-
 	/* IMPLEMENT INTERACTION TABLE HERE FOR EDGE ATOM FOR CORRECT ELECTRON DENSITIES FOR
 		OTHER EDGE/SURFACE ATOMS */
-	/* work space arrays for storing interaction types */
-	iArrayT allbonds(412);
 	/* Interaction type key */
 	// 0 = edge/edge
 	// 1 = edge/1 atom away on surface 1
@@ -395,13 +493,16 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 	//16 = quasi surface 2 / bulk
 	//17 = real surface 2 / bulk
 	//18 = real surface 2 / real surface 2
-//	int edge1n[412]={};
-//	for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
-//		allbonds[i] = edge1n[i];
+	int edge1n[412]={1,1,3,1,1,2,0,0,2,4,3,4,4,3,4,1,1,3,1,1,2,0,0,2,4,3,4,4,3,4,5,6,6,8,8,6,5,1,5,1,7,7,8,8,8,6,8,6,9,5,9,5,5,6,6,8,8,6,5,1,5,1,7,7,8,8,8,6,8,6,9,5,9,5,10,2,10,10,13,12,11,10,5,10,5,12,12,12,5,12,5,12,11,12,11,13,12,13,12,8,6,6,5,6,8,7,7,1,1,5,5,5,5,9,9,6,6,8,8,8,8,8,6,6,5,6,8,7,7,1,1,5,5,5,5,9,9,6,6,8,8,8,8,13,10,10,2,10,11,12,12,12,5,5,10,10,12,12,13,13,11,11,12,12,5,5,12,12,15,14,14,15,11,3,16,11,15,7,15,7,3,3,15,15,11,11,16,16,11,3,11,3,16,11,16,11,16,11,16,11,15,14,14,15,11,3,16,11,15,7,15,7,3,3,15,15,11,11,16,16,11,3,11,3,16,11,16,11,16,11,16,11,15,14,14,15,11,3,16,11,15,7,15,7,3,3,15,15,11,11,16,16,11,3,11,3,16,11,16,11,16,11,16,11,18,8,18,18,17,12,8,17,18,18,15,18,15,12,12,17,17,12,4,12,4,17,12,17,12,12,8,12,8,17,18,17,18,17,18,17,18,18,8,18,18,17,12,8,17,18,18,15,18,15,12,12,17,17,12,4,12,4,17,12,17,12,12,8,12,8,17,18,17,18,17,18,17,18,17,18,18,8,18,18,8,17,12,17,12,17,12,15,15,18,18,18,18,17,17,18,8,18,8,17,12,17,12,12,4,12,4,17,12,17,12,17,18,18,8,18,18,8,17,12,17,12,17,12,15,15,18,18,18,18,17,17,18,8,18,8,17,12,17,12,12,4,12,4,17,12,17,12};
 	
-	//fEdgeType.CopyIn(0, allbonds);
+	/* work space arrays for storing interaction types */
+	iArrayT allbonds(412);
+	for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
+		allbonds[i] = edge1n[i];
 	
-	/* New bond table for surface clusters -  */
+	fEdgeType.CopyIn(0, allbonds);
+	
+	/* Bond table containing all 412 bonds */
 	double bonddata[kEAMFCC3DEdgeBonds][kEAMFCC3DNumLatticeDim] = {
 		{0.5, 0.5, 0.0}, // Surface cluster (8 nearest neighbors)
 		{0.5, -0.5, 0.0},
@@ -417,115 +518,823 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		{0.5, 0.5, -1.0},
 		{1.0, -0.5, -0.5},
 		{0.5, -1.0, -0.5},
-		{0.5, -0.5, -1.0}
+		{0.5, -0.5, -1.0},
+		{0.5, 0.5, 0.0}, // Surface cluster (8 nearest neighbors)
+		{0.5, -0.5, 0.0},
+		{0.5, 0.0, -0.5},
+		{0.0, 0.5, -0.5},
+		{0.0, -0.5, -0.5},
+		{1.0, 0.0, 0.0}, // Surface cluster (5 2nd shell neighbors)
+		{0.0, 1.0, 0.0},
+		{0.0, -1.0, 0.0},
+		{0.0, 0.0, -1.0},
+		{1.0, 0.5, -0.5},
+		{0.5, 1.0, -0.5},
+		{0.5, 0.5, -1.0},
+		{1.0, -0.5, -0.5},
+		{0.5, -1.0, -0.5},
+		{0.5, -0.5, -1.0}, // END OF 2 TYPE-1 ATOMS
+		{0, 0, -1.}, // 5
+		{0, -1., 0}, // 6
+		{0, 1., 0}, // 6
+		{1., 0, 0}, // 8
+		{0.5, 0, -0.5}, // 8
+		{0.5, 0, 0.5}, // 6
+		{0, -0.5, -0.5}, // 5
+		{0, -0.5, 0.5}, // 1
+		{0, 0.5, -0.5}, // 5
+		{0, 0.5, 0.5}, // 1
+		{0.5, -0.5, 0}, // 7
+		{0.5, 0.5, 0}, // 7
+		{0.5, -0.5, -1.}, // 8
+		{0.5, 0.5, -1.}, // 8
+		{0.5, -1., -0.5}, // 8
+		{0.5, -1., 0.5}, // 6
+		{0.5, 1., -0.5}, // 8
+		{0.5, 1., 0.5}, // 6
+		{1., -0.5, -0.5}, // 9
+		{1., -0.5, 0.5}, // 5
+		{1., 0.5, -0.5}, // 9
+		{1., 0.5, 0.5}, // 5		
+		{0, 0, -1.}, // 5
+		{0, -1., 0}, // 6
+		{0, 1., 0}, // 6
+		{1., 0, 0}, // 8
+		{0.5, 0, -0.5}, // 8
+		{0.5, 0, 0.5}, // 6
+		{0, -0.5, -0.5}, // 5
+		{0, -0.5, 0.5}, // 1
+		{0, 0.5, -0.5}, // 5
+		{0, 0.5, 0.5}, // 1
+		{0.5, -0.5, 0}, // 7
+		{0.5, 0.5, 0}, // 7
+		{0.5, -0.5, -1.}, // 8
+		{0.5, 0.5, -1.}, // 8
+		{0.5, -1., -0.5}, // 8
+		{0.5, -1., 0.5}, // 6
+		{0.5, 1., -0.5}, // 8
+		{0.5, 1., 0.5}, // 6
+		{1., -0.5, -0.5}, // 9
+		{1., -0.5, 0.5}, // 5
+		{1., 0.5, -0.5}, // 9
+		{1., 0.5, 0.5}, // 5 // END OF 2 TYPE-2 ATOMS		
+		{0, 0, -1.}, // 10
+		{0, 0, 1.}, // 2
+		{0, -1., 0}, // 10
+		{0, 1., 0}, // 10
+		{1., 0, 0}, // 13
+		{0.5, 0, -0.5}, // 12
+		{0.5, 0, 0.5}, // 11
+		{0, -0.5, -0.5}, // 10
+		{0, -0.5, 0.5}, // 5
+		{0, 0.5, -0.5}, // 10
+		{0, 0.5, 0.5}, // 5
+		{0.5, -0.5, 0}, // 12
+		{0.5, 0.5, 0}, // 12
+		{0.5, -0.5, -1.}, // 12
+		{0.5, -0.5, 1.}, // 5 
+		{0.5, 0.5, -1.}, // 12
+		{0.5, 0.5, 1.}, // 5
+		{0.5, -1., -0.5}, // 12
+		{0.5, -1., 0.5}, // 11
+		{0.5, 1., -0.5}, // 12
+		{0.5, 1., 0.5}, // 11
+		{1., -0.5, -0.5}, // 13
+		{1., -0.5, 0.5}, // 12
+		{1., 0.5, -0.5}, // 13
+		{1., 0.5, 0.5}, // 12 // END OF 1 TYPE-3 ATOM
+		{0, 0, -1.}, // 8
+		{0, -1., 0}, // 6
+		{0, 1., 0}, // 6
+		{1., 0, 0}, // 5
+		{-0.5, 0, -0.5}, // 6
+		{0.5, 0, -0.5}, // 8
+		{0, -0.5, -0.5}, // 7
+		{0, 0.5, -0.5}, // 7
+		{-0.5, -0.5, 0}, // 1
+		{-0.5, 0.5, 0}, // 1
+		{0.5, -0.5, 0}, // 5
+		{0.5, 0.5, 0}, // 5
+		{-0.5, -0.5, -1.}, // 5
+		{-0.5, 0.5, -1.}, // 5
+		{0.5, -0.5, -1.}, // 9
+		{0.5, 0.5, -1.}, // 9
+		{-0.5, -1., -0.5}, // 6
+		{-0.5, 1., -0.5}, // 6
+		{0.5, -1., -0.5}, // 8
+		{0.5, 1., -0.5}, // 8
+		{1., -0.5, -0.5}, // 8
+		{1., 0.5, -0.5}, // 8
+		{0, 0, -1.}, // 8
+		{0, -1., 0}, // 6
+		{0, 1., 0}, // 6
+		{1., 0, 0}, // 5
+		{-0.5, 0, -0.5}, // 6
+		{0.5, 0, -0.5}, // 8
+		{0, -0.5, -0.5}, // 7
+		{0, 0.5, -0.5}, // 7
+		{-0.5, -0.5, 0}, // 1
+		{-0.5, 0.5, 0}, // 1
+		{0.5, -0.5, 0}, // 5
+		{0.5, 0.5, 0}, // 5
+		{-0.5, -0.5, -1.}, // 5
+		{-0.5, 0.5, -1.}, // 5
+		{0.5, -0.5, -1.}, // 9
+		{0.5, 0.5, -1.}, // 9
+		{-0.5, -1., -0.5}, // 6
+		{-0.5, 1., -0.5}, // 6
+		{0.5, -1., -0.5}, // 8
+		{0.5, 1., -0.5}, // 8
+		{1., -0.5, -0.5}, // 8
+		{1., 0.5, -0.5}, // 8 // END OF 2 TYPE-4 ATOMS
+		{0, 0, -1.}, // 13
+		{0, -1., 0}, // 10
+		{0, 1., 0}, // 10
+		{-1., 0, 0}, // 2
+		{1., 0, 0}, // 10
+		{-0.5, 0, -0.5}, // 11
+		{0.5, 0, -0.5}, // 12
+		{0, -0.5, -0.5}, // 12
+		{0, 0.5, -0.5}, // 12
+		{-0.5, -0.5, 0}, // 5
+		{-0.5, 0.5, 0}, // 5
+		{0.5, -0.5, 0}, // 10
+		{0.5, 0.5, 0}, // 10
+		{-0.5, -0.5, -1.}, // 12
+		{-0.5, 0.5, -1.}, // 12
+		{0.5, -0.5, -1.}, // 13
+		{0.5, 0.5, -1.}, // 13
+		{-0.5, -1., -0.5}, // 11 
+		{-0.5, 1., -0.5}, // 11
+		{0.5, -1., -0.5}, // 12
+		{0.5, 1., -0.5}, // 12
+		{-1., -0.5, -0.5}, // 5
+		{-1., 0.5, -0.5}, // 5
+		{1., -0.5, -0.5}, // 12
+		{1., 0.5, -0.5}, // 12 // END OF 1 TYPE-5 ATOM
+		{0, 0, -1.}, // 15 
+		{0, -1., 0}, // 14
+		{0, 1., 0}, // 14
+		{1., 0, 0}, // 15
+		{-0.5, 0, -0.5}, // 11
+		{-0.5, 0, 0.5}, // 3
+		{0.5, 0, -0.5}, // 16
+		{0.5, 0, 0.5}, // 11
+		{0, -0.5, -0.5}, // 15
+		{0, -0.5, 0.5}, // 7
+		{0, 0.5, -0.5}, // 15
+		{0, 0.5, 0.5}, // 7
+		{-0.5, -0.5, 0}, // 3
+		{-0.5, 0.5, 0}, // 3
+		{0.5, -0.5, 0}, // 15
+		{0.5, 0.5, 0}, // 15
+		{-0.5, -0.5, -1.}, // 11
+		{-0.5, 0.5, -1.}, // 11
+		{0.5, -0.5, -1.}, // 16
+		{0.5, 0.5, -1.}, // 16
+		{-0.5, -1., -0.5}, // 11
+		{-0.5, -1., 0.5}, // 3
+		{-0.5, 1., -0.5}, // 11
+		{-0.5, 1., 0.5}, // 3
+		{0.5, -1., -0.5}, // 16
+		{0.5, -1., 0.5}, // 11
+		{0.5, 1., -0.5}, // 16
+		{0.5, 1., 0.5}, // 11
+		{1., -0.5, -0.5}, // 16
+		{1., -0.5, 0.5}, // 11
+		{1., 0.5, -0.5}, // 16
+		{1., 0.5, 0.5}, // 11		
+		{0, 0, -1.}, // 15 
+		{0, -1., 0}, // 14
+		{0, 1., 0}, // 14
+		{1., 0, 0}, // 15
+		{-0.5, 0, -0.5}, // 11
+		{-0.5, 0, 0.5}, // 3
+		{0.5, 0, -0.5}, // 16
+		{0.5, 0, 0.5}, // 11
+		{0, -0.5, -0.5}, // 15
+		{0, -0.5, 0.5}, // 7
+		{0, 0.5, -0.5}, // 15
+		{0, 0.5, 0.5}, // 7
+		{-0.5, -0.5, 0}, // 3
+		{-0.5, 0.5, 0}, // 3
+		{0.5, -0.5, 0}, // 15
+		{0.5, 0.5, 0}, // 15
+		{-0.5, -0.5, -1.}, // 11
+		{-0.5, 0.5, -1.}, // 11
+		{0.5, -0.5, -1.}, // 16
+		{0.5, 0.5, -1.}, // 16
+		{-0.5, -1., -0.5}, // 11
+		{-0.5, -1., 0.5}, // 3
+		{-0.5, 1., -0.5}, // 11
+		{-0.5, 1., 0.5}, // 3
+		{0.5, -1., -0.5}, // 16
+		{0.5, -1., 0.5}, // 11
+		{0.5, 1., -0.5}, // 16
+		{0.5, 1., 0.5}, // 11
+		{1., -0.5, -0.5}, // 16
+		{1., -0.5, 0.5}, // 11
+		{1., 0.5, -0.5}, // 16
+		{1., 0.5, 0.5}, // 11
+		{0, 0, -1.}, // 15 
+		{0, -1., 0}, // 14
+		{0, 1., 0}, // 14
+		{1., 0, 0}, // 15
+		{-0.5, 0, -0.5}, // 11
+		{-0.5, 0, 0.5}, // 3
+		{0.5, 0, -0.5}, // 16
+		{0.5, 0, 0.5}, // 11
+		{0, -0.5, -0.5}, // 15
+		{0, -0.5, 0.5}, // 7
+		{0, 0.5, -0.5}, // 15
+		{0, 0.5, 0.5}, // 7
+		{-0.5, -0.5, 0}, // 3
+		{-0.5, 0.5, 0}, // 3
+		{0.5, -0.5, 0}, // 15
+		{0.5, 0.5, 0}, // 15
+		{-0.5, -0.5, -1.}, // 11
+		{-0.5, 0.5, -1.}, // 11
+		{0.5, -0.5, -1.}, // 16
+		{0.5, 0.5, -1.}, // 16
+		{-0.5, -1., -0.5}, // 11
+		{-0.5, -1., 0.5}, // 3
+		{-0.5, 1., -0.5}, // 11
+		{-0.5, 1., 0.5}, // 3
+		{0.5, -1., -0.5}, // 16
+		{0.5, -1., 0.5}, // 11
+		{0.5, 1., -0.5}, // 16
+		{0.5, 1., 0.5}, // 11
+		{1., -0.5, -0.5}, // 16
+		{1., -0.5, 0.5}, // 11
+		{1., 0.5, -0.5}, // 16
+		{1., 0.5, 0.5}, // 11 // END OF 3 TYPE-6 ATOMS
+		{0, 0, -1.}, // 18
+		{0, 0, 1.}, // 8
+		{0, -1., 0}, // 18
+		{0, 1., 0}, // 18
+		{1., 0, 0}, // 17
+		{-0.5, 0, -0.5}, // 12
+		{-0.5, 0, 0.5}, // 8
+		{0.5, 0, -0.5}, // 17
+		{0.5, 0, 0.5}, // 18
+		{0, -0.5, -0.5}, // 18
+		{0, -0.5, 0.5}, // 15
+		{0, 0.5, -0.5}, // 18
+		{0, 0.5, 0.5}, // 15
+		{-0.5, -0.5, 0}, // 12
+		{-0.5, 0.5, 0}, // 12
+		{0.5, -0.5, 0}, // 17
+		{0.5, 0.5, 0}, // 17
+		{-0.5, -0.5, -1.}, // 12
+		{-0.5, -0.5, 1.}, // 4
+		{-0.5, 0.5, -1.}, // 12
+		{-0.5, 0.5, 1.}, // 4
+		{0.5, -0.5, -1.}, // 17
+		{0.5, -0.5, 1.}, // 12
+		{0.5, 0.5, -1.}, // 17
+		{0.5, 0.5, 1.}, // 12
+		{-0.5, -1., -0.5}, // 12
+		{-0.5, -1., 0.5}, // 8
+		{-0.5, 1., -0.5}, // 12
+		{-0.5, 1., 0.5}, // 8
+		{0.5, -1., -0.5}, // 17
+		{0.5, -1., 0.5}, // 18
+		{0.5, 1., -0.5}, // 17
+		{0.5, 1., 0.5}, // 18
+		{1., -0.5, -0.5}, // 17
+		{1., -0.5, 0.5}, // 18
+		{1., 0.5, -0.5}, // 17
+		{1., 0.5, 0.5}, // 18
+		{0, 0, -1.}, // 18
+		{0, 0, 1.}, // 8
+		{0, -1., 0}, // 18
+		{0, 1., 0}, // 18
+		{1., 0, 0}, // 17
+		{-0.5, 0, -0.5}, // 12
+		{-0.5, 0, 0.5}, // 8
+		{0.5, 0, -0.5}, // 17
+		{0.5, 0, 0.5}, // 18
+		{0, -0.5, -0.5}, // 18
+		{0, -0.5, 0.5}, // 15
+		{0, 0.5, -0.5}, // 18
+		{0, 0.5, 0.5}, // 15
+		{-0.5, -0.5, 0}, // 12
+		{-0.5, 0.5, 0}, // 12
+		{0.5, -0.5, 0}, // 17
+		{0.5, 0.5, 0}, // 17
+		{-0.5, -0.5, -1.}, // 12
+		{-0.5, -0.5, 1.}, // 4
+		{-0.5, 0.5, -1.}, // 12
+		{-0.5, 0.5, 1.}, // 4
+		{0.5, -0.5, -1.}, // 17
+		{0.5, -0.5, 1.}, // 12
+		{0.5, 0.5, -1.}, // 17
+		{0.5, 0.5, 1.}, // 12
+		{-0.5, -1., -0.5}, // 12
+		{-0.5, -1., 0.5}, // 8
+		{-0.5, 1., -0.5}, // 12
+		{-0.5, 1., 0.5}, // 8
+		{0.5, -1., -0.5}, // 17
+		{0.5, -1., 0.5}, // 18
+		{0.5, 1., -0.5}, // 17
+		{0.5, 1., 0.5}, // 18
+		{1., -0.5, -0.5}, // 17
+		{1., -0.5, 0.5}, // 18
+		{1., 0.5, -0.5}, // 17
+		{1., 0.5, 0.5}, // 18 // END OF 2 TYPE-7 ATOMS
+		{0, 0, -1.}, // 17
+		{0, -1., 0}, // 18
+		{0, 1., 0}, // 18
+		{-1., 0, 0}, // 8
+		{1., 0, 0}, // 18
+		{-0.5, 0, -0.5}, // 18
+		{-0.5, 0, 0.5}, // 8
+		{0.5, 0, -0.5}, // 17
+		{0.5, 0, 0.5}, // 12
+		{0, -0.5, -0.5}, // 17
+		{0, -0.5, 0.5}, // 12
+		{0, 0.5, -0.5}, // 17
+		{0, 0.5, 0.5}, // 12
+		{-0.5, -0.5, 0}, // 15
+		{-0.5, 0.5, 0}, // 15
+		{0.5, -0.5, 0}, // 18
+		{0.5, 0.5, 0}, // 18
+		{-0.5, -0.5, -1.}, // 18
+		{-0.5, 0.5, -1.}, // 18
+		{0.5, -0.5, -1.}, // 17
+		{0.5, 0.5, -1.}, // 17
+		{-0.5, -1., -0.5}, // 18
+		{-0.5, -1., 0.5}, // 8
+		{-0.5, 1., -0.5}, // 18
+		{-0.5, 1., 0.5}, // 8
+		{0.5, -1., -0.5}, // 17
+		{0.5, -1., 0.5}, // 12
+		{0.5, 1., -0.5}, // 17
+		{0.5, 1., 0.5}, // 12
+		{-1., -0.5, -0.5}, // 12
+		{-1., -0.5, 0.5}, // 4
+		{-1., 0.5, -0.5}, // 12
+		{-1., 0.5, 0.5}, // 4
+		{1., -0.5, -0.5}, // 17
+		{1., -0.5, 0.5}, // 12
+		{1., 0.5, -0.5}, // 17
+		{1., 0.5, 0.5}, // 12
+		{0, 0, -1.}, // 17
+		{0, -1., 0}, // 18
+		{0, 1., 0}, // 18
+		{-1., 0, 0}, // 8
+		{1., 0, 0}, // 18
+		{-0.5, 0, -0.5}, // 18
+		{-0.5, 0, 0.5}, // 8
+		{0.5, 0, -0.5}, // 17
+		{0.5, 0, 0.5}, // 12
+		{0, -0.5, -0.5}, // 17
+		{0, -0.5, 0.5}, // 12
+		{0, 0.5, -0.5}, // 17
+		{0, 0.5, 0.5}, // 12
+		{-0.5, -0.5, 0}, // 15
+		{-0.5, 0.5, 0}, // 15
+		{0.5, -0.5, 0}, // 18
+		{0.5, 0.5, 0}, // 18
+		{-0.5, -0.5, -1.}, // 18
+		{-0.5, 0.5, -1.}, // 18
+		{0.5, -0.5, -1.}, // 17
+		{0.5, 0.5, -1.}, // 17
+		{-0.5, -1., -0.5}, // 18
+		{-0.5, -1., 0.5}, // 8
+		{-0.5, 1., -0.5}, // 18
+		{-0.5, 1., 0.5}, // 8
+		{0.5, -1., -0.5}, // 17
+		{0.5, -1., 0.5}, // 12
+		{0.5, 1., -0.5}, // 17
+		{0.5, 1., 0.5}, // 12
+		{-1., -0.5, -0.5}, // 12
+		{-1., -0.5, 0.5}, // 4
+		{-1., 0.5, -0.5}, // 12
+		{-1., 0.5, 0.5}, // 4
+		{1., -0.5, -0.5}, // 17
+		{1., -0.5, 0.5}, // 12
+		{1., 0.5, -0.5}, // 17
+		{1., 0.5, 0.5} // 12 // END OF 2 TYPE-8 ATOMS	
 	};
 	
 	/* Rotate Bond Tables based on fNormalCode and rotation matrices */
 	/* Create temporary bond table temp_bonds that combines bonddata */
 	for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
 		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
-			temp_edge1(i,j) = bonddata[i][j];
+			tempedge(i,j) = bonddata[i][j];
 	
 	/* Now manipulate temp_bonds */
 	dMatrixT blah1(3);
-	dArrayT asdf(3), prod(3), asdfb(3), prodb(3), asdfs1(3), prods1(3), asdfs2(3), prods2(3);
+	dArrayT asdfe(3), prode(3), asdfb(3), prodb(3), asdfe1(3), prode1(3), asdfe2(3), prode2(3);
+	dArrayT asdfe3(3), prode3(3), asdfe4(3), prode4(3), asdfe5(3), prode5(3), asdfe6(3), prode6(3);
+	dArrayT asdfe7(3), prode7(3), asdfe8(3), prode8(3);
+	
+	dArray2DT tedge2, tbulk, te1, te2, te3, te4, te5, te6, te7, te8;
+	tedge2.Dimension(kEAMFCC3DEdgeBonds, 3);
+	tbulk.Dimension(kEAMFCC3DBulkBonds, 3);
+	te1.Dimension(kEAMFCC3DEdgeBonds1, 3);
+	te2.Dimension(kEAMFCC3DEdgeBonds2, 3);
+	te3.Dimension(kEAMFCC3DEdgeBonds3, 3);
+	te4.Dimension(kEAMFCC3DEdgeBonds4, 3);
+	te5.Dimension(kEAMFCC3DEdgeBonds5, 3);
+	te6.Dimension(kEAMFCC3DEdgeBonds6, 3);
+	te7.Dimension(kEAMFCC3DEdgeBonds7, 3);
+	te8.Dimension(kEAMFCC3DEdgeBonds8, 3);
+	
 	if (fNormalCode == 0)	// normal is [1,0,0]
 	{
-		temp_edge2 = temp_edge1;
-		fBonds = temp_edge2;
+		tedge2 = tempedge;
+//		fAllEdgeBonds = tedge2;
+//		fAllEdgeBonds *= -1.0;
+		fBonds = tedge2;
 		fBonds *= -1.0;
-		fEdgeBonds = temp_edge2;
-		fEdgeBonds *= -1.0;
+		fAllBulkBonds = temp_bulk;
+		fAllBulkBonds *= -1.0;
+		fEdgeBonds1 = temp_edge1;
+		fEdgeBonds1 *= -1.0;
+		fEdgeBonds2 = temp_edge2;
+		fEdgeBonds2 *= -1.0;
+		fEdgeBonds3 = temp_edge3;
+		fEdgeBonds3 *= -1.0;
+		fEdgeBonds4 = temp_edge4;
+		fEdgeBonds4 *= -1.0;
+		fEdgeBonds5 = temp_edge5;
+		fEdgeBonds5 *= -1.0;
+		fEdgeBonds6 = temp_edge6;
+		fEdgeBonds6 *= -1.0;
+		fEdgeBonds7 = temp_edge7;
+		fEdgeBonds7 *= -1.0;
+		fEdgeBonds8 = temp_edge8;
+		fEdgeBonds8 *= -1.0;
 	}
-	else if (fNormalCode == 1)
+	else if (fNormalCode == 1) // this table is the default orientation, i.e. [-1,0,0]
 	{
-		fBonds = temp_edge1;	// this table is the default, i.e. [-1,0,0]
-		fEdgeBonds = temp_edge;
+//		fAllEdgeBonds = tedge2;
+		fBonds = tedge2;
+		fAllBulkBonds = temp_bulk;
+		fEdgeBonds1 = temp_edge1;
+		fEdgeBonds2 = temp_edge2;
+		fEdgeBonds3 = temp_edge3;
+		fEdgeBonds4 = temp_edge4;
+		fEdgeBonds5 = temp_edge5;
+		fEdgeBonds6 = temp_edge6;
+		fEdgeBonds7 = temp_edge7;
+		fEdgeBonds8 = temp_edge8;
 	}
 	else if (fNormalCode == 2)	// rotate [-1,0,0] to [0,1,0]
 	{
-		temp_edge2 = temp_edge1;
-		tempedge = temp_edge;
+		tedge2 = tempedge;
+		tbulk = temp_bulk;
+		te1 = temp_edge1;
+		te2 = temp_edge2;
+		te3 = temp_edge3;
+		te4 = temp_edge4;
+		te5 = temp_edge5;
+		te6 = temp_edge6;
+		te7 = temp_edge7;
+		te8 = temp_edge8;		
 		blah1 = RotationMatrixA(piby2);
 		for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
 		{
-			temp_edge2.RowCopy(i,asdf);	// take bond
-			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
-			temp_edge2.SetRow(i,prod);	// place new bond back into temp_bonds
+			tedge2.RowCopy(i,asdfe);	// take bond
+			blah1.Multx(asdfe,prode);		// rotate bond via rotation matrix
+			tedge2.SetRow(i,prode);	// place new bond back into temp_bonds
 		}
-		for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
+		for (int i = 0; i < kEAMFCC3DBulkBonds; i++)
 		{
-			tempedge.RowCopy(i,asdfs1);
-			blah1.Multx(asdfs1,prods1);
-			tempedge.SetRow(i,prods1);
+			tbulk.RowCopy(i,asdfb);
+			blah1.Multx(asdfb,prodb);
+			tbulk.SetRow(i,prodb);
 		}
-		fBonds = temp_edge2;
-		fEdgeBonds = tempedge;
+		for (int i = 0; i < kEAMFCC3DEdgeBonds1; i++)
+		{
+			te1.RowCopy(i,asdfe1);
+			blah1.Multx(asdfe1,prode1);
+			te1.SetRow(i,prode1);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds2; i++)
+		{
+			te2.RowCopy(i,asdfe2);
+			blah1.Multx(asdfe2,prode2);
+			te2.SetRow(i,prode2);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds3; i++)
+		{
+			te3.RowCopy(i,asdfe3);
+			blah1.Multx(asdfe3,prode3);
+			te3.SetRow(i,prode3);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds4; i++)
+		{
+			te4.RowCopy(i,asdfe4);
+			blah1.Multx(asdfe4,prode4);
+			te4.SetRow(i,prode4);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds5; i++)
+		{
+			te5.RowCopy(i,asdfe5);
+			blah1.Multx(asdfe5,prode5);
+			te5.SetRow(i,prode5);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds6; i++)
+		{
+			te6.RowCopy(i,asdfe6);
+			blah1.Multx(asdfe6,prode6);
+			te6.SetRow(i,prode6);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds7; i++)
+		{
+			te7.RowCopy(i,asdfe7);
+			blah1.Multx(asdfe7,prode7);
+			te7.SetRow(i,prode7);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds8; i++)
+		{
+			te8.RowCopy(i,asdfe8);
+			blah1.Multx(asdfe8,prode8);
+			te8.SetRow(i,prode8);
+		}
+//		fAllEdgeBonds = tedge2;
+		fBonds = tedge2;
+		fAllBulkBonds = tbulk;
+		fEdgeBonds1 = te1;
+		fEdgeBonds2 = te2;
+		fEdgeBonds3 = te3;
+		fEdgeBonds4 = te4;
+		fEdgeBonds5 = te5;
+		fEdgeBonds6 = te6;
+		fEdgeBonds7 = te7;
+		fEdgeBonds8 = te8;		
 	}
 	else if (fNormalCode == 3)	// rotate [-1,0,0] to [0,-1,0]
 	{
-		temp_edge2 = temp_edge1;
-		tempedge = temp_edge;
+		tedge2 = tempedge;
+		tbulk = temp_bulk;
+		te1 = temp_edge1;
+		te2 = temp_edge2;
+		te3 = temp_edge3;
+		te4 = temp_edge4;
+		te5 = temp_edge5;
+		te6 = temp_edge6;
+		te7 = temp_edge7;
+		te8 = temp_edge8;	
 		blah1 = RotationMatrixA(-piby2);
 		for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
 		{
-			temp_edge2.RowCopy(i,asdf);	// take bond
-			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
-			temp_edge2.SetRow(i,prod);	// place new bond back into temp_bonds
+			tedge2.RowCopy(i,asdfe);	// take bond
+			blah1.Multx(asdfe,prode);		// rotate bond via rotation matrix
+			tedge2.SetRow(i,prode);	// place new bond back into temp_bonds
 		}
-		for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
+		for (int i = 0; i < kEAMFCC3DBulkBonds; i++)
 		{
-			tempedge.RowCopy(i,asdfs1);
-			blah1.Multx(asdfs1,prods1);
-			tempedge.SetRow(i,prods1);
+			tbulk.RowCopy(i,asdfb);
+			blah1.Multx(asdfb,prodb);
+			tbulk.SetRow(i,prodb);
 		}
-		fBonds = temp_edge2;
-		fEdgeBonds = tempedge;
+		for (int i = 0; i < kEAMFCC3DEdgeBonds1; i++)
+		{
+			te1.RowCopy(i,asdfe1);
+			blah1.Multx(asdfe1,prode1);
+			te1.SetRow(i,prode1);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds2; i++)
+		{
+			te2.RowCopy(i,asdfe2);
+			blah1.Multx(asdfe2,prode2);
+			te2.SetRow(i,prode2);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds3; i++)
+		{
+			te3.RowCopy(i,asdfe3);
+			blah1.Multx(asdfe3,prode3);
+			te3.SetRow(i,prode3);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds4; i++)
+		{
+			te4.RowCopy(i,asdfe4);
+			blah1.Multx(asdfe4,prode4);
+			te4.SetRow(i,prode4);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds5; i++)
+		{
+			te5.RowCopy(i,asdfe5);
+			blah1.Multx(asdfe5,prode5);
+			te5.SetRow(i,prode5);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds6; i++)
+		{
+			te6.RowCopy(i,asdfe6);
+			blah1.Multx(asdfe6,prode6);
+			te6.SetRow(i,prode6);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds7; i++)
+		{
+			te7.RowCopy(i,asdfe7);
+			blah1.Multx(asdfe7,prode7);
+			te7.SetRow(i,prode7);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds8; i++)
+		{
+			te8.RowCopy(i,asdfe8);
+			blah1.Multx(asdfe8,prode8);
+			te8.SetRow(i,prode8);
+		}
+//		fAllEdgeBonds = tedge2;
+		fBonds = tedge2;
+		fAllBulkBonds = tbulk;
+		fEdgeBonds1 = te1;
+		fEdgeBonds2 = te2;
+		fEdgeBonds3 = te3;
+		fEdgeBonds4 = te4;
+		fEdgeBonds5 = te5;
+		fEdgeBonds6 = te6;
+		fEdgeBonds7 = te7;
+		fEdgeBonds8 = te8;		
 	}
 	else if (fNormalCode == 4)	// rotate [-1,0,0] to [0,0,1]
 	{
-		temp_edge2 = temp_edge1;
-		tempedge = temp_edge;
+		tedge2 = tempedge;
+		tbulk = temp_bulk;
+		te1 = temp_edge1;
+		te2 = temp_edge2;
+		te3 = temp_edge3;
+		te4 = temp_edge4;
+		te5 = temp_edge5;
+		te6 = temp_edge6;
+		te7 = temp_edge7;
+		te8 = temp_edge8;	
 		blah1 = RotationMatrixB(-piby2);
 		for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
 		{
-			temp_edge2.RowCopy(i,asdf);	// take bond
-			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
-			temp_edge2.SetRow(i,prod);	// place new bond back into temp_bonds
+			tedge2.RowCopy(i,asdfe);	// take bond
+			blah1.Multx(asdfe,prode);		// rotate bond via rotation matrix
+			tedge2.SetRow(i,prode);	// place new bond back into temp_bonds
 		}
-		for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
+		for (int i = 0; i < kEAMFCC3DBulkBonds; i++)
 		{
-			tempedge.RowCopy(i,asdfs1);
-			blah1.Multx(asdfs1,prods1);
-			tempedge.SetRow(i,prods1);
+			tbulk.RowCopy(i,asdfb);
+			blah1.Multx(asdfb,prodb);
+			tbulk.SetRow(i,prodb);
 		}
-		fBonds = temp_edge2;
-		fEdgeBonds = tempedge;
+		for (int i = 0; i < kEAMFCC3DEdgeBonds1; i++)
+		{
+			te1.RowCopy(i,asdfe1);
+			blah1.Multx(asdfe1,prode1);
+			te1.SetRow(i,prode1);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds2; i++)
+		{
+			te2.RowCopy(i,asdfe2);
+			blah1.Multx(asdfe2,prode2);
+			te2.SetRow(i,prode2);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds3; i++)
+		{
+			te3.RowCopy(i,asdfe3);
+			blah1.Multx(asdfe3,prode3);
+			te3.SetRow(i,prode3);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds4; i++)
+		{
+			te4.RowCopy(i,asdfe4);
+			blah1.Multx(asdfe4,prode4);
+			te4.SetRow(i,prode4);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds5; i++)
+		{
+			te5.RowCopy(i,asdfe5);
+			blah1.Multx(asdfe5,prode5);
+			te5.SetRow(i,prode5);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds6; i++)
+		{
+			te6.RowCopy(i,asdfe6);
+			blah1.Multx(asdfe6,prode6);
+			te6.SetRow(i,prode6);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds7; i++)
+		{
+			te7.RowCopy(i,asdfe7);
+			blah1.Multx(asdfe7,prode7);
+			te7.SetRow(i,prode7);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds8; i++)
+		{
+			te8.RowCopy(i,asdfe8);
+			blah1.Multx(asdfe8,prode8);
+			te8.SetRow(i,prode8);
+		}
+//		fAllEdgeBonds = tedge2;
+		fBonds = tedge2;
+		fAllBulkBonds = tbulk;
+		fEdgeBonds1 = te1;
+		fEdgeBonds2 = te2;
+		fEdgeBonds3 = te3;
+		fEdgeBonds4 = te4;
+		fEdgeBonds5 = te5;
+		fEdgeBonds6 = te6;
+		fEdgeBonds7 = te7;
+		fEdgeBonds8 = te8;		
 	}	
 	else if (fNormalCode == 5)	// rotate [-1,0,0] to [0,0,-1]
 	{
-		temp_edge2 = temp_edge1;
-		tempedge = temp_edge;
+		tedge2 = tempedge;
+		tbulk = temp_bulk;
+		te1 = temp_edge1;
+		te2 = temp_edge2;
+		te3 = temp_edge3;
+		te4 = temp_edge4;
+		te5 = temp_edge5;
+		te6 = temp_edge6;
+		te7 = temp_edge7;
+		te8 = temp_edge8;	
 		blah1 = RotationMatrixB(piby2);
 		for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
 		{
-			temp_edge2.RowCopy(i,asdf);	// take bond
-			blah1.Multx(asdf,prod);		// rotate bond via rotation matrix
-			temp_edge2.SetRow(i,prod);	// place new bond back into temp_bonds
+			tedge2.RowCopy(i,asdfe);	// take bond
+			blah1.Multx(asdfe,prode);		// rotate bond via rotation matrix
+			tedge2.SetRow(i,prode);	// place new bond back into temp_bonds
 		}
-		for (int i = 0; i < kEAMFCC3DEdgeBonds; i++)
+		for (int i = 0; i < kEAMFCC3DBulkBonds; i++)
 		{
-			tempedge.RowCopy(i,asdfs1);
-			blah1.Multx(asdfs1,prods1);
-			tempedge.SetRow(i,prods1);
+			tbulk.RowCopy(i,asdfb);
+			blah1.Multx(asdfb,prodb);
+			tbulk.SetRow(i,prodb);
 		}
-		fBonds = temp_edge2;
-		fEdgeBonds = tempedge;
+		for (int i = 0; i < kEAMFCC3DEdgeBonds1; i++)
+		{
+			te1.RowCopy(i,asdfe1);
+			blah1.Multx(asdfe1,prode1);
+			te1.SetRow(i,prode1);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds2; i++)
+		{
+			te2.RowCopy(i,asdfe2);
+			blah1.Multx(asdfe2,prode2);
+			te2.SetRow(i,prode2);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds3; i++)
+		{
+			te3.RowCopy(i,asdfe3);
+			blah1.Multx(asdfe3,prode3);
+			te3.SetRow(i,prode3);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds4; i++)
+		{
+			te4.RowCopy(i,asdfe4);
+			blah1.Multx(asdfe4,prode4);
+			te4.SetRow(i,prode4);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds5; i++)
+		{
+			te5.RowCopy(i,asdfe5);
+			blah1.Multx(asdfe5,prode5);
+			te5.SetRow(i,prode5);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds6; i++)
+		{
+			te6.RowCopy(i,asdfe6);
+			blah1.Multx(asdfe6,prode6);
+			te6.SetRow(i,prode6);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds7; i++)
+		{
+			te7.RowCopy(i,asdfe7);
+			blah1.Multx(asdfe7,prode7);
+			te7.SetRow(i,prode7);
+		}
+		for (int i = 0; i < kEAMFCC3DEdgeBonds8; i++)
+		{
+			te8.RowCopy(i,asdfe8);
+			blah1.Multx(asdfe8,prode8);
+			te8.SetRow(i,prode8);
+		}
+//		fAllEdgeBonds = tedge2;
+		fBonds = tedge2;
+		fAllBulkBonds = tbulk;
+		fEdgeBonds1 = te1;
+		fEdgeBonds2 = te2;
+		fEdgeBonds3 = te3;
+		fEdgeBonds4 = te4;
+		fEdgeBonds5 = te5;
+		fEdgeBonds6 = te6;
+		fEdgeBonds7 = te7;
+		fEdgeBonds8 = te8;		
 	}	
 
 	/* scale to correct lattice parameter */				     		
+//	fAllEdgeBonds *= fLatticeParameter;
 	fBonds *= fLatticeParameter;
-	fEdgeBonds *= fLatticeParameter;
+	fAllBulkBonds *= fLatticeParameter;
+	fEdgeBonds1 *= fLatticeParameter;
+	fEdgeBonds2 *= fLatticeParameter;
+	fEdgeBonds3 *= fLatticeParameter;
+	fEdgeBonds4 *= fLatticeParameter;
+	fEdgeBonds5 *= fLatticeParameter;
+	fEdgeBonds6 *= fLatticeParameter;
+	fEdgeBonds7 *= fLatticeParameter;
+	fEdgeBonds8 *= fLatticeParameter;	
 }
 
 /*************************************************************************

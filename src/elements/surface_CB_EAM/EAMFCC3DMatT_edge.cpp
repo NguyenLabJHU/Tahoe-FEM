@@ -1,8 +1,8 @@
-/* $Id: EAMFCC3DMatT_edge.cpp,v 1.1 2009-06-03 03:17:02 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_edge.cpp,v 1.2 2009-06-04 16:25:46 hspark Exp $ */
 /* created: hspark (6/2/2009) */
 #include "EAMFCC3DMatT_edge.h"
 
-#include "EAMFCC3D_edge.h"
+#include "EAMFCC3DSym_edge.h"
 #include "dMatrixT.h"
 
 #include <math.h>
@@ -53,7 +53,7 @@ void EAMFCC3DMatT_edge::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* EAMFCC3DMatT_edge::NewSub(const StringT& name) const
 {
 	if (name == "FCC_EAM_Cauchy-Born")
-		return new EAMFCC3D_edge(0, 0);
+		return new EAMFCC3DSym_edge(0, 0);
 	else /* inherited */
 		return NL_E_MatT::NewSub(name);
 }
@@ -63,13 +63,13 @@ void EAMFCC3DMatT_edge::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	NL_E_MatT::TakeParameterList(list);
-
+	
 	/* construct Cauchy-Born EAM solver */
 	int shells = list.GetParameter("shells");
 	int normal_code = list.GetParameter("normal_code");
-	fEAM = new EAMFCC3D_edge(shells, normal_code);
+	fEAM = new EAMFCC3DSym_edge(shells, normal_code);
 	fEAM->TakeParameterList(list.GetList("FCC_EAM_Cauchy-Born"));
-	
+
 	/* TEMP - GET SURFACE THICKNESS FROM EAMFCC3D_SURF */
 	fSurfaceThickness = fEAM->SurfaceThickness();
 	

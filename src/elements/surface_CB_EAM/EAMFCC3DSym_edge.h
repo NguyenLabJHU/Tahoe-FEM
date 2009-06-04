@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_edge.h,v 1.1 2009-06-03 04:25:30 hspark Exp $ */
+/* $Id: EAMFCC3DSym_edge.h,v 1.2 2009-06-04 16:25:46 hspark Exp $ */
 /* created: hspark (6/2/2009) */
 #ifndef _EAMFCC3DSYM_EDGE_H_
 #define _EAMFCC3DSYM_EDGE_H_
@@ -38,4 +38,4 @@ private:
 
 } /* namespace Tahoe */
 
-#endif /* _EAMFCC3DSYM_SURF_H_ */
+#endif /* _EAMFCC3DSYM_EDGE_H_ */
