@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.h,v 1.17 2008-08-11 19:52:28 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.h,v 1.18 2009-06-04 22:45:03 hspark Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 #define _TOTAL_LAGRANGRIAN_CB_SURFACE_T_H_
 
@@ -9,6 +9,7 @@ namespace Tahoe {
 
 class FCC3D_Surf;
 class EAMFCC3DMatT_surf;
+class EAMFCC3DMatT_edge;
 class CB_TersoffT_surf;
 class CB_TersoffDimerT_surf;
 
@@ -89,6 +90,9 @@ protected:
     /** EAM Surface CB model */
 	ArrayT<EAMFCC3DMatT_surf*> fEAMSurfaceCB;
 
+    /** EAM Edge CB model */
+	ArrayT<EAMFCC3DMatT_edge*> fEAMEdgeCB;
+
 	/** surface Cauchy-Born models */
 	ArrayT<FCC3D_Surf*> fSurfaceCB;
 
@@ -115,16 +119,6 @@ protected:
 	/** list of nodes on each surface type (by normal) */
 	ArrayT<iArrayT> fSurfaceNodes;
 	/*@}*/
-	
-	/** surface stiffness evaluated at zero strain for 6 surfaces */
-	dMatrixT fSS0;
-	dMatrixT fSS1;
-	dMatrixT fSS2;
-	dMatrixT fSS3;
-	dMatrixT fSS4;
-	dMatrixT fSS5;
-	double fAlpha;	
-
 };
 
 } /* namespace Tahoe */

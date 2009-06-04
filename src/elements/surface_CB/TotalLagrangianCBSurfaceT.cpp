@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.65 2008-08-26 02:06:52 hspark Exp $ */
+/* $Id: TotalLagrangianCBSurfaceT.cpp,v 1.66 2009-06-04 22:45:02 hspark Exp $ */
 #include "TotalLagrangianCBSurfaceT.h"
 
 #include "ModelManagerT.h"
@@ -6,9 +6,11 @@
 #include "FCC3D_Surf.h"
 #include "FCC3D.h"
 #include "EAMFCC3D_surf.h"
+#include "EAMFCC3D_edge.h"
 #include "EAMFCC3D.h"
 #include "EAMFCC3DMatT.h"
 #include "EAMFCC3DMatT_surf.h"
+#include "EAMFCC3DMatT_edge.h"
 #include "CB_TersoffT_surf.h"
 #include "CB_TersoffT.h"
 #include "TersoffSolverT_surf.h"
@@ -62,13 +64,6 @@ TotalLagrangianCBSurfaceT::TotalLagrangianCBSurfaceT(const ElementSupportT& supp
 	fSurfaceCBSupport(NULL),
 	fSplitInitCoords(LocalArrayT::kInitCoords),
 	fIndicator(0),
-	fSS0(6),
-	fSS1(6),
-	fSS2(6),
-	fSS3(6),
-	fSS4(6),
-	fSS5(6),
-	fAlpha(0.0),
 	fSplitShapes(NULL)
 {
 	SetName("total_lagrangian_CBsurface");
@@ -88,18 +83,18 @@ TotalLagrangianCBSurfaceT::~TotalLagrangianCBSurfaceT(void)
 void TotalLagrangianCBSurfaceT::RegisterOutput(void)
 {
 	/* collect variable labels */
-	ArrayT<StringT> n_labels(10);
-//	ArrayT<StringT> n_labels(3);
+// 	ArrayT<StringT> n_labels(10);
+	ArrayT<StringT> n_labels(3);
 	n_labels[0] = "D_X";
 	n_labels[1] = "D_Y";
 	n_labels[2] = "D_Z";
-	n_labels[3] = "S_11";
-	n_labels[4] = "S_22";
-	n_labels[5] = "S_33";
-	n_labels[6] = "S_23";
-	n_labels[7] = "S_13";
-	n_labels[8] = "S_12";
-	n_labels[9] = "PHI";
+// 	n_labels[3] = "S_11";
+// 	n_labels[4] = "S_22";
+// 	n_labels[5] = "S_33";
+// 	n_labels[6] = "S_23";
+// 	n_labels[7] = "S_13";
+// 	n_labels[8] = "S_12";
+// 	n_labels[9] = "PHI";
 	
 	ArrayT<StringT> e_labels; /* none */
 
@@ -165,335 +160,334 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 //	if (fTersoffSurfaceCB.Length() == 0 || fSurfaceOutputID.Length() == 0) return;
 
 	/* time integration parameters */
- 	double constKd = 0.0;
- 	int formKd = fIntegrator->FormKd(constKd);
- 	if (!formKd) return;
- 
- 	/* dimensions */
- 	const ShapeFunctionT& shape = ShapeFunction();
- 	int nsd = shape.NumSD();                          // # of spatial dimensions in problem
- 	int nfs = shape.NumFacets();                      // # of total possible element faces
- 	int nsi = shape.FacetShapeFunction(0).NumIP();    // # IPs per surface face
- 	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
- 	int nen = NumElementNodes();                      // # nodes in bulk element
- 	const int n_output = 7;				// Simo output of 6 stresses, 1 strain energy density
- 
- 	/* work space */
- 	iArrayT face_nodes(nfn), face_nodes_index(nfn);	
- 	dMatrixT F_inv(nsd);
- 	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
- 	ElementSupport().RegisterCoordinates(face_coords);	
- 	dMatrixT jacobian(nsd, nsd-1);
- 	dArrayT ip_coords_X(nsd);
- 	dArrayT ip_coords_Xi(nsd);
- 	dArrayT ip_coords_Xii(nsd);
- 	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen);
- 	dMatrixT DXi_DX(nsd);
- 	dArrayT Na(nen);
- 
- 	/* nodal output */
- 	dArrayT ip_values;
- 
- 	/* Start adding Simo stuff for stress and energy output 2/7/08 */
- 	/* loop over surface elements */
- 	dSymMatrixT stress2(nsd), tstress(nsd), tstress2(nsd), cauchy3(6);
- 	dMatrixT cauchy(nsd), cauchy2(nsd);
- 	double t_surface;
- 	
- 	/* Define output matrix for subtraction of bulk stress */
- 	dArray2DT nodalstress, nodalstress2;	// define similar to SolidElementT.cpp
- 	
- 	/* reset averaging workspace */
- 	// NEED TO DEFINE SIMO MASS
- 	dArray2DT simo_mass, simo_space, simo_all, nodal_space, nodal_all;
- 	dArray2DT simoNa_bar(nen, 1);
- 	dArray2DT simo_force, nodal_force, energy, nodal_energy;
- 	dArrayT ipenergy(1), ipenergy2(1), ipenergy3(1);	// strain energy density for bulk, surface
- 	iArrayT simo_counts, nodal_counts;
- 	simo_space.Dimension(nen, n_output);	// 6 stresses and 1 strain energy
- 	nodal_space.Dimension(nen,n_output);
- 	simo_all.Dimension(nen,n_output);	// 6 stresses and 1 strain energy
- 	nodal_all.Dimension(nen,n_output);
- 	simo_force.Dimension(ElementSupport().NumNodes(), n_output);
- 	nodal_force.Dimension(ElementSupport().NumNodes(), n_output);
- 	simo_mass.Dimension(ElementSupport().NumNodes(), 1);	
- 	simo_counts.Dimension(ElementSupport().NumNodes());
- 	nodal_counts.Dimension(ElementSupport().NumNodes());
-
- 	/* set shallow copies */
- 	double* pall = simo_space.Pointer();
- 	double* pall2 = nodal_space.Pointer();
- 	nodalstress.Alias(nen, 6, pall);	// 6 output coordinates
- 	nodalstress2.Alias(nen,6, pall2);
- 	pall += nodalstress.Length();
- 	pall2 += nodalstress2.Length();
- 	energy.Alias(nen,1,pall);	// 1 output for strain energy density
- 	nodal_energy.Alias(nen,1,pall2);
- 
-  	simo_mass = 0.;
- 	simo_force = 0.;
- 	nodal_force = 0.;
- 	simo_counts = 0;
- 	nodal_counts = 0;
- 
- 	/* Calculate Simo stress and strain energy and mass for ALL elements here */
- 	Top();
- 	while (NextElement())
- 		if (CurrentElement().Flag() != ElementCardT::kOFF)
- 		{
- 			/* initialize */
- 			simoNa_bar = 0.;
- 			simo_all = 0.;
- 			simo_space = 0.;
- 			
- 			/* global shape function values */
- 			SetGlobalShape();
- 			const double* j = fShapes->IPDets();
- 			const double* w = fShapes->IPWeights();
- 			
- 			/* integrate */
- 			dArray2DT Na_X_ip_w;
- 			fShapes->TopIP();
- 
- 			while (fShapes->NextIP())
- 			{
- 				/* element integration weight */
- 				double ip_w = (*j++)*(*w++); 
- 				Na_X_ip_w.Dimension(nen,1);
- 				const double* Na_X = fShapes->IPShapeX();
- 
- 				Na_X_ip_w = ip_w;
- 				for (int k = 0; k < nen; k++)
-         			Na_X_ip_w(k,0) *= *Na_X++;
- 
- 				simoNa_bar += Na_X_ip_w;
-
- 				/* get Cauchy stress */
- 				const dSymMatrixT& stress = fCurrMaterial->s_ij();
- 				cauchy3.Translate(stress);
- 
- 				/* stresses */
- 				for (int k = 0; k < nen; k++)
- 					nodalstress.AddToRowScaled(k,Na_X_ip_w(k,0),cauchy3);
- 				
- 				/* strain energy density */
- 				double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
- 				ipenergy[0] = ip_strain_energy;
- 				for (int k = 0; k < nen; k++)
- 					energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy);
- 
- 			}	// IP look ends here
- 		int colcount = 0;
- 		simo_all.BlockColumnCopyAt(nodalstress, colcount); colcount += 6;
- 		simo_all.BlockColumnCopyAt(energy, colcount); colcount += 1;
- 		
- 		/* CALCULATE SIMO MASS HERE FOR THE BULK CASE */
- 		iArrayT currIndices = CurrentElement().NodesX();
- 		simo_force.Accumulate(currIndices,simo_all);	// DO THIS LATER?
- 		simo_mass.Accumulate(currIndices,simoNa_bar);
-
- 		for (int i = 0; i < currIndices.Length(); i++)
- 			simo_counts[currIndices[i]]++;
- 			
- 		// scale by simo mass altogether with corrections to follow
- 		}	// end of element loop
- 
- 	/* Surface correction to bulk for Simo stress and strain energy */
- 	for (int i = 0; i < fSurfaceElements.Length(); i++)
- 	{
- 		/* bulk element information */
- 		int element = fSurfaceElements[i];
- 		const ElementCardT& element_card = ElementCard(element);
- 		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
- 		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
-
- 		/* integrate surface contribution to nodal forces */
- 		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
- 			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
- 			{
- 				/* face parent domain */
- 				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
- 			
- 				/* collect coordinates of face nodes */
- 				ElementCardT& element_surf = ElementCard(fSurfaceElements[i]);
- 				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
- 				face_nodes.Collect(face_nodes_index, element_surf.NodesX());
- 				face_coords.SetLocal(face_nodes);
- 				
- 				/* set up split integration */
- 				int normal_type = fSurfaceElementFacesType(i,j);
- 				
- 				if (fIndicator == "FCC_3D")
- 					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
- 				else if (fIndicator == "FCC_EAM")
- 					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
- 				else if (fIndicator == "Tersoff_CB")
- 					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
- 				else
- 					int blah = 0;
- 
- 				fSplitInitCoords = fLocInitCoords;
- 				SurfaceLayer(fSplitInitCoords, j, t_surface);
-
- 				/* remove bulk contribution to surface layer (see TotalLagrangianT::FormKd) */
- 				const double* Det    = fSplitShapes->IPDets();
- 				const double* Weight = fSplitShapes->IPWeights();
- 				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
- 				fSplitShapes->TopIP();
- 				dArray2DT Na_X_ip_w, Na_X_ip_w2;
- 				fShapes->TopIP(); /* synch bulk shape functions */
- 				
-   				/* initialize variables */
- 				nodal_all = 0.;
- 				nodal_space = 0.;				
- 				
- 				while (fSplitShapes->NextIP())
- 				{
- 					/* synch bulk shape functions */
- 					fShapes->NextIP();
- 				
- 					/* ip coordinates in the split domain */
- 					fSplitShapes->IPCoords(ip_coords_X);
- 
-  					/* map ip coordinates to bulk parent domain */
- 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
- 
-  					/* bulk shape functions/derivatives */
-  					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
-
-					/* TEMP ADDED BY HSP 8/11/08 */
-					/* USE THIS (blah) or Na from shape.GradU function call? */
- 					const double* blah = fSplitShapes->IPShapeX();
-
- 					/* get Cauchy stress - SOME CHANGES MADE HERE BY HSP */
- 					const dSymMatrixT& stress = fCurrMaterial->s_ij(); 
- 					tstress.Translate(stress);
- 					tstress *= -1.0;
- 
- 					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
- 					/* EVALUATE BULK SHAPE FUNCTIONS AT SPLIT INTEGRATION POINTS */
- 					Na_X_ip_w.Dimension(nen,1);
- 					double ip_w = (*Det++)*(*Weight++);
- 
- 					/* Use Na */
- 					Na_X_ip_w = ip_w;
- 					for (int k = 0; k < nen; k++)
- 					{
- 						Na_X_ip_w(k,0) *= *blah++;
- //						Na_X_ip_w(k,0) *= Na[k];
- 					}	
- 						
- 					/* HSP 8/17/08: the problem is that the mapping is needed that relates
- 					the global node number with the local integration points */
- 					for (int k = 0; k < nen; k++)
- 						nodalstress2.AddToRowScaled(k,Na_X_ip_w(k,0),tstress);
- 						
- 					/* strain energy density */
- 					double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
- 					ipenergy2[0] = ip_strain_energy;
- 
- 					/* negative sign to subtract back off */
- 					ipenergy2[0]*=-1.0;
- 
- 					for (int k = 0; k < nen; k++)
- 						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);						
- 				}
- 				
- 				/* integrate over the face - calculate surface contribution to stress and energy */
- 				int face_ip;
- 				fSurfaceCBSupport->SetCurrIP(face_ip);
- 				const double* w = surf_shape.Weight();		
-
- 				for (face_ip = 0; face_ip < nsi; face_ip++) {
- 
- 					/* coordinate mapping on face */
- 					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
- 					double detj = surf_shape.SurfaceJacobian(jacobian);
- 					
- 					/* ip coordinates on face  - these are global coordinates */
- 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
-					
- 					/* ip coordinates in bulk parent domain */
- 					/* fLocInitCoords are bulk element coordinates */
- 					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
- 
- 					/* bulk shape functions/derivatives */
- 					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);					
- 					
- 					/* stress at the surface */
- 					if (fIndicator == "FCC_3D")
- 						stress2 = fSurfaceCB[normal_type]->s_ij();
- 					else if (fIndicator == "FCC_EAM")
- 						stress2 = fEAMSurfaceCB[normal_type]->s_ij();
- 					else if (fIndicator == "Tersoff_CB")
- 						stress2 = fTersoffSurfaceCB[normal_type]->s_ij();
- 					else
- 						int blah = 0;
- 				
- 					/* ADD SURFACE STRESS TO NODES */
- 					tstress2.Translate(stress2);
- 					
- 					/* ACCUMULATE STRESSES */
- 					Na_X_ip_w2.Dimension(nen,1);
- 					double ip_w = w[face_ip]*detj;	// integration area
-
- 					Na_X_ip_w2 = ip_w;
- 					for (int k = 0; k < nen; k++)
- 						Na_X_ip_w2(k,0) *= Na[k];
- 						
- 					/* Map face nodes 1-4 to node numbers 1-8 of the volume element */
-//					for (int k = 0; k < nen; k++)
-// 						nodalstress2.AddToRowScaled(k,Na_X_ip_w2(k,0),tstress2);
- 	
- 					/* strain energy density */
- 					if (fIndicator == "FCC_3D")
- 						ipenergy3[0] = fSurfaceCB[normal_type]->StrainEnergyDensity();
- 					else if (fIndicator == "FCC_EAM")
- 						ipenergy3[0]=fEAMSurfaceCB[normal_type]->StrainEnergyDensity();
- 					else if (fIndicator == "Tersoff_CB")
- 						ipenergy3[0] =fTersoffSurfaceCB[normal_type]->StrainEnergyDensity();
- 					else
- 						int blah = 0;
- 
+//  	double constKd = 0.0;
+//  	int formKd = fIntegrator->FormKd(constKd);
+//  	if (!formKd) return;
+//  
+//  	/* dimensions */
+//  	const ShapeFunctionT& shape = ShapeFunction();
+//  	int nsd = shape.NumSD();                          // # of spatial dimensions in problem
+//  	int nfs = shape.NumFacets();                      // # of total possible element faces
+//  	int nsi = shape.FacetShapeFunction(0).NumIP();    // # IPs per surface face
+//  	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
+//  	int nen = NumElementNodes();                      // # nodes in bulk element
+//  	const int n_output = 7;				// Simo output of 6 stresses, 1 strain energy density
+//  
+//  	/* work space */
+//  	iArrayT face_nodes(nfn), face_nodes_index(nfn);	
+//  	dMatrixT F_inv(nsd);
+//  	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+//  	ElementSupport().RegisterCoordinates(face_coords);	
+//  	dMatrixT jacobian(nsd, nsd-1);
+//  	dArrayT ip_coords_X(nsd);
+//  	dArrayT ip_coords_Xi(nsd);
+//  	dArrayT ip_coords_Xii(nsd);
+//  	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen);
+//  	dMatrixT DXi_DX(nsd);
+//  	dArrayT Na(nen);
+//  
+//  	/* nodal output */
+//  	dArrayT ip_values;
+//  
+//  	/* Start adding Simo stuff for stress and energy output 2/7/08 */
+//  	/* loop over surface elements */
+//  	dSymMatrixT stress2(nsd), tstress(nsd), tstress2(nsd), cauchy3(6);
+//  	dMatrixT cauchy(nsd), cauchy2(nsd);
+//  	double t_surface;
+//  	
+//  	/* Define output matrix for subtraction of bulk stress */
+//  	dArray2DT nodalstress, nodalstress2;	// define similar to SolidElementT.cpp
+//  	
+//  	/* reset averaging workspace */
+//  	// NEED TO DEFINE SIMO MASS
+//  	dArray2DT simo_mass, simo_space, simo_all, nodal_space, nodal_all;
+//  	dArray2DT simoNa_bar(nen, 1);
+//  	dArray2DT simo_force, nodal_force, energy, nodal_energy;
+//  	dArrayT ipenergy(1), ipenergy2(1), ipenergy3(1);	// strain energy density for bulk, surface
+//  	iArrayT simo_counts, nodal_counts;
+//  	simo_space.Dimension(nen, n_output);	// 6 stresses and 1 strain energy
+//  	nodal_space.Dimension(nen,n_output);
+//  	simo_all.Dimension(nen,n_output);	// 6 stresses and 1 strain energy
+//  	nodal_all.Dimension(nen,n_output);
+//  	simo_force.Dimension(ElementSupport().NumNodes(), n_output);
+//  	nodal_force.Dimension(ElementSupport().NumNodes(), n_output);
+//  	simo_mass.Dimension(ElementSupport().NumNodes(), 1);	
+//  	simo_counts.Dimension(ElementSupport().NumNodes());
+//  	nodal_counts.Dimension(ElementSupport().NumNodes());
+// 
+//  	/* set shallow copies */
+//  	double* pall = simo_space.Pointer();
+//  	double* pall2 = nodal_space.Pointer();
+//  	nodalstress.Alias(nen, 6, pall);	// 6 output coordinates
+//  	nodalstress2.Alias(nen,6, pall2);
+//  	pall += nodalstress.Length();
+//  	pall2 += nodalstress2.Length();
+//  	energy.Alias(nen,1,pall);	// 1 output for strain energy density
+//  	nodal_energy.Alias(nen,1,pall2);
+//  
+//   	simo_mass = 0.;
+//  	simo_force = 0.;
+//  	nodal_force = 0.;
+//  	simo_counts = 0;
+//  	nodal_counts = 0;
+//  
+//  	/* Calculate Simo stress and strain energy and mass for ALL elements here */
+//  	Top();
+//  	while (NextElement())
+//  		if (CurrentElement().Flag() != ElementCardT::kOFF)
+//  		{
+//  			/* initialize */
+//  			simoNa_bar = 0.;
+//  			simo_all = 0.;
+//  			simo_space = 0.;
+//  			
+//  			/* global shape function values */
+//  			SetGlobalShape();
+//  			const double* j = fShapes->IPDets();
+//  			const double* w = fShapes->IPWeights();
+//  			
+//  			/* integrate */
+//  			dArray2DT Na_X_ip_w;
+//  			fShapes->TopIP();
+//  
+//  			while (fShapes->NextIP())
+//  			{
+//  				/* element integration weight */
+//  				double ip_w = (*j++)*(*w++); 
+//  				Na_X_ip_w.Dimension(nen,1);
+//  				const double* Na_X = fShapes->IPShapeX();
+//  
+//  				Na_X_ip_w = ip_w;
+//  				for (int k = 0; k < nen; k++)
+//          			Na_X_ip_w(k,0) *= *Na_X++;
+//  
+//  				simoNa_bar += Na_X_ip_w;
+// 
+//  				/* get Cauchy stress */
+//  				const dSymMatrixT& stress = fCurrMaterial->s_ij();
+//  				cauchy3.Translate(stress);
+//  
+//  				/* stresses */
+//  				for (int k = 0; k < nen; k++)
+//  					nodalstress.AddToRowScaled(k,Na_X_ip_w(k,0),cauchy3);
+//  				
+//  				/* strain energy density */
+//  				double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
+//  				ipenergy[0] = ip_strain_energy;
+//  				for (int k = 0; k < nen; k++)
+//  					energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy);
+//  
+//  			}	// IP look ends here
+//  		int colcount = 0;
+//  		simo_all.BlockColumnCopyAt(nodalstress, colcount); colcount += 6;
+//  		simo_all.BlockColumnCopyAt(energy, colcount); colcount += 1;
+//  		
+//  		/* CALCULATE SIMO MASS HERE FOR THE BULK CASE */
+//  		iArrayT currIndices = CurrentElement().NodesX();
+//  		simo_force.Accumulate(currIndices,simo_all);	// DO THIS LATER?
+//  		simo_mass.Accumulate(currIndices,simoNa_bar);
+// 
+//  		for (int i = 0; i < currIndices.Length(); i++)
+//  			simo_counts[currIndices[i]]++;
+//  			
+//  		// scale by simo mass altogether with corrections to follow
+//  		}	// end of element loop
+//  
+//  	/* Surface correction to bulk for Simo stress and strain energy */
+//  	for (int i = 0; i < fSurfaceElements.Length(); i++)
+//  	{
+//  		/* bulk element information */
+//  		int element = fSurfaceElements[i];
+//  		const ElementCardT& element_card = ElementCard(element);
+//  		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
+//  		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
+// 
+//  		/* integrate surface contribution to nodal forces */
+//  		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
+//  			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
+//  			{
+//  				/* face parent domain */
+//  				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
+//  			
+//  				/* collect coordinates of face nodes */
+//  				ElementCardT& element_surf = ElementCard(fSurfaceElements[i]);
+//  				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
+//  				face_nodes.Collect(face_nodes_index, element_surf.NodesX());
+//  				face_coords.SetLocal(face_nodes);
+//  				
+//  				/* set up split integration */
+//  				int normal_type = fSurfaceElementFacesType(i,j);
+//  				
+//  				if (fIndicator == "FCC_3D")
+//  					t_surface = fSurfaceCB[normal_type]->SurfaceThickness();
+//  				else if (fIndicator == "FCC_EAM")
+//  					t_surface = fEAMSurfaceCB[normal_type]->SurfaceThickness();
+//  				else if (fIndicator == "Tersoff_CB")
+//  					t_surface = fTersoffSurfaceCB[normal_type]->SurfaceThickness();
+//  				else
+//  					int blah = 0;
+//  
+//  				fSplitInitCoords = fLocInitCoords;
+//  				SurfaceLayer(fSplitInitCoords, j, t_surface);
+// 
+//  				/* remove bulk contribution to surface layer (see TotalLagrangianT::FormKd) */
+//  				const double* Det    = fSplitShapes->IPDets();
+//  				const double* Weight = fSplitShapes->IPWeights();
+//  				fSplitShapes->SetDerivatives(); /* set coordinate mapping over the split domain */
+//  				fSplitShapes->TopIP();
+//  				dArray2DT Na_X_ip_w, Na_X_ip_w2;
+//  				fShapes->TopIP(); /* synch bulk shape functions */
+//  				
+//    				/* initialize variables */
+//  				nodal_all = 0.;
+//  				nodal_space = 0.;				
+//  				
+//  				while (fSplitShapes->NextIP())
+//  				{
+//  					/* synch bulk shape functions */
+//  					fShapes->NextIP();
+//  				
+//  					/* ip coordinates in the split domain */
+//  					fSplitShapes->IPCoords(ip_coords_X);
+//  
+//   					/* map ip coordinates to bulk parent domain */
+//  					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+//  
+//   					/* bulk shape functions/derivatives */
+//   					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+// 
+// 					/* TEMP ADDED BY HSP 8/11/08 */
+// 					/* USE THIS (blah) or Na from shape.GradU function call? */
+//  					const double* blah = fSplitShapes->IPShapeX();
+// 
+//  					/* get Cauchy stress - SOME CHANGES MADE HERE BY HSP */
+//  					const dSymMatrixT& stress = fCurrMaterial->s_ij(); 
+//  					tstress.Translate(stress);
+//  					tstress *= -1.0;
+//  
+//  					/* ACCUMULATE STRESSES - NEGATIVE SIGN TO SUBTRACT OFF BULK STRESS */
+//  					/* EVALUATE BULK SHAPE FUNCTIONS AT SPLIT INTEGRATION POINTS */
+//  					Na_X_ip_w.Dimension(nen,1);
+//  					double ip_w = (*Det++)*(*Weight++);
+//  
+//  					/* Use Na */
+//  					Na_X_ip_w = ip_w;
+//  					for (int k = 0; k < nen; k++)
+//  						Na_X_ip_w(k,0) *= *blah++;
+//  						//Na_X_ip_w(k,0) *= Na[k];
+//  						
+//  					for (int k = 0; k < nen; k++)
+//  						nodalstress2.AddToRowScaled(k,Na_X_ip_w(k,0),tstress);
+//  						
+//  					/* strain energy density */
+//  					double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
+//  					ipenergy2[0] = ip_strain_energy;
+//  
+//  					/* negative sign to subtract back off */
+//  					ipenergy2[0]*=-1.0;
+//  
+//  					for (int k = 0; k < nen; k++)
+//  						nodal_energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy2);						
+//  				}
+//  				
+//  				/* integrate over the face - calculate surface contribution to stress and energy */
+//  				int face_ip;
+//  				fSurfaceCBSupport->SetCurrIP(face_ip);
+//  				const double* w = surf_shape.Weight();		
+// 
+//  				for (face_ip = 0; face_ip < nsi; face_ip++) {
+//  
+//  					/* coordinate mapping on face */
+//  					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+//  					double detj = surf_shape.SurfaceJacobian(jacobian);
+//  					
+//  					/* ip coordinates on face  - these are global coordinates */
+//  					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+// 					
+//  					/* ip coordinates in bulk parent domain */
+//  					/* fLocInitCoords are bulk element coordinates */
+//  					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+//  
+//  					/* bulk shape functions/derivatives */
+//  					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);					
+//  					
+//  					/* stress at the surface */
+//  					if (fIndicator == "FCC_3D")
+//  						stress2 = fSurfaceCB[normal_type]->s_ij();
+//  					else if (fIndicator == "FCC_EAM")
+//  						stress2 = fEAMSurfaceCB[normal_type]->s_ij();
+//  					else if (fIndicator == "Tersoff_CB")
+//  						stress2 = fTersoffSurfaceCB[normal_type]->s_ij();
+//  					else
+//  						int blah = 0;
+//  				
+//  					/* ADD SURFACE STRESS TO NODES */
+//  					tstress2.Translate(stress2);
+//  					
+//  					/* ACCUMULATE STRESSES */
+//  					Na_X_ip_w2.Dimension(nen,1);
+//  					double ip_w = w[face_ip]*detj;	// integration area
+// 
+//  					Na_X_ip_w2 = ip_w;
+//  					for (int k = 0; k < nen; k++)
+//  						Na_X_ip_w2(k,0) *= Na[k];
+//  						
+//  					/* Map face nodes 1-4 to node numbers 1-8 of the volume element */
 // 					for (int k = 0; k < nen; k++)
-// 						nodal_energy.AddToRowScaled(k,Na_X_ip_w2(k,0),ipenergy3);					
- 
-				}	// end of IP loop
-
- 			/* copy in the columns for the bulk subtract */
- 			int colcount = 0;
- 			nodal_all.BlockColumnCopyAt(nodalstress2, colcount); colcount += 6;
- 			nodal_all.BlockColumnCopyAt(nodal_energy, colcount); colcount += 1;
- 
- 			/* Obtain surface nodes to write into correct part of nodal_all */
- 			iArrayT currIndices = element_surf.NodesX(); // THIS MAPPING IS WRONG HSP 8/17/08
- 			nodal_force.Accumulate(currIndices,nodal_all);	// DO THIS LATER?
- 			}	
- 	}	// end of element loop
-
- 	/* Combine Bulk + Correction for output, i.e. nodal_force and simo_force */
- 	simo_force+=nodal_force;
- 
+//  						nodalstress2.AddToRowScaled(k,Na_X_ip_w2(k,0),tstress2);
+//  	
+//  					/* strain energy density */
+//  					if (fIndicator == "FCC_3D")
+//  						ipenergy3[0] = fSurfaceCB[normal_type]->StrainEnergyDensity();
+//  					else if (fIndicator == "FCC_EAM")
+//  						ipenergy3[0]=fEAMSurfaceCB[normal_type]->StrainEnergyDensity();
+//  					else if (fIndicator == "Tersoff_CB")
+//  						ipenergy3[0] =fTersoffSurfaceCB[normal_type]->StrainEnergyDensity();
+//  					else
+//  						int blah = 0;
+//  
+//  					for (int k = 0; k < nen; k++)
+//  						nodal_energy.AddToRowScaled(k,Na_X_ip_w2(k,0),ipenergy3);					
+//  
+// 				}	// end of IP loop
+// 
+//  			/* copy in the columns for the bulk subtract */
+//  			int colcount = 0;
+//  			nodal_all.BlockColumnCopyAt(nodalstress2, colcount); colcount += 6;
+//  			nodal_all.BlockColumnCopyAt(nodal_energy, colcount); colcount += 1;
+//  
+//  			/* Obtain surface nodes to write into correct part of nodal_all */
+//  			iArrayT currIndices = element_surf.NodesX();
+//  			nodal_force.Accumulate(currIndices,nodal_all);	// DO THIS LATER?
+// // 			cout << "nodal force = " << endl;
+// // 			cout << nodal_force << endl;
+//  			}	
+//  	}	// end of element loop
+// 
+//  	/* Combine Bulk + Correction for output, i.e. nodal_force and simo_force */
+//  	simo_force+=nodal_force;
+//  
 	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
 	const iArrayT& nodes_used = output_set.NodesUsed();
-	if (output_set.NumNodeValues() != 10) /* check */
-		ExceptionT::GeneralFail(caller, "expecting 10 nodal values defined in the output set");
+// 	if (output_set.NumNodeValues() != 10) /* check */
+// 		ExceptionT::GeneralFail(caller, "expecting 10 nodal values defined in the output set");
 
-	/* collect nodal values for nodes in this element group */
-	dArray2DT n_values(nodes_used.Length(), 10);
-//	dArray2DT n_values(nodes_used.Length(), 3);
+// 	/* collect nodal values for nodes in this element group */
+// 	dArray2DT n_values(nodes_used.Length(), 10);
+	dArray2DT n_values(nodes_used.Length(), 3);
  	n_values = 0.0;
-	int row = 0;
-	dArrayT row_tmp;
- 	for (int i = 0; i < simo_force.MajorDim(); i++)
- 		if (simo_mass(i,0) > 0) {
-			row_tmp.Alias(n_output, n_values(row) + 3);
-			row_tmp.SetToScaled(1./simo_mass(i,0), simo_force(i));
- 			row++;
- 		}	
-
+// 	int row = 0;
+// 	dArrayT row_tmp;
+//  	for (int i = 0; i < simo_force.MajorDim(); i++)
+//  		if (simo_mass(i,0) > 0) {
+// 			row_tmp.Alias(n_output, n_values(row) + 3);
+// 			row_tmp.SetToScaled(1./simo_mass(i,0), simo_force(i));
+//  			row++;
+//  		}	
+// 
 	/* collect the displacement field */
-	LocalArrayT loc_disp_all(LocalArrayT::kDisp, nodes_used.Length(), 10);
+	LocalArrayT loc_disp_all(LocalArrayT::kDisp, nodes_used.Length(), 3);
+// 	LocalArrayT loc_disp_all(LocalArrayT::kDisp, nodes_used.Length(), 10);
 	Field().RegisterLocal(loc_disp_all);
 	loc_disp_all.SetLocal(nodes_used);
 	n_values.SetColumn(0, loc_disp_all(0));
@@ -503,7 +497,7 @@ void TotalLagrangianCBSurfaceT::WriteOutput(void)
 	/* write output */
 	dArray2DT e_values;
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
-// 
+
 // #if 0
 //  	/* Add up total energy bulk - bulk subtract + surface add */
 //  	/* FINAL SIMO STUFF - 2/7/08 - IDENTICAL TO SOLIDELEMENTT LINE 1678 */
@@ -996,6 +990,10 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 		fEAMSurfaceCB.Dimension(nfs);
 		fEAMSurfaceCB = NULL;
 
+		/* EDGE CB */
+		fEAMEdgeCB.Dimension(nfs);
+		fEAMEdgeCB = NULL;
+		
 		/* get pointer to the bulk model */
 		EAMFCC3DMatT* EAMfcc_3D = NULL;
 		if (fMaterialList->Length() == 1) {
@@ -1015,6 +1013,10 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 			fEAMSurfaceCB[i] = new EAMFCC3DMatT_surf;
 			fEAMSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
 
+			/* Edge CB Model */
+			fEAMEdgeCB[i] = new EAMFCC3DMatT_edge;
+			fEAMEdgeCB[i]->SetFSMatSupport(fSurfaceCBSupport);
+
 			/* pass parameters to the surface model, including surface normal code */
 			ParameterListT surf_params = bulk_params;
 			surf_params.SetName("FCC_EAM_Surf");
@@ -1025,6 +1027,10 @@ void TotalLagrangianCBSurfaceT::TakeParameterList(const ParameterListT& list)
 
 			/* Initialize a different EAMFCC3D_Surf for each different surface normal type (6 total) */
 			fEAMSurfaceCB[i]->TakeParameterList(surf_params);
+			
+			/* Initialize a different Edge CB for each surface normal type */
+			fEAMEdgeCB[i]->TakeParameterList(surf_params);
+			
 		}
 	}
 	else if (fIndicator == "Tersoff_CB")
@@ -1651,11 +1657,7 @@ void TotalLagrangianCBSurfaceT::RHSDriver(void)
 					if (fIndicator == "FCC_3D")
  						(fSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
  					else if (fIndicator == "FCC_EAM")
- 					{
  						(fEAMSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
- 						//fEAMSurfaceCB[normal_type]->WaveSpeeds(normal, speeds);
-                        //cout << "wave speeds are " << speeds << endl;
-					}	
  					else if (fIndicator == "Tersoff_CB")
  						(fTersoffSurfaceCB[normal_type]->s_ij()).ToMatrix(cauchy);
  					else if (fIndicator == "TersoffDimer_CB")
