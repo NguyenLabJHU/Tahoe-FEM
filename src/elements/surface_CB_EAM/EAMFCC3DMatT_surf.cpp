@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.cpp,v 1.8 2008-05-08 03:14:18 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.cpp,v 1.9 2009-06-04 20:22:55 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT_surf.h"
 
@@ -14,6 +14,7 @@ EAMFCC3DMatT_surf::EAMFCC3DMatT_surf(void):
 	ParameterInterfaceT("FCC_EAM_Surf"),
 	fSurfaceThickness(-1),
 	fAlpha(0.0),
+	fBeta(0.0),
 	fEAM(NULL)
 {
 
@@ -82,11 +83,15 @@ void EAMFCC3DMatT_surf::TakeParameterList(const ParameterListT& list)
 	fDensity = fEAM->Density();
 	
 	/* Hopefully will return 0 strain stiffness since called initially */
-	fAlpha = 0.5;
+	/* Alpha = 0 and Beta = 1 is regular SCB */
+	fAlpha = 0.0;
+	fBeta = 1.0;
 	
 	/* HSP ADDED 4/24/08 for spatial and material tangent modulus */
 	fSS0 = FSSolidMatT::C_IJKL();
-	fSS0*=fAlpha;	
+	fSS0*=fAlpha;
+	fSS0*=fBeta;
+//	cout << "C0 = " << fSS0 << endl;
 }
 
 /*************************************************************************
@@ -102,7 +107,7 @@ void EAMFCC3DMatT_surf::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	//fEAM->Moduli(moduli, E);
 	
 	/* Subtract off strain-dependent part */
-	moduli-=fSS0;
+//	moduli-=fSS0;
 }
 
 /* returns the stress corresponding to the given strain - the strain
@@ -112,7 +117,10 @@ void EAMFCC3DMatT_surf::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 {
 	/* EAM solver */
 	fEAM->SetStress(E, PK2);
-	
+
+	/* Multiply strain-dependent part */
+	PK2*=fBeta;
+
 	/* Subtract off strain-dependent part */
  	dSymMatrixT product(3);
 	product.A_ijkl_B_kl(fSS0, E);	

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.h,v 1.6 2008-05-08 03:14:18 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.h,v 1.7 2009-06-04 20:22:55 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_SURF_H_
 #define _EAMFCC3DMatT_SURF_H_
@@ -65,7 +65,7 @@ protected:
 	
 	/** zero strain surface stiffness */
 	dMatrixT fSS0;
-	dMatrixT fBlah;
+	double fBeta;
 	
 	/** Cauchy-Born EAM solver */
 	EAMFCC3DSym_surf* fEAM;
