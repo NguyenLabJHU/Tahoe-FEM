@@ -382,9 +382,14 @@ void FSSolidFluidMixT::CloseStep(void)
 							if (detA_tmp < detAmin)
 							{
 								detAmin = detA_tmp;
-								fs_plast_mix_out	<< endl << "detA_min" << detA_tmp; 			
-								fs_plast_mix_out	<< endl << "normal: " << setw(outputFileWidth) << normal_tmp[0] 
-										<< setw(outputFileWidth) << normal_tmp[1] <<  setw(outputFileWidth) << normal_tmp[2]; 
+								if (detA_tmp < 0.0)	
+								{
+									fs_plast_mix_out	<< endl << "detA_min: " << detA_tmp; 			
+									fs_plast_mix_out	<< endl << "normal: " 
+											<< setw(outputFileWidth) << normal_tmp[0] 
+											<< setw(outputFileWidth) << normal_tmp[1] 
+											<< setw(outputFileWidth) << normal_tmp[2]; 
+								}
 							}
 						}
 					} // if (checkloc)
