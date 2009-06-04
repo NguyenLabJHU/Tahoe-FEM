@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2009-06-03 04:25:30 hspark Exp $
+# $Id: makefile,v 1.7 2009-06-04 20:24:14 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,11 +21,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	EAMFCC3D_surf.o \
-	EAMFCC3D_edge.o \
 	EAMFCC3DMatT_surf.o \
-	EAMFCC3DMatT_edge.o \
 	EAMFCC3DSym_surf.o \
-	EAMFCC3DSym_edge.o \
 	EAMFCC3DSym_110surf.o
 
 OBJ_LINK = $(OBJ)
@@ -47,11 +44,8 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	EAMFCC3D_surf.cpp \
-	EAMFCC3D_edge.cpp \
 	EAMFCC3DMatT_surf.cpp \
-	EAMFCC3DMatT_edge.cpp \
 	EAMFCC3DSym_surf.cpp \
-	EAMFCC3DSym_edge.cpp \
 	EAMFCC3DSym_110surf.cpp
 
 ##################### (3) headers
@@ -65,11 +59,8 @@ SRC = \
 #
 HDR = \
 	EAMFCC3D_surf.h \
-	EAMFCC3D_edge.h \
 	EAMFCC3DMatT_surf.h \
-	EAMFCC3DMatT_edge.h \
 	EAMFCC3DSym_surf.h \
-	EAMFCC3DSym_edge.h \
 	EAMFCC3DSym_110surf.h
 
 HDR_LINK = $(HDR:.h=.h_link)
