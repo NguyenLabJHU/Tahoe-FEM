@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_edge.cpp,v 1.2 2009-06-04 16:25:46 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_edge.cpp,v 1.3 2009-06-04 22:45:31 hspark Exp $ */
 /* created: hspark (6/2/2009) */
 #include "EAMFCC3DMatT_edge.h"
 
@@ -63,11 +63,12 @@ void EAMFCC3DMatT_edge::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	NL_E_MatT::TakeParameterList(list);
-	
+
 	/* construct Cauchy-Born EAM solver */
 	int shells = list.GetParameter("shells");
 	int normal_code = list.GetParameter("normal_code");
 	fEAM = new EAMFCC3DSym_edge(shells, normal_code);
+
 	fEAM->TakeParameterList(list.GetList("FCC_EAM_Cauchy-Born"));
 
 	/* TEMP - GET SURFACE THICKNESS FROM EAMFCC3D_SURF */

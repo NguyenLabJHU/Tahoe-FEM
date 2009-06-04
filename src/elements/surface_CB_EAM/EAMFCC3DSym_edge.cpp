@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_edge.cpp,v 1.4 2009-06-04 16:25:46 hspark Exp $ */
+/* $Id: EAMFCC3DSym_edge.cpp,v 1.5 2009-06-04 22:45:31 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym_edge.h"
 
@@ -37,8 +37,8 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 	/* RENAME VARIABLES IN BondTableT!!! */
 //	fEdgeBondCounts.Dimension(kEAMFCC3DEdgeBonds); // all edge bonds (412)
 	fBondCounts.Dimension(kEAMFCC3DEdgeBonds);	// all edge bonds (412)
-	fBulkBondCounts.Dimension(kEAMFCC3DBulkBonds); // all bulk bonds (42)
-	fEdge1Counts.Dimension(kEAMFCC3DEdgeBonds1);
+ 	fBulkBondCounts.Dimension(kEAMFCC3DBulkBonds); // all bulk bonds (42)
+ 	fEdge1Counts.Dimension(kEAMFCC3DEdgeBonds1);
 	fEdge2Counts.Dimension(kEAMFCC3DEdgeBonds2);
 	fEdge3Counts.Dimension(kEAMFCC3DEdgeBonds3);
 	fEdge4Counts.Dimension(kEAMFCC3DEdgeBonds4);
@@ -49,7 +49,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 //	fDefEdgeLength.Dimension(kEAMFCC3DEdgeBonds);	// all deformed edge lengths (412)
 	fDefLength.Dimension(kEAMFCC3DEdgeBonds);
 	fDefBulkLength.Dimension(kEAMFCC3DBulkBonds);
-	fDefEdge1.Dimension(kEAMFCC3DEdgeBonds1);
+ 	fDefEdge1.Dimension(kEAMFCC3DEdgeBonds1);
 	fDefEdge2.Dimension(kEAMFCC3DEdgeBonds2);
 	fDefEdge3.Dimension(kEAMFCC3DEdgeBonds3);
 	fDefEdge4.Dimension(kEAMFCC3DEdgeBonds4);
@@ -60,7 +60,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 //	fAllEdgeBonds.Dimension(kEAMFCC3DEdgeBonds,3);
 	fBonds.Dimension(kEAMFCC3DEdgeBonds,3);
 	fAllBulkBonds.Dimension(kEAMFCC3DBulkBonds,3);
-	fEdgeBonds1.Dimension(kEAMFCC3DEdgeBonds1,3);
+ 	fEdgeBonds1.Dimension(kEAMFCC3DEdgeBonds1,3);
 	fEdgeBonds2.Dimension(kEAMFCC3DEdgeBonds2,3);
 	fEdgeBonds3.Dimension(kEAMFCC3DEdgeBonds3,3);
 	fEdgeBonds4.Dimension(kEAMFCC3DEdgeBonds4,3);
@@ -87,7 +87,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 //	fEdgeBondCounts = 1;
 	fBondCounts = 1;
 	fBulkBondCounts = 1;
-	fEdge1Counts = 1;
+ 	fEdge1Counts = 1;
 	fEdge2Counts = 1;
 	fEdge3Counts = 1;
 	fEdge4Counts = 1;
@@ -100,7 +100,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 //	fDefEdgeLength = 0.0;
 	fDefLength = 0.0;
 	fDefBulkLength = 0.0;
-	fDefEdge1 = 0.0;
+ 	fDefEdge1 = 0.0;
 	fDefEdge2 = 0.0;
 	fDefEdge3 = 0.0;
 	fDefEdge4 = 0.0;
@@ -951,8 +951,8 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 		fBonds *= -1.0;
 		fAllBulkBonds = temp_bulk;
 		fAllBulkBonds *= -1.0;
-		fEdgeBonds1 = temp_edge1;
-		fEdgeBonds1 *= -1.0;
+ 		fEdgeBonds1 = temp_edge1;
+ 		fEdgeBonds1 *= -1.0;
 		fEdgeBonds2 = temp_edge2;
 		fEdgeBonds2 *= -1.0;
 		fEdgeBonds3 = temp_edge3;
@@ -973,7 +973,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 //		fAllEdgeBonds = tedge2;
 		fBonds = tedge2;
 		fAllBulkBonds = temp_bulk;
-		fEdgeBonds1 = temp_edge1;
+ 		fEdgeBonds1 = temp_edge1;
 		fEdgeBonds2 = temp_edge2;
 		fEdgeBonds3 = temp_edge3;
 		fEdgeBonds4 = temp_edge4;
@@ -986,7 +986,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 	{
 		tedge2 = tempedge;
 		tbulk = temp_bulk;
-		te1 = temp_edge1;
+ 		te1 = temp_edge1;
 		te2 = temp_edge2;
 		te3 = temp_edge3;
 		te4 = temp_edge4;
@@ -1058,7 +1058,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 //		fAllEdgeBonds = tedge2;
 		fBonds = tedge2;
 		fAllBulkBonds = tbulk;
-		fEdgeBonds1 = te1;
+ 		fEdgeBonds1 = te1;
 		fEdgeBonds2 = te2;
 		fEdgeBonds3 = te3;
 		fEdgeBonds4 = te4;
@@ -1071,7 +1071,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 	{
 		tedge2 = tempedge;
 		tbulk = temp_bulk;
-		te1 = temp_edge1;
+ 		te1 = temp_edge1;
 		te2 = temp_edge2;
 		te3 = temp_edge3;
 		te4 = temp_edge4;
@@ -1156,7 +1156,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 	{
 		tedge2 = tempedge;
 		tbulk = temp_bulk;
-		te1 = temp_edge1;
+ 		te1 = temp_edge1;
 		te2 = temp_edge2;
 		te3 = temp_edge3;
 		te4 = temp_edge4;
@@ -1228,7 +1228,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 //		fAllEdgeBonds = tedge2;
 		fBonds = tedge2;
 		fAllBulkBonds = tbulk;
-		fEdgeBonds1 = te1;
+ 		fEdgeBonds1 = te1;
 		fEdgeBonds2 = te2;
 		fEdgeBonds3 = te3;
 		fEdgeBonds4 = te4;
@@ -1241,7 +1241,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 	{
 		tedge2 = tempedge;
 		tbulk = temp_bulk;
-		te1 = temp_edge1;
+ 		te1 = temp_edge1;
 		te2 = temp_edge2;
 		te3 = temp_edge3;
 		te4 = temp_edge4;
@@ -1313,7 +1313,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 //		fAllEdgeBonds = tedge2;
 		fBonds = tedge2;
 		fAllBulkBonds = tbulk;
-		fEdgeBonds1 = te1;
+ 		fEdgeBonds1 = te1;
 		fEdgeBonds2 = te2;
 		fEdgeBonds3 = te3;
 		fEdgeBonds4 = te4;
@@ -1327,7 +1327,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 //	fAllEdgeBonds *= fLatticeParameter;
 	fBonds *= fLatticeParameter;
 	fAllBulkBonds *= fLatticeParameter;
-	fEdgeBonds1 *= fLatticeParameter;
+ 	fEdgeBonds1 *= fLatticeParameter;
 	fEdgeBonds2 *= fLatticeParameter;
 	fEdgeBonds3 *= fLatticeParameter;
 	fEdgeBonds4 *= fLatticeParameter;

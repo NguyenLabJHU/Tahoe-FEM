@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_surf.cpp,v 1.9 2009-06-04 20:22:55 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.cpp,v 1.10 2009-06-04 22:45:31 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT_surf.h"
 
@@ -86,12 +86,11 @@ void EAMFCC3DMatT_surf::TakeParameterList(const ParameterListT& list)
 	/* Alpha = 0 and Beta = 1 is regular SCB */
 	fAlpha = 0.0;
 	fBeta = 1.0;
-	
+
 	/* HSP ADDED 4/24/08 for spatial and material tangent modulus */
 	fSS0 = FSSolidMatT::C_IJKL();
 	fSS0*=fAlpha;
 	fSS0*=fBeta;
-//	cout << "C0 = " << fSS0 << endl;
 }
 
 /*************************************************************************
