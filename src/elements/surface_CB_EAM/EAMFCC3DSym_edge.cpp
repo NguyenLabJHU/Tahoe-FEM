@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_edge.cpp,v 1.5 2009-06-04 22:45:31 hspark Exp $ */
+/* $Id: EAMFCC3DSym_edge.cpp,v 1.6 2009-06-05 17:01:49 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym_edge.h"
 
@@ -185,7 +185,8 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 			temp_edge1(i,j) = edgebond1[i][j];
 			
 	/* temporary edgebond1 interaction map */
-	// edgebond1map = {1,1,3,1,1,2,0,0,2,4,3,4,4,3,4};
+	// edgebond1map = {1,1,3,1,1,2,0,0,2,4,3,4,4,3,4}; - WRONG
+	// edgebond1map = {1,1,2,3,3,4,0,0,5,6,2,7,6,2,7}; - CORRECTED
 
 	/* Bond table for z=-0.5, x=0, y=variable (2 atoms) */
 	double edgebond2[kEAMFCC3DEdgeBonds2][kEAMFCC3DNumLatticeDim] = {
@@ -219,7 +220,8 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 			temp_edge2(i,j) = edgebond2[i][j];
 			
 	/* temporary edgebond2 interaction map */
-	// edgebond2map = {5,6,6,8,8,6,5,1,5,1,7,7,8,8,8,6,8,6,9,5,9,5};
+	// edgebond2map = {5,6,6,8,8,6,5,1,5,1,7,7,8,8,8,6,8,6,9,5,9,5}; - WRONG
+	// edgebond2map = {8,9,9,10,11,12,8,3,8,3,13,13,11,11,11,12,11,12,14,15,14,15} - CORRECTED
 
 	/* Bond table for z=-1.0, x=0, y=variable (1 atom) */
 	double edgebond3[kEAMFCC3DEdgeBonds3][kEAMFCC3DNumLatticeDim] = {
@@ -256,7 +258,8 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 			temp_edge3(i,j) = edgebond3[i][j];
 			
 	/* temporary edgebond3 interaction map */
-	// edgebond3map = {10,2,10,10,13,12,11,10,5,10,5,12,12,12,5,12,5,12,11,12,11,13,12,13,12}
+	// edgebond3map = {10,2,10,10,13,12,11,10,5,10,5,12,12,12,5,12,5,12,11,12,11,13,12,13,12} - WRONG
+	// edgebond3map = {16,5,16,5,17,18,19,16,20,16,20,18,18,18,21,18,21,18,19,18,19,17,22,17,22}; - CORRECT
 	
 	/* Bond table for z=0, x=0.5, y=variable (2 atoms) */
 	double edgebond4[kEAMFCC3DEdgeBonds4][kEAMFCC3DNumLatticeDim] = {
@@ -290,7 +293,8 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 			temp_edge4(i,j) = edgebond4[i][j];
 			
 	/* temporary edgebond4 interaction map */
-	// edgebond4map = {8,6,6,5,6,8,7,7,1,1,5,5,5,5,9,9,6,6,8,8,8,8};
+	// edgebond4map = {8,6,6,5,6,8,7,7,1,1,5,5,5,5,9,9,6,6,8,8,8,8}; - WRONG
+	// edgebond4map = {23,24,24,25,12,26,27,27,1,1,25,25,28,28,29,29,12,12,26,26,26,26};
 
 	/* Bond table for z=0, x=1.0, y=variable (1 atom) */
 	double edgebond5[kEAMFCC3DEdgeBonds5][kEAMFCC3DNumLatticeDim] = {
@@ -327,7 +331,8 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 			temp_edge5(i,j) = edgebond5[i][j];
 			
 	/* temporary edgebond5 interaction map */
-	// edgebond5map = {13,10,10,2,10,11,12,12,12,5,5,10,10,12,12,13,13,11,11,12,12,5,5,12,12};
+	// edgebond5map = {13,10,10,2,10,11,12,12,12,5,5,10,10,12,12,13,13,11,11,12,12,5,5,12,12}; - WRONG
+	// edgebond5map = {30,31,31,4,31,32,33,33,33,25,25,31,31,34,34,30,30,32,32,33,33,15,15,33,33};
 
 	/* Bond table for x=0.5, z=-0.5, y=variable (3 atoms) (quasi surface 2) */
 	double edgebond6[kEAMFCC3DEdgeBonds6][kEAMFCC3DNumLatticeDim] = {
@@ -371,7 +376,8 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 			temp_edge6(i,j) = edgebond6[i][j];
 			
 	/* temporary edgebond6 interaction map */
-	// edgebond6map = {15,14,14,15,11,3,16,11,15,7,15,7,3,3,15,15,11,11,16,16,11,3,11,3,16,11,16,11,16,11,16,11}
+	// edgebond6map = {15,14,14,15,11,3,16,11,15,7,15,7,3,3,15,15,11,11,16,16,11,3,11,3,16,11,16,11,16,11,16,11} - WRONG
+	// edgebond6map = {35,36,36,37,19,2,38,32,35,27,35,27,13,13,37,37,19,19,38,38,19,2,19,2,38,32,38,32,38,32,38,32};
 
 	/* Bond table for x=0.5, z=-1.0, y=variable (2 atoms) */
 	double edgebond7[kEAMFCC3DEdgeBonds7][kEAMFCC3DNumLatticeDim] = {
@@ -420,7 +426,8 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 			temp_edge7(i,j) = edgebond7[i][j];
 			
 	/* temporary edgebond7 interaction map */
-	// edgebond7map = {18,8,18,18,17,12,8,17,18,18,15,18,15,12,12,17,17,12,4,12,4,17,12,17,12,12,8,12,8,17,18,17,18,17,18,17,18}
+	// edgebond7map = {18,8,18,18,17,12,8,17,18,18,15,18,15,12,12,17,17,12,4,12,4,17,12,17,12,12,8,12,8,17,18,17,18,17,18,17,18} - WRONG
+	// edgebond7map = {39,23,39,39,40,18,11,40,41,39,35,39,35,18,18,40,40,18,7,18,7,40,34,40,34,18,11,18,11,40,41,40,41,40,41,40,41}; - CORRECT
 
 	/* Bond table for x=1.0, z=-0.5, y=variable (2 atoms) */
 	double edgebond8[kEAMFCC3DEdgeBonds8][kEAMFCC3DNumLatticeDim] = {
@@ -469,31 +476,66 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 			temp_edge8(i,j) = edgebond8[i][j];
 			
 	/* temporary edgebond8 interaction map */
-	// edgebond8map = {17,18,18,8,18,18,8,17,12,17,12,17,12,15,15,18,18,18,18,17,17,18,8,18,8,17,12,17,12,12,4,12,4,17,12,17,12};
-
+	// edgebond8map = {17,18,18,8,18,18,8,17,12,17,12,17,12,15,15,18,18,18,18,17,17,18,8,18,8,17,12,17,12,12,4,12,4,17,12,17,12}; - WRONG
+	// edgebond8map = {42,43,43,10,43,41,26,42,33,42,33,42,33,37,37,43,43,41,41,42,42,41,26,41,26,42,33,42,33,22,6,22,6,42,33,42,33};  CORRECT
+	
 	/* IMPLEMENT INTERACTION TABLE HERE FOR EDGE ATOM FOR CORRECT ELECTRON DENSITIES FOR
 		OTHER EDGE/SURFACE ATOMS */
 	/* Interaction type key */
-	// 0 = edge/edge
-	// 1 = edge/1 atom away on surface 1
-	// 2 = edge/2 atoms away on surface 1
-	// 3 = edge/quasi surface 2 (32 neighbors)
-	// 4 = edge/real surface 2 (37 neighbors)
-	// 5 = 1 atom away on surface 1 / 2 atoms away on surface 1
-	// 6 = 1 atom away on surface 1 / 1 atom away on surface 1
-	// 7 = 1 atom away on surface 1 / quasi surface 2
-	// 8 = 1 atom away on surface 1 / real surface 2
-	// 9 = 1 atom away on surface 1 / bulk
-	//10 = 2 atoms away on surface 1 / 2 atoms away on surface 1
-	//11 = 2 atoms away on surface 1 / quasi surface 2
-	//12 = 2 atoms away on surface 1 / real surface 2
-	//13 = 2 atoms away on surface 1 / bulk
-	//14 = quasi surface 2 / quasi surface 2
-	//15 = quasi surface 2 / real surface 2
-	//16 = quasi surface 2 / bulk
-	//17 = real surface 2 / bulk
-	//18 = real surface 2 / real surface 2
-	int edge1n[412]={1,1,3,1,1,2,0,0,2,4,3,4,4,3,4,1,1,3,1,1,2,0,0,2,4,3,4,4,3,4,5,6,6,8,8,6,5,1,5,1,7,7,8,8,8,6,8,6,9,5,9,5,5,6,6,8,8,6,5,1,5,1,7,7,8,8,8,6,8,6,9,5,9,5,10,2,10,10,13,12,11,10,5,10,5,12,12,12,5,12,5,12,11,12,11,13,12,13,12,8,6,6,5,6,8,7,7,1,1,5,5,5,5,9,9,6,6,8,8,8,8,8,6,6,5,6,8,7,7,1,1,5,5,5,5,9,9,6,6,8,8,8,8,13,10,10,2,10,11,12,12,12,5,5,10,10,12,12,13,13,11,11,12,12,5,5,12,12,15,14,14,15,11,3,16,11,15,7,15,7,3,3,15,15,11,11,16,16,11,3,11,3,16,11,16,11,16,11,16,11,15,14,14,15,11,3,16,11,15,7,15,7,3,3,15,15,11,11,16,16,11,3,11,3,16,11,16,11,16,11,16,11,15,14,14,15,11,3,16,11,15,7,15,7,3,3,15,15,11,11,16,16,11,3,11,3,16,11,16,11,16,11,16,11,18,8,18,18,17,12,8,17,18,18,15,18,15,12,12,17,17,12,4,12,4,17,12,17,12,12,8,12,8,17,18,17,18,17,18,17,18,18,8,18,18,17,12,8,17,18,18,15,18,15,12,12,17,17,12,4,12,4,17,12,17,12,12,8,12,8,17,18,17,18,17,18,17,18,17,18,18,8,18,18,8,17,12,17,12,17,12,15,15,18,18,18,18,17,17,18,8,18,8,17,12,17,12,12,4,12,4,17,12,17,12,17,18,18,8,18,18,8,17,12,17,12,17,12,15,15,18,18,18,18,17,17,18,8,18,8,17,12,17,12,12,4,12,4,17,12,17,12};
+// 0:  Edge-Edge
+// 1:  Edge-1 atom away (+Z)
+// 2:  Edge-quasi surface 2 (both ÐX and +Z)
+// 3:  Edge-1 atom away (-X)
+// 4:  Edge-2 atoms away (+Z)
+// 5:  Edge-2 atoms away (-X)
+// 6:  Edge-real surface 2 (+Z)
+// 7:  Edge-real surface 2 (-X)
+// 8:  1 atom away (-X) Ð 2 atoms away (-X)
+// 9:  1 atom away (-X) Ð 1 atom away (-X)
+// 10:  1 atom away (-X) Ð real surface 2 (+Z)
+// 11:  1 atom away (-X) Ð real surface 2 (-X)
+// 12:  1 atom away (-X) Ð 1 atom away (+Z)
+// 13:  1 atom away (-X) Ð quasi surface 2 (both ÐX and +Z)
+// 14:  1 atom away (-X) Ð bulk
+// 15:  1 atom away (-X) Ð 2 atoms away (+Z)
+// 16:  2 atoms away (-X) Ð 2 atoms away (-X)
+// 17:  2 atoms away (-X) Ð bulk
+// 18:  2 atoms away (-X) Ð real surface 2 (-X)
+// 19:  2 atoms away (-X) Ð quasi surface 2 (both ÐX and +Z)
+// 20:  2 atoms away (-X) Ð 1 atom away (-X)
+// 21:  2 atoms away (-X) Ð 1 atom away (+Z)
+// 22:  2 atoms away (-X) Ð real surface 2 (+Z)
+// 23:  1 atom away (+Z) Ð real surface 2 (-X)
+// 24:  1 atom away (+Z) Ð 1 atom away (+Z)
+// 25:  1 atom away (+Z) Ð 2 atoms away (+Z)
+// 26:  1 atom away (+Z) Ð real surface 2 (+Z)
+// 27:  1 atom away (+Z) Ð quasi surface 2 (both ÐX and +Z)
+// 28:  1 atom away (+Z) Ð 2 atoms away (-X)
+// 29:  1 atom away (+Z) Ð bulk
+// 30:  2 atoms away (+Z) Ð bulk
+// 31:  2 atoms away (+Z) Ð 2 atoms away (+Z)
+// 32:  2 atoms away (+Z) Ð quasi surface 2 (-X and +Z)
+// 33:  2 atoms away (+Z) Ð real surface 2 (+Z)
+// 34:  2 atoms away (+Z) Ð real surface 2 (-X)
+// 35:  quasi surface 2 Ð real surface 2 (-X)
+// 36:  quasi surface 2 Ð quasi surface 2
+// 37:  quasi surface 2 Ð real surface 2 (+Z)
+// 38:  quasi surface 2 Ð bulk
+// 39:  real surface 2 (-X) Ð real surface 2 (-X)
+// 40:  real surface 2 (-X) Ð bulk
+// 41:  real surface 2 (-X) Ð real surface 2 (+Z)
+// 42:  real surface 2 (+Z) Ð bulk
+// 43:  real surface 2 (+Z) Ð real surface 2 (+Z)
+	// edge0 = bulk
+	// edge1 = edge
+	// edge2 = 1 atom away on surface 1 (-X normal)
+	// edge3 = 2 atoms away on surface 1 (-X normal)
+	// edge4 = 1 atom away on surface 1 (+Z normal)
+	// edge5 = 2 atoms away on surface 1 (+Z normal)
+	// edge6 = quasi surface 2
+	// edge7 = real surface 2 (-X normal)
+	// edge8 = real surface 2 (+Z normal)
+	int edge1n[412]={1,1,2,3,3,4,0,0,5,6,2,7,6,2,7,1,1,2,3,3,4,0,0,5,6,2,7,6,2,7,8,9,9,10,11,12,8,3,8,3,13,13,11,11,11,12,11,12,14,15,14,15,8,9,9,10,11,12,8,3,8,3,13,13,11,11,11,12,11,12,14,15,14,15,16,5,16,5,17,18,19,16,20,16,20,18,18,18,21,18,21,18,19,18,19,17,22,17,22,23,24,24,25,12,26,27,27,1,1,25,25,28,28,29,29,12,12,26,26,26,26,23,24,24,25,12,26,27,27,1,1,25,25,28,28,29,29,12,12,26,26,26,26,30,31,31,4,31,32,33,33,33,25,25,31,31,34,34,30,30,32,32,33,33,15,15,33,33,35,36,36,37,19,2,38,32,35,27,35,27,13,13,37,37,19,19,38,38,19,2,19,2,38,32,38,32,38,32,38,32,35,36,36,37,19,2,38,32,35,27,35,27,13,13,37,37,19,19,38,38,19,2,19,2,38,32,38,32,38,32,38,32,35,36,36,37,19,2,38,32,35,27,35,27,13,13,37,37,19,19,38,38,19,2,19,2,38,32,38,32,38,32,38,32,39,23,39,39,40,18,11,40,41,39,35,39,35,18,18,40,40,18,7,18,7,40,34,40,34,18,11,18,11,40,41,40,41,40,41,40,41,39,23,39,39,40,18,11,40,41,39,35,39,35,18,18,40,40,18,7,18,7,40,34,40,34,18,11,18,11,40,41,40,41,40,41,40,41,42,43,43,10,43,41,26,42,33,42,33,42,33,37,37,43,43,41,41,42,42,41,26,41,26,42,33,42,33,22,6,22,6,42,33,42,33,42,43,43,10,43,41,26,42,33,42,33,42,33,37,37,43,43,41,41,42,42,41,26,41,26,42,33,42,33,22,6,22,6,42,33,42,33};  		
 	
 	/* work space arrays for storing interaction types */
 	iArrayT allbonds(412);
