@@ -1794,7 +1794,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 						fC(3,2) = e_matrix(1,2)
 							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(2,2))/fChi_scalar;
 						fC(3,3) = e_matrix(1,2)*(-2*scalar0*fdfds(1,2))/fChi_scalar;
-						//	+ scalar0/Je;
+							+ scalar0/Je;
 						fC(3,4) = e_matrix(1,2)*(-2*scalar0*fdfds(0,2))/fChi_scalar;
 						fC(3,5) = e_matrix(1,2)*(-2*scalar0*fdfds(0,1))/fChi_scalar;
 						
@@ -1806,7 +1806,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 							*(fMaterial_Params[kLambda]*trace_fdfds-2*scalar0*fdfds(2,2))/fChi_scalar;
 						fC(4,3) = e_matrix(0,2)*(-2*scalar0*fdfds(1,2))/fChi_scalar;
 						fC(4,4) = e_matrix(0,2)*(-2*scalar0*fdfds(0,2))/fChi_scalar;
-						//	+ scalar0/Je;
+							+ scalar0/Je;
 						fC(4,5) = e_matrix(0,2)*(-2*scalar0*fdfds(0,1))/fChi_scalar;
 						
 						fC(5,0) = e_matrix(0,1)
@@ -1818,7 +1818,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 						fC(5,3) = e_matrix(0,1)*(-2*scalar0*fdfds(1,2))/fChi_scalar;
 						fC(5,4) = e_matrix(0,1)*(-2*scalar0*fdfds(0,2))/fChi_scalar;
 						fC(5,5) = e_matrix(0,1)*(-2*scalar0*fdfds(0,1))/fChi_scalar;
-						//	+ scalar0/Je;
+							+ scalar0/Je;
 						
 						
 						
