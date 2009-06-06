@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D_edge.cpp,v 1.1 2009-06-03 03:17:02 hspark Exp $ */
+/* $Id: EAMFCC3D_edge.cpp,v 1.2 2009-06-06 17:28:31 hspark Exp $ */
 /* created: hspark (6/2/2009) */
 #include "EAMFCC3D_edge.h"
 
@@ -25,8 +25,6 @@ const int kEAMFCC3DNumAtomsPerCell	=  4;
 const int kEAMFCC3DNumAtomsPerArea  =  2;
 const double piby2 = 4.0 * atan(1.0) / 2.0;
 
-// WHAT ABOUT FACTOR OF 0.5 IN PAIR POTENTIAL TERMS IN EAM.CPP?
-
 /* constructor */
 EAMFCC3D_edge::EAMFCC3D_edge(int nshells, int normal):
 	FCCLatticeT_Surf(nshells, normal),
@@ -50,18 +48,32 @@ EAMFCC3D_edge::~EAMFCC3D_edge(void) {
 /* strain energy density */
 double EAMFCC3D_edge::EnergyDensity(const dSymMatrixT& strain)
 {
-	/* compute deformed lattice geometry */
-	ComputeDeformedLengths(strain);
+	/* compute deformed edge lattice geometry */
+	ComputeDeformedEdgeLengths(strain);
+
+	/* compute deformed lattice geometry for bulk atom */
+	ComputeDeformedEdgeBulkBonds(strain);
+
+	/* Compute deformed edge lattice geometry for edge/bulk unit cells */
+	ComputeDeformedEdgeLengths(strain);
+	ComputeDeformedEdge1Bonds(strain);
+	ComputeDeformedEdge2Bonds(strain);
+	ComputeDeformedEdge3Bonds(strain);
+	ComputeDeformedEdge4Bonds(strain);
+	ComputeDeformedEdge5Bonds(strain);
+	ComputeDeformedEdge6Bonds(strain);
+	ComputeDeformedEdge7Bonds(strain);
+	ComputeDeformedEdge8Bonds(strain);	
 
 	/* scale by atoms per cell/AREA per cell, split energy by one-half */
-	return (kEAMFCC3DNumAtomsPerArea/fCellArea)*fEAM->ComputeUnitSurfaceEnergy();
+	return fEAM->ComputeUnitEdgeEnergy();
 }
 
 /* return the material tangent moduli in Cij */
 void EAMFCC3D_edge::Moduli(dMatrixT& Cij, const dSymMatrixT& strain)
 {
-	/* compute deformed lattice geometry */
-	ComputeDeformedLengths(strain);
+	/* compute deformed edge lattice geometry */
+	ComputeDeformedEdgeLengths(strain);
 
 	/* unit moduli */
 	if (!fEAM)
@@ -70,47 +82,37 @@ void EAMFCC3D_edge::Moduli(dMatrixT& Cij, const dSymMatrixT& strain)
 		fEAM->ComputeUnitModuli(Cij);
 	
 	/* scale by atoms per cell/AREA per cell, split by one half for counting all bonds */
-	Cij	*= kEAMFCC3DNumAtomsPerArea/fCellArea;
+	/* Ignore for edge */
+//	Cij	*= kEAMFCC3DNumAtomsPerArea/fCellArea;
 }
 
-/* return the symmetric 2nd PK surface stress tensor */
+/* return the symmetric 2nd PK edge stress tensor */
 void EAMFCC3D_edge::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 {
-	/* compute deformed lattice geometry */
-	ComputeDeformedBulkBonds(strain);
+	/* compute deformed lattice geometry for bulk atom */
+	ComputeDeformedEdgeBulkBonds(strain);
 
-	/* Compute deformed lattice geometry for surface/bulk unit cells */
-	ComputeDeformedLengths(strain);
-	/* REPLACE WITH ComputeDeformedEdgeBonds */
-	ComputeDeformedSurf1Bonds(strain);
-	ComputeDeformedSurf2Bonds(strain);
+	/* Compute deformed edge lattice geometry for edge/bulk unit cells */
+	ComputeDeformedEdgeLengths(strain);
+	ComputeDeformedEdge1Bonds(strain);
+	ComputeDeformedEdge2Bonds(strain);
+	ComputeDeformedEdge3Bonds(strain);
+	ComputeDeformedEdge4Bonds(strain);
+	ComputeDeformedEdge5Bonds(strain);
+	ComputeDeformedEdge6Bonds(strain);
+	ComputeDeformedEdge7Bonds(strain);
+	ComputeDeformedEdge8Bonds(strain);	
 
 	/* unit stress */
 	if (!fEAM)
 		fEAM_particle->ComputeUnitStress(stress);	// IMPLEMENT THIS?
 	else
-		fEAM->ComputeUnitSurfaceStress(stress); // REPLACE with ComputeUnitEdgeStress
+		fEAM->ComputeUnitEdgeStress(stress); // REPLACE with ComputeUnitEdgeStress
 	
 	/* scale by atoms per cell/AREA per cell, split by one half for counting all bonds */
-	/* MAY NOT NEED TO SPLIT BONDS BY ONE HALF */
-	stress *= kEAMFCC3DNumAtomsPerArea/fCellArea;
+	/* Ignore for edge CB */
+//	stress *= kEAMFCC3DNumAtomsPerArea/fCellArea;
 }
-
-/* compute electron density at ghost atom */
-//void EAMFCC3D_edge::ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce)
-//{
-	/* compute deformed lattice geometry */
-//	ComputeDeformedLengths(strain);
-	
-	/* get electron density */
-//	if (!fEAM)
-//	{
-//		edensity = fEAM_particle->TotalElectronDensity();
-//		embforce = fEAM_particle->ReturnEmbeddingForce(edensity);
-//	}
-//	else
-//		edensity = fEAM->TotalElectronDensity();	
-//}
 
 /* density computed from the potential parameters */
 double EAMFCC3D_edge::Density(void) const {

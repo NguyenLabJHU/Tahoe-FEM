@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT_edge.cpp,v 1.3 2009-06-04 22:45:31 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_edge.cpp,v 1.4 2009-06-06 17:28:31 hspark Exp $ */
 /* created: hspark (6/2/2009) */
 #include "EAMFCC3DMatT_edge.h"
 
@@ -76,6 +76,13 @@ void EAMFCC3DMatT_edge::TakeParameterList(const ParameterListT& list)
 	
 	/* reset density from the atomistic parameters */
 	fDensity = fEAM->Density();
+	
+	/* Test Edge EAM Implementation - call EAM.cpp functions */
+	dSymMatrixT strain(3), PK2(3);
+	strain = 0.0;	// calculate energy density for 0 strain configuration
+//	double value = ComputeEnergyDensity(strain);
+	ComputePK2(strain,PK2);
+	cout << "Edge PK2 = " << PK2 << endl;
 }
 
 /*************************************************************************

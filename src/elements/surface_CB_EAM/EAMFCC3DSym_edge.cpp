@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym_edge.cpp,v 1.6 2009-06-05 17:01:49 hspark Exp $ */
+/* $Id: EAMFCC3DSym_edge.cpp,v 1.7 2009-06-06 17:28:31 hspark Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym_edge.h"
 
@@ -1013,7 +1013,7 @@ void EAMFCC3DSym_edge::LoadBondTable(void)
 	else if (fNormalCode == 1) // this table is the default orientation, i.e. [-1,0,0]
 	{
 //		fAllEdgeBonds = tedge2;
-		fBonds = tedge2;
+		fBonds = tempedge;
 		fAllBulkBonds = temp_bulk;
  		fEdgeBonds1 = temp_edge1;
 		fEdgeBonds2 = temp_edge2;
