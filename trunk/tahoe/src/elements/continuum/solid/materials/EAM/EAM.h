@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.10 2007-11-15 15:26:55 hspark Exp $ */
+/* $Id: EAM.h,v 1.11 2009-06-06 20:20:41 hspark Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAM_H_
 #define _EAM_H_
@@ -45,6 +45,12 @@ public:
 	 *     unit strain energy = energy/atom
 	 */
 	double ComputeUnitSurfaceEnergy(void);
+
+	/* compute unit edge strain energy density:
+	 *
+	 *     unit strain energy = energy/atom
+	 */
+	double ComputeUnitEdgeEnergy(void);
 	
 	/* compute unit 2nd PK stress:
 	 *
@@ -57,6 +63,12 @@ public:
 	 *     unit 2nd PK surface stress = SIJ*(area per cell/atoms per cell)
 	 */
 	void ComputeUnitSurfaceStress(dSymMatrixT& stress);
+
+	/* compute unit 2nd PK edge stress:
+	 *
+	 *     unit 2nd PK edge stress = SIJ*(area per cell/atoms per cell)
+	 */
+	void ComputeUnitEdgeStress(dSymMatrixT& stress);
 	   	    	
 	/* compute unit material tangent moduli:
 	 *
@@ -82,6 +94,9 @@ public:
 	
 	/** calculate representative electron densities for bulk, surface1 and surface2 atoms */
 	void ComputeElectronDensity(void);
+	
+	/** calculate representative electron densities for edge atoms */
+	void ComputeEdgeElectronDensity(void);
 	
 private:
 
@@ -123,13 +138,16 @@ private:
 	dMatrixT fAmn; /* mixed derivative matrix */
 
 	dArrayT fBondTensor2;
-	dArrayT fBondTensor2b;
+	dArrayT fBondTensor2b, fBondTensor2c;
 
 	/* 2nk rank bond component tensor */
 	dArray2DT fTensor2Table;	
 
-	/* interactiont table for surface clusters */
+	/* interaction table for surface clusters */
 	dArray2DT fIntType;
+
+	/* interaction table for edge clusters */
+	dArray2DT fIntType2;
 
 	/* for batch evaluation of bond data */
 	dArrayT	fBond1;
@@ -141,7 +159,11 @@ private:
 	dArrayT fBond7;
 	dArrayT fBond8;
 	dArrayT fBond9;
-	dArrayT fRepRho;
+	dArrayT fRepRho;	// electron densities for surface CB
+	dArrayT fEdgeRho;	// electron densities for edge CB
+	dArrayT fBond10, fBond11, fBond12, fBond13, fBond14, fBond15, fBond16, fBond17;
+	dArrayT	fBond18, fBond19, fBond20, fBond21, fBond22, fBond23, fBond24, fBond25;
+	dArrayT fBond26, fBond27;
 };
 
 } // namespace Tahoe 
