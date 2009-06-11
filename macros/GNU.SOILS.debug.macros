@@ -1,7 +1,7 @@
-# $Id: GNU.SOILS.debug.macros,v 1.4 2007-10-16 15:23:30 regueiro Exp $
+# $Id: GNU.SOILS.debug.macros,v 1.5 2009-06-11 18:51:52 regueiro Exp $
 # GNU
 #
-COMP_DIR    = /usr/local/gcc
+COMP_DIR    = /usr
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
 COMP_C      = $(COMP_DIR)/bin/gcc
