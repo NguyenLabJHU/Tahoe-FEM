@@ -617,9 +617,9 @@ void FSMicromorphic2DT::RegisterOutput(void)
     /* over integration points */
     // enter what values you need at integration points
     // stress and strain
-    const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","e11","e22","e33","e23","e13","e12"};
+    const char* slabels2D[] = {"s11", "s22","s12","e11","e22","e12"};
     // state variables; ?
-    const char* svlabels3D[] = {"thing1","thing2","J"};
+    const char* svlabels2D[] = {"thing1","thing2","J"};
     int count = 0;
     for (int j = 0; j < fNumIP_displ; j++)
     {
@@ -1115,9 +1115,9 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			/* [fShapeDisplGrad] will be formed */
 			Form_Gradient_of_solid_shape_functions(fShapeDisplGrad_temp);
 			
-			/* [fShapeDisplGrad_t] and [fShapeDisplGrad_t_Transpose] will be formed */
-			Form_Gradient_t_of_solid_shape_functions(fShapeDisplGrad_temp);
-			fShapeDisplGrad_t_Transpose.Transpose(fShapeDisplGrad_t);
+	//		/* [fShapeDisplGrad_t] and [fShapeDisplGrad_t_Transpose] will be formed */
+	//		Form_Gradient_t_of_solid_shape_functions(fShapeDisplGrad_temp);
+	//		fShapeDisplGrad_t_Transpose.Transpose(fShapeDisplGrad_t);
 		
 			const double* shapes_micro_X = fShapes_micro->IPShapeX();
 			/* {fShapeMicro} will be formed */
@@ -1225,20 +1225,20 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			fIota_temp_matrix.MultATB(fShapeDisplGrad,fDefGradInv_Grad_grad);
 			
 			/* second derivatives of solid shape functions, [fShapeDisplGradGrad] will be formed */
-			fShapes_displ->Grad_GradNa(fShapeDisplGradGrad);
+		//	fShapes_displ->Grad_GradNa(fShapeDisplGradGrad);
 			
 			
 			
 			//need?
 			/* [fVarpi_temp_matrix] will be formed */
-			Form_Varpi_temp_matrix();
+		//	Form_Varpi_temp_matrix();
 			
 			/* {fChi_temp_vector} will be formed */
-			fVarpi_temp_matrix.Multx(u_vec,fChi_temp_vector);
+		//	fVarpi_temp_matrix.Multx(u_vec,fChi_temp_vector);
 			
 			/* [fChi_temp_column_matrix] will be formed */
-			for (int i=0; i<3 ; i++)
-			    fChi_temp_column_matrix(i,0)= fChi_temp_vector[i];
+		//	for (int i=0; i<3 ; i++)
+		//	    fChi_temp_column_matrix(i,0)= fChi_temp_vector[i];
 			
 			
 			
@@ -1314,7 +1314,7 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			
 			//need?
 			/* {fGrad_1_J_vector} will be filled */
-			fVarpi_temp_matrix.Multx(u_vec,fGrad_1_J_vector, -1.0/J);
+		//	fVarpi_temp_matrix.Multx(u_vec,fGrad_1_J_vector, -1.0/J);
 			
 			
 			/* Creating Second tangential elasticity tensor in the Ref. coordinate [fC_matrix] */
@@ -1512,7 +1512,7 @@ void FSMicromorphic2DT::DefineParameters(ParameterListT& list) const
   
     
 
-    double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2, gravity_g3;
+    double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2 /*, gravity_g3;*/
 
     // solid elasticity
     list.AddParameter(shearMu, "mu");
@@ -1604,7 +1604,7 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kg] = list.GetParameter("g");
     fMaterial_Params[kg1] = list.GetParameter("g1");
     fMaterial_Params[kg2] = list.GetParameter("g2");
-    fMaterial_Params[kg3] = list.GetParameter("g3");
+//    fMaterial_Params[kg3] = list.GetParameter("g3");
     fMaterial_Params[kRho_0] = list.GetParameter("rho_0");
 	
 //    fIntegration_Params[kBeta] = list.GetParameter("beta");
@@ -1814,7 +1814,7 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     fKirchhoff_tensor.Dimension (n_sd,n_sd);
     fKirchhoff_vector.Dimension (n_sd_x_n_sd);
     fIota_temp_matrix.Dimension (n_en_displ_x_n_sd,n_sd_x_n_sd);
-    fVarpi_temp_matrix.Dimension (n_sd, n_en_displ_x_n_sd);
+   // fVarpi_temp_matrix.Dimension (n_sd, n_en_displ_x_n_sd);
     
     fChi_temp_vector.Dimension (n_sd);
     fTemp_vector_9x1.Dimension (n_sd_x_n_sd);
@@ -1836,15 +1836,15 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     fShapeMicro_row_matrix.Dimension (1,n_en_micro); 
     fTemp_nsd_vector.Dimension (n_sd);
     fGrad_1_J_vector.Dimension (n_sd);
-    fChi_temp_column_matrix.Dimension (n_sd, 1);
+  //  fChi_temp_column_matrix.Dimension (n_sd, 1);
     fTemp_matrix_nsd_x_1.Dimension (n_sd,1); 
     fTemp_matrix_ndof_se_x_ndof_se.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fTemp_matrix_ndof_se_x_nen_micro.Dimension (n_en_displ_x_n_sd,n_en_micro);
-    fc_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
-    fC_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+ //   fc_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+ //   fC_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fIm_Prim_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
-    fB_matrix.Dimension (3 ,n_en_displ_x_n_sd);
-    fD_matrix.Dimension (3,3);
+  //  fB_matrix.Dimension (3 ,n_en_displ_x_n_sd);
+  //  fD_matrix.Dimension (3,3);
 
     fK_dd_BTDB_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fFd_int_smallstrain_vector.Dimension (n_en_displ_x_n_sd);
@@ -2295,7 +2295,7 @@ void FSMicromorphic2DT::Form_solid_shape_functions(const double* &shapes_displ_X
     fShapeDispl = 0.0;
   if(n_sd==2)
 {
-for (int i=0; i<8; i++)
+for (int i=0; i<9; i++)
     {
 		fShapeDispl(0,i*2) = shapes_displ_X[i];
 		fShapeDispl(1,1+i*2) = shapes_displ_X[i];
@@ -2319,7 +2319,7 @@ void FSMicromorphic2DT::Form_Gradient_of_solid_shape_functions(const dMatrixT &f
 
 if (n_sd==2)
 {
-    for(int i=0; i<8; i++)
+    for(int i=0; i<9; i++)
     {
 		fShapeDisplGrad(0,i*2) = fShapeDisplGrad_temp(0,i);
 		fShapeDisplGrad(1,1+i*2) = fShapeDisplGrad_temp(0,i);
@@ -2360,6 +2360,16 @@ void FSMicromorphic2DT::Form_micro_shape_functions(const double* &shapes_micro_X
 void FSMicromorphic2DT::Form_deformation_gradient_tensor(void)
 {
     fShapeDisplGrad.Multx(u_vec,fGrad_disp_vector);
+   if(n_sd==2)
+   {
+    fDeformation_Gradient(0,0) = fGrad_disp_vector[0]+1.0;
+    fDeformation_Gradient(0,1) = fGrad_disp_vector[2]; 
+    fDeformation_Gradient(1,0) = fGrad_disp_vector[1]; 
+    fDeformation_Gradient(1,1) = fGrad_disp_vector[3]+1.0;  
+   
+    }
+   else
+   {
     fDeformation_Gradient(0,0) = fGrad_disp_vector[0]+1.0;
     fDeformation_Gradient(0,1) = fGrad_disp_vector[3]; 
     fDeformation_Gradient(0,2) = fGrad_disp_vector[6];
@@ -2369,6 +2379,7 @@ void FSMicromorphic2DT::Form_deformation_gradient_tensor(void)
     fDeformation_Gradient(2,0) = fGrad_disp_vector[2];
     fDeformation_Gradient(2,1) = fGrad_disp_vector[5];
     fDeformation_Gradient(2,2) = fGrad_disp_vector[8]+1.0; 
+    }
 }
 void FSMicromorphic2DT::Form_Grad_grad_transformation_matrix(void)
 {
@@ -2546,25 +2557,15 @@ void FSMicromorphic2DT::Form_Varpi_temp_matrix()
 	}
     }  
 }
-
+// not needed
 void FSMicromorphic2DT::Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp)
 {                                                               
     fShapeDisplGrad_t = 0.0;
    if(n_sd==2)
 	{
-	for (int i=0; i<8; i++)
+	for (int i=0; i<9; i++)
     		{
-		fShapeDisplGrad_t(0,i*3) = fShapeDisplGrad_temp(0,i);
-		fShapeDisplGrad_t(1,i*3) = fShapeDisplGrad_temp(1,i);
-		fShapeDisplGrad_t(2,i*3) = fShapeDisplGrad_temp(2,i);
-
-		fShapeDisplGrad_t(3,1+i*3) = fShapeDisplGrad_temp(0,i);
-		fShapeDisplGrad_t(4,1+i*3) = fShapeDisplGrad_temp(1,i);
-		fShapeDisplGrad_t(5,1+i*3) = fShapeDisplGrad_temp(2,i);
-	
-		fShapeDisplGrad_t(6,2+i*3) = fShapeDisplGrad_temp(0,i);
-		fShapeDisplGrad_t(7,2+i*3) = fShapeDisplGrad_temp(1,i);
-		fShapeDisplGrad_t(8,2+i*3) = fShapeDisplGrad_temp(2,i);
+                 //????
 		}
 	}
 
