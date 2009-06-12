@@ -1063,7 +1063,7 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			Put_values_In_dArrayT_vector(fCauchy_stress_Elements_IPs, e,l,fTemp_six_values);
 			out_variable.CopyIn(0,fTemp_six_values);
 			Put_values_In_dArrayT_vector(fEulerian_strain_Elements_IPs, e,l,fTemp_six_values);
-			out_variable.CopyIn(6,fTemp_six_values);
+			out_variable.CopyIn(3,fTemp_six_values);
 			/*
 			out_variable[13]=fState_variables_Elements_IPs(e,l*3+0);
 			out_variable[14]=fState_variables_Elements_IPs(e,l*3+1);
@@ -1330,7 +1330,7 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			Form_c_matrix();
 		
 			/* [fIm_Prim_temp_matrix] will be formed */
-			Form_Im_Prim_temp_matrix();
+		//	Form_Im_Prim_temp_matrix();
 			
 			/* {fFd_int_G4_vector} will be formed */
 			fShapeDispl.MultTx(fGravity_vector,fTemp_vector_ndof_se);
@@ -1633,8 +1633,8 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     /* pick element interpolations based on available number of element nodes
      * and the specified number of integration points */
     // only implemented for 3D, quadratic hexs
-    //if (n_sd == 2 && n_en_micro != n_en_displ && fGeometryCode_displ == GeometryT::kQuadrilateral) 
-    if (n_sd == 3 && n_en_micro != n_en_displ && fGeometryCode_displ == GeometryT::kHexahedron) 
+    if (n_sd == 2 && n_en_micro != n_en_displ && fGeometryCode_displ == GeometryT::kQuadrilateral) 
+    //if (n_sd == 3 && n_en_micro != n_en_displ && fGeometryCode_displ == GeometryT::kHexahedron) 
     {
 		// don't expect reduced integration for both fields 
 		// if (n_ip_displ == 4 && n_ip_micro == 4)
@@ -1642,9 +1642,9 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
 		//else if (n_ip_displ == 4 || n_ip_micro == 4) // create reduced connectivities
 		//{ 
 		// reduce the number of element nodes based on the number ip's
-		int& nen_red = (n_ip_displ == 8) ? n_en_displ : n_en_micro;
-		nen_red = 8;
-		ArrayT<const iArray2DT*>& connects_red = (n_ip_displ == 8) ? 
+		int& nen_red = (n_ip_displ == 4) ? n_en_displ : n_en_micro;
+		nen_red = 4;
+		ArrayT<const iArray2DT*>& connects_red = (n_ip_displ == 4) ? 
 		    fConnectivities_displ : 
 		    fConnectivities_micro;
 			
