@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.27 2009-06-04 20:14:01 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.28 2009-06-12 22:07:12 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -403,7 +403,7 @@ private:
 	dMatrixT	fIdentity_matrix;
 	
 	//for plasticity
-	dMatrixT	fFp_n,fFp,fdGdS_n,fdGdS,fdFdS;
+	dMatrixT	fFp_n,fFp,fdGdS_n,fdGdS,fdFdS,fdfds;
 	dMatrixT 	fFp_n_Inverse,fFp_Inverse;
 	dMatrixT 	fFe_tr,fFe;
 	dMatrixT 	fFe_tr_Transpose, fFe_Transpose, fFe_Transpose_Inverse, fFe_Inverse;
@@ -411,6 +411,7 @@ private:
 	dMatrixT	fElastic_Left_Cauchy_Green_tensor;
 	dMatrixT	fTrial_Elastic_Right_Cauchy_Green_tensor_Inverse,fElastic_Right_Cauchy_Green_tensor_Inverse;
 	dMatrixT	dDevSdDelgamma, dSdDelgamma, dFedDelgamma, dCedDelgamma;
+	dMatrixT	fa_tensor, fb_tensor;
 	
 	//for localization analysis
 	AutoArrayT <dArrayT> normals;
@@ -447,6 +448,8 @@ private:
 	dMatrixT	fK_dd_G3_3_matrix;
 	dMatrixT	fK_dd_G3_4_matrix;
 	dMatrixT	fK_dd_G3_5_matrix;
+	dMatrixT	fK_dd_G3_6_matrix;
+	dMatrixT	fK_dd_G3_7_matrix;
 	dMatrixT	fK_dd_G1_1_matrix;
 	dMatrixT	fK_dd_G1_2_matrix;
 	dMatrixT	fK_dd_G4_matrix;
@@ -454,6 +457,7 @@ private:
 	dMatrixT	fK_dtheta_G1_matrix;
 	dMatrixT	fK_dtheta_G4_matrix;
 	dMatrixT	fI_ij_column_matrix;
+	dMatrixT	fa_ij_column_matrix;
 	dMatrixT	fShapeFluid_row_matrix;
 	dMatrixT	fJmath_temp_matrix;
 	dMatrixT	fWp_temp_matrix;
@@ -485,7 +489,7 @@ private:
 	dMatrixT	fK_thetatheta_H2_3_matrix;
 	dMatrixT	fK_thetatheta_H4_matrix;
 	dMatrixT	fChi_temp_column_matrix;
-	dMatrixT	fc_matrix;
+	dMatrixT	fc_matrix, fa_f_matrix;
 	dMatrixT	fC_matrix;
 	dMatrixT	fIm_Prim_temp_matrix;
 	dMatrixT	fM_dd_matrix;
@@ -541,6 +545,7 @@ private:
 	double fTemp_scalar, dMeanStressdDelgamma;
 	double dFphicapdDelgamma, dXphikappadDelgamma, dkappadDelgamma, dAphidDelgamma;
 	double Je, Je_tr, Jp;
+	double fa_matrix_factor, fa_f_matrix_factor, fChi_bar;
 	
 	/* for local Newton-Raphson iteration */
 	int iIterationMax;
@@ -646,6 +651,7 @@ private:
 	void Form_Wp_prim_temp_matrix(void);
 	void Form_C_matrix(const double& J_Prim);
 	void Form_c_matrix(void);
+	void Form_a_f_matrix(void);
 	void Form_Im_Prim_temp_matrix(void);
 	void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
 	void Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
