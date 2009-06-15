@@ -1830,46 +1830,46 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 						fc_IPs.SetRow(IP,fC);
 						
 						/* calculate fa_tensor and matrix factors for consistent tangent */
-						fb_tensor.MultABCT(fFp_n,fFp_Inverse,fFe);
-						fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fdGdS_n,fb_tensor);
-						fb_tensor.Symmetrize(fTemp_matrix_nsd_x_nsd);
+						fTemp_matrix_nsd_x_nsd.MultABCT(fFp_n,fFp_Inverse,fFe_Transpose);
+						fb_tensor.MultABCT(fFe,fdGdS_n,fTemp_matrix_nsd_x_nsd);
+						fb_tensor_transpose.Transpose(fb_tensor);
 						
+						dMatrixT fTemp_matrix(n_sd,n_sd);
 						fTemp_matrix_nsd_x_nsd.MultAB(fFp_n,fFp_Inverse);
 						double fdGdSn_FpnFpinv = dMatrixT::Dot(fdGdS_n,fTemp_matrix_nsd_x_nsd);
-						fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kLambda]*log(Je)-fMaterial_Params[kMu],fIdentity_matrix);
-						fa_tensor.SetToScaled(fMaterial_Params[kMu],fElastic_Left_Cauchy_Green_tensor);
-						fa_tensor += fTemp_matrix_nsd_x_nsd;
-						fTemp_matrix_nsd_x_nsd.SetToScaled(Jp*fdGdSn_FpnFpinv,fa_tensor);
-						fa_tensor.SetToScaled(-Jp*fMaterial_Params[kLambda]*fdGdSn_FpnFpinv,fIdentity_matrix);
-						fa_tensor += fTemp_matrix_nsd_x_nsd;
-						fTemp_matrix_nsd_x_nsd.SetToScaled(-2*Jp*fMaterial_Params[kMu],fb_tensor);
+						fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kLambda]*(log(Je)-1)-fMaterial_Params[kMu],fIdentity_matrix);
+						fTemp_matrix.SetToScaled(fMaterial_Params[kMu],fElastic_Left_Cauchy_Green_tensor);
+						fTemp_matrix += fTemp_matrix_nsd_x_nsd;
+						fa_tensor.SetToScaled(Jp*fdGdSn_FpnFpinv,fTemp_matrix);
+						//fa_tensor.SetToScaled(-Jp*fMaterial_Params[kLambda]*fdGdSn_FpnFpinv,fIdentity_matrix);
+						fTemp_matrix = fb_tensor;
+						fTemp_matrix += fb_tensor_transpose;
+						fTemp_matrix_nsd_x_nsd.SetToScaled(-Jp*fMaterial_Params[kMu],fTemp_matrix);
 						fa_tensor += fTemp_matrix_nsd_x_nsd;
 						//test by setting to zero
 						//fa_tensor = 0.0;
 						
 						double fdFdS_Ceinv = dMatrixT::Dot(fdFdS,fElastic_Right_Cauchy_Green_tensor_Inverse);
+						//double fdFdS_Ceinv = dMatrixT::Dot(fdFdS,fIdentity_matrix);
 						
-						dMatrixT fA_matrix(n_sd,n_sd), fTemp_matrix(n_sd,n_sd);
-						fA_matrix.SetToScaled(fMaterial_Params[kLambda]*fdFdS_Ceinv,fFe_Transpose_Inverse);
-						//fTemp_matrix_nsd_x_nsd.MultABC(fElastic_Right_Cauchy_Green_tensor_Inverse,fdFdS,fFe_Inverse);
-						//fTemp_matrix.Transpose(fTemp_matrix_nsd_x_nsd);
-						fTemp_matrix_nsd_x_nsd.MultABC(fFe_Transpose_Inverse,fdFdS,fElastic_Right_Cauchy_Green_tensor_Inverse);
-						fTemp_matrix.SetToScaled(-2*(fMaterial_Params[kLambda]*log(Je)-fMaterial_Params[kMu]),fTemp_matrix_nsd_x_nsd);
-						fA_matrix += fTemp_matrix_nsd_x_nsd;
-						fTemp_matrix_nsd_x_nsd.MultABC(fdGdS_n,fFp_n,fFp_Inverse);
-						fTemp_matrix.MultAB(fFe,fTemp_matrix_nsd_x_nsd);
-						fChi_bar = dMatrixT::Dot(fA_matrix,fTemp_matrix);
-						double temp_hard = - dFdkappa*fState_variables_n_IPs(IP,khkappa)*fMaterial_Params[kHk] 
-							- dFdc*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
-						fChi_bar += temp_hard;	
+						fTemp_matrix_nsd_x_nsd.MultAB(fdFdS,fElastic_Right_Cauchy_Green_tensor_Inverse);
+						//fTemp_matrix_nsd_x_nsd.MultAB(fdFdS,fIdentity_matrix);
+						fTemp_matrix.MultABC(fdGdS_n,fFp_n,fFp_Inverse);
+						double fomega_bar = dMatrixT::Dot(fTemp_matrix_nsd_x_nsd,fTemp_matrix);
 						
-						fa_matrix_factor = fMaterial_Params[kLambda]*fdFdS_Ceinv/fChi_bar;
-						fa_f_matrix_factor = -2*(fMaterial_Params[kLambda]*log(Je)-fMaterial_Params[kMu])/fChi_bar;
+						fChi_bar = -fMaterial_Params[kLambda]*fdFdS_Ceinv*fdGdSn_FpnFpinv 
+							+ 2*(fMaterial_Params[kLambda]*log(Je)-fMaterial_Params[kMu])*fomega_bar 
+							+ dFdkappa*fState_variables_n_IPs(IP,khkappa)*fMaterial_Params[kHk] 
+							+ dFdc*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+						
+						fa_matrix_factor = -fMaterial_Params[kLambda]*fdFdS_Ceinv/fChi_bar;
+						fa_f_matrix_factor = 2*(fMaterial_Params[kLambda]*log(Je)-fMaterial_Params[kMu])/fChi_bar;
 					}
 					else //elastic
 					{
 						fEffective_Second_Piola_tensor = fTrial_Effective_Second_Piola_tensor;
 						fFe = fFe_tr;
+						fElastic_Left_Cauchy_Green_tensor.MultABT(fFe, fFe);
 						Jp = fState_variables_n_IPs(IP,kJp);
 						fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fEffective_Second_Piola_tensor,fFe);
 						fEffective_Kirchhoff_tensor.SetToScaled(Jp,fTemp_matrix_nsd_x_nsd);
@@ -1877,7 +1877,6 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 						fDev_Effective_Second_Piola_tensor = fTrial_Dev_Effective_Second_Piola_tensor;
 						devstress_inprod = devstress_inprod_tr;
 						fDelgamma = 0.0;
-						fElastic_Left_Cauchy_Green_tensor.MultABT(fFe, fFe);
 						fa_tensor = 0.0;
 					}
 					
@@ -3283,6 +3282,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     /* for plasticity */
     fa_tensor.Dimension (n_sd,n_sd);
     fb_tensor.Dimension (n_sd,n_sd);
+    fb_tensor_transpose.Dimension (n_sd,n_sd);
     fElastic_Left_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fElastic_Right_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fElastic_Right_Cauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
