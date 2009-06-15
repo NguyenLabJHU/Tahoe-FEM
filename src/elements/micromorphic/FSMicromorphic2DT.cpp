@@ -630,7 +630,7 @@ void FSMicromorphic2DT::RegisterOutput(void)
 		for (int i = 0; i < knumstrain+knumstress; i++)
 		{
 		    e_labels[count].Clear();
-		    e_labels[count].Append(ip_label, ".", slabels3D[i]);
+		    e_labels[count].Append(ip_label, ".", slabels2D[i]);
 		    count++;
 		}
 			
@@ -638,7 +638,7 @@ void FSMicromorphic2DT::RegisterOutput(void)
 		for (int i = 0; i < knum_d_state; i++)
 		{
 		    e_labels[count].Clear();
-		    e_labels[count].Append(ip_label, ".", svlabels3D[i]);
+		    e_labels[count].Append(ip_label, ".", svlabels2D[i]);
 		    count++;
 		}
     }		
@@ -660,11 +660,11 @@ void FSMicromorphic2DT::RegisterOutput(void)
 
     /* labels from strains and stresses at the nodes */
     for (int i = 0; i < knumstrain+knumstress; i++)
-	n_labels[count++] = slabels3D[i];
+	n_labels[count++] = slabels2D[i];
 		
     /* labels from state variables at the nodes */
     for (int i = 0; i < knum_d_state; i++)
-	n_labels[count++] = svlabels3D[i];
+	n_labels[count++] = svlabels2D[i];
 
     /* set output specifier */
 #pragma message("FSMicromorphic2DT::RegisterOutput: is this right? ")
@@ -1512,7 +1512,8 @@ void FSMicromorphic2DT::DefineParameters(ParameterListT& list) const
   
     
 
-    double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2 /*, gravity_g3;*/
+    double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2;
+   //, gravity_g3;
 
     // solid elasticity
     list.AddParameter(shearMu, "mu");
@@ -1524,7 +1525,7 @@ void FSMicromorphic2DT::DefineParameters(ParameterListT& list) const
     // gravity in each direction (depends on the coordinate system which we have chosen for the problem)
     list.AddParameter(gravity_g1, "g1");
     list.AddParameter(gravity_g2, "g2");
-    list.AddParameter(gravity_g3, "g3");
+ // list.AddParameter(gravity_g3, "g3");
 	
     // reference mass density
     list.AddParameter(Rho_0, "rho_0");
@@ -2343,7 +2344,7 @@ else
 		fShapeDisplGrad(5,2+i*3) = fShapeDisplGrad_temp(1,i);
 
 		fShapeDisplGrad(6,i*3) = fShapeDisplGrad_temp(2,i);
-		fShapeDisplGrad(7,1+i*3) = fSh apeDisplGrad_temp(2,i);
+		fShapeDisplGrad(7,1+i*3) = fShapeDisplGrad_temp(2,i);
 		fShapeDisplGrad(8,2+i*3) = fShapeDisplGrad_temp(2,i);
     }
 }
