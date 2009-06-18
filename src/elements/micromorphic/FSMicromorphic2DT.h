@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2DT.h,v 1.1 2009-05-11 14:31:48 regueiro Exp $ */ 
+/* $Id: FSMicromorphic2DT.h,v 1.2 2009-06-18 17:38:19 isbuga Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_2D_T_H_ 
 #define _FS_MICROMORPHIC_2D_T_H_ 
@@ -51,7 +51,7 @@ public:
 	    kg,
 	    kg1,
 	    kg2,
-	    kg3,
+//	    kg3,
 	    //add to this list
 	    kNUM_FMATERIAL_TERMS	};
 									
