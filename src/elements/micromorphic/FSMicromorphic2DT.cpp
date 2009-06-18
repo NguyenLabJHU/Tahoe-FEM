@@ -1586,9 +1586,9 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     n_en_displ = list.GetParameter("n_en_displ");
     n_en_micro = list.GetParameter("n_en_micro");
     ndof_per_nd_micro = list.GetParameter("ndof_per_nd_micro");
-    
-    kAnalysisType = list.GetParameter("type_of_analysis_1consolidation_2dynamic");
-    kInitialConditionType = list.GetParameter("initial_condition_1geostatic_2displ_vel_press");
+ // These are commented out in 3D version so i did too.   
+ //   kAnalysisType = list.GetParameter("type_of_analysis_1consolidation_2dynamic");
+ //   kInitialConditionType = list.GetParameter("initial_condition_1geostatic_2displ_vel_press");
   
     fGeometryCode_micro = fGeometryCode_displ; 
     fNumIP_micro = fNumIP_displ;
