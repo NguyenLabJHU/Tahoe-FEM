@@ -495,7 +495,8 @@ void FSMicromorphic2DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
 		    fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
 		    //fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
 		    fCurrCoords_displ=fInitCoords_displ;
-		    fShapes_displ->SetDerivatives_DN_DDN(); 
+		    //fShapes_displ->SetDerivatives_DN_DDN(); //currently only works for tri-quadratic hex
+		    fShapes_displ->SetDerivatives(); 
 
 		    //
 		    fInitCoords_micro.SetLocal(fElementCards_micro[e].NodesX());
@@ -1042,8 +1043,9 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 	fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
 	fCurrCoords_displ=fInitCoords_displ;
 	//fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
-	fShapes_displ->SetDerivatives_DN_DDN(); 
-	//
+	//fShapes_displ->SetDerivatives_DN_DDN(); //currently only works for tri-quadratic hex
+	fShapes_displ->SetDerivatives(); 
+	
 	fInitCoords_micro.SetLocal(fElementCards_micro[e].NodesX());
 	fCurrCoords_micro=fInitCoords_micro;
 	//fCurrCoords_micro.SetToCombination (1.0, fInitCoords_micro, 1.0, u); 
@@ -1318,7 +1320,7 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			
 			
 			/* Creating Second tangential elasticity tensor in the Ref. coordinate [fC_matrix] */
-			Form_C_matrix(J_Prim);
+			//Form_C_matrix(J_Prim);
  
 			/* extract six values of stress from symmetric cauchy stress tensor */
 			Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
@@ -1327,7 +1329,7 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			fCauchy_stress_IPs.SetRow(IP,fTemp_six_values); 
 		
 			/* Creating Second tangential elasticity tensor in the Current coordinate [fc_matrix]*/
-			Form_c_matrix();
+			//Form_c_matrix();
 		
 			/* [fIm_Prim_temp_matrix] will be formed */
 		//	Form_Im_Prim_temp_matrix();
@@ -1345,14 +1347,14 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			Form_gradv_vector();
 			
 			/* [fXi_temp_matrix] will be formed */
-			Form_Xi_temp_matrix();
+			//Form_Xi_temp_matrix();
 			
 			/* [fVarsigma_temp_matrix] will be formed */
-			Form_Varsigma_temp_matrix();
+			//Form_Varsigma_temp_matrix();
 			
 			
 			/* [fI_ijkl_matrix] will be formed */
-			Form_I_ijkl_matrix();
+			//Form_I_ijkl_matrix();
 			
 			
 			/* [fK_dd_G4_matrix] will be formed */
@@ -1369,17 +1371,17 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			/* implementing small strain deformation of an isotropic linear elastic media for debugging */
 			
 			/* [fD_matrix] will be formed */
-			Form_D_matrix();
+			//Form_D_matrix();
 		
 			/* [fB_matrix] will be formed */
-			Form_B_matrix();
+			//Form_B_matrix();
 			
 			/* [fK_dd_BTDB_matrix] will be formed */
-			fTemp_matrix_ndof_se_x_ndof_se.MultATBC(fB_matrix,fD_matrix,fB_matrix);
+			/*fTemp_matrix_ndof_se_x_ndof_se.MultATBC(fB_matrix,fD_matrix,fB_matrix);
 			scale = scale_const;
-			fTemp_matrix_ndof_se_x_ndof_se *= scale;
+			fTemp_matrix_ndof_se_x_ndof_se *= scale;*/
 			/* accumulate */
-			fK_dd_BTDB_matrix += fTemp_matrix_ndof_se_x_ndof_se;
+			//fK_dd_BTDB_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 			
 			/* end of small strain  */
 			/*************************************************/
@@ -1481,7 +1483,8 @@ void FSMicromorphic2DT::SetGlobalShape(void)
     SetLocalX(fLocInitCoords);
 	
     /* compute shape function derivatives */
-    fShapes_displ->SetDerivatives_DN_DDN();
+    //fShapes_displ->SetDerivatives_DN_DDN(); //currently only works for tri-quadratic hex
+    fShapes_displ->SetDerivatives();
     fShapes_micro->SetDerivatives();
 }
 
@@ -1509,9 +1512,9 @@ void FSMicromorphic2DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(ndof_per_nd_micro, "ndof_per_nd_micro");
 	
     list.AddParameter(iConstitutiveModelType, "constitutive_mod_type");
-  
     
-
+    list.AddParameter(kAnalysisType, "type_of_analysis_1static_2dynamic");
+  
     double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2;
    //, gravity_g3;
 
@@ -1587,7 +1590,7 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     n_en_micro = list.GetParameter("n_en_micro");
     ndof_per_nd_micro = list.GetParameter("ndof_per_nd_micro");
  // These are commented out in 3D version so i did too.   
- //   kAnalysisType = list.GetParameter("type_of_analysis_1consolidation_2dynamic");
+    kAnalysisType = list.GetParameter("type_of_analysis_1static_2dynamic");
  //   kInitialConditionType = list.GetParameter("initial_condition_1geostatic_2displ_vel_press");
   
     fGeometryCode_micro = fGeometryCode_displ; 
@@ -2353,8 +2356,7 @@ else
 void FSMicromorphic2DT::Form_micro_shape_functions(const double* &shapes_micro_X)
 {
     fShapeMicro = 0.0;
-    //hard coded for n_en_micro=8; can change
-    for (int i=0; i<8; i++)
+    for (int i=0; i<n_en_micro; i++)
 		fShapeMicro[i] = shapes_micro_X[i];
 }
 
@@ -2565,8 +2567,12 @@ void FSMicromorphic2DT::Form_Gradient_t_of_solid_shape_functions(const dMatrixT 
    if(n_sd==2)
 	{
 	for (int i=0; i<9; i++)
-    		{
-                 //????
+    	{
+        fShapeDisplGrad_t(0,i*2) = fShapeDisplGrad_temp(0,i);	
+		fShapeDisplGrad_t(1,i*2) = fShapeDisplGrad_temp(1,i);
+
+		fShapeDisplGrad_t(2,1+i*2) = fShapeDisplGrad_temp(0,i);
+		fShapeDisplGrad_t(3,1+i*2) = fShapeDisplGrad_temp(1,i);
 		}
 	}
 
@@ -3021,12 +3027,12 @@ void FSMicromorphic2DT::Extract_six_values_from_symmetric_tensor(const dMatrixT 
 
 void FSMicromorphic2DT::Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT)
 {
-	fArrayT[0]=f2DArrayT(e,IP*6+0);
-	fArrayT[1]=f2DArrayT(e,IP*6+1);
-	fArrayT[2]=f2DArrayT(e,IP*6+2);
-	fArrayT[3]=f2DArrayT(e,IP*6+3);
+	fArrayT[0]=f2DArrayT(e,IP*3+0);
+	fArrayT[1]=f2DArrayT(e,IP*3+1);
+	fArrayT[2]=f2DArrayT(e,IP*3+2);
+	/*fArrayT[3]=f2DArrayT(e,IP*6+3);
 	fArrayT[4]=f2DArrayT(e,IP*6+4);
-	fArrayT[5]=f2DArrayT(e,IP*6+5);
+	fArrayT[5]=f2DArrayT(e,IP*6+5);*/
 }
 
 void FSMicromorphic2DT::Form_gradv_vector(void)
