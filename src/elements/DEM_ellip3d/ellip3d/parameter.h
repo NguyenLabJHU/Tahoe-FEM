@@ -1,4 +1,4 @@
-// Typically, the paramenters here may need to change frequently, which should be done in ellip3d.cxx.
+// These paramenters may need to change frequently and it should be done in main.cpp
 
 // All data use SI: dimension--m; density--Kg/m^3; pressure--Pa; time--second                  
 
