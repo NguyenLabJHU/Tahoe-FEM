@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.10 2009-05-21 22:25:07 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.11 2009-06-23 08:48:57 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -18,7 +18,7 @@ using namespace Tahoe;
 
 const double loge = log10(exp(1.0));
 const double third = 1.0/3.0; 
-const double small = 1.0e-20;
+const double small = 1.0e-16;
 const int kNumOutputVar = 11; 
 static const char* Labels[kNumOutputVar] = {"thermal_dialation", "deltaneq", "lm1","lm2","lm3", "lmv1","lmv2","lmv3", "sy","T","gamdot"}; 
 
@@ -73,7 +73,7 @@ double SMP_simple::ShearViscosity(const double Temperature, const double deltane
 	double etaS;	
 
 	double taumag = smag/sqrt(2.0);
-	if (smag > small)
+	if (smag/fsy0 > small)
 	{
 		etaS = fetaS0*g*taumag/sinh(fQS/Temperature * taumag/sy);
 		etaS *= fQS/(sy*Temperature);
@@ -83,6 +83,12 @@ double SMP_simple::ShearViscosity(const double Temperature, const double deltane
 		etaS = fetaS0*g;
 	}
 			
+	/*check the limits*/
+	if (etaS > fetaSH)
+		etaS = fetaSH;
+	else if (etaS < fetaSL)
+		etaS = fetaSL;
+
 	return(etaS);
 }
 
@@ -740,6 +746,8 @@ void SMP_simple::TakeParameterList(const ParameterListT& list)
   if (etaS)
   {
 	fetaS0 = etaS->GetParameter("etaS_ref");
+	fetaSL = 1.0e-10*fetaS0;
+	fetaSH = 1.0e+10*fetaS0;
 	fQS = etaS->GetParameter("activation_energy");
 	fsy0 = etaS->GetParameter("init_yield_strength");
 	fsinf = etaS->GetParameter("sat_yield_strength");
@@ -976,7 +984,7 @@ void SMP_simple::Initialize(void)
 		double x = fQS*smag/(Temp*sy*sqrt(2.0));
 		double detaS_dsmag = 0.0;
 		double detaS_dsy = (etaS)/sy;
-		if (smag > small)
+		if (smag/fsy0 > small)
 		{
 			double cothx = cosh(x)/sinh(x);
 			detaS_dsmag = (etaS)*(1.0-x*cothx)/smag;
@@ -999,7 +1007,7 @@ void SMP_simple::Initialize(void)
 		double coef0 = 0.5*(s0*c0 + s1*c01 + s2*c02);
 		double coef1 = 0.5*(s0*c01 + s1*c1 + s2*c12);
 		double coef2 = 0.5*(s0*c02 + s1*c12 + s2*c2);
-		if (smag > small)
+		if (smag/fsy0 > small)
 		{
 			coef0 /= smag;
 			coef1 /= smag;
@@ -1174,7 +1182,7 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 		double x = fQS*smag/(Temp*sy*sqrt(2.0));
 		double detaS_dsmag = 0.0;
 		double detaS_dsy = (etaS)/sy;
-		if (smag > small)
+		if (smag/fsy0 > small)
 		{
 			double cothx = cosh(x)/sinh(x);
 			detaS_dsmag = (etaS)*(1.0-x*cothx)/smag;
@@ -1211,7 +1219,7 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 		double coef0 = 0.5*(s0*c0 + s1*c01 + s2*c02);
 		double coef1 = 0.5*(s0*c01 + s1*c1 + s2*c12);
 		double coef2 = 0.5*(s0*c02 + s1*c12 + s2*c2);
-		if (smag > small)
+		if (smag/fsy0 > small)
 		{
 			coef0 /= smag;
 			coef1 /= smag;
@@ -1251,7 +1259,16 @@ void SMP_simple::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretc
 		/*K_sy_sy*/
 	    fiKAB(4,4) = 1.0 + 0.5*dt*ietaS*fh* (smag/fsinf + (1.0 - sy/fsinf)*smag*ietaS*detaS_dsy);
 
-//		cout << "\nfiKAB: "<<fiKAB;
+/*		if (CurrElementNumber()	==717 && CurrIP()==4)
+		{
+			cout << "\nelemL: "<<CurrElementNumber()<<"\t"<<CurrIP()<<"\t"<<tol;
+			cout << "\nfiKAB: "<<fiKAB;
+			cout << "\nle: "<<le0<<"\t"<<le1<<"\t"<<le2;
+			cout << "\nl: "<<eigenstretch[0]<<"\t"<<eigenstretch[1]<<"\t"<<eigenstretch[2];
+			cout << "\nK22: "<< fiKAB(1,1)<<"\tetaS: "<<etaS<<"\t c0: "<<c0<<"\t s0: "<<s0<<"\t smag: "<<smag;
+			cout << "\n detaS_dsmag: "<<detaS_dsmag<< "\tcoeff: "<<coef0; 
+		}
+ */
 		/*inverts KAB*/
 		fiKAB.Inverse();
 	    

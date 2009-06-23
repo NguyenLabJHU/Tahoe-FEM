@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.h,v 1.5 2009-04-23 02:34:46 thao Exp $ */
+/* $Id: SMP_simple.h,v 1.6 2009-06-23 08:48:57 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _SMP_simple_
 #define _SMP_simple_
@@ -107,7 +107,7 @@ class SMP_simple: public RGSplitT2
 	/*low temp viscous flow*/
 //	double fmuneq;		/*nonequilibrium stiffness*/
 	double fetaS0;		/*reference shear viscosity*/
-//	double fetaSL, fetaSH;		/*high and low limits of etaSR*/
+	double fetaSL, fetaSH;		/*high and low limits of etaSR*/
 	double fQS;			/*activation energy for the viscoplastic flow*/
 	double fsy0;		/*initial yield strength*/;
 	double fsinf;		/*steady state limit of the yield strength*/
