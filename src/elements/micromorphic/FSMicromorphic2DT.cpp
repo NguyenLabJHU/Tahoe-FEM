@@ -327,14 +327,14 @@ void FSMicromorphic2DT::CloseStep(void)
     fdState = fdState_new;
     fiState = fiState_new;
 	
-//    fs_micromorph2D_out	<< endl 
-//		<< setw(outputFileWidth) << "time_step"
-//		<< endl;
+    fs_micromorph2D_out	<< endl 
+		<< setw(outputFileWidth) << "time_step"
+		<< endl;
     step_number = ElementSupport().StepNumber();
-//    fs_micromorph2D_out	<< setw(outputFileWidth) << step_number
-//		<< endl;
-//    fs_micromorph2D_out	<< endl << "**********************************************************************************************";
-//    fs_micromorph2D_out	<< endl << "**********************************************************************************************" << endl;
+    fs_micromorph2D_out	<< setw(outputFileWidth) << step_number
+		<< endl;
+    fs_micromorph2D_out	<< endl << "**********************************************************************************************";
+    fs_micromorph2D_out	<< endl << "**********************************************************************************************" << endl;
 }
 
 
@@ -1135,6 +1135,16 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			
 			/* [fDeformation_Gradient] will be formed */
 			Form_deformation_gradient_tensor();
+						
+			/* print solid displacement at current step (u)*/
+			fs_micromorph2D_out	<<"nodal solid displacement at current step(u)"<< endl ;
+			for (int i=0; i<n_en_displ; i++)
+			{
+	    			fs_micromorph2D_out	<< "node number " << i+1 <<" :  " ;		
+	    			for (int j=0; j<n_sd; j++)
+					fs_micromorph2D_out << u(i,j) << "\t";
+	    			fs_micromorph2D_out	<< endl ;
+			}
 
 			/* [fDefGradT_9x9_matrix] will be formed */
 			//Form_fDefGradT_9x9_matrix();
@@ -1212,10 +1222,16 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			double TempJ_Prim=fRight_Cauchy_Green_tensor.Det();
 			double J_Prim=sqrt(fabs(TempJ_Prim));
 			
+			
+			
 			/* [fSecond_Piola_tensor] will be formed */
 			fSecond_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
 			fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
 			fSecond_Piola_tensor += fTemp_matrix_nsd_x_nsd;
+			
+		
+			
+			
 			
 			/* [fKirchhoff_tensor] will be formed */
 			fKirchhoff_tensor.MultABCT(fDeformation_Gradient,fSecond_Piola_tensor,fDeformation_Gradient);
@@ -1254,6 +1270,19 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 			
 			/* [fIm_temp_matrix] will be formed */
 			Form_Im_temp_matrix();
+			
+						
+			/* print solid velocity at current step (fIm_temp_matrix)*/
+                /*	fs_micromorph2D_out	<<"(fIm_temp_matrix)"<< endl ;
+	                for (int i=0; i<3; i++)
+			{
+	    					
+	    			for (int j=0; j<3; j++)
+					fs_micromorph2D_out << fIm_temp_matrix(i,j) << "\t";
+	 			fs_micromorph2D_out	<< endl ;
+			}
+			*/
+
 			
 			/* [fHbar_temp_matrix] will be formed */
 			Form_Hbar_temp_matrix();
@@ -1897,7 +1926,7 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
     /* setup output file and format */
     outputPrecision = 10;
     outputFileWidth = outputPrecision + 8;
-//    fs_micromorph2D_out.open("fs_micromorph2D.info");
+    fs_micromorph2D_out.open("fs_micromorph2D.info");
 }
 
 
@@ -2332,7 +2361,6 @@ if (n_sd==2)
 		fShapeDisplGrad(2,i*2) = fShapeDisplGrad_temp(1,i);
 		fShapeDisplGrad(3,1+i*2) = fShapeDisplGrad_temp(1,i);
     }
-
 }
 else
 {
@@ -2567,8 +2595,8 @@ void FSMicromorphic2DT::Form_Gradient_t_of_solid_shape_functions(const dMatrixT 
    if(n_sd==2)
 	{
 	for (int i=0; i<9; i++)
-    	{
-        fShapeDisplGrad_t(0,i*2) = fShapeDisplGrad_temp(0,i);	
+    		{
+        	fShapeDisplGrad_t(0,i*2) = fShapeDisplGrad_temp(0,i);	
 		fShapeDisplGrad_t(1,i*2) = fShapeDisplGrad_temp(1,i);
 
 		fShapeDisplGrad_t(2,1+i*2) = fShapeDisplGrad_temp(0,i);
