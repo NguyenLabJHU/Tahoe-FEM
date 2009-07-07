@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.29 2009-06-15 16:04:18 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.30 2009-07-07 23:15:40 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -248,6 +248,9 @@ protected:
 	/* output control */
 	iArrayT	fNodalOutputCodes;
 	iArrayT	fElementOutputCodes;
+	
+	/* gravity body force */
+	const ScheduleT* fBodySchedule; /**< body force schedule */
 	
 private:
 

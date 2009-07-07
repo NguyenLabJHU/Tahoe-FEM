@@ -27,6 +27,7 @@ FSSolidFluidMixT::FSSolidFluidMixT(const ElementSupportT& support):
     fCurrCoords_displ(LocalArrayT::kCurrCoords),
     fInitCoords_press(LocalArrayT::kInitCoords),
     fCurrCoords_press(LocalArrayT::kCurrCoords),
+    fBodySchedule(NULL),
     fTractionBCSet(0),
     fDispl(NULL),
     fPress(NULL),
@@ -904,9 +905,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
     Top();
 
     /* {fGravity_vector} will be formed */
-    fGravity_vector[0]= fMaterial_Params[kg1];
-    fGravity_vector[1]= fMaterial_Params[kg2];
-    fGravity_vector[2]= fMaterial_Params[kg3];
+    double loadfactor = fBodySchedule->Value();
+    fGravity_vector[0]= fMaterial_Params[kg1]*loadfactor;
+    fGravity_vector[1]= fMaterial_Params[kg2]*loadfactor;
+    fGravity_vector[2]= fMaterial_Params[kg3]*loadfactor;
 
     /* [fGravity_column_matrix] will be formed */
     for (int i=0; i<n_sd; i++)
@@ -3319,6 +3321,13 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
 
     /* allocate storage for nodal forces */
     //fForces_at_Node.Dimension ( n_sd );
+    
+    /* gravity body force schedule */
+	const ParameterListT* body_force = list.List("gravity_body_force");
+	if (body_force) {
+		int schedule = body_force->GetParameter("gravity_schedule");
+		fBodySchedule = ElementSupport().Schedule(--schedule);
+	}
 	
     /* extract natural boundary conditions */
     TakeNaturalBC(list);
@@ -3338,6 +3347,9 @@ void FSSolidFluidMixT::DefineSubs(SubListT& sub_list) const
 
     /* element blocks */
     sub_list.AddSub("total_lagrangian_solid_fluid_mix_element_block");
+    
+    /* optional gravity body force */
+	sub_list.AddSub("gravity_body_force", ParameterListT::ZeroOrOnce);
 	
     /* tractions */
     sub_list.AddSub("total_lagrangian_solid_fluid_mix_natural_bc", ParameterListT::Any);
@@ -3360,7 +3372,20 @@ ParameterInterfaceT* FSSolidFluidMixT::NewSub(const StringT& name) const
     /* create non-const this */
     FSSolidFluidMixT* non_const_this = const_cast<FSSolidFluidMixT*>(this);
 
-    if (name == "total_lagrangian_solid_fluid_mix_natural_bc") /* traction bc */
+	/* gravity body force */
+	if (name == "gravity_body_force")
+	{
+		ParameterContainerT* gravity_body_force = new ParameterContainerT(name);
+
+		/* schedule number */
+		gravity_body_force->AddParameter(ParameterT::Integer, "gravity_schedule");
+
+		/* body force vector */
+		//body_force->AddSub("Double", ParameterListT::OnePlus);
+
+		return gravity_body_force;
+	}
+    else if (name == "total_lagrangian_solid_fluid_mix_natural_bc") /* traction bc */
     {
 		ParameterContainerT* natural_bc = new ParameterContainerT(name);
 
