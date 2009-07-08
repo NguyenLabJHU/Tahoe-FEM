@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.42 2004-12-13 23:47:08 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.43 2009-07-08 17:56:27 regueiro Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -407,7 +407,8 @@ void TranslateIOManager::SelectElements(StringT& ID, iArrayT& elements, iArrayT&
 				// translate node numbers to index
 				int dex;
 				elementIDs.HasValue(elements[n], dex);
-				if (dex < 0 || dex >= num_elements) 
+				//if (dex < 0 || dex >= num_elements) 
+				if (dex < 0 ) 
 					ExceptionT::OutOfRange (caller, "Element %d was not found. If -1 EOF found early.", elements[n]);
 				index[n] = dex;
 	  		}
