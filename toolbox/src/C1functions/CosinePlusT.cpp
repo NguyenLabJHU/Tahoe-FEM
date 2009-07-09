@@ -1,4 +1,4 @@
-/* $Id: CosinePlusT.cpp,v 1.2 2009-05-20 21:09:17 regueiro Exp $ */
+/* $Id: CosinePlusT.cpp,v 1.3 2009-07-09 00:49:48 regueiro Exp $ */
 #include "CosinePlusT.h"
 #include "dArrayT.h"
 #include <math.h>
@@ -6,8 +6,10 @@
 using namespace Tahoe;
 
 /* constructor */
-CosinePlusT::CosinePlusT(double a, double b, double c, double d, double e, double f, double g,
+CosinePlusT::CosinePlusT(double t0, double t1, double a, double b, double c, double d, double e, double f, double g,
 		double p, double q):
+	ft0(t0),
+	ft1(t1),
 	fa(a),
 	fb(b),
 	fc(c),
@@ -22,6 +24,8 @@ CosinePlusT::CosinePlusT(double a, double b, double c, double d, double e, doubl
 }
 
 CosinePlusT::CosinePlusT(void):
+	ft0(0.0),
+	ft1(0.0),
 	fa(0.0),
 	fb(0.0),
 	fc(0.0),
@@ -38,19 +42,82 @@ CosinePlusT::CosinePlusT(void):
 /** evaluate function */
 double CosinePlusT::Function(double x) const
 {
-	return fa + fb*cos(fc*x) + fd*sin(fe*x) + ff*x*cos(fg*x) + fp*x*sin(fq*x);
+	double fRamp = 1.0;
+	if (ft0==0.0 && ft1==0.0)
+	{
+		fRamp = 1.0;
+	}
+	else if (x<ft0)
+	{
+		fRamp = 0.0;
+	}
+	else if (x>=ft0 && x<=ft1)
+	{
+		fRamp = (x-ft0)/(ft1-ft0);
+	}
+	else if (x>ft1)
+	{
+		fRamp = 1.0;
+	}
+	return fRamp*(fa + fb*cos(fc*x) + fd*sin(fe*x) + ff*x*cos(fg*x) + fp*x*sin(fq*x));
 }
 
 /** evaluate first derivative function */
 double CosinePlusT::DFunction(double x) const
 {
-	return -fb*fc*sin(fc*x) + fd*fe*cos(fe*x) + ff*cos(fg*x) - ff*fg*x*sin(fg*x) + fp*sin(fq*x) + fp*fq*x*cos(fq*x);
+	double fRamp = 1.0;
+	double fRampD = 0.0;
+	if (ft0==0.0 && ft1==0.0)
+	{
+		fRamp = 1.0;
+		fRampD = 0.0;
+	}
+	else if (x<ft0)
+	{
+		fRamp = 0.0;
+		fRampD = 0.0;
+	}
+	else if (x>=ft0 && x<=ft1)
+	{
+		fRamp = (x-ft0)/(ft1-ft0);
+		fRampD = 1/(ft1-ft0);
+	}
+	else if (x>ft1)
+	{
+		fRamp = 1.0;
+		fRampD = 0.0;
+	}
+	return fRampD*(fa + fb*cos(fc*x) + fd*sin(fe*x) + ff*x*cos(fg*x) + fp*x*sin(fq*x))
+		+ fRamp*(-fb*fc*sin(fc*x) + fd*fe*cos(fe*x) + ff*cos(fg*x) - ff*fg*x*sin(fg*x) + fp*sin(fq*x) + fp*fq*x*cos(fq*x));
 }
 
 /** evaluate second derivative function */
 double CosinePlusT::DDFunction(double x) const
 {
-	return -fb*fc*fc*cos(fc*x) - fd*fe*fe*sin(fe*x) - 2*ff*fg*sin(fg*x) - ff*fg*fg*x*cos(fg*x) + 2*fp*fq*cos(fq*x) - fp*fq*fq*x*sin(fq*x);
+	double fRamp = 1.0;
+	double fRampD = 0.0;
+	if (ft0==0.0 && ft1==0.0)
+	{
+		fRamp = 1.0;
+		fRampD = 0.0;
+	}
+	else if (x<ft0)
+	{
+		fRamp = 0.0;
+		fRampD = 0.0;
+	}
+	else if (x>=ft0 && x<=ft1)
+	{
+		fRamp = (x-ft0)/(ft1-ft0);
+		fRampD = 1/(ft1-ft0);
+	}
+	else if (x>ft1)
+	{
+		fRamp = 1.0;
+		fRampD = 0.0;
+	}
+	return 2*fRampD*(-fb*fc*sin(fc*x) + fd*fe*cos(fe*x) + ff*cos(fg*x) - ff*fg*x*sin(fg*x) + fp*sin(fq*x) + fp*fq*x*cos(fq*x))
+		+ fRamp*(-fb*fc*fc*cos(fc*x) - fd*fe*fe*sin(fe*x) - 2*ff*fg*sin(fg*x) - ff*fg*fg*x*cos(fg*x) + 2*fp*fq*cos(fq*x) - fp*fq*fq*x*sin(fq*x));
 }
 
 /* Returning values in groups */
@@ -69,10 +136,25 @@ dArrayT& CosinePlusT::MapFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < length; i++)
 	{
 		double r = *x++;
-		
-		*y++ = fa + fb*cos(fc*r) + fd*sin(fe*r) + ff*r*cos(fg*r) + fp*r*sin(fq*r);
+		double fRamp = 1.0;
+		if (ft0==0.0 && ft1==0.0)
+		{
+			fRamp = 1.0;
+		}
+		else if (r<ft0)
+		{
+			fRamp = 0.0;
+		}
+		else if (r>=ft0 && r<=ft1)
+		{
+			fRamp = (r-ft0)/(ft1-ft0);
+		}
+		else if (r>ft1)
+		{
+			fRamp = 1.0;
+		}
+		*y++ = fRamp*(fa + fb*cos(fc*r) + fd*sin(fe*r) + ff*r*cos(fg*r) + fp*r*sin(fq*r));
 	}
-
 	return out;
 }
 
@@ -87,13 +169,35 @@ dArrayT& CosinePlusT::MapDFunction(const dArrayT& in, dArrayT& out) const
 	int length = in.Length();
 	double* y = out.Pointer();
 	const double* x = in.Pointer();
+	
 	for (int i = 0; i < length; i++)
 	{
 		double r = *x++;
-		
-		*y++ = -fb*fc*sin(fc*r) + fd*fe*cos(fe*r) + ff*cos(fg*r) - ff*fg*r*sin(fg*r) + fp*sin(fq*r) + fp*fq*r*cos(fq*r);
+		double fRamp = 1.0;
+		double fRampD = 0.0;
+		if (ft0==0.0 && ft1==0.0)
+		{
+			fRamp = 1.0;
+			fRampD = 0.0;
+		}
+		else if (r<ft0)
+		{
+			fRamp = 0.0;
+			fRampD = 0.0;
+		}
+		else if (r>=ft0 && r<=ft1)
+		{
+			fRamp = (r-ft0)/(ft1-ft0);
+			fRampD = 1/(ft1-ft0);
+		}
+		else if (r>ft1)
+		{
+			fRamp = 1.0;
+			fRampD = 0.0;
+		}
+		*y++ = fRampD*(fa + fb*cos(fc*r) + fd*sin(fe*r) + ff*r*cos(fg*r) + fp*r*sin(fq*r))
+			+ fRamp*(-fb*fc*sin(fc*r) + fd*fe*cos(fe*r) + ff*cos(fg*r) - ff*fg*r*sin(fg*r) + fp*sin(fq*r) + fp*fq*r*cos(fq*r));
 	}
-
 	return out;
 }
 
@@ -111,10 +215,31 @@ dArrayT& CosinePlusT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < length; i++)
 	{
 		double r = *x++;
-		
-		*y++ = -fb*fc*fc*cos(fc*r) - fd*fe*fe*sin(fe*r) - 2*ff*fg*sin(fg*r) - ff*fg*fg*r*cos(fg*r) + 2*fp*fq*cos(fq*r) - fp*fq*fq*r*sin(fq*r);
+		double fRamp = 1.0;
+		double fRampD = 0.0;
+		if (ft0==0.0 && ft1==0.0)
+		{
+			fRamp = 1.0;
+			fRampD = 0.0;
+		}
+		else if (r<ft0)
+		{
+			fRamp = 0.0;
+			fRampD = 0.0;
+		}
+		else if (r>=ft0 && r<=ft1)
+		{
+			fRamp = (r-ft0)/(ft1-ft0);
+			fRampD = 1/(ft1-ft0);
+		}
+		else if (r>ft1)
+		{
+			fRamp = 1.0;
+			fRampD = 0.0;
+		}
+		*y++ = 2*fRampD*(-fb*fc*sin(fc*r) + fd*fe*cos(fe*r) + ff*cos(fg*r) - ff*fg*r*sin(fg*r) + fp*sin(fq*r) + fp*fq*r*cos(fq*r))
+			+ fRamp*(-fb*fc*fc*cos(fc*r) - fd*fe*fe*sin(fe*r) - 2*ff*fg*sin(fg*r) - ff*fg*fg*r*cos(fg*r) + 2*fp*fq*cos(fq*r) - fp*fq*fq*r*sin(fq*r));
 	}
-
 	return out;
 }
 
@@ -124,6 +249,8 @@ void CosinePlusT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	C1FunctionT::DefineParameters(list);
 	
+	list.AddParameter(ft0, "t0");
+	list.AddParameter(ft1, "t1");
 	list.AddParameter(fa, "a");
 	list.AddParameter(fb, "b");
 	list.AddParameter(fc, "c");
@@ -135,7 +262,7 @@ void CosinePlusT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fq, "q");
 	
 	/* set the description */
-	list.SetDescription("f(x) = a + b cos(c t) + d sin(e t) + f t cos(g t) + p t sin(q t)");
+	list.SetDescription("f(t) = H(t,t1-t0)*(a + b cos(c t) + d sin(e t) + f t cos(g t) + p t sin(q t))");
 }
 
 /* accept parameter list */
@@ -144,6 +271,8 @@ void CosinePlusT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	C1FunctionT::TakeParameterList(list);
 	
+	ft0 = list.GetParameter("t0");
+	ft1 = list.GetParameter("t1");
 	fa = list.GetParameter("a");
 	fb = list.GetParameter("b");
 	fc = list.GetParameter("c");

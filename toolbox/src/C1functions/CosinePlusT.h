@@ -1,4 +1,4 @@
-/* $Id: CosinePlusT.h,v 1.1 2009-05-20 17:48:26 regueiro Exp $ */
+/* $Id: CosinePlusT.h,v 1.2 2009-07-09 00:49:48 regueiro Exp $ */
 #ifndef _COSINE_PLUS_T_H_
 #define _COSINE_PLUS_T_H_
 
@@ -9,17 +9,17 @@ namespace Tahoe {
 
 /** implementation of the function:
 \f[
-	f(x) = a + b \cos (c t) + d \sin (e t) + f t \cos (g t) + p t \sin (q t)
+	f(t) = H(t,t1-t0)*(a + b \cos (c t) + d \sin (e t) + f t \cos (g t) + p t \sin (q t))
 \f]
  *
- * with parameters {a, b, c, d, e, f, g, p, q}
+ * with parameters {t0, t1, a, b, c, d, e, f, g, p, q}
  */
 class CosinePlusT: public C1FunctionT
 {
 public:
 
 	/** constructor */
-	CosinePlusT(double a, double b, double c, double d, double e, double f, double g,
+	CosinePlusT(double t0, double t1, double a, double b, double c, double d, double e, double f, double g,
 		double p, double q);
 	CosinePlusT(void);
 	
@@ -59,7 +59,7 @@ public:
 private:
 
 	/* parameters */
-	double fa, fb, fc, fd, fe, ff, fg, fp, fq;
+	double ft0, ft1, fa, fb, fc, fd, fe, ff, fg, fp, fq; 
 };
 
 } /* namespace Tahoe */
