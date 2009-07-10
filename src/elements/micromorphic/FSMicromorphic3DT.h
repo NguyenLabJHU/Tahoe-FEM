@@ -1,7 +1,7 @@
-/* $Id: FSMicromorphic3DT.h,v 1.1 2009-05-11 14:31:49 regueiro Exp $ */ 
+/* $Id: FSMicromorphic3DT.h,v 1.2 2009-07-10 22:58:11 isbuga Exp $ */
 //DEVELOPMENT
-#ifndef _FS_MICROMORPHIC_3D_T_H_ 
-#define _FS_MICROMORPHIC_3D_T_H_ 
+#ifndef _FS_MICROMORPHIC_3D_T_H_
+#define _FS_MICROMORPHIC_3D_T_H_
 
 /* base classes */
 #include "ElementBaseT.h"
@@ -30,10 +30,10 @@ namespace Tahoe {
 
 /* forward declarations */
 class ShapeFunctionT;
-class Traction_CardT;	
+class Traction_CardT;
 class StringT;
 
-/** FSMicromorphic3DT: This class contains a coupled finite deformation 
+/** FSMicromorphic3DT: This class contains a coupled finite deformation
  * micromorphic (displacement and micro-displacement gradient dofs) finite
  * element implementation in 3D.  The model description can be
  * found in Regueiro ASCE JEM 135:178-191 for pressure-sensitive elastoplasticity.
@@ -41,10 +41,10 @@ class StringT;
 
 class FSMicromorphic3DT: public ElementBaseT
 {
-	
+
 public:
 /* material parameters */
-	enum fMaterial_T 	{ 
+	enum fMaterial_T 	{
 	    kMu,
 	    kLambda,
 	    kRho_0,
@@ -54,24 +54,24 @@ public:
 	    kg3,
 	    //add to this list
 	    kNUM_FMATERIAL_TERMS	};
-									
-//	enum fIntegrate_T 	{ 
+
+//	enum fIntegrate_T 	{
 //	    kBeta,
 //	    kGamma,
-//	    kNUM_FINTEGRATE_TERMS	};								
+//	    kNUM_FINTEGRATE_TERMS	};
 
 	/** constructor */
-	FSMicromorphic3DT(	const ElementSupportT& support );				
+	FSMicromorphic3DT(	const ElementSupportT& support );
 
 	/** destructor */
 	~FSMicromorphic3DT(void);
-	
+
 	/** reference to element shape functions */
 	const ShapeFunctionT& ShapeFunctionDispl(void) const;
 	const ShapeFunctionT& ShapeFunctionMicro(void) const;
 
 	/** echo input */
-	void Echo_Input_Data (void); 
+	void Echo_Input_Data (void);
 
 	/** return true if the element contributes to the solution of the
 	 * given group. ElementBaseT::InGroup returns true if group is the
@@ -83,7 +83,7 @@ public:
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	//virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
-	
+
 	/** element level reconfiguration for the current time increment */
 	//virtual GlobalT::RelaxCodeT RelaxSystem(void);
 	/*@}*/
@@ -95,12 +95,12 @@ public:
 
 	/** return a const reference to the run state flag */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-	
+
 	/** accumulate the residual force on the specified node
 	 * \param node test node
 	 * \param force array into which to assemble to the residual force */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
-	
+
 	/** returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);
 
@@ -110,24 +110,24 @@ public:
 	virtual void RegisterOutput(void);
 
 	/** write element output */
-	virtual void WriteOutput(void);	
-	
+	virtual void WriteOutput(void);
+
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 	/*@}*/
-	
+
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
 
 	/** return the geometry code */
 	virtual GeometryT::CodeT GeometryCode(void) const;
-	
+
 	/*set active elements*/
 	//virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
-	
+
 	/** initial condition/restart functions (per time sequence) */
 	virtual void InitialCondition(void);
-	
+
 	/** mass types */
 	enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
             kConsistentMass = 1, /**< variationally consistent mass matrix */
@@ -145,14 +145,14 @@ public:
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
 	virtual void ReadRestart(istream& in);
 	/*@}*/
-	
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
 				     SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
@@ -168,7 +168,7 @@ public:
 	/*@}*/
 
 protected:
-	
+
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
 	/** form group contribution to the stiffness matrix */
@@ -177,47 +177,47 @@ protected:
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);
 	/*@}*/
-	
+
 	/** compute shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
 	void Select_Equations ( const int &iBalLinMom, const int &iBalFirstMomMom );
 
 private:
-	
+
 	/** \name solution methods.
 	 * Both of these drivers assemble the LHS as well as the residual.
 	 */
 	/*@{*/
 	/** driver for staggered solution */
 	void RHSDriver_staggered(void);
-	
+
 	/** driver for monolithic solution */
 	void RHSDriver_monolithic(void);
 	/*@}*/
-	
+
 protected:
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
 	iArrayT	fElementOutputCodes;
-	
+
 private:
 
 	/** Gradients and other matrices */
 	dMatrixT fgrad_u, fgrad_u_n;
 	dMatrixT fgrad_Phi, fgrad_Phi_n;
-	
+
 	dMatrixT fShapeDispl, fShapeDisplGrad, fShapeDisplGrad_t;
 	dMatrixT fShapeDisplGrad_t_Transpose, fShapeDisplGradGrad, fShapeDisplGrad_temp;
 	dMatrixT fShapeMicro,fShapeMicroGrad;
-	
+
 	dMatrixT fDefGrad, fDefGradInv, fDefGradInvMatrix;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/
 	/** element geometry */
-	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ, 
+	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ,
 	    fGeometryCode_micro, fGeometryCodeSurf_micro;
 	int fGeometryCode_displ_int, fGeometryCodeSurf_displ_int;
 
@@ -232,7 +232,7 @@ private:
 	/*@{*/
 	LocalArrayT u;		//solid displacement
 	LocalArrayT u_n; 	//solid displacement from time t_n
-	LocalArrayT u_dot; 	//solid velocity 
+	LocalArrayT u_dot; 	//solid velocity
 	LocalArrayT u_dot_n; 	//solid velocity from time t_n
 	LocalArrayT u_dotdot; 	//solid acceleration
 	LocalArrayT u_dotdot_n; 	//solid acceleration from time t_n
@@ -240,15 +240,15 @@ private:
 	LocalArrayT Phi;	//micro-displacement-gradient dof
 	LocalArrayT Phi_dot;	//micro-displacement-gradient first time derivative
 	LocalArrayT Phi_dot_n;	//micro-displacement-gradient first time derivative from time t_n
-	LocalArrayT Phi_dotdot;	//micro-displacement-gradient second derivative  
-	LocalArrayT Phi_dotdot_n;	//micro-displacement-gradient second derivative from time t_n 
+	LocalArrayT Phi_dotdot;	//micro-displacement-gradient second derivative
+	LocalArrayT Phi_dotdot_n;	//micro-displacement-gradient second derivative from time t_n
 	LocalArrayT Phi_n;	//micro-displacement-gradient from time t_n
 	LocalArrayT del_Phi;	//micro-displacement-gradient increment
-	dArrayT		del_u_vec;  	// vector form 
+	dArrayT		del_u_vec;  	// vector form
 	dArrayT		del_Phi_vec;	// vector form
-	dArrayT		u_vec;  	// solid displacement in vector form 
-	dArrayT		u_dot_vec;  	// solid velocity in vector form 
-	dArrayT		u_dotdot_vec;  	// solid acceleration in vector form 
+	dArrayT		u_vec;  	// solid displacement in vector form
+	dArrayT		u_dot_vec;  	// solid velocity in vector form
+	dArrayT		u_dotdot_vec;  	// solid acceleration in vector form
 	dArrayT		Phi_vec;	// micro-displacement-gradient in vector form
 	dArrayT		Phi_dot_vec;	// first derivative of micro-displacement-gradient in vector form
 	dArrayT		Phi_dotdot_vec;	// second derivative of micro-displacement-gradient in vector form
@@ -259,35 +259,35 @@ private:
 	int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd;
 	int n_el, n_sd, n_sd_surf, n_en_surf;
 	int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
-	
+
 	int step_number;
 	int iConstitutiveModelType;
-	
+
 	//name of output vector
 	StringT output;
-	
+
 	dArrayT fForces_at_Node;
 	bool bStep_Complete;
-	
+
  	double time, fRho, fRho_0;
- 	
+
  	void Get_Fd_ext ( dArrayT &fFd_ext );
-	
-	//-- Material Parameters 
+
+	//-- Material Parameters
 	dArrayT fMaterial_Params;
-	
-	//-- Newmark Time Integration Parameters 
+
+	//-- Newmark Time Integration Parameters
 	dArrayT fIntegration_Params;
-	
+
 	/** \name shape functions wrt to current coordinates */
 	/*@{*/
-	/** shape functions and derivatives. The derivatives are wrt to the 
+	/** shape functions and derivatives. The derivatives are wrt to the
 	  * reference coordinates */
 	ShapeFunctionT* fShapes_displ;
 	ShapeFunctionT* fShapes_micro;
 
 	/** reference coordinates */
-	LocalArrayT fInitCoords_displ, fInitCoords_micro;     
+	LocalArrayT fInitCoords_displ, fInitCoords_micro;
 	/** current coordinates */
 	LocalArrayT fCurrCoords_displ, fCurrCoords_micro;
 	/*@}*/
@@ -318,7 +318,7 @@ private:
 	dArrayT         fTemp_six_values;
 	dArrayT         fGradv_vector;
 	dArrayT         fgradv_vector;
-	
+
 	dMatrixT	fDeformation_Gradient;
 	dMatrixT	fDefGradT_9x9_matrix;
 	dMatrixT	fRight_Cauchy_Green_tensor;
@@ -343,8 +343,8 @@ private:
         dMatrixT	fKirchhoff_tensor;
         dMatrixT	fIota_temp_matrix;
         dMatrixT	fVarpi_temp_matrix;
-        
-        
+
+
         dMatrixT	fIm_temp_matrix;
         dMatrixT	fHbar_temp_matrix;
         dMatrixT	fEll_temp_matrix;
@@ -366,18 +366,33 @@ private:
         dMatrixT	fK_dd_BTDB_matrix;
 	dMatrixT 	fDefGradInv_column_matrix;
 	dMatrixT 	fDefGradInv_column_matrix_Transpose;
-	dMatrixT	u_dotdot_column_matrix;        
-	dMatrixT	fXi_temp_matrix;      
-	dMatrixT	fVarsigma_temp_matrix;   
-	dMatrixT	fI_ijkl_matrix; 
-	dMatrixT	u_dot_column_matrix;  
-	dMatrixT	u_dot_column_matrix_Transpose;  
-	dMatrixT	fGravity_column_matrix; 
-	dMatrixT	fAleph_temp_matrix; 
+	dMatrixT	u_dotdot_column_matrix;
+	dMatrixT	fXi_temp_matrix;
+	dMatrixT	fVarsigma_temp_matrix;
+	dMatrixT	fI_ijkl_matrix;
+	dMatrixT	u_dot_column_matrix;
+	dMatrixT	u_dot_column_matrix_Transpose;
+	dMatrixT	fGravity_column_matrix;
+	dMatrixT	fAleph_temp_matrix;
 	dMatrixT	micro_dot_column_matrix;
-	dMatrixT	fImath_temp_matrix;  
-	dMatrixT	fPf_0_matrix;   
+	dMatrixT	fImath_temp_matrix;
+	dMatrixT	fPf_0_matrix;
+	//////////////////////////////////////////////////////////
+	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
+	//////////////////////////////////////////////////////////
+	dMatrixT Tsigma_1;
+	dMatrixT G1_1;//not being calculated yet
+	double SigN[3][3];
+	double Fn[3][3];
+	double Finv[3][3];
+	dMatrixT Tsigma_2;
+	dMatrixT G1_2;//not being calculated yet
 
+
+
+	//////////////////////////////////////////////////////////
+	/////DEFINITIONS FINISH HERE FOR MICROMORPHIC MATRICES////
+	//////////////////////////////////////////////////////////
 
         /* to store fEulerian_strain_tensor_current_IP */
         dMatrixT	fEulerian_strain_tensor_current_IP;
@@ -395,13 +410,13 @@ private:
 
 	/** the solid displacement field */
 	const FieldT* fDispl;
-	
+
 	/** the micro-displacement-gradient field */
 	const FieldT* fMicro;
 
 	/** \name state variable storage *
-	 * State variables are handled ABAQUS-style. For every iteration, the state 
-	 * variables from the previous increment are passed to the element, which 
+	 * State variables are handled ABAQUS-style. For every iteration, the state
+	 * variables from the previous increment are passed to the element, which
 	 * updates the values in place. Each row in the array is the state variable
 	 * storage for all integration points for an element */
 	/*@{*/
@@ -436,7 +451,7 @@ private:
 	/** output ID */
 	int fOutputID;
 
-	/** integration point stresses. Calculated and stored during 
+	/** integration point stresses. Calculated and stored during
 	 * FSMicromorphic2DT::RHSDriver */
 	dArray2DT fIPVariable;
 	/*@}*/
@@ -444,29 +459,29 @@ private:
 	/** \name prescribed plastic gradient side set ID */
 	/*@{*/
 	ArrayT<StringT> fSideSetID;
-	
+
 	/** prescribed micro-displacement-gradient weight over the side set;
 	    the direction is defined by {n1,n2,n3} ?? */
 	//ArrayT<iArray2DT> fMicroWght;
 
 	/** for each side set, the global nodes on the faces in the set */
 	ArrayT<iArray2DT> fMicroFaces;
-	
-	/** equation numbers for the nodes on each face */ 
+
+	/** equation numbers for the nodes on each face */
 	ArrayT<iArray2DT> fMicroFaceEqnos;
-	
-	/** side set elements */ 
+
+	/** side set elements */
 	ArrayT<iArrayT> fSideSetElements;
 
-	/** side set faces */ 
+	/** side set faces */
 	ArrayT<iArrayT> fSideSetFaces;
 	/*@}*/
-	
+
 	/** write output for debugging */
 	/*@{*/
 	/** output file stream */
 	ofstreamT fs_micromorph3D_out;
-	
+
 	/** line output formating variables */
 	int outputPrecision, outputFileWidth;
 	/*@}*/
@@ -496,12 +511,24 @@ private:
 	void Form_Varsigma_temp_matrix(void);
 	void Form_I_ijkl_matrix(void);
 	void Compute_norm_of_array(double& norm,const LocalArrayT& B);
+	//////////////////////////////////////////////////////////
+	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
+	//////////////////////////////////////////////////////////
+	void Form_Tsigma_1_matrix(void);
+	void Form_G1_1_matrix(void);//not defined yet
+	void Form_Tsigma_2_matrix(void);
+
+
+
+	//////////////////////////////////////////////////////////
+	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
+	//////////////////////////////////////////////////////////
 
 protected:
 
 	/** extract natural boundary condition information */
 	void TakeNaturalBC(const ParameterListT& list);
-	
+
 	/** apply traction boundary conditions to displacement equations */
 	void ApplyTractionBC(void);
 
@@ -511,11 +538,11 @@ protected:
 	/* traction data */
 	ArrayT<Traction_CardT> fTractionList;
 	int fTractionBCSet;
-	
+
 	/** \name arrays with local ordering */
 	/*@{*/
 	LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
-	LocalArrayT fLocDisp;	      /**< solid displacements with local ordering  */ 
+	LocalArrayT fLocDisp;	      /**< solid displacements with local ordering  */
 	/*@}*/
 
 	/** \name work space */
@@ -523,11 +550,11 @@ protected:
 	dArrayT fNEEvec; /**< work space vector: [element DOF] */
 	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
 	/*@}*/
-	
+
 };
 
 
-inline const ShapeFunctionT& FSMicromorphic3DT::ShapeFunctionDispl(void) const 
+inline const ShapeFunctionT& FSMicromorphic3DT::ShapeFunctionDispl(void) const
 {
 #if __option(extended_errorcheck)
 	if (!fShapes_displ)
@@ -536,7 +563,7 @@ inline const ShapeFunctionT& FSMicromorphic3DT::ShapeFunctionDispl(void) const
 	return *fShapes_displ;
 }
 
-inline const ShapeFunctionT& FSMicromorphic3DT::ShapeFunctionMicro(void) const 
+inline const ShapeFunctionT& FSMicromorphic3DT::ShapeFunctionMicro(void) const
 {
 #if __option(extended_errorcheck)
 	if (!fShapes_micro)
@@ -550,7 +577,7 @@ inline GeometryT::CodeT FSMicromorphic3DT::GeometryCode(void) const
 { return fGeometryCode_displ; }
 
 
-} // namespace Tahoe 
+} // namespace Tahoe
 #endif /* _FS_MICROMORPHIC_3D_T_H_ */
 
 

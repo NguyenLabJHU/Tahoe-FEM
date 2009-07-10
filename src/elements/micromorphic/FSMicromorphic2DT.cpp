@@ -1238,11 +1238,17 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 					fSecond_Piola_tensor += fTemp_matrix_nsd_x_nsd;
 
 
-
-
-
 					/* [fKirchhoff_tensor] will be formed */
 					fKirchhoff_tensor.MultABCT(fDeformation_Gradient,fSecond_Piola_tensor,fDeformation_Gradient);
+
+					/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
+					fCauchy_stress_tensor_current_IP = fKirchhoff_tensor;
+					fCauchy_stress_tensor_current_IP *= 1/J;
+					/* extract six values of stress from symmetric cauchy stress tensor */
+					Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
+
+					/* Save Cauchy effective stress tensor of the current IP */
+					fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
 
 
 					/* {fKirchhoff_vector} will be formed */
@@ -1291,6 +1297,14 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 	 			fs_micromorph2D_out	<< endl ;
 			}
 					 */
+
+                    Form_Trial_Matrix();
+//                    for(int i=0;i<10;i++)
+//                    	for(int j=0;j<10;j++)
+//                    	{
+//                    		fs_micromorph2D_out << "("<<i<<","<<j<<"):" ;
+//                    		fs_micromorph2D_out<<trial(i,j)<<endl ;
+//                    	}
 
 
 					/* [fHbar_temp_matrix] will be formed */
@@ -1360,14 +1374,6 @@ void FSMicromorphic2DT::RHSDriver_monolithic(void)
 					/* Creating Second tangential elasticity tensor in the Ref. coordinate [fC_matrix] */
 					//Form_C_matrix(J_Prim);
 
-					/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
-					fCauchy_stress_tensor_current_IP = fKirchhoff_tensor;
-					fCauchy_stress_tensor_current_IP *= 1/J;
-					/* extract six values of stress from symmetric cauchy stress tensor */
-					Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
-
-					/* Save Cauchy effective stress tensor of the current IP */
-					fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
 
 					/* Creating Second tangential elasticity tensor in the Current coordinate [fc_matrix]*/
 					//Form_c_matrix();
@@ -1862,8 +1868,8 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
 	fIota_temp_matrix.Dimension (n_en_displ_x_n_sd,n_sd_x_n_sd);
 	// fVarpi_temp_matrix.Dimension (n_sd, n_en_displ_x_n_sd);
 
-	fChi_temp_vector.Dimension (n_sd);
-	fTemp_vector_9x1.Dimension (n_sd_x_n_sd);
+//	fChi_temp_vector.Dimension (n_sd);
+//	fTemp_vector_9x1.Dimension (n_sd_x_n_sd);
 	fFd_int_N1_vector.Dimension (n_en_displ_x_n_sd);
 	fTemp_vector_ndof_se.Dimension (n_en_displ_x_n_sd);
 	fTemp_vector_nen_micro.Dimension (n_en_micro);
@@ -1878,10 +1884,10 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
 	fK_dd_G3_3_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
 	fK_dd_G3_4_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
 	fI_ij_column_matrix.Dimension (n_sd_x_n_sd, 1);
-	fShapeDisplGrad_t_Transpose.Dimension (n_en_displ_x_n_sd, n_sd_x_n_sd);
+//	fShapeDisplGrad_t_Transpose.Dimension (n_en_displ_x_n_sd, n_sd_x_n_sd);
 	fShapeMicro_row_matrix.Dimension (1,n_en_micro);
-	fTemp_nsd_vector.Dimension (n_sd);
-	fGrad_1_J_vector.Dimension (n_sd);
+//	fTemp_nsd_vector.Dimension (n_sd);
+//	fGrad_1_J_vector.Dimension (n_sd);
 	//  fChi_temp_column_matrix.Dimension (n_sd, 1);
 	fTemp_matrix_nsd_x_1.Dimension (n_sd,1);
 	fTemp_matrix_ndof_se_x_ndof_se.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
@@ -1892,8 +1898,8 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
 	//  fB_matrix.Dimension (3 ,n_en_displ_x_n_sd);
 	//  fD_matrix.Dimension (3,3);
 
-	fK_dd_BTDB_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
-	fFd_int_smallstrain_vector.Dimension (n_en_displ_x_n_sd);
+//	fK_dd_BTDB_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+//	fFd_int_smallstrain_vector.Dimension (n_en_displ_x_n_sd);
 	fEulerian_strain_tensor_current_IP.Dimension (n_sd,n_sd);
 	fCauchy_stress_tensor_current_IP.Dimension (n_sd,n_sd);
 	fEulerian_strain_IPs.Dimension (fNumIP_displ,knumstrain);
@@ -1905,23 +1911,26 @@ void FSMicromorphic2DT::TakeParameterList(const ParameterListT& list)
 	fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
 	fGravity_vector.Dimension (n_sd);
 	fFd_int_G4_vector.Dimension (n_en_displ_x_n_sd);
+	trial.Dimension(10,10);
+
+
 	fDefGradInv_column_matrix.Dimension (n_sd_x_n_sd,1);
 	fDefGradInv_column_matrix_Transpose.Dimension (1,n_sd_x_n_sd);
-	u_dotdot_column_matrix.Dimension (n_en_displ_x_n_sd,1);
-	fGradv_vector.Dimension (n_sd_x_n_sd);
-	fgradv_vector.Dimension (n_sd_x_n_sd);
-	fXi_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
-	fVarsigma_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
-	fI_ijkl_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
-	u_dot_column_matrix.Dimension (n_en_displ_x_n_sd,1);
-	fTemp_matrix1_ndof_se_x_ndof_se.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+//	u_dotdot_column_matrix.Dimension (n_en_displ_x_n_sd,1);
+//	fGradv_vector.Dimension (n_sd_x_n_sd);
+//	fgradv_vector.Dimension (n_sd_x_n_sd);
+//	fXi_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+//	fVarsigma_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+//	fI_ijkl_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+//	u_dot_column_matrix.Dimension (n_en_displ_x_n_sd,1);
+//	fTemp_matrix1_ndof_se_x_ndof_se.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
 	fK_dd_G4_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
 	fGravity_column_matrix.Dimension (n_sd, 1);
-	fTemp_matrix_nsd_x_ndof_se.Dimension (n_sd,n_en_displ_x_n_sd);
-	fTemp_matrix_nsd_x_nen_micro.Dimension (n_sd,n_en_micro);
-	micro_dot_column_matrix.Dimension (n_en_micro,1);
-    u_dot_column_matrix_Transpose.Dimension (1, n_en_displ_x_n_sd);
-	fImath_temp_matrix.Dimension (n_sd,n_sd_x_n_sd);
+//	fTemp_matrix_nsd_x_ndof_se.Dimension (n_sd,n_en_displ_x_n_sd);
+//	fTemp_matrix_nsd_x_nen_micro.Dimension (n_sd,n_en_micro);
+//	micro_dot_column_matrix.Dimension (n_en_micro,1);
+//    u_dot_column_matrix_Transpose.Dimension (1, n_en_displ_x_n_sd);
+//	fImath_temp_matrix.Dimension (n_sd,n_sd_x_n_sd);
 
 	/* streams */
 	ofstreamT& out = ElementSupport().Output();
@@ -2982,6 +2991,21 @@ void FSMicromorphic2DT::Form_Ell_temp_matrix()
 
 }*/
 
+void FSMicromorphic2DT::Form_Trial_Matrix()
+{
+	for (int i=0; i<1; i++)
+	{
+		for(int j=0; j<1;j++)
+
+		{
+			A[i][j]=(i+1)*(j+1);
+       		fs_micromorph2D_out << "i:"<<i<<","<<"j:"<<j<<"A[i][j]"<<A[i][j]<<endl ;
+         }
+	}
+	trial=0.0;
+	trial(1,1)=A[0][1]*A[1][0];
+	trial(9,9)=A[1][1]*A[0][0];
+}
 
 void FSMicromorphic2DT::Form_Im_Prim_temp_matrix()
 {

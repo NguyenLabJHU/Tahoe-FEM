@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2DT.h,v 1.3 2009-06-28 03:18:31 isbuga Exp $ */
+/* $Id: FSMicromorphic2DT.h,v 1.4 2009-07-10 22:58:11 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_2D_T_H_
 #define _FS_MICROMORPHIC_2D_T_H_
@@ -295,6 +295,8 @@ private:
 	/* Data Storage */
 	ElementMatrixT fKdd, fKdphi;
 	ElementMatrixT fKphid, fKphiphi;
+	double A[10][10];
+	dMatrixT trial;
 	dArrayT 	fFd_int;
 	dArrayT 	fFd_ext;
 	dArrayT		fFphi_int;
@@ -471,7 +473,7 @@ private:
 	/** line output formating variables */
 	int outputPrecision, outputFileWidth;
 	/*@}*/
-
+    void Form_Trial_Matrix(void);
 	void Form_solid_shape_functions(const double* &shapes_displ_X);
 	void Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp);
 	void Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp);
