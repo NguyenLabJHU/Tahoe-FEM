@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.2 2009-07-10 22:58:11 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.3 2009-07-11 23:35:07 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -387,7 +387,8 @@ private:
 	double Finv[3][3];
 	dMatrixT Tsigma_2;
 	dMatrixT G1_2;//not being calculated yet
-
+    dMatrixT Tsigma_3;
+    dMatrixT G1_3;// not being calculated yet
 
 
 	//////////////////////////////////////////////////////////
@@ -517,7 +518,9 @@ private:
 	void Form_Tsigma_1_matrix(void);
 	void Form_G1_1_matrix(void);//not defined yet
 	void Form_Tsigma_2_matrix(void);
-
+    void Form_G1_2_matrix(void);
+    void Form_Tsigma_3_matrix(void);
+    void Form_G1_3_matrix(void);
 
 
 	//////////////////////////////////////////////////////////
