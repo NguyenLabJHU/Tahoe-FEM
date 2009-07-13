@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.3 2009-07-11 23:35:07 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.4 2009-07-13 05:10:50 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -380,15 +380,21 @@ private:
 	//////////////////////////////////////////////////////////
 	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
+	dMatrixT KrDelta;
 	dMatrixT Tsigma_1;
-	dMatrixT G1_1;//not being calculated yet
+	dMatrixT fG1_1;//not being calculated yet
 	double SigN[3][3];
 	double Fn[3][3];
 	double Finv[3][3];
 	dMatrixT Tsigma_2;
-	dMatrixT G1_2;//not being calculated yet
+	dMatrixT fG1_2;//not being calculated yet
     dMatrixT Tsigma_3;
-    dMatrixT G1_3;// not being calculated yet
+    dMatrixT fG1_3;// not being calculated yet
+    dMatrixT Tsigma_4;
+    dMatrixT fG1_4;
+    dMatrixT Tsigma_5;
+    dMatrixT fG1_5;
+
 
 
 	//////////////////////////////////////////////////////////
@@ -515,14 +521,17 @@ private:
 	//////////////////////////////////////////////////////////
 	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
+	void Form_KroneckerDelta_matrix(void);
 	void Form_Tsigma_1_matrix(void);
-	void Form_G1_1_matrix(void);//not defined yet
+	void Form_fG1_1_matrix(void);//not defined yet
 	void Form_Tsigma_2_matrix(void);
-    void Form_G1_2_matrix(void);
+    void Form_fG1_2_matrix(void);
     void Form_Tsigma_3_matrix(void);
-    void Form_G1_3_matrix(void);
-
-
+    void Form_fG1_3_matrix(void);
+    void Form_Tsigma_4_matrix(void);
+    void Form_fG1_4_matrix(void);
+    void Form_Tsigma_5_matrix(void);
+    void Form_fG1_5_matrix(void);
 	//////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////
