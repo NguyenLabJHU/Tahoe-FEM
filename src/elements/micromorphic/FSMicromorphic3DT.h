@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.4 2009-07-13 05:10:50 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.5 2009-07-13 20:48:36 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -390,12 +390,26 @@ private:
 	dMatrixT fG1_2;//not being calculated yet
     dMatrixT Tsigma_3;
     dMatrixT fG1_3;// not being calculated yet
-    dMatrixT Tsigma_4;
+    dMatrixT Tsigma_4;// to be multplied by (lamda+Tau)
     dMatrixT fG1_4;
-    dMatrixT Tsigma_5;
+    dMatrixT Tsigma_5;// to be mucltipled by (Mu+sigma)
     dMatrixT fG1_5;
-
-
+    dMatrixT Tsigma_6;// to be mucltipled by (Mu+sigma)
+    dMatrixT fG1_6;
+    dMatrixT Tsigma_7;// to be mucltipled by eta
+    dMatrixT fG1_7;
+    dMatrixT Tsigma_8;// to be mucltipled by eta
+    dMatrixT fG1_8;
+    dMatrixT Tsigma_8;// to be mucltipled by eta
+    dMatrixT fG1_8;
+    dMatrixT Tsigma_9;// to be mucltipled by kappa
+    dMatrixT fG1_9;
+    dMatrixT Tsigma_10;// to be mucltipled by kappa
+    dMatrixT fG1_10;
+    dMatrixT Tsigma_11;// to be mucltipled by nu
+    dMatrixT fG1_11;
+    dMatrixT Tsigma_12;// to be mucltipled by nu
+    dMatrixT fG1_12;
 
 	//////////////////////////////////////////////////////////
 	/////DEFINITIONS FINISH HERE FOR MICROMORPHIC MATRICES////
@@ -532,6 +546,21 @@ private:
     void Form_fG1_4_matrix(void);
     void Form_Tsigma_5_matrix(void);
     void Form_fG1_5_matrix(void);
+    void Form_Tsigma_6_matrix(void);
+    void Form_fG1_6_matrix(void);
+    void Form_Tsigma_7_matrix(void);
+    void Form_fG1_7_matrix(void);
+    void Form_Tsigma_8_matrix(void);
+    void Form_fG1_8_matrix(void);
+    void Form_Tsigma_9_matrix(void);
+    void Form_fG1_9_matrix(void);
+    void Form_Tsigma_10_matrix(void);
+    void Form_fG1_10_matrix(void);
+    void Form_Tsigma_11_matrix(void);
+    void Form_fG1_11_matrix(void);
+    void Form_Tsigma_12_matrix(void);
+    void Form_fG1_12_matrix(void);
+
 	//////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////
