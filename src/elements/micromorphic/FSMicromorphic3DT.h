@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.5 2009-07-13 20:48:36 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.6 2009-07-13 22:41:00 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -256,7 +256,7 @@ private:
 	/*@}*/
 
 	// problem size definitions
-	int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd;
+	int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd;
 	int n_el, n_sd, n_sd_surf, n_en_surf;
 	int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
 
@@ -390,15 +390,15 @@ private:
 	dMatrixT fG1_2;//not being calculated yet
     dMatrixT Tsigma_3;
     dMatrixT fG1_3;// not being calculated yet
-    dMatrixT Tsigma_4;// to be multplied by (lamda+Tau)
+    dMatrixT TFn_1;// to be multplied by (lamda+Tau)
     dMatrixT fG1_4;
-    dMatrixT Tsigma_5;// to be mucltipled by (Mu+sigma)
+    dMatrixT TFn_2;// to be mucltipled by (Mu+sigma)
     dMatrixT fG1_5;
-    dMatrixT Tsigma_6;// to be mucltipled by (Mu+sigma)
+    dMatrixT TFn_3;// to be mucltipled by (Mu+sigma)
     dMatrixT fG1_6;
-    dMatrixT Tsigma_7;// to be mucltipled by eta
+    dMatrixT TChi_1;// to be mucltipled by eta
     dMatrixT fG1_7;
-    dMatrixT Tsigma_8;// to be mucltipled by eta
+    dMatrixT TFn_4;// to be mucltipled by eta
     dMatrixT fG1_8;
     dMatrixT Tsigma_8;// to be mucltipled by eta
     dMatrixT fG1_8;
@@ -542,15 +542,15 @@ private:
     void Form_fG1_2_matrix(void);
     void Form_Tsigma_3_matrix(void);
     void Form_fG1_3_matrix(void);
-    void Form_Tsigma_4_matrix(void);
+    void Form_TFn_1_matrix(void);
     void Form_fG1_4_matrix(void);
-    void Form_Tsigma_5_matrix(void);
+    void Form_TFn_2_matrix(void);
     void Form_fG1_5_matrix(void);
-    void Form_Tsigma_6_matrix(void);
+    void Form_TFn_3_matrix(void);
     void Form_fG1_6_matrix(void);
-    void Form_Tsigma_7_matrix(void);
+    void Form_TChi_1_matrix(void);
     void Form_fG1_7_matrix(void);
-    void Form_Tsigma_8_matrix(void);
+    void Form_TFn_4_matrix(void);
     void Form_fG1_8_matrix(void);
     void Form_Tsigma_9_matrix(void);
     void Form_fG1_9_matrix(void);
