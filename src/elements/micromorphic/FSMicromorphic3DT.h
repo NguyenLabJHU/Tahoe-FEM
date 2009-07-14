@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.9 2009-07-14 21:45:25 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.10 2009-07-14 23:00:08 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -382,7 +382,7 @@ private:
 	//////////////////////////////////////////////////////////
 	double KrDelta[3][3];
 	dMatrixT Tsigma_1;
-	dMatrixT fG1_1;//not being calculated yet
+	dMatrixT fG1_1;
 	double SigN[3][3];
 	double Fn[3][3];
 	double Finv[3][3];
@@ -537,6 +537,7 @@ private:
 	//////////////////////////////////////////////////////////
 	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
+	void Form_double_Finv_from_Deformation_tensor_inverse(void);
 	void Form_KroneckerDelta_matrix(void);
 	void Form_Tsigma_1_matrix(void);
 	void Form_fG1_1_matrix(void);//not defined yet
