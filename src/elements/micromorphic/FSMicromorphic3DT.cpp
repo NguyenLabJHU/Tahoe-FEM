@@ -1219,6 +1219,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				/* [fIota_temp_matrix] will be formed */
 				fIota_temp_matrix.MultATB(fShapeDisplGrad,fDefGradInv_Grad_grad);
+                //fShapeDisplGrad--> [GRAD(Ns,e)] so it in reference configuration
+
+
 
 				/* second derivatives of solid shape functions, [fShapeDisplGradGrad] will be formed */
 				fShapes_displ->Grad_GradNa(fShapeDisplGradGrad);
@@ -1247,6 +1250,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				/* [fIm_temp_matrix] will be formed */
 				Form_Im_temp_matrix();
+////////////////////////////////////////////////////////////////////////////////
+				//Here, we use Tsigma_1 instead of I
 
 				/* [fHbar_temp_matrix] will be formed */
 				Form_Hbar_temp_matrix();
@@ -1772,7 +1777,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fShapeDisplGrad.Dimension (n_sd_x_n_sd, n_en_displ_x_n_sd);
     fShapeDisplGrad_t.Dimension (n_sd_x_n_sd, n_en_displ_x_n_sd);
     fShapeDisplGradGrad.Dimension (n_sd*2 , n_en_displ);
-    ndof_per_nd_micro_x_n_sd_x_n_sd = ndof_per_nd_micro*n_sd*n_sd;
+   // ndof_per_nd_micro_x_n_sd_x_n_sd = ndof_per_nd_micro*n_sd*n_sd;
     fShapeMicroGrad.Dimension (ndof_per_nd_micro_x_n_sd, n_en_micro_x_ndof_per_nd_micro);
     fDeformation_Gradient.Dimension (n_sd,n_sd);
     fGrad_disp_vector.Dimension (n_sd_x_n_sd);
@@ -1796,7 +1801,6 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     ///////////////////////////////////////////////////////////////////////////
     /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FOR 3D CASE//////////////
     ///////////////////////////////////////////////////////////////////////////
-    KrDelta.Dimension(n_sd,n_sd);
     Tsigma_1.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_1.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
     Tsigma_2.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
@@ -2460,11 +2464,14 @@ void FSMicromorphic3DT::Form_kirchhoff_stress_vector()
 //////////////////////////////////////////////////////////////////////
 void FSMicromorphic3DT::Form_KroneckerDelta_matrix()
 {
-	KrDelta=0.0;
-	KrDelta(0,0)=1.0;
-	KrDelta(1,1)=1.0;
-	KrDelta(2,2)=1.0;
+	for(int i=0;i<=2;i++)
+		for(int j=0;j<=2;j++)
+			KrDelta[i][j]=0.0;
+	KrDelta[0][0]=1.0;
+	KrDelta[1][1]=1.0;
+	KrDelta[2][2]=1.0;
 }
+
 void FSMicromorphic3DT::Form_Tsigma_1_matrix()
 {
 /*
@@ -2566,6 +2573,7 @@ void FSMicromorphic3DT::Form_Tsigma_1_matrix()
 	Tsigma_1(8,8)=(Finv[0][2]*Fn[2][0]*SigN[2][2] + Finv[1][2]*Fn[2][1]*SigN[2][2] + Finv[2][2]*Fn[2][2]*SigN[2][2]);
 
 }
+
 void FSMicromorphic3DT::Form_Tsigma_2_matrix()
 {
 /*
@@ -2676,6 +2684,8 @@ void FSMicromorphic3DT::Form_Tsigma_3_matrix()
 	 * SigN: Cauchy stresses, needs to be assigned from Cauchy_stress_IP by a loop
 	 */
     int ll;
+    int i ;
+    int j;
 	for( int k=0;k<=8;k++)
 		for(int l=0;l<=8;l++)
 			{
@@ -2782,10 +2792,12 @@ void FSMicromorphic3DT::Form_Tsigma_3_matrix()
 
 }
 
-void FSMicromoprhic3DT::Form_TFn_1_matrix()
+void FSMicromorphic3DT::Form_TFn_1_matrix()
 	{
 // mutliply with (lambda+thou)
 		int ll;
+		int i;
+		int j;
 			for( int k=0;k<=8;k++)
 				for(int l=0;l<=8;l++)
 				{
@@ -2847,10 +2859,12 @@ void FSMicromoprhic3DT::Form_TFn_1_matrix()
 */
 	}
 
-void FSMicromoprhic3DT::Form_TFn_2_matrix()
+void FSMicromorphic3DT::Form_TFn_2_matrix()
 	{
 	// mutliply with (Mu+sigma)
 		int ll;
+		int i;
+		int j;
 			for( int k=0;k<=8;k++)
 				for(int l=0;l<=8;l++)
 					{
@@ -2863,7 +2877,8 @@ void FSMicromoprhic3DT::Form_TFn_2_matrix()
 					TFn_2(l,k)=(Finv[0][k]*Fn[ll][0] + Finv[1][k]*Fn[ll][1] + Finv[2][k]*Fn[ll][2])*KrDelta[j][i];
 					}
 	}
-void FSMicromoprhic3DT::Form_TFn_3_matrix()
+
+void FSMicromorphic3DT::Form_TFn_3_matrix()
 	{
 	// mutliply with (Mu+sigma)
     TFn_3=0.0;
@@ -2905,98 +2920,100 @@ void FSMicromoprhic3DT::Form_TFn_3_matrix()
 
 	}
 
-void FSMicromoprhic3DT::Form_TChi_1_matrix()
+void FSMicromorphic3DT::Form_TChi_1_matrix()
 {
 	//should be mutliplied by eta
 
-	TChi_1(0,0)=(ChiInv[0][0]^2*ChiN[0][0]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][0] +
+	TChi_1(0,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][0] +
 		     ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[0][0] +
 		     ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1]*KrDelta[0][0] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[0][0] +
 		     ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1]*KrDelta[0][0] +
 		     ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[0][0]);//	*w[0][0] +
-	TChi_1(1,0)=(ChiInv[0][0]^2*ChiN[0][0]*KrDelta[1][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[1][0] +
+
+	TChi_1(1,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[1][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[1][0] +
 		     ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[1][0] +
 		     ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1]*KrDelta[1][0] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[1][0] +
 		     ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0]*KrDelta[1][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1]*KrDelta[1][0] +
 		     ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[1][0]);//*w[0][1] +
-	TChi_1(2,0)=(ChiInv[0][0]^2*ChiN[0][0]*KrDelta[2][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[2][0] +
+
+	TChi_1(2,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[2][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[2][0] +
 		     ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[2][0] +
 		     ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1]*KrDelta[2][0] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[2][0] +
 		     ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1]*KrDelta[2][0] +
 		     ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
-	TChi_1(3,0)=(ChiInv[0][0]^2*ChiN[0][0]*KrDelta[0][1] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][1] +
+	TChi_1(3,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[0][1] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][1] +
 		     ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[0][1] +
 		     ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1]*KrDelta[0][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[0][1] +
 		     ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][1] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1]*KrDelta[0][1] +
 		     ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
-	TChi_1(4,0)=(ChiInv[0][0]^2*ChiN[0][0]*KrDelta[1][1] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[1][1] +
+	TChi_1(4,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[1][1] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[1][1] +
 		     ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[1][1] +
 		     ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1]*KrDelta[1][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[1][1] +
 		     ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1]*KrDelta[1][1] +
 		     ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
-	TChi_1(5,0)=(ChiInv[0][0]^2*ChiN[0][0]*KrDelta[2][1] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[2][1] +
+	TChi_1(5,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[2][1] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[2][1] +
 		     ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[2][1] +
 		     ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1]*KrDelta[2][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[2][1] +
 		     ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0]*KrDelta[2][1] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1]*KrDelta[2][1] +
 		     ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
-	TChi_1(6,0)=(ChiInv[0][0]^2*ChiN[0][0]*KrDelta[0][2] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][2] +
+	TChi_1(6,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[0][2] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][2] +
 		     ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[0][2] +
 		     ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1]*KrDelta[0][2] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[0][2] +
 		     ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1]*KrDelta[0][2] +
 		     ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
-	TChi_1(7,0)=(ChiInv[0][0]^2*ChiN[0][0]*KrDelta[1][2] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[1][2] +
+	TChi_1(7,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[1][2] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[1][2] +
 		     ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[1][2] +
 		     ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1]*KrDelta[1][2] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[1][2] +
 		     ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0]*KrDelta[1][2] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1]*KrDelta[1][2] +
 		     ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
-	TChi_1(8,0)=(ChiInv[0][0]^2*ChiN[0][0]*KrDelta[2][2] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[2][2] +
+	TChi_1(8,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[2][2] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[2][2] +
 		     ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[2][2] +
 		     ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1]*KrDelta[2][2] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[2][2] +
 		     ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1]*KrDelta[2][2] +
 		     ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[2][2]);//*w[2][2]
 
 	TChi_1(0,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[0][0] +
-			ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][1]^2*ChiN[1][0]*KrDelta[0][0] +
+			ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[0][0] +
 			ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][0] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][0] +
 			ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[0][0] +
 			ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
 	TChi_1(1,1)=ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[1][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[1][0] +
-	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][1]^2*ChiN[1][0]*KrDelta[1][0] +
+	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[1][0] +
 	     ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][0] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][0] +
 	     ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[1][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[1][0] +
 	     ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[1][0];//*w[0][1] +
 	TChi_1(2,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[2][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[2][0] +
-	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][1]^2*ChiN[1][0]*KrDelta[2][0] +
+	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[2][0] +
 	     ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[2][0] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][0] +
 	     ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[2][0] +
 	     ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
 	TChi_1(3,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[0][1] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[0][1] +
-	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][1]^2*ChiN[1][0]*KrDelta[0][1] +
+	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[0][1] +
 	     ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][1] +
 	     ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][1] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[0][1] +
 	     ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
 	TChi_1(4,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[1][1] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[1][1] +
-	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][1]^2*ChiN[1][0]*KrDelta[1][1] +
+	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[1][1] +
 	     ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][1] +
 	     ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[1][1] +
 	     ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
 	TChi_1(5,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[2][1] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[2][1] +
-	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][1]^2*ChiN[1][0]*KrDelta[2][1] +
+	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[2][1] +
 	     ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[2][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][1] +
 	     ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[2][1] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[2][1] +
 	     ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
 	TChi_1(6,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[0][2] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[0][2] +
-	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][1]^2*ChiN[1][0]*KrDelta[0][2] +
+	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[0][2] +
 	     ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][2] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][2] +
 	     ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[0][2] +
 	     ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
 	TChi_1(7,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[1][2] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[1][2] +
-	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][1]^2*ChiN[1][0]*KrDelta[1][2] +
+	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[1][2] +
 	     ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][2] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][2] +
 	     ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[1][2] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[1][2] +
 	     ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
 	TChi_1(8,1)==(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[2][2] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[2][2] +
-	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][1]^2*ChiN[1][0]*KrDelta[2][2] +
+	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[2][2] +
 	     ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[2][2] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][2] +
 	     ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[2][2] +
 	     ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[2][2]);//*w[2][2]
@@ -3004,91 +3021,91 @@ void FSMicromoprhic3DT::Form_TChi_1_matrix()
 	TChi_1(0,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[0][0] +
 	     ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0]*KrDelta[0][0] +
 	     ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[0][0] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[0][0] +
-	     ChiInv[0][2]^2*ChiN[2][0]*KrDelta[0][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][0] +
+	     ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][0] +
 	     ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
 	TChi_1(1,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*KrDelta[1][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[1][0] +
 	     ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0]*KrDelta[1][0] +
 	     ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[1][0] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[1][0] +
-	     ChiInv[0][2]^2*ChiN[2][0]*KrDelta[1][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][0] +
+	     ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0]*KrDelta[1][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][0] +
 	     ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][0]);//*w[0][1] +
 	TChi_1(2,2)= (ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*KrDelta[2][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[2][0] +
 	     ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0]*KrDelta[2][0] +
 	     ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[2][0] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[2][0] +
-	     ChiInv[0][2]^2*ChiN[2][0]*KrDelta[2][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][0] +
+	     ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][0] +
 	     ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
 	TChi_1(3,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*KrDelta[0][1] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[0][1] +
 	     ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0]*KrDelta[0][1] +
 	     ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[0][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[0][1] +
-	     ChiInv[0][2]^2*ChiN[2][0]*KrDelta[0][1] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][1] +
+	     ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][1] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][1] +
 	     ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
 	TChi_1(4,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*KrDelta[1][1] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[1][1] +
 	     ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0]*KrDelta[1][1] +
 	     ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[1][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[1][1] +
-	     ChiInv[0][2]^2*ChiN[2][0]*KrDelta[1][1] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][1] +
+	     ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][1] +
 	     ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
 	TChi_1(5,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*KrDelta[2][1] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[2][1] +
 	     ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0]*KrDelta[2][1] +
 	     ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[2][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[2][1] +
-	     ChiInv[0][2]^2*ChiN[2][0]*KrDelta[2][1] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][1] +
+	     ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0]*KrDelta[2][1] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][1] +
 	     ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
 	TChi_1(6,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*KrDelta[0][2] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[0][2] +
 	     ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0]*KrDelta[0][2] +
 	     ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[0][2] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[0][2] +
-	     ChiInv[0][2]^2*ChiN[2][0]*KrDelta[0][2] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][2] +
+	     ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][2] +
 	     ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
 	TChi_1(7,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*KrDelta[1][2] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[1][2] +
 	     ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0]*KrDelta[1][2] +
 	     ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[1][2] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[1][2] +
-	     ChiInv[0][2]^2*ChiN[2][0]*KrDelta[1][2] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][2] +
+	     ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0]*KrDelta[1][2] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][2] +
 	     ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
 	TChi_1(8,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*KrDelta[2][2] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[2][2] +
 	     ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0]*KrDelta[2][2] +
 	     ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[2][2] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[2][2] +
-	     ChiInv[0][2]^2*ChiN[2][0]*KrDelta[2][2] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][2] +
+	     ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][2] +
 	     ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][2]);//*w[2][2])
 
 
-	TChi_1(0,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][0] + ChiInv[1][0]^2*ChiN[0][1]*KrDelta[0][0] +
+	TChi_1(0,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][0] +
 	     ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0]*KrDelta[0][0] +
 	     ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[0][0] +
 	     ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][0] +
 	     ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
-	TChi_1(1,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][0] + ChiInv[1][0]^2*ChiN[0][1]*KrDelta[1][0] +
+	TChi_1(1,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[1][0] +
 	     ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0]*KrDelta[1][0] +
 	     ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[1][0] +
 	     ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][0] +
 	     ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[1][0]);//*w[0][1] +
-	TChi_1(2,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][0] + ChiInv[1][0]^2*ChiN[0][1]*KrDelta[2][0] +
+	TChi_1(2,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[2][0] +
 	     ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0]*KrDelta[2][0] +
 	     ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1]*KrDelta[2][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[2][0] +
 	     ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][0] +
 	     ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
-	TChi_1(3,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][1] + ChiInv[1][0]^2*ChiN[0][1]*KrDelta[0][1] +
+	TChi_1(3,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][1] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][1] +
 	     ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0]*KrDelta[0][1] +
 	     ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[0][1] +
 	     ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][1] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][1] +
 	     ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
-	TChi_1(4,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][1] + ChiInv[1][0]^2*ChiN[0][1]*KrDelta[1][1] +
+	TChi_1(4,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][1] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[1][1] +
 	     ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0]*KrDelta[1][1] +
 	     ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[1][1] +
 	     ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][1] +
 	     ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
-	TChi_1(5,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][1] + ChiInv[1][0]^2*ChiN[0][1]*KrDelta[2][1] +
+	TChi_1(5,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][1] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[2][1] +
 	     ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0]*KrDelta[2][1] +
 	     ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1]*KrDelta[2][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[2][1] +
 	     ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][1] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][1] +
 	     ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
-	TChi_1(6,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][2] + ChiInv[1][0]^2*ChiN[0][1]*KrDelta[0][2] +
+	TChi_1(6,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][2] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][2] +
 	     ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0]*KrDelta[0][2] +
 	     ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][2] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[0][2] +
 	     ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][2] +
 	     ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
-	TChi_1(7,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][2] + ChiInv[1][0]^2*ChiN[0][1]*KrDelta[1][2] +
+	TChi_1(7,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][2] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[1][2] +
 	     ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0]*KrDelta[1][2] +
 	     ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][2] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[1][2] +
 	     ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][2] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][2] +
 	     ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
-	TChi_1(8,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][2] + ChiInv[1][0]^2*ChiN[0][1]*KrDelta[2][2] +
+	TChi_1(8,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][2] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[2][2] +
 	     ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0]*KrDelta[2][2] +
 	     ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1]*KrDelta[2][2] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]*KrDelta[2][2] +
 	     ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][2] +
@@ -3096,185 +3113,186 @@ void FSMicromoprhic3DT::Form_TChi_1_matrix()
 
 	TChi_1(0,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[0][0] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0]*KrDelta[0][0] +
-	      ChiInv[1][1]^2*ChiN[1][1]*KrDelta[0][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][0] +
+	      ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][0] +
 	      ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][0] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
+
 	TChi_1(1,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[1][0] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0]*KrDelta[1][0] +
-	      ChiInv[1][1]^2*ChiN[1][1]*KrDelta[1][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][0] +
+	      ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][0] +
 	      ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][0] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[1][0]);//*w[0][1] +
 	TChi_1(2,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[2][0] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0]*KrDelta[2][0] +
-	      ChiInv[1][1]^2*ChiN[1][1]*KrDelta[2][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][0] +
+	      ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[2][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][0] +
 	      ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][0] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
 	TChi_1(3,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][1] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[0][1] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0]*KrDelta[0][1] +
-	      ChiInv[1][1]^2*ChiN[1][1]*KrDelta[0][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][1] +
+	      ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][1] +
 	      ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][1] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][1] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
 	TChi_1(4,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][1] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[1][1] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0]*KrDelta[1][1] +
-	      ChiInv[1][1]^2*ChiN[1][1]*KrDelta[1][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][1] +
+	      ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][1] +
 	      ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][1] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
 	TChi_1(5,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][1] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[2][1] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0]*KrDelta[2][1] +
-	      ChiInv[1][1]^2*ChiN[1][1]*KrDelta[2][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][1] +
+	      ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[2][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][1] +
 	      ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][1] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][1] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
 	TChi_1(6,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][2] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[0][2] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0]*KrDelta[0][2] +
-	      ChiInv[1][1]^2*ChiN[1][1]*KrDelta[0][2] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][2] +
+	      ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][2] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][2] +
 	      ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][2] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
 	TChi_1(7,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][2] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[1][2] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0]*KrDelta[1][2] +
-	      ChiInv[1][1]^2*ChiN[1][1]*KrDelta[1][2] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][2] +
+	      ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][2] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][2] +
 	      ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][2] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][2] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
 	TChi_1(8,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][2] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[2][2] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0]*KrDelta[2][2] +
-	      ChiInv[1][1]^2*ChiN[1][1]*KrDelta[2][2] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][2] +
+	      ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[2][2] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][2] +
 	      ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][2] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[2][2]);//*w[2][2] +
 
 	 TChi_1(0,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[0][0] +
 	      ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0]*KrDelta[0][0] +
 	      ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[0][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[0][0] +
-	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[1][2]^2*ChiN[2][1]*KrDelta[0][0] +
+	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][0] +
 	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
 	 TChi_1(1,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[1][0] +
 	      ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0]*KrDelta[1][0] +
 	      ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[1][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[1][0] +
-	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][0] + ChiInv[1][2]^2*ChiN[2][1]*KrDelta[1][0] +
+	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][0] +
 	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][0]);//*w[0][1] +
 	 TChi_1(2,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[2][0] +
 	      ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0]*KrDelta[2][0] +
 	      ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[2][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[2][0] +
-	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[1][2]^2*ChiN[2][1]*KrDelta[2][0] +
+	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][0] +
 	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
 	 TChi_1(3,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][1] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[0][1] +
 	      ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0]*KrDelta[0][1] +
 	      ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[0][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[0][1] +
-	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][1] + ChiInv[1][2]^2*ChiN[2][1]*KrDelta[0][1] +
+	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][1] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][1] +
 	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
 	 TChi_1(4,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][1] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[1][1] +
 	      ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0]*KrDelta[1][1] +
 	      ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[1][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[1][1] +
-	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[1][2]^2*ChiN[2][1]*KrDelta[1][1] +
+	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][1] +
 	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
 	 TChi_1(5,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][1] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[2][1] +
 	      ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0]*KrDelta[2][1] +
 	      ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[2][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[2][1] +
-	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][1] + ChiInv[1][2]^2*ChiN[2][1]*KrDelta[2][1] +
+	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][1] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][1] +
 	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
 	 TChi_1(6,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0]*KrDelta[0][2] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[0][2] +
 	      ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0]*KrDelta[0][2] +
 	      ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[0][2] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[0][2] +
-	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[1][2]^2*ChiN[2][1]*KrDelta[0][2] +
+	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[0][2] +
 	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
 	 TChi_1(7,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0]*KrDelta[1][2] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[1][2] +
 	      ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0]*KrDelta[1][2] +
 	      ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[1][2] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[1][2] +
-	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][2] + ChiInv[1][2]^2*ChiN[2][1]*KrDelta[1][2] +
+	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[1][2] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[1][2] +
 	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
 	 TChi_1(8,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0]*KrDelta[2][2] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1]*KrDelta[2][2] +
 	      ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0]*KrDelta[2][2] +
 	      ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1]*KrDelta[2][2] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[2][2] +
-	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[1][2]^2*ChiN[2][1]*KrDelta[2][2] +
+	      ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1]*KrDelta[2][2] +
 	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][2]);//*w[2][2]
 
 	 TChi_1(0,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0]*KrDelta[0][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1]*KrDelta[0][0] +
-	      ChiInv[2][0]^2*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][0] +
+	      ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][0] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][0] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][0] +
 	      ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][0] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
 	 TChi_1(1,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0]*KrDelta[1][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1]*KrDelta[1][0] +
-	      ChiInv[2][0]^2*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][0] +
+	      ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][0] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][0] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][0] +
 	      ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0]*KrDelta[1][0] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][0] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][0]);//*w[0][1] +
 	 TChi_1(2,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0]*KrDelta[2][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1]*KrDelta[2][0] +
-	      ChiInv[2][0]^2*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][0] +
+	      ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][0] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][0] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][0] +
 	      ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][0] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
 	 TChi_1(3,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0]*KrDelta[0][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1]*KrDelta[0][1] +
-	      ChiInv[2][0]^2*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][1] +
+	      ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][1] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][1] +
 	      ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0]*KrDelta[0][1] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][1] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
 	 TChi_1(4,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0]*KrDelta[1][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1]*KrDelta[1][1] +
-	      ChiInv[2][0]^2*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][1] +
+	      ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][1] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][1] +
 	      ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][1] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
 	 TChi_1(5,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0]*KrDelta[2][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1]*KrDelta[2][1] +
-	      ChiInv[2][0]^2*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][1] +
+	      ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][1] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][1] +
 	      ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0]*KrDelta[2][1] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][1] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
 	 TChi_1(6,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0]*KrDelta[0][2] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1]*KrDelta[0][2] +
-	      ChiInv[2][0]^2*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][2] +
+	      ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][2] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][2] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][2] +
 	      ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][2] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
 	 TChi_1(7,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0]*KrDelta[1][2] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1]*KrDelta[1][2] +
-	      ChiInv[2][0]^2*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][2] +
+	      ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][2] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][2] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][2] +
 	      ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0]*KrDelta[1][2] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][2] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
 	 TChi_1(8,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0]*KrDelta[2][2] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1]*KrDelta[2][2] +
-	      ChiInv[2][0]^2*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][2] +
+	      ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][2] +
 	      ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][2] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][2] +
 	      ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][2] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][2]);//*w[2][2]) +
 
 	 TChi_1(0,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0]*KrDelta[0][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1]*KrDelta[0][0] +
 	      ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][0] +
-	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][0] + ChiInv[2][1]^2*ChiN[1][2]*KrDelta[0][0] +
+	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][0] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][0] +
 	      ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][0] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
 	 TChi_1(1,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0]*KrDelta[1][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1]*KrDelta[1][0] +
 	      ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][0] +
-	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][0] + ChiInv[2][1]^2*ChiN[1][2]*KrDelta[1][0] +
+	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][0] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][0] +
 	      ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0]*KrDelta[1][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][0] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][0]);//*w[0][1] +
 	 TChi_1(2,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0]*KrDelta[2][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1]*KrDelta[2][0] +
 	      ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][0] +
-	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][0] + ChiInv[2][1]^2*ChiN[1][2]*KrDelta[2][0] +
+	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][0] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][0] +
 	      ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][0] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
 	 TChi_1(3,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0]*KrDelta[0][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1]*KrDelta[0][1] +
 	      ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][1] +
-	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][1] + ChiInv[2][1]^2*ChiN[1][2]*KrDelta[0][1] +
+	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][1] +
 	      ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0]*KrDelta[0][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][1] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
 	 TChi_1(4,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0]*KrDelta[1][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1]*KrDelta[1][1] +
 	      ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][1] +
-	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][1] + ChiInv[2][1]^2*ChiN[1][2]*KrDelta[1][1] +
+	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][1] +
 	      ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][1] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
 	 TChi_1(5,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0]*KrDelta[2][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1]*KrDelta[2][1] +
 	      ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][1] +
-	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][1] + ChiInv[2][1]^2*ChiN[1][2]*KrDelta[2][1] +
+	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][1] +
 	      ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0]*KrDelta[2][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][1] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
 	 TChi_1(6,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0]*KrDelta[0][2] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1]*KrDelta[0][2] +
 	      ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][2] +
-	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][2] + ChiInv[2][1]^2*ChiN[1][2]*KrDelta[0][2] +
+	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][2] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][2] +
 	      ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][2] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
 	 TChi_1(7,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0]*KrDelta[1][2] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1]*KrDelta[1][2] +
 	      ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][2] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][2] +
-	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][2] + ChiInv[2][1]^2*ChiN[1][2]*KrDelta[1][2] +
+	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][2] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][2] +
 	      ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0]*KrDelta[1][2] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][2] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
 	 TChi_1(8,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0]*KrDelta[2][2] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1]*KrDelta[2][2] +
 	      ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][2] +
-	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][2] + ChiInv[2][1]^2*ChiN[1][2]*KrDelta[2][2] +
+	      ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][2] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[2][2] +
 	      ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][2] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][2]);//*w[2][2]) +
 
@@ -3282,57 +3300,58 @@ void FSMicromoprhic3DT::Form_TChi_1_matrix()
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][0] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][0] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[0][0] +
 	      ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][0] +
-	      ChiInv[2][2]^2*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
+	      ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
 	 TChi_1(1,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0]*KrDelta[1][0] +
 	      ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1]*KrDelta[1][0] + ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[1][0] +
 	      ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][0] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[1][0] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0]*KrDelta[1][0] +
-	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][0] + ChiInv[2][2]^2*ChiN[2][2]*KrDelta[1][0]);//*w[0][1] +
+	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][0] + ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][0]);//*w[0][1] +
 	 TChi_1(2,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0]*KrDelta[2][0] + ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1]*KrDelta[2][0] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[2][0] + ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][0] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][0] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[2][0] +
 	      ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0]*KrDelta[2][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][0] +
-	      ChiInv[2][2]^2*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
+	      ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][0]);//*w[0][2] +
 	 TChi_1(3,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0]*KrDelta[0][1] +
 	      ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1]*KrDelta[0][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[0][1] +
 	      ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][1] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[0][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0]*KrDelta[0][1] +
-	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][1] + ChiInv[2][2]^2*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
+	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][1]);//*w[1][0] +
 	 TChi_1(4,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0]*KrDelta[1][1] + ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1]*KrDelta[1][1] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[1][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][1] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[1][1] +
 	      ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0]*KrDelta[1][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][1] +
-	      ChiInv[2][2]^2*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
+	      ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][1]);//*w[1][1] +
 	 TChi_1(5,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0]*KrDelta[2][1] +
 	      ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1]*KrDelta[2][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[2][1] +
 	      ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][1] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[2][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0]*KrDelta[2][1] +
-	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][1] + ChiInv[2][2]^2*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
+	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][1]);//*w[1][2] +
 	 TChi_1(6,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0]*KrDelta[0][2] + ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1]*KrDelta[0][2] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[0][2] + ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0]*KrDelta[0][2] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1]*KrDelta[0][2] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[0][2] +
 	      ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0]*KrDelta[0][2] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[0][2] +
-	      ChiInv[2][2]^2*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
+	      ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[0][2]);//*w[2][0] +
 	 TChi_1(7,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0]*KrDelta[1][2] +
 	      ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1]*KrDelta[1][2] + ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[1][2] +
 	      ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0]*KrDelta[1][2] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1]*KrDelta[1][2] +
 	      ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[1][2] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0]*KrDelta[1][2] +
-	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][2] + ChiInv[2][2]^2*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
+	      ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[1][2] + ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[1][2]);//*w[2][1] +
 	 TChi_1(8,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0]*KrDelta[2][2] + ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1]*KrDelta[2][2] +
 	      ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]*KrDelta[2][2] + ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0]*KrDelta[2][2] +
 	      ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1]*KrDelta[2][2] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]*KrDelta[2][2] +
 	      ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0]*KrDelta[2][2] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1]*KrDelta[2][2] +
-	      ChiInv[2][2]^2*ChiN[2][2]*KrDelta[2][2]);//*w[2][2])
+	      ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]*KrDelta[2][2]);//*w[2][2])
 
 
 
 
 }
 
-void FSMmicromorphic3DT::Form_TFn_4_matrix()
+void FSMicromorphic3DT::Form_TFn_4_matrix()
 {
 	 TFn_4(0,0)=(Finv[0][0]*Fn[0][0]*KrDelta[0][0] + Finv[1][0]*Fn[0][1]*KrDelta[0][0] + Finv[2][0]*Fn[0][2]*KrDelta[0][0]);//*w[0][0] +
-	 TFn_4(1,0)=(Finv[0][0]*Fn[0][0]*KrDelta[1][0] + Finv[1][0]*Fn[0][1]*KrDelta[1][0] + Finv[2][0]*Fn[0][2]*KrDelta[1][0]);*w[0][1] +
+
+	 TFn_4(1,0)=(Finv[0][0]*Fn[0][0]*KrDelta[1][0] + Finv[1][0]*Fn[0][1]*KrDelta[1][0] + Finv[2][0]*Fn[0][2]*KrDelta[1][0]);//*w[0][1] +
 	 TFn_4(2,0)=(Finv[0][0]*Fn[0][0]*KrDelta[2][0] + Finv[1][0]*Fn[0][1]*KrDelta[2][0] + Finv[2][0]*Fn[0][2]*KrDelta[2][0]);//*w[0][2] +
 	 TFn_4(3,0)=(Finv[0][0]*Fn[0][0]*KrDelta[0][1] + Finv[1][0]*Fn[0][1]*KrDelta[0][1] + Finv[2][0]*Fn[0][2]*KrDelta[0][1]);//*w[1][0] +
 	 TFn_4(4,0)=(Finv[0][0]*Fn[0][0]*KrDelta[1][1] + Finv[1][0]*Fn[0][1]*KrDelta[1][1] + Finv[2][0]*Fn[0][2]*KrDelta[1][1]);//*w[1][1] +
@@ -3427,9 +3446,9 @@ void FSMmicromorphic3DT::Form_TFn_4_matrix()
 void FSMicromorphic3DT::Form_TChi_2_matrix()
 {
 	//should be mutliplied by kappa
-   TChi_2(0,0)=(ChiInv[0][0]^2*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]);
-   TChi_2(1,0)=(ChiInv[0][0]^2*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[1][2]);
-   TChi_2(2,0)=(ChiInv[0][0]^2*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[2][2]);
+   TChi_2(0,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]);
+   TChi_2(1,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[1][2]);
+   TChi_2(2,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[2][2]);
    TChi_2(3,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[0][2]);
    TChi_2(4,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]);
    TChi_2(5,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[2][2]);
@@ -3441,9 +3460,9 @@ void FSMicromorphic3DT::Form_TChi_2_matrix()
 	TChi_2(0,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]);
 	TChi_2(1,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][2]);
 	TChi_2(2,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[2][2]);
-	TChi_2(3,1)=(ChiInv[0][1]^2*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[0][2]);
-	TChi_2(4,1)=(ChiInv[0][1]^2*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]);
-	TChi_2(5,1)=(ChiInv[0][1]^2*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_2(3,1)=(ChiInv[0][1]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_2(4,1)=(ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_2(5,1)=(ChiInv[0][1]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[2][2]);
 	TChi_2(6,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[0][2]);
 	TChi_2(7,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[1][2]);
 	TChi_2(8,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]);
@@ -3454,14 +3473,14 @@ void FSMicromorphic3DT::Form_TChi_2_matrix()
 	TChi_2(3,2)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[0][2]);
 	TChi_2(4,2)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]);
 	TChi_2(5,2)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[2][2]);
-	TChi_2(6,2)=(ChiInv[0][2]^2*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[0][2]);
-	TChi_2(7,2)=(ChiInv[0][2]^2*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[1][2]);
-	TChi_2(8,2)=(ChiInv[0][2]^2*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]);
+	TChi_2(6,2)=(ChiInv[0][2]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_2(7,2)=(ChiInv[0][2]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_2(8,2)=(ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]);
 
 
-	TChi_2(0,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0] + ChiInv[1][0]^2*ChiN[0][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]);
-	TChi_2(1,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[1][0] + ChiInv[1][0]^2*ChiN[1][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[1][2]);
-	TChi_2(2,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[2][0] + ChiInv[1][0]^2*ChiN[2][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[2][2]);
+	TChi_2(0,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_2(1,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[1][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_2(2,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[2][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[2][2]);
 	TChi_2(3,3)=(ChiInv[0][0]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][2]);
 	TChi_2(4,3)=(ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]);
 	TChi_2(5,3)=(ChiInv[0][0]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[2][2]);
@@ -3472,9 +3491,9 @@ void FSMicromorphic3DT::Form_TChi_2_matrix()
 	TChi_2(0,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]);
 	TChi_2(1,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[1][0]*ChiInv[2][1]*ChiN[1][2]);
 	TChi_2(2,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[1][0]*ChiInv[2][1]*ChiN[2][2]);
-	TChi_2(3,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][1]^2*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][2]);
-	TChi_2(4,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][1]^2*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]);
-	TChi_2(5,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][1]^2*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_2(3,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[1][1]*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_2(4,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_2(5,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[1][1]*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[2][2]);
 	TChi_2(6,4)=(ChiInv[0][1]*ChiInv[1][2]*ChiN[0][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[0][2]);
 	TChi_2(7,4)=(ChiInv[0][1]*ChiInv[1][2]*ChiN[1][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][2]);
 	TChi_2(8,4)=(ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]);
@@ -3485,13 +3504,13 @@ void FSMicromorphic3DT::Form_TChi_2_matrix()
 	TChi_2(3,5)=(ChiInv[0][2]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[0][2]);
 	TChi_2(4,5)=(ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]);
 	TChi_2(5,5)=(ChiInv[0][2]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][2]);
-	TChi_2(6,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[0][0] + ChiInv[1][2]^2*ChiN[0][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[0][2]);
-	TChi_2(7,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[1][0] + ChiInv[1][2]^2*ChiN[1][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[1][2]);
-	TChi_2(8,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0] + ChiInv[1][2]^2*ChiN[2][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]);
+	TChi_2(6,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[0][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_2(7,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[1][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_2(8,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]);
 
-	TChi_2(0,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1] + ChiInv[2][0]^2*ChiN[0][2]);
-	TChi_2(1,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[1][1] + ChiInv[2][0]^2*ChiN[1][2]);
-	TChi_2(2,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[2][1] + ChiInv[2][0]^2*ChiN[2][2]);
+	TChi_2(0,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_2(1,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_2(2,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][0]*ChiN[2][2]);
 	TChi_2(3,6)=(ChiInv[0][0]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][0]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]);
 	TChi_2(4,6)=(ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]);
 	TChi_2(5,6)=(ChiInv[0][0]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][0]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[2][2]);
@@ -3502,9 +3521,9 @@ void FSMicromorphic3DT::Form_TChi_2_matrix()
 	TChi_2(0,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]);
 	TChi_2(1,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]);
 	TChi_2(2,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[2][2]);
-	TChi_2(3,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][1]^2*ChiN[0][2]);
-	TChi_2(4,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][1]^2*ChiN[1][2]);
-	TChi_2(5,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][1]^2*ChiN[2][2]);
+	TChi_2(3,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_2(4,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_2(5,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[2][2]);
 	TChi_2(6,7)=(ChiInv[0][1]*ChiInv[2][2]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[0][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[0][2]);
 	TChi_2(7,7)=(ChiInv[0][1]*ChiInv[2][2]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]);
 	TChi_2(8,7)=(ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]);
@@ -3515,12 +3534,11 @@ void FSMicromorphic3DT::Form_TChi_2_matrix()
 	TChi_2(3,8)=(ChiInv[0][2]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[0][2]);
 	TChi_2(4,8)=(ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]);
 	TChi_2(5,8)=(ChiInv[0][2]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]);
-	TChi_2(6,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[0][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[0][1] + ChiInv[2][2]^2*ChiN[0][2]);
-	TChi_2(7,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[1][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[1][1] + ChiInv[2][2]^2*ChiN[1][2]);
-	TChi_2(8,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1] + ChiInv[2][2]^2*ChiN[2][2]);
+	TChi_2(6,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[0][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[0][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_2(7,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[1][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[1][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_2(8,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]);
 
 }
-
 
 void FSMicromorphic3DT::Form_TFn_5_matrix()
 {
@@ -3564,46 +3582,144 @@ void FSMicromorphic3DT::Form_TFn_5_matrix()
 
 }
 
-
 void FSMicromorphic3DT::Form_TChi_3_matrix()
 {
-	TChi_3(0,0)=(ChiInv[0][0]^2*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_3(0,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]);
 	TChi_3(1,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[0][2]);
 	TChi_3(2,0)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][0]*ChiN[0][2]);
-	TChi_3(3,0)=(ChiInv[0][0]^2*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_3(3,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[1][2]);
 	TChi_3(4,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]);
 	TChi_3(5,0)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][0]*ChiN[1][2]);
-	TChi_3(6,0)=(ChiInv[0][0]^2*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[2][2]);
+	TChi_3(6,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[2][2]);
 	TChi_3(7,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[2][2]);
 	TChi_3(8,0)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]);
 
 	TChi_3(0,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]);
-	TChi_3(1,1)=(ChiInv[0][1]^2*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(1,1)=(ChiInv[0][1]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[0][2]);
 	TChi_3(2,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[0][2]);
 	TChi_3(3,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][2]);
-	TChi_3(4,1)=(ChiInv[0][1]^2*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(4,1)=(ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]);
 	TChi_3(5,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[1][2]);
 	TChi_3(6,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[2][2]);
-	TChi_3(7,1)=(ChiInv[0][1]^2*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_3(7,1)=(ChiInv[0][1]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[2][2]);
 	TChi_3(8,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]);
 
-	(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2])*w[0][0] +
-	   (ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[0][2])*w[0][1] +
-	   (ChiInv[0][2]^2*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[0][2])*w[0][2] +
-	   (ChiInv[0][0]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[1][2])*w[1][0] +
-	   (ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2])*w[1][1] +
-	   (ChiInv[0][2]^2*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[1][2])*w[1][2] +
-	   (ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[2][2])*w[2][0] +
-	   (ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[2][2])*w[2][1] +
-	   (ChiInv[0][2]^2*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2])*w[2][2]) +
+	TChi_3(0,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(1,2)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(2,2)=(ChiInv[0][2]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(3,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(4,2)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(5,2)=(ChiInv[0][2]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(6,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[2][2]);
+	TChi_3(7,2)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[2][2]);
+	TChi_3(8,2)=(ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]);
 
+	TChi_3(0,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_3(1,3)=(ChiInv[0][0]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_3(2,3)=(ChiInv[0][0]*ChiInv[1][2]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][2]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_3(3,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[1][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_3(4,3)=(ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_3(5,3)=(ChiInv[0][0]*ChiInv[1][2]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][2]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_3(6,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[2][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[2][2]);
+	TChi_3(7,3)=(ChiInv[0][0]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[2][2]);
+	TChi_3(8,3)=(ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]);
 
+	TChi_3(0,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(1,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[1][1]*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(2,4)=(ChiInv[0][1]*ChiInv[1][2]*ChiN[0][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(3,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[1][0]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(4,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(5,4)=(ChiInv[0][1]*ChiInv[1][2]*ChiN[1][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(6,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[1][0]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_3(7,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[1][1]*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_3(8,4)=(ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]);
+
+	TChi_3(0,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(1,5)=(ChiInv[0][2]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(2,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[0][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(3,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][0]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(4,5)=(ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(5,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[1][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(6,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][2]);
+	TChi_3(7,5)=(ChiInv[0][2]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][2]);
+	TChi_3(8,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]);
+
+	TChi_3(0,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_3(1,6)=(ChiInv[0][0]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][0]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(2,6)=(ChiInv[0][0]*ChiInv[2][2]*ChiN[0][0] + ChiInv[1][0]*ChiInv[2][2]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(3,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_3(4,6)=(ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(5,6)=(ChiInv[0][0]*ChiInv[2][2]*ChiN[1][0] + ChiInv[1][0]*ChiInv[2][2]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(6,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][0]*ChiN[2][2]);
+	TChi_3(7,6)=(ChiInv[0][0]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][0]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_3(8,6)=(ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]);
+
+	TChi_3(0,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(1,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(2,7)=(ChiInv[0][1]*ChiInv[2][2]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[0][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(3,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(4,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(5,7)=(ChiInv[0][1]*ChiInv[2][2]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(6,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_3(7,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_3(8,7)=(ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]);
+
+	TChi_3(0,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0] + ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(1,8)=(ChiInv[0][2]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(2,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[0][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[0][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[0][2]);
+	TChi_3(3,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[1][0] + ChiInv[1][2]*ChiInv[2][0]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(4,8)=(ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(5,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[1][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[1][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[1][2]);
+	TChi_3(6,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[2][0] + ChiInv[1][2]*ChiInv[2][0]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]);
+	TChi_3(7,8)=(ChiInv[0][2]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]);
+	TChi_3(8,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]);
 
 
 
 }
 
+void FSMicromorphic3DT::Form_TFn_6_matrix()
 
+{
+	TFn_6=0.0;
+
+	TFn_6(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2]);
+	TFn_6(3,0)=(Finv[0][0]*Fn[1][0] + Finv[1][0]*Fn[1][1] + Finv[2][0]*Fn[1][2]);
+	TFn_6(6,0)=(Finv[0][0]*Fn[2][0] + Finv[1][0]*Fn[2][1] + Finv[2][0]*Fn[2][2]);
+
+	TFn_6(0,1)=(Finv[0][1]*Fn[0][0] + Finv[1][1]*Fn[0][1] + Finv[2][1]*Fn[0][2]);
+	TFn_6(3,1)=(Finv[0][1]*Fn[1][0] + Finv[1][1]*Fn[1][1] + Finv[2][1]*Fn[1][2]);
+	TFn_6(6,1)=(Finv[0][1]*Fn[2][0] + Finv[1][1]*Fn[2][1] + Finv[2][1]*Fn[2][2]);
+
+	TFn_6(0,2)=(Finv[0][2]*Fn[0][0] + Finv[1][2]*Fn[0][1] + Finv[2][2]*Fn[0][2]);
+	TFn_6(3,2)=(Finv[0][2]*Fn[1][0] + Finv[1][2]*Fn[1][1] + Finv[2][2]*Fn[1][2]);
+	TFn_6(6,2)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2]);
+
+	TFn_6(1,3)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2]);
+	TFn_6(4,3)=(Finv[0][0]*Fn[1][0] + Finv[1][0]*Fn[1][1] + Finv[2][0]*Fn[1][2]);
+	TFn_6(7,3)=(Finv[0][0]*Fn[2][0] + Finv[1][0]*Fn[2][1] + Finv[2][0]*Fn[2][2]);
+
+	TFn_6(1,4)=(Finv[0][1]*Fn[0][0] + Finv[1][1]*Fn[0][1] + Finv[2][1]*Fn[0][2]);
+	TFn_6(4,4)=(Finv[0][1]*Fn[1][0] + Finv[1][1]*Fn[1][1] + Finv[2][1]*Fn[1][2]);
+	TFn_6(7,4)=(Finv[0][1]*Fn[2][0] + Finv[1][1]*Fn[2][1] + Finv[2][1]*Fn[2][2]);
+
+	TFn_6(1,5)=(Finv[0][2]*Fn[0][0] + Finv[1][2]*Fn[0][1] + Finv[2][2]*Fn[0][2]);
+	TFn_6(4,5)=(Finv[0][2]*Fn[1][0] + Finv[1][2]*Fn[1][1] + Finv[2][2]*Fn[1][2]);
+	TFn_6(7,5)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2]);
+
+	TFn_6(2,6)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2]);
+	TFn_6(5,6)=(Finv[0][0]*Fn[1][0] + Finv[1][0]*Fn[1][1] + Finv[2][0]*Fn[1][2]);
+	TFn_6(8,6)=(Finv[0][0]*Fn[2][0] + Finv[1][0]*Fn[2][1] + Finv[2][0]*Fn[2][2]);
+
+	TFn_6(2,7)=(Finv[0][1]*Fn[0][0] + Finv[1][1]*Fn[0][1] + Finv[2][1]*Fn[0][2]);
+	TFn_6(5,7)=(Finv[0][1]*Fn[1][0] + Finv[1][1]*Fn[1][1] + Finv[2][1]*Fn[1][2]);
+	TFn_6(8,7)=(Finv[0][1]*Fn[2][0] + Finv[1][1]*Fn[2][1] + Finv[2][1]*Fn[2][2]);
+
+	TFn_6(2,8)=(Finv[0][2]*Fn[0][0] + Finv[1][2]*Fn[0][1] + Finv[2][2]*Fn[0][2]);
+	TFn_6(5,8)=(Finv[0][2]*Fn[1][0] + Finv[1][2]*Fn[1][1] + Finv[2][2]*Fn[1][2]);
+	TFn_6(8,8)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2]);
+
+}
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////

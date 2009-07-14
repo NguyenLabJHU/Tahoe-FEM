@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.8 2009-07-14 16:09:00 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.9 2009-07-14 21:45:25 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -256,7 +256,7 @@ private:
 	/*@}*/
 
 	// problem size definitions
-	int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd;
+	int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd, n_en_micro_x_n_sd;
 	int n_el, n_sd, n_sd_surf, n_en_surf;
 	int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
 
@@ -380,12 +380,16 @@ private:
 	//////////////////////////////////////////////////////////
 	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
-	dMatrixT KrDelta;
+	double KrDelta[3][3];
 	dMatrixT Tsigma_1;
 	dMatrixT fG1_1;//not being calculated yet
 	double SigN[3][3];
 	double Fn[3][3];
 	double Finv[3][3];
+	double Chi[3][3];
+	double ChiInv[3][3];
+	double ChiN[3][3];
+
 	dMatrixT Tsigma_2;
 	dMatrixT fG1_2;//not being calculated yet
     dMatrixT Tsigma_3;
