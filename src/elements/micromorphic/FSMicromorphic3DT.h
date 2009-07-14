@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.7 2009-07-14 15:18:33 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.8 2009-07-14 16:09:00 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -550,13 +550,13 @@ private:
     void Form_fG1_7_matrix(void);
     void Form_TFn_4_matrix(void);
     void Form_fG1_8_matrix(void);
-    void Form_TChi_2(void);
+    void Form_TChi_2_matrix(void);
     void Form_fG1_9_matrix(void);
-    void Form_TFn_5(void);
+    void Form_TFn_5_matrix(void);
     void Form_fG1_10_matrix(void);
-    void Form_TChi_3(void);
+    void Form_TChi_3_matrix(void);
     void Form_fG1_11_matrix(void);
-    void Form_TFn_6(void);
+    void Form_TFn_6_matrix(void);
     void Form_fG1_12_matrix(void);
 
 	//////////////////////////////////////////////////////////

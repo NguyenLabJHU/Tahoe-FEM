@@ -3564,6 +3564,47 @@ void FSMicromorphic3DT::Form_TFn_5_matrix()
 
 }
 
+
+void FSMicromorphic3DT::Form_TChi_3_matrix()
+{
+	TChi_3(0,0)=(ChiInv[0][0]^2*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_3(1,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_3(2,0)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][0]*ChiN[0][2]);
+	TChi_3(3,0)=(ChiInv[0][0]^2*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_3(4,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_3(5,0)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][0]*ChiN[1][2]);
+	TChi_3(6,0)=(ChiInv[0][0]^2*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[2][2]);
+	TChi_3(7,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[2][2]);
+	TChi_3(8,0)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]);
+
+	TChi_3(0,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(1,1)=(ChiInv[0][1]^2*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(2,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[0][2]);
+	TChi_3(3,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(4,1)=(ChiInv[0][1]^2*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(5,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[1][2]);
+	TChi_3(6,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_3(7,1)=(ChiInv[0][1]^2*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[2][2]);
+	TChi_3(8,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]);
+
+	(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2])*w[0][0] +
+	   (ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[0][2])*w[0][1] +
+	   (ChiInv[0][2]^2*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[0][2])*w[0][2] +
+	   (ChiInv[0][0]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[1][2])*w[1][0] +
+	   (ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2])*w[1][1] +
+	   (ChiInv[0][2]^2*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[1][2])*w[1][2] +
+	   (ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[2][2])*w[2][0] +
+	   (ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[2][2])*w[2][1] +
+	   (ChiInv[0][2]^2*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2])*w[2][2]) +
+
+
+
+
+
+}
+
+
+
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 ////////////////////// FINISH HERE FOR MICROMORPHIC 3-D CASE/////////////
