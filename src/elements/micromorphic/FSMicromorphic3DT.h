@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.6 2009-07-13 22:41:00 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.7 2009-07-14 15:18:33 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -400,15 +400,13 @@ private:
     dMatrixT fG1_7;
     dMatrixT TFn_4;// to be mucltipled by eta
     dMatrixT fG1_8;
-    dMatrixT Tsigma_8;// to be mucltipled by eta
-    dMatrixT fG1_8;
-    dMatrixT Tsigma_9;// to be mucltipled by kappa
+    dMatrixT TChi_2;// to be mucltipled by kappa
     dMatrixT fG1_9;
-    dMatrixT Tsigma_10;// to be mucltipled by kappa
+    dMatrixT TFn_5;// to be mucltipled by kappa
     dMatrixT fG1_10;
-    dMatrixT Tsigma_11;// to be mucltipled by nu
+    dMatrixT TChi_3;// to be mucltipled by nu
     dMatrixT fG1_11;
-    dMatrixT Tsigma_12;// to be mucltipled by nu
+    dMatrixT TFn_6;// to be mucltipled by nu
     dMatrixT fG1_12;
 
 	//////////////////////////////////////////////////////////
@@ -552,13 +550,13 @@ private:
     void Form_fG1_7_matrix(void);
     void Form_TFn_4_matrix(void);
     void Form_fG1_8_matrix(void);
-    void Form_Tsigma_9_matrix(void);
+    void Form_TChi_2(void);
     void Form_fG1_9_matrix(void);
-    void Form_Tsigma_10_matrix(void);
+    void Form_TFn_5(void);
     void Form_fG1_10_matrix(void);
-    void Form_Tsigma_11_matrix(void);
+    void Form_TChi_3(void);
     void Form_fG1_11_matrix(void);
-    void Form_Tsigma_12_matrix(void);
+    void Form_TFn_6(void);
     void Form_fG1_12_matrix(void);
 
 	//////////////////////////////////////////////////////////
