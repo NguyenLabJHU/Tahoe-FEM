@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.10 2009-07-14 23:00:08 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.11 2009-07-17 18:34:16 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -390,6 +390,7 @@ private:
 	double ChiInv[3][3];
 	double ChiN[3][3];
 
+
 	dMatrixT Tsigma_2;
 	dMatrixT fG1_2;//not being calculated yet
     dMatrixT Tsigma_3;
@@ -412,6 +413,9 @@ private:
     dMatrixT fG1_11;
     dMatrixT TFn_6;// to be mucltipled by nu
     dMatrixT fG1_12;
+    dMatrixT SigCurr;
+    dMatrixT fG1_13;
+
 
 	//////////////////////////////////////////////////////////
 	/////DEFINITIONS FINISH HERE FOR MICROMORPHIC MATRICES////
@@ -563,6 +567,8 @@ private:
     void Form_fG1_11_matrix(void);
     void Form_TFn_6_matrix(void);
     void Form_fG1_12_matrix(void);
+    void Form_SigCurr_vector_Cauchy_Str_matrix(void);
+    void Form_fG1_13_matrix(void);
 
 	//////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////

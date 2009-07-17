@@ -856,7 +856,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	fG1_10=0.0;
 	fG1_11=0.0;
 	fG1_12=0.0;
-	//fG1_13=0.0;
+	fG1_13=0.0;
 
 
 
@@ -890,61 +890,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	}*/
 
 
-	/* print solid displacement from previous step (u_n)*/
-/*	fs_micromorph3D_out	<<"nodal solid displacement from previous step(u_n)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    for (int j=0; j<n_sd; j++)
-		fs_micromorph3D_out << u_n(i,j) << "\t";
-	    fs_micromorph3D_out	<< endl ;
-	}
-*/
-
-	/* print solid velocity at current step (u_dot)*/
-/*	fs_micromorph3D_out	<<"nodal solid velocity at current step(u_dot)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    for (int j=0; j<n_sd; j++)
-		fs_micromorph3D_out << u_dot(i,j) << "\t";
-	    fs_micromorph3D_out	<< endl ;
-	}
-*/
-
-	/* print solid velocity from previous step (u_dot_n)*/
-/*	fs_micromorph3D_out	<<"nodal solid velocity from previous step(u_dot_n)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    for (int j=0; j<n_sd; j++)
-		fs_micromorph3D_out << u_dot_n(i,j) << "\t";
-	    fs_micromorph3D_out	<< endl ;
-	}
-*/
-
-
-	/* print solid acceleration at current step (u_dotdot)*/
-/*	fs_micromorph3D_out	<<"nodal solid velocity at current step(u_dotdot)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    for (int j=0; j<n_sd; j++)
-		fs_micromorph3D_out << u_dotdot(i,j) << "\t";
-	    fs_micromorph3D_out	<< endl ;
-	}
-*/
-
-	/* print solid acceleration from previous step (u_dotdot_n)*/
-/*	fs_micromorph3D_out	<<"nodal solid velocity from previous step(u_dotdot_n)"<< endl ;
-	for (int i=0; i<n_en_displ; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    for (int j=0; j<n_sd; j++)
-		fs_micromorph3D_out << u_dotdot_n(i,j) << "\t";
-	    fs_micromorph3D_out	<< endl ;
-	}
-*/
 
 	/* print micro-displacement-gradient at current step (micro)*/
 /*	fs_micromorph3D_out	<<"nodal micro-displacement-gradient at current step(micro)"<< endl ;
@@ -955,51 +900,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	}
 */
 
-	/* print micro-displacement-gradient from previous step (micro_n)*/
-/*	fs_micromorph3D_out	<<"nodal micro-displacement-gradient from previous step(micro_n)"<< endl ;
-	for (int i=0; i<n_en_micro; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    fs_micromorph3D_out	<< Phi_n(i,0) << endl;
-	}
-*/
-
-	/* print first derivative of micro-displacement-gradient at current step (micro_dot)*/
-/*	fs_micromorph3D_out	<<"first derivative of nodal micro-displacement-gradient at current step(micro_dot)"<< endl ;
-	for (int i=0; i<n_en_micro; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    fs_micromorph3D_out	<< Phi_dot(i,0) << endl;
-	}
-*/
-
-	/* print first derivative of micro-displacement-gradient from previous step (micro_dot_n)*/
-/*	fs_micromorph3D_out	<<"first derivative of nodal micro-displacement-gradient from previous step(micro_dot_n)"<< endl ;
-	for (int i=0; i<n_en_micro; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    fs_micromorph3D_out	<< Phi_dot_n(i,0) << endl;
-	}
-*/
-
-
-	/* print second derivative of micro-displacement-gradient at current step (micro_dotdot)*/
-/*	fs_micromorph3D_out	<<"second derivative of nodal micro-displacement-gradient at current step(micro_dotdot)"<< endl ;
-	for (int i=0; i<n_en_micro; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    fs_micromorph3D_out	<< Phi_dotdot(i,0) << endl;
-	}
-*/
-
-	/* print second derivative of micro-displacement-gradient from previous step (micro_dotdot_n)*/
-/*	fs_micromorph3D_out	<<"second derivative of nodal micro-displacement-gradient from previous step(micro_dotdot_n)"<< endl ;
-	for (int i=0; i<n_en_micro; i++)
-	{
-	    fs_micromorph3D_out	<< "node number " << i+1 <<" :  " ;
-	    fs_micromorph3D_out	<< Phi_dotdot_n(i,0) << endl;
-	}
-*/
 
 
 	/* populate solid displacement,solid velocity and
@@ -1233,6 +1133,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
 				/* Save Cauchy effective stress tensor of the current IP */
 				fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
+//////////////////Micromorphic addition/////////////////////////////////////////
+				/*Forms a vector ( actually 9x1 matrix) consisting of unsymmetric components of Cauchy stress tensors*/
+				Form_SigCurr_vector_Cauchy_Str_matrix();
+////////////////////Micromorphic addition//////////////////////////////////////
+
 
 
 				/* {fKirchhoff_vector} will be formed */
@@ -1274,18 +1179,19 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////Micromorphic 3-D Matrices are being formed//////////////////////////
 
-//				Form_Tsigma_1_matrix();
-//				Form_Tsigma_2_matrix();
-//				Form_Tsigma_3_matrix();
-//				Form_TFn_1_matrix();
-//				Form_TFn_2_matrix();            // commented out for now
-//				Form_TFn_3_matrix();
-//				Form_TFn_4_matrix();
-//				Form_TFn_5_matrix();
-//				Form_TFn_6_matrix();
-//				Form_TChi_1_matrix();
-//				Form_TChi_2_matrix();
-//				Form_TChi_3_matrix();
+/*				Form_Tsigma_1_matrix();
+				Form_Tsigma_2_matrix();
+				Form_Tsigma_3_matrix();
+				Form_TFn_1_matrix();
+				Form_TFn_2_matrix();            // commented out for now
+				Form_TFn_3_matrix();
+				Form_TFn_4_matrix();
+				Form_TFn_5_matrix();
+				Form_TFn_6_matrix();
+				Form_TChi_1_matrix();
+				Form_TChi_2_matrix();
+				Form_TChi_3_matrix();
+				*/
 
 ////////////////////////Finished here///////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1395,6 +1301,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_12 += fTemp_matrix_ndof_se_x_ndof_se;
+
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,SigCurr,fPi_temp_row_matrix);
+				scale = scale_const*J;
+				fTemp_matrix_ndof_se_x_ndof_se *= scale;
+				 accumulate
+				fG1_13 += fTemp_matrix_ndof_se_x_ndof_se;
 */
 
 
@@ -1955,6 +1867,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fG1_11.Dimension (n_en_displ_x_n_sd ,n_en_micro_x_n_sd_x_n_sd);
     TFn_6.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_10.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
+    SigCurr.Dimension(n_sd_x_n_sd,1);
 
     ///////////////////////////////////////////////////////////////////////////
     /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FINISH HERE FOR 3D CASE//////////////
@@ -3850,11 +3763,26 @@ void FSMicromorphic3DT::Form_TFn_6_matrix()
 
 }
 
-void FSMicromorphic3DT:: Form_double_Finv_from_Deformation_tensor_inverse()
+void FSMicromorphic3DT::Form_double_Finv_from_Deformation_tensor_inverse()
 {
 	for(int i=0;i<=2;i++)
 		for(int j=0;j<=2;j++)
 			Finv[i][j]=fDeformation_Gradient_Inverse(i,j);
+}
+
+void FSMicromorphic3DT::Form_SigCurr_vector_Cauchy_Str_matrix()
+{
+    SigCurr=0.0;
+
+    SigCurr(0,0)=fCauchy_stress_tensor_current_IP(0,0); //*w(0,0) +
+    SigCurr(1,0)=fCauchy_stress_tensor_current_IP(1,0);
+    SigCurr(2,0)=fCauchy_stress_tensor_current_IP(2,0);
+    SigCurr(3,0)=fCauchy_stress_tensor_current_IP(0,1);
+    SigCurr(4,0)=fCauchy_stress_tensor_current_IP(1,1);//*w(1,1) +
+    SigCurr(5,0)=fCauchy_stress_tensor_current_IP(2,1);
+    SigCurr(6,0)=fCauchy_stress_tensor_current_IP(0,2);
+    SigCurr(7,0)=fCauchy_stress_tensor_current_IP(1,2);
+    SigCurr(8,0)=fCauchy_stress_tensor_current_IP(2,2); //w(2,2)
 }
 
 //////////////////////////////////////////////////////////////////////
