@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.11 2009-07-17 18:34:16 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.12 2009-07-20 22:26:36 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -381,6 +381,8 @@ private:
 	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	double KrDelta[3][3];
+
+	//Varitional Matrices coming from the Balance of linear Momentum
 	dMatrixT Tsigma_1;
 	dMatrixT fG1_1;
 	double SigN[3][3];
@@ -390,31 +392,34 @@ private:
 	double ChiInv[3][3];
 	double ChiN[3][3];
 
-
 	dMatrixT Tsigma_2;
 	dMatrixT fG1_2;//not being calculated yet
     dMatrixT Tsigma_3;
     dMatrixT fG1_3;// not being calculated yet
-    dMatrixT TFn_1;// to be multplied by (lamda+Tau)
+    dMatrixT TFn_1;// to be multiplied by (lamda+Tau)
     dMatrixT fG1_4;
-    dMatrixT TFn_2;// to be mucltipled by (Mu+sigma)
+    dMatrixT TFn_2;// to be multiplied by (Mu+sigma)
     dMatrixT fG1_5;
-    dMatrixT TFn_3;// to be mucltipled by (Mu+sigma)
+    dMatrixT TFn_3;// to be multiplied by (Mu+sigma)
     dMatrixT fG1_6;
-    dMatrixT TChi_1;// to be mucltipled by eta
+    dMatrixT TChi_1;// to be multiplied by eta
     dMatrixT fG1_7;
-    dMatrixT TFn_4;// to be mucltipled by eta
+    dMatrixT TFn_4;// to be multiplied by eta
     dMatrixT fG1_8;
-    dMatrixT TChi_2;// to be mucltipled by kappa
+    dMatrixT TChi_2;// to be multiplied by kappa
     dMatrixT fG1_9;
-    dMatrixT TFn_5;// to be mucltipled by kappa
+    dMatrixT TFn_5;// to be multiplied by kappa
     dMatrixT fG1_10;
-    dMatrixT TChi_3;// to be mucltipled by nu
+    dMatrixT TChi_3;// to be multiplied by nu
     dMatrixT fG1_11;
-    dMatrixT TFn_6;// to be mucltipled by nu
+    dMatrixT TFn_6;// to be multiplied by nu
     dMatrixT fG1_12;
     dMatrixT SigCurr;
     dMatrixT fG1_13;
+ // Variational Matrices coming from the Balance of First Moment of Momentum
+	double mn[3][3][3];
+    dMatrixT Mm_1;
+    dMatrixT Mm_2;
 
 
 	//////////////////////////////////////////////////////////
@@ -541,6 +546,7 @@ private:
 	//////////////////////////////////////////////////////////
 	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
+	//Forming the Matrices coming from the Balance of Linear Momentum
 	void Form_double_Finv_from_Deformation_tensor_inverse(void);
 	void Form_KroneckerDelta_matrix(void);
 	void Form_Tsigma_1_matrix(void);
@@ -569,6 +575,13 @@ private:
     void Form_fG1_12_matrix(void);
     void Form_SigCurr_vector_Cauchy_Str_matrix(void);
     void Form_fG1_13_matrix(void);
+    //Forming the Matrices coming from the Balance of First Moment of Momentum
+    void Form_Mm_1_matrix(void);// need to be multiplied by "-" and J
+    void Form_Mm_2_matrix(void);// need to be multiplied by J
+
+
+
+
 
 	//////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
