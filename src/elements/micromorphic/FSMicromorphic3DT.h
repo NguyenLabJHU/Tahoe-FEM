@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.13 2009-07-21 00:55:59 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.14 2009-07-21 22:57:11 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -418,9 +418,12 @@ private:
     dMatrixT fG1_13;
  // Variational Matrices coming from the Balance of First Moment of Momentum
 	double mn[3][3][3];
-    dMatrixT Mm_1;
+	double GammaN[3][3][3];
+	double CCof[3][3][3][3][3][3];
+	dMatrixT Mm_1;
     dMatrixT Mm_2;
     dMatrixT Mm_3;
+    dMatrixT Mm_4;
 
 
 	//////////////////////////////////////////////////////////
@@ -580,7 +583,8 @@ private:
     void Form_Mm_1_matrix(void);// need to be multiplied by "-" and J
     void Form_Mm_2_matrix(void);// need to be multiplied by J
     void Form_Mm_3_matrix(void);// need to be multiplied by J
-
+    void Form_Mm_4_matrix(void);// need to be multiplied by J
+    void Form_Mm_5_matrix(void);// need to be multiplied by J
 
 
 

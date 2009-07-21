@@ -3050,6 +3050,8 @@ TChi_1(0,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[0][0] + ChiInv[0][0]*C
 			ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[0][0] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[0][0] +
 			ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0]*KrDelta[0][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1]*KrDelta[0][0] +
 			ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]*KrDelta[0][0]);//*w[0][0] +
+
+
 TChi_1(1,1)=ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*KrDelta[1][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*KrDelta[1][0] +
 	     ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*KrDelta[1][0] + ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0]*KrDelta[1][0] +
 	     ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1]*KrDelta[1][0] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]*KrDelta[1][0] +
@@ -4589,7 +4591,93 @@ void FSMicromorphic3DT::Form_Mm_3_matrix()
 
 }
 
+void FSMicromorphic3DT:: Form_Mm_4_matrix()
+{
+	int kk;int ii;  int jj; //column ordering
+	int ll;int  i;  int j; // row ordering
 
+    kk=0;// column zero
+    ii=0;
+    while (kk<=9) //up to 9
+		{
+//			while(ii<=2)
+//			{
+			jj=0;
+			while(jj<=2)
+				{
+                //row calc starts
+				ll=0;//row zero
+					while (ll<=26)//up to 26 total=27
+						{
+						i=0;
+							while (i<=2)
+								{
+								j=0;
+									while(j<=2)
+										{
+										Mm_4(ll,kk)=(ChiInv[ii][0]*ChiInv[0][jj]*ChiN[0][0]*mn[j][i][0] + ChiInv[ii][0]*ChiInv[1][jj]*ChiN[0][1]*mn[j][i][0] +
+											         ChiInv[ii][0]*ChiInv[2][jj]*ChiN[0][2]*mn[j][i][0] + ChiInv[ii][1]*ChiInv[0][jj]*ChiN[0][0]*mn[j][i][1] +
+											         ChiInv[ii][1]*ChiInv[1][jj]*ChiN[0][1]*mn[j][i][1] + ChiInv[ii][1]*ChiInv[2][jj]*ChiN[0][2]*mn[j][i][1] +
+											         ChiInv[ii][2]*ChiInv[0][jj]*ChiN[0][0]*mn[j][i][2] + ChiInv[ii][2]*ChiInv[1][jj]*ChiN[0][1]*mn[j][i][2] +
+											         ChiInv[ii][2]*ChiInv[2][jj]*ChiN[0][2]*mn[j][i][2]);
+										ll++;
+										j++;
+										}
+								i++;
+								}
+						}
+				//row calc ends
+				kk++;
+				jj++;
+				}
+			ii++;
+//			}
+		}
+/*
+
+                 Mm_4(ii,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][0] +
+    			 	         ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][0] + ChiInv[0][1]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][1] +
+        			         ChiInv[0][1]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][1] +
+    				         ChiInv[0][2]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][2] + ChiInv[0][2]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][2] +
+   					         ChiInv[0][2]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][2]);//*\[Eta][0][0][0] +
+
+
+
+
+
+				Mm_4(ii,1)=	(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][0] +
+							 ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][0] + ChiInv[0][1]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][1] +
+							 ChiInv[0][1]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][1] +
+							 ChiInv[0][2]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][2] + ChiInv[0][2]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][2] +
+							 ChiInv[0][2]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][2]);//[Eta][0][0][0] +
+
+				Mm_4(ii,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*mn[j][i][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*mn[j][i][0] +
+					        ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*mn[j][i][0] + ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0]*mn[j][i][1] +
+					        ChiInv[0][1]*ChiInv[1][2]*ChiN[0][1]*mn[j][i][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[0][2]*mn[j][i][1] +
+					        ChiInv[0][2]*ChiInv[0][2]*ChiN[0][0]*mn[j][i][2] + ChiInv[0][2]*ChiInv[1][2]*ChiN[0][1]*mn[j][i][2] +
+					        ChiInv[0][2]*ChiInv[2][2]*ChiN[0][2]*mn[j][i][2]);//*\[Eta][0][0][0] +
+
+				Mm_4(ii,3)=(ChiInv[1][0]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][0] +
+					        ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][0] + ChiInv[1][1]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][1] +
+					        ChiInv[1][1]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][1] +
+					        ChiInv[1][2]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][2] + ChiInv[1][2]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][2] +
+					        ChiInv[1][2]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][2]);//[Eta][0][0][0] +
+
+				Mm_4(ii,4)=(ChiInv[1][0]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][0] +
+					        ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][0] + ChiInv[1][1]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][1] +
+					        ChiInv[1][1]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][1] +
+					        ChiInv[1][2]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][2] + ChiInv[1][2]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][2] +
+					        ChiInv[1][2]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][2]);//[Eta][0][0][0] +
+
+
+*/
+
+}
+
+void FSMicromorphic3DT:: Form_Mm_5_matrix()
+{
+
+}
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
