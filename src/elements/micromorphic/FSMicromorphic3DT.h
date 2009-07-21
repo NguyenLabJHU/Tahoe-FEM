@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.12 2009-07-20 22:26:36 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.13 2009-07-21 00:55:59 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -256,7 +256,7 @@ private:
 	/*@}*/
 
 	// problem size definitions
-	int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd, n_en_micro_x_n_sd;
+	int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd, n_en_micro_x_n_sd;
 	int n_el, n_sd, n_sd_surf, n_en_surf;
 	int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
 
@@ -420,6 +420,7 @@ private:
 	double mn[3][3][3];
     dMatrixT Mm_1;
     dMatrixT Mm_2;
+    dMatrixT Mm_3;
 
 
 	//////////////////////////////////////////////////////////
@@ -578,7 +579,7 @@ private:
     //Forming the Matrices coming from the Balance of First Moment of Momentum
     void Form_Mm_1_matrix(void);// need to be multiplied by "-" and J
     void Form_Mm_2_matrix(void);// need to be multiplied by J
-
+    void Form_Mm_3_matrix(void);// need to be multiplied by J
 
 
 
