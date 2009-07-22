@@ -1896,6 +1896,10 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     //Bal. of linear Mom of Momtm
     Mm_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_2.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_3.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_4.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_5.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
 
     ///////////////////////////////////////////////////////////////////////////
     /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FINISH HERE FOR 3D CASE//////////////
@@ -4676,8 +4680,45 @@ void FSMicromorphic3DT:: Form_Mm_4_matrix()
 
 void FSMicromorphic3DT:: Form_Mm_5_matrix()
 {
+Mm_5=0.0;
+int col;
+int row;
+
+for(int T = 0;T<= 2;T++)
+	{
+	for(int n=0;n<=2;n++)
+		{
+		row = 0;
+		for(int l = 0;l <= 2; l++)
+		{
+			for(int k = 0; k <= 2; k++)
+			{
+				for(int m = 0; m <= 2; m++)
+				{
+					for(int p = 0; p <= 2; p++)
+					{
+						for(int r = 0; r <= 2; r++)
+						{
+							for(int s = 0; s <= 2; s++)
+							{
+								for(int L = 0; L <= 2; L++)
+								{
+									for(int i = 0; i <= 2; i++)
+									{
+										Mm_5[row, col] =Mm_5[row, col] +C[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]*
+														ChiInv[T][i]*GammaN[i][r][s];}}}}}
+					row++;}
+				}
+			}
+		col++;
+		}
+	}
+
+
 
 }
+
+
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
