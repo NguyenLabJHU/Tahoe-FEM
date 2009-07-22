@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.15 2009-07-22 20:14:50 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.16 2009-07-22 23:24:33 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -420,11 +420,23 @@ private:
 	double mn[3][3][3];
 	double GammaN[3][3][3];
 	double CCof[3][3][3][3][3][3];
+	double grad_ChiN[3][3][3];
+	dobule grad_Chi[3][3][3];
 	dMatrixT Mm_1;
     dMatrixT Mm_2;
     dMatrixT Mm_3;
     dMatrixT Mm_4;
     dMatrixT Mm_5;
+    dMatrixT Mm_6;
+    dMatrixT Mm_6;
+    dMatrixT Mm_7;
+    dMatrixT Mm_8;
+    dMatrixT Mm_9;
+    dMatrixT Mm_10;
+    dMatrixT Mm_11;
+    dMatrixT Mm_12;
+    dMatrixT Mm_13;
+    dMatrixT Mm_14;
 
 
 	//////////////////////////////////////////////////////////
@@ -586,6 +598,16 @@ private:
     void Form_Mm_3_matrix(void);// need to be multiplied by J
     void Form_Mm_4_matrix(void);// need to be multiplied by J
     void Form_Mm_5_matrix(void);// need to be multiplied by J
+    void Form_Mm_6_matrix(void);// need to be multiplied by J
+    void Form_Mm_7_matrix(void);
+    void Form_Mm_8_matrix(void);
+    void Form_Mm_9_matrix(void);
+    void Form_Mm_10_matrix(void);
+    void Form_Mm_11_matrix(void);
+    void Form_Mm_12_matrix(void);
+    void Form_Mm_13_matrix(void);
+    void Form_Mm_14_matrix(void);
+
 
 
 
