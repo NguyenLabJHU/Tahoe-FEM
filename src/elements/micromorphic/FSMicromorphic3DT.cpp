@@ -4865,8 +4865,6 @@ void FSMicromorphic3DT:: Form_Mm_10_matrix()
 		{
 			for(int n=0;n<=2;n++)
 			{
-				for(int K=0;K<=2;K++)
-				{
 					row = 0;//row calculations start here
 					for(int m = 0;m <= 2; m++)
 					{
@@ -4889,19 +4887,49 @@ void FSMicromorphic3DT:: Form_Mm_10_matrix()
 													{
 														for(int R = 0; R <= 2; R++)
 														{
-															Mm_10(row, col) =(Mm_10(row, col) +CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]
-													                         *FnInv[K][r]*ChiInv[T][s]);}}}}}}}
+															Mm_10(row, col) =(Mm_10(row, col) +CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][a]*GRAD_Chi[a][K][R]
+															                *FnInv[R][r]*ChiInv[K][n]*ChiInv[T][s]);}}}}}}}
 							row++;}
 						}
 					}
 					col++;
 				}
 			}
-		}
 
 }
 
+void FSMicromorphic3DT:: Form_Mm_11_matrix()
+{
 
+	Mm_11=0.0;
+	int col;
+	int row;
+
+	for(int k = 0;k<= 2;k++)
+		{
+			for(int n=0;n<=2;n++)
+			{
+					row = 0;//row calculations start here
+					for(int m = 0;m <= 2; m++)
+					{
+						for(int l = 0; l <= 2; l++)
+						{
+							for(int k = 0; k <= 2; k++)
+							{
+								//summation on the same term starts here
+								for(int i=0;i<=2;i++)
+								{
+									for(int L=0;L<=2;L++)
+									{
+										Mm_11(row, col) =(Mm_11(row, col) +Fn[i][L]*Finv[L][n]*gamman[i][l][m]);}}
+							row++;}
+						}
+					}
+					col++;
+				}
+			}
+
+}
 
 
 
