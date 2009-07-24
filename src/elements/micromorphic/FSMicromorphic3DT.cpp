@@ -1903,7 +1903,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Mm_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_7.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_8.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    Mm_9.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_9.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
     Mm_10.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_11.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_12.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
@@ -4092,7 +4092,7 @@ void FSMicromorphic3DT::Form_Mm_1_matrix()
 void FSMicromorphic3DT::Form_Mm_2_matrix()
 {
 
-	   Mm_2(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][0][0]; //[0][0][0] +
+	   Mm_2(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][0][0];//[0][0][0] +
 	   Mm_2(1,0)=(Finv[0][0]*Fn[1][0] + Finv[1][0]*Fn[1][1] + Finv[2][0]*Fn[1][2])*mn[0][0][0];//[0][0][1] +
 	   Mm_2(2,0)=(Finv[0][0]*Fn[2][0] + Finv[1][0]*Fn[2][1] + Finv[2][0]*Fn[2][2])*mn[0][0][0];//[0][0][2] +
 	   Mm_2(3,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][1][0];//[0][1][0] +
@@ -4607,84 +4607,35 @@ void FSMicromorphic3DT::Form_Mm_3_matrix()
 
 void FSMicromorphic3DT:: Form_Mm_4_matrix()
 {
-	int kk;int ii;  int jj; //column ordering
-	int ll;int  i;  int j; // row ordering
+	Mm_4=0.0;
+	int col;
+	int row;
 
-    kk=0;// column zero
-    ii=0;
-    while (kk<=9) //up to 9
+	for(int T = 0;T<= 2;T++)
 		{
-//			while(ii<=2)
-//			{
-			jj=0;
-			while(jj<=2)
+		for(int n=0;n<=2;n++)
+			{
+			row = 0;//row calculations start here
+			for(int m = 0;m <= 2; m++)
+			{
+				for(int l = 0; l <= 2; l++)
 				{
-                //row calc starts
-				ll=0;//row zero
-					while (ll<=26)//up to 26 total=27
-						{
-						i=0;
-							while (i<=2)
+					for(int k = 0; k <= 2; k++)
+					{
+					//summation on the same term starts here
+						for(int L = 0; L <= 2; L++)
+							{
+							for(int i = 0; i <= 2; i++)
 								{
-								j=0;
-									while(j<=2)
-										{
-										Mm_4(ll,kk)=(ChiInv[ii][0]*ChiInv[0][jj]*ChiN[0][0]*mn[j][i][0] + ChiInv[ii][0]*ChiInv[1][jj]*ChiN[0][1]*mn[j][i][0] +
-											         ChiInv[ii][0]*ChiInv[2][jj]*ChiN[0][2]*mn[j][i][0] + ChiInv[ii][1]*ChiInv[0][jj]*ChiN[0][0]*mn[j][i][1] +
-											         ChiInv[ii][1]*ChiInv[1][jj]*ChiN[0][1]*mn[j][i][1] + ChiInv[ii][1]*ChiInv[2][jj]*ChiN[0][2]*mn[j][i][1] +
-											         ChiInv[ii][2]*ChiInv[0][jj]*ChiN[0][0]*mn[j][i][2] + ChiInv[ii][2]*ChiInv[1][jj]*ChiN[0][1]*mn[j][i][2] +
-											         ChiInv[ii][2]*ChiInv[2][jj]*ChiN[0][2]*mn[j][i][2]);
-										ll++;
-										j++;
-										}
-								i++;
-								}
-						}
-				//row calc ends
-				kk++;
-				jj++;
+									Mm_4(row, col) =Mm_4(row, col) +mn[k][l][i]*ChiN[m][L]
+									               *ChiInv[L][n]*ChiInv[T][i];}}
+						row++;}
+					}
 				}
-			ii++;
-//			}
+			col++;
+			}
 		}
-/*
 
-                 Mm_4(ii,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][0] +
-    			 	         ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][0] + ChiInv[0][1]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][1] +
-        			         ChiInv[0][1]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][1] +
-    				         ChiInv[0][2]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][2] + ChiInv[0][2]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][2] +
-   					         ChiInv[0][2]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][2]);//*\[Eta][0][0][0] +
-
-
-
-
-
-				Mm_4(ii,1)=	(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][0] +
-							 ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][0] + ChiInv[0][1]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][1] +
-							 ChiInv[0][1]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][1] +
-							 ChiInv[0][2]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][2] + ChiInv[0][2]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][2] +
-							 ChiInv[0][2]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][2]);//[Eta][0][0][0] +
-
-				Mm_4(ii,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0]*mn[j][i][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1]*mn[j][i][0] +
-					        ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]*mn[j][i][0] + ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0]*mn[j][i][1] +
-					        ChiInv[0][1]*ChiInv[1][2]*ChiN[0][1]*mn[j][i][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[0][2]*mn[j][i][1] +
-					        ChiInv[0][2]*ChiInv[0][2]*ChiN[0][0]*mn[j][i][2] + ChiInv[0][2]*ChiInv[1][2]*ChiN[0][1]*mn[j][i][2] +
-					        ChiInv[0][2]*ChiInv[2][2]*ChiN[0][2]*mn[j][i][2]);//*\[Eta][0][0][0] +
-
-				Mm_4(ii,3)=(ChiInv[1][0]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][0] +
-					        ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][0] + ChiInv[1][1]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][1] +
-					        ChiInv[1][1]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][1] +
-					        ChiInv[1][2]*ChiInv[0][0]*ChiN[0][0]*mn[j][i][2] + ChiInv[1][2]*ChiInv[1][0]*ChiN[0][1]*mn[j][i][2] +
-					        ChiInv[1][2]*ChiInv[2][0]*ChiN[0][2]*mn[j][i][2]);//[Eta][0][0][0] +
-
-				Mm_4(ii,4)=(ChiInv[1][0]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][0] +
-					        ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][0] + ChiInv[1][1]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][1] +
-					        ChiInv[1][1]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][1] +
-					        ChiInv[1][2]*ChiInv[0][1]*ChiN[0][0]*mn[j][i][2] + ChiInv[1][2]*ChiInv[1][1]*ChiN[0][1]*mn[j][i][2] +
-					        ChiInv[1][2]*ChiInv[2][1]*ChiN[0][2]*mn[j][i][2]);//[Eta][0][0][0] +
-
-
-*/
 
 }
 
@@ -4698,13 +4649,14 @@ for(int T = 0;T<= 2;T++)
 	{
 	for(int n=0;n<=2;n++)
 		{
-		row = 0;
-		for(int l = 0;l <= 2; l++)
+		row = 0;//row calculations start here
+		for(int m = 0;m <= 2; m++)
 		{
-			for(int k = 0; k <= 2; k++)
+			for(int l = 0; l <= 2; l++)
 			{
-				for(int m = 0; m <= 2; m++)
+				for(int k = 0; k <= 2; k++)
 				{
+					//summation on the same term starts here
 					for(int p = 0; p <= 2; p++)
 					{
 						for(int r = 0; r <= 2; r++)
@@ -4736,13 +4688,14 @@ void FSMicromorphic3DT:: Form_Mm_6_matrix()
 		{
 		for(int n=0;n<=2;n++)
 			{
-			row = 0;
-			for(int l = 0;l <= 2; l++)
+			row = 0;//row calculations start here
+			for(int m = 0;m <= 2; m++)
 			{
-				for(int k = 0; k <= 2; k++)
+				for(int l = 0; l <= 2; l++)
 				{
-					for(int m = 0; m <= 2; m++)
+					for(int k = 0; k <= 2; k++)
 					{
+						//summation on the same term starts here
 						for(int p = 0; p <= 2; p++)
 						{
 							for(int r = 0; r <= 2; r++)
@@ -4769,7 +4722,7 @@ void FSMicromorphic3DT:: Form_Mm_6_matrix()
 void FSMicromorphic3DT:: Form_Mm_7_matrix()
 {
 
-	Mm_=0.0;
+	Mm_7=0.0;
 	int col;
 	int row;
 
@@ -4777,12 +4730,12 @@ void FSMicromorphic3DT:: Form_Mm_7_matrix()
 		{
 		for(int n=0;n<=2;n++)
 			{
-			row = 0;
-			for(int l = 0;l <= 2; l++)
+			row = 0;//row calculations start here
+			for(int m = 0;m <= 2; m++)
 			{
-				for(int k = 0; k <= 2; k++)
+				for(int l = 0; l <= 2; l++)
 				{
-					for(int m = 0; m <= 2; m++)
+					for(int k = 0; k <= 2; k++)
 					{
 						// summation on the same term starts
 						for(int p = 0; p <= 2; p++)
@@ -4793,8 +4746,10 @@ void FSMicromorphic3DT:: Form_Mm_7_matrix()
 								{
 									for(int L = 0; L <= 2; L++)
 									{
-											Mm_7(row, col) =(Mm_7(row, col) +CCof[k][l][m][p][r][s]*grad_ChiN[i][L]*ChiInv[L][n]*
-															ChiInv[T][r]);}}}}
+										for(int R=0; R<=0;R++)
+										{
+											Mm_7(row, col) =(Mm_7(row, col) +CCof[k][l][m][p][r][s]*GRAD_ChiN[i][L][R]*FnInv[R][r]*ChiInv[L][n]*
+															ChiInv[T][r]);}}}}}
 						//summation on the same term ends
 						row++;}
 					}
@@ -4817,13 +4772,14 @@ void FSMicromorphic3DT:: Form_Mm_8_matrix()
 		{
 		for(int n=0;n<=2;n++)
 			{
-			row = 0;
-			for(int l = 0;l <= 2; l++)
+			row = 0;//row calculations start here
+			for(int m = 0;m <= 2; m++)
 			{
-				for(int k = 0; k <= 2; k++)
+				for(int l = 0; l <= 2; l++)
 				{
-					for(int m = 0; m <= 2; m++)
+					for(int k = 0; k <= 2; k++)
 					{
+						//summation on the same term starts here
 						for(int p = 0; p <= 2; p++)
 						{
 							for(int r = 0; r <= 2; r++)
@@ -4836,8 +4792,10 @@ void FSMicromorphic3DT:: Form_Mm_8_matrix()
 										{
 											for(int H=0;H<=2;H++)
 											{
-												Mm_8(row, col) =(Mm_8(row, col) +CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]*
-															     ChiInv[T][i]*grad_Chi[i][H][r]*ChiInv[H][s]);}}}}}}
+												for(int R=0;R<=2;R++)
+												{
+													Mm_8(row, col) =-(Mm_8(row, col) +CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]*
+															     ChiInv[T][i]*GRAD_Chi[i][H][R]*FnInv[R][r]*ChiInv[H][s]);}}}}}}}
 						row++;}
 					}
 				}
@@ -4851,6 +4809,58 @@ void FSMicromorphic3DT:: Form_Mm_8_matrix()
 
 
 }
+
+
+
+void FSMicromorphic3DT:: Form_Mm_9_matrix()
+{
+
+	Mm_9=0.0;
+	int col;
+	int row;
+
+	for(int T = 0;T<= 2;T++)
+		{
+			for(int n=0;n<=2;n++)
+			{
+				for(int K=0;K<=2;K++)
+				{
+					row = 0;//row calculations start here
+					for(int m = 0;m <= 2; m++)
+					{
+						for(int l = 0; l <= 2; l++)
+						{
+							for(int k = 0; k <= 2; k++)
+							{
+								//summation on the same term starts here
+								for(int p = 0; p <= 2; p++)
+								{
+									for(int r = 0; r <= 2; r++)
+									{
+										for(int s = 0; s <= 2; s++)
+										{
+											for(int L = 0; L <= 2; L++)
+											{
+												Mm_9(row, col) =(Mm_9(row, col) +CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]
+													           *FnInv[K][r]*ChiInv[T][s]);}}}}
+							row++;}
+						}
+					}
+					col++;
+				}
+			}
+		}
+
+
+
+
+}
+
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
