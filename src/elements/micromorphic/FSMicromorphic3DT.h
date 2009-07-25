@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.17 2009-07-24 00:22:46 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.18 2009-07-25 00:29:17 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -419,10 +419,12 @@ private:
     dMatrixT fG1_13;
  // Variational Matrices coming from the Balance of First Moment of Momentum
 	double mn[3][3][3];
+	double Mnplus1[3][3][3];
 	double GammaN[3][3][3];
 	double CCof[3][3][3][3][3][3];
 	double GRAD_ChiN[3][3][3];// GRADIENT  in reference configuration!
 	double GRAD_Chi[3][3][3];// GRADIENT in reference configuration!
+	double sn_sigman[3][3];
 	dMatrixT Mm_1;
     dMatrixT Mm_2;
     dMatrixT Mm_3;
@@ -438,6 +440,19 @@ private:
     dMatrixT Mm_12;
     dMatrixT Mm_13;
     dMatrixT Mm_14;
+    dMatrixT Ru_1;
+    dMatrixT Ru_2;
+    dMatrixT Ru_3;
+    dMatrixT RChi_1;
+    dMatrixT Ru_4;
+    dMatrixT RChi_2;
+    dMatrixT Ru_5;
+    dMatrixT Rs_sigma;
+    dMatrixT R_Capital_Gamma_Chi;
+    dMatrixT CapitalGamma;
+
+
+
 
 
 	//////////////////////////////////////////////////////////
@@ -594,12 +609,12 @@ private:
     void Form_SigCurr_vector_Cauchy_Str_matrix(void);
     void Form_fG1_13_matrix(void);
     //Forming the Matrices coming from the Balance of First Moment of Momentum
-    void Form_Mm_1_matrix(void);// need to be multiplied by "-" and J
-    void Form_Mm_2_matrix(void);// need to be multiplied by J
-    void Form_Mm_3_matrix(void);// need to be multiplied by J
-    void Form_Mm_4_matrix(void);// need to be multiplied by J
-    void Form_Mm_5_matrix(void);// need to be multiplied by J
-    void Form_Mm_6_matrix(void);// need to be multiplied by J
+    void Form_Mm_1_matrix(void);// needs to be multiplied by "-" and J
+    void Form_Mm_2_matrix(void);// needs to be multiplied by J
+    void Form_Mm_3_matrix(void);// needs to be multiplied by J
+    void Form_Mm_4_matrix(void);// needs to be multiplied by J
+    void Form_Mm_5_matrix(void);// needs to be multiplied by J
+    void Form_Mm_6_matrix(void);// needs to be multiplied by J
     void Form_Mm_7_matrix(void);
     void Form_Mm_8_matrix(void);
     void Form_Mm_9_matrix(void);
@@ -607,10 +622,16 @@ private:
     void Form_Mm_11_matrix(void);
     void Form_Mm_12_matrix(void);
     void Form_Mm_13_matrix(void);
-    void Form_Mm_14_matrix(void);
-
-
-
+    void Form_Mm_14_matrix(void);//something should be changed in the loop due to div(du)!!! changed done ok!
+    void Form_Ru_1_matrix(void);
+    void Form_Ru_2_matrix(void);
+    void Form_Ru_3_matrix(void);
+    void Form_RChi_1_matrix(void);// needs to be multiplied by Kappa and J
+    void Form_Ru_4_matrix(void);// needs to be multiplied by Kappa and J
+    void Form_RChi_2_matrix(void);//needs to be multiplied by Nu and J
+    void Form_Ru_5_matrix(void);// needs to be multiplied by Nu and J
+    void Form_Rs_sigma_matrix(void);
+    void Form_R_Capital_Gamma_Chi_matrix(void);// DO NOT multiply with J !!!
 
 	//////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
