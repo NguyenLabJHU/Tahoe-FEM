@@ -4910,7 +4910,7 @@ void FSMicromorphic3DT:: Form_Mm_11_matrix()
 		{
 			for(int n=0;n<=2;n++)
 			{
-					row = 0;//row calculations start here
+					row = k;//row calculations start here//attention here is different
 					for(int m = 0;m <= 2; m++)
 					{
 						for(int l = 0; l <= 2; l++)
@@ -4921,7 +4921,7 @@ void FSMicromorphic3DT:: Form_Mm_11_matrix()
 									for(int L=0;L<=2;L++)
 									{
 										Mm_11(row, col) =(Mm_11(row, col) +Fn[i][L]*Finv[L][n]*GammaN[i][l][m]);}}
-							row++;
+							row=row+3;
 						}
 					}
 					col++;
@@ -4941,7 +4941,7 @@ void FSMicromorphic3DT:: Form_Mm_12_matrix()
 		{
 			for(int n=0;n<=2;n++)
 			{
-					row = 0;//row calculations start here
+					row = 0+m*9;//row calculations start here, attention here  is different too
 					for(int l = 0; l <= 2; l++)
 						{
 							for(int k = 0; k <= 2; k++)
@@ -5144,14 +5144,14 @@ void FSMicromorphic3DT::Form_Ru_4_matrix()
 		{
 			for(int k=0;k<=2;k++)
 			{
-				row = 0;//row calculations start here
+				row = l;//row calculations start here
 				for(int m = 0; m <= 2; m++)
 					{
 							//summation on the same term starts here
 								for(int K=0;K<=2;K++)
 								{
 									Ru_4(row, col) =-(Ru_4(row, col) +Fn[m][K]*Finv[K][k]);}
-						row++;}
+						row=row+3;}
 					col++;
 				}
 			}
@@ -5199,7 +5199,7 @@ void FSMicromorphic3DT:: Form_Ru_5_matrix()
 		{
 			for(int k=0;k<=2;k++)
 			{
-				row = 0;//row calculations start here
+				row = 0+m*3;//row calculations start here , here is also different
 				for(int l = 0; l <= 2; l++)
 					{
 							//summation on the same term starts here
@@ -5249,11 +5249,11 @@ void FSMicromorphic3DT:: Form_R_Capital_Gamma_Chi_matrix()
 			{
 				for( int m=0; m<=2; m++)
 				{
-					row = 0;//row calculations start here
+					row = 0+m*3;//row calculations start here
 					for(int l = 0; l <= 2; l++)
 					{
 						//summation on the same term starts here
-						R_Capital_Gamma_Chi(row, col)=kRho_0*Capital_Gamma[l][K];
+						R_Capital_Gamma_Chi(row, col)=kRho_0*CapitalGamma[l][K];
 						row++;
 					}
 				}
