@@ -1909,16 +1909,21 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Mm_12.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_13.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_14.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-
+    Ru_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    Ru_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    Ru_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    Ru_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    Ru_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    RChi_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    RChi_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    Rs_sigma.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    R_Capital_Gamma_Chi.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    CapitalGamma.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    sn_sigman.Dimension(n_sd,n_sd);
 
     ///////////////////////////////////////////////////////////////////////////
     /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FINISH HERE FOR 3D CASE//////////////
     ///////////////////////////////////////////////////////////////////////////
-
-
-
-
-
 
 
     fChi_temp_vector.Dimension (n_sd);
@@ -4749,8 +4754,8 @@ void FSMicromorphic3DT:: Form_Mm_7_matrix()
 									{
 										for(int R=0; R<=0;R++)
 										{
-											Mm_7(row, col) =(Mm_7(row, col) +CCof[k][l][m][p][r][s]*GRAD_ChiN[i][L][R]*FnInv[R][r]*ChiInv[L][n]*
-															ChiInv[T][r]);}}}}}
+											Mm_7(row, col) =(Mm_7(row, col) +CCof[k][l][m][p][r][s]*GRAD_ChiN[p][L][R]*FnInv[R][r]*ChiInv[L][n]*
+															ChiInv[T][s]);}}}}}
 						//summation on the same term ends
 						row++;}
 					}
@@ -4984,7 +4989,7 @@ void FSMicromorphic3DT:: Form_Mm_13_matrix()
 								{
 									for(int L=0;L<=2;L++)
 									{
-										Mm_13(row, col) =(Mm_13(row, col) +GammaN[k][i][m]*Chi[i][L]*ChiInv[L][n]*ChiInv[T][l]);}}
+										Mm_13(row, col) =(Mm_13(row, col) +GammaN[k][i][m]*ChiN[i][L]*ChiInv[L][n]*ChiInv[T][l]);}}
 							row++;}
 						}
 					}
@@ -5042,7 +5047,7 @@ void FSMicromorphic3DT:: Form_Ru_1_matrix()
 								//summation on the same term starts here
 									for(int L=0;L<=2;L++)
 									{
-										Ru_1(row, col) =(Ru_1(row, col) +Fn[i][L]*Finv[L][k]*sn_sigman[m][l]);}
+										Ru_1(row, col) =(Ru_1(row, col) +Fn[i][L]*Finv[L][k]*sn_sigman(m,l));}
 							row++;}
 						}
 					col++;
@@ -5069,7 +5074,7 @@ void FSMicromorphic3DT:: Form_Ru_2_matrix()
 								//summation on the same term starts here
 									for(int L=0;L<=2;L++)
 									{
-										Ru_2(row, col) =-(Ru_2(row, col) +Fn[m][L]*Finv[L][k]*sn_sigman[i][l]);}
+										Ru_2(row, col) =-(Ru_2(row, col) +Fn[m][L]*Finv[L][k]*sn_sigman(i,l));}
 							row++;}
 						}
 					col++;
@@ -5098,7 +5103,7 @@ void FSMicromorphic3DT:: Form_Ru_3_matrix()
 								//summation on the same term starts here
 									for(int L=0;L<=2;L++)
 									{
-										Ru_3(row, col) =-(Ru_3(row, col) +sn_sigman[m][i]*Fn[l][L]*Finv[L][k]);}
+										Ru_3(row, col) =-(Ru_3(row, col) +sn_sigman(m,i)*Fn[l][L]*Finv[L][k]);}
 							row++;}
 						}
 					col++;
@@ -5170,23 +5175,22 @@ void FSMicromorphic3DT:: Form_RChi_2_matrix()
 		{
 			for(int p=0; p<=2; p++)
 			{
-					row = 0;//row calculations start here
-					for(int m = 0; m <= 2; m++)
+				row = 0;//row calculations start here
+				for(int m = 0; m <= 2; m++)
+					{
+						for(int l = 0; l <= 2; l++)
 						{
-							for(int l = 0; l <= 2; l++)
+							//summation on the same term starts here
+							for(int T=0; T<=2; T++)
 							{
-								//summation on the same term starts here
-									for(int T=0; T<=2; T++)
-									{
-										RChi_2(row, col) =-(RChi_2(row, col) +ChiN[m][T]*ChiInv[T][p]*ChiInv[K][l]);}
+								RChi_2(row, col) =-(RChi_2(row, col) +ChiN[m][T]*ChiInv[T][p]*ChiInv[K][l]);}
 							row++;}
 						}
 					col++;
 				}
 			}
-
-
 }
+
 
 void FSMicromorphic3DT:: Form_Ru_5_matrix()
 {
@@ -5229,7 +5233,7 @@ void FSMicromorphic3DT:: Form_Rs_sigma_matrix()
 					for(int l = 0; l <= 2; l++)
 					{
 							//summation on the same term starts here
-							Rs_sigma(row, col)=-sn_sigman[m][l];
+							Rs_sigma(row, col)=-sn_sigman(m,l);
 							row++;
 
 					}
@@ -5253,7 +5257,7 @@ void FSMicromorphic3DT:: Form_R_Capital_Gamma_Chi_matrix()
 					for(int l = 0; l <= 2; l++)
 					{
 						//summation on the same term starts here
-						R_Capital_Gamma_Chi(row, col)=kRho_0*CapitalGamma[l][K];
+						R_Capital_Gamma_Chi(row, col)=kRho_0*CapitalGamma(l,K);
 						row++;
 					}
 				}

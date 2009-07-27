@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.18 2009-07-25 00:29:17 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.19 2009-07-27 20:15:39 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -424,13 +424,12 @@ private:
 	double CCof[3][3][3][3][3][3];
 	double GRAD_ChiN[3][3][3];// GRADIENT  in reference configuration!
 	double GRAD_Chi[3][3][3];// GRADIENT in reference configuration!
-	double sn_sigman[3][3];
+
 	dMatrixT Mm_1;
     dMatrixT Mm_2;
     dMatrixT Mm_3;
     dMatrixT Mm_4;
     dMatrixT Mm_5;
-    dMatrixT Mm_6;
     dMatrixT Mm_6;
     dMatrixT Mm_7;
     dMatrixT Mm_8;
@@ -440,7 +439,7 @@ private:
     dMatrixT Mm_12;
     dMatrixT Mm_13;
     dMatrixT Mm_14;
-    dMatrixT Ru_1;
+    dMatrixT Ru_1;//u
     dMatrixT Ru_2;
     dMatrixT Ru_3;
     dMatrixT RChi_1;
@@ -450,6 +449,7 @@ private:
     dMatrixT Rs_sigma;
     dMatrixT R_Capital_Gamma_Chi;
     dMatrixT CapitalGamma;
+    dMatrixT sn_sigman;
 
 
 
