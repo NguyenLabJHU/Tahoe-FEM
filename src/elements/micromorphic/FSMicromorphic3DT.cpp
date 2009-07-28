@@ -1011,7 +1011,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fShapes_micro->IPCoords(MicroIPCoordinate);
 
 				const double* shapes_displ_X = fShapes_displ->IPShapeX();
-				/* [fShapeDispl]will be formed */
+				/* [fShapeDispl] will be formed */
 				Form_solid_shape_functions(shapes_displ_X);
 
 				fShapes_displ->GradNa(fShapeDisplGrad_temp);
@@ -1033,6 +1033,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				/* [fShapeMicroGrad] will be formed */
 				fShapes_micro->GradNa(fShapeMicroGrad);
+			//	Form_Gradient_of_micro_shape_functions(fShapeMicroGrad);
+
+
+
+
 				/* KroneckerDelta matrix is formed*/
 				Form_KroneckerDelta_matrix();
 
@@ -1054,8 +1059,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fDeformation_Gradient_Inverse_Transpose.Transpose(fDeformation_Gradient_Inverse);
 				fDeformation_Gradient_Transpose.Transpose(fDeformation_Gradient);
 
-				Form_double_Finv_from_Deformation_tensor_inverse();
-
+				Form_double_Finv_from_Deformation_tensor_inverse();// I ADDED!!!
+				Form_Finv_w_matrix();
 
 				/* {fDefGradInv_vector} will be formed */
 				Form_deformation_gradient_inv_vector();
@@ -1135,7 +1140,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
 //////////////////Micromorphic addition/////////////////////////////////////////
 				/*Forms a vector ( actually 9x1 matrix) consisting of unsymmetric components of Cauchy stress tensors*/
-				Form_SigCurr_vector_Cauchy_Str_matrix();
+				Form_SigCurr_vector_Cauchy_Stss_matrix();
 ////////////////////Micromorphic addition//////////////////////////////////////
 
 
@@ -1145,6 +1150,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				/* [fIota_temp_matrix] will be formed */
 				fIota_temp_matrix.MultATB(fShapeDisplGrad,fDefGradInv_Grad_grad);
+				fIota_temp_1_matrix.MultATB(fShapeDisplGrad,Finv_w);
                 //fShapeDisplGrad--> [GRAD(Ns,e)] so it in reference configuration
 
 
@@ -1225,84 +1231,84 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 /// SIGN was not taken into account yet !!!!
 /*
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,Tsigma_1,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,Tsigma_1,fIota_temp_matrix);
 				scale = -1*scale_const*J;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_1 += fTemp_matrix_ndof_se_x_ndof_se;
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,Tsigma_2,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,Tsigma_2,fIota_temp_matrix);
 				scale = scale_const*J;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_2 += fTemp_matrix_ndof_se_x_ndof_se;
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,Tsigma_3,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,Tsigma_3,fIota_temp_matrix);
 				scale = scale_const*J;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_3 += fTemp_matrix_ndof_se_x_ndof_se;
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,TFn_1,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,TFn_1,fIota_temp_matrix);
 				scale = scale_const*J*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_4 += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,TFn_2,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,TFn_2,fIota_temp_matrix);
 				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_5 += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,TFn_3,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,TFn_3,fIota_temp_matrix);
 				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_6 += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,TChi_1,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,TChi_1,fIota_temp_matrix);
 				scale = scale_const*J*(fMaterial_Params[kEta]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_7 += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,TFn_4,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,TFn_4,fIota_temp_matrix);
 				scale = scale_const*J*(fMaterial_Params[kEta]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_8 += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,TChi_2,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,TChi_2,fIota_temp_matrix);
 				scale = scale_const*J*(fMaterial_Params[kKappa]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_9 += fTemp_matrix_ndof_se_x_ndof_se;
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,TFn_5,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,TFn_5,fIota_temp_matrix);
 				scale = scale_const*J*(fMaterial_Params[kKappa]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_10 += fTemp_matrix_ndof_se_x_ndof_se;
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,TChi_3,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,TChi_3,fIota_temp_matrix);
 				scale = scale_const*J*(fMaterial_Params[kNu]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_11 += fTemp_matrix_ndof_se_x_ndof_se;
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,TFn_6,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,TFn_6,fIota_temp_matrix);
 				scale = scale_const*J*(fMaterial_Params[kNu]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
 				fG1_12 += fTemp_matrix_ndof_se_x_ndof_se;
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,SigCurr,fPi_temp_row_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_1_matrix,SigCurr,fPi_temp_row_matrix);
 				scale = scale_const*J;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
@@ -1868,6 +1874,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     ///////////////////////////////////////////////////////////////////////////
     /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FOR 3D CASE//////////////
     ///////////////////////////////////////////////////////////////////////////
+    fIota_temp_1_matrix.Dimension(n_en_displ_x_n_sd,n_sd_x_n_sd);
+    Finv_w.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Tsigma_1.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_1.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
     Tsigma_2.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
@@ -2563,6 +2571,34 @@ void FSMicromorphic3DT::Form_KroneckerDelta_matrix()
 	KrDelta[1][1]=1.0;
 	KrDelta[2][2]=1.0;
 }
+
+void FSMicromorphic3DT:: Form_Finv_w_matrix()
+{
+
+	int counter, row, col;
+	row=0;
+	col=0;
+	counter=0;
+	Finv_w=0.0;
+	while(counter<=2)
+	{
+		Finv_w(row,col)    =Finv[0][0];
+		Finv_w(row,col+1)  =Finv[1][0];
+		Finv_w(row,col+2)  =Finv[2][0];
+		Finv_w(row+1,col)  =Finv[0][1];
+		Finv_w(row+1,col+1)=Finv[1][1];
+		Finv_w(row+1,col+2)=Finv[2][1];
+		Finv_w(row+2,col)  =Finv[0][2];
+		Finv_w(row+2,col+1)=Finv[1][2];
+		Finv_w(row+2,col+2)=Finv[2][2];
+		row=row+3;
+		col=col+3;
+		counter++;
+	}
+
+
+}
+
 
 void FSMicromorphic3DT::Form_Tsigma_1_matrix()
 {
@@ -3821,7 +3857,7 @@ void FSMicromorphic3DT::Form_double_Finv_from_Deformation_tensor_inverse()
 			Finv[i][j]=fDeformation_Gradient_Inverse(i,j);
 }
 
-void FSMicromorphic3DT::Form_SigCurr_vector_Cauchy_Str_matrix()
+void FSMicromorphic3DT::Form_SigCurr_vector_Cauchy_Stss_matrix()
 {
     SigCurr=0.0;
 
@@ -5257,7 +5293,7 @@ void FSMicromorphic3DT:: Form_R_Capital_Gamma_Chi_matrix()
 					for(int l = 0; l <= 2; l++)
 					{
 						//summation on the same term starts here
-						R_Capital_Gamma_Chi(row, col)=kRho_0*CapitalGamma(l,K);
+						R_Capital_Gamma_Chi(row, col)=fRho_0 *CapitalGamma(l,K);
 						row++;
 					}
 				}

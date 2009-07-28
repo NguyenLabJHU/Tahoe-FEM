@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.19 2009-07-27 20:15:39 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.20 2009-07-28 06:02:08 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -392,7 +392,8 @@ private:
 	double Chi[3][3];
 	double ChiInv[3][3];
 	double ChiN[3][3];
-
+	dMatrixT fIota_temp_1_matrix;
+	dMatrixT Finv_w; // to create Iota_1 which is different than Iota because sequence of the components in wk,l
 	dMatrixT Tsigma_2;
 	dMatrixT fG1_2;//not being calculated yet
     dMatrixT Tsigma_3;
@@ -451,8 +452,31 @@ private:
     dMatrixT CapitalGamma;
     dMatrixT sn_sigman;
 
+    dMatrixT dH1_1;
+    dMatrixT dH1_2;
+    dMatrixT dH1_3;
+    dMatrixT dH1_4;
+    dMatrixT dH1_5;
+    dMatrixT dH1_6;
+    dMatrixT dH1_7;
+    dMatrixT dH1_8;
+    dMatrixT dH1_9;
+    dMatrixT dH1_10;
+    dMatrixT dH1_11;
+    dMatrixT dH1_12;
+    dMatrixT dH1_13;
+    dMatrixT dH1_14;
 
+    dMatrixT dH2_1;
+    dMatrixT dH2_2;
+    dMatrixT dH2_3;
+    dMatrixT dH2_4;
+    dMatrixT dH2_5;
+    dMatrixT dH2_6;
+    dMatrixT dH2_7;
+    dMatrixT dH2_8;
 
+    dMatrixT dH3_1;
 
 
 	//////////////////////////////////////////////////////////
@@ -581,6 +605,7 @@ private:
 	//////////////////////////////////////////////////////////
 	//Forming the Matrices coming from the Balance of Linear Momentum
 	void Form_double_Finv_from_Deformation_tensor_inverse(void);
+	void Form_Finv_w_matrix(void);
 	void Form_KroneckerDelta_matrix(void);
 	void Form_Tsigma_1_matrix(void);
 	void Form_fG1_1_matrix(void);//not defined yet
@@ -606,7 +631,7 @@ private:
     void Form_fG1_11_matrix(void);
     void Form_TFn_6_matrix(void);
     void Form_fG1_12_matrix(void);
-    void Form_SigCurr_vector_Cauchy_Str_matrix(void);
+    void Form_SigCurr_vector_Cauchy_Stss_matrix(void);
     void Form_fG1_13_matrix(void);
     //Forming the Matrices coming from the Balance of First Moment of Momentum
     void Form_Mm_1_matrix(void);// needs to be multiplied by "-" and J
