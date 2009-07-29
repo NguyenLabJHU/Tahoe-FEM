@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.22 2009-07-29 05:02:41 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.23 2009-07-29 06:41:04 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -393,8 +393,8 @@ private:
 	double ChiInv[3][3];
 	double ChiN[3][3];
 	dMatrixT fIota_w_temp_matrix;
-	dMatrixT fIota_eta_temp_matrix;
-	dMatrixT Finv_w; // to create Iota_1 which is different than Iota because sequence of the components in wk,l
+	dMatrixT GRAD_Nuw;
+	dMatrixT Finv_w; // to create Iota_w which is different than Iota because sequence of the components in wk,l
 	dMatrixT Tsigma_2;
 	dMatrixT fG1_2;//not being calculated yet
     dMatrixT Tsigma_3;
@@ -428,7 +428,9 @@ private:
 	double GRAD_Chi[3][3][3];// GRADIENT in reference configuration!
 
 
-	dMatrixT GRAD_Nuw;
+
+	dMatrixT fIota_eta_temp_matrix;
+	dMatrixT Finv_eta; // to create Iota_eta
 	dMatrixT Mm_1;
     dMatrixT Mm_2;
     dMatrixT Mm_3;
@@ -455,7 +457,7 @@ private:
     dMatrixT CapitalGamma;
     dMatrixT sn_sigman;
     dMatrixT GRAD_NCHI;
-    dMatrixT Finv_eta;
+
 
     dMatrixT NCHI;
 

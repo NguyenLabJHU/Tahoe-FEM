@@ -1061,16 +1061,23 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				/* [fShapeMicroGrad] will be formed */
 				fShapes_micro->GradNa(fShapeMicroGrad);
-				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad);//This GRADIENT shape function matrix is for eta
-
-				Form_NCHI_matrix(fShapeMicro_row_matrix);//shape function matrix
-
 
 				/* KroneckerDelta matrix is formed*/
 				Form_KroneckerDelta_matrix();
 
 				/* [fDeformation_Gradient] will be formed */
 				Form_deformation_gradient_tensor();
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+				Form_double_Finv_from_Deformation_tensor_inverse();// I ADDED!!!
+				Form_Finv_w_matrix();// I ADDED!!!
+				Form_Finv_eta_matrix();
+				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad);//This GRADIENT shape function matrix is for eta
+				Form_NCHI_matrix(fShapeMicro_row_matrix);//shape function matrix
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 				/* [fDefGradT_9x9_matrix] will be formed */
 				Form_fDefGradT_9x9_matrix();
@@ -1087,8 +1094,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fDeformation_Gradient_Inverse_Transpose.Transpose(fDeformation_Gradient_Inverse);
 				fDeformation_Gradient_Transpose.Transpose(fDeformation_Gradient);
 
-				Form_double_Finv_from_Deformation_tensor_inverse();// I ADDED!!!
-				Form_Finv_w_matrix();// I ADDED!!!
+
 
 				/* {fDefGradInv_vector} will be formed */
 				Form_deformation_gradient_inv_vector();
@@ -1179,9 +1185,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* [fIota_temp_matrix] will be formed */
 
 				fIota_temp_matrix.MultATB(fShapeDisplGrad,fDefGradInv_Grad_grad);
+////////////////////////////////////////////////////////////////////////////////
 				fIota_w_temp_matrix.MultATBT(GRAD_Nuw,Finv_w);
+				fIota_eta_temp_matrix.MultATBT(GRAD_NCHI,Finv_eta);
                 //fShapeDisplGrad--> [GRAD(Ns,e)] so it in reference configuration
-
+////////////////////////////////////////////////////////////////////////////////
 
 
 				/* second derivatives of solid shape functions, [fShapeDisplGradGrad] will be formed */
@@ -1226,6 +1234,29 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_TChi_1_matrix();
 				Form_TChi_2_matrix();
 				Form_TChi_3_matrix();
+			    Form_Mm_1_matrix();// needs to be multiplied by "-" and J
+			    Form_Mm_2_matrix();// needs to be multiplied by J
+			    Form_Mm_3_matrix();// needs to be multiplied by J
+			    Form_Mm_4_matrix();// needs to be multiplied by J
+			    Form_Mm_5_matrix();// needs to be multiplied by J
+			    Form_Mm_6_matrix();// needs to be multiplied by J
+			    Form_Mm_7_matrix();
+			    Form_Mm_8_matrix();
+			    Form_Mm_9_matrix();
+			    Form_Mm_10_matrix();
+			    Form_Mm_11_matrix();
+			    Form_Mm_12_matrix();
+			    Form_Mm_13_matrix();
+			    Form_Mm_14_matrix();//something should be changed in the loop due to div(du)!!! changed done ok!
+			    Form_Ru_1_matrix();
+			    Form_Ru_2_matrix();
+			    Form_Ru_3_matrix();
+			    Form_RChi_1_matrix();// needs to be multiplied by Kappa and J
+			    Form_Ru_4_matrix();// needs to be multiplied by Kappa and J
+			    Form_RChi_2_matrix();//needs to be multiplied by Nu and J
+			    Form_Ru_5_matrix();// needs to be multiplied by Nu and J
+			    Form_Rs_sigma_matrix();
+			    Form_R_Capital_Gamma_Chi_matrix();// DO NOT multiply with J !!!
 				*/
 
 ////////////////////////Finished here///////////////////////////////////////////
@@ -2661,27 +2692,7 @@ void FSMicromorphic3DT:: Form_Finv_w_matrix()
 
 
 
-void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrixT &fShapeMicroGrad)
-{
-	GRAD_NCHI=0.0;
-	int row=0;
-	int col=0;
-	for(int i=0;i<=8;i++)
-	{
-		col=i;
-		for(int  j=0 ; j<=7; j++)
-		{
-			GRAD_NCHI(row,col)  =fShapeMicroGrad(0,j);
-			GRAD_NCHI(row+1,col)=fShapeMicroGrad(1,j);
-			GRAD_NCHI(row+2,col)=fShapeMicroGrad(2,j);
-			col=col+9;
-		}
-		row=row+3;
 
-	}
-
-
-}
 
 void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix)
 {
@@ -4019,6 +4030,28 @@ void FSMicromorphic3DT::Form_Finv_eta_matrix()
 		col=col+3;
 		counter++;
 	}
+
+}
+
+void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrixT &fShapeMicroGrad)
+{
+	GRAD_NCHI=0.0;
+	int row=0;
+	int col=0;
+	for(int i=0;i<=8;i++)
+	{
+		col=i;
+		for(int  j=0 ; j<=7; j++)
+		{
+			GRAD_NCHI(row,col)  =fShapeMicroGrad(0,j);
+			GRAD_NCHI(row+1,col)=fShapeMicroGrad(1,j);
+			GRAD_NCHI(row+2,col)=fShapeMicroGrad(2,j);
+			col=col+9;
+		}
+		row=row+3;
+
+	}
+
 
 }
 
