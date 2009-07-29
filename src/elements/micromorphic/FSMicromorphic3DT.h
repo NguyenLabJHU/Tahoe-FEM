@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.21 2009-07-28 22:38:47 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.22 2009-07-29 05:02:41 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -392,7 +392,8 @@ private:
 	double Chi[3][3];
 	double ChiInv[3][3];
 	double ChiN[3][3];
-	dMatrixT fIota_temp_1_matrix;
+	dMatrixT fIota_w_temp_matrix;
+	dMatrixT fIota_eta_temp_matrix;
 	dMatrixT Finv_w; // to create Iota_1 which is different than Iota because sequence of the components in wk,l
 	dMatrixT Tsigma_2;
 	dMatrixT fG1_2;//not being calculated yet
@@ -426,6 +427,8 @@ private:
 	double GRAD_ChiN[3][3][3];// GRADIENT  in reference configuration!
 	double GRAD_Chi[3][3][3];// GRADIENT in reference configuration!
 
+
+	dMatrixT GRAD_Nuw;
 	dMatrixT Mm_1;
     dMatrixT Mm_2;
     dMatrixT Mm_3;
@@ -453,6 +456,8 @@ private:
     dMatrixT sn_sigman;
     dMatrixT GRAD_NCHI;
     dMatrixT Finv_eta;
+
+    dMatrixT NCHI;
 
     dMatrixT fH1_1;
     dMatrixT fH1_2;
@@ -607,6 +612,7 @@ private:
 	//////////////////////////////////////////////////////////
 	//Forming the Matrices coming from the Balance of Linear Momentum
 	void Form_double_Finv_from_Deformation_tensor_inverse(void);
+	void Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp);
 	void Form_Finv_w_matrix(void);
 	void Form_KroneckerDelta_matrix(void);
 	void Form_Tsigma_1_matrix(void);
@@ -636,7 +642,7 @@ private:
     void Form_SigCurr_vector_Cauchy_Stss_matrix(void);
     void Form_fG1_13_matrix(void);
     //Forming the Matrices coming from the Balance of First Moment of Momentum
-	void Form_Gradient_of_micro_shape_functions(const dMatrixT &fShapeMicroGrad);
+	void Form_Gradient_of_micro_shape_eta_functions(const dMatrixT &fShapeMicroGrad);
     void Form_Mm_1_matrix(void);// needs to be multiplied by "-" and J
     void Form_Mm_2_matrix(void);// needs to be multiplied by J
     void Form_Mm_3_matrix(void);// needs to be multiplied by J
@@ -661,7 +667,7 @@ private:
     void Form_Rs_sigma_matrix(void);
     void Form_R_Capital_Gamma_Chi_matrix(void);// DO NOT multiply with J !!!
     void Form_Finv_eta_matrix(void);
-
+    void Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix); //shape function matrice for micro deformatin {ETA}=[NCHI].{eta}
 	//////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////

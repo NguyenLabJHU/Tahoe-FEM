@@ -884,6 +884,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 	fH3_1=0.0;
 
+	fIota_w_temp_matrix=0.0;
+	fIota_eta_temp_matrix=0.0;
+
 
 	e = CurrElementNumber();
 	const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
@@ -1041,7 +1044,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				fShapes_displ->GradNa(fShapeDisplGrad_temp);
 				/* [fShapeDisplGrad] will be formed */
-				Form_Gradient_of_solid_shape_functions(fShapeDisplGrad_temp);
+				Form_Gradient_of_solid_shape_functions(fShapeDisplGrad_temp);//this is for GRADIENT(du)
 
 				/* [fShapeDisplGrad_t] and [fShapeDisplGrad_t_Transpose] will be formed */
 				Form_Gradient_t_of_solid_shape_functions(fShapeDisplGrad_temp);
@@ -1058,9 +1061,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				/* [fShapeMicroGrad] will be formed */
 				fShapes_micro->GradNa(fShapeMicroGrad);
-				Form_Gradient_of_micro_shape_functions(fShapeMicroGrad);
+				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad);//This GRADIENT shape function matrix is for eta
 
-
+				Form_NCHI_matrix(fShapeMicro_row_matrix);//shape function matrix
 
 
 				/* KroneckerDelta matrix is formed*/
@@ -1174,8 +1177,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_kirchhoff_stress_vector();
 
 				/* [fIota_temp_matrix] will be formed */
+
 				fIota_temp_matrix.MultATB(fShapeDisplGrad,fDefGradInv_Grad_grad);
-				fIota_w_temp_matrix.MultATB(fShapeDisplGrad,Finv_w);
+				fIota_w_temp_matrix.MultATBT(GRAD_Nuw,Finv_w);
                 //fShapeDisplGrad--> [GRAD(Ns,e)] so it in reference configuration
 
 
@@ -1295,7 +1299,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fG1_6 += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_w_temp_matrix,TChi_1,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABC(fIota_w_temp_matrix,TChi_1,NCHI);// ABC not ABCT
 				scale = scale_const*J*(fMaterial_Params[kEta]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
@@ -1309,7 +1313,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fG1_8 += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_w_temp_matrix,TChi_2,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABC(fIota_w_temp_matrix,TChi_2,NCHI);//ABC not ABCT
 				scale = scale_const*J*(fMaterial_Params[kKappa]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
@@ -1321,7 +1325,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				 accumulate
 				fG1_10 += fTemp_matrix_ndof_se_x_ndof_se;
 
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_w_temp_matrix,TChi_3,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABC(fIota_w_temp_matrix,TChi_3,NCHI);//ABC not ABCT
 				scale = scale_const*J*(fMaterial_Params[kNu]);
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
 				 accumulate
@@ -1901,6 +1905,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     ///////////////////////////////////////////////////////////////////////////
     fIota_w_temp_matrix.Dimension(n_en_displ_x_n_sd,n_sd_x_n_sd);
     fIota_eta_temp_matrix.Dimension(n_en_micro_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    NCHI.Dimension(n_sd_x_n_sd,n_en_micro_x_n_sd);
 
     Finv_w.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Tsigma_1.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
@@ -2656,7 +2661,7 @@ void FSMicromorphic3DT:: Form_Finv_w_matrix()
 
 
 
-void FSMicromorphic3DT::Form_Gradient_of_micro_shape_functions(const dMatrixT &fShapeMicroGrad)
+void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrixT &fShapeMicroGrad)
 {
 	GRAD_NCHI=0.0;
 	int row=0;
@@ -2677,6 +2682,47 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_functions(const dMatrixT &f
 
 
 }
+
+void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix)
+{
+	int row,col,counter;
+	row=0;
+	col=0;
+	counter=0;
+	NCHI=0.0;
+	while(counter<=8)
+	{
+		for(int i=0;i<=7;i++)
+		{
+			NCHI(row,col)=fShapeMicro_row_matrix(0,i);
+			col=col+9;
+		}
+		row++;
+	}
+
+}
+
+void FSMicromorphic3DT:: Form_GRAD_Nuw_matrix(const dMatrixT &fShapeMicroGrad)
+{
+	int row,col,counter;
+	row=0;
+	col=0;
+	counter=0;
+	GRAD_Nuw=0.0;
+	for(int j=0;j<3;j++)
+	{
+		col=j;
+		for(int i=0;i<27;i++)
+		{
+			GRAD_Nuw(row,col)  =fShapeMicroGrad(0,i);
+			GRAD_Nuw(row+1,col)=fShapeMicroGrad(1,i);
+			GRAD_Nuw(row+2,col)=fShapeMicroGrad(2,i);
+			col=col+3;
+		}
+	}
+
+}
+
 
 void FSMicromorphic3DT::Form_Tsigma_1_matrix()
 {
