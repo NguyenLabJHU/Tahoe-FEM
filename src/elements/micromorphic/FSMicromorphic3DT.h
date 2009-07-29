@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.23 2009-07-29 06:41:04 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.24 2009-07-29 21:37:51 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -393,6 +393,11 @@ private:
 	double ChiInv[3][3];
 	double ChiN[3][3];
 	dMatrixT fIota_w_temp_matrix;
+	dMatrixT fTemp_matrix_nudof_x_nchidof;
+	dMatrixT fTemp_matrix_nchidof_x_nchidof;
+	dMatrixT fTemp_matrix_nchidof_x_nudof;
+	dMatrixT fTemp_matrix_nudof_x_nudof;
+
 	dMatrixT GRAD_Nuw;
 	dMatrixT Finv_w; // to create Iota_w which is different than Iota because sequence of the components in wk,l
 	dMatrixT Tsigma_2;
@@ -431,6 +436,7 @@ private:
 
 	dMatrixT fIota_eta_temp_matrix;
 	dMatrixT Finv_eta; // to create Iota_eta
+    dMatrixT GRAD_NCHI;
 	dMatrixT Mm_1;
     dMatrixT Mm_2;
     dMatrixT Mm_3;
@@ -456,10 +462,11 @@ private:
     dMatrixT R_Capital_Gamma_Chi;
     dMatrixT CapitalGamma;
     dMatrixT sn_sigman;
-    dMatrixT GRAD_NCHI;
+
 
 
     dMatrixT NCHI;
+//    dMatrixT GRAD_NCHI_Phi;//no need for this same with GRAD_NCHI
 
     dMatrixT fH1_1;
     dMatrixT fH1_2;
@@ -670,7 +677,8 @@ private:
     void Form_R_Capital_Gamma_Chi_matrix(void);// DO NOT multiply with J !!!
     void Form_Finv_eta_matrix(void);
     void Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix); //shape function matrice for micro deformatin {ETA}=[NCHI].{eta}
-	//////////////////////////////////////////////////////////
+//    void Form_GRAD_NCHI_Phi_matrix(const  dMatrixT &fShapeMicroGrad); no need for this
+    //////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////
 
