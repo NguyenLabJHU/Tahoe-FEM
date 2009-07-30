@@ -1475,14 +1475,65 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fH1_13 += fTemp_matrix_nchidof_x_nchidof;
 
 
-				fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_14,fIota_temp_matrix);
+				fTemp_matrix_nchidof_x_nudof.MultABC(fIota_eta_temp_matrix,Mm_14,fShapeDisplGrad);
 				scale = scale_const*J;
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH1_14 += fTemp_matrix_nchidof_x_nudof;
 
+				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_1,fIota_temp_matrix);
+				scale = scale_const*J;
+				fTemp_matrix_nchidof_x_nudof *= scale;
+				// accumulate
+				fH2_1 += fTemp_matrix_nchidof_x_nudof;
 
+				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_2,fIota_temp_matrix);
+				scale = -1*scale_const*J;
+				fTemp_matrix_nchidof_x_nudof *= scale;
+				// accumulate
+				fH2_2 += fTemp_matrix_nchidof_x_nudof;
 
+				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_3,fIota_temp_matrix);
+				scale = -1*scale_const*J;
+				fTemp_matrix_nchidof_x_nudof *= scale;
+				// accumulate
+				fH2_3 += fTemp_matrix_nchidof_x_nudof;
+
+//				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_1,NCHI);
+//				scale = -1*scale_const*J*fMaterial_Params[kKappa];
+//				fTemp_matrix_nchidof_x_nudof *= scale;
+//				// accumulate
+//				fH2_4 += fTemp_matrix_nchidof_x_nchidof;
+//
+//				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_4,fIota_temp_matrix);
+//				scale = -1*scale_const*J*fMaterial_Params[kKappa];
+//				fTemp_matrix_nchidof_x_nudof *= scale;
+//				// accumulate
+//				fH2_5 += fTemp_matrix_nchidof_x_nudof;
+//
+//				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_2,NCHI);
+//				scale = -1*scale_const*J*fMaterial_Params[kNu];
+//				fTemp_matrix_nchidof_x_nudof *= scale;
+//				// accumulate
+//				fH2_6 += fTemp_matrix_nchidof_x_nchidof;
+//
+//				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_5,fIota_temp_matrix);
+//				scale = -1*scale_const*J*fMaterial_Params[kNu];
+//				fTemp_matrix_nchidof_x_nudof *= scale;
+//				// accumulate
+//				fH2_7 += fTemp_matrix_nchidof_x_nudof;
+
+				fTemp_matrix_nchidof_x_nudof.MultABC(NCHI_Tr,Rs_sigma,fShapeDisplGrad);
+				scale = -1*scale_const*J;
+				fTemp_matrix_nchidof_x_nudof *= scale;
+				// accumulate
+				fH2_8 += fTemp_matrix_nchidof_x_nudof;
+
+				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,R_Capital_Gamma_Chi,NCHI);
+				scale = 1*scale_const*J;
+				fTemp_matrix_nchidof_x_nudof *= scale;
+				// accumulate
+				fH3_1 += fTemp_matrix_nchidof_x_nchidof;
 
 
 /////////////////H_ matrices finish here////////////////////////////////////////
@@ -1728,10 +1779,17 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(iConstitutiveModelType, "constitutive_mod_type");
 
     double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2, gravity_g3;
+    double Kappa, Nu, Sigma, Tau, Eta;
 
     // solid elasticity
     list.AddParameter(shearMu, "mu");
     list.AddParameter(sLambda, "lambda");
+    //Material Parameter
+    list.AddParameter(Kappa, "Kappa");
+    list.AddParameter(Nu, "Nu");
+    list.AddParameter(Sigma, "Sigma");
+    list.AddParameter(Tau, "Tau");
+    list.AddParameter(Eta, "Eta");
 
     // gravity
     list.AddParameter(gravity_g, "g");
@@ -1816,6 +1874,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fMaterial_Params[kMu] = list.GetParameter("mu");
     fMaterial_Params[kLambda] = list.GetParameter("lambda");
+    fMaterial_Params[kKappa] = list.GetParameter("Kappa");
+    fMaterial_Params[kNu] = list.GetParameter("Nu");
+    fMaterial_Params[kSigma] = list.GetParameter("Sigma");
+    fMaterial_Params[kTau] = list.GetParameter("Tau");
+    fMaterial_Params[kEta] = list.GetParameter("Eta");
+
     fMaterial_Params[kg] = list.GetParameter("g");
     fMaterial_Params[kg1] = list.GetParameter("g1");
     fMaterial_Params[kg2] = list.GetParameter("g2");
@@ -2040,7 +2104,10 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     ///////////////////////////////////////////////////////////////////////////
     fIota_w_temp_matrix.Dimension(n_en_displ_x_n_sd,n_sd_x_n_sd);
     fIota_eta_temp_matrix.Dimension(n_en_micro_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+
     NCHI.Dimension(n_sd_x_n_sd,n_en_micro_x_n_sd);
+    NCHI_Tr.Dimension(n_en_micro_x_n_sd,n_sd_x_n_sd);
+//    NCHI_eta.Dimension(n_sd_x_n_sd,n_en_micro_x_n_sd);same with the one above no need!
 
     fTemp_matrix_nudof_x_nudof.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fTemp_matrix_nudof_x_nchidof.Dimension (n_en_displ_x_n_sd,n_en_micro_x_n_sd);
@@ -2822,6 +2889,11 @@ void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix)
 	}
 
 }
+
+//void FSMicromorphic3DT::Form_NCHI_eta_matrix(const dMatrixT &fShapeMicro_row_matrix);
+//{
+//
+//}
 
 void FSMicromorphic3DT:: Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp)
 {
@@ -4186,6 +4258,9 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
 	}
 }*/
 
+
+
+
 void FSMicromorphic3DT::Form_Mm_1_matrix()
 {
 	   Mm_1(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][0][0];//[0][0][0] +
@@ -5353,6 +5428,28 @@ void FSMicromorphic3DT:: Form_Mm_14_matrix()
 	Mm_14=0.0;
 	int col;
 	int row;
+
+	for(int T = 0;T<= 2;T++)
+		{
+		for(int n=0;n<=2;n++)
+			{
+			row = 0;//row calculations start here
+			for(int m = 0;m <= 2; m++)
+			{
+				for(int l = 0; l <= 2; l++)
+				{
+					for(int k = 0; k <= 2; k++)
+					{
+
+			    		 Mm_14(row, col) =Mnplus1[k][l][m]*FnInv[T][n];
+			    		 row++;}
+					}
+				}
+			col++;
+			}
+		}
+
+
 			for(int n=0;n<=2;n++)
 			{
 				row = 0;//row calculations start here
@@ -5370,8 +5467,6 @@ void FSMicromorphic3DT:: Form_Mm_14_matrix()
 					}
 				col=col+4;
 			}
-
-
 
 
 }
@@ -5572,21 +5667,24 @@ void FSMicromorphic3DT:: Form_Rs_sigma_matrix()
 	Rs_sigma=0.0;
 	int col;
 	int row;
+	for(int T = 0;T<= 2;T++)
+		{
 			for(int n=0;n<=2;n++)
 			{
-				row = 0;//row calculations start here
-				for(int m=0; m<=2; m++)
-				{
-					for(int l = 0; l <= 2; l++)
-					{
-							//summation on the same term starts here
-							Rs_sigma(row, col)=-sn_sigman(m,l);
-							row++;
+					row = 0;//row calculations start here
+					for(int m = 0; m <= 2; m++)
+						{
+							for(int l = 0; l <= 2; l++)
+							{
 
-					}
+								Rs_sigma(row, col)=-sn_sigman(m,l)*FnInv[T][n];
+							row++;
+							}
+						}
+					col++;
 				}
-			col=col+4;
 			}
+
 
 }
 
