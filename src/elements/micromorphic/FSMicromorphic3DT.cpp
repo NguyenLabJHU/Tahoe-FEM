@@ -62,6 +62,14 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
     //-- Elasticity parameters for solid
     cout << "fMaterial_Params[kMu] "  				<< fMaterial_Params[kMu] 	 << endl;
     cout << "fMaterial_Params[kLambda] "  			<< fMaterial_Params[kLambda] << endl;
+/*
+    cout << "fMaterial_Params[kNu] "  				<< fMaterial_Params[kNu] 	 << endl;
+    cout << "fMaterial_Params[kSigma] "  			<< fMaterial_Params[kSigma]  << endl;
+    cout << "fMaterial_Params[kTau] "  				<< fMaterial_Params[kTau] 	 << endl;
+    cout << "fMaterial_Params[kEta] "  				<< fMaterial_Params[kEta]  	 << endl;
+    cout << "fMaterial_Params[kKappa] "  			<< fMaterial_Params[kKappa]  << endl;
+*/
+
 
 }
 
@@ -844,7 +852,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	fFd_int_smallstrain_vector = 0.0;
 	fFd_int_G4_vector = 0.0;
 	fK_dd_G4_matrix = 0.0;
-	fG1_1=0.0;
+/*	fG1_1=0.0;
 	fG1_2=0.0;
 	fG1_3=0.0;
 	fG1_4=0.0;
@@ -888,7 +896,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	fIota_eta_temp_matrix=0.0;
 	fTemp_matrix_nudof_x_nchidof=0.0;
 	fTemp_matrix_nchidof_x_nchidof=0.0;
-	fTemp_matrix_nchidof_x_nudof=0.0;
+	fTemp_matrix_nchidof_x_nudof=0.0;*/
 
 	e = CurrElementNumber();
 	const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
@@ -1065,18 +1073,20 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fShapes_micro->GradNa(fShapeMicroGrad);
 
 				/* KroneckerDelta matrix is formed*/
-				Form_KroneckerDelta_matrix();
+//				Form_KroneckerDelta_matrix();
 
 				/* [fDeformation_Gradient] will be formed */
 				Form_deformation_gradient_tensor();
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+/*
 
 				Form_double_Finv_from_Deformation_tensor_inverse();// I ADDED!!!
 				Form_Finv_w_matrix();// I ADDED!!!
 				Form_Finv_eta_matrix();
 				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad);//This GRADIENT shape function matrix is for eta
 				Form_NCHI_matrix(fShapeMicro_row_matrix);//shape function matrix
+*/
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1176,7 +1186,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
 //////////////////Micromorphic addition/////////////////////////////////////////
 				/*Forms a vector ( actually 9x1 matrix) consisting of unsymmetric components of Cauchy stress tensors*/
-				Form_SigCurr_vector_Cauchy_Stss_matrix();
+/*				Form_SigCurr_vector_Cauchy_Stss_matrix();*/
 ////////////////////Micromorphic addition//////////////////////////////////////
 
 
@@ -1187,11 +1197,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* [fIota_temp_matrix] will be formed */
 
 				fIota_temp_matrix.MultATB(fShapeDisplGrad,fDefGradInv_Grad_grad);
+/*
 ////////////////////////////////////////////////////////////////////////////////
 				fIota_w_temp_matrix.MultATBT(GRAD_Nuw,Finv_w);
 				fIota_eta_temp_matrix.MultATBT(GRAD_NCHI,Finv_eta);
                 //fShapeDisplGrad--> [GRAD(Ns,e)] so it in reference configuration
 ////////////////////////////////////////////////////////////////////////////////
+*/
 
 
 				/* second derivatives of solid shape functions, [fShapeDisplGradGrad] will be formed */
@@ -1224,7 +1236,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////Micromorphic 3-D Matrices are being formed//////////////////////////
 
-				Form_Tsigma_1_matrix();
+//				Form_Tsigma_1_matrix();
 //				Form_Tsigma_2_matrix();
 //				Form_Tsigma_3_matrix();
 //				Form_TFn_1_matrix();
@@ -1385,6 +1397,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////H_ matrices are constructed////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+/*
 
 				fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_1,fIota_temp_matrix);
 				scale = -1*scale_const*J;
@@ -1534,6 +1547,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH3_1 += fTemp_matrix_nchidof_x_nchidof;
+*/
 
 
 /////////////////H_ matrices finish here////////////////////////////////////////
@@ -2197,6 +2211,20 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fH2_8.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
 
     fH3_1.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
+
+    G1.Dimension(n_en_displ_x_n_sd);
+    Uint_1.Dimension(n_en_displ_x_n_sd);
+    Uint_2.Dimension(n_en_displ_x_n_sd);
+    Gext.Dimension(n_en_displ_x_n_sd);
+
+    H1.Dimension(n_en_micro_x_n_sd);
+    H2.Dimension(n_en_micro_x_n_sd);
+    H3.Dimension(n_en_micro_x_n_sd);
+    Pint_1.Dimension(n_en_micro_x_n_sd);
+    Pint_2.Dimension(n_en_micro_x_n_sd);
+    Pint_3.Dimension(n_en_micro_x_n_sd);
+    Hext.Dimendion(n_en_micro_x_n_sd);
+
 
     ///////////////////////////////////////////////////////////////////////////
     /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FINISH HERE FOR 3D CASE//////////////
@@ -5691,6 +5719,7 @@ void FSMicromorphic3DT:: Form_Rs_sigma_matrix()
 void FSMicromorphic3DT:: Form_R_Capital_Gamma_Chi_matrix()
 {
 
+
 	R_Capital_Gamma_Chi=0.0;
 	int col;
 	int row;
@@ -5710,6 +5739,36 @@ void FSMicromorphic3DT:: Form_R_Capital_Gamma_Chi_matrix()
 			}
 
 
+}
+
+void FSMicromorphic3DT:: Form_G1_matrix()
+{
+	int row;
+	row=0;
+	//double I1,I2,I3,I4,I5,I6,I7,I8,I9,I10,I11,I12,I13,I14;
+	G1=0.0;
+	for(int k=0;k<=2;k++)
+	{
+		for(int l=0;l<=2;l++)
+		{
+			//summation on the same term starts
+			for(int i=0;i<=2;i++)
+			{
+				for(int K=0;K<=2;K++)
+				{
+				G1(row)=G1(row)+(1-KrDelta[i][i]-Fn[i][K]*Finv[K][i])*SigN[l][k]
+				  +               (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*SigN[i][k]
+				  +    SigN[l][i]*(KrDelta[k][i]-Fn[k][K]*Finv[K][i])
+			      + KrDelta[l][k]*(KrDelta[i][i]-Fn[i][K]*Finv[K][i])*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])
+			      +        (1/2)*((KrDelta[l][k]-Fn[l][K]*Finv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma])
+			      +KrDelta[l][k]*((KrDelta[i][i]-ChiN[i][K]*ChiInv[K][i])+(KrDelta[i][i]-Fn[i][K]*Finv[K][i]))*fMaterial_Params[kEta]
+			      +              ((KrDelta[l][k]-ChiN[l][K]*ChiInv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*fMaterial_Params[kKappa];
+			      +              ((KrDelta[k][l]-ChiN[k][K]*ChiInv[K][l])+(KrDelta[l][k]-Fn[l][K]*Finv[K][k]))*fMaterial_Params[kNu];
+				}
+			}
+			row++;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -6507,3 +6566,4 @@ void FSMicromorphic3DT::Compute_norm_of_array(double& norm,const LocalArrayT& B)
     }
     norm = sqrt(sum);
 }
+

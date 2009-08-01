@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.25 2009-07-30 04:44:27 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.26 2009-08-01 00:11:06 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -386,6 +386,25 @@ private:
 	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	double KrDelta[3][3];
+//internal Force Matrices
+	dArrayT G1;
+	dArrayT Uint_1;
+	dArrayT Uint_2;
+	dArrayT Text;
+	dArrayT Gext;
+
+	dArrayT H1;
+	dArrayT Pint_1;
+	dArrayT H2;
+	dArrayT Pint_2;
+	dArrayT H3;
+	dArrayT Pint_3;
+	dArrayT Hext;
+	dArrayT Pext;
+
+
+
+
 
 	//Varitional Matrices coming from the Balance of linear Momentum
 	dMatrixT Tsigma_1;
@@ -693,6 +712,12 @@ private:
     void Form_Finv_eta_matrix(void);
 
 //    void Form_GRAD_NCHI_Phi_matrix(const  dMatrixT &fShapeMicroGrad); no need for this
+
+    void Form_G1_matrix(void);
+    void Form_H1_matrix(void);
+    void Form_H2_matrix(void);
+    void Form_H3_matrix(void);
+
     //////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////
