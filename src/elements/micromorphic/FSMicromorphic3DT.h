@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.27 2009-08-03 21:19:31 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.28 2009-08-03 23:07:20 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -405,6 +405,7 @@ private:
 	dMatrixT fTemp_matrix_nudof_x_nudof;
 
 	dMatrixT GRAD_Nuw;
+	dMatrixT GRAD_Nuw_Tr;
 	dMatrixT Finv_w; // to create Iota_w which is different than Iota because sequence of the components in wk,l
 	dMatrixT Tsigma_2;
 	dMatrixT fG1_2;//not being calculated yet
