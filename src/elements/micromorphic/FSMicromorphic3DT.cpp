@@ -2212,18 +2212,21 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fH3_1.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
 
-    G1.Dimension(n_en_displ_x_n_sd);
-    Uint_1.Dimension(n_en_displ_x_n_sd);
-    Uint_2.Dimension(n_en_displ_x_n_sd);
-    Gext.Dimension(n_en_displ_x_n_sd);
+    G1.Dimension(n_en_displ_x_n_sd,1);
+    Uint_1.Dimension(n_en_displ_x_n_sd,1);
+    Uint_2.Dimension(n_en_displ_x_n_sd,1);
+    Gext.Dimension(n_en_displ_x_n_sd,1);
 
-    H1.Dimension(n_en_micro_x_n_sd);
-    H2.Dimension(n_en_micro_x_n_sd);
-    H3.Dimension(n_en_micro_x_n_sd);
-    Pint_1.Dimension(n_en_micro_x_n_sd);
-    Pint_2.Dimension(n_en_micro_x_n_sd);
-    Pint_3.Dimension(n_en_micro_x_n_sd);
-    Hext.Dimendion(n_en_micro_x_n_sd);
+    H1.Dimension(n_en_micro_x_n_sd,1);
+    H2.Dimension(n_en_micro_x_n_sd,1);
+    H3.Dimension(n_en_micro_x_n_sd,1);
+    Pint_1.Dimension(n_en_micro_x_n_sd,1);
+    Pint_2.Dimension(n_en_micro_x_n_sd,1);
+    Pint_3.Dimension(n_en_micro_x_n_sd,1);
+    Hext.Dimension(n_en_micro_x_n_sd,1);
+
+    Lambda.Dimension(n_sd,n_sd);
+    Omega.Dimension(n_sd,n_sd);
 
 
     ///////////////////////////////////////////////////////////////////////////
@@ -5202,7 +5205,7 @@ void FSMicromorphic3DT:: Form_Mm_7_matrix()
 								{
 									for(int L = 0; L <= 2; L++)
 									{
-										for(int R=0; R<=0;R++)
+										for(int R=0; R<=2;R++)
 										{
 											Mm_7(row, col) =(Mm_7(row, col) +CCof[k][l][m][p][r][s]*GRAD_ChiN[p][L][R]*FnInv[R][r]*ChiInv[L][n]*
 															ChiInv[T][s]);}}}}}
@@ -5745,31 +5748,135 @@ void FSMicromorphic3DT:: Form_G1_matrix()
 {
 	int row;
 	row=0;
-	//double I1,I2,I3,I4,I5,I6,I7,I8,I9,I10,I11,I12,I13,I14;
 	G1=0.0;
 	for(int k=0;k<=2;k++)
 	{
 		for(int l=0;l<=2;l++)
 		{
 			//summation on the same term starts
-			for(int i=0;i<=2;i++)
+			for(int K=0;K<=2;K++)
 			{
-				for(int K=0;K<=2;K++)
+
+				G1(row,1)=G1(row,1)+(1/2)*((KrDelta[l][k]-Fn[l][K]*Finv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma])
+							   +      ((KrDelta[l][k]-ChiN[l][K]*ChiInv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*fMaterial_Params[kKappa]
+							   +      ((KrDelta[k][l]-ChiN[k][K]*ChiInv[K][l])+(KrDelta[l][k]-Fn[l][K]*Finv[K][k]))*fMaterial_Params[kNu];
+				for(int i=0;i<=2;i++)
 				{
-				G1(row)=G1(row)+(1-KrDelta[i][i]-Fn[i][K]*Finv[K][i])*SigN[l][k]
-				  +               (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*SigN[i][k]
-				  +    SigN[l][i]*(KrDelta[k][i]-Fn[k][K]*Finv[K][i])
-			      + KrDelta[l][k]*(KrDelta[i][i]-Fn[i][K]*Finv[K][i])*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])
-			      +        (1/2)*((KrDelta[l][k]-Fn[l][K]*Finv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma])
-			      +KrDelta[l][k]*((KrDelta[i][i]-ChiN[i][K]*ChiInv[K][i])+(KrDelta[i][i]-Fn[i][K]*Finv[K][i]))*fMaterial_Params[kEta]
-			      +              ((KrDelta[l][k]-ChiN[l][K]*ChiInv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*fMaterial_Params[kKappa];
-			      +              ((KrDelta[k][l]-ChiN[k][K]*ChiInv[K][l])+(KrDelta[l][k]-Fn[l][K]*Finv[K][k]))*fMaterial_Params[kNu];
+				G1(row,1)=G1(row,1)+(1-KrDelta[i][i]-Fn[i][K]*Finv[K][i])*SigN[l][k]
+				 +                (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*SigN[i][k]
+				 +     SigN[l][i]*(KrDelta[k][i]-Fn[k][K]*Finv[K][i])
+			     +  KrDelta[l][k]*(KrDelta[i][i]-Fn[i][K]*Finv[K][i])*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])
+			     + KrDelta[l][k]*((KrDelta[i][i]-ChiN[i][K]*ChiInv[K][i])+(KrDelta[i][i]-Fn[i][K]*Finv[K][i]))*fMaterial_Params[kEta];
 				}
 			}
 			row++;
 		}
 	}
 }
+
+void FSMicromorphic3DT::Form_H1_matrix()
+{
+	int row;
+	row=0;
+	H1=0.0;
+	for(int m=0;m<=2;m++)
+	{
+		for(int l=0;l<=2;l++)
+		{
+			for(int k=0;k<=2;k++)
+			{
+				//summation over the same term starts here
+				for(int i=0;i<=2;i++)
+				{
+					for(int K=0; K<=2;K++)
+						{
+						H1(row,1)=-(H1(row,1)+(1-KrDelta[i][i]-Fn[i][K]*Finv[K][i])*mn[k][l][m]
+						                 +  (KrDelta[k][i]-Fn[k][K]*Finv[K][i])*mn[i][l][m]
+				                         +  (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*mn[k][i][m]
+				                         +  (KrDelta[m][i]-ChiN[m][K]*ChiInv[K][i])*mn[k][l][i]);
+						//summation over the same term for p,r,s
+						for(int p=0;p<=2;p++)
+							{
+								for(int r=0;r<=2;r++)
+								{
+									for(int s=0;s<=2;s++)
+									{
+										H1(row,1)=-(H1(row,1)+CCof[k][l][m][p][r][s]*(
+												(KrDelta[p][i]-ChiN[p][K]*ChiInv[K][i])*GammaN[i][r][s]
+											   -(KrDelta[i][r]-ChiN[i][K]*ChiInv[K][r])*GammaN[p][i][s]
+											   +(KrDelta[i][p]-Fn[i][K]*Finv[K][p])*GammaN[i][r][s]
+											   +(KrDelta[i][s]-Fn[i][K]*Finv[K][s])*GammaN[p][r][i]
+											   +(KrDelta[i][r]-Fn[i][K]*Finv[K][r])*GammaN[p][i][s] ));
+										for(int S=0;S<=2;S++)
+										{
+											for(int T=0;T<=2;T++)
+											{
+											H1(row,1)=-(H1(row,1)+CCof[k][l][m][p][r][s]*( (GRAD_Chi[p][K][S]-GRAD_ChiN[p][K][S])*Finv[S][s]*ChiInv[K][r]
+											                                          -(Chi[p][K]-ChiN[p][K])*ChiInv[K][i]*GRAD_Chi[i][T][S]*Finv[S][r]*ChiInv[T][s] ));
+											}
+										}
+									}
+								}
+							}
+						}
+
+					}
+
+
+				row++;
+			}
+		}
+	}
+
+
+}
+
+void FSMicromorphic3DT::Form_H2_matrix()
+{
+	int row;
+	row=0;
+	H2=0.0;
+	for(int m=0;m<=2;m++)
+	{
+		for(int l=0;l<=2;l++)
+		{
+
+
+			//summation over the same term starts here
+			for(int K=0;K<=2;K++)
+			{
+				H2(row,1)=-(H2(row,1)+(KrDelta[l][m]-ChiN[l][K]*ChiInv[K][m])*fMaterial_Params[kKappa]
+				                 +(KrDelta[m][l]-Fn[m][K]*Finv[K][l])*fMaterial_Params[kKappa]
+				                 +(KrDelta[m][l]-ChiN[m][K]*ChiInv[K][l])*fMaterial_Params[kNu]
+				                 +(KrDelta[l][m]-Fn[l][K]*Finv[K][m])*fMaterial_Params[kNu] );
+				for(int i=0;i<=2;i++)
+					{
+					H2(row,1)=-(H2(row,1)+ (1-KrDelta[i][i]-Fn[i][K]*Finv[K][i])*sn_sigman(m,l)
+					                 +   (KrDelta[m][i]-Fn[m][K]*Finv[K][i])*sn_sigman(i,l)
+					                 +   (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*sn_sigman(m,i) );
+					}
+			}
+			row++;
+		}
+	}
+}
+
+void FSMicromorphic3DT:: Form_H3_matrix()
+{
+	int row;
+	row=0;
+	H3=0.0;
+	for(int m=0;m<=2;m++)
+	{
+		for(int l=0;l<=2;l++)
+		{
+			H3(row,1)=Lambda(l,m)-Omega(l,m);
+			row++;
+		}
+	}
+}
+
+
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
