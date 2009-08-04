@@ -1232,10 +1232,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* fFd_int_N1_vector for the current IP */
 				/* accumulate */
 				fFd_int_N1_vector += fTemp_vector_ndof_se;
+/*
 
 				Form_G1_matrix();
 				fIota_w_temp_matrix.MultTx(G1,Uint_1);
 				fShapeDispl_Tr.MultTx(fGravity_vector,Uint_2);
+
+				Form_H1_matrix();
+				fIota_eta_temp_matrix.MultTx(H1,Pint_1);
+				Form_H2_matrix();
+				NCHI_Tr.MultTx(H2,Pint_2);
+				Form_H3_matrix();
+				NCHI_Tr.MultTx(H3,Pint_3);
+
+*/
+
 
 				/* [fIm_temp_matrix] will be formed */
 				Form_Im_temp_matrix();
@@ -1687,6 +1698,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    fFd_int = fFd_int_N1_vector;
 		    fFd_int += fFd_int_G4_vector;
 		    fFd_int *= -1;
+/*
+		    fFd_int=Uint_1;
+		    fFd_int+=Uint_2; //no external traction is assumed
+		    fFd_int *= -1;
+		*/
 
 		    /* [fKdd] will be formed */
 		    fKdd = fK_dd_G3_1_matrix;
@@ -1735,14 +1751,59 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    /* [fKphid] will be formed */
 		    //need to code
 		    fKphid = 0.0;
+/*
+
+		    fKphid  = fH1_1;
+		    fKphid += fH1_2;
+		    fKphid += fH1_3;
+		    fKphid += fH1_11;
+		    fKphid += fH1_12;
+		    fKphid += fH1_14;
+
+		    fKphid += fH2_1;
+		    fKphid += fH2_2;
+		    fKphid += fH2_3;
+	        fKphid += fH2_5;
+	        fKphid += fH2_7;
+	        fKphid += fH2_8;
+
+
+
+*/
 
 		    /* [fKphiphi] will be formed */
 		    //need to code
 		    fKphiphi = 0.0;
 
+/*
+		    fKphiphi = fH1_4;
+		    fKphiphi = fH1_5;
+		    fKphiphi = fH1_6;
+		    fKphiphi = fH1_7;
+		    fKphiphi = fH1_8;
+		    fKphiphi = fH1_9;
+		    fKphiphi = fH1_10;
+		    fKphiphi = fH1_13;
+
+		    fKphiphi = fH2_4;
+		    fKphiphi = fH2_6;
+
+		    fKphiphi = fH3_1;
+
+*/
+
+
 		    /* {fFphi_int} will be formed */
 		    //need to code
 		    fFphi_int = 0.0;
+
+
+
+
+/*		    fFphi_int=Pint_1;
+		    fFphi_int+=Pint_2;
+		    fFphi_int+=Pint_3;//no external traction is assumed Pext=0
+		    fFphi_int *= -1;*/
 
 		    /* equations numbers */
 		    const iArrayT& displ_eq = fElementCards_displ[e].Equations();
