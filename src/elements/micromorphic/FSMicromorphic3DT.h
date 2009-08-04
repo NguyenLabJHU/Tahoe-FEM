@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.29 2009-08-04 14:19:20 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.30 2009-08-04 22:08:44 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -264,7 +264,6 @@ private:
 	int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd, n_en_micro_x_n_sd;
 	int n_el, n_sd, n_sd_surf, n_en_surf;
 	int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
-
 	int step_number;
 	int iConstitutiveModelType;
 
@@ -395,6 +394,7 @@ private:
 	double Fn[3][3];
 	double FnInv[3][3];
 	double Finv[3][3];
+
 	double Chi[3][3];
 	double ChiInv[3][3];
 	double ChiN[3][3];
@@ -506,21 +506,23 @@ private:
 
     dMatrixT fH3_1;
 
+	dArrayT Chi_vec;
+	dArrayT GRAD_Chi_vec;
     //internal Force Matrices
-    dMatrixT G1;
-    dMatrixT Uint_1;
-    dMatrixT Uint_2;
-    dMatrixT Text;
-    dMatrixT Gext;
+    dArrayT G1;
+    dArrayT Uint_1;
+    dArrayT Uint_2;
+    dArrayT Text;
+    dArrayT Gext;
 
-    dMatrixT H1;
-    dMatrixT Pint_1;
-    dMatrixT H2;
-    dMatrixT Pint_2;
-    dMatrixT H3;
-    dMatrixT Pint_3;
-    dMatrixT Hext;
-    dMatrixT Pext;
+    dArrayT H1;
+    dArrayT Pint_1;
+    dArrayT H2;
+    dArrayT Pint_2;
+    dArrayT H3;
+    dArrayT Pint_3;
+    dArrayT Hext;
+    dArrayT Pext;
 
     dMatrixT Lambda;
     dMatrixT Omega;
@@ -649,6 +651,8 @@ private:
 	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	//Forming the Matrices coming from the Balance of Linear Momentum
+	void Form_micro_deformation_gradient_tensor_Chi(void);
+	void Form_GRAD_Chi_matrix(void);
 	void Form_double_Finv_from_Deformation_tensor_inverse(void);
 	void Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp);
 	void Form_Finv_w_matrix(void);
