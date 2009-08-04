@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.28 2009-08-03 23:07:20 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.29 2009-08-04 14:19:20 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -470,6 +470,7 @@ private:
     dMatrixT CapitalGamma;
     dMatrixT sn_sigman;
 
+    dMatrixT fShapeDispl_Tr;
 
 
     dMatrixT NCHI;

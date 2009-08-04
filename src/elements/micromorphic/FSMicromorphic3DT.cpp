@@ -1052,6 +1052,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* [fShapeDispl] will be formed */
 				Form_solid_shape_functions(shapes_displ_X);
 
+				fShapeDispl_Tr.Transpose(fShapeDispl);
+
 				fShapes_displ->GradNa(fShapeDisplGrad_temp);
 				/* [fShapeDisplGrad] will be formed */
 				Form_Gradient_of_solid_shape_functions(fShapeDisplGrad_temp);//this is for GRADIENT(du)
@@ -1231,8 +1233,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* accumulate */
 				fFd_int_N1_vector += fTemp_vector_ndof_se;
 
+				Form_G1_matrix();
+				fIota_w_temp_matrix.MultTx(G1,Uint_1);
+				fShapeDispl_Tr.MultTx(fGravity_vector,Uint_2);
+
 				/* [fIm_temp_matrix] will be formed */
 				Form_Im_temp_matrix();
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////Micromorphic 3-D Matrices are being formed//////////////////////////
 
@@ -2085,6 +2093,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     /* workspace matricies */
     fShapeDispl.Dimension (n_sd, n_en_displ_x_n_sd);
+    fShapeDispl_Tr.Dimension (n_en_displ_x_n_sd,n_sd);
     fShapeMicro.Dimension (ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro);
     n_sd_x_n_sd = n_sd*n_sd;
     n_sd_x_n_sd_x_n_sd = n_sd*n_sd*n_sd;
@@ -5472,32 +5481,13 @@ void FSMicromorphic3DT:: Form_Mm_14_matrix()
 					for(int k = 0; k <= 2; k++)
 					{
 
-			    		 Mm_14(row, col) =Mnplus1[k][l][m]*FnInv[T][n];
+			    		 Mm_14(row, col) =Mnplus1[k][l][m]*Finv[T][n];
 			    		 row++;}
 					}
 				}
 			col++;
 			}
 		}
-
-
-			for(int n=0;n<=2;n++)
-			{
-				row = 0;//row calculations start here
-				for(int m=0; m<=2; m++)
-				{
-					for(int l = 0; l <= 2; l++)
-					{
-						for(int k = 0; k <= 2; k++)
-						{
-							//summation on the same term starts here
-							Mm_14(row, col) =Mnplus1[k][l][m];
-							row++;
-							}
-						}
-					}
-				col=col+4;
-			}
 
 
 }
@@ -5708,7 +5698,7 @@ void FSMicromorphic3DT:: Form_Rs_sigma_matrix()
 							for(int l = 0; l <= 2; l++)
 							{
 
-								Rs_sigma(row, col)=-sn_sigman(m,l)*FnInv[T][n];
+								Rs_sigma(row, col)=-sn_sigman(m,l)*Finv[T][n];
 							row++;
 							}
 						}
