@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.31 2009-08-05 06:02:15 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.32 2009-08-05 21:49:13 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -469,7 +469,7 @@ private:
     dMatrixT Ru_5;
     dMatrixT Rs_sigma;
     dMatrixT R_Capital_Gamma_Chi;
-    dMatrixT CapitalGamma;
+    dMatrixT CapitalLambda;
     dMatrixT sn_sigman;
 
     dMatrixT fShapeDispl_Tr;
@@ -715,8 +715,9 @@ private:
     void Form_RChi_2_matrix(void);//needs to be multiplied by Nu and J
     void Form_Ru_5_matrix(void);// needs to be multiplied by Nu and J
     void Form_Rs_sigma_matrix(void);
-    void Form_R_Capital_Gamma_Chi_matrix(void);// DO NOT multiply with J !!!
+    void Form_R_Capital_Lambda_Chi_matrix(void);// DO NOT multiply with J !!!
     void Form_Finv_eta_matrix(void);
+    void Form_CapitalLambda_matrix(void);
 
 //    void Form_GRAD_NCHI_Phi_matrix(const  dMatrixT &fShapeMicroGrad); no need for this
 

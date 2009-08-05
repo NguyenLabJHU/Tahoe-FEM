@@ -852,7 +852,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	fFd_int_smallstrain_vector = 0.0;
 	fFd_int_G4_vector = 0.0;
 	fK_dd_G4_matrix = 0.0;
-/*	fG1_1=0.0;
+	fG1_1=0.0;
 	fG1_2=0.0;
 	fG1_3=0.0;
 	fG1_4=0.0;
@@ -896,7 +896,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	fIota_eta_temp_matrix=0.0;
 	fTemp_matrix_nudof_x_nchidof=0.0;
 	fTemp_matrix_nchidof_x_nchidof=0.0;
-	fTemp_matrix_nchidof_x_nudof=0.0;*/
+	fTemp_matrix_nchidof_x_nudof=0.0;
 
 	e = CurrElementNumber();
 	const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
@@ -1087,7 +1087,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 				/* KroneckerDelta matrix is formed*/
-//				Form_KroneckerDelta_matrix();
+				Form_KroneckerDelta_matrix();
 
 				/* [fDeformation_Gradient] will be formed */
 				Form_deformation_gradient_tensor();
@@ -1188,10 +1188,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
 				/* Save Cauchy effective stress tensor of the current IP */
 				fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
-//////////////////Micromorphic addition/////////////////////////////////////////
-				/*Forms a vector ( actually 9x1 matrix) consisting of unsymmetric components of Cauchy stress tensors*/
-/*				Form_SigCurr_vector_Cauchy_Stss_matrix();*/
-////////////////////Micromorphic addition//////////////////////////////////////
+
 
 
 
@@ -1234,69 +1231,73 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* fFd_int_N1_vector for the current IP */
 				/* accumulate */
 				fFd_int_N1_vector += fTemp_vector_ndof_se;
-/*
-
+////////////////////////////////////////////////////////////////////////////////////////
+/////////////////MicroMorphic Internal force vectors////////////////////////////////////
 				Form_G1_matrix();
 				fIota_w_temp_matrix.MultTx(G1,Uint_1);
-				Uint_1*=-1;
+				Uint_1*=-1*J;
 				fShapeDispl_Tr.MultTx(fGravity_vector,Uint_2);
-				Uint_2*=-1;
+				Uint_2*=-1*fMaterial_Params[kRho_0];
 
 				Form_H1_matrix();
 				fIota_eta_temp_matrix.MultTx(H1,Pint_1);
-				Pint_1*=-1;
+				Pint_1*=-1*J;
 				Form_H2_matrix();
 				NCHI_Tr.MultTx(H2,Pint_2);
-				Pint_2*=-1;
+				Pint_2*=-1*J;
 				Form_H3_matrix();
 				NCHI_Tr.MultTx(H3,Pint_3);
+				Pint_3*=fMaterial_Params[kRho_0];
 
-*/
-
+/////////////////MicroMorphic Internal force vectors finish here////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
 
 				/* [fIm_temp_matrix] will be formed */
 				Form_Im_temp_matrix();
 
 
-////////////////////////////////////////////////////////////////////////////////
-////////////////Micromorphic 3-D Matrices are being formed//////////////////////////
 
-//				Form_Tsigma_1_matrix();
-//				Form_Tsigma_2_matrix();
-//				Form_Tsigma_3_matrix();
-//				Form_TFn_1_matrix();
-//				Form_TFn_2_matrix();            // commented out for now
-//				Form_TFn_3_matrix();
-//				Form_TFn_4_matrix();
-//				Form_TFn_5_matrix();
-//				Form_TFn_6_matrix();
-//				Form_TChi_1_matrix();
-//				Form_TChi_2_matrix();
-//				Form_TChi_3_matrix();
-//			    Form_Mm_1_matrix();// needs to be multiplied by "-" and J
-//			    Form_Mm_2_matrix();// needs to be multiplied by J
-//			    Form_Mm_3_matrix();// needs to be multiplied by J
-//			    Form_Mm_4_matrix();// needs to be multiplied by J
-//			    Form_Mm_5_matrix();// needs to be multiplied by J
-//			    Form_Mm_6_matrix();// needs to be multiplied by J
-//			    Form_Mm_7_matrix();
-//			    Form_Mm_8_matrix();
-//			    Form_Mm_9_matrix();
-//			    Form_Mm_10_matrix();
-//			    Form_Mm_11_matrix();
-//			    Form_Mm_12_matrix();
-//			    Form_Mm_13_matrix();
-//			    Form_Mm_14_matrix();//something should be changed in the loop due to div(du)!!! changed done ok!
-//			    Form_Ru_1_matrix();
-//			    Form_Ru_2_matrix();
-//			    Form_Ru_3_matrix();
-//			    Form_RChi_1_matrix();// needs to be multiplied by Kappa and J
-//			    Form_Ru_4_matrix();// needs to be multiplied by Kappa and J
-//			    Form_RChi_2_matrix();//needs to be multiplied by Nu and J
-//			    Form_Ru_5_matrix();// needs to be multiplied by Nu and J
-//			    Form_Rs_sigma_matrix();
-//			    Form_R_Capital_Gamma_Chi_matrix();// DO NOT multiply with J !!!
-//
+////////////////Micromorphic 3-D Matrices are being formed coming from linearization process//////////////////////////
+			    Form_CapitalLambda_matrix();
+
+				Form_Tsigma_1_matrix();
+				Form_Tsigma_2_matrix();
+				Form_Tsigma_3_matrix();
+				Form_TFn_1_matrix();
+				Form_TFn_2_matrix();
+				Form_TFn_3_matrix();
+				Form_TFn_4_matrix();
+				Form_TFn_5_matrix();
+				Form_TFn_6_matrix();
+				Form_TChi_1_matrix();
+				Form_TChi_2_matrix();
+				Form_TChi_3_matrix();
+				Form_SigCurr_vector_Cauchy_Stss_matrix();/*Forms a vector ( actually 9x1 matrix) consisting of unsymmetric components of Cauchy stress tensors*/
+//////////////////////////////////////////////////////////
+			    Form_Mm_1_matrix();// needs to be multiplied by "-" and J
+			    Form_Mm_2_matrix();// needs to be multiplied by J
+			    Form_Mm_3_matrix();// needs to be multiplied by J
+			    Form_Mm_4_matrix();// needs to be multiplied by J
+			    Form_Mm_5_matrix();// needs to be multiplied by J
+			    Form_Mm_6_matrix();// needs to be multiplied by J
+			    Form_Mm_7_matrix();
+			    Form_Mm_8_matrix();
+			    Form_Mm_9_matrix();
+			    Form_Mm_10_matrix();
+			    Form_Mm_11_matrix();
+			    Form_Mm_12_matrix();
+			    Form_Mm_13_matrix();
+			    Form_Mm_14_matrix();//something should be changed in the loop due to div(du)!!! changed done ok!
+			    Form_Ru_1_matrix();
+			    Form_Ru_2_matrix();
+			    Form_Ru_3_matrix();
+			    Form_RChi_1_matrix();// needs to be multiplied by Kappa and J
+			    Form_Ru_4_matrix();// needs to be multiplied by Kappa and J
+			    Form_RChi_2_matrix();//needs to be multiplied by Nu and J
+			    Form_Ru_5_matrix();// needs to be multiplied by Nu and J
+			    Form_Rs_sigma_matrix();
+			    Form_R_Capital_Lambda_Chi_matrix();// DO NOT multiply with J !!!
+
 
 ////////////////////////Finished here///////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1328,93 +1329,92 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////fG1_ matrices are constructed////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-/// SIGN was not taken into account yet !!!!
-//
-//				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_1,fIota_temp_matrix);
-//				scale = -1*scale_const*J;
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				// accumulate
-//				fG1_1 += fTemp_matrix_nudof_x_nudof;
-//
-//				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_2,fIota_temp_matrix);
-//				scale = scale_const*J;
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				 accumulate
-//				fG1_2 += fTemp_matrix_nudof_x_nudof;
-//
-//				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_3,fIota_temp_matrix);
-//				scale = scale_const*J;
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				 accumulate
-//				fG1_3 += fTemp_matrix_nudof_x_nudof;
-//
-//				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_1,fIota_temp_matrix);
-//				scale = scale_const*J*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				 accumulate
-//				fG1_4 += fTemp_matrix_nudof_x_nudof;
-//
-//
-//				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_2,fIota_temp_matrix);
-//				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma]);
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				 accumulate
-//				fG1_5 += fTemp_matrix_nudof_x_nudof;
-//
-//
-//				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_3,fIota_temp_matrix);
-//				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma]);
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				 accumulate
-//				fG1_6 += fTemp_matrix_nudof_x_nudof;
-//
-//
-//				fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,TChi_1,NCHI);// ABC not ABCT
-//				scale = scale_const*J*(fMaterial_Params[kEta]);
-//				fTemp_matrix_nudof_x_nchidof *= scale;
-//				 accumulate
-//				fG1_7 += fTemp_matrix_nudof_x_nchidof;
-//
-//
-//				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_4,fIota_temp_matrix);
-//				scale = scale_const*J*(fMaterial_Params[kEta]);
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				 accumulate
-//				fG1_8 += fTemp_matrix_nudof_x_nudof;
-//
-//
-//				fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,TChi_2,NCHI);//ABC not ABCT
-//				scale = scale_const*J*(fMaterial_Params[kKappa]);
-//				fTemp_matrix_nudof_x_nchidof *= scale;
-//				 accumulate
-//				fG1_9 += fTemp_matrix_nudof_x_nchidof;
-//
-//				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_5,fIota_temp_matrix);
-//				scale = scale_const*J*(fMaterial_Params[kKappa]);
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				 accumulate
-//				fG1_10 += fTemp_matrix_nudof_x_nudof;
-//
+
+				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_1,fIota_temp_matrix);
+				scale = -1*scale_const*J;
+				fTemp_matrix_nudof_x_nudof *= scale;
+				// accumulate
+				fG1_1 += fTemp_matrix_nudof_x_nudof;
+
+				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_2,fIota_temp_matrix);
+				scale = scale_const*J;
+				fTemp_matrix_nudof_x_nudof *= scale;
+				// accumulate
+				fG1_2 += fTemp_matrix_nudof_x_nudof;
+
+				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_3,fIota_temp_matrix);
+				scale = scale_const*J;
+				fTemp_matrix_nudof_x_nudof *= scale;
+				// accumulate
+				fG1_3 += fTemp_matrix_nudof_x_nudof;
+
+				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_1,fIota_temp_matrix);
+				scale = scale_const*J*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+				fTemp_matrix_nudof_x_nudof *= scale;
+				// accumulate
+				fG1_4 += fTemp_matrix_nudof_x_nudof;
 
 
-//				fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,TChi_3,NCHI);//ABC not ABCT
-//				scale = scale_const*J*(fMaterial_Params[kNu]);
-//				fTemp_matrix_nudof_x_nchidof *= scale;
-//				 accumulate
-//				fG1_11 += fTemp_matrix_nudof_x_nchidof;
-//
-//				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_6,fIota_temp_matrix);
-//				scale = scale_const*J*(fMaterial_Params[kNu]);
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				 accumulate
-//				fG1_12 += fTemp_matrix_nudof_x_nudof;
-//
-//				fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fPi_temp_row_matrix);//ABC not ABCT
-//				scale = scale_const*J;
-//				fTemp_matrix_nudof_x_nudof *= scale;
-//				 accumulate
-//				fG1_13 += fTemp_matrix_nudof_x_nudof;
-//
+				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_2,fIota_temp_matrix);
+				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma]);
+				fTemp_matrix_nudof_x_nudof *= scale;
+				 //accumulate
+				fG1_5 += fTemp_matrix_nudof_x_nudof;
+
+
+				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_3,fIota_temp_matrix);
+				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma]);
+				fTemp_matrix_nudof_x_nudof *= scale;
+				// accumulate
+				fG1_6 += fTemp_matrix_nudof_x_nudof;
+
+
+				fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,TChi_1,NCHI);// ABC not ABCT
+				scale = scale_const*J*(fMaterial_Params[kEta]);
+				fTemp_matrix_nudof_x_nchidof *= scale;
+				// accumulate
+				fG1_7 += fTemp_matrix_nudof_x_nchidof;
+
+
+				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_4,fIota_temp_matrix);
+				scale = scale_const*J*(fMaterial_Params[kEta]);
+				fTemp_matrix_nudof_x_nudof *= scale;
+				// accumulate
+				fG1_8 += fTemp_matrix_nudof_x_nudof;
+
+
+				fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,TChi_2,NCHI);//ABC not ABCT
+				scale = scale_const*J*(fMaterial_Params[kKappa]);
+				fTemp_matrix_nudof_x_nchidof *= scale;
+				// accumulate
+				fG1_9 += fTemp_matrix_nudof_x_nchidof;
+
+				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_5,fIota_temp_matrix);
+				scale = scale_const*J*(fMaterial_Params[kKappa]);
+				fTemp_matrix_nudof_x_nudof *= scale;
+				// accumulate
+				fG1_10 += fTemp_matrix_nudof_x_nudof;
+
+
+
+				fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,TChi_3,NCHI);//ABC not ABCT
+				scale = scale_const*J*(fMaterial_Params[kNu]);
+				fTemp_matrix_nudof_x_nchidof *= scale;
+				// accumulate
+				fG1_11 += fTemp_matrix_nudof_x_nchidof;
+
+				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_6,fIota_temp_matrix);
+				scale = scale_const*J*(fMaterial_Params[kNu]);
+				fTemp_matrix_nudof_x_nudof *= scale;
+				// accumulate
+				fG1_12 += fTemp_matrix_nudof_x_nudof;
+
+				fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fPi_temp_row_matrix);//ABC not ABCT
+				scale = scale_const*J;
+				fTemp_matrix_nudof_x_nudof *= scale;
+				// accumulate
+				fG1_13 += fTemp_matrix_nudof_x_nudof;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1424,69 +1424,68 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////fH_ matrices are constructed////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-/*
 
 				fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_1,fIota_temp_matrix);
-				scale = -1*scale_const*J;
+				scale = -1*-1*scale_const*J;
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH1_1 += fTemp_matrix_nchidof_x_nudof;
 
 
 				fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_2,fIota_temp_matrix);
-				scale = scale_const*J;
+				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH1_2 += fTemp_matrix_nchidof_x_nudof;
 
 				fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_3,fIota_temp_matrix);
-				scale = scale_const*J;
+				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH1_3 += fTemp_matrix_nchidof_x_nudof;
 
 
 				fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_4,NCHI);
-				scale = scale_const*J;
+				scale =-1*scale_const*J;
 				fTemp_matrix_nchidof_x_nchidof *= scale;
 				// accumulate
 				fH1_4 += fTemp_matrix_nchidof_x_nchidof;
 
 				fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_5,NCHI);
-				scale = scale_const*J;
+				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nchidof *= scale;
 				// accumulate
 				fH1_5 += fTemp_matrix_nchidof_x_nchidof;
 
 
 				fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_6,NCHI);
-				scale = -1*scale_const*J;
+				scale = -1*-1*scale_const*J;
 				fTemp_matrix_nchidof_x_nchidof *= scale;
 				// accumulate
 				fH1_6 += fTemp_matrix_nchidof_x_nchidof;
 
 				fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_7,NCHI);
-				scale = scale_const*J;
+				scale =-1*scale_const*J;
 				fTemp_matrix_nchidof_x_nchidof *= scale;
 				// accumulate
 				fH1_7 += fTemp_matrix_nchidof_x_nchidof;
 
 
 				fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_8,NCHI);
-				scale = -1*scale_const*J;
+				scale =-1*-1*scale_const*J;
 				fTemp_matrix_nchidof_x_nchidof *= scale;
 				// accumulate
 				fH1_8 += fTemp_matrix_nchidof_x_nchidof;
 
 				fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_8,GRAD_NCHI);
-				scale = scale_const*J;
+				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nchidof *= scale;
 				// accumulate
 				fH1_9 += fTemp_matrix_nchidof_x_nchidof;
 
 
 				fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_10,NCHI);
-				scale = scale_const*J;
+				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nchidof *= scale;
 				// accumulate
 				fH1_10 += fTemp_matrix_nchidof_x_nchidof;
@@ -1494,7 +1493,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 				fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_11,fIota_temp_matrix);
-				scale = scale_const*J;
+				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH1_11 += fTemp_matrix_nchidof_x_nudof;
@@ -1502,27 +1501,27 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 				fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_12,fIota_temp_matrix);
-				scale = scale_const*J;
+				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH1_12 += fTemp_matrix_nchidof_x_nudof;
 
 
 				fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_13,NCHI);
-				scale = scale_const*J;
+				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nchidof *= scale;
 				// accumulate
 				fH1_13 += fTemp_matrix_nchidof_x_nchidof;
 
 
 				fTemp_matrix_nchidof_x_nudof.MultABC(fIota_eta_temp_matrix,Mm_14,fShapeDisplGrad);
-				scale = scale_const*J;
+				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH1_14 += fTemp_matrix_nchidof_x_nudof;
 
 				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_1,fIota_temp_matrix);
-				scale = scale_const*J;
+				scale = -1*-1*scale_const*J;
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH2_1 += fTemp_matrix_nchidof_x_nudof;
@@ -1539,29 +1538,29 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				// accumulate
 				fH2_3 += fTemp_matrix_nchidof_x_nudof;
 
-//				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_1,NCHI);
-//				scale = -1*scale_const*J*fMaterial_Params[kKappa];
-//				fTemp_matrix_nchidof_x_nudof *= scale;
-//				// accumulate
-//				fH2_4 += fTemp_matrix_nchidof_x_nchidof;
-//
-//				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_4,fIota_temp_matrix);
-//				scale = -1*scale_const*J*fMaterial_Params[kKappa];
-//				fTemp_matrix_nchidof_x_nudof *= scale;
-//				// accumulate
-//				fH2_5 += fTemp_matrix_nchidof_x_nudof;
-//
-//				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_2,NCHI);
-//				scale = -1*scale_const*J*fMaterial_Params[kNu];
-//				fTemp_matrix_nchidof_x_nudof *= scale;
-//				// accumulate
-//				fH2_6 += fTemp_matrix_nchidof_x_nchidof;
-//
-//				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_5,fIota_temp_matrix);
-//				scale = -1*scale_const*J*fMaterial_Params[kNu];
-//				fTemp_matrix_nchidof_x_nudof *= scale;
-//				// accumulate
-//				fH2_7 += fTemp_matrix_nchidof_x_nudof;
+				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_1,NCHI);
+				scale = -1*scale_const*J*fMaterial_Params[kKappa];
+				fTemp_matrix_nchidof_x_nudof *= scale;
+				// accumulate
+				fH2_4 += fTemp_matrix_nchidof_x_nchidof;
+
+				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_4,fIota_temp_matrix);
+				scale = -1*scale_const*J*fMaterial_Params[kKappa];
+				fTemp_matrix_nchidof_x_nudof *= scale;
+				// accumulate
+				fH2_5 += fTemp_matrix_nchidof_x_nudof;
+
+				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_2,NCHI);
+				scale = -1*scale_const*J*fMaterial_Params[kNu];
+				fTemp_matrix_nchidof_x_nudof *= scale;
+				// accumulate
+				fH2_6 += fTemp_matrix_nchidof_x_nchidof;
+
+				fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_5,fIota_temp_matrix);
+				scale = -1*scale_const*J*fMaterial_Params[kNu];
+				fTemp_matrix_nchidof_x_nudof *= scale;
+				// accumulate
+				fH2_7 += fTemp_matrix_nchidof_x_nudof;
 
 				fTemp_matrix_nchidof_x_nudof.MultABC(NCHI_Tr,Rs_sigma,fShapeDisplGrad);
 				scale = -1*scale_const*J;
@@ -1570,11 +1569,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fH2_8 += fTemp_matrix_nchidof_x_nudof;
 
 				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,R_Capital_Gamma_Chi,NCHI);
-				scale = 1*scale_const*J;
+				scale = 1*scale_const*fMaterial_Params[kRho_0];
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH3_1 += fTemp_matrix_nchidof_x_nchidof;
-*/
 
 
 /////////////////fH_ matrices finish here////////////////////////////////////////
@@ -2257,7 +2255,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     RChi_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Rs_sigma.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     R_Capital_Gamma_Chi.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    CapitalGamma.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    CapitalLambda.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     sn_sigman.Dimension(n_sd,n_sd);
     GRAD_NCHI.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
  //   GRAD_NCHI_Phi.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
@@ -5635,7 +5633,7 @@ void FSMicromorphic3DT:: Form_Ru_2_matrix()
 								//summation on the same term starts here
 									for(int L=0;L<=2;L++)
 									{
-										Ru_2(row, col) =-(Ru_2(row, col) +Fn[m][L]*Finv[L][k]*sn_sigman(i,l));}
+										Ru_2(row, col) =(Ru_2(row, col) +Fn[m][L]*Finv[L][k]*sn_sigman(i,l));}
 							row++;}
 						}
 					col++;
@@ -5664,7 +5662,7 @@ void FSMicromorphic3DT:: Form_Ru_3_matrix()
 								//summation on the same term starts here
 									for(int L=0;L<=2;L++)
 									{
-										Ru_3(row, col) =-(Ru_3(row, col) +sn_sigman(m,i)*Fn[l][L]*Finv[L][k]);}
+										Ru_3(row, col) =(Ru_3(row, col) +sn_sigman(m,i)*Fn[l][L]*Finv[L][k]);}
 							row++;}
 						}
 					col++;
@@ -5690,7 +5688,7 @@ void FSMicromorphic3DT:: Form_RChi_1_matrix()
 								//summation on the same term starts here
 									for(int T=0; T<=2; T++)
 									{
-										RChi_1(row, col) =-(RChi_1(row, col) +ChiN[l][T]*ChiInv[T][p]*ChiInv[K][m]);}
+										RChi_1(row, col) =(RChi_1(row, col) +ChiN[l][T]*ChiInv[T][p]*ChiInv[K][m]);}
 							row++;}
 						}
 					col++;
@@ -5716,7 +5714,7 @@ void FSMicromorphic3DT::Form_Ru_4_matrix()
 							//summation on the same term starts here
 								for(int K=0;K<=2;K++)
 								{
-									Ru_4(row, col) =-(Ru_4(row, col) +Fn[m][K]*Finv[K][k]);}
+									Ru_4(row, col) =(Ru_4(row, col) +Fn[m][K]*Finv[K][k]);}
 						row=row+3;}
 					col++;
 				}
@@ -5744,7 +5742,7 @@ void FSMicromorphic3DT:: Form_RChi_2_matrix()
 							//summation on the same term starts here
 							for(int T=0; T<=2; T++)
 							{
-								RChi_2(row, col) =-(RChi_2(row, col) +ChiN[m][T]*ChiInv[T][p]*ChiInv[K][l]);}
+								RChi_2(row, col) =(RChi_2(row, col) +ChiN[m][T]*ChiInv[T][p]*ChiInv[K][l]);}
 							row++;}
 						}
 					col++;
@@ -5770,7 +5768,7 @@ void FSMicromorphic3DT:: Form_Ru_5_matrix()
 							//summation on the same term starts here
 								for(int K=0;K<=2;K++)
 								{
-									Ru_5(row, col) =-(Ru_5(row, col) +Fn[l][K]*Finv[K][k]);}
+									Ru_5(row, col) =(Ru_5(row, col) +Fn[l][K]*Finv[K][k]);}
 						row++;}
 					col++;
 				}
@@ -5796,7 +5794,7 @@ void FSMicromorphic3DT:: Form_Rs_sigma_matrix()
 							for(int l = 0; l <= 2; l++)
 							{
 
-								Rs_sigma(row, col)=-sn_sigman(m,l)*Finv[T][n];
+								Rs_sigma(row, col)=sn_sigman(m,l)*Finv[T][n];
 							row++;
 							}
 						}
@@ -5807,7 +5805,7 @@ void FSMicromorphic3DT:: Form_Rs_sigma_matrix()
 
 }
 
-void FSMicromorphic3DT:: Form_R_Capital_Gamma_Chi_matrix()
+void FSMicromorphic3DT:: Form_R_Capital_Lambda_Chi_matrix()
 {
 
 
@@ -5822,7 +5820,7 @@ void FSMicromorphic3DT:: Form_R_Capital_Gamma_Chi_matrix()
 					for(int l = 0; l <= 2; l++)
 					{
 						//summation on the same term starts here
-						R_Capital_Gamma_Chi(row, col)=fRho_0 *CapitalGamma(l,K);
+						R_Capital_Gamma_Chi(row, col)=CapitalLambda(l,K);
 						row++;
 					}
 				}
@@ -5830,6 +5828,17 @@ void FSMicromorphic3DT:: Form_R_Capital_Gamma_Chi_matrix()
 			}
 
 
+}
+
+void FSMicromorphic3DT:: Form_CapitalLambda_matrix()
+{
+	for(int i=0;i<=2;i++)
+	{
+		for(int j=0;j<=2;j++)
+		{
+			CapitalLambda(i,j)=0.0001;
+		}
+	}
 }
 
 void FSMicromorphic3DT:: Form_G1_matrix()
@@ -5870,11 +5879,11 @@ void FSMicromorphic3DT::Form_H1_matrix()
 	int row;
 	row=0;
 	H1=0.0;
-/*	for(int i=0;i<=2;i++)
+	for(int i=0;i<=2;i++)
 	{for(int j=0;j<=2;j++)
 	{for(int k=0;k<=2;k++)
-	{Mnplus1[i][j][k]=0.0;}}}*/
-	Mnplus1=0.0;
+	{Mnplus1[i][j][k]=0.0;}}}
+//	Mnplus1=0.0;
 
 	for(int m=0;m<=2;m++)
 	{
