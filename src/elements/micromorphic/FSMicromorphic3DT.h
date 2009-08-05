@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.30 2009-08-04 22:08:44 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.31 2009-08-05 06:02:15 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -390,7 +390,8 @@ private:
 	//Varitional Matrices coming from the Balance of linear Momentum
 	dMatrixT Tsigma_1;
 	dMatrixT fG1_1;
-	double SigN[3][3];
+	double SigN[3][3];//unsymmetric Cauchy stress tensor found at previous step
+	dMatrixT Sigma; // unsymetric Cauchy stress tensor at current step
 	double Fn[3][3];
 	double FnInv[3][3];
 	double Finv[3][3];
@@ -403,6 +404,7 @@ private:
 	dMatrixT fTemp_matrix_nchidof_x_nchidof;
 	dMatrixT fTemp_matrix_nchidof_x_nudof;
 	dMatrixT fTemp_matrix_nudof_x_nudof;
+
 
 	dMatrixT GRAD_Nuw;
 	dMatrixT GRAD_Nuw_Tr;
