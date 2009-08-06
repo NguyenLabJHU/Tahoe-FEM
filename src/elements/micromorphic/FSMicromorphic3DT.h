@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.32 2009-08-05 21:49:13 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.33 2009-08-06 22:21:09 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -53,6 +53,17 @@ public:
 	    kTau,
 	    kEta,
 	    kRho_0,
+	    kTau1,
+	    kTau2,
+	    kTau3,
+	    kTau4,
+	    kTau5,
+	    kTau6,
+	    kTau7,
+	    kTau8,
+	    kTau9,
+	    kTau10,
+	    kTau11,
 	    kg,
 	    kg1,
 	    kg2,
@@ -653,7 +664,7 @@ private:
 	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	//Forming the Matrices coming from the Balance of Linear Momentum
-	void Form_micro_deformation_gradient_tensor_Chi(void);
+	void Form_micro_deformation_tensor_Chi(void);
 	void Form_GRAD_Chi_matrix(void);
 	void Form_double_Finv_from_Deformation_tensor_inverse(void);
 	void Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp);
@@ -718,6 +729,7 @@ private:
     void Form_R_Capital_Lambda_Chi_matrix(void);// DO NOT multiply with J !!!
     void Form_Finv_eta_matrix(void);
     void Form_CapitalLambda_matrix(void);
+    void Form_CCof_tensor(void);
 
 //    void Form_GRAD_NCHI_Phi_matrix(const  dMatrixT &fShapeMicroGrad); no need for this
 

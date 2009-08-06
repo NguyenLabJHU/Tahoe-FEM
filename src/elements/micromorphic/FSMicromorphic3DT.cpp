@@ -1092,7 +1092,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* [fDeformation_Gradient] will be formed */
 				Form_deformation_gradient_tensor();
 
-				Form_micro_deformation_gradient_tensor_Chi();
+				Form_micro_deformation_tensor_Chi();
 				Form_GRAD_Chi_matrix();
 
 				/* [fDefGradT_9x9_matrix] will be formed */
@@ -1717,7 +1717,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    fKdd += fK_dd_G3_4_matrix;
 		    fKdd += fK_dd_G4_matrix;
 
-/*//Micromorphic case fKdd coming from bal. of linear momentum
+/*
+  //Micromorphic case fKdd coming from bal. of linear momentum
 
 		    fKdd  =  fG1_1;
 		    fKdd +=  fG1_2;
@@ -1820,8 +1821,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    ElementSupport().AssembleLHS(curr_group, fKphiphi, micro_eq);
 		    ElementSupport().AssembleLHS(curr_group, fKdphi, displ_eq, micro_eq);
 		    ElementSupport().AssembleLHS(curr_group, fKphid, micro_eq, displ_eq);
-
 	}
+/*	SigN=Sigma;
+	mn=Mnplus1;
+	GammaN=Gamma;???*/
     }
 }
 
@@ -2937,7 +2940,7 @@ void FSMicromorphic3DT::Form_kirchhoff_stress_vector()
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 
-void FSMicromorphic3DT::Form_micro_deformation_gradient_tensor_Chi()
+void FSMicromorphic3DT::Form_micro_deformation_tensor_Chi()
 {
 	NCHI.Multx(Phi_vec,Chi_vec);
     Chi[0][0]= Chi_vec[0]+1.0;
