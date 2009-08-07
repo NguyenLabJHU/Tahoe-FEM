@@ -1088,6 +1088,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 				/* KroneckerDelta matrix is formed*/
 				Form_KroneckerDelta_matrix();
+				Form_CCof_tensor();
 
 				/* [fDeformation_Gradient] will be formed */
 				Form_deformation_gradient_tensor();
@@ -1878,6 +1879,18 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(Sigma, "Sigma");
     list.AddParameter(Tau, "Tau");
     list.AddParameter(Eta, "Eta");
+    list.AddParameter(Tau, "Tau1");
+    list.AddParameter(Tau, "Tau2");
+    list.AddParameter(Tau, "Tau3");
+    list.AddParameter(Tau, "Tau4");
+    list.AddParameter(Tau, "Tau5");
+    list.AddParameter(Tau, "Tau6");
+    list.AddParameter(Tau, "Tau7");
+    list.AddParameter(Tau, "Tau8");
+    list.AddParameter(Tau, "Tau9");
+    list.AddParameter(Tau, "Tau10");
+    list.AddParameter(Tau, "Tau11");
+
 
     // gravity
     list.AddParameter(gravity_g, "g");
@@ -1967,6 +1980,17 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kSigma] = list.GetParameter("Sigma");
     fMaterial_Params[kTau] = list.GetParameter("Tau");
     fMaterial_Params[kEta] = list.GetParameter("Eta");
+    fMaterial_Params[kTau1] = list.GetParameter("Tau1");
+    fMaterial_Params[kTau2] = list.GetParameter("Tau2");
+    fMaterial_Params[kTau3] = list.GetParameter("Tau3");
+    fMaterial_Params[kTau4] = list.GetParameter("Tau4");
+    fMaterial_Params[kTau5] = list.GetParameter("Tau5");
+    fMaterial_Params[kTau6] = list.GetParameter("Tau6");
+    fMaterial_Params[kTau7] = list.GetParameter("Tau7");
+    fMaterial_Params[kTau8] = list.GetParameter("Tau8");
+    fMaterial_Params[kTau9] = list.GetParameter("Tau9");
+    fMaterial_Params[kTau10] = list.GetParameter("Tau10");
+    fMaterial_Params[kTau11] = list.GetParameter("Tau11");
 
     fMaterial_Params[kg] = list.GetParameter("g");
     fMaterial_Params[kg1] = list.GetParameter("g1");
@@ -2939,6 +2963,41 @@ void FSMicromorphic3DT::Form_kirchhoff_stress_vector()
 ////////////////////// MATRICES FOR MICROMORPHIC 3-D CASE/////////////
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+
+void FSMicromorphic3DT:: Form_CCof_tensor()
+{
+	for(int k=0;k<3;k++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			for(int m=0;m<3;m++)
+			{
+				for(int n=0;n<3;n++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int q=0;q<3;q++)
+						{
+						CCof[k][l][m][n][p][q]=   fMaterial_Params[kTau1]*( KrDelta[k][l]*KrDelta[n][m]*KrDelta[q][p]+ KrDelta[l][m]*KrDelta[n][p]*KrDelta[k][q])
+											    + fMaterial_Params[kTau2]*( KrDelta[k][l]*KrDelta[m][p]*KrDelta[n][q]+ KrDelta[k][m]*KrDelta[l][q]*KrDelta[n][p])
+												+ fMaterial_Params[kTau3]*( KrDelta[k][l]*KrDelta[q][m]*KrDelta[n][p])
+											    + fMaterial_Params[kTau4]*( KrDelta[l][m]*KrDelta[k][n]*KrDelta[q][p])
+												+ fMaterial_Params[kTau5]*( KrDelta[k][m]*KrDelta[l][n]*KrDelta[q][p]+ KrDelta[l][m]*KrDelta[k][p]*KrDelta[n][q])
+							                    + fMaterial_Params[kTau6]*( KrDelta[k][m]*KrDelta[l][p]*KrDelta[n][q])
+							                    + fMaterial_Params[kTau7]*( KrDelta[k][n]*KrDelta[l][p]*KrDelta[q][m])
+							                    + fMaterial_Params[kTau8]*( KrDelta[k][p]*KrDelta[l][q]*KrDelta[n][m]+ KrDelta[k][q]*KrDelta[l][n]*KrDelta[m][p])
+							                    + fMaterial_Params[kTau9]*( KrDelta[k][n]*KrDelta[l][q]*KrDelta[m][p])
+                                                +fMaterial_Params[kTau10]*( KrDelta[k][p]*KrDelta[l][n]*KrDelta[q][m])
+                                                +fMaterial_Params[kTau11]*( KrDelta[k][q]*KrDelta[l][p]*KrDelta[n][m]);
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+}
 
 void FSMicromorphic3DT::Form_micro_deformation_tensor_Chi()
 {
