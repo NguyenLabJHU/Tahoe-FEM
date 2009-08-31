@@ -64,6 +64,11 @@ void Penalty_AngledBC::DefineParameters(ParameterListT& list) const
 	ParameterT penalty(fK, "penalty_parameter");
 	penalty.AddLimit(zero_bound);
 	list.AddParameter(penalty);
+
+	/*element group*/
+	ParameterT elemgroup(ParameterT::Integer, "element_group");
+	elemgroup.SetDefault(1);
+	list.AddParameter(elemgroup);
 }
 
 
@@ -82,7 +87,10 @@ void Penalty_AngledBC::TakeParameterList(const ParameterListT& list)
 	int type = list.GetParameter("type");							 /*bc type fixed or applied */
 	KBC_CardT::CodeT code = KBC_CardT::int2CodeT(type + 1);			 /*set KBC code based on type*/
 	int schedule_no = list.GetParameter("schedule"); schedule_no--;   /*read schedule number*/
-	fValue = list.GetParameter("value");                        /*read applied displacement*/
+	fValue = list.GetParameter("value");
+	fAngleGroup = list.GetParameter("element_group");
+	fAngleGroup--;
+	/*read applied displacement*/
 	/* get the schedule */
 
 	if (schedule_no > -1)
@@ -224,12 +232,10 @@ void Penalty_AngledBC::InitialCondition(void)
 		GeometryBaseT* geometry = GeometryT::New(geometry_code, fNumElementNodes);
 
 		/*number integration points*/
-		int group = model_manager.ElementGroupIndex(elemID);
-		group--;
-		ElementBaseT& element = fFieldSupport->ElementGroup(group);
+//		int group = model_manager.ElementGroupIndex(elemID);
+		ElementBaseT& element = fFieldSupport->ElementGroup(fAngleGroup);
 		ContinuumElementT* continuum = (ContinuumElementT*) &element;
 		int nip = continuum->NumIP();
-
 		/*create ParentDomain for the element*/
 		fDomain[i] = new DomainIntegrationT(geometry_code, nip, fNumElementNodes);
 		
@@ -251,8 +257,8 @@ void Penalty_AngledBC::InitialCondition(void)
 			eq_tmp.Set(1,nsd*fNumFacetNodes, facets_eqnos(j));
 			fField->SetLocalEqnos(nd_tmp, eq_tmp);
 		}
-/*
-		cout << "\nsideset: "<<side_set;
+
+/*		cout << "\nsideset: "<<side_set;
 		cout << "\nlocal nodes: "<<facets_local;
 		cout << "\nglobal nodes: "<<facets_global;
 		cout << "\neqnos: "<<facets_eqnos;
@@ -282,8 +288,8 @@ void Penalty_AngledBC::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	{
 		/*get element group number*/
 		elemID = model_manager.SideSetGroupID(fside_set_IDs[i]);
-		int group = model_manager.ElementGroupIndex(elemID);
-		group--;
+//		int group = model_manager.ElementGroupIndex(elemID);
+//		group--;
 		const iArray2DT& side_set = fBC_sides[i];
 		const iArray2DT& global_nodes = fBC_global_nodes[i];
 		const iArray2DT& local_nodes = fBC_local_nodes[i];
@@ -343,7 +349,7 @@ void Penalty_AngledBC::ApplyLHS(GlobalT::SystemTypeT sys_type)
 				
 			} /*loop over ip*/						
 			/*assemble*/
-			fFieldSupport->AssembleLHS(group, fLHS, feqnos);
+			fFieldSupport->AssembleLHS(fAngleGroup, fLHS, feqnos);
 		} /*loop over facets in sideset*/
 		
 	} /*loop over sidesets*/
@@ -383,8 +389,8 @@ void Penalty_AngledBC::ApplyRHS(void)
 	{
 		/*get element group number*/
 		elemID = model_manager.SideSetGroupID(fside_set_IDs[i]);
-		int group = model_manager.ElementGroupIndex(elemID);
-		group--;
+//		int group = model_manager.ElementGroupIndex(elemID);
+//		group--;
 		const iArray2DT& side_set = fBC_sides[i];
 		const iArray2DT& global_nodes = fBC_global_nodes[i];
 		const iArray2DT& local_nodes = fBC_local_nodes[i];
@@ -456,7 +462,7 @@ void Penalty_AngledBC::ApplyRHS(void)
 				
 			} /*loop over ip*/
 			/*assemble*/
-			fFieldSupport->AssembleRHS(group, fRHS, feqnos);
+			fFieldSupport->AssembleRHS(fAngleGroup, fRHS, feqnos);
 		} /*loop over facets in sideset*/
 		
 	} /*loop over sidesets*/

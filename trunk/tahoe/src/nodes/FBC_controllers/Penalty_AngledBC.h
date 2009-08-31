@@ -84,6 +84,7 @@ class Penalty_AngledBC: public FBC_ControllerT
 	/*time schedule*/
 	const ScheduleT* fSchedule;
 	double fValue;
+	int fAngleGroup;
 
 	/*integration domain*/
 	ArrayT<DomainIntegrationT*> fDomain;
