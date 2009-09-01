@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.33 2009-08-06 22:21:09 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.34 2009-09-01 04:38:56 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -482,6 +482,7 @@ private:
     dMatrixT R_Capital_Gamma_Chi;
     dMatrixT CapitalLambda;
     dMatrixT sn_sigman;
+    dMatrixT s_sigma;
 
     dMatrixT fShapeDispl_Tr;
 
@@ -664,6 +665,7 @@ private:
 	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	//Forming the Matrices coming from the Balance of Linear Momentum
+	void Form_GammaN_tensor(void);
 	void Form_micro_deformation_tensor_Chi(void);
 	void Form_GRAD_Chi_matrix(void);
 	void Form_double_Finv_from_Deformation_tensor_inverse(void);

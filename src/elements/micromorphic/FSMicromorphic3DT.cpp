@@ -1729,7 +1729,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    fKdd +=  fG1_6;
 		    fKdd +=  fG1_8;
 		    fKdd +=  fG1_10;
-		    fKdd +=  fG1_112
+		    fKdd +=  fG1_12;
 */
 
 
@@ -1749,7 +1749,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    fKdphi = 0.0;
 /*// Micromorphic case fKdPhi  from coming from bal. of linear momentum
 
-		    fKdPhi  = fG1_5 ;
+		    fKdPhi  = fG1_7 ;
 		    fKdPhi += fG1_9 ;
 		    fKdPhi += fG1_11;
 */
@@ -1826,6 +1826,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 /*	SigN=Sigma;
 	mn=Mnplus1;
 	GammaN=Gamma;???*/
+	Form_GammaN_tensor();
     }
 }
 
@@ -2284,6 +2285,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     R_Capital_Gamma_Chi.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     CapitalLambda.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     sn_sigman.Dimension(n_sd,n_sd);
+    s_sigma.Dimension(n_sd,n_sd);
     GRAD_NCHI.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
  //   GRAD_NCHI_Phi.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
     Finv_eta.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
@@ -2963,6 +2965,22 @@ void FSMicromorphic3DT::Form_kirchhoff_stress_vector()
 ////////////////////// MATRICES FOR MICROMORPHIC 3-D CASE/////////////
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+
+void FSMicromorphic3DT::Form_GammaN_tensor()
+{
+	for(int a=0;a<3;a++)
+	{
+		for(int p=0;p<3;p++)
+		{
+			for(int q=0;q<3;q++)
+			{
+				//summation over the same term starts here
+				for(int A=0;A<3;A++)
+					GammaN[i][j][k]=ChiInv[A][p]*GRAD_Chi[a][A][q];
+			}
+		}
+	}
+}
 
 void FSMicromorphic3DT:: Form_CCof_tensor()
 {
@@ -5856,7 +5874,7 @@ void FSMicromorphic3DT:: Form_Rs_sigma_matrix()
 							for(int l = 0; l <= 2; l++)
 							{
 
-								Rs_sigma(row, col)=sn_sigman(m,l)*Finv[T][n];
+								Rs_sigma(row, col)=s_sigma(m,l)*Finv[T][n];
 							row++;
 							}
 						}
@@ -6004,7 +6022,7 @@ void FSMicromorphic3DT::Form_H2_matrix()
 	int row;
 	row=0;
 	H2=0.0;
-	sn_sigman=0.0;
+	s_sigma=0.0;
 	for(int m=0;m<=2;m++)
 	{
 		for(int l=0;l<=2;l++)
@@ -6014,18 +6032,18 @@ void FSMicromorphic3DT::Form_H2_matrix()
 			//summation over the same term starts here
 			for(int K=0;K<=2;K++)
 			{
-				sn_sigman(m,l)=sn_sigman(m,l)+(KrDelta[l][m]-ChiN[l][K]*ChiInv[K][m])*fMaterial_Params[kKappa]
+				s_sigma(m,l)=s_sigma(m,l)+(KrDelta[l][m]-ChiN[l][K]*ChiInv[K][m])*fMaterial_Params[kKappa]
 				                             +(KrDelta[m][l]-Fn[m][K]*Finv[K][l])*fMaterial_Params[kKappa]
 				                             +(KrDelta[m][l]-ChiN[m][K]*ChiInv[K][l])*fMaterial_Params[kNu]
 				                             +(KrDelta[l][m]-Fn[l][K]*Finv[K][m])*fMaterial_Params[kNu] ;
 				for(int i=0;i<=2;i++)
 					{
-					sn_sigman(m,l)=sn_sigman(m,l)+ (1-KrDelta[i][i]-Fn[i][K]*Finv[K][i])*sn_sigman(m,l)
+					s_sigma(m,l)=s_sigma(m,l)+ (1-KrDelta[i][i]-Fn[i][K]*Finv[K][i])*sn_sigman(m,l)
 					                             +   (KrDelta[m][i]-Fn[m][K]*Finv[K][i])*sn_sigman(i,l)
 					                             +   (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*sn_sigman(m,i) ;
 					}
 			}
-			H2[row]=sn_sigman(m,l);
+			H2[row]=s_sigma(m,l);
 			row++;
 		}
 	}
