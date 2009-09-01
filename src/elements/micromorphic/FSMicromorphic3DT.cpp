@@ -1039,6 +1039,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    fShapes_displ->TopIP();
 		    fShapes_micro->TopIP();
 
+		    SigN_IPs_el.RowCopy(e,SigN_IPs);
+		    mn_IPs_el.RowCopy(e,mn_IPs);
+		    GammaN_IPs_el.RowCopy(e,GammaN_IPs);
+		    sn_sigman_IPs_el.RowCopy(e,sn_sigman_IPs);
+
+
 		    while (fShapes_displ->NextIP() && fShapes_micro->NextIP())
 		    {
 				double scale_const = (*Weight++)*(*Det++);
@@ -1084,6 +1090,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad);//This GRADIENT shape function matrix is for eta
 				Form_NCHI_matrix(fShapeMicro_row_matrix);//shape function matrix
 
+/*
+				SigN_IPs.RowCopy(IP,SigN);
+				sn_sigman_IPs.RowCopy(IP,sn_sigman);
+				GammaN_IPs.RowCopy(IP,GammaN);
+				mn_IPs.RowCopy(IP,mn);
+*/
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 				/* KroneckerDelta matrix is formed*/
@@ -1095,6 +1109,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				Form_micro_deformation_tensor_Chi();
 				Form_GRAD_Chi_matrix();
+
 
 				/* [fDefGradT_9x9_matrix] will be formed */
 				Form_fDefGradT_9x9_matrix();
@@ -1190,6 +1205,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* Save Cauchy effective stress tensor of the current IP */
 				fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
 
+/*
+				for(int i=0;i<=5;i++)
+				 Trial[i]=1;
+
+
+				fCauchy_stress_IPs.SetRow(IP,Trial);
+
+*/
 
 
 
@@ -1250,6 +1273,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				NCHI_Tr.MultTx(H3,Pint_3);
 				Pint_3*=fMaterial_Params[kRho_0];
 
+////////////////////////////////////////////////////////////////////////////////
 /////////////////MicroMorphic Internal force vectors finish here////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -1688,6 +1712,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 						<< setw(outputFileWidth) << fShapeDispl(0,3);
 				*/
 
+				/////////////////////saving matrices at Gauss Points////////////
+/*
+			   	GammaN_IPs.SetRow(IP,Gamma);
+			   	SigN_IPs.SetRow(IP,Sigma);
+			   	sn_sigman_IPs.SetRow(IP,s_sigma);
+			   	mn_IPs.SetRow(IP,Mnplus1);
+*/
+
+
 		    } //end Gauss integration loop
 
 
@@ -1700,6 +1733,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 		    /* saving state variables for each IPs of the current element */
 		    fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
+
+		    GammaN_IPs_el.SetRow(e,GammaN_IPs);
+		    SigN_IPs_el.SetRow(e,SigN_IPs);
+		    sn_sigman_IPs_el.SetRow(e,sn_sigman_IPs);
+		    mn_IPs_el.SetRow(e,mn_IPs);
 
 			/* {fFd_int} will be formed */
 		    fFd_int = fFd_int_N1_vector;
@@ -1823,10 +1861,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    ElementSupport().AssembleLHS(curr_group, fKdphi, displ_eq, micro_eq);
 		    ElementSupport().AssembleLHS(curr_group, fKphid, micro_eq, displ_eq);
 	}
-/*	SigN=Sigma;
-	mn=Mnplus1;
-	GammaN=Gamma;???*/
-	Form_GammaN_tensor();
     }
 }
 
@@ -2063,6 +2097,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     n_el = NumElements();
     n_sd_surf = n_sd;
 
+
     /* set shape functions */
     // u
     fInitCoords_displ.Dimension(n_en_displ, n_sd);
@@ -2232,6 +2267,10 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fTemp_matrix_nchidof_x_nudof.Dimension (n_en_micro_x_n_sd,n_en_displ_x_n_sd);
 
     Sigma.Dimension(n_sd,n_sd);
+    SigN_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
+    SigN_IPs_el.Dimension(n_el,n_sd_x_n_sd*fNumIP_displ);
+    SigN_IPs_el=0.0;
+
     Finv_w.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Tsigma_1.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_1.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
@@ -2284,8 +2323,20 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Rs_sigma.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     R_Capital_Gamma_Chi.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     CapitalLambda.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+    mn_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd_x_n_sd);
+    mn_IPs_el.Dimension(n_el,n_sd_x_n_sd_x_n_sd*fNumIP_displ);
+    mn_IPs_el=0.0;
+    GammaN_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd_x_n_sd);
+    GammaN_IPs_el.Dimension(n_el,n_sd_x_n_sd_x_n_sd*fNumIP_displ);
+    GammaN_IPs_el=0.0;
+
     sn_sigman.Dimension(n_sd,n_sd);
+    sn_sigman_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
+    sn_sigman_IPs_el.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
+    sn_sigman_IPs_el=0.0;
     s_sigma.Dimension(n_sd,n_sd);
+
     GRAD_NCHI.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
  //   GRAD_NCHI_Phi.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
     Finv_eta.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
@@ -2966,7 +3017,7 @@ void FSMicromorphic3DT::Form_kirchhoff_stress_vector()
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 
-void FSMicromorphic3DT::Form_GammaN_tensor()
+void FSMicromorphic3DT::Form_Gamma_tensor()
 {
 	for(int a=0;a<3;a++)
 	{
@@ -2976,7 +3027,8 @@ void FSMicromorphic3DT::Form_GammaN_tensor()
 			{
 				//summation over the same term starts here
 				for(int A=0;A<3;A++)
-					GammaN[i][j][k]=ChiInv[A][p]*GRAD_Chi[a][A][q];
+					{for(int Q=0;Q<3;Q++)
+					 {Gamma[a][p][q]=ChiInv[A][p]*GRAD_Chi[a][A][Q]*Finv[Q][q];}}
 			}
 		}
 	}
@@ -3020,7 +3072,7 @@ void FSMicromorphic3DT:: Form_CCof_tensor()
 void FSMicromorphic3DT::Form_micro_deformation_tensor_Chi()
 {
 	NCHI.Multx(Phi_vec,Chi_vec);
-    Chi[0][0]= Chi_vec[0]+1.0;
+    Chi[0][0] = Chi_vec[0]+1.0;
     Chi[0][1] = Chi_vec[3];
     Chi[0][2] = Chi_vec[6];
     Chi[1][0] = Chi_vec[1];
@@ -6064,7 +6116,71 @@ void FSMicromorphic3DT:: Form_H3_matrix()
 	}
 }
 
+void Mapping_double_and_Array( double& dmat, dArrayT& Array,const int& dim,const int& condition)
+{
+	int row;
+	row=0;
+	if(condition==1)
+	{
+		if(dim==2)//means if it is a matrix
+		{
+			for(int i=0;i<=2;i++)
+			{
+				for(int j=0;j<=2;j++)
+				{
+					Array[row]= dmat[i][j];
+					row++;
+					}
+				}
+			}
+		else
+		{
+			for(int i=0;i<=2;i++)
+			{
+				for(int j=0;j<=2;j++)
+				{
+					for(int k=0;k<=2;k++)
+					{
+						Array[row]=dmat[i][j][k];
+						row++;
+						}
+					}
+				}
+		}
 
+	}
+	else //or it is a tensor
+	{
+		if(dim==2)//means if it is a matrix
+			{
+			for(int i=0;i<=2;i++)
+			{
+				for(int j=0;j<=2;j++)
+				{
+					dmat[i][j]=Array[row];
+					row++;
+					}
+				}
+			}
+			else
+
+			{
+				for(int i=0;i<=2;i++)
+				{
+					for(int j=0;j<=2;j++)
+					{
+						for(int k=0;k<=2;k++)
+						{
+							dmat[i][j][k]=Array[row];
+							row++;
+							}
+						}
+					}
+			}
+	}
+
+
+}
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////

@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.34 2009-09-01 04:38:56 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.35 2009-09-01 22:47:19 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -402,6 +402,9 @@ private:
 	dMatrixT Tsigma_1;
 	dMatrixT fG1_1;
 	double SigN[3][3];//unsymmetric Cauchy stress tensor found at previous step
+	dArray2DT SigN_IPs;
+	dArray2DT SigN_IPs_el;
+
 	dMatrixT Sigma; // unsymetric Cauchy stress tensor at current step
 	double Fn[3][3];
 	double FnInv[3][3];
@@ -410,6 +413,7 @@ private:
 	double Chi[3][3];
 	double ChiInv[3][3];
 	double ChiN[3][3];
+//	double  Trial[6];
 	dMatrixT fIota_w_temp_matrix;
 	dMatrixT fTemp_matrix_nudof_x_nchidof;
 	dMatrixT fTemp_matrix_nchidof_x_nchidof;
@@ -446,8 +450,17 @@ private:
     dMatrixT fG1_13;
  // Variational Matrices coming from the Balance of First Moment of Momentum
 	double mn[3][3][3];
+//	dArrayT mn;
+	dArray2DT mn_IPs;
+	dArray2DT mn_IPs_el;
+
 	double Mnplus1[3][3][3];
+	double Gamma[3][3][3];
 	double GammaN[3][3][3];
+
+	dArray2DT GammaN_IPs;
+	dArray2DT GammaN_IPs_el;
+
 	double CCof[3][3][3][3][3][3];
 	double GRAD_ChiN[3][3][3];// GRADIENT  in reference configuration!
 	double GRAD_Chi[3][3][3];// GRADIENT in reference configuration!
@@ -481,7 +494,11 @@ private:
     dMatrixT Rs_sigma;
     dMatrixT R_Capital_Gamma_Chi;
     dMatrixT CapitalLambda;
+
     dMatrixT sn_sigman;
+    dArray2DT sn_sigman_IPs;
+    dArray2DT sn_sigman_IPs_el;
+
     dMatrixT s_sigma;
 
     dMatrixT fShapeDispl_Tr;
@@ -665,13 +682,14 @@ private:
 	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	//Forming the Matrices coming from the Balance of Linear Momentum
-	void Form_GammaN_tensor(void);
+	void Form_Gamma_tensor(void);
 	void Form_micro_deformation_tensor_Chi(void);
 	void Form_GRAD_Chi_matrix(void);
 	void Form_double_Finv_from_Deformation_tensor_inverse(void);
 	void Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp);
 	void Form_Finv_w_matrix(void);
 
+	void Mapping_double_and_Array(const double& dmat, const dArrayT& fArrayT,const int& dim,const int& condition);
 
 
 	void Form_KroneckerDelta_matrix(void);
