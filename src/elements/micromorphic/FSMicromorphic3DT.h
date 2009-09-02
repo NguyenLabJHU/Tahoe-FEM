@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.35 2009-09-01 22:47:19 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.36 2009-09-02 07:31:12 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -402,6 +402,7 @@ private:
 	dMatrixT Tsigma_1;
 	dMatrixT fG1_1;
 	double SigN[3][3];//unsymmetric Cauchy stress tensor found at previous step
+	dArrayT SigN_ar;
 	dArray2DT SigN_IPs;
 	dArray2DT SigN_IPs_el;
 
@@ -450,13 +451,14 @@ private:
     dMatrixT fG1_13;
  // Variational Matrices coming from the Balance of First Moment of Momentum
 	double mn[3][3][3];
-//	dArrayT mn;
+ 	dArrayT mn_ar;
 	dArray2DT mn_IPs;
 	dArray2DT mn_IPs_el;
 
 	double Mnplus1[3][3][3];
 	double Gamma[3][3][3];
 	double GammaN[3][3][3];
+	dArrayT GammaN_ar;
 
 	dArray2DT GammaN_IPs;
 	dArray2DT GammaN_IPs_el;
@@ -689,7 +691,8 @@ private:
 	void Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp);
 	void Form_Finv_w_matrix(void);
 
-	void Mapping_double_and_Array(const double& dmat, const dArrayT& fArrayT,const int& dim,const int& condition);
+	void Mapping_double_and_Array(const int& condition);//
+//	void Mapping_double_and_Array(double& dmat, dArrayT& fArrayT,const int& dim,const int& condition);
 
 
 	void Form_KroneckerDelta_matrix(void);

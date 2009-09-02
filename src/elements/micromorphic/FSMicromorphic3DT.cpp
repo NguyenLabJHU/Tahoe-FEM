@@ -1090,13 +1090,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad);//This GRADIENT shape function matrix is for eta
 				Form_NCHI_matrix(fShapeMicro_row_matrix);//shape function matrix
 
-/*
-				SigN_IPs.RowCopy(IP,SigN);
+				SigN_IPs.RowCopy(IP,SigN_ar);
 				sn_sigman_IPs.RowCopy(IP,sn_sigman);
-				GammaN_IPs.RowCopy(IP,GammaN);
-				mn_IPs.RowCopy(IP,mn);
-*/
-
+				GammaN_IPs.RowCopy(IP,GammaN_ar);
+				mn_IPs.RowCopy(IP,mn_ar);
+				Mapping_double_and_Array(-1);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1713,12 +1711,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				*/
 
 				/////////////////////saving matrices at Gauss Points////////////
-/*
-			   	GammaN_IPs.SetRow(IP,Gamma);
+
+			    Mapping_double_and_Array(1);
+			   	GammaN_IPs.SetRow(IP,GammaN_ar);
 			   	SigN_IPs.SetRow(IP,Sigma);
 			   	sn_sigman_IPs.SetRow(IP,s_sigma);
-			   	mn_IPs.SetRow(IP,Mnplus1);
-*/
+			   	mn_IPs.SetRow(IP,mn_ar);
 
 
 		    } //end Gauss integration loop
@@ -2266,7 +2264,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fTemp_matrix_nchidof_x_nchidof.Dimension (n_en_micro_x_n_sd,n_en_micro_x_n_sd);
     fTemp_matrix_nchidof_x_nudof.Dimension (n_en_micro_x_n_sd,n_en_displ_x_n_sd);
 
+
     Sigma.Dimension(n_sd,n_sd);
+    SigN_ar.Dimension(n_sd_x_n_sd);
     SigN_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     SigN_IPs_el.Dimension(n_el,n_sd_x_n_sd*fNumIP_displ);
     SigN_IPs_el=0.0;
@@ -2324,9 +2324,11 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     R_Capital_Gamma_Chi.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     CapitalLambda.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
 
+    mn_ar.Dimension(n_sd_x_n_sd_x_n_sd);
     mn_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd_x_n_sd);
     mn_IPs_el.Dimension(n_el,n_sd_x_n_sd_x_n_sd*fNumIP_displ);
     mn_IPs_el=0.0;
+    GammaN_ar.Dimension(n_sd_x_n_sd_x_n_sd);
     GammaN_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd_x_n_sd);
     GammaN_IPs_el.Dimension(n_el,n_sd_x_n_sd_x_n_sd*fNumIP_displ);
     GammaN_IPs_el=0.0;
@@ -3142,7 +3144,9 @@ void FSMicromorphic3DT:: Form_Finv_w_matrix()
 
 void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &shapes_micro_X)
 {
-	int row,col,counter;
+	int row;
+	int col;
+	int counter;
 	row=0;
 	col=0;
 	NCHI=0.0;
@@ -6114,9 +6118,54 @@ void FSMicromorphic3DT:: Form_H3_matrix()
 			row++;
 		}
 	}
+
+
 }
 
-void Mapping_double_and_Array( double& dmat, dArrayT& Array,const int& dim,const int& condition)
+void FSMicromorphic3DT:: Mapping_double_and_Array(const int &condition)
+{
+	int row,row1;
+	row=0;
+	row1=0;
+	if(condition==1)
+	{
+		for(int i=0;i<=2;i++)
+		{
+			for(int j=0;j<=2;j++)
+			{
+				SigN_ar[row1]=Sigma(i,j);
+				row1++;
+				for(int k=0;k<=2;k++)
+				{
+					mn_ar[row]=Mnplus1[i][j][k];
+					GammaN_ar[row]=Gamma[i][j][k];
+					row++;
+				}
+			}
+		}
+	}
+	else
+	{
+		for(int i=0;i<=2;i++)
+		{
+			for(int j=0;j<=2;j++)
+			{
+				SigN[i][j]=SigN_ar[row1];
+				row1++;
+				for(int k=0;k<=2;k++)
+				{
+					mn[i][j][k]=mn_ar[row];
+					GammaN[i][j][k]=GammaN_ar[row];
+					row++;
+				}
+			}
+		}
+	}
+
+}
+
+/*
+void FSMicromorphic3DT:: Mapping_double_and_Array( double& dmat, dArrayT &fArrayT,const int& dim,const int &condition)
 {
 	int row;
 	row=0;
@@ -6128,7 +6177,7 @@ void Mapping_double_and_Array( double& dmat, dArrayT& Array,const int& dim,const
 			{
 				for(int j=0;j<=2;j++)
 				{
-					Array[row]= dmat[i][j];
+					fArrayT[row]= dmat[i][j];
 					row++;
 					}
 				}
@@ -6141,13 +6190,13 @@ void Mapping_double_and_Array( double& dmat, dArrayT& Array,const int& dim,const
 				{
 					for(int k=0;k<=2;k++)
 					{
-						Array[row]=dmat[i][j][k];
+						fArrayT[row]=dmat[i][j][k];
 						row++;
 						}
 					}
 				}
-		}
 
+		}
 	}
 	else //or it is a tensor
 	{
@@ -6157,7 +6206,7 @@ void Mapping_double_and_Array( double& dmat, dArrayT& Array,const int& dim,const
 			{
 				for(int j=0;j<=2;j++)
 				{
-					dmat[i][j]=Array[row];
+					dmat[i][j]=fArrayT[row];
 					row++;
 					}
 				}
@@ -6171,7 +6220,7 @@ void Mapping_double_and_Array( double& dmat, dArrayT& Array,const int& dim,const
 					{
 						for(int k=0;k<=2;k++)
 						{
-							dmat[i][j][k]=Array[row];
+							dmat[i][j][k]=fArrayT[row];
 							row++;
 							}
 						}
@@ -6181,7 +6230,7 @@ void Mapping_double_and_Array( double& dmat, dArrayT& Array,const int& dim,const
 
 
 }
-
+*/
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 ////////////////////// FINISH HERE FOR MICROMORPHIC 3-D CASE/////////////
