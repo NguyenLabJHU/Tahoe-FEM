@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.36 2009-09-02 07:31:12 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.37 2009-09-02 23:33:42 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -405,15 +405,31 @@ private:
 	dArrayT SigN_ar;
 	dArray2DT SigN_IPs;
 	dArray2DT SigN_IPs_el;
+	dArray2DT SigN_IPs_el_n;
 
 	dMatrixT Sigma; // unsymetric Cauchy stress tensor at current step
 	double Fn[3][3];
+	dArrayT Fn_ar;
+	dArray2DT Fn_ar_IPs;
+	dArray2DT Fn_ar_IPs_el;
+	dArray2DT Fn_ar_IPs_el_n;
+
 	double FnInv[3][3];
+	dArrayT FnInv_ar;
+	dArray2DT FnInv_ar_IPs;
+	dArray2DT FnInv_ar_IPs_el;
+	dArray2DT FnInv_ar_IPs_el_n;
+
 	double Finv[3][3];
 
 	double Chi[3][3];
 	double ChiInv[3][3];
 	double ChiN[3][3];
+	dArrayT ChiN_ar;
+	dArray2DT ChiN_ar_IPs;
+	dArray2DT ChiN_ar_IPs_el;
+	dArray2DT ChiN_ar_IPs_el_n;
+
 //	double  Trial[6];
 	dMatrixT fIota_w_temp_matrix;
 	dMatrixT fTemp_matrix_nudof_x_nchidof;
@@ -454,6 +470,7 @@ private:
  	dArrayT mn_ar;
 	dArray2DT mn_IPs;
 	dArray2DT mn_IPs_el;
+	dArray2DT mn_IPs_el_n;
 
 	double Mnplus1[3][3][3];
 	double Gamma[3][3][3];
@@ -462,9 +479,15 @@ private:
 
 	dArray2DT GammaN_IPs;
 	dArray2DT GammaN_IPs_el;
+	dArray2DT GammaN_IPs_el_n;
 
 	double CCof[3][3][3][3][3][3];
 	double GRAD_ChiN[3][3][3];// GRADIENT  in reference configuration!
+	dArrayT GRAD_ChiN_ar;
+	dArray2DT GRAD_ChiN_ar_IPs;
+	dArray2DT GRAD_ChiN_ar_IPs_el;
+	dArray2DT GRAD_ChiN_ar_IPs_el_n;
+
 	double GRAD_Chi[3][3][3];// GRADIENT in reference configuration!
 
 
@@ -500,6 +523,7 @@ private:
     dMatrixT sn_sigman;
     dArray2DT sn_sigman_IPs;
     dArray2DT sn_sigman_IPs_el;
+    dArray2DT sn_sigman_IPs_el_n;
 
     dMatrixT s_sigma;
 
@@ -693,7 +717,7 @@ private:
 
 	void Mapping_double_and_Array(const int& condition);//
 //	void Mapping_double_and_Array(double& dmat, dArrayT& fArrayT,const int& dim,const int& condition);
-
+	void Form_defermation_arrays(const int& condition);//
 
 	void Form_KroneckerDelta_matrix(void);
 	void Form_Tsigma_1_matrix(void);
