@@ -86,7 +86,8 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
 
 void FSMicromorphic3DT::RHSDriver(void)
 {
-    int curr_group = ElementSupport().CurrentGroup();
+
+	int curr_group = ElementSupport().CurrentGroup();
 
     /* traction boundary conditions acting on displacement equations */
     if (curr_group == fDispl->Group())
@@ -186,6 +187,7 @@ void FSMicromorphic3DT::LHSDriver(GlobalT::SystemTypeT)
 }
 
 //---------------------------------------------------------------------
+
 
 void FSMicromorphic3DT::Select_Equations (const int &iBalLinChoice, const int &iBalFirstMomMomChoice )
 {
@@ -2172,6 +2174,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     n_en_displ_x_n_sd = n_en_displ*n_sd;
     n_sd_x_n_sd_x_n_sd=n_sd*n_sd*n_sd;
     n_en_micro_x_n_sd=n_en_micro*n_sd;
+    n_en_micro_x_n_sd_x_n_sd=n_en_micro*n_sd_x_n_sd;
     del_u_vec.Dimension (n_en_displ_x_n_sd);
     u_vec.Dimension (n_en_displ_x_n_sd);
     u_dot_vec.Dimension (n_en_displ_x_n_sd);
@@ -2305,8 +2308,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     Chi_vec.Dimension(n_sd_x_n_sd);
     GRAD_Chi_vec.Dimension(n_sd_x_n_sd_x_n_sd);
-    NCHI.Dimension(n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    NCHI_Tr.Dimension(n_en_micro_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    NCHI.Dimension(n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    NCHI_Tr.Dimension(n_en_micro*n_sd_x_n_sd,n_sd_x_n_sd);
 //    NCHI_eta.Dimension(n_sd_x_n_sd,n_en_micro_x_n_sd);same with the one above no need!
 
     fTemp_matrix_nudof_x_nudof.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
@@ -2337,15 +2340,15 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     TFn_3.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_6.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
     TChi_1.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
-    fG1_7.Dimension (n_en_displ_x_n_sd ,n_en_micro_x_n_sd_x_n_sd );
+    fG1_7.Dimension (n_en_displ_x_n_sd ,n_en_micro*n_sd_x_n_sd );
     TFn_4.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_8.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
     TChi_2.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
-    fG1_9.Dimension (n_en_displ_x_n_sd ,n_en_micro_x_n_sd_x_n_sd);
+    fG1_9.Dimension (n_en_displ_x_n_sd ,n_en_micro*n_sd_x_n_sd);
     TFn_5.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_10.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
     TChi_3.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
-    fG1_11.Dimension (n_en_displ_x_n_sd ,n_en_micro_x_n_sd_x_n_sd);
+    fG1_11.Dimension (n_en_displ_x_n_sd ,n_en_micro*n_sd_x_n_sd);
     TFn_6.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_10.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
     SigCurr.Dimension(n_sd_x_n_sd,1);
@@ -2397,35 +2400,35 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     sn_sigman_IPs_el_n=0.0;
     s_sigma.Dimension(n_sd,n_sd);
 
-    GRAD_NCHI.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
+    GRAD_NCHI.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
  //   GRAD_NCHI_Phi.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
     Finv_eta.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
 
-    fH1_1.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH1_2.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH1_3.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH1_4.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH1_5.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH1_6.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH1_7.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH1_8.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH1_9.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH1_10.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH1_11.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH1_12.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH1_13.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH1_14.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH1_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH1_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH1_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH1_4.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_6.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_7.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_8.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_9.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_10.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_11.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH1_12.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH1_13.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_14.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
 
-    fH2_1.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH2_2.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH2_3.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH2_4.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH2_5.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH2_6.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
-    fH2_7.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH2_8.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH2_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH2_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH2_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH2_4.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH2_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH2_6.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH2_7.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH2_8.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
 
-    fH3_1.Dimension(n_en_micro_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
+    fH3_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
 
     G1.Dimension(n_en_displ_x_n_sd);
     Uint_1.Dimension(n_en_displ_x_n_sd);
