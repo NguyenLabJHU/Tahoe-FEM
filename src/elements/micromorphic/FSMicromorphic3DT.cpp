@@ -332,12 +332,17 @@ void FSMicromorphic3DT::CloseStep(void)
     fiState = fiState_new;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////this part keeps track of the parameters from the previous iteration "n" to be used in "n+1"/////////////////////////
+///////this part keeps  the parameters from the previous iteration "n" to be used in "n+1"/////////////////////////
 
     SigN_IPs_el_n      = SigN_IPs_el;
     GammaN_IPs_el_n    = GammaN_IPs_el;
     mn_IPs_el_n        = mn_IPs_el;
     sn_sigman_IPs_el_n = sn_sigman_IPs_el;
+
+    Fn_ar_IPs_el_n=Fn_ar_IPs_el;
+    FnInv_ar_IPs_el_n=FnInv_ar_IPs_el;
+    ChiN_ar_IPs_el_n=ChiN_ar_IPs_el;
+    GRAD_ChiN_ar_IPs_el_n=GRAD_ChiN_ar_IPs_el;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1056,6 +1061,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    GammaN_IPs_el_n.RowCopy(e,GammaN_IPs);
 		    sn_sigman_IPs_el_n.RowCopy(e,sn_sigman_IPs);
 
+		    Fn_ar_IPs_el_n.RowCopy(e,Fn_ar_IPs);
+		    FnInv_ar_IPs_el_n.RowCopy(e,FnInv_ar_IPs);
+		    ChiN_ar_IPs_el_n.RowCopy(e,ChiN_ar_IPs);
+		    GRAD_ChiN_ar_IPs_el_n.RowCopy(e,GRAD_ChiN_ar_IPs);
 
 		    while (fShapes_displ->NextIP() && fShapes_micro->NextIP())
 		    {
@@ -1094,7 +1103,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+//////////////////assigning the parameters from previous step starts here///////
 
 
 				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad);//This GRADIENT shape function matrix is for eta
@@ -1106,7 +1115,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				mn_IPs.RowCopy(IP,mn_ar);
 				Mapping_double_and_Array(-1);
 
-////////////////////////////////////////////////////////////////////////////////
+			    Fn_ar_IPs.RowCopy(IP,Fn_ar);
+			    FnInv_ar_IPs.RowCopy(IP,FnInv_ar);
+			    ChiN_ar_IPs.RowCopy(IP,ChiN_ar);
+			    GRAD_ChiN_ar_IPs.RowCopy(IP,GRAD_ChiN_ar);
+			    Form_deformation_tensors_arrays(-1);
+/////////////////////////finishes here/////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 				/* KroneckerDelta matrix is formed*/
 				Form_KroneckerDelta_matrix();
@@ -1135,11 +1149,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fDeformation_Gradient_Inverse_Transpose.Transpose(fDeformation_Gradient_Inverse);
 				fDeformation_Gradient_Transpose.Transpose(fDeformation_Gradient);
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////start//////////////////////////////////////////////
 				Form_double_Finv_from_Deformation_tensor_inverse();// I ADDED!!!
 				Form_Finv_w_matrix();// I ADDED!!!
 				Form_Finv_eta_matrix();
 
 
+
+////////////////////////////finish/////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 				/* {fDefGradInv_vector} will be formed */
 				Form_deformation_gradient_inv_vector();
@@ -1723,6 +1742,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			   	sn_sigman_IPs.SetRow(IP,s_sigma);
 			   	mn_IPs.SetRow(IP,mn_ar);
 
+			   	Form_deformation_tensors_arrays(1);
+			    Fn_ar_IPs.SetRow(IP,Fn_ar);
+			    FnInv_ar_IPs.SetRow(IP,FnInv_ar);
+			    ChiN_ar_IPs.SetRow(IP,ChiN_ar);
+			    GRAD_ChiN_ar_IPs.SetRow(IP,GRAD_ChiN_ar);
+
+
 
 		    } //end Gauss integration loop
 
@@ -1741,6 +1767,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    SigN_IPs_el.SetRow(e,SigN_IPs);
 		    sn_sigman_IPs_el.SetRow(e,sn_sigman_IPs);
 		    mn_IPs_el.SetRow(e,mn_IPs);
+
+		    Fn_ar_IPs_el.SetRow(e,Fn_ar_IPs);
+		    FnInv_ar_IPs_el.SetRow(e,FnInv_ar_IPs);
+		    ChiN_ar_IPs_el.SetRow(e,ChiN_ar_IPs);
+		    GRAD_ChiN_ar_IPs_el.SetRow(e,GRAD_ChiN_ar_IPs);
+
+
 
 			/* {fFd_int} will be formed */
 		    fFd_int = fFd_int_N1_vector;
@@ -2401,24 +2434,30 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Fn_ar.Dimension(n_sd_x_n_sd);
     Fn_ar_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     Fn_ar_IPs_el.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
+    Fn_ar_IPs_el=0.0;
     Fn_ar_IPs_el_n.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
+    Fn_ar_IPs_el_n=0.0;
 
     FnInv_ar.Dimension(n_sd_x_n_sd);
     FnInv_ar_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     FnInv_ar_IPs_el.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
+    FnInv_ar_IPs_el=0.0;
     FnInv_ar_IPs_el_n.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
-
+    FnInv_ar_IPs_el_n=0.0;
 
     ChiN_ar.Dimension(n_sd_x_n_sd);
     ChiN_ar_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     ChiN_ar_IPs_el.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
+    ChiN_ar_IPs_el=0.0;
     ChiN_ar_IPs_el_n.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
+    ChiN_ar_IPs_el_n=0.0;
 
     GRAD_ChiN_ar.Dimension(n_sd_x_n_sd_x_n_sd);
     GRAD_ChiN_ar_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd_x_n_sd);
     GRAD_ChiN_ar_IPs_el.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd_x_n_sd);
+    GRAD_ChiN_ar_IPs_el=0.0;
     GRAD_ChiN_ar_IPs_el_n.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd_x_n_sd);
-
+    GRAD_ChiN_ar_IPs_el_n=0.0;
     ///////////////////////////////////////////////////////////////////////////
     /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FINISH HERE FOR 3D CASE//////////////
     ///////////////////////////////////////////////////////////////////////////
@@ -6197,8 +6236,7 @@ void FSMicromorphic3DT:: Mapping_double_and_Array(const int &condition)
 
 }
 
-
-void FSMicromorphic3DT::Form_deformation_arrays(const int& condition)
+void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int& condition) //
 {
 	int row,row1;
 	row=0;
