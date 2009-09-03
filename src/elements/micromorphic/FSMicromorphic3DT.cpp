@@ -62,14 +62,22 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
     //-- Elasticity parameters for solid
     cout << "fMaterial_Params[kMu] "  				<< fMaterial_Params[kMu] 	 << endl;
     cout << "fMaterial_Params[kLambda] "  			<< fMaterial_Params[kLambda] << endl;
-/*
     cout << "fMaterial_Params[kNu] "  				<< fMaterial_Params[kNu] 	 << endl;
-    cout << "fMaterial_Params[kSigma] "  			<< fMaterial_Params[kSigma]  << endl;
+    cout << "fMaterial_Params[kSigma_const] "   	<< fMaterial_Params[kSigma_const]  << endl;
     cout << "fMaterial_Params[kTau] "  				<< fMaterial_Params[kTau] 	 << endl;
     cout << "fMaterial_Params[kEta] "  				<< fMaterial_Params[kEta]  	 << endl;
     cout << "fMaterial_Params[kKappa] "  			<< fMaterial_Params[kKappa]  << endl;
-*/
-
+    cout << "fMaterial_Params[kTau1] "  				<< fMaterial_Params[kTau1] 	 << endl;
+    cout << "fMaterial_Params[kTau2] "  				<< fMaterial_Params[kTau2] 	 << endl;
+    cout << "fMaterial_Params[kTau3] "  				<< fMaterial_Params[kTau3] 	 << endl;
+    cout << "fMaterial_Params[kTau4] "  				<< fMaterial_Params[kTau4] 	 << endl;
+    cout << "fMaterial_Params[kTau5] "  				<< fMaterial_Params[kTau5] 	 << endl;
+    cout << "fMaterial_Params[kTau6] "  				<< fMaterial_Params[kTau6] 	 << endl;
+    cout << "fMaterial_Params[kTau7] "  				<< fMaterial_Params[kTau7] 	 << endl;
+    cout << "fMaterial_Params[kTau8] "  				<< fMaterial_Params[kTau8] 	 << endl;
+    cout << "fMaterial_Params[kTau9] "  				<< fMaterial_Params[kTau9] 	 << endl;
+    cout << "fMaterial_Params[kTau10] "  				<< fMaterial_Params[kTau10] 	 << endl;
+    cout << "fMaterial_Params[kTau11] "  				<< fMaterial_Params[kTau11] 	 << endl;
 
 }
 
@@ -89,6 +97,7 @@ void FSMicromorphic3DT::RHSDriver(void)
 		RHSDriver_monolithic();
     else
 		RHSDriver_staggered();
+
 }
 //---------------------------------------------------------------------
 
@@ -164,6 +173,7 @@ void FSMicromorphic3DT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 		fDispl->SetLocalEqnos(faces, eqnos);
     }
     */
+
 }
 
 
@@ -1403,14 +1413,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_2,fIota_temp_matrix);
-				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma]);
+				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
 				fTemp_matrix_nudof_x_nudof *= scale;
 				 //accumulate
 				fG1_5 += fTemp_matrix_nudof_x_nudof;
 
 
 				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_3,fIota_temp_matrix);
-				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma]);
+				scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
 				fTemp_matrix_nudof_x_nudof *= scale;
 				// accumulate
 				fG1_6 += fTemp_matrix_nudof_x_nudof;
@@ -1911,6 +1921,7 @@ void FSMicromorphic3DT::SetGlobalShape(void)
     /* compute shape function derivatives */
     fShapes_displ->SetDerivatives_DN_DDN();
     fShapes_micro->SetDerivatives();
+
 }
 
 
@@ -1939,7 +1950,8 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(iConstitutiveModelType, "constitutive_mod_type");
 
     double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2, gravity_g3;
-    double Kappa, Nu, Sigma, Tau, Eta;
+    double Kappa, Nu, Sigma_const, Tau, Eta;
+    double Tau1,Tau2,Tau3,Tau4,Tau5,Tau6,Tau7,Tau8,Tau9,Tau10,Tau11;
 
     // solid elasticity
     list.AddParameter(shearMu, "mu");
@@ -1947,20 +1959,20 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     //Material Parameter
     list.AddParameter(Kappa, "Kappa");
     list.AddParameter(Nu, "Nu");
-    list.AddParameter(Sigma, "Sigma");
+    list.AddParameter(Sigma_const, "Sigma_const");
     list.AddParameter(Tau, "Tau");
     list.AddParameter(Eta, "Eta");
-    list.AddParameter(Tau, "Tau1");
-    list.AddParameter(Tau, "Tau2");
-    list.AddParameter(Tau, "Tau3");
-    list.AddParameter(Tau, "Tau4");
-    list.AddParameter(Tau, "Tau5");
-    list.AddParameter(Tau, "Tau6");
-    list.AddParameter(Tau, "Tau7");
-    list.AddParameter(Tau, "Tau8");
-    list.AddParameter(Tau, "Tau9");
-    list.AddParameter(Tau, "Tau10");
-    list.AddParameter(Tau, "Tau11");
+    list.AddParameter(Tau1, "Tau1");
+    list.AddParameter(Tau2, "Tau2");
+    list.AddParameter(Tau3, "Tau3");
+    list.AddParameter(Tau4, "Tau4");
+    list.AddParameter(Tau5, "Tau5");
+    list.AddParameter(Tau6, "Tau6");
+    list.AddParameter(Tau7, "Tau7");
+    list.AddParameter(Tau8, "Tau8");
+    list.AddParameter(Tau9, "Tau9");
+    list.AddParameter(Tau10, "Tau10");
+    list.AddParameter(Tau11, "Tau11");
 
 
     // gravity
@@ -2048,7 +2060,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kLambda] = list.GetParameter("lambda");
     fMaterial_Params[kKappa] = list.GetParameter("Kappa");
     fMaterial_Params[kNu] = list.GetParameter("Nu");
-    fMaterial_Params[kSigma] = list.GetParameter("Sigma");
+    fMaterial_Params[kSigma_const] = list.GetParameter("Sigma_const");
     fMaterial_Params[kTau] = list.GetParameter("Tau");
     fMaterial_Params[kEta] = list.GetParameter("Eta");
     fMaterial_Params[kTau1] = list.GetParameter("Tau1");
@@ -2289,12 +2301,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FOR 3D CASE//////////////
     ///////////////////////////////////////////////////////////////////////////
     fIota_w_temp_matrix.Dimension(n_en_displ_x_n_sd,n_sd_x_n_sd);
-    fIota_eta_temp_matrix.Dimension(n_en_micro_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    fIota_eta_temp_matrix.Dimension(n_en_micro*n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
 
     Chi_vec.Dimension(n_sd_x_n_sd);
     GRAD_Chi_vec.Dimension(n_sd_x_n_sd_x_n_sd);
-    NCHI.Dimension(n_sd_x_n_sd,n_en_micro_x_n_sd);
-    NCHI_Tr.Dimension(n_en_micro_x_n_sd,n_sd_x_n_sd);
+    NCHI.Dimension(n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
+    NCHI_Tr.Dimension(n_en_micro_x_n_sd_x_n_sd,n_sd_x_n_sd);
 //    NCHI_eta.Dimension(n_sd_x_n_sd,n_en_micro_x_n_sd);same with the one above no need!
 
     fTemp_matrix_nudof_x_nudof.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
@@ -3199,7 +3211,7 @@ void FSMicromorphic3DT:: Form_G1_matrix()
 			for(int K=0;K<=2;K++)
 			{
 
-				Sigma(l,k)=Sigma(l,k)+(1/2)*((KrDelta[l][k]-Fn[l][K]*Finv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma])
+				Sigma(l,k)=Sigma(l,k)+(1/2)*((KrDelta[l][k]-Fn[l][K]*Finv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])
 							   +      ((KrDelta[l][k]-ChiN[l][K]*ChiInv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*fMaterial_Params[kKappa]
 							   +      ((KrDelta[k][l]-ChiN[k][K]*ChiInv[K][l])+(KrDelta[l][k]-Fn[l][K]*Finv[K][k]))*fMaterial_Params[kNu];
 				for(int i=0;i<=2;i++)

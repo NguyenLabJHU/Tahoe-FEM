@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.38 2009-09-03 17:00:39 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.39 2009-09-03 21:16:38 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -49,7 +49,7 @@ public:
 	    kLambda,
 	    kKappa,
 	    kNu,
-	    kSigma,
+	    kSigma_const,
 	    kTau,
 	    kEta,
 	    kRho_0,
