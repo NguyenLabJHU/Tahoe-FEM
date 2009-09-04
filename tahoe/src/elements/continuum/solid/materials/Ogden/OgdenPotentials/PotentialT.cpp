@@ -1,4 +1,4 @@
-/* $Id: PotentialT.cpp,v 1.1 2007-04-09 23:33:26 tdnguye Exp $ */
+/* $Id: PotentialT.cpp,v 1.2 2009-09-04 20:40:32 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -25,7 +25,11 @@ void PotentialT::SetKappa(double kappa) {fKappa = kappa; }
 
 double PotentialT::MeanEnergy(const double& J) {0.25*fKappa*(J*J-1-2*log(J));}
 
-double PotentialT::MeanStress(const double& J) {return(0.5*fKappa*(J*J-1));}
+double PotentialT::MeanStress(const double& J) 
+{
+//	cout << "\n p: "<<0.5*fKappa*(J*J-1);
+	return(0.5*fKappa*(J*J-1));
+}
 
 double PotentialT::MeanMod(const double& J) {return(fKappa*J*J);}
 
