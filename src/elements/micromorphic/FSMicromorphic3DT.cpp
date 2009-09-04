@@ -346,7 +346,7 @@ void FSMicromorphic3DT::CloseStep(void)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////this part keeps  the parameters from the previous iteration "n" to be used in "n+1"/////////////////////////
 
-    SigN_IPs_el_n      = SigN_IPs_el;
+/*    SigN_IPs_el_n      = SigN_IPs_el;
     GammaN_IPs_el_n    = GammaN_IPs_el;
     mn_IPs_el_n        = mn_IPs_el;
     sn_sigman_IPs_el_n = sn_sigman_IPs_el;
@@ -354,7 +354,7 @@ void FSMicromorphic3DT::CloseStep(void)
     Fn_ar_IPs_el_n=Fn_ar_IPs_el;
     FnInv_ar_IPs_el_n=FnInv_ar_IPs_el;
     ChiN_ar_IPs_el_n=ChiN_ar_IPs_el;
-    GRAD_ChiN_ar_IPs_el_n=GRAD_ChiN_ar_IPs_el;
+    GRAD_ChiN_ar_IPs_el_n=GRAD_ChiN_ar_IPs_el;*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -881,6 +881,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	fFd_int_smallstrain_vector = 0.0;
 	fFd_int_G4_vector = 0.0;
 	fK_dd_G4_matrix = 0.0;
+/*
 	fG1_1=0.0;
 	fG1_2=0.0;
 	fG1_3=0.0;
@@ -926,6 +927,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	fTemp_matrix_nudof_x_nchidof=0.0;
 	fTemp_matrix_nchidof_x_nchidof=0.0;
 	fTemp_matrix_nchidof_x_nudof=0.0;
+*/
 
 	e = CurrElementNumber();
 	const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
@@ -1068,6 +1070,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    fShapes_displ->TopIP();
 		    fShapes_micro->TopIP();
 
+/*
 		    SigN_IPs_el_n.RowCopy(e,SigN_IPs);
 		    mn_IPs_el_n.RowCopy(e,mn_IPs);
 		    GammaN_IPs_el_n.RowCopy(e,GammaN_IPs);
@@ -1077,6 +1080,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    FnInv_ar_IPs_el_n.RowCopy(e,FnInv_ar_IPs);
 		    ChiN_ar_IPs_el_n.RowCopy(e,ChiN_ar_IPs);
 		    GRAD_ChiN_ar_IPs_el_n.RowCopy(e,GRAD_ChiN_ar_IPs);
+*/
 
 		    while (fShapes_displ->NextIP() && fShapes_micro->NextIP())
 		    {
@@ -1091,7 +1095,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* [fShapeDispl] will be formed */
 				Form_solid_shape_functions(shapes_displ_X);
 
-				fShapeDispl_Tr.Transpose(fShapeDispl);
+//				fShapeDispl_Tr.Transpose(fShapeDispl);
 
 				fShapes_displ->GradNa(fShapeDisplGrad_temp);
 				/* [fShapeDisplGrad] will be formed */
@@ -1116,7 +1120,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////assigning the parameters from previous step starts here///////
-
+/*
 
 				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad);//This GRADIENT shape function matrix is for eta
 				Form_NCHI_matrix(fShapeMicro_row_matrix); //shape function matrix
@@ -1131,19 +1135,23 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			    FnInv_ar_IPs.RowCopy(IP,FnInv_ar);
 			    ChiN_ar_IPs.RowCopy(IP,ChiN_ar);
 			    GRAD_ChiN_ar_IPs.RowCopy(IP,GRAD_ChiN_ar);
-			    Form_deformation_tensors_arrays(-1);
+			    Form_deformation_tensors_arrays(-1);*/
 /////////////////////////finishes here/////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 				/* KroneckerDelta matrix is formed*/
+/*
 				Form_KroneckerDelta_matrix();
 				Form_CCof_tensor();
+*/
 
 				/* [fDeformation_Gradient] will be formed */
 				Form_deformation_gradient_tensor();
 
 
+/*
 				Form_micro_deformation_tensor_Chi();
 				Form_GRAD_Chi_matrix();
+*/
 
 
 				/* [fDefGradT_9x9_matrix] will be formed */
@@ -1163,10 +1171,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////start//////////////////////////////////////////////
+/*
 				Form_double_Finv_from_Deformation_tensor_inverse();// I ADDED!!!
 				Form_Finv_w_matrix();// I ADDED!!!
 				Form_Finv_eta_matrix();
 
+*/
 
 
 ////////////////////////////finish/////////////////////////////////////////////
@@ -1291,6 +1301,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fFd_int_N1_vector += fTemp_vector_ndof_se;
 ////////////////////////////////////////////////////////////////////////////////////////
 /////////////////MicroMorphic Internal force vectors////////////////////////////////////
+/*
 				Form_G1_matrix();
 				fIota_w_temp_matrix.MultTx(G1,Uint_1);
 				Uint_1*=-1*J;
@@ -1306,12 +1317,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_H3_matrix();
 				NCHI_Tr.MultTx(H3,Pint_3);
 				Pint_3*=fMaterial_Params[kRho_0];
+*/
+/*
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////MicroMorphic Internal force vectors finish here////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 
-				/* [fIm_temp_matrix] will be formed */
+				 [fIm_temp_matrix] will be formed
 				Form_Im_temp_matrix();
 
 
@@ -1331,7 +1344,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_TChi_1_matrix();
 				Form_TChi_2_matrix();
 				Form_TChi_3_matrix();
-				Form_SigCurr_vector_Cauchy_Stss_matrix();/*Forms a vector ( actually 9x1 matrix) consisting of unsymmetric components of Cauchy stress tensors*/
+				Form_SigCurr_vector_Cauchy_Stss_matrix();Forms a vector ( actually 9x1 matrix) consisting of unsymmetric components of Cauchy stress tensors
 //////////////////////////////////////////////////////////
 			    Form_Mm_1_matrix();// needs to be multiplied by "-" and J
 			    Form_Mm_2_matrix();// needs to be multiplied by J
@@ -1356,6 +1369,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			    Form_Ru_5_matrix();// needs to be multiplied by Nu and J
 			    Form_Rs_sigma_matrix();
 			    Form_R_Capital_Lambda_Chi_matrix();// DO NOT multiply with J !!!
+*/
 
 
 ////////////////////////Finished here///////////////////////////////////////////
@@ -1388,6 +1402,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////fG1_ matrices are constructed////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+/*
 
 				fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_1,fIota_temp_matrix);
 				scale = -1*scale_const*J;
@@ -1473,6 +1488,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fTemp_matrix_nudof_x_nudof *= scale;
 				// accumulate
 				fG1_13 += fTemp_matrix_nudof_x_nudof;
+*/
 
 
 
@@ -1483,6 +1499,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////fH_ matrices are constructed////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+/*
 
 				fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_1,fIota_temp_matrix);
 				scale = -1*-1*scale_const*J;
@@ -1632,6 +1649,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH3_1 += fTemp_matrix_nchidof_x_nchidof;
+*/
 
 
 /////////////////fH_ matrices finish here////////////////////////////////////////
@@ -1747,6 +1765,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				*/
 
 				/////////////////////saving matrices at Gauss Points////////////
+/*
 
 			    Mapping_double_and_Array(1);
 			   	GammaN_IPs.SetRow(IP,GammaN_ar);
@@ -1759,6 +1778,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			    FnInv_ar_IPs.SetRow(IP,FnInv_ar);
 			    ChiN_ar_IPs.SetRow(IP,ChiN_ar);
 			    GRAD_ChiN_ar_IPs.SetRow(IP,GRAD_ChiN_ar);
+*/
 
 
 
@@ -1774,6 +1794,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 		    /* saving state variables for each IPs of the current element */
 		    fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
+/*
 
 		    GammaN_IPs_el.SetRow(e,GammaN_IPs);
 		    SigN_IPs_el.SetRow(e,SigN_IPs);
@@ -1785,6 +1806,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    ChiN_ar_IPs_el.SetRow(e,ChiN_ar_IPs);
 		    GRAD_ChiN_ar_IPs_el.SetRow(e,GRAD_ChiN_ar_IPs);
 
+*/
 
 
 			/* {fFd_int} will be formed */
@@ -2207,6 +2229,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Phi_n.Dimension (n_en_micro, ndof_per_nd_micro);
     del_Phi.Dimension (n_en_micro, ndof_per_nd_micro);
     n_en_micro_x_ndof_per_nd_micro = n_en_micro*ndof_per_nd_micro;
+    ndof_per_nd_micro_x_n_sd=ndof_per_nd_micro*n_sd;
     del_Phi_vec.Dimension (n_en_micro_x_ndof_per_nd_micro);
     Phi_vec.Dimension (n_en_micro_x_ndof_per_nd_micro);
     Phi_dot_vec.Dimension (n_en_micro_x_ndof_per_nd_micro);
