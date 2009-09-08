@@ -1112,8 +1112,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				for (int i=0; i<n_en_micro ; i++)
 				    fShapeMicro_row_matrix(0,i) = fShapeMicro[i];
 
+				
+				fShapes_micro->GradNa(fShapeMicroGrad_temp);
 				/* [fShapeMicroGrad] will be formed */
-				fShapes_micro->GradNa(fShapeMicroGrad);
+				//Form_Gradient_of_micro_shape_functions(fShapeMicroGrad_temp);//this is for GRADIENT(dchi)
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2280,6 +2282,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fShapeDisplGrad_t.Dimension (n_sd_x_n_sd, n_en_displ_x_n_sd);
     fShapeDisplGradGrad.Dimension (n_sd*2 , n_en_displ);
    // ndof_per_nd_micro_x_n_sd_x_n_sd = ndof_per_nd_micro*n_sd*n_sd;
+    fShapeMicroGrad_temp.Dimension (n_sd, n_en_micro);
     fShapeMicroGrad.Dimension (ndof_per_nd_micro*n_sd, n_en_micro*ndof_per_nd_micro);
     fDeformation_Gradient.Dimension (n_sd,n_sd);
     fGrad_disp_vector.Dimension (n_sd_x_n_sd);

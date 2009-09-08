@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.39 2009-09-03 21:16:38 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.40 2009-09-08 21:13:52 regueiro Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -226,7 +226,7 @@ private:
 
 	dMatrixT fShapeDispl, fShapeDisplGrad, fShapeDisplGrad_t;
 	dMatrixT fShapeDisplGrad_t_Transpose, fShapeDisplGradGrad, fShapeDisplGrad_temp;
-	dMatrixT fShapeMicro,fShapeMicroGrad;
+	dMatrixT fShapeMicro,fShapeMicroGrad,fShapeMicroGrad_temp;
 
 	dMatrixT fDefGrad, fDefGradInv, fDefGradInvMatrix;
 
