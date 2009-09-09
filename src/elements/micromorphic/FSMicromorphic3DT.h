@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.40 2009-09-08 21:13:52 regueiro Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.41 2009-09-09 23:37:15 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -233,9 +233,9 @@ private:
 	/** \name  values read from input in the constructor */
 	/*@{*/
 	/** element geometry */
-	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ,
-	    fGeometryCode_micro, fGeometryCodeSurf_micro;
-	int fGeometryCode_displ_int, fGeometryCodeSurf_displ_int;
+	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ;
+	GeometryT::CodeT fGeometryCode_micro, fGeometryCodeSurf_micro;
+	int fGeometryCode_displ_int,fGeometryCode_micro_int, fGeometryCodeSurf_displ_int;
 
 	/** number of integration points */
 	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_micro, fNumIPSurf_micro;
