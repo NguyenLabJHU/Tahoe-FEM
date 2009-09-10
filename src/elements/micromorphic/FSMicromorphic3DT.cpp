@@ -1231,19 +1231,20 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				if (fRight_Cauchy_Green_tensor.Det()==0)
 				    fRight_Cauchy_Green_tensor = fIdentity_matrix;
 				double TempJ_Prim=fRight_Cauchy_Green_tensor.Det();
-				double J_Prim=sqrt(fabs(TempJ_Prim));
+//				double J_Prim=sqrt(fabs(TempJ_Prim));
 
-				/* [fSecond_Piola_tensor] will be formed */
+/*				 [fSecond_Piola_tensor] will be formed
 				fSecond_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse);
 				fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
 				fSecond_Piola_tensor += fTemp_matrix_nsd_x_nsd;
 
-				/* [fKirchhoff_tensor] will be formed */
+				 [fKirchhoff_tensor] will be formed
 				fKirchhoff_tensor.MultABCT(fDeformation_Gradient,fSecond_Piola_tensor,fDeformation_Gradient);
 
-				/* [fCauchy_effective_stress_tensor_current_IP] will be formed */
+				 [fCauchy_effective_stress_tensor_current_IP] will be formed
 				fCauchy_stress_tensor_current_IP = fKirchhoff_tensor;
-				fCauchy_stress_tensor_current_IP *= 1/J;
+				fCauchy_stress_tensor_current_IP *= 1/J;*/
+				fCauchy_stress_tensor_current_IP=Sigma;
 
 				/* extract six values of stress from symmetric cauchy stress tensor */
 				Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
@@ -1309,9 +1310,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////MicroMorphic Internal force vectors finish here////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
+/*
 
-			/*	 [fIm_temp_matrix] will be formed*/
+				 [fIm_temp_matrix] will be formed
 				Form_Im_temp_matrix();
+*/
 
 
 
@@ -1359,30 +1362,31 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 ////////////////////////Finished here///////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+/*
 
 
 
-
-				/* [fHbar_temp_matrix] will be formed */
+				// [fHbar_temp_matrix] will be formed
 				Form_Hbar_temp_matrix();
 
-				/* [fEll_temp_matrix] will be formed */
+				// [fEll_temp_matrix] will be formed
 				Form_Ell_temp_matrix();
 
-				/* {fPi_temp_transpose_vector} will be formed */
+				// {fPi_temp_transpose_vector} will be formed
 				fShapeDisplGrad.MultTx(fDefGradInv_vector,fPi_temp_transpose_vector);
 
-				/* [fPi_temp_row_matrix] will be formed */
+				// [fPi_temp_row_matrix] will be formed
 				for (int i=0; i<n_en_displ_x_n_sd; i++)
 				    fPi_temp_row_matrix(0,i) = fPi_temp_transpose_vector[i];
 
-				/* [fK_dd_G3_1_matrix] will be formed */
+				// [fK_dd_G3_1_matrix] will be formed
 				//pg57 of Davoud's thesis
 				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fIm_temp_matrix,fIota_temp_matrix);
 				scale = -1*scale_const;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
-				/* accumulate */
+				 accumulate
 				fK_dd_G3_1_matrix += fTemp_matrix_ndof_se_x_ndof_se;
+*/
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////fG1_ matrices are constructed////////////////////////////////////
@@ -1635,99 +1639,109 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 /////////////////fH_ matrices finish here////////////////////////////////////////
 				/* [fI_ij_column_matrix] will be formed */
-				fI_ij_column_matrix = 0.0;
+/*				fI_ij_column_matrix = 0.0;
 				fI_ij_column_matrix(0,0) = 1.0;
 				fI_ij_column_matrix(4,0) = 1.0;
-				fI_ij_column_matrix(8,0) = 1.0;
+				fI_ij_column_matrix(8,0) = 1.0;*/
 
 				/* [fK_dd_G3_2_matrix] will be formed */
+/*
 				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fHbar_temp_matrix,fIota_temp_matrix);
 				scale = fMaterial_Params[kMu] * scale_const;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
-				/* accumulate */
+				 accumulate
 				fK_dd_G3_2_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-				/* [fK_dd_G3_3_matrix] will be formed */
+				 [fK_dd_G3_3_matrix] will be formed
 				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fEll_temp_matrix,fIota_temp_matrix);
 				scale = fMaterial_Params[kMu] * scale_const;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
-				/* accumulate */
+				 accumulate
 				fK_dd_G3_3_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-				/* [fK_dd_G3_4_matrix] will be formed */
+				 [fK_dd_G3_4_matrix] will be formed
 				fTemp_matrix_ndof_se_x_ndof_se.MultABC(fIota_temp_matrix,fI_ij_column_matrix,fPi_temp_row_matrix);
 				scale = fMaterial_Params[kLambda] * scale_const;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
-				/* accumulate */
+				 accumulate
 				fK_dd_G3_4_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 
+*/
 
 				//need?
-				/* {fGrad_1_J_vector} will be filled */
+/*				 {fGrad_1_J_vector} will be filled
 				fVarpi_temp_matrix.Multx(u_vec,fGrad_1_J_vector, -1.0/J);
 
 
-				/* Creating Second tangential elasticity tensor in the Ref. coordinate [fC_matrix] */
+				 Creating Second tangential elasticity tensor in the Ref. coordinate [fC_matrix]
 				Form_C_matrix(J_Prim);
 
 
 
-				/* Creating Second tangential elasticity tensor in the Current coordinate [fc_matrix]*/
+				 Creating Second tangential elasticity tensor in the Current coordinate [fc_matrix]
 				Form_c_matrix();
 
-				/* [fIm_Prim_temp_matrix] will be formed */
-				Form_Im_Prim_temp_matrix();
+				 [fIm_Prim_temp_matrix] will be formed
+				Form_Im_Prim_temp_matrix();*/
 
 				/* {fFd_int_G4_vector} will be formed */
+/*
 				fShapeDispl.MultTx(fGravity_vector,fTemp_vector_ndof_se);
 				scale = -1*fRho_0*scale_const;
 				fTemp_vector_ndof_se *= scale;
-				/* accumulate */
+				 accumulate
 				fFd_int_G4_vector += fTemp_vector_ndof_se;
+*/
 
 
 				//need??
 				/* {fgradv_vector} will be formed */
+/*
 				Form_gradv_vector();
 
-				/* [fXi_temp_matrix] will be formed */
+				 [fXi_temp_matrix] will be formed
 				Form_Xi_temp_matrix();
 
-				/* [fVarsigma_temp_matrix] will be formed */
+				 [fVarsigma_temp_matrix] will be formed
 				Form_Varsigma_temp_matrix();
 
 
-				/* [fI_ijkl_matrix] will be formed */
+				 [fI_ijkl_matrix] will be formed
 				Form_I_ijkl_matrix();
+*/
 
 
 				/* [fK_dd_G4_matrix] will be formed */
 				//pg57 Davoud's thesis
+/*
 				fTemp_matrix_ndof_se_x_ndof_se.MultATBC(fShapeDispl,fGravity_column_matrix,fPi_temp_row_matrix);
 				scale = -1*J*(fRho)*scale_const;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
-				/* accumulate */
+				 accumulate
 				fK_dd_G4_matrix += fTemp_matrix_ndof_se_x_ndof_se;
+*/
 
 
 
 				/*************************************************/
 				/* implementing small strain deformation of an isotropic linear elastic media for debugging */
 
-				/* [fD_matrix] will be formed */
+/*
+				 [fD_matrix] will be formed
 				Form_D_matrix();
 
-				/* [fB_matrix] will be formed */
+				 [fB_matrix] will be formed
 				Form_B_matrix();
+*/
 
 				/* [fK_dd_BTDB_matrix] will be formed */
-				fTemp_matrix_ndof_se_x_ndof_se.MultATBC(fB_matrix,fD_matrix,fB_matrix);
+/*				fTemp_matrix_ndof_se_x_ndof_se.MultATBC(fB_matrix,fD_matrix,fB_matrix);
 				scale = scale_const;
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
-				/* accumulate */
-				fK_dd_BTDB_matrix += fTemp_matrix_ndof_se_x_ndof_se;
+				 accumulate
+				fK_dd_BTDB_matrix += fTemp_matrix_ndof_se_x_ndof_se;*/
 
 				/* end of small strain  */
 				/*************************************************/
