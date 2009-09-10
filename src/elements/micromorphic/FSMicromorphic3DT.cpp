@@ -1118,7 +1118,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////assigning the parameters from previous step starts here///////
-				  //Form_Gradient_of_micro_shape_functions(fShapeMicroGrad_temp);//this is for GRADIENT(dchi)....eta for our case
+			   //Form_Gradient_of_micro_shape_functions(fShapeMicroGrad_temp);//this is for GRADIENT(dchi)....eta for our case
 				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad_temp);//This GRADIENT shape function matrix is for eta
 				Form_NCHI_matrix(fShapeMicro_row_matrix); //shape function matrix
 
@@ -1786,24 +1786,26 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 
-			/* {fFd_int} will be formed */
+/*			 {fFd_int} will be formed
 		    fFd_int = fFd_int_N1_vector;
 		    fFd_int += fFd_int_G4_vector;
-		    fFd_int *= -1;
-/*
+		    fFd_int *= -1;*/
+
+         //   {fFd_int} will be formed
 		    fFd_int=Uint_1;
 		    fFd_int+=Uint_2; //no external traction is assumed
 		    fFd_int *= -1;
-		*/
+
 
 		    /* [fKdd] will be formed */
+/*
 		    fKdd = fK_dd_G3_1_matrix;
 		    fKdd += fK_dd_G3_2_matrix;
 		    fKdd += fK_dd_G3_3_matrix;
 		    fKdd += fK_dd_G3_4_matrix;
 		    fKdd += fK_dd_G4_matrix;
+*/
 
-/*
   //Micromorphic case fKdd coming from bal. of linear momentum
 
 		    fKdd  =  fG1_1;
@@ -1815,7 +1817,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    fKdd +=  fG1_8;
 		    fKdd +=  fG1_10;
 		    fKdd +=  fG1_12;
-*/
 
 
 
@@ -1832,19 +1833,17 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    /* [fKdphi] will be formed */
 		    //need to code
 		    fKdphi = 0.0;
-/*// Micromorphic case fKdPhi  from coming from bal. of linear momentum
+// Micromorphic case fKdPhi  from coming from bal. of linear momentum
 
-		    fKdPhi  = fG1_7 ;
-		    fKdPhi += fG1_9 ;
-		    fKdPhi += fG1_11;
-*/
+		    fKdphi  = fG1_7 ;
+		    fKdphi += fG1_9 ;
+		    fKdphi += fG1_11;
 
 
 
 		    /* [fKphid] will be formed */
 		    //need to code
 		    fKphid = 0.0;
-/*
 
 		    fKphid  = fH1_1;
 		    fKphid += fH1_2;
@@ -1862,13 +1861,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 
-*/
 
 		    /* [fKphiphi] will be formed */
 		    //need to code
 		    fKphiphi = 0.0;
 
-/*
 		    fKphiphi = fH1_4;
 		    fKphiphi = fH1_5;
 		    fKphiphi = fH1_6;
@@ -1883,16 +1880,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 		    fKphiphi = fH3_1;
 
-*/
 
 
 		    /* {fFphi_int} will be formed */
 		    //need to code
-		    fFphi_int = 0.0;
-/*		    fFphi_int=Pint_1;
+//		    fFphi_int = 0.0;
+		    fFphi_int=Pint_1;
 		    fFphi_int+=Pint_2;
 		    fFphi_int+=Pint_3;//no external traction is assumed Pext=0
-		    fFphi_int *= -1;*/
+		    fFphi_int *= -1;
 
 		    /* equations numbers */
 		    const iArrayT& displ_eq = fElementCards_displ[e].Equations();
