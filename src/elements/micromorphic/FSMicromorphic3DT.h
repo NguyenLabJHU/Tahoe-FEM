@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.42 2009-09-14 05:21:30 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.43 2009-09-14 21:00:16 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -396,7 +396,7 @@ private:
 	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	double KrDelta[3][3];
-	double amatrix[9][81];
+	double amatrix[27][27];
 	double avector[81];
 	double atensor[3][3][3];
 	int sayac;

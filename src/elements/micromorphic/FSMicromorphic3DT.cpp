@@ -1089,21 +1089,22 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				const double* shapes_displ_X = fShapes_displ->IPShapeX();
 				/* [fShapeDispl] will be formed */
-				Form_solid_shape_functions(shapes_displ_X);
+				Form_solid_shape_functions(shapes_displ_X);//output:fShapeDispl
 
 				fShapeDispl_Tr.Transpose(fShapeDispl);
 
 				fShapes_displ->GradNa(fShapeDisplGrad_temp);
 				/* [fShapeDisplGrad] will be formed */
-				Form_Gradient_of_solid_shape_functions(fShapeDisplGrad_temp);//this is for GRADIENT(du)
-				Form_GRAD_Nuw_matrix(fShapeDisplGrad_temp) ;
+				Form_Gradient_of_solid_shape_functions(fShapeDisplGrad_temp);//output:fShapeDisplGrad
+				Form_GRAD_Nuw_matrix(fShapeDisplGrad_temp) ;//output:GRAD_Nuw
+
 				/* [fShapeDisplGrad_t] and [fShapeDisplGrad_t_Transpose] will be formed */
 /*				Form_Gradient_t_of_solid_shape_functions(fShapeDisplGrad_temp);
 				fShapeDisplGrad_t_Transpose.Transpose(fShapeDisplGrad_t);*/
 
 				const double* shapes_micro_X = fShapes_micro->IPShapeX();
 				/* {fShapeMicro} will be formed */
-				Form_micro_shape_functions(shapes_micro_X);
+				Form_micro_shape_functions(shapes_micro_X);//output:fShapeMicro
 
 				/* [fShapeMicro_row_matrix] will be formed */
 				//need?
@@ -1116,9 +1117,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////assigning the parameters from previous step starts here///////
-			   //Form_Gradient_of_micro_shape_functions(fShapeMicroGrad_temp);//this is for GRADIENT(dchi)....eta for our case
-				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad_temp);//This GRADIENT shape function matrix is for eta
-				Form_NCHI_matrix(fShapeMicro_row_matrix); //shape function matrix
+				//real name should be NPHI, NCHI is not a proper name!
+				Form_NCHI_matrix(fShapeMicro_row_matrix); //output: NCHI matrix
+				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad_temp);//output: GRAD_NCHI
+
+
 
 				SigN_IPs.RowCopy(IP,SigN_ar);
 				sn_sigman_IPs.RowCopy(IP,sn_sigman);
@@ -1162,11 +1165,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////start//////////////////////////////////////////////
-				Form_double_Finv_from_Deformation_tensor_inverse();// I ADDED!!!
-				Form_Finv_w_matrix();// I ADDED!!!
-				Form_Finv_eta_matrix();
+				Form_double_Finv_from_Deformation_tensor_inverse();// output: Finv
+				Form_Finv_w_matrix();//output: Finv_w
+				Form_Finv_eta_matrix();//Finv_eta
 
-
+				for(int i=0;i<27;i++)
+			    {for(int j=0;j<27;j++)
+			    {amatrix[i][j]=Finv_eta(i,j);}}
 
 ////////////////////////////finish/////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1245,7 +1250,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		//		fCauchy_stress_tensor_current_IP=Sigma;
 
 				/* extract six values of stress from symmetric cauchy stress tensor */
-				Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
+			//	Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
 				/* Save Cauchy effective stress tensor of the current IP */
 		//		fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
 
@@ -1261,9 +1266,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 
 				fIota_w_temp_matrix.MultATBT(GRAD_Nuw,Finv_w);
-			    for(int i=0;i<9;i++)
-			    {for(int j=0;j<81;j++)
-			    {amatrix[i][j]=GRAD_Nuw(i,j);}}
 
 				fIota_eta_temp_matrix.MultATBT(GRAD_NCHI,Finv_eta);
                 //fShapeDisplGrad--> [GRAD(Ns,e)] so it in reference configuration
@@ -3300,7 +3302,7 @@ void FSMicromorphic3DT:: Form_Finv_w_matrix()//checked correct
 
 
 
-void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &shapes_micro_X)
+void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix)
 {
 	int row;
 	int col;
@@ -3313,11 +3315,12 @@ void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &shapes_micro_X)
 		col=j;
 		for(int i=0;i<8;i++)
 		{
-			NCHI(row,col)=shapes_micro_X[i];
+			NCHI(row,col)=fShapeMicro_row_matrix(0,i);
 			col=col+9;
 		}
 		row++;
 	}
+
 
 }
 
@@ -4654,11 +4657,13 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
 
 	int row=0;
 	int col=0;
+	int i=0;
 	GRAD_NCHI=0.0;
-	for(int i=0;i<=8;i++)
+
+	while(i<=8)
 	{
 		col=i;
-		for(int  j=0 ; j<=7; j++)
+		for(int  j=0 ; j<8; j++)
 		{
 			GRAD_NCHI(row,col)  =fShapeMicroGrad_temp(0,j);
 			GRAD_NCHI(row+1,col)=fShapeMicroGrad_temp(1,j);
@@ -4666,7 +4671,7 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
 			col=col+9;
 		}
 		row=row+3;
-
+		i++;
 	}
 
 
