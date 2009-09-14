@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.41 2009-09-09 23:37:15 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.42 2009-09-14 05:21:30 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -396,6 +396,11 @@ private:
 	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	double KrDelta[3][3];
+	double amatrix[9][81];
+	double avector[81];
+	double atensor[3][3][3];
+	int sayac;
+	int sayac1;
 
 
 	//Varitional Matrices coming from the Balance of linear Momentum
@@ -717,7 +722,7 @@ private:
 
 	void Mapping_double_and_Array(const int& condition);//
 //	void Mapping_double_and_Array(double& dmat, dArrayT& fArrayT,const int& dim,const int& condition);
-	void Form_deformation_tensors_arrays(const int& condition);//
+	void Form_deformation_tensors_arrays(const int condition);//
 
 	void Form_KroneckerDelta_matrix(void);
 	void Form_Tsigma_1_matrix(void);
