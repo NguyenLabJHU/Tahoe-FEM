@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.43 2009-09-14 21:00:16 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.44 2009-09-14 23:30:05 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -396,7 +396,7 @@ private:
 	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	double KrDelta[3][3];
-	double amatrix[27][27];
+	double amatrix[27][72];
 	double avector[81];
 	double atensor[3][3][3];
 	int sayac;
@@ -428,7 +428,9 @@ private:
 	double Finv[3][3];
 
 	double Chi[3][3];
+	dMatrixT Chi_m;
 	double ChiInv[3][3];
+	dMatrixT ChiInv_m;
 	double ChiN[3][3];
 	dArrayT ChiN_ar;
 	dArray2DT ChiN_ar_IPs;
@@ -715,6 +717,7 @@ private:
 	//Forming the Matrices coming from the Balance of Linear Momentum
 	void Form_Gamma_tensor(void);
 	void Form_micro_deformation_tensor_Chi(void);
+	void Form_Chi_inv_matrix(void);
 	void Form_GRAD_Chi_matrix(void);
 	void Form_double_Finv_from_Deformation_tensor_inverse(void);
 	void Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp);
