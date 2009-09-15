@@ -346,7 +346,7 @@ void FSMicromorphic3DT::CloseStep(void)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////this part keeps  the parameters from the previous iteration "n" to be used in "n+1"/////////////////////////
 
-/*    SigN_IPs_el_n      = SigN_IPs_el;
+    SigN_IPs_el_n      = SigN_IPs_el;
     GammaN_IPs_el_n    = GammaN_IPs_el;
     mn_IPs_el_n        = mn_IPs_el;
     sn_sigman_IPs_el_n = sn_sigman_IPs_el;
@@ -354,7 +354,7 @@ void FSMicromorphic3DT::CloseStep(void)
     Fn_ar_IPs_el_n=Fn_ar_IPs_el;
     FnInv_ar_IPs_el_n=FnInv_ar_IPs_el;
     ChiN_ar_IPs_el_n=ChiN_ar_IPs_el;
-    GRAD_ChiN_ar_IPs_el_n=GRAD_ChiN_ar_IPs_el;*/
+    GRAD_ChiN_ar_IPs_el_n=GRAD_ChiN_ar_IPs_el;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1128,6 +1128,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			    GRAD_ChiN_ar_IPs.RowCopy(IP,GRAD_ChiN_ar);
 			    Form_deformation_tensors_arrays(-1);
 
+
 				/* KroneckerDelta matrix is formed*/
 				Form_KroneckerDelta_matrix();//output: KrDelta
 				Form_CCof_tensor();//output: Ccoeff tensor
@@ -1267,7 +1268,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 ////////////////Micromorphic 3-D Matrices are being formed coming from linearization process//////////////////////////
-			    Form_CapitalLambda_matrix();
+			    Form_CapitalLambda_matrix();//output:CapitalLambda
 
 				Form_Tsigma_1_matrix();
 				Form_Tsigma_2_matrix();
@@ -1304,8 +1305,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			    Form_Ru_4_matrix();// needs to be multiplied by Kappa and J
 			    Form_RChi_2_matrix();//needs to be multiplied by Nu and J
 			    Form_Ru_5_matrix();// needs to be multiplied by Nu and J
-			    Form_Rs_sigma_matrix();
-			    Form_R_Capital_Lambda_Chi_matrix();// DO NOT multiply with J !!!
+			    Form_Rs_sigma_matrix();//output:Rs_sigma
+			    Form_R_Capital_Lambda_Chi_matrix();//output:R_Capital_Gamma_Chi
 
 
 ////////////////////////Finished here///////////////////////////////////////////
@@ -2196,7 +2197,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     SigN_IPs_el.Dimension(n_el,n_sd_x_n_sd*fNumIP_displ);
     SigN_IPs_el_n.Dimension(n_el,n_sd_x_n_sd*fNumIP_displ);
     SigN_IPs_el=0.0;
-    SigN_IPs_el_n=0.0;
+        SigN_IPs_el_n=0.0;
 
     Finv_w.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Tsigma_1.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
@@ -2317,7 +2318,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Hext.Dimension(n_en_micro*n_sd_x_n_sd);
 
     Lambda.Dimension(n_sd,n_sd);//small lambda
+    Lambda=0.00001;
     Omega.Dimension(n_sd,n_sd);//small omega
+    Omega=0.0;
 
     Fn_ar.Dimension(n_sd_x_n_sd);
     Fn_ar_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
@@ -3428,97 +3431,6 @@ void FSMicromorphic3DT::Form_Tsigma_3_matrix()
 				Tsigma_3(l,k)=Finv[0][k]*Fn[i][0]*SigN[j][ll]+ Finv[1][k]*Fn[i][1]*SigN[j][ll]+Finv[2][k]*Fn[i][2]*SigN[j][ll];
 			}
 
-/*
-	Tsigma_3(0,0)=(Finv[0][0]*Fn[0][0]*SigN[0][0] + Finv[1][0]*Fn[0][1]*SigN[0][0] + Finv[2][0]*Fn[0][2]*SigN[0][0]);
-	Tsigma_3(1,0)=(Finv[0][0]*Fn[0][0]*SigN[1][0] + Finv[1][0]*Fn[0][1]*SigN[1][0] + Finv[2][0]*Fn[0][2]*SigN[1][0]);
-	Tsigma_3(2,0)=(Finv[0][0]*Fn[0][0]*SigN[2][0] + Finv[1][0]*Fn[0][1]*SigN[2][0] + Finv[2][0]*Fn[0][2]*SigN[2][0]);
-	Tsigma_3(3,0)=(Finv[0][0]*Fn[1][0]*SigN[0][0] + Finv[1][0]*Fn[1][1]*SigN[0][0] + Finv[2][0]*Fn[1][2]*SigN[0][0]);
-	Tsigma_3(4,0)=(Finv[0][0]*Fn[1][0]*SigN[1][0] + Finv[1][0]*Fn[1][1]*SigN[1][0] + Finv[2][0]*Fn[1][2]*SigN[1][0]);
-	Tsigma_3(5,0)=(Finv[0][0]*Fn[1][0]*SigN[2][0] + Finv[1][0]*Fn[1][1]*SigN[2][0] + Finv[2][0]*Fn[1][2]*SigN[2][0]);
-	Tsigma_3(6,0)=(Finv[0][0]*Fn[2][0]*SigN[0][0] + Finv[1][0]*Fn[2][1]*SigN[0][0] + Finv[2][0]*Fn[2][2]*SigN[0][0]);
-	Tsigma_3(7,0)=(Finv[0][0]*Fn[2][0]*SigN[1][0] + Finv[1][0]*Fn[2][1]*SigN[1][0] + Finv[2][0]*Fn[2][2]*SigN[1][0]);
-	Tsigma_3(8,0)=(Finv[0][0]*Fn[2][0]*SigN[2][0] + Finv[1][0]*Fn[2][1]*SigN[2][0] + Finv[2][0]*Fn[2][2]*SigN[2][0]);
-
-	Tsigma_3(0,1)=(Finv[0][1]*Fn[0][0]*SigN[0][0] + Finv[1][1]*Fn[0][1]*SigN[0][0] + Finv[2][1]*Fn[0][2]*SigN[0][0]);
-	Tsigma_3(1,1)=(Finv[0][1]*Fn[0][0]*SigN[1][0] + Finv[1][1]*Fn[0][1]*SigN[1][0] + Finv[2][1]*Fn[0][2]*SigN[1][0]);
-	Tsigma_3(2,1)=(Finv[0][1]*Fn[0][0]*SigN[2][0] + Finv[1][1]*Fn[0][1]*SigN[2][0] + Finv[2][1]*Fn[0][2]*SigN[2][0]);
-	Tsigma_3(3,1)=(Finv[0][1]*Fn[1][0]*SigN[0][0] + Finv[1][1]*Fn[1][1]*SigN[0][0] + Finv[2][1]*Fn[1][2]*SigN[0][0]);
-	Tsigma_3(4,1)=(Finv[0][1]*Fn[1][0]*SigN[1][0] + Finv[1][1]*Fn[1][1]*SigN[1][0] + Finv[2][1]*Fn[1][2]*SigN[1][0]);
-	Tsigma_3(5,1)=(Finv[0][1]*Fn[1][0]*SigN[2][0] + Finv[1][1]*Fn[1][1]*SigN[2][0] + Finv[2][1]*Fn[1][2]*SigN[2][0]);
-	Tsigma_3(6,1)=(Finv[0][1]*Fn[2][0]*SigN[0][0] + Finv[1][1]*Fn[2][1]*SigN[0][0] + Finv[2][1]*Fn[2][2]*SigN[0][0]);
-	Tsigma_3(7,1)=(Finv[0][1]*Fn[2][0]*SigN[1][0] + Finv[1][1]*Fn[2][1]*SigN[1][0] + Finv[2][1]*Fn[2][2]*SigN[1][0]);
-	Tsigma_3(8,1)=(Finv[0][1]*Fn[2][0]*SigN[2][0] + Finv[1][1]*Fn[2][1]*SigN[2][0] + Finv[2][1]*Fn[2][2]*SigN[2][0]);
-
-	Tsigma_3(0,2)=(Finv[0][2]*Fn[0][0]*SigN[0][0] + Finv[1][2]*Fn[0][1]*SigN[0][0] + Finv[2][2]*Fn[0][2]*SigN[0][0]);
-	Tsigma_3(1,2)=(Finv[0][2]*Fn[0][0]*SigN[1][0] + Finv[1][2]*Fn[0][1]*SigN[1][0] + Finv[2][2]*Fn[0][2]*SigN[1][0]);
-	Tsigma_3(2,2)=(Finv[0][2]*Fn[0][0]*SigN[2][0] + Finv[1][2]*Fn[0][1]*SigN[2][0] + Finv[2][2]*Fn[0][2]*SigN[2][0]);
-	Tsigma_3(3,2)=(Finv[0][2]*Fn[1][0]*SigN[0][0] + Finv[1][2]*Fn[1][1]*SigN[0][0] + Finv[2][2]*Fn[1][2]*SigN[0][0]);
-	Tsigma_3(4,2)=(Finv[0][2]*Fn[1][0]*SigN[1][0] + Finv[1][2]*Fn[1][1]*SigN[1][0] + Finv[2][2]*Fn[1][2]*SigN[1][0]);
-	Tsigma_3(5,2)=(Finv[0][2]*Fn[1][0]*SigN[2][0] + Finv[1][2]*Fn[1][1]*SigN[2][0] + Finv[2][2]*Fn[1][2]*SigN[2][0]);
-	Tsigma_3(6,2)=(Finv[0][2]*Fn[2][0]*SigN[0][0] + Finv[1][2]*Fn[2][1]*SigN[0][0] + Finv[2][2]*Fn[2][2]*SigN[0][0]);
-	Tsigma_3(7,2)=(Finv[0][2]*Fn[2][0]*SigN[1][0] + Finv[1][2]*Fn[2][1]*SigN[1][0] + Finv[2][2]*Fn[2][2]*SigN[1][0]);
-	Tsigma_3(8,2)=(Finv[0][2]*Fn[2][0]*SigN[2][0] + Finv[1][2]*Fn[2][1]*SigN[2][0] + Finv[2][2]*Fn[2][2]*SigN[2][0]);
-
-	Tsigma_3(0,3)=(Finv[0][0]*Fn[0][0]*SigN[0][1] + Finv[1][0]*Fn[0][1]*SigN[0][1] + Finv[2][0]*Fn[0][2]*SigN[0][1]);
-	Tsigma_3(1,3)=(Finv[0][0]*Fn[0][0]*SigN[1][1] + Finv[1][0]*Fn[0][1]*SigN[1][1] + Finv[2][0]*Fn[0][2]*SigN[1][1]);
-	Tsigma_3(2,3)=(Finv[0][0]*Fn[0][0]*SigN[2][1] + Finv[1][0]*Fn[0][1]*SigN[2][1] + Finv[2][0]*Fn[0][2]*SigN[2][1]);
-	Tsigma_3(3,3)=(Finv[0][0]*Fn[1][0]*SigN[0][1] + Finv[1][0]*Fn[1][1]*SigN[0][1] + Finv[2][0]*Fn[1][2]*SigN[0][1]);
-	Tsigma_3(4,3)=(Finv[0][0]*Fn[1][0]*SigN[1][1] + Finv[1][0]*Fn[1][1]*SigN[1][1] + Finv[2][0]*Fn[1][2]*SigN[1][1]);
-	Tsigma_3(5,3)=(Finv[0][0]*Fn[1][0]*SigN[2][1] + Finv[1][0]*Fn[1][1]*SigN[2][1] + Finv[2][0]*Fn[1][2]*SigN[2][1]);
-	Tsigma_3(6,3)=(Finv[0][0]*Fn[2][0]*SigN[0][1] + Finv[1][0]*Fn[2][1]*SigN[0][1] + Finv[2][0]*Fn[2][2]*SigN[0][1]);
-	Tsigma_3(7,3)=(Finv[0][0]*Fn[2][0]*SigN[1][1] + Finv[1][0]*Fn[2][1]*SigN[1][1] + Finv[2][0]*Fn[2][2]*SigN[1][1]);
-	Tsigma_3(8,3)=(Finv[0][0]*Fn[2][0]*SigN[2][1] + Finv[1][0]*Fn[2][1]*SigN[2][1] + Finv[2][0]*Fn[2][2]*SigN[2][1]);
-
-	Tsigma_3(0,4)=(Finv[0][1]*Fn[0][0]*SigN[0][1] + Finv[1][1]*Fn[0][1]*SigN[0][1] + Finv[2][1]*Fn[0][2]*SigN[0][1]);
-	Tsigma_3(1,4)=(Finv[0][1]*Fn[0][0]*SigN[1][1] + Finv[1][1]*Fn[0][1]*SigN[1][1] + Finv[2][1]*Fn[0][2]*SigN[1][1]);
-	Tsigma_3(2,4)=(Finv[0][1]*Fn[0][0]*SigN[2][1] + Finv[1][1]*Fn[0][1]*SigN[2][1] + Finv[2][1]*Fn[0][2]*SigN[2][1]);
-	Tsigma_3(3,4)=(Finv[0][1]*Fn[1][0]*SigN[0][1] + Finv[1][1]*Fn[1][1]*SigN[0][1] + Finv[2][1]*Fn[1][2]*SigN[0][1]);
-	Tsigma_3(4,4)=(Finv[0][1]*Fn[1][0]*SigN[1][1] + Finv[1][1]*Fn[1][1]*SigN[1][1] + Finv[2][1]*Fn[1][2]*SigN[1][1]);
-	Tsigma_3(5,4)=(Finv[0][1]*Fn[1][0]*SigN[2][1] + Finv[1][1]*Fn[1][1]*SigN[2][1] + Finv[2][1]*Fn[1][2]*SigN[2][1]);
-	Tsigma_3(6,4)=(Finv[0][1]*Fn[2][0]*SigN[0][1] + Finv[1][1]*Fn[2][1]*SigN[0][1] + Finv[2][1]*Fn[2][2]*SigN[0][1]);
-	Tsigma_3(7,4)=(Finv[0][1]*Fn[2][0]*SigN[1][1] + Finv[1][1]*Fn[2][1]*SigN[1][1] + Finv[2][1]*Fn[2][2]*SigN[1][1]);
-	Tsigma_3(8,4)=(Finv[0][1]*Fn[2][0]*SigN[2][1] + Finv[1][1]*Fn[2][1]*SigN[2][1] + Finv[2][1]*Fn[2][2]*SigN[2][1]);
-
-	Tsigma_3(0,5)=(Finv[0][2]*Fn[0][0]*SigN[0][1] + Finv[1][2]*Fn[0][1]*SigN[0][1] + Finv[2][2]*Fn[0][2]*SigN[0][1]);
-	Tsigma_3(1,5)=(Finv[0][2]*Fn[0][0]*SigN[1][1] + Finv[1][2]*Fn[0][1]*SigN[1][1] + Finv[2][2]*Fn[0][2]*SigN[1][1]);
-	Tsigma_3(2,5)=(Finv[0][2]*Fn[0][0]*SigN[2][1] + Finv[1][2]*Fn[0][1]*SigN[2][1] + Finv[2][2]*Fn[0][2]*SigN[2][1]);
-	Tsigma_3(3,5)=(Finv[0][2]*Fn[1][0]*SigN[0][1] + Finv[1][2]*Fn[1][1]*SigN[0][1] + Finv[2][2]*Fn[1][2]*SigN[0][1]);
-	Tsigma_3(4,5)=(Finv[0][2]*Fn[1][0]*SigN[1][1] + Finv[1][2]*Fn[1][1]*SigN[1][1] + Finv[2][2]*Fn[1][2]*SigN[1][1]);
-	Tsigma_3(5,5)=(Finv[0][2]*Fn[1][0]*SigN[2][1] + Finv[1][2]*Fn[1][1]*SigN[2][1] + Finv[2][2]*Fn[1][2]*SigN[2][1]);
-	Tsigma_3(6,5)=(Finv[0][2]*Fn[2][0]*SigN[0][1] + Finv[1][2]*Fn[2][1]*SigN[0][1] + Finv[2][2]*Fn[2][2]*SigN[0][1]);
-	Tsigma_3(7,5)=(Finv[0][2]*Fn[2][0]*SigN[1][1] + Finv[1][2]*Fn[2][1]*SigN[1][1] + Finv[2][2]*Fn[2][2]*SigN[1][1]);
-	Tsigma_3(8,5)=(Finv[0][2]*Fn[2][0]*SigN[2][1] + Finv[1][2]*Fn[2][1]*SigN[2][1] + Finv[2][2]*Fn[2][2]*SigN[2][1]);
-
-	Tsigma_3(0,6)=(Finv[0][0]*Fn[0][0]*SigN[0][2] + Finv[1][0]*Fn[0][1]*SigN[0][2] + Finv[2][0]*Fn[0][2]*SigN[0][2]);
-	Tsigma_3(1,6)=(Finv[0][0]*Fn[0][0]*SigN[1][2] + Finv[1][0]*Fn[0][1]*SigN[1][2] + Finv[2][0]*Fn[0][2]*SigN[1][2]);
-	Tsigma_3(2,6)=(Finv[0][0]*Fn[0][0]*SigN[2][2] + Finv[1][0]*Fn[0][1]*SigN[2][2] + Finv[2][0]*Fn[0][2]*SigN[2][2]);
-	Tsigma_3(3,6)=(Finv[0][0]*Fn[1][0]*SigN[0][2] + Finv[1][0]*Fn[1][1]*SigN[0][2] + Finv[2][0]*Fn[1][2]*SigN[0][2]);
-	Tsigma_3(4,6)=(Finv[0][0]*Fn[1][0]*SigN[1][2] + Finv[1][0]*Fn[1][1]*SigN[1][2] + Finv[2][0]*Fn[1][2]*SigN[1][2]);
-	Tsigma_3(5,6)=(Finv[0][0]*Fn[1][0]*SigN[2][2] + Finv[1][0]*Fn[1][1]*SigN[2][2] + Finv[2][0]*Fn[1][2]*SigN[2][2]);
-	Tsigma_3(6,6)=(Finv[0][0]*Fn[2][0]*SigN[0][2] + Finv[1][0]*Fn[2][1]*SigN[0][2] + Finv[2][0]*Fn[2][2]*SigN[0][2]);
-	Tsigma_3(7,6)=(Finv[0][0]*Fn[2][0]*SigN[1][2] + Finv[1][0]*Fn[2][1]*SigN[1][2] + Finv[2][0]*Fn[2][2]*SigN[1][2]);
-	Tsigma_3(8,6)=(Finv[0][0]*Fn[2][0]*SigN[2][2] + Finv[1][0]*Fn[2][1]*SigN[2][2] + Finv[2][0]*Fn[2][2]*SigN[2][2]);
-
-	Tsigma_3(0,7)=(Finv[0][1]*Fn[0][0]*SigN[0][2] + Finv[1][1]*Fn[0][1]*SigN[0][2] + Finv[2][1]*Fn[0][2]*SigN[0][2]);
-	Tsigma_3(1,7)=(Finv[0][1]*Fn[0][0]*SigN[1][2] + Finv[1][1]*Fn[0][1]*SigN[1][2] + Finv[2][1]*Fn[0][2]*SigN[1][2]);
-	Tsigma_3(2,7)=(Finv[0][1]*Fn[0][0]*SigN[2][2] + Finv[1][1]*Fn[0][1]*SigN[2][2] + Finv[2][1]*Fn[0][2]*SigN[2][2]);
-	Tsigma_3(3,7)=(Finv[0][1]*Fn[1][0]*SigN[0][2] + Finv[1][1]*Fn[1][1]*SigN[0][2] + Finv[2][1]*Fn[1][2]*SigN[0][2]);
-	Tsigma_3(4,7)=(Finv[0][1]*Fn[1][0]*SigN[1][2] + Finv[1][1]*Fn[1][1]*SigN[1][2] + Finv[2][1]*Fn[1][2]*SigN[1][2]);
-	Tsigma_3(5,7)=(Finv[0][1]*Fn[1][0]*SigN[2][2] + Finv[1][1]*Fn[1][1]*SigN[2][2] + Finv[2][1]*Fn[1][2]*SigN[2][2]);
-	Tsigma_3(6,7)=(Finv[0][1]*Fn[2][0]*SigN[0][2] + Finv[1][1]*Fn[2][1]*SigN[0][2] + Finv[2][1]*Fn[2][2]*SigN[0][2]);
-	Tsigma_3(7,7)=(Finv[0][1]*Fn[2][0]*SigN[1][2] + Finv[1][1]*Fn[2][1]*SigN[1][2] + Finv[2][1]*Fn[2][2]*SigN[1][2]);
-	Tsigma_3(8,7)=(Finv[0][1]*Fn[2][0]*SigN[2][2] + Finv[1][1]*Fn[2][1]*SigN[2][2] + Finv[2][1]*Fn[2][2]*SigN[2][2]);
-
-	Tsigma_3(0,8)=(Finv[0][2]*Fn[0][0]*SigN[0][2] + Finv[1][2]*Fn[0][1]*SigN[0][2] + Finv[2][2]*Fn[0][2]*SigN[0][2]);
-	Tsigma_3(1,8)=(Finv[0][2]*Fn[0][0]*SigN[1][2] + Finv[1][2]*Fn[0][1]*SigN[1][2] + Finv[2][2]*Fn[0][2]*SigN[1][2]);
-	Tsigma_3(2,8)=(Finv[0][2]*Fn[0][0]*SigN[2][2] + Finv[1][2]*Fn[0][1]*SigN[2][2] + Finv[2][2]*Fn[0][2]*SigN[2][2]);
-	Tsigma_3(3,8)=(Finv[0][2]*Fn[1][0]*SigN[0][2] + Finv[1][2]*Fn[1][1]*SigN[0][2] + Finv[2][2]*Fn[1][2]*SigN[0][2]);
-	Tsigma_3(4,8)=(Finv[0][2]*Fn[1][0]*SigN[1][2] + Finv[1][2]*Fn[1][1]*SigN[1][2] + Finv[2][2]*Fn[1][2]*SigN[1][2]);
-	Tsigma_3(5,8)=(Finv[0][2]*Fn[1][0]*SigN[2][2] + Finv[1][2]*Fn[1][1]*SigN[2][2] + Finv[2][2]*Fn[1][2]*SigN[2][2]);
-	Tsigma_3(6,8)=(Finv[0][2]*Fn[2][0]*SigN[0][2] + Finv[1][2]*Fn[2][1]*SigN[0][2] + Finv[2][2]*Fn[2][2]*SigN[0][2]);
-	Tsigma_3(7,8)=(Finv[0][2]*Fn[2][0]*SigN[1][2] + Finv[1][2]*Fn[2][1]*SigN[1][2] + Finv[2][2]*Fn[2][2]*SigN[1][2]);
-	Tsigma_3(8,8)=(Finv[0][2]*Fn[2][0]*SigN[2][2] + Finv[1][2]*Fn[2][1]*SigN[2][2] + Finv[2][2]*Fn[2][2]*SigN[2][2]);
-*/
 
 }
 
@@ -3540,53 +3452,7 @@ void FSMicromorphic3DT::Form_TFn_1_matrix()
 					TFn_1(l,k)=(Finv[0][k]*Fn[ll][0] + Finv[1][k]*Fn[ll][1] + Finv[2][k]*Fn[ll][2])*KrDelta[j][i];
 				}
 
-/*      			   (Finv[0][0]*fn[0][0]*KrDelta[0][0] + Finv[1][0]*fn[0][1]*KrDelta[0][0] + Finv[2][0]*fn[0][2]*KrDelta[0][0]*w[0][0] +
-					   (Finv[0][0]*fn[0][0]*KrDelta[1][0] + Finv[1][0]*fn[0][1]*KrDelta[1][0] + Finv[2][0]*fn[0][2]*KrDelta[1][0])*w[0][1] +
-					   (Finv[0][0]*fn[0][0]*KrDelta[2][0] + Finv[1][0]*fn[0][1]*KrDelta[2][0] + Finv[2][0]*fn[0][2]*KrDelta[2][0])*w[0][2] +
-					   (Finv[0][0]*fn[0][0]*KrDelta[0][1] + Finv[1][0]*fn[0][1]*KrDelta[0][1] + Finv[2][0]*fn[0][2]*KrDelta[0][1])*w[1][0] +
-					   (Finv[0][0]*fn[0][0]*KrDelta[1][1] + Finv[1][0]*fn[0][1]*KrDelta[1][1] + Finv[2][0]*fn[0][2]*KrDelta[1][1])*w[1][1] +
-					   (Finv[0][0]*fn[0][0]*KrDelta[2][1] + Finv[1][0]*fn[0][1]*KrDelta[2][1] + Finv[2][0]*fn[0][2]*KrDelta[2][1])*w[1][2] +
-					   (Finv[0][0]*fn[0][0]*KrDelta[0][2] + Finv[1][0]*fn[0][1]*KrDelta[0][2] + Finv[2][0]*fn[0][2]*KrDelta[0][2])*w[2][0] +
-					   (Finv[0][0]*fn[0][0]*KrDelta[1][2] + Finv[1][0]*fn[0][1]*KrDelta[1][2] + Finv[2][0]*fn[0][2]*KrDelta[1][2])*w[2][1] +
-					   (Finv[0][0]*fn[0][0]*KrDelta[2][2] + Finv[1][0]*fn[0][1]*KrDelta[2][2] + Finv[2][0]*fn[0][2]*KrDelta[2][2])*w[2][2]) +
-					   (Finv[0][1]*fn[0][0]*KrDelta[0][0] + Finv[1][1]*fn[0][1]*KrDelta[0][0] + Finv[2][1]*fn[0][2]*KrDelta[0][0])*w[0][0] +
-					   (Finv[0][1]*fn[0][0]*KrDelta[1][0] + Finv[1][1]*fn[0][1]*KrDelta[1][0] + Finv[2][1]*fn[0][2]*KrDelta[1][0])*w[0][1] +
-					   (Finv[0][1]*fn[0][0]*KrDelta[2][0] + Finv[1][1]*fn[0][1]*KrDelta[2][0] + Finv[2][1]*fn[0][2]*KrDelta[2][0])*w[0][2] +
-					   (Finv[0][1]*fn[0][0]*KrDelta[0][1] + Finv[1][1]*fn[0][1]*KrDelta[0][1] + Finv[2][1]*fn[0][2]*KrDelta[0][1])*w[1][0] +
-					   (Finv[0][1]*fn[0][0]*KrDelta[1][1] + Finv[1][1]*fn[0][1]*KrDelta[1][1] + Finv[2][1]*fn[0][2]*KrDelta[1][1])*w[1][1] +
-					   (Finv[0][1]*fn[0][0]*KrDelta[2][1] + Finv[1][1]*fn[0][1]*KrDelta[2][1] + Finv[2][1]*fn[0][2]*KrDelta[2][1])*w[1][2] +
-					   (Finv[0][1]*fn[0][0]*KrDelta[0][2] + Finv[1][1]*fn[0][1]*KrDelta[0][2] + Finv[2][1]*fn[0][2]*KrDelta[0][2])*w[2][0] +
-					   (Finv[0][1]*fn[0][0]*KrDelta[1][2] + Finv[1][1]*fn[0][1]*KrDelta[1][2] + Finv[2][1]*fn[0][2]*KrDelta[1][2])*w[2][1] +
-					   (Finv[0][1]*fn[0][0]*KrDelta[2][2] + Finv[1][1]*fn[0][1]*KrDelta[2][2] + Finv[2][1]*fn[0][2]*KrDelta[2][2])*w[2][2]) +
-					   (Finv[0][2]*fn[0][0]*KrDelta[0][0] + Finv[1][2]*fn[0][1]*KrDelta[0][0] + Finv[2][2]*fn[0][2]*KrDelta[0][0])*w[0][0] +
-					   (Finv[0][2]*fn[0][0]*KrDelta[1][0] + Finv[1][2]*fn[0][1]*KrDelta[1][0] + Finv[2][2]*fn[0][2]*KrDelta[1][0])*w[0][1] +
-					   (Finv[0][2]*fn[0][0]*KrDelta[2][0] + Finv[1][2]*fn[0][1]*KrDelta[2][0] + Finv[2][2]*fn[0][2]*KrDelta[2][0])*w[0][2] +
-					   (Finv[0][2]*fn[0][0]*KrDelta[0][1] + Finv[1][2]*fn[0][1]*KrDelta[0][1] + Finv[2][2]*fn[0][2]*KrDelta[0][1])*w[1][0] +
-					   (Finv[0][2]*fn[0][0]*KrDelta[1][1] + Finv[1][2]*fn[0][1]*KrDelta[1][1] + Finv[2][2]*fn[0][2]*KrDelta[1][1])*w[1][1] +
-					   (Finv[0][2]*fn[0][0]*KrDelta[2][1] + Finv[1][2]*fn[0][1]*KrDelta[2][1] + Finv[2][2]*fn[0][2]*KrDelta[2][1])*w[1][2] +
-					   (Finv[0][2]*fn[0][0]*KrDelta[0][2] + Finv[1][2]*fn[0][1]*KrDelta[0][2] + Finv[2][2]*fn[0][2]*KrDelta[0][2])*w[2][0] +
-					   (Finv[0][2]*fn[0][0]*KrDelta[1][2] + Finv[1][2]*fn[0][1]*KrDelta[1][2] + Finv[2][2]*fn[0][2]*KrDelta[1][2])*w[2][1] +
-					   (Finv[0][2]*fn[0][0]*KrDelta[2][2] + Finv[1][2]*fn[0][1]*KrDelta[2][2] + Finv[2][2]*fn[0][2]*KrDelta[2][2])*w[2][2]) +
-					   (Finv[0][0]*fn[1][0]*KrDelta[0][0] + Finv[1][0]*fn[1][1]*KrDelta[0][0] + Finv[2][0]*fn[1][2]*KrDelta[0][0])*w[0][0] +
-					   (Finv[0][0]*fn[1][0]*KrDelta[1][0] + Finv[1][0]*fn[1][1]*KrDelta[1][0] + Finv[2][0]*fn[1][2]*KrDelta[1][0])*w[0][1] +
-					   (Finv[0][0]*fn[1][0]*KrDelta[2][0] + Finv[1][0]*fn[1][1]*KrDelta[2][0] + Finv[2][0]*fn[1][2]*KrDelta[2][0])*w[0][2] +
-					   (Finv[0][0]*fn[1][0]*KrDelta[0][1] + Finv[1][0]*fn[1][1]*KrDelta[0][1] + Finv[2][0]*fn[1][2]*KrDelta[0][1])*w[1][0] +
-					   (Finv[0][0]*fn[1][0]*KrDelta[1][1] + Finv[1][0]*fn[1][1]*KrDelta[1][1] + Finv[2][0]*fn[1][2]*KrDelta[1][1])*w[1][1] +
-					   (Finv[0][0]*fn[1][0]*KrDelta[2][1] + Finv[1][0]*fn[1][1]*KrDelta[2][1] + Finv[2][0]*fn[1][2]*KrDelta[2][1])*w[1][2] +
-					   (Finv[0][0]*fn[1][0]*KrDelta[0][2] + Finv[1][0]*fn[1][1]*KrDelta[0][2] + Finv[2][0]*fn[1][2]*KrDelta[0][2])*w[2][0] +
-					   (Finv[0][0]*fn[1][0]*KrDelta[1][2] + Finv[1][0]*fn[1][1]*KrDelta[1][2] + Finv[2][0]*fn[1][2]*KrDelta[1][2])*w[2][1] +
-					   (Finv[0][0]*fn[1][0]*KrDelta[2][2] + Finv[1][0]*fn[1][1]*KrDelta[2][2] + Finv[2][0]*fn[1][2]*KrDelta[2][2])*w[2][2]) +
-					   (Finv[0][1]*fn[1][0]*KrDelta[0][0] + Finv[1][1]*fn[1][1]*KrDelta[0][0] + Finv[2][1]*fn[1][2]*KrDelta[0][0])*w[0][0] +
-					   (Finv[0][1]*fn[1][0]*KrDelta[1][0] + Finv[1][1]*fn[1][1]*KrDelta[1][0] + Finv[2][1]*fn[1][2]*KrDelta[1][0])*w[0][1] +
-					   (Finv[0][1]*fn[1][0]*KrDelta[2][0] + Finv[1][1]*fn[1][1]*KrDelta[2][0] + Finv[2][1]*fn[1][2]*KrDelta[2][0])*w[0][2] +
-					   (Finv[0][1]*fn[1][0]*KrDelta[0][1] + Finv[1][1]*fn[1][1]*KrDelta[0][1] + Finv[2][1]*fn[1][2]*KrDelta[0][1])*w[1][0] +
-					   (Finv[0][1]*fn[1][0]*KrDelta[1][1] + Finv[1][1]*fn[1][1]*KrDelta[1][1] + Finv[2][1]*fn[1][2]*KrDelta[1][1])*w[1][1] +
-					   (Finv[0][1]*fn[1][0]*KrDelta[2][1] + Finv[1][1]*fn[1][1]*KrDelta[2][1] + Finv[2][1]*fn[1][2]*KrDelta[2][1])*w[1][2] +
-					   (Finv[0][1]*fn[1][0]*KrDelta[0][2] + Finv[1][1]*fn[1][1]*KrDelta[0][2] + Finv[2][1]*fn[1][2]*KrDelta[0][2])*w[2][0] +
-					   (Finv[0][1]*fn[1][0]*KrDelta[1][2] + Finv[1][1]*fn[1][1]*KrDelta[1][2] + Finv[2][1]*fn[1][2]*KrDelta[1][2])*w[2][1] +
-					   (Finv[0][1]*fn[1][0]*KrDelta[2][2] + Finv[1][1]*fn[1][1]*KrDelta[2][2] + Finv[2][1]*fn[1][2]*KrDelta[2][2])*w[2][2]) + 	}
 
-*/
 	}
 
 void FSMicromorphic3DT::Form_TFn_2_matrix()
@@ -4525,25 +4391,6 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
 
 
 }
-
-/*void FSMicromorphic3DT:: Form_GRAD_NCHI_Phi_matrix(const  dMatrixT &fShapeMicroGrad)//bu yanlis
-{
-	int row=0;
-	int col=0;
-	GRAD_NCHI_PHI=0.0;
-	for(int j=0;j<=8;j++)
-	{
-		col=j;
-		for(int i=0;i<=7;i++)
-		{
-			GRAD_NCHI_Phi(row,col)  =fShapeMicroGrad(0,i);
-			GRAD_NCHI_Phi(row+1,col)=fShapeMicroGrad(1,i);
-			GRAD_NCHI_Phi(row+2,col)=fShapeMicroGrad(2,i);
-			col=col+9;
-		}
-		row=row+3;
-	}
-}*/
 
 
 
@@ -6192,73 +6039,7 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
 	}
 }
 
-/*
-void FSMicromorphic3DT:: Mapping_double_and_Array( double& dmat, dArrayT &fArrayT,const int& dim,const int &condition)
-{
-	int row;
-	row=0;
-	if(condition==1)
-	{
-		if(dim==2)//means if it is a matrix
-		{
-			for(int i=0;i<=2;i++)
-			{
-				for(int j=0;j<=2;j++)
-				{
-					fArrayT[row]= dmat[i][j];
-					row++;
-					}
-				}
-			}
-		else
-		{
-			for(int i=0;i<=2;i++)
-			{
-				for(int j=0;j<=2;j++)
-				{
-					for(int k=0;k<=2;k++)
-					{
-						fArrayT[row]=dmat[i][j][k];
-						row++;
-						}
-					}
-				}
 
-		}
-	}
-	else //or it is a tensor
-	{
-		if(dim==2)//means if it is a matrix
-			{
-			for(int i=0;i<=2;i++)
-			{
-				for(int j=0;j<=2;j++)
-				{
-					dmat[i][j]=fArrayT[row];
-					row++;
-					}
-				}
-			}
-			else
-
-			{
-				for(int i=0;i<=2;i++)
-				{
-					for(int j=0;j<=2;j++)
-					{
-						for(int k=0;k<=2;k++)
-						{
-							dmat[i][j][k]=fArrayT[row];
-							row++;
-							}
-						}
-					}
-			}
-	}
-
-
-}
-*/
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 ////////////////////// FINISH HERE FOR MICROMORPHIC 3-D CASE/////////////
