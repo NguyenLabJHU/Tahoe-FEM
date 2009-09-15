@@ -1094,7 +1094,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				/* [fShapeDispl] will be formed */
 				Form_solid_shape_functions(shapes_displ_X);//output:fShapeDispl
 
-				fShapeDispl_Tr.Transpose(fShapeDispl);
+			//	fShapeDispl_Tr.Transpose(fShapeDispl);
 
 				fShapes_displ->GradNa(fShapeDisplGrad_temp);
 				/* [fShapeDisplGrad] will be formed */
@@ -1122,6 +1122,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				for (int i=0; i<n_sd ; i++)
 				    fIdentity_matrix(i,i) =1.0;
 
+				/* [fDeformation_Gradient] will be formed */
+				Form_deformation_gradient_tensor();//output: F (deform. grad. tensor)
+				/* [fDeformation_Gradient_Inverse] and [fDeformation_Gradient_Transpose] and [fDeformation_Gradient_Inverse_Transpose] will be formed */
+				if (fDeformation_Gradient.Det()==0)
+				    fDeformation_Gradient = fIdentity_matrix;
+				fDeformation_Gradient_Inverse.Inverse(fDeformation_Gradient);
+
+				Form_micro_deformation_tensor_Chi();//output: Chi[i][j]
+				Form_Chi_inv_matrix();//output: ChiInv
 
 				SigN_IPs.RowCopy(IP,SigN_ar);
 				sn_sigman_IPs.RowCopy(IP,sn_sigman);
@@ -1142,24 +1151,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_KroneckerDelta_matrix();//output: KrDelta
 				Form_CCof_tensor();//output: Ccoeff tensor
 
-				/* [fDeformation_Gradient] will be formed */
-				Form_deformation_gradient_tensor();//output: F (deform. grad. tensor)
 
-
-				Form_micro_deformation_tensor_Chi();//output: Chi[i][j]
-				Form_Chi_inv_matrix();//output: ChiInv
+				Form_double_Finv_from_Deformation_tensor_inverse();// output: Finv
 				Form_GRAD_Chi_matrix();//output: GRAD_Chi[i][j][k]
+				Form_Gamma_tensor();
 
-
-
-				/* [fDeformation_Gradient_Inverse] and [fDeformation_Gradient_Transpose] and [fDeformation_Gradient_Inverse_Transpose] will be formed */
-				if (fDeformation_Gradient.Det()==0)
-				    fDeformation_Gradient = fIdentity_matrix;
-				fDeformation_Gradient_Inverse.Inverse(fDeformation_Gradient);
-				fDeformation_Gradient_Inverse_Transpose.Transpose(fDeformation_Gradient_Inverse);
-				fDeformation_Gradient_Transpose.Transpose(fDeformation_Gradient);
-
-				Form_double_Finv_from_Deformation_tensor_inverse();// output: Finv[i][j]
 				Form_Finv_w_matrix();//output: Finv_w
 				Form_Finv_eta_matrix();//output:Finv_eta
 
@@ -1223,7 +1219,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				fIota_eta_temp_matrix.MultATBT(GRAD_NCHI,Finv_eta);
 
 
-
                 //fShapeDisplGrad--> [GRAD(Ns,e)] so it in reference configuration
 
 
@@ -1242,21 +1237,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /////////////////MicroMorphic Internal force vectors////////////////////////////////////
-				Form_G1_matrix();
+				Form_G1_matrix();//output:H1 vector & Sigma matrix
 				fIota_w_temp_matrix.Multx(G1,Uint_1);
 				Uint_1*=-1*J;
 				fShapeDispl.MultTx(fGravity_vector,Uint_2);
-				Uint_2*=-1*fMaterial_Params[kRho_0];
+				Uint_2*=-fMaterial_Params[kRho_0];
 
 
-				Form_H1_matrix();
+				Form_H1_matrix();//output:H1 vctor & Mnplus1 tensor
 				fIota_eta_temp_matrix.Multx(H1,Pint_1);
 				Pint_1*=-1*J;
-				Form_H2_matrix();
-				NCHI_Tr.Multx(H2,Pint_2);
-				Pint_2*=-1*J;
-				Form_H3_matrix();
-				NCHI_Tr.Multx(H3,Pint_3);
+				Form_H2_matrix();//output: H2 vector & s_sigma matrix
+				NCHI.MultTx(H2,Pint_2);
+				Pint_2*=-1*J;//this makes is sigma_s
+				Form_H3_matrix();//output H3 vector
+				NCHI.MultTx(H3,Pint_3);
 				Pint_3*=fMaterial_Params[kRho_0];
 
 
@@ -1414,6 +1409,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				// accumulate
 				fG1_12 += fTemp_matrix_nudof_x_nudof;
 
+
+				//fPi_temp_row_matrix has been deleted accidentally
 				fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fPi_temp_row_matrix);//ABC not ABCT
 				scale = scale_const*J;
 				fTemp_matrix_nudof_x_nudof *= scale;
