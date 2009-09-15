@@ -355,6 +355,7 @@ void FSMicromorphic3DT::CloseStep(void)
     FnInv_ar_IPs_el_n=FnInv_ar_IPs_el;
     ChiN_ar_IPs_el_n=ChiN_ar_IPs_el;
     GRAD_ChiN_ar_IPs_el_n=GRAD_ChiN_ar_IPs_el;
+    Counter_IPs_el_n=Counter_IPs_el;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1078,6 +1079,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    ChiN_ar_IPs_el_n.RowCopy(e,ChiN_ar_IPs);
 		    GRAD_ChiN_ar_IPs_el_n.RowCopy(e,GRAD_ChiN_ar_IPs);
 
+		    Counter_IPs_el_n.RowCopy(e,Counter_IPs);
+
 		    while (fShapes_displ->NextIP() && fShapes_micro->NextIP())
 		    {
 				double scale_const = (*Weight++)*(*Det++);
@@ -1114,6 +1117,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_NCHI_matrix(fShapeMicro_row_matrix); //output: NCHI matrix
 				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad_temp);//output: GRAD_NCHI
 
+				/* [fIdentity_matrix] will be formed */
+				fIdentity_matrix = 0.0;
+				for (int i=0; i<n_sd ; i++)
+				    fIdentity_matrix(i,i) =1.0;
 
 
 				SigN_IPs.RowCopy(IP,SigN_ar);
@@ -1122,11 +1129,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				mn_IPs.RowCopy(IP,mn_ar);
 				Mapping_double_and_Array(-1);
 
+				Counter=Counter_IPs[IP];
+
 			    Fn_ar_IPs.RowCopy(IP,Fn_ar);
 			    FnInv_ar_IPs.RowCopy(IP,FnInv_ar);
 			    ChiN_ar_IPs.RowCopy(IP,ChiN_ar);
 			    GRAD_ChiN_ar_IPs.RowCopy(IP,GRAD_ChiN_ar);
-			    Form_deformation_tensors_arrays(-1);
+			    Form_deformation_tensors_arrays(-1, Counter);
 
 
 				/* KroneckerDelta matrix is formed*/
@@ -1141,10 +1150,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_Chi_inv_matrix();//output: ChiInv
 				Form_GRAD_Chi_matrix();//output: GRAD_Chi[i][j][k]
 
-				/* [fIdentity_matrix] will be formed */
-				fIdentity_matrix = 0.0;
-				for (int i=0; i<n_sd ; i++)
-				    fIdentity_matrix(i,i) =1.0;
+
 
 				/* [fDeformation_Gradient_Inverse] and [fDeformation_Gradient_Transpose] and [fDeformation_Gradient_Inverse_Transpose] will be formed */
 				if (fDeformation_Gradient.Det()==0)
@@ -1626,18 +1632,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				/////////////////////saving matrices at Gauss Points////////////
 
+
+
 			    Mapping_double_and_Array(1);
 			   	GammaN_IPs.SetRow(IP,GammaN_ar);
 			   	SigN_IPs.SetRow(IP,Sigma);
 			   	sn_sigman_IPs.SetRow(IP,s_sigma);
 			   	mn_IPs.SetRow(IP,mn_ar);
 
-			   	Form_deformation_tensors_arrays(1);
+			   	Form_deformation_tensors_arrays(1,Counter);
 			    Fn_ar_IPs.SetRow(IP,Fn_ar);
 			    FnInv_ar_IPs.SetRow(IP,FnInv_ar);
 			    ChiN_ar_IPs.SetRow(IP,ChiN_ar);
 			    GRAD_ChiN_ar_IPs.SetRow(IP,GRAD_ChiN_ar);
 
+			   	Counter_IPs[IP]=Counter;
 
 
 		    } //end Gauss integration loop
@@ -1662,6 +1671,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    FnInv_ar_IPs_el.SetRow(e,FnInv_ar_IPs);
 		    ChiN_ar_IPs_el.SetRow(e,ChiN_ar_IPs);
 		    GRAD_ChiN_ar_IPs_el.SetRow(e,GRAD_ChiN_ar_IPs);
+		    Counter_IPs_el.SetRow(e,Counter_IPs);
 
 
 
@@ -2197,7 +2207,14 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     SigN_IPs_el.Dimension(n_el,n_sd_x_n_sd*fNumIP_displ);
     SigN_IPs_el_n.Dimension(n_el,n_sd_x_n_sd*fNumIP_displ);
     SigN_IPs_el=0.0;
-        SigN_IPs_el_n=0.0;
+    SigN_IPs_el_n=0.0;
+
+ //   Counter.Dimension(1);
+    Counter_IPs_el_n.Dimension(n_el,fNumIP_displ);
+    Counter_IPs_el_n=1.0;
+    Counter_IPs_el.Dimension(n_el,fNumIP_displ);
+    Counter_IPs.Dimension(fNumIP_displ);
+
 
     Finv_w.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Tsigma_1.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
@@ -5996,11 +6013,12 @@ void FSMicromorphic3DT:: Mapping_double_and_Array(const int &condition)
 
 }
 
-void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
+void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition, double & Counter) //
 {
 	int row,row1;
 	row=0;
 	row1=0;
+
 	if(condition==1)
 	{
 		for (int i=0;i<=2;i++)
@@ -6036,7 +6054,22 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
 				}
 			}
 		}
+		if(Counter<10)
+		{
+			for(int i=0;i<3;i++)
+			{
+				for(int j=0;j<3;j++)
+				{
+
+					Fn[i][j]=fIdentity_matrix(i,j) ;
+					FnInv[i][j]=fIdentity_matrix(i,j) ;
+					ChiN[i][j]=fIdentity_matrix(i,j) ;
+				}
+			}
+		}
+	Counter=Counter+10;
 	}
+
 }
 
 
