@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.45 2009-09-15 20:36:45 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.46 2009-09-16 04:19:52 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -757,7 +757,7 @@ private:
     void Form_fG1_11_matrix(void);
     void Form_TFn_6_matrix(void);
     void Form_fG1_12_matrix(void);
-    void Form_SigCurr_vector_Cauchy_Stss_matrix(void);
+    void Form_SigCurr_matrix(void);
     void Form_fG1_13_matrix(void);
     //Forming the Matrices coming from the Balance of First Moment of Momentum
 	void Form_Gradient_of_micro_shape_eta_functions(const dMatrixT &fShapeMicroGrad);

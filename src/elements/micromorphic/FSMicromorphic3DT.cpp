@@ -1157,7 +1157,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_Gamma_tensor();
 
 				Form_Finv_w_matrix();//output: Finv_w
-				Form_Finv_eta_matrix();//output:Finv_eta
+				Form_Finv_eta_matrix();//output: Finv_eta
 
 
 				/* [fDefGradInv_Grad_grad] will be formed */
@@ -1283,7 +1283,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				Form_TChi_1_matrix();
 				Form_TChi_2_matrix();
 				Form_TChi_3_matrix();
-				Form_SigCurr_vector_Cauchy_Stss_matrix();//Forms a vector ( actually 9x1 matrix) consisting of unsymmetric components of Cauchy stress tensors
+				Form_SigCurr_matrix();//Forms a vector ( actually 9x1 matrix) consisting of unsymmetric components of Cauchy stress tensors
 //////////////////////////////////////////////////////////
 			    Form_Mm_1_matrix();// needs to be multiplied by "-" and J
 			    Form_Mm_2_matrix();// needs to be multiplied by J
@@ -1411,7 +1411,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 				//fPi_temp_row_matrix has been deleted accidentally
-				fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fPi_temp_row_matrix);//ABC not ABCT
+				fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fShapeDisplGrad);//ABC not ABCT
 				scale = scale_const*J;
 				fTemp_matrix_nudof_x_nudof *= scale;
 				// accumulate
@@ -2238,7 +2238,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fG1_11.Dimension (n_en_displ_x_n_sd ,n_en_micro*n_sd_x_n_sd);
     TFn_6.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_12.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
-    SigCurr.Dimension(n_sd_x_n_sd,1);
+    SigCurr.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_13.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
 
     //Bal. of linear Mom of Momtm
@@ -3190,10 +3190,6 @@ void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix)
 
 }
 
-//void FSMicromorphic3DT::Form_NCHI_eta_matrix(const dMatrixT &fShapeMicro_row_matrix);
-//{
-//
-//}
 
 void FSMicromorphic3DT:: Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp)
 {
@@ -4340,19 +4336,30 @@ void FSMicromorphic3DT::Form_double_Finv_from_Deformation_tensor_inverse()
 			Finv[i][j]=fDeformation_Gradient_Inverse(i,j);
 }
 
-void FSMicromorphic3DT::Form_SigCurr_vector_Cauchy_Stss_matrix()
+void FSMicromorphic3DT::Form_SigCurr_matrix()
 {
-    SigCurr=0.0;
+	int row=0;
+	int col=0;
+	SigCurr=0.0;
+	for(int I=0;I<3;I++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			//col starts
+			row=0;
+			for(int k=0;k<3;k++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					SigCurr(row,col)=Sigma(l,k)*Finv[I][i];
+					row++;
+				}
+			}
+			col++;
+		}
+	}
 
-    SigCurr(0,0)=Sigma(0,0); //*w(0,0) +
-    SigCurr(1,0)=Sigma(1,0);
-    SigCurr(2,0)=Sigma(2,0);
-    SigCurr(3,0)=Sigma(0,1);
-    SigCurr(4,0)=Sigma(1,1);//*w(1,1) +
-    SigCurr(5,0)=Sigma(2,1);
-    SigCurr(6,0)=Sigma(0,2);
-    SigCurr(7,0)=Sigma(1,2);
-    SigCurr(8,0)=Sigma(2,2); //w(2,2)
+
 }
 
 // Forming the matrices coming from the Bal. of First Mom. of Momtm
