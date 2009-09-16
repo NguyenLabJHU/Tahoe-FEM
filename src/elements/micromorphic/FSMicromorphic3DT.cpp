@@ -1115,6 +1115,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				//real name should be NPHI, NCHI is not a proper name!
 				Form_NCHI_matrix(fShapeMicro_row_matrix); //output: NCHI matrix
+				NCHI_Tr.Transpose(NCHI);
 				Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad_temp);//output: GRAD_NCHI
 
 				/* [fIdentity_matrix] will be formed */
@@ -1540,7 +1541,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				// accumulate
 				fH2_3 += fTemp_matrix_nchidof_x_nudof;
 
-				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_1,NCHI);
+				fTemp_matrix_nchidof_x_nchidof.MultATBC(NCHI,RChi_1,NCHI);
 				scale = -1*scale_const*J*fMaterial_Params[kKappa];
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
@@ -1552,7 +1553,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				// accumulate
 				fH2_5 += fTemp_matrix_nchidof_x_nudof;
 
-				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_2,NCHI);
+				fTemp_matrix_nchidof_x_nchidof.MultATBC(NCHI,RChi_2,NCHI);
 				scale = -1*scale_const*J*fMaterial_Params[kNu];
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
@@ -1564,13 +1565,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				// accumulate
 				fH2_7 += fTemp_matrix_nchidof_x_nudof;
 
-				fTemp_matrix_nchidof_x_nudof.MultABC(NCHI_Tr,Rs_sigma,fShapeDisplGrad);
+				fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,Rs_sigma,fShapeDisplGrad);
 				scale = -1*scale_const*J;
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
 				fH2_8 += fTemp_matrix_nchidof_x_nudof;
 
-				fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,R_Capital_Gamma_Chi,NCHI);
+				fTemp_matrix_nchidof_x_nchidof.MultATBC(NCHI,R_Capital_Gamma_Chi,NCHI);
 				scale = 1*scale_const*fMaterial_Params[kRho_0];
 				fTemp_matrix_nchidof_x_nudof *= scale;
 				// accumulate
@@ -6070,8 +6071,9 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition, do
 					ChiN[i][j]=fIdentity_matrix(i,j) ;
 				}
 			}
+		Counter=Counter+10;
 		}
-	Counter=Counter+10;
+
 	}
 
 }

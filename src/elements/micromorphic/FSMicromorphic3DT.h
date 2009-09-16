@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.46 2009-09-16 04:19:52 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.47 2009-09-16 18:48:17 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -399,8 +399,6 @@ private:
 	double amatrix[27][72];
 	double avector[81];
 	double atensor[3][3][3];
-	int sayac;
-	int sayac1;
 
 	double Counter;
 	dArray2DT Counter_IPs_el_n;
