@@ -1,12 +1,3 @@
-	Home 	Docs 	Forums 	Bugzilla 	LXR 	Doxygen 	CVS 	Bonsai 	Dev Wiki
-[BACK] Return to FSMicromorphic3DT.cpp CVS log [TXT]	[DIR] Up to [development] / development / src / elements / micromorphic
-File: [development] / development / src / elements / micromorphic / FSMicromorphic3DT.cpp (download)
-Revision 1.59, Wed Sep 16 18:48:16 2009 UTC (11 hours, 24 minutes ago) by isbuga
-Branch: MAIN
-Changes since 1.58: +7 -5 lines
-
-*** empty log message ***
-
 /* Id: FSMicromorphic3DT.cpp,v 1.6 2006/10/10 19:55:23 regueiro Exp $ */
 #include "FSMicromorphic3DT.h"
 
