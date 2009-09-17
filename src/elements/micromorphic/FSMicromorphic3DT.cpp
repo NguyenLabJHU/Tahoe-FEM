@@ -3421,69 +3421,89 @@ void FSMicromorphic3DT::Form_Tsigma_2_matrix()
 
 void FSMicromorphic3DT::Form_Tsigma_3_matrix()
 {
-    /*
-     * Explanations:
-     * Finv:Inverse of Deformation gradient tensor at current step
-     * Fn: Deformation gradient tensor from previous step
-     * SigN: Cauchy stresses, needs to be assigned from Cauchy_stress_IP by a loop
-     */
-    int ll;
-    int i ;
-    int j;
-    for( int k=0;k<=8;k++)
-        for(int l=0;l<=8;l++)
+    int row=0;
+    int col=0;
+    Tsigma_3=0.0;
+    for(int i=0;i<3;i++)
+    {
+        for(int m=0;m<3;m++)
+        {
+            row=0;
+            for(int k=0;k<3;k++)
             {
-                if(k<=2)ll=0 ;
-                else if(3<=k<=5)ll=1;
-                else         ll=2;
-                if(l<=2){i=0 ;j=l;}
-                else if(3<=l<=5){i=1; j=l-3;}
-                else        {i=2; j=l-6;}
-                Tsigma_3(l,k)=Finv[0][k]*Fn[i][0]*SigN[j][ll]+ Finv[1][k]*Fn[i][1]*SigN[j][ll]+Finv[2][k]*Fn[i][2]*SigN[j][ll];
+                for(int l=0;l<3;l++)
+                {
+                    //summation on the same term
+                    for(int L=0;L<3;L++)
+                    {
+                        Tsigma_3(row,col)=Tsigma_3(row,col)+SigN[l][i]*Fn[k][L]*Finv[L][m];
+                    }
+                    row++;
+                }
             }
-
+        col++;
+        }
+    }
 
 }
 
 void FSMicromorphic3DT::Form_TFn_1_matrix()
     {
-// mutliply with (lambda+thou)
-        int ll;
-        int i;
-        int j;
-            for( int k=0;k<=8;k++)
-                for(int l=0;l<=8;l++)
+    int row=0;
+    int col=0;
+    TFn_1=0.0;
+    for(int i=0;i<3;i++)
+    {
+        for(int m=0;m<3;m++)
+        {
+            row=0;
+            for(int k=0;k<3;k++)
+            {
+                for(int l=0;l<3;l++)
                 {
-                    if(k<=2)ll=0 ;
-                    else if(3<=k<=5)ll=1;
-                    else         ll=2;
-                    if(l<=2){i=0 ;j=l;}
-                    else if(3<=l<=5){i=1; j=l-3;}
-                    else        {i=2; j=l-6;}
-                    TFn_1(l,k)=(Finv[0][k]*Fn[ll][0] + Finv[1][k]*Fn[ll][1] + Finv[2][k]*Fn[ll][2])*KrDelta[j][i];
+                    //summation on the same term
+                    for(int L=0;L<3;L++)
+                    {
+                        TFn_1(row,col)=TFn_1(row,col)+KrDelta[l][k]*Fn[i][L]*Finv[L][m];
+                    }
+                    row++;
                 }
+            }
+        col++;
+        }
+    }
+
+
 
 
     }
 
 void FSMicromorphic3DT::Form_TFn_2_matrix()
+{
+    int row=0;
+    int col=0;
+    TFn_2=0.0;
+    for(int k=0;k<3;k++)
     {
-    // mutliply with (Mu+sigma)
-        int ll;
-        int i;
-        int j;
-            for( int k=0;k<=8;k++)
-                for(int l=0;l<=8;l++)
+        for(int m=0;m<3;m++)
+        {
+            //row operations
+            row=3*k;
+                for(int l=0;l<3;l++)
+                {
+                    //summation on the same term
+                    for(int L=0;L<3;L++)
                     {
-                    if(k<=2)ll=0 ;
-                    else if(3<=k<=5)ll=1;
-                    else         ll=2;
-                    if(l<=2){i=0 ;j=l;}
-                    else if(3<=l<=5){i=1; j=l-3;}
-                    else        {i=2; j=l-6;}
-                    TFn_2(l,k)=(Finv[0][k]*Fn[ll][0] + Finv[1][k]*Fn[ll][1] + Finv[2][k]*Fn[ll][2])*KrDelta[j][i];
+                        TFn_2(row,col)=TFn_2(row,col)+Fn[l][L]*Finv[L][m];
                     }
+                    row++;
+                }
+
+            col++;
+        }
+
     }
+}
 
 void FSMicromorphic3DT::Form_TFn_3_matrix()
     {
