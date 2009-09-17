@@ -1633,18 +1633,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                 Mapping_double_and_Array(1);
-                       GammaN_IPs.SetRow(IP,GammaN_ar);
-                       SigN_IPs.SetRow(IP,Sigma);
-                       sn_sigman_IPs.SetRow(IP,s_sigma);
-                       mn_IPs.SetRow(IP,mn_ar);
+                GammaN_IPs.SetRow(IP,GammaN_ar);
+                SigN_IPs.SetRow(IP,Sigma);
+                sn_sigman_IPs.SetRow(IP,s_sigma);
+                mn_IPs.SetRow(IP,mn_ar);
 
-                       Form_deformation_tensors_arrays(1,Counter);
+                Form_deformation_tensors_arrays(1,Counter);
                 Fn_ar_IPs.SetRow(IP,Fn_ar);
                 FnInv_ar_IPs.SetRow(IP,FnInv_ar);
                 ChiN_ar_IPs.SetRow(IP,ChiN_ar);
                 GRAD_ChiN_ar_IPs.SetRow(IP,GRAD_ChiN_ar);
 
-                       Counter_IPs[IP]=Counter;
+                Counter_IPs[IP]=Counter;
 
 
             } //end Gauss integration loop
@@ -1704,6 +1704,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKdd +=  fG1_8;
             fKdd +=  fG1_10;
             fKdd +=  fG1_12;
+            fKdd +=  fG1_13;
 
 
 
@@ -1713,16 +1714,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKdphi = 0.0;
 // Micromorphic case fKdPhi  from coming from bal. of linear momentum
 
-            fKdphi  = fG1_7 ;
+/*          fKdphi  = fG1_7 ;
             fKdphi += fG1_9 ;
-            fKdphi += fG1_11;
+            fKdphi += fG1_11;*/
 
 
 
             /* [fKphid] will be formed */
             //need to code
             fKphid = 0.0;
-
+/*
             fKphid  = fH1_1;
             fKphid += fH1_2;
             fKphid += fH1_3;
@@ -1736,7 +1737,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid += fH2_5;
             fKphid += fH2_7;
             fKphid += fH2_8;
-
+*/
 
 
 
@@ -1744,7 +1745,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             //need to code
             fKphiphi = 0.0;
 
-            fKphiphi  = fH1_4;
+/*            fKphiphi  = fH1_4;
             fKphiphi += fH1_5;
             fKphiphi += fH1_6;
             fKphiphi += fH1_7;
@@ -1757,16 +1758,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphiphi += fH2_6;
 
             fKphiphi += fH3_1;
-
+*/
 
 
             /* {fFphi_int} will be formed */
             //need to code
-//          fFphi_int = 0.0;
-            fFphi_int =Pint_1;
+          fFphi_int = 0.0;
+/*          fFphi_int =Pint_1;
             fFphi_int +=Pint_2;
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
-            fFphi_int *= -1;
+            fFphi_int *= -1;*/
 
             /* equations numbers */
             const iArrayT& displ_eq = fElementCards_displ[e].Equations();
@@ -3218,13 +3219,7 @@ void FSMicromorphic3DT:: Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_te
 
 void FSMicromorphic3DT::Form_Tsigma_1_matrix()
 {
-/*
- * Explanations:
- * Finv:Inverse of Deformation gradient tensor at current step
- * Fn: Deformation gradient tensor from previous step
- * SigN: Cauchy stresses, needs to be assigned from Cauchy_stress_IP by a loop
- *
- */
+
     Tsigma_1(0,0)=(Finv[0][0]*Fn[0][0]*SigN[0][0] + Finv[1][0]*Fn[0][1]*SigN[0][0] + Finv[2][0]*Fn[0][2]*SigN[0][0]);
     Tsigma_1(1,0)=(Finv[0][0]*Fn[0][0]*SigN[1][0] + Finv[1][0]*Fn[0][1]*SigN[1][0] + Finv[2][0]*Fn[0][2]*SigN[1][0]);
     Tsigma_1(2,0)=(Finv[0][0]*Fn[0][0]*SigN[2][0] + Finv[1][0]*Fn[0][1]*SigN[2][0] + Finv[2][0]*Fn[0][2]*SigN[2][0]);
@@ -3549,7 +3544,7 @@ void FSMicromorphic3DT::Form_TFn_3_matrix()
 
 void FSMicromorphic3DT::Form_TChi_1_matrix()
 {
-    //should be mutliplied by eta
+
 
 TChi_1(0,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][0] +
              ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0]*KrDelta[0][0] +
