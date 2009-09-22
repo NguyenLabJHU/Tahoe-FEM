@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.47 2009-09-16 18:48:17 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.48 2009-09-22 16:02:23 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -578,7 +578,7 @@ private:
     //internal Force Matrices
     dArrayT G1;
     dArrayT Uint_1;
-    dArrayT Uint_2;
+    dArrayT Uext_1;
     dArrayT Text;
     dArrayT Gext;
 
@@ -718,7 +718,7 @@ private:
 	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	//Forming the Matrices coming from the Balance of Linear Momentum
-	void Form_Gamma_tensor(void);
+	void Form_Gamma_tensor3D(void);
 	void Form_micro_deformation_tensor_Chi(void);
 	void Form_Chi_inv_matrix(void);
 	void Form_GRAD_Chi_matrix(void);
