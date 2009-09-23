@@ -1247,8 +1247,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 /////////////////MicroMorphic Internal force vectors////////////////////////////////////
                 Form_G1_matrix();//output:G1 vector & Sigma matrix
                 fIota_w_temp_matrix.Multx(G1,Uint_1_temp);
+                Uint_1_temp*=-1*scale_const*J;
                 Uint_1 +=Uint_1_temp;
-                Uint_1*=-1*scale_const;
                 fShapeDispl.MultTx(fGravity_vector,Uext_1);
                 Uext_1*=-fMaterial_Params[kRho_0];
 
@@ -1340,66 +1340,66 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_1,fIota_temp_matrix);
-                scale = 1*scale_const;
+                scale = 1*scale_const*J;
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_1 += fTemp_matrix_nudof_x_nudof;
 
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_2,fIota_temp_matrix);
-                scale =-scale_const;
+                scale =-scale_const*J;
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_2 += fTemp_matrix_nudof_x_nudof;
 
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Tsigma_3,fIota_temp_matrix);
-                scale = -scale_const;
+                scale = -scale_const*J;
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_3 += fTemp_matrix_nudof_x_nudof;
 
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_1,fIota_temp_matrix);
-                scale = -scale_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+                scale = -scale_const*J*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_4 += fTemp_matrix_nudof_x_nudof;
 
 
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_2,fIota_temp_matrix);
-                scale = -scale_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+                scale = -scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
                 fTemp_matrix_nudof_x_nudof *= scale;
                  //accumulate
                 fG1_5 += fTemp_matrix_nudof_x_nudof;
 
 
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_3,fIota_temp_matrix);
-                scale = -scale_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+                scale = -scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_6 += fTemp_matrix_nudof_x_nudof;
 
 
                 fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,TChi_1,NCHI);// ABC not ABCT
-                scale = -scale_const*(fMaterial_Params[kEta]);
+                scale = -scale_const*J*(fMaterial_Params[kEta]);
                 fTemp_matrix_nudof_x_nchidof *= scale;
                 // accumulate
                 fG1_7 += fTemp_matrix_nudof_x_nchidof;
 
 
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_4,fIota_temp_matrix);
-                scale = -scale_const*(fMaterial_Params[kEta]);
+                scale = -scale_const*J*(fMaterial_Params[kEta]);
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_8 += fTemp_matrix_nudof_x_nudof;
 
 
                 fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,TChi_2,NCHI);//ABC not ABCT
-                scale = -scale_const*(fMaterial_Params[kKappa]);
+                scale = -scale_const*J*(fMaterial_Params[kKappa]);
                 fTemp_matrix_nudof_x_nchidof *= scale;
                 // accumulate
                 fG1_9 += fTemp_matrix_nudof_x_nchidof;
 
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_5,fIota_temp_matrix);
-                scale = -scale_const*(fMaterial_Params[kKappa]);
+                scale = -scale_const*J*(fMaterial_Params[kKappa]);
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_10 += fTemp_matrix_nudof_x_nudof;
@@ -1407,13 +1407,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                 fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,TChi_3,NCHI);//ABC not ABCT
-                scale = -scale_const*(fMaterial_Params[kNu]);
+                scale = -scale_const*J*(fMaterial_Params[kNu]);
                 fTemp_matrix_nudof_x_nchidof *= scale;
                 // accumulate
                 fG1_11 += fTemp_matrix_nudof_x_nchidof;
 
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_6,fIota_temp_matrix);
-                scale = -scale_const*(fMaterial_Params[kNu]);
+                scale = -scale_const*J*(fMaterial_Params[kNu]);
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_12 += fTemp_matrix_nudof_x_nudof;
@@ -1423,7 +1423,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
          //       fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fShapeDisplGrad);//ABC not ABCT
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,SigCurr,fIota_temp_matrix);//ABC not ABCT
 
-                scale = -scale_const;
+                scale = -scale_const*J;
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_13 += fTemp_matrix_nudof_x_nudof;
