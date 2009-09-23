@@ -926,11 +926,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
     fH3_1=0.0;
 
-    fIota_w_temp_matrix=0.0;
+/*    fIota_w_temp_matrix=0.0;
     fIota_eta_temp_matrix=0.0;
     fTemp_matrix_nudof_x_nchidof=0.0;
     fTemp_matrix_nchidof_x_nchidof=0.0;
-    fTemp_matrix_nchidof_x_nudof=0.0;
+    fTemp_matrix_nchidof_x_nudof=0.0;*/
 
     e = CurrElementNumber();
     const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
@@ -1246,8 +1246,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////////////
 /////////////////MicroMorphic Internal force vectors////////////////////////////////////
                 Form_G1_matrix();//output:G1 vector & Sigma matrix
-                fIota_w_temp_matrix.Multx(G1,Uint_1);
-                Uint_1*=-1*J;
+                fIota_w_temp_matrix.Multx(G1,Uint_1_temp);
+                Uint_1 +=Uint_1_temp;
+                Uint_1*=-1*J*scale_const;
                 fShapeDispl.MultTx(fGravity_vector,Uext_1);
                 Uext_1*=-fMaterial_Params[kRho_0];
 
@@ -1688,7 +1689,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fFd_int *= -1;*/
 
          //   {fFd_int} will be formed
-           fFd_int  =Uint_1;
+           fFd_int  = Uint_1;
         //   fFd_ext =-Uext_1; //no external traction is assumed
            fFd_int *= -1;
 
@@ -2332,6 +2333,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     G1.Dimension(n_sd_x_n_sd);
     Uint_1.Dimension(n_en_displ_x_n_sd);
+    Uint_1_temp.Dimension(n_en_displ_x_n_sd);
     Uext_1.Dimension(n_en_displ_x_n_sd);
     Gext.Dimension(n_en_displ_x_n_sd);
 

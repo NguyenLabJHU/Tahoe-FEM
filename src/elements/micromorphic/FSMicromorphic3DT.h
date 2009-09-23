@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.48 2009-09-22 16:02:23 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.49 2009-09-23 20:53:47 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -578,6 +578,7 @@ private:
     //internal Force Matrices
     dArrayT G1;
     dArrayT Uint_1;
+    dArrayT Uint_1_temp;
     dArrayT Uext_1;
     dArrayT Text;
     dArrayT Gext;
