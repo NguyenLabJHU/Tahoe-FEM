@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.49 2009-09-23 20:53:47 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.50 2009-09-24 20:47:11 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -729,7 +729,7 @@ private:
 
 	void Mapping_double_and_Array(const int& condition);//
 //	void Mapping_double_and_Array(double& dmat, dArrayT& fArrayT,const int& dim,const int& condition);
-	void Form_deformation_tensors_arrays(const int condition,  double & Counter);//
+	void Form_deformation_tensors_arrays(const int condition);//
 
 	void Form_KroneckerDelta_matrix(void);
 	void Form_Tsigma_1_matrix(void);
