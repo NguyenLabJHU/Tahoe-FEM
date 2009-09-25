@@ -355,7 +355,7 @@ void FSMicromorphic3DT::CloseStep(void)
     FnInv_ar_IPs_el_n=FnInv_ar_IPs_el;
     ChiN_ar_IPs_el_n=ChiN_ar_IPs_el;
     GRAD_ChiN_ar_IPs_el_n=GRAD_ChiN_ar_IPs_el;
-    Counter_IPs_el_n=Counter_IPs_el;
+    //Counter_IPs_el_n=Counter_IPs_el;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -370,6 +370,7 @@ void FSMicromorphic3DT::CloseStep(void)
 //      << endl;
 //    fs_micromorph3D_out   << endl << "**********************************************************************************************";
 //    fs_micromorph3D_out   << endl << "**********************************************************************************************" << endl;
+
 }
 
 
@@ -1134,8 +1135,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     fDeformation_Gradient = fIdentity_matrix;
                 fDeformation_Gradient_Inverse.Inverse(fDeformation_Gradient);
 
-                Form_micro_deformation_tensor_Chi();//output: Chi[i][j]
-                Form_Chi_inv_matrix();//output: ChiInv
+               Form_micro_deformation_tensor_Chi();//output: Chi[i][j]
+               Form_Chi_inv_matrix();//output: ChiInv
 
                 SigN_IPs.RowCopy(IP,SigN_ar);
                 sn_sigman_IPs.RowCopy(IP,sn_sigman);
@@ -1644,8 +1645,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                 Mapping_double_and_Array(1);
                 GammaN_IPs.SetRow(IP,GammaN_ar);
-                SigN_IPs.SetRow(IP,Sigma);
-                sn_sigman_IPs.SetRow(IP,s_sigma);
+                SigN_IPs.SetRow(IP,SigN_ar);
+                sn_sigman_IPs.SetRow(IP,s_sigma);//this is missing!!!
                 mn_IPs.SetRow(IP,mn_ar);
 
                 Form_deformation_tensors_arrays(1);
@@ -2353,9 +2354,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Fn_ar.Dimension(n_sd_x_n_sd);
     Fn_ar_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     Fn_ar_IPs_el.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
-    Fn_ar_IPs_el=0.0;
+   // Fn_ar_IPs_el=0.0;
     Fn_ar_IPs_el_n.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
-    Fn_ar_IPs_el_n=0.0;
+ //   Fn_ar_IPs_el_n=0.0;
 
     FnInv_ar.Dimension(n_sd_x_n_sd);
     FnInv_ar_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
@@ -2381,7 +2382,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     for(int i=0;i<3;i++)
     {
     	fIdentity_matrix(i,i)=1.0;
-		for(int j=0;j<3;j++)
+    	for(int j=0;j<3;j++)
 			{
 				Fn_ar[row]=fIdentity_matrix(i,j);
 				FnInv_ar[row]=fIdentity_matrix(i,j);
@@ -3166,16 +3167,18 @@ void FSMicromorphic3DT::Form_G1_matrix()
             for(int K=0;K<=2;K++)
             {
 
-                Sigma(l,k)=Sigma(l,k)+(1/2)*((KrDelta[l][k]-Fn[l][K]*Finv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])
-                               +      ((KrDelta[l][k]-ChiN[l][K]*ChiInv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*fMaterial_Params[kKappa]
-                               +      ((KrDelta[k][l]-ChiN[k][K]*ChiInv[K][l])+(KrDelta[l][k]-Fn[l][K]*Finv[K][k]))*fMaterial_Params[kNu];
-                for(int i=0;i<=2;i++)
+         Sigma(l,k)=Sigma(l,k)+(1/2)*((KrDelta[l][k]-Fn[l][K]*Finv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])
+                              +      ((KrDelta[l][k]-ChiN[l][K]*ChiInv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*fMaterial_Params[kKappa]
+                              +      ((KrDelta[k][l]-ChiN[k][K]*ChiInv[K][l])+(KrDelta[l][k]-Fn[l][K]*Finv[K][k]))*fMaterial_Params[kNu];
+
+			for(int i=0;i<=2;i++)
                 {
-                    Sigma(l,k)=Sigma(l,k)+(1-KrDelta[i][i]-Fn[i][K]*Finv[K][i])*SigN[l][k]
-                            +               (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*SigN[i][k]
-                            +    SigN[l][i]*(KrDelta[k][i]-Fn[k][K]*Finv[K][i])
-                            + KrDelta[l][k]*(KrDelta[i][i]-Fn[i][K]*Finv[K][i])*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])
-                            +KrDelta[l][k]*((KrDelta[i][i]-ChiN[i][K]*ChiInv[K][i])+(KrDelta[i][i]-Fn[i][K]*Finv[K][i]))*fMaterial_Params[kEta];
+
+         Sigma(l,k)=Sigma(l,k)+(1-(KrDelta[i][i]-Fn[i][K]*Finv[K][i]))*SigN[l][k]
+                              +               (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*SigN[i][k]
+                              +    SigN[l][i]*(KrDelta[k][i]-Fn[k][K]*Finv[K][i])
+                              + KrDelta[l][k]*(KrDelta[i][i]-Fn[i][K]*Finv[K][i])*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])
+                              + KrDelta[l][k]*((KrDelta[i][i]-ChiN[i][K]*ChiInv[K][i])+(KrDelta[i][i]-Fn[i][K]*Finv[K][i]))*fMaterial_Params[kEta];
                 }
 
             }
