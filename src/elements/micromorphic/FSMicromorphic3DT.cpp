@@ -900,6 +900,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fG1_11=0.0;
     fG1_12=0.0;
     fG1_13=0.0;
+    fG1_14=0.0;
 
     fH1_1=0.0;
     fH1_2=0.0;
@@ -1280,7 +1281,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 ////////////////Micromorphic 3-D Matrices are being formed coming from linearization process//////////////////////////
                 Form_CapitalLambda_matrix();//output:CapitalLambda
-
+                Form_Var_F_tensor();
                 Form_Tsigma_1_matrix();
                 Form_Tsigma_2_matrix();
                 Form_Tsigma_3_matrix();
@@ -1422,13 +1423,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                 //fPi_temp_row_matrix has been deleted accidentally
          //       fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fShapeDisplGrad);//ABC not ABCT
-                fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,SigCurr,fIota_temp_matrix);//ABC not ABCT
+                fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,SigCurr,fIota_temp_matrix);//ABC
 
                 scale = -scale_const*J;
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_13 += fTemp_matrix_nudof_x_nudof;
 
+                TransShapeDisplGrad.Transpose(fShapeDisplGrad);
+                fTemp_matrix_nudof_x_nudof.MultABCT(TransShapeDisplGrad,Var_F,fIota_temp_matrix);
+                scale= scale_const*J;
+                fTemp_matrix_nudof_x_nudof *= scale;
+                fG1_14 +=fTemp_matrix_nudof_x_nudof;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1716,6 +1722,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKdd +=  fG1_10;
             fKdd +=  fG1_12;
             fKdd +=  fG1_13;
+         //   fKdd +=  fG1_14;
           //  fKdd*=-1;
 
 
@@ -2226,7 +2233,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Counter_IPs_el.Dimension(n_el,fNumIP_displ);
     Counter_IPs.Dimension(fNumIP_displ);
 
-
+    TransShapeDisplGrad.Dimension(n_en_displ_x_n_sd,n_sd_x_n_sd);
+    Var_F.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Finv_w.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Tsigma_1.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_1.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
@@ -2254,6 +2262,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fG1_12.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
     SigCurr.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_13.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
+    fG1_14.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
 
     //Bal. of linear Mom of Momtm
     Mm_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
@@ -3220,7 +3229,7 @@ void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix)
 {
     int row;
     int col;
-    int counter;
+  //  int counter;
     row=0;
     col=0;
     NCHI=0.0;
@@ -3261,6 +3270,35 @@ void FSMicromorphic3DT:: Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_te
 
 }
 
+
+void FSMicromorphic3DT::Form_Var_F_tensor()
+{
+	int row,col;
+	row=0;
+	col=0;
+	Var_F=0.0;
+	for (int l=0;l<3;l++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			row=0;
+			//row operations starts
+			for (int k=0;k<3;k++)
+			{
+				for (int m=0;m<3;m++)
+				{
+					//summation on the same terms starts
+					for (int L=0;L<3;L++)
+					{
+						Var_F(row,col)=Var_F(row,col)+ KrDelta[m][L]*Finv[L][i]*Sigma(l,k);
+					}
+					row++;
+				}
+			}
+			col++;
+		}
+	}
+}
 
 void FSMicromorphic3DT::Form_Tsigma_1_matrix()
 {
@@ -3360,12 +3398,7 @@ void FSMicromorphic3DT::Form_Tsigma_1_matrix()
 
 void FSMicromorphic3DT::Form_Tsigma_2_matrix()
 {
-/*
- * Explanations:
- * Finv:Inverse of Deformation gradient tensor at current step
- * Fn: Deformation gradient tensor from previous step
- * SigN: Cauchy stresses, needs to be assigned from Cauchy_stress_IP by a loop
- */
+
     Tsigma_2(0,0)=(Finv[0][0]*Fn[0][0]*SigN[0][0] + Finv[1][0]*Fn[0][1]*SigN[0][0] + Finv[2][0]*Fn[0][2]*SigN[0][0]);
     Tsigma_2(1,0)=(Finv[0][0]*Fn[1][0]*SigN[0][0] + Finv[1][0]*Fn[1][1]*SigN[0][0] + Finv[2][0]*Fn[1][2]*SigN[0][0]);
     Tsigma_2(2,0)=(Finv[0][0]*Fn[2][0]*SigN[0][0] + Finv[1][0]*Fn[2][1]*SigN[0][0] + Finv[2][0]*Fn[2][2]*SigN[0][0]);

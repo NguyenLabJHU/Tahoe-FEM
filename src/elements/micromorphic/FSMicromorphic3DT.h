@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.50 2009-09-24 20:47:11 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.51 2009-09-26 01:17:28 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -447,7 +447,8 @@ private:
 	dMatrixT fTemp_matrix_nchidof_x_nudof;
 	dMatrixT fTemp_matrix_nudof_x_nudof;
 
-
+	dMatrixT TransShapeDisplGrad;
+	dMatrixT Var_F;
 	dMatrixT GRAD_Nuw;
 	dMatrixT GRAD_Nuw_Tr;
 	dMatrixT Finv_w; // to create Iota_w which is different than Iota because sequence of the components in wk,l
@@ -475,6 +476,7 @@ private:
     dMatrixT fG1_12;
     dMatrixT SigCurr;
     dMatrixT fG1_13;
+    dMatrixT fG1_14;
  // Variational Matrices coming from the Balance of First Moment of Momentum
 	double mn[3][3][3];
  	dArrayT mn_ar;
@@ -732,6 +734,7 @@ private:
 	void Form_deformation_tensors_arrays(const int condition);//
 
 	void Form_KroneckerDelta_matrix(void);
+	void Form_Var_F_tensor(void);
 	void Form_Tsigma_1_matrix(void);
 	void Form_fG1_1_matrix(void);//not defined yet
 	void Form_Tsigma_2_matrix(void);
