@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.51 2009-09-26 01:17:28 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.52 2009-09-28 20:40:09 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -410,6 +410,13 @@ private:
 	dMatrixT Tsigma_1;
 	dMatrixT fG1_1;
 	double SigN[3][3];//unsymmetric Cauchy stress tensor found at previous step
+	dMatrixT SigN_m;
+	dMatrixT Fn_m;
+	dMatrixT Finv_m;
+	dMatrixT deltaL;
+	dMatrixT deltaL_Tr;
+	dMatrixT tempSig;
+	dMatrixT deltad;
 	dArrayT SigN_ar;
 	dArray2DT SigN_IPs;
 	dArray2DT SigN_IPs_el;
@@ -729,7 +736,7 @@ private:
 	void Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp);
 	void Form_Finv_w_matrix(void);
 
-	void Mapping_double_and_Array(const int& condition);//
+	void Mapping_double_and_Array(const int condition);//
 //	void Mapping_double_and_Array(double& dmat, dArrayT& fArrayT,const int& dim,const int& condition);
 	void Form_deformation_tensors_arrays(const int condition);//
 
