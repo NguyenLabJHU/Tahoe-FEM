@@ -1722,7 +1722,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKdd +=  fG1_10;
             fKdd +=  fG1_12;
             fKdd +=  fG1_13;
-         //   fKdd +=  fG1_14;
+          //  fKdd +=  fG1_14;
           //  fKdd*=-1;
 
 
@@ -3185,164 +3185,180 @@ void FSMicromorphic3DT::Form_G1_matrix()
     Finv_m=0.0;
     SigN_m=0.0;
     double trdeltad;
+    trdeltad=0.0;
 
-/*    for(int k=0;k<=2;k++)
+    for(int i=0;i<3;i++)
     {
-        for(int l=0;l<=2;l++)
-        {
-            //summation on the same term starts
-            Sigma(l,k)=Sigma(l,k)+SigN[l][k];
-            for(int K=0;K<=2;K++)
-            {
+    	for(int j=0;j<3;j++)
+    	{
+    		Fn_m(i,j)=Fn[i][j];
+    		Finv_m(i,j)=Finv[i][j];
+    		SigN_m(i,j)=SigN[i][j];
+    	}
+    }
+/*
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+    		Sigma(l,k)+=SigN_m(l,k);
+    		for(int i=0;i<3;i++)
+    		{
+    			Sigma(l,k)+=-fIdentity_matrix(i,i)*SigN_m(l,k);
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=Fn_m(i,K)*Finv_m(K,i)*SigN_m(l,k);
+    			}
+    		}
+    	}
+    }
 
-         Sigma(l,k)=Sigma(l,k)+(1/2)*((KrDelta[l][k]-Fn[l][K]*Finv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])
-                              +      ((KrDelta[l][k]-ChiN[l][K]*ChiInv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*fMaterial_Params[kKappa]
-                              +      ((KrDelta[k][l]-ChiN[k][K]*ChiInv[K][l])+(KrDelta[l][k]-Fn[l][K]*Finv[K][k]))*fMaterial_Params[kNu];
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+    		Sigma(l,k)+=SigN_m(l,k);
+    		for(int i=0;i<3;i++)
+    		{
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=-Fn_m(l,K)*Finv_m(K,i)*SigN_m(i,k);
+    			}
+    		}
+    	}
+    }
 
-			for(int i=0;i<=2;i++)
-                {
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+    		Sigma(l,k)+=SigN_m(l,k);
+    		for(int i=0;i<3;i++)
+    		{
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=-Fn_m(k,K)*Finv_m(K,i)*SigN_m(l,i);
+    			}
+    		}
+    	}
+    }
 
-         Sigma(l,k)=Sigma(l,k)-(KrDelta[i][i]-Fn[i][K]*Finv[K][i])*SigN[l][k]
-                              +               (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*SigN[i][k]
-                              +    SigN[l][i]*(KrDelta[k][i]-Fn[k][K]*Finv[K][i])
-                              + KrDelta[l][k]*(KrDelta[i][i]-Fn[i][K]*Finv[K][i])*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])
-                              + KrDelta[l][k]*((KrDelta[i][i]-ChiN[i][K]*ChiInv[K][i])+(KrDelta[i][i]-Fn[i][K]*Finv[K][i]))*fMaterial_Params[kEta];
-                }
 
-            }
-            G1[row]=Sigma(l,k);
-            row++;
-        }
-    }*/
-/*for(int k=0;k<3;k++)
-{
-	for(int l=0;l<3;l++)
-	{
-		Sigma(l,k)=Sigma(l,k)+SigN[l][k];
-		//summation on the same term
-		for(int i=0;i<3;i++)
-		{
-			Sigma(l,k)=Sigma(l,k)-KrDelta[i][i]*SigN[l][k];
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
 
-			for(int K=0;K<3;K++)
-	        {
-				Sigma(l,k)=Sigma(l,k)+Fn[i][K]*Finv[K][i]*SigN[l][k];
-	        }
-		}
-	}
-}
-for(int k=0;k<3;k++)
-{
-	for(int l=0;l<3;l++)
-	{
-		Sigma(l,k)=Sigma(l,k)+SigN[l][k];
-		//summation on the same term
-		for(int i=0;i<3;i++)
-		{
-	        for(int K=0;K<3;K++)
-	        {
-				Sigma(l,k)=Sigma(l,k)-Fn[l][K]*Finv[K][i]*SigN[i][k];
-	        }
-		}
-	}
-}
+    		for(int i=0;i<3;i++)
+    		{
+    			Sigma(l,k)+=fIdentity_matrix(i,i)*fIdentity_matrix(l,k)*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=-Fn_m(i,K)*Finv_m(K,i)*fIdentity_matrix(l,k)*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+    			}
+    		}
+    	}
+    }
 
-for(int k=0;k<3;k++)
-{
-	for(int l=0;l<3;l++)
-	{
-		//summation on the same term
-		Sigma(l,k)=Sigma(l,k)+SigN[l][k];
-		for(int i=0;i<3;i++)
-		{
-	        for(int K=0;K<3;K++)
-	        {
-				Sigma(l,k)=Sigma(l,k)-SigN[l][i]*Fn[k][K]*Finv[K][i];
-	        }
-		}
-	}
-}
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+    		Sigma(l,k)+=(fIdentity_matrix(l,k)+fIdentity_matrix(k,l))*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
 
-for(int k=0;k<3;k++)
-{
-	for(int l=0;l<3;l++)
-	{
-		//summation on the same term
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=-(Fn_m(l,K)*Finv_m(K,k)+Fn_m(k,K)*Finv_m(K,l))*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+    			}
 
-		for(int i=0;i<3;i++)
-		{
-			Sigma(l,k)=Sigma(l,k)+KrDelta[l][k]*KrDelta[i][i]*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
-			for(int K=0;K<3;K++)
-	        {
-				Sigma(l,k)=Sigma(l,k)- KrDelta[l][k]*Fn[i][K]*Finv[K][i]*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
-	        }
-		}
-	}
-}
+    	}
+    }
+*/
 
-for(int k=0;k<3;k++)
-{
-	for(int l=0;l<3;l++)
-	{
-		//summation on the same term
-		 Sigma(l,k) = Sigma(l,k)+(1/2)*(KrDelta[l][k]+KrDelta[k][l])*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
-		for(int K=0;K<3;K++)
-		{
-		   Sigma(l,k) =Sigma(l,k)-(1/2)*(Fn[l][K]*Finv[K][k]+Fn[k][K]*Finv[K][l])*2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
-		}
-	}
-}*/
+
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+    		Sigma(l,k)+=SigN[l][k];
+    		for(int i=0;i<3;i++)
+    		{
+    			Sigma(l,k)+=-KrDelta[i][i]*SigN[l][k];
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=Fn[i][K]*Finv[K][i]*SigN[l][k];
+    			}
+    		}
+    	}
+    }
+
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+    		Sigma(l,k)+=SigN[l][k];
+    		for(int i=0;i<3;i++)
+    		{
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=-Fn[l][K]*Finv[K][i]*SigN[i][k];
+    			}
+    		}
+    	}
+    }
+
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+    		Sigma(l,k)+=SigN[l][k];
+    		for(int i=0;i<3;i++)
+    		{
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=-Fn[k][K]*Finv[K][i]*SigN[l][i];
+    			}
+    		}
+    	}
+    }
+
+
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+
+    		for(int i=0;i<3;i++)
+    		{
+    			Sigma(l,k)+=KrDelta[i][i]*KrDelta[l][k]*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=-Fn[i][K]*Finv[K][i]*KrDelta[l][k]*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+    			}
+    		}
+    	}
+    }
+
+    for(int l=0;l<3;l++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+    		Sigma(l,k)+=(KrDelta[l][k]+KrDelta[k][l])*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+
+    			for(int K=0;K<3;K++)
+    			{
+    				Sigma(l,k)+=-(Fn[l][K]*Finv[K][k]+Fn[k][K]*Finv[K][l])*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+    			}
+
+    	}
+    }
+
+
+
+
+
 
 /*
-for(int k=0;k<3;k++)
-{
-	for(int l=0;l<3;l++)
-	{
-		//summation on the same term
-		for(int i=0;i<3;i++)
-		{
-	        for(int K=0;K<3;K++)
-	        {
-				Sigma(l,k)=Sigma(l,k)+KrDelta[l][k]*((KrDelta[i][i]-ChiN[i][K]*ChiInv[K][i])+(KrDelta[i][i]-Fn[i][K]*Finv[K][i]))*fMaterial_Params[kEta];
-	        }
-		}
-	}
-}*/
-
-/*for(int k=0;k<3;k++)
-{
-	for(int l=0;l<3;l++)
-	{
-		//summation on the same term
-	        for(int K=0;K<3;K++)
-	        {
-				Sigma(l,k)=Sigma(l,k)+ ((KrDelta[l][k]-ChiN[l][K]*ChiInv[K][k])+(KrDelta[k][l]-Fn[k][K]*Finv[K][l]))*fMaterial_Params[kKappa];
-	        }
-	}
-}*/
-
-/*for(int k=0;k<3;k++)
-{
-	for(int l=0;l<3;l++)
-	{
-		//summation on the same term
-	        for(int K=0;K<3;K++)
-	        {
-				Sigma(l,k)=Sigma(l,k)+((KrDelta[k][l]-ChiN[k][K]*ChiInv[K][l])+(KrDelta[l][k]-Fn[l][K]*Finv[K][k]))*fMaterial_Params[kNu];
-	        }
-	}
-}*/
-
-
-for(int i=0;i<3;i++)
-{
-	for(int j=0;j<3;j++)
-	{
-		Fn_m(i,j)=Fn[i][j];
-		Finv_m(i,j)=Finv[i][j];
-		SigN_m(i,j)=SigN[i][j];
-	}
-}
 
 deltaL.MultAB(Fn_m,Finv_m);
 deltaL*=-1;
@@ -3381,7 +3397,7 @@ tempSig=deltad;
 tempSig*=(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
 tempSig*=2;
 Sigma+=tempSig;
-
+*/
 
 
     for(int k=0;k<=2;k++)
@@ -3484,15 +3500,13 @@ void FSMicromorphic3DT::Form_Var_F_tensor()
 			//row operations starts
 			for (int k=0;k<3;k++)
 			{
-				for (int m=0;m<3;m++)
-				{
 					//summation on the same terms starts
-					for (int L=0;L<3;L++)
+					for (int K=0;K<3;K++)
 					{
-						Var_F(row,col)=Var_F(row,col)+ KrDelta[m][L]*Finv[L][i]*Sigma(l,k);
+						Var_F(row,col)=Var_F(row,col)+ Finv[K][i]*Sigma(l,k);
 					}
 					row++;
-				}
+
 			}
 			col++;
 		}
