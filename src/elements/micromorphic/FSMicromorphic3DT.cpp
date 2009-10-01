@@ -1359,7 +1359,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 // accumulate
                 fG1_3 += fTemp_matrix_nudof_x_nudof;
 
-                fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,TFn_1,fIota_temp_matrix);
+                fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,TFn_1,fIota_temp_matrix);
                 scale = -scale_const*J*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
@@ -3511,11 +3511,33 @@ void FSMicromorphic3DT::Form_Var_F_tensor()
 			col++;
 		}
 	}
+/*	for (int l=0;l<3;l++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			row=0;
+			//row operations starts
+			for (int K=0;K<3;K++)
+			{
+					//summation on the same terms starts
+					for (int k=0;k<3;k++)
+					{
+						Var_F(row,col)=Var_F(row,col)+ Finv[K][i]*Sigma(l,k);
+					}
+					row++;
+
+			}
+			col++;
+		}
+	}
+*/
+
+
 }
 
 void FSMicromorphic3DT::Form_Tsigma_1_matrix()
 {
-
+	Tsigma_1=0.0;
     Tsigma_1(0,0)=(Finv[0][0]*Fn[0][0]*SigN[0][0] + Finv[1][0]*Fn[0][1]*SigN[0][0] + Finv[2][0]*Fn[0][2]*SigN[0][0]);
     Tsigma_1(1,0)=(Finv[0][0]*Fn[0][0]*SigN[1][0] + Finv[1][0]*Fn[0][1]*SigN[1][0] + Finv[2][0]*Fn[0][2]*SigN[1][0]);
     Tsigma_1(2,0)=(Finv[0][0]*Fn[0][0]*SigN[2][0] + Finv[1][0]*Fn[0][1]*SigN[2][0] + Finv[2][0]*Fn[0][2]*SigN[2][0]);
@@ -3607,11 +3629,64 @@ void FSMicromorphic3DT::Form_Tsigma_1_matrix()
     Tsigma_1(7,8)=(Finv[0][2]*Fn[2][0]*SigN[1][2] + Finv[1][2]*Fn[2][1]*SigN[1][2] + Finv[2][2]*Fn[2][2]*SigN[1][2]);
     Tsigma_1(8,8)=(Finv[0][2]*Fn[2][0]*SigN[2][2] + Finv[1][2]*Fn[2][1]*SigN[2][2] + Finv[2][2]*Fn[2][2]*SigN[2][2]);
 
+/*    int row=0;
+    int col=0;
+    Tsigma_1=0.0;
+    for(int i=0;i<3;i++)
+    {
+        for(int m=0;m<3;m++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+            	for(int k=0;k<3;k++)
+                {
+                    //summation on the same term
+                    for(int L=0;L<3;L++)
+                    {
+                        Tsigma_1(row,col)=Tsigma_1(row,col)+SigN[l][k]*Fn[i][L]*Finv[L][m];
+                    }
+                    row++;
+                }
+            }
+        col++;
+        }
+    }*/
+
+
 }
 
 void FSMicromorphic3DT::Form_Tsigma_2_matrix()
 {
 
+/*    int row=0;
+    int col=0;
+    Tsigma_2=0.0;
+    for(int i=0;i<3;i++)
+    {
+        for(int m=0;m<3;m++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+            	for(int k=0;k<3;k++)
+                {
+                    //summation on the same term
+                    for(int L=0;L<3;L++)
+                    {
+                        Tsigma_2(row,col)=Tsigma_2(row,col)+SigN[i][k]*Fn[l][L]*Finv[L][m];
+                    }
+                    row++;
+                }
+            }
+        col++;
+        }
+    }*/
+
+
+
+
+	Tsigma_2=0.0;
     Tsigma_2(0,0)=(Finv[0][0]*Fn[0][0]*SigN[0][0] + Finv[1][0]*Fn[0][1]*SigN[0][0] + Finv[2][0]*Fn[0][2]*SigN[0][0]);
     Tsigma_2(1,0)=(Finv[0][0]*Fn[1][0]*SigN[0][0] + Finv[1][0]*Fn[1][1]*SigN[0][0] + Finv[2][0]*Fn[1][2]*SigN[0][0]);
     Tsigma_2(2,0)=(Finv[0][0]*Fn[2][0]*SigN[0][0] + Finv[1][0]*Fn[2][1]*SigN[0][0] + Finv[2][0]*Fn[2][2]*SigN[0][0]);
@@ -3730,12 +3805,61 @@ void FSMicromorphic3DT::Form_Tsigma_3_matrix()
         col++;
         }
     }
-
+/*    int row=0;
+    int col=0;
+    Tsigma_3=0.0;
+    for(int i=0;i<3;i++)
+    {
+        for(int m=0;m<3;m++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+            	for(int k=0;k<3;k++)
+                {
+                    //summation on the same term
+                    for(int L=0;L<3;L++)
+                    {
+                        Tsigma_3(row,col)=Tsigma_3(row,col)+SigN[l][i]*Fn[k][L]*Finv[L][m];
+                    }
+                    row++;
+                }
+            }
+        col++;
+        }
+    }*/
 }
 
 void FSMicromorphic3DT::Form_TFn_1_matrix()
     {
-    int row=0;
+
+	   int row=0;
+	    int col=0;
+	    TFn_1=0.0;
+	    for(int i=0;i<3;i++)
+	    {
+	        for(int m=0;m<3;m++)
+	        {
+	            row=0;
+	            for(int k=0;k<3;k++)
+	            {
+	            	for(int l=0;l<3;l++)
+	                {
+	                    //summation on the same term
+	                    for(int L=0;L<3;L++)
+	                    {
+	                        TFn_1(row,col)=TFn_1(row,col)+KrDelta[l][k]*Fn[i][L]*Finv[L][m];
+	                    }
+	                    row++;
+	                }
+	            }
+	        col++;
+	        }
+	    }
+
+/*
+
+	int row=0;
     int col=0;
     TFn_1=0.0;
     for(int i=0;i<3;i++)
@@ -3743,9 +3867,9 @@ void FSMicromorphic3DT::Form_TFn_1_matrix()
         for(int m=0;m<3;m++)
         {
             row=0;
-            for(int k=0;k<3;k++)
+            for(int l=0;l<3;l++)
             {
-                for(int l=0;l<3;l++)
+            	for(int k=0;k<3;k++)
                 {
                     //summation on the same term
                     for(int L=0;L<3;L++)
@@ -3758,7 +3882,7 @@ void FSMicromorphic3DT::Form_TFn_1_matrix()
         col++;
         }
     }
-
+*/
 
 
 
@@ -3789,10 +3913,59 @@ void FSMicromorphic3DT::Form_TFn_2_matrix()
         }
 
     }
+
+/*	   int row=0;
+	    int col=0;
+	    TFn_2=0.0;
+	    for(int k=0;k<3;k++)
+	    {
+	        for(int m=0;m<3;m++)
+	        {
+	            //row operations
+	            row=k;
+	                for(int l=0;l<3;l++)
+	                {
+	                    //summation on the same term
+	                    for(int L=0;L<3;L++)
+	                    {
+	                        TFn_2(row,col)=TFn_2(row,col)+Fn[l][L]*Finv[L][m];
+	                    }
+	                    row+=3;
+	                }
+
+	            col++;
+	        }
+	    }
+*/
+
+
 }
 
 void FSMicromorphic3DT::Form_TFn_3_matrix()
     {
+
+/*	int row=0;
+    int col=0;
+    TFn_3=0.0;
+    for(int l=0;l<3;l++)
+    {
+        for(int m=0;m<3;m++)
+        {
+            row=3*l;
+            	for(int k=0;k<3;k++)
+                {
+                    //summation on the same term
+                    for(int L=0;L<3;L++)
+                    {
+                        TFn_3(row,col)=TFn_3(row,col)+Fn[k][L]*Finv[L][m];
+                    }
+                    row++;
+                }
+
+        col++;
+        }
+    }*/
+
     // mutliply with (Mu+sigma)
     TFn_3=0.0;
     TFn_3(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2]);//*w[0][0]
