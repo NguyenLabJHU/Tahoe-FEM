@@ -17,7 +17,7 @@ const int kNSD = 3;
 const double Pi = acos(-1.0);
 
 /* element output data */
-const int kNumOutput = 11;
+const int kNumOutput = 13;
 static const char* Labels[kNumOutput] = {
 	"alpha11",  // back stress
 	"alpha22",  
@@ -29,7 +29,9 @@ static const char* Labels[kNumOutput] = {
 	"meanstress",
 	"J2",
 	"J3",
-	"el_locflag"
+	"el_locflag",
+	"hardmod",
+	"chihard"
 };
 
 /*constructor*/
@@ -164,6 +166,7 @@ void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
     fSigma.Dimension(3);
     fStrain.Dimension(3);
     fdGdSigma.Dimension(3);
+    fHardMod.Dimension(2);
     fModulus.Dimension(dSymMatrixT::NumValues(3));
     fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
     fModulusContinuum.Dimension(dSymMatrixT::NumValues(3));
@@ -405,6 +408,68 @@ const dSymMatrixT& FossumSSIsoT::PlasFlowDir(void)
 } 
 
 
+/* return hardening modulus */
+const dArrayT& FossumSSIsoT::HardMod(void)
+{
+	/* initialize */
+	fHardMod = 0.0;
+	
+	int ip = CurrIP();
+	ElementCardT& element = CurrentElement();
+	
+	dArrayT hardening(7);
+	dSymMatrixT dfdDevStress(3), dfdAlpha(3), dGdSigma(3), dfdSigma(3);
+	dfdDevStress = 0.0;
+	dfdAlpha = 0.0;
+	hardening = 0.0;
+	
+	dMatrixT Ce = HookeanMatT::Modulus();
+	dSymMatrixT CeTimesdfdSigma(3), CeTimesdGdSigma(3);
+  
+	if (element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic)
+	{
+		/* load internal state variables */
+		LoadData(element,ip);
+		
+		//double kappa = fInternal[kkappa] + fInternal[kdeltakappa];
+		double kappa = fInternal[kkappa];
+
+		/*Find Invariants */
+		double I1 = 0.0, J2 =0.0, J3 = 1.0;
+		for (int i = 0; i < kNSD; i++)
+			I1 += principalEqStress[i];
+		for (int i = 0; i < kNSD; i++)
+		{
+			J2 += 0.5*(principalEqStress[i] - I1/3.0) * (principalEqStress[i] - I1/3.0);
+			J3 *= (principalEqStress[i] - I1/3.0);
+		}
+		
+		for (int A = 0; A < kNSD; A++)
+			dfdDevStress.AddScaled(dfdDevStressA(I1, J2, J3, principalEqStress[A]), m[A]) ;
+	  
+		for (int i=0; i<6; i++)
+			hardening [i] = fCalpha * Galpha(fBackStress) * dfdDevStress [i];
+	   
+		if (!fKappaCapped)
+			hardening [6] = KappaHardening(I1, kappa);
+		
+		dfdAlpha = DfdAlpha(I1,J2,J3, kappa, principalEqStress, m);
+		for (int i = 0; i < 6; i++) fHardMod[0] = fHardMod[0] + hardening[i]*dfdAlpha[i];
+		fHardMod[0] = fHardMod[0] + hardening[6]*dfdKappa(I1, kappa);
+		fHardMod[0] *= -1.0;
+		
+		dfdSigma = DfdSigma(I1,J2,J3, kappa, principalEqStress, m);
+		dGdSigma = DGdSigma(I1,J2,J3, kappa, principalEqStress, m);
+
+		CeTimesdfdSigma.A_ijkl_B_kl(Ce, dfdSigma);
+		CeTimesdGdSigma.A_ijkl_B_kl(Ce, dGdSigma);
+		fHardMod[1] = dfdSigma.ScalarProduct(CeTimesdGdSigma) + fHardMod[0]; 		
+	}
+
+	return fHardMod;
+} 
+
+
   
   
 /* 	 
@@ -578,11 +643,16 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 		{
 			for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i] + fDeltaAlpha[i];
 			output [6] = fInternal[kkappa] + fInternal[kdeltakappa];
+			dArrayT chihardmod = HardMod();
+			output [11] = chihardmod[0];
+			output [12] = chihardmod[1];
 		}
 		else
 		{
 			for (int i = 0; i < 6 ; i++) output [i] = fBackStress [i];
 			output [6] = fInternal[kkappa];
+			output [11] = 0.0;
+			output [12] = 0.0;
 		}
 		
 #ifdef ENHANCED_STRAIN_LOC_DEV Ê Ê Ê Ê
@@ -600,6 +670,8 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 		output [5] = 0.0;
 		output [6] = fKappa0;
 		output [10] = 0.0;
+		output [11] = 0.0;
+		output [12] = 0.0;
 	}
 	
 	/* stress tensor (load state) */

@@ -149,6 +149,7 @@ private:
 	dMatrixT fModulusPerfPlas;
 	dMatrixT fModulusContinuum;
 	dMatrixT fModulusContinuumPerfPlas;
+	dArrayT fHardMod;
 	
 	// pointer to material support
 	const SSEnhLocMatSupportT* fSSEnhLocMatSupport;
@@ -179,6 +180,9 @@ protected:
 	
 	/* plastic flow direction */
 	const dSymMatrixT& PlasFlowDir(void);
+	
+	/* hardening modulus */
+	const dArrayT& HardMod(void);
 
 	/* return a pointer to a new plastic element object constructed with
 	* the data from element */
