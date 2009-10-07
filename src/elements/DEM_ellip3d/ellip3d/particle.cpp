@@ -557,7 +557,7 @@ long double particle::getRadius(vec v) const{
 		      <<endl;
     }
 */
-    return fabsl(-C/B); // r1*r2/(r1+r2)
+    return fabsl(-C/B*2.0); // 2*r1*r2/(r1+r2)
 }
 
 
