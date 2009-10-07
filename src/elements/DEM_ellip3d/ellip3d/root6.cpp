@@ -1,18 +1,18 @@
 //    <<Numerical Recipes in C>>
 //    void zrhqr(float a[], int m, float rtr[], float rti[])
-//    Find all the roots of a polynomial with real coefficients, i=0~m, a(i)xi, given the degree m
+//    Find all the roots of a polynomial with real coefficients, i=0~m, a(i)x^i, given the degree m
 //    and the coefficients a[0..m]. The method is to construct an upper Hessenberg matrix whose
 //    eigenvalues are the desired roots, and then use the routines balanc and hqr. The real and
 //    imaginary parts of the roots are returned in rtr[1..m] and rti[1..m], respectively
 
-//    The purpose of this function is to find the point on the surface of particle 2, which is innermost to
-//    the surface of particle 1. However, the algorithm in the thesis can't guarantee that the found point
-//    is inside particle 1, which means, even if the two particles are completely separated (not-in-touch),
-//    the algorithm could still find a point!
+//    The purpose of this function is to find the point on surface of particle 2, which penetrates
+//    deepest into surface of particle 1. However, the algorithm in the thesis can't guarantee that
+//    the point found is inside particle 1, which means, even if the two particles are completely 
+//    separated (not-in-touch), the algorithm could still find a point!
 //
 //    return values:
 //      true  - non-overlapped
-//      false - overlapped and vector point returns the innermost point.
+//      false - overlapped and vector point returns the deepest point.
 
 #include <iostream>
 #include <fstream>
@@ -1872,9 +1872,9 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	for (int k=0;k<=order;k++)
 	    rtc[k]/=rtc[order];
 	if (order==0)
-	    return false; // usually order==6
+	    return false; 
 
-	#ifdef DEBUG
+        #ifdef DEBUG  // tested: order==6 whether or not in contact
 	g_exceptioninf<<endl<<"g_iteration= "<<setw(16)<<g_iteration<<endl
 		    <<"order="<<setw(10)<<order<<endl;
 	#endif
@@ -1976,6 +1976,8 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 			    <<" within= "<<setw(16)<<within<<endl;
                 #endif
 		
+		// in theory we need to seek the smallest within (when it < 0), 
+		// but tests show there is only one < 0  in the loop no matter what jj is.
 		if(within<0){
 		    point=vec(x,y,z);
 		    found=true;
@@ -1985,8 +1987,7 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	    else {
 		#ifdef DEBUG
 		g_exceptioninf<<setw(10)<<k<<setw(10)<<" det= "<<setw(16)<<det
-			    <<" ????????????????????????????????????????????????"
-			    <<"????????????????????????????????"<<endl;
+			      <<" determinant is 0 in root6 !!!" <<endl;
                 #endif
 	    }
 	}
