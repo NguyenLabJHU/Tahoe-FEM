@@ -1,5 +1,5 @@
 1. HOW TO RUN:
-   step 1) revise main.cxx per your need
+   step 1) revise main.cpp per your need
    step 2) make
    step 3) ./ellip3d or ./ellip3d > tmp &
 
@@ -12,7 +12,7 @@ assembly.cxx:
 03. output information as progress, particles and contacts.
 04. createContact() 1. remove PossContact. 2. include only true contacts.
 05. createsample(), can optionally set up initail velocity/angular velocity and constant force/moment.
-06. gravity can be considered or not, depending on a boolean variable.
+06. gravity can be considered or not, depending on GRVT_SCL.
 07. checkinPreShearForce() and checkoutShearForce() in createContact() and internforce(), respectively.
 08. OpenMP implementation in createContact().
 
@@ -35,7 +35,7 @@ particle.cxx:
 08. ensure a/b/c corresond to x/y/z
 09. constructor and update(): acos() and normalize
 10. correct errors in Hertz-Mindlin formula between particle and walls.
-11. setZero() can designate force or moment; add private members const_force and const_moment.
+11. setZero() can specify force or moment; add private members const_force and const_moment.
 12. contact.h-06, store PreShearForce for particle-wall contacts.
 
 others:

@@ -1,45 +1,54 @@
-RECOMMEND = -O3 -funroll-all-loops -fpeel-loops -DNDEBUG
-OPTIMIZE1 = -fprofile-arcs
-OPTIMIZE2 = -fbranch-probalilities
+# OPTIMIZE is used for optimization
+OPTIMIZE = -O3 -funroll-all-loops -fpeel-loops -DNDEBUG
+
+# These options are seldom used
+OPT_1 = -fprofile-arcs
+OPT_2 = -fbranch-probalilities
+
+# DEBUG is used for debugging
+DEBUG = -Wall -gstabs
+
+# $(DEBUG) or $(OPTIMIZE)
+OPTION = $(OPTIMIZE)
 
 ellip3d: ellip3d.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o
-	g++ $(RECOMMEND) -Wall -gstabs -o ellip3d ellip3d.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o
+	g++ $(OPTION) -o ellip3d ellip3d.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o
 
 ellip3d.o: vec.h gradation.h rectangle.h cylinder.h assembly.h main.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs -o ellip3d.o main.cpp
+	g++ -c $(OPTION) -o ellip3d.o main.cpp
 
 assembly.o: const.h vec.h gradation.h boundarytgt.h particle.h contact.h boundary.h rectangle.h cylinder.h assembly.h assembly.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs assembly.cpp
+	g++ -c $(OPTION) assembly.cpp
 
 particle.o: const.h vec.h gradation.h boundarytgt.h contact.h boundary.h rectangle.h cylinder.h ran.h root6.h particle.h particle.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs particle.cpp
+	g++ -c $(OPTION) particle.cpp
 
 cylinder.o: vec.h shape.h const.h ran.h cylinder.h cylinder.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs cylinder.cpp
+	g++ -c $(OPTION) cylinder.cpp
 
 rectangle.o: vec.h shape.h ran.h rectangle.h rectangle.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs rectangle.cpp
+	g++ -c $(OPTION) rectangle.cpp
 
 ran.o: ran.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs ran.cpp
+	g++ -c $(OPTION) ran.cpp
 
 root6.o: const.h vec.h root6.h nr.h root6.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs root6.cpp
+	g++ -c $(OPTION) root6.cpp
 
 zrhqr.o: nrutil.h zrhqr.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs zrhqr.cpp 
+	g++ -c $(OPTION) zrhqr.cpp 
 
 hqr.o: nrutil.h hqr.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs hqr.cpp
+	g++ -c $(OPTION) hqr.cpp
 
 balanc.o: balanc.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs balanc.cpp
+	g++ -c $(OPTION) balanc.cpp
 
 nrutil.o: nrutil.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs nrutil.cpp
+	g++ -c $(OPTION) nrutil.cpp
 
 vec.o: const.h vec.h vec.cpp
-	g++ -c $(RECOMMEND) -Wall -gstabs vec.cpp
+	g++ -c $(OPTION) vec.cpp
 
 clean:
 	rm -f *.o
