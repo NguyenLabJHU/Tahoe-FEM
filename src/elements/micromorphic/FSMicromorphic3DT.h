@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.52 2009-09-28 20:40:09 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.53 2009-10-07 14:27:45 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -417,22 +417,29 @@ private:
 	dMatrixT deltaL_Tr;
 	dMatrixT tempSig;
 	dMatrixT deltad;
-	dArrayT SigN_ar;
+	dMatrixT SigN_ar;
 	dArray2DT SigN_IPs;
+	dArray2DT Sig_IPs;
 	dArray2DT SigN_IPs_el;
+	dArray2DT Sig_IPs_el;
 	dArray2DT SigN_IPs_el_n;
+	dArrayT Temp_Identity_array;
 
 	dMatrixT Sigma; // unsymetric Cauchy stress tensor at current step
 	double Fn[3][3];
-	dArrayT Fn_ar;
+	dMatrixT Fn_ar;
 	dArray2DT Fn_ar_IPs;
+	dArray2DT F_ar_IPs;
 	dArray2DT Fn_ar_IPs_el;
+	dArray2DT F_ar_IPs_el;
 	dArray2DT Fn_ar_IPs_el_n;
 
 	double FnInv[3][3];
-	dArrayT FnInv_ar;
+	dMatrixT FnInv_ar;
 	dArray2DT FnInv_ar_IPs;
+	dArray2DT FInv_ar_IPs;
 	dArray2DT FnInv_ar_IPs_el;
+	dArray2DT FInv_ar_IPs_el;
 	dArray2DT FnInv_ar_IPs_el_n;
 
 	double Finv[3][3];
@@ -442,7 +449,7 @@ private:
 	double ChiInv[3][3];
 	dMatrixT ChiInv_m;
 	double ChiN[3][3];
-	dArrayT ChiN_ar;
+	dMatrixT ChiN_ar;
 	dArray2DT ChiN_ar_IPs;
 	dArray2DT ChiN_ar_IPs_el;
 	dArray2DT ChiN_ar_IPs_el_n;
