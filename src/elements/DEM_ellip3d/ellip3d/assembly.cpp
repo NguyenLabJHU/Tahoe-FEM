@@ -69,7 +69,7 @@ extern long double STRESS_ERROR;
 ofstream        progressinf;
 bool            toprintstep;
 
-void assembly::printPtcl(char* str) const
+void assembly::printPtcl(const char* str) const
 {
     ofstream ofs(str);
     if(!ofs) {
@@ -158,7 +158,7 @@ void assembly::printPtcl(char* str) const
 }
 
 
-void assembly::printRectPile(char* str)
+void assembly::printRectPile(const char* str)
 {
     ofstream ofs(str, ios_base::app);
     if(!ofs) {
@@ -222,7 +222,7 @@ void assembly::printRectPile(char* str)
 //  4. a const_iterator such as it also guarantees that (*it) will NOT
 //     change any data. if (*it) call a modification function, the 
 //     compiler will give errors.
-void assembly::printCntct(char* str) const
+void assembly::printCntct(const char* str) const
 {
     ofstream ofs(str);
     if(!ofs) {
@@ -271,7 +271,7 @@ void assembly::printCntct(char* str) const
 }
 
 
-void assembly::snapshot(char* str) const{
+void assembly::snapshot(const char* str) const{
     ofstream ofs(str);
     if(!ofs) {
 	cout<<"stream error in snapshot!"<<endl; exit(-1);
@@ -343,7 +343,7 @@ void assembly::snapshot(char* str) const{
 }
 
 	
-void assembly::createSample(char* str){
+void assembly::createSample(const char* str){
     ifstream ifs(str);
     if(!ifs) {
 	cout<<"stream error in createSample!"<<endl; exit(-1);
@@ -853,7 +853,7 @@ void assembly::createFB(ifstream &ifs){
 }
 
 	
-void assembly::createBdry(char* str){
+void assembly::createBdry(const char* str){
     ifstream ifs(str);
     if(!ifs) {
 	cout<<"stream error in createBdry!"<<endl; exit(-1);
@@ -880,7 +880,7 @@ void assembly::dispBdry() const{
 }
 
 
-void assembly::printBdry(char* str) const
+void assembly::printBdry(const char* str) const
 {
     ofstream ofs(str);
     if(!ofs) {
@@ -1182,14 +1182,14 @@ void assembly::deposit_RgdBdry(gradation& grad,
 			       int   total_steps,  
 			       int   snapshots,
 			       long double height,
-			       char* iniptclfile,   
-			       char* inibdryfile,
-			       char* particlefile, 
-			       char* contactfile,
-			       char* progressfile, 
-			       char* creparticle,
-			       char* creboundary,
-			       char* exceptionfile)
+			       const char* iniptclfile,   
+			       const char* inibdryfile,
+			       const char* particlefile, 
+			       const char* contactfile,
+			       const char* progressfile, 
+			       const char* creparticle,
+			       const char* creboundary,
+			       const char* exceptionfile)
 {
     if (grad.rorc == 1) {
 	RORC = grad.rorc;
@@ -1234,7 +1234,7 @@ void assembly::deposit_RgdBdry(gradation& grad,
 // 2 - multiple layers of free particles
 // ht- how many times of size would be the floating height
 void assembly::init(gradation&  grad,
-		    char*       particlefile,
+		    const char*       particlefile,
 		    int         freetype,
 		    long double ht)
 {
@@ -1293,11 +1293,11 @@ void assembly::deposit_PtclBdry(gradation& grad,
 				long double rsize,
 				int   total_steps,  
 				int   snapshots,
-				char* iniptclfile,   
-				char* particlefile, 
-				char* contactfile,
-				char* progressfile, 
-				char* exceptionfile)
+				const char* iniptclfile,   
+				const char* particlefile, 
+				const char* contactfile,
+				const char* progressfile, 
+				const char* exceptionfile)
 {
     if (grad.rorc == 1) {
 	RORC = grad.rorc;
@@ -1326,7 +1326,7 @@ void assembly::deposit_PtclBdry(gradation& grad,
 // 2 - multiple layers of free particles
 // ht- how many times of size would be the floating height
 void assembly::init_p(gradation&  grad,
-		      char*       particlefile,
+		      const char*       particlefile,
 		      int         freetype,
 		      long double rsize,
 		      long double ht)
@@ -1422,11 +1422,11 @@ void assembly::scale_PtclBdry(int   total_steps,
 			      int   snapshots,
 			      long double dimn,
 			      long double rsize,
-			      char* iniptclfile,   
-			      char* particlefile, 
-			      char* contactfile,
-			      char* progressfile, 
-			      char* exceptionfile)
+			      const char* iniptclfile,   
+			      const char* particlefile, 
+			      const char* contactfile,
+			      const char* progressfile, 
+			      const char* exceptionfile)
 {
     deposit_p(total_steps,        // total_steps
 	      snapshots,          // number of snapshots
@@ -1444,12 +1444,12 @@ void assembly::scale_PtclBdry(int   total_steps,
 void assembly::collapse(int   rors, 
 			int   total_steps,  
 			int   snapshots,
-			char* iniptclfile,
-			char* initboundary,
-			char* particlefile,
-			char* contactfile,
-			char* progressfile,
-			char* exceptionfile)
+			const char* iniptclfile,
+			const char* initboundary,
+			const char* particlefile,
+			const char* contactfile,
+			const char* progressfile,
+			const char* exceptionfile)
 {
     setbdry(rors,               // rectangular--1 or cylindrical--0?
 	    1,                  // 1-only bottom boundary;5-no top boundary;6-boxed 6 boundaries
@@ -1470,7 +1470,7 @@ void assembly::collapse(int   rors,
 void assembly::setbdry(int   rors,
 		       int   bdrynum,
 		       long double dimn,
-		       char* boundaryfile)
+		       const char* boundaryfile)
 {
     ofstream ofs(boundaryfile);
     if(!ofs) { cout<<"stream error!"<<endl; exit(-1);}
@@ -2308,10 +2308,10 @@ void assembly::setbdry(int   rors,
 
 
 void assembly::trim(int   rors,
-		    char* iniptclfile,
-		    char* inibdryfile,
-		    char* particlefile,
-		    char* boundaryfile)
+		    const char* iniptclfile,
+		    const char* inibdryfile,
+		    const char* particlefile,
+		    const char* boundaryfile)
 {
     createSample(iniptclfile);
     createBdry(inibdryfile);
@@ -2406,8 +2406,8 @@ void assembly::trim(int   rors,
 
 
 void assembly::TrimPtclBdryByHeight(double height,
-			    char* iniptclfile,
-			    char* particlefile)
+			    const char* iniptclfile,
+			    const char* particlefile)
 {
     createSample(iniptclfile);
 
@@ -2437,12 +2437,12 @@ void assembly::TrimPtclBdryByHeight(double height,
 // the container can be as simple as a bottom plate
 void assembly::deposit(int   total_steps,  
 		       int   snapshots,
-		       char* iniptclfile,   
-		       char* inibdryfile,
-		       char* particlefile, 
-		       char* contactfile,
-		       char* progressfile, 
-		       char* exceptionfile)
+		       const char* iniptclfile,   
+		       const char* inibdryfile,
+		       const char* particlefile, 
+		       const char* contactfile,
+		       const char* progressfile, 
+		       const char* exceptionfile)
 {
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapshots at the end.
@@ -2599,11 +2599,11 @@ void assembly::deposit_p(int   total_steps,
 			 int   snapshots,
 			 long double dimn,
 			 long double rsize,
-			 char* iniptclfile,   
-			 char* particlefile, 
-			 char* contactfile,
-			 char* progressfile, 
-			 char* exceptionfile)
+			 const char* iniptclfile,   
+			 const char* particlefile, 
+			 const char* contactfile,
+			 const char* progressfile, 
+			 const char* exceptionfile)
 {
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapshots at the end.
@@ -2734,13 +2734,13 @@ void assembly::squeeze(int   total_steps,
 		       int   init_steps,
 		       int   snapshots,
 		       int   flag,
-		       char* iniptclfile,   
-		       char* inibdryfile,
-		       char* particlefile, 
-		       char* boundaryfile,
-		       char* contactfile,
-		       char* progressfile, 
-		       char* exceptionfile)
+		       const char* iniptclfile,   
+		       const char* inibdryfile,
+		       const char* particlefile, 
+		       const char* boundaryfile,
+		       const char* contactfile,
+		       const char* progressfile, 
+		       const char* exceptionfile)
 {
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapshots at the end.
@@ -2911,14 +2911,14 @@ void assembly::squeeze(int   total_steps,
 void assembly::isotropic(int   total_steps,
 			 int   snapshots, 
 			 long double sigma,			  
-			 char* iniptclfile,   
-			 char* inibdryfile,
-			 char* particlefile, 
-			 char* boundaryfile,
-			 char* contactfile,  
-			 char* progressfile,
-			 char* balancedfile, 
-			 char* exceptionfile) 
+			 const char* iniptclfile,   
+			 const char* inibdryfile,
+			 const char* particlefile, 
+			 const char* boundaryfile,
+			 const char* contactfile,  
+			 const char* progressfile,
+			 const char* balancedfile, 
+			 const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -3214,14 +3214,14 @@ void assembly::isotropic(int   total_steps,
 			 long double sigma_a,
 			 long double sigma_b,
 			 int   sigma_division,
-			 char* iniptclfile,   
-			 char* inibdryfile,
-			 char* particlefile, 
-			 char* boundaryfile,
-			 char* contactfile,  
-			 char* progressfile,
-			 char* balancedfile, 
-			 char* exceptionfile) 
+			 const char* iniptclfile,   
+			 const char* inibdryfile,
+			 const char* particlefile, 
+			 const char* boundaryfile,
+			 const char* contactfile,  
+			 const char* progressfile,
+			 const char* balancedfile, 
+			 const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -3526,14 +3526,14 @@ void assembly::isotropic(int   total_steps,
 			 int   sigma_points,  
 			 long double sigma_values[],  
 			 int   sigma_division,	  
-			 char* iniptclfile,  
-			 char* inibdryfile,
-			 char* particlefile, 
-			 char* boundaryfile,
-			 char* contactfile,  
-			 char* progressfile,
-			 char* balancedfile, 
-			 char* exceptionfile) 
+			 const char* iniptclfile,  
+			 const char* inibdryfile,
+			 const char* particlefile, 
+			 const char* boundaryfile,
+			 const char* contactfile,  
+			 const char* progressfile,
+			 const char* balancedfile, 
+			 const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -3848,14 +3848,14 @@ void assembly::odometer(int   total_steps,
 			long double sigma_3,     
 			long double sigma_1,    
 			int   sigma_division,			  
-			char* iniptclfile,  
-			char* inibdryfile,
-			char* particlefile,
-			char* boundaryfile,
-			char* contactfile,  
-			char* progressfile,
-			char* balancedfile, 
-			char* exceptionfile) 
+			const char* iniptclfile,  
+			const char* inibdryfile,
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile,  
+			const char* progressfile,
+			const char* balancedfile, 
+			const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -4118,14 +4118,14 @@ void assembly::odometer(int   total_steps,
 			int   sigma_points,  
 			long double sigma_values[],  
 			int   sigma_division,			  
-			char* iniptclfile,  
-			char* inibdryfile,
-			char* particlefile, 
-			char* boundaryfile,
-			char* contactfile,  
-			char* progressfile,
-			char* balancedfile, 
-			char* exceptionfile) 
+			const char* iniptclfile,  
+			const char* inibdryfile,
+			const char* particlefile, 
+			const char* boundaryfile,
+			const char* contactfile,  
+			const char* progressfile,
+			const char* balancedfile, 
+			const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -4388,12 +4388,12 @@ void assembly::odometer(int   total_steps,
 
 void assembly::unconfined(int   total_steps,  
 			  int   snapshots,			  
-			  char* iniptclfile,  
-			  char* inibdryfile,
-			  char* particlefile,
-			  char* contactfile,  
-			  char* progressfile,
-			  char* exceptionfile) 
+			  const char* iniptclfile,  
+			  const char* inibdryfile,
+			  const char* particlefile,
+			  const char* contactfile,  
+			  const char* progressfile,
+			  const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.  
@@ -4530,13 +4530,13 @@ void assembly::unconfined(int   total_steps,
 void assembly::triaxialPtclBdryIni(int   total_steps,  
 				   int   snapshots, 
 				   double sigma,
-				   char* iniptclfile, 
-				   char* inibdryfile,
-				   char* particlefile,
-				   char* boundaryfile,
-				   char* contactfile, 
-				   char* progressfile,
-				   char* exceptionfile) 
+				   const char* iniptclfile, 
+				   const char* inibdryfile,
+				   const char* particlefile,
+				   const char* boundaryfile,
+				   const char* contactfile, 
+				   const char* progressfile,
+				   const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -4695,14 +4695,14 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 // Displacement boundaries are used in axial direction.
 void assembly::triaxialPtclBdry(int   total_steps,  
 				int   snapshots, 
-				char* iniptclfile, 
-				char* inibdryfile,
-				char* particlefile,
-				char* boundaryfile,
-				char* contactfile, 
-				char* progressfile,
-				char* balancedfile,
-				char* exceptionfile) 
+				const char* iniptclfile, 
+				const char* inibdryfile,
+				const char* particlefile,
+				const char* boundaryfile,
+				const char* contactfile, 
+				const char* progressfile,
+				const char* balancedfile,
+				const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -4901,14 +4901,14 @@ void assembly::triaxialPtclBdry(int   total_steps,
 void assembly::triaxial(int   total_steps,  
 			int   snapshots, 
 			long double sigma_a,	  
-			char* iniptclfile, 
-			char* inibdryfile,
-			char* particlefile,
-			char* boundaryfile,
-			char* contactfile, 
-			char* progressfile,
-			char* balancedfile,
-			char* exceptionfile) 
+			const char* iniptclfile, 
+			const char* inibdryfile,
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile, 
+			const char* progressfile,
+			const char* balancedfile,
+			const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5172,14 +5172,14 @@ void assembly::triaxial(int   total_steps,
 			int   unload_step,
 			int   snapshots, 
 			long double sigma_a,	  
-			char* iniptclfile,  
-			char* inibdryfile,
-			char* particlefile,
-			char* boundaryfile,
-			char* contactfile,
-			char* progressfile,
-			char* balancedfile,
-			char* exceptionfile) 
+			const char* iniptclfile,  
+			const char* inibdryfile,
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile,
+			const char* progressfile,
+			const char* balancedfile,
+			const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5454,13 +5454,13 @@ void assembly::triaxial(int   total_steps,
 // A rectangular pile is then drived into the particles using displacement control.
 void assembly::rectPile_Disp(int   total_steps,  
 			     int   snapshots, 
-			     char* iniptclfile,  
-			     char* inibdryfile,
-			     char* particlefile, 
-			     char* boundaryfile,
-			     char* contactfile,  
-			     char* progressfile,
-			     char* exceptionfile) 
+			     const char* iniptclfile,  
+			     const char* inibdryfile,
+			     const char* particlefile, 
+			     const char* boundaryfile,
+			     const char* contactfile,  
+			     const char* progressfile,
+			     const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5613,11 +5613,11 @@ void assembly::ellipPile_Disp(int   total_steps,
 			      int   snapshots, 
 			      long double dimn,
 			      long double rsize,
-			      char* iniptclfile,
-			      char* particlefile, 
-			      char* contactfile,  
-			      char* progressfile,
-			      char* exceptionfile) 
+			      const char* iniptclfile,
+			      const char* particlefile, 
+			      const char* contactfile,  
+			      const char* progressfile,
+			      const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5754,12 +5754,12 @@ void assembly::ellipPile_Disp(int   total_steps,
 void assembly::ellipPile_Impact(int   total_steps,  
 				int   snapshots, 
 				long double dimn,
-				char* iniptclfile,
-				char* inibdryfile,
-				char* particlefile, 
-				char* contactfile,  
-				char* progressfile,
-				char* exceptionfile) 
+				const char* iniptclfile,
+				const char* inibdryfile,
+				const char* particlefile, 
+				const char* contactfile,  
+				const char* progressfile,
+				const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5921,11 +5921,11 @@ void assembly::ellipPile_Impact(int   total_steps,
 void assembly::ellipPile_Impact_p(int   total_steps,  
 				  int   snapshots, 
 				  long double dimn,
-				  char* iniptclfile,
-				  char* particlefile, 
-				  char* contactfile,  
-				  char* progressfile,
-				  char* exceptionfile) 
+				  const char* iniptclfile,
+				  const char* particlefile, 
+				  const char* contactfile,  
+				  const char* progressfile,
+				  const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -6067,12 +6067,12 @@ void assembly::ellipPile_Force(int   total_steps,
 			       long double dimn,
 			       long double force,
 			       int   division,
-			       char* iniptclfile,
-			       char* particlefile, 
-			       char* contactfile,  
-			       char* progressfile,
-			       char* balancedfile,
-			       char* exceptionfile) 
+			       const char* iniptclfile,
+			       const char* particlefile, 
+			       const char* contactfile,  
+			       const char* progressfile,
+			       const char* balancedfile,
+			       const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -6238,14 +6238,14 @@ void assembly::truetriaxial(int   total_steps,
 			    long double sigma_l,     
 			    long double sigma_h,   
 			    int   sigma_division,
-			    char* iniptclfile,  
-			    char* inibdryfile,
-			    char* particlefile, 
-			    char* boundaryfile,
-			    char* contactfile,  
-			    char* progressfile,
-			    char* balancedfile, 
-			    char* exceptionfile) 
+			    const char* iniptclfile,  
+			    const char* inibdryfile,
+			    const char* particlefile, 
+			    const char* boundaryfile,
+			    const char* contactfile,  
+			    const char* progressfile,
+			    const char* balancedfile, 
+			    const char* exceptionfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -6551,9 +6551,9 @@ void assembly::truetriaxial(int   total_steps,
 } // namespace dem ends
 
 /* 
-void assembly::dircShear(long double rate, long double roterate,long double stress,char* iniptclfile,
-						 char* boundaryfile, char* responsefile, char* resultfile,
-						 char* trackfile){
+void assembly::dircShear(long double rate, long double roterate,long double stress,const char* iniptclfile,
+						 const char* boundaryfile, const char* responsefile, const char* resultfile,
+						 const char* trackfile){
 	createSample(iniptclfile);//create particles 
 	createBdry(boundaryfile);//create rigid boundaries
 
@@ -6681,9 +6681,9 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 */
 
 /* 
-void assembly::soft_tric(long double _sigma3,long double _b,char* iniptclfile,
-						   char* boundaryfile,char* responsefile,
-						   char* resultfile,char* trackfile){
+void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclfile,
+						   const char* boundaryfile,const char* responsefile,
+						   const char* resultfile,const char* trackfile){
 	createSample(iniptclfile); //create particles 
 	createBdry(boundaryfile);
 
@@ -6776,8 +6776,8 @@ void assembly::soft_tric(long double _sigma3,long double _b,char* iniptclfile,
 */
 
 /* 
-void assembly::shallowFoundation(char* iniptclfile, char* boundaryfile,char* responsefile, 
-	char* resultfile, char* trackfile)
+void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfile,const char* responsefile, 
+	const char* resultfile, const char* trackfile)
 {
 	createSample(iniptclfile);//create particles 
 	createBdry(boundaryfile);
@@ -6885,8 +6885,8 @@ void assembly::shallowFoundation(char* iniptclfile, char* boundaryfile,char* res
 
 /* 
 void assembly::simpleShear(long double _sigma3,long double _b,
-			char* iniptclfile,char* boundaryfile,
-			char* responsefile,char* resultfile, char* trackfile)
+			const char* iniptclfile,const char* boundaryfile,
+			const char* responsefile,const char* resultfile, const char* trackfile)
 {
 	createSample(iniptclfile);//create particles 
 	createBdry(boundaryfile);
@@ -7078,9 +7078,9 @@ disp.x,disp.y,disp.z,angl.x,angl.y,angl.z,nm.x,nm.y,nm.z,sh.x,sh.y,sh.z);
 
 /* 
 void assembly::earthPressure(long double pressure,bool IsPassive, 
-				char* iniptclfile, char* boundaryfile,
-				char* responsefile, char* resultfile,
-				char* trackfile)
+				const char* iniptclfile, const char* boundaryfile,
+				const char* responsefile, const char* resultfile,
+				const char* trackfile)
 {
 	createSample(iniptclfile);//create particles 
 	createBdry(boundaryfile);
