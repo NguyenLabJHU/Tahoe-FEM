@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.53 2009-10-07 14:27:45 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.54 2009-10-09 22:58:25 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -418,12 +418,25 @@ private:
 	dMatrixT tempSig;
 	dMatrixT deltad;
 	dMatrixT SigN_ar;
+
 	dArray2DT SigN_IPs;
 	dArray2DT Sig_IPs;
 	dArray2DT SigN_IPs_el;
 	dArray2DT Sig_IPs_el;
 	dArray2DT SigN_IPs_el_n;
 	dArrayT Temp_Identity_array;
+
+
+	dMatrixT SPiolaN;
+	dMatrixT SPiola;
+
+	dArray2DT SPiolaN_IPs;
+	dArray2DT SPiola_IPs;
+	dArray2DT SPiolaN_IPs_el;
+	dArray2DT SPiola_IPs_el;
+	dArray2DT SPiolaN_IPs_el_n;
+
+
 
 	dMatrixT Sigma; // unsymetric Cauchy stress tensor at current step
 	double Fn[3][3];
@@ -806,6 +819,7 @@ private:
     void Form_Finv_eta_matrix(void);
     void Form_CapitalLambda_matrix(void);
     void Form_CCof_tensor(void);
+    void Form_SPiola_matrix(void);
 
 //    void Form_GRAD_NCHI_Phi_matrix(const  dMatrixT &fShapeMicroGrad); no need for this
 

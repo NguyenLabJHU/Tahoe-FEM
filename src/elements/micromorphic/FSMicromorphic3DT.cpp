@@ -1206,7 +1206,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 fEulerian_strain_tensor_current_IP *= -1;
                 fEulerian_strain_tensor_current_IP += fIdentity_matrix;
                 fEulerian_strain_tensor_current_IP *= 0.5;
-
+                Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_six_values);
                 /* Save Eulerian strain tensor of the current IP */
                 fEulerian_strain_IPs.SetRow(IP,fTemp_six_values);
 
@@ -1252,8 +1252,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 fIota_w_temp_matrix.Multx(G1,Uint_1_temp);
                 Uint_1_temp*=-1*scale_const*J;
                 Uint_1 +=Uint_1_temp;
-                fShapeDispl.MultTx(fGravity_vector,Uext_1);
-                Uext_1*=-fMaterial_Params[kRho_0];
+//                fShapeDispl.MultTx(fGravity_vector,Uext_1);
+//                Uext_1*=-fMaterial_Params[kRho_0];
 
 /*
                 Form_H1_matrix();//output:H1 vctor & Mnplus1 tensor
@@ -1425,7 +1425,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 //fPi_temp_row_matrix has been deleted accidentally
          //       fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fShapeDisplGrad);//ABC not ABCT
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,SigCurr,fIota_temp_matrix);//ABC
-
                 scale = -scale_const*J;
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
@@ -1724,7 +1723,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKdd +=  fG1_10;
             fKdd +=  fG1_12;
             fKdd +=  fG1_13;
-          //  fKdd +=  fG1_14;
+            fKdd +=  fG1_14;
           //  fKdd*=-1;
 
 
@@ -3290,7 +3289,7 @@ void FSMicromorphic3DT::Form_G1_matrix()
     }
 */
 
-
+/*
     for(int l=0;l<3;l++)
     {
     	for(int k=0;k<3;k++)
@@ -3369,11 +3368,11 @@ void FSMicromorphic3DT::Form_G1_matrix()
     }
 
 
+*/
 
 
 
 
-/*
 
 deltaL.MultAB(Fn_m,Finv_m);
 deltaL*=-1;
@@ -3412,7 +3411,7 @@ tempSig=deltad;
 tempSig*=(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
 tempSig*=2;
 Sigma+=tempSig;
-*/
+
 
 
     for(int k=0;k<=2;k++)
@@ -4881,6 +4880,14 @@ void FSMicromorphic3DT::Form_SigCurr_matrix()
 
 
 }
+
+void FSMicromorphic3DT::Form_SPiola_matrix()
+{
+	SPiola=0.0;
+	SPiola=SPiolaN;
+
+}
+
 
 // Forming the matrices coming from the Bal. of First Mom. of Momtm
 void FSMicromorphic3DT::Form_Finv_eta_matrix()
