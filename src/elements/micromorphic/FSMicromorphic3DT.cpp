@@ -2355,6 +2355,19 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fH3_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
 
+	 Mat1.Dimension(9,9);
+	 Mat2.Dimension(9,9);
+	 Mat3.Dimension(9,9);
+	 Mat4.Dimension(9,9);
+	 Mat5.Dimension(9,9);
+	 Mat5_Inv.Dimension(9,9);
+	 RHS.Dimension(9);
+	 Sigma1.Dimension(9);
+
+
+
+
+
     G1.Dimension(n_sd_x_n_sd);
     Uint_1.Dimension(n_en_displ_x_n_sd);
     Uint_1_temp.Dimension(n_en_displ_x_n_sd);
@@ -3189,8 +3202,16 @@ void FSMicromorphic3DT::Form_Gamma_tensor3D()
 void FSMicromorphic3DT::Form_G1_matrix()
 {
     int row;
+    int col;
     row=0;
+    Mat1=0.0;
+    Mat2=0.0;
+    Mat3=0.0;
+    Mat4=0.0;
+    Mat5=0.0;
     Sigma=0.0;
+    RHS=0.0;
+    Sigma1=0.0;
     G1=0.0;
     deltaL=0.0;
     deltad=0.0;
@@ -3200,6 +3221,7 @@ void FSMicromorphic3DT::Form_G1_matrix()
     SigN_m=0.0;
     double trdeltad;
     trdeltad=0.0;
+
 
     for(int i=0;i<3;i++)
     {
@@ -3373,7 +3395,6 @@ void FSMicromorphic3DT::Form_G1_matrix()
 
 
 
-
 deltaL.MultAB(Fn_m,Finv_m);
 deltaL*=-1;
 deltaL+=fIdentity_matrix;
@@ -3389,7 +3410,7 @@ for(int i=0;i<3;i++)
 
 
 
-Sigma+=SigN_m;
+/*Sigma+=SigN_m;
 
 tempSig=SigN_m;
 tempSig*=trdeltad;
@@ -3410,19 +3431,95 @@ Sigma+=tempSig;
 tempSig=deltad;
 tempSig*=(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
 tempSig*=2;
-Sigma+=tempSig;
+Sigma+=tempSig;*/
+
+for(int l=0;l<9;l++)
+{
+     Mat1(l,l)=1.0;
+}
+
+for(int l=0;l<9;l++)
+{
+
+     Mat2(l,l)=trdeltad;
+
+}
+
+row=0;
+col=0;
+for(int k=0;k<3;k++)
+	{
+		Mat3(row,col)    =-deltaL(0,0);
+		Mat3(row,col+1)  =-deltaL(0,1);
+		Mat3(row,col+2)  =-deltaL(0,2);
+		Mat3(row+1,col)  =-deltaL(1,0);
+		Mat3(row+1,col+1)=-deltaL(1,1);
+		Mat3(row+1,col+2)=-deltaL(1,2);
+		Mat3(row+2,col)  =-deltaL(2,0);
+		Mat3(row+2,col+1)=-deltaL(2,1);
+		Mat3(row+2,col+2)=-deltaL(2,2);
+		col=col+3;
+		row=row+3;
+	}
+
+row=0;
+col=0;
+
+for(int l=0;l<3;l++)
+{
+	row=l*3;
+	col=0;
+	for(int k=0;k<3;k++)
+	{
+		Mat4(row  ,col)  =-deltaL(l,k);
+		Mat4(row+1,col+1)=-deltaL(l,k);
+		Mat4(row+2,col+2)=-deltaL(l,k);
+		col=col+3;
+	}
+}
+
+Mat5=Mat1;
+Mat5+=Mat2;
+Mat5+=Mat3;
+Mat5+=Mat4;
+Mat5_Inv.Inverse(Mat5);
+
+RHS=0.0;
+row=0;
+
+for(int l=0;l<3;l++)
+{
+	for(int k=0;k<3;k++)
+	{
+		RHS[row]=SigN[k][l]+fMaterial_Params[kLambda]*trdeltad*fIdentity_matrix(l,k)+2*fMaterial_Params[kMu]*deltad(k,l);
+		row++;
+	}
+}
+
+Mat5_Inv.Multx(RHS,Sigma1);
 
 
 
+/*
     for(int k=0;k<=2;k++)
     {
-        for(int l=0;l<=2;l++)
+        col=l;
+    	for(int l=0;l<=2;l++)
         {
              G1[row]=Sigma(l,k);
             row++;
         }
+    }*/
+row=0;
+for(int k=0;k<=2;k++)
+{
+	for(int l=0;l<=2;l++)
+    {
+		Sigma(l,k)=Sigma1[row];
+		G1[row]=Sigma1[row];
+        row++;
     }
-
+}
 
 }
 
