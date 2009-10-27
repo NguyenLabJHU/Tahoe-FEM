@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.55 2009-10-20 22:30:27 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.56 2009-10-27 20:37:43 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -316,6 +316,7 @@ private:
 	dArrayT		fFphi_ext;
 
 	dArrayT		fGrad_disp_vector;
+	dMatrixT    fGrad_disp_matrix;
 	dArrayT 	fDefGradInv_vector;
 	dArrayT 	fKirchhoff_vector;
 	dArrayT 	fSecond_Piola_vector;
@@ -617,6 +618,9 @@ private:
     dArrayT G1;
     dArrayT Uint_1;
     dArrayT Uint_1_temp;
+    dArrayT Pint_1_temp;
+    dArrayT Pint_2_temp;
+    dArrayT Pint_3_temp;
     dArrayT Uext_1;
     dArrayT Text;
     dArrayT Gext;
