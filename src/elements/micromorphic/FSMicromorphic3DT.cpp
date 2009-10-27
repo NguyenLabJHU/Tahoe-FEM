@@ -1261,6 +1261,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 fIota_eta_temp_matrix.Multx(H1,Pint_1_temp);
                 Pint_1_temp=-1*scale_const*J;
                 Pint_1+=Pint_1_temp;
+
                 Form_H2_matrix();//output: H2 vector & s_sigma matrix
                 NCHI.MultTx(H2,Pint_2_temp);
                 Pint_2_temp*=scale_const*J;//sign is taken into account when forming H2 vector.
@@ -6496,11 +6497,15 @@ void FSMicromorphic3DT::Form_H1_matrix()
     int row;
     row=0;
     H1=0.0;
+    double DtDnu[3][3][3];
+    double DtGdot[3][3][3];
+    double DTL[3][3];
     for(int i=0;i<=2;i++)
     {for(int j=0;j<=2;j++)
     {for(int k=0;k<=2;k++)
     {Mnplus1[i][j][k]=0.0;}}}
 //  Mnplus1=0.0;
+    DTL.MultAB(Fn_m,Finv_m);
 
     for(int m=0;m<=2;m++)
     {
