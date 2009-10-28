@@ -6207,6 +6207,7 @@ void FSMicromorphic3DT:: Form_Mm_14_matrix()
             col++;
             }
         }
+ col=0;
     for(int T = 0;T<= 2;T++)
         {
         for(int i=0;i<=2;i++)
@@ -6498,36 +6499,52 @@ void FSMicromorphic3DT::Form_H1_matrix()
     row=0;
     H1=0.0;
     double DtDnu[3][3][3];
+    double Dtnu[3][3];
     double DtGdot[3][3][3];
     double DTL[3][3];
-    grad_Chi[3][3][3];
-    grad_ChiN[3[3][3];
+    double grad_Chi[3][3][3];
+    double grad_ChiN[3][3][3];
+    double DtGC[3][3][3];
+    double CklmprsDtGC[3][3][3];
+    double trd;
+    trd=0.0;
     for(int i=0;i<=2;i++)
-    {for(int j=0;j<=2;j++)
-    	DTL[i][j]=0.0;
-    {for(int k=0;k<=2;k++)
-    {Mnplus1[i][j][k]=0.0;
-    DtDnu[i][j][k]=0.0;
-    DtGdot[i][j][k]=0.0;
-    grad_Chi[i][j][k]=0.0;
-    grad_ChiN[i][j][k]=0.0;}}}
+    {
+    	for(int j=0;j<=2;j++)
+		{
+    		DTL[i][j]=0.0;
+    		for(int k=0;k<=2;k++)
+    		{
+    			Mnplus1[i][j][k]=0.0;
+    			DtDnu[i][j][k]=0.0;
+    			DtGdot[i][j][k]=0.0;
+    			DtGC[i][j][k]=0.0;
+    			grad_Chi[i][j][k]=0.0;
+    			grad_ChiN[i][j][k]=0.0;
+    			CklmprsDtGC[i][j][k]=0.0;
+    		}
+
+		}
+    	trd+=DTL[i][i];
+    }
 //  Mnplus1=0.0;
+    //constructing grad_Chi and grad_ChiN at current config.
     for(int i=0;i<3;i++)
     {
     	for(int A=0;A<3;A++)
     	{
-    		for(k=0;k<3;k++)
+    		for(int k=0;k<3;k++)
     		{
     			//
     			for(int K=0;K<3;K++)
     			{
-    				grad_Chi[i][A][k]=grad_Chi[i][A][k]+GRAD_Chi[i][A][K]*Finv[K][k];
+    			   	 grad_Chi[i][A][k]=grad_Chi[i][A][k]+GRAD_Chi[i][A][K]*Finv[K][k];
     				grad_ChiN[i][A][k]=grad_ChiN[i][A][k]+GRAD_ChiN[i][A][K]*Finv[K][k];
     			}
     		}
     	}
     }
-
+//constructing deltatL and deltatnu
     for(int i=0;i<3;i++)
     {
     	for(int j=0;j<3;j++)
@@ -6535,9 +6552,11 @@ void FSMicromorphic3DT::Form_H1_matrix()
     		for(int K=0;K<3;K++)
     		{
     		DTL[i][j]=DTL[i][j]+(KrDelta[i][j]-Fn[i][K]*Finv[K][j])*1/2;
+    		Dtnu[i][j]=Dtnu[i][j]+(KrDelta[i][j]-ChiN[i][K]*Chi[K][j])*1/2;
     		}
     	}
     }
+    //constructing the deltat gradientnu
     for(int i=0;i<3;i++)
     {
     	for(int j=0;j<3;j++)
@@ -6548,20 +6567,104 @@ void FSMicromorphic3DT::Form_H1_matrix()
     			for(int A=0;A<3;A++)
     			{
 
-    				DtDnu[i][j][k]=DtDnu[i][j][k]+grad_Chi[i][A][k]*ChiInv[A][j]-grad_ChiN[i][A][k]*ChiInv[A][j];
+    				DtDnu[i][j][k]=DtDnu[i][j][k]+grad_Chi[i][A][k]*ChiInv[A][j]-grad_ChiN[i][A][k]*ChiInv[A][j]
+    				              +grad_Chi[i][A][k]*ChiInv[A][j];
 
-    				for(int D=0;D<3;D++)
+    				for(int m=0;m<3;m++)
     				{
-    					DtDnu[i][j][k]=DtDnu[i][j][k]+GRAD_Chi[i][A][k]*ChiInv[A][j];
+    					for(int D=0;D<3;D++)
+    					{
+    						DtDnu[i][j][k]+=ChiN[i][A]*ChiInv[A][m]*grad_Chi[m][D][k]*ChiInv[D][j];
+    					}
     				}
     			}
        		}
     	}
     }
 
+//constructing deltatgammadot
+    for(int i=0;i<3;i++)
+    {
+    	for(int j=0;j<3;j++)
+    	{
+    		for(int k=0;k<3;k++)
+    		{
+    			DtGdot[i][j][k]+=DtDnu[i][j][k];
+    			for(int p=0;p<3;p++)
+    			{
+        			DtGdot[i][j][k]=DtGdot[i][j][k]+Dtnu[i][p]*GammaN[p][j][k]-Dtnu[p][j]*GammaN[i][p][k];
+    			}
+    		}
+    	}
+    }
+//constructing deltatgammacircle DtGC
+
+    for(int i=0;i<3;i++)
+    {
+    	for(int j=0;j<3;j++)
+    	{
+    		for(int k=0;k<3;k++)
+    		{
+    			DtGC[i][j][k]+=DtGdot[i][j][k];
+    			for(int p=0;p<3;p++)
+    			{
+    				DtGC[i][j][k]+=DTL[p][i]*GammaN[p][j][k]+GammaN[i][j][p]*DTL[p][k]+Gamma[i][p][k]*Dtnu[p][j];
+    			}
+    		}
+    	}
+    }
+//constructing  CklmprsDtGC
+    for(int m=0;m<3;m++)
+    {
+    	for(int l=0;l<3;l++)
+    	{
+    		for(int k=0;k<3;k++)
+    		{
+    			   //
+    			   for(int p=0;p<3;p++)
+    			    {
+    			    	for(int r=0;r<3;r++)
+    			    	{
+    			    		for(int s=0;s<3;s++)
+    			    		{
+    			    			CklmprsDtGC[k][l][m]+=CCof[k][l][m][p][r][s]*DtGC[p][r][s];
+    			    		}
+    			    	}
+    			    }
+    		}
+    	}
+    }
+//constructing Mnplus1
+    for(int m=0;m<3;m++)
+    {
+    	for(int l=0;l<3;l++)
+    	{
+    		for(int k=0;k<3;k++)
+    		{
+    			   //
+    			Mnplus1[k][l][m]=(1-trd)*mn[k][l][m]+CklmprsDtGC[k][l][m];
+    			for(int p=0;p<3;p++)
+    			{
+    				Mnplus1[k][l][m]+=DTL[k][p]*mn[p][l][m]+mn[k][p][m]*DTL[l][p]+mn[k][l][p]*Dtnu[m][p];
+    			}
+    		}
+    	}
+    }
+
+    for(int m=0;m<3;m++)
+    {
+    	for(int l=0;l<3;l++)
+    	{
+    		for(int k=0;k<3;k++)
+    		{
+    			H1[row]=Mnplus1[k][l][m];
+    			row++;
+    		}
+    	}
+    }
 
 
-    for(int m=0;m<=2;m++)
+/*    for(int m=0;m<=2;m++)
     {
         for(int l=0;l<=2;l++)
         {
@@ -6610,7 +6713,7 @@ void FSMicromorphic3DT::Form_H1_matrix()
             }
         }
     }
-
+*/
 
 }
 

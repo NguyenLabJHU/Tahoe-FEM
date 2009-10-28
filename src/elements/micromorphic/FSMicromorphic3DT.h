@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.56 2009-10-27 20:37:43 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.57 2009-10-28 21:25:07 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -532,6 +532,11 @@ private:
 
 	double CCof[3][3][3][3][3][3];
 	double GRAD_ChiN[3][3][3];// GRADIENT  in reference configuration!
+/*	double grad_Chi[3][3][3];
+	double grad_ChiN[3][3][3];
+	double DtGdot[3][3][3];
+	double DtDnu[3][3][3];
+	double DTL[3][3];*/
 	dArrayT GRAD_ChiN_ar;
 	dArray2DT GRAD_ChiN_ar_IPs;
 	dArray2DT GRAD_ChiN_ar_IPs_el;
