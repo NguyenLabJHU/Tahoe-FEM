@@ -6500,12 +6500,66 @@ void FSMicromorphic3DT::Form_H1_matrix()
     double DtDnu[3][3][3];
     double DtGdot[3][3][3];
     double DTL[3][3];
+    grad_Chi[3][3][3];
+    grad_ChiN[3[3][3];
     for(int i=0;i<=2;i++)
     {for(int j=0;j<=2;j++)
+    	DTL[i][j]=0.0;
     {for(int k=0;k<=2;k++)
-    {Mnplus1[i][j][k]=0.0;}}}
+    {Mnplus1[i][j][k]=0.0;
+    DtDnu[i][j][k]=0.0;
+    DtGdot[i][j][k]=0.0;
+    grad_Chi[i][j][k]=0.0;
+    grad_ChiN[i][j][k]=0.0;}}}
 //  Mnplus1=0.0;
-    DTL.MultAB(Fn_m,Finv_m);
+    for(int i=0;i<3;i++)
+    {
+    	for(int A=0;A<3;A++)
+    	{
+    		for(k=0;k<3;k++)
+    		{
+    			//
+    			for(int K=0;K<3;K++)
+    			{
+    				grad_Chi[i][A][k]=grad_Chi[i][A][k]+GRAD_Chi[i][A][K]*Finv[K][k];
+    				grad_ChiN[i][A][k]=grad_ChiN[i][A][k]+GRAD_ChiN[i][A][K]*Finv[K][k];
+    			}
+    		}
+    	}
+    }
+
+    for(int i=0;i<3;i++)
+    {
+    	for(int j=0;j<3;j++)
+    	{
+    		for(int K=0;K<3;K++)
+    		{
+    		DTL[i][j]=DTL[i][j]+(KrDelta[i][j]-Fn[i][K]*Finv[K][j])*1/2;
+    		}
+    	}
+    }
+    for(int i=0;i<3;i++)
+    {
+    	for(int j=0;j<3;j++)
+    	{
+    		for(int k=0;k<3;k++)
+    		{
+    			//
+    			for(int A=0;A<3;A++)
+    			{
+
+    				DtDnu[i][j][k]=DtDnu[i][j][k]+grad_Chi[i][A][k]*ChiInv[A][j]-grad_ChiN[i][A][k]*ChiInv[A][j];
+
+    				for(int D=0;D<3;D++)
+    				{
+    					DtDnu[i][j][k]=DtDnu[i][j][k]+GRAD_Chi[i][A][k]*ChiInv[A][j];
+    				}
+    			}
+       		}
+    	}
+    }
+
+
 
     for(int m=0;m<=2;m++)
     {
