@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.57 2009-10-28 21:25:07 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.58 2009-10-29 19:19:41 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -397,9 +397,7 @@ private:
 	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	double KrDelta[3][3];
-	double amatrix[27][72];
-	double avector[81];
-	double atensor[3][3][3];
+
 
 	double Counter;
 	dArray2DT Counter_IPs_el_n;
@@ -471,7 +469,11 @@ private:
 	dMatrixT Chi_m;
 	double ChiInv[3][3];
 	dMatrixT ChiInv_m;
+	dMatrixT ChiN_m;
+	dMatrixT deltaEp;
+	dMatrixT deltaNu;
 	double ChiN[3][3];
+	dMatrixT ChinN_m;
 	dMatrixT ChiN_ar;
 	dArray2DT ChiN_ar_IPs;
 	dArray2DT ChiN_ar_IPs_el;

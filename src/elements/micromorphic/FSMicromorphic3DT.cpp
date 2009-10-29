@@ -2221,7 +2221,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     deltad.Dimension(n_sd,n_sd);
     tempSig.Dimension(n_sd,n_sd);
 
-
+    deltaEp.Dimension(n_sd,n_sd);
+    deltaNu.Dimension(n_sd,n_sd);
+    ChiN_m.Dimension(n_sd,n_sd);
     Chi_vec.Dimension(n_sd_x_n_sd);
     GRAD_Nuw.Dimension(n_sd_x_n_sd,n_en_displ_x_n_sd);
     GRAD_Chi_vec.Dimension(n_sd_x_n_sd_x_n_sd);
@@ -3211,8 +3213,12 @@ void FSMicromorphic3DT::Form_Gamma_tensor3D()
             {
                 //summation over the same term starts here
                 for(int A=0;A<3;A++)
-                    {for(int Q=0;Q<3;Q++)
-                     {Gamma[a][p][q]=ChiInv[A][p]*GRAD_Chi[a][A][Q]*Finv[Q][q];}}
+                    {
+                	for(int Q=0;Q<3;Q++)
+                     {
+                		Gamma[a][p][q]=ChiInv[A][p]*GRAD_Chi[a][A][Q]*Finv[Q][q];
+                     }
+                    }
             }
         }
     }
@@ -6723,12 +6729,65 @@ void FSMicromorphic3DT::Form_H2_matrix()
     row=0;
     H2=0.0;
     s_sigma=0.0;
-    for(int m=0;m<=2;m++)
+    deltaEp=0.0;
+    deltaNu=0.0;
+    double trdeltad=0.0;
+    deltad=0.0;
+    deltaL=0.0;
+    s_sigma=0.0;
+    tempSig=0.0;
+    for(int i=0;i<3;i++)
+    {
+    	for(int j=0;j<3;j++)
+    	{
+    		ChiInv_m(i,j)=ChiInv[i][j];
+    		ChiN_m(i,j)=ChiN[i][j];
+    	}
+    }
+
+    deltaL.MultAB(Fn_m,Finv_m);
+    deltaL*=-1;
+    deltaL+=fIdentity_matrix;
+
+    deltaL_Tr.Transpose(deltaL);
+
+    deltad=deltaL;
+    deltad+=deltaL_Tr;
+    deltad*=0.5;
+    trdeltad=0.0;
+    for(int i=0;i<3;i++)
+        trdeltad+=deltad(i,i);
+
+    deltaNu.MultAB(ChiN_m,ChiInv_m);
+    deltaNu*=-1;
+    deltaNu+=fIdentity_matrix;
+    deltaEp+=deltaNu;
+    deltaEp+=deltaL_Tr;
+
+
+    s_sigma+=sn_sigman;
+    tempSig+=sn_sigman;
+    tempSig*=-trdeltad;
+    s_sigma+=tempSig;
+
+    tempSig.MultAB(deltaL,sn_sigman);
+    s_sigma+=tempSig;
+
+    tempSig.MultABT(sn_sigman,deltaL);
+    s_sigma+=tempSig;
+
+    tempSig.Transpose(deltaEp);
+    tempSig*=fMaterial_Params[kKappa];
+    s_sigma+=tempSig;
+
+    tempSig=deltaEp;
+    tempSig*=fMaterial_Params[kNu];
+    s_sigma+=tempSig;
+
+/*    for(int m=0;m<=2;m++)
     {
         for(int l=0;l<=2;l++)
         {
-
-
             //summation over the same term starts here
             for(int K=0;K<=2;K++)
             {
@@ -6746,7 +6805,7 @@ void FSMicromorphic3DT::Form_H2_matrix()
             H2[row]=-s_sigma(m,l);
             row++;
         }
-    }
+    }*/
 }
 
 void FSMicromorphic3DT:: Form_H3_matrix()
