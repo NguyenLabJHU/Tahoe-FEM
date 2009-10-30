@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.58 2009-10-29 19:19:41 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.59 2009-10-30 21:03:13 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -486,6 +486,7 @@ private:
 	dMatrixT fTemp_matrix_nchidof_x_nudof;
 	dMatrixT fTemp_matrix_nudof_x_nudof;
 
+	dMatrixT fH1_Etagrad;
 	dMatrixT TransShapeDisplGrad;
 	dMatrixT Var_F;
 	dMatrixT GRAD_Nuw;
@@ -551,6 +552,8 @@ private:
 	dMatrixT fIota_eta_temp_matrix;
 	dMatrixT Finv_eta; // to create Iota_eta
 
+
+	dMatrixT Etagrad;
 	dMatrixT Mm_1;
     dMatrixT Mm_2;
     dMatrixT Mm_3;
@@ -813,6 +816,7 @@ private:
 //	void Form_NCHI_eta_matrix(const dMatrixT &fShapeMicro_row_matrix);//same with the one below
     void Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix); //shape function matrice for micro deformatin {ETA}=[NCHI].{alpha}
 
+    void Form_Etagrad_matrix(void);
     void Form_Mm_1_matrix(void);// needs to be multiplied by "-" and J
     void Form_Mm_2_matrix(void);// needs to be multiplied by J
     void Form_Mm_3_matrix(void);// needs to be multiplied by J

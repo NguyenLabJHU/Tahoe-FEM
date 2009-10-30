@@ -905,6 +905,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fG1_13=0.0;
     fG1_14=0.0;
 
+    fH1_Etagrad=0.0;
     fH1_1=0.0;
     fH1_2=0.0;
     fH1_3=0.0;
@@ -1450,6 +1451,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////fH_ matrices are constructed////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+                fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Etagrad,fIota_temp_matrix);
+                scale = -1*-1*scale_const*J;
+                fTemp_matrix_nchidof_x_nudof *= scale;
+                // accumulate
+                fH1_Etagrad += fTemp_matrix_nchidof_x_nudof;
+
+
 
                 fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_1,fIota_temp_matrix);
                 scale = -1*-1*scale_const*J;
@@ -1748,7 +1756,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             //need to code
         //    fKphid = 0.0;
 
-            fKphid  = fH1_1;
+            fKphid  = fH1_Etagrad;
+            fKphid += fH1_1;
             fKphid += fH1_2;
             fKphid += fH1_3;
             fKphid += fH1_11;
@@ -2286,6 +2295,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fG1_14.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
 
     //Bal. of linear Mom of Momtm
+    Etagrad.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_2.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_3.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
@@ -2335,7 +2345,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     GRAD_NCHI.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
  //   GRAD_NCHI_Phi.Dimension(n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd);
     Finv_eta.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
-
+    fH1_Etagrad.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fH1_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fH1_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fH1_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
@@ -5024,7 +5034,28 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
 }
 
 
-
+void FSMicromorphic3DT:: Form_Etagrad_matrix()
+{
+	int row=0;
+	int col=0;
+	Etagrad=0.0;
+	for(int k=0;k<3;k++)
+	{
+		for(int p=0;p<3;p++)
+		{
+			row=p;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					Etagrad(row,col)=Mnplus1[k][l][m];
+				}
+				row=row+3;
+			}
+			col++;
+		}
+	}
+}
 
 void FSMicromorphic3DT::Form_Mm_1_matrix()
 {
@@ -6370,8 +6401,10 @@ void FSMicromorphic3DT::Form_Ru_4_matrix()
                             //summation on the same term starts here
                                 for(int K=0;K<=2;K++)
                                 {
-                                    Ru_4(row, col) =(Ru_4(row, col) +Fn[m][K]*Finv[K][k]);}
-                        row=row+3;}
+                                    Ru_4(row, col) =(Ru_4(row, col) +Fn[m][K]*Finv[K][k]);
+                                    }
+                                row=row+3;
+                    }
                     col++;
                 }
             }
@@ -6398,10 +6431,12 @@ void FSMicromorphic3DT:: Form_RChi_2_matrix()
                             //summation on the same term starts here
                             for(int T=0; T<=2; T++)
                             {
-                                RChi_2(row, col) =(RChi_2(row, col) +ChiN[m][T]*ChiInv[T][p]*ChiInv[K][l]);}
-                            row++;}
-                        }
-                    col++;
+                                RChi_2(row, col) =(RChi_2(row, col) +ChiN[m][T]*ChiInv[T][p]*ChiInv[K][l]);
+                             }
+                            row++;
+						}
+                    }
+                col++;
                 }
             }
 }
@@ -6418,7 +6453,7 @@ void FSMicromorphic3DT:: Form_Ru_5_matrix()
         {
             for(int k=0;k<=2;k++)
             {
-                row = 0+m*3;//row calculations start here , here is also different
+                row =m*3;//row calculations start here , here is also different
                 for(int l = 0; l <= 2; l++)
                     {
                             //summation on the same term starts here
@@ -6474,7 +6509,7 @@ void FSMicromorphic3DT:: Form_R_Capital_Lambda_Chi_matrix()
             {
                 for( int m=0; m<=2; m++)
                 {
-                    row = 0+m*3;//row calculations start here
+                    row = m*3;//row calculations start here
                     for(int l = 0; l <= 2; l++)
                     {
                         //summation on the same term starts here
