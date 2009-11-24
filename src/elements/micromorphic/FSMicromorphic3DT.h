@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.59 2009-10-30 21:03:13 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.60 2009-11-24 23:10:31 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -575,6 +575,10 @@ private:
     dMatrixT Ru_4;
     dMatrixT RChi_2;
     dMatrixT Ru_5;
+    dMatrixT Ru_6;
+    dMatrixT Ru_7;
+    dMatrixT Ru_8;
+    dMatrixT RChi_3;
     dMatrixT Rs_sigma;
     dMatrixT R_Capital_Gamma_Chi;
     dMatrixT CapitalLambda;
@@ -619,6 +623,10 @@ private:
     dMatrixT fH2_6;
     dMatrixT fH2_7;
     dMatrixT fH2_8;
+    dMatrixT fH2_9;
+    dMatrixT fH2_10;
+    dMatrixT fH2_11;
+    dMatrixT fH2_12;
 
     dMatrixT fH3_1;
 
@@ -838,6 +846,10 @@ private:
     void Form_Ru_4_matrix(void);// needs to be multiplied by Kappa and J
     void Form_RChi_2_matrix(void);//needs to be multiplied by Nu and J
     void Form_Ru_5_matrix(void);// needs to be multiplied by Nu and J
+    void Form_Ru_6_matrix(void);
+    void Form_Ru_7_matrix(void);
+    void Form_Ru_8_matrix(void);
+    void Form_RChi_3_matrix(void);
     void Form_Rs_sigma_matrix(void);
     void Form_R_Capital_Lambda_Chi_matrix(void);// DO NOT multiply with J !!!
     void Form_Finv_eta_matrix(void);
