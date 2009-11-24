@@ -1735,7 +1735,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKdd +=  fG1_10;
             fKdd +=  fG1_12;
             fKdd +=  fG1_13;
-         //   fKdd +=  fG1_14;
+            fKdd +=  fG1_14;
           //  fKdd*=-1;
 
 
@@ -1743,20 +1743,20 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
             /* [fKdphi] will be formed */
             //need to code
-           // fKdphi = 0.0;
+            fKdphi = 0.0;
 // Micromorphic case fKdPhi  from coming from bal. of linear momentum
 
-            fKdphi  = fG1_7 ;
+/*            fKdphi  = fG1_7 ;
             fKdphi += fG1_9 ;
-            fKdphi += fG1_11;
+            fKdphi += fG1_11;*/
 
 
 
             /* [fKphid] will be formed */
             //need to code
-        //    fKphid = 0.0;
+           fKphid = 0.0;
 
-            fKphid  = fH1_Etagrad;
+/*            fKphid  = fH1_Etagrad;
             fKphid += fH1_1;
             fKphid += fH1_2;
             fKphid += fH1_3;
@@ -1770,15 +1770,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid += fH2_5;
             fKphid += fH2_7;
             fKphid += fH2_8;
-
+*/
 
 
 
             /* [fKphiphi] will be formed */
             //need to code
-          //  fKphiphi = 0.0;
+            fKphiphi = 0.0;
 
-            fKphiphi  = fH1_4;
+/*            fKphiphi  = fH1_4;
             fKphiphi += fH1_5;
             fKphiphi += fH1_6;
             fKphiphi += fH1_7;
@@ -1791,16 +1791,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphiphi += fH2_6;
 
             fKphiphi += fH3_1;
-
+*/
 
 
             /* {fFphi_int} will be formed */
             //need to code
-          //  fFphi_int  = 0.0;
-            fFphi_int  =Pint_1;
+            fFphi_int  = 0.0;
+/*            fFphi_int  =Pint_1;
             fFphi_int +=Pint_2;
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
-            fFphi_int *= -1;
+            fFphi_int *= -1;*/
 
             /* equations numbers */
             const iArrayT& displ_eq = fElementCards_displ[e].Equations();
@@ -6767,6 +6767,7 @@ void FSMicromorphic3DT::Form_H2_matrix()
     deltaEp=0.0;
     deltaNu=0.0;
     double trdeltad=0.0;
+    double trdeltaEp=0.0;
     deltad=0.0;
     deltaL=0.0;
     s_sigma=0.0;
@@ -6799,6 +6800,8 @@ void FSMicromorphic3DT::Form_H2_matrix()
     deltaEp+=deltaNu;
     deltaEp+=deltaL_Tr;
 
+    for(int i=0;i<3;i++)
+        trdeltaEp+=deltaEp(i,i);
 
     s_sigma+=sn_sigman;
     tempSig+=sn_sigman;
@@ -6814,16 +6817,37 @@ void FSMicromorphic3DT::Form_H2_matrix()
     tempSig.Transpose(deltaEp);
     tempSig*=fMaterial_Params[kKappa];
     s_sigma+=tempSig;
+    tempSig.Transpose(deltaEp);
+    tempSig*=-fMaterial_Params[kSigma_const];
+    s_sigma+=tempSig;
 
     tempSig=deltaEp;
     tempSig*=fMaterial_Params[kNu];
     s_sigma+=tempSig;
+    tempSig=deltaEp;
+    tempSig*=-fMaterial_Params[kSigma_const];
+    s_sigma+=tempSig;
 
-/*    for(int m=0;m<=2;m++)
+    tempSig=fIdentity_matrix;
+    tempSig*=trdeltad;
+    tempSig*=fMaterial_Params[kTau];
+    s_sigma+=tempSig;
+
+    tempSig=deltad;
+    tempSig*=2*fMaterial_Params[kSigma_const];
+    s_sigma+=tempSig;
+
+    tempSig=fIdentity_matrix;
+    tempSig*=trdeltaEp;
+    tempSig*=(fMaterial_Params[kTau]-fMaterial_Params[kEta]);
+    s_sigma+=tempSig;
+
+
+    for(int m=0;m<=2;m++)
     {
         for(int l=0;l<=2;l++)
         {
-            //summation over the same term starts here
+/*            //summation over the same term starts here
             for(int K=0;K<=2;K++)
             {
                 s_sigma(m,l)=s_sigma(m,l)+(KrDelta[l][m]-ChiN[l][K]*ChiInv[K][m])*fMaterial_Params[kKappa]
@@ -6836,11 +6860,11 @@ void FSMicromorphic3DT::Form_H2_matrix()
                                                  +   (KrDelta[m][i]-Fn[m][K]*Finv[K][i])*sn_sigman(i,l)
                                                  +   (KrDelta[l][i]-Fn[l][K]*Finv[K][i])*sn_sigman(m,i) ;
                     }
-            }
+            }*/
             H2[row]=-s_sigma(m,l);
             row++;
         }
-    }*/
+    }
 }
 
 void FSMicromorphic3DT:: Form_H3_matrix()
