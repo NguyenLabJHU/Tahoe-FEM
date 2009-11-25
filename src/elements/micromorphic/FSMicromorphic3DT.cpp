@@ -929,6 +929,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fH2_6=0.0;
     fH2_7=0.0;
     fH2_8=0.0;
+    fH2_9=0.0;
+    fH2_10=0.0;
+    fH2_11=0.0;
+    fH2_12=0.0;
 
     fH3_1=0.0;
 
@@ -1325,6 +1329,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 Form_Ru_4_matrix();// needs to be multiplied by Kappa and J
                 Form_RChi_2_matrix();//needs to be multiplied by Nu and J
                 Form_Ru_5_matrix();// needs to be multiplied by Nu and J
+                Form_Ru_6_matrix();
+                Form_Ru_7_matrix();
+                Form_RChi_3_matrix();
+                Form_Ru_8_matrix();
                 Form_Rs_sigma_matrix();//output:Rs_sigma
                 Form_R_Capital_Lambda_Chi_matrix();//output:R_Capital_Gamma_Chi
 
@@ -1596,11 +1604,38 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 // accumulate
                 fH2_7 += fTemp_matrix_nchidof_x_nudof;
 
+
+                fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_6,fIota_temp_matrix);
+                scale = -1*scale_const*J*fMaterial_Params[kTau];
+                fTemp_matrix_nchidof_x_nudof *= scale;
+                // accumulate
+                fH2_8 += fTemp_matrix_nchidof_x_nudof;
+
+
+                fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_7,fIota_temp_matrix);
+                scale = -1*scale_const*J*2*fMaterial_Params[kSigma_const];
+                fTemp_matrix_nchidof_x_nudof *= scale;
+                // accumulate
+                fH2_9 += fTemp_matrix_nchidof_x_nudof;
+
+                fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_3,NCHI);
+                scale = -1*scale_const*J*(fMaterial_Params[kEta]-fMaterial_Params[kTau]);
+                fTemp_matrix_nchidof_x_nchidof *= scale;
+                // accumulate
+                fH2_10 += fTemp_matrix_nchidof_x_nchidof;
+
+
+                fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_8,fIota_temp_matrix);
+                scale = -1*scale_const*J*(fMaterial_Params[kEta]-fMaterial_Params[kTau]);
+                fTemp_matrix_nchidof_x_nudof *= scale;
+                // accumulate
+                fH2_11 += fTemp_matrix_nchidof_x_nudof;
+
                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,Rs_sigma,fShapeDisplGrad);
                 scale = -1*scale_const*J;
                 fTemp_matrix_nchidof_x_nudof *= scale;
                 // accumulate
-                fH2_8 += fTemp_matrix_nchidof_x_nudof;
+                fH2_12 += fTemp_matrix_nchidof_x_nudof;
 
                 fTemp_matrix_nchidof_x_nchidof.MultATBC(NCHI,R_Capital_Gamma_Chi,NCHI);
                 scale = 1*scale_const*fMaterial_Params[kRho_0];
@@ -1743,20 +1778,20 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
             /* [fKdphi] will be formed */
             //need to code
-            fKdphi = 0.0;
+           // fKdphi = 0.0;
 // Micromorphic case fKdPhi  from coming from bal. of linear momentum
 
-/*            fKdphi  = fG1_7 ;
+            fKdphi  = fG1_7 ;
             fKdphi += fG1_9 ;
-            fKdphi += fG1_11;*/
+            fKdphi += fG1_11;
 
 
 
             /* [fKphid] will be formed */
             //need to code
-           fKphid = 0.0;
+        //   fKphid = 0.0;
 
-/*            fKphid  = fH1_Etagrad;
+            fKphid  = fH1_Etagrad;
             fKphid += fH1_1;
             fKphid += fH1_2;
             fKphid += fH1_3;
@@ -1770,15 +1805,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid += fH2_5;
             fKphid += fH2_7;
             fKphid += fH2_8;
-*/
+
 
 
 
             /* [fKphiphi] will be formed */
             //need to code
-            fKphiphi = 0.0;
+            //fKphiphi = 0.0;
 
-/*            fKphiphi  = fH1_4;
+            fKphiphi  = fH1_4;
             fKphiphi += fH1_5;
             fKphiphi += fH1_6;
             fKphiphi += fH1_7;
@@ -1791,16 +1826,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphiphi += fH2_6;
 
             fKphiphi += fH3_1;
-*/
+
 
 
             /* {fFphi_int} will be formed */
             //need to code
-            fFphi_int  = 0.0;
-/*            fFphi_int  =Pint_1;
+          //  fFphi_int  = 0.0;
+            fFphi_int  =Pint_1;
             fFphi_int +=Pint_2;
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
-            fFphi_int *= -1;*/
+            fFphi_int *= -1;
 
             /* equations numbers */
             const iArrayT& displ_eq = fElementCards_displ[e].Equations();
@@ -6573,7 +6608,7 @@ void FSMicromorphic3DT:: Form_Ru_8_matrix()
 			{
 				for(int l=0;l<3;l++)
 				{
-					for(K=0;K<3;K++)
+					for(int K=0;K<3;K++)
 					{
 						Ru_8(row,col)+=Fn[i][K]*Finv[K][p]*fIdentity_matrix(m,l);
 					}
