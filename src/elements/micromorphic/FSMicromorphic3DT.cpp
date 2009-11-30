@@ -1702,7 +1702,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 GammaN_IPs.SetRow(IP,GammaN_ar);
                 SigN_IPs.SetRow(IP,SigN_ar);
                 Sig_IPs.SetRow(IP,Sigma);
-                sn_sigman_IPs.SetRow(IP,s_sigma);//this is missing!!!
+                sn_sigman_IPs.SetRow(IP,s_sigma);
                 mn_IPs.SetRow(IP,mn_ar);
 
                 Form_deformation_tensors_arrays(1);
@@ -1710,8 +1710,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 FInv_ar_IPs.SetRow(IP,fDeformation_Gradient_Inverse);
                 ChiN_ar_IPs.SetRow(IP,ChiN_ar);
                 GRAD_ChiN_ar_IPs.SetRow(IP,GRAD_ChiN_ar);
-
-
 
             } //end Gauss integration loop
 
@@ -6784,6 +6782,69 @@ void FSMicromorphic3DT::Form_H1_matrix()
     double CklmprsDtGC[3][3][3];
     double trd;
     trd=0.0;
+ /********************************************************************************
+ *********************************************************************************
+ *********************************************************************************
+ *********************************************************************************/
+    deltaEp=0.0;
+    deltaNu=0.0;
+    double trdeltad=0.0;
+    double trdeltaEp=0.0;
+    deltad=0.0;
+    deltaL=0.0;
+    s_sigma=0.0;
+    tempSig=0.0;
+    Fn_m=0.0;
+    Finv_m=0.0;
+    SigN_m=0.0;
+    ChiInv_m=0.0;
+    ChiN_m=0.0;
+
+
+    for(int i=0;i<3;i++)
+    {
+    	for(int j=0;j<3;j++)
+    	{
+
+            Fn_m(i,j)=Fn[i][j];
+            Finv_m(i,j)=Finv[i][j];
+            SigN_m(i,j)=SigN[i][j];
+    		ChiInv_m(i,j)=ChiInv[i][j];
+    		ChiN_m(i,j)=ChiN[i][j];
+    	}
+    }
+
+    deltaL.MultAB(Fn_m,Finv_m);
+    deltaL*=-1;
+    deltaL+=fIdentity_matrix;
+
+    deltaL_Tr.Transpose(deltaL);
+
+    deltad=deltaL;
+    deltad+=deltaL_Tr;
+    deltad*=0.5;
+    trdeltad=0.0;
+    for(int i=0;i<3;i++)
+        trdeltad+=deltad(i,i);
+
+    deltaNu.MultAB(ChiN_m,ChiInv_m);
+    deltaNu*=-1;
+    deltaNu+=fIdentity_matrix;
+    deltaEp+=deltaNu;
+    deltaEp+=deltaL_Tr;
+ /********************************************************************************
+ *********************************************************************************
+ *********************************************************************************
+ *********************************************************************************/
+
+
+    /************************************************************************************
+     *
+     * THIS PART IS CURRENTLY COMMENTED OUT FOR ETA DEBUGGING
+     *
+     ***********************************************************************************
+
+
     for(int i=0;i<=2;i++)
     {
     	for(int j=0;j<=2;j++)
@@ -6801,7 +6862,7 @@ void FSMicromorphic3DT::Form_H1_matrix()
     		}
 
 		}
-    	trd+=DTL[i][i];
+
     }
 //  Mnplus1=0.0;
     //constructing grad_Chi and grad_ChiN at current config.
@@ -6825,12 +6886,15 @@ void FSMicromorphic3DT::Form_H1_matrix()
     {
     	for(int j=0;j<3;j++)
     	{
+    		DTL[i][j]+=KrDelta[i][j];
+    		Dtnu[i][j]+=KrDelta[i][j];
     		for(int K=0;K<3;K++)
     		{
-    		DTL[i][j]=DTL[i][j]+(KrDelta[i][j]-Fn[i][K]*Finv[K][j])*1/2;
-    		Dtnu[i][j]=Dtnu[i][j]+(KrDelta[i][j]-ChiN[i][K]*Chi[K][j])*1/2;
+    		DTL[i][j]+=-Fn[i][K]*Finv[K][j];
+    		Dtnu[i][j]=-ChiN[i][K]*Chi[K][j];
     		}
     	}
+    trd+=DTL[i][i];
     }
     //constructing the deltat gradientnu
     for(int i=0;i<3;i++)
@@ -6910,6 +6974,7 @@ void FSMicromorphic3DT::Form_H1_matrix()
     		}
     	}
     }
+    */
 //constructing Mnplus1
     for(int m=0;m<3;m++)
     {
@@ -6918,10 +6983,11 @@ void FSMicromorphic3DT::Form_H1_matrix()
     		for(int k=0;k<3;k++)
     		{
     			   //
-    			Mnplus1[k][l][m]=(1-trd)*mn[k][l][m]+CklmprsDtGC[k][l][m];
+    			Mnplus1[k][l][m]=(1-trdeltad)*mn[k][l][m];//+CklmprsDtGC[k][l][m];
     			for(int p=0;p<3;p++)
     			{
-    				Mnplus1[k][l][m]+=DTL[k][p]*mn[p][l][m]+mn[k][p][m]*DTL[l][p]+mn[k][l][p]*Dtnu[m][p];
+    				//Mnplus1[k][l][m]+=DTL[k][p]*mn[p][l][m]+mn[k][p][m]*DTL[l][p]+mn[k][l][p]*Dtnu[m][p];
+    				Mnplus1[k][l][m]+=deltaL(k,p)*mn[p][l][m]+mn[k][p][m]*deltaL(l,p)+mn[k][l][p]*deltaNu(m,p);
     			}
     		}
     	}
@@ -6939,7 +7005,7 @@ void FSMicromorphic3DT::Form_H1_matrix()
     	}
     }
 
-
+//THIS PART IS THE OLDEST PART...
 /*    for(int m=0;m<=2;m++)
     {
         for(int l=0;l<=2;l++)
