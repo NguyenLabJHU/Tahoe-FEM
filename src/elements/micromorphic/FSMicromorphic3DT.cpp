@@ -2424,8 +2424,15 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
      Mat4.Dimension(9,9);
      Mat5.Dimension(9,9);
      Mat5_Inv.Dimension(9,9);
-     RHS.Dimension(9);
-     Sigma1.Dimension(9);
+   //  RHS.Dimension(9);
+     Sigma1.Dimension(3,3);
+     Sigma2.Dimension(3,3);
+     Sigma3.Dimension(3,3);
+     Sigma4.Dimension(3,3);
+     Sigma5.Dimension(3,3);
+     Sigma6.Dimension(3,3);
+     Sigma7.Dimension(3,3);
+     Sigma8.Dimension(3,3);
 
 
 
@@ -3291,8 +3298,8 @@ void FSMicromorphic3DT::Form_G1_matrix()
     Mat4=0.0;
     Mat5=0.0;*/
     Sigma=0.0;
-    RHS=0.0;
-    Sigma1=0.0;
+  //  RHS=0.0;
+    //Sigma1=0.0;
     G1=0.0;
     deltaL=0.0;
     deltad=0.0;
@@ -3464,40 +3471,67 @@ for(int i=0;i<3;i++)
     trdeltaEp+=deltaEp(i,i);
 
 Sigma+=SigN_m;
+//
+Sigma1=Sigma;
+
 
 tempSig=SigN_m;
 tempSig*=trdeltad;
 tempSig*=-1;
 Sigma+=tempSig;
+//
+Sigma2=Sigma;
 
 tempSig.MultAB(deltaL,SigN_m);
 Sigma+=tempSig;
+//Sigma3=Sigma;
 
 tempSig.MultABT(SigN_m,deltaL);
 Sigma+=tempSig;
+//
+Sigma4=Sigma;
+
 
 tempSig=fIdentity_matrix;
 tempSig*=trdeltad;
-tempSig*=(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+tempSig*=fMaterial_Params[kLambda];
 Sigma+=tempSig;
+tempSig=fIdentity_matrix;
+tempSig*=trdeltad;
+tempSig*=fMaterial_Params[kTau];
+Sigma+=tempSig;
+//
+Sigma5=tempSig;
 
 tempSig=deltad;
-tempSig*=(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+tempSig*=fMaterial_Params[kMu];
 tempSig*=2;
 Sigma+=tempSig;
+tempSig=deltad;
+tempSig*=fMaterial_Params[kSigma_const];
+tempSig*=2;
+Sigma+=tempSig;
+
+//
+Sigma6=Sigma;
 
 tempSig=fIdentity_matrix;
 tempSig*=trdeltaEp;
 tempSig*=fMaterial_Params[kEta];
 Sigma+=tempSig;
 
-tempSig*=deltaEp;
+tempSig=deltaEp;
 tempSig*=fMaterial_Params[kKappa];
 Sigma+=tempSig;
+//
+Sigma7=Sigma;
+
 
 tempSig.Transpose(deltaEp);
 tempSig*=fMaterial_Params[kNu];
 Sigma+=tempSig;
+
+Sigma8=Sigma;
 
 ///// to calculate fn+1/////
 /*for(int l=0;l<9;l++)
