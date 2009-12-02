@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.60 2009-11-24 23:10:31 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.61 2009-12-02 02:45:56 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -331,7 +331,7 @@ private:
 	dArrayT	        fFd_int_smallstrain_vector;
 	dArrayT	        fGravity_vector;
 	dArrayT	        fFd_int_G4_vector;
-	dArrayT         fTemp_six_values;
+	dArrayT         fTemp_nine_values;
 	dArrayT         fGradv_vector;
 	dArrayT         fgradv_vector;
 
@@ -397,7 +397,8 @@ private:
 	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
 	//////////////////////////////////////////////////////////
 	double KrDelta[3][3];
-
+	double trdeltad;
+	double trdeltaEp;
 
 	double Counter;
 	dArray2DT Counter_IPs_el_n;
