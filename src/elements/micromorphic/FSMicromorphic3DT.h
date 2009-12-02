@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.62 2009-12-02 15:54:40 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.63 2009-12-02 20:41:41 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -432,6 +432,10 @@ private:
 	dMatrixT Sigma4;
 	dMatrixT Sigma5;
 	dMatrixT Sigma6;
+	dMatrixT Sigma6_1;
+	dMatrixT Sigma6_2;
+	dMatrixT Sigma6_3;
+	dMatrixT Sigma6_4;
 	dMatrixT Sigma7;
 	dMatrixT Sigma8;
 
@@ -586,6 +590,7 @@ private:
     dMatrixT Ru_6;
     dMatrixT Ru_7;
     dMatrixT Ru_8;
+    dMatrixT Ru_9;
     dMatrixT RChi_3;
     dMatrixT Rs_sigma;
     dMatrixT R_Capital_Gamma_Chi;
@@ -635,6 +640,7 @@ private:
     dMatrixT fH2_10;
     dMatrixT fH2_11;
     dMatrixT fH2_12;
+    dMatrixT fH2_13;
 
     dMatrixT fH3_1;
 
@@ -857,6 +863,7 @@ private:
     void Form_Ru_6_matrix(void);
     void Form_Ru_7_matrix(void);
     void Form_Ru_8_matrix(void);
+    void Form_Ru_9_matrix(void);
     void Form_RChi_3_matrix(void);
     void Form_Rs_sigma_matrix(void);
     void Form_R_Capital_Lambda_Chi_matrix(void);// DO NOT multiply with J !!!
