@@ -888,8 +888,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fFd_int_G4_vector = 0.0;
     fK_dd_G4_matrix = 0.0;*/
 
-   // Uint_1=0.0;
-    //fFd_int=0.0;
+    Uint_1=0.0;
+    fFd_int=0.0;
     fG1_1=0.0;
     fG1_2=0.0;
     fG1_3=0.0;
@@ -933,8 +933,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fH2_10=0.0;
     fH2_11=0.0;
     fH2_12=0.0;
-    fH2_13=0.0;
-   // fH2_14=0.0;no need
 
     fH3_1=0.0;
 
@@ -1334,9 +1332,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 Form_Ru_5_matrix();// needs to be multiplied by Nu and J
                 Form_Ru_6_matrix();
                 Form_Ru_7_matrix();
-                Form_Ru_8_matrix();
                 Form_RChi_3_matrix();
-                Form_Ru_9_matrix();
+                Form_Ru_8_matrix();
                 Form_Rs_sigma_matrix();//output:Rs_sigma
                 Form_R_Capital_Lambda_Chi_matrix();//output:R_Capital_Gamma_Chi
 
@@ -1442,21 +1439,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                 //fPi_temp_row_matrix has been deleted accidentally
-             //   fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fShapeDisplGrad);//ABC not ABCT
+         //       fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fShapeDisplGrad);//ABC not ABCT
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,SigCurr,fIota_temp_matrix);//ABC
                 scale = -scale_const*J;
                 fTemp_matrix_nudof_x_nudof *= scale;
                 // accumulate
                 fG1_13 += fTemp_matrix_nudof_x_nudof;
-//Gradient of w is taken into account GRADw deltaF^-1
-/*                TransShapeDisplGrad.Transpose(fShapeDisplGrad);
+
+                TransShapeDisplGrad.Transpose(GRAD_Nuw);//
                 fTemp_matrix_nudof_x_nudof.MultABCT(TransShapeDisplGrad,Var_F,fIota_temp_matrix);
                 scale= scale_const*J;
                 fTemp_matrix_nudof_x_nudof *= scale;
-                fG1_14 +=fTemp_matrix_nudof_x_nudof;*/
-
-
-
+                fG1_14 +=fTemp_matrix_nudof_x_nudof;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1570,7 +1564,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 fH1_14 += fTemp_matrix_nchidof_x_nudof;
 
                 fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_1,fIota_temp_matrix);
-                scale = scale_const*J;
+                scale = -1*scale_const*J;
                 fTemp_matrix_nchidof_x_nudof *= scale;
                 // accumulate
                 fH2_1 += fTemp_matrix_nchidof_x_nudof;
@@ -1620,37 +1614,30 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                 fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_7,fIota_temp_matrix);
-                scale = -1*scale_const*J*fMaterial_Params[kSigma_const];
+                scale = -1*scale_const*J*2*fMaterial_Params[kSigma_const];
                 fTemp_matrix_nchidof_x_nudof *= scale;
                 // accumulate
                 fH2_9 += fTemp_matrix_nchidof_x_nudof;
-
-                fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_8,fIota_temp_matrix);
-                scale = -1*scale_const*J*fMaterial_Params[kSigma_const];
-                fTemp_matrix_nchidof_x_nudof *= scale;
-                // accumulate
-                fH2_10 += fTemp_matrix_nchidof_x_nudof;
-
 
                 fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,RChi_3,NCHI);
                 scale = -1*scale_const*J*(fMaterial_Params[kEta]-fMaterial_Params[kTau]);
                 fTemp_matrix_nchidof_x_nchidof *= scale;
                 // accumulate
-                fH2_11 += fTemp_matrix_nchidof_x_nchidof;
+                fH2_10 += fTemp_matrix_nchidof_x_nchidof;
 
 
-                fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_9,fIota_temp_matrix);
+
+                fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_8,fIota_temp_matrix);
                 scale = -1*scale_const*J*(fMaterial_Params[kEta]-fMaterial_Params[kTau]);
                 fTemp_matrix_nchidof_x_nudof *= scale;
                 // accumulate
-                fH2_12 += fTemp_matrix_nchidof_x_nudof;
+                fH2_11 += fTemp_matrix_nchidof_x_nudof;
 
                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,Rs_sigma,fShapeDisplGrad);
                 scale = -1*scale_const*J;
                 fTemp_matrix_nchidof_x_nudof *= scale;
                 // accumulate
-                fH2_13 += fTemp_matrix_nchidof_x_nudof;
-
+                fH2_12 += fTemp_matrix_nchidof_x_nudof;
 
                 fTemp_matrix_nchidof_x_nchidof.MultATBC(NCHI,R_Capital_Gamma_Chi,NCHI);
                 scale = 1*scale_const*fMaterial_Params[kRho_0];//*J?????
@@ -1819,9 +1806,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid += fH2_7;
             fKphid += fH2_8;
             fKphid += fH2_9;
-            fKphid += fH2_10;
+            fKphid += fH2_11;
             fKphid += fH2_12;
-            fKphid += fH2_13;
 
 
 
@@ -1841,7 +1827,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
             fKphiphi += fH2_4;
             fKphiphi += fH2_6;
-            fKphiphi += fH2_11;
+            fKphiphi += fH2_10;
 
             fKphiphi += fH3_1;
 
@@ -2317,6 +2303,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Counter_IPs.Dimension(fNumIP_displ);*/
 
     TransShapeDisplGrad.Dimension(n_en_displ_x_n_sd,n_sd_x_n_sd);
+    Var_F.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Finv_w.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Tsigma_1.Dimension (n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_1.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
@@ -2344,7 +2331,6 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fG1_12.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
     SigCurr.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fG1_13.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
-    Var_F.Dimension(n_sd_x_n_sd ,n_sd_x_n_sd);
     fG1_14.Dimension (n_en_displ_x_n_sd ,n_en_displ_x_n_sd);
 
     //Bal. of linear Mom of Momtm
@@ -2371,12 +2357,10 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Ru_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Ru_7.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Ru_8.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    Ru_9.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     RChi_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     RChi_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     RChi_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     Rs_sigma.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    R_gradu.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     R_Capital_Gamma_Chi.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     CapitalLambda.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
 
@@ -2429,11 +2413,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fH2_7.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fH2_8.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fH2_9.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH2_10.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH2_11.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH2_10.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH2_11.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fH2_12.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fH2_13.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
- //   fH2_14.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);no need
     fH3_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
 
      Mat1.Dimension(9,9);
@@ -2449,10 +2431,6 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
      Sigma4.Dimension(3,3);
      Sigma5.Dimension(3,3);
      Sigma6.Dimension(3,3);
-     Sigma6_1.Dimension(3,3);
-     Sigma6_2.Dimension(3,3);
-     Sigma6_3.Dimension(3,3);
-     Sigma6_4.Dimension(3,3);
      Sigma7.Dimension(3,3);
      Sigma8.Dimension(3,3);
 
@@ -2478,7 +2456,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Hext.Dimension(n_en_micro*n_sd_x_n_sd);
 
     Lambda.Dimension(n_sd,n_sd);//small lambda
-    Lambda=0.0;//10^-8
+    Lambda=0.00000001;
     Omega.Dimension(n_sd,n_sd);//small omega
     Omega=0.0;
 
@@ -3299,9 +3277,9 @@ void FSMicromorphic3DT::Form_Gamma_tensor3D()
                 //summation over the same term starts here
                 for(int A=0;A<3;A++)
                     {
-                	for(int Q=0;Q<3;Q++)
+                    for(int Q=0;Q<3;Q++)
                      {
-                		Gamma[a][p][q]=ChiInv[A][p]*GRAD_Chi[a][A][Q]*Finv[Q][q];
+                        Gamma[a][p][q]=ChiInv[A][p]*GRAD_Chi[a][A][Q]*Finv[Q][q];
                      }
                     }
             }
@@ -3344,8 +3322,8 @@ void FSMicromorphic3DT::Form_G1_matrix()
             Fn_m(i,j)=Fn[i][j];
             Finv_m(i,j)=Finv[i][j];
             SigN_m(i,j)=SigN[i][j];
-    		ChiInv_m(i,j)=ChiInv[i][j];
-    		ChiN_m(i,j)=ChiN[i][j];
+            ChiInv_m(i,j)=ChiInv[i][j];
+            ChiN_m(i,j)=ChiN[i][j];
           }
     }
 
@@ -3493,6 +3471,8 @@ for(int i=0;i<3;i++)
     trdeltaEp+=deltaEp(i,i);
 
 Sigma+=SigN_m;
+//
+Sigma1=Sigma;
 
 
 tempSig=SigN_m;
@@ -3500,13 +3480,17 @@ tempSig*=trdeltad;
 tempSig*=-1;
 Sigma+=tempSig;
 //
+Sigma2=Sigma;
+
 tempSig.MultAB(deltaL,SigN_m);
 Sigma+=tempSig;
-
+//Sigma3=Sigma;
 
 tempSig.MultABT(SigN_m,deltaL);
 Sigma+=tempSig;
 //
+Sigma4=Sigma;
+
 
 tempSig=fIdentity_matrix;
 tempSig*=trdeltad;
@@ -3517,18 +3501,19 @@ tempSig*=trdeltad;
 tempSig*=fMaterial_Params[kTau];
 Sigma+=tempSig;
 //
+Sigma5=tempSig;
 
 tempSig=deltad;
 tempSig*=fMaterial_Params[kMu];
 tempSig*=2;
 Sigma+=tempSig;
-
 tempSig=deltad;
 tempSig*=fMaterial_Params[kSigma_const];
 tempSig*=2;
 Sigma+=tempSig;
 
-
+//
+Sigma6=Sigma;
 
 tempSig=fIdentity_matrix;
 tempSig*=trdeltaEp;
@@ -3538,14 +3523,15 @@ Sigma+=tempSig;
 tempSig=deltaEp;
 tempSig*=fMaterial_Params[kKappa];
 Sigma+=tempSig;
+//
+Sigma7=Sigma;
 
 
 tempSig.Transpose(deltaEp);
 tempSig*=fMaterial_Params[kNu];
 Sigma+=tempSig;
 
-
-
+Sigma8=Sigma;
 
 ///// to calculate fn+1/////
 /*for(int l=0;l<9;l++)
@@ -3713,6 +3699,7 @@ void FSMicromorphic3DT:: Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_te
 
 }
 
+
 void FSMicromorphic3DT::Form_Var_F_tensor()
 {
     int row,col;
@@ -3727,10 +3714,29 @@ void FSMicromorphic3DT::Form_Var_F_tensor()
             //row operations starts
             for (int k=0;k<3;k++)
             {
-
+                    //summation on the same terms starts
                     for (int K=0;K<3;K++)
                     {
-                        Var_F(row,col)= Finv[K][i]*Sigma(l,k);
+                        Var_F(row,col)=Finv[K][i]*Sigma(l,k);
+                       row++;
+                    }
+
+                }
+            col++;
+        }
+    }
+/*  for (int l=0;l<3;l++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            //row operations starts
+            for (int K=0;K<3;K++)
+            {
+                    //summation on the same terms starts
+                    for (int k=0;k<3;k++)
+                    {
+                        Var_F(row,col)=Var_F(row,col)+ Finv[K][i]*Sigma(l,k);
                     }
                     row++;
 
@@ -3738,8 +3744,10 @@ void FSMicromorphic3DT::Form_Var_F_tensor()
             col++;
         }
     }
-}
+*/
 
+
+}
 
 void FSMicromorphic3DT::Form_Tsigma_1_matrix()
 {
@@ -4214,32 +4222,32 @@ void FSMicromorphic3DT::Form_TFn_3_matrix()
 
 void FSMicromorphic3DT::Form_TChi_1_matrix()
 {
-	int row=0;
-	int col=0;
-	TChi_1=0.0;
-	for(int T=0;T<3;T++)
-	{
-		for(int m=0;m<3;m++)
-		{
-			row=0;
-			for(int k=0;k<3;k++)
-			{
-				for(int l=0;l<3;l++)
-				{
-					//summation over the same term starts here
-					for(int i=0;i<3;i++)
-					{
-						for(int L=0;L<3;L++)
-						{
-							TChi_1(row,col)+=ChiN[i][L]*ChiInv[L][m]*ChiInv[T][i]*fIdentity_matrix(k,l);
-						}
-					}
-					row++;
-				}
-			}
-			col++;
-		}
-	}
+    int row=0;
+    int col=0;
+    TChi_1=0.0;
+    for(int T=0;T<3;T++)
+    {
+        for(int m=0;m<3;m++)
+        {
+            row=0;
+            for(int k=0;k<3;k++)
+            {
+                for(int l=0;l<3;l++)
+                {
+                    //summation over the same term starts here
+                    for(int i=0;i<3;i++)
+                    {
+                        for(int L=0;L<3;L++)
+                        {
+                            TChi_1(row,col)+=ChiN[i][L]*ChiInv[L][m]*ChiInv[T][i]*fIdentity_matrix(k,l);
+                        }
+                    }
+                    row++;
+                }
+            }
+            col++;
+        }
+    }
 
 
 /*TChi_1(0,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0]*KrDelta[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1]*KrDelta[0][0] +
@@ -4677,23 +4685,23 @@ void FSMicromorphic3DT::Form_TFn_4_matrix()
     TFn_4=0.0;
     for(int i=0;i<3;i++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		row=0;
-    		for(int k=0;k<3;k++)
-    		{
-    			for(int l=0;l<3;l++)
-    			{
-    				//summation over the same term starts here
-    				for(int L=0;L<3;L++)
-    				{
-    					TFn_4(row,col)+=Fn[i][L]*Finv[L][m]*fIdentity_matrix(k,l);
-    				}
-    				row++;
-    			}
-    		}
-    		col++;
-    	}
+        for(int m=0;m<3;m++)
+        {
+            row=0;
+            for(int k=0;k<3;k++)
+            {
+                for(int l=0;l<3;l++)
+                {
+                    //summation over the same term starts here
+                    for(int L=0;L<3;L++)
+                    {
+                        TFn_4(row,col)+=Fn[i][L]*Finv[L][m]*fIdentity_matrix(k,l);
+                    }
+                    row++;
+                }
+            }
+            col++;
+        }
     }
 
 /*     TFn_4(0,0)=(Finv[0][0]*Fn[0][0]*KrDelta[0][0] + Finv[1][0]*Fn[0][1]*KrDelta[0][0] + Finv[2][0]*Fn[0][2]*KrDelta[0][0]);//*w[0][0] +
@@ -5102,9 +5110,9 @@ void FSMicromorphic3DT::Form_SigCurr_matrix()
         int row=0;
         int col=0;
         SigCurr=0.0;
-        for(int N=0;N<3;N++)
+        for(int j=0;j<3;j++)
         {
-            for(int n=0;n<3;n++)
+            for(int i=0;i<3;i++)
             {
                 //col starts
                 row=0;
@@ -5112,15 +5120,24 @@ void FSMicromorphic3DT::Form_SigCurr_matrix()
                 {
                     for(int l=0;l<3;l++)
                     {
-                    	SigCurr(row,col)=Sigma(l,k)*Finv[N][n];
+                        SigCurr(row,col)=Sigma(l,k)*KrDelta[j][i];
                         row++;
                     }
                 }
                 col++;
             }
         }
+
+
+
 }
 
+void FSMicromorphic3DT::Form_SPiola_matrix()
+{
+    SPiola=0.0;
+    SPiola=SPiolaN;
+
+}
 
 
 // Forming the matrices coming from the Bal. of First Mom. of Momtm
@@ -5177,25 +5194,25 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
 
 void FSMicromorphic3DT:: Form_Etagrad_matrix()
 {
-	int row=0;
-	int col=0;
-	Etagrad=0.0;
-	for(int k=0;k<3;k++)
-	{
-		for(int p=0;p<3;p++)
-		{
-			row=p;
-			for(int m=0;m<3;m++)
-			{
-				for(int l=0;l<3;l++)
-				{
-					Etagrad(row,col)=Mnplus1[k][l][m];
-					row=row+3;
-				}
-			}
-			col++;
-		}
-	}
+    int row=0;
+    int col=0;
+    Etagrad=0.0;
+    for(int k=0;k<3;k++)
+    {
+        for(int p=0;p<3;p++)
+        {
+            row=p;
+            for(int m=0;m<3;m++)
+            {
+                for(int l=0;l<3;l++)
+                {
+                    Etagrad(row,col)=Mnplus1[k][l][m];
+                    row=row+3;
+                }
+            }
+            col++;
+        }
+    }
 }
 
 void FSMicromorphic3DT::Form_Mm_1_matrix()
@@ -6377,14 +6394,42 @@ void FSMicromorphic3DT:: Form_Mm_14_matrix()
                 {
                     for(int k = 0; k <= 2; k++)
                     {
-                    	Mm_14(row, col) =Mnplus1[k][l][m]*Finv[T][n];
-                    	row++;
+
+                                 Mm_14(row, col) =Mnplus1[k][l][m]*Finv[T][n];
+                                 row++;}
+                    }
+                }
+            col++;
+            }
+        }
+ col=0;
+    for(int T = 0;T<= 2;T++)
+        {
+        for(int i=0;i<=2;i++)
+            {
+            row = 0;//row calculations start here
+            for(int m = 0;m <= 2; m++)
+            {
+                for(int l=0; l<= 2; l++)
+                {
+                    for(int k=0;k<=2;k++)
+                    {
+                        //summation over the same term starts
+                        for(int n=0;n<=2;n++)
+                        {
+                            for(int K=0;K<=2;K++)
+                            {
+                                Mm_14(row, col)+=-Mnplus1[k][l][m]*fGrad_disp_matrix(n,K)*Finv[K][i]*Finv[T][n];
+                            }
+                        }
+                        row++;
                     }
                 }
             }
             col++;
             }
         }
+
 
 }
 
@@ -6547,7 +6592,7 @@ void FSMicromorphic3DT:: Form_RChi_2_matrix()
                                 RChi_2(row, col) =(RChi_2(row, col) +ChiN[m][T]*ChiInv[T][p]*ChiInv[K][l]);
                              }
                             row++;
-						}
+                        }
                     }
                 col++;
                 }
@@ -6584,35 +6629,35 @@ void FSMicromorphic3DT:: Form_Ru_5_matrix()
 
 void FSMicromorphic3DT:: Form_Ru_6_matrix()
 {
-	Ru_6=0.0;
-	int col=0;
-	int row=0;
-	for(int i=0; i<3;i++)
-	{
-		for(int k=0;k<3;k++)
-		{
-			row=0;
-			for(int m=0;m<3;m++)
-			{
-				for(int l=0;l<3;l++)
-				{
-					for(int K=0;K<3;K++)
-					{
-						Ru_6(row,col)+=Fn[i][K]*Finv[K][k]*fIdentity_matrix(m,l);
-					}
-					row++;
-				}
-			}
-			col++;
-		}
-	}
+    Ru_6=0.0;
+    int col=0;
+    int row=0;
+    for(int i=0; i<3;i++)
+    {
+        for(int k=0;k<3;k++)
+        {
+            row=0;
+            for(int m=0;m<3;m++)
+            {
+                for(int l=0;l<3;l++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        Ru_6(row,col)+=Fn[i][K]*Finv[K][k]*fIdentity_matrix(m,l);
+                    }
+                    row++;
+                }
+            }
+            col++;
+        }
+    }
 
 }
 void FSMicromorphic3DT:: Form_Ru_7_matrix()
 {
-	Ru_7=0.0;
-	int col=0;
-	int row=0;
+    Ru_7=0.0;
+    int col=0;
+    int row=0;
 
  for(int l = 0; l<= 2; l++)
      {
@@ -6635,88 +6680,60 @@ void FSMicromorphic3DT:: Form_Ru_7_matrix()
 
 }
 
-void FSMicromorphic3DT:: Form_Ru_8_matrix()
-{
-	Ru_8=0.0;
-	int col=0;
-	int row=0;
-
- for(int m = 0; m<= 2; m++)
-     {
-         for(int k=0;k<=2;k++)
-         {
-             row = m;//row calculations start here
-             for(int l = 0; l <= 2; l++)
-                 {
-                         //summation on the same term starts here
-                             for(int K=0;K<=2;K++)
-                             {
-                                 Ru_8(row, col) =(Ru_8(row, col) +Fn[l][K]*Finv[K][k]);
-                             }
-                             row=row+3;
-                 }
-                 col++;
-             }
-         }
-
-
-}
-
 void FSMicromorphic3DT:: Form_RChi_3_matrix()
 {
-	RChi_3=0.0;
-	int row=0;
-	int col=0;
-	for(int K=0;K<3;K++)
-	{
-		for(int p=0;p<3;p++)
-		{
-			row=0;
-			for(int m=0;m<3;m++)
-			{
-				for(int l=0;l<3;l++)
-				{
-					// summation over the same term
-					for(int T=0;T<3;T++)
-					{
-						for(int i=0;i<3;i++)
-						{
-							RChi_3(row,col)+=ChiN[i][T]*ChiInv[T][p]*ChiInv[K][i]*fIdentity_matrix(m,l);
+    RChi_3=0.0;
+    int row=0;
+    int col=0;
+    for(int K=0;K<3;K++)
+    {
+        for(int p=0;p<3;p++)
+        {
+            row=0;
+            for(int m=0;m<3;m++)
+            {
+                for(int l=0;l<3;l++)
+                {
+                    for(int T=0;T<3;T++)
+                    {
+                        for(int i=0;i<3;i++)
+                        {
+                            RChi_3(row,col)+=ChiN[i][T]*ChiInv[T][p]*ChiInv[K][i]*fIdentity_matrix(m,l);
 
-						}
-					}
-					row++;
-				}
-			}
-			col++;
-		}
-	}
+                        }
+                    }
+                    row++;
+                }
+            }
+            col++;
+        }
+    }
 }
 
-void FSMicromorphic3DT:: Form_Ru_9_matrix()
+void FSMicromorphic3DT:: Form_Ru_8_matrix()
 {
-	Ru_9=0.0;
-	int row=0;
-	int col=0;
-	for(int i=0;i<3;i++)
-	{
-		for(int p=0;p<3;p++)
-		{
-			row=0;
-			for(int m=0;m<3;m++)
-			{
-				for(int l=0;l<3;l++)
-				{
-					for(int K=0;K<3;K++)
-					{
-						Ru_9(row,col)+=Fn[i][K]*Finv[K][p]*fIdentity_matrix(m,l);
-					}
-					row++;
-				}
-			}
-			col++;
-		}
-	}
+    Ru_8=0.0;
+    int row=0;
+    int col=0;
+    for(int i=0;i<3;i++)
+    {
+        for(int p=0;p<3;p++)
+        {
+            row=0;
+            for(int m=0;m<3;m++)
+            {
+                for(int l=0;l<3;l++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        Ru_8(row,col)+=Fn[i][K]*Finv[K][p]*fIdentity_matrix(m,l);
+                    }
+                    row++;
+                }
+            }
+            col++;
+        }
+    }
 
 }
 
@@ -6780,7 +6797,7 @@ void FSMicromorphic3DT:: Form_CapitalLambda_matrix()
     {
         for(int j=0;j<=2;j++)
         {
-            CapitalLambda(i,j)=0.0;//10^-8
+            CapitalLambda(i,j)=0.00000001;
         }
     }
 }
@@ -6821,15 +6838,15 @@ void FSMicromorphic3DT::Form_H1_matrix()
 
     for(int i=0;i<3;i++)
     {
-    	for(int j=0;j<3;j++)
-    	{
+        for(int j=0;j<3;j++)
+        {
 
             Fn_m(i,j)=Fn[i][j];
             Finv_m(i,j)=Finv[i][j];
             SigN_m(i,j)=SigN[i][j];
-    		ChiInv_m(i,j)=ChiInv[i][j];
-    		ChiN_m(i,j)=ChiN[i][j];
-    	}
+            ChiInv_m(i,j)=ChiInv[i][j];
+            ChiN_m(i,j)=ChiN[i][j];
+        }
     }
 
     deltaL.MultAB(Fn_m,Finv_m);
@@ -6865,162 +6882,162 @@ void FSMicromorphic3DT::Form_H1_matrix()
 
     for(int i=0;i<=2;i++)
     {
-    	for(int j=0;j<=2;j++)
-		{
-    		DTL[i][j]=0.0;
-    		for(int k=0;k<=2;k++)
-    		{
-    			Mnplus1[i][j][k]=0.0;
-    			DtDnu[i][j][k]=0.0;
-    			DtGdot[i][j][k]=0.0;
-    			DtGC[i][j][k]=0.0;
-    			grad_Chi[i][j][k]=0.0;
-    			grad_ChiN[i][j][k]=0.0;
-    			CklmprsDtGC[i][j][k]=0.0;
-    		}
+        for(int j=0;j<=2;j++)
+        {
+            DTL[i][j]=0.0;
+            for(int k=0;k<=2;k++)
+            {
+                Mnplus1[i][j][k]=0.0;
+                DtDnu[i][j][k]=0.0;
+                DtGdot[i][j][k]=0.0;
+                DtGC[i][j][k]=0.0;
+                grad_Chi[i][j][k]=0.0;
+                grad_ChiN[i][j][k]=0.0;
+                CklmprsDtGC[i][j][k]=0.0;
+            }
 
-		}
+        }
 
     }
 //  Mnplus1=0.0;
     //constructing grad_Chi and grad_ChiN at current config.
     for(int i=0;i<3;i++)
     {
-    	for(int A=0;A<3;A++)
-    	{
-    		for(int k=0;k<3;k++)
-    		{
-    			//
-    			for(int K=0;K<3;K++)
-    			{
-    			   	 grad_Chi[i][A][k]=grad_Chi[i][A][k]+GRAD_Chi[i][A][K]*Finv[K][k];
-    				grad_ChiN[i][A][k]=grad_ChiN[i][A][k]+GRAD_ChiN[i][A][K]*Finv[K][k];
-    			}
-    		}
-    	}
+        for(int A=0;A<3;A++)
+        {
+            for(int k=0;k<3;k++)
+            {
+                //
+                for(int K=0;K<3;K++)
+                {
+                            grad_Chi[i][A][k]=grad_Chi[i][A][k]+GRAD_Chi[i][A][K]*Finv[K][k];
+                    grad_ChiN[i][A][k]=grad_ChiN[i][A][k]+GRAD_ChiN[i][A][K]*Finv[K][k];
+                }
+            }
+        }
     }
 //constructing deltatL and deltatnu
     for(int i=0;i<3;i++)
     {
-    	for(int j=0;j<3;j++)
-    	{
-    		DTL[i][j]+=KrDelta[i][j];
-    		Dtnu[i][j]+=KrDelta[i][j];
-    		for(int K=0;K<3;K++)
-    		{
-    		DTL[i][j]+=-Fn[i][K]*Finv[K][j];
-    		Dtnu[i][j]=-ChiN[i][K]*Chi[K][j];
-    		}
-    	}
+        for(int j=0;j<3;j++)
+        {
+            DTL[i][j]+=KrDelta[i][j];
+            Dtnu[i][j]+=KrDelta[i][j];
+            for(int K=0;K<3;K++)
+            {
+            DTL[i][j]+=-Fn[i][K]*Finv[K][j];
+            Dtnu[i][j]=-ChiN[i][K]*Chi[K][j];
+            }
+        }
     trd+=DTL[i][i];
     }
     //constructing the deltat gradientnu
     for(int i=0;i<3;i++)
     {
-    	for(int j=0;j<3;j++)
-    	{
-    		for(int k=0;k<3;k++)
-    		{
-    			//
-    			for(int A=0;A<3;A++)
-    			{
+        for(int j=0;j<3;j++)
+        {
+            for(int k=0;k<3;k++)
+            {
+                //
+                for(int A=0;A<3;A++)
+                {
 
-    				DtDnu[i][j][k]=DtDnu[i][j][k]+grad_Chi[i][A][k]*ChiInv[A][j]-grad_ChiN[i][A][k]*ChiInv[A][j]
-    				              +grad_Chi[i][A][k]*ChiInv[A][j];
+                    DtDnu[i][j][k]=DtDnu[i][j][k]+grad_Chi[i][A][k]*ChiInv[A][j]-grad_ChiN[i][A][k]*ChiInv[A][j]
+                                  +grad_Chi[i][A][k]*ChiInv[A][j];
 
-    				for(int m=0;m<3;m++)
-    				{
-    					for(int D=0;D<3;D++)
-    					{
-    						DtDnu[i][j][k]+=ChiN[i][A]*ChiInv[A][m]*grad_Chi[m][D][k]*ChiInv[D][j];
-    					}
-    				}
-    			}
-       		}
-    	}
+                    for(int m=0;m<3;m++)
+                    {
+                        for(int D=0;D<3;D++)
+                        {
+                            DtDnu[i][j][k]+=ChiN[i][A]*ChiInv[A][m]*grad_Chi[m][D][k]*ChiInv[D][j];
+                        }
+                    }
+                }
+            }
+        }
     }
 
 //constructing deltatgammadot
     for(int i=0;i<3;i++)
     {
-    	for(int j=0;j<3;j++)
-    	{
-    		for(int k=0;k<3;k++)
-    		{
-    			DtGdot[i][j][k]+=DtDnu[i][j][k];
-    			for(int p=0;p<3;p++)
-    			{
-        			DtGdot[i][j][k]=DtGdot[i][j][k]+Dtnu[i][p]*GammaN[p][j][k]-Dtnu[p][j]*GammaN[i][p][k];
-    			}
-    		}
-    	}
+        for(int j=0;j<3;j++)
+        {
+            for(int k=0;k<3;k++)
+            {
+                DtGdot[i][j][k]+=DtDnu[i][j][k];
+                for(int p=0;p<3;p++)
+                {
+                    DtGdot[i][j][k]=DtGdot[i][j][k]+Dtnu[i][p]*GammaN[p][j][k]-Dtnu[p][j]*GammaN[i][p][k];
+                }
+            }
+        }
     }
 //constructing deltatgammacircle DtGC
 
     for(int i=0;i<3;i++)
     {
-    	for(int j=0;j<3;j++)
-    	{
-    		for(int k=0;k<3;k++)
-    		{
-    			DtGC[i][j][k]+=DtGdot[i][j][k];
-    			for(int p=0;p<3;p++)
-    			{
-    				DtGC[i][j][k]+=DTL[p][i]*GammaN[p][j][k]+GammaN[i][j][p]*DTL[p][k]+Gamma[i][p][k]*Dtnu[p][j];
-    			}
-    		}
-    	}
+        for(int j=0;j<3;j++)
+        {
+            for(int k=0;k<3;k++)
+            {
+                DtGC[i][j][k]+=DtGdot[i][j][k];
+                for(int p=0;p<3;p++)
+                {
+                    DtGC[i][j][k]+=DTL[p][i]*GammaN[p][j][k]+GammaN[i][j][p]*DTL[p][k]+Gamma[i][p][k]*Dtnu[p][j];
+                }
+            }
+        }
     }
 //constructing  CklmprsDtGC
     for(int m=0;m<3;m++)
     {
-    	for(int l=0;l<3;l++)
-    	{
-    		for(int k=0;k<3;k++)
-    		{
-    			   //
-    			   for(int p=0;p<3;p++)
-    			    {
-    			    	for(int r=0;r<3;r++)
-    			    	{
-    			    		for(int s=0;s<3;s++)
-    			    		{
-    			    			CklmprsDtGC[k][l][m]+=CCof[k][l][m][p][r][s]*DtGC[p][r][s];
-    			    		}
-    			    	}
-    			    }
-    		}
-    	}
+        for(int l=0;l<3;l++)
+        {
+            for(int k=0;k<3;k++)
+            {
+                   //
+                   for(int p=0;p<3;p++)
+                    {
+                            for(int r=0;r<3;r++)
+                            {
+                                    for(int s=0;s<3;s++)
+                                    {
+                                            CklmprsDtGC[k][l][m]+=CCof[k][l][m][p][r][s]*DtGC[p][r][s];
+                                    }
+                            }
+                    }
+            }
+        }
     }
     */
 //constructing Mnplus1
     for(int m=0;m<3;m++)
     {
-    	for(int l=0;l<3;l++)
-    	{
-    		for(int k=0;k<3;k++)
-    		{
-    			   //
-    			Mnplus1[k][l][m]=(1-trdeltad)*mn[k][l][m];//+CklmprsDtGC[k][l][m];
-    			for(int p=0;p<3;p++)
-    			{
-    				//Mnplus1[k][l][m]+=DTL[k][p]*mn[p][l][m]+mn[k][p][m]*DTL[l][p]+mn[k][l][p]*Dtnu[m][p];
-    				Mnplus1[k][l][m]+=deltaL(k,p)*mn[p][l][m]+mn[k][p][m]*deltaL(l,p)+mn[k][l][p]*deltaNu(m,p);
-    			}
-    		}
-    	}
+        for(int l=0;l<3;l++)
+        {
+            for(int k=0;k<3;k++)
+            {
+                   //
+                Mnplus1[k][l][m]=(1-trdeltad)*mn[k][l][m];//+CklmprsDtGC[k][l][m];
+                for(int p=0;p<3;p++)
+                {
+                    //Mnplus1[k][l][m]+=DTL[k][p]*mn[p][l][m]+mn[k][p][m]*DTL[l][p]+mn[k][l][p]*Dtnu[m][p];
+                    Mnplus1[k][l][m]+=deltaL(k,p)*mn[p][l][m]+mn[k][p][m]*deltaL(l,p)+mn[k][l][p]*deltaNu(m,p);
+                }
+            }
+        }
     }
 
     for(int m=0;m<3;m++)
     {
-    	for(int l=0;l<3;l++)
-    	{
-    		for(int k=0;k<3;k++)
-    		{
-    			H1[row]=Mnplus1[k][l][m];
-    			row++;
-    		}
-    	}
+        for(int l=0;l<3;l++)
+        {
+            for(int k=0;k<3;k++)
+            {
+                H1[row]=Mnplus1[k][l][m];
+                row++;
+            }
+        }
     }
 
 //THIS PART IS THE OLDEST PART...
@@ -7098,17 +7115,17 @@ void FSMicromorphic3DT::Form_H2_matrix()
     ChiN_m=0.0;
     for(int i=0;i<3;i++)
     {
-    	for(int j=0;j<3;j++)
-    	{
+        for(int j=0;j<3;j++)
+        {
 
             Fn_m(i,j)=Fn[i][j];
             Finv_m(i,j)=Finv[i][j];
             SigN_m(i,j)=SigN[i][j];
-    		ChiInv_m(i,j)=ChiInv[i][j];
-    		ChiN_m(i,j)=ChiN[i][j];
-    	}
+            ChiInv_m(i,j)=ChiInv[i][j];
+            ChiN_m(i,j)=ChiN[i][j];
+        }
     }
-//sigma-s is assumed  now so s_sigma=sigma-s rigth now.
+
     deltaL.MultAB(Fn_m,Finv_m);
     deltaL*=-1;
     deltaL+=fIdentity_matrix;
@@ -7132,52 +7149,57 @@ void FSMicromorphic3DT::Form_H2_matrix()
         trdeltaEp+=deltaEp(i,i);
 
     s_sigma+=sn_sigman;
+    //s_sigma*=-1;
+
     tempSig=sn_sigman;
-    tempSig*=trdeltad;
+    tempSig*=-trdeltad;
+   // tempSig*=-1;
     s_sigma+=tempSig;
 
     tempSig.MultAB(deltaL,sn_sigman);
+//    tempSig*=-1;
     s_sigma+=tempSig;
 
     tempSig.MultABT(sn_sigman,deltaL);
+  //  tempSig*=-1;
     s_sigma+=tempSig;
 
     tempSig.Transpose(deltaEp);
-    tempSig*=-fMaterial_Params[kKappa];
+    tempSig*=fMaterial_Params[kKappa];
     s_sigma+=tempSig;
     tempSig.Transpose(deltaEp);
-    tempSig*=fMaterial_Params[kSigma_const];
+    tempSig*=-fMaterial_Params[kSigma_const];
     s_sigma+=tempSig;
 
     tempSig=deltaEp;
-    tempSig*=-fMaterial_Params[kNu];
+    tempSig*=fMaterial_Params[kNu];
     s_sigma+=tempSig;
     tempSig=deltaEp;
-    tempSig*=fMaterial_Params[kSigma_const];
+    tempSig*=-fMaterial_Params[kSigma_const];
     s_sigma+=tempSig;
 
     tempSig=fIdentity_matrix;
     tempSig*=trdeltad;
-    tempSig*=-fMaterial_Params[kTau];
+    tempSig*=fMaterial_Params[kTau];
     s_sigma+=tempSig;
 
     tempSig=deltad;
     tempSig*=fMaterial_Params[kSigma_const];
-    tempSig*=-2;
+    tempSig*=2;
     s_sigma+=tempSig;
 
     tempSig=fIdentity_matrix;
     tempSig*=trdeltaEp;
-    tempSig*=-fMaterial_Params[kEta];
+    tempSig*=fMaterial_Params[kEta];
     s_sigma+=tempSig;
     tempSig=fIdentity_matrix;
     tempSig*=trdeltaEp;
-    tempSig*=fMaterial_Params[kTau];
+    tempSig*=-fMaterial_Params[kTau];
     s_sigma+=tempSig;
 
 
 
-  // s_sigma*=-1;//because in formulation it is sigma-s!!
+   s_sigma*=-1;//because in formulation it is sigma-s!!
 
     for(int m=0;m<=2;m++)
     {
