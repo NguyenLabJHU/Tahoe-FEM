@@ -1170,7 +1170,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                 Form_double_Finv_from_Deformation_tensor_inverse();// output: Finv
-                Form_GRAD_Chi_matrix();//output: GRAD_Chi[i][j][k]
+                Form_GRAD_Chi_matrix();////CHI=1+PHI ==> GRAD_CHI=GRAD_PHI output: GRAD_Chi[i][j][k]
                 Form_Gamma_tensor3D();
 
                 Form_Finv_w_matrix();//output: Finv_w
@@ -3259,7 +3259,7 @@ void FSMicromorphic3DT:: Form_GRAD_Chi_matrix()
         {
             for(int K=0;K<=2;K++)
             {
-                GRAD_Chi[i][T][K]=GRAD_Chi_vec[row];
+                GRAD_Chi[i][T][K]=GRAD_Chi_vec[row];//CHI=1+PHI ==> GRAD_CHI=GRAD_PHI
                 row++;
             }
         }
