@@ -908,7 +908,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     Pint_1=0.0;
     Pint_2=0.0;
     Pint_3=0.0;
-    //fFd_int=0.0;
+    Pint_1_temp=0.0;
+    Pint_2_temp=0.0;
+    Pint_3_temp=0.0;
+    fFphi_int=0.0;
     fH1_Etagrad=0.0;
     fH1_1=0.0;
     fH1_2=0.0;
@@ -937,6 +940,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fH2_10=0.0;
     fH2_11=0.0;
     fH2_12=0.0;
+    fH2_13=0.0;
 
     fH3_1=0.0;
 
@@ -1452,7 +1456,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 // accumulate
                 fG1_13 += fTemp_matrix_nudof_x_nudof;
 
-                TransShapeDisplGrad.Transpose(GRAD_Nuw);//
+           //     TransShapeDisplGrad.Transpose(GRAD_Nuw);//
             //    fTemp_matrix_nudof_x_nudof.MultABCT(TransShapeDisplGrad,Var_F,fIota_temp_matrix);
                 fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Var_F,fIota_temp_matrix);
                 scale= scale_const*J;
