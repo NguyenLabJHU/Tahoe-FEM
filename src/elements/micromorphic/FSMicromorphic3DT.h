@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.65 2009-12-04 01:50:07 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.66 2009-12-18 16:02:17 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -332,6 +332,7 @@ private:
 	dArrayT	        fGravity_vector;
 	dArrayT	        fFd_int_G4_vector;
 	dArrayT         fTemp_nine_values;
+	dArrayT         fTemp_six_values;
 	dArrayT         fGradv_vector;
 	dArrayT         fgradv_vector;
 
@@ -441,6 +442,7 @@ private:
 
 	dArray2DT SigN_IPs;
 	dArray2DT Sig_IPs;
+	dArray2DT SigN_IPs_n;
 	dArray2DT SigN_IPs_el;
 	dArray2DT Sig_IPs_el;
 	dArray2DT SigN_IPs_el_n;
@@ -471,6 +473,7 @@ private:
 	dMatrixT FnInv_ar;
 	dArray2DT FnInv_ar_IPs;
 	dArray2DT FInv_ar_IPs;
+//	dArray2DT FInv_ar_IPs_n;
 	dArray2DT FnInv_ar_IPs_el;
 	dArray2DT FInv_ar_IPs_el;
 	dArray2DT FnInv_ar_IPs_el_n;
@@ -487,7 +490,11 @@ private:
 	double ChiN[3][3];
 	dMatrixT ChinN_m;
 	dMatrixT ChiN_ar;
+	dMatrixT Chi_ar;
 	dArray2DT ChiN_ar_IPs;
+	dArray2DT Chi_ar_IPs;
+	dArray2DT ChiN_ar_IPs_n;
+	dArray2DT Chi_ar_IPs_el;
 	dArray2DT ChiN_ar_IPs_el;
 	dArray2DT ChiN_ar_IPs_el_n;
 
@@ -533,6 +540,7 @@ private:
 	double mn[3][3][3];
  	dArrayT mn_ar;
 	dArray2DT mn_IPs;
+	dArray2DT mn_IPs_n;
 	dArray2DT mn_IPs_el;
 	dArray2DT mn_IPs_el_n;
 
@@ -542,6 +550,7 @@ private:
 	dArrayT GammaN_ar;
 
 	dArray2DT GammaN_IPs;
+	dArray2DT GammaN_IPs_n;
 	dArray2DT GammaN_IPs_el;
 	dArray2DT GammaN_IPs_el_n;
 
@@ -554,6 +563,7 @@ private:
 	double DTL[3][3];*/
 	dArrayT GRAD_ChiN_ar;
 	dArray2DT GRAD_ChiN_ar_IPs;
+	dArray2DT GRAD_ChiN_ar_IPs_n;
 	dArray2DT GRAD_ChiN_ar_IPs_el;
 	dArray2DT GRAD_ChiN_ar_IPs_el_n;
 
@@ -599,6 +609,7 @@ private:
 
     dMatrixT sn_sigman;
     dArray2DT sn_sigman_IPs;
+    dArray2DT sn_sigman_IPs_n;
     dArray2DT sn_sigman_IPs_el;
     dArray2DT sn_sigman_IPs_el_n;
 
