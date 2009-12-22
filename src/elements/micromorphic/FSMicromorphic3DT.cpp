@@ -3365,7 +3365,13 @@ void FSMicromorphic3DT::Form_KroneckerDelta_matrix()
 
 void FSMicromorphic3DT::Form_Gamma_tensor3D()
 {
-    for(int a=0;a<3;a++)
+
+	for(int a=0;a<3;a++)
+	{for(int p=0;p<3;p++)
+       {for(int q=0;q<3;q++)
+            {Gamma[a][p][q]=0.0;}}}
+
+	for(int a=0;a<3;a++)
     {
         for(int p=0;p<3;p++)
         {
@@ -3376,7 +3382,7 @@ void FSMicromorphic3DT::Form_Gamma_tensor3D()
                     {
                     for(int Q=0;Q<3;Q++)
                      {
-                        Gamma[a][p][q]=ChiInv[A][p]*GRAD_Chi[a][A][Q]*Finv[Q][q];
+                        Gamma[a][p][q]+=ChiInv[A][p]*GRAD_Chi[a][A][Q]*Finv[Q][q];
                      }
                     }
             }
@@ -6874,8 +6880,9 @@ void FSMicromorphic3DT:: Form_CapitalLambda_matrix()
 
 void FSMicromorphic3DT::Form_H1_matrix()
 {
-    int row;
-    row=0;
+    int row=0;
+    double trdeltad=0.0;
+    double trdeltaEp=0.0;
     H1=0.0;
 /*    double DtDnu[3][3][3];
     double Dtnu[3][3];
@@ -6893,8 +6900,6 @@ void FSMicromorphic3DT::Form_H1_matrix()
  *********************************************************************************/
     deltaEp=0.0;
     deltaNu=0.0;
-    double trdeltad=0.0;
-    double trdeltaEp=0.0;
     deltad=0.0;
     deltaL=0.0;
     s_sigma=0.0;
@@ -7081,6 +7086,11 @@ void FSMicromorphic3DT::Form_H1_matrix()
     }
     */
 //constructing Mnplus1
+
+for(int m=0;m<3;m++){for(int l=0;l<3;l++){for(int k=0;k<3;k++){Mnplus1[k][l][m]=0.0;}}}
+
+
+
     for(int m=0;m<3;m++)
     {
         for(int l=0;l<3;l++)
@@ -7088,7 +7098,7 @@ void FSMicromorphic3DT::Form_H1_matrix()
             for(int k=0;k<3;k++)
             {
                    //
-                Mnplus1[k][l][m]=(1-trdeltad)*mn[k][l][m];//+CklmprsDtGC[k][l][m];
+                Mnplus1[k][l][m]+=(1-trdeltad)*mn[k][l][m];//+CklmprsDtGC[k][l][m];
                 for(int p=0;p<3;p++)
                 {
                     //Mnplus1[k][l][m]+=DTL[k][p]*mn[p][l][m]+mn[k][p][m]*DTL[l][p]+mn[k][l][p]*Dtnu[m][p];
