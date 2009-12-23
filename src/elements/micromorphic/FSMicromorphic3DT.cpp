@@ -6883,6 +6883,8 @@ void FSMicromorphic3DT::Form_H1_matrix()
     int row=0;
     double trdeltad=0.0;
     double trdeltaEp=0.0;
+    double dtgd[3][3][3];
+    double grad_Nu[3][3][3];
     H1=0.0;
 /*    double DtDnu[3][3][3];
     double Dtnu[3][3];
@@ -6902,7 +6904,6 @@ void FSMicromorphic3DT::Form_H1_matrix()
     deltaNu=0.0;
     deltad=0.0;
     deltaL=0.0;
-    s_sigma=0.0;
     tempSig=0.0;
     Fn_m=0.0;
     Finv_m=0.0;
@@ -7086,12 +7087,52 @@ void FSMicromorphic3DT::Form_H1_matrix()
     }
     */
 //constructing Mnplus1
+//initiliazting  the tensors
+for(int m=0;m<3;m++)
+{
+	for(int l=0;l<3;l++)
+	{
+		for(int k=0;k<3;k++)
+		{
+			Mnplus1[k][l][m]=0.0;
+			dtgd[k][l][m]=0.0;
+			grad_Nu[k][l][m]=0.0;}}}
+//calculating the dChiInvdX appearing in grad_Nu(pr,s) in equation 101
+for(int K=0;K<3;K++)
+{
+	for(int r=0;r<3;r++)
+	{
+		for(int T=0;T<3;T++)
+		{
+			//summation
+			for(int m=0;m<3;m++)
+			{
+				for(int L=0;L<3;L++)
+				{
+					dChiInvdX[K][r][T]+=-ChiInv[K][m]*GRAD_Chi[m][L][T]*ChiInv[L][r];}}
+			}
+		}
+	}
 
-for(int m=0;m<3;m++){for(int l=0;l<3;l++){for(int k=0;k<3;k++){Mnplus1[k][l][m]=0.0;}}}
+
+for(int p=0;p<3;p++)
+{
+    for(int r=0;r<3;r++)
+    {
+        for(int s=0;s<3;s++)
+        {
+            //
+           for(int i=0;i<3;i++)
+            {
+        	   dtgd[p][r][s]+=deltaNu(p,i)*GammaN[i][r][s]-deltaNu(i,r)*GammaN[p][i][s]+;
+            }
+        }
+    }
+}
 
 
 
-    for(int m=0;m<3;m++)
+for(int m=0;m<3;m++)
     {
         for(int l=0;l<3;l++)
         {
@@ -7107,6 +7148,11 @@ for(int m=0;m<3;m++){for(int l=0;l<3;l++){for(int k=0;k<3;k++){Mnplus1[k][l][m]=
             }
         }
     }
+
+
+
+
+
 
     for(int m=0;m<3;m++)
     {
