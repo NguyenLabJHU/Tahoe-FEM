@@ -6885,6 +6885,7 @@ void FSMicromorphic3DT::Form_H1_matrix()
     double trdeltaEp=0.0;
     double dtgd[3][3][3];
     double grad_Nu[3][3][3];
+    double Cgamma[3][3][3];
     H1=0.0;
 /*    double DtDnu[3][3][3];
     double Dtnu[3][3];
@@ -6949,143 +6950,9 @@ void FSMicromorphic3DT::Form_H1_matrix()
  *********************************************************************************/
 
 
-    /************************************************************************************
-     *
-     * THIS PART IS CURRENTLY COMMENTED OUT FOR ETA DEBUGGING
-     *
-     ***********************************************************************************
 
 
-    for(int i=0;i<=2;i++)
-    {
-        for(int j=0;j<=2;j++)
-        {
-            DTL[i][j]=0.0;
-            for(int k=0;k<=2;k++)
-            {
-                Mnplus1[i][j][k]=0.0;
-                DtDnu[i][j][k]=0.0;
-                DtGdot[i][j][k]=0.0;
-                DtGC[i][j][k]=0.0;
-                grad_Chi[i][j][k]=0.0;
-                grad_ChiN[i][j][k]=0.0;
-                CklmprsDtGC[i][j][k]=0.0;
-            }
 
-        }
-
-    }
-//  Mnplus1=0.0;
-    //constructing grad_Chi and grad_ChiN at current config.
-    for(int i=0;i<3;i++)
-    {
-        for(int A=0;A<3;A++)
-        {
-            for(int k=0;k<3;k++)
-            {
-                //
-                for(int K=0;K<3;K++)
-                {
-                            grad_Chi[i][A][k]=grad_Chi[i][A][k]+GRAD_Chi[i][A][K]*Finv[K][k];
-                    grad_ChiN[i][A][k]=grad_ChiN[i][A][k]+GRAD_ChiN[i][A][K]*Finv[K][k];
-                }
-            }
-        }
-    }
-//constructing deltatL and deltatnu
-    for(int i=0;i<3;i++)
-    {
-        for(int j=0;j<3;j++)
-        {
-            DTL[i][j]+=KrDelta[i][j];
-            Dtnu[i][j]+=KrDelta[i][j];
-            for(int K=0;K<3;K++)
-            {
-            DTL[i][j]+=-Fn[i][K]*Finv[K][j];
-            Dtnu[i][j]=-ChiN[i][K]*Chi[K][j];
-            }
-        }
-    trd+=DTL[i][i];
-    }
-    //constructing the deltat gradientnu
-    for(int i=0;i<3;i++)
-    {
-        for(int j=0;j<3;j++)
-        {
-            for(int k=0;k<3;k++)
-            {
-                //
-                for(int A=0;A<3;A++)
-                {
-
-                    DtDnu[i][j][k]=DtDnu[i][j][k]+grad_Chi[i][A][k]*ChiInv[A][j]-grad_ChiN[i][A][k]*ChiInv[A][j]
-                                  +grad_Chi[i][A][k]*ChiInv[A][j];
-
-                    for(int m=0;m<3;m++)
-                    {
-                        for(int D=0;D<3;D++)
-                        {
-                            DtDnu[i][j][k]+=ChiN[i][A]*ChiInv[A][m]*grad_Chi[m][D][k]*ChiInv[D][j];
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-//constructing deltatgammadot
-    for(int i=0;i<3;i++)
-    {
-        for(int j=0;j<3;j++)
-        {
-            for(int k=0;k<3;k++)
-            {
-                DtGdot[i][j][k]+=DtDnu[i][j][k];
-                for(int p=0;p<3;p++)
-                {
-                    DtGdot[i][j][k]=DtGdot[i][j][k]+Dtnu[i][p]*GammaN[p][j][k]-Dtnu[p][j]*GammaN[i][p][k];
-                }
-            }
-        }
-    }
-//constructing deltatgammacircle DtGC
-
-    for(int i=0;i<3;i++)
-    {
-        for(int j=0;j<3;j++)
-        {
-            for(int k=0;k<3;k++)
-            {
-                DtGC[i][j][k]+=DtGdot[i][j][k];
-                for(int p=0;p<3;p++)
-                {
-                    DtGC[i][j][k]+=DTL[p][i]*GammaN[p][j][k]+GammaN[i][j][p]*DTL[p][k]+Gamma[i][p][k]*Dtnu[p][j];
-                }
-            }
-        }
-    }
-//constructing  CklmprsDtGC
-    for(int m=0;m<3;m++)
-    {
-        for(int l=0;l<3;l++)
-        {
-            for(int k=0;k<3;k++)
-            {
-                   //
-                   for(int p=0;p<3;p++)
-                    {
-                            for(int r=0;r<3;r++)
-                            {
-                                    for(int s=0;s<3;s++)
-                                    {
-                                            CklmprsDtGC[k][l][m]+=CCof[k][l][m][p][r][s]*DtGC[p][r][s];
-                                    }
-                            }
-                    }
-            }
-        }
-    }
-    */
 //constructing Mnplus1
 //initiliazting  the tensors
 for(int m=0;m<3;m++)
@@ -7096,24 +6963,33 @@ for(int m=0;m<3;m++)
 		{
 			Mnplus1[k][l][m]=0.0;
 			dtgd[k][l][m]=0.0;
-			grad_Nu[k][l][m]=0.0;}}}
+			grad_Nu[k][l][m]=0.0;
+			Cgamma[k][l][m]=0.0;}}}
 //calculating the dChiInvdX appearing in grad_Nu(pr,s) in equation 101
-for(int K=0;K<3;K++)
+
+for(int p=0;p<3;p++)
 {
 	for(int r=0;r<3;r++)
 	{
-		for(int T=0;T<3;T++)
+		for(int s=0;s<3;s++)
 		{
 			//summation
-			for(int m=0;m<3;m++)
+			for(int L=0;L<3;L++)
 			{
-				for(int L=0;L<3;L++)
+				for(int l=0;l<3;l++)
 				{
-					dChiInvdX[K][r][T]+=-ChiInv[K][m]*GRAD_Chi[m][L][T]*ChiInv[L][r];}}
+					for(int K=0;K<3;K++)
+					{
+						for(int T=0;T<3;T++)
+						{
+							grad_Nu[p][r][s]=-ChiN[p][L]*ChiInv[L][l]*GRAD_Chi[l][K][T]*ChiInv[K][r]*fDeformation_Gradient(T,s);
+						}
+					}
+				}
 			}
 		}
 	}
-
+}
 
 for(int p=0;p<3;p++)
 {
@@ -7122,15 +6998,35 @@ for(int p=0;p<3;p++)
         for(int s=0;s<3;s++)
         {
             //
-           for(int i=0;i<3;i++)
+        	 dtgd[p][r][s]+=grad_Nu[p][r][s];
+        	for(int i=0;i<3;i++)
             {
-        	   dtgd[p][r][s]+=deltaNu(p,i)*GammaN[i][r][s]-deltaNu(i,r)*GammaN[p][i][s]+;
+        	   dtgd[p][r][s]+=deltaNu(p,i)*GammaN[i][r][s]-deltaNu(i,r)*GammaN[p][i][s];
             }
         }
     }
 }
 
-
+for(int k=0;k<3;k++)
+{
+	for(int l=0;l<3;l++)
+	{
+		for(int m=0;m<3;m++)
+		{
+			//summation
+			for(int p=0;p<3;p++)
+			{
+				for(int r=0;r<3;r++)
+				{
+					for(int s=0;s<3;s++)
+					{
+						Cgamma[k][l][m]+=CCof[k][l][m][p][r][s]*dtgd[p][r][s];
+					}
+				}
+			}
+		}
+	}
+}
 
 for(int m=0;m<3;m++)
     {
@@ -7149,7 +7045,16 @@ for(int m=0;m<3;m++)
         }
     }
 
-
+for(int m=0;m<3;m++)
+    {
+        for(int l=0;l<3;l++)
+        {
+            for(int k=0;k<3;k++)
+            {
+            	Mnplus1[k][l][m]+=Cgamma[k][l][m];
+            }
+        }
+    }
 
 
 
