@@ -1518,7 +1518,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                 fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_1,fIota_temp_matrix);
-                scale = -1*-1*scale_const*J;
+                scale = scale_const*J;
                 fTemp_matrix_nchidof_x_nudof *= scale;
                 // accumulate
                 fH1_1 += fTemp_matrix_nchidof_x_nudof;
@@ -5286,7 +5286,39 @@ void FSMicromorphic3DT:: Form_Etagrad_matrix()
 
 void FSMicromorphic3DT::Form_Mm_1_matrix()
 {
-       Mm_1(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][0][0];//[0][0][0] +
+	int row;
+	int col;
+	Mm_1=0.0;
+	row=0;
+	col=0;
+	for(int i=0;i<3;i++)
+	{
+		for(int p=0;p<3;p++)
+		{
+			//
+			row=0;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int L=0;L<3;L++)
+						{
+							Mm_1(row,col)+=Fn[i][L]*Finv[L][p]*mn[k][l][m];
+						}
+						row++;
+					}
+				}
+			}
+			col++;
+		}
+	}
+
+
+
+/*       Mm_1(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][0][0];//[0][0][0] +
        Mm_1(1,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[1][0][0];//[0][0][1] +
        Mm_1(2,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[2][0][0];//[0][0][2] +
        Mm_1(3,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][1][0];//[0][1][0] +
@@ -5538,12 +5570,40 @@ void FSMicromorphic3DT::Form_Mm_1_matrix()
        Mm_1(24,8)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2])*mn[0][2][2];//[2][2][0] +
        Mm_1(25,8)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2])*mn[1][2][2];//[2][2][1] +
        Mm_1(26,8)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2])*mn[2][2][2];//[2][2][2])
-}
+*/}
 
 void FSMicromorphic3DT::Form_Mm_2_matrix()
 {
+	int row,col;
+	Mm_2=0.0;
+	row=0;
+	col=0;
+	for(int i=0;i<3;i++)
+	{
+		for(int p=0;p<3;p++)
+		{
+			//
+			row=0;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int L=0;L<3;L++)
+						{
+							Mm_2(row,col)+=Fn[k][L]*Finv[L][p]*mn[i][l][m];
+						}
+						row++;
+					}
+				}
+			}
+			col++;
+		}
+	}
 
-       Mm_2(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][0][0];//[0][0][0] +
+ /*      Mm_2(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][0][0];//[0][0][0] +
        Mm_2(1,0)=(Finv[0][0]*Fn[1][0] + Finv[1][0]*Fn[1][1] + Finv[2][0]*Fn[1][2])*mn[0][0][0];//[0][0][1] +
        Mm_2(2,0)=(Finv[0][0]*Fn[2][0] + Finv[1][0]*Fn[2][1] + Finv[2][0]*Fn[2][2])*mn[0][0][0];//[0][0][2] +
        Mm_2(3,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][1][0];//[0][1][0] +
@@ -5794,14 +5854,43 @@ void FSMicromorphic3DT::Form_Mm_2_matrix()
        Mm_2(24,8)=(Finv[0][2]*Fn[0][0] + Finv[1][2]*Fn[0][1] + Finv[2][2]*Fn[0][2])*mn[2][2][2];//[2][2][0] +
        Mm_2(25,8)=(Finv[0][2]*Fn[1][0] + Finv[1][2]*Fn[1][1] + Finv[2][2]*Fn[1][2])*mn[2][2][2];//[2][2][1] +
        Mm_2(26,8)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2])*mn[2][2][2];//[2][2][2])
-
+*/
 
 }
 
 void FSMicromorphic3DT::Form_Mm_3_matrix()
 {
+	int row,col;
+	Mm_3=0.0;
+	row=0;
+	col=0;
+	for(int i=0;i<3;i++)
+	{
+		for(int p=0;p<3;p++)
+		{
+			//
+			row=0;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int L=0;L<3;L++)
+						{
+							Mm_3(row,col)+=Fn[l][L]*Finv[L][p]*mn[k][i][m];
+						}
+						row++;
+					}
+				}
+			}
+			col++;
+		}
+	}
 
-       Mm_3(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][0][0]; //[0][0][0] +
+
+/*       Mm_3(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[0][0][0]; //[0][0][0] +
        Mm_3(1,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[1][0][0]; //[0][0][1] +
        Mm_3(2,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2])*mn[2][0][0]; //[0][0][2] +
        Mm_3(3,0)=(Finv[0][0]*Fn[1][0] + Finv[1][0]*Fn[1][1] + Finv[2][0]*Fn[1][2])*mn[0][0][0]; //[0][1][0] +
@@ -6053,7 +6142,7 @@ void FSMicromorphic3DT::Form_Mm_3_matrix()
        Mm_3(25,8)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2])*mn[1][2][2]; //[2][2][1] +
        Mm_3(26,8)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2])*mn[2][2][2]; //[2][2][2])
 
-
+*/
 }
 
 void FSMicromorphic3DT:: Form_Mm_4_matrix()
@@ -6120,7 +6209,7 @@ for(int T = 0;T<= 2;T++)
                                 {
                                     for(int i = 0; i <= 2; i++)
                                     {
-                                        Mm_5(row, col) =Mm_5(row, col) +CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]*
+                                        Mm_5(row,col) +=CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]*
                                                         ChiInv[T][i]*GammaN[i][r][s];}}}}}
                     row++;}
                 }
