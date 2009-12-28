@@ -354,7 +354,7 @@ void FSMicromorphic3DT::CloseStep(void)
     Fn_ar_IPs_el=F_ar_IPs_el;
     FnInv_ar_IPs_el=FInv_ar_IPs_el;
     ChiN_ar_IPs_el_n=Chi_ar_IPs_el;
-    GRAD_ChiN_ar_IPs_el_n=GRAD_ChiN_ar_IPs_el;
+    GRAD_ChiN_ar_IPs_el_n=GRAD_Chi_ar_IPs_el;
     //Counter_IPs_el_n=Counter_IPs_el;
 //Here is close step function
 
@@ -1185,7 +1185,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 Fn_ar_IPs.RowCopy(IP,Fn_ar);
                 FnInv_ar_IPs.RowCopy(IP,FnInv_ar);
                 ChiN_ar_IPs_n.RowCopy(IP,ChiN_ar);
-                GRAD_ChiN_ar_IPs_n.RowCopy(IP,GRAD_ChiN_ar);
+                GRAD_ChiN_ar_IPs.RowCopy(IP,GRAD_ChiN_ar);
                 Form_deformation_tensors_arrays(-1);
 
 
@@ -1764,7 +1764,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 F_ar_IPs.SetRow(IP,fDeformation_Gradient);
                 FInv_ar_IPs.SetRow(IP,fDeformation_Gradient_Inverse);
                 Chi_ar_IPs.SetRow(IP,Chi_ar);
-                GRAD_ChiN_ar_IPs.SetRow(IP,GRAD_ChiN_ar);
+                GRAD_Chi_ar_IPs.SetRow(IP,GRAD_Chi_ar);
 
             } //end Gauss integration loop
 
@@ -1787,7 +1787,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             F_ar_IPs_el.SetRow(e,F_ar_IPs);
             FInv_ar_IPs_el.SetRow(e,FInv_ar_IPs);
             Chi_ar_IPs_el.SetRow(e,Chi_ar_IPs);
-            GRAD_ChiN_ar_IPs_el.SetRow(e,GRAD_ChiN_ar_IPs);
+            GRAD_Chi_ar_IPs_el.SetRow(e,GRAD_Chi_ar_IPs);
 
 
 
@@ -2577,11 +2577,19 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     ChiN_ar_IPs_el_n.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd);
     ChiN_ar_IPs_el_n=0.0;
 
+    GRAD_Chi_ar.Dimension(n_sd_x_n_sd_x_n_sd);
+    GRAD_Chi_ar=0.0;
     GRAD_ChiN_ar.Dimension(n_sd_x_n_sd_x_n_sd);
+    GRAD_Chi_ar.Dimension(n_sd_x_n_sd_x_n_sd);
+    GRAD_Chi_ar=0.0;
     GRAD_ChiN_ar_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd_x_n_sd);
+    GRAD_Chi_ar_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd_x_n_sd);
+    GRAD_ChiN_ar_IPs=0.0;
     GRAD_ChiN_ar_IPs_n.Dimension(fNumIP_displ,n_sd_x_n_sd_x_n_sd);
     GRAD_ChiN_ar_IPs_el.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd_x_n_sd);
     GRAD_ChiN_ar_IPs_el=0.0;
+    GRAD_Chi_ar_IPs_el.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd_x_n_sd);
+    GRAD_Chi_ar_IPs_el=0.0;
     GRAD_ChiN_ar_IPs_el_n.Dimension(n_el,fNumIP_displ*n_sd_x_n_sd_x_n_sd);
     GRAD_ChiN_ar_IPs_el_n=0.0;
     fIdentity_matrix=0.0;
@@ -6982,7 +6990,7 @@ for(int p=0;p<3;p++)
 					{
 						for(int T=0;T<3;T++)
 						{
-							grad_Nu[p][r][s]=-ChiN[p][L]*ChiInv[L][l]*GRAD_Chi[l][K][T]*ChiInv[K][r]*fDeformation_Gradient(T,s);
+							grad_Nu[p][r][s]+=ChiN[p][L]*ChiInv[L][l]*GRAD_Chi[l][K][T]*ChiInv[K][r]*fDeformation_Gradient_Inverse(T,s);
 						}
 					}
 				}
@@ -6990,6 +6998,27 @@ for(int p=0;p<3;p++)
 		}
 	}
 }
+
+for(int p=0;p<3;p++)
+{
+	for(int r=0;r<3;r++)
+	{
+		for(int s=0;s<3;s++)
+		{
+			//summation
+			for(int K=0;K<3;K++)
+			{
+				for(int L=0;L<3;L++)
+				{
+					grad_Nu[p][r][s]+=-GRAD_ChiN[p][L][K]*fDeformation_Gradient_Inverse(K,s)*ChiInv[L][r];
+				}
+			}
+		}
+	}
+}
+
+
+
 
 for(int p=0;p<3;p++)
 {
@@ -7297,13 +7326,12 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
         {
             for(int j=0;j<=2;j++)
             {
-/*                Fn_ar(i,j)=fDeformation_Gradient(i,j);
-                FnInv_ar(i,j)=fDeformation_Gradient_Inverse(i,j);*/
+
                 Chi_ar(i,j)=Chi[i][j];
                 row++;
                 for(int k=0;k<=2;k++)
                 {
-                    GRAD_ChiN_ar[row1]=GRAD_Chi[i][j][k];
+                    GRAD_Chi_ar[row1]=GRAD_Chi[i][j][k];
                     row1++;
                 }
             }
