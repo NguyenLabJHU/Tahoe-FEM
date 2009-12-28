@@ -6248,8 +6248,8 @@ void FSMicromorphic3DT:: Form_Mm_6_matrix()
                                     {
                                         for(int i = 0; i <= 2; i++)
                                         {
-                                            Mm_6(row, col) =(Mm_6(row, col) +CCof[k][l][m][p][r][s]*ChiN[i][L]*ChiInv[L][n]*
-                                                            ChiInv[T][r]*GammaN[p][i][s]);}}}}}
+                                            Mm_6(row,col)+= CCof[k][l][m][p][r][s]*ChiN[i][L]*ChiInv[L][n]*
+                                                            ChiInv[T][r]*GammaN[p][i][s];}}}}}
                         row++;}
                     }
                 }
@@ -6290,7 +6290,7 @@ void FSMicromorphic3DT:: Form_Mm_7_matrix()
                                     {
                                         for(int R=0; R<=2;R++)
                                         {
-                                            Mm_7(row, col) =Mm_7(row, col) +CCof[k][l][m][p][r][s]*GRAD_ChiN[p][L][R]*Finv[R][r]*ChiInv[L][n]*
+                                            Mm_7(row, col) +=CCof[k][l][m][p][r][s]*GRAD_ChiN[p][L][R]*Finv[R][r]*ChiInv[L][n]*
                                                             ChiInv[T][s];}}}}}
                         //summation on the same term ends
                         row++;}
@@ -6983,6 +6983,7 @@ void FSMicromorphic3DT::Form_H1_matrix()
     double dtgd[3][3][3];
     double grad_Nu[3][3][3];
     double Cgamma[3][3][3];
+    double dgcir[3][3][3];
     H1=0.0;
 /*    double DtDnu[3][3][3];
     double Dtnu[3][3];
@@ -7061,7 +7062,8 @@ for(int m=0;m<3;m++)
 			Mnplus1[k][l][m]=0.0;
 			dtgd[k][l][m]=0.0;
 			grad_Nu[k][l][m]=0.0;
-			Cgamma[k][l][m]=0.0;}}}
+			Cgamma[k][l][m]=0.0;
+			dgcir[k][l][m]=0.0;}}}
 //calculating the dChiInvdX appearing in grad_Nu(pr,s) in equation 101
 
 for(int p=0;p<3;p++)
@@ -7125,6 +7127,23 @@ for(int p=0;p<3;p++)
     }
 }
 
+for(int p=0;p<3;p++)
+{
+	for(int r=0;r<3;r++)
+	{
+		for(int s=0;s<3;s++)
+		{	//
+			dgcir[p][r][s]=dtgd[p][r][s];
+			for(int i=0;i<3;i++)
+			{
+				dgcir[p][r][s]+=deltaL(i,p)*GammaN[i][r][s]+GammaN[p][r][i]*deltaL(i,s)+GammaN[p][i][s]*deltaNu(i,r);
+
+			}
+		}
+	}
+}
+
+
 for(int k=0;k<3;k++)
 {
 	for(int l=0;l<3;l++)
@@ -7138,7 +7157,7 @@ for(int k=0;k<3;k++)
 				{
 					for(int s=0;s<3;s++)
 					{
-						Cgamma[k][l][m]+=CCof[k][l][m][p][r][s]*dtgd[p][r][s];
+						Cgamma[k][l][m]+=CCof[k][l][m][p][r][s]*dgcir[p][r][s];
 					}
 				}
 			}
