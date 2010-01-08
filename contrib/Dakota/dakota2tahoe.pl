@@ -37,7 +37,10 @@ print "\n";
 
 # echo file making variable subsitutions
 open(IN, "$source") || die "could not open input file $source";
+print STDOUT "opened template file $source\n";
+
 open(OUT, ">$outfile") || die "could not open output file $outfile";
+print STDOUT "opened tahoe xml file $outfile\n";
 while (defined($line = <IN>)) {
 	chomp($line);
 	# variable substitution
