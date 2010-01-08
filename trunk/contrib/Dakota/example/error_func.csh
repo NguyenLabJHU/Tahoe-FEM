@@ -8,14 +8,14 @@
 #---------------
 # configuration 
 #---------------
-set TAHOE          = tahoe
+set TAHOE          = /Users/vicky/Tahoe/tahoe-install/tahoe/tahoe
 
-set DAKOTA_UTIL    = ../
+set DAKOTA_UTIL    = /Users/vicky/Tahoe/tahoe-install/contrib/Dakota
 set EXTRACT        = extract_1D
-set TAHOE_TEMPLATE = mat.2.a.xml.tmpl
+set TAHOE_TEMPLATE = ${DAKOTA_UTIL}/example/mat.2.a.xml.tmpl
 set RESULT_EXT     = io1.run
 set ERROR_FUNC     = least_square
-set REF_RESULTS    = fvsd
+set REF_RESULTS    = ${DAKOTA_UTIL}/example/fvsd
 
 #--------------
 # create tahoe input file
