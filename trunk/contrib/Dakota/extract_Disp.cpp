@@ -1,4 +1,4 @@
-/* $Id: extract_Disp.cpp,v 1.1 2010-01-08 14:43:45 tdnguye Exp $ */
+/* $Id: extract_Disp.cpp,v 1.2 2010-01-18 15:38:44 tdnguye Exp $ */
 
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
@@ -114,12 +114,12 @@ int main(int argc, char** argv)
 		
 		for (int i = 0; i < d_x.MajorDim(); i++)
 		{
-			out << node_id[i]<<' ';
+			out << node_id[i];
 			for (int j = 0; j < nsd; j++)
-				out <<setprecision(12)<< coords(i,j) << ' ';
+				out <<' '<<setprecision(12)<< coords(i,j);
 
 			for (int j = 0; j < nout; j++)
-				out << setprecision(12)<<d_x(i,j) << ' ';
+				out <<' '<< setprecision(12)<<d_x(i,j);
 			out <<endl;
 		}
 		out.flush();
