@@ -1,4 +1,4 @@
-/*$Id: MR3DT.cpp,v 1.11 2009-04-24 15:44:21 regueiro Exp $*/
+/*$Id: MR3DT.cpp,v 1.12 2010-01-20 22:35:58 skyu Exp $*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR3DT.h"
 
@@ -286,10 +286,10 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 	else {
 	int i; int j; int kk;
 
-	dMatrixT AA(7,7); dMatrixT KE(3,3); dMatrixT KE_Inv(3,3); dMatrixT I_mat(4,4);
+	dMatrixT AA(7,7); dMatrixT KE(3,3); dMatrixT KE_Inv(3,3); dMatrixT I_mat(4,4); dMatrixT I(3,3);
 	dMatrixT CMAT(7,7); dMatrixT A_qq(4,4); dMatrixT A_uu(3,3); dMatrixT A_uq(3,4);
 	dMatrixT A_qu(4,3); dMatrixT ZMAT(3,4); dMatrixT ZMATP(4,3);
-	dMatrixT dQdSig2(3,3); dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(3,4);
+	dMatrixT dQdSig2(3,3); dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(3,4); dMatrixT KE_dQdSig2(3,3); dMatrixT KE_dQdSigdq(3,4);
 	dMatrixT dqbardSig(4,3); dMatrixT AA_inv(7,7);
 
 	dArrayT u(3); dArrayT up(3); dArrayT du(3); dArrayT dup(3); dArrayT qn(4);
@@ -297,8 +297,7 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 	dArrayT R(7); dArrayT Rmod(7); dArrayT Sig(3); dArrayT Sig_I(3);
 	dArrayT dQdSig(3); dArrayT dfdq(4); dArrayT qbar(4);
 	dArrayT R2(7); dMatrixT X(7,1); dArrayT V_sig(3); dArrayT V_q(4);
-	dArrayT dfdSig(3); dArrayT dq(4); dArrayT Y(7);
-
+	dArrayT dfdSig(3); dArrayT dq(4); dArrayT Y(7); dArrayT KE_dQdSig(3), KE_du(3);
 
 	double ff; double bott; double topp; double dlam; double dlam2; double normr;
 
@@ -308,7 +307,8 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 			du[i] = u[i] - state[i+3];
 			up[i] = state[i+6];
 			upo[i] = up[i];
-			Sig_I[i] = 0.;
+			//Sig_I[i] = 0.;
+			Sig_I[i] = state[i];
 		}
     
 		KE = 0.;
@@ -316,6 +316,10 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		KE(1,1) = fE_t2;
 		KE(2,2) = fE_n;
 		I_mat = 0.;
+        	I = 0.;
+        	I(0,0) = 1.;
+        	I(1,1) = 1.;
+		I(2,2) = 1.;
 		ZMAT = 0.; ZMATP = 0.;
 
 		KE_Inv.Inverse(KE);
@@ -327,18 +331,21 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		}
 
 		dup = 0.;
-		Sig = Sig_I;
+		//Sig = Sig_I;
 		dArrayT ue(3), Sig_e(3);
 		ue = u;
 		ue -= up;
-		KE.MultTx(ue,Sig_e);
-		Sig += Sig_e;
+		KE.MultTx(ue, Sig_e);
+		//Sig += Sig_e;
+		Sig = Sig_e;
+
 
 		int iplastic;
 		dlam = 0.; dlam2 = 0.; normr = 0.;
     
 		/* Check the yield function */
 		Yield_f(Sig, qn, ff);
+
 		if (ff < 0.) {
 			iplastic = 0;
 			state[13] = ff;
@@ -389,10 +396,19 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				dQdSig_f(Sig, qn, dQdSig);
 				qbar_f(Sig, qn, dup, qbar);
 
+                		KE.Multx(du, KE_du);
+                		KE.Multx(dQdSig, KE_dQdSig);
+
 				for (i = 0; i<=2; ++i) {
+					/*
 					R[i]  = upo[i];
 					R[i] -= up[i];
 					R[i] += dlam*dQdSig[i];
+					*/
+					R[i]  = Sig[i];
+					R[i] -= Sig_I[i];
+					R[i] -= KE_du[i];
+					R[i] += dlam*KE_dQdSig[i];
 				}
 
 				for (i = 0; i<=3; ++i) {
@@ -414,8 +430,12 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				dqbardSig_f(Sig, qn, dup, A_qu);
 				dqbardq_f(Sig, qn, dup, A_qq);
 
+		                KE_dQdSig2.MultAB(KE, dQdSig2);
+                		KE_dQdSigdq.MultAB(KE, A_uq);
+
 				for (i = 0; i<=6; ++i) {
 					for (j = 0; j<=6; ++j) {
+						/*
 						if(i<=2 & j<=2){
 							AA_inv(i,j)  = KE_Inv(i,j);
 							AA_inv(i,j) += dlam*dQdSig2(i,j);
@@ -423,6 +443,24 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 						if(i<=2 & j >2){
 							AA_inv(i,j)  = A_uq(i,j-3);
 							AA_inv(i,j) *= dlam;
+						}
+						if(i >2 & j<=2){
+							AA_inv(i,j)  = A_qu(i-3,j);
+							AA_inv(i,j) *= dlam;
+						}
+						if(i >2 & j >2) {
+							AA_inv(i,j)  = I_mat(i-3,j-3);
+							AA_inv(i,j) *= -1.;
+							AA_inv(i,j) += dlam*A_qq(i-3,j-3);
+						}
+						*/
+						if(i<=2 & j<=2){
+				                        AA_inv(i,j)  = I(i,j);
+                         				AA_inv(i,j) += dlam*KE_dQdSig2(i,j);
+						}
+						if(i<=2 & j >2){
+				                        AA_inv(i,j)  = KE_dQdSigdq(i,j-3);
+				                        AA_inv(i,j) *= dlam;
 						}
 						if(i >2 & j<=2){
 							AA_inv(i,j)  = A_qu(i-3,j);
@@ -445,7 +483,8 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				for (i = 0; i<=6; ++i) {
 					if (i<=2){
 						Rvec[i] = V_sig[i];
-						Cvec[i] = dQdSig[i];
+						//Cvec[i] = dQdSig[i];
+						Cvec[i] = KE_dQdSig[i];
 					}
 					if (i >2){
 						Rvec[i] = V_q[i-3];
@@ -480,7 +519,8 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 
 				for (i = 0; i<=6; ++i) {
 					if (i<=2){
-						Rmod[i] = dQdSig[i];
+						//Rmod[i] = dQdSig[i];
+						Rmod[i] = KE_dQdSig[i];
 					}
 					if (i >2){
 						Rmod[i] = qbar[i-3];
@@ -510,19 +550,29 @@ const dArrayT& MR3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				// Check the yield function and norm of R
 				dup  = up;
 				dup -= upo;
-				Sig = Sig_I;
+				//Sig = Sig_I;
 				ue  = u;
 				ue -= up;
-				KE.Multx(ue,Sig_e);
-				Sig += Sig_e;
+				KE.Multx(ue, Sig_e);
+				//Sig += Sig_e;
+				Sig = Sig_e;
 				Yield_f(Sig, qn, ff);
 				dQdSig_f(Sig, qn, dQdSig);
 				qbar_f(Sig, qn, dup, qbar);
 
+				KE.Multx(du, KE_du);
+                                KE.Multx(dQdSig, KE_dQdSig);
+
 				for (i = 0; i<=2; ++i) {
+					/*
 					R[i]  = upo[i];
 					R[i] -= up[i];
 					R[i] += dlam*dQdSig[i];
+					*/
+					R[i]  = Sig[i];
+                                        R[i] -= Sig_I[i];
+                                        R[i] -= KE_du[i];
+                                        R[i] += dlam*KE_dQdSig[i];
 				}
 
 				for (i = 0; i<=3; ++i) {
@@ -1067,7 +1117,7 @@ const dMatrixT& MR3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 	dMatrixT AA(7,7), I_mat(4,4), CMAT(7,7),AA_inv(7,7),
 		A_qq(4,4), A_uu(3,3), A_uq(3,4), A_qu(4,3), ZMAT(3,4),
 		ZMATP(4,3), dQdSig2(3,3), dqdbar(4,4), dqbardSig(4,3),
-		dQdSigdq(3,4), KP(3,3), KP2(3,3), KEP(3,3);
+		dQdSigdq(3,4), KP(3,3), KP2(3,3), KEP(3,3), DMAT(7,7), EMAT(7,3), FMAT(7,3);
 
 	dMatrixT I_m(3,3), Rmat(3,3), R_Inv(3,3), KE(3,3), KE_Inv(3,3),
 		Ch(4,4), Ch_Inv(4,4), KE1(4,3), KE2(3,3), KE3(3,4), KEE(3,3),
@@ -1077,7 +1127,7 @@ const dMatrixT& MR3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 		R(7), Rmod(7), Sig(3), Sig_I(3), dQdSig(3), dfdq(4), qbar(4),
 		R2(7), X(7), V_sig(3), V_q(4), dfdSig(3), K1(3), K2(3);
 
-	double bott, dlam;
+	double bott, dlam, e;
 
 	fStiffness[1] = fStiffness[2] = fStiffness[3] = fStiffness[5] = fStiffness[6] = fStiffness[7] = 0.;
 	I_m = 0.;
@@ -1112,6 +1162,7 @@ const dMatrixT& MR3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 		dqbardSig_f(Sig, qn, dup, A_qu);
 		dqbardq_f(Sig, qn, dup, A_qq);
 		dQdSigdq_f(Sig, qn, A_uq);
+/*
 		Ch  = A_qq;
 		Ch *= -dlam;
 		Ch += I_mat;
@@ -1127,6 +1178,7 @@ const dMatrixT& MR3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 		KE += KEE_Inv;
 
 		KE_Inv.Inverse(KE);
+*/
 
 		for (i = 0; i<=6; ++i) {
 			for (j = 0; j<=6; ++j){
@@ -1153,27 +1205,26 @@ const dMatrixT& MR3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 		AA.Inverse(AA_inv);
 
 		dfdSig_f(Sig, qn, dfdSig);
-		V_sig = dfdSig;
 		dfdq_f(Sig,qn, dfdq);
-		V_q = dfdq;
 		dQdSig_f(Sig, qn, dQdSig);
 		qbar_f(Sig, qn, dup, qbar);
 
 		for (i = 0; i<=6; ++i) {
 			if (i<=2) {
-				Rvec[i] = V_sig[i];
+				Rvec[i] = dfdSig[i];
 				Cvec[i] = dQdSig[i];
 			}
 			if (i>2) {
-				Rvec[i] = V_q[i-3];
+				Rvec[i] = dfdq[i-3];
 				Cvec[i] = qbar[i-3];
 			}
 		}
 
 		dArrayT tmpVec(7), Vvec(3), dVec(3);
 		AA.Multx(Cvec,tmpVec);
-		bott = dArrayT::Dot(Rvec,tmpVec);
-
+		//bott = dArrayT::Dot(Rvec,tmpVec);
+		e = dArrayT::Dot(Rvec,tmpVec);
+/*
 		for (i = 0; i<=2; ++i) {
 			Vvec[i] = 0.;
 			for (j = 0; j<=6; ++j) {
@@ -1200,6 +1251,33 @@ const dMatrixT& MR3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 		KP  /= -bott;
 		KP  += I_m;
 		KEP.MultAB(KE_Inv, KP);
+*/
+            	for (i = 0; i<=6; ++i){
+			for (j = 0; j<=6; ++j){
+                    		CMAT(i,j) = tmpVec[i]*Rvec[j];
+                	}
+            	}
+
+            	DMAT.MultAB(CMAT, AA);
+            	DMAT  /= -e;
+            	DMAT  += AA;
+
+            	// Calculate the consistent tangent
+            	EMAT = 0.;
+            	EMAT(0,0) = 1.;
+            	EMAT(1,1) = 1.;
+		EMAT(2,2) = 1.;
+
+            	FMAT.MultAB(DMAT, EMAT);
+
+            	for (i = 0; i <= 2; ++i){
+                	for (j = 0; j<=2; ++j){
+                    		KEP(i,j) = FMAT(i,j);
+                	}
+            	}
+
+
+
 /*
 	int i, j;
 
