@@ -373,6 +373,38 @@ void FSMicromorphic3DT::CloseStep(void)
 //    fs_micromorph3D_out   << endl << "**********************************************************************************************";
 //    fs_micromorph3D_out   << endl << "**********************************************************************************************" << endl;
 
+    fs_micromorph3D_out        << "xxxxxxxxxxxxxx " << endl;
+    fs_micromorph3D_out<<"step number"<<":"<<step_number<< endl;
+    fs_micromorph3D_out        << "xxxxxxxxxxxxxx " << endl;
+    for (int i=0; i<3; i++)
+    {
+
+    	for (int j=0; j<3; j++)
+    	{
+            fs_micromorph3D_out<<"Sigma"<< "("<<i<<","<<j<<")"<< " :  " ;
+    		fs_micromorph3D_out << Sigma(i,j) << "\t";
+    	}
+        fs_micromorph3D_out        << endl ;
+    }
+
+
+    fs_micromorph3D_out        << "xxxxxxxxxxxxxx " << endl;
+    fs_micromorph3D_out        << "xxxxxxxxxxxxxx " << endl;
+    for (int i=0; i<3; i++)
+    {
+
+    	for (int j=0; j<3; j++)
+    	{
+           for(int k=0;k<3;k++)
+           {
+    		fs_micromorph3D_out<<"Mnplus1"<< "("<<i<<","<<j<<","<<k<<")"<< " :  " ;
+    		fs_micromorph3D_out << Mnplus1[i][j][k] <<"\t";
+           }
+   		fs_micromorph3D_out << endl;
+    	}
+       // fs_micromorph3DMn_out        << endl ;
+    }
+
 
 
 
@@ -1122,7 +1154,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             ChiN_ar_IPs_el_n.RowCopy(e,ChiN_ar_IPs_n);
             GRAD_ChiN_ar_IPs_el_n.RowCopy(e,GRAD_ChiN_ar_IPs);
 
-            //Counter_IPs_el_n.RowCopy(e,Counter_IPs);
 
             while (fShapes_displ->NextIP() && fShapes_micro->NextIP())
             {
@@ -1299,17 +1330,17 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 Pint_1_temp*=scale;
                 Pint_1+=Pint_1_temp;
 
-/*                Form_H2_matrix();//output: H2 vector & s_sigma matrix
+                Form_H2_matrix();//output: H2 vector & s_sigma matrix
                 NCHI.MultTx(H2,Pint_2_temp);
                 scale=scale_const*J;
                 Pint_2_temp*=scale;//the sign is taken into account when forming H2 vector.
-                Pint_2+=Pint_2_temp;*/
+                Pint_2+=Pint_2_temp;
 
-/*                Form_H3_matrix();//output H3 vector
+                Form_H3_matrix();//output H3 vector
                 NCHI.MultTx(H3,Pint_3_temp);
                 scale=scale_const*fMaterial_Params[kRho_0];
                 Pint_3_temp*=scale;
-                Pint_3+=Pint_3_temp;*/
+                Pint_3+=Pint_3_temp;
 
 
                 fCauchy_stress_tensor_current_IP=Sigma;
@@ -1325,7 +1356,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////MicroMorphic Internal force vectors finish here////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
-                for(int iii=0;iii<3;iii++)
+/*                for(int iii=0;iii<3;iii++)
                 {
                 	for(int jjj=0;jjj<3;jjj++)
                 	{
@@ -1341,7 +1372,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 		}
                 	}
                 }
-
+*/
 ////////////////Micromorphic 3-D Matrices are being formed coming from linearization process//////////////////////////
                 Form_CapitalLambda_matrix();//output:CapitalLambda
                 Form_Var_F_tensor();
@@ -1490,8 +1521,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 // accumulate
                 fG1_12 += fTemp_matrix_nudof_x_nudof;
 
-
-                //fPi_temp_row_matrix has been deleted accidentally
                fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fShapeDisplGrad);//ABC not ABCT
           //      fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,SigCurr,fIota_temp_matrix);//ABC
                 scale = -scale_const*J;
@@ -1508,11 +1537,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/////////////////fG1_ matrices finish here///////////////////////////////////////
+/////////////////fG1_ matrices finish here//////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-/////////////////fH_ matrices are constructed////////////////////////////////////
+/////////////////fH_ matrices are constructed///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
                 fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Etagrad,fIota_temp_matrix);
                 scale =scale_const*J;
@@ -1617,7 +1646,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 // accumulate
                 fH1_14 += fTemp_matrix_nchidof_x_nudof;
 
-/*                fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_1,fIota_temp_matrix);
+                fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,Ru_1,fIota_temp_matrix);
                 scale = scale_const*J;
                 fTemp_matrix_nchidof_x_nudof *= scale;
                 // accumulate
@@ -1701,7 +1730,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 scale = 1*scale_const*fMaterial_Params[kRho_0];//*J?????
                 fTemp_matrix_nchidof_x_nudof *= scale;
                 // accumulate
-                fH3_1 += fTemp_matrix_nchidof_x_nchidof;*/
+                fH3_1 += fTemp_matrix_nchidof_x_nchidof;
 
 
 /////////////////fH_ matrices finish here////////////////////////////////////////
@@ -1756,9 +1785,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                 /////////////////////saving matrices at Gauss Points////////////
 
-                Form_deformation_gradient_tensor();
+/*                Form_deformation_gradient_tensor();
                 Form_micro_deformation_tensor_Chi();
-                Form_GRAD_Chi_matrix();
+                Form_GRAD_Chi_matrix();*/
 
                 Mapping_double_and_Array(1);
                 GammaN_IPs.SetRow(IP,GammaN_ar);
@@ -1803,7 +1832,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fFd_int *= -1;*/
 
          //   {fFd_int} will be formed
-           fFd_int  = Uint_1;
+       //     fFd_int  = 0.0;
+            fFd_int  = Uint_1;
       //   fFd_ext =-Uext_1; //no external traction is assumed
            fFd_int *= -1;
 
@@ -1840,7 +1870,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
            // fKdphi = 0.0;
 // Micromorphic case fKdPhi  from coming from bal. of linear momentum
 
-            fKdphi  = fG1_7 ;
+            fKdphi = fG1_7 ;
             fKdphi += fG1_9 ;
             fKdphi += fG1_11;
 
@@ -1850,7 +1880,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             //need to code
         //   fKphid = 0.0;
 
-            fKphid  = fH1_Etagrad;
+            fKphid += fH1_Etagrad;
             fKphid += fH1_1;
             fKphid += fH1_2;
             fKphid += fH1_3;
@@ -1895,7 +1925,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
             /* {fFphi_int} will be formed */
             //need to code
-          //  fFphi_int  = 0.0;
+       //     fFphi_int  = 0.0;
             fFphi_int  =Pint_1;
             fFphi_int +=Pint_2;
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
@@ -2722,7 +2752,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     /* setup output file and format */
     outputPrecision = 10;
     outputFileWidth = outputPrecision + 8;
-//    fs_micromorph3D_out.open("fs_micromorph3D.info");
+    fs_micromorph3D_out.open("fs_micromorph3D.info");
+//   fs_micromorph3D_outMn.open("fs_micromorph3DMn.info");
 }
 
 
@@ -3286,7 +3317,23 @@ void FSMicromorphic3DT::Form_kirchhoff_stress_vector()
 
 void FSMicromorphic3DT:: Form_CCof_tensor()
 {
-    for(int k=0;k<3;k++)
+
+	   for(int k=0;k<3;k++)
+	    {
+	        for(int l=0;l<3;l++)
+	        {
+	            for(int m=0;m<3;m++)
+	            {
+	                for(int n=0;n<3;n++)
+	                {
+	                    for(int p=0;p<3;p++)
+	                    {
+	                        for(int q=0;q<3;q++)
+	                        {
+	                        CCof[k][l][m][n][p][q]=0.0;
+	                        }}}}}}
+
+	for(int k=0;k<3;k++)
     {
         for(int l=0;l<3;l++)
         {
@@ -6327,7 +6374,7 @@ for(int p=0;p<3;p++)
 					{
 						for(int T=0;T<3;T++)
 						{
-							grad_Nu[p][r][s]+=ChiN[p][L]*ChiInv[L][l]*GRAD_Chi[l][K][T]*ChiInv[K][r]*fDeformation_Gradient_Inverse(T,s);
+							grad_Nu[p][r][s]+=(-Chi[p][L]+ChiN[p][L])*ChiInv[L][l]*GRAD_Chi[l][K][T]*ChiInv[K][r]*fDeformation_Gradient_Inverse(T,s);
 						}
 					}
 				}
@@ -6347,7 +6394,7 @@ for(int p=0;p<3;p++)
 			{
 				for(int L=0;L<3;L++)
 				{
-					grad_Nu[p][r][s]+=-GRAD_ChiN[p][L][K]*fDeformation_Gradient_Inverse(K,s)*ChiInv[L][r];
+					grad_Nu[p][r][s]+=(GRAD_Chi[p][L][K]-GRAD_ChiN[p][L][K])*fDeformation_Gradient_Inverse(K,s)*ChiInv[L][r];
 				}
 			}
 		}

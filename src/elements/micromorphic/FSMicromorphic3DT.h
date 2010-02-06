@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.67 2009-12-28 07:03:33 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.68 2010-02-06 07:09:14 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -770,6 +770,7 @@ private:
 	/*@{*/
 	/** output file stream */
 	ofstreamT fs_micromorph3D_out;
+	ofstreamT fs_micromorph3DMn_out;
 
 	/** line output formating variables */
 	int outputPrecision, outputFileWidth;
