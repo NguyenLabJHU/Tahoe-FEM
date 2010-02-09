@@ -5556,7 +5556,6 @@ void FSMicromorphic3DT:: Form_Mm_6_matrix()
 
 void FSMicromorphic3DT:: Form_Mm_7_matrix()
 {
-
     Mm_7=0.0;
     int col;
     int row;
@@ -5629,7 +5628,7 @@ void FSMicromorphic3DT:: Form_Mm_8_matrix()
                                             {
                                                 for(int R=0;R<=2;R++)
                                                 {
-                                                    Mm_8(row, col) =Mm_8(row, col) +CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]*
+                                                    Mm_8(row, col) +=CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]*
                                                                  ChiInv[T][i]*GRAD_Chi[i][H][R]*Finv[R][r]*ChiInv[H][s];}}}}}}}
                         row++;}
                     }
@@ -5637,12 +5636,6 @@ void FSMicromorphic3DT:: Form_Mm_8_matrix()
             col++;
             }
         }
-
-
-
-
-
-
 }
 
 void FSMicromorphic3DT:: Form_Mm_9_matrix()
@@ -5674,7 +5667,7 @@ void FSMicromorphic3DT:: Form_Mm_9_matrix()
                                         {
                                             for(int L = 0; L <= 2; L++)
                                             {
-                                                Mm_9(row, col) =Mm_9(row, col) +CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]
+                                                Mm_9(row, col) +=CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][n]
                                                                *Finv[K][r]*ChiInv[T][s];}}}}
                             row++;}
                         }
@@ -5722,15 +5715,14 @@ void FSMicromorphic3DT:: Form_Mm_10_matrix()
                                                     {
                                                         for(int R = 0; R <= 2; R++)
                                                         {
-                                                            Mm_10(row, col) =(Mm_10(row, col) +CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][a]*GRAD_Chi[a][K][R]
-                                                                            *Finv[R][r]*ChiInv[K][n]*ChiInv[T][s]);}}}}}}}
+                                                            Mm_10(row,col) += CCof[k][l][m][p][r][s]*ChiN[p][L]*ChiInv[L][a]*GRAD_Chi[a][K][R]
+                                                                            *Finv[R][r]*ChiInv[K][n]*ChiInv[T][s];}}}}}}}
                             row++;}
                         }
                     }
                     col++;
                 }
             }
-
 }
 
 void FSMicromorphic3DT:: Form_Mm_11_matrix()
@@ -5754,7 +5746,7 @@ void FSMicromorphic3DT:: Form_Mm_11_matrix()
                                 {
                                     for(int L=0;L<=2;L++)
                                     {
-                                        Mm_11(row, col) =(Mm_11(row, col) +Fn[i][L]*Finv[L][n]*GammaN[i][l][m]);}}
+                                        Mm_11(row, col) +=Fn[i][L]*Finv[L][n]*GammaN[i][l][m];}}
                             row=row+3;
                         }
                     }
@@ -5786,14 +5778,12 @@ void FSMicromorphic3DT:: Form_Mm_12_matrix()
                                 {
                                     for(int L=0;L<=2;L++)
                                     {
-                                        Mm_12(row, col) =(Mm_12(row, col) +GammaN[k][l][i]*Fn[i][L]*Finv[L][n]);}}
+                                        Mm_12(row, col) +=GammaN[k][l][i]*Fn[i][L]*Finv[L][n];}}
                             row++;}
                         }
                     col++;
                 }
             }
-
-
 
 }
 
@@ -5819,7 +5809,7 @@ void FSMicromorphic3DT:: Form_Mm_13_matrix()
                                 {
                                     for(int L=0;L<=2;L++)
                                     {
-                                        Mm_13(row, col) =(Mm_13(row, col) +GammaN[k][i][m]*ChiN[i][L]*ChiInv[L][n]*ChiInv[T][l]);}}
+                                        Mm_13(row, col) +=GammaN[k][i][m]*ChiN[i][L]*ChiInv[L][n]*ChiInv[T][l];}}
                             row++;}
                         }
                     }
@@ -5848,9 +5838,8 @@ void FSMicromorphic3DT:: Form_Mm_14_matrix()
                 {
                     for(int k = 0; k <= 2; k++)
                     {
-
-                                 Mm_14(row, col) =Mnplus1[k][l][m]*Finv[T][n];
-                                 row++;
+                      Mm_14(row, col) +=Mnplus1[k][l][m]*Finv[T][n];
+                      row++;
                      }
                 }
             }
@@ -6272,7 +6261,6 @@ void FSMicromorphic3DT::Form_H1_matrix()
 {
     int row=0;
     double trdeltad=0.0;
-    double trdeltaEp=0.0;
     double dtgd[3][3][3];
     double grad_Nu[3][3][3];
     double Cgamma[3][3][3];
@@ -6339,11 +6327,6 @@ void FSMicromorphic3DT::Form_H1_matrix()
  *********************************************************************************
  *********************************************************************************
  *********************************************************************************/
-
-
-
-
-
 //constructing Mnplus1
 //initiliazting  the tensors
 for(int m=0;m<3;m++)
@@ -6374,7 +6357,7 @@ for(int p=0;p<3;p++)
 					{
 						for(int T=0;T<3;T++)
 						{
-							grad_Nu[p][r][s]+=(-Chi[p][L]+ChiN[p][L])*ChiInv[L][l]*GRAD_Chi[l][K][T]*ChiInv[K][r]*fDeformation_Gradient_Inverse(T,s);
+							grad_Nu[p][r][s]+=-(Chi[p][L]-ChiN[p][L])*ChiInv[L][l]*GRAD_Chi[l][K][T]*ChiInv[K][r]*fDeformation_Gradient_Inverse(T,s);
 						}
 					}
 				}
@@ -6429,7 +6412,6 @@ for(int p=0;p<3;p++)
 			for(int i=0;i<3;i++)
 			{
 				dgcir[p][r][s]+=deltaL(i,p)*GammaN[i][r][s]+GammaN[p][r][i]*deltaL(i,s)+GammaN[p][i][s]*deltaNu(i,r);
-
 			}
 		}
 	}
@@ -6463,7 +6445,7 @@ for(int m=0;m<3;m++)
             for(int k=0;k<3;k++)
             {
                    //
-                Mnplus1[k][l][m]+=(1-trdeltad)*mn[k][l][m];//+CklmprsDtGC[k][l][m];
+                Mnplus1[k][l][m]+=(1-trdeltad)*mn[k][l][m];
                 for(int p=0;p<3;p++)
                 {
                     //Mnplus1[k][l][m]+=DTL[k][p]*mn[p][l][m]+mn[k][p][m]*DTL[l][p]+mn[k][l][p]*Dtnu[m][p];
@@ -6620,7 +6602,7 @@ void FSMicromorphic3DT:: Form_H3_matrix()
 
 void FSMicromorphic3DT:: Mapping_double_and_Array(const int condition)
 {
-    int row,row1;
+    int row;
 
     row=0;
   //  row1=0;
