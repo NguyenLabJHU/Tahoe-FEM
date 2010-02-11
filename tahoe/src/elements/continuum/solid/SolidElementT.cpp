@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.81 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: SolidElementT.cpp,v 1.82 2010-02-11 16:36:07 tdnguye Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -33,7 +33,7 @@
 using namespace Tahoe;
 
 /* initialize static data */
-const int SolidElementT::NumNodalOutputCodes = 12;
+const int SolidElementT::NumNodalOutputCodes = 14;
 static const char* NodalOutputNames[] = {
 	"coordinates",
 	"displacements",
@@ -46,7 +46,10 @@ static const char* NodalOutputNames[] = {
 	"electric_vector_potential",
 	"divergence_vector_potential",
 	"electric_displacement",
-	"electric_field"};
+	"electric_field",
+	"strain",
+	"principal_strain"
+};
 
 const int SolidElementT::NumElementOutputCodes = 9;
 static const char* ElementOutputNames[] = {
@@ -58,7 +61,8 @@ static const char* ElementOutputNames[] = {
 	"stress",
 	"material_output",
 	"electric_displacement",
-	"electric_field"};
+	"electric_field"
+};
 
 /* constructor */
 SolidElementT::SolidElementT(const ElementSupportT& support):
@@ -292,11 +296,18 @@ void SolidElementT::SendOutput(int kincode)
     case ND_ELEC_FLD:
       flags[ND_ELEC_FLD] = 1;
       break;
+	case iNodalStrain:
+		flags[iNodalStrain] = 1;
+		break;
+	    case iPrincipalStrain:
+			flags[iPrincipalStrain] = 1;
+			break;			
 		default:
 			cout << "\n SolidElementT::SendOutput: invalid output code: "
 			     << kincode << endl;
 	}
 
+	
 	/* number of output values */
 	iArrayT n_counts;
 	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
@@ -632,6 +643,7 @@ double SolidElementT::MaxEigenvalue(void)
 void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
+	
 	/* initialize */
 	counts.Dimension(flags.Length());
 	counts = 0;
@@ -643,6 +655,10 @@ void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
 		counts[iNodalDisp] = NumDOF();
 	if (flags[iNodalStress] == mode)
 		counts[iNodalStress] = fB.Rows();
+	if (flags[iNodalStrain] == mode)
+		counts[iNodalStrain] = fB.Rows();
+	if (flags[iPrincipalStrain] == mode)
+		counts[iPrincipalStrain] = NumSD();
 	if (flags[iPrincipal] == mode)
 		counts[iPrincipal] = NumSD();
 	if (flags[iEnergyDensity] == mode)
@@ -669,7 +685,6 @@ void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
   if (flags[ND_ELEC_FLD] == mode) {
     counts[ND_ELEC_FLD] = NumSD();
   }
-
 }
 
 void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
@@ -1329,19 +1344,20 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArray2DT nodal_all(nen, n_extrap);
 	dArray2DT coords, disp;
 	dArray2DT nodalstress, princstress, matdat;
+	dArray2DT nodalstrain, princstrain;
 	dArray2DT energy, speed;
 	dArray2DT Poynting;
 	/* ip values */
 	dSymMatrixT cauchy((nstrs != 4) ? nsd : dSymMatrixT::k3D_plane), nstr_tmp;
+	dSymMatrixT strain((nstrs != 4) ? nsd : dSymMatrixT::k3D_plane), epsilon_temp;
 	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
-	dArrayT ipspeed(nsd), ipprincipal(nsd), ipPoynting(nsd);
+	dArrayT ipspeed(nsd), ipprincipal(nsd),ipprincipalstrain(nsd), ipPoynting(nsd);
 	dMatrixT ippvector(nsd);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
 	coords.Alias(nen, n_codes[iNodalCoord], pall); pall += coords.Length();
 	disp.Alias(nen, n_codes[iNodalDisp], pall)   ; pall += disp.Length();
-
 	/* work space for Poynting vector */
 	dMatrixT stress_mat, F_inv, PbyJ;
 	if (n_codes[iPoyntingVector]) {
@@ -1372,6 +1388,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
   speed.Alias(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
   matdat.Alias(nen, n_codes[iMaterialData], pall)    ; pall += matdat.Length();
   Poynting.Alias(nen, n_codes[iPoyntingVector], pall); pall += Poynting.Length();
+	nodalstrain.Alias(nen, n_codes[iNodalStrain], pall); pall += nodalstrain.Length();
+	princstrain.Alias(nen, n_codes[iPrincipalStrain], pall)  ; pall += princstrain.Length();
 
   if (qUseSimo) {
     simo_mass = 0.0;
@@ -1420,7 +1438,6 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		pall += ip_material_data.Length();
 		ipmat.Dimension(ip_material_data.MinorDim());
 	}
-
 	/* check that degrees are displacements */
 	int interpolant_DOF = InterpolantDOFs();
 
@@ -1517,6 +1534,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					fCurrMaterial->Strain(nstr_tmp);
 				}
 
+				
 				/* wave speeds */
 				if (n_codes[iWaveSpeeds])
 				{
@@ -1540,6 +1558,29 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 							princstress.AddToRowScaled(k,Na_X_ip_w(k,0),ipprincipal);
 					else
 						fShapes->Extrapolate(ipprincipal, princstress);
+				}
+
+				/* strains */
+				epsilon_temp=stress; /*dimension strain tensor using stress tensor*/
+				fCurrMaterial->Strain(epsilon_temp);
+				strain.Translate(epsilon_temp);
+				if (n_codes[iNodalStrain]) {
+					if (qNoExtrap)
+						for (int k = 0; k < nen; k++)
+							nodalstrain.AddToRowScaled(k,Na_X_ip_w(k,0),strain);
+					else
+						fShapes->Extrapolate(strain, nodalstrain);
+				}
+				
+				if (n_codes[iPrincipalStrain])
+				{
+					/* compute eigenvalues */
+					strain.PrincipalValues(ipprincipalstrain);
+					if (qNoExtrap)
+						for (int k = 0; k < nen; k++)
+							princstrain.AddToRowScaled(k,Na_X_ip_w(k,0),ipprincipalstrain);
+					else
+						fShapes->Extrapolate(ipprincipalstrain, princstrain);
 				}
 
 				/* strain energy density */
@@ -1668,6 +1709,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				nodal_all.BlockColumnCopyAt(speed      , colcount); colcount += speed.MinorDim();
 				nodal_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
 				nodal_all.BlockColumnCopyAt(Poynting   , colcount); colcount += Poynting.MinorDim();
+				nodal_all.BlockColumnCopyAt(nodalstrain, colcount); colcount += nodalstrain.MinorDim();
+				nodal_all.BlockColumnCopyAt(princstrain, colcount); colcount += princstrain.MinorDim();
 			}
 			else
 			{
@@ -1678,6 +1721,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				simo_all.BlockColumnCopyAt(speed      , colcount); colcount += speed.MinorDim();
 				simo_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
 				simo_all.BlockColumnCopyAt(Poynting   , colcount); colcount += Poynting.MinorDim();
+				simo_all.BlockColumnCopyAt(nodalstrain, colcount); colcount += nodalstrain.MinorDim();
+				simo_all.BlockColumnCopyAt(princstrain, colcount); colcount += princstrain.MinorDim();
 
 				iArrayT currIndices = CurrentElement().NodesX();
 				simo_force.Accumulate(currIndices,simo_all);
@@ -1708,12 +1753,15 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	/* get nodally averaged values */
 	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
 	const iArrayT& nodes_used = output_set.NodesUsed();
+	
 	dArray2DT extrap_values(nodes_used.Length(), n_extrap);
 	extrap_values.RowCollect(nodes_used, ElementSupport().OutputAverage());
-
+	
+		
 	int tmpDim = extrap_values.MajorDim();
 	n_values.Dimension(tmpDim,n_out);
 	n_values.BlockColumnCopyAt(extrap_values,0);
+	
 	if (qUseSimo)
 	{
 		int rowNum = 0;
@@ -1789,14 +1837,14 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		for (int i = 0; i < nstrs; i++)
 			n_labels[count++] = slabels[i];
 	}
-
+	
 	if (n_codes[iPrincipal])
 	{
 		const char* plabels[] = {"s1", "s2", "s3"};
 		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = plabels[i];
 	}
-
+	
 	if (n_codes[iEnergyDensity]) n_labels[count++] = "phi";
 	if (n_codes[iWaveSpeeds])
 	{
@@ -1854,6 +1902,36 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
       n_labels[count++] = labels[i];
     }
   }
+	
+	if (n_codes[iNodalStrain])
+	{
+		const char* elabels1D[] = {"e11"};
+		const char* elabels2D[] = {"e11", "e22", "e12"};
+		const char* elabels2D_axi[] = {"err", "ezz", "erz", "ett"};
+		const char* elabels3D[] = {"e11", "e22", "e33", "e23", "e13", "e12"};
+		int nstrs = fB.Rows();
+		const char** elabels = NULL;
+		if (nstrs == 1)
+			elabels = elabels1D;
+		else if (nstrs == 3)
+			elabels = elabels2D;
+		else if (nstrs == 4)
+			elabels = elabels2D_axi;
+		else if (nstrs == 6)
+			elabels = elabels3D;
+		else
+			ExceptionT::GeneralFail(caller);
+		
+		for (int i = 0; i < nstrs; i++)
+			n_labels[count++] = elabels[i];
+	}
+
+	if (n_codes[iPrincipalStrain])
+	{
+		const char* plabels[] = {"e1", "e2", "e3"};
+		for (int i = 0; i < NumSD(); i++)
+			n_labels[count++] = plabels[i];
+	}
 
   /* allocate */
 	e_labels.Dimension(e_codes.Sum());
@@ -1918,37 +1996,6 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		}
 	}
 
-  if (e_codes[IP_ELEC_DISP]) {
-
-    const char* labels[] = {"D1", "D2", "D3"};
-
-    for (int j = 0; j < NumIP(); j++) {
-      StringT ip_label;
-      ip_label.Append("ip", j+1);
-
-      for (int i = 0; i < NumSD(); i++) {
-        e_labels[count].Clear();
-        e_labels[count].Append(ip_label, ".", labels[i]);
-        count++;
-      }
-    }
-  }
-
-  if (e_codes[IP_ELEC_FLD]) {
-
-    const char* labels[] = {"E1", "E2", "E3"};
-
-    for (int j = 0; j < NumIP(); j++) {
-      StringT ip_label;
-      ip_label.Append("ip", j+1);
-
-      for (int i = 0; i < NumSD(); i++) {
-        e_labels[count].Clear();
-        e_labels[count].Append(ip_label, ".", labels[i]);
-        count++;
-      }
-    }
-  }
 
   /* material output labels */
 	if (e_codes[iIPMaterialData])
@@ -1971,4 +2018,37 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 			}
 		}
 	}
+	
+	if (e_codes[IP_ELEC_DISP]) {
+		
+		const char* labels[] = {"D1", "D2", "D3"};
+		
+		for (int j = 0; j < NumIP(); j++) {
+			StringT ip_label;
+			ip_label.Append("ip", j+1);
+			
+			for (int i = 0; i < NumSD(); i++) {
+				e_labels[count].Clear();
+				e_labels[count].Append(ip_label, ".", labels[i]);
+				count++;
+			}
+		}
+	}
+	
+	if (e_codes[IP_ELEC_FLD]) {
+		
+		const char* labels[] = {"E1", "E2", "E3"};
+		
+		for (int j = 0; j < NumIP(); j++) {
+			StringT ip_label;
+			ip_label.Append("ip", j+1);
+			
+			for (int i = 0; i < NumSD(); i++) {
+				e_labels[count].Clear();
+				e_labels[count].Append(ip_label, ".", labels[i]);
+				count++;
+			}
+		}
+	}
+	
 }

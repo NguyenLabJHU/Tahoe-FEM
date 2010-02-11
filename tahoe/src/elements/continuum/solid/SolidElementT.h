@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.32 2008-12-11 19:09:29 lxmota Exp $ */
+/* $Id: SolidElementT.h,v 1.33 2010-02-11 16:36:08 tdnguye Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -37,6 +37,8 @@ public:
      ND_DIV_POT  = 9,
      ND_ELEC_DISP = 10,
      ND_ELEC_FLD  = 11,
+		iNodalStrain = 12,
+		iPrincipalStrain = 13,
 		};
 
 	/** list/index of element outputs */
