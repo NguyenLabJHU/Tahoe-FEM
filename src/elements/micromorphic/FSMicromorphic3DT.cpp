@@ -6796,7 +6796,7 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
 
 }
 
-void FSMicromorphic3DT::Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values)
+void FSMicromorphic3DT:: Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values)
 {
 
     fTemp_six_values[0]=fTensor(0,0);
@@ -6817,6 +6817,18 @@ void FSMicromorphic3DT::Extract_six_values_from_symmetric_tensor(const dMatrixT 
     fTemp_nine_values[8]=fTensor(2,1);//sigma32
 */
 }
+
+void FSMicromorphic3DT::Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT)
+{
+    fArrayT[0]=f2DArrayT(e,IP*6+0);
+    fArrayT[1]=f2DArrayT(e,IP*6+1);
+    fArrayT[2]=f2DArrayT(e,IP*6+2);
+    fArrayT[3]=f2DArrayT(e,IP*6+3);
+    fArrayT[4]=f2DArrayT(e,IP*6+4);
+    fArrayT[5]=f2DArrayT(e,IP*6+5);
+}
+
+
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -7087,16 +7099,7 @@ void FSMicromorphic3DT::Form_B_matrix(void)
 */
 //void FSMicromorphic3DT::Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_nine_values)
 
-/*void FSMicromorphic3DT::Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT)
-{
-    fArrayT[0]=f2DArrayT(e,IP*6+0);
-    fArrayT[1]=f2DArrayT(e,IP*6+1);
-    fArrayT[2]=f2DArrayT(e,IP*6+2);
-    fArrayT[3]=f2DArrayT(e,IP*6+3);
-    fArrayT[4]=f2DArrayT(e,IP*6+4);
-    fArrayT[5]=f2DArrayT(e,IP*6+5);
-}
-*/
+
 /*void FSMicromorphic3DT::Form_gradv_vector(void)
 {
     fShapeDisplGrad.Multx(u_dot_vec,fGradv_vector);
