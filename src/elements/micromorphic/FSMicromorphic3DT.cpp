@@ -1880,7 +1880,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             //need to code
         //   fKphid = 0.0;
 
-            fKphid += fH1_Etagrad;
+            fKphid = fH1_Etagrad;
             fKphid += fH1_1;
             fKphid += fH1_2;
             fKphid += fH1_3;
@@ -1898,8 +1898,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid += fH2_10;
             fKphid += fH2_12;
             fKphid += fH2_13;
-
-
 
 
             /* [fKphiphi] will be formed */
@@ -5296,7 +5294,7 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
     int i=0;
     GRAD_NCHI=0.0;
 
-    while(i<=8)
+    for(int i=0;i<9;i++)
     {
         col=i;
         for(int  j=0; j<8; j++)
@@ -5307,7 +5305,6 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
             col=col+9;
         }
         row=row+3;
-        i++;
     }
 
 
@@ -6719,9 +6716,8 @@ void FSMicromorphic3DT:: Form_H3_matrix()
 void FSMicromorphic3DT:: Mapping_double_and_Array(const int condition)
 {
     int row;
-
     row=0;
-  //  row1=0;
+  //
     if(condition==1)
     {
         for(int i=0;i<=2;i++)
@@ -6737,7 +6733,7 @@ void FSMicromorphic3DT:: Mapping_double_and_Array(const int condition)
             }
         }
     }
-    if(condition==-1)
+   if(condition==-1)
     {
         for(int i=0;i<=2;i++)
         {
@@ -6761,7 +6757,6 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
 {
     int row,row1;
     row=0;
-    row1=0;
 
     if(condition==1)
     {
@@ -6771,11 +6766,11 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
             {
 
                 Chi_ar(i,j)=Chi[i][j];
-                row++;
+
                 for(int k=0;k<=2;k++)
                 {
-                    GRAD_Chi_ar[row1]=GRAD_Chi[i][j][k];
-                    row1++;
+                    GRAD_Chi_ar[row]=GRAD_Chi[i][j][k];
+                    row++;
                 }
             }
         }
@@ -6792,8 +6787,8 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
 
                 for(int k=0;k<=2;k++)
                 {
-                    GRAD_ChiN[i][j][k]=GRAD_ChiN_ar[row1];
-                    row1++;
+                    GRAD_ChiN[i][j][k]=GRAD_ChiN_ar[row];
+                    row++;
                 }
             }
         }
@@ -6801,14 +6796,34 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
 
 }
 
+void FSMicromorphic3DT::Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values)
+{
+
+    fTemp_six_values[0]=fTensor(0,0);
+    fTemp_six_values[1]=fTensor(1,1);
+    fTemp_six_values[2]=fTensor(2,2);
+    fTemp_six_values[3]=fTensor(1,2);
+    fTemp_six_values[4]=fTensor(2,0);
+    fTemp_six_values[5]=fTensor(0,1);
+
+/*  fTemp_nine_values[0]=fTensor(0,0);//sigma11
+    fTemp_nine_values[1]=fTensor(1,1);//sigma22
+    fTemp_nine_values[2]=fTensor(2,2);//sigma33
+    fTemp_nine_values[3]=fTensor(0,1);//sigma12
+    fTemp_nine_values[4]=fTensor(0,2);//sigma13
+    fTemp_nine_values[5]=fTensor(1,0);//sigma21
+    fTemp_nine_values[6]=fTensor(1,2);//sigma23
+    fTemp_nine_values[7]=fTensor(2,0);//sigma31
+    fTemp_nine_values[8]=fTensor(2,1);//sigma32
+*/
+}
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 ////////////////////// FINISH HERE FOR MICROMORPHIC 3-D CASE/////////////
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-
-
+/*
 void FSMicromorphic3DT::Form_Varpi_temp_matrix()
 {
     double N_A_1I, N_A_2I, N_A_3I;
@@ -6852,6 +6867,8 @@ void FSMicromorphic3DT::Form_Varpi_temp_matrix()
     }
 }
 
+*/
+/*
 void FSMicromorphic3DT::Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp)
 {
     fShapeDisplGrad_t = 0.0;
@@ -6993,163 +7010,6 @@ void FSMicromorphic3DT::Form_Ell_temp_matrix()
 }
 
 
-void FSMicromorphic3DT::Form_C_matrix(const double& J_Prim)
-{
-    double C_IJKL;
-    int row,col;
-    for (int I=0; I<3; I++)
-    for (int J=0; J<3; J++)
-        for (int K=0; K<3; K++)
-        for (int L=0; L<3; L++)
-        {
-            C_IJKL = fMaterial_Params[kLambda]*fRight_Cauchy_Green_tensor_Inverse(J,I)
-            *fRight_Cauchy_Green_tensor_Inverse(L,K)+2*(fMaterial_Params[kMu]
-            -fMaterial_Params[kLambda]*log(J_Prim))*1/2*(fRight_Cauchy_Green_tensor_Inverse(I,K)
-            *fRight_Cauchy_Green_tensor_Inverse(J,L)+fRight_Cauchy_Green_tensor_Inverse(I,L)
-            *fRight_Cauchy_Green_tensor_Inverse(J,K));
-
-            if (I==0 && J==0)
-            row=0;
-            else if (I==1 && J==0)
-            row=1;
-            else if (I==2 && J==0)
-            row=2;
-            else if (I==0 && J==1)
-            row=3;
-            else if (I==1 && J==1)
-            row=4;
-            else if (I==2 && J==1)
-            row=5;
-            else if (I==0 && J==2)
-            row=6;
-            else if (I==1 && J==2)
-            row=7;
-            else
-            row=8;
-
-            if (K==0 && L==0)
-            col=0;
-            else if (K==1 && L==0)
-            col=1;
-            else if (K==2 && L==0)
-            col=2;
-            else if (K==0 && L==1)
-            col=3;
-            else if (K==1 && L==1)
-            col=4;
-            else if (K==2 && L==1)
-            col=5;
-            else if (K==0 && L==2)
-            col=6;
-            else if (K==1 && L==2)
-            col=7;
-            else
-            col=8;
-
-            fC_matrix(row,col)= C_IJKL;
-
-        }
-}
-
-void FSMicromorphic3DT::Form_c_matrix()
-{
-    double c_ijkl;
-    int row,col;
-    for (int i=0; i<3; i++)
-    for (int j=0; j<3; j++)
-        for (int k=0; k<3; k++)
-        for (int l=0; l<3; l++)
-        {
-            c_ijkl=0;
-            for (int I=0; I<3; I++)
-            for (int J=0; J<3; J++)
-                for (int K=0; K<3; K++)
-                for (int L=0; L<3; L++)
-                {
-                    if (I==0 && J==0)
-                    row=0;
-                    else if (I==1 && J==0)
-                    row=1;
-                    else if (I==2 && J==0)
-                    row=2;
-                    else if (I==0 && J==1)
-                    row=3;
-                    else if (I==1 && J==1)
-                    row=4;
-                    else if (I==2 && J==1)
-                    row=5;
-                    else if (I==0 && J==2)
-                    row=6;
-                    else if (I==1 && J==2)
-                    row=7;
-                    else
-                         row=8;
-
-                    if (K==0 && L==0)
-                    col=0;
-                    else if (K==1 && L==0)
-                    col=1;
-                    else if (K==2 && L==0)
-                    col=2;
-                    else if (K==0 && L==1)
-                    col=3;
-                    else if (K==1 && L==1)
-                    col=4;
-                    else if (K==2 && L==1)
-                    col=5;
-                    else if (K==0 && L==2)
-                    col=6;
-                    else if (K==1 && L==2)
-                    col=7;
-                    else
-                    col=8;
-
-                    c_ijkl += fDeformation_Gradient(i,I)*fDeformation_Gradient(j,J)
-                    *fDeformation_Gradient(k,K)*fDeformation_Gradient(l,L)*fC_matrix(row,col);
-                }
-            if (i==0 && j==0)
-            row=0;
-            else if (i==1 && j==0)
-            row=1;
-            else if (i==2 && j==0)
-            row=2;
-            else if (i==0 && j==1)
-            row=3;
-            else if (i==1 && j==1)
-            row=4;
-            else if (i==2 && j==1)
-            row=5;
-            else if (i==0 && j==2)
-            row=6;
-            else if (i==1 && j==2)
-            row=7;
-            else
-            row=8;
-
-            if (k==0 && l==0)
-            col=0;
-            else if (k==1 && l==0)
-            col=1;
-            else if (k==2 && l==0)
-            col=2;
-            else if (k==0 && l==1)
-            col=3;
-            else if (k==1 && l==1)
-            col=4;
-            else if (k==2 && l==1)
-            col=5;
-            else if (k==0 && l==2)
-            col=6;
-            else if (k==1 && l==2)
-            col=7;
-            else
-            col=8;
-
-            fc_matrix(row,col)=c_ijkl;
-        }
-
-}
-
 
 void FSMicromorphic3DT::Form_Im_Prim_temp_matrix()
 {
@@ -7224,31 +7084,10 @@ void FSMicromorphic3DT::Form_B_matrix(void)
         fB_matrix(5,i*3+1)=fShapeDisplGrad_temp(0,i);
     }
 }
-
-//void FSMicromorphic3DT::Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_nine_values)
-void FSMicromorphic3DT::Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values)
-{
-
-    fTemp_six_values[0]=fTensor(0,0);
-    fTemp_six_values[1]=fTensor(1,1);
-    fTemp_six_values[2]=fTensor(2,2);
-    fTemp_six_values[3]=fTensor(1,2);
-    fTemp_six_values[4]=fTensor(2,0);
-    fTemp_six_values[5]=fTensor(0,1);
-
-/*  fTemp_nine_values[0]=fTensor(0,0);//sigma11
-    fTemp_nine_values[1]=fTensor(1,1);//sigma22
-    fTemp_nine_values[2]=fTensor(2,2);//sigma33
-    fTemp_nine_values[3]=fTensor(0,1);//sigma12
-    fTemp_nine_values[4]=fTensor(0,2);//sigma13
-    fTemp_nine_values[5]=fTensor(1,0);//sigma21
-    fTemp_nine_values[6]=fTensor(1,2);//sigma23
-    fTemp_nine_values[7]=fTensor(2,0);//sigma31
-    fTemp_nine_values[8]=fTensor(2,1);//sigma32
 */
-}
+//void FSMicromorphic3DT::Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_nine_values)
 
-void FSMicromorphic3DT::Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT)
+/*void FSMicromorphic3DT::Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT)
 {
     fArrayT[0]=f2DArrayT(e,IP*6+0);
     fArrayT[1]=f2DArrayT(e,IP*6+1);
@@ -7257,8 +7096,8 @@ void FSMicromorphic3DT::Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,
     fArrayT[4]=f2DArrayT(e,IP*6+4);
     fArrayT[5]=f2DArrayT(e,IP*6+5);
 }
-
-void FSMicromorphic3DT::Form_gradv_vector(void)
+*/
+/*void FSMicromorphic3DT::Form_gradv_vector(void)
 {
     fShapeDisplGrad.Multx(u_dot_vec,fGradv_vector);
     fDefGradInv_Grad_grad.MultTx(fGradv_vector,fgradv_vector);
@@ -7595,10 +7434,10 @@ void FSMicromorphic3DT::Form_I_ijkl_matrix(void)
 
         }
 }
+*/
 
 
-
-
+/*
 void FSMicromorphic3DT::Compute_norm_of_array(double& norm,const LocalArrayT& B)
 {
     int index = 0;
@@ -7611,3 +7450,4 @@ void FSMicromorphic3DT::Compute_norm_of_array(double& norm,const LocalArrayT& B)
     norm = sqrt(sum);
 }
 
+*/
