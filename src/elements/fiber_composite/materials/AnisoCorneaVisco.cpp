@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.16 2009-04-23 14:56:19 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.17 2010-02-17 04:09:11 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -16,6 +16,7 @@
 #include "EvenSpacePtsT.h"
 
 /*fiber potentials*/
+#include "FungType2.h"
 #include "FungType.h"
 #include "LanirFiber.h"
 
@@ -25,9 +26,10 @@
 //#define MY_DEBUG
 
 const double Pi = acos(-1.0);
+const double third = 1.0/3.0;
 const int kNumOutputVar = 10;
 static const char* Labels[kNumOutputVar] = 
-	{"NT_X", "NT_Y", "NT_Z","IS_X", "IS_Y", "IS_Z","OT_X", "OT_Y", "OT_Z","phiNEQ"};
+	{"NT_X", "NT_Y", "NT_Z","IS_X", "IS_Y", "IS_Z","OT_X", "OT_Y", "OT_Z","J"};
 
 static const int perm[3][3] = {0,1,2,1,2,0,2,0,1};
 
@@ -208,7 +210,7 @@ void AnisoCorneaVisco::ComputeOutput(dArrayT& output)
 	pb += NumSD();
 
 	/*non-equilibrium strain energy density */
-	*pb = NonequilibriumStrainEnergyDensity();
+	*pb = F.Det();
 }
 
 /* describe the parameters needed by the interface */
@@ -221,6 +223,13 @@ void AnisoCorneaVisco::DefineParameters(ParameterListT& list) const
 	ParameterT points(ParameterT::Integer, "n_points");
 	points.AddLimit(1, LimitT::LowerInclusive);
 	list.AddParameter(points);
+
+	/* integration points */
+	ParameterT vol_type(ParameterT::Enumeration, "pressure_model");
+	vol_type.AddEnumeration("Ogden",kOgden);
+	vol_type.AddEnumeration("Blatz",kBlatz);
+	vol_type.SetDefault(kBlatz);
+	list.AddParameter(vol_type);	
 }
 
 /* information about subordinate parameter lists */
@@ -294,7 +303,22 @@ ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
 			/* set the description */
 			choice->AddSub(fung);
 		}
-
+		ParameterContainerT fung0("fung_type0");		
+		{
+			LimitT lower(0.0, LimitT::Lower);
+			
+			ParameterT alpha(ParameterT::Double, "alpha");
+			ParameterT beta(ParameterT::Double, "beta");
+			
+			fung0.AddParameter(alpha);
+			fung0.AddParameter(beta);
+			alpha.AddLimit(lower);
+			beta.AddLimit(lower);
+			
+			/* set the description */
+			choice->AddSub(fung0);
+		}
+		
 		ParameterContainerT lanir("lanir_fiber_recruit");		
 		{
 			LimitT lower(0.0, LimitT::Lower);
@@ -334,7 +358,19 @@ ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
 			/* set the description */
 			choice->AddSub(fung);
 		}
-
+		ParameterContainerT fung0("neq_fung_type0");		
+		{
+			LimitT lower(0.0, LimitT::Lower);
+			
+			ParameterT alpha(ParameterT::Double, "alpha");
+			
+			fung0.AddParameter(alpha);
+			alpha.AddLimit(lower);
+			
+			/* set the description */
+			choice->AddSub(fung0);
+		}
+		
 		ParameterContainerT lanir("neq_lanir_fiber_recruit");		
 		{
 			LimitT lower(0.0, LimitT::Lower);
@@ -426,7 +462,7 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 {
 	char caller[] = "AnisoCorneaVisco::TakeParameterList";
 	/* inherited */
-	FSFiberMatT::TakeParameterList(list);
+	FSFiberMatT::TakeParameterList(list); 
 
 	/*initializing some parameters for cornea_mod fibril distribution*/
 	int num_neq_pot = list.NumLists("neq_fibril_potential");
@@ -441,6 +477,10 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 	if(fNumFibProcess > 0)
 		fViscosity.Dimension(fNumFibProcess);
 		
+	int b = list.GetParameter("pressure_model");
+	fVolType = (b == kBlatz) ? kBlatz : kOgden;
+	
+
 	const ParameterListT& matrix = list.GetListChoice(*this, "matrix_material_params");
 	if (matrix.Name() == "Neo-Hookean")
 	{
@@ -452,6 +492,15 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 
 	double temp1, temp2;
 	if(potential.Name() == "fung_type")
+	{
+		double alpha_eq = potential.GetParameter("alpha");
+		double beta = potential.GetParameter("beta");
+		fPotential[0] = new FungType2(alpha_eq, beta);
+		if (!fPotential[0]) throw ExceptionT::kOutOfMemory;
+		
+		temp1 = beta;
+	}
+	else if(potential.Name() == "fung_type0")
 	{
 		double alpha_eq = potential.GetParameter("alpha");
 		double beta = potential.GetParameter("beta");
@@ -481,11 +530,19 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 		{
 			double alpha_neq = neq_potential.GetParameter("alpha");
 
+			fPotential[i+1] = new FungType2(alpha_neq, temp1);
+			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
+			
+		}
+		else if (neq_potential.Name() == "neq_fung_type0")
+		{
+			double alpha_neq = neq_potential.GetParameter("alpha");
+			
 			fPotential[i+1] = new FungType(alpha_neq, temp1);
 			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
 			
 		}
-		if (neq_potential.Name() == "neq_lanir_fiber_recruit")
+		else if (neq_potential.Name() == "neq_lanir_fiber_recruit")
 		{
 			double K_neq = neq_potential.GetParameter("fiber_stiffness_K");
 
@@ -531,9 +588,10 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 
 	/*viscous fiber stretch at time step n, viscous stretch at time step n and vn*/
 	fFiberStretch_v.Dimension(fNumSD-1);
-	fFiberStretch_vn.Dimension(fNumSD-1);
+	fFiberStretch_vn.Dimension(fNumSD-1);	
 
 	/*Dimension work spaces*/
+	fInverse.Dimension(fNumSD);
 	fCalg.Dimension(fNumFibStress);	
 	/* allocate memory */
 	/*dimension invserse viscosity matrix*/
@@ -573,16 +631,35 @@ void AnisoCorneaVisco::ComputeMatrixStress(const dSymMatrixT& Stretch, const dSy
 		ExceptionT::GeneralFail("AnisoCorneaVisco::ComputeMatrixStress", 
 			"Expects to overwrite Stress");
 			
+
+	if (fVolType == kOgden)
+	{
+		double I1 = Stretch[0]+Stretch[1]+Stretch[2];
+		double I3 = Stretch.Det();
+		double I3rthird = pow(I3, -third);
+		fInverse.Inverse(Stretch);
 	
-	/*2pdf{W}{C_IJ} = mu ( del_IJ - I3^-gamma C^-1_IJ)*/
-	double I3 = Stretch.Det();
-	double I3rg = pow(I3, -fGamma);
-	Stress.Inverse(Stretch);
-	Stress *= -I3rg*fMu;
+		double coeff = -third*fMu*I3rthird*I1 +0.5*fGamma*(I3-1);
+		Stress = fInverse;
+		Stress *= coeff;
 	
-	Stress[0] += fMu;
-	Stress[1] += fMu;
-	Stress[2] += fMu;
+		Stress[0] += fMu*I3rthird;
+		Stress[1] += fMu*I3rthird;
+		Stress[2] += fMu*I3rthird;
+	}
+	else if (fVolType == kBlatz)
+	{
+		/*2pdf{W}{C_IJ} = mu ( del_IJ - I3^-gamma C^-1_IJ)*/
+		double I3 = Stretch.Det();
+		double I3rg = pow(I3, -fGamma);
+		Stress.Inverse(Stretch);
+		Stress *= -I3rg*fMu;
+	
+		Stress[0] += fMu;
+		Stress[1] += fMu;
+		Stress[2] += fMu;
+	}
+
 }
 
 void AnisoCorneaVisco::ComputeMatrixMod(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress,
@@ -595,60 +672,169 @@ void AnisoCorneaVisco::ComputeMatrixMod(const dSymMatrixT& Stretch, const dSymMa
 		ExceptionT::GeneralFail("AnisoCorneaVisco::ComputeMatrixMod", 
 			"Expects to overwrite Stress");
 
-	/*matrix contribution*/
-	double I3 = fC.Det();
-	double I3rg = pow(I3,-fGamma);
-	Stress.Inverse(fC);
+	if (fVolType == kOgden)
+	{
+		//	matrix stress
+		double I1 = Stretch[0]+Stretch[1]+Stretch[2];
+		double I3 = Stretch.Det();
+		double I3rthird = pow(I3, -third);
+		fInverse.Inverse(Stretch);
 	
-	/*2pdf{S_IJ}{C_KL} = 2 mu I_3^-gamma (gamma C^-1_IJ C^-1_KL + 0.5(C^-1_IK C^-1_JL +C^-1_IL+C^-1_JK)*/
-	/*modulus*/
-	double coeff = 2.0*fMu*I3rg;
-	Mod.ReducedI_C(Stress);
-	Mod *= coeff;
+		double coeff = -third*fMu*I3rthird*I1 +0.5*fGamma*(I3-1);
+		Stress = fInverse;
+		Stress *= coeff;
 	
-	coeff *= fGamma;
-	Mod(0,0) += coeff*Stress[0]*Stress[0];
-	Mod(0,1) += coeff*Stress[0]*Stress[1];
-	Mod(0,2) += coeff*Stress[0]*Stress[2];
-	Mod(0,3) += coeff*Stress[0]*Stress[3];
-	Mod(0,4) += coeff*Stress[0]*Stress[4];
-	Mod(0,5) += coeff*Stress[0]*Stress[5];
+		Stress[0] += fMu*I3rthird;
+		Stress[1] += fMu*I3rthird;
+		Stress[2] += fMu*I3rthird;
 	
-	Mod(1,0) += coeff*Stress[1]*Stress[0];
-	Mod(1,1) += coeff*Stress[1]*Stress[1];
-	Mod(1,2) += coeff*Stress[1]*Stress[2];
-	Mod(1,3) += coeff*Stress[1]*Stress[3];
-	Mod(1,4) += coeff*Stress[1]*Stress[4];
-	Mod(1,5) += coeff*Stress[1]*Stress[5];
+		//	modulus
+		coeff = 2.0*third*fMu*I3rthird*I1 - fGamma*(I3-1.0);
+	
+		Mod.ReducedI_C(fInverse);
+		Mod *= coeff;
+	
+		coeff = -2.0*third*fMu*I3rthird;
+		Mod(0,0) += coeff*(fInverse[0] + fInverse[0]);
+		Mod(0,1) += coeff*(fInverse[1] + fInverse[0]);
+		Mod(0,2) += coeff*(fInverse[2] + fInverse[0]);
+		Mod(0,3) += coeff*fInverse[3];
+		Mod(0,4) += coeff*fInverse[4];
+		Mod(0,5) += coeff*fInverse[5];
+	
+		Mod(1,0) += coeff*(fInverse[0] + fInverse[1]);
+		Mod(1,1) += coeff*(fInverse[1] + fInverse[1]);
+		Mod(1,2) += coeff*(fInverse[2] + fInverse[1]);
+		Mod(1,3) += coeff*fInverse[3];
+		Mod(1,4) += coeff*fInverse[4];
+		Mod(1,5) += coeff*fInverse[5];
+	
+		Mod(2,0) += coeff*(fInverse[0] + fInverse[2]);
+		Mod(2,1) += coeff*(fInverse[1] + fInverse[2]);
+		Mod(2,2) += coeff*(fInverse[2] + fInverse[2]);
+		Mod(2,3) += coeff*fInverse[3];
+		Mod(2,4) += coeff*fInverse[4];
+		Mod(2,5) += coeff*fInverse[5];
 
-	Mod(2,0) += coeff*Stress[2]*Stress[0];
-	Mod(2,1) += coeff*Stress[2]*Stress[1];
-	Mod(2,2) += coeff*Stress[2]*Stress[2];
-	Mod(2,3) += coeff*Stress[2]*Stress[3];
-	Mod(2,4) += coeff*Stress[2]*Stress[4];
-	Mod(2,5) += coeff*Stress[2]*Stress[5];
+		Mod(3,0) += coeff*(fInverse[3]);
+		Mod(3,1) += coeff*(fInverse[3]);
+		Mod(3,2) += coeff*(fInverse[3]);
+	
+		Mod(4,0) += coeff*(fInverse[4]);
+		Mod(4,1) += coeff*(fInverse[4]);
+		Mod(4,2) += coeff*(fInverse[4]);
+	
+		Mod(5,0) += coeff*(fInverse[5]);
+		Mod(5,1) += coeff*(fInverse[5]);
+		Mod(5,2) += coeff*(fInverse[5]);
+		
+		coeff = 2.0*third*third*fMu*I3rthird*I1 + fGamma*I3;
+		Mod(0,0) += coeff*(fInverse[0]*fInverse[0]);
+		Mod(0,1) += coeff*(fInverse[0]*fInverse[1]);
+		Mod(0,2) += coeff*(fInverse[0]*fInverse[2]);
+		Mod(0,3) += coeff*(fInverse[0]*fInverse[3]);
+		Mod(0,4) += coeff*(fInverse[0]*fInverse[4]);
+		Mod(0,5) += coeff*(fInverse[0]*fInverse[5]);
+		//
+		Mod(1,0) += coeff*(fInverse[1]*fInverse[0]);
+		Mod(1,1) += coeff*(fInverse[1]*fInverse[1]);
+		Mod(1,2) += coeff*(fInverse[1]*fInverse[2]);
+		Mod(1,3) += coeff*(fInverse[1]*fInverse[3]);
+		Mod(1,4) += coeff*(fInverse[1]*fInverse[4]);
+		Mod(1,5) += coeff*(fInverse[1]*fInverse[5]);
+		//
+		Mod(2,0) += coeff*(fInverse[2]*fInverse[0]);
+		Mod(2,1) += coeff*(fInverse[2]*fInverse[1]);
+		Mod(2,2) += coeff*(fInverse[2]*fInverse[2]);
+		Mod(2,3) += coeff*(fInverse[2]*fInverse[3]);
+		Mod(2,4) += coeff*(fInverse[2]*fInverse[4]);
+		Mod(2,5) += coeff*(fInverse[2]*fInverse[5]);
+		//
+		Mod(3,0) += coeff*(fInverse[3]*fInverse[0]);
+		Mod(3,1) += coeff*(fInverse[3]*fInverse[1]);
+		Mod(3,2) += coeff*(fInverse[3]*fInverse[2]);
+		Mod(3,3) += coeff*(fInverse[3]*fInverse[3]);
+		Mod(3,4) += coeff*(fInverse[3]*fInverse[4]);
+		Mod(3,5) += coeff*(fInverse[3]*fInverse[5]);
+		//
+		Mod(4,0) += coeff*(fInverse[4]*fInverse[0]);
+		Mod(4,1) += coeff*(fInverse[4]*fInverse[1]);
+		Mod(4,2) += coeff*(fInverse[4]*fInverse[2]);
+		Mod(4,3) += coeff*(fInverse[4]*fInverse[3]);
+		Mod(4,4) += coeff*(fInverse[4]*fInverse[4]);
+		Mod(4,5) += coeff*(fInverse[4]*fInverse[5]);
+		//
+		Mod(5,0) += coeff*(fInverse[5]*fInverse[0]);
+		Mod(5,1) += coeff*(fInverse[5]*fInverse[1]);
+		Mod(5,2) += coeff*(fInverse[5]*fInverse[2]);
+		Mod(5,3) += coeff*(fInverse[5]*fInverse[3]);
+		Mod(5,4) += coeff*(fInverse[5]*fInverse[4]);
+		Mod(5,5) += coeff*(fInverse[5]*fInverse[5]);
+	}
+	else if(fVolType==kBlatz)
+	{
+		//	matrix contribution
+		double I3 = Stretch.Det();
+		double I3rg = pow(I3, -fGamma);
+		fInverse.Inverse(Stretch);
+		fStress = fInverse;
+		Stress *= -I3rg*fMu;
+	
+		Stress[0] += fMu;
+		Stress[1] += fMu;
+		Stress[2] += fMu;
 
-	Mod(3,0) += coeff*Stress[3]*Stress[0];
-	Mod(3,1) += coeff*Stress[3]*Stress[1];
-	Mod(3,2) += coeff*Stress[3]*Stress[2];
-	Mod(3,3) += coeff*Stress[3]*Stress[3];
-	Mod(3,4) += coeff*Stress[3]*Stress[4];
-	Mod(3,5) += coeff*Stress[3]*Stress[5];
+	
+		//	2pdf{S_IJ}{C_KL} = 2 mu I_3^-gamma (gamma C^-1_IJ C^-1_KL + 0.5(C^-1_IK C^-1_JL +C^-1_IL+C^-1_JK)
+		//	modulus
+		double coeff = 2.0*fMu*I3rg;
+		Mod.ReducedI_C(fInverse);
+		Mod *= coeff;
+	
+		coeff *= fGamma;
+		Mod(0,0) += coeff*fInverse[0]*fInverse[0];
+		Mod(0,1) += coeff*fInverse[0]*fInverse[1];
+		Mod(0,2) += coeff*fInverse[0]*fInverse[2];
+		Mod(0,3) += coeff*fInverse[0]*fInverse[3];
+		Mod(0,4) += coeff*fInverse[0]*fInverse[4];
+		Mod(0,5) += coeff*fInverse[0]*fInverse[5];
+	
+		Mod(1,0) += coeff*fInverse[1]*fInverse[0];
+		Mod(1,1) += coeff*fInverse[1]*fInverse[1];
+		Mod(1,2) += coeff*fInverse[1]*fInverse[2];
+		Mod(1,3) += coeff*fInverse[1]*fInverse[3];
+		Mod(1,4) += coeff*fInverse[1]*fInverse[4];
+		Mod(1,5) += coeff*fInverse[1]*fInverse[5];
 
-	Mod(4,0) += coeff*Stress[4]*Stress[0];
-	Mod(4,1) += coeff*Stress[4]*Stress[1];
-	Mod(4,2) += coeff*Stress[4]*Stress[2];
-	Mod(4,3) += coeff*Stress[4]*Stress[3];
-	Mod(4,4) += coeff*Stress[4]*Stress[4];
-	Mod(4,5) += coeff*Stress[4]*Stress[5];
+		Mod(2,0) += coeff*fInverse[2]*fInverse[0];
+		Mod(2,1) += coeff*fInverse[2]*fInverse[1];
+		Mod(2,2) += coeff*fInverse[2]*fInverse[2];
+		Mod(2,3) += coeff*fInverse[2]*fInverse[3];
+		Mod(2,4) += coeff*fInverse[2]*fInverse[4];
+		Mod(2,5) += coeff*fInverse[2]*fInverse[5];
 
-	Mod(5,0) += coeff*Stress[5]*Stress[0];
-	Mod(5,1) += coeff*Stress[5]*Stress[1];
-	Mod(5,2) += coeff*Stress[5]*Stress[2];
-	Mod(5,3) += coeff*Stress[5]*Stress[3];
-	Mod(5,4) += coeff*Stress[5]*Stress[4];
-	Mod(5,5) += coeff*Stress[5]*Stress[5];
-}
+		Mod(3,0) += coeff*fInverse[3]*fInverse[0];
+		Mod(3,1) += coeff*fInverse[3]*fInverse[1];
+		Mod(3,2) += coeff*fInverse[3]*fInverse[2];
+		Mod(3,3) += coeff*fInverse[3]*fInverse[3];
+		Mod(3,4) += coeff*fInverse[3]*fInverse[4];
+		Mod(3,5) += coeff*fInverse[3]*fInverse[5];
+
+		Mod(4,0) += coeff*fInverse[4]*fInverse[0];
+		Mod(4,1) += coeff*fInverse[4]*fInverse[1];
+		Mod(4,2) += coeff*fInverse[4]*fInverse[2];
+		Mod(4,3) += coeff*fInverse[4]*fInverse[3];
+		Mod(4,4) += coeff*fInverse[4]*fInverse[4];
+		Mod(4,5) += coeff*fInverse[4]*fInverse[5];
+
+		Mod(5,0) += coeff*fInverse[5]*fInverse[0];
+		Mod(5,1) += coeff*fInverse[5]*fInverse[1];
+		Mod(5,2) += coeff*fInverse[5]*fInverse[2];
+		Mod(5,3) += coeff*fInverse[5]*fInverse[3];
+		Mod(5,4) += coeff*fInverse[5]*fInverse[4];
+		Mod(5,5) += coeff*fInverse[5]*fInverse[5];
+	}
+ }
 
 /*computes integrated fiber stress in local frame*/
 void AnisoCorneaVisco::ComputeFiberStress (const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v, 

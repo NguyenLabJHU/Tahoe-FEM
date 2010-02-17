@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.11 2009-04-23 14:56:19 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.12 2010-02-17 04:09:11 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -20,6 +20,11 @@ class AnisoCorneaVisco: public  FSFiberMatViscT
 {
    public:
 
+	enum pType{
+		kOgden = 0,
+		kBlatz
+	};
+	
 	enum DistributionT {kCircumferential = 0,
 							   kMeridional,
 							   kMixed,
@@ -136,7 +141,7 @@ protected:
 	dMatrixT fiVisc;
 	
 	/*workspaces*/
-	/*workspaces*/
+	
 	dSymMatrixT fFlowStress;
 	dSymMatrixT fResidual;
 	dMatrixT fiK;
@@ -158,6 +163,7 @@ protected:
 	dArrayT	fddU;
 
 	int fDType; // flag
+	int fVolType;
 
 	/* for inhomogeneous material */
 	ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
@@ -169,12 +175,6 @@ protected:
 	  	
 	/* MODULI angle tables for fiber moduli */
 	dArray2DT fModuliTable;	
-
-	dArrayT fjaciso; // for an inhomogeneous material
-	dArrayT fjacaniso; // for an inhomogeneous material
-
-
-
 };
 
 //ATTIC:
