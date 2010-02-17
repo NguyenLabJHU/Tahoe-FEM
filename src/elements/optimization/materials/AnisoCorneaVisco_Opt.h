@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco_Opt.h,v 1.1 2009-04-23 03:03:50 thao Exp $ */
+/* $Id: AnisoCorneaVisco_Opt.h,v 1.2 2010-02-17 04:09:57 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_VISCO_OPTO_H_
 #define _SS_VISCO_OPTO_H_
@@ -46,6 +46,7 @@ class AnisoCorneaVisco_Opt: public FSFiberOptimize_MatT, public AnisoCorneaVisco
 		
 	private:
 	int fnum_params;
+	int ffiber_type;
 	dArrayT fI4e;
 	
 	dSymMatrixT fb;

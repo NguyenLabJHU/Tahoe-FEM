@@ -1,4 +1,4 @@
- /* $Id: AnisoCorneaVisco_Opt.cpp,v 1.1 2009-04-23 03:03:50 thao Exp $ */
+ /* $Id: AnisoCorneaVisco_Opt.cpp,v 1.2 2010-02-17 04:09:57 thao Exp $ */
 #include "AnisoCorneaVisco_Opt.h"
 #include "ParameterContainerT.h"
 #include "ExceptionT.h"
@@ -17,6 +17,7 @@
 #include "EvenSpacePtsT.h"
 
 /*fiber potentials*/
+#include "FungType2.h"
 #include "FungType.h"
 #include "LanirFiber.h"
 
@@ -112,6 +113,22 @@ ParameterInterfaceT* AnisoCorneaVisco_Opt::NewSub(const StringT& name) const
 			choice->AddSub(fung);
 		}
 
+		ParameterContainerT fung0("eq_fung_type0");		
+		{
+			LimitT lower(0.0, LimitT::Lower);
+			
+			ParameterT alpha(ParameterT::Double, "alpha");
+			ParameterT beta(ParameterT::Double, "beta");
+			
+			fung0.AddParameter(alpha);
+			fung0.AddParameter(beta);
+			alpha.AddLimit(lower);
+			beta.AddLimit(lower);
+			
+			/* set the description */
+			fung.SetDescription("param order, [alpha_eq, beta]");	
+			choice->AddSub(fung0);
+		}
 		return(choice);
 	}
 	else if (name == "neq_fibril_opto_params" )
@@ -132,7 +149,20 @@ ParameterInterfaceT* AnisoCorneaVisco_Opt::NewSub(const StringT& name) const
 			fung.SetDescription("param order, [alpha_neq]");	
 			choice->AddSub(fung);
 		}
-
+		ParameterContainerT fung0("neq_fung_type0");		
+		{
+			LimitT lower(0.0, LimitT::Lower);
+			
+			ParameterT alpha(ParameterT::Double, "alpha");
+			
+			fung0.AddParameter(alpha);
+			alpha.AddLimit(lower);
+			
+			/* set the description */
+			fung0.SetDescription("param order, [alpha_neq]");	
+			choice->AddSub(fung0);
+		}
+		
 		return(choice);
 	}
 	else if (name == "viscosity_opto_params")
@@ -226,6 +256,9 @@ void AnisoCorneaVisco_Opt::TakeParameterList(const ParameterListT& list)
 		ExceptionT::GeneralFail("AnisoCorneaVisco::TakeParameterList", 
 			"number of viscosity functions does not match number of nonequilibrium potentials");
 
+	int b = list.GetParameter("pressure_model");
+	fVolType = (b == kBlatz) ? kBlatz : kOgden;
+
 	fNumFibProcess = num_neq_pot;
 	fPotential.Dimension(fNumFibProcess+1);
 	if(fNumFibProcess > 0)
@@ -274,11 +307,22 @@ void AnisoCorneaVisco_Opt::TakeParameterList(const ParameterListT& list)
 		fMu = matrix.GetParameter("shear_modulus");
 		fGamma = matrix.GetParameter("bulk_modulus");
 	}
-	fparams[0] = fMu;
-	fparams[1] = fGamma;
+	fparams[0] = fGamma;
+	fparams[1] = fMu;
 
 	const ParameterListT& potential = list.GetListChoice(*this, "eq_fibril_opto_params");
 	if (potential.Name() == "eq_fung_type")
+	{
+		double alpha_eq = potential.GetParameter("alpha");
+		double beta = potential.GetParameter("beta");
+		fPotential[0] = new FungType2(alpha_eq, beta);
+		if (!fPotential[0]) throw ExceptionT::kOutOfMemory;
+		
+		fparams[2] = beta;
+		fparams[3] = alpha_eq;
+		ffiber_type = 1;
+	}
+	else if (potential.Name() == "eq_fung_type0")
 	{
 		double alpha_eq = potential.GetParameter("alpha");
 		double beta = potential.GetParameter("beta");
@@ -287,6 +331,7 @@ void AnisoCorneaVisco_Opt::TakeParameterList(const ParameterListT& list)
 		
 		fparams[2] = beta;
 		fparams[3] = alpha_eq;
+		ffiber_type = 0;
 	}
 	else 
 		ExceptionT::GeneralFail(caller, "no such potential");
@@ -299,6 +344,15 @@ void AnisoCorneaVisco_Opt::TakeParameterList(const ParameterListT& list)
 		{
 			double alpha_neq = neq_potential.GetParameter("alpha");
 
+			fPotential[i+1] = new FungType2(alpha_neq,fparams[2]);
+			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
+			
+			fparams[dex++] = alpha_neq;
+		}		
+		else if (neq_potential.Name() == "neq_fung_type0")
+		{
+			double alpha_neq = neq_potential.GetParameter("alpha");
+			
 			fPotential[i+1] = new FungType(alpha_neq,fparams[2]);
 			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
 			
@@ -355,6 +409,8 @@ void AnisoCorneaVisco_Opt::TakeParameterList(const ParameterListT& list)
 	fFiberStretch_vn.Dimension(fNumSD-1);
 
 	/*Dimension work spaces*/
+	fInverse.Dimension(fNumSD);
+
 	fCalg.Dimension(fNumFibStress);	
 	/* allocate memory */
 	/*dimension invserse viscosity matrix*/
@@ -403,31 +459,56 @@ const dArray2DT& AnisoCorneaVisco_Opt::ds_ij_dlambda_q(void)
 	
 	const dMatrixT& F = F_mechanical();
 		
-	////////////////////////////////////////////////////////
-	/*matrix params*/
-	
 	fb.MultAAT(F);
 	fC.MultATA(F);
 	double J = F.Det();
-	double coeff = pow(J, -2.0*fGamma);
-	double coeff2 = coeff* 2.0*log(J);
 
-	/*dsig_dgamma*/
-	fParamGrads(0,0) = fMu/J *(coeff2);
-	fParamGrads(1,0) = fMu/J *(coeff2);
-	fParamGrads(2,0) = fMu/J *(coeff2);
-	fParamGrads(3,0) = 0.0;
-	fParamGrads(4,0) = 0.0;
-	fParamGrads(5,0) = 0.0;	
+	/*matrix params*/
+	if (fVolType == kOgden)
+	{
+		double third = 1.0/3.0;
+		double I3 = fC.Det();
+		double I3rthird = pow(I3,-third);
+		double I1 = fC[0]+fC[1]+fC[2];
 	
-	/*dsig_dmu*/
-	fParamGrads(0,1) = 1.0/J *(fb[0]  - coeff);
-	fParamGrads(1,1) = 1.0/J *(fb[1]  - coeff);
-	fParamGrads(2,1) = 1.0/J *(fb[2]  - coeff);
-	fParamGrads(3,1) = 1.0/J*fb[3];
-	fParamGrads(4,1) = 1.0/J*fb[4];
-	fParamGrads(5,1) = 1.0/J*fb[5];
+		// dsig_dgamma
+		double coeff = (1.0/J)*0.5*fGamma*(I3-1.0);
+		fParamGrads(0,0) = coeff;
+		fParamGrads(1,0) = coeff;
+		fParamGrads(2,0) = coeff;
+		fParamGrads(3,0) = 0.0;
+		fParamGrads(4,0) = 0.0;
+		fParamGrads(5,0) = 0.0;	
+	
+		// dsig_dmu
+		fParamGrads(0,1) = (1.0/J)*I3rthird *(fb[0]  - third*I1);
+		fParamGrads(1,1) = (1.0/J)*I3rthird *(fb[1]  - third*I1);
+		fParamGrads(2,1) = (1.0/J)*I3rthird *(fb[2]  - third*I1);
+		fParamGrads(3,1) = (1.0/J)*I3rthird * fb[3];
+		fParamGrads(4,1) = (1.0/J)*I3rthird * fb[4];
+		fParamGrads(5,1) = (1.0/J)*I3rthird * fb[5];
+	}
+	else if(fVolType == kBlatz)
+	{
+		double coeff = pow(J, -2.0*fGamma);
+		double coeff2 = coeff* 2.0*log(J);
 
+		//	dsig_dgamma
+		fParamGrads(0,0) = fMu/J *(coeff2);
+		fParamGrads(1,0) = fMu/J *(coeff2);
+		fParamGrads(2,0) = fMu/J *(coeff2);
+		fParamGrads(3,0) = 0.0;
+		fParamGrads(4,0) = 0.0;
+		fParamGrads(5,0) = 0.0;	
+	
+		//	dsig_dmu
+		fParamGrads(0,1) = 1.0/J *(fb[0]  - coeff);
+		fParamGrads(1,1) = 1.0/J *(fb[1]  - coeff);
+		fParamGrads(2,1) = 1.0/J *(fb[2]  - coeff);
+		fParamGrads(3,1) = 1.0/J*fb[3];
+		fParamGrads(4,1) = 1.0/J*fb[4];
+		fParamGrads(5,1) = 1.0/J*fb[5];
+	}
 	/////////////////////////////////////////////////////////
 	/*eq fiber*/
 	
@@ -475,7 +556,13 @@ const dArray2DT& AnisoCorneaVisco_Opt::ds_ij_dlambda_q(void)
 	{
 		/*dseq_dalpha*/
 		double delta = fI4[i] - 1.0;
-		double factors=2.0*pj[i]*(exp(beta*delta) -1.0/(fI4[i]*fI4[i]));
+		
+		double factors;
+		if(ffiber_type == 0)
+			factors=2.0*pj[i]*(exp(beta*delta) -1.0/(fI4[i]*fI4[i]));
+		else if (ffiber_type ==1)
+			factors=2.0*delta*(exp(beta*delta*delta))*fI4[i]*pj[i];
+
 		ss1 += factors * p1[i];
 		ss2 += factors * p2[i];
 		ss3 += factors * p3[i];
@@ -485,12 +572,16 @@ const dArray2DT& AnisoCorneaVisco_Opt::ds_ij_dlambda_q(void)
 //		cout << "\nfactors: "<<factors;
 
 		/*dseq_dbeta*/
-		double factort = 2.0*pj[i]*(alpha_eq*delta*exp(beta*delta));
+		double factort;
+		if(ffiber_type == 0)
+			factort = 2.0*pj[i]*(alpha_eq*delta*exp(beta*delta));
+		else if (ffiber_type ==1)
+			factort = 2.0*(alpha_eq*delta*delta*delta*exp(beta*delta*delta))*fI4[i]*pj[i];
 		t1 += factort * p1[i];
 		t2 += factort * p2[i];
 		t3 += factort * p3[i];
 		
-		double seq = 2.0*fdU[i];
+		double seq = 2.0*fdU[i]*fI4[i];
 		/*dseq_dk*/
 		double factork = seq*pj_dk[i];
 		k1 += factork * p1[i];
@@ -517,7 +608,7 @@ const dArray2DT& AnisoCorneaVisco_Opt::ds_ij_dlambda_q(void)
 	fParamGrads(4,3) = fdS[4];
 	fParamGrads(5,3) = fdS[5];
 	
-	//////////////////////////////////////
+	////////////////// NOT YET IMPLEMENTED CORRECTLY  ////////////////////
 	/*neq fiber*/
 	/*get time step*/
 	const double dt = fFSFiberMatSupport->TimeStep();
