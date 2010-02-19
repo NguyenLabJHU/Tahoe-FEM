@@ -957,6 +957,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fH1_5=0.0;
     fH1_6=0.0;
     fH1_7=0.0;
+    fH1_71=0.0;
+    fH1_72=0.0;
+    fH1_73=0.0;
+    fH1_74=0.0;
+    fH1_75=0.0;
+    fH1_76=0.0;
+    fH1_77=0.0;
+    fH1_78=0.0;
     fH1_8=0.0;
     fH1_9=0.0;
     fH1_10=0.0;
@@ -1398,6 +1406,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 Form_Mm_5_matrix();
                 Form_Mm_6_matrix();
                 Form_Mm_7_matrix();
+                Form_Mm_71_matrix();
+                Form_Mm_72_matrix();
+                Form_Mm_73_matrix();
+                Form_Mm_74_matrix();
+                Form_Mm_75_matrix();
+                Form_Mm_76_matrix();
+                Form_Mm_77_matrix();
+                Form_Mm_78_matrix();
                 Form_Mm_8_matrix();
                 Form_Mm_9_matrix();
                 Form_Mm_10_matrix();
@@ -1590,13 +1606,61 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 // accumulate
                 fH1_6 += fTemp_matrix_nchidof_x_nchidof;
 
-                fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_7,NCHI);
+/*                fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_7,NCHI);
                 scale =-1*scale_const*J;
                 fTemp_matrix_nchidof_x_nchidof *= scale;
                 // accumulate
-                fH1_7 += fTemp_matrix_nchidof_x_nchidof;
+                fH1_7 += fTemp_matrix_nchidof_x_nchidof;*/
 
+                fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_71,GRAD_NCHI);
+                scale =-1*scale_const*J;
+                fTemp_matrix_nchidof_x_nchidof *= scale;
+                // accumulate
+                fH1_71 += fTemp_matrix_nchidof_x_nchidof;
 
+                fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_72,fIota_temp_matrix);
+                scale =1*scale_const*J;
+                fTemp_matrix_nchidof_x_nudof *= scale;
+                // accumulate
+                fH1_72 += fTemp_matrix_nchidof_x_nudof;
+
+                fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_73,NCHI);
+                scale =-1*scale_const*J;
+                fTemp_matrix_nchidof_x_nchidof *= scale;
+                // accumulate
+                fH1_73 += fTemp_matrix_nchidof_x_nchidof;
+
+                fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_74,NCHI);
+                scale =-1*scale_const*J;
+                fTemp_matrix_nchidof_x_nchidof *= scale;
+                // accumulate
+                fH1_74 += fTemp_matrix_nchidof_x_nchidof;
+
+                fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_75,NCHI);
+                scale =1*scale_const*J;
+                fTemp_matrix_nchidof_x_nchidof *= scale;
+                // accumulate
+                fH1_75 += fTemp_matrix_nchidof_x_nchidof;
+
+                fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_76,GRAD_NCHI);
+                scale =-1*scale_const*J;
+                fTemp_matrix_nchidof_x_nchidof *= scale;
+                // accumulate
+                fH1_76 += fTemp_matrix_nchidof_x_nchidof;
+
+                fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_77,NCHI);
+                scale =1*scale_const*J;
+                fTemp_matrix_nchidof_x_nchidof *= scale;
+                // accumulate
+                fH1_77 += fTemp_matrix_nchidof_x_nchidof;
+
+                fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_78,fIota_temp_matrix);
+                scale =1*scale_const*J;
+                fTemp_matrix_nchidof_x_nudof *= scale;
+                // accumulate
+                fH1_78 += fTemp_matrix_nchidof_x_nudof;
+
+/*
                 fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_8,NCHI);
                 scale =scale_const*J;
                 fTemp_matrix_nchidof_x_nchidof *= scale;
@@ -1615,7 +1679,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 fTemp_matrix_nchidof_x_nchidof *= scale;
                 // accumulate
                 fH1_10 += fTemp_matrix_nchidof_x_nchidof;
-
+*/
 
 
                 fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_11,fIota_temp_matrix);
@@ -1887,6 +1951,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid += fH1_11;
             fKphid += fH1_12;
             fKphid += fH1_14;
+            fKphid += fH1_72;
+            fKphid += fH1_78;
 
             fKphid += fH2_1;
             fKphid += fH2_2;
@@ -1907,10 +1973,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphiphi  = fH1_4;
             fKphiphi += fH1_5;
             fKphiphi += fH1_6;
-            fKphiphi += fH1_7;
+            fKphiphi += fH1_71;
+            fKphiphi += fH1_73;
+            fKphiphi += fH1_74;
+            fKphiphi += fH1_75;
+            fKphiphi += fH1_76;
+            fKphiphi += fH1_77;
+/*            fKphiphi += fH1_7;
             fKphiphi += fH1_8;
             fKphiphi += fH1_9;
-            fKphiphi += fH1_10;
+            fKphiphi += fH1_10;*/
             fKphiphi += fH1_13;
 
             fKphiphi += fH2_4;
@@ -2514,6 +2586,14 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fH1_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
     fH1_6.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
     fH1_7.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_71.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_72.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fH1_73.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_74.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_75.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_76.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_77.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fH1_78.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fH1_8.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
     fH1_9.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
     fH1_10.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
