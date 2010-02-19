@@ -2436,7 +2436,14 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Mm_5.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_7.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    Mm_7.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    Mm_71.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    Mm_72.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_73.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_74.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_75.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_76.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    Mm_77.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_78.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_8.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_9.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
     Mm_10.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
@@ -5670,7 +5677,188 @@ void FSMicromorphic3DT:: Form_Mm_72_matrix()
 	}
 }
 
+void FSMicromorphic3DT:: Form_Mm_73_matrix()
+{
+	Mm_73=0.0;
+	int row=0;
+	int col=0;
+	for(int B=0;B<3;B++)
+	{
+		for(int a=0;a<3;a++)
+		{
+			row=0;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int A=0;A<3;A++)
+						{
+							for(int T=0;T<3;T++)
+							{
+								for(int p=0;p<3;p++)
+								{
+									for(int r=0;r<3;r++)
+									{
+										for(int s=0;s<3;s++)
+										{
+											Mm_73(row,col)+=CCof[k][l][m][p][r][s]*(GRAD_Chi[p][A][T]-GRAD_ChiN[p][A][T])*Finv[T][s]*ChiInv[A][a]*ChiInv[B][r];
 
+										}
+									}
+								}
+							}
+						}
+						row++;
+					}
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+void FSMicromorphic3DT:: Form_Mm_74_matrix()
+{
+	Mm_74=0.0;
+	int row=0;
+	int col=0;
+	for(int A=0;A<3;A++)
+	{
+		for(int p=0;p<3;p++)
+		{
+			row=0;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int B=0;B<3;B++)
+						{
+							for(int T=0;T<3;T++)
+							{
+								for(int r=0; r<3;r++)
+								{
+									for(int s=0;s<3;s++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											Mm_74(row,col)+=CCof[k][l][m][p][r][s]*ChiInv[A][a]*GRAD_Chi[a][B][T]*ChiInv[B][r]*Finv[T][s];
+										}
+
+									}
+								}
+							}
+						}
+						row++;
+					}
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+void FSMicromorphic3DT:: Form_Mm_75_matrix()
+{
+	Mm_75=0.0;
+	int row=0;
+	int col=0;
+	for(int L=0;L<3;L++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			row=0;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int p=0;p<3;p++)
+						{
+							for(int A=0;A<3;A++)
+							{
+								for(int r=0;r<3;r++)
+								{
+									for(int s=0;s<3;s++)
+									{
+										for(int B=0;B<3;B++)
+										{
+											for(int a=0;a<3;a++)
+											{
+												for(int T=0;T<3;T++)
+												{
+													Mm_75(row,col)+=CCof[k][l][m][p][r][s]*(Chi[p][A]-ChiN[p][A])*ChiInv[A][i]*ChiInv[L][a]*GRAD_Chi[a][B][T]
+													              *ChiInv[B][r]*Finv[T][s];
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						row++;
+
+					}
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+void FSMicromorphic3DT:: Form_Mm_76_matrix()
+{
+	Mm_76=0.0;
+	int row=0;
+	int col=0;
+	for(int B=0;B<3;B++)
+	{
+		for(int a=0;a<3;a++)
+		{
+			for(int T=0;T<3;T++)
+			{
+				row=0;
+				for(int m=0;m<3;m++)
+				{
+					for(int l=0;l<3;l++)
+					{
+						for(int k=0;k<3;k++)
+						{
+							//summation
+
+							for(int p=0;p<3;p++)
+							{
+								for(int r=0;r<3;r++)
+								{
+									for(int s=0;s<3;s++)
+									{
+										for(int A=0;A<3;A++)
+										{
+											Mm_76(row,col)+=CCof[k][l][m][p][r][s]*(Chi[p][A]-ChiN[p][A])*ChiInv[A][a]*ChiInv[B][r]*Finv[T][s];
+										}
+									}
+								}
+							}
+							row++;
+						}
+					}
+				}
+				col++;
+			}
+
+		}
+	}
+}
 
 void FSMicromorphic3DT:: Form_Mm_8_matrix()
 {

@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.69 2010-02-19 07:13:11 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.70 2010-02-19 16:50:46 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -588,6 +588,7 @@ private:
     dMatrixT Mm_75;
     dMatrixT Mm_76;
     dMatrixT Mm_77;
+    dMatrixT Mm_78;
     dMatrixT Mm_8;
     dMatrixT Mm_9;
     dMatrixT Mm_10;
@@ -872,6 +873,7 @@ private:
     void Form_Mm_75_matrix(void);
     void Form_Mm_76_matrix(void);
     void Form_Mm_77_matrix(void);
+    void Form_Mm_78_matrix(void);
     void Form_Mm_8_matrix(void);
     void Form_Mm_9_matrix(void);
     void Form_Mm_10_matrix(void);
