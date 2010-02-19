@@ -5631,6 +5631,47 @@ void FSMicromorphic3DT:: Form_Mm_71_matrix()
 
 }
 
+void FSMicromorphic3DT:: Form_Mm_72_matrix()
+{
+	Mm_72=0.0;
+	int row=0;
+	int col=0;
+	for(int s=0;s<3;s++)
+	{
+		for(int a=0;a<3;a++)
+		{
+			row=0;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int p=0;p<3;p++)
+							{
+							for( int r=0;r<3;r++)
+							{
+							for(int A=0;A<3;A++)
+								{
+									for(int T=0;T<3;T++)
+									{
+								Mm_72(row,col)+=CCof[k][l][m][p][r][s]*(GRAD_Chi[p][A][T]-GRAD_ChiN[p][A][T])*Finv[T][a]*ChiInv[A][r];
+									}
+								}
+							}
+							}
+					row++;
+					}
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+
 void FSMicromorphic3DT:: Form_Mm_8_matrix()
 {
 
