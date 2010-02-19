@@ -2436,6 +2436,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Mm_5.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_7.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    Mm_7.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
     Mm_8.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     Mm_9.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
     Mm_10.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
@@ -5588,6 +5589,44 @@ void FSMicromorphic3DT:: Form_Mm_7_matrix()
             col++;
             }
         }
+}
+
+
+void FSMicromorphic3DT:: Form_Mm_71_matrix()
+{
+	Mm_71=0.0;
+	int row=0;
+	int col=0;
+    for(int A=0; A<3;A++)
+    {
+    	for(int p=0;p<3;p++)
+    	{
+    		for(int T=0;T<3;T++)
+    		{
+    			//
+    			row=0;
+    			for(int m=0;m<3;m++)
+    			{
+    				for(int l=0;l<3;l++)
+    				{
+    					for(int k=0;k<3;k++)
+    					{
+    						//summation starts here
+    						for(int r=0;r<3;r++)
+    						{
+    							for(int s=0;s<3;s++)
+    							{
+    	    						Mm_71(row,col)+=CCof[k][l][m][p][r][s]*Finv[T][s]*ChiInv[A][r];
+    							}
+    						}
+    						row++;
+    					}
+    				}
+    			}
+    			col++;
+    		}
+    	}
+    }
 
 
 }
