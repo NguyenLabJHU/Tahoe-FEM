@@ -5860,6 +5860,100 @@ void FSMicromorphic3DT:: Form_Mm_76_matrix()
 	}
 }
 
+void FSMicromorphic3DT:: Form_Mm_77_matrix()
+{
+	Mm_77=0.0;
+	int row=0;
+	int col=0;
+	for(int L=0;L<3;L++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			row=0;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int p=0;p<3;p++)
+						{
+							for(int r=0;r<3;r++)
+							{
+								for(int s=0;s<3;s++)
+								{
+									for(int A=0;A<3;A++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int B=0;B<3;B++)
+											{
+												for(int T=0;T<3;T++)
+												{
+													Mm_77(row,col)+=CCof[k][l][m][p][r][s]*(Chi[p][A]-ChiN[p][A])*ChiInv[A][a]*GRAD_Chi[a][B][T]*ChiInv[B][i]
+															*ChiInv[L][r]*Finv[T][s];
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						row++;
+					}
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DT:: Form_Mm_78_matrix()
+{
+	Mm_78=0.0;
+	int row=0;
+	int col=0;
+	for(int s=0;s<3;s++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			row=0;
+			for(int m=0;m<3;m++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int p=0;p<3;p++)
+						{
+							for(int r=0;r<3;r++)
+							{
+								for(int A=0;A<3;A++)
+								{
+									for(int a=0;a<3;a++)
+									{
+										for(int B=0;B<3;B++)
+										{
+											for(int T=0;T<3;T++)
+											{
+												Mm_78(row,col)+=CCof[k][l][m][p][r][s]*(Chi[p][A]-ChiN[p][A])*ChiInv[A][a]*GRAD_Chi[a][B][T]*ChiInv[B][r]*Finv[T][i];
+											}
+										}
+									}
+								}
+							}
+						}
+						row++;
+					}
+				}
+			}
+			col++;
+		}
+	}
+}
+
 void FSMicromorphic3DT:: Form_Mm_8_matrix()
 {
 
