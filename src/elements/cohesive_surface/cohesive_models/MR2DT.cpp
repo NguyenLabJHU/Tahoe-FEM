@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.33 2009-04-23 20:06:36 regueiro Exp $*/
+/*$Id: MR2DT.cpp,v 1.34 2010-03-01 07:14:09 skyu Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -290,13 +290,14 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 
 		dArrayT u(2); dArrayT up(2); dArrayT du(2); dArrayT dup(2); dArrayT qn(4);
 		dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
-		dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2);
+		dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2); dArrayT dSig(2);
 		dArrayT dQdSig(2); dArrayT dfdq(4); dArrayT qbar(4);
 		dArrayT R2(6); dMatrixT X(6,1); dArrayT V_sig(2); dArrayT V_q(4);
 		dArrayT dfdSig(2); dArrayT dq(4); dArrayT Y(6); dArrayT KE_dQdSig(2), KE_du(2);
 
 
-		double ff; double bott; double topp; double dlam; double dlam2; double normr;
+		double ff; double ff0; double bott; double topp; double dlam; double dlam2; double normr; double normr0;
+
 
 		/* Calculate incremental jumps and initialize the neecessary vectors */
 		for (i = 0; i<=1; ++i) {
@@ -325,19 +326,17 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 			I_mat(i,i) = 1.;
 		}
 
-		// Sig = Sig_I;
-		dArrayT ue(2), Sig_e(2);
+		dArrayT ue(2), Sig_tr(2);
 		ue  = u;
 		ue -= up;
-		KE.MultTx(ue,Sig_e);
-		// Sig +=Sig_e;
-		Sig = Sig_e;
+		KE.MultTx(ue,Sig_tr);
 
 		int iplastic;
 		dlam = 0.; dlam2 = 0.; normr = 0.;
     
 		/* Check the yield function */     
-		Yield_f(Sig, qn, ff);
+		//Yield_f(Sig, qn, ff);
+		Yield_f(Sig_tr, qn, ff);
 
 		// Check for initial data
 #if __option(extended_errorcheck)
@@ -368,6 +367,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 
 		if (ff < 0.) {
 			iplastic = 0;
+			Sig = Sig_tr;
 			state[10] = ff;
 			normr = 0.;
 			state[13] = normr;
@@ -376,7 +376,45 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		else {
 			kk = 0;
 			iplastic = 1;
-			while (ff > fTol_1 || normr > fTol_2) {
+			Sig = Sig_I;
+
+			Yield_f(Sig, qn, ff);
+			if (fabs(ff) > 1e-12) {
+				ff0 = ff;
+			}
+			else {
+				ff0 = 1.;
+			}
+
+			dQdSig_f(Sig, qn, dQdSig);
+			qbar_f(Sig, qn, qbar);
+			KE.Multx(du, KE_du);
+			KE.Multx(dQdSig, KE_dQdSig);
+
+			for (i = 0; i<=1; ++i) {
+				R[i]  = Sig[i];
+				R[i] -= Sig_I[i];
+				R[i] -= KE_du[i];
+				R[i] += dlam*KE_dQdSig[i];
+			}
+
+			for (i = 0; i<=3; ++i) {
+				R[i+2]  = qo[i];
+				R[i+2] -= qn[i];
+				R[i+2] += dlam*qbar[i];
+			}
+
+			normr = R.Magnitude();
+			if (normr > 1e-10) {
+				normr0 = normr;
+			}
+			else {
+				normr0 = 1.;
+			} 
+
+
+			//while (ff > fTol_1 || normr > fTol_2) {
+			while ((fabs(ff/ff0) > fTol_1 || (normr/normr0) > fTol_2) && (fabs(ff) > fTol_1 || normr > fTol_2)) {
 
 				// Check for data of local iteration
 #if __option(extended_errorcheck)
@@ -404,26 +442,11 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 					ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
 				}
 
-				/*
-				Sig = Sig_I;
-				ue = u;
-				ue -= up;
-				KE.Multx(ue,Sig_e);
-				Sig +=Sig_e;
-				Yield_f(Sig, qn, ff);
-				*/
 				dQdSig_f(Sig, qn, dQdSig);
 				qbar_f(Sig, qn, qbar);
-
-				KE.Multx(du, KE_du);
 				KE.Multx(dQdSig, KE_dQdSig);
 
 				for (i = 0; i<=1; ++i) {
-					/*
-					R[i]  = upo[i];
-					R[i] -= up[i];
-					R[i] += dlam*dQdSig[i];
-					*/
 					R[i]  = Sig[i];
 					R[i] -= Sig_I[i];
 					R[i] -= KE_du[i];
@@ -435,12 +458,6 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 					R[i+2] -= qn[i];
 					R[i+2] += dlam*qbar[i];
 				}
-				/*R[0] = -up[0] + upo[0] + dlam*dQdSig[0];
-				  R[1] = -up[1] + upo[1] + dlam*dQdSig[1];
-				  R[2] = -qn[0] + qo[0] + dlam*qbar[0];
-				  R[3] = -qn[1] + qo[1] + dlam*qbar[1];
-				  R[4] = -qn[2] + qo[2] + dlam*qbar[2];
-				  R[5] = -qn[3] + qo[3] + dlam*qbar[3];   */
 
 				// Check for the residual
 #if __option(extended_errorcheck)
@@ -454,7 +471,6 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
 #endif
 
-				normr = R.Magnitude();
 				dQdSig2_f(Sig,qn,dQdSig2);
 				dQdSigdq_f(Sig, qn, A_uq);
 				dqbardSig_f(Sig, qn, A_qu);
@@ -506,18 +522,20 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 
 				AA.Inverse(AA_inv);
 				dfdSig_f(Sig, qn, dfdSig);
-				V_sig = dfdSig;
+				//V_sig = dfdSig;
 				dfdq_f(Sig, qn, dfdq);
-				V_q = dfdq;
+				//V_q = dfdq;
 
 				for (i = 0; i<=5; ++i) {
 					if (i<=1){
-						Rvec[i] = V_sig[i];
+						//Rvec[i] = V_sig[i];
+						Rvec[i] = dfdSig[i];
 						//Cvec[i] = dQdSig[i];
 						Cvec[i] = KE_dQdSig[i];
 					}
 					if (i > 1){
-						Rvec[i] = V_q[i-2];
+						//Rvec[i] = V_q[i-2];
+						Rvec[i] = dfdq[i-2];
 						Cvec[i] = qbar[i-2];
 					}
 				}
@@ -563,40 +581,32 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				R2  = R;
 				R2 += Rmod;
 				AA.Multx(R2,X);
-				CMAT.Multx(X,Y);
+				//CMAT.Multx(X,Y);
 				
 				for (i = 0; i<=5; ++i) {
 					if (i<=1) {
-						dup[i] = Y[i];
+						//dup[i] = Y[i];
+						dSig[i] = -X[i];
 					}
 					if (i > 1) {
-						dq[i-2] = Y[i];
+						//dq[i-2] = Y[i];
+						dq[i-2] = -X[i];
 					}
 				}
 
-				up += dup;
+				//up += dup;
+				Sig += dSig;
 				qn += dq;
 				dlam = dlam + dlam2;
 				kk = kk + 1;
 
 				// Check the yield function and norm of R
-				ue  = u;
-				ue -= up;
-				KE.MultTx(ue,Sig_e);
-				Sig = Sig_e;
 				Yield_f(Sig, qn, ff);
 				dQdSig_f(Sig, qn, dQdSig);
 				qbar_f(Sig, qn, qbar);
-
-				KE.Multx(du, KE_du);
                                 KE.Multx(dQdSig, KE_dQdSig);
 
 				for (i = 0; i<=1; ++i) {
-					/*
-					R[i]  = upo[i];
-					R[i] -= up[i];
-					R[i] += dlam*dQdSig[i];
-                                        */
 					R[i]  = Sig[i];
                                         R[i] -= Sig_I[i];
                                         R[i] -= KE_du[i];
@@ -610,6 +620,12 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				}
 
 				normr = R.Magnitude();
+			}
+
+			// Update plastic jump displacement
+			for (i = 0; i<=1; ++i) {
+				up[i]  = upo[i];
+				up[i] += dlam*dQdSig[i];
 			}
 		}
 
@@ -747,7 +763,10 @@ dArrayT& MR2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar)
 
 	double B1 = (Sig[1] + fabs(Sig[1]))/(2.*fGf_I);
 	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
-	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	//double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	double Tt_excess = fabs(Sig[0]) - fabs(TNA*qn[2]);
+	double B3func = 0.5*(Tt_excess + fabs(Tt_excess));
+	double B3 = B3func*signof(Sig[0])/fGf_II;
 	
 	double Shear_Q = Sig[0]*Sig[0] + (qn[1] - qn[0]*qn[3])*(qn[1] - qn[0]*qn[3]);
 	double DQDN = qn[3];
@@ -917,14 +936,20 @@ dMatrixT& MR2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dq
 
 	double B1 = (Sig[1] + fabs(Sig[1]))/(2.*fGf_I);
 	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
-	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
-	
+	//double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	double Tt_excess = fabs(Sig[0]) - fabs(TNA*qn[2]);
+	double B3func = 0.5*(Tt_excess + fabs(Tt_excess));
+	double B3 = B3func*signof(Sig[0])/fGf_II;
+		
 	double Shear_Q = Sig[0]*Sig[0] + (qn[1] - qn[0]*qn[3])*(qn[1] - qn[0]*qn[3]);
 	double DQDN = qn[3];
 	double DQDT = Sig[0]/sqrt(Shear_Q);
 
-	double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/(2.*fGf_II);
-	double DB3_DTt = 1./fGf_II;
+	double signfun = (1. + signof(Tt_excess))/2.;
+	//double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/(2.*fGf_II);
+	double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))*signfun/(2.*fGf_II);
+	//double DB3_DTt = 1./fGf_II;
+	double DB3_DTt = 1.*signfun/fGf_II;
 	double DQDN2 = 0.;
 	double DQDT2 = (qn[1] - qn[0]*qn[3])*(qn[1] - qn[0]*qn[3])/sqrt(Shear_Q*Shear_Q*Shear_Q);
 	double SN = signof(Sig[1]);
@@ -1030,14 +1055,19 @@ dMatrixT& MR2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqba
 
 	double B1 = (Sig[1] + fabs(Sig[1]))/(2.*fGf_I);
 	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
-	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
-	
+	//double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	double Tt_excess = fabs(Sig[0]) - fabs(TNA*qn[2]);
+	double B3func = 0.5*(Tt_excess + fabs(Tt_excess));
+	double B3 = B3func*signof(Sig[0])/fGf_II;
+		
 	double Shear_Q = Sig[0]*Sig[0] + (qn[1] - qn[0]*qn[3])*(qn[1] - qn[0]*qn[3]);
 	double DQDN = qn[3];
 	double DQDT = Sig[0]/sqrt(Shear_Q);
 
+	double signfun = (1. + signof(Tt_excess))/2.;
 	double zeta_Q = (qn[1] - qn[0]*qn[3])/sqrt(Shear_Q*Shear_Q*Shear_Q);
-	double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
+	//double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
+	double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])*signfun/fGf_II;
 	double DQDTDChi = Sig[0]*qn[3]*zeta_Q;
 	double DQDTDC = -Sig[0]*zeta_Q;
 	double DQDTDTanpsi = Sig[0]*qn[0]*zeta_Q;
@@ -1051,12 +1081,10 @@ dMatrixT& MR2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqba
 	dqbardq(1,1) = -falpha_c*(B1*DQDN + B3*DQDT) + A4*B3*DQDTDC;
 	dqbardq(1,2) = A4*DB3_DTanphi*DQDT;
 	dqbardq(1,3) = A3*B1*DQDNDTanpsi + A4*B3*DQDTDTanpsi;
-
 	dqbardq(2,0) = A6*B3*DQDTDChi;
 	dqbardq(2,1) = A6*B3*DQDTDC;
 	dqbardq(2,2) = -falpha_phi*B3*DQDT + A6*DB3_DTanphi*DQDT;
 	dqbardq(2,3) = A6*B3*DQDTDTanpsi;
-
 	dqbardq(3,0) = A8*B3*DQDTDChi;
 	dqbardq(3,1) = A8*B3*DQDTDC;
 	dqbardq(3,2) = A8*DB3_DTanphi*DQDT;
