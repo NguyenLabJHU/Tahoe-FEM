@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.37 2010-03-03 18:43:14 skyu Exp $*/
+/*$Id: MR2DT.cpp,v 1.38 2010-03-03 22:37:51 skyu Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -770,8 +770,8 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		// Check for the stiffness after convergence is achieved
 		Stiffness(jump_u, state, sigma);
 		mr_ep_2d_out << setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0]	<< endl;
-		mr_ep_2d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1]	<< endl;
-		mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2]	<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[2]	<< endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[1]	<< endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3]	<< endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "*************End of results*************" << endl;
 #endif
@@ -1356,8 +1356,8 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 	*/
 
 		fStiffness[0] = KEP(0,0);
-		fStiffness[1] = KEP(0,1);
-		fStiffness[2] = KEP(1,0);
+		fStiffness[2] = KEP(0,1);
+		fStiffness[1] = KEP(1,0);
 		fStiffness[3] = KEP(1,1);
 	}
 
