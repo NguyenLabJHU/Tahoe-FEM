@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.36 2010-03-02 17:14:48 skyu Exp $*/
+/*$Id: MR2DT.cpp,v 1.37 2010-03-03 18:43:14 skyu Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -298,6 +298,27 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 
 		double ff; double ff0; double bott; double topp; double dlam; double dlam2; double normr; double normr0;
 
+#if __option(extended_errorcheck)
+                mr_ep_2d_out << setw(outputFileWidth) << "************* state_n *************" << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "Tt = state_n[0] " << state[0] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "Tn = state_n[1] " << state[1] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "jump_u[0] = state_n[2] " << state[2] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "jump_u[1] = state_n[3] " << state[3] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "up_t = state_n[4] = " << state[4] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "up_n = state_n[5] = " << state[5] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "chi = state_n[6] = " << state[6] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "cohesion = state_n[7] = " << state[7] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "tan(phi) = state_n[8] = " << state[8] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "tan(psi) = state_n[9] = " << state[9] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "F = state_n[10] = " << state[10] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "dlam = state_n[11] = " << state[11] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "double(iplastic) = state_n[12] = " << state[12] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "normr = state_n[13] = " << state[13] << endl;
+                mr_ep_2d_out << setw(outputFileWidth) << "kk = state_n[16] = " << state[16] << endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "*************end of state_n *************" << endl;
+#endif
+
+
 		int iplastic;
 		dlam = 0.;
 		dlam2 = 0.;
@@ -344,8 +365,8 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		mr_ep_2d_out << setw(outputFileWidth) << "******check for initial data*****" << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "jump_u_t = " << u[0] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "jump_u_n = " << u[1] << endl;	
-		mr_ep_2d_out << setw(outputFileWidth) << "T_t = " << Sig[0] << endl;
-		mr_ep_2d_out << setw(outputFileWidth) << "T_n = " << Sig[1] << endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "T_t_tr = " << Sig_tr[0] << endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "T_n_tr = " << Sig_tr[1] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "T_t_I = " << Sig_I[0] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "T_n_I = " << Sig_I[1] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "up_t = " << up[0] << endl;
@@ -362,7 +383,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		mr_ep_2d_out << setw(outputFileWidth) << "qo[1] = " << qo[1] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "qo[2] = " << qo[2] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "qo[3] = " << qo[3] << endl;
-		mr_ep_2d_out << setw(outputFileWidth) << "F = " << ff << endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "F_tr = " << ff << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
 #endif
 
@@ -445,6 +466,19 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				qbar_f(Sig, qn, qbar);
 				KE.Multx(dQdSig, KE_dQdSig);
 
+#if __option(extended_errorcheck)
+				mr_ep_2d_out << setw(outputFileWidth) << "******check for data*****" << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSig[0] = " << dQdSig[0] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSig[1] = " << dQdSig[1] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "qbar[0] = " << qbar[0] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "qbar[1] = " << qbar[1] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "qbar[2] = " << qbar[2] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "qbar[3] = " << qbar[3] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "KE_dQdSig[0] = " << KE_dQdSig[0] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "KE_dQdSig[1] = " << KE_dQdSig[1] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
+#endif
+
 				for (i = 0; i<=1; ++i) {
 					R[i]  = Sig[i];
 					R[i] -= Sig_I[i];
@@ -478,6 +512,47 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				KE_dQdSig2.MultAB(KE, dQdSig2);
 				KE_dQdSigdq.MultAB(KE, dQdSigdq);
 
+#if __option(extended_errorcheck)
+				mr_ep_2d_out << setw(outputFileWidth) << "******check for data*****" << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSig2(0,0) = " << dQdSig2(0,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSig2(0,1) = " << dQdSig2(0,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSig2(1,0) = " << dQdSig2(1,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSig2(1,1) = " << dQdSig2(1,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSigdq(0,0) = " << dQdSigdq(0,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSigdq(0,1) = " << dQdSigdq(0,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSigdq(0,2) = " << dQdSigdq(0,2) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSigdq(0,3) = " << dQdSigdq(0,3) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSigdq(1,0) = " << dQdSigdq(1,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSigdq(1,1) = " << dQdSigdq(1,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSigdq(1,2) = " << dQdSigdq(1,2) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dQdSigdq(1,3) = " << dQdSigdq(1,3) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardSig(0,0) = " << dqbardSig(0,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardSig(0,1) = " << dqbardSig(0,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardSig(1,0) = " << dqbardSig(1,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardSig(1,1) = " << dqbardSig(1,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardSig(2,0) = " << dqbardSig(2,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardSig(2,1) = " << dqbardSig(2,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardSig(3,0) = " << dqbardSig(3,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardSig(3,1) = " << dqbardSig(3,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(0,0) = " << dqbardq(0,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(0,1) = " << dqbardq(0,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(0,2) = " << dqbardq(0,2) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(0,3) = " << dqbardq(0,3) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(1,0) = " << dqbardq(1,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(1,1) = " << dqbardq(1,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(1,2) = " << dqbardq(1,2) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(1,3) = " << dqbardq(1,3) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(2,0) = " << dqbardq(2,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(2,1) = " << dqbardq(2,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(2,2) = " << dqbardq(2,2) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(2,3) = " << dqbardq(2,3) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(3,0) = " << dqbardq(3,0) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(3,1) = " << dqbardq(3,1) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(3,2) = " << dqbardq(3,2) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dqbardq(3,3) = " << dqbardq(3,3) << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
+#endif
+
 				for (i = 0; i<=5; ++i) {
 					for (j = 0; j<=5; ++j) {
 						if (i<=1 & j<=1){
@@ -503,6 +578,18 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				AA.Inverse(AA_inv);
 				dfdSig_f(Sig, qn, dfdSig);
 				dfdq_f(Sig, qn, dfdq);
+
+#if __option(extended_errorcheck)
+				mr_ep_2d_out << setw(outputFileWidth) << "******check for data*****" << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dfdSig[0] = " << dfdSig[0] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dfdSig[1] = " << dfdSig[1] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dfdq[0] = " << dfdq[0] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dfdq[1] = " << dfdq[1] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dfdq[2] = " << dfdq[2] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "dfdq[3] = " << dfdq[3] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
+#endif
+
 
 				for (i = 0; i<=5; ++i) {
 					if (i<=1){
@@ -593,6 +680,37 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				}
 
 				normr = R.Magnitude();
+
+#if __option(extended_errorcheck)
+                                mr_ep_2d_out << setw(outputFileWidth) << "******check for data*****" << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "Sig[0] = " << Sig[0] << endl;
+				mr_ep_2d_out << setw(outputFileWidth) << "Sig[1] = " << Sig[1] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "qn[0] = " << qn[0] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "qn[1] = " << qn[1] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "qn[2] = " << qn[2] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "qn[3] = " << qn[3] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "dlam = " << dlam << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "F = " << ff << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "dQdSig[0] = " << dQdSig[0] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "dQdSig[1] = " << dQdSig[1] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "qbar[0] = " << qbar[0] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "qbar[1] = " << qbar[1] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "qbar[2] = " << qbar[2] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "qbar[3] = " << qbar[3] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "KE_dQdSig[0] = " << KE_dQdSig[0] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "KE_dQdSig[1] = " << KE_dQdSig[1] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
+
+                                mr_ep_2d_out << setw(outputFileWidth) << "******check for the residual for next local iteration*****" << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "R[0] = " << R[0] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "R[1] = " << R[1] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "R[2] = " << R[2] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "R[3] = " << R[3] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "R[4] = " << R[4] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "R[5] = " << R[5] << endl;
+                                mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
+#endif
+
 			}
 
 			// Update plastic jump displacement
@@ -647,6 +765,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 		mr_ep_2d_out << setw(outputFileWidth) << "dlam = state[11] = " << state[11] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "double(iplastic) = state[12] = " << state[12] << endl;
 		mr_ep_2d_out << setw(outputFileWidth) << "normr = state[13] = " << state[13] << endl;
+		mr_ep_2d_out << setw(outputFileWidth) << "kk = state[16] = " << state[16] << endl;
 
 		// Check for the stiffness after convergence is achieved
 		Stiffness(jump_u, state, sigma);
