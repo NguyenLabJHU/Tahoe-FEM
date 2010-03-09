@@ -956,7 +956,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fH1_4=0.0;
     fH1_5=0.0;
     fH1_6=0.0;
-    fH1_7=0.0;
+   // fH1_7=0.0;
     fH1_71=0.0;
     fH1_72=0.0;
     fH1_73=0.0;
@@ -965,9 +965,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fH1_76=0.0;
     fH1_77=0.0;
     fH1_78=0.0;
-    fH1_8=0.0;
+/*    fH1_8=0.0;
     fH1_9=0.0;
-    fH1_10=0.0;
+    fH1_10=0.0;*/
     fH1_11=0.0;
     fH1_12=0.0;
     fH1_13=0.0;
