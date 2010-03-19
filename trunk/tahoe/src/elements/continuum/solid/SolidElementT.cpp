@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.82 2010-02-11 16:36:07 tdnguye Exp $ */
+/* $Id: SolidElementT.cpp,v 1.83 2010-03-19 21:18:36 tdnguye Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1524,14 +1524,21 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					else
 						fShapes->Extrapolate(cauchy, nodalstress);
 				}
-
 				if (e_codes[iIPStress]) {
 					double* row = ip_stress(fShapes->CurrIP());
-					nstr_tmp.Set(nsd, row);
+					if (nstrs!=4)
+					  nstr_tmp.Set(nsd, row);
+					else nstr_tmp.Set(dSymMatrixT::k3D_plane, row);
+
 					nstr_tmp = cauchy;
 					row += cauchy.Length();
-					nstr_tmp.Set(nsd, row);
-					fCurrMaterial->Strain(nstr_tmp);
+					if (nstrs!=4)
+					  nstr_tmp.Set(nsd, row);
+					else nstr_tmp.Set(dSymMatrixT::k3D_plane, row);
+
+					epsilon_temp=stress; /*dimension strain tensor using stress tensor*/
+					fCurrMaterial->Strain(epsilon_temp);
+					nstr_tmp.Translate(stress);
 				}
 
 				
