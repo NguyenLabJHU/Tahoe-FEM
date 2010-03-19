@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.22 2010-03-19 13:36:24 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.23 2010-03-19 14:12:01 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -554,9 +554,12 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			qbar_f(Sig, qn, qbar);
 			dfdq_f(Sig, qn, dfdq);
 			dQdSig2_f(qn, dQdSig2);
-			dQdSigdq_f(Sig, qn, A_uq);
-			dqbardSig_f(Sig, qn, A_qu);
-			dqbardq_f(Sig, qn, A_qq);
+			//dQdSigdq_f(Sig, qn, A_uq);
+			dQdSigdq_f(Sig, qn, dQdSigdq);
+			//dqbardSig_f(Sig, qn, A_qu);
+			dqbardSig_f(Sig, qn, dqbardSig);
+			//dqbardq_f(Sig, qn, A_qq);
+			dqbardq_f(Sig, qn, dqbardq);
 
 #if __option(extended_errorcheck)
 	                mr_rp_2d_out << setw(outputFileWidth) << "******check for data*****" << endl;
@@ -616,19 +619,22 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 					}
 					if (i<=1 & j>1)
 					{
-						AA_inv(i,j)  = A_uq(i,j-2);
+						//AA_inv(i,j)  = A_uq(i,j-2);
+						AA_inv(i,j)  = dQdSigdq(i,j-2);
 						AA_inv(i,j) *= dlam;
 					}
 					if (i>1 & j<=1)
 					{
-						AA_inv(i,j)  = A_qu(i-2,j);
+						//AA_inv(i,j)  = A_qu(i-2,j);
+						AA_inv(i,j)  = dqbardSig(i-2,j);
 						AA_inv(i,j) *= dlam;
 					} 
 					if (i>1 & j>1) 
 					{
 						AA_inv(i,j)  = I_mat(i-2,j-2);
 						AA_inv(i,j) *= -1.;
-						AA_inv(i,j) += dlam*A_qq(i-2,j-2);
+						//AA_inv(i,j) += dlam*A_qq(i-2,j-2);
+						AA_inv(i,j) += dlam*dqbardq(i-2,j-2);
 					} 
 				}
 			}
