@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.h,v 1.6 2009-12-03 20:32:04 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.h,v 1.7 2010-03-19 13:36:55 skyu Exp $ */
 #ifndef _NODAL_RIGID_CSE_ANISO_MR_T_H_
 #define _NODAL_RIGID_CSE_ANISO_MR_T_H_
 
@@ -86,6 +86,15 @@ public:
 
     /** accept parameter list */
     virtual void TakeParameterList(const ParameterListT& list);
+    /*@}*/
+
+    /** write output for debugging */
+    /*@{*/
+    /** output file stream */
+    ofstreamT nodal_cse_aniso_rigid_2d_out;
+
+    /** line output formating variables */
+    int outputPrecision, outputFileWidth;
     /*@}*/
 
 protected:

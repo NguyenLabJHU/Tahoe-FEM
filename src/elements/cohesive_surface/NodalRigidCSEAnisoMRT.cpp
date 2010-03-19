@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.13 2009-12-03 20:36:04 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.14 2010-03-19 13:36:55 skyu Exp $ */
 #include "NodalRigidCSEAnisoMRT.h"
 
 #include "XDOF_ManagerT.h"
@@ -716,6 +716,11 @@ void NodalRigidCSEAnisoMRT::TakeParameterList(const ParameterListT& list)
 
     /* set history */
     fStateVariables_n = fStateVariables;
+
+    /* setup output file and format */
+    outputPrecision = 10;
+    outputFileWidth = outputPrecision + 8;
+    nodal_cse_aniso_rigid_2d_out.open("nodal_cse_aniso_rigid_2d.info");
 }
 
 /***********************************************************************
@@ -774,6 +779,17 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
         jump.DiffOf(disp(n1), disp(n0));
         jump_last.DiffOf(disp_last(n1), disp_last(n0));
 
+#if __option(extended_errorcheck)
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** RHS **********" << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp = " << disp << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp(n0) = " << disp(n0) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp_last = " << disp_last << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp_last(n0) = " << disp_last(n0) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump = " << jump << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump_last = " << jump_last << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** End of RHS **********" << endl;
+#endif
+
         /* coordinate transformation */
         double Q = fCZDirection[j];
         jump[0] *= Q;
@@ -823,6 +839,15 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
         {
             /* call traction */
             const dArrayT& traction = fCZRelation->Traction(jump, state, dummy, true);
+
+#if __option(extended_errorcheck)
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** RHS_local_traction **********" << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump = " << jump << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "state = " << state << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "traction[0] = " << traction[0] << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "traction[1] = " << traction[1] << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** End of RHS_local_traction **********" << endl;
+#endif
 
             /* loop over directions */
             for (int i = 0; i < ndof; i++)
@@ -955,6 +980,28 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
             jump[1] *= Q;
             stiffness.SetToScaled(fCZNodeAreas[j], fCZRelation->Stiffness(jump, state, sigma));
         
+#if __option(extended_errorcheck)
+                // for debug
+                const dMatrixT& K = fCZRelation->Stiffness(jump, state, sigma);
+
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** LHS **********" << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp(n0) = " << disp(n0) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp(n1) = " << disp(n1) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp = " << disp << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump[0] = " << jump[0] << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump[1] = " << jump[1] << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "state = " << state << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "K(0,0) = " << K(0,0) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "K(0,1) = " << K(0,1) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "K(1,0) = " << K(1,0) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "K(1,1) = " << K(1,1) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "Stiffness(0,0) = " << stiffness(0,0) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "Stiffness(0,1) = " << stiffness(0,1) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "Stiffness(1,0) = " << stiffness(1,0) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "Stiffness(1,1) = " << stiffness(1,1) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** End of LHS **********" << endl;
+#endif
+
             /* compute element stiffness */
             lhs_disp.MultQTBQ(djump_du, stiffness);
 
@@ -1007,4 +1054,3 @@ void NodalRigidCSEAnisoMRT::CurrElementInfo(ostream& out) const
     out << "state =\n" << state.wrap(5) << '\n';
     out << " jump = " << jump.no_wrap() << endl; 
 }
-
