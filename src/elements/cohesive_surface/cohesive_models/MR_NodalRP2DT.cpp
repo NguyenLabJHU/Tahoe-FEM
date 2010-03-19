@@ -1,4 +1,4 @@
-/* $Id: MR_NodalRP2DT.cpp,v 1.21 2008-01-18 03:13:48 skyu Exp $  */
+/* $Id: MR_NodalRP2DT.cpp,v 1.22 2010-03-19 13:36:24 skyu Exp $  */
 #include "MR_NodalRP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -37,19 +37,19 @@ const int	         k_T_t = 0;
 const int	         k_T_n = 1;
 const int	     k_Delta_t = 2;
 const int	     k_Delta_n = 3;
-const int	         k_esp = 4;
-const int	         k_enp = 5;
+const int               k_up_t = 4;
+const int               k_up_n = 5;
 const int	        k_fchi = 6;
 const int	          k_fc = 7;
 const int	        k_fphi = 8;
 const int	        k_fpsi = 9;
 const int	       k_yield = 10;
 const int	  k_norm_resid = 11;
-const int	        k_up_t = 12;
-const int	        k_up_n = 13;
-const int	  k_plast_mult = 14;
-const int	     k_plastic = 15;
-const int	   k_iteration = 16;
+const int	  k_plast_mult = 12;
+const int	     k_plastic = 13;
+const int          k_iteration = 14;
+const int		k_esp = 15;
+const int		k_enp = 16;
 const int	           k_A = 17;
 const int	           k_B = 18;
 const int	 k_status_flag = 19;
@@ -375,8 +375,6 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6);
 		dMatrixT X(6,1); dMatrixT Y(6,1);
 
-		// dMatrixT KP(2,2), KP2(2,2), KEP(2,2), KEP_Inv(2,2), I_m(2,2), KE1(4,2), KE2(2,2), KE3(2,4), Ch(4,4), Ch_Inv(4,4);
-
 		dArrayT up(2); dArrayT dup(2); dArrayT dSig(2); dArrayT qn(4);
 		dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
 		dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2);
@@ -386,6 +384,27 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 
 		double ff; double bott; double topp; double dlam; double dlam2;
 		double normr; double normflow; double normdup;
+
+#if __option(extended_errorcheck)
+		mr_rp_2d_out << setw(outputFileWidth) << "************* state_n *************" << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "global iteration # = " << (*fIteration) << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "Tt = " << state[0] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "Tn = " << state[1] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "jump_u[0] = " << state[2] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "jump_u[1] = " << state[3] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "up_t = " << state[4] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "up_n = " << state[5] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qn[0] = " << state[6] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qn[1] = " << state[7] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qn[2] = " << state[8] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qn[3] = " << state[9] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "F = " << state[10] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "norm = " << state[11] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "dlam = " << state[12] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "plastic = " << state[13] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "kk = " << state[14] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "************* end of state_n *************" << endl;
+#endif
 
 		/* initialize the necessary vectors */
 		I_mat = 0.;
@@ -447,9 +466,9 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 	    
 		/* Local Iteration */
 		kk = 0;
-		// iplastic = 1;
+		iplastic = 1;
 		Yield_f(Sig, qn, ff); //check for yield and correct the tied flag
-
+/*
 		if (ff >= 0.0)
 		{
 			state[k_tied_flag] = kFreeNode;
@@ -460,78 +479,70 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			state[k_tied_flag] = kTiedNode;
 			iplastic = 0;
 		}
+*/
+
+#if __option(extended_errorcheck)
+		mr_rp_2d_out << setw(outputFileWidth) << "************* check for initial data *************" << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "Tt = " << state[0] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "Tn = " << state[1] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "jump_u_t = " << jump_u[0] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "jump_u_n = " << jump_u[1] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "up_t = " << up[0] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "up_n = " << up[1] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "upo_t = " << upo[0] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "upo_n = " << upo[1] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "dlam = " << dlam << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qn[0] = " << qn[0] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qn[1] = " << qn[1] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qn[2] = " << qn[2] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qn[3] = " << qn[3] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qo[0] = " << qo[0] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qo[1] = " << qo[1] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qo[2] = " << qo[2] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "qo[3] = " << qo[3] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "F = " << state[10] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "norm = " << state[11] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "dlam = " << state[12] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "************* end of check *************" << endl;
+#endif
 
 		//begin iteration loop
 		while (ff > fTol_1 || ff < 0.0 || normr > fTol_2)
 		//while (ff > fTol_1 || normr > fTol_2)
 		{
 			//check for the local iteration
-			if (kk <= 2)
-			{
-				mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
-					<< setw(outputFileWidth) << "norm_R = ----------"
-					<< endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "global iteration # = " << (*fIteration) << "     "
-					<< setw(outputFileWidth) << "local iteration # = " << kk
-					<< endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-						<< setw(outputFileWidth) << "norm_R = " << normr
-						<< endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "Tt = " << Sig[0] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "Tn = " << Sig[1] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "jump_u[0] = " << jump_u[0] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "jump_u[1] = " << jump_u[1] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "up_t = " << up[0] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "up_n = " << up[1] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "dlam = " << dlam << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "qn[0] = " << qn[0] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "qn[1] = " << qn[1] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "qn[2] = " << qn[2] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "qn[3] = " << qn[3] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "qbar[0] = " << qbar[0] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "qbar[1] = " << qbar[1] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "qbar[2] = " << qbar[2] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "qbar[3] = " << qbar[3] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "R[0] = " << R[0] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "R[1] = " << R[1] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "R[2] = " << R[2] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "R[3] = " << R[3] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "R[4] = " << R[4] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "R[5] = " << R[5] << endl;
-
-				mr_rp_2d_out << setw(outputFileWidth) << "yield_f = ----------" << "     "
-					<< setw(outputFileWidth) << "norm_R = ----------"
-					<< endl;
-			}
-			else
-			{
-				mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-					<< setw(outputFileWidth) << "norm_R = " << normr
-					<< endl;
-			}
+#if __option(extended_errorcheck)
+			mr_rp_2d_out << setw(outputFileWidth) << "************* check for data of local iteration *************" << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "global iteration # = " << (*fIteration) << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "local iteration # = " << kk << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "jump_u[0] = " << jump_u[0] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "jump_u[1] = " << jump_u[1] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "Tt = " << Sig[0] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "Tn = " << Sig[1] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "up_t = " << up[0] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "up_n = " << up[1] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "dlam = " << dlam << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "qn[0] = " << qn[0] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "qn[1] = " << qn[1] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "qn[2] = " << qn[2] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "qn[3] = " << qn[3] << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dlam = " << dlam << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "F = " << ff << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "norm = " << normr << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSig[0] = " << dQdSig[0] << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSig[1] = " << dQdSig[1] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "qbar[0] = " << qbar[0] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "qbar[1] = " << qbar[1] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "qbar[2] = " << qbar[2] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "qbar[3] = " << qbar[3] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "R[0] = " << R[0] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "R[1] = " << R[1] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "R[2] = " << R[2] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "R[3] = " << R[3] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "R[4] = " << R[4] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "R[5] = " << R[5] << endl;
+			mr_rp_2d_out << setw(outputFileWidth) << "************* end of check *************" << endl;
+#endif
 			//End
 
 			if (kk > 10000) {
@@ -546,6 +557,53 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			dQdSigdq_f(Sig, qn, A_uq);
 			dqbardSig_f(Sig, qn, A_qu);
 			dqbardq_f(Sig, qn, A_qq);
+
+#if __option(extended_errorcheck)
+	                mr_rp_2d_out << setw(outputFileWidth) << "******check for data*****" << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dfdSig[0] = " << dfdSig[0] << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dfdSig[1] = " << dfdSig[1] << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dfdq[0] = " << dfdq[0] << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dfdq[1] = " << dfdq[1] << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dfdq[2] = " << dfdq[2] << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dfdq[3] = " << dfdq[3] << endl;
+        	        mr_rp_2d_out << setw(outputFileWidth) << "dQdSig2(0,0) = " << dQdSig2(0,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSig2(0,1) = " << dQdSig2(0,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSig2(1,0) = " << dQdSig2(1,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSig2(1,1) = " << dQdSig2(1,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSigdq(0,0) = " << dQdSigdq(0,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSigdq(0,1) = " << dQdSigdq(0,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSigdq(0,2) = " << dQdSigdq(0,2) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSigdq(0,3) = " << dQdSigdq(0,3) << endl;
+               		mr_rp_2d_out << setw(outputFileWidth) << "dQdSigdq(1,0) = " << dQdSigdq(1,0) << endl;
+               		mr_rp_2d_out << setw(outputFileWidth) << "dQdSigdq(1,1) = " << dQdSigdq(1,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSigdq(1,2) = " << dQdSigdq(1,2) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dQdSigdq(1,3) = " << dQdSigdq(1,3) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardSig(0,0) = " << dqbardSig(0,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardSig(0,1) = " << dqbardSig(0,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardSig(1,0) = " << dqbardSig(1,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardSig(1,1) = " << dqbardSig(1,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardSig(2,0) = " << dqbardSig(2,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardSig(2,1) = " << dqbardSig(2,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardSig(3,0) = " << dqbardSig(3,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardSig(3,1) = " << dqbardSig(3,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(0,0) = " << dqbardq(0,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(0,1) = " << dqbardq(0,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(0,2) = " << dqbardq(0,2) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(0,3) = " << dqbardq(0,3) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(1,0) = " << dqbardq(1,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(1,1) = " << dqbardq(1,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(1,2) = " << dqbardq(1,2) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(1,3) = " << dqbardq(1,3) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(2,0) = " << dqbardq(2,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(2,1) = " << dqbardq(2,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(2,2) = " << dqbardq(2,2) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(2,3) = " << dqbardq(2,3) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(3,0) = " << dqbardq(3,0) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(3,1) = " << dqbardq(3,1) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(3,2) = " << dqbardq(3,2) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "dqbardq(3,3) = " << dqbardq(3,3) << endl;
+                	mr_rp_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
+#endif
 
 			for (i = 0; i<=5; ++i)
 			{
@@ -693,6 +751,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		state[k_iteration] = double(kk);
 
 		// upadte the state variable of tied flag
+/*
 		Yield_f(Sig, qn, ff);
 		
 		if (ff >= 0.0)
@@ -703,61 +762,38 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		{
 			state[k_tied_flag] = kTiedNode;
 		}
+*/
 
 		//check for yield and norm_R after convergence is achieved
-		mr_rp_2d_out << setw(outputFileWidth) << "     " << endl;
-
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = **********" << "     "
-				<< setw(outputFileWidth) << "norm_R = **********"
-				<< endl;
-
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f is converged " << "     "
-				<< setw(outputFileWidth) << "norm_R is converged "
-				<< endl;
-
-		mr_rp_2d_out << setw(outputFileWidth) << "global iteration # = " << (*fIteration) << "     "
-				<< setw(outputFileWidth) << "local iteration # = " << kk
-				<< endl;
-
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff
-				<< setw(outputFileWidth) << "norm_R = " << normr
-				<< endl;
-
+#if __option(extended_errorcheck)
+        	mr_rp_2d_out << setw(outputFileWidth) << "*************Results are converged*************" << endl;
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_T_t] = " << state[k_T_t] << endl;
-
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_T_n] = " << state[k_T_n] << endl;
-
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_Delta_t] = " << state[k_Delta_t] << endl;
-
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_Delta_n] = " << state[k_Delta_n] << endl;
-
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_up_t] = " << state[k_up_t] << endl;
-
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_up_n] = " << state[k_up_n] << endl;
-
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_fchi] = " << state[k_fchi] << endl;
-
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_fc] = " << state[k_fc] << endl;
-
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_fphi] = " << state[k_fphi] << endl;
-
 		mr_rp_2d_out << setw(outputFileWidth) << "state[k_fpsi] = " << state[k_fpsi] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_yield] = " << state[k_yield] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_norm_resid] = " << state[k_norm_resid] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_plast_mult] = " << state[k_plast_mult] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_plastic] = " << state[k_plastic] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "state[k_iteration] = " << state[k_iteration] << endl;
 
 		// check for the stiffness after convergence is achieved
 		Stiffness(jump_u, state, sigma);
 		mr_rp_2d_out << setw(outputFileWidth) << "KEP(0,0) = " << fStiffness[0] << endl;
-
-		mr_rp_2d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[1] << endl;
-
-		mr_rp_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[2] << endl;
-
+		mr_rp_2d_out << setw(outputFileWidth) << "KEP(0,1) = " << fStiffness[2] << endl;
+		mr_rp_2d_out << setw(outputFileWidth) << "KEP(1,0) = " << fStiffness[1] << endl;
 		mr_rp_2d_out << setw(outputFileWidth) << "KEP(1,1) = " << fStiffness[3] << endl;
+        	mr_rp_2d_out << setw(outputFileWidth) << "*************End of results*************" << endl;
+#endif
+		// check for the stiffness after convergence is achieved
+		Stiffness(jump_u, state, sigma);
 
-		mr_rp_2d_out << setw(outputFileWidth) << "yield_f = **********" << "     "
-				<< setw(outputFileWidth) << "norm_R = **********"
-				<< endl;
-
-		mr_rp_2d_out << setw(outputFileWidth) << "     " << endl;
 		//End
 
 		return fTraction;
@@ -765,6 +801,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 
 	else
 	{
+/*
 		dArrayT Sig(2); dArrayT qn(4);
 		double ff;
 
@@ -786,7 +823,7 @@ const dArrayT& MR_NodalRP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		{
 			state[k_tied_flag] = kTiedNode;
 		}
-
+*/
 		// Nothing to do for tractions
 		fTraction[0] = state[k_T_t];
 		fTraction[1] = state[k_T_n];
@@ -856,7 +893,10 @@ dArrayT& MR_NodalRP2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& q
 
 	double B1 = (Sig[1] + fabs(Sig[1]))/(2.*fGf_I);
 	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
-	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	//double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	double Tt_excess = fabs(Sig[0]) - fabs(TNA*qn[2]);
+	double B3func = 0.5*(Tt_excess + fabs(Tt_excess));
+	double B3 = B3func*signof(Sig[0])/fGf_II;	
 	
 	double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
 	double DQDT = 2.*Sig[0];
@@ -990,13 +1030,19 @@ dMatrixT& MR_NodalRP2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMat
 
 	double B1 = (Sig[1] + fabs(Sig[1]))/(2.*fGf_I);
 	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
-	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	//double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	double Tt_excess = fabs(Sig[0]) - fabs(TNA*qn[2]);
+	double B3func = 0.5*(Tt_excess + fabs(Tt_excess));
+	double B3 = B3func*signof(Sig[0])/fGf_II;
 	
 	double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
 	double DQDT = 2.*Sig[0];
 
-	double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/(2.*fGf_II);
-	double DB3_DTt = 1./fGf_II;
+	double signfun = (1. + signof(Tt_excess))/2.;
+	//double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/(2.*fGf_II);
+	double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))*signfun/(2.*fGf_II);
+	//double DB3_DTt = 1./fGf_II;
+	double DB3_DTt = 1.*signfun/fGf_II;
 	double DQDN2 = -2.*qn[3]*qn[3];
 	double DQDT2 = 2.;
 	double SN = signof(Sig[1]);
@@ -1057,12 +1103,17 @@ dMatrixT& MR_NodalRP2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatri
 
 	double B1 = (Sig[1] + fabs(Sig[1]))/(2.*fGf_I);
 	double TNA = (Sig[1] - fabs(Sig[1]))/2.;
-	double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	//double B3 = (Sig[0] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
+	double Tt_excess = fabs(Sig[0]) - fabs(TNA*qn[2]);
+	double B3func = 0.5*(Tt_excess + fabs(Tt_excess));
+	double B3 = B3func*signof(Sig[0])/fGf_II;
 	
 	double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
 	double DQDT = 2.*Sig[0];
 
-	double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
+	double signfun = (1. + signof(Tt_excess))/2.;
+	//double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
+	double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])*signfun/fGf_II;
 
 	double DQDTDChi = 0.;
 	double DQDTDC = 0.;
@@ -1111,7 +1162,7 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 
 	dMatrixT AA(6,6), I_mat(4,4), CMAT(6,6),AA_inv(6,6),
 	         A_qq(4,4), A_uu(2,2), A_uq(2,4), A_qu(4,2), ZMAT(2,4),
-	         ZMATP(4,2), dQdSig2(2,2), dqdbar(4,4), dqbardSig(4,2),
+	         ZMATP(4,2), dQdSig2(2,2), dqbardq(4,4), dqbardSig(4,2),
 	         dQdSigdq(2,4), KP(2,2), KP2(2,2), KEP(2,2), DMAT(6,6), EMAT(6,2), FMAT(6,2);
 
 	dMatrixT I_m(2,2), Rmat(2,2), R_Inv(2,2), KE(2,2), KE_Inv(2,2),
@@ -1317,7 +1368,7 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		e = dArrayT::Dot(Rvec,tmpVec);
 
 		for (i = 0; i<=5; ++i){
-			for (j = 0; j<=1; ++j){
+			for (j = 0; j<=5; ++j){
 				CMAT(i,j) = tmpVec[i]*Rvec[j];
 			}
 		}
@@ -1338,68 +1389,9 @@ const dMatrixT& MR_NodalRP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 			}
 		}
 		
-	/*
- 	int i, j;
-
-	dMatrixT KEP(2,2), KEP_Inv(2,2);
-
-	dArrayT qn(4), Sig(2), dQdSig(2), dfdq(4), qbar(4), dfdSig(2);
-
-	double ff, HP;
-
-	fStiffness[1] = fStiffness[2] = 0.;
-	HP = 0.;
-	Sig[0] = state[k_T_t];
-	Sig[1] = state[k_T_n];
-	qn[0] = state[k_fchi];
-	qn[1] = state[k_fc];
-	qn[2] = state[k_fphi];
-	qn[3] = state[k_fpsi];
-
-	//check for the yield and tied flag
-	Yield_f(Sig, qn, ff);
-
-	mr_rp_2d_out << setw(outputFileWidth) << "yield_f = " << ff << "     "
-				<< setw(outputFileWidth) << "state[k_tied_flag] = " << state[k_tied_flag]
-				<< endl;
-
-	// not free
-	if (fabs(state[k_tied_flag] - kFreeNode) > kSmall ||
-		jump_u[0] < kSmall && jump_u[1] < kSmall)
-	{
-		//no contribution to the stiffness
-		fStiffness = 0.;
-
-		return fStiffness;
-	}
-
-	if (state[k_plastic] == 0.)
-	{
-		//no contribution to the stiffness
-		fStiffness[0] = 1.e20;
-		fStiffness[3] = 1.e20;
-	}
-	else if (state[k_plastic] == 1.)
-	{
-		dfdSig_f(Sig, qn, dfdSig);
-		dQdSig_f(Sig, qn, dQdSig);
-		qbar_f(Sig, qn, qbar);
-		dfdq_f(Sig, qn, dfdq);
-
-		HP -= dArrayT::Dot(dfdq,qbar);
-
-		KEP.Outer(dQdSig,dfdSig);
-		KEP_Inv.Inverse(KEP);
-
-		for (i = 0; i <= 1; ++i){
-			for (j = 0; j<=1; ++j){
-				KEP(i,j) = KEP_Inv(i,j)*HP;
-			}
-		}
-	*/
 		fStiffness[0] = KEP(0,0);
-		fStiffness[1] = KEP(0,1);
-		fStiffness[2] = KEP(1,0);
+		fStiffness[2] = KEP(0,1);
+		fStiffness[1] = KEP(1,0);
 		fStiffness[3] = KEP(1,1);
 	}
 
