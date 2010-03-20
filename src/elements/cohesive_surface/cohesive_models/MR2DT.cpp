@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.38 2010-03-03 22:37:51 skyu Exp $*/
+/*$Id: MR2DT.cpp,v 1.39 2010-03-20 19:40:43 regueiro Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -458,8 +458,8 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 				mr_ep_2d_out << setw(outputFileWidth) << "******End of check*****" << endl;
 #endif
 
-				if (kk > 50000) {
-					ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
+				if (kk > 50) {
+					ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations, 50");
 				}
 
 				dQdSig_f(Sig, qn, dQdSig);
