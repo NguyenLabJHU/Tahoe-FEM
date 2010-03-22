@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.48 2008-12-31 20:35:26 regueiro Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.49 2010-03-22 14:28:37 regueiro Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -574,8 +574,8 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fK_zetad = 0.0;
 	
 	/* to not let localized element be traced, set fFirstTrace = true */
-	//fFirstTrace = false;
-	fFirstTrace = true;
+	fFirstTrace = false;
+	//fFirstTrace = true;
 	
 	// set model type
 	model_type = list.GetParameter("model_type");
