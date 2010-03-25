@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.14 2010-03-19 13:36:55 skyu Exp $ */
+/* $Id: NodalRigidCSEAnisoMRT.cpp,v 1.15 2010-03-25 14:39:58 skyu Exp $ */
 #include "NodalRigidCSEAnisoMRT.h"
 
 #include "XDOF_ManagerT.h"
@@ -648,8 +648,8 @@ void NodalRigidCSEAnisoMRT::TakeParameterList(const ParameterListT& list)
             double j0 = fShapes->Jacobian(Q);
 
             //TEMP - require normal to be in the x2 direction:
-            if (fabs(fabs(Q(1,1)) - 1.0) > kSmall)
-                ExceptionT::GeneralFail(caller, "surface normals must be in the x2 direction");
+            //if (fabs(fabs(Q(1,1)) - 1.0) > kSmall)
+            //    ExceptionT::GeneralFail(caller, "surface normals must be in the x2 direction");
 
             /* get shape functions */
             fShapes->Shapes(Na);
@@ -782,12 +782,9 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 #if __option(extended_errorcheck)
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** RHS **********" << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp = " << disp << endl;
-                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp(n0) = " << disp(n0) << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp_last = " << disp_last << endl;
-                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp_last(n0) = " << disp_last(n0) << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump = " << jump << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump_last = " << jump_last << endl;
-                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** End of RHS **********" << endl;
 #endif
 
         /* coordinate transformation */
@@ -796,6 +793,14 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
         jump[1] *= Q;
         jump_last[0] *= Q;
         jump_last[1] *= Q;
+
+#if __option(extended_errorcheck)
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** coordinate transformation **********" << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "Q = " << Q << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "local_jump = Q*jump = " << jump << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "local_jump_last = Q*jump_last = " << jump_last << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** end of coordinate transformation **********" << endl;
+#endif
 
         /* loop over dof */
         int num_constrained = 0;
@@ -828,6 +833,17 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
                 /* next constraint */
                 constraint_dex++;
                 num_constrained++;
+
+#if __option(extended_errorcheck)
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** data from active constraints **********" << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "i = " << i << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "h = " << h << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "f = " << f << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "traction[i] = " <<  traction[i] << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "rhs = " << rhs << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** end of data from active constraints **********" << endl;
+#endif
+
             }
             else if (constraint_status[i] == kFailed)
                 num_failed++;
@@ -842,7 +858,7 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
 
 #if __option(extended_errorcheck)
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** RHS_local_traction **********" << endl;
-                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump = " << jump << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "local_jump = " << jump << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "state = " << state << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "traction[0] = " << traction[0] << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "traction[1] = " << traction[1] << endl;
@@ -866,6 +882,14 @@ void NodalRigidCSEAnisoMRT::RHSDriver(void)
                     rhs_disp[i] = -f;
                     rhs_disp[i+ndof] = f;                                        
                 }
+
+#if __option(extended_errorcheck)
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** data from CZ **********" << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "rhs_disp = " << rhs_disp << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** end of data from CZ **********" << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** end of RHS **********" << endl;
+#endif
+
 #ifdef DEBUG
 ElementSupport().Output() << "jmp = " << jump.no_wrap() << '\n';
 ElementSupport().Output() << "trc = " << traction.no_wrap() << '\n';
@@ -985,11 +1009,11 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
                 const dMatrixT& K = fCZRelation->Stiffness(jump, state, sigma);
 
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** LHS **********" << endl;
-                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp(n0) = " << disp(n0) << endl;
-                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp(n1) = " << disp(n1) << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "lhs = " << lhs << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "disp = " << disp << endl;
-                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump[0] = " << jump[0] << endl;
-                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "jump[1] = " << jump[1] << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "Q = " << Q << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "local_jump[0] = " << jump[0] << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "local_jump[1] = " << jump[1] << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "state = " << state << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "K(0,0) = " << K(0,0) << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "K(0,1) = " << K(0,1) << endl;
@@ -999,11 +1023,16 @@ void NodalRigidCSEAnisoMRT::LHSDriver(GlobalT::SystemTypeT sys_type)
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "Stiffness(0,1) = " << stiffness(0,1) << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "Stiffness(1,0) = " << stiffness(1,0) << endl;
                 nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "Stiffness(1,1) = " << stiffness(1,1) << endl;
-                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** End of LHS **********" << endl;
 #endif
 
             /* compute element stiffness */
             lhs_disp.MultQTBQ(djump_du, stiffness);
+
+#if __option(extended_errorcheck)
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "djump_du = " << djump_du << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "lhs_disp = " << lhs_disp << endl;
+                nodal_cse_aniso_rigid_2d_out << setw(outputFileWidth) << "********** end of LHS **********" << endl;
+#endif
 
 //TEMP
 #ifdef DEBUG
