@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.71 2010-02-19 18:52:04 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.72 2010-05-07 22:42:44 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -695,6 +695,24 @@ private:
 
     dMatrixT Lambda;
     dMatrixT Omega;
+    //////////////////////////////////////////////////////////
+    //////FINITE STRAIN ELASTICITY MATRICES START HERE/////////
+    //////////////////////////////////////////////////////////
+    //dMatrixT V_1;
+    dMatrixT SPK;// The second Piola-Kirchhoff Matrix
+    dMatrixT Temp_SPK;//temporary Matrix used in calculation of SPK
+    dMatrixT FSF;
+  //  dMatrixT EST;//Eulerian strain tensor used in some functions to get rid of long name
+    dMatrixT MicroStnTensor;//Micro-strain tensor
+    dMatrixT PSI;//deformation measure PSI=Transpose(F).chi
+    dMatrixT ChiM; //Micro-deformation tensor Chi ( used a different tensor this time )
+
+
+
+
+
+
+
 	//////////////////////////////////////////////////////////
 	/////DEFINITIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////
@@ -914,6 +932,15 @@ private:
     void Form_H1_matrix(void);
     void Form_H2_matrix(void);
     void Form_H3_matrix(void);
+
+
+    //////////////////////////////////////////////////////////
+	/////FINITE STRAIN ELASTICITY MATRICES START /////////////
+	//////////////////////////////////////////////////////////
+    void Form_I1_1_matrix(void);
+    void Form_Second_Piola_Kirchhoff_SPK(void);
+    void Form_ChiM(void);
+
 
     //////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
