@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.72 2010-05-07 22:42:44 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.73 2010-05-10 17:38:45 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -701,13 +701,15 @@ private:
     //dMatrixT V_1;
     dMatrixT SPK;// The second Piola-Kirchhoff Matrix
     dMatrixT Temp_SPK;//temporary Matrix used in calculation of SPK
-    dMatrixT FSF;
+  //  dMatrixT FSF;
   //  dMatrixT EST;//Eulerian strain tensor used in some functions to get rid of long name
     dMatrixT MicroStnTensor;//Micro-strain tensor
     dMatrixT PSI;//deformation measure PSI=Transpose(F).chi
     dMatrixT ChiM; //Micro-deformation tensor Chi ( used a different tensor this time )
-
-
+    dMatrixT I1_1;
+    dMatrixT fVint_1;
+    dMatrixT fV1;
+    dMatrixT fKu_1;
 
 
 
@@ -940,6 +942,8 @@ private:
     void Form_I1_1_matrix(void);
     void Form_Second_Piola_Kirchhoff_SPK(void);
     void Form_ChiM(void);
+    void Form_I1_1(void);
+    void Form_fV1(void);
 
 
     //////////////////////////////////////////////////////////

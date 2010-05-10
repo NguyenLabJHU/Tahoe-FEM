@@ -1006,8 +1006,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     ////////////////////////////////////////////////////////////////
     //////////////FINITE STRAIN MATRICES INITIALIZE/////////////////
     ////////////////////////////////////////////////////////////////
-    FSF=0;
+    //FSF=0;
     SPK=0;
+    MicroStnTensor=0.0;
+    I1_1=0.0;
+    ChiM=0.0;
+    PSI=0.0;
+
+    ////////////////////////////////////////////////////////////////
+    //////////////FINITE STRAIN MATRICES INITIALIZE/////////////////
+    ////////////////////////////////////////////////////////////////
 
     e = CurrElementNumber();
     const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
@@ -1263,13 +1271,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    /* Save Eulerian strain tensor of the current IP */
    //                fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
                    fEulerian_strain_IPs.SetRow(IP,fTemp_six_values);
-
+                   double scale=scale_const;
                    // Micro-Strain tensor will be formed
                    MicroStnTensor  = fIdentity_matrix;
                    MicroStnTensor *= -1;
                    PSI.MultATB(fDeformation_Gradient,ChiM);
                    MicroStnTensor += PSI;
                    Form_Second_Piola_Kirchhoff_SPK();
+                   Form_I1_1();
+
+                   fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_1,fIota_temp_matrix);
+                   scale = -scale_const*J;
+                   fTemp_matrix_nudof_x_nudof *= scale;
+                   // accumulate
+                   fKu_1 += fTemp_matrix_nudof_x_nudof;
+
 
 
                    /* Calculating J_Prim */
@@ -1963,7 +1979,122 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             Chi_ar_IPs_el.SetRow(e,Chi_ar_IPs);
             GRAD_Chi_ar_IPs_el.SetRow(e,GRAD_Chi_ar_IPs);
 
+            if(iConstitutiveModelType==1)
+            {
 
+            	/*           {fFd_int} will be formed
+            	            fFd_int = fFd_int_N1_vector;
+            	            fFd_int += fFd_int_G4_vector;
+            	            fFd_int *= -1;*/
+
+            	         //   {fFd_int} will be formed
+            	          fFd_int  = 0.0;
+            	         //  fFd_int  = Uint_1;
+            	      //   fFd_ext =-Uext_1; //no external traction is assumed
+            	           fFd_int *= -1;
+
+
+            	            /* [fKdd] will be formed */
+            	/*
+            	            fKdd = fK_dd_G3_1_matrix;
+            	            fKdd += fK_dd_G3_2_matrix;
+            	            fKdd += fK_dd_G3_3_matrix;
+            	            fKdd += fK_dd_G3_4_matrix;
+            	            fKdd += fK_dd_G4_matrix;
+            	*/
+
+            	  //Micromorphic case fKdd coming from bal. of linear momentum
+
+            	            fKdd  =  fKu_1;
+/*            	            fKdd +=  fG1_2;
+            	            fKdd +=  fG1_3;
+            	            fKdd +=  fG1_4;
+            	            fKdd +=  fG1_5;
+            	            fKdd +=  fG1_6;
+            	            fKdd +=  fG1_8;
+            	            fKdd +=  fG1_10;
+            	            fKdd +=  fG1_12;
+            	            fKdd +=  fG1_13;
+            	            fKdd +=  fG1_14;*/
+
+
+
+
+
+            	            /* [fKdphi] will be formed */
+            	            //need to code
+            	            fKdphi = 0.0;
+            	// Micromorphic case fKdPhi  from coming from bal. of linear momentum
+
+/*            	            fKdphi = fG1_7 ;
+            	            fKdphi += fG1_9 ;
+            	            fKdphi += fG1_11;*/
+
+
+
+            	            /* [fKphid] will be formed */
+            	            //need to code
+            	           fKphid = 0.0;
+
+/*            	            fKphid = fH1_Etagrad;
+            	            fKphid += fH1_1;
+            	            fKphid += fH1_2;
+            	            fKphid += fH1_3;
+            	            fKphid += fH1_11;
+            	            fKphid += fH1_12;
+            	            fKphid += fH1_14;
+            	            fKphid += fH1_72;
+            	            fKphid += fH1_78;
+
+            	            fKphid += fH2_1;
+            	            fKphid += fH2_2;
+            	            fKphid += fH2_3;
+            	            fKphid += fH2_5;
+            	            fKphid += fH2_7;
+            	            fKphid += fH2_8;
+            	            fKphid += fH2_9;
+            	            fKphid += fH2_10;
+            	            fKphid += fH2_12;
+            	            fKphid += fH2_13;
+*/
+
+            	            /* [fKphiphi] will be formed */
+            	            //need to code
+            	            fKphiphi = 0.0;
+
+   /*         	            fKphiphi  = fH1_4;
+            	            fKphiphi += fH1_5;
+            	            fKphiphi += fH1_6;
+            	            fKphiphi += fH1_71;
+            	            fKphiphi += fH1_73;
+            	            fKphiphi += fH1_74;
+            	            fKphiphi += fH1_75;
+            	            fKphiphi += fH1_76;
+            	            fKphiphi += fH1_77;
+            	            fKphiphi += fH1_7;
+            	            fKphiphi += fH1_8;
+            	            fKphiphi += fH1_9;
+            	            fKphiphi += fH1_10;
+            	            fKphiphi += fH1_13;
+
+            	            fKphiphi += fH2_4;
+            	            fKphiphi += fH2_6;
+            	            fKphiphi += fH2_11;
+
+            	            fKphiphi += fH3_1;*/
+
+
+
+            	            /* {fFphi_int} will be formed */
+            	            //need to code
+            	            fFphi_int  = 0.0;
+            	         /*   fFphi_int  =Pint_1;
+            	            fFphi_int +=Pint_2;
+            	            fFphi_int +=Pint_3;//no external traction is assumed Pext=0
+            	            fFphi_int *= -1;*/
+            }
+            else
+            {
 
 /*           {fFd_int} will be formed
             fFd_int = fFd_int_N1_vector;
@@ -2075,6 +2206,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fFphi_int +=Pint_2;
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
             fFphi_int *= -1;
+            }
 
             /* equations numbers */
             const iArrayT& displ_eq = fElementCards_displ[e].Equations();
@@ -2802,11 +2934,14 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     /////////////////////////////////////////////////////////////
     SPK.Dimension(n_sd,n_sd);
     Temp_SPK.Dimension(n_sd,n_sd);
-    FSF.Dimension(n_sd,n_sd);
+   // FSF.Dimension(n_sd,n_sd);
     MicroStnTensor.Dimension(n_sd,n_sd);
     ChiM.Dimension(n_sd,n_sd);
     PSI.Dimension(n_sd,n_sd);
-
+    I1_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_1.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+    fVint_1.Dimension(n_en_displ_x_n_sd);
+    fV1.Dimension(n_sd_x_n_sd);
 
 
 
@@ -7333,7 +7468,9 @@ void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
 }
 
 
-
+////////////////////////////////////////////////////////////////
+//////////////FINITE STRAIN MATRICES FUNCTIONS//////////////////
+////////////////////////////////////////////////////////////////
 void FSMicromorphic3DT::Form_ChiM()
 {
     NCHI.Multx(Phi_vec,Chi_vec);
@@ -7355,8 +7492,10 @@ void FSMicromorphic3DT::Form_Second_Piola_Kirchhoff_SPK()
 	double trcE;
 	double scale;
 	SPK=0.0;
+	Temp_SPK=0.0;
 	trE=0.0;
 	trcE=0.0;
+
 
 	//EST=fEulerian_strain_tensor_current_IP;
 	for(int i=0;i<=2;i++)
@@ -7389,7 +7528,48 @@ void FSMicromorphic3DT::Form_Second_Piola_Kirchhoff_SPK()
 
 }
 
+void FSMicromorphic3DT:: Form_I1_1()
+{
+	int row=0;
+	int col=0;
+	I1_1=0.0;
 
+	for(int k=0;k<3;k++)
+	{
+		for(int a=0;a<3;a++)
+		{
+			row=a;
+			//summation over the dummy indices
+			for(int l=0;l<3;l++)
+			{
+				for(int K=0;K<3;K++)
+				{
+					for(int L=0;L<3;L++)
+					{
+						I1_1(row,col)+=fDeformation_Gradient(k,K)*SPK(K,L)*fDeformation_Gradient(l,L);
+					}
+				}
+				row=row+3;
+			}
+
+		}
+		col++;
+	}
+}
+
+void FSMicromoprhic3DT:: Form_fV1()
+{
+	Temp_SPK=0.0;
+
+
+}
+
+
+
+
+////////////////////////////////////////////////////////////////
+//////////////FINITE STRAIN MATRICES ENDS//////////////////
+////////////////////////////////////////////////////////////////
 
 void FSMicromorphic3DT:: Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values)
 {
