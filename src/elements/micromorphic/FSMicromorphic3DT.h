@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.74 2010-05-10 20:28:30 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.75 2010-05-10 22:04:20 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -707,10 +707,15 @@ private:
     dMatrixT PSI;//deformation measure PSI=Transpose(F).chi
     dMatrixT ChiM; //Micro-deformation tensor Chi ( used a different tensor this time )
     dMatrixT I1_1;
+    dMatrixT I1_2;
+    dMatrixT I1_3;
+    dMatrixT I1_4;
     dMatrixT fVint_1;
     dArrayT fV1;
     dMatrixT fKu_1;
-
+    dMatrixT fKu_2;
+    dMatrixT fKu_3;
+    dMatrixT fKu_4;
 
 
 
@@ -943,6 +948,9 @@ private:
     void Form_Second_Piola_Kirchhoff_SPK(void);
     void Form_ChiM(void);
     void Form_I1_1(void);
+    void Form_I1_2(void);
+    void Form_I1_3(void);
+    void Form_I1_4(void);
     void Form_fV1(void);
 
 
