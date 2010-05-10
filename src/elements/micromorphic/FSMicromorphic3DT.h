@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.73 2010-05-10 17:38:45 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.74 2010-05-10 20:28:30 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -708,7 +708,7 @@ private:
     dMatrixT ChiM; //Micro-deformation tensor Chi ( used a different tensor this time )
     dMatrixT I1_1;
     dMatrixT fVint_1;
-    dMatrixT fV1;
+    dArrayT fV1;
     dMatrixT fKu_1;
 
 
