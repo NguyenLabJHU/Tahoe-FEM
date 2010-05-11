@@ -1035,6 +1035,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fKuphi_3=0.0;
     ChiM=0.0;
     PSI=0.0;
+    LagrangianStn=0.0;
 
     ////////////////////////////////////////////////////////////////
     //////////////FINITE STRAIN MATRICES INITIALIZE/////////////////
@@ -1310,14 +1311,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fRight_Cauchy_Green_tensor = fIdentity_matrix;
                    fRight_Cauchy_Green_tensor_Inverse.Inverse(fRight_Cauchy_Green_tensor);
 
-                   /* [fLeft_Cauchy_Green_tensor] will be formed */
+/*                    [fLeft_Cauchy_Green_tensor] will be formed
                    fLeft_Cauchy_Green_tensor.MultABT(fDeformation_Gradient, fDeformation_Gradient);
-                   /* [fLeft_Cauchy_Green_tensor_Inverse] will be formed */
+                    [fLeft_Cauchy_Green_tensor_Inverse] will be formed
                    if (fLeft_Cauchy_Green_tensor.Det()==0)
                        fLeft_Cauchy_Green_tensor = fIdentity_matrix;
                    fLeft_Cauchy_Green_tensor_Inverse.Inverse(fLeft_Cauchy_Green_tensor);
 
-                   /* [fEulerian_strain_tensor_current_IP] will be formed */
+                    [fEulerian_strain_tensor_current_IP] will be formed
                    fEulerian_strain_tensor_current_IP = fLeft_Cauchy_Green_tensor_Inverse;
                    fEulerian_strain_tensor_current_IP *= -1;
                    fEulerian_strain_tensor_current_IP += fIdentity_matrix;
@@ -1325,9 +1326,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
    //                Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);
                    Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_six_values);
 
-                   /* Save Eulerian strain tensor of the current IP */
+                    Save Eulerian strain tensor of the current IP
    //                fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
-                   fEulerian_strain_IPs.SetRow(IP,fTemp_six_values);
+                   fEulerian_strain_IPs.SetRow(IP,fTemp_six_values);*/
+
+                   LagrangianStn=fIdentity_matrix;
+                   LagrangianStn*=-1;
+                   LagrangianStn+=fRight_Cauchy_Green_tensor;
+                   LagrangianStn*=0.5;
                    double scale=scale_const;
                    // Micro-Strain tensor will be formed
                    MicroStnTensor  = fIdentity_matrix;
@@ -1351,79 +1357,79 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    /*internal force is calculated from BLM */
                    Form_fV1();
                    fIota_w_temp_matrix.Multx(fV1,Uint_1_temp);
-                   scale=-1*scale_const*J;
+                   scale=-1*scale_const;
                    Uint_1_temp*=scale;
                    Uint_1 +=Uint_1_temp;
 
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_1,fIota_temp_matrix);
-                   scale = -scale_const*J;
+                   scale = -scale_const;
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fKu_1 += fTemp_matrix_nudof_x_nudof;
 
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_2,fIota_temp_matrix);
-                   scale = scale_const*J;
+                   scale = scale_const;
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fKu_2 += fTemp_matrix_nudof_x_nudof;
 
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_3,fIota_temp_matrix);
-                   scale = scale_const*J;
+                   scale = scale_const;
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fKu_3 += fTemp_matrix_nudof_x_nudof;
 
                    //Matrices from variation of SPK
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_4,fIota_temp_matrix);
-                   scale = scale_const*J*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+                   scale = scale_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fKu_4 += fTemp_matrix_nudof_x_nudof;
 
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_5,fIota_temp_matrix);
-                   scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+                   scale = scale_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fKu_5 += fTemp_matrix_nudof_x_nudof;
 
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_6,fIota_temp_matrix);
-                   scale = scale_const*J*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+                   scale = scale_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fKu_6 += fTemp_matrix_nudof_x_nudof;
 
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_7,fIota_temp_matrix);
-                   scale = scale_const*J*fMaterial_Params[kEta];
+                   scale = scale_const*fMaterial_Params[kEta];
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fKu_7 += fTemp_matrix_nudof_x_nudof;
 
                    fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,I2_1,NCHI);//ABC not ABCT
-                   scale = scale_const*J*fMaterial_Params[kEta];
+                   scale = scale_const*fMaterial_Params[kEta];
                    fTemp_matrix_nudof_x_nchidof *= scale;
                    // accumulate
                    fKuphi_1 += fTemp_matrix_nudof_x_nchidof;
 
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_8,fIota_temp_matrix);
-                   scale = scale_const*J*fMaterial_Params[kKappa];
+                   scale = scale_const*fMaterial_Params[kKappa];
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fKu_8 += fTemp_matrix_nudof_x_nudof;
 
                    fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,I2_2,NCHI);//ABC not ABCT
-                   scale = scale_const*J*fMaterial_Params[kEta];
+                   scale = scale_const*fMaterial_Params[kEta];
                    fTemp_matrix_nudof_x_nchidof *= scale;
                    // accumulate
                    fKuphi_2 += fTemp_matrix_nudof_x_nchidof;
 
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_9,fIota_temp_matrix);
-                   scale = scale_const*J*fMaterial_Params[kNu];
+                   scale = scale_const*fMaterial_Params[kNu];
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fKu_9 += fTemp_matrix_nudof_x_nudof;
 
                    fTemp_matrix_nudof_x_nchidof.MultABC(fIota_w_temp_matrix,I2_3,NCHI);//ABC not ABCT
-                   scale = scale_const*J*fMaterial_Params[kNu];
+                   scale = scale_const*fMaterial_Params[kNu];
                    fTemp_matrix_nudof_x_nchidof *= scale;
                    // accumulate
                    fKuphi_3 += fTemp_matrix_nudof_x_nchidof;
@@ -1499,14 +1505,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 fEulerian_strain_tensor_current_IP *= 0.5;
 //                Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);
                 Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_six_values);
-
-                /* Save Eulerian strain tensor of the current IP */
+                                /* Save Eulerian strain tensor of the current IP */
 //                fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
                 fEulerian_strain_IPs.SetRow(IP,fTemp_six_values);
 
                 /* Calculating J_Prim */
                 if (fRight_Cauchy_Green_tensor.Det()==0)
                     fRight_Cauchy_Green_tensor = fIdentity_matrix;
+
+
 
 //              double TempJ_Prim=fRight_Cauchy_Green_tensor.Det();
 //              double J_Prim=sqrt(fabs(TempJ_Prim));
@@ -3060,6 +3067,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     SPK.Dimension(n_sd,n_sd);
     Temp_SPK.Dimension(n_sd,n_sd);
    // FSF.Dimension(n_sd,n_sd);
+    LagrangianStn.Dimension(n_sd,n_sd);
     MicroStnTensor.Dimension(n_sd,n_sd);
     ChiM.Dimension(n_sd,n_sd);
     PSI.Dimension(n_sd,n_sd);
@@ -7647,7 +7655,7 @@ void FSMicromorphic3DT::Form_Second_Piola_Kirchhoff_SPK()
 	//EST=fEulerian_strain_tensor_current_IP;
 	for(int i=0;i<=2;i++)
 	{
-		trE+=fEulerian_strain_tensor_current_IP(i,i);
+		trE+=LagrangianStn(i,i);
 		trcE+=MicroStnTensor(i,i);
 	}
    SPK=fIdentity_matrix;
@@ -7655,7 +7663,7 @@ void FSMicromorphic3DT::Form_Second_Piola_Kirchhoff_SPK()
    SPK*=scale;
 
    scale=2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
-   Temp_SPK=fEulerian_strain_tensor_current_IP;
+   Temp_SPK=LagrangianStn;
    Temp_SPK*=scale;
    SPK+=Temp_SPK;
 
