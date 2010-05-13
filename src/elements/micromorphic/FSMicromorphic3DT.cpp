@@ -1254,11 +1254,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 /* [fDeformation_Gradient] will be formed */
                 Form_deformation_gradient_tensor();//output: F (deform. grad. tensor)
                 /* [fDeformation_Gradient_Inverse] and [fDeformation_Gradient_Transpose] and [fDeformation_Gradient_Inverse_Transpose] will be formed */
-/*                if (fDeformation_Gradient.Det()==0)
+                if (fDeformation_Gradient.Det()==0)
                     fDeformation_Gradient = fIdentity_matrix;
                 fDeformation_Gradient_Inverse.Inverse(fDeformation_Gradient);
 
-               Form_micro_deformation_tensor_Chi();//output: Chi[i][j]
+              /* Form_micro_deformation_tensor_Chi();//output: Chi[i][j]
                Form_Chi_inv_matrix();//output: ChiInv
                Form_ChiM();//It is also microdeformation gradient tensor but defined as dMatrixT
 
@@ -1277,26 +1277,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     Calculating fRho
                    fRho = fRho_0/J;*/
 
-                   /* KroneckerDelta matrix is formed*/
-                   /*Form_KroneckerDelta_matrix();//output: KrDelta*/
-                   /*Form_CCof_tensor();//output: Coeff tensor*/
-
-
-/*                   Form_double_Finv_from_Deformation_tensor_inverse();// output: Finv
-                   Form_GRAD_Chi_matrix();////CHI=1+PHI ==> GRAD_CHI=GRAD_PHI output: GRAD_Chi[i][J][K]
+/*                   Form_GRAD_Chi_matrix();////CHI=1+PHI ==> GRAD_CHI=GRAD_PHI output: GRAD_Chi[i][J][K]
 
                    Form_Finv_w_matrix();//output: Finv_w
                    Form_Finv_eta_matrix();//output: Finv_eta
-
 */
+
                    /* [fDefGradInv_Grad_grad] will be formed */
                    Form_Grad_grad_transformation_matrix();//output:fDefGradInv_Grad_grad
 
 
 
                    /* Calculating J_Prim */
-                   if (fRight_Cauchy_Green_tensor.Det()==0)
-                       fRight_Cauchy_Green_tensor = fIdentity_matrix;
                      /* [fIota_temp_matrix] will be formed */
                      fIota_temp_matrix.MultATB(fShapeDisplGrad,fDefGradInv_Grad_grad);
 /*                      [fIota_w_temp_matrix] will be formed
