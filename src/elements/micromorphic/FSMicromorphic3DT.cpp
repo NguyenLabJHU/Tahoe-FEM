@@ -1254,15 +1254,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 /* [fDeformation_Gradient] will be formed */
                 Form_deformation_gradient_tensor();//output: F (deform. grad. tensor)
                 /* [fDeformation_Gradient_Inverse] and [fDeformation_Gradient_Transpose] and [fDeformation_Gradient_Inverse_Transpose] will be formed */
-/*                if (fDeformation_Gradient.Det()==0)
+               if (fDeformation_Gradient.Det()==0)
                     fDeformation_Gradient = fIdentity_matrix;
                 fDeformation_Gradient_Inverse.Inverse(fDeformation_Gradient);
-
                Form_micro_deformation_tensor_Chi();//output: Chi[i][j]
                Form_Chi_inv_matrix();//output: ChiInv
                Form_ChiM();//It is also microdeformation gradient tensor but defined as dMatrixT
 
-*/
+
                if(iConstitutiveModelType==1)
                {
 
@@ -1313,6 +1312,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fRight_Cauchy_Green_tensor = fIdentity_matrix;
                    fRight_Cauchy_Green_tensor_Inverse.Inverse(fRight_Cauchy_Green_tensor);
 
+                   LagrangianStn=fIdentity_matrix;
+                   LagrangianStn*=-1;
+                   LagrangianStn+=fRight_Cauchy_Green_tensor;
+                   LagrangianStn*=0.5;
+
+
                     /*[fLeft_Cauchy_Green_tensor] will be formed*/
                    fLeft_Cauchy_Green_tensor.MultABT(fDeformation_Gradient, fDeformation_Gradient);
                    /* [fLeft_Cauchy_Green_tensor_Inverse] will be formed*/
@@ -1327,7 +1332,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fEulerian_strain_tensor_current_IP += fIdentity_matrix;
                    fEulerian_strain_tensor_current_IP *= 0.5;
                  /* Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);*/
-                   Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_six_values);
+                   Extract_six_values_from_symmetric_tensor(LagrangianStn,fTemp_six_values);
 
 
    //                 Save Eulerian strain tensor of the current IP
@@ -1335,16 +1340,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fEulerian_strain_IPs.SetRow(IP,fTemp_six_values);
 
 
-                   LagrangianStn=fIdentity_matrix;
-                   LagrangianStn*=-1;
-                   LagrangianStn+=fRight_Cauchy_Green_tensor;
-                   LagrangianStn*=0.5;
+
                    double scale=scale_const;
                    // Micro-Strain tensor will be formed
-/*                   MicroStnTensor  = fIdentity_matrix;
+                   MicroStnTensor  = fIdentity_matrix;
                    MicroStnTensor *= -1;
                    PSI.MultATB(fDeformation_Gradient,ChiM);
-                   MicroStnTensor += PSI;*/
+                   MicroStnTensor += PSI;
                    Form_Second_Piola_Kirchhoff_SPK();
                    Form_I1_1();
                    Form_I1_2();
@@ -1362,7 +1364,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                    Sigma.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
                    Sigma*=J;
-                   fCauchy_stress_tensor_current_IP=Sigma;
+                   fCauchy_stress_tensor_current_IP=SPK;
                    Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
                    // Save Cauchy effective stress tensor of the current IP
                    fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
