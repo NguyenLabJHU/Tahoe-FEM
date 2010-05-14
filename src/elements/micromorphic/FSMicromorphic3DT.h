@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.79 2010-05-13 05:06:10 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.80 2010-05-14 04:40:25 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -734,6 +734,8 @@ private:
     dMatrixT fKuphi_2;
     dMatrixT fKu_9;
     dMatrixT fKuphi_3;
+
+    double trLST;
 
 	//////////////////////////////////////////////////////////
 	/////DEFINITIONS FINISH HERE FOR MICROMORPHIC MATRICES////
