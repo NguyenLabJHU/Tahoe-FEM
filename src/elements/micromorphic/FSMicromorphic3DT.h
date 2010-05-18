@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.80 2010-05-14 04:40:25 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.81 2010-05-18 16:37:21 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -699,7 +699,8 @@ private:
     //////FINITE STRAIN ELASTICITY MATRICES START HERE/////////
     //////////////////////////////////////////////////////////
     //dMatrixT V_1;
-    dMatrixT SPK;// The second Piola-Kirchhoff Matrix
+    dMatrixT SPK;
+    dMatrixT KirchhoffST;// The second Piola-Kirchhoff Matrix
     dMatrixT Temp_SPK;//temporary Matrix used in calculation of SPK
   //  dMatrixT FSF;
   //  dMatrixT LST;//Lagrangian strain tensor used in some functions to get rid of long name
@@ -977,6 +978,7 @@ private:
     void Form_I1_9(void);
     void Form_fV1(void);
     void Form_I2_3(void);
+
 
     //////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////

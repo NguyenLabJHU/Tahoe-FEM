@@ -1007,7 +1007,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     //////////////FINITE STRAIN MATRICES INITIALIZE/////////////////
     ////////////////////////////////////////////////////////////////
     //FSF=0;
-     SPK=0.0;// The second Piola-Kirchhoff Matrix
+     KirchhoffST=0.0;// The second Piola-Kirchhoff Matrix
      Temp_SPK=0.0;//temporary Matrix used in calculation of SPK
   //  dMatrixT FSF;
   //  dMatrixT LST;//Lagrangian strain tensor used in some functions to get rid of long name
@@ -1284,7 +1284,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                    Form_Finv_w_matrix();//output: Finv_w
                    Form_Finv_eta_matrix();//output: Finv_eta
-                   Form_ChiM();//It is also microdeformation gradient tensor but defined as dMatrixT
+                   Form_ChiM();//It is also micro-deformation gradient tensor but defined as dMatrixT
 
 
                    /* [fDefGradInv_Grad_grad] will be formed */
@@ -1352,9 +1352,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                    /* [fIota_temp_matrix] will be formed */
                    fIota_temp_matrix.MultATB(fShapeDisplGrad,fDefGradInv_Grad_grad);
-                   /* [fIota_w_temp_matrix] will be formed */
+
+                   /* [fIota_w_temp_matrix] will be formed*/
                    fIota_w_temp_matrix.MultATBT(GRAD_Nuw,Finv_w);
-                   /* [fIota_eta_temp_matrix] will be formed */
+                   /* [fIota_eta_temp_matrix] will be formed*/
                    fIota_eta_temp_matrix.MultATBT(GRAD_NCHI,Finv_eta);
 
 
@@ -1369,23 +1370,31 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    //pg33,34 of Davoud's thesis
                    double scale = scale_const;
    /*              fIota_temp_matrix.Multx(fKirchhoff_vector,fTemp_vector_ndof_se,scale);
-                    fFd_int_N1_vector for the current IP
-                    accumulate
+                   fFd_int_N1_vector for the current IP
+                   //accumulate
                    fFd_int_N1_vector += fTemp_vector_ndof_se;*/
+
+
+
                    if(iConstitutiveModelType==1)
                    {
-
-                       Form_Second_Piola_Kirchhoff_SPK();
+                	   double trLST=0.0;
+                	   trLST=LagrangianStn(0,0)+LagrangianStn(1,1)+LagrangianStn(2,2);
+                	   SPK.SetToScaled(trLST*fMaterial_Params[kLambda],fIdentity_matrix);
+                	   Temp_SPK.SetToScaled(2*fMaterial_Params[kMu],LagrangianStn);
+                	   SPK+=Temp_SPK;
+                	   KirchhoffST.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
+                       //Form_Second_Piola_Kirchhoff_SPK();
                        /*internal force is calculated from BLM */
-                       Form_fV1();
-                       fIota_temp_matrix.Multx(fV1,Vint_1_temp);
+                      // Form_fV1();
+                	   fIota_temp_matrix.Multx(KirchhoffST,Vint_1_temp);
+                      // fIota_temp_matrix.Multx(fV1,Vint_1_temp);
                        scale=scale_const;
                        Vint_1_temp*=scale;
                        Vint_1 +=Vint_1_temp;
 
-
-                       Form_I1_1();
-                       Form_I1_2();
+/*                     Form_I1_1();
+                       Form_I1_2();*/
                        Form_I1_3();
                        Form_I1_4();
                        Form_I1_5();
@@ -1398,14 +1407,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Form_I2_3();*/
 
 
-                       Sigma.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
+                       //Sigma.MultABCT(fDeformation_Gradient,KirchhoffST,fDeformation_Gradient);
+                       Sigma=KirchhoffST;
                        Sigma*=J;
-                       fCauchy_stress_tensor_current_IP=SPK;
+                       fCauchy_stress_tensor_current_IP=KirchhoffST;
                        Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
                        // Save Cauchy effective stress tensor of the current IP
                        fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
 
-                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_1,fIota_temp_matrix);
+/*                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_1,fIota_temp_matrix);
                        scale =-scale_const;
                        fTemp_matrix_nudof_x_nudof *= scale;
                        // accumulate
@@ -1416,6 +1426,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fTemp_matrix_nudof_x_nudof *= scale;
                        // accumulate
                        fKu_2 += fTemp_matrix_nudof_x_nudof;
+*/
+
 
                        fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_3,fIota_temp_matrix);
                        scale = scale_const;
@@ -1477,7 +1489,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fTemp_matrix_nudof_x_nchidof *= scale;
                        // accumulate
                        fKuphi_3 += fTemp_matrix_nudof_x_nchidof;*/
-
                    }
                    else
                    {
@@ -1488,8 +1499,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    scale=-1*scale_const*J;
                    Uint_1_temp*=scale;
                    Uint_1 +=Uint_1_temp;
-   //                fShapeDispl.MultTx(fGravity_vector,Uext_1);
-   //                Uext_1*=-fMaterial_Params[kRho_0];
+   //              fShapeDispl.MultTx(fGravity_vector,Uext_1);
+   //              Uext_1*=-fMaterial_Params[kRho_0];
 
 
                    Form_H1_matrix();//output:H1 vctor & Mnplus1 tensor
@@ -1524,7 +1535,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
    ////////////////////////////////////////////////////////////////////////////////
    /////////////////MicroMorphic Internal force vectors finish here////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////
-   /*                for(int iii=0;iii<3;iii++)
+/*                   for(int iii=0;iii<3;iii++)
                    {
                        for(int jjj=0;jjj<3;jjj++)
                        {
@@ -1539,8 +1550,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                GRAD_ChiN[iii][jjj][kkk]=0.0;
                            }
                        }
-                   }
-   */
+                   }*/
+
    ////////////////Micromorphic 3-D Matrices are being formed coming from linearization process//////////////////////////
                    Form_CapitalLambda_matrix();//output:CapitalLambda
                    Form_Var_F_tensor();
@@ -1601,18 +1612,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
    ////////////////////////Finished here///////////////////////////////////////////
    ////////////////////////////////////////////////////////////////////////////////
 
-   /*
+/*
                    // [fK_dd_G3_1_matrix] will be formed
                    //pg57 of Davoud's thesis
 
                    fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fIm_temp_matrix,fIota_temp_matrix);
                    scale = -1*scale_const;
                    fTemp_matrix_ndof_se_x_ndof_se *= scale;
-                    accumulate
+                   //accumulate
                    fK_dd_G3_1_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 
-   */
 
+*/
 
    ////////////////////////////////////////////////////////////////////////////////
    ////////////////fG1_ matrices are constructed////////////////////////////////////
@@ -1698,14 +1709,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fG1_12 += fTemp_matrix_nudof_x_nudof;
 
                   fTemp_matrix_nudof_x_nudof.MultABC(fIota_w_temp_matrix,SigCurr,fShapeDisplGrad);//ABC not ABCT
-             //      fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,SigCurr,fIota_temp_matrix);//ABC
+                  //fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,SigCurr,fIota_temp_matrix);//ABC
                    scale = -scale_const*J;
                    fTemp_matrix_nudof_x_nudof *= scale;
                    // accumulate
                    fG1_13 += fTemp_matrix_nudof_x_nudof;
 
-              //     TransShapeDisplGrad.Transpose(GRAD_Nuw);//
-             //    fTemp_matrix_nudof_x_nudof.MultABCT(TransShapeDisplGrad,Var_F,fIota_temp_matrix);
+                   //TransShapeDisplGrad.Transpose(GRAD_Nuw);//
+                   //fTemp_matrix_nudof_x_nudof.MultABCT(TransShapeDisplGrad,Var_F,fIota_temp_matrix);
                    fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,Var_F,fIota_temp_matrix);
                    scale= scale_const*J;
                    fTemp_matrix_nudof_x_nudof *= scale;
@@ -1766,11 +1777,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    // accumulate
                    fH1_6 += fTemp_matrix_nchidof_x_nchidof;
 
-   /*                fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_7,NCHI);
+                   fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_7,NCHI);
                    scale =-1*scale_const*J;
                    fTemp_matrix_nchidof_x_nchidof *= scale;
                    // accumulate
-                   fH1_7 += fTemp_matrix_nchidof_x_nchidof;*/
+                   fH1_7 += fTemp_matrix_nchidof_x_nchidof;
 
                    fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_71,GRAD_NCHI);
                    scale =-1*scale_const*J;
@@ -1820,7 +1831,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    // accumulate
                    fH1_78 += fTemp_matrix_nchidof_x_nudof;
 
-   /*
+
                    fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,Mm_8,NCHI);
                    scale =scale_const*J;
                    fTemp_matrix_nchidof_x_nchidof *= scale;
@@ -1839,7 +1850,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fTemp_matrix_nchidof_x_nchidof *= scale;
                    // accumulate
                    fH1_10 += fTemp_matrix_nchidof_x_nchidof;
-   */
+
 
 
                    fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,Mm_11,fIota_temp_matrix);
@@ -1959,59 +1970,58 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
    /////////////////fH_ matrices finish here////////////////////////////////////////
 
-                   /* [fK_dd_G3_2_matrix] will be formed */
-   /*
+/*                    //[fK_dd_G3_2_matrix] will be formed
+
                    fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fHbar_temp_matrix,fIota_temp_matrix);
                    scale = fMaterial_Params[kMu] * scale_const;
                    fTemp_matrix_ndof_se_x_ndof_se *= scale;
-                    accumulate
+                   //accumulate
                    fK_dd_G3_2_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-                    [fK_dd_G3_3_matrix] will be formed
+                   //[fK_dd_G3_3_matrix] will be formed
                    fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fEll_temp_matrix,fIota_temp_matrix);
                    scale = fMaterial_Params[kMu] * scale_const;
                    fTemp_matrix_ndof_se_x_ndof_se *= scale;
-                    accumulate
+                   // accumulate
                    fK_dd_G3_3_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 
 
-                    [fK_dd_G3_4_matrix] will be formed
+                   // [fK_dd_G3_4_matrix] will be formed
                    fTemp_matrix_ndof_se_x_ndof_se.MultABC(fIota_temp_matrix,fI_ij_column_matrix,fPi_temp_row_matrix);
                    scale = fMaterial_Params[kLambda] * scale_const;
                    fTemp_matrix_ndof_se_x_ndof_se *= scale;
-                    accumulate
+                   // accumulate
                    fK_dd_G3_4_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 
-   */
+
 
                    //need?
-   /*
-                    {fFd_int_G4_vector} will be formed
 
+                   // {fFd_int_G4_vector} will be formed
                    fShapeDispl.MultTx(fGravity_vector,fTemp_vector_ndof_se);
                    scale = -1*fRho_0*scale_const;
                    fTemp_vector_ndof_se *= scale;
-                    accumulate
+                   // accumulate
                    fFd_int_G4_vector += fTemp_vector_ndof_se;
 
 
-                    [fK_dd_G4_matrix] will be formed
+                   // [fK_dd_G4_matrix] will be formed
                    //pg57 Davoud's thesis
 
                    fTemp_matrix_ndof_se_x_ndof_se.MultATBC(fShapeDispl,fGravity_column_matrix,fPi_temp_row_matrix);
                    scale = -1*J*(fRho)*scale_const;
                    fTemp_matrix_ndof_se_x_ndof_se *= scale;
-                    accumulate
+                   // accumulate
                    fK_dd_G4_matrix += fTemp_matrix_ndof_se_x_ndof_se;
+*/
 
-   */
 
                    /////////////////////saving matrices at Gauss Points////////////
 
-   /*                Form_deformation_gradient_tensor();
+                   Form_deformation_gradient_tensor();
                    Form_micro_deformation_tensor_Chi();
-                   Form_GRAD_Chi_matrix();*/
+                   Form_GRAD_Chi_matrix();
 
                    Mapping_double_and_Array(1);
                    GammaN_IPs.SetRow(IP,GammaN_ar);
@@ -2025,8 +2035,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    Chi_ar_IPs.SetRow(IP,Chi_ar);
                    GRAD_Chi_ar_IPs.SetRow(IP,GRAD_Chi_ar);
             }//constitutive loop ends here
-
-
 
             } //end Gauss integration loop
 
@@ -2082,108 +2090,49 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
               fKdd +=  fKu_7;
               fKdd +=  fKu_8;
               fKdd +=  fKu_9;
-/*              fKdd +=  fG1_12;
-              fKdd +=  fG1_13
-              fKdd +=  fG1_14;*/
+
            /* [fKdphi] will be formed */
-           //need to code
+
            //fKdphi = 0.0;
              fKdphi  =fKuphi_1;
              fKdphi +=fKuphi_2;
              fKdphi +=fKuphi_3;
 
 
-          // Micromorphic case fKdPhi  from coming from bal. of linear momentum
-
-/*            fKdphi = fG1_7 ;
-              fKdphi += fG1_9 ;
-              fKdphi += fG1_11;*/
-
-
-
            /* [fKphid] will be formed */
            //need to code
-              fKphid = 0.0;
-
-/*          fKphid = fH1_Etagrad;
-            fKphid += fH1_1;
-            fKphid += fH1_2;
-            fKphid += fH1_3;
-            fKphid += fH1_11;
-            fKphid += fH1_12;
-            fKphid += fH1_14;
-            fKphid += fH1_72;
-            fKphid += fH1_78;
-
-            fKphid += fH2_1;
-            fKphid += fH2_2;
-            fKphid += fH2_3;
-            fKphid += fH2_5;
-            fKphid += fH2_7;
-            fKphid += fH2_8;
-            fKphid += fH2_9;
-            fKphid += fH2_10;
-            fKphid += fH2_12;
-            fKphid += fH2_13;
-*/
+            fKphid = 0.0;
 
         /* [fKphiphi] will be formed */
           //need to code
-             fKphiphi = 0.0;
-
-   /*    fKphiphi  = fH1_4;
-         fKphiphi += fH1_5;
-         fKphiphi += fH1_6;
-         fKphiphi += fH1_71;
-         fKphiphi += fH1_73;
-         fKphiphi += fH1_74;
-         fKphiphi += fH1_75;
-         fKphiphi += fH1_76;
-         fKphiphi += fH1_77;
-         fKphiphi += fH1_7;
-         fKphiphi += fH1_8;
-         fKphiphi += fH1_9;
-         fKphiphi += fH1_10;
-         fKphiphi += fH1_13;
-
-         fKphiphi += fH2_4;
-         fKphiphi += fH2_6;
-         fKphiphi += fH2_11;
-         fKphiphi += fH3_1;*/
-
-
-
-       /* {fFphi_int} will be formed */
-         //need to code
+            fKphiphi = 0.0;
+         /* {fFphi_int} will be formed */
            fFphi_int  = 0.0;
-      /*   fFphi_int  =Pint_1;
-           fFphi_int +=Pint_2;
-           fFphi_int +=Pint_3;//no external traction is assumed Pext=0
-           fFphi_int *= -1;*/
+
             }
             else
             {
-
-/*           {fFd_int} will be formed
+/*
+           //{fFd_int} will be formed
             fFd_int = fFd_int_N1_vector;
             fFd_int += fFd_int_G4_vector;
-            fFd_int *= -1;*/
-
-         //{fFd_int} will be formed
-         //fFd_int  = 0.0;
+            fFd_int *= -1;
+*/
+          /* {fFd_int} will be formed*/
+           fFd_int  = 0.0;
            fFd_int  = Uint_1;
-         //fFd_ext =-Uext_1; //no external traction is assumed
+           //fFd_ext =-Uext_1; //no external traction is assumed
            fFd_int *= -1;
 
 
-            /* [fKdd] will be formed */
-/*
+            //[fKdd] will be formed
+
             fKdd = fK_dd_G3_1_matrix;
             fKdd += fK_dd_G3_2_matrix;
             fKdd += fK_dd_G3_3_matrix;
             fKdd += fK_dd_G3_4_matrix;
             fKdd += fK_dd_G4_matrix;
-*/
+
 
   //Micromorphic case fKdd coming from bal. of linear momentum
 
@@ -2203,10 +2152,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 
-            /* [fKdphi] will be formed */
-            //need to code
+           //[fKdphi] will be formed
+           //need to code
            // fKdphi = 0.0;
-// Micromorphic case fKdPhi  from coming from bal. of linear momentum
+           // Micromorphic case fKdPhi  from coming from bal. of linear momentum
 
             fKdphi  = fG1_7 ;
             fKdphi += fG1_9 ;
@@ -2214,9 +2163,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 
-            /* [fKphid] will be formed */
+            //[fKphid] will be formed
             //need to code
-        //   fKphid = 0.0;
+            //fKphid = 0.0;
 
             fKphid = fH1_Etagrad;
             fKphid += fH1_1;
@@ -2240,7 +2189,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid += fH2_13;
 
 
-            /* [fKphiphi] will be formed */
+            //[fKphiphi] will be formed
             //need to code
             //fKphiphi = 0.0;
 
@@ -2253,10 +2202,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphiphi += fH1_75;
             fKphiphi += fH1_76;
             fKphiphi += fH1_77;
-/*            fKphiphi += fH1_7;
+            fKphiphi += fH1_7;
             fKphiphi += fH1_8;
             fKphiphi += fH1_9;
-            fKphiphi += fH1_10;*/
+            fKphiphi += fH1_10;
             fKphiphi += fH1_13;
 
             fKphiphi += fH2_4;
@@ -2267,14 +2216,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 
-            /* {fFphi_int} will be formed */
+            // {fFphi_int} will be formed
             //need to code
-       //     fFphi_int  = 0.0;
+            //fFphi_int  = 0.0;
             fFphi_int  =Pint_1;
             fFphi_int +=Pint_2;
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
             fFphi_int *= -1;
-            }
+           }
 
             /* equations numbers */
             const iArrayT& displ_eq = fElementCards_displ[e].Equations();
@@ -3000,6 +2949,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     /////////////////////////////////////////////////////////////
     /////////////FINITE STRAIN ELASTICITY MATRICES///////////////
     /////////////////////////////////////////////////////////////
+    KirchhoffST.Dimension(n_sd,n_sd);
     SPK.Dimension(n_sd,n_sd);
     Temp_SPK.Dimension(n_sd,n_sd);
    // FSF.Dimension(n_sd,n_sd);
@@ -7583,7 +7533,7 @@ void FSMicromorphic3DT::Form_Second_Piola_Kirchhoff_SPK()
     double trLST;
     double trcE;
     double scale;
-    SPK=0.0;
+  //  SPK=0.0;
     Temp_SPK=0.0;
     trLST=0.0;
     trcE=0.0;
@@ -7600,13 +7550,13 @@ void FSMicromorphic3DT::Form_Second_Piola_Kirchhoff_SPK()
    scale=(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
    scale*=trLST;
    Temp_SPK*=scale;
-   SPK+=Temp_SPK;
+   //SPK+=Temp_SPK;
 
    scale=(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
    scale*=2;
    Temp_SPK=LagrangianStn;
    Temp_SPK*=scale;
-   SPK+=Temp_SPK;
+   //SPK+=Temp_SPK;
 /*
    scale=fMaterial_Params[kEta]*trcE;
    Temp_SPK=fIdentity_matrix;
@@ -7630,7 +7580,7 @@ void FSMicromorphic3DT:: Form_I1_1()
     int col=0;
     I1_1=0.0;
     fTemp_matrix_nsd_x_nsd=0.0;
-    fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
+    fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,KirchhoffST,fDeformation_Gradient);
   for(int k=0;k<3;k++)
     {
         for(int a=0;a<3;a++)
@@ -7676,9 +7626,9 @@ void FSMicromorphic3DT:: Form_I1_2()
     int row=0;
     int col=0;
     I1_2=0.0;
-    fTemp_matrix_nsd_x_nsd=0.0;
-    fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
-    for(int n=0;n<3;n++)
+   // fTemp_matrix_nsd_x_nsd=0.0;
+  //  fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,KirchhoffST,fDeformation_Gradient);
+/*    for(int n=0;n<3;n++)
     {
         for(int k=0;k<3;k++)
         {
@@ -7691,7 +7641,7 @@ void FSMicromorphic3DT:: Form_I1_2()
             col++;
         }
 
-    }
+    }*/
 /*     for(int n=0;n<3;n++)
        {
         for(int k=0;k<3;k++)
@@ -7703,7 +7653,7 @@ void FSMicromorphic3DT:: Form_I1_2()
                 {
                     for(int L=0;L<3;L++)
                     {
-                        I1_2(row,col)+=fDeformation_Gradient(n,K)*SPK(K,L)*fDeformation_Gradient(l,L);
+                        I1_2(row,col)+=Kirchhoff(n,);
                     }
                 }
                 row++;
@@ -7720,10 +7670,10 @@ void FSMicromorphic3DT:: Form_I1_3()
     int row=0;
     int col=0;
     I1_3=0.0;
-    fTemp_matrix_nsd_x_nsd=0.0;
-    fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
+  //  fTemp_matrix_nsd_x_nsd=0.0;
+  //  fTemp_matrix_nsd_x_nsd.MultABCT(fDeformation_Gradient,KirchhoffST,fDeformation_Gradient);
 
-    for(int m=0;m<3;m++)
+/*    for(int m=0;m<3;m++)
     {
         for(int l=0;l<3;l++)
         {
@@ -7735,29 +7685,45 @@ void FSMicromorphic3DT:: Form_I1_3()
             }
             col++;
         }
-     }
+     }*/
 
-
-/*        for(int m=0;m<3;m++)
+/*
+        for(int m=0;m<3;m++)
         {
             for(int l=0;l<3;l++)
             {
                 row=l;
                 for(int k=0;k<3;k++)
                 {
-                    for(int K=0;K<3;K++)
+                    //summation
+                	for(int K=0;K<3;K++)
                     {
                         for(int L=0;L<3;L++)
                         {
-                            I1_3(row,col)+=fDeformation_Gradient(k,K)*SPK(K,L)*fDeformation_Gradient(m,L);
+                            I1_3(row,col)+= KirchhoffST(k,m);
                         }
                     }
                     row=row+3;
                 }
                 col++;
             }
-         }*/
+         }
+*/
+    for(int m=0;m<3;m++)
+    {
+        for(int l=0;l<3;l++)
+        {
+         	row=l;
+            for(int k=0;k<3;k++)
+            {
 
+            	//summation
+                  I1_3(row,col)+= KirchhoffST(k,m);
+                  row=row+3;
+            }
+            col++;
+        }
+     }
 
 }
 
@@ -7779,14 +7745,14 @@ void FSMicromorphic3DT:: Form_I1_4()
                     //summation over the same term
                     for(int K=0;K<3;K++)
                     {
-                            for(int L=0;L<3;L++)
-                            {
+                          //  for(int L=0;L<3;L++)
+                            //{
                             for(int M=0;M<3;M++)
                             {
                                 I1_4(row,col)+=fDeformation_Gradient(k,K)*fDeformation_Gradient(n,M)*fDeformation_Gradient(i,M)
-                                              *fDeformation_Gradient(l,L)*fIdentity_matrix(K,L);
+                                              *fDeformation_Gradient(l,K);
                             }
-                           }
+                           //}
                     }
                     row++;
                 }
@@ -7835,7 +7801,8 @@ void FSMicromorphic3DT:: Form_I1_6()
     int col=0;
     for(int n=0;n<3;n++)
     {
-        for(int i=0;i<3;i++){
+        for(int i=0;i<3;i++)
+        {
             row=0;
             //
             for(int k=0;k<3;k++)
@@ -8039,7 +8006,7 @@ void FSMicromorphic3DT:: Form_I2_3()
     }
 }
 
-void FSMicromorphic3DT:: Form_fV1()
+/*void FSMicromorphic3DT:: Form_fV1()
 {
     int row=0;
     fV1=0.0;
@@ -8055,7 +8022,7 @@ void FSMicromorphic3DT:: Form_fV1()
     }
 
 
-}
+}*/
 
 
 
