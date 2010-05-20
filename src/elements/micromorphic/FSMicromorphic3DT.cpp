@@ -1007,6 +1007,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     //////////////FINITE STRAIN MATRICES INITIALIZE/////////////////
     ////////////////////////////////////////////////////////////////
     //FSF=0;
+    SPK=0.0;
      KirchhoffST=0.0;// The second Piola-Kirchhoff Matrix
      Temp_SPK=0.0;//temporary Matrix used in calculation of SPK
   //  dMatrixT FSF;
@@ -1378,19 +1379,19 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                    if(iConstitutiveModelType==1)
                    {
-                	   double trLST=0.0;
-                	   trLST=LagrangianStn(0,0)+LagrangianStn(1,1)+LagrangianStn(2,2);
-                	   SPK.SetToScaled(trLST*fMaterial_Params[kLambda],fIdentity_matrix);
-                	   Temp_SPK.SetToScaled(2*fMaterial_Params[kMu],LagrangianStn);
-                	   SPK+=Temp_SPK;
-                	   KirchhoffST.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
+                       double trLST=0.0;
+                       trLST=LagrangianStn(0,0)+LagrangianStn(1,1)+LagrangianStn(2,2);
+                       SPK.SetToScaled(trLST*fMaterial_Params[kLambda],fIdentity_matrix);
+                       Temp_SPK.SetToScaled(2*fMaterial_Params[kMu],LagrangianStn);
+                       SPK+=Temp_SPK;
+                       KirchhoffST.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
                        //Form_Second_Piola_Kirchhoff_SPK();
                        /*internal force is calculated from BLM */
                        Form_fV1();
 
-                	  //fIota_temp_matrix.Multx(KirchhoffST,Vint_1_temp);
-                      // fIota_temp_matrix.Multx(fV1,Vint_1_temp);
-                       fIota_w_temp_matrix.Multx(fV1,Vint_1_temp);
+                      //fIota_temp_matrix.Multx(KirchhoffST,Vint_1_temp);
+                       fIota_temp_matrix.Multx(fV1,Vint_1_temp);
+                      // fIota_w_temp_matrix.Multx(fV1,Vint_1_temp);
                        scale=scale_const;
                        Vint_1_temp*=scale;
                        Vint_1 +=Vint_1_temp;
@@ -1431,26 +1432,26 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 */
 
 
-                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_3,fIota_temp_matrix);
+                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_3,fIota_temp_matrix);
                        scale = scale_const;
                        fTemp_matrix_nudof_x_nudof *= scale;
                        // accumulate
                        fKu_3 += fTemp_matrix_nudof_x_nudof;
 
                        //Matrices from variation of SPK
-                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_4,fIota_temp_matrix);
+                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_4,fIota_temp_matrix);
                        scale = scale_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
                        fTemp_matrix_nudof_x_nudof *= scale;
                        // accumulate
                        fKu_4 += fTemp_matrix_nudof_x_nudof;
 
-                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_5,fIota_temp_matrix);
+                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_5,fIota_temp_matrix);
                        scale = scale_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
                        fTemp_matrix_nudof_x_nudof *= scale;
                        // accumulate
                        fKu_5 += fTemp_matrix_nudof_x_nudof;
 
-                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_w_temp_matrix,I1_6,fIota_temp_matrix);
+                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_6,fIota_temp_matrix);
                        scale = scale_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
                        fTemp_matrix_nudof_x_nudof *= scale;
                        // accumulate
@@ -7698,7 +7699,7 @@ void FSMicromorphic3DT:: Form_I1_3()
                 for(int k=0;k<3;k++)
                 {
                     //summation
-                	for(int K=0;K<3;K++)
+                    for(int K=0;K<3;K++)
                     {
                         for(int L=0;L<3;L++)
                         {
@@ -7715,13 +7716,15 @@ void FSMicromorphic3DT:: Form_I1_3()
     {
         for(int l=0;l<3;l++)
         {
-         	row=3*l;
+            //row=3*l;
+        	row=l;
             for(int k=0;k<3;k++)
             {
 
-            	//summation
+                //summation
                   I1_3(row,col)+= KirchhoffST(k,m);
-                  row=row+1;
+                  row=row+3;
+                  //row=row+1;
             }
             col++;
         }
@@ -7740,9 +7743,9 @@ void FSMicromorphic3DT:: Form_I1_4()
         {
             //
             row=0;
-            for(int l=0;l<3;l++)
+            for(int k=0;k<3;k++)
             {
-                for(int k=0;k<3;k++)
+                for(int l=0;l<3;l++)
                 {
                     //summation over the same term
                     for(int K=0;K<3;K++)
@@ -7776,9 +7779,9 @@ void FSMicromorphic3DT:: Form_I1_5()
         {
             row=0;
             //
-            for(int l=0;l<3;l++)
+            for(int k=0;k<3;k++)
             {
-                for(int k=0;k<3;k++)
+                for(int l=0;l<3;l++)
                 {
                     //summation
                     for(int K=0;K<3;K++)
@@ -7801,16 +7804,18 @@ void FSMicromorphic3DT:: Form_I1_6()
 {
     int row;
     int col=0;
+    I1_6=0.0;
     for(int n=0;n<3;n++)
     {
         for(int i=0;i<3;i++)
         {
             row=0;
             //
-            for(int l=0;l<3;l++)
+            for(int k=0;k<3;k++)
             {
-                for(int k=0;k<3;k++)
-                    //summation
+                for(int l=0;l<3;l++)
+                {
+                	//summation
                     for(int K=0;K<3;K++)
                     {
                         for(int L=0;L<3;L++)
@@ -7820,6 +7825,7 @@ void FSMicromorphic3DT:: Form_I1_6()
                         }
                     }
                 row++;
+                }
             }
             col++;
         }
@@ -8018,7 +8024,7 @@ void FSMicromorphic3DT:: Form_fV1()
     {
         for(int k=0;k<3;k++)
         {
-            fV1[row]=KirchhoffST(k,l);
+            fV1[row]=KirchhoffST(l,k);
             row++;
         }
     }
