@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.82 2010-05-24 23:11:12 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.83 2010-05-25 04:49:18 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -723,6 +723,7 @@ private:
     dArrayT Vint_1;
     dArrayT Vint_1_temp;
     dArrayT fV1;
+    dArrayT fV2;
     dMatrixT fKu_1;
     dMatrixT fKu_2;
     dMatrixT fKu_3;
@@ -964,6 +965,8 @@ private:
     //////////////////////////////////////////////////////////
 	/////FINITE STRAIN ELASTICITY MATRICES START /////////////
 	//////////////////////////////////////////////////////////
+    void Form_fV1(void);
+    void Form_fV2(void);
     void Form_I1_1_matrix(void);
     void Form_Second_Piola_Kirchhoff_SPK(void);
     void Form_ChiM(void);
@@ -978,7 +981,6 @@ private:
     void Form_I1_8(void);
     void Form_I2_2(void);
     void Form_I1_9(void);
-    void Form_fV1(void);
     void Form_I2_3(void);
     void Form_sigma_s(void);
 

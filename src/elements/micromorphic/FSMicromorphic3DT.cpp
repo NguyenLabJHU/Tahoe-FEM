@@ -1393,6 +1393,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                 	   double invJ=1/J;
                        Form_Second_Piola_Kirchhoff_SPK();
+                       Form_fV1();
+                       Form_sigma_s();
+                       Form_fV2();
                        //Sigma.SetToScaled(1/J,KirchhoffST);
                        //Sigma*=1.7;
                        Sigma=KirchhoffST;
@@ -1403,7 +1406,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        // Save Cauchy effective stress tensor of the current IP
                        fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
                        /*internal force is calculated from BLM */
-                       Form_fV1();
+
 
                       //fIota_temp_matrix.Multx(KirchhoffST,Vint_1_temp);
                        fIota_temp_matrix.Multx(fV1,Vint_1_temp);
@@ -1411,6 +1414,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        scale=scale_const;
                        Vint_1_temp*=scale;
                        Vint_1 +=Vint_1_temp;
+
+                       fIota_eta_temp_matrix.Multx(fV2,)
 
 /*                       Form_I1_1();
                        Form_I1_2();*/
@@ -2999,6 +3004,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKuphi_3.Dimension (n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
     Vint_1.Dimension(n_en_displ_x_n_sd);
     fV1.Dimension(n_sd_x_n_sd);
+    fV2.Dimension(n_sd_x_n_sd);
     Vint_1_temp.Dimension(n_en_displ_x_n_sd);
     sigma_s.Dimension(n_sd,n_sd);
 
@@ -7958,7 +7964,20 @@ void FSMicromorphic3DT:: Form_fV1()
         }
     }
 
+}
 
+void FSMicromorphic3DT:: Form_fV2()
+{
+	int row=0;
+	fV2=0.0;
+	for(int m=0;m<3;m++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			fV2[row]=sigma_s(m,l);
+			row++;
+		}
+	}
 }
 
 void FSMicromorphic3DT:: Form_sigma_s()
@@ -7982,7 +8001,7 @@ void FSMicromorphic3DT:: Form_sigma_s()
 	sigma_s+=fTemp_matrix_nsd_x_nsd;
 
 	fTemp_matrix_nsd_x_nsd=fIdentity_matrix;
-	scale=trcE*(fMaterial_Params[kEta]+fMaterial_Params[kTau]);
+	scale=trcE*(fMaterial_Params[kEta]-fMaterial_Params[kTau]);
 	fTemp_matrix_nsd_x_nsd*=scale;
 	sigma_s+=fTemp_matrix_nsd_x_nsd;
 
@@ -7995,8 +8014,6 @@ void FSMicromorphic3DT:: Form_sigma_s()
 	scale=(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
 	fTemp_matrix_nsd_x_nsd*=scale;
 	sigma_s+=fTemp_matrix_nsd_x_nsd;
-
-
 
 
 }
