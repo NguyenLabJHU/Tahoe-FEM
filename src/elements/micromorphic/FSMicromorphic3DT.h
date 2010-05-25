@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.83 2010-05-25 04:49:18 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.84 2010-05-25 20:32:54 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -720,8 +720,14 @@ private:
     dMatrixT I2_2;
     dMatrixT I1_9;
     dMatrixT I2_3;
+/*********************/
+    dMatrixT II_1;
+    dMatrixT II_2;
+    dMatrixT II_3;
     dArrayT Vint_1;
     dArrayT Vint_1_temp;
+    dArrayT Vint_2;
+    dArrayT Vint_2_temp;
     dArrayT fV1;
     dArrayT fV2;
     dMatrixT fKu_1;
@@ -737,6 +743,9 @@ private:
     dMatrixT fKu_9;
     dMatrixT fKuphi_3;
     dMatrixT sigma_s;
+    dMatrixT fKphiu_1;
+    dMatrixT fKphiu_2;
+    dMatrixT fKphiu_3;
 
     double trLST;
     double invJ;
@@ -983,6 +992,9 @@ private:
     void Form_I1_9(void);
     void Form_I2_3(void);
     void Form_sigma_s(void);
+    void Form_II_1(void);
+    void Form_II_2(void);
+    void Form_II_3(void);
 
 
     //////////////////////////////////////////////////////////
