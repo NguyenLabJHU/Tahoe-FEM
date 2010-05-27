@@ -1427,7 +1427,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                        Form_sigma_s();
                        Form_fV2();
-                       fIota_eta_temp_matrix.Multx(fV2,Vint_2_temp);
+                       NCHI.MultTx(fV2,Vint_2_temp);
                        scale=scale_const;
                        Vint_2_temp*=scale;
                        Vint_2 +=Vint_2_temp;
@@ -1544,56 +1544,56 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 /*******************************************************************************************************/
 
-                       fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fJ1_1 ,fIota_temp_matrix);
+                       fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,fJ1_1 ,fIota_temp_matrix);
                        scale =scale_const*fMaterial_Params[kTau];
                        fTemp_matrix_nchidof_x_nudof *= scale;
                        // accumulate
                        fKphiu_1 += fTemp_matrix_nchidof_x_nudof;
 
-                       fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fJ1_2 ,fIota_temp_matrix);
+                       fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,fJ1_2 ,fIota_temp_matrix);
                        scale =scale_const*fMaterial_Params[kSigma_const];
                        fTemp_matrix_nchidof_x_nudof *= scale;
                        // accumulate
                        fKphiu_2 += fTemp_matrix_nchidof_x_nudof;
 
-                       fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fJ1_3 ,fIota_temp_matrix);
+                       fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,fJ1_3 ,fIota_temp_matrix);
                        scale =scale_const*fMaterial_Params[kSigma_const];
                        fTemp_matrix_nchidof_x_nudof *= scale;
                        // accumulate
                        fKphiu_3 += fTemp_matrix_nchidof_x_nudof;
 
-                       fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fJ1_4,fIota_temp_matrix);
+                       fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,fJ1_4,fIota_temp_matrix);
                        scale =scale_const*(fMaterial_Params[kEta]-fMaterial_Params[kTau]);
                        fTemp_matrix_nchidof_x_nudof *= scale;
                        // accumulate
                        fKphiu_4 += fTemp_matrix_nchidof_x_nudof;
 
 
-                       fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,fJ2_1,NCHI);
+                       fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,fJ2_1,NCHI);
                        scale =scale_const*(fMaterial_Params[kEta]-fMaterial_Params[kTau]);
                        fTemp_matrix_nchidof_x_nchidof *= scale;
                        // accumulate
                        fKphiphi_1 += fTemp_matrix_nchidof_x_nchidof;
 
-                       fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fJ1_5,fIota_temp_matrix);
+                       fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,fJ1_5,fIota_temp_matrix);
                        scale =scale_const*(fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]);
                        fTemp_matrix_nchidof_x_nudof *= scale;
                        // accumulate
                        fKphiu_5 += fTemp_matrix_nchidof_x_nudof;
 
-                       fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,fJ2_2,NCHI);
+                       fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,fJ2_2,NCHI);
                        scale =scale_const*(fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]);
                        fTemp_matrix_nchidof_x_nchidof *= scale;
                        // accumulate
                        fKphiphi_2 += fTemp_matrix_nchidof_x_nchidof;
 
-                       fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fJ1_6,fIota_temp_matrix);
+                       fTemp_matrix_nchidof_x_nudof.MultABCT(NCHI_Tr,fJ1_6,fIota_temp_matrix);
                        scale =scale_const*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
                        fTemp_matrix_nchidof_x_nudof *= scale;
                        // accumulate
                        fKphiu_5 += fTemp_matrix_nchidof_x_nudof;
 
-                       fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,fJ2_3,NCHI);
+                       fTemp_matrix_nchidof_x_nchidof.MultABC(NCHI_Tr,fJ2_3,NCHI);
                        scale =scale_const*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
                        fTemp_matrix_nchidof_x_nchidof *= scale;
                        // accumulate
@@ -3109,7 +3109,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Vint_1.Dimension(n_en_displ_x_n_sd);
     Vint_2.Dimension(n_en_micro*n_sd_x_n_sd);
     fV1.Dimension(n_sd_x_n_sd);
-    fV2.Dimension(n_sd_x_n_sd_x_n_sd);
+    fV2.Dimension(n_sd_x_n_sd);
     Vint_1_temp.Dimension(n_en_displ_x_n_sd);
     Vint_2_temp.Dimension(n_en_micro*n_sd_x_n_sd);
     sigma_s.Dimension(n_sd,n_sd);
@@ -3121,15 +3121,15 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKphiu_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fKphiphi_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
     fKphiphi_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
-    fJ1_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fJ1_2.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fJ1_3.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fJ1_4.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fJ2_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fJ1_5.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fJ1_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fJ2_2.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fJ2_3.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fJ1_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fJ1_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fJ1_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fJ1_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fJ2_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fJ1_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fJ1_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fJ2_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fJ2_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     //////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
