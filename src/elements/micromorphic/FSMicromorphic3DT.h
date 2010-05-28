@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.90 2010-05-28 17:20:38 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.91 2010-05-28 20:50:08 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -21,10 +21,12 @@
 /* direct members */
 #include "LocalArrayT.h"
 #include "GeometryT.h"
+#include "dTensor3DT.h"// I added this header file to use Tensor built-in functions!
 
 #include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "VariLocalArrayT.h"
+
 
 namespace Tahoe {
 
@@ -734,7 +736,9 @@ private:
     dMatrixT fJ2_3;
     dMatrixT fFM;
     dMatrixT fMF;
-
+    dTensor3DT fMKLM;
+    dTensor3DT GAMMA;
+    dTensor3DT GRAD_CHIM;
 
     dArrayT Vint_1;
     dArrayT Vint_1_temp;
@@ -1032,7 +1036,8 @@ private:
     void Form_fJ2_3(void);
     void Form_fFM(void);
     void Form_fMF(void);
-
+    void Form_fMKLM(void);
+    void Form_GAMMA(void);
 
     //////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////

@@ -1043,8 +1043,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      Vint_1_temp=0.0;
      Vint_2=0.0;
      Vint_2_temp=0.0;
+     fMKLM=0.0;
+     GAMMA=0.0;
+     GRAD_CHIM=0.0;
      fV1=0.0;
      fV2=0.0;
+     fV3=0.0;
      fKu_1=0.0;
      fKu_2=0.0;
      fKu_3=0.0;
@@ -1054,6 +1058,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fKu_7=0.0;
      fKFJu=0.0;
      fKJFu=0.0;
+     fFM=0.0;
+     fMF=0.0;
+
      fKuphi_1=0.0;
      fKu_8=0.0;
      fKuphi_2=0.0;
@@ -1305,7 +1312,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                    Form_double_Finv_from_Deformation_tensor_inverse();// output: Finv
-                   Form_GRAD_Chi_matrix();////CHI=1+PHI ==> GRAD_CHI=GRAD_PHI output: GRAD_Chi[i][J][K]
+                   Form_GRAD_Chi_matrix();////CHI=1+PHI ==> GRAD_CHI=GRAD_PHI output: GRAD_Chi[i][J][K] AND GRAD_CHIM which is the dTensor3DT form
                    Form_Gamma_tensor3D();
 
                    Form_Finv_w_matrix();//output: Finv_w
@@ -1345,6 +1352,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     MicroStnTensor *= -1;
                     PSI.MultATB(fDeformation_Gradient,ChiM);
                     MicroStnTensor += PSI;
+
+                    Form_GAMMA();
+                    //GAMMA deformation measure will be formed
+                //   GAMMA.ContractIndex(GRAD_CHIM,0,fDeformation_Gradient,1);
 
     /*               fs_micromorph3D_out<<"MicroStnTensor"<< endl ;
                     for (int i=0; i<3; i++)
@@ -1432,6 +1443,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        scale=scale_const;
                        Vint_2_temp*=scale;
                        Vint_2 +=Vint_2_temp;
+
+
+
+
+
+
 
                        //Sigma.SetToScaled(1/J,KirchhoffST);
                        //Sigma*=1.7;
@@ -3125,6 +3142,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Vint_2_temp.Dimension(n_en_micro*n_sd_x_n_sd);
     Vint_3_temp.Dimension(n_en_micro*n_sd_x_n_sd);
     sigma_s.Dimension(n_sd,n_sd);
+    fMKLM.Dimension(n_sd,n_sd,n_sd);
+    GAMMA.Dimension(n_sd,n_sd,n_sd);
+    GRAD_CHIM.Dimension(n_sd,n_sd,n_sd);
 
     fKFJu.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fKJFu.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
@@ -3946,6 +3966,22 @@ void FSMicromorphic3DT:: Form_GRAD_Chi_matrix()
             }
         }
     }
+    row=0;
+
+    GRAD_NCHI.Multx(Phi_vec,GRAD_Chi_vec);
+    for(int T=0;T<=2;T++)
+    {
+        for(int i=0;i<=2;i++)
+        {
+            for(int K=0;K<=2;K++)
+            {
+                GRAD_CHIM(i,T,K)=GRAD_Chi_vec[row];//CHI=1+PHI ==> GRAD_CHI=GRAD_PHI
+                row++;
+            }
+        }
+    }
+
+
 }
 //Forming the Matrices coming from the Bal. of Lin. Mom.
 void FSMicromorphic3DT::Form_KroneckerDelta_matrix()
@@ -5828,7 +5864,7 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
         col=i;
         for(int  j=0; j<8; j++)
         {
-            GRAD_NCHI(row,col)  =fShapeMicroGrad_temp(0,j);
+            GRAD_NCHI(row  ,col)  =fShapeMicroGrad_temp(0,j);
             GRAD_NCHI(row+1,col)=fShapeMicroGrad_temp(1,j);
             GRAD_NCHI(row+2,col)=fShapeMicroGrad_temp(2,j);
             col=col+9;
@@ -8492,6 +8528,32 @@ void FSMicromorphic3DT::Form_fJ2_3()
 			col++;
 		}
 	}
+}
+
+void FSMicromorphic3DT:: Form_GAMMA()
+{
+	GAMMA=0.0;
+	for(int K=0;K<3;K++)
+	{
+		for(int L=0;L<3;L++)
+		{
+			for(int M=0;M<3;M++)
+			{
+				//summation
+				for(int i=0;i<3;i++)
+				{
+					GAMMA(K,L,M)+=fDeformation_Gradient(i,K)*GRAD_CHIM(i,L,M);
+				}
+			}
+		}
+	}
+}
+
+
+void FSMicromorphic3DT:: Form_fMKLM()
+{
+	fMKLM=0.0;
+	//for(int )
 }
 
 ////////////////////////////////////////////////////////////////
