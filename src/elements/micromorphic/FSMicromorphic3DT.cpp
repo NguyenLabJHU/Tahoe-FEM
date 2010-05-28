@@ -3118,10 +3118,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKuphi_3.Dimension (n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
     Vint_1.Dimension(n_en_displ_x_n_sd);
     Vint_2.Dimension(n_en_micro*n_sd_x_n_sd);
+    Vint_3.Dimension(n_en_micro*n_sd_x_n_sd);
     fV1.Dimension(n_sd_x_n_sd);
     fV2.Dimension(n_sd_x_n_sd);
     Vint_1_temp.Dimension(n_en_displ_x_n_sd);
     Vint_2_temp.Dimension(n_en_micro*n_sd_x_n_sd);
+    Vint_3_temp.Dimension(n_en_micro*n_sd_x_n_sd);
     sigma_s.Dimension(n_sd,n_sd);
 
     fKFJu.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
@@ -3138,6 +3140,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fFJ.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJF.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fFM.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    fMF.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
     fJ1_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJ1_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJ1_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
