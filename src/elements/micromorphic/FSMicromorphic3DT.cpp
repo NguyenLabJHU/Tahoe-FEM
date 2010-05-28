@@ -1353,10 +1353,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     PSI.MultATB(fDeformation_Gradient,ChiM);
                     MicroStnTensor += PSI;
 
-                    Form_GAMMA();
+
                     //GAMMA deformation measure will be formed
                 //   GAMMA.ContractIndex(GRAD_CHIM,0,fDeformation_Gradient,1);
-
+                    Form_GAMMA();
     /*               fs_micromorph3D_out<<"MicroStnTensor"<< endl ;
                     for (int i=0; i<3; i++)
                     {
@@ -1444,8 +1444,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Vint_2_temp*=scale;
                        Vint_2 +=Vint_2_temp;
 
-
-
+					   Form_fMKLM();
+					   Form_fV3();
+					   fIota_eta_temp_matrix.Multx(fV3,Vint_3_temp);
+					   scale=-1*scale_const;
+					   Vint_3_temp*=scale;
+					   Vint_3+=Vint_3_temp;
 
 
 
@@ -3138,6 +3142,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Vint_3.Dimension(n_en_micro*n_sd_x_n_sd);
     fV1.Dimension(n_sd_x_n_sd);
     fV2.Dimension(n_sd_x_n_sd);
+    fV3.Dimension(n_sd_x_n_sd_x_n_sd);
     Vint_1_temp.Dimension(n_en_displ_x_n_sd);
     Vint_2_temp.Dimension(n_en_micro*n_sd_x_n_sd);
     Vint_3_temp.Dimension(n_en_micro*n_sd_x_n_sd);
@@ -3145,6 +3150,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fMKLM.Dimension(n_sd,n_sd,n_sd);
     GAMMA.Dimension(n_sd,n_sd,n_sd);
     GRAD_CHIM.Dimension(n_sd,n_sd,n_sd);
+    fTemp_tensor_n_sd_x_n_sd_x_nsd.Dimension(n_sd,n_sd,n_sd);
 
     fKFJu.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fKJFu.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
@@ -8165,6 +8171,50 @@ void FSMicromorphic3DT:: Form_fV2()
 	}
 }
 
+
+void FSMicromorphic3DT:: Form_fV3()
+{
+	int row=0;
+	fV3=0.0;
+	fTemp_tensor_n_sd_x_n_sd_x_nsd=0.0;
+	for(int k=0;k<3;k++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			for(int m=0;m<3;m++)
+			{
+				//summation
+				for(int K=0;K<3;K++)
+				{
+					for(int L=0;L<3;L++)
+					{
+						for(int M=0;M<3;M++)
+						{
+							fTemp_tensor_n_sd_x_n_sd_x_nsd(k,l,m)+=fDeformation_Gradient(k,K)
+																  *fDeformation_Gradient(l,L)
+																  *fMKLM(K,L,M)
+																  *ChiM(m,M);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for(int l=0;l<3;l++)
+	{
+		for(int m=0;m<3;m++)
+		{
+			for(int k=0;k<3;k++)
+			{
+				fV3[row]+=fTemp_tensor_n_sd_x_n_sd_x_nsd(k,l,m);
+				row++;
+			}
+		}
+	}
+
+}
+
 void FSMicromorphic3DT:: Form_sigma_s()
 {
 	double trLST=0.0;
@@ -8553,7 +8603,16 @@ void FSMicromorphic3DT:: Form_GAMMA()
 void FSMicromorphic3DT:: Form_fMKLM()
 {
 	fMKLM=0.0;
-	//for(int )
+	for(int K=0;K<3;K++ )
+	{
+		for(int L=0;L<3;L++)
+		{
+			for(int M=0;M<3;M++)
+			{
+				fMKLM(K,L,M)=fMaterial_Params[kTau8]*(GAMMA(K,L,M)+GAMMA(M,L,K));
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////

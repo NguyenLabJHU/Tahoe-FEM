@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.91 2010-05-28 20:50:08 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.92 2010-05-28 22:21:50 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -739,6 +739,7 @@ private:
     dTensor3DT fMKLM;
     dTensor3DT GAMMA;
     dTensor3DT GRAD_CHIM;
+    dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_nsd;
 
     dArrayT Vint_1;
     dArrayT Vint_1_temp;
