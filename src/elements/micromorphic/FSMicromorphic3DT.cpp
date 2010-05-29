@@ -1060,6 +1060,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fKJFu=0.0;
      fFM=0.0;
      fMF=0.0;
+     fEtaM=0.0;
+
 
      fKuphi_1=0.0;
      fKu_8=0.0;
@@ -1489,6 +1491,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Form_fJ1_6();
                        Form_fJ2_3();
 
+                       Form_fFM();
+                       Form_fMF();
 
 /*
                        fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_1,fIota_temp_matrix);
@@ -3163,14 +3167,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKphiu_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fKphiphi_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
     fKphiphi_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
-    fKEtaM.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
-
 
     fFJ.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJF.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fFM.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
-    fMF.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
-    fEtaM.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    fEtaM.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fFM.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fMF.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     fJ1_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJ1_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJ1_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
@@ -8614,6 +8616,118 @@ void FSMicromorphic3DT:: Form_fMKLM()
 			{
 				fMKLM(K,L,M)=fMaterial_Params[kTau8]*(GAMMA(K,L,M)+GAMMA(M,L,K));
 			}
+		}
+	}
+}
+
+void FSMicromorphic3DT:: Form_fEtaM()
+{
+	int row=0;
+	int col=0;
+	fEtaM=0.0;
+	for(int k=0;k<3;k++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			//
+			row=i;
+			for(int l=0;l<3;l++)
+			{
+				for(int m=0;m<3;m++)
+				{
+					//summation
+					for(int K=0;K<3;K++)
+					{
+						for(int L=0;L<3;L++)
+						{
+							for(int M=0;M<3;M++)
+							{
+								fEtaM(row,col)+=fDeformation_Gradient(k,K)
+											  *fDeformation_Gradient(l,L)
+											  *fMKLM(K,L,M)
+											  *ChiM(m,M);
+							}
+						}
+					}
+					row=row+3;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+void FSMicromorphic3DT:: Form_fFM()
+{
+	int row=0;
+	int col=0;
+	fFM=0.0;
+	for(int n=0;n<3;n++)
+	{
+		for(int k=0;k<3;k++)
+		{
+			//
+			row=k;
+			for(int l=0;l<3;l++)
+			{
+				for(int m=0;m<3;m++)
+				{
+					//summation
+					for(int K=0;K<3;K++)
+					{
+						for(int L=0;L<3;L++)
+						{
+							for(int M=0;M<3;M++)
+							{
+								fEtaM(row,col)+=fDeformation_Gradient(n,K)
+											  *fDeformation_Gradient(l,L)
+											  *fMKLM(K,L,M)
+											  *ChiM(m,M);
+							}
+						}
+					}
+					row=row+3;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DT:: Form_fMF()
+{
+	int row=0;
+	int col=0;
+	fMF=0.0;
+	for(int n=0;n<3;n++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			//
+			row=l*9;
+			for(int m=0;m<3;m++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					//summation
+					for(int K=0;K<3;K++)
+					{
+						for(int L=0;L<3;L++)
+						{
+							for(int M=0;M<3;M++)
+							{
+								fMF(row,col)+=fDeformation_Gradient(k,K)
+											 *fDeformation_Gradient(n,L)
+											 *fMKLM(K,L,M)
+											 *ChiM(m,M);
+							}
+						}
+					}
+					row++;
+				}
+			}
+			col++;
 		}
 	}
 }
