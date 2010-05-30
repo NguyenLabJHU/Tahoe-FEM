@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.93 2010-05-28 23:28:46 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.94 2010-05-30 02:54:05 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -736,7 +736,9 @@ private:
     dMatrixT fJ2_3;
     dMatrixT fFM;
     dMatrixT fMF;
+    dMatrixT fMchi;
     dMatrixT fEtaM;
+    dMatrixT fMpu_1;
     dTensor3DT fMKLM;
     dTensor3DT GAMMA;
     dTensor3DT GRAD_CHIM;
@@ -777,7 +779,9 @@ private:
     dMatrixT fKphiphi_3;
 
     dMatrixT fKEtaM;
-
+    dMatrixT fKMFphiu;
+    dMatrixT fKMchiphiphi;
+    dMatrixT fKMphiu_1;
 
 
 
@@ -1043,7 +1047,8 @@ private:
     void Form_fMKLM(void);
     void Form_GAMMA(void);
     void Form_fEtaM(void);
-
+    void Form_fMchi(void);
+    void Form_fMpu_1(void);
     //////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////

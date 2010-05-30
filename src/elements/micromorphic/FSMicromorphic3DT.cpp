@@ -1493,6 +1493,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                        Form_fFM();
                        Form_fMF();
+                       Form_fMchi();
+                       Form_fMpu_1();
 
 /*
                        fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_1,fIota_temp_matrix);
@@ -1643,7 +1645,26 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fTemp_matrix_nchidof_x_nchidof *= scale;
                        // accumulate
                        fKphiphi_3 += fTemp_matrix_nchidof_x_nchidof;
+/*************************************************************************************************************/
 
+                       fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fMF,fIota_temp_matrix);
+                       scale =-1*scale_const;
+                       fTemp_matrix_nchidof_x_nudof *= scale;
+                       // accumulate
+                       fKMFphiu += fTemp_matrix_nchidof_x_nudof;
+
+                       fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,fMchi,NCHI);
+                       scale =-1*scale_const;
+                       fTemp_matrix_nchidof_x_nchidof *= scale;
+                       // accumulate
+                       fKMchiphiphi += fTemp_matrix_nchidof_x_nchidof;
+
+
+                       fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fMpu_1,fIota_temp_matrix);
+                       scale =-1*scale_const*fMaterial_Params[kTau8];
+                       fTemp_matrix_nchidof_x_nudof *= scale;
+                       // accumulate
+                       fKMphiu_1 += fTemp_matrix_nchidof_x_nudof;
 
                    }
                    else
@@ -3168,11 +3189,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKphiphi_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
     fKphiphi_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
 
+    fKMFphiu.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fKMchiphiphi.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKMphiu_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+
     fFJ.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJF.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fEtaM.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fFM.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fMF.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     fJ1_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJ1_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJ1_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
@@ -3182,6 +3204,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fJ1_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJ2_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJ2_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+    fEtaM.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fFM.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fMF.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fMchi.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fMpu_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     //////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
@@ -8731,6 +8759,83 @@ void FSMicromorphic3DT:: Form_fMF()
 		}
 	}
 }
+
+void FSMicromorphic3DT:: Form_fMchi()
+{
+	int row=0;
+	int col=0;
+	fMchi=0.0;
+	for(int M=0;M<3;M++)
+	{
+		for(int m=0;m<3;m++)
+		{
+			row=m*2;
+			for(int l=0;l<3;l++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					//summation
+					for(int K=0;K<3;K++)
+					{
+						for(int L=0;L<3;L++)
+						{
+							for(int M=0;M<3;M++)
+							{
+								fMchi(row,col)+=fDeformation_Gradient(k,K)*fDeformation_Gradient(l,L)*fMKLM(K,L,M);
+							}
+						}
+					}
+					row++;
+				}
+				row=row+7;
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DT:: Form_fMpu_1()
+{
+	int row=0;
+	int col=0;
+	fMpu_1=0.0;
+	for(int n=0;n<3;n++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			//
+			row=0;
+			for(int l=0;l<3;l++)
+			{
+				for(int m=0;m<3;m++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						//summation
+						for(int K=0;K<3;K++)
+						{
+							for(int L=0;L<3;L++)
+							{
+								for(int M=0;M<3;M++)
+								{
+									fMpu_1(row,col)+=fDeformation_Gradient(k,K)
+													*fDeformation_Gradient(l,L)
+													*fDeformation_Gradient(n,K)
+													*GRAD_CHIM(i,L,M)
+													*ChiM(m,M);
+								}
+							}
+						}
+						row++;
+					}
+				}
+				col++;
+			}
+		}
+	}
+}
+
+
 
 ////////////////////////////////////////////////////////////////
 //////////////FINITE STRAIN MATRICES ENDS//////////////////
