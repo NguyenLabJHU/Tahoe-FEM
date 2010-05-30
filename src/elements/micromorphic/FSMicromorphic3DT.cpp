@@ -1495,6 +1495,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Form_fMF();
                        Form_fMchi();
                        Form_fMpu_1();
+                       Form_fMpp_1();
 
 /*
                        fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_1,fIota_temp_matrix);
@@ -3192,6 +3193,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKMFphiu.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fKMchiphiphi.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
     fKMphiu_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fKMphiphi_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
 
     fFJ.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJF.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
@@ -3210,6 +3212,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fMF.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     fMchi.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     fMpu_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fMpp_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
     //////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
@@ -8829,13 +8832,51 @@ void FSMicromorphic3DT:: Form_fMpu_1()
 						row++;
 					}
 				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DT:: Form_fMpp_1()
+{
+	int row=0;
+	int col=0;
+	fMpp_1=0.0;
+	for(int L=0;L<3;L++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			for(int M=0;M<3;M++)
+			{
+				//
+				row=0;
+				for(int l=0;l<3;l++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						for(int k=0;k<3;k++)
+						{
+							//summation
+							for(int K=0;K<3;K++)
+							{
+								for(int M=0;M<3;M++)
+								{
+									fMpp_1(row,col)+=fDeformation_Gradient(k,K)
+													*fDeformation_Gradient(l,L)
+													*fDeformation_Gradient(i,K)
+													*ChiM(m,M);
+								}
+							}
+						}
+						row++;
+					}
+				}
 				col++;
 			}
 		}
 	}
 }
-
-
 
 ////////////////////////////////////////////////////////////////
 //////////////FINITE STRAIN MATRICES ENDS//////////////////
