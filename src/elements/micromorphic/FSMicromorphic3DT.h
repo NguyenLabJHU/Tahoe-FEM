@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.95 2010-05-30 05:49:10 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.96 2010-05-30 07:07:59 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -734,16 +734,6 @@ private:
     dMatrixT fJ2_2;
     dMatrixT fJ1_6;
     dMatrixT fJ2_3;
-    dMatrixT fFM;
-    dMatrixT fMF;
-    dMatrixT fMchi;
-    dMatrixT fEtaM;
-    dMatrixT fMpu_1;
-    dMatrixT fMpp_1;
-    dTensor3DT fMKLM;
-    dTensor3DT GAMMA;
-    dTensor3DT GRAD_CHIM;
-    dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_nsd;
 
     dArrayT Vint_1;
     dArrayT Vint_1_temp;
@@ -779,12 +769,28 @@ private:
     dMatrixT fKphiu_6;
     dMatrixT fKphiphi_3;
 
+    dMatrixT fFM;
+    dMatrixT fMF;
+    dMatrixT fMchi;
+    dMatrixT fEtaM;
+    dMatrixT fMpu_1;
+    dMatrixT fMpp_1;
+    dMatrixT fMpu_2;
+    dMatrixT fMpp_2;
+    dTensor3DT fMKLM;
+    dTensor3DT GAMMA;
+    dTensor3DT GRAD_CHIM;
+    dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_nsd;
+
+
+
     dMatrixT fKEtaM;
     dMatrixT fKMFphiu;
     dMatrixT fKMchiphiphi;
     dMatrixT fKMphiu_1;
     dMatrixT fKMphiphi_1;
-
+    dMatrixT fKMphiu_2;
+    dMatrixT fKMphiphi_2;
 
 
     double trLST;
@@ -1052,6 +1058,8 @@ private:
     void Form_fMchi(void);
     void Form_fMpu_1(void);
     void Form_fMpp_1(void);
+    void Form_fMpu_2(void);
+    void Form_fMpp_2(void);
     //////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////
