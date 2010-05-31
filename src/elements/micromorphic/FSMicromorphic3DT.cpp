@@ -1512,6 +1512,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Form_fMpu_2();
                        Form_fMpp_2();
 
+
 /*
                        fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_1,fIota_temp_matrix);
                        scale =-scale_const;
@@ -2311,6 +2312,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid+=fKFJu;
             fKphid+=fKJFu;
 
+            fKphid+=fKMFphiu;
+            fKphid+=fKMphiu_1;
+            fKphid+=fKMphiu_2;
+
+
            /* [fKphiphi] will be formed */
           //need to code
            //fKphiphi = 0.0;
@@ -2318,9 +2324,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
            fKphiphi+=fKphiphi_2;
            fKphiphi+=fKphiphi_3;
 
+           fKphiphi+=fKMchiphiphi;
+           fKphiphi+=fKMphiphi_1;
+           fKphiphi+=fKMphiphi_2;
+
+
             /* {fFphi_int} will be formed */
 //           fFphi_int  = 0.0;
            fFphi_int = Vint_2;
+           fFphi_int +=Vint_3;
            fFphi_int *=-1;
 
             }
@@ -2341,7 +2353,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
             //[fKdd] will be formed
 
-            fKdd = fK_dd_G3_1_matrix;
+            fKdd  = fK_dd_G3_1_matrix;
             fKdd += fK_dd_G3_2_matrix;
             fKdd += fK_dd_G3_3_matrix;
             fKdd += fK_dd_G3_4_matrix;
