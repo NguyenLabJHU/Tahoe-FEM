@@ -1043,6 +1043,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      Vint_1_temp=0.0;
      Vint_2=0.0;
      Vint_2_temp=0.0;
+     Vint_3=0.0;
+     Vint_3_temp=0.0;
+
      fMKLM=0.0;
      GAMMA=0.0;
      GRAD_CHIM=0.0;
@@ -1134,7 +1137,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     }
 */
 
+    for (int i=0; i<3; i++)
+    {
+       for(int j=0;j<3;j++)
+       {
+    	   for(int k=0;k<3;k++)
+    	   {
+    	    	fs_micromorph3D_out        << "fMKLM(i,j,k) " << i<<j<<k <<" :  " ;
+    	        fs_micromorph3D_out        << fMKLM(i,j,k) << endl;
+    	   }
+       }
 
+    }
 
     /* populate solid displacement,solid velocity and
        solid accelration in vector form*/
@@ -1287,7 +1301,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                   //  [fShapeMicroGrad] will be formed
                    fShapes_micro->GradNa(fShapeMicroGrad_temp);
 
-                   //real name should be NPHI, NCHI is not a proper name!
+                   //the correct name should be NPHI, NCHI is not a proper name!
                    Form_NCHI_matrix(fShapeMicro_row_matrix); //output: NCHI matrix
                    NCHI_Tr.Transpose(NCHI);
                    Form_Gradient_of_micro_shape_eta_functions(fShapeMicroGrad_temp);//output: GRAD_NCHI
@@ -1371,7 +1385,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                     //GAMMA deformation measure will be formed
                 //   GAMMA.ContractIndex(GRAD_CHIM,0,fDeformation_Gradient,1);
-                    Form_GAMMA();
+
     /*               fs_micromorph3D_out<<"MicroStnTensor"<< endl ;
                     for (int i=0; i<3; i++)
                     {
@@ -1459,6 +1473,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Vint_2_temp*=scale;
                        Vint_2 +=Vint_2_temp;
 
+
+                       Form_GAMMA();
 					   Form_fMKLM();
 					   Form_fV3();
 					   fIota_eta_temp_matrix.Multx(fV3,Vint_3_temp);
@@ -1504,7 +1520,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Form_fJ1_6();
                        Form_fJ2_3();
 
-                       Form_fFM();
+                     //  Form_fFM();
                        Form_fMF();
                        Form_fMchi();
                        Form_fMpu_1();
@@ -2331,7 +2347,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
             /* {fFphi_int} will be formed */
 //           fFphi_int  = 0.0;
-           fFphi_int = Vint_2;
+           fFphi_int  = Vint_2;
            fFphi_int +=Vint_3;
            fFphi_int *=-1;
 
@@ -4056,9 +4072,8 @@ void FSMicromorphic3DT:: Form_GRAD_Chi_matrix()
             }
         }
     }
-    row=0;
 
-    GRAD_NCHI.Multx(Phi_vec,GRAD_Chi_vec);
+    row=0;
     for(int T=0;T<=2;T++)
     {
         for(int i=0;i<=2;i++)
@@ -4070,9 +4085,9 @@ void FSMicromorphic3DT:: Form_GRAD_Chi_matrix()
             }
         }
     }
-
-
 }
+
+
 //Forming the Matrices coming from the Bal. of Lin. Mom.
 void FSMicromorphic3DT::Form_KroneckerDelta_matrix()
 {
@@ -4368,7 +4383,6 @@ void FSMicromorphic3DT::Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix)
         }
         row++;
     }
-
 
 }
 
@@ -5952,11 +5966,11 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
     for(int i=0;i<9;i++)
     {
         col=i;
-        for(int  j=0; j<8; j++)
+        for(int j=0; j<8; j++)
         {
             GRAD_NCHI(row  ,col)  =fShapeMicroGrad_temp(0,j);
-            GRAD_NCHI(row+1,col)=fShapeMicroGrad_temp(1,j);
-            GRAD_NCHI(row+2,col)=fShapeMicroGrad_temp(2,j);
+            GRAD_NCHI(row+1,col)  =fShapeMicroGrad_temp(1,j);
+            GRAD_NCHI(row+2,col)  =fShapeMicroGrad_temp(2,j);
             col=col+9;
         }
         row=row+3;
