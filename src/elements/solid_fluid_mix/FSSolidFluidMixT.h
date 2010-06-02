@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.30 2009-07-07 23:15:40 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.31 2010-06-02 04:18:22 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -394,6 +394,7 @@ private:
 	//F, Finv
 	dMatrixT	fDeformation_Gradient;
 	dMatrixT	fDefGradT_9x9_matrix;
+	dMatrixT	fLagrangian_strain_tensor;
 	dMatrixT	fRight_Cauchy_Green_tensor;
 	dMatrixT	fRight_Cauchy_Green_tensor_Inverse;
 	dMatrixT	fLeft_Cauchy_Green_tensor;

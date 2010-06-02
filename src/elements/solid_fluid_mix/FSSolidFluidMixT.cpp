@@ -1385,6 +1385,12 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				/* [fRight_Cauchy_Green_tensor] will be formed */
 				fRight_Cauchy_Green_tensor.MultATB(fDeformation_Gradient, fDeformation_Gradient);
 				
+				/* [fLagrangian_strain_tensor] will be formed */
+				fLagrangian_strain_tensor = fIdentity_matrix;
+				fLagrangian_strain_tensor *= -1; 
+				fLagrangian_strain_tensor += fRight_Cauchy_Green_tensor;
+				fLagrangian_strain_tensor *= 0.5;
+				
 				/* [fRight_Cauchy_Green_tensor_Inverse] will be formed */
 				if (fRight_Cauchy_Green_tensor.Det()==0)
 				    fRight_Cauchy_Green_tensor = fIdentity_matrix;
@@ -1418,9 +1424,17 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				if (iConstitutiveModelType==1) //elastic
 				{
 					/* Second Piola stress */
+					/*
 					fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)
 						-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
 					fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
+					fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
+					*/
+					
+					/* Second Piola stress for LINEAR elasticity */
+					double volLagstrain = fRight_Cauchy_Green_tensor.Trace();
+					fEffective_Second_Piola_tensor.SetToScaled(2*fMaterial_Params[kMu],fLagrangian_strain_tensor); 
+					fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kLambda]*volLagstrain,fIdentity_matrix);
 					fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
 					
 					/* invariant stresses for output */
@@ -3142,6 +3156,7 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fDefGradInv_Grad_grad_Transpose.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fDefGradT_9x9_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fDefGradInv_vector.Dimension (n_sd_x_n_sd);
+    fLagrangian_strain_tensor.Dimension (n_sd,n_sd);
     fRight_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fRight_Cauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
     fLeft_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
