@@ -9341,7 +9341,8 @@ void FSMicromorphic3DT:: Form_fMpu_2()
 						}
 					}
 				}
-				col++;			}
+				col++;
+			}
 		}
 
 
