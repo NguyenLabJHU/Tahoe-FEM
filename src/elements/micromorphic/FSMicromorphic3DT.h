@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.96 2010-05-30 07:07:59 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.97 2010-06-04 05:52:11 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -9,7 +9,6 @@
 #include "Traction_CardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
-
 #include "ModelManagerT.h"
 
 #include "ifstreamT.h"
@@ -701,6 +700,8 @@ private:
     //////FINITE STRAIN ELASTICITY MATRICES START HERE/////////
     //////////////////////////////////////////////////////////
     //dMatrixT V_1;
+    dMatrixT Jmat;
+    dMatrixT KJmat;
     dMatrixT SPK;
     dMatrixT KirchhoffST;// The second Piola-Kirchhoff Matrix
     dMatrixT Temp_SPK;//temporary Matrix used in calculation of SPK
@@ -1060,6 +1061,8 @@ private:
     void Form_fMpp_1(void);
     void Form_fMpu_2(void);
     void Form_fMpp_2(void);
+
+    void Form_Jmat(void);
     //////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////
