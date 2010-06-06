@@ -690,8 +690,8 @@ void FSMicromorphic3DT::RegisterOutput(void)
     /* over integration points */
     // enter what values you need at integration points
     // stress and strain
-    const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","e11","e22","e33","e23","e13","e12"};
-//    const char* slabels3D[] = {"s11","s22","s33","s12","s13","s21","s23","s31","s32","e11","e22","e33","e12","e13","e21","e23","e31","e32"};
+  //  const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","e11","e22","e33","e23","e13","e12"};
+    const char* slabels3D[] = {"s11","s22","s33","s12","s13","s21","s23","s31","s32","e11","e22","e33","e12","e13","e21","e23","e31","e32"};
 
     // state variables; ?
     const char* svlabels3D[] = {"thing1","thing2","J"};
@@ -1226,24 +1226,24 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     if (bStep_Complete)
     {
         //-- Store/Register data in classic tahoe manner
-        out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-        //out_variable_all.Alias(fNumIP_micro, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+        //out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+        out_variable_all.Alias(fNumIP_micro, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
         for (l=0; l < fNumIP_displ; l++)
         //for (l=0; l < fNumIP_micro; l++)
         {
             out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
 
-//          Put_values_In_dArrayT_vector(fCauchy_stress_Elements_IPs, e,l,fTemp_nine_values);
-            Put_values_In_dArrayT_vector(fCauchy_stress_Elements_IPs, e,l,fTemp_six_values);
+          Put_values_In_dArrayT_vector(fCauchy_stress_Elements_IPs, e,l,fTemp_nine_values);
+//            Put_values_In_dArrayT_vector(fCauchy_stress_Elements_IPs, e,l,fTemp_six_values);
 
-//          out_variable.CopyIn(0,fTemp_nine_values);
-            out_variable.CopyIn(0,fTemp_six_values);
+          out_variable.CopyIn(0,fTemp_nine_values);
+//            out_variable.CopyIn(0,fTemp_six_values);
 
-            Put_values_In_dArrayT_vector(fEulerian_strain_Elements_IPs, e,l,fTemp_six_values);
-//          Put_values_In_dArrayT_vector(fEulerian_strain_Elements_IPs, e,l,fTemp_nine_values);
+//        Put_values_In_dArrayT_vector(fEulerian_strain_Elements_IPs, e,l,fTemp_six_values);
+          Put_values_In_dArrayT_vector(fEulerian_strain_Elements_IPs, e,l,fTemp_nine_values);
 
-            out_variable.CopyIn(6,fTemp_six_values);
-//          out_variable.CopyIn(9,fTemp_nine_values);!!9->6?
+//        out_variable.CopyIn(6,fTemp_six_values);
+          out_variable.CopyIn(9,fTemp_nine_values);//!!9->6?
 
             /*
             out_variable[13]=fState_variables_Elements_IPs(e,l*3+0);
@@ -1413,12 +1413,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fEulerian_strain_tensor_current_IP += fIdentity_matrix;
                    fEulerian_strain_tensor_current_IP *= 0.5;
                //    fEulerian_strain_tensor_current_IP = LagrangianStn;
-   //                Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);
-                   Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_six_values);
+                   Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);
+ //                Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_six_values);
 
                    /* Save Eulerian strain tensor of the current IP */
-   //                fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
-                   fEulerian_strain_IPs.SetRow(IP,fTemp_six_values);
+                   fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
+  //                 fEulerian_strain_IPs.SetRow(IP,fTemp_six_values);
 
 
                    /* [fIota_temp_matrix] will be formed */
@@ -1480,12 +1480,17 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Sigma.SetToScaled(1/J,KirchhoffST);
                      //  cout<< invJ<<endl;
                       fCauchy_stress_tensor_current_IP=Sigma;
-                    //   fCauchy_stress_tensor_current_IP=SPK;
-                       Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
-                       // Save Cauchy effective stress tensor of the current IP
-                       fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
-                       /*internal force is calculated from BLM */
 
+                    //fCauchy_stress_tensor_current_IP=SPK;
+                    //Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
+                      Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
+
+                      // Save Cauchy effective stress tensor of the current IP
+                    //fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
+                      fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
+
+
+                       /*internal force is calculated from BLM */
 /*                       Form_I1_1();
                        Form_I1_2();*/
 
@@ -1797,12 +1802,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fCauchy_stress_tensor_current_IP=Sigma;
 
                    // extract six values of stress from symmetric cauchy stress tensor
-   //                Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
-                   Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
+                  Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
+               // Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
 
-                   // Save Cauchy effective stress tensor of the current IP
-                   fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
-
+                //Save Cauchy effective stress tensor of the current IP
+                //fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
+                  fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
 
    ////////////////////////////////////////////////////////////////////////////////
    /////////////////MicroMorphic Internal force vectors finish here////////////////////////
@@ -2702,12 +2707,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     knum_i_state = 0; // int's needed per ip, state variables
 
     //need to change these for non-symmetric stress, and higher order couple stress output
-//    knumstrain = 9; // number of strain outputs
-//    knumstress = 9; // number of stress outputs + higher order = ??
+    knumstrain = 9; // number of strain outputs
+    knumstress = 9; // number of stress outputs + higher order = ??
 
-    knumstrain = 6; // number of strain outputs
+/*    knumstrain = 6; // number of strain outputs
     knumstress = 6; // number of stress outputs + higher order = ??
-
+*/
 
     output = "out";
 
@@ -3396,7 +3401,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fEulerian_strain_IPs.Dimension (fNumIP_displ,knumstrain);
     fCauchy_stress_IPs.Dimension (fNumIP_displ,knumstress);
     fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
-  //  fTemp_nine_values.Dimension(9);
+    fTemp_nine_values.Dimension(9);
     fTemp_six_values.Dimension(6);
     fEulerian_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstrain);
     fCauchy_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstress);
@@ -9446,17 +9451,18 @@ void FSMicromorphic3DT:: Form_Jmat()
 //////////////FINITE STRAIN MATRICES ENDS//////////////////
 ////////////////////////////////////////////////////////////////
 
-void FSMicromorphic3DT:: Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values)
+/*void FSMicromorphic3DT:: Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values)*/
+void FSMicromorphic3DT:: Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_nine_values)
 {
 
-    fTemp_six_values[0]=fTensor(0,0);
+/*    fTemp_six_values[0]=fTensor(0,0);
     fTemp_six_values[1]=fTensor(1,1);
     fTemp_six_values[2]=fTensor(2,2);
     fTemp_six_values[3]=fTensor(1,2);
     fTemp_six_values[4]=fTensor(2,0);
-    fTemp_six_values[5]=fTensor(0,1);
+    fTemp_six_values[5]=fTensor(0,1);*/
 
-/*  fTemp_nine_values[0]=fTensor(0,0);//sigma11
+    fTemp_nine_values[0]=fTensor(0,0);//sigma11
     fTemp_nine_values[1]=fTensor(1,1);//sigma22
     fTemp_nine_values[2]=fTensor(2,2);//sigma33
     fTemp_nine_values[3]=fTensor(0,1);//sigma12
@@ -9465,17 +9471,30 @@ void FSMicromorphic3DT:: Extract_six_values_from_symmetric_tensor(const dMatrixT
     fTemp_nine_values[6]=fTensor(1,2);//sigma23
     fTemp_nine_values[7]=fTensor(2,0);//sigma31
     fTemp_nine_values[8]=fTensor(2,1);//sigma32
-*/
+
 }
 
 void FSMicromorphic3DT::Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT)
 {
-    fArrayT[0]=f2DArrayT(e,IP*6+0);
+/*    fArrayT[0]=f2DArrayT(e,IP*6+0);
     fArrayT[1]=f2DArrayT(e,IP*6+1);
     fArrayT[2]=f2DArrayT(e,IP*6+2);
     fArrayT[3]=f2DArrayT(e,IP*6+3);
     fArrayT[4]=f2DArrayT(e,IP*6+4);
-    fArrayT[5]=f2DArrayT(e,IP*6+5);
+    fArrayT[5]=f2DArrayT(e,IP*6+5);*/
+
+    fArrayT[0]=f2DArrayT(e,IP*9+0);
+    fArrayT[1]=f2DArrayT(e,IP*9+1);
+    fArrayT[2]=f2DArrayT(e,IP*9+2);
+    fArrayT[3]=f2DArrayT(e,IP*9+3);
+    fArrayT[4]=f2DArrayT(e,IP*9+4);
+    fArrayT[5]=f2DArrayT(e,IP*9+5);
+    fArrayT[6]=f2DArrayT(e,IP*9+6);
+    fArrayT[7]=f2DArrayT(e,IP*9+7);
+    fArrayT[8]=f2DArrayT(e,IP*9+8);
+
+
+
 }
 
 
