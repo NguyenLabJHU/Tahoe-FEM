@@ -387,10 +387,10 @@ void FSMicromorphic3DT::CloseStep(void)
         fs_micromorph3D_out        << endl ;
     }
 
-
+*/
     fs_micromorph3D_out        << "xxxxxxxxxxxxxx " << endl;
     fs_micromorph3D_out        << "xxxxxxxxxxxxxx " << endl;
-    for (int i=0; i<3; i++)
+/*    for (int i=0; i<3; i++)
     {
 
         for (int j=0; j<3; j++)
@@ -403,9 +403,20 @@ void FSMicromorphic3DT::CloseStep(void)
         fs_micromorph3D_out << endl;
         }
        // fs_micromorph3DMn_out        << endl ;
-    }
+    }*/
+    for (int i=0; i<3; i++)
+       {
 
-*/
+           for (int j=0; j<3; j++)
+           {
+              for(int k=0;k<3;k++)
+              {
+               fs_micromorph3D_out<<"fMKLM"<< "("<<i<<","<<j<<","<<k<<")"<< " :  " ;
+               fs_micromorph3D_out << fMKLM(i,j,k) <<"\t";
+              }
+           fs_micromorph3D_out << endl;
+           }
+       }
 
 
 }
@@ -1623,6 +1634,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fTemp_matrix_nudof_x_nudof *= scale;
                        // accumulate
                        fKu_8 += fTemp_matrix_nudof_x_nudof;
+
+
 
                        fTemp_matrix_nudof_x_nchidof.MultABC(fIota_temp_matrix,I2_2,NCHI);//ABC not ABCT
                        scale = scale_const*fMaterial_Params[kKappa];
@@ -8275,10 +8288,11 @@ void FSMicromorphic3DT:: Form_I2_2()
             {
                 for(int l=0;l<3;l++)
                 {
-                     for(int K=0;K<3;K++)
+                    //summation
+                	for(int K=0;K<3;K++)
                      {
                          I2_2(row,col)+=fDeformation_Gradient(k,K)*fDeformation_Gradient(i,K)
-                                       *fDeformation_Gradient(l,K);
+                                       *fDeformation_Gradient(l,L);
                      }
                      row++;
                 }
@@ -9177,7 +9191,7 @@ void FSMicromorphic3DT:: Form_fMpu_1()
 													*fDeformation_Gradient(n,K)
 													*GRAD_CHIM(i,L,M)
 													*ChiM(m,M)
-													*fDeformation_Gradient_Inverse(K,k);
+													*fDeformation_Gradient_Inverse(K,k)!this is worn K is repeated 3 times but already commented out);
 									}
 								}
 							}
@@ -9269,7 +9283,7 @@ void FSMicromorphic3DT:: Form_fMpp_1()
 						{
 							//summation
 
-						fMpp_1(row,col)+=fDeformation_Gradient(l,L)
+						 fMpp_1(row,col)=fDeformation_Gradient(l,L)
 										*fDeformation_Gradient(i,K)
 										*ChiM(m,M);
 
@@ -10121,5 +10135,11 @@ void FSMicromorphic3DT::Compute_norm_of_array(double& norm,const LocalArrayT& B)
     }
     norm = sqrt(sum);
 }
+*/
 
+/*
+<kinematic_BC dof="3" node_ID="6" type="fixed"/>
+<kinematic_BC dof="1" node_ID="6" type="fixed"/>
+<kinematic_BC dof="2" node_ID="1" type="fixed"/>
+<kinematic_BC dof="2" node_ID="4" schedule="1" type="u" value="-0.5"/>
 */
