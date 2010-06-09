@@ -1,4 +1,4 @@
-/* $Id: VWPotentialT.cpp,v 1.3 2009-09-04 20:40:33 tdnguye Exp $ */
+/* $Id: VWPotentialT.cpp,v 1.4 2010-06-09 03:04:33 tdnguye Exp $ */
 #include "VWPotentialT.h"
 #include "ExceptionT.h"
 
@@ -20,7 +20,7 @@ VWPotentialT::VWPotentialT(void):
 /* set parameters */
 void VWPotentialT::SetKappaMu(double kappa, double mu)
 {
-	fMu = (falpha*fbeta*fbeta-fgamma);
+	fMu = (falpha*fbeta-fgamma);
 	SetKappa(kappa);
 }
 
@@ -59,7 +59,7 @@ double VWPotentialT::Energy(const dArrayT& lambda_bar, const double& J,  double 
   double I1 = lambda_bar[0]+lambda_bar[1]+lambda_bar[2];
   double I2 = lambda_bar[0]*lambda_bar[1]+lambda_bar[1]*lambda_bar[2]+lambda_bar[0]*lambda_bar[2];
 
-  double phi = 0.5*falpha*(exp(fbeta*(I1-3.0))-1.0);
+  double phi = 0.5*falpha/fbeta*(exp(fbeta*(I1-3.0)));
   phi -= 0.5*fgamma*(I2-3.0);
   phi += MeanEnergy(J);
   return(phi);
@@ -73,7 +73,7 @@ void VWPotentialT::DevStress(const dArrayT& lambda_bar,dArrayT& tau,  double tem
   const double& l2 = lambda_bar[2];
 	
   double I1 = lambda_bar[0]+lambda_bar[1]+lambda_bar[2];
-  double coeff = falpha*fbeta*exp(fbeta*(I1-3));
+  double coeff = falpha*exp(fbeta*(I1-3));
   
   tau[0] = coeff*third*(2.0*l0-l1-l2);
   tau[1] = coeff*third*(2.0*l1-l0-l2);
@@ -102,7 +102,7 @@ void VWPotentialT::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus, 
   const double& l2 = lambda_bar[2];
   
   double I1 = lambda_bar[0]+lambda_bar[1]+lambda_bar[2];
-  double coeff = falpha*fbeta*exp(fbeta*(I1-3));
+  double coeff = falpha*exp(fbeta*(I1-3));
 
 	eigenmodulus[0] = 2.0*coeff*ninth*(4.0*l0 + l1 + l2) 
 		+ 2.0*coeff*ninth*fbeta*(2.0*l0 - l1 - l2)*(2.0*l0 - l1 - l2);
@@ -122,16 +122,16 @@ void VWPotentialT::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus, 
 	}
 	else 
 	{
-		eigenmodulus[2] = 2.0*coeff*ninth*(4.0*l2 + l0 + l1);
+		eigenmodulus[2] = 2.0*coeff*ninth*(4.0*l2 + l0 + l1)
 			+ 2.0*fbeta*coeff*ninth*(2.0*l2 - l0 - l1)*(2.0*l2 - l0 - l1);
 			
-		eigenmodulus[3] = 2.0*coeff*ninth*(-2.0*l1 - 2.0*l2 + l0);
+		eigenmodulus[3] = 2.0*coeff*ninth*(-2.0*l1 - 2.0*l2 + l0)
 			+ 2.0*fbeta*coeff*ninth*(-l2 + 2.0*l1 - l0)*(2.0*l2 - l1 - l0);
 			
-		eigenmodulus[4] = 2.0*coeff*ninth*(-2.0*l0 - 2.0*l2 + l1);
+		eigenmodulus[4] = 2.0*coeff*ninth*(-2.0*l0 - 2.0*l2 + l1)
 			+ 2.0*fbeta*coeff*ninth*(-l2 + 2.0*l0 - l1)*(2.0*l2 - l0 - l1);
 			
-		eigenmodulus[5] = 2.0*coeff*ninth*(-2.0*l0 - 2.0*l1 + l2);
+		eigenmodulus[5] = 2.0*coeff*ninth*(-2.0*l0 - 2.0*l1 + l2)
 			+ 2.0*fbeta*coeff*ninth*(-l0 + 2.0*l1 - l2)*(2.0*l0 - l1 - l2);
 
 		eigenmodulus[2] += -2.0*fgamma*ninth*(4.0/l2 + 1.0/l0 + 1.0/l1);
