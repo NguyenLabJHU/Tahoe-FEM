@@ -950,6 +950,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		fFtheta_int_N1_vector = 0.0;
 		fFtheta_int_N2_vector = 0.0;
 		fK_dd_G3_1_matrix = 0.0;
+		fK_dd_G3_1a_matrix = 0.0;
 		fK_dd_G3_2_matrix = 0.0;
 		fK_dd_G3_3_matrix = 0.0;
 		fK_dd_G3_4_matrix = 0.0;
@@ -1432,7 +1433,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 					*/
 					
 					/* Second Piola stress for LINEAR elasticity */
-					double volLagstrain = fRight_Cauchy_Green_tensor.Trace();
+					double volLagstrain = fLagrangian_strain_tensor.Trace();
 					fEffective_Second_Piola_tensor.SetToScaled(2*fMaterial_Params[kMu],fLagrangian_strain_tensor); 
 					fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kLambda]*volLagstrain,fIdentity_matrix);
 					fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
@@ -2004,6 +2005,18 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				/* [fEll_temp_matrix] will be formed */
 				Form_Ell_temp_matrix();
 				
+				/* [fHbarTau_temp_matrix] will be formed for LINEAR elasticity */
+				Form_HbarTau_temp_matrix();
+				
+				/* [fEllTau_temp_matrix] will be formed for LINEAR elasticity */
+				Form_EllTau_temp_matrix();
+				
+				/* [fBotimesB_temp_matrix] will be formed for LINEAR elasticity */
+				Form_BotimesB_temp_matrix();
+				
+				/* [fBodotB_temp_matrix] will be formed for LINEAR elasticity */
+				Form_BodotB_temp_matrix();
+				
 				/* {fPi_temp_transpose_vector} will be formed */
 				fShapeSolidGrad.MultTx(fDefGradInv_vector,fPi_temp_transpose_vector);
 			
@@ -2018,6 +2031,20 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				/* accumulate */
 				fK_dd_G3_1_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 				
+				/* [fK_dd_G3_1a_matrix] will be formed for LINEAR elasticity */
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fHbarTau_temp_matrix,fIota_temp_matrix);
+				if (iConstitutiveModelType==1) //LINEAR elastic
+				{
+					scale = integrate_param * scale_const;
+				}
+				else if (iConstitutiveModelType==2) //Drucker-Prager plastic
+				{
+					scale = 0;
+				}
+				fTemp_matrix_ndof_se_x_ndof_se *= scale;
+				/* accumulate */
+				fK_dd_G3_1a_matrix += fTemp_matrix_ndof_se_x_ndof_se;
+				
 				/* [fI_ij_column_matrix] will be formed */
 				fI_ij_column_matrix = 0.0;
 				fI_ij_column_matrix(0,0) = 1.0;
@@ -2025,10 +2052,14 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fI_ij_column_matrix(8,0) = 1.0;
 				
 				/* [fK_dd_G3_2_matrix] will be formed */
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fHbar_temp_matrix,fIota_temp_matrix);
+				//fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fHbar_temp_matrix,fIota_temp_matrix);
+				// LINEAR elastic
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fEllTau_temp_matrix,fIota_temp_matrix);
 				if (iConstitutiveModelType==1) //elastic
 				{
-					scale = fMaterial_Params[kMu] * integrate_param * scale_const;
+					//scale = fMaterial_Params[kMu] * integrate_param * scale_const;
+					// LINEAR elastic
+					scale = integrate_param * scale_const;
 				}
 				else if (iConstitutiveModelType==2) //Drucker-Prager plastic
 				{
@@ -2039,10 +2070,14 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fK_dd_G3_2_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 			
 				/* [fK_dd_G3_3_matrix] will be formed */
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fEll_temp_matrix,fIota_temp_matrix);
+				//fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fEll_temp_matrix,fIota_temp_matrix);
+				// LINEAR elastic
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fBotimesB_temp_matrix,fIota_temp_matrix);
 				if (iConstitutiveModelType==1) //elastic
 				{
-					scale = fMaterial_Params[kMu] * integrate_param * scale_const;
+					//scale = fMaterial_Params[kMu] * integrate_param * scale_const;
+					// LINEAR elastic
+					scale = fMaterial_Params[kLambda] * integrate_param * scale_const;
 				}
 				else if (iConstitutiveModelType==2) //Drucker-Prager plastic
 				{
@@ -2053,10 +2088,14 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fK_dd_G3_3_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 				
 				/* [fK_dd_G3_4_matrix] will be formed */
-				fTemp_matrix_ndof_se_x_ndof_se.MultABC(fIota_temp_matrix,fI_ij_column_matrix,fPi_temp_row_matrix);
+				//fTemp_matrix_ndof_se_x_ndof_se.MultABC(fIota_temp_matrix,fI_ij_column_matrix,fPi_temp_row_matrix);
+				// LINEAR elastic
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fBodotB_temp_matrix,fIota_temp_matrix);
 				if (iConstitutiveModelType==1) //elastic
 				{
-					scale = fMaterial_Params[kLambda] * integrate_param * scale_const;
+					//scale = fMaterial_Params[kLambda] * integrate_param * scale_const;
+					// LINEAR elastic
+					scale = fMaterial_Params[kMu] * integrate_param * scale_const;
 				}
 				else if (iConstitutiveModelType==2) //Drucker-Prager plastic
 				{
@@ -2614,6 +2653,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 		    fKdd = fK_dd_G1_1_matrix;
 		    fKdd += fK_dd_G1_2_matrix;
 		    fKdd += fK_dd_G3_1_matrix;
+		    fKdd += fK_dd_G3_1a_matrix; //for LINEAR elasticity
 		    fKdd += fK_dd_G3_2_matrix;
 		    fKdd += fK_dd_G3_3_matrix;
 		    fKdd += fK_dd_G3_4_matrix;
@@ -3182,10 +3222,15 @@ void FSSolidFluidMixT::TakeParameterList(const ParameterListT& list)
     fTemp_vector_nen_press.Dimension (n_en_press); 
     fIm_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fHbar_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+    fHbarTau_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fEll_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+    fEllTau_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+    fBotimesB_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
+    fBodotB_temp_matrix.Dimension (n_sd_x_n_sd, n_sd_x_n_sd);
     fPi_temp_transpose_vector.Dimension (n_en_displ_x_n_sd); 
     fPi_temp_row_matrix.Dimension (1,n_en_displ_x_n_sd); 
     fK_dd_G3_1_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+    fK_dd_G3_1a_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fK_dd_G3_2_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fK_dd_G3_3_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
     fK_dd_G3_4_matrix.Dimension (n_en_displ_x_n_sd,n_en_displ_x_n_sd);
@@ -4057,7 +4102,7 @@ void FSSolidFluidMixT::Form_Hbar_temp_matrix()
 
 void FSSolidFluidMixT::Form_Ell_temp_matrix()
 {
-    fEll_temp_matrix(0,0) = 0.0;
+    fEll_temp_matrix = 0.0;
     fEll_temp_matrix(0,0) = fElastic_Left_Cauchy_Green_tensor(0,0);
     fEll_temp_matrix(1,0) = fElastic_Left_Cauchy_Green_tensor(1,0);
     fEll_temp_matrix(2,0) = fElastic_Left_Cauchy_Green_tensor(2,0);
@@ -4093,6 +4138,372 @@ void FSSolidFluidMixT::Form_Ell_temp_matrix()
     fEll_temp_matrix(6,8) = fElastic_Left_Cauchy_Green_tensor(0,2);
     fEll_temp_matrix(7,8) = fElastic_Left_Cauchy_Green_tensor(1,2);
     fEll_temp_matrix(8,8) = fElastic_Left_Cauchy_Green_tensor(2,2);
+}
+
+// for LINEAR elasticity
+void FSSolidFluidMixT::Form_HbarTau_temp_matrix()
+{
+    fHbarTau_temp_matrix =0.0;
+    
+    fHbarTau_temp_matrix(0,0) = fEffective_Kirchhoff_tensor(0,0);
+    fHbarTau_temp_matrix(3,0) = fEffective_Kirchhoff_tensor(0,1);
+    fHbarTau_temp_matrix(6,0) = fEffective_Kirchhoff_tensor(0,2);
+    
+    fHbarTau_temp_matrix(1,1) = fEffective_Kirchhoff_tensor(0,0);
+    fHbarTau_temp_matrix(4,1) = fEffective_Kirchhoff_tensor(0,1);
+    fHbarTau_temp_matrix(7,1) = fEffective_Kirchhoff_tensor(0,2);
+    
+    fHbarTau_temp_matrix(2,2) = fEffective_Kirchhoff_tensor(0,0);
+    fHbarTau_temp_matrix(5,2) = fEffective_Kirchhoff_tensor(0,1);
+    fHbarTau_temp_matrix(8,2) = fEffective_Kirchhoff_tensor(0,2);
+    
+    fHbarTau_temp_matrix(0,3) = fEffective_Kirchhoff_tensor(1,0);
+    fHbarTau_temp_matrix(3,3) = fEffective_Kirchhoff_tensor(1,1);
+    fHbarTau_temp_matrix(6,3) = fEffective_Kirchhoff_tensor(1,2);
+    
+    fHbarTau_temp_matrix(1,4) = fEffective_Kirchhoff_tensor(1,0);
+    fHbarTau_temp_matrix(4,4) = fEffective_Kirchhoff_tensor(1,1);
+    fHbarTau_temp_matrix(7,4) = fEffective_Kirchhoff_tensor(1,2);
+    
+    fHbarTau_temp_matrix(2,5) = fEffective_Kirchhoff_tensor(1,0);
+    fHbarTau_temp_matrix(5,5) = fEffective_Kirchhoff_tensor(1,1);
+    fHbarTau_temp_matrix(8,5) = fEffective_Kirchhoff_tensor(1,2);
+    
+    fHbarTau_temp_matrix(0,6) = fEffective_Kirchhoff_tensor(2,0);
+    fHbarTau_temp_matrix(3,6) = fEffective_Kirchhoff_tensor(2,1);
+    fHbarTau_temp_matrix(6,6) = fEffective_Kirchhoff_tensor(2,2);
+    
+    fHbarTau_temp_matrix(1,7) = fEffective_Kirchhoff_tensor(2,0);
+    fHbarTau_temp_matrix(4,7) = fEffective_Kirchhoff_tensor(2,1);
+    fHbarTau_temp_matrix(7,7) = fEffective_Kirchhoff_tensor(2,2);
+    
+    fHbarTau_temp_matrix(2,8) = fEffective_Kirchhoff_tensor(2,0);
+    fHbarTau_temp_matrix(5,8) = fEffective_Kirchhoff_tensor(2,1);
+    fHbarTau_temp_matrix(8,8) = fEffective_Kirchhoff_tensor(2,2);
+}
+
+// for LINEAR elasticity
+void FSSolidFluidMixT::Form_EllTau_temp_matrix()
+{
+    fEllTau_temp_matrix = 0.0;
+    fEllTau_temp_matrix(0,0) = fEffective_Kirchhoff_tensor(0,0);
+    fEllTau_temp_matrix(1,0) = fEffective_Kirchhoff_tensor(1,0);
+    fEllTau_temp_matrix(2,0) = fEffective_Kirchhoff_tensor(2,0);
+    
+    fEllTau_temp_matrix(3,1) = fEffective_Kirchhoff_tensor(0,0);
+    fEllTau_temp_matrix(4,1) = fEffective_Kirchhoff_tensor(1,0);
+    fEllTau_temp_matrix(5,1) = fEffective_Kirchhoff_tensor(2,0);
+    
+    fEllTau_temp_matrix(6,2) = fEffective_Kirchhoff_tensor(0,0);
+    fEllTau_temp_matrix(7,2) = fEffective_Kirchhoff_tensor(1,0);
+    fEllTau_temp_matrix(8,2) = fEffective_Kirchhoff_tensor(2,0);
+    
+    fEllTau_temp_matrix(0,3) = fEffective_Kirchhoff_tensor(0,1);
+    fEllTau_temp_matrix(1,3) = fEffective_Kirchhoff_tensor(1,1);
+    fEllTau_temp_matrix(2,3) = fEffective_Kirchhoff_tensor(2,1);
+
+    fEllTau_temp_matrix(3,4) = fEffective_Kirchhoff_tensor(0,1);
+    fEllTau_temp_matrix(4,4) = fEffective_Kirchhoff_tensor(1,1);
+    fEllTau_temp_matrix(5,4) = fEffective_Kirchhoff_tensor(2,1);
+    
+    fEllTau_temp_matrix(6,5) = fEffective_Kirchhoff_tensor(0,1);
+    fEllTau_temp_matrix(7,5) = fEffective_Kirchhoff_tensor(1,1);
+    fEllTau_temp_matrix(8,5) = fEffective_Kirchhoff_tensor(2,1);
+    
+    fEllTau_temp_matrix(0,6) = fEffective_Kirchhoff_tensor(0,2);
+    fEllTau_temp_matrix(1,6) = fEffective_Kirchhoff_tensor(1,2);
+    fEllTau_temp_matrix(2,6) = fEffective_Kirchhoff_tensor(2,2);
+    
+    fEllTau_temp_matrix(3,7) = fEffective_Kirchhoff_tensor(0,2);
+    fEllTau_temp_matrix(4,7) = fEffective_Kirchhoff_tensor(1,2);
+    fEllTau_temp_matrix(5,7) = fEffective_Kirchhoff_tensor(2,2);
+    
+    fEllTau_temp_matrix(6,8) = fEffective_Kirchhoff_tensor(0,2);
+    fEllTau_temp_matrix(7,8) = fEffective_Kirchhoff_tensor(1,2);
+    fEllTau_temp_matrix(8,8) = fEffective_Kirchhoff_tensor(2,2);
+}
+
+// for LINEAR elasticity
+void FSSolidFluidMixT::Form_BotimesB_temp_matrix()
+{
+    fBotimesB_temp_matrix = 0.0;
+    
+    fBotimesB_temp_matrix(0,0) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBotimesB_temp_matrix(1,0) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBotimesB_temp_matrix(2,0) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBotimesB_temp_matrix(3,0) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBotimesB_temp_matrix(4,0) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBotimesB_temp_matrix(5,0) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBotimesB_temp_matrix(6,0) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBotimesB_temp_matrix(7,0) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBotimesB_temp_matrix(8,0) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    
+    fBotimesB_temp_matrix(0,1) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBotimesB_temp_matrix(1,1) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBotimesB_temp_matrix(2,1) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBotimesB_temp_matrix(3,1) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBotimesB_temp_matrix(4,1) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBotimesB_temp_matrix(5,1) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBotimesB_temp_matrix(6,1) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBotimesB_temp_matrix(7,1) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBotimesB_temp_matrix(8,1) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    
+    fBotimesB_temp_matrix(0,2) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBotimesB_temp_matrix(1,2) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBotimesB_temp_matrix(2,2) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBotimesB_temp_matrix(3,2) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBotimesB_temp_matrix(4,2) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBotimesB_temp_matrix(5,2) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBotimesB_temp_matrix(6,2) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBotimesB_temp_matrix(7,2) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBotimesB_temp_matrix(8,2) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    
+    fBotimesB_temp_matrix(0,3) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBotimesB_temp_matrix(1,3) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBotimesB_temp_matrix(2,3) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBotimesB_temp_matrix(3,3) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBotimesB_temp_matrix(4,3) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBotimesB_temp_matrix(5,3) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBotimesB_temp_matrix(6,3) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBotimesB_temp_matrix(7,3) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBotimesB_temp_matrix(8,3) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    
+    fBotimesB_temp_matrix(0,4) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBotimesB_temp_matrix(1,4) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBotimesB_temp_matrix(2,4) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBotimesB_temp_matrix(3,4) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBotimesB_temp_matrix(4,4) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBotimesB_temp_matrix(5,4) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBotimesB_temp_matrix(6,4) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBotimesB_temp_matrix(7,4) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBotimesB_temp_matrix(8,4) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    
+    fBotimesB_temp_matrix(0,5) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBotimesB_temp_matrix(1,5) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBotimesB_temp_matrix(2,5) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBotimesB_temp_matrix(3,5) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBotimesB_temp_matrix(4,5) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBotimesB_temp_matrix(5,5) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBotimesB_temp_matrix(6,5) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBotimesB_temp_matrix(7,5) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBotimesB_temp_matrix(8,5) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    
+    fBotimesB_temp_matrix(0,6) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBotimesB_temp_matrix(1,6) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBotimesB_temp_matrix(2,6) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBotimesB_temp_matrix(3,6) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBotimesB_temp_matrix(4,6) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBotimesB_temp_matrix(5,6) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBotimesB_temp_matrix(6,6) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBotimesB_temp_matrix(7,6) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBotimesB_temp_matrix(8,6) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    
+    fBotimesB_temp_matrix(0,7) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBotimesB_temp_matrix(1,7) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBotimesB_temp_matrix(2,7) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBotimesB_temp_matrix(3,7) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBotimesB_temp_matrix(4,7) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBotimesB_temp_matrix(5,7) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBotimesB_temp_matrix(6,7) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBotimesB_temp_matrix(7,7) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBotimesB_temp_matrix(8,7) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    
+    fBotimesB_temp_matrix(0,8) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBotimesB_temp_matrix(1,8) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBotimesB_temp_matrix(2,8) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBotimesB_temp_matrix(3,8) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBotimesB_temp_matrix(4,8) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBotimesB_temp_matrix(5,8) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBotimesB_temp_matrix(6,8) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBotimesB_temp_matrix(7,8) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBotimesB_temp_matrix(8,8) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(2,2);
+}
+
+// for LINEAR elasticity
+void FSSolidFluidMixT::Form_BodotB_temp_matrix()
+{
+    fBodotB_temp_matrix = 0.0;
+    
+    fBodotB_temp_matrix(0,0) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(1,0) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(2,0) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(3,0) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(4,0) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(5,0) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(6,0) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(7,0) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(8,0) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    
+    fBodotB_temp_matrix(0,1) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(1,1) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(2,1) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(3,1) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(4,1) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(5,1) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(6,1) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(7,1) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(8,1) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    
+    fBodotB_temp_matrix(0,2) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(1,2) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(2,2) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(3,2) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(4,2) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(5,2) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(6,2) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(7,2) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(8,2) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    
+    fBodotB_temp_matrix(0,3) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(1,3) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(2,3) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(3,3) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(4,3) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(5,3) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(6,3) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(7,3) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(8,3) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    
+    fBodotB_temp_matrix(0,4) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(1,4) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(2,4) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(3,4) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(4,4) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(5,4) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(6,4) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(7,4) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(8,4) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    
+    fBodotB_temp_matrix(0,5) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(1,5) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(2,5) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(3,5) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(4,5) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(5,5) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(6,5) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(7,5) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(8,5) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    
+    fBodotB_temp_matrix(0,6) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(1,6) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(2,6) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(3,6) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(4,6) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(5,6) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(6,6) = fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(7,6) = fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(8,6) = fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    
+    fBodotB_temp_matrix(0,7) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(1,7) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(2,7) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(3,7) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(4,7) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(5,7) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(6,7) = fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(7,7) = fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(8,7) = fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    
+    fBodotB_temp_matrix(0,8) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(1,8) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(2,8) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(3,8) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(4,8) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(5,8) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(6,8) = fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(7,8) = fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(8,8) = fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    
+    // add second matrix
+    fBodotB_temp_matrix(0,0) = fBodotB_temp_matrix(0,0) + fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(1,0) = fBodotB_temp_matrix(1,0) + fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(2,0) = fBodotB_temp_matrix(2,0) + fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(3,0) = fBodotB_temp_matrix(3,0) + fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(4,0) = fBodotB_temp_matrix(4,0) + fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(5,0) = fBodotB_temp_matrix(5,0) + fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(6,0) = fBodotB_temp_matrix(6,0) + fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(7,0) = fBodotB_temp_matrix(7,0) + fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(8,0) = fBodotB_temp_matrix(8,0) + fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    
+    fBodotB_temp_matrix(0,1) = fBodotB_temp_matrix(0,1) + fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(1,1) = fBodotB_temp_matrix(1,1) + fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(2,1) = fBodotB_temp_matrix(2,1) + fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(3,1) = fBodotB_temp_matrix(3,1) + fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(4,1) = fBodotB_temp_matrix(4,1) + fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(5,1) = fBodotB_temp_matrix(5,1) + fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(6,1) = fBodotB_temp_matrix(6,1) + fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(7,1) = fBodotB_temp_matrix(7,1) + fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(8,1) = fBodotB_temp_matrix(8,1) + fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    
+    fBodotB_temp_matrix(0,2) = fBodotB_temp_matrix(0,2) + fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(1,2) = fBodotB_temp_matrix(1,2) + fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(2,2) = fBodotB_temp_matrix(2,2) + fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(3,2) = fBodotB_temp_matrix(3,2) + fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(4,2) = fBodotB_temp_matrix(4,2) + fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(5,2) = fBodotB_temp_matrix(5,2) + fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(6,2) = fBodotB_temp_matrix(6,2) + fElastic_Left_Cauchy_Green_tensor(0,0)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(7,2) = fBodotB_temp_matrix(7,2) + fElastic_Left_Cauchy_Green_tensor(1,0)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(8,2) = fBodotB_temp_matrix(8,2) + fElastic_Left_Cauchy_Green_tensor(2,0)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    
+    fBodotB_temp_matrix(0,3) = fBodotB_temp_matrix(0,3) + fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(1,3) = fBodotB_temp_matrix(1,3) + fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(2,3) = fBodotB_temp_matrix(2,3) + fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(3,3) = fBodotB_temp_matrix(3,3) + fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(4,3) = fBodotB_temp_matrix(4,3) + fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(5,3) = fBodotB_temp_matrix(5,3) + fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(6,3) = fBodotB_temp_matrix(6,3) + fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(7,3) = fBodotB_temp_matrix(7,3) + fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(8,3) = fBodotB_temp_matrix(8,3) + fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    
+    fBodotB_temp_matrix(0,4) = fBodotB_temp_matrix(0,4) + fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(1,4) = fBodotB_temp_matrix(1,4) + fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(2,4) = fBodotB_temp_matrix(2,4) + fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(3,4) = fBodotB_temp_matrix(3,4) + fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(4,4) = fBodotB_temp_matrix(4,4) + fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(5,4) = fBodotB_temp_matrix(5,4) + fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(6,4) = fBodotB_temp_matrix(6,4) + fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(7,4) = fBodotB_temp_matrix(7,4) + fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(8,4) = fBodotB_temp_matrix(8,4) + fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    
+    fBodotB_temp_matrix(0,5) = fBodotB_temp_matrix(0,5) + fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(1,5) = fBodotB_temp_matrix(1,5) + fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(2,5) = fBodotB_temp_matrix(2,5) + fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(3,5) = fBodotB_temp_matrix(3,5) + fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(4,5) = fBodotB_temp_matrix(4,5) + fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(5,5) = fBodotB_temp_matrix(5,5) + fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(6,5) = fBodotB_temp_matrix(6,5) + fElastic_Left_Cauchy_Green_tensor(0,1)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(7,5) = fBodotB_temp_matrix(7,5) + fElastic_Left_Cauchy_Green_tensor(1,1)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(8,5) = fBodotB_temp_matrix(8,5) + fElastic_Left_Cauchy_Green_tensor(2,1)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    
+    fBodotB_temp_matrix(0,6) = fBodotB_temp_matrix(0,6) + fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(1,6) = fBodotB_temp_matrix(1,6) + fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(2,6) = fBodotB_temp_matrix(2,6) + fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(0,0);
+    fBodotB_temp_matrix(3,6) = fBodotB_temp_matrix(3,6) + fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(4,6) = fBodotB_temp_matrix(4,6) + fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(5,6) = fBodotB_temp_matrix(5,6) + fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(1,0);
+    fBodotB_temp_matrix(6,6) = fBodotB_temp_matrix(6,6) + fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(7,6) = fBodotB_temp_matrix(7,6) + fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    fBodotB_temp_matrix(8,6) = fBodotB_temp_matrix(8,6) + fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(2,0);
+    
+    fBodotB_temp_matrix(0,7) = fBodotB_temp_matrix(0,7) + fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(1,7) = fBodotB_temp_matrix(1,7) + fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(2,7) = fBodotB_temp_matrix(2,7) + fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(0,1);
+    fBodotB_temp_matrix(3,7) = fBodotB_temp_matrix(3,7) + fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(4,7) = fBodotB_temp_matrix(4,7) + fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(5,7) = fBodotB_temp_matrix(5,7) + fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(1,1);
+    fBodotB_temp_matrix(6,7) = fBodotB_temp_matrix(6,7) + fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(7,7) = fBodotB_temp_matrix(7,7) + fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    fBodotB_temp_matrix(8,7) = fBodotB_temp_matrix(8,7) + fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(2,1);
+    
+    fBodotB_temp_matrix(0,8) = fBodotB_temp_matrix(0,8) + fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(1,8) = fBodotB_temp_matrix(1,8) + fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(2,8) = fBodotB_temp_matrix(2,8) + fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(0,2);
+    fBodotB_temp_matrix(3,8) = fBodotB_temp_matrix(3,8) + fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(4,8) = fBodotB_temp_matrix(4,8) + fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(5,8) = fBodotB_temp_matrix(5,8) + fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(1,2);
+    fBodotB_temp_matrix(6,8) = fBodotB_temp_matrix(6,8) + fElastic_Left_Cauchy_Green_tensor(0,2)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(7,8) = fBodotB_temp_matrix(7,8) + fElastic_Left_Cauchy_Green_tensor(1,2)*fElastic_Left_Cauchy_Green_tensor(2,2);
+    fBodotB_temp_matrix(8,8) = fBodotB_temp_matrix(8,8) + fElastic_Left_Cauchy_Green_tensor(2,2)*fElastic_Left_Cauchy_Green_tensor(2,2);
 }
 
 void FSSolidFluidMixT::Form_Jmath_temp_matrix(void)

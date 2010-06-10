@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.31 2010-06-02 04:18:22 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.32 2010-06-10 00:05:28 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -445,9 +445,14 @@ private:
 	dMatrixT	fLambda_temp_matrix;
 	dMatrixT	fIm_temp_matrix;
 	dMatrixT	fHbar_temp_matrix;
+	dMatrixT	fHbarTau_temp_matrix;
 	dMatrixT	fEll_temp_matrix;
+	dMatrixT	fEllTau_temp_matrix;
+	dMatrixT	fBotimesB_temp_matrix;
+	dMatrixT	fBodotB_temp_matrix;
 	dMatrixT	fPi_temp_row_matrix;
 	dMatrixT	fK_dd_G3_1_matrix;
+	dMatrixT	fK_dd_G3_1a_matrix;
 	dMatrixT	fK_dd_G3_2_matrix;
 	dMatrixT	fK_dd_G3_3_matrix;
 	dMatrixT	fK_dd_G3_4_matrix;
@@ -648,7 +653,11 @@ private:
 	void Form_Varpi_temp_matrix(void);
 	void Form_Im_temp_matrix(void);
 	void Form_Hbar_temp_matrix(void);
+	void Form_HbarTau_temp_matrix(void);
 	void Form_Ell_temp_matrix(void);
+	void Form_EllTau_temp_matrix(void);
+	void Form_BotimesB_temp_matrix(void);
+	void Form_BodotB_temp_matrix(void);
 	void Form_Jmath_temp_matrix(void);
 	void Form_Wp_temp_matrix(void);
 	void Form_Jmath_prim_temp_matrix(void);
