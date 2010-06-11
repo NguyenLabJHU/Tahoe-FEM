@@ -1425,18 +1425,18 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				if (iConstitutiveModelType==1) //elastic
 				{
 					/* Second Piola stress */
-					/*
 					fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(J_Prim)
 						-fMaterial_Params[kMu],fRight_Cauchy_Green_tensor_Inverse); 
 					fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
 					fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
-					*/
 					
 					/* Second Piola stress for LINEAR elasticity */
+					/*
 					double volLagstrain = fLagrangian_strain_tensor.Trace();
 					fEffective_Second_Piola_tensor.SetToScaled(2*fMaterial_Params[kMu],fLagrangian_strain_tensor); 
 					fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kLambda]*volLagstrain,fIdentity_matrix);
 					fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
+					*/
 					
 					/* invariant stresses for output */
 					meanstress = fEffective_Second_Piola_tensor.Trace()/3;
@@ -2006,16 +2006,16 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				Form_Ell_temp_matrix();
 				
 				/* [fHbarTau_temp_matrix] will be formed for LINEAR elasticity */
-				Form_HbarTau_temp_matrix();
+				//Form_HbarTau_temp_matrix();
 				
 				/* [fEllTau_temp_matrix] will be formed for LINEAR elasticity */
-				Form_EllTau_temp_matrix();
+				//Form_EllTau_temp_matrix();
 				
 				/* [fBotimesB_temp_matrix] will be formed for LINEAR elasticity */
-				Form_BotimesB_temp_matrix();
+				//Form_BotimesB_temp_matrix();
 				
 				/* [fBodotB_temp_matrix] will be formed for LINEAR elasticity */
-				Form_BodotB_temp_matrix();
+				//Form_BodotB_temp_matrix();
 				
 				/* {fPi_temp_transpose_vector} will be formed */
 				fShapeSolidGrad.MultTx(fDefGradInv_vector,fPi_temp_transpose_vector);
@@ -2032,6 +2032,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fK_dd_G3_1_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 				
 				/* [fK_dd_G3_1a_matrix] will be formed for LINEAR elasticity */
+				/*
 				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fHbarTau_temp_matrix,fIota_temp_matrix);
 				if (iConstitutiveModelType==1) //LINEAR elastic
 				{
@@ -2042,8 +2043,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 					scale = 0;
 				}
 				fTemp_matrix_ndof_se_x_ndof_se *= scale;
+				*/
 				/* accumulate */
-				fK_dd_G3_1a_matrix += fTemp_matrix_ndof_se_x_ndof_se;
+				//fK_dd_G3_1a_matrix += fTemp_matrix_ndof_se_x_ndof_se;
+				fK_dd_G3_1a_matrix = 0.0;
 				
 				/* [fI_ij_column_matrix] will be formed */
 				fI_ij_column_matrix = 0.0;
@@ -2052,14 +2055,14 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fI_ij_column_matrix(8,0) = 1.0;
 				
 				/* [fK_dd_G3_2_matrix] will be formed */
-				//fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fHbar_temp_matrix,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fHbar_temp_matrix,fIota_temp_matrix);
 				// LINEAR elastic
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fEllTau_temp_matrix,fIota_temp_matrix);
+				//fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fEllTau_temp_matrix,fIota_temp_matrix);
 				if (iConstitutiveModelType==1) //elastic
 				{
-					//scale = fMaterial_Params[kMu] * integrate_param * scale_const;
+					scale = fMaterial_Params[kMu] * integrate_param * scale_const;
 					// LINEAR elastic
-					scale = integrate_param * scale_const;
+					//scale = integrate_param * scale_const;
 				}
 				else if (iConstitutiveModelType==2) //Drucker-Prager plastic
 				{
@@ -2070,14 +2073,14 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fK_dd_G3_2_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 			
 				/* [fK_dd_G3_3_matrix] will be formed */
-				//fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fEll_temp_matrix,fIota_temp_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fEll_temp_matrix,fIota_temp_matrix);
 				// LINEAR elastic
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fBotimesB_temp_matrix,fIota_temp_matrix);
+				//fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fBotimesB_temp_matrix,fIota_temp_matrix);
 				if (iConstitutiveModelType==1) //elastic
 				{
-					//scale = fMaterial_Params[kMu] * integrate_param * scale_const;
+					scale = fMaterial_Params[kMu] * integrate_param * scale_const;
 					// LINEAR elastic
-					scale = fMaterial_Params[kLambda] * integrate_param * scale_const;
+					//scale = fMaterial_Params[kLambda] * integrate_param * scale_const;
 				}
 				else if (iConstitutiveModelType==2) //Drucker-Prager plastic
 				{
@@ -2088,14 +2091,14 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fK_dd_G3_3_matrix += fTemp_matrix_ndof_se_x_ndof_se;
 				
 				/* [fK_dd_G3_4_matrix] will be formed */
-				//fTemp_matrix_ndof_se_x_ndof_se.MultABC(fIota_temp_matrix,fI_ij_column_matrix,fPi_temp_row_matrix);
+				fTemp_matrix_ndof_se_x_ndof_se.MultABC(fIota_temp_matrix,fI_ij_column_matrix,fPi_temp_row_matrix);
 				// LINEAR elastic
-				fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fBodotB_temp_matrix,fIota_temp_matrix);
+				//fTemp_matrix_ndof_se_x_ndof_se.MultABCT(fIota_temp_matrix,fBodotB_temp_matrix,fIota_temp_matrix);
 				if (iConstitutiveModelType==1) //elastic
 				{
-					//scale = fMaterial_Params[kLambda] * integrate_param * scale_const;
+					scale = fMaterial_Params[kLambda] * integrate_param * scale_const;
 					// LINEAR elastic
-					scale = fMaterial_Params[kMu] * integrate_param * scale_const;
+					//scale = fMaterial_Params[kMu] * integrate_param * scale_const;
 				}
 				else if (iConstitutiveModelType==2) //Drucker-Prager plastic
 				{
