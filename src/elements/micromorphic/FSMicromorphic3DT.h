@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.97 2010-06-04 05:52:11 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.98 2010-06-15 00:31:30 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -240,7 +240,7 @@ private:
 
 	/** number of integration points */
 	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_micro, fNumIPSurf_micro;
-	int knum_d_state, knum_i_state, knumstress, knumstrain;
+	int knum_d_state, knum_i_state, knumstress, knumstrain,knumdispl;
 	int num_sidesets;
 
 	/*@}*/
@@ -757,7 +757,7 @@ private:
     dMatrixT fKuphi_2;
     dMatrixT fKu_9;
     dMatrixT fKuphi_3;
-    dMatrixT sigma_s;
+    dMatrixT SIGMA_S;
     dMatrixT fKFJu;
     dMatrixT fKJFu;
     dMatrixT fKphiu_1;
@@ -794,8 +794,17 @@ private:
     dMatrixT fKMphiphi_2;
 
 
+
+
     double trLST;
     double invJ;
+
+    int element_number;
+    int el_num;
+    dMatrixT u_el;
+    dArrayT u_element;
+    dArrayT ftemp_u_element;
+
 
 	//////////////////////////////////////////////////////////
 	/////DEFINITIONS FINISH HERE FOR MICROMORPHIC MATRICES////
@@ -813,6 +822,14 @@ private:
         dArray2DT	fEulerian_strain_Elements_IPs;
         dArray2DT	fCauchy_stress_Elements_IPs;
         dArray2DT	fState_variables_Elements_IPs;
+
+        dArray2DT fDisplacement_Element_IPs;
+        dArrayT   fDisplacements_current_IPs;
+        /* to store displacements for each of 27  IPs of each element
+         ( probably it is better to do it only  for certain nodes but I do not know how to extract the coordinates of the nodes and calculate
+         the shape functions a nodes)
+         */
+        dArray2DT  fDisplacement_IPs;
 
 
 	/** the solid displacement field */
@@ -914,6 +931,7 @@ private:
 	void Form_B_matrix(void);
 	void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
 	void Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
+	void Put_values_In_Array(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
 	void Form_gradv_vector(void);
 	void Form_Xi_temp_matrix(void);
 	void Form_Varsigma_temp_matrix(void);
@@ -1039,7 +1057,7 @@ private:
     void Form_I2_2(void);
     void Form_I1_9(void);
     void Form_I2_3(void);
-    void Form_sigma_s(void);
+    void Form_SIGMA_S(void);
     void Form_fFJ(void);
     void Form_fJF(void);
     void Form_fJ1_1(void);
