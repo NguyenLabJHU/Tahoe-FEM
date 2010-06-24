@@ -1,4 +1,4 @@
-/* $Id: calc_disp_cost.cpp,v 1.1 2010-01-28 22:21:09 tdnguye Exp $ */
+/* $Id: calc_disp_cost.cpp,v 1.2 2010-06-24 14:08:33 tdnguye Exp $ */
 
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
@@ -54,11 +54,11 @@ int main(int argc, char** argv)
 	dArrayT time_steps, times;
         time_steps.Allocate(tot_num_steps);
 	input->ReadTimeSteps(time_steps);
-	cout << "start_step = " << start_step << endl;
-	cout << "end_step = " << end_step << endl;	
+//	cout << "start_step = " << start_step << endl;
+//	cout << "end_step = " << end_step << endl;	
 	
 	double ctol = atof(argv[6]);
-	cout << "tolerance = " << ctol << endl;	
+//	cout << "tolerance = " << ctol << endl;	
 	/* locate "D_X" */
 	ArrayT<StringT> disp_nlabels;
 	input->ReadNodeLabels(disp_nlabels);
@@ -102,6 +102,7 @@ int main(int argc, char** argv)
 	
 	/*calculates cost function*/
 	double cost = 0.0;
+	int tahoe_step = 0;
 	for (int nstep = start_step; nstep<= end_step; nstep++)
 	{
 		/*read data file*/
@@ -111,7 +112,7 @@ int main(int argc, char** argv)
 		StringT data_temp = ".";
 		StringT data_suff = data_temp.Append(nstep,4);
 		strcat(datafile,data_suff);
-		cout << "\nopening datafile: "<<datafile << endl;
+//		cout << "\nopening datafile: "<<in.filename() << endl;
 		
 		in.open(datafile);
 		if (!in.is_open())
@@ -124,13 +125,16 @@ int main(int argc, char** argv)
 		
 		//////////////////////////////////////////////////
 		/*reads input file*/
+		while ((data_time - time_steps[tahoe_step]) > 0.00001)
+			tahoe_step++; 
+			
+		double tahoe_time = time_steps[tahoe_step];
+		cout << "time: "<< tahoe_time << "\n";
 
-		double time =  time_steps[nstep];
-		cout << "step: "<<nstep << ", time : " << time_steps[nstep] << "\n";
-		if (fabs(time - data_time) > ctol)
+		if (fabs(tahoe_time - data_time) > ctol)
 			ExceptionT::GeneralFail(caller, "time stamp of data file and tahoe output file does not match, %f", data_time);
 		if (nnd != data_pts.MajorDim())
-			ExceptionT::GeneralFail(caller, "number of nodes  in data file and tahoe output file does not match");
+			ExceptionT::GeneralFail(caller, "number of nodes  in data file and tahoe output file does not match %d, %d", nnd,data_pts.MajorDim());
 		if (2*nsd != data_pts.MinorDim())
 			ExceptionT::GeneralFail(caller, "number of spatial dimensions of data file and tahoe output file does not match");
 
@@ -138,42 +142,34 @@ int main(int argc, char** argv)
 		calc_pts.Dimension(nnd,nsd);
 		
 		/* read values */
-		input->ReadAllNodeVariables(nstep, nodal_values);
+		input->ReadAllNodeVariables(tahoe_step, nodal_values);
 		input->ReadCoordinates(coords);
 	
 		for (int k = 0; k < nsd; k++)
 			d_x.ColumnCopy(k, nodal_values, D_X_index[k]);
 
 		double error=0.0;
-		for (int i; i<nnd; i++)
+		for (int i=0; i<nnd; i++)
 		{
 			/*check for points that are congruent*/
 			double distance=0.0;
-			for (int j; j<nsd; j++)
+			for (int j=0; j<nsd; j++)
 			{
 				distance += (data_pts(i,j) - coords(i,j))*(data_pts(i,j) - coords(i,j));
 				error += (data_pts(i,j+nsd) - d_x(i,j))*(data_pts(i,j+nsd) - d_x(i,j));
 			}
-			if (distance > ctol)
+			if (sqrt(distance) > ctol)
 				ExceptionT::GeneralFail(caller, "coords of point %d do not match", i);
 		}
-		cost += sqrt(error/nnd);
+		cost += error;
+
 	}
 		
-/*
-	char outfile[1000];
-	strcpy(outfile,file); 
-	char* suff;
-	suff = strstr(outfile,".io");
-	StringT temp=".out"; 	
-	strncpy(suff,temp,20);
-*/
 	StringT outfile;
 	strcpy(outfile, argv[3]);
 
-	cout << "\noutfile: "<<outfile<<endl;
 	ofstreamT out(outfile);
-	out << cost/tot_num_steps;
+	out << sqrt(cost);
 	out<<endl;
 	out.flush();
 	return 0;
@@ -183,10 +179,12 @@ void read_points(ifstreamT& in,  double& data_time, dArray2DT& points)
 {
 	int num_points;
 	int nsd;
+	double pressure;
 
 	in >> num_points;
 	in >> nsd;
 	in >> data_time;
+	in >> pressure;
 	
 	/* file format*/
 	/*n x0, y0, (z0), dx0, dy0, (dz0)*/ 
@@ -208,7 +206,7 @@ void read_points(ifstreamT& in,  double& data_time, dArray2DT& points)
 		}
 		else if (nsd ==3)
 		{
-			in >> nn >> p1 >> p2 >>p3>>p4;
+			in >> nn >> p1 >> p2 >>p3>>p4>>p5>>p6;
 			points(i,0) = p1;
 			points(i,1) = p2;
 			points(i,2) = p3;
