@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2010-06-24 14:03:37 thao Exp $
+# $Id: makefile,v 1.3 2010-06-24 14:43:56 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -12,8 +12,7 @@ OBJ = 	SSOptimize_MatT.o \
 	SSVE_Opto_test.o \
 	FSFiberOptimize_MatT.o \
 	FSFiberOptimize_MatListT.o \
-	AnisoCorneaVisco_Opt.o \
-	AnisoCornea_Opt.o 
+	AnisoCorneaVisco_Opt.o 
 
 
 OBJ_LINK = $(OBJ)
@@ -30,8 +29,7 @@ SRC = 	SSOptimize_MatT.cpp \
 	SSVE_Opto_test.cpp \
 	FSFiberOptimize_MatT.cpp \
 	FSFiberOptimize_MatListT.cpp \
-	AnisoCorneaVisco_Opt.cpp \
-	AnisoCornea_Opt.cpp  
+	AnisoCorneaVisco_Opt.cpp 
 
 # headers
 HDR = 	SSOptimize_MatT.h \
@@ -41,8 +39,7 @@ HDR = 	SSOptimize_MatT.h \
 	SSVE_Opto_test.h \
 	FSFiberOptimize_MatT.h \
 	FSFiberOptimize_MatListT.h \
-	AnisoCorneaVisco_Opt.h \
-	AnisoCornea_Opt.h  
+	AnisoCorneaVisco_Opt.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
