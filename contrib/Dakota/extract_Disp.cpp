@@ -1,4 +1,4 @@
-/* $Id: extract_Disp.cpp,v 1.2 2010-01-18 15:38:44 tdnguye Exp $ */
+/* $Id: extract_Disp.cpp,v 1.3 2010-06-24 14:08:33 tdnguye Exp $ */
 
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 			{
 				D_X_index[k] = i;
 				nout++;
-			}		
+			}
 		if (D_X_index[k] > -1)
 			cout << " displacement " << D_X_label[k] << " index = " << D_X_index[k] << endl;
 	}
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
 	dArray2DT d_x(nodal_values.MajorDim(), nout);
 	iArrayT node_id(nnd);
 	d_x = 0.0;
-	
+
 	StringT file = argv[1];
 	StringT path = file.FilePath();
 	file = argv[1];
@@ -111,7 +111,6 @@ int main(int argc, char** argv)
 	
 		for (int k = 0; k < nsd; k++)
 			d_x.ColumnCopy(k, nodal_values, D_X_index[k]);
-		
 		for (int i = 0; i < d_x.MajorDim(); i++)
 		{
 			out << node_id[i];
