@@ -1,4 +1,4 @@
-/* $Id: FungPotentialT.cpp,v 1.1 2010-06-09 15:40:32 tdnguye Exp $ */
+/* $Id: FungPotentialT.cpp,v 1.2 2010-06-24 13:26:03 tdnguye Exp $ */
 #include "FungPotentialT.h"
 #include "ExceptionT.h"
 
@@ -8,10 +8,12 @@
 
 using namespace Tahoe;
 const double third = 1.0/3.0;
+const double kBig = 1e+12;
 
 FungPotentialT::FungPotentialT(void):
 	falpha(0.0),
-	fbeta(0.0)
+	fbeta(0.0),
+	fmu(0.0)
 {
 	SetName("fung-potential");
 }
@@ -71,6 +73,8 @@ void FungPotentialT::DevStress(const dArrayT& lambda_bar,dArrayT& tau,  double t
 	
   double I1 = lambda_bar[0]+lambda_bar[1]+lambda_bar[2];
   double coeff = falpha*(I1-3.0)*exp(0.5*fbeta*(I1-3.0)*(I1-3.0)) + fmu;
+  if (coeff > kBig) ExceptionT::GeneralFail("FungPotentialT::DevStress",
+		"Infinite stress.");
   
   tau[0] = coeff*third*(2.0*l0-l1-l2);
   tau[1] = coeff*third*(2.0*l1-l0-l2);
@@ -93,6 +97,8 @@ void FungPotentialT::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus
   
   double I1 = lambda_bar[0]+lambda_bar[1]+lambda_bar[2];
   double coeff = falpha*exp(0.5*fbeta*(I1-3.0)*(I1-3.0));
+  if (coeff > kBig) ExceptionT::GeneralFail("VWPotentialT::DevMod",
+		"Infinite modulus.");
 
 //  cout << "\ncoef: "<<coeff;
 	eigenmodulus[0] = 2.0*ninth*(coeff*(I1-3.0)+fmu)*(4.0*l0 + l1 + l2) 
