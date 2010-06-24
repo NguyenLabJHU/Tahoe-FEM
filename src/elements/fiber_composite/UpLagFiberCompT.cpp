@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.11 2009-04-23 14:56:15 thao Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.12 2010-06-24 13:27:57 thao Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -19,12 +19,22 @@
 
 #include "VariLocalArrayT.h"
 
-using namespace Tahoe;
+#define DEBUG
+/* vector functions */
+const double Pi = acos(-1.0);
 
+inline static void CrossProduct(const double* A, const double* B, double* AxB)
+{ AxB[0] = A[1]*B[2] - A[2]*B[1];
+  AxB[1] = A[2]*B[0] - A[0]*B[2];
+  AxB[2] = A[0]*B[1] - A[1]*B[0];
+};
+
+
+using namespace Tahoe;
 /* constructor */
 UpLagFiberCompT::UpLagFiberCompT(const ElementSupportT& support):
-//	SimoQ1P0(support),
-	UpdatedLagrangianT(support),
+	SimoQ1P0(support),
+//	UpdatedLagrangianT(support),
 	fFiberSupport(NULL)
 {
 	SetName("uplag_fiber_comp_planar");
@@ -133,6 +143,38 @@ ParameterInterfaceT* UpLagFiberCompT::NewSub(const StringT& name) const
 		}
 
 		{
+		ParameterContainerT ellipse("revolved_ellipse");
+
+		ParameterT block_ID(fID, "block_ID");
+		block_ID.SetDefault("all");
+		ellipse.AddParameter(block_ID);
+
+		LimitT lower(0.0, LimitT::Lower);
+		ParameterT Rx(ParameterT::Double, "major_axis");
+		Rx.AddLimit(lower);
+		Rx.SetDefault(1.0);
+		ellipse.AddParameter(Rx);
+		ParameterT Ry(ParameterT::Double, "minor_axis");
+		Ry.AddLimit(lower);
+		Ry.SetDefault(1.0);
+		ellipse.AddParameter(Ry);
+		ParameterT Cx(ParameterT::Double, "center_x");
+		Cx.SetDefault(0.0);
+		ellipse.AddParameter(Cx);
+		ParameterT Cy(ParameterT::Double, "center_y");
+		Cy.SetDefault(0.0);
+		ellipse.AddParameter(Cy);
+
+		ParameterT phi(ParameterT::Double, "rotation_angle_degrees");
+		phi.SetDefault(0.0);
+		ellipse.AddParameter(phi);
+		
+		ellipse.SetDescription("[(x-Cx)cos(phi) - (y-Cy)sin(phi)]^2/Rx^2 + [(x-Cx)sin(phi) + (y-Cy)cos(phi)]^2/Ry^2  = 1");
+
+		choice->AddSub(ellipse);
+		}
+
+		{
 		ParameterContainerT brick("brick");
 
 		ParameterT block_ID(fID, "block_ID");
@@ -165,16 +207,16 @@ ParameterInterfaceT* UpLagFiberCompT::NewSub(const StringT& name) const
 void UpLagFiberCompT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-//	SimoQ1P0::DefineParameters(list);
-	UpdatedLagrangianT::DefineParameters(list);
+	SimoQ1P0::DefineParameters(list);
+//	UpdatedLagrangianT::DefineParameters(list);
 }
 
 /* accept parameter list */
 void UpLagFiberCompT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-//	SimoQ1P0::TakeParameterList(list);
-	UpdatedLagrangianT::TakeParameterList(list);
+	SimoQ1P0::TakeParameterList(list);
+//	UpdatedLagrangianT::TakeParameterList(list);
 
 	/*store fibers in element list*/
 	int num_elem = NumElements();
@@ -273,7 +315,7 @@ MaterialListT* UpLagFiberCompT::NewMaterialList(const StringT& name, int size)
 /* read in fiber orientation information information */
 void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 {
-	const char caller[] = "UpLagFiberCompT::TakeFiberVec";
+	const char caller[] = "UpLagFiberCompT::ReadFiberVec";
 
 	int num_sets = list.NumLists("fiber_orientations");
 	if (num_sets > 0)
@@ -286,6 +328,8 @@ void UpLagFiberCompT::ReadFiberVec(const ParameterListT& list)
 				ReadSideSetVec(fibers);
 			else if (fibers.Name() == "ellipsoid") 
 				ReadAnalyticVec(fibers);
+			else if (fibers.Name() == "revolved_ellipse") 
+				ReadAxi(fibers);
 			else if (fibers.Name() == "brick") 
 				BrickVec(fibers);
 		else
@@ -453,6 +497,128 @@ void UpLagFiberCompT::ReadSideSetVec(const ParameterListT& fibers)
 		ExceptionT::GeneralFail(caller, "empty side set: num sides = 0");
 }
 
+/*applies for coordinate basis (e_r, e_phi, e_theta) where e_r represents the surface normal and e_theta is the direction of revolution.  */
+/*for the revolved surface, z=0, e_theta coincides with e_z of the lab coordinate.  The fiber plane is defined by e_\phi and e_theta*/
+void UpLagFiberCompT::ReadAxi(const ParameterListT& fibers)
+{
+	const char caller[] = "UpLagFiberCompAxiT::ReadAxi";
+
+	int nsd = 3;
+	const dArray2DT& coordinates = ElementSupport().InitialCoordinates();
+
+	StringT block_ID = fibers.GetParameter("block_ID");
+
+	/*ellipsoid parameters : [(x-Cx)cos(phi) - (y-Cy)sin(phi)]^2/Rx^2 + [(x-Cx)sin(phi) + (y-Cy)cos(phi)]^2/Ry^2  = 1 */
+	double Cx = fibers.GetParameter("center_x");
+	double Cy = fibers.GetParameter("center_y");
+
+	double A = fibers.GetParameter("major_axis");
+	double B = fibers.GetParameter("minor_axis");
+	
+	double angle = fibers.GetParameter("rotation_angle_degrees");
+	angle *= Pi/180.;
+	
+	/* loop over elements in the block */
+	double n_r[3] = {0.0,0.0,0.0};	// element normal;
+	double t_phi[3]= {0.0,0.0,0.0}; // tangent vector;
+	double t_theta[3] ={0.0,0.0,1.0}; //tangent vector;
+
+	int block_dex = 0;
+	int block_count = 0;
+	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
+	Top();
+	while (NextElement())
+	{
+		/* reset block info (skip empty) */
+		while (block_count == block_data->Dimension()) {
+		block_data = fBlockData.Pointer(++block_dex);
+		block_count = 0;
+		}
+		block_count++;
+
+		if (block_ID == block_data->ID() || block_ID == "all" ) 
+		{
+
+			/*dimension and initialize*/
+			dArray2DT& P_vec = fFiber_list[CurrElementNumber()];
+			P_vec.Dimension(3, nsd);
+			P_vec = 0.0;
+
+			/* calculate element centroid */
+			iArrayT nodes = CurrentElement().NodesX();
+			int nen = NumElementNodes();
+			double xc = 0.0;
+			double yc = 0.0;
+			double zc = 0.0;
+			for (int i = 0; i < nen; i++)
+			{
+				xc += coordinates(nodes[i],0);
+				yc += coordinates(nodes[i],1);
+				zc += coordinates(nodes[i],2);
+			}
+			xc /= nen; 
+			yc /= nen; 
+			zc /= nen;
+			
+			/*calculate rotation about e_theta*/
+			double theta = atan2(-zc, xc);
+			/*rotate centroid back to plane z=0*/
+			double xs = xc*cos(theta) - zc*sin(theta);
+			double ys = yc;
+//#ifdef DEBUG
+			double zs = xc*sin(theta) + zc*cos(theta);
+			if(zs > 1e-6)
+				cout << "\nzs: "<<zs;
+//#endif DEBUG			
+			/*calculate rotation angle phi, polar coordinate, of point (xs, ys)*/
+			double c1 = (xs-Cx)*sin(angle) + (ys-Cy)*cos(angle);
+			c1 /= B;
+			double c2 = (xs-Cx)*cos(angle) - (ys-Cy)*sin(angle);
+			c2 /= A;
+			double phi = atan2(c1, c2);
+			
+	
+			/*calculate meridional and circumferential directions associated with centroid*/
+			double dxs = B*cos(phi)*sin(angle) - A*sin(phi)*cos(angle);
+			double dys = B*cos(phi)*cos(angle) + A*sin(phi)*sin(angle);
+			double ds = sqrt(dxs*dxs + dys*dys);
+			double sgn_xs = xs/sqrt(xs*xs);
+			
+			t_phi[0] = dxs/ds*cos(theta);
+			t_phi[1] = dys/ds;
+			t_phi[2] = -dxs/ds*sin(theta);
+			
+			/*calculate e_theta*/
+			t_theta[0] = sin(theta);
+			t_theta[1] = 0.0;
+			t_theta[2] = cos(theta);
+			
+			/*calculate normal at element centroid*/				
+			CrossProduct(t_phi,t_theta, n_r);
+			
+			/*fiber plane defined by p1= e_phi, p2 = e_theta*/
+			P_vec(0,0) = t_phi[0];
+			P_vec(0,1) = t_phi[1];
+			P_vec(0,2) = t_phi[2];
+			
+			P_vec(1,0) = t_theta[0];
+			P_vec(1,1) = t_theta[1];
+			P_vec(1,2) = t_theta[2];
+
+			/*normal to fiber plane = e_r*/
+			P_vec(2,0) = n_r[0];
+			P_vec(2,1) = n_r[1];
+			P_vec(2,2) = n_r[2];
+
+#ifdef DEBUG
+//		cout << "\nfiber vectors: "<<P_vec;
+#endif DEBUG			
+		}	
+	}
+	
+}
+
+
 void UpLagFiberCompT::ReadAnalyticVec(const ParameterListT& fibers)
 {
 	const char caller[] = "UpLagFiberCompT::ReadAnalyticVec";
@@ -493,7 +659,7 @@ void UpLagFiberCompT::ReadAnalyticVec(const ParameterListT& fibers)
 		int dim = P.NumLists("Double");
 		if (dim != nsd-1)
 			ExceptionT::GeneralFail(caller, "expecting orientation vector length %d not %d",
-			nsd, dim);
+			nsd-1, dim);
 							
 		double* p = p_vec(f); 
 		/* same for all face nodes */
