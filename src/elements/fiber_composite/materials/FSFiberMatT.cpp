@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.cpp,v 1.10 2008-09-25 13:30:13 thao Exp $ */
+/* $Id: FSFiberMatT.cpp,v 1.11 2010-06-24 13:49:17 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatT.h"
 #include "FSFiberMatSupportT.h"
@@ -124,7 +124,6 @@ void FSFiberMatT::TakeParameterList(const ParameterListT& list)
 	fQ[8] = 1.0;
 	
 	fNumFibStress = dSymMatrixT::NumValues(fNumSD);
-//	fNumFibModuli = dSymMatrixT::NumValues(fNumFibStress);
 	
 	/* allocate memory */
 	/*2D fiber stress and modulus*/
@@ -141,22 +140,6 @@ const dMatrixT& FSFiberMatT::GetRotation()
 {
 	const char caller[] = "FSFiberMatT::GetRotation";
 	const dArray2DT& Fibers = FiberMatSupportT().Fiber_Vec();
-	//int num_fibers = fFiber_list[i].MajorDim();
-/*  Set Rotation Matrix
-	Q_Ia = e_I p_a is rotation matrix
-	fQ(0,0) = P1[0];
-	fQ(0,1) = P2[0];
-	fQ(0,2) = OP[0];
-
-	 fQ(1,0) = P1[1];
-	 fQ(1,1) = P2[1];
-	 fQ(1,2) = OP[1];
-
-	 fQ(2,0) = P1[2];
-	 fQ(2,1) = P2[2];
-	 fQ(2,2) = OP[2];
-*/
-
 	int num_fibers = Fibers.MajorDim();
 	num_fibers--;
 

@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatListT.cpp,v 1.7 2008-09-24 18:41:25 thao Exp $ */
+/* $Id: FSFiberMatListT.cpp,v 1.8 2010-06-24 13:49:16 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSFiberMatListT.h"
 #include "FSFiberMatSupportT.h"
@@ -57,6 +57,7 @@ void FSFiberMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListO
 	
 		//		sub_lists.AddSub("aniso_cornea");
 		sub_lists.AddSub("aniso_fiber_3D");
+		sub_lists.AddSub("aniso_cornea");
 		sub_lists.AddSub("aniso_viscoelastic_cornea");
 		sub_lists.AddSub("aniso_scalar_visco_cornea");
 /*		sub_lists.AddSub("aniso_viscoelastic2_cornea");*/
@@ -117,6 +118,8 @@ FSFiberMatT* FSFiberMatListT::NewFSFiberMat(const StringT& name) const
 	//		mat = new AnisoCornea;
 	if (name == "aniso_fiber_3D")
 		mat = new AnisoFiber3D;
+	else if (name == "aniso_cornea")
+		mat = new AnisoCornea;
 	else if (name == "aniso_viscoelastic_cornea")
 		mat = new AnisoCorneaVisco;
 	else if (name == "aniso_scalar_visco_cornea")

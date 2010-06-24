@@ -1,4 +1,4 @@
-/* $Id: NLV_Nfibers.cpp,v 1.2 2008-10-25 20:44:53 thao Exp $ */
+/* $Id: NLV_Nfibers.cpp,v 1.3 2010-06-24 13:49:17 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "NLV_Nfibers.h"
@@ -8,7 +8,7 @@
 
 #include "ParabolaT.h"
 #include "FungType.h"
-#include "FungType2.h"
+#include "VWType.h"
 #include "ScaledCsch.h"
 #include "LinearExponentialT.h"
 
@@ -254,8 +254,8 @@ ParameterInterfaceT* NLV_Nfibers::NewSub(const StringT& name) const
 		func = new FungType;
 	else if (name == "parabola")
 		func = new ParabolaT;
-	else if (name == "fung_type_square")
-		func = new FungType2;
+	else if (name == "vw_type")
+		func = new VWType;
 
 	if (func)
 		return func;
@@ -281,7 +281,7 @@ ParameterInterfaceT* NLV_Nfibers::NewSub(const StringT& name) const
 		
 		eq_choice->AddSub("parabola");
 		eq_choice->AddSub("fung-type");
-		eq_choice->AddSub("fung_type_square");
+		eq_choice->AddSub("vw_type");
 		
 		return(eq_choice);
 	}
@@ -294,7 +294,7 @@ ParameterInterfaceT* NLV_Nfibers::NewSub(const StringT& name) const
 		
 		neq_choice->AddSub("parabola");
 		neq_choice->AddSub("fung-type");
-		neq_choice->AddSub("fung_type_square");
+		neq_choice->AddSub("vw_type");
 		return(neq_choice);
 	}
 	else if(name=="fiber_visc_potential")
@@ -360,8 +360,8 @@ void NLV_Nfibers::TakeParameterList(const ParameterListT& list)
 			fPot_f(i,0) = new ParabolaT;
 		else if (fiber_pot.Name() == "fung-type")
 			fPot_f(i,0) = new FungType;
-		else if (fiber_pot.Name() == "fung_type_square")
-			fPot_f(i,0) = new FungType2;
+		else if (fiber_pot.Name() == "vw_type")
+			fPot_f(i,0) = new VWType;
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fPot_f(i,0)) throw ExceptionT::kOutOfMemory;
@@ -374,8 +374,8 @@ void NLV_Nfibers::TakeParameterList(const ParameterListT& list)
 				fPot_f(i,j+1) = new ParabolaT;
 			else if (fiber_neq.Name() == "fung-type")
 				fPot_f(i,j+1) = new FungType;
-			else if (fiber_neq.Name() == "fung_type_square")
-				fPot_f(i,j+1) = new FungType2;
+			else if (fiber_neq.Name() == "vw_type")
+				fPot_f(i,j+1) = new VWType;
 			else 
 				ExceptionT::GeneralFail(caller, "no such potential");
 			if (!fPot_f(i,j+1)) throw ExceptionT::kOutOfMemory;

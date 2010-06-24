@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.cpp,v 1.11 2008-10-25 20:44:53 thao Exp $ */
+/* $Id: FSFiberMatViscT.cpp,v 1.12 2010-06-24 13:49:17 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatViscT.h"
 #include "FSFiberMatSupportT.h"
@@ -54,56 +54,52 @@ const dMatrixT& FSFiberMatViscT::C_IJKL(void)
 	/*equilibrium contribution*/
 	/*calculate eq. matrix contribution*/
 	ComputeMatrixMod(fC, fStress, fModulus);	
+//	cout << "\nelem: "<<elem<<"\tmatrix mod: "<<fModulus<<endl;
 
 	/* eq. fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
 	ComputeFiberMod(fFiberStretch, fFiberStress, fFiberMod);
-
+//	cout << "\nfibermod: "<<fFiberMod<<endl;
 	/* rotate and assemble eq. stress to lab coordinates */
 	AssembleFiberStress(fFiberStress, fStress);
-	
+//	cout << "\nfiberstress: "<<fFiberStress<<endl;
+
 	/* rotate and assemble eq. modulus to lab coordinates */
 	AssembleFiberModuli(fFiberMod, fModulus);
-	
-	/*
-	if (elem == 0 || elem == 2209)
+//	cout << "\ntotal mod: "<<fModulus<<endl;
+
+
+	if (fNumFibProcess+fNumMatProcess > 0)
 	{
-		cout << "\nFiberMod: "<<fFiberMod;
-		cout << "\nModulus: "<<fModulus;
+		/*calculate nonequilibrium contribution*/
+		/*Load state variables (Cv and Cvn)*/
+		ElementCardT& element = CurrentElement();
+		Load(element, CurrIP());
+
+		for (int i = 0; i < fNumMatProcess; i++)
+		{
+			/*calculate neq. matrix contribution*/
+			ComputeMatrixMod(fC, fC_v[i], fStress, fModulus, i, dSymMatrixT::kAccumulate);
+		}
+
+		int j = fNumMatProcess;
+		for (int i = 0; i < fNumFibProcess && fNumFibProcess > 0; i++)
+		{
+			/* neq. fiber contribution*/
+			ComputeFiberStretch(fC_v[j], fFiberStretch_v);
+
+			/*calculate SNEQ and dSNEQ/dC*/
+			ComputeFiberMod(fFiberStretch, fFiberStretch_v, fFiberStress, fFiberMod, i);				
+
+			/* rotate neq. stress to lab coordinates and assemble in fStress */
+			AssembleFiberStress(fFiberStress, fStress);
+
+			/* rotate and assemble neq. modulus to lab coordinates */
+			AssembleFiberModuli(fFiberMod, fModulus);
+
+			j++;
+		}
 	}
-	*/
-
-if (fNumFibProcess+fNumMatProcess > 0)
-{
-	/*calculate nonequilibrium contribution*/
-	/*Load state variables (Cv and Cvn)*/
-    ElementCardT& element = CurrentElement();
-    Load(element, CurrIP());
-
-	for (int i = 0; i < fNumMatProcess; i++)
-	{
-		/*calculate neq. matrix contribution*/
-		ComputeMatrixMod(fC, fC_v[i], fStress, fModulus, i, dSymMatrixT::kAccumulate);
-	}
-
-	int j = fNumMatProcess;
-	for (int i = 0; i < fNumFibProcess && fNumFibProcess > 0; i++)
-	{
-		/* neq. fiber contribution*/
-		ComputeFiberStretch(fC_v[j], fFiberStretch_v);
-
-		/*calculate SNEQ and dSNEQ/dC*/
-		ComputeFiberMod(fFiberStretch, fFiberStretch_v, fFiberStress, fFiberMod, i);				
-
-		/* rotate neq. stress to lab coordinates and assemble in fStress */
-		AssembleFiberStress(fFiberStress, fStress);
-
-		/* rotate and assemble neq. modulus to lab coordinates */
-		AssembleFiberModuli(fFiberMod, fModulus);
-
-		j++;
-	}
-}
 	return fModulus;
 }
 	
@@ -117,7 +113,6 @@ const dSymMatrixT& FSFiberMatViscT::S_IJ(void)
 	/*matrix contribution*/
 	/*calculate matrix contribution*/
 	ComputeMatrixStress(fC, fStress);
-
 	/*fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
 

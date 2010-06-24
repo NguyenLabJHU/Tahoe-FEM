@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.17 2010-02-17 04:09:11 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.18 2010-06-24 13:49:16 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -16,8 +16,9 @@
 #include "EvenSpacePtsT.h"
 
 /*fiber potentials*/
-#include "FungType2.h"
+
 #include "FungType.h"
+#include "VWType.h"
 #include "LanirFiber.h"
 
 /*viscosity functions*/
@@ -27,9 +28,9 @@
 
 const double Pi = acos(-1.0);
 const double third = 1.0/3.0;
-const int kNumOutputVar = 10;
+const int kNumOutputVar = 19;
 static const char* Labels[kNumOutputVar] = 
-	{"NT_X", "NT_Y", "NT_Z","IS_X", "IS_Y", "IS_Z","OT_X", "OT_Y", "OT_Z","J"};
+	{"NT_X", "NT_Y", "NT_Z","IS_X", "IS_Y", "IS_Z","OT_X", "OT_Y", "OT_Z","J", "v1_X", "v1_Y", "v1_Z","v2_X", "v2_Y", "v2_Z","v3_X", "v3_Y", "v3_Z"};
 
 static const int perm[3][3] = {0,1,2,1,2,0,2,0,1};
 
@@ -43,9 +44,10 @@ using namespace Tahoe;
 /* constructors */
 AnisoCorneaVisco::AnisoCorneaVisco(void):
   FSFiberMatViscT(),
-  ParameterInterfaceT("aniso_viscoelastic_cornea"),
+	fSpectralDecompSpat(3),
 	fCircle(NULL),
-	fDType(kMeridional)
+	fDType(kMeridional),
+	ParameterInterfaceT("aniso_viscoelastic_cornea")\
 {
 	/*reset default*/
 	fNumFibProcess = 0;
@@ -210,7 +212,24 @@ void AnisoCorneaVisco::ComputeOutput(dArrayT& output)
 	pb += NumSD();
 
 	/*non-equilibrium strain energy density */
-	*pb = F.Det();
+	*pb++ = F.Det();
+	
+	/*calculate the stress eigenvectors*/
+	const dSymMatrixT& stress = s_ij();
+	fSpectralDecompSpat.SpectralDecomp_Jacobi(stress, false);	
+    const ArrayT<dArrayT>& eigenvectors=fSpectralDecompSpat.Eigenvectors();
+	const double* v1 = eigenvectors[0].Pointer();
+	*pb++ = *v1++;
+	*pb++ = *v1++;
+	*pb++ = *v1;
+	const double* v2 = eigenvectors[1].Pointer();
+	*pb++ = *v2++;
+	*pb++ = *v2++;
+	*pb++ = *v2;
+	const double* v3 = eigenvectors[2].Pointer();
+	*pb++ = *v3++;
+	*pb++ = *v3++;
+	*pb  =  *v3;
 }
 
 /* describe the parameters needed by the interface */
@@ -303,7 +322,7 @@ ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
 			/* set the description */
 			choice->AddSub(fung);
 		}
-		ParameterContainerT fung0("fung_type0");		
+		ParameterContainerT fung0("vw_type");		
 		{
 			LimitT lower(0.0, LimitT::Lower);
 			
@@ -358,7 +377,7 @@ ParameterInterfaceT* AnisoCorneaVisco::NewSub(const StringT& name) const
 			/* set the description */
 			choice->AddSub(fung);
 		}
-		ParameterContainerT fung0("neq_fung_type0");		
+		ParameterContainerT fung0("neq_vw_type");		
 		{
 			LimitT lower(0.0, LimitT::Lower);
 			
@@ -495,16 +514,16 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 	{
 		double alpha_eq = potential.GetParameter("alpha");
 		double beta = potential.GetParameter("beta");
-		fPotential[0] = new FungType2(alpha_eq, beta);
+		fPotential[0] = new FungType(alpha_eq, beta);
 		if (!fPotential[0]) throw ExceptionT::kOutOfMemory;
 		
 		temp1 = beta;
 	}
-	else if(potential.Name() == "fung_type0")
+	else if(potential.Name() == "vw_type")
 	{
 		double alpha_eq = potential.GetParameter("alpha");
 		double beta = potential.GetParameter("beta");
-		fPotential[0] = new FungType(alpha_eq, beta);
+		fPotential[0] = new VWType(alpha_eq, beta);
 		if (!fPotential[0]) throw ExceptionT::kOutOfMemory;
 		
 		temp1 = beta;
@@ -530,15 +549,15 @@ void AnisoCorneaVisco::TakeParameterList(const ParameterListT& list)
 		{
 			double alpha_neq = neq_potential.GetParameter("alpha");
 
-			fPotential[i+1] = new FungType2(alpha_neq, temp1);
+			fPotential[i+1] = new FungType(alpha_neq, temp1);
 			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
 			
 		}
-		else if (neq_potential.Name() == "neq_fung_type0")
+		else if (neq_potential.Name() == "neq_vw_type")
 		{
 			double alpha_neq = neq_potential.GetParameter("alpha");
 			
-			fPotential[i+1] = new FungType(alpha_neq, temp1);
+			fPotential[i+1] = new VWType(alpha_neq, temp1);
 			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
 			
 		}

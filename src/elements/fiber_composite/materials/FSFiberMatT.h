@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.h,v 1.6 2008-09-25 13:30:13 thao Exp $ */
+/* $Id: FSFiberMatT.h,v 1.7 2010-06-24 13:49:17 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIB_MAT_T_H_
 #define _FD_FIB_MAT_T_H_
@@ -13,7 +13,8 @@
 namespace Tahoe {
 
 /* forward declarations */
-class UpLagFiberCompT;
+//class UpLagFiberCompT;
+//class UpLagFiberCompAxiT;
 
 /** base class for finite deformation fiber composite constitutive models. The interface *
  * provides access to the element-computed fiber orientation vectors in the global (lab) *
@@ -68,6 +69,8 @@ protected:
 				const int fillmode = dSymMatrixT::kAccumulate);
 	void AssembleFiberModuli(const dMatrixT& fib_mod, dMatrixT& global_mod,
 				const int fillmode = dSymMatrixT::kAccumulate);
+
+	/*subsequent derived classes must define the following pure virtual functions*/
 	/*calculates  matrix contribution to 2PK stress*/
 	virtual void ComputeMatrixStress(const dSymMatrixT& C, dSymMatrixT& Stress) = 0;
 

@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.h,v 1.12 2010-02-17 04:09:11 thao Exp $ */
+/* $Id: AnisoCorneaVisco.h,v 1.13 2010-06-24 13:49:16 thao Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoCorneaVisco_
 #define _AnisoCorneaVisco_ 
@@ -127,6 +127,8 @@ protected:
 	double fMu;
 	double fGamma;
 	
+	SpectralDecompT fSpectralDecompSpat;
+
 	/* integration point generator */
 	CirclePointsT*	fCircle;
 

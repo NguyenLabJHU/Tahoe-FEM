@@ -1,11 +1,13 @@
-/* $Id: AnisoCornea.h,v 1.10 2008-06-01 01:05:34 thao Exp $ */
+/* $Id: AnisoCornea.h,v 1.11 2010-06-24 13:49:16 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ANISO_CORNEA_2D_H_
 #define _ANISO_CORNEA_2D_H_
 
 /* base classes */
-#include "FSFiberMatT.h"
 #include "SolidMaterialsConfig.h"
+ 
+/* base class */
+#include "FSFiberMatSplitT.h"
 
 #if defined(VIB_MATERIAL)
 namespace Tahoe {
@@ -15,11 +17,14 @@ class CirclePointsT;
 class C1FunctionT;
 
 /** 2D Isotropic VIB solver using spectral decomposition formulation */
-class AnisoCornea: public FSFiberMatT
+class AnisoCornea: public FSFiberMatSplitT
 {
 public:
 
-	enum InhomoDistributionT { kHomogeneous=0, kFile=1, kBlend=2,  kCornea=3, kCornea_Mod=4};
+	enum DistributionT {kCircumferential = 0,
+							   kMeridional,
+							   kMixed,
+							   kFile};
 	/* constructor */
 	AnisoCornea(void);
 
@@ -39,8 +44,6 @@ public:
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
 
-//	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, SubListT& sub_lists) const;
-
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -49,62 +52,63 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+
 	/*@}*/
 
-protected:
-
 	/*calculates  matrix contribution to 2PK stress*/
-	virtual void ComputeMatrixStress(const dSymMatrixT& C, dSymMatrixT& Stress);
+	virtual void ComputeDevMatrixStress(const dSymMatrixT& Cbar,  dSymMatrixT& Stress);
 
 	/*calculates matrix contribution to modulus*/
-	virtual void ComputeMatrixMod(const dSymMatrixT& C, dSymMatrixT& Stress, dMatrixT& Mod);
+	virtual void ComputeDevMatrixMod(const dSymMatrixT& Cbar, dSymMatrixT& Stress, dMatrixT& Mod);
 	
+	/*calculates  matrix contribution to 2PK stress*/
+	virtual double ComputeVolMatrixStress(const double I3);
+
+	/*calculates matrix contribution to modulus*/
+	virtual double ComputeVolMatrixMod(const double I3);
+
 	/*computes integrated fiber stress in local frame*/
-	virtual void ComputeFiberStress (const dSymMatrixT& FiberStretch, dSymMatrixT& FiberStress);
+	virtual void ComputeFiberStress (const dSymMatrixT& Stretch, dSymMatrixT& Stress);
 	
 	/*computes integrated moduli in local frame*/
-	virtual void ComputeFiberMod (const dSymMatrixT& FiberStretch, dSymMatrixT& FiberStress,
-					dMatrixT& FiberMod);
+	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, dSymMatrixT& Stress, dMatrixT& Mod);
+
 
 	/* strained lengths in terms of the Lagrangian stretch eigenvalues */
 	void ComputeLengths(const dSymMatrixT& stretch);
 	
 private:
-
 	/* initialize angle tables */
 	void Construct(void);
-
+	
 protected:
 	
 	/*constitutive values for matrix*/
 	double fMu;
-	double fGamma;
+	double fKappa;
 	
 	/* integration point generator */
 	CirclePointsT*	fCircle;
-	
+
 	/* potential function */
 	C1FunctionT* fPotential;
 
-	/* fibril distribution function */
-	C1FunctionT* fDistribution;
-
+	
 	/* length table */
-	/*I4*/
-	dArrayT	fI4;
-
+	/*I4 */
+	dArrayT	fI4; /*C:M*/
+	
 	/* potential tables */
 	dArrayT	fU;
 	dArrayT	fdU;
 	dArrayT	fddU;
 
-	/* jacobian table */
-	dArrayT	fjacobian;
+	int fDType; // flag
 
-  /* for inhomogeneous material */
-  ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
-  bool finhomogeneous; // flag
-  double a2,b2,c2,n2,c3,r1,r2,r3,r4,xi; // for spatial dependent distribution
+	/* for inhomogeneous material */
+	ArrayT<dArrayT> fjacobians; // for an inhomogeneous material
+	double fk, fphi, fm; // paramters of von mises distribution function
+	
 
 	/* STRESS angle tables for fiber stress - by associated stress component */
 	dArray2DT fStressTable;
@@ -114,6 +118,6 @@ protected:
 
 };
 
-} // namespace Tahoe 
-#endif /* _ISO_VIB_2D_H_ */
+}
+#endif 
 #endif /*VIB_MATERIAL*/

@@ -1,4 +1,4 @@
-/* $Id: NLV_Ortho.cpp,v 1.1 2008-09-25 13:32:32 thao Exp $ */
+/* $Id: NLV_Ortho.cpp,v 1.2 2010-06-24 13:49:18 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "NLV_Ortho.h"
@@ -9,7 +9,7 @@
 
 #include "ParabolaT.h"
 #include "FungType.h"
-#include "FungType2.h"
+#include "VWType.h"
 #include "ScaledCsch.h"
 #include "LinearExponentialT.h"
 
@@ -242,12 +242,12 @@ ParameterInterfaceT* NLV_Ortho::NewSub(const StringT& name) const
 		func = new ScaledCsch;
 	else if (name == "linear_exponential") 
 		func = new LinearExponentialT;
-	else if (name == "fung-type")
+	else if (name == "fung_type")
 		func = new FungType;
 	else if (name == "parabola")
 		func = new ParabolaT;
-	else if (name == "fung_type_square")
-		func = new FungType2;
+	else if (name == "vw_type")
+		func = new VWType;
 
 	if (func)
 		return func;
@@ -261,7 +261,7 @@ ParameterInterfaceT* NLV_Ortho::NewSub(const StringT& name) const
 		
 		choice->AddSub("parabola");
 		choice->AddSub("fung_type");
-		choice->AddSub("fung_type_square");
+		choice->AddSub("vw_type");
 
 		return(choice);
 	}
@@ -332,10 +332,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 	const ParameterListT& fiber1_pot4 = list.GetListChoice(*this, "eq_fiber1_pot4");
 	if (fiber1_pot4.Name() == "parabola")
 		fPot1_f4[0] = new ParabolaT;
-	else if (fiber1_pot4.Name() == "fung-type")
+	else if (fiber1_pot4.Name() == "fung_type")
 		fPot1_f4[0] = new FungType;
-	else if (fiber1_pot4.Name() == "fung_type_Square")
-		fPot1_f4[0] = new FungType2;
+	else if (fiber1_pot4.Name() == "vw_type")
+		fPot1_f4[0] = new VWType;
 	else 
 		ExceptionT::GeneralFail(caller, "no such potential");
 	if (!fPot1_f4[0]) throw ExceptionT::kOutOfMemory;
@@ -345,10 +345,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 	{
 		if (fiber1_pot4.Name() == "parabola")
 			fPot2_f4[0] = new ParabolaT;
-		else if (fiber1_pot4.Name() == "fung-type")
+		else if (fiber1_pot4.Name() == "fung_type")
 			fPot2_f4[0] = new FungType;
-		else if (fiber1_pot4.Name() == "fung_type_Square")
-			fPot2_f4[0] = new FungType2;
+		else if (fiber1_pot4.Name() == "vw_type")
+			fPot2_f4[0] = new VWType;
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fPot2_f4[0]) throw ExceptionT::kOutOfMemory;
@@ -359,10 +359,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& fiber2_pot4 = list.GetListChoice(*this, "eq_fiber2_pot4");
 		if (fiber2_pot4.Name() == "parabola")
 			fPot2_f4[0] = new ParabolaT;
-		else if (fiber2_pot4.Name() == "fung-type")
+		else if (fiber2_pot4.Name() == "fung_type")
 			fPot2_f4[0] = new FungType;
-		else if (fiber2_pot4.Name() == "fung_type_Square")
-			fPot2_f4[0] = new FungType2;
+		else if (fiber2_pot4.Name() == "vw_type")
+			fPot2_f4[0] = new VWType;
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fPot2_f4[0]) throw ExceptionT::kOutOfMemory;
@@ -372,10 +372,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 	const ParameterListT& fiber1_pot5 = list.GetListChoice(*this, "eq_fiber1_pot5");
 	if (fiber1_pot5.Name() == "parabola")
 		fPot1_f5[0] = new ParabolaT;
-	else if (fiber1_pot5.Name() == "fung-type")
+	else if (fiber1_pot5.Name() == "fung_type")
 		fPot1_f5[0] = new FungType;
-	else if (fiber1_pot5.Name() == "fung_type_square")
-		fPot1_f5[0] = new FungType2;
+	else if (fiber1_pot5.Name() == "vw_type")
+		fPot1_f5[0] = new VWType;
 	else 
 		ExceptionT::GeneralFail(caller, "no such potential");
 	if (!fPot1_f5[0]) throw ExceptionT::kOutOfMemory;
@@ -384,10 +384,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 	{
 		if (fiber1_pot5.Name() == "parabola")
 			fPot2_f5[0] = new ParabolaT;
-		else if (fiber1_pot5.Name() == "fung-type")
+		else if (fiber1_pot5.Name() == "fung_type")
 			fPot2_f5[0] = new FungType;
-		else if (fiber1_pot5.Name() == "fung_type_Square")
-			fPot2_f5[0] = new FungType2;
+		else if (fiber1_pot5.Name() == "vw_type")
+			fPot2_f5[0] = new VWType;
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fPot2_f5[0]) throw ExceptionT::kOutOfMemory;
@@ -398,10 +398,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& fiber2_pot5 = list.GetListChoice(*this, "eq_fiber2_pot5");
 		if (fiber2_pot5.Name() == "parabola")
 			fPot2_f5[0] = new ParabolaT;
-		else if (fiber2_pot5.Name() == "fung-type")
+		else if (fiber2_pot5.Name() == "fung_type")
 			fPot2_f5[0] = new FungType;
-		else if (fiber2_pot5.Name() == "fung_type_Square")
-			fPot2_f5[0] = new FungType2;
+		else if (fiber2_pot5.Name() == "vw_type")
+			fPot2_f5[0] = new VWType;
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fPot2_f5[0]) throw ExceptionT::kOutOfMemory;
@@ -414,10 +414,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& fiber1_potn4 = list.GetListChoice(*this, "neq_fiber1_pot4");
 		if (fiber1_potn4.Name() == "parabola")
 			fPot1_f4[i+1] = new ParabolaT;
-		else if (fiber1_potn4.Name() == "fung-type")
+		else if (fiber1_potn4.Name() == "fung_type")
 			fPot1_f4[i+1] = new FungType;
-		else if	(fiber1_potn4.Name() == "fung_type_square")
-			fPot1_f4[i+1] = new FungType2;
+		else if	(fiber1_potn4.Name() == "vw_type")
+			fPot1_f4[i+1] = new VWType;
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fPot1_f4[i+1]) throw ExceptionT::kOutOfMemory;
@@ -427,10 +427,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 		{
 			if (fiber1_potn4.Name() == "parabola")
 				fPot2_f4[i+1] = new ParabolaT;
-			else if (fiber1_potn4.Name() == "fung-type")
+			else if (fiber1_potn4.Name() == "fung_type")
 				fPot2_f4[i+1] = new FungType;
-			else if (fiber1_potn4.Name() == "fung_type_Square")
-				fPot2_f4[i+1] = new FungType2;
+			else if (fiber1_potn4.Name() == "vw_type")
+				fPot2_f4[i+1] = new VWType;
 			else 
 				ExceptionT::GeneralFail(caller, "no such potential");
 			if (!fPot2_f4[i+1]) throw ExceptionT::kOutOfMemory;
@@ -441,10 +441,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 			const ParameterListT& fiber2_potn4 = list.GetListChoice(*this, "neq_fiber2_pot4");
 			if (fiber2_potn4.Name() == "parabola")
 				fPot2_f4[i+1] = new ParabolaT;
-			else if (fiber2_potn4.Name() == "fung-type")
+			else if (fiber2_potn4.Name() == "fung_type")
 				fPot2_f4[i+1] = new FungType;
-			else if (fiber2_potn4.Name() == "fung_type_Square")
-				fPot2_f4[i+1] = new FungType2;
+			else if (fiber2_potn4.Name() == "vw_type")
+				fPot2_f4[i+1] = new VWType;
 			else 
 				ExceptionT::GeneralFail(caller, "no such potential");
 			if (!fPot2_f4[i+1]) throw ExceptionT::kOutOfMemory;
@@ -455,10 +455,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& fiber1_potn5 = list.GetListChoice(*this, "neq_fiber1_pot5");
 		if (fiber1_potn5.Name() == "parabola")
 			fPot1_f5[i+1] = new ParabolaT;
-		else if (fiber1_potn5.Name() == "fung-type")
+		else if (fiber1_potn5.Name() == "fung_type")
 			fPot1_f5[i+1] = new FungType;
-		else if	(fiber1_potn5.Name() == "fung_type_square")
-			fPot1_f5[i+1] = new FungType2;
+		else if	(fiber1_potn5.Name() == "vw_type")
+			fPot1_f5[i+1] = new VWType;
 		else 
 			ExceptionT::GeneralFail(caller, "no such potential");
 		if (!fPot1_f5[i+1]) throw ExceptionT::kOutOfMemory;
@@ -468,10 +468,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 		{
 			if (fiber1_potn5.Name() == "parabola")
 				fPot2_f5[i+1] = new ParabolaT;
-			else if (fiber1_potn5.Name() == "fung-type")
+			else if (fiber1_potn5.Name() == "fung_type")
 				fPot2_f5[i+1] = new FungType;
-			else if (fiber1_potn5.Name() == "fung_type_Square")
-				fPot2_f5[i+1] = new FungType2;
+			else if (fiber1_potn5.Name() == "vw_type")
+				fPot2_f5[i+1] = new VWType;
 			else 
 				ExceptionT::GeneralFail(caller, "no such potential");
 			if (!fPot2_f5[i+1]) throw ExceptionT::kOutOfMemory;
@@ -482,10 +482,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 			const ParameterListT& fiber2_potn5 = list.GetListChoice(*this, "neq_fiber2_pot5");
 			if (fiber2_potn5.Name() == "parabola")
 				fPot2_f5[i+1] = new ParabolaT;
-			else if (fiber2_potn5.Name() == "fung-type")
+			else if (fiber2_potn5.Name() == "fung_type")
 				fPot2_f5[i+1] = new FungType;
-			else if (fiber2_potn5.Name() == "fung_type_Square")
-				fPot2_f5[i+1] = new FungType2;
+			else if (fiber2_potn5.Name() == "vw_type")
+				fPot2_f5[i+1] = new VWType;
 			else 
 				ExceptionT::GeneralFail(caller, "no such potential");
 			if (!fPot2_f5[i+1]) throw ExceptionT::kOutOfMemory;
@@ -506,10 +506,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 		{
 			if (fiber1_visc.Name() == "parabola")
 				fVisc2_f[i] = new ParabolaT;
-			else if (fiber1_visc.Name() == "fung-type")
+			else if (fiber1_visc.Name() == "fung_type")
 				fVisc2_f[i] = new FungType;
-			else if (fiber1_visc.Name() == "fung_type_Square")
-				fVisc2_f[i] = new FungType2;
+			else if (fiber1_visc.Name() == "vw_type")
+				fVisc2_f[i] = new VWType;
 			else 
 				ExceptionT::GeneralFail(caller, "no such potential");
 			if (!fVisc2_f[i]) throw ExceptionT::kOutOfMemory;
@@ -520,10 +520,10 @@ void NLV_Ortho::TakeParameterList(const ParameterListT& list)
 			const ParameterListT& fiber2_visc = list.GetListChoice(*this, "fiber2_visc_potential", i);
 			if (fiber2_visc.Name() == "parabola")
 				fVisc2_f[i] = new ParabolaT;
-			else if (fiber2_visc.Name() == "fung-type")
+			else if (fiber2_visc.Name() == "fung_type")
 				fVisc2_f[i] = new FungType;
-			else if (fiber2_visc.Name() == "fung_type_Square")
-				fVisc2_f[i] = new FungType2;
+			else if (fiber2_visc.Name() == "vw_type")
+				fVisc2_f[i] = new VWType;
 			else 
 				ExceptionT::GeneralFail(caller, "no such potential");
 			if (!fVisc2_f[i]) throw ExceptionT::kOutOfMemory;

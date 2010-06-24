@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatSupportT.h,v 1.1 2006-08-03 01:10:41 thao Exp $ */
+/* $Id: FSFiberMatSupportT.h,v 1.2 2010-06-24 13:49:17 thao Exp $ */
 #ifndef _FD__FIBER_MAT_SUPPORT_T_H_
 #define _FD__FIBER_MAT_SUPPORT_T_H_
 
@@ -14,6 +14,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class UpLagFiberCompT;
+class UpLagFiberCompAxiT;
 
 /** support for the finite strain Tahoe materials classes */
 class FSFiberMatSupportT: public FSMatSupportT
@@ -45,7 +46,7 @@ public:
 	/** return a pointer to the host element. Returns NULL if no
 	 * no element information in available. The ContinuumElementT
 	 * pointer is set using MaterialSupportT::SetContinuumElement. */
-	const UpLagFiberCompT* FiberElement(void) const { return fFiberElement; };
+//	const UpLagFiberCompT* FiberElement(void) const { return fFiberElement; };
 
 	virtual void SetContinuumElement(const ContinuumElementT* p);
 	
@@ -56,8 +57,9 @@ public:
   	const ArrayT<dArray2DT>* fFiber_list; /**< fiber orientation vectors */
   	/*@}*/
 
-  	/** pointer to the finite strain element */
-	const UpLagFiberCompT* fFiberElement;	
+//  	/** pointer to the finite strain element */
+//	const UpLagFiberCompT* fFiberElement;	
+
 };
 
 /* inlines */

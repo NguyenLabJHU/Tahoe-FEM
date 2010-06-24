@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatSupportT.cpp,v 1.1 2006-08-03 01:10:41 thao Exp $ */
+/* $Id: FSFiberMatSupportT.cpp,v 1.2 2010-06-24 13:49:16 thao Exp $ */
 #include "FSFiberMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -11,8 +11,7 @@ using namespace Tahoe;
 /* constructor */
 FSFiberMatSupportT::FSFiberMatSupportT(int ndof, int nip):
 	FSMatSupportT(ndof, nip),
-	fFiber_list(NULL),
-	fFiberElement(NULL)
+	fFiber_list(NULL)
 {
 
 }
@@ -30,10 +29,11 @@ void FSFiberMatSupportT::SetFibers(const ArrayT<dArray2DT>* Fiber_list)
 void FSFiberMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 {
 	/* inherited */
-	SolidMatSupportT::SetContinuumElement(p);
+	FSMatSupportT::SetContinuumElement(p);
 
+/*
 #ifdef CONTINUUM_ELEMENT
-	/* cast to finite strain pointer */
 	fFiberElement = TB_DYNAMIC_CAST(const UpLagFiberCompT*, p);
 #endif
+*/
 }

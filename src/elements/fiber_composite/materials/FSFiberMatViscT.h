@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.h,v 1.5 2008-09-25 13:30:13 thao Exp $ */
+/* $Id: FSFiberMatViscT.h,v 1.6 2010-06-24 13:49:17 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIBVISC_MAT_T_H_
 #define _FD_FIBVISC_MAT_T_H_
@@ -94,7 +94,7 @@ protected:
 	/*computes eq fiber moduli in local frame*/
 	virtual void ComputeFiberMod (const dSymMatrixT& Stretch, dSymMatrixT& dSymMatrixT, dMatrixT& Mod);
 
-	/*define pure virtual functions in FSFiberMatT*/
+	/*defined pure virtual functions in FSFiberMatT*/
 	/*computes fiber stress in local frame*/
 	virtual void ComputeFiberStress (const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress, 
 				const int process_index) = 0;
