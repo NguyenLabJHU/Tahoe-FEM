@@ -1,4 +1,4 @@
-/* $Id: RGSplitT2.cpp,v 1.6 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: RGSplitT2.cpp,v 1.7 2010-06-24 15:21:15 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT2.h"
@@ -13,6 +13,7 @@
 #include "MooneyRivlin.h"
 #include "NeoHookean.h"
 #include "VWPotentialT.h"
+#include "FungPotentialT.h"
 #include "ArrudaBoyce.h"
 
 #include "LinearExponentialT.h"
@@ -165,8 +166,11 @@ const dMatrixT& RGSplitT2::c_ijkl(void)
     Gamma(1,1) -= 2.0*ftau_EQ[1];
     Gamma(2,2) -= 2.0*ftau_EQ[2];
    
+//	cout << "\nGamma: "<<Gamma;
+	
 	fModulus3D = fSpectralDecompSpat.EigsToRank4(Gamma);	
 	double dl, coeff;
+//	cout << "\nfModulus3D: "<<fModulus3D;
 
     double& l0 = fEigs[0];
     double& l1 = fEigs[1];
@@ -289,6 +293,7 @@ if (fNumProcess > 0)
 
 	const dMatrixT& Ftotal = F_total();	
 	fModulus *= 1.0/Ftotal.Det();
+//	cout << "\nfModulus: "<<fModulus;
 
     return fModulus;
 }
@@ -301,6 +306,8 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 /*	cout << "\nfF_T_inv: "<<fF_T_inv;
 	cout << "\nFm: "<<F;
 */
+//	cout << "\nnsd: "<<NumSD();
+//	cout << "\nF: "<<F;
 	if (NumSD() == 2)
 	{
 		fF3D[0] = F[0];
@@ -316,14 +323,11 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 		fF3D[8] = 1.0;
 	}
 	else fF3D = F;
-//	cout << "\nfF3D: "<< fF3D;
-	
 	/*calculate EQ part of the stress*/
 	fb.MultAAT(fF3D);
 	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
 	fEigs = fSpectralDecompSpat.Eigenvalues();
-//	cout << "\nfEigs: "<<fEigs;
-	
+
 	/*jacobian determinant*/
 	double J = sqrt(fEigs.Product());
 	
@@ -339,8 +343,6 @@ const dSymMatrixT& RGSplitT2::s_ij(void)
 		cout << "\neq kappa: "<< kappa_eq;
 */	
 	fStress3D = fSpectralDecompSpat.EigsToRank2(ftau_EQ);
-//	cout << "\nstress eq: "<<fStress3D;
-//	cout << "\neqstress: "<<fStress3D;
     /*load the viscoelastic principal stretches from state variable arrays*/
 if (fNumProcess > 0 )
 {
@@ -352,12 +354,7 @@ if (fNumProcess > 0 )
 		for (int i = 0; i < fNumProcess; i++)
 		{
 			/*calc trial state*/
-//			cout << "\nproces: "<<i<<endl;
-//			cout << "\nfCv_n: "<<fC_vn[i]<<endl;
-			
 			fInverse.Inverse(fC_vn[i]);
-//			cout << "\nfInverse: "<<fInverse<<endl;
-//			cout << "\nfF3D: "<<fF3D;
 			fb_tr.MultQBQT(fF3D, fInverse);
 			
 			fSpectralDecompSpat.SpectralDecomp_Jacobi(fb_tr, false);	
@@ -366,19 +363,13 @@ if (fNumProcess > 0 )
 			/*calc elastic stretch*/
 			fEigs_e = fEigs_tr; /*initial condition*/
 			ComputeEigs_e(fEigs, fEigs_e, ftau_NEQ, fDtauDe_NEQ, i);
-//			cout << "\nfEigs_e: "<<fEigs_e;
 			double Je = sqrt(fEigs_e.Product());
 			fEigs_dev = fEigs_e;
 			fEigs_dev *= pow(Je,-2.0*third);
 	
 			fPot[i+1]->DevStress(fEigs_dev, ftau_NEQ);
-//			cout << "\nneq_dev_stress: "<<ftau_NEQ;
 			ftau_NEQ += fPot[i+1]->MeanStress(Je);
-//			cout << "\nneq_tot_stress: "<<ftau_NEQ;
 			fStress3D += fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
-
-//			cout << "\nneq_tot_stress: "<<fStress3D;
-
 	
 			/*Calculate Cv*/
 			fInverse = fSpectralDecompSpat.EigsToRank2(fEigs_e); /*be which is colinear with btr*/
@@ -422,6 +413,7 @@ if (fNumProcess > 0 )
 	const dMatrixT& Ftotal = F_total();	
 //	cout << "\nFtot: "<<Ftotal;
     fStress *= 1.0/Ftotal.Det();
+//	cout << "\nstress: "<<fStress;
 	return fStress;
 }
 
@@ -781,7 +773,9 @@ ParameterInterfaceT* RGSplitT2::NewSub(const StringT& name) const
 	else if (name == "mooney-rivlin")
 		pot = new MooneyRivlin;
 	else if (name == "veronda-westmann")
-		pot = new VWPotentialT;
+		pot = new  VWPotentialT;
+	else if (name == "fung-potential")
+		pot = new  FungPotentialT;
 	else if (name == "arruda-boyce")
 		pot = new ArrudaBoyce;
 	if (pot)
@@ -808,6 +802,7 @@ ParameterInterfaceT* RGSplitT2::NewSub(const StringT& name) const
 		choice->AddSub("neo-hookean");
 		choice->AddSub("mooney-rivlin");
 		choice->AddSub("veronda-westmann");
+		choice->AddSub("fung-potential");
 		choice->AddSub("arruda-boyce");
 		return(choice);
 	}
@@ -866,6 +861,8 @@ void RGSplitT2::TakeParameterList(const ParameterListT& list)
 		fPot[0] = new MooneyRivlin;
 	else if(eq_pot.Name() == "veronda-westmann")
 		fPot[0] = new VWPotentialT;
+	else if(eq_pot.Name() == "fung-potential")
+		fPot[0] = new FungPotentialT;
 	else if(eq_pot.Name() == "arruda-boyce")
 		fPot[0] = new ArrudaBoyce;
 	else 
@@ -883,6 +880,8 @@ void RGSplitT2::TakeParameterList(const ParameterListT& list)
 			fPot[i+1] = new NeoHookean;
 		else if(pot_neq.Name() == "veronda-westmann")
 			fPot[i+1] = new VWPotentialT;
+		else if(pot_neq.Name() == "fung-potential")
+			fPot[i+1] = new FungPotentialT;
 		else if(pot_neq.Name() == "arruda-boyce")
 			fPot[i+1] = new ArrudaBoyce;
 		else 
