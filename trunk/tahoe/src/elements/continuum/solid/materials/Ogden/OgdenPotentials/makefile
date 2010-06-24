@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2007-07-17 20:12:31 tdnguye Exp $
+# $Id: makefile,v 1.5 2010-06-24 15:25:17 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,7 +24,8 @@ OBJ = NeoHookean.o \
 	PotentialT.o \
 	MooneyRivlin.o \
 	ArrudaBoyce.o \
-	VWPotentialT.o 
+	VWPotentialT.o \
+	FungPotentialT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -48,7 +49,8 @@ SRC = NeoHookean.cpp \
 	PotentialT.cpp \
 	MooneyRivlin.cpp \
 	ArrudaBoyce.cpp \
-	VWPotentialT.cpp 
+	VWPotentialT.cpp \
+	FungPotentialT.cpp 
 
 ##################### (3) headers
 #
@@ -64,7 +66,8 @@ HDR = NeoHookean.h \
 	PotentialT.h \
 	MooneyRivlin.h \
 	ArrudaBoyce.h \
-	VWPotentialT.h 
+	VWPotentialT.h \
+	FungPotentialT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
