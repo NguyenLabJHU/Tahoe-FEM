@@ -1,4 +1,4 @@
- /* $Id: AnisoCorneaVisco_Opt.cpp,v 1.2 2010-02-17 04:09:57 thao Exp $ */
+ /* $Id: AnisoCorneaVisco_Opt.cpp,v 1.3 2010-06-24 14:03:37 thao Exp $ */
 #include "AnisoCorneaVisco_Opt.h"
 #include "ParameterContainerT.h"
 #include "ExceptionT.h"
@@ -17,8 +17,9 @@
 #include "EvenSpacePtsT.h"
 
 /*fiber potentials*/
-#include "FungType2.h"
+
 #include "FungType.h"
+#include "VWType.h"
 #include "LanirFiber.h"
 
 /*viscosity functions*/
@@ -113,7 +114,7 @@ ParameterInterfaceT* AnisoCorneaVisco_Opt::NewSub(const StringT& name) const
 			choice->AddSub(fung);
 		}
 
-		ParameterContainerT fung0("eq_fung_type0");		
+		ParameterContainerT fung0("eq_vw_type");		
 		{
 			LimitT lower(0.0, LimitT::Lower);
 			
@@ -149,7 +150,7 @@ ParameterInterfaceT* AnisoCorneaVisco_Opt::NewSub(const StringT& name) const
 			fung.SetDescription("param order, [alpha_neq]");	
 			choice->AddSub(fung);
 		}
-		ParameterContainerT fung0("neq_fung_type0");		
+		ParameterContainerT fung0("neq_vw_type");		
 		{
 			LimitT lower(0.0, LimitT::Lower);
 			
@@ -315,18 +316,18 @@ void AnisoCorneaVisco_Opt::TakeParameterList(const ParameterListT& list)
 	{
 		double alpha_eq = potential.GetParameter("alpha");
 		double beta = potential.GetParameter("beta");
-		fPotential[0] = new FungType2(alpha_eq, beta);
+		fPotential[0] = new FungType(alpha_eq, beta);
 		if (!fPotential[0]) throw ExceptionT::kOutOfMemory;
 		
 		fparams[2] = beta;
 		fparams[3] = alpha_eq;
 		ffiber_type = 1;
 	}
-	else if (potential.Name() == "eq_fung_type0")
+	else if (potential.Name() == "eq_vw_type")
 	{
 		double alpha_eq = potential.GetParameter("alpha");
 		double beta = potential.GetParameter("beta");
-		fPotential[0] = new FungType(alpha_eq, beta);
+		fPotential[0] = new VWType(alpha_eq, beta);
 		if (!fPotential[0]) throw ExceptionT::kOutOfMemory;
 		
 		fparams[2] = beta;
@@ -344,16 +345,16 @@ void AnisoCorneaVisco_Opt::TakeParameterList(const ParameterListT& list)
 		{
 			double alpha_neq = neq_potential.GetParameter("alpha");
 
-			fPotential[i+1] = new FungType2(alpha_neq,fparams[2]);
+			fPotential[i+1] = new FungType(alpha_neq,fparams[2]);
 			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
 			
 			fparams[dex++] = alpha_neq;
 		}		
-		else if (neq_potential.Name() == "neq_fung_type0")
+		else if (neq_potential.Name() == "neq_vw_type")
 		{
 			double alpha_neq = neq_potential.GetParameter("alpha");
 			
-			fPotential[i+1] = new FungType(alpha_neq,fparams[2]);
+			fPotential[i+1] = new VWType(alpha_neq,fparams[2]);
 			if (!fPotential[i+1]) throw ExceptionT::kOutOfMemory;
 			
 			fparams[dex++] = alpha_neq;
@@ -559,29 +560,28 @@ const dArray2DT& AnisoCorneaVisco_Opt::ds_ij_dlambda_q(void)
 		
 		double factors;
 		if(ffiber_type == 0)
-			factors=2.0*pj[i]*(exp(beta*delta) -1.0/(fI4[i]*fI4[i]));
+//OLD			factors=2.0*pj[i]*(exp(beta*delta) -1.0/(fI4[i]*fI4[i]));
+			factors=2.0*pj[i]*(exp(beta*delta)-1.0);
 		else if (ffiber_type ==1)
-			factors=2.0*delta*(exp(beta*delta*delta))*fI4[i]*pj[i];
+			factors=2.0*delta*(exp(beta*delta*delta))*pj[i];
 
 		ss1 += factors * p1[i];
 		ss2 += factors * p2[i];
 		ss3 += factors * p3[i];
 	
-//		cout << "\npj: "<<pj[i];		
-//		cout << "\nI4: "<<fI4[i];		
-//		cout << "\nfactors: "<<factors;
 
 		/*dseq_dbeta*/
 		double factort;
 		if(ffiber_type == 0)
 			factort = 2.0*pj[i]*(alpha_eq*delta*exp(beta*delta));
 		else if (ffiber_type ==1)
-			factort = 2.0*(alpha_eq*delta*delta*delta*exp(beta*delta*delta))*fI4[i]*pj[i];
+			factort = 2.0*(alpha_eq*delta*delta*delta*exp(beta*delta*delta))*pj[i];
+
 		t1 += factort * p1[i];
 		t2 += factort * p2[i];
 		t3 += factort * p3[i];
 		
-		double seq = 2.0*fdU[i]*fI4[i];
+		double seq = 2.0*fdU[i];
 		/*dseq_dk*/
 		double factork = seq*pj_dk[i];
 		k1 += factork * p1[i];
