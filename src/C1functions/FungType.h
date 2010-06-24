@@ -1,7 +1,7 @@
-/* $Id: FungType.h,v 1.4 2010-06-24 13:32:38 thao Exp $ */
+/* $Id: FungType.h,v 1.5 2010-06-24 13:48:29 thao Exp $ */
 
-#ifndef _FungType2_H_
-#define _FungType2_H_
+#ifndef _FungType_H_
+#define _FungType_H_
 
 /* base class */
 #include "C1FunctionT.h"
@@ -10,13 +10,13 @@
 /*Wf = alpha/beta ( Exp[beta( (l^2-1)/2)^2 ) ] -1 )*/
 namespace Tahoe {
 
-class FungType2: public C1FunctionT
+class FungType: public C1FunctionT
 {
 public:
 
 	/* constructor */
-	FungType2(double A, double B);
-	FungType2(void);
+	FungType(double A, double B);
+	FungType(void);
 
 	/* I/O */
 	virtual void Print(ostream& out) const;
@@ -43,4 +43,4 @@ private:
 
 
 } // namespace Tahoe 
-#endif /* _FungType2_H_ */
+#endif /* _FungType_H_ */

@@ -1,7 +1,7 @@
-/* $Id: VWType.h,v 1.1 2010-06-24 13:32:38 thao Exp $ */
+/* $Id: VWType.h,v 1.2 2010-06-24 13:48:30 thao Exp $ */
 
-#ifndef _FungType_H_
-#define _FungType_H_
+#ifndef _VWType_H_
+#define _VWType_H_
 
 /* base class */
 #include "C1FunctionT.h"
@@ -9,13 +9,13 @@
 
 namespace Tahoe {
 
-class FungType: public C1FunctionT
+class VWType: public C1FunctionT
 {
 public:
 
 	/* constructor */
-	FungType(double A, double B);
-	FungType(void);
+	VWType(double A, double B);
+	VWType(void);
 
 	/* I/O */
 	virtual void Print(ostream& out) const;
@@ -42,4 +42,4 @@ private:
 
 
 } // namespace Tahoe 
-#endif /* _FungType_H_ */
+#endif /* _VWType_H_ */

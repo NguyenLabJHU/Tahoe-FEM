@@ -1,6 +1,6 @@
-/* $Id: VWType.cpp,v 1.1 2010-06-24 13:32:38 thao Exp $ */
+/* $Id: VWType.cpp,v 1.2 2010-06-24 13:48:30 thao Exp $ */
 
-#include "FungType.h"
+#include "VWType.h"
 #include <iostream.h>
 #include <math.h>
 #include "ExceptionT.h"
@@ -12,14 +12,14 @@ static const double Pi = 4.0*atan(1.0);
 
 using namespace Tahoe;
 
-FungType::FungType(double A, double B): 
+VWType::VWType(double A, double B): 
 	fA(A), 
 	fB(B) 
 { 
 	SetName("vw-type");
 }
 
-FungType::FungType(void): 
+VWType::VWType(void): 
 	fA(0.0), 
 	fB(0.0) 
 { 
@@ -27,14 +27,14 @@ FungType::FungType(void):
 }
 
 /* I/O */
-void FungType::Print(ostream& out) const
+void VWType::Print(ostream& out) const
 {
 	/* parameters */
 	out << " fA. . . . . . . . . . . . . . . . . . . . . = " << fA << '\n';
 	out << " fB. . . . . . . . . . . . . . . . . . . . . . = " << fB << '\n';
 }
 
-void FungType::PrintName(ostream& out) const
+void VWType::PrintName(ostream& out) const
 {
 	out << "    Veronda Westmann type Type\n";
 }
@@ -42,23 +42,23 @@ void FungType::PrintName(ostream& out) const
 /*
 * Returning values
 */
-double FungType::Function(double r) const
+double VWType::Function(double r) const
 {
 	return (fA/fB*(exp(fB*(r - 1.0))- fB*r) );
 }
 
-double FungType::DFunction(double r) const
+double VWType::DFunction(double r) const
 {
 	return ( fA* (exp(fB*(r-1.0)) - 1.0 ));
 }
 
-double FungType::DDFunction(double r) const
+double VWType::DDFunction(double r) const
 {
 	return (fA*( fB*exp(fB*(r-1.0)) ) );
 }
 
 /* returning values in groups */
-dArrayT& FungType::MapFunction(const dArrayT& in, dArrayT& out) const
+dArrayT& VWType::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
@@ -74,7 +74,7 @@ dArrayT& FungType::MapFunction(const dArrayT& in, dArrayT& out) const
 	return(out);
 }
 
-dArrayT& FungType::MapDFunction(const dArrayT& in, dArrayT& out) const
+dArrayT& VWType::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
@@ -92,7 +92,7 @@ dArrayT& FungType::MapDFunction(const dArrayT& in, dArrayT& out) const
 	return(out);
 }
 
-dArrayT& FungType::MapDDFunction(const dArrayT& in, dArrayT& out) const
+dArrayT& VWType::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
@@ -108,7 +108,7 @@ dArrayT& FungType::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	return(out);
 }
 
-void FungType::DefineParameters(ParameterListT& list) const
+void VWType::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	C1FunctionT::DefineParameters(list);
@@ -125,7 +125,7 @@ void FungType::DefineParameters(ParameterListT& list) const
 	list.SetDescription("f(I) = alpha/beta*(exp(beta*(I - 1.0)) + beta*I)");	
 }
 
-void FungType::TakeParameterList(const ParameterListT& list)
+void VWType::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	C1FunctionT::TakeParameterList(list);

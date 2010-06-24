@@ -1,6 +1,6 @@
-/* $Id: FungType.cpp,v 1.8 2010-06-24 13:32:38 thao Exp $ */
+/* $Id: FungType.cpp,v 1.9 2010-06-24 13:48:29 thao Exp $ */
 
-#include "FungType2.h"
+#include "FungType.h"
 #include <iostream.h>
 #include <math.h>
 #include "ExceptionT.h"
@@ -12,29 +12,29 @@ static const double Pi = 4.0*atan(1.0);
 
 using namespace Tahoe;
 
-FungType2::FungType2(double A, double B): 
+FungType::FungType(double A, double B): 
 	fA(A), 
 	fB(B) 
 { 
-	SetName("fung_type_square");
+	SetName("fung_type");
 }
 
-FungType2::FungType2(void): 
+FungType::FungType(void): 
 	fA(0.0), 
 	fB(0.0) 
 { 
-	SetName("fung_type_square");
+	SetName("fung_type");
 }
 
 /* I/O */
-void FungType2::Print(ostream& out) const
+void FungType::Print(ostream& out) const
 {
 	/* parameters */
 	out << " fA. . . . . . . . . . . . . . . . . . . . . = " << fA << '\n';
 	out << " fB. . . . . . . . . . . . . . . . . . . . . . = " << fB << '\n';
 }
 
-void FungType2::PrintName(ostream& out) const
+void FungType::PrintName(ostream& out) const
 {
 	out << "   Fung Potential Squared\n";
 }
@@ -42,7 +42,7 @@ void FungType2::PrintName(ostream& out) const
 /*
 * Returning values
 */
-double FungType2::Function(double r) const
+double FungType::Function(double r) const
 {
 	/*r = I4*/
 	/*Returns W(I4)*/
@@ -51,7 +51,7 @@ double FungType2::Function(double r) const
 	return (fA/(2.0*fB) * (exp(0.5*fB * x*x) - 1.0) );
 }
 
-double FungType2::DFunction(double r) const
+double FungType::DFunction(double r) const
 {
 	/*r = I4*/
 	/*Returns dW(I4)/d(I4)*/
@@ -60,7 +60,7 @@ double FungType2::DFunction(double r) const
 	return (0.5*fA *x * exp(0.5*fB* x*x));
 }
 
-double FungType2::DDFunction(double r) const
+double FungType::DDFunction(double r) const
 {
 	/*r = I4*/
 	/*Returns dW^2(I4)/d(I4)^2*/
@@ -69,7 +69,7 @@ double FungType2::DDFunction(double r) const
 }
 
 /* returning values in groups */
-dArrayT& FungType2::MapFunction(const dArrayT& in, dArrayT& out) const
+dArrayT& FungType::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
@@ -85,7 +85,7 @@ dArrayT& FungType2::MapFunction(const dArrayT& in, dArrayT& out) const
 	return(out);
 }
 
-dArrayT& FungType2::MapDFunction(const dArrayT& in, dArrayT& out) const
+dArrayT& FungType::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
@@ -103,7 +103,7 @@ dArrayT& FungType2::MapDFunction(const dArrayT& in, dArrayT& out) const
 	return(out);
 }
 
-dArrayT& FungType2::MapDDFunction(const dArrayT& in, dArrayT& out) const
+dArrayT& FungType::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
@@ -119,7 +119,7 @@ dArrayT& FungType2::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	return(out);
 }
 
-void FungType2::DefineParameters(ParameterListT& list) const
+void FungType::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	C1FunctionT::DefineParameters(list);
@@ -131,7 +131,7 @@ void FungType2::DefineParameters(ParameterListT& list) const
 	list.SetDescription("f(I4) = alpha/beta *(exp(beta*(0.5(I - 1.0))^2) -1)");	
 }
 
-void FungType2::TakeParameterList(const ParameterListT& list)
+void FungType::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	C1FunctionT::TakeParameterList(list);
