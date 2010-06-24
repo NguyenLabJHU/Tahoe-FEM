@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.32 2009-04-23 14:51:52 thao Exp $
+# $Id: makefile,v 1.33 2010-06-24 13:51:20 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -15,7 +15,7 @@ OBJ = \
 	WLCwRep.o \
 	FungwRep.o \
 	FungType.o \
-	FungType2.o \
+	VWType.o \
 	ScaledCsch.o \
 	ScaledSinh.o \
 	LanirFiber.o \
@@ -38,7 +38,7 @@ SRC = \
 	WLCwRep.cpp \
 	FungwRep.cpp \
 	FungType.cpp \
-	FungType2.cpp \
+	VWType.cpp \
 	ScaledCsch.cpp \
 	LanirFiber.cpp \
 	ScaledSinh.cpp \
@@ -56,7 +56,7 @@ HDR = \
 	WLCwRep.h \
 	FungwRep.h \
 	FungType.h \
-	FungType2.h \
+	VWType.h \
 	ScaledCsch.h \
 	ScaledSinh.h \
 	LanirFiber.h \
