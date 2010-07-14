@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.17 2006-08-29 21:17:17 kyonten Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.18 2010-07-14 21:54:30 regueiro Exp $ */
 /* created: Majid T. Manzari */
 
 /* Interface for a nonassociative, small strain,      */
@@ -113,9 +113,10 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
     	double ff = fInternal[kftrial]; 
     	 
 		if (ff > fTol_1)
-    	{ /* local Newton iteration */
+    		{ /* local Newton iteration */
       		int kk = 0;
-      		int max_iteration = 15; 
+		double normr0; 
+      		int max_iteration = 20; 
       		bool NotConverged = true;
       		while (NotConverged) 
       		{
@@ -139,11 +140,17 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
         		for (int i = 0; i < 4; i++) {
           			R[i+6]  = qo[i]-qn[i]; 
           			R[i+6] += dlam*qbar[i];
-          
         		}
             
         		/* L2 norms of the residual vectors */
         		normr = R.Magnitude();
+			if (kk==0)
+			{ 
+				if (normr > 1e-10)
+					normr0 = normr;
+				else
+					normr0 = 1.0;
+			}
         
         		/* form AA_inv matrix  and calculate AA */
         		dQdSig2_f(Sig, qn, dQdSig2);
@@ -201,8 +208,8 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
         		up -= dup;
         		qn += dq;
         		dlam += dlam2; 
-                                                                                                                                                                                                                                                                                                         
-        		/*                                                                                                                                                                                                                                                                                                    
+                        
+        		/*
         		// check the local convergence
         		if(ip == 0 ) { 
         			cout << "kk=" << kk << " ff=" << ff << " normr=" << normr
@@ -214,12 +221,14 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
         		/* convergence criteria: stresses brought back to the yield 
          		 * surface (i.e. ff ~= 0) and residuals of plastic strains 
          		 * and internal variables are very small */
+        		//if (fabs(ff) < fTol_1 && normr/normr0 < fTol_2) 
         		if (fabs(ff) < fTol_1 && normr < fTol_2) 
         			NotConverged = false; 
         	
         		/* terminate iteration */
         		if (++kk == max_iteration)
-        			ExceptionT::GeneralFail("MRSSNLHardT::StressCorrection","local iteration failed after %d iterations", max_iteration);
+        			//ExceptionT::GeneralFail("MRSSNLHardT::StressCorrection","local iteration failed after %d iterations with Fyield = %f and normr_rel = %f", max_iteration, fabs(ff), normr/normr0);
+        			ExceptionT::GeneralFail("MRSSNLHardT::StressCorrection","local iteration failed after %d iterations with Fyield = %f and normr = %f and normr0 = %f", max_iteration, fabs(ff), normr, normr0);
       		} // while (NotConverged)
     	} // if (ff < fTol_1)
     
