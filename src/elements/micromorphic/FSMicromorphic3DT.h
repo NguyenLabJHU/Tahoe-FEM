@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.99 2010-06-18 09:58:07 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.100 2010-07-15 23:31:47 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -792,7 +792,17 @@ private:
     dMatrixT fKMphiphi_1;
     dMatrixT fKMphiu_2;
     dMatrixT fKMphiphi_2;
+/////stress invariants variables////////
+ double Cauchy_inv;
+ double Rel_stres_inv;
+ double Higher_orderT_inv;
+ double temp_inv;
+ dMatrixT devsigma;
+ dMatrixT devRelsts;
+ dMatrixT  devHOS;
+ dMatrixT s_sigma_temp;
 
+//////////////////////////////////////////////////
 
 
 
@@ -1091,6 +1101,19 @@ private:
     void Form_fMpp_2(void);
 
     void Form_Jmat(void);
+
+
+    ////////////////////////////////////////////////////////
+    /////////// functions to calculate stress measures ////
+    void Calculate_Cauchy_INV(void);
+    void Calculate_stress_diff_INV(void);
+    void Calculate_higher_order_tensor_INV(void);
+
+
+    /////////////////////////////////////////////////////////
+
+
+
     //////////////////////////////////////////////////////////
 	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
 	//////////////////////////////////////////////////////////

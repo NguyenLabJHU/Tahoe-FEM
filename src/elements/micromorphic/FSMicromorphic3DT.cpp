@@ -1574,6 +1574,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        //Sigma*=1.7;
                        Sigma=KirchhoffST;
                        Sigma.SetToScaled(1/J,KirchhoffST);
+
+                       s_sigma_temp.ABCT(fDeformation_Gradient,SIGMA_S,fDeformation_Gradient);
+                       s_sigma_temp*=1/J
+
                       //  cout<< invJ<<endl;
                       fCauchy_stress_tensor_current_IP=Sigma;
 
@@ -2439,6 +2443,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    Chi_ar_IPs.SetRow(IP,Chi_ar);
                    GRAD_Chi_ar_IPs.SetRow(IP,GRAD_Chi_ar);
             }//constitutive loop ends here
+
+
+                   Calculate_Cauchy_INV();
+                   Calculate_stress_diff_INV();
+                   Calculate_higher_order_tensor_INV();
 
             } //end Gauss integration loop
 
@@ -8702,6 +8711,7 @@ void FSMicromorphic3DT:: Form_SIGMA_S()
 	SIGMA_S+=fTemp_matrix_nsd_x_nsd;
 
 
+
 /*	SIGMA_S =fIdentity_matrix;
 	//scale   =(LagrangianStn(0,0)+LagrangianStn(1,1)+LagrangianStn(2,2))*(g1_-lambda_cap);//or trLST
 	scale=(LagrangianStn(0,0)+LagrangianStn(1,1)+LagrangianStn(2,2))*g1_;
@@ -9701,6 +9711,44 @@ void FSMicromorphic3DT:: Form_Jmat()
 
 }
 
+
+void FSMicromorphic3DT::Calculate_Cauchy_INV()
+{
+
+	double trmat=0.0;
+	double press=0.0;
+	Cauchy_inv=0.0;
+	temp_inv=0.0;
+
+	trmat= Sigma.Trace();
+	press=trmat/3;
+	devsigma=Identity_matrix;
+	devsigma*=-1;
+	devsigma*=press;
+	devsigma+=sigma;
+
+	for(int i=0;i<3;i++)
+	{
+		for(int j=0;j<3;j++)
+		{
+			temp_inv+=devsigma(i,j)*devsigma(i,j);
+		}
+	}
+
+	Cauchy_inv=sqrt(temp_inv);
+
+}
+
+
+void FSMicromorphic3DT:: Calculate_stress_diff_INV()
+{
+
+}
+
+void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
+{
+
+}
 
 ////////////////////////////////////////////////////////////////
 //////////////FINITE STRAIN MATRICES ENDS//////////////////
