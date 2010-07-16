@@ -718,7 +718,7 @@ void FSMicromorphic3DT::RegisterOutput(void)
     // enter what values you need at integration points
     // stress and strain
   //  const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","e11","e22","e33","e23","e13","e12"};
-    const char* slabels3D[] = {"s11","s22","s33","s12","s13","s21","s23","s31","s32","e11","e22","e33","e12","e13","e21","e23","e31","e32","u1","u2","u3"};
+    const char* slabels3D[] = {"s11","s22","s33","s12","s13","s21","s23","s31","s32","e11","e22","e33","e12","e13","e21","e23","e31","e32","||dev(sigma)||","||dev(s_sigma)||","||dev(m)||"};
 
     // state variables; ?
     const char* svlabels3D[] = {"thing1","thing2","J"};
@@ -1446,6 +1446,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                    /* Calculating Jacobian */
                    double J = fDeformation_Gradient.Det();
+                   double invJ=1/J;
                    /* Jacobian for the current IP will be saved */
                    fState_variables_IPs(IP,2)=J;
 
@@ -1506,8 +1507,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    /* Save Eulerian strain tensor of the current IP */
                    fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
   //                 fEulerian_strain_IPs.SetRow(IP,fTemp_six_values);
-                   fShapeDispl.Multx(u_vec,u_element);
-                   fDisplacement_IPs.SetRow(IP,u_element);
+
+//                   fShapeDispl.Multx(u_vec,u_element);
+//                   fDisplacement_IPs.SetRow(IP,u_element);
 
                    /* [fIota_temp_matrix] will be formed */
                    fIota_temp_matrix.MultATB(fShapeDisplGrad,fDefGradInv_Grad_grad);
@@ -1575,8 +1577,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Sigma=KirchhoffST;
                        Sigma.SetToScaled(1/J,KirchhoffST);
 
-                       s_sigma_temp.ABCT(fDeformation_Gradient,SIGMA_S,fDeformation_Gradient);
-                       s_sigma_temp*=1/J
+                       s_sigma_temp.MultABCT(fDeformation_Gradient,SIGMA_S,fDeformation_Gradient);
+                       s_sigma_temp*=1/J;
 
                       //  cout<< invJ<<endl;
                       fCauchy_stress_tensor_current_IP=Sigma;
@@ -2448,6 +2450,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    Calculate_Cauchy_INV();
                    Calculate_stress_diff_INV();
                    Calculate_higher_order_tensor_INV();
+                   double Cauchy_inv;
+                   double Rel_stres_inv;
+                   double Higher_orderT_inv;
+                   u_element[0]=Cauchy_inv;
+                   u_element[1]=Rel_stres_inv;
+                   u_element[2]=Higher_orderT_inv;
+                   fDisplacement_IPs.SetRow(IP,u_element);
+
 
             } //end Gauss integration loop
 
@@ -3486,7 +3496,16 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Jmat.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     KJmat.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
 
-    int element_number=4;
+
+    ////////////////stress measures/////////////////
+
+    devsigma.Dimension(n_sd,n_sd);
+    devRelsts.Dimension(n_sd,n_sd);
+    s_sigma_temp.Dimension(n_sd,n_sd);
+    fmklm.Dimension(n_sd,n_sd,n_sd);
+    devmklm.Dimension(n_sd,n_sd,n_sd);
+
+    ///////////////////////////////////////
 
     u_el.Dimension(4,n_sd);
     u_element.Dimension(n_sd);
@@ -9722,10 +9741,10 @@ void FSMicromorphic3DT::Calculate_Cauchy_INV()
 
 	trmat= Sigma.Trace();
 	press=trmat/3;
-	devsigma=Identity_matrix;
+	devsigma=fIdentity_matrix;
 	devsigma*=-1;
 	devsigma*=press;
-	devsigma+=sigma;
+	devsigma+=Sigma;
 
 	for(int i=0;i<3;i++)
 	{
@@ -9742,11 +9761,88 @@ void FSMicromorphic3DT::Calculate_Cauchy_INV()
 
 void FSMicromorphic3DT:: Calculate_stress_diff_INV()
 {
+	double trmat=0.0;
+	double press=0.0;
+	Rel_stres_inv=0.0;
+	temp_inv=0.0;
+
+	trmat= s_sigma_temp.Trace();
+	press=trmat/3;
+	devRelsts=fIdentity_matrix;
+	devRelsts*=-1;
+	devRelsts*=press;
+	devRelsts+=s_sigma_temp;
+
+	for(int i=0;i<3;i++)
+	{
+		for(int j=0;j<3;j++)
+		{
+			temp_inv+=devRelsts(i,j)*devRelsts(i,j);
+		}
+	}
+
+	Rel_stres_inv=sqrt(temp_inv);
 
 }
 
 void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
 {
+
+	Higher_orderT_inv=0.0;
+	temp_inv=0.0;
+	fmklm=0.0;
+
+	for(int k=0;k<3;k++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			for(int m=0;m<3;m++)
+			{
+				//summation over the same terms starts
+
+				for(int K=0;K<3;K++)
+				{
+					for(int L=0;L<3;L++)
+					{
+						for(int M=0;M<3;M++)
+						{
+							fmklm(k,l,m)+=fDeformation_Gradient(k,K)*fDeformation_Gradient(l,L)*fMKLM(K,L,M)*ChiM(m,M);
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	for(int i=0;i<3;i++)
+	{
+		for(int j=0;j<3;j++)
+		{
+			for( int k=0;k<3;k++)
+			{
+				//for(a=0;a<3;a++)
+				//{
+				devmklm(i,j,k)=fmklm(i,j,k)-(1/3)*fIdentity_matrix(i,j)*fmklm(0,0,k)
+										   -(1/3)*fIdentity_matrix(i,j)*fmklm(1,1,k)
+										   -(1/3)*fIdentity_matrix(i,j)*fmklm(2,2,k);
+				//}
+			}
+		}
+	}
+
+	for(int i=0;i<3;i++)
+	{
+		for(int j=0;j<3;j++)
+		{
+			for(int k=0;k<3;k++)
+			{
+				temp_inv+=devmklm(i,j,k)*devmklm(i,j,k);
+			}
+		}
+	}
+
+	Higher_orderT_inv=sqrt(temp_inv);
 
 }
 
