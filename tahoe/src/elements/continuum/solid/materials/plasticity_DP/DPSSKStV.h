@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.16 2006-06-30 15:13:22 regueiro Exp $ */
+/* $Id: DPSSKStV.h,v 1.17 2010-07-16 20:51:28 regueiro Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -69,6 +69,15 @@ class DPSSKStV: public SSIsotropicMatT,
 	virtual int  NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+	
+	/*
+	* Test for localization using "current" values for Cauchy
+	* stress and the spatial tangent moduli. Returns true if the
+	* determinant of the acoustic tensor is negative and returns
+	* the normals and slipdirs. Returns false if the determinant is positive.
+	*/
+	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+					AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -85,15 +94,11 @@ class DPSSKStV: public SSIsotropicMatT,
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
-    virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
-							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA);
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
-
 protected:
 
 	/* set modulus */
  	virtual void SetModulus(dMatrixT& modulus); 
+ 	int loccheck;
  
 private:
 
@@ -102,7 +107,7 @@ private:
   
   	/* return values */
   	dSymMatrixT	fStress;
-  	dMatrixT	fModulus;
+  	dMatrixT	fModulus, fModulusCe;
 
 };
 
