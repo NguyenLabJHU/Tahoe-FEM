@@ -9835,14 +9835,14 @@ void FSMicromorphic3DT:: Calculate_stress_diff_INV()
 	devRelsts*=press;
 	devRelsts+=s_sigma_temp;
 
-	for(int i=0;i<3;i++)
-	{
-		for(int j=0;j<3;j++)
-		{
-			temp_inv+=devRelsts(i,j)*devRelsts(i,j);
-		}
-	}
-
+//	for(int i=0;i<3;i++)
+//	{
+//		for(int j=0;j<3;j++)
+//		{
+//			temp_inv+=devRelsts(i,j)*devRelsts(i,j);
+//		}
+//	}
+	temp_inv=devRelsts.ScalarProduct();
 	Rel_stres_inv=sqrt(temp_inv);
 
 }
