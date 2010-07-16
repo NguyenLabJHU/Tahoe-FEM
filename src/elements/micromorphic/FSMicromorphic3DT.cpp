@@ -265,20 +265,21 @@ void FSMicromorphic3DT::CloseStep(void)
     const iArrayT& nodes_used = output_set.NodesUsed();
 
     /* smooth stresses to nodes */
-    ElementSupport().ResetAverage(knumstrain+knumstress+knum_d_state+knumdispl);
+   // ElementSupport().ResetAverage(knumstrain+knumstress+knum_d_state+knumdispl);
+    ElementSupport().ResetAverage(knumstrain+knumstress+knum_d_state);
     dArray2DT out_variable_all;
     dArrayT out_variable;
-    dArray2DT nd_var(NumElementNodes(), knumstrain+knumstress+knum_d_state+knumdispl);
+    dArray2DT nd_var(NumElementNodes(), knumstrain+knumstress+knum_d_state);
     Top();
     while (NextElement())
     {
         /* extrapolate */
         nd_var = 0.0;
-        out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state+knumdispl, fIPVariable(CurrElementNumber()));
+        out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
         fShapes_displ->TopIP();
         while (fShapes_displ->NextIP())
         {
-        out_variable.Alias(knumstrain+knumstress+knum_d_state+knumdispl, out_variable_all(fShapes_displ->CurrIP()));
+        out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes_displ->CurrIP()));
         fShapes_displ->Extrapolate(out_variable, nd_var);
         }
 
@@ -291,7 +292,7 @@ void FSMicromorphic3DT::CloseStep(void)
     ElementSupport().OutputUsedAverage(extrap_values);
 
     /* temp space for group displacements */
-    int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state + knumdispl;
+    int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state ;
     dArray2DT n_values(nodes_used.Length(), num_node_output);
 
     /* collect nodal values */
@@ -308,7 +309,7 @@ void FSMicromorphic3DT::CloseStep(void)
         *row++ = fU(node,j);
 
         double* p_stress = extrap_values(i);
-        for (int j = 0; j < (knumstrain+knumstress+knum_d_state+knumdispl); j++)
+        for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
         *row++ = p_stress[j];
     }
 
@@ -712,16 +713,16 @@ void FSMicromorphic3DT::RegisterOutput(void)
     block_ID[i] = fBlockData[i].ID();
 
     /* output per element - strain, stress, and ISVs at the integration points */
-    ArrayT<StringT> e_labels(fNumIP_displ*(knumstrain+knumstress+knumdispl+knum_d_state));
+    ArrayT<StringT> e_labels(fNumIP_displ*(knumstrain+knumstress+knum_d_state));
 
     /* over integration points */
     // enter what values you need at integration points
     // stress and strain
   //  const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","e11","e22","e33","e23","e13","e12"};
-    const char* slabels3D[] = {"s11","s22","s33","s12","s13","s21","s23","s31","s32","e11","e22","e33","e12","e13","e21","e23","e31","e32","||dev(sigma)||","||dev(s_sigma)||","||dev(m)||"};
+    const char* slabels3D[] = {"s11","s22","s33","s12","s13","s21","s23","s31","s32","e11","e22","e33","e12","e13","e21","e23","e31","e32"};
 
     // state variables; ?
-    const char* svlabels3D[] = {"thing1","thing2","J"};
+    const char* svlabels3D[] = {"s","rel","ho"};
     int count = 0;
     for (int j = 0; j < fNumIP_micro; j++)
     {
@@ -729,7 +730,7 @@ void FSMicromorphic3DT::RegisterOutput(void)
         ip_label.Append("ip", j+1);
 
         /* over strain and stress components */
-        for (int i = 0; i < knumstrain+knumstress+knumdispl; i++)
+        for (int i = 0; i < knumstrain+knumstress; i++)
         {
             e_labels[count].Clear();
             e_labels[count].Append(ip_label, ".", slabels3D[i]);
@@ -746,7 +747,7 @@ void FSMicromorphic3DT::RegisterOutput(void)
     }
 
     /* output per node */
-    int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state+knumdispl;
+    int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state;
     ArrayT<StringT> n_labels(num_node_output);
     count = 0;
 
@@ -761,7 +762,7 @@ void FSMicromorphic3DT::RegisterOutput(void)
     n_labels[count++] = displ_labels[i];
 
     /* labels from strains and stresses at the nodes */
-    for (int i = 0; i < knumstrain+knumstress+knumdispl; i++)
+    for (int i = 0; i < knumstrain+knumstress; i++)
     n_labels[count++] = slabels3D[i];
 
     /* labels from state variables at the nodes */
@@ -799,20 +800,20 @@ void FSMicromorphic3DT::WriteOutput(void)
     const iArrayT& nodes_used = output_set.NodesUsed();
 
     /* smooth stresses to nodes */
-    ElementSupport().ResetAverage(knumstrain+knumstress+knum_d_state+knumdispl);
+    ElementSupport().ResetAverage(knumstrain+knumstress+knum_d_state);
     dArray2DT out_variable_all;
     dArrayT out_variable;
-    dArray2DT nd_var(NumElementNodes(), knumstrain+knumstress+knum_d_state+knumdispl);
+    dArray2DT nd_var(NumElementNodes(), knumstrain+knumstress+knum_d_state);
     Top();
     while (NextElement())
     {
         /* extrapolate */
         nd_var = 0.0;
-        out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state+knumdispl, fIPVariable(CurrElementNumber()));
+        out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
         fShapes_displ->TopIP();
         while (fShapes_displ->NextIP())
         {
-            out_variable.Alias(knumstrain+knumstress+knum_d_state+knumdispl, out_variable_all(fShapes_displ->CurrIP()));
+            out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes_displ->CurrIP()));
             fShapes_displ->Extrapolate(out_variable, nd_var);
         }
 
@@ -825,7 +826,7 @@ void FSMicromorphic3DT::WriteOutput(void)
     ElementSupport().OutputUsedAverage(extrap_values);
 
     /* temp space for group displacements */
-    int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state+knumdispl;
+    int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state;
     dArray2DT n_values(nodes_used.Length(), num_node_output);
 
     /* collect nodal values */
@@ -842,7 +843,7 @@ void FSMicromorphic3DT::WriteOutput(void)
             *row++ = fU(node,j);
 
         double* p_stress = extrap_values(i);
-        for (int j = 0; j < (knumstrain+knumstress+knum_d_state+knumdispl); j++)
+        for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
             *row++ = p_stress[j];
     }
 
@@ -1281,11 +1282,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     {
     	//-- Store/Register data in classic tahoe manner
         //out_variable_all.Alias(fNumIP_displ, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-        out_variable_all.Alias(fNumIP_micro, knumstrain+knumstress+knum_d_state+knumdispl, fIPVariable(CurrElementNumber()));
+        out_variable_all.Alias(fNumIP_micro, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
         for (l=0; l < fNumIP_displ; l++)
         //for (l=0; l < fNumIP_micro; l++)
         {
-            out_variable.Alias(knumstrain+knumstress+knum_d_state+knumdispl, out_variable_all(l));
+            out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
 
           Put_values_In_dArrayT_vector(fCauchy_stress_Elements_IPs, e,l,fTemp_nine_values);
 //            Put_values_In_dArrayT_vector(fCauchy_stress_Elements_IPs, e,l,fTemp_six_values);
@@ -1306,8 +1307,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
           /* Not sure if these are correct!!! */
       //    Put_values_In_dArrayT_vector(fDisplacement_Element_IPs,e,l,u_element);
-          Put_values_In_Array(fDisplacement_Element_IPs,e,l,ftemp_u_element);
-          out_variable.CopyIn(18,ftemp_u_element);
+       //   Put_values_In_Array(fDisplacement_Element_IPs,e,l,ftemp_u_element);
+          out_variable[18]=fState_variables_Elements_IPs(e,l*3+0);
+          out_variable[19]=fState_variables_Elements_IPs(e,l*3+1);
+          out_variable[20]=fState_variables_Elements_IPs(e,l*3+2);
+          //out_variable.CopyIn(18,ftemp_u_element);
         }
 
 /*
@@ -2456,7 +2460,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    u_element[0]=Cauchy_inv;
                    u_element[1]=Rel_stres_inv;
                    u_element[2]=Higher_orderT_inv;
-              //     fShapeDispl.Multx(u_vec,u_element);
+                 //  fShapeDispl.Multx(u_vec,u_element);
                    fDisplacement_IPs.SetRow(IP,u_element);
 
 
@@ -2471,10 +2475,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fCauchy_stress_Elements_IPs.SetRow(e,fCauchy_stress_IPs);
 
             /* saving state variables for each IPs of the current element */
-            fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
+          //  fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
 
             /*saving displacement ??? */
-            fDisplacement_Element_IPs.SetRow(e,fDisplacement_IPs);
+            fState_variables_Elements_IPs.SetRow(e,fDisplacement_IPs);
 
             GammaN_IPs_el.SetRow(e,GammaN_IPs);
             SigN_IPs_el.SetRow(e,SigN_IPs);
@@ -3630,7 +3634,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     ofstreamT& out = ElementSupport().Output();
 
     /* storage for integration point strain, stress, and ISVs*/
-    fIPVariable.Dimension (n_el, fNumIP_displ*(knumstrain+knumstress+knum_d_state+knumdispl));
+    fIPVariable.Dimension (n_el, fNumIP_displ*(knumstrain+knumstress+knum_d_state));
     //fIPVariable.Dimension (n_el, fNumIP_micro*(knumstrain+knumstress+knum_d_state));
     fIPVariable = 0.0;
 
