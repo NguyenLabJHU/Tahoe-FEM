@@ -1582,6 +1582,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                       //  cout<< invJ<<endl;
                       fCauchy_stress_tensor_current_IP=Sigma;
+                      Calculate_fmklm();
+                      fmklm*=1/J;
 
                     //fCauchy_stress_tensor_current_IP=SPK;
                     //Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
@@ -1876,8 +1878,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fKMchiphiphi += fTemp_matrix_nchidof_x_nchidof;
 
 
-                       //fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fMpu_1,fIota_temp_matrix);
-                       scale =scale_const*fMaterial_Params[kTau8];
+                      // fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fMpu_1,fIota_temp_matrix);
+                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,fMpu_1,fShapeDisplGrad);
+                       scale =scale_const*fMaterial_Params[kTau7];
                        fTemp_matrix_nchidof_x_nudof *= scale;
                        // accumulate
                        fKMphiu_1 += fTemp_matrix_nchidof_x_nudof;
@@ -1885,7 +1888,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                        //fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,fMpp_1,GRAD_NCHI);
                        fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,fMpp_1,GRAD_NCHI);
-                       scale =scale_const*fMaterial_Params[kTau8];
+                       scale =scale_const*fMaterial_Params[kTau7];
                        fTemp_matrix_nchidof_x_nchidof *= scale;
                        // accumulate
                        fKMphiphi_1 += fTemp_matrix_nchidof_x_nchidof;
@@ -1893,20 +1896,20 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                        //fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fMpu_2,fIota_temp_matrix);
-                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,fMpu_2,fShapeDisplGrad);
-                       scale =scale_const*fMaterial_Params[kTau8];
-                       fTemp_matrix_nchidof_x_nudof *= scale;
-                       // accumulate
-                       fKMphiu_2 += fTemp_matrix_nchidof_x_nudof;
+//                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,fMpu_2,fShapeDisplGrad);
+//                       scale =scale_const*fMaterial_Params[kTau8];
+//                       fTemp_matrix_nchidof_x_nudof *= scale;
+//                       // accumulate
+//                       fKMphiu_2 += fTemp_matrix_nchidof_x_nudof;
                        fKMphiu_2=0.0;
 
 
                        //fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,fMpp_2,GRAD_NCHI);
-                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,fMpp_2,GRAD_NCHI);
-                       scale =scale_const*fMaterial_Params[kTau8];
-                       fTemp_matrix_nchidof_x_nchidof *= scale;
-                       // accumulate
-                       fKMphiphi_2 += fTemp_matrix_nchidof_x_nchidof;
+//                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,fMpp_2,GRAD_NCHI);
+//                       scale =scale_const*fMaterial_Params[kTau8];
+//                       fTemp_matrix_nchidof_x_nchidof *= scale;
+//                       // accumulate
+//                       fKMphiphi_2 += fTemp_matrix_nchidof_x_nchidof;
                        fKMphiphi_2=0.0;
 
                    }
@@ -9204,7 +9207,8 @@ void FSMicromorphic3DT:: Form_fMKLM()
 		{
 			for(int M=0;M<3;M++)
 			{
-				fMKLM(K,L,M)=fMaterial_Params[kTau8]*(GAMMA(K,L,M)+GAMMA(M,L,K));
+				fMKLM(K,L,M)=fMaterial_Params[kTau7]*GAMMA(L,M,K);
+				//fMKLM(K,L,M)=fMaterial_Params[kTau8]*(GAMMA(K,L,M)+GAMMA(M,L,K));
 			}
 		}
 	}
@@ -9471,31 +9475,58 @@ void FSMicromorphic3DT:: Form_fMpu_1()
 			col++;
 		}
 	}*/
-	for(int K=0;K<3;K++)
+//	for(int K=0;K<3;K++)
+//	{
+//		for(int i=0;i<3;i++)
+//		{
+//			row=K;
+//			for(int l=0;l<3;l++)
+//			{
+//				for(int m=0;m<3;m++)
+//				{
+//					//summation
+//					for(int L=0;L<3;L++)
+//					{
+//						for(int M=0;M<3;M++)
+//						{
+//							fMpu_1(row,col)+=fDeformation_Gradient(l,L)
+//											*GRAD_CHIM(i,L,M)
+//											*ChiM(m,M);
+//						}
+//					}
+//					row=row+3;
+//				}
+//			}
+//			col++;
+//		}
+//	}
+	for(int L=0;L<3;L++)
 	{
 		for(int i=0;i<3;i++)
 		{
-			row=K;
+			row=0;
 			for(int l=0;l<3;l++)
 			{
 				for(int m=0;m<3;m++)
 				{
-					//summation
-					for(int L=0;L<3;L++)
+					for(int K=0;K<3;K++)
 					{
+						//summation
 						for(int M=0;M<3;M++)
 						{
 							fMpu_1(row,col)+=fDeformation_Gradient(l,L)
-											*GRAD_CHIM(i,L,M)
+											*GRAD_CHIM(i,M,K)
 											*ChiM(m,M);
 						}
+						row++;
 					}
-					row=row+3;
 				}
 			}
 			col++;
 		}
 	}
+
+
 
 }
 
@@ -9535,36 +9566,62 @@ void FSMicromorphic3DT:: Form_fMpp_1()
 		}
 	}*/
 
-	for(int L=0;L<3;L++)
+//	for(int L=0;L<3;L++)
+//	{
+//		for(int i=0;i<3;i++)
+//		{
+//			for(int M=0;M<3;M++)
+//			{
+//				//
+//				row=0;
+//				for(int l=0;l<3;l++)
+//				{
+//					for(int m=0;m<3;m++)
+//					{
+//						for(int K=0;K<3;K++)
+//						{
+//							//summation
+//
+//						 fMpp_1(row,col)=fDeformation_Gradient(l,L)
+//										*fDeformation_Gradient(i,K)
+//										*ChiM(m,M);
+//
+//						row++;
+//						}
+//					}
+//				}
+//				col++;
+//			}
+//		}
+//	}
+
+	for(int M=0;M<3;M++)
 	{
 		for(int i=0;i<3;i++)
 		{
-			for(int M=0;M<3;M++)
+			for(int K=0;K<3;K++)
 			{
 				//
-				row=0;
+				row=K;
 				for(int l=0;l<3;l++)
 				{
 					for(int m=0;m<3;m++)
 					{
-						for(int K=0;K<3;K++)
-						{
+
 							//summation
-
+						for(int L=0;L<3;L++)
+						{
 						 fMpp_1(row,col)=fDeformation_Gradient(l,L)
-										*fDeformation_Gradient(i,K)
+										*fDeformation_Gradient(i,L)
 										*ChiM(m,M);
-
-						row++;
 						}
+						row=row+3;
 					}
 				}
 				col++;
 			}
 		}
 	}
-
-
 }
 
 void FSMicromorphic3DT:: Form_fMpu_2()
@@ -9737,7 +9794,8 @@ void FSMicromorphic3DT::Calculate_Cauchy_INV()
 	Cauchy_inv=0.0;
 	temp_inv=0.0;
 
-	trmat= Sigma(0,0)+Sigma(1,1)+Sigma(2,2);
+	//trmat= Sigma(0,0)+Sigma(1,1)+Sigma(2,2);
+	trmat=Sigma.Trace();
 	press=trmat/3;
 	devsigma=fIdentity_matrix;
 	devsigma*=-1;
@@ -9783,11 +9841,9 @@ void FSMicromorphic3DT:: Calculate_stress_diff_INV()
 
 }
 
-void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
-{
 
-	Higher_orderT_inv=0.0;
-	temp_inv=0.0;
+void FSMicromorphic3DT::Calculate_fmklm()
+{
 	fmklm=0.0;
 
 	for(int k=0;k<3;k++)
@@ -9811,7 +9867,14 @@ void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
 			}
 		}
 	}
+}
 
+void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
+{
+
+	Higher_orderT_inv=0.0;
+	temp_inv=0.0;
+	devmklm=0.0;
 
 	for(int i=0;i<3;i++)
 	{

@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.101 2010-07-16 05:31:25 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.102 2010-07-16 16:35:04 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1109,6 +1109,7 @@ private:
     void Calculate_Cauchy_INV(void);
     void Calculate_stress_diff_INV(void);
     void Calculate_higher_order_tensor_INV(void);
+    void Calculate_fmklm(void);
 
 
     /////////////////////////////////////////////////////////
