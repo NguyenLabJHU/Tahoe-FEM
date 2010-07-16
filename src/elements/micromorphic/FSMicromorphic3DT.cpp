@@ -2450,12 +2450,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    Calculate_Cauchy_INV();
                    Calculate_stress_diff_INV();
                    Calculate_higher_order_tensor_INV();
-                   double Cauchy_inv;
-                   double Rel_stres_inv;
-                   double Higher_orderT_inv;
                    u_element[0]=Cauchy_inv;
                    u_element[1]=Rel_stres_inv;
                    u_element[2]=Higher_orderT_inv;
+              //     fShapeDispl.Multx(u_vec,u_element);
                    fDisplacement_IPs.SetRow(IP,u_element);
 
 
@@ -9739,7 +9737,7 @@ void FSMicromorphic3DT::Calculate_Cauchy_INV()
 	Cauchy_inv=0.0;
 	temp_inv=0.0;
 
-	trmat= Sigma.Trace();
+	trmat= Sigma(0,0)+Sigma(1,1)+Sigma(2,2);
 	press=trmat/3;
 	devsigma=fIdentity_matrix;
 	devsigma*=-1;
@@ -9766,7 +9764,7 @@ void FSMicromorphic3DT:: Calculate_stress_diff_INV()
 	Rel_stres_inv=0.0;
 	temp_inv=0.0;
 
-	trmat= s_sigma_temp.Trace();
+	trmat= s_sigma_temp(0,0)+s_sigma_temp(1,1)+s_sigma_temp(2,2);
 	press=trmat/3;
 	devRelsts=fIdentity_matrix;
 	devRelsts*=-1;
