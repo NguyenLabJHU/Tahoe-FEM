@@ -9798,21 +9798,23 @@ void FSMicromorphic3DT::Calculate_Cauchy_INV()
 	Cauchy_inv=0.0;
 	temp_inv=0.0;
 
-	//trmat= Sigma(0,0)+Sigma(1,1)+Sigma(2,2);
-	trmat=Sigma.Trace();
+    trmat= Sigma(0,0)+Sigma(1,1)+Sigma(2,2);
+	//trmat=Sigma.Trace();
 	press=trmat/3;
 	devsigma=fIdentity_matrix;
 	devsigma*=-1;
 	devsigma*=press;
 	devsigma+=Sigma;
 
-	for(int i=0;i<3;i++)
-	{
-		for(int j=0;j<3;j++)
-		{
-			temp_inv+=devsigma(i,j)*devsigma(i,j);
-		}
-	}
+//	for(int i=0;i<3;i++)
+//	{
+//		for(int j=0;j<3;j++)
+//		{
+//			temp_inv+=devsigma(i,j)*devsigma(i,j);
+//		}
+//	}
+
+	temp_inv= devsigma.ScalarProduct();
 
 	Cauchy_inv=sqrt(temp_inv);
 
