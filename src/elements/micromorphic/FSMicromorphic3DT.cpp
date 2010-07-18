@@ -1582,7 +1582,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Sigma.SetToScaled(1/J,KirchhoffST);
 
                        s_sigma_temp.MultABCT(fDeformation_Gradient,SIGMA_S,fDeformation_Gradient);
-                       s_sigma_temp*=1/J;
+                       s_sigma_temp*=invJ;
 
                       //  cout<< invJ<<endl;
                       fCauchy_stress_tensor_current_IP=Sigma;
