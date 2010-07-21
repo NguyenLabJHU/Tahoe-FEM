@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.18 2010-07-14 21:54:30 regueiro Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.19 2010-07-21 19:58:20 regueiro Exp $ */
 /* created: Majid T. Manzari */
 
 /* Interface for a nonassociative, small strain,      */
@@ -56,7 +56,7 @@ const dSymMatrixT& MRSSNLHardT::ElasticStrain(const dSymMatrixT& totalstrain,
 /* return correction to stress vector computed by mapping the
  * stress back to the yield surface, if needed */
 const dSymMatrixT& MRSSNLHardT::StressCorrection(
-      const dSymMatrixT& totalstrain, ElementCardT& element, int ip)
+      const dSymMatrixT& totalstrain, ElementCardT& element, int ip, int iter)
 {
   	/* elastic step */
   	fStressCorr = DeviatoricStress(totalstrain, element);
@@ -104,7 +104,11 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
     	qn.CopyPart(0, fInternal, 0, qn.Length());
     	upo = up; qo = qn;
     	dup = 0.; dq = 0.;
-    	double dlam = 0.; double dlam2 = 0.; double normr = 0.;
+    	// keep dlam if time step is plastic
+    	double dlam;
+    	if (iter == 0) dlam = 0.0;
+    	else dlam = fInternal[kdlambda];
+    	double dlam2 = 0.; double normr = 0.;
     
     	/* check the yield function */
     	ue.DiffOf(totalstrain, up);
@@ -112,10 +116,11 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
     	Sig.PlusIdentity(MeanStress(ue,element));
     	double ff = fInternal[kftrial]; 
     	 
-		if (ff > fTol_1)
+		//if (ff > fTol_1)
+		if (ff > 0.0) //yield check
     		{ /* local Newton iteration */
       		int kk = 0;
-		double normr0; 
+			double normr0; 
       		int max_iteration = 20; 
       		bool NotConverged = true;
       		while (NotConverged) 
@@ -144,13 +149,13 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
             
         		/* L2 norms of the residual vectors */
         		normr = R.Magnitude();
-			if (kk==0)
-			{ 
-				if (normr > 1e-10)
-					normr0 = normr;
-				else
-					normr0 = 1.0;
-			}
+				if (kk==0)
+				{ 
+					if (normr > 1e-10)
+						normr0 = normr;
+					else
+						normr0 = 1.0;
+				}
         
         		/* form AA_inv matrix  and calculate AA */
         		dQdSig2_f(Sig, qn, dQdSig2);
@@ -247,7 +252,7 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
 		fStressCorr = Sig;
 		
 	} // if (element.IsAllocated())
- return fStressCorr;
+	return fStressCorr;
 }
 
 /* calculation of dfdSig_f */
@@ -547,8 +552,7 @@ void MRSSNLHardT::dqbardq_f(const dSymMatrixT& Sig, const dArrayT& qn, dMatrixT&
  * Note: Return mapping occurs during the call to StressCorrection.
  *       The element passed in is already assumed to carry current
  *       internal variable values */
-const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element, 
-	int ip)
+const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element, int ip)
 {
 	  /* allocate matrices */
      dMatrixT KE(6),AA(10),AA_inv(10),TT(10),KE_Inv(6), 
@@ -570,7 +574,7 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
 	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
 	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 	
-    if(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic) 
+    if(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic)
     {
 	  	/* load internal state variables */
 	  	LoadData(element, ip);
@@ -718,7 +722,7 @@ void MRSSNLHardT::Update(ElementCardT& element)
 	}
 
 	/* update plastic variables */
-	// updating done in MRSSNLHardT::StressCorrection
+	//updating done in MRSSNLHardT::StressCorrection
 	//for (int ip = 0; ip < fNumIP; ip++)
 		//if (Flags[ip] == kIsPlastic) /* plastic update */
 		//{
@@ -777,10 +781,12 @@ int MRSSNLHardT::PlasticLoading(const dSymMatrixT& totalstrain,
         double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
         double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
         double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
+		//return( YieldCondition(DeviatoricStress(totalstrain,element),
+		//	       MeanStress(totalstrain,element),fchi,fc,ftan_phi) > fTol_1 );
 		return( YieldCondition(DeviatoricStress(totalstrain,element),
-			       MeanStress(totalstrain,element),fchi,fc,ftan_phi) > fTol_1 );
+			       MeanStress(totalstrain,element),fchi,fc,ftan_phi) > 0.0 );
 	}
-        /* already plastic */
+    /* already plastic */
 	else 
 	{
 		/* get flags */
@@ -806,7 +812,8 @@ int MRSSNLHardT::PlasticLoading(const dSymMatrixT& totalstrain,
 			             	MeanStress(elasticstrain,element),fInternal[kchi],
 			             	fInternal[kc],fInternal[ktanphi]);
 		/* plastic */
-		if (fInternal[kftrial] > fTol_1)
+		//if (fInternal[kftrial] > fTol_1)
+		if (fInternal[kftrial] > 0.0) //yield check
 		{		
 			/* set flag */
 			Flags[ip] = kIsPlastic;

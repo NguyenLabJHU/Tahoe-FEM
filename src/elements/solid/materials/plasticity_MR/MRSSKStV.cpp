@@ -1,7 +1,8 @@
-/* $Id: MRSSKStV.cpp,v 1.11 2006-08-22 14:39:17 kyonten Exp $ */
+/* $Id: MRSSKStV.cpp,v 1.12 2010-07-21 19:58:20 regueiro Exp $ */
 /* created: Majid T. Manzari (04/16/2001) */
 #include "MRSSKStV.h"
-#include "SSMatSupportT.h"
+#include "SSEnhLocMatSupportT.h"
+//#include "SSMatSupportT.h"
 #include "MRSSNLHardT.h"
 
 #include "ElementCardT.h"
@@ -9,21 +10,26 @@
 #include "DetCheckT.h"
 #include <iostream.h>
 
+#include "DevelopmentElementsConfig.h"
+
 using namespace Tahoe;
 
 /* parameters */
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 7;
+const int kNumOutput = 10;
 static const char* Labels[kNumOutput] = {
 	    "chi",
 	    "cohesion",
 	    "Friction Angle",
 	    "Dilation Angle",
 	    "VM",  // Von Mises stress
-	    "press", // pressurefmo
-	    "loccheck"}; // localization check	    
+	    "press", // pressure
+	    "fyield", // yield function value
+	    "dlambda", // plastic multiplier increment
+	    "ip_loccheck", // localization check
+	    "el_locflag"}; // element localization flag
 
 /* constructor */
 MRSSKStV::MRSSKStV(void):
@@ -68,6 +74,13 @@ const dMatrixT& MRSSKStV::c_ijkl(void)
 	return fModulus;
 }
 
+/* elastic modulus */
+const dMatrixT& MRSSKStV::ce_ijkl(void)
+{
+	fModulusCe = HookeanMatT::Modulus();
+	return fModulusCe;
+}
+
 /*perfectly plastic modulus */
 const dMatrixT& MRSSKStV::c_perfplas_ijkl(void)
 {
@@ -80,13 +93,81 @@ const dSymMatrixT& MRSSKStV::s_ij(void)
 {
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
 	const dSymMatrixT& e_tot = e();
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 
+#ifdef ENHANCED_STRAIN_LOC_DEV	
+	element_locflag = 0;
+	if (element.IsAllocated()) 
+	{
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
+	}
+	if ( element_locflag == 2 )
+	{
+		fStress = fSSEnhLocMatSupport->ElementStress(elem,ip);
+	}
+	else
+	{
+		/* modify Cauchy stress (return mapping) */
+		fStress = fMR->StressCorrection(e_els, element, ip, fSSMatSupport->GroupIterationNumber());
+	}
+#else
+	/* modify Cauchy stress (return mapping) */
+	fStress = fMR->StressCorrection(e_els, element, ip, fSSMatSupport->GroupIterationNumber());
+#endif
+
 	/* Updated Cauchy stress (return mapping) */
-	fStress = fMR->StressCorrection(e_els, element, ip);
+	//fStress = fMR->StressCorrection(e_els, element, ip);
+	//fStress = fMR->StressCorrection(e_els, element, ip, fSSMatSupport->GroupIterationNumber());
 	return fStress;	
 }
+
+/*
+* Test for localization using "current" values for Cauchy
+* stress and the spatial tangent moduli. Returns true if the
+* determinant of the acoustic tensor is negative and returns
+* the normals and slipdirs. Returns false if the determinant is positive.
+*/
+//#if 0
+bool MRSSKStV::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
+{
+	/* stress tensor */
+	const dSymMatrixT& stress = s_ij();
+	
+	ElementCardT& element = CurrentElement();
+	iArrayT& Flags = element.IntegerData();
+	dArrayT& internal = fMR->Internal();
+	int ip = CurrIP();
+	if (internal[MRSSNLHardT::kdlambda] > 0.0) Flags[ip] = 0; //kIsPlastic=0
+	/* elasto-plastic tangent moduli */
+	//const dMatrixT& modulus = c_perfplas_ijkl(); //not implemented
+	const dMatrixT& modulus = c_ijkl();
+	
+	/* elastic modulus */
+	const dMatrixT& modulus_e = ce_ijkl();
+
+	/* localization condition checker */
+	DetCheckT checker(stress, modulus, modulus_e);
+	normals.Dimension(NumSD());
+	slipdirs.Dimension(NumSD());
+	normals.Free();
+	slipdirs.Free();
+	detAs.Free();
+	bool checkloc = checker.IsLocalized_SS(normals,slipdirs,detAs);
+	
+	if (checkloc)
+	{
+		/* calculate dissipation for each normal and slipdir;
+		need to update this code
+		*/
+		dissipations_fact.Free();
+	}
+	
+	return checkloc;
+}
+//#endif
 
 /* read initial stress from file */
 void MRSSKStV::InitialStress(dSymMatrixT& Stress0)
@@ -123,8 +204,8 @@ void MRSSKStV::GetIterationInfo(bool get_iters, int loc_iters)
 		/* write */
 		out_idata << "Time step number:       " << setw(kIntWidth) 
 		          << fSSMatSupport->StepNumber() << endl;
-		//out_idata << "Global iteration number:" << setw(kIntWidth) 
-		            //<< fSSMatSupport->IterationNumber() << endl;
+		out_idata << "Global iteration number:" << setw(kIntWidth) 
+		          << fSSMatSupport->GroupIterationNumber() << endl;
 		out_idata << "Number of local iterations to converge:" << setw(kIntWidth) 
 		          << loc_iters << endl;
 		out_idata.close(); /* close */
@@ -157,7 +238,7 @@ void MRSSKStV::ComputeOutput(dArrayT& output)
 	dMatrixT Ce = HookeanMatT::Modulus();
 	
 	/* stress tensor (load state) */
-	s_ij();
+	const dSymMatrixT& stress = s_ij();
 	
 	/* pressure */
 	output[5] = fStress.Trace()/3.0;
@@ -169,39 +250,48 @@ void MRSSKStV::ComputeOutput(dArrayT& output)
 	output[4] = sqrt(3.0*J2);
 	
 	/* stress-like internal variable chi */
-	const ElementCardT& element = CurrentElement();
+	//const ElementCardT& element = CurrentElement();
+	ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
+	int ip = CurrIP();
+	/* get flags */
+	iArrayT& Flags = element.IntegerData();
 	if (element.IsAllocated())
+	//if(element.IsAllocated() && (element.IntegerData())[ip] == 0)
 	{
 		dArrayT& internal = fMR->Internal();
 		output[0] = internal[MRSSNLHardT::kchi];
 		output[1] = internal[MRSSNLHardT::kc];
 		output[2] = internal[MRSSNLHardT::ktanphi];
 		output[3] = internal[MRSSNLHardT::ktanpsi];
+		output[6] = internal[MRSSNLHardT::kftrial];
+		output[7] = internal[MRSSNLHardT::kdlambda];
 		
 		// check for localization
-		// compute modulus 
-		//const dMatrixT& modulus = c_ijkl();
-		// perfectly plastic modulus not implemented yet
-		//const dMatrixT& modulus = c_perfplas_ijkl();
-
-		/* localization condition checker */
-		/*
+		// set flag first for Moduli to be elastoplastic for localization check
+		if (internal[MRSSNLHardT::kdlambda] > 0.0) Flags[ip] = 0; //kIsPlastic=0
+		const dMatrixT& modulus = c_ijkl();
+		//const dMatrixT& modulus = c_perfplas_ijkl(); //not implemented
 		DetCheckT checker(stress, modulus, Ce);
 		AutoArrayT <dArrayT> normals;
 		AutoArrayT <dArrayT> slipdirs;
 		normals.Dimension(3);
 		slipdirs.Dimension(3);
-		bool checkloc;
-		double detA;
-		checkloc = checker.IsLocalized_SS(normals,slipdirs);
-		if (checkloc) output[6] = 1.0;
-		else output[6] = 0.0;
-		*/
-		output[6] = 0.0;
+		output[8] = 0.0;
+		double detA=1.0;
+		if(checker.IsLocalized_SS(normals,slipdirs,detA)) output[8] = 1.0;
+		
+		// element localization flag
+		output[9] = 0;
+		#ifdef ENHANCED_STRAIN_LOC_DEV	
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag(elem);
+		if (element_locflag > 0) output[9] = element_locflag;
+		#endif
 	}	
 	else
 	{
-		output[6] = 0.0;
+		output[8] = 0.0;
+		output[9] = 0.0;
 	}
 }
 
@@ -255,6 +345,9 @@ void MRSSKStV::TakeParameterList(const ParameterListT& list)
 	/* construct MR solver */
 	fMR = new MRSSNLHardT(NumIP(), Mu(), Lambda());
 	fMR->TakeParameterList(list.GetList("MR_SS_nonlinear_hardening"));
+	
+	/* cast to small strain embedded discontinuity material pointer */
+	fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
 }
 
 /*************************************************************************

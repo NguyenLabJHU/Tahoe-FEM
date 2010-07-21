@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.h,v 1.13 2006-08-29 21:17:17 kyonten Exp $ */
+/* $Id: MRSSNLHardT.h,v 1.14 2010-07-21 19:58:20 regueiro Exp $ */
 /* created: Majid T. Manzari */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -46,7 +46,7 @@ public:
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
 	const dSymMatrixT& StressCorrection(const dSymMatrixT& totalstrain, 
-		ElementCardT& element, int ip); 
+		ElementCardT& element, int ip, int iter); 
 
     void dfdSig_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdSig);    
     void dfdq_f(const dSymMatrixT& Sig, const dArrayT& qn, dArrayT& dfdq); 

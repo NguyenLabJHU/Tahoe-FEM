@@ -1,4 +1,4 @@
-/* $Id: MRSSKStV.h,v 1.7 2006-08-22 14:39:17 kyonten Exp $ */
+/* $Id: MRSSKStV.h,v 1.8 2010-07-21 19:58:20 regueiro Exp $ */
 /* created: Majid T. Manzari (04/16/2003) */
 #ifndef _MR_SS_KSTV_H_
 #define _MR_SS_KSTV_H_
@@ -11,6 +11,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class MRSSNLHardT;
+class SSEnhLocMatSupportT;
 
 class MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 {
@@ -26,7 +27,7 @@ class MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 	
 	/** access strains from previous time step */
-	//virtual bool Need_Strain_last(void) const { return true; };
+	virtual bool Need_Strain_last(void) const { return true; };
 	
 	/** model has history variables */
 	virtual bool HasHistory(void) const { return true; };
@@ -46,6 +47,7 @@ class MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 	/*@{*/
 	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
+	virtual const dMatrixT& ce_ijkl(void);
 	virtual const dMatrixT& c_perfplas_ijkl(void);
 
 	/** Cauchy stress */
@@ -68,6 +70,15 @@ class MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 	virtual int  NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+	
+	/*
+	* Test for localization using "current" values for Cauchy
+	* stress and the spatial tangent moduli. Returns true if the
+	* determinant of the acoustic tensor is negative and returns
+	* the normals and slipdirs. Returns false if the determinant is positive.
+	*/
+	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+					AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -86,13 +97,23 @@ class MRSSKStV: public SSIsotropicMatT, public HookeanMatT
     
     /** set flag for writing iteration info */
 	void GetIterationInfo(bool get_iters, int loc_iters);
+	
 protected:
 
 	/* set modulus */
 	virtual void SetModulus(dMatrixT& modulus); 
 	int loccheck;
 	
+	// element localization flag
+	int element_locflag;
+	
 	bool fGetItersInfo; // write global and local iteration info 
+	
+	/* 
+	pointer to material support; does not actually return stresses from this class;
+	stresses are calculated post-localization in SmallStrainEnhLocT
+	*/
+	const SSEnhLocMatSupportT* fSSEnhLocMatSupport;
  
   private:
   
