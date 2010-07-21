@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.102 2010-07-16 16:35:04 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.103 2010-07-21 22:55:31 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -240,7 +240,7 @@ private:
 
 	/** number of integration points */
 	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_micro, fNumIPSurf_micro;
-	int knum_d_state, knum_i_state, knumstress, knumstrain,knumdispl;
+	int knum_d_state, knum_i_state, knumstress, knumstrain;//,knumdispl;
 	int num_sidesets;
 
 	/*@}*/
@@ -820,12 +820,12 @@ private:
 
 
 /////////////////////////////////////////
-    int element_number;
-    int el_num;
-    dMatrixT u_el;
-    dArrayT u_element;
+ //   int element_number;
+ //   int el_num;
+  //  dMatrixT u_el;
+  //  dArrayT u_element;
     dArrayT ftemp_u_element;
-
+    dArrayT fState_variables;
 
 	//////////////////////////////////////////////////////////
 	/////DEFINITIONS FINISH HERE FOR MICROMORPHIC MATRICES////
@@ -850,7 +850,7 @@ private:
          ( probably it is better to do it only  for certain nodes but I do not know how to extract the coordinates of the nodes and calculate
          the shape functions a nodes)
          */
-        dArray2DT  fDisplacement_IPs;
+       // dArray2DT  fDisplacement_IPs;
 
 
 	/** the solid displacement field */

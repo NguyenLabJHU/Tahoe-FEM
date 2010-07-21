@@ -2457,11 +2457,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    Calculate_Cauchy_INV();
                    Calculate_stress_diff_INV();
                    Calculate_higher_order_tensor_INV();
-                   u_element[0]=Cauchy_inv;
-                   u_element[1]=Rel_stres_inv;
-                   u_element[2]=Higher_orderT_inv;
+                   fState_variables[0]=Cauchy_inv;
+                   fState_variables[1]=Rel_stres_inv;
+                   fState_variables[2]=Higher_orderT_inv;
                  //  fShapeDispl.Multx(u_vec,u_element);
-                   fDisplacement_IPs.SetRow(IP,u_element);
+                   fState_variables_IPs.SetRow(IP,fState_variables);
+                 //  fDisplacement_IPs.SetRow(IP,u_element);
 
 
             } //end Gauss integration loop
@@ -2478,7 +2479,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           //  fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
 
             /*saving displacement ??? */
-            fState_variables_Elements_IPs.SetRow(e,fDisplacement_IPs);
+            fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
+         //   fState_variables_Elements_IPs.SetRow(e,fDisplacement_IPs);
 
             GammaN_IPs_el.SetRow(e,GammaN_IPs);
             SigN_IPs_el.SetRow(e,SigN_IPs);
@@ -2896,7 +2898,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     knumstress = 6; // number of stress outputs + higher order = ??
 */
 
-    knumdispl=3;
+  //  knumdispl=3;
 
     output = "out";
 
@@ -3512,9 +3514,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     ///////////////////////////////////////
 
-    u_el.Dimension(4,n_sd);
-    u_element.Dimension(n_sd);
-    ftemp_u_element.Dimension(n_sd);
+    //u_el.Dimension(4,n_sd);
+    //u_element.Dimension(n_sd);
+    //ftemp_u_element.Dimension(n_sd);
     //////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
@@ -3602,14 +3604,15 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fEulerian_strain_IPs.Dimension (fNumIP_displ,knumstrain);
     fCauchy_stress_IPs.Dimension (fNumIP_displ,knumstress);
     fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
+    fState_variables.Dimension (knum_d_state);
    //
-    fDisplacement_IPs.Dimension(fNumIP_displ,knumdispl);
+ //   fDisplacement_IPs.Dimension(fNumIP_displ,knumdispl);
     fTemp_nine_values.Dimension(9);
     fTemp_six_values.Dimension(6);
     fEulerian_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstrain);
     fCauchy_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstress);
     fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
-    fDisplacement_Element_IPs.Dimension(NumElements(),fNumIP_displ*knumdispl);
+  //  fDisplacement_Element_IPs.Dimension(NumElements(),fNumIP_displ*knumdispl);
     fGravity_vector.Dimension (n_sd);
     fFd_int_G4_vector.Dimension (n_en_displ_x_n_sd);
     fDefGradInv_column_matrix.Dimension (n_sd_x_n_sd,1);
