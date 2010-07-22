@@ -1,4 +1,4 @@
-/* $Id: MRSSKStV.cpp,v 1.12 2010-07-21 19:58:20 regueiro Exp $ */
+/* $Id: MRSSKStV.cpp,v 1.13 2010-07-22 15:16:39 regueiro Exp $ */
 /* created: Majid T. Manzari (04/16/2001) */
 #include "MRSSKStV.h"
 #include "SSEnhLocMatSupportT.h"
@@ -162,7 +162,14 @@ bool MRSSKStV::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &
 		/* calculate dissipation for each normal and slipdir;
 		need to update this code
 		*/
+		double dissip = 1.0;
+		normals.Top();
 		dissipations_fact.Free();
+		while (normals.Next())
+		{
+			//this is just temporary until implemented properly
+			dissipations_fact.Append(dissip);
+		}
 	}
 	
 	return checkloc;

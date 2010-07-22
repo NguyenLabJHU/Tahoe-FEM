@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.19 2010-07-21 19:58:20 regueiro Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.20 2010-07-22 15:16:39 regueiro Exp $ */
 /* created: Majid T. Manzari */
 
 /* Interface for a nonassociative, small strain,      */
@@ -566,6 +566,9 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element, int ip)
      /* allocate vectors */   
      dArrayT dfdq(4),qbar(4),qn(4),Rvec(10),Cvec(10),
              vec1(10),vec2(10);
+             
+	/* plastic multiplier increment, and yield */
+	double dlam, fyield;
      
 	/* elastic moduli tensor */
 	KE = 0.0;
@@ -574,13 +577,22 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element, int ip)
 	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
 	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 	
-    if(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic)
+	if ( element.IsAllocated() ) 
+	{
+		LoadData(element, ip);
+		dlam = fInternal[kdlambda];
+		fyield = fInternal[kftrial];
+	}
+	
+    //if(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic)
+    if((element.IsAllocated() && dlam > 0.0 && (fyield > 0.0 || fabs(fyield) < fTol_1)) ||
+    	(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic))
     {
 	  	/* load internal state variables */
-	  	LoadData(element, ip);
+	  	//LoadData(element, ip);
 	  	Sig = fStress;
     	qn.CopyPart(0, fInternal, 0, qn.Length());
-    	double dlam = fInternal[kdlambda];
+    	//double dlam = fInternal[kdlambda];
 		KE_Inv.Inverse(KE);
 		
 	    /* calculate C_EPC */
