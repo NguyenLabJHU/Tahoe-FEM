@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.21 2010-07-22 16:55:34 regueiro Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.22 2010-07-22 17:29:34 regueiro Exp $ */
 /* created: Majid T. Manzari */
 
 /* Interface for a nonassociative, small strain,      */
@@ -585,8 +585,10 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element, int ip)
 	}
 	
     //if(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic)
-    if( (element.IsAllocated() && dlam > 0.0 && (fyield > 0.0 || fabs(fyield) < fTol_1)) ||
-    	(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic) )
+    //if( (element.IsAllocated() && dlam > 0.0 && (fyield > 0.0 || fabs(fyield) < fTol_1)) ||
+    //	(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic) )
+    if( ( element.IsAllocated() && (fyield > 0.0 || fabs(fyield) < fTol_1) ) ||
+    	( element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic ) )	
     {
 	  	/* load internal state variables */
 	  	//LoadData(element, ip);
