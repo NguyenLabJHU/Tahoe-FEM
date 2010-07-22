@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.h,v 1.14 2010-07-21 19:58:20 regueiro Exp $ */
+/* $Id: MRSSNLHardT.h,v 1.15 2010-07-22 16:55:35 regueiro Exp $ */
 /* created: Majid T. Manzari */
 /*  
  * Interface for a nonassociative, small strain,     */
@@ -38,6 +38,16 @@ public:
                          kIsElastic = 1,
 						 kIsLocalized = 2,                         
                          kReset = 3}; // indicate not to repeat update
+                         
+    enum InternalVariablesT {kchi = 0,  // stress-like internal state variable
+	                           kc = 1,
+	                      ktanphi = 2,
+	                      ktanpsi = 3,
+	                      kftrial = 4, // trial yield function value
+	                          kff = 5, // current yield function value
+                         kdlambda = 6, // consistency parameter
+                      kstressnorm = 7, // norm of residuals 
+                       kindicator = 8}; // indicator                     
 
 	/* returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
@@ -78,14 +88,6 @@ public:
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
-
-	enum InternalVariablesT {kchi = 0,  // stress-like internal state variable
-	                         kc   = 1,
-	                      ktanphi = 2,
-	                      ktanpsi = 3,
-	                      kftrial = 4, // yield function value
-                         kdlambda = 5,  // consistency parameter
-                          kstressnorm = 6}; // norm of residuals 
 
 	/** internal variables */
 	dArrayT& Internal(void) { return fInternal; };

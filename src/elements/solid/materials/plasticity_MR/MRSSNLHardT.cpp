@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.20 2010-07-22 15:16:39 regueiro Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.21 2010-07-22 16:55:34 regueiro Exp $ */
 /* created: Majid T. Manzari */
 
 /* Interface for a nonassociative, small strain,      */
@@ -17,7 +17,7 @@
 
 using namespace Tahoe;
 
-const int    kNumInternal = 8; // number of internal state variables
+const int    kNumInternal = 9; // number of internal state variables
 const int    kNSD         = 3;
 const int    kNSTR        = dSymMatrixT::NumValues(kNSD);
 const double ratio32      = 3.0/2.0;
@@ -239,10 +239,10 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
     
     	/* update state variables */ 	   
 		fInternal.CopyIn(0, qn);
-		fInternal[4] = ff;
-		fInternal[5] = dlam;
-		fInternal[6] = normr;
-	    fInternal[7] = 1.; /* indicator for internal variable during the first elastic to plastic transition */ 
+		fInternal[kff] = ff;
+		fInternal[kdlambda] = dlam;
+		fInternal[kstressnorm] = normr;
+	    fInternal[kindicator] = 1.; /* indicator for internal variable during the first elastic to plastic transition */ 
 	    
 		/* update plastic strain */
    		fPlasticStrain = up;
@@ -585,8 +585,8 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element, int ip)
 	}
 	
     //if(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic)
-    if((element.IsAllocated() && dlam > 0.0 && (fyield > 0.0 || fabs(fyield) < fTol_1)) ||
-    	(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic))
+    if( (element.IsAllocated() && dlam > 0.0 && (fyield > 0.0 || fabs(fyield) < fTol_1)) ||
+    	(element.IsAllocated() && (element.IntegerData())[ip] == kIsPlastic) )
     {
 	  	/* load internal state variables */
 	  	//LoadData(element, ip);
@@ -808,7 +808,7 @@ int MRSSNLHardT::PlasticLoading(const dSymMatrixT& totalstrain,
 		LoadData(element, ip);
 	
     	/* first time plasticity is reached */
-    	if(fInternal[7] == 0.) {
+    	if(fInternal[kindicator] == 0.) {
 			double enp  = 0.;
 			double esp = 0.;
     		fInternal[kchi] = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
