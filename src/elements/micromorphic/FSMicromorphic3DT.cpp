@@ -722,7 +722,7 @@ void FSMicromorphic3DT::RegisterOutput(void)
     const char* slabels3D[] = {"s11","s22","s33","s12","s13","s21","s23","s31","s32","e11","e22","e33","e12","e13","e21","e23","e31","e32"};
 
     // state variables; ?
-    const char* svlabels3D[] = {"s","rel","ho"};
+    const char* svlabels3D[] = {"||devs||","||devrel||","||devmklm||","tr(sigma)","tr(s_sigma)","trmklm"};
     int count = 0;
     for (int j = 0; j < fNumIP_micro; j++)
     {
@@ -1311,6 +1311,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[18]=fState_variables_Elements_IPs(e,l*3+0);
           out_variable[19]=fState_variables_Elements_IPs(e,l*3+1);
           out_variable[20]=fState_variables_Elements_IPs(e,l*3+2);
+/*          out_variable[21]=fState_variables_Elements_IPs(e,l*3+3);
+          out_variable[22]=fState_variables_Elements_IPs(e,l*3+4);
+          out_variable[23]=fState_variables_Elements_IPs(e,l*3+5);*/
           //out_variable.CopyIn(18,ftemp_u_element);
         }
 
@@ -2460,6 +2463,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fState_variables[0]=Cauchy_inv;
                    fState_variables[1]=Rel_stres_inv;
                    fState_variables[2]=Higher_orderT_inv;
+/*                   fState_variables[3]=trsigma;
+                   fState_variables[4]=trs_sigma;
+                   fState_variables[5]=trmklm;*/
                  //  fShapeDispl.Multx(u_vec,u_element);
                    fState_variables_IPs.SetRow(IP,fState_variables);
                  //  fDisplacement_IPs.SetRow(IP,u_element);
@@ -3511,6 +3517,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     s_sigma_temp.Dimension(n_sd,n_sd);
     fmklm.Dimension(n_sd,n_sd,n_sd);
     devmklm.Dimension(n_sd,n_sd,n_sd);
+    trvecmklm.Dimension(n_sd);
 
     ///////////////////////////////////////
 
@@ -9802,6 +9809,7 @@ void FSMicromorphic3DT::Calculate_Cauchy_INV()
 	temp_inv=0.0;
 
     trmat= Sigma(0,0)+Sigma(1,1)+Sigma(2,2);
+    trsigma=trmat;
 	//trmat=Sigma.Trace();
 	press=trmat/3;
 	devsigma=fIdentity_matrix;
@@ -9832,11 +9840,13 @@ void FSMicromorphic3DT:: Calculate_stress_diff_INV()
 	temp_inv=0.0;
 
 	trmat= s_sigma_temp(0,0)+s_sigma_temp(1,1)+s_sigma_temp(2,2);
+	trs_sigma=trmat;
 	press=trmat/3;
 	devRelsts=fIdentity_matrix;
 	devRelsts*=-1;
 	devRelsts*=press;
 	devRelsts+=s_sigma_temp;
+
 
 //	for(int i=0;i<3;i++)
 //	{
@@ -9884,7 +9894,7 @@ void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
 	Higher_orderT_inv=0.0;
 	temp_inv=0.0;
 	devmklm=0.0;
-
+	trmklm=0.0;
 	for(int i=0;i<3;i++)
 	{
 		for(int j=0;j<3;j++)
@@ -9900,6 +9910,20 @@ void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
 			}
 		}
 	}
+
+
+	for(int i =0;i<3;i++)
+	{
+		for(int a=0;a<3;a++)
+		{
+			trvecmklm[i]+=devmklm(a,a,i);
+		}
+		temp_inv+=trvecmklm[i]*trvecmklm[i];
+	}
+
+	trmklm=sqrt(temp_inv);
+
+	temp_inv=0;
 
 	for(int i=0;i<3;i++)
 	{

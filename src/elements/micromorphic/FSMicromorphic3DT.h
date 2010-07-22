@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.103 2010-07-21 22:55:31 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.104 2010-07-22 18:52:24 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -824,6 +824,11 @@ private:
  //   int el_num;
   //  dMatrixT u_el;
   //  dArrayT u_element;
+
+    double trsigma;
+    double trs_sigma;
+    double trmklm;
+    dArrayT trvecmklm;
     dArrayT ftemp_u_element;
     dArrayT fState_variables;
 
