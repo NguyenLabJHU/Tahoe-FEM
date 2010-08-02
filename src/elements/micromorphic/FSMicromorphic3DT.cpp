@@ -619,7 +619,10 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
                 while (fShapes_displ->NextIP())
                 {
                     //nothing right now
-                    fFd_int=0.0;
+                    //fFd_int=0.0;
+                    fFd_int  = Vint_1;
+                    fFd_int *= -1;
+
                 }
             }
             else /* pressure nodal force */
@@ -630,7 +633,10 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
                 while (fShapes_displ->NextIP())
                 {
                     //nothing right now
-                    fFphi_int=0.0;
+                   // fFphi_int=0.0;
+                    fFphi_int  = Vint_2;
+                    fFphi_int +=Vint_3;
+                    fFphi_int *=-1;
                 }
             }
 
