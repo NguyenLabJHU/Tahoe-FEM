@@ -613,12 +613,13 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
             /* calculate displacement nodal force */
             if (is_displ)
             {
-                /* residual for displacement field */
+            	  fShapes_displ->TopIP();
+            	/* residual for displacement field */
                 //generate this vector fFd_int
             	//fFd_int=0.0;
             /*	Vint_1_temp=0.0;
             	Vint_1=0.0;
-                fShapes_displ->TopIP();
+
                 while (fShapes_displ->NextIP())*/
                 {
                 	fFd_int=0.0;
