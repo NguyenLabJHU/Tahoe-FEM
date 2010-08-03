@@ -615,39 +615,40 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
             {
                 /* residual for displacement field */
                 //generate this vector fFd_int
-            	fFd_int=0.0;
-            	Vint_1_temp=0.0;
+            	//fFd_int=0.0;
+            /*	Vint_1_temp=0.0;
             	Vint_1=0.0;
                 fShapes_displ->TopIP();
-                while (fShapes_displ->NextIP())
+                while (fShapes_displ->NextIP())*/
                 {
-                	double scale;
+                	fFd_int=0.0;
+                	/*double scale;
                 	double scale_const = (*Weight++)*(*Det++);
                     //nothing right now
                     //fFd_int=0.0;
                     Form_Second_Piola_Kirchhoff_SPK();
-                    KirchhoffST.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
+                   // KirchhoffST.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
                     Form_fV1();
                    // fIota_temp_matrix.Multx(fV1,Vint_1_temp);
                     fShapeDisplGrad.MultTx(fV1,Vint_1_temp);
                   // fIota_w_temp_matrix.Multx(fV1,Vint_1_temp);
                     scale=scale_const;
                     Vint_1_temp*=scale;
-                    Vint_1 +=Vint_1_temp;
+                    Vint_1 +=Vint_1_temp;*/
                 }
-                fFd_int  = Vint_1;
-                fFd_int *= -1;
+              //  fFd_int  = Vint_1;
+               // fFd_int *= -1;
             }
             else /* pressure nodal force */
             {
                 /* residual for micro-displacement-gradient field */
                 // generate this vector fFphi_int
                 fShapes_displ->TopIP();
-                fFphi_int=0.0;
+             /*   fFphi_int=0.0;
                 Vint_2_temp=0.0;
                 Vint_2=0.0;
                 Vint_3_temp=0.0;
-                Vint_3=0.0;
+                Vint_3=0.0;*/
                 while (fShapes_displ->NextIP())
                 {
                     //nothing right now
