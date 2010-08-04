@@ -616,14 +616,14 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
             	  fShapes_displ->TopIP();
             	/* residual for displacement field */
                 //generate this vector fFd_int
-            	//fFd_int=0.0;
-            /*	Vint_1_temp=0.0;
+            	fFd_int=0.0;
+                Vint_1_temp=0.0;
             	Vint_1=0.0;
 
-                while (fShapes_displ->NextIP())*/
+                while (fShapes_displ->NextIP())
                 {
-                	fFd_int=0.0;
-                	/*double scale;
+                	//fFd_int=0.0;
+                	double scale;
                 	double scale_const = (*Weight++)*(*Det++);
                     //nothing right now
                     //fFd_int=0.0;
@@ -635,10 +635,10 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
                   // fIota_w_temp_matrix.Multx(fV1,Vint_1_temp);
                     scale=scale_const;
                     Vint_1_temp*=scale;
-                    Vint_1 +=Vint_1_temp;*/
+                    Vint_1 +=Vint_1_temp;
                 }
-              //  fFd_int  = Vint_1;
-               // fFd_int *= -1;
+                fFd_int  = Vint_1;
+                fFd_int *= -1;
             }
             else /* pressure nodal force */
             {
@@ -4428,11 +4428,11 @@ void FSMicromorphic3DT::Form_Gamma_tensor3D()
 
 void FSMicromorphic3DT::Form_G1_matrix()
 {
-    int row;
-    int col;
+    int row=0;
+ //   int col;
     double scale;
     scale=0.0;
-    row=0;
+  //  row=0;
 /*    Mat1=0.0;
     Mat2=0.0;
     Mat3=0.0;
@@ -9595,6 +9595,8 @@ void FSMicromorphic3DT:: Form_fMpp_1()
 {
 	int row=0;
 	int col=0;
+	int counter=0;
+
 	fMpp_1=0.0;
 /*	for(int L=0;L<3;L++)
 	{
@@ -9669,6 +9671,8 @@ void FSMicromorphic3DT:: Form_fMpp_1()
 					for(int m=0;m<3;m++)
 					{
 
+						while( counter<=8)
+						{
 							//summation
 						for(int L=0;L<3;L++)
 						{
@@ -9677,6 +9681,8 @@ void FSMicromorphic3DT:: Form_fMpp_1()
 										*ChiM(m,M);
 						}
 						row=row+3;
+						counter++;
+						}
 					}
 				}
 				col++;
