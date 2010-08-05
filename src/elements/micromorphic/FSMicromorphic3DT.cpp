@@ -2520,7 +2520,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
             } //end Gauss integration loop
 
-
+/*            for (int i=0; i<27; i++)
+            {
+         	   for (int j=0; j<27; j++)
+         	   {
+         		   fs_micromorph3D_out<<"fMpp_1"<< "("<<i<<","<<j<<")"<< " :  " ;
+         		   fs_micromorph3D_out << fMpp_1(i,j) <<"\t";
+         		   fs_micromorph3D_out << endl;
+         	   }
+            }*/
 
             /* saving eulerian strain for each IPs of the current element */
             fEulerian_strain_Elements_IPs.SetRow(e,fEulerian_strain_IPs);
@@ -9671,8 +9679,6 @@ void FSMicromorphic3DT:: Form_fMpp_1()
 					for(int m=0;m<3;m++)
 					{
 
-						while( counter<=8)
-						{
 							//summation
 						for(int L=0;L<3;L++)
 						{
@@ -9681,14 +9687,16 @@ void FSMicromorphic3DT:: Form_fMpp_1()
 										*ChiM(m,M);
 						}
 						row=row+3;
-						counter++;
-						}
+
 					}
 				}
 				col++;
 			}
 		}
 	}
+
+
+
 }
 
 void FSMicromorphic3DT:: Form_fMpu_2()
