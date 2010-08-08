@@ -2529,6 +2529,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
          		   fs_micromorph3D_out << endl;
          	   }
             }*/
+            for (int i=0; i<3; i++)
+               {
+            	   for (int j=0; j<3; j++)
+            	   {
+            		for(int k=0;k<3;k++)
+            		{
+            		   fs_micromorph3D_out<<"fMKLM"<< "("<<i<<","<<j<<","<<k<<")"<< " :  " ;
+            		   fs_micromorph3D_out << fMKLM(i,j,k) <<"\t";
+            		   fs_micromorph3D_out << endl;
+            		}
+            	   }
+               }
 
             /* saving eulerian strain for each IPs of the current element */
             fEulerian_strain_Elements_IPs.SetRow(e,fEulerian_strain_IPs);
