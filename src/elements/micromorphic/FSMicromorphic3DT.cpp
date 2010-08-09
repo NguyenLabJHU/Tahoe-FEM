@@ -1804,7 +1804,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        // accumulate
                        fKuphi_2 += fTemp_matrix_nudof_x_nchidof;
 
-                       fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_9,fIota_temp_matrix);
+                       //fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_9,fIota_temp_matrix);
+                       fTemp_matrix_nudof_x_nudof.MultABCT(fShapeDisplGrad,I1_9,fShapeDisplGrad);
                        scale = scale_const*fMaterial_Params[kNu];
                        //scale = scale_const*g2_;
                        //scale = scale_const*(g2_+b3_);
@@ -1812,7 +1813,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        // accumulate
                        fKu_9 += fTemp_matrix_nudof_x_nudof;
 
-                       fTemp_matrix_nudof_x_nchidof.MultABC(fIota_temp_matrix,I2_3,NCHI);//ABC not ABCT
+                       //fTemp_matrix_nudof_x_nchidof.MultABC(fIota_temp_matrix,I2_3,NCHI);//ABC not ABCT
+                       fTemp_matrix_nudof_x_nchidof.MultABC(fShapeDisplGrad,I2_3,NCHI);//ABC not ABCT
                        scale = scale_const*fMaterial_Params[kNu];
                        //scale = scale_const*g2_;
                        //scale = scale_const*(g2_+b3_);
@@ -8610,7 +8612,7 @@ void FSMicromorphic3DT:: Form_I1_9()
     int row;
     int col=0;
     I1_9=0.0;
-    for(int n=0;n<3;n++)
+/*    for(int n=0;n<3;n++)
     {
         for(int i=0;i<3;i++)
         {
@@ -8634,7 +8636,26 @@ void FSMicromorphic3DT:: Form_I1_9()
             }
             col++;
         }
+    }*/
+
+    for(int L=0;L<3;L++)
+    {
+    	for(int i=0;i<3;i++)
+    	{
+    		row=0;
+    		for(int K=0;K<3;K++)
+    		{
+    			for(int l=0;l<3;l++)
+    			{
+    				 I1_9(row,col)+=ChiM(i,K)*fDeformation_Gradient(l,L);
+    				 row++;
+    			}
+    		}
+    		col++;
+    	}
     }
+
+
 }
 
 
@@ -8643,7 +8664,7 @@ void FSMicromorphic3DT:: Form_I2_3()
     int row;
     int col=0;
     I2_3=0.0;
-    for(int K=0;K<3;K++)
+/*    for(int K=0;K<3;K++)
     {
         for(int i=0;i<3;i++)
         {
@@ -8663,6 +8684,24 @@ void FSMicromorphic3DT:: Form_I2_3()
             }
             col++;
         }
+    }*/
+
+    for(int K=0;K<3;K++)
+    {
+    	for(int i=0;i<3;i++)
+    	{
+    		row=3*K;
+    		for(int l=0;l<3;l++)
+    		{
+    			//summation
+    			for(int L=0;L<3;L++)
+    			{
+    				I2_3(row,col)+=fDeformation_Gradient(i,L)*fDeformation_Gradient(l,L);
+    			}
+    			row++;
+    		}
+    		col++;
+    	}
     }
 }
 
