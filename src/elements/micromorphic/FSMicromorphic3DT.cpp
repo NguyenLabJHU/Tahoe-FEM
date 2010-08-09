@@ -1805,7 +1805,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fKuphi_2 += fTemp_matrix_nudof_x_nchidof;
 
                        //fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_9,fIota_temp_matrix);
-                       fTemp_matrix_nudof_x_nudof.MultABCT(fShapeDisplGrad,I1_9,fShapeDisplGrad);
+                       fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I1_9,fShapeDisplGrad);
                        scale = scale_const*fMaterial_Params[kNu];
                        //scale = scale_const*g2_;
                        //scale = scale_const*(g2_+b3_);
@@ -1814,7 +1814,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fKu_9 += fTemp_matrix_nudof_x_nudof;
 
                        //fTemp_matrix_nudof_x_nchidof.MultABC(fIota_temp_matrix,I2_3,NCHI);//ABC not ABCT
-                       fTemp_matrix_nudof_x_nchidof.MultABC(fShapeDisplGrad,I2_3,NCHI);//ABC not ABCT
+                       fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I2_3,NCHI);//ABC not ABCT
                        scale = scale_const*fMaterial_Params[kNu];
                        //scale = scale_const*g2_;
                        //scale = scale_const*(g2_+b3_);
