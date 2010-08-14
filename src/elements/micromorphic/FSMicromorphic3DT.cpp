@@ -638,23 +638,23 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
                     Vint_1 +=Vint_1_temp;
                 }
                 fFd_int  = Vint_1;
-                fFd_int *= -1;
+               // fFd_int *= -1;
             }
             else /* pressure nodal force */
             {
                 /* residual for micro-displacement-gradient field */
                 // generate this vector fFphi_int
                 fShapes_displ->TopIP();
-             /*   fFphi_int=0.0;
+                fFphi_int=0.0;
                 Vint_2_temp=0.0;
                 Vint_2=0.0;
                 Vint_3_temp=0.0;
-                Vint_3=0.0;*/
+                Vint_3=0.0;
                 while (fShapes_displ->NextIP())
                 {
                     //nothing right now
-                	fFphi_int=0.0;
-             /*   	double scale;
+
+                	double scale;
                 	double scale_const = (*Weight++)*(*Det++);
                     Form_SIGMA_S();//in current configuration SIGMA_S=s_sigma, but what we use sigma_s, so it needs to be multiplied by "-1"
                     Form_fV2();//gives F.SIGMA_S.F^T = s_sigma
@@ -670,14 +670,12 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
            		    GRAD_NCHI.MultTx(fV3,Vint_3_temp);
            			scale=scale_const;
            			Vint_3_temp*=scale;
-           			Vint_3+=Vint_3_temp;*/
-                 //   fFphi_int  = Vint_2;
-                 //   fFphi_int +=Vint_3;
-                 //   fFphi_int *=-1;
+           			Vint_3+=Vint_3_temp;
+
                 }
-       /*         fFphi_int  = Vint_2;
+                fFphi_int  = Vint_2;
                 fFphi_int +=Vint_3;
-                fFphi_int *=-1;*/
+               // fFphi_int *=-1;
 
             }
 
