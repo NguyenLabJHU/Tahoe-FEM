@@ -1,4 +1,4 @@
-/* $Id: NeoHookean.cpp,v 1.8 2009-04-23 03:22:46 tdnguye Exp $ */
+/* $Id: NeoHookean.cpp,v 1.9 2010-08-15 15:27:52 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -77,6 +77,7 @@ void NeoHookean::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus,  d
   const double& l0 = lambda_bar[0];
   const double& l1 = lambda_bar[1];
   const double& l2 = lambda_bar[2];
+	
   
   eigenmodulus[0] = 2.0*fMu*ninth*(4.0*l0+l1+l2);
   eigenmodulus[1] = 2.0*fMu*ninth*(4.0*l1+l2+l0);

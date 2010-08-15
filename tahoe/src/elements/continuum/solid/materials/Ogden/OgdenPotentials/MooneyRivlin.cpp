@@ -1,4 +1,4 @@
-/* $Id: MooneyRivlin.cpp,v 1.2 2009-04-23 03:22:46 tdnguye Exp $ */
+/* $Id: MooneyRivlin.cpp,v 1.3 2010-08-15 15:27:52 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -47,10 +47,8 @@ void MooneyRivlin::TakeParameterList(const ParameterListT& list)
 	fc2 = list.GetParameter("c2");
 
 	/* check */
-	if (fc1 < kSmall) ExceptionT::BadInputValue("MooneyRivlin::TakeParameterList",
-		"expecting a nonzero value c1: %d", fc1);
-	if (fc2 < -kSmall) ExceptionT::BadInputValue("MooneyRivlin::TakeParameterList",
-		"expecting a positive value c2: %d", fc2);
+	if (fc1+fc2 < kSmall) ExceptionT::BadInputValue("MooneyRivlin::TakeParameterList",
+		"expecting a nonzero value c1+c2: %d", fc1);
 }
 
 
