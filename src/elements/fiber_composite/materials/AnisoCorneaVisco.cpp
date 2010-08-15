@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.18 2010-06-24 13:49:16 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.19 2010-08-15 15:26:27 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -16,7 +16,6 @@
 #include "EvenSpacePtsT.h"
 
 /*fiber potentials*/
-
 #include "FungType.h"
 #include "VWType.h"
 #include "LanirFiber.h"

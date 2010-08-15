@@ -1,4 +1,4 @@
-/* $Id: NLV_Nfibers.cpp,v 1.3 2010-06-24 13:49:17 thao Exp $ */
+/* $Id: NLV_Nfibers.cpp,v 1.4 2010-08-15 15:26:27 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "NLV_Nfibers.h"
@@ -250,7 +250,7 @@ ParameterInterfaceT* NLV_Nfibers::NewSub(const StringT& name) const
 		func = new ScaledCsch;
 	else if (name == "linear_exponential") 
 		func = new LinearExponentialT;
-	else if (name == "fung-type")
+	else if (name == "fung_type")
 		func = new FungType;
 	else if (name == "parabola")
 		func = new ParabolaT;
@@ -280,7 +280,7 @@ ParameterInterfaceT* NLV_Nfibers::NewSub(const StringT& name) const
 		eq_choice->SetSubSource(this);
 		
 		eq_choice->AddSub("parabola");
-		eq_choice->AddSub("fung-type");
+		eq_choice->AddSub("fung_type");
 		eq_choice->AddSub("vw_type");
 		
 		return(eq_choice);
@@ -293,7 +293,7 @@ ParameterInterfaceT* NLV_Nfibers::NewSub(const StringT& name) const
 		neq_choice->SetSubSource(this);
 		
 		neq_choice->AddSub("parabola");
-		neq_choice->AddSub("fung-type");
+		neq_choice->AddSub("fung_type");
 		neq_choice->AddSub("vw_type");
 		return(neq_choice);
 	}
@@ -358,7 +358,7 @@ void NLV_Nfibers::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& fiber_pot = fiberlist.GetListChoice(*this, "eq_fiber_pot");
 		if (fiber_pot.Name() == "parabola")
 			fPot_f(i,0) = new ParabolaT;
-		else if (fiber_pot.Name() == "fung-type")
+		else if (fiber_pot.Name() == "fung_type")
 			fPot_f(i,0) = new FungType;
 		else if (fiber_pot.Name() == "vw_type")
 			fPot_f(i,0) = new VWType;
@@ -372,7 +372,7 @@ void NLV_Nfibers::TakeParameterList(const ParameterListT& list)
 			const ParameterListT& fiber_neq = fiberlist.GetListChoice(*this, "neq_fiber_pot",j);
 			if (fiber_neq.Name() == "parabola")
 				fPot_f(i,j+1) = new ParabolaT;
-			else if (fiber_neq.Name() == "fung-type")
+			else if (fiber_neq.Name() == "fung_type")
 				fPot_f(i,j+1) = new FungType;
 			else if (fiber_neq.Name() == "vw_type")
 				fPot_f(i,j+1) = new VWType;
