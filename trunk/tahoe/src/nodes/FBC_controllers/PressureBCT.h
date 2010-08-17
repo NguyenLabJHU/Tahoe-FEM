@@ -1,4 +1,4 @@
-/* $Id: PressureBCT.h,v 1.3 2006-11-20 17:27:35 r-jones Exp $ */
+/* $Id: PressureBCT.h,v 1.4 2010-08-17 15:03:22 tdnguye Exp $ */
 
 #ifndef _PRESSURE_BC_T_H_
 #define _PRESSURE_BC_T_H_
@@ -16,6 +16,12 @@
 #include "DomainIntegrationT.h"
 #include "ElementMatrixT.h"
 
+//TDN 6/2010
+/*Volume calculated from area of facet * height of facet.  The height of the facet is  calculated          *
+ *	from its coordinate in the normal direction.  The geometry must be defined such that coordinates in    *
+ *	the normal direction are all positive for the program to calculate the correct volume				   *
+ */
+	
 namespace Tahoe {
 
 /* forward declarations */
