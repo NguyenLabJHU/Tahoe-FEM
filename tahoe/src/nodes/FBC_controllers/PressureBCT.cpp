@@ -1,4 +1,4 @@
-/* $Id: PressureBCT.cpp,v 1.5 2007-10-09 23:17:47 r-jones Exp $ */
+/* $Id: PressureBCT.cpp,v 1.6 2010-08-17 15:03:22 tdnguye Exp $ */
 // created : rjones 2006
 #include "PressureBCT.h"
 
@@ -494,17 +494,16 @@ void PressureBCT::TakeParameterList(const ParameterListT& list)
 	fControlType =  list.GetParameter("control");
 
 	if (fControlType == kVolumeControl) {
-	fUseMultipliers = list.GetParameter("use_multiplier");
-
-	fPenalty = list.GetParameter("penalty");
-
-	fndir = list.GetParameter("normal");
+		fUseMultipliers = list.GetParameter("use_multiplier");
+	
+		fPenalty = list.GetParameter("penalty");
 	}
 
+	fndir = list.GetParameter("normal");
 	/* dimension */
 	fnsd = FieldSupport().NumSD();
-	if (fnsd != 3) 
-	  ExceptionT::GeneralFail(caller, " only valid for 3D problems");
+	if (fnsd != 3 && fControlType == kVolumeControl) 
+	  ExceptionT::GeneralFail(caller, " volume control only implemented for 3D problems");
 
 	/* surface : collection of side sets/faces */
 	StringListT::Extract(list.GetList("side_set_ID_list"),  fssetIDs);
@@ -608,6 +607,8 @@ void PressureBCT:: ComputeVolume(dArray2DT& coord, double& volume, double& area)
 	area = 0.0;
 	domain.TopIP();
 	const double* wgs = domain.IPWeights();
+	
+	bool is_axi = FieldSupport().ElementGroup(fGroup).Axisymmetric();
 	// quadrature
 	while (domain.NextIP())
 	{
@@ -616,26 +617,32 @@ void PressureBCT:: ComputeVolume(dArray2DT& coord, double& volume, double& area)
 		const double* T1 = domain.IPDShape(0);
 		const double* T2 = domain.IPDShape(1);
 		double t1[3] = {0.0,0.0,0.0};
-		double t2[3] = {0.0,0.0,-1.0};
+		double t2[3] = {0.0,0.0,1.0};	//default for 2D;
 		double  n[3] = {0.0,0.0,0.0};
 		for (int j = 0; j < fnsd; j++)
 		{		
 			t1[j] = coord.DotColumn(j,T1);
-			t2[j] = coord.DotColumn(j,T2);
+			if (fnsd ==3)
+				t2[j] = coord.DotColumn(j,T2);
 		}
 		CrossProduct(t1,t2,n);
 		double x_ndir = coord.DotColumn(fndir,N);
 
-		const double wg = wgs[domain.CurrIP()];
+		double wg = wgs[domain.CurrIP()];
 		// enclosed volume has opposite outward unit normal from the surface
-		volume -= n[fndir]*x_ndir;
-		area   += n[fndir];
-#ifdef LOCAL_DEBUG
-		double  x[3] = {0.0,0.0,0.0};
-		for (int j = 0; j < fnsd; j++) x[j] = coord.DotColumn(j,N);
-		cout << "x: " << x[0] << " " << x[1] << " " << x[2] << " "
-		     << "n: " << n[0] << " " << n[1] << " " << n[2] << "\n";
-#endif
+		if (is_axi)
+		{
+			int rdir = 0; /*radial direction is same as x-direction*/
+			double r = coord.DotColumn(rdir,N);
+			wg *= 2.0*Pi*r;
+		}
+
+		volume -=x_ndir*n[fndir]*wg;
+		area   += n[fndir]*wg;
+		
+		#ifdef LOCAL_DEBUG
+		cout << "area: " <<area << " " << "volume: " << volume <<"\n";
+		#endif
 	}
 }
 
@@ -645,6 +652,8 @@ void PressureBCT:: ComputeForce(dArray2DT& coord, dArray2DT& force)
 	force = 0.0;
 	domain.TopIP();
 	const double* wgs = domain.IPWeights();
+
+	bool is_axi = FieldSupport().ElementGroup(fGroup).Axisymmetric();
 	// quadrature
 	while (domain.NextIP())
 	{
@@ -652,22 +661,37 @@ void PressureBCT:: ComputeForce(dArray2DT& coord, dArray2DT& force)
 		const double* T1 = domain.IPDShape(0);
 		const double* T2 = domain.IPDShape(1);
 		double t1[3] = {0.0,0.0,0.0};
-		double t2[3] = {0.0,0.0,-1.0};
+		double t2[3] = {0.0,0.0,1.0};
 		double  n[3] = {0.0,0.0,0.0};
 		for (int j = 0; j < fnsd; j++)
 		{		
 			t1[j] = coord.DotColumn(j,T1);
-			t2[j] = coord.DotColumn(j,T2);
+			if (fnsd ==3)
+				t2[j] = coord.DotColumn(j,T2);
 		}
 		CrossProduct(t1,t2,n);
 
 		const double* S = domain.IPShape();
-		const double wg = wgs[domain.CurrIP()];
+		double wg = wgs[domain.CurrIP()];
+		if (is_axi)
+		{
+			int rdir = 0; /*radial direction is same as x-direction*/
+			double r = coord.DotColumn(rdir,S);
+			wg *= 2.0*Pi*r;
+		}
 		for (int k = 0; k < force.MajorDim(); k++) {
-			for (int j = 0; j < force.MinorDim(); j++) {		
+			for (int j = 0; j < force.MinorDim(); j++) {					
 				force(k,j) -= S[k]*n[j]*wg; 
 			}
 		}
+#ifdef LOCAL_DEBUG
+		cout << "n: " << n[0] << " " << n[1] << " " << n[2] << "\n";
+		cout << "t1: " << t1[0] << " " << t1[1] << " " << t1[2] << "\n";
+		
+#endif
+#ifdef LOCAL_DEBUG
+		cout <<"\n force: "<< force<<endl;
+#endif 
 	}
 }
 
@@ -677,21 +701,34 @@ void PressureBCT:: ComputeStiffness(dArray2DT& coord, ElementMatrixT& stiffness)
 	stiffness = 0.0;
 	domain.TopIP();
 	const double* wgs = domain.IPWeights();
+	bool is_axi = FieldSupport().ElementGroup(fGroup).Axisymmetric();
+
 	while (domain.NextIP())
 	{		
 		/* length nnodes */
 		const double* T1 = domain.IPDShape(0);
 		const double* T2 = domain.IPDShape(1);
 		double t1[3] = {0.0,0.0,0.0};
-		double t2[3] = {0.0,0.0,-1.0};
+		double t2[3] = {0.0,0.0,1.0};
+		double  n[3] = {0.0,0.0,0.0};
 		for (int j = 0; j < fnsd; j++)
 		{		
 			t1[j] = coord.DotColumn(j,T1);
-			t2[j] = coord.DotColumn(j,T2);
+			if (fnsd ==3)
+				t2[j] = coord.DotColumn(j,T2);
 		}
+		CrossProduct(t1,t2,n);
 
 		const double* S = domain.IPShape();
-		const double wg = wgs[domain.CurrIP()];
+		double wg = wgs[domain.CurrIP()];
+		if (is_axi)
+		{
+			int rdir = 0; /*radial direction is same as x-direction*/
+			double r = coord.DotColumn(rdir,S);
+			wg *= 2.0*Pi*r;
+		}
+
+		/*from n dr scaling*/
 		int row = 0, col = 0, k =0;
 		for (int I = 0; I < fnnodes; I++) { 
 			for (int i = 0; i < fnsd; i++) {
@@ -699,14 +736,34 @@ void PressureBCT:: ComputeStiffness(dArray2DT& coord, ElementMatrixT& stiffness)
 				for (int J = 0; J < fnnodes; J++) {		
 					for (int j = 0; j < fnsd; j++) {
 						if ((k = iperm[i][j]) > -1 ) 
-							stiffness(row,col) += S[I]*
-								psign[i][j]*( t1[k]*T2[J] - t2[k]*T1[J] )*wg; 
+							stiffness(row,col) += S[I]*psign[i][j]*( t1[k]*T2[J] - t2[k]*T1[J] )*wg; 
 						col++;
 					}
 				}
 				row++;
 			}
 		}
+		
+		if (is_axi)
+		{
+			/*from  2 pi r scaling*/
+			double wi = wgs[domain.CurrIP()];
+			wi *= 2.0*Pi;
+			for (int I = 0; I < fnnodes; I++) 
+			{ 
+				for (int i = 0; i < fnsd; i++) 
+				{
+					row = fnnodes*I + i;
+					for (int J = 0; J < fnnodes; J++) 
+					{	
+						col = fnnodes*J;
+						stiffness(row,col) += -S[I]*n[i]*wi*S[J]; 
+					}
+				}
+			}
+		}
+
+
 	}
 }
 
@@ -716,27 +773,35 @@ void PressureBCT:: ComputeVolumeStiffness(dArray2DT& coord, dArray2DT& delV)
 	delV = 0.0;
 	domain.TopIP();
 	const double* wgs = domain.IPWeights();
+	bool is_axi = FieldSupport().ElementGroup(fGroup).Axisymmetric();
 	// quadrature
 	while (domain.NextIP())
 	{
 		/* length nnodes */
-		const double* N = domain.IPShape();
+		const double* S = domain.IPShape();
 		const double* T1 = domain.IPDShape(0);
 		const double* T2 = domain.IPDShape(1);
 		double t1[3] = {0.0,0.0,0.0};
-		double t2[3] = {0.0,0.0,-1.0};
+		double t2[3] = {0.0,0.0,1.0};
 		double  n[3] = {0.0,0.0,0.0};
 		for (int j = 0; j < fnsd; j++)
 		{		
 			t1[j] = coord.DotColumn(j,T1);
-			t2[j] = coord.DotColumn(j,T2);
+			if (fnsd ==3)
+				t2[j] = coord.DotColumn(j,T2);
 		}
 		CrossProduct(t1,t2,n);
 
-		double x_ndir = coord.DotColumn(fndir,N);
+		double x_ndir = coord.DotColumn(fndir,S);
 
-		const double* S = domain.IPShape();
-		const double wg = wgs[domain.CurrIP()];
+		double wg = wgs[domain.CurrIP()];
+		if (is_axi)
+		{
+			int rdir = 0; /*radial direction is same as x-direction*/
+			double r = coord.DotColumn(rdir,S);
+			wg *= 2.0*Pi*r;
+		}
+
 		int k;
 		for (int J = 0; J < fnnodes; J++) { 
 			// (e_3 . n da) (e_3 . N)
