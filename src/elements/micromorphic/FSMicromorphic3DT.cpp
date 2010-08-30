@@ -237,19 +237,6 @@ void FSMicromorphic3DT::CloseStep(void)
     /* inherited */
     ElementBaseT::CloseStep();
 
-    if(step_number=10)
-    {
-        fs_micromorph3D_out<<"step_number="<<step_number<< endl ;
-        fs_micromorph3D_out<<"***********************************"<< endl ;
-        fs_micromorph3D_out<<"***********************************"<< endl ;
-                  for (int i=0; i<3; i++)
-                  {
-                  	for(int j=0;j<3;j++)
-                  	{
-                  		fs_micromorph3D_out<< "fKdd"<<"("<<i<<","<<j<<")"<<"="<< fKdd(i,j)<<endl;
-                  	}
-                  }
-    }
 
     //-- Store/Register initial values in classic tahoe manner
     if ( ElementSupport().Time()==0 )
@@ -646,15 +633,15 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
                 // generate this vector fFphi_int
                 fShapes_displ->TopIP();
                 fFphi_int=0.0;
-                Vint_2_temp=0.0;
+              /*  Vint_2_temp=0.0;
                 Vint_2=0.0;
                 Vint_3_temp=0.0;
-                Vint_3=0.0;
+                Vint_3=0.0;*/
                 while (fShapes_displ->NextIP())
                 {
                     //nothing right now
 
-                	double scale;
+                /*	double scale;
                 	double scale_const = (*Weight++)*(*Det++);
                     Form_SIGMA_S();//in current configuration SIGMA_S=s_sigma, but what we use sigma_s, so it needs to be multiplied by "-1"
                     Form_fV2();//gives F.SIGMA_S.F^T = s_sigma
@@ -670,11 +657,11 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
            		    GRAD_NCHI.MultTx(fV3,Vint_3_temp);
            			scale=scale_const;
            			Vint_3_temp*=scale;
-           			Vint_3+=Vint_3_temp;
+           			Vint_3+=Vint_3_temp;*/
 
                 }
-                fFphi_int  = Vint_2;
-                fFphi_int +=Vint_3;
+               // fFphi_int  = Vint_2;
+                //fFphi_int +=Vint_3;
                // fFphi_int *=-1;
 
             }
@@ -8645,7 +8632,7 @@ void FSMicromorphic3DT:: Form_I1_9()
     		{
     			for(int l=0;l<3;l++)
     			{
-    				 I1_9(row,col)+=ChiM(i,K)*fDeformation_Gradient(l,L);
+    				 I1_9(row,col)=ChiM(i,K)*fDeformation_Gradient(l,L);
     				 row++;
     			}
     		}
