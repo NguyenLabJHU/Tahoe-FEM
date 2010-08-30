@@ -2516,7 +2516,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
          		   fs_micromorph3D_out << endl;
          	   }
             }*/
-            for (int i=0; i<3; i++)
+      /*      for (int i=0; i<3; i++)
                {
             	   for (int j=0; j<3; j++)
             	   {
@@ -2527,7 +2527,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             		   fs_micromorph3D_out << endl;
             		}
             	   }
-               }
+               }*/
 
             /* saving eulerian strain for each IPs of the current element */
             fEulerian_strain_Elements_IPs.SetRow(e,fEulerian_strain_IPs);
@@ -2731,21 +2731,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
             fFphi_int *= -1;
             }
-/*            if(step_number=10)
-            {
-                fs_micromorph3D_out<<"step_number="<<step_number<< endl ;
-                fs_micromorph3D_out<<"***********************************"<< endl ;
-                fs_micromorph3D_out<<"***********************************"<< endl ;
-                          for (int i=0; i<3; i++)
-                          {
-                          	for(int j=0;j<3;j++)
-                          	{
-                          		fs_micromorph3D_out<< "fKdd"<<"("<<i<<","<<j<<")"<<"="<<
-                          		fs_micromorph3D_out<< fKdd(i,j)<<endl;
-                          	}
-                          }
-            }
-*/
 
             /* equations numbers */
             const iArrayT& displ_eq = fElementCards_displ[e].Equations();
