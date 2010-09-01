@@ -1,10 +1,10 @@
-# $Id: GNU.SOILS.lam-mpi.macros,v 1.2 2010-09-01 14:28:42 regueiro Exp $
+# $Id: GNU.SOILS.openmpi.macros,v 1.1 2010-09-01 14:28:42 regueiro Exp $
 # GNU
 #
-LAM_HOME    = /usr/local/lam-mpi
+OPENMPI_HOME    = /usr/local/openmpi
 #
 MAKE        = make
-COMP_DIR    = $(LAM_HOME)
+COMP_DIR    = $(OPENMPI_HOME)
 DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
 COMP_C      = $(COMP_DIR)/bin/mpicc
 COMP_CC     = $(COMP_DIR)/bin/mpic++
@@ -19,13 +19,13 @@ LINK        = $(COMP_CC)
 F2C_LFLAG   = -lg2c
 LFLAGS      = -lpthread
 MAKEDEPEND_C         = /usr/bin/gcc -MM
-MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I$(LAM_HOME)/include $(DEFINES)
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I$(OPENMPI_HOME)/include $(DEFINES)
 MAKEDEPEND_OUTPUT_C  = -MF
 MAKEDEPEND_CC        = /usr/bin/g++ -MM
-MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) -I$(LAM_HOME)/include $(DEFINES) -Wno-deprecated
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) -I$(OPENMPI_HOME)/include $(DEFINES) -Wno-deprecated
 MAKEDEPEND_OUTPUT_CC = -MF
 MAKEDEPEND_F         = /usr/bin/g77 -MM
-MAKEDEPENDFLAGS_F    = -I$(INC_DIR) -I$(LAM_HOME)/include $(DEFINES)
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) -I$(OPENMPI_HOME)/include $(DEFINES)
 MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
 ARFLAGS     = -cruv
