@@ -3667,7 +3667,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fE_values_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     fVarepsilon_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     fE_values_Element_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
-    fVarepsilon_Element_IPs.Dimension(NusmElements(),fNumIP_displ*n_sd_x_n_sd);
+    fVarepsilon_Element_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
     //////////////////////////////////////////
 
 
