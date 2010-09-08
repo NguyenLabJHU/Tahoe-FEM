@@ -1340,46 +1340,37 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           /* Not sure if these are correct!!! */
       //    Put_values_In_dArrayT_vector(fDisplacement_Element_IPs,e,l,u_element);
        //   Put_values_In_Array(fDisplacement_Element_IPs,e,l,ftemp_u_element);
-          out_variable[18]=fState_variables_Elements_IPs(e,l*6+0);
-          out_variable[19]=fState_variables_Elements_IPs(e,l*6+1);
-          out_variable[20]=fState_variables_Elements_IPs(e,l*6+2);
-          out_variable[21]=fState_variables_Elements_IPs(e,l*6+3);
-          out_variable[22]=fState_variables_Elements_IPs(e,l*6+4);
-          out_variable[23]=fState_variables_Elements_IPs(e,l*6+5);
+          out_variable[18]=fState_variables_Elements_IPs(e,l*24+0);
+          out_variable[19]=fState_variables_Elements_IPs(e,l*24+1);
+          out_variable[20]=fState_variables_Elements_IPs(e,l*24+2);
+          out_variable[21]=fState_variables_Elements_IPs(e,l*24+3);
+          out_variable[22]=fState_variables_Elements_IPs(e,l*24+4);
+          out_variable[23]=fState_variables_Elements_IPs(e,l*24+5);
+          out_variable[24]=fState_variables_Elements_IPs(e,l*24+6);
+          out_variable[25]=fState_variables_Elements_IPs(e,l*24+7);
+          out_variable[26]=fState_variables_Elements_IPs(e,l*24+8);
+          out_variable[27]=fState_variables_Elements_IPs(e,l*24+9);
+          out_variable[28]=fState_variables_Elements_IPs(e,l*24+10);
+          out_variable[29]=fState_variables_Elements_IPs(e,l*24+11);
+          out_variable[30]=fState_variables_Elements_IPs(e,l*24+12);
+          out_variable[31]=fState_variables_Elements_IPs(e,l*24+13);
+          out_variable[32]=fState_variables_Elements_IPs(e,l*24+14);
+          out_variable[33]=fState_variables_Elements_IPs(e,l*24+15);
+          out_variable[34]=fState_variables_Elements_IPs(e,l*24+16);
+          out_variable[35]=fState_variables_Elements_IPs(e,l*24+17);
+          out_variable[36]=fState_variables_Elements_IPs(e,l*24+18);
+          out_variable[37]=fState_variables_Elements_IPs(e,l*24+19);
+          out_variable[38]=fState_variables_Elements_IPs(e,l*24+20);
+          out_variable[39]=fState_variables_Elements_IPs(e,l*24+21);
+          out_variable[40]=fState_variables_Elements_IPs(e,l*24+22);
+          out_variable[41]=fState_variables_Elements_IPs(e,l*24+23);
           //out_variable.CopyIn(18,ftemp_u_element);
-          Put_values_In_dArrayT_vector(fE_values_Element_IPs, e,l,fTemp_nine_values);
+/*          Put_values_In_dArrayT_vector(fE_values_Element_IPs, e,l,fTemp_nine_values);
           out_variable.CopyIn(9,fTemp_nine_values);
           Put_values_In_dArrayT_vector(fVarepsilon_Element_IPs, e,l,fTemp_nine_values);
-          out_variable.CopyIn(9,fTemp_nine_values);
+          out_variable.CopyIn(9,fTemp_nine_values);*/
 
         }
-
-/*
-        int e;
-        e=CurrElementNumber();
-       cout<<e<<endl;
-        el_num=0;
-        if(e==8 || e== 9 || e==10 || e==11)
-        {
-         fs_micromorph3D_out<<"element number="<<e<< " :  " <<"\n";
-         fShapeDispl.Multx(u_vec,u_element);
-      	 for(int ii=0;ii<3;ii++)
-      	 {
-      		 u_el(el_num,ii)=u_element[ii];
-      	 }
-
-
-      	  for(int ii=0;ii<3;ii++)
-      	  {
-             fs_micromorph3D_out << u_el(el_num,ii) <<"\n";
-      	  }
-      	  el_num++;
-        }
-
-
-*/
-
-
 
 
     }
@@ -1492,7 +1483,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    double J = fDeformation_Gradient.Det();
                    double invJ=1/J;
                    /* Jacobian for the current IP will be saved */
-                   fState_variables_IPs(IP,2)=J;
+                  // fState_variables_IPs(IP,2)=J;
 
                    /*  fRho */
                    fRho_0 = fMaterial_Params[kRho_0];
@@ -1519,8 +1510,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     MicroStnTensor += PSI;
 
 
-                    fE_values_IPs.SetRow(IP,LagrangianStn);
-                    fVarepsilon_IPs.SetRow(IP,MicroStnTensor);
+            /*        fE_values_IPs.SetRow(IP,LagrangianStn);
+                    fVarepsilon_IPs.SetRow(IP,MicroStnTensor);*/
 
 
                     //GAMMA deformation measure will be formed
@@ -2511,7 +2502,25 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fState_variables[4]=trs_sigma;
                    fState_variables[5]=trmklm;
                  //  fShapeDispl.Multx(u_vec,u_element);
-                   fState_variables_IPs.SetRow(IP,fState_variables);
+                   fState_variables[6]=LagrangianStn(0,0);//E11
+                   fState_variables[7]=LagrangianStn(1,1);//E22
+                   fState_variables[8]=LagrangianStn(2,2);//E33
+                   fState_variables[9]=LagrangianStn(0,1);//E12
+                   fState_variables[10]=LagrangianStn(0,2);//E13
+                   fState_variables[11]=LagrangianStn(1,0);//E21
+                   fState_variables[12]=LagrangianStn(1,2);//E23
+                   fState_variables[13]=LagrangianStn(2,0);//E31
+                   fState_variables[14]=LagrangianStn(2,1);//E32
+                   fState_variables[15]=MicroStnTensor(0,0);
+                   fState_variables[16]=MicroStnTensor(1,1);
+                   fState_variables[17]=MicroStnTensor(2,2);
+                   fState_variables[18]=MicroStnTensor(0,1);
+                   fState_variables[19]=MicroStnTensor(0,2);
+                   fState_variables[20]=MicroStnTensor(1,0);
+                   fState_variables[21]=MicroStnTensor(1,2);
+                   fState_variables[22]=MicroStnTensor(2,0);
+                   fState_variables[23]=MicroStnTensor(2,1);
+
                  //  fDisplacement_IPs.SetRow(IP,u_element);
 
 
@@ -2552,8 +2561,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
          //   fState_variables_Elements_IPs.SetRow(e,fDisplacement_IPs);
             //////////////////////////////////////////
-            fE_values_Element_IPs.SetRow(e,fE_values_IPs);
-            fVarepsilon_Element_IPs.SetRow(e,fVarepsilon_IPs);
+          /*  fE_values_Element_IPs.SetRow(e,fE_values_IPs);
+            fVarepsilon_Element_IPs.SetRow(e,fVarepsilon_IPs);*/
             ///////////////////////////////////////////
             GammaN_IPs_el.SetRow(e,GammaN_IPs);
             SigN_IPs_el.SetRow(e,SigN_IPs);
@@ -3664,10 +3673,10 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fCauchy_stress_IPs.Dimension (fNumIP_displ,knumstress);
 
     //////////////////////////////////////////
-    fE_values_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
+/*    fE_values_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     fVarepsilon_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     fE_values_Element_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
-    fVarepsilon_Element_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fVarepsilon_Element_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);*/
     //////////////////////////////////////////
 
 
