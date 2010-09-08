@@ -2552,8 +2552,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
          //   fState_variables_Elements_IPs.SetRow(e,fDisplacement_IPs);
             //////////////////////////////////////////
-            fE_values_Element_IPs(e,fE_values_IPs);
-            fVarepsilon_Element_IPs(e,fVarepsilon_IPs);
+            fE_values_Element_IPs.SetRow(e,fE_values_IPs);
+            fVarepsilon_Element_IPs.SetRow(e,fVarepsilon_IPs);
             ///////////////////////////////////////////
             GammaN_IPs_el.SetRow(e,GammaN_IPs);
             SigN_IPs_el.SetRow(e,SigN_IPs);
@@ -3667,20 +3667,20 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fE_values_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     fVarepsilon_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     fE_values_Element_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
-    fVarepsilon_Element_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fVarepsilon_Element_IPs.Dimension(NusmElements(),fNumIP_displ*n_sd_x_n_sd);
     //////////////////////////////////////////
 
 
     fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
     fState_variables.Dimension (knum_d_state);
    //
- //   fDisplacement_IPs.Dimension(fNumIP_displ,knumdispl);
+ //  fDisplacement_IPs.Dimension(fNumIP_displ,knumdispl);
     fTemp_nine_values.Dimension(9);
     fTemp_six_values.Dimension(6);
     fEulerian_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstrain);
     fCauchy_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstress);
     fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
-  //  fDisplacement_Element_IPs.Dimension(NumElements(),fNumIP_displ*knumdispl);
+  // fDisplacement_Element_IPs.Dimension(NumElements(),fNumIP_displ*knumdispl);
     fGravity_vector.Dimension (n_sd);
     fFd_int_G4_vector.Dimension (n_en_displ_x_n_sd);
     fDefGradInv_column_matrix.Dimension (n_sd_x_n_sd,1);
