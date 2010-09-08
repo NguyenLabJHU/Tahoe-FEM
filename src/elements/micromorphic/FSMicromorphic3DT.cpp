@@ -1347,6 +1347,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[22]=fState_variables_Elements_IPs(e,l*6+4);
           out_variable[23]=fState_variables_Elements_IPs(e,l*6+5);
           //out_variable.CopyIn(18,ftemp_u_element);
+          Put_values_In_dArrayT_vector(fE_values_Element_IPs, e,l,fTemp_nine_values);
+          out_variable.CopyIn(9,fTemp_nine_values);
+          Put_values_In_dArrayT_vector(fVarepsilon_Element_IPs, e,l,fTemp_nine_values);
+          out_variable.CopyIn(9,fTemp_nine_values);
+
         }
 
 /*
@@ -1514,6 +1519,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     MicroStnTensor += PSI;
 
 
+                    fE_values_IPs.SetRow(IP,LagrangianStn);
+                    fVarepsilon_IPs.SetRow(IP,MicroStnTensor);
+
+
                     //GAMMA deformation measure will be formed
                 //   GAMMA.ContractIndex(GRAD_CHIM,0,fDeformation_Gradient,1);
 
@@ -1557,6 +1566,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fIota_w_temp_matrix.MultATBT(GRAD_Nuw,Finv_w);
                    /* [fIota_eta_temp_matrix] will be formed*/
                    fIota_eta_temp_matrix.MultATBT(GRAD_NCHI,Finv_eta);
+
 
 
                    //fShapeDisplGrad--> [GRAD(Ns,e)] so it in reference configuration
@@ -2541,7 +2551,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             /*saving displacement ??? */
             fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
          //   fState_variables_Elements_IPs.SetRow(e,fDisplacement_IPs);
-
+            //////////////////////////////////////////
+            fE_values_Element_IPs(e,fE_values_IPs);
+            fVarepsilon_Element_IPs(e,fVarepsilon_IPs);
+            ///////////////////////////////////////////
             GammaN_IPs_el.SetRow(e,GammaN_IPs);
             SigN_IPs_el.SetRow(e,SigN_IPs);
             sn_sigman_IPs_el.SetRow(e,sn_sigman_IPs);
@@ -3649,6 +3662,15 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fDisplacements_current_IPs.Dimension(n_sd);
     fEulerian_strain_IPs.Dimension (fNumIP_displ,knumstrain);
     fCauchy_stress_IPs.Dimension (fNumIP_displ,knumstress);
+
+    //////////////////////////////////////////
+    fE_values_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
+    fVarepsilon_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
+    fE_values_Element_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fVarepsilon_Element_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    //////////////////////////////////////////
+
+
     fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
     fState_variables.Dimension (knum_d_state);
    //

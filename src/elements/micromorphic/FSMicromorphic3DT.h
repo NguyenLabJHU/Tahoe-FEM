@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.104 2010-07-22 18:52:24 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.105 2010-09-08 21:22:06 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -333,6 +333,10 @@ private:
 	dArrayT	        fGravity_vector;
 	dArrayT	        fFd_int_G4_vector;
 	dArrayT         fTemp_nine_values;
+////////////////////////////////////
+	dArrayT         fE_values;
+	dArrayT         fVarepsilon;
+////////////////////////////////////
 	dArrayT         fTemp_six_values;
 	dArrayT         fGradv_vector;
 	dArrayT         fgradv_vector;
@@ -844,10 +848,18 @@ private:
         dMatrixT	fCauchy_stress_tensor_current_IP;
         /* to store fCauchy_stress_IPs for each of the 27 IPs of each element */
         dArray2DT	fCauchy_stress_IPs;
+        ////////////////////////////////////
+        dArray2DT  fE_values_IPs;
+        dArray2DT  fVarepsilon_IPs;
+        ////////////////////////////////////
         dArray2DT	fState_variables_IPs;
         dArray2DT	fEulerian_strain_Elements_IPs;
         dArray2DT	fCauchy_stress_Elements_IPs;
         dArray2DT	fState_variables_Elements_IPs;
+        /////////////////////////////////////////
+        dArray2DT  fE_values_Element_IPs;
+        dArray2DT  fVarepsilon_Element_IPs;
+        ////////////////////////////////////////
 
         dArray2DT fDisplacement_Element_IPs;
         dArrayT   fDisplacements_current_IPs;
