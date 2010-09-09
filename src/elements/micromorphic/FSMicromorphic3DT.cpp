@@ -1340,6 +1340,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           /* Not sure if these are correct!!! */
       //    Put_values_In_dArrayT_vector(fDisplacement_Element_IPs,e,l,u_element);
        //   Put_values_In_Array(fDisplacement_Element_IPs,e,l,ftemp_u_element);
+        /*  out_variable[18]=fState_variables_Elements_IPs(e,l*6+0);
+          out_variable[19]=fState_variables_Elements_IPs(e,l*6+1);
+          out_variable[20]=fState_variables_Elements_IPs(e,l*6+2);
+          out_variable[21]=fState_variables_Elements_IPs(e,l*6+3);
+          out_variable[22]=fState_variables_Elements_IPs(e,l*6+4);
+          out_variable[23]=fState_variables_Elements_IPs(e,l*6+5);*/
           out_variable[18]=fState_variables_Elements_IPs(e,l*24+0);
           out_variable[19]=fState_variables_Elements_IPs(e,l*24+1);
           out_variable[20]=fState_variables_Elements_IPs(e,l*24+2);
@@ -2954,7 +2960,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Echo_Input_Data();
 
     //need to change for appropriate number of ISVs for micromorphic model
-    knum_d_state = 6; // #? internal state variables
+    knum_d_state = 24; // #? internal state variables
     knum_i_state = 0; // int's needed per ip, state variables
 
     //need to change these for non-symmetric stress, and higher order couple stress output
