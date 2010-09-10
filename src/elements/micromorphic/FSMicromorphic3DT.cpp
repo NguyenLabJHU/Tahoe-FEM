@@ -1631,7 +1631,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        scale=scale_const;
                        Vint_2_temp*=scale;
                        Vint_2 +=Vint_2_temp;
-
+// applying integration by parts to higher order stress tensor "m" produces a minus sign in front of it too, so if we multiply the BMM by "-1" the following
+                       // matrices are found (see paper)
 
                        Form_GAMMA();
                        Form_fMKLM();
@@ -1662,8 +1663,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     //Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
                       Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
 
-                      // Save Cauchy effective stress tensor of the current IP
+                    // Save Cauchy effective stress tensor of the current IP
                     //fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
+
                       fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
 
 
@@ -2560,7 +2562,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fState_variables[29]=fDeformation_Gradient(1,0);//F21
                    fState_variables[30]=fDeformation_Gradient(1,2);//F23
                    fState_variables[31]=fDeformation_Gradient(2,0);//F31
-                   fState_variables[32]=fDeformation_Gradient(2,1);//F32                   
+                   fState_variables[32]=fDeformation_Gradient(2,1);//F32
 
                  //  fShapeDispl.Multx(u_vec,u_element);
                    fState_variables_IPs.SetRow(IP,fState_variables);
