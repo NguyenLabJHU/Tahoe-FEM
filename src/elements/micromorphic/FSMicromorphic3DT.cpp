@@ -1347,39 +1347,48 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[21]=fState_variables_Elements_IPs(e,l*6+3);
           out_variable[22]=fState_variables_Elements_IPs(e,l*6+4);
           out_variable[23]=fState_variables_Elements_IPs(e,l*6+5);*/
-          out_variable[18]=fState_variables_Elements_IPs(e,l*33+0);
-          out_variable[19]=fState_variables_Elements_IPs(e,l*33+1);
-          out_variable[20]=fState_variables_Elements_IPs(e,l*33+2);
-          out_variable[21]=fState_variables_Elements_IPs(e,l*33+3);
-          out_variable[22]=fState_variables_Elements_IPs(e,l*33+4);
-          out_variable[23]=fState_variables_Elements_IPs(e,l*33+5);
-          out_variable[24]=fState_variables_Elements_IPs(e,l*33+6);
-          out_variable[25]=fState_variables_Elements_IPs(e,l*33+7);
-          out_variable[26]=fState_variables_Elements_IPs(e,l*33+8);
-          out_variable[27]=fState_variables_Elements_IPs(e,l*33+9);
-          out_variable[28]=fState_variables_Elements_IPs(e,l*33+10);
-          out_variable[29]=fState_variables_Elements_IPs(e,l*33+11);
-          out_variable[30]=fState_variables_Elements_IPs(e,l*33+12);
-          out_variable[31]=fState_variables_Elements_IPs(e,l*33+13);
-          out_variable[32]=fState_variables_Elements_IPs(e,l*33+14);
-          out_variable[33]=fState_variables_Elements_IPs(e,l*33+15);
-          out_variable[34]=fState_variables_Elements_IPs(e,l*33+16);
-          out_variable[35]=fState_variables_Elements_IPs(e,l*33+17);
-          out_variable[36]=fState_variables_Elements_IPs(e,l*33+18);
-          out_variable[37]=fState_variables_Elements_IPs(e,l*33+19);
-          out_variable[38]=fState_variables_Elements_IPs(e,l*33+20);
-          out_variable[39]=fState_variables_Elements_IPs(e,l*33+21);
-          out_variable[40]=fState_variables_Elements_IPs(e,l*33+22);
-          out_variable[41]=fState_variables_Elements_IPs(e,l*33+23);
-          out_variable[42]=fState_variables_Elements_IPs(e,l*33+24);
-          out_variable[43]=fState_variables_Elements_IPs(e,l*33+25);
-          out_variable[44]=fState_variables_Elements_IPs(e,l*33+26);
-          out_variable[45]=fState_variables_Elements_IPs(e,l*33+27);
-          out_variable[46]=fState_variables_Elements_IPs(e,l*33+28);
-          out_variable[47]=fState_variables_Elements_IPs(e,l*33+29);
-          out_variable[48]=fState_variables_Elements_IPs(e,l*33+30);
-          out_variable[49]=fState_variables_Elements_IPs(e,l*33+31);
-          out_variable[50]=fState_variables_Elements_IPs(e,l*33+32);
+          out_variable[18]=fState_variables_Elements_IPs(e,l*42+0);
+          out_variable[19]=fState_variables_Elements_IPs(e,l*42+1);
+          out_variable[20]=fState_variables_Elements_IPs(e,l*42+2);
+          out_variable[21]=fState_variables_Elements_IPs(e,l*42+3);
+          out_variable[22]=fState_variables_Elements_IPs(e,l*42+4);
+          out_variable[23]=fState_variables_Elements_IPs(e,l*42+5);
+          out_variable[24]=fState_variables_Elements_IPs(e,l*42+6);
+          out_variable[25]=fState_variables_Elements_IPs(e,l*42+7);
+          out_variable[26]=fState_variables_Elements_IPs(e,l*42+8);
+          out_variable[27]=fState_variables_Elements_IPs(e,l*42+9);
+          out_variable[28]=fState_variables_Elements_IPs(e,l*42+10);
+          out_variable[29]=fState_variables_Elements_IPs(e,l*42+11);
+          out_variable[30]=fState_variables_Elements_IPs(e,l*42+12);
+          out_variable[31]=fState_variables_Elements_IPs(e,l*42+13);
+          out_variable[32]=fState_variables_Elements_IPs(e,l*42+14);
+          out_variable[33]=fState_variables_Elements_IPs(e,l*42+15);
+          out_variable[34]=fState_variables_Elements_IPs(e,l*42+16);
+          out_variable[35]=fState_variables_Elements_IPs(e,l*42+17);
+          out_variable[36]=fState_variables_Elements_IPs(e,l*42+18);
+          out_variable[37]=fState_variables_Elements_IPs(e,l*42+19);
+          out_variable[38]=fState_variables_Elements_IPs(e,l*42+20);
+          out_variable[39]=fState_variables_Elements_IPs(e,l*42+21);
+          out_variable[40]=fState_variables_Elements_IPs(e,l*42+22);
+          out_variable[41]=fState_variables_Elements_IPs(e,l*42+23);
+          out_variable[42]=fState_variables_Elements_IPs(e,l*42+24);
+          out_variable[43]=fState_variables_Elements_IPs(e,l*42+25);
+          out_variable[44]=fState_variables_Elements_IPs(e,l*42+26);
+          out_variable[45]=fState_variables_Elements_IPs(e,l*42+27);
+          out_variable[46]=fState_variables_Elements_IPs(e,l*42+28);
+          out_variable[47]=fState_variables_Elements_IPs(e,l*42+29);
+          out_variable[48]=fState_variables_Elements_IPs(e,l*42+30);
+          out_variable[49]=fState_variables_Elements_IPs(e,l*42+31);
+          out_variable[50]=fState_variables_Elements_IPs(e,l*42+32);
+          out_variable[51]=fState_variables_Elements_IPs(e,l*42+32);
+          out_variable[52]=fState_variables_Elements_IPs(e,l*42+32);
+          out_variable[53]=fState_variables_Elements_IPs(e,l*42+32);
+          out_variable[54]=fState_variables_Elements_IPs(e,l*42+32);
+          out_variable[55]=fState_variables_Elements_IPs(e,l*42+32);
+          out_variable[56]=fState_variables_Elements_IPs(e,l*42+32);
+          out_variable[57]=fState_variables_Elements_IPs(e,l*42+32);
+          out_variable[58]=fState_variables_Elements_IPs(e,l*42+32);
+          out_variable[59]=fState_variables_Elements_IPs(e,l*42+32);
           //out_variable.CopyIn(18,ftemp_u_element);
         }
 
@@ -2563,7 +2572,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fState_variables[30]=fDeformation_Gradient(1,2);//F23
                    fState_variables[31]=fDeformation_Gradient(2,0);//F31
                    fState_variables[32]=fDeformation_Gradient(2,1);//F32
-
+                   fState_variables[33]=GAMMA(1,1,1);//
+                   fState_variables[34]=GAMMA(2,1,2);//
+                   fState_variables[35]=GAMMA(3,1,3);//
+                   fState_variables[36]=GAMMA(1,2,1);//
+                   fState_variables[37]=GAMMA(2,2,2);//
+                   fState_variables[38]=GAMMA(3,2,3);//
+                   fState_variables[39]=GAMMA(1,3,1);//
+                   fState_variables[40]=GAMMA(2,3,2);//
+                   fState_variables[41]=GAMMA(3,3,3);//
                  //  fShapeDispl.Multx(u_vec,u_element);
                    fState_variables_IPs.SetRow(IP,fState_variables);
                  //  fDisplacement_IPs.SetRow(IP,u_element);
@@ -2996,7 +3013,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Echo_Input_Data();
 
     //need to change for appropriate number of ISVs for micromorphic model
-    knum_d_state = 33; // #? internal state variables
+    knum_d_state = 42; // #? internal state variables
     knum_i_state = 0; // int's needed per ip, state variables
 
     //need to change these for non-symmetric stress, and higher order couple stress output
