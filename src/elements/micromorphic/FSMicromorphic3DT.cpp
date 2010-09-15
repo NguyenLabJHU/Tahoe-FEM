@@ -2573,15 +2573,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fState_variables[30]=fDeformation_Gradient(1,2);//F23
                    fState_variables[31]=fDeformation_Gradient(2,0);//F31
                    fState_variables[32]=fDeformation_Gradient(2,1);//F32
-                   fState_variables[33]=GAMMA(1,1,1);//
-                   fState_variables[34]=GAMMA(2,1,2);//
-                   fState_variables[35]=GAMMA(3,1,3);//
-                   fState_variables[36]=GAMMA(1,2,1);//
-                   fState_variables[37]=GAMMA(2,2,2);//
-                   fState_variables[38]=GAMMA(3,2,3);//
-                   fState_variables[39]=GAMMA(1,3,1);//
-                   fState_variables[40]=GAMMA(2,3,2);//
-                   fState_variables[41]=GAMMA(3,3,3);//
+                   fState_variables[33]=GAMMA(0,0,0);//
+                   fState_variables[34]=GAMMA(1,0,1);//
+                   fState_variables[35]=GAMMA(2,0,2);//
+                   fState_variables[36]=GAMMA(0,1,0);//
+                   fState_variables[37]=GAMMA(1,1,1);//
+                   fState_variables[38]=GAMMA(2,1,2);//
+                   fState_variables[39]=GAMMA(0,2,0);//
+                   fState_variables[40]=GAMMA(1,2,1);//
+                   fState_variables[41]=GAMMA(2,2,2);//
                  //  fShapeDispl.Multx(u_vec,u_element);
                    fState_variables_IPs.SetRow(IP,fState_variables);
                  //  fDisplacement_IPs.SetRow(IP,u_element);
