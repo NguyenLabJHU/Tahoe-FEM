@@ -754,7 +754,8 @@ void FSMicromorphic3DT::RegisterOutput(void)
 
     // state variables; ?
     const char* svlabels3D[] = {"||devs||","||devrel||","||devmklm||","tr(sigma)","tr(s_sigma)","trmklm","E11","E22","E33","E12","E13","E21","E23","E31","E32","VE11","VE22","VE33","VE12","VE13","VE21","VE23","VE31","VE32"
-    ,"F11","F22","F33","F12","F13","F21","F23","F31","F32"};
+    ,"F11","F22","F33","F12","F13","F21","F23","F31","F32","GAMMA(1,1,1)","GAMMA(2,1,2)","GAMMA(3,1,3)","GAMMA(1,2,1)","GAMMA(2,2,2)","GAMMA(3,2,3)",
+    "GAMMA(1,3,1)","GAMMA(2,3,2)","GAMMA(3,3,3)"};
 
     int count = 0;
     for (int j = 0; j < fNumIP_micro; j++)
