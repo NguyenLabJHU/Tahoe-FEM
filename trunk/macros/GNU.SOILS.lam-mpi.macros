@@ -1,7 +1,8 @@
-# $Id: GNU.SOILS.lam-mpi.macros,v 1.2 2010-09-01 14:28:42 regueiro Exp $
+# $Id: GNU.SOILS.lam-mpi.macros,v 1.3 2010-09-18 14:48:22 regueiro Exp $
 # GNU
 #
-LAM_HOME    = /usr/local/lam-mpi
+#LAM_HOME    = /usr/local/lam-mpi
+LAM_HOME    = /usr/local/lam-mpi-7.1.4-shared
 #
 MAKE        = make
 COMP_DIR    = $(LAM_HOME)
@@ -18,6 +19,7 @@ CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 F2C_LFLAG   = -lg2c
 LFLAGS      = -lpthread
+LDFLAGS     = -Wl,--rpath -Wl,/usr/local/lam-mpi-7.1.4-shared/lib
 MAKEDEPEND_C         = /usr/bin/gcc -MM
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I$(LAM_HOME)/include $(DEFINES)
 MAKEDEPEND_OUTPUT_C  = -MF
