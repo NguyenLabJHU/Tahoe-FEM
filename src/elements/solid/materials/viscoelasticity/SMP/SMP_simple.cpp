@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.11 2009-06-23 08:48:57 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.12 2010-09-22 14:08:58 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -218,7 +218,7 @@ if (fNumProcess > 0 )
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
     if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
-    {		
+    {		 
 		/*calc NEQ component of stress and moduli*/
 		for (int i = 0; i < fNumProcess; i++)
 		{

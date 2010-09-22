@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2009-04-23 02:34:46 thao Exp $
+# $Id: makefile,v 1.3 2010-09-22 14:08:58 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -19,8 +19,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #    (3) comment the OBJ, OBJ_LINK, and DEP macros in the
 #        section (1.1).
 #
-OBJ = SMP_simple.o \
-	SMP_two.o 
+OBJ = SMP_simple.o 
+
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -40,8 +40,7 @@ DEP = $(OBJ:.o=.d)
 # (2) If there are sources in this directory list them in the
 #     SRC macro; otherwise, comment the SRC macro.
 #
-SRC = SMP_simple.cpp \
-	SMP_two.cpp
+SRC = SMP_simple.cpp 
 
 ##################### (3) headers
 #
@@ -52,8 +51,7 @@ SRC = SMP_simple.cpp \
 # If there are no header files in this directory comment both the
 # HDR and HDR_LINK macro   
 #
-HDR = SMP_simple.h \
-	SMP_two.h
+HDR = SMP_simple.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
