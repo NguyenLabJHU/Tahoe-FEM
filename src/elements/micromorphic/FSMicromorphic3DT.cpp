@@ -2813,7 +2813,52 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
             fFphi_int *= -1;
             }
+            
+            
+            
+            
+          /*    for (int i=0; i<81; i++)
+               {
+                   for (int j=0; j<81; j++)
+                   {
+                 
+                //      fs_micromorph3D_out<<"fKdd"<< "("<<i<<","<<j<<")"<< " :  " ;
+                       fs_micromorph3D_out << fKdd(i,j) <<"\t";
+                       fs_micromorph3D_out << endl;
+                   }
+              }*/
+           /*   for (int i=0; i<81; i++)
+               {  
+                   for(int k=0; k<72; k++)
+                   {
+                //     fs_micromorph3D_out<<"fKdphi"<< "("<<i<<","<<k<<")"<< " :  " ;
+                    fs_micromorph3D_out << fKdphi(i,k) <<"\t";
+                    fs_micromorph3D_out << endl;
+                   }
+               }
+               */
+         /*   for (int i=0; i<72; i++)
+               {  
+                   for(int k=0; k<81; k++)
+                   {
+              //        fs_micromorph3D_out<<"fKphid"<< "("<<i<<","<<k<<")"<< " :  " ;
+                    fs_micromorph3D_out << fKphid(i,k) <<"\t";
+                    fs_micromorph3D_out << endl;
+                   }
+               }*/
+               
+            for (int i=0; i<72; i++)
+               {  
+                   for(int k=0; k<72; k++)
+                   {
+               //     fs_micromorph3D_out<<"fKphiphi"<< "("<<i<<","<<k<<")"<< " :  " ;
+                    fs_micromorph3D_out << fKphiphi(i,k) <<"\t";
+                    fs_micromorph3D_out << endl;
+                   }
+               }
 
+
+               
             /* equations numbers */
             const iArrayT& displ_eq = fElementCards_displ[e].Equations();
             const iArrayT& micro_eq = fElementCards_micro[e].Equations();
