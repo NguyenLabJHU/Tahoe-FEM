@@ -1,3 +1,4 @@
+/* $Id: pdm_energy.c,v 1.2 2010-09-29 15:19:38 hspark Exp $ */
 #include "PDM_inc.h"
 #include <math.h>
 static double z[64];
