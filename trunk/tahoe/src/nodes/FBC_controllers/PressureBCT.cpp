@@ -1,4 +1,4 @@
-/* $Id: PressureBCT.cpp,v 1.6 2010-08-17 15:03:22 tdnguye Exp $ */
+/* $Id: PressureBCT.cpp,v 1.7 2010-09-29 18:11:51 tdnguye Exp $ */
 // created : rjones 2006
 #include "PressureBCT.h"
 
@@ -615,7 +615,6 @@ void PressureBCT:: ComputeVolume(dArray2DT& coord, double& volume, double& area)
 		/* length nnodes */
 		const double* N = domain.IPShape();
 		const double* T1 = domain.IPDShape(0);
-		const double* T2 = domain.IPDShape(1);
 		double t1[3] = {0.0,0.0,0.0};
 		double t2[3] = {0.0,0.0,1.0};	//default for 2D;
 		double  n[3] = {0.0,0.0,0.0};
@@ -623,7 +622,10 @@ void PressureBCT:: ComputeVolume(dArray2DT& coord, double& volume, double& area)
 		{		
 			t1[j] = coord.DotColumn(j,T1);
 			if (fnsd ==3)
+			{
+				const double* T2 = domain.IPDShape(1);
 				t2[j] = coord.DotColumn(j,T2);
+			}
 		}
 		CrossProduct(t1,t2,n);
 		double x_ndir = coord.DotColumn(fndir,N);
@@ -659,7 +661,6 @@ void PressureBCT:: ComputeForce(dArray2DT& coord, dArray2DT& force)
 	{
 		/* length nnodes */
 		const double* T1 = domain.IPDShape(0);
-		const double* T2 = domain.IPDShape(1);
 		double t1[3] = {0.0,0.0,0.0};
 		double t2[3] = {0.0,0.0,1.0};
 		double  n[3] = {0.0,0.0,0.0};
@@ -667,7 +668,10 @@ void PressureBCT:: ComputeForce(dArray2DT& coord, dArray2DT& force)
 		{		
 			t1[j] = coord.DotColumn(j,T1);
 			if (fnsd ==3)
+			{
+				const double* T2 = domain.IPDShape(1);
 				t2[j] = coord.DotColumn(j,T2);
+			}
 		}
 		CrossProduct(t1,t2,n);
 
@@ -715,7 +719,9 @@ void PressureBCT:: ComputeStiffness(dArray2DT& coord, ElementMatrixT& stiffness)
 		{		
 			t1[j] = coord.DotColumn(j,T1);
 			if (fnsd ==3)
+			{
 				t2[j] = coord.DotColumn(j,T2);
+			}
 		}
 		CrossProduct(t1,t2,n);
 
