@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.cpp,v 1.7 2010-09-29 14:50:13 hspark Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.8 2010-09-29 17:50:03 hspark Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
@@ -221,15 +221,12 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(S);
 	
 	ParameterT ex(f_ex, "x_direction_efield");
-	ex.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(ex);
 	
 	ParameterT ey(f_ey, "y_direction_efield");
-	ey.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(ey);
 	
 	ParameterT ez(f_ez, "z_direction_efield");
-	ez.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(ez);
 	
 	ParameterT econv(f_econv, "energy_conversion_parameter");
