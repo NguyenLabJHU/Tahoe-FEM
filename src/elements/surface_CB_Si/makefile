@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2008-08-09 12:50:56 hspark Exp $
+# $Id: makefile,v 1.8 2010-09-29 01:47:30 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -37,7 +37,11 @@ OBJ = \
 	ddC_surf_3.o \
 	ddC_surf_4.o \
 	energy.o \
-	surf_energy.o
+	surf_energy.o \
+	pdm_energy.o \
+	pdm_dUdC.o \
+	pdm_dXsi.o \
+	pdm_ddC.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -74,7 +78,11 @@ SRC = \
 	ddC_surf_3.c \
 	ddC_surf_4.c \
 	energy.c \
-	surf_energy.c
+	surf_energy.c \
+	pdm_energy.c \
+	pdm_dUdC.c \
+	pdm_dXsi.c \
+	pdm_ddC.c
 
 ##################### (3) headers
 #
@@ -93,7 +101,9 @@ HDR = \
 	Tersoff_common_defines_surf.h \
 	Tersoff_common_defines.h \
 	Tersoff_inc.h \
-	Tersoff_inc_surf.h
+	Tersoff_inc_surf.h \
+	PDM_common_defines.h \
+	PDM_inc.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
