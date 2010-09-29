@@ -1,3 +1,4 @@
+/* $Id: PDM_common_defines.h,v 1.2 2010-09-29 15:21:17 hspark Exp $ */
 #ifndef PDM_COMMON_DEFINES_H
 #define PDM_COMMON_DEFINES_H
 
