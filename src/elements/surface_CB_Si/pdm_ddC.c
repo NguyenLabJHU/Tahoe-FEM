@@ -1,3 +1,4 @@
+/* $Id: pdm_ddC.c,v 1.2 2010-09-29 15:18:06 hspark Exp $ */
 #include "PDM_inc.h"
 #include <math.h>
 static double z[1932];
