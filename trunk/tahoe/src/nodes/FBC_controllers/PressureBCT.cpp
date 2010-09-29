@@ -1,4 +1,4 @@
-/* $Id: PressureBCT.cpp,v 1.7 2010-09-29 18:11:51 tdnguye Exp $ */
+/* $Id: PressureBCT.cpp,v 1.8 2010-09-29 21:21:01 tdnguye Exp $ */
 // created : rjones 2006
 #include "PressureBCT.h"
 
@@ -711,7 +711,6 @@ void PressureBCT:: ComputeStiffness(dArray2DT& coord, ElementMatrixT& stiffness)
 	{		
 		/* length nnodes */
 		const double* T1 = domain.IPDShape(0);
-		const double* T2 = domain.IPDShape(1);
 		double t1[3] = {0.0,0.0,0.0};
 		double t2[3] = {0.0,0.0,1.0};
 		double  n[3] = {0.0,0.0,0.0};
@@ -720,6 +719,7 @@ void PressureBCT:: ComputeStiffness(dArray2DT& coord, ElementMatrixT& stiffness)
 			t1[j] = coord.DotColumn(j,T1);
 			if (fnsd ==3)
 			{
+				const double* T2 = domain.IPDShape(1);
 				t2[j] = coord.DotColumn(j,T2);
 			}
 		}
@@ -731,44 +731,44 @@ void PressureBCT:: ComputeStiffness(dArray2DT& coord, ElementMatrixT& stiffness)
 		{
 			int rdir = 0; /*radial direction is same as x-direction*/
 			double r = coord.DotColumn(rdir,S);
-			wg *= 2.0*Pi*r;
-		}
+			wg *= 2.0*Pi;
 
-		/*from n dr scaling*/
-		int row = 0, col = 0, k =0;
-		for (int I = 0; I < fnnodes; I++) { 
-			for (int i = 0; i < fnsd; i++) {
-				col = 0;
-				for (int J = 0; J < fnnodes; J++) {		
-					for (int j = 0; j < fnsd; j++) {
-						if ((k = iperm[i][j]) > -1 ) 
-							stiffness(row,col) += S[I]*psign[i][j]*( t1[k]*T2[J] - t2[k]*T1[J] )*wg; 
-						col++;
+			/*from n dr scaling*/
+			int row = 0, col = 0, k =0;
+			for (int I = 0; I < fnnodes; I++) { 
+				for (int i = 0; i < fnsd; i++) {
+					col = 0;
+					for (int J = 0; J < fnnodes; J++) {		
+						stiffness(row,col) -= S[I]*n[i]*wg*S[J]; 
+						for (int j = 0; j < fnsd; j++) {
+							stiffness(row,col) -= S[I]*T1[J]*psign[i][j]*wg*r; 
+							col++;
+						}
 					}
+					row++;
 				}
-				row++;
+			}
+		}
+		else
+		{
+			/*from n dr scaling*/
+			const double* T2 = domain.IPDShape(1);
+			int row = 0, col = 0, k =0;
+			for (int I = 0; I < fnnodes; I++) { 
+				for (int i = 0; i < fnsd; i++) {
+					col = 0;
+					for (int J = 0; J < fnnodes; J++) {		
+						for (int j = 0; j < fnsd; j++) {
+							if ((k = iperm[i][j]) > -1 ) 
+								stiffness(row,col) += S[I]*psign[i][j]*( t1[k]*T2[J] - t2[k]*T1[J] )*wg; 
+							col++;
+						}
+					}
+					row++;
+				}
 			}
 		}
 		
-		if (is_axi)
-		{
-			/*from  2 pi r scaling*/
-			double wi = wgs[domain.CurrIP()];
-			wi *= 2.0*Pi;
-			for (int I = 0; I < fnnodes; I++) 
-			{ 
-				for (int i = 0; i < fnsd; i++) 
-				{
-					row = fnnodes*I + i;
-					for (int J = 0; J < fnnodes; J++) 
-					{	
-						col = fnnodes*J;
-						stiffness(row,col) += -S[I]*n[i]*wi*S[J]; 
-					}
-				}
-			}
-		}
-
 
 	}
 }
