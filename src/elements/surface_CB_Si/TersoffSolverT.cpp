@@ -1,8 +1,9 @@
-/* $Id: TersoffSolverT.cpp,v 1.6 2008-08-08 19:25:39 hspark Exp $ */
+/* $Id: TersoffSolverT.cpp,v 1.7 2010-09-29 14:50:13 hspark Exp $ */
 #include "TersoffSolverT.h"
 #include "dSymMatrixT.h"
 #include "ParameterContainerT.h"
 #include "Tersoff_inc.h"
+#include "PDM_inc.h"
 
 using namespace Tahoe;
 
@@ -45,7 +46,13 @@ TersoffSolverT::TersoffSolverT(const ThermalDilatationT* thermal):
 	f_chi(0.0),
 	f_R(0.0),
 	f_S(0.0),
-	f_omega0(0.0)
+	f_omega0(0.0),
+	f_ex(0.0),
+	f_ey(0.0),
+	f_ez(0.0),
+	f_econv(0.0),
+	f_alphatot(0.0),
+	f_alpha1(0.0)
 {
 
 }
@@ -65,20 +72,30 @@ void TersoffSolverT::SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& modu
 	else
 		SetdXsi(CIJ, Xsi);
 
-	/* compute second derivatives wrt {C,C} and {C,Xsi} */
+	/* compute second derivatives wrt {C,C} and {C,Xsi} for Tersoff/mechanical part */
 	ddC_driver(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dCdC_hat.Pointer(), dCdXsi_hat.Pointer());
 
+	/* compute second derivatives wrt {C,C} and {C,Xsi} for PDM/electrostatic part */
+	get_ddC_pdm(fParams_pdm.Pointer(), Xsi.Pointer(), 
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer(), 
+		dCdC_hat_pdm.Pointer(), dCdXsi_hat_pdm.Pointer());	
+
 	/* Compute moduli */
+//	moduli = dCdC_hat;
 	moduli = dCdC_hat;
+	moduli+=dCdC_hat_pdm;
+	dCdXsi_hat_tot = dCdXsi_hat;
+	dCdXsi_hat_tot+=dCdXsi_hat_pdm;
 
 	if (fEquilibrate)
 	{
-		dXsidXsi.Inverse();
-		fTempMixed.MultAB(dCdXsi_hat, dXsidXsi);
-		fTempRank4.MultABT(fTempMixed,dCdXsi_hat);
+		dXsidXsi_tot.Inverse();
+		fTempMixed.MultAB(dCdXsi_hat_tot, dXsidXsi_tot);
+		fTempRank4.MultABT(fTempMixed,dCdXsi_hat_tot);
 		moduli -= fTempRank4;
 	}
 	moduli *= 4.0;
@@ -91,11 +108,19 @@ void TersoffSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stre
 	/* set internal equilibrium */
 	if (fEquilibrate) Equilibrate(CIJ, Xsi);
 
-	/* call C function */
+	/* call C function for bulk mechanical stress */
 	get_dUdC(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(),
 		stress.Pointer()); 
+		
+	/* call C function for bulk electrostatic/PDM stress */
+	get_dUdC_pdm(fParams_pdm.Pointer(), Xsi.Pointer(), 
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer(),
+		stress_pdm.Pointer()); 
+		
+	stress+=stress_pdm;
 	stress *= 2.0;
 	stress *= f_omega0;
 	
@@ -113,11 +138,17 @@ double TersoffSolverT::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
 	else
 		SetdXsi(CIJ, Xsi);
 	
-	/* compute bulk energy */
+	/* compute bulk mechanical energy */
 	double energy = get_energy(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer());
+
+	/* compute bulk electrostatic/PDM energy */
+	double energy_elec = get_energy_pdm(fParams_pdm.Pointer(), Xsi.Pointer(), 
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer());
 	
+	energy += energy_elec;
 	energy *= f_omega0;		// scale by atomic volume
 	return energy;
 }
@@ -188,6 +219,30 @@ void TersoffSolverT::DefineParameters(ParameterListT& list) const
 	ParameterT S(f_S, "cutoff_func_length_2_Sij");
 	S.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(S);
+	
+	ParameterT ex(f_ex, "x_direction_efield");
+	ex.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(ex);
+	
+	ParameterT ey(f_ey, "y_direction_efield");
+	ey.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(ey);
+	
+	ParameterT ez(f_ez, "z_direction_efield");
+	ez.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(ez);
+	
+	ParameterT econv(f_econv, "energy_conversion_parameter");
+	econv.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(econv);
+	
+	ParameterT alphatot(f_alphatot, "thole_s");
+	alphatot.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alphatot);
+	
+	ParameterT alpha1(f_alpha1, "thole_alpha1");
+	alpha1.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha1);
 }
 
 /* accept parameter list */
@@ -198,11 +253,20 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 
 	/* dimension work space */
 	dXsi.Dimension(kNumDOF);
+	dXsi_pdm.Dimension(kNumDOF);
+	dXsi_tot.Dimension(kNumDOF);
 	dXsidXsi.Dimension(kNumDOF);
+	dXsidXsi_pdm.Dimension(kNumDOF);
+	dXsidXsi_tot.Dimension(kNumDOF);
 	dCdC_hat.Dimension(kStressDim);
+	dCdC_hat_pdm.Dimension(kStressDim);
+	dCdC_hat_tot.Dimension(kStressDim);
 	dCdXsi_hat.Dimension(kStressDim,kNumDOF);
+	dCdXsi_hat_pdm.Dimension(kStressDim,kNumDOF);
+	dCdXsi_hat_tot.Dimension(kStressDim,kNumDOF);
 	fTempRank4.Dimension(kStressDim);
 	fTempMixed.Dimension(kStressDim, kNumDOF);
+	stress_pdm.Dimension(kNumDOF);
 
 #if 0
 	fMatrices.Dimension(kNumDOF);
@@ -237,7 +301,7 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	/* flag */
 	fEquilibrate = list.GetParameter("equilibrate");
 
-	/* All parameters required */
+	/* All parameters required for Tersoff Si */
 	f_a0 = list.GetParameter("a0");
 	fMass = list.GetParameter("mass");
 	f_A = list.GetParameter("rep_energy_scale_Aij");
@@ -253,6 +317,14 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	f_R = list.GetParameter("cutoff_func_length_1_Rij");
 	f_S = list.GetParameter("cutoff_func_length_2_Sij");
 	
+	/* Parameters required for Thole-based PDM */
+	f_ex = list.GetParameter("x_direction_efield");
+	f_ey = list.GetParameter("y_direction_efield");
+	f_ez = list.GetParameter("z_direction_efield");
+	f_econv = list.GetParameter("energy_conversion_parameter");
+	f_alphatot = list.GetParameter("thole_s");
+	f_alpha1 = list.GetParameter("thole_alpha1");
+	
 	/* scale unit cell coordinates */
 	fUnitCellCoords *= f_a0;
 
@@ -260,7 +332,7 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	double asdf = f_a0*f_a0*f_a0/8.0;
 	f_omega0 = 1.0/asdf;
 
-	/* write into vector to pass to C code */
+	/* write into vector to pass to C code for Tersoff Si */
 	fParams.Dimension(13);
 	fParams[ 0] = f_A;
 	fParams[ 1] = f_B;
@@ -275,6 +347,15 @@ void TersoffSolverT::TakeParameterList(const ParameterListT& list)
 	fParams[10] = f_chi;
 	fParams[11] = f_R;
 	fParams[12] = f_S;	
+	
+	/* write into vector to pass to C code for electrostatic PDM */
+	fParams_pdm.Dimension(6);
+	fParams_pdm[ 0] = f_ex;
+	fParams_pdm[ 1] = f_ey;
+	fParams_pdm[ 2] = f_ez;
+	fParams_pdm[ 3] = f_econv;
+	fParams_pdm[ 4] = f_alphatot;
+	fParams_pdm[ 5] = f_alpha1;
 }
 
 double TersoffSolverT::Density(void) const
@@ -295,11 +376,11 @@ void TersoffSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 	SetdXsi(CIJ, Xsi);
 
 	int count = 0;
-	if (debug) cout << dXsi.Magnitude() << '\n';
-	while (count++ < 15 && dXsi.Magnitude() > 1.0e-12)
+	if (debug) cout << dXsi_tot.Magnitude() << '\n';
+	while (count++ < 15 && dXsi_tot.Magnitude() > 1.0e-12)
 	{
-		fMat1.Inverse(dXsidXsi);
-		fMat1.Multx(dXsi, fVec);
+		fMat1.Inverse(dXsidXsi_tot);
+		fMat1.Multx(dXsi_tot, fVec);
 		
 		Xsi -= fVec;
 		
@@ -315,12 +396,24 @@ void TersoffSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 /* set free dof - triggers recomputation */
 void TersoffSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 {
-	/* call C function */
+	/* call C function for Tersoff */
 	get_dXsi(fParams.Pointer(), Xsi.Pointer(), 
 		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
 		CIJ.Pointer(), 
 		dXsi.Pointer(), dXsidXsi.Pointer());
 
+	/* call C function for electrostatic PDM */
+	get_dXsi_pdm(fParams_pdm.Pointer(), Xsi.Pointer(), 
+		fUnitCellCoords(0), fUnitCellCoords(1), fUnitCellCoords(2), 
+		CIJ.Pointer(), 
+		dXsi_pdm.Pointer(), dXsidXsi_pdm.Pointer());
+
+	/* Total dXsi and total dXsidXsi */
+	dXsi_tot = dXsi;
+	dXsi_tot+=dXsi_pdm;
+	dXsidXsi_tot = dXsidXsi;
+	dXsidXsi_tot+=dXsidXsi_pdm;
+	
 //debugging
 #if 0
 cout << dXsi.no_wrap() << ":" << dXsidXsi.no_wrap() << endl;

@@ -1,4 +1,4 @@
-/* $Id: TersoffSolverT.h,v 1.2 2008-01-23 21:13:16 hspark Exp $ */
+/* $Id: TersoffSolverT.h,v 1.3 2010-09-29 14:50:13 hspark Exp $ */
 /* created: paklein (05/27/1997) */
 #ifndef _TERSOFF_SOLVER_T_H_
 #define _TERSOFF_SOLVER_T_H_
@@ -84,16 +84,19 @@ private:
 	const ThermalDilatationT* fThermal;
 
 	/* derivatives wrt. Xsi */
-	dArrayT		dXsi;
-	dMatrixT	dXsidXsi;
+	dArrayT		dXsi, dXsi_pdm, dXsi_tot;
+	dMatrixT	dXsidXsi, dXsidXsi_pdm, dXsidXsi_tot;
 
 	/* derivatives wrt. C */
-	dMatrixT	dCdC_hat;
+	dMatrixT	dCdC_hat, dCdC_hat_pdm, dCdC_hat_tot;
 
 	/* mixed derivatives wrt. C and Xsi */
-	dMatrixT	dCdXsi_hat;
+	dMatrixT	dCdXsi_hat, dCdXsi_hat_pdm, dCdXsi_hat_tot;
 	dMatrixT	fTempRank4;
 	dMatrixT	fTempMixed;
+
+	/* electrostatic/PDM stress */
+	dMatrixT	stress_pdm;
 
 #if 0	
 	
@@ -115,7 +118,7 @@ private:
 	/** \name user-defined parameters */
 	/*@{*/
 	/** parameter vector to pass to C code */
-	dArrayT fParams;
+	dArrayT fParams, fParams_pdm;
 	
 	/** lattice parameter */
 	double f_a0;
@@ -161,6 +164,19 @@ private:
 	
 	/** Cutoff function length parameter 2. When atoms i & j are different species S = sqrt(S_i * S_j).*/
 	double f_S;
+	
+	/** Electric field in x/y/z-directions in Volts/nm */
+	double f_ex, f_ey, f_ez;
+	
+	/** Energy conversion factor for electrostatic calculations */
+	double f_econv;
+	
+	/** Thole parameter (s), i.e. alphatot = 1.662*(alpha1*alpha2)^1/6 */
+	double f_alphatot;
+	
+	/** Thole parameter for polarizability of individual atom */
+	double f_alpha1;
+	
 	/*@}*/
 };
 
