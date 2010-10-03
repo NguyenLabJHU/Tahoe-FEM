@@ -9425,7 +9425,7 @@ void FSMicromorphic3DT:: Form_fMKLM()
             for(int M=0;M<3;M++)
             {
                 fMKLM(K,L,M)=fMaterial_Params[kTau7]*GAMMA(L,M,K);
-                //fMKLM(K,L,M)=fMaterial_Params[kTau8]*(GAMMA(K,L,M)+GAMMA(M,L,K));
+                            +fMaterial_Params[kTau8]*(GAMMA(K,L,M)+GAMMA(M,L,K));
             }
         }
     }
