@@ -1983,21 +1983,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                        //fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fMpu_2,fIota_temp_matrix);
-//                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,fMpu_2,fShapeDisplGrad);
-//                       scale =scale_const*fMaterial_Params[kTau8];
-//                       fTemp_matrix_nchidof_x_nudof *= scale;
-//                       // accumulate
-//                       fKMphiu_2 += fTemp_matrix_nchidof_x_nudof;
-                       fKMphiu_2=0.0;
+                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,fMpu_2,fShapeDisplGrad);
+                       scale =scale_const*fMaterial_Params[kTau8];
+                       fTemp_matrix_nchidof_x_nudof *= scale;
+                       // accumulate
+                       fKMphiu_2 += fTemp_matrix_nchidof_x_nudof;
+//                       fKMphiu_2=0.0;
 
 
-                       //fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,fMpp_2,GRAD_NCHI);
-//                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,fMpp_2,GRAD_NCHI);
-//                       scale =scale_const*fMaterial_Params[kTau8];
-//                       fTemp_matrix_nchidof_x_nchidof *= scale;
-//                       // accumulate
-//                       fKMphiphi_2 += fTemp_matrix_nchidof_x_nchidof;
-                       fKMphiphi_2=0.0;
+                      // fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,fMpp_2,GRAD_NCHI);
+                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,fMpp_2,GRAD_NCHI);
+                       scale =scale_const*fMaterial_Params[kTau8];
+                       fTemp_matrix_nchidof_x_nchidof *= scale;
+                       // accumulate
+                       fKMphiphi_2 += fTemp_matrix_nchidof_x_nchidof;
+     //                  fKMphiphi_2=0.0;
 
                    }
                    else
@@ -2813,22 +2813,22 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
             fFphi_int *= -1;
             }
-            
-            
-            
-            
+
+
+
+
           /*    for (int i=0; i<81; i++)
                {
                    for (int j=0; j<81; j++)
                    {
-                 
+
                 //      fs_micromorph3D_out<<"fKdd"<< "("<<i<<","<<j<<")"<< " :  " ;
                        fs_micromorph3D_out << fKdd(i,j) <<"\t";
                        fs_micromorph3D_out << endl;
                    }
               }*/
            /*   for (int i=0; i<81; i++)
-               {  
+               {
                    for(int k=0; k<72; k++)
                    {
                 //     fs_micromorph3D_out<<"fKdphi"<< "("<<i<<","<<k<<")"<< " :  " ;
@@ -2838,7 +2838,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                }
                */
          /*   for (int i=0; i<72; i++)
-               {  
+               {
                    for(int k=0; k<81; k++)
                    {
               //        fs_micromorph3D_out<<"fKphid"<< "("<<i<<","<<k<<")"<< " :  " ;
@@ -2846,9 +2846,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     fs_micromorph3D_out << endl;
                    }
                }*/
-               
+
             for (int i=0; i<72; i++)
-               {  
+               {
                    for(int k=0; k<72; k++)
                    {
                //     fs_micromorph3D_out<<"fKphiphi"<< "("<<i<<","<<k<<")"<< " :  " ;
@@ -2858,7 +2858,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                }
 
 
-               
+
             /* equations numbers */
             const iArrayT& displ_eq = fElementCards_displ[e].Equations();
             const iArrayT& micro_eq = fElementCards_micro[e].Equations();
