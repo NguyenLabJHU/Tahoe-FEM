@@ -1176,16 +1176,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fMpp_7=0.0;;
      fMpu_8=0.0;
      fMpp_8=0.0;*/
-     
-     
-     
+
+
+
      fMpu_3=0.0;
-     fMpp_3=0.0;;     
+     fMpp_3=0.0;;
      fMpu_7=0.0;
      fMpp_7=0.0;;
      fMpu_8=0.0;
      fMpp_8=0.0;
-     
+
 
      fKMFphiu=0.0;;
      fKMchiphiphi=0.0;
@@ -1196,7 +1196,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
      fKMphiu_3=0.0;;
      fKMphiphi_3=0.0;
-     
+
      fKMphiu_7=0.0;;
      fKMphiphi_7=0.0;
      fKMphiu_8=0.0;
@@ -1729,7 +1729,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Form_fMF();
                        Form_fMchi();
                     //   Form_fMpu_3();
-                      // Form_fMpp_3();                       
+                      // Form_fMpp_3();
                        Form_fMpu_7();
                        Form_fMpp_7();
                        Form_fMpu_8();
@@ -2030,7 +2030,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fTemp_matrix_nchidof_x_nchidof *= scale;
                        // accumulate
                        fKMphiphi_8 += fTemp_matrix_nchidof_x_nchidof;
-     //                  fKMphiphi_2=0.0;
+     //
 
                    }
                    else
@@ -2709,7 +2709,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid+=fKJFu;
 
             fKphid+=fKMFphiu;
-            fKphid+=fKMphiu_3;            
+            fKphid+=fKMphiu_3;
             fKphid+=fKMphiu_7;
             fKphid+=fKMphiu_8;
 
@@ -2722,7 +2722,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
            fKphiphi+=fKphiphi_3;
 
            fKphiphi+=fKMchiphiphi;
-           fKphiphi+=fKMphiphi_3;           
+           fKphiphi+=fKMphiphi_3;
            fKphiphi+=fKMphiphi_7;
            fKphiphi+=fKMphiphi_8;
 
@@ -2849,8 +2849,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fFphi_int *= -1;
             }
 
-            
-            
+
+
               for (int i=0; i<81; i++)
 
           /*    for (int i=0; i<81; i++)
@@ -2865,7 +2865,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
               }
               for (int i=0; i<81; i++)
-               {  
+               {
 
               }*/
            /*   for (int i=0; i<81; i++)
@@ -2879,9 +2879,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    }
                }
 
-               
+
             for (int i=0; i<72; i++)
-               {  
+               {
 
                */
          /*   for (int i=0; i<72; i++)
@@ -2895,7 +2895,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    }
 
                }
-               
+
 
                }*/
 
@@ -3700,9 +3700,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fKMFphiu.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fKMchiphiphi.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
- 
+
     fKMphiu_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
-    fKMphiphi_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);     
+    fKMphiphi_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
    // fKMphiu_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fKMphiu_7.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
   //  fKMphiphi_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
@@ -3728,16 +3728,18 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fMF.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     fMchi.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     fMpu_3.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fMpu_4.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
-    fMpu_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+/*    fMpu_4.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fMpu_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);*/
     fMpu_7.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     fMpp_7.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
     fMpu_8.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     fMpp_3.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+/*
     fMpp_4.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
     fMpp_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+*/
 
-  
+
     Jmat.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     KJmat.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
 
@@ -9768,7 +9770,7 @@ void FSMicromorphic3DT:: Form_fMpu_3()
             }
             col++;
         }
-        
+
     }
 
 
@@ -9912,7 +9914,7 @@ void FSMicromorphic3DT:: Form_fMpu_7()
             }
             col++;
         }
-        
+
     }
 
 
