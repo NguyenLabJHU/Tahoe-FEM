@@ -2813,19 +2813,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fFphi_int +=Pint_3;//no external traction is assumed Pext=0
             fFphi_int *= -1;
             }
-<<<<<<< FSMicromorphic3DT.cpp
-            
-            
+
             
             
               for (int i=0; i<81; i++)
-=======
-
-
-
 
           /*    for (int i=0; i<81; i++)
->>>>>>> 1.210
                {
                    for (int j=0; j<81; j++)
                    {
@@ -2834,15 +2827,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fs_micromorph3D_out << fKdd(i,j) <<"\t";
                        fs_micromorph3D_out << endl;
                    }
-<<<<<<< FSMicromorphic3DT.cpp
+
               }
               for (int i=0; i<81; i++)
                {  
-=======
+
               }*/
            /*   for (int i=0; i<81; i++)
                {
->>>>>>> 1.210
+
                    for(int k=0; k<72; k++)
                    {
                 //     fs_micromorph3D_out<<"fKdphi"<< "("<<i<<","<<k<<")"<< " :  " ;
@@ -2850,28 +2843,28 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     fs_micromorph3D_out << endl;
                    }
                }
-<<<<<<< FSMicromorphic3DT.cpp
+
                
             for (int i=0; i<72; i++)
                {  
-=======
+
                */
          /*   for (int i=0; i<72; i++)
                {
->>>>>>> 1.210
+
                    for(int k=0; k<81; k++)
                    {
               //        fs_micromorph3D_out<<"fKphid"<< "("<<i<<","<<k<<")"<< " :  " ;
                     fs_micromorph3D_out << fKphid(i,k) <<"\t";
                     fs_micromorph3D_out << endl;
                    }
-<<<<<<< FSMicromorphic3DT.cpp
+
                }
                
-=======
+
                }*/
 
->>>>>>> 1.210
+
             for (int i=0; i<72; i++)
                {
                    for(int k=0; k<72; k++)
