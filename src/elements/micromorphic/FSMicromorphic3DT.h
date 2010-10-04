@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.105 2010-09-08 21:22:06 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.106 2010-10-04 03:37:25 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -792,10 +792,21 @@ private:
     dMatrixT fKEtaM;
     dMatrixT fKMFphiu;
     dMatrixT fKMchiphiphi;
-    dMatrixT fKMphiu_1;
-    dMatrixT fKMphiphi_1;
-    dMatrixT fKMphiu_2;
-    dMatrixT fKMphiphi_2;
+  //  dMatrixT fKMphiu_1;
+//    dMatrixT fKMphiphi_1;
+  //  dMatrixT fKMphiu_2;
+    dMatrixT fKMphiu_3;
+    dMatrixT fKMphiu_4;
+    dMatrixT fKMphiu_6;
+    dMatrixT fKMphiu_7;
+    dMatrixT fKMphiu_8;    
+   // dMatrixT fKMphiphi_2;
+   
+    dMatrixT fKMphiphi_3;   
+    dMatrixT fKMphiphi_4;  
+    dMatrixT fKMphiphi_6;  
+    dMatrixT fKMphiphi_7;
+    dMatrixT fKMphiphi_8;   
 /////stress invariants variables////////
  double Cauchy_inv;
  double Rel_stres_inv;
