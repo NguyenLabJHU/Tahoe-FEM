@@ -1722,10 +1722,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Form_fMpp_1();
                        Form_fMpu_2();
                        Form_fMpp_2();
-                       Form_fMpu_3();
-                       Form_fMpp_3();
-                       Form_fMpu_4();
-                       Form_fMpp_4();
+                   //    Form_fMpu_3();
+                   //    Form_fMpp_3();
+                   //    Form_fMpu_4();
+                   //    Form_fMpp_4();
                        
 
 
@@ -5214,7 +5214,7 @@ void FSMicromorphic3DT::Form_Tsigma_3_matrix()
                     //summation on the same term
                     for(int L=0;L<3;L++)
                     {
-                        Tsigma_3(row,col)+=Tsigma_3(row,col)+SigN[l][i]*Fn[k][L]*Finv[L][m];
+                        Tsigma_3(row,col)=Tsigma_3(row,col)+SigN[l][i]*Fn[k][L]*Finv[L][m];
                     }
                     row++;
                 }
@@ -9497,8 +9497,7 @@ void FSMicromorphic3DT:: Form_fMKLM()
               //summation
               for(int R=0;R<3;R++)
               {
-                fMKLM(K,L,M)=fMKLM(K,L,M)
-                            +fMaterial_Params[kTau3]*GAMMA(R,R,K)*fIdentity_matrix(L,M)
+                fMKLM(K,L,M)=fMKLM(K,L,M)+fMaterial_Params[kTau3]*GAMMA(R,R,K)*fIdentity_matrix(L,M)
                             +fMaterial_Params[kTau4]*GAMMA(L,R,R)*fIdentity_matrix(K,M);
                //  +fMaterial_Params[kTau6]*GAMMA(R,M,R)*fIdentity_matrix(K,L);
                 }
@@ -9507,18 +9506,6 @@ void FSMicromorphic3DT:: Form_fMKLM()
     }
 
 */
-
-/*  fMKLM=0.0;
-    for(int K=0;K<3;K++ )
-    {
-        for(int L=0;L<3;L++)
-        {
-            for(int M=0;M<3;M++)
-            {
-                fMKLM(K,L,M)=fMaterial_Params[kTau8]*GAMMA(K,L,M);
-            }
-        }
-    }*/
 
 
 }
@@ -9783,19 +9770,18 @@ void FSMicromorphic3DT:: Form_fMpp_3()
                     for(int m=0;m<3;m++)
                     {
 
-                            //summation
+                        //summation
                         for(int L=0;L<3;L++)
                         {
                           for(int M=0;M<3;M++)
                           {
-                         fMpp_3(row,col)+=fDeformation_Gradient(l,L)
+                             fMpp_3(row,col)+=fDeformation_Gradient(l,L)
                                         *fDeformation_Gradient(k,L)
                                         *fIdentity_matrix(L,M)
                                         *ChiM(m,M);
                           }
                         }
                         row=row+3;
-
                     }
                 }
                 col++;
@@ -9863,9 +9849,9 @@ void FSMicromorphic3DT:: Form_fMpp_4()
            {
             if(A=R)
             {
-                row=0;
+             row=0;
              for(int l=0;l<3;l++)
-                 {
+              {
                  for(int m=0;m<3;m++)
                  {
                     for(int K=0;K<3;K++)
@@ -9883,12 +9869,12 @@ void FSMicromorphic3DT:: Form_fMpp_4()
                         }
                         row++;
                     }
-                }
-                }
-                }
-                 col++;
-                }
+                  }
+               }
              }
+             col++;
+          }
+       }
 
     }
 
