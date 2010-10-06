@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.110 2010-10-05 19:53:28 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.111 2010-10-06 03:40:19 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -45,479 +45,479 @@ class FSMicromorphic3DT: public ElementBaseT
 
 public:
 /* material parameters */
-	enum fMaterial_T 	{
-	    kMu,
-	    kLambda,
-	    kKappa,
-	    kNu,
-	    kSigma_const,
-	    kTau,
-	    kEta,
-	    kRho_0,
-	    kTau1,
-	    kTau2,
-	    kTau3,
-	    kTau4,
-	    kTau5,
-	    kTau6,
-	    kTau7,
-	    kTau8,
-	    kTau9,
-	    kTau10,
-	    kTau11,
-	    kg,
-	    kg1,
-	    kg2,
-	    kg3,
-	    //add to this list
-	    kNUM_FMATERIAL_TERMS	};
+    enum fMaterial_T         {
+        kMu,
+        kLambda,
+        kKappa,
+        kNu,
+        kSigma_const,
+        kTau,
+        kEta,
+        kRho_0,
+        kTau1,
+        kTau2,
+        kTau3,
+        kTau4,
+        kTau5,
+        kTau6,
+        kTau7,
+        kTau8,
+        kTau9,
+        kTau10,
+        kTau11,
+        kg,
+        kg1,
+        kg2,
+        kg3,
+        //add to this list
+        kNUM_FMATERIAL_TERMS        };
 
-//	enum fIntegrate_T 	{
-//	    kBeta,
-//	    kGamma,
-//	    kNUM_FINTEGRATE_TERMS	};
+//  enum fIntegrate_T         {
+//      kBeta,
+//      kGamma,
+//      kNUM_FINTEGRATE_TERMS        };
 
-	/** constructor */
-	FSMicromorphic3DT(	const ElementSupportT& support );
+    /** constructor */
+    FSMicromorphic3DT(        const ElementSupportT& support );
 
-	/** destructor */
-	~FSMicromorphic3DT(void);
+    /** destructor */
+    ~FSMicromorphic3DT(void);
 
-	/** reference to element shape functions */
-	const ShapeFunctionT& ShapeFunctionDispl(void) const;
-	const ShapeFunctionT& ShapeFunctionMicro(void) const;
+    /** reference to element shape functions */
+    const ShapeFunctionT& ShapeFunctionDispl(void) const;
+    const ShapeFunctionT& ShapeFunctionMicro(void) const;
 
-	/** echo input */
-	void Echo_Input_Data (void);
+    /** echo input */
+    void Echo_Input_Data (void);
 
-	/** return true if the element contributes to the solution of the
-	 * given group. ElementBaseT::InGroup returns true if group is the
-	 * same as the group of the FieldT passed in to ElementBaseT::ElementBaseT. */
-	virtual bool InGroup(int group) const;
+    /** return true if the element contributes to the solution of the
+     * given group. ElementBaseT::InGroup returns true if group is the
+     * same as the group of the FieldT passed in to ElementBaseT::ElementBaseT. */
+    virtual bool InGroup(int group) const;
 
-	/* initialize/finalize time increment */
-	/*@{*/
-	virtual void InitStep(void);
-	virtual void CloseStep(void);
-	//virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+    /* initialize/finalize time increment */
+    /*@{*/
+    virtual void InitStep(void);
+    virtual void CloseStep(void);
+    //virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 
-	/** element level reconfiguration for the current time increment */
-	//virtual GlobalT::RelaxCodeT RelaxSystem(void);
-	/*@}*/
+    /** element level reconfiguration for the current time increment */
+    //virtual GlobalT::RelaxCodeT RelaxSystem(void);
+    /*@}*/
 
-	/** collecting element group equation numbers. See ElementBaseT::Equations
-	 * for more information */
-	virtual void Equations( AutoArrayT<const iArray2DT*>& eq_d,
-				AutoArrayT<const RaggedArray2DT<int>*>& eq_phi);
+    /** collecting element group equation numbers. See ElementBaseT::Equations
+     * for more information */
+    virtual void Equations( AutoArrayT<const iArray2DT*>& eq_d,
+                AutoArrayT<const RaggedArray2DT<int>*>& eq_phi);
 
-	/** return a const reference to the run state flag */
-	virtual GlobalT::SystemTypeT TangentType(void) const;
+    /** return a const reference to the run state flag */
+    virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/** accumulate the residual force on the specified node
-	 * \param node test node
-	 * \param force array into which to assemble to the residual force */
-	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
+    /** accumulate the residual force on the specified node
+     * \param node test node
+     * \param force array into which to assemble to the residual force */
+    virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 
-	/** returns the energy as defined by the derived class types */
-	virtual double InternalEnergy(void);
+    /** returns the energy as defined by the derived class types */
+    virtual double InternalEnergy(void);
 
-	/** \name writing output */
-	/*@{*/
-	/** register element for output */
-	virtual void RegisterOutput(void);
+    /** \name writing output */
+    /*@{*/
+    /** register element for output */
+    virtual void RegisterOutput(void);
 
-	/** write element output */
-	virtual void WriteOutput(void);
+    /** write element output */
+    virtual void WriteOutput(void);
 
-	/** compute specified output parameter and send for smoothing */
-	virtual void SendOutput(int kincode);
-	/*@}*/
+    /** compute specified output parameter and send for smoothing */
+    virtual void SendOutput(int kincode);
+    /*@}*/
 
-	/** return geometry and number of nodes on each facet */
-	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
+    /** return geometry and number of nodes on each facet */
+    void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
 
-	/** return the geometry code */
-	virtual GeometryT::CodeT GeometryCode(void) const;
+    /** return the geometry code */
+    virtual GeometryT::CodeT GeometryCode(void) const;
 
-	/*set active elements*/
-	//virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
+    /*set active elements*/
+    //virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
 
-	/** initial condition/restart functions (per time sequence) */
-	virtual void InitialCondition(void);
+    /** initial condition/restart functions (per time sequence) */
+    virtual void InitialCondition(void);
 
-	/** mass types */
-	enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
+    /** mass types */
+    enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
             kConsistentMass = 1, /**< variationally consistent mass matrix */
                 kLumpedMass = 2, /**< diagonally lumped mass */
              kAutomaticMass = 3  /**< select the mass type base on the time integration scheme */};
-	MassTypeT static int2MassTypeT(int i);
+    MassTypeT static int2MassTypeT(int i);
 
-	/** \name restart functions */
-	/*@{*/
-	/** write restart data to the output stream. Should be paired with
-	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
+    /** \name restart functions */
+    /*@{*/
+    /** write restart data to the output stream. Should be paired with
+     * the corresponding ElementBaseT::ReadRestart implementation. */
+    virtual void WriteRestart(ostream& out) const;
 
-	/** read restart data to the output stream. Should be paired with
-	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
-	/*@}*/
+    /** read restart data to the output stream. Should be paired with
+     * the corresponding ElementBaseT::WriteRestart implementation. */
+    virtual void ReadRestart(istream& in);
+    /*@}*/
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
+    /** \name implementation of the ParameterInterfaceT interface */
+    /*@{*/
+    /** information about subordinate parameter lists */
+    virtual void DefineSubs(SubListT& sub_list) const;
 
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
-				     SubListT& sub_lists) const;
+    /** return the description of the given inline subordinate parameter list */
+    virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
+                     SubListT& sub_lists) const;
 
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+    /** a pointer to the ParameterInterfaceT of the given subordinate */
+    virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
+    /** \name implementation of the ParameterInterfaceT interface */
+    /*@{*/
+    /** describe the parameters needed by the interface */
+    virtual void DefineParameters(ParameterListT& list) const;
 
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
-protected:
-
-	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
-	/*@{*/
-	/** form group contribution to the stiffness matrix */
-	virtual void LHSDriver(GlobalT::SystemTypeT);
-
-	/** form group contribution to the residual */
-	virtual void RHSDriver(void);
-	/*@}*/
-
-	/** compute shape functions and derivatives */
-	virtual void SetGlobalShape(void);
-
-	void Select_Equations ( const int &iBalLinMom, const int &iBalFirstMomMom );
-
-private:
-
-	/** \name solution methods.
-	 * Both of these drivers assemble the LHS as well as the residual.
-	 */
-	/*@{*/
-	/** driver for staggered solution */
-	void RHSDriver_staggered(void);
-
-	/** driver for monolithic solution */
-	void RHSDriver_monolithic(void);
-	/*@}*/
+    /** accept parameter list */
+    virtual void TakeParameterList(const ParameterListT& list);
+    /*@}*/
 
 protected:
 
-	/* output control */
-	iArrayT	fNodalOutputCodes;
-	iArrayT	fElementOutputCodes;
+    /** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
+    /*@{*/
+    /** form group contribution to the stiffness matrix */
+    virtual void LHSDriver(GlobalT::SystemTypeT);
+
+    /** form group contribution to the residual */
+    virtual void RHSDriver(void);
+    /*@}*/
+
+    /** compute shape functions and derivatives */
+    virtual void SetGlobalShape(void);
+
+    void Select_Equations ( const int &iBalLinMom, const int &iBalFirstMomMom );
 
 private:
 
-	/** Gradients and other matrices */
-	dMatrixT fgrad_u, fgrad_u_n;
-	dMatrixT fgrad_Phi, fgrad_Phi_n;
+    /** \name solution methods.
+     * Both of these drivers assemble the LHS as well as the residual.
+     */
+    /*@{*/
+    /** driver for staggered solution */
+    void RHSDriver_staggered(void);
 
-	dMatrixT fShapeDispl, fShapeDisplGrad, fShapeDisplGrad_t;
-	dMatrixT fShapeDisplGrad_t_Transpose, fShapeDisplGradGrad, fShapeDisplGrad_temp;
-	dMatrixT fShapeMicro,fShapeMicroGrad,fShapeMicroGrad_temp;
+    /** driver for monolithic solution */
+    void RHSDriver_monolithic(void);
+    /*@}*/
 
-	dMatrixT fDefGrad, fDefGradInv, fDefGradInvMatrix;
+protected:
 
-	/** \name  values read from input in the constructor */
-	/*@{*/
-	/** element geometry */
-	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ;
-	GeometryT::CodeT fGeometryCode_micro, fGeometryCodeSurf_micro;
-	int fGeometryCode_displ_int,fGeometryCode_micro_int, fGeometryCodeSurf_displ_int;
+    /* output control */
+    iArrayT        fNodalOutputCodes;
+    iArrayT        fElementOutputCodes;
 
-	/** number of integration points */
-	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_micro, fNumIPSurf_micro;
-	int knum_d_state, knum_i_state, knumstress, knumstrain;//,knumdispl;
-	int num_sidesets;
+private:
 
-	/*@}*/
+    /** Gradients and other matrices */
+    dMatrixT fgrad_u, fgrad_u_n;
+    dMatrixT fgrad_Phi, fgrad_Phi_n;
 
-	/** \name element displacements in local ordering */
-	/*@{*/
-	LocalArrayT u;		//solid displacement
-	LocalArrayT u_n; 	//solid displacement from time t_n
-	LocalArrayT u_dot; 	//solid velocity
-	LocalArrayT u_dot_n; 	//solid velocity from time t_n
-	LocalArrayT u_dotdot; 	//solid acceleration
-	LocalArrayT u_dotdot_n; 	//solid acceleration from time t_n
-	LocalArrayT del_u;	//displacement increment including Newton-R update, i.e. del_u = u_{n+1}^{k+1} - u_n
-	LocalArrayT Phi;	//micro-displacement-gradient dof
-	LocalArrayT Phi_dot;	//micro-displacement-gradient first time derivative
-	LocalArrayT Phi_dot_n;	//micro-displacement-gradient first time derivative from time t_n
-	LocalArrayT Phi_dotdot;	//micro-displacement-gradient second derivative
-	LocalArrayT Phi_dotdot_n;	//micro-displacement-gradient second derivative from time t_n
-	LocalArrayT Phi_n;	//micro-displacement-gradient from time t_n
-	LocalArrayT del_Phi;	//micro-displacement-gradient increment
-	dArrayT		del_u_vec;  	// vector form
-	dArrayT		del_Phi_vec;	// vector form
-	dArrayT		u_vec;  	// solid displacement in vector form
-	dArrayT		u_dot_vec;  	// solid velocity in vector form
-	dArrayT		u_dotdot_vec;  	// solid acceleration in vector form
-	dArrayT		Phi_vec;	// micro-displacement-gradient in vector form
-	dArrayT		Phi_dot_vec;	// first derivative of micro-displacement-gradient in vector form
-	dArrayT		Phi_dotdot_vec;	// second derivative of micro-displacement-gradient in vector form
+    dMatrixT fShapeDispl, fShapeDisplGrad, fShapeDisplGrad_t;
+    dMatrixT fShapeDisplGrad_t_Transpose, fShapeDisplGradGrad, fShapeDisplGrad_temp;
+    dMatrixT fShapeMicro,fShapeMicroGrad,fShapeMicroGrad_temp;
 
-	/*@}*/
+    dMatrixT fDefGrad, fDefGradInv, fDefGradInvMatrix;
 
-	// problem size definitions
-	int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd, n_en_micro_x_n_sd;
-	int n_el, n_sd, n_sd_surf, n_en_surf;
-	int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
-	int step_number;
-	int iConstitutiveModelType;
+    /** \name  values read from input in the constructor */
+    /*@{*/
+    /** element geometry */
+    GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ;
+    GeometryT::CodeT fGeometryCode_micro, fGeometryCodeSurf_micro;
+    int fGeometryCode_displ_int,fGeometryCode_micro_int, fGeometryCodeSurf_displ_int;
 
-	//name of output vector
-	StringT output;
+    /** number of integration points */
+    int        fNumIP_displ, fNumIPSurf_displ, fNumIP_micro, fNumIPSurf_micro;
+    int knum_d_state, knum_i_state, knumstress, knumstrain;//,knumdispl;
+    int num_sidesets;
 
-	dArrayT fForces_at_Node;
-	bool bStep_Complete;
+    /*@}*/
 
- 	double time, fRho, fRho_0;
+    /** \name element displacements in local ordering */
+    /*@{*/
+    LocalArrayT u;                //solid displacement
+    LocalArrayT u_n;         //solid displacement from time t_n
+    LocalArrayT u_dot;         //solid velocity
+    LocalArrayT u_dot_n;         //solid velocity from time t_n
+    LocalArrayT u_dotdot;         //solid acceleration
+    LocalArrayT u_dotdot_n;         //solid acceleration from time t_n
+    LocalArrayT del_u;        //displacement increment including Newton-R update, i.e. del_u = u_{n+1}^{k+1} - u_n
+    LocalArrayT Phi;        //micro-displacement-gradient dof
+    LocalArrayT Phi_dot;        //micro-displacement-gradient first time derivative
+    LocalArrayT Phi_dot_n;        //micro-displacement-gradient first time derivative from time t_n
+    LocalArrayT Phi_dotdot;        //micro-displacement-gradient second derivative
+    LocalArrayT Phi_dotdot_n;        //micro-displacement-gradient second derivative from time t_n
+    LocalArrayT Phi_n;        //micro-displacement-gradient from time t_n
+    LocalArrayT del_Phi;        //micro-displacement-gradient increment
+    dArrayT                del_u_vec;          // vector form
+    dArrayT                del_Phi_vec;        // vector form
+    dArrayT                u_vec;          // solid displacement in vector form
+    dArrayT                u_dot_vec;          // solid velocity in vector form
+    dArrayT                u_dotdot_vec;          // solid acceleration in vector form
+    dArrayT                Phi_vec;        // micro-displacement-gradient in vector form
+    dArrayT                Phi_dot_vec;        // first derivative of micro-displacement-gradient in vector form
+    dArrayT                Phi_dotdot_vec;        // second derivative of micro-displacement-gradient in vector form
 
- 	void Get_Fd_ext ( dArrayT &fFd_ext );
+    /*@}*/
 
-	//-- Material Parameters
-	dArrayT fMaterial_Params;
+    // problem size definitions
+    int n_en_displ, n_en_displ_x_n_sd, n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd,n_en_micro_x_n_sd_x_n_sd, n_en_micro_x_n_sd;
+    int n_el, n_sd, n_sd_surf, n_en_surf;
+    int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
+    int step_number;
+    int iConstitutiveModelType;
 
-	//-- Newmark Time Integration Parameters
-	dArrayT fIntegration_Params;
+    //name of output vector
+    StringT output;
 
-	/** \name shape functions wrt to current coordinates */
-	/*@{*/
-	/** shape functions and derivatives. The derivatives are wrt to the
-	  * reference coordinates */
-	ShapeFunctionT* fShapes_displ;
-	ShapeFunctionT* fShapes_micro;
+    dArrayT fForces_at_Node;
+    bool bStep_Complete;
 
-	/** reference coordinates */
-	LocalArrayT fInitCoords_displ, fInitCoords_micro;
-	/** current coordinates */
-	LocalArrayT fCurrCoords_displ, fCurrCoords_micro;
-	/*@}*/
+    double time, fRho, fRho_0;
 
-	/* Data Storage */
-	ElementMatrixT fKdd, fKdphi;
-	ElementMatrixT fKphid, fKphiphi;
-	dArrayT 	fFd_int;
-	dArrayT 	fFd_ext;
-	dArrayT		fFphi_int;
-	dArrayT		fFphi_ext;
+    void Get_Fd_ext ( dArrayT &fFd_ext );
 
-	dArrayT		fGrad_disp_vector;
-	dMatrixT    fGrad_disp_matrix;
-	dArrayT 	fDefGradInv_vector;
-	dArrayT 	fKirchhoff_vector;
-	dArrayT 	fSecond_Piola_vector;
-	dArrayT		fChi_temp_vector;
-	dArrayT		fFd_int_N1_vector;
-	dArrayT		fTemp_vector_ndof_se;
-	dArrayT		fTemp_vector_nen_micro;
-	dArrayT		fTemp_vector_9x1;
-	dArrayT		fPi_temp_transpose_vector;
-	dArrayT		fGrad_1_J_vector;
-	dArrayT	        fTemp_nsd_vector;
-	dArrayT	        fFd_int_smallstrain_vector;
-	dArrayT	        fGravity_vector;
-	dArrayT	        fFd_int_G4_vector;
-	dArrayT         fTemp_nine_values;
+    //-- Material Parameters
+    dArrayT fMaterial_Params;
+
+    //-- Newmark Time Integration Parameters
+    dArrayT fIntegration_Params;
+
+    /** \name shape functions wrt to current coordinates */
+    /*@{*/
+    /** shape functions and derivatives. The derivatives are wrt to the
+      * reference coordinates */
+    ShapeFunctionT* fShapes_displ;
+    ShapeFunctionT* fShapes_micro;
+
+    /** reference coordinates */
+    LocalArrayT fInitCoords_displ, fInitCoords_micro;
+    /** current coordinates */
+    LocalArrayT fCurrCoords_displ, fCurrCoords_micro;
+    /*@}*/
+
+    /* Data Storage */
+    ElementMatrixT fKdd, fKdphi;
+    ElementMatrixT fKphid, fKphiphi;
+    dArrayT         fFd_int;
+    dArrayT         fFd_ext;
+    dArrayT                fFphi_int;
+    dArrayT                fFphi_ext;
+
+    dArrayT                fGrad_disp_vector;
+    dMatrixT    fGrad_disp_matrix;
+    dArrayT         fDefGradInv_vector;
+    dArrayT         fKirchhoff_vector;
+    dArrayT         fSecond_Piola_vector;
+    dArrayT                fChi_temp_vector;
+    dArrayT                fFd_int_N1_vector;
+    dArrayT                fTemp_vector_ndof_se;
+    dArrayT                fTemp_vector_nen_micro;
+    dArrayT                fTemp_vector_9x1;
+    dArrayT                fPi_temp_transpose_vector;
+    dArrayT                fGrad_1_J_vector;
+    dArrayT                fTemp_nsd_vector;
+    dArrayT                fFd_int_smallstrain_vector;
+    dArrayT                fGravity_vector;
+    dArrayT                fFd_int_G4_vector;
+    dArrayT         fTemp_nine_values;
 ////////////////////////////////////
-	dArrayT         fE_values;
-	dArrayT         fVarepsilon;
+    dArrayT         fE_values;
+    dArrayT         fVarepsilon;
 ////////////////////////////////////
-	dArrayT         fTemp_six_values;
-	dArrayT         fGradv_vector;
-	dArrayT         fgradv_vector;
+    dArrayT         fTemp_six_values;
+    dArrayT         fGradv_vector;
+    dArrayT         fgradv_vector;
 
-	dMatrixT	fDeformation_Gradient;
-	dMatrixT	fDefGradT_9x9_matrix;
-	dMatrixT	fRight_Cauchy_Green_tensor;
-	dMatrixT	fRight_Cauchy_Green_tensor_Inverse;
-	dMatrixT	fLeft_Cauchy_Green_tensor;
-	dMatrixT	fLeft_Cauchy_Green_tensor_Inverse;
-	dMatrixT	fDeformation_Gradient_Inverse;
-	dMatrixT	fDeformation_Gradient_Transpose;
-	dMatrixT	fDeformation_Gradient_Inverse_Transpose;
-	dMatrixT	fDefGradInv_Grad_grad;
-	dMatrixT	fDefGradInv_Grad_grad_Transpose;
-	dMatrixT	fIdentity_matrix;
-        dMatrixT	fSecond_Piola_tensor;
-        dMatrixT	fTemp_matrix_nsd_x_nsd;
-        dMatrixT	fTemp_matrix_nsd_x_1;
-        dMatrixT	fTemp_matrix_ndof_se_x_ndof_se;
-        dMatrixT	fTemp_matrix1_ndof_se_x_ndof_se;
-        dMatrixT	fTemp_matrix_ndof_se_x_nen_micro;
-        dMatrixT	fTemp_matrix1_nen_press_x_ndof_se;
-        dMatrixT	fTemp_matrix_nsd_x_ndof_se;
-        dMatrixT	fTemp_matrix_nsd_x_nen_micro;
-        dMatrixT	fKirchhoff_tensor;
-        dMatrixT	fIota_temp_matrix;
-        dMatrixT	fVarpi_temp_matrix;
-
-
-        dMatrixT	fIm_temp_matrix;
-        dMatrixT	fHbar_temp_matrix;
-        dMatrixT	fEll_temp_matrix;
-        dMatrixT	fPi_temp_row_matrix;
-        dMatrixT	fK_dd_G3_1_matrix;
-        dMatrixT	fK_dd_G3_2_matrix;
-        dMatrixT	fK_dd_G3_3_matrix;
-        dMatrixT	fK_dd_G3_4_matrix;
-        dMatrixT	fK_dd_G4_matrix;
-        dMatrixT	fI_ij_column_matrix;
-        dMatrixT	fShapeMicro_row_matrix;
-        dMatrixT	fWp_temp_matrix;
-        dMatrixT	fChi_temp_column_matrix;
-        dMatrixT	fc_matrix;
-        dMatrixT	fC_matrix;
-        dMatrixT	fIm_Prim_temp_matrix;
-        dMatrixT	fB_matrix;
-        dMatrixT	fD_matrix;
-        dMatrixT	fK_dd_BTDB_matrix;
-	dMatrixT 	fDefGradInv_column_matrix;
-	dMatrixT 	fDefGradInv_column_matrix_Transpose;
-	dMatrixT	u_dotdot_column_matrix;
-	dMatrixT	fXi_temp_matrix;
-	dMatrixT	fVarsigma_temp_matrix;
-	dMatrixT	fI_ijkl_matrix;
-	dMatrixT	u_dot_column_matrix;
-	dMatrixT	u_dot_column_matrix_Transpose;
-	dMatrixT	fGravity_column_matrix;
-	dMatrixT	fAleph_temp_matrix;
-	dMatrixT	micro_dot_column_matrix;
-	dMatrixT	fImath_temp_matrix;
-	dMatrixT	fPf_0_matrix;
-	//////////////////////////////////////////////////////////
-	/////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
-	//////////////////////////////////////////////////////////
-	double KrDelta[3][3];
-	double trdeltad;
-	double trdeltaEp;
-
-	double Counter;
-	dArray2DT Counter_IPs_el_n;
-	dArray2DT Counter_IPs_el;
-	dArrayT Counter_IPs;
+    dMatrixT        fDeformation_Gradient;
+    dMatrixT        fDefGradT_9x9_matrix;
+    dMatrixT        fRight_Cauchy_Green_tensor;
+    dMatrixT        fRight_Cauchy_Green_tensor_Inverse;
+    dMatrixT        fLeft_Cauchy_Green_tensor;
+    dMatrixT        fLeft_Cauchy_Green_tensor_Inverse;
+    dMatrixT        fDeformation_Gradient_Inverse;
+    dMatrixT        fDeformation_Gradient_Transpose;
+    dMatrixT        fDeformation_Gradient_Inverse_Transpose;
+    dMatrixT        fDefGradInv_Grad_grad;
+    dMatrixT        fDefGradInv_Grad_grad_Transpose;
+    dMatrixT        fIdentity_matrix;
+        dMatrixT    fSecond_Piola_tensor;
+        dMatrixT    fTemp_matrix_nsd_x_nsd;
+        dMatrixT    fTemp_matrix_nsd_x_1;
+        dMatrixT    fTemp_matrix_ndof_se_x_ndof_se;
+        dMatrixT    fTemp_matrix1_ndof_se_x_ndof_se;
+        dMatrixT    fTemp_matrix_ndof_se_x_nen_micro;
+        dMatrixT    fTemp_matrix1_nen_press_x_ndof_se;
+        dMatrixT    fTemp_matrix_nsd_x_ndof_se;
+        dMatrixT    fTemp_matrix_nsd_x_nen_micro;
+        dMatrixT    fKirchhoff_tensor;
+        dMatrixT    fIota_temp_matrix;
+        dMatrixT    fVarpi_temp_matrix;
 
 
-	//Varitional Matrices coming from the Balance of linear Momentum
-	dMatrixT Tsigma_1;
-	dMatrixT fG1_1;
-	double SigN[3][3];//unsymmetric Cauchy stress tensor found at previous step
-	dMatrixT SigN_m;
-	dMatrixT Fn_m;
-	dMatrixT Finv_m;
-	dMatrixT deltaL;
-	dMatrixT deltaL_Tr;
-	dMatrixT tempSig;
-	dMatrixT deltad;
-	dMatrixT SigN_ar;
+        dMatrixT    fIm_temp_matrix;
+        dMatrixT    fHbar_temp_matrix;
+        dMatrixT    fEll_temp_matrix;
+        dMatrixT    fPi_temp_row_matrix;
+        dMatrixT    fK_dd_G3_1_matrix;
+        dMatrixT    fK_dd_G3_2_matrix;
+        dMatrixT    fK_dd_G3_3_matrix;
+        dMatrixT    fK_dd_G3_4_matrix;
+        dMatrixT    fK_dd_G4_matrix;
+        dMatrixT    fI_ij_column_matrix;
+        dMatrixT    fShapeMicro_row_matrix;
+        dMatrixT    fWp_temp_matrix;
+        dMatrixT    fChi_temp_column_matrix;
+        dMatrixT    fc_matrix;
+        dMatrixT    fC_matrix;
+        dMatrixT    fIm_Prim_temp_matrix;
+        dMatrixT    fB_matrix;
+        dMatrixT    fD_matrix;
+        dMatrixT    fK_dd_BTDB_matrix;
+    dMatrixT         fDefGradInv_column_matrix;
+    dMatrixT         fDefGradInv_column_matrix_Transpose;
+    dMatrixT        u_dotdot_column_matrix;
+    dMatrixT        fXi_temp_matrix;
+    dMatrixT        fVarsigma_temp_matrix;
+    dMatrixT        fI_ijkl_matrix;
+    dMatrixT        u_dot_column_matrix;
+    dMatrixT        u_dot_column_matrix_Transpose;
+    dMatrixT        fGravity_column_matrix;
+    dMatrixT        fAleph_temp_matrix;
+    dMatrixT        micro_dot_column_matrix;
+    dMatrixT        fImath_temp_matrix;
+    dMatrixT        fPf_0_matrix;
+    //////////////////////////////////////////////////////////
+    /////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
+    //////////////////////////////////////////////////////////
+    double KrDelta[3][3];
+    double trdeltad;
+    double trdeltaEp;
 
-	dMatrixT Mat1;
-	dMatrixT Mat2;
-	dMatrixT Mat3;
-	dMatrixT Mat4;
-	dMatrixT Mat5;
-	dArrayT RHS;
-	dMatrixT Mat5_Inv;
-	dMatrixT Sigma1;
-	dMatrixT Sigma2;
-	dMatrixT Sigma3;
-	dMatrixT Sigma4;
-	dMatrixT Sigma5;
-	dMatrixT Sigma6;
-	dMatrixT Sigma6_1;
-	dMatrixT Sigma6_2;
-	dMatrixT Sigma6_3;
-	dMatrixT Sigma6_4;
-	dMatrixT Sigma7;
-	dMatrixT Sigma8;
-
-	dArray2DT SigN_IPs;
-	dArray2DT Sig_IPs;
-	dArray2DT SigN_IPs_n;
-	dArray2DT SigN_IPs_el;
-	dArray2DT Sig_IPs_el;
-	dArray2DT SigN_IPs_el_n;
-	dArrayT Temp_Identity_array;
-
-
-	dMatrixT SPiolaN;
-	dMatrixT SPiola;
-
-	dArray2DT SPiolaN_IPs;
-	dArray2DT SPiola_IPs;
-	dArray2DT SPiolaN_IPs_el;
-	dArray2DT SPiola_IPs_el;
-	dArray2DT SPiolaN_IPs_el_n;
+    double Counter;
+    dArray2DT Counter_IPs_el_n;
+    dArray2DT Counter_IPs_el;
+    dArrayT Counter_IPs;
 
 
+    //Varitional Matrices coming from the Balance of linear Momentum
+    dMatrixT Tsigma_1;
+    dMatrixT fG1_1;
+    double SigN[3][3];//unsymmetric Cauchy stress tensor found at previous step
+    dMatrixT SigN_m;
+    dMatrixT Fn_m;
+    dMatrixT Finv_m;
+    dMatrixT deltaL;
+    dMatrixT deltaL_Tr;
+    dMatrixT tempSig;
+    dMatrixT deltad;
+    dMatrixT SigN_ar;
 
-	dMatrixT Sigma; // unsymetric Cauchy stress tensor at current step
-	double Fn[3][3];
-	dMatrixT Fn_ar;
-	dArray2DT Fn_ar_IPs;
-	dArray2DT F_ar_IPs;
-	dArray2DT Fn_ar_IPs_el;
-	dArray2DT F_ar_IPs_el;
-	dArray2DT Fn_ar_IPs_el_n;
+    dMatrixT Mat1;
+    dMatrixT Mat2;
+    dMatrixT Mat3;
+    dMatrixT Mat4;
+    dMatrixT Mat5;
+    dArrayT RHS;
+    dMatrixT Mat5_Inv;
+    dMatrixT Sigma1;
+    dMatrixT Sigma2;
+    dMatrixT Sigma3;
+    dMatrixT Sigma4;
+    dMatrixT Sigma5;
+    dMatrixT Sigma6;
+    dMatrixT Sigma6_1;
+    dMatrixT Sigma6_2;
+    dMatrixT Sigma6_3;
+    dMatrixT Sigma6_4;
+    dMatrixT Sigma7;
+    dMatrixT Sigma8;
 
-	double FnInv[3][3];
-	dMatrixT FnInv_ar;
-	dArray2DT FnInv_ar_IPs;
-	dArray2DT FInv_ar_IPs;
-//	dArray2DT FInv_ar_IPs_n;
-	dArray2DT FnInv_ar_IPs_el;
-	dArray2DT FInv_ar_IPs_el;
-	dArray2DT FnInv_ar_IPs_el_n;
+    dArray2DT SigN_IPs;
+    dArray2DT Sig_IPs;
+    dArray2DT SigN_IPs_n;
+    dArray2DT SigN_IPs_el;
+    dArray2DT Sig_IPs_el;
+    dArray2DT SigN_IPs_el_n;
+    dArrayT Temp_Identity_array;
 
-	double Finv[3][3];
 
-	double Chi[3][3];
-	dMatrixT Chi_m;
-	double ChiInv[3][3];
-	dMatrixT ChiInv_m;
-	dMatrixT ChiN_m;
-	dMatrixT deltaEp;
-	dMatrixT deltaNu;
-	double ChiN[3][3];
-	dMatrixT ChinN_m;
-	dMatrixT ChiN_ar;
-	dMatrixT Chi_ar;
-	dArray2DT ChiN_ar_IPs;
-	dArray2DT Chi_ar_IPs;
-	dArray2DT ChiN_ar_IPs_n;
-	dArray2DT Chi_ar_IPs_el;
-	dArray2DT ChiN_ar_IPs_el;
-	dArray2DT ChiN_ar_IPs_el_n;
+    dMatrixT SPiolaN;
+    dMatrixT SPiola;
 
-//	double  Trial[6];
-	dMatrixT fIota_w_temp_matrix;
-	dMatrixT fTemp_matrix_nudof_x_nchidof;
-	dMatrixT fTemp_matrix_nchidof_x_nchidof;
-	dMatrixT fTemp_matrix_nchidof_x_nudof;
-	dMatrixT fTemp_matrix_nudof_x_nudof;
+    dArray2DT SPiolaN_IPs;
+    dArray2DT SPiola_IPs;
+    dArray2DT SPiolaN_IPs_el;
+    dArray2DT SPiola_IPs_el;
+    dArray2DT SPiolaN_IPs_el_n;
 
-	dMatrixT fH1_Etagrad;
-	dMatrixT TransShapeDisplGrad;
-	dMatrixT Var_F;
-	dMatrixT GRAD_Nuw;
-	dMatrixT GRAD_Nuw_Tr;
-	dMatrixT Finv_w; // to create Iota_w which is different than Iota because sequence of the components in wk,l
-	dMatrixT Tsigma_2;
-	dMatrixT fG1_2;//not being calculated yet
+
+
+    dMatrixT Sigma; // unsymetric Cauchy stress tensor at current step
+    double Fn[3][3];
+    dMatrixT Fn_ar;
+    dArray2DT Fn_ar_IPs;
+    dArray2DT F_ar_IPs;
+    dArray2DT Fn_ar_IPs_el;
+    dArray2DT F_ar_IPs_el;
+    dArray2DT Fn_ar_IPs_el_n;
+
+    double FnInv[3][3];
+    dMatrixT FnInv_ar;
+    dArray2DT FnInv_ar_IPs;
+    dArray2DT FInv_ar_IPs;
+//  dArray2DT FInv_ar_IPs_n;
+    dArray2DT FnInv_ar_IPs_el;
+    dArray2DT FInv_ar_IPs_el;
+    dArray2DT FnInv_ar_IPs_el_n;
+
+    double Finv[3][3];
+
+    double Chi[3][3];
+    dMatrixT Chi_m;
+    double ChiInv[3][3];
+    dMatrixT ChiInv_m;
+    dMatrixT ChiN_m;
+    dMatrixT deltaEp;
+    dMatrixT deltaNu;
+    double ChiN[3][3];
+    dMatrixT ChinN_m;
+    dMatrixT ChiN_ar;
+    dMatrixT Chi_ar;
+    dArray2DT ChiN_ar_IPs;
+    dArray2DT Chi_ar_IPs;
+    dArray2DT ChiN_ar_IPs_n;
+    dArray2DT Chi_ar_IPs_el;
+    dArray2DT ChiN_ar_IPs_el;
+    dArray2DT ChiN_ar_IPs_el_n;
+
+//  double  Trial[6];
+    dMatrixT fIota_w_temp_matrix;
+    dMatrixT fTemp_matrix_nudof_x_nchidof;
+    dMatrixT fTemp_matrix_nchidof_x_nchidof;
+    dMatrixT fTemp_matrix_nchidof_x_nudof;
+    dMatrixT fTemp_matrix_nudof_x_nudof;
+
+    dMatrixT fH1_Etagrad;
+    dMatrixT TransShapeDisplGrad;
+    dMatrixT Var_F;
+    dMatrixT GRAD_Nuw;
+    dMatrixT GRAD_Nuw_Tr;
+    dMatrixT Finv_w; // to create Iota_w which is different than Iota because sequence of the components in wk,l
+    dMatrixT Tsigma_2;
+    dMatrixT fG1_2;//not being calculated yet
     dMatrixT Tsigma_3;
     dMatrixT fG1_3;// not being calculated yet
     dMatrixT TFn_1;// to be multiplied by (lamda+Tau)
@@ -542,44 +542,44 @@ private:
     dMatrixT fG1_13;
     dMatrixT fG1_14;
  // Variational Matrices coming from the Balance of First Moment of Momentum
-	double mn[3][3][3];
- 	dArrayT mn_ar;
-	dArray2DT mn_IPs;
-	dArray2DT mn_IPs_n;
-	dArray2DT mn_IPs_el;
-	dArray2DT mn_IPs_el_n;
+    double mn[3][3][3];
+    dArrayT mn_ar;
+    dArray2DT mn_IPs;
+    dArray2DT mn_IPs_n;
+    dArray2DT mn_IPs_el;
+    dArray2DT mn_IPs_el_n;
 
-	double Mnplus1[3][3][3];
-	double Gamma[3][3][3];
-	double GammaN[3][3][3];
-	dArrayT GammaN_ar;
+    double Mnplus1[3][3][3];
+    double Gamma[3][3][3];
+    double GammaN[3][3][3];
+    dArrayT GammaN_ar;
 
-	dArray2DT GammaN_IPs;
-	dArray2DT GammaN_IPs_n;
-	dArray2DT GammaN_IPs_el;
-	dArray2DT GammaN_IPs_el_n;
+    dArray2DT GammaN_IPs;
+    dArray2DT GammaN_IPs_n;
+    dArray2DT GammaN_IPs_el;
+    dArray2DT GammaN_IPs_el_n;
 
-	double CCof[3][3][3][3][3][3];
-	double GRAD_ChiN[3][3][3];// GRADIENT  in reference configuration!
-	dArrayT GRAD_Chi_ar;
-	dArrayT GRAD_ChiN_ar;
-	dArray2DT GRAD_ChiN_ar_IPs;
-	dArray2DT GRAD_Chi_ar_IPs;
-	dArray2DT GRAD_ChiN_ar_IPs_n;
-	dArray2DT GRAD_ChiN_ar_IPs_el;
-	dArray2DT GRAD_Chi_ar_IPs_el;
-	dArray2DT GRAD_ChiN_ar_IPs_el_n;
+    double CCof[3][3][3][3][3][3];
+    double GRAD_ChiN[3][3][3];// GRADIENT  in reference configuration!
+    dArrayT GRAD_Chi_ar;
+    dArrayT GRAD_ChiN_ar;
+    dArray2DT GRAD_ChiN_ar_IPs;
+    dArray2DT GRAD_Chi_ar_IPs;
+    dArray2DT GRAD_ChiN_ar_IPs_n;
+    dArray2DT GRAD_ChiN_ar_IPs_el;
+    dArray2DT GRAD_Chi_ar_IPs_el;
+    dArray2DT GRAD_ChiN_ar_IPs_el_n;
 
-	double GRAD_Chi[3][3][3];// GRADIENT in reference configuration!
-
-
-
-	dMatrixT fIota_eta_temp_matrix;
-	dMatrixT Finv_eta; // to create Iota_eta
+    double GRAD_Chi[3][3][3];// GRADIENT in reference configuration!
 
 
-	dMatrixT Etagrad;
-	dMatrixT Mm_1;
+
+    dMatrixT fIota_eta_temp_matrix;
+    dMatrixT Finv_eta; // to create Iota_eta
+
+
+    dMatrixT Etagrad;
+    dMatrixT Mm_1;
     dMatrixT Mm_2;
     dMatrixT Mm_3;
     dMatrixT Mm_4;
@@ -676,8 +676,8 @@ private:
 
     dMatrixT fH3_1;
 
-	dArrayT Chi_vec;
-	dArrayT GRAD_Chi_vec;
+    dArrayT Chi_vec;
+    dArrayT GRAD_Chi_vec;
     //internal Force Matrices
     dArrayT G1;
     dArrayT Uint_1;
@@ -778,17 +778,17 @@ private:
     dMatrixT fMF;
     dMatrixT fMchi;
     dMatrixT fEtaM;
+    dMatrixT fMpu_1;
+    dMatrixT fMpp_1;
+    dMatrixT fMpu_2;
+    dMatrixT fMpp_2;
     dMatrixT fMpu_3;
     dMatrixT fMpp_3;
-    dMatrixT fMpu_4;
-    dMatrixT fMpp_4;
-    dMatrixT fMpu_6;
-    dMatrixT fMpp_6;
+    dMatrixT fKMphiu_3;
+    dMatrixT fKMphiphi_3;
 
-    dMatrixT fMpu_7;
-    dMatrixT fMpp_7;
-    dMatrixT fMpu_8;
-    dMatrixT fMpp_8;
+
+
     dTensor3DT fMKLM;
     dTensor3DT GAMMA;
     dTensor3DT GRAD_CHIM;
@@ -799,23 +799,10 @@ private:
     dMatrixT fKEtaM;
     dMatrixT fKMFphiu;
     dMatrixT fKMchiphiphi;
-    dMatrixT fKMphiu_7;
-    dMatrixT fKMphiphi_7;
-    dMatrixT fKMphiu_8;
-    dMatrixT fKMphiphi_8;
-    dMatrixT fKMphiu_3;
-    dMatrixT fKMphiphi_3;
- /*   dMatrixT fKMphiu_4;
-    dMatrixT fKMphiu_6;
-    dMatrixT fKMphiu_7;
-    dMatrixT fKMphiu_8;*/
-  
-
-
-/*    dMatrixT fKMphiphi_4;
-    dMatrixT fKMphiphi_6;  
-    dMatrixT fKMphiphi_7;
-    dMatrixT fKMphiphi_8;*/
+    dMatrixT fKMphiu_1;
+    dMatrixT fKMphiphi_1;
+    dMatrixT fKMphiu_2;
+    dMatrixT fKMphiphi_2;
 /////stress invariants variables////////
  double Cauchy_inv;
  double Rel_stres_inv;
@@ -856,26 +843,26 @@ private:
     dArrayT ftemp_u_element;
     dArrayT fState_variables;
 
-	//////////////////////////////////////////////////////////
-	/////DEFINITIONS FINISH HERE FOR MICROMORPHIC MATRICES////
-	//////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    /////DEFINITIONS FINISH HERE FOR MICROMORPHIC MATRICES////
+    //////////////////////////////////////////////////////////
 
         /* to store fEulerian_strain_tensor_current_IP */
-        dMatrixT	fEulerian_strain_tensor_current_IP;
+        dMatrixT    fEulerian_strain_tensor_current_IP;
         /* to store fEulerian_strain_IPs for each of the 27 IPs of each element */
-        dArray2DT	fEulerian_strain_IPs;
+        dArray2DT   fEulerian_strain_IPs;
         /* to store fCauchy_stress_tensor_current_IP */
-        dMatrixT	fCauchy_stress_tensor_current_IP;
+        dMatrixT    fCauchy_stress_tensor_current_IP;
         /* to store fCauchy_stress_IPs for each of the 27 IPs of each element */
-        dArray2DT	fCauchy_stress_IPs;
+        dArray2DT   fCauchy_stress_IPs;
         ////////////////////////////////////
         dArray2DT  fE_values_IPs;
         dArray2DT  fVarepsilon_IPs;
         ////////////////////////////////////
-        dArray2DT	fState_variables_IPs;
-        dArray2DT	fEulerian_strain_Elements_IPs;
-        dArray2DT	fCauchy_stress_Elements_IPs;
-        dArray2DT	fState_variables_Elements_IPs;
+        dArray2DT   fState_variables_IPs;
+        dArray2DT   fEulerian_strain_Elements_IPs;
+        dArray2DT   fCauchy_stress_Elements_IPs;
+        dArray2DT   fState_variables_Elements_IPs;
         /////////////////////////////////////////
         dArray2DT  fE_values_Element_IPs;
         dArray2DT  fVarepsilon_Element_IPs;
@@ -890,132 +877,132 @@ private:
        // dArray2DT  fDisplacement_IPs;
 
 
-	/** the solid displacement field */
-	const FieldT* fDispl;
+    /** the solid displacement field */
+    const FieldT* fDispl;
 
-	/** the micro-displacement-gradient field */
-	const FieldT* fMicro;
+    /** the micro-displacement-gradient field */
+    const FieldT* fMicro;
 
-	/** \name state variable storage *
-	 * State variables are handled ABAQUS-style. For every iteration, the state
-	 * variables from the previous increment are passed to the element, which
-	 * updates the values in place. Each row in the array is the state variable
-	 * storage for all integration points for an element */
-	/*@{*/
-	dArray2DT fdState_new;
-	dArray2DT fdState;
+    /** \name state variable storage *
+     * State variables are handled ABAQUS-style. For every iteration, the state
+     * variables from the previous increment are passed to the element, which
+     * updates the values in place. Each row in the array is the state variable
+     * storage for all integration points for an element */
+    /*@{*/
+    dArray2DT fdState_new;
+    dArray2DT fdState;
 
-	iArray2DT fiState_new;
-	iArray2DT fiState;
-	/*@}*/
+    iArray2DT fiState_new;
+    iArray2DT fiState;
+    /*@}*/
 
-	/** \name connectivities */
-	/*@{*/
-	ArrayT<const iArray2DT*> fConnectivities_displ;
-	ArrayT<const iArray2DT*> fConnectivities_micro;
-	ArrayT<iArray2DT> fConnectivities_reduced;
-	/*@}*/
+    /** \name connectivities */
+    /*@{*/
+    ArrayT<const iArray2DT*> fConnectivities_displ;
+    ArrayT<const iArray2DT*> fConnectivities_micro;
+    ArrayT<iArray2DT> fConnectivities_reduced;
+    /*@}*/
 
-	/** \name equations */
-	/*@{*/
-	ArrayT<iArray2DT> fEqnos_displ;
-	ArrayT<iArray2DT> fEqnos_micro;
-	/*@}*/
+    /** \name equations */
+    /*@{*/
+    ArrayT<iArray2DT> fEqnos_displ;
+    ArrayT<iArray2DT> fEqnos_micro;
+    /*@}*/
 
-	/** \name element cards */
-	/*@{*/
-	AutoArrayT<ElementCardT> fElementCards_displ;
-	AutoArrayT<ElementCardT> fElementCards_micro;
-	/*@}*/
+    /** \name element cards */
+    /*@{*/
+    AutoArrayT<ElementCardT> fElementCards_displ;
+    AutoArrayT<ElementCardT> fElementCards_micro;
+    /*@}*/
 
-	/** \name output */
-	/*@{*/
-	/** output ID */
-	int fOutputID;
+    /** \name output */
+    /*@{*/
+    /** output ID */
+    int fOutputID;
 
-	/** integration point stresses. Calculated and stored during
-	 * FSMicromorphic2DT::RHSDriver */
-	dArray2DT fIPVariable;
-	/*@}*/
+    /** integration point stresses. Calculated and stored during
+     * FSMicromorphic2DT::RHSDriver */
+    dArray2DT fIPVariable;
+    /*@}*/
 
-	/** \name prescribed plastic gradient side set ID */
-	/*@{*/
-	ArrayT<StringT> fSideSetID;
+    /** \name prescribed plastic gradient side set ID */
+    /*@{*/
+    ArrayT<StringT> fSideSetID;
 
-	/** prescribed micro-displacement-gradient weight over the side set;
-	    the direction is defined by {n1,n2,n3} ?? */
-	//ArrayT<iArray2DT> fMicroWght;
+    /** prescribed micro-displacement-gradient weight over the side set;
+        the direction is defined by {n1,n2,n3} ?? */
+    //ArrayT<iArray2DT> fMicroWght;
 
-	/** for each side set, the global nodes on the faces in the set */
-	ArrayT<iArray2DT> fMicroFaces;
+    /** for each side set, the global nodes on the faces in the set */
+    ArrayT<iArray2DT> fMicroFaces;
 
-	/** equation numbers for the nodes on each face */
-	ArrayT<iArray2DT> fMicroFaceEqnos;
+    /** equation numbers for the nodes on each face */
+    ArrayT<iArray2DT> fMicroFaceEqnos;
 
-	/** side set elements */
-	ArrayT<iArrayT> fSideSetElements;
+    /** side set elements */
+    ArrayT<iArrayT> fSideSetElements;
 
-	/** side set faces */
-	ArrayT<iArrayT> fSideSetFaces;
-	/*@}*/
+    /** side set faces */
+    ArrayT<iArrayT> fSideSetFaces;
+    /*@}*/
 
-	/** write output for debugging */
-	/*@{*/
-	/** output file stream */
-	ofstreamT fs_micromorph3D_out;
-	ofstreamT fs_micromorph3DMn_out;
+    /** write output for debugging */
+    /*@{*/
+    /** output file stream */
+    ofstreamT fs_micromorph3D_out;
+    ofstreamT fs_micromorph3DMn_out;
 
-	/** line output formating variables */
-	int outputPrecision, outputFileWidth;
-	/*@}*/
+    /** line output formating variables */
+    int outputPrecision, outputFileWidth;
+    /*@}*/
 
-	void Form_solid_shape_functions(const double* &shapes_displ_X);
-	void Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp);
-	void Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp);
-	void Form_micro_shape_functions(const double* &shapes_micro_X);
-	void Form_deformation_gradient_tensor(void);
-	void Form_Grad_grad_transformation_matrix(void);
-	void Form_fDefGradT_9x9_matrix(void);
-	void Form_deformation_gradient_inv_vector(void);
-	void Form_kirchhoff_stress_vector(void);
-	void Form_Varpi_temp_matrix(void);
-	void Form_Im_temp_matrix(void);
-	void Form_Hbar_temp_matrix(void);
-	void Form_Ell_temp_matrix(void);
-	void Form_C_matrix(const double& J_Prim);
-	void Form_c_matrix(void);
-	void Form_Im_Prim_temp_matrix(void);
-	void Form_D_matrix(void);
-	void Form_B_matrix(void);
-	void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
-	void Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
-	void Put_values_In_Array(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
-	void Form_gradv_vector(void);
-	void Form_Xi_temp_matrix(void);
-	void Form_Varsigma_temp_matrix(void);
-	void Form_I_ijkl_matrix(void);
-	void Compute_norm_of_array(double& norm,const LocalArrayT& B);
-	//////////////////////////////////////////////////////////
-	/////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
-	//////////////////////////////////////////////////////////
-	//Forming the Matrices coming from the Balance of Linear Momentum
-	void Form_Gamma_tensor3D(void);
-	void Form_micro_deformation_tensor_Chi(void);
-	void Form_Chi_inv_matrix(void);
-	void Form_GRAD_Chi_matrix(void);
-	void Form_double_Finv_from_Deformation_tensor_inverse(void);
-	void Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp);
-	void Form_Finv_w_matrix(void);
+    void Form_solid_shape_functions(const double* &shapes_displ_X);
+    void Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp);
+    void Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp);
+    void Form_micro_shape_functions(const double* &shapes_micro_X);
+    void Form_deformation_gradient_tensor(void);
+    void Form_Grad_grad_transformation_matrix(void);
+    void Form_fDefGradT_9x9_matrix(void);
+    void Form_deformation_gradient_inv_vector(void);
+    void Form_kirchhoff_stress_vector(void);
+    void Form_Varpi_temp_matrix(void);
+    void Form_Im_temp_matrix(void);
+    void Form_Hbar_temp_matrix(void);
+    void Form_Ell_temp_matrix(void);
+    void Form_C_matrix(const double& J_Prim);
+    void Form_c_matrix(void);
+    void Form_Im_Prim_temp_matrix(void);
+    void Form_D_matrix(void);
+    void Form_B_matrix(void);
+    void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
+    void Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
+    void Put_values_In_Array(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
+    void Form_gradv_vector(void);
+    void Form_Xi_temp_matrix(void);
+    void Form_Varsigma_temp_matrix(void);
+    void Form_I_ijkl_matrix(void);
+    void Compute_norm_of_array(double& norm,const LocalArrayT& B);
+    //////////////////////////////////////////////////////////
+    /////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
+    //////////////////////////////////////////////////////////
+    //Forming the Matrices coming from the Balance of Linear Momentum
+    void Form_Gamma_tensor3D(void);
+    void Form_micro_deformation_tensor_Chi(void);
+    void Form_Chi_inv_matrix(void);
+    void Form_GRAD_Chi_matrix(void);
+    void Form_double_Finv_from_Deformation_tensor_inverse(void);
+    void Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDisplGrad_temp);
+    void Form_Finv_w_matrix(void);
 
-	void Mapping_double_and_Array(const int condition);//
-//	void Mapping_double_and_Array(double& dmat, dArrayT& fArrayT,const int& dim,const int& condition);
-	void Form_deformation_tensors_arrays(const int condition);//
+    void Mapping_double_and_Array(const int condition);//
+//  void Mapping_double_and_Array(double& dmat, dArrayT& fArrayT,const int& dim,const int& condition);
+    void Form_deformation_tensors_arrays(const int condition);//
 
-	void Form_KroneckerDelta_matrix(void);
-	void Form_Var_F_tensor(void);
-	void Form_Tsigma_1_matrix(void);
-	void Form_fG1_1_matrix(void);//not defined yet
-	void Form_Tsigma_2_matrix(void);
+    void Form_KroneckerDelta_matrix(void);
+    void Form_Var_F_tensor(void);
+    void Form_Tsigma_1_matrix(void);
+    void Form_fG1_1_matrix(void);//not defined yet
+    void Form_Tsigma_2_matrix(void);
     void Form_fG1_2_matrix(void);
     void Form_Tsigma_3_matrix(void);
     void Form_fG1_3_matrix(void);
@@ -1040,8 +1027,8 @@ private:
     void Form_SigCurr_matrix(void);
     void Form_fG1_13_matrix(void);
     //Forming the Matrices coming from the Balance of First Moment of Momentum
-	void Form_Gradient_of_micro_shape_eta_functions(const dMatrixT &fShapeMicroGrad);
-//	void Form_NCHI_eta_matrix(const dMatrixT &fShapeMicro_row_matrix);//same with the one below
+    void Form_Gradient_of_micro_shape_eta_functions(const dMatrixT &fShapeMicroGrad);
+//  void Form_NCHI_eta_matrix(const dMatrixT &fShapeMicro_row_matrix);//same with the one below
     void Form_NCHI_matrix(const dMatrixT &fShapeMicro_row_matrix); //shape function matrice for micro deformatin {ETA}=[NCHI].{alpha}
 
     void Form_Etagrad_matrix(void);
@@ -1095,8 +1082,8 @@ private:
 
 
     //////////////////////////////////////////////////////////
-	/////FINITE STRAIN ELASTICITY MATRICES START /////////////
-	//////////////////////////////////////////////////////////
+    /////FINITE STRAIN ELASTICITY MATRICES START /////////////
+    //////////////////////////////////////////////////////////
     void Form_fV1(void);
     void Form_fV2(void);
     void Form_fV3(void);
@@ -1133,12 +1120,13 @@ private:
     void Form_GAMMA(void);
     void Form_fEtaM(void);
     void Form_fMchi(void);
+    void Form_fMpu_1(void);
+    void Form_fMpp_1(void);
+    void Form_fMpu_2(void);
+    void Form_fMpp_2(void);
     void Form_fMpu_3(void);
     void Form_fMpp_3(void);
-    void Form_fMpu_7(void);
-    void Form_fMpp_7(void);
-    void Form_fMpu_8(void);
-    void Form_fMpp_8(void);
+
 
     void Form_Jmat(void);
 
@@ -1156,35 +1144,35 @@ private:
 
 
     //////////////////////////////////////////////////////////
-	/////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
-	//////////////////////////////////////////////////////////
+    /////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
+    //////////////////////////////////////////////////////////
 
 protected:
 
-	/** extract natural boundary condition information */
-	void TakeNaturalBC(const ParameterListT& list);
+    /** extract natural boundary condition information */
+    void TakeNaturalBC(const ParameterListT& list);
 
-	/** apply traction boundary conditions to displacement equations */
-	void ApplyTractionBC(void);
+    /** apply traction boundary conditions to displacement equations */
+    void ApplyTractionBC(void);
 
-  	/** update traction BC data for displacement equations */
-	void SetTractionBC(void);
+    /** update traction BC data for displacement equations */
+    void SetTractionBC(void);
 
-	/* traction data */
-	ArrayT<Traction_CardT> fTractionList;
-	int fTractionBCSet;
+    /* traction data */
+    ArrayT<Traction_CardT> fTractionList;
+    int fTractionBCSet;
 
-	/** \name arrays with local ordering */
-	/*@{*/
-	LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
-	LocalArrayT fLocDisp;	      /**< solid displacements with local ordering  */
-	/*@}*/
+    /** \name arrays with local ordering */
+    /*@{*/
+    LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
+    LocalArrayT fLocDisp;              /**< solid displacements with local ordering  */
+    /*@}*/
 
-	/** \name work space */
-	/*@{*/
-	dArrayT fNEEvec; /**< work space vector: [element DOF] */
-	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
-	/*@}*/
+    /** \name work space */
+    /*@{*/
+    dArrayT fNEEvec; /**< work space vector: [element DOF] */
+    dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
+    /*@}*/
 
 };
 
@@ -1192,19 +1180,19 @@ protected:
 inline const ShapeFunctionT& FSMicromorphic3DT::ShapeFunctionDispl(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fShapes_displ)
-	    ExceptionT::GeneralFail("FSMicromorphic3DT::ShapeFunctionDispl", "no displ shape functions");
+    if (!fShapes_displ)
+        ExceptionT::GeneralFail("FSMicromorphic3DT::ShapeFunctionDispl", "no displ shape functions");
 #endif
-	return *fShapes_displ;
+    return *fShapes_displ;
 }
 
 inline const ShapeFunctionT& FSMicromorphic3DT::ShapeFunctionMicro(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fShapes_micro)
-	    ExceptionT::GeneralFail("FSMicromorphic3DT::ShapeFunctionMicro", "no micro shape functions");
+    if (!fShapes_micro)
+        ExceptionT::GeneralFail("FSMicromorphic3DT::ShapeFunctionMicro", "no micro shape functions");
 #endif
-	return *fShapes_micro;
+    return *fShapes_micro;
 }
 
 /* return the geometry code */
