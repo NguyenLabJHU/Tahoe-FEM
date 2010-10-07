@@ -1180,7 +1180,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fMpp_3=0.0;
      fMpu_4=0.0;
      fMpp_4=0.0;
-
+     fMpu_6=0.0;
+     fMpp_6=0.0;
 
      fKMFphiu=0.0;;
      fKMchiphiphi=0.0;
@@ -1192,6 +1193,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fKMphiphi_3=0.0;
      fKMphiu_4=0.0;
      fKMphiphi_4=0.0;
+     fKMphiu_6=0.0;
+     fKMphiphi_6=0.0;
+
 
      Jmat=0.0;
      KJmat=0.0;
@@ -1726,7 +1730,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Form_fMpp_3();
                        Form_fMpu_4();
                        Form_fMpp_4();
-                       
+                       Form_fMpu_6();
+                       Form_fMpp_6();                       
 
 
 /*
@@ -2004,7 +2009,19 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fTemp_matrix_nchidof_x_nchidof *= scale;
                        // accumulate
                        fKMphiphi_4 += fTemp_matrix_nchidof_x_nchidof;                       
+      
+                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,fMpu_6,fShapeDisplGrad);
+                       scale =scale_const*fMaterial_Params[kTau6];
+                       fTemp_matrix_nchidof_x_nudof *= scale;
+                       // accumulate
+                       fKMphiu_6 += fTemp_matrix_nchidof_x_nudof;     
                        
+                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,fMpp_6,GRAD_NCHI);
+                       scale =scale_const*fMaterial_Params[kTau6];
+                       fTemp_matrix_nchidof_x_nchidof *= scale;
+                       // accumulate
+                       fKMphiphi_6 += fTemp_matrix_nchidof_x_nchidof;     
+
                        
 
                       // fTemp_matrix_nchidof_x_nudof.MultABCT(fIota_eta_temp_matrix,fMpu_1,fIota_temp_matrix);
@@ -2722,7 +2739,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid+=fKMphiu_2;
             fKphid+=fKMphiu_3;
             fKphid+=fKMphiu_4;            
-
+            fKphid+=fKMphiu_6;
+              
            /* [fKphiphi] will be formed */
           //need to code
            //fKphiphi = 0.0;
@@ -2735,7 +2753,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
            fKphiphi+=fKMphiphi_2;
            fKphiphi+=fKMphiphi_3;           
            fKphiphi+=fKMphiphi_4;  
-
+           fKphiphi+=fKMphiphi_6;  
             /* {fFphi_int} will be formed */
 //           fFphi_int  = 0.0;
            fFphi_int  = Vint_2;
@@ -3699,6 +3717,10 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKMphiphi_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);   
     fKMphiu_4.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fKMphiphi_4.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);   
+    fKMphiu_6.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    fKMphiphi_6.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);   
+
+
         
     fFJ.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fJF.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
@@ -3726,6 +3748,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fMpu_4.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
     fMpp_4.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+
+    fMpu_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fMpp_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
 
 
 
@@ -9498,9 +9523,9 @@ void FSMicromorphic3DT:: Form_fMKLM()
               for(int R=0;R<3;R++)
               {
                 fMKLM(K,L,M)=fMKLM(K,L,M)+fMaterial_Params[kTau3]*GAMMA(R,R,K)*fIdentity_matrix(L,M)
-                            +fMaterial_Params[kTau4]*GAMMA(L,R,R)*fIdentity_matrix(K,M);
-               //  +fMaterial_Params[kTau6]*GAMMA(R,M,R)*fIdentity_matrix(K,L);
-                }
+                            +fMaterial_Params[kTau4]*GAMMA(L,R,R)*fIdentity_matrix(K,M)
+                            +fMaterial_Params[kTau6]*GAMMA(R,M,R)*fIdentity_matrix(K,L);
+              }
             }
         }
     }
@@ -9847,9 +9872,9 @@ void FSMicromorphic3DT:: Form_fMpp_4()
         {
            for(int A=0;A<3;A++)
            {
+            row=0;
             if(A==R)
             {
-             row=0;
              for(int l=0;l<3;l++)
               {
                  for(int m=0;m<3;m++)
@@ -9882,9 +9907,88 @@ void FSMicromorphic3DT:: Form_fMpp_4()
 
 }
 
+void FSMicromorphic3DT:: Form_fMpu_6()
+{
+    int row=0;
+    int col=0;
+    fMpu_6=0.0;
+
+    for(int R=0;R<3;R++)
+    {
+        for(int k=0;k<3;k++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation
+                          for(int M=0;M<3;M++)
+                          {
+                            for(int L=0;L<3;L++)
+                             {     
+                               fMpu_6(row,col)+=fDeformation_Gradient(l,L)
+                                            *GRAD_CHIM(k,M,R)
+                                            *fIdentity_matrix(K,L)
+                                            *ChiM(m,M);
+                              }
+                           }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+
+    }
+
+
+}
 
 
 
+void FSMicromorphic3DT:: Form_fMpp_6()
+{
+    int row=0;
+    int col=0;
+    fMpp_6=0.0;
+
+    for(int M=0;M<3;M++)
+    {
+        for(int k=0;k<3;k++)
+        {
+           for(int R=0;R<3;R++)
+           {
+            row=0;
+
+             for(int l=0;l<3;l++)
+              {
+                 for(int m=0;m<3;m++)
+                 {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation
+                        for(int L=0;L<3;L++)
+                        {
+                            fMpp_6(row,col)+=fDeformation_Gradient(l,L)
+                                            *fDeformation_Gradient(k,R)
+                                            *fIdentity_matrix(K,L)
+                                            *ChiM(m,M);
+                        }
+                        row++;
+                    }
+                  }
+               }
+             col++;
+          }
+       }
+
+    }
+
+
+}
 
 
 void FSMicromorphic3DT:: Form_fMpu_1()
