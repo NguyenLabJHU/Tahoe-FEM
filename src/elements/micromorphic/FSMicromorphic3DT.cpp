@@ -1722,10 +1722,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Form_fMpp_1();
                        Form_fMpu_2();
                        Form_fMpp_2();
-                   //    Form_fMpu_3();
-                   //    Form_fMpp_3();
-                   //    Form_fMpu_4();
-                   //    Form_fMpp_4();
+                       Form_fMpu_3();
+                       Form_fMpp_3();
+                       Form_fMpu_4();
+                       Form_fMpp_4();
                        
 
 
@@ -9487,7 +9487,7 @@ void FSMicromorphic3DT:: Form_fMKLM()
         }
     }
 
-/*
+
     for(int K=0;K<3;K++ )
     {
         for(int L=0;L<3;L++)
@@ -9505,7 +9505,7 @@ void FSMicromorphic3DT:: Form_fMKLM()
         }
     }
 
-*/
+
 
 
 }
@@ -9847,7 +9847,7 @@ void FSMicromorphic3DT:: Form_fMpp_4()
         {
            for(int A=0;A<3;A++)
            {
-            if(A=R)
+            if(A==R)
             {
              row=0;
              for(int l=0;l<3;l++)
@@ -9872,6 +9872,7 @@ void FSMicromorphic3DT:: Form_fMpp_4()
                   }
                }
              }
+
              col++;
           }
        }
