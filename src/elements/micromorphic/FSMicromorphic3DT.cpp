@@ -5540,8 +5540,9 @@ for(int i=0;i<3;i++)
 				//summation
 				for(int K=0;K<3;K++)
 				{
-					TFn_5(row,col)+=Fn[i][K]*Finv[K][m]*fIdentity_matrix(l,k);
+					TFn_5(row,col)+=Fn[i][K]*Finv[K][m]*fIdentity_matrix(l,i);
 				}
+				row++;
 			}
 		}
 		col++;
