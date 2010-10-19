@@ -5475,7 +5475,7 @@ void FSMicromorphic3DT::Form_TChi_2_matrix()
    }
 */
 
-   for(int L=0;L<3;L++)
+   for(int R=0;R<3;R++)
     {
         for(int m=0;m<3;m++)
         {
@@ -5487,10 +5487,9 @@ void FSMicromorphic3DT::Form_TChi_2_matrix()
                     //summation
                     for(int K=0;K<3;K++)
                     {
-                      for(int i=0;i<3;i++)
-                      {
-                    	TChi_2(row,col)+=ChiN[i][K]*ChiInv_m(K,m)*ChiInv_m(L,i)*fIdentity_matrix(l,k);
-                      }
+
+                    	TChi_2(row,col)+=ChiN[l][K]*ChiInv_m(K,m)*ChiInv_m(R,k);
+
                     }
                     row++;
                 }
