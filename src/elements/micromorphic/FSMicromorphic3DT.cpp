@@ -6804,8 +6804,10 @@ void FSMicromorphic3DT:: Form_Ru_3_matrix()
                                 //summation on the same term starts here
                                     for(int L=0;L<=2;L++)
                                     {
-                                        Ru_3(row, col) +=sn_sigman(m,i)*Fn[l][L]*Finv[L][k];}
-                            row++;}
+                                        Ru_3(row, col) +=sn_sigman(m,i)*Fn[l][L]*Finv[L][k];
+                                     }
+                            row++;
+                            }
                         }
                     col++;
                 }
@@ -6848,7 +6850,7 @@ void FSMicromorphic3DT::Form_Ru_4_matrix()
     int col;
     int row;
     col=0;
-    for(int l = 0; l<= 2; l++)
+   /* for(int l = 0; l<= 2; l++)
         {
             for(int k=0;k<=2;k++)
             {
@@ -6864,7 +6866,28 @@ void FSMicromorphic3DT::Form_Ru_4_matrix()
                     }
                     col++;
                 }
-            }
+            }*/
+
+    for(int p=0;p<3;p++)
+    {
+    	for(int k=0;k<3;k++)
+    	{
+    		row=0;
+    		for(int m=0;m<3;m++)
+    		{
+    			for(int l=0;l<3;l++)
+    			{
+    				//summation
+    				for(int K=0;K<3;K++)
+    				{
+    					Ru_4(row, col) +=Fn[m][K]*Finv[K][k]*fIdentity_matrix(p,l);
+    				}
+    				row++;
+    			}
+    		}
+    	col++;
+    	}
+    }
 
 
 }
