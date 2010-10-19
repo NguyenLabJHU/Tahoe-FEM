@@ -7446,7 +7446,7 @@ void FSMicromorphic3DT::Form_H2_matrix()
     s_sigma+=tempSig;
 
     tempSig.Transpose(deltaEp);
-    scale=(fMaterial_Params[kKappa]-fMaterial_Params[kKappa]);
+    scale=(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
     tempSig*=scale;
     s_sigma+=tempSig;
 
