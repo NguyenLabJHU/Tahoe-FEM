@@ -5547,13 +5547,14 @@ for(int i=0;i<3;i++)
 		}
 		col++;
 	}
-}
+	}
 
 }
 
 void FSMicromorphic3DT::Form_TChi_3_matrix()
 {
-    int row,col;
+    int row;
+    int col;
     row=0;
     col=0;
     TChi_3=0.0;
@@ -5579,99 +5580,6 @@ void FSMicromorphic3DT::Form_TChi_3_matrix()
             col++;
         }
     }
-
-
-/*    TChi_3(0,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[0][2]);
-    TChi_3(1,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[0][2]);
-    TChi_3(2,0)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][0]*ChiN[0][2]);
-    TChi_3(3,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[1][2]);
-    TChi_3(4,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[1][2]);
-    TChi_3(5,0)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][0]*ChiN[1][2]);
-    TChi_3(6,0)=(ChiInv[0][0]*ChiInv[0][0]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][0]*ChiN[2][2]);
-    TChi_3(7,0)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][0]*ChiN[2][2]);
-    TChi_3(8,0)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][0]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][0]*ChiN[2][2]);
-
-    TChi_3(0,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[0][2]);
-    TChi_3(1,1)=(ChiInv[0][1]*ChiInv[0][1]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[0][2]);
-    TChi_3(2,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[0][2]);
-    TChi_3(3,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[1][2]);
-    TChi_3(4,1)=(ChiInv[0][1]*ChiInv[0][1]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[1][2]);
-    TChi_3(5,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[1][2]);
-    TChi_3(6,1)=(ChiInv[0][0]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][1]*ChiN[2][2]);
-    TChi_3(7,1)=(ChiInv[0][1]*ChiInv[0][1]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][1]*ChiN[2][2]);
-    TChi_3(8,1)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][1]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][1]*ChiN[2][2]);
-
-    TChi_3(0,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(1,2)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(2,2)=(ChiInv[0][2]*ChiInv[0][2]*ChiN[0][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[0][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(3,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(4,2)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(5,2)=(ChiInv[0][2]*ChiInv[0][2]*ChiN[1][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[1][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(6,2)=(ChiInv[0][0]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][0]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][0]*ChiInv[2][2]*ChiN[2][2]);
-    TChi_3(7,2)=(ChiInv[0][1]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][1]*ChiInv[2][2]*ChiN[2][2]);
-    TChi_3(8,2)=(ChiInv[0][2]*ChiInv[0][2]*ChiN[2][0] + ChiInv[0][2]*ChiInv[1][2]*ChiN[2][1] + ChiInv[0][2]*ChiInv[2][2]*ChiN[2][2]);
-
-    TChi_3(0,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[0][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][2]);
-    TChi_3(1,3)=(ChiInv[0][0]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][2]);
-    TChi_3(2,3)=(ChiInv[0][0]*ChiInv[1][2]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][2]*ChiInv[2][0]*ChiN[0][2]);
-    TChi_3(3,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[1][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[1][2]);
-    TChi_3(4,3)=(ChiInv[0][0]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][2]);
-    TChi_3(5,3)=(ChiInv[0][0]*ChiInv[1][2]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][2]*ChiInv[2][0]*ChiN[1][2]);
-    TChi_3(6,3)=(ChiInv[0][0]*ChiInv[1][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][0]*ChiN[2][1] + ChiInv[1][0]*ChiInv[2][0]*ChiN[2][2]);
-    TChi_3(7,3)=(ChiInv[0][0]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][0]*ChiN[2][2]);
-    TChi_3(8,3)=(ChiInv[0][0]*ChiInv[1][2]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][2]*ChiInv[2][0]*ChiN[2][2]);
-
-    TChi_3(0,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[0][1] + ChiInv[1][0]*ChiInv[2][1]*ChiN[0][2]);
-    TChi_3(1,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[1][1]*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][2]);
-    TChi_3(2,4)=(ChiInv[0][1]*ChiInv[1][2]*ChiN[0][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[0][2]);
-    TChi_3(3,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[1][1] + ChiInv[1][0]*ChiInv[2][1]*ChiN[1][2]);
-    TChi_3(4,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[1][1]*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][2]);
-    TChi_3(5,4)=(ChiInv[0][1]*ChiInv[1][2]*ChiN[1][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][2]);
-    TChi_3(6,4)=(ChiInv[0][1]*ChiInv[1][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][1]*ChiN[2][1] + ChiInv[1][0]*ChiInv[2][1]*ChiN[2][2]);
-    TChi_3(7,4)=(ChiInv[0][1]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[1][1]*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][1]*ChiN[2][2]);
-    TChi_3(8,4)=(ChiInv[0][1]*ChiInv[1][2]*ChiN[2][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][2]*ChiInv[2][1]*ChiN[2][2]);
-
-    TChi_3(0,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][0]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(1,5)=(ChiInv[0][2]*ChiInv[1][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(2,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[0][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[0][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(3,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][0]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(4,5)=(ChiInv[0][2]*ChiInv[1][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(5,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[1][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[1][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(6,5)=(ChiInv[0][2]*ChiInv[1][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][2]);
-    TChi_3(7,5)=(ChiInv[0][2]*ChiInv[1][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][2]);
-    TChi_3(8,5)=(ChiInv[0][2]*ChiInv[1][2]*ChiN[2][0] + ChiInv[1][2]*ChiInv[1][2]*ChiN[2][1] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][2]);
-
-    TChi_3(0,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[0][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][0]*ChiN[0][2]);
-    TChi_3(1,6)=(ChiInv[0][0]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][0]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]);
-    TChi_3(2,6)=(ChiInv[0][0]*ChiInv[2][2]*ChiN[0][0] + ChiInv[1][0]*ChiInv[2][2]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(3,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[1][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][0]*ChiN[1][2]);
-    TChi_3(4,6)=(ChiInv[0][0]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][0]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]);
-    TChi_3(5,6)=(ChiInv[0][0]*ChiInv[2][2]*ChiN[1][0] + ChiInv[1][0]*ChiInv[2][2]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(6,6)=(ChiInv[0][0]*ChiInv[2][0]*ChiN[2][0] + ChiInv[1][0]*ChiInv[2][0]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][0]*ChiN[2][2]);
-    TChi_3(7,6)=(ChiInv[0][0]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][0]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[2][2]);
-    TChi_3(8,6)=(ChiInv[0][0]*ChiInv[2][2]*ChiN[2][0] + ChiInv[1][0]*ChiInv[2][2]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]);
-
-    TChi_3(0,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[0][2]);
-    TChi_3(1,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[0][2]);
-    TChi_3(2,7)=(ChiInv[0][1]*ChiInv[2][2]*ChiN[0][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[0][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(3,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[1][2]);
-    TChi_3(4,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[1][2]);
-    TChi_3(5,7)=(ChiInv[0][1]*ChiInv[2][2]*ChiN[1][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[1][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(6,7)=(ChiInv[0][1]*ChiInv[2][0]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][0]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][1]*ChiN[2][2]);
-    TChi_3(7,7)=(ChiInv[0][1]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][1]*ChiInv[2][1]*ChiN[2][2]);
-    TChi_3(8,7)=(ChiInv[0][1]*ChiInv[2][2]*ChiN[2][0] + ChiInv[1][1]*ChiInv[2][2]*ChiN[2][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]);
-
-    TChi_3(0,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[0][0] + ChiInv[1][2]*ChiInv[2][0]*ChiN[0][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(1,8)=(ChiInv[0][2]*ChiInv[2][1]*ChiN[0][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[0][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(2,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[0][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[0][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[0][2]);
-    TChi_3(3,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[1][0] + ChiInv[1][2]*ChiInv[2][0]*ChiN[1][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(4,8)=(ChiInv[0][2]*ChiInv[2][1]*ChiN[1][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[1][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(5,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[1][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[1][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[1][2]);
-    TChi_3(6,8)=(ChiInv[0][2]*ChiInv[2][0]*ChiN[2][0] + ChiInv[1][2]*ChiInv[2][0]*ChiN[2][1] + ChiInv[2][0]*ChiInv[2][2]*ChiN[2][2]);
-    TChi_3(7,8)=(ChiInv[0][2]*ChiInv[2][1]*ChiN[2][0] + ChiInv[1][2]*ChiInv[2][1]*ChiN[2][1] + ChiInv[2][1]*ChiInv[2][2]*ChiN[2][2]);
-    TChi_3(8,8)=(ChiInv[0][2]*ChiInv[2][2]*ChiN[2][0] + ChiInv[1][2]*ChiInv[2][2]*ChiN[2][1] + ChiInv[2][2]*ChiInv[2][2]*ChiN[2][2]);
-*/
-
 
 }
 
@@ -5700,41 +5608,6 @@ void FSMicromorphic3DT::Form_TFn_6_matrix()
         }
     }
 
-/*    TFn_6(0,0)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2]);
-    TFn_6(3,0)=(Finv[0][0]*Fn[1][0] + Finv[1][0]*Fn[1][1] + Finv[2][0]*Fn[1][2]);
-    TFn_6(6,0)=(Finv[0][0]*Fn[2][0] + Finv[1][0]*Fn[2][1] + Finv[2][0]*Fn[2][2]);
-
-    TFn_6(0,1)=(Finv[0][1]*Fn[0][0] + Finv[1][1]*Fn[0][1] + Finv[2][1]*Fn[0][2]);
-    TFn_6(3,1)=(Finv[0][1]*Fn[1][0] + Finv[1][1]*Fn[1][1] + Finv[2][1]*Fn[1][2]);
-    TFn_6(6,1)=(Finv[0][1]*Fn[2][0] + Finv[1][1]*Fn[2][1] + Finv[2][1]*Fn[2][2]);
-
-    TFn_6(0,2)=(Finv[0][2]*Fn[0][0] + Finv[1][2]*Fn[0][1] + Finv[2][2]*Fn[0][2]);
-    TFn_6(3,2)=(Finv[0][2]*Fn[1][0] + Finv[1][2]*Fn[1][1] + Finv[2][2]*Fn[1][2]);
-    TFn_6(6,2)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2]);
-
-    TFn_6(1,3)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2]);
-    TFn_6(4,3)=(Finv[0][0]*Fn[1][0] + Finv[1][0]*Fn[1][1] + Finv[2][0]*Fn[1][2]);
-    TFn_6(7,3)=(Finv[0][0]*Fn[2][0] + Finv[1][0]*Fn[2][1] + Finv[2][0]*Fn[2][2]);
-
-    TFn_6(1,4)=(Finv[0][1]*Fn[0][0] + Finv[1][1]*Fn[0][1] + Finv[2][1]*Fn[0][2]);
-    TFn_6(4,4)=(Finv[0][1]*Fn[1][0] + Finv[1][1]*Fn[1][1] + Finv[2][1]*Fn[1][2]);
-    TFn_6(7,4)=(Finv[0][1]*Fn[2][0] + Finv[1][1]*Fn[2][1] + Finv[2][1]*Fn[2][2]);
-
-    TFn_6(1,5)=(Finv[0][2]*Fn[0][0] + Finv[1][2]*Fn[0][1] + Finv[2][2]*Fn[0][2]);
-    TFn_6(4,5)=(Finv[0][2]*Fn[1][0] + Finv[1][2]*Fn[1][1] + Finv[2][2]*Fn[1][2]);
-    TFn_6(7,5)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2]);
-
-    TFn_6(2,6)=(Finv[0][0]*Fn[0][0] + Finv[1][0]*Fn[0][1] + Finv[2][0]*Fn[0][2]);
-    TFn_6(5,6)=(Finv[0][0]*Fn[1][0] + Finv[1][0]*Fn[1][1] + Finv[2][0]*Fn[1][2]);
-    TFn_6(8,6)=(Finv[0][0]*Fn[2][0] + Finv[1][0]*Fn[2][1] + Finv[2][0]*Fn[2][2]);
-
-    TFn_6(2,7)=(Finv[0][1]*Fn[0][0] + Finv[1][1]*Fn[0][1] + Finv[2][1]*Fn[0][2]);
-    TFn_6(5,7)=(Finv[0][1]*Fn[1][0] + Finv[1][1]*Fn[1][1] + Finv[2][1]*Fn[1][2]);
-    TFn_6(8,7)=(Finv[0][1]*Fn[2][0] + Finv[1][1]*Fn[2][1] + Finv[2][1]*Fn[2][2]);
-
-    TFn_6(2,8)=(Finv[0][2]*Fn[0][0] + Finv[1][2]*Fn[0][1] + Finv[2][2]*Fn[0][2]);
-    TFn_6(5,8)=(Finv[0][2]*Fn[1][0] + Finv[1][2]*Fn[1][1] + Finv[2][2]*Fn[1][2]);
-    TFn_6(8,8)=(Finv[0][2]*Fn[2][0] + Finv[1][2]*Fn[2][1] + Finv[2][2]*Fn[2][2]);*/
 
 }
 
