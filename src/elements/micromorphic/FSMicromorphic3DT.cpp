@@ -6816,9 +6816,10 @@ void FSMicromorphic3DT:: Form_Ru_3_matrix()
 
 void FSMicromorphic3DT:: Form_RChi_1_matrix()
 {
-    RChi_1=0.0;
+
     int col;
     int row;
+    RChi_1=0.0;
     col=0;
     for(int K = 0; K<= 2; K++)
         {
@@ -6832,7 +6833,7 @@ void FSMicromorphic3DT:: Form_RChi_1_matrix()
                                 //summation on the same term starts here
                                     for(int T=0; T<=2; T++)
                                     {
-                                        RChi_1(row, col) +=ChiN[l][T]*ChiInv[T][p]*ChiInv[K][m];
+                                        RChi_1(row,col) +=ChiN[l][T]*ChiInv[T][p]*ChiInv[K][m];
                                     }
                             row++;
                            }
@@ -6850,7 +6851,7 @@ void FSMicromorphic3DT::Form_Ru_4_matrix()
     int col;
     int row;
     col=0;
-   /* for(int l = 0; l<= 2; l++)
+   for(int l = 0; l<= 2; l++)
         {
             for(int k=0;k<=2;k++)
             {
@@ -6860,15 +6861,15 @@ void FSMicromorphic3DT::Form_Ru_4_matrix()
                             //summation on the same term starts here
                                 for(int K=0;K<=2;K++)
                                 {
-                                    Ru_4(row, col) +=Fn[m][K]*Finv[K][k];
+                                    Ru_4(row,col)+=Fn[m][K]*Finv[K][k];
                                 }
                                 row=row+3;
                     }
                     col++;
                 }
-            }*/
+            }
 
-    for(int p=0;p<3;p++)
+  /*  for(int p=0;p<3;p++)
     {
     	for(int k=0;k<3;k++)
     	{
@@ -6889,7 +6890,7 @@ void FSMicromorphic3DT::Form_Ru_4_matrix()
     	}
     }
 
-
+*/
 }
 
 void FSMicromorphic3DT:: Form_RChi_2_matrix()
