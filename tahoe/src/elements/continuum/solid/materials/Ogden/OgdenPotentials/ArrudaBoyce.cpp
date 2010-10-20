@@ -1,4 +1,4 @@
-/* $Id: ArrudaBoyce.cpp,v 1.2 2009-04-23 03:22:46 tdnguye Exp $ */
+/* $Id: ArrudaBoyce.cpp,v 1.3 2010-10-20 02:57:12 tdnguye Exp $ */
 /* created:   TDN (7/2007) */
 /* Arruda, E.M and Boyce, M.C., JMPS, v41, pp. 389-412*/
 #include "ArrudaBoyce.h"
@@ -33,12 +33,15 @@ void ArrudaBoyce::DefineParameters(ParameterListT& list) const
 
 	ParameterT muN(ParameterT::Double, "network_stiffness");
 	ParameterT lambdaL(ParameterT::Double, "locking_stretch");
+	ParameterT T0(ParameterT::Double, "reference_temperature");
 
 	muN.AddLimit(zero);
+	T0.AddLimit(zero);
 	lambdaL.AddLimit(one);
 
 	list.AddParameter(muN);
 	list.AddParameter(lambdaL);
+	list.AddParameter(T0);
 }
 
 void ArrudaBoyce::TakeParameterList(const ParameterListT& list)
@@ -48,6 +51,7 @@ void ArrudaBoyce::TakeParameterList(const ParameterListT& list)
 
 	fmuN = list.GetParameter("network_stiffness");
 	flambdaL = list.GetParameter("locking_stretch");
+	fT0 = list.GetParameter("reference_temperature");
 	fMu = fmuN*flambdaL*fLangevin.Function(1.0/flambdaL);
 }
 
@@ -59,7 +63,7 @@ double ArrudaBoyce::Energy(const dArrayT& lambda_bar, const double& J, double te
   double x = fLangevin.Function(r);
   double y = fLangevin.Function(r0);
   
-  double phi = fmuN*temperature*flambdaL*flambdaL*(r*x + log(x/sinh(x)) - 1.0/flambdaL*y - log(y/sinh(y)));
+  double phi = fmuN*(temperature/fT0)*flambdaL*flambdaL*(r*x + log(x/sinh(x)) - 1.0/flambdaL*y - log(y/sinh(y)));
   phi += MeanEnergy(J);
 
   return(phi);
@@ -73,7 +77,7 @@ void ArrudaBoyce::DevStress(const dArrayT& lambda_bar,dArrayT& tau, double tempe
   double lam_eff = sqrt(1.0/3.0*(lambda_bar[0]+lambda_bar[1]+lambda_bar[2]));
   double r = lam_eff/flambdaL;
   
-  fMu = fmuN*temperature/r*fLangevin.Function(r);
+  fMu = fmuN*(temperature/fT0)/r*fLangevin.Function(r);
   
   const double& l0 = lambda_bar[0];
   const double& l1 = lambda_bar[1];
@@ -97,8 +101,8 @@ void ArrudaBoyce::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus,  
   double lam_eff = sqrt(1.0/3.0*(lambda_bar[0]+lambda_bar[1]+lambda_bar[2]));
   double r = lam_eff/flambdaL;
   
-  fMu = fmuN*temperature/r*fLangevin.Function(r);
-  double dMu_dleff = fmuN/(lam_eff) * (1.0/lam_eff*fLangevin.DFunction(r) - fLangevin.Function(r)/r);
+  fMu = fmuN*(temperature/fT0)/r*fLangevin.Function(r);
+  double dMu_dleff = fmuN*(temperature/fT0)/(lam_eff) * (1.0/lam_eff*fLangevin.DFunction(r) - fLangevin.Function(r)/r);
 
   const double& l0 = lambda_bar[0];
   const double& l1 = lambda_bar[1];
