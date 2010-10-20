@@ -2909,7 +2909,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    }
                }*/
 
-            for (int i=0; i<72; i++)
+     /*       for (int i=0; i<72; i++)
                {
                    for(int k=0; k<72; k++)
                    {
@@ -2918,7 +2918,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     fs_micromorph3D_out << endl;
                    }
                }
-
+*/
 
 
             /* equations numbers */
