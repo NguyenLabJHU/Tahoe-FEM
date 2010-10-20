@@ -1,4 +1,4 @@
-/* $Id: ArrudaBoyce.h,v 1.2 2009-04-23 03:22:46 tdnguye Exp $ */
+/* $Id: ArrudaBoyce.h,v 1.3 2010-10-20 02:57:13 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _ArrudaBoyce_
 #define _ArrudaBoyce_
@@ -38,6 +38,7 @@ class ArrudaBoyce: public PotentialT
 	InvLangevin fLangevin; /*Inverse langevin function for strain hardening*/
 	double fmuN;		/*network stiffness*/
 	double flambdaL;	/*locking stretch*/
+	double fT0;			/*reference temperature*/
 
 };
 }
