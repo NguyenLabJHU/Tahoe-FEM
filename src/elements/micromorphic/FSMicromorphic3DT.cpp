@@ -9707,9 +9707,9 @@ void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
 {
 
     Higher_orderT_inv=0.0;
-    temp_inv=0.0;
     devmklm=0.0;
     trmklm=0.0;
+    trvecmklm=0.0;
     for(int i=0;i<3;i++)
     {
         for(int j=0;j<3;j++)
@@ -9727,11 +9727,12 @@ void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
     }
 
 
+    temp_inv=0;
     for(int i =0;i<3;i++)
     {
         for(int a=0;a<3;a++)
         {
-            trvecmklm[i]+=devmklm(a,a,i);
+            trvecmklm[i]+=fmklm(a,a,i);
         }
         temp_inv+=trvecmklm[i]*trvecmklm[i];
     }
@@ -9752,6 +9753,10 @@ void FSMicromorphic3DT:: Calculate_higher_order_tensor_INV()
     }
 
     Higher_orderT_inv=sqrt(temp_inv);
+
+
+
+
 
 }
 
