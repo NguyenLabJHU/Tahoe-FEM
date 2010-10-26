@@ -2,6 +2,8 @@
 #include "ParameterContainerT.h"
 #include "OutputSetT.h"
 #include "ShapeFunctionT.h"
+#include "FSSolidMatT.h"
+#include "FSMatSupportT.h"
 
 //
 // materials lists (3D only)
@@ -11,11 +13,17 @@
 namespace Tahoe {
 
   //
+  //	constructor
   //
-  //
+/* constructor */
+// FSDielectricElastomerT::FSDielectricElastomerT(const ElementSupportT& support):
+// {
+// 
+// }
+
+/* Destructor */
   FSDielectricElastomerT::~FSDielectricElastomerT()
   {
-
 
   }
 
@@ -29,7 +37,16 @@ namespace Tahoe {
 
     // additional fields
     list.AddParameter(ParameterT::Word, "electric_field_name");
+  }
 
+  /* describe the parameters needed by the interface */
+  void FSDielectricElastomerT::DefineSubs(SubListT& sub_list) const
+  {
+	  /* inherited */
+	  SolidElementT::DefineSubs(sub_list);
+
+	  /* Dielectric elastomer parameters */
+	  sub_list.AddSub("Dielectric_Elastomer");
   }
 
   //
@@ -50,12 +67,6 @@ namespace Tahoe {
     //
     const StringT& electric_field_name = list.GetParameter(
         "electric_field_name");
-
-    fElectricVectorPotentialField = ElementSupport().Field(electric_field_name);
-    if (!fElectricVectorPotentialField) {
-      ExceptionT::GeneralFail("FSDielectricElastomerT::TakeParameterList",
-          "could not resolve \"%s\" field", electric_field_name.Pointer());
-    }
 
     const int nip = NumIP();
     const int nsd = NumSD();
@@ -115,50 +126,6 @@ namespace Tahoe {
     //
     FiniteStrainT::SetGlobalShape();
 
-    //
-    // what needs to be computed
-    //
-    SetLocalU(fLocVectorPotential);
-
-    for (int i = 0; i < NumIP(); i++) {
-
-      //
-      // electric displacement and divergence of vector potential
-      //
-      {
-
-        dArrayT& D = fD_List[i];
-        double& DivPhi = fDivPhi_List[i];
-
-        //
-        // curl of vector potential
-        //
-        int m = fLocVectorPotential.NumberOfNodes();
-        int n = fLocVectorPotential.MinorDim();
-
-        ArrayT<dArrayT> vp(m);
-        dMatrixT GradPhi(n);
-
-        for (int j = 0; j < m; ++j) {
-          vp[j].Dimension(n);
-
-          for (int k = 0; k < n; ++k) {
-            vp[j][k] = fLocVectorPotential(j, k);
-          }
-        }
-
-        fShapes->CurlU(vp, D, i);
-        fShapes->GradU(fLocVectorPotential, GradPhi, i);
-        DivPhi = GradPhi.Trace();
-
-        //
-        // reverse sign
-        //
-        D *= -1.0;
-
-      }
-
-    }
 
   }
 
@@ -270,94 +237,33 @@ namespace Tahoe {
       //
       // get material tangent moduli
       //
-      dMatrixT C = fCurrMaterial->C_IJKL();
-      dMatrixT H = fCurrMaterial->H_IJK();
-      dMatrixT B = fCurrMaterial->B_IJ();
-      dSymMatrixT S = fCurrMaterial->S_IJ();
 
-      C *= (0.25 * w);
-      H *= (0.5 * w);
-      B *= w;
-      S *= w;
 
       //
       // prepare derivatives of interpolation functions
       //
       const dArray2DT & DNaX = fShapes->Derivatives_X();
 
-      //
-      // Primary variables -> gradient operators
-      //
-
-      dMatrixT B_C;
-
-      Set_B_C(DNaX, B_C);
-
-      dMatrixT B_D;
-
-      Set_B_D(DNaX, B_D);
-
-      //
-      // Material stiffness
-      //
-      fMaterialTangent.MultQTBQ(B_C, C, format, dMatrixT::kAccumulate);
-
-      //
-      // Geometric stiffness
-      //
-      AccumulateGeometricStiffness(fGeometricTangent, DNaX, S);
-
-      //
-      // Piezoelectric coupling tangents
-      //
-      fMechanical2ElectricTangent.MultATBC(B_D, H, B_C, dMatrixT::kWhole,
-          dMatrixT::kAccumulate);
-
-      //
-      // Purely electric tangent
-      //
-      fElectricTangent.MultQTBQ(B_D, B, format, dMatrixT::kAccumulate);
-
-      //
-      // Penalty contribution
-      //
-      {
-        dMatrixT TwoKay(1);
-        TwoKay.Identity(w * 2.0 * fCurrMaterial->GetPenaltyCoefficient());
-
-        dMatrixT B_K;
-        Set_B_K(DNaX, B_K);
-
-        fElectricTangent.MultQTBQ(B_K, TwoKay, format, dMatrixT::kAccumulate);
-      }
-
     }
 
-    fElectric2MechanicalTangent.Transpose(fMechanical2ElectricTangent);
-
-    //
-    // Add geometric stiffness
-    //
-    fMaterialTangent.Expand(fGeometricTangent, 1, dMatrixT::kAccumulate);
-
-    //
-    // Assemble into element stiffness matrix
-    //
-    fLHS.AddBlock(0, 0, fMaterialTangent);
-
-    fLHS.AddBlock(fMaterialTangent.Rows(), fMaterialTangent.Cols(),
-        fElectricTangent);
-
-    fLHS.AddBlock(0, fMaterialTangent.Cols(), fElectric2MechanicalTangent);
-
-    //
-    // non-symmetric
-    //
-    if (format != dMatrixT::kUpperOnly) {
-
-      fLHS.AddBlock(fMaterialTangent.Rows(), 0, fMechanical2ElectricTangent);
-
-    }
+// 
+//  Assemble into element stiffness matrix
+// 
+//     fLHS.AddBlock(0, 0, fMaterialTangent);
+// 
+//     fLHS.AddBlock(fMaterialTangent.Rows(), fMaterialTangent.Cols(),
+//         fElectricTangent);
+// 
+//     fLHS.AddBlock(0, fMaterialTangent.Cols(), fElectric2MechanicalTangent);
+// 
+// 
+//  non-symmetric
+// 
+//     if (format != dMatrixT::kUpperOnly) {
+// 
+//       fLHS.AddBlock(fMaterialTangent.Rows(), 0, fMechanical2ElectricTangent);
+// 
+//     }
 
   }
 
@@ -394,50 +300,16 @@ namespace Tahoe {
       //
       const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
 
-      //
-      // Deformation power P_D := \int S : 0.5 \dot(C) dV
-      //
-      dSymMatrixT S = fCurrMaterial->S_IJ();
-      dArrayT E = fCurrMaterial->E_I();
-
-      S *= (0.5 * w);
-      E *= w;
-
       const dArray2DT & DNaX = fShapes->Derivatives_X();
 
-      dMatrixT B_C;
-      Set_B_C(DNaX, B_C);
-      B_C.MultTx(S, RS, 1.0, dMatrixT::kAccumulate);
 
-      dMatrixT B_D;
-      Set_B_D(DNaX, B_D);
-      B_D.MultTx(E, RE, 1.0, dMatrixT::kAccumulate);
+	}
 
-      //
-      // Penalty contribution
-      //
-      {
-        double DivPhi2K = fCurrMaterial->DivPhi();
-        DivPhi2K *= (2.0 * w * fCurrMaterial->GetPenaltyCoefficient());
-
-        dMatrixT B_K;
-        Set_B_K(DNaX, B_K);
-
-        for (int i = 0; i < nen; ++i) {
-          for (int j = 0; j < nsd; j++) {
-            R_K[(nen + i) * nsd + j] += DivPhi2K * B_K(0, i * nsd + j);
-          }
-        }
-
-      }
-
-    }
-
-    R.CopyIn(0, RS);
-    R.CopyIn(RS.Length(), RE);
-
-    fRHS += R;
-    fRHS += R_K;
+//     R.CopyIn(0, RS);
+//     R.CopyIn(RS.Length(), RE);
+// 
+//     fRHS += R;
+//     fRHS += R_K;
 
   }
 
@@ -601,14 +473,6 @@ namespace Tahoe {
           NodalDOFs(CurrentElement().NodesX(), disp);
       }
 
-      if (n_codes[ND_ELEC_POT]) {
-        if (interpolant_DOF) {
-          fLocVectorPotential.ReturnTranspose(ndElectricVectorPotential);
-        } else {
-          NodalDOFs(CurrentElement().NodesX(), ndElectricVectorPotential);
-        }
-      }
-
       // initialize element values
       mass = strain_energy = kinetic_energy = 0;
       if (e_codes[iCentroid]) centroid = 0.0;
@@ -620,9 +484,9 @@ namespace Tahoe {
       dArray2DT Na_X_ip_w;
       fShapes->TopIP();
       while (fShapes->NextIP() != 0) {
-
-        // density may change with integration point
-        double density = fCurrMaterial->Density();
+// 
+//         // density may change with integration point
+//         double density = fCurrMaterial->Density();
 
         // element integration weight
         double ip_w = (*j++) * (*w++);
@@ -635,75 +499,32 @@ namespace Tahoe {
         }
 
         // get Cauchy stress
-        const dSymMatrixT& stress = fCurrMaterial->s_ij();
+//         const dSymMatrixT& stress = fCurrMaterial->s_ij();
         dSymMatrixT strain;
 
         // stresses
         if (n_codes[iNodalStress]) {
           if (qNoExtrap) {
             for (int k = 0; k < nen; k++) {
-              nodalstress.AddToRowScaled(k, Na_X_ip_w(k, 0), stress);
+//              nodalstress.AddToRowScaled(k, Na_X_ip_w(k, 0), stress);
             }
           } else {
-            fShapes->Extrapolate(stress, nodalstress);
+//            fShapes->Extrapolate(stress, nodalstress);
           }
         }
 
         if (e_codes[iIPStress]) {
           double* row = ip_stress(fShapes->CurrIP());
           strain.Set(nsd, row);
-          strain = stress;
-          row += stress.Length();
+//          strain = stress;
+//          row += stress.Length();
           strain.Set(nsd, row);
-          fCurrMaterial->Strain(strain);
+//           fCurrMaterial->Strain(strain);
         }
-
-        // wave speeds
-        if (n_codes[iWaveSpeeds]) {
-          // acoustic wave speeds
-          fCurrMaterial->WaveSpeeds(fNormal, ipspeed);
-          if (qNoExtrap) {
-            for (int k = 0; k < nen; k++) {
-              speed.AddToRowScaled(k, Na_X_ip_w(k, 0), ipspeed);
-            }
-          } else {
-            fShapes->Extrapolate(ipspeed, speed);
-          }
-        }
-
-        // principal values - compute principal before smoothing
-        if (n_codes[iPrincipal]) {
-          // compute eigenvalues
-          stress.PrincipalValues(ipprincipal);
-
-          if (qNoExtrap) {
-            for (int k = 0; k < nen; k++) {
-              princstress.AddToRowScaled(k, Na_X_ip_w(k, 0), ipprincipal);
-            }
-          } else {
-            fShapes->Extrapolate(ipprincipal, princstress);
-          }
-        }
-
-        // strain energy density
-        if (n_codes[iEnergyDensity] || e_codes[iStrainEnergy]) {
-          double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
-
-          // nodal average
-          if (n_codes[iEnergyDensity]) {
-            ipenergy[0] = ip_strain_energy;
-            if (qNoExtrap) {
-              for (int k = 0; k < nen; k++) {
-                energy.AddToRowScaled(k, Na_X_ip_w(k, 0), ipenergy);
-              }
-            } else {
-              fShapes->Extrapolate(ipenergy, energy);
-            }
-          }
 
           // integrate over element
           if (e_codes[iStrainEnergy]) {
-            strain_energy += ip_w * ip_strain_energy;
+//            strain_energy += ip_w * ip_strain_energy;
           }
 
         }
@@ -711,7 +532,7 @@ namespace Tahoe {
         // material stuff
         if (n_codes[iMaterialData] || e_codes[iIPMaterialData]) {
           // compute material output
-          fCurrMaterial->ComputeOutput(ipmat);
+//          fCurrMaterial->ComputeOutput(ipmat);
 
           // store nodal data
           if (n_codes[iMaterialData]) {
@@ -730,43 +551,10 @@ namespace Tahoe {
           }
         }
 
-        // mass averaged centroid
-        if (e_codes[iCentroid] || e_codes[iMass]) {
-          // mass
-          mass += ip_w * density;
-
-          // integration point mass
-          if (e_codes[iMass]) ip_mass[fShapes->CurrIP()] = ip_w * density;
-
-          // moment
-          if (e_codes[iCentroid]) {
-            fShapes->IPCoords(ip_centroid);
-            centroid.AddScaled(ip_w * density, ip_centroid);
-          }
-        }
-
-        // kinetic energy/linear momentum
-        if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum]) {
-          // velocity at integration point
-          fShapes->InterpolateU(fLocVel, ip_velocity);
-          double ke_density = 0.5 * density * dArrayT::Dot(ip_velocity,
-              ip_velocity);
-
-          // kinetic energy
-          if (e_codes[iKineticEnergy]) {
-            kinetic_energy += ip_w * ke_density;
-          }
-
-          // linear momentum
-          if (e_codes[iLinearMomentum]) {
-            linear_momentum.AddScaled(ip_w * density, ip_velocity);
-          }
-
-        }
 
         // divergence of vector potential
         dArrayT DivPhi(1);
-        DivPhi = fCurrMaterial->DivPhi();
+//        DivPhi = fCurrMaterial->DivPhi();
 
         if (n_codes[ND_DIV_POT]) {
           if (qNoExtrap) {
@@ -778,29 +566,17 @@ namespace Tahoe {
           }
         }
 
-        // electric displacements
-        const dArrayT& D = fCurrMaterial->D_I();
-
-        if (n_codes[ND_ELEC_DISP]) {
-          if (qNoExtrap) {
-            for (int k = 0; k < nen; k++) {
-              ndElectricDisplacement.AddToRowScaled(k, Na_X_ip_w(k, 0), D);
-            }
-          } else {
-            fShapes->Extrapolate(D, ndElectricDisplacement);
-          }
-        }
 
         // electric field
-        const dArrayT& E = fCurrMaterial->E_I();
+//        const dArrayT& E = fCurrMaterial->E_I();
 
         if (n_codes[ND_ELEC_FLD]) {
           if (qNoExtrap) {
             for (int k = 0; k < nen; k++) {
-              ndElectricField.AddToRowScaled(k, Na_X_ip_w(k, 0), E);
+//              ndElectricField.AddToRowScaled(k, Na_X_ip_w(k, 0), E);
             }
           } else {
-            fShapes->Extrapolate(E, ndElectricField);
+ //           fShapes->Extrapolate(E, ndElectricField);
           }
         }
 
@@ -865,14 +641,14 @@ namespace Tahoe {
     }
 
     // get nodally averaged values
-    const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
-    const iArrayT& nodes_used = output_set.NodesUsed();
-    dArray2DT extrap_values(nodes_used.Length(), n_out);
-    extrap_values.RowCollect(nodes_used, ElementSupport().OutputAverage());
-
-    int tmpDim = extrap_values.MajorDim();
-    n_values.Dimension(tmpDim, n_out);
-    n_values.BlockColumnCopyAt(extrap_values, 0);
-  }
+//     const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+//     const iArrayT& nodes_used = output_set.NodesUsed();
+//     dArray2DT extrap_values(nodes_used.Length(), n_out);
+//     extrap_values.RowCollect(nodes_used, ElementSupport().OutputAverage());
+// 
+//     int tmpDim = extrap_values.MajorDim();
+//     n_values.Dimension(tmpDim, n_out);
+//     n_values.BlockColumnCopyAt(extrap_values, 0);
+//  }
 
 } // namespace Tahoe

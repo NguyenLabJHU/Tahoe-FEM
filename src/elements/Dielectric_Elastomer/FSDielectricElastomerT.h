@@ -21,6 +21,7 @@ namespace Tahoe {
     // constructor
     //
     FSDielectricElastomerT(const ElementSupportT& support);
+//	FSDielectricElastomerT();
 
     //
     // destructor
@@ -36,6 +37,11 @@ namespace Tahoe {
     // accept parameter list
     //
     virtual void TakeParameterList(const ParameterListT& list);
+
+    //
+    // information about subordinate parameter lists
+    //
+    virtual void DefineSubs(SubListT& sub_list) const;
 
     //
     //
@@ -180,7 +186,7 @@ namespace Tahoe {
     // pointer is only set the first time
     // FSDielectricElastomerT::NewMaterialList is called.
     //
-    FSPZMatSupportT* fFSPZMatSupport;
+//    FSPZMatSupportT* fFSPZMatSupport;
 
   private:
 
@@ -196,7 +202,5 @@ namespace Tahoe {
   };
 
 } // namespace Tahoe
-
-#include "FSDielectricElastomerT.i.h"
 
 #endif // _FSDielectricElastomerT_
