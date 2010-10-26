@@ -37,6 +37,7 @@ namespace Tahoe {
 
     // additional fields
     list.AddParameter(ParameterT::Word, "electric_field_name");
+    
   }
 
   /* describe the parameters needed by the interface */
@@ -60,35 +61,33 @@ namespace Tahoe {
     //
     FiniteStrainT::TakeParameterList(list);
 
-    //
-    // get electric vector potential field
-    //
-    // for now use same integration and interpolation schemes as primary field
-    //
-    const StringT& electric_field_name = list.GetParameter(
-        "electric_field_name");
+    /* Define matrix sizes */
+    int nen = NumElementNodes();
+    int nsd = NumSD();
+    int nel = nen;	// # electrical DOFs per element
+    int nme = nen * nsd;	// # of mechanical DOFs per element
+    int dof = nsd + 1;	// total # of DOFs per node (mech + elec)
+    int neq = nen * dof;	// total # of DOFs per element (mech + elec)
 
-    const int nip = NumIP();
-    const int nsd = NumSD();
+    fAmm.Dimension(nme, nme);
+    fAme.Dimension(nme, nel);
+    fAem.Dimension(nel, nme);
+    fAee.Dimension(nel, nel);
+	fCmm.Dimension(nsd*2, nsd*2);	
+	fCme.Dimension(nsd*2, nsd);
+	fCem.Dimension(nsd, nsd*2);
+	fCee.Dimension(nsd, nsd);
 
-    fD_all.Dimension(nip * nsd);
-    fD_List.Dimension(nip);
+    fLHS.Dimension(neq);
+    fRHS.Dimension(neq);
 
-    for (int i = 0; i < nip; ++i) {
-      fD_List[i].Alias(nsd, fD_all.Pointer(i * nsd));
-    }
-
-    fDivPhi_all.Dimension(nip);
-    fDivPhi_List.Dimension(nip);
-    fDivPhi_List.Alias(nip, fDivPhi_all.Pointer());
-
-    // Allocate workspace
-    Workspace();
-
+	fDefGrad.Dimension(nsd);
+	fStretch.Dimension(nsd);
+	fGradNa.Dimension(nsd, nen);
   }
 
   //
-  // Protected
+  // PROTECTED
   //
 
   //
@@ -199,9 +198,39 @@ namespace Tahoe {
 
   }
 
-  //
-  // element stiffness matrix
-  //
+/* Compute mechanical-mechanical part of stiffness */
+void FSDielectricElastomerT::ComputeAmm(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cmm)
+{
+
+
+
+}
+
+/* Compute mechanical-electrical part of stiffness */
+void FSDielectricElastomerT::ComputeAme(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cmm)
+{
+
+
+
+}
+
+/* Compute electrical-mechanical part of stiffness */
+void FSDielectricElastomerT::ComputeAem(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cmm)
+{
+
+
+
+}
+
+/* Compute electrical-electrical part of stiffness */
+void FSDielectricElastomerT::ComputeAee(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cmm)
+{
+
+
+
+}
+
+/* calculate the LHS of residual, or element stiffness matrix */
   void FSDielectricElastomerT::FormStiffness(double constK)
   {
 
@@ -218,12 +247,12 @@ namespace Tahoe {
     //
     const int nsd = NumSD();
     const int nen = NumElementNodes();
+	dMatrixT Cmm, Cme, Cem, Cee;
 
-    fGeometricTangent = 0.0;
-    fMaterialTangent = 0.0;
-    fMechanical2ElectricTangent = 0.0;
-    fElectric2MechanicalTangent = 0.0;
-    fElectricTangent = 0.0;
+    fAmm = 0.0;
+    fAme = 0.0;
+    fAem = 0.0;
+    fAee = 0.0;
 
     fShapes->TopIP();
 
@@ -233,30 +262,47 @@ namespace Tahoe {
       // scale/weighting factor for integration
       //
       const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
+	  fDefGrad = DeformationGradient();
+	  fStretch.MultATB(fDefGrad,fDefGrad);
 
-      //
-      // get material tangent moduli
-      //
+      /* prepare derivatives of shape functions in reference configuration */
+      const dArray2DT& DNaX = fShapes->Derivatives_X();
+	  Set_B(DNaX, fB);
+	  fShapes->GradNa(DNaX, fGradNa);	  
 
+	  /* A potential issue for all stiffnesses:  the free energy function depends upon
+	     the stretch tensor, deformation gradient, and electric field.  The problem is with
+	     the E-field, since it's the gradient of the potential, and so somehow, the value
+	     of the potential (which are nodal values) will have to be obtained here */
 
-      //
-      // prepare derivatives of interpolation functions
-      //
-      const dArray2DT & DNaX = fShapes->Derivatives_X();
-
+	  /* mechanical-mechanical stiffness (24 x 24 matrix for the 8-node 3D element) */
+	  ComputeAmm(fStretch, fDefGrad, Cmm);
+	  Cmm *= w;
+	  fAmm.MultQTBQ(fB, Cmm, format, dMatrixT::kAccumulate);
+	  
+	  /* Not sure if these next two mechanical-electrical MultATBC are correct */
+	  /* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
+	  ComputeAme(fStretch, fDefGrad, Cme);
+	  Cme *= w;
+	  fAme.MultATBC(fB, Cme, fGradNa, dMatrixT::kWhole, dMatrixT::kAccumulate);
+	  
+	  /* electrical-mechanical stiffness (8 x 24 matrix for 8-node 3D element) */
+	  /* This may be redundant since it should be symmetric of mechanical-electrical */
+	  ComputeAem(fStretch, fDefGrad, Cem);
+	  Cem *= w;
+	  fAem.MultATBC(fB, Cem, fGradNa, dMatrixT::kWhole, dMatrixT::kAccumulate);	  
+	  
+	  /* electrical-electrical stiffness (8 x 8 matrix for 8-node 3D element) */
+	  ComputeAee(fStretch, fDefGrad, Cee);
+	  Cee *= w;
+	  fAee.MultQTBQ(fGradNa, Cee, format, dMatrixT::kAccumulate);
     }
 
-// 
-//  Assemble into element stiffness matrix
-// 
-//     fLHS.AddBlock(0, 0, fMaterialTangent);
-// 
-//     fLHS.AddBlock(fMaterialTangent.Rows(), fMaterialTangent.Cols(),
-//         fElectricTangent);
-// 
-//     fLHS.AddBlock(0, fMaterialTangent.Cols(), fElectric2MechanicalTangent);
-// 
-// 
+	/* Assemble into fLHS, or element stiffness matrix */
+	fLHS.AddBlock(0, 0, fAmm);
+	fLHS.AddBlock(fAmm.Rows(), fAmm.Cols(), fAee);
+	fLHS.AddBlock(0, fAmm.Cols(), fAme);
+
 //  non-symmetric
 // 
 //     if (format != dMatrixT::kUpperOnly) {
@@ -267,9 +313,7 @@ namespace Tahoe {
 
   }
 
-  //
-  // internal force
-  //
+/* Compute RHS, or residual of element equations */
   void FSDielectricElastomerT::FormKd(double constK)
   {
 
@@ -279,17 +323,6 @@ namespace Tahoe {
     const int nsd = NumSD();
     const int nen = NumElementNodes();
 
-    //
-    // integration scheme
-    //
-    dArrayT RS(nsd * nen);
-    RS = 0.0;
-    dArrayT RE(nsd * nen);
-    RE = 0.0;
-    dArrayT R(RS.Length() + RE.Length());
-    R = 0.0;
-    dArrayT R_K(2 * nsd * nen);
-    R_K = 0.0;
 
     fShapes->TopIP();
 
@@ -302,6 +335,8 @@ namespace Tahoe {
 
       const dArray2DT & DNaX = fShapes->Derivatives_X();
 
+	  /* How to access the mechanical stress here? */
+	  
 
 	}
 

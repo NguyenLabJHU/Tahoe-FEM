@@ -159,6 +159,12 @@ namespace Tahoe {
     void AccumulateGeometricStiffness(dMatrixT& Kg, const dArray2DT& DNaX,
         dSymMatrixT& S);
 
+	/* Functions to calculate stiffnesses - may also need to pass electric field vector */
+	void ComputeAmm(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cmm);
+	void ComputeAme(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cme);
+	void ComputeAem(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cem);
+	void ComputeAee(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cee);
+
   protected:
 
     //
@@ -193,11 +199,18 @@ namespace Tahoe {
     //
     // Stiffness storage
     //
-    dMatrixT fMaterialTangent;
-    dMatrixT fGeometricTangent;
-    dMatrixT fMechanical2ElectricTangent;
-    dMatrixT fElectric2MechanicalTangent;
-    dMatrixT fElectricTangent;
+    dMatrixT fAmm;	// purely mechanical part of Hessian matrix
+    dMatrixT fAme;	// mechanical-electrical coupling part of Hessian matrix
+    dMatrixT fAem;	// electrical-mechanical coupling part of Hessian matrix
+    dMatrixT fAee;	// electrical-electrical coupling part of Hessian matrix
+    dMatrixT fDefGrad;	// deformation gradient
+    dMatrixT fStretch;	// stretch (F^T * F)
+    /* these stiffnesses may not be needed */
+    dMatrixT fCmm;	// mechanical stiffness
+    dMatrixT fCme;	// mechanical-electrical stiffness
+    dMatrixT fCem;	// electrical-mechanical stiffness
+    dMatrixT fCee;	// electrical stiffness
+    dMatrixT fGradNa;	// shape function gradients matrix
     
   };
 
