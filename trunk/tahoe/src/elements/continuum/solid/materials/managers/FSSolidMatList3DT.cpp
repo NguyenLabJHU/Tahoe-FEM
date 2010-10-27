@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.35 2009-04-23 22:20:35 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.36 2010-10-27 20:27:56 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -116,6 +116,10 @@
 
 #ifdef NEOHOOKEDAMAGE
 #include "FSNeoHookeDamageT.h"
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER
+#include "FSDielectricElastomerT.h"
 #endif
 
 /* development module materials require solid element development to be enabled */
@@ -272,6 +276,10 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #endif
 #ifdef SURFACE_CB_ZB_DEV
 		sub_lists.AddSub("ZB_CB");
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER
+		sub_lists.AddSub("Dielectric_Elastomer");
 #endif
 
 #ifdef PIEZOELECTRIC
@@ -468,6 +476,18 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef SURFACE_CB_ZB_DEV
 	else if (name == "ZB_CB")
 	  mat= new CB_ZBT;
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER
+	else if (name == FSDEMatT::Name) {
+	  FSDEMatT* demat = new FSDEMatT;
+	  if (demat != 0) {
+	    FSMatSupportT* dems = const_cast<FSMatSupportT*>(fFSMatSupport);
+	    const FSDEMatSupportT* ddems = dynamic_cast<FSDEMatSupportT*>(dems);
+	    demat->SetFSDEMatSupport(ddems);
+	    mat = demat;
+	  }
+	}
 #endif
 
 #ifdef PIEZOELECTRIC
