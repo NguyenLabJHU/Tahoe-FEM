@@ -7,8 +7,9 @@ namespace Tahoe {
   inline FSDielectricElastomerT::FSDielectricElastomerT(
       const ElementSupportT& support) :
     FiniteStrainT(support), fFSDEMatSupport(0), fCurrMaterial(0)
+//    FiniteStrainT(support)
   {
-    SetName("dielectric_elastomer");
+    SetName("Dielectric_Elastomer");
   }
 
   //

@@ -9,15 +9,14 @@
 
 namespace Tahoe {
 
+  /* Forward declarations */
+  class FSDEMatSupportT;
 
   //
   // interface for finite deformation dielectric elastomers 
   // based on 2008 JMPS paper of Suo et al.
   
   class FSDielectricElastomerT: public FiniteStrainT {
-
-	/* Forward declarations */
-	class FSDEMatSupportT;
 
   public:
 
@@ -45,11 +44,6 @@ namespace Tahoe {
     // information about subordinate parameter lists
     //
     virtual void DefineSubs(SubListT& sub_list) const;
-
-    //
-    //
-    //
-    virtual int TotalNumDOF() const;
 
     //
     //
@@ -139,12 +133,6 @@ namespace Tahoe {
     //
     void Workspace();
 
-	/* Functions to calculate stiffnesses - may also need to pass electric field vector */
-	void ComputeAmm(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cmm);
-	void ComputeAme(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cme);
-	void ComputeAem(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cem);
-	void ComputeAee(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cee);
-
   protected:
 
     //
@@ -172,6 +160,7 @@ namespace Tahoe {
 
   private:
 
+    FSDEMatT* fCurrMaterial;
     //
     // Stiffness storage
     //
