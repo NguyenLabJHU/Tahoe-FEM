@@ -7,7 +7,7 @@ namespace Tahoe {
   //
   //
   //
-  static const char DE[] = "Dielectric-elastomer";
+  static const char DE[] = "Dielectric_Elastomer";
   const char* FSDEMatT::Name = DE;
 
   //
@@ -26,7 +26,7 @@ namespace Tahoe {
   void FSDEMatT::DefineParameters(ParameterListT& list) const
   {
 
-    FSIsotropicMatT::DefineParameters(list);
+    NL_E_MatT::DefineParameters(list);
 
     list.AddParameter(fElectricPermittivity, "epsilon");
 
@@ -43,7 +43,7 @@ namespace Tahoe {
   void FSDEMatT::TakeParameterList(const ParameterListT& list)
   {
 
-    FSIsotropicMatT::TakeParameterList(list);
+    NL_E_MatT::TakeParameterList(list);
 
     fElectricPermittivity = list.GetParameter("epsilon");
 
@@ -63,7 +63,7 @@ namespace Tahoe {
   //
   void FSDEMatT::DefineSubs(SubListT& sub_list) const
   {
-    FSIsotropicMatT::DefineSubs(sub_list);
+    NL_E_MatT::DefineSubs(sub_list);
     return;
   }
 

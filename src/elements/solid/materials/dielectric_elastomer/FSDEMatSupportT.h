@@ -31,7 +31,7 @@ namespace Tahoe {
     // return a pointer to the host element. Returns 0 if no
     // element information in available.
     //
-    const FSDielectricElastomerT* FSDielectricElastomerT() const;
+    const FSDielectricElastomerT* FSDielectricElastomer() const;
 
     //
     // set the element group pointer

@@ -37,49 +37,6 @@ namespace Tahoe {
   //
   //
   //
-  inline const int FSDEMatT::ManifoldDim() const
-  {
-    return FSPZMatSupportT::ManifoldDim();
-  }
-
-  //
-  //
-  //
-  inline const int FSDEMatT::StrainDim() const
-  {
-    return FSPZMatSupportT::StrainDim();
-  }
-
-  //
-  //
-  //
-  inline const int FSDEMatT::ElectricalDim() const
-  {
-    return FSPZMatSupportT::ElectricalDim();
-  }
-
-  //
-  //
-  //
-  inline const dSymMatrixT FSDEMatT::Stress(const dSymMatrixT& C,
-      const dArrayT& D) const
-  {
-
-    const dSymMatrixT Sm = StressMechanical(C);
-    const dSymMatrixT Sr = StressElectrical(C, D);
-    const dSymMatrixT Sz = StressPiezoelectrical(C, D);
-
-    dSymMatrixT S = Sm;
-    S += Sr;
-    S += Sz;
-
-    return S;
-
-  }
-
-  //
-  //
-  //
   inline const dSymMatrixT FSDEMatT::StressMechanical(
       const dSymMatrixT& C, const dArrayT& D) const
   {
@@ -99,7 +56,7 @@ namespace Tahoe {
       const dSymMatrixT& C, const dArrayT& D) const
   {
 
-    dSymMatrixT Sr(ManifoldDim());
+    dSymMatrixT Sr;
 
 
     return Sr;
@@ -113,7 +70,7 @@ namespace Tahoe {
       const dSymMatrixT& C, const dArrayT& D) const
   {
 
-    dSymMatrixT Sz(ManifoldDim());
+    dSymMatrixT Sz;
 
 
 
@@ -143,7 +100,7 @@ namespace Tahoe {
       const dSymMatrixT& C, const dArrayT& D) const
   {
 
-    dArrayT Er(ElectricalDim());
+    dArrayT Er;
 
 	/* HSP - why is J necessary? */
     const double J = sqrt(C.Det());
@@ -174,7 +131,7 @@ namespace Tahoe {
       const dSymMatrixT& C, const dArrayT& D) const
   {
 
-    dMatrixT beta(ElectricalDim());
+    dMatrixT beta;
 
     return beta;
 
@@ -187,7 +144,7 @@ namespace Tahoe {
       const dSymMatrixT& C, const dArrayT& D) const
   {
 
-    dMatrixT tangent(ElectricalDim(), StrainDim());
+    dMatrixT tangent;
 
     return tangent;
 
@@ -198,7 +155,7 @@ namespace Tahoe {
   //
   inline const dArrayT FSDEMatT::ElectricDisplacement()
   {
-    fElectricDisplacement = fFSPZMatSupport->ElectricDisplacement();
+    fElectricDisplacement = fFSDEMatSupport->ElectricDisplacement();
     return fElectricDisplacement;
   }
 
@@ -207,7 +164,7 @@ namespace Tahoe {
   //
   inline const dArrayT FSDEMatT::ElectricDisplacement(int ip)
   {
-    fElectricDisplacement = fFSPZMatSupport->ElectricDisplacement(ip);
+    fElectricDisplacement = fFSDEMatSupport->ElectricDisplacement(ip);
     return fElectricDisplacement;
   }
 
@@ -218,9 +175,9 @@ namespace Tahoe {
   {
 
     const dMatrixT F = F_mechanical();
-    dMatrixT FTF(ManifoldDim());
+    dMatrixT FTF(3);
     FTF.MultATB(F, F);
-    dSymMatrixT C(ManifoldDim());
+    dSymMatrixT C(3);
     C.Symmetrize(FTF);
 
     return C;
@@ -265,7 +222,7 @@ namespace Tahoe {
     const dArrayT D = ElectricDisplacement();
     fTangentElectromechanical = TangentElectromechanical(C, D);
 
-    return fTangentPiezoelectrical;
+    return fTangentElectromechanical;
 
   }
 
@@ -356,6 +313,43 @@ namespace Tahoe {
     fStress.SetToScaled(1.0 / J, PushForward(F, S));
 
     return fStress;
+
+  }
+
+  //
+  // pressure associated with the last computed stress
+  //
+  inline double FSDEMatT::Pressure() const
+  {
+
+    return 0.0;
+
+  }
+
+  //
+  // compute symmetric Cij reduced index matrix */
+  //
+  inline void FSDEMatT::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli) 
+  {
+
+
+  }
+
+  //
+  // compute symmetric 2nd PK2 reduced index vector */
+  //
+  inline void FSDEMatT::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2) 
+  {
+
+
+  }
+
+  //
+  // compute strain energy density for the specified strain */
+  //
+  inline double FSDEMatT::ComputeEnergyDensity(const dSymMatrixT& E) 
+  {
+	 return 0.0;
 
   }
 

@@ -55,8 +55,8 @@ SRC = \
 HDR = \
 	FSDEMatSupportT.h \
 	FSDEMatSupportT.i.h \
-	FSDEMatT.i.h \
-	FSDEMatT.h 
+	FSDEMatT.h \
+	FSDEMatT.i.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -7,12 +7,14 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
-#include "FSIsotropicMatT.h"
+//#include "FSIsotropicMatT.h"
+#include "NL_E_MatT.h"
 #include "FSDEMatSupportT.h"
 
 namespace Tahoe {
 
-  class FSDEMatT: public FSIsotropicMatT
+//  class FSDEMatT: public FSIsotropicMatT
+  class FSDEMatT: public NL_E_MatT
   {
 
     //
@@ -92,6 +94,11 @@ namespace Tahoe {
     virtual const dSymMatrixT& s_ij();
 
     //
+    // pressure associated with the last computed stress
+    //
+    double Pressure() const;
+
+    //
     // @}
     //
 
@@ -108,11 +115,16 @@ namespace Tahoe {
 
     void SetFSDEMatSupport(const FSDEMatSupportT* support);
 
-    const int ManifoldDim() const;
-    const int StrainDim() const;
-    const int ElectricalDim() const;
-
   protected:
+
+	/* compute the symetric Cij reduced index matrix */
+	virtual void ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli);	
+	
+	/* compute the symetric 2nd Piola-Kirchhoff reduced index vector */
+	virtual void ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2);
+
+	/* returns the strain energy density for the specified strain */
+	virtual double ComputeEnergyDensity(const dSymMatrixT& E);
 
     const FSDEMatSupportT* fFSDEMatSupport;
 
