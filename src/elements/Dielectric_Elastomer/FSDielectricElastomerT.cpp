@@ -1,4 +1,6 @@
 #include "FSDielectricElastomerT.h"
+#include "FSDEMatSupportT.h"
+#include "FSDEMatT.h"
 #include "ParameterContainerT.h"
 #include "OutputSetT.h"
 #include "ShapeFunctionT.h"
@@ -24,7 +26,7 @@ namespace Tahoe {
 /* Destructor */
   FSDielectricElastomerT::~FSDielectricElastomerT()
   {
-
+	  if (0 != fFSDEMatSupport) delete fFSDEMatSupport;
   }
 
   //
@@ -322,7 +324,14 @@ void FSDielectricElastomerT::ComputeAee(const dMatrixT& C, const dMatrixT& F, dM
     //
     const int nsd = NumSD();
     const int nen = NumElementNodes();
-
+    
+    /* Define mechanical and electrical residuals */
+	dArrayT Rtotal((nsd+1)*nen);
+	dMatrixT RMech(nen, nsd);
+	RMech = 0.0;
+	Rtotal = 0.0;
+	dArrayT RElec(nen);
+	RElec = 0.0;
 
     fShapes->TopIP();
 
@@ -334,17 +343,28 @@ void FSDielectricElastomerT::ComputeAee(const dMatrixT& C, const dMatrixT& F, dM
       const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
 
       const dArray2DT & DNaX = fShapes->Derivatives_X();
-
-	  /* How to access the mechanical stress here? */
+	  fShapes->GradNa(DNaX, fGradNa);	
 	  
-
+	  /* How to access the mechanical stress here? */
+	  dMatrixT dummyS;	// dummy 3 x 3 mechanical stress tensor
+	  fGradNa.MultTx(dummyS, RMech);	// 8x3 matrix RMech2
+	  
+	  /* Also need the electrical displacement D here */
+	  dArrayT dummyD;	// electrical displacement vector 3 x 1
+	  fGradNa.MultTx(dummyD, RElec);	// 3x1 vector of shape function gradient * D
 	}
-
-//     R.CopyIn(0, RS);
-//     R.CopyIn(RS.Length(), RE);
-// 
-//     fRHS += R;
-//     fRHS += R_K;
+	
+	/* Transfer RMech2 from dMatrixT to arrays */
+	dArrayT temp1, temp2, temp3;
+	RMech.CopyColumn(0, temp1);
+	RMech.CopyColumn(1, temp2);
+	RMech.CopyColumn(2, temp3);
+	Rtotal.CopyIn(0, temp1);
+	Rtotal.CopyIn(nen, temp2);
+	Rtotal.CopyIn(2*nen, temp3);
+	Rtotal.CopyIn(3*nen, RElec);
+	
+	fRHS += Rtotal;
 
   }
 

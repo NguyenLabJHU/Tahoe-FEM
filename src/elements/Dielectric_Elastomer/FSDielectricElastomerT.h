@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include "FiniteStrainT.h"
+#include "FSDEMatT.h"
 
 namespace Tahoe {
 
@@ -15,13 +16,15 @@ namespace Tahoe {
   
   class FSDielectricElastomerT: public FiniteStrainT {
 
+	/* Forward declarations */
+	class FSDEMatSupportT;
+
   public:
 
     //
     // constructor
     //
     FSDielectricElastomerT(const ElementSupportT& support);
-//	FSDielectricElastomerT();
 
     //
     // destructor
@@ -70,11 +73,6 @@ namespace Tahoe {
     const dArrayT& ElectricDisplacement(int ip) const;
 
     //
-    // strain-displacement operator
-    //
-    virtual void Set_B(const dArray2DT& DNaX, dMatrixT& B);
-
-    //
     // increment current element
     //
     virtual bool NextElement();
@@ -92,13 +90,6 @@ namespace Tahoe {
     //
     // @}
     //
-
-    //
-    //
-    //
-    const int ManifoldDim() const;
-    const int StrainDim() const;
-    const int ElectricalDim() const;
 
   protected:
 
@@ -136,11 +127,6 @@ namespace Tahoe {
     virtual void CurrElementInfo(ostream& out) const;
 
     //
-    // Initialize local arrays
-    //
-    virtual void SetLocalArrays();
-
-    //
     // driver for calculating output values
     //
     virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
@@ -152,12 +138,6 @@ namespace Tahoe {
     //
     //
     void Workspace();
-
-    void Set_B_C(const dArray2DT& DNaX, dMatrixT& B_C);
-    void Set_B_D(const dArray2DT& DNaX, dMatrixT& B_D);
-    void Set_B_K(const dArray2DT& DNaX, dMatrixT& B_K);
-    void AccumulateGeometricStiffness(dMatrixT& Kg, const dArray2DT& DNaX,
-        dSymMatrixT& S);
 
 	/* Functions to calculate stiffnesses - may also need to pass electric field vector */
 	void ComputeAmm(const dMatrixT& C, const dMatrixT& F, dMatrixT& Cmm);
@@ -179,10 +159,6 @@ namespace Tahoe {
     ArrayT<dArrayT> fD_List;
     dArrayT fD_all;
 
-    // divergence of vector potential
-    dArrayT fDivPhi_List;
-    dArrayT fDivPhi_all;
-
     //
     // @}
     //
@@ -192,7 +168,7 @@ namespace Tahoe {
     // pointer is only set the first time
     // FSDielectricElastomerT::NewMaterialList is called.
     //
-//    FSPZMatSupportT* fFSPZMatSupport;
+    FSDEMatSupportT* fFSDEMatSupport;
 
   private:
 
@@ -216,4 +192,5 @@ namespace Tahoe {
 
 } // namespace Tahoe
 
+#include "FSDielectricElastomerT.i.h"
 #endif // _FSDielectricElastomerT_
