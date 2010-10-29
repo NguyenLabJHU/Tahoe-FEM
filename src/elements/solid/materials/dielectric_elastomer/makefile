@@ -21,9 +21,11 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	FSDEMatSupportT.o \
 	FSDEMatT.o \
-	dUdC.o \
-	dXsi.o \
-	ddC.o
+	stress_mech.o \
+	stress_elec.o \
+	modulus_mixed.o \
+	modulus_elec.o \
+	modulus_mech.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,9 +47,11 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	FSDEMatSupportT.cpp \
 	FSDEMatT.cpp \
-	dUdC.c \
-	dXsi.c \
-	ddC.c
+	stress_mech.cpp \
+	stress_elec.cpp \
+	modulus_mixed.cpp \
+	modulus_elec.cpp \
+	modulus_mech.cpp
 
 ##################### (3) headers
 #
