@@ -105,7 +105,7 @@ namespace Tahoe {
     //
     // Material electric field
     //
-    const dArrayT ElectricField(const dSymMatrixT& C, const dArrayT& D) const;
+    const dArrayT ElectricField(const dMatrixT& C, const dArrayT& D) const;
 
     //
     // accessors and mutators for material constants
@@ -132,30 +132,30 @@ namespace Tahoe {
 
     void Initialize();
 
-    const dSymMatrixT StressMechanical(const dSymMatrixT& C, const dArrayT& D) const;
+    const dSymMatrixT StressMechanical(const dMatrixT& C, const dArrayT& D) const;
 
-    const dSymMatrixT StressElectrical(const dSymMatrixT& C,
+    const dSymMatrixT StressElectrical(const dMatrixT& C,
 				       const dArrayT& D) const;
 
-    const dSymMatrixT StressElectromechanical(const dSymMatrixT& C,
+    const dSymMatrixT StressElectromechanical(const dMatrixT& C,
 					    const dArrayT& D) const;
 
-    const dArrayT ElectricFieldElectrical(const dSymMatrixT& C,
+    const dArrayT ElectricFieldElectrical(const dMatrixT& C,
 					  const dArrayT& D) const;
 
     //
     // Tangent moduli
     //
-    const dMatrixT TangentMechanical(const dSymMatrixT& C,
+    const dMatrixT TangentMechanical(const dMatrixT& C,
              const dArrayT& D) const;
 
-    const dMatrixT TangentElectrical(const dSymMatrixT& C,
+    const dMatrixT TangentElectrical(const dMatrixT& C,
              const dArrayT& D) const;
 
-    const dMatrixT TangentElectromechanical(const dSymMatrixT& C,
+    const dMatrixT TangentElectromechanical(const dMatrixT& C,
             const dArrayT& D) const;
 
-    const dSymMatrixT RightCauchyGreenDeformation();
+    const dMatrixT RightCauchyGreenDeformation();
     const dArrayT ElectricDisplacement();
     const dArrayT ElectricDisplacement(int ip);
 
@@ -173,10 +173,14 @@ namespace Tahoe {
 
     double fElectricPermittivity;
     double fEnergyDensity;
+    double fMu;
+    double fNrig;
 
     dArrayT fElectricField;
     dArrayT fElectricDisplacement;
-
+	dArrayT fParams;
+	
+	dMatrixT stress_temp;
     dSymMatrixT fStress;
     dMatrixT fTangentMechanical;
     dMatrixT fTangentElectromechanical;

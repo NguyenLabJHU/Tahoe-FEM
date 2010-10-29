@@ -9,7 +9,9 @@ namespace Tahoe {
   //
   static const char DE[] = "Dielectric_Elastomer";
   const char* FSDEMatT::Name = DE;
-
+  const int kNSD       = 3;
+  const int kNumDOF    = 3;
+  const int kStressDim =dSymMatrixT::NumValues(kNSD);
   //
   //
   //
@@ -28,7 +30,12 @@ namespace Tahoe {
 
     NL_E_MatT::DefineParameters(list);
 
-    list.AddParameter(fElectricPermittivity, "epsilon");
+	ParameterT epsilon(fElectricPermittivity, "epsilon");
+    list.AddParameter(epsilon);
+	ParameterT mu(fMu, "mu");
+	list.AddParameter(mu);
+	ParameterT nrig(fNrig, "Nrig");
+	list.AddParameter(nrig);
 
     //
     // set the description
@@ -46,15 +53,21 @@ namespace Tahoe {
     NL_E_MatT::TakeParameterList(list);
 
     fElectricPermittivity = list.GetParameter("epsilon");
+	fMu = list.GetParameter("mu");
+	fNrig = list.GetParameter("Nrig");
 
-    //
-    // check
-    //
-    if (fElectricPermittivity < -kSmall) {
-      ExceptionT::BadInputValue("FSDEMatT::TakeParameterList",
-          "expecting a non-negative epsilon: %e", fElectricPermittivity);
-    }
+	/* write into vector to pass to C code for stress/modulus calculations */
+	fParams.Dimension(3);
+	fParams[0] = fElectricPermittivity;
+	fParams[1] = fMu;
+	fParams[2] = fNrig;
 
+	/* dimension work space */
+	fTangentMechanical.Dimension(kStressDim);
+	fStress.Dimension(kNumDOF);
+	stress_temp.Dimension(kNumDOF);
+	fTangentElectrical.Dimension(kNumDOF);
+	fTangentElectromechanical.Dimension(kStressDim, kNumDOF);
 
   }
 

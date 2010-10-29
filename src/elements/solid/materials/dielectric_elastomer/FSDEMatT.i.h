@@ -39,7 +39,7 @@ namespace Tahoe {
   //
   //
   inline const dSymMatrixT FSDEMatT::StressMechanical(
-      const dSymMatrixT& C, const dArrayT& D) const
+      const dMatrixT& C, const dArrayT& D) const
   {
 
 
@@ -54,7 +54,7 @@ namespace Tahoe {
   //
   //
   inline const dSymMatrixT FSDEMatT::StressElectrical(
-      const dSymMatrixT& C, const dArrayT& D) const
+      const dMatrixT& C, const dArrayT& D) const
   {
 
     dSymMatrixT Sr;
@@ -68,7 +68,7 @@ namespace Tahoe {
   //
   //
   inline const dSymMatrixT FSDEMatT::StressElectromechanical(
-      const dSymMatrixT& C, const dArrayT& D) const
+      const dMatrixT& C, const dArrayT& D) const
   {
 
     dSymMatrixT Sz;
@@ -82,7 +82,7 @@ namespace Tahoe {
   //
   //
   //
-  inline const dArrayT FSDEMatT::ElectricField(const dSymMatrixT& C,
+  inline const dArrayT FSDEMatT::ElectricField(const dMatrixT& C,
       const dArrayT& D) const
   {
 
@@ -98,7 +98,7 @@ namespace Tahoe {
   //
   //
   inline const dArrayT FSDEMatT::ElectricFieldElectrical(
-      const dSymMatrixT& C, const dArrayT& D) const
+      const dMatrixT& C, const dArrayT& D) const
   {
 
     dArrayT Er;
@@ -116,7 +116,7 @@ namespace Tahoe {
   //
   //
   inline const dMatrixT FSDEMatT::TangentMechanical(
-      const dSymMatrixT& C, const dArrayT& D) const
+      const dMatrixT& C, const dArrayT& D) const
   {
 
 //    dMatrixT Cm = Cevol;
@@ -129,7 +129,7 @@ namespace Tahoe {
   //
   //
   inline const dMatrixT FSDEMatT::TangentElectrical(
-      const dSymMatrixT& C, const dArrayT& D) const
+      const dMatrixT& C, const dArrayT& D) const
   {
 
     dMatrixT beta;
@@ -142,7 +142,7 @@ namespace Tahoe {
   //
   //
   inline const dMatrixT FSDEMatT::TangentElectromechanical(
-      const dSymMatrixT& C, const dArrayT& D) const
+      const dMatrixT& C, const dArrayT& D) const
   {
 
     dMatrixT tangent;
@@ -172,16 +172,14 @@ namespace Tahoe {
   //
   //
   //
-  inline const dSymMatrixT FSDEMatT::RightCauchyGreenDeformation()
+  inline const dMatrixT FSDEMatT::RightCauchyGreenDeformation()
   {
 
     const dMatrixT F = F_mechanical();
     dMatrixT FTF(3);
     FTF.MultATB(F, F);
-    dSymMatrixT C(3);
-    C.Symmetrize(FTF);
 
-    return C;
+    return FTF;
 
   }
 
@@ -204,7 +202,7 @@ namespace Tahoe {
   FSDEMatT::C_IJKL()
   {
 
-    const dSymMatrixT C = RightCauchyGreenDeformation();
+    const dMatrixT C = RightCauchyGreenDeformation();
     const dArrayT D = ElectricDisplacement();
     fTangentMechanical = TangentMechanical(C, D);
 
@@ -219,7 +217,7 @@ namespace Tahoe {
   FSDEMatT::E_IJK()
   {
 
-    const dSymMatrixT C = RightCauchyGreenDeformation();
+    const dMatrixT C = RightCauchyGreenDeformation();
     const dArrayT D = ElectricDisplacement();
     fTangentElectromechanical = TangentElectromechanical(C, D);
 
@@ -234,24 +232,35 @@ namespace Tahoe {
   FSDEMatT::B_IJ()
   {
 
-    const dSymMatrixT C = RightCauchyGreenDeformation();
+    const dMatrixT C = RightCauchyGreenDeformation();
     const dArrayT D = ElectricDisplacement();
-    fTangentElectrical = TangentElectrical(C, D);
+    const dArrayT E = ElectricField(C,D);
+    dMatrixT blah;
+
+	/* call C function for electrical tangent modulus */
+	get_dXsi(fParams.Pointer(), E.Pointer(),  
+		C.Pointer(), blah.Pointer(), fTangentElectrical.Pointer()); 
 
     return fTangentElectrical;
 
   }
 
   //
-  // Second Piola-Kirchhoff stress
+  // Second Piola-Kirchhoff stress (mechanical)
   //
   inline const dSymMatrixT&
   FSDEMatT::S_IJ()
   {
 
-    const dSymMatrixT C = RightCauchyGreenDeformation();
+    const dMatrixT C = RightCauchyGreenDeformation();
     const dArrayT D = ElectricDisplacement();
-    fStress = StressMechanical(C, D);
+    const dArrayT E = ElectricField(C,D);
+    
+	/* call C function for mechanical stress */
+	get_dUdC(fParams.Pointer(), E.Pointer(),  
+		C.Pointer(), stress_temp.Pointer()); 
+
+    fStress.FromMatrix(stress_temp);
 
     return fStress;
 
@@ -273,7 +282,7 @@ namespace Tahoe {
   FSDEMatT::E_I()
   {
 
-    const dSymMatrixT C = RightCauchyGreenDeformation();
+    const dMatrixT C = RightCauchyGreenDeformation();
     const dArrayT D = ElectricDisplacement();
     fElectricField = ElectricField(C, D);
 
