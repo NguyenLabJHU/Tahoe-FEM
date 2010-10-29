@@ -20,7 +20,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	FSDEMatSupportT.o \
-	FSDEMatT.o
+	FSDEMatT.o \
+	dUdC.o \
+	dXsi.o \
+	ddC.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,7 +44,10 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	FSDEMatSupportT.cpp \
-	FSDEMatT.cpp
+	FSDEMatT.cpp \
+	dUdC.c \
+	dXsi.c \
+	ddC.c
 
 ##################### (3) headers
 #
@@ -56,7 +62,9 @@ HDR = \
 	FSDEMatSupportT.h \
 	FSDEMatSupportT.i.h \
 	FSDEMatT.h \
-	FSDEMatT.i.h 
+	FSDEMatT.i.h \
+	FSDE_common_defines.h \
+	FSDE_inc.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
