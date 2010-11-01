@@ -168,13 +168,6 @@ namespace Tahoe {
     dMatrixT fAme;	// mechanical-electrical coupling part of Hessian matrix
     dMatrixT fAem;	// electrical-mechanical coupling part of Hessian matrix
     dMatrixT fAee;	// electrical-electrical coupling part of Hessian matrix
-    dMatrixT fDefGrad;	// deformation gradient
-    dMatrixT fStretch;	// stretch (F^T * F)
-    /* these stiffnesses may not be needed */
-    dMatrixT fCmm;	// mechanical stiffness
-    dMatrixT fCme;	// mechanical-electrical stiffness
-    dMatrixT fCem;	// electrical-mechanical stiffness
-    dMatrixT fCee;	// electrical stiffness
     dMatrixT fGradNa;	// shape function gradients matrix
     
   };
