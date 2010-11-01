@@ -38,50 +38,6 @@ namespace Tahoe {
   //
   //
   //
-  inline const dSymMatrixT FSDEMatT::StressMechanical(
-      const dMatrixT& C, const dArrayT& D) const
-  {
-
-
-//    dSymMatrixT Sm = Sevol;
-//    Sm += Sedev;
-
-//    return Sm;
-
-  }
-
-  //
-  //
-  //
-  inline const dSymMatrixT FSDEMatT::StressElectrical(
-      const dMatrixT& C, const dArrayT& D) const
-  {
-
-    dSymMatrixT Sr;
-
-
-    return Sr;
-
-  }
-
-  //
-  //
-  //
-  inline const dSymMatrixT FSDEMatT::StressElectromechanical(
-      const dMatrixT& C, const dArrayT& D) const
-  {
-
-    dSymMatrixT Sz;
-
-
-
-    return Sz;
-
-  }
-
-  //
-  //
-  //
   inline const dArrayT FSDEMatT::ElectricField(const dMatrixT& C,
       const dArrayT& D) const
   {
@@ -109,45 +65,6 @@ namespace Tahoe {
     Er /= (J * fElectricPermittivity);
 
     return Er;
-
-  }
-
-  //
-  //
-  //
-  inline const dMatrixT FSDEMatT::TangentMechanical(
-      const dMatrixT& C, const dArrayT& D) const
-  {
-
-//    dMatrixT Cm = Cevol;
-
-//    return Cm;
-
-  }
-
-  //
-  //
-  //
-  inline const dMatrixT FSDEMatT::TangentElectrical(
-      const dMatrixT& C, const dArrayT& D) const
-  {
-
-    dMatrixT beta;
-
-    return beta;
-
-  }
-
-  //
-  //
-  //
-  inline const dMatrixT FSDEMatT::TangentElectromechanical(
-      const dMatrixT& C, const dArrayT& D) const
-  {
-
-    dMatrixT tangent;
-
-    return tangent;
 
   }
 
@@ -204,8 +121,13 @@ namespace Tahoe {
 
     const dMatrixT C = RightCauchyGreenDeformation();
     const dArrayT D = ElectricDisplacement();
-    fTangentMechanical = TangentMechanical(C, D);
+    const dArrayT E = ElectricField(C,D);   
+    
+	/* call C function for mechanical tangent modulus */
+	get_ddC(fParams.Pointer(), E.Pointer(),  
+		C.Pointer(), fTangentMechanical.Pointer()); 
 
+	fTangentMechanical*=4.0;
     return fTangentMechanical;
 
   }
@@ -219,8 +141,13 @@ namespace Tahoe {
 
     const dMatrixT C = RightCauchyGreenDeformation();
     const dArrayT D = ElectricDisplacement();
-    fTangentElectromechanical = TangentElectromechanical(C, D);
+    const dArrayT E = ElectricField(C,D);
 
+	/* call C function for electromechanical tangent modulus */
+	get_ddCE(fParams.Pointer(), E.Pointer(),  
+		C.Pointer(), fTangentElectromechanical.Pointer()); 
+
+	fTangentElectromechanical*=2.0;
     return fTangentElectromechanical;
 
   }
@@ -238,8 +165,8 @@ namespace Tahoe {
     dMatrixT blah;
 
 	/* call C function for electrical tangent modulus */
-	get_dXsi(fParams.Pointer(), E.Pointer(),  
-		C.Pointer(), blah.Pointer(), fTangentElectrical.Pointer()); 
+	get_ddE(fParams.Pointer(), E.Pointer(),  
+		C.Pointer(), fTangentElectrical.Pointer()); 
 
     return fTangentElectrical;
 
@@ -261,6 +188,7 @@ namespace Tahoe {
 		C.Pointer(), stress_temp.Pointer()); 
 
     fStress.FromMatrix(stress_temp);
+	fStress*=2.0;
 
     return fStress;
 

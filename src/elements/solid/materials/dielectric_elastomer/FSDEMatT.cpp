@@ -19,7 +19,8 @@ namespace Tahoe {
   {
 
     fElectricPermittivity = 0.0;
-
+    fMu = 0.0;
+    fNrig = 0.0;
   }
 
   //
@@ -27,21 +28,11 @@ namespace Tahoe {
   //
   void FSDEMatT::DefineParameters(ParameterListT& list) const
   {
-
     NL_E_MatT::DefineParameters(list);
 
-	ParameterT epsilon(fElectricPermittivity, "epsilon");
-    list.AddParameter(epsilon);
-	ParameterT mu(fMu, "mu");
-	list.AddParameter(mu);
-	ParameterT nrig(fNrig, "Nrig");
-	list.AddParameter(nrig);
-
-    //
-    // set the description
-    //
-//    list.SetDescription("Psi(C)=0.5*mu*(I1bar-3)+0.25*kappa*(J^2-1-2*log(J))");
-
+	list.AddParameter(fElectricPermittivity, "epsilon");
+	list.AddParameter(fMu, "mu");
+	list.AddParameter(fNrig, "Nrig");
   }
 
   //
@@ -49,7 +40,6 @@ namespace Tahoe {
   //
   void FSDEMatT::TakeParameterList(const ParameterListT& list)
   {
-
     NL_E_MatT::TakeParameterList(list);
 
     fElectricPermittivity = list.GetParameter("epsilon");
@@ -61,14 +51,13 @@ namespace Tahoe {
 	fParams[0] = fElectricPermittivity;
 	fParams[1] = fMu;
 	fParams[2] = fNrig;
-
+	
 	/* dimension work space */
 	fTangentMechanical.Dimension(kStressDim);
 	fStress.Dimension(kNumDOF);
 	stress_temp.Dimension(kNumDOF);
 	fTangentElectrical.Dimension(kNumDOF);
 	fTangentElectromechanical.Dimension(kStressDim, kNumDOF);
-
   }
 
   //

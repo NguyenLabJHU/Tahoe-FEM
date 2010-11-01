@@ -132,28 +132,9 @@ namespace Tahoe {
 
     void Initialize();
 
-    const dSymMatrixT StressMechanical(const dMatrixT& C, const dArrayT& D) const;
-
-    const dSymMatrixT StressElectrical(const dMatrixT& C,
-				       const dArrayT& D) const;
-
-    const dSymMatrixT StressElectromechanical(const dMatrixT& C,
-					    const dArrayT& D) const;
-
     const dArrayT ElectricFieldElectrical(const dMatrixT& C,
 					  const dArrayT& D) const;
 
-    //
-    // Tangent moduli
-    //
-    const dMatrixT TangentMechanical(const dMatrixT& C,
-             const dArrayT& D) const;
-
-    const dMatrixT TangentElectrical(const dMatrixT& C,
-             const dArrayT& D) const;
-
-    const dMatrixT TangentElectromechanical(const dMatrixT& C,
-            const dArrayT& D) const;
 
     const dMatrixT RightCauchyGreenDeformation();
     const dArrayT ElectricDisplacement();

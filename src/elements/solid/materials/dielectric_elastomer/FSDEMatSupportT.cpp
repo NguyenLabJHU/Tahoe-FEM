@@ -9,7 +9,6 @@ namespace Tahoe{
   void
   FSDEMatSupportT::SetContinuumElement(const ContinuumElementT* p)
   {
-
     //
     // inherited
     //
