@@ -40,10 +40,8 @@ namespace Tahoe {
     //
     virtual void TakeParameterList(const ParameterListT& list);
 
-    //
-    // information about subordinate parameter lists
-    //
-    virtual void DefineSubs(SubListT& sub_list) const;
+	/* define total # of DOFs/node, i.e. 4 (3 mech, 1 electric) */
+	virtual int TotalNumDOF() const;
 
     //
     //
@@ -52,19 +50,19 @@ namespace Tahoe {
         AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
     //
-    // \name Electric displacements
+    // \name Electric fields
     // @{
     //
 
     //
-    // Electric displacement at current integration point
+    // Electric field at current integration point
     //
-    const dArrayT& ElectricDisplacement() const;
+    const dArrayT& ElectricField() const;
 
     //
-    // Electric displacement at given integration point
+    // Electric field at given integration point
     //
-    const dArrayT& ElectricDisplacement(int ip) const;
+    const dArrayT& ElectricField(int ip) const;
 
     //
     // increment current element
@@ -121,6 +119,11 @@ namespace Tahoe {
     virtual void CurrElementInfo(ostream& out) const;
 
     //
+    // Initialize local arrays
+    //
+    virtual void SetLocalArrays();
+
+    //
     // driver for calculating output values
     //
     virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
@@ -132,6 +135,9 @@ namespace Tahoe {
     //
     //
     void Workspace();
+    void Set_B_C(const dArray2DT& DNaX, dMatrixT& B_C);
+    void AccumulateGeometricStiffness(dMatrixT& Kg, const dArray2DT& DNaX,
+        dSymMatrixT& S);
 
   protected:
 
@@ -143,9 +149,9 @@ namespace Tahoe {
     // @{
     //
 
-    // electric displacement
-    ArrayT<dArrayT> fD_List;
-    dArrayT fD_all;
+    // electric field
+    ArrayT<dArrayT> fE_List;
+    dArrayT fE_all;
 
     //
     // @}
@@ -160,15 +166,21 @@ namespace Tahoe {
 
   private:
 
+	LocalArrayT fLocScalarPotential;	// electric potential
     FSDEMatT* fCurrMaterial;
+    
     //
     // Stiffness storage
     //
-    dMatrixT fAmm;	// purely mechanical part of Hessian matrix
+    dMatrixT fAmm_mat;	// mechanical material part of Hessian matrix
+    dMatrixT fAmm_geo;	// mechanical geometric part of Hessian matrix
     dMatrixT fAme;	// mechanical-electrical coupling part of Hessian matrix
     dMatrixT fAem;	// electrical-mechanical coupling part of Hessian matrix
     dMatrixT fAee;	// electrical-electrical coupling part of Hessian matrix
     dMatrixT fGradNa;	// shape function gradients matrix
+    
+    /* Electric potential */
+    const FieldT* fElectricScalarPotentialField;
     
   };
 

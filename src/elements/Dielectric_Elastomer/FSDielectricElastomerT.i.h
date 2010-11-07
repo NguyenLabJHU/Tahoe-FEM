@@ -6,28 +6,38 @@ namespace Tahoe {
   //
   inline FSDielectricElastomerT::FSDielectricElastomerT(
       const ElementSupportT& support) :
-    FiniteStrainT(support), fFSDEMatSupport(0), fCurrMaterial(0)
-//    FiniteStrainT(support)
+    FiniteStrainT(support), fFSDEMatSupport(0), fCurrMaterial(0),
+    fLocScalarPotential(LocalArrayT::kESP), fElectricScalarPotentialField(0)
   {
-    SetName("Dielectric_Elastomer");
+    SetName("dielectric_elastomer");
+  }
+
+  //
+  //
+  //
+  inline int FSDielectricElastomerT::TotalNumDOF() const
+  {
+ 	int mechdof = 3;
+ 	int elecdof = 1;
+ 	cout << "into TotalNumDOF" << endl;
+    return (mechdof+elecdof);
+  }
+
+  inline const dArrayT&
+  FSDielectricElastomerT::ElectricField() const
+  {
+  	cout << "FSDielectricElastomerT::ElectricField()" << endl;
+    return fE_List[CurrIP()];
   }
 
   //
   //
   //
   inline const dArrayT&
-  FSDielectricElastomerT::ElectricDisplacement() const
+  FSDielectricElastomerT::ElectricField(int ip) const
   {
-    return fD_List[CurrIP()];
-  }
-
-  //
-  //
-  //
-  inline const dArrayT&
-  FSDielectricElastomerT::ElectricDisplacement(int ip) const
-  {
-    return fD_List[ip];
+  	cout << "FSDielectricElastomerT::ElectricField(int ip)" << endl;
+    return fE_List[ip];
   }
 
 
