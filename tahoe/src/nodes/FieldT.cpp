@@ -1,7 +1,10 @@
 //
-// $Id: FieldT.cpp,v 1.58 2009-05-21 22:30:27 tdnguye Exp $
+// $Id: FieldT.cpp,v 1.59 2010-11-07 21:19:19 hspark Exp $
 //
 // $Log: not supported by cvs2svn $
+// Revision 1.58  2009/05/21 22:30:27  tdnguye
+// small changes
+//
 // Revision 1.57  2008/12/12 00:52:11  lxmota
 // Added offset in numbering of equations for multi-field formulations.
 //
@@ -117,16 +120,26 @@ void FieldT::RegisterLocal(LocalArrayT& array) const
 			array.SetGlobal(fField_last[2]);
 			break;
 		}
-    case LocalArrayT::kEVP:
-    {
-      array.SetGlobal(fField[0]);
-      break;
-    }
-    case LocalArrayT::kLastEVP:
-    {
-      array.SetGlobal(fField_last[0]);
-      break;
-    }
+	    case LocalArrayT::kEVP:
+	    {
+	      	array.SetGlobal(fField[0]);
+	      	break;
+	    }
+    	case LocalArrayT::kLastEVP:
+    	{
+      		array.SetGlobal(fField_last[0]);
+      		break;
+    	}
+    	case LocalArrayT::kESP:	// scalar electric potential field
+	    {
+	      	array.SetGlobal(fField[0]);
+	      	break;
+	    }
+	    case LocalArrayT::kLastESP:	// scalar electric potential field
+	    {
+	      	array.SetGlobal(fField_last[0]);
+	      	break;
+	    }
 		default:
 			ExceptionT::GeneralFail(caller, "unrecognized type: %d", array.Type());
 	}
