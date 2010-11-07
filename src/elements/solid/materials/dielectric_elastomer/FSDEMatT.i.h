@@ -14,7 +14,7 @@ namespace Tahoe {
   // Set electrical permittivity
   //
   inline void FSDEMatT::SetElectricPermittivity(double epsilon)
-  {
+  {	
     fElectricPermittivity = epsilon;
   }
 
@@ -35,55 +35,25 @@ namespace Tahoe {
     fFSDEMatSupport = support;
   }
 
+
   //
   //
   //
-  inline const dArrayT FSDEMatT::ElectricField(const dMatrixT& C,
-      const dArrayT& D) const
+  inline const dArrayT FSDEMatT::ElectricField()
   {
-
-    const dArrayT Er = ElectricFieldElectrical(C, D);
-
-    dArrayT E = Er;
-
-    return E;
-
+  	cout << "FSDEMatT::ElectricField()" << endl;
+    fElectricField = fFSDEMatSupport->ElectricField();
+    return fElectricField;
   }
 
   //
   //
   //
-  inline const dArrayT FSDEMatT::ElectricFieldElectrical(
-      const dMatrixT& C, const dArrayT& D) const
+  inline const dArrayT FSDEMatT::ElectricField(int ip)
   {
-
-    dArrayT Er;
-
-	/* HSP - why is J necessary? */
-    const double J = sqrt(C.Det());
-    C.Multx(D, Er);
-    Er /= (J * fElectricPermittivity);
-
-    return Er;
-
-  }
-
-  //
-  //
-  //
-  inline const dArrayT FSDEMatT::ElectricDisplacement()
-  {
-    fElectricDisplacement = fFSDEMatSupport->ElectricDisplacement();
-    return fElectricDisplacement;
-  }
-
-  //
-  //
-  //
-  inline const dArrayT FSDEMatT::ElectricDisplacement(int ip)
-  {
-    fElectricDisplacement = fFSDEMatSupport->ElectricDisplacement(ip);
-    return fElectricDisplacement;
+  	cout << "FSDEMatT::ElectricField(ip)" << endl;
+    fElectricField = fFSDEMatSupport->ElectricField(ip);
+    return fElectricField;
   }
 
   //
@@ -91,7 +61,6 @@ namespace Tahoe {
   //
   inline const dMatrixT FSDEMatT::RightCauchyGreenDeformation()
   {
-
     const dMatrixT F = F_mechanical();
     dMatrixT FTF(3);
     FTF.MultATB(F, F);
@@ -112,24 +81,24 @@ namespace Tahoe {
 
   }
 
+
   //
   // material mechanical tangent modulus
   //
   inline const dMatrixT&
   FSDEMatT::C_IJKL()
   {
-
-    const dMatrixT C = RightCauchyGreenDeformation();
-    const dArrayT D = ElectricDisplacement();
-    const dArrayT E = ElectricField(C,D);   
-    
-	/* call C function for mechanical tangent modulus */
-	get_ddC(fParams.Pointer(), E.Pointer(),  
-		C.Pointer(), fTangentMechanical.Pointer()); 
-
-	fTangentMechanical*=4.0;
+	cout << "FSDEMatT::C_IJKL" << endl;
+//     const dMatrixT& C = RightCauchyGreenDeformation();
+//     const dArrayT& E = ElectricField();
+//     
+// 	/* call C function for mechanical tangent modulus */
+// 	get_ddC(fParams.Pointer(), E.Pointer(),  
+// 		C.Pointer(), fTangentMechanical.Pointer()); 
+// 
+// 	fTangentMechanical*=4.0;
+	fTangentMechanical = 0.0;
     return fTangentMechanical;
-
   }
 
   //
@@ -138,16 +107,16 @@ namespace Tahoe {
   inline const dMatrixT&
   FSDEMatT::E_IJK()
   {
-
-    const dMatrixT C = RightCauchyGreenDeformation();
-    const dArrayT D = ElectricDisplacement();
-    const dArrayT E = ElectricField(C,D);
+	cout << "FSDEMatT::E_IJK" << endl;
+    const dMatrixT& C = RightCauchyGreenDeformation();
+	const dArrayT& E = ElectricField();
 
 	/* call C function for electromechanical tangent modulus */
-	get_ddCE(fParams.Pointer(), E.Pointer(),  
-		C.Pointer(), fTangentElectromechanical.Pointer()); 
-
-	fTangentElectromechanical*=2.0;
+ 	get_ddCE(fParams.Pointer(), E.Pointer(),  
+ 		C.Pointer(), fTangentElectromechanical.Pointer()); 
+ 
+ 	fTangentElectromechanical*=2.0;
+ 	cout << "E_IJK = " << fTangentElectromechanical << endl;
     return fTangentElectromechanical;
 
   }
@@ -158,16 +127,16 @@ namespace Tahoe {
   inline const dMatrixT&
   FSDEMatT::B_IJ()
   {
-
-    const dMatrixT C = RightCauchyGreenDeformation();
-    const dArrayT D = ElectricDisplacement();
-    const dArrayT E = ElectricField(C,D);
-    dMatrixT blah;
+	cout << "FSDEMatT::B_IJ" << endl;
+    const dMatrixT& C = RightCauchyGreenDeformation();
+	const dArrayT& E = ElectricField();
 
 	/* call C function for electrical tangent modulus */
-	get_ddE(fParams.Pointer(), E.Pointer(),  
-		C.Pointer(), fTangentElectrical.Pointer()); 
-
+ 	get_ddE(fParams.Pointer(), E.Pointer(),  
+ 		C.Pointer(), fTangentElectrical.Pointer()); 
+ 
+ 	fTangentElectrical *= -1.0;
+ 	cout << "B_IJ = " << fTangentElectrical << endl;
     return fTangentElectrical;
 
   }
@@ -178,10 +147,9 @@ namespace Tahoe {
   inline const dSymMatrixT&
   FSDEMatT::S_IJ()
   {
-
-    const dMatrixT C = RightCauchyGreenDeformation();
-    const dArrayT D = ElectricDisplacement();
-    const dArrayT E = ElectricField(C,D);
+	cout << "FSDEMatT::S_IJ" << endl;
+    const dMatrixT& C = RightCauchyGreenDeformation();
+   const dArrayT& E = ElectricField();
     
 	/* call C function for mechanical stress */
 	get_dUdC(fParams.Pointer(), E.Pointer(),  
@@ -189,17 +157,27 @@ namespace Tahoe {
 
     fStress.FromMatrix(stress_temp);
 	fStress*=2.0;
-
+	cout << "S_IJ = " << fStress << endl;
     return fStress;
 
   }
 
   //
-  // Electric displacement
+  // Electric displacement - is it necessary to pass Efield?
   //
   inline const dArrayT&
   FSDEMatT::D_I()
   {
+  	cout << "FSDEMatT::D_I" << endl;
+    const dMatrixT& C = RightCauchyGreenDeformation();
+	const dArrayT& E = ElectricField();
+
+	/* call C function for electric displacement */
+ 	get_dUdE(fParams.Pointer(), E.Pointer(),  
+ 		C.Pointer(), fElectricDisplacement.Pointer());     
+     
+    fElectricDisplacement *= -1.0;
+    cout << "fElectricDisplacement = " << fElectricDisplacement << endl;
     return fElectricDisplacement;
   }
 
@@ -209,10 +187,7 @@ namespace Tahoe {
   inline const dArrayT&
   FSDEMatT::E_I()
   {
-
-    const dMatrixT C = RightCauchyGreenDeformation();
-    const dArrayT D = ElectricDisplacement();
-    fElectricField = ElectricField(C, D);
+	cout << "FSDEMatT::E_I" << endl;
 
     return fElectricField;
 
@@ -224,7 +199,7 @@ namespace Tahoe {
   inline const dMatrixT&
   FSDEMatT::c_ijkl()
   {
-
+	cout << "FSDEMatT::c_ijkl" << endl;
     const dMatrixT F = F_mechanical();
     const double J = F.Det();
 
@@ -242,14 +217,13 @@ namespace Tahoe {
   inline const dSymMatrixT&
   FSDEMatT::s_ij()
   {
-
+	cout << "FSDEMatT::s_ij" << endl;
     const dMatrixT F = F_mechanical();
     const double J = F.Det();
-
+	
     // prevent aliasing
     const dSymMatrixT S = S_IJ();
     fStress.SetToScaled(1.0 / J, PushForward(F, S));
-
     return fStress;
 
   }

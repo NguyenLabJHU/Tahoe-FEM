@@ -7,13 +7,11 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
-//#include "FSIsotropicMatT.h"
 #include "NL_E_MatT.h"
 #include "FSDEMatSupportT.h"
 
 namespace Tahoe {
 
-//  class FSDEMatT: public FSIsotropicMatT
   class FSDEMatT: public NL_E_MatT
   {
 
@@ -103,11 +101,6 @@ namespace Tahoe {
     //
 
     //
-    // Material electric field
-    //
-    const dArrayT ElectricField(const dMatrixT& C, const dArrayT& D) const;
-
-    //
     // accessors and mutators for material constants
     //
     void SetElectricPermittivity(double epsilon);
@@ -132,13 +125,9 @@ namespace Tahoe {
 
     void Initialize();
 
-    const dArrayT ElectricFieldElectrical(const dMatrixT& C,
-					  const dArrayT& D) const;
-
-
     const dMatrixT RightCauchyGreenDeformation();
-    const dArrayT ElectricDisplacement();
-    const dArrayT ElectricDisplacement(int ip);
+    const dArrayT ElectricField();
+    const dArrayT ElectricField(int ip);
 
     //
     // data

@@ -17,7 +17,6 @@ namespace Tahoe {
   //
   void FSDEMatT::Initialize()
   {
-
     fElectricPermittivity = 0.0;
     fMu = 0.0;
     fNrig = 0.0;
@@ -40,6 +39,7 @@ namespace Tahoe {
   //
   void FSDEMatT::TakeParameterList(const ParameterListT& list)
   {
+  	cout << "FSDEMatT::TakeParameterList" << endl;
     NL_E_MatT::TakeParameterList(list);
 
     fElectricPermittivity = list.GetParameter("epsilon");
@@ -58,6 +58,8 @@ namespace Tahoe {
 	stress_temp.Dimension(kNumDOF);
 	fTangentElectrical.Dimension(kNumDOF);
 	fTangentElectromechanical.Dimension(kStressDim, kNumDOF);
+	fElectricDisplacement.Dimension(kNumDOF);
+	fElectricField.Dimension(kNumDOF);
   }
 
   //

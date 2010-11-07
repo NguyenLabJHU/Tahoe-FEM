@@ -39,49 +39,63 @@ namespace Tahoe {
     virtual void SetContinuumElement(const ContinuumElementT* p);
 
     //
-    // \name Electric displacements
+    // \name Electric fields
     // @{
     //
 
     //
-    // Electric displacement at current integration point
+    // Electric field at current integration point
     //
-    const dArrayT& ElectricDisplacement() const;
+    const dArrayT& ElectricField() const;
 
     //
-    // Electric displacement at given integration point
+    // Electric field at given integration point
     //
-    const dArrayT& ElectricDisplacement(int ip) const;
+    const dArrayT& ElectricField(int ip) const;
 
     //
-    // Set source for electric displacement
+    // Set source for electric field
     //
-    void SetElectricDisplacement(const ArrayT<dArrayT>* D_List);
+    void SetElectricField(const ArrayT<dArrayT>* E_List);
 
-    // @}
     //
+    // Return pointer to specified local array
+    //
+    virtual const LocalArrayT* LocalArray(LocalArrayT::TypeT t) const;
 
-    static const int ManifoldDim() { return 3; };
-    static const int StrainDim() { return 6; };
-    static const int ElectricalDim() { return 3; };
+    //
+    // Set pointer to local array
+    //
+    virtual void SetLocalArray(const LocalArrayT& array);
+
+    //
+    // Nodal electric scalar potentials
+    //
+    const LocalArrayT* ScalarPotentials() const;
+
+    //
+    //
+    //
+    void SetScalarPotentials(const LocalArrayT& scalarPotentials);
 
   private:
 
     //
-    // \name Sources for electric displacements and pointers to local
+    // \name Sources for electric field and pointers to local
     // arrays
     //
     // @{
     //
 
     //
-    // Electric displacement
+    // Electric field
     //
-    const ArrayT<dArrayT>* fD_List;
+   const ArrayT<dArrayT>* fE_List;
 
     //
-    // @}
+    // Pointers to local arrays
     //
+    const LocalArrayT* fESP;
 
     // pointer to the host element
     const FSDielectricElastomerT* fFSDielectricElastomer;
