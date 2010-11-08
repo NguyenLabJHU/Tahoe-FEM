@@ -2,17 +2,17 @@
 #define FSDE_COMMON_DEFINES_H
 
 /* Sequence of parameters is:
- * Nrig
  * epsilon
  * mu
+ * Nrig
  */
 
 /* common variable defintion/mappings for auto-generated C code */
 
 /* potential parameters */
-double Nrig      = params[ 0];
-double epsilon   = params[ 1];
-double mu	  	 = params[ 2];
+double epsilon      = params[ 0];
+double mu   		= params[ 1];
+double Nrig	  	 	= params[ 2];
 
 /* E-field */
 double ex = Xsi[0];

@@ -1,11 +1,9 @@
 #include "FSDE_inc.h"
-
 #include <math.h>
-
 static double z[117];
 
 /* function to compute mechanical stress */
-void get_dUdC(const double* params, const double *Xsi, const double* Cmat, double* dUdC) { 
+void get_dUdCmech(const double* params, const double *Xsi, const double* Cmat, double* dUdC) { 
 
 /* common definitions */
 #include "FSDE_common_defines.h"

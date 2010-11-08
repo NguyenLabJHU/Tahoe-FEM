@@ -9,7 +9,7 @@ void get_dUdE(const double* params, const double *Xsi, const double* Cmat, doubl
 
 /* common definitions */
 #include "FSDE_common_defines.h"
-	
+
 	/* Stress code */
 	z[1] = -C12*C21;
 	z[2] = C13*C21;

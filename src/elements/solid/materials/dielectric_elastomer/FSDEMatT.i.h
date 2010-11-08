@@ -41,7 +41,6 @@ namespace Tahoe {
   //
   inline const dArrayT FSDEMatT::ElectricField()
   {
-  	cout << "FSDEMatT::ElectricField()" << endl;
     fElectricField = fFSDEMatSupport->ElectricField();
     return fElectricField;
   }
@@ -51,7 +50,6 @@ namespace Tahoe {
   //
   inline const dArrayT FSDEMatT::ElectricField(int ip)
   {
-  	cout << "FSDEMatT::ElectricField(ip)" << endl;
     fElectricField = fFSDEMatSupport->ElectricField(ip);
     return fElectricField;
   }
@@ -89,15 +87,15 @@ namespace Tahoe {
   FSDEMatT::C_IJKL()
   {
 	cout << "FSDEMatT::C_IJKL" << endl;
-//     const dMatrixT& C = RightCauchyGreenDeformation();
-//     const dArrayT& E = ElectricField();
-//     
-// 	/* call C function for mechanical tangent modulus */
-// 	get_ddC(fParams.Pointer(), E.Pointer(),  
-// 		C.Pointer(), fTangentMechanical.Pointer()); 
-// 
-// 	fTangentMechanical*=4.0;
-	fTangentMechanical = 0.0;
+    const dMatrixT& C = RightCauchyGreenDeformation();
+    const dArrayT& E = ElectricField();
+    
+	/* call C function for mechanical tangent modulus */
+	get_ddCmech(fParams.Pointer(), E.Pointer(),  
+		C.Pointer(), fTangentMechanical.Pointer()); 
+
+	fTangentMechanical*=4.0;
+	cout << "C_IJKL = " << fTangentMechanical << endl;
     return fTangentMechanical;
   }
 
@@ -115,7 +113,7 @@ namespace Tahoe {
  	get_ddCE(fParams.Pointer(), E.Pointer(),  
  		C.Pointer(), fTangentElectromechanical.Pointer()); 
  
- 	fTangentElectromechanical*=2.0;
+ 	fTangentElectromechanical*=-2.0;
  	cout << "E_IJK = " << fTangentElectromechanical << endl;
     return fTangentElectromechanical;
 
@@ -149,10 +147,10 @@ namespace Tahoe {
   {
 	cout << "FSDEMatT::S_IJ" << endl;
     const dMatrixT& C = RightCauchyGreenDeformation();
-   const dArrayT& E = ElectricField();
+   	const dArrayT& E = ElectricField();
     
 	/* call C function for mechanical stress */
-	get_dUdC(fParams.Pointer(), E.Pointer(),  
+	get_dUdCmech(fParams.Pointer(), E.Pointer(),  
 		C.Pointer(), stress_temp.Pointer()); 
 
     fStress.FromMatrix(stress_temp);
@@ -175,7 +173,7 @@ namespace Tahoe {
 	/* call C function for electric displacement */
  	get_dUdE(fParams.Pointer(), E.Pointer(),  
  		C.Pointer(), fElectricDisplacement.Pointer());     
-     
+    
     fElectricDisplacement *= -1.0;
     cout << "fElectricDisplacement = " << fElectricDisplacement << endl;
     return fElectricDisplacement;
@@ -187,10 +185,7 @@ namespace Tahoe {
   inline const dArrayT&
   FSDEMatT::E_I()
   {
-	cout << "FSDEMatT::E_I" << endl;
-
     return fElectricField;
-
   }
 
   //

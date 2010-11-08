@@ -5,7 +5,7 @@
 static double z[394];
 
 /* function to compute mechanical modulus */
-void get_ddC(const double* params, const double *Xsi, const double* Cmat, double* dCdC) { 
+void get_ddCmech(const double* params, const double *Xsi, const double* Cmat, double* dCdC) { 
 
 /* common definitions */
 #include "FSDE_common_defines.h"

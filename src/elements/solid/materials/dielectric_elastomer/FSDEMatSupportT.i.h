@@ -7,7 +7,7 @@ namespace Tahoe {
   inline FSDEMatSupportT::FSDEMatSupportT(int ndof, int nip) :
     FSMatSupportT(ndof, nip), fE_List(0), fFSDielectricElastomer(0)
   {
-		cout << "FSDEMatSupportT::Constructor" << endl;
+
   }
 
   //

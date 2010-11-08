@@ -1,6 +1,7 @@
 
 #include "ExceptionT.h"
 #include "FSDEMatT.h"
+#include "FSDE_inc.h"
 
 namespace Tahoe {
 
