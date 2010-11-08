@@ -180,7 +180,6 @@ namespace Tahoe {
     //
     SetLocalU(fLocScalarPotential);
     cout << "fLocScalarPotential = " << fLocScalarPotential << endl;
-	dMatrixT GradNa(NumSD(), NumElementNodes());
 
     for (int i = 0; i < NumIP(); i++) {
 
@@ -189,25 +188,16 @@ namespace Tahoe {
       //
 
         dArrayT& E = fE_List[i];
+		dMatrixT E1(1, NumSD());
 
-        //
-        // In case need to manipulate E for output below:
-        //
-        int m = fLocScalarPotential.NumberOfNodes();
-
-		dArrayT sp(m);
-
-        for (int j = 0; j < m; ++j) {
-          sp[j] = fLocScalarPotential[j];
-        }
-
-
-//       	const dArray2DT& DNaX = fShapes->Derivatives_X();
-//       	cout << "DNaX = " << DNaX << endl;
-// 	  	fShapes->GradNa(DNaX, GradNa);	  
-// 		GradNa.Multx(sp,E);
-// 		E *= -1.0;
-		cout << "E after = " << E << endl;
+		/* Not sure if this is correct; would prefer Derivative_X */
+		/* Sometimes z value of E1 is e-19....*/
+		fShapes->GradU(fLocScalarPotential, E1, i);
+		E1 *= -1.0;
+		E[0] = E1(0,0);
+		E[1] = E1(0,1);
+		E[2] = E1(0,2);
+		cout << "E = " << E << endl;
       }
 
   }
@@ -466,20 +456,20 @@ namespace Tahoe {
 	  dMatrixT B_C;
 	  Set_B_C(DNaX, B_C);
  
-	  /* mechanical material stiffness (24 x 24 matrix for 8-node 3D element) */
- 	  fAmm_mat.MultQTBQ(B_C, C, format, dMatrixT::kAccumulate);
-	  
-	  /* mechanical geometric stiffness (8 x 8 matrix for 8-node 3D element */ 
-	  AccumulateGeometricStiffness(fAmm_geo, DNaX, S);
-	  
- 	  /* Not sure if these next two mechanical-electrical MultATBC are correct */
- 	  /* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
- 	  /* What is the difference between format and dMatrixT::kWhole? */
- 	  fAme.MultATBC(B_C, H, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate); 
- 	  fAme.Transpose(fAem);
-  
- 	  /* electrical-electrical stiffness (8 x 8 matrix for 8-node 3D element) */
- 	  fAee.MultQTBQ(GradShape, B, format, dMatrixT::kAccumulate);
+// 	  /* mechanical material stiffness (24 x 24 matrix for 8-node 3D element) */
+//  	  fAmm_mat.MultQTBQ(B_C, C, format, dMatrixT::kAccumulate);
+// 	  
+// 	  /* mechanical geometric stiffness (8 x 8 matrix for 8-node 3D element */ 
+// 	  AccumulateGeometricStiffness(fAmm_geo, DNaX, S);
+// 	  
+//  	  /* Not sure if these next two mechanical-electrical MultATBC are correct */
+//  	  /* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
+//  	  /* What is the difference between format and dMatrixT::kWhole? */
+//  	  fAme.MultATBC(B_C, H, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate); 
+//  	  fAme.Transpose(fAem);
+//   
+//  	  /* electrical-electrical stiffness (8 x 8 matrix for 8-node 3D element) */
+//  	  fAee.MultQTBQ(GradShape, B, format, dMatrixT::kAccumulate);
     }
 	
 	/* Expand 8x8 geometric stiffness into 24x24 matrix */
@@ -519,18 +509,18 @@ namespace Tahoe {
 	  fShapes->GradNa(DNaX, GradShape);	
 	  
 	  /* Mechanical stress */
-	  dSymMatrixT S = fCurrMaterial->S_IJ();
-	  S *= w;
-	  dMatrixT B_C;
-	  Set_B_C(DNaX, B_C);
-	  B_C.MultTx(S, Rmech, 1.0, dMatrixT::kAccumulate);
-	  Rmech *= -1.0;	// need for right sign for residual
-	  
-	  /* electrical stress */
-	  dArrayT D = fCurrMaterial->D_I();	// electrical displacement vector 3 x 1
-	  D *= w;
-	  // 3x1 vector of shape function gradient * D
-	  GradShape.MultTx(D, Relec, 1.0, dMatrixT::kAccumulate);	
+// 	  dSymMatrixT S = fCurrMaterial->S_IJ();
+// 	  S *= w;
+// 	  dMatrixT B_C;
+// 	  Set_B_C(DNaX, B_C);
+// 	  B_C.MultTx(S, Rmech, 1.0, dMatrixT::kAccumulate);
+// 	  Rmech *= -1.0;	// need for right sign for residual
+// 	  
+// 	  /* electrical stress */
+// 	  dArrayT D = fCurrMaterial->D_I();	// electrical displacement vector 3 x 1
+// 	  D *= w;
+// 	  // 3x1 vector of shape function gradient * D
+// 	  GradShape.MultTx(D, Relec, 1.0, dMatrixT::kAccumulate);	
 	  
 	  /* NOTE:  mechanical inertia term, mechanical body force term, mechanical
 	  surface traction term, electrical body force (charge), electrical surface 
@@ -606,14 +596,14 @@ namespace Tahoe {
     matdat.Alias(nen, n_codes[iMaterialData], pall);
     pall += matdat.Length();
 
-    ndElectricScalarPotential.Alias(nen, n_codes[ND_ELEC_POT_SCALAR], pall);
-    pall += ndElectricScalarPotential.Length();
-
     ndElectricDisplacement.Alias(nen, n_codes[ND_ELEC_DISP], pall);
     pall += ndElectricDisplacement.Length();
 
     ndElectricField.Alias(nen, n_codes[ND_ELEC_FLD], pall);
     pall += ndElectricField.Length();
+    
+    ndElectricScalarPotential.Alias(nen, n_codes[ND_ELEC_POT_SCALAR], pall);
+    pall += ndElectricScalarPotential.Length();
 
     // element work arrays
     dArrayT element_values(e_values.MinorDim());
@@ -865,7 +855,6 @@ namespace Tahoe {
 
         // electric displacements
         const dArrayT& D = fCurrMaterial->D_I();
-
         if (n_codes[ND_ELEC_DISP]) {
           if (qNoExtrap) {
             for (int k = 0; k < nen; k++) {
@@ -878,7 +867,6 @@ namespace Tahoe {
 
         // electric field
         const dArrayT& E = fCurrMaterial->E_I();
-
         if (n_codes[ND_ELEC_FLD]) {
           if (qNoExtrap) {
             for (int k = 0; k < nen; k++) {
@@ -906,9 +894,9 @@ namespace Tahoe {
         energy /= nip;
         speed /= nip;
         matdat /= nip;
-        ndElectricScalarPotential /= nip;
         ndElectricDisplacement /= nip;
         ndElectricField /= nip;
+        ndElectricScalarPotential /= nip;
       }
       nodal_all.BlockColumnCopyAt(nodalstress, colcount);
       colcount += nodalstress.MinorDim();
@@ -925,14 +913,14 @@ namespace Tahoe {
       nodal_all.BlockColumnCopyAt(matdat, colcount);
       colcount += matdat.MinorDim();
 
-      nodal_all.BlockColumnCopyAt(ndElectricScalarPotential, colcount);
-      colcount += ndElectricScalarPotential.MinorDim();
-
       nodal_all.BlockColumnCopyAt(ndElectricDisplacement, colcount);
       colcount += ndElectricDisplacement.MinorDim();
 
       nodal_all.BlockColumnCopyAt(ndElectricField, colcount);
       colcount += ndElectricField.MinorDim();
+
+      nodal_all.BlockColumnCopyAt(ndElectricScalarPotential, colcount);
+      colcount += ndElectricScalarPotential.MinorDim();
 
       // accumulate - extrapolation done from ip's to corners => X nodes
       ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
