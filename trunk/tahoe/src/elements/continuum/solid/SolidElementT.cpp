@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.84 2010-11-07 21:35:14 hspark Exp $ */
+/* $Id: SolidElementT.cpp,v 1.85 2010-11-08 15:34:44 hspark Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -47,9 +47,9 @@ static const char* NodalOutputNames[] = {
 	"divergence_vector_potential",
 	"electric_displacement",
 	"electric_field",
+	"electric_scalar_potential",
 	"strain",
-	"principal_strain",
-	"electric_scalar_potential"};
+	"principal_strain"};
 
 const int SolidElementT::NumElementOutputCodes = 9;
 static const char* ElementOutputNames[] = {
@@ -296,15 +296,15 @@ void SolidElementT::SendOutput(int kincode)
     	case ND_ELEC_FLD:
     	    flags[ND_ELEC_FLD] = 1;
       		break;
+      	case ND_ELEC_POT_SCALAR:
+      		flags[ND_ELEC_POT_SCALAR] = 1;
+      		break;      		
 		case iNodalStrain:
 			flags[iNodalStrain] = 1;
 			break;
 	    case iPrincipalStrain:
 			flags[iPrincipalStrain] = 1;
 			break;		      		
-      	case ND_ELEC_POT_SCALAR:
-      		flags[ND_ELEC_POT_SCALAR] = 1;
-      		break;
 		default:
 			cout << "\n SolidElementT::SendOutput: invalid output code: "
 			     << kincode << endl;
@@ -314,7 +314,7 @@ void SolidElementT::SendOutput(int kincode)
 	/* number of output values */
 	iArrayT n_counts;
 	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
-
+	
 	/* reset averaging workspace */
 	ElementSupport().ResetAverage(n_counts.Sum());
 
@@ -646,11 +646,10 @@ double SolidElementT::MaxEigenvalue(void)
 void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
-	
 	/* initialize */
 	counts.Dimension(flags.Length());
 	counts = 0;
-
+	
 	/* set output flags */
 	if (flags[iNodalCoord] == mode)
 		counts[iNodalCoord] = NumSD();
@@ -680,8 +679,8 @@ void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
 	    counts[ND_ELEC_DISP] = NumSD();
     if (flags[ND_ELEC_FLD] == mode) 
  	    counts[ND_ELEC_FLD] = NumSD();
-	if (flags[ND_ELEC_POT_SCALAR] == mode)
-		counts[ND_ELEC_POT_SCALAR] == 1;	// HSP:  scalar electric potential field
+	if (flags[ND_ELEC_POT_SCALAR] == mode) 
+		counts[ND_ELEC_POT_SCALAR] = 1;	// HSP:  scalar electric potential field
 }
 
 void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
@@ -1907,6 +1906,14 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
     }
   }
 	
+  /* HSP:  scalar electric potential */
+  if (n_codes[ND_ELEC_POT_SCALAR]) {
+    const char* labels[] = {"Psi"};
+    for (int i = 0; i < 1; i++) {
+      n_labels[count++] = labels[i];
+    }
+  }	
+	
 	if (n_codes[iNodalStrain])
 	{
 		const char* elabels1D[] = {"e11"};
@@ -1936,14 +1943,6 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = plabels[i];
 	}
-
-  /* HSP:  scalar electric potential */
-  if (n_codes[ND_ELEC_POT_SCALAR]) {
-    const char* labels[] = {"Psi"};
-    for (int i = 0; i < 1; i++) {
-      n_labels[count++] = labels[i];
-    }
-  }	
 
   /* allocate */
 	e_labels.Dimension(e_codes.Sum());
