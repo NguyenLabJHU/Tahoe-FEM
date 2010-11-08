@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.36 2010-10-27 20:27:56 hspark Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.37 2010-11-08 15:35:10 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -120,6 +120,7 @@
 
 #ifdef DIELECTRIC_ELASTOMER
 #include "FSDielectricElastomerT.h"
+#include "FSPZMatSupportT.h"
 #endif
 
 /* development module materials require solid element development to be enabled */
@@ -279,7 +280,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #endif
 
 #ifdef DIELECTRIC_ELASTOMER
-		sub_lists.AddSub("Dielectric_Elastomer");
+		sub_lists.AddSub(FSDEMatT::Name);
 #endif
 
 #ifdef PIEZOELECTRIC
