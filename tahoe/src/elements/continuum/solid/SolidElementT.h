@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.34 2010-11-07 21:35:14 hspark Exp $ */
+/* $Id: SolidElementT.h,v 1.35 2010-11-08 15:34:44 hspark Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -37,9 +37,9 @@ public:
      ND_DIV_POT  = 9,
      ND_ELEC_DISP = 10,
      ND_ELEC_FLD  = 11,
-	iNodalStrain = 12,
-	iPrincipalStrain = 13,
-     ND_ELEC_POT_SCALAR = 14,
+     ND_ELEC_POT_SCALAR = 12,
+	iNodalStrain = 13,
+	iPrincipalStrain = 14,
 		};
 
 	/** list/index of element outputs */
