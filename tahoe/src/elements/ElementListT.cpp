@@ -1,5 +1,8 @@
-/* $Id: ElementListT.cpp,v 1.144 2009-05-21 23:24:45 tdnguye Exp $ */
+/* $Id: ElementListT.cpp,v 1.145 2010-11-08 15:33:56 hspark Exp $ */
 /* $Log: not supported by cvs2svn $
+/* Revision 1.144  2009/05/21 23:24:45  tdnguye
+/* added optimization class
+/*
 /* Revision 1.143  2009/05/11 21:43:28  regueiro
 /*
 /* adding xfem development option
@@ -86,6 +89,10 @@
 
 #ifdef PIEZOELECTRIC
 #include "FSPiezoElectricSolidT.h"
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER
+#include "FSDielectricElastomerT.h"
 #endif
 
 #ifdef HUWASHIZU
@@ -386,6 +393,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
     sub_lists.AddSub("piezoelectric");
 #endif
 
+#ifdef DIELECTRIC_ELASTOMER
+    sub_lists.AddSub("dielectric_elastomer");
+#endif
+
 #ifdef HUWASHIZU
     sub_lists.AddSub("Hu_Washizu_USC");
 #endif
@@ -659,6 +670,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef PIEZOELECTRIC
   else if (name == "piezoelectric")
     return new FSPiezoElectricSolidT(fSupport);
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER
+  else if (name == "dielectric_elastomer")
+    return new FSDielectricElastomerT(fSupport);
 #endif
 
 #ifdef HUWASHIZU
