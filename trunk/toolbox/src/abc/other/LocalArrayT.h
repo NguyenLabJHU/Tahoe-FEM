@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.16 2008-07-14 17:49:24 lxmota Exp $ */
+/* $Id: LocalArrayT.h,v 1.17 2010-11-10 12:17:36 hspark Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -35,7 +35,9 @@ public:
 	             kInitCoords, /**< initial coordinates */
                  kCurrCoords,  /**< current coordinates */
                  kEVP,          // Electric vector potential
-                 kLastEVP};     // EVP from the previous time step
+                 kLastEVP,		// EVP from previous time step
+                 kESP,			// Electric scalar potential
+                 kLastESP};     // ESP from the previous time step
 
 	/** \name constructors */
 	/*@{*/
