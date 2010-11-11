@@ -5489,8 +5489,8 @@ void FSMicromorphic3DT::Form_TChi_2_matrix()
                     //summation
                     for(int K=0;K<3;K++)
                     {
-			//TChi_2(row,col)+=ChiN[l][K]*ChiInv[K][m]*ChiInv[R,k];
-                    	TChi_2(row,col)+=ChiN[l][K]*ChiInv_m(K,m)*ChiInv_m(R,k);
+            //TChi_2(row,col)+=ChiN[l][K]*ChiInv[K][m]*ChiInv[R,k];
+                        TChi_2(row,col)+=ChiN[l][K]*ChiInv_m(K,m)*ChiInv_m(R,k);
 
                     }
                     row++;
@@ -5531,24 +5531,24 @@ void FSMicromorphic3DT::Form_TFn_5_matrix()
 
 for(int i=0;i<3;i++)
 {
-	for(int m=0;m<3;m++)
-	{
-		//
-		row=0;
-		for(int k=0;k<3;k++)
-		{
-			for(int l=0;l<3;l++)
-			{
-				//summation
-				for(int K=0;K<3;K++)
-				{
-					TFn_5(row,col)+=Fn[k][K]*Finv[K][m]*fIdentity_matrix(l,i);
-				}
-				row++;
-			}
-		}
-		col++;
-	}
+    for(int m=0;m<3;m++)
+    {
+        //
+        row=0;
+        for(int k=0;k<3;k++)
+        {
+            for(int l=0;l<3;l++)
+            {
+                //summation
+                for(int K=0;K<3;K++)
+                {
+                    TFn_5(row,col)+=Fn[k][K]*Finv[K][m]*fIdentity_matrix(l,i);
+                }
+                row++;
+            }
+        }
+        col++;
+    }
 }
 
 }
@@ -6873,23 +6873,23 @@ void FSMicromorphic3DT::Form_Ru_4_matrix()
 
   /*  for(int p=0;p<3;p++)
     {
-    	for(int k=0;k<3;k++)
-    	{
-    		row=0;
-    		for(int m=0;m<3;m++)
-    		{
-    			for(int l=0;l<3;l++)
-    			{
-    				//summation
-    				for(int K=0;K<3;K++)
-    				{
-    					Ru_4(row, col) +=Fn[m][K]*Finv[K][k]*fIdentity_matrix(p,l);
-    				}
-    				row++;
-    			}
-    		}
-    	col++;
-    	}
+        for(int k=0;k<3;k++)
+        {
+            row=0;
+            for(int m=0;m<3;m++)
+            {
+                for(int l=0;l<3;l++)
+                {
+                    //summation
+                    for(int K=0;K<3;K++)
+                    {
+                        Ru_4(row, col) +=Fn[m][K]*Finv[K][k]*fIdentity_matrix(p,l);
+                    }
+                    row++;
+                }
+            }
+        col++;
+        }
     }
 
 */

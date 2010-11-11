@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.113 2010-10-07 06:47:13 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.114 2010-11-11 00:48:43 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -313,92 +313,34 @@ private:
     ElementMatrixT fKphid, fKphiphi;
     dArrayT         fFd_int;
     dArrayT         fFd_ext;
-    dArrayT                fFphi_int;
-    dArrayT                fFphi_ext;
+    dArrayT         fFphi_int;
+    dArrayT         fFphi_ext;
 
-    dArrayT                fGrad_disp_vector;
-    dMatrixT    fGrad_disp_matrix;
-    dArrayT         fDefGradInv_vector;
-    dArrayT         fKirchhoff_vector;
-    dArrayT         fSecond_Piola_vector;
-    dArrayT                fChi_temp_vector;
-    dArrayT                fFd_int_N1_vector;
-    dArrayT                fTemp_vector_ndof_se;
-    dArrayT                fTemp_vector_nen_micro;
-    dArrayT                fTemp_vector_9x1;
-    dArrayT                fPi_temp_transpose_vector;
-    dArrayT                fGrad_1_J_vector;
-    dArrayT                fTemp_nsd_vector;
-    dArrayT                fFd_int_smallstrain_vector;
-    dArrayT                fGravity_vector;
-    dArrayT                fFd_int_G4_vector;
+    dArrayT         fGrad_disp_vector;
+    dMatrixT        fGrad_disp_matrix;
+
     dArrayT         fTemp_nine_values;
-////////////////////////////////////
-    dArrayT         fE_values;
-    dArrayT         fVarepsilon;
-////////////////////////////////////
     dArrayT         fTemp_six_values;
-    dArrayT         fGradv_vector;
-    dArrayT         fgradv_vector;
 
     dMatrixT        fDeformation_Gradient;
-    dMatrixT        fDefGradT_9x9_matrix;
     dMatrixT        fRight_Cauchy_Green_tensor;
     dMatrixT        fRight_Cauchy_Green_tensor_Inverse;
     dMatrixT        fLeft_Cauchy_Green_tensor;
     dMatrixT        fLeft_Cauchy_Green_tensor_Inverse;
     dMatrixT        fDeformation_Gradient_Inverse;
     dMatrixT        fDeformation_Gradient_Transpose;
-    dMatrixT        fDeformation_Gradient_Inverse_Transpose;
     dMatrixT        fDefGradInv_Grad_grad;
-    dMatrixT        fDefGradInv_Grad_grad_Transpose;
+
     dMatrixT        fIdentity_matrix;
-        dMatrixT    fSecond_Piola_tensor;
-        dMatrixT    fTemp_matrix_nsd_x_nsd;
-        dMatrixT    fTemp_matrix_nsd_x_1;
-        dMatrixT    fTemp_matrix_ndof_se_x_ndof_se;
-        dMatrixT    fTemp_matrix1_ndof_se_x_ndof_se;
-        dMatrixT    fTemp_matrix_ndof_se_x_nen_micro;
-        dMatrixT    fTemp_matrix1_nen_press_x_ndof_se;
-        dMatrixT    fTemp_matrix_nsd_x_ndof_se;
-        dMatrixT    fTemp_matrix_nsd_x_nen_micro;
-        dMatrixT    fKirchhoff_tensor;
-        dMatrixT    fIota_temp_matrix;
-        dMatrixT    fVarpi_temp_matrix;
+    dMatrixT        fTemp_matrix_nsd_x_nsd;
+    dMatrixT        fShapeMicro_row_matrix;
 
 
-        dMatrixT    fIm_temp_matrix;
-        dMatrixT    fHbar_temp_matrix;
-        dMatrixT    fEll_temp_matrix;
-        dMatrixT    fPi_temp_row_matrix;
-        dMatrixT    fK_dd_G3_1_matrix;
-        dMatrixT    fK_dd_G3_2_matrix;
-        dMatrixT    fK_dd_G3_3_matrix;
-        dMatrixT    fK_dd_G3_4_matrix;
-        dMatrixT    fK_dd_G4_matrix;
-        dMatrixT    fI_ij_column_matrix;
-        dMatrixT    fShapeMicro_row_matrix;
-        dMatrixT    fWp_temp_matrix;
-        dMatrixT    fChi_temp_column_matrix;
-        dMatrixT    fc_matrix;
-        dMatrixT    fC_matrix;
-        dMatrixT    fIm_Prim_temp_matrix;
-        dMatrixT    fB_matrix;
-        dMatrixT    fD_matrix;
-        dMatrixT    fK_dd_BTDB_matrix;
-    dMatrixT         fDefGradInv_column_matrix;
-    dMatrixT         fDefGradInv_column_matrix_Transpose;
     dMatrixT        u_dotdot_column_matrix;
-    dMatrixT        fXi_temp_matrix;
-    dMatrixT        fVarsigma_temp_matrix;
-    dMatrixT        fI_ijkl_matrix;
     dMatrixT        u_dot_column_matrix;
     dMatrixT        u_dot_column_matrix_Transpose;
-    dMatrixT        fGravity_column_matrix;
-    dMatrixT        fAleph_temp_matrix;
-    dMatrixT        micro_dot_column_matrix;
-    dMatrixT        fImath_temp_matrix;
-    dMatrixT        fPf_0_matrix;
+
+
     //////////////////////////////////////////////////////////
     /////DEFINITIONS FOR MICROMORPHIC MATRICES////////////////
     //////////////////////////////////////////////////////////
@@ -410,7 +352,7 @@ private:
     dArray2DT Counter_IPs_el_n;
     dArray2DT Counter_IPs_el;
     dArrayT Counter_IPs;
-
+    dMatrixT fIota_temp_matrix;
 
     //Varitional Matrices coming from the Balance of linear Momentum
     dMatrixT Tsigma_1;
@@ -964,30 +906,14 @@ private:
 
     void Form_solid_shape_functions(const double* &shapes_displ_X);
     void Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp);
-    void Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp);
     void Form_micro_shape_functions(const double* &shapes_micro_X);
     void Form_deformation_gradient_tensor(void);
     void Form_Grad_grad_transformation_matrix(void);
-    void Form_fDefGradT_9x9_matrix(void);
     void Form_deformation_gradient_inv_vector(void);
-    void Form_kirchhoff_stress_vector(void);
-    void Form_Varpi_temp_matrix(void);
-    void Form_Im_temp_matrix(void);
-    void Form_Hbar_temp_matrix(void);
-    void Form_Ell_temp_matrix(void);
-    void Form_C_matrix(const double& J_Prim);
-    void Form_c_matrix(void);
-    void Form_Im_Prim_temp_matrix(void);
-    void Form_D_matrix(void);
-    void Form_B_matrix(void);
     void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
     void Put_values_In_dArrayT_vector(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
     void Put_values_In_Array(const dArray2DT &f2DArrayT,const int& e,const int& IP,dArrayT& fArrayT);
-    void Form_gradv_vector(void);
-    void Form_Xi_temp_matrix(void);
-    void Form_Varsigma_temp_matrix(void);
-    void Form_I_ijkl_matrix(void);
-    void Compute_norm_of_array(double& norm,const LocalArrayT& B);
+
     //////////////////////////////////////////////////////////
     /////FUNCTIONS  FOR MICROMORPHIC MATRICES////////////////
     //////////////////////////////////////////////////////////
