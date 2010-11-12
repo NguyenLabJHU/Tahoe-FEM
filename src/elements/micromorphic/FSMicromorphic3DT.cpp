@@ -57,7 +57,7 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
 
     //################## material parameters ##################
     cout << "iConstitutiveModelType "               << iConstitutiveModelType         << endl;
-
+    cout << "iplasticity "               << iplasticity        << endl;
     //-- Elasticity parameters for solid
     cout << "fMaterial_Params[kMu] "                << fMaterial_Params[kMu]          << endl;
     cout << "fMaterial_Params[kLambda] "            << fMaterial_Params[kLambda] << endl;
@@ -2824,7 +2824,8 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(ndof_per_nd_micro, "ndof_per_nd_micro");
 
     list.AddParameter(iConstitutiveModelType, "constitutive_mod_type");
-
+    list.AddParameter(iplasticity, "plasticity");
+  
     double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2, gravity_g3;
     double Kappa, Nu, Sigma_const, Tau, Eta;
     double Tau1,Tau2,Tau3,Tau4,Tau5,Tau6,Tau7,Tau8,Tau9,Tau10,Tau11;
@@ -2932,6 +2933,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fNumIPSurf_micro = fNumIPSurf_displ;
 
     iConstitutiveModelType = list.GetParameter("constitutive_mod_type");
+    iplasticity = list.GetParameter("plasticity");
 
     fMaterial_Params.Dimension ( kNUM_FMATERIAL_TERMS );
 //    fIntegration_Params.Dimension ( kNUM_FINTEGRATE_TERMS );

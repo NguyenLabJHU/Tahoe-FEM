@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.114 2010-11-11 00:48:43 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.115 2010-11-12 06:21:49 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -277,7 +277,7 @@ private:
     int n_el, n_sd, n_sd_surf, n_en_surf;
     int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
     int step_number;
-    int iConstitutiveModelType;
+    int iConstitutiveModelType,iplasticity;
 
     //name of output vector
     StringT output;
