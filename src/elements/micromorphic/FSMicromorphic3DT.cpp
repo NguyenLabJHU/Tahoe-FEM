@@ -1607,7 +1607,30 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     //fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
 
                       fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
-
+						
+			if(iplasticity=1)
+			{
+			  // Here yield check part will be put
+			  // need a function or code to calculate ||devSPK||
+			  // need to implement parameter alpha for F=||devSPK||-alpha
+			  // Yield check will be done first with the existing SPK if plasticity is turned on
+			  // if not yielded should continue, so need a if condition for yieldin
+			  if(fField_function>0.0)
+			  {
+			  		  
+			  fTemp_matrix_nsd_x_nsd.Inverse(fFp_n);
+			  fFe_tr.multAB(fDeformation_Gradient,fTemp_matrix_nsd_x_nsd.);
+			  fTemp_matrix_nsd_x_nsd.Transpose(fFe_tr);
+			  fRight_Cauchy_Green_tensor_tr.multATB(fTemp_matrix_nsd_x_nsd,Fe_tr);
+			  
+			  
+			  }
+			  else
+			  {
+			  // update elastic stresses and continue
+			  
+			  }
+			}	
 
                        /*internal force is calculated from BLM */
 /*                       Form_I1_1();
@@ -3595,6 +3618,24 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Jmat.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     KJmat.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
 
+    /* Plasticity matrices */
+    fFp.Dimension(n_sd,n_sd);
+    fFp_n.Dimension(n_sd,n_sd);
+    fFe.Dimension(n_sd,n_sd);
+    fFe_tr.Dimension(n_sd,n_sd);
+    
+    fFp_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fFp_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fFp_Elements_IPs=0.0;
+  /*  fFp_Elements_IPs(0,0)=1.0;
+    fFp_Elements_IPs(1,1)=1.0;
+    fFp_Elements_IPs(2,2)=1.0;*/
+    fFp_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fFp_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fFp_n_Elements_IPs=0.0;
+    fRight_Cauchy_Green_tensor_tr.Dimension(n_sd,n_sd);
+    fLagrangian_strain_tensor_tr.Dimension(n_sd,n_sd);
+    fSPK_tr.Dimension(n_sd,n_sd);
 
     ////////////////stress measures/////////////////
 

@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.115 2010-11-12 06:21:49 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.116 2010-11-13 00:10:20 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -339,6 +339,7 @@ private:
     dMatrixT        u_dotdot_column_matrix;
     dMatrixT        u_dot_column_matrix;
     dMatrixT        u_dot_column_matrix_Transpose;
+   
 
 
     //////////////////////////////////////////////////////////
@@ -751,6 +752,21 @@ private:
     dMatrixT fKMphiphi_1;
     dMatrixT fKMphiu_2;
     dMatrixT fKMphiphi_2;
+    /* Plasticity Matrices*/
+    dMatrixT fFp;
+    dMatrixT fFp_n;
+    dMatrixT fFe;
+    dMatrixT fFe_tr;
+    dMatrixT fRight_Cauchy_Green_tensor_tr;
+    dMatrixT fLagrangian_strain_tensor_tr;
+    dMatrixT fSPK_tr;
+    double fField_function;
+    
+    dArray2DT	fFp_IPs;
+    dArray2DT	fFp_Elements_IPs;
+    dArray2DT	fFp_n_IPs;
+    dArray2DT	fFp_n_Elements_IPs;
+    
 /////stress invariants variables////////
  double Cauchy_inv;
  double Rel_stres_inv;
