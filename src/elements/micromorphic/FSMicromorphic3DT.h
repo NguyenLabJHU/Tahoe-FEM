@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.116 2010-11-13 00:10:20 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.117 2010-11-14 08:09:46 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -277,7 +277,7 @@ private:
     int n_el, n_sd, n_sd_surf, n_en_surf;
     int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
     int step_number;
-    int iConstitutiveModelType,iplasticity;
+    int iConstitutiveModelType,iAlpha;
 
     //name of output vector
     StringT output;
@@ -759,8 +759,12 @@ private:
     dMatrixT fFe_tr;
     dMatrixT fRight_Cauchy_Green_tensor_tr;
     dMatrixT fLagrangian_strain_tensor_tr;
+    dMatrixT fMicroStnTensor_tr;
     dMatrixT fSPK_tr;
+    dMatrixT fdevSPK_tr;
     double fField_function;
+    double devfSPK;
+  
     
     dArray2DT	fFp_IPs;
     dArray2DT	fFp_Elements_IPs;
@@ -1036,7 +1040,7 @@ private:
     void Form_fV2(void);
     void Form_fV3(void);
     void Form_I1_1_matrix(void);
-    void Form_Second_Piola_Kirchhoff_SPK(void);
+    void Form_Second_Piola_Kirchhoff_SPK(const dMatrixT& LagStn, const dMatrixT& MicroStn);
     void Form_ChiM(void);
     void Form_I1_1(void);
     void Form_I1_2(void);
@@ -1090,6 +1094,8 @@ private:
     void Calculate_stress_diff_INV(void);
     void Calculate_higher_order_tensor_INV(void);
     void Calculate_fmklm(void);
+    void Caculate_devpart_of_Matrix(const dMatrixT &fMatrix,const dMatrixT& fIdentitymatrix,dMatrixT& fdevMatrix);
+
 
 
     /////////////////////////////////////////////////////////
