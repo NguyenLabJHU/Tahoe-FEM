@@ -9,7 +9,7 @@ namespace Tahoe {
     FiniteStrainT(support), fFSDEMatSupport2D(0), fCurrMaterial(0),
     fLocScalarPotential(LocalArrayT::kESP), fElectricScalarPotentialField(0)
   {
-    SetName("dielectric_elastomer2D");
+    SetName("dielectric_elastomer_2D");
   }
 
   //

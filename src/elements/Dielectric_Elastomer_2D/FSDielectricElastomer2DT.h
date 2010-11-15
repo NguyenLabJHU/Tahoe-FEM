@@ -162,7 +162,7 @@ namespace Tahoe {
     // pointer is only set the first time
     // FSDielectricElastomerT::NewMaterialList is called.
     //
-    FSDEMatSupportT* fFSDEMatSupport2D;
+    FSDEMatSupport2DT* fFSDEMatSupport2D;
 
   private:
 
@@ -187,4 +187,4 @@ namespace Tahoe {
 } // namespace Tahoe
 
 #include "FSDielectricElastomer2DT.i.h"
-#endif // _FSDielectricElastomerT_
+#endif // _FSDielectricElastomer2DT_

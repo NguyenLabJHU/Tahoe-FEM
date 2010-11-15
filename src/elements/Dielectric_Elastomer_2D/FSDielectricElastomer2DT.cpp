@@ -14,6 +14,9 @@
 7.  Some reasonable boundary value problems (2D/3D)?
 8.  External "forces" (i.e. charges) in electrical system:
 	does this need to be applied here or at an element level?
+9.  Negative C_22 for stiffness tensor? 
+10. Factor of 2 in B_C?
+11. IP weight has different signs in FormStiffness and FormKd
 */
 
 //
@@ -138,7 +141,7 @@ namespace Tahoe {
   FSDielectricElastomer2DT::NewMaterialList(const StringT& name, int size)
   {
   	cout << "FSDielectricElastomer2DT::NewMaterialList" << endl;
-    if (name != "large_strain_material_3D") {
+    if (name != "large_strain_material_2D") {
       return 0;
     }
     MaterialListT* mlp = 0;
@@ -303,6 +306,7 @@ namespace Tahoe {
   void FSDielectricElastomer2DT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
       AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
   {
+  	cout << "FSDielectricElastomer2DT::Equations" << endl;
     for (int i = 0; i < fEqnos.Length(); ++i) {
 
       const int ndf = 1;	// scalar potential
@@ -349,7 +353,7 @@ namespace Tahoe {
           B_C(ij, ak) = DNaX(i, a) * F(k, j) + DNaX(j, a) * F(k, i);
 
           // Shear components doubled to conform with Voigt
-          // convention
+          // convention - HSP - not sure if this is correct
           if (ij >= nsd) {
             B_C(ij, ak) *= 2.0;
           }
@@ -425,6 +429,9 @@ namespace Tahoe {
 
     fShapes->TopIP();
 	dMatrixT GradShape(nsd, nen);
+	dMatrixT Cmech(3, 3);
+	dMatrixT Cemech(3,2);
+	dMatrixT elec(2, 2);
 	
     while (fShapes->NextIP() != 0) {
 
@@ -436,51 +443,62 @@ namespace Tahoe {
 	  //
       // get all stiffnesses needed for LHS of residual
       //      
-      dMatrixT C = fCurrMaterial->C_IJKL();
-      dMatrixT H = fCurrMaterial->E_IJK();
-      dMatrixT B = fCurrMaterial->B_IJ();
-      dSymMatrixT S = fCurrMaterial->S_IJ();
-      C *= w;
-      H *= w;
-      B *= w;
-      S *= w;
+//       dMatrixT C = fCurrMaterial->C_IJKL();
+//       dMatrixT H = fCurrMaterial->E_IJK();
+//       dMatrixT B = fCurrMaterial->B_IJ();
+       dSymMatrixT S = fCurrMaterial->S_IJ();
+//       C *= w;
+//       H *= w;
+//       B *= w;
+       S *= w;
+
+	  fCurrMaterial->ComputeAllLHS(Cmech, Cemech, elec);
+	  Cmech *= w;
+	  Cemech *= w;
+	  elec *= w;
 
       /* prepare derivatives of shape functions in reference configuration */
       const dArray2DT& DNaX = fShapes->Derivatives_X();
 	  fShapes->GradNa(DNaX, GradShape);	  
 
-	  /* B_C comes back 6 x 24 shape function gradient matrix */
+	  /* B_C comes back 3 x 8 shape function gradient matrix */
 	  dMatrixT B_C;
 	  Set_B_C(DNaX, B_C);
- 
-	  /* mechanical material stiffness (24 x 24 matrix for 8-node 3D element) */
- 	  fAmm_mat.MultQTBQ(B_C, C, format, dMatrixT::kAccumulate);
+	  
+	  /* mechanical material stiffness (8 x 8 matrix for 4-node 2D element) */
+ 	  fAmm_mat.MultQTBQ(B_C, Cmech, format, dMatrixT::kAccumulate);
 	
-	  /* mechanical geometric stiffness (8 x 8 matrix for 8-node 3D element */ 
+	  /* mechanical geometric stiffness (8 x 8 matrix for 4-node 2D element */ 
 	  AccumulateGeometricStiffness(fAmm_geo, DNaX, S);
 	  
- 	  /* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
+ 	  /* mechanical-electrical stiffness (8 x 4 matrix for 4-node 2D element) */
  	  /* What is the difference between format and dMatrixT::kWhole? */
- 	  fAme.MultATBC(B_C, H, GradShape, dMatrixT::kAccumulate);
-// 	  cout << "fAme = " << fAme << endl;
+ 	  fAme.MultATBC(B_C, Cemech, GradShape, dMatrixT::kAccumulate);
   
- 	  /* electrical-electrical stiffness (8 x 8 matrix for 8-node 3D element) */
- 	  fAee.MultQTBQ(GradShape, B, format, dMatrixT::kAccumulate);
+ 	  /* electrical-electrical stiffness (4 x 4 matrix for 4-node 2D element) */
+ 	  fAee.MultQTBQ(GradShape, elec, format, dMatrixT::kAccumulate);
     }
     /* electrical-mechanical stiffness */
     fAem.Transpose(fAme);
-    fAme *= -1.0;
-    fAme *= -1.0;
+//     fAme *= -1.0;
+//     fAme *= -1.0;
     fAee *= -1.0;
+	cout << "fAmm_mat = " << fAmm_mat << endl;
+//	cout << "fAmm_geo = " << fAmm_geo << endl;
+	cout << "fAme = " << fAme << endl;
+	cout << "fAee = " << fAee << endl;
 
-	/* Expand 8x8 geometric stiffness into 24x24 matrix */
+	/* Expand 8x8 geometric stiffness into 8x8 matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
+	cout << "fAmm_mat expanded = " << fAmm_mat << endl;
 
 	/* Assemble into fLHS, or element stiffness matrix */
 	fLHS.AddBlock(0, 0, fAmm_mat);
 	fLHS.AddBlock(fAmm_mat.Rows(), fAmm_mat.Cols(), fAee);
 	fLHS.AddBlock(0, fAmm_mat.Cols(), fAme);
 //	fLHS.AddBlock(fAmm_mat.Rows(), 0, fAem);	// ignore for symmetric matrix
+	cout << "fLHS = " << endl;
+	cout << fLHS << endl;
   }
 
 /* Compute RHS, or residual of element equations */
@@ -519,7 +537,7 @@ namespace Tahoe {
 	  /* electrical stress */
 	  dArrayT D = fCurrMaterial->D_I();	// electrical displacement vector 3 x 1
 	  D *= w;
-	  // 3x1 vector of shape function gradient * D
+	  // 2x1 vector of shape function gradient * D
 	  GradShape.MultTx(D, Relec, 1.0, dMatrixT::kAccumulate);	
 	  
 	  /* NOTE:  mechanical inertia term, mechanical body force term, mechanical
@@ -528,10 +546,11 @@ namespace Tahoe {
 	  
 	}
  	Rmech *= -1.0;	// need for right sign for residual
- 	cout << "Relec = " << Relec << endl;
+ 	Relec *= -1.0;
 	Rtotal.CopyIn(0, Rmech);
 	Rtotal.CopyIn(Rmech.Length(), Relec);
 	fRHS += Rtotal;
+	cout << "fRHS = " << fRHS << endl;
   }
 
   //
