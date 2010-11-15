@@ -38,7 +38,7 @@ namespace Tahoe {
   //
   void FSDielectricElastomer2DT::DefineParameters(ParameterListT& list) const
   {
-  	cout << "FSDielectricElastomer2DT::DefineParameters" << endl;
+//  	cout << "FSDielectricElastomer2DT::DefineParameters" << endl;
     // inherited
     FiniteStrainT::DefineParameters(list);
 
@@ -51,7 +51,7 @@ namespace Tahoe {
   //
   void FSDielectricElastomer2DT::TakeParameterList(const ParameterListT& list)
   {
-  	cout << "FSDielectricElastomer2DT::TakeParameterList" << endl;
+//  	cout << "FSDielectricElastomer2DT::TakeParameterList" << endl;
     //
     // inherited
     //
@@ -110,7 +110,7 @@ namespace Tahoe {
   MaterialSupportT*
   FSDielectricElastomer2DT::NewMaterialSupport(MaterialSupportT* p) const
   {
-  	cout << "FSDielectricElastomer2DT::NewMaterialSupport" << endl;
+//  	cout << "FSDielectricElastomer2DT::NewMaterialSupport" << endl;
     //
     // allocate
     //
@@ -127,7 +127,6 @@ namespace Tahoe {
     FSDEMatSupport2DT* ps = dynamic_cast<FSDEMatSupport2DT*> (p);
 
     if (ps != 0) {
-	  cout << "Setting Electric Field from FSDielectricElastomer2DT" << endl;
       ps->SetElectricField(&fE_List);
     }
 
@@ -140,7 +139,7 @@ namespace Tahoe {
   MaterialListT*
   FSDielectricElastomer2DT::NewMaterialList(const StringT& name, int size)
   {
-  	cout << "FSDielectricElastomer2DT::NewMaterialList" << endl;
+//  	cout << "FSDielectricElastomer2DT::NewMaterialList" << endl;
     if (name != "large_strain_material_2D") {
       return 0;
     }
@@ -173,7 +172,7 @@ namespace Tahoe {
   // IS THIS NEEDED FOR VALUES OF E?
   void FSDielectricElastomer2DT::SetGlobalShape()
   {
-	cout << "FSDielectricElastomer2DT::SetGlobalShape" << endl;
+//	cout << "FSDielectricElastomer2DT::SetGlobalShape" << endl;
     //
     // inherited
     //
@@ -183,7 +182,7 @@ namespace Tahoe {
     // what needs to be computed
     //
     SetLocalU(fLocScalarPotential);
-	cout << "fLocScalarPotential = " << fLocScalarPotential << endl;
+//	cout << "fLocScalarPotential = " << fLocScalarPotential << endl;
     for (int i = 0; i < NumIP(); i++) {
 
       //
@@ -199,7 +198,7 @@ namespace Tahoe {
 		E1 *= -1.0;
 		E[0] = E1(0,0);
 		E[1] = E1(0,1);
-		cout << "E-field derived from Psi = " << E << endl;
+//		cout << "E-field derived from Psi = " << E << endl;
       }
 
   }
@@ -209,7 +208,7 @@ namespace Tahoe {
   //
   void FSDielectricElastomer2DT::CurrElementInfo(ostream& out) const
   {
-	cout << "FSDielectricElastomer2DT::CurrElementInfo" << endl;
+//	cout << "FSDielectricElastomer2DT::CurrElementInfo" << endl;
     //
     // inherited
     //
@@ -235,7 +234,7 @@ namespace Tahoe {
 // 
   bool FSDielectricElastomer2DT::NextElement()
   {
-	cout << "FSDielectricElastomer2DT::NextElement" << endl;
+//	cout << "FSDielectricElastomer2DT::NextElement" << endl;
     bool isThereNext = FiniteStrainT::NextElement();
 
     if (isThereNext == true) {
@@ -256,7 +255,7 @@ namespace Tahoe {
   //
   void FSDielectricElastomer2DT::SetLocalArrays()
   {
-	cout << "FSDielectricElastomer2DT::SetLocalArrays" << endl;
+//	cout << "FSDielectricElastomer2DT::SetLocalArrays" << endl;
     //
     // look for an electric scalar potential field
     //
@@ -306,13 +305,15 @@ namespace Tahoe {
   void FSDielectricElastomer2DT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
       AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
   {
-  	cout << "FSDielectricElastomer2DT::Equations" << endl;
+//  	cout << "FSDielectricElastomer2DT::Equations" << endl;
+
     for (int i = 0; i < fEqnos.Length(); ++i) {
 
-      const int ndf = 1;	// scalar potential
+//      const int ndf = 1;	// scalar potential
+	  const int ndf = NumDOF();
       const int nen = fConnectivities[i]->MinorDim();
       const int offset = ndf * nen;
-
+ 
       fElectricScalarPotentialField->SetLocalEqnos(*fConnectivities[i],
           fEqnos[i], offset);
 
@@ -406,7 +407,7 @@ namespace Tahoe {
 /* calculate the LHS of residual, or element stiffness matrix */
   void FSDielectricElastomer2DT::FormStiffness(double constK)
   {
-  	cout << "FSDielectricElastomer2DT::FormStiffness" << endl;
+//  	cout << "FSDielectricElastomer2DT::FormStiffness" << endl;
     //
     // matrix format
     //
@@ -483,28 +484,28 @@ namespace Tahoe {
 //     fAme *= -1.0;
 //     fAme *= -1.0;
     fAee *= -1.0;
-	cout << "fAmm_mat = " << fAmm_mat << endl;
+//	cout << "fAmm_mat = " << fAmm_mat << endl;
 //	cout << "fAmm_geo = " << fAmm_geo << endl;
-	cout << "fAme = " << fAme << endl;
-	cout << "fAee = " << fAee << endl;
+//	cout << "fAme = " << fAme << endl;
+//	cout << "fAee = " << fAee << endl;
 
 	/* Expand 8x8 geometric stiffness into 8x8 matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
-	cout << "fAmm_mat expanded = " << fAmm_mat << endl;
+//	cout << "fAmm_mat expanded = " << fAmm_mat << endl;
 
 	/* Assemble into fLHS, or element stiffness matrix */
 	fLHS.AddBlock(0, 0, fAmm_mat);
 	fLHS.AddBlock(fAmm_mat.Rows(), fAmm_mat.Cols(), fAee);
 	fLHS.AddBlock(0, fAmm_mat.Cols(), fAme);
 //	fLHS.AddBlock(fAmm_mat.Rows(), 0, fAem);	// ignore for symmetric matrix
-	cout << "fLHS = " << endl;
-	cout << fLHS << endl;
+//	cout << "fLHS = " << endl;
+//	cout << fLHS << endl;
   }
 
 /* Compute RHS, or residual of element equations */
   void FSDielectricElastomer2DT::FormKd(double constK)
   {
-  	cout << "FSDielectricElastomer2DT::FormKd" << endl;
+//  	cout << "FSDielectricElastomer2DT::FormKd" << endl;
     const int nsd = NumSD();
     const int nen = NumElementNodes();
     
@@ -545,12 +546,12 @@ namespace Tahoe {
 	  traction not accounted for here */
 	  
 	}
- 	Rmech *= -1.0;	// need for right sign for residual
- 	Relec *= -1.0;
+// 	Rmech *= -1.0;	// need for right sign for residual
+// 	Relec *= -1.0;  // minus sign may not be necessary due to sign of constK
 	Rtotal.CopyIn(0, Rmech);
 	Rtotal.CopyIn(Rmech.Length(), Relec);
 	fRHS += Rtotal;
-	cout << "fRHS = " << fRHS << endl;
+//	cout << "fRHS = " << fRHS << endl;
   }
 
   //
