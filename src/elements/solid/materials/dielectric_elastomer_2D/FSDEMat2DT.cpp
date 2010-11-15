@@ -20,6 +20,7 @@ namespace Tahoe {
     fElectricPermittivity = 0.0;
     fMu = 0.0;
     fNrig = 0.0;
+    fLambda = 0.0;
   }
 
   //
@@ -32,6 +33,7 @@ namespace Tahoe {
 	list.AddParameter(fElectricPermittivity, "epsilon");
 	list.AddParameter(fMu, "mu");
 	list.AddParameter(fNrig, "Nrig");
+	list.AddParameter(fLambda, "lambda");
   }
 
   //
@@ -45,12 +47,14 @@ namespace Tahoe {
     fElectricPermittivity = list.GetParameter("epsilon");
 	fMu = list.GetParameter("mu");
 	fNrig = list.GetParameter("Nrig");
+	fLambda = list.GetParameter("lambda");
 
 	/* write into vector to pass to C code for stress/modulus calculations */
 	fParams.Dimension(3);
 	fParams[0] = fElectricPermittivity;
 	fParams[1] = fMu;
 	fParams[2] = fNrig;
+	fParams[3] = fLambda;
 	
 	/* dimension work space */
 	fTangentMechanical.Dimension(kStressDim);

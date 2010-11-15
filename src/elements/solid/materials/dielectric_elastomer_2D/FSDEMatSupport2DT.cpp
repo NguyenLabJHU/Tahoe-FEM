@@ -12,7 +12,7 @@ namespace Tahoe{
     //
     // inherited
     //
-    FSMatSupport2DT::SetContinuumElement(p);
+    FSMatSupportT::SetContinuumElement(p);
 
     //
     // cast to finite deformation DE pointer

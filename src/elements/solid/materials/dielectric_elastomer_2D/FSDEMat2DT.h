@@ -51,6 +51,9 @@ namespace Tahoe {
     //
     double StrainEnergyDensity();
 
+	/* Compute all LHS quantities - copy JX ZHou 2D Matlab implementation */
+	virtual void ComputeAllLHS(dMatrixT& Cmech, dMatrixT& Cemech, dMatrixT& elec);
+
     //
     // material mechanical tangent modulus
     //
@@ -106,7 +109,7 @@ namespace Tahoe {
     void SetElectricPermittivity(double epsilon);
     double GetElectricPermittivity() const;
 
-    void SetFSDEMatSupport(const FSDEMatSupportT* support);
+    void SetFSDEMatSupport2D(const FSDEMatSupport2DT* support);
 
   protected:
 
@@ -145,6 +148,7 @@ namespace Tahoe {
     double fEnergyDensity;
     double fMu;
     double fNrig;
+	double fLambda;
 
     dArrayT fElectricField;
     dArrayT fElectricDisplacement;

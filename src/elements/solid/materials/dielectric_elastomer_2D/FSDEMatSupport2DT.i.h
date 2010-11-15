@@ -5,7 +5,7 @@ namespace Tahoe {
   //
   //
   inline FSDEMatSupport2DT::FSDEMatSupport2DT(int ndof, int nip) :
-    FSMatSupport2DT(ndof, nip), fE_List(0), fFSDielectricElastomer2D(0)
+    FSMatSupportT(ndof, nip), fE_List(0), fFSDielectricElastomer2D(0)
   {
 
   }

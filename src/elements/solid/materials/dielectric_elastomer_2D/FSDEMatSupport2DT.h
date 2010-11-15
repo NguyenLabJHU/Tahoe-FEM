@@ -3,7 +3,7 @@
 
 #include <cassert>
 
-#include "FSMatSupport2DT.h"
+#include "FSMatSupportT.h"
 
 namespace Tahoe {
 
