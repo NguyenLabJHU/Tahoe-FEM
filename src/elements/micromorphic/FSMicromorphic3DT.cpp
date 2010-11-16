@@ -901,6 +901,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     double delta_t = ElementSupport().TimeStep();
     time = ElementSupport().Time();
     step_number = ElementSupport().StepNumber();
+    global_iteration = IterationNumber();
 
     /* print time */
 //    fs_micromorph3D_out   <<"delta_t "<<delta_t << endl ;
@@ -1597,7 +1598,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	// need a function or code to calculate ||devSPK||
 		  	// need to implement parameter alpha for F=||devSPK||-alpha
 		  	// Yield check will be done first with the existing SPK if plasticity is turned on
-		  	// if not yielded should continue, so need a if condition for yieldin
+		  	// if not yielded should continue, so need a if condition for yielding
 		    	fTemp_matrix_nsd_x_nsd.Inverse(fFp_n);
 		    	fFe_tr.MultAB(fDeformation_Gradient,fTemp_matrix_nsd_x_nsd);
 		    	fTemp_matrix_nsd_x_nsd.Transpose(fFe_tr);
@@ -1618,18 +1619,45 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		        fYield_function=devfSPKinv-fMaterial_Params[kAlpha];
 		    
 		//	temp_inv= fSPK_tr.ScalarProduct();
-
+			
 		  	    if(fYield_function>0.0)
 		  	     {
-		    	        fYield_function=devfSPKinv-fMaterial_Params[kAlpha];		  
+		    	        iter_count=0;
+		    	        iter_count++;		  
          		     }
 		  	    else//(yielding did not occur / elastic step/
 		  	    {
 		  	     // update elastic stresses and continue
-		  	     fYield_function=devfSPKinv-fMaterial_Params[kAlpha];	
+                      		 Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
+                       		 KirchhoffST.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
+                                 Form_fV1();
+                      		 // fIota_temp_matrix.Multx(fV1,Vint_1_temp);
+                    		fShapeDisplGrad.MultTx(fV1,Vint_1_temp);
+                                // fIota_w_temp_matrix.Multx(fV1,Vint_1_temp);
+                                scale=scale_const;
+                                Vint_1_temp*=scale;
+                                Vint_1 +=Vint_1_temp;
+                               // -eta(ml)s_sigma(ml)-eta(ml,k)m(klm)
+                               // eta(ml)s_sima(ml)+eta(ml,k)m(klm)
+                               Form_SIGMA_S();//in current configuration SIGMA_S=s_sigma, but what we use sigma_s, so it needs to be multiplied by "-1"
+                               Form_fV2();//gives F.SIGMA_S.F^T = s_sigma *J
+                               NCHI.MultTx(fV2,Vint_2_temp);
+                               scale=scale_const;
+                               Vint_2_temp*=scale;
+                               Vint_2 +=Vint_2_temp;
+// applying integration by parts to higher order stress tensor "m" produces a minus sign in front of it too, so if we multiply the BMM by "-1" the following
+                              // matrices are found (see paper)
+
+                              Form_GAMMA();
+                              Form_fMKLM();
+                              Form_fV3();
+                              //fIota_eta_temp_matrix.Multx(fV3,Vint_3_temp);
+                              GRAD_NCHI.MultTx(fV3,Vint_3_temp);
+                              scale=scale_const;
+                              Vint_3_temp*=scale;
+                              Vint_3+=Vint_3_temp;
 			    }
-		   
-                       }
+		       }
 
 
                        //Sigma.SetToScaled(1/J,KirchhoffST);
@@ -2875,6 +2903,7 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
 
     list.AddParameter(iConstitutiveModelType, "constitutive_mod_type");
     list.AddParameter(iplasticity, "plasticity");
+    list.AddParameter(iIterationMax, "max_local_iterations");
     double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2, gravity_g3;
     double Kappa, Nu, Sigma_const, Tau, Eta,Alpha;
     double Tau1,Tau2,Tau3,Tau4,Tau5,Tau6,Tau7,Tau8,Tau9,Tau10,Tau11;
@@ -2985,7 +3014,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     iConstitutiveModelType = list.GetParameter("constitutive_mod_type");
     iplasticity = list.GetParameter("plasticity");  
-
+    iIterationMax = list.GetParameter("max_local_iterations"); 
     fMaterial_Params.Dimension ( kNUM_FMATERIAL_TERMS );
 //    fIntegration_Params.Dimension ( kNUM_FINTEGRATE_TERMS );
 

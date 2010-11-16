@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.118 2010-11-16 00:17:47 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.119 2010-11-16 06:00:31 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -766,6 +766,7 @@ private:
     dMatrixT fdevSPK_tr;
     double fYield_function;
     double devfSPKinv;
+    int iIterationMax,iter_count, global_iteration;
   
     
     dArray2DT	fFp_IPs;
