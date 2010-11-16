@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.117 2010-11-14 08:09:46 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.118 2010-11-16 00:17:47 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -65,6 +65,7 @@ public:
         kTau9,
         kTau10,
         kTau11,
+        kAlpha,
         kg,
         kg1,
         kg2,
@@ -277,7 +278,8 @@ private:
     int n_el, n_sd, n_sd_surf, n_en_surf;
     int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
     int step_number;
-    int iConstitutiveModelType,iAlpha;
+    int iConstitutiveModelType,iplasticity;
+    //double Alpha;
 
     //name of output vector
     StringT output;
@@ -762,8 +764,8 @@ private:
     dMatrixT fMicroStnTensor_tr;
     dMatrixT fSPK_tr;
     dMatrixT fdevSPK_tr;
-    double fField_function;
-    double devfSPK;
+    double fYield_function;
+    double devfSPKinv;
   
     
     dArray2DT	fFp_IPs;
@@ -1094,7 +1096,7 @@ private:
     void Calculate_stress_diff_INV(void);
     void Calculate_higher_order_tensor_INV(void);
     void Calculate_fmklm(void);
-    void Caculate_devpart_of_Matrix(const dMatrixT &fMatrix,const dMatrixT& fIdentitymatrix,dMatrixT& fdevMatrix);
+    void Caculate_invdevpart_of_Matrix(const dMatrixT &fMatrix,dMatrixT &fdevfMatrix,double devinvariant);
 
 
 
