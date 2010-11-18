@@ -19,7 +19,6 @@ namespace Tahoe {
   {
  	int mechdof = 3;
  	int elecdof = 1;
- 	cout << "into TotalNumDOF" << endl;
     return (mechdof+elecdof);
   }
 

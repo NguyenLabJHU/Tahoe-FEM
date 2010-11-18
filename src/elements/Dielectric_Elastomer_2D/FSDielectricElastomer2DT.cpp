@@ -309,7 +309,6 @@ namespace Tahoe {
 
     for (int i = 0; i < fEqnos.Length(); ++i) {
 
-//      const int ndf = 1;	// scalar potential
 	  const int ndf = NumDOF();
       const int nen = fConnectivities[i]->MinorDim();
       const int offset = ndf * nen;
@@ -432,7 +431,8 @@ namespace Tahoe {
 	dMatrixT GradShape(nsd, nen);
 	dMatrixT Cmech(3, 3);
 	dMatrixT Cemech(3,2);
-	dMatrixT elec(2, 2);
+	dMatrixT Celec(2, 2);
+	dArrayT D(NumSD());
 	
     while (fShapes->NextIP() != 0) {
 
@@ -453,11 +453,19 @@ namespace Tahoe {
 //       B *= w;
        S *= w;
 
-	  fCurrMaterial->ComputeAllLHS(Cmech, Cemech, elec);
-	  Cmech *= w;
-	  Cemech *= w;
-	  elec *= w;
+// 	  fCurrMaterial->C_Mech_Elec(Cmech, Cemech);
+// 	  fCurrMaterial->S_C_Elec(D, Celec);
+// 	  Cmech *= w;
+// 	  Cemech *= w;
+// 	  Celec *= w;
 
+ 	  fCurrMaterial->ComputeAllLHS(Cmech, Cemech, Celec);
+	  Cmech *= (0.25*w);
+	  Cemech *= (0.5*w);
+	  Celec *= w;
+
+
+	  
       /* prepare derivatives of shape functions in reference configuration */
       const dArray2DT& DNaX = fShapes->Derivatives_X();
 	  fShapes->GradNa(DNaX, GradShape);	  
@@ -477,17 +485,8 @@ namespace Tahoe {
  	  fAme.MultATBC(B_C, Cemech, GradShape, dMatrixT::kAccumulate);
   
  	  /* electrical-electrical stiffness (4 x 4 matrix for 4-node 2D element) */
- 	  fAee.MultQTBQ(GradShape, elec, format, dMatrixT::kAccumulate);
+ 	  fAee.MultQTBQ(GradShape, Celec, format, dMatrixT::kAccumulate);
     }
-    /* electrical-mechanical stiffness */
-    fAem.Transpose(fAme);
-//     fAme *= -1.0;
-//     fAme *= -1.0;
-    fAee *= -1.0;
-//	cout << "fAmm_mat = " << fAmm_mat << endl;
-//	cout << "fAmm_geo = " << fAmm_geo << endl;
-//	cout << "fAme = " << fAme << endl;
-//	cout << "fAee = " << fAee << endl;
 
 	/* Expand 8x8 geometric stiffness into 8x8 matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
@@ -517,6 +516,8 @@ namespace Tahoe {
 	dArrayT Relec(nen);
 	Relec = 0.0;
 	dMatrixT GradShape(nsd, nen);
+	dArrayT D(NumSD());
+	dMatrixT Celec(3, 2);
 
     fShapes->TopIP();
     while (fShapes->NextIP() != 0) {
@@ -530,7 +531,7 @@ namespace Tahoe {
 	  
 	  /* Mechanical stress */
 	  dSymMatrixT S = fCurrMaterial->S_IJ();
-	  S *= w;
+	  S *= (0.5*w);
 	  dMatrixT B_C;
 	  Set_B_C(DNaX, B_C);
 	  B_C.MultTx(S, Rmech, 1.0, dMatrixT::kAccumulate);
@@ -538,6 +539,10 @@ namespace Tahoe {
 	  /* electrical stress */
 	  dArrayT D = fCurrMaterial->D_I();	// electrical displacement vector 3 x 1
 	  D *= w;
+	  
+// 	  fCurrMaterial->S_C_Elec(D, Celec);
+// 	  D *= w;
+	  
 	  // 2x1 vector of shape function gradient * D
 	  GradShape.MultTx(D, Relec, 1.0, dMatrixT::kAccumulate);	
 	  
@@ -546,12 +551,10 @@ namespace Tahoe {
 	  traction not accounted for here */
 	  
 	}
-// 	Rmech *= -1.0;	// need for right sign for residual
-// 	Relec *= -1.0;  // minus sign may not be necessary due to sign of constK
+	Relec *= -1.0;
 	Rtotal.CopyIn(0, Rmech);
 	Rtotal.CopyIn(Rmech.Length(), Relec);
 	fRHS += Rtotal;
-//	cout << "fRHS = " << fRHS << endl;
   }
 
   //

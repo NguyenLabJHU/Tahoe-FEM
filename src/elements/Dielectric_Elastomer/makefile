@@ -19,7 +19,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	FSDielectricElastomerT.o
+	FSDielectricElastomerT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -39,7 +39,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	FSDielectricElastomerT.cpp
+	FSDielectricElastomerT.cpp 
 
 ##################### (3) headers
 #
@@ -52,7 +52,7 @@ SRC = \
 #
 HDR = \
 	FSDielectricElastomerT.h \
-	FSDielectricElastomerT.i.h
+	FSDielectricElastomerT.i.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

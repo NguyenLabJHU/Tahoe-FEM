@@ -168,7 +168,7 @@ namespace Tahoe {
 
 	LocalArrayT fLocScalarPotential;	// electric potential
     FSDEMatT* fCurrMaterial;
-    
+   
     //
     // Stiffness storage
     //
@@ -177,7 +177,17 @@ namespace Tahoe {
     dMatrixT fAme;	// mechanical-electrical coupling part of Hessian matrix
     dMatrixT fAem;	// electrical-mechanical coupling part of Hessian matrix
     dMatrixT fAee;	// electrical-electrical coupling part of Hessian matrix
-    dMatrixT fGradNa;	// shape function gradients matrix
+    
+//    	/** \name workspace for LHS and RHS */
+// 	/*@{*/
+// 	dMatrixT fStressMat;   /**< space for a stress tensor */
+// 	dMatrixT fStressStiff; /**< compact stress stiffness contribution */
+// 	dMatrixT fGradNa;      /**< shape function gradients matrix */
+// 	
+// 	dArrayT   fTemp2;
+// 	dMatrixT  fTempMat1, fTempMat2;
+// 	dArray2DT fDNa_x;
+// 	/*@}*/ 
     
     /* Electric potential */
     const FieldT* fElectricScalarPotentialField;

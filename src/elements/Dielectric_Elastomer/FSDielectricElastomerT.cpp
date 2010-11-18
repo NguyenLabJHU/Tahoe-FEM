@@ -6,18 +6,21 @@
 #include "ShapeFunctionT.h"
 
 /* REMAINING ISSUES (NOVEMBER 7, 2010):
-1.  Scalar potential value does not output
 2.  Shape function gradients in LHS
 3.  Shape function gradients in RHS
 4.  Check stress, stiffness, electric displacement and electromechanical coupling 
 5.  SetGlobalShape:  calculating Efield from gradient of Psi?
 6.  Related to 6:  why can't call fShapes->Derivatives_X in SetGlobalShape?
 7.  Some reasonable boundary value problems (2D/3D)?
+8.  External "forces" (i.e. charges) in electrical system:
+	does this need to be applied here or at an element level?
+9.  IP weight has different signs in FormStiffness and FormKd 
 */
 
 //
 // materials lists (3D only)
 //
+#include "FSSolidMatList2DT.h"
 #include "FSSolidMatList3DT.h"
 
 namespace Tahoe {
@@ -34,7 +37,7 @@ namespace Tahoe {
   //
   void FSDielectricElastomerT::DefineParameters(ParameterListT& list) const
   {
-  	cout << "FSDielectricElastomerT::DefineParameters" << endl;
+//  	cout << "FSDielectricElastomerT::DefineParameters" << endl;
     // inherited
     FiniteStrainT::DefineParameters(list);
 
@@ -47,7 +50,7 @@ namespace Tahoe {
   //
   void FSDielectricElastomerT::TakeParameterList(const ParameterListT& list)
   {
-  	cout << "FSDielectricElastomerT::TakeParameterList" << endl;
+//  	cout << "FSDielectricElastomerT::TakeParameterList" << endl;
     //
     // inherited
     //
@@ -87,13 +90,26 @@ namespace Tahoe {
     }	
 
     fAmm_mat.Dimension(nme, nme);
-    fAmm_geo.Dimension(nen, nen);
+    fAmm_geo.Dimension(nme, nme);
+//	fAmm_geo.Dimension(nen, nen);
     fAme.Dimension(nme, nel);
     fAem.Dimension(nel, nme);
     fAee.Dimension(nel, nel);
 
     fLHS.Dimension(neq);
     fRHS.Dimension(neq);
+    
+// 	/* dimension workspace */
+// 	fStressMat.Dimension(NumSD());
+// 	fTempMat1.Dimension(NumSD());
+// 	fTempMat2.Dimension(NumSD());
+// 
+// 	fGradNa.Dimension(NumSD(), NumElementNodes());
+// 	fStressStiff.Dimension(NumElementNodes());
+// 	
+// 	/* Might need to re-dimension, or it does mechanical RHS only */
+// 	fTemp2.Dimension(NumElementNodes()*NumDOF());    
+    
   }
 
   //
@@ -106,7 +122,7 @@ namespace Tahoe {
   MaterialSupportT*
   FSDielectricElastomerT::NewMaterialSupport(MaterialSupportT* p) const
   {
-  	cout << "FSDIelectricElastomerT::NewMaterialSupport" << endl;
+//  	cout << "FSDIelectricElastomerT::NewMaterialSupport" << endl;
     //
     // allocate
     //
@@ -123,7 +139,7 @@ namespace Tahoe {
     FSDEMatSupportT* ps = dynamic_cast<FSDEMatSupportT*> (p);
 
     if (ps != 0) {
-	  cout << "Setting Electric Field from FSDielectricElastomerT" << endl;
+//	  cout << "Setting Electric Field from FSDielectricElastomerT" << endl;
       ps->SetElectricField(&fE_List);
     }
 
@@ -136,30 +152,41 @@ namespace Tahoe {
   MaterialListT*
   FSDielectricElastomerT::NewMaterialList(const StringT& name, int size)
   {
-  	cout << "FSDIelectricElastomerT::NewMaterialList" << endl;
-    if (name != "large_strain_material_3D") {
-      return 0;
-    }
+//  	cout << "FSDIelectricElastomerT::NewMaterialList" << endl;
+  	
+  	/* resolve number of spatial dimensions */
+  	int nsd = -1;
+  	if (name == "large_strain_material_2D")
+  		nsd = 2;
+  	else if (name == "large_strain_material_3D")
+  		nsd = 3;
+  	
+  	/* no match */
+  	if (nsd == -1) return NULL;
+  	
     MaterialListT* mlp = 0;
 
     if (size > 0) {
 
-      //
-      // material support
-      //
-      if (0 == fFSDEMatSupport) {
-        fFSDEMatSupport = dynamic_cast<FSDEMatSupportT*> (NewMaterialSupport());
+   	  	/* material support */
+      	if (0 == fFSDEMatSupport) {
+        	fFSDEMatSupport = dynamic_cast<FSDEMatSupportT*> (NewMaterialSupport());
 
         if (0 == fFSDEMatSupport) {
           ExceptionT::GeneralFail("FSDielectricElastomerT::NewMaterialList");
         }
       }
-
-      mlp = new FSSolidMatList3DT(size, *fFSDEMatSupport);
-
-    } else {
-      mlp = new FSSolidMatList3DT;
+      if (nsd == 2)
+      	mlp = new FSSolidMatList2DT(size, *fFSDEMatSupport);
+	  else if (nsd == 3)
+		mlp = new FSSolidMatList3DT(size, *fFSDEMatSupport); 
     }
+	else {
+		if (nsd == 2)
+			mlp = new FSSolidMatList2DT;
+	 	else if (nsd == 3)
+	 		mlp = new FSSolidMatList3DT;
+    } 
     return mlp;
 
   }
@@ -169,7 +196,7 @@ namespace Tahoe {
   // IS THIS NEEDED FOR VALUES OF E?
   void FSDielectricElastomerT::SetGlobalShape()
   {
-	cout << "FSDielectricElastomerT::SetGlobalShape" << endl;
+//	cout << "FSDielectricElastomerT::SetGlobalShape" << endl;
     //
     // inherited
     //
@@ -179,8 +206,7 @@ namespace Tahoe {
     // what needs to be computed
     //
     SetLocalU(fLocScalarPotential);
-    cout << "fLocScalarPotential = " << fLocScalarPotential << endl;
-
+//	cout << "fLocScalarPotential = " << fLocScalarPotential << endl;
     for (int i = 0; i < NumIP(); i++) {
 
       //
@@ -194,10 +220,10 @@ namespace Tahoe {
 		/* Sometimes z value of E1 is e-19....*/
 		fShapes->GradU(fLocScalarPotential, E1, i);
 		E1 *= -1.0;
-		E[0] = E1(0,0);
-		E[1] = E1(0,1);
-		E[2] = E1(0,2);
-		cout << "E = " << E << endl;
+		for (int i = 0; i < NumSD(); i++)
+			E[i] = E1(0,i);
+		
+//		cout << "E-field derived from Psi = " << E << endl;
       }
 
   }
@@ -207,7 +233,7 @@ namespace Tahoe {
   //
   void FSDielectricElastomerT::CurrElementInfo(ostream& out) const
   {
-	cout << "FSDielectricElastomerT::CurrElementInfo" << endl;
+//	cout << "FSDielectricElastomerT::CurrElementInfo" << endl;
     //
     // inherited
     //
@@ -233,7 +259,7 @@ namespace Tahoe {
 // 
   bool FSDielectricElastomerT::NextElement()
   {
-	cout << "FSDielectricElastomerT::NextElement" << endl;
+//	cout << "FSDielectricElastomerT::NextElement" << endl;
     bool isThereNext = FiniteStrainT::NextElement();
 
     if (isThereNext == true) {
@@ -243,11 +269,9 @@ namespace Tahoe {
       ContinuumMaterialT* pMaterial = (*fMaterialList)[index];
 
       fCurrMaterial = dynamic_cast<FSDEMatT*> (pMaterial);
-
     }
 
     return isThereNext;
-	cout << "Out of NextElement" << endl;
   }
 
   //
@@ -255,7 +279,7 @@ namespace Tahoe {
   //
   void FSDielectricElastomerT::SetLocalArrays()
   {
-	cout << "FSDielectricElastomerT::SetLocalArrays" << endl;
+//	cout << "FSDielectricElastomerT::SetLocalArrays" << endl;
     //
     // look for an electric scalar potential field
     //
@@ -305,10 +329,9 @@ namespace Tahoe {
   void FSDielectricElastomerT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
       AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
   {
-  	cout << "FSDielectricElastomerT::Equations" << endl;
     for (int i = 0; i < fEqnos.Length(); ++i) {
 
-      const int ndf = 1;	// scalar potential
+      const int ndf = NumDOF();	// scalar potential
       const int nen = fConnectivities[i]->MinorDim();
       const int offset = ndf * nen;
 
@@ -401,22 +424,16 @@ namespace Tahoe {
 
   }
 
-/* WATCH INTEGRATION WEIGHTS IN FORMSTIFFNESS AND FORMKD */
 /* calculate the LHS of residual, or element stiffness matrix */
   void FSDielectricElastomerT::FormStiffness(double constK)
   {
-  	cout << "FSDielectricElastomerT::FormStiffness" << endl;
-    //
-    // matrix format
-    //
+	/* Matrix format */
     dMatrixT::SymmetryFlagT format = (fLHS.Format()
         == ElementMatrixT::kNonSymmetric)
         ? dMatrixT::kWhole
         : dMatrixT::kUpperOnly;
 
-    //
-    // integrate over element
-    //
+	/* Element preliminaries */
     const int nsd = NumSD();
     const int nen = NumElementNodes();
 
@@ -426,66 +443,68 @@ namespace Tahoe {
     fAem = 0.0;
     fAee = 0.0;
 
-    fShapes->TopIP();
+	/* definitions for new moduli */
+	dMatrixT Cmech(2*NumSD(), 2*NumSD());
+	dMatrixT Celecmech(2*NumSD(), NumSD());
+	dArrayT  DE(NumSD());
+	dMatrixT Celec(NumSD(), NumSD());
 	dMatrixT GradShape(nsd, nen);
-	
-    while (fShapes->NextIP() != 0) {
 
-      //
-      // scale/weighting factor for integration
-      //
-      const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
+    fShapes->TopIP();
+    while (fShapes->NextIP() != 0) 
+    {
+		/* integration weight */
+		const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
 
-	  //
-      // get all stiffnesses needed for LHS of residual
-      //      
-      dMatrixT C = fCurrMaterial->C_IJKL();
-      dMatrixT H = fCurrMaterial->E_IJK();
-      dMatrixT B = fCurrMaterial->B_IJ();
-      dSymMatrixT S = fCurrMaterial->S_IJ();
-      C *= w;
-      H *= w;
-      B *= w;
-      S *= w;
+	  	/* LHS tangent stiffnesses */  
+   	    fCurrMaterial->C_Mech_Elec(Cmech, Celecmech);
+    	fCurrMaterial->S_C_Elec(DE, Celec);
+      	dSymMatrixT S = fCurrMaterial->S_IJ();
+//       	cout << "Cmech FormStiffness = " << Cmech << endl;
+//       	cout << "Celecmech FormStiffness = " << Celecmech << endl;
+//       	cout << "S FormStiffness = " << S << endl;
+//       	cout << "Celec FormStiffness = " << Celec << endl;
+        Cmech *= (0.25*w);
+        Celecmech *= (0.5*w);
+	  	Celec *= w;
+        S *= w;
 
-      /* prepare derivatives of shape functions in reference configuration */
-      const dArray2DT& DNaX = fShapes->Derivatives_X();
-	  fShapes->GradNa(DNaX, GradShape);	  
+  	    /* prepare derivatives of shape functions in reference configuration */
+    	const dArray2DT& DNaX = fShapes->Derivatives_X();
+	  	fShapes->GradNa(DNaX, GradShape);	  
 
-	  /* B_C comes back 6 x 24 shape function gradient matrix */
-	  dMatrixT B_C;
-	  Set_B_C(DNaX, B_C);
+	  	/* B_C comes back 6 x 24 shape function gradient matrix */
+	  	dMatrixT B_C;
+	  	Set_B_C(DNaX, B_C);
  
-// 	  /* mechanical material stiffness (24 x 24 matrix for 8-node 3D element) */
-//  	  fAmm_mat.MultQTBQ(B_C, C, format, dMatrixT::kAccumulate);
-// 	  
-// 	  /* mechanical geometric stiffness (8 x 8 matrix for 8-node 3D element */ 
-// 	  AccumulateGeometricStiffness(fAmm_geo, DNaX, S);
-// 	  
-//  	  /* Not sure if these next two mechanical-electrical MultATBC are correct */
-//  	  /* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
-//  	  /* What is the difference between format and dMatrixT::kWhole? */
-//  	  fAme.MultATBC(B_C, H, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate); 
-//  	  fAme.Transpose(fAem);
-//   
-//  	  /* electrical-electrical stiffness (8 x 8 matrix for 8-node 3D element) */
-//  	  fAee.MultQTBQ(GradShape, B, format, dMatrixT::kAccumulate);
-    }
+	  	/* mechanical material stiffness (24 x 24 matrix for 8-node 3D element) */
+ 	  	fAmm_mat.MultQTBQ(B_C, Cmech, format, dMatrixT::kAccumulate);
 	
-	/* Expand 8x8 geometric stiffness into 24x24 matrix */
+	  	/* mechanical geometric stiffness (24 x 24 matrix for 8-node 3D element */ 
+	  	AccumulateGeometricStiffness(fAmm_geo, DNaX, S);
+  
+       	/* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
+       	/* What is the difference between format and dMatrixT::kWhole? */
+       	fAme.MultATBC(B_C, Celecmech, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate); 
+  
+ 	 	/* electrical-electrical stiffness (8 x 8 matrix for 8-node 3D element) */
+  		fAee.MultQTBQ(GradShape, Celec, format, dMatrixT::kAccumulate);
+    }
+
+	/* Expand 24x24 geometric stiffness into material stiffness matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
 
 	/* Assemble into fLHS, or element stiffness matrix */
 	fLHS.AddBlock(0, 0, fAmm_mat);
 	fLHS.AddBlock(fAmm_mat.Rows(), fAmm_mat.Cols(), fAee);
 	fLHS.AddBlock(0, fAmm_mat.Cols(), fAme);
-	fLHS.AddBlock(fAmm_mat.Rows(), 0, fAem);
   }
+
 
 /* Compute RHS, or residual of element equations */
   void FSDielectricElastomerT::FormKd(double constK)
   {
-  	cout << "FSDielectricElastomerT::FormKd" << endl;
+	/* element preliminaries */
     const int nsd = NumSD();
     const int nen = NumElementNodes();
     
@@ -497,41 +516,177 @@ namespace Tahoe {
 	dArrayT Relec(nen);
 	Relec = 0.0;
 	dMatrixT GradShape(nsd, nen);
+	dArrayT DE(NumSD());
+	dMatrixT Celec(NumSD(), NumSD());
 
     fShapes->TopIP();
-    while (fShapes->NextIP() != 0) {
+    while (fShapes->NextIP() != 0) 
+    {
 
 	  /* integration weight */
       const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
-      const dArray2DT & DNaX = fShapes->Derivatives_X();
+      const dArray2DT& DNaX = fShapes->Derivatives_X();
       
       /* Now convert DNaX to a matrix instead of dArray2DT */
 	  fShapes->GradNa(DNaX, GradShape);	
 	  
 	  /* Mechanical stress */
-// 	  dSymMatrixT S = fCurrMaterial->S_IJ();
-// 	  S *= w;
-// 	  dMatrixT B_C;
-// 	  Set_B_C(DNaX, B_C);
-// 	  B_C.MultTx(S, Rmech, 1.0, dMatrixT::kAccumulate);
-// 	  Rmech *= -1.0;	// need for right sign for residual
-// 	  
-// 	  /* electrical stress */
-// 	  dArrayT D = fCurrMaterial->D_I();	// electrical displacement vector 3 x 1
-// 	  D *= w;
-// 	  // 3x1 vector of shape function gradient * D
-// 	  GradShape.MultTx(D, Relec, 1.0, dMatrixT::kAccumulate);	
+	  dSymMatrixT S = fCurrMaterial->S_IJ();
+	  S *= (0.5*w);
+	  dMatrixT B_C;
+	  Set_B_C(DNaX, B_C);
+	  B_C.MultTx(S, Rmech, 1.0, dMatrixT::kAccumulate);
+	  
+	  /* electrical stress */
+	  fCurrMaterial->S_C_Elec(DE, Celec);
+	  DE *= w;
+	  
+	  /* 3x1 vector of shape function gradient * D */
+	  GradShape.MultTx(DE, Relec, 1.0, dMatrixT::kAccumulate);	
 	  
 	  /* NOTE:  mechanical inertia term, mechanical body force term, mechanical
 	  surface traction term, electrical body force (charge), electrical surface 
 	  traction not accounted for here */
 	  
 	}
-
-	Rtotal.CopyIn(0, Rmech);
-	Rtotal.CopyIn(Rmech.Length(), Relec);
-	fRHS += Rtotal;
+  	Relec *= -1.0;	// need for right sign for residual
+ 	Rtotal.CopyIn(0, Rmech);
+ 	Rtotal.CopyIn(Rmech.Length(), Relec);
+ 	fRHS += Rtotal;
   }
+
+/***********************************************************/
+/* BELOW IS LIKE TOTALLAGRANGIANT.CPP */
+/* calculate the LHS of residual, or element stiffness matrix */
+//   void FSDielectricElastomerT::FormStiffness(double constK)
+//   {
+// 	/* Matrix format */
+//     dMatrixT::SymmetryFlagT format = (fLHS.Format()
+//         == ElementMatrixT::kNonSymmetric)
+//         ? dMatrixT::kWhole
+//         : dMatrixT::kUpperOnly;
+// 
+// 	/* integrate over the element */
+//     const int nsd = NumSD();
+//     const int nen = NumElementNodes();
+// 
+// 	/* Initialize portions of LHS */
+//     fAmm_mat = 0.0;
+//     fAmm_geo = 0.0;
+//     fAme = 0.0;
+//     fAem = 0.0;
+//     fAee = 0.0;
+//     fStressStiff = 0.0;
+// 
+// 	/* definitions for new moduli */
+// 	dMatrixT Cmech(2*NumSD(), 2*NumSD());
+// 	dMatrixT D(6);
+// 	dMatrixT B;
+// 	B.Dimension(6, nsd*nen);
+// 
+// 	/* integration */
+// 	const double* Det    = fShapes->IPDets();
+// 	const double* Weight = fShapes->IPWeights();
+// 
+//     fShapes->TopIP();
+//     while (fShapes->NextIP() != 0) 
+//     {
+// 	/* STRESS STIFFNESS */
+// 	
+// 		/* Cauchy stress (and set deformation gradient) */
+// 		(fCurrMaterial->s_ij()).ToMatrix(fStressMat);
+// 
+// 		/* chain rule shape function derivatives */
+// 		fTempMat1 = DeformationGradient();
+// 		double J = fTempMat1.Det();
+// 		fTempMat1.Inverse();
+// 		fShapes->TransformDerivatives(fTempMat1, fDNa_x);
+// 
+// 		/* get shape function gradients matrix */
+// 		fShapes->GradNa(fDNa_x, fGradNa);	
+// 				
+// 		/* scale factor */
+// 		double scale = constK*(*Det++)*(*Weight++)*J;
+// 
+// 		/* integration constants */		
+// 		fStressMat *= scale;
+// 	
+// 		/* using the stress symmetry */
+// 		fStressStiff.MultQTBQ(fGradNa, fStressMat, format,
+// 			dMatrixT::kAccumulate);
+// 			
+// 	/* MATERIAL STIFFNESS */
+// 		/* strain displacement matrix */
+// 		Set_B(fDNa_x, B);
+// 		
+// 		/* get D matrix */
+// 		D.SetToScaled(scale, fCurrMaterial->c_ijkl());
+// 		
+// 		/* accumulate */
+// 		fAmm_mat.MultQTBQ(B, D, format, dMatrixT::kAccumulate);
+//     }
+// 	/* stress stiffness into material stiffness */
+// 	fAmm_mat.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
+//  	fLHS.AddBlock(0, 0, fAmm_mat);
+// 
+//   }
+
+/* Compute RHS, or residual of element equations */
+//   void FSDielectricElastomerT::FormKd(double constK)
+//   {
+//     const int nsd = NumSD();
+//     const int nen = NumElementNodes();
+//     
+//     /* Define mechanical and electrical residuals */
+// 	dArrayT Rtotal((nsd+1)*nen);
+// 	Rtotal = 0.0;
+// 	dArrayT Rmech(nen*nsd), Rmech2(nen*nsd);
+// 	Rmech = 0.0;
+// 	Rmech2 = 0.0;
+// 	dArrayT Relec(nen);
+// 	Relec = 0.0;
+// 	dArrayT DE(NumSD());
+// 	dMatrixT Celec(NumSD(), NumSD());
+// 
+// 	/* matrix alias to ??? */
+// 	dMatrixT fWP(NumSD(), fStressStiff.Rows(), Rmech2.Pointer());
+// 	
+// 	const double* Det    = fShapes->IPDets();
+// 	const double* Weight = fShapes->IPWeights();
+// 
+//     fShapes->TopIP();
+//     while (fShapes->NextIP() != 0) 
+//     {
+// 		/* get Cauchy stress */
+// 		(fCurrMaterial->s_ij()).ToMatrix(fTempMat1);
+// 
+// 		/* F^(-1) */
+// 		fTempMat2 = DeformationGradient();
+// 	  
+// 	  	double J = fTempMat2.Det();
+// 	  	if (J <= 0.0)
+// 	  		ExceptionT::BadJacobianDet("TotalLagrangianT::FormKd");
+// 	  	else
+// 	  		fTempMat2.Inverse();
+// 	  
+// 	  	/* compute PK1/J */
+// 	  	fStressMat.MultABT(fTempMat1, fTempMat2);
+// 	  
+// 	  	/* get matrix of shape function gradients */
+// 	  	fShapes->GradNa(fGradNa);
+// 	  	
+// 	  	/* Wi,J PiJ */
+// 	  	fWP.MultAB(fStressMat, fGradNa);
+// 	  	
+// 	  	/* accumulate */
+// 	  	Rmech.AddScaled(J*constK*(*Weight++)*(*Det++), Rmech2);		  
+// 	}
+// //	cout << "Rmech =  " << Rmech << endl;
+// //  	Relec *= -1.0;	// need for right sign for residual
+//  	Rtotal.CopyIn(0, Rmech);
+// // 	Rtotal.CopyIn(Rmech.Length(), Relec);
+//  	fRHS += Rtotal;
+//   }
 
   //
   // extrapolate from integration points and compute output nodal/element
@@ -540,7 +695,6 @@ namespace Tahoe {
   void FSDielectricElastomerT::ComputeOutput(const iArrayT& n_codes,
       dArray2DT& n_values, const iArrayT& e_codes, dArray2DT& e_values)
   {
-  	cout << "FSDielectricElastomerT::ComputeOutput" << endl;
     //
     // number of output values
     //
