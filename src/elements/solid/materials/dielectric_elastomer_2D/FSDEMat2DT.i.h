@@ -80,13 +80,47 @@ namespace Tahoe {
   }
 
 
+  /* Mechanical and electromechanical tangent modulus */
+  inline void FSDEMat2DT::C_Mech_Elec(dMatrixT& mech, dMatrixT& elec)
+  {
+//  	cout << "FSDEMat2T::C_Mech_Elec" << endl;
+  	const dMatrixT& C = RightCauchyGreenDeformation();
+  	const dArrayT& E = ElectricField();
+  
+  	/* call C function for both tangent moduli */
+  	get_ddCmech_elec_2D(fParams.Pointer(), E.Pointer(), C.Pointer(),
+  		mech.Pointer(), elec.Pointer());
+  
+  	mech *= 4.0;
+  	elec *= -2.0;
+//  	cout << "mech = " << mech << endl;
+//  	cout << "elec = " << elec << endl;
+  }
+
+  /* Electrical displacement and tangent modulus */
+  inline void FSDEMat2DT::S_C_Elec(dArrayT& D, dMatrixT& CE)
+  {
+//  	cout << "FSDEMat2T::S_C_Elec" << endl;
+  	const dMatrixT& C = RightCauchyGreenDeformation();
+  	const dArrayT& E = ElectricField();
+  
+  	/* call C function for both tangent moduli */
+  	get_ddC_sc_elec_2D(fParams.Pointer(), E.Pointer(), C.Pointer(),
+  		D.Pointer(), CE.Pointer());
+  
+  	D *= -1.0;
+  	CE *= -1.0;
+//  	cout << "D = " << D << endl;
+//  	cout << "CE = " << CE << endl;
+  }
+
+
   inline void 
   FSDEMat2DT::ComputeAllLHS(dMatrixT& Cmech, dMatrixT& Cemech, dMatrixT& elec)
   {
-  	cout << "FSDEMat2DT::C_IJKL" << endl;
+//  	cout << "FSDEMat2DT::C_IJKL" << endl;
 //    const dMatrixT& C = RightCauchyGreenDeformation();
     const dArrayT& E = ElectricField();
-  
     const dMatrixT F = F_mechanical();
     dMatrixT C(2);
     C.MultATB(F, F);  
@@ -229,16 +263,16 @@ namespace Tahoe {
   inline const dSymMatrixT&
   FSDEMat2DT::S_IJ()
   {
-	cout << "FSDEMat2DT::S_IJ" << endl;
+//	cout << "FSDEMat2DT::S_IJ" << endl;
 //     const dMatrixT& C = RightCauchyGreenDeformation();
-//    	const dArrayT& E = ElectricField();
-//     
-// 	/* call C function for mechanical stress */
-// 	get_dUdCmech_2D(fParams.Pointer(), E.Pointer(),  
-// 		C.Pointer(), stress_temp.Pointer()); 
-// 
+//     const dArrayT& E = ElectricField();
+//      
+//  	/* call C function for mechanical stress */
+//  	get_dUdCmech_2D(fParams.Pointer(), E.Pointer(),  
+//  		C.Pointer(), stress_temp.Pointer()); 
+//  
 //     fStress.FromMatrix(stress_temp);
-// 	fStress*=2.0;
+//  	fStress*=2.0;
 
     const dMatrixT F = F_mechanical();
     dMatrixT C(2);
@@ -275,10 +309,19 @@ namespace Tahoe {
   inline const dArrayT&
   FSDEMat2DT::D_I()
   {
-  	cout << "FSDEMat2DT::D_I" << endl;
-//    const dMatrixT& C = RightCauchyGreenDeformation();
-	const dArrayT& E = ElectricField();
-
+//  	cout << "FSDEMat2DT::D_I" << endl;
+//     const dMatrixT& C = RightCauchyGreenDeformation();
+ 	const dArrayT& E = ElectricField();
+ 
+//     dMatrixT CE(2);
+//   
+//   	/* call C function for both tangent moduli */
+//   	get_ddC_sc_elec_2D(fParams.Pointer(), E.Pointer(), C.Pointer(),
+//   		fElectricDisplacement.Pointer(), CE.Pointer());
+//   
+//   	fElectricDisplacement *= -1.0;
+//   	CE *= -1.0;
+	
 // 	/* call C function for electric displacement */
 //  	get_dUdE_2D(fParams.Pointer(), E.Pointer(),  
 //  		C.Pointer(), fElectricDisplacement.Pointer());     
@@ -290,10 +333,8 @@ namespace Tahoe {
     dMatrixT C(2);
     C.MultATB(F, F); 
   	dMatrixT CInv = C.Inverse();
-	dMatrixT Belec(2);
-	Belec *=CInv;
-	Belec *=fElectricPermittivity;
-	Belec.Multx(E, fElectricDisplacement);
+	CInv *= fElectricPermittivity;
+	CInv.Multx(E, fElectricDisplacement);
 //	cout << "fElectricDisplacement = " << fElectricDisplacement << endl;
 
     return fElectricDisplacement;
@@ -314,7 +355,7 @@ namespace Tahoe {
   inline const dMatrixT&
   FSDEMat2DT::c_ijkl()
   {
-	cout << "FSDEMat2DT::c_ijkl" << endl;
+//	cout << "FSDEMat2DT::c_ijkl" << endl;
     const dMatrixT F = F_mechanical();
     const double J = F.Det();
 
@@ -332,7 +373,7 @@ namespace Tahoe {
   inline const dSymMatrixT&
   FSDEMat2DT::s_ij()
   {
-	cout << "FSDEMat2DT::s_ij" << endl;
+//	cout << "FSDEMat2DT::s_ij" << endl;
     const dMatrixT F = F_mechanical();
     const double J = F.Det();
 	

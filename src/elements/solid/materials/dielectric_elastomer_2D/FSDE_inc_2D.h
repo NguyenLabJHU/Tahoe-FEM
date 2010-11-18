@@ -9,6 +9,7 @@ extern "C" {
  * epsilon
  * mu
  * Nrig
+ * lambda
  */
 
 /* Gets first derivative of free energy with respect to E (electric displacement) */
@@ -25,6 +26,12 @@ void get_ddCE_2D(const double* params, const double *Xsi, const double* Cmat, do
 
 /* function to compute second derivative of the potential function for both purely mechanical modulus */
 void get_ddCmech_2D(const double* params, const double *Xsi, const double* Cmat, double* dCdC);
+
+/* function to compute mechanical and electromechanical tangent modulus */
+void get_ddCmech_elec_2D(const double* params, const double *Xsi, const double* Cmat, double* dCdC, double* dCdXsi);
+
+/* function to compute electric displacement and tangent modulus */
+void get_ddC_sc_elec_2D(const double* params, const double *Xsi, const double* Cmat, double* dE, double* dEdE);
 
 /* function to get the bulk strain energy density - not implemented yet */
 //double get_energy(const double* params, const double *Xsi, const double* Cmat); 

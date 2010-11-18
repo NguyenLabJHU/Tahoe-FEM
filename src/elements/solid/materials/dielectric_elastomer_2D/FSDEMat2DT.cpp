@@ -41,7 +41,7 @@ namespace Tahoe {
   //
   void FSDEMat2DT::TakeParameterList(const ParameterListT& list)
   {
-  	cout << "FSDEMat2DT::TakeParameterList" << endl;
+//  	cout << "FSDEMat2DT::TakeParameterList" << endl;
     NL_E_MatT::TakeParameterList(list);
 
     fElectricPermittivity = list.GetParameter("epsilon");

@@ -198,7 +198,7 @@ void get_ddCE(const double* params, const double *Xsi, const double* Cmat, doubl
 	z[4] = z[107] + z[116] + z[31] + z[55] + z[9];
 	z[6] = z[100] + z[39] + z[40] + z[42] + z[63] + z[69] + z[78];
 	z[8] = z[46] + z[47] + z[49] + z[51] + z[66] + z[70] + z[74] + z[90];
-	z[9] = 0.5*epsilon;
+	z[9] = -0.5*epsilon;
 	z[1] = z[1]*z[9];
 	z[10] = z[22]*z[9];
 	z[12] = z[13]*z[9];
@@ -217,6 +217,7 @@ void get_ddCE(const double* params, const double *Xsi, const double* Cmat, doubl
 	z[4] = z[4]*z[9];
 	z[6] = z[6]*z[9];
 	z[8] = z[8]*z[9];
+
 
 	/* Output stress */
 	/* dCdE:  6 x 3 */

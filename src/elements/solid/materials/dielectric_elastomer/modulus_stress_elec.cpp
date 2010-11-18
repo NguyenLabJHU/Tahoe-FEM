@@ -89,8 +89,8 @@ void get_ddC_sc_elec(const double* params, const double *Xsi, const double* Cmat
 
 	/* Output stress */
 	dE[0] = z[8];
-	dE[1] = z[6];
-	dE[2] = z[4];
+	dE[1] = z[4];
+	dE[2] = z[6];
 
 	/* Output stiffness */
 	dEdE[0] = z[7];

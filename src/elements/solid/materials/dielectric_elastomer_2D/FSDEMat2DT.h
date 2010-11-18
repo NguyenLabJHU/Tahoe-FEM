@@ -54,6 +54,12 @@ namespace Tahoe {
 	/* Compute all LHS quantities - copy JX ZHou 2D Matlab implementation */
 	virtual void ComputeAllLHS(dMatrixT& Cmech, dMatrixT& Cemech, dMatrixT& elec);
 
+	/* Compute mechanical modulus and mixed electromechanical modulus */
+	virtual void C_Mech_Elec(dMatrixT& mech, dMatrixT& elec);
+
+	/* Compute electrical stress and modulus */
+	virtual void S_C_Elec(dArrayT& D, dMatrixT& CE);
+
     //
     // material mechanical tangent modulus
     //

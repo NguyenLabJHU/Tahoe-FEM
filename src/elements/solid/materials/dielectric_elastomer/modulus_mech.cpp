@@ -508,7 +508,7 @@ void get_ddCmech(const double* params, const double *Xsi, const double* Cmat, do
 	z[21] = z[21] + z[312] + z[315] + z[385] + z[52] + z[55] + z[57] + z[67];
 	z[22] = z[113] + z[128] + z[265] + z[269] + z[274] + z[286] + z[292] + z[300] + z[307] + z[78];
 	z[22] = z[22] + z[313] + z[376] + z[387] + z[59] + z[62] + z[65] + z[68];
-	z[23] = 0.5*epsilon;
+	z[23] = -0.5*epsilon;
 	z[8] = z[23]*z[8];
 	z[9] = z[23]*z[9];
 	z[10] = z[10]*z[23];

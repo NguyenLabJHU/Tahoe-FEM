@@ -59,7 +59,8 @@ namespace Tahoe {
   //
   inline const dMatrixT FSDEMatT::RightCauchyGreenDeformation()
   {
-    const dMatrixT F = F_mechanical();
+    const dMatrixT& F = F_mechanical();
+//    cout << "F = " << F << endl;
     dMatrixT FTF(3);
     FTF.MultATB(F, F);
 
@@ -80,22 +81,58 @@ namespace Tahoe {
   }
 
 
+  /* Mechanical and electromechanical tangent modulus */
+  inline void FSDEMatT::C_Mech_Elec(dMatrixT& mech, dMatrixT& elec)
+  {
+//  	cout << "FSDEMatT::C_Mech_Elec" << endl;
+  	const dMatrixT& C = RightCauchyGreenDeformation();
+  	const dArrayT& E = ElectricField();
+//  	cout << "C_Mech_Elec C = " << C << endl;
+  
+  	/* call C function for both tangent moduli */
+  	get_ddCmech_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
+  		mech.Pointer(), elec.Pointer());
+  
+  	mech *= 4.0;
+  	elec *= -2.0;
+// 	cout << "mech = " << mech << endl;
+// 	cout << "elec = " << elec << endl;
+  }
+
+  /* Electrical displacement and tangent modulus */
+  inline void FSDEMatT::S_C_Elec(dArrayT& D, dMatrixT& CE)
+  {
+//  	cout << "FSDEMatT::S_C_Elec" << endl;
+  	const dMatrixT& C = RightCauchyGreenDeformation();
+  	const dArrayT& E = ElectricField();
+//  	cout << "S_C_Elec C = " << C << endl;
+  
+  	/* call C function for both tangent moduli */
+  	get_ddC_sc_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
+  		D.Pointer(), CE.Pointer());
+  
+  	D *= -1.0;
+  	CE *= -1.0;
+  }
+
   //
   // material mechanical tangent modulus
   //
   inline const dMatrixT&
   FSDEMatT::C_IJKL()
   {
-	cout << "FSDEMatT::C_IJKL" << endl;
-    const dMatrixT& C = RightCauchyGreenDeformation();
-    const dArrayT& E = ElectricField();
-    
-	/* call C function for mechanical tangent modulus */
-	get_ddCmech(fParams.Pointer(), E.Pointer(),  
-		C.Pointer(), fTangentMechanical.Pointer()); 
+//	cout << "FSDEMatT::C_IJKL" << endl;
+//     const dMatrixT& C = RightCauchyGreenDeformation();
+//     const dArrayT& E = ElectricField();
+//     
+// 	/* call C function for mechanical tangent modulus */
+// 	get_ddCmech(fParams.Pointer(), E.Pointer(),  
+// 		C.Pointer(), fTangentMechanical.Pointer()); 
+// 
+// 	fTangentMechanical*=4.0;
 
-	fTangentMechanical*=4.0;
-	cout << "C_IJKL = " << fTangentMechanical << endl;
+//	fTangentMechanical = FDHookeanMatT::C_IJKL();
+//	cout << "fTangentMechanical = " << fTangentMechanical << endl;
     return fTangentMechanical;
   }
 
@@ -145,9 +182,11 @@ namespace Tahoe {
   inline const dSymMatrixT&
   FSDEMatT::S_IJ()
   {
-	cout << "FSDEMatT::S_IJ" << endl;
+//	cout << "FSDEMatT::S_IJ" << endl;
     const dMatrixT& C = RightCauchyGreenDeformation();
    	const dArrayT& E = ElectricField();
+    dMatrixT stress_temp(3);
+//    cout << "S_IJ C = " << C << endl;
     
 	/* call C function for mechanical stress */
 	get_dUdCmech(fParams.Pointer(), E.Pointer(),  
@@ -155,7 +194,7 @@ namespace Tahoe {
 
     fStress.FromMatrix(stress_temp);
 	fStress*=2.0;
-	cout << "S_IJ = " << fStress << endl;
+
     return fStress;
 
   }
@@ -166,17 +205,17 @@ namespace Tahoe {
   inline const dArrayT&
   FSDEMatT::D_I()
   {
-  	cout << "FSDEMatT::D_I" << endl;
-    const dMatrixT& C = RightCauchyGreenDeformation();
-	const dArrayT& E = ElectricField();
-
-	/* call C function for electric displacement */
- 	get_dUdE(fParams.Pointer(), E.Pointer(),  
- 		C.Pointer(), fElectricDisplacement.Pointer());     
-    
-    fElectricDisplacement *= -1.0;
-    cout << "fElectricDisplacement = " << fElectricDisplacement << endl;
-    return fElectricDisplacement;
+//  	cout << "FSDEMatT::D_I" << endl;
+  	const dMatrixT& C = RightCauchyGreenDeformation();
+  	const dArrayT& E = ElectricField();
+  	dMatrixT CE(3);
+  
+  	/* call C function for both tangent moduli */
+  	get_ddC_sc_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
+  		fElectricDisplacement.Pointer(), CE.Pointer());
+  
+  	fElectricDisplacement *= -1.0;
+  	return fElectricDisplacement;
   }
 
   //
@@ -194,7 +233,7 @@ namespace Tahoe {
   inline const dMatrixT&
   FSDEMatT::c_ijkl()
   {
-	cout << "FSDEMatT::c_ijkl" << endl;
+//	cout << "FSDEMatT::c_ijkl" << endl;
     const dMatrixT F = F_mechanical();
     const double J = F.Det();
 

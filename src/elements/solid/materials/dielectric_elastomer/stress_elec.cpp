@@ -65,11 +65,10 @@ void get_dUdE(const double* params, const double *Xsi, const double* Cmat, doubl
 	z[1] = z[1] + z[12] + z[13] + z[14] + z[15];
 	z[2] = z[2] + z[4] + z[5] + z[7] + z[9];
 	z[3] = z[10] + z[11] + z[3] + z[6] + z[8];
-	z[4] = 0.5*epsilon;
+	z[4] = -0.5*epsilon;
 	z[1] = z[1]*z[4];
 	z[2] = z[2]*z[4];
 	z[3] = z[3]*z[4];
-//	z[1] = List(z[3],z[2],z[1]);
 
 	/* return values */
 	dXsi[0] = z[3];
