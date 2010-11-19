@@ -57,9 +57,11 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
 
     //################## material parameters ##################
     cout << "iConstitutiveModelType "               << iConstitutiveModelType         << endl;
-    cout << "iplasticity "                          << iplasticity         << endl;
+  //  cout << "iplasticity "                          << iplasticity         << endl;
     //--Plasticity parameters
-    cout << "fMaterial_Params[kAlpha] "               << fMaterial_Params[kAlpha]        << endl;
+    cout << "fMaterial_Params[kCohesion] "               << fMaterial_Params[kCohesion]        << endl;
+    cout << "fMaterial_Params[kFphi] "               << fMaterial_Params[kFphi]        << endl;
+    cout << "fMaterial_Params[kDpsi] "                << fMaterial_Params[kDpsi]        << endl;    
     //-- Elasticity parameters for solid
     cout << "fMaterial_Params[kMu] "                << fMaterial_Params[kMu]          << endl;
     cout << "fMaterial_Params[kLambda] "            << fMaterial_Params[kLambda] << endl;
@@ -1466,7 +1468,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                    /* Calculating Jacobian */
                    double J = fDeformation_Gradient.Det();
-                   double invJ=1/J;
+                  // double invJ=1/J;
                    /* Jacobian for the current IP will be saved */
                    fState_variables_IPs(IP,2)=J;
 
@@ -1559,9 +1561,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                     g1_=-122;
 //                     g2_=-183;
                      //  double invJ=1/J;
-                       if(iplasticity!=1)//elastic
-                       {
-                       Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
+
+                      Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
                        KirchhoffST.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
                        Form_fV1();
                       // fIota_temp_matrix.Multx(fV1,Vint_1_temp);
@@ -1590,75 +1591,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        scale=scale_const;
                        Vint_3_temp*=scale;
                        Vint_3+=Vint_3_temp;
-                       }
-		       else//plastic
-		       {
-		  
-		  	// Here yield check part will be put
-		  	// need a function or code to calculate ||devSPK||
-		  	// need to implement parameter alpha for F=||devSPK||-alpha
-		  	// Yield check will be done first with the existing SPK if plasticity is turned on
-		  	// if not yielded should continue, so need a if condition for yielding
-		    	fTemp_matrix_nsd_x_nsd.Inverse(fFp_n);
-		    	fFe_tr.MultAB(fDeformation_Gradient,fTemp_matrix_nsd_x_nsd);
-		    	fTemp_matrix_nsd_x_nsd.Transpose(fFe_tr);
-		    	fRight_Cauchy_Green_tensor_tr.MultATB(fTemp_matrix_nsd_x_nsd,fFe_tr);
-		    	fLagrangian_strain_tensor_tr=fIdentity_matrix;
-		    	fLagrangian_strain_tensor_tr*=-1;
-		    	fLagrangian_strain_tensor_tr+=fRight_Cauchy_Green_tensor_tr;
-		    	fLagrangian_strain_tensor_tr*=0.5;
-		    	////fSPK_tr calculation
-		    	fTemp_matrix_nsd_x_nsd=fIdentity_matrix;
-		    	fTemp_matrix_nsd_x_nsd*=fMaterial_Params[kLambda];
-		    	fSPK_tr=fLagrangian_strain_tensor_tr;
-		    	fSPK_tr*=fMaterial_Params[kMu];
-		    	fSPK_tr+=fTemp_matrix_nsd_x_nsd;
-
-		    
-			Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
-		        fYield_function=devfSPKinv-fMaterial_Params[kAlpha];
-		    
-		//	temp_inv= fSPK_tr.ScalarProduct();
-			
-		  	    if(fYield_function>0.0)
-		  	     {
-		    	        iter_count=0;
-		    	        iter_count++;		  
-         		     }
-		  	    else//(yielding did not occur / elastic step/
-		  	    {
-		  	     // update elastic stresses and continue
-                      		 Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
-                       		 KirchhoffST.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
-                                 Form_fV1();
-                      		 // fIota_temp_matrix.Multx(fV1,Vint_1_temp);
-                    		fShapeDisplGrad.MultTx(fV1,Vint_1_temp);
-                                // fIota_w_temp_matrix.Multx(fV1,Vint_1_temp);
-                                scale=scale_const;
-                                Vint_1_temp*=scale;
-                                Vint_1 +=Vint_1_temp;
-                               // -eta(ml)s_sigma(ml)-eta(ml,k)m(klm)
-                               // eta(ml)s_sima(ml)+eta(ml,k)m(klm)
-                               Form_SIGMA_S();//in current configuration SIGMA_S=s_sigma, but what we use sigma_s, so it needs to be multiplied by "-1"
-                               Form_fV2();//gives F.SIGMA_S.F^T = s_sigma *J
-                               NCHI.MultTx(fV2,Vint_2_temp);
-                               scale=scale_const;
-                               Vint_2_temp*=scale;
-                               Vint_2 +=Vint_2_temp;
-// applying integration by parts to higher order stress tensor "m" produces a minus sign in front of it too, so if we multiply the BMM by "-1" the following
-                              // matrices are found (see paper)
-
-                              Form_GAMMA();
-                              Form_fMKLM();
-                              Form_fV3();
-                              //fIota_eta_temp_matrix.Multx(fV3,Vint_3_temp);
-                              GRAD_NCHI.MultTx(fV3,Vint_3_temp);
-                              scale=scale_const;
-                              Vint_3_temp*=scale;
-                              Vint_3+=Vint_3_temp;
-			    }
-		       }
-
 
                        //Sigma.SetToScaled(1/J,KirchhoffST);
                        //Sigma*=1.7;
@@ -2053,8 +1985,46 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     //   fKMphiphi_2=0.0;
 
                    }
-                   else
+                   else if(iConstitutiveModelType==3)
                    {
+		       
+		  	// Here yield check part will be put
+		  	// need a function or code to calculate ||devSPK||
+		  	// need to implement parameter alpha for F=||devSPK||-alpha
+		  	// Yield check will be done first with the existing SPK if plasticity is turned on
+		  	// if not yielded should continue, so need a if condition for yielding
+		    	fTemp_matrix_nsd_x_nsd.Inverse(fFp_n);
+		    	fFe_tr.MultAB(fDeformation_Gradient,fTemp_matrix_nsd_x_nsd);
+		    	fTemp_matrix_nsd_x_nsd.Transpose(fFe_tr);
+		    	fRight_Cauchy_Green_tensor_tr.MultATB(fTemp_matrix_nsd_x_nsd,fFe_tr);
+		    	fLagrangian_strain_tensor_tr=fIdentity_matrix;
+		    	fLagrangian_strain_tensor_tr*=-1;
+		    	fLagrangian_strain_tensor_tr+=fRight_Cauchy_Green_tensor_tr;
+		    	fLagrangian_strain_tensor_tr*=0.5;
+		    	////fSPK_tr calculation
+		    	fTemp_matrix_nsd_x_nsd=fIdentity_matrix;
+		    	fTemp_matrix_nsd_x_nsd*=fMaterial_Params[kLambda];
+		    	fSPK_tr=fLagrangian_strain_tensor_tr;
+		    	fSPK_tr*=fMaterial_Params[kMu];
+		    	fSPK_tr+=fTemp_matrix_nsd_x_nsd;
+
+		    
+			Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
+		        fYield_function=devfSPKinv-fMaterial_Params[kCohesion];
+		    
+		//	temp_inv= fSPK_tr.ScalarProduct();
+			
+		  	    if(fYield_function>0.0)
+		  	     {
+		    	        iter_count=0;
+		    	        iter_count++;		  
+         		     }
+		  	    else//(yielding did not occur / elastic step/
+		  	    {
+
+			    }                   
+		   }
+                   else{
    ////////////////////////////////////////////////////////////////////////////////////////
    /////////////////MicroMorphic Internal force vectors////////////////////////////////////
                    Form_G1_matrix();//output:G1 vector & Sigma matrix
@@ -2902,17 +2872,19 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(ndof_per_nd_micro, "ndof_per_nd_micro");
 
     list.AddParameter(iConstitutiveModelType, "constitutive_mod_type");
-    list.AddParameter(iplasticity, "plasticity");
+  //  list.AddParameter(iplasticity, "plasticity");
     list.AddParameter(iIterationMax, "max_local_iterations");
     double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2, gravity_g3;
-    double Kappa, Nu, Sigma_const, Tau, Eta,Alpha;
+    double Kappa, Nu, Sigma_const, Tau, Eta,Cohesion,Fphi,Dpsi;
     double Tau1,Tau2,Tau3,Tau4,Tau5,Tau6,Tau7,Tau8,Tau9,Tau10,Tau11;
 
     // solid elasticity
     list.AddParameter(shearMu, "mu");
     list.AddParameter(sLambda, "lambda");
-    // plasticiyt
-    list.AddParameter(Alpha, "Alpha");  
+    // plasticity
+    list.AddParameter(Cohesion,"Cohesion"); 
+    list.AddParameter(Fphi,"Fphi");
+    list.AddParameter(Dpsi,"Dpsi");        
     //Material Parameter
     list.AddParameter(Kappa, "Kappa");
     list.AddParameter(Nu, "Nu");
@@ -3013,7 +2985,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fNumIPSurf_micro = fNumIPSurf_displ;
 
     iConstitutiveModelType = list.GetParameter("constitutive_mod_type");
-    iplasticity = list.GetParameter("plasticity");  
+  //  iplasticity = list.GetParameter("plasticity");  
     iIterationMax = list.GetParameter("max_local_iterations"); 
     fMaterial_Params.Dimension ( kNUM_FMATERIAL_TERMS );
 //    fIntegration_Params.Dimension ( kNUM_FINTEGRATE_TERMS );
@@ -3036,7 +3008,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kTau9] = list.GetParameter("Tau9");
     fMaterial_Params[kTau10] = list.GetParameter("Tau10");
     fMaterial_Params[kTau11] = list.GetParameter("Tau11");
-    fMaterial_Params[kAlpha] = list.GetParameter("Alpha");
+    fMaterial_Params[kCohesion] = list.GetParameter("Cohesion");
+    fMaterial_Params[kFphi] = list.GetParameter("Fphi");
+    fMaterial_Params[kDpsi] = list.GetParameter("Dpsi");    
     fMaterial_Params[kg] = list.GetParameter("g");
     fMaterial_Params[kg1] = list.GetParameter("g1");
     fMaterial_Params[kg2] = list.GetParameter("g2");
@@ -3761,15 +3735,6 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fShapeDisplGrad_t_Transpose.Dimension (n_en_displ_x_n_sd, n_sd_x_n_sd);
     fShapeMicro_row_matrix.Dimension (1,n_en_micro);
-
-
-
-
-
-
-
-
-
 
     fEulerian_strain_tensor_current_IP.Dimension (n_sd,n_sd);
     fCauchy_stress_tensor_current_IP.Dimension (n_sd,n_sd);
@@ -5285,7 +5250,6 @@ void FSMicromorphic3DT::Form_Gradient_of_micro_shape_eta_functions(const dMatrix
 
     int row=0;
     int col=0;
-    int i=0;
     GRAD_NCHI=0.0;
 
     for(int i=0;i<9;i++)
@@ -7127,7 +7091,7 @@ void FSMicromorphic3DT:: Mapping_double_and_Array(const int condition)
 
 void FSMicromorphic3DT:: Form_deformation_tensors_arrays(const int condition) //
 {
-    int row,row1;
+    int row;
     row=0;
 
     if(condition==1)
@@ -8941,7 +8905,6 @@ void FSMicromorphic3DT:: Form_fMpp_1()
 {
     int row=0;
     int col=0;
-    int counter=0;
 
     fMpp_1=0.0;
 /*  for(int L=0;L<3;L++)

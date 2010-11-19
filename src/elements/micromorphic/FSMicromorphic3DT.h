@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.119 2010-11-16 06:00:31 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.120 2010-11-19 00:15:12 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -65,7 +65,9 @@ public:
         kTau9,
         kTau10,
         kTau11,
-        kAlpha,
+        kCohesion,
+        kFphi,
+        kDpsi,
         kg,
         kg1,
         kg2,
@@ -278,7 +280,7 @@ private:
     int n_el, n_sd, n_sd_surf, n_en_surf;
     int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
     int step_number;
-    int iConstitutiveModelType,iplasticity;
+    int iConstitutiveModelType;
     //double Alpha;
 
     //name of output vector
