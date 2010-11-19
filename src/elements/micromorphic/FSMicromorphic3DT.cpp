@@ -1997,6 +1997,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    	fFe_tr.MultAB(fDeformation_Gradient,fTemp_matrix_nsd_x_nsd);
 		    	fTemp_matrix_nsd_x_nsd.Transpose(fFe_tr);
 		    	fRight_Cauchy_Green_tensor_tr.MultATB(fTemp_matrix_nsd_x_nsd,fFe_tr);
+		        if (fRight_Cauchy_Green_tensor_tr.Det()==0)
+			   fRight_Cauchy_Green_tensor_tr = fIdentity_matrix;
 		    	fLagrangian_strain_tensor_tr=fIdentity_matrix;
 		    	fLagrangian_strain_tensor_tr*=-1;
 		    	fLagrangian_strain_tensor_tr+=fRight_Cauchy_Green_tensor_tr;
@@ -2008,9 +2010,17 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    	fSPK_tr*=fMaterial_Params[kMu];
 		    	fSPK_tr+=fTemp_matrix_nsd_x_nsd;
 
-		    
+		        int Beta=-1;
+		        double Aphi=2*sqrt(6)*cos(kFphi)/(3+Beta*sin(kFphi));
+		        double Bphi=2*sqrt(6)/(3+Beta*sin(kFphi));
+		        double Apsi=2*sqrt(6)*cos(kDpsi)/(3+Beta*sin(kDpsi));
+		        double Bpsi=2*sqrt(6)/(3+Beta*sin(kDpsi));		       
+		       
+		       
+		        
 			Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
-		        fYield_function=devfSPKinv-fMaterial_Params[kCohesion];
+			double press=fSPK_tr.Trace()/3;
+		        fYield_function=devfSPKinv-(Aphi*kCohesion-Bphi*press);
 		    
 		//	temp_inv= fSPK_tr.ScalarProduct();
 			
