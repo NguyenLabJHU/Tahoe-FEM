@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.120 2010-11-19 00:15:12 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.121 2010-11-21 08:39:06 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -64,16 +64,40 @@ public:
         kTau8,
         kTau9,
         kTau10,
-        kTau11,
-        kCohesion,
+        kTau11,     
+        // plasticity parameters
+        kHc,
+        kc0,
+        kZ0c,
         kFphi,
         kDpsi,
+        //
         kg,
         kg1,
         kg2,
         kg3,
         //add to this list
         kNUM_FMATERIAL_TERMS        };
+        
+	enum fMaterialState_T 	{ 
+	//    kkappa,
+	    kc,
+        //    kZkappa,
+	    kZc,
+	//    khkappa,
+	//    khc,
+	//    kIntrinsic_Perm,
+	//    kJ,
+	//    kJp,
+	//    kphi_s,
+	//    kphi_f,
+	//    kDevSS,
+	//    kMeanS,
+	//    kEpsVolp,
+	//    kDelgamma,
+	    kNUM_FMATERIAL_STATE_TERMS
+	};        
+        
 
 //  enum fIntegrate_T         {
 //      kBeta,
@@ -769,8 +793,12 @@ private:
     double fYield_function;
     double devfSPKinv;
     int iIterationMax,iter_count, global_iteration;
-  
-    
+
+    dArray2DT	fState_variables_IPs;
+    dArray2DT	fState_variables_Elements_IPs;
+    dArray2DT	fState_variables_n_IPs;
+    dArray2DT	fState_variables_n_Elements_IPs;
+   
     dArray2DT	fFp_IPs;
     dArray2DT	fFp_Elements_IPs;
     dArray2DT	fFp_n_IPs;
@@ -832,10 +860,10 @@ private:
         dArray2DT  fE_values_IPs;
         dArray2DT  fVarepsilon_IPs;
         ////////////////////////////////////
-        dArray2DT   fState_variables_IPs;
+
         dArray2DT   fEulerian_strain_Elements_IPs;
         dArray2DT   fCauchy_stress_Elements_IPs;
-        dArray2DT   fState_variables_Elements_IPs;
+
         /////////////////////////////////////////
         dArray2DT  fE_values_Element_IPs;
         dArray2DT  fVarepsilon_Element_IPs;

@@ -59,28 +59,30 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
     cout << "iConstitutiveModelType "               << iConstitutiveModelType         << endl;
   //  cout << "iplasticity "                          << iplasticity         << endl;
     //--Plasticity parameters
-    cout << "fMaterial_Params[kCohesion] "               << fMaterial_Params[kCohesion]        << endl;
-    cout << "fMaterial_Params[kFphi] "               << fMaterial_Params[kFphi]        << endl;
-    cout << "fMaterial_Params[kDpsi] "                << fMaterial_Params[kDpsi]        << endl;    
+    cout << "fMaterial_Params[kc0] "               << fMaterial_Params[kc0]          << endl;
+    cout << "fMaterial_Params[kHc] "               << fMaterial_Params[kHc]          << endl;  
+    cout << "fMaterial_Params[kZ0c] "              << fMaterial_Params[kZ0c] 	     << endl;      
+    cout << "fMaterial_Params[kFphi] "             << fMaterial_Params[kFphi]        << endl;
+    cout << "fMaterial_Params[kDpsi] "             << fMaterial_Params[kDpsi]        << endl;    
     //-- Elasticity parameters for solid
-    cout << "fMaterial_Params[kMu] "                << fMaterial_Params[kMu]          << endl;
-    cout << "fMaterial_Params[kLambda] "            << fMaterial_Params[kLambda] << endl;
-    cout << "fMaterial_Params[kNu] "                << fMaterial_Params[kNu]          << endl;
-    cout << "fMaterial_Params[kSigma_const] "       << fMaterial_Params[kSigma_const]  << endl;
-    cout << "fMaterial_Params[kTau] "               << fMaterial_Params[kTau]          << endl;
-    cout << "fMaterial_Params[kEta] "               << fMaterial_Params[kEta]           << endl;
-    cout << "fMaterial_Params[kKappa] "             << fMaterial_Params[kKappa]  << endl;
-    cout << "fMaterial_Params[kTau1] "                  << fMaterial_Params[kTau1]          << endl;
-    cout << "fMaterial_Params[kTau2] "                  << fMaterial_Params[kTau2]          << endl;
-    cout << "fMaterial_Params[kTau3] "                  << fMaterial_Params[kTau3]          << endl;
-    cout << "fMaterial_Params[kTau4] "                  << fMaterial_Params[kTau4]          << endl;
-    cout << "fMaterial_Params[kTau5] "                  << fMaterial_Params[kTau5]          << endl;
-    cout << "fMaterial_Params[kTau6] "                  << fMaterial_Params[kTau6]          << endl;
-    cout << "fMaterial_Params[kTau7] "                  << fMaterial_Params[kTau7]          << endl;
-    cout << "fMaterial_Params[kTau8] "                  << fMaterial_Params[kTau8]          << endl;
-    cout << "fMaterial_Params[kTau9] "                  << fMaterial_Params[kTau9]          << endl;
-    cout << "fMaterial_Params[kTau10] "                 << fMaterial_Params[kTau10]          << endl;
-    cout << "fMaterial_Params[kTau11] "                 << fMaterial_Params[kTau11]          << endl;
+    cout << "fMaterial_Params[kMu] "               << fMaterial_Params[kMu]          << endl;
+    cout << "fMaterial_Params[kLambda] "           << fMaterial_Params[kLambda]      << endl;
+    cout << "fMaterial_Params[kNu] "               << fMaterial_Params[kNu]          << endl;
+    cout << "fMaterial_Params[kSigma_const] "      << fMaterial_Params[kSigma_const] << endl;
+    cout << "fMaterial_Params[kTau] "              << fMaterial_Params[kTau]         << endl;
+    cout << "fMaterial_Params[kEta] "              << fMaterial_Params[kEta]         << endl;
+    cout << "fMaterial_Params[kKappa] "            << fMaterial_Params[kKappa]       << endl;
+    cout << "fMaterial_Params[kTau1] "             << fMaterial_Params[kTau1]        << endl;
+    cout << "fMaterial_Params[kTau2] "             << fMaterial_Params[kTau2]        << endl;
+    cout << "fMaterial_Params[kTau3] "             << fMaterial_Params[kTau3]        << endl;
+    cout << "fMaterial_Params[kTau4] "             << fMaterial_Params[kTau4]        << endl;
+    cout << "fMaterial_Params[kTau5] "             << fMaterial_Params[kTau5]        << endl;
+    cout << "fMaterial_Params[kTau6] "             << fMaterial_Params[kTau6]        << endl;
+    cout << "fMaterial_Params[kTau7] "             << fMaterial_Params[kTau7]        << endl;
+    cout << "fMaterial_Params[kTau8] "             << fMaterial_Params[kTau8]        << endl;
+    cout << "fMaterial_Params[kTau9] "             << fMaterial_Params[kTau9]        << endl;
+    cout << "fMaterial_Params[kTau10] "            << fMaterial_Params[kTau10]       << endl;
+    cout << "fMaterial_Params[kTau11] "            << fMaterial_Params[kTau11]       << endl;
 
 }
 
@@ -350,7 +352,8 @@ void FSMicromorphic3DT::CloseStep(void)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////this part keeps track of the parameters from the previous iteration "n" to be used in "n+1"/////////////////////////
-
+ if(iConstitutiveModelType==2)
+ {
     SigN_IPs_el_n      = SigN_IPs_el;
     GammaN_IPs_el_n    = GammaN_IPs_el;
     mn_IPs_el_n        = mn_IPs_el;
@@ -360,6 +363,14 @@ void FSMicromorphic3DT::CloseStep(void)
     FnInv_ar_IPs_el=FInv_ar_IPs_el;
     ChiN_ar_IPs_el_n=Chi_ar_IPs_el;
     GRAD_ChiN_ar_IPs_el_n=GRAD_Chi_ar_IPs_el;
+  }
+  if(iConstitutiveModelType==3)
+  {
+      /* assign values at t_{n+1} to t_n for storage */
+    fState_variables_n_Elements_IPs = fState_variables_Elements_IPs;
+    fFp_n_Elements_IPs = fFp_Elements_IPs;
+  
+  }
     //Counter_IPs_el_n=Counter_IPs_el;
   //Here is the close step function
 
@@ -1313,6 +1324,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[21]=fState_variables_Elements_IPs(e,l*6+3);
           out_variable[22]=fState_variables_Elements_IPs(e,l*6+4);
           out_variable[23]=fState_variables_Elements_IPs(e,l*6+5);*/
+          if(iConstutiveModelType==2)
+          {
           out_variable[18]=fState_variables_Elements_IPs(e,l*42+0);
           out_variable[19]=fState_variables_Elements_IPs(e,l*42+1);
           out_variable[20]=fState_variables_Elements_IPs(e,l*42+2);
@@ -1355,6 +1368,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[57]=fState_variables_Elements_IPs(e,l*42+39);
           out_variable[58]=fState_variables_Elements_IPs(e,l*42+40);
           out_variable[59]=fState_variables_Elements_IPs(e,l*42+41);
+          }
+
+          if(iConstutiveModelType==3)
+          {
+          
+          out_variable[18]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc);
+	  out_variable[19]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kZc);
+
+          }
+          
           //out_variable.CopyIn(18,ftemp_u_element);
         }
 
@@ -1470,7 +1493,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    double J = fDeformation_Gradient.Det();
                   // double invJ=1/J;
                    /* Jacobian for the current IP will be saved */
-                   fState_variables_IPs(IP,2)=J;
+                  // fState_variables_IPs(IP,2)=J;
 
                    /*  fRho */
                    fRho_0 = fMaterial_Params[kRho_0];
@@ -2020,11 +2043,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		        
 			Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
 			double press=fSPK_tr.Trace()/3;
-		        fYield_function=devfSPKinv-(Aphi*kCohesion-Bphi*press);
+		        fYield_function=devfSPKinv-(Aphi*fMaterial_Params[kc]-Bphi*press);
 		    
 		//	temp_inv= fSPK_tr.ScalarProduct();
 			
-		  	    if(fYield_function>0.0)
+		  	    if(fYield_function>1e-6)
 		  	     {
 		    	        iter_count=0;
 		    	        iter_count++;		  
@@ -2508,7 +2531,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    GRAD_Chi_ar_IPs.SetRow(IP,GRAD_Chi_ar);
             }//constitutive loop ends here
 
-
+              if(iConstitutiveModelType==2)
+              {
                   Calculate_Cauchy_INV();
                   // Caculate_invdevpart_of_Matrix(Sigma,fIdentity_matrix,Cauchy_inv);
                    Calculate_stress_diff_INV();
@@ -2556,6 +2580,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fState_variables[39]=GAMMA(0,2,0);//
                    fState_variables[40]=GAMMA(1,2,1);//
                    fState_variables[41]=GAMMA(2,2,2);//
+                   }
+                   if(iConstitutiveModelType==3)
+                   {
+                   
+                   
+                   }
                  //  fShapeDispl.Multx(u_vec,u_element);
                    fState_variables_IPs.SetRow(IP,fState_variables);
                  //  fDisplacement_IPs.SetRow(IP,u_element);
@@ -2887,12 +2917,14 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2, gravity_g3;
     double Kappa, Nu, Sigma_const, Tau, Eta,Cohesion,Fphi,Dpsi;
     double Tau1,Tau2,Tau3,Tau4,Tau5,Tau6,Tau7,Tau8,Tau9,Tau10,Tau11;
+    double c0,Hc;
 
     // solid elasticity
     list.AddParameter(shearMu, "mu");
     list.AddParameter(sLambda, "lambda");
     // plasticity
-    list.AddParameter(Cohesion,"Cohesion"); 
+    list.AddParameter(c0,"c0"); 
+    list.AddParameter(Hc,"Hc");     
     list.AddParameter(Fphi,"Fphi");
     list.AddParameter(Dpsi,"Dpsi");        
     //Material Parameter
@@ -2999,6 +3031,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     iIterationMax = list.GetParameter("max_local_iterations"); 
     fMaterial_Params.Dimension ( kNUM_FMATERIAL_TERMS );
 //    fIntegration_Params.Dimension ( kNUM_FINTEGRATE_TERMS );
+     
 
     fMaterial_Params[kMu] = list.GetParameter("mu");
     fMaterial_Params[kLambda] = list.GetParameter("lambda");
@@ -3018,7 +3051,10 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kTau9] = list.GetParameter("Tau9");
     fMaterial_Params[kTau10] = list.GetParameter("Tau10");
     fMaterial_Params[kTau11] = list.GetParameter("Tau11");
-    fMaterial_Params[kCohesion] = list.GetParameter("Cohesion");
+    fMaterial_Params[kc0] = list.GetParameter("c0");
+    fMaterial_Params[kHc] = list.GetParameter("Hc");    
+    fMaterial_Params[kZ0c] =0.0;    
+    fMaterial_Params[kHc] = list.GetParameter("Hc");    
     fMaterial_Params[kFphi] = list.GetParameter("Fphi");
     fMaterial_Params[kDpsi] = list.GetParameter("Dpsi");    
     fMaterial_Params[kg] = list.GetParameter("g");
@@ -3679,6 +3715,22 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fMicroStnTensor_tr.Dimension(n_sd,n_sd);
     fSPK_tr.Dimension(n_sd,n_sd);
     fdevSPK_tr.Dimension(n_sd,n_sd);
+    
+    fState_variables_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);
+    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
+  //  fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
+  //  fState_variables.Dimension (knum_d_state);
+
+    fState_variables_Elements_IPs=0.0;
+ //   fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
+
+    fState_variables_n_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);      
+    fState_variables_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
+    fState_variables_n_Elements_IPs=0.0;
+    
+    
+    fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
+    fState_variables.Dimension (knum_d_state);
 
     ////////////////stress measures/////////////////
 
@@ -3752,15 +3804,14 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fDisplacements_current_IPs.Dimension(n_sd);
     fEulerian_strain_IPs.Dimension (fNumIP_displ,knumstrain);
     fCauchy_stress_IPs.Dimension (fNumIP_displ,knumstress);
-    fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
-    fState_variables.Dimension (knum_d_state);
+
    //
  //   fDisplacement_IPs.Dimension(fNumIP_displ,knumdispl);
     fTemp_nine_values.Dimension(9);
     fTemp_six_values.Dimension(6);
     fEulerian_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstrain);
     fCauchy_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstress);
-    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
+
   //  fDisplacement_Element_IPs.Dimension(NumElements(),fNumIP_displ*knumdispl);
 
 
