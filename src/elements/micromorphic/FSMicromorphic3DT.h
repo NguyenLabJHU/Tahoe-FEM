@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.121 2010-11-21 08:39:06 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.122 2010-11-22 09:01:54 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -803,6 +803,9 @@ private:
     dArray2DT	fFp_Elements_IPs;
     dArray2DT	fFp_n_IPs;
     dArray2DT	fFp_n_Elements_IPs;
+    
+    dArray2DT	fC_n_IPs;
+    dArray2DT	fC_n_Elements_IPs;
     
 /////stress invariants variables////////
  double Cauchy_inv;
