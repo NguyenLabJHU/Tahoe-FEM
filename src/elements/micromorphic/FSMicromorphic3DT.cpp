@@ -1324,7 +1324,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[21]=fState_variables_Elements_IPs(e,l*6+3);
           out_variable[22]=fState_variables_Elements_IPs(e,l*6+4);
           out_variable[23]=fState_variables_Elements_IPs(e,l*6+5);*/
-          if(iConstutiveModelType==2)
+          if(iConstitutiveModelType==1)
           {
           out_variable[18]=fState_variables_Elements_IPs(e,l*42+0);
           out_variable[19]=fState_variables_Elements_IPs(e,l*42+1);
@@ -1370,7 +1370,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[59]=fState_variables_Elements_IPs(e,l*42+41);
           }
 
-          if(iConstutiveModelType==3)
+          if(iConstitutiveModelType==3)
           {
           
           out_variable[18]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc);
@@ -2531,7 +2531,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    GRAD_Chi_ar_IPs.SetRow(IP,GRAD_Chi_ar);
             }//constitutive loop ends here
 
-              if(iConstitutiveModelType==2)
+              if(iConstitutiveModelType==1)
               {
                   Calculate_Cauchy_INV();
                   // Caculate_invdevpart_of_Matrix(Sigma,fIdentity_matrix,Cauchy_inv);
@@ -3716,23 +3716,27 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fSPK_tr.Dimension(n_sd,n_sd);
     fdevSPK_tr.Dimension(n_sd,n_sd);
     
+    if(iConstitutiveModelType==3)
+    {
     fState_variables_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);
     fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
-  //  fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
-  //  fState_variables.Dimension (knum_d_state);
+    fState_variables_n_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);      
+    fState_variables_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
+    fState_variables_n_Elements_IPs=0.0;
+    }
+    else
+    {
+    fState_variables.Dimension (knum_d_state);
+    fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
+    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
+    }
 
     fState_variables_Elements_IPs=0.0;
  //   fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
 
-    fState_variables_n_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);      
-    fState_variables_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
-    fState_variables_n_Elements_IPs=0.0;
-    
-    
-    fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
-    fState_variables.Dimension (knum_d_state);
 
-    ////////////////stress measures/////////////////
+    
+   ////////////////stress measures/////////////////
 
     devsigma.Dimension(n_sd,n_sd);
     devRelsts.Dimension(n_sd,n_sd);
@@ -3768,7 +3772,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
                 row++;
             }
     }*/
-
+ if(iConstitutiveModelType==2)
+ {
     while (NextElement())
     {
         int e,l;
@@ -3783,6 +3788,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
         FnInv_ar_IPs_el.SetRow(e,FnInv_ar_IPs);
         ChiN_ar_IPs_el_n.SetRow(e,ChiN_ar_IPs);
     }
+   }
 /*    ChiN_ar_IPs_el= ChiN_ar_IPs_el_n;
     FInv_ar_IPs_el=FnInv_ar_IPs_el_n;
     F_ar_IPs_el=Fn_ar_IPs_el_n;*///no need for this because this is initializing and _el parts are cal_ed in gauss loop
