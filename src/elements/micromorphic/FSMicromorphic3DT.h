@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.122 2010-11-22 09:01:54 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.123 2010-11-22 23:11:29 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -785,6 +785,7 @@ private:
     dMatrixT fFp_n;
     dMatrixT fFe;
     dMatrixT fFe_tr;
+
     dMatrixT fRight_Cauchy_Green_tensor_tr;
     dMatrixT fLagrangian_strain_tensor_tr;
     dMatrixT fMicroStnTensor_tr;
@@ -803,7 +804,11 @@ private:
     dArray2DT	fFp_Elements_IPs;
     dArray2DT	fFp_n_IPs;
     dArray2DT	fFp_n_Elements_IPs;
+
+    dArray2DT	fC_IPs;
+    dArray2DT	fC_Elements_IPs;
     
+    dMatrixT    fC_n;
     dArray2DT	fC_n_IPs;
     dArray2DT	fC_n_Elements_IPs;
     
