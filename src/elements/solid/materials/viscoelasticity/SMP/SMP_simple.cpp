@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.12 2010-09-22 14:08:58 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.13 2010-11-24 16:35:56 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -494,7 +494,7 @@ void SMP_simple::ComputeOutput(dArrayT& output)
 	else fF3D = F;
 	
 	/*thermal volume deformation*/
-	output[0] = 1.0 + falphar*(Temp-fT0) + (*fdelneq);
+	output[0] =  1.0 + falphar*(Temp-fT0) + (-(falphar-falphag)*(Temp-fT0)+*fdelneq);
 
 	/*neq thermal dilatation*/
 	output[1] = (*fdelneq);
