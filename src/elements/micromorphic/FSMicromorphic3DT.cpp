@@ -1415,6 +1415,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	     fFp_n_Elements_IPs.RowCopy(e,fFp_n_IPs); 
              fC_n_Elements_IPs.RowCopy(e,fC_n_IPs);
              fdGdS_n_Elements_IPs.RowCopy(e,fdGdS_n_IPs);
+	    // fdGdS_Elements_IPs.RowCopy(e,fdGdS_IPs);             
            
 
             }
@@ -2034,6 +2035,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	
 		  	fFp_n_IPs.RowCopy(IP,fFp_n);
 		  	fC_n_IPs.RowCopy(IP,fC_n);		  	
+	                fdGdS_n_IPs.RowCopy(IP,fdGdS_n);    	       
 		  	
 		  	
 		    	fTemp_matrix_nsd_x_nsd.Inverse(fFp_n);
@@ -2069,6 +2071,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			
 		  	    if(fYield_function>1e-6)
 		  	     {
+		    	       
+				
+				
+				
+		    	       
 		    	        iter_count=0;
 		    	        iter_count++;		  
          		     }
@@ -2611,6 +2618,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                  //  fDisplacement_IPs.SetRow(IP,u_element);
                    fFp_IPs.SetRow(IP,fFp);
                    fC_IPs.SetRow(IP,fRight_Cauchy_Green_tensor);
+                   
+                   fdGdS_IPs.SetRow(IP,fdGdS);
 
 
             } //end Gauss integration loop
@@ -2649,6 +2658,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
             /* saving cauchy stress for each IPs of the current element */
             fCauchy_stress_Elements_IPs.SetRow(e,fCauchy_stress_IPs);
+            
+            /* saving dGdS for each IP of the current element */
+	    fdGdS_Elements_IPs.SetRow(e,fdGdS_IPs);            
+            
 
             /* saving state variables for each IPs of the current element */
           //  fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
@@ -3735,6 +3748,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     
 
     fdGdS.Dimension(n_sd,n_sd);
+    fdGdS_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fdGdS_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
    
     fdGdS_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fdGdS_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
@@ -3795,8 +3810,10 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 	    fC_n_Elements_IPs.SetRow(e,fC_n_IPs);
 
     }
-    fFp_Elements_IPs = fFp_n_Elements_IPs;
-    fC_Elements_IPs =  fC_n_Elements_IPs;
+    fFp_Elements_IPs   = fFp_n_Elements_IPs;
+    fC_Elements_IPs    =  fC_n_Elements_IPs;
+    fdGdS_Elements_IPs = fdGdS_n_Elements_IPs;
+
     
     }
     
