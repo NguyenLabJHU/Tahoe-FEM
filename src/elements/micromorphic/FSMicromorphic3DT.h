@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.124 2010-11-24 21:27:11 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.125 2010-11-26 08:02:19 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -361,6 +361,7 @@ private:
 
     dMatrixT        fIdentity_matrix;
     dMatrixT        fTemp_matrix_nsd_x_nsd;
+    dMatrixT        fTemp_matrix_nsd_x_nsd2;    
     dMatrixT        fShapeMicro_row_matrix;
 
 
@@ -782,6 +783,7 @@ private:
     dMatrixT fKMphiphi_2;
     /* Plasticity Matrices*/
     dMatrixT fFp;
+    dMatrixT fFp_inverse;
     dMatrixT fFp_n;
     dMatrixT fFe;
     dMatrixT fFe_tr;
@@ -795,7 +797,10 @@ private:
     dMatrixT fdevSPK_tr;
     double fYield_function;
     double devfSPKinv;
+    double fDelgamma, fdelDelgamma;
     int iIterationMax,iter_count, global_iteration;
+    
+    dMatrixT dFedDelgamma;
 
     dArray2DT	fState_variables_IPs;
     dArray2DT	fState_variables_Elements_IPs;
@@ -807,12 +812,13 @@ private:
     dArray2DT	fFp_n_IPs;
     dArray2DT	fFp_n_Elements_IPs;
 
-    dArray2DT	fC_IPs;
-    dArray2DT	fC_Elements_IPs;
+    dArray2DT	fCe_IPs;
+    dArray2DT	fCe_Elements_IPs;
     
-    dMatrixT    fC_n;
-    dArray2DT	fC_n_IPs;
-    dArray2DT	fC_n_Elements_IPs;
+    dMatrixT    fCe_n;
+    dMatrixT    fCe_n_inverse;    
+    dArray2DT	fCe_n_IPs;
+    dArray2DT	fCe_n_Elements_IPs;
 
     dArray2DT	fdGdS_IPs;
     dArray2DT	fdGdS_n_IPs;

@@ -369,7 +369,7 @@ void FSMicromorphic3DT::CloseStep(void)
       /* assign values at t_{n+1} to t_n for storage */
     fState_variables_n_Elements_IPs = fState_variables_Elements_IPs;
     fFp_n_Elements_IPs = fFp_Elements_IPs;
-    fC_n_Elements_IPs = fC_Elements_IPs;
+    fCe_n_Elements_IPs = fCe_Elements_IPs;
     fdGdS_n_Elements_IPs = fdGdS_Elements_IPs;
       
   }
@@ -1057,6 +1057,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     fTemp_matrix_nchidof_x_nchidof=0.0;
     fTemp_matrix_nchidof_x_nudof=0.0;
 
+    fTemp_matrix_nsd_x_nsd=0.0;
+    fTemp_matrix_nsd_x_nsd2=0.0;
 
     ////////////////////////////////////////////////////////////////
     //////////////FINITE STRAIN MATRICES INITIALIZE/////////////////
@@ -1413,7 +1415,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    {
 	     
 	     fFp_n_Elements_IPs.RowCopy(e,fFp_n_IPs); 
-             fC_n_Elements_IPs.RowCopy(e,fC_n_IPs);
+             fCe_n_Elements_IPs.RowCopy(e,fCe_n_IPs);
              fdGdS_n_Elements_IPs.RowCopy(e,fdGdS_n_IPs);
 	    // fdGdS_Elements_IPs.RowCopy(e,fdGdS_IPs);             
            
@@ -2034,7 +2036,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	// if not yielded should continue, so need a if condition for yielding
 		  	
 		  	fFp_n_IPs.RowCopy(IP,fFp_n);
-		  	fC_n_IPs.RowCopy(IP,fC_n);		  	
+		  	fCe_n_IPs.RowCopy(IP,fCe_n);		  	
 	                fdGdS_n_IPs.RowCopy(IP,fdGdS_n);    	       
 		  	
 		  	
@@ -2066,18 +2068,31 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
 			double press=fSPK_tr.Trace()/3;
 		        fYield_function=devfSPKinv-(Aphi*fMaterial_Params[kc]-Bphi*press);
+		        
+		        fFp=fFp_n;
 		    
 		//	temp_inv= fSPK_tr.ScalarProduct();
 			
 		  	    if(fYield_function>1e-6)
 		  	     {
-		    	       
+		        	/* retrieve dGdS_n at integration point */
+		        	fdGdS_n_IPs.RowCopy(IP,fdGdS_n);	    	       
 				
-				
+				fFe=fFe_tr;
+
+				fFp_inverse.Inverse(fFp);
+                                fTemp_matrix_nsd_x_nsd.MultABC(fdGdS_n,fFp_n,fFp_inverse);
+                                fCe_n_inverse.Inverse(fCe_n);
+                                fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);
+                                dFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);
+                                fdelDelgamma = 0.0;
+			    	fDelgamma = 0.0;
 				
 		    	       
 		    	        iter_count=0;
-		    	        iter_count++;		  
+		    	        iter_count++;	
+		    	        
+		    	        	  
          		     }
 		  	    else//(yielding did not occur / elastic step/
 		  	    {
@@ -2617,7 +2632,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fState_variables_IPs.SetRow(IP,fState_variables);
                  //  fDisplacement_IPs.SetRow(IP,u_element);
                    fFp_IPs.SetRow(IP,fFp);
-                   fC_IPs.SetRow(IP,fRight_Cauchy_Green_tensor);
+                   fCe_IPs.SetRow(IP,fRight_Cauchy_Green_tensor);
                    
                    fdGdS_IPs.SetRow(IP,fdGdS);
 
@@ -2651,7 +2666,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fFp_Elements_IPs.SetRow(e,fFp_IPs);
             
             /* saving the Right Cauchy Green tensor values for each IPs */
-            fC_Elements_IPs.SetRow(e,fC_IPs);
+            fCe_Elements_IPs.SetRow(e,fCe_IPs);
 
             /* saving eulerian strain for each IPs of the current element */
             fEulerian_strain_Elements_IPs.SetRow(e,fEulerian_strain_IPs);
@@ -3327,6 +3342,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fLeft_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fIdentity_matrix.Dimension (n_sd,n_sd);
     fTemp_matrix_nsd_x_nsd.Dimension (n_sd,n_sd);
+    fTemp_matrix_nsd_x_nsd2.Dimension (n_sd,n_sd);    
     fIota_temp_matrix.Dimension (n_en_displ_x_n_sd,n_sd_x_n_sd);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -3746,6 +3762,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fFp_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
     fFp_n_Elements_IPs=0.0;
     
+    dFedDelgamma.Dimension(n_sd,n_sd);
 
     fdGdS.Dimension(n_sd,n_sd);
     fdGdS_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
@@ -3763,14 +3780,15 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     
     
     
-    fC_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
-    fC_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
-    fC_Elements_IPs=0.0;    
+    fCe_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fCe_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fCe_Elements_IPs=0.0;    
     
-    fC_n.Dimension(n_sd,n_sd);
-    fC_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
-    fC_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
-    fC_n_Elements_IPs=0.0;
+    fCe_n.Dimension(n_sd,n_sd);
+    fCe_n_inverse.Dimension(n_sd,n_sd);    
+    fCe_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fCe_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fCe_n_Elements_IPs=0.0;
     
     dArrayT fTemp2_ArrayT_values;
     fTemp2_ArrayT_values.Dimension (9);
@@ -3803,15 +3821,15 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 			*/
 
 			fFp_n_IPs.SetRow(l,fTemp2_ArrayT_values);
-			fC_n_IPs.SetRow(l,fTemp2_ArrayT_values);
+			fCe_n_IPs.SetRow(l,fTemp2_ArrayT_values);
 			
 	    }
 	    fFp_n_Elements_IPs.SetRow(e,fFp_n_IPs);
-	    fC_n_Elements_IPs.SetRow(e,fC_n_IPs);
+	    fCe_n_Elements_IPs.SetRow(e,fCe_n_IPs);
 
     }
     fFp_Elements_IPs   = fFp_n_Elements_IPs;
-    fC_Elements_IPs    =  fC_n_Elements_IPs;
+    fCe_Elements_IPs    =  fCe_n_Elements_IPs;
     fdGdS_Elements_IPs = fdGdS_n_Elements_IPs;
 
     
