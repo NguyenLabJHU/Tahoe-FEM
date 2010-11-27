@@ -4,19 +4,13 @@
 #include "ParameterContainerT.h"
 #include "OutputSetT.h"
 #include "ShapeFunctionT.h"
+#include "eIntegratorT.h"
 
 /* REMAINING ISSUES (NOVEMBER 7, 2010):
-2.  Shape function gradients in LHS
-3.  Shape function gradients in RHS
-4.  Check stress, stiffness, electric displacement and electromechanical coupling 
 5.  SetGlobalShape:  calculating Efield from gradient of Psi?
 6.  Related to 6:  why can't call fShapes->Derivatives_X in SetGlobalShape?
-7.  Some reasonable boundary value problems (2D/3D)?
-8.  External "forces" (i.e. charges) in electrical system:
-	does this need to be applied here or at an element level?
-9.  Negative C_22 for stiffness tensor? 
-10. Factor of 2 in B_C?
-11. IP weight has different signs in FormStiffness and FormKd
+7.  Reaction "force"/Charge; InternalForceOnNode, or WriteNodalHistory in FEManagerT/NodeManagerT -
+	How to define them for another field?
 */
 
 //
@@ -321,6 +315,97 @@ namespace Tahoe {
     ElementBaseT::Equations(eq_1, eq_2);
   }
 
+/* accumulate the residual force on the specified node */
+void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
+{
+	/* not my field */
+	if (&field != &(Field())) return;
+
+	/* quick exit */
+	bool hasnode = false;
+	for (int i=0; i < fBlockData.Length() && !hasnode; i++)
+		if (fConnectivities[i]->HasValue(node)) hasnode = true;
+	if (!hasnode) return;
+
+	/* set components and weights */
+	double constMa = 0.0;
+	double constKd = 0.0;
+
+	/* components dicated by the algorithm */
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
+
+	/* body forces */
+	int formBody = 0;
+	if (fMassType != kNoMass &&
+	   (fBodySchedule && fBody.Magnitude() > kSmall))
+	{
+		cout << "\nWarning: Body forces not yet implemented in DielectricElastomer2DT";
+		if (!formMa) constMa = 1.0; /* override */
+	}
+
+	/* override controller */
+	if (fMassType == kNoMass) formMa = 0;
+
+	/* temp for nodal force */
+	dArrayT nodalforce;
+
+	bool axisymmetric = Axisymmetric();
+	Top();
+	while (NextElement())
+	{
+		int nodeposition;
+		const iArrayT& nodes_u = CurrentElement().NodesU();
+		if (nodes_u.HasValue(node, nodeposition))
+		{
+			/* initialize */
+			fRHS = 0.0;
+
+			/* global shape function values */
+			SetGlobalShape();
+
+			/* internal force contribution */
+			if (formKd) FormKd(constKd);
+
+			/* inertia forces */
+			if (formMa)
+			{
+				SetLocalU(fLocAcc);
+				FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
+			}
+	
+			double mr1, mr2, er1;
+			dArrayT react(3);
+			
+			/* loop over nodes (double-noding OK) */
+			int dex = 0;
+			int dex2 = 0;
+			for (int i = 0; i < nodes_u.Length(); i++)
+			{
+				if (nodes_u[i] == node)
+				{
+					mr1 = fRHS[dex];
+					mr2 = fRHS[dex+1];
+					er1 = fRHS[dex2+2*NumElementNodes()];
+					react[0] = mr1;
+					react[1] = mr2;
+					react[2] = er1;
+					
+					/* components for node - mechanical + electrical DOFs */
+//					nodalforce.Set(TotalNumDOF(), fRHS.Pointer(dex+2*NumElementNodes()));
+					nodalforce.Set(TotalNumDOF(), react.Pointer(0));
+
+					/* accumulate */
+					force += nodalforce;
+				}
+				dex += NumDOF();
+				dex2 += 1;
+			}
+		}
+	}
+}
+
+
   //
   // Strain displacement operator
   //
@@ -464,8 +549,6 @@ namespace Tahoe {
 	  Cemech *= (0.5*w);
 	  Celec *= w;
 
-
-	  
       /* prepare derivatives of shape functions in reference configuration */
       const dArray2DT& DNaX = fShapes->Derivatives_X();
 	  fShapes->GradNa(DNaX, GradShape);	  
