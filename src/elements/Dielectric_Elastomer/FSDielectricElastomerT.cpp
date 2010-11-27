@@ -4,6 +4,7 @@
 #include "ParameterContainerT.h"
 #include "OutputSetT.h"
 #include "ShapeFunctionT.h"
+#include "eIntegratorT.h"
 
 /* REMAINING ISSUES (NOVEMBER 7, 2010):
 2.  Shape function gradients in LHS
@@ -342,6 +343,99 @@ namespace Tahoe {
 	
     ElementBaseT::Equations(eq_1, eq_2);
   }
+
+/* accumulate the residual force on the specified node */
+void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
+{
+	/* not my field */
+	if (&field != &(Field())) return;
+
+	/* quick exit */
+	bool hasnode = false;
+	for (int i=0; i < fBlockData.Length() && !hasnode; i++)
+		if (fConnectivities[i]->HasValue(node)) hasnode = true;
+	if (!hasnode) return;
+
+	/* set components and weights */
+	double constMa = 0.0;
+	double constKd = 0.0;
+
+	/* components dicated by the algorithm */
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
+
+	/* body forces */
+	int formBody = 0;
+	if (fMassType != kNoMass &&
+	   (fBodySchedule && fBody.Magnitude() > kSmall))
+	{
+		cout << "\nWarning: Body forces not yet implemented in DielectricElastomerT";
+		if (!formMa) constMa = 1.0; /* override */
+	}
+
+	/* override controller */
+	if (fMassType == kNoMass) formMa = 0;
+
+	/* temp for nodal force */
+	dArrayT nodalforce;
+
+	bool axisymmetric = Axisymmetric();
+	Top();
+	while (NextElement())
+	{
+		int nodeposition;
+		const iArrayT& nodes_u = CurrentElement().NodesU();
+		if (nodes_u.HasValue(node, nodeposition))
+		{
+			/* initialize */
+			fRHS = 0.0;
+
+			/* global shape function values */
+			SetGlobalShape();
+
+			/* internal force contribution */
+			if (formKd) FormKd(constKd);
+
+			/* inertia forces */
+			if (formMa)
+			{
+				SetLocalU(fLocAcc);
+				FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
+			}
+	
+			double mr1, mr2, mr3, er1;
+			dArrayT react(4);
+			
+			/* loop over nodes (double-noding OK) */
+			int dex = 0;
+			int dex2 = 0;
+			for (int i = 0; i < nodes_u.Length(); i++)
+			{
+				if (nodes_u[i] == node)
+				{
+					mr1 = fRHS[dex];
+					mr2 = fRHS[dex+1];
+					mr3 = fRHS[dex+2];
+					er1 = fRHS[dex2+3*NumElementNodes()];
+					react[0] = mr1;
+					react[1] = mr2;
+					react[2] = mr3;
+					react[3] = er1;
+					
+					/* components for node - mechanical + electrical DOFs */
+//					nodalforce.Set(TotalNumDOF(), fRHS.Pointer(dex+2*NumElementNodes()));
+					nodalforce.Set(TotalNumDOF(), react.Pointer(0));
+
+					/* accumulate */
+					force += nodalforce;
+				}
+				dex += NumDOF();
+				dex2 += 1;
+			}
+		}
+	}
+}
+
 
   //
   // Strain displacement operator

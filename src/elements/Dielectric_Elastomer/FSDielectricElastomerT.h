@@ -83,6 +83,11 @@ namespace Tahoe {
     // @}
     //
 
+	/** accumulate the residual force on the specified node
+	 * \param node test node
+	 * \param force array into which to assemble to the residual force */
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
+
   protected:
 
     //
