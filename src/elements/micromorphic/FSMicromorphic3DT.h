@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.125 2010-11-26 08:02:19 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.126 2010-11-28 09:26:53 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -795,9 +795,18 @@ private:
     dMatrixT fMicroStnTensor_tr;
     dMatrixT fSPK_tr;
     dMatrixT fdevSPK_tr;
-    double fYield_function;
+    dMatrixT fSPK;
+    dMatrixT fdevSPK;
+    dMatrixT dSdDelgamma;
+    dMatrixT ddevSdDelgamma;
+    dMatrixT dEedDelgamma;
+    dMatrixT dfFedDelgamma;
+    
+    
+    double fYield_function,fYield_function_tr;
     double devfSPKinv;
     double fDelgamma, fdelDelgamma;
+    double dPdDelgamma,Temp_inv,dinvSdDelgamma;
     int iIterationMax,iter_count, global_iteration;
     
     dMatrixT dFedDelgamma;

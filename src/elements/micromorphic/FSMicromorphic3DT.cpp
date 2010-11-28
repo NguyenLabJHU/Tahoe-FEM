@@ -2062,35 +2062,86 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		        double Bphi=2*sqrt(6)/(3+Beta*sin(kFphi));
 		        double Apsi=2*sqrt(6)*cos(kDpsi)/(3+Beta*sin(kDpsi));
 		        double Bpsi=2*sqrt(6)/(3+Beta*sin(kDpsi));		       
+		        double Temp_inv=0.0;
+		        double press=0.0;
 		       
-		       
+
+		        press=fSPK_tr.Trace()/3;//Calculating the pressure term
+		        fdevSPK_tr=fIdentity_matrix;
+		        fdevSPK_tr*=press;
+		        fdevSPK_tr*=-1;
+		        fdevSPK_tr+=fSPK_tr;
+		      //  Temp_inv=dMatrixT::Dot(fdevSPK_tr,fdevSPK_tr);
+		        Temp_inv= fdevSPK_tr.ScalarProduct();		      
+		        devfSPKinv=sqrt(Temp_inv);
 		        
-			Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
-			double press=fSPK_tr.Trace()/3;
-		        fYield_function=devfSPKinv-(Aphi*fMaterial_Params[kc]-Bphi*press);
 		        
-		        fFp=fFp_n;
-		    
-		//	temp_inv= fSPK_tr.ScalarProduct();
+		        
+			//Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
 			
-		  	    if(fYield_function>1e-6)
+			
+		        fYield_function_tr=devfSPKinv-(Aphi*fMaterial_Params[kc]-Bphi*press);
+		     
+		        
+		    
+
+			
+		  	    if(fYield_function_tr>1e-6)
 		  	     {
 		        	/* retrieve dGdS_n at integration point */
 		        	fdGdS_n_IPs.RowCopy(IP,fdGdS_n);	    	       
-				
+				fYield_function=fYield_function_tr;
 				fFe=fFe_tr;
+				fFp=fFp_n;
+				
+				fSPK=fSPK_tr;
 
-				fFp_inverse.Inverse(fFp);
-                                fTemp_matrix_nsd_x_nsd.MultABC(fdGdS_n,fFp_n,fFp_inverse);
-                                fCe_n_inverse.Inverse(fCe_n);
-                                fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);
-                                dFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);
                                 fdelDelgamma = 0.0;
 			    	fDelgamma = 0.0;
 				
 		    	       
-		    	        iter_count=0;
-		    	        iter_count++;	
+		    		/* iterate using Newton-Raphson to solve for fDelgamma */
+			  	   iter_count = 0;
+			    	   while (fabs(fYield_function) > 1e-8 && fabs(fYield_function/fYield_function_tr) > 1e-8 && iter_count < iIterationMax)
+			    	   {
+				       iter_count += 1;	
+				     /* Calculating  dFedDelgamma */	
+				     fFp_inverse.Inverse(fFp);
+                                     fTemp_matrix_nsd_x_nsd.MultABC(fdGdS_n,fFp_n,fFp_inverse);
+                                     fCe_n_inverse.Inverse(fCe_n);
+                                     fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);	   
+                                     dfFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);
+                                    
+           
+                                    dEedDelgamma.MultABT(dFedDelgamma,fFe);
+                                    fTemp_matrix_nsd_x_nsd.MultATB(dFedDelgamma,fFe);
+                                    dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                    dEedDelgamma*=0.5;
+
+                                    Temp_inv=dEedDelgamma.Trace();
+                                    dSdDelgamma.SetToScaled(fMaterial_Params[kLambda]*Temp_inv,fIdentity_matrix); 
+                                    
+                                    fTemp_matrix_nsd_x_nsd=dEedDelgamma;
+			    	    fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],dEedDelgamma); 
+
+                                    dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                    
+                                    dPdDelgamma=dMatrixT::Dot(fIdentity_matrix,dSdDelgamma);
+                                    dPdDelgamma*=1/3;
+                                    
+                                    ddevSdDelgamma=fIdentity_matrix;
+                                    ddevSdDelgamma*=-dPdDelgamma;
+                                    ddevSdDelgamma+=dSdDelgamma;
+                                    
+                                    fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,fSPK);
+                                    dinvSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
+                                    
+                                
+                                    
+                                    
+                                    			    	   
+			    	   }
+		    	        //
 		    	        
 		    	        	  
          		     }
@@ -3751,6 +3802,14 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fFp_n.Dimension(n_sd,n_sd);
     fFe.Dimension(n_sd,n_sd);
     fFe_tr.Dimension(n_sd,n_sd);
+    
+    fSPK.Dimension(n_sd,n_sd);
+    fdevSPK.Dimension(n_sd,n_sd);
+    dSdDelgamma.Dimension(n_sd,n_sd);
+    ddevSdDelgamma.Dimension(n_sd,n_sd);
+    dEedDelgamma.Dimension(n_sd,n_sd);
+    dfFedDelgamma.Dimension(n_sd,n_sd);
+    
     
     fFp_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fFp_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
