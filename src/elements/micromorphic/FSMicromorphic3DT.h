@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.127 2010-11-29 04:11:44 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.128 2010-11-29 07:22:15 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -85,7 +85,7 @@ public:
         //    kZkappa,
 	    kZc,
 	//    khkappa,
-	//    khc,
+	    khc,
 	//    kIntrinsic_Perm,
 	//    kJ,
 	//    kJp,
@@ -94,7 +94,7 @@ public:
 	//    kDevSS,
 	//    kMeanS,
 	//    kEpsVolp,
-	//    kDelgamma,
+	    kDelgamma,
 	    kNUM_FMATERIAL_STATE_TERMS
 	};        
         
@@ -808,7 +808,7 @@ private:
     double fYield_function,fYield_function_tr,dFYdDelgamma;
     double devfSPKinv;
     double fDelgamma, fdelDelgamma;
-    double dPdDelgamma,Temp_inv,dinvSdDelgamma;
+    double dPdDelgamma,dcdDelgamma,Temp_inv,dinvSdDelgamma;
     int iIterationMax,iter_count, global_iteration;
     
     dMatrixT dFedDelgamma;

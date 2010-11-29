@@ -1373,13 +1373,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[58]=fState_variables_Elements_IPs(e,l*42+40);
           out_variable[59]=fState_variables_Elements_IPs(e,l*42+41);
           }
+          
 
           if(iConstitutiveModelType==3)
           {
           
           out_variable[18]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc);
 	  out_variable[19]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kZc);
-
+	  out_variable[20]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc);	
+	  out_variable[21]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma);
           }
           
           //out_variable.CopyIn(18,ftemp_u_element);
@@ -2137,14 +2139,39 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     dinvSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
                                     
         			    dcdDelgamma=-Aphi;
+        			    /* assemble the consistent tangent */
         			    dFYdDelgamma=dinvSdDelgamma-(-Aphi*fMaterial_Params[kHc]*dcdDelgamma-Bphi*dPdDelgamma);
         			    
-        			    
-                                     
+			    	    /* solve for fdelDelgamma */
+			    	    if (dFYdDelgamma != 0.0) fdelDelgamma = -fYield_function/dFYdDelgamma;     
+			    	    else fdelDelgamma = 0.0;			    
+
+			    	    /* update fDelgamma */
+			    	    fDelgamma += fdelDelgamma;                                     
+
+			    	   if (fDelgamma < 0.0) fDelgamma = 0.0;
+			    	   fState_variables_IPs(IP,kDelgamma) = fDelgamma;                                    
                                     
-                                    
-                                
-                                    
+
+		    		   /* update kappa and c ISVs */
+				   fState_variables_IPs(IP,kZc)= fState_variables_n_IPs(IP,kZc) 
+				         		       + fDelgamma*fState_variables_n_IPs(IP,khc);
+                	    	   fState_variables_IPs(IP,kc) = fState_variables_n_IPs(IP,kc) 
+				    	+ fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+				   if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
+	                                
+
+			           /* update fFp */
+			           fTemp_matrix_nsd_x_nsd.MultAB(fCe_n,fdGdS_n);
+			    	   fTemp_matrix_nsd_x_nsd*=fDelgamma; 
+				   fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
+				   fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);                                    
+                                 
+			           /* calculate fFp_Inverse  */
+				   fTemp_matrix_nsd_x_nsd.Inverse(fFp);
+			    	   /* calculate Fe */
+				   fFe.MultAB(fDeformation_Gradient,fTemp_matrix_nsd_x_nsd);
+
                                     
                                     			    	   
 			    	   }
@@ -3601,9 +3628,6 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fH2_13.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     fH3_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
 
-
-
-     dMatrixT s_sigma;
 
 
 
