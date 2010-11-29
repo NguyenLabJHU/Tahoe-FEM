@@ -2058,10 +2058,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    	fSPK_tr+=fTemp_matrix_nsd_x_nsd;
 
 		        int Beta=-1;
-		        double Aphi=2*sqrt(6)*cos(kFphi)/(3+Beta*sin(kFphi));
-		        double Bphi=2*sqrt(6)/(3+Beta*sin(kFphi));
-		        double Apsi=2*sqrt(6)*cos(kDpsi)/(3+Beta*sin(kDpsi));
-		        double Bpsi=2*sqrt(6)/(3+Beta*sin(kDpsi));		       
+		        double Aphi=2*sqrt(6)*cos(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
+		        double Bphi=2*sqrt(6)/(3+Beta*sin(fMaterial_Params[kFphi]));
+		        double Apsi=2*sqrt(6)*cos(kDpsi)/(3+Beta*sin(fMaterial_Params[kDpsi] ));
+		        double Bpsi=2*sqrt(6)/(3+Beta*sin(fMaterial_Params[kDpsi] ));		       
 		        double Temp_inv=0.0;
 		        double press=0.0;
 		       
@@ -2135,6 +2135,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     
                                     fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,fSPK);
                                     dinvSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
+                                    
+        			    dcdDelgamma=-Aphi;
+        			    dFYdDelgamma=dinvSdDelgamma-(-Aphi*fMaterial_Params[kHc]*dcdDelgamma-Bphi*dPdDelgamma);
+        			    
+        			    
+                                     
+                                    
                                     
                                 
                                     
