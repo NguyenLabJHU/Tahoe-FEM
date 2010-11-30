@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.128 2010-11-29 07:22:15 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.129 2010-11-30 08:25:26 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -809,7 +809,18 @@ private:
     double devfSPKinv;
     double fDelgamma, fdelDelgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,dinvSdDelgamma;
-    int iIterationMax,iter_count, global_iteration;
+    int iter_count, global_iteration;
+    
+    /* for local Newton-Raphson iteration */
+   int iIterationMax;
+   double dRelTol, dAbsTol;
+	
+   /* for local trial yield check */
+   double dYieldTrialTol;
+ 
+   
+    
+    
     
     dMatrixT dFedDelgamma;
 
