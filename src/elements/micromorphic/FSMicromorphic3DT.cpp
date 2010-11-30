@@ -2062,21 +2062,23 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    	fSPK_tr*=fMaterial_Params[kMu];
 		    	fSPK_tr+=fTemp_matrix_nsd_x_nsd;
 
+			/* Form the cohesion and friction angle related terms in D-P yield function */
 		        int Beta=-1;
 		        double Aphi=2*sqrt(6)*cos(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
 		        double Bphi=2*sqrt(6)/(3+Beta*sin(fMaterial_Params[kFphi]));
+			/* Form the cohesion and dilation angle related terms in Plastic potential function */		      
 		        double Apsi=2*sqrt(6)*cos(kDpsi)/(3+Beta*sin(fMaterial_Params[kDpsi] ));
 		        double Bpsi=2*sqrt(6)/(3+Beta*sin(fMaterial_Params[kDpsi] ));		       
-		        double Temp_inv=0.0;
-		        
-		       
-
+		     
+		     
+		     
+		        double Temp_inv=0.0;		        		     
 		        press=fSPK_tr.Trace()/3;//Calculating the pressure term
 		        fdevSPK_tr=fIdentity_matrix;
-		        fdevSPK_tr*=press;
-		        fdevSPK_tr*=-1;
+		        fdevSPK_tr*=-press;
+		        //fdevSPK_tr*=-1;
 		        fdevSPK_tr+=fSPK_tr;
-		      //  Temp_inv=dMatrixT::Dot(fdevSPK_tr,fdevSPK_tr);
+		        //Temp_inv=dMatrixT::Dot(fdevSPK_tr,fdevSPK_tr);
 		        Temp_inv= fdevSPK_tr.ScalarProduct();		      
 		        devfSPKinv=sqrt(Temp_inv);
 		        
@@ -2090,46 +2092,48 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	    if(fYield_function_tr>dYieldTrialTol)
 		  	     {
 		        	/* retrieve dGdS_n at integration point */
-		        	fdGdS_n_IPs.RowCopy(IP,fdGdS_n);	    	       
-				fYield_function=fYield_function_tr;
-				fFe=fFe_tr;
-				fFp=fFp_n;
-				
-				fSPK=fSPK_tr;
+		        	fdGdS_n_IPs.RowCopy(IP,fdGdS_n);	
 
+		    		/* initialize before iteration */	        	    	       
+				fYield_function=fYield_function_tr;
+				fFe=fFe_tr;		
+				fFp=fFp_n;// initial values for Fp is assumed the same with previous step		
+				fSPK=fSPK_tr;
                                 fdelDelgamma = 0.0;
 			    	fDelgamma = 0.0;
 				
 		    	       
 		    		/* iterate using Newton-Raphson to solve for fDelgamma */
 			  	   iter_count = 0;
-			    	while (fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)
-			    	   {
+			    	while (fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)		    	   
+			    	 {
 				       iter_count += 1;	
-				     /* Calculating  dFedDelgamma */	
+				     /* Form  dFe/dDgamma */	
 				     fFp_inverse.Inverse(fFp);
                                      fTemp_matrix_nsd_x_nsd.MultABC(fdGdS_n,fFp_n,fFp_inverse);
                                      fCe_n_inverse.Inverse(fCe_n);
                                      fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);	   
                                      dfFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);
+                                     dfFedDelgamma*=-1;
                                     
-           
+           	                    /* Forming  dEe/dDgamma  Ee: Elas. Lag. stn tensor*/	
                                     dEedDelgamma.MultABT(dFedDelgamma,fFe);
                                     fTemp_matrix_nsd_x_nsd.MultATB(dFedDelgamma,fFe);
                                     dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
                                     dEedDelgamma*=0.5;
 
+           	                    /* Forming  dS/dDgamma  S: SPK tensor*/	
                                     Temp_inv=dEedDelgamma.Trace();
-                                    dSdDelgamma.SetToScaled(fMaterial_Params[kLambda]*Temp_inv,fIdentity_matrix); 
-                                    
+                                    dSdDelgamma.SetToScaled(fMaterial_Params[kLambda]*Temp_inv,fIdentity_matrix);                                    
                                     fTemp_matrix_nsd_x_nsd=dEedDelgamma;
 			    	    fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],dEedDelgamma); 
-
                                     dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
-                                    
+
+           	                    /*Forming  dP/dDgamma (scalar) P: pressure  dP/dDgamma= (1/3)1:dS/dDgamma*/	                                    
                                     dPdDelgamma=dMatrixT::Dot(fIdentity_matrix,dSdDelgamma);
                                     dPdDelgamma*=1/3;
-                                    
+
+           	                    /* Forming  d(devS)/dDgamma  devS: dev. part of SPK tensor*/	                                    
                                     ddevSdDelgamma=fIdentity_matrix;
                                     ddevSdDelgamma*=-dPdDelgamma;
                                     ddevSdDelgamma+=dSdDelgamma;
@@ -2137,9 +2141,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,fSPK);
                                     dinvSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
                                     
+           	                    /* Forming  dc/dDgamma  c: cohesion */	                                                                        
         			    dcdDelgamma=-Aphi;
+        			    
         			    /* assemble the consistent tangent */
-        			    dFYdDelgamma=dinvSdDelgamma-(-Aphi*fMaterial_Params[kHc]*dcdDelgamma-Bphi*dPdDelgamma);
+        			    dFYdDelgamma=dinvSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);
         			    
 			    	    /* solve for fdelDelgamma */
 			    	    if (dFYdDelgamma != 0.0) fdelDelgamma = -fYield_function/dFYdDelgamma;     
@@ -2151,11 +2157,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			    	   if (fDelgamma < 0.0) fDelgamma = 0.0;
 			    	   fState_variables_IPs(IP,kDelgamma) = fDelgamma; 
 			    	   
-			    	 //  double scalar_res = fabs(fYield_function/fYield_function_tr);     
-			    	                                 
-                                    
-
-		    		   /* update kappa and c ISVs */
+			    	 //  double scalar_res = fabs(fYield_function/fYield_function_tr);   
+			    	                                                                    
+		    		   /* update c ISVs */
 				   fState_variables_IPs(IP,kZc)= fState_variables_n_IPs(IP,kZc) 
 				         		       + fDelgamma*fState_variables_n_IPs(IP,khc);
                 	    	   fState_variables_IPs(IP,kc) = fState_variables_n_IPs(IP,kc) 
