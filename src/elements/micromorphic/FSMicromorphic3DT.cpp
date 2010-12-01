@@ -1605,7 +1605,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                     g2_=-183;
                      //  double invJ=1/J;
 
-                      Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
+                       Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
                        KirchhoffST.MultABCT(fDeformation_Gradient,SPK,fDeformation_Gradient);
                        Form_fV1();
                       // fIota_temp_matrix.Multx(fV1,Vint_1_temp);
@@ -2071,7 +2071,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		        double Bpsi=2*sqrt(6)/(3+Beta*sin(fMaterial_Params[kDpsi] ));		       
 		     
 		     
-		     
+			/* Form the trial dev. part of SPK */		      		     
 		        double Temp_inv=0.0;		        		     
 		        press=fSPK_tr.Trace()/3;//Calculating the pressure term
 		        fdevSPK_tr=fIdentity_matrix;
@@ -2079,6 +2079,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		        //fdevSPK_tr*=-1;
 		        fdevSPK_tr+=fSPK_tr;
 		        //Temp_inv=dMatrixT::Dot(fdevSPK_tr,fdevSPK_tr);
+			/* Calculate devS: devS  */			        
 		        Temp_inv= fdevSPK_tr.ScalarProduct();		      
 		        devfSPKinv=sqrt(Temp_inv);
 		        
@@ -2086,10 +2087,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		        
 			//Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
 			
-			
+			/* Check fof yielding */
 		        fYield_function_tr=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press);
 		 	
-		  	    if(fYield_function_tr>dYieldTrialTol)
+		  	    if(fYield_function_tr>dYieldTrialTol)//plastic
 		  	     {
 		        	/* retrieve dGdS_n at integration point */
 		        	fdGdS_n_IPs.RowCopy(IP,fdGdS_n);	
@@ -2113,7 +2114,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                      fTemp_matrix_nsd_x_nsd.MultABC(fdGdS_n,fFp_n,fFp_inverse);
                                      fCe_n_inverse.Inverse(fCe_n);
                                      fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);	   
-                                     dfFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);
+                                     dfFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd2,fTemp_matrix_nsd_x_nsd);
                                      dfFedDelgamma*=-1;
                                     
            	                    /* Forming  dEe/dDgamma  Ee: Elas. Lag. stn tensor*/	
@@ -2137,7 +2138,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     ddevSdDelgamma=fIdentity_matrix;
                                     ddevSdDelgamma*=-dPdDelgamma;
                                     ddevSdDelgamma+=dSdDelgamma;
-                                    
+           	                    /* Forming  d(||devS||)/dDgamma  devS: dev. part of SPK tensor*/                                    
                                     fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,fSPK);
                                     dinvSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
                                     
@@ -2197,29 +2198,60 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		      	           ////fSPK calculation
 		                   fTemp_matrix_nsd_x_nsd=fIdentity_matrix;
 		                   press=LagrangianStn.Trace();//Calculating the trace of E and keep in a variable called  press
-       		    	          fTemp_matrix_nsd_x_nsd*=press;
-		    	          fTemp_matrix_nsd_x_nsd*=fMaterial_Params[kLambda];
-		    	          fSPK=LagrangianStn;
-		    	          fSPK*=fMaterial_Params[kMu];
-		    	          fSPK+=fTemp_matrix_nsd_x_nsd;
+       		    	           fTemp_matrix_nsd_x_nsd*=press;
+		    	           fTemp_matrix_nsd_x_nsd*=fMaterial_Params[kLambda];
+		    	           fSPK=LagrangianStn;
+		    	           fSPK*=fMaterial_Params[kMu];
+		    	           fSPK+=fTemp_matrix_nsd_x_nsd;
 
-		                  press=fSPK.Trace()/3;//Calculating the mean stress
-		                  fdevSPK=fIdentity_matrix;
-		                  fdevSPK*=-press;
-                  	          fdevSPK+=fSPK;
+                                   /* calculate  devS stress */
+		                   press=fSPK.Trace()/3;//Calculating the mean stress
+		                   fdevSPK=fIdentity_matrix;
+		                   fdevSPK*=-press;
+                  	           fdevSPK+=fSPK;
+                                   /* calculate  ||devS||  */                  	           
 		              //  Temp_inv=dMatrixT::Dot(fdevSPK,fdevSPK);
 		                  Temp_inv= fdevSPK.ScalarProduct();		      
 		                  devfSPKinv=sqrt(Temp_inv);
 		                   
 			          //Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
+                                  /* Check  yielding */
+		                  fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press);                           
+			    	 } //end of the local fDelgamma while loop  
+			    	 
+			    	 
+			    	 
+			    	 
+			    	 
+			   /* throw Exception if reach iIterationMax */
+			   if (iter_count == iIterationMax)
+			    {
+			    //ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",
+			    //	iter_count, iIterationMax);
+			    cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl; 
+    			    cout << "Current relative residual = " << fabs(fF/fF_tr) << endl; 	
+		            }		
 
-		                  fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press);
-                                
-                                    
-                                    			    	   
-			    	   }
-		    	        //
-		    	        
+    		           /* saving Fp for each IP of the current element */
+	  	           fFp_IPs.SetRow(IP,fFp);		            
+		            
+		           double Je=0.0;
+		           Je=fFe.Det(); 
+
+//                           Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
+                      	  /* update Kirchhoff stress */
+                           KirchhoffST.MultABCT(fDeformation_Gradient,fSPK,fDeformation_Gradient);
+                          /* Calcuate Cauchy stress tensor */                                       
+                           Sigma=KirchhoffST;
+                           Sigma.SetToScaled(1/Je,KirchhoffST);	
+
+		   	  /* saving  Cauchy stress tensor at IPs */
+		   	  fCauchy_stress_tensor_current_IP=Sigma.SetToScaled(1/J,fEffective_Kirchhoff_tensor);
+                           	            
+		            
+		            
+		            
+		                	        
 		    	        	  
          		     }
 		  	    else//(yielding did not occur / elastic step/
