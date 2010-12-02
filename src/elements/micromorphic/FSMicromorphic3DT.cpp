@@ -2143,7 +2143,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     dinvSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
                                     
            	                    /* Forming  dc/dDgamma  c: cohesion */	                                                                        
-        			    dcdDelgamma=-Aphi;
+        			    dcdDelgamma=-Aphi*fMaterial_Params[kHc];
         			    
         			    /* assemble the consistent tangent */
         			    dFYdDelgamma=dinvSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);
@@ -2229,7 +2229,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			    //ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",
 			    //	iter_count, iIterationMax);
 			    cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl; 
-    			    cout << "Current relative residual = " << fabs(fF/fF_tr) << endl; 	
+    			    cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
 		            }		
 
     		           /* saving Fp for each IP of the current element */
@@ -2246,10 +2246,32 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                            Sigma.SetToScaled(1/Je,KirchhoffST);	
 
 		   	  /* saving  Cauchy stress tensor at IPs */
-		   	  fCauchy_stress_tensor_current_IP=Sigma.SetToScaled(1/J,fEffective_Kirchhoff_tensor);
-                           	            
-		            
-		            
+		   	  fCauchy_stress_tensor_current_IP=Sigma;//.SetToScaled(1/Je,fEffective_Kirchhoff_tensor);
+
+  			  /* calculate stress derivative of yield function */
+			  fdFYdS = 0.0;       		  
+			 // fdPdS=0.0;
+			//  fdPdS.SetToScaled(1/3,fIdentity_matrix);
+			  fdFYdS.SetToScaled(Bphi,fIdentity_matrix);
+			  press=fdevSPK.Trace()/3;
+			  fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
+			  fTemp_matrix_nsd_x_nsd2.SetToScaled(1/devfSPKinv ,fIdentity_matrix);
+			  fdFYdS+=fTemp_matrix_nsd_x_nsd;
+			  fdFYdS+=fTemp_matrix_nsd_x_nsd2;			  
+			  			  
+	              	            
+  			  /* calculate stress derivative of plastic potential function */
+			  fdGdS = 0.0;       		  
+			 // fdPdS=0.0;
+			//  fdPdS.SetToScaled(1/3,fIdentity_matrix);
+			  fdGdS.SetToScaled(Bpsi,fIdentity_matrix);
+			  press=fdevSPK.Trace()/3;
+			  fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
+			  fTemp_matrix_nsd_x_nsd2.SetToScaled(1/devfSPKinv ,fIdentity_matrix);
+			  fdGdS+=fTemp_matrix_nsd_x_nsd;
+			  fdGdS+=fTemp_matrix_nsd_x_nsd2;
+			  
+			  fdcddgamma=-Aphi;		            		            
 		            
 		                	        
 		    	        	  
@@ -3953,7 +3975,13 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fdGdS_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
     fdGdS_n_Elements_IPs=0.0;     
     
-    
+    fdFYdS.Dimension(n_sd,n_sd);
+    fdFYdS_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fdFYdS_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+   
+    fdFYdS_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fdFYdS_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fdFYdS_Elements_IPs=0.0;       
     
     fCe_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fCe_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);

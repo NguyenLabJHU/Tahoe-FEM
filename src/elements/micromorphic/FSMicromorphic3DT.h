@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.129 2010-11-30 08:25:26 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.130 2010-12-02 08:05:12 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -789,6 +789,7 @@ private:
     dMatrixT fFe_tr;
     dMatrixT fdGdS_n;
     dMatrixT fdGdS;
+    dMatrixT fdFYdS;
 
     dMatrixT fRight_Cauchy_Green_tensor_tr;
     dMatrixT fLagrangian_strain_tensor_tr;
@@ -807,7 +808,7 @@ private:
     
     double fYield_function,fYield_function_tr,dFYdDelgamma;
     double devfSPKinv;
-    double fDelgamma, fdelDelgamma;
+    double fDelgamma, fdelDelgamma,fdcddgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,dinvSdDelgamma;
     int iter_count, global_iteration;
     
@@ -848,6 +849,14 @@ private:
     
     dArray2DT	fdGdS_Elements_IPs;
     dArray2DT	fdGdS_n_Elements_IPs;    
+    
+    
+    dArray2DT	fdFYdS_IPs;
+    dArray2DT	fdFYdS_n_IPs;
+
+    
+    dArray2DT	fdFYdS_Elements_IPs;
+    dArray2DT	fdFYdS_n_Elements_IPs;       
     
     
     
