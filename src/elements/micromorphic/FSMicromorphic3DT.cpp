@@ -2271,9 +2271,36 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			  fdGdS+=fTemp_matrix_nsd_x_nsd;
 			  fdGdS+=fTemp_matrix_nsd_x_nsd2;
 			  
-			  fdcddgamma=-Aphi;		            		            
-		            
+			  fdFYdc=-Aphi;		            		            
+		          
+		          fFp_inverse=fFp.Inverse();
+		          fFeT.Transpose(fFe);
+		          fCe_n_inverse=fCe_n.Inverse();
+		          fTemp_matrix_nsd_x_nsd2.MultABC(fdGdS_n,fFp_n,fFp_inverse);
+		          fTemp_matrix_nsd_x_nsd.MultABC(fFeT,fFe,fCe_n_inverse);
+		          
+		          //fA1=fAFeTFeCen1dGdSFpnFp1
+		          fA1.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd);
+		          
+		          trfA1=fA1.Trace();
+		          fdFYdS_fA1=dMatrixT::Dot(fdFYdS,fA1);
+		          
+		          fTemp_matrix_nsd_x_nsd.Transpose(fA1);
+		          fdFYdS_fA1T=dMatrixT::Dot(fdFYdS,fTemp_matrix_nsd_x_nsd);
+		          
+		          
+		          fConst=dMatrixT::Dot(fdFYdS,fIdentity_matrix);
+		          fConst*=trfA1;
+		          fConst*=fMaterial_Params[kLambda];
+		          
+		          Temp_inv=fMaterial_Params[kMu]*fdFYdS_fA1;
+		          fConst-=Temp_inv;
+		          
+		          Temp_inv=fMaterial_Params[kMu]*fdFYdS_fA1T;
+		          fConst-=Temp_inv;
 		                	        
+		          dFYdc_delc=-fdFYdc*fMaterial_Params[kHc]*fdFYdc;       	        
+		         
 		    	        	  
          		     }
 		  	    else//(yielding did not occur / elastic step/
@@ -3948,6 +3975,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     dEedDelgamma.Dimension(n_sd,n_sd);
     dfFedDelgamma.Dimension(n_sd,n_sd);
     
+    fA1.Dimension(n_sd,n_sd);
     
     fFp_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fFp_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
@@ -3958,6 +3986,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fFp_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fFp_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
     fFp_n_Elements_IPs=0.0;
+    
+    fFeT.Dimension(n_sd,n_sd);
+    fFeT=0.0;
     
     dFedDelgamma.Dimension(n_sd,n_sd);
 

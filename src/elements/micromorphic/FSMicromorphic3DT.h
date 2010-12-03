@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.130 2010-12-02 08:05:12 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.131 2010-12-03 23:40:07 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -803,22 +803,26 @@ private:
     dMatrixT dEedDelgamma;
     dMatrixT dfFedDelgamma;
     
-     
+    dMatrixT fFeT;
     
     
-    double fYield_function,fYield_function_tr,dFYdDelgamma;
+    dMatrixT fA1;
+    
+    
+    double fYield_function,fYield_function_tr,dFYdc;
     double devfSPKinv;
-    double fDelgamma, fdelDelgamma,fdcddgamma;
+    double fDelgamma, fdelDelgamma,dFYdDelgamma,fdcddgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,dinvSdDelgamma;
     int iter_count, global_iteration;
     
     /* for local Newton-Raphson iteration */
    int iIterationMax;
-   double dRelTol, dAbsTol;
+   double dRelTol, dAbsTol,fConst;
 	
    /* for local trial yield check */
    double dYieldTrialTol;
- 
+   
+   double fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
    
     
     
