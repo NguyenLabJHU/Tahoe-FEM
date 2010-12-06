@@ -1,5 +1,7 @@
-/* $Id: SMP_simple.h,v 1.6 2009-06-23 08:48:57 thao Exp $ */
-/* created: TDN (01/22/2001) */
+/* $Id: SMP_simple.h,v 1.7 2010-12-06 20:16:50 thao Exp $ */
+/* created: TDN (01/22/2001) 
+ Nguyen et al. JMPS  56 (2008) 2792Ð 2814
+ Note:  There was an error in the implementation.  The Qs implemented for the JMPS paper is Qs/sqrt(2)*/
 #ifndef _SMP_simple_
 #define _SMP_simple_
 
