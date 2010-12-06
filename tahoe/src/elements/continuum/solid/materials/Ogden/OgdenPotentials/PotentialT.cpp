@@ -1,4 +1,4 @@
-/* $Id: PotentialT.cpp,v 1.3 2010-06-24 15:25:17 tdnguye Exp $ */
+/* $Id: PotentialT.cpp,v 1.4 2010-12-06 21:22:43 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -22,6 +22,7 @@ PotentialT::~PotentialT(void){};
 
 /* set parameters */
 void PotentialT::SetKappa(double kappa) {fKappa = kappa; }
+void PotentialT::SetMu(double mu) {fMu = mu; }
 
 double PotentialT::MeanEnergy(const double& J) {0.25*fKappa*(J*J-1-2*log(J));}
 
