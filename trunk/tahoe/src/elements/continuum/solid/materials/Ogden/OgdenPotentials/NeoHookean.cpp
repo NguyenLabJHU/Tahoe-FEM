@@ -1,4 +1,4 @@
-/* $Id: NeoHookean.cpp,v 1.9 2010-08-15 15:27:52 tdnguye Exp $ */
+/* $Id: NeoHookean.cpp,v 1.10 2010-12-06 21:22:42 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -20,7 +20,7 @@ NeoHookean::NeoHookean(void)
 /* set parameters */
 void NeoHookean::SetKappaMu(double kappa, double mu)
 {
-	fMu = mu;
+	SetMu(mu);
 	SetKappa(kappa);
 }
 
@@ -94,16 +94,5 @@ void NeoHookean::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus,  d
   }
 }
 
-/* set parameters */
-void NeoHookean::SetMu(double mu)
-{
-	fMu = mu;
-}
-
-/* set parameters */
-double NeoHookean::GetMu(void)
-{
-	return(fMu);
-}
 
 

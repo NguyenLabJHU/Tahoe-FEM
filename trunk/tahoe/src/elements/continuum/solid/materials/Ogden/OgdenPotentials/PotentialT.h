@@ -36,6 +36,7 @@ class PotentialT:public ParameterInterfaceT
   virtual double MeanEnergy(const double& J);
   virtual double MeanStress(const double& J);
 
+  virtual void SetMu(double kappa);
   void SetKappa(double kappa);
   const double GetKappa(void) const; 
   const double GetMu(void) const; 
