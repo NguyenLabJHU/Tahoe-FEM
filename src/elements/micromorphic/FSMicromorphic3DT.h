@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.131 2010-12-03 23:40:07 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.132 2010-12-06 22:21:31 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -782,6 +782,14 @@ private:
     dMatrixT fKMphiu_2;
     dMatrixT fKMphiphi_2;
     /* Plasticity Matrices*/
+    
+    dArrayT Vintp_1;
+    dArrayT Vintp_1_temp;
+    dArrayT fV1p;   
+    
+    
+    
+    
     dMatrixT fFp;
     dMatrixT fFp_inverse;
     dMatrixT fFp_n;
@@ -814,6 +822,8 @@ private:
     double fDelgamma, fdelDelgamma,dFYdDelgamma,fdcddgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,dinvSdDelgamma;
     int iter_count, global_iteration;
+   /* some scalars used in calculations */
+   double dFYdScol1;
     
     /* for local Newton-Raphson iteration */
    int iIterationMax;
@@ -824,7 +834,8 @@ private:
    
    double fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
    
-    
+    dMatrixT I3e_1;
+    dMatrixT fKu_I3e_1;
     
     
     dMatrixT dFedDelgamma;
@@ -1190,6 +1201,26 @@ private:
     void Caculate_invdevpart_of_Matrix(const dMatrixT &fMatrix,dMatrixT &fdevfMatrix,double devinvariant);
 
 
+/* Plasticity functions */
+    void  Form_fV1p(void);
+// The first and the second terms cancel each other, we start from the thirh term which has 12 matrices
+// all the matrices having "e" are the ones which direclty include the term  d(deltau)/dX
+// matrices having "p" are the one which include delta(gamma)
+    void Form_I3e_1(void); // the third term first matrix
+    void Form_I3e_2(void); //  
+    void Form_I3e_3(void); // 
+    void Form_I3p_4(void); // 
+    void Form_I3p_6(void); // 
+    void Form_I3p_7(void); // 
+    void Form_I3p_8(void); //
+    void Form_I3p_9(void); // 
+    void Form_I3p_10(void); //                      
+    void Form_I3p_11(void); // 
+    void Form_I3p_12(void); // 
+    void Form_I4e_1(void); // the fourth term first matrix    
+    void Form_I4p_2(void); // 
+    void Form_I4p_3(void); // 
+    void Form_I4p_4(void); // 
 
     /////////////////////////////////////////////////////////
 
