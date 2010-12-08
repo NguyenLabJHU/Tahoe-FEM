@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.132 2010-12-06 22:21:31 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.133 2010-12-08 22:18:31 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -835,8 +835,37 @@ private:
    double fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
    
     dMatrixT I3e_1;
-    dMatrixT fKu_I3e_1;
-    
+    dMatrixT fKu_I3e_1;  
+    dMatrixT I3e_2;
+    dMatrixT fKu_I3e_2;
+    dMatrixT I3e_3;
+    dMatrixT fKu_I3e_3;    
+    dMatrixT I3p_4;
+    dMatrixT fKu_I3p_4;  
+    dMatrixT I3p_5;
+    dMatrixT fKu_I3p_5;
+    dMatrixT I3p_6;
+    dMatrixT fKu_I3p_6;  
+    dMatrixT I3p_7;
+    dMatrixT fKu_I3p_7;
+    dMatrixT I3p_8;
+    dMatrixT fKu_I3p_8;
+    dMatrixT I3p_9;
+    dMatrixT fKu_I3p_9;
+    dMatrixT I3p_10;
+    dMatrixT fKu_I3p_10;
+    dMatrixT I3p_11;
+    dMatrixT fKu_I3p_11;                    
+    dMatrixT I3p_12;
+    dMatrixT fKu_I3p_12;            
+
+    dMatrixT I4e_1;
+    dMatrixT fKu_I4e_1;  
+    dMatrixT I4p_2;
+    dMatrixT fKu_I4p_2;
+    dMatrixT I4p_3;
+    dMatrixT fKu_I4p_3;    
+               
     
     dMatrixT dFedDelgamma;
 
