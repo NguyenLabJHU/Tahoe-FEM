@@ -2351,14 +2351,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                          // function was modified and  it saves nine values 
                          fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);            
                          
-                         Form_I3e_1(); // the third term first matrix
-                   
+                         Form_I3e_1(); // the third term first matrix                   
                          Form_I3e_2(); //  
                          Form_I3e_3(); // 
-/*                       Form_I3p_4(); // 
+                         Form_I3p_4(); // 
+                         Form_I3p_5(); //                          
                          Form_I3p_6(); // 
                          Form_I3p_7(); // 
-                         Form_I3p_8(); //
+/*                         Form_I3p_8(); //
                          Form_I3p_9(); // 
                          Form_I3p_10();//                      
                          Form_I3p_11();// 
@@ -2385,8 +2385,32 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        fTemp_matrix_nudof_x_nudof *= scale;
                        fKu_I3e_3 += fTemp_matrix_nudof_x_nudof;
 
-
+                       fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_4,fShapeDisplGrad);
+                       scale = fMaterial_Params[kMu]*(1/fConst)*trfA1*fMaterial_Params[kLambda]*dFYdScol1*scale_const;
+                       fTemp_matrix_nudof_x_nudof *= scale;
+                       fKu_I3p_4 += fTemp_matrix_nudof_x_nudof;
 		    	        	  
+                       fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_5,fShapeDisplGrad);
+                       scale = fMaterial_Params[kMu]*(1/fConst)*trfA1*fMaterial_Params[kMu]*scale_const;
+                       fTemp_matrix_nudof_x_nudof *= scale;
+                       fKu_I3p_5 += fTemp_matrix_nudof_x_nudof;
+		    	        	           		
+                       fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_6,fShapeDisplGrad);
+                       scale = fMaterial_Params[kMu]*(1/fConst)*trfA1*fMaterial_Params[kMu]*scale_const;
+                       fTemp_matrix_nudof_x_nudof *= scale;
+                       fKu_I3p_6 += fTemp_matrix_nudof_x_nudof;         		
+         		
+                       fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_7,fShapeDisplGrad);
+                       scale = fMaterial_Params[kMu]*(1/fConst)*trfA1*fMaterial_Params[kLambda]*dFYdScol1*scale_const;
+                       fTemp_matrix_nudof_x_nudof *= scale;
+                       fKu_I3p_7 += fTemp_matrix_nudof_x_nudof;         		
+         		         		
+
+
+
+         		
+         		
+         		
          		     }
 		  	    else//(yielding did not occur / elastic step/
 		  	    {
@@ -10033,10 +10057,188 @@ void FSMicromorphic3DT:: Form_I3e_3()
     }
    }
 
+}
 
+void FSMicromorphic3DT:: Form_I3p_4()
+{
+    int row=0;
+    int col=0;
+    I3p_4=0.0;
+
+   for(int M=0;M<3;M++)
+   {
+    for(int i=0;i<3;i++)
+    {
+      row=0;
+      for(int N=0;N<3;N++)
+      {
+       for(int l=0;l<3;l++)
+        {
+          //summation over the same term
+	   for(int Kbar=0;Kbar<3;Kbar++)
+	   {
+	    for(int Lbar=0;Lbar<3;Lbar++)
+	    {
+	     for(int Mbar=0;Mbar<3;Mbar++)
+	     {
+	      for(int k=0;k<3;k++)
+	      {
+	       I3p_4(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+	                      *fFe(i,Mbar)*fFp_inverse(M,Mbar)
+	                      *fFe(l,Lbar)*fIdentity_matrix(Kbar,Lbar);
+	      }	      
+	     }	     
+	    }
+	   }  	   
+           row++;          
+        }
+      }
+      col++;
+     
+    }
+   }
 
 }
 
+void FSMicromorphic3DT:: Form_I3p_5()
+{
+    int row=0;
+    int col=0;
+    I3p_5=0.0;
+
+   for(int M=0;M<3;M++)
+   {
+    for(int i=0;i<3;i++)
+    {
+      row=0;
+      for(int N=0;N<3;N++)
+      {
+       for(int l=0;l<3;l++)
+        {
+          //summation over the same term
+	   for(int Mbar=0;Mbar<3;Mbar++)
+	   {
+	     for(int Nbar=0;Nbar<3;Nbar++)
+	     {
+	      for(int Kbar=0;Kbar<3;Kbar=0)
+	      {
+	       for(int Lbar=0;Lbar<3;Lbar++)
+	        {
+	          for(int k=0;k<3;k++)
+	          {
+	           I3p_5(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+	                          *fFe(i,Nbar)*fFp_inverse(M,Mbar)*fFe(l,Lbar)
+	                          *fdFYdS(Mbar,Nbar)*fIdentity_matrix(Kbar,Lbar);
+	          }
+	          
+	        }
+	       
+	      }
+	     
+	     }
+	   
+	   }   
+           row++;          
+        }
+      }
+      col++;
+     
+    }
+   }
+
+}
+
+
+void FSMicromorphic3DT:: Form_I3p_6()
+{
+    int row=0;
+    int col=0;
+    I3p_6=0.0;
+
+   for(int M=0;M<3;M++)
+   {
+    for(int i=0;i<3;i++)
+    {
+      row=0;
+      for(int N=0;N<3;N++)
+      {
+       for(int l=0;l<3;l++)
+        {
+          //summation over the same term
+	   for(int Mbar=0;Mbar<3;Mbar++)
+	   {
+	     for(int Nbar=0;Nbar<3;Nbar++)
+	     {
+	      for(int Kbar=0;Kbar<3;Kbar=0)
+	      {
+	       for(int Lbar=0;Lbar<3;Lbar++)
+	        {
+	          for(int k=0;k<3;k++)
+	          {
+	           I3p_6(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+	                          *fFe(i,Mbar)*fFp_inverse(M,Nbar)*fFe(l,Lbar)
+	                          *fdFYdS(Mbar,Nbar)*fIdentity_matrix(Kbar,Lbar);
+	          }
+	          
+	        }
+	       
+	      }
+	     
+	     }
+	   
+	   }   
+           row++;          
+        }
+      }
+      col++;
+     
+    }
+   }
+
+}
+
+void FSMicromorphic3DT:: Form_I3p_7()
+{
+    int row=0;
+    int col=0;
+    I3p_7=0.0;
+
+   for(int M=0;M<3;M++)
+   {
+    for(int i=0;i<3;i++)
+    {
+      row=0;
+      for(int N=0;N<3;N++)
+      {
+       for(int l=0;l<3;l++)
+        {
+          //summation over the same term
+ 	   for(int k=0;k<3;k++)
+ 	   {
+ 	     for(int Kbar=0;Kbar<3;Kbar++)
+ 	     {
+ 	      for(int Lbar=0;Lbar<3;Lbar++)
+ 	       {
+ 	        for(int Abar=0;Abar<3;Abar++)
+ 	        {
+ 	         I3p_7(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+ 	                        *fA1(Lbar,Kbar)*fFe(l,Lbar)*fFe(i,Abar)*fFp_inverse(M,Abar);
+ 	        }
+ 	       }
+ 	      
+ 	     }
+ 	   
+ 	   }
+ 
+           row++;          
+        }
+      }
+      col++;
+     
+    }
+   }
+
+}
 
 
 
