@@ -25,9 +25,7 @@ OBJ = \
 	stress_elec.o \
 	modulus_mixed.o \
 	modulus_elec.o \
-	modulus_mech.o \
-	modulus_mech_elecmech.o \
-	modulus_stress_elec.o
+	modulus_mech.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -53,9 +51,7 @@ SRC = \
 	stress_elec.cpp \
 	modulus_mixed.cpp \
 	modulus_elec.cpp \
-	modulus_mech.cpp \
-	modulus_mech_elecmech.cpp \
-	modulus_stress_elec.cpp
+	modulus_mech.cpp 
 
 ##################### (3) headers
 #

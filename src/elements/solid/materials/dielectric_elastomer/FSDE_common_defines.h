@@ -6,6 +6,8 @@
  * mu
  * Nrig
  * Lambda
+ * kappa
+ * Jm
  */
 
 /* common variable defintion/mappings for auto-generated C code */
@@ -15,6 +17,8 @@ double epsilon      = params[ 0];
 double mu   		= params[ 1];
 double Nrig	  	 	= params[ 2];
 double lambda		= params[ 3];
+double kappa		= params[ 4];
+double Jm		    = params[ 5];
 
 /* E-field */
 double ex = Xsi[0];

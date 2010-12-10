@@ -60,7 +60,6 @@ namespace Tahoe {
   inline const dMatrixT FSDEMatT::RightCauchyGreenDeformation()
   {
     const dMatrixT& F = F_mechanical();
-//    cout << "F = " << F << endl;
     dMatrixT FTF(3);
     FTF.MultATB(F, F);
 
@@ -84,17 +83,17 @@ namespace Tahoe {
   /* Mechanical and electromechanical tangent modulus */
   inline void FSDEMatT::C_Mech_Elec(dMatrixT& mech, dMatrixT& elec)
   {
-//  	cout << "FSDEMatT::C_Mech_Elec" << endl;
-  	const dMatrixT& C = RightCauchyGreenDeformation();
-  	const dArrayT& E = ElectricField();
+// //  	cout << "FSDEMatT::C_Mech_Elec" << endl;
+//   	const dMatrixT& C = RightCauchyGreenDeformation();
+//   	const dArrayT& E = ElectricField();
 //  	cout << "C_Mech_Elec C = " << C << endl;
   
   	/* call C function for both tangent moduli */
-  	get_ddCmech_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
-  		mech.Pointer(), elec.Pointer());
-  
-  	mech *= 4.0;
-  	elec *= -2.0;
+//   	get_ddCmech_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
+//   		mech.Pointer(), elec.Pointer());
+//   
+//   	mech *= 4.0;
+//   	elec *= -2.0;
 // 	cout << "mech = " << mech << endl;
 // 	cout << "elec = " << elec << endl;
   }
@@ -103,16 +102,16 @@ namespace Tahoe {
   inline void FSDEMatT::S_C_Elec(dArrayT& D, dMatrixT& CE)
   {
 //  	cout << "FSDEMatT::S_C_Elec" << endl;
-  	const dMatrixT& C = RightCauchyGreenDeformation();
-  	const dArrayT& E = ElectricField();
+//   	const dMatrixT& C = RightCauchyGreenDeformation();
+//   	const dArrayT& E = ElectricField();
 //  	cout << "S_C_Elec C = " << C << endl;
   
   	/* call C function for both tangent moduli */
-  	get_ddC_sc_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
-  		D.Pointer(), CE.Pointer());
-  
-  	D *= -1.0;
-  	CE *= -1.0;
+//   	get_ddC_sc_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
+//   		D.Pointer(), CE.Pointer());
+//   
+//   	D *= -1.0;
+//   	CE *= -1.0;
   }
 
   //
@@ -121,18 +120,15 @@ namespace Tahoe {
   inline const dMatrixT&
   FSDEMatT::C_IJKL()
   {
-//	cout << "FSDEMatT::C_IJKL" << endl;
-//     const dMatrixT& C = RightCauchyGreenDeformation();
-//     const dArrayT& E = ElectricField();
-//     
-// 	/* call C function for mechanical tangent modulus */
-// 	get_ddCmech(fParams.Pointer(), E.Pointer(),  
-// 		C.Pointer(), fTangentMechanical.Pointer()); 
-// 
-// 	fTangentMechanical*=4.0;
+     const dMatrixT& C = RightCauchyGreenDeformation();
+     const dArrayT& E = ElectricField();
+     
+	/* call C function for mechanical tangent modulus */
+	get_ddCmech(fParams.Pointer(), E.Pointer(),  
+		C.Pointer(), fTangentMechanical.Pointer()); 
 
-//	fTangentMechanical = FDHookeanMatT::C_IJKL();
-//	cout << "fTangentMechanical = " << fTangentMechanical << endl;
+	fTangentMechanical*=4.0;
+	
     return fTangentMechanical;
   }
 
@@ -142,7 +138,6 @@ namespace Tahoe {
   inline const dMatrixT&
   FSDEMatT::E_IJK()
   {
-	cout << "FSDEMatT::E_IJK" << endl;
     const dMatrixT& C = RightCauchyGreenDeformation();
 	const dArrayT& E = ElectricField();
 
@@ -151,7 +146,6 @@ namespace Tahoe {
  		C.Pointer(), fTangentElectromechanical.Pointer()); 
  
  	fTangentElectromechanical*=-2.0;
- 	cout << "E_IJK = " << fTangentElectromechanical << endl;
     return fTangentElectromechanical;
 
   }
@@ -162,7 +156,6 @@ namespace Tahoe {
   inline const dMatrixT&
   FSDEMatT::B_IJ()
   {
-	cout << "FSDEMatT::B_IJ" << endl;
     const dMatrixT& C = RightCauchyGreenDeformation();
 	const dArrayT& E = ElectricField();
 
@@ -171,7 +164,6 @@ namespace Tahoe {
  		C.Pointer(), fTangentElectrical.Pointer()); 
  
  	fTangentElectrical *= -1.0;
- 	cout << "B_IJ = " << fTangentElectrical << endl;
     return fTangentElectrical;
 
   }
@@ -182,12 +174,10 @@ namespace Tahoe {
   inline const dSymMatrixT&
   FSDEMatT::S_IJ()
   {
-//	cout << "FSDEMatT::S_IJ" << endl;
     const dMatrixT& C = RightCauchyGreenDeformation();
    	const dArrayT& E = ElectricField();
     dMatrixT stress_temp(3);
-//    cout << "S_IJ C = " << C << endl;
-    
+ 
 	/* call C function for mechanical stress */
 	get_dUdCmech(fParams.Pointer(), E.Pointer(),  
 		C.Pointer(), stress_temp.Pointer()); 
@@ -205,14 +195,13 @@ namespace Tahoe {
   inline const dArrayT&
   FSDEMatT::D_I()
   {
-//  	cout << "FSDEMatT::D_I" << endl;
   	const dMatrixT& C = RightCauchyGreenDeformation();
   	const dArrayT& E = ElectricField();
   	dMatrixT CE(3);
   
   	/* call C function for both tangent moduli */
-  	get_ddC_sc_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
-  		fElectricDisplacement.Pointer(), CE.Pointer());
+  	get_dUdE(fParams.Pointer(), E.Pointer(), C.Pointer(),
+  		fElectricDisplacement.Pointer());
   
   	fElectricDisplacement *= -1.0;
   	return fElectricDisplacement;
@@ -233,7 +222,6 @@ namespace Tahoe {
   inline const dMatrixT&
   FSDEMatT::c_ijkl()
   {
-//	cout << "FSDEMatT::c_ijkl" << endl;
     const dMatrixT F = F_mechanical();
     const double J = F.Det();
 
@@ -251,7 +239,6 @@ namespace Tahoe {
   inline const dSymMatrixT&
   FSDEMatT::s_ij()
   {
-	cout << "FSDEMatT::s_ij" << endl;
     const dMatrixT F = F_mechanical();
     const double J = F.Det();
 	

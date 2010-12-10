@@ -46,25 +46,27 @@ void get_ddE(const double* params, const double *Xsi, const double* Cmat, double
 	z[5] = z[15] + z[8];
 	z[6] = z[13] + z[9];
 	z[7] = 1./z[16];
-	z[8] = z[12]*z[7];
-	z[9] = z[10]*z[7];
-	z[10] = -epsilon*z[14]*z[7];
-	z[1] = -epsilon*z[1]*z[7];
+	z[8] = 1./sqrt(z[16]);
+	z[9] = sqrt(z[16]);
+	z[11] = z[12]*z[7];
+	z[10] = z[10]*z[7];
 	z[2] = z[2]*z[7];
 	z[3] = z[3]*z[7];
 	z[4] = z[4]*z[7];
-	z[5] = -epsilon*z[5]*z[7];
 	z[6] = z[6]*z[7];
-	z[7] = z[8] + z[9];
+	z[7] = -epsilon*z[14]*z[8];
+	z[1] = -epsilon*z[1]*z[8];
+	z[5] = -epsilon*z[5]*z[8];
+	z[8] = z[10] + z[11];
 	z[2] = z[2] + z[4];
 	z[3] = z[3] + z[6];
-	z[4] = -0.5*epsilon;
-	z[6] = z[4]*z[7];
+	z[4] = -0.5*epsilon*z[9];
+	z[6] = z[4]*z[8];
 	z[2] = z[2]*z[4];
 	z[3] = z[3]*z[4];
 
 	/* Output stiffness */
-	ddXsi[0] = z[10];
+	ddXsi[0] = z[7];
 	ddXsi[1] = z[6];
 	ddXsi[2] = z[3];
 	ddXsi[3] = z[6];

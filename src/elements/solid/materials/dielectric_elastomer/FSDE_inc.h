@@ -28,10 +28,16 @@ void get_ddCE(const double* params, const double *Xsi, const double* Cmat, doubl
 void get_ddCmech(const double* params, const double *Xsi, const double* Cmat, double* dCdC);
 
 /* function to compute mechanical and electromechanical tangent modulus */
-void get_ddCmech_elec(const double* params, const double *Xsi, const double* Cmat, double* dCdC, double* dCdXsi);
-
-/* function to compute electric displacement and tangent modulus */
-void get_ddC_sc_elec(const double* params, const double *Xsi, const double* Cmat, double* dE, double* dEdE);
+// void get_ddCmech_elec(const double* params, const double *Xsi, const double* Cmat, double* dCdC, double* dCdXsi);
+// 
+// /* function to compute electric displacement and tangent modulus */
+// void get_ddC_sc_elec(const double* params, const double *Xsi, const double* Cmat, double* dE, double* dEdE);
+// 
+// /* equation (29) of Zhou paper */
+// void get_ddCmech_zhou(const double* params, const double *Xsi, const double* Cmat, double* dCdC);
+// 
+// /* equation (29) of Zhou paper */
+// void get_dUdCmech_zhou(const double* params, const double *Xsi, const double* Cmat, double* dUdC);
 
 /* function to get the bulk strain energy density - not implemented yet */
 //double get_energy(const double* params, const double *Xsi, const double* Cmat); 
