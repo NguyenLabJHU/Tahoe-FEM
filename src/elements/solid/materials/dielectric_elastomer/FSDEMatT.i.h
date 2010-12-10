@@ -124,7 +124,7 @@ namespace Tahoe {
      const dArrayT& E = ElectricField();
      
 	/* call C function for mechanical tangent modulus */
-	get_ddCmech(fParams.Pointer(), E.Pointer(),  
+	get_ddCmech_ab(fParams.Pointer(), E.Pointer(),  
 		C.Pointer(), fTangentMechanical.Pointer()); 
 
 	fTangentMechanical*=4.0;
@@ -179,7 +179,7 @@ namespace Tahoe {
     dMatrixT stress_temp(3);
  
 	/* call C function for mechanical stress */
-	get_dUdCmech(fParams.Pointer(), E.Pointer(),  
+	get_dUdCmech_ab(fParams.Pointer(), E.Pointer(),  
 		C.Pointer(), stress_temp.Pointer()); 
 
     fStress.FromMatrix(stress_temp);

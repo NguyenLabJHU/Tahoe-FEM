@@ -19,13 +19,15 @@ void get_dUdE(const double* params, const double *Xsi, const double* Cmat, doubl
 void get_ddE(const double* params, const double *Xsi, const double* Cmat, double* ddXsi); 
 
 /* function to compute first derivative of free energy wrt to the stretch tensor C */
-void get_dUdCmech(const double* params, const double *Xsi, const double* Cmat, double* dUdC); 
+void get_dUdCmech_ab(const double* params, const double *Xsi, const double* Cmat, double* dUdC); 
+void get_dUdCmech_gent(const double* params, const double *Xsi, const double* Cmat, double* dUdC); 
 
 /* function to compute second derivative of the potential function for mixed electromechanical modulus */
 void get_ddCE(const double* params, const double *Xsi, const double* Cmat, double* dCdXsi);
 
 /* function to compute second derivative of the potential function for both purely mechanical modulus */
-void get_ddCmech(const double* params, const double *Xsi, const double* Cmat, double* dCdC);
+void get_ddCmech_ab(const double* params, const double *Xsi, const double* Cmat, double* dCdC);
+void get_ddCmech_gent(const double* params, const double *Xsi, const double* Cmat, double* dCdC);
 
 /* function to compute mechanical and electromechanical tangent modulus */
 // void get_ddCmech_elec(const double* params, const double *Xsi, const double* Cmat, double* dCdC, double* dCdXsi);
