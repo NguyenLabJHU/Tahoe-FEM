@@ -347,8 +347,8 @@ namespace Tahoe {
 void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
 	/* not my field */
-	if (&field != &(Field())) return;
-
+//	if (&field != &(Field())) return;
+	
 	/* quick exit */
 	bool hasnode = false;
 	for (int i=0; i < fBlockData.Length() && !hasnode; i++)
@@ -391,7 +391,7 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 
 			/* global shape function values */
 			SetGlobalShape();
-
+			
 			/* internal force contribution */
 			if (formKd) FormKd(constKd);
 
@@ -402,8 +402,9 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 				FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
 			}
 	
+			/* mechanical and electrical reaction forces? */
 			double mr1, mr2, mr3, er1;
-			dArrayT react(4);
+			dArrayT react(3);
 			
 			/* loop over nodes (double-noding OK) */
 			int dex = 0;
@@ -412,17 +413,23 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 			{
 				if (nodes_u[i] == node)
 				{
-					mr1 = fRHS[dex];
-					mr2 = fRHS[dex+1];
-					mr3 = fRHS[dex+2];
-					er1 = fRHS[dex2+3*NumElementNodes()];
-					react[0] = mr1;
-					react[1] = mr2;
-					react[2] = mr3;
-					react[3] = er1;
+					/* not my field - electrical */
+					if (&field != &(Field()))
+					{
+						er1 = fRHS[dex2+3*NumElementNodes()];
+						react[0] = er1;
+					}
+					else	// otherwise do mechanical
+					{
+						mr1 = fRHS[dex];
+						mr2 = fRHS[dex+1];
+						mr3 = fRHS[dex+2];		
+						react[0] = mr1;
+						react[1] = mr2;
+						react[2] = mr3;
+					}
 					
 					/* components for node - mechanical + electrical DOFs */
-//					nodalforce.Set(TotalNumDOF(), fRHS.Pointer(dex+2*NumElementNodes()));
 					nodalforce.Set(TotalNumDOF(), react.Pointer(0));
 
 					/* accumulate */
