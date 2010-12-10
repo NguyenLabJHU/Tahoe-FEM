@@ -92,7 +92,6 @@ namespace Tahoe {
 
     fAmm_mat.Dimension(nme, nme);
     fAmm_geo.Dimension(nme, nme);
-//	fAmm_geo.Dimension(nen, nen);
     fAme.Dimension(nme, nel);
     fAem.Dimension(nel, nme);
     fAee.Dimension(nel, nel);
@@ -537,11 +536,6 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
     fAem = 0.0;
     fAee = 0.0;
 
-	/* definitions for new moduli */
-	dMatrixT Cmech(2*NumSD(), 2*NumSD());
-	dMatrixT Celecmech(2*NumSD(), NumSD());
-	dArrayT  DE(NumSD());
-	dMatrixT Celec(NumSD(), NumSD());
 	dMatrixT GradShape(nsd, nen);
 
     fShapes->TopIP();
@@ -551,17 +545,14 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 		const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
 
 	  	/* LHS tangent stiffnesses */  
-   	    fCurrMaterial->C_Mech_Elec(Cmech, Celecmech);
-    	fCurrMaterial->S_C_Elec(DE, Celec);
-      	dSymMatrixT S = fCurrMaterial->S_IJ();
-//       	cout << "Cmech FormStiffness = " << Cmech << endl;
-//       	cout << "Celecmech FormStiffness = " << Celecmech << endl;
-//       	cout << "S FormStiffness = " << S << endl;
-//       	cout << "Celec FormStiffness = " << Celec << endl;
-        Cmech *= (0.25*w);
-        Celecmech *= (0.5*w);
-	  	Celec *= w;
-        S *= w;
+		dMatrixT CIJKL = fCurrMaterial->C_IJKL();
+      	dSymMatrixT SIJ = fCurrMaterial->S_IJ();
+      	dMatrixT BIJ = fCurrMaterial->B_IJ();
+      	dMatrixT EIJK = fCurrMaterial->E_IJK();
+      	CIJKL *= (0.25*w);
+        EIJK *= (0.5*w);
+	  	BIJ *= w;
+        SIJ *= w;
 
   	    /* prepare derivatives of shape functions in reference configuration */
     	const dArray2DT& DNaX = fShapes->Derivatives_X();
@@ -572,17 +563,17 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	  	Set_B_C(DNaX, B_C);
  
 	  	/* mechanical material stiffness (24 x 24 matrix for 8-node 3D element) */
- 	  	fAmm_mat.MultQTBQ(B_C, Cmech, format, dMatrixT::kAccumulate);
+ 	  	fAmm_mat.MultQTBQ(B_C, CIJKL, format, dMatrixT::kAccumulate);
 	
 	  	/* mechanical geometric stiffness (24 x 24 matrix for 8-node 3D element */ 
-	  	AccumulateGeometricStiffness(fAmm_geo, DNaX, S);
+	  	AccumulateGeometricStiffness(fAmm_geo, DNaX, SIJ);
   
        	/* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
        	/* What is the difference between format and dMatrixT::kWhole? */
-       	fAme.MultATBC(B_C, Celecmech, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate); 
+       	fAme.MultATBC(B_C, EIJK, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate); 
   
  	 	/* electrical-electrical stiffness (8 x 8 matrix for 8-node 3D element) */
-  		fAee.MultQTBQ(GradShape, Celec, format, dMatrixT::kAccumulate);
+  		fAee.MultQTBQ(GradShape, BIJ, format, dMatrixT::kAccumulate);
     }
 
 	/* Expand 24x24 geometric stiffness into material stiffness matrix */
@@ -610,8 +601,6 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	dArrayT Relec(nen);
 	Relec = 0.0;
 	dMatrixT GradShape(nsd, nen);
-	dArrayT DE(NumSD());
-	dMatrixT Celec(NumSD(), NumSD());
 
     fShapes->TopIP();
     while (fShapes->NextIP() != 0) 
@@ -625,18 +614,18 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	  fShapes->GradNa(DNaX, GradShape);	
 	  
 	  /* Mechanical stress */
-	  dSymMatrixT S = fCurrMaterial->S_IJ();
-	  S *= (0.5*w);
+	  dSymMatrixT SIJ = fCurrMaterial->S_IJ();
+	  SIJ *= (0.5*w);
 	  dMatrixT B_C;
 	  Set_B_C(DNaX, B_C);
-	  B_C.MultTx(S, Rmech, 1.0, dMatrixT::kAccumulate);
+	  B_C.MultTx(SIJ, Rmech, 1.0, dMatrixT::kAccumulate);
 	  
 	  /* electrical stress */
-	  fCurrMaterial->S_C_Elec(DE, Celec);
-	  DE *= w;
+	  dArrayT DI = fCurrMaterial->D_I();
+	  DI *= w;
 	  
 	  /* 3x1 vector of shape function gradient * D */
-	  GradShape.MultTx(DE, Relec, 1.0, dMatrixT::kAccumulate);	
+	  GradShape.MultTx(DI, Relec, 1.0, dMatrixT::kAccumulate);	
 	  
 	  /* NOTE:  mechanical inertia term, mechanical body force term, mechanical
 	  surface traction term, electrical body force (charge), electrical surface 
@@ -648,139 +637,6 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
  	Rtotal.CopyIn(Rmech.Length(), Relec);
  	fRHS += Rtotal;
   }
-
-/***********************************************************/
-/* BELOW IS LIKE TOTALLAGRANGIANT.CPP */
-/* calculate the LHS of residual, or element stiffness matrix */
-//   void FSDielectricElastomerT::FormStiffness(double constK)
-//   {
-// 	/* Matrix format */
-//     dMatrixT::SymmetryFlagT format = (fLHS.Format()
-//         == ElementMatrixT::kNonSymmetric)
-//         ? dMatrixT::kWhole
-//         : dMatrixT::kUpperOnly;
-// 
-// 	/* integrate over the element */
-//     const int nsd = NumSD();
-//     const int nen = NumElementNodes();
-// 
-// 	/* Initialize portions of LHS */
-//     fAmm_mat = 0.0;
-//     fAmm_geo = 0.0;
-//     fAme = 0.0;
-//     fAem = 0.0;
-//     fAee = 0.0;
-//     fStressStiff = 0.0;
-// 
-// 	/* definitions for new moduli */
-// 	dMatrixT Cmech(2*NumSD(), 2*NumSD());
-// 	dMatrixT D(6);
-// 	dMatrixT B;
-// 	B.Dimension(6, nsd*nen);
-// 
-// 	/* integration */
-// 	const double* Det    = fShapes->IPDets();
-// 	const double* Weight = fShapes->IPWeights();
-// 
-//     fShapes->TopIP();
-//     while (fShapes->NextIP() != 0) 
-//     {
-// 	/* STRESS STIFFNESS */
-// 	
-// 		/* Cauchy stress (and set deformation gradient) */
-// 		(fCurrMaterial->s_ij()).ToMatrix(fStressMat);
-// 
-// 		/* chain rule shape function derivatives */
-// 		fTempMat1 = DeformationGradient();
-// 		double J = fTempMat1.Det();
-// 		fTempMat1.Inverse();
-// 		fShapes->TransformDerivatives(fTempMat1, fDNa_x);
-// 
-// 		/* get shape function gradients matrix */
-// 		fShapes->GradNa(fDNa_x, fGradNa);	
-// 				
-// 		/* scale factor */
-// 		double scale = constK*(*Det++)*(*Weight++)*J;
-// 
-// 		/* integration constants */		
-// 		fStressMat *= scale;
-// 	
-// 		/* using the stress symmetry */
-// 		fStressStiff.MultQTBQ(fGradNa, fStressMat, format,
-// 			dMatrixT::kAccumulate);
-// 			
-// 	/* MATERIAL STIFFNESS */
-// 		/* strain displacement matrix */
-// 		Set_B(fDNa_x, B);
-// 		
-// 		/* get D matrix */
-// 		D.SetToScaled(scale, fCurrMaterial->c_ijkl());
-// 		
-// 		/* accumulate */
-// 		fAmm_mat.MultQTBQ(B, D, format, dMatrixT::kAccumulate);
-//     }
-// 	/* stress stiffness into material stiffness */
-// 	fAmm_mat.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
-//  	fLHS.AddBlock(0, 0, fAmm_mat);
-// 
-//   }
-
-/* Compute RHS, or residual of element equations */
-//   void FSDielectricElastomerT::FormKd(double constK)
-//   {
-//     const int nsd = NumSD();
-//     const int nen = NumElementNodes();
-//     
-//     /* Define mechanical and electrical residuals */
-// 	dArrayT Rtotal((nsd+1)*nen);
-// 	Rtotal = 0.0;
-// 	dArrayT Rmech(nen*nsd), Rmech2(nen*nsd);
-// 	Rmech = 0.0;
-// 	Rmech2 = 0.0;
-// 	dArrayT Relec(nen);
-// 	Relec = 0.0;
-// 	dArrayT DE(NumSD());
-// 	dMatrixT Celec(NumSD(), NumSD());
-// 
-// 	/* matrix alias to ??? */
-// 	dMatrixT fWP(NumSD(), fStressStiff.Rows(), Rmech2.Pointer());
-// 	
-// 	const double* Det    = fShapes->IPDets();
-// 	const double* Weight = fShapes->IPWeights();
-// 
-//     fShapes->TopIP();
-//     while (fShapes->NextIP() != 0) 
-//     {
-// 		/* get Cauchy stress */
-// 		(fCurrMaterial->s_ij()).ToMatrix(fTempMat1);
-// 
-// 		/* F^(-1) */
-// 		fTempMat2 = DeformationGradient();
-// 	  
-// 	  	double J = fTempMat2.Det();
-// 	  	if (J <= 0.0)
-// 	  		ExceptionT::BadJacobianDet("TotalLagrangianT::FormKd");
-// 	  	else
-// 	  		fTempMat2.Inverse();
-// 	  
-// 	  	/* compute PK1/J */
-// 	  	fStressMat.MultABT(fTempMat1, fTempMat2);
-// 	  
-// 	  	/* get matrix of shape function gradients */
-// 	  	fShapes->GradNa(fGradNa);
-// 	  	
-// 	  	/* Wi,J PiJ */
-// 	  	fWP.MultAB(fStressMat, fGradNa);
-// 	  	
-// 	  	/* accumulate */
-// 	  	Rmech.AddScaled(J*constK*(*Weight++)*(*Det++), Rmech2);		  
-// 	}
-// //	cout << "Rmech =  " << Rmech << endl;
-// //  	Relec *= -1.0;	// need for right sign for residual
-//  	Rtotal.CopyIn(0, Rmech);
-// // 	Rtotal.CopyIn(Rmech.Length(), Relec);
-//  	fRHS += Rtotal;
-//   }
 
   //
   // extrapolate from integration points and compute output nodal/element
