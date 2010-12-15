@@ -585,6 +585,7 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 
 	/* Expand 24x24 geometric stiffness into material stiffness matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
+	fAme*=-1.0;
 
 	/* Assemble into fLHS, or element stiffness matrix */
 	fLHS.AddBlock(0, 0, fAmm_mat);
