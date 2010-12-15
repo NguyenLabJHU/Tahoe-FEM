@@ -18,12 +18,12 @@ namespace Tahoe {
   //
   void FSDEMatT::Initialize()
   {
-    fElectricPermittivity = 0.0;
     fMu = 0.0;
+//    fKappa = 0.0;
+    fElectricPermittivity = 0.0;
     fNrig = 0.0;
     fLambda = 0.0;
-    fKappa = 0.0;
-    fJm = 0.0;
+//     fJm = 0.0;
   }
 
   //
@@ -33,12 +33,12 @@ namespace Tahoe {
   {
     NL_E_MatT::DefineParameters(list);
 
-	list.AddParameter(fElectricPermittivity, "epsilon");
 	list.AddParameter(fMu, "mu");
-	list.AddParameter(fNrig, "Nrig");
-	list.AddParameter(fLambda, "lambda");
-	list.AddParameter(fKappa, "kappa");
-	list.AddParameter(fJm, "Jm");
+//	list.AddParameter(fKappa, "kappa");
+	list.AddParameter(fElectricPermittivity, "epsilon");
+ 	list.AddParameter(fNrig, "Nrig");
+ 	list.AddParameter(fLambda, "lambda");
+// 	list.AddParameter(fJm, "Jm");
   }
 
   //
@@ -49,24 +49,23 @@ namespace Tahoe {
 //  	cout << "FSDEMatT::TakeParameterList" << endl;
     NL_E_MatT::TakeParameterList(list);
 
-    fElectricPermittivity = list.GetParameter("epsilon");
 	fMu = list.GetParameter("mu");
-	fNrig = list.GetParameter("Nrig");
-	fLambda = list.GetParameter("lambda");
-	fKappa = list.GetParameter("kappa");
-	fJm = list.GetParameter("Jm");
+//	fKappa = list.GetParameter("kappa");
+	fElectricPermittivity = list.GetParameter("epsilon");
+// 	fJm = list.GetParameter("Jm");
+ 	fNrig = list.GetParameter("Nrig");
+ 	fLambda = list.GetParameter("lambda");
 
 	/* write into vector to pass to C code for stress/modulus calculations */
-	fParams.Dimension(6);
-	fParams[0] = fElectricPermittivity;
-	fParams[1] = fMu;
-	fParams[2] = fNrig;
-	fParams[3] = fLambda;
-	fParams[4] = fKappa;
-	fParams[5] = fJm;
+	fParams.Dimension(3);
+	fParams[0] = fMu;
+	fParams[1] = fLambda;
+ 	fParams[2] = fElectricPermittivity;
+ 	fParams[3] = fNrig;
 	
 	/* dimension work space */
 	fTangentMechanical.Dimension(kStressDim);
+	fTangentMechanicalElec.Dimension(kStressDim);
 	fStress.Dimension(kNumDOF);
 	fTangentElectrical.Dimension(kNumDOF);
 	fTangentElectromechanical.Dimension(kStressDim, kNumDOF);

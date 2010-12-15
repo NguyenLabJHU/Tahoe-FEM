@@ -56,12 +56,6 @@ namespace Tahoe {
     //
     virtual const dMatrixT& C_IJKL();
 
-	/* Compute mechanical modulus and mixed electromechanical modulus */
-	virtual void C_Mech_Elec(dMatrixT& mech, dMatrixT& elec);
-
-	/* Compute electrical stress and modulus */
-	virtual void S_C_Elec(dArrayT& D, dMatrixT& CE);
-
     //
     // material electromechanical tangent modulus
     //
@@ -160,6 +154,7 @@ namespace Tahoe {
 	dArrayT fParams;
 	
     dSymMatrixT fStress;
+    dMatrixT fTangentMechanicalElec;
     dMatrixT fTangentMechanical;
     dMatrixT fTangentElectromechanical;
     dMatrixT fTangentElectrical;

@@ -79,57 +79,48 @@ namespace Tahoe {
 
   }
 
-
-  /* Mechanical and electromechanical tangent modulus */
-  inline void FSDEMatT::C_Mech_Elec(dMatrixT& mech, dMatrixT& elec)
-  {
-// //  	cout << "FSDEMatT::C_Mech_Elec" << endl;
-//   	const dMatrixT& C = RightCauchyGreenDeformation();
-//   	const dArrayT& E = ElectricField();
-//  	cout << "C_Mech_Elec C = " << C << endl;
-  
-  	/* call C function for both tangent moduli */
-//   	get_ddCmech_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
-//   		mech.Pointer(), elec.Pointer());
-//   
-//   	mech *= 4.0;
-//   	elec *= -2.0;
-// 	cout << "mech = " << mech << endl;
-// 	cout << "elec = " << elec << endl;
-  }
-
-  /* Electrical displacement and tangent modulus */
-  inline void FSDEMatT::S_C_Elec(dArrayT& D, dMatrixT& CE)
-  {
-//  	cout << "FSDEMatT::S_C_Elec" << endl;
-//   	const dMatrixT& C = RightCauchyGreenDeformation();
-//   	const dArrayT& E = ElectricField();
-//  	cout << "S_C_Elec C = " << C << endl;
-  
-  	/* call C function for both tangent moduli */
-//   	get_ddC_sc_elec(fParams.Pointer(), E.Pointer(), C.Pointer(),
-//   		D.Pointer(), CE.Pointer());
-//   
-//   	D *= -1.0;
-//   	CE *= -1.0;
-  }
-
   //
   // material mechanical tangent modulus
   //
   inline const dMatrixT&
   FSDEMatT::C_IJKL()
   {
-     const dMatrixT& C = RightCauchyGreenDeformation();
-     const dArrayT& E = ElectricField();
-     
-	/* call C function for mechanical tangent modulus */
-	get_ddCmech_ab(fParams.Pointer(), E.Pointer(),  
-		C.Pointer(), fTangentMechanical.Pointer()); 
+    const dMatrixT& C = RightCauchyGreenDeformation();
+    const dArrayT& E = ElectricField();
 
-	fTangentMechanical*=4.0;
+	double I1 = C(0,0)+C(1,1)+C(2,2);
+	double J = C.Det();
+	J = sqrt(J);
 	
+	/* call C function for mechanical part of tangent modulus */
+ 	mech_tanmod_ab(fParams.Pointer(), E.Pointer(), C.Pointer(), J, I1, fTangentMechanical.Pointer()); 
+ 	me_tanmod_ab(fParams.Pointer(), E.Pointer(), C.Pointer(), J, fTangentMechanicalElec.Pointer());
+ 	fTangentMechanical+=fTangentMechanicalElec;
     return fTangentMechanical;
+  }
+
+  //
+  // Second Piola-Kirchhoff stress (mechanical)
+  //
+  inline const dSymMatrixT&
+  FSDEMatT::S_IJ()
+  {
+    const dMatrixT& C = RightCauchyGreenDeformation();
+	const dArrayT& E = ElectricField();
+	
+	dMatrixT stress_temp(3);
+	dMatrixT stress_temp2(3);
+	double I1 = C(0,0)+C(1,1)+C(2,2);
+	double J = C.Det();
+	J = sqrt(J);
+	
+	/* call C function for mechanical part of PK2 stress */
+ 	mech_pk2_ab(fParams.Pointer(), E.Pointer(), C.Pointer(), J, I1, stress_temp.Pointer()); 
+	me_pk2_ab(fParams.Pointer(), E.Pointer(), C.Pointer(), J, stress_temp2.Pointer());
+	stress_temp+=stress_temp2;
+	
+	fStress.FromMatrix(stress_temp);
+    return fStress;
   }
 
   //
@@ -140,12 +131,13 @@ namespace Tahoe {
   {
     const dMatrixT& C = RightCauchyGreenDeformation();
 	const dArrayT& E = ElectricField();
+	double J = C.Det();
+	J = sqrt(J);
 
 	/* call C function for electromechanical tangent modulus */
- 	get_ddCE(fParams.Pointer(), E.Pointer(),  
- 		C.Pointer(), fTangentElectromechanical.Pointer()); 
+ 	me_mixedmodulus_ab(fParams.Pointer(), E.Pointer(),  
+ 		C.Pointer(), J, fTangentElectromechanical.Pointer()); 
  
- 	fTangentElectromechanical*=-2.0;
     return fTangentElectromechanical;
 
   }
@@ -157,53 +149,35 @@ namespace Tahoe {
   FSDEMatT::B_IJ()
   {
     const dMatrixT& C = RightCauchyGreenDeformation();
-	const dArrayT& E = ElectricField();
+	double J = C.Det();
+	J = sqrt(J);
 
-	/* call C function for electrical tangent modulus */
- 	get_ddE(fParams.Pointer(), E.Pointer(),  
- 		C.Pointer(), fTangentElectrical.Pointer()); 
- 
- 	fTangentElectrical *= -1.0;
+	dMatrixT Cinv(3);
+	Cinv.Inverse(C);
+	fTangentElectrical = Cinv;
+	fTangentElectrical *= fElectricPermittivity;
+	fTangentElectrical *= J;
     return fTangentElectrical;
 
   }
 
   //
-  // Second Piola-Kirchhoff stress (mechanical)
-  //
-  inline const dSymMatrixT&
-  FSDEMatT::S_IJ()
-  {
-    const dMatrixT& C = RightCauchyGreenDeformation();
-   	const dArrayT& E = ElectricField();
-    dMatrixT stress_temp(3);
- 
-	/* call C function for mechanical stress */
-	get_dUdCmech_ab(fParams.Pointer(), E.Pointer(),  
-		C.Pointer(), stress_temp.Pointer()); 
-
-    fStress.FromMatrix(stress_temp);
-	fStress*=2.0;
-
-    return fStress;
-
-  }
-
-  //
-  // Electric displacement - is it necessary to pass Efield?
+  // Electric displacement 
   //
   inline const dArrayT&
   FSDEMatT::D_I()
   {
   	const dMatrixT& C = RightCauchyGreenDeformation();
   	const dArrayT& E = ElectricField();
-  	dMatrixT CE(3);
-  
-  	/* call C function for both tangent moduli */
-  	get_dUdE(fParams.Pointer(), E.Pointer(), C.Pointer(),
-  		fElectricDisplacement.Pointer());
-  
-  	fElectricDisplacement *= -1.0;
+  	
+  	double J = C.Det();
+  	J = sqrt(J);
+  	
+  	dMatrixT Cinv(3);
+  	Cinv.Inverse(C);
+	Cinv.Multx(E,fElectricDisplacement);	
+  	fElectricDisplacement *= J;
+  	
   	return fElectricDisplacement;
   }
 
@@ -286,4 +260,4 @@ namespace Tahoe {
 
   }
 
-} //namespace Tahoe
+}	// namespace Tahoe
