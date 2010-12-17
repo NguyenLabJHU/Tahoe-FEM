@@ -8,7 +8,6 @@
 using namespace Tahoe;
 
 /* constructor */
-
 FSMicromorphic3DT::FSMicromorphic3DT(const ElementSupportT& support):
     ElementBaseT(support), //pass the solid displacement field to the base class
     u(LocalArrayT::kDisp),
@@ -52,7 +51,6 @@ FSMicromorphic3DT::~FSMicromorphic3DT(void)
 void FSMicromorphic3DT::Echo_Input_Data(void)
 {
 
-  //           cout<<"CHECK POINT-1"<<endl;    
     cout << "#######################################################" << endl;
     cout << "############### ECHO FSMicromorphic3D DATA #########################" << endl;
     cout << "#######################################################" << endl;
@@ -62,7 +60,7 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
     //--Plasticity parameters
     cout << "fMaterial_Params[kc0] "               << fMaterial_Params[kc0]          << endl;
     cout << "fMaterial_Params[kHc] "               << fMaterial_Params[kHc]          << endl;  
-    cout << "fMaterial_Params[kZ0c] "              << fMaterial_Params[kZ0c] 	     << endl;      
+    cout << "fMaterial_Params[kZ0c] "              << fMaterial_Params[kZ0c]         << endl;      
     cout << "fMaterial_Params[kFphi] "             << fMaterial_Params[kFphi]        << endl;
     cout << "fMaterial_Params[kDpsi] "             << fMaterial_Params[kDpsi]        << endl;    
     //-- Elasticity parameters for solid
@@ -85,7 +83,6 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
     cout << "fMaterial_Params[kTau10] "                 << fMaterial_Params[kTau10]          << endl;
     cout << "fMaterial_Params[kTau11] "                 << fMaterial_Params[kTau11]          << endl;
 
-
 }
 
 
@@ -93,7 +90,7 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
 
 void FSMicromorphic3DT::RHSDriver(void)
 {
- //            cout<<"CHECK POINT-2"<<endl;  
+
     int curr_group = ElementSupport().CurrentGroup();
 
     /* traction boundary conditions acting on displacement equations */
@@ -112,8 +109,6 @@ void FSMicromorphic3DT::RHSDriver(void)
 void FSMicromorphic3DT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
                  AutoArrayT<const RaggedArray2DT<int>*>& eq_phi)
 {
-    
-     //            cout<<"CHECK POINT-3"<<endl;  
     /* doing monolithic solution */
     if (fDispl->Group() == fMicro->Group())
     {
@@ -191,7 +186,6 @@ void FSMicromorphic3DT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 
 void FSMicromorphic3DT::LHSDriver(GlobalT::SystemTypeT)
 {
- //            cout<<"CHECK POINT-4"<<endl;  
 /** Everything done in RHSDriver for efficiency */
 //cout << "############### In LHS Driver ############### \n";
 }
@@ -201,7 +195,6 @@ void FSMicromorphic3DT::LHSDriver(GlobalT::SystemTypeT)
 
 void FSMicromorphic3DT::Select_Equations (const int &iBalLinChoice, const int &iBalFirstMomMomChoice )
 {
-   //           cout<<"CHECK POINT-5"<<endl;  
     /** Choices for Linear Momentum Balance Equation */
 
     switch ( iBalLinChoice )    {
@@ -228,7 +221,6 @@ void FSMicromorphic3DT::Select_Equations (const int &iBalLinChoice, const int &i
  * given group. */
 bool FSMicromorphic3DT::InGroup(int group) const
 {
-    //         cout<<"CHECK POINT-6"<<endl;  
     return group == fDispl->Group() || group == fMicro->Group();
 }
 
@@ -238,7 +230,6 @@ bool FSMicromorphic3DT::InGroup(int group) const
 /* initialize/finalize step */
 void FSMicromorphic3DT::InitStep(void)
 {
-    //          cout<<"CHECK POINT-7"<<endl;  
     /* inherited */
     ElementBaseT::InitStep();
 }
@@ -247,7 +238,6 @@ void FSMicromorphic3DT::InitStep(void)
 /* close current time increment */
 void FSMicromorphic3DT::CloseStep(void)
 {
-     //         cout<<"CHECK POINT-8"<<endl;  
     /* inherited */
     ElementBaseT::CloseStep();
 
@@ -466,7 +456,6 @@ GlobalT::RelaxCodeT FSMicromorphic3DT::RelaxSystem(void)
 void FSMicromorphic3DT::SendOutput(int kincode)
 {
 #pragma unused(kincode)
- //             cout<<"CHECK POINT-9"<<endl;  
 //not implemented
 }
 
@@ -475,7 +464,6 @@ void FSMicromorphic3DT::SendOutput(int kincode)
 void FSMicromorphic3DT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry,
     iArrayT& num_facet_nodes) const
 {
-  //             cout<<"CHECK POINT-10"<<endl;  
     /* from integration domain */
     ShapeFunctionDispl().FacetGeometry(facet_geometry, num_facet_nodes);
 }
@@ -484,7 +472,6 @@ void FSMicromorphic3DT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry,
 /* form of tangent matrix */
 GlobalT::SystemTypeT FSMicromorphic3DT::TangentType(void) const
 {
-   //             cout<<"CHECK POINT-11"<<endl;  
     return GlobalT::kNonSymmetric;
 }
 
@@ -511,7 +498,6 @@ void FSMicromorphic3DT::SetStatus(const ArrayT<ElementCardT::StatusT>& status)
 /* initial condition/restart functions (per time sequence) */
 void FSMicromorphic3DT::InitialCondition(void)
 {
-    //           cout<<"CHECK POINT-12"<<endl;  
     /* inherited */
     ElementBaseT::InitialCondition();
 }
@@ -532,7 +518,7 @@ void FSMicromorphic3DT::InitialCondition(void)
 void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
     const char caller[] = "FSMicromorphic3DT::AddNodalForce";
-     //         cout<<"CHECK POINT-13"<<endl;  
+
     /* displ, micro, or neither */
     bool is_displ = false;
     dArrayT* element_force = NULL;
@@ -712,7 +698,6 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
 double FSMicromorphic3DT::InternalEnergy ( void )
 {
 //not implemented
-   //              cout<<"CHECK POINT-14"<<endl;  
     return 0.0;
 }
 
@@ -721,7 +706,6 @@ double FSMicromorphic3DT::InternalEnergy ( void )
 /* write restart data to the output stream */
 void FSMicromorphic3DT::WriteRestart(ostream& out) const
 {
-  //             cout<<"CHECK POINT-15"<<endl;  
     /* inherited */
     ElementBaseT::WriteRestart(out);
 
@@ -734,7 +718,6 @@ void FSMicromorphic3DT::WriteRestart(ostream& out) const
 /* read restart data to the output stream */
 void FSMicromorphic3DT::ReadRestart(istream& in)
 {
-     //          cout<<"CHECK POINT-16"<<endl;  
     /* inherited */
     ElementBaseT::ReadRestart(in);
 
@@ -746,7 +729,6 @@ void FSMicromorphic3DT::ReadRestart(istream& in)
 
 void FSMicromorphic3DT::RegisterOutput(void)
 {
-   //            cout<<"CHECK POINT-17"<<endl;  
     /* collect block ID's */
     ArrayT<StringT> block_ID(fBlockData.Length());
     for (int i = 0; i < block_ID.Length(); i++)
@@ -840,7 +822,6 @@ void FSMicromorphic3DT::RegisterOutput(void)
 
 void FSMicromorphic3DT::WriteOutput(void)
 {
-  //              cout<<"CHECK POINT-18"<<endl;  
     bStep_Complete=1;
     RHSDriver();
     bStep_Complete=0;
@@ -921,7 +902,6 @@ void FSMicromorphic3DT::WriteOutput(void)
 /* form group contribution to the stiffness matrix and RHS */
 void FSMicromorphic3DT::RHSDriver_staggered(void)
 {
-  //             cout<<"CHECK POINT-19"<<endl;  
     const char caller[] = "FSMicromorphic3DT::RHSDriver_staggered";
 #pragma message("staggered solution not implemented")
 }
@@ -930,7 +910,6 @@ void FSMicromorphic3DT::RHSDriver_staggered(void)
 /* form group contribution to the stiffness matrix and RHS */
 void FSMicromorphic3DT::RHSDriver_monolithic(void)
 {
-   //             cout<<"CHECK POINT-20"<<endl;  
     const char caller[] = "FSMicromorphic3DT::RHSDriver_monolithic";
     if (fDispl->Group() != fMicro->Group())
     ExceptionT::GeneralFail(caller, "displacement and micro-displacement-gradient groups must be the same: %d != %d",
@@ -1493,9 +1472,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      //   if(iConstitutiveModelType==3)
        //   {   
           out_variable[18]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc);
-	  out_variable[19]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kZc);
-	  out_variable[20]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc);	
-	  out_variable[21]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma);
+      out_variable[19]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kZc);
+      out_variable[20]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc);        
+      out_variable[21]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma);
         //  }
          // else
          //{      
@@ -1558,8 +1537,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             const double* Weight = fShapes_displ->IPWeights();
             fShapes_displ->TopIP();
             fShapes_micro->TopIP();
-	 //   if(iConstitutiveModelType==2)
-	 //   {
+     //   if(iConstitutiveModelType==2)
+     //   {
             SigN_IPs_el_n.RowCopy(e,SigN_IPs_n);
             mn_IPs_el_n.RowCopy(e,mn_IPs_n);
             GammaN_IPs_el_n.RowCopy(e,GammaN_IPs_n);
@@ -1570,14 +1549,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             ChiN_ar_IPs_el_n.RowCopy(e,ChiN_ar_IPs_n);
             GRAD_ChiN_ar_IPs_el_n.RowCopy(e,GRAD_ChiN_ar_IPs);
            //  }
-
+             
              if(iConstitutiveModelType==3)
-	     {
-	     
-	     fFp_n_Elements_IPs.RowCopy(e,fFp_n_IPs); 
+         {
+         
+         fFp_n_Elements_IPs.RowCopy(e,fFp_n_IPs); 
              fCe_n_Elements_IPs.RowCopy(e,fCe_n_IPs);
              fdGdS_n_Elements_IPs.RowCopy(e,fdGdS_n_IPs);
-	     fdGdS_Elements_IPs.RowCopy(e,fdGdS_IPs);                        
+         fdGdS_Elements_IPs.RowCopy(e,fdGdS_IPs);                        
              fdFYdS_n_Elements_IPs.RowCopy(e,fdFYdS_n_IPs);      
   
              }
@@ -1751,9 +1730,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                    double scale = scale_const;
-                   
-                     
-                  
 
                    if(iConstitutiveModelType==1)
                    {
@@ -2194,8 +2170,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    }
                    if(iConstitutiveModelType==3)
                    {
-
-               fKu_I3e_1=1e3; 
+                   fKu_I3e_1=0.0;
                    }                   
                    if(iConstitutiveModelType==2)
                    {
@@ -2764,21 +2739,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fCauchy_stress_Elements_IPs.SetRow(e,fCauchy_stress_IPs);
 
             /* saving dGdS for each IP of the current element */
-	    fdGdS_Elements_IPs.SetRow(e,fdGdS_IPs);   
-	    
+        fdGdS_Elements_IPs.SetRow(e,fdGdS_IPs);   
+        
             /* saving dFYdS for each IP of the current element */
-	    fdFYdS_Elements_IPs.SetRow(e,fdFYdS_IPs); 	    
-	    
+        fdFYdS_Elements_IPs.SetRow(e,fdFYdS_IPs);             
+        
             /* saving Fp for each IP of the current element */
-	    fFp_Elements_IPs.SetRow(e,fFp_IPs);   	    
+        fFp_Elements_IPs.SetRow(e,fFp_IPs);               
 
             /* saving Ce for each IP of the current element */
-	    fCe_Elements_IPs.SetRow(e,fCe_IPs);   	  	    
+        fCe_Elements_IPs.SetRow(e,fCe_IPs);                         
 
             /* saving state variables for each IPs of the current element */
             fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
 
-
+         
          
          
         //    if(iConstitutiveModelType==2)
@@ -2861,7 +2836,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
            fFphi_int +=Vint_3;
            fFphi_int *=-1;
 
-            }            
+            }
+            
             if(iConstitutiveModelType==3)
             {
             
@@ -2942,7 +2918,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
               fFd_int  = Vintp_1;
               fFd_int *= -1;
                       
-             // fKdd=0.0;
+              fKdd=0.0;
              //  fKdd  =  fKu_1;
              // fKdd +=  fKu_2;
               fKdd +=  fKu_I3e_1;
@@ -2961,11 +2937,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
               fKdd +=  fKu_I4e_1;
               fKdd +=  fKu_I4p_2;
               fKdd +=  fKu_I4p_3;
-              fKdd +=  fKu_I4p_4;   
-              
-             
-              
-            //  fFphi_int=0.0; 
+              fKdd +=  fKu_I4p_4;    
 //******************************************************************
 //******************************************************************
 //******************************************************************              
@@ -3144,7 +3116,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 /* form global shape function derivatives */
 void FSMicromorphic3DT::SetGlobalShape(void)
 {
-    //          cout<<"CHECK POINT-21"<<endl;  
     /* fetch (initial) coordinates */
     SetLocalX(fLocInitCoords);
 
@@ -3159,7 +3130,6 @@ void FSMicromorphic3DT::SetGlobalShape(void)
 /* describe the parameters needed by the interface */
 void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
 {
-     //           cout<<"CHECK POINT-22"<<endl;  
     /* inherited */
     ElementBaseT::DefineParameters(list);
 
@@ -3241,7 +3211,6 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
 /* accept parameter list */
 void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 {
-  //              cout<<"CHECK POINT-23"<<endl;  
     const char caller[] = "FSMicromorphic3DT::TakeParameterList";
 
     /* inherited */
@@ -4158,8 +4127,19 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     FInv_ar_IPs_el=FnInv_ar_IPs_el_n;
     F_ar_IPs_el=Fn_ar_IPs_el_n;*///no need for this because this is initializing and _el parts are cal_ed in gauss loop
 //here is take parameter list function
+
+
+
  
-     fShapeDisplGrad_t_Transpose.Dimension (n_en_displ_x_n_sd, n_sd_x_n_sd);
+    
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FINISH HERE FOR 3D CASE//////////////
+    ///////////////////////////////////////////////////////////////////////////
+
+
+    fShapeDisplGrad_t_Transpose.Dimension (n_en_displ_x_n_sd, n_sd_x_n_sd);
     fShapeMicro_row_matrix.Dimension (1,n_en_micro);
 
 
@@ -4177,31 +4157,29 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fEulerian_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstrain);
     fCauchy_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstress);
     
-
-    
- /*   if(iConstitutiveModelType==1 && iConstitutiveModelType==2 )
-    {
-    fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
-    fState_variables.Dimension (knum_d_state);
-    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
-    }
-   // fDisplacement_Element_IPs.Dimension(NumElements(),fNumIP_displ*knumdispl);
-*/
- 
        
-     if(iConstitutiveModelType==3)
-     {
+     //if(iConstitutiveModelType==3)
+     //{
      fState_variables_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);
      fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
      fState_variables_n_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);      
      fState_variables_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
       fState_variables_n_Elements_IPs=0.0;
-    }
+   // }
     
     
+    
+ //   if(iConstitutiveModelType==1 && iConstitutiveModelType==2 )
+   // {
+   // fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
+    //fState_variables.Dimension (knum_d_state);
+   // fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
+   // }
+  //  fDisplacement_Element_IPs.Dimension(NumElements(),fNumIP_displ*knumdispl);
 
 
-    if(iConstitutiveModelType==3)
+  
+  if(iConstitutiveModelType==3)
     {
 
     Top();
@@ -4209,28 +4187,28 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     while (NextElement())
     {
 
-		int e,l;
-		e = CurrElementNumber();
-	    for (l=0; l < fNumIP_displ; l++) 
-	    {
+        int e,l;
+        e = CurrElementNumber();
+        for (l=0; l < fNumIP_displ; l++) 
+        {
 
-			fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc)
-				=fMaterial_Params[kc0];
+            fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc)
+                =fMaterial_Params[kc0];
 
-			fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kZc)
-				=fMaterial_Params[kZ0c];
+            fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kZc)
+                =fMaterial_Params[kZ0c];
 
-			//fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khkappa)=0.0;
-			fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=0.0;	
+            //fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khkappa)=0.0;
+            fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=0.0;        
 
-         fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma)=0.0;				
+         fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma)=0.0;             
 
-			fFp_n_IPs.SetRow(l,fTemp2_ArrayT_values);
-			fCe_n_IPs.SetRow(l,fTemp2_ArrayT_values);
-			
-	    }
-	    fFp_n_Elements_IPs.SetRow(e,fFp_n_IPs);
-	    fCe_n_Elements_IPs.SetRow(e,fCe_n_IPs);
+            fFp_n_IPs.SetRow(l,fTemp2_ArrayT_values);
+            fCe_n_IPs.SetRow(l,fTemp2_ArrayT_values);
+            
+        }
+        fFp_n_Elements_IPs.SetRow(e,fFp_n_IPs);
+        fCe_n_Elements_IPs.SetRow(e,fCe_n_IPs);
 
     }
     fFp_Elements_IPs   = fFp_n_Elements_IPs;
@@ -4239,14 +4217,6 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fdFYdS_Elements_IPs = fdFYdS_n_Elements_IPs;        
    }
     
- 
-
-
-    ///////////////////////////////////////////////////////////////////////////
-    /////////////DIMENSIONALIZE MICROMORPHIC MATRICES FINISH HERE FOR 3D CASE//////////////
-    ///////////////////////////////////////////////////////////////////////////
-
-
 
 
     u_dotdot_column_matrix.Dimension (n_en_displ_x_n_sd,1);
@@ -4279,7 +4249,6 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 /* information about subordinate parameter lists */
 void FSMicromorphic3DT::DefineSubs(SubListT& sub_list) const
 {
-  //            cout<<"CHECK POINT-24"<<endl;  
     /* inherited */
     ElementBaseT::DefineSubs(sub_list);
 
@@ -4296,7 +4265,6 @@ void FSMicromorphic3DT::DefineSubs(SubListT& sub_list) const
 void FSMicromorphic3DT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
                        SubListT& sub_lists) const
 {
-   //              cout<<"CHECK POINT-25"<<endl;  
     ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
@@ -4305,7 +4273,6 @@ void FSMicromorphic3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* FSMicromorphic3DT::NewSub(const StringT& name) const
 {
-   //           cout<<"CHECK POINT-26"<<endl;  
     /* create non-const this */
     FSMicromorphic3DT* non_const_this = const_cast<FSMicromorphic3DT*>(this);
 
@@ -4354,7 +4321,7 @@ void FSMicromorphic3DT::SetTractionBC(void)
 //      regard to the validity of the node/equation numbers, requiring
 //      only that NodesX in the element cards has the correct global
 //      node numbers.
-      //        cout<<"CHECK POINT-27"<<endl;  
+
     /* dimensions */
     int ndof = NumDOF();
 
@@ -4395,7 +4362,6 @@ void FSMicromorphic3DT::SetTractionBC(void)
 /* extract natural boundary condition information */
 void FSMicromorphic3DT::TakeNaturalBC(const ParameterListT& list)
 {
-  //             cout<<"CHECK POINT-28"<<endl;  
     const char caller[] = "FSMicromorphic3DT::TakeTractionBC";
 
     int num_natural_bc = list.NumLists("natural_bc");
@@ -4530,7 +4496,6 @@ void FSMicromorphic3DT::TakeNaturalBC(const ParameterListT& list)
 /* compute contribution to RHS from traction BC's */
 void FSMicromorphic3DT::ApplyTractionBC(void)
 {
-    //           cout<<"CHECK POINT-29"<<endl;  
     if (fTractionList.Length() > 0)
     {
     /* dimensions */
@@ -5212,7 +5177,97 @@ void FSMicromorphic3DT::Form_Tsigma_1_matrix()
             col++;
             }
         }
+/*    Tsigma_1=0.0;
+    Tsigma_1(0,0)=(Finv[0][0]*Fn[0][0]*SigN[0][0] + Finv[1][0]*Fn[0][1]*SigN[0][0] + Finv[2][0]*Fn[0][2]*SigN[0][0]);
+    Tsigma_1(1,0)=(Finv[0][0]*Fn[0][0]*SigN[1][0] + Finv[1][0]*Fn[0][1]*SigN[1][0] + Finv[2][0]*Fn[0][2]*SigN[1][0]);
+    Tsigma_1(2,0)=(Finv[0][0]*Fn[0][0]*SigN[2][0] + Finv[1][0]*Fn[0][1]*SigN[2][0] + Finv[2][0]*Fn[0][2]*SigN[2][0]);
+    Tsigma_1(3,0)=(Finv[0][0]*Fn[0][0]*SigN[0][1] + Finv[1][0]*Fn[0][1]*SigN[0][1] + Finv[2][0]*Fn[0][2]*SigN[0][1]);
+    Tsigma_1(4,0)=(Finv[0][0]*Fn[0][0]*SigN[1][1] + Finv[1][0]*Fn[0][1]*SigN[1][1] + Finv[2][0]*Fn[0][2]*SigN[1][1]);
+    Tsigma_1(5,0)=(Finv[0][0]*Fn[0][0]*SigN[2][1] + Finv[1][0]*Fn[0][1]*SigN[2][1] + Finv[2][0]*Fn[0][2]*SigN[2][1]);
+    Tsigma_1(6,0)=(Finv[0][0]*Fn[0][0]*SigN[0][2] + Finv[1][0]*Fn[0][1]*SigN[0][2] + Finv[2][0]*Fn[0][2]*SigN[0][2]);
+    Tsigma_1(7,0)=(Finv[0][0]*Fn[0][0]*SigN[1][2] + Finv[1][0]*Fn[0][1]*SigN[1][2] + Finv[2][0]*Fn[0][2]*SigN[1][2]);
+    Tsigma_1(8,0)=(Finv[0][0]*Fn[0][0]*SigN[2][2] + Finv[1][0]*Fn[0][1]*SigN[2][2] + Finv[2][0]*Fn[0][2]*SigN[2][2]);
 
+    Tsigma_1(0,1)=(Finv[0][1]*Fn[0][0]*SigN[0][0] + Finv[1][1]*Fn[0][1]*SigN[0][0] + Finv[2][1]*Fn[0][2]*SigN[0][0]);
+    Tsigma_1(1,1)=(Finv[0][1]*Fn[0][0]*SigN[1][0] + Finv[1][1]*Fn[0][1]*SigN[1][0] + Finv[2][1]*Fn[0][2]*SigN[1][0]);
+    Tsigma_1(2,1)=(Finv[0][1]*Fn[0][0]*SigN[2][0] + Finv[1][1]*Fn[0][1]*SigN[2][0] + Finv[2][1]*Fn[0][2]*SigN[2][0]);
+    Tsigma_1(3,1)=(Finv[0][1]*Fn[0][0]*SigN[0][1] + Finv[1][1]*Fn[0][1]*SigN[0][1] + Finv[2][1]*Fn[0][2]*SigN[0][1]);
+    Tsigma_1(4,1)=(Finv[0][1]*Fn[0][0]*SigN[1][1] + Finv[1][1]*Fn[0][1]*SigN[1][1] + Finv[2][1]*Fn[0][2]*SigN[1][1]);
+    Tsigma_1(5,1)=(Finv[0][1]*Fn[0][0]*SigN[2][1] + Finv[1][1]*Fn[0][1]*SigN[2][1] + Finv[2][1]*Fn[0][2]*SigN[2][1]);
+    Tsigma_1(6,1)=(Finv[0][1]*Fn[0][0]*SigN[0][2] + Finv[1][1]*Fn[0][1]*SigN[0][2] + Finv[2][1]*Fn[0][2]*SigN[0][2]);
+    Tsigma_1(7,1)=(Finv[0][1]*Fn[0][0]*SigN[1][2] + Finv[1][1]*Fn[0][1]*SigN[1][2] + Finv[2][1]*Fn[0][2]*SigN[1][2]);
+    Tsigma_1(8,1)=(Finv[0][1]*Fn[0][0]*SigN[2][2] + Finv[1][1]*Fn[0][1]*SigN[2][2] + Finv[2][1]*Fn[0][2]*SigN[2][2]);
+
+    Tsigma_1(0,2)=(Finv[0][2]*Fn[0][0]*SigN[0][0] + Finv[1][2]*Fn[0][1]*SigN[0][0] + Finv[2][2]*Fn[0][2]*SigN[0][0]);
+    Tsigma_1(1,2)=(Finv[0][2]*Fn[0][0]*SigN[1][0] + Finv[1][2]*Fn[0][1]*SigN[1][0] + Finv[2][2]*Fn[0][2]*SigN[1][0]);
+    Tsigma_1(2,2)=(Finv[0][2]*Fn[0][0]*SigN[2][0] + Finv[1][2]*Fn[0][1]*SigN[2][0] + Finv[2][2]*Fn[0][2]*SigN[2][0]);
+    Tsigma_1(3,2)=(Finv[0][2]*Fn[0][0]*SigN[0][1] + Finv[1][2]*Fn[0][1]*SigN[0][1] + Finv[2][2]*Fn[0][2]*SigN[0][1]);
+    Tsigma_1(4,2)=(Finv[0][2]*Fn[0][0]*SigN[1][1] + Finv[1][2]*Fn[0][1]*SigN[1][1] + Finv[2][2]*Fn[0][2]*SigN[1][1]);
+    Tsigma_1(5,2)=(Finv[0][2]*Fn[0][0]*SigN[2][1] + Finv[1][2]*Fn[0][1]*SigN[2][1] + Finv[2][2]*Fn[0][2]*SigN[2][1]);
+    Tsigma_1(6,2)=(Finv[0][2]*Fn[0][0]*SigN[0][2] + Finv[1][2]*Fn[0][1]*SigN[0][2] + Finv[2][2]*Fn[0][2]*SigN[0][2]);
+    Tsigma_1(7,2)=(Finv[0][2]*Fn[0][0]*SigN[1][2] + Finv[1][2]*Fn[0][1]*SigN[1][2] + Finv[2][2]*Fn[0][2]*SigN[1][2]);
+    Tsigma_1(8,2)=(Finv[0][2]*Fn[0][0]*SigN[2][2] + Finv[1][2]*Fn[0][1]*SigN[2][2] + Finv[2][2]*Fn[0][2]*SigN[2][2]);
+
+    Tsigma_1(0,3)=(Finv[0][0]*Fn[1][0]*SigN[0][0] + Finv[1][0]*Fn[1][1]*SigN[0][0] + Finv[2][0]*Fn[1][2]*SigN[0][0]);
+    Tsigma_1(1,3)=(Finv[0][0]*Fn[1][0]*SigN[1][0] + Finv[1][0]*Fn[1][1]*SigN[1][0] + Finv[2][0]*Fn[1][2]*SigN[1][0]);
+    Tsigma_1(2,3)=(Finv[0][0]*Fn[1][0]*SigN[2][0] + Finv[1][0]*Fn[1][1]*SigN[2][0] + Finv[2][0]*Fn[1][2]*SigN[2][0]);
+    Tsigma_1(3,3)=(Finv[0][0]*Fn[1][0]*SigN[0][1] + Finv[1][0]*Fn[1][1]*SigN[0][1] + Finv[2][0]*Fn[1][2]*SigN[0][1]);
+    Tsigma_1(4,3)=(Finv[0][0]*Fn[1][0]*SigN[1][1] + Finv[1][0]*Fn[1][1]*SigN[1][1] + Finv[2][0]*Fn[1][2]*SigN[1][1]);
+    Tsigma_1(5,3)=(Finv[0][0]*Fn[1][0]*SigN[2][1] + Finv[1][0]*Fn[1][1]*SigN[2][1] + Finv[2][0]*Fn[1][2]*SigN[2][1]);
+    Tsigma_1(6,3)=(Finv[0][0]*Fn[1][0]*SigN[0][2] + Finv[1][0]*Fn[1][1]*SigN[0][2] + Finv[2][0]*Fn[1][2]*SigN[0][2]);
+    Tsigma_1(7,3)=(Finv[0][0]*Fn[1][0]*SigN[1][2] + Finv[1][0]*Fn[1][1]*SigN[1][2] + Finv[2][0]*Fn[1][2]*SigN[1][2]);
+    Tsigma_1(8,3)=(Finv[0][0]*Fn[1][0]*SigN[2][2] + Finv[1][0]*Fn[1][1]*SigN[2][2] + Finv[2][0]*Fn[1][2]*SigN[2][2]);
+
+    Tsigma_1(0,4)=(Finv[0][1]*Fn[1][0]*SigN[0][0] + Finv[1][1]*Fn[1][1]*SigN[0][0] + Finv[2][1]*Fn[1][2]*SigN[0][0]);
+    Tsigma_1(1,4)=(Finv[0][1]*Fn[1][0]*SigN[1][0] + Finv[1][1]*Fn[1][1]*SigN[1][0] + Finv[2][1]*Fn[1][2]*SigN[1][0]);
+    Tsigma_1(2,4)=(Finv[0][1]*Fn[1][0]*SigN[2][0] + Finv[1][1]*Fn[1][1]*SigN[2][0] + Finv[2][1]*Fn[1][2]*SigN[2][0]);
+    Tsigma_1(3,4)=(Finv[0][1]*Fn[1][0]*SigN[0][1] + Finv[1][1]*Fn[1][1]*SigN[0][1] + Finv[2][1]*Fn[1][2]*SigN[0][1]);
+    Tsigma_1(4,4)=(Finv[0][1]*Fn[1][0]*SigN[1][1] + Finv[1][1]*Fn[1][1]*SigN[1][1] + Finv[2][1]*Fn[1][2]*SigN[1][1]);
+    Tsigma_1(5,4)=(Finv[0][1]*Fn[1][0]*SigN[2][1] + Finv[1][1]*Fn[1][1]*SigN[2][1] + Finv[2][1]*Fn[1][2]*SigN[2][1]);
+    Tsigma_1(6,4)=(Finv[0][1]*Fn[1][0]*SigN[0][2] + Finv[1][1]*Fn[1][1]*SigN[0][2] + Finv[2][1]*Fn[1][2]*SigN[0][2]);
+    Tsigma_1(7,4)=(Finv[0][1]*Fn[1][0]*SigN[1][2] + Finv[1][1]*Fn[1][1]*SigN[1][2] + Finv[2][1]*Fn[1][2]*SigN[1][2]);
+    Tsigma_1(8,4)=(Finv[0][1]*Fn[1][0]*SigN[2][2] + Finv[1][1]*Fn[1][1]*SigN[2][2] + Finv[2][1]*Fn[1][2]*SigN[2][2]);
+
+    Tsigma_1(0,5)=(Finv[0][2]*Fn[1][0]*SigN[0][0] + Finv[1][2]*Fn[1][1]*SigN[0][0] + Finv[2][2]*Fn[1][2]*SigN[0][0]);
+    Tsigma_1(1,5)=(Finv[0][2]*Fn[1][0]*SigN[1][0] + Finv[1][2]*Fn[1][1]*SigN[1][0] + Finv[2][2]*Fn[1][2]*SigN[1][0]);
+    Tsigma_1(2,5)=(Finv[0][2]*Fn[1][0]*SigN[2][0] + Finv[1][2]*Fn[1][1]*SigN[2][0] + Finv[2][2]*Fn[1][2]*SigN[2][0]);
+    Tsigma_1(3,5)=(Finv[0][2]*Fn[1][0]*SigN[0][1] + Finv[1][2]*Fn[1][1]*SigN[0][1] + Finv[2][2]*Fn[1][2]*SigN[0][1]);
+    Tsigma_1(4,5)=(Finv[0][2]*Fn[1][0]*SigN[1][1] + Finv[1][2]*Fn[1][1]*SigN[1][1] + Finv[2][2]*Fn[1][2]*SigN[1][1]);
+    Tsigma_1(5,5)=(Finv[0][2]*Fn[1][0]*SigN[2][1] + Finv[1][2]*Fn[1][1]*SigN[2][1] + Finv[2][2]*Fn[1][2]*SigN[2][1]);
+    Tsigma_1(6,5)=(Finv[0][2]*Fn[1][0]*SigN[0][2] + Finv[1][2]*Fn[1][1]*SigN[0][2] + Finv[2][2]*Fn[1][2]*SigN[0][2]);
+    Tsigma_1(7,5)=(Finv[0][2]*Fn[1][0]*SigN[1][2] + Finv[1][2]*Fn[1][1]*SigN[1][2] + Finv[2][2]*Fn[1][2]*SigN[1][2]);
+    Tsigma_1(8,5)=(Finv[0][2]*Fn[1][0]*SigN[2][2] + Finv[1][2]*Fn[1][1]*SigN[2][2] + Finv[2][2]*Fn[1][2]*SigN[2][2]);
+
+    Tsigma_1(0,6)=(Finv[0][0]*Fn[2][0]*SigN[0][0] + Finv[1][0]*Fn[2][1]*SigN[0][0] + Finv[2][0]*Fn[2][2]*SigN[0][0]);
+    Tsigma_1(1,6)=(Finv[0][0]*Fn[2][0]*SigN[1][0] + Finv[1][0]*Fn[2][1]*SigN[1][0] + Finv[2][0]*Fn[2][2]*SigN[1][0]);
+    Tsigma_1(2,6)=(Finv[0][0]*Fn[2][0]*SigN[2][0] + Finv[1][0]*Fn[2][1]*SigN[2][0] + Finv[2][0]*Fn[2][2]*SigN[2][0]);
+    Tsigma_1(3,6)=(Finv[0][0]*Fn[2][0]*SigN[0][1] + Finv[1][0]*Fn[2][1]*SigN[0][1] + Finv[2][0]*Fn[2][2]*SigN[0][1]);
+    Tsigma_1(4,6)=(Finv[0][0]*Fn[2][0]*SigN[1][1] + Finv[1][0]*Fn[2][1]*SigN[1][1] + Finv[2][0]*Fn[2][2]*SigN[1][1]);
+    Tsigma_1(5,6)=(Finv[0][0]*Fn[2][0]*SigN[2][1] + Finv[1][0]*Fn[2][1]*SigN[2][1] + Finv[2][0]*Fn[2][2]*SigN[2][1]);
+    Tsigma_1(6,6)=(Finv[0][0]*Fn[2][0]*SigN[0][2] + Finv[1][0]*Fn[2][1]*SigN[0][2] + Finv[2][0]*Fn[2][2]*SigN[0][2]);
+    Tsigma_1(7,6)=(Finv[0][0]*Fn[2][0]*SigN[1][2] + Finv[1][0]*Fn[2][1]*SigN[1][2] + Finv[2][0]*Fn[2][2]*SigN[1][2]);
+    Tsigma_1(8,6)=(Finv[0][0]*Fn[2][0]*SigN[2][2] + Finv[1][0]*Fn[2][1]*SigN[2][2] + Finv[2][0]*Fn[2][2]*SigN[2][2]);
+
+
+    Tsigma_1(0,7)=(Finv[0][1]*Fn[2][0]*SigN[0][0] + Finv[1][1]*Fn[2][1]*SigN[0][0] + Finv[2][1]*Fn[2][2]*SigN[0][0]);
+    Tsigma_1(1,7)=(Finv[0][1]*Fn[2][0]*SigN[1][0] + Finv[1][1]*Fn[2][1]*SigN[1][0] + Finv[2][1]*Fn[2][2]*SigN[1][0]);
+    Tsigma_1(2,7)=(Finv[0][1]*Fn[2][0]*SigN[2][0] + Finv[1][1]*Fn[2][1]*SigN[2][0] + Finv[2][1]*Fn[2][2]*SigN[2][0]);
+    Tsigma_1(3,7)=(Finv[0][1]*Fn[2][0]*SigN[0][1] + Finv[1][1]*Fn[2][1]*SigN[0][1] + Finv[2][1]*Fn[2][2]*SigN[0][1]);
+    Tsigma_1(4,7)=(Finv[0][1]*Fn[2][0]*SigN[1][1] + Finv[1][1]*Fn[2][1]*SigN[1][1] + Finv[2][1]*Fn[2][2]*SigN[1][1]);
+    Tsigma_1(5,7)=(Finv[0][1]*Fn[2][0]*SigN[2][1] + Finv[1][1]*Fn[2][1]*SigN[2][1] + Finv[2][1]*Fn[2][2]*SigN[2][1]);
+    Tsigma_1(6,7)=(Finv[0][1]*Fn[2][0]*SigN[0][2] + Finv[1][1]*Fn[2][1]*SigN[0][2] + Finv[2][1]*Fn[2][2]*SigN[0][2]);
+    Tsigma_1(7,7)=(Finv[0][1]*Fn[2][0]*SigN[1][2] + Finv[1][1]*Fn[2][1]*SigN[1][2] + Finv[2][1]*Fn[2][2]*SigN[1][2]);
+    Tsigma_1(8,7)=(Finv[0][1]*Fn[2][0]*SigN[2][2] + Finv[1][1]*Fn[2][1]*SigN[2][2] + Finv[2][1]*Fn[2][2]*SigN[2][2]);
+
+    Tsigma_1(0,8)=(Finv[0][2]*Fn[2][0]*SigN[0][0] + Finv[1][2]*Fn[2][1]*SigN[0][0] + Finv[2][2]*Fn[2][2]*SigN[0][0]);
+    Tsigma_1(1,8)=(Finv[0][2]*Fn[2][0]*SigN[1][0] + Finv[1][2]*Fn[2][1]*SigN[1][0] + Finv[2][2]*Fn[2][2]*SigN[1][0]);
+    Tsigma_1(2,8)=(Finv[0][2]*Fn[2][0]*SigN[2][0] + Finv[1][2]*Fn[2][1]*SigN[2][0] + Finv[2][2]*Fn[2][2]*SigN[2][0]);
+    Tsigma_1(3,8)=(Finv[0][2]*Fn[2][0]*SigN[0][1] + Finv[1][2]*Fn[2][1]*SigN[0][1] + Finv[2][2]*Fn[2][2]*SigN[0][1]);
+    Tsigma_1(4,8)=(Finv[0][2]*Fn[2][0]*SigN[1][1] + Finv[1][2]*Fn[2][1]*SigN[1][1] + Finv[2][2]*Fn[2][2]*SigN[1][1]);
+    Tsigma_1(5,8)=(Finv[0][2]*Fn[2][0]*SigN[2][1] + Finv[1][2]*Fn[2][1]*SigN[2][1] + Finv[2][2]*Fn[2][2]*SigN[2][1]);
+    Tsigma_1(6,8)=(Finv[0][2]*Fn[2][0]*SigN[0][2] + Finv[1][2]*Fn[2][1]*SigN[0][2] + Finv[2][2]*Fn[2][2]*SigN[0][2]);
+    Tsigma_1(7,8)=(Finv[0][2]*Fn[2][0]*SigN[1][2] + Finv[1][2]*Fn[2][1]*SigN[1][2] + Finv[2][2]*Fn[2][2]*SigN[1][2]);
+    Tsigma_1(8,8)=(Finv[0][2]*Fn[2][0]*SigN[2][2] + Finv[1][2]*Fn[2][1]*SigN[2][2] + Finv[2][2]*Fn[2][2]*SigN[2][2]);*/
 
 
 
@@ -5246,6 +5301,97 @@ void FSMicromorphic3DT::Form_Tsigma_2_matrix()
         }
     }
 
+/*    Tsigma_2=0.0;
+    Tsigma_2(0,0)=(Finv[0][0]*Fn[0][0]*SigN[0][0] + Finv[1][0]*Fn[0][1]*SigN[0][0] + Finv[2][0]*Fn[0][2]*SigN[0][0]);
+    Tsigma_2(1,0)=(Finv[0][0]*Fn[1][0]*SigN[0][0] + Finv[1][0]*Fn[1][1]*SigN[0][0] + Finv[2][0]*Fn[1][2]*SigN[0][0]);
+    Tsigma_2(2,0)=(Finv[0][0]*Fn[2][0]*SigN[0][0] + Finv[1][0]*Fn[2][1]*SigN[0][0] + Finv[2][0]*Fn[2][2]*SigN[0][0]);
+    Tsigma_2(3,0)=(Finv[0][0]*Fn[0][0]*SigN[0][1] + Finv[1][0]*Fn[0][1]*SigN[0][1] + Finv[2][0]*Fn[0][2]*SigN[0][1]);
+    Tsigma_2(4,0)=(Finv[0][0]*Fn[1][0]*SigN[0][1] + Finv[1][0]*Fn[1][1]*SigN[0][1] + Finv[2][0]*Fn[1][2]*SigN[0][1]);
+    Tsigma_2(5,0)=(Finv[0][0]*Fn[2][0]*SigN[0][1] + Finv[1][0]*Fn[2][1]*SigN[0][1] + Finv[2][0]*Fn[2][2]*SigN[0][1]);
+    Tsigma_2(6,0)=(Finv[0][0]*Fn[0][0]*SigN[0][2] + Finv[1][0]*Fn[0][1]*SigN[0][2] + Finv[2][0]*Fn[0][2]*SigN[0][2]);
+    Tsigma_2(7,0)=(Finv[0][0]*Fn[1][0]*SigN[0][2] + Finv[1][0]*Fn[1][1]*SigN[0][2] + Finv[2][0]*Fn[1][2]*SigN[0][2]);
+    Tsigma_2(8,0)=(Finv[0][0]*Fn[2][0]*SigN[0][2] + Finv[1][0]*Fn[2][1]*SigN[0][2] + Finv[2][0]*Fn[2][2]*SigN[0][2]);
+
+    Tsigma_2(0,1)=(Finv[0][1]*Fn[0][0]*SigN[0][0] + Finv[1][1]*Fn[0][1]*SigN[0][0] + Finv[2][1]*Fn[0][2]*SigN[0][0]);
+    Tsigma_2(1,1)=(Finv[0][1]*Fn[1][0]*SigN[0][0] + Finv[1][1]*Fn[1][1]*SigN[0][0] + Finv[2][1]*Fn[1][2]*SigN[0][0]);
+    Tsigma_2(2,1)=(Finv[0][1]*Fn[2][0]*SigN[0][0] + Finv[1][1]*Fn[2][1]*SigN[0][0] + Finv[2][1]*Fn[2][2]*SigN[0][0]);
+    Tsigma_2(3,1)=(Finv[0][1]*Fn[0][0]*SigN[0][1] + Finv[1][1]*Fn[0][1]*SigN[0][1] + Finv[2][1]*Fn[0][2]*SigN[0][1]);
+    Tsigma_2(4,1)=(Finv[0][1]*Fn[1][0]*SigN[0][1] + Finv[1][1]*Fn[1][1]*SigN[0][1] + Finv[2][1]*Fn[1][2]*SigN[0][1]);
+    Tsigma_2(5,1)=(Finv[0][1]*Fn[2][0]*SigN[0][1] + Finv[1][1]*Fn[2][1]*SigN[0][1] + Finv[2][1]*Fn[2][2]*SigN[0][1]);
+    Tsigma_2(6,1)=(Finv[0][1]*Fn[0][0]*SigN[0][2] + Finv[1][1]*Fn[0][1]*SigN[0][2] + Finv[2][1]*Fn[0][2]*SigN[0][2]);
+    Tsigma_2(7,1)=(Finv[0][1]*Fn[1][0]*SigN[0][2] + Finv[1][1]*Fn[1][1]*SigN[0][2] + Finv[2][1]*Fn[1][2]*SigN[0][2]);
+    Tsigma_2(8,1)=(Finv[0][1]*Fn[2][0]*SigN[0][2] + Finv[1][1]*Fn[2][1]*SigN[0][2] + Finv[2][1]*Fn[2][2]*SigN[0][2]);
+
+    Tsigma_2(0,2)=(Finv[0][2]*Fn[0][0]*SigN[0][0] + Finv[1][2]*Fn[0][1]*SigN[0][0] + Finv[2][2]*Fn[0][2]*SigN[0][0]);
+    Tsigma_2(1,2)=(Finv[0][2]*Fn[1][0]*SigN[0][0] + Finv[1][2]*Fn[1][1]*SigN[0][0] + Finv[2][2]*Fn[1][2]*SigN[0][0]);
+    Tsigma_2(2,2)=(Finv[0][2]*Fn[2][0]*SigN[0][0] + Finv[1][2]*Fn[2][1]*SigN[0][0] + Finv[2][2]*Fn[2][2]*SigN[0][0]);
+    Tsigma_2(3,2)=(Finv[0][2]*Fn[0][0]*SigN[0][1] + Finv[1][2]*Fn[0][1]*SigN[0][1] + Finv[2][2]*Fn[0][2]*SigN[0][1]);
+    Tsigma_2(4,2)=(Finv[0][2]*Fn[1][0]*SigN[0][1] + Finv[1][2]*Fn[1][1]*SigN[0][1] + Finv[2][2]*Fn[1][2]*SigN[0][1]);
+    Tsigma_2(5,2)=(Finv[0][2]*Fn[2][0]*SigN[0][1] + Finv[1][2]*Fn[2][1]*SigN[0][1] + Finv[2][2]*Fn[2][2]*SigN[0][1]);
+    Tsigma_2(6,2)=(Finv[0][2]*Fn[0][0]*SigN[0][2] + Finv[1][2]*Fn[0][1]*SigN[0][2] + Finv[2][2]*Fn[0][2]*SigN[0][2]);
+    Tsigma_2(7,2)=(Finv[0][2]*Fn[1][0]*SigN[0][2] + Finv[1][2]*Fn[1][1]*SigN[0][2] + Finv[2][2]*Fn[1][2]*SigN[0][2]);
+    Tsigma_2(8,2)=(Finv[0][2]*Fn[2][0]*SigN[0][2] + Finv[1][2]*Fn[2][1]*SigN[0][2] + Finv[2][2]*Fn[2][2]*SigN[0][2]);
+
+    Tsigma_2(0,3)=(Finv[0][0]*Fn[0][0]*SigN[1][0] + Finv[1][0]*Fn[0][1]*SigN[1][0] + Finv[2][0]*Fn[0][2]*SigN[1][0]);
+    Tsigma_2(1,3)=(Finv[0][0]*Fn[1][0]*SigN[1][0] + Finv[1][0]*Fn[1][1]*SigN[1][0] + Finv[2][0]*Fn[1][2]*SigN[1][0]);
+    Tsigma_2(2,3)=(Finv[0][0]*Fn[2][0]*SigN[1][0] + Finv[1][0]*Fn[2][1]*SigN[1][0] + Finv[2][0]*Fn[2][2]*SigN[1][0]);
+    Tsigma_2(3,3)=(Finv[0][0]*Fn[0][0]*SigN[1][1] + Finv[1][0]*Fn[0][1]*SigN[1][1] + Finv[2][0]*Fn[0][2]*SigN[1][1]);
+    Tsigma_2(4,3)=(Finv[0][0]*Fn[1][0]*SigN[1][1] + Finv[1][0]*Fn[1][1]*SigN[1][1] + Finv[2][0]*Fn[1][2]*SigN[1][1]);
+    Tsigma_2(5,3)=(Finv[0][0]*Fn[2][0]*SigN[1][1] + Finv[1][0]*Fn[2][1]*SigN[1][1] + Finv[2][0]*Fn[2][2]*SigN[1][1]);
+    Tsigma_2(6,3)=(Finv[0][0]*Fn[0][0]*SigN[1][2] + Finv[1][0]*Fn[0][1]*SigN[1][2] + Finv[2][0]*Fn[0][2]*SigN[1][2]);
+    Tsigma_2(7,3)=(Finv[0][0]*Fn[1][0]*SigN[1][2] + Finv[1][0]*Fn[1][1]*SigN[1][2] + Finv[2][0]*Fn[1][2]*SigN[1][2]);
+    Tsigma_2(8,3)=(Finv[0][0]*Fn[2][0]*SigN[1][2] + Finv[1][0]*Fn[2][1]*SigN[1][2] + Finv[2][0]*Fn[2][2]*SigN[1][2]);
+
+    Tsigma_2(0,4)=(Finv[0][1]*Fn[0][0]*SigN[1][0] + Finv[1][1]*Fn[0][1]*SigN[1][0] + Finv[2][1]*Fn[0][2]*SigN[1][0]);
+    Tsigma_2(1,4)=(Finv[0][1]*Fn[1][0]*SigN[1][0] + Finv[1][1]*Fn[1][1]*SigN[1][0] + Finv[2][1]*Fn[1][2]*SigN[1][0]);
+    Tsigma_2(2,4)=(Finv[0][1]*Fn[2][0]*SigN[1][0] + Finv[1][1]*Fn[2][1]*SigN[1][0] + Finv[2][1]*Fn[2][2]*SigN[1][0]);
+    Tsigma_2(3,4)=(Finv[0][1]*Fn[0][0]*SigN[1][1] + Finv[1][1]*Fn[0][1]*SigN[1][1] + Finv[2][1]*Fn[0][2]*SigN[1][1]);
+    Tsigma_2(4,4)=(Finv[0][1]*Fn[1][0]*SigN[1][1] + Finv[1][1]*Fn[1][1]*SigN[1][1] + Finv[2][1]*Fn[1][2]*SigN[1][1]);
+    Tsigma_2(5,4)=(Finv[0][1]*Fn[2][0]*SigN[1][1] + Finv[1][1]*Fn[2][1]*SigN[1][1] + Finv[2][1]*Fn[2][2]*SigN[1][1]);
+    Tsigma_2(6,4)=(Finv[0][1]*Fn[0][0]*SigN[1][2] + Finv[1][1]*Fn[0][1]*SigN[1][2] + Finv[2][1]*Fn[0][2]*SigN[1][2]);
+    Tsigma_2(7,4)=(Finv[0][1]*Fn[1][0]*SigN[1][2] + Finv[1][1]*Fn[1][1]*SigN[1][2] + Finv[2][1]*Fn[1][2]*SigN[1][2]);
+    Tsigma_2(8,4)=(Finv[0][1]*Fn[2][0]*SigN[1][2] + Finv[1][1]*Fn[2][1]*SigN[1][2] + Finv[2][1]*Fn[2][2]*SigN[1][2]);
+
+    Tsigma_2(0,5)=(Finv[0][2]*Fn[0][0]*SigN[1][0] + Finv[1][2]*Fn[0][1]*SigN[1][0] + Finv[2][2]*Fn[0][2]*SigN[1][0]);
+    Tsigma_2(1,5)=(Finv[0][2]*Fn[1][0]*SigN[1][0] + Finv[1][2]*Fn[1][1]*SigN[1][0] + Finv[2][2]*Fn[1][2]*SigN[1][0]);
+    Tsigma_2(2,5)=(Finv[0][2]*Fn[2][0]*SigN[1][0] + Finv[1][2]*Fn[2][1]*SigN[1][0] + Finv[2][2]*Fn[2][2]*SigN[1][0]);
+    Tsigma_2(3,5)=(Finv[0][2]*Fn[0][0]*SigN[1][1] + Finv[1][2]*Fn[0][1]*SigN[1][1] + Finv[2][2]*Fn[0][2]*SigN[1][1]);
+    Tsigma_2(4,5)=(Finv[0][2]*Fn[1][0]*SigN[1][1] + Finv[1][2]*Fn[1][1]*SigN[1][1] + Finv[2][2]*Fn[1][2]*SigN[1][1]);
+    Tsigma_2(5,5)=(Finv[0][2]*Fn[2][0]*SigN[1][1] + Finv[1][2]*Fn[2][1]*SigN[1][1] + Finv[2][2]*Fn[2][2]*SigN[1][1]);
+    Tsigma_2(6,5)=(Finv[0][2]*Fn[0][0]*SigN[1][2] + Finv[1][2]*Fn[0][1]*SigN[1][2] + Finv[2][2]*Fn[0][2]*SigN[1][2]);
+    Tsigma_2(7,5)=(Finv[0][2]*Fn[1][0]*SigN[1][2] + Finv[1][2]*Fn[1][1]*SigN[1][2] + Finv[2][2]*Fn[1][2]*SigN[1][2]);
+    Tsigma_2(8,5)=(Finv[0][2]*Fn[2][0]*SigN[1][2] + Finv[1][2]*Fn[2][1]*SigN[1][2] + Finv[2][2]*Fn[2][2]*SigN[1][2]);
+
+    Tsigma_2(0,6)=(Finv[0][0]*Fn[0][0]*SigN[2][0] + Finv[1][0]*Fn[0][1]*SigN[2][0] + Finv[2][0]*Fn[0][2]*SigN[2][0]);
+    Tsigma_2(1,6)=(Finv[0][0]*Fn[1][0]*SigN[2][0] + Finv[1][0]*Fn[1][1]*SigN[2][0] + Finv[2][0]*Fn[1][2]*SigN[2][0]);
+    Tsigma_2(2,6)=(Finv[0][0]*Fn[2][0]*SigN[2][0] + Finv[1][0]*Fn[2][1]*SigN[2][0] + Finv[2][0]*Fn[2][2]*SigN[2][0]);
+    Tsigma_2(3,6)=(Finv[0][0]*Fn[0][0]*SigN[2][1] + Finv[1][0]*Fn[0][1]*SigN[2][1] + Finv[2][0]*Fn[0][2]*SigN[2][1]);
+    Tsigma_2(4,6)=(Finv[0][0]*Fn[1][0]*SigN[2][1] + Finv[1][0]*Fn[1][1]*SigN[2][1] + Finv[2][0]*Fn[1][2]*SigN[2][1]);
+    Tsigma_2(5,6)=(Finv[0][0]*Fn[2][0]*SigN[2][1] + Finv[1][0]*Fn[2][1]*SigN[2][1] + Finv[2][0]*Fn[2][2]*SigN[2][1]);
+    Tsigma_2(6,6)=(Finv[0][0]*Fn[0][0]*SigN[2][2] + Finv[1][0]*Fn[0][1]*SigN[2][2] + Finv[2][0]*Fn[0][2]*SigN[2][2]);
+    Tsigma_2(7,6)=(Finv[0][0]*Fn[1][0]*SigN[2][2] + Finv[1][0]*Fn[1][1]*SigN[2][2] + Finv[2][0]*Fn[1][2]*SigN[2][2]);
+    Tsigma_2(8,6)=(Finv[0][0]*Fn[2][0]*SigN[2][2] + Finv[1][0]*Fn[2][1]*SigN[2][2] + Finv[2][0]*Fn[2][2]*SigN[2][2]);
+
+    Tsigma_2(0,7)=(Finv[0][1]*Fn[0][0]*SigN[2][0] + Finv[1][1]*Fn[0][1]*SigN[2][0] + Finv[2][1]*Fn[0][2]*SigN[2][0]);
+    Tsigma_2(1,7)=(Finv[0][1]*Fn[1][0]*SigN[2][0] + Finv[1][1]*Fn[1][1]*SigN[2][0] + Finv[2][1]*Fn[1][2]*SigN[2][0]);
+    Tsigma_2(2,7)=(Finv[0][1]*Fn[2][0]*SigN[2][0] + Finv[1][1]*Fn[2][1]*SigN[2][0] + Finv[2][1]*Fn[2][2]*SigN[2][0]);
+    Tsigma_2(3,7)=(Finv[0][1]*Fn[0][0]*SigN[2][1] + Finv[1][1]*Fn[0][1]*SigN[2][1] + Finv[2][1]*Fn[0][2]*SigN[2][1]);
+    Tsigma_2(4,7)=(Finv[0][1]*Fn[1][0]*SigN[2][1] + Finv[1][1]*Fn[1][1]*SigN[2][1] + Finv[2][1]*Fn[1][2]*SigN[2][1]);
+    Tsigma_2(5,7)=(Finv[0][1]*Fn[2][0]*SigN[2][1] + Finv[1][1]*Fn[2][1]*SigN[2][1] + Finv[2][1]*Fn[2][2]*SigN[2][1]);
+    Tsigma_2(6,7)=(Finv[0][1]*Fn[0][0]*SigN[2][2] + Finv[1][1]*Fn[0][1]*SigN[2][2] + Finv[2][1]*Fn[0][2]*SigN[2][2]);
+    Tsigma_2(7,7)=(Finv[0][1]*Fn[1][0]*SigN[2][2] + Finv[1][1]*Fn[1][1]*SigN[2][2] + Finv[2][1]*Fn[1][2]*SigN[2][2]);
+    Tsigma_2(8,7)=(Finv[0][1]*Fn[2][0]*SigN[2][2] + Finv[1][1]*Fn[2][1]*SigN[2][2] + Finv[2][1]*Fn[2][2]*SigN[2][2]);
+
+    Tsigma_2(0,8)=(Finv[0][2]*Fn[0][0]*SigN[2][0] + Finv[1][2]*Fn[0][1]*SigN[2][0] + Finv[2][2]*Fn[0][2]*SigN[2][0]);
+    Tsigma_2(1,8)=(Finv[0][2]*Fn[1][0]*SigN[2][0] + Finv[1][2]*Fn[1][1]*SigN[2][0] + Finv[2][2]*Fn[1][2]*SigN[2][0]);
+    Tsigma_2(2,8)=(Finv[0][2]*Fn[2][0]*SigN[2][0] + Finv[1][2]*Fn[2][1]*SigN[2][0] + Finv[2][2]*Fn[2][2]*SigN[2][0]);
+    Tsigma_2(3,8)=(Finv[0][2]*Fn[0][0]*SigN[2][1] + Finv[1][2]*Fn[0][1]*SigN[2][1] + Finv[2][2]*Fn[0][2]*SigN[2][1]);
+    Tsigma_2(4,8)=(Finv[0][2]*Fn[1][0]*SigN[2][1] + Finv[1][2]*Fn[1][1]*SigN[2][1] + Finv[2][2]*Fn[1][2]*SigN[2][1]);
+    Tsigma_2(5,8)=(Finv[0][2]*Fn[2][0]*SigN[2][1] + Finv[1][2]*Fn[2][1]*SigN[2][1] + Finv[2][2]*Fn[2][2]*SigN[2][1]);
+    Tsigma_2(6,8)=(Finv[0][2]*Fn[0][0]*SigN[2][2] + Finv[1][2]*Fn[0][1]*SigN[2][2] + Finv[2][2]*Fn[0][2]*SigN[2][2]);
+    Tsigma_2(7,8)=(Finv[0][2]*Fn[1][0]*SigN[2][2] + Finv[1][2]*Fn[1][1]*SigN[2][2] + Finv[2][2]*Fn[1][2]*SigN[2][2]);
+    Tsigma_2(8,8)=(Finv[0][2]*Fn[2][0]*SigN[2][2] + Finv[1][2]*Fn[2][1]*SigN[2][2] + Finv[2][2]*Fn[2][2]*SigN[2][2]);
+*/
 
 }
 
@@ -9870,26 +10016,26 @@ void FSMicromorphic3DT:: Form_I3e_1()
        row=0;
        for(int N=0; N<3;N)
        {
-       	 for(int l=0;l<3;l++)
-       	 {
-       	    //summation over the same terms
-       	    for (int k=0;k<3;k++)
-       	    {
-       	      for(int Kbar=0;Kbar<3;Kbar++)
-       	      {
-       	        for(int Nbar=0;Nbar<3;Nbar++)
-       	        {
-       	          for(int Lbar=0;Lbar<3;Lbar++)
-       	          {
-       	            I3e_1(row,col)+= fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
-       	                           *fFe(i,Nbar)*fFp_inverse(M,Nbar)*fIdentity_matrix(Kbar,Lbar)
-       	                           *fFe(l,Lbar);
-       	          }
-       	        }
-       	      }
-       	    }
-       	    row++;
-       	 }
+         for(int l=0;l<3;l++)
+         {
+            //summation over the same terms
+            for (int k=0;k<3;k++)
+            {
+              for(int Kbar=0;Kbar<3;Kbar++)
+              {
+                for(int Nbar=0;Nbar<3;Nbar++)
+                {
+                  for(int Lbar=0;Lbar<3;Lbar++)
+                  {
+                    I3e_1(row,col)+= fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+                                   *fFe(i,Nbar)*fFp_inverse(M,Nbar)*fIdentity_matrix(Kbar,Lbar)
+                                   *fFe(l,Lbar);
+                  }
+                }
+              }
+            }
+            row++;
+         }
        }
        col++;
      }
@@ -9993,21 +10139,21 @@ void FSMicromorphic3DT:: Form_I3p_4()
        for(int l=0;l<3;l++)
         {
           //summation over the same term
-	   for(int Kbar=0;Kbar<3;Kbar++)
-	   {
-	    for(int Lbar=0;Lbar<3;Lbar++)
-	    {
-	     for(int Mbar=0;Mbar<3;Mbar++)
-	     {
-	      for(int k=0;k<3;k++)
-	      {
-	       I3p_4(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
-	                      *fFe(i,Mbar)*fFp_inverse(M,Mbar)
-	                      *fFe(l,Lbar)*fIdentity_matrix(Kbar,Lbar);
-	      }	      
-	     }	     
-	    }
-	   }  	   
+       for(int Kbar=0;Kbar<3;Kbar++)
+       {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+         for(int Mbar=0;Mbar<3;Mbar++)
+         {
+          for(int k=0;k<3;k++)
+          {
+           I3p_4(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+                          *fFe(i,Mbar)*fFp_inverse(M,Mbar)
+                          *fFe(l,Lbar)*fIdentity_matrix(Kbar,Lbar);
+          }              
+         }             
+        }
+       }             
            row++;          
         }
       }
@@ -10034,28 +10180,28 @@ void FSMicromorphic3DT:: Form_I3p_5()
        for(int l=0;l<3;l++)
         {
           //summation over the same term
-	   for(int Mbar=0;Mbar<3;Mbar++)
-	   {
-	     for(int Nbar=0;Nbar<3;Nbar++)
-	     {
-	      for(int Kbar=0;Kbar<3;Kbar=0)
-	      {
-	       for(int Lbar=0;Lbar<3;Lbar++)
-	        {
-	          for(int k=0;k<3;k++)
-	          {
-	           I3p_5(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
-	                          *fFe(i,Nbar)*fFp_inverse(M,Mbar)*fFe(l,Lbar)
-	                          *fdFYdS(Mbar,Nbar)*fIdentity_matrix(Kbar,Lbar);
-	          }
-	          
-	        }
-	       
-	      }
-	     
-	     }
-	   
-	   }   
+       for(int Mbar=0;Mbar<3;Mbar++)
+       {
+         for(int Nbar=0;Nbar<3;Nbar++)
+         {
+          for(int Kbar=0;Kbar<3;Kbar=0)
+          {
+           for(int Lbar=0;Lbar<3;Lbar++)
+            {
+              for(int k=0;k<3;k++)
+              {
+               I3p_5(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+                              *fFe(i,Nbar)*fFp_inverse(M,Mbar)*fFe(l,Lbar)
+                              *fdFYdS(Mbar,Nbar)*fIdentity_matrix(Kbar,Lbar);
+              }
+              
+            }
+           
+          }
+         
+         }
+       
+       }   
            row++;          
         }
       }
@@ -10083,28 +10229,28 @@ void FSMicromorphic3DT:: Form_I3p_6()
        for(int l=0;l<3;l++)
         {
           //summation over the same term
-	   for(int Mbar=0;Mbar<3;Mbar++)
-	   {
-	     for(int Nbar=0;Nbar<3;Nbar++)
-	     {
-	      for(int Kbar=0;Kbar<3;Kbar=0)
-	      {
-	       for(int Lbar=0;Lbar<3;Lbar++)
-	        {
-	          for(int k=0;k<3;k++)
-	          {
-	           I3p_6(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
-	                          *fFe(i,Mbar)*fFp_inverse(M,Nbar)*fFe(l,Lbar)
-	                          *fdFYdS(Mbar,Nbar)*fIdentity_matrix(Kbar,Lbar);
-	          }
-	          
-	        }
-	       
-	      }
-	     
-	     }
-	   
-	   }   
+       for(int Mbar=0;Mbar<3;Mbar++)
+       {
+         for(int Nbar=0;Nbar<3;Nbar++)
+         {
+          for(int Kbar=0;Kbar<3;Kbar=0)
+          {
+           for(int Lbar=0;Lbar<3;Lbar++)
+            {
+              for(int k=0;k<3;k++)
+              {
+               I3p_6(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+                              *fFe(i,Mbar)*fFp_inverse(M,Nbar)*fFe(l,Lbar)
+                              *fdFYdS(Mbar,Nbar)*fIdentity_matrix(Kbar,Lbar);
+              }
+              
+            }
+           
+          }
+         
+         }
+       
+       }   
            row++;          
         }
       }
@@ -10131,22 +10277,22 @@ void FSMicromorphic3DT:: Form_I3p_7()
        for(int l=0;l<3;l++)
         {
           //summation over the same term
- 	   for(int k=0;k<3;k++)
- 	   {
- 	     for(int Kbar=0;Kbar<3;Kbar++)
- 	     {
- 	      for(int Lbar=0;Lbar<3;Lbar++)
- 	       {
- 	        for(int Abar=0;Abar<3;Abar++)
- 	        {
- 	         I3p_7(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
- 	                        *fA1(Lbar,Kbar)*fFe(l,Lbar)*fFe(i,Abar)*fFp_inverse(M,Abar);
- 	        }
- 	       }
- 	      
- 	     }
- 	   
- 	   }
+       for(int k=0;k<3;k++)
+       {
+         for(int Kbar=0;Kbar<3;Kbar++)
+         {
+          for(int Lbar=0;Lbar<3;Lbar++)
+           {
+            for(int Abar=0;Abar<3;Abar++)
+            {
+             I3p_7(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+                            *fA1(Lbar,Kbar)*fFe(l,Lbar)*fFe(i,Abar)*fFp_inverse(M,Abar);
+            }
+           }
+          
+         }
+       
+       }
  
            row++;          
         }
@@ -10175,24 +10321,24 @@ void FSMicromorphic3DT:: Form_I3p_8()
        for(int l=0;l<3;l++)
         {
           //summation over the same term
-  	   for(int k=0;k<3;k++)
-  	   {
-  	     for(int Kbar=0;Kbar<3;Kbar++)
-  	     {
-  	       for(int Lbar=0;Lbar<3;Lbar++)
-  	        {
-  	          for(int Mbar=0;Mbar<3;Mbar++)
-  	          {
-  	           for(int Nbar=0;Nbar<3;Nbar++)
-  	           {
-  	          I3p_8(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+       for(int k=0;k<3;k++)
+       {
+         for(int Kbar=0;Kbar<3;Kbar++)
+         {
+           for(int Lbar=0;Lbar<3;Lbar++)
+            {
+              for(int Mbar=0;Mbar<3;Mbar++)
+              {
+               for(int Nbar=0;Nbar<3;Nbar++)
+               {
+              I3p_8(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
                      *fA1(Lbar,Kbar)*fFe(l,Lbar)*fdFYdS(Mbar,Nbar)*fFe(i,Nbar)
                      *fFp_inverse(M,Mbar);
                      }
-  	          }
-  	        }
-  	     }
-  	   }
+              }
+            }
+         }
+       }
 
            row++;          
         }
@@ -10222,24 +10368,24 @@ void FSMicromorphic3DT:: Form_I3p_9()
        for(int l=0;l<3;l++)
         {
           //summation over the same term
-  	   for(int k=0;k<3;k++)
-  	   {
-  	     for(int Kbar=0;Kbar<3;Kbar++)
-  	     {
-  	       for(int Lbar=0;Lbar<3;Lbar++)
-  	        {
-  	          for(int Mbar=0;Mbar<3;Mbar++)
-  	          {
-  	           for(int Nbar=0;Nbar<3;Nbar++)
-  	           {
-  	          I3p_9(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
+       for(int k=0;k<3;k++)
+       {
+         for(int Kbar=0;Kbar<3;Kbar++)
+         {
+           for(int Lbar=0;Lbar<3;Lbar++)
+            {
+              for(int Mbar=0;Mbar<3;Mbar++)
+              {
+               for(int Nbar=0;Nbar<3;Nbar++)
+               {
+              I3p_9(row,col)+=fDeformation_Gradient_Inverse(N,k)*fFe(k,Kbar)
                      *fA1(Lbar,Kbar)*fFe(l,Lbar)*fdFYdS(Mbar,Nbar)*fFe(i,Mbar)
                      *fFp_inverse(M,Nbar);
                      }
-  	          }
-  	        }
-  	     }
-  	   }
+              }
+            }
+         }
+       }
 
            row++;          
         }
@@ -10639,6 +10785,5 @@ void FSMicromorphic3DT::Put_values_In_Array(const dArray2DT &f2DArrayT,const int
 ////////////////////// FINISH HERE FOR MICROMORPHIC 3-D CASE/////////////
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-
 
 
