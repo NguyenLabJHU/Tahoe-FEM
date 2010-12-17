@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.136 2010-12-15 07:42:09 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.137 2010-12-17 23:45:34 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -397,26 +397,8 @@ private:
     dMatrixT deltad;
     dMatrixT SigN_ar;
 
-    dMatrixT Mat1;
-    dMatrixT Mat2;
-    dMatrixT Mat3;
-    dMatrixT Mat4;
-    dMatrixT Mat5;
-    dArrayT RHS;
-    dMatrixT Mat5_Inv;
-    dMatrixT Sigma1;
-    dMatrixT Sigma2;
-    dMatrixT Sigma3;
-    dMatrixT Sigma4;
-    dMatrixT Sigma5;
-    dMatrixT Sigma6;
-    dMatrixT Sigma6_1;
-    dMatrixT Sigma6_2;
-    dMatrixT Sigma6_3;
-    dMatrixT Sigma6_4;
-    dMatrixT Sigma7;
-    dMatrixT Sigma8;
 
+    dMatrixT Sigma8;
     dArray2DT SigN_IPs;
     dArray2DT Sig_IPs;
     dArray2DT SigN_IPs_n;

@@ -114,7 +114,7 @@
 			    	    /* update fDelgamma */
 			    	    fDelgamma += fdelDelgamma;              
 			    	    
-			    	    khc=-Aphi;                       
+			    	   fState_variables_n_IPs(IP,kc) =-Aphi;                       
 
 			    	   if (fDelgamma < 0.0) fDelgamma = 0.0;
 			    	   fState_variables_IPs(IP,kDelgamma) = fDelgamma; 
