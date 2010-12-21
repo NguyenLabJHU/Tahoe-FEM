@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.137 2010-12-17 23:45:34 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.138 2010-12-21 21:26:18 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -867,7 +867,8 @@ private:
     dArray2DT	fCe_Elements_IPs;
     
     dMatrixT    fCe_n;
-    dMatrixT    fCe_n_inverse;    
+    dMatrixT    fCe_n_inverse;   
+    dMatrixT    fdGdS_n_transpose; 
     dArray2DT	fCe_n_IPs;
     dArray2DT	fCe_n_Elements_IPs;
 
