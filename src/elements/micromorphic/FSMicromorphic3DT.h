@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.138 2010-12-21 21:26:18 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.139 2010-12-23 08:34:49 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -775,6 +775,7 @@ private:
     dMatrixT fFp;
     dMatrixT fFp_inverse;
     dMatrixT fFp_n;
+    dMatrixT fFp_n_inverse;    
     dMatrixT fFe;
     dMatrixT fFe_tr;
     dMatrixT fdGdS_n;
@@ -803,7 +804,7 @@ private:
     double fYield_function,fYield_function_tr,dFYdc;
     double devfSPKinv;
     double fDelgamma, fdelDelgamma,dFYdDelgamma,fdcddgamma;
-    double dPdDelgamma,dcdDelgamma,Temp_inv,dinvSdDelgamma;
+    double dPdDelgamma,dcdDelgamma,Temp_inv,press,dinvSdDelgamma;
     int iter_count, global_iteration;
    /* some scalars used in calculations */
    double dFYdScol1;

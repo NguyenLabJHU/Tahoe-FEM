@@ -2197,10 +2197,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         fdGdS_n_IPs.RowCopy(IP,fdGdS_n);
 	             /*   //fdGdS_IPs.RowCopy(IP,fdGdS_IPs); */  
 	                fdFYdS_n_IPs.RowCopy(IP,fdFYdS_n);  
-               		fTemp_matrix_nsd_x_nsd.Inverse(fFp_n);                		
-     		    	fFe_tr.MultAB(fDeformation_Gradient,fTemp_matrix_nsd_x_nsd);//fFe_tr --> Fe trial
-		    	fTemp_matrix_nsd_x_nsd.Transpose(fFe_tr);
-		    	fRight_Cauchy_Green_tensor_tr.MultATB(fTemp_matrix_nsd_x_nsd,fFe_tr);
+               		fFp_n_inverse.Inverse(fFp_n);                		
+     		    	fFe_tr.MultAB(fDeformation_Gradient,fFp_n_inverse);//fFe_tr --> Fe trial
+		    	fRight_Cauchy_Green_tensor_tr.MultATB(fFe_tr,fFe_tr);
 		        if (fRight_Cauchy_Green_tensor_tr.Det()==0)
 			   fRight_Cauchy_Green_tensor_tr = fIdentity_matrix;
 		    	fLagrangian_strain_tensor_tr=fIdentity_matrix;
@@ -2209,17 +2208,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    	fLagrangian_strain_tensor_tr*=0.5;
 
 		    	////fSPK_tr calculation
-		    	double press=0.0;
-		    	fTemp_matrix_nsd_x_nsd=fIdentity_matrix;
-		        press=fLagrangian_strain_tensor_tr.Trace();//Calculating the trace of E and keep in a variable called  press
-       		    	fTemp_matrix_nsd_x_nsd*=press;
-		    	fTemp_matrix_nsd_x_nsd*=fMaterial_Params[kLambda];
-		    	fSPK_tr=fLagrangian_strain_tensor_tr;
-		    	fSPK_tr*=fMaterial_Params[kMu];
+		    	Temp_inv=0.0;
+		        Temp_inv=fLagrangian_strain_tensor_tr.Trace();//Calculating the tr(E) and keep in temp. var. 
+		    	fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kLambda],fIdentity_matrix);
+                        fSPK_tr.SetToScaled(2*fMaterial_Params[kMu],fLagrangian_strain_tensor_tr);    	
 		    	fSPK_tr+=fTemp_matrix_nsd_x_nsd;
 
 			/* Form terms related the cohesion and friction angle  in D-P yield function */
-		        int Beta=-1;
+		        double Beta=-1.0;
 		        double Aphi=2*sqrt(6)*cos(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
 		        double Bphi=2*sqrt(6)/(3+Beta*sin(fMaterial_Params[kFphi]));
 			/* Form the cohesion and dilation angle related terms in Plastic potential function */		      
@@ -2228,35 +2224,31 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		     
 		     
 			/* Form the trial dev. part of SPK */		      		     
-		        double Temp_inv=0.0;		        		     
+			//press=0.0
 		        press=fSPK_tr.Trace()/3;//Calculating the pressure term		        		       
-		        fdevSPK_tr=fIdentity_matrix;
-		        fdevSPK_tr*=-press;
-		        //fdevSPK_tr*=-1;
+		        fdevSPK_tr.SetToScaled(-1*press,fIdentity_matrix);
 		        fdevSPK_tr+=fSPK_tr;
 		        //Temp_inv=dMatrixT::Dot(fdevSPK_tr,fdevSPK_tr);
-			/* Calculate devS: devS  */			        
+			/* Calculate devS: devS  */	
+		        //Temp_inv=0.0;					        
 		        Temp_inv= fdevSPK_tr.ScalarProduct();		      
 		        devfSPKinv=sqrt(Temp_inv);
 		        
-		        
-		        
-			//Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
+		                
+			//Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv); not used currently
 			
-			/* Check fof yielding e,l*(42+kNUM_FMATERIAL_STATE_TERMS)+kc */
+                        //Check for yielding
+		        fYield_function_tr=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press); 	
 
-
-		       fYield_function_tr=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press); 	
-                       //cout<<"fYield_function_tr="<<fYield_function_tr<<endl;
 
 		  	    if(fYield_function_tr>dYieldTrialTol)//plastic
 		  	     {	        	
 
-		        	//cout<<"yielded"<<endl;
-		        	/* retrieve dGdS_n at integration point */
+		        	//cout<<"YIELDED"<<endl;
+		        	// retrieve dGdS_n at integration point (already done above)
 		        	//fdGdS_n_IPs.RowCopy(IP,fdGdS_n);
 
-		        	/* retrieve dfFYdS_n at integration point */
+		        	// retrieve dfFYdS_n at integration point (already done above) 
 		        	//fdFYdS_n_IPs.RowCopy(IP,fdFYdS_n);
  				        		
 
@@ -2272,7 +2264,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    	       
 		    		/* iterate using Newton-Raphson to solve for fDelgamma */
 			  	   iter_count = 0;
-			  	   double scalar_residual=1.0;
+			  	//double scalar_residual=1.0;
 		        	//cout<<" start iteration"<<endl;			  	   
 			//    	while (fabs(fYield_function) > dAbsTol && scalar_residual > dRelTol && iter_count < iIterationMax)		    	   			   
 			    	while (fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)				    	 
@@ -2301,7 +2293,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     Temp_inv=dEedDelgamma.Trace();
                                     dSdDelgamma.SetToScaled(fMaterial_Params[kLambda]*Temp_inv,fIdentity_matrix);                                    
                                     //fTemp_matrix_nsd_x_nsd=dEedDelgamma;
-			    	    fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],dEedDelgamma); 
+			    	    fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kMu],dEedDelgamma); 
                                     dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
            	                    /*Forming  dP/dDgamma (scalar) P: pressure  dP/dDgamma= (1/3)1:dS/dDgamma*/	                                    
@@ -2309,15 +2301,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     dPdDelgamma*=1/3;
 
            	                    /* Forming  d(devS)/dDgamma  devS: dev. part of SPK tensor*/	                                    
-                                    ddevSdDelgamma=fIdentity_matrix;
-                                    ddevSdDelgamma*=-dPdDelgamma;
+                                    ddevSdDelgamma.SetToScaled(-dPdDelgamma,fIdentity_matrix);
                                     ddevSdDelgamma+=dSdDelgamma;
            	                    /* Forming  d(||devS||)/dDgamma  devS: dev. part of SPK tensor*/                                    
                                     fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,fSPK);
                                     dinvSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
                                     
            	                    /* Forming  dc/dDgamma  c: cohesion */	                                                                        
-        			    dcdDelgamma=Aphi*fMaterial_Params[kHc];
+			    	    fState_variables_n_IPs(IP,khc) =Aphi;                       
+        			    dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
         			    
         			    /* assemble the consistent tangent */
         			    dFYdDelgamma=dinvSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);
@@ -2329,7 +2321,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			    	    /* update fDelgamma */
 			    	    fDelgamma += fdelDelgamma;              
 			    	    
-			    	   fState_variables_n_IPs(IP,khc) =Aphi;                       
 
 			    	   if (fDelgamma < 0.0) fDelgamma = 0.0;
 			    	   fState_variables_IPs(IP,kDelgamma) = fDelgamma; 
@@ -2338,7 +2329,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			    	                                                                    
 		    		   /* update c ISVs */
 				   fState_variables_IPs(IP,kZc)= fState_variables_n_IPs(IP,kZc) 
-				         		       + fDelgamma*fState_variables_n_IPs(IP,khc);
+				         		       + fDelgamma;//*fState_variables_n_IPs(IP,khc);
                 	    	   fState_variables_IPs(IP,kc) = fState_variables_n_IPs(IP,kc) 
 				    	+ fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
 				   if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
@@ -2353,9 +2344,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				   fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);                                    
                                  
 			           /* calculate fFp_Inverse  */
-				   fTemp_matrix_nsd_x_nsd.Inverse(fFp);
+				   fFp_inverse.Inverse(fFp);
 			    	   /* calculate Fe */
-				   fFe.MultAB(fDeformation_Gradient,fTemp_matrix_nsd_x_nsd);
+				   fFe.MultAB(fDeformation_Gradient,fFp_inverse);
 
 			           /* [fElastic_Right_Cauchy_Green_tensor] will be formed */
 				   fRight_Cauchy_Green_tensor.MultATB(fFe,fFe);
@@ -2374,31 +2365,29 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                    /* update S stress */
 		      	           ////fSPK calculation
-		                   fTemp_matrix_nsd_x_nsd=fIdentity_matrix;
-		                   press=LagrangianStn.Trace();//Calculating the trace of E and keep in a variable called  press
-       		    	           fTemp_matrix_nsd_x_nsd*=press;
-		    	           fTemp_matrix_nsd_x_nsd*=fMaterial_Params[kLambda];
-		    	           fSPK=LagrangianStn;
-		    	           fSPK*=fMaterial_Params[kMu];
+       		    	           Temp_inv=0.0;
+		                   Temp_inv=LagrangianStn.Trace();//Calculating the tr(E) and keep in temp. var. 
+		    	           fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kLambda],fIdentity_matrix);
+                                   fSPK.SetToScaled(2*fMaterial_Params[kMu],LagrangianStn);    	
 		    	           fSPK+=fTemp_matrix_nsd_x_nsd;
 
-                                   /* calculate  devS stress */
-		                   press=fSPK.Trace()/3;//Calculating the mean stress
-		                   fdevSPK=fIdentity_matrix;
-		                   fdevSPK*=-press;
-                  	           fdevSPK+=fSPK;
-                                   /* calculate  ||devS||  */                  	           
-		              //  Temp_inv=dMatrixT::Dot(fdevSPK,fdevSPK);
-		                  Temp_inv= fdevSPK.ScalarProduct();		      
-		                  devfSPKinv=sqrt(Temp_inv);
+                                   /* calculate  devS stress */                              	                  
+		                   press=fSPK.Trace()/3;//Calculating the pressure term		        
+		        	   fdevSPK.SetToScaled(-1*press,fIdentity_matrix);
+		                   fdevSPK+=fSPK;
+				   // Calculate devS: devS 	
+				   Temp_inv= fdevSPK.ScalarProduct();		      
+				   devfSPKinv=sqrt(Temp_inv);		                  
+		                  		                                   
 		                   
-			          //Caculate_invdevpart_of_Matrix(fSPK_tr,fdevSPK_tr,devfSPKinv);
-                                  /* Check  yielding */
-		                  fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press);      
-		                  //scalar_residual=fabs(fYield_function/fYield_function_tr);   
-    			//    cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 
-    			  //  cout << "iter_count = " << iter_count << endl; 
-			    	 } //end of the local fDelgamma while loop  
+                                   // Calculate yielding function with updated parameters
+		                   fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press);      
+
+    			    fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
+       			  
+			    	 } //end of the local fDelgamma while loop 
+    			    fs_micromorph3D_out  << "*************************************************************"  << endl;
+    			    fs_micromorph3D_out  << "*************************************************************"  << endl; 	 			    	  
 			    	 			    	 			    				    	 
 			/*   if (fabs(fYield_function/fYield_function_tr) <= dRelTol)
 			    {
@@ -2414,13 +2403,22 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		            }				    	 
 			   // throw Exception if reach iIterationMax 
 			   */
-			   if (iter_count == iIterationMax)
+			/*   if (iter_count == iIterationMax)
 			    {
 			    //ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",
 			    //	iter_count, iIterationMax);
 			    cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl; 
     			    cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
-		            }		
+		            }		*/
+			/*   if (iter_count == iIterationMax)
+			    {
+			    //ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",
+			    //	iter_count, iIterationMax);
+			    fs_micromorph3D_out  << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl; 
+    			    fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
+    			    fs_micromorph3D_out  << "*************************************************************"  << endl;
+    			    fs_micromorph3D_out  << "*************************************************************"  << endl; 	    			     	
+		            }	*/		            
 	    			    	
     		           /* saving Fp for each IP of the current element */
 	   	         //  fFp_IPs.SetRow(IP,fFp); This is done in th eline 3511		            
@@ -2431,13 +2429,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 //                           Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
                       	  /* update Kirchhoff stress */
-                           KirchhoffST.MultABCT(fDeformation_Gradient,fSPK,fDeformation_Gradient);
+                           KirchhoffST.MultABCT(fFe,fSPK,fFe);
                           /* Calcuate Cauchy stress tensor */                                       
                            Sigma=KirchhoffST;
                            Sigma.SetToScaled(1/Je,KirchhoffST);	
 
 		   	  /* saving  Cauchy stress tensor at IPs */
 		   	  fCauchy_stress_tensor_current_IP=Sigma;//.SetToScaled(1/Je,fEffective_Kirchhoff_tensor);
+
+                         // Actually function was modified and not it extracts nine values */
+                         Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
+
+                         // Save Cauchy effective stress tensor of the current IP
+                         fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);       
+
+
 
   			  /* calculate stress derivative of yield function */
 			  fdFYdS = 0.0;       		  
@@ -2508,19 +2514,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                          Vintp_1 +=Vintp_1_temp;	
                          
 
-                         fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fSPK,fFe);
-                         Sigma.SetToScaled(1/J,fTemp_matrix_nsd_x_nsd);
-
-                         fCauchy_stress_tensor_current_IP=Sigma;
-
-                         // Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
-                         // Actually function was modified and not it extracts nine values */
-                         Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
-
-                         // Save Cauchy effective stress tensor of the current IP
-                         // function was modified and  it saves nine values 
-                         fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);            
-           
+          
 
                          Form_I3e_1(); // the third term first matrix  
                          Form_I3e_2(); //  
@@ -2641,10 +2635,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                    fEulerian_strain_tensor_current_IP *= -1;
                    fEulerian_strain_tensor_current_IP += fIdentity_matrix;
                    fEulerian_strain_tensor_current_IP *= 0.5;
-               //    fEulerian_strain_tensor_current_IP = LagrangianStn;
                    Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);
- //                Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_six_values);
 
+                   /* Save Eulerian strain tensor of the current IP */
+                   fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
 
 
      		                              		
@@ -2656,9 +2650,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
   		       //     cout<<"come here-3"<<endl;                       
                       // Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
                        KirchhoffST.MultABCT(fFe,SPK,fFe);
-                       Form_fV1();
+                       Form_fV1p();
                       // fIota_temp_matrix.Multx(fV1,Vint_1_temp);
-                       fShapeDisplGrad.MultTx(fV1,Vint_1_temp);
+                       fShapeDisplGrad.MultTx(fV1p,Vint_1_temp);
                      // fIota_w_temp_matrix.Multx(fV1,Vint_1_temp);
                        scale=scale_const;
                        Vint_1_temp*=scale;
@@ -4947,6 +4941,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     
     fFp.Dimension(n_sd,n_sd);
     fFp_n.Dimension(n_sd,n_sd);
+    fFp_n_inverse.Dimension(n_sd,n_sd);
     fFe.Dimension(n_sd,n_sd);
     fFe_tr.Dimension(n_sd,n_sd);
     
