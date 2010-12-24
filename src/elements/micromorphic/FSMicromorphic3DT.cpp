@@ -2244,7 +2244,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	    if(fYield_function_tr>dYieldTrialTol)//plastic
 		  	     {	        	
 
-		        	//cout<<"YIELDED"<<endl;
+		        	cout<<"YIELDED"<<endl;
 		        	// retrieve dGdS_n at integration point (already done above)
 		        	//fdGdS_n_IPs.RowCopy(IP,fdGdS_n);
 
@@ -2382,7 +2382,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		                   
                                    // Calculate yielding function with updated parameters
 		                   fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press);      
-
+                            fs_micromorph3D_out <<"Step number =" << step_number<<endl;
     			    fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
        			  
 			    	 } //end of the local fDelgamma while loop 
@@ -2449,7 +2449,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			  fdFYdS = 0.0;       		  
 			 // fdPdS=0.0;
 			//  fdPdS.SetToScaled(1/3,fIdentity_matrix);
-			  fdFYdS.SetToScaled(Bphi,fIdentity_matrix);
+			  fdFYdS.SetToScaled(Bphi*1/3,fIdentity_matrix);
 			  press=fdevSPK.Trace()/3;
 			  fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
 			  fTemp_matrix_nsd_x_nsd*=-1;
@@ -2462,7 +2462,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			  fdGdS = 0.0;       		  
 			 // fdPdS=0.0;
 			//  fdPdS.SetToScaled(1/3,fIdentity_matrix);
-			  fdGdS.SetToScaled(Bpsi,fIdentity_matrix);
+			  fdGdS.SetToScaled(Bpsi*1/3,fIdentity_matrix);
 			  press=fdevSPK.Trace()/3;
 			  fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
 			  fTemp_matrix_nsd_x_nsd*=-1;			
@@ -2646,13 +2646,24 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	    else//(yielding did not occur / elastic step/
 		  	    {
 		       fFe=fFe_tr;
+		      /* for(int i=0;i<3;i++)
+		       {
+		        for(int j=0;j<3;j++)
+		        {
+		         cout <<"fFe(i,j)="<<fFe(i,j)<<endl;
+		         cout<<"***********************************************"<<endl;
+		         cout<<"***********************************************"<<endl;		         
+		         cout <<"fDefor(i,j)"<<fDeformation_Gradient(i,j)<<endl;
+		        }
+		       }*/
+		       
 		       SPK=fSPK_tr;
   		       //     cout<<"come here-3"<<endl;                       
                       // Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
                        KirchhoffST.MultABCT(fFe,SPK,fFe);
-                       Form_fV1p();
+                       Form_fV1();
                       // fIota_temp_matrix.Multx(fV1,Vint_1_temp);
-                       fShapeDisplGrad.MultTx(fV1p,Vint_1_temp);
+                       fShapeDisplGrad.MultTx(fV1,Vint_1_temp);
                      // fIota_w_temp_matrix.Multx(fV1,Vint_1_temp);
                        scale=scale_const;
                        Vint_1_temp*=scale;
