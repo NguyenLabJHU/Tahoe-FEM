@@ -2244,7 +2244,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	    if(fYield_function_tr>dYieldTrialTol)//plastic
 		  	     {	        	
 
-		        	cout<<"YIELDED"<<endl;
+		        	//cout<<"YIELDED"<<endl;
 		        	// retrieve dGdS_n at integration point (already done above)
 		        	//fdGdS_n_IPs.RowCopy(IP,fdGdS_n);
 
@@ -2475,7 +2475,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		          fFp_inverse.Inverse(fFp);
 		          fFeT.Transpose(fFe);
 		          fCe_n_inverse.Inverse(fCe_n);
-                          fdGdS_n_transpose.Transpose(fCe_n);		          
+                          fdGdS_n_transpose.Transpose(fdGdS_n);		          
 		          fTemp_matrix_nsd_x_nsd2.MultABC(fdGdS_n_transpose,fFp_n,fFp_inverse);
 		          fTemp_matrix_nsd_x_nsd.MultABC(fFeT,fFe,fCe_n_inverse);
 
@@ -3787,7 +3787,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           //    fFd_int *= -1;
 
             //Micromorphic case fKdd coming from bal. of linear momentum
-              fKdd=0.0;
+              //fKdd=0.0;
 /*            fKdd  =  fKu_1;
               fKdd +=  fKu_2;*/
               fKdd +=  fKu_3;
