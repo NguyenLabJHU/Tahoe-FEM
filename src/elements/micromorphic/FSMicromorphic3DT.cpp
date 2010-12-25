@@ -2496,12 +2496,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		          fConst*=fMaterial_Params[kLambda];
 
 		          Temp_inv=fMaterial_Params[kMu]*fdFYdS_fA1;
-		          fConst-=Temp_inv;
+		          fConst+=Temp_inv;
 		          
 		          Temp_inv=fMaterial_Params[kMu]*fdFYdS_fA1T;
-		          fConst-=Temp_inv;
+		          fConst+=Temp_inv;
+		          
+		          fConst*=-1;
 		                	        
-		          dFYdc_delc=fdFYdc*fMaterial_Params[kHc]*fdFYdc;       	        
+		          dFYdc_delc=fdFYdc*fMaterial_Params[kHc]*fState_variables_n_IPs(IP,khc);       	        
 		          
 		          fConst+=dFYdc_delc;
 
