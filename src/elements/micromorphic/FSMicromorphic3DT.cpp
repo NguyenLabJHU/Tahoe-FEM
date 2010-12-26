@@ -2244,7 +2244,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	    if(fYield_function_tr>dYieldTrialTol)//plastic
 		  	     {	        	
 
-		        	//cout<<"YIELDED"<<endl;
+		        	cout<<"YIELDED"<<endl;
 		        	// retrieve dGdS_n at integration point (already done above)
 		        	//fdGdS_n_IPs.RowCopy(IP,fdGdS_n);
 
@@ -2382,13 +2382,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		                   
                                    // Calculate yielding function with updated parameters
 		                   fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press);      
-                            fs_micromorph3D_out <<"Step number =" << step_number<<endl;
-    			    fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
+                     /*       fs_micromorph3D_out <<"Step number =" << step_number<<endl;
+    			    fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	*/
        			  
-			    	 } //end of the local fDelgamma while loop 
-    			    fs_micromorph3D_out  << "*************************************************************"  << endl;
-    			    fs_micromorph3D_out  << "*************************************************************"  << endl; 	 			    	  
-			    	 			    	 			    				    	 
+			    	 } //end of the local fDelgamma while loop 			    	  
+			    	 			    	 					    	 
 			/*   if (fabs(fYield_function/fYield_function_tr) <= dRelTol)
 			    {
 
@@ -2403,13 +2401,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		            }				    	 
 			   // throw Exception if reach iIterationMax 
 			   */
-			/*   if (iter_count == iIterationMax)
+			   if (iter_count == iIterationMax)
 			    {
-			    //ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",
-			    //	iter_count, iIterationMax);
+			   // ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
 			    cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl; 
     			    cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
-		            }		*/
+		            }	
+    			    fs_micromorph3D_out  << "*************************************************************"  << endl;
+    			    fs_micromorph3D_out  << "*************************************************************"  << endl; 			            	
 			/*   if (iter_count == iIterationMax)
 			    {
 			    //ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",
@@ -2531,10 +2530,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                          Form_I3p_11();// 
                          Form_I3p_12();// 
 
-/*                        Form_I4e_1(); // the fourth term first matrix    
+                         Form_I4e_1(); // the fourth term first matrix    
                          Form_I4p_2(); //  
                          Form_I4p_3(); //                          	          
-*/                         
+                         Form_I4p_4(); //                         
 
 
                        fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3e_1,fShapeDisplGrad);
@@ -3840,9 +3839,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
            fKphiphi+=fKMphiphi_6;
             /* {fFphi_int} will be formed */
            fFphi_int  = 0.0;
-       //    fFphi_int  = Vint_2;
-        //   fFphi_int +=Vint_3;
-          // fFphi_int *=-1;
+           //fFphi_int  = Vint_2;
+           //fFphi_int +=Vint_3;
+           //fFphi_int *=-1;
 
 
 //******************************************************************
@@ -3860,7 +3859,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
              // fKdd +=  fKu_2;
               fKdd +=  fKu_I3e_1;
               fKdd +=  fKu_I3e_2;                
-              fKdd +=  fKu_I3e_2;
               fKdd +=  fKu_I3e_3;
               fKdd +=  fKu_I3p_4;
               fKdd +=  fKu_I3p_5;
@@ -11340,8 +11338,15 @@ void FSMicromorphic3DT:: Form_I4p_2()
     int col=0;
     I4p_2=0.0;
 
-    fTemp_matrix_nsd_x_nsd2.Inverse(fFeT);
-    fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fA1);    
+    fFp_inverse.Inverse(fFp);
+    fFeT.Transpose(fFe);
+    fCe_n_inverse.Inverse(fCe_n);
+    fdGdS_n_transpose.Transpose(fdGdS_n);		          
+    fTemp_matrix_nsd_x_nsd2.MultABC(fdGdS_n_transpose,fFp_n,fFp_inverse);
+    fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
+  
+  //  fTemp_matrix_nsd_x_nsd2.Inverse(fFeT);
+  //  fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fA1);    
     
     for(int M=0;M<3;M++)
      {
@@ -11382,9 +11387,15 @@ void FSMicromorphic3DT:: Form_I4p_3()
     int row=0;
     int col=0;
     I4p_3=0.0;
-
-    fTemp_matrix_nsd_x_nsd2.Inverse(fFeT);
-    fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fA1);    
+    
+    fFp_inverse.Inverse(fFp);
+    fFeT.Transpose(fFe);
+    fCe_n_inverse.Inverse(fCe_n);
+    fdGdS_n_transpose.Transpose(fdGdS_n);		          
+    fTemp_matrix_nsd_x_nsd2.MultABC(fdGdS_n_transpose,fFp_n,fFp_inverse);
+    fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
+    //fTemp_matrix_nsd_x_nsd2.Inverse(fFeT);
+    //fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fA1);    
     
     for(int M=0;M<3;M++)
      {
@@ -11429,9 +11440,14 @@ void FSMicromorphic3DT:: Form_I4p_4()
     int row=0;
     int col=0;
     I4p_4=0.0;
-
-    fTemp_matrix_nsd_x_nsd2.Inverse(fFeT);
-    fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fA1);    
+    fFp_inverse.Inverse(fFp);
+    fFeT.Transpose(fFe);
+    fCe_n_inverse.Inverse(fCe_n);
+    fdGdS_n_transpose.Transpose(fdGdS_n);		          
+    fTemp_matrix_nsd_x_nsd2.MultABC(fdGdS_n_transpose,fFp_n,fFp_inverse);
+    fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
+    //fTemp_matrix_nsd_x_nsd2.Inverse(fFeT);
+    //fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fA1);    
     
     for(int M=0;M<3;M++)
      {
