@@ -2337,7 +2337,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 			           /* update fFp */
 			           fdGdS_n_transpose.Transpose(fdGdS_n);			           
-			           fCe_n_inverse.Inverse(fCe_n);            
+			           fCe_n_inverse.Inverse(fCe_n);       
+                                   fTemp_matrix_nsd_x_nsd.MultAB(fCe_n_inverse,fdGdS_n_transpose);			                
 			    	   fTemp_matrix_nsd_x_nsd*=fDelgamma; 
 				   fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
 				   fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);                                    
@@ -2356,7 +2357,26 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			   	   if (fRight_Cauchy_Green_tensor.Det()==0)
 				    fRight_Cauchy_Green_tensor = fIdentity_matrix;
 	
- 	                           cout <<"Step number =" << step_number<<endl;
+                                   cout <<"Step number =" << step_number<<endl;
+	 	                        
+
+                                   cout <<"fDelgamma =" << fDelgamma<<endl; 	                           
+                                  for(int i=0;i<3;i++)
+		                    {
+		                    for(int j=0;j<3;j++)
+		                     {
+		                      cout <<" fCe_n_inverse(i,j)="<< fCe_n_inverse(i,j)<<endl;
+        
+		                       }
+		                    } 
+                                  for(int i=0;i<3;i++)
+		                    {
+		                    for(int j=0;j<3;j++)
+		                     {
+		                      cout <<" fdGdS_n_transpose(i,j)="<< fdGdS_n_transpose(i,j)<<endl;
+        
+		                       }
+		                    }    
                                   for(int i=0;i<3;i++)
 		                    {
 		                    for(int j=0;j<3;j++)
@@ -2364,7 +2384,23 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		                      cout <<" fFp(i,j)="<< fFp(i,j)<<endl;
         
 		                       }
-		                    }      	
+		                    } 		                    		                         	
+                                  for(int i=0;i<3;i++)
+		                    {
+		                    for(int j=0;j<3;j++)
+		                     {
+		                      cout <<" fFe(i,j)="<< fFe(i,j)<<endl;
+        
+		                       }
+		                    }    
+                                  for(int i=0;i<3;i++)
+		                    {
+		                    for(int j=0;j<3;j++)
+		                     {
+		                      cout <<" fDeformation_Gra(i,j)="<< fDeformation_Gradient(i,j)<<endl;
+        
+		                       }
+		                    }     		                      		                    
   			    
 				    /* update Lagrangian strain tensor E*/
 
@@ -2393,9 +2429,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		                   
                                    // Calculate yielding function with updated parameters
 		                   fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press); 
-    			    cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 			                        
-                            cout <<"Step number =" << step_number<<endl;
-                            cout <<"fDelgamma =" << fDelgamma<<endl;
+    			    cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
                             cout <<"**********************************"<<endl;
                             cout<<"**********************************"<<endl; 
                                                                       
