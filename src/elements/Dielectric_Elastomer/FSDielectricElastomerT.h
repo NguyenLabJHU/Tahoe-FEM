@@ -134,6 +134,13 @@ namespace Tahoe {
     virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         const iArrayT& e_codes, dArray2DT& e_values);
 
+	/** accumulate the element mass matrix
+	 * \param ip_weight array of weights per integration point or NULL
+	 *        if no additional weighting is needed beyond those defined by
+	 *        the integration scheme */
+	virtual void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
+		const double* ip_weight);
+
   private:
 
     //
@@ -143,6 +150,8 @@ namespace Tahoe {
     void Set_B_C(const dArray2DT& DNaX, dMatrixT& B_C);
     void AccumulateGeometricStiffness(dMatrixT& Kg, const dArray2DT& DNaX,
         dSymMatrixT& S);
+
+	void MassMatrix();
 
   protected:
 
@@ -182,6 +191,8 @@ namespace Tahoe {
     dMatrixT fAme;	// mechanical-electrical coupling part of Hessian matrix
     dMatrixT fAem;	// electrical-mechanical coupling part of Hessian matrix
     dMatrixT fAee;	// electrical-electrical coupling part of Hessian matrix
+    dMatrixT fRiks_Penalty;	// penalty matrix from Riks
+    dMatrixT fMassMatrix;	// mass matrix for LHS
     
 //    	/** \name workspace for LHS and RHS */
 // 	/*@{*/
