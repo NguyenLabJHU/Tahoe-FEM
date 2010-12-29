@@ -24,6 +24,7 @@ namespace Tahoe {
     fNrig = 0.0;
     fLambda = 0.0;
 //     fJm = 0.0;
+	fTs = 0.0;
   }
 
   //
@@ -38,6 +39,7 @@ namespace Tahoe {
 	list.AddParameter(fElectricPermittivity, "epsilon");
  	list.AddParameter(fNrig, "Nrig");
  	list.AddParameter(fLambda, "lambda");
+ 	list.AddParameter(fTs, "TimeStep");
 // 	list.AddParameter(fJm, "Jm");
   }
 
@@ -55,6 +57,7 @@ namespace Tahoe {
 // 	fJm = list.GetParameter("Jm");
  	fNrig = list.GetParameter("Nrig");
  	fLambda = list.GetParameter("lambda");
+	fTs = list.GetParameter("TimeStep");
 
 	/* write into vector to pass to C code for stress/modulus calculations */
 	fParams.Dimension(3);

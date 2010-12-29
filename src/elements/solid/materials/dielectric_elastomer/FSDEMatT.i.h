@@ -233,6 +233,12 @@ namespace Tahoe {
 
   }
 
+	/* Time step for dynamic problems */
+	inline double FSDEMatT::TimeStep() const
+	{
+		return fTs;
+	}
+
   //
   // compute symmetric Cij reduced index matrix */
   //

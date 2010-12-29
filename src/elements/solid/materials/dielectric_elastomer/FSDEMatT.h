@@ -96,6 +96,10 @@ namespace Tahoe {
     //
     double Pressure() const;
 
+
+	/* Penalty parameter for Riks method */
+	double TimeStep() const;
+	
     //
     // @}
     //
@@ -148,6 +152,7 @@ namespace Tahoe {
     double fLambda;
 	double fKappa;
 	double fJm;
+	double fTs;
 
     dArrayT fElectricField;
     dArrayT fElectricDisplacement;
