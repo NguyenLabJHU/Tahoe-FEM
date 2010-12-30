@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.139 2010-12-23 08:34:49 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.140 2010-12-30 08:16:46 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -802,7 +802,7 @@ private:
     
     
     double fYield_function,fYield_function_tr,dFYdc;
-    double devfSPKinv;
+    double devfSPKinv,devfSPKinv_tr;
     double fDelgamma, fdelDelgamma,dFYdDelgamma,fdcddgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,press,dinvSdDelgamma;
     int iter_count, global_iteration;
