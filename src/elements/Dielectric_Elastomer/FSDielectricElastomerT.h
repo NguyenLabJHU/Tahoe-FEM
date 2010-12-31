@@ -141,6 +141,20 @@ namespace Tahoe {
 	virtual void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
 		const double* ip_weight);
 
+	/** element body force contribution 
+	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
+	 * \param constM pre-factor for the element integral
+	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
+	 * \param ip_values integration point source terms. Pass NULL for no integration
+	 *        point values : [nip] x [ndof]
+	 * \param ip_weight array of weights per integration point or NULL
+	 *        if no additional weighting is needed beyond those defined by
+	 *        the integration scheme */
+	virtual void FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
+		const LocalArrayT* nodal_values,
+		const dArray2DT* ip_values,
+		const double* ip_weight);
+
   private:
 
     //

@@ -542,9 +542,9 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
   {
 	/* Time integrator info for dynamic problems */
 	int order = fIntegrator->Order();  
-  	double beta = 0.25;
+  	double beta = 0.25;	// hard code this value for Newmark-based implicit dynamics
   	double time_step = fCurrMaterial->TimeStep();
-  	double bdt2 = beta*time_step*time_step;	// beta * dt * dt factor for K
+  	double bdt2 = 1.0/(beta*time_step*time_step);	// beta * dt * dt factor for K
   
 	/* Matrix format - depends upon time integration order */
     dMatrixT::SymmetryFlagT format = (fLHS.Format()
@@ -568,7 +568,10 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	
 	/* Calculate mass matrix for dynamic problems */
 	if (order == 2)
+	{
 		MassMatrix();	
+		fMassMatrix *= bdt2;	// to account for SolidElementT::FormStiffness
+	}
 
     fShapes->TopIP();
     while (fShapes->NextIP() != 0) 
@@ -617,11 +620,11 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	{
 		/* May need to divide by bdt2 depending on constK value */
 		fLHS.AddBlock(0, 0, fMassMatrix);
-		fAmm_mat *= bdt2;
 		fAem = fAme;
-		fAem *= bdt2;
+		fAme *= bdt2;
 		/* Need non-symmetric EM coupling tangent for dynamic problems */
 		fLHS.AddBlock(fAmm_mat.Rows(), 0, fAem);
+		fAee *= bdt2;
 	}
 
 	/* Assemble into fLHS, or element stiffness matrix */
@@ -641,6 +644,14 @@ void FSDielectricElastomerT::FormMass(MassTypeT mass_type, double constM, bool a
 	
 	/* Do nothing but add 0 to fLHS - implement mass in FormStiffness */
 	fLHS += 0.0;	
+}
+
+/* Dummy inertial force for dynamic calculations */
+void FSDielectricElastomerT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric, 
+	const LocalArrayT* nodal_values, const dArray2DT* ip_values, const double* ip_weight)
+{
+	/* Do nothing but add 0 to fRHS - implement inertial force in FormKd */
+	fRHS += 0.0;
 }
 
 void FSDielectricElastomerT::MassMatrix()
@@ -692,8 +703,6 @@ void FSDielectricElastomerT::MassMatrix()
 
 }
 
-/* HSP (12/29/10:  may need to implement FormMa here which does nothing) */
-
 /* Compute RHS, or residual of element equations */
   void FSDielectricElastomerT::FormKd(double constK)
   {
@@ -740,10 +749,33 @@ void FSDielectricElastomerT::MassMatrix()
 	  traction not accounted for here */
 	  
 	}
-  	Relec *= -1.0;	// need for right sign for residual
+  	Relec *= -1.0;	// need for right sign for residual - CHECK
  	Rtotal.CopyIn(0, Rmech);
  	Rtotal.CopyIn(Rmech.Length(), Relec);
  	fRHS += Rtotal;
+ 	
+ 	/* Calculate mass matrix for dynamic problems */
+// 	int order = fIntegrator->Order();  	
+// 	dArrayT NEEvec(nsd*nen);
+// 	dArrayT Rdynamic(nsd*nen);
+// 	double* pres = Rdynamic.Pointer();
+// 	int massdex = 0;
+// 	if (order == 2)
+// 	{
+// 		MassMatrix();	
+// 		
+// 		/* Get local accelerations */
+// 		const LocalArrayT& nodal_acc = SolidElementT::Accelerations();
+// 		nodal_acc.ReturnTranspose(NEEvec);
+// 		double* pacc = NEEvec.Pointer();	
+// 		for (int i = 0; i < nsd*nen; i++)
+// 		{
+// 			*pres++ += (*pacc++)*fMassMatrix(massdex,massdex);
+// 			massdex++;
+// 		}
+//  	}
+ 	
+ 	
   }
 
   //
