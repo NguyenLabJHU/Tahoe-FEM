@@ -607,7 +607,8 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	/* Expand 24x24 geometric stiffness into material stiffness matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
 	fAme*=-1.0;
-	fAem = fAme;
+//	fAem = fAme;
+	fAem.Transpose(fAme);
 	
 	/* Add mass matrix and non-symmetric electromechanical tangent if dynamic problem */
 	if (order == 2)
