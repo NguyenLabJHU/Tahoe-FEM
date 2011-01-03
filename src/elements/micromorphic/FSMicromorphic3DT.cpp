@@ -2365,16 +2365,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		        	   fdevSPK.SetToScaled(-1*press,fIdentity_matrix);
 		                   fdevSPK+=fSPK;
 				   // Calculate devS: devS 	
-				   Temp_inv= fdevSPK.ScalarProduct();		      
-		                   //Temp_inv=dMatrixT::Dot(fdevSPK,fdevSPK);      				   
+				   //Temp_inv= fdevSPK.ScalarProduct();		      
+		                   Temp_inv=dMatrixT::Dot(fdevSPK,fdevSPK);      				   
 				   devfSPKinv=sqrt(Temp_inv);		                  
 		                  		                                   
 		                   
                                    // Calculate yielding function with updated parameters
 		                   fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press); 
-    			    fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
+    			   /* fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
                             fs_micromorph3D_out  <<"**********************************"<<endl;
-                            fs_micromorph3D_out <<"**********************************"<<endl; 
+                            fs_micromorph3D_out <<"**********************************"<<endl; */
                                                                       
                                                                                      
                                                       
@@ -2471,8 +2471,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		          fFp_inverse.Inverse(fFp);
 		          fFeT.Transpose(fFe);
 		          fCe_n_inverse.Inverse(fCe_n);
-                          fdGdS_n_transpose.Transpose(fdGdS_n);		          
-		          fTemp_matrix_nsd_x_nsd2.MultABC(fdGdS_n_transpose,fFp_n,fFp_inverse);
+                          //fdGdS_n_transpose.Transpose(fdGdS_n);		          
+ 		          //fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n_transpose,fFp_n,fFp_inverse);
+                          fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);		          
 		          fTemp_matrix_nsd_x_nsd.MultABC(fFeT,fFe,fCe_n_inverse);
 
 		          //fA1=fAFeTFeCen1dGdSFpnFp1
@@ -2520,15 +2521,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                           /* Save Eulerian strain tensor of the current IP */
                           fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
-
-
-
-    		         // saving Fp, Ce, dG/dS and dF/dS at each IP of the current element 
-                         fFp_IPs.SetRow(IP,fFp);
-                         fCe_IPs.SetRow(IP,fRight_Cauchy_Green_tensor);
-                         fdGdS_IPs.SetRow(IP,fdGdS);
-                         fdFYdS_IPs.SetRow(IP,fdFYdS);	    
-
 
 
                          //Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);//already formed above by fSPK
@@ -2691,7 +2683,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                       // Form_Second_Piola_Kirchhoff_SPK(LagrangianStn,MicroStnTensor);
                       fDeformation_Gradient_Inverse=fDeformation_Gradient.Inverse();
                        KirchhoffST.MultABCT(fFe,SPK,fFe);
-                      fTemp_matrix_nsd_x_nsd.MultAB(fDeformation_Gradient_Inverse,KirchhoffST);
+                      //fTemp_matrix_nsd_x_nsd.MultAB(fDeformation_Gradient_Inverse,KirchhoffST);
+                      fTemp_matrix_nsd_x_nsd.MultABT(fSPK,fFe);                      
                       int row=0;
                       for (int K=0;K<3;K++)
                        {
@@ -3134,9 +3127,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                          fFp_IPs.SetRow(IP,fFp);
                          fCe_IPs.SetRow(IP,fRight_Cauchy_Green_tensor);
                          fdGdS_IPs.SetRow(IP,fdGdS);
-                         fdFYdS_IPs.SetRow(IP,fdFYdS);	    		         
-		                          
-			
+                         fdFYdS_IPs.SetRow(IP,fdFYdS);	    
 	                           
                   
                    }// constitutive model =3 ends                   
