@@ -95,10 +95,6 @@ namespace Tahoe {
     // pressure associated with the last computed stress
     //
     double Pressure() const;
-
-
-	/* Penalty parameter for Riks method */
-	double TimeStep() const;
 	
     //
     // @}
@@ -151,8 +147,6 @@ namespace Tahoe {
     double fNrig;
     double fLambda;
 	double fKappa;
-	double fJm;
-	double fTs;
 
     dArrayT fElectricField;
     dArrayT fElectricDisplacement;

@@ -19,12 +19,9 @@ namespace Tahoe {
   void FSDEMatT::Initialize()
   {
     fMu = 0.0;
-//    fKappa = 0.0;
     fElectricPermittivity = 0.0;
     fNrig = 0.0;
     fLambda = 0.0;
-//     fJm = 0.0;
-	fTs = 0.0;
   }
 
   //
@@ -35,12 +32,9 @@ namespace Tahoe {
     NL_E_MatT::DefineParameters(list);
 
 	list.AddParameter(fMu, "mu");
-//	list.AddParameter(fKappa, "kappa");
 	list.AddParameter(fElectricPermittivity, "epsilon");
  	list.AddParameter(fNrig, "Nrig");
  	list.AddParameter(fLambda, "lambda");
- 	list.AddParameter(fTs, "TimeStep");
-// 	list.AddParameter(fJm, "Jm");
   }
 
   //
@@ -48,16 +42,12 @@ namespace Tahoe {
   //
   void FSDEMatT::TakeParameterList(const ParameterListT& list)
   {
-//  	cout << "FSDEMatT::TakeParameterList" << endl;
     NL_E_MatT::TakeParameterList(list);
 
 	fMu = list.GetParameter("mu");
-//	fKappa = list.GetParameter("kappa");
 	fElectricPermittivity = list.GetParameter("epsilon");
-// 	fJm = list.GetParameter("Jm");
  	fNrig = list.GetParameter("Nrig");
  	fLambda = list.GetParameter("lambda");
-	fTs = list.GetParameter("TimeStep");
 
 	/* write into vector to pass to C code for stress/modulus calculations */
 	fParams.Dimension(3);
