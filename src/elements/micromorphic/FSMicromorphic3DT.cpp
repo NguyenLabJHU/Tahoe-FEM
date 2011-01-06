@@ -2344,7 +2344,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                    //fTemp_matrix_nsd_x_nsd.MultAB(fCe_n_inverse,fdGdS_n_transpose);
                                    fTemp_matrix_nsd_x_nsd.MultABT(fCe_n_inverse,fdGdS_n);
             		    	   fTemp_matrix_nsd_x_nsd*=fDelgamma; 
-            		    	   cout<<"fDelgamma=" <<fDelgamma <<endl;
+            		    	   //cout<<"fDelgamma=" <<fDelgamma <<endl;
 				   fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
 				   fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);                                    
 
@@ -2406,7 +2406,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
        			  
 			    	 } //end of the local fDelgamma while loop 			    	  
 			   
-			   cout<<" fabs(fYield_function/fYield_function_tr)="<< fabs(fYield_function/fYield_function_tr)<<endl; 	 			    	 				   //ExceptionT::GeneralFail(caller, " NAN "); 	    	 
+			   //cout<<" fabs(fYield_function/fYield_function_tr)="<< fabs(fYield_function/fYield_function_tr)<<endl; 	 			    	 				   //ExceptionT::GeneralFail(caller, " NAN "); 	    	 
 
 			   if (iter_count == iIterationMax)
 			    {
