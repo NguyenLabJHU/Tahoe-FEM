@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.140 2010-12-30 08:16:46 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.141 2011-01-06 21:00:01 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -68,7 +68,7 @@ public:
         // plasticity parameters
         kHc,
         kc0,
-        kZ0c,
+        //kZ0c,
         kFphi,
         kDpsi,
         //
@@ -83,7 +83,7 @@ public:
 	//    kkappa,
 	    kc,
         //    kZkappa,
-	    kZc,
+	//    kZc,
 	//    khkappa,
 	    khc,
 	//    kIntrinsic_Perm,
