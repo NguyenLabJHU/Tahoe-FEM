@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.141 2011-01-06 21:00:01 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.142 2011-01-06 23:28:20 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -793,7 +793,7 @@ private:
     dMatrixT dSdDelgamma;
     dMatrixT ddevSdDelgamma;
     dMatrixT dEedDelgamma;
-    dMatrixT dfFedDelgamma;
+
     
     dMatrixT fFeT;
     

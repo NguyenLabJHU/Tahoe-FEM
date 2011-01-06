@@ -2265,16 +2265,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				      iter_count += 1;			                                    
 				     /* Form  dFe/dDgamma */	
  					     
-                                     fFp_inverse.Inverse(fFp);	
-                                	                                  					
+                                     fFp_inverse.Inverse(fFp);	                                	                                  					
                                      fdGdS_n_transpose.Transpose(fdGdS_n);                                    
                                      fTemp_matrix_nsd_x_nsd.MultABC(fdGdS_n_transpose,fFp_n,fFp_inverse); 
-                                     fCe_n_inverse.Inverse(fCe_n);
+                                     fCe_n_inverse.Inverse(fCe_n); 
+                                     dFedDelgamma=0.0;
                                     // fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);	   
-                                    // dfFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd2,fTemp_matrix_nsd_x_nsd);
-                                    // dfFedDelgamma=fTemp_matrix_nsd_x_nsd2;  
-                                     dfFedDelgamma.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);	         
-                                     dfFedDelgamma*=-1;
+                                    // dFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd2,fTemp_matrix_nsd_x_nsd);
+                                    // dFedDelgamma=fTemp_matrix_nsd_x_nsd2;  
+                                     dFedDelgamma.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);	         
+                                     dFedDelgamma*=-1;
 
            	                    /* Forming  dEe/dDgamma  Ee: Elas. Lag. stn tensor*/	
                                     dEedDelgamma.MultATB(dFedDelgamma,fFe);
@@ -2399,15 +2399,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                    // Calculate yield function with updated parameters
 		                   fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*press); 
-    			 /* fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
-                            fs_micromorph3D_out  <<"**********************************"<<endl;
-                            fs_micromorph3D_out <<"**********************************"<<endl; */
+    			   fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	    			   
+                          //  fs_micromorph3D_out  <<"**********************************"<<endl;
+                           // fs_micromorph3D_out  <<"**********************************"<<endl; 
                                                                                                                                                                                                                
        			  
 			    	 } //end of the local fDelgamma while loop 			    	  
 			   
 			   //cout<<" fabs(fYield_function/fYield_function_tr)="<< fabs(fYield_function/fYield_function_tr)<<endl; 	 			    	 				   //ExceptionT::GeneralFail(caller, " NAN "); 	    	 
-
+			    fs_micromorph3D_out<< "iter_count = " << iter_count<<endl; 
 			   if (iter_count == iIterationMax)
 			    {
 
@@ -2415,7 +2415,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     			    cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
 			   // ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);    			        			    
 		            }           
-		
+
+			   if (iter_count == iIterationMax)
+			    {
+
+			    fs_micromorph3D_out<< "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl; 
+    			    fs_micromorph3D_out << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl; 	
+			   // ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);                      
+			    fs_micromorph3D_out  <<"**********************************"<<endl;
+                            fs_micromorph3D_out <<"**********************************"<<endl; 			        			    
+		            }  		
 		
 			   /* calculate fFp_Inverse  */
 			   fFp_inverse.Inverse(fFp);
@@ -2663,7 +2672,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			 fRight_Cauchy_Green_tensor.MultATB(fFe,fFe);
 
 	       	       if (fRight_Cauchy_Green_tensor.Det()==0)
-			   fRight_Cauchy_Green_tensor = fIdentity_matrix;               
+			   fRight_Cauchy_Green_tensor = fIdentity_matrix;  
+			   
+		       fFp=fIdentity_matrix;	   
+                       fFp_IPs.SetRow(IP,fFp);			                
                        fCe_IPs.SetRow(IP,fRight_Cauchy_Green_tensor);		    
 		       
 		       SPK=fSPK_tr;
@@ -4943,7 +4955,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     dSdDelgamma.Dimension(n_sd,n_sd);
     ddevSdDelgamma.Dimension(n_sd,n_sd);
     dEedDelgamma.Dimension(n_sd,n_sd);
-    dfFedDelgamma.Dimension(n_sd,n_sd);
+
     
     fA1.Dimension(n_sd,n_sd);
     
