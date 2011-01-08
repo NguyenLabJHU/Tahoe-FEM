@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.142 2011-01-06 23:28:20 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.143 2011-01-08 06:39:37 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -817,6 +817,7 @@ private:
    double dYieldTrialTol;
    
    double fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
+   double mean_stress_tr,mean_stress;
    
     dMatrixT I3e_1;
     dMatrixT fKu_I3e_1;  
