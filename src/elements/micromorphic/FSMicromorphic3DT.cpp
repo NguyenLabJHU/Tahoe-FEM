@@ -1310,6 +1310,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
      Vintp_1=0.0;
      Vintp_1_temp=0.0;     
+
+     fKu_I1e_1=0.0;
+     fKu_I2e_1=0.0;     
+     fKu_I2p_2=0.0;
      
      fKu_I3e_1=0.0;
      fKu_I3e_2=0.0;     
@@ -2566,6 +2570,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             // saving  state variables for each IP of the current element */
             //fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
 
+                         Form_I1e_1(); // The first term first matrix
+                         Form_I2e_1(); // The second term first matrix
+                         Form_I2p_2();
                          Form_I3e_1(); // the third term first matrix  
                          Form_I3e_2(); //  
                          Form_I3e_3(); // 
@@ -2583,6 +2590,23 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                          Form_I4p_2(); //  
                          Form_I4p_3(); //                          	          
                          Form_I4p_4(); //                         
+
+
+                       fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I1e_1,fShapeDisplGrad);
+                       scale = -1*scale_const;
+                       fTemp_matrix_nudof_x_nudof *= scale;
+                       fKu_I1e_1 += fTemp_matrix_nudof_x_nudof;
+                       
+                       fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2e_1,fShapeDisplGrad);
+                       scale = scale_const;
+                       fTemp_matrix_nudof_x_nudof *= scale;
+                       fKu_I2e_1 += fTemp_matrix_nudof_x_nudof;    
+                       
+                       fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2p_2,fShapeDisplGrad);
+                       scale = (1/fConst)*dFYdScol1*scale_const;
+                       fTemp_matrix_nudof_x_nudof *= scale;
+                       fKu_I2p_2 += fTemp_matrix_nudof_x_nudof;                            
+                                          
 
 
                        fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3e_1,fShapeDisplGrad);
@@ -3794,8 +3818,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
             //{fFd_int} will be formed
-              fFd_int  = 0.0;
-              fFd_int  += Vint_1;
+             // fFd_int  = 0.0;
+              fFd_int  = Vint_1;
           //    fFd_int *= -1;
 
             //Micromorphic case fKdd coming from bal. of linear momentum
@@ -3867,7 +3891,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //******************************************************************            
               fFd_int  += Vintp_1;
               fFd_int *= -1;
-
+              fKdd +=  fKu_I1e_1;   
+              fKdd +=  fKu_I2e_1;  
+              fKdd +=  fKu_I2p_2;
+               
+                            
               fKdd +=  fKu_I3e_1;                      
               fKdd +=  fKu_I3e_2;      
               fKdd +=  fKu_I3e_3;
@@ -4921,8 +4949,15 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 //    fV2.Dimension(n_sd_x_n_sd);
 //    fV3.Dimension(n_sd_x_n_sd_x_n_sd);
     Vintp_1_temp.Dimension(n_en_displ_x_n_sd);    
-    
-    
+  
+  
+    I1e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_I1e_1.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );    
+    I2e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_I2e_1.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );    
+
+    I2p_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_I2p_2.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );       
     
     I3e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fKu_I3e_1.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
@@ -10782,6 +10817,127 @@ void FSMicromorphic3DT:: Form_fV1p()
 
 } 
 
+void FSMicromorphic3DT:: Form_I1e_1()
+{
+  int row=0;
+  int col=0;
+  I1e_1=0.0;
+  
+  for(int R=0;R<3;R++)
+  {
+   for(int m=0;m<3;m++)
+   {
+    row=0;
+    
+    for(int A=0;A<3;A++)
+    {
+     for(int l=0;l<3;l++)
+     {
+       //summation over the same term
+       for(int k=0;k<3;k++)
+       {
+        for(int Kbar=0;Kbar<3;Kbar++)
+        {
+          for(int Lbar=0;Lbar<3;Lbar++)
+          {
+           I1e_1(row,col)+=fDeformation_Gradient_Inverse(A,m)*fDeformation_Gradient_Inverse(R,k)
+                          *fFe(k,Kbar)*fSPK(Kbar,Lbar)*fFe(l,Lbar);
+          }        
+        }              
+       }
+       row++;       
+     }    
+    }
+    col++;    
+   }
+  }
+
+}
+
+void FSMicromorphic3DT:: Form_I2e_1()
+{
+ int row=0;
+ int col=0;
+ I2e_1=0.0;
+ 
+ for(int M=0;M<3;M++)
+ {
+  for(int k=0;k<3;k++)
+  {
+    row=0;
+    for(int A=0;A<3;A++)
+    {
+      for(int l=0;l<3;l++)
+      {
+       //summation over the same term stars here
+       for(int Kbar=0;Kbar<3;Kbar++)
+        {
+         for(int Lbar=0;Lbar<3;Lbar++)
+         {
+          I2e_1(row,col)+=fDeformation_Gradient_Inverse(A,k)*fFp(M,Kbar)
+                         *fSPK(Kbar,Lbar)*fFe(l,Lbar);
+         }
+        }
+        row++;
+      }
+    }
+    col++;
+  } 
+ }
+
+}
+
+
+void FSMicromorphic3DT:: Form_I2p_2()
+{
+ int row=0;
+ int col=0;
+ I2p_2=0.0;
+ 
+    fFp_inverse.Inverse(fFp);
+    fFeT.Transpose(fFe);
+    fCe_n_inverse.Inverse(fCe_n);
+    fdGdS_n_transpose.Transpose(fdGdS_n);		          
+    fTemp_matrix_nsd_x_nsd2.MultABC(fdGdS_n_transpose,fFp_n,fFp_inverse);
+    fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
+ 
+ 
+ for(int M=0;M<3;M++)
+  {
+   for(int i=0;i<3;i++)
+   {
+    row=0;
+    for(int A=0;A<3;A++)
+    {
+     for(int l=0;l<3;l++)
+     {
+      //summation over the same term
+       for(int k=0;k<3;k++)
+       {
+        for(int Kbar=0;Kbar<3;Kbar++)
+         {
+          for(int Lbar=0;Lbar<3;Lbar++)
+          {
+           for(int Nbar=0;Nbar<3;Nbar++)
+           {
+             I2p_2(row,col)+=fDeformation_Gradient_Inverse(A,k)*fTemp_matrix_nsd_x_nsd(k,Kbar)
+                            *fSPK(Kbar,Lbar)*fFe(l,Lbar)*fFe(i,Nbar)*fFp_inverse(M,Nbar);
+           }
+          }
+         }
+       }
+       row++;
+     }
+    }
+    col++;
+   }
+  }
+ 
+ 
+
+}
+
+
 void FSMicromorphic3DT:: Form_I3e_1()
 {
     int row=0;
@@ -10820,7 +10976,6 @@ void FSMicromorphic3DT:: Form_I3e_1()
        col++;
      }
    }
-
 
 
 }
