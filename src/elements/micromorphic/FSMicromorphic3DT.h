@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.144 2011-01-09 08:16:18 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.145 2011-01-09 22:56:49 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -823,8 +823,12 @@ private:
     dMatrixT fKu_I1e_1;
     dMatrixT I2e_1;
     dMatrixT fKu_I2e_1;    
-    dMatrixT I2p_2;
+    dMatrixT I2p_2;  
     dMatrixT fKu_I2p_2;
+    dMatrixT I2p_3;  
+    dMatrixT fKu_I2p_3;
+    dMatrixT I2p_4;  
+    dMatrixT fKu_I2p_4;                
     dMatrixT I3e_1;
     dMatrixT fKu_I3e_1;  
     dMatrixT I3e_2;
@@ -1231,7 +1235,9 @@ private:
     
     void Form_I1e_1(void); // the first term first matrix
     void Form_I2e_1(void); // the  second term first matrix    
-    void Form_I2p_2(void); // the  second term second matrix    
+    void Form_I2p_2(void); 
+    void Form_I2p_3(void);
+    void Form_I2p_4(void);           
     void Form_I3e_1(void); // the third term first matrix
     void Form_I3e_2(void); //  
     void Form_I3e_3(void); // 
