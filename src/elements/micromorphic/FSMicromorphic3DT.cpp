@@ -1577,13 +1577,30 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
              if(iConstitutiveModelType==3)
 	     {
+
+
+	     /* retrieve Fp and Fp_n in element */
+	     fFp_n_Elements_IPs.RowCopy(e,fFp_n_IPs);
+	     fFp_Elements_IPs.RowCopy(e,fFp_IPs);
 	     
-	     fFp_n_Elements_IPs.RowCopy(e,fFp_n_IPs); 
-	     fFp_Elements_IPs.RowCopy(e,fFp_IPs); 	     
+	     /* retrieve Ce  in element */	     
              fCe_n_Elements_IPs.RowCopy(e,fCe_n_IPs);
+             
+	     /* retrieve dGdS and dGdS_n in element */             
              fdGdS_n_Elements_IPs.RowCopy(e,fdGdS_n_IPs);
+	     fdGdS_Elements_IPs.RowCopy(e,fdGdS_IPs);             
+
+	     /* retrieve dFdS and dFdS_n in element */      
              fdFYdS_n_Elements_IPs.RowCopy(e,fdFYdS_n_IPs);
+             fdFYdS_Elements_IPs.RowCopy(e,fdFYdS_IPs);
+	     
+	     /* retrieve dGdS and dGdS_n in element */
+	     fdGdS_n_Elements_IPs.RowCopy(e,fdGdS_n_IPs);
+
+
+             /* retrieve ISVs and ISVs_n in element */
              fState_variables_n_Elements_IPs.RowCopy(e,fState_variables_n_IPs);                   
+	     fState_variables_Elements_IPs.RowCopy(e,fState_variables_IPs);
   
              }
 
@@ -2250,13 +2267,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	     {	        	
 
 		        	fs_micromorph3D_out<<"YIELDED"<<endl;
-		        	//cout<<"YIELDED"<<endl;		        	
+		        	cout<<"YIELDED"<<endl;		        	
                                fs_micromorph3D_out<<"PI="<<IP<<endl;
 		    		/* initialize before iteration */	        	    	       
 				fYield_function=fYield_function_tr;
-				fFe=fFe_tr;		
-				fFp=fFp_n;// initial values for Fp is assumed the same with previous step
+				fFe=fFe_tr;	
 
+				fFp=fFp_n;// initial values for Fp is assumed the same with previous step
+				//fTemp_matrix_nsd_x_nsd.Inverse(fFe);	
+                                //fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
 				fSPK=fSPK_tr;
 				devfSPKinv=devfSPKinv_tr;
 				
@@ -2273,7 +2292,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
  					     
                                      fFp_inverse.Inverse(fFp);	                                	                                  					
                                      fdGdS_n_transpose.Transpose(fdGdS_n);                                    
-                                     fTemp_matrix_nsd_x_nsd.MultABC(fdGdS_n_transpose,fFp_n,fFp_inverse); 
+                                     fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse); 
                                      fCe_n_inverse.Inverse(fCe_n); 
                                      dFedDelgamma=0.0;
                                     // fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);	   
@@ -2485,7 +2504,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			 // fdPdS=0.0;
 			//  fdPdS.SetToScaled(1/3,fIdentity_matrix);
 			  fdFYdS.SetToScaled(Bphi*1/3,fIdentity_matrix);
-			  press=fdevSPK.Trace()/3;
+			  //press=fdevSPK.Trace()/3;
 			  //fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
 			  //fTemp_matrix_nsd_x_nsd*=-1;
 			  //fdFYdS+=fTemp_matrix_nsd_x_nsd;			  
@@ -2498,7 +2517,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			 // fdPdS=0.0;
 			//  fdPdS.SetToScaled(1/3,fIdentity_matrix);
 			  fdGdS.SetToScaled(Bpsi*1/3,fIdentity_matrix);
-			  press=fdevSPK.Trace()/3;
+			  //press=fdevSPK.Trace()/3;
 			  //fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv,fIdentity_matrix);
 			  //fTemp_matrix_nsd_x_nsd*=-1;			
 			  //fdGdS+=fTemp_matrix_nsd_x_nsd;			    
@@ -2714,7 +2733,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
   
 		  	    else//(yielding did not occur / elastic step/
 		  	    {
-		      // cout<<"NOT YIELDED"<<endl;
+		       //cout<<"NOT YIELDED"<<endl;
+		       fs_micromorph3D_out<<"NOT YIELDED"<<endl;
 		        fFe=fFe_tr;
 		        //fFe=fDeformation_Gradient;
 
@@ -2727,10 +2747,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		       fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);	   
                        fFp_IPs.SetRow(IP,fFp);			                
                        fCe_IPs.SetRow(IP,fRight_Cauchy_Green_tensor);
-                       //fdGdS=0.0;
-                       //fdFYdS=0.0;
-                       //fdFYdS_IPs.SetRow(IP,fdFYdS);	
-                       //fdGdS_IPs.SetRow(IP,fdGdS);		                           	    
+	                           	    
 		       
 		       SPK=fSPK_tr;
                        KirchhoffST.MultABCT(fFe,SPK,fFe);            
@@ -5093,9 +5110,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fSPK_tr.Dimension(n_sd,n_sd);
     fdevSPK_tr.Dimension(n_sd,n_sd);
   
-  //  double Beta=-1.0;
-  //  double Aphi=2*sqrt(6)*cos(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
-  //  double Bphi=2*sqrt(6)*sin(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
+
 
 /*    int row=0;
     for(int i=0;i<3;i++)
@@ -5176,7 +5191,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fIdentity_matrix(1,1)=1.0;
     fIdentity_matrix(2,2)=1.0;
    // fCe_n=fIdentity_matrix;
-
+    double Beta=-1.0;
+    double Aphi=2*sqrt(6)*cos(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
+    double Bphi=2*sqrt(6)*sin(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
 
 //    if(iConstitutiveModelType==3)
  //   {
@@ -5199,8 +5216,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 			//	=fMaterial_Params[kZ0c];
 
 			//fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khkappa)=0.0;
-			fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=0.0;	
-
+			fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=Aphi;	
+			
          fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma)=0.0;				
 
 			fFp_n_IPs.SetRow(l,fIdentity_matrix);
@@ -5214,7 +5231,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fFp_Elements_IPs   = fFp_n_Elements_IPs;
     fCe_Elements_IPs    =  fCe_n_Elements_IPs;
     fdGdS_Elements_IPs = fdGdS_n_Elements_IPs; 
-    fdFYdS_Elements_IPs = fdFYdS_n_Elements_IPs;        
+    fdFYdS_Elements_IPs = fdFYdS_n_Elements_IPs;
+    fState_variables_Elements_IPs=fState_variables_n_Elements_IPs;        
  //   }
     
  
