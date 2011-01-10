@@ -1583,9 +1583,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	     fFp_n_Elements_IPs.RowCopy(e,fFp_n_IPs);
 	     fFp_Elements_IPs.RowCopy(e,fFp_IPs);
 	     
-	     /* retrieve Ce  in element */	     
+	     /* retrieve Ce and Ce_n in element */	     
              fCe_n_Elements_IPs.RowCopy(e,fCe_n_IPs);
-             
+             fCe_Elements_IPs.RowCopy(e,fCe_IPs);             
 	     /* retrieve dGdS and dGdS_n in element */             
              fdGdS_n_Elements_IPs.RowCopy(e,fdGdS_n_IPs);
 	     fdGdS_Elements_IPs.RowCopy(e,fdGdS_IPs);             
@@ -2202,10 +2202,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 	                fFp_n_IPs.RowCopy(IP,fFp_n); 
 	                fFp_IPs.RowCopy(IP,fFp); 
-                        fCe_n_IPs.RowCopy(IP,fCe_n);                                                                               
+                        fCe_n_IPs.RowCopy(IP,fCe_n);            
+                                                                                                                   
                         fdGdS_n_IPs.RowCopy(IP,fdGdS_n);
-	                //fdGdS_IPs.RowCopy(IP,fdGdS_IPs);   
+	                fdGdS_IPs.RowCopy(IP,fdGdS);   
 	                fdFYdS_n_IPs.RowCopy(IP,fdFYdS_n);  
+	                fdFYdS_IPs.RowCopy(IP,fdFYdS);  	                
                		fFp_n_inverse.Inverse(fFp_n);    
 		        /*for(int i=0;i<3;i++)
 		        { for(int j=0;j<3;j++)
@@ -2579,17 +2581,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                          fdGdS_IPs.SetRow(IP,fdGdS);
                          fdFYdS_IPs.SetRow(IP,fdFYdS);	    
           
-            // saving dGdS for each IP of the current element 
-	   /* fdGdS_Elements_IPs.SetRow(e,fdGdS_IPs);   
-	    
-            // saving dFYdS for each IP of the current element 
-	    fdFYdS_Elements_IPs.SetRow(e,fdFYdS_IPs); 	    
-	    
-            // saving Fp for each IP of the current element 
-	    fFp_Elements_IPs.SetRow(e,fFp_IPs);   	    
 
-            // saving  state variables for each IP of the current element */
-            //fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
 
                          Form_I1e_1(); // The first term first matrix
                          Form_I2e_1(); // The second term first matrix
@@ -5065,7 +5057,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fdGdS_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     fdGdS_n_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
    
-    fdGdS_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
+
     fdGdS_Elements_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
     fdGdS_Elements_IPs=0.0;   
 
@@ -5081,7 +5073,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fdFYdS_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
     fdFYdS_n_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
    
-    fdFYdS_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
+
     fdFYdS_Elements_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
     fdFYdS_n_Elements_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
     fdFYdS_Elements_IPs=0.0;      
