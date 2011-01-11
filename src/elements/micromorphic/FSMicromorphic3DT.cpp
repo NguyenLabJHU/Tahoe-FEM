@@ -2269,7 +2269,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		  	     {	        	
 
 		        	fs_micromorph3D_out<<"YIELDED"<<endl;
-		        	cout<<"YIELDED"<<endl;		        	
+		        	//cout<<"YIELDED"<<endl;		        	
                                fs_micromorph3D_out<<"PI="<<IP<<endl;
 		    		/* initialize before iteration */	        	    	       
 				fYield_function=fYield_function_tr;
@@ -2279,6 +2279,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				//fTemp_matrix_nsd_x_nsd.Inverse(fFe);	
                                 //fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
 				fSPK=fSPK_tr;
+				fdevSPK=fdevSPK_tr;
 				devfSPKinv=devfSPKinv_tr;
 				
                                 fdelDelgamma = 0.0;
@@ -2292,11 +2293,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				      iter_count += 1;			                                    
 				     /* Form  dFe/dDgamma */	
  					     
-                                     fFp_inverse.Inverse(fFp);	                                	                                  					
+                                     fFp_inverse.Inverse(fFp);	                              
                                      fdGdS_n_transpose.Transpose(fdGdS_n);                                    
-                                     fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse); 
                                      fCe_n_inverse.Inverse(fCe_n); 
                                      dFedDelgamma=0.0;
+                                     fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);       
                                     // fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);	   
                                     // dFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd2,fTemp_matrix_nsd_x_nsd);
                                     // dFedDelgamma=fTemp_matrix_nsd_x_nsd2;  
@@ -2330,10 +2331,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     //Temp_inv= fdevSPK.ScalarProduct();		
 		                    //devfSPKinv=sqrt(Temp_inv);
                                     
-                                    fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,fSPK);
+                                    fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,fdevSPK);
                                     dinvSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
                                     
-           	                    /* Forming  dc/dDgamma  c: cohesion*/   	                    	                                                                           			    	            fState_variables_n_IPs(IP,khc) =Aphi;                       
+           	                    /* Forming  dc/dDgamma  c: cohesion*/   	                    	                                                                           			    	                                fState_variables_n_IPs(IP,khc) =Aphi;                       
         			    dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
         			    
         			    /* assemble the consistent tangent */
@@ -2357,10 +2358,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				   fState_variables_IPs(IP,khc)=Aphi;		       
                 	    	   fState_variables_IPs(IP,kc)= fState_variables_n_IPs(IP,kc) 
 				    	+ fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
-				   if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
+				   if (fState_variables_IPs(IP,kc) < 0.0) 
+				   	fState_variables_IPs(IP,kc) = 0.0;
 	                                
-
-
 
 			           /* update fFp */
 			           fdGdS_n_transpose.Transpose(fdGdS_n);//already calculated above	           
@@ -2523,7 +2523,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 			  //fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv,fIdentity_matrix);
 			  //fTemp_matrix_nsd_x_nsd*=-1;			
 			  //fdGdS+=fTemp_matrix_nsd_x_nsd;			    
-			  fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv ,fdevSPK);		  
+			  fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,fdevSPK);		  
 			  fdGdS+=fTemp_matrix_nsd_x_nsd;
 
 			  fdFYdc=-Aphi;		            		            
