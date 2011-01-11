@@ -606,8 +606,8 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 
 	/* Expand 24x24 geometric stiffness into material stiffness matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
-	fAme*=-1.0;
-//	fAem = fAme;
+//	fAme*=-1.0;
+//	fAee*=-1.0;
 	fAem.Transpose(fAme);
 	
 	/* Add mass matrix and non-symmetric electromechanical tangent if dynamic problem */
@@ -732,7 +732,7 @@ void FSDielectricElastomerT::MassMatrix()
 
 /* Compute RHS, or residual of element equations */
   void FSDielectricElastomerT::FormKd(double constK)
-  {
+  {  	
 	/* element preliminaries */
     const int nsd = NumSD();
     const int nen = NumElementNodes();
@@ -752,6 +752,7 @@ void FSDielectricElastomerT::MassMatrix()
 
 	  /* integration weight */
       const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
+      const double w1 = fShapes->IPDet() * fShapes->IPWeight();
       const dArray2DT& DNaX = fShapes->Derivatives_X();
       
       /* Now convert DNaX to a matrix instead of dArray2DT */
