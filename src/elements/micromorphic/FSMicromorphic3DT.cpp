@@ -3964,10 +3964,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
               fKdd +=  fKu_I4p_2;
               fKdd +=  fKu_I4p_3;
               fKdd +=  fKu_I4p_4;
-              
+       /********************************
+       **********Ignore this part ******
+       *********************************       
               //fKdd +=  fKu_IfFp_1;
               //fKdd +=  fKu_IfFp_2;
-              //fKdd +=  fKu_IfFp_3;                            
+              //fKdd +=  fKu_IfFp_3;    
+       /********************************
+       *********************************/                               
 
 
               
