@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.146 2011-01-10 05:03:54 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.147 2011-01-14 23:14:28 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -862,6 +862,14 @@ private:
     dMatrixT I4p_4;
     dMatrixT fKu_I4p_4;                  
     
+    /* Alternative way matrices trial */    
+    dMatrixT IfFp_1;
+    dMatrixT fKu_IfFp_1;  
+    dMatrixT IfFp_2;
+    dMatrixT fKu_IfFp_2;
+    dMatrixT IfFp_3;
+    dMatrixT fKu_IfFp_3;       
+    
     dMatrixT dFedDelgamma;
 
     dArray2DT	fState_variables_IPs;
@@ -1253,6 +1261,15 @@ private:
     void Form_I4p_2(void); // 
     void Form_I4p_3(void); // 
     void Form_I4p_4(void); // 
+
+    /* Alternative way functions trial */
+    void Form_IfFp_1(void); 
+    void Form_IfFp_2(void);
+    void Form_IfFp_3(void);       
+    
+    
+
+
 
     /////////////////////////////////////////////////////////
 
