@@ -2457,7 +2457,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                            KirchhoffST.MultABCT(fFe,fSPK,fFe);
                           /* Calcuate Cauchy stress tensor */                                       
                            Sigma=KirchhoffST;
-                           Sigma.SetToScaled(Jp,KirchhoffST);	
+                           Sigma.SetToScaled(1/Je,KirchhoffST);	
 
 		   	  /* saving  Cauchy stress tensor at IPs */
 		   	   fCauchy_stress_tensor_current_IP=Sigma;
