@@ -2460,9 +2460,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                            Sigma.SetToScaled(1/Je,KirchhoffST);	
 
 		   	  /* saving  Cauchy stress tensor at IPs */
-		   	   fCauchy_stress_tensor_current_IP=Sigma;
+		   	 //  fCauchy_stress_tensor_current_IP=Sigma;
 		   	 /* For plotting purposes */
-		   	 //fCauchy_stress_tensor_current_IP=fSPK;
+		   	 fCauchy_stress_tensor_current_IP=fSPK;
 
                          // Actually function was modified and not it extracts nine values */
                          Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
@@ -2489,7 +2489,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                           LagrangianStn*=0.5;  
                           
                           /* For plotting purposes */
-                          //fEulerian_strain_tensor_current_IP=LagrangianStn; 
+                          fEulerian_strain_tensor_current_IP=LagrangianStn; 
                         
                           Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);
 
@@ -2819,9 +2819,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                        Sigma=KirchhoffST;
                        Sigma.SetToScaled(1/Je,KirchhoffST);   
                                   
-                       fCauchy_stress_tensor_current_IP=Sigma;  
+                      // fCauchy_stress_tensor_current_IP=Sigma;  
                       /* For plotting purposes */                            
- 		     //fCauchy_stress_tensor_current_IP=SPK; 
+ 		      fCauchy_stress_tensor_current_IP=SPK; 
  		     
                       /* Function was modified and it extracts nine values */
                       Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
@@ -2848,7 +2848,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                      LagrangianStn*=0.5;   
 
                       /* For plotting purposes */                            
-                     //fEulerian_strain_tensor_current_IP=LagrangianStn;
+                     fEulerian_strain_tensor_current_IP=LagrangianStn;
 
                       //Extract_nine_values (fEulerian_strain_tensor_current_IP,fTemp_six_values);
                      Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);
