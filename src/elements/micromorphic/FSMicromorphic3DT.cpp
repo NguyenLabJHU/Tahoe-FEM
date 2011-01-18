@@ -51,8 +51,7 @@ FSMicromorphic3DT::~FSMicromorphic3DT(void)
 
 void FSMicromorphic3DT::Echo_Input_Data(void)
 {
-
-  //           cout<<"CHECK POINT-1"<<endl;    
+    //cout<<"CHECK POINT-1"<<endl;    
     cout << "#######################################################" << endl;
     cout << "############### ECHO FSMicromorphic3D DATA #########################" << endl;
     cout << "#######################################################" << endl;
@@ -73,7 +72,7 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
     cout << "fMaterial_Params[kTau] "               << fMaterial_Params[kTau]          << endl;
     cout << "fMaterial_Params[kEta] "               << fMaterial_Params[kEta]           << endl;
     cout << "fMaterial_Params[kKappa] "             << fMaterial_Params[kKappa]  << endl;
-    cout << "fMaterial_Params[kTau1] "                  << fMaterial_Params[kTau1]          << endl;
+    cout << "fMaterial_Params[kTau1] "              << fMaterial_Params[kTau1]          << endl;
     cout << "fMaterial_Params[kTau2] "                  << fMaterial_Params[kTau2]          << endl;
     cout << "fMaterial_Params[kTau3] "                  << fMaterial_Params[kTau3]          << endl;
     cout << "fMaterial_Params[kTau4] "                  << fMaterial_Params[kTau4]          << endl;
@@ -84,7 +83,6 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
     cout << "fMaterial_Params[kTau9] "                  << fMaterial_Params[kTau9]          << endl;
     cout << "fMaterial_Params[kTau10] "                 << fMaterial_Params[kTau10]          << endl;
     cout << "fMaterial_Params[kTau11] "                 << fMaterial_Params[kTau11]          << endl;
-
 
 }
 
@@ -362,8 +360,8 @@ void FSMicromorphic3DT::CloseStep(void)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////this part keeps track of the parameters from the previous iteration "n" to be used in "n+1"/////////////////////////
     
-  if(iConstitutiveModelType==2)
-  {
+  //if(iConstitutiveModelType==2)
+  //{
     SigN_IPs_el_n      = SigN_IPs_el;
     GammaN_IPs_el_n    = GammaN_IPs_el;
     mn_IPs_el_n        = mn_IPs_el;
@@ -373,7 +371,7 @@ void FSMicromorphic3DT::CloseStep(void)
     FnInv_ar_IPs_el=FInv_ar_IPs_el;
     ChiN_ar_IPs_el_n=Chi_ar_IPs_el;
     GRAD_ChiN_ar_IPs_el_n=GRAD_Chi_ar_IPs_el;
-    }
+   // }
   if(iConstitutiveModelType==3)
   {
      /* assign values at t_{n+1} to t_n for storage */
@@ -1407,7 +1405,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     }
 
     /* [u_dot_column_matrix] will be formed */
-      for (int i=0; i<n_en_displ_x_n_sd; i++)
+    for (int i=0; i<n_en_displ_x_n_sd; i++)
         u_dot_column_matrix(i,0) = u_dot_vec[i];
 
     /* [u_dot_column_matrix_Transpose] will be formed */
@@ -2221,7 +2219,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		    	Temp_inv=0.0;
 		        Temp_inv=fLagrangian_strain_tensor_tr.Trace();//Calculating the tr(E) and keep in temp. var. 
 		    	fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kLambda],fIdentity_matrix);
-                        fSPK_tr.SetToScaled(2*fMaterial_Params[kMu],fLagrangian_strain_tensor_tr);    	
+                fSPK_tr.SetToScaled(2*fMaterial_Params[kMu],fLagrangian_strain_tensor_tr);    	
 		    	fSPK_tr+=fTemp_matrix_nsd_x_nsd;
 
 			/* Form terms related the cohesion and friction angle  in D-P yield function */
@@ -2595,7 +2593,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                          Form_I3e_1(); // the third term first matrix  
                          Form_I3e_2(); //  
                          Form_I3e_3(); // 
-                         Form_I3p_4(); // 
+                         //Form_I3p_4(); // 
                          Form_I3p_5(); //                      
                          Form_I3p_6(); // 
                          Form_I3p_7(); // 
@@ -11242,44 +11240,46 @@ void FSMicromorphic3DT:: Form_I3e_3()
 
 void FSMicromorphic3DT:: Form_I3p_4()
 {
-    int row=0;
-    int col=0;
-    I3p_4=0.0;
+	int row=0;
+	int col=0;
+	I3p_4=0.0;
 
-   for(int M=0;M<3;M++)
-   {
-    for(int i=0;i<3;i++)
-    {
-      row=0;
-      for(int A=0;A<3;A++)
-      {
-       for(int l=0;l<3;l++)
-        {
-          //summation over the same term
-	   for(int Kbar=0;Kbar<3;Kbar++)
-	   {
-	    for(int Lbar=0;Lbar<3;Lbar++)
-	    {
-	     for(int Nbar=0;Nbar<3;Nbar++)
-	     {
-	      for(int k=0;k<3;k++)
-	      {
-	       I3p_4(row,col)+=fDeformation_Gradient_Inverse(A,k)*fFe(k,Kbar)
-	                      *fFe(l,Lbar)*fIdentity_matrix(Kbar,Lbar)
-	                      *fFe(i,Nbar)*fFp_inverse(M,Nbar);
-	                      
-	      }	      
-	     }	     
-	    }
-	   }  	   
-           row++;          
-        }
-      }
-      col++;     
-    }
-   }
+	for(int M=0;M<3;M++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			row=0;
+			for(int A=0;A<3;A++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					//summation over the same term
+					for(int Kbar=0;Kbar<3;Kbar++)
+					{
+						for(int Lbar=0;Lbar<3;Lbar++)
+						{
+							for(int Nbar=0;Nbar<3;Nbar++)
+							{
+								for(int k=0;k<3;k++)
+								{
+									I3p_4(row,col)+=fDeformation_Gradient_Inverse(A,k)*fFe(k,Kbar)
+										*fFe(l,Lbar)*fIdentity_matrix(Kbar,Lbar)
+										*fFe(i,Nbar)*fFp_inverse(M,Nbar);         
+								}	      
+							}	     
+						}
+						row++;
+					}  	   
+					//row++;          
+				}
+				col++;
+			}
+			//col++;     
+		}
+	}
+} //end function
 
-}
+
 
 void FSMicromorphic3DT:: Form_I3p_5()
 {
