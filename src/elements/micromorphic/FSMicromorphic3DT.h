@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.147 2011-01-14 23:14:28 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.148 2011-01-19 16:36:50 regueiro Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -353,6 +353,7 @@ private:
     dMatrixT        fDeformation_Gradient;
     dMatrixT        fRight_Cauchy_Green_tensor;
     dMatrixT        fRight_Cauchy_Green_tensor_Inverse;
+    dMatrixT        fRight_Elastic_Cauchy_Green_tensor;
     dMatrixT        fLeft_Cauchy_Green_tensor;
     dMatrixT        fLeft_Cauchy_Green_tensor_Inverse;
     dMatrixT        fDeformation_Gradient_Inverse;

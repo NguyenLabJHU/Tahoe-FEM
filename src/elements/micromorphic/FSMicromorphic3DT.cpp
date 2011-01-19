@@ -2421,9 +2421,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                            /* calculate Fe */
                            fFe.MultAB(fDeformation_Gradient,fFp_inverse);
                            /* [fElastic_Right_Cauchy_Green_tensor] will be formed */
-                           fRight_Cauchy_Green_tensor.MultATB(fFe,fFe);
-                           if (fRight_Cauchy_Green_tensor.Det()==0)
-                        	   fRight_Cauchy_Green_tensor = fIdentity_matrix;
+                           fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
+                           if (fRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                        	   fRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
                            double Je=0.0;
                            Je=fFe.Det();
@@ -2449,7 +2449,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                            fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
 
                           /* [fLeft_Cauchy_Green_tensor] will be formed */
-                          fLeft_Cauchy_Green_tensor.MultABT(fFe, fFe);
+                          fLeft_Cauchy_Green_tensor.MultABT(fDeformation_Gradient, fDeformation_Gradient);
                           /* [fLeft_Cauchy_Green_tensor_Inverse] will be formed */
                           if (fLeft_Cauchy_Green_tensor.Det()==0)
                           fLeft_Cauchy_Green_tensor = fIdentity_matrix;
@@ -2460,6 +2460,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                           fEulerian_strain_tensor_current_IP *= -1;
                           fEulerian_strain_tensor_current_IP += fIdentity_matrix;
                           fEulerian_strain_tensor_current_IP *= 0.5;
+                          
+                          fRight_Cauchy_Green_tensor.MultATB(fDeformation_Gradient,fDeformation_Gradient);
+                          if (fRight_Cauchy_Green_tensor.Det()==0)
+                        	  fRight_Cauchy_Green_tensor = fIdentity_matrix;
 
                           LagrangianStn=fIdentity_matrix;
                           LagrangianStn*=-1;
@@ -2558,7 +2562,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                           // saving Fp, Ce, dG/dS and dF/dS at each IP of the current element
                           fFp_IPs.SetRow(IP,fFp);
-                          fCe_IPs.SetRow(IP,fRight_Cauchy_Green_tensor);
+                          fCe_IPs.SetRow(IP,fRight_Elastic_Cauchy_Green_tensor);
                           fdGdS_IPs.SetRow(IP,fdGdS);
                           fdFYdS_IPs.SetRow(IP,fdFYdS);
 
@@ -2738,15 +2742,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 		   //fFe=fDeformation_Gradient;
 
                 		   /* [fElastic_Right_Cauchy_Green_tensor] will be formed */
-                		   fRight_Cauchy_Green_tensor.MultATB(fFe,fFe);
+                		   fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
 
-                		   if (fRight_Cauchy_Green_tensor.Det()==0)
-                			   fRight_Cauchy_Green_tensor = fIdentity_matrix;
+                		   if (fRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                			   fRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
                 		   fTemp_matrix_nsd_x_nsd=fFe.Inverse();
                 		   fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
                 		   fFp_IPs.SetRow(IP,fFp);
-                		   fCe_IPs.SetRow(IP,fRight_Cauchy_Green_tensor);
+                		   fCe_IPs.SetRow(IP,fRight_Elastic_Cauchy_Green_tensor);
                 		   //fdGdS_IPs.SetRow(IP,fdGdS);
                 		   //fdFYdS_IPs.SetRow(IP,fdFYdS);
 
@@ -2806,7 +2810,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 		   fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
 
                 		   /* [fLeft_Cauchy_Green_tensor] will be formed */
-                		   fLeft_Cauchy_Green_tensor.MultABT(fFe, fFe);
+                		   fLeft_Cauchy_Green_tensor.MultABT(fDeformation_Gradient, fDeformation_Gradient);
                 		   /* [fLeft_Cauchy_Green_tensor_Inverse] will be formed */
                 		   if (fLeft_Cauchy_Green_tensor.Det()==0)
                 			   fLeft_Cauchy_Green_tensor = fIdentity_matrix;
@@ -2817,6 +2821,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 		   fEulerian_strain_tensor_current_IP *= -1;
                 		   fEulerian_strain_tensor_current_IP += fIdentity_matrix;
                 		   fEulerian_strain_tensor_current_IP *= 0.5;
+                		   
+                		   /* [fRight_Cauchy_Green_tensor] will be formed */
+                		   fRight_Cauchy_Green_tensor.MultATB(fDeformation_Gradient,fDeformation_Gradient);
+                		   if (fRight_Cauchy_Green_tensor.Det()==0)
+                			   fRight_Cauchy_Green_tensor = fIdentity_matrix;
 
                 		   LagrangianStn=fIdentity_matrix;
                 		   LagrangianStn*=-1;
@@ -4541,6 +4550,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fRight_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fRight_Cauchy_Green_tensor_Inverse.Dimension (n_sd,n_sd);
+    fRight_Elastic_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fLeft_Cauchy_Green_tensor.Dimension (n_sd,n_sd);
     fIdentity_matrix.Dimension (n_sd,n_sd);
     fTemp_matrix_nsd_x_nsd.Dimension (n_sd,n_sd);
