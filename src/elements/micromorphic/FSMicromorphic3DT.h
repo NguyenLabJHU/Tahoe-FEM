@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.148 2011-01-19 16:36:50 regueiro Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.149 2011-01-20 08:14:56 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -818,7 +818,13 @@ private:
      /* some scalars used in calculations */ 
    double dFYdScol1,fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
    double mean_stress_tr,mean_stress;
-   
+  
+    dMatrixT IJp_1;
+    dMatrixT fKu_IJp_1;        
+    dMatrixT IJp_2;
+    dMatrixT fKu_IJp_2;       
+    dMatrixT IJp_3;
+    dMatrixT fKu_IJp_3;                             
     dMatrixT I1e_1;
     dMatrixT fKu_I1e_1;
     dMatrixT I2e_1;
@@ -921,26 +927,7 @@ private:
  dTensor3DT fmklm;
 
 //////////////////////////////////////////////////
-
-
-
-    double trLST;
     double invJ;
-////////////////////////////////////////////////
-    double lambda_cap;
-    double Mu_cap;
-    double g1_;
-    double g2_;
-    double b1_;
-    double b2_;
-    double b3_;
-
-
-/////////////////////////////////////////
- //   int element_number;
- //   int el_num;
-  //  dMatrixT u_el;
-  //  dArrayT u_element;
 
     double trsigma;
     double trs_sigma;
@@ -1240,7 +1227,9 @@ private:
 // The first and the second terms cancel each other, we start from the thirh term which has 12 matrices
 // all the matrices having "e" are the ones which direclty include the term  d(deltau)/dX
 // matrices having "p" are the one which include delta(gamma)
-    
+    void Form_IJp_1(void);   
+    void Form_IJp_2(void);     
+    void Form_IJp_3(void);    
     void Form_I1e_1(void); // the first term first matrix
     void Form_I2e_1(void); // the  second term first matrix    
     void Form_I2p_2(void); 
