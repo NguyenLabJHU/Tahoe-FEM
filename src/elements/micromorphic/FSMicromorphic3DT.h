@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.149 2011-01-20 08:14:56 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.150 2011-01-21 20:25:34 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -64,7 +64,7 @@ public:
         kTau8,
         kTau9,
         kTau10,
-        kTau11,     
+        kTau11,
         // plasticity parameters
         kHc,
         kc0,
@@ -78,8 +78,8 @@ public:
         kg3,
         //add to this list
         kNUM_FMATERIAL_TERMS        };
-        
-	enum fMaterialState_T 	{ 
+
+	enum fMaterialState_T 	{
 	//    kkappa,
 	    kc,
         //    kZkappa,
@@ -96,8 +96,8 @@ public:
 	//    kEpsVolp,
 	    kDelgamma,
 	    kNUM_FMATERIAL_STATE_TERMS
-	};        
-        
+	};
+
 
 //  enum fIntegrate_T         {
 //      kBeta,
@@ -362,14 +362,14 @@ private:
 
     dMatrixT        fIdentity_matrix;
     dMatrixT        fTemp_matrix_nsd_x_nsd;
-    dMatrixT        fTemp_matrix_nsd_x_nsd2;    
+    dMatrixT        fTemp_matrix_nsd_x_nsd2;
     dMatrixT        fShapeMicro_row_matrix;
 
 
     dMatrixT        u_dotdot_column_matrix;
     dMatrixT        u_dot_column_matrix;
     dMatrixT        u_dot_column_matrix_Transpose;
-   
+
 
 
     //////////////////////////////////////////////////////////
@@ -740,9 +740,9 @@ private:
     dMatrixT fMpu_3;
     dMatrixT fMpp_3;
     dMatrixT fMpu_4;
-    dMatrixT fMpp_4;   
+    dMatrixT fMpp_4;
     dMatrixT fMpu_6;
-    dMatrixT fMpp_6;        
+    dMatrixT fMpp_6;
     dMatrixT fKMphiu_3;
     dMatrixT fKMphiphi_3;
     dMatrixT fKMphiu_4;
@@ -765,24 +765,24 @@ private:
     dMatrixT fKMphiu_2;
     dMatrixT fKMphiphi_2;
     /* Plasticity Matrices*/
-    
+
     dArrayT Vintp_1;
     dArrayT Vintp_1_temp;
-    dArrayT fV1p;   
-    
-    
-    
-    
+    dArrayT fV1p;
+
+
+
+
     dMatrixT fFp;
     dMatrixT fFp_inverse;
     dMatrixT fFp_n;
-    dMatrixT fFp_n_inverse;    
+    dMatrixT fFp_n_inverse;
     dMatrixT fFe;
     dMatrixT fFe_tr;
     dMatrixT fdGdS_n;
     dMatrixT fdGdS;
     dMatrixT fdFYdS;
-    dMatrixT fdFYdS_n;    
+    dMatrixT fdFYdS_n;
 
     dMatrixT fRight_Cauchy_Green_tensor_tr;
     dMatrixT fLagrangian_strain_tensor_tr;
@@ -795,58 +795,58 @@ private:
     dMatrixT ddevSdDelgamma;
     dMatrixT dEedDelgamma;
 
-    
+
     dMatrixT fFeT;
-    
-    
+
+
     dMatrixT fA1;
-    
-    
+
+
     double fYield_function,fYield_function_tr,dFYdc;
     double devfSPKinv,devfSPKinv_tr;
     double fDelgamma, fdelDelgamma,dFYdDelgamma,fdcddgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,press,dinvSdDelgamma;
     int iter_count, global_iteration;
 
-    
+
     /* for local Newton-Raphson iteration */
    int iIterationMax;
    double dRelTol, dAbsTol,fConst;
-	
+
    /* for local trial yield check */
    double dYieldTrialTol;
-     /* some scalars used in calculations */ 
+     /* some scalars used in calculations */
    double dFYdScol1,fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
    double mean_stress_tr,mean_stress;
-  
+
     dMatrixT IJp_1;
-    dMatrixT fKu_IJp_1;        
+    dMatrixT fKu_IJp_1;
     dMatrixT IJp_2;
-    dMatrixT fKu_IJp_2;       
+    dMatrixT fKu_IJp_2;
     dMatrixT IJp_3;
-    dMatrixT fKu_IJp_3;                             
+    dMatrixT fKu_IJp_3;
     dMatrixT I1e_1;
     dMatrixT fKu_I1e_1;
     dMatrixT I2e_1;
-    dMatrixT fKu_I2e_1;    
-    dMatrixT I2p_2;  
+    dMatrixT fKu_I2e_1;
+    dMatrixT I2p_2;
     dMatrixT fKu_I2p_2;
-    dMatrixT I2p_3;  
+    dMatrixT I2p_3;
     dMatrixT fKu_I2p_3;
-    dMatrixT I2p_4;  
-    dMatrixT fKu_I2p_4;                
+    dMatrixT I2p_4;
+    dMatrixT fKu_I2p_4;
     dMatrixT I3e_1;
-    dMatrixT fKu_I3e_1;  
+    dMatrixT fKu_I3e_1;
     dMatrixT I3e_2;
     dMatrixT fKu_I3e_2;
     dMatrixT I3e_3;
-    dMatrixT fKu_I3e_3;    
+    dMatrixT fKu_I3e_3;
     dMatrixT I3p_4;
-    dMatrixT fKu_I3p_4;  
+    dMatrixT fKu_I3p_4;
     dMatrixT I3p_5;
     dMatrixT fKu_I3p_5;
     dMatrixT I3p_6;
-    dMatrixT fKu_I3p_6;  
+    dMatrixT fKu_I3p_6;
     dMatrixT I3p_7;
     dMatrixT fKu_I3p_7;
     dMatrixT I3p_8;
@@ -856,34 +856,27 @@ private:
     dMatrixT I3p_10;
     dMatrixT fKu_I3p_10;
     dMatrixT I3p_11;
-    dMatrixT fKu_I3p_11;                    
+    dMatrixT fKu_I3p_11;
     dMatrixT I3p_12;
-    dMatrixT fKu_I3p_12;            
+    dMatrixT fKu_I3p_12;
 
     dMatrixT I4e_1;
-    dMatrixT fKu_I4e_1;  
+    dMatrixT fKu_I4e_1;
     dMatrixT I4p_2;
     dMatrixT fKu_I4p_2;
     dMatrixT I4p_3;
-    dMatrixT fKu_I4p_3;    
+    dMatrixT fKu_I4p_3;
     dMatrixT I4p_4;
-    dMatrixT fKu_I4p_4;                  
-    
-    /* Alternative way matrices trial */    
-    dMatrixT IfFp_1;
-    dMatrixT fKu_IfFp_1;  
-    dMatrixT IfFp_2;
-    dMatrixT fKu_IfFp_2;
-    dMatrixT IfFp_3;
-    dMatrixT fKu_IfFp_3;       
-    
+    dMatrixT fKu_I4p_4;
+
+
     dMatrixT dFedDelgamma;
 
     dArray2DT	fState_variables_IPs;
     dArray2DT	fState_variables_Elements_IPs;
     dArray2DT	fState_variables_n_IPs;
     dArray2DT	fState_variables_n_Elements_IPs;
-   
+
     dArray2DT	fFp_IPs;
     dArray2DT	fFp_Elements_IPs;
     dArray2DT	fFp_n_IPs;
@@ -891,30 +884,30 @@ private:
 
     dArray2DT	fCe_IPs;
     dArray2DT	fCe_Elements_IPs;
-    
+
     dMatrixT    fCe_n;
-    dMatrixT    fCe_n_inverse;   
-    dMatrixT    fdGdS_n_transpose; 
+    dMatrixT    fCe_n_inverse;
+    dMatrixT    fdGdS_n_transpose;
     dArray2DT	fCe_n_IPs;
     dArray2DT	fCe_n_Elements_IPs;
 
     dArray2DT	fdGdS_IPs;
     dArray2DT	fdGdS_n_IPs;
 
-    
+
     dArray2DT	fdGdS_Elements_IPs;
-    dArray2DT	fdGdS_n_Elements_IPs;    
-    
-    
+    dArray2DT	fdGdS_n_Elements_IPs;
+
+
     dArray2DT	fdFYdS_IPs;
     dArray2DT	fdFYdS_n_IPs;
 
-    
+
     dArray2DT	fdFYdS_Elements_IPs;
-    dArray2DT	fdFYdS_n_Elements_IPs;       
-    
-    
-    
+    dArray2DT	fdFYdS_n_Elements_IPs;
+
+
+
 /////stress invariants variables////////
  double Cauchy_inv;
  double Rel_stres_inv;
@@ -1227,37 +1220,32 @@ private:
 // The first and the second terms cancel each other, we start from the thirh term which has 12 matrices
 // all the matrices having "e" are the ones which direclty include the term  d(deltau)/dX
 // matrices having "p" are the one which include delta(gamma)
-    void Form_IJp_1(void);   
-    void Form_IJp_2(void);     
-    void Form_IJp_3(void);    
+    void Form_IJp_1(void);
+    void Form_IJp_2(void);
+    void Form_IJp_3(void);
     void Form_I1e_1(void); // the first term first matrix
-    void Form_I2e_1(void); // the  second term first matrix    
-    void Form_I2p_2(void); 
+    void Form_I2e_1(void); // the  second term first matrix
+    void Form_I2p_2(void);
     void Form_I2p_3(void);
-    void Form_I2p_4(void);           
+    void Form_I2p_4(void);
     void Form_I3e_1(void); // the third term first matrix
-    void Form_I3e_2(void); //  
-    void Form_I3e_3(void); // 
-    void Form_I3p_4(void); // 
-    void Form_I3p_5(void); //     
-    void Form_I3p_6(void); // 
-    void Form_I3p_7(void); // 
+    void Form_I3e_2(void); //
+    void Form_I3e_3(void); //
+    void Form_I3p_4(void); //
+    void Form_I3p_5(void); //
+    void Form_I3p_6(void); //
+    void Form_I3p_7(void); //
     void Form_I3p_8(void); //
-    void Form_I3p_9(void); // 
-    void Form_I3p_10(void); //                      
-    void Form_I3p_11(void); // 
-    void Form_I3p_12(void); // 
-    void Form_I4e_1(void); // the fourth term first matrix    
-    void Form_I4p_2(void); // 
-    void Form_I4p_3(void); // 
-    void Form_I4p_4(void); // 
+    void Form_I3p_9(void); //
+    void Form_I3p_10(void); //
+    void Form_I3p_11(void); //
+    void Form_I3p_12(void); //
+    void Form_I4e_1(void); // the fourth term first matrix
+    void Form_I4p_2(void); //
+    void Form_I4p_3(void); //
+    void Form_I4p_4(void); //
 
-    /* Alternative way functions trial */
-    void Form_IfFp_1(void); 
-    void Form_IfFp_2(void);
-    void Form_IfFp_3(void);       
-    
-    
+
 
 
 
