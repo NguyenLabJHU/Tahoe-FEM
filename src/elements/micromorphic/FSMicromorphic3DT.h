@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.150 2011-01-21 20:25:34 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.151 2011-01-23 07:33:05 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -354,6 +354,8 @@ private:
     dMatrixT        fRight_Cauchy_Green_tensor;
     dMatrixT        fRight_Cauchy_Green_tensor_Inverse;
     dMatrixT        fRight_Elastic_Cauchy_Green_tensor;
+    dMatrixT        fRight_Elastic_Cauchy_Green_tensor_tr;
+
     dMatrixT        fLeft_Cauchy_Green_tensor;
     dMatrixT        fLeft_Cauchy_Green_tensor_Inverse;
     dMatrixT        fDeformation_Gradient_Inverse;
@@ -667,6 +669,9 @@ private:
   //  dMatrixT FSF;
   //  dMatrixT LST;//Lagrangian strain tensor used in some functions to get rid of long name
     dMatrixT LagrangianStn;
+    dMatrixT Elastic_LagrangianStn;
+    dMatrixT Elastic_LagrangianStn_tr;
+
     dMatrixT MicroStnTensor;//Micro-strain tensor
     dMatrixT PSI;//deformation measure PSI=Transpose(F).chi
     dMatrixT ChiM; //Micro-deformation tensor Chi ( used a different tensor this time )
