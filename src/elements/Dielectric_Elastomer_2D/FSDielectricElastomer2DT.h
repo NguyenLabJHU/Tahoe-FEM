@@ -134,6 +134,28 @@ namespace Tahoe {
     virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         const iArrayT& e_codes, dArray2DT& e_values);
 
+	/** accumulate the element mass matrix
+	 * \param ip_weight array of weights per integration point or NULL
+	 *        if no additional weighting is needed beyond those defined by
+	 *        the integration scheme */
+	virtual void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
+		const double* ip_weight);
+
+	/** element body force contribution 
+	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
+	 * \param constM pre-factor for the element integral
+	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
+	 * \param ip_values integration point source terms. Pass NULL for no integration
+	 *        point values : [nip] x [ndof]
+	 * \param ip_weight array of weights per integration point or NULL
+	 *        if no additional weighting is needed beyond those defined by
+	 *        the integration scheme */
+	virtual void FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
+		const LocalArrayT* nodal_values,
+		const dArray2DT* ip_values,
+		const double* ip_weight);
+
+
   private:
 
     //
@@ -143,6 +165,8 @@ namespace Tahoe {
     void Set_B_C(const dArray2DT& DNaX, dMatrixT& B_C);
     void AccumulateGeometricStiffness(dMatrixT& Kg, const dArray2DT& DNaX,
         dSymMatrixT& S);
+
+	void MassMatrix();
 
   protected:
 
@@ -183,6 +207,7 @@ namespace Tahoe {
     dMatrixT fAem;	// electrical-mechanical coupling part of Hessian matrix
     dMatrixT fAee;	// electrical-electrical coupling part of Hessian matrix
     dMatrixT fGradNa;	// shape function gradients matrix
+    dMatrixT fMassMatrix;	// mass matrix for LHS
     
     /* Electric potential */
     const FieldT* fElectricScalarPotentialField;

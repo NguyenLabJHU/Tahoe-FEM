@@ -45,7 +45,6 @@ namespace Tahoe {
   //
   void FSDielectricElastomer2DT::TakeParameterList(const ParameterListT& list)
   {
-//  	cout << "FSDielectricElastomer2DT::TakeParameterList" << endl;
     //
     // inherited
     //
@@ -84,11 +83,15 @@ namespace Tahoe {
       fE_List[i].Alias(nsd, fE_all.Pointer(i * nsd));
     }	
 
+	/* Tangent moduli for LHS */
     fAmm_mat.Dimension(nme, nme);
     fAmm_geo.Dimension(nme, nme);
     fAme.Dimension(nme, nel);
     fAem.Dimension(nel, nme);
     fAee.Dimension(nel, nel);
+    
+    /* Initialize mass matrix */
+    fMassMatrix.Dimension(nme, nme);
 
     fLHS.Dimension(neq);
     fRHS.Dimension(neq);
@@ -104,7 +107,6 @@ namespace Tahoe {
   MaterialSupportT*
   FSDielectricElastomer2DT::NewMaterialSupport(MaterialSupportT* p) const
   {
-//  	cout << "FSDielectricElastomer2DT::NewMaterialSupport" << endl;
     //
     // allocate
     //
@@ -133,7 +135,6 @@ namespace Tahoe {
   MaterialListT*
   FSDielectricElastomer2DT::NewMaterialList(const StringT& name, int size)
   {
-//  	cout << "FSDielectricElastomer2DT::NewMaterialList" << endl;
     if (name != "large_strain_material_2D") {
       return 0;
     }
@@ -166,7 +167,6 @@ namespace Tahoe {
   // IS THIS NEEDED FOR VALUES OF E?
   void FSDielectricElastomer2DT::SetGlobalShape()
   {
-//	cout << "FSDielectricElastomer2DT::SetGlobalShape" << endl;
     //
     // inherited
     //
@@ -176,7 +176,7 @@ namespace Tahoe {
     // what needs to be computed
     //
     SetLocalU(fLocScalarPotential);
-//	cout << "fLocScalarPotential = " << fLocScalarPotential << endl;
+
     for (int i = 0; i < NumIP(); i++) {
 
       //
@@ -186,13 +186,10 @@ namespace Tahoe {
         dArrayT& E = fE_List[i];
 		dMatrixT E1(1, NumSD());
 
-		/* Not sure if this is correct; would prefer Derivative_X */
-		/* Sometimes z value of E1 is e-19....*/
 		fShapes->GradU(fLocScalarPotential, E1, i);
 		E1 *= -1.0;
 		E[0] = E1(0,0);
 		E[1] = E1(0,1);
-//		cout << "E-field derived from Psi = " << E << endl;
       }
 
   }
@@ -202,7 +199,6 @@ namespace Tahoe {
   //
   void FSDielectricElastomer2DT::CurrElementInfo(ostream& out) const
   {
-//	cout << "FSDielectricElastomer2DT::CurrElementInfo" << endl;
     //
     // inherited
     //
@@ -228,7 +224,6 @@ namespace Tahoe {
 // 
   bool FSDielectricElastomer2DT::NextElement()
   {
-//	cout << "FSDielectricElastomer2DT::NextElement" << endl;
     bool isThereNext = FiniteStrainT::NextElement();
 
     if (isThereNext == true) {
@@ -249,7 +244,6 @@ namespace Tahoe {
   //
   void FSDielectricElastomer2DT::SetLocalArrays()
   {
-//	cout << "FSDielectricElastomer2DT::SetLocalArrays" << endl;
     //
     // look for an electric scalar potential field
     //
@@ -299,8 +293,6 @@ namespace Tahoe {
   void FSDielectricElastomer2DT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
       AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
   {
-//  	cout << "FSDielectricElastomer2DT::Equations" << endl;
-
     for (int i = 0; i < fEqnos.Length(); ++i) {
 
 	  const int ndf = NumDOF();
@@ -319,7 +311,7 @@ namespace Tahoe {
 void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
 	/* not my field */
-	if (&field != &(Field())) return;
+//	if (&field != &(Field())) return;
 
 	/* quick exit */
 	bool hasnode = false;
@@ -374,8 +366,9 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
 				FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
 			}
 	
+			/* mechanical and electrical reaction forces */
 			double mr1, mr2, er1;
-			dArrayT react(3);
+			dArrayT react(2);
 			
 			/* loop over nodes (double-noding OK) */
 			int dex = 0;
@@ -384,15 +377,21 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
 			{
 				if (nodes_u[i] == node)
 				{
-					mr1 = fRHS[dex];
-					mr2 = fRHS[dex+1];
-					er1 = fRHS[dex2+2*NumElementNodes()];
-					react[0] = mr1;
-					react[1] = mr2;
-					react[2] = er1;
+					/* not my field - electrical */
+					if (&field != &(Field()))
+					{
+						er1 = fRHS[dex2+2*NumElementNodes()];
+						react[0] = er1;
+					}
+					else	// otherwise do mechanical
+					{
+						mr1 = fRHS[dex];
+						mr2 = fRHS[dex+1];	
+						react[0] = mr1;
+						react[1] = mr2;
+					}
 					
 					/* components for node - mechanical + electrical DOFs */
-//					nodalforce.Set(TotalNumDOF(), fRHS.Pointer(dex+2*NumElementNodes()));
 					nodalforce.Set(TotalNumDOF(), react.Pointer(0));
 
 					/* accumulate */
@@ -486,23 +485,20 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
     }
 
   }
-
-/* WATCH INTEGRATION WEIGHTS IN FORMSTIFFNESS AND FORMKD */
+  
 /* calculate the LHS of residual, or element stiffness matrix */
   void FSDielectricElastomer2DT::FormStiffness(double constK)
   {
-//  	cout << "FSDielectricElastomer2DT::FormStiffness" << endl;
-    //
-    // matrix format
-    //
+  	/* Time integrator info for dynamic problems */
+  	int order = fIntegrator->Order();
+  	
+	/* Matrix format - depends upon time integration order */
     dMatrixT::SymmetryFlagT format = (fLHS.Format()
         == ElementMatrixT::kNonSymmetric)
         ? dMatrixT::kWhole
         : dMatrixT::kUpperOnly;
 
-    //
-    // integrate over element
-    //
+	/* Element preliminaries */
     const int nsd = NumSD();
     const int nen = NumElementNodes();
 
@@ -512,23 +508,22 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
     fAem = 0.0;
     fAee = 0.0;
 
-    fShapes->TopIP();
 	dMatrixT GradShape(nsd, nen);
 	dMatrixT Cmech(3, 3);
 	dMatrixT Cemech(3,2);
 	dMatrixT Celec(2, 2);
 	dArrayT D(NumSD());
-	
-    while (fShapes->NextIP() != 0) {
 
-      //
-      // scale/weighting factor for integration
-      //
-      const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
+    fShapes->TopIP();	
+    while (fShapes->NextIP() != 0) 
+    {
 
-	  //
-      // get all stiffnesses needed for LHS of residual
-      //      
+	  /* integration weight; w1 valid for both static and dynamic problems */
+//    const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
+		const double w = fShapes->IPDet() * fShapes->IPWeight();
+		const double w1 = constK * w;
+		
+	  /* LHS tangent stiffnesses */
 //       dMatrixT C = fCurrMaterial->C_IJKL();
 //       dMatrixT H = fCurrMaterial->E_IJK();
 //       dMatrixT B = fCurrMaterial->B_IJ();
@@ -536,7 +531,7 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
 //       C *= w;
 //       H *= w;
 //       B *= w;
-       S *= w;
+       S *= w1;
 
 // 	  fCurrMaterial->C_Mech_Elec(Cmech, Cemech);
 // 	  fCurrMaterial->S_C_Elec(D, Celec);
@@ -545,8 +540,8 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
 // 	  Celec *= w;
 
  	  fCurrMaterial->ComputeAllLHS(Cmech, Cemech, Celec);
-	  Cmech *= (0.25*w);
-	  Cemech *= (0.5*w);
+	  Cmech *= (0.25*w1);
+	  Cemech *= (0.5*w1);
 	  Celec *= w;
 
       /* prepare derivatives of shape functions in reference configuration */
@@ -573,21 +568,128 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
 
 	/* Expand 8x8 geometric stiffness into 8x8 matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
-//	cout << "fAmm_mat expanded = " << fAmm_mat << endl;
+	fAem.Transpose(fAme);
+
+	/* Add mass matrix and non-symmetric electromechanical tangent if dynamic problem */
+	if (order == 2)
+	{
+		/* Calculate mass matrix for dynamic problems */
+		MassMatrix();		
+		fLHS.AddBlock(0, 0, fMassMatrix);
+
+		/* Need non-symmetric EM coupling tangent for dynamic problems */
+		fLHS.AddBlock(fAmm_mat.Rows(), 0, fAem);
+	}
 
 	/* Assemble into fLHS, or element stiffness matrix */
 	fLHS.AddBlock(0, 0, fAmm_mat);
 	fLHS.AddBlock(fAmm_mat.Rows(), fAmm_mat.Cols(), fAee);
 	fLHS.AddBlock(0, fAmm_mat.Cols(), fAme);
-//	fLHS.AddBlock(fAmm_mat.Rows(), 0, fAem);	// ignore for symmetric matrix
-//	cout << "fLHS = " << endl;
-//	cout << fLHS << endl;
   }
+
+/* Dummy mass matrix for dynamic calculations */
+void FSDielectricElastomer2DT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
+{
+	/* SHOULD THIS BE INHERITED? */
+	
+	/* Do nothing but add 0 to fLHS - implement mass in FormStiffness */
+	fLHS += 0.0;	
+}
+
+/* Calculate inertial force for dynamic calculations */
+void FSDielectricElastomer2DT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric, 
+	const LocalArrayT* nodal_values, const dArray2DT* ip_values, const double* ip_weight)
+{
+	const char caller[] = "FSDielectricElastomerT::FormMa";
+    
+    /* Define mechanical contribution to inertial force only */
+    /* Currently assuming a lumped mass matrix - good for implicit dynamics convergence */
+	dArrayT Rmech(NumSD()*NumElementNodes());
+	dArrayT Rtotal((NumSD()+1)*NumElementNodes());
+	Rmech = 0.0;
+	Rtotal = 0.0;
+
+	/* Compute lumped mass matrix */
+	MassMatrix();	
+	/* Comply with negative factor in ContinuumElementT::FormMa */
+	fMassMatrix *= -1.0;	
+	
+	/* init nodal values */
+	if (nodal_values)
+		nodal_values->ReturnTranspose(fNEEvec);
+	else {
+		ExceptionT::GeneralFail(caller, "expecting nodal values for lumped mass");
+	}
+	
+	double* pAcc = fNEEvec.Pointer();
+	double* pRes = Rmech.Pointer();
+	int     massdex = 0;
+
+	int nee = nodal_values->Length();
+
+	for (int i = 0; i < nee; i++)
+	{
+		*pRes++ += (*pAcc++)*fMassMatrix(massdex,massdex);
+		massdex++;
+	}
+	
+ 	Rtotal.CopyIn(0, Rmech);
+	fRHS += Rtotal;
+}
+
+void FSDielectricElastomer2DT::MassMatrix()
+{
+	/* Calculate mass matrix for mechanical portion of LHS for FormStiffness */
+	/* Implement lumped mass matrix only - better convergence for implicit dynamics 
+		as compared to consistent mass - see Hughes FEM book */
+	int nen = NumElementNodes();
+	int ndof = NumDOF();
+	int nsd = NumSD();
+    int nme = nen * nsd;	// # of mechanical DOFs per element
+	dArrayT NEEvec(nme);
+	NEEvec = 0.0;
+	double dsum = 0.0;
+	double totmas = 0.0;
+	fMassMatrix = 0.0;
+
+	fShapes->TopIP();	
+	while (fShapes->NextIP() != 0) {
+		
+		/* integration factor - ignoring constM factor */
+		double temp1 = fShapes->IPDet() * fShapes->IPWeight();
+//		if (ip_weight) temp1 *= *ip_weight++;
+
+		const double* Na = fShapes->IPShapeU();
+		totmas += temp1;
+		for (int lnd = 0; lnd < nen; lnd++) {
+			double temp2 = temp1*Na[lnd]*Na[lnd];
+			dsum += temp2;
+			NEEvec[lnd] += temp2;
+		}
+	}
+	
+	/* scale diagonal to conserve total mass */
+	double diagmass = totmas/dsum;
+	
+	/* lump mass onto diagonal */
+	double* pmass = fMassMatrix.Pointer();
+	int inc = fMassMatrix.Rows() + 1;
+	for (int lnd = 0; lnd < nen; lnd++)
+	{
+		double temp = diagmass*NEEvec[lnd];
+		for (int ed = 0; ed < ndof; ed++)
+		{
+			*pmass += temp;
+			pmass += inc;
+		}
+	}
+
+}
 
 /* Compute RHS, or residual of element equations */
   void FSDielectricElastomer2DT::FormKd(double constK)
   {
-//  	cout << "FSDielectricElastomer2DT::FormKd" << endl;
+    /* element preliminaries */
     const int nsd = NumSD();
     const int nen = NumElementNodes();
     
@@ -607,6 +709,7 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
 
 	  /* integration weight */
       const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
+      const double w1 = fShapes->IPDet() * fShapes->IPWeight();
       const dArray2DT& DNaX = fShapes->Derivatives_X();
       
       /* Now convert DNaX to a matrix instead of dArray2DT */
@@ -622,9 +725,6 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
 	  /* electrical stress */
 	  dArrayT D = fCurrMaterial->D_I();	// electrical displacement vector 3 x 1
 	  D *= w;
-	  
-// 	  fCurrMaterial->S_C_Elec(D, Celec);
-// 	  D *= w;
 	  
 	  // 2x1 vector of shape function gradient * D
 	  GradShape.MultTx(D, Relec, 1.0, dMatrixT::kAccumulate);	
