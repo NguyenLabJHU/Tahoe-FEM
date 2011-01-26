@@ -21,13 +21,12 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	FSDEMatSupport2DT.o \
 	FSDEMat2DT.o \
-	stress_mech_2D.o \
-	stress_elec_2D.o \
-	modulus_mixed_2D.o \
-	modulus_elec_2D.o \
-	modulus_mech_2D.o \
-	modulus_mech_elecmech_2D.o \
-	modulus_stress_elec_2D.o
+	Mech_PK2_AB_2D.o \
+	Mech_TanMod_AB_2D.o \
+	ME_MixedModulus_AB_2D.o \
+	ME_PK2_AB_2D.o \
+	ME_TanMod_AB_2D.o \
+	Elec_PK2_2D.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -49,13 +48,12 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	FSDEMatSupport2DT.cpp \
 	FSDEMat2DT.cpp \
-	stress_mech_2D.cpp \
-	stress_elec_2D.cpp \
-	modulus_mixed_2D.cpp \
-	modulus_elec_2D.cpp \
-	modulus_mech_2D.cpp \
-	modulus_mech_elecmech_2D.cpp \
-	modulus_stress_elec_2D.cpp
+	Mech_PK2_AB_2D.cpp \
+	Mech_TanMod_AB_2D.cpp \
+	ME_MixedModulus_AB_2D.cpp \
+	ME_PK2_AB_2D.cpp \
+	ME_TanMod_AB_2D.cpp \
+	Elec_PK2_2D.cpp
 
 ##################### (3) headers
 #

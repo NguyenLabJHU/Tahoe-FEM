@@ -51,15 +51,15 @@ namespace Tahoe {
 
 	/* write into vector to pass to C code for stress/modulus calculations */
 	fParams.Dimension(3);
-	fParams[0] = fElectricPermittivity;
-	fParams[1] = fMu;
-	fParams[2] = fNrig;
-	fParams[3] = fLambda;
+	fParams[0] = fMu;
+	fParams[1] = fLambda;
+ 	fParams[2] = fElectricPermittivity;
+ 	fParams[3] = fNrig;
 	
 	/* dimension work space */
 	fTangentMechanical.Dimension(kStressDim);
+	fTangentMechanicalElec.Dimension(kStressDim);
 	fStress.Dimension(kNumDOF);
-	stress_temp.Dimension(kNumDOF);
 	fTangentElectrical.Dimension(kNumDOF);
 	fTangentElectromechanical.Dimension(kStressDim, kNumDOF);
 	fElectricDisplacement.Dimension(kNumDOF);

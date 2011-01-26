@@ -509,10 +509,6 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
     fAee = 0.0;
 
 	dMatrixT GradShape(nsd, nen);
-	dMatrixT Cmech(3, 3);
-	dMatrixT Cemech(3,2);
-	dMatrixT Celec(2, 2);
-	dArrayT D(NumSD());
 
     fShapes->TopIP();	
     while (fShapes->NextIP() != 0) 
@@ -520,29 +516,18 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
 
 	  /* integration weight; w1 valid for both static and dynamic problems */
 //    const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
-		const double w = fShapes->IPDet() * fShapes->IPWeight();
-		const double w1 = constK * w;
+	  const double w = fShapes->IPDet() * fShapes->IPWeight();
+	  const double w1 = constK * w;
 		
-	  /* LHS tangent stiffnesses */
-//       dMatrixT C = fCurrMaterial->C_IJKL();
-//       dMatrixT H = fCurrMaterial->E_IJK();
-//       dMatrixT B = fCurrMaterial->B_IJ();
-       dSymMatrixT S = fCurrMaterial->S_IJ();
-//       C *= w;
-//       H *= w;
-//       B *= w;
-       S *= w1;
-
-// 	  fCurrMaterial->C_Mech_Elec(Cmech, Cemech);
-// 	  fCurrMaterial->S_C_Elec(D, Celec);
-// 	  Cmech *= w;
-// 	  Cemech *= w;
-// 	  Celec *= w;
-
- 	  fCurrMaterial->ComputeAllLHS(Cmech, Cemech, Celec);
-	  Cmech *= (0.25*w1);
-	  Cemech *= (0.5*w1);
-	  Celec *= w;
+	  /* LHS tangent stiffnesses */  
+	  dMatrixT CIJKL = fCurrMaterial->C_IJKL();
+      dSymMatrixT SIJ = fCurrMaterial->S_IJ();
+      dMatrixT BIJ = fCurrMaterial->B_IJ();
+      dMatrixT EIJK = fCurrMaterial->E_IJK();
+      CIJKL *= (0.25*w1);
+      EIJK *= (0.5*w1);
+	  BIJ *= w;
+      SIJ *= w1;
 
       /* prepare derivatives of shape functions in reference configuration */
       const dArray2DT& DNaX = fShapes->Derivatives_X();
@@ -553,17 +538,17 @@ void FSDielectricElastomer2DT::AddNodalForce(const FieldT& field, int node, dArr
 	  Set_B_C(DNaX, B_C);
 	  
 	  /* mechanical material stiffness (8 x 8 matrix for 4-node 2D element) */
- 	  fAmm_mat.MultQTBQ(B_C, Cmech, format, dMatrixT::kAccumulate);
+ 	  fAmm_mat.MultQTBQ(B_C, CIJKL, format, dMatrixT::kAccumulate);
 	
 	  /* mechanical geometric stiffness (8 x 8 matrix for 4-node 2D element */ 
-	  AccumulateGeometricStiffness(fAmm_geo, DNaX, S);
+	  AccumulateGeometricStiffness(fAmm_geo, DNaX, SIJ);
 	  
  	  /* mechanical-electrical stiffness (8 x 4 matrix for 4-node 2D element) */
  	  /* What is the difference between format and dMatrixT::kWhole? */
- 	  fAme.MultATBC(B_C, Cemech, GradShape, dMatrixT::kAccumulate);
+ 	  fAme.MultATBC(B_C, EIJK, GradShape, dMatrixT::kAccumulate);
   
  	  /* electrical-electrical stiffness (4 x 4 matrix for 4-node 2D element) */
- 	  fAee.MultQTBQ(GradShape, Celec, format, dMatrixT::kAccumulate);
+ 	  fAee.MultQTBQ(GradShape, BIJ, format, dMatrixT::kAccumulate);
     }
 
 	/* Expand 8x8 geometric stiffness into 8x8 matrix */
@@ -701,8 +686,6 @@ void FSDielectricElastomer2DT::MassMatrix()
 	dArrayT Relec(nen);
 	Relec = 0.0;
 	dMatrixT GradShape(nsd, nen);
-	dArrayT D(NumSD());
-	dMatrixT Celec(3, 2);
 
     fShapes->TopIP();
     while (fShapes->NextIP() != 0) {
@@ -716,18 +699,18 @@ void FSDielectricElastomer2DT::MassMatrix()
 	  fShapes->GradNa(DNaX, GradShape);	
 	  
 	  /* Mechanical stress */
-	  dSymMatrixT S = fCurrMaterial->S_IJ();
-	  S *= (0.5*w);
+	  dSymMatrixT SIJ = fCurrMaterial->S_IJ();
+	  SIJ *= (0.5*w);
 	  dMatrixT B_C;
 	  Set_B_C(DNaX, B_C);
-	  B_C.MultTx(S, Rmech, 1.0, dMatrixT::kAccumulate);
+	  B_C.MultTx(SIJ, Rmech, 1.0, dMatrixT::kAccumulate);
 	  
 	  /* electrical stress */
-	  dArrayT D = fCurrMaterial->D_I();	// electrical displacement vector 3 x 1
-	  D *= w;
+	  dArrayT DI = fCurrMaterial->D_I();	// electrical displacement vector 3 x 1
+	  DI *= w;
 	  
 	  // 2x1 vector of shape function gradient * D
-	  GradShape.MultTx(D, Relec, 1.0, dMatrixT::kAccumulate);	
+	  GradShape.MultTx(DI, Relec, 1.0, dMatrixT::kAccumulate);	
 	  
 	  /* NOTE:  mechanical inertia term, mechanical body force term, mechanical
 	  surface traction term, electrical body force (charge), electrical surface 

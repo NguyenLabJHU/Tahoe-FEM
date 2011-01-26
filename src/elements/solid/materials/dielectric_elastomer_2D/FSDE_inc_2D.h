@@ -12,29 +12,19 @@ extern "C" {
  * lambda
  */
 
-/* Gets first derivative of free energy with respect to E (electric displacement) */
-void get_dUdE_2D(const double* params, const double *Xsi, const double* Cmat, double* dXsi); 
-
-/* Gets second derivative of free energy with respect to E */
-void get_ddE_2D(const double* params, const double *Xsi, const double* Cmat, double* ddXsi); 
-
 /* function to compute first derivative of free energy wrt to the stretch tensor C */
-void get_dUdCmech_2D(const double* params, const double *Xsi, const double* Cmat, double* dUdC); 
+void mech_pk2_ab_2D(const double* params, const double* Xsi, const double* Cmat, double J, double I1, double* dUdCmech); 
+void me_pk2_ab_2D(const double* params, const double* Xsi, const double* Cmat, double J, double* dUdCmechelec); 
 
 /* function to compute second derivative of the potential function for mixed electromechanical modulus */
-void get_ddCE_2D(const double* params, const double *Xsi, const double* Cmat, double* dCdXsi);
+void me_mixedmodulus_ab_2D(const double* params, const double *Xsi, const double* Cmat, double J, double* dCdXsi);
 
 /* function to compute second derivative of the potential function for both purely mechanical modulus */
-void get_ddCmech_2D(const double* params, const double *Xsi, const double* Cmat, double* dCdC);
+void mech_tanmod_ab_2D(const double* params, const double* Xsi, const double* Cmat, double J, double I1, double* ddCmech);
+void me_tanmod_ab_2D(const double* params, const double* Xsi, const double* Cmat, double J, double* ddCmechelec);
 
-/* function to compute mechanical and electromechanical tangent modulus */
-void get_ddCmech_elec_2D(const double* params, const double *Xsi, const double* Cmat, double* dCdC, double* dCdXsi);
-
-/* function to compute electric displacement and tangent modulus */
-void get_ddC_sc_elec_2D(const double* params, const double *Xsi, const double* Cmat, double* dE, double* dEdE);
-
-/* function to get the bulk strain energy density - not implemented yet */
-//double get_energy(const double* params, const double *Xsi, const double* Cmat); 
+/* function to get electric displacement */
+void elec_pk2_2D(const double* params, const double *Xsi, const double* Cmat, double J, double* dUdCelec); 
 
 #ifdef __cplusplus
 }
