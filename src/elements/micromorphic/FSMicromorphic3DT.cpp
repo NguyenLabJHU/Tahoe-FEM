@@ -2046,6 +2046,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		fdGdS_IPs.RowCopy(IP,fdGdS);
 	    		fdFYdS_n_IPs.RowCopy(IP,fdFYdS_n);
 	    		fdFYdS_IPs.RowCopy(IP,fdFYdS);
+
+
+
 	    		/* Inverse of plastic deformation gradient tensor (Fp^-1)_n from previous time step is calculated*/
 	    		fFp_n_inverse.Inverse(fFp_n);
 	    		/* Trial Elastic deformation gradient tensor Fe will be formed */
@@ -2055,17 +2058,47 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		if (fRight_Elastic_Cauchy_Green_tensor_tr.Det()==0)
 	    			fRight_Elastic_Cauchy_Green_tensor_tr = fIdentity_matrix;
 
+	    		/* Retrieving the previous time step values of micro field for each IP */
+	    		fChip_n_IPs.RowCopy(IP,fChip_n);
+
+
+	    		/* Inverse of plastic micro deformation tensor */
+	    		fChip_n_inverse.Inverse(fChip_n);
+
+	    		/* Trial Elastic micro deformation tensor */
+	    		fChie_tr,MultAB(ChiM,fChip_n_inverse);
+
+
+
 	    		/*Trial Elastic Lagrangian Strain Tensor will be formed in Bbar */
 	    		Elastic_LagrangianStn_tr=fIdentity_matrix;
 	    		Elastic_LagrangianStn_tr*=-1;
 	    		Elastic_LagrangianStn_tr+=fRight_Elastic_Cauchy_Green_tensor_tr;
 	    		Elastic_LagrangianStn_tr*=0.5;
 
+	    		/* Trial Elastic micro strain tenso will be formed in Bbar */
+		    	Elastic_MicroStnTensor_tr  = fIdentity_matrix;
+		    	Elastic_MicroStnTensor_tr *= -1;
+		    	/* Trial Elastic defomration measure Elastic_PSI_tr EPSI_tr */
+		    	EPSI_tr.MultATB(fFe_tr,fChie_tr);
+		    	Elastic_MicroStnTensor_tr += EPSI_tr;
+
+
+
+
 	    		/* Calculation of the trial second Piola-Kirchhoff (fSPK_tr) stress tensor*/
 	    		Temp_inv=0.0;
 	    		Temp_inv=Elastic_LagrangianStn_tr.Trace();//Calculating the tr(E) and keep in temp. var.
-	    		fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kLambda],fIdentity_matrix);
-	    		fSPK_tr.SetToScaled(2*fMaterial_Params[kMu],Elastic_LagrangianStn_tr);
+	    		fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
+	    		fSPK_tr.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn_tr);
+	    		fSPK_tr+=fTemp_matrix_nsd_x_nsd;
+	    		Temp_inv=Elastic_MicroStnTensor_tr.Trace();
+	    		fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
+	    		fSPK_tr+=fTemp_matrix_nsd_x_nsd;
+	    		fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor_tr);
+	    		fSPK_tr+=fTemp_matrix_nsd_x_nsd;
+	    		fTemp_matrix_nsd_x_nsd.Transpose(Elastic_MicroStnTensor_tr);
+	    		fTemp_matrix_nsd_x_nsd*=fMaterial_Params[kNu];
 	    		fSPK_tr+=fTemp_matrix_nsd_x_nsd;
 
 	    		/* Form terms related the cohesion and friction angle  in D-P yield function */
@@ -2101,10 +2134,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			/* initialize before iteration */
 	    			fYield_function=fYield_function_tr;
 	    			fFe=fFe_tr;
+	    			fChie=fChie_tr;
 	    			/* initial values for Fp is assumed the same with previous step	*/
 	    			fFp=fFp_n;
 	    			//fTemp_matrix_nsd_x_nsd.Inverse(fFe);
 	    			//fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
+
 	    			fSPK=fSPK_tr;
 	    			fdevSPK=fdevSPK_tr;
 	    			devfSPKinv=devfSPKinv_tr;
@@ -2136,13 +2171,29 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
 	    				dEedDelgamma*=0.5;
 
+	    				/* Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor */
+	    				dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
+
 	    				/* Forming  dS/dDgamma  S= SPK tensor*/
 	    				Temp_inv=dEedDelgamma.Trace();
-	    				dSdDelgamma.SetToScaled(fMaterial_Params[kLambda]*Temp_inv,fIdentity_matrix);
+	    				dSdDelgamma.SetToScaled((fMaterial_Params[kLambda]+fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
 
 	    				//fTemp_matrix_nsd_x_nsd=dEedDelgamma;
-	    				fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kMu],dEedDelgamma);
+	    				fTemp_matrix_nsd_x_nsd.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),dEedDelgamma);
 	    				dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+	    				Temp_inv=dEpsilonedDelgamma.Trace();
+	    				fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kEta],fIdentity_matrix);
+	    				dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+	    				fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgamma);
+	    				dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+	    				fTemp_matrix_nsd_x_nsd.Transpose(dEpsilonedDelgamma);
+	    				fTemp_matrix_nsd_x_nsd*=fMaterial_Params[kNu];
+	    				dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+
 
 	    				/*Forming  dP/dDgamma (scalar) P: pressure  dP/dDgamma= (1/3)1:dS/dDgamma*/
 
@@ -2220,15 +2271,34 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				Elastic_LagrangianStn+=fRight_Elastic_Cauchy_Green_tensor;
 	    				Elastic_LagrangianStn*=0.5;
 
+	    	    		/* Update Elastic micro strain tenso will be formed in Bbar */
+	    		    	Elastic_MicroStnTensor = fIdentity_matrix;
+	    		    	Elastic_MicroStnTensor *= -1;
+	    		    	/* Trial Elastic defomration measure Elastic_PSI_tr EPSI_tr */
+	    		    	EPSI.MultATB(fFe,fChie);
+	    		    	Elastic_MicroStnTensor += EPSI;
 
 	    				/* update S stress */
 	    				Temp_inv=0.0;
 	    				Temp_inv=Elastic_LagrangianStn.Trace();//Calculating the tr(E) and keep in temp. var.
-	    				fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kLambda],fIdentity_matrix);
+	    				fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
 
-
-	    				fSPK.SetToScaled(2*fMaterial_Params[kMu],Elastic_LagrangianStn);
+	    				fSPK.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn);
 	    				fSPK+=fTemp_matrix_nsd_x_nsd;
+
+	    				Temp_inv=0.0;
+	    				Temp_inv=Elastic_MicroStnTensor.Trace();
+	    				fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
+	    				fSPK+=fTemp_matrix_nsd_x_nsd;
+
+	    				fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor);
+	    				fSPK+=fTemp_matrix_nsd_x_nsd;
+
+	    				fTemp_matrix_nsd_x_nsd.Transpose(Elastic_MicroStnTensor);
+	    				fTemp_matrix_nsd_x_nsd*=fMaterial_Params[kNu];
+	    				fSPK+=fTemp_matrix_nsd_x_nsd;
+
+
 
 	    				/* calculate  devS stress */
 	    				mean_stress=fSPK.Trace()/3;//Calculating the pressure term
@@ -2381,10 +2451,31 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			dFYdScol1=dMatrixT::Dot(fdFYdS,fIdentity_matrix);
 	    			//dFYdScol1=fdFYdS.Trace();
 
-	    			fConst=-fMaterial_Params[kLambda]*trfA1*dFYdScol1
-	    			-fMaterial_Params[kMu]*fdFYdS_fA1
-	    			-fMaterial_Params[kMu]*fdFYdS_fA1T
+	    			/* Forming the matrix N */
+	    			fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+	    			fTemp_matrix_nsd_x_nsd.MultATBC(fChie,fFe,fCe_n_inverse);
+	    			fN1.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);
+
+	    			/* define trace of N */
+	    			trfN1=fN1.Trace();
+
+	    			/* define dFY/dS:N */
+	    			fdFYdS_N1=dMatrixT::Dot(fdFYdS,fN1);
+
+	    			/* define dFY/dS:N^T */
+	    			fTemp_matrix_nsd_x_nsd.Transpose(fN1);
+	    			fdFYdS_fN1T=dMatrixT::Dot(fdFYdS,fTemp_matrix_nsd_x_nsd);
+
+
+	    			fConst=-(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*trfA1*dFYdScol1
+	    			-(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*fdFYdS_fA1
+	    			-(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*fdFYdS_fA1T
+	    			-fMaterial_Params[kEta]*dFYdScol1*trfN1
+	    			-fMaterial_Params[kKappa]*fdFYdS_fN1T
+	    			-fMaterial_Params[kNu]*fdFYdS_fN1
 	    			+fdFYdc*fMaterial_Params[kHc]*fState_variables_n_IPs(IP,khc);
+
+
 
 	    			//KirchhoffST.MultABCT(fFe,fSPK,fFe);
 	    			Form_fV1p();//
@@ -2436,6 +2527,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			double Trace_const=0.0;
 	    			Trace_const=fTemp_matrix_nsd_x_nsd.Trace();
 
+
+	    			/* define matrix A2 */
+	    			fTemp_matrix_nsd_x_nsd.MultABC(fDeformation_Gradient_Inverse,fFe,fCe_n_inverse);
+	    			fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+	    			fA2.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);
+	    			fTemp_matrix_nsd_x_nsd.MultABCT(fA2,fSPK,fFe);
+	    			fA2=fTemp_matrix_nsd_x_nsd;
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_1,fShapeDisplGrad);
 	    			scale = -1*(1/fConst)*scale_const*Trace_const*fMaterial_Params[kLambda]*dFYdScol1*Jp;
