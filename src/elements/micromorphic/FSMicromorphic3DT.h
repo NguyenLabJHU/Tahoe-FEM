@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.151 2011-01-23 07:33:05 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.152 2011-01-30 07:58:40 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -782,8 +782,16 @@ private:
     dMatrixT fFp_inverse;
     dMatrixT fFp_n;
     dMatrixT fFp_n_inverse;
+
+    dMatrixT fChip;
+    dMatrixT fChip_inverse;
+    dMatrixT fChip_n;
+    dMatrixT fChip_n_inverse;
+
     dMatrixT fFe;
     dMatrixT fFe_tr;
+    dMatrixT fChie;
+    dMatrixT fChie_tr;
     dMatrixT fdGdS_n;
     dMatrixT fdGdS;
     dMatrixT fdFYdS;
@@ -791,7 +799,12 @@ private:
 
     dMatrixT fRight_Cauchy_Green_tensor_tr;
     dMatrixT fLagrangian_strain_tensor_tr;
-    dMatrixT fMicroStnTensor_tr;
+    dMatrixT Elastic_MicroStnTensor_tr;
+    dMatrixT Elastic_MicroStnTensor;
+    dMatrixT EPSI_tr;
+    dMatrixT EPSI;
+
+
     dMatrixT fSPK_tr;
     dMatrixT fdevSPK_tr;
     dMatrixT fSPK;
@@ -799,12 +812,16 @@ private:
     dMatrixT dSdDelgamma;
     dMatrixT ddevSdDelgamma;
     dMatrixT dEedDelgamma;
+    dMatrixT dEpsilonedDelgamma;
 
 
     dMatrixT fFeT;
 
 
     dMatrixT fA1;
+    dMatrixT fA2;
+
+    dMatrixT fN1;
 
 
     double fYield_function,fYield_function_tr,dFYdc;
@@ -822,6 +839,7 @@ private:
    double dYieldTrialTol;
      /* some scalars used in calculations */
    double dFYdScol1,fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
+   double trfN1,fdFYdS_fN1,fdFYdS_fN1T;
    double mean_stress_tr,mean_stress;
 
     dMatrixT IJp_1;
@@ -830,8 +848,15 @@ private:
     dMatrixT fKu_IJp_2;
     dMatrixT IJp_3;
     dMatrixT fKu_IJp_3;
+    dMatrixT IJp_4;
+    dMatrixT fKu_IJp_4;
+    dMatrixT IJp_5;
+    dMatrixT fKu_IJp_5;
+    dMatrixT IJp_6;
+    dMatrixT fKu_IJp_6;
     dMatrixT I1e_1;
     dMatrixT fKu_I1e_1;
+
     dMatrixT I2e_1;
     dMatrixT fKu_I2e_1;
     dMatrixT I2p_2;
@@ -840,6 +865,13 @@ private:
     dMatrixT fKu_I2p_3;
     dMatrixT I2p_4;
     dMatrixT fKu_I2p_4;
+    dMatrixT I2p_5;
+    dMatrixT fKu_I2p_5;
+    dMatrixT I2p_6;
+    dMatrixT fKu_I2p_6;
+    dMatrixT I2p_7;
+    dMatrixT fKu_I2p_7;
+
     dMatrixT I3e_1;
     dMatrixT fKu_I3e_1;
     dMatrixT I3e_2;
@@ -910,6 +942,13 @@ private:
 
     dArray2DT	fdFYdS_Elements_IPs;
     dArray2DT	fdFYdS_n_Elements_IPs;
+
+    /* Micromorphic additions */
+    dArray2DT	fChip_IPs;
+    dArray2DT	fChip_n_IPs;
+
+    dArray2DT	fChip_Elements_IPs;
+    dArray2DT	fChip_n_Elements_IPs;
 
 
 
@@ -1228,11 +1267,18 @@ private:
     void Form_IJp_1(void);
     void Form_IJp_2(void);
     void Form_IJp_3(void);
+    void Form_IJp_4(void);
+    void Form_IJp_5(void);
+    void Form_IJp_6(void);
+
     void Form_I1e_1(void); // the first term first matrix
     void Form_I2e_1(void); // the  second term first matrix
     void Form_I2p_2(void);
     void Form_I2p_3(void);
     void Form_I2p_4(void);
+    void Form_I2p_5(void);
+    void Form_I2p_6(void);
+    void Form_I2p_7(void);
     void Form_I3e_1(void); // the third term first matrix
     void Form_I3e_2(void); //
     void Form_I3e_3(void); //
