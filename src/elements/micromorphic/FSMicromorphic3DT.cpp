@@ -377,6 +377,7 @@ void FSMicromorphic3DT::CloseStep(void)
      /* assign values at t_{n+1} to t_n for storage */
     fState_variables_n_Elements_IPs = fState_variables_Elements_IPs;
     fFp_n_Elements_IPs = fFp_Elements_IPs;
+    fChip_n_Elements_IPs = fChip_Elements_IPs;
     fCe_n_Elements_IPs = fCe_Elements_IPs;
     fdGdS_n_Elements_IPs = fdGdS_Elements_IPs;
     fdFYdS_n_Elements_IPs = fdFYdS_Elements_IPs;
@@ -1214,12 +1215,20 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fKu_IJp_1=0.0;
      fKu_IJp_2=0.0;
      fKu_IJp_3=0.0;
+     fKu_IJp_4=0.0;
+     fKu_IJp_5=0.0;
+     fKu_IJp_6=0.0;
+
 
      fKu_I1e_1=0.0;
      fKu_I2e_1=0.0;
      fKu_I2p_2=0.0;
      fKu_I2p_3=0.0;
      fKu_I2p_4=0.0;
+     fKu_I2p_5=0.0;
+     fKu_I2p_6=0.0;
+     fKu_I2p_7=0.0;
+
 
      fKu_I3e_1=0.0;
      fKu_I3e_2=0.0;
@@ -1476,6 +1485,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	     /* retrieve Fp and Fp_n in element */
 	     fFp_n_Elements_IPs.RowCopy(e,fFp_n_IPs);
 	     fFp_Elements_IPs.RowCopy(e,fFp_IPs);
+
+	     /* retrieve Chip and chip_n in element */
+	     fChip_n_Elements_IPs.RowCopy(e,fChip_n_IPs);
+	     fChip_Elements_IPs.RowCopy(e,fChip_IPs);
 
 	     /* retrieve Ce and Ce_n in element */
 	     fCe_n_Elements_IPs.RowCopy(e,fCe_n_IPs);
@@ -2060,13 +2073,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 	    		/* Retrieving the previous time step values of micro field for each IP */
 	    		fChip_n_IPs.RowCopy(IP,fChip_n);
+	    		fChip_IPs.RowCopy(IP,fChip);
 
 
-	    		/* Inverse of plastic micro deformation tensor */
+	    		/* Inverse of plastic micro deformation tensor of previous step */
 	    		fChip_n_inverse.Inverse(fChip_n);
 
+	    		/* Inverse of plastic micro deformation tensor of current step */
+	    		fChip_inverse.Inverse(fChip);
+
+
 	    		/* Trial Elastic micro deformation tensor */
-	    		fChie_tr,MultAB(ChiM,fChip_n_inverse);
+	    		fChie_tr.MultAB(ChiM,fChip_n_inverse);
 
 
 
@@ -2170,6 +2188,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				fTemp_matrix_nsd_x_nsd.MultATB(fFe,dFedDelgamma);
 	    				dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
 	    				dEedDelgamma*=0.5;
+
 
 	    				/* Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor */
 	    				dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
@@ -2460,7 +2479,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			trfN1=fN1.Trace();
 
 	    			/* define dFY/dS:N */
-	    			fdFYdS_N1=dMatrixT::Dot(fdFYdS,fN1);
+	    			fdFYdS_fN1=dMatrixT::Dot(fdFYdS,fN1);
 
 	    			/* define dFY/dS:N^T */
 	    			fTemp_matrix_nsd_x_nsd.Transpose(fN1);
@@ -2490,10 +2509,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fCe_IPs.SetRow(IP,fRight_Elastic_Cauchy_Green_tensor);
 	    			fdGdS_IPs.SetRow(IP,fdGdS);
 	    			fdFYdS_IPs.SetRow(IP,fdFYdS);
+	    			fChip_IPs.SetRow(IP,fChip);
+
 
 	    			Form_IJp_1();// The first matrix coming from Linearization of Jp
 	    			Form_IJp_2();//
 	    			Form_IJp_3();//
+	    			Form_IJp_4();// Addition of micromorphic terms to macro-scale
+	    			Form_IJp_5();
+	    			Form_IJp_6();
+
 
 	    			Form_I1e_1(); // The first term first matrix
 
@@ -2501,8 +2526,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			Form_I2p_2();
 	    			Form_I2p_3();
 	    			Form_I2p_4();
+	    			Form_I2p_5();// micromorphic terms introduced to macro-scale without delta(gamma^chi)
+	    			Form_I2p_6();
+	    			Form_I2p_7();
 
-	    			Form_I3e_1(); // the third term first matrix
+	    			Form_I3e_1(); // The third term first matrix
 	    			Form_I3e_2(); //
 	    			Form_I3e_3(); //
 	    			Form_I3p_4(); //
@@ -2515,11 +2543,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			Form_I3p_11();//
 	    			Form_I3p_12();//
 
-	    			Form_I4e_1(); // the fourth term first matrix
+	    			Form_I4e_1(); // The fourth term first matrix
 	    			Form_I4p_2(); //
 	    			Form_I4p_3(); //
 	    			Form_I4p_4(); //
-
 
 	    			/* The terms related to variation of Jp have Jp_ extension i.e. IJp_1 */
 	    			fTemp_matrix_nsd_x_nsd2.MultABCT(fFp_inverse,fCe_n_inverse,fdGdS_n);
@@ -2527,7 +2554,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			double Trace_const=0.0;
 	    			Trace_const=fTemp_matrix_nsd_x_nsd.Trace();
 
-
+	    			/* Terms related to delta (Jp) delta(Jp)w(l,A)(F^-1)(A,k) delta(Fe)(k,Kbar)S(Kbar,Lbar)Fe(l,Lbar)  */
 	    			/* define matrix A2 */
 	    			fTemp_matrix_nsd_x_nsd.MultABC(fDeformation_Gradient_Inverse,fFe,fCe_n_inverse);
 	    			fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
@@ -2536,46 +2563,82 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fA2=fTemp_matrix_nsd_x_nsd;
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_1,fShapeDisplGrad);
-	    			scale = -1*(1/fConst)*scale_const*Trace_const*fMaterial_Params[kLambda]*dFYdScol1*Jp;
+	    			scale = -1*(1/fConst)*scale_const*Trace_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_IJp_1 += fTemp_matrix_nudof_x_nudof;
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_2,fShapeDisplGrad);
-	    			scale = -1*(1/fConst)*scale_const*Trace_const*fMaterial_Params[kMu]*Jp;
+	    			scale = -1*(1/fConst)*scale_const*Trace_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_IJp_2 += fTemp_matrix_nudof_x_nudof;
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_3,fShapeDisplGrad);
-	    			scale = -1*(1/fConst)*scale_const*Trace_const*fMaterial_Params[kMu]*Jp;
+	    			scale = -1*(1/fConst)*scale_const*Trace_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_IJp_3 += fTemp_matrix_nudof_x_nudof;
 
+	    			/* Additional terms to delta(Jp) coming by introducing micromorphic tems into macro-scale */
+
+	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_4,fShapeDisplGrad);
+	    			scale = (1/fConst)*dFYdScol1*Trace_const*scale_const*fMaterial_Params[kEta]*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_IJp_4 += fTemp_matrix_nudof_x_nudof;
+
+	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_5,fShapeDisplGrad);
+	    			scale = (1/fConst)*Trace_const*scale_const*fMaterial_Params[kKappa]*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_IJp_5 += fTemp_matrix_nudof_x_nudof;
+
+	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_6,fShapeDisplGrad);
+	    			scale = (1/fConst)*Trace_const*scale_const*fMaterial_Params[kNu]*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_IJp_6 += fTemp_matrix_nudof_x_nudof;
+
+	    			/* Terms realted to Delta(F) F: Deformation_Gradient F=FeFp used in w(l,A) delta(F^-1)(A,k) Fe(k,Kbar)S(Kbar,Lbar)Fe(l,Lbar) Jp */
 	    			/* All the matrices with p_ extension are plastic  such as I2p_1, I3p_10, etc.. */
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I1e_1,fShapeDisplGrad);
 	    			scale = -1*scale_const*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I1e_1 += fTemp_matrix_nudof_x_nudof;
 
+	    			/* Terms realted to Delta(F) F: Deformation_Gradient F=FeFp used in w(l,A)(F^-1)(A,k)delta(Fe(k,Kbar))S(Kbar,Lbar)Fe(l,Lbar) Jp */
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2e_1,fShapeDisplGrad);
 	    			scale = scale_const*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I2e_1 += fTemp_matrix_nudof_x_nudof;
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2p_2,fShapeDisplGrad);
-	    			scale =(1/fConst)*fMaterial_Params[kLambda]*dFYdScol1*scale_const*Jp;
+	    			scale =(1/fConst)*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*scale_const*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I2p_2 += fTemp_matrix_nudof_x_nudof;
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2p_3,fShapeDisplGrad);
-	    			scale =(1/fConst)*fMaterial_Params[kMu]*scale_const*Jp;
+	    			scale =(1/fConst)*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*scale_const*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I2p_3 += fTemp_matrix_nudof_x_nudof;
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2p_4,fShapeDisplGrad);
-	    			scale =(1/fConst)*fMaterial_Params[kMu]*scale_const*Jp;
+	    			scale =(1/fConst)*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*scale_const*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I2p_4 += fTemp_matrix_nudof_x_nudof;
 
+	    			/* Additional terms due to micromorphic terms into macro scale */
+	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2p_5,fShapeDisplGrad);
+	    			scale =(1/fConst)*fMaterial_Params[kEta]*dFYdScol1*scale_const*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_I2p_5 += fTemp_matrix_nudof_x_nudof;
+
+	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2p_6,fShapeDisplGrad);
+	    			scale =(1/fConst)*fMaterial_Params[kKappa]*scale_const*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_I2p_6 += fTemp_matrix_nudof_x_nudof;
+
+	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2p_7,fShapeDisplGrad);
+	    			scale =(1/fConst)*fMaterial_Params[kNu]*scale_const*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_I2p_7 += fTemp_matrix_nudof_x_nudof;
+
+	    			/* Terms realted to Delta(F^e) F^e: Elastic Deformation_Gradient in w(l,A)(F^-1)(A,k) Fe(k,Kbar)delta(S(Kbar,Lbar))Fe(l,Lbar) Jp*/
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3e_1,fShapeDisplGrad);
 	    			scale =scale_const*fMaterial_Params[kLambda]*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
@@ -2642,6 +2705,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I3p_12 += fTemp_matrix_nudof_x_nudof;
 
+	    			/* micromorphic terms addition to the macro-scale */
+
+
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I4e_1,fShapeDisplGrad);
 	    			scale =scale_const*Jp;
@@ -2681,6 +2747,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
 	    			fFp_IPs.SetRow(IP,fFp);
 	    			fCe_IPs.SetRow(IP,fRight_Elastic_Cauchy_Green_tensor);
+	    			fChip_IPs.SetRow(IP,fChip);
 	    			//fdGdS_IPs.SetRow(IP,fdGdS);
 	    			//fdFYdS_IPs.SetRow(IP,fdFYdS);
 
@@ -3571,6 +3638,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    // saving Fp for each IP of the current element //
 	    fFp_Elements_IPs.SetRow(e,fFp_IPs);
 
+	    // saving Chip for each IP of the current element //
+	    fChip_Elements_IPs.SetRow(e,fChip_IPs);
+
 	    // saving Ce for each IP of the current element //
 	    fCe_Elements_IPs.SetRow(e,fCe_IPs);
 
@@ -3737,12 +3807,20 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKdd +=  fKu_IJp_1;
             fKdd +=  fKu_IJp_2;
             fKdd +=  fKu_IJp_3;
+            fKdd +=  fKu_IJp_4;
+            fKdd +=  fKu_IJp_5;
+            fKdd +=  fKu_IJp_6;
+
 
             fKdd +=  fKu_I1e_1;
             fKdd +=  fKu_I2e_1;
             fKdd +=  fKu_I2p_2;
             fKdd +=  fKu_I2p_3;
             fKdd +=  fKu_I2p_4;
+            fKdd +=  fKu_I2p_5;
+            fKdd +=  fKu_I2p_6;
+            fKdd +=  fKu_I2p_7;
+
 
             fKdd +=  fKu_I3e_1;
             fKdd +=  fKu_I3e_2;
@@ -4796,6 +4874,13 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKu_IJp_2.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
     IJp_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fKu_IJp_3.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+    IJp_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_IJp_4.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+    IJp_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_IJp_5.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+    IJp_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_IJp_6.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+
 
     I1e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fKu_I1e_1.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
@@ -4808,6 +4893,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKu_I2p_3.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
     I2p_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fKu_I2p_4.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+    I2p_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_I2p_5.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+    I2p_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_I2p_6.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+    I2p_7.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_I2p_7.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
 
     I3e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fKu_I3e_1.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
@@ -4852,14 +4943,35 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fFe.Dimension(n_sd,n_sd);
     fFe_tr.Dimension(n_sd,n_sd);
 
+    /* Micromorphic additions */
+    fChie_tr.Dimension(n_sd,n_sd);
+    fChie.Dimension(n_sd,n_sd);
+    fChip.Dimension(n_sd,n_sd);
+    fChip_inverse.Dimension(n_sd,n_sd);
+    fChip_n.Dimension(n_sd,n_sd);
+    fChip_n_inverse.Dimension(n_sd,n_sd);
+
+    Elastic_MicroStnTensor_tr.Dimension(n_sd,n_sd);
+    Elastic_MicroStnTensor.Dimension(n_sd,n_sd);
+    EPSI_tr.Dimension(n_sd,n_sd);
+    EPSI.Dimension(n_sd,n_sd);
+
+    dEpsilonedDelgamma.Dimension(n_sd,n_sd);
+
+
     fSPK.Dimension(n_sd,n_sd);
     fdevSPK.Dimension(n_sd,n_sd);
     dSdDelgamma.Dimension(n_sd,n_sd);
     ddevSdDelgamma.Dimension(n_sd,n_sd);
     dEedDelgamma.Dimension(n_sd,n_sd);
+    dEpsilonedDelgamma.Dimension(n_sd,n_sd);
 
 
     fA1.Dimension(n_sd,n_sd);
+    fA2.Dimension(n_sd,n_sd);
+
+    fN1.Dimension(n_sd,n_sd);
+
 
     fFp_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fFp_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
@@ -4873,6 +4985,16 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fFeT.Dimension(n_sd,n_sd);
     fFeT=0.0;
+
+
+    fChip_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fChip_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fChip_Elements_IPs=0.0;
+    fChip_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fChip_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fChip_n_Elements_IPs=0.0;
+
+
 
     dFedDelgamma.Dimension(n_sd,n_sd);
 
@@ -4920,7 +5042,6 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fTemp2_ArrayT_values[8]=1.0;
 
     fRight_Cauchy_Green_tensor_tr.Dimension(n_sd,n_sd);
-    fMicroStnTensor_tr.Dimension(n_sd,n_sd);
     fSPK_tr.Dimension(n_sd,n_sd);
     fdevSPK_tr.Dimension(n_sd,n_sd);
 
@@ -5036,16 +5157,21 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
 			fFp_n_IPs.SetRow(l,fIdentity_matrix);
 			fCe_n_IPs.SetRow(l,fIdentity_matrix);
+			fChip_n_IPs.SetRow(l,fIdentity_matrix);
+
 
 	    }
 	    fFp_n_Elements_IPs.SetRow(e,fFp_n_IPs);
 	    fCe_n_Elements_IPs.SetRow(e,fCe_n_IPs);
+	    fChip_n_Elements_IPs.SetRow(e,fCe_n_IPs);
+
 
     }
     fFp_Elements_IPs   = fFp_n_Elements_IPs;
     fCe_Elements_IPs    =  fCe_n_Elements_IPs;
     fdGdS_Elements_IPs = fdGdS_n_Elements_IPs;
     fdFYdS_Elements_IPs = fdFYdS_n_Elements_IPs;
+    fChip_Elements_IPs = fChip_n_Elements_IPs;
     fState_variables_Elements_IPs=fState_variables_n_Elements_IPs;
  //   }
 
@@ -10754,6 +10880,110 @@ void FSMicromorphic3DT:: Form_IJp_3()
 }
 
 
+void FSMicromorphic3DT:: Form_IJp_4()
+{
+	int row=0;
+	int col=0;
+	IJp_4=0.0;
+	fTemp_matrix_nsd_x_nsd2.MultABCT(fFe,fSPK,fFe);
+	fTemp_matrix_nsd_x_nsd.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd2);
+	for(int M=0;M<3;M++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			row=0;
+			for(int A=0;A<3;A++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					//summation over the same term starts
+					for(int Abar=0;Abar<3;Abar++)
+					{
+						IJp_4(row,col)+=fTemp_matrix_nsd_x_nsd(A,l)*fChie(i,Abar)*fFp_inverse(M,Abar);
+					}
+					row++;
+				}
+			}
+			col++;
+		}
+	}
+
+}
+
+
+
+
+void FSMicromorphic3DT:: Form_IJp_5()
+{
+	int row=0;
+	int col=0;
+	IJp_5=0.0;
+	fTemp_matrix_nsd_x_nsd2.MultABCT(fFe,fSPK,fFe);
+	fTemp_matrix_nsd_x_nsd.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd2);
+
+	for(int M=0;M<3;M++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			row=0;
+			for(int A=0;A<3;A++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					//summation over the same term starts
+					for(int Mbar=0;Mbar<3;Mbar++)
+					{
+						for(int Nbar=0;Nbar<3;Nbar++)
+						{
+							IJp_5(row,col)+=fTemp_matrix_nsd_x_nsd(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Nbar)*fFp_inverse(M,Mbar);
+						}
+					}
+					row++;
+				}
+			}
+			col++;
+		}
+	}
+
+}
+
+void FSMicromorphic3DT:: Form_IJp_6()
+{
+	int row=0;
+	int col=0;
+	IJp_6=0.0;
+	fTemp_matrix_nsd_x_nsd2.MultABCT(fFe,fSPK,fFe);
+	fTemp_matrix_nsd_x_nsd.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd2);
+
+	for(int M=0;M<3;M++)
+	{
+		for(int i=0;i<3;i++)
+		{
+			row=0;
+			for(int A=0;A<3;A++)
+			{
+				for(int l=0;l<3;l++)
+				{
+					//summation over the same term starts
+					for(int Mbar=0;Mbar<3;Mbar++)
+					{
+						for(int Nbar=0;Nbar<3;Nbar++)
+						{
+							IJp_6(row,col)+=fTemp_matrix_nsd_x_nsd(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Mbar)*fFp_inverse(M,Nbar);
+						}
+					}
+					row++;
+				}
+			}
+			col++;
+		}
+	}
+
+}
+
+
+
+
 void FSMicromorphic3DT:: Form_I1e_1()
 {
 	int row=0;
@@ -10969,6 +11199,102 @@ void FSMicromorphic3DT:: Form_I2p_4()
     }
 
 }
+
+
+
+void FSMicromorphic3DT:: Form_I2p_5()
+{
+	int row=0;
+	int col=0;
+	I2p_5=0.0;
+
+    for(int M=0;M<3;M++)
+    {
+    	for(int i=0;i<3;i++)
+    	{
+    		row=0;
+    		for(int A=0;A<3;A++)
+    		{
+    			for(int l=0;l<3;l++)
+    			{
+    				//summation over the same term
+    				for(int Abar=0;Abar<3;Abar++)
+    				{
+    					I2p_5(row,col)+=fA2(A,l)*fChie(i,Abar)*fFp_inverse(M,Abar);
+    				}
+    				row++;
+    			}
+    		}
+    		col++;
+    	}
+    }
+
+}
+
+
+void FSMicromorphic3DT:: Form_I2p_6()
+{
+	int row=0;
+	int col=0;
+	I2p_6=0.0;
+
+    for(int M=0;M<3;M++)
+    {
+    	for(int i=0;i<3;i++)
+    	{
+    		row=0;
+    		for(int A=0;A<3;A++)
+    		{
+    			for(int l=0;l<3;l++)
+    			{
+    				//summation over the same term
+    				for(int Mbar=0;Mbar<3;Mbar++)
+    				{
+    					for(int Nbar=0;Nbar<3;Nbar++)
+    					{
+    						I2p_6(row,col)+=fA2(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Nbar)*fFp_inverse(M,Mbar);
+    					}
+    				}
+    				row++;
+    			}
+    		}
+    		col++;
+    	}
+    }
+}
+
+void FSMicromorphic3DT:: Form_I2p_7()
+{
+	int row=0;
+	int col=0;
+	I2p_7=0.0;
+
+    for(int M=0;M<3;M++)
+    {
+    	for(int i=0;i<3;i++)
+    	{
+    		row=0;
+    		for(int A=0;A<3;A++)
+    		{
+    			for(int l=0;l<3;l++)
+    			{
+    				//summation over the same term
+    				for(int Mbar=0;Mbar<3;Mbar++)
+    				{
+    					for(int Nbar=0;Nbar<3;Nbar++)
+    					{
+    						I2p_7(row,col)+=fA2(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Mbar)*fFp_inverse(M,Nbar);
+    					}
+    				}
+    				row++;
+    			}
+    		}
+    		col++;
+    	}
+    }
+
+}
+
 
 
 void FSMicromorphic3DT:: Form_I3e_1()
