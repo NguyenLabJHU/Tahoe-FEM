@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.152 2011-01-30 07:58:40 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.153 2011-01-31 05:03:54 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -896,6 +896,27 @@ private:
     dMatrixT fKu_I3p_11;
     dMatrixT I3p_12;
     dMatrixT fKu_I3p_12;
+    dMatrixT I3e_13;
+    dMatrixT fKu_I3e_13;
+    dMatrixT I3e_14;
+    dMatrixT fKu_I3e_14;
+    dMatrixT I3e_15;
+    dMatrixT fKu_I3e_15;
+    dMatrixT I3p_16;
+    dMatrixT fKu_I3p_16;
+    dMatrixT I3p_17;
+    dMatrixT fKu_I3p_17;
+    dMatrixT I3p_18;
+    dMatrixT fKu_I3p_18;
+    dMatrixT I3p_19;
+    dMatrixT fKu_I3p_19;
+    dMatrixT I3p_20;
+    dMatrixT fKu_I3p_20;
+    dMatrixT I3p_21;
+    dMatrixT fKu_I3p_21;
+
+
+
 
     dMatrixT I4e_1;
     dMatrixT fKu_I4e_1;
@@ -1291,6 +1312,17 @@ private:
     void Form_I3p_10(void); //
     void Form_I3p_11(void); //
     void Form_I3p_12(void); //
+    void Form_I3e_13(void); //
+    void Form_I3e_14(void); //
+    void Form_I3e_15(void); //
+    void Form_I3p_16(void); //
+    void Form_I3p_17(void); //
+    void Form_I3p_18(void); //
+    void Form_I3p_19(void); //
+    void Form_I3p_20(void); //
+    void Form_I3p_21(void); //
+
+
     void Form_I4e_1(void); // the fourth term first matrix
     void Form_I4p_2(void); //
     void Form_I4p_3(void); //
