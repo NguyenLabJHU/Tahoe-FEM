@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.154 2011-01-31 08:15:39 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.155 2011-01-31 22:46:56 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -934,7 +934,16 @@ private:
     dMatrixT fKu_I3p_30;
     dMatrixT I3p_31;
     dMatrixT fKu_I3p_31;
-
+    dMatrixT I3p_32;
+    dMatrixT fKu_I3p_32;
+    dMatrixT I3p_33;
+    dMatrixT fKu_I3p_33;
+    dMatrixT I3p_34;
+    dMatrixT fKu_I3p_34;
+    dMatrixT I3p_35;
+    dMatrixT fKu_I3p_35;
+    dMatrixT I3p_36;
+    dMatrixT fKu_I3p_36;
 
     dMatrixT I4e_1;
     dMatrixT fKu_I4e_1;
@@ -1349,6 +1358,11 @@ private:
     void Form_I3p_29(void); //
     void Form_I3p_30(void); //
     void Form_I3p_31(void); //
+    void Form_I3p_32(void); //
+    void Form_I3p_33(void); //
+    void Form_I3p_34(void); //
+    void Form_I3p_35(void); //
+    void Form_I3p_36(void); //
 
 
     void Form_I4e_1(void); // the fourth term first matrix
