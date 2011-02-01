@@ -1261,6 +1261,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fKu_I3p_29=0.0;
      fKu_I3p_30=0.0;
      fKu_I3p_31=0.0;
+     fKu_I3p_32=0.0;
+     fKu_I3p_33=0.0;
+     fKu_I3p_34=0.0;
+     fKu_I3p_35=0.0;
+     fKu_I3p_36=0.0;
+
 
 
      fKu_I4e_1=0.0;
@@ -2172,6 +2178,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		{
 
 	    			//fs_micromorph3D_out<<"YIELDED"<<endl;
+	    			//cout<<"YIELDED"<<endl;
+
 	    			/* initialize before iteration */
 	    			fYield_function=fYield_function_tr;
 	    			fFe=fFe_tr;
@@ -2535,6 +2543,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fChip_IPs.SetRow(IP,fChip);
 
 
+
 	    			Form_IJp_1();// The first matrix coming from Linearization of Jp
 	    			Form_IJp_2();//
 	    			Form_IJp_3();//
@@ -2580,7 +2589,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	     			Form_I3p_25();//
 	     			Form_I3p_26();//
 	     			Form_I3p_27();//
-	     			Form_I3p_27();//
+	     			Form_I3p_28();//
 	     			Form_I3p_29();//
 	     			Form_I3p_30();//
 	     			Form_I3p_31();//
@@ -2589,8 +2598,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	     			Form_I3p_34();//
 	     			Form_I3p_35();//
 	     			Form_I3p_36();//
-
-
 
 
 
@@ -2926,7 +2933,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I4p_5,fShapeDisplGrad);
-	    			scale =(1/fConst)*fMaterial_Params[kEta]*scale_const*Jp;
+	    			scale =(1/fConst)*fMaterial_Params[kEta]*dFYdScol1*scale_const*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I4p_5 += fTemp_matrix_nudof_x_nudof;
 
