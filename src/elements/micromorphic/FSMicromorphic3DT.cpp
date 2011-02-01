@@ -2116,7 +2116,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		fChie_tr.MultAB(ChiM,fChip_n_inverse);
 
 
-
 	    		/*Trial Elastic Lagrangian Strain Tensor will be formed in Bbar */
 	    		Elastic_LagrangianStn_tr=fIdentity_matrix;
 	    		Elastic_LagrangianStn_tr*=-1;
@@ -2484,7 +2483,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
 	    			//fTemp_matrix_nsd_x_nsd.MultABC(fFeT,fFe,fCe_n_inverse);
 	    			fTemp_matrix_nsd_x_nsd.MultATBC(fFe,fFe,fCe_n_inverse);
-	    			//fA1=(Fe^T).Fe.(Cen^-1).(dG/dSn^T).Fpn.Fp^-1
+	    			/*fA1=(Fe^T).Fe.(Cen^-1).(dG/dSn^T).Fpn.Fp^-1*/
 	    			fA1.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);
 
 	    			/* trace of A */
@@ -2830,8 +2829,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fKu_I3p_21 += fTemp_matrix_nudof_x_nudof;
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_22,fShapeDisplGrad);
-	    			scale =(1/fConst)*fMaterial_Params[kEta]*trfN1*dFYdScol1
-	    			*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*scale_const*Jp;
+	    			scale =(1/fConst)*fMaterial_Params[kEta]*trfN1*dFYdScol1*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*scale_const*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I3p_22 += fTemp_matrix_nudof_x_nudof;
 
@@ -13105,8 +13103,7 @@ void FSMicromorphic3DT:: Form_I4p_5()
     fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
     fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
     fTemp_matrix_nsd_x_nsd2.MultABT(fSPK,fTemp_matrix_nsd_x_nsd);
-    fTemp_matrix_nsd_x_nsd.MultAB(fFe,fTemp_matrix_nsd_x_nsd2);
-    fTemp_matrix_nsd_x_nsd2.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd);
+    fTemp_matrix_nsd_x_nsd.MultABC(fDeformation_Gradient_Inverse,fFe,fTemp_matrix_nsd_x_nsd2);
     for(int M=0;M<3;M++)
     {
     	for(int i=0;i<3;i++)
@@ -13119,7 +13116,7 @@ void FSMicromorphic3DT:: Form_I4p_5()
     				//summation over the same term
     				for(int Abar=0;Abar<3;Abar++)
     				{
-    					I4p_5(row,col)+=fTemp_matrix_nsd_x_nsd2(A,l)*fChie(i,Abar)*fFp_inverse(M,Abar);
+    					I4p_5(row,col)+=fTemp_matrix_nsd_x_nsd(A,l)*fChie(i,Abar)*fFp_inverse(M,Abar);
     				}
     				row++;
     			}
@@ -13138,8 +13135,7 @@ void FSMicromorphic3DT:: Form_I4p_6()
     fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
     fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
     fTemp_matrix_nsd_x_nsd2.MultABT(fSPK,fTemp_matrix_nsd_x_nsd);
-    fTemp_matrix_nsd_x_nsd.MultAB(fFe,fTemp_matrix_nsd_x_nsd2);
-    fTemp_matrix_nsd_x_nsd2.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd);
+    fTemp_matrix_nsd_x_nsd.MultABC(fDeformation_Gradient_Inverse,fFe,fTemp_matrix_nsd_x_nsd2);
     for(int M=0;M<3;M++)
     {
     	for(int i=0;i<3;i++)
@@ -13154,7 +13150,7 @@ void FSMicromorphic3DT:: Form_I4p_6()
     				{
     					for(int Nbar=0;Nbar<3;Nbar++)
     					{
-        					I4p_6(row,col)+=fTemp_matrix_nsd_x_nsd2(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Nbar)*fFp_inverse(M,Mbar);
+        					I4p_6(row,col)+=fTemp_matrix_nsd_x_nsd(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Nbar)*fFp_inverse(M,Mbar);
     					}
     				}
     				row++;
@@ -13174,8 +13170,7 @@ void FSMicromorphic3DT:: Form_I4p_7()
     fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
     fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
     fTemp_matrix_nsd_x_nsd2.MultABT(fSPK,fTemp_matrix_nsd_x_nsd);
-    fTemp_matrix_nsd_x_nsd.MultAB(fFe,fTemp_matrix_nsd_x_nsd2);
-    fTemp_matrix_nsd_x_nsd2.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd);
+    fTemp_matrix_nsd_x_nsd.MultABC(fDeformation_Gradient_Inverse,fFe,fTemp_matrix_nsd_x_nsd2);
     for(int M=0;M<3;M++)
     {
     	for(int i=0;i<3;i++)
@@ -13190,7 +13185,7 @@ void FSMicromorphic3DT:: Form_I4p_7()
     				{
     					for(int Nbar=0;Nbar<3;Nbar++)
     					{
-        					I4p_7(row,col)+=fTemp_matrix_nsd_x_nsd2(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Mbar)*fFp_inverse(M,Nbar);
+        					I4p_7(row,col)+=fTemp_matrix_nsd_x_nsd(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Mbar)*fFp_inverse(M,Nbar);
     					}
     				}
     				row++;
