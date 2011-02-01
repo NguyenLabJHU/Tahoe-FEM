@@ -1267,6 +1267,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fKu_I4p_2=0.0;
      fKu_I4p_3=0.0;
      fKu_I4p_4=0.0;
+     fKu_I4p_5=0.0;
+     fKu_I4p_6=0.0;
+     fKu_I4p_7=0.0;
 
 
 
@@ -2576,6 +2579,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	     			Form_I3p_24();//
 	     			Form_I3p_25();//
 	     			Form_I3p_26();//
+	     			Form_I3p_27();//
+	     			Form_I3p_27();//
+	     			Form_I3p_29();//
+	     			Form_I3p_30();//
+	     			Form_I3p_31();//
+	     			Form_I3p_32();//
+	     			Form_I3p_33();//
+	     			Form_I3p_34();//
+	     			Form_I3p_35();//
+	     			Form_I3p_36();//
 
 
 
@@ -2585,6 +2598,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			Form_I4p_2(); //
 	    			Form_I4p_3(); //
 	    			Form_I4p_4(); //
+	    			Form_I4p_5(); //
+	    			Form_I4p_6(); //
+	    			Form_I4p_7(); //
+
 
 	    			/* The terms related to variation of Jp have Jp_ extension i.e. IJp_1 */
 	    			fTemp_matrix_nsd_x_nsd2.MultABCT(fFp_inverse,fCe_n_inverse,fdGdS_n);
@@ -2884,6 +2901,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fKu_I3p_36 += fTemp_matrix_nudof_x_nudof;
 
 
+
 	    			/* Terms realted to Delta(F^e) in w(l,A)(F^-1)(A,k) Fe(k,Kbar)S(Kbar,Lbar)delta(Fe(l,Lbar)) Jp*/
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I4e_1,fShapeDisplGrad);
@@ -2906,6 +2924,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I4p_4 += fTemp_matrix_nudof_x_nudof;
 
+
+	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I4p_5,fShapeDisplGrad);
+	    			scale =(1/fConst)*fMaterial_Params[kEta]*scale_const*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_I4p_5 += fTemp_matrix_nudof_x_nudof;
+
+	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I4p_6,fShapeDisplGrad);
+	    			scale =(1/fConst)*fMaterial_Params[kKappa]*scale_const*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_I4p_6 += fTemp_matrix_nudof_x_nudof;
+
+	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I4p_7,fShapeDisplGrad);
+	    			scale =(1/fConst)*fMaterial_Params[kNu]*scale_const*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_I4p_7 += fTemp_matrix_nudof_x_nudof;
 
 	    		}
 	    		else//(yielding did not occur / elastic step/
@@ -4041,7 +4074,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKdd +=  fKu_I4p_2;
             fKdd +=  fKu_I4p_3;
             fKdd +=  fKu_I4p_4;
-
+            fKdd +=  fKu_I4p_5;
+            fKdd +=  fKu_I4p_6;
+            fKdd +=  fKu_I4p_7;
             fFphi_int=0.0;
 
 	    }
@@ -5184,7 +5219,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKu_I4p_3.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
     I4p_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fKu_I4p_4.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
-
+    I4p_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_I4p_5.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+    I4p_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_I4p_6.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
+    I4p_7.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_I4p_7.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
 
 
     fFp.Dimension(n_sd,n_sd);
@@ -13050,6 +13090,110 @@ void FSMicromorphic3DT:: Form_I4p_4()
 
 }
 
+void FSMicromorphic3DT:: Form_I4p_5()
+{
+	int row=0;
+	int col=0;
+	I4p_5=0.0;
+    fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+    fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
+    fTemp_matrix_nsd_x_nsd2.MultABT(fSPK,fTemp_matrix_nsd_x_nsd);
+    fTemp_matrix_nsd_x_nsd.MultAB(fFe,fTemp_matrix_nsd_x_nsd2);
+    fTemp_matrix_nsd_x_nsd2.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd);
+    for(int M=0;M<3;M++)
+    {
+    	for(int i=0;i<3;i++)
+    	{
+    		row=0;
+    		for(int A=0; A<3;A++)
+    		{
+    			for(int l=0;l<3;l++)
+    			{
+    				//summation over the same term
+    				for(int Abar=0;Abar<3;Abar++)
+    				{
+    					I4p_5(row,col)+=fTemp_matrix_nsd_x_nsd2(A,l)*fChie(i,Abar)*fFp_inverse(M,Abar);
+    				}
+    				row++;
+    			}
+    		}
+    		col++;
+    	}
+    }
+
+}
+
+void FSMicromorphic3DT:: Form_I4p_6()
+{
+	int row=0;
+	int col=0;
+	I4p_6=0.0;
+    fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+    fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
+    fTemp_matrix_nsd_x_nsd2.MultABT(fSPK,fTemp_matrix_nsd_x_nsd);
+    fTemp_matrix_nsd_x_nsd.MultAB(fFe,fTemp_matrix_nsd_x_nsd2);
+    fTemp_matrix_nsd_x_nsd2.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd);
+    for(int M=0;M<3;M++)
+    {
+    	for(int i=0;i<3;i++)
+    	{
+    		row=0;
+    		for(int A=0;A<3;A++)
+    		{
+    			for(int l=0;l<3;l++)
+    			{
+    				//summation over the same term
+    				for(int Mbar=0;Mbar<3;Mbar++)
+    				{
+    					for(int Nbar=0;Nbar<3;Nbar++)
+    					{
+        					I4p_6(row,col)+=fTemp_matrix_nsd_x_nsd2(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Nbar)*fFp_inverse(M,Mbar);
+    					}
+    				}
+    				row++;
+    			}
+    		}
+    		col++;
+    	}
+    }
+
+}
+
+void FSMicromorphic3DT:: Form_I4p_7()
+{
+	int row=0;
+	int col=0;
+	I4p_7=0.0;
+    fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+    fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
+    fTemp_matrix_nsd_x_nsd2.MultABT(fSPK,fTemp_matrix_nsd_x_nsd);
+    fTemp_matrix_nsd_x_nsd.MultAB(fFe,fTemp_matrix_nsd_x_nsd2);
+    fTemp_matrix_nsd_x_nsd2.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd);
+    for(int M=0;M<3;M++)
+    {
+    	for(int i=0;i<3;i++)
+    	{
+    		row=0;
+    		for(int A=0;A<3;A++)
+    		{
+    			for(int l=0;l<3;l++)
+    			{
+    				//summation over the same term
+    				for(int Mbar=0;Mbar<3;Mbar++)
+    				{
+    					for(int Nbar=0;Nbar<3;Nbar++)
+    					{
+        					I4p_7(row,col)+=fTemp_matrix_nsd_x_nsd2(A,l)*fdFYdS(Mbar,Nbar)*fChie(i,Mbar)*fFp_inverse(M,Nbar);
+    					}
+    				}
+    				row++;
+    			}
+    		}
+    		col++;
+    	}
+    }
+
+}
 
 ////////////////////////////////////////////////////////////////
 //////////////FINITE STRAIN MATRICES ENDS//////////////////
