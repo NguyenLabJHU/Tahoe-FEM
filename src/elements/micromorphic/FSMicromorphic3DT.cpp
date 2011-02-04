@@ -2823,8 +2823,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fKu_I3p_20 += fTemp_matrix_nudof_x_nudof;
 
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_21,fShapeDisplGrad);
-	    			scale =(1/fConst)*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])
-	    			*fMaterial_Params[kNu]*scale_const*Jp;
+	    			scale =(1/fConst)*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*fMaterial_Params[kNu]*scale_const*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_I3p_21 += fTemp_matrix_nudof_x_nudof;
 
@@ -12339,8 +12338,8 @@ void FSMicromorphic3DT:: Form_I3p_20()
 	I3p_20=0.0;
 	fTemp_matrix_nsd_x_nsd.Transpose(fA1);
 	fTemp_matrix_nsd_x_nsd+=fA1;
-	fTemp_matrix_nsd_x_nsd2.MultABC(fDeformation_Gradient_Inverse,fFe,fTemp_matrix_nsd_x_nsd);
-	fTemp_matrix_nsd_x_nsd.MultABT(fTemp_matrix_nsd_x_nsd2,fFe);
+	fTemp_matrix_nsd_x_nsd2.MultABCT(fFe,fTemp_matrix_nsd_x_nsd,fFe);
+	fTemp_matrix_nsd_x_nsd.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd2);
 
 	for(int M=0;M<3;M++)
 		{
@@ -12375,8 +12374,8 @@ void FSMicromorphic3DT:: Form_I3p_21()
 	I3p_21=0.0;
 	fTemp_matrix_nsd_x_nsd.Transpose(fA1);
 	fTemp_matrix_nsd_x_nsd+=fA1;
-	fTemp_matrix_nsd_x_nsd2.MultABC(fDeformation_Gradient_Inverse,fFe,fTemp_matrix_nsd_x_nsd);
-	fTemp_matrix_nsd_x_nsd.MultABT(fTemp_matrix_nsd_x_nsd2,fFe);
+	fTemp_matrix_nsd_x_nsd2.MultABCT(fFe,fTemp_matrix_nsd_x_nsd,fFe);
+	fTemp_matrix_nsd_x_nsd.MultAB(fDeformation_Gradient_Inverse,fTemp_matrix_nsd_x_nsd2);
 
 	for(int M=0;M<3;M++)
 		{
