@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.156 2011-02-01 17:27:27 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.157 2011-02-04 23:40:09 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -774,7 +774,9 @@ private:
     dArrayT Vintp_1;
     dArrayT Vintp_1_temp;
     dArrayT fV1p;
-
+    dArrayT Vintp_2;
+    dArrayT Vintp_2_temp;
+    dArrayT fV2p;
 
 
 
@@ -813,6 +815,8 @@ private:
     dMatrixT ddevSdDelgamma;
     dMatrixT dEedDelgamma;
     dMatrixT dEpsilonedDelgamma;
+
+    dMatrixT fSIGMA_S;
 
 
     dMatrixT fFeT;
@@ -854,6 +858,7 @@ private:
     dMatrixT fKu_IJp_5;
     dMatrixT IJp_6;
     dMatrixT fKu_IJp_6;
+
     dMatrixT I1e_1;
     dMatrixT fKu_I1e_1;
 
@@ -959,6 +964,37 @@ private:
     dMatrixT fKu_I4p_6;
     dMatrixT I4p_7;
     dMatrixT fKu_I4p_7;
+
+
+    dMatrixT IIJp_1;
+    dMatrixT fKphiu_IIJp_1;
+    dMatrixT IIJp_2;
+    dMatrixT fKphiu_IIJp_2;
+    dMatrixT IIJp_3;
+    dMatrixT fKphiu_IIJp_3;
+    dMatrixT IIJp_4;
+    dMatrixT fKphiu_IIJp_4;
+    dMatrixT IIJp_5;
+    dMatrixT fKphiu_IIJp_5;
+    dMatrixT IIJp_6;
+    dMatrixT fKphiu_IIJp_6;
+
+    dMatrixT II1e_1;
+    dMatrixT fKphiu_II1e_1;
+    dMatrixT II2e_1;
+    dMatrixT fKphiu_II2e_1;
+    dMatrixT II2p_2;
+    dMatrixT fKphiu_II2p_2;
+    dMatrixT II2p_3;
+    dMatrixT fKphiu_II2p_3;
+    dMatrixT II2p_4;
+    dMatrixT fKphiu_II2p_4;
+    dMatrixT II2p_5;
+    dMatrixT fKphiu_II2p_5;
+    dMatrixT II2p_6;
+    dMatrixT fKphiu_II2p_6;
+    dMatrixT II2p_7;
+    dMatrixT fKphiu_II2p_7;
 
     dMatrixT dFedDelgamma;
 
@@ -1314,6 +1350,8 @@ private:
 
 /* Plasticity functions */
     void  Form_fV1p(void);
+    void  Form_fV2p(void);
+
 // The first and the second terms cancel each other, we start from the thirh term which has 12 matrices
 // all the matrices having "e" are the ones which direclty include the term  d(deltau)/dX
 // matrices having "p" are the one which include delta(gamma)
@@ -1378,9 +1416,23 @@ private:
     void Form_I4p_6(void); //
     void Form_I4p_7(void); //
 
+    /* Functions for the second balance equation */
+	void Form_IIJp_1(void);
+	void Form_IIJp_2(void);
+	void Form_IIJp_3(void);
+	void Form_IIJp_4(void);
+	void Form_IIJp_5(void);
+	void Form_IIJp_6(void);
 
+	void Form_II1e_1(void);
 
-
+	void Form_II2e_1(void);
+	void Form_II2p_2(void);
+	void Form_II2p_3(void);
+	void Form_II2p_4(void);
+	void Form_II2p_5(void);
+	void Form_II2p_6(void);
+	void Form_II2p_7(void);
 
     /////////////////////////////////////////////////////////
 
