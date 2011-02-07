@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.159 2011-02-07 06:34:53 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.160 2011-02-07 23:23:40 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -816,7 +816,7 @@ private:
     dMatrixT dEedDelgamma;
     dMatrixT dEpsilonedDelgamma;
 
-    dMatrixT fSIGMA_S;
+    dMatrixT fS_SIGMA;
 
 
     dMatrixT fFeT;
@@ -1002,6 +1002,72 @@ private:
     dMatrixT fKphiu_II3e_4;
     dMatrixT II3e_5;
     dMatrixT fKphiu_II3e_5;
+    dMatrixT II3p_6;
+    dMatrixT fKphiu_II3p_6;
+    dMatrixT II3p_7;
+    dMatrixT fKphiu_II3p_7;
+    dMatrixT II3p_8;
+    dMatrixT fKphiu_II3p_8;
+    dMatrixT II3p_9;
+    dMatrixT fKphiu_II3p_9;
+    dMatrixT II3p_10;
+    dMatrixT fKphiu_II3p_10;
+    dMatrixT II3p_11;
+    dMatrixT fKphiu_II3p_11;
+    dMatrixT II3p_12;
+    dMatrixT fKphiu_II3p_12;
+    dMatrixT II3p_13;
+    dMatrixT fKphiu_II3p_13;
+    dMatrixT II3p_14;
+    dMatrixT fKphiu_II3p_14;
+    dMatrixT II3p_15;
+    dMatrixT fKphiu_II3p_15;
+    dMatrixT II3p_16;
+    dMatrixT fKphiu_II3p_16;
+    dMatrixT II3p_17;
+    dMatrixT fKphiu_II3p_17;
+    dMatrixT II3p_18;
+    dMatrixT fKphiu_II3p_18;
+    dMatrixT II3p_19;
+    dMatrixT fKphiu_II3p_19;
+    dMatrixT II3p_20;
+    dMatrixT fKphiu_II3p_20;
+    dMatrixT II3p_21;
+    dMatrixT fKphiu_II3p_21;
+    dMatrixT II3p_22;
+    dMatrixT fKphiu_II3p_22;
+    dMatrixT II3p_23;
+    dMatrixT fKphiu_II3p_23;
+    dMatrixT II3p_24;
+    dMatrixT fKphiu_II3p_24;
+    dMatrixT II3p_25;
+    dMatrixT fKphiu_II3p_25;
+    dMatrixT II3p_26;
+    dMatrixT fKphiu_II3p_26;
+    dMatrixT II3p_27;
+    dMatrixT fKphiu_II3p_27;
+    dMatrixT II3p_28;
+    dMatrixT fKphiu_II3p_28;
+    dMatrixT II3p_29;
+    dMatrixT fKphiu_II3p_29;
+    dMatrixT II3p_30;
+    dMatrixT fKphiu_II3p_30;
+
+    dMatrixT II4e_1;
+    dMatrixT fKphiu_II4e_1;
+    dMatrixT II4p_2;
+    dMatrixT fKphiu_II4p_2;
+    dMatrixT II4p_3;
+    dMatrixT fKphiu_II4p_3;
+    dMatrixT II4p_4;
+    dMatrixT fKphiu_II4p_4;
+    dMatrixT II4p_5;
+    dMatrixT fKphiu_II4p_5;
+    dMatrixT II4p_6;
+    dMatrixT fKphiu_II4p_6;
+
+
+
 
     dMatrixT dFedDelgamma;
 
@@ -1444,7 +1510,38 @@ private:
 	void Form_II3e_3(void);
 	void Form_II3e_4(void);
 	void Form_II3e_5(void);
+	void Form_II3p_6(void);
+	void Form_II3p_7(void);
+	void Form_II3p_8(void);
+	void Form_II3p_9(void);
+	void Form_II3p_10(void);
+	void Form_II3p_11(void);
+	void Form_II3p_12(void);
+	void Form_II3p_13(void);
+	void Form_II3p_14(void);
+	void Form_II3p_15(void);
+	void Form_II3p_16(void);
+	void Form_II3p_17(void);
+	void Form_II3p_18(void);
+	void Form_II3p_19(void);
+	void Form_II3p_20(void);
+	void Form_II3p_21(void);
+	void Form_II3p_22(void);
+	void Form_II3p_23(void);
+	void Form_II3p_24(void);
+	void Form_II3p_25(void);
+	void Form_II3p_26(void);
+	void Form_II3p_27(void);
+	void Form_II3p_28(void);
+	void Form_II3p_29(void);
+	void Form_II3p_30(void);
 
+	void Form_II4e_1(void);
+	void Form_II4p_2(void);
+	void Form_II4p_3(void);
+	void Form_II4p_4(void);
+	void Form_II4p_5(void);
+	void Form_II4p_6(void);
 
     /////////////////////////////////////////////////////////
 
