@@ -2660,14 +2660,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			Form_IIJp_5();
 
 
-/*
+
 	    			Form_II2e_1(); // The second term first matrix
 	    			Form_II2p_2();
 	    			Form_II2p_3();
 	    			Form_II2p_4();
 	    			Form_II2p_5();// micromorphic terms introduced to macro-scale without delta(gamma^chi)
 	    			Form_II2p_6();
-	    			Form_II2p_7();*/
+/*
+	    			Form_II3e_1();
+	    			Form_II3e_2();
+	    			Form_II3e_3();
+	    			Form_II3e_4();
+	    			Form_II3e_5();*/
+
+
 
 	    			/* The terms related to variation of Jp have Jp_ extension i.e. IJp_1 */
 	    			fTemp_matrix_nsd_x_nsd2.MultABCT(fFp_inverse,fCe_n_inverse,fdGdS_n);
@@ -3040,7 +3047,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			/* There is no II1 matrice because  no gradient of eta(ml)  */
 	    			/* II1e_1=0.0 ;
 
-	    			/* Terms realted to Delta(F) F: Deformation_Gradient F=FeFp used in w(l,A)(F^-1)(A,k)delta(Fe(k,Kbar))S(Kbar,Lbar)Fe(l,Lbar) Jp */
+	    			/* Terms realted to Delta(F) F: Deformation_Gradient F=FeFp used in eta(ml)delta(Fe (m Mbar))(S(Mbar,Lbar)-SIGMA(Mbar,Lbar))Fe(l,Lbar) Jp */
 	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II2e_1,fShapeDisplGrad);
 	    			scale = -1*scale_const*Jp;
 	    			fTemp_matrix_nchidof_x_nudof *= scale;
@@ -3072,6 +3079,33 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fTemp_matrix_nchidof_x_nudof *= scale;
 	    			fKphiu_II2p_6 += fTemp_matrix_nchidof_x_nudof;
 
+	    			/* eta(ml)Fe(m Mbar)delta((SIGMA(Mbar Lbar)-S(MbarLbar)))Fe(lLBar)*/
+	    			/* There "-" sign because we use SIGMA-S instead of S-SIGMA */
+
+	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3e_1,fShapeDisplGrad);
+	    			scale =-1*fMaterial_Params[kTau]*scale_const*Jp;
+	    			fTemp_matrix_nchidof_x_nudof *= scale;
+	    			fKphiu_II3e_1 += fTemp_matrix_nchidof_x_nudof;
+
+	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3e_2,fShapeDisplGrad);
+	    			scale =-1*fMaterial_Params[kSigma_const]*scale_const*Jp;
+	    			fTemp_matrix_nchidof_x_nudof *= scale;
+	    			fKphiu_II3e_2 += fTemp_matrix_nchidof_x_nudof;
+
+	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3e_3,fShapeDisplGrad);
+	    			scale =-1*(fMaterial_Params[kEta]-fMaterial_Params[kTau])*scale_const*Jp;
+	    			fTemp_matrix_nchidof_x_nudof *= scale;
+	    			fKphiu_II3e_3 += fTemp_matrix_nchidof_x_nudof;
+
+	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3e_4,fShapeDisplGrad);
+	    			scale =-1*(fMaterial_Params[kNu]-fMaterial_Params[kSigma_const])*scale_const*Jp;
+	    			fTemp_matrix_nchidof_x_nudof *= scale;
+	    			fKphiu_II3e_4 += fTemp_matrix_nchidof_x_nudof;
+
+	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3e_5,fShapeDisplGrad);
+	    			scale =-1*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const])*scale_const*Jp;
+	    			fTemp_matrix_nchidof_x_nudof *= scale;
+	    			fKphiu_II3e_5 += fTemp_matrix_nchidof_x_nudof;
 
 	    		}
 	    		else//(yielding did not occur / elastic step/
@@ -5390,8 +5424,16 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     II2p_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fKphiu_II2p_6.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
 
-
-
+    II3e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKphiu_II3e_1.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    II3e_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKphiu_II3e_2.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    II3e_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKphiu_II3e_3.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    II3e_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKphiu_II3e_4.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    II3e_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKphiu_II3e_5.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
 
 
 
@@ -13407,9 +13449,9 @@ void FSMicromorphic3DT :: Form_IIJp_1()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					//summation over the same term starts
 					for(int Abar=0;Abar<3;Abar++)
@@ -13438,9 +13480,9 @@ void FSMicromorphic3DT:: Form_IIJp_2()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					//summation over the same term starts
 					for(int Nbar=0;Nbar<3;Nbar++)
@@ -13474,9 +13516,9 @@ void FSMicromorphic3DT:: Form_IIJp_3()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					//summation over the same term starts
 					for(int Abar=0;Abar<3;Abar++)
@@ -13507,10 +13549,11 @@ void FSMicromorphic3DT:: Form_IIJp_4()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
+
 					//summation over the same term starts
 					for(int Mbar=0;Mbar<3;Mbar++)
 					{
@@ -13539,9 +13582,9 @@ void FSMicromorphic3DT:: Form_IIJp_5()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					//summation over the same term starts
 					for(int Mbar=0;Mbar<3;Mbar++)
@@ -13566,21 +13609,18 @@ void FSMicromorphic3DT:: Form_II2e_1()
 	int row=0;
 	int col=0;
 	II2e_1=0.0;
-	fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fSIGMA_S,fFe);
+	fTemp_matrix_nsd_x_nsd.MultABCT(fFp_inverse,fSIGMA_S,fFe);
 
 	for(int M=0;M<3;M++)
 	{
-		for(int k=0;k<3;k++)
+		for(int m=0;m<3;m++)
 		{
-			row=0;
-			for(int m=0;m<3;m++)
+			row=m;
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
-				{
-					//summation over the same term stars here
-					II2e_1(row,col)+=fTemp_matrix_nsd_x_nsd(m,l);
-					row++;
-				}
+				//summation over the same term stars here
+				II2e_1(row,col)+=fTemp_matrix_nsd_x_nsd(m,l);
+				row=row+3;
 			}
 			col++;
 		}
@@ -13608,10 +13648,10 @@ void FSMicromorphic3DT:: Form_II2p_2()
     	for(int i=0;i<3;i++)
     	{
     		row=0;
-    		for(int m=0;m<3;m++)
-    		{
-    			for(int l=0;l<3;l++)
-    			{
+			for(int l=0;l<3;l++)
+			{
+				for(int m=0;m<3;m++)
+				{
     				//summation over the same term
     				for(int Abar=0;Abar<3;Abar++)
     				{
@@ -13643,10 +13683,10 @@ void FSMicromorphic3DT:: Form_II2p_3()
     	for(int i=0;i<3;i++)
     	{
     		row=0;
-    		for(int m=0;m<3;m++)
-    		{
-    			for(int l=0;l<3;l++)
-    			{
+			for(int l=0;l<3;l++)
+			{
+				for(int m=0;m<3;m++)
+				{
     				//summation over the same term
     				for(int Mbar=0;Mbar<3;Mbar++)
     				{
@@ -13681,10 +13721,10 @@ void FSMicromorphic3DT:: Form_II2p_4()
     	for(int i=0;i<3;i++)
     	{
     		row=0;
-    		for(int m=0;m<3;m++)
-    		{
-    			for(int l=0;l<3;l++)
-    			{
+			for(int l=0;l<3;l++)
+			{
+				for(int m=0;m<3;m++)
+				{
     				//summation over the same term
     				for(int Abar=0;Abar<3;Abar++)
     				{
@@ -13713,10 +13753,10 @@ void FSMicromorphic3DT:: Form_II2p_5()
     	for(int i=0;i<3;i++)
     	{
     		row=0;
-    		for(int m=0;m<3;m++)
-    		{
-    			for(int l=0;l<3;l++)
-    			{
+			for(int l=0;l<3;l++)
+			{
+				for(int m=0;m<3;m++)
+				{
     				//summation over the same term
     				for(int Mbar=0;Mbar<3;Mbar++)
     				{
@@ -13746,10 +13786,10 @@ void FSMicromorphic3DT:: Form_II2p_6()
     	for(int i=0;i<3;i++)
     	{
     		row=0;
-    		for(int m=0;m<3;m++)
-    		{
-    			for(int l=0;l<3;l++)
-    			{
+			for(int l=0;l<3;l++)
+			{
+				for(int m=0;m<3;m++)
+				{
     				//summation over the same term
     				for(int Mbar=0;Mbar<3;Mbar++)
     				{
@@ -13767,6 +13807,38 @@ void FSMicromorphic3DT:: Form_II2p_6()
 
 }
 
+void FSMicromorphic3DT:: Form_II3e_1()
+{
+	int row=0;
+	int col=0;
+
+	II3e_1=0.0;
+	fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fIdentity_matrix,fFe);
+    for(int M=0;M<3;M++)
+    {
+    	for(int i=0;i<3;i++)
+    	{
+    		row=0;
+			for(int l=0;l<3;l++)
+			{
+				for(int m=0;m<3;m++)
+				{
+    				//summation over the same term
+    				for(int Mbar=0;Mbar<3;Mbar++)
+    				{
+    					for(int Nbar=0;Nbar<3;Nbar++)
+    					{
+    						II2p_6(row,col)+=fTemp_matrix_nsd_x_nsd(m,l)*fdFYdS(Mbar,Nbar)*fChie(i,Mbar)*fFp_inverse(M,Nbar);
+    					}
+    				}
+    				row++;
+    			}
+    		}
+    		col++;
+    	}
+    }
+
+}
 
 
 

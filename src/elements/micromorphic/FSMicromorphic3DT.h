@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.158 2011-02-06 08:19:32 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.159 2011-02-07 06:34:53 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -992,6 +992,17 @@ private:
     dMatrixT II2p_6;
     dMatrixT fKphiu_II2p_6;
 
+    dMatrixT II3e_1;
+    dMatrixT fKphiu_II3e_1;
+    dMatrixT II3e_2;
+    dMatrixT fKphiu_II3e_2;
+    dMatrixT II3e_3;
+    dMatrixT fKphiu_II3e_3;
+    dMatrixT II3e_4;
+    dMatrixT fKphiu_II3e_4;
+    dMatrixT II3e_5;
+    dMatrixT fKphiu_II3e_5;
+
     dMatrixT dFedDelgamma;
 
     dArray2DT	fState_variables_IPs;
@@ -1427,6 +1438,13 @@ private:
 	void Form_II2p_4(void);
 	void Form_II2p_5(void);
 	void Form_II2p_6(void);
+
+	void Form_II3e_1(void);
+	void Form_II3e_2(void);
+	void Form_II3e_3(void);
+	void Form_II3e_4(void);
+	void Form_II3e_5(void);
+
 
     /////////////////////////////////////////////////////////
 
