@@ -2792,6 +2792,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			scale = -1*(1/fConst)*Trace_const*scale_const*fMaterial_Params[kNu]*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_IJp_6 += fTemp_matrix_nudof_x_nudof;
+	    			
+	    		 	fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_7,fShapeDisplGrad);
+	    			scale = -1*(1/fConst)*Trace_const*scale_const*fMaterial_Params[kEta]*dFYdScol1*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_IJp_7 += fTemp_matrix_nudof_x_nchidof;
+
+	    		 	fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_8,fShapeDisplGrad);
+	    			scale = -1*(1/fConst)*Trace_const*scale_const*fMaterial_Params[kKappa]*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_IJp_8 += fTemp_matrix_nudof_x_nchidof;
+	    			
+	      		 	fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_9,fShapeDisplGrad);
+	    			scale = -1*(1/fConst)*Trace_const*scale_const*fMaterial_Params[kNu]*Jp;
+	    			fTemp_matrix_nudof_x_nudof *= scale;
+	    			fKu_IJp_9 += fTemp_matrix_nudof_x_nchidof;	
 
 	    			/* Terms realted to Delta(F) F: Deformation_Gradient F=FeFp used in w(l,A) delta(F^-1)(A,k) Fe(k,Kbar)S(Kbar,Lbar)Fe(l,Lbar) Jp */
 	    			/* All the matrices with p_ extension are plastic  such as I2p_1, I3p_10, etc.. */
@@ -3086,11 +3101,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			/* eta(ml)Fe(m Mbar)(S(Mbar Lbar)-SIGMA(MbarLbar))Fe(lLBar)Jp dV*/
 	    			/* Note that what we calculate SIGMA-S so there is no "-" in front of Jp terms! */
 	    			/* delta(Jp)*eta(ml)Fe(m Mbar)(S(Mbar Lbar)-SIGMA(MbarLbar))Fe(lLBar)*/
+	    			cout<<"GELDIM"<<endl;
 	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,IIJp_1,fShapeDisplGrad);
 	    			scale = -1*(1/fConst)*scale_const*Trace_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*Jp;
 	    			fTemp_matrix_nchidof_x_nudof *= scale;
 	    			fKphiu_IIJp_1 += fTemp_matrix_nchidof_x_nudof;
-
+	    			cout<<"GELDIM2"<<endl;
 
 	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,IIJp_2,fShapeDisplGrad);
 	    			scale = -1*(1/fConst)*scale_const*Trace_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*Jp;
@@ -5544,7 +5560,12 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fKu_IJp_5.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
     IJp_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fKu_IJp_6.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
-
+    IJp_7.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_IJp_7.Dimension(n_en_displ_x_n_sd ,n_en_micro*n_sd_x_n_sd);
+    IJp_8.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_IJp_8.Dimension(n_en_displ_x_n_sd ,n_en_micro*n_sd_x_n_sd);
+    IJp_9.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+    fKu_IJp_9.Dimension(n_en_displ_x_n_sd ,n_en_micro*n_sd_x_n_sd);
 
     I1e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
     fKu_I1e_1.Dimension(n_en_displ_x_n_sd ,n_en_displ_x_n_sd );
@@ -5655,105 +5676,105 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
 
     IIJp_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_IIJp_1.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_IIJp_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     IIJp_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_IIJp_2.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_IIJp_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     IIJp_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_IIJp_3.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_IIJp_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     IIJp_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_IIJp_4.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_IIJp_4.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     IIJp_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_IIJp_5.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_IIJp_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
 
 
 
     II2e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II2e_1.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II2e_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
 
     II2p_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II2p_2.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II2p_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II2p_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II2p_3.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II2p_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II2p_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II2p_4.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II2p_4.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II2p_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II2p_5.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II2p_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II2p_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II2p_6.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II2p_6.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
 
     II3e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3e_1.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3e_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3e_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3e_2.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3e_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3e_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3e_3.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3e_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3e_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3e_4.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3e_4.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3e_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3e_5.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3e_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_6.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_6.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_7.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_7.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_7.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_8.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_8.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_8.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_9.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_9.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_9.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_10.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_10.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_10.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_11.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_11.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_11.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_12.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_12.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_12.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_13.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_13.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_13.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_14.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_14.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_14.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_15.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_15.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_15.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_16.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_16.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_16.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_17.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_17.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_17.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_18.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_18.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_18.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_19.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_19.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_19.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_20.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_20.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_20.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_21.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_21.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_21.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_22.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_22.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_22.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_23.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_23.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_23.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_24.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_24.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_24.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_25.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_25.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_25.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_26.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_26.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_26.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_27.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_27.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_27.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_28.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_28.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_28.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_29.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_29.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_29.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II3p_30.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II3p_30.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II3p_30.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
 
     II4e_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II4e_1.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II4e_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II4p_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II4p_2.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II4p_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II4p_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II4p_3.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II4p_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II4p_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II4p_4.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II4p_4.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II4p_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II4p_5.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II4p_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
     II4p_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
-    fKphiu_II4p_6.Dimension(n_en_displ_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    fKphiu_II4p_6.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
 
 
     fFp.Dimension(n_sd,n_sd);
