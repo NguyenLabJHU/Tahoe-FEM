@@ -2793,17 +2793,17 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_IJp_6 += fTemp_matrix_nudof_x_nudof;
 	    			
-	    		 	fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_7,fShapeDisplGrad);
+	    		 	fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_7,NCHI);
 	    			scale = -1*(1/fConst)*Trace_const*scale_const*fMaterial_Params[kEta]*dFYdScol1*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_IJp_7 += fTemp_matrix_nudof_x_nchidof;
 
-	    		 	fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_8,fShapeDisplGrad);
+	    		 	fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_8,NCHI);
 	    			scale = -1*(1/fConst)*Trace_const*scale_const*fMaterial_Params[kKappa]*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_IJp_8 += fTemp_matrix_nudof_x_nchidof;
 	    			
-	      		 	fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_9,fShapeDisplGrad);
+	      		 	fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_9,NCHI);
 	    			scale = -1*(1/fConst)*Trace_const*scale_const*fMaterial_Params[kNu]*Jp;
 	    			fTemp_matrix_nudof_x_nudof *= scale;
 	    			fKu_IJp_9 += fTemp_matrix_nudof_x_nchidof;	
@@ -3101,12 +3101,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			/* eta(ml)Fe(m Mbar)(S(Mbar Lbar)-SIGMA(MbarLbar))Fe(lLBar)Jp dV*/
 	    			/* Note that what we calculate SIGMA-S so there is no "-" in front of Jp terms! */
 	    			/* delta(Jp)*eta(ml)Fe(m Mbar)(S(Mbar Lbar)-SIGMA(MbarLbar))Fe(lLBar)*/
-	    			cout<<"GELDIM"<<endl;
+
 	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,IIJp_1,fShapeDisplGrad);
 	    			scale = -1*(1/fConst)*scale_const*Trace_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*Jp;
 	    			fTemp_matrix_nchidof_x_nudof *= scale;
 	    			fKphiu_IIJp_1 += fTemp_matrix_nchidof_x_nudof;
-	    			cout<<"GELDIM2"<<endl;
+
 
 	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,IIJp_2,fShapeDisplGrad);
 	    			scale = -1*(1/fConst)*scale_const*Trace_const*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*Jp;
