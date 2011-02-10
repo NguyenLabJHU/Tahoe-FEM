@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.161 2011-02-09 06:36:39 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.162 2011-02-10 01:23:28 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -859,11 +859,11 @@ private:
     dMatrixT IJp_6;
     dMatrixT fKu_IJp_6;
     dMatrixT IJp_7;
-    dMatrixT fKu_IJp_7;
+    dMatrixT fKuphi_IJp_7;
     dMatrixT IJp_8;
-    dMatrixT fKu_IJp_8;
+    dMatrixT fKuphi_IJp_8;
     dMatrixT IJp_9;
-    dMatrixT fKu_IJp_9;
+    dMatrixT fKuphi_IJp_9;
 
 
 
@@ -886,6 +886,12 @@ private:
     dMatrixT fKu_I2p_6;
     dMatrixT I2p_7;
     dMatrixT fKu_I2p_7;
+    dMatrixT I2p_8;
+    dMatrixT fKuphi_I2p_8;
+    dMatrixT I2p_9;
+    dMatrixT fKuphi_I2p_9;
+    dMatrixT I2p_10;
+    dMatrixT fKuphi_I2p_10;
 
     dMatrixT I3e_1;
     dMatrixT fKu_I3e_1;
@@ -959,6 +965,46 @@ private:
     dMatrixT fKu_I3p_35;
     dMatrixT I3p_36;
     dMatrixT fKu_I3p_36;
+    dMatrixT I3e_37;
+    dMatrixT fKuphi_I3e_37;
+    dMatrixT I3e_38;
+    dMatrixT fKuphi_I3e_38;
+    dMatrixT I3e_39;
+    dMatrixT fKuphi_I3e_39;
+    dMatrixT I3p_40;
+    dMatrixT fKuphi_I3p_40;
+    dMatrixT I3p_41;
+    dMatrixT fKuphi_I3p_41;
+    dMatrixT I3p_42;
+    dMatrixT fKuphi_I3p_42;
+    dMatrixT I3p_43;
+    dMatrixT fKuphi_I3p_43;
+    dMatrixT I3p_44;
+    dMatrixT fKuphi_I3p_44;
+    dMatrixT I3p_45;
+    dMatrixT fKuphi_I3p_45;
+    dMatrixT I3p_46;
+    dMatrixT fKuphi_I3p_46;
+    dMatrixT I3p_47;
+    dMatrixT fKuphi_I3p_47;
+    dMatrixT I3p_48;
+    dMatrixT fKuphi_I3p_48;
+    dMatrixT I3p_49;
+    dMatrixT fKuphi_I3p_49;
+    dMatrixT I3p_50;
+    dMatrixT fKuphi_I3p_50;
+    dMatrixT I3p_51;
+    dMatrixT fKuphi_I3p_51;
+    dMatrixT I3p_52;
+    dMatrixT fKuphi_I3p_52;
+    dMatrixT I3p_53;
+    dMatrixT fKuphi_I3p_53;
+    dMatrixT I3p_54;
+    dMatrixT fKuphi_I3p_54;
+
+
+
+
 
     dMatrixT I4e_1;
     dMatrixT fKu_I4e_1;
@@ -974,7 +1020,12 @@ private:
     dMatrixT fKu_I4p_6;
     dMatrixT I4p_7;
     dMatrixT fKu_I4p_7;
-
+    dMatrixT I4p_8;
+    dMatrixT fKuphi_I4p_8;
+    dMatrixT I4p_9;
+    dMatrixT fKuphi_I4p_9;
+    dMatrixT I4p_10;
+    dMatrixT fKuphi_I4p_10;
 
     dMatrixT IIJp_1;
     dMatrixT fKphiu_IIJp_1;
@@ -1444,8 +1495,13 @@ private:
     void Form_IJp_4(void);
     void Form_IJp_5(void);
     void Form_IJp_6(void);
+    void Form_IJp_7(void);
+    void Form_IJp_8(void);
+    void Form_IJp_9(void);
+
 
     void Form_I1e_1(void); // the first term first matrix
+
     void Form_I2e_1(void); // the  second term first matrix
     void Form_I2p_2(void);
     void Form_I2p_3(void);
@@ -1453,6 +1509,13 @@ private:
     void Form_I2p_5(void);
     void Form_I2p_6(void);
     void Form_I2p_7(void);
+    void Form_I2p_8(void);
+    void Form_I2p_9(void);
+    void Form_I2p_10(void);
+
+
+
+
     void Form_I3e_1(void); // the third term first matrix
     void Form_I3e_2(void); //
     void Form_I3e_3(void); //
@@ -1489,6 +1552,24 @@ private:
     void Form_I3p_34(void); //
     void Form_I3p_35(void); //
     void Form_I3p_36(void); //
+    void Form_I3e_37(void); //
+    void Form_I3e_38(void); //
+    void Form_I3e_39(void); //
+    void Form_I3p_40(void); //
+    void Form_I3p_41(void); //
+    void Form_I3p_42(void); //
+    void Form_I3p_43(void); //
+    void Form_I3p_44(void); //
+    void Form_I3p_45(void); //
+    void Form_I3p_46(void); //
+    void Form_I3p_47(void); //
+    void Form_I3p_48(void); //
+    void Form_I3p_49(void); //
+    void Form_I3p_50(void); //
+    void Form_I3p_51(void); //
+    void Form_I3p_52(void); //
+    void Form_I3p_53(void); //
+    void Form_I3p_54(void); //
 
 
     void Form_I4e_1(void); // the fourth term first matrix
@@ -1498,6 +1579,10 @@ private:
     void Form_I4p_5(void); //
     void Form_I4p_6(void); //
     void Form_I4p_7(void); //
+    void Form_I4p_8(void); //
+    void Form_I4p_9(void); //
+    void Form_I4p_10(void); //
+
 
     /* Functions for the second balance equation */
 	void Form_IIJp_1(void);
