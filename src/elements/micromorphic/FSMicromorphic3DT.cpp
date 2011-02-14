@@ -10631,6 +10631,7 @@ void FSMicromorphic3DT:: Form_fV3()
     int row=0;
     fV3=0.0;
     fTemp_tensor_n_sd_x_n_sd_x_nsd=0.0;
+  
   for(int k=0;k<3;k++)
     {
         for(int l=0;l<3;l++)
@@ -10653,6 +10654,7 @@ void FSMicromorphic3DT:: Form_fV3()
                 }
             }
         }
+     }
 
 
 
