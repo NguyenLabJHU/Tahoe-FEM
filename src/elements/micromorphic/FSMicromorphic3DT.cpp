@@ -10655,25 +10655,6 @@ void FSMicromorphic3DT:: Form_fV3()
         }
 
 
-   /*DO NOT USE THIS PART!!!
-    *  for(int K=0;K<3;K++)
-    {
-    	for(int l=0;l<3;l++)
-        {
-    		for(int m=0;m<3;m++)
-            {
-    			//summation
-    			for(int L=0;L<3;L++)
-    			{
-    				for(int M=0;M<3;M++)
-    				{
-    					fTemp_tensor_n_sd_x_n_sd_x_nsd(K,l,m)+=fDeformation_Gradient(l,L)*fMKLM(K,L,M)*ChiM(m,M);
-    				}
-    			}
-            }
-        }
-    }*/
-
 
     for(int l=0;l<3;l++)
     {
