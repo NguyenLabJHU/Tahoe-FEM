@@ -10631,7 +10631,7 @@ void FSMicromorphic3DT:: Form_fV3()
     int row=0;
     fV3=0.0;
     fTemp_tensor_n_sd_x_n_sd_x_nsd=0.0;
-/*  for(int k=0;k<3;k++)
+  for(int k=0;k<3;k++)
     {
         for(int l=0;l<3;l++)
         {
@@ -10653,9 +10653,10 @@ void FSMicromorphic3DT:: Form_fV3()
                 }
             }
         }
-    }*/
 
-    for(int K=0;K<3;K++)
+
+   /*DO NOT USE THIS PART!!!
+    *  for(int K=0;K<3;K++)
     {
     	for(int l=0;l<3;l++)
         {
@@ -10671,16 +10672,16 @@ void FSMicromorphic3DT:: Form_fV3()
     			}
             }
         }
-    }
+    }*/
 
 
     for(int l=0;l<3;l++)
     {
     	for(int m=0;m<3;m++)
         {
-    		for(int K=0;K<3;K++)
+    		for(int k=0;k<3;k++)
             {
-    			fV3[row]=fTemp_tensor_n_sd_x_n_sd_x_nsd(K,l,m);
+    			fV3[row]=fTemp_tensor_n_sd_x_n_sd_x_nsd(k,l,m);
                 row++;
             }
         }
