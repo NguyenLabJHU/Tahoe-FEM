@@ -10615,11 +10615,11 @@ void FSMicromorphic3DT:: Form_fV2()
     Temp_SPK=0.0;
     Temp_SPK.MultABCT(fDeformation_Gradient,SIGMA_S,fDeformation_Gradient);
     //Temp_SPK*=-1;
-    for(int m=0;m<3;m++)
+    for(int l=0;l<3;l++)
     {
-    	for(int l=0;l<3;l++)
+    	for(int m=0;m<3;m++)
         {
-    		fV2[row]=Temp_SPK(l,m);//this is s_sigma
+    		fV2[row]=Temp_SPK(m,l);//this is s_sigma
             row++;
         }
     }
