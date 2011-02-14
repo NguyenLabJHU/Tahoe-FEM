@@ -752,7 +752,7 @@ void FSMicromorphic3DT::RegisterOutput(void)
 
   //  if(iConstitutiveModelType==3)
    //  {
-    const char* svlabels3D[] = {"kc","kZc","khc","kDelgamma"};
+    const char* svlabels3D[] = {"kc","khc","kDelgamma","trSigma","||dev(Sigma)||","trRel","||dev(Rel)||","trm","||dev(m)||"};
   //  }
   // else
    // {
@@ -1561,9 +1561,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[22]=fState_variables_Elements_IPs(e,l*6+4);
           out_variable[23]=fState_variables_Elements_IPs(e,l*6+5);*/
           out_variable[18]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc);
-          //out_variable[19]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kZc);
-          out_variable[20]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc);
-          out_variable[21]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma);
+          out_variable[19]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc);
+          out_variable[20]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma);
+          out_variable[21]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrSigma);
+          out_variable[22]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kSigma_inv);
+          out_variable[23]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrRel);
+          out_variable[24]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kRel_inv);
+          out_variable[25]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrM);
+          out_variable[26]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kM_inv);
+
 
           /* out_variable[18]=fState_variables_Elements_IPs(e,l*42+0);
           out_variable[19]=fState_variables_Elements_IPs(e,l*42+1);
@@ -4656,15 +4662,23 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		GRAD_Chi_ar_IPs.SetRow(IP,GRAD_Chi_ar);
 	    	}//constitutive loop ends here
 
-//	    	Calculate_Cauchy_INV();
-//	    	Calculate_stress_diff_INV();
-//	    	Calculate_higher_order_tensor_INV();
+	    	Calculate_Cauchy_INV();
+	    	Calculate_stress_diff_INV();
+	    	Calculate_higher_order_tensor_INV();
 //	    	fState_variables[0]=Cauchy_inv;
 //	    	fState_variables[1]=Rel_stres_inv;
 //	    	fState_variables[2]=Higher_orderT_inv;
 //	    	fState_variables[3]=trsigma;
 //	    	fState_variables[4]=trs_sigma;
 //	    	fState_variables[5]=trmklm;
+			fState_variables_IPs(IP,ktrSigma)=trsigma;
+			fState_variables_IPs(IP,kSigma_inv)=Cauchy_inv;
+			fState_variables_IPs(IP,ktrRel)=trs_sigma;
+			fState_variables_IPs(IP,kRel_inv)=Rel_stres_inv;
+			fState_variables_IPs(IP,ktrM)=trmklm;
+			fState_variables_IPs(IP,kM_inv)=Higher_orderT_inv;
+
+
 //	    	fState_variables[6]=LagrangianStn(0,0);//E11
 //	    	fState_variables[7]=LagrangianStn(1,1);//E22
 //	    	fState_variables[8]=LagrangianStn(2,2);//E33
@@ -5386,7 +5400,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Echo_Input_Data();
     //if(iConstitutiveModelType==3)
     //{
-    knum_d_state=4;
+    knum_d_state=9;
     //}
     // else
    // {
@@ -6593,13 +6607,17 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 			fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc)
 				=fMaterial_Params[kc0];
 
-			//fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kZc)
-			//	=fMaterial_Params[kZ0c];
-
 			//fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khkappa)=0.0;
 			fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=Aphi;
 
          fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma)=0.0;
+         fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrSigma)=0.0;
+         fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kSigma_inv)=0.0;
+         fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrRel)=0.0;
+         fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kRel_inv)=0.0;
+         fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrM)=0.0;
+         fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kM_inv)=0.0;
+
 
 			fFp_n_IPs.SetRow(l,fIdentity_matrix);
 			fCe_n_IPs.SetRow(l,fIdentity_matrix);
@@ -10631,7 +10649,7 @@ void FSMicromorphic3DT:: Form_fV3()
     int row=0;
     fV3=0.0;
     fTemp_tensor_n_sd_x_n_sd_x_nsd=0.0;
-  
+
   for(int k=0;k<3;k++)
     {
         for(int l=0;l<3;l++)

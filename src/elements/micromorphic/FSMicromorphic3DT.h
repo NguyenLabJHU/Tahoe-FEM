@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.164 2011-02-12 00:13:18 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.165 2011-02-14 18:28:29 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -95,6 +95,12 @@ public:
 	//    kMeanS,
 	//    kEpsVolp,
 	    kDelgamma,
+	    ktrSigma,
+	    kSigma_inv,
+	    ktrRel,
+	    kRel_inv,
+	    ktrM,
+	    kM_inv,
 	    kNUM_FMATERIAL_STATE_TERMS
 	};
 
