@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.165 2011-02-14 18:28:29 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.166 2011-02-15 01:20:04 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -871,10 +871,6 @@ private:
     dMatrixT IJp_9;
     dMatrixT fKuphi_IJp_9;
 
-
-
-
-
     dMatrixT I1e_1;
     dMatrixT fKu_I1e_1;
 
@@ -1007,10 +1003,6 @@ private:
     dMatrixT fKuphi_I3p_53;
     dMatrixT I3p_54;
     dMatrixT fKuphi_I3p_54;
-
-
-
-
 
     dMatrixT I4e_1;
     dMatrixT fKu_I4e_1;
