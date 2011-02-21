@@ -2520,17 +2520,17 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
 
 	    			} //end of the local fDelgamma while loop
-
-	    			fs_micromorph3D_out<< "iter_count = " << iter_count<<endl;
-	    			fs_micromorph3D_out  <<"**********************************"<<endl;
-	    			fs_micromorph3D_out  <<"**********************************"<<endl;
-	    			if (iter_count == iIterationMax)
-	    			{
-
-	    				cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
-	    				cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
-	    				// ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
-	    			}
+//
+//	    			fs_micromorph3D_out<< "iter_count = " << iter_count<<endl;
+//	    			fs_micromorph3D_out  <<"**********************************"<<endl;
+//	    			fs_micromorph3D_out  <<"**********************************"<<endl;
+//	    			if (iter_count == iIterationMax)
+//	    			{
+//
+//	    				cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
+//	    				cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
+//	    				// ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
+//	    			}
 
 //	    			/* This part is already calculated above*/
 //	    			/* calculate fFp_Inverse  */
