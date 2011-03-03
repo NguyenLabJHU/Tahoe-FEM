@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.166 2011-02-15 01:20:04 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.167 2011-03-03 00:28:02 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -99,8 +99,16 @@ public:
 	    kSigma_inv,
 	    ktrRel,
 	    kRel_inv,
-	    ktrM,
-	    kM_inv,
+	    ktrm,
+	    km_inv,
+	    ktrS,
+	    kinvdevS,
+	    ktrSIGMA_S,
+	    kinvdevSIGMA_S,
+	    kinvtrM,
+	    kinvdevM,
+	    kinvPhi,
+	    kinvGPhi,
 	    kNUM_FMATERIAL_STATE_TERMS
 	};
 
@@ -670,6 +678,7 @@ private:
     dMatrixT Jmat;
     dMatrixT KJmat;
     dMatrixT SPK;
+    dMatrixT devSPK;
     dMatrixT KirchhoffST;// The second Piola-Kirchhoff Matrix
     dMatrixT Temp_SPK;//temporary Matrix used in calculation of SPK
   //  dMatrixT FSF;
@@ -728,6 +737,7 @@ private:
     dMatrixT fKu_9;
     dMatrixT fKuphi_3;
     dMatrixT SIGMA_S;
+    dMatrixT devSIGMA_S;
     dMatrixT fKFJu;
     dMatrixT fKJFu;
     dMatrixT fKphiu_1;
@@ -762,6 +772,7 @@ private:
     dMatrixT fKMphiphi_6;
 
     dTensor3DT fMKLM;
+    dTensor3DT fdevMKLM;
     dTensor3DT GAMMA;
     dTensor3DT GRAD_CHIM;
     dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_nsd;
@@ -776,6 +787,8 @@ private:
     dMatrixT fKMphiu_2;
     dMatrixT fKMphiphi_2;
     /* Plasticity Matrices*/
+    dMatrixT PHIMATRIX;
+    dTensor3DT GPHIMATRIX;
 
     dArrayT Vintp_1;
     dArrayT Vintp_1_temp;
@@ -815,15 +828,14 @@ private:
 
     dMatrixT fSPK_tr;
     dMatrixT fdevSPK_tr;
-    dMatrixT fSPK;
-    dMatrixT fdevSPK;
+    //dMatrixT fSPK;
     dMatrixT dSdDelgamma;
     dMatrixT ddevSdDelgamma;
     dMatrixT dEedDelgamma;
     dMatrixT dEpsilonedDelgamma;
 
-    dMatrixT fSIGMA_S;
-    dMatrixT SIGMA_S_tr;
+    //dMatrixT fSIGMA_S;
+    dMatrixT fSIGMA_S_tr;
 
     dMatrixT fFeT;
 
@@ -1225,9 +1237,19 @@ private:
 
 /////stress invariants variables////////
  double Cauchy_inv;
+ double trS;//trace of SPK
+ double invdevS;// Norm of dev. part of SPK
  double Rel_stres_inv;
+ double trSIGMA_S;
+ double invdevSIGMA_S;// Norm of dev. part of SIGMA_S
  double Higher_orderT_inv;
+ double invtrM;//||tr(M)|| trM is a vector
+ double invdevMKLM;//||dev(M)||
  double temp_inv;
+ double invPhi;
+ double invGPhi;
+
+
  dMatrixT devsigma;
  dMatrixT devRelsts;
  dTensor3DT  devmklm;
@@ -1240,6 +1262,7 @@ private:
     double trsigma;
     double trs_sigma;
     double trmklm;
+    double invtrMKLM;
     dArrayT trvecmklm;
     dArrayT ftemp_u_element;
     dArrayT fState_variables;
@@ -1527,6 +1550,7 @@ private:
     void Calculate_stress_diff_INV(void);
     void Calculate_higher_order_tensor_INV(void);
     void Calculate_fmklm(void);
+    void Calculate_PHI_GPHI_matrices_INV(void);
     void Caculate_invdevpart_of_Matrix(const dMatrixT &fMatrix,dMatrixT &fdevfMatrix,double devinvariant);
 
 
