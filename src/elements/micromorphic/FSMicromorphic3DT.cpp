@@ -3235,7 +3235,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fKu_I3p_31 += fTemp_matrix_nudof_x_nudof;
 
 
-
 	    			fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_32,fShapeDisplGrad);
 	    			scale =-1*(1/fConst)*dFYdScol1*scale_const*Jp*fMaterial_Params[kNu]*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
 	    			fTemp_matrix_nudof_x_nudof *= scale;
@@ -16196,7 +16195,7 @@ void FSMicromorphic3DT:: Form_II3e_4()
     				{
     					for(int Lbar=0;Lbar<3;Lbar++)
     					{
-    						II3e_4(row,col)+=fFe(m,Mbar)*fFe(l,Lbar)*fChie(i,Lbar)*fFp_inverse(m,Mbar);
+    						II3e_4(row,col)+=fFe(m,Mbar)*fFe(l,Lbar)*fChie(i,Lbar)*fFp_inverse(M,Mbar);
     					}
     				}
 					row++;
@@ -16230,7 +16229,7 @@ void FSMicromorphic3DT:: Form_II3e_5()
     				{
     					for(int Lbar=0;Lbar<3;Lbar++)
     					{
-    						II3e_5(row,col)+=fFe(m,Mbar)*fFe(l,Lbar)*fChie(i,Mbar)*fFp_inverse(m,Lbar);
+    						II3e_5(row,col)+=fFe(m,Mbar)*fFe(l,Lbar)*fChie(i,Mbar)*fFp_inverse(M,Lbar);
     					}
     				}
 					row++;
