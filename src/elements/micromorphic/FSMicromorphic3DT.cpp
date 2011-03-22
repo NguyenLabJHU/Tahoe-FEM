@@ -2530,7 +2530,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 	    				// Calculate yield function with updated parameters
 	    				fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*mean_stress);
-	    				fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
+	    				fs_micromorph3D_out << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
+					fs_micromorph3D_out << "Delgamma = " << fDelgamma << endl;
 
 	    			} //end of the local fDelgamma while loop
 //
@@ -2542,9 +2543,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				fs_micromorph3D_out << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
 	    				fs_micromorph3D_out << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
 	    				fs_micromorph3D_out << "Current residual = " << fYield_function << endl;
-		    			fs_micromorph3D_out<< "iter_count = " << iter_count<<endl;
-		    			fs_micromorph3D_out<< "Element Number = "<< e <<endl;
-		    			fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
+					fs_micromorph3D_out << "Delgamma = " << fDelgamma << endl;
+		    			fs_micromorph3D_out << "iter_count = " << iter_count<<endl;
+		    			fs_micromorph3D_out << "Element Number = "<< e <<endl;
+		    			fs_micromorph3D_out << "Gauss Point = "<< IP <<endl;
 	    				// ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
 
 	    			}
@@ -2559,6 +2561,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
 	    				cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
 	    				cout << "Current residual = " << fYield_function << endl;
+					cout << "Delgamma = " << fDelgamma << endl;
 	    			//	 ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
 	    			}
 
