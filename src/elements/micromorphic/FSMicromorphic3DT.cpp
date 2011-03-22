@@ -2323,6 +2323,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 	    			//fs_micromorph3D_out<<"YIELDED"<<endl;
 	    			//cout<<"YIELDED"<<endl;
+	    			fs_micromorph3D_out << "Trial yield function = " << fYield_function_tr << endl;
 
 	    			/* initialize before iteration */
 	    			fYield_function=fYield_function_tr;
@@ -2418,7 +2419,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				dFYdDelgamma=dinvSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);
 
 	    				/* solve for fdelDelgamma */
-	    				if (dFYdDelgamma != 0.0) fdelDelgamma = -fYield_function/dFYdDelgamma;
+	    				//if (dFYdDelgamma != 0.0) fdelDelgamma = -fYield_function/dFYdDelgamma;
+	    				if (fabs(dFYdDelgamma) >= dYieldTrialTol) fdelDelgamma = -fYield_function/dFYdDelgamma;
 	    				else fdelDelgamma = 0.0;
 
 	    				/* update fDelgamma */
@@ -2543,6 +2545,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				fs_micromorph3D_out << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
 	    				fs_micromorph3D_out << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
 	    				fs_micromorph3D_out << "Current residual = " << fYield_function << endl;
+	    				fs_micromorph3D_out << "Trial yield function = " << fYield_function_tr << endl;
 					fs_micromorph3D_out << "Delgamma = " << fDelgamma << endl;
 		    			fs_micromorph3D_out << "iter_count = " << iter_count<<endl;
 		    			fs_micromorph3D_out << "Element Number = "<< e <<endl;
@@ -2561,6 +2564,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
 	    				cout << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
 	    				cout << "Current residual = " << fYield_function << endl;
+	    				cout << "Trial yield function = " << fYield_function_tr << endl;
 					cout << "Delgamma = " << fDelgamma << endl;
 	    			//	 ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
 	    			}
