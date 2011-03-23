@@ -2547,7 +2547,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				fs_micromorph3D_out << "Current residual = " << fYield_function << endl;
 	    				fs_micromorph3D_out << "Trial yield function = " << fYield_function_tr << endl;
 					fs_micromorph3D_out << "Delgamma = " << fDelgamma << endl;
-		    			fs_micromorph3D_out << "iter_count = " << iter_count<<endl;
+					fs_micromorph3D_out << "dFYdDelgamma = " << dFYdDelgamma << endl;
+		    			fs_micromorph3D_out << "iter_count = " << iter_count <<endl;
 		    			fs_micromorph3D_out << "Element Number = "<< e <<endl;
 		    			fs_micromorph3D_out << "Gauss Point = "<< IP <<endl;
 	    				// ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
