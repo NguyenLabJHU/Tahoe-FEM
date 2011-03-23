@@ -1588,7 +1588,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			    				*(dAphidDelgamma-fMaterial_Params[kBphi]*dMeanStressdDelgamma);
 			    			
 			    			/* solve for fdelDelgamma */
-			    			if (dfFdDelgamma != 0.0) fdelDelgamma = -fF/dfFdDelgamma;
+			    			//if (dfFdDelgamma != 0.0) fdelDelgamma = -fF/dfFdDelgamma;
+			    			if (fabs(dfFdDelgamma) >= dYieldTrialTol) fdelDelgamma = -fF/dfFdDelgamma;
 			    			else fdelDelgamma = 0.0;
 			    			/* update fDelgamma */
 			    			fDelgamma += fdelDelgamma;
@@ -1670,6 +1671,10 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 							//	iter_count, iIterationMax);
 							cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl; 
 							cout << "Current relative residual = " << fabs(fF/fF_tr) << endl; 	
+							cout << "Current residual = " << fF << endl; 	
+							cout << "Trial yield function = " << fF_tr << endl; 	
+							cout << "Delgamma = " << fDelgamma << endl; 	
+							cout << "dfFdDelgamma = " << dfFdDelgamma << endl; 	
 			    		}
 			    		
 			    		/* saving Fp for each IP of the current element */
@@ -1862,15 +1867,17 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 						fTemp_matrix = fb_tensor;
 						fTemp_matrix += fb_tensor_transpose;
 						fTemp_matrix_nsd_x_nsd.SetToScaled(-Jp*fMaterial_Params[kMu],fTemp_matrix);
+						//tweek
+
 						fa_tensor += fTemp_matrix_nsd_x_nsd;
 						//test by setting to zero
 						//fa_tensor = 0.0;
 						
-						double fdFdS_Ceinv = dMatrixT::Dot(fdFdS,fElastic_Right_Cauchy_Green_tensor_Inverse);
-						//double fdFdS_Ceinv = dMatrixT::Dot(fdFdS,fIdentity_matrix);
+						//double fdFdS_Ceinv = dMatrixT::Dot(fdFdS,fElastic_Right_Cauchy_Green_tensor_Inverse);
+						double fdFdS_Ceinv = dMatrixT::Dot(fdFdS,fIdentity_matrix);
 						
-						fTemp_matrix_nsd_x_nsd.MultAB(fdFdS,fElastic_Right_Cauchy_Green_tensor_Inverse);
-						//fTemp_matrix_nsd_x_nsd.MultAB(fdFdS,fIdentity_matrix);
+						//fTemp_matrix_nsd_x_nsd.MultAB(fdFdS,fElastic_Right_Cauchy_Green_tensor_Inverse);
+						fTemp_matrix_nsd_x_nsd.MultAB(fdFdS,fIdentity_matrix);
 						fTemp_matrix.MultABC(fdGdS_n,fFp_n,fFp_Inverse);
 						double fomega_bar = dMatrixT::Dot(fTemp_matrix_nsd_x_nsd,fTemp_matrix);
 						

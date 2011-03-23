@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixT.h,v 1.32 2010-06-10 00:05:28 regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixT.h,v 1.33 2011-03-23 14:49:59 regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_T_H_ 
 #define _FS_SOLID_FLUID_MIX_T_H_ 
@@ -416,6 +416,7 @@ private:
 	dMatrixT	fTrial_Elastic_Right_Cauchy_Green_tensor_Inverse,fElastic_Right_Cauchy_Green_tensor_Inverse;
 	dMatrixT	dDevSdDelgamma, dSdDelgamma, dFedDelgamma, dCedDelgamma;
 	dMatrixT	fa_tensor, fb_tensor, fb_tensor_transpose;
+	//tweek
 	
 	//for localization analysis
 	AutoArrayT <dArrayT> normals;
