@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.167 2011-03-03 00:28:02 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.168 2011-04-19 23:57:36 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -68,9 +68,13 @@ public:
         // plasticity parameters
         kHc,
         kc0,
+        kHc_chi,
+        kc0_chi,        
         //kZ0c,
         kFphi,
         kDpsi,
+        kFphi_chi,
+        kDpsi_chi,
         //
         kg,
         kg1,
@@ -82,10 +86,12 @@ public:
 	enum fMaterialState_T 	{
 	//    kkappa,
 	    kc,
+	    kc_chi,	    
         //    kZkappa,
 	//    kZc,
 	//    khkappa,
 	    khc,
+	    khc_chi,
 	//    kIntrinsic_Perm,
 	//    kJ,
 	//    kJp,
@@ -95,6 +101,7 @@ public:
 	//    kMeanS,
 	//    kEpsVolp,
 	    kDelgamma,
+	    kDelgammachi,
 	    ktrSigma,
 	    kSigma_inv,
 	    ktrRel,
@@ -817,13 +824,33 @@ private:
     dMatrixT fdGdS;
     dMatrixT fdFYdS;
     dMatrixT fdFYdS_n;
+    
+    /***************************************************/
+    /*****Miceo-scale plasticity matrices **************/  
+    /***************************************************/    
+    dMatrixT fdGchidSIGMA_S_n_transpose;
+    dMatrixT fdGchidSIGMA_S_n;
+    dMatrixT PSIe_n_inverse;    
+    dMatrixT PSIe_n;    
+    dMatrixT PSIe_inverse;   
+    dMatrixT PSIe_tr;
+    dMatrixT PSIe;
+    dMatrixT fCchie_n;
+    dMatrixT fCchie_n_inverse;    
+    dMatrixT dChipdDgammachi;
+    dMatrixT dChiedDgammachi;
+    dMatrixT dEpsilonedDelgammachi;
+    dMatrixT dSIGMA_SdDelgammachi;
+    dMatrixT ddevSIGMA_SdDelgammachi;
+    
+    
+    
+    
 
     dMatrixT fRight_Cauchy_Green_tensor_tr;
     dMatrixT fLagrangian_strain_tensor_tr;
     dMatrixT Elastic_MicroStnTensor_tr;
     dMatrixT Elastic_MicroStnTensor;
-    dMatrixT EPSI_tr;
-    dMatrixT EPSI;
 
 
     dMatrixT fSPK_tr;
@@ -836,6 +863,8 @@ private:
 
     //dMatrixT fSIGMA_S;
     dMatrixT fSIGMA_S_tr;
+    dMatrixT fdevSIGMA_S;    
+    dMatrixT fdevSIGMA_S_tr;
 
     dMatrixT fFeT;
 
@@ -847,9 +876,13 @@ private:
 
 
     double fYield_function,fYield_function_tr,dFYdc;
+    double fMicroYield_function,fMicroYield_function_tr;
     double devfSPKinv,devfSPKinv_tr;
-    double fDelgamma, fdelDelgamma,dFYdDelgamma,fdcddgamma;
+    double fdevSIGMA_S_inv,fdevSIGMA_S_inv_tr;    
+    double fDelgamma, fdelDelgamma,dFYdDelgamma;
+    double fDelgammachi, fdelDelgammachi,dFYchidDelgammachi;
     double dPdDelgamma,dcdDelgamma,Temp_inv,press,dinvSdDelgamma;
+    double dPchidDelgammachi,dcchidDelgammachi,dinvSIGMA_SdDelgammachi;
     int iter_count, global_iteration;
 
 
@@ -1191,6 +1224,7 @@ private:
 
 
     dMatrixT dFedDelgamma;
+    dMatrixT dFedDelgammachi;    
 
     dArray2DT	fState_variables_IPs;
     dArray2DT	fState_variables_Elements_IPs;
