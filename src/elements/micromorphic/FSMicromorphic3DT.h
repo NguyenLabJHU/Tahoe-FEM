@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.168 2011-04-19 23:57:36 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.169 2011-04-20 23:50:15 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -826,8 +826,9 @@ private:
     dMatrixT fdFYdS_n;
     
     /***************************************************/
-    /*****Miceo-scale plasticity matrices **************/  
+    /*****Micro-scale plasticity matrices **************/  
     /***************************************************/    
+    dMatrixT fdGchidSIGMA_S;
     dMatrixT fdGchidSIGMA_S_n_transpose;
     dMatrixT fdGchidSIGMA_S_n;
     dMatrixT PSIe_n_inverse;    
@@ -843,7 +844,9 @@ private:
     dMatrixT dSIGMA_SdDelgammachi;
     dMatrixT ddevSIGMA_SdDelgammachi;
     
-    
+    /***************************************************/
+    /***************************************************/
+    /***************************************************/         
     
     
 
@@ -1261,12 +1264,26 @@ private:
     dArray2DT	fdFYdS_n_Elements_IPs;
 
     /* Micromorphic additions */
+    dArray2DT	fdGchidSIGMA_S_IPs;
+    dArray2DT	fdGchidSIGMA_S_Elements_IPs;        
+    dArray2DT	fdGchidSIGMA_S_n_IPs;
+    dArray2DT	fdGchidSIGMA_S_n_Elements_IPs;    
+    
+    //dArray2DT	PSIe_n_IPs;
+    //dArray2DT	PSIe_n_Elements_IPs;   
+    dArray2DT	PSIe_n_IPs;
+    dArray2DT	PSIe_n_Elements_IPs;   
+    
     dArray2DT	fChip_IPs;
     dArray2DT	fChip_n_IPs;
 
     dArray2DT	fChip_Elements_IPs;
     dArray2DT	fChip_n_Elements_IPs;
 
+    dArray2DT	fCchie_IPs;
+    dArray2DT   fCchie_Elements_IPs;    
+    dArray2DT	fCchie_n_IPs;
+    dArray2DT   fCchie_n_Elements_IPs;
 
 
 /////stress invariants variables////////

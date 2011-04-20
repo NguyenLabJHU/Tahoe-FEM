@@ -1647,20 +1647,26 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	     fChip_n_Elements_IPs.RowCopy(e,fChip_n_IPs);
 	     fChip_Elements_IPs.RowCopy(e,fChip_IPs);
 
-	     /* retrieve Ce and Ce_n in element */
+	     /* retrieve Ce_n in element */
 	     fCe_n_Elements_IPs.RowCopy(e,fCe_n_IPs);
 	     //fCe_Elements_IPs.RowCopy(e,fCe_IPs);
 	     /* retrieve dGdS and dGdS_n in element */
 	     fdGdS_n_Elements_IPs.RowCopy(e,fdGdS_n_IPs);
 	     fdGdS_Elements_IPs.RowCopy(e,fdGdS_IPs);
-
+	     
+	     /* retrieve Cchie_n in element */   
+	     fCchie_n_Elements_IPs.RowCopy(e,fCchie_n_IPs);
+	    
+	     /* retrieve PSIe_n in element */   
+	     PSIe_n_Elements_IPs.RowCopy(e,PSIe_n_IPs);	  
+	     
+	     /* retrieve dGchi/d(SIGMA-S) and dGchi/d(SIGMA-S)_n in element */
+	     fdGchidSIGMA_S_n_Elements_IPs.RowCopy(e,fdGchidSIGMA_S_n_IPs);
+	     fdGchidSIGMA_S_Elements_IPs.RowCopy(e,fdGchidSIGMA_S_IPs);	        
+	          	     
 	     /* retrieve dFdS and dFdS_n in element */
 	     fdFYdS_n_Elements_IPs.RowCopy(e,fdFYdS_n_IPs);
 	     fdFYdS_Elements_IPs.RowCopy(e,fdFYdS_IPs);
-
-	     /* retrieve dGdS and dGdS_n in element */
-	     fdGdS_n_Elements_IPs.RowCopy(e,fdGdS_n_IPs);
-
 
 	     /* retrieve ISVs and ISVs_n in element */
 	     fState_variables_n_Elements_IPs.RowCopy(e,fState_variables_n_IPs);
@@ -2215,8 +2221,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		fdGdS_n_IPs.RowCopy(IP,fdGdS_n);
 	    		fdGdS_IPs.RowCopy(IP,fdGdS);
 	    		fdFYdS_n_IPs.RowCopy(IP,fdFYdS_n);
-	    		fdFYdS_IPs.RowCopy(IP,fdFYdS);
-
+	    		fdFYdS_IPs.RowCopy(IP,fdFYdS);	    		
+	    		fCchie_n_IPs.RowCopy(IP,fCchie_n);// Micro scale parameters
+			PSIe_n_IPs.RowCopy(IP,PSIe_n);
+			fdGchidSIGMA_S_IPs.RowCopy(IP,fdGchidSIGMA_S);			
+			fdGchidSIGMA_S_n_IPs.RowCopy(IP,fdGchidSIGMA_S_n);
 
 
 	    		/* Inverse of plastic deformation gradient tensor (Fp^-1)_n from previous time step is calculated*/
@@ -5636,6 +5645,11 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(Hc,"Hc");
     list.AddParameter(Fphi,"Fphi");
     list.AddParameter(Dpsi,"Dpsi");
+    // Micro-scale plasticity
+    list.AddParameter(c0,"c0_chi");
+    list.AddParameter(Hc,"Hc_chi");
+    list.AddParameter(Fphi,"Fphi_chi");
+    list.AddParameter(Dpsi,"Dpsi_chi");
 
     // tolerance for yield check
     list.AddParameter(dYieldTrialTol, "local_yield_tr_tol");
@@ -6857,9 +6871,6 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
     fdGdS.Dimension(n_sd,n_sd);
     fdGdS_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
-    fdGdS_n_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
-
-
     fdGdS_Elements_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
     fdGdS_Elements_IPs=0.0;
 
@@ -6889,8 +6900,50 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fCe_n_inverse.Dimension(n_sd,n_sd);
     fCe_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fCe_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+  
+    /***************************************************/
+    /*****Micro-scale plasticity matrices **************/  
+    /***************************************************/         
+    dChipdDgammachi.Dimension(n_sd,n_sd);
+    dChiedDgammachi.Dimension(n_sd,n_sd);
+    dEpsilonedDelgammachi.Dimension(n_sd,n_sd);
+    dSIGMA_SdDelgammachi.Dimension(n_sd,n_sd);
+    ddevSIGMA_SdDelgammachi.Dimension(n_sd,n_sd);
+    
+    
+    fCchie_n.Dimension(n_sd,n_sd);
+    fCchie_n_inverse.Dimension(n_sd,n_sd);        
+    fCchie_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fCchie_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fCchie_n_Elements_IPs=0.0;
+  
+    PSIe.Dimension(n_sd,n_sd);
+    PSIe_tr.Dimension(n_sd,n_sd);    
+    //  PSIe_inverse.Dimension(n_sd,n_sd);
+    PSIe_n.Dimension(n_sd,n_sd);      
+    PSIe_n_inverse.Dimension(n_sd,n_sd);        
+    PSIe_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    PSIe_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    PSIe_n_Elements_IPs=0.0;
+    
+    fdGchidSIGMA_S.Dimension(n_sd,n_sd);
+    fdGchidSIGMA_S_IPs.Dimension(fNumIP_displ,n_sd_x_n_sd);
+    fdGchidSIGMA_S_Elements_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
+    fdGchidSIGMA_S_Elements_IPs=0.0;
 
-
+ 
+    fdGchidSIGMA_S_n.Dimension(n_sd,n_sd);
+    fdGchidSIGMA_S_n_transpose.Dimension(n_sd,n_sd);    
+    fdGchidSIGMA_S_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
+    fdGchidSIGMA_S_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);   
+    fdGchidSIGMA_S_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);   
+    fdGchidSIGMA_S_n_Elements_IPs=0.0;
+    
+    
+    /***************************************************/
+    /***************************************************/
+    /***************************************************/           
+    
     dArrayT fTemp2_ArrayT_values;
     fTemp2_ArrayT_values.Dimension (9);
     for (int i=0; i<9; i++) fTemp2_ArrayT_values[i] = 0;
@@ -6960,13 +7013,13 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
 
 
- //   if(iConstitutiveModelType==1 && iConstitutiveModelType==2 )
+   // if(iConstitutiveModelType==1 && iConstitutiveModelType==2 )
    // {
    // fState_variables_IPs.Dimension (fNumIP_displ,knum_d_state);
-    //fState_variables.Dimension (knum_d_state);
+   // fState_variables.Dimension (knum_d_state);
    // fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knum_d_state);
    // }
-  //  fDisplacement_Element_IPs.Dimension(NumElements(),fNumIP_displ*knumdispl);
+   // fDisplacement_Element_IPs.Dimension(NumElements(),fNumIP_displ*knumdispl);
 
 
 
@@ -6977,7 +7030,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
      fState_variables_Elements_IPs=0.0;
      fState_variables_n_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);
      fState_variables_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
-      fState_variables_n_Elements_IPs=0.0;
+     fState_variables_n_Elements_IPs=0.0;
     //}
 
     fIdentity_matrix=0.0;
@@ -7029,20 +7082,25 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 			fFp_n_IPs.SetRow(l,fIdentity_matrix);
 			fCe_n_IPs.SetRow(l,fIdentity_matrix);
 			fChip_n_IPs.SetRow(l,fIdentity_matrix);
+			fCchie_n_IPs.SetRow(l,fIdentity_matrix);			
+			PSIe_n_IPs.SetRow(l,fIdentity_matrix);			
 
 
 	    }
 	    fFp_n_Elements_IPs.SetRow(e,fFp_n_IPs);
 	    fCe_n_Elements_IPs.SetRow(e,fCe_n_IPs);
-	    fChip_n_Elements_IPs.SetRow(e,fCe_n_IPs);
-
-
+	    fChip_n_Elements_IPs.SetRow(e,fChip_n_IPs);
+	    fCchie_n_Elements_IPs.SetRow(e,fCchie_n_IPs);
+	    PSIe_n_Elements_IPs.SetRow(e,PSIe_n_IPs);
     }
     fFp_Elements_IPs   = fFp_n_Elements_IPs;
     fCe_Elements_IPs    =  fCe_n_Elements_IPs;
     fdGdS_Elements_IPs = fdGdS_n_Elements_IPs;
     fdFYdS_Elements_IPs = fdFYdS_n_Elements_IPs;
     fChip_Elements_IPs = fChip_n_Elements_IPs;
+    fCchie_Elements_IPs=fCchie_n_Elements_IPs;
+    //PSIe_Elements_IPs=PSIe_n_Elements_IPs;    
+    fdGchidSIGMA_S_Elements_IPs = fdGchidSIGMA_S_n_Elements_IPs;    
     fState_variables_Elements_IPs=fState_variables_n_Elements_IPs;
  //   }
 
