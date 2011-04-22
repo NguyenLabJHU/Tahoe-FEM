@@ -2214,6 +2214,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 				}
 	    	if(iConstitutiveModelType==3)
 	    	{
+
 	    		/* Retrieving the previous time step values for each IP */
 	    		fFp_n_IPs.RowCopy(IP,fFp_n);
 	    		fFp_IPs.RowCopy(IP,fFp);
@@ -2305,7 +2306,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		fSIGMA_S_tr+=fTemp_matrix_nsd_x_nsd;
 
 
-
 	    		/* Form terms related the cohesion and friction angle  in D-P yield function */
 	    		/* Initially Aphi is already assigined to fState_variables_n_IPs(IP,khc)=Aphi in TakeParameterList function*/
 	    		double Beta=-1.0;
@@ -2341,12 +2341,23 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		double Bpsi_chi=2*sqrt(6)*sin(fMaterial_Params[kDpsi_chi])/(3+Beta*sin(fMaterial_Params[kDpsi_chi] ));
 
 
-
 	    		/* Form the trial deviatoric SIGMA-S */
 	    		mean_stress_tr=fSIGMA_S_tr.Trace()/3;//Calculating the pressure term
 	    		fdevSIGMA_S_tr.SetToScaled(mean_stress_tr,fIdentity_matrix);
-	    		fdevSIGMA_S_tr*=-1;	    			    		
+	    		fdevSIGMA_S_tr*=-1;	    		
 	    		fdevSIGMA_S_tr+=fSIGMA_S_tr;
+	    		
+//	    		for( int i=0;i<3;i++)
+//	    		{
+//	    		 for(int j=0;j<3;j++)
+//	    		 {
+//	    		  cout<<"fSIGMA_S_tr(i,j)="<<fSIGMA_S_tr(i,j)<<endl;
+//	    		  cout<<"fdevSIGMA_S_tr(i,j)="<<fdevSIGMA_S_tr(i,j)<<endl;
+//	    		 }
+//	    		 }
+
+
+
 
 	    		/* Calculate dev(SIGMA-S):dev(SIGMA-S)  */
 	    		//Temp_inv=dMatrixT::Dot(fdevSPK_tr,fdevSPK_tr);
@@ -2355,14 +2366,17 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		fdevSIGMA_S_inv_tr=sqrt(Temp_inv);
 
 			//Check for micro-yielding
-	    		fMicroYield_function_tr=fdevSIGMA_S_inv_tr-(Aphi_chi*(fState_variables_n_IPs(IP,kc_chi))-Bphi_chi*mean_stress_tr);			
+	    		fMicroYield_function_tr=fdevSIGMA_S_inv_tr-(Aphi_chi*(fState_variables_n_IPs(IP,kc_chi))-Bphi_chi*mean_stress_tr);
 
-		        if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr>= dYieldTrialTol)// If of the scales yield! Macro or Micro
+    			//cout<<"GELDIM "<<endl;	    					
+		        if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr>= dYieldTrialTol)// If one of the scales yield! Macro or Micro
 			{
+	    		fMicroYield_function_tr=-100;//forcing only micro scale to yield!
 	    		if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr< dYieldTrialTol)//Macro-plastic, Micro-elastic
 	    		{
 
-	    			//fs_micromorph3D_out<<"YIELDED"<<endl;
+	    			//    fs_micromorph3D<<"GELDIM "<<endl;	    					
+	    			fs_micromorph3D_out<<"MACRO-PLASTICITY "<<endl;
 	    			//cout<<"YIELDED"<<endl;
 
 	    			/* initialize before iteration */
@@ -2579,7 +2593,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		if(fMicroYield_function_tr>=dYieldTrialTol && fYield_function_tr< dYieldTrialTol)//Macro-elastic, Micro-plastic
 	    		{
 
-	    			//fs_micromorph3D_out<<"YIELDED"<<endl;
+	    			fs_micromorph3D_out<<"MICRO-PLASTICITY "<<endl;
 	    			//cout<<"YIELDED"<<endl;
 
 	    			/* initialize before iteration */
@@ -5807,7 +5821,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     Echo_Input_Data();
     //if(iConstitutiveModelType==3)
     //{
-    knum_d_state=17;
+    //knum_d_state=17;//before micro scale plasticity
+    knum_d_state=20;//with micro scale plasticity
     //}
     // else
    // {
@@ -6901,9 +6916,13 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fCe_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fCe_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
   
+  
+
     /***************************************************/
     /*****Micro-scale plasticity matrices **************/  
     /***************************************************/         
+    fdevSIGMA_S_tr.Dimension(n_sd,n_sd);
+    
     dChipdDgammachi.Dimension(n_sd,n_sd);
     dChiedDgammachi.Dimension(n_sd,n_sd);
     dEpsilonedDelgammachi.Dimension(n_sd,n_sd);
@@ -6916,7 +6935,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fCchie_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fCchie_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);
     fCchie_n_Elements_IPs=0.0;
-  
+
     PSIe.Dimension(n_sd,n_sd);
     PSIe_tr.Dimension(n_sd,n_sd);    
     //  PSIe_inverse.Dimension(n_sd,n_sd);
@@ -6931,14 +6950,14 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fdGchidSIGMA_S_Elements_IPs.Dimension(NumElements(),fNumIP_displ*n_sd_x_n_sd);
     fdGchidSIGMA_S_Elements_IPs=0.0;
 
- 
+
     fdGchidSIGMA_S_n.Dimension(n_sd,n_sd);
     fdGchidSIGMA_S_n_transpose.Dimension(n_sd,n_sd);    
     fdGchidSIGMA_S_n_IPs.Dimension (fNumIP_displ,n_sd_x_n_sd);
     fdGchidSIGMA_S_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);   
     fdGchidSIGMA_S_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*n_sd_x_n_sd);   
     fdGchidSIGMA_S_n_Elements_IPs=0.0;
-    
+
     
     /***************************************************/
     /***************************************************/
@@ -7103,8 +7122,7 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fdGchidSIGMA_S_Elements_IPs = fdGchidSIGMA_S_n_Elements_IPs;    
     fState_variables_Elements_IPs=fState_variables_n_Elements_IPs;
  //   }
-
-
+ 
 
 
     ///////////////////////////////////////////////////////////////////////////
