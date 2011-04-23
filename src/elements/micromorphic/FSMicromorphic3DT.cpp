@@ -4122,7 +4122,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    			fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II4p_6,fShapeDisplGrad);
 	    			scale =-1*(1/fConst)*scale_const*Jp*fMaterial_Params[kNu];
 	    			fTemp_matrix_nchidof_x_nudof *= scale;
-	    			fKphiu_II4p_6 += fTemp_matrix_nchidof_x_nudof;
+	    			fKphiu_II4p_6 +=fTemp_matrix_nchidof_x_nudof;
 
 	    			fTemp_matrix_nchidof_x_nchidof.MultATBC(NCHI,II4p_7,NCHI);
 	    			scale =-1*(1/fConst)*dFYdScol1*scale_const*Jp*fMaterial_Params[kEta];
@@ -15834,6 +15834,7 @@ void FSMicromorphic3DT:: Form_I4p_10()
     fTemp_matrix_nsd_x_nsd.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd2);
     fTemp_matrix_nsd_x_nsd2.MultABT(SPK,fTemp_matrix_nsd_x_nsd);
     fTemp_matrix_nsd_x_nsd.MultABC(fDeformation_Gradient_Inverse,fFe,fTemp_matrix_nsd_x_nsd2);
+   
     for(int M=0;M<3;M++)
     {
     	for(int i=0;i<3;i++)
