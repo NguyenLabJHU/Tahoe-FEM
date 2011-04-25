@@ -2371,7 +2371,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     			//cout<<"GELDIM "<<endl;	    					
 		        if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr>= dYieldTrialTol)// If one of the scales yield! Macro or Micro
 			{
-	    		fMicroYield_function_tr=-100;//forcing only micro scale to yield!
+	    		fYield_function_tr=-1000;//forcing only micro scale to yield!
 	    		if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr< dYieldTrialTol)//Macro-plastic, Micro-elastic
 	    		{
 
@@ -2594,6 +2594,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    		{
 
 	    			fs_micromorph3D_out<<"MICRO-PLASTICITY "<<endl;
+	    			fs_micromorph3D_out<<"fabs(fMicroYield_function)= "<<fabs(fMicroYield_function)<<endl;
 	    			//cout<<"YIELDED"<<endl;
 
 	    			/* initialize before iteration */
@@ -2631,12 +2632,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				PSIe_n_inverse.Inverse(PSIe_n);
 	    				PSIe_inverse.Inverse(PSIe);
 	    				fCchie_n_inverse.Inverse(fCchie_n);
+	    				fChip_inverse.Inverse(fChip);
 	    				dFedDelgammachi=0.0;
 	    				fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
 	    				dChipdDgammachi.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
 					
 					/* Forming dChie/dDgammachi*/
-					dChiedDgammachi.MultABC(fChie,dChipdDgammachi,fChip);
+					dChiedDgammachi.MultABC(fChie,dChipdDgammachi,fChip_inverse);
 	    				dChiedDgammachi*=-1;
 	    				
 	    				/* Forming dEpsilone/dDelgammachi */
@@ -2652,7 +2654,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 	    				/* Forming  dEpsilon^e/dDgammachi  Epsilone^e: Elastic micro strain tensor */
-	    				dEpsilonedDelgammachi.MultATB(dFedDelgamma,fChie);
+	    				//dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
 
 	    				/* Forming  dSIGMA-S/dDgammachi tensor*/
 	    				Temp_inv=dEpsilonedDelgammachi.Trace();
@@ -2681,8 +2683,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	    				ddevSIGMA_SdDelgammachi.SetToScaled(dPchidDelgammachi,fIdentity_matrix);
 	    				ddevSIGMA_SdDelgammachi*=-1;
 	    				ddevSIGMA_SdDelgammachi+=dSIGMA_SdDelgammachi;
-	    				/* Forming  d(||devS||)/dDgamma  devS: dev. part of SPK tensor*/
-
+	    				
+	    				/* Forming  d(||devS||)/dDgammachi  devS: dev. part of SPK tensor*/
 	    				fTemp_matrix_nsd_x_nsd.SetToScaled(1/fdevSIGMA_S_inv,fdevSIGMA_S);
 	    				dinvSIGMA_SdDelgammachi=dMatrixT::Dot(ddevSIGMA_SdDelgammachi,fTemp_matrix_nsd_x_nsd);
 
@@ -2789,10 +2791,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 	    				/* calculate  devS stress */
-	    				mean_stress=SPK.Trace()/3;//Calculating the pressure term
-	    				devSPK.SetToScaled(mean_stress,fIdentity_matrix);
-	    				devSPK*=-1;
-	    				devSPK+=SPK;
+	    				/* Form the trial deviatoric SIGMA-S */
+	    				mean_stress_tr=fSIGMA_S.Trace()/3;//Calculating the pressure term
+	    				fdevSIGMA_S.SetToScaled(mean_stress_tr,fIdentity_matrix);
+	    				fdevSIGMA_S*=-1;	    		
+	    				fdevSIGMA_S+=SIGMA_S;
 
 
 
@@ -2827,20 +2830,20 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //
 
 
-	    			fs_micromorph3D_out<< "Element Number = "<< e <<endl;
-	    			fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-	    			if (iter_count == iIterationMax)
-	    			{
-
-	    				fs_micromorph3D_out << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
-	    				fs_micromorph3D_out << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
-	    				fs_micromorph3D_out << "Current residual = " << fYield_function << endl;
-		    			fs_micromorph3D_out<< "iter_count = " << iter_count<<endl;
-		    			fs_micromorph3D_out<< "Element Number = "<< e <<endl;
-		    			fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-	    				// ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
-
-	    			}
+	    			//fs_micromorph3D_out<< "Element Number = "<< e <<endl;
+	    			//fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
+//	    			if (iter_count == iIterationMax)
+//	    			{
+//
+//	    				fs_micromorph3D_out << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
+//	    				fs_micromorph3D_out << "Current relative residual = " << fabs(fMicroYield_function/fMicroYield_function_tr) << endl;
+//	    				fs_micromorph3D_out << "Current residual = " << fMicroYield_function << endl;
+//		    			fs_micromorph3D_out<< "iter_count = " << iter_count<<endl;
+//		    			fs_micromorph3D_out<< "Element Number = "<< e <<endl;
+//		    			fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
+//	    				// ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
+//
+//	    			}
 
 	    			fs_micromorph3D_out  <<"**********************************"<<endl;
 	    			fs_micromorph3D_out  <<"**********************************"<<endl;
