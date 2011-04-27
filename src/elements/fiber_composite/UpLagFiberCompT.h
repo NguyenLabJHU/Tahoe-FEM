@@ -1,12 +1,12 @@
-/* $Id: UpLagFiberCompT.h,v 1.6 2011-04-27 19:53:05 thao Exp $ */
+/* $Id: UpLagFiberCompT.h,v 1.7 2011-04-27 20:05:04 thao Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPLAG_FIB_COMP_T_
 #define _UPLAG_FIB_COMP_T_
 
 /* base class */
-//#include "SimoQ1P0.h"
-#include "UpdatedLagrangianT.h"
+#include "SimoQ1P0.h"
+//#include "UpdatedLagrangianT.h"
 
 /* direct members */
 #include "dArray2DT.h"
@@ -19,8 +19,8 @@ class FSFiberMatSupportT;
 	to line in the plane of the element. Fiber orientations are specified in  *
 	input using sidesets and can be specified either in global (lab) or       *
 	local (parent) element coordinates.                                       */
-//class UpLagFiberCompT: public SimoQ1P0
-class UpLagFiberCompT: public UpdatedLagrangianT
+class UpLagFiberCompT: public SimoQ1P0
+//class UpLagFiberCompT: public UpdatedLagrangianT
 {
 public:
 

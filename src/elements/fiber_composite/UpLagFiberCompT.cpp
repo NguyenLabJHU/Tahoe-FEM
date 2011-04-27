@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.13 2011-04-27 19:53:05 thao Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.14 2011-04-27 20:05:04 thao Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -29,11 +29,12 @@ inline static void CrossProduct(const double* A, const double* B, double* AxB)
   AxB[2] = A[0]*B[1] - A[1]*B[0];
 };
 
+
 using namespace Tahoe;
 /* constructor */
 UpLagFiberCompT::UpLagFiberCompT(const ElementSupportT& support):
-//	SimoQ1P0(support),
-	UpdatedLagrangianT(support),
+	SimoQ1P0(support),
+//	UpdatedLagrangianT(support),
 	fFiberSupport(NULL)
 {
 	SetName("uplag_fiber_comp_planar");
@@ -206,16 +207,16 @@ ParameterInterfaceT* UpLagFiberCompT::NewSub(const StringT& name) const
 void UpLagFiberCompT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-//	SimoQ1P0::DefineParameters(list);
-	UpdatedLagrangianT::DefineParameters(list);
+	SimoQ1P0::DefineParameters(list);
+//	UpdatedLagrangianT::DefineParameters(list);
 }
 
 /* accept parameter list */
 void UpLagFiberCompT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-//	SimoQ1P0::TakeParameterList(list);
-	UpdatedLagrangianT::TakeParameterList(list);
+	SimoQ1P0::TakeParameterList(list);
+//	UpdatedLagrangianT::TakeParameterList(list);
 
 	/*store fibers in element list*/
 	int num_elem = NumElements();
