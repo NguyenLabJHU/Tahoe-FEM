@@ -1,4 +1,4 @@
- /* $Id: AnisoCorneaVisco_Opt.cpp,v 1.3 2010-06-24 14:03:37 thao Exp $ */
+ /* $Id: AnisoCorneaVisco_Opt.cpp,v 1.4 2011-04-27 20:09:47 thao Exp $ */
 #include "AnisoCorneaVisco_Opt.h"
 #include "ParameterContainerT.h"
 #include "ExceptionT.h"
@@ -15,8 +15,6 @@
 
 /* point generator */
 #include "EvenSpacePtsT.h"
-
-/*fiber potentials*/
 
 #include "FungType.h"
 #include "VWType.h"

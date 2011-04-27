@@ -1,4 +1,4 @@
-/* $Id: FSFiber_Optimize_Dual.h,v 1.1 2009-04-23 03:03:43 thao Exp $ */
+/* $Id: FSFiber_Optimize_Dual.h,v 1.2 2011-04-27 20:09:46 thao Exp $ */
 /*Class to calculate objective function and gradient for inverse elasticity problems using the adjoint method */
 /*A Oberai, NH Gakhale, GR Feijoo (2003) Inverse Problems 19:297-313*/
 
@@ -85,6 +85,9 @@ class FSFiber_Optimize_Dual: public UpLagFiberCompT
 
 	/** calculate the internal force contribution*/
 	virtual void FormKd(double constK);
+
+	/** calculate the stiffness matrix*/
+	virtual void FormStiffness(double constK);
 
 	/** calculate objective function*/
 	virtual void Compute_Cost(void);

@@ -1,4 +1,4 @@
-/* $Id: FSFiber_OptNS.cpp,v 1.2 2009-05-21 22:29:45 thao Exp $ */
+/* $Id: FSFiber_OptNS.cpp,v 1.3 2011-04-27 20:09:46 thao Exp $ */
 
 #include "FSFiber_OptNS.h"
 
@@ -430,6 +430,57 @@ void FSFiber_OptNS::RHSDriver(void)
 	/* element contribution */
 	if (foutput)
 		ApplyNodalForce();
+}
+
+/* form the element stiffness matrix */
+void FSFiber_OptNS::FormStiffness(double constK)
+{		
+	/* matrix format */
+	dMatrixT::SymmetryFlagT format =
+		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
+		dMatrixT::kWhole :
+		dMatrixT::kUpperOnly;
+
+	/* integration */
+	const double* Det    = fCurrShapes->IPDets();
+	const double* Weight = fCurrShapes->IPWeights();
+
+	/* initialize */
+	fStressStiff = 0.0;
+	
+	fShapes->TopIP();
+	while ( fShapes->NextIP() )
+	{
+		/* double scale factor */
+		double scale = constK*(*Det++)*(*Weight++);
+	
+	/* S T R E S S   S T I F F N E S S */			
+		/* compute Cauchy stress */
+		(fCurrMaterial->s_ij()).ToMatrix(fCauchyStress);
+	
+		/* integration constants */		
+		fCauchyStress *= scale;
+
+		/* get shape function gradients matrix */
+		fCurrShapes->GradNa(fGradNa);
+	
+		/* using the stress symmetry */
+		fStressStiff.MultQTBQ(fGradNa, fCauchyStress,
+			format, dMatrixT::kAccumulate);
+
+	/* M A T E R I A L   S T I F F N E S S */									
+		/* strain displacement matrix */
+		Set_B(fCurrShapes->Derivatives_U(), fB);
+
+		/* get D matrix */
+		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
+						
+		/* accumulate */
+		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
+	}
+						
+	/* stress stiffness into fLHS */
+	fLHS.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
 }
 
 /* calculate the internal force contribution ("-k*d") */
