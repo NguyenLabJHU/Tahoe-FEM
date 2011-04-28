@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.169 2011-04-20 23:50:15 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.170 2011-04-28 23:09:31 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -865,9 +865,8 @@ private:
     dMatrixT dEpsilonedDelgamma;
 
     //dMatrixT fSIGMA_S;
-    dMatrixT fSIGMA_S_tr;
-    dMatrixT fdevSIGMA_S;    
-    dMatrixT fdevSIGMA_S_tr;
+    dMatrixT SIGMA_S_tr;
+    dMatrixT devSIGMA_S_tr;
 
     dMatrixT fFeT;
 
@@ -881,7 +880,7 @@ private:
     double fYield_function,fYield_function_tr,dFYdc;
     double fMicroYield_function,fMicroYield_function_tr;
     double devfSPKinv,devfSPKinv_tr;
-    double fdevSIGMA_S_inv,fdevSIGMA_S_inv_tr;    
+    double devSIGMA_S_inv,devSIGMA_S_inv_tr;    
     double fDelgamma, fdelDelgamma,dFYdDelgamma;
     double fDelgammachi, fdelDelgammachi,dFYchidDelgammachi;
     double dPdDelgamma,dcdDelgamma,Temp_inv,press,dinvSdDelgamma;
@@ -1269,8 +1268,8 @@ private:
     dArray2DT	fdGchidSIGMA_S_n_IPs;
     dArray2DT	fdGchidSIGMA_S_n_Elements_IPs;    
     
-    //dArray2DT	PSIe_n_IPs;
-    //dArray2DT	PSIe_n_Elements_IPs;   
+    dArray2DT	PSIe_IPs;
+    dArray2DT	PSIe_Elements_IPs;   
     dArray2DT	PSIe_n_IPs;
     dArray2DT	PSIe_n_Elements_IPs;   
     
