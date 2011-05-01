@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.171 2011-05-01 07:04:43 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.172 2011-05-01 23:37:02 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -888,6 +888,7 @@ private:
     int iter_count, global_iteration;
     double Aphi,Bphi,Apsi,Bpsi;
     double Aphi_chi,Bphi_chi,Apsi_chi,Bpsi_chi;
+    double Beta;
 
     /* for local Newton-Raphson iteration */
    int iIterationMax;

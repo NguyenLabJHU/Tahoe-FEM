@@ -5609,7 +5609,8 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     double shearMu, sLambda, Rho_0, gravity_g, gravity_g1, gravity_g2, gravity_g3;
     double Kappa, Nu, Sigma_const, Tau, Eta;
     double Tau1,Tau2,Tau3,Tau4,Tau5,Tau6,Tau7,Tau8,Tau9,Tau10,Tau11;
-    double c0,Hc,Fphi,Dpsi;;
+    double c0,Hc,Fphi,Dpsi;
+    double c0_chi,Hc_chi,Fphi_chi,Dpsi_chi;
     // solid elasticity
     list.AddParameter(shearMu, "mu");
     list.AddParameter(sLambda, "lambda");
@@ -5619,10 +5620,10 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(Fphi,"Fphi");
     list.AddParameter(Dpsi,"Dpsi");
     // Micro-scale plasticity
-    list.AddParameter(c0,"c0_chi");
-    list.AddParameter(Hc,"Hc_chi");
-    list.AddParameter(Fphi,"Fphi_chi");
-    list.AddParameter(Dpsi,"Dpsi_chi");
+    list.AddParameter(c0_chi,"c0_chi");
+    list.AddParameter(Hc_chi,"Hc_chi");
+    list.AddParameter(Fphi_chi,"Fphi_chi");
+    list.AddParameter(Dpsi_chi,"Dpsi_chi");
 
     // tolerance for yield check
     list.AddParameter(dYieldTrialTol, "local_yield_tr_tol");
@@ -7022,21 +7023,21 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fIdentity_matrix(1,1)=1.0;
     fIdentity_matrix(2,2)=1.0;
    // fCe_n=fIdentity_matrix;
-    double Beta=-1.0;
-    double Aphi=2*sqrt(6)*cos(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
-    double Bphi=2*sqrt(6)*sin(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
-    double Apsi=2*sqrt(6)*cos(fMaterial_Params[kDpsi])/(3+Beta*sin(fMaterial_Params[kDpsi]));
-    double Bpsi=2*sqrt(6)*sin(fMaterial_Params[kDpsi])/(3+Beta*sin(fMaterial_Params[kDpsi]));
+     Beta=-1.0;
+     Aphi=2*sqrt(6)*cos(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
+     Bphi=2*sqrt(6)*sin(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
+     Apsi=2*sqrt(6)*cos(fMaterial_Params[kDpsi])/(3+Beta*sin(fMaterial_Params[kDpsi]));
+     Bpsi=2*sqrt(6)*sin(fMaterial_Params[kDpsi])/(3+Beta*sin(fMaterial_Params[kDpsi]));
 
 
-    fdGdS_n.SetToScaled(Bpsi*1/3,fIdentity_matrix);
+    //fdGdS_n.SetToScaled(Bpsi*1/3,fIdentity_matrix);
 
-    double Aphi_chi=2*sqrt(6)*cos(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));
-    double Bphi_chi=2*sqrt(6)*sin(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));    
-    double Apsi_chi=2*sqrt(6)*cos(fMaterial_Params[kDpsi_chi])/(3+Beta*sin(fMaterial_Params[kDpsi_chi])); 
-    double Bpsi_chi=2*sqrt(6)*sin(fMaterial_Params[kDpsi_chi])/(3+Beta*sin(fMaterial_Params[kDpsi_chi]));    
+     Aphi_chi=2*sqrt(6)*cos(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));
+     Bphi_chi=2*sqrt(6)*sin(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));    
+     Apsi_chi=2*sqrt(6)*cos(fMaterial_Params[kDpsi_chi])/(3+Beta*sin(fMaterial_Params[kDpsi_chi])); 
+     Bpsi_chi=2*sqrt(6)*sin(fMaterial_Params[kDpsi_chi])/(3+Beta*sin(fMaterial_Params[kDpsi_chi]));    
     
-    fdGchidSIGMA_S_n.SetToScaled(Bpsi_chi*1/3,fIdentity_matrix);
+    //fdGchidSIGMA_S_n.SetToScaled(Bpsi_chi*1/3,fIdentity_matrix);
 
 //    if(iConstitutiveModelType==3)
  //   {
