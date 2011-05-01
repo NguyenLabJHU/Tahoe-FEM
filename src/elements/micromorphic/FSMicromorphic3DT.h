@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.170 2011-04-28 23:09:31 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.171 2011-05-01 07:04:43 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -884,9 +884,10 @@ private:
     double fDelgamma, fdelDelgamma,dFYdDelgamma;
     double fDelgammachi, fdelDelgammachi,dFYchidDelgammachi;
     double dPdDelgamma,dcdDelgamma,Temp_inv,press,dinvSdDelgamma;
-    double dPchidDelgammachi,dcchidDelgammachi,dinvSIGMA_SdDelgammachi;
+    double dPchidDelgammachi,dcchidDelgammachi,ddevSIGMA_SdDelgammachi_inv;
     int iter_count, global_iteration;
-
+    double Aphi,Bphi,Apsi,Bpsi;
+    double Aphi_chi,Bphi_chi,Apsi_chi,Bpsi_chi;
 
     /* for local Newton-Raphson iteration */
    int iIterationMax;
