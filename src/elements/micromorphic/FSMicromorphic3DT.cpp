@@ -1667,7 +1667,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
          PSIe_n_Elements_IPs.RowCopy(e,PSIe_n_IPs);          
          
          /* retrieve PSIe in element */   
-         PSIe_Elements_IPs.RowCopy(e,PSIe_IPs);                       
+         //PSIe_Elements_IPs.RowCopy(e,PSIe_IPs);                       
          
          /* retrieve dGchi/d(SIGMA-S) and dGchi/d(SIGMA-S)_n in element */
          fdGchidSIGMA_S_n_Elements_IPs.RowCopy(e,fdGchidSIGMA_S_n_IPs);
@@ -2237,7 +2237,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         /* Micro scale parameters */                  
                         fCchie_n_IPs.RowCopy(IP,fCchie_n);
             PSIe_n_IPs.RowCopy(IP,PSIe_n);
-            PSIe_IPs.RowCopy(IP,PSIe);                        
+            //PSIe_IPs.RowCopy(IP,PSIe);                        
             fdGchidSIGMA_S_IPs.RowCopy(IP,fdGchidSIGMA_S);                        
             fdGchidSIGMA_S_n_IPs.RowCopy(IP,fdGchidSIGMA_S_n);
 
@@ -2279,7 +2279,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                       /* Form inverse of (dG/dS)n  */
                       fCe_n_inverse.Inverse(fCe_n);
 
-            /* Form inverse of (PSI^e)n */
+            		/* Form inverse of (PSI^e)n */
                         PSIe_n_inverse.Inverse(PSIe_n);                                            
 
                         /* Form inverse of (Cx^e)n*/
@@ -3020,6 +3020,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 // saving Fp, Ce, dG/dS and dF/dS at each IP of the current element
                                 fFp_IPs.SetRow(IP,fFp);
                                 fCe_IPs.SetRow(IP,fRight_Elastic_Cauchy_Green_tensor);
+                                PSIe_IPs.SetRow(IP,PSIe);                                
                                 fCchie_IPs.SetRow(IP,fMicroRight_Elastic_Cauchy_Green_tensor);                                
                                 fdGdS_IPs.SetRow(IP,fdGdS);
                                 fdFYdS_IPs.SetRow(IP,fdFYdS);
@@ -4133,7 +4134,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fChie=fChie_tr;
                                 //fChie.MultAB(ChiM,fChip_n_inverse);
                                 //fFe=fDeformation_Gradient;
-
+				
+				/* MicroElastic Deformation tensor */
+				PSIe.MultATB(fFe,fChie);
+				
                                 /* [fElastic_Right_Cauchy_Green_tensor] will be formed */
                                 fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
 
@@ -4151,6 +4155,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
                                 fFp_IPs.SetRow(IP,fFp);
                                 fCe_IPs.SetRow(IP,fRight_Elastic_Cauchy_Green_tensor);
+                                PSIe_IPs.SetRow(IP,PSIe);                                
                                 fCchie_IPs.SetRow(IP,fMicroRight_Elastic_Cauchy_Green_tensor);                                
                                 fChip_IPs.SetRow(IP,fChip);
                                 //fdGdS_IPs.SetRow(IP,fdGdS);
@@ -5094,6 +5099,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
         // saving Ce for each IP of the current element //
         fCe_Elements_IPs.SetRow(e,fCe_IPs);
+        
+        // saving PSIe for each IP of the current element //
+        PSIe_Elements_IPs.SetRow(e,PSIe_IPs);        
         
         // saving Cchie for each IP of the current element //
         fCchie_Elements_IPs.SetRow(e,fCchie_IPs);        
