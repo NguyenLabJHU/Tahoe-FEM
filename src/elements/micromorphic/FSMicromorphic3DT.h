@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.172 2011-05-01 23:37:02 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.173 2011-05-02 05:45:15 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -836,6 +836,7 @@ private:
     dMatrixT PSIe_inverse;   
     dMatrixT PSIe_tr;
     dMatrixT PSIe;
+    dMatrixT fCchie;    
     dMatrixT fCchie_n;
     dMatrixT fCchie_n_inverse;    
     dMatrixT dChipdDgammachi;
@@ -854,7 +855,12 @@ private:
     dMatrixT fLagrangian_strain_tensor_tr;
     dMatrixT Elastic_MicroStnTensor_tr;
     dMatrixT Elastic_MicroStnTensor;
-
+    dMatrixT fMicroRight_Cauchy_Green_tensor;        
+    dMatrixT fMicroRight_Cauchy_Green_tensor_tr;    
+    dMatrixT fMicroRight_Elastic_Cauchy_Green_tensor;        
+    dMatrixT fMicroRight_Elastic_Cauchy_Green_tensor_tr;    
+    //dMatrixT fMicroRight_Cauchy_Green_tensor;    
+    //dMatrixT fMicroRight_Cauchy_Green_tensor_tr;
 
     dMatrixT fSPK_tr;
     dMatrixT fdevSPK_tr;
