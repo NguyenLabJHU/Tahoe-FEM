@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.173 2011-05-02 05:45:15 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.174 2011-05-03 23:07:25 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -842,7 +842,11 @@ private:
     dMatrixT dChipdDgammachi;
     dMatrixT dChiedDgammachi;
     dMatrixT dEpsilonedDelgammachi;
+    dMatrixT dSdDelgammachi;
+    dMatrixT ddevSdDelgammachi;    
+    dMatrixT dSIGMA_SdDelgamma;
     dMatrixT dSIGMA_SdDelgammachi;
+    dMatrixT ddevSIGMA_SdDelgamma;    
     dMatrixT ddevSIGMA_SdDelgammachi;
     
     /***************************************************/
@@ -887,10 +891,12 @@ private:
     double fMicroYield_function,fMicroYield_function_tr;
     double devfSPKinv,devfSPKinv_tr;
     double devSIGMA_S_inv,devSIGMA_S_inv_tr;    
-    double fDelgamma, fdelDelgamma,dFYdDelgamma;
-    double fDelgammachi, fdelDelgammachi,dFYchidDelgammachi;
+    double fDelgamma, fdelDelgamma,dFYdDelgamma,dFYdDelgammachi;
+    double fDelgammachi, fdelDelgammachi,dFYchidDelgammachi,dFYchidDelgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,press,dinvSdDelgamma;
+    double dPdDelgammachi,ddevSdDelgamma_inv,ddevSdDelgammachi_inv;
     double dPchidDelgammachi,dcchidDelgammachi,ddevSIGMA_SdDelgammachi_inv;
+    double dPchidDelgamma,ddevSIGMA_SdDelgamma_inv;
     int iter_count, global_iteration;
     double Aphi,Bphi,Apsi,Bpsi;
     double Aphi_chi,Bphi_chi,Apsi_chi,Bpsi_chi;

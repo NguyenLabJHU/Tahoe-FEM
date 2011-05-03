@@ -2803,9 +2803,50 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 } //end of IF Macro-elasticity, micro-plasticity loop
 //
 
- 				while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)  
- 				{
- 				        fs_micromorph3D_out<<"MACRO AND MICRO PLASTICITY "<< endl;
+		                if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr>= dYieldTrialTol)// If both scales yield! Macro and Micro
+        			 {
+        			    
+	                        /* initialize yield function before iteration */
+                              	fYield_function=fYield_function_tr;
+
+                                /* initialize micro yield before iteration */
+                                fMicroYield_function=fMicroYield_function_tr;  
+                                           
+                                 /* initial values for Fe and Chie */                   	
+                               	fFe=fFe_tr;
+                               	fChie=fChie_tr;
+                               	
+                                /* initial values for Fp and Chip are assumed the same with previous step        */
+                                fFp=fFp_n;
+                                fChip=fChip_n;
+
+                                /* initial  stress tensors  and their invariants */
+                                SPK=fSPK_tr;
+                                devSPK=fdevSPK_tr;
+                                devfSPKinv=devfSPKinv_tr;
+           
+                                SIGMA_S=SIGMA_S_tr;
+                                devSIGMA_S=devSIGMA_S_tr;
+                                devSIGMA_S_inv=devSIGMA_S_inv_tr;                                
+                                
+                                
+				/* initial Delgamma,Delgammchi, their increments */
+                                fdelDelgamma = 0.0;
+                                fDelgamma = 0.0;        	
+            
+                                fdelDelgammachi = 0.0;
+                                fDelgammachi=0.0;
+
+
+
+                                /* iterate using Newton-Raphson to solve for fDelgamma */
+                                iter_count = 0;                                
+                                
+                                		    
+
+ 					while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)  
+ 					{
+
  				        
  				        iter_count += 1;
                                         /* Form  dFe/dDgamma */
@@ -2862,7 +2903,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
 
                                         /* assemble the consistent tangent */
-                                        dFYdDelgamma=dinvSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);
+                                        dFYdDelgamma=dinvSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);//1
+                                        
+                                    
 
                                      	 /* Form inverse of Chi^p*/
                                         fChip_inverse.Inverse(fChip);   
@@ -2909,10 +2952,72 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         dcchidDelgammachi=fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
                 			       		                    							                                         	
                                         /* assemble the consistent tangent */
-                                        dFYchidDelgammachi=ddevSIGMA_SdDelgammachi_inv-(Aphi_chi*dcchidDelgammachi-Bphi_chi*dPchidDelgammachi);
+                                        dFYchidDelgammachi=ddevSIGMA_SdDelgammachi_inv-(Aphi_chi*dcchidDelgammachi-Bphi_chi*dPchidDelgammachi);//2
+                                        
+                                        /* Forming dS/dDelgammachi */
+                                        Temp_inv=dEpsilonedDelgammachi.Trace();
+                                        dSdDelgammachi.SetToScaled(fMaterial_Params[kEta]*Temp_inv,fIdentity_matrix);
+                                        
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgammachi);
+                                        dSdDelgammachi+=fTemp_matrix_nsd_x_nsd;
+                                        
+                                        fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgammachi);
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
+                                        dSdDelgammachi+=fTemp_matrix_nsd_x_nsd;
+                                        
+                                        /* Forming dP/dDelgammachi */
+                                        dPdDelgammachi=dSdDelgammachi.Trace()/3; 
+                                        
+                                        
+                                        /* Forming  d(devS)/dDgammachi */
+                                        ddevSdDelgammachi.SetToScaled(dPdDelgammachi,fIdentity_matrix);
+                                        ddevSdDelgammachi*=-1;
+                                        ddevSdDelgammachi+=dSdDelgammachi;                                        
+                                                                             
+                                                                             
+                                        /* Forming  d(||devS||)/dDgammachi */                                                                             
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+                                        ddevSdDelgammachi_inv=dMatrixT::Dot(ddevSdDelgammachi,fTemp_matrix_nsd_x_nsd);  
+                                        
+                                        /* dFy/dDelgammachi */
+                                        dFYdDelgammachi=ddevSdDelgamma_inv-(-Bphi*dPdDelgammachi);//3                                        
+                                        
+                                        /* Forming d(SIGMA-S)/dDelgamma */
+                                        Temp_inv=dEedDelgamma.Trace();
+                                        dSIGMA_SdDelgamma.SetToScaled(fMaterial_Params[kTau]*Temp_inv,fIdentity_matrix);
 
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],dEpsilonedDelgamma);
+                                        dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;                                        
 
- 				
+                                        Temp_inv=dEpsilonedDelgamma.Trace();
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kEta]-fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);                                        
+                                        dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;                                                                                
+
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),dEpsilonedDelgamma);
+                                        dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;                                        
+
+                                        fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                        dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;      
+
+                                        /* Forming dPchi/dDelgamma */
+                                        dPchidDelgamma=dSIGMA_SdDelgamma.Trace()/3;   
+
+                                        /* Forming  d(dev(SIGMA-S))/dDgamma */
+                                        ddevSIGMA_SdDelgamma.SetToScaled(dPchidDelgamma,fIdentity_matrix);
+                                        ddevSIGMA_SdDelgamma*=-1;
+                                        ddevSIGMA_SdDelgamma+=dSIGMA_SdDelgamma;                                                 
+ 
+ 
+                                         /* Forming  d(||dev(SIGMA-S)||)/dDgamma */                                                                             
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+                                        ddevSIGMA_SdDelgamma_inv=dMatrixT::Dot(ddevSIGMA_SdDelgamma,fTemp_matrix_nsd_x_nsd);  
+                                        
+                                        
+                                        /* dFYchi/dDelgamma */
+                                        dFYchidDelgamma=ddevSIGMA_SdDelgamma_inv-(-Bphi_chi*dPchidDelgamma);//4             
+                                        }                                                                                                  
+                                    
  				}
 
                                 ExceptionT::GeneralFail(caller,"Debugging stop %d one iteration only %d.",iter_count, iIterationMax);
@@ -6973,6 +7078,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     //SPK.Dimension(n_sd,n_sd);//changed from fSPK to SPK no need this anymore!
     devSPK.Dimension(n_sd,n_sd);
     dSdDelgamma.Dimension(n_sd,n_sd);
+    dSdDelgammachi.Dimension(n_sd,n_sd);
+    ddevSdDelgammachi.Dimension(n_sd,n_sd);
     ddevSdDelgamma.Dimension(n_sd,n_sd);
     dEedDelgamma.Dimension(n_sd,n_sd);
     dEpsilonedDelgamma.Dimension(n_sd,n_sd);
@@ -7051,7 +7158,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     dChipdDgammachi.Dimension(n_sd,n_sd);
     dChiedDgammachi.Dimension(n_sd,n_sd);
     dEpsilonedDelgammachi.Dimension(n_sd,n_sd);
+    dSIGMA_SdDelgamma.Dimension(n_sd,n_sd);    
     dSIGMA_SdDelgammachi.Dimension(n_sd,n_sd);
+    ddevSIGMA_SdDelgamma.Dimension(n_sd,n_sd);    
     ddevSIGMA_SdDelgammachi.Dimension(n_sd,n_sd);
 
 
