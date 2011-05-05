@@ -3181,7 +3181,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     
  				}
 
-                                ExceptionT::GeneralFail(caller,"Debugging stop %d one iteration only %d.",iter_count, iIterationMax);
+                                //ExceptionT::GeneralFail(caller,"Debugging stop %d one iteration only %d.",iter_count, iIterationMax);
                                 //fs_micromorph3D_out<< "Element Number = "<< e <<endl;
                                 //fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
                                 if (iter_count == iIterationMax)
