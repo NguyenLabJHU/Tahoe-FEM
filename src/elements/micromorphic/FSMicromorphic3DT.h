@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.174 2011-05-03 23:07:25 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.175 2011-05-05 09:00:24 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -848,6 +848,13 @@ private:
     dMatrixT dSIGMA_SdDelgammachi;
     dMatrixT ddevSIGMA_SdDelgamma;    
     dMatrixT ddevSIGMA_SdDelgammachi;
+    
+    
+    dMatrixT LocalConsistentTangent;
+    dMatrixT LocalConsistentTangentInverse;    
+    dArrayT LocalRHSVector;
+    dArrayT fdelDelgammaVector;    
+    
     
     /***************************************************/
     /***************************************************/
