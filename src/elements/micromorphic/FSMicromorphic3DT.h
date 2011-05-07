@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.175 2011-05-05 09:00:24 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.176 2011-05-07 06:52:47 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -83,41 +83,41 @@ public:
         //add to this list
         kNUM_FMATERIAL_TERMS        };
 
-	enum fMaterialState_T 	{
-	//    kkappa,
-	    kc,
-	    kc_chi,	    
+    enum fMaterialState_T         {
+    //    kkappa,
+        kc,
+        kc_chi,            
         //    kZkappa,
-	//    kZc,
-	//    khkappa,
-	    khc,
-	    khc_chi,
-	//    kIntrinsic_Perm,
-	//    kJ,
-	//    kJp,
-	//    kphi_s,
-	//    kphi_f,
-	//    kDevSS,
-	//    kMeanS,
-	//    kEpsVolp,
-	    kDelgamma,
-	    kDelgammachi,
-	    ktrSigma,
-	    kSigma_inv,
-	    ktrRel,
-	    kRel_inv,
-	    ktrm,
-	    km_inv,
-	    ktrS,
-	    kinvdevS,
-	    ktrSIGMA_S,
-	    kinvdevSIGMA_S,
-	    kinvtrM,
-	    kinvdevM,
-	    kinvPhi,
-	    kinvGPhi,
-	    kNUM_FMATERIAL_STATE_TERMS
-	};
+    //    kZc,
+    //    khkappa,
+        khc,
+        khc_chi,
+    //    kIntrinsic_Perm,
+    //    kJ,
+    //    kJp,
+    //    kphi_s,
+    //    kphi_f,
+    //    kDevSS,
+    //    kMeanS,
+    //    kEpsVolp,
+        kDelgamma,
+        kDelgammachi,
+        ktrSigma,
+        kSigma_inv,
+        ktrRel,
+        kRel_inv,
+        ktrm,
+        km_inv,
+        ktrS,
+        kinvdevS,
+        ktrSIGMA_S,
+        kinvdevSIGMA_S,
+        kinvtrM,
+        kinvdevM,
+        kinvPhi,
+        kinvGPhi,
+        kNUM_FMATERIAL_STATE_TERMS
+    };
 
 
 //  enum fIntegrate_T         {
@@ -1249,60 +1249,60 @@ private:
     dMatrixT dFedDelgamma;
     dMatrixT dFedDelgammachi;    
 
-    dArray2DT	fState_variables_IPs;
-    dArray2DT	fState_variables_Elements_IPs;
-    dArray2DT	fState_variables_n_IPs;
-    dArray2DT	fState_variables_n_Elements_IPs;
+    dArray2DT   fState_variables_IPs;
+    dArray2DT   fState_variables_Elements_IPs;
+    dArray2DT   fState_variables_n_IPs;
+    dArray2DT   fState_variables_n_Elements_IPs;
 
-    dArray2DT	fFp_IPs;
-    dArray2DT	fFp_Elements_IPs;
-    dArray2DT	fFp_n_IPs;
-    dArray2DT	fFp_n_Elements_IPs;
+    dArray2DT   fFp_IPs;
+    dArray2DT   fFp_Elements_IPs;
+    dArray2DT   fFp_n_IPs;
+    dArray2DT   fFp_n_Elements_IPs;
 
-    dArray2DT	fCe_IPs;
-    dArray2DT	fCe_Elements_IPs;
+    dArray2DT   fCe_IPs;
+    dArray2DT   fCe_Elements_IPs;
 
     dMatrixT    fCe_n;
     dMatrixT    fCe_n_inverse;
     dMatrixT    fdGdS_n_transpose;
-    dArray2DT	fCe_n_IPs;
-    dArray2DT	fCe_n_Elements_IPs;
+    dArray2DT   fCe_n_IPs;
+    dArray2DT   fCe_n_Elements_IPs;
 
-    dArray2DT	fdGdS_IPs;
-    dArray2DT	fdGdS_n_IPs;
-
-
-    dArray2DT	fdGdS_Elements_IPs;
-    dArray2DT	fdGdS_n_Elements_IPs;
+    dArray2DT   fdGdS_IPs;
+    dArray2DT   fdGdS_n_IPs;
 
 
-    dArray2DT	fdFYdS_IPs;
-    dArray2DT	fdFYdS_n_IPs;
+    dArray2DT   fdGdS_Elements_IPs;
+    dArray2DT   fdGdS_n_Elements_IPs;
 
 
-    dArray2DT	fdFYdS_Elements_IPs;
-    dArray2DT	fdFYdS_n_Elements_IPs;
+    dArray2DT   fdFYdS_IPs;
+    dArray2DT   fdFYdS_n_IPs;
+
+
+    dArray2DT   fdFYdS_Elements_IPs;
+    dArray2DT   fdFYdS_n_Elements_IPs;
 
     /* Micromorphic additions */
-    dArray2DT	fdGchidSIGMA_S_IPs;
-    dArray2DT	fdGchidSIGMA_S_Elements_IPs;        
-    dArray2DT	fdGchidSIGMA_S_n_IPs;
-    dArray2DT	fdGchidSIGMA_S_n_Elements_IPs;    
+    dArray2DT   fdGchidSIGMA_S_IPs;
+    dArray2DT   fdGchidSIGMA_S_Elements_IPs;        
+    dArray2DT   fdGchidSIGMA_S_n_IPs;
+    dArray2DT   fdGchidSIGMA_S_n_Elements_IPs;    
     
-    dArray2DT	PSIe_IPs;
-    dArray2DT	PSIe_Elements_IPs;   
-    dArray2DT	PSIe_n_IPs;
-    dArray2DT	PSIe_n_Elements_IPs;   
+    dArray2DT   PSIe_IPs;
+    dArray2DT   PSIe_Elements_IPs;   
+    dArray2DT   PSIe_n_IPs;
+    dArray2DT   PSIe_n_Elements_IPs;   
     
-    dArray2DT	fChip_IPs;
-    dArray2DT	fChip_n_IPs;
+    dArray2DT   fChip_IPs;
+    dArray2DT   fChip_n_IPs;
 
-    dArray2DT	fChip_Elements_IPs;
-    dArray2DT	fChip_n_Elements_IPs;
+    dArray2DT   fChip_Elements_IPs;
+    dArray2DT   fChip_n_Elements_IPs;
 
-    dArray2DT	fCchie_IPs;
+    dArray2DT   fCchie_IPs;
     dArray2DT   fCchie_Elements_IPs;    
-    dArray2DT	fCchie_n_IPs;
+    dArray2DT   fCchie_n_IPs;
     dArray2DT   fCchie_n_Elements_IPs;
 
 
@@ -1728,89 +1728,89 @@ private:
 
 
     /* Functions for the second balance equation */
-	void Form_IIJp_1(void);
-	void Form_IIJp_2(void);
-	void Form_IIJp_3(void);
-	void Form_IIJp_4(void);
-	void Form_IIJp_5(void);
-	void Form_IIJp_6(void);
-	void Form_IIJp_7(void);
-	void Form_IIJp_8(void);
+    void Form_IIJp_1(void);
+    void Form_IIJp_2(void);
+    void Form_IIJp_3(void);
+    void Form_IIJp_4(void);
+    void Form_IIJp_5(void);
+    void Form_IIJp_6(void);
+    void Form_IIJp_7(void);
+    void Form_IIJp_8(void);
 
 
 
-	void Form_II2e_1(void);
-	void Form_II2p_2(void);
-	void Form_II2p_3(void);
-	void Form_II2p_4(void);
-	void Form_II2p_5(void);
-	void Form_II2p_6(void);
-	void Form_II2p_7(void);
-	void Form_II2p_8(void);
-	void Form_II2p_9(void);
+    void Form_II2e_1(void);
+    void Form_II2p_2(void);
+    void Form_II2p_3(void);
+    void Form_II2p_4(void);
+    void Form_II2p_5(void);
+    void Form_II2p_6(void);
+    void Form_II2p_7(void);
+    void Form_II2p_8(void);
+    void Form_II2p_9(void);
 
 
-	void Form_II3e_1(void);
-	void Form_II3e_2(void);
-	void Form_II3e_3(void);
-	void Form_II3e_4(void);
-	void Form_II3e_5(void);
-	void Form_II3p_6(void);
-	void Form_II3p_7(void);
-	void Form_II3p_8(void);
-	void Form_II3p_9(void);
-	void Form_II3p_10(void);
-	void Form_II3p_11(void);
-	void Form_II3p_12(void);
-	void Form_II3p_13(void);
-	void Form_II3p_14(void);
-	void Form_II3p_15(void);
-	void Form_II3p_16(void);
-	void Form_II3p_17(void);
-	void Form_II3p_18(void);
-	void Form_II3p_19(void);
-	void Form_II3p_20(void);
-	void Form_II3p_21(void);
-	void Form_II3p_22(void);
-	void Form_II3p_23(void);
-	void Form_II3p_24(void);
-	void Form_II3p_25(void);
-	void Form_II3p_26(void);
-	void Form_II3p_27(void);
-	void Form_II3p_28(void);
-	void Form_II3p_29(void);
-	void Form_II3p_30(void);
-	void Form_II3e_31(void);
-	void Form_II3e_32(void);
-	void Form_II3e_33(void);
-	void Form_II3p_34(void);
-	void Form_II3p_35(void);
-	void Form_II3p_36(void);
-	void Form_II3p_37(void);
-	void Form_II3p_38(void);
-	void Form_II3p_39(void);
-	void Form_II3p_40(void);
-	void Form_II3p_41(void);
-	void Form_II3p_42(void);
-	void Form_II3p_43(void);
-	void Form_II3p_44(void);
-	void Form_II3p_45(void);
-	void Form_II3p_46(void);
-	void Form_II3p_47(void);
-	void Form_II3p_48(void);
+    void Form_II3e_1(void);
+    void Form_II3e_2(void);
+    void Form_II3e_3(void);
+    void Form_II3e_4(void);
+    void Form_II3e_5(void);
+    void Form_II3p_6(void);
+    void Form_II3p_7(void);
+    void Form_II3p_8(void);
+    void Form_II3p_9(void);
+    void Form_II3p_10(void);
+    void Form_II3p_11(void);
+    void Form_II3p_12(void);
+    void Form_II3p_13(void);
+    void Form_II3p_14(void);
+    void Form_II3p_15(void);
+    void Form_II3p_16(void);
+    void Form_II3p_17(void);
+    void Form_II3p_18(void);
+    void Form_II3p_19(void);
+    void Form_II3p_20(void);
+    void Form_II3p_21(void);
+    void Form_II3p_22(void);
+    void Form_II3p_23(void);
+    void Form_II3p_24(void);
+    void Form_II3p_25(void);
+    void Form_II3p_26(void);
+    void Form_II3p_27(void);
+    void Form_II3p_28(void);
+    void Form_II3p_29(void);
+    void Form_II3p_30(void);
+    void Form_II3e_31(void);
+    void Form_II3e_32(void);
+    void Form_II3e_33(void);
+    void Form_II3p_34(void);
+    void Form_II3p_35(void);
+    void Form_II3p_36(void);
+    void Form_II3p_37(void);
+    void Form_II3p_38(void);
+    void Form_II3p_39(void);
+    void Form_II3p_40(void);
+    void Form_II3p_41(void);
+    void Form_II3p_42(void);
+    void Form_II3p_43(void);
+    void Form_II3p_44(void);
+    void Form_II3p_45(void);
+    void Form_II3p_46(void);
+    void Form_II3p_47(void);
+    void Form_II3p_48(void);
 
 
 
 
-	void Form_II4e_1(void);
-	void Form_II4p_2(void);
-	void Form_II4p_3(void);
-	void Form_II4p_4(void);
-	void Form_II4p_5(void);
-	void Form_II4p_6(void);
-	void Form_II4p_7(void);
-	void Form_II4p_8(void);
-	void Form_II4p_9(void);
+    void Form_II4e_1(void);
+    void Form_II4p_2(void);
+    void Form_II4p_3(void);
+    void Form_II4p_4(void);
+    void Form_II4p_5(void);
+    void Form_II4p_6(void);
+    void Form_II4p_7(void);
+    void Form_II4p_8(void);
+    void Form_II4p_9(void);
 
     /////////////////////////////////////////////////////////
 

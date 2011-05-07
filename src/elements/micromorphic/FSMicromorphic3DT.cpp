@@ -1,4 +1,4 @@
-#include "FSMicromorphic3DT.h"
+ #include "FSMicromorphic3DT.h"
 
 #include "OutputSetT.h"
 #include "ParameterContainerT.h"
@@ -1656,6 +1656,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
          /* retrieve Ce_n in element */
          fCe_n_Elements_IPs.RowCopy(e,fCe_n_IPs);
          //fCe_Elements_IPs.RowCopy(e,fCe_IPs);
+         
          /* retrieve dGdS and dGdS_n in element */
          fdGdS_n_Elements_IPs.RowCopy(e,fdGdS_n_IPs);
          fdGdS_Elements_IPs.RowCopy(e,fdGdS_IPs);
@@ -2233,13 +2234,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         fdGdS_n_IPs.RowCopy(IP,fdGdS_n);
                         fdGdS_IPs.RowCopy(IP,fdGdS);
                         fdFYdS_n_IPs.RowCopy(IP,fdFYdS_n);
-                        fdFYdS_IPs.RowCopy(IP,fdFYdS);          
-                        /* Micro scale parameters */                  
+                        fdFYdS_IPs.RowCopy(IP,fdFYdS);       
+                        
+                           
+                        /* Micro scale parameters */    
+                        /* Retrieving the previous time step values of micro field for each IP */
+                        fChip_n_IPs.RowCopy(IP,fChip_n);
+                        fChip_IPs.RowCopy(IP,fChip);                                      
                         fCchie_n_IPs.RowCopy(IP,fCchie_n);
-            PSIe_n_IPs.RowCopy(IP,PSIe_n);
-            //PSIe_IPs.RowCopy(IP,PSIe);                        
-            fdGchidSIGMA_S_IPs.RowCopy(IP,fdGchidSIGMA_S);                        
-            fdGchidSIGMA_S_n_IPs.RowCopy(IP,fdGchidSIGMA_S_n);
+           		PSIe_n_IPs.RowCopy(IP,PSIe_n);
+            		//PSIe_IPs.RowCopy(IP,PSIe);                        
+            		fdGchidSIGMA_S_IPs.RowCopy(IP,fdGchidSIGMA_S);                        
+            		fdGchidSIGMA_S_n_IPs.RowCopy(IP,fdGchidSIGMA_S_n);
 
 
                         /* Inverse of plastic deformation gradient tensor (Fp^-1)_n from previous time step is calculated*/
@@ -2247,22 +2253,22 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         /* Trial Elastic deformation gradient tensor Fe will be formed */
                         fFe_tr.MultAB(fDeformation_Gradient,fFp_n_inverse);
                         
-                        /* Trial Micro Elastic deformation gradient tensor Chie will be formed */
-                        fChie_tr.MultAB(ChiM,fChip_n_inverse);
-                        
                         
                         /* Trial Elastic Right Cauchy Green tensor will be formed */
                         fRight_Elastic_Cauchy_Green_tensor_tr.MultATB(fFe_tr,fFe_tr);
                         if (fRight_Elastic_Cauchy_Green_tensor_tr.Det()==0)
                                 fRight_Elastic_Cauchy_Green_tensor_tr = fIdentity_matrix;
 
-                        /* Retrieving the previous time step values of micro field for each IP */
-                        fChip_n_IPs.RowCopy(IP,fChip_n);
-                        fChip_IPs.RowCopy(IP,fChip);
-
-
                         /* Inverse of plastic micro deformation tensor of previous step */
                         fChip_n_inverse.Inverse(fChip_n);
+
+	    		/* Inverse of plastic micro deformation tensor of current step */
+	    		fChip_inverse.Inverse(fChip);                                                
+                        
+                        /* Trial Micro Elastic deformation gradient tensor Chie will be formed */
+                        fChie_tr.MultAB(ChiM,fChip_n_inverse);
+                                                                      
+                        
 
                         fMicroRight_Elastic_Cauchy_Green_tensor_tr.MultATB(fChie_tr,fChie_tr);
                         if (fMicroRight_Elastic_Cauchy_Green_tensor_tr.Det()==0)
@@ -2273,13 +2279,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         /* Inverse of plastic micro deformation tensor of current step */
                         //fChip_inverse.Inverse(fChip);
 
-                      /* Form transpose of (dG/dS)n */
-                      fdGdS_n_transpose.Transpose(fdGdS_n);
+                      	/* Form transpose of (dG/dS)n */
+                      	fdGdS_n_transpose.Transpose(fdGdS_n);
                       
-                      /* Form inverse of (dG/dS)n  */
-                      fCe_n_inverse.Inverse(fCe_n);
+                      	/* Form inverse of (dG/dS)n  */
+                     	fCe_n_inverse.Inverse(fCe_n);
 
-            		/* Form inverse of (PSI^e)n */
+                 	/* Form inverse of (PSI^e)n */
                         PSIe_n_inverse.Inverse(PSIe_n);                                            
 
                         /* Form inverse of (Cx^e)n*/
@@ -2291,9 +2297,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         /* Form inverse of (C^e)n */
                         fCe_n_inverse.Inverse(fCe_n);
 
-
-                        /* Trial Elastic micro deformation tensor */
-                        fChie_tr.MultAB(ChiM,fChip_n_inverse);
                                                                         
                         /*Trial Elastic Lagrangian Strain Tensor will be formed in Bbar */
                         Elastic_LagrangianStn_tr=fIdentity_matrix;
@@ -2302,12 +2305,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         Elastic_LagrangianStn_tr*=0.5;
 
 
-                        /* Trial Elastic micro strain tenso will be formed in Bbar */
-                    Elastic_MicroStnTensor_tr  = fIdentity_matrix;
-                    Elastic_MicroStnTensor_tr *= -1;
-                    /* Trial Elastic defomration measure Elastic_PSI_tr EPSI_tr(PSIe_tr) */
-                    PSIe_tr.MultATB(fFe_tr,fChie_tr);
-                    Elastic_MicroStnTensor_tr += PSIe_tr;
+                        /* Trial Elastic micro strain tensor will be formed in Bbar */
+                    	Elastic_MicroStnTensor_tr  = fIdentity_matrix;
+	                Elastic_MicroStnTensor_tr *= -1;
+        	        /* Trial Elastic defomration measure Elastic_PSI_tr EPSI_tr(PSIe_tr) */
+                	PSIe_tr.MultATB(fFe_tr,fChie_tr);
+                    	Elastic_MicroStnTensor_tr += PSIe_tr;
 
 
 
@@ -2350,13 +2353,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     
                         /* Form terms related the cohesion and friction angle  in D-P yield function */
                         /* Initially Aphi is already assigined to fState_variables_n_IPs(IP,khc)=Aphi in TakeParameterList function*/
-/*                      double Beta=-1.0;
+                        double Beta=-1.0;
                         double Aphi=2*sqrt(6)*cos(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
                         double Bphi=2*sqrt(6)*sin(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
                         // Form the cohesion and dilation angle related terms in Plastic potential function 
                         double Apsi=2*sqrt(6)*cos(fMaterial_Params[kDpsi])/(3+Beta*sin(fMaterial_Params[kDpsi] ));
                         double Bpsi=2*sqrt(6)*sin(fMaterial_Params[kDpsi])/(3+Beta*sin(fMaterial_Params[kDpsi] ));
-*/
+
                         /* Form the trial deviatoric SPK */
                         mean_stress_tr=fSPK_tr.Trace()/3;//Calculating the pressure term
                         fdevSPK_tr.SetToScaled(mean_stress_tr,fIdentity_matrix);
@@ -2390,21 +2393,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         devSIGMA_S_tr+=SIGMA_S_tr;
                         
 
-                        /* Calculate dev(SIGMA-S):dev(SIGMA-S)  */
+                        //Calculate dev(SIGMA-S):dev(SIGMA-S)  
                         //Temp_inv=dMatrixT::Dot(SIGMA_S_tr,SIGMA_S_tr);
                         Temp_inv= devSIGMA_S_tr.ScalarProduct();
                         devSIGMA_S_inv_tr=sqrt(Temp_inv);
-                                
+                               
 
 
             //Check for micro-yielding
                         fMicroYield_function_tr=devSIGMA_S_inv_tr-(Aphi_chi*(fState_variables_n_IPs(IP,kc_chi))-Bphi_chi*mean_stress_tr);
 
-                if(fYield_function_tr>=dYieldTrialTol || fMicroYield_function_tr>= dYieldTrialTol)// If one of the scales yield! Macro or Micro
-            {
-			
-                        if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr< dYieldTrialTol)//Macro-plastic, Micro-elastic
-                        {
+              		if(fYield_function_tr>=dYieldTrialTol || fMicroYield_function_tr>= dYieldTrialTol)// If one of the scales yield! Macro or Micro
+            		{
+            
+                        	if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr< dYieldTrialTol)//Macro-plastic, Micro-elastic
+                        	{
                         
                                 fs_micromorph3D_out<<"MACRO-PLASTICITY "<<endl;
 
@@ -2433,6 +2436,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         /* Form  dFe/dDgamma */
                                         fFp_inverse.Inverse(fFp);
                                         dFedDelgamma=0.0;
+		                      	fdGdS_n_transpose.Transpose(fdGdS_n);
+		                        fCe_n_inverse.Inverse(fCe_n);		                      	                                        
                                         fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
                                         // fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);
                                         // dFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd2,fTemp_matrix_nsd_x_nsd);
@@ -2517,16 +2522,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                                         /* update fFp */
-                                        //fdGdS_n_transpose.Transpose(fdGdS_n);//already calculated above
-                                        //fCe_n_inverse.Inverse(fCe_n);//already calculated above
-
+                                 	fdGdS_n_transpose.Transpose(fdGdS_n);
+		                        fCe_n_inverse.Inverse(fCe_n);	
                                         //fTemp_matrix_nsd_x_nsd.MultAB(fCe_n_inverse,fdGdS_n_transpose);
                                         fTemp_matrix_nsd_x_nsd.MultABT(fCe_n_inverse,fdGdS_n);
                                         fTemp_matrix_nsd_x_nsd*=fDelgamma;
 
                                         fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
                                         fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
-                    //fs_micromorph3D_out<<"||Fp||="<<fFp.ScalarProduct()<<endl;
+
                                         /* calculate fFp_Inverse  */
                                         fFp_inverse.Inverse(fFp);
                                         
@@ -2608,10 +2612,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*mean_stress);
                                         fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
 
-                                } //end of the local fDelgamma while loop
-                        }//end of the Macro-plasticity, micro-elasticity loop
-
-                        if(fMicroYield_function_tr>=dYieldTrialTol && fYield_function_tr< dYieldTrialTol)//Macro-elastic, Micro-plastic
+                                	} //end of the local fDelgamma while loop
+                        	}//end of the Macro-plasticity, micro-elasticity loop
+                       if(fMicroYield_function_tr>=dYieldTrialTol && fYield_function_tr< dYieldTrialTol)//Macro-elastic, Micro-plastic
                         {
                                 fs_micromorph3D_out<<"MICRO-PLASTICITY "<<endl;
 
@@ -2653,8 +2656,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
                                         dChipdDgammachi.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
                     
-                 			/* Forming dChie/dDgammachi*/
-			                dChiedDgammachi.MultABC(fChie,dChipdDgammachi,fChip_inverse);
+                            /* Forming dChie/dDgammachi*/
+                            dChiedDgammachi.MultABC(fChie,dChipdDgammachi,fChip_inverse);
                                         dChiedDgammachi*=-1;
                              
                                         /* Forming dEpsilone/dDelgammachi */
@@ -2688,10 +2691,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                    
                                         /* Forming  dcx/dDgammax  cx:micro-cohesion*/
                                         dcchidDelgammachi=fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
-                			       		                    							                                         	
+                                                                                                                                                                                
                                         /* assemble the consistent tangent */
                                         dFYchidDelgammachi=ddevSIGMA_SdDelgammachi_inv-(Aphi_chi*dcchidDelgammachi-Bphi_chi*dPchidDelgammachi);
-                    			//fs_micromorph3D_out<<"dFYchidDelgammachi="<<dFYchidDelgammachi<<endl;
+                                //fs_micromorph3D_out<<"dFYchidDelgammachi="<<dFYchidDelgammachi<<endl;
                                         /* solve for fdelDelgamma */
                                         if (dFYchidDelgammachi != 0.0) fdelDelgammachi = -fMicroYield_function/dFYchidDelgammachi;
                                         else fdelDelgammachi = 0.0;
@@ -2703,7 +2706,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         if (fDelgammachi < 0.0) fDelgammachi = 0.0;
                                         fState_variables_IPs(IP,kDelgammachi) = fDelgammachi;
 
-					//fs_micromorph3D_out<<"fDelgammachi="<<fDelgammachi<<endl;
+                    //fs_micromorph3D_out<<"fDelgammachi="<<fDelgammachi<<endl;
                                         /* update cx (c_chi) ISVs */
                                         fState_variables_IPs(IP,kc_chi)= fState_variables_n_IPs(IP,kc_chi)
                                         + fDelgammachi*fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
@@ -2800,19 +2803,19 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 } //end of IF Macro-elasticity, micro-plasticity loop
 //
 
-		                if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr>= dYieldTrialTol)// If both scales yield! Macro and Micro
-        			 {
-       		                  fs_micromorph3D_out<< "MACRO AND MICRO PLASTICITY " <<endl;
-	                        /* initialize yield function before iteration */
-                              	fYield_function=fYield_function_tr;
+                        if(fYield_function_tr>=dYieldTrialTol && fMicroYield_function_tr>= dYieldTrialTol)// If both scales yield! Macro and Micro
+                     {
+                              fs_micromorph3D_out<< "MACRO AND MICRO PLASTICITY " <<endl;
+                            /* initialize yield function before iteration */
+                                fYield_function=fYield_function_tr;
 
                                 /* initialize micro yield before iteration */
                                 fMicroYield_function=fMicroYield_function_tr;  
                                            
-                                 /* initial values for Fe and Chie */                   	
-                               	fFe=fFe_tr;
-                               	fChie=fChie_tr;
-                               	
+                                 /* initial values for Fe and Chie */                       
+                                fFe=fFe_tr;
+                                fChie=fChie_tr;
+                                
                                 /* initial values for Fp and Chip are assumed the same with previous step        */
                                 fFp=fFp_n;
                                 fChip=fChip_n;
@@ -2827,25 +2830,21 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 devSIGMA_S_inv=devSIGMA_S_inv_tr;                                
                                 
                                 
-				/* initial Delgamma,Delgammchi, their increments */
+                /* initial Delgamma,Delgammchi, their increments */
                                 fdelDelgamma = 0.0;
-                                fDelgamma = 0.0;        	
+                                fDelgamma = 0.0;            
             
                                 fdelDelgammachi = 0.0;
                                 fDelgammachi=0.0;
 
-
-
                                 /* iterate using Newton-Raphson to solve for fDelgamma */
-                                iter_count = 0;                                
-                                
-                                		    
+                                iter_count = 0;                                                                                                           
 
- 					while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)  
- 					{
+                    while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)  
+                    {
 
- 				        
- 				        iter_count += 1;
+                        
+                     			iter_count += 1;
                                         /* Form  dFe/dDgamma */
                                         fFp_inverse.Inverse(fFp);
                                         dFedDelgamma=0.0;
@@ -2904,7 +2903,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         
                                     
 
-                                     	 /* Form inverse of Chi^p*/
+                                         /* Form inverse of Chi^p*/
                                         fChip_inverse.Inverse(fChip);   
                                                                                                                                                
                                                                     
@@ -2912,8 +2911,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
                                         dChipdDgammachi.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
                     
-                 			/* Forming dChie/dDgammachi*/
-			                dChiedDgammachi.MultABC(fChie,dChipdDgammachi,fChip_inverse);
+                            /* Forming dChie/dDgammachi*/
+                            dChiedDgammachi.MultABC(fChie,dChipdDgammachi,fChip_inverse);
                                         dChiedDgammachi*=-1;
                              
                                         /* Forming dEpsilone/dDelgammachi */
@@ -2947,7 +2946,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                    
                                         /* Forming  dcx/dDgammax  cx:micro-cohesion*/
                                         dcchidDelgammachi=fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
-                			       		                    							                                         	
+                                                                                                                                                                                
                                         /* assemble the consistent tangent */
                                         dFYchidDelgammachi=ddevSIGMA_SdDelgammachi_inv-(Aphi_chi*dcchidDelgammachi-Bphi_chi*dPchidDelgammachi);//2
                                         
@@ -3018,20 +3017,20 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         LocalConsistentTangent(0,0)=dFYdDelgamma;
                                         LocalConsistentTangent(0,1)=dFYdDelgammachi;
                                         LocalConsistentTangent(1,0)=dFYchidDelgamma; 
-                                       	LocalConsistentTangent(1,1)=dFYchidDelgammachi;    
-                                       	
+                                        LocalConsistentTangent(1,1)=dFYchidDelgammachi;    
+                                        
                                         LocalRHSVector[0]=fYield_function;
-                                     	LocalRHSVector[1]=fMicroYield_function;                                     
-                                     	       	  
+                                        LocalRHSVector[1]=fMicroYield_function;                                     
+                                                         
 
                                        if (LocalConsistentTangent.Det() != 0.0) 
                                        {
                                        
-                                	
-                                     	LocalConsistentTangentInverse.Inverse(LocalConsistentTangent);
-                                     	LocalConsistentTangentInverse.Multx(LocalRHSVector,fdelDelgammaVector);
-                                     	fdelDelgamma=fdelDelgammaVector[0];     
-                                     	fdelDelgammachi=fdelDelgammaVector[1];
+                                    
+                                        LocalConsistentTangentInverse.Inverse(LocalConsistentTangent);
+                                        LocalConsistentTangentInverse.Multx(LocalRHSVector,fdelDelgammaVector);
+                                        fdelDelgamma=fdelDelgammaVector[0];     
+                                        fdelDelgammachi=fdelDelgammaVector[1];
                                                                               
                                        }
                                        else
@@ -3052,9 +3051,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                         if (fDelgammachi < 0.0) fDelgammachi = 0.0;
                                         fState_variables_IPs(IP,kDelgammachi) = fDelgammachi;
-                                       	
+                                        
                                 
-                                       	
+                                        
                                         /* update fFp */
                                         fTemp_matrix_nsd_x_nsd.MultABT(fCe_n_inverse,fdGdS_n);
                                         fTemp_matrix_nsd_x_nsd*=fDelgamma;
@@ -3100,12 +3099,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                                 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;                                        
                                                                                                                                                      
                                         /* Update PSIe */
-                                    	PSIe.MultATB(fFe,fChie);                                            
+                                        PSIe.MultATB(fFe,fChie);                                            
 
 
                                         /* Update Elastic micro strain tenso will be formed in Bbar */
-	 	                        Elastic_MicroStnTensor = fIdentity_matrix;
-                	                Elastic_MicroStnTensor *= -1;
+                                     Elastic_MicroStnTensor = fIdentity_matrix;
+                                    Elastic_MicroStnTensor *= -1;
                                         Elastic_MicroStnTensor += PSIe;
     
                                        /* update S stress */
@@ -3130,23 +3129,23 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                         /*Update Relative stress SIGMA_S */
 
-                                   	Temp_inv=Elastic_LagrangianStn.Trace();
-	                                SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
-        	                        // 2sigmaE
-                	                fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
-                        	        SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                                	//(eta-Tau)trEpsilon.1
-	                                Temp_inv=Elastic_MicroStnTensor.Trace();
-        	                        fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
-                	                SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                        	        //(nu-sigma)*Epsilon
-                                	fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
-	                                SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-        	                        //(kappa-sigma)*Epsilon^T
-                	                fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
-                        	        fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
-                                    	SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                                 	
+                                    Temp_inv=Elastic_LagrangianStn.Trace();
+                                    SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
+                                    // 2sigmaE
+                                    fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
+                                    SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                    //(eta-Tau)trEpsilon.1
+                                    Temp_inv=Elastic_MicroStnTensor.Trace();
+                                    fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
+                                    SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                    //(nu-sigma)*Epsilon
+                                    fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
+                                    SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                    //(kappa-sigma)*Epsilon^T
+                                    fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
+                                    fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                        SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                    
                                         /* calculate  devS stress */
                                         mean_stress=SPK.Trace()/3;//Calculating the pressure term
                                         devSPK.SetToScaled(mean_stress,fIdentity_matrix);
@@ -3159,7 +3158,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         
                                         // Calculate yield function with updated parameters
                                         fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*mean_stress);
-                                                                       	                                               	                                               	            
+                                                                                                                                                                                                  
 
                                         /* Form deviatoric SIGMA-S */
                                         mean_stress=SIGMA_S.Trace()/3;//
@@ -3175,11 +3174,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                                                                                                                                 
                                         // Calculate micro yield function with updated parameters
                                         fMicroYield_function=devSIGMA_S_inv-(Aphi_chi*(fState_variables_IPs(IP,kc_chi))-Bphi_chi*mean_stress);
-                                        fs_micromorph3D_out<<"Current Macro relative residual = "<< fabs(fMicroYield_function/fMicroYield_function_tr)<<" && "<< "Current Micro relative residual = " << fabs(fMicroYield_function/fMicroYield_function_tr) << endl;                                        	                                             
-                                              
-                                        }                                                                                                  
+                                        fs_micromorph3D_out<<"Current Macro relative residual = "<< fabs(fMicroYield_function/fMicroYield_function_tr)<<" && "<< "Current Micro relative residual = " << fabs(fMicroYield_function/fMicroYield_function_tr) << endl;                                                                                         
+                                            
+                                       }                                                                                                  
                                     
- 				}
+                		}
+
+ 
 
                                 //ExceptionT::GeneralFail(caller,"Debugging stop %d one iteration only %d.",iter_count, iIterationMax);
                                 //fs_micromorph3D_out<< "Element Number = "<< e <<endl;
@@ -3187,13 +3188,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 if (iter_count == iIterationMax)
                                 {
 
-                                        fs_micromorph3D_out << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
-                                        fs_micromorph3D_out << "Current relative residual = " << fabs(fMicroYield_function/fMicroYield_function_tr) << endl;
-                                        fs_micromorph3D_out << "Current residual = " << fMicroYield_function << endl;
+                                    fs_micromorph3D_out << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
+                                    fs_micromorph3D_out << "Current relative residual = " << fabs(fMicroYield_function/fMicroYield_function_tr) << endl;
+                                    fs_micromorph3D_out << "Current residual = " << fMicroYield_function << endl;
                                     fs_micromorph3D_out<< "iter_count = " << iter_count<<endl;
                                     fs_micromorph3D_out<< "Element Number = "<< e <<endl;
                                     fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-                                        // ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
+                                    // ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
 
                                 }
 
@@ -3230,7 +3231,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nsd_x_nsd.MultABCT(fFe,SPK,fFe);
                                 KirchhoffST.SetToScaled(Jp,fTemp_matrix_nsd_x_nsd);
                                 /* Calcuate Cauchy stress tensor */
-                                 Sigma.SetToScaled(1/J,KirchhoffST);
+                                Sigma.SetToScaled(1/J,KirchhoffST);
 
                                 /* saving  Cauchy stress tensor at IPs */
                                 // fCauchy_stress_tensor_current_IP=Sigma;
@@ -3380,10 +3381,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                                 Form_fV2p();//gives F.SIGMA_S.F^T = s_sigma *J
-                            NCHI.MultTx(fV2p,Vintp_2_temp);
-                            scale=scale_const*Jp;
-                            Vintp_2_temp*=scale;
-                            Vintp_2 +=Vintp_2_temp;
+                         	NCHI.MultTx(fV2p,Vintp_2_temp);
+  	                        scale=scale_const*Jp;
+         	                Vintp_2_temp*=scale;
+                	        Vintp_2 +=Vintp_2_temp;
 
 
                                 // saving Fp, Ce, dG/dS and dF/dS at each IP of the current element
@@ -3491,8 +3492,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                                 /* From the second bal. eqn */
-                    Form_IIJp_1();
-                    Form_IIJp_2();//
+                 		Form_IIJp_1();
+                                Form_IIJp_2();//
                                 Form_IIJp_3();//Addition of micromorphic terms to macro-scale
                                 Form_IIJp_4();//
                                 Form_IIJp_5();
@@ -3577,7 +3578,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                 /* The terms related to variation of Jp have Jp_ extension i.e. IJp_1 */
                                 fTemp_matrix_nsd_x_nsd2.MultABCT(fFp_inverse,fCe_n_inverse,fdGdS_n);
-                    fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fFp_n);
+                   	 	fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fFp_n);
                                 double Trace_const=0.0;
                                 Trace_const=fTemp_matrix_nsd_x_nsd.Trace();
 
@@ -3633,7 +3634,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_IJp_8 += fTemp_matrix_nudof_x_nchidof;
 
-                                   fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_9,NCHI);
+                                fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,IJp_9,NCHI);
                                 scale = (1/fConst)*Trace_const*scale_const*Jp*fMaterial_Params[kNu];
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_IJp_9 += fTemp_matrix_nudof_x_nchidof;
@@ -3682,17 +3683,17 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nudof *= scale;
                                 fKu_I2p_7 += fTemp_matrix_nudof_x_nudof;
 
-                                   fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I2p_8,NCHI);
+                                fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I2p_8,NCHI);
                                 scale = -1*(1/fConst)*dFYdScol1*Jp*scale_const*fMaterial_Params[kEta];
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I2p_8 += fTemp_matrix_nudof_x_nchidof;
 
-                                   fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I2p_9,NCHI);
+                                fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I2p_9,NCHI);
                                 scale = -1*(1/fConst)*scale_const*Jp*fMaterial_Params[kKappa];
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I2p_9 += fTemp_matrix_nudof_x_nchidof;
 
-                                   fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I2p_10,NCHI);
+                                fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I2p_10,NCHI);
                                 scale = -1*(1/fConst)*scale_const*Jp*fMaterial_Params[kNu];
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I2p_10 += fTemp_matrix_nudof_x_nchidof;
@@ -4061,7 +4062,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                                 /*MATRICES FROM THE SECOND BALANCE EQUATION
-                    eta(ml)Fe(m Mbar)(S(Mbar Lbar)-SIGMA(MbarLbar))Fe(lLBar)Jp dV
+                   		eta(ml)Fe(m Mbar)(S(Mbar Lbar)-SIGMA(MbarLbar))Fe(lLBar)Jp dV
                                 Note that what we calculate SIGMA-S so there is no "-" in front of Jp terms
                                 delta(Jp)*eta(ml)Fe(m Mbar)(S(Mbar Lbar)-SIGMA(MbarLbar))Fe(lLBar)
                                 The terms related to variation of Jp have Jp_ extension i.e. IJp_1 */
@@ -4503,10 +4504,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fChie=fChie_tr;
                                 //fChie.MultAB(ChiM,fChip_n_inverse);
                                 //fFe=fDeformation_Gradient;
-				
-				/* MicroElastic Deformation tensor */
-				PSIe.MultATB(fFe,fChie);
-				
+                
+                		/* MicroElastic Deformation tensor */
+               			PSIe.MultATB(fFe,fChie);
+                
                                 /* [fElastic_Right_Cauchy_Green_tensor] will be formed */
                                 fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
 
@@ -4542,11 +4543,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 Vint_1_temp*=scale;
                                 Vint_1 +=Vint_1_temp;
 
-                            Form_fV2();//gives F.SIGMA_S.F^T = s_sigma *J
-                            NCHI.MultTx(fV2,Vint_2_temp);
-                            scale=scale_const;
-                            Vint_2_temp*=scale;
-                            Vint_2 +=Vint_2_temp;
+                           	Form_fV2();//gives F.SIGMA_S.F^T = s_sigma *J
+                            	NCHI.MultTx(fV2,Vint_2_temp);
+                            	scale=scale_const;
+                            	Vint_2_temp*=scale;
+                            	Vint_2 +=Vint_2_temp;
 
 
                                 Sigma=KirchhoffST;
@@ -4894,7 +4895,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale =scale_const*fMaterial_Params[kTau8];
                                 fTemp_matrix_nchidof_x_nudof *= scale;
                                 // accumulate
-                    fKMphiu_2 += fTemp_matrix_nchidof_x_nudof;
+                    		fKMphiu_2 += fTemp_matrix_nchidof_x_nudof;
 
 
                                 //fTemp_matrix_nchidof_x_nchidof.MultABC(fIota_eta_temp_matrix,fMpp_2,GRAD_NCHI);
@@ -7474,14 +7475,15 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
      Bpsi=2*sqrt(6)*sin(fMaterial_Params[kDpsi])/(3+Beta*sin(fMaterial_Params[kDpsi]));
 
 
-    fdGdS_n.SetToScaled(Bpsi*1/3,fIdentity_matrix);
+    //fdGdS_n.SetToScaled(Bpsi*1/3,fIdentity_matrix);
+    fdGdS_n=0.0;
 
      Aphi_chi=2*sqrt(6)*cos(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));
      Bphi_chi=2*sqrt(6)*sin(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));    
      Apsi_chi=2*sqrt(6)*cos(fMaterial_Params[kDpsi_chi])/(3+Beta*sin(fMaterial_Params[kDpsi_chi])); 
      Bpsi_chi=2*sqrt(6)*sin(fMaterial_Params[kDpsi_chi])/(3+Beta*sin(fMaterial_Params[kDpsi_chi]));    
     
-     fdGchidSIGMA_S_n.SetToScaled(Bpsi_chi*1/3,fIdentity_matrix);
+     //fdGchidSIGMA_S_n.SetToScaled(Bpsi_chi*1/3,fIdentity_matrix);
 
 //    if(iConstitutiveModelType==3)
  //   {
