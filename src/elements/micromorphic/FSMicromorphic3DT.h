@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.176 2011-05-07 06:52:47 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.177 2011-05-08 06:55:59 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -827,7 +827,8 @@ private:
     
     /***************************************************/
     /*****Micro-scale plasticity matrices **************/  
-    /***************************************************/    
+    /***************************************************/ 
+    dMatrixT fdFYchidSIGMA_S;       
     dMatrixT fdGchidSIGMA_S;
     dMatrixT fdGchidSIGMA_S_n_transpose;
     dMatrixT fdGchidSIGMA_S_n;
@@ -892,7 +893,7 @@ private:
     dMatrixT fA2;
 
     dMatrixT fN1;
-
+    dMatrixT fD1;
 
     double fYield_function,fYield_function_tr,dFYdc;
     double fMicroYield_function,fMicroYield_function_tr;
@@ -912,12 +913,15 @@ private:
     /* for local Newton-Raphson iteration */
    int iIterationMax;
    double dRelTol, dAbsTol,fConst;
+   int PlasticityCondition;
 
    /* for local trial yield check */
    double dYieldTrialTol;
      /* some scalars used in calculations */
    double dFYdScol1,fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
    double trfN1,fdFYdS_fN1,fdFYdS_fN1T;
+   double fdFYchidSIGMA_S_fD1T,fdFYchidSIGMA_S_fD1,dFYchidSIGMA_Scol1,trfD1;
+   double fConst4;
    double mean_stress_tr,mean_stress;
 
     dMatrixT IJp_1;
