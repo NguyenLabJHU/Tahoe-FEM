@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.179 2011-05-10 06:07:06 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.180 2011-05-10 22:54:57 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1297,8 +1297,38 @@ private:
     dMatrixT fKphiu_II3p_55;     
     dMatrixT II3p_56;
     dMatrixT fKphiphi_II3p_56;            
-
-
+    dMatrixT II3p_57;
+    dMatrixT fKphiu_II3p_57;
+    dMatrixT II3p_58;
+    dMatrixT fKphiu_II3p_58;
+    dMatrixT II3p_59;
+    dMatrixT fKphiu_II3p_59; 
+    dMatrixT II3p_60;
+    dMatrixT fKphiphi_II3p_60;
+    dMatrixT II3p_61;
+    dMatrixT fKphiu_II3p_61; 
+    dMatrixT II3p_62;
+    dMatrixT fKphiphi_II3p_62;
+    dMatrixT II3p_63;
+    dMatrixT fKphiu_II3p_63;     
+    dMatrixT II3p_64;
+    dMatrixT fKphiphi_II3p_64;  
+    dMatrixT II3p_65;   
+    dMatrixT fKphiu_II3p_65;
+    dMatrixT II3p_66;
+    dMatrixT fKphiu_II3p_66;
+    dMatrixT II3p_67;
+    dMatrixT fKphiu_II3p_67; 
+    dMatrixT II3p_68;
+    dMatrixT fKphiphi_II3p_68;
+    dMatrixT II3p_69;
+    dMatrixT fKphiu_II3p_69; 
+    dMatrixT II3p_70;
+    dMatrixT fKphiphi_II3p_70;
+    dMatrixT II3p_71;
+    dMatrixT fKphiu_II3p_71;     
+    dMatrixT II3p_72;
+    dMatrixT fKphiphi_II3p_72;  
 
 
            
@@ -1909,6 +1939,22 @@ private:
     void Form_II3p_54(void);    
     void Form_II3p_55(void);
     void Form_II3p_56(void);                                                        
+    void Form_II3p_57(void);  
+    void Form_II3p_58(void);    
+    void Form_II3p_59(void);    
+    void Form_II3p_60(void);    
+    void Form_II3p_61(void);    
+    void Form_II3p_62(void);    
+    void Form_II3p_63(void);
+    void Form_II3p_64(void);    
+    void Form_II3p_65(void);  
+    void Form_II3p_66(void);    
+    void Form_II3p_67(void);    
+    void Form_II3p_68(void);    
+    void Form_II3p_69(void);    
+    void Form_II3p_70(void);    
+    void Form_II3p_71(void);
+    void Form_II3p_72(void);    
 
 
 
