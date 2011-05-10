@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.177 2011-05-08 06:55:59 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.178 2011-05-10 04:01:15 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -921,7 +921,7 @@ private:
    double dFYdScol1,fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
    double trfN1,fdFYdS_fN1,fdFYdS_fN1T;
    double fdFYchidSIGMA_S_fD1T,fdFYchidSIGMA_S_fD1,dFYchidSIGMA_Scol1,trfD1;
-   double fConst4;
+   double fConst4,fdFYchidcchi;
    double mean_stress_tr,mean_stress;
 
     dMatrixT IJp_1;
@@ -1075,6 +1075,57 @@ private:
     dMatrixT fKuphi_I3p_53;
     dMatrixT I3p_54;
     dMatrixT fKuphi_I3p_54;
+    /* Matrices from Del(delgammachi) */
+    dMatrixT I3p_55;
+    dMatrixT fKu_I3p_55;  
+    dMatrixT I3p_56;
+    dMatrixT fKu_I3p_56;     
+    dMatrixT I3p_57;
+    dMatrixT fKu_I3p_57; 
+    dMatrixT I3p_58;
+    dMatrixT fKuphi_I3p_58;
+    dMatrixT I3p_59;
+    dMatrixT fKu_I3p_59;     
+    dMatrixT I3p_60;
+    dMatrixT fKuphi_I3p_60;
+    dMatrixT I3p_61;
+    dMatrixT fKu_I3p_61;     
+    dMatrixT I3p_62;
+    dMatrixT fKuphi_I3p_62;            
+    dMatrixT I3p_63;
+    dMatrixT fKu_I3p_63;  
+    dMatrixT I3p_64;
+    dMatrixT fKu_I3p_64;     
+    dMatrixT I3p_65;
+    dMatrixT fKu_I3p_65; 
+    dMatrixT I3p_66;
+    dMatrixT fKuphi_I3p_66;
+    dMatrixT I3p_67;
+    dMatrixT fKu_I3p_67;     
+    dMatrixT I3p_68;
+    dMatrixT fKuphi_I3p_68;
+    dMatrixT I3p_69;
+    dMatrixT fKu_I3p_69;     
+    dMatrixT I3p_70;
+    dMatrixT fKuphi_I3p_70;      
+    dMatrixT I3p_71;
+    dMatrixT fKu_I3p_71;  
+    dMatrixT I3p_72;
+    dMatrixT fKu_I3p_72;     
+    dMatrixT I3p_73;
+    dMatrixT fKu_I3p_73; 
+    dMatrixT I3p_74;
+    dMatrixT fKuphi_I3p_74;
+    dMatrixT I3p_75;
+    dMatrixT fKu_I3p_75;     
+    dMatrixT I3p_76;
+    dMatrixT fKuphi_I3p_76;
+    dMatrixT I3p_77;
+    dMatrixT fKu_I3p_77;     
+    dMatrixT I3p_78;
+    dMatrixT fKuphi_I3p_78;    
+
+               
 
     dMatrixT I4e_1;
     dMatrixT fKu_I4e_1;
@@ -1717,6 +1768,31 @@ private:
     void Form_I3p_52(void); //
     void Form_I3p_53(void); //
     void Form_I3p_54(void); //
+/* Matrices from Del(delgammachi) */    
+    void Form_I3p_55(void); //
+    void Form_I3p_56(void); //
+    void Form_I3p_57(void); //
+    void Form_I3p_58(void); //
+    void Form_I3p_59(void); //
+    void Form_I3p_60(void); //
+    void Form_I3p_61(void); //
+    void Form_I3p_62(void); //
+    void Form_I3p_63(void); //
+    void Form_I3p_64(void); //
+    void Form_I3p_65(void); //
+    void Form_I3p_66(void); //
+    void Form_I3p_67(void); //
+    void Form_I3p_68(void); //
+    void Form_I3p_69(void); //
+    void Form_I3p_70(void); //     
+    void Form_I3p_71(void); //
+    void Form_I3p_72(void); //
+    void Form_I3p_73(void); //
+    void Form_I3p_74(void); //
+    void Form_I3p_75(void); //
+    void Form_I3p_76(void); //
+    void Form_I3p_77(void); //
+    void Form_I3p_78(void); //                                    
 
 
     void Form_I4e_1(void); // the fourth term first matrix
