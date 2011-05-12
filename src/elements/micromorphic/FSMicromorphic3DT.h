@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.180 2011-05-10 22:54:57 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.181 2011-05-12 17:34:27 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -912,7 +912,8 @@ private:
 
     /* for local Newton-Raphson iteration */
    int iIterationMax;
-   double dRelTol, dAbsTol,fConst;
+   double dRelTol, dAbsTol,fConst1;
+
    int PlasticityCondition;
 
    /* for local trial yield check */
@@ -921,8 +922,16 @@ private:
    double dFYdScol1,fdFYdS_fA1,fdFYdS_fA1T,trfA1,fdFYdc,dFYdc_delc;
    double trfN1,fdFYdS_fN1,fdFYdS_fN1T;
    double fdFYchidSIGMA_S_fD1T,fdFYchidSIGMA_S_fD1,dFYchidSIGMA_Scol1,trfD1;
+   double fdFYchidSIGMA_S_fA1,fdFYchidSIGMA_S_fA1T,fdFYchidSIGMA_S_fN1,fdFYchidSIGMA_S_fN1T;
    double fConst4,fdFYchidcchi;
    double mean_stress_tr,mean_stress;
+   
+   
+   /* for coupled solution*/  
+   double fdFYdS_fD1,fdFYdS_fD1T;
+   double fConst2,fConst3;
+   double Comp11,Comp12,Comp21,Comp22;
+   double Comp1,Comp2,Comp3,Comp4;   
 
     dMatrixT IJp_1;
     dMatrixT fKu_IJp_1;
