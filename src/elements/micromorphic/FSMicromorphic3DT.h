@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.181 2011-05-12 17:34:27 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.182 2011-05-13 06:51:14 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -951,6 +951,23 @@ private:
     dMatrixT fKuphi_IJp_8;
     dMatrixT IJp_9;
     dMatrixT fKuphi_IJp_9;
+    /* Matrices from coupling */
+    dMatrixT IJp_10;
+    dMatrixT fKu_IJp_10;
+    dMatrixT IJp_11;
+    dMatrixT fKu_IJp_11;
+    dMatrixT IJp_12;
+    dMatrixT fKu_IJp_12;
+    dMatrixT IJp_13;
+    dMatrixT fKuphi_IJp_13;    
+    dMatrixT IJp_14;
+    dMatrixT fKu_IJp_14;
+    dMatrixT IJp_15;
+    dMatrixT fKuphi_IJp_15;       
+    dMatrixT IJp_16;
+    dMatrixT fKu_IJp_16; 
+    dMatrixT IJp_17;
+    dMatrixT fKu_IJp_17;                         
 
     dMatrixT I1e_1;
     dMatrixT fKu_I1e_1;
@@ -1757,6 +1774,15 @@ private:
     void Form_IJp_7(void);
     void Form_IJp_8(void);
     void Form_IJp_9(void);
+    /* Matrices from coupling */
+    void Form_IJp_10(void);
+    void Form_IJp_11(void);
+    void Form_IJp_12(void);
+    void Form_IJp_13(void);
+    void Form_IJp_14(void);
+    void Form_IJp_15(void);
+    void Form_IJp_16(void);    
+    void Form_IJp_17(void);                                                        
 
 
     void Form_I1e_1(void); // the first term first matrix
