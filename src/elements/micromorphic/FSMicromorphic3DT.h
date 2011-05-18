@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.188 2011-05-18 07:19:00 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.189 2011-05-18 19:28:54 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1284,7 +1284,23 @@ private:
     dMatrixT I3p_133; 
     dMatrixT fKu_I3p_133;     
     dMatrixT I3p_134;     
-    dMatrixT fKuphi_I3p_134;                                                               
+    dMatrixT fKuphi_I3p_134;     
+    dMatrixT I3p_135; 
+    dMatrixT fKu_I3p_135;      
+    dMatrixT I3p_136; 
+    dMatrixT fKu_I3p_136;
+    dMatrixT I3p_137; 
+    dMatrixT fKu_I3p_137;
+    dMatrixT I3p_138;     
+    dMatrixT fKuphi_I3p_138;  
+    dMatrixT I3p_139; 
+    dMatrixT fKu_I3p_139;     
+    dMatrixT I3p_140;     
+    dMatrixT fKuphi_I3p_140; 
+    dMatrixT I3p_141; 
+    dMatrixT fKu_I3p_141;     
+    dMatrixT I3p_142;     
+    dMatrixT fKuphi_I3p_142;                                                                       
 
                
 
@@ -2080,7 +2096,16 @@ private:
     void Form_I3p_131(void); //                                                                         
     void Form_I3p_132(void); //                                                                         
     void Form_I3p_133(void); //                                                                         
-    void Form_I3p_134(void); //                                                                         
+    void Form_I3p_134(void); //    
+    void Form_I3p_135(void); //                                                                         
+    void Form_I3p_136(void); //                                                                         
+    void Form_I3p_137(void); //                                                                         
+    void Form_I3p_138(void); //                                                                         
+    void Form_I3p_139(void); //                                                                         
+    void Form_I3p_140(void); //                                                                         
+    void Form_I3p_141(void); // 
+    void Form_I3p_142(void); //                                                                                                                                                     
+                                                                                                     
                                                                                                     
                                                                                 
                                                                 
