@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.187 2011-05-18 04:18:43 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.188 2011-05-18 07:19:00 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1236,7 +1236,55 @@ private:
     dMatrixT I3p_109; 
     dMatrixT fKu_I3p_109;     
     dMatrixT I3p_110;     
-    dMatrixT fKuphi_I3p_110;                                                           
+    dMatrixT fKuphi_I3p_110;           
+    dMatrixT I3p_111;   
+    dMatrixT fKu_I3p_111;   
+    dMatrixT I3p_112; 
+    dMatrixT fKu_I3p_112;             
+    dMatrixT I3p_113;   
+    dMatrixT fKu_I3p_113;       
+    dMatrixT I3p_114;  
+    dMatrixT fKuphi_I3p_114;                
+    dMatrixT I3p_115;
+    dMatrixT fKu_I3p_115;        
+    dMatrixT I3p_116; 
+    dMatrixT fKuphi_I3p_116;                                 
+    dMatrixT I3p_117; 
+    dMatrixT fKu_I3p_117;                               
+    dMatrixT I3p_118;     
+    dMatrixT fKuphi_I3p_118;  
+    dMatrixT I3p_119;   
+    dMatrixT fKu_I3p_119;   
+    dMatrixT I3p_120; 
+    dMatrixT fKu_I3p_120;             
+    dMatrixT I3p_121;   
+    dMatrixT fKu_I3p_121;       
+    dMatrixT I3p_122;  
+    dMatrixT fKuphi_I3p_122;                
+    dMatrixT I3p_123;
+    dMatrixT fKu_I3p_123;        
+    dMatrixT I3p_124; 
+    dMatrixT fKuphi_I3p_124;                                 
+    dMatrixT I3p_125; 
+    dMatrixT fKu_I3p_125;                               
+    dMatrixT I3p_126;     
+    dMatrixT fKuphi_I3p_126;  
+    dMatrixT I3p_127; 
+    dMatrixT fKu_I3p_127;      
+    dMatrixT I3p_128; 
+    dMatrixT fKu_I3p_128;
+    dMatrixT I3p_129; 
+    dMatrixT fKu_I3p_129;
+    dMatrixT I3p_130;     
+    dMatrixT fKuphi_I3p_130;  
+    dMatrixT I3p_131; 
+    dMatrixT fKu_I3p_131;     
+    dMatrixT I3p_132;     
+    dMatrixT fKuphi_I3p_132; 
+    dMatrixT I3p_133; 
+    dMatrixT fKu_I3p_133;     
+    dMatrixT I3p_134;     
+    dMatrixT fKuphi_I3p_134;                                                               
 
                
 
@@ -1998,7 +2046,7 @@ private:
     void Form_I3p_98(void); //                                                                                          
     void Form_I3p_99(void); //                                                                                          
     void Form_I3p_100(void); //                
-                                                                                
+                                                                                    
     void Form_I3p_101(void); //    
     void Form_I3p_102(void); // 
     void Form_I3p_103(void); //  
@@ -2008,7 +2056,35 @@ private:
     void Form_I3p_107(void); //  
     void Form_I3p_108(void); //  
     void Form_I3p_109(void); //  
-    void Form_I3p_110(void); //                                   
+    void Form_I3p_110(void); //
+    void Form_I3p_111(void); //                                   
+    void Form_I3p_112(void); //                                   
+    void Form_I3p_113(void); //                                   
+    void Form_I3p_114(void); //                                   
+    void Form_I3p_115(void); //                                   
+    void Form_I3p_116(void); //                                   
+    void Form_I3p_117(void); //                                   
+    void Form_I3p_118(void); //   
+    void Form_I3p_119(void); //                                   
+    void Form_I3p_120(void); //                                   
+    void Form_I3p_121(void); //                                   
+    void Form_I3p_122(void); //                                   
+    void Form_I3p_123(void); //                                   
+    void Form_I3p_124(void); //                                   
+    void Form_I3p_125(void); // 
+    void Form_I3p_126(void); //     
+    void Form_I3p_127(void); //                                                                         
+    void Form_I3p_128(void); // 
+    void Form_I3p_129(void); //                                                                         
+    void Form_I3p_130(void); //                                                                         
+    void Form_I3p_131(void); //                                                                         
+    void Form_I3p_132(void); //                                                                         
+    void Form_I3p_133(void); //                                                                         
+    void Form_I3p_134(void); //                                                                         
+                                                                                                    
+                                                                                
+                                                                
+                                                                       
                                                                                                                                                                                       
                                                                                                                       
                                                                                                                            
