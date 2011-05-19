@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.189 2011-05-18 19:28:54 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.190 2011-05-19 10:07:16 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1324,6 +1324,23 @@ private:
     dMatrixT fKuphi_I4p_9;
     dMatrixT I4p_10;
     dMatrixT fKuphi_I4p_10;
+    /* Matrices from coupling*/    
+    dMatrixT I4p_11;
+    dMatrixT fKu_I4p_11;   
+    dMatrixT I4p_12;
+    dMatrixT fKu_I4p_12;
+    dMatrixT I4p_13;
+    dMatrixT fKu_I4p_13;                 
+    dMatrixT I4p_14;
+    dMatrixT fKuphi_I4p_14;
+    dMatrixT I4p_15;
+    dMatrixT fKu_I4p_15;        
+    dMatrixT I4p_16;
+    dMatrixT fKuphi_I4p_16;
+    dMatrixT I4p_17;
+    dMatrixT fKu_I4p_17;        
+    dMatrixT I4p_18;
+    dMatrixT fKuphi_I4p_18;            
 
     dMatrixT IIJp_1;
     dMatrixT fKphiu_IIJp_1;
@@ -1341,6 +1358,23 @@ private:
     dMatrixT fKphiphi_IIJp_7;
     dMatrixT IIJp_8;
     dMatrixT fKphiphi_IIJp_8;
+    /* Matrices from coupling*/
+    dMatrixT IIJp_9;
+    dMatrixT fKphiu_IIJp_9;
+    dMatrixT IIJp_10;
+    dMatrixT fKphiu_IIJp_10;
+    dMatrixT IIJp_11;
+    dMatrixT fKphiu_IIJp_11;            
+    dMatrixT IIJp_12;
+    dMatrixT fKphiphi_IIJp_12;
+    dMatrixT IIJp_13;
+    dMatrixT fKphiu_IIJp_13;      
+    dMatrixT IIJp_14;
+    dMatrixT fKphiphi_IIJp_14;
+    dMatrixT IIJp_15;
+    dMatrixT fKphiu_IIJp_15;      
+    dMatrixT IIJp_16;
+    dMatrixT fKphiphi_IIJp_16;            
 
     dMatrixT II2e_1;
     dMatrixT fKphiu_II2e_1;
@@ -2126,6 +2160,14 @@ private:
     void Form_I4p_8(void); //
     void Form_I4p_9(void); //
     void Form_I4p_10(void); //
+    void Form_I4p_11(void); //
+    void Form_I4p_12(void); //
+    void Form_I4p_13(void); //
+    void Form_I4p_14(void); //
+    void Form_I4p_15(void); //
+    void Form_I4p_16(void); //
+    void Form_I4p_17(void); //
+    void Form_I4p_18(void); //                            
 
 
     /* Functions for the second balance equation */
@@ -2137,7 +2179,15 @@ private:
     void Form_IIJp_6(void);
     void Form_IIJp_7(void);
     void Form_IIJp_8(void);
-
+    /* Matrices from coupling*/
+    void Form_IIJp_9(void);
+    void Form_IIJp_10(void);
+    void Form_IIJp_11(void);
+    void Form_IIJp_12(void);
+    void Form_IIJp_13(void);
+    void Form_IIJp_14(void);
+    void Form_IIJp_15(void);
+    void Form_IIJp_16(void);                        
 
 
     void Form_II2e_1(void);
