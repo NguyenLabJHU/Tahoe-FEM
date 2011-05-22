@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.191 2011-05-19 19:18:52 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.192 2011-05-22 02:32:44 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1559,6 +1559,39 @@ private:
     dMatrixT fKphiu_II3p_71;     
     dMatrixT II3p_72;
     dMatrixT fKphiphi_II3p_72;  
+    /* Matrices from coupling */
+    dMatrixT II3p_73;
+    dMatrixT fKphiu_II3p_73;
+    dMatrixT II3p_74;
+    dMatrixT fKphiu_II3p_74;
+    dMatrixT II3p_75;
+    dMatrixT fKphiu_II3p_75;   
+    dMatrixT II3p_76;
+    dMatrixT fKphiphi_II3p_76; 
+    dMatrixT II3p_77;
+    dMatrixT fKphiu_II3p_77; 
+    dMatrixT II3p_78;
+    dMatrixT fKphiphi_II3p_78;
+    dMatrixT II3p_79;
+    dMatrixT fKphiu_II3p_79;     
+    dMatrixT II3p_80;
+    dMatrixT fKphiphi_II3p_80;
+    dMatrixT II3p_81;
+    dMatrixT fKphiu_II3p_81;
+    dMatrixT II3p_82;
+    dMatrixT fKphiu_II3p_82;
+    dMatrixT II3p_83;
+    dMatrixT fKphiu_II3p_83;   
+    dMatrixT II3p_84;
+    dMatrixT fKphiphi_II3p_84; 
+    dMatrixT II3p_85;
+    dMatrixT fKphiu_II3p_85; 
+    dMatrixT II3p_86;
+    dMatrixT fKphiphi_II3p_86;
+    dMatrixT II3p_87;
+    dMatrixT fKphiu_II3p_87;     
+    dMatrixT II3p_88;
+    dMatrixT fKphiphi_II3p_88;             
 
 
            
@@ -2303,6 +2336,24 @@ private:
     void Form_II3p_70(void);    
     void Form_II3p_71(void);
     void Form_II3p_72(void);    
+    /* Matrices from coupling */
+    void Form_II3p_73(void);    
+    void Form_II3p_74(void);    
+    void Form_II3p_75(void);    
+    void Form_II3p_76(void);    
+    void Form_II3p_77(void);    
+    void Form_II3p_78(void);    
+    void Form_II3p_79(void);    
+    void Form_II3p_80(void);
+    void Form_II3p_81(void);    
+    void Form_II3p_82(void);    
+    void Form_II3p_83(void);    
+    void Form_II3p_84(void);    
+    void Form_II3p_85(void);    
+    void Form_II3p_86(void);    
+    void Form_II3p_87(void);    
+    void Form_II3p_88(void);                                        
+                                    
 
 
 
