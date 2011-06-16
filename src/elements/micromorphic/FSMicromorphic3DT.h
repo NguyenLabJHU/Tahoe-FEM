@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.193 2011-05-22 05:22:01 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.194 2011-06-16 22:39:17 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1591,7 +1591,7 @@ private:
     dMatrixT II3p_87;
     dMatrixT fKphiu_II3p_87;     
     dMatrixT II3p_88;
-    dMatrixT fKphiphi_II3p_88;
+    dMatrixT fKphiphi_II3p_88;   
     dMatrixT II3p_89;
     dMatrixT fKphiu_II3p_89;            
     dMatrixT II3p_90;
@@ -1608,7 +1608,88 @@ private:
     dMatrixT fKphiu_II3p_95;     
     dMatrixT II3p_96;
     dMatrixT fKphiphi_II3p_96;                
-
+    dMatrixT II3p_97;
+    dMatrixT fKphiu_II3p_97;            
+    dMatrixT II3p_98;
+    dMatrixT fKphiu_II3p_98;
+    dMatrixT II3p_99;
+    dMatrixT fKphiu_II3p_99;   
+    dMatrixT II3p_100;
+    dMatrixT fKphiphi_II3p_100; 
+    dMatrixT II3p_101;
+    dMatrixT fKphiu_II3p_101; 
+    dMatrixT II3p_102;
+    dMatrixT fKphiphi_II3p_102;
+    dMatrixT II3p_103;
+    dMatrixT fKphiu_II3p_103;     
+    dMatrixT II3p_104;
+    dMatrixT fKphiphi_II3p_104;    
+    dMatrixT II3p_105;
+    dMatrixT fKphiu_II3p_105;            
+    dMatrixT II3p_106;
+    dMatrixT fKphiu_II3p_106;
+    dMatrixT II3p_107;
+    dMatrixT fKphiu_II3p_107;   
+    dMatrixT II3p_108;
+    dMatrixT fKphiphi_II3p_108; 
+    dMatrixT II3p_109;
+    dMatrixT fKphiu_II3p_109; 
+    dMatrixT II3p_110;
+    dMatrixT fKphiphi_II3p_110;
+    dMatrixT II3p_111;
+    dMatrixT fKphiu_II3p_111;     
+    dMatrixT II3p_112;
+    dMatrixT fKphiphi_II3p_112;
+    dMatrixT II3p_113;
+    dMatrixT fKphiphi_II3p_113;    
+    dMatrixT II3p_114;
+    dMatrixT fKphiu_II3p_114;    
+    dMatrixT II3p_115;
+    dMatrixT fKphiu_II3p_115;    
+    dMatrixT II3p_116;
+    dMatrixT fKphiphi_II3p_116;    
+    dMatrixT II3p_117;
+    dMatrixT fKphiu_II3p_117;    
+    dMatrixT II3p_118;
+    dMatrixT fKphiphi_II3p_118;    
+    dMatrixT II3p_119;
+    dMatrixT fKphiu_II3p_119;    
+    dMatrixT II3p_120;
+    dMatrixT fKphiphi_II3p_120; 
+    dMatrixT II3p_121;
+    dMatrixT fKphiphi_II3p_121;    
+    dMatrixT II3p_122;
+    dMatrixT fKphiu_II3p_122;    
+    dMatrixT II3p_123;
+    dMatrixT fKphiu_II3p_123;    
+    dMatrixT II3p_124;
+    dMatrixT fKphiphi_II3p_124;    
+    dMatrixT II3p_125;
+    dMatrixT fKphiu_II3p_125;    
+    dMatrixT II3p_126;
+    dMatrixT fKphiphi_II3p_126;    
+    dMatrixT II3p_127;
+    dMatrixT fKphiu_II3p_127;    
+    dMatrixT II3p_128;
+    dMatrixT fKphiphi_II3p_128;  
+    dMatrixT II3p_129;
+    dMatrixT fKphiphi_II3p_129;    
+    dMatrixT II3p_130;
+    dMatrixT fKphiu_II3p_130;    
+    dMatrixT II3p_131;
+    dMatrixT fKphiu_II3p_131;    
+    dMatrixT II3p_132;
+    dMatrixT fKphiphi_II3p_132;    
+    dMatrixT II3p_133;
+    dMatrixT fKphiu_II3p_133;    
+    dMatrixT II3p_134;
+    dMatrixT fKphiphi_II3p_134;    
+    dMatrixT II3p_135;
+    dMatrixT fKphiu_II3p_135;    
+    dMatrixT II3p_136;
+    dMatrixT fKphiphi_II3p_136;              
+    
+                                             
 
            
 
@@ -2376,11 +2457,53 @@ private:
     void Form_II3p_93(void);                                        
     void Form_II3p_94(void);                                        
     void Form_II3p_95(void);                                        
-    void Form_II3p_96(void);                                                                                                             
-                                    
-
-
-
+    void Form_II3p_96(void);  
+    void Form_II3p_97(void);                                                                                                             
+    void Form_II3p_98(void);                                                                                                             
+    void Form_II3p_99(void);                                                                                                             
+    void Form_II3p_100(void);                                                                                                             
+    void Form_II3p_101(void);                                                                                                             
+    void Form_II3p_102(void);                                                                                                             
+    void Form_II3p_103(void);                                                                                                             
+    void Form_II3p_104(void); 
+    void Form_II3p_105(void);                                                                                                             
+    void Form_II3p_106(void);                                                                                                             
+    void Form_II3p_107(void);                                                                                                             
+    void Form_II3p_108(void);                                                                                                             
+    void Form_II3p_109(void);                                                                                                             
+    void Form_II3p_110(void);                                                                                                             
+    void Form_II3p_111(void);                                                                                                             
+    void Form_II3p_112(void);   
+    void Form_II3p_113(void);                                                                                                             
+    void Form_II3p_114(void);                                                                                                             
+    void Form_II3p_115(void);                                                                                                             
+    void Form_II3p_116(void);                                                                                                             
+    void Form_II3p_117(void);                                                                                                             
+    void Form_II3p_118(void);                                                                                                             
+    void Form_II3p_119(void);                                                                                                             
+    void Form_II3p_120(void); 
+    void Form_II3p_121(void);                                                                                                             
+    void Form_II3p_122(void);                                                                                                             
+    void Form_II3p_123(void);                                                                                                             
+    void Form_II3p_124(void);                                                                                                             
+    void Form_II3p_125(void);                                                                                                             
+    void Form_II3p_126(void);                                                                                                             
+    void Form_II3p_127(void); 
+    void Form_II3p_128(void);
+    void Form_II3p_129(void);                 
+    void Form_II3p_130(void);                 
+    void Form_II3p_131(void);                 
+    void Form_II3p_132(void);                 
+    void Form_II3p_133(void);                 
+    void Form_II3p_134(void);                 
+    void Form_II3p_135(void);    
+    void Form_II3p_136(void);                                  
+                                                 
+                                                                                                                                                                                                                
+                                                                                                                                            
+                                                                                                                                              
+                                                                                                                                                
+                                                                                                                                                                                 
 
     void Form_II4e_1(void);
     void Form_II4p_2(void);
