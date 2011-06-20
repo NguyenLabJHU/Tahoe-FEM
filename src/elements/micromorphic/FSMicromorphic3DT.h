@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.194 2011-06-16 22:39:17 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.195 2011-06-20 21:14:39 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1711,6 +1711,26 @@ private:
     dMatrixT fKphiphi_II4p_8;
     dMatrixT II4p_9;
     dMatrixT fKphiphi_II4p_9;
+    /* Matrices from coupling*/    
+    dMatrixT II4p_10;
+    dMatrixT fKphiu_II4p_10;
+    dMatrixT II4p_11;
+    dMatrixT fKphiu_II4p_11;
+    dMatrixT II4p_12;
+    dMatrixT fKphiu_II4p_12;
+    dMatrixT II4p_13;
+    dMatrixT fKphiphi_II4p_13;    
+    dMatrixT II4p_14;
+    dMatrixT fKphiu_II4p_14;    
+    dMatrixT II4p_15;
+    dMatrixT fKphiphi_II4p_15; 
+    dMatrixT II4p_16;
+    dMatrixT fKphiu_II4p_16;
+    dMatrixT II4p_17;
+    dMatrixT fKphiphi_II4p_17;           
+    
+    
+    
 
 
     dMatrixT dFedDelgamma;
@@ -2514,6 +2534,15 @@ private:
     void Form_II4p_7(void);
     void Form_II4p_8(void);
     void Form_II4p_9(void);
+    /* Matrices from coupling*/    
+    void Form_II4p_10(void);
+    void Form_II4p_11(void);
+    void Form_II4p_12(void);
+    void Form_II4p_13(void);
+    void Form_II4p_14(void);
+    void Form_II4p_15(void);
+    void Form_II4p_16(void);
+    void Form_II4p_17(void);      
 
     /////////////////////////////////////////////////////////
 
