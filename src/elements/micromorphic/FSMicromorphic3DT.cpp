@@ -28854,7 +28854,8 @@ void FSMicromorphic3DT:: Form_II3p_129()
     int col=0;
     II3p_129=0.0;
 
-    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fD1,fFe);
+    fTemp_matrix_nsd_x_nsd2.Transpose(fD1);
+    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fTemp_matrix_nsd_x_nsd2,fFe);
        
      for(int B=0;B<3;B++)
         {
@@ -28888,7 +28889,8 @@ void FSMicromorphic3DT:: Form_II3p_130()
     int col=0;
     II3p_130=0.0;
 
-    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fD1,fFe);
+    fTemp_matrix_nsd_x_nsd2.Transpose(fD1);
+    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fTemp_matrix_nsd_x_nsd2,fFe);
     
      for(int B=0;B<3;B++)
         {
@@ -28925,7 +28927,8 @@ void FSMicromorphic3DT:: Form_II3p_131()
     int col=0;
     II3p_131=0.0;
 
-    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fD1,fFe);
+    fTemp_matrix_nsd_x_nsd2.Transpose(fD1);
+    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fTemp_matrix_nsd_x_nsd2,fFe);
     
     
      for(int B=0;B<3;B++)
@@ -28962,7 +28965,8 @@ void FSMicromorphic3DT:: Form_II3p_132()
     int col=0;
     II3p_132=0.0;
 
-    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fD1,fFe);
+    fTemp_matrix_nsd_x_nsd2.Transpose(fD1);
+    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fTemp_matrix_nsd_x_nsd2,fFe);
     
     
      for(int B=0;B<3;B++)
@@ -28998,7 +29002,8 @@ void FSMicromorphic3DT:: Form_II3p_133()
     int col=0;
     II3p_133=0.0;
 
-    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fD1,fFe);
+    fTemp_matrix_nsd_x_nsd2.Transpose(fD1);
+    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fTemp_matrix_nsd_x_nsd2,fFe);
     
      for(int B=0;B<3;B++)
         {
@@ -29034,7 +29039,8 @@ void FSMicromorphic3DT:: Form_II3p_134()
     int col=0;
     II3p_134=0.0;
 
-    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fD1,fFe);
+    fTemp_matrix_nsd_x_nsd2.Transpose(fD1);
+    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fTemp_matrix_nsd_x_nsd2,fFe);
     
      for(int B=0;B<3;B++)
         {
@@ -29070,7 +29076,8 @@ void FSMicromorphic3DT:: Form_II3p_135()
     int col=0;
     II3p_135=0.0;
 
-    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fD1,fFe);
+    fTemp_matrix_nsd_x_nsd2.Transpose(fD1);
+    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fTemp_matrix_nsd_x_nsd2,fFe);
     
     
      for(int B=0;B<3;B++)
@@ -29109,7 +29116,8 @@ void FSMicromorphic3DT:: Form_II3p_136()
     int col=0;
     II3p_136=0.0;
 
-    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fD1,fFe);
+    fTemp_matrix_nsd_x_nsd2.Transpose(fD1);
+    fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fTemp_matrix_nsd_x_nsd2,fFe);
     
     
      for(int B=0;B<3;B++)
