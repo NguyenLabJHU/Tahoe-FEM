@@ -3093,7 +3093,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 /* iterate using Newton-Raphson to solve for fDelgamma */
                                 iter_count = 0;                                                                                                           
 
-                    while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)  
+                    while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && iter_count < iIterationMax || fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)  
                     {
 
                         
@@ -3462,7 +3462,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     fs_micromorph3D_out<< "iter_count = " << iter_count<<endl;
                                     fs_micromorph3D_out<< "Element Number = "<< e <<endl;
                                     fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-                                     ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
+                                   //  ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
 
                                 }
 
@@ -3470,7 +3470,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fs_micromorph3D_out  <<"**********************************"<<endl;
 
 
-                                if (iter_count == iIterationMax)
+/*                                if (iter_count == iIterationMax)
                                 {
 
                                         cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
@@ -3478,6 +3478,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                         cout << "Current residual = " << fYield_function << endl;
                                 //         ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
                                 }
+*/                                
 
 //                              /* This part is already calculated above*/
 //                              /* calculate fFp_Inverse  */
@@ -3616,6 +3617,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fFp_inverse.Inverse(fFp);
                                 fFeT.Transpose(fFe);
                                 fCe_n_inverse.Inverse(fCe_n);
+                                
+                                /* Inverse of PSIe_n*/
+                                PSIe_n_inverse.Inverse(PSI3_n); 
+                                
+                                
                                 //fdGdS_n_transpose.Transpose(fdGdS_n);
                                 //fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n_transpose,fFp_n,fFp_inverse);
                                 fTemp_matrix_nsd_x_nsd2.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
