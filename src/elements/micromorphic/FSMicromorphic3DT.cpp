@@ -3561,10 +3561,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 /* Save Eulerian strain tensor of the current IP */
                                 fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
                                 
-                                /* [fMicroElastic_Right_Cauchy_Green_tensor] (Cchie) will be formed */
+                               /* [fMicroElastic_Right_Cauchy_Green_tensor] (Cchie) will be formed */                               
                                 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
                                 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
-                               	 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;                                  
+                               	 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;                               
 
                        		/* Assigning MicroRight_Elastic_Cauchy_Green_tensor to fCchie to be used in calculations*/
                                 fCchie=fMicroRight_Elastic_Cauchy_Green_tensor;
@@ -3673,7 +3673,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                 /* Forming the matrix D */
                 		fTemp_matrix_nsd_x_nsd.MultABCT(fChie,PSIe_n_inverse,fdGchidSIGMA_S_n);        
-                		fTemp_matrix_nsd_x_nsd2.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n); 
+                		fTemp_matrix_nsd_x_nsd2.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);                 		
               			fD1.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);                                                         
                 		fTemp_matrix_nsd_x_nsd.MultATBC(fFe,fD1,fChip_inverse);                                                                 
                 		fD1=fTemp_matrix_nsd_x_nsd;
