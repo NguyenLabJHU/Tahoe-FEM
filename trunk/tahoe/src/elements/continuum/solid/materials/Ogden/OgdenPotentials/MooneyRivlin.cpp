@@ -1,4 +1,4 @@
-/* $Id: MooneyRivlin.cpp,v 1.3 2010-08-15 15:27:52 tdnguye Exp $ */
+/* $Id: MooneyRivlin.cpp,v 1.4 2011-06-29 01:16:53 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -36,6 +36,10 @@ void MooneyRivlin::DefineParameters(ParameterListT& list) const
 	
 	/* set the description */
 	list.SetDescription("Psi=0.5*c1(I1_bar-3) - 0.5*c2(I2_bar -3)");	
+	/*Note that the constants c1 and c2 correspond to the constants of a 2 term Ogden model. * 
+	 *Mooney Rivlin is conventionally written as Psi= c1b (I1_bar-3) + c2b (I2_bar-3),		 *
+	 *where c1b=c1/2 and c2b = -c2/2.
+	 I've verified the stress formulation several times.  It's correct.  TDN 6/29/2011 */
 }
 
 void MooneyRivlin::TakeParameterList(const ParameterListT& list)

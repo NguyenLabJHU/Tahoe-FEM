@@ -1,4 +1,4 @@
-/* $Id: NeoHookean.cpp,v 1.10 2010-12-06 21:22:42 tdnguye Exp $ */
+/* $Id: NeoHookean.cpp,v 1.11 2011-06-29 01:16:53 tdnguye Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -32,7 +32,10 @@ void NeoHookean::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fMu, "mu");
 	
 	/* set the description */
-	list.SetDescription("Psi(Cbar) = 0.3*mu(I1bar-3)");	
+	list.SetDescription("Psi(Cbar) = 0.5*mu(I1bar-3)");	
+	/*Note that mu is the constant of a one term Ogden model*
+	 *Neo-Hookean is conventionally written as Psi=c1*(I1bar-3),
+	 where c1=mu/2*/
 }
 
 void NeoHookean::TakeParameterList(const ParameterListT& list)
