@@ -1,0 +1,22 @@
+/* $Id: tahoe.MacOS.pch++,v 1.5 2006-11-01 05:13:44 paklein Exp $ */
+#ifdef __MWERKS__
+#pragma check_header_flags on  
+
+//#define _MSL_USING_MW_C_HEADERS 1
+
+#if __MACH__
+	#if _MSL_USING_MW_C_HEADERS
+		#pragma precompile_target "tahoe.Mach-O.mch"
+	#else
+		#pragma precompile_target "tahoe-BSD.Mach-O.mch"
+	#endif
+#else
+	#pragma precompile_target "tahoe.PPC.mch"
+#endif
+#endif /* __MWERKS__ */
+
+/* tahoe defines */
+#include "tahoeOptions.h"
+
+/* commonly included headers */
+#include "tahoePrefix.h"

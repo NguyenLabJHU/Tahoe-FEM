@@ -1,0 +1,59 @@
+/* $Id: tahoeOptions.h.template,v 1.8 2006-06-05 17:19:27 regueiro Exp $ */
+/* optional libraries - enabled from command line with -D[symbol] declarations */
+#ifndef _TAHOE_OPTIONS_H_
+#define _TAHOE_OPTIONS_H_
+
+/* libraries - enabled from command line with -D[symbol] declarations */
+
+/* development: the Tahoe development module */
+//#define __DEVELOPMENT__
+
+/* f2c: FORTRAN to C support */
+//#define __F2C__
+
+/* MPI: message passing interface */
+//#define __TAHOE_MPI__
+
+/* Aztec: sparse, iterative linear algebra library */
+//#define __AZTEC__
+
+/* SuperLU: sparse, direct solver */
+//#define __SUPERLU__
+
+/* SuperLU MT: multi-threaded version of SuperLU */
+//#define __SUPERLU_MT__
+
+/* SPOOLES: sparse, direct solver */
+//#define __SPOOLES__
+
+/* SPOOLES MT: multihreaded version of SPOOLES. Requires SPOOLES as well */
+//#define __SPOOLES_MT__
+
+/* ACME: contact library */
+//#define __ACME__
+
+/* METIS: graph partitioning package */
+//#define __METIS__
+
+/* ACCESS: Sandia Engineering Sciences tools */
+//#define __ACCESS__
+
+/* NOX: nonlinear solver library */
+//#define __NOX__
+
+/* EXPAT: XML parser */
+#define __EXPAT__
+
+/* PSPASES: symmetric sparse direct solver */
+//#define __PSPASES__
+
+/* SIERRA: models from Sierra */
+//#define __SIERRA__
+
+/* QHULL library for computing Voronoi tesselations */
+//#define __QHULL__
+
+/* shared interface model library by J. Cox (Sandia National Laboraroties) */
+//#define __SIMOD__
+
+#endif /* _TAHOE_OPTIONS_H_ */
