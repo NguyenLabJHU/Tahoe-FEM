@@ -1,7 +1,0 @@
-@
-# $Id: run.batch,v 1.1 2005-07-02 22:16:46 paklein Exp $
--run
-indent.EAM.xml
--join
--4
-indent.EAM.xml
