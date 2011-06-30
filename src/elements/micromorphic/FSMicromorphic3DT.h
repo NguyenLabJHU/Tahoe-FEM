@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.198 2011-06-26 10:34:57 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.199 2011-06-30 22:14:01 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -838,7 +838,9 @@ private:
     dMatrixT PSIe_inverse;   
     dMatrixT PSIe_tr;
     dMatrixT PSIe;
-    dMatrixT fCchie;    
+    dMatrixT fCchie;
+    dMatrixT fCchie_tr;          
+    dMatrixT fCchi;         
     dMatrixT fCchie_n;
     dMatrixT fCchie_n_inverse;    
     dMatrixT dChipdDgammachi;
@@ -932,7 +934,7 @@ private:
    double fdFYdS_fD1,fdFYdS_fD1T;
    double fConst2,fConst3;
    double Comp11,Comp12,Comp21,Comp22;
-   double Comp1,Comp2,Comp3,Comp4;   
+   //double Comp1,Comp2,Comp3,Comp4;   
 
     dMatrixT IJp_1;
     dMatrixT fKu_IJp_1;
