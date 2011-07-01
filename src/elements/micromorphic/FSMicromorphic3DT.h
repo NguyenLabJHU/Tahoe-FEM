@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.199 2011-06-30 22:14:01 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.200 2011-07-01 21:41:32 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -917,7 +917,7 @@ private:
    int iIterationMax;
    double dRelTol, dAbsTol,fConst1;
 
-   int PlasticityCondition;
+   int PlasticityCondition,MacroPlasticityCondition,MicroPlasticityCondition;
 
    /* for local trial yield check */
    double dYieldTrialTol;
