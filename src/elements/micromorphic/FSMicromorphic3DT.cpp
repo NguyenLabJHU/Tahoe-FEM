@@ -4331,6 +4331,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fA2.MultAB(fTemp_matrix_nsd_x_nsd,fTemp_matrix_nsd_x_nsd2);
                                 fTemp_matrix_nsd_x_nsd.MultABCT(fA2,SPK,fFe);
                                 fA2=fTemp_matrix_nsd_x_nsd;
+                                
                                 if(PlasticityCondition==1 || PlasticityCondition==3)
                                 {
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_1,fShapeDisplGrad);
@@ -6775,7 +6776,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
                                         fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
-
+				fCchie=fMicroRight_Elastic_Cauchy_Green_tensor;
+				
                                 /* Current IP values are saved for Fp, and Cen */
                                 fTemp_matrix_nsd_x_nsd=fFe.Inverse();
                                 fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
