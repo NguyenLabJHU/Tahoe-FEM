@@ -3863,7 +3863,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                 		    Comp21=0.0;
                     
                                 }  
-                              if(MacroPlasticityCondition==1 && MicroPlasticityCondition==1)
+                              if(MacroPlasticityCondition==0 && MicroPlasticityCondition==1)
                                 {
                 		    Comp11=0.0;
                 		    Comp22=1/fConst4;
