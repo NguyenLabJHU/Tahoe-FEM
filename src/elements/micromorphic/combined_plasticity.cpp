@@ -1,4 +1,58 @@
-                              PlasticityCondition=4;
+
+
+                        /* Form the trial deviatoric SPK */
+                        Pbar_tr=fSPK_tr.Trace()/3;//Calculating the pressure term
+                        fdevSPK_tr.SetToScaled(Pbar_tr,fIdentity_matrix);
+                        fdevSPK_tr*=-1;
+                        fdevSPK_tr+=fSPK_tr;
+
+                        /* Form the trial deviatoric SIGMA-S */
+                        Pchibar_tr=SIGMA_S_tr.Trace()/3;//Calculating the pressure term
+                        devSIGMA_S_tr.SetToScaled(Pchibar_tr,fIdentity_matrix);
+                        devSIGMA_S_tr*=-1;
+                        devSIGMA_S_tr+=SIGMA_S_tr;
+
+                        /* Calculate ||devS:devS+devR:devR||  */
+                        Temp_inv= fdevSPK_tr.ScalarProduct();
+                        Stress_Norm_tr=Temp_inv;
+                        Temp_inv= devSIGMA_S_tr.ScalarProduct();
+                        Stress_Norm_tr+=Temp_inv;
+                        Temp_inv=Stress_Norm_tr;
+                        Stress_Norm_tr=sqrt(Temp_inv);
+
+
+                        /* Check for yielding */
+
+
+
+                        /* Calculate devS: devS  */
+                        Temp_inv= fdevSPK_tr.ScalarProduct();
+                        devfSPKinv_tr=sqrt(Temp_inv);
+
+                        //Check for yielding
+                       fYield_function_tr=Stress_Norm_tr-(Aphi*fState_variables_n_IPs(IP,kc)-Bphi*Pbar_tr+Aphi_chi*fState_variables_n_IPs(IP,kc_chi)-Bphi_chi*Pchibar_tr);
+
+
+                        //Calculate dev(SIGMA-S):dev(SIGMA-S)
+                        //Temp_inv=dMatrixT::Dot(SIGMA_S_tr,SIGMA_S_tr);
+                        Temp_inv= devSIGMA_S_tr.ScalarProduct();
+                        devSIGMA_S_inv_tr=sqrt(Temp_inv);
+
+
+                        //Check for micro-yielding
+                        //fMicroYield_function_tr=devSIGMA_S_inv_tr-(Aphi_chi*(fState_variables_n_IPs(IP,kc_chi))-Bphi_chi*mean_stress_tr);
+
+
+
+                    //if(fYield_function_tr>dYieldTrialTol || fMicroYield_function_tr> dYieldTrialTol)// If one of the scales yield! Macro or Micro
+                     if(fYield_function_tr>dYieldTrialTol)// If one of the scales yield! Macro or Micro
+                     {
+
+                       	//if(fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
+                    	 if(fYield_function_tr>dYieldTrialTol)//Macro-plastic, Micro-elastic
+							 {
+
+                                PlasticityCondition=4;
                                 //initialize before iteration
                                 fYield_function=fYield_function_tr;
                                 fMicroYield_function=fMicroYield_function_tr;
@@ -271,7 +325,7 @@
                                 	fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
                                 	SIGMA_S+=fTemp_matrix_nsd_x_nsd;
 
-                                	cout<<"Elastic_MicroStnTensor.det="<<Elastic_MicroStnTensor.Det()<<endl;
+                                	//cout<<"Elastic_MicroStnTensor.det="<<Elastic_MicroStnTensor.Det()<<endl;
 
                                 	//calculate  devS stress
                                 	Pbar=SPK.Trace()/3;//Calculating the pressure term
@@ -303,3 +357,8 @@
                                 	fYield_function=Stress_Norm-(Aphi*fState_variables_IPs(IP,kc)-Bphi*Pbar+Aphi_chi*fState_variables_IPs(IP,kc_chi)-Bphi_chi*Pchibar);
 
                                 	fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
+
+                                } //	end of the local fDelgamma while loop
+                                fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
+                                fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
+                            }//end of the Combined-plasticity
