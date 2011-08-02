@@ -296,7 +296,7 @@
 
 
                                     /* Check for yielding */
-//                                    fCombinedYield_Function=Stress_Norm-(Aphi*fState_variables_IPs(IP,kc)-Bphi*Pbar+Aphi_chi*fState_variables_IPs(IP,kc)-Bphi_chi*Pchibar);
+//                                    fCombinedYield_Function=Stress_Norm-(Aphi*fState_variables_IPs(IP,kc)-Bphi*Pbar+Aphi_chi*fState_variables_IPs(IP,kc_chi)-Bphi_chi*Pchibar);
                                     fCombinedYield_Function=Stress_Norm-(Aphi*fState_variables_IPs(IP,kc)-Bphi*Pbar);
 
                                     fs_micromorph3D_out  << "Current relative residual = " << fabs(fCombinedYield_Function/fCombinedYield_Function_tr) << endl;
