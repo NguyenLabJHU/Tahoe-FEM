@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.200 2011-07-01 21:41:32 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.201 2011-08-04 05:55:18 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -69,7 +69,7 @@ public:
         kHc,
         kc0,
         kHc_chi,
-        kc0_chi,        
+        kc0_chi,
         //kZ0c,
         kFphi,
         kDpsi,
@@ -86,7 +86,7 @@ public:
     enum fMaterialState_T         {
     //    kkappa,
         kc,
-        kc_chi,            
+        kc_chi,
         //    kZkappa,
     //    kZc,
     //    khkappa,
@@ -824,57 +824,68 @@ private:
     dMatrixT fdGdS;
     dMatrixT fdFYdS;
     dMatrixT fdFYdS_n;
-    
+
     /***************************************************/
-    /*****Micro-scale plasticity matrices **************/  
-    /***************************************************/ 
-    dMatrixT fdFYchidSIGMA_S; 
-    dMatrixT fdFYchidSIGMA_S_n;                 
+    /*****Micro-scale plasticity matrices **************/
+    /***************************************************/
+    dMatrixT fdFYchidSIGMA_S;
+    dMatrixT fdFYchidSIGMA_S_n;
     dMatrixT fdGchidSIGMA_S;
     dMatrixT fdGchidSIGMA_S_n_transpose;
     dMatrixT fdGchidSIGMA_S_n;
-    dMatrixT PSIe_n_inverse;    
-    dMatrixT PSIe_n;    
-    dMatrixT PSIe_inverse;   
+    dMatrixT PSIe_n_inverse;
+    dMatrixT PSIe_n;
+    dMatrixT PSIe_inverse;
     dMatrixT PSIe_tr;
     dMatrixT PSIe;
     dMatrixT fCchie;
-    dMatrixT fCchie_tr;          
-    dMatrixT fCchi;         
+    dMatrixT fCchie_tr;
+    dMatrixT fCchi;
     dMatrixT fCchie_n;
-    dMatrixT fCchie_n_inverse;    
-    dMatrixT dChipdDgammachi;
-    dMatrixT dChiedDgammachi;
+    dMatrixT fCchie_n_inverse;
+
+    dMatrixT dChipdDelgamma;//For combined plasticity
+    dMatrixT dChipdDelgammachi;
+    dMatrixT dChiedDelgamma;
+    dMatrixT dChiedDelgammachi;
     dMatrixT dEpsilonedDelgammachi;
     dMatrixT dSdDelgammachi;
-    dMatrixT ddevSdDelgammachi;    
+    dMatrixT ddevSdDelgammachi;
     dMatrixT dSIGMA_SdDelgamma;
     dMatrixT dSIGMA_SdDelgammachi;
-    dMatrixT ddevSIGMA_SdDelgamma;    
+    dMatrixT ddevSIGMA_SdDelgamma;
     dMatrixT ddevSIGMA_SdDelgammachi;
-    
-    
+
+
     dMatrixT LocalConsistentTangent;
-    dMatrixT LocalConsistentTangentInverse;    
+    dMatrixT LocalConsistentTangentInverse;
     dArrayT LocalRHSVector;
-    dArrayT fdelDelgammaVector;    
-    
-    
+    dArrayT fdelDelgammaVector;
+
+    dArrayT Temp_vec1;
+    dArrayT Temp_vec2;
+    dArrayT Temp_vec3;
+    dArrayT Temp_vec4;
+
+    double alphai;
+    double alpha1;
+    double alpha2;
+    double s1,s2,incr,incrx;
     /***************************************************/
     /***************************************************/
-    /***************************************************/         
-    
-    
+    /***************************************************/
+
+
 
     dMatrixT fRight_Cauchy_Green_tensor_tr;
     dMatrixT fLagrangian_strain_tensor_tr;
     dMatrixT Elastic_MicroStnTensor_tr;
     dMatrixT Elastic_MicroStnTensor;
-    dMatrixT fMicroRight_Cauchy_Green_tensor;        
-    dMatrixT fMicroRight_Cauchy_Green_tensor_tr;    
-    dMatrixT fMicroRight_Elastic_Cauchy_Green_tensor;        
-    dMatrixT fMicroRight_Elastic_Cauchy_Green_tensor_tr;    
-    //dMatrixT fMicroRight_Cauchy_Green_tensor;    
+    dMatrixT fMicroRight_Cauchy_Green_tensor;
+    dMatrixT fMicroRight_Cauchy_Green_tensor_tr;
+    dMatrixT fMicroRight_Elastic_Cauchy_Green_tensor;
+    dMatrixT fMicroRight_Elastic_Cauchy_Green_tensor_tr;
+    //dMatrixT fMicroRight_Cauchy_Green_tensor;
     //dMatrixT fMicroRight_Cauchy_Green_tensor_tr;
 
     dMatrixT fSPK_tr;
@@ -898,13 +909,18 @@ private:
     dMatrixT fN1;
     dMatrixT fD1;
 
+
+    int PlasticityCheck;
+    double fCombinedYield_function,fCombinedYield_function_tr,Stress_Norm,Stress_Norm_tr,dFCYdDelGamma;
+    double Pbar,Pbar_tr,Pchibar,Pchibar_tr,dcchidDelgamma;
+    double dFCYdDelgamma;
     double fYield_function,fYield_function_tr,dFYdc;
     double fMicroYield_function,fMicroYield_function_tr;
     double devfSPKinv,devfSPKinv_tr;
-    double devSIGMA_S_inv,devSIGMA_S_inv_tr;    
+    double devSIGMA_S_inv,devSIGMA_S_inv_tr;
     double fDelgamma, fdelDelgamma,dFYdDelgamma,dFYdDelgammachi;
     double fDelgammachi, fdelDelgammachi,dFYchidDelgammachi,dFYchidDelgamma;
-    double dPdDelgamma,dcdDelgamma,Temp_inv,press,dinvSdDelgamma;
+    double dPdDelgamma,dcdDelgamma,Temp_inv,press,InvddevSdDelgamma;
     double dPdDelgammachi,ddevSdDelgamma_inv,ddevSdDelgammachi_inv;
     double dPchidDelgammachi,dcchidDelgammachi,ddevSIGMA_SdDelgammachi_inv;
     double dPchidDelgamma,ddevSIGMA_SdDelgamma_inv;
@@ -918,6 +934,7 @@ private:
    double dRelTol, dAbsTol,fConst1;
 
    int PlasticityCondition,MacroPlasticityCondition,MicroPlasticityCondition;
+   int iPlasticityCheck;
 
    /* for local trial yield check */
    double dYieldTrialTol;
@@ -928,13 +945,13 @@ private:
    double fdFYchidSIGMA_S_fA1,fdFYchidSIGMA_S_fA1T,fdFYchidSIGMA_S_fN1,fdFYchidSIGMA_S_fN1T;
    double fConst4,fdFYchidcchi;
    double mean_stress_tr,mean_stress;
-   
-   
-   /* for coupled solution*/  
+
+
+   /* for coupled solution*/
    double fdFYdS_fD1,fdFYdS_fD1T;
    double fConst2,fConst3;
    double Comp11,Comp12,Comp21,Comp22;
-   //double Comp1,Comp2,Comp3,Comp4;   
+   //double Comp1,Comp2,Comp3,Comp4;
 
     dMatrixT IJp_1;
     dMatrixT fKu_IJp_1;
@@ -962,15 +979,15 @@ private:
     dMatrixT IJp_12;
     dMatrixT fKu_IJp_12;
     dMatrixT IJp_13;
-    dMatrixT fKuphi_IJp_13;    
+    dMatrixT fKuphi_IJp_13;
     dMatrixT IJp_14;
     dMatrixT fKu_IJp_14;
     dMatrixT IJp_15;
-    dMatrixT fKuphi_IJp_15;       
+    dMatrixT fKuphi_IJp_15;
     dMatrixT IJp_16;
-    dMatrixT fKu_IJp_16; 
+    dMatrixT fKu_IJp_16;
     dMatrixT IJp_17;
-    dMatrixT fKuphi_IJp_17;                         
+    dMatrixT fKuphi_IJp_17;
 
     dMatrixT I1e_1;
     dMatrixT fKu_I1e_1;
@@ -1003,20 +1020,20 @@ private:
     dMatrixT I2p_13;
     dMatrixT fKu_I2p_13;
     dMatrixT I2p_14;
-    dMatrixT fKuphi_I2p_14;    
+    dMatrixT fKuphi_I2p_14;
     dMatrixT I2p_15;
     dMatrixT fKu_I2p_15;
     dMatrixT I2p_16;
-    dMatrixT fKuphi_I2p_16;        
+    dMatrixT fKuphi_I2p_16;
     dMatrixT I2p_17;
-    dMatrixT fKu_I2p_17;    
+    dMatrixT fKu_I2p_17;
     dMatrixT I2p_18;
-    dMatrixT fKuphi_I2p_18;                            
-    
-    
-    
-    
-    
+    dMatrixT fKuphi_I2p_18;
+
+
+
+
+
 
     dMatrixT I3e_1;
     dMatrixT fKu_I3e_1;
@@ -1128,184 +1145,184 @@ private:
     dMatrixT fKuphi_I3p_54;
     /* Matrices from Del(delgammachi) */
     dMatrixT I3p_55;
-    dMatrixT fKu_I3p_55;  
+    dMatrixT fKu_I3p_55;
     dMatrixT I3p_56;
-    dMatrixT fKu_I3p_56;     
+    dMatrixT fKu_I3p_56;
     dMatrixT I3p_57;
-    dMatrixT fKu_I3p_57; 
+    dMatrixT fKu_I3p_57;
     dMatrixT I3p_58;
     dMatrixT fKuphi_I3p_58;
     dMatrixT I3p_59;
-    dMatrixT fKu_I3p_59;     
+    dMatrixT fKu_I3p_59;
     dMatrixT I3p_60;
     dMatrixT fKuphi_I3p_60;
     dMatrixT I3p_61;
-    dMatrixT fKu_I3p_61;     
+    dMatrixT fKu_I3p_61;
     dMatrixT I3p_62;
-    dMatrixT fKuphi_I3p_62;            
+    dMatrixT fKuphi_I3p_62;
     dMatrixT I3p_63;
-    dMatrixT fKu_I3p_63;  
+    dMatrixT fKu_I3p_63;
     dMatrixT I3p_64;
-    dMatrixT fKu_I3p_64;     
+    dMatrixT fKu_I3p_64;
     dMatrixT I3p_65;
-    dMatrixT fKu_I3p_65; 
+    dMatrixT fKu_I3p_65;
     dMatrixT I3p_66;
     dMatrixT fKuphi_I3p_66;
     dMatrixT I3p_67;
-    dMatrixT fKu_I3p_67;     
+    dMatrixT fKu_I3p_67;
     dMatrixT I3p_68;
     dMatrixT fKuphi_I3p_68;
     dMatrixT I3p_69;
-    dMatrixT fKu_I3p_69;     
+    dMatrixT fKu_I3p_69;
     dMatrixT I3p_70;
-    dMatrixT fKuphi_I3p_70;      
+    dMatrixT fKuphi_I3p_70;
     dMatrixT I3p_71;
-    dMatrixT fKu_I3p_71;  
+    dMatrixT fKu_I3p_71;
     dMatrixT I3p_72;
-    dMatrixT fKu_I3p_72;     
+    dMatrixT fKu_I3p_72;
     dMatrixT I3p_73;
-    dMatrixT fKu_I3p_73; 
+    dMatrixT fKu_I3p_73;
     dMatrixT I3p_74;
     dMatrixT fKuphi_I3p_74;
     dMatrixT I3p_75;
-    dMatrixT fKu_I3p_75;     
+    dMatrixT fKu_I3p_75;
     dMatrixT I3p_76;
     dMatrixT fKuphi_I3p_76;
     dMatrixT I3p_77;
-    dMatrixT fKu_I3p_77;     
+    dMatrixT fKu_I3p_77;
     dMatrixT I3p_78;
-    dMatrixT fKuphi_I3p_78;    
+    dMatrixT fKuphi_I3p_78;
     /* Matrices from coupling*/
-    dMatrixT I3p_79;   
-    dMatrixT fKu_I3p_79;   
-    dMatrixT I3p_80; 
-    dMatrixT fKu_I3p_80;             
-    dMatrixT I3p_81;   
-    dMatrixT fKu_I3p_81;       
-    dMatrixT I3p_82;  
-    dMatrixT fKuphi_I3p_82;                
+    dMatrixT I3p_79;
+    dMatrixT fKu_I3p_79;
+    dMatrixT I3p_80;
+    dMatrixT fKu_I3p_80;
+    dMatrixT I3p_81;
+    dMatrixT fKu_I3p_81;
+    dMatrixT I3p_82;
+    dMatrixT fKuphi_I3p_82;
     dMatrixT I3p_83;
-    dMatrixT fKu_I3p_83;        
-    dMatrixT I3p_84; 
-    dMatrixT fKuphi_I3p_84;                                 
-    dMatrixT I3p_85; 
-    dMatrixT fKu_I3p_85;                               
-    dMatrixT I3p_86;     
-    dMatrixT fKuphi_I3p_86;      
-    dMatrixT I3p_87;   
-    dMatrixT fKu_I3p_87;   
-    dMatrixT I3p_88; 
-    dMatrixT fKu_I3p_88;             
-    dMatrixT I3p_89;   
-    dMatrixT fKu_I3p_89;       
-    dMatrixT I3p_90;  
-    dMatrixT fKuphi_I3p_90;                
+    dMatrixT fKu_I3p_83;
+    dMatrixT I3p_84;
+    dMatrixT fKuphi_I3p_84;
+    dMatrixT I3p_85;
+    dMatrixT fKu_I3p_85;
+    dMatrixT I3p_86;
+    dMatrixT fKuphi_I3p_86;
+    dMatrixT I3p_87;
+    dMatrixT fKu_I3p_87;
+    dMatrixT I3p_88;
+    dMatrixT fKu_I3p_88;
+    dMatrixT I3p_89;
+    dMatrixT fKu_I3p_89;
+    dMatrixT I3p_90;
+    dMatrixT fKuphi_I3p_90;
     dMatrixT I3p_91;
-    dMatrixT fKu_I3p_91;        
-    dMatrixT I3p_92; 
-    dMatrixT fKuphi_I3p_92;                                 
-    dMatrixT I3p_93; 
-    dMatrixT fKu_I3p_93;                               
-    dMatrixT I3p_94;     
-    dMatrixT fKuphi_I3p_94; 
-    dMatrixT I3p_95;   
-    dMatrixT fKu_I3p_95;   
-    dMatrixT I3p_96; 
-    dMatrixT fKu_I3p_96;             
-    dMatrixT I3p_97;   
-    dMatrixT fKu_I3p_97;       
-    dMatrixT I3p_98;  
-    dMatrixT fKuphi_I3p_98;                
+    dMatrixT fKu_I3p_91;
+    dMatrixT I3p_92;
+    dMatrixT fKuphi_I3p_92;
+    dMatrixT I3p_93;
+    dMatrixT fKu_I3p_93;
+    dMatrixT I3p_94;
+    dMatrixT fKuphi_I3p_94;
+    dMatrixT I3p_95;
+    dMatrixT fKu_I3p_95;
+    dMatrixT I3p_96;
+    dMatrixT fKu_I3p_96;
+    dMatrixT I3p_97;
+    dMatrixT fKu_I3p_97;
+    dMatrixT I3p_98;
+    dMatrixT fKuphi_I3p_98;
     dMatrixT I3p_99;
-    dMatrixT fKu_I3p_99;        
-    dMatrixT I3p_100; 
-    dMatrixT fKuphi_I3p_100;                                 
-    dMatrixT I3p_101; 
-    dMatrixT fKu_I3p_101;                               
-    dMatrixT I3p_102;     
+    dMatrixT fKu_I3p_99;
+    dMatrixT I3p_100;
+    dMatrixT fKuphi_I3p_100;
+    dMatrixT I3p_101;
+    dMatrixT fKu_I3p_101;
+    dMatrixT I3p_102;
     dMatrixT fKuphi_I3p_102;
-    dMatrixT I3p_103; 
-    dMatrixT fKu_I3p_103;      
-    dMatrixT I3p_104; 
+    dMatrixT I3p_103;
+    dMatrixT fKu_I3p_103;
+    dMatrixT I3p_104;
     dMatrixT fKu_I3p_104;
-    dMatrixT I3p_105; 
+    dMatrixT I3p_105;
     dMatrixT fKu_I3p_105;
-    dMatrixT I3p_106;     
-    dMatrixT fKuphi_I3p_106;  
-    dMatrixT I3p_107; 
-    dMatrixT fKu_I3p_107;     
-    dMatrixT I3p_108;     
-    dMatrixT fKuphi_I3p_108; 
-    dMatrixT I3p_109; 
-    dMatrixT fKu_I3p_109;     
-    dMatrixT I3p_110;     
-    dMatrixT fKuphi_I3p_110;           
-    dMatrixT I3p_111;   
-    dMatrixT fKu_I3p_111;   
-    dMatrixT I3p_112; 
-    dMatrixT fKu_I3p_112;             
-    dMatrixT I3p_113;   
-    dMatrixT fKu_I3p_113;       
-    dMatrixT I3p_114;  
-    dMatrixT fKuphi_I3p_114;                
+    dMatrixT I3p_106;
+    dMatrixT fKuphi_I3p_106;
+    dMatrixT I3p_107;
+    dMatrixT fKu_I3p_107;
+    dMatrixT I3p_108;
+    dMatrixT fKuphi_I3p_108;
+    dMatrixT I3p_109;
+    dMatrixT fKu_I3p_109;
+    dMatrixT I3p_110;
+    dMatrixT fKuphi_I3p_110;
+    dMatrixT I3p_111;
+    dMatrixT fKu_I3p_111;
+    dMatrixT I3p_112;
+    dMatrixT fKu_I3p_112;
+    dMatrixT I3p_113;
+    dMatrixT fKu_I3p_113;
+    dMatrixT I3p_114;
+    dMatrixT fKuphi_I3p_114;
     dMatrixT I3p_115;
-    dMatrixT fKu_I3p_115;        
-    dMatrixT I3p_116; 
-    dMatrixT fKuphi_I3p_116;                                 
-    dMatrixT I3p_117; 
-    dMatrixT fKu_I3p_117;                               
-    dMatrixT I3p_118;     
-    dMatrixT fKuphi_I3p_118;  
-    dMatrixT I3p_119;   
-    dMatrixT fKu_I3p_119;   
-    dMatrixT I3p_120; 
-    dMatrixT fKu_I3p_120;             
-    dMatrixT I3p_121;   
-    dMatrixT fKu_I3p_121;       
-    dMatrixT I3p_122;  
-    dMatrixT fKuphi_I3p_122;                
+    dMatrixT fKu_I3p_115;
+    dMatrixT I3p_116;
+    dMatrixT fKuphi_I3p_116;
+    dMatrixT I3p_117;
+    dMatrixT fKu_I3p_117;
+    dMatrixT I3p_118;
+    dMatrixT fKuphi_I3p_118;
+    dMatrixT I3p_119;
+    dMatrixT fKu_I3p_119;
+    dMatrixT I3p_120;
+    dMatrixT fKu_I3p_120;
+    dMatrixT I3p_121;
+    dMatrixT fKu_I3p_121;
+    dMatrixT I3p_122;
+    dMatrixT fKuphi_I3p_122;
     dMatrixT I3p_123;
-    dMatrixT fKu_I3p_123;        
-    dMatrixT I3p_124; 
-    dMatrixT fKuphi_I3p_124;                                 
-    dMatrixT I3p_125; 
-    dMatrixT fKu_I3p_125;                               
-    dMatrixT I3p_126;     
-    dMatrixT fKuphi_I3p_126;  
-    dMatrixT I3p_127; 
-    dMatrixT fKu_I3p_127;      
-    dMatrixT I3p_128; 
+    dMatrixT fKu_I3p_123;
+    dMatrixT I3p_124;
+    dMatrixT fKuphi_I3p_124;
+    dMatrixT I3p_125;
+    dMatrixT fKu_I3p_125;
+    dMatrixT I3p_126;
+    dMatrixT fKuphi_I3p_126;
+    dMatrixT I3p_127;
+    dMatrixT fKu_I3p_127;
+    dMatrixT I3p_128;
     dMatrixT fKu_I3p_128;
-    dMatrixT I3p_129; 
+    dMatrixT I3p_129;
     dMatrixT fKu_I3p_129;
-    dMatrixT I3p_130;     
-    dMatrixT fKuphi_I3p_130;  
-    dMatrixT I3p_131; 
-    dMatrixT fKu_I3p_131;     
-    dMatrixT I3p_132;     
-    dMatrixT fKuphi_I3p_132; 
-    dMatrixT I3p_133; 
-    dMatrixT fKu_I3p_133;     
-    dMatrixT I3p_134;     
-    dMatrixT fKuphi_I3p_134;     
-    dMatrixT I3p_135; 
-    dMatrixT fKu_I3p_135;      
-    dMatrixT I3p_136; 
+    dMatrixT I3p_130;
+    dMatrixT fKuphi_I3p_130;
+    dMatrixT I3p_131;
+    dMatrixT fKu_I3p_131;
+    dMatrixT I3p_132;
+    dMatrixT fKuphi_I3p_132;
+    dMatrixT I3p_133;
+    dMatrixT fKu_I3p_133;
+    dMatrixT I3p_134;
+    dMatrixT fKuphi_I3p_134;
+    dMatrixT I3p_135;
+    dMatrixT fKu_I3p_135;
+    dMatrixT I3p_136;
     dMatrixT fKu_I3p_136;
-    dMatrixT I3p_137; 
+    dMatrixT I3p_137;
     dMatrixT fKu_I3p_137;
-    dMatrixT I3p_138;     
-    dMatrixT fKuphi_I3p_138;  
-    dMatrixT I3p_139; 
-    dMatrixT fKu_I3p_139;     
-    dMatrixT I3p_140;     
-    dMatrixT fKuphi_I3p_140; 
-    dMatrixT I3p_141; 
-    dMatrixT fKu_I3p_141;     
-    dMatrixT I3p_142;     
-    dMatrixT fKuphi_I3p_142;                                                                       
+    dMatrixT I3p_138;
+    dMatrixT fKuphi_I3p_138;
+    dMatrixT I3p_139;
+    dMatrixT fKu_I3p_139;
+    dMatrixT I3p_140;
+    dMatrixT fKuphi_I3p_140;
+    dMatrixT I3p_141;
+    dMatrixT fKu_I3p_141;
+    dMatrixT I3p_142;
+    dMatrixT fKuphi_I3p_142;
 
-               
+
 
     dMatrixT I4e_1;
     dMatrixT fKu_I4e_1;
@@ -1327,23 +1344,23 @@ private:
     dMatrixT fKuphi_I4p_9;
     dMatrixT I4p_10;
     dMatrixT fKuphi_I4p_10;
-    /* Matrices from coupling*/    
+    /* Matrices from coupling*/
     dMatrixT I4p_11;
-    dMatrixT fKu_I4p_11;   
+    dMatrixT fKu_I4p_11;
     dMatrixT I4p_12;
     dMatrixT fKu_I4p_12;
     dMatrixT I4p_13;
-    dMatrixT fKu_I4p_13;                 
+    dMatrixT fKu_I4p_13;
     dMatrixT I4p_14;
     dMatrixT fKuphi_I4p_14;
     dMatrixT I4p_15;
-    dMatrixT fKu_I4p_15;        
+    dMatrixT fKu_I4p_15;
     dMatrixT I4p_16;
     dMatrixT fKuphi_I4p_16;
     dMatrixT I4p_17;
-    dMatrixT fKu_I4p_17;        
+    dMatrixT fKu_I4p_17;
     dMatrixT I4p_18;
-    dMatrixT fKuphi_I4p_18;            
+    dMatrixT fKuphi_I4p_18;
 
     dMatrixT IIJp_1;
     dMatrixT fKphiu_IIJp_1;
@@ -1367,17 +1384,17 @@ private:
     dMatrixT IIJp_10;
     dMatrixT fKphiu_IIJp_10;
     dMatrixT IIJp_11;
-    dMatrixT fKphiu_IIJp_11;            
+    dMatrixT fKphiu_IIJp_11;
     dMatrixT IIJp_12;
     dMatrixT fKphiphi_IIJp_12;
     dMatrixT IIJp_13;
-    dMatrixT fKphiu_IIJp_13;      
+    dMatrixT fKphiu_IIJp_13;
     dMatrixT IIJp_14;
     dMatrixT fKphiphi_IIJp_14;
     dMatrixT IIJp_15;
-    dMatrixT fKphiu_IIJp_15;      
+    dMatrixT fKphiu_IIJp_15;
     dMatrixT IIJp_16;
-    dMatrixT fKphiphi_IIJp_16;            
+    dMatrixT fKphiphi_IIJp_16;
 
     dMatrixT II2e_1;
     dMatrixT fKphiu_II2e_1;
@@ -1397,7 +1414,7 @@ private:
     dMatrixT fKphiphi_II2p_8;
     dMatrixT II2p_9;
     dMatrixT fKphiphi_II2p_9;
-    /* Matrices from coupling*/    
+    /* Matrices from coupling*/
     dMatrixT II2p_10;
     dMatrixT fKphiu_II2p_10;
     dMatrixT II2p_11;
@@ -1405,15 +1422,15 @@ private:
     dMatrixT II2p_12;
     dMatrixT fKphiu_II2p_12;
     dMatrixT II2p_13;
-    dMatrixT fKphiphi_II2p_13;    
+    dMatrixT fKphiphi_II2p_13;
     dMatrixT II2p_14;
-    dMatrixT fKphiu_II2p_14;    
+    dMatrixT fKphiu_II2p_14;
     dMatrixT II2p_15;
-    dMatrixT fKphiphi_II2p_15; 
+    dMatrixT fKphiphi_II2p_15;
     dMatrixT II2p_16;
     dMatrixT fKphiu_II2p_16;
     dMatrixT II2p_17;
-    dMatrixT fKphiphi_II2p_17;                          
+    dMatrixT fKphiphi_II2p_17;
 
 
 
@@ -1519,64 +1536,64 @@ private:
     dMatrixT II3p_50;
     dMatrixT fKphiu_II3p_50;
     dMatrixT II3p_51;
-    dMatrixT fKphiu_II3p_51; 
+    dMatrixT fKphiu_II3p_51;
     dMatrixT II3p_52;
     dMatrixT fKphiphi_II3p_52;
     dMatrixT II3p_53;
-    dMatrixT fKphiu_II3p_53; 
+    dMatrixT fKphiu_II3p_53;
     dMatrixT II3p_54;
     dMatrixT fKphiphi_II3p_54;
     dMatrixT II3p_55;
-    dMatrixT fKphiu_II3p_55;     
+    dMatrixT fKphiu_II3p_55;
     dMatrixT II3p_56;
-    dMatrixT fKphiphi_II3p_56;            
+    dMatrixT fKphiphi_II3p_56;
     dMatrixT II3p_57;
     dMatrixT fKphiu_II3p_57;
     dMatrixT II3p_58;
     dMatrixT fKphiu_II3p_58;
     dMatrixT II3p_59;
-    dMatrixT fKphiu_II3p_59; 
+    dMatrixT fKphiu_II3p_59;
     dMatrixT II3p_60;
     dMatrixT fKphiphi_II3p_60;
     dMatrixT II3p_61;
-    dMatrixT fKphiu_II3p_61; 
+    dMatrixT fKphiu_II3p_61;
     dMatrixT II3p_62;
     dMatrixT fKphiphi_II3p_62;
     dMatrixT II3p_63;
-    dMatrixT fKphiu_II3p_63;     
+    dMatrixT fKphiu_II3p_63;
     dMatrixT II3p_64;
-    dMatrixT fKphiphi_II3p_64;  
-    dMatrixT II3p_65;   
+    dMatrixT fKphiphi_II3p_64;
+    dMatrixT II3p_65;
     dMatrixT fKphiu_II3p_65;
     dMatrixT II3p_66;
     dMatrixT fKphiu_II3p_66;
     dMatrixT II3p_67;
-    dMatrixT fKphiu_II3p_67; 
+    dMatrixT fKphiu_II3p_67;
     dMatrixT II3p_68;
     dMatrixT fKphiphi_II3p_68;
     dMatrixT II3p_69;
-    dMatrixT fKphiu_II3p_69; 
+    dMatrixT fKphiu_II3p_69;
     dMatrixT II3p_70;
     dMatrixT fKphiphi_II3p_70;
     dMatrixT II3p_71;
-    dMatrixT fKphiu_II3p_71;     
+    dMatrixT fKphiu_II3p_71;
     dMatrixT II3p_72;
-    dMatrixT fKphiphi_II3p_72;  
+    dMatrixT fKphiphi_II3p_72;
     /* Matrices from coupling */
     dMatrixT II3p_73;
     dMatrixT fKphiu_II3p_73;
     dMatrixT II3p_74;
     dMatrixT fKphiu_II3p_74;
     dMatrixT II3p_75;
-    dMatrixT fKphiu_II3p_75;   
+    dMatrixT fKphiu_II3p_75;
     dMatrixT II3p_76;
-    dMatrixT fKphiphi_II3p_76; 
+    dMatrixT fKphiphi_II3p_76;
     dMatrixT II3p_77;
-    dMatrixT fKphiu_II3p_77; 
+    dMatrixT fKphiu_II3p_77;
     dMatrixT II3p_78;
     dMatrixT fKphiphi_II3p_78;
     dMatrixT II3p_79;
-    dMatrixT fKphiu_II3p_79;     
+    dMatrixT fKphiu_II3p_79;
     dMatrixT II3p_80;
     dMatrixT fKphiphi_II3p_80;
     dMatrixT II3p_81;
@@ -1584,117 +1601,117 @@ private:
     dMatrixT II3p_82;
     dMatrixT fKphiu_II3p_82;
     dMatrixT II3p_83;
-    dMatrixT fKphiu_II3p_83;   
+    dMatrixT fKphiu_II3p_83;
     dMatrixT II3p_84;
-    dMatrixT fKphiphi_II3p_84; 
+    dMatrixT fKphiphi_II3p_84;
     dMatrixT II3p_85;
-    dMatrixT fKphiu_II3p_85; 
+    dMatrixT fKphiu_II3p_85;
     dMatrixT II3p_86;
     dMatrixT fKphiphi_II3p_86;
     dMatrixT II3p_87;
-    dMatrixT fKphiu_II3p_87;     
+    dMatrixT fKphiu_II3p_87;
     dMatrixT II3p_88;
-    dMatrixT fKphiphi_II3p_88;   
+    dMatrixT fKphiphi_II3p_88;
     dMatrixT II3p_89;
-    dMatrixT fKphiu_II3p_89;            
+    dMatrixT fKphiu_II3p_89;
     dMatrixT II3p_90;
     dMatrixT fKphiu_II3p_90;
     dMatrixT II3p_91;
-    dMatrixT fKphiu_II3p_91;   
+    dMatrixT fKphiu_II3p_91;
     dMatrixT II3p_92;
-    dMatrixT fKphiphi_II3p_92; 
+    dMatrixT fKphiphi_II3p_92;
     dMatrixT II3p_93;
-    dMatrixT fKphiu_II3p_93; 
+    dMatrixT fKphiu_II3p_93;
     dMatrixT II3p_94;
     dMatrixT fKphiphi_II3p_94;
     dMatrixT II3p_95;
-    dMatrixT fKphiu_II3p_95;     
+    dMatrixT fKphiu_II3p_95;
     dMatrixT II3p_96;
-    dMatrixT fKphiphi_II3p_96;                
+    dMatrixT fKphiphi_II3p_96;
     dMatrixT II3p_97;
-    dMatrixT fKphiu_II3p_97;            
+    dMatrixT fKphiu_II3p_97;
     dMatrixT II3p_98;
     dMatrixT fKphiu_II3p_98;
     dMatrixT II3p_99;
-    dMatrixT fKphiu_II3p_99;   
+    dMatrixT fKphiu_II3p_99;
     dMatrixT II3p_100;
-    dMatrixT fKphiphi_II3p_100; 
+    dMatrixT fKphiphi_II3p_100;
     dMatrixT II3p_101;
-    dMatrixT fKphiu_II3p_101; 
+    dMatrixT fKphiu_II3p_101;
     dMatrixT II3p_102;
     dMatrixT fKphiphi_II3p_102;
     dMatrixT II3p_103;
-    dMatrixT fKphiu_II3p_103;     
+    dMatrixT fKphiu_II3p_103;
     dMatrixT II3p_104;
-    dMatrixT fKphiphi_II3p_104;    
+    dMatrixT fKphiphi_II3p_104;
     dMatrixT II3p_105;
-    dMatrixT fKphiu_II3p_105;            
+    dMatrixT fKphiu_II3p_105;
     dMatrixT II3p_106;
     dMatrixT fKphiu_II3p_106;
     dMatrixT II3p_107;
-    dMatrixT fKphiu_II3p_107;   
+    dMatrixT fKphiu_II3p_107;
     dMatrixT II3p_108;
-    dMatrixT fKphiphi_II3p_108; 
+    dMatrixT fKphiphi_II3p_108;
     dMatrixT II3p_109;
-    dMatrixT fKphiu_II3p_109; 
+    dMatrixT fKphiu_II3p_109;
     dMatrixT II3p_110;
     dMatrixT fKphiphi_II3p_110;
     dMatrixT II3p_111;
-    dMatrixT fKphiu_II3p_111;     
+    dMatrixT fKphiu_II3p_111;
     dMatrixT II3p_112;
     dMatrixT fKphiphi_II3p_112;
     dMatrixT II3p_113;
-    dMatrixT fKphiu_II3p_113;    
+    dMatrixT fKphiu_II3p_113;
     dMatrixT II3p_114;
-    dMatrixT fKphiu_II3p_114;    
+    dMatrixT fKphiu_II3p_114;
     dMatrixT II3p_115;
-    dMatrixT fKphiu_II3p_115;    
+    dMatrixT fKphiu_II3p_115;
     dMatrixT II3p_116;
-    dMatrixT fKphiphi_II3p_116;    
+    dMatrixT fKphiphi_II3p_116;
     dMatrixT II3p_117;
-    dMatrixT fKphiu_II3p_117;    
+    dMatrixT fKphiu_II3p_117;
     dMatrixT II3p_118;
-    dMatrixT fKphiphi_II3p_118;    
+    dMatrixT fKphiphi_II3p_118;
     dMatrixT II3p_119;
-    dMatrixT fKphiu_II3p_119;    
+    dMatrixT fKphiu_II3p_119;
     dMatrixT II3p_120;
-    dMatrixT fKphiphi_II3p_120; 
+    dMatrixT fKphiphi_II3p_120;
     dMatrixT II3p_121;
-    dMatrixT fKphiu_II3p_121;    
+    dMatrixT fKphiu_II3p_121;
     dMatrixT II3p_122;
-    dMatrixT fKphiu_II3p_122;    
+    dMatrixT fKphiu_II3p_122;
     dMatrixT II3p_123;
-    dMatrixT fKphiu_II3p_123;    
+    dMatrixT fKphiu_II3p_123;
     dMatrixT II3p_124;
-    dMatrixT fKphiphi_II3p_124;    
+    dMatrixT fKphiphi_II3p_124;
     dMatrixT II3p_125;
-    dMatrixT fKphiu_II3p_125;    
+    dMatrixT fKphiu_II3p_125;
     dMatrixT II3p_126;
-    dMatrixT fKphiphi_II3p_126;    
+    dMatrixT fKphiphi_II3p_126;
     dMatrixT II3p_127;
-    dMatrixT fKphiu_II3p_127;    
+    dMatrixT fKphiu_II3p_127;
     dMatrixT II3p_128;
-    dMatrixT fKphiphi_II3p_128;  
+    dMatrixT fKphiphi_II3p_128;
     dMatrixT II3p_129;
-    dMatrixT fKphiu_II3p_129;    
+    dMatrixT fKphiu_II3p_129;
     dMatrixT II3p_130;
-    dMatrixT fKphiu_II3p_130;    
+    dMatrixT fKphiu_II3p_130;
     dMatrixT II3p_131;
-    dMatrixT fKphiu_II3p_131;    
+    dMatrixT fKphiu_II3p_131;
     dMatrixT II3p_132;
-    dMatrixT fKphiphi_II3p_132;    
+    dMatrixT fKphiphi_II3p_132;
     dMatrixT II3p_133;
-    dMatrixT fKphiu_II3p_133;    
+    dMatrixT fKphiu_II3p_133;
     dMatrixT II3p_134;
-    dMatrixT fKphiphi_II3p_134;    
+    dMatrixT fKphiphi_II3p_134;
     dMatrixT II3p_135;
-    dMatrixT fKphiu_II3p_135;    
+    dMatrixT fKphiu_II3p_135;
     dMatrixT II3p_136;
-    dMatrixT fKphiphi_II3p_136;              
-    
-                                             
+    dMatrixT fKphiphi_II3p_136;
 
-           
+
+
+
 
     dMatrixT II4e_1;
     dMatrixT fKphiu_II4e_1;
@@ -1714,7 +1731,7 @@ private:
     dMatrixT fKphiphi_II4p_8;
     dMatrixT II4p_9;
     dMatrixT fKphiphi_II4p_9;
-    /* Matrices from coupling*/    
+    /* Matrices from coupling*/
     dMatrixT II4p_10;
     dMatrixT fKphiu_II4p_10;
     dMatrixT II4p_11;
@@ -1722,22 +1739,22 @@ private:
     dMatrixT II4p_12;
     dMatrixT fKphiu_II4p_12;
     dMatrixT II4p_13;
-    dMatrixT fKphiphi_II4p_13;    
+    dMatrixT fKphiphi_II4p_13;
     dMatrixT II4p_14;
-    dMatrixT fKphiu_II4p_14;    
+    dMatrixT fKphiu_II4p_14;
     dMatrixT II4p_15;
-    dMatrixT fKphiphi_II4p_15; 
+    dMatrixT fKphiphi_II4p_15;
     dMatrixT II4p_16;
     dMatrixT fKphiu_II4p_16;
     dMatrixT II4p_17;
-    dMatrixT fKphiphi_II4p_17;           
-    
-    
-    
+    dMatrixT fKphiphi_II4p_17;
+
+
+
 
 
     dMatrixT dFedDelgamma;
-    dMatrixT dFedDelgammachi;    
+    dMatrixT dFedDelgammachi;
 
     dArray2DT   fState_variables_IPs;
     dArray2DT   fState_variables_Elements_IPs;
@@ -1772,28 +1789,28 @@ private:
 
     dArray2DT   fdFYdS_Elements_IPs;
     dArray2DT   fdFYdS_n_Elements_IPs;
-      
-    
+
+
     /* Micromorphic additions */
     dArray2DT   fdGchidSIGMA_S_IPs;
-    dArray2DT   fdGchidSIGMA_S_Elements_IPs;        
+    dArray2DT   fdGchidSIGMA_S_Elements_IPs;
     dArray2DT   fdGchidSIGMA_S_n_IPs;
-    dArray2DT   fdGchidSIGMA_S_n_Elements_IPs;    
+    dArray2DT   fdGchidSIGMA_S_n_Elements_IPs;
 
 
     dArray2DT   fdFYchidSIGMA_S_IPs;
     dArray2DT   fdFYchidSIGMA_S_n_IPs;
     dArray2DT   fdFYchidSIGMA_S_Elements_IPs;
-    dArray2DT   fdFYchidSIGMA_S_n_Elements_IPs;        
-    
-    
-    
-    
+    dArray2DT   fdFYchidSIGMA_S_n_Elements_IPs;
+
+
+
+
     dArray2DT   PSIe_IPs;
-    dArray2DT   PSIe_Elements_IPs;   
+    dArray2DT   PSIe_Elements_IPs;
     dArray2DT   PSIe_n_IPs;
-    dArray2DT   PSIe_n_Elements_IPs;   
-    
+    dArray2DT   PSIe_n_Elements_IPs;
+
     dArray2DT   fChip_IPs;
     dArray2DT   fChip_n_IPs;
 
@@ -1801,7 +1818,7 @@ private:
     dArray2DT   fChip_n_Elements_IPs;
 
     dArray2DT   fCchie_IPs;
-    dArray2DT   fCchie_Elements_IPs;    
+    dArray2DT   fCchie_Elements_IPs;
     dArray2DT   fCchie_n_IPs;
     dArray2DT   fCchie_n_Elements_IPs;
 
@@ -1810,7 +1827,7 @@ private:
  double Cauchy_inv;
  double trS;//trace of SPK
  double invdevS;// Norm of dev. part of SPK
- double Rel_stres_inv;
+ double Rel_strs_inv;
  double trSIGMA_S;
  double invdevSIGMA_S;// Norm of dev. part of SIGMA_S
  double Higher_orderT_inv;
@@ -2148,8 +2165,8 @@ private:
     void Form_IJp_13(void);
     void Form_IJp_14(void);
     void Form_IJp_15(void);
-    void Form_IJp_16(void);    
-    void Form_IJp_17(void);                                                        
+    void Form_IJp_16(void);
+    void Form_IJp_17(void);
 
 
     void Form_I1e_1(void); // the first term first matrix
@@ -2164,7 +2181,7 @@ private:
     void Form_I2p_8(void);
     void Form_I2p_9(void);
     void Form_I2p_10(void);
-    /* Matrices from coupling */    
+    /* Matrices from coupling */
     void Form_I2p_11(void);
     void Form_I2p_12(void);
     void Form_I2p_13(void);
@@ -2172,7 +2189,7 @@ private:
     void Form_I2p_15(void);
     void Form_I2p_16(void);
     void Form_I2p_17(void);
-    void Form_I2p_18(void);                            
+    void Form_I2p_18(void);
 
 
 
@@ -2230,7 +2247,7 @@ private:
     void Form_I3p_52(void); //
     void Form_I3p_53(void); //
     void Form_I3p_54(void); //
-/* Matrices from Del(delgammachi) */    
+/* Matrices from Del(delgammachi) */
     void Form_I3p_55(void); //
     void Form_I3p_56(void); //
     void Form_I3p_57(void); //
@@ -2246,7 +2263,7 @@ private:
     void Form_I3p_67(void); //
     void Form_I3p_68(void); //
     void Form_I3p_69(void); //
-    void Form_I3p_70(void); //     
+    void Form_I3p_70(void); //
     void Form_I3p_71(void); //
     void Form_I3p_72(void); //
     void Form_I3p_73(void); //
@@ -2254,82 +2271,82 @@ private:
     void Form_I3p_75(void); //
     void Form_I3p_76(void); //
     void Form_I3p_77(void); //
-    void Form_I3p_78(void); //     
+    void Form_I3p_78(void); //
     /* Matrices from coupling*/
-    void Form_I3p_79(void); //     
-    void Form_I3p_80(void); //    
-    void Form_I3p_81(void); //                                            
-    void Form_I3p_82(void); //                                            
-    void Form_I3p_83(void); //                                            
-    void Form_I3p_84(void); //                                            
-    void Form_I3p_85(void); //  
-    void Form_I3p_86(void); //   
-    void Form_I3p_87(void); //                                                                                          
-    void Form_I3p_88(void); //                                                                                          
-    void Form_I3p_89(void); //                                                                                          
-    void Form_I3p_90(void); //                                                                                          
-    void Form_I3p_91(void); //                                                                                          
-    void Form_I3p_92(void); //                                                                                          
-    void Form_I3p_93(void); //                                                                                          
-    void Form_I3p_94(void); //    
-    void Form_I3p_95(void); //                                                                                          
-    void Form_I3p_96(void); //                                                                                          
-    void Form_I3p_97(void); //                                                                                          
-    void Form_I3p_98(void); //                                                                                          
-    void Form_I3p_99(void); //                                                                                          
-    void Form_I3p_100(void); //                
-                                                                                    
-    void Form_I3p_101(void); //    
-    void Form_I3p_102(void); // 
-    void Form_I3p_103(void); //  
-    void Form_I3p_104(void); //  
-    void Form_I3p_105(void); //  
-    void Form_I3p_106(void); //  
-    void Form_I3p_107(void); //  
-    void Form_I3p_108(void); //  
-    void Form_I3p_109(void); //  
+    void Form_I3p_79(void); //
+    void Form_I3p_80(void); //
+    void Form_I3p_81(void); //
+    void Form_I3p_82(void); //
+    void Form_I3p_83(void); //
+    void Form_I3p_84(void); //
+    void Form_I3p_85(void); //
+    void Form_I3p_86(void); //
+    void Form_I3p_87(void); //
+    void Form_I3p_88(void); //
+    void Form_I3p_89(void); //
+    void Form_I3p_90(void); //
+    void Form_I3p_91(void); //
+    void Form_I3p_92(void); //
+    void Form_I3p_93(void); //
+    void Form_I3p_94(void); //
+    void Form_I3p_95(void); //
+    void Form_I3p_96(void); //
+    void Form_I3p_97(void); //
+    void Form_I3p_98(void); //
+    void Form_I3p_99(void); //
+    void Form_I3p_100(void); //
+
+    void Form_I3p_101(void); //
+    void Form_I3p_102(void); //
+    void Form_I3p_103(void); //
+    void Form_I3p_104(void); //
+    void Form_I3p_105(void); //
+    void Form_I3p_106(void); //
+    void Form_I3p_107(void); //
+    void Form_I3p_108(void); //
+    void Form_I3p_109(void); //
     void Form_I3p_110(void); //
-    void Form_I3p_111(void); //                                   
-    void Form_I3p_112(void); //                                   
-    void Form_I3p_113(void); //                                   
-    void Form_I3p_114(void); //                                   
-    void Form_I3p_115(void); //                                   
-    void Form_I3p_116(void); //                                   
-    void Form_I3p_117(void); //                                   
-    void Form_I3p_118(void); //   
-    void Form_I3p_119(void); //                                   
-    void Form_I3p_120(void); //                                   
-    void Form_I3p_121(void); //                                   
-    void Form_I3p_122(void); //                                   
-    void Form_I3p_123(void); //                                   
-    void Form_I3p_124(void); //                                   
-    void Form_I3p_125(void); // 
-    void Form_I3p_126(void); //     
-    void Form_I3p_127(void); //                                                                         
-    void Form_I3p_128(void); // 
-    void Form_I3p_129(void); //                                                                         
-    void Form_I3p_130(void); //                                                                         
-    void Form_I3p_131(void); //                                                                         
-    void Form_I3p_132(void); //                                                                         
-    void Form_I3p_133(void); //                                                                         
-    void Form_I3p_134(void); //    
-    void Form_I3p_135(void); //                                                                         
-    void Form_I3p_136(void); //                                                                         
-    void Form_I3p_137(void); //                                                                         
-    void Form_I3p_138(void); //                                                                         
-    void Form_I3p_139(void); //                                                                         
-    void Form_I3p_140(void); //                                                                         
-    void Form_I3p_141(void); // 
-    void Form_I3p_142(void); //                                                                                                                                                     
-                                                                                                     
-                                                                                                    
-                                                                                
-                                                                
-                                                                       
-                                                                                                                                                                                      
-                                                                                                                      
-                                                                                                                           
-                                          
+    void Form_I3p_111(void); //
+    void Form_I3p_112(void); //
+    void Form_I3p_113(void); //
+    void Form_I3p_114(void); //
+    void Form_I3p_115(void); //
+    void Form_I3p_116(void); //
+    void Form_I3p_117(void); //
+    void Form_I3p_118(void); //
+    void Form_I3p_119(void); //
+    void Form_I3p_120(void); //
+    void Form_I3p_121(void); //
+    void Form_I3p_122(void); //
+    void Form_I3p_123(void); //
+    void Form_I3p_124(void); //
+    void Form_I3p_125(void); //
+    void Form_I3p_126(void); //
+    void Form_I3p_127(void); //
+    void Form_I3p_128(void); //
+    void Form_I3p_129(void); //
+    void Form_I3p_130(void); //
+    void Form_I3p_131(void); //
+    void Form_I3p_132(void); //
+    void Form_I3p_133(void); //
+    void Form_I3p_134(void); //
+    void Form_I3p_135(void); //
+    void Form_I3p_136(void); //
+    void Form_I3p_137(void); //
+    void Form_I3p_138(void); //
+    void Form_I3p_139(void); //
+    void Form_I3p_140(void); //
+    void Form_I3p_141(void); //
+    void Form_I3p_142(void); //
+
+
+
+
+
+
+
+
+
 
 
     void Form_I4e_1(void); // the fourth term first matrix
@@ -2349,7 +2366,7 @@ private:
     void Form_I4p_15(void); //
     void Form_I4p_16(void); //
     void Form_I4p_17(void); //
-    void Form_I4p_18(void); //                            
+    void Form_I4p_18(void); //
 
 
     /* Functions for the second balance equation */
@@ -2369,7 +2386,7 @@ private:
     void Form_IIJp_13(void);
     void Form_IIJp_14(void);
     void Form_IIJp_15(void);
-    void Form_IIJp_16(void);                        
+    void Form_IIJp_16(void);
 
 
     void Form_II2e_1(void);
@@ -2381,7 +2398,7 @@ private:
     void Form_II2p_7(void);
     void Form_II2p_8(void);
     void Form_II2p_9(void);
-    /* Matrices from coupling*/    
+    /* Matrices from coupling*/
     void Form_II2p_10(void);
     void Form_II2p_11(void);
     void Form_II2p_12(void);
@@ -2389,8 +2406,8 @@ private:
     void Form_II2p_14(void);
     void Form_II2p_15(void);
     void Form_II2p_16(void);
-    void Form_II2p_17(void);                            
-        
+    void Form_II2p_17(void);
+
 
 
     void Form_II3e_1(void);
@@ -2442,101 +2459,101 @@ private:
     void Form_II3p_47(void);
     void Form_II3p_48(void);
     /* Matrices from Del(delgammachi) */
-    void Form_II3p_49(void);  
-    void Form_II3p_50(void);    
-    void Form_II3p_51(void);    
-    void Form_II3p_52(void);    
-    void Form_II3p_53(void);    
-    void Form_II3p_54(void);    
+    void Form_II3p_49(void);
+    void Form_II3p_50(void);
+    void Form_II3p_51(void);
+    void Form_II3p_52(void);
+    void Form_II3p_53(void);
+    void Form_II3p_54(void);
     void Form_II3p_55(void);
-    void Form_II3p_56(void);                                                        
-    void Form_II3p_57(void);  
-    void Form_II3p_58(void);    
-    void Form_II3p_59(void);    
-    void Form_II3p_60(void);    
-    void Form_II3p_61(void);    
-    void Form_II3p_62(void);    
+    void Form_II3p_56(void);
+    void Form_II3p_57(void);
+    void Form_II3p_58(void);
+    void Form_II3p_59(void);
+    void Form_II3p_60(void);
+    void Form_II3p_61(void);
+    void Form_II3p_62(void);
     void Form_II3p_63(void);
-    void Form_II3p_64(void);    
-    void Form_II3p_65(void);  
-    void Form_II3p_66(void);    
-    void Form_II3p_67(void);    
-    void Form_II3p_68(void);    
-    void Form_II3p_69(void);    
-    void Form_II3p_70(void);    
+    void Form_II3p_64(void);
+    void Form_II3p_65(void);
+    void Form_II3p_66(void);
+    void Form_II3p_67(void);
+    void Form_II3p_68(void);
+    void Form_II3p_69(void);
+    void Form_II3p_70(void);
     void Form_II3p_71(void);
-    void Form_II3p_72(void);    
+    void Form_II3p_72(void);
     /* Matrices from coupling */
-    void Form_II3p_73(void);    
-    void Form_II3p_74(void);    
-    void Form_II3p_75(void);    
-    void Form_II3p_76(void);    
-    void Form_II3p_77(void);    
-    void Form_II3p_78(void);    
-    void Form_II3p_79(void);    
+    void Form_II3p_73(void);
+    void Form_II3p_74(void);
+    void Form_II3p_75(void);
+    void Form_II3p_76(void);
+    void Form_II3p_77(void);
+    void Form_II3p_78(void);
+    void Form_II3p_79(void);
     void Form_II3p_80(void);
-    void Form_II3p_81(void);    
-    void Form_II3p_82(void);    
-    void Form_II3p_83(void);    
-    void Form_II3p_84(void);    
-    void Form_II3p_85(void);    
-    void Form_II3p_86(void);    
-    void Form_II3p_87(void);    
-    void Form_II3p_88(void);   
-    void Form_II3p_89(void);                                        
-    void Form_II3p_90(void);                                        
-    void Form_II3p_91(void);                                        
-    void Form_II3p_92(void);                                        
-    void Form_II3p_93(void);                                        
-    void Form_II3p_94(void);                                        
-    void Form_II3p_95(void);                                        
-    void Form_II3p_96(void);  
-    void Form_II3p_97(void);                                                                                                             
-    void Form_II3p_98(void);                                                                                                             
-    void Form_II3p_99(void);                                                                                                             
-    void Form_II3p_100(void);                                                                                                             
-    void Form_II3p_101(void);                                                                                                             
-    void Form_II3p_102(void);                                                                                                             
-    void Form_II3p_103(void);                                                                                                             
-    void Form_II3p_104(void); 
-    void Form_II3p_105(void);                                                                                                             
-    void Form_II3p_106(void);                                                                                                             
-    void Form_II3p_107(void);                                                                                                             
-    void Form_II3p_108(void);                                                                                                             
-    void Form_II3p_109(void);                                                                                                             
-    void Form_II3p_110(void);                                                                                                             
-    void Form_II3p_111(void);                                                                                                             
-    void Form_II3p_112(void);   
-    void Form_II3p_113(void);                                                                                                             
-    void Form_II3p_114(void);                                                                                                             
-    void Form_II3p_115(void);                                                                                                             
-    void Form_II3p_116(void);                                                                                                             
-    void Form_II3p_117(void);                                                                                                             
-    void Form_II3p_118(void);                                                                                                             
-    void Form_II3p_119(void);                                                                                                             
-    void Form_II3p_120(void); 
-    void Form_II3p_121(void);                                                                                                             
-    void Form_II3p_122(void);                                                                                                             
-    void Form_II3p_123(void);                                                                                                             
-    void Form_II3p_124(void);                                                                                                             
-    void Form_II3p_125(void);                                                                                                             
-    void Form_II3p_126(void);                                                                                                             
-    void Form_II3p_127(void); 
+    void Form_II3p_81(void);
+    void Form_II3p_82(void);
+    void Form_II3p_83(void);
+    void Form_II3p_84(void);
+    void Form_II3p_85(void);
+    void Form_II3p_86(void);
+    void Form_II3p_87(void);
+    void Form_II3p_88(void);
+    void Form_II3p_89(void);
+    void Form_II3p_90(void);
+    void Form_II3p_91(void);
+    void Form_II3p_92(void);
+    void Form_II3p_93(void);
+    void Form_II3p_94(void);
+    void Form_II3p_95(void);
+    void Form_II3p_96(void);
+    void Form_II3p_97(void);
+    void Form_II3p_98(void);
+    void Form_II3p_99(void);
+    void Form_II3p_100(void);
+    void Form_II3p_101(void);
+    void Form_II3p_102(void);
+    void Form_II3p_103(void);
+    void Form_II3p_104(void);
+    void Form_II3p_105(void);
+    void Form_II3p_106(void);
+    void Form_II3p_107(void);
+    void Form_II3p_108(void);
+    void Form_II3p_109(void);
+    void Form_II3p_110(void);
+    void Form_II3p_111(void);
+    void Form_II3p_112(void);
+    void Form_II3p_113(void);
+    void Form_II3p_114(void);
+    void Form_II3p_115(void);
+    void Form_II3p_116(void);
+    void Form_II3p_117(void);
+    void Form_II3p_118(void);
+    void Form_II3p_119(void);
+    void Form_II3p_120(void);
+    void Form_II3p_121(void);
+    void Form_II3p_122(void);
+    void Form_II3p_123(void);
+    void Form_II3p_124(void);
+    void Form_II3p_125(void);
+    void Form_II3p_126(void);
+    void Form_II3p_127(void);
     void Form_II3p_128(void);
-    void Form_II3p_129(void);                 
-    void Form_II3p_130(void);                 
-    void Form_II3p_131(void);                 
-    void Form_II3p_132(void);                 
-    void Form_II3p_133(void);                 
-    void Form_II3p_134(void);                 
-    void Form_II3p_135(void);    
-    void Form_II3p_136(void);                                  
-                                                 
-                                                                                                                                                                                                                
-                                                                                                                                            
-                                                                                                                                              
-                                                                                                                                                
-                                                                                                                                                                                 
+    void Form_II3p_129(void);
+    void Form_II3p_130(void);
+    void Form_II3p_131(void);
+    void Form_II3p_132(void);
+    void Form_II3p_133(void);
+    void Form_II3p_134(void);
+    void Form_II3p_135(void);
+    void Form_II3p_136(void);
+
+
+
+
+
+
 
     void Form_II4e_1(void);
     void Form_II4p_2(void);
@@ -2547,7 +2564,7 @@ private:
     void Form_II4p_7(void);
     void Form_II4p_8(void);
     void Form_II4p_9(void);
-    /* Matrices from coupling*/    
+    /* Matrices from coupling*/
     void Form_II4p_10(void);
     void Form_II4p_11(void);
     void Form_II4p_12(void);
@@ -2555,7 +2572,7 @@ private:
     void Form_II4p_14(void);
     void Form_II4p_15(void);
     void Form_II4p_16(void);
-    void Form_II4p_17(void);      
+    void Form_II4p_17(void);
 
     /////////////////////////////////////////////////////////
 
