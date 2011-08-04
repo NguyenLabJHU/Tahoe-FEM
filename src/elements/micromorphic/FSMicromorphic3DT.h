@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.201 2011-08-04 05:55:18 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.202 2011-08-04 09:45:13 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -116,6 +116,42 @@ public:
         kinvdevM,
         kinvPhi,
         kinvGPhi,
+        kF11,
+        kF12,
+        kF13,
+        kF21,
+        kF22,
+        kF23,
+        kF31,
+        kF32,
+        kF33,
+        kFe11,
+        kFe12,
+        kFe13,
+        kFe21,
+        kFe22,
+        kFe23,
+        kFe31,
+        kFe32,
+        kFe33,
+        kX11,
+        kX12,
+        kX13,
+        kX21,
+        kX22,
+        kX23,
+        kX31,
+        kX32,
+        kX33,
+        kXe11,
+        kXe12,
+        kXe13,
+        kXe21,
+        kXe22,
+        kXe23,
+        kXe31,
+        kXe32,
+        kXe33,
         kNUM_FMATERIAL_STATE_TERMS
     };
 
