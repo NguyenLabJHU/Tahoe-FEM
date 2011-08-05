@@ -51,7 +51,6 @@ FSMicromorphic3DT::~FSMicromorphic3DT(void)
 
 void FSMicromorphic3DT::Echo_Input_Data(void)
 {
-    //cout<<"CHECK POINT-1"<<endl;
     cout << "#######################################################" << endl;
     cout << "############### ECHO FSMicromorphic3D DATA #########################" << endl;
     cout << "#######################################################" << endl;
@@ -95,7 +94,6 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
 
 void FSMicromorphic3DT::RHSDriver(void)
 {
- //            cout<<"CHECK POINT-2"<<endl;
     int curr_group = ElementSupport().CurrentGroup();
 
     /* traction boundary conditions acting on displacement equations */
@@ -115,7 +113,6 @@ void FSMicromorphic3DT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
                  AutoArrayT<const RaggedArray2DT<int>*>& eq_phi)
 {
 
-     //            cout<<"CHECK POINT-3"<<endl;
     /* doing monolithic solution */
     if (fDispl->Group() == fMicro->Group())
     {
@@ -193,7 +190,6 @@ void FSMicromorphic3DT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 
 void FSMicromorphic3DT::LHSDriver(GlobalT::SystemTypeT)
 {
- //            cout<<"CHECK POINT-4"<<endl;
 /** Everything done in RHSDriver for efficiency */
 //cout << "############### In LHS Driver ############### \n";
 }
@@ -203,7 +199,6 @@ void FSMicromorphic3DT::LHSDriver(GlobalT::SystemTypeT)
 
 void FSMicromorphic3DT::Select_Equations (const int &iBalLinChoice, const int &iBalFirstMomMomChoice )
 {
-   //           cout<<"CHECK POINT-5"<<endl;
     /** Choices for Linear Momentum Balance Equation */
 
     switch ( iBalLinChoice )    {
@@ -230,7 +225,7 @@ void FSMicromorphic3DT::Select_Equations (const int &iBalLinChoice, const int &i
  * given group. */
 bool FSMicromorphic3DT::InGroup(int group) const
 {
-    //         cout<<"CHECK POINT-6"<<endl;
+
     return group == fDispl->Group() || group == fMicro->Group();
 }
 
@@ -240,7 +235,7 @@ bool FSMicromorphic3DT::InGroup(int group) const
 /* initialize/finalize step */
 void FSMicromorphic3DT::InitStep(void)
 {
-    //          cout<<"CHECK POINT-7"<<endl;
+
     /* inherited */
     ElementBaseT::InitStep();
 }
@@ -249,7 +244,7 @@ void FSMicromorphic3DT::InitStep(void)
 /* close current time increment */
 void FSMicromorphic3DT::CloseStep(void)
 {
-     //         cout<<"CHECK POINT-8"<<endl;
+
     /* inherited */
     ElementBaseT::CloseStep();
 
@@ -465,7 +460,6 @@ GlobalT::RelaxCodeT FSMicromorphic3DT::RelaxSystem(void)
 void FSMicromorphic3DT::SendOutput(int kincode)
 {
 #pragma unused(kincode)
- //             cout<<"CHECK POINT-9"<<endl;
 //not implemented
 }
 
@@ -474,7 +468,6 @@ void FSMicromorphic3DT::SendOutput(int kincode)
 void FSMicromorphic3DT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry,
     iArrayT& num_facet_nodes) const
 {
-  //             cout<<"CHECK POINT-10"<<endl;
     /* from integration domain */
     ShapeFunctionDispl().FacetGeometry(facet_geometry, num_facet_nodes);
 }
@@ -483,7 +476,6 @@ void FSMicromorphic3DT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry,
 /* form of tangent matrix */
 GlobalT::SystemTypeT FSMicromorphic3DT::TangentType(void) const
 {
-   //             cout<<"CHECK POINT-11"<<endl;
     return GlobalT::kNonSymmetric;
 }
 
@@ -531,7 +523,6 @@ void FSMicromorphic3DT::InitialCondition(void)
 void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
     const char caller[] = "FSMicromorphic3DT::AddNodalForce";
-     //         cout<<"CHECK POINT-13"<<endl;
     /* displ, micro, or neither */
     bool is_displ = false;
     dArrayT* element_force = NULL;
@@ -711,7 +702,7 @@ void FSMicromorphic3DT::AddNodalForce(const FieldT& field, int node, dArrayT& fo
 double FSMicromorphic3DT::InternalEnergy ( void )
 {
 //not implemented
-   //              cout<<"CHECK POINT-14"<<endl;
+
     return 0.0;
 }
 
@@ -720,7 +711,7 @@ double FSMicromorphic3DT::InternalEnergy ( void )
 /* write restart data to the output stream */
 void FSMicromorphic3DT::WriteRestart(ostream& out) const
 {
-  //             cout<<"CHECK POINT-15"<<endl;
+
     /* inherited */
     ElementBaseT::WriteRestart(out);
 
@@ -733,7 +724,7 @@ void FSMicromorphic3DT::WriteRestart(ostream& out) const
 /* read restart data to the output stream */
 void FSMicromorphic3DT::ReadRestart(istream& in)
 {
-     //          cout<<"CHECK POINT-16"<<endl;
+
     /* inherited */
     ElementBaseT::ReadRestart(in);
 
@@ -745,7 +736,7 @@ void FSMicromorphic3DT::ReadRestart(istream& in)
 
 void FSMicromorphic3DT::RegisterOutput(void)
 {
-   //            cout<<"CHECK POINT-17"<<endl;
+
     /* collect block ID's */
     ArrayT<StringT> block_ID(fBlockData.Length());
     for (int i = 0; i < block_ID.Length(); i++)
@@ -841,7 +832,7 @@ void FSMicromorphic3DT::RegisterOutput(void)
 
 void FSMicromorphic3DT::WriteOutput(void)
 {
-  //              cout<<"CHECK POINT-18"<<endl;
+
     bStep_Complete=1;
     RHSDriver();
     bStep_Complete=0;
@@ -922,7 +913,7 @@ void FSMicromorphic3DT::WriteOutput(void)
 /* form group contribution to the stiffness matrix and RHS */
 void FSMicromorphic3DT::RHSDriver_staggered(void)
 {
-  //             cout<<"CHECK POINT-19"<<endl;
+
     const char caller[] = "FSMicromorphic3DT::RHSDriver_staggered";
 #pragma message("staggered solution not implemented")
 }
@@ -931,7 +922,7 @@ void FSMicromorphic3DT::RHSDriver_staggered(void)
 /* form group contribution to the stiffness matrix and RHS */
 void FSMicromorphic3DT::RHSDriver_monolithic(void)
 {
-   //             cout<<"CHECK POINT-20"<<endl;
+
     const char caller[] = "FSMicromorphic3DT::RHSDriver_monolithic";
     if (fDispl->Group() != fMicro->Group())
     ExceptionT::GeneralFail(caller, "displacement and micro-displacement-gradient groups must be the same: %d != %d",
@@ -4254,10 +4245,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 	Comp22=0.0;
                                 	Comp12=0.0;
                                 	Comp21=0.0;
-                                    /*Comp11=0.0;
-				    Comp12=0.0;
-				    Comp21=0.0;
-				    Comp22=0.0;	  */
+//                                    Comp11=0.0;
+//                                    Comp12=0.0;
+//                                    Comp21=0.0;
+//                                    Comp22=0.0;
 
                                 }
 
@@ -4270,27 +4261,27 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 	Comp12=0.0;
                                 	Comp21=0.0;
                                  /* Comp11=0.0;
-				    Comp12=0.0;
-				    Comp21=0.0;
-				    Comp22=0.0;*/
+									Comp12=0.0;
+									Comp21=0.0;
+									Comp22=0.0;*/
 
                                 }
 
-				/* This condition below takes care of coupling plasticity by assigning different multiplier */
-				/* after solving global delgamma and delgammachi */
+								/* This condition below takes care of coupling plasticity by assigning different multiplier */
+								/* after solving global delgamma and delgammachi */
                                 if(PlasticityCondition==3)// Macro and Micro scale coupled plasticity
                                 {
-                                    /* delgamma    = Comp11 x f1 + Comp12 x f2
+                                	/* delgamma    = Comp11 x f1 + Comp12 x f2
                                        delgammachi = Comp21 x f1 + Comp22 x f2
 
                                        Comp12 and Comp21 are the multipliers for coupling */
 
-				  /* If we assume delgamma=0 and delgammachi =0, then multipliers will be all zero
-				     and these four lines below should be commented in, other lines calculating Comp11,Comp12,Comp21, and Comp22 further down should be commented out*/
-                                  /*    Comp11=0.0;
-				        Comp12=0.0;
-				        Comp21=0.0;
-				        Comp22=0.0;*/
+                                	/* If we assume delgamma=0 and delgammachi =0, then multipliers will be all zero
+									 and these four lines below should be commented in, other lines calculating Comp11,Comp12,Comp21, and Comp22 further down should be commented out*/
+                                	/* Comp11=0.0;
+									Comp12=0.0;
+									Comp21=0.0;
+									Comp22=0.0;*/
 
 
                                   /* LocalConsistentTangent is used but it is not actual LocalConsistentTangent used above.
@@ -4312,34 +4303,33 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 
-/*                		    		if(LocalConsistentTangentInverse.Det()<=1e-10)
-                		    		{
-                		    			Comp11=0.0;
-				    			Comp12=0.0;
-				    			Comp21=0.0;
-				    			Comp22=0.0;
-
-                		    		}
-*/
-
-/*                		    if(fYield_function<=0.0 && fMicroYield_function<=0.0)
-                		    {
-                		    Comp11=0.0;
-				    Comp12=0.0;
-				    Comp21=0.0;
-				    Comp22=0.0;
-
-                		    }     */
-
-                		/*   double detcoeff=0.0;
-
-                		    detcoeff=fConst1*fConst4-fConst2*fConst3;
-
-                		    Comp11=fConst4/detcoeff;
-                		    Comp12=-1*fConst2/detcoeff;
-                		    Comp21=-1*fConst3/detcoeff;
-                		    Comp22=fConst1/detcoeff;
-   		                    */
+//                		    		if(LocalConsistentTangentInverse.Det()<=1e-10)
+//                		    		{
+//                		    			Comp11=0.0;
+//                		    			Comp12=0.0;
+//                		    			Comp21=0.0;
+//                		    			Comp22=0.0;
+//
+//                		    		}
+//
+//                		    		if(fYield_function<=0.0 && fMicroYield_function<=0.0)
+//                		    		{
+//                		    			Comp11=0.0;
+//                		    			Comp12=0.0;
+//                		    			Comp21=0.0;
+//                		    			Comp22=0.0;
+//
+//                		    		}
+//
+//                		    		double detcoeff=0.0;
+//
+//                		    		detcoeff=fConst1*fConst4-fConst2*fConst3;
+//
+//                		    		Comp11=fConst4/detcoeff;
+//                		    		Comp12=-1*fConst2/detcoeff;
+//                		    		Comp21=-1*fConst3/detcoeff;
+//                		    		Comp22=fConst1/detcoeff;
+//
 
 
                                 }
