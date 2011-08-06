@@ -2715,10 +2715,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         {
 
                         	//Check for yielding
-                        	fYield_function_tr=Stress_Norm_tr-(Aphi*fState_variables_n_IPs(IP,kc)-Bphi*Pbar_tr);
+                        	fYield_function_tr=devfSPKinv_tr-(Aphi*fState_variables_n_IPs(IP,kc)-Bphi*Pbar_tr);
 
                         	//Check for micro-yielding
-                            fMicroYield_function_tr=devSIGMA_S_inv_tr-(Aphi_chi*(fState_variables_n_IPs(IP,kc_chi))-Bphi_chi*mean_stress_tr);
+                            fMicroYield_function_tr=devSIGMA_S_inv_tr-(Aphi_chi*(fState_variables_n_IPs(IP,kc_chi))-Bphi_chi*Pchibar_tr);
 
                         }
 
@@ -2731,7 +2731,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     	 if(iPlasticityCheck==1 && fCombinedYield_function_tr>dYieldTrialTol)//Combined Plasticity
 							 {
 
-								 //fs_micromorph3D_out<<"MACRO-PLASTICITY "<<endl;
+								 fs_micromorph3D_out<<"COMBINED-PLASTICITY "<<endl;
 
 
 								 PlasticityCondition=4;
