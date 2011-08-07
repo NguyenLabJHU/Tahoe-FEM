@@ -2638,6 +2638,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         SIGMA_S_tr+=fTemp_matrix_nsd_x_nsd;
 
 
+
                         /* Form terms related the cohesion and friction angle  in D-P yield function */
                         /* Initially Aphi is already assigined to fState_variables_n_IPs(IP,khc)=Aphi in TakeParameterList function*/
                         double Beta=-1.0;
@@ -3077,6 +3078,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     		 iter_count = 0;
                     		 fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
                     		 fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
+
                     		 while (fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)
                     		 {
                     			 iter_count += 1;
@@ -3262,6 +3264,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                     			 // Calculate yield function with updated parameters
                     			 fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*mean_stress);
+
                     			 fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
                     		 } //end of the local fDelgamma while loop
                     		 fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
@@ -3342,6 +3345,9 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                     			 //Forming  d(||dev(SIGMA-S)||)/dDgammachi  dev(SIGMA-S): dev. part of Relative stress (SIGMA-S) tensor
+                                 //IF ONLY ETA IS CHOSEN THE NEXT TWO LINES FAIL MAY FAIL BECAUSE devSIGMA_S_inv=0.0, AN IF STATEMENT MAY BE PUT TO GET RID OF ZERO DIVISION
+                                 //OR CAN OTHER SHEAR RELATED TERM CAN BE CHOOSEN SUCH AS KAPPA
+
                     			 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
                     			 ddevSIGMA_SdDelgammachi_inv=dMatrixT::Dot(ddevSIGMA_SdDelgammachi,fTemp_matrix_nsd_x_nsd);
 
@@ -3442,6 +3448,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     			 devSIGMA_S.SetToScaled(mean_stress,fIdentity_matrix);
                     			 devSIGMA_S*=-1;
                     			 devSIGMA_S+=SIGMA_S;
+
 
 
                     			 //Calculate dev(SIGMA-S):dev(SIGMA-S)
@@ -4005,50 +4012,66 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                 if(PlasticityCondition==1 || PlasticityCondition==2 || PlasticityCondition==3)
                                 {
-                                /* calculate stress derivative of yield function */
-                                fdFYdS = 0.0;
-                                // fdPdS=0.0;
-                                // fdPdS.SetToScaled(1/3,fIdentity_matrix);
-                                fdFYdS.SetToScaled(Bphi*1/3,fIdentity_matrix);
-                                //press=devSPK.Trace()/3;
-                                //fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
-                                //fTemp_matrix_nsd_x_nsd*=-1;
-                                //fdFYdS+=fTemp_matrix_nsd_x_nsd;
-                                fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
-                                fdFYdS+=fTemp_matrix_nsd_x_nsd;
 
-                                /* calculate derivative of micro yield function with respect to SIGMA-S */
-                                fdFYchidSIGMA_S = 0.0;
-                                // fdPdS=0.0;
-                                // fdPdS.SetToScaled(1/3,fIdentity_matrix);
-                                fdFYchidSIGMA_S.SetToScaled(Bphi_chi*1/3,fIdentity_matrix);
-                                //press=devSPK.Trace()/3;
-                                //fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
-                                //fTemp_matrix_nsd_x_nsd*=-1;
-                                //fdFYdS+=fTemp_matrix_nsd_x_nsd;
-                                fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
-                                fdFYchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                	if(devfSPKinv==0.0)
+                                	{
+                                		fdFYdS=0.0;
+                                		fdGdS=0.0;
+
+                                	}
+                                	else
+                                	{
+                                		/* calculate stress derivative of yield function */
+                                		fdFYdS = 0.0;
+                                		// fdPdS=0.0;
+                                		// fdPdS.SetToScaled(1/3,fIdentity_matrix);
+                                		fdFYdS.SetToScaled(Bphi*1/3,fIdentity_matrix);
+                                		//press=devSPK.Trace()/3;
+                                		//fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
+                                		//fTemp_matrix_nsd_x_nsd*=-1;
+                                		//fdFYdS+=fTemp_matrix_nsd_x_nsd;
+                                		fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+                                		fdFYdS+=fTemp_matrix_nsd_x_nsd;
+
+                                		/* calculate stress derivative of plastic potential function */
+                                		fdGdS = 0.0;
+                                		// fdPdS=0.0;
+                                		// fdPdS.SetToScaled(1/3,fIdentity_matrix);
+                                		fdGdS.SetToScaled(Bpsi*1/3,fIdentity_matrix);
+                                		//press=devSPK.Trace()/3;
+                                		//fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv,fIdentity_matrix);
+                                		//fTemp_matrix_nsd_x_nsd*=-1;
+                                		//fdGdS+=fTemp_matrix_nsd_x_nsd;
+                                		fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+                                		fdGdS+=fTemp_matrix_nsd_x_nsd;
+                                	}
+                                	if(devSIGMA_S_inv==0.0)
+                                	{
+                                		fdFYchidSIGMA_S=0.0;
+                                		fdGchidSIGMA_S=0.0;
+                                	}
+                                	else
+                                	{
+                                		/* calculate derivative of micro yield function with respect to SIGMA-S */
+                                		fdFYchidSIGMA_S = 0.0;
+                                		// fdPdS=0.0;
+                                		// fdPdS.SetToScaled(1/3,fIdentity_matrix);
+                                		fdFYchidSIGMA_S.SetToScaled(Bphi_chi*1/3,fIdentity_matrix);
+                                		//press=devSPK.Trace()/3;
+                                		//fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
+                                		//fTemp_matrix_nsd_x_nsd*=-1;
+                                		//fdFYdS+=fTemp_matrix_nsd_x_nsd;
+                                		fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+                                		fdFYchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
+
+                                		/* calculate  derivative of  Micro plastic potential function wrt SIGMA-S */
+                                		fdGchidSIGMA_S= 0.0;
+                                		fdGchidSIGMA_S.SetToScaled(Bpsi_chi*1/3,fIdentity_matrix);
+                                		fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+                                		fdGchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                	}
 
 
-                                /* calculate stress derivative of plastic potential function */
-                                fdGdS = 0.0;
-                                // fdPdS=0.0;
-                                // fdPdS.SetToScaled(1/3,fIdentity_matrix);
-                                fdGdS.SetToScaled(Bpsi*1/3,fIdentity_matrix);
-                                //press=devSPK.Trace()/3;
-                                //fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv,fIdentity_matrix);
-                                //fTemp_matrix_nsd_x_nsd*=-1;
-                                //fdGdS+=fTemp_matrix_nsd_x_nsd;
-                                fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
-                                fdGdS+=fTemp_matrix_nsd_x_nsd;
-
-
-
-                                /* calculate  derivative of  Micro plastic potential function wrt SIGMA-S */
-                                fdGchidSIGMA_S= 0.0;
-                                fdGchidSIGMA_S.SetToScaled(Bpsi_chi*1/3,fIdentity_matrix);
-                                fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
-                                fdGchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
                                 }
 
 
@@ -4249,6 +4272,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                                    Comp12=0.0;
 //                                    Comp21=0.0;
 //                                    Comp22=0.0;
+
 
                                 }
 
@@ -4816,8 +4840,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nsd_x_nsd.MultABCT(fA2,SPK,fFe);
                                 fA2=fTemp_matrix_nsd_x_nsd;
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_1,fShapeDisplGrad);
                                 scale = (Comp11)*scale_const*Trace_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*Jp;
                                 fTemp_matrix_nudof_x_nudof *= scale;
@@ -4866,10 +4890,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale = (Comp11)*Trace_const*scale_const*Jp*fMaterial_Params[kNu];
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_IJp_9 += fTemp_matrix_nudof_x_nchidof;
-                                //}
+                                }
 
-                                //if(PlasticityCondition==3)
-                                //{
+                                if(PlasticityCondition==3 || PlasticityCondition==4)
+                                {
 
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,IJp_10,fShapeDisplGrad);
                                 scale =Comp12*Trace_const*scale_const*Jp*fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
@@ -4912,7 +4936,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_IJp_17 += fTemp_matrix_nudof_x_nchidof;
 
-                                //}
+                                }
 
 
                                 /* Terms realted to Delta(F) F: Deformation_Gradient F=FeFp used in w(l,A) delta(F^-1)(A,k) Fe(k,Kbar)S(Kbar,Lbar)Fe(l,Lbar) Jp */
@@ -4928,8 +4952,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nudof *= scale;
                                 fKu_I2e_1 += fTemp_matrix_nudof_x_nudof;
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
 
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2p_2,fShapeDisplGrad);
                                 scale =-1*(Comp11)*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*scale_const*Jp;
@@ -4976,10 +5000,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale = -1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu];
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I2p_10 += fTemp_matrix_nudof_x_nchidof;
-                                //}
+                                }
 
-                                //if(PlasticityCondition==3)
-                                //{
+                                if(PlasticityCondition==3 || PlasticityCondition==4)
+                                {
 
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I2p_11,fShapeDisplGrad);
                                 scale =-1*Comp12*scale_const*Jp*fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
@@ -5027,7 +5051,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fKuphi_I2p_18 += fTemp_matrix_nudof_x_nchidof;
 
 
-                               //}
+                               }
 
 
 
@@ -5048,8 +5072,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nudof *= scale;
                                 fKu_I3e_3 += fTemp_matrix_nudof_x_nudof;
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_4,fShapeDisplGrad);
                                 scale=-1*(Comp11)*dFYdScol1*scale_const*Jp*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])
                                 *trfA1*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
@@ -5108,7 +5132,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 *(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const])*scale_const*Jp;
                                 fTemp_matrix_nudof_x_nudof *= scale;
                                 fKu_I3p_12 += fTemp_matrix_nudof_x_nudof;
-                                //}
+                                }
 
                                 /* micromorphic  terms elastic addition to the macro-scale */
 
@@ -5127,8 +5151,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nudof *= scale;
                                 fKu_I3e_15 += fTemp_matrix_nudof_x_nudof;
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)// if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)// if(MacroPlasticityCondition==1)
+                                {
                                 /* micromorphic  terms plastic addition to the macro-scale */
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_16,fShapeDisplGrad);
                                 scale =-1*(Comp11)*dFYdScol1*scale_const*Jp*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*trfA1
@@ -5247,7 +5271,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu]*fMaterial_Params[kNu];
                                 fTemp_matrix_nudof_x_nudof *= scale;
                                 fKu_I3p_36 += fTemp_matrix_nudof_x_nudof;
-								 //}
+								}
 				//
                                 fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I3e_37,NCHI);
                                 scale =fMaterial_Params[kEta]*scale_const*Jp;
@@ -5264,8 +5288,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I3e_39 += fTemp_matrix_nudof_x_nchidof;
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
 
                                 fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I3p_40,NCHI);
                                 scale =-1*(Comp11)*dFYdScol1*trfA1*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*fMaterial_Params[kEta]*scale_const*Jp;
@@ -5346,10 +5370,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I3p_54 += fTemp_matrix_nudof_x_nchidof;
 
-                                //}
+                                }
 
-                                //if(PlasticityCondition==2 || PlasticityCondition==3)//if(MicroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==2 || PlasticityCondition==3 || PlasticityCondition==4)//if(MicroPlasticityCondition==1)
+                                {
 
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_55,fShapeDisplGrad);
                                 scale =-1*(Comp22)*scale_const*Jp*fMaterial_Params[kEta]*trfD1
@@ -5502,10 +5526,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I3p_78 += fTemp_matrix_nudof_x_nchidof;
 
-                                //}
+                                }
 
-                                //if(PlasticityCondition==3)
-								//{
+                                if(PlasticityCondition==3 || PlasticityCondition==4)
+								{
 
 
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_79,fShapeDisplGrad);
@@ -5939,7 +5963,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof*= scale;
                                 fKuphi_I3p_142 += fTemp_matrix_nudof_x_nchidof;
 
-                                //}
+                                }
 
 
 
@@ -5952,8 +5976,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nudof *= scale;
                                 fKu_I4e_1 += fTemp_matrix_nudof_x_nudof;
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
 
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I4p_2,fShapeDisplGrad);
                                 scale =-1*(Comp11)*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*scale_const*Jp;
@@ -6001,10 +6025,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu];
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I4p_10 += fTemp_matrix_nudof_x_nchidof;
-                                //}
+                                }
 
-                                //if(PlasticityCondition==3)
-                                //{
+                               if(PlasticityCondition==3 || PlasticityCondition==4)
+                               {
 
 
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I4p_11,fShapeDisplGrad);
@@ -6051,7 +6075,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I4p_18 += fTemp_matrix_nudof_x_nchidof;
 
-                                //}
+                                }
 
 
 
@@ -6061,8 +6085,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 delta(Jp)*eta(ml)Fe(m Mbar)(S(Mbar Lbar)-SIGMA(MbarLbar))Fe(lLBar)
                                 The terms related to variation of Jp have Jp_ extension i.e. IJp_1 */
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,IIJp_1,fShapeDisplGrad);
                                 scale = (Comp11)*scale_const*Trace_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*Jp;
                                 fTemp_matrix_nchidof_x_nudof *= scale;
@@ -6107,10 +6131,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale = (Comp11)*Trace_const*scale_const*Jp*fMaterial_Params[kNu];
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_IIJp_8 += fTemp_matrix_nchidof_x_nchidof;
-                                //}
+                                }
 
-                                //if(PlasticityCondition==3)
-                                //{
+                                if(PlasticityCondition==3 || PlasticityCondition==4)
+                                {
 
 
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,IIJp_9,fShapeDisplGrad);
@@ -6157,8 +6181,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_IIJp_16 += fTemp_matrix_nchidof_x_nchidof;
 
-
-								//}
+								}
 
 
                                 /* Terms realted to Delta(F) F: Deformation_Gradient F=FeFp used in eta(ml)Fe(k,Kbar)S-SIGMA(Kbar,Lbar)Fe(l,Lbar) Jp
@@ -6171,8 +6194,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nudof *= scale;
                                 fKphiu_II2e_1 += fTemp_matrix_nchidof_x_nudof;
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
 
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II2p_2,fShapeDisplGrad);
                                 scale =-1*(Comp11)*(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*scale_const*Jp;
@@ -6215,11 +6238,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu];
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_II2p_9 += fTemp_matrix_nchidof_x_nchidof;
-								 //}
+								}
 
 
-                                //if(PlasticityCondition==3)
-                                //{
+                                if(PlasticityCondition==3 || PlasticityCondition==4)
+                                {
 
 
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II2p_10,fShapeDisplGrad);
@@ -6267,7 +6290,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fKphiphi_II2p_17 += fTemp_matrix_nchidof_x_nchidof;
 
 
-								//}
+								}
 
 
 
@@ -6299,8 +6322,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fKphiu_II3e_5 += fTemp_matrix_nchidof_x_nudof;
 
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3p_6,fShapeDisplGrad);
                                 scale =-1*(Comp11)*dFYdScol1*trfA1*scale_const*Jp*fMaterial_Params[kTau]*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
                                 fTemp_matrix_nchidof_x_nudof *= scale;
@@ -6454,7 +6477,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 *fMaterial_Params[kNu];
                                 fTemp_matrix_nchidof_x_nudof *= scale;
                                 fKphiu_II3p_30 += fTemp_matrix_nchidof_x_nudof;
-                                //}
+                                }
 				//
                                 fTemp_matrix_nchidof_x_nchidof.MultATBC(NCHI,II3e_31,NCHI);
                                 scale =scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau]);
@@ -6471,8 +6494,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_II3e_33 += fTemp_matrix_nchidof_x_nchidof;
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
 
                                 fTemp_matrix_nchidof_x_nchidof.MultATBC(NCHI,II3p_34,NCHI);
                                 scale =-1*(Comp11)*dFYdScol1*trfA1*scale_const*Jp*fMaterial_Params[kTau]*fMaterial_Params[kEta];
@@ -6556,10 +6579,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale =-1*(Comp11)*scale_const*Jp*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const])*fMaterial_Params[kNu];
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_II3p_48 += fTemp_matrix_nchidof_x_nchidof;
-                                //}
+                                }
 
-                                //if( PlasticityCondition==2 || PlasticityCondition==3)//if(MicroPlasticityCondition==1)
-                                //{
+                                if( PlasticityCondition==2 || PlasticityCondition==3 || PlasticityCondition==4)//if(MicroPlasticityCondition==1)
+                                {
 
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3p_49,fShapeDisplGrad);
                                 scale =-1*(Comp22)*scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau])*trfD1
@@ -6708,11 +6731,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_II3p_72 += fTemp_matrix_nchidof_x_nchidof;
 
-                                //}
+                                }
 
 
-                                //if(PlasticityCondition==3)
-                                //{
+                                if(PlasticityCondition==3 || PlasticityCondition==4)
+                                {
 
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3p_73,fShapeDisplGrad);
                                 scale =-1*Comp12*scale_const*Jp*fMaterial_Params[kTau]*trfA1
@@ -7132,7 +7155,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 
-                                //}
+                                }
 
 
 
@@ -7143,8 +7166,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nudof *= scale;
                                 fKphiu_II4e_1 += fTemp_matrix_nchidof_x_nudof;
 
-                                //if(PlasticityCondition==1 || PlasticityCondition==3)//if(MacroPlasticityCondition==1)
-                                //{
+                                if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                {
 
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II4p_2,fShapeDisplGrad);
                                 scale =-1*(Comp11)*dFYdScol1*scale_const*Jp*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
@@ -7187,10 +7210,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu];
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_II4p_9 += fTemp_matrix_nchidof_x_nchidof;
-                                //}
+                                }
 
-                                //if(PlasticityCondition==3)
-								//{
+                                if(PlasticityCondition==3 || PlasticityCondition==4)
+								{
 
 
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II4p_10,fShapeDisplGrad);
@@ -7237,7 +7260,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_II4p_17 += fTemp_matrix_nchidof_x_nchidof;
 
-                                //}
+                                }
 
 
                         }
