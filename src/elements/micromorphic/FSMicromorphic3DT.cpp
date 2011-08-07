@@ -2764,7 +2764,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 								 //iterate using Newton-Raphson to solve for fDelgamma
 								 iter_count = 0;
 								 fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-								 fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
+								 fs_micromorph3D_out << "Current  Combined Yield function = " << fCombinedYield_function << endl;
 								 while (fabs(fCombinedYield_function) > dAbsTol && fabs(fCombinedYield_function/fCombinedYield_function_tr) > dRelTol && iter_count < iIterationMax)
 								 {
 									 iter_count += 1;
@@ -3042,7 +3042,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 								 } //	end of the local fDelgamma while loop
 
-								 fs_micromorph3D_out << "Current  Macro Yield function = " << fCombinedYield_function << endl;
+								 fs_micromorph3D_out << "Current  Combined Yield function = " << fCombinedYield_function << endl;
 							 }// end of combined plasticity
 
                     	 if(iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
