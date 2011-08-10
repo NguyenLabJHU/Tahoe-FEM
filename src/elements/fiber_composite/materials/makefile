@@ -1,4 +1,4 @@
-# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/materials/makefile,v 1.9 2010-06-24 13:49:18 thao Exp $
+# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/materials/makefile,v 1.10 2011-08-10 14:51:58 theresakoys Exp $
 # created: a-kopacz (07/04/2006)
 #
 # This makefile is divided into four sections:
@@ -32,7 +32,8 @@ OBJ = \
 	NLV_Ortho.o \
 	NLV_Nfibers.o \
 	QLV_Nfibers.o \
-	AnisoCornea.o 
+	AnisoCornea.o \
+	GasserHolzapfel.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -63,8 +64,8 @@ SRC = \
 	NLV_Ortho.cpp \
 	NLV_Nfibers.cpp \
 	QLV_Nfibers.cpp \
-	AnisoCornea.cpp 
-
+	AnisoCornea.cpp \
+	GasserHolzapfel.cpp 
 
 ##################### (3) headers
 #
@@ -87,7 +88,8 @@ HDR = \
 	NLV_Ortho.h \
 	NLV_Nfibers.h \
 	QLV_Nfibers.h \
-	AnisoCornea.h 
+	AnisoCornea.h \
+	GasserHolzapfel.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatSplitT.cpp,v 1.1 2010-06-24 14:35:49 thao Exp $ */
+/* $Id: FSFiberMatSplitT.cpp,v 1.2 2011-08-10 14:51:58 theresakoys Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatSplitT.h"
 #include "FSFiberMatSupportT.h"
@@ -275,6 +275,8 @@ const dSymMatrixT& FSFiberMatSplitT::S_IJ(void)
 	
 	/* stretch */
 	Compute_C(fC);
+	//cout<<"\nC: "<<fC<<endl;
+
 	fI3 = fC.Det();
 	double I3rthird = pow(fI3,-third);
 
@@ -296,12 +298,15 @@ const dSymMatrixT& FSFiberMatSplitT::S_IJ(void)
 	/* rotate stress to lab coordinates */
 	AssembleFiberStress(fFiberStress, fSbar);
 	
+	
 	/*Dot with projection tensor*/
 	/*Sdev = I3^(-1/3)*(Sbar - 1/3 (Sbar:C) C^-1)*/
 	fStress = fSbar;
-	
+	//cout<<"\nSbar: "<<fSbar;
+
 	double coeff = fSbar.ScalarProduct(fC);
 	coeff *= -third;
+	//cout<<"\ngammaA: "<<I3rthird*coeff;
 	fStress[0] += coeff*fInverse[0];
 	fStress[1] += coeff*fInverse[1];
 	fStress[2] += coeff*fInverse[2];
@@ -310,6 +315,7 @@ const dSymMatrixT& FSFiberMatSplitT::S_IJ(void)
 	fStress[5] += coeff*fInverse[5];
 	
 	fStress *= I3rthird;
+	//cout<<"\n deviatoric: "<<fStress<<endl;
 	
 	/*Add volumetric*/
 	double p =  ComputeVolMatrixStress(fI3);
@@ -319,7 +325,7 @@ const dSymMatrixT& FSFiberMatSplitT::S_IJ(void)
 	fStress[3] += p*fInverse[3];
 	fStress[4] += p*fInverse[4];
 	fStress[5] += p*fInverse[5];
-	
+	//cout<<"\n vol+dev: "<<fStress<<endl;
 	return(fStress);
 }
 

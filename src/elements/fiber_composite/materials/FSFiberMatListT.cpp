@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatListT.cpp,v 1.8 2010-06-24 13:49:16 thao Exp $ */
+/* $Id: FSFiberMatListT.cpp,v 1.9 2011-08-10 14:51:58 theresakoys Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSFiberMatListT.h"
 #include "FSFiberMatSupportT.h"
@@ -18,6 +18,7 @@
 #include "NLV_Nfibers.h"
 #include "QLV_Nfibers.h"
 #include "NLV_Ortho.h"
+#include "GasserHolzapfel.h"
 
 //#include "AnisoCorneaVisco2.h"
 
@@ -64,6 +65,8 @@ void FSFiberMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListO
 		sub_lists.AddSub("quasilinear_viscoelasticity_Nfibers");
 		sub_lists.AddSub("nonlinear_viscoelasticity_Nfibers");
 		sub_lists.AddSub("nonlinear_viscoelasticity_ortho");
+		sub_lists.AddSub("gasser_holzapfel");
+
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(name, order, sub_lists);
@@ -130,6 +133,8 @@ FSFiberMatT* FSFiberMatListT::NewFSFiberMat(const StringT& name) const
 		mat = new NLV_Ortho;
 	else if (name == "nonlinear_viscoelasticity_Nfibers")
 		mat = new NLV_Nfibers;
+	else if (name == "gasser_holzapfel")
+		mat = new GasserHolzapfel;
 
 	/* set support */
 	if (mat) mat->SetFSFiberMatSupport(fFSFiberMatSupport);
