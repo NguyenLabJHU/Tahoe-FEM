@@ -2253,7 +2253,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                         //Matrices from variation of SPK
 //                      fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_4,fIota_temp_matrix);                                        fs_micromorph3D_out<<" fFe det="<<fFe.Det() <<endl;
-                                        fs_micromorph3D_out<<"fChie det="<<fChie.Det() <<endl;
 //              scale = scale_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
 //              fTemp_matrix_nudof_x_nudof *= scale;
 //              // accumulate
@@ -16546,9 +16545,9 @@ void FSMicromorphic3DT::Calculate_Cauchy_INV()
 /*******************************************************/
 
     trS=SPK.Trace();
-//    devSPK.SetToScaled(trS*1/3,fIdentity_matrix);
-//    devSPK*=-1;
-//    devSPK+=SPK;
+    devSPK.SetToScaled(trS*1/3,fIdentity_matrix);
+    devSPK*=-1;
+    devSPK+=SPK;
 
     temp_inv=devSPK.ScalarProduct();
     invdevS=sqrt(temp_inv);
@@ -16602,9 +16601,9 @@ void FSMicromorphic3DT:: Calculate_stress_diff_INV()
 /********************************************/
     trSIGMA_S=SIGMA_S.Trace();
 
-//    devSIGMA_S.SetToScaled(trSIGMA_S*1/3,fIdentity_matrix);
-//    devSIGMA_S*=-1;
-//    devSIGMA_S+=SIGMA_S;
+    devSIGMA_S.SetToScaled(trSIGMA_S*1/3,fIdentity_matrix);
+    devSIGMA_S*=-1;
+    devSIGMA_S+=SIGMA_S;
 
     temp_inv=devSIGMA_S.ScalarProduct();
     invdevSIGMA_S=sqrt(temp_inv);
