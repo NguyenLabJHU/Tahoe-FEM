@@ -2639,7 +2639,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                         /* Form terms related the cohesion and friction angle  in D-P yield function */
-                        /* Initially Aphi is already assigined to fState_variables_n_IPs(IP,khc)=Aphi in TakeParameterList function*/
+                        /* Initially Aphi is already assigined to fState_variables_n_IPs(IP,khc)=Apsi in TakeParameterList function*/
                         double Beta=-1.0;
                         double Aphi=2*sqrt(6)*cos(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
                         double Bphi=2*sqrt(6)*sin(fMaterial_Params[kFphi])/(3+Beta*sin(fMaterial_Params[kFphi]));
@@ -2649,7 +2649,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                         /* Form terms related the cohesion and friction angle  in Micro D-P yield function */
-                        /* Initially Aphi_chi is already assigined to fState_variables_n_IPs(IP,khc_chi)=Aphi_chi in TakeParameterList function*/
+                        /* Initially Aphi_chi is already assigined to fState_variables_n_IPs(IP,khc_chi)=Apsi_chi in TakeParameterList function*/
                         //double Beta=-1.0;
                         double Aphi_chi=2*sqrt(6)*cos(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));
                         double Bphi_chi=2*sqrt(6)*sin(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));
@@ -2825,7 +2825,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 									 dPdDelgamma=dSdDelgamma.Trace()/3;
 
 									 //Forming  dc/dDgamma  c: cohesion
-									 //fState_variables_n_IPs(IP,khc) =Aphi;
+									 //fState_variables_n_IPs(IP,khc) =Apsi;
 									 dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
 
 									 //Forming  d(devS)/dDgamma  devS: dev. part of SPK tensor
@@ -3141,7 +3141,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                     			 //Forming  dc/dDgamma  c: cohesion
-                    			 //fState_variables_n_IPs(IP,khc) =Aphi;
                     			 dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
 
                     			 // assemble the consistent tangent
@@ -3163,7 +3162,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                     			 //update c ISVs
                     			 //fState_variables_IPs(IP,kZc)= fState_variables_n_IPs(IP,kZc)
                     			 //+ fDelgamma*fState_variables_n_IPs(IP,khc);
-                    			 //fState_variables_IP_s(IP,khc)=Aphi;
                     			 fState_variables_IPs(IP,kc)= fState_variables_n_IPs(IP,kc)
                     			 + fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
                     			 if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
@@ -3573,7 +3571,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                     			 //Forming  dc/dDgamma  c: cohesion
-                    			 //fState_variables_n_IPs(IP,khc) =Aphi;
                     			 dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
 
                     			 //assemble the consistent tangent
@@ -4115,6 +4112,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                 fdFYdc=-Aphi;
                                 fdFYchidcchi=-Aphi_chi;
+
+//                                fdGdc=-Apsi;
+//                                fdGchidcchi=-Apsi_chi;
+
 
                                 /* Inverse of  Fp */
                                 fFp_inverse.Inverse(fFp);
@@ -11081,8 +11082,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
                 =fMaterial_Params[kc0_chi];
 
             //fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khkappa)=0.0;
-            fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=Aphi;
-            fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc_chi)=Aphi_chi;
+            fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=Apsi;
+            fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc_chi)=Apsi_chi;
 
          fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma)=0.0;
          fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammachi)=0.0;
