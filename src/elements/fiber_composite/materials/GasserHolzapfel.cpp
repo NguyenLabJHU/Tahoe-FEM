@@ -1,4 +1,4 @@
-/* $Id: GasserHolzapfel.cpp,v 1.1 2011-08-10 14:51:58 theresakoys Exp $ */
+/* $Id: GasserHolzapfel.cpp,v 1.2 2011-08-16 13:00:32 thao Exp $ */
 
 #include "GasserHolzapfel.h"
 #include <math.h>
@@ -44,7 +44,7 @@ double GasserHolzapfel::StrainEnergyDensity(void)
 		
 	/*coupled compressible Neo-Hookean*/
 	/* mu/2 (I1 -3) + 0.25*fKappa*(I3-1-log(I3)))*/
-	double energyMatrix = 0.5*fMu*(I1bar-3.0) + 0.25*fBulkMod*(I3-1-2*log(I3));
+	double energyMatrix = 0.5*fMu*(I1bar-3.0) + 0.25*fBulkMod*((I3-1.0) + (exp(fk2*(I3-1.0))-1.0) -log(I3) );
 	
 	/*fiber contribution*/
 	//TO DO::  Add fiber contribution
@@ -135,6 +135,7 @@ void GasserHolzapfel::TakeParameterList(const ParameterListT& list)
 	fKappa = list.GetParameter("fiber_dispersion");
 	fk1 = list.GetParameter("fiber_modulus_k1");
 	fk2 = list.GetParameter("fiber_stiffening_k2");
+	fb2 = fk2;
 	
 	/* allocate memory */
 	/*3D fiber stress and modulus*/
@@ -184,13 +185,16 @@ void GasserHolzapfel::ComputeDevMatrixMod(const dSymMatrixT& Cbar, dSymMatrixT& 
 double GasserHolzapfel::ComputeVolMatrixStress(const double I3)
 {
 	/*p = 2pdf(Wvol)(I3)I3 = kappa/2(I3-1) C^-1*/
-	return (0.5*fBulkMod*(I3-1));
+	double x = I3-1.0;
+	return( 0.5*fBulkMod*x*(1.0 + 2.0* fb2* exp(fb2*x*x) *I3) )  ;
 }
 
 double GasserHolzapfel::ComputeVolMatrixMod(const double I3)
 {
 	/*2pdf(p)(I3)*I3*/
-	return(fBulkMod*I3);
+	double x = I3-1.0;
+	double beta = exp(fb2*x*x);
+	return( 2.0*fBulkMod* I3* (0.5 + 2.0*fb2*fb2*beta*x*x*I3 + fb2*beta* (-1.0 + 2.0*I3)) );
 }
 	
 /*computes integrated fiber stress in local frame*/

@@ -1,4 +1,4 @@
- //$Id: GasserHolzapfel.h,v 1.1 2011-08-10 14:51:58 theresakoys Exp $ 
+ //$Id: GasserHolzapfel.h,v 1.2 2011-08-16 13:00:32 thao Exp $ 
 // Model from Gasser TC, Ogden RW, Holzapfel GA. J R SocInterface 2006 3(6):15 – 35.
 
 #ifndef _GASSER_HOLZAPFEL_H_
@@ -64,6 +64,7 @@ protected:
 	/*material parameters for matrix*/
 	double fMu;  /*shear modulus*/
 	double fBulkMod; /*bulk modulus*/
+	double fb2;  /*bulk mod stiffening factor*/
 	
 	/*material parameters for fiber*/
 	double fKappa; /*fiber dispersion parameters*/
