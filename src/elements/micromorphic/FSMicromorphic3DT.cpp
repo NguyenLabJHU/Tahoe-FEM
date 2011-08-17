@@ -7322,6 +7322,19 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 Vint_2 +=Vint_2_temp;
 
 
+                                Form_GAMMA();
+                                Form_fMKLM();
+                                Form_fV3();
+                                //fIota_eta_temp_matrix.Multx(fV3,Vint_3_temp);
+                                GRAD_NCHI.MultTx(fV3,Vint_3_temp);
+                                scale=scale_const;
+                                Vint_3_temp*=scale;
+                                Vint_3+=Vint_3_temp;
+
+                                Calculate_fmklm();
+                                fmklm*=1/J;
+
+
                                 Sigma=KirchhoffST;
                                 Sigma.SetToScaled(1/Je,KirchhoffST);
 
