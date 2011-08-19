@@ -63,11 +63,9 @@ void FSMicromorphic3DT::Echo_Input_Data(void)
     cout << "fMaterial_Params[kc0_chi] "               << fMaterial_Params[kc0_chi]          << endl;
     cout << "fMaterial_Params[kHc_chi] "               << fMaterial_Params[kHc_chi]          << endl;
     cout << "fMaterial_Params[kGc0_chi1] "               << fMaterial_Params[kGc0_chi1]          << endl;
-    cout << "fMaterial_Params[kHGc_chi1] "               << fMaterial_Params[kHGc_chi1]          << endl;
+    cout << "fMaterial_Params[kHGc_chi1] "               << fMaterial_Params[kHGc_chi]          << endl;
     cout << "fMaterial_Params[kGc0_chi2] "               << fMaterial_Params[kGc0_chi2]          << endl;
-    cout << "fMaterial_Params[kHGc_chi2] "               << fMaterial_Params[kHGc_chi2]          << endl;
     cout << "fMaterial_Params[kGc0_chi3] "               << fMaterial_Params[kGc0_chi3]          << endl;
-    cout << "fMaterial_Params[kHGc_chi3] "               << fMaterial_Params[kHGc_chi3]          << endl;
     //cout << "fMaterial_Params[kZ0c] "              << fMaterial_Params[kZ0c]       << endl;
     cout << "fMaterial_Params[kFphi] "             << fMaterial_Params[kFphi]        << endl;
     cout << "fMaterial_Params[kDpsi] "             << fMaterial_Params[kDpsi]        << endl;
@@ -2683,6 +2681,15 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         double Apsi_chi=2*sqrt(6)*cos(fMaterial_Params[kDpsi_chi])/(3+Beta*sin(fMaterial_Params[kDpsi_chi] ));
                         double Bpsi_chi=2*sqrt(6)*sin(fMaterial_Params[kDpsi_chi])/(3+Beta*sin(fMaterial_Params[kDpsi_chi] ));
 
+                        /* Form terms related the cohesion and friction angle  in Micro Gradient D-P yield function */
+                        /* Initially Aphi_chi is already assigined to fState_variables_n_IPs(IP,khGc_chi)=AGpsi_chi in TakeParameterList function*/
+                        double AGphi_chi=2*sqrt(6)*cos(fMaterial_Params[kFGphi_chi])/(3+Beta*sin(fMaterial_Params[kFGphi_chi]));
+                        double BGphi_chi=2*sqrt(6)*sin(fMaterial_Params[kFGphi_chi])/(3+Beta*sin(fMaterial_Params[kFGphi_chi]));
+                        // Form the cohesion and dilation angle related terms in Plastic potential function
+                        double AGpsi_chi=2*sqrt(6)*cos(fMaterial_Params[kDGpsi_chi])/(3+Beta*sin(fMaterial_Params[kDGpsi_chi]));
+                        double BGpsi_chi=2*sqrt(6)*sin(fMaterial_Params[kDGpsi_chi])/(3+Beta*sin(fMaterial_Params[kDGpsi_chi]));
+
+
 
 
 
@@ -3068,8 +3075,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 								 fs_micromorph3D_out << "Current  Combined Yield function = " << fCombinedYield_function << endl;
 
+								 /*Calculating PSIe inverse*/
+								 PSIe_inverse.Inverse(PSIe);
 
+								 /* Micro Scale Gradient check setting default not yileded; if =0 not yield, if =1 yield */
 			                     /* Forming Gradient of fChie (=Gradient of Xe) */
+								 MicroScaleGradient_check=0;
+
+
 								 Form_fGbXe_tr();
 
 								 /* Forming Mbar trial tensor */
@@ -3122,15 +3135,99 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 								 /*Calculating magnitude of micro gradient cohesion */
 								 Temp_inv=0.0;
-								 Temp_inv=fState_variables_n_IPs(IP,kc_chi1)*fState_variables_n_IPs(IP,kc_chi1)
-										 +fState_variables_n_IPs(IP,kc_chi2)*fState_variables_n_IPs(IP,kc_chi2)
-										 +fState_variables_n_IPs(IP,kc_chi3)*fState_variables_n_IPs(IP,kc_chi3);
+								 Temp_inv=fState_variables_n_IPs(IP,kGc_chi1)*fState_variables_n_IPs(IP,kGc_chi1)
+										 +fState_variables_n_IPs(IP,kGc_chi2)*fState_variables_n_IPs(IP,kGc_chi2)
+										 +fState_variables_n_IPs(IP,kGc_chi3)*fState_variables_n_IPs(IP,kGc_chi3);
 								 invGc_n=sqrt(Temp_inv);
 
+
+								 fcG_chi_n[0]=fState_variables_n_IPs(IP,kGc_chi1);
+								 fcG_chi_n[1]=fState_variables_n_IPs(IP,kGc_chi2);
+								 fcG_chi_n[2]=fState_variables_n_IPs(IP,kGc_chi3);
+
+
 								 /* Micro Gradient Yield Function trial value*/
-								 fMicroGradientYield_function_tr=invdevMeKLM_tr-(AGphi*invGc_n-BGphi*invPGchivar_tr);
+								 fMicroGradientYield_function_tr=invdevMeKLM_tr-(AGphi_chi*invGc_n-BGphi_chi*invPGchivar_tr);
+
+								 if(fMicroGradientYield_function_tr >dYieldTrialTol)
+								 {
+									 /* Setting Micro Gradient check to 1 */
+									 MicroScaleGradient_check=1;
+
+									 /* initilizing the values */
+									 fMicroGradientYield_function=fMicroGradientYield_function_tr;
+									 Gammae=Gammae_tr;
+									 fMeKLM=fMeKLM_tr;
+									 devMeKLM=devMeKLM_tr;
+									 invdevMeKLM=invdevMeKLM_tr;
+									 invPGchivar=invPGchivar_tr;
+									 //invPGchivar=invPGchivar_tr;
+
+		                    		 fdelDelgamma = 0.0;
+		                    		 fDelgamma = 0.0;
+
+		                    		 // iterate using Newton-Raphson to solve for fDelgamma
+		                    		 iter_count = 0;
+
+		                    		 while (fabs(fMicroScaleGradientYield_function) > dAbsTol && fabs(fMicroScaleGradientYield_function/fMicroScaleGradientYield_function_tr) > dRelTol && iter_count < iIterationMax)
+		                    		 {
+		                    			 iter_count += 1;
 
 
+		                    			 /* Form dG^(Gchi)/dMKLM */
+		                    			 Form_dGGchidMKLM();
+
+										 /* Form dGXp/dDelgamma*/
+										 Form_dGXpdDelgamma();
+
+										 /* Form dGXe/dDelgamma*/
+										 Form_dGXedDelgamma();
+
+										 /* Form dGammae/dDelgamma*/
+										 Form_dGammaedDelgamma();
+
+
+										 /* Form  dMKLM/dDelgamma*/
+										 Form_dMKLMdDelgamma();
+
+										 /* Form_dinvPGchivar/dDelgamma*/
+										 Form_dinvPGchivardDelgamma();
+
+
+
+										 /* Form_ddevMKLM/dDelgamma */
+										 Form_ddevMKLMdDelgamma();
+
+										 /* Calculate dInvddevMKLM/dDelgamma */
+										 Calculate_dInvddevMKLMdDelgamma();
+
+										 /* Calculate dcGchi/dDelgamma */
+										 dcGchidDelgamma=0.0;
+										 for(int Kbar=0;Kbar<3;Kbar++)
+										 { dcGchidDelgamma[Kbar]=(1/invGc_n)*AGpsi_chi*fState_variables_IPs(IP,kHG_chi)*fcG_chi[Kbar];}
+
+										 dInvcGchidDelgamma=0.0;
+										 for(int Kbar=0;Kbar<3;Kbar++)
+										 {dInvcGchidDelgamma+=(1/invGc_n)*dcGchidDelgamma[Kbar]*fcG_chi_n[Kbar];}
+
+										 dFGYdDelgamma=dInvddevMKLMdDelgamma-(AGphi_chi*dInvcGchidDelgamma-BGphi_chi*dinvPGchivardDelgamma);
+
+
+
+
+
+
+
+										 fcG_chi[0]=fState_variables_IPs(IP,kGc_chi1);
+										 fcG_chi[1]=fState_variables_IPs(IP,kGc_chi2);
+										 fcG_chi[2]=fState_variables_IPs(IP,kGc_chi3);
+
+
+
+		                    		 }
+
+
+								 }
 
 
 
@@ -9267,6 +9364,15 @@ void FSMicromorphic3DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(Fphi_chi,"Fphi_chi");
     list.AddParameter(Dpsi_chi,"Dpsi_chi");
 
+    // Micro Scale Gradient plasticity
+    list.AddParameter(Gc0_chi1,"Gc0_chi1");
+    list.AddParameter(Gc0_chi2,"Gc0_chi2");
+    list.AddParameter(Gc0_chi3,"Gc0_chi3");
+    list.AddParameter(HGc_chi,"HGc_chi");
+    list.AddParameter(FGphi_chi,"FGphi_chi");
+    list.AddParameter(DGpsi_chi,"DGpsi_chi");
+
+
     // tolerance for yield check
     list.AddParameter(dYieldTrialTol, "local_yield_tr_tol");
 
@@ -9408,11 +9514,10 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kc0_chi] = list.GetParameter("c0_chi");
     fMaterial_Params[kHc_chi] = list.GetParameter("Hc_chi");
     fMaterial_Params[kGc0_chi1] = list.GetParameter("Gc0_chi1");
-    fMaterial_Params[kHGc_chi1] = list.GetParameter("HGc_chi1");
     fMaterial_Params[kGc0_chi2] = list.GetParameter("Gc0_chi2");
-    fMaterial_Params[kHGc_chi2] = list.GetParameter("HGc_chi2");
     fMaterial_Params[kGc0_chi3] = list.GetParameter("Gc0_chi3");
-    fMaterial_Params[kHGc_chi3] = list.GetParameter("HGc_chi3");
+    fMaterial_Params[kHGc_chi] = list.GetParameter("HGc_chi");
+
     //fMaterial_Params[kZ0c] =0.0;
     fMaterial_Params[kFphi] = list.GetParameter("Fphi");
     fMaterial_Params[kDpsi] = list.GetParameter("Dpsi");
@@ -11263,7 +11368,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     		 //fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khkappa)=0.0;
     		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=Apsi;
     		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc_chi)=Apsi_chi;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khGc_chi)=AGpsi_chi;// Micro Gradient Pl.
+    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khGc_chi1)=AGpsi_chi;// Micro Gradient Pl.
+    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khGc_chi2)=AGpsi_chi;// Micro Gradient Pl.
+    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khGc_chi3)=AGpsi_chi;// Micro Gradient Pl.
 
 
     		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma)=0.0;
@@ -30996,6 +31103,175 @@ void FSMicromorphic3DT:: Form_II4p_17()
     }
 }
 
+void FSMicromorphic3DT:: Form_dGGchidMKLM()
+{
+
+	dGGchidMKLM=0.0;
+	for(int Kbar=0;Kbar<3;Kbar++)
+	{
+		for(int Lbar=0;Lbar<3;Lbar++)
+		{
+			for(int Mbar=0;Mbar<3;Mbar++)
+			{
+				dGGchidMKLM(Kbar,Lbar,Mbar)=(1/invdevMeKLM)*devMeKLM(Kbar,Lbar,Mbar)+(1/3)*(1/ invPGchivar)* PGchivar[Mbar]*fIdentity_matrix(Kbar,Lbar);
+			}
+		}
+	}
+}
+
+
+void FSMicromorphic3DT:: Form_dGXpdDelgamma()
+{
+	dGXpdDelgamma=0.0;
+	for(int Dbar=0;Dbar<3;Dbar++)
+	{
+		for(int P=0;P<3;P++)
+		{
+			for(int Kbar=0;Kbar<3;Kbar++)
+			{
+				//summation
+				for(int Lbar=0;Lbar<3;Lbar++)
+				{
+					for(int Mbar=0;Mbar<3;Mbar++)
+					{
+						dGXpdDelgamma(Dbar,P,Kbar)+=PSIe_inverse(Dbar,Lbar)*dGGchidMKLM(Lbar,Mbar,Kbar)*fChip(Mbar,P);
+					}
+				}
+			}
+		}
+	}
+
+}
+
+
+
+void FSMicromorphic3DT:: Form_dGXedDelgamma()
+{
+	dGXedDelgamma=0.0;
+	for(int i=0;i<3;i++)
+	{
+		for(int Abar=0;Abar<3;Abar++)
+		{
+			for(int Lbar=0;Lbar<3;Lbar++)
+			{
+				//summation
+				for(int L=0;L<3;L++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						dGXedDelgamma(i,Abar,Lbar)+=GRAD_CHIM(i,K,L)*fFp_inverse(L,Lbar)*fChip_inverse(K,Abar);
+					}
+				}
+			}
+		}
+	}
+
+	for(int i=0;i<3;i++)
+	{
+		for(int Abar=0;Abar<3;Abar++)
+		{
+			for(int Lbar=0;Lbar<3;Lbar++)
+			{
+				//summation
+				for(int Bbar=0;Bb<3;Bbar++)
+				{
+					for(int L=0;L<3;L++)
+					{
+						dGXedDelgamma(i,Abar,Lbar)+=-1*fChie(i,Bbar)*dGXpdDelgamma(Bbar,B,Lbar)*fChip_inverse(B,Abar);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+void FSMicromorphic3DT:: Form_dGammaedDelgamma()
+{
+
+	dGammaedDelgamma=0.0;
+	for(int Kbar=0;Kbar<3;Kbar++)
+	{
+		for(int Lbar=0;Lbar<3;Lbar++)
+		{
+			for(int Mbar=0;Mbar<3;Mbar++)
+			{
+				//summation
+				for(int i=0;i<3;i++)
+				{
+					dGammaedDelgamma(Kbar,Lbar,Mbar)+=fFe(i,Kbar)*dGXedDelgamma(i,Lbar,Mbar);
+				}
+			}
+		}
+	}
+
+
+}
+
+void FSMicromorphic3DT:: Form_dMKLMdDelgamma()
+{
+
+	dMKLMdDelgamma=0.0;
+
+	for(int Kbar=0;Kbar<3;Kbar++)
+	{
+		for(int Lbar=0;Lbar<3;Lbar++)
+		{
+			for(int Mbar=0;Mbar<3;Mbar++)
+			{
+				dMKLMdDelgamma(Kbar,Lbar,Mbar)=fMaterial_Params[kTau7]*dGammaedDelgamma(Kbar,Lbar,Mbar);
+			}
+		}
+	}
+
+}
+
+void FSMicromorphic3DT:: Form_dinvPGchivardDelgamma()
+{
+	dinvPGchivardDelgamma=0.0;
+	for(int Kbar=0;Kbar<3;Kbar++)
+	{
+		//summation
+		for(int Abar=0;Abar<3;Abar++)
+		{
+			dinvPGchivardDelgamma[Kbar]+=(1/3)*dMKLMdDelgamma(Abar,Abar,Kbar);
+		}
+	}
+
+}
+
+void FSMicromorphic3DT:: Form_ddevMKLMdDelgamma()
+{
+	ddevMKLMdDelgamma=0.0;
+
+	for(int Kbar=0;Kbar<3;Kbar++)
+	{
+		for(int Lbar=0;Lbar<3;Lbar++)
+		{
+			for(int Mbar=0;Mbar<3;Mbar++)
+			{
+				ddevMKLMdDelgamma(Kbar,Lbar,Mbar)=dMKLMdDelgamma(Kbar,Lbar,Mbar)-(1/3)*dinvPGchivardDelgamma[Mbar]*fIdentity_matrix(Kbar,Lbar);
+			}
+		}
+	}
+}
+
+void FSMicromorphic3DT:: Calculate_dInvddevMKLMdDelgamma()
+{
+
+	dInvddevMKLMdDelgamma=0.0;
+	for(int Kbar=0;Kbar<3;Kbar++)
+	{
+		for(int Lbar=0;Lbar<3;Lbar++)
+		{
+			for(int Mbar=0;Mbar<3;Mbar++)
+			{
+				dInvddevMKLMdDelgamma+=(1/invdevMeKLM)*ddevMKLMdDelgamma(Kbar,Lbar,Mbar)*devMeKLM(Kbar,Lbar,Mbar);
+			}
+		}
+	}
+
+}
 
 
 ////////////////////////////////////////////////////////////////

@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.203 2011-08-19 03:22:40 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.204 2011-08-19 11:03:42 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -70,6 +70,12 @@ public:
         kc0,
         kHc_chi,
         kc0_chi,
+        kHGc_chi1,
+        kGc0_chi1,
+        kHGc_chi2,
+        kGc0_chi2,
+        kHGc_chi3,
+        kGc0_chi3,
         //kZ0c,
         kFphi,
         kDpsi,
@@ -830,7 +836,7 @@ private:
     dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_nsd;
     dTensor3DT fMeKLM;
     dTensor3DT fMeKLM_tr;
-    dTensor3DT fdevMeKLM;
+    dTensor3DT devMeKLM;
     dTensor3DT GAMMAe;
     dTensor3DT GAMMAe_tr;
     dTensor3DT fGbXe;
@@ -931,6 +937,13 @@ private:
     double alpha2;
     double s1,s2,incr,incrx;
     /***************************************************/
+    /************Micro Scale Gradient Plasticity *******/
+    dArrayT PGchivar_tr;
+    dTensor3DT fMeKLM_Tr;
+    dTensor3DT devMeKLM_tr;
+    dTensor3DT fmeklm;
+
+    /***************************************************/
     /***************************************************/
     /***************************************************/
 
@@ -972,7 +985,7 @@ private:
     int PlasticityCheck;
     double fCombinedYield_function,fCombinedYield_function_tr,Stress_Norm,Stress_Norm_tr,dFCYdDelGamma;
     double fMicroGradientYield_function,fMicroGradientYield_function_tr,invGc,invGc_n,invPGchivar,invPGchivar_tr;
-    double invdevMeKLM_tr;
+    double invdevMeKLM_tr,AGphi_chi,BGphi_chi,AGpsi_chi,BGpsi_chi;
     double Pbar,Pbar_tr,Pchibar,Pchibar_tr,dcchidDelgamma;
     double dFCYdDelgamma;
     double fYield_function,fYield_function_tr,dFYdc;
@@ -1911,6 +1924,7 @@ private:
  dMatrixT s_sigma_temp;
  dTensor3DT fmklm;
 
+
 //////////////////////////////////////////////////
     double invJ;
 
@@ -2220,6 +2234,15 @@ private:
     void Form_GAMMAe_tr(void);
     void Form_fGbXe(void);
     void Form_fGbXe_tr(void);
+
+    void Form_dGGchidMKLM(void);
+    void Form_dGXpdDelgamma(void);
+    void Form_dGXedDelgamma(void);
+    void Form_dGammaedDelgamma(void);
+    void Form_dMKLMdDelgamma(void);
+    void Form_dinvPGchivardDelgamma(void);
+    void Form_ddevMKLMdDelgamma(void);
+    void Calculate_dInvddevMKLMdDelgamma(void);
 
     void Calculate_fmeklm(void);
 
