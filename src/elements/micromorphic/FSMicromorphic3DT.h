@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.202 2011-08-04 09:45:13 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.203 2011-08-19 03:22:40 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -75,6 +75,8 @@ public:
         kDpsi,
         kFphi_chi,
         kDpsi_chi,
+        kFGphi_chi,
+        kDGpsi_chi,
         //
         kg,
         kg1,
@@ -116,42 +118,49 @@ public:
         kinvdevM,
         kinvPhi,
         kinvGPhi,
-        kF11,
-        kF12,
-        kF13,
-        kF21,
-        kF22,
-        kF23,
-        kF31,
-        kF32,
-        kF33,
-        kFe11,
-        kFe12,
-        kFe13,
-        kFe21,
-        kFe22,
-        kFe23,
-        kFe31,
-        kFe32,
-        kFe33,
-        kX11,
-        kX12,
-        kX13,
-        kX21,
-        kX22,
-        kX23,
-        kX31,
-        kX32,
-        kX33,
-        kXe11,
-        kXe12,
-        kXe13,
-        kXe21,
-        kXe22,
-        kXe23,
-        kXe31,
-        kXe32,
-        kXe33,
+        kGc_chi1,
+        kGc_chi2,
+        kGc_chi3,
+        kDelgammaGchi,
+        khGc_chi1,
+        khGc_chi2,
+        khGc_chi3,
+//        kF11,
+//        kF12,
+//        kF13,
+//        kF21,
+//        kF22,
+//        kF23,
+//        kF31,
+//        kF32,
+//        kF33,
+//        kFe11,
+//        kFe12,
+//        kFe13,
+//        kFe21,
+//        kFe22,
+//        kFe23,
+//        kFe31,
+//        kFe32,
+//        kFe33,
+//        kX11,
+//        kX12,
+//        kX13,
+//        kX21,
+//        kX22,
+//        kX23,
+//        kX31,
+//        kX32,
+//        kX33,
+//        kXe11,
+//        kXe12,
+//        kXe13,
+//        kXe21,
+//        kXe22,
+//        kXe23,
+//        kXe31,
+//        kXe32,
+//        kXe33,
         kNUM_FMATERIAL_STATE_TERMS
     };
 
@@ -819,6 +828,17 @@ private:
     dTensor3DT GAMMA;
     dTensor3DT GRAD_CHIM;
     dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_nsd;
+    dTensor3DT fMeKLM;
+    dTensor3DT fMeKLM_tr;
+    dTensor3DT fdevMeKLM;
+    dTensor3DT GAMMAe;
+    dTensor3DT GAMMAe_tr;
+    dTensor3DT fGbXe;
+    dTensor3DT fGbXe_tr;
+    dTensor3DT fGbXp;
+    dTensor3DT fGbXp_n;
+
+
 
 
 
@@ -839,6 +859,9 @@ private:
     dArrayT Vintp_2;
     dArrayT Vintp_2_temp;
     dArrayT fV2p;
+    dArrayT Vintp_3;
+    dArrayT Vintp_3_temp;
+    dArrayT fV3p;
 
 
 
@@ -948,6 +971,8 @@ private:
 
     int PlasticityCheck;
     double fCombinedYield_function,fCombinedYield_function_tr,Stress_Norm,Stress_Norm_tr,dFCYdDelGamma;
+    double fMicroGradientYield_function,fMicroGradientYield_function_tr,invGc,invGc_n,invPGchivar,invPGchivar_tr;
+    double invdevMeKLM_tr;
     double Pbar,Pbar_tr,Pchibar,Pchibar_tr,dcchidDelgamma;
     double dFCYdDelgamma;
     double fYield_function,fYield_function_tr,dFYdc;
@@ -1839,8 +1864,14 @@ private:
     dArray2DT   fdFYchidSIGMA_S_Elements_IPs;
     dArray2DT   fdFYchidSIGMA_S_n_Elements_IPs;
 
+    dArray2DT   fGbXe_IPs;
+    dArray2DT   fGbXe_Elements_IPs;
 
+    dArray2DT   fGbXp_IPs;
+    dArray2DT   fGbXp_Elements_IPs;
 
+    dArray2DT   fGbXp_n_IPs;
+    dArray2DT   fGbXp_n_Elements_IPs;
 
     dArray2DT   PSIe_IPs;
     dArray2DT   PSIe_Elements_IPs;
@@ -2181,6 +2212,17 @@ private:
 /* Plasticity functions */
     void  Form_fV1p(void);
     void  Form_fV2p(void);
+    void  Form_fV3p(void);
+
+    void Form_fMeKLM(void);
+    void Form_GAMMAe(void);
+    void Form_fMeKLM_tr(void);
+    void Form_GAMMAe_tr(void);
+    void Form_fGbXe(void);
+    void Form_fGbXe_tr(void);
+
+    void Calculate_fmeklm(void);
+
 
 // The first and the second terms cancel each other, we start from the thirh term which has 12 matrices
 // all the matrices having "e" are the ones which direclty include the term  d(deltau)/dX
