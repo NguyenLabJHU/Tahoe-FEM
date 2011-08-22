@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.205 2011-08-20 11:03:09 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.206 2011-08-22 11:30:36 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1885,6 +1885,13 @@ private:
 
 
     dTensor3DT  dGGchidMKLM;
+    dArray2DT   dGGchidMKLM_IPs;
+    dArray2DT   dGGchidMKLM_Element_IPs;
+    dTensor3DT  dGGchidMKLM_n;
+    dArray2DT   dGGchidMKLM_n_IPs;
+    dArray2DT   dGGchidMKLM_n_Element_IPs;
+
+
     dTensor3DT  dGXpdDelgammaGchi;
     dTensor3DT  dGXedDelgammaGchi;
     dTensor3DT  dGammaedDelgammaGchi;
