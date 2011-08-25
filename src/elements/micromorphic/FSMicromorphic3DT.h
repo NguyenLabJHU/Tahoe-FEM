@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.206 2011-08-22 11:30:36 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.207 2011-08-25 10:48:20 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -830,6 +830,8 @@ private:
     dTensor3DT GAMMA;
     dTensor3DT GRAD_CHIM;
     dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_nsd;
+    dTensor3DT Temp_mKlm_tensor;
+
     dTensor3DT fMeKLM;
     dTensor3DT fMeKLM_tr;
     dTensor3DT devMeKLM;
@@ -1821,6 +1823,39 @@ private:
     dMatrixT II4p_17;
     dMatrixT fKphiphi_II4p_17;
 
+    /* Matrices from higher order couple stress tensor*/
+    dMatrixT II5p_1;
+    dMatrixT fKMphiu_II5p_1;
+    dMatrixT II5p_2;
+    dMatrixT fKMphiu_II5p_2;
+    dMatrixT II5p_3;
+    dMatrixT fKMphiu_II5p_3;
+    dMatrixT II5p_4;
+    dMatrixT fKMphiu_II5p_4;
+    dMatrixT II5p_5;
+    dMatrixT fKMphiu_II5p_5;
+    dMatrixT II5p_6;
+    dMatrixT fKMphiphi_II5p_6;
+    dMatrixT II5p_7;
+    dMatrixT fKMphiphi_II5p_7;
+    dMatrixT II5p_8;
+    dMatrixT fKMphiphi_II5p_8;
+    dMatrixT II5p_9;
+    dMatrixT fKMphiu_II5p_9;
+    dMatrixT II5p_10;
+    dMatrixT fKMphiu_II5p_10;
+    dMatrixT II5p_11;
+    dMatrixT fKMphiu_II5p_11;
+    dMatrixT II5p_12;
+    dMatrixT fKMphiphi_II5p_12;
+    dMatrixT II5p_13;
+    dMatrixT fKMphiu_II5p_13;
+    dMatrixT II5p_14;
+    dMatrixT fKMphiphi_II5p_14;
+    dMatrixT II5p_15;
+    dMatrixT fKMphiu_II5p_15;
+    dMatrixT II5p_16;
+    dMatrixT fKMphiphi_II5p_16;
 
 
 
@@ -2705,6 +2740,24 @@ private:
     void Form_II4p_15(void);
     void Form_II4p_16(void);
     void Form_II4p_17(void);
+
+    /*Functions from higher orde couple stress tensor */
+    void Form_II5p_1(void);
+    void Form_II5p_2(void);
+    void Form_II5p_3(void);
+    void Form_II5p_4(void);
+    void Form_II5p_5(void);
+    void Form_II5p_6(void);
+    void Form_II5p_7(void);
+    void Form_II5p_8(void);
+    void Form_II5p_9(void);
+    void Form_II5p_10(void);
+    void Form_II5p_11(void);
+    void Form_II5p_12(void);
+    void Form_II5p_13(void);
+    void Form_II5p_14(void);
+    void Form_II5p_15(void);
+    void Form_II5p_16(void);
 
     /////////////////////////////////////////////////////////
 
