@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.207 2011-08-25 10:48:20 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.208 2011-08-30 15:45:07 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -829,7 +829,7 @@ private:
     dTensor3DT fdevMKLM;
     dTensor3DT GAMMA;
     dTensor3DT GRAD_CHIM;
-    dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_nsd;
+    dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_n_sd;
     dTensor3DT Temp_mKlm_tensor;
 
     dTensor3DT fMeKLM;
@@ -1857,7 +1857,44 @@ private:
     dMatrixT II5p_16;
     dMatrixT fKMphiphi_II5p_16;
 
+    dMatrixT II6e_1;
+    dMatrixT fKMphiu_II6e_1;
 
+    dMatrixT II7e_1;
+    dMatrixT fKMphiu_II7e_1;
+
+    dMatrixT II7p_1;
+    dMatrixT fKMphiu_II7p_1;
+    dMatrixT II7p_2;
+    dMatrixT fKMphiu_II7p_2;
+    dMatrixT II7p_3;
+    dMatrixT fKMphiu_II7p_3;
+    dMatrixT II7p_4;
+    dMatrixT fKMphiu_II7p_4;
+    dMatrixT II7p_5;
+    dMatrixT fKMphiu_II7p_5;
+    dMatrixT II7p_6;
+    dMatrixT fKMphiphi_II7p_6;
+    dMatrixT II7p_7;
+    dMatrixT fKMphiphi_II7p_7;
+    dMatrixT II7p_8;
+    dMatrixT fKMphiphi_II7p_8;
+    dMatrixT II7p_9;
+    dMatrixT fKMphiu_II7p_9;
+    dMatrixT II7p_10;
+    dMatrixT fKMphiu_II7p_10;
+    dMatrixT II7p_11;
+    dMatrixT fKMphiu_II7p_11;
+    dMatrixT II7p_12;
+    dMatrixT fKMphiphi_II7p_12;
+    dMatrixT II7p_13;
+    dMatrixT fKMphiu_II7p_13;
+    dMatrixT II7p_14;
+    dMatrixT fKMphiphi_II7p_14;
+    dMatrixT II7p_15;
+    dMatrixT fKMphiu_II7p_15;
+    dMatrixT II7p_16;
+    dMatrixT fKMphiphi_II7p_16;
 
 
     dMatrixT dFedDelgamma;
@@ -2742,22 +2779,46 @@ private:
     void Form_II4p_17(void);
 
     /*Functions from higher orde couple stress tensor */
-    void Form_II5p_1(void);
-    void Form_II5p_2(void);
-    void Form_II5p_3(void);
-    void Form_II5p_4(void);
-    void Form_II5p_5(void);
-    void Form_II5p_6(void);
-    void Form_II5p_7(void);
-    void Form_II5p_8(void);
-    void Form_II5p_9(void);
-    void Form_II5p_10(void);
-    void Form_II5p_11(void);
-    void Form_II5p_12(void);
-    void Form_II5p_13(void);
-    void Form_II5p_14(void);
-    void Form_II5p_15(void);
-    void Form_II5p_16(void);
+    void Form_II5Jp_1(void);
+    void Form_II5Jp_2(void);
+    void Form_II5Jp_3(void);
+    void Form_II5Jp_4(void);
+    void Form_II5Jp_5(void);
+    void Form_II5Jp_6(void);
+    void Form_II5Jp_7(void);
+    void Form_II5Jp_8(void);
+    void Form_II5Jp_9(void);
+    void Form_II5Jp_10(void);
+    void Form_II5Jp_11(void);
+    void Form_II5Jp_12(void);
+    void Form_II5Jp_13(void);
+    void Form_II5Jp_14(void);
+    void Form_II5Jp_15(void);
+    void Form_II5Jp_16(void);
+
+    void Form_II6e_1(void);
+    void Form_II6e_2(void);
+
+    void Form_II7p_1(void);
+    void Form_II7p_2(void);
+    void Form_II7p_3(void);
+    void Form_II7p_4(void);
+    void Form_II7p_5(void);
+    void Form_II7p_6(void);
+    void Form_II7p_7(void);
+    void Form_II7p_8(void);
+    void Form_II7p_9(void);
+    void Form_II7p_10(void);
+    void Form_II7p_11(void);
+    void Form_II7p_12(void);
+    void Form_II7p_13(void);
+    void Form_II7p_14(void);
+    void Form_II7p_15(void);
+    void Form_II7p_16(void);
+
+
+
+
 
     /////////////////////////////////////////////////////////
 
