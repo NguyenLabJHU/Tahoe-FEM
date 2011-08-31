@@ -762,8 +762,8 @@ void FSMicromorphic3DT::RegisterOutput(void)
   //  if(iConstitutiveModelType==3)
    //  {
     const char* svlabels3D[] = {"kc","khc","kc_chi","khc_chi","kDelgamma","kDelgammachi","trSigma","||dev(Sigma)||","trRel","||dev(Rel)||","||trm||","||dev(m)||","trSPK","||dev(SPK)||","trSIGMA_S","||dev(SIGMA_S)||","||trM||","||dev(M)||","||PHI||","||GPHI||"};
-//    		,"kF11","kF12","kF13","kF21","kF22","kF23","kF31","kF32","kF33","kFe11","kFe12","kFe13","kFe21","kFe22","kFe23","kFe31","kFe32","kFe33",
-//    		"kX11","kX12","kX13","kX21","kX22","kX23","kX31","kX32","kX33","kXe11","kXe12","kXe13","kXe21","kXe22","kXe23","kXe31","kXe32","kXe33"};
+//          ,"kF11","kF12","kF13","kF21","kF22","kF23","kF31","kF32","kF33","kFe11","kFe12","kFe13","kFe21","kFe22","kFe23","kFe31","kFe32","kFe33",
+//          "kX11","kX12","kX13","kX21","kX22","kX23","kX31","kX32","kX33","kXe11","kXe12","kXe13","kXe21","kXe22","kXe23","kXe31","kXe32","kXe33"};
   //  }
   // else
    // {
@@ -1677,7 +1677,24 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fKMphiu_II7p_15 = 0.0;
      fKMphiphi_II7p_16 = 0.0;
 
+     fKMphiu_II8e_1 = 0.0;
 
+     fKMphiu_II8p_1 = 0.0;
+     fKMphiu_II8p_2 = 0.0;
+     fKMphiu_II8p_3 = 0.0;
+     fKMphiu_II8p_4 = 0.0;
+     fKMphiu_II8p_5 = 0.0;
+     fKMphiphi_II8p_6 = 0.0;
+     fKMphiphi_II8p_7 = 0.0;
+     fKMphiphi_II8p_8 = 0.0;
+     fKMphiu_II8p_9 = 0.0;
+     fKMphiu_II8p_10 = 0.0;
+     fKMphiu_II8p_11 = 0.0;
+     fKMphiphi_II8p_12 = 0.0;
+     fKMphiu_II8p_13 = 0.0;
+     fKMphiphi_II8p_14 = 0.0;
+     fKMphiu_II8p_15 = 0.0;
+     fKMphiphi_II8p_16 = 0.0;
 
     ////////////////////////////////////////////////////////////////
     //////////////FINITE STRAIN MATRICES INITIALIZE/////////////////
@@ -2585,13 +2602,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         fCchie_n_IPs.RowCopy(IP,fCchie_n);
                         fCchie_IPs.RowCopy(IP,fCchie);
                         PSIe_n_IPs.RowCopy(IP,PSIe_n);
-                    	PSIe_IPs.RowCopy(IP,PSIe);
-                    	fdGchidSIGMA_S_IPs.RowCopy(IP,fdGchidSIGMA_S);
-                    	fdGchidSIGMA_S_n_IPs.RowCopy(IP,fdGchidSIGMA_S_n);
-                    	fdFYchidSIGMA_S_IPs.RowCopy(IP,fdFYchidSIGMA_S);
-                    	fdFYchidSIGMA_S_n_IPs.RowCopy(IP,fdFYchidSIGMA_S_n);
-                    	GXp_IPs.RowCopy(IP,GXp);
-                    	GXp_n_IPs.RowCopy(IP,GXp_n);
+                        PSIe_IPs.RowCopy(IP,PSIe);
+                        fdGchidSIGMA_S_IPs.RowCopy(IP,fdGchidSIGMA_S);
+                        fdGchidSIGMA_S_n_IPs.RowCopy(IP,fdGchidSIGMA_S_n);
+                        fdFYchidSIGMA_S_IPs.RowCopy(IP,fdFYchidSIGMA_S);
+                        fdFYchidSIGMA_S_n_IPs.RowCopy(IP,fdFYchidSIGMA_S_n);
+                        GXp_IPs.RowCopy(IP,GXp);
+                        GXp_n_IPs.RowCopy(IP,GXp_n);
 
 
                         /* Inverse of plastic deformation gradient tensor (Fp^-1)_n from previous time step is calculated*/
@@ -2632,7 +2649,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         /* Form inverse of (dG/dS)n  */
                         fCe_n_inverse.Inverse(fCe_n);
 
-                   	    /* Form inverse of (PSI^e)n */
+                        /* Form inverse of (PSI^e)n */
                         PSIe_n_inverse.Inverse(PSIe_n);
 
                         /* Form inverse of (Cx^e)n*/
@@ -2655,7 +2672,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                         /* Trial Elastic micro strain tensor will be formed in Bbar */
                         Elastic_MicroStnTensor_tr  = fIdentity_matrix;
                         Elastic_MicroStnTensor_tr *= -1;
-                    	/* Trial Elastic defomration measure Elastic_PSI_tr EPSI_tr(PSIe_tr) */
+                        /* Trial Elastic defomration measure Elastic_PSI_tr EPSI_tr(PSIe_tr) */
                         PSIe_tr.MultATB(fFe_tr,fChie_tr);
                         Elastic_MicroStnTensor_tr += PSIe_tr;
 
@@ -2776,18 +2793,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                       if(iPlasticityCheck==1)
                        {
 
-                        	//Check for yielding
-                        	fCombinedYield_function_tr=Stress_Norm_tr-(Aphi*fState_variables_n_IPs(IP,kc)-Bphi*Pbar_tr+Aphi_chi*fState_variables_n_IPs(IP,kc_chi)-Bphi_chi*Pchibar_tr);
+                            //Check for yielding
+                            fCombinedYield_function_tr=Stress_Norm_tr-(Aphi*fState_variables_n_IPs(IP,kc)-Bphi*Pbar_tr+Aphi_chi*fState_variables_n_IPs(IP,kc_chi)-Bphi_chi*Pchibar_tr);
                        }
 
 
                         if(iPlasticityCheck==0)
                         {
 
-                        	//Check for yielding
-                        	fYield_function_tr=devfSPKinv_tr-(Aphi*fState_variables_n_IPs(IP,kc)-Bphi*Pbar_tr);
+                            //Check for yielding
+                            fYield_function_tr=devfSPKinv_tr-(Aphi*fState_variables_n_IPs(IP,kc)-Bphi*Pbar_tr);
 
-                        	//Check for micro-yielding
+                            //Check for micro-yielding
                             fMicroYield_function_tr=devSIGMA_S_inv_tr-(Aphi_chi*(fState_variables_n_IPs(IP,kc_chi))-Bphi_chi*Pchibar_tr);
 
                         }
@@ -2797,1233 +2814,1233 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                      if(iPlasticityCheck==1 && fCombinedYield_function_tr>dYieldTrialTol || iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol || iPlasticityCheck==0 && fMicroYield_function_tr> dYieldTrialTol  )// If one of the scales yield! Macro or Micro
                      {
 
-                       	//if(fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
-                    	 if(iPlasticityCheck==1 && fCombinedYield_function_tr>dYieldTrialTol)//Combined Plasticity
-							 {
-
-								 fs_micromorph3D_out<<"COMBINED-PLASTICITY "<<endl;
-
-
-								 PlasticityCondition=4;
-								 //initialize before iteration
-								 fCombinedYield_function=fCombinedYield_function_tr;
-								 //fMicroYield_function=fMicroYield_function_tr;
-								 fFe=fFe_tr;
-								 fChie=fChie_tr;
-								 fCchie=fCchie_tr;
-								 //initial values for Fp is assumed the same with previous step
-								 fFp=fFp_n;
-								 //fTemp_matrix_nsd_x_nsd.Inverse(fFe);
-								 //fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
-
-								 SPK=fSPK_tr;
-								 devSPK=fdevSPK_tr;
-								 devfSPKinv=devfSPKinv_tr;
-
-								 SIGMA_S=SIGMA_S_tr;
-								 devSIGMA_S_inv=devSIGMA_S_inv_tr;
-								 devSIGMA_S=devSIGMA_S_tr;
-								 PSIe=PSIe_tr;
-								 Stress_Norm=Stress_Norm_tr;
+                        //if(fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
+                         if(iPlasticityCheck==1 && fCombinedYield_function_tr>dYieldTrialTol)//Combined Plasticity
+                             {
+
+                                 fs_micromorph3D_out<<"COMBINED-PLASTICITY "<<endl;
+
+
+                                 PlasticityCondition=4;
+                                 //initialize before iteration
+                                 fCombinedYield_function=fCombinedYield_function_tr;
+                                 //fMicroYield_function=fMicroYield_function_tr;
+                                 fFe=fFe_tr;
+                                 fChie=fChie_tr;
+                                 fCchie=fCchie_tr;
+                                 //initial values for Fp is assumed the same with previous step
+                                 fFp=fFp_n;
+                                 //fTemp_matrix_nsd_x_nsd.Inverse(fFe);
+                                 //fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
+
+                                 SPK=fSPK_tr;
+                                 devSPK=fdevSPK_tr;
+                                 devfSPKinv=devfSPKinv_tr;
+
+                                 SIGMA_S=SIGMA_S_tr;
+                                 devSIGMA_S_inv=devSIGMA_S_inv_tr;
+                                 devSIGMA_S=devSIGMA_S_tr;
+                                 PSIe=PSIe_tr;
+                                 Stress_Norm=Stress_Norm_tr;
 
-
-								 fdelDelgamma = 0.0;
-								 fDelgamma = 0.0;
+
+                                 fdelDelgamma = 0.0;
+                                 fDelgamma = 0.0;
 
-								 //iterate using Newton-Raphson to solve for fDelgamma
-								 iter_count = 0;
-								 fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-								 fs_micromorph3D_out << "Current  Combined Yield function = " << fCombinedYield_function << endl;
-								 while (fabs(fCombinedYield_function) > dAbsTol && fabs(fCombinedYield_function/fCombinedYield_function_tr) > dRelTol && iter_count < iIterationMax)
-								 {
-									 iter_count += 1;
-									 //Form  dFe/dDgamma
-									 fFp_inverse.Inverse(fFp);
-									 dFedDelgamma=0.0;
-									 fdGdS_n_transpose.Transpose(fdGdS_n);
-									 fCe_n_inverse.Inverse(fCe_n);
-									 fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
-									 dFedDelgamma.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);
-									 dFedDelgamma*=-1;
+                                 //iterate using Newton-Raphson to solve for fDelgamma
+                                 iter_count = 0;
+                                 fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
+                                 fs_micromorph3D_out << "Current  Combined Yield function = " << fCombinedYield_function << endl;
+                                 while (fabs(fCombinedYield_function) > dAbsTol && fabs(fCombinedYield_function/fCombinedYield_function_tr) > dRelTol && iter_count < iIterationMax)
+                                 {
+                                     iter_count += 1;
+                                     //Form  dFe/dDgamma
+                                     fFp_inverse.Inverse(fFp);
+                                     dFedDelgamma=0.0;
+                                     fdGdS_n_transpose.Transpose(fdGdS_n);
+                                     fCe_n_inverse.Inverse(fCe_n);
+                                     fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+                                     dFedDelgamma.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);
+                                     dFedDelgamma*=-1;
 
-									 //Forming  dE^e/dDgamma  E^e: Elas. Lag. stn tensor
-									 dEedDelgamma.MultATB(dFedDelgamma,fFe);
-									 fTemp_matrix_nsd_x_nsd.MultATB(fFe,dFedDelgamma);
-									 dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
-									 dEedDelgamma*=0.5;
+                                     //Forming  dE^e/dDgamma  E^e: Elas. Lag. stn tensor
+                                     dEedDelgamma.MultATB(dFedDelgamma,fFe);
+                                     fTemp_matrix_nsd_x_nsd.MultATB(fFe,dFedDelgamma);
+                                     dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     dEedDelgamma*=0.5;
 
-									 //Inverse of fChip
-									 fChip_inverse.Inverse(fChip);
+                                     //Inverse of fChip
+                                     fChip_inverse.Inverse(fChip);
 
 
-									 /* Form dChip/dDelgamma */
-									 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
-									 dChipdDelgamma.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
+                                     /* Form dChip/dDelgamma */
+                                     fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
+                                     dChipdDelgamma.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
 
-									 /* Forming dChie/dDgamma*/
-									 dChiedDelgamma.MultABC(fChie,dChipdDelgamma,fChip_inverse);
-									 dChiedDelgamma*=-1;
+                                     /* Forming dChie/dDgamma*/
+                                     dChiedDelgamma.MultABC(fChie,dChipdDelgamma,fChip_inverse);
+                                     dChiedDelgamma*=-1;
 
 
-									 /* Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor */
-									 dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
-									 fTemp_matrix_nsd_x_nsd.MultATB(fFe,dChiedDelgamma);
-									 dEpsilonedDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     /* Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor */
+                                     dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
+                                     fTemp_matrix_nsd_x_nsd.MultATB(fFe,dChiedDelgamma);
+                                     dEpsilonedDelgamma+=fTemp_matrix_nsd_x_nsd;
 
 
-									 //Forming  dS/dDgamma  S= SPK tensor
-									 Temp_inv=dEedDelgamma.Trace();
-									 dSdDelgamma.SetToScaled((fMaterial_Params[kLambda]+fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
+                                     //Forming  dS/dDgamma  S= SPK tensor
+                                     Temp_inv=dEedDelgamma.Trace();
+                                     dSdDelgamma.SetToScaled((fMaterial_Params[kLambda]+fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
 
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),dEedDelgamma);
-									 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),dEedDelgamma);
+                                     dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-									 Temp_inv=dEpsilonedDelgamma.Trace();
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kEta]*Temp_inv,fIdentity_matrix);
-									 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     Temp_inv=dEpsilonedDelgamma.Trace();
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kEta]*Temp_inv,fIdentity_matrix);
+                                     dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgamma);
-									 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgamma);
+                                     dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-									 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
-									 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
+                                     dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
 
-									 //Forming  dP/dDgamma (scalar) P: pressure  dP/dDgamma= (1/3)1:dS/dDgamma
-									 //One error was here; dPdDelgamma*=1/3 makes dPdDelgamma=0
-									 dPdDelgamma=dSdDelgamma.Trace()/3;
+                                     //Forming  dP/dDgamma (scalar) P: pressure  dP/dDgamma= (1/3)1:dS/dDgamma
+                                     //One error was here; dPdDelgamma*=1/3 makes dPdDelgamma=0
+                                     dPdDelgamma=dSdDelgamma.Trace()/3;
 
-									 //Forming  dc/dDgamma  c: cohesion
-									 //fState_variables_n_IPs(IP,khc) =Apsi;
-									 dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+                                     //Forming  dc/dDgamma  c: cohesion
+                                     //fState_variables_n_IPs(IP,khc) =Apsi;
+                                     dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
 
-									 //Forming  d(devS)/dDgamma  devS: dev. part of SPK tensor
-									 ddevSdDelgamma.SetToScaled(dPdDelgamma,fIdentity_matrix);
-									 ddevSdDelgamma*=-1;
-									 ddevSdDelgamma+=dSdDelgamma;
+                                     //Forming  d(devS)/dDgamma  devS: dev. part of SPK tensor
+                                     ddevSdDelgamma.SetToScaled(dPdDelgamma,fIdentity_matrix);
+                                     ddevSdDelgamma*=-1;
+                                     ddevSdDelgamma+=dSdDelgamma;
 
-									 /* Forming  d(SIGMA-S)/dDgamma tensor*/
-									 Temp_inv=dEedDelgamma.Trace();
-									 dSIGMA_SdDelgamma.SetToScaled(fMaterial_Params[kTau]*Temp_inv,fIdentity_matrix);
+                                     /* Forming  d(SIGMA-S)/dDgamma tensor*/
+                                     Temp_inv=dEedDelgamma.Trace();
+                                     dSIGMA_SdDelgamma.SetToScaled(fMaterial_Params[kTau]*Temp_inv,fIdentity_matrix);
 
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],dEedDelgamma);
-									 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],dEedDelgamma);
+                                     dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-									 Temp_inv=dEpsilonedDelgamma.Trace();
-									 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kEta]-fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
-									 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     Temp_inv=dEpsilonedDelgamma.Trace();
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kEta]-fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
+                                     dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-									 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),dEpsilonedDelgamma);
-									 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),dEpsilonedDelgamma);
+                                     dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-									 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
-									 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
-									 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                     fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                     dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-									 /*Forming  dPchi/dDgammachi (scalar) Pchi: pressure for micro-scale  dPchi/dDgammachi= (1/3)1:dSIGMA_S/
-										dDgammachi*/
-									 dPchidDelgamma=dSIGMA_SdDelgamma.Trace()/3;
+                                     /*Forming  dPchi/dDgammachi (scalar) Pchi: pressure for micro-scale  dPchi/dDgammachi= (1/3)1:dSIGMA_S/
+                                        dDgammachi*/
+                                     dPchidDelgamma=dSIGMA_SdDelgamma.Trace()/3;
 
-									 /* Forming  dc/dDgamma  c: cohesion*/
-									 dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+                                     /* Forming  dc/dDgamma  c: cohesion*/
+                                     dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
 
-									 /* Forming  d(dev(SIGMA_S))/dDgammachi  dev(SIGMA_S): dev. part of SIGMA-S (relative stress) tensor*/
-									 ddevSIGMA_SdDelgamma.SetToScaled(dPchidDelgamma,fIdentity_matrix);
-									 ddevSIGMA_SdDelgamma*=-1;
-									 ddevSIGMA_SdDelgamma+=dSIGMA_SdDelgamma;
+                                     /* Forming  d(dev(SIGMA_S))/dDgammachi  dev(SIGMA_S): dev. part of SIGMA-S (relative stress) tensor*/
+                                     ddevSIGMA_SdDelgamma.SetToScaled(dPchidDelgamma,fIdentity_matrix);
+                                     ddevSIGMA_SdDelgamma*=-1;
+                                     ddevSIGMA_SdDelgamma+=dSIGMA_SdDelgamma;
 
 
 
-									 //CHECK STRESS NORM
-									 //Forming  d(||devS||)/dDgamma  devS: dev. part of SPK tensor
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(1/Stress_Norm,devSPK);
-									 InvddevSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(1/Stress_Norm,devSIGMA_S);
-									 Temp_inv=dMatrixT::Dot(ddevSIGMA_SdDelgamma,fTemp_matrix_nsd_x_nsd);
-									 InvddevSdDelgamma+=Temp_inv;
+                                     //CHECK STRESS NORM
+                                     //Forming  d(||devS||)/dDgamma  devS: dev. part of SPK tensor
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(1/Stress_Norm,devSPK);
+                                     InvddevSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(1/Stress_Norm,devSIGMA_S);
+                                     Temp_inv=dMatrixT::Dot(ddevSIGMA_SdDelgamma,fTemp_matrix_nsd_x_nsd);
+                                     InvddevSdDelgamma+=Temp_inv;
 
-									 // assemble the consistent tangent
-									 //dFYdDelgamma=InvddevSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);
-									 dFYdDelgamma=InvddevSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma+Aphi_chi*dcchidDelgamma-Bphi_chi*dPchidDelgamma);
+                                     // assemble the consistent tangent
+                                     //dFYdDelgamma=InvddevSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);
+                                     dFYdDelgamma=InvddevSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma+Aphi_chi*dcchidDelgamma-Bphi_chi*dPchidDelgamma);
 
 
-									 //solve for fdelDelgamma
-									 if (dFYdDelgamma != 0.0) fdelDelgamma = -fCombinedYield_function/dFYdDelgamma;
-									 else fdelDelgamma = 0.0;
+                                     //solve for fdelDelgamma
+                                     if (dFYdDelgamma != 0.0) fdelDelgamma = -fCombinedYield_function/dFYdDelgamma;
+                                     else fdelDelgamma = 0.0;
 
-									 //update fDelgamma
-									 fDelgamma += fdelDelgamma;
+                                     //update fDelgamma
+                                     fDelgamma += fdelDelgamma;
 
 
-									 if (fDelgamma < 0.0) fDelgamma = 0.0;
-									 fState_variables_IPs(IP,kDelgamma) = fDelgamma;
+                                     if (fDelgamma < 0.0) fDelgamma = 0.0;
+                                     fState_variables_IPs(IP,kDelgamma) = fDelgamma;
 
 
-									 //update c ISVs
+                                     //update c ISVs
 
-									 fState_variables_IPs(IP,kc)= fState_variables_n_IPs(IP,kc)
-									 + fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
-									 if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
+                                     fState_variables_IPs(IP,kc)= fState_variables_n_IPs(IP,kc)
+                                     + fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+                                     if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
 
 
-									 // update cx (c_chi) ISVs
-									 fState_variables_IPs(IP,kc_chi)= fState_variables_n_IPs(IP,kc_chi)
-									 + fDelgamma*fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
-									 if (fState_variables_IPs(IP,kc_chi) < 0.0) fState_variables_IPs(IP,kc_chi) = 0.0;
+                                     // update cx (c_chi) ISVs
+                                     fState_variables_IPs(IP,kc_chi)= fState_variables_n_IPs(IP,kc_chi)
+                                     + fDelgamma*fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
+                                     if (fState_variables_IPs(IP,kc_chi) < 0.0) fState_variables_IPs(IP,kc_chi) = 0.0;
 
 
-									 //update fFp
-									 fdGdS_n_transpose.Transpose(fdGdS_n);
-									 fCe_n_inverse.Inverse(fCe_n);
-									 //fTemp_matrix_nsd_x_nsd.MultAB(fCe_n_inverse,fdGdS_n_transpose);
-									 fTemp_matrix_nsd_x_nsd.MultABT(fCe_n_inverse,fdGdS_n);
-									 fTemp_matrix_nsd_x_nsd*=fDelgamma;
+                                     //update fFp
+                                     fdGdS_n_transpose.Transpose(fdGdS_n);
+                                     fCe_n_inverse.Inverse(fCe_n);
+                                     //fTemp_matrix_nsd_x_nsd.MultAB(fCe_n_inverse,fdGdS_n_transpose);
+                                     fTemp_matrix_nsd_x_nsd.MultABT(fCe_n_inverse,fdGdS_n);
+                                     fTemp_matrix_nsd_x_nsd*=fDelgamma;
 
-									 fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
-									 fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
+                                     fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
+                                     fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
 
-									 //calculate fFp_Inverse
-									 fFp_inverse.Inverse(fFp);
+                                     //calculate fFp_Inverse
+                                     fFp_inverse.Inverse(fFp);
 
-									 //calculate Fe
-									 fFe.MultAB(fDeformation_Gradient,fFp_inverse);
+                                     //calculate Fe
+                                     fFe.MultAB(fDeformation_Gradient,fFp_inverse);
 
-									 //[fElastic_Right_Cauchy_Green_tensor] will be formed
-									 fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
-									 if (fRight_Elastic_Cauchy_Green_tensor.Det()==0)
-										 fRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
+                                     //[fElastic_Right_Cauchy_Green_tensor] will be formed
+                                     fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
+                                     if (fRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                                         fRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
-									 //[fMicroElastic_Right_Cauchy_Green_tensor] will be formed
-									 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
-									 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
-										 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
+                                     //[fMicroElastic_Right_Cauchy_Green_tensor] will be formed
+                                     fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
+                                     if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                                         fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
 
-									 /* update fChip */
-									 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
-									 fTemp_matrix_nsd_x_nsd2.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
-									 fChip.SetToScaled(fDelgamma,fTemp_matrix_nsd_x_nsd2);
-									 fChip+=fChip_n;
+                                     /* update fChip */
+                                     fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
+                                     fTemp_matrix_nsd_x_nsd2.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
+                                     fChip.SetToScaled(fDelgamma,fTemp_matrix_nsd_x_nsd2);
+                                     fChip+=fChip_n;
 
 
-									 /* Form inverse of Chi^p*/
-									 fChip_inverse.Inverse(fChip);
+                                     /* Form inverse of Chi^p*/
+                                     fChip_inverse.Inverse(fChip);
 
-									 /* Calculate Chie */
-									 fChie.MultAB(ChiM,fChip_inverse);
+                                     /* Calculate Chie */
+                                     fChie.MultAB(ChiM,fChip_inverse);
 
 
-									 /* [fMicroElastic_Right_Cauchy_Green_tensor] will be formed */
-									 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
-									 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
-												fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
+                                     /* [fMicroElastic_Right_Cauchy_Green_tensor] will be formed */
+                                     fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
+                                     if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                                                fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
 
-									 //Update fCchie
-									 fCchie.MultATB(fChie,fChie);
+                                     //Update fCchie
+                                     fCchie.MultATB(fChie,fChie);
 
-									 /* Update PSIe */
-									 PSIe.MultATB(fFe,fChie);
+                                     /* Update PSIe */
+                                     PSIe.MultATB(fFe,fChie);
 
 
 
-									 //Update Elastic Lagrangian strain tensor E
-									 Elastic_LagrangianStn=fIdentity_matrix;
-									 Elastic_LagrangianStn*=-1;
-									 Elastic_LagrangianStn+=fRight_Elastic_Cauchy_Green_tensor;
-									 Elastic_LagrangianStn*=0.5;
+                                     //Update Elastic Lagrangian strain tensor E
+                                     Elastic_LagrangianStn=fIdentity_matrix;
+                                     Elastic_LagrangianStn*=-1;
+                                     Elastic_LagrangianStn+=fRight_Elastic_Cauchy_Green_tensor;
+                                     Elastic_LagrangianStn*=0.5;
 
-									 //Update Elastic micro strain tensor will be formed in Bbar
-									 Elastic_MicroStnTensor = fIdentity_matrix;
-									 Elastic_MicroStnTensor *= -1;
-									 Elastic_MicroStnTensor += PSIe;
+                                     //Update Elastic micro strain tensor will be formed in Bbar
+                                     Elastic_MicroStnTensor = fIdentity_matrix;
+                                     Elastic_MicroStnTensor *= -1;
+                                     Elastic_MicroStnTensor += PSIe;
 
-									 //update S stress
-									 Temp_inv=0.0;
-									 Temp_inv=Elastic_LagrangianStn.Trace();//Calculating the tr(E) and keep in temp. var.
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
+                                     //update S stress
+                                     Temp_inv=0.0;
+                                     Temp_inv=Elastic_LagrangianStn.Trace();//Calculating the tr(E) and keep in temp. var.
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
 
-									 SPK.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn);
-									 SPK+=fTemp_matrix_nsd_x_nsd;
+                                     SPK.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn);
+                                     SPK+=fTemp_matrix_nsd_x_nsd;
 
-									 Temp_inv=0.0;
-									 Temp_inv=Elastic_MicroStnTensor.Trace();
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
-									 SPK+=fTemp_matrix_nsd_x_nsd;
+                                     Temp_inv=0.0;
+                                     Temp_inv=Elastic_MicroStnTensor.Trace();
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
+                                     SPK+=fTemp_matrix_nsd_x_nsd;
 
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor);
-									 SPK+=fTemp_matrix_nsd_x_nsd;
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor);
+                                     SPK+=fTemp_matrix_nsd_x_nsd;
 
-									 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
-									 SPK+=fTemp_matrix_nsd_x_nsd;
+                                     fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
+                                     SPK+=fTemp_matrix_nsd_x_nsd;
 
-									 //Update Relative stress SIGMA_S
-									 Temp_inv=Elastic_LagrangianStn.Trace();
-									 SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
-									 // 2sigmaE
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
-									 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-									 //(eta-Tau)trEpsilon.1
-									 Temp_inv=Elastic_MicroStnTensor.Trace();
-									 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
-									 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-									 //(nu-sigma)*Epsilon
-									 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
-									 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-									 //(kappa-sigma)*Epsilon^T
-									 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
-									 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
-									 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                     //Update Relative stress SIGMA_S
+                                     Temp_inv=Elastic_LagrangianStn.Trace();
+                                     SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
+                                     // 2sigmaE
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
+                                     SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                     //(eta-Tau)trEpsilon.1
+                                     Temp_inv=Elastic_MicroStnTensor.Trace();
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
+                                     SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                     //(nu-sigma)*Epsilon
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
+                                     SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                     //(kappa-sigma)*Epsilon^T
+                                     fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
+                                     fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                     SIGMA_S+=fTemp_matrix_nsd_x_nsd;
 
-									 //cout<<"Elastic_MicroStnTensor.det="<<Elastic_MicroStnTensor.Det()<<endl;
+                                     //cout<<"Elastic_MicroStnTensor.det="<<Elastic_MicroStnTensor.Det()<<endl;
 
-									 //calculate  devS stress
-									 Pbar=SPK.Trace()/3;//Calculating the pressure term
-									 devSPK.SetToScaled(Pbar,fIdentity_matrix);
-									 devSPK*=-1;
-									 devSPK+=SPK;
+                                     //calculate  devS stress
+                                     Pbar=SPK.Trace()/3;//Calculating the pressure term
+                                     devSPK.SetToScaled(Pbar,fIdentity_matrix);
+                                     devSPK*=-1;
+                                     devSPK+=SPK;
 
-									 /* Form the deviatoric SIGMA-S */
-									 Pchibar=SIGMA_S.Trace()/3;//Calculating the pressure term
-									 devSIGMA_S.SetToScaled(Pchibar,fIdentity_matrix);
-									 devSIGMA_S*=-1;
-									 devSIGMA_S+=SIGMA_S;
+                                     /* Form the deviatoric SIGMA-S */
+                                     Pchibar=SIGMA_S.Trace()/3;//Calculating the pressure term
+                                     devSIGMA_S.SetToScaled(Pchibar,fIdentity_matrix);
+                                     devSIGMA_S*=-1;
+                                     devSIGMA_S+=SIGMA_S;
 
 
 
 
-									 /* Calculate ||devS:devS+devR:devR||  */
-									 Temp_inv= devSPK.ScalarProduct();
-									 Stress_Norm=Temp_inv;
-									 Temp_inv= devSIGMA_S.ScalarProduct();
-									 Stress_Norm+=Temp_inv;
-									 Temp_inv=Stress_Norm;
-									 Stress_Norm=sqrt(Temp_inv);
+                                     /* Calculate ||devS:devS+devR:devR||  */
+                                     Temp_inv= devSPK.ScalarProduct();
+                                     Stress_Norm=Temp_inv;
+                                     Temp_inv= devSIGMA_S.ScalarProduct();
+                                     Stress_Norm+=Temp_inv;
+                                     Temp_inv=Stress_Norm;
+                                     Stress_Norm=sqrt(Temp_inv);
 
 
 
-									 // Calculate yield function with updated parameters
-									 //fYield_function=Stress_Norm-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*Pbar);
-									 fCombinedYield_function=Stress_Norm-(Aphi*fState_variables_IPs(IP,kc)-Bphi*Pbar+Aphi_chi*fState_variables_IPs(IP,kc_chi)-Bphi_chi*Pchibar);
-									 fs_micromorph3D_out  << "Current relative residual = " << fabs(fCombinedYield_function/fCombinedYield_function_tr) << endl;
+                                     // Calculate yield function with updated parameters
+                                     //fYield_function=Stress_Norm-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*Pbar);
+                                     fCombinedYield_function=Stress_Norm-(Aphi*fState_variables_IPs(IP,kc)-Bphi*Pbar+Aphi_chi*fState_variables_IPs(IP,kc_chi)-Bphi_chi*Pchibar);
+                                     fs_micromorph3D_out  << "Current relative residual = " << fabs(fCombinedYield_function/fCombinedYield_function_tr) << endl;
 
-								 } //	end of the local fDelgamma while loop
+                                 } //        end of the local fDelgamma while loop
 
-								 fs_micromorph3D_out << "Current  Combined Yield function = " << fCombinedYield_function << endl;
+                                 fs_micromorph3D_out << "Current  Combined Yield function = " << fCombinedYield_function << endl;
 
-								 /*Calculating PSIe inverse*/
-								 PSIe_inverse.Inverse(PSIe);
+                                 /*Calculating PSIe inverse*/
+                                 PSIe_inverse.Inverse(PSIe);
 
-								 /* Micro Scale Gradient check setting default not yileded; if =0 not yield, if =1 yield */
-			                     /* Forming Gradient of fChie (=Gradient of Xe) */
-								 MicroScaleGradient_check=0;
+                                 /* Micro Scale Gradient check setting default not yileded; if =0 not yield, if =1 yield */
+                                 /* Forming Gradient of fChie (=Gradient of Xe) */
+                                 MicroScaleGradient_check=0;
 
 
-								 /* Form Gradient of Xe trial value */
-								 Form_GXe_tr();
-								 fs_micromorph3D_out<<"GXe_tr= "<<GXe_tr<<endl;
+                                 /* Form Gradient of Xe trial value */
+                                 Form_GXe_tr();
+                                 fs_micromorph3D_out<<"GXe_tr= "<<GXe_tr<<endl;
 
 
-								 /* Form GAMMAe trial tensor */
-								 Form_GAMMAe_tr();
-								 fs_micromorph3D_out<<"GAMMAe_tr= "<<GAMMAe_tr<<endl;
+                                 /* Form GAMMAe trial tensor */
+                                 Form_GAMMAe_tr();
+                                 fs_micromorph3D_out<<"GAMMAe_tr= "<<GAMMAe_tr<<endl;
 
 
 
-								 /* Forming Mbar trial tensor */
-								 Form_fMeKLM_tr();
+                                 /* Forming Mbar trial tensor */
+                                 Form_fMeKLM_tr();
 
-								 fs_micromorph3D_out<<"fMeKLM_tr= "<<fMeKLM_tr<<endl;
+                                 fs_micromorph3D_out<<"fMeKLM_tr= "<<fMeKLM_tr<<endl;
 
-								 /* Calculation of Micro Gradient Pressure term */
-								 Form_PGchivar_tr();
+                                 /* Calculation of Micro Gradient Pressure term */
+                                 Form_PGchivar_tr();
 
-								 fs_micromorph3D_out<<"PGchivar_tr= "<<PGchivar_tr<<endl;
+                                 fs_micromorph3D_out<<"PGchivar_tr= "<<PGchivar_tr<<endl;
 
 
-								 /* Forming deviatoric part of Mbar trial and invariant of Mbar trial */
-								 Form_devMeKLM_tr();// and its invariant
+                                 /* Forming deviatoric part of Mbar trial and invariant of Mbar trial */
+                                 Form_devMeKLM_tr();// and its invariant
 
-								 fs_micromorph3D_out<<"devMeKLM_tr= "<<devMeKLM_tr<<endl;
+                                 fs_micromorph3D_out<<"devMeKLM_tr= "<<devMeKLM_tr<<endl;
 
 
-								 /*Calculating magnitude of micro gradient cohesion */
-								 Temp_inv=0.0;
-								 fcG_chi_n[0]=fState_variables_n_IPs(IP,kGc_chi1);
-								 fcG_chi_n[1]=fState_variables_n_IPs(IP,kGc_chi2);
-								 fcG_chi_n[2]=fState_variables_n_IPs(IP,kGc_chi3);
+                                 /*Calculating magnitude of micro gradient cohesion */
+                                 Temp_inv=0.0;
+                                 fcG_chi_n[0]=fState_variables_n_IPs(IP,kGc_chi1);
+                                 fcG_chi_n[1]=fState_variables_n_IPs(IP,kGc_chi2);
+                                 fcG_chi_n[2]=fState_variables_n_IPs(IP,kGc_chi3);
 
-								 Temp_inv=fcG_chi_n[0]*fcG_chi_n[0]+fcG_chi_n[1]*fcG_chi_n[1]+fcG_chi_n[2]*fcG_chi_n[2];
-								 invGc_n=sqrt(Temp_inv);
+                                 Temp_inv=fcG_chi_n[0]*fcG_chi_n[0]+fcG_chi_n[1]*fcG_chi_n[1]+fcG_chi_n[2]*fcG_chi_n[2];
+                                 invGc_n=sqrt(Temp_inv);
 
 
 
-								 /* Micro Gradient Yield Function trial value*/
-								 fMicroScaleGradientYield_function_tr=invdevMeKLM_tr-(AGphi_chi*invGc_n-BGphi_chi*invPGchivar_tr);
+                                 /* Micro Gradient Yield Function trial value*/
+                                 fMicroScaleGradientYield_function_tr=invdevMeKLM_tr-(AGphi_chi*invGc_n-BGphi_chi*invPGchivar_tr);
 
 //
 //
 //
-//								 if(fMicroScaleGradientYield_function_tr >dYieldTrialTol)
-								 {
-									 fs_micromorph3D_out<<"MICRO SCALE GRADIENT "<<endl;
+//                               if(fMicroScaleGradientYield_function_tr >dYieldTrialTol)
+                                 {
+                                     fs_micromorph3D_out<<"MICRO SCALE GRADIENT "<<endl;
 
-									 /* Setting Micro Gradient check to 1 */
-									 MicroScaleGradient_check=1;
+                                     /* Setting Micro Gradient check to 1 */
+                                     MicroScaleGradient_check=1;
 
-									 /* initilizing the values */
-									 fMicroScaleGradientYield_function=fMicroScaleGradientYield_function_tr;
-									 GAMMAe=GAMMAe_tr;
-									 fMeKLM=fMeKLM_tr;
-									 devMeKLM=devMeKLM_tr;
-									 invdevMeKLM=invdevMeKLM_tr;
+                                     /* initilizing the values */
+                                     fMicroScaleGradientYield_function=fMicroScaleGradientYield_function_tr;
+                                     GAMMAe=GAMMAe_tr;
+                                     fMeKLM=fMeKLM_tr;
+                                     devMeKLM=devMeKLM_tr;
+                                     invdevMeKLM=invdevMeKLM_tr;
 
-									 PGchivar=PGchivar_tr;
-									 invPGchivar=invPGchivar_tr;
-									 //invPGchivar=invPGchivar_tr;
+                                     PGchivar=PGchivar_tr;
+                                     invPGchivar=invPGchivar_tr;
+                                     //invPGchivar=invPGchivar_tr;
 
-		                    		 fdelDelgammaGchi = 0.0;
-		                    		 fDelgammaGchi = 0.0;
+                                             fdelDelgammaGchi = 0.0;
+                                             fDelgammaGchi = 0.0;
 
-		                    		 // iterate using Newton-Raphson to solve for fDelgamma
-		                    		 iter_count = 0;
+                                             // iterate using Newton-Raphson to solve for fDelgamma
+                                             iter_count = 0;
 
-		                    		 while (fabs(fMicroScaleGradientYield_function) > dAbsTol && fabs(fMicroScaleGradientYield_function/fMicroScaleGradientYield_function_tr) > dRelTol && iter_count < iIterationMax)
-		                    		 {
-		                    			 iter_count += 1;
+                                             while (fabs(fMicroScaleGradientYield_function) > dAbsTol && fabs(fMicroScaleGradientYield_function/fMicroScaleGradientYield_function_tr) > dRelTol && iter_count < iIterationMax)
+                                             {
+                                                     iter_count += 1;
 
-		                    			 /* Form dG^(Gchi)/dMKLM */
-		                    			 //Form_dGGchidMKLM();
-										 fs_micromorph3D_out<<"dGGchidMKLM= "<<dGGchidMKLM<<endl;
-										 /* Form dGXp/dDelgamma*/
-										 Form_dGXpdDelgammaGchi();
-										 fs_micromorph3D_out<<"dGXpdDelgammaGchi= "<<dGXpdDelgammaGchi<<endl;
+                                                     /* Form dG^(Gchi)/dMKLM */
+                                                     //Form_dGGchidMKLM();
+                                         fs_micromorph3D_out<<"dGGchidMKLM= "<<dGGchidMKLM<<endl;
+                                         /* Form dGXp/dDelgamma*/
+                                         Form_dGXpdDelgammaGchi();
+                                         fs_micromorph3D_out<<"dGXpdDelgammaGchi= "<<dGXpdDelgammaGchi<<endl;
 
 
-										 /* Form dGXe/dDelgamma*/
-										 Form_dGXedDelgammaGchi();
-										 fs_micromorph3D_out<<"dGXedDelgammaGchi= "<<dGXedDelgammaGchi<<endl;
+                                         /* Form dGXe/dDelgamma*/
+                                         Form_dGXedDelgammaGchi();
+                                         fs_micromorph3D_out<<"dGXedDelgammaGchi= "<<dGXedDelgammaGchi<<endl;
 
 
-										 /* Form dGammae/dDelgamma*/
-										 Form_dGammaedDelgammaGchi();
-										 fs_micromorph3D_out<<"dGammaedDelgammaGchi= "<<dGammaedDelgammaGchi<<endl;
+                                         /* Form dGammae/dDelgamma*/
+                                         Form_dGammaedDelgammaGchi();
+                                         fs_micromorph3D_out<<"dGammaedDelgammaGchi= "<<dGammaedDelgammaGchi<<endl;
 
 
-										 /* Form  dMKLM/dDelgamma*/
-										 Form_dMKLMdDelgammaGchi();
+                                         /* Form  dMKLM/dDelgamma*/
+                                         Form_dMKLMdDelgammaGchi();
 
-										 fs_micromorph3D_out<<"dMKLMdDelgammaGchi= "<<dMKLMdDelgammaGchi<<endl;
+                                         fs_micromorph3D_out<<"dMKLMdDelgammaGchi= "<<dMKLMdDelgammaGchi<<endl;
 
-										 /* Form_dinvPGchivar/dDelgamma and its invariant*/
-										 Form_dPGchivardDelgammaGchi();
-										 fs_micromorph3D_out<<"dPGchivardDelgammaGchi= "<<dPGchivardDelgammaGchi<<endl;
+                                         /* Form_dinvPGchivar/dDelgamma and its invariant*/
+                                         Form_dPGchivardDelgammaGchi();
+                                         fs_micromorph3D_out<<"dPGchivardDelgammaGchi= "<<dPGchivardDelgammaGchi<<endl;
 
-										 /* Form_ddevMKLM/dDelgamma */
-										 Form_ddevMKLMdDelgammaGchi();
-										 fs_micromorph3D_out<<"ddevMKLMdDelgammaGchi= "<<ddevMKLMdDelgammaGchi<<endl;
+                                         /* Form_ddevMKLM/dDelgamma */
+                                         Form_ddevMKLMdDelgammaGchi();
+                                         fs_micromorph3D_out<<"ddevMKLMdDelgammaGchi= "<<ddevMKLMdDelgammaGchi<<endl;
 
 
-										 /* Calculate dInvddevMKLM/dDelgamma */
-										 Calculate_dInvddevMKLMdDelgammaGchi();
+                                         /* Calculate dInvddevMKLM/dDelgamma */
+                                         Calculate_dInvddevMKLMdDelgammaGchi();
 
-										 fs_micromorph3D_out<<"dInvddevMKLMdDelgammaGchi= "<<dInvddevMKLMdDelgammaGchi<<endl;
+                                         fs_micromorph3D_out<<"dInvddevMKLMdDelgammaGchi= "<<dInvddevMKLMdDelgammaGchi<<endl;
 
-										 /* Form dinvPGchivardDelgammaGchi */
-										 dinvPGchivardDelgammaGchi=BGphi_chi*(1/invPGchivar)
-										 *(dPGchivardDelgammaGchi[0]+PGchivar[0]+dPGchivardDelgammaGchi[1]+PGchivar[1]+dPGchivardDelgammaGchi[2]+PGchivar[2]);
+                                         /* Form dinvPGchivardDelgammaGchi */
+                                         dinvPGchivardDelgammaGchi=BGphi_chi*(1/invPGchivar)
+                                         *(dPGchivardDelgammaGchi[0]+PGchivar[0]+dPGchivardDelgammaGchi[1]+PGchivar[1]+dPGchivardDelgammaGchi[2]+PGchivar[2]);
 
 
-										 fs_micromorph3D_out<<"dinvPGchivardDelgammaGchi= "<<dinvPGchivardDelgammaGchi<<endl;
+                                         fs_micromorph3D_out<<"dinvPGchivardDelgammaGchi= "<<dinvPGchivardDelgammaGchi<<endl;
 
 
 
-										 /* Calculate dcGchi/dDelgamma */
-										 dcGchidDelgammaGchi=0.0;
-										 for(int Kbar=0;Kbar<3;Kbar++)
-										 { dcGchidDelgammaGchi[Kbar]=(1/invGc_n)*AGpsi_chi*fState_variables_IPs(IP,kHGc_chi)*fcG_chi[Kbar];}
+                                         /* Calculate dcGchi/dDelgamma */
+                                         dcGchidDelgammaGchi=0.0;
+                                         for(int Kbar=0;Kbar<3;Kbar++)
+                                         { dcGchidDelgammaGchi[Kbar]=(1/invGc_n)*AGpsi_chi*fState_variables_IPs(IP,kHGc_chi)*fcG_chi[Kbar];}
 
-										 fs_micromorph3D_out<<"dcGchidDelgammaGchi= "<<dcGchidDelgammaGchi<<endl;
+                                         fs_micromorph3D_out<<"dcGchidDelgammaGchi= "<<dcGchidDelgammaGchi<<endl;
 
-										 dInvcGchidDelgammaGchi=0.0;
-										 for(int Kbar=0;Kbar<3;Kbar++)
-										 {dInvcGchidDelgammaGchi+=(1/invGc_n)*dcGchidDelgammaGchi[Kbar]*fcG_chi_n[Kbar];}
+                                         dInvcGchidDelgammaGchi=0.0;
+                                         for(int Kbar=0;Kbar<3;Kbar++)
+                                         {dInvcGchidDelgammaGchi+=(1/invGc_n)*dcGchidDelgammaGchi[Kbar]*fcG_chi_n[Kbar];}
 
-										 fs_micromorph3D_out<<"dInvcGchidDelgammaGchi= "<<dInvcGchidDelgammaGchi<<endl;
+                                         fs_micromorph3D_out<<"dInvcGchidDelgammaGchi= "<<dInvcGchidDelgammaGchi<<endl;
 
-										 dFGYdDelgammaGchi=dInvddevMKLMdDelgammaGchi-(AGphi_chi*dInvcGchidDelgammaGchi-BGphi_chi*dinvPGchivardDelgammaGchi);
-										 fs_micromorph3D_out<<"dFGYdDelgammaGchi= "<<dFGYdDelgammaGchi<<endl;
+                                         dFGYdDelgammaGchi=dInvddevMKLMdDelgammaGchi-(AGphi_chi*dInvcGchidDelgammaGchi-BGphi_chi*dinvPGchivardDelgammaGchi);
+                                         fs_micromorph3D_out<<"dFGYdDelgammaGchi= "<<dFGYdDelgammaGchi<<endl;
 
 
-		                    			 //solve for fdelDelgamma
-		                    			 if (dFGYdDelgammaGchi != 0.0) fdelDelgammaGchi = -fMicroScaleGradientYield_function/dFGYdDelgammaGchi;
-		                    			 else fdelDelgammaGchi = 0.0;
+                                                     //solve for fdelDelgamma
+                                                     if (dFGYdDelgammaGchi != 0.0) fdelDelgammaGchi = -fMicroScaleGradientYield_function/dFGYdDelgammaGchi;
+                                                     else fdelDelgammaGchi = 0.0;
 
 
 
 
-		                    			 //update fDelgamma
-		                    			 fDelgammaGchi += fdelDelgammaGchi;
+                                                     //update fDelgamma
+                                                     fDelgammaGchi += fdelDelgammaGchi;
 
 
-		                    			 if (fDelgammaGchi < 0.0) fDelgammaGchi = 0.0;
-		                    			 fState_variables_IPs(IP,kDelgammaGchi) = fDelgammaGchi;
+                                                     if (fDelgammaGchi < 0.0) fDelgammaGchi = 0.0;
+                                                     fState_variables_IPs(IP,kDelgammaGchi) = fDelgammaGchi;
 
 
 
 
-		                    			 fState_variables_IPs(IP,kGc_chi1)= fState_variables_n_IPs(IP,kGc_chi1)
-		                    			 + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
-		                    			 if (fState_variables_IPs(IP,kGc_chi1) < 0.0) fState_variables_IPs(IP,kGc_chi1) = 0.0;
+                                                     fState_variables_IPs(IP,kGc_chi1)= fState_variables_n_IPs(IP,kGc_chi1)
+                                                     + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
+                                                     if (fState_variables_IPs(IP,kGc_chi1) < 0.0) fState_variables_IPs(IP,kGc_chi1) = 0.0;
 
-		                    			 fState_variables_IPs(IP,kGc_chi2)= fState_variables_n_IPs(IP,kGc_chi2)
-		                    			 + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
-		                    			 if (fState_variables_IPs(IP,kGc_chi2) < 0.0) fState_variables_IPs(IP,kGc_chi2) = 0.0;
+                                                     fState_variables_IPs(IP,kGc_chi2)= fState_variables_n_IPs(IP,kGc_chi2)
+                                                     + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
+                                                     if (fState_variables_IPs(IP,kGc_chi2) < 0.0) fState_variables_IPs(IP,kGc_chi2) = 0.0;
 
-		                    			 fState_variables_IPs(IP,kGc_chi3)= fState_variables_n_IPs(IP,kGc_chi3)
-		                    			 + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
-		                    			 if (fState_variables_IPs(IP,kGc_chi3) < 0.0) fState_variables_IPs(IP,kGc_chi3) = 0.0;
+                                                     fState_variables_IPs(IP,kGc_chi3)= fState_variables_n_IPs(IP,kGc_chi3)
+                                                     + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
+                                                     if (fState_variables_IPs(IP,kGc_chi3) < 0.0) fState_variables_IPs(IP,kGc_chi3) = 0.0;
 
-										 fcG_chi[0]=fState_variables_IPs(IP,kGc_chi1);
-										 fcG_chi[1]=fState_variables_IPs(IP,kGc_chi2);
-										 fcG_chi[2]=fState_variables_IPs(IP,kGc_chi3);
+                                         fcG_chi[0]=fState_variables_IPs(IP,kGc_chi1);
+                                         fcG_chi[1]=fState_variables_IPs(IP,kGc_chi2);
+                                         fcG_chi[2]=fState_variables_IPs(IP,kGc_chi3);
 
-										 Temp_inv=fcG_chi[0]*fcG_chi[0]+fcG_chi[1]*fcG_chi[1]+fcG_chi[2]*fcG_chi[2];
-										 invGc=sqrt(Temp_inv);
+                                         Temp_inv=fcG_chi[0]*fcG_chi[0]+fcG_chi[1]*fcG_chi[1]+fcG_chi[2]*fcG_chi[2];
+                                         invGc=sqrt(Temp_inv);
 
 
-										 /*Forming MicroScale velocity Gradient like integrated tensor DeltaL^{x,p} */
-										 fTemp_matrix_nsd_x_nsd=fChip_n;
-										 fTemp_matrix_nsd_x_nsd*=-1;
-										 fTemp_matrix_nsd_x_nsd+=fChip;
-										 DLXp.MultAB(fTemp_matrix_nsd_x_nsd,fChip_inverse);
-										 fs_micromorph3D_out<<"DLXp= "<<DLXp<<endl;
+                                         /*Forming MicroScale velocity Gradient like integrated tensor DeltaL^{x,p} */
+                                         fTemp_matrix_nsd_x_nsd=fChip_n;
+                                         fTemp_matrix_nsd_x_nsd*=-1;
+                                         fTemp_matrix_nsd_x_nsd+=fChip;
+                                         DLXp.MultAB(fTemp_matrix_nsd_x_nsd,fChip_inverse);
+                                         fs_micromorph3D_out<<"DLXp= "<<DLXp<<endl;
 
 
-										 /*Forming Velocity Gradient L=FdotFp^-1 integrated tensor DeltaL^p */
-										 fTemp_matrix_nsd_x_nsd=fFp_n;
-										 fTemp_matrix_nsd_x_nsd*=-1;
-										 fTemp_matrix_nsd_x_nsd+=fFp;
-										 DLp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_inverse);
-										 fs_micromorph3D_out<<"DLp= "<<DLp<<endl;
+                                         /*Forming Velocity Gradient L=FdotFp^-1 integrated tensor DeltaL^p */
+                                         fTemp_matrix_nsd_x_nsd=fFp_n;
+                                         fTemp_matrix_nsd_x_nsd*=-1;
+                                         fTemp_matrix_nsd_x_nsd+=fFp;
+                                         DLp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_inverse);
+                                         fs_micromorph3D_out<<"DLp= "<<DLp<<endl;
 
 
-		                    			 //update GXp
-										 Form_GXp();
+                                                     //update GXp
+                                         Form_GXp();
 
-										 fs_micromorph3D_out<<"GXp= "<<GXp<<endl;
+                                         fs_micromorph3D_out<<"GXp= "<<GXp<<endl;
 
 
-										 //Calculate GXe
-										 Form_GXe();
-										 fs_micromorph3D_out<<"GXe= "<<GXe<<endl;
-										 // Form GAMMAe tensor
-										 Form_GAMMAe();
-										 fs_micromorph3D_out<<"GAMMAe= "<<GAMMAe<<endl;
+                                         //Calculate GXe
+                                         Form_GXe();
+                                         fs_micromorph3D_out<<"GXe= "<<GXe<<endl;
+                                         // Form GAMMAe tensor
+                                         Form_GAMMAe();
+                                         fs_micromorph3D_out<<"GAMMAe= "<<GAMMAe<<endl;
 
 
-										 // Form MeKLM
-										 Form_fMeKLM();
-										 fs_micromorph3D_out<<"fMeKLM= "<<fMeKLM<<endl;
+                                         // Form MeKLM
+                                         Form_fMeKLM();
+                                         fs_micromorph3D_out<<"fMeKLM= "<<fMeKLM<<endl;
 
 
-										 //Form micro scale gradient pressure invariant
-										 Form_PGchivar();
-										 fs_micromorph3D_out<<"PGchivar= "<<PGchivar<<endl;
+                                         //Form micro scale gradient pressure invariant
+                                         Form_PGchivar();
+                                         fs_micromorph3D_out<<"PGchivar= "<<PGchivar<<endl;
 
 
-										 // Form dev. form of MeKLM and its invariant
-										 Form_devMeKLM();
-										 fs_micromorph3D_out<<"devMeKLM= "<<devMeKLM<<endl;
+                                         // Form dev. form of MeKLM and its invariant
+                                         Form_devMeKLM();
+                                         fs_micromorph3D_out<<"devMeKLM= "<<devMeKLM<<endl;
 
 
 
-										 fMicroScaleGradientYield_function=invdevMeKLM-(AGphi_chi*invGc-BGphi_chi*invPGchivar);
-		                    			 fs_micromorph3D_out  << "Current Micro Scale Gradient relative residual = " << fabs(fMicroScaleGradientYield_function/fMicroScaleGradientYield_function_tr) << endl;
-										 fs_micromorph3D_out<<"fMicroScaleGradientYield_function= "<<fMicroScaleGradientYield_function<<endl;
+                                         fMicroScaleGradientYield_function=invdevMeKLM-(AGphi_chi*invGc-BGphi_chi*invPGchivar);
+                                                     fs_micromorph3D_out  << "Current Micro Scale Gradient relative residual = " << fabs(fMicroScaleGradientYield_function/fMicroScaleGradientYield_function_tr) << endl;
+                                         fs_micromorph3D_out<<"fMicroScaleGradientYield_function= "<<fMicroScaleGradientYield_function<<endl;
 
 
-		                    		 }
+                                             }
 
 
-								 }
+                                 }
 
 
 
 
 
-							 }// end of combined plasticity
+                             }// end of combined plasticity
 
-                    	 if(iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
-                    	 {
+                         if(iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
+                         {
 
-                    		 fs_micromorph3D_out<<"MACRO-PLASTICITY "<<endl;
-                    		 PlasticityCondition=1;
-                    		 // initialize before iteration
-                    		 fYield_function=fYield_function_tr;
-                    		 fMicroYield_function=fMicroYield_function_tr;
-                    		 fFe=fFe_tr;
-                    		 fChie=fChie_tr;
-                    		 fCchie=fCchie_tr;
-                    		 //initial values for Fp is assumed the same with previous step
-                    		 fFp=fFp_n;
-                    		 //fTemp_matrix_nsd_x_nsd.Inverse(fFe);
-                    		 //fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
+                             fs_micromorph3D_out<<"MACRO-PLASTICITY "<<endl;
+                             PlasticityCondition=1;
+                             // initialize before iteration
+                             fYield_function=fYield_function_tr;
+                             fMicroYield_function=fMicroYield_function_tr;
+                             fFe=fFe_tr;
+                             fChie=fChie_tr;
+                             fCchie=fCchie_tr;
+                             //initial values for Fp is assumed the same with previous step
+                             fFp=fFp_n;
+                             //fTemp_matrix_nsd_x_nsd.Inverse(fFe);
+                             //fFp.MultAB(fTemp_matrix_nsd_x_nsd,fDeformation_Gradient);
 
-                    		 SPK=fSPK_tr;
-                    		 devSPK=fdevSPK_tr;
-                    		 devfSPKinv=devfSPKinv_tr;
+                             SPK=fSPK_tr;
+                             devSPK=fdevSPK_tr;
+                             devfSPKinv=devfSPKinv_tr;
 
-                    		 SIGMA_S=SIGMA_S_tr;
-                    		 devSIGMA_S_inv=devSIGMA_S_inv_tr;
-                    		 devSIGMA_S=devSIGMA_S_tr;
-                    		 PSIe=PSIe_tr;
+                             SIGMA_S=SIGMA_S_tr;
+                             devSIGMA_S_inv=devSIGMA_S_inv_tr;
+                             devSIGMA_S=devSIGMA_S_tr;
+                             PSIe=PSIe_tr;
 
-                    		 fdelDelgamma = 0.0;
-                    		 fDelgamma = 0.0;
+                             fdelDelgamma = 0.0;
+                             fDelgamma = 0.0;
 
 
-                    		 // iterate using Newton-Raphson to solve for fDelgamma
-                    		 iter_count = 0;
-                    		 fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-                    		 fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
+                             // iterate using Newton-Raphson to solve for fDelgamma
+                             iter_count = 0;
+                             fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
+                             fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
 
-                    		 while (fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)
-                    		 {
-                    			 iter_count += 1;
-                    			 //Form  dFe/dDgamma
-                    			 fFp_inverse.Inverse(fFp);
-                    			 dFedDelgamma=0.0;
-                    			 fdGdS_n_transpose.Transpose(fdGdS_n);
-                    			 fCe_n_inverse.Inverse(fCe_n);
-                    			 fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
-                    			 // fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);
-                    			 // dFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd2,fTemp_matrix_nsd_x_nsd);
-                    			 // dFedDelgamma=fTemp_matrix_nsd_x_nsd2;
-                    			 dFedDelgamma.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);
-                    			 dFedDelgamma*=-1;
+                             while (fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)
+                             {
+                                 iter_count += 1;
+                                 //Form  dFe/dDgamma
+                                 fFp_inverse.Inverse(fFp);
+                                 dFedDelgamma=0.0;
+                                 fdGdS_n_transpose.Transpose(fdGdS_n);
+                                 fCe_n_inverse.Inverse(fCe_n);
+                                 fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+                                 // fTemp_matrix_nsd_x_nsd2.MultAB(fFe,fCe_n_inverse);
+                                 // dFedDelgamma.MultAB(fTemp_matrix_nsd_x_nsd2,fTemp_matrix_nsd_x_nsd);
+                                 // dFedDelgamma=fTemp_matrix_nsd_x_nsd2;
+                                 dFedDelgamma.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);
+                                 dFedDelgamma*=-1;
 
-                    			 //Forming  dE^e/dDgamma  E^e: Elas. Lag. stn tensor
-                    			 dEedDelgamma.MultATB(dFedDelgamma,fFe);
-                    			 fTemp_matrix_nsd_x_nsd.MultATB(fFe,dFedDelgamma);
-                    			 dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
-                    			 dEedDelgamma*=0.5;
+                                 //Forming  dE^e/dDgamma  E^e: Elas. Lag. stn tensor
+                                 dEedDelgamma.MultATB(dFedDelgamma,fFe);
+                                 fTemp_matrix_nsd_x_nsd.MultATB(fFe,dFedDelgamma);
+                                 dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                 dEedDelgamma*=0.5;
 
-                    			 //Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor
-                    			 dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
+                                 //Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor
+                                 dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
 
-                    			 //Forming  dS/dDgamma  S= SPK tensor
-                    			 Temp_inv=dEedDelgamma.Trace();
-                    			 dSdDelgamma.SetToScaled((fMaterial_Params[kLambda]+fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
+                                 //Forming  dS/dDgamma  S= SPK tensor
+                                 Temp_inv=dEedDelgamma.Trace();
+                                 dSdDelgamma.SetToScaled((fMaterial_Params[kLambda]+fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
 
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),dEedDelgamma);
-                    			 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),dEedDelgamma);
+                                 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-                    			 Temp_inv=dEpsilonedDelgamma.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kEta]*Temp_inv,fIdentity_matrix);
-                    			 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                 Temp_inv=dEpsilonedDelgamma.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kEta]*Temp_inv,fIdentity_matrix);
+                                 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgamma);
-                    			 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgamma);
+                                 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
-                    			 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
+                                 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
 
 
-                    			 //Forming  dP/dDgamma (scalar) P: pressure  dP/dDgamma= (1/3)1:dS/dDgamma
-                    			 //Temp_inv=dMatrixT::Dot(fIdentity_matrix,dSdDelgamma);
-                    			 //dPdDelgamma=Temp_inv/3;
-                    			 //dPdDelgamma=dMatrixT::Dot(fIdentity_matrix,dSdDelgamma);
-                    			 //One error was here; dPdDelgamma*=1/3 makes dPdDelgamma=0
-                    			 //dPdDelgamma*=1/3;
-                    			 dPdDelgamma=dSdDelgamma.Trace()/3;
+                                 //Forming  dP/dDgamma (scalar) P: pressure  dP/dDgamma= (1/3)1:dS/dDgamma
+                                 //Temp_inv=dMatrixT::Dot(fIdentity_matrix,dSdDelgamma);
+                                 //dPdDelgamma=Temp_inv/3;
+                                 //dPdDelgamma=dMatrixT::Dot(fIdentity_matrix,dSdDelgamma);
+                                 //One error was here; dPdDelgamma*=1/3 makes dPdDelgamma=0
+                                 //dPdDelgamma*=1/3;
+                                 dPdDelgamma=dSdDelgamma.Trace()/3;
 
 
-                    			 //Forming  d(devS)/dDgamma  devS: dev. part of SPK tensor
-                    			 ddevSdDelgamma.SetToScaled(dPdDelgamma,fIdentity_matrix);
-                    			 ddevSdDelgamma*=-1;
-                    			 ddevSdDelgamma+=dSdDelgamma;
+                                 //Forming  d(devS)/dDgamma  devS: dev. part of SPK tensor
+                                 ddevSdDelgamma.SetToScaled(dPdDelgamma,fIdentity_matrix);
+                                 ddevSdDelgamma*=-1;
+                                 ddevSdDelgamma+=dSdDelgamma;
 
-                    			 //Forming  d(||devS||)/dDgamma  devS: dev. part of SPK tensor
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
-                    			 InvddevSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
+                                 //Forming  d(||devS||)/dDgamma  devS: dev. part of SPK tensor
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+                                 InvddevSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
 
 
-                    			 //Forming  dc/dDgamma  c: cohesion
-                    			 dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+                                 //Forming  dc/dDgamma  c: cohesion
+                                 dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
 
-                    			 // assemble the consistent tangent
-                    			 dFYdDelgamma=InvddevSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);
+                                 // assemble the consistent tangent
+                                 dFYdDelgamma=InvddevSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);
 
 
-                    			 //solve for fdelDelgamma
-                    			 if (dFYdDelgamma != 0.0) fdelDelgamma = -fYield_function/dFYdDelgamma;
-                    			 else fdelDelgamma = 0.0;
+                                 //solve for fdelDelgamma
+                                 if (dFYdDelgamma != 0.0) fdelDelgamma = -fYield_function/dFYdDelgamma;
+                                 else fdelDelgamma = 0.0;
 
-                    			 //update fDelgamma
-                    			 fDelgamma += fdelDelgamma;
+                                 //update fDelgamma
+                                 fDelgamma += fdelDelgamma;
 
 
-                    			 if (fDelgamma < 0.0) fDelgamma = 0.0;
-                    			 fState_variables_IPs(IP,kDelgamma) = fDelgamma;
+                                 if (fDelgamma < 0.0) fDelgamma = 0.0;
+                                 fState_variables_IPs(IP,kDelgamma) = fDelgamma;
 
 
-                    			 //update c ISVs
-                    			 //fState_variables_IPs(IP,kZc)= fState_variables_n_IPs(IP,kZc)
-                    			 //+ fDelgamma*fState_variables_n_IPs(IP,khc);
-                    			 fState_variables_IPs(IP,kc)= fState_variables_n_IPs(IP,kc)
-                    			 + fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
-                    			 if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
+                                 //update c ISVs
+                                 //fState_variables_IPs(IP,kZc)= fState_variables_n_IPs(IP,kZc)
+                                 //+ fDelgamma*fState_variables_n_IPs(IP,khc);
+                                 fState_variables_IPs(IP,kc)= fState_variables_n_IPs(IP,kc)
+                                 + fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+                                 if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
 
 
-                    			 //update fFp
-                    			 fdGdS_n_transpose.Transpose(fdGdS_n);
-                    			 fCe_n_inverse.Inverse(fCe_n);
-                    			 //fTemp_matrix_nsd_x_nsd.MultAB(fCe_n_inverse,fdGdS_n_transpose);
-                    			 fTemp_matrix_nsd_x_nsd.MultABT(fCe_n_inverse,fdGdS_n);
-                    			 fTemp_matrix_nsd_x_nsd*=fDelgamma;
+                                 //update fFp
+                                 fdGdS_n_transpose.Transpose(fdGdS_n);
+                                 fCe_n_inverse.Inverse(fCe_n);
+                                 //fTemp_matrix_nsd_x_nsd.MultAB(fCe_n_inverse,fdGdS_n_transpose);
+                                 fTemp_matrix_nsd_x_nsd.MultABT(fCe_n_inverse,fdGdS_n);
+                                 fTemp_matrix_nsd_x_nsd*=fDelgamma;
 
-                    			 fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
-                    			 fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
+                                 fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
+                                 fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
 
-                    			 //calculate fFp_Inverse
-                    			 fFp_inverse.Inverse(fFp);
+                                 //calculate fFp_Inverse
+                                 fFp_inverse.Inverse(fFp);
 
-                    			 //calculate Fe
-                    			 fFe.MultAB(fDeformation_Gradient,fFp_inverse);
+                                 //calculate Fe
+                                 fFe.MultAB(fDeformation_Gradient,fFp_inverse);
 
-                    			 //[fElastic_Right_Cauchy_Green_tensor] will be formed
-                    			 fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
-                    			 if (fRight_Elastic_Cauchy_Green_tensor.Det()==0)
-                    				 fRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
+                                 //[fElastic_Right_Cauchy_Green_tensor] will be formed
+                                 fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
+                                 if (fRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                                     fRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
-                    			 //[fMicroElastic_Right_Cauchy_Green_tensor] will be formed
-                    			 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
-                    			 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
-                    				 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
+                                 //[fMicroElastic_Right_Cauchy_Green_tensor] will be formed
+                                 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
+                                 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                                     fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
 
-                    			 //Update Elastic Lagrangian strain tensor E
-                    			 Elastic_LagrangianStn=fIdentity_matrix;
-                    			 Elastic_LagrangianStn*=-1;
-                    			 Elastic_LagrangianStn+=fRight_Elastic_Cauchy_Green_tensor;
-                    			 Elastic_LagrangianStn*=0.5;
+                                 //Update Elastic Lagrangian strain tensor E
+                                 Elastic_LagrangianStn=fIdentity_matrix;
+                                 Elastic_LagrangianStn*=-1;
+                                 Elastic_LagrangianStn+=fRight_Elastic_Cauchy_Green_tensor;
+                                 Elastic_LagrangianStn*=0.5;
 
-                    			 //Update Elastic micro strain tensor will be formed in Bbar
-                    			 Elastic_MicroStnTensor = fIdentity_matrix;
-                    			 Elastic_MicroStnTensor *= -1;
-                    			 //Micro Elastic deformation measure (PSIe)
-                    			 PSIe.MultATB(fFe,fChie);
-                    			 Elastic_MicroStnTensor += PSIe;
+                                 //Update Elastic micro strain tensor will be formed in Bbar
+                                 Elastic_MicroStnTensor = fIdentity_matrix;
+                                 Elastic_MicroStnTensor *= -1;
+                                 //Micro Elastic deformation measure (PSIe)
+                                 PSIe.MultATB(fFe,fChie);
+                                 Elastic_MicroStnTensor += PSIe;
 
-                    			 //update S stress
-                    			 Temp_inv=0.0;
-                    			 Temp_inv=Elastic_LagrangianStn.Trace();//Calculating the tr(E) and keep in temp. var.
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
+                                 //update S stress
+                                 Temp_inv=0.0;
+                                 Temp_inv=Elastic_LagrangianStn.Trace();//Calculating the tr(E) and keep in temp. var.
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
 
-                    			 SPK.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
+                                 SPK.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
 
-                    			 Temp_inv=0.0;
-                    			 Temp_inv=Elastic_MicroStnTensor.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
+                                 Temp_inv=0.0;
+                                 Temp_inv=Elastic_MicroStnTensor.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
 
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
 
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
 
-                    			 //Update Relative stress SIGMA_S
-                    			 Temp_inv=Elastic_LagrangianStn.Trace();
-                    			 SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
-                    			 // 2sigmaE
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                    			 //(eta-Tau)trEpsilon.1
-                    			 Temp_inv=Elastic_MicroStnTensor.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                    			 //(nu-sigma)*Epsilon
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                    			 //(kappa-sigma)*Epsilon^T
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //Update Relative stress SIGMA_S
+                                 Temp_inv=Elastic_LagrangianStn.Trace();
+                                 SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
+                                 // 2sigmaE
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //(eta-Tau)trEpsilon.1
+                                 Temp_inv=Elastic_MicroStnTensor.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //(nu-sigma)*Epsilon
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //(kappa-sigma)*Epsilon^T
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
 
 
-                    			 //calculate  devS stress
-                    			 mean_stress=SPK.Trace()/3;//Calculating the pressure term
-                    			 devSPK.SetToScaled(mean_stress,fIdentity_matrix);
-                    			 devSPK*=-1;
-                    			 devSPK+=SPK;
+                                 //calculate  devS stress
+                                 mean_stress=SPK.Trace()/3;//Calculating the pressure term
+                                 devSPK.SetToScaled(mean_stress,fIdentity_matrix);
+                                 devSPK*=-1;
+                                 devSPK+=SPK;
 
-                    			 // Calculate devS: devS
-                    			 Temp_inv= devSPK.ScalarProduct();
-                    			 //Temp_inv=dMatrixT::Dot(devSPK,devSPK);
-                    			 //Calculate ||devS||
-                    			 devfSPKinv=sqrt(Temp_inv);
-                    			 //fs_micromorph3D_out<<"devfSPKinv="<<devfSPKinv<<endl;
+                                 // Calculate devS: devS
+                                 Temp_inv= devSPK.ScalarProduct();
+                                 //Temp_inv=dMatrixT::Dot(devSPK,devSPK);
+                                 //Calculate ||devS||
+                                 devfSPKinv=sqrt(Temp_inv);
+                                 //fs_micromorph3D_out<<"devfSPKinv="<<devfSPKinv<<endl;
 
-                    			 // Calculate yield function with updated parameters
-                    			 fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*mean_stress);
+                                 // Calculate yield function with updated parameters
+                                 fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*mean_stress);
 
-                    			 fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
-                    		 } //end of the local fDelgamma while loop
-                    		 fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
-                    		 fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
-                    	 }//end of the Macro-plasticity, micro-elasticity loop
+                                 fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
+                             } //end of the local fDelgamma while loop
+                             fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
+                             fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
+                         }//end of the Macro-plasticity, micro-elasticity loop
 
-                    	 if(iPlasticityCheck==0 && fMicroYield_function_tr>dYieldTrialTol && fYield_function_tr<= dYieldTrialTol)//Macro-elastic, Micro-plastic
-                    	 {
-                    		 fs_micromorph3D_out<<"MICRO-PLASTICITY "<<endl;
-                    		 PlasticityCondition=2;
-                    		 //initialize before iteration
-                    		 fYield_function=fYield_function_tr;
-                    		 fMicroYield_function=fMicroYield_function_tr;
+                         if(iPlasticityCheck==0 && fMicroYield_function_tr>dYieldTrialTol && fYield_function_tr<= dYieldTrialTol)//Macro-elastic, Micro-plastic
+                         {
+                             fs_micromorph3D_out<<"MICRO-PLASTICITY "<<endl;
+                             PlasticityCondition=2;
+                             //initialize before iteration
+                             fYield_function=fYield_function_tr;
+                             fMicroYield_function=fMicroYield_function_tr;
 
-                    		 fFe=fFe_tr;
-                    		 fChie=fChie_tr;
-                    		 fCchie=fCchie_tr;
-                    		 // initial values for Fp and Chip are assumed the same with previous step
-                    		 fFp=fFp_n;
-                    		 fChip=fChip_n;
+                             fFe=fFe_tr;
+                             fChie=fChie_tr;
+                             fCchie=fCchie_tr;
+                             // initial values for Fp and Chip are assumed the same with previous step
+                             fFp=fFp_n;
+                             fChip=fChip_n;
 
-                    		 SPK=fSPK_tr;
-                    		 devSPK=fdevSPK_tr;
-                    		 devfSPKinv=devfSPKinv_tr;
+                             SPK=fSPK_tr;
+                             devSPK=fdevSPK_tr;
+                             devfSPKinv=devfSPKinv_tr;
 
-                    		 SIGMA_S=SIGMA_S_tr;
-                    		 devSIGMA_S=devSIGMA_S_tr;
-                    		 devSIGMA_S_inv=devSIGMA_S_inv_tr;
-                    		 Elastic_LagrangianStn=Elastic_LagrangianStn_tr;
+                             SIGMA_S=SIGMA_S_tr;
+                             devSIGMA_S=devSIGMA_S_tr;
+                             devSIGMA_S_inv=devSIGMA_S_inv_tr;
+                             Elastic_LagrangianStn=Elastic_LagrangianStn_tr;
 
-                    		 fdelDelgammachi = 0.0;
-                    		 fDelgammachi=0.0;
+                             fdelDelgammachi = 0.0;
+                             fDelgammachi=0.0;
 
-                    		 //iterate using Newton-Raphson to solve for fDelgamma
-                    		 iter_count = 0;
-                    		 fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-                    		 fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
-                    		 while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && iter_count < iIterationMax)                //while (iter_count <10)
-                    		 {
+                             //iterate using Newton-Raphson to solve for fDelgamma
+                             iter_count = 0;
+                             fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
+                             fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
+                             while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && iter_count < iIterationMax)                //while (iter_count <10)
+                             {
 
-                    			 // Solvig loop for fDelgammachi
-                    			 iter_count += 1;
-                    			 //Form inverse of Chi^p
-                    			 fChip_inverse.Inverse(fChip);
+                                 // Solvig loop for fDelgammachi
+                                 iter_count += 1;
+                                 //Form inverse of Chi^p
+                                 fChip_inverse.Inverse(fChip);
 
-                    			 //dFe/dDgammachi =0 by definition
+                                 //dFe/dDgammachi =0 by definition
 
-                    			 //Form dChip/dDgammachi
-                    			 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
-                    			 dChipdDelgammachi.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
+                                 //Form dChip/dDgammachi
+                                 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
+                                 dChipdDelgammachi.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
 
-                    			 //Forming dChie/dDgammachi
-                    			 dChiedDelgammachi.MultABC(fChie,dChipdDelgammachi,fChip_inverse);
-                    			 dChiedDelgammachi*=-1;
+                                 //Forming dChie/dDgammachi
+                                 dChiedDelgammachi.MultABC(fChie,dChipdDelgammachi,fChip_inverse);
+                                 dChiedDelgammachi*=-1;
 
-                    			 //Forming dEpsilone/dDelgammachi
-                    			 dEpsilonedDelgammachi=0.0;
-                    			 dEpsilonedDelgammachi.MultATB(fFe,dChiedDelgammachi);
+                                 //Forming dEpsilone/dDelgammachi
+                                 dEpsilonedDelgammachi=0.0;
+                                 dEpsilonedDelgammachi.MultATB(fFe,dChiedDelgammachi);
 
-                    			 //Forming  d(SIGMA-S)/dDgammachi tensor
-                    			 Temp_inv=dEpsilonedDelgammachi.Trace();
-                    			 dSIGMA_SdDelgammachi.SetToScaled((fMaterial_Params[kEta]-fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
+                                 //Forming  d(SIGMA-S)/dDgammachi tensor
+                                 Temp_inv=dEpsilonedDelgammachi.Trace();
+                                 dSIGMA_SdDelgammachi.SetToScaled((fMaterial_Params[kEta]-fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
 
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),dEpsilonedDelgammachi);
-                    			 dSIGMA_SdDelgammachi+=fTemp_matrix_nsd_x_nsd;
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),dEpsilonedDelgammachi);
+                                 dSIGMA_SdDelgammachi+=fTemp_matrix_nsd_x_nsd;
 
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgammachi);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
-                    			 dSIGMA_SdDelgammachi+=fTemp_matrix_nsd_x_nsd;
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgammachi);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                 dSIGMA_SdDelgammachi+=fTemp_matrix_nsd_x_nsd;
 
-                    			 //Forming  dPchi/dDgammachi (scalar) Pchi: pressure for micro-scale  dPchi/dDgammachi= (1/3)1:dSIGMA_S/dDgammachi
-                    			 dPchidDelgammachi=dSIGMA_SdDelgammachi.Trace()/3;
+                                 //Forming  dPchi/dDgammachi (scalar) Pchi: pressure for micro-scale  dPchi/dDgammachi= (1/3)1:dSIGMA_S/dDgammachi
+                                 dPchidDelgammachi=dSIGMA_SdDelgammachi.Trace()/3;
 
-                    			 //Forming  d(dev(SIGMA_S))/dDgammachi  dev(SIGMA_S): dev. part of SIGMA-S (relative stress) tensor
-                    			 ddevSIGMA_SdDelgammachi.SetToScaled(dPchidDelgammachi,fIdentity_matrix);
-                    			 ddevSIGMA_SdDelgammachi*=-1;
-                    			 ddevSIGMA_SdDelgammachi+=dSIGMA_SdDelgammachi;
+                                 //Forming  d(dev(SIGMA_S))/dDgammachi  dev(SIGMA_S): dev. part of SIGMA-S (relative stress) tensor
+                                 ddevSIGMA_SdDelgammachi.SetToScaled(dPchidDelgammachi,fIdentity_matrix);
+                                 ddevSIGMA_SdDelgammachi*=-1;
+                                 ddevSIGMA_SdDelgammachi+=dSIGMA_SdDelgammachi;
 
 
-                    			 //Forming  d(||dev(SIGMA-S)||)/dDgammachi  dev(SIGMA-S): dev. part of Relative stress (SIGMA-S) tensor
+                                 //Forming  d(||dev(SIGMA-S)||)/dDgammachi  dev(SIGMA-S): dev. part of Relative stress (SIGMA-S) tensor
                                  //IF ONLY ETA IS CHOSEN THE NEXT TWO LINES FAIL MAY FAIL BECAUSE devSIGMA_S_inv=0.0, AN IF STATEMENT MAY BE PUT TO GET RID OF ZERO DIVISION
                                  //OR CAN OTHER SHEAR RELATED TERM CAN BE CHOOSEN SUCH AS KAPPA
 
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
-                    			 ddevSIGMA_SdDelgammachi_inv=dMatrixT::Dot(ddevSIGMA_SdDelgammachi,fTemp_matrix_nsd_x_nsd);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+                                 ddevSIGMA_SdDelgammachi_inv=dMatrixT::Dot(ddevSIGMA_SdDelgammachi,fTemp_matrix_nsd_x_nsd);
 
-                    			 //Forming  dcx/dDgammax  cx:micro-cohesion
-                    			 dcchidDelgammachi=fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
+                                 //Forming  dcx/dDgammax  cx:micro-cohesion
+                                 dcchidDelgammachi=fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
 
-                    			 //assemble the consistent tangent
-                    			 dFYchidDelgammachi=ddevSIGMA_SdDelgammachi_inv-(Aphi_chi*dcchidDelgammachi-Bphi_chi*dPchidDelgammachi);
-                    			 //fs_micromorph3D_out<<"dFYchidDelgammachi="<<dFYchidDelgammachi<<endl;
-                    			 //solve for fdelDelgamma
-                    			 if (dFYchidDelgammachi != 0.0) fdelDelgammachi = -fMicroYield_function/dFYchidDelgammachi;
-                    			 else fdelDelgammachi = 0.0;
+                                 //assemble the consistent tangent
+                                 dFYchidDelgammachi=ddevSIGMA_SdDelgammachi_inv-(Aphi_chi*dcchidDelgammachi-Bphi_chi*dPchidDelgammachi);
+                                 //fs_micromorph3D_out<<"dFYchidDelgammachi="<<dFYchidDelgammachi<<endl;
+                                 //solve for fdelDelgamma
+                                 if (dFYchidDelgammachi != 0.0) fdelDelgammachi = -fMicroYield_function/dFYchidDelgammachi;
+                                 else fdelDelgammachi = 0.0;
 
-                    			 //update fDelgammachi
-                    			 fDelgammachi += fdelDelgammachi;
-
-
-                    			 if (fDelgammachi < 0.0) fDelgammachi = 0.0;
-                    			 fState_variables_IPs(IP,kDelgammachi) = fDelgammachi;
+                                 //update fDelgammachi
+                                 fDelgammachi += fdelDelgammachi;
 
 
-                    			 //update cx (c_chi) ISVs
-                    			 fState_variables_IPs(IP,kc_chi)= fState_variables_n_IPs(IP,kc_chi)
-                    			 + fDelgammachi*fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
-                    			 if (fState_variables_IPs(IP,kc_chi) < 0.0) fState_variables_IPs(IP,kc_chi) = 0.0;
+                                 if (fDelgammachi < 0.0) fDelgammachi = 0.0;
+                                 fState_variables_IPs(IP,kDelgammachi) = fDelgammachi;
 
 
-                    			 //update fChip
-                    			 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
-                    			 fTemp_matrix_nsd_x_nsd2.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
-                    			 fChip.SetToScaled(fDelgammachi,fTemp_matrix_nsd_x_nsd2);
-                    			 fChip+=fChip_n;
+                                 //update cx (c_chi) ISVs
+                                 fState_variables_IPs(IP,kc_chi)= fState_variables_n_IPs(IP,kc_chi)
+                                 + fDelgammachi*fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
+                                 if (fState_variables_IPs(IP,kc_chi) < 0.0) fState_variables_IPs(IP,kc_chi) = 0.0;
 
 
-                    			 //Form inverse of Chi^p
-                    			 fChip_inverse.Inverse(fChip);
-
-                    			 //Calculate Chie
-                    			 fChie.MultAB(ChiM,fChip_inverse);
-
-
-                    			 //[fMicroElastic_Right_Cauchy_Green_tensor] will be formed
-                    			 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
-                    			 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
-                    				 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
-
-                    			 //Update PSIe
-                    			 PSIe.MultATB(fFe,fChie);
+                                 //update fChip
+                                 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
+                                 fTemp_matrix_nsd_x_nsd2.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
+                                 fChip.SetToScaled(fDelgammachi,fTemp_matrix_nsd_x_nsd2);
+                                 fChip+=fChip_n;
 
 
-                    			 //Update Elastic micro strain tenso will be formed in Bbar
-                    			 Elastic_MicroStnTensor = fIdentity_matrix;
-                    			 Elastic_MicroStnTensor *= -1;
-                    			 //Elastic deformation measure Elastic_PSI EPSI
-                    			 Elastic_MicroStnTensor += PSIe;
+                                 //Form inverse of Chi^p
+                                 fChip_inverse.Inverse(fChip);
 
-                    			 //update S stress
-                    			 Temp_inv=Elastic_LagrangianStn.Trace();//Calculating the tr(E) and keep in temp. var.
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
-
-                    			 SPK.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
-
-                    			 Temp_inv=Elastic_MicroStnTensor.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
-
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
-
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
-
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
+                                 //Calculate Chie
+                                 fChie.MultAB(ChiM,fChip_inverse);
 
 
-                    			 //Update Relative stress SIGMA_S
-                    			 Temp_inv=Elastic_LagrangianStn.Trace();
-                    			 SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
-                    			 // 2sigmaE
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                    			 //(eta-Tau)trEpsilon.1
-                    			 Temp_inv=Elastic_MicroStnTensor.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                    			 //(nu-sigma)*Epsilon
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                    			 //(kappa-sigma)*Epsilon^T
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //[fMicroElastic_Right_Cauchy_Green_tensor] will be formed
+                                 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
+                                 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                                     fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
+
+                                 //Update PSIe
+                                 PSIe.MultATB(fFe,fChie);
 
 
-                    			 //Form deviatoric SIGMA-S
-                    			 mean_stress=SIGMA_S.Trace()/3;//
-                    			 devSIGMA_S.SetToScaled(mean_stress,fIdentity_matrix);
-                    			 devSIGMA_S*=-1;
-                    			 devSIGMA_S+=SIGMA_S;
+                                 //Update Elastic micro strain tenso will be formed in Bbar
+                                 Elastic_MicroStnTensor = fIdentity_matrix;
+                                 Elastic_MicroStnTensor *= -1;
+                                 //Elastic deformation measure Elastic_PSI EPSI
+                                 Elastic_MicroStnTensor += PSIe;
+
+                                 //update S stress
+                                 Temp_inv=Elastic_LagrangianStn.Trace();//Calculating the tr(E) and keep in temp. var.
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
+
+                                 SPK.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
+
+                                 Temp_inv=Elastic_MicroStnTensor.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
+
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
+
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
+
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
+
+
+                                 //Update Relative stress SIGMA_S
+                                 Temp_inv=Elastic_LagrangianStn.Trace();
+                                 SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
+                                 // 2sigmaE
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //(eta-Tau)trEpsilon.1
+                                 Temp_inv=Elastic_MicroStnTensor.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //(nu-sigma)*Epsilon
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //(kappa-sigma)*Epsilon^T
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+
+
+                                 //Form deviatoric SIGMA-S
+                                 mean_stress=SIGMA_S.Trace()/3;//
+                                 devSIGMA_S.SetToScaled(mean_stress,fIdentity_matrix);
+                                 devSIGMA_S*=-1;
+                                 devSIGMA_S+=SIGMA_S;
 
 
 
-                    			 //Calculate dev(SIGMA-S):dev(SIGMA-S)
-                    			 Temp_inv= devSIGMA_S.ScalarProduct();
-                    			 // Calculate ||dev(SIGMA-S)||
-                    			 devSIGMA_S_inv=sqrt(Temp_inv);
+                                 //Calculate dev(SIGMA-S):dev(SIGMA-S)
+                                 Temp_inv= devSIGMA_S.ScalarProduct();
+                                 // Calculate ||dev(SIGMA-S)||
+                                 devSIGMA_S_inv=sqrt(Temp_inv);
 
-                    			 // Calculate micro yield function with updated parameters
-                    			 fMicroYield_function=devSIGMA_S_inv-(Aphi_chi*(fState_variables_IPs(IP,kc_chi))-Bphi_chi*mean_stress);
-                    			 fs_micromorph3D_out<< "Current relative residual = " << fabs(fMicroYield_function/fMicroYield_function_tr) << endl;
-                    		 } //end of the local fDelgammachi while loop
-                    		 fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
-                    		 fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
-                    	 } //end of IF Macro-elasticity, micro-plasticity loop
+                                 // Calculate micro yield function with updated parameters
+                                 fMicroYield_function=devSIGMA_S_inv-(Aphi_chi*(fState_variables_IPs(IP,kc_chi))-Bphi_chi*mean_stress);
+                                 fs_micromorph3D_out<< "Current relative residual = " << fabs(fMicroYield_function/fMicroYield_function_tr) << endl;
+                             } //end of the local fDelgammachi while loop
+                             fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
+                             fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
+                         } //end of IF Macro-elasticity, micro-plasticity loop
 ///                         fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-                    	 if(iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr> dYieldTrialTol)// If both scales yield! Macro and Micro
-                    	 {
-                    		 fs_micromorph3D_out<< "COUPLED PLASTICITY " <<endl;
-                    		 //cout<< "MACRO AND MICRO PLASTICITY " <<endl;
-                    		 PlasticityCondition=3;
-                    		 //initialize yield function before iteration
-                    		 fYield_function=fYield_function_tr;
+                         if(iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr> dYieldTrialTol)// If both scales yield! Macro and Micro
+                         {
+                             fs_micromorph3D_out<< "COUPLED PLASTICITY " <<endl;
+                             //cout<< "MACRO AND MICRO PLASTICITY " <<endl;
+                             PlasticityCondition=3;
+                             //initialize yield function before iteration
+                             fYield_function=fYield_function_tr;
 
-                    		 //initialize micro yield before iteration
-                    		 fMicroYield_function=fMicroYield_function_tr;
+                             //initialize micro yield before iteration
+                             fMicroYield_function=fMicroYield_function_tr;
 
-                    		 //initial values for Fe and Chie
-                    		 fFe=fFe_tr;
-                    		 fChie=fChie_tr;
-                    		 fCchie=fCchie_tr;
-                    		 PSIe=PSIe_tr;
+                             //initial values for Fe and Chie
+                             fFe=fFe_tr;
+                             fChie=fChie_tr;
+                             fCchie=fCchie_tr;
+                             PSIe=PSIe_tr;
 
-                    		 //initial values for Fp and Chip are assumed the same with previous step
-                    		 fFp=fFp_n;
-                    		 fChip=fChip_n;
+                             //initial values for Fp and Chip are assumed the same with previous step
+                             fFp=fFp_n;
+                             fChip=fChip_n;
 
-                    		 //initial  stress tensors  and their invariants
-                    		 SPK=fSPK_tr;
-                    		 devSPK=fdevSPK_tr;
-                    		 devfSPKinv=devfSPKinv_tr;
+                             //initial  stress tensors  and their invariants
+                             SPK=fSPK_tr;
+                             devSPK=fdevSPK_tr;
+                             devfSPKinv=devfSPKinv_tr;
 
-                    		 SIGMA_S=SIGMA_S_tr;
-                    		 devSIGMA_S=devSIGMA_S_tr;
-                    		 devSIGMA_S_inv=devSIGMA_S_inv_tr;
-                    		 //fs_micromorph3D_out<<"devSIGMA_S_inv="<< devSIGMA_S_inv<<endl;
+                             SIGMA_S=SIGMA_S_tr;
+                             devSIGMA_S=devSIGMA_S_tr;
+                             devSIGMA_S_inv=devSIGMA_S_inv_tr;
+                             //fs_micromorph3D_out<<"devSIGMA_S_inv="<< devSIGMA_S_inv<<endl;
 
-                    		 //Elastic_LagrangianStn=Elastic_LagrangianStn_tr;
-
-
-                    		 //initial Delgamma,Delgammchi, their increments
-                    		 fdelDelgamma = 0.0;
-                    		 fDelgamma = 0.0;
-
-                    		 fdelDelgammachi = 0.0;
-                    		 fDelgammachi=0.0;
-
-                    		 //iterate using Newton-Raphson to solve for fDelgamma
-                    		 iter_count = 0;
-                    		 fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
-                    		 fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
-
-                    		 //double FYi=0.0;
-                    		 //double FYi1=0.0;
-                    		 //double FMYi=0.0;
-                    		 //double FMYi1=0.0;
-                    		 //FYi=fMicroYield_function_tr;
-                    		 //FMYi=fMicroYield_function_tr;
-                    		 //double FYi=0.0;
-                    		 //double FMYi=0.0;
-
-                    		 while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && iter_count < iIterationMax || fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)
-                    		 {
-                    			 iter_count += 1;
-
-                    			 //Form  dFe/dDgamma
-                    			 fFp_inverse.Inverse(fFp);
-                    			 dFedDelgamma=0.0;
-                    			 //fdGdS_n_transpose.Transpose(fdGdS_n);// done above
-                    			 //fCe_n_inverse.Inverse(fCe_n);
-                    			 fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
-                    			 dFedDelgamma.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);
-                    			 dFedDelgamma*=-1;
-
-                    			 //Forming  dE^e/dDgamma  E^e: Elas. Lag. stn tensor
-                    			 dEedDelgamma.MultATB(dFedDelgamma,fFe);
-                    			 fTemp_matrix_nsd_x_nsd.MultATB(fFe,dFedDelgamma);
-                    			 dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
-                    			 dEedDelgamma*=0.5;
-
-                    			 //Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor
-                    			 dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
-
-                    			 //Forming  dS/dDgamma  S= SPK tensor
-                    			 Temp_inv=dEedDelgamma.Trace();
-                    			 dSdDelgamma.SetToScaled((fMaterial_Params[kLambda]+fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),dEedDelgamma);
-                    			 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
-
-                    			 Temp_inv=dEpsilonedDelgamma.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kEta]*Temp_inv,fIdentity_matrix);
-                    			 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
-
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgamma);
-                    			 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
-
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
-                    			 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                             //Elastic_LagrangianStn=Elastic_LagrangianStn_tr;
 
 
-                    			 //Forming  dP/dDgamma (scalar) P: pressure  dP/dDgamma= (1/3)1:dS/dDgamma
-                    			 dPdDelgamma=dSdDelgamma.Trace()/3;
+                             //initial Delgamma,Delgammchi, their increments
+                             fdelDelgamma = 0.0;
+                             fDelgamma = 0.0;
+
+                             fdelDelgammachi = 0.0;
+                             fDelgammachi=0.0;
+
+                             //iterate using Newton-Raphson to solve for fDelgamma
+                             iter_count = 0;
+                             fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
+                             fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
+
+                             //double FYi=0.0;
+                             //double FYi1=0.0;
+                             //double FMYi=0.0;
+                             //double FMYi1=0.0;
+                             //FYi=fMicroYield_function_tr;
+                             //FMYi=fMicroYield_function_tr;
+                             //double FYi=0.0;
+                             //double FMYi=0.0;
+
+                             while (fabs(fMicroYield_function) > dAbsTol && fabs(fMicroYield_function/fMicroYield_function_tr) > dRelTol && iter_count < iIterationMax || fabs(fYield_function) > dAbsTol && fabs(fYield_function/fYield_function_tr) > dRelTol && iter_count < iIterationMax)
+                             {
+                                 iter_count += 1;
+
+                                 //Form  dFe/dDgamma
+                                 fFp_inverse.Inverse(fFp);
+                                 dFedDelgamma=0.0;
+                                 //fdGdS_n_transpose.Transpose(fdGdS_n);// done above
+                                 //fCe_n_inverse.Inverse(fCe_n);
+                                 fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+                                 dFedDelgamma.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);
+                                 dFedDelgamma*=-1;
+
+                                 //Forming  dE^e/dDgamma  E^e: Elas. Lag. stn tensor
+                                 dEedDelgamma.MultATB(dFedDelgamma,fFe);
+                                 fTemp_matrix_nsd_x_nsd.MultATB(fFe,dFedDelgamma);
+                                 dEedDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                 dEedDelgamma*=0.5;
+
+                                 //Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor
+                                 dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
+
+                                 //Forming  dS/dDgamma  S= SPK tensor
+                                 Temp_inv=dEedDelgamma.Trace();
+                                 dSdDelgamma.SetToScaled((fMaterial_Params[kLambda]+fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),dEedDelgamma);
+                                 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+                                 Temp_inv=dEpsilonedDelgamma.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kEta]*Temp_inv,fIdentity_matrix);
+                                 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgamma);
+                                 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
+                                 dSdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+
+                                 //Forming  dP/dDgamma (scalar) P: pressure  dP/dDgamma= (1/3)1:dS/dDgamma
+                                 dPdDelgamma=dSdDelgamma.Trace()/3;
 
 //
-                    			 //Forming  d(devS)/dDgamma  devS: dev. part of SPK tensor
-                    			 ddevSdDelgamma.SetToScaled(dPdDelgamma,fIdentity_matrix);
-                    			 ddevSdDelgamma*=-1;
-                    			 ddevSdDelgamma+=dSdDelgamma;
+                                 //Forming  d(devS)/dDgamma  devS: dev. part of SPK tensor
+                                 ddevSdDelgamma.SetToScaled(dPdDelgamma,fIdentity_matrix);
+                                 ddevSdDelgamma*=-1;
+                                 ddevSdDelgamma+=dSdDelgamma;
 
-                    			 //Forming  d(||devS||)/dDgamma  devS: dev. part of SPK tensor
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
-                    			 InvddevSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
-
-
-                    			 //Forming  dc/dDgamma  c: cohesion
-                    			 dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
-
-                    			 //assemble the consistent tangent
-                    			 dFYdDelgamma=InvddevSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);//1
-
-                    			 //Form inverse of Chi^p
-                    			 fChip_inverse.Inverse(fChip);
+                                 //Forming  d(||devS||)/dDgamma  devS: dev. part of SPK tensor
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+                                 InvddevSdDelgamma=dMatrixT::Dot(ddevSdDelgamma,fTemp_matrix_nsd_x_nsd);
 
 
-                    			 //Form dChip/dDgammachi
-                    			 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
-                    			 dChipdDelgammachi.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
+                                 //Forming  dc/dDgamma  c: cohesion
+                                 dcdDelgamma=fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
 
-                    			 //Forming dChie/dDgammachi
-                    			 dChiedDelgammachi.MultABC(fChie,dChipdDelgammachi,fChip_inverse);
-                    			 dChiedDelgammachi*=-1;
+                                 //assemble the consistent tangent
+                                 dFYdDelgamma=InvddevSdDelgamma-(Aphi*dcdDelgamma-Bphi*dPdDelgamma);//1
 
-                    			 //Forming dEpsilone/dDelgammachi
-                    			 dEpsilonedDelgammachi=0.0;
-                    			 dEpsilonedDelgammachi.MultATB(fFe,dChiedDelgammachi);
-
-                    			 //Forming  d(SIGMA-S)/dDgammachi tensor
-                    			 Temp_inv=dEpsilonedDelgammachi.Trace();
-                    			 dSIGMA_SdDelgammachi.SetToScaled((fMaterial_Params[kEta]-fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
-
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),dEpsilonedDelgammachi);
-                    			 dSIGMA_SdDelgammachi+=fTemp_matrix_nsd_x_nsd;
-
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgammachi);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
-                    			 dSIGMA_SdDelgammachi+=fTemp_matrix_nsd_x_nsd;
-
-                    			 //Forming  dPchi/dDgammachi (scalar) Pchi: pressure for micro-scale  dPchi/dDgammachi= (1/3)1:dSIGMA_S/dDgammachi
-
-                    			 dPchidDelgammachi=dSIGMA_SdDelgammachi.Trace()/3;
-
-                    			 //Forming  d(dev(SIGMA_S))/dDgammachi  dev(SIGMA_S): dev. part of SIGMA-S (relative stress) tensor
-                    			 ddevSIGMA_SdDelgammachi.SetToScaled(dPchidDelgammachi,fIdentity_matrix);
-                    			 ddevSIGMA_SdDelgammachi*=-1;
-                    			 ddevSIGMA_SdDelgammachi+=dSIGMA_SdDelgammachi;
+                                 //Form inverse of Chi^p
+                                 fChip_inverse.Inverse(fChip);
 
 
-                    			 //Forming  d(||dev(SIGMA-S)||)/dDgammachi  dev(SIGMA-S): dev. part of Relative stress (SIGMA-S) tensor
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
-                    			 ddevSIGMA_SdDelgammachi_inv=dMatrixT::Dot(ddevSIGMA_SdDelgammachi,fTemp_matrix_nsd_x_nsd);
+                                 //Form dChip/dDgammachi
+                                 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
+                                 dChipdDelgammachi.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
 
-                    			 //Forming  dcx/dDgammax  cx:micro-cohesion
-                    			 dcchidDelgammachi=fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
+                                 //Forming dChie/dDgammachi
+                                 dChiedDelgammachi.MultABC(fChie,dChipdDelgammachi,fChip_inverse);
+                                 dChiedDelgammachi*=-1;
 
-                    			 //assemble the consistent tangent
-                    			 dFYchidDelgammachi=ddevSIGMA_SdDelgammachi_inv-(Aphi_chi*dcchidDelgammachi-Bphi_chi*dPchidDelgammachi);//2
+                                 //Forming dEpsilone/dDelgammachi
+                                 dEpsilonedDelgammachi=0.0;
+                                 dEpsilonedDelgammachi.MultATB(fFe,dChiedDelgammachi);
 
-                    			 //Forming dS/dDelgammachi
-                    			 Temp_inv=dEpsilonedDelgammachi.Trace();
-                    			 dSdDelgammachi.SetToScaled(fMaterial_Params[kEta]*Temp_inv,fIdentity_matrix);
+                                 //Forming  d(SIGMA-S)/dDgammachi tensor
+                                 Temp_inv=dEpsilonedDelgammachi.Trace();
+                                 dSIGMA_SdDelgammachi.SetToScaled((fMaterial_Params[kEta]-fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
 
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgammachi);
-                    			 dSdDelgammachi+=fTemp_matrix_nsd_x_nsd;
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),dEpsilonedDelgammachi);
+                                 dSIGMA_SdDelgammachi+=fTemp_matrix_nsd_x_nsd;
 
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgammachi);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
-                    			 dSdDelgammachi+=fTemp_matrix_nsd_x_nsd;
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgammachi);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                 dSIGMA_SdDelgammachi+=fTemp_matrix_nsd_x_nsd;
 
-                    			 //Forming dP/dDelgammachi
-                    			 dPdDelgammachi=dSdDelgammachi.Trace()/3;
+                                 //Forming  dPchi/dDgammachi (scalar) Pchi: pressure for micro-scale  dPchi/dDgammachi= (1/3)1:dSIGMA_S/dDgammachi
 
+                                 dPchidDelgammachi=dSIGMA_SdDelgammachi.Trace()/3;
 
-                    			 //Forming  d(devS)/dDgammachi
-                    			 ddevSdDelgammachi.SetToScaled(dPdDelgammachi,fIdentity_matrix);
-                    			 ddevSdDelgammachi*=-1;
-                    			 ddevSdDelgammachi+=dSdDelgammachi;
-
-
-                    			 //Forming  d(||devS||)/dDgammachi
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
-                    			 ddevSdDelgammachi_inv=dMatrixT::Dot(ddevSdDelgammachi,fTemp_matrix_nsd_x_nsd);
-
-                    			 //dFy/dDelgammachi
-                    			 dFYdDelgammachi=ddevSdDelgammachi_inv-(-Bphi*dPdDelgammachi);//3
-
-                    			 //Forming d(SIGMA-S)/dDelgamma
-                    			 Temp_inv=dEedDelgamma.Trace();
-                    			 dSIGMA_SdDelgamma.SetToScaled(fMaterial_Params[kTau]*Temp_inv,fIdentity_matrix);
-
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],dEedDelgamma);
-                    			 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
-
-                    			 Temp_inv=dEpsilonedDelgamma.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kEta]-fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
-                    			 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                 //Forming  d(dev(SIGMA_S))/dDgammachi  dev(SIGMA_S): dev. part of SIGMA-S (relative stress) tensor
+                                 ddevSIGMA_SdDelgammachi.SetToScaled(dPchidDelgammachi,fIdentity_matrix);
+                                 ddevSIGMA_SdDelgammachi*=-1;
+                                 ddevSIGMA_SdDelgammachi+=dSIGMA_SdDelgammachi;
 
 
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),dEpsilonedDelgamma);
-                    			 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                 //Forming  d(||dev(SIGMA-S)||)/dDgammachi  dev(SIGMA-S): dev. part of Relative stress (SIGMA-S) tensor
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+                                 ddevSIGMA_SdDelgammachi_inv=dMatrixT::Dot(ddevSIGMA_SdDelgammachi,fTemp_matrix_nsd_x_nsd);
 
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
-                    			 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+                                 //Forming  dcx/dDgammax  cx:micro-cohesion
+                                 dcchidDelgammachi=fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
 
-                    			 //Forming dPchi/dDelgamma
-                    			 dPchidDelgamma=dSIGMA_SdDelgamma.Trace()/3;
+                                 //assemble the consistent tangent
+                                 dFYchidDelgammachi=ddevSIGMA_SdDelgammachi_inv-(Aphi_chi*dcchidDelgammachi-Bphi_chi*dPchidDelgammachi);//2
 
-                    			 //Forming  d(dev(SIGMA-S))/dDgamma
-                    			 ddevSIGMA_SdDelgamma.SetToScaled(dPchidDelgamma,fIdentity_matrix);
-                    			 ddevSIGMA_SdDelgamma*=-1;
-                    			 ddevSIGMA_SdDelgamma+=dSIGMA_SdDelgamma;
+                                 //Forming dS/dDelgammachi
+                                 Temp_inv=dEpsilonedDelgammachi.Trace();
+                                 dSdDelgammachi.SetToScaled(fMaterial_Params[kEta]*Temp_inv,fIdentity_matrix);
 
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],dEpsilonedDelgammachi);
+                                 dSdDelgammachi+=fTemp_matrix_nsd_x_nsd;
 
-                    			 //Forming  d(||dev(SIGMA-S)||)/dDgamma
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
-                    			 ddevSIGMA_SdDelgamma_inv=dMatrixT::Dot(ddevSIGMA_SdDelgamma,fTemp_matrix_nsd_x_nsd);
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgammachi);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
+                                 dSdDelgammachi+=fTemp_matrix_nsd_x_nsd;
 
-
-                    			 //dFYchi/dDelgamma
-                    			 dFYchidDelgamma=ddevSIGMA_SdDelgamma_inv-(-Bphi_chi*dPchidDelgamma);//4
-
-                    			 LocalConsistentTangent=0.0;
-                    			 LocalConsistentTangent(0,0)=dFYdDelgamma;
-                    			 LocalConsistentTangent(0,1)=dFYdDelgammachi;
-                    			 LocalConsistentTangent(1,0)=dFYchidDelgamma;
-                    			 LocalConsistentTangent(1,1)=dFYchidDelgammachi;
-
-                    			 //double mm=4.7;
-
-                    			 LocalRHSVector[0]=-fYield_function;
-                    			 LocalRHSVector[1]=-fMicroYield_function;
+                                 //Forming dP/dDelgammachi
+                                 dPdDelgammachi=dSdDelgammachi.Trace()/3;
 
 
-                    			 if (LocalConsistentTangent.Det() != 0.0)
-                    			 {
+                                 //Forming  d(devS)/dDgammachi
+                                 ddevSdDelgammachi.SetToScaled(dPdDelgammachi,fIdentity_matrix);
+                                 ddevSdDelgammachi*=-1;
+                                 ddevSdDelgammachi+=dSdDelgammachi;
 
-                    				 LocalConsistentTangentInverse.Inverse(LocalConsistentTangent);
-                    				 LocalConsistentTangentInverse.Multx(LocalRHSVector,fdelDelgammaVector);
-                    				 fdelDelgamma=fdelDelgammaVector[0];
-                    				 fdelDelgammachi=fdelDelgammaVector[1];
-                    			 }
-                    			 else
-                    			 {
-                    				 fdelDelgammachi = 0.0;
-                    				 fdelDelgamma = 0.0;
-                    			 }
+
+                                 //Forming  d(||devS||)/dDgammachi
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+                                 ddevSdDelgammachi_inv=dMatrixT::Dot(ddevSdDelgammachi,fTemp_matrix_nsd_x_nsd);
+
+                                 //dFy/dDelgammachi
+                                 dFYdDelgammachi=ddevSdDelgammachi_inv-(-Bphi*dPdDelgammachi);//3
+
+                                 //Forming d(SIGMA-S)/dDelgamma
+                                 Temp_inv=dEedDelgamma.Trace();
+                                 dSIGMA_SdDelgamma.SetToScaled(fMaterial_Params[kTau]*Temp_inv,fIdentity_matrix);
+
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],dEedDelgamma);
+                                 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+                                 Temp_inv=dEpsilonedDelgamma.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kEta]-fMaterial_Params[kTau])*Temp_inv,fIdentity_matrix);
+                                 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),dEpsilonedDelgamma);
+                                 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(dEpsilonedDelgamma);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                 dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
+
+                                 //Forming dPchi/dDelgamma
+                                 dPchidDelgamma=dSIGMA_SdDelgamma.Trace()/3;
+
+                                 //Forming  d(dev(SIGMA-S))/dDgamma
+                                 ddevSIGMA_SdDelgamma.SetToScaled(dPchidDelgamma,fIdentity_matrix);
+                                 ddevSIGMA_SdDelgamma*=-1;
+                                 ddevSIGMA_SdDelgamma+=dSIGMA_SdDelgamma;
+
+
+                                 //Forming  d(||dev(SIGMA-S)||)/dDgamma
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+                                 ddevSIGMA_SdDelgamma_inv=dMatrixT::Dot(ddevSIGMA_SdDelgamma,fTemp_matrix_nsd_x_nsd);
+
+
+                                 //dFYchi/dDelgamma
+                                 dFYchidDelgamma=ddevSIGMA_SdDelgamma_inv-(-Bphi_chi*dPchidDelgamma);//4
+
+                                 LocalConsistentTangent=0.0;
+                                 LocalConsistentTangent(0,0)=dFYdDelgamma;
+                                 LocalConsistentTangent(0,1)=dFYdDelgammachi;
+                                 LocalConsistentTangent(1,0)=dFYchidDelgamma;
+                                 LocalConsistentTangent(1,1)=dFYchidDelgammachi;
+
+                                 //double mm=4.7;
+
+                                 LocalRHSVector[0]=-fYield_function;
+                                 LocalRHSVector[1]=-fMicroYield_function;
+
+
+                                 if (LocalConsistentTangent.Det() != 0.0)
+                                 {
+
+                                     LocalConsistentTangentInverse.Inverse(LocalConsistentTangent);
+                                     LocalConsistentTangentInverse.Multx(LocalRHSVector,fdelDelgammaVector);
+                                     fdelDelgamma=fdelDelgammaVector[0];
+                                     fdelDelgammachi=fdelDelgammaVector[1];
+                                 }
+                                 else
+                                 {
+                                     fdelDelgammachi = 0.0;
+                                     fdelDelgamma = 0.0;
+                                 }
 
 
 //                                       alpha1=0.0;
@@ -4032,193 +4049,193 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                                       incr=0.0;
 //                                       incrx=0.0;
 //                                       for(int i=0;i<100;i++)
-//                                       	{
+//                                          {
 //
-//												LocalConsistentTangent.Multx(fdelDelgammaVector,Temp_vec1);
-//                                       		Temp_vec1*=-1;
-//                                       		Temp_vec1+=LocalRHSVector;
+//                                              LocalConsistentTangent.Multx(fdelDelgammaVector,Temp_vec1);
+//                                              Temp_vec1*=-1;
+//                                              Temp_vec1+=LocalRHSVector;
 //
-//                                       		alpha1=Temp_vec1[0]*Temp_vec1[0]+Temp_vec1[1]*Temp_vec1[1];
+//                                              alpha1=Temp_vec1[0]*Temp_vec1[0]+Temp_vec1[1]*Temp_vec1[1];
 //
-//                                       		LocalConsistentTangent.Multx(Temp_vec1,Temp_vec2);
-//                                       		alpha2=Temp_vec1[0]*Temp_vec2[0]+Temp_vec1[1]*Temp_vec2[1];
+//                                              LocalConsistentTangent.Multx(Temp_vec1,Temp_vec2);
+//                                              alpha2=Temp_vec1[0]*Temp_vec2[0]+Temp_vec1[1]*Temp_vec2[1];
 //
-//                                       		alphai=alpha1/alpha2;
+//                                              alphai=alpha1/alpha2;
 //
-//                                       		incr=alphai*Temp_vec1[0];
-//                                       		incrx=alphai*Temp_vec1[1];
+//                                              incr=alphai*Temp_vec1[0];
+//                                              incrx=alphai*Temp_vec1[1];
 //
 //
-//											}
+//                                          }
 
 
 
-                    			 if (fDelgamma < 0.0) fDelgamma = 0.0;
-                    			 fState_variables_IPs(IP,kDelgamma) = fDelgamma;
+                                 if (fDelgamma < 0.0) fDelgamma = 0.0;
+                                 fState_variables_IPs(IP,kDelgamma) = fDelgamma;
 
-                    			 if (fDelgammachi < 0.0) fDelgammachi = 0.0;
-                    			 fState_variables_IPs(IP,kDelgammachi) = fDelgammachi;
-
-
-                    			 fState_variables_IPs(IP,kc)= fState_variables_n_IPs(IP,kc)
-                    			 + fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
-                    			 if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
+                                 if (fDelgammachi < 0.0) fDelgammachi = 0.0;
+                                 fState_variables_IPs(IP,kDelgammachi) = fDelgammachi;
 
 
-                    			 //update cx (c_chi) ISVs
-                    			 fState_variables_IPs(IP,kc_chi)= fState_variables_n_IPs(IP,kc_chi)
-                    			 + fDelgammachi*fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
-                    			 if (fState_variables_IPs(IP,kc_chi) < 0.0) fState_variables_IPs(IP,kc_chi) = 0.0;
+                                 fState_variables_IPs(IP,kc)= fState_variables_n_IPs(IP,kc)
+                                 + fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+                                 if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
 
 
-                    			 //update fFp
-                    			 fCe_n_inverse.Inverse(fCe_n);
-                    			 fTemp_matrix_nsd_x_nsd.MultABT(fCe_n_inverse,fdGdS_n);
-                    			 fTemp_matrix_nsd_x_nsd*=fDelgamma;
-                    			 fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
-                    			 fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
-
-                    			 //calculate fFp_Inverse
-                    			 fFp_inverse.Inverse(fFp);
-
-                    			 //calculate Fe
-                    			 fFe.MultAB(fDeformation_Gradient,fFp_inverse);
+                                 //update cx (c_chi) ISVs
+                                 fState_variables_IPs(IP,kc_chi)= fState_variables_n_IPs(IP,kc_chi)
+                                 + fDelgammachi*fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
+                                 if (fState_variables_IPs(IP,kc_chi) < 0.0) fState_variables_IPs(IP,kc_chi) = 0.0;
 
 
+                                 //update fFp
+                                 fCe_n_inverse.Inverse(fCe_n);
+                                 fTemp_matrix_nsd_x_nsd.MultABT(fCe_n_inverse,fdGdS_n);
+                                 fTemp_matrix_nsd_x_nsd*=fDelgamma;
+                                 fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
+                                 fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
 
-                    			 //[fElastic_Right_Cauchy_Green_tensor] will be formed
-                    			 fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
-                    			 if (fRight_Elastic_Cauchy_Green_tensor.Det()==0)
-                    				 fRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
+                                 //calculate fFp_Inverse
+                                 fFp_inverse.Inverse(fFp);
 
-
-                    			 //Update Elastic Lagrangian strain tensor E
-                    			 Elastic_LagrangianStn=fIdentity_matrix;
-                    			 Elastic_LagrangianStn*=-1;
-                    			 Elastic_LagrangianStn+=fRight_Elastic_Cauchy_Green_tensor;
-                    			 Elastic_LagrangianStn*=0.5;
-
-
-                    			 //update fChip
-                    			 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
-                    			 fTemp_matrix_nsd_x_nsd2.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
-                    			 fChip.SetToScaled(fDelgammachi,fTemp_matrix_nsd_x_nsd2);
-                    			 fChip+=fChip_n;
-
-
-                    			 //Form inverse of Chi^p
-                    			 fChip_inverse.Inverse(fChip);
-
-                    			 //Calculate Chie
-                    			 fChie.MultAB(ChiM,fChip_inverse);
-
-
-                    			 //[fMicroElastic_Right_Cauchy_Green_tensor] (Cchie) will be formed
-                    			 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
-                    			 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
-                    				 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
-
-
-                    			 //Update fCchie
-                    			 fCchie.MultATB(fChie,fChie);
-
-                    			 //Update PSIe
-                    			 PSIe.MultATB(fFe,fChie);
-
-
-                    			 //Update Elastic micro strain tenso will be formed in Bbar
-                    			 Elastic_MicroStnTensor = fIdentity_matrix;
-                    			 Elastic_MicroStnTensor *= -1;
-                    			 Elastic_MicroStnTensor += PSIe;
-
-                    			 //update S stress
-                    			 Temp_inv=Elastic_LagrangianStn.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
-
-                    			 SPK.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
-
-                    			 Temp_inv=Elastic_MicroStnTensor.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
-
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor);
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
-
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
-
-                    			 SPK+=fTemp_matrix_nsd_x_nsd;
-
-
-                    			 //Update Relative stress SIGMA_S
-                    			 Temp_inv=Elastic_LagrangianStn.Trace();
-                    			 SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
-                    			 // 2sigmaE
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                    			 //(eta-Tau)trEpsilon.1
-                    			 Temp_inv=Elastic_MicroStnTensor.Trace();
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                    			 //(nu-sigma)*Epsilon
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                    			 //(kappa-sigma)*Epsilon^T
-                    			 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
-                    			 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
-                    			 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-
-                    			 //calculate  devS stress
-                    			 mean_stress=SPK.Trace()/3;//Calculating the pressure term
-                    			 devSPK.SetToScaled(mean_stress,fIdentity_matrix);
-                    			 devSPK*=-1;
-                    			 devSPK+=SPK;
-
-                    			 //Calculate ||devS||
-                    			 Temp_inv= devSPK.ScalarProduct();
-                    			 devfSPKinv=sqrt(Temp_inv);
-                    			 // fs_micromorph3D_out<<"devfSPKinv="<<devSIGMA_S_inv <<endl;
-                    			 // fs_micromorph3D_out<<"mean stress="<<SPK.Trace()/3 <<endl;
-                    			 // Calculate yield function with updated parameters
-                    			 fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*mean_stress);
-
-
-                    			 //Form deviatoric SIGMA-S
-                    			 mean_stress=SIGMA_S.Trace()/3;//
-                    			 devSIGMA_S.SetToScaled(mean_stress,fIdentity_matrix);
-                    			 devSIGMA_S*=-1;
-                    			 devSIGMA_S+=SIGMA_S;
-
-
-                    			 //Calculate dev(SIGMA-S):dev(SIGMA-S)
-                    			 Temp_inv= devSIGMA_S.ScalarProduct();
-                    			 //Calculate ||dev(SIGMA-S)||
-                    			 devSIGMA_S_inv=sqrt(Temp_inv);
-
-
-                    			 // Calculate micro yield function with updated parameters
-                    			 fMicroYield_function=devSIGMA_S_inv-(Aphi_chi*(fState_variables_IPs(IP,kc_chi))-Bphi_chi*mean_stress);
-                    			 fs_micromorph3D_out<<"Current Macro relative residual = "<< fabs(fYield_function/fYield_function_tr)<<" && "<< "Current Micro relative residual = " << fabs(fMicroYield_function/fMicroYield_function_tr) << " && "<<" Yield Function="<< fYield_function<<" && "<<" Micro Yield Function = "<< fMicroYield_function << endl;
-                    		 }
-                    	 }
+                                 //calculate Fe
+                                 fFe.MultAB(fDeformation_Gradient,fFp_inverse);
 
 
 
-                    	 //ExceptionT::GeneralFail(caller,"Debugging stop %d one iteration only %d.",iter_count, iIterationMax);
-						//fs_micromorph3D_out<< "Element Number = "<< e <<endl;
-                    	 //fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
-                    	 if (iter_count == iIterationMax)
-                    	 {
+                                 //[fElastic_Right_Cauchy_Green_tensor] will be formed
+                                 fRight_Elastic_Cauchy_Green_tensor.MultATB(fFe,fFe);
+                                 if (fRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                                     fRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
-                    		 fs_micromorph3D_out << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
-                    		 fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
-                    		 fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
-                    		 fs_micromorph3D_out<< "iter_count = " << iter_count<<endl;
-                    		 fs_micromorph3D_out<< "Element Number = "<< e <<endl;
-                    		 //  ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
 
-                    	 }
+                                 //Update Elastic Lagrangian strain tensor E
+                                 Elastic_LagrangianStn=fIdentity_matrix;
+                                 Elastic_LagrangianStn*=-1;
+                                 Elastic_LagrangianStn+=fRight_Elastic_Cauchy_Green_tensor;
+                                 Elastic_LagrangianStn*=0.5;
+
+
+                                 //update fChip
+                                 fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
+                                 fTemp_matrix_nsd_x_nsd2.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
+                                 fChip.SetToScaled(fDelgammachi,fTemp_matrix_nsd_x_nsd2);
+                                 fChip+=fChip_n;
+
+
+                                 //Form inverse of Chi^p
+                                 fChip_inverse.Inverse(fChip);
+
+                                 //Calculate Chie
+                                 fChie.MultAB(ChiM,fChip_inverse);
+
+
+                                 //[fMicroElastic_Right_Cauchy_Green_tensor] (Cchie) will be formed
+                                 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
+                                 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
+                                     fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
+
+
+                                 //Update fCchie
+                                 fCchie.MultATB(fChie,fChie);
+
+                                 //Update PSIe
+                                 PSIe.MultATB(fFe,fChie);
+
+
+                                 //Update Elastic micro strain tenso will be formed in Bbar
+                                 Elastic_MicroStnTensor = fIdentity_matrix;
+                                 Elastic_MicroStnTensor *= -1;
+                                 Elastic_MicroStnTensor += PSIe;
+
+                                 //update S stress
+                                 Temp_inv=Elastic_LagrangianStn.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]),fIdentity_matrix);
+
+                                 SPK.SetToScaled(2*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]),Elastic_LagrangianStn);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
+
+                                 Temp_inv=Elastic_MicroStnTensor.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*fMaterial_Params[kEta],fIdentity_matrix);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
+
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa],Elastic_MicroStnTensor);
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
+
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
+
+                                 SPK+=fTemp_matrix_nsd_x_nsd;
+
+
+                                 //Update Relative stress SIGMA_S
+                                 Temp_inv=Elastic_LagrangianStn.Trace();
+                                 SIGMA_S.SetToScaled(Temp_inv*fMaterial_Params[kTau],fIdentity_matrix);
+                                 // 2sigmaE
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(2*fMaterial_Params[kSigma_const],Elastic_LagrangianStn);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //(eta-Tau)trEpsilon.1
+                                 Temp_inv=Elastic_MicroStnTensor.Trace();
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled(Temp_inv*(fMaterial_Params[kEta]-fMaterial_Params[kTau]),fIdentity_matrix);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //(nu-sigma)*Epsilon
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Elastic_MicroStnTensor);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                 //(kappa-sigma)*Epsilon^T
+                                 fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
+                                 fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
+                                 SIGMA_S+=fTemp_matrix_nsd_x_nsd;
+
+                                 //calculate  devS stress
+                                 mean_stress=SPK.Trace()/3;//Calculating the pressure term
+                                 devSPK.SetToScaled(mean_stress,fIdentity_matrix);
+                                 devSPK*=-1;
+                                 devSPK+=SPK;
+
+                                 //Calculate ||devS||
+                                 Temp_inv= devSPK.ScalarProduct();
+                                 devfSPKinv=sqrt(Temp_inv);
+                                 // fs_micromorph3D_out<<"devfSPKinv="<<devSIGMA_S_inv <<endl;
+                                 // fs_micromorph3D_out<<"mean stress="<<SPK.Trace()/3 <<endl;
+                                 // Calculate yield function with updated parameters
+                                 fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*mean_stress);
+
+
+                                 //Form deviatoric SIGMA-S
+                                 mean_stress=SIGMA_S.Trace()/3;//
+                                 devSIGMA_S.SetToScaled(mean_stress,fIdentity_matrix);
+                                 devSIGMA_S*=-1;
+                                 devSIGMA_S+=SIGMA_S;
+
+
+                                 //Calculate dev(SIGMA-S):dev(SIGMA-S)
+                                 Temp_inv= devSIGMA_S.ScalarProduct();
+                                 //Calculate ||dev(SIGMA-S)||
+                                 devSIGMA_S_inv=sqrt(Temp_inv);
+
+
+                                 // Calculate micro yield function with updated parameters
+                                 fMicroYield_function=devSIGMA_S_inv-(Aphi_chi*(fState_variables_IPs(IP,kc_chi))-Bphi_chi*mean_stress);
+                                 fs_micromorph3D_out<<"Current Macro relative residual = "<< fabs(fYield_function/fYield_function_tr)<<" && "<< "Current Micro relative residual = " << fabs(fMicroYield_function/fMicroYield_function_tr) << " && "<<" Yield Function="<< fYield_function<<" && "<<" Micro Yield Function = "<< fMicroYield_function << endl;
+                             }
+                         }
+
+
+
+                         //ExceptionT::GeneralFail(caller,"Debugging stop %d one iteration only %d.",iter_count, iIterationMax);
+                        //fs_micromorph3D_out<< "Element Number = "<< e <<endl;
+                         //fs_micromorph3D_out<< "Gauss Point = "<< IP <<endl;
+                         if (iter_count == iIterationMax)
+                         {
+
+                             fs_micromorph3D_out << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl;
+                             fs_micromorph3D_out << "Current  Macro Yield function = " << fYield_function << endl;
+                             fs_micromorph3D_out << "Current  Micro Yield function = " << fMicroYield_function << endl;
+                             fs_micromorph3D_out<< "iter_count = " << iter_count<<endl;
+                             fs_micromorph3D_out<< "Element Number = "<< e <<endl;
+                             //  ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",iter_count, iIterationMax);
+
+                         }
 
                                 fs_micromorph3D_out  <<"**********************************"<<endl;
                                 fs_micromorph3D_out  <<"**********************************"<<endl;
@@ -4309,7 +4326,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                /* [fMicroElastic_Right_Cauchy_Green_tensor] (Cchie) will be formed */
                                 fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
                                 if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
-                               	 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
+                                 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 
                                 /* Assigning MicroRight_Elastic_Cauchy_Green_tensor to fCchie to be used in calculations*/
                                 fCchie=fMicroRight_Elastic_Cauchy_Green_tensor;
@@ -4321,63 +4338,63 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 if(PlasticityCondition==1 || PlasticityCondition==2 || PlasticityCondition==3)
                                 {
 
-                                	if(devfSPKinv==0.0)
-                                	{
-                                		fdFYdS=0.0;
-                                		fdGdS=0.0;
+                                    if(devfSPKinv==0.0)
+                                    {
+                                        fdFYdS=0.0;
+                                        fdGdS=0.0;
 
-                                	}
-                                	else
-                                	{
-                                		/* calculate stress derivative of yield function */
-                                		fdFYdS = 0.0;
-                                		// fdPdS=0.0;
-                                		// fdPdS.SetToScaled(1/3,fIdentity_matrix);
-                                		fdFYdS.SetToScaled(Bphi*1/3,fIdentity_matrix);
-                                		//press=devSPK.Trace()/3;
-                                		//fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
-                                		//fTemp_matrix_nsd_x_nsd*=-1;
-                                		//fdFYdS+=fTemp_matrix_nsd_x_nsd;
-                                		fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
-                                		fdFYdS+=fTemp_matrix_nsd_x_nsd;
+                                    }
+                                    else
+                                    {
+                                        /* calculate stress derivative of yield function */
+                                        fdFYdS = 0.0;
+                                        // fdPdS=0.0;
+                                        // fdPdS.SetToScaled(1/3,fIdentity_matrix);
+                                        fdFYdS.SetToScaled(Bphi*1/3,fIdentity_matrix);
+                                        //press=devSPK.Trace()/3;
+                                        //fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
+                                        //fTemp_matrix_nsd_x_nsd*=-1;
+                                        //fdFYdS+=fTemp_matrix_nsd_x_nsd;
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+                                        fdFYdS+=fTemp_matrix_nsd_x_nsd;
 
-                                		/* calculate stress derivative of plastic potential function */
-                                		fdGdS = 0.0;
-                                		// fdPdS=0.0;
-                                		// fdPdS.SetToScaled(1/3,fIdentity_matrix);
-                                		fdGdS.SetToScaled(Bpsi*1/3,fIdentity_matrix);
-                                		//press=devSPK.Trace()/3;
-                                		//fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv,fIdentity_matrix);
-                                		//fTemp_matrix_nsd_x_nsd*=-1;
-                                		//fdGdS+=fTemp_matrix_nsd_x_nsd;
-                                		fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
-                                		fdGdS+=fTemp_matrix_nsd_x_nsd;
-                                	}
-                                	if(devSIGMA_S_inv==0.0)
-                                	{
-                                		fdFYchidSIGMA_S=0.0;
-                                		fdGchidSIGMA_S=0.0;
-                                	}
-                                	else
-                                	{
-                                		/* calculate derivative of micro yield function with respect to SIGMA-S */
-                                		fdFYchidSIGMA_S = 0.0;
-                                		// fdPdS=0.0;
-                                		// fdPdS.SetToScaled(1/3,fIdentity_matrix);
-                                		fdFYchidSIGMA_S.SetToScaled(Bphi_chi*1/3,fIdentity_matrix);
-                                		//press=devSPK.Trace()/3;
-                                		//fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
-                                		//fTemp_matrix_nsd_x_nsd*=-1;
-                                		//fdFYdS+=fTemp_matrix_nsd_x_nsd;
-                                		fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
-                                		fdFYchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                        /* calculate stress derivative of plastic potential function */
+                                        fdGdS = 0.0;
+                                        // fdPdS=0.0;
+                                        // fdPdS.SetToScaled(1/3,fIdentity_matrix);
+                                        fdGdS.SetToScaled(Bpsi*1/3,fIdentity_matrix);
+                                        //press=devSPK.Trace()/3;
+                                        //fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv,fIdentity_matrix);
+                                        //fTemp_matrix_nsd_x_nsd*=-1;
+                                        //fdGdS+=fTemp_matrix_nsd_x_nsd;
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+                                        fdGdS+=fTemp_matrix_nsd_x_nsd;
+                                    }
+                                    if(devSIGMA_S_inv==0.0)
+                                    {
+                                        fdFYchidSIGMA_S=0.0;
+                                        fdGchidSIGMA_S=0.0;
+                                    }
+                                    else
+                                    {
+                                        /* calculate derivative of micro yield function with respect to SIGMA-S */
+                                        fdFYchidSIGMA_S = 0.0;
+                                        // fdPdS=0.0;
+                                        // fdPdS.SetToScaled(1/3,fIdentity_matrix);
+                                        fdFYchidSIGMA_S.SetToScaled(Bphi_chi*1/3,fIdentity_matrix);
+                                        //press=devSPK.Trace()/3;
+                                        //fTemp_matrix_nsd_x_nsd.SetToScaled(press/devfSPKinv ,fIdentity_matrix);
+                                        //fTemp_matrix_nsd_x_nsd*=-1;
+                                        //fdFYdS+=fTemp_matrix_nsd_x_nsd;
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+                                        fdFYchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
 
-                                		/* calculate  derivative of  Micro plastic potential function wrt SIGMA-S */
-                                		fdGchidSIGMA_S= 0.0;
-                                		fdGchidSIGMA_S.SetToScaled(Bpsi_chi*1/3,fIdentity_matrix);
-                                		fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
-                                		fdGchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                                	}
+                                        /* calculate  derivative of  Micro plastic potential function wrt SIGMA-S */
+                                        fdGchidSIGMA_S= 0.0;
+                                        fdGchidSIGMA_S.SetToScaled(Bpsi_chi*1/3,fIdentity_matrix);
+                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+                                        fdGchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
+                                    }
 
 
                                 }
@@ -4386,10 +4403,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 if(PlasticityCondition==4)
                                 {
 
-                                	// NOTE THAT WE DO NOT HAVE FY AND FYCHI ALSO GY AND GYCHI
-                                	// IN THIS CASE WHAT WE HAVE FY=FYCHI AND GY=GYCHI
+                                    // NOTE THAT WE DO NOT HAVE FY AND FYCHI ALSO GY AND GYCHI
+                                    // IN THIS CASE WHAT WE HAVE FY=FYCHI AND GY=GYCHI
 
-                                	/* calculate stress derivative of yield function */
+                                    /* calculate stress derivative of yield function */
                                     fdFYdS = 0.0;
                                     fdFYdS.SetToScaled(Bphi*1/3,fIdentity_matrix);
                                     fTemp_matrix_nsd_x_nsd.SetToScaled(1/Stress_Norm,devSPK);
@@ -4563,11 +4580,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                 if(PlasticityCondition==4)
                                 {
-                                	Comp22=fConst1+fConst2+fConst3+fConst4;
-                                	Comp11=1/Comp22;
-                                	Comp12=Comp11;
-                                	Comp21=Comp11;
-                                	Comp22=Comp11;
+                                    Comp22=fConst1+fConst2+fConst3+fConst4;
+                                    Comp11=1/Comp22;
+                                    Comp12=Comp11;
+                                    Comp21=Comp11;
+                                    Comp22=Comp11;
 
                                 }
 
@@ -4576,10 +4593,10 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 {
                                     /* delgamma    = Comp11 x f1 where Comp11= 1/fConst1
                                        delgammachi = 0.0                               */
-                                	Comp11=1/fConst1;
-                                	Comp22=0.0;
-                                	Comp12=0.0;
-                                	Comp21=0.0;
+                                    Comp11=1/fConst1;
+                                    Comp22=0.0;
+                                    Comp12=0.0;
+                                    Comp21=0.0;
 //                                    Comp11=0.0;
 //                                    Comp12=0.0;
 //                                    Comp21=0.0;
@@ -4592,79 +4609,79 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 {
                                     /* delgamma   =0.0
                                        delgammachi = Comp22 x f2 where Comp22= 1/fConst4 */
-                                	Comp11=0.0;
-                                	Comp22=1/fConst4;
-                                	Comp12=0.0;
-                                	Comp21=0.0;
+                                    Comp11=0.0;
+                                    Comp22=1/fConst4;
+                                    Comp12=0.0;
+                                    Comp21=0.0;
                                  /* Comp11=0.0;
-									Comp12=0.0;
-									Comp21=0.0;
-									Comp22=0.0;*/
+                                    Comp12=0.0;
+                                    Comp21=0.0;
+                                    Comp22=0.0;*/
 
                                 }
 
-								/* This condition below takes care of coupling plasticity by assigning different multiplier */
-								/* after solving global delgamma and delgammachi */
+                                /* This condition below takes care of coupling plasticity by assigning different multiplier */
+                                /* after solving global delgamma and delgammachi */
                                 if(PlasticityCondition==3)// Macro and Micro scale coupled plasticity
                                 {
-                                	/* delgamma    = Comp11 x f1 + Comp12 x f2
+                                    /* delgamma    = Comp11 x f1 + Comp12 x f2
                                        delgammachi = Comp21 x f1 + Comp22 x f2
 
                                        Comp12 and Comp21 are the multipliers for coupling */
 
-                                	/* If we assume delgamma=0 and delgammachi =0, then multipliers will be all zero
-									 and these four lines below should be commented in, other lines calculating Comp11,Comp12,Comp21, and Comp22 further down should be commented out*/
-                                	/* Comp11=0.0;
-									Comp12=0.0;
-									Comp21=0.0;
-									Comp22=0.0;*/
+                                    /* If we assume delgamma=0 and delgammachi =0, then multipliers will be all zero
+                                     and these four lines below should be commented in, other lines calculating Comp11,Comp12,Comp21, and Comp22 further down should be commented out*/
+                                    /* Comp11=0.0;
+                                    Comp12=0.0;
+                                    Comp21=0.0;
+                                    Comp22=0.0;*/
 
 
                                   /* LocalConsistentTangent is used but it is not actual LocalConsistentTangent used above.
                                      It is used because of its dimensions 2x2 but nothing else */
-                                	LocalConsistentTangent=0.0;
-                                	LocalConsistentTangent(0,0)=fConst1;
-                                	LocalConsistentTangent(0,1)=fConst2;
-                                	LocalConsistentTangent(1,0)=fConst3;
-									LocalConsistentTangent(1,1)=fConst4;
+                                    LocalConsistentTangent=0.0;
+                                    LocalConsistentTangent(0,0)=fConst1;
+                                    LocalConsistentTangent(0,1)=fConst2;
+                                    LocalConsistentTangent(1,0)=fConst3;
+                                    LocalConsistentTangent(1,1)=fConst4;
 
 
-									LocalConsistentTangentInverse.Inverse(LocalConsistentTangent);
+                                    LocalConsistentTangentInverse.Inverse(LocalConsistentTangent);
 
-									Comp11=LocalConsistentTangentInverse(0,0);
-									Comp12=LocalConsistentTangentInverse(0,1);
-									Comp21=LocalConsistentTangentInverse(1,0);
-									Comp22=LocalConsistentTangentInverse(1,1);
-
-
+                                    Comp11=LocalConsistentTangentInverse(0,0);
+                                    Comp12=LocalConsistentTangentInverse(0,1);
+                                    Comp21=LocalConsistentTangentInverse(1,0);
+                                    Comp22=LocalConsistentTangentInverse(1,1);
 
 
-//                		    		if(LocalConsistentTangentInverse.Det()<=1e-10)
-//                		    		{
-//                		    			Comp11=0.0;
-//                		    			Comp12=0.0;
-//                		    			Comp21=0.0;
-//                		    			Comp22=0.0;
+
+
+//                                          if(LocalConsistentTangentInverse.Det()<=1e-10)
+//                                          {
+//                                                  Comp11=0.0;
+//                                                  Comp12=0.0;
+//                                                  Comp21=0.0;
+//                                                  Comp22=0.0;
 //
-//                		    		}
+//                                          }
 //
-//                		    		if(fYield_function<=0.0 && fMicroYield_function<=0.0)
-//                		    		{
-//                		    			Comp11=0.0;
-//                		    			Comp12=0.0;
-//                		    			Comp21=0.0;
-//                		    			Comp22=0.0;
+//                                          if(fYield_function<=0.0 && fMicroYield_function<=0.0)
+//                                          {
+//                                                  Comp11=0.0;
+//                                                  Comp12=0.0;
+//                                                  Comp21=0.0;
+//                                                  Comp22=0.0;
 //
-//                		    		}
+//                                          }
 //
-//                		    		double detcoeff=0.0;
+//                                          double detcoeff=0.0;
 //
-//                		    		detcoeff=fConst1*fConst4-fConst2*fConst3;
+//                                          detcoeff=fConst1*fConst4-fConst2*fConst3;
 //
-//                		    		Comp11=fConst4/detcoeff;
-//                		    		Comp12=-1*fConst2/detcoeff;
-//                		    		Comp21=-1*fConst3/detcoeff;
-//                		    		Comp22=fConst1/detcoeff;
+//                                          Comp11=fConst4/detcoeff;
+//                                          Comp12=-1*fConst2/detcoeff;
+//                                          Comp21=-1*fConst3/detcoeff;
+//                                          Comp22=fConst1/detcoeff;
 //
 
 
@@ -4698,11 +4715,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 Form_fV2p();//gives F.SIGMA_S.F^T = s_sigma *J
                                 NCHI.MultTx(fV2p,Vintp_2_temp);
                                 scale=scale_const*Jp;
-                            	Vintp_2_temp*=scale;
-                            	Vintp_2 +=Vintp_2_temp;
+                                Vintp_2_temp*=scale;
+                                Vintp_2 +=Vintp_2_temp;
 
 
-                            	Form_GXe();
+                                Form_GXe();
                                 Form_GAMMAe();
                                 Form_fMeKLM();
                                 Form_fV3p();
@@ -5190,7 +5207,24 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 Form_II7p_15();
                                 Form_II7p_16();
 
+                                Form_II8e_1();
 
+                                Form_II8p_1();
+                                Form_II8p_2();
+                                Form_II8p_3();
+                                Form_II8p_4();
+                                Form_II8p_5();
+                                Form_II8p_6();
+                                Form_II8p_7();
+                                Form_II8p_8();
+                                Form_II8p_9();
+                                Form_II8p_10();
+                                Form_II8p_11();
+                                Form_II8p_12();
+                                Form_II8p_13();
+                                Form_II8p_14();
+                                Form_II8p_15();
+                                Form_II8p_16();
 
 
 
@@ -5198,7 +5232,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
                                 /* The terms related to variation of Jp have Jp_ extension i.e. IJp_1 */
                                 fTemp_matrix_nsd_x_nsd2.MultABCT(fFp_inverse,fCe_n_inverse,fdGdS_n);
-                             	fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fFp_n);
+                                fTemp_matrix_nsd_x_nsd.MultAB(fTemp_matrix_nsd_x_nsd2,fFp_n);
                                 double Trace_const=0.0;
                                 Trace_const=fTemp_matrix_nsd_x_nsd.Trace();
 
@@ -5641,8 +5675,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu]*fMaterial_Params[kNu];
                                 fTemp_matrix_nudof_x_nudof *= scale;
                                 fKu_I3p_36 += fTemp_matrix_nudof_x_nudof;
-								}
-				//
+                                }
+                //
                                 fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I3e_37,NCHI);
                                 scale =fMaterial_Params[kEta]*scale_const*Jp;
                                 fTemp_matrix_nudof_x_nchidof *= scale;
@@ -5899,7 +5933,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 }
 
                                 if(PlasticityCondition==3 || PlasticityCondition==4)
-								{
+                                {
 
 
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_79,fShapeDisplGrad);
@@ -6011,7 +6045,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
 
-               			//
+                        //
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_95,fShapeDisplGrad);
                                 scale =-1*fMaterial_Params[kEta]*trfN1
                                 *Comp12*scale_const*Jp*fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
@@ -6064,7 +6098,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I3p_102 += fTemp_matrix_nudof_x_nchidof;
 
-				//
+                //
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_103,fShapeDisplGrad);
                                 scale =-1*Comp21*fMaterial_Params[kEta]*trfD1
                                 *(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*scale_const*Jp;
@@ -6118,7 +6152,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fKuphi_I3p_110 += fTemp_matrix_nudof_x_nchidof;
 
 
-				//
+                //
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_111,fShapeDisplGrad);
                                 scale =-1*fMaterial_Params[kKappa]
                                 *Comp12*scale_const*Jp*fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
@@ -6172,7 +6206,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I3p_118 += fTemp_matrix_nudof_x_nchidof;
 
-				//
+                //
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_119,fShapeDisplGrad);
                                 scale =-1*fMaterial_Params[kNu]
                                 *Comp12*scale_const*Jp*fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
@@ -6226,7 +6260,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nudof_x_nchidof *= scale;
                                 fKuphi_I3p_126 += fTemp_matrix_nudof_x_nchidof;
 
-				//
+                //
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_127,fShapeDisplGrad);
                                 scale =-1*Comp21*fMaterial_Params[kKappa]
                                 *(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*scale_const*Jp;
@@ -6280,7 +6314,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fKuphi_I3p_134 += fTemp_matrix_nudof_x_nchidof;
 
 
-				//
+                //
                                 fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I3p_135,fShapeDisplGrad);
                                 scale =-1*Comp21*fMaterial_Params[kNu]
                                 *(fMaterial_Params[kLambda]+fMaterial_Params[kTau])*dFYdScol1*scale_const*Jp;
@@ -6551,7 +6585,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_IIJp_16 += fTemp_matrix_nchidof_x_nchidof;
 
-								}
+                                }
 
 
                                 /* Terms realted to Delta(F) F: Deformation_Gradient F=FeFp used in eta(ml)Fe(k,Kbar)S-SIGMA(Kbar,Lbar)Fe(l,Lbar) Jp
@@ -6608,7 +6642,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu];
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_II2p_9 += fTemp_matrix_nchidof_x_nchidof;
-								}
+                                }
 
 
                                 if(PlasticityCondition==3 || PlasticityCondition==4)
@@ -6660,7 +6694,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fKphiphi_II2p_17 += fTemp_matrix_nchidof_x_nchidof;
 
 
-								}
+                                }
 
 
 
@@ -6848,7 +6882,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nudof *= scale;
                                 fKphiu_II3p_30 += fTemp_matrix_nchidof_x_nudof;
                                 }
-				//
+                //
                                 fTemp_matrix_nchidof_x_nchidof.MultATBC(NCHI,II3e_31,NCHI);
                                 scale =scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau]);
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
@@ -7159,7 +7193,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_II3p_80 += fTemp_matrix_nchidof_x_nchidof;
 
-   				//
+                //
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3p_81,fShapeDisplGrad);
                                 scale =-1*Comp12*scale_const*Jp*fMaterial_Params[kSigma_const]
                                 *fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
@@ -7212,7 +7246,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 fTemp_matrix_nchidof_x_nchidof *= scale;
                                 fKphiphi_II3p_88 += fTemp_matrix_nchidof_x_nchidof;
 
-				//
+                //
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II3p_89,fShapeDisplGrad);
                                 scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau])*trfN1
                                 *fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
@@ -7583,7 +7617,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 }
 
                                 if(PlasticityCondition==3 || PlasticityCondition==4)
-								{
+                                {
 
 
                                 fTemp_matrix_nchidof_x_nudof.MultATBC(NCHI,II4p_10,fShapeDisplGrad);
@@ -7731,6 +7765,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                   scale =Comp12*Trace_const*scale_const*Jp*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
                                   fTemp_matrix_nchidof_x_nchidof *= scale;
                                   fKMphiphi_II5p_16 += fTemp_matrix_nchidof_x_nchidof;
+                                  }
 
                                   /* Terms coming from variation of Jp Eta(m,l,K) deltaF(k,K) Fe(k,Kbar)Fe(l,Lbar)Me(Kbar,Lbar,Mbar)Xe(m,Mbar) */
 
@@ -7749,45 +7784,47 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                   if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
                                     {
 
+                                	Form_Temp_tensor_for_II7();
+
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_1,fShapeDisplGrad);
-                                    scale =(Comp11)*Trace_const*dFYdScol1*scale_const*Jp*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+                                    scale =-1*(Comp11)*dFYdScol1*scale_const*Jp*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_1 += fTemp_matrix_nchidof_x_nudof;
 
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_2,fShapeDisplGrad);
-                                    scale =(Comp11)*Trace_const*scale_const*Jp*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+                                    scale =-1*(Comp11)*scale_const*Jp*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_2 += fTemp_matrix_nchidof_x_nudof;
 
 
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_3,fShapeDisplGrad);
-                                    scale =(Comp11)*Trace_const*dFYdScol1*scale_const*Jp*fMaterial_Params[kEta];
+                                    scale =-1*(Comp11)*dFYdScol1*scale_const*Jp*fMaterial_Params[kEta];
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_3 += fTemp_matrix_nchidof_x_nudof;
 
 
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_4,fShapeDisplGrad);
-                                    scale =(Comp11)*scale_const*Trace_const*Jp*fMaterial_Params[kKappa];
+                                    scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kKappa];
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_4 += fTemp_matrix_nchidof_x_nudof;
 
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_5,fShapeDisplGrad);
-                                    scale =(Comp11)*Trace_const*scale_const*Jp*fMaterial_Params[kNu];
+                                    scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu];
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_5 +=fTemp_matrix_nchidof_x_nudof;
 
                                     fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II7p_6,NCHI);
-                                    scale =(Comp11)*Trace_const*dFYdScol1*scale_const*Jp*fMaterial_Params[kEta];
+                                    scale =-1*(Comp11)*dFYdScol1*scale_const*Jp*fMaterial_Params[kEta];
                                     fTemp_matrix_nchidof_x_nchidof *= scale;
                                     fKMphiphi_II7p_6 += fTemp_matrix_nchidof_x_nchidof;
 
                                     fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II7p_7,NCHI);
-                                    scale =(Comp11)*Trace_const*Jp*fMaterial_Params[kKappa]*scale_const;
+                                    scale =-1*(Comp11)*Jp*fMaterial_Params[kKappa]*scale_const;
                                     fTemp_matrix_nchidof_x_nchidof *= scale;
                                     fKMphiphi_II7p_7 += fTemp_matrix_nchidof_x_nchidof;
 
                                     fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II7p_8,NCHI);
-                                    scale =(Comp11)*Trace_const*scale_const*Jp*fMaterial_Params[kNu];
+                                    scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu];
                                     fTemp_matrix_nchidof_x_nchidof *= scale;
                                     fKMphiphi_II7p_8 += fTemp_matrix_nchidof_x_nchidof;
                                     }
@@ -7795,56 +7832,161 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                     if(PlasticityCondition==3 || PlasticityCondition==4)
                                     {
 
+                                   	Form_Temp_tensor_for_II7();
 
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_9,fShapeDisplGrad);
-                                    scale =Comp12*Trace_const*scale_const*Jp*fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
+                                    scale =-1*Comp12*scale_const*Jp*fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_9 += fTemp_matrix_nchidof_x_nudof;
 
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_10,fShapeDisplGrad);
-                                    scale =Comp12*Trace_const*scale_const*Jp*fMaterial_Params[kSigma_const];
+                                    scale =-1*Comp12*scale_const*Jp*fMaterial_Params[kSigma_const];
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_10 += fTemp_matrix_nchidof_x_nudof;
 
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_11,fShapeDisplGrad);
-                                    scale =Comp12*Trace_const*scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau])*dFYchidSIGMA_Scol1;
+                                    scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau])*dFYchidSIGMA_Scol1;
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_11 += fTemp_matrix_nchidof_x_nudof;
 
 
                                     fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II7p_12,NCHI);
-                                    scale =Comp12*Trace_const*scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau])*dFYchidSIGMA_Scol1;
+                                    scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau])*dFYchidSIGMA_Scol1;
                                     fTemp_matrix_nchidof_x_nchidof *= scale;
                                     fKMphiphi_II7p_12 += fTemp_matrix_nchidof_x_nchidof;
 
 
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_13,fShapeDisplGrad);
-                                    scale =Comp12*Trace_const*scale_const*Jp*(fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]);
+                                    scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]);
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_13 += fTemp_matrix_nchidof_x_nudof;
 
 
                                     fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II7p_14,NCHI);
-                                    scale =Comp12*Trace_const*scale_const*Jp*(fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]);
+                                    scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]);
                                     fTemp_matrix_nchidof_x_nchidof *= scale;
                                     fKMphiphi_II7p_14 +=fTemp_matrix_nchidof_x_nchidof;
 
 
                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II7p_15,fShapeDisplGrad);
-                                    scale =Comp12*Trace_const*scale_const*Jp*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
+                                    scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
                                     fTemp_matrix_nchidof_x_nudof *= scale;
                                     fKMphiu_II7p_15 += fTemp_matrix_nchidof_x_nudof;
 
                                     fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II7p_16,NCHI);
-                                    scale =Comp12*Trace_const*scale_const*Jp*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
+                                    scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
                                     fTemp_matrix_nchidof_x_nchidof *= scale;
                                     fKMphiphi_II7p_16 += fTemp_matrix_nchidof_x_nchidof;
 
+                                    }
+
+                                    /* Terms coming from variation of Jp Eta(m,l,K) F(k,K) Fe(k,Kbar)deltaFe(l,Lbar)Me(Kbar,Lbar,Mbar)Xe(m,Mbar) */
+
+                                     fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8e_1,fShapeDisplGrad);
+                                     scale =scale_const*Jp;
+                                     fTemp_matrix_nchidof_x_nudof *= scale;
+                                     fKMphiu_II8e_1 += fTemp_matrix_nchidof_x_nudof;
+
+                                     if(PlasticityCondition==1 || PlasticityCondition==3 || PlasticityCondition==4)//if(MacroPlasticityCondition==1)
+                                       {
+
+                                   	Form_Temp_tensor_for_II8();
+
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_1,fShapeDisplGrad);
+                                       scale =-1*(Comp11)*dFYdScol1*scale_const*Jp*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_1 += fTemp_matrix_nchidof_x_nudof;
+
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_2,fShapeDisplGrad);
+                                       scale =-1*(Comp11)*scale_const*Jp*(fMaterial_Params[kMu]+fMaterial_Params[kSigma_const]);
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_2 += fTemp_matrix_nchidof_x_nudof;
 
 
-                                  }
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_3,fShapeDisplGrad);
+                                       scale =-1*(Comp11)*dFYdScol1*scale_const*Jp*fMaterial_Params[kEta];
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_3 += fTemp_matrix_nchidof_x_nudof;
 
 
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_4,fShapeDisplGrad);
+                                       scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kKappa];
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_4 += fTemp_matrix_nchidof_x_nudof;
+
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_5,fShapeDisplGrad);
+                                       scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu];
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_5 +=fTemp_matrix_nchidof_x_nudof;
+
+                                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II8p_6,NCHI);
+                                       scale =-1*(Comp11)*dFYdScol1*scale_const*Jp*fMaterial_Params[kEta];
+                                       fTemp_matrix_nchidof_x_nchidof *= scale;
+                                       fKMphiphi_II8p_6 += fTemp_matrix_nchidof_x_nchidof;
+
+                                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II8p_7,NCHI);
+                                       scale =-1*(Comp11)*Jp*fMaterial_Params[kKappa]*scale_const;
+                                       fTemp_matrix_nchidof_x_nchidof *= scale;
+                                       fKMphiphi_II8p_7 += fTemp_matrix_nchidof_x_nchidof;
+
+                                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II8p_8,NCHI);
+                                       scale =-1*(Comp11)*scale_const*Jp*fMaterial_Params[kNu];
+                                       fTemp_matrix_nchidof_x_nchidof *= scale;
+                                       fKMphiphi_II8p_8 += fTemp_matrix_nchidof_x_nchidof;
+                                       }
+
+                                       if(PlasticityCondition==3 || PlasticityCondition==4)
+                                       {
+
+                                      	Form_Temp_tensor_for_II8();
+
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_9,fShapeDisplGrad);
+                                       scale =-1*Comp12*scale_const*Jp*fMaterial_Params[kTau]*dFYchidSIGMA_Scol1;
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_9 += fTemp_matrix_nchidof_x_nudof;
+
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_10,fShapeDisplGrad);
+                                       scale =-1*Comp12*scale_const*Jp*fMaterial_Params[kSigma_const];
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_10 += fTemp_matrix_nchidof_x_nudof;
+
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_11,fShapeDisplGrad);
+                                       scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau])*dFYchidSIGMA_Scol1;
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_11 += fTemp_matrix_nchidof_x_nudof;
+
+
+                                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II8p_12,NCHI);
+                                       scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kEta]-fMaterial_Params[kTau])*dFYchidSIGMA_Scol1;
+                                       fTemp_matrix_nchidof_x_nchidof *= scale;
+                                       fKMphiphi_II8p_12 += fTemp_matrix_nchidof_x_nchidof;
+
+
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_13,fShapeDisplGrad);
+                                       scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]);
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_13 += fTemp_matrix_nchidof_x_nudof;
+
+
+                                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II8p_14,NCHI);
+                                       scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]);
+                                       fTemp_matrix_nchidof_x_nchidof *= scale;
+                                       fKMphiphi_II8p_14 +=fTemp_matrix_nchidof_x_nchidof;
+
+
+                                       fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II8p_15,fShapeDisplGrad);
+                                       scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
+                                       fTemp_matrix_nchidof_x_nudof *= scale;
+                                       fKMphiu_II8p_15 += fTemp_matrix_nchidof_x_nudof;
+
+                                       fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II8p_16,NCHI);
+                                       scale =-1*Comp12*scale_const*Jp*(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]);
+                                       fTemp_matrix_nchidof_x_nchidof *= scale;
+                                       fKMphiphi_II8p_16 += fTemp_matrix_nchidof_x_nchidof;
+
+
+
+                                       }
 
 
 
@@ -7857,7 +7999,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 //fChie.MultAB(ChiM,fChip_n_inverse);
                                 //fFe=fDeformation_Gradient;
 
-                     		 /* MicroElastic Deformation tensor */ // Since PSI=PSIe is the same and I do not use PSI seperately, so I only update PSIe
+                             /* MicroElastic Deformation tensor */ // Since PSI=PSIe is the same and I do not use PSI seperately, so I only update PSIe
                                 PSIe.MultATB(fFe,fChie);
 
                                 /* [fElastic_Right_Cauchy_Green_tensor] will be formed */
@@ -7885,8 +8027,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                 //fdFYdS_IPs.SetRow(IP,fdFYdS);
 
                                 fCchie_IPs.SetRow(IP,fCchie);
-		                //fdGchidSIGMA_S_IPs.SetRow(IP,fdGchidSIGMA_S);
-                		//fdFYchidSIGMA_S_IPs.SetRow(IP,fdFYchidSIGMA_S);
+                        //fdGchidSIGMA_S_IPs.SetRow(IP,fdGchidSIGMA_S);
+                        //fdFYchidSIGMA_S_IPs.SetRow(IP,fdFYchidSIGMA_S);
 
                                 SPK=fSPK_tr;
                                 SIGMA_S=SIGMA_S_tr;
@@ -8013,25 +8155,25 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 
                             /*
-							fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_1,fIota_temp_matrix);
-							scale =-scale_const;
-							fTemp_matrix_nudof_x_nudof *= scale;
-							// accumulate
-							fKu_1 += fTemp_matrix_nudof_x_nudof;
+                            fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_1,fIota_temp_matrix);
+                            scale =-scale_const;
+                            fTemp_matrix_nudof_x_nudof *= scale;
+                            // accumulate
+                            fKu_1 += fTemp_matrix_nudof_x_nudof;
 
-							fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_2,fIota_temp_matrix);
-							scale = scale_const;
-							fTemp_matrix_nudof_x_nudof *= scale;
-							//accumulate
-							fKu_2 += fTemp_matrix_nudof_x_nudof;
+                            fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_2,fIota_temp_matrix);
+                            scale = scale_const;
+                            fTemp_matrix_nudof_x_nudof *= scale;
+                            //accumulate
+                            fKu_2 += fTemp_matrix_nudof_x_nudof;
                              */
 
                             /*
                             fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_3,fIota_temp_matrix);
-							scale = scale_const;
-							fTemp_matrix_nudof_x_nudof *= scale;
-							// accumulate
-							fKu_3 += fTemp_matrix_nudof_x_nudof;
+                            scale = scale_const;
+                            fTemp_matrix_nudof_x_nudof *= scale;
+                            // accumulate
+                            fKu_3 += fTemp_matrix_nudof_x_nudof;
                              */
                             fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I1_3,fShapeDisplGrad);
                             scale = scale_const;
@@ -8043,8 +8185,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                          fTemp_matrix_nudof_x_nudof.MultABCT(fIota_temp_matrix,I1_4,fIota_temp_matrix);
 //                          scale = scale_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
 //                          fTemp_matrix_nudof_x_nudof *= scale;
-//              			// accumulate
-//				            fKu_4 += fTemp_matrix_nudof_x_nudof;
+//                          // accumulate
+//                          fKu_4 += fTemp_matrix_nudof_x_nudof;
 
                             fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I1_4,fShapeDisplGrad);
                             scale = scale_const*(fMaterial_Params[kLambda]+fMaterial_Params[kTau]);
@@ -9439,6 +9581,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
             fKphid+= fKMphiu_II6e_1;// Only one matrix comes from II6 which is elastic
             fKphid+= fKMphiu_II7e_1;
+            fKphid+= fKMphiu_II8e_1;
 
 
             fKphid+= fKMphiu_II7p_1;
@@ -9451,6 +9594,18 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphid+= fKMphiu_II7p_11;
             fKphid+= fKMphiu_II7p_13;
             fKphid+= fKMphiu_II7p_15;
+
+            fKphid+= fKMphiu_II8p_1;
+            fKphid+= fKMphiu_II8p_2;
+            fKphid+= fKMphiu_II8p_3;
+            fKphid+= fKMphiu_II8p_4;
+            fKphid+= fKMphiu_II8p_5;
+            fKphid+= fKMphiu_II8p_9;
+            fKphid+= fKMphiu_II8p_10;
+            fKphid+= fKMphiu_II8p_11;
+            fKphid+= fKMphiu_II8p_13;
+            fKphid+= fKMphiu_II8p_15;
+
 
             fKphiphi+= fKphiphi_IIJp_6;
             fKphiphi+= fKphiphi_IIJp_7;
@@ -9547,7 +9702,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
             fKphiphi+=fKMphiphi_II7p_14;
             fKphiphi+=fKMphiphi_II7p_16;
 
-
+            fKphiphi+=fKMphiphi_II8p_6;
+            fKphiphi+=fKMphiphi_II8p_7;
+            fKphiphi+=fKMphiphi_II8p_8;
+            fKphiphi+=fKMphiphi_II8p_12;
+            fKphiphi+=fKMphiphi_II8p_14;
+            fKphiphi+=fKMphiphi_II8p_16;
 
 
 
@@ -11540,6 +11700,44 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
 
 
 
+    II8e_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8e_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+
+
+
+    II8p_1.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_1.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_2.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_2.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_3.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_3.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_4.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_4.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_5.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_5.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_6.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    fKMphiphi_II8p_6.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    II8p_7.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    fKMphiphi_II8p_7.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    II8p_8.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    fKMphiphi_II8p_8.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    II8p_9.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_9.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_10.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_10.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_11.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_11.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_12.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    fKMphiphi_II8p_12.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    II8p_13.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_13.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_14.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    fKMphiphi_II8p_14.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+    II8p_15.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd);
+    fKMphiu_II8p_15.Dimension(n_en_micro*n_sd_x_n_sd,n_en_displ_x_n_sd);
+    II8p_16.Dimension(n_sd_x_n_sd_x_n_sd,n_sd_x_n_sd_x_n_sd);
+    fKMphiphi_II8p_16.Dimension(n_en_micro*n_sd_x_n_sd,n_en_micro*n_sd_x_n_sd);
+
 
 
 
@@ -11906,60 +12104,60 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
      while (NextElement())
      {
 
-    	 int e,l;
-    	 e = CurrElementNumber();
+         int e,l;
+         e = CurrElementNumber();
 
-    	 for (l=0; l < fNumIP_displ; l++)
-    	 {
+         for (l=0; l < fNumIP_displ; l++)
+         {
 
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc)
-    		 =fMaterial_Params[kc0];
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc_chi)
-    		 =fMaterial_Params[kc0_chi];
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi1)
-    		 =fMaterial_Params[kGc0_chi1];// Micro Gradient Pl.
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi2)
-    		 =fMaterial_Params[kGc0_chi2];// Micro Gradient Pl.
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi3)
-    		 =fMaterial_Params[kGc0_chi3];// Micro Gradient Pl.
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc)
+             =fMaterial_Params[kc0];
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kc_chi)
+             =fMaterial_Params[kc0_chi];
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi1)
+             =fMaterial_Params[kGc0_chi1];// Micro Gradient Pl.
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi2)
+             =fMaterial_Params[kGc0_chi2];// Micro Gradient Pl.
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi3)
+             =fMaterial_Params[kGc0_chi3];// Micro Gradient Pl.
 
-    		 //fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khkappa)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=Apsi;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc_chi)=Apsi_chi;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khGc_chi)=AGpsi_chi;// Micro Gradient Pl.
+             //fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khkappa)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc)=Apsi;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc_chi)=Apsi_chi;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khGc_chi)=AGpsi_chi;// Micro Gradient Pl.
 
 
 
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammachi)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammaGchi)=0.0;// Micro Gradient Pl.
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrSigma)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kSigma_inv)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrRel)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kRel_inv)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvtrM)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvdevM)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvPhi)=0.0;
-    		 fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvGPhi)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammachi)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammaGchi)=0.0;// Micro Gradient Pl.
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrSigma)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kSigma_inv)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrRel)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kRel_inv)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvtrM)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvdevM)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvPhi)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvGPhi)=0.0;
 
-    		 fFp_n_IPs.SetRow(l,fIdentity_matrix);//(Fp)n
-    		 fCe_n_IPs.SetRow(l,fIdentity_matrix);//(Ce)n
-    		 fdGdS_n_IPs.SetRow(l,fdGdS_n);//
-    		 fChip_n_IPs.SetRow(l,fIdentity_matrix);//(Xp)n
-    		 fCchie_n_IPs.SetRow(l,fIdentity_matrix);//(Cxe)n
-    		 PSIe_n_IPs.SetRow(l,fIdentity_matrix);//(PSIe)n
-    		 fdGchidSIGMA_S_n_IPs.SetRow(l,fdGchidSIGMA_S_n);//
-    		 GXp_n_IPs.SetRow(l,GXp_n);//
+             fFp_n_IPs.SetRow(l,fIdentity_matrix);//(Fp)n
+             fCe_n_IPs.SetRow(l,fIdentity_matrix);//(Ce)n
+             fdGdS_n_IPs.SetRow(l,fdGdS_n);//
+             fChip_n_IPs.SetRow(l,fIdentity_matrix);//(Xp)n
+             fCchie_n_IPs.SetRow(l,fIdentity_matrix);//(Cxe)n
+             PSIe_n_IPs.SetRow(l,fIdentity_matrix);//(PSIe)n
+             fdGchidSIGMA_S_n_IPs.SetRow(l,fdGchidSIGMA_S_n);//
+             GXp_n_IPs.SetRow(l,GXp_n);//
 
-    	 }
-    	 fFp_n_Elements_IPs.SetRow(e,fFp_n_IPs);
-    	 fCe_n_Elements_IPs.SetRow(e,fCe_n_IPs);
-    	 fdGdS_n_Elements_IPs.SetRow(e,fdGdS_n_IPs);
-    	 fChip_n_Elements_IPs.SetRow(e,fChip_n_IPs);
-    	 fCchie_n_Elements_IPs.SetRow(e,fCchie_n_IPs);
-    	 PSIe_n_Elements_IPs.SetRow(e,PSIe_n_IPs);
-    	 fdGchidSIGMA_S_n_Elements_IPs.SetRow(e,fdGchidSIGMA_S_n_IPs);
-    	 GXp_n_Elements_IPs.SetRow(e,GXp_n_IPs);
+         }
+         fFp_n_Elements_IPs.SetRow(e,fFp_n_IPs);
+         fCe_n_Elements_IPs.SetRow(e,fCe_n_IPs);
+         fdGdS_n_Elements_IPs.SetRow(e,fdGdS_n_IPs);
+         fChip_n_Elements_IPs.SetRow(e,fChip_n_IPs);
+         fCchie_n_Elements_IPs.SetRow(e,fCchie_n_IPs);
+         PSIe_n_Elements_IPs.SetRow(e,PSIe_n_IPs);
+         fdGchidSIGMA_S_n_Elements_IPs.SetRow(e,fdGchidSIGMA_S_n_IPs);
+         GXp_n_Elements_IPs.SetRow(e,GXp_n_IPs);
 
      }
      fFp_Elements_IPs   = fFp_n_Elements_IPs;
@@ -16527,90 +16725,90 @@ void FSMicromorphic3DT:: Form_GAMMA()
 
 //void FSMicromorphic3DT:: Form_GXe()
 //{
-//	 GXe=0.0;
-//	for(int i=0;i<3;i++)
-//	{
-//		for(int Lbar=0;Lbar<3;Lbar++)
-//		{
-//			for(int Mbar=0;Mbar<3;Mbar++)
-//			{
-//				//summation
-//				for(int A=0;A<3;A++)
-//				{
-//					for(int L=0;L<3;L++)
-//					{
-//						 GXe(i,Lbar,Mbar)+=GRAD_CHIM(i,L,A)*fFp_inverse(A,Mbar)*fChip_inverse(Lbar,L);
-//					}
-//				}
-//			}
-//		}
-//	}
+//   GXe=0.0;
+//  for(int i=0;i<3;i++)
+//  {
+//      for(int Lbar=0;Lbar<3;Lbar++)
+//      {
+//          for(int Mbar=0;Mbar<3;Mbar++)
+//          {
+//              //summation
+//              for(int A=0;A<3;A++)
+//              {
+//                  for(int L=0;L<3;L++)
+//                  {
+//                       GXe(i,Lbar,Mbar)+=GRAD_CHIM(i,L,A)*fFp_inverse(A,Mbar)*fChip_inverse(Lbar,L);
+//                  }
+//              }
+//          }
+//      }
+//  }
 //
 //
-//	for(int i=0;i<3;i++)
-//	{
-//		for(int Lbar=0;Lbar<3;Lbar++)
-//		{
-//			for(int Mbar=0;Mbar<3;Mbar++)
-//			{
-//				//summation
-//				for(int Abar=0;Abar<3;Abar++)
-//				{
-//					for(int B=0;B<3;B++)
-//					{
-//						 GXe(i,Lbar,Mbar)+=-1*fChie(i,Abar)*GXp(Abar,B,Mbar)*fChip_inverse(B,Lbar);
-//					}
-//				}
+//  for(int i=0;i<3;i++)
+//  {
+//      for(int Lbar=0;Lbar<3;Lbar++)
+//      {
+//          for(int Mbar=0;Mbar<3;Mbar++)
+//          {
+//              //summation
+//              for(int Abar=0;Abar<3;Abar++)
+//              {
+//                  for(int B=0;B<3;B++)
+//                  {
+//                       GXe(i,Lbar,Mbar)+=-1*fChie(i,Abar)*GXp(Abar,B,Mbar)*fChip_inverse(B,Lbar);
+//                  }
+//              }
 //
-//			}
-//		}
+//          }
+//      }
 //
-//	}
+//  }
 //
 //}
 
 
 void FSMicromorphic3DT:: Form_GXe_tr()
 {
-	 GXe_tr=0.0;
-	for(int i=0;i<3;i++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				//summation
-				for(int A=0;A<3;A++)
-				{
-					for(int L=0;L<3;L++)
-					{
-						 GXe_tr(i,Lbar,Mbar)+=GRAD_CHIM(i,L,A)*fFp_inverse(A,Mbar)*fChip_inverse(Lbar,L);
-					}
-				}
-			}
-		}
-	}
+     GXe_tr=0.0;
+    for(int i=0;i<3;i++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                //summation
+                for(int A=0;A<3;A++)
+                {
+                    for(int L=0;L<3;L++)
+                    {
+                         GXe_tr(i,Lbar,Mbar)+=GRAD_CHIM(i,L,A)*fFp_inverse(A,Mbar)*fChip_inverse(Lbar,L);
+                    }
+                }
+            }
+        }
+    }
 
 
-	for(int i=0;i<3;i++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				//summation
-				for(int Abar=0;Abar<3;Abar++)
-				{
-					for(int B=0;B<3;B++)
-					{
-						 GXe_tr(i,Lbar,Mbar)+=-1*fChie(i,Abar)*GXp_n(Abar,B,Mbar)*fChip_inverse(B,Lbar);
-					}
-				}
+    for(int i=0;i<3;i++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                //summation
+                for(int Abar=0;Abar<3;Abar++)
+                {
+                    for(int B=0;B<3;B++)
+                    {
+                         GXe_tr(i,Lbar,Mbar)+=-1*fChie(i,Abar)*GXp_n(Abar,B,Mbar)*fChip_inverse(B,Lbar);
+                    }
+                }
 
-			}
-		}
+            }
+        }
 
-	}
+    }
 
 }
 
@@ -16685,7 +16883,7 @@ void FSMicromorphic3DT:: Form_fMeKLM_tr()
             for(int Mbar=0;Mbar<3;Mbar++)
             {
                 fMeKLM_tr(Kbar,Lbar,Mbar)=fMaterial_Params[kTau7]*GAMMAe_tr(Lbar,Mbar,Kbar)
-									  +fMaterial_Params[kTau8]*(GAMMAe_tr(Kbar,Lbar,Mbar)+GAMMAe_tr(Mbar,Lbar,Kbar));
+                                      +fMaterial_Params[kTau8]*(GAMMAe_tr(Kbar,Lbar,Mbar)+GAMMAe_tr(Mbar,Lbar,Kbar));
             }
         }
     }
@@ -16701,8 +16899,8 @@ void FSMicromorphic3DT:: Form_fMeKLM_tr()
                 for(int Rbar=0;Rbar<3;Rbar++)
                 {
                     fMeKLM_tr(Kbar,Lbar,Mbar)=fMeKLM_tr(Kbar,Lbar,Mbar)+fMaterial_Params[kTau3]*GAMMAe_tr(Rbar,Rbar,Kbar)*fIdentity_matrix(Lbar,Mbar)
-											+fMaterial_Params[kTau4]*GAMMAe_tr(Lbar,Rbar,Rbar)*fIdentity_matrix(Kbar,Mbar)
-											+fMaterial_Params[kTau6]*GAMMAe_tr(Rbar,Mbar,Rbar)*fIdentity_matrix(Kbar,Lbar);
+                                            +fMaterial_Params[kTau4]*GAMMAe_tr(Lbar,Rbar,Rbar)*fIdentity_matrix(Kbar,Mbar)
+                                            +fMaterial_Params[kTau6]*GAMMAe_tr(Rbar,Mbar,Rbar)*fIdentity_matrix(Kbar,Lbar);
                 }
             }
         }
@@ -16712,18 +16910,18 @@ void FSMicromorphic3DT:: Form_fMeKLM_tr()
 
 void FSMicromorphic3DT:: Form_PGchivar_tr()
 {
-	PGchivar_tr=0.0;
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		//summation
-		for(int Abar=0;Abar<3;Abar++)
-		{
-			PGchivar_tr[Kbar]+=(1/3)*(fMeKLM(Abar,Abar,Kbar));
-		}
-	}
+    PGchivar_tr=0.0;
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        //summation
+        for(int Abar=0;Abar<3;Abar++)
+        {
+            PGchivar_tr[Kbar]+=(1/3)*(fMeKLM(Abar,Abar,Kbar));
+        }
+    }
 
-	Temp_inv=PGchivar_tr[0]*PGchivar_tr[0]+PGchivar_tr[1]*PGchivar_tr[1]+PGchivar_tr[2]*PGchivar_tr[2];
-	invPGchivar_tr=sqrt(Temp_inv);
+    Temp_inv=PGchivar_tr[0]*PGchivar_tr[0]+PGchivar_tr[1]*PGchivar_tr[1]+PGchivar_tr[2]*PGchivar_tr[2];
+    invPGchivar_tr=sqrt(Temp_inv);
 }
 
 
@@ -16731,65 +16929,65 @@ void FSMicromorphic3DT:: Form_PGchivar_tr()
 void FSMicromorphic3DT:: Form_GXp()
 {
 
-	GXp=0.0;
-	for(int Dbar=0;Dbar<3;Dbar++)
-	{
-		for(int P=0;P<3;P++)
-		{
-			for(int Kbar=0;Kbar<3;Kbar++)
-			{
-				GXp(Dbar,P,Kbar)+=GXp_n(Dbar,P,Kbar);
-				//summation
-				for(int Lbar=0;Lbar<3;Lbar++)
-				{
-					for(int Mbar=0;Mbar<3;Mbar++)
-					{
-						GXp(Dbar,P,Kbar)+=fDelgammaGchi*PSIe_inverse(Dbar,Lbar)*dGXpdDelgammaGchi(Lbar,Mbar,Kbar)*fChip(Mbar,P);
-					}
-				}
-			}
-		}
-	}
+    GXp=0.0;
+    for(int Dbar=0;Dbar<3;Dbar++)
+    {
+        for(int P=0;P<3;P++)
+        {
+            for(int Kbar=0;Kbar<3;Kbar++)
+            {
+                GXp(Dbar,P,Kbar)+=GXp_n(Dbar,P,Kbar);
+                //summation
+                for(int Lbar=0;Lbar<3;Lbar++)
+                {
+                    for(int Mbar=0;Mbar<3;Mbar++)
+                    {
+                        GXp(Dbar,P,Kbar)+=fDelgammaGchi*PSIe_inverse(Dbar,Lbar)*dGXpdDelgammaGchi(Lbar,Mbar,Kbar)*fChip(Mbar,P);
+                    }
+                }
+            }
+        }
+    }
 
-	for(int Dbar=0;Dbar<3;Dbar++)
-	{
-		for(int P=0;P<3;P++)
-		{
-			for(int Kbar=0;Kbar<3;Kbar++)
-			{
-				//summation
-				for(int Lbar=0;Lbar<3;Lbar++)
-				{
-					for(int Mbar=0;Mbar<3;Mbar++)
-					{
-						for(int Fbar=0;Fbar<3;Fbar++)
-						{
+    for(int Dbar=0;Dbar<3;Dbar++)
+    {
+        for(int P=0;P<3;P++)
+        {
+            for(int Kbar=0;Kbar<3;Kbar++)
+            {
+                //summation
+                for(int Lbar=0;Lbar<3;Lbar++)
+                {
+                    for(int Mbar=0;Mbar<3;Mbar++)
+                    {
+                        for(int Fbar=0;Fbar<3;Fbar++)
+                        {
 
-							GXp(Dbar,P,Kbar)+=DLXp(Dbar,Lbar)*PSIe_inverse(Lbar,Fbar)*GAMMAe(Fbar,Mbar,Kbar)*fChip(Mbar,P)
-										  -DLXp(Lbar,Mbar)*PSIe_inverse(Dbar,Fbar)*GAMMAe(Fbar,Lbar,Kbar)*fChip(Mbar,P) ;
-						}
-					}
-				}
-			}
-		}
-	}
+                            GXp(Dbar,P,Kbar)+=DLXp(Dbar,Lbar)*PSIe_inverse(Lbar,Fbar)*GAMMAe(Fbar,Mbar,Kbar)*fChip(Mbar,P)
+                                          -DLXp(Lbar,Mbar)*PSIe_inverse(Dbar,Fbar)*GAMMAe(Fbar,Lbar,Kbar)*fChip(Mbar,P) ;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-	for(int Dbar=0;Dbar<3;Dbar++)
-	{
-		for(int P=0;P<3;P++)
-		{
-			for(int Kbar=0;Kbar<3;Kbar++)
-			{
-				//summation
-				for(int Lbar=0;Lbar<3;Lbar++)
-				{
+    for(int Dbar=0;Dbar<3;Dbar++)
+    {
+        for(int P=0;P<3;P++)
+        {
+            for(int Kbar=0;Kbar<3;Kbar++)
+            {
+                //summation
+                for(int Lbar=0;Lbar<3;Lbar++)
+                {
 
-					GXp(Dbar,P,Kbar)+= DLXp(Dbar,Lbar)*GXp_n(Lbar,P,Kbar)-GXp_n(Dbar,P,Lbar)*DLp(Lbar,Kbar);
+                    GXp(Dbar,P,Kbar)+= DLXp(Dbar,Lbar)*GXp_n(Lbar,P,Kbar)-GXp_n(Dbar,P,Lbar)*DLp(Lbar,Kbar);
 
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
 
 
 }
@@ -16799,42 +16997,42 @@ void FSMicromorphic3DT:: Form_GXp()
 void FSMicromorphic3DT:: Form_GXe()
 {
 
-	GXe=0.0;
-	for(int i=0;i<3;i++)
-	{
-		for(int Abar=0;Abar<3;Abar++)
-		{
-			for(int Lbar=0;Lbar<3;Lbar++)
-			{
-				//summation
-				for(int A=0;A<3;A++)
-				{
-					for(int K=0;K<3;K++)
-					{
-						GXe(i,Abar,Lbar)+=GRAD_CHIM(i,K,A)*fFp_inverse(A,Lbar)*fChip_inverse(K,Abar);
-					}
-				}
-			}
-		}
-	}
+    GXe=0.0;
+    for(int i=0;i<3;i++)
+    {
+        for(int Abar=0;Abar<3;Abar++)
+        {
+            for(int Lbar=0;Lbar<3;Lbar++)
+            {
+                //summation
+                for(int A=0;A<3;A++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        GXe(i,Abar,Lbar)+=GRAD_CHIM(i,K,A)*fFp_inverse(A,Lbar)*fChip_inverse(K,Abar);
+                    }
+                }
+            }
+        }
+    }
 
-	for(int i=0;i<3;i++)
-	{
-		for(int Abar=0;Abar<3;Abar++)
-		{
-			for(int Lbar=0;Lbar<3;Lbar++)
-			{
-				//summation
-				for(int Bbar=0;Bbar<3;Bbar++)
-				{
-					for(int K=0;K<3;K++)
-					{
-						GXe(i,Abar,Lbar)+=-1*fChie(i,Bbar)*GXp(Bbar,K,Lbar)*fChip(K,Abar);
-					}
-				}
-			}
-		}
-	}
+    for(int i=0;i<3;i++)
+    {
+        for(int Abar=0;Abar<3;Abar++)
+        {
+            for(int Lbar=0;Lbar<3;Lbar++)
+            {
+                //summation
+                for(int Bbar=0;Bbar<3;Bbar++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        GXe(i,Abar,Lbar)+=-1*fChie(i,Bbar)*GXp(Bbar,K,Lbar)*fChip(K,Abar);
+                    }
+                }
+            }
+        }
+    }
 
 
 }
@@ -16871,7 +17069,7 @@ void FSMicromorphic3DT:: Form_fMeKLM()
             for(int Mbar=0;Mbar<3;Mbar++)
             {
                 fMeKLM(Kbar,Lbar,Mbar)=fMaterial_Params[kTau7]*GAMMAe(Lbar,Mbar,Kbar)
-									  +fMaterial_Params[kTau8]*(GAMMAe(Kbar,Lbar,Mbar)+GAMMAe(Mbar,Lbar,Kbar));
+                                      +fMaterial_Params[kTau8]*(GAMMAe(Kbar,Lbar,Mbar)+GAMMAe(Mbar,Lbar,Kbar));
             }
         }
     }
@@ -16887,8 +17085,8 @@ void FSMicromorphic3DT:: Form_fMeKLM()
                 for(int Rbar=0;Rbar<3;Rbar++)
                 {
                     fMeKLM(Kbar,Lbar,Mbar)=fMeKLM(Kbar,Lbar,Mbar)+fMaterial_Params[kTau3]*GAMMAe(Rbar,Rbar,Kbar)*fIdentity_matrix(Lbar,Mbar)
-																 +fMaterial_Params[kTau4]*GAMMAe(Lbar,Rbar,Rbar)*fIdentity_matrix(Kbar,Mbar)
-																 +fMaterial_Params[kTau6]*GAMMAe(Rbar,Mbar,Rbar)*fIdentity_matrix(Kbar,Lbar);
+                                                                 +fMaterial_Params[kTau4]*GAMMAe(Lbar,Rbar,Rbar)*fIdentity_matrix(Kbar,Mbar)
+                                                                 +fMaterial_Params[kTau6]*GAMMAe(Rbar,Mbar,Rbar)*fIdentity_matrix(Kbar,Lbar);
                 }
             }
         }
@@ -16899,52 +17097,52 @@ void FSMicromorphic3DT:: Form_fMeKLM()
 
 void FSMicromorphic3DT:: Form_PGchivar()
 {
-	PGchivar=0.0;
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		//summation
-		for(int Abar=0;Abar<3;Abar++)
-		{
-			PGchivar[Kbar]+=(1/3)*(fMeKLM(Abar,Abar,Kbar));
-		}
-	}
+    PGchivar=0.0;
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        //summation
+        for(int Abar=0;Abar<3;Abar++)
+        {
+            PGchivar[Kbar]+=(1/3)*(fMeKLM(Abar,Abar,Kbar));
+        }
+    }
 
-	Temp_inv=PGchivar[0]*PGchivar[0]+PGchivar[1]*PGchivar[1]+PGchivar[2]*PGchivar[2];
-	invPGchivar=sqrt(Temp_inv);
+    Temp_inv=PGchivar[0]*PGchivar[0]+PGchivar[1]*PGchivar[1]+PGchivar[2]*PGchivar[2];
+    invPGchivar=sqrt(Temp_inv);
 }
 
 
 void FSMicromorphic3DT:: Form_devMeKLM()
 {
 
-	devMeKLM=0.0;
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				devMeKLM(Kbar,Lbar,Mbar)=fMeKLM(Kbar,Lbar,Mbar)-PGchivar[Mbar]*fIdentity_matrix(Kbar,Lbar);
+    devMeKLM=0.0;
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                devMeKLM(Kbar,Lbar,Mbar)=fMeKLM(Kbar,Lbar,Mbar)-PGchivar[Mbar]*fIdentity_matrix(Kbar,Lbar);
 
-			}
-		}
-	}
+            }
+        }
+    }
 
-	/* Calculating ||devMe^tr|| */
-	invdevMeKLM=0.0;
-	Temp_inv=0.0;
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				Temp_inv+=devMeKLM(Kbar,Lbar,Mbar)*devMeKLM(Kbar,Lbar,Mbar);
+    /* Calculating ||devMe^tr|| */
+    invdevMeKLM=0.0;
+    Temp_inv=0.0;
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                Temp_inv+=devMeKLM(Kbar,Lbar,Mbar)*devMeKLM(Kbar,Lbar,Mbar);
 
-			}
-		}
-	}
-	invdevMeKLM=sqrt(Temp_inv);
+            }
+        }
+    }
+    invdevMeKLM=sqrt(Temp_inv);
 
 
 }
@@ -18132,14 +18330,14 @@ void FSMicromorphic3DT:: Form_fV3p()
                     {
                         for(int Mbar=0;Mbar<3;Mbar++)
                         {
-                        	for(int k=0;k<3;k++)
-                        	{
-                        		fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)
-																		*fFe(k,Kbar)
-																		*fFe(l,Lbar)
-																		*fMeKLM(Kbar,Lbar,Mbar)
-																		*fChie(m,Mbar);
-                        	}
+                            for(int k=0;k<3;k++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)
+                                                                        *fFe(k,Kbar)
+                                                                        *fFe(l,Lbar)
+                                                                        *fMeKLM(Kbar,Lbar,Mbar)
+                                                                        *fChie(m,Mbar);
+                            }
                         }
                     }
                 }
@@ -19305,7 +19503,7 @@ void FSMicromorphic3DT:: Form_I2p_15()
                           for(int Bbar=0;Bbar<3;Bbar++)
                           {
                         I2p_15(row,col)+=fA2(A,l)*fdFYchidSIGMA_S(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(B,Abar);
-                       	  }
+                          }
                     }
                     row++;
                 }
@@ -28127,10 +28325,10 @@ void FSMicromorphic3DT:: Form_II3p_49()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28160,10 +28358,10 @@ void FSMicromorphic3DT:: Form_II3p_50()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28197,10 +28395,10 @@ void FSMicromorphic3DT:: Form_II3p_51()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
 
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
@@ -28234,10 +28432,10 @@ void FSMicromorphic3DT:: Form_II3p_52()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28268,10 +28466,10 @@ void FSMicromorphic3DT:: Form_II3p_53()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28303,10 +28501,10 @@ void FSMicromorphic3DT:: Form_II3p_54()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28339,10 +28537,10 @@ void FSMicromorphic3DT:: Form_II3p_55()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28377,10 +28575,10 @@ void FSMicromorphic3DT:: Form_II3p_56()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28414,10 +28612,10 @@ void FSMicromorphic3DT:: Form_II3p_57()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28447,10 +28645,10 @@ void FSMicromorphic3DT:: Form_II3p_58()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
 
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
@@ -28485,10 +28683,10 @@ void FSMicromorphic3DT:: Form_II3p_59()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28521,10 +28719,10 @@ void FSMicromorphic3DT:: Form_II3p_60()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28555,10 +28753,10 @@ void FSMicromorphic3DT:: Form_II3p_61()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
 
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
@@ -28591,10 +28789,10 @@ void FSMicromorphic3DT:: Form_II3p_62()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28627,10 +28825,10 @@ void FSMicromorphic3DT:: Form_II3p_63()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28665,10 +28863,10 @@ void FSMicromorphic3DT:: Form_II3p_64()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28703,10 +28901,10 @@ void FSMicromorphic3DT:: Form_II3p_65()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
 
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
@@ -28739,10 +28937,10 @@ void FSMicromorphic3DT:: Form_II3p_66()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
 
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
@@ -28778,10 +28976,10 @@ void FSMicromorphic3DT:: Form_II3p_67()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
 
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
@@ -28816,10 +29014,10 @@ void FSMicromorphic3DT:: Form_II3p_68()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28852,10 +29050,10 @@ void FSMicromorphic3DT:: Form_II3p_69()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28889,10 +29087,10 @@ void FSMicromorphic3DT:: Form_II3p_70()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
 
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
@@ -28928,10 +29126,10 @@ void FSMicromorphic3DT:: Form_II3p_71()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -28967,10 +29165,10 @@ void FSMicromorphic3DT:: Form_II3p_72()
             for(int i=0;i<3;i++)
             {
                 row=0;
-        	 for(int l=0;l<3;l++)
-          	   {
-             	   for(int m=0;m<3;m++)
-              	     {
+             for(int l=0;l<3;l++)
+               {
+                   for(int m=0;m<3;m++)
+                     {
                         //summation over the same term
                         for(int Abar=0;Abar<3;Abar++)
                         {
@@ -30561,7 +30759,7 @@ void FSMicromorphic3DT:: Form_II3p_117()
                         for(int Bbar=0;Bbar<3;Bbar++)
                         {
                          II3p_117(row,col)+=fTemp_matrix_nsd_x_nsd(m,l)*fdFYdS(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(B,Abar);
-                    	}
+                        }
                     }
                     row++;
                 }
@@ -30596,7 +30794,7 @@ void FSMicromorphic3DT:: Form_II3p_118()
                         for(int Bbar=0;Bbar<3;Bbar++)
                         {
                          II3p_118(row,col)+=fTemp_matrix_nsd_x_nsd(m,l)*fdFYdS(Abar,Bbar)*fFe(i,Abar)*fChip_inverse(B,Bbar);
-                    	}
+                        }
                     }
                     row++;
                 }
@@ -31861,26 +32059,26 @@ void FSMicromorphic3DT:: Form_II5Jp_1()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -31888,24 +32086,24 @@ void FSMicromorphic3DT:: Form_II5Jp_1()
 
     for(int M=0;M<3;M++)
     {
-    	for(int i=0;i<3;i++)
+        for(int i=0;i<3;i++)
         {
-    		row=0;
-    		for(int l=0;l<3;l++)
-    		{
-    			for(int m=0;m<3;m++)
-    			{
-    				for(int K=0;K<3;K++)
-    				{
-    					//summation over the same term
-    					for(int Abar=0;Abar<3;Abar++)
-    					{
-    						II5p_1(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fFp_inverse(M,Abar);
-    					}
-    					row++;
-    				}
-    			}
-    		}
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II5p_1(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fFp_inverse(M,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
             col++;
         }
     }
@@ -31922,26 +32120,26 @@ void FSMicromorphic3DT:: Form_II5Jp_2()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -31959,17 +32157,17 @@ void FSMicromorphic3DT:: Form_II5Jp_2()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_2(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*(fFe(i,Bbar)*fFp_inverse(M,Abar)+fFe(i,Abar)*fFp_inverse(M,Bbar));
-                			}
-                		}
-                		row++;
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_2(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*(fFe(i,Bbar)*fFp_inverse(M,Abar)+fFe(i,Abar)*fFp_inverse(M,Bbar));
+                            }
+                        }
+                        row++;
                     }
                 }
             }
@@ -31989,26 +32187,26 @@ void FSMicromorphic3DT:: Form_II5Jp_3()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32022,15 +32220,15 @@ void FSMicromorphic3DT:: Form_II5Jp_3()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			II5p_3(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fChie(i,Abar)*fFp_inverse(M,Abar);
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II5p_3(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fChie(i,Abar)*fFp_inverse(M,Abar);
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32051,26 +32249,26 @@ void FSMicromorphic3DT:: Form_II5Jp_4()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32084,18 +32282,18 @@ void FSMicromorphic3DT:: Form_II5Jp_4()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_4(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(M,Abar);
-                			}
-                		}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_4(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(M,Abar);
+                            }
+                        }
                     row++;
-                	}
+                    }
                 }
             }
             col++;
@@ -32116,26 +32314,26 @@ void FSMicromorphic3DT:: Form_II5Jp_5()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32149,18 +32347,18 @@ void FSMicromorphic3DT:: Form_II5Jp_5()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_5(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fChie(i,Abar)*fFp_inverse(M,Bbar);
-                			}
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_5(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fChie(i,Abar)*fFp_inverse(M,Bbar);
+                            }
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32179,26 +32377,26 @@ void FSMicromorphic3DT::Form_II5Jp_6()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32211,15 +32409,15 @@ void FSMicromorphic3DT::Form_II5Jp_6()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			II5p_6(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fChip_inverse(M,Abar);
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II5p_6(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fChip_inverse(M,Abar);
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32239,26 +32437,26 @@ void FSMicromorphic3DT:: Form_II5Jp_7()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32271,18 +32469,18 @@ void FSMicromorphic3DT:: Form_II5Jp_7()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_7(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fFe(i,Abar)*fChip_inverse(M,Bbar);
-                			}
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_7(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fFe(i,Abar)*fChip_inverse(M,Bbar);
+                            }
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32302,26 +32500,26 @@ void FSMicromorphic3DT:: Form_II5Jp_8()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32334,18 +32532,18 @@ void FSMicromorphic3DT:: Form_II5Jp_8()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_8(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fFe(i,Bbar)*fChip_inverse(M,Abar);
-                			}
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_8(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fFe(i,Bbar)*fChip_inverse(M,Abar);
+                            }
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32366,26 +32564,26 @@ void FSMicromorphic3DT:: Form_II5Jp_9()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32398,15 +32596,15 @@ void FSMicromorphic3DT:: Form_II5Jp_9()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term starts
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			II5p_9(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fFp_inverse(B,Abar);
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II5p_9(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fFp_inverse(B,Abar);
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32428,26 +32626,26 @@ void FSMicromorphic3DT:: Form_II5Jp_10()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32460,18 +32658,18 @@ void FSMicromorphic3DT:: Form_II5Jp_10()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term starts
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_10(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*(fFe(i,Bbar)*fFp_inverse(B,Abar)+fFe(i,Abar)*fFp_inverse(B,Bbar));
-                			}
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_10(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*(fFe(i,Bbar)*fFp_inverse(B,Abar)+fFe(i,Abar)*fFp_inverse(B,Bbar));
+                            }
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32490,26 +32688,26 @@ void FSMicromorphic3DT::Form_II5Jp_11()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32522,15 +32720,15 @@ void FSMicromorphic3DT::Form_II5Jp_11()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term starts
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			II5p_11(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fChie(i,Abar)*fFp_inverse(B,Abar);
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II5p_11(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fChie(i,Abar)*fFp_inverse(B,Abar);
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32549,26 +32747,26 @@ void FSMicromorphic3DT::Form_II5Jp_12()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32581,15 +32779,15 @@ void FSMicromorphic3DT::Form_II5Jp_12()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term starts
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			II5p_12(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fChip_inverse(B,Abar);
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II5p_12(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fChip_inverse(B,Abar);
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32608,26 +32806,26 @@ void FSMicromorphic3DT:: Form_II5Jp_13()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32640,18 +32838,18 @@ void FSMicromorphic3DT:: Form_II5Jp_13()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term starts
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_13(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(B,Abar);
-                			}
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_13(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(B,Abar);
+                            }
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32670,26 +32868,26 @@ void FSMicromorphic3DT:: Form_II5Jp_14()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32702,18 +32900,18 @@ void FSMicromorphic3DT:: Form_II5Jp_14()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term starts
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_14(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fFe(i,Abar)*fChip_inverse(B,Bbar);
-                			}
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_14(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fFe(i,Abar)*fChip_inverse(B,Bbar);
+                            }
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32735,26 +32933,26 @@ void FSMicromorphic3DT:: Form_II5Jp_15()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -32767,18 +32965,18 @@ void FSMicromorphic3DT:: Form_II5Jp_15()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term starts
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_15(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fChie(i,Abar)*fFp_inverse(B,Bbar);
-                			}
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_15(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fChie(i,Abar)*fFp_inverse(B,Bbar);
+                            }
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32799,26 +32997,26 @@ void FSMicromorphic3DT:: Form_II5Jp_16()
 
     for(int K=0;K<3;K++)
     {
-    	for(int m=0;m<3;m++)
-    	{
-    		for(int l =0;l<3;l++)
-    		{
-    			//summation
-    			for(int k=0;k<3;k++)
-    			{
-    				for(int Kbar=0;Kbar<3;Kbar++)
-    				{
-    					for(int Lbar=0;Lbar<3;Lbar++)
-    					{
-    						for(int Mbar=0;Mbar<3;Mbar++)
-    						{
-    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+                //summation
+                for(int k=0;k<3;k++)
+                {
+                    for(int Kbar=0;Kbar<3;Kbar++)
+                    {
+                        for(int Lbar=0;Lbar<3;Lbar++)
+                        {
+                            for(int Mbar=0;Mbar<3;Mbar++)
+                            {
+                                fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     for(int B=0;B<3;B++)
@@ -32830,18 +33028,259 @@ void FSMicromorphic3DT:: Form_II5Jp_16()
             {
                 for(int m=0;m<3;m++)
                 {
-                	for(int K=0;K<3;K++)
-                	{
-                		//summation over the same term starts
-                		for(int Abar=0;Abar<3;Abar++)
-                		{
-                			for(int Bbar=0;Bbar<3;Bbar++)
-                			{
-                				II5p_16(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fFe(i,Bbar)*fChip_inverse(B,Abar);
-                			}
-                		}
-                		row++;
-                	}
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II5p_16(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fFe(i,Bbar)*fChip_inverse(B,Abar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+void FSMicromorphic3DT:: Form_II6e_1()
+{
+    int row=0;
+    int col=0;
+    II6e_1=0.0;
+    fTemp_tensor_n_sd_x_n_sd_x_n_sd=0.0;
+
+    for(int k=0;k<3;k++)
+    {
+        for(int m=0;m<3;m++)
+        {
+            for(int l =0;l<3;l++)
+            {
+
+            	//summation
+            	for(int Kbar=0;Kbar<3;Kbar++)
+            	{
+
+            		for(int Lbar=0;Lbar<3;Lbar++)
+            		{
+            			for(int Mbar=0;Mbar<3;Mbar++)
+            			{
+            				fTemp_tensor_n_sd_x_n_sd_x_n_sd(k,l,m)+=fFe(k,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+            			}
+            		}
+            	}
+
+            }
+
+        }
+
+    }
+
+
+    for(int K=0;K<3;K++)
+    {
+        for(int k=0;k<3;k++)
+        {
+            row=K;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                	II6e_1(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(k,l,m);
+                	row=row+3;
+                }
+            }
+            col++;
+        }
+    }
+
+
+}
+
+
+
+void FSMicromorphic3DT:: Form_Temp_tensor_for_II7()
+{
+	fTemp_tensor_n_sd_x_n_sd_x_n_sd=0.0;
+
+
+    fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+    fTemp_matrix_nsd_x_nsd2.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);
+    fTemp_matrix_nsd_x_nsd.MultATB(fDeformation_Gradient,fTemp_matrix_nsd_x_nsd2);
+
+
+    for(int K=0;K<3;K++)
+    {
+    	for(int m=0;m<3;m++)
+    	{
+    		for(int l =0;l<3;l++)
+    		{
+    			//summation
+    			for(int Kbar=0;Kbar<3;Kbar++)
+    			{
+    				for(int Lbar=0;Lbar<3;Lbar++)
+    				{
+    					for(int Mbar=0;Mbar<3;Mbar++)
+    					{
+    						fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fTemp_matrix_nsd_x_nsd(K,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
+
+
+
+}
+
+
+
+
+void FSMicromorphic3DT:: Form_II7e_1()
+{
+    int row=0;
+    int col=0;
+    II7e_1=0.0;
+
+    for(int A=0;A<3;A++)
+    {
+        for(int k=0;k<3;k++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Kbar=0;Kbar<3;Kbar++)
+                        {
+                            for(int Lbar=0;Lbar<3;Lbar++)
+                            {
+                            	for(int Mbar=0;Mbar<3;Mbar++)
+                            	{
+                            		II7e_1(row,col)+=fDeformation_Gradient(k,K)*fFp_inverse(A,Kbar)*fFe(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            	}
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+
+
+}
+
+
+
+
+
+
+void FSMicromorphic3DT:: Form_II7p_1()
+{
+    int row=0;
+    int col=0;
+
+    II7p_1=0.0;
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II7p_1(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fFp_inverse(M,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+void FSMicromorphic3DT:: Form_II7p_2()
+{
+    int row=0;
+    int col=0;
+
+    II7p_2=0.0;
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_2(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*(fFe(i,Bbar)*fFp_inverse(M,Abar)+fFe(i,Abar)*fFp_inverse(M,Bbar));
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+void FSMicromorphic3DT:: Form_II7p_3()
+{
+    int row=0;
+    int col=0;
+
+    II7p_3=0.0;
+
+     for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II7p_3(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fChie(i,Abar)*fFp_inverse(M,Abar);
+                        }
+                        row++;
+                    }
                 }
             }
             col++;
@@ -32851,40 +33290,1195 @@ void FSMicromorphic3DT:: Form_II5Jp_16()
 
 
 
+void FSMicromorphic3DT:: Form_II7p_4()
+{
+    int row=0;
+    int col=0;
+
+    II7p_4=0.0;
+
+
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_4(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(M,Abar);
+                            }
+                        }
+                    row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+
+void FSMicromorphic3DT:: Form_II7p_5()
+{
+    int row=0;
+    int col=0;
+
+    II7p_5=0.0;
+
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_5(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fChie(i,Abar)*fFp_inverse(M,Bbar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+void FSMicromorphic3DT::Form_II7p_6()
+{
+    int row=0;
+    int col=0;
+
+    II7p_6=0.0;
+
+     for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II7p_6(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fChip_inverse(M,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+void FSMicromorphic3DT:: Form_II7p_7()
+{
+    int row=0;
+    int col=0;
+
+    II7p_7=0.0;
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_7(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fFe(i,Abar)*fChip_inverse(M,Bbar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+void FSMicromorphic3DT:: Form_II7p_8()
+{
+    int row=0;
+    int col=0;
+
+    II7p_8=0.0;
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_8(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fFe(i,Bbar)*fChip_inverse(M,Abar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+
+void FSMicromorphic3DT:: Form_II7p_9()
+{
+
+    int row=0;
+    int col=0;
+    II7p_9=0.0;
+
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II7p_9(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fFp_inverse(B,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+
+}
+
+void FSMicromorphic3DT:: Form_II7p_10()
+{
+
+    int row=0;
+    int col=0;
+    II7p_10=0.0;
+
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_10(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*(fFe(i,Bbar)*fFp_inverse(B,Abar)+fFe(i,Abar)*fFp_inverse(B,Bbar));
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+}
+void FSMicromorphic3DT::Form_II7p_11()
+{
+
+    int row=0;
+    int col=0;
+    II7p_11=0.0;
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II7p_11(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fChie(i,Abar)*fFp_inverse(B,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+}
+void FSMicromorphic3DT::Form_II7p_12()
+{
+
+    int row=0;
+    int col=0;
+    II7p_12=0.0;
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II7p_12(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fChip_inverse(B,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+}
+void FSMicromorphic3DT:: Form_II7p_13()
+{
+
+    int row=0;
+    int col=0;
+    II7p_13=0.0;
+
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_13(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(B,Abar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+void FSMicromorphic3DT:: Form_II7p_14()
+{
+
+    int row=0;
+    int col=0;
+    II7p_14=0.0;
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_14(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fFe(i,Abar)*fChip_inverse(B,Bbar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+
+}
+
+
+void FSMicromorphic3DT:: Form_II7p_15()
+{
+
+    int row=0;
+    int col=0;
+    II7p_15=0.0;
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_15(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fChie(i,Abar)*fFp_inverse(B,Bbar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+
+void FSMicromorphic3DT:: Form_II7p_16()
+{
+
+    int row=0;
+    int col=0;
+    II7p_16=0.0;
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II7p_16(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fFe(i,Bbar)*fChip_inverse(B,Abar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+
+
+
+}
+
+
+
+
+
+
+
+
+void FSMicromorphic3DT:: Form_II8e_1()
+{
+    int row=0;
+    int col=0;
+    II8e_1=0.0;
+
+    for(int A=0;A<3;A++)
+    {
+        for(int l=0;l<3;l++)
+        {
+            row=l*9;
+
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Kbar=0;Kbar<3;Kbar++)
+                        {
+                            for(int Lbar=0;Lbar<3;Lbar++)
+                            {
+                            	for(int Mbar=0;Mbar<3;Mbar++)
+                            	{
+                            		for(int k=0;k<3;k++)
+                            		{
+                            			II8e_1(row,col)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fFp_inverse(A,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+                            		}
+                            	}
+                            }
+                        }
+                        row++;
+                    }
+                }
+
+            col++;
+        }
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+void FSMicromorphic3DT:: Form_Temp_tensor_for_II8()
+{
+	fTemp_tensor_n_sd_x_n_sd_x_n_sd=0.0;
+
+
+    fTemp_matrix_nsd_x_nsd.MultATBC(fdGdS_n,fFp_n,fFp_inverse);
+    fTemp_matrix_nsd_x_nsd2.MultABC(fFe,fCe_n_inverse,fTemp_matrix_nsd_x_nsd);
+
+
+    for(int K=0;K<3;K++)
+    {
+    	for(int m=0;m<3;m++)
+    	{
+    		for(int l =0;l<3;l++)
+    		{
+    			//summation
+    			for(int Kbar=0;Kbar<3;Kbar++)
+    			{
+    				for(int Lbar=0;Lbar<3;Lbar++)
+    				{
+    					for(int Mbar=0;Mbar<3;Mbar++)
+    					{
+    						for(int k=0;k<3;k++)
+    						{
+    							fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)+=fDeformation_Gradient(k,K)*fFe(k,Kbar)*fTemp_matrix_nsd_x_nsd2(l,Lbar)*fMeKLM(Kbar,Lbar,Mbar)*fChie(m,Mbar);
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
+
+
+
+}
+
+
+
+
+
+void FSMicromorphic3DT:: Form_II8p_1()
+{
+    int row=0;
+    int col=0;
+
+    II8p_1=0.0;
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II8p_1(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fFp_inverse(M,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+void FSMicromorphic3DT:: Form_II8p_2()
+{
+    int row=0;
+    int col=0;
+
+    II8p_2=0.0;
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_2(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*(fFe(i,Bbar)*fFp_inverse(M,Abar)+fFe(i,Abar)*fFp_inverse(M,Bbar));
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+void FSMicromorphic3DT:: Form_II8p_3()
+{
+    int row=0;
+    int col=0;
+
+    II8p_3=0.0;
+
+     for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II8p_3(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fChie(i,Abar)*fFp_inverse(M,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+
+void FSMicromorphic3DT:: Form_II8p_4()
+{
+    int row=0;
+    int col=0;
+
+    II8p_4=0.0;
+
+
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_4(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(M,Abar);
+                            }
+                        }
+                    row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+
+void FSMicromorphic3DT:: Form_II8p_5()
+{
+    int row=0;
+    int col=0;
+
+    II8p_5=0.0;
+
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_5(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fChie(i,Abar)*fFp_inverse(M,Bbar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+void FSMicromorphic3DT::Form_II8p_6()
+{
+    int row=0;
+    int col=0;
+
+    II8p_6=0.0;
+
+     for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II8p_6(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fChip_inverse(M,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+void FSMicromorphic3DT:: Form_II8p_7()
+{
+    int row=0;
+    int col=0;
+
+    II8p_7=0.0;
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_7(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fFe(i,Abar)*fChip_inverse(M,Bbar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+void FSMicromorphic3DT:: Form_II8p_8()
+{
+    int row=0;
+    int col=0;
+
+    II8p_8=0.0;
+
+
+    for(int M=0;M<3;M++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_8(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYdS(Abar,Bbar)*fFe(i,Bbar)*fChip_inverse(M,Abar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+
+void FSMicromorphic3DT:: Form_II8p_9()
+{
+
+    int row=0;
+    int col=0;
+    II8p_9=0.0;
+
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II8p_9(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fFp_inverse(B,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+
+}
+
+void FSMicromorphic3DT:: Form_II8p_10()
+{
+
+    int row=0;
+    int col=0;
+    II8p_10=0.0;
+
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_10(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*(fFe(i,Bbar)*fFp_inverse(B,Abar)+fFe(i,Abar)*fFp_inverse(B,Bbar));
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+}
+void FSMicromorphic3DT::Form_II8p_11()
+{
+
+    int row=0;
+    int col=0;
+    II8p_11=0.0;
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II8p_11(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fChie(i,Abar)*fFp_inverse(B,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+}
+void FSMicromorphic3DT::Form_II8p_12()
+{
+
+    int row=0;
+    int col=0;
+    II8p_12=0.0;
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            II8p_12(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fFe(i,Abar)*fChip_inverse(B,Abar);
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+}
+void FSMicromorphic3DT:: Form_II8p_13()
+{
+
+    int row=0;
+    int col=0;
+    II8p_13=0.0;
+
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_13(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fChie(i,Bbar)*fFp_inverse(B,Abar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+void FSMicromorphic3DT:: Form_II8p_14()
+{
+
+    int row=0;
+    int col=0;
+    II8p_14=0.0;
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_14(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fFe(i,Abar)*fChip_inverse(B,Bbar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+
+}
+
+
+void FSMicromorphic3DT:: Form_II8p_15()
+{
+
+    int row=0;
+    int col=0;
+    II8p_15=0.0;
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_15(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fChie(i,Abar)*fFp_inverse(B,Bbar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+}
+
+
+
+void FSMicromorphic3DT:: Form_II8p_16()
+{
+
+    int row=0;
+    int col=0;
+    II8p_16=0.0;
+
+
+    for(int B=0;B<3;B++)
+    {
+        for(int i=0;i<3;i++)
+        {
+            row=0;
+            for(int l=0;l<3;l++)
+            {
+                for(int m=0;m<3;m++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        //summation over the same term starts
+                        for(int Abar=0;Abar<3;Abar++)
+                        {
+                            for(int Bbar=0;Bbar<3;Bbar++)
+                            {
+                                II8p_16(row,col)+=fTemp_tensor_n_sd_x_n_sd_x_n_sd(K,l,m)*fdFYchidSIGMA_S(Abar,Bbar)*fFe(i,Bbar)*fChip_inverse(B,Abar);
+                            }
+                        }
+                        row++;
+                    }
+                }
+            }
+            col++;
+        }
+    }
+
+
+
+
+}
+
+
 
 
 
 void FSMicromorphic3DT:: Form_devMeKLM_tr()
 {
 
-	devMeKLM_tr=0.0;
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				devMeKLM_tr(Kbar,Lbar,Mbar)=fMeKLM_tr(Kbar,Lbar,Mbar)-PGchivar_tr[Mbar]*fIdentity_matrix(Kbar,Lbar);
+    devMeKLM_tr=0.0;
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                devMeKLM_tr(Kbar,Lbar,Mbar)=fMeKLM_tr(Kbar,Lbar,Mbar)-PGchivar_tr[Mbar]*fIdentity_matrix(Kbar,Lbar);
 
-			}
-		}
-	}
+            }
+        }
+    }
 
-	/* Calculating ||devMe^tr|| */
-	invdevMeKLM_tr=0.0;
-	Temp_inv=0.0;
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				Temp_inv+=devMeKLM_tr(Kbar,Lbar,Mbar)*devMeKLM_tr(Kbar,Lbar,Mbar);
+    /* Calculating ||devMe^tr|| */
+    invdevMeKLM_tr=0.0;
+    Temp_inv=0.0;
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                Temp_inv+=devMeKLM_tr(Kbar,Lbar,Mbar)*devMeKLM_tr(Kbar,Lbar,Mbar);
 
-			}
-		}
-	}
-	invdevMeKLM_tr=sqrt(Temp_inv);
+            }
+        }
+    }
+    invdevMeKLM_tr=sqrt(Temp_inv);
 
 
 }
@@ -32895,40 +34489,40 @@ void FSMicromorphic3DT:: Form_devMeKLM_tr()
 void FSMicromorphic3DT:: Form_dGGchidMKLM()
 {
 
-	dGGchidMKLM=0.0;
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				dGGchidMKLM(Kbar,Lbar,Mbar)=(1/invdevMeKLM)*devMeKLM(Kbar,Lbar,Mbar)+(1/3)*(1/ invPGchivar)* PGchivar[Mbar]*fIdentity_matrix(Kbar,Lbar);
-			}
-		}
-	}
+    dGGchidMKLM=0.0;
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                dGGchidMKLM(Kbar,Lbar,Mbar)=(1/invdevMeKLM)*devMeKLM(Kbar,Lbar,Mbar)+(1/3)*(1/ invPGchivar)* PGchivar[Mbar]*fIdentity_matrix(Kbar,Lbar);
+            }
+        }
+    }
 }
 
 
 void FSMicromorphic3DT:: Form_dGXpdDelgammaGchi()
 {
-	dGXpdDelgammaGchi=0.0;
-	for(int Dbar=0;Dbar<3;Dbar++)
-	{
-		for(int P=0;P<3;P++)
-		{
-			for(int Kbar=0;Kbar<3;Kbar++)
-			{
-				//summation
-				for(int Lbar=0;Lbar<3;Lbar++)
-				{
-					for(int Mbar=0;Mbar<3;Mbar++)
-					{
-						dGXpdDelgammaGchi(Dbar,P,Kbar)+=PSIe_inverse(Dbar,Lbar)*dGGchidMKLM(Lbar,Mbar,Kbar)*fChip(Mbar,P);
-					}
-				}
-			}
-		}
-	}
+    dGXpdDelgammaGchi=0.0;
+    for(int Dbar=0;Dbar<3;Dbar++)
+    {
+        for(int P=0;P<3;P++)
+        {
+            for(int Kbar=0;Kbar<3;Kbar++)
+            {
+                //summation
+                for(int Lbar=0;Lbar<3;Lbar++)
+                {
+                    for(int Mbar=0;Mbar<3;Mbar++)
+                    {
+                        dGXpdDelgammaGchi(Dbar,P,Kbar)+=PSIe_inverse(Dbar,Lbar)*dGGchidMKLM(Lbar,Mbar,Kbar)*fChip(Mbar,P);
+                    }
+                }
+            }
+        }
+    }
 
 }
 
@@ -32936,63 +34530,63 @@ void FSMicromorphic3DT:: Form_dGXpdDelgammaGchi()
 
 void FSMicromorphic3DT:: Form_dGXedDelgammaGchi()
 {
-	dGXedDelgammaGchi=0.0;
-	for(int i=0;i<3;i++)
-	{
-		for(int Abar=0;Abar<3;Abar++)
-		{
-			for(int Lbar=0;Lbar<3;Lbar++)
-			{
-				//summation
-				for(int L=0;L<3;L++)
-				{
-					for(int K=0;K<3;K++)
-					{
-						dGXedDelgammaGchi(i,Abar,Lbar)+=GRAD_CHIM(i,K,L)*fFp_inverse(L,Lbar)*fChip_inverse(K,Abar);
-					}
-				}
-			}
-		}
-	}
+    dGXedDelgammaGchi=0.0;
+    for(int i=0;i<3;i++)
+    {
+        for(int Abar=0;Abar<3;Abar++)
+        {
+            for(int Lbar=0;Lbar<3;Lbar++)
+            {
+                //summation
+                for(int L=0;L<3;L++)
+                {
+                    for(int K=0;K<3;K++)
+                    {
+                        dGXedDelgammaGchi(i,Abar,Lbar)+=GRAD_CHIM(i,K,L)*fFp_inverse(L,Lbar)*fChip_inverse(K,Abar);
+                    }
+                }
+            }
+        }
+    }
 
-	for(int i=0;i<3;i++)
-	{
-		for(int Abar=0;Abar<3;Abar++)
-		{
-			for(int Lbar=0;Lbar<3;Lbar++)
-			{
-				//summation
-				for(int Bbar=0;Bbar<3;Bbar++)
-				{
-					for(int L=0;L<3;L++)
-					{
-						dGXedDelgammaGchi(i,Abar,Lbar)+=-1*fChie(i,Bbar)*dGXpdDelgammaGchi(Bbar,L,Lbar)*fChip_inverse(L,Abar);
-					}
-				}
-			}
-		}
-	}
+    for(int i=0;i<3;i++)
+    {
+        for(int Abar=0;Abar<3;Abar++)
+        {
+            for(int Lbar=0;Lbar<3;Lbar++)
+            {
+                //summation
+                for(int Bbar=0;Bbar<3;Bbar++)
+                {
+                    for(int L=0;L<3;L++)
+                    {
+                        dGXedDelgammaGchi(i,Abar,Lbar)+=-1*fChie(i,Bbar)*dGXpdDelgammaGchi(Bbar,L,Lbar)*fChip_inverse(L,Abar);
+                    }
+                }
+            }
+        }
+    }
 }
 
 
 void FSMicromorphic3DT:: Form_dGammaedDelgammaGchi()
 {
 
-	dGammaedDelgammaGchi=0.0;
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				//summation
-				for(int i=0;i<3;i++)
-				{
-					dGammaedDelgammaGchi(Kbar,Lbar,Mbar)+=fFe(i,Kbar)*dGXedDelgammaGchi(i,Lbar,Mbar);
-				}
-			}
-		}
-	}
+    dGammaedDelgammaGchi=0.0;
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                //summation
+                for(int i=0;i<3;i++)
+                {
+                    dGammaedDelgammaGchi(Kbar,Lbar,Mbar)+=fFe(i,Kbar)*dGXedDelgammaGchi(i,Lbar,Mbar);
+                }
+            }
+        }
+    }
 
 
 }
@@ -33000,67 +34594,67 @@ void FSMicromorphic3DT:: Form_dGammaedDelgammaGchi()
 void FSMicromorphic3DT:: Form_dMKLMdDelgammaGchi()
 {
 
-	dMKLMdDelgammaGchi=0.0;
+    dMKLMdDelgammaGchi=0.0;
 
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				dMKLMdDelgammaGchi(Kbar,Lbar,Mbar)=fMaterial_Params[kTau7]*dGammaedDelgammaGchi(Kbar,Lbar,Mbar);
-			}
-		}
-	}
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                dMKLMdDelgammaGchi(Kbar,Lbar,Mbar)=fMaterial_Params[kTau7]*dGammaedDelgammaGchi(Kbar,Lbar,Mbar);
+            }
+        }
+    }
 
 }
 
 void FSMicromorphic3DT:: Form_dPGchivardDelgammaGchi()
 {
-	dPGchivardDelgammaGchi=0.0;
+    dPGchivardDelgammaGchi=0.0;
 
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		//summation
-		for(int Abar=0;Abar<3;Abar++)
-		{
-			dPGchivardDelgammaGchi[Kbar]+=(1/3)*dMKLMdDelgammaGchi(Abar,Abar,Kbar);
-		}
-	}
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        //summation
+        for(int Abar=0;Abar<3;Abar++)
+        {
+            dPGchivardDelgammaGchi[Kbar]+=(1/3)*dMKLMdDelgammaGchi(Abar,Abar,Kbar);
+        }
+    }
 
 
 }
 
 void FSMicromorphic3DT:: Form_ddevMKLMdDelgammaGchi()
 {
-	ddevMKLMdDelgammaGchi=0.0;
+    ddevMKLMdDelgammaGchi=0.0;
 
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				ddevMKLMdDelgammaGchi(Kbar,Lbar,Mbar)=dMKLMdDelgammaGchi(Kbar,Lbar,Mbar)-(1/3)*dPGchivardDelgammaGchi[Mbar]*fIdentity_matrix(Kbar,Lbar);
-			}
-		}
-	}
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                ddevMKLMdDelgammaGchi(Kbar,Lbar,Mbar)=dMKLMdDelgammaGchi(Kbar,Lbar,Mbar)-(1/3)*dPGchivardDelgammaGchi[Mbar]*fIdentity_matrix(Kbar,Lbar);
+            }
+        }
+    }
 }
 
 void FSMicromorphic3DT:: Calculate_dInvddevMKLMdDelgammaGchi()
 {
 
-	dInvddevMKLMdDelgammaGchi=0.0;
-	for(int Kbar=0;Kbar<3;Kbar++)
-	{
-		for(int Lbar=0;Lbar<3;Lbar++)
-		{
-			for(int Mbar=0;Mbar<3;Mbar++)
-			{
-				dInvddevMKLMdDelgammaGchi+=(1/invdevMeKLM)*ddevMKLMdDelgammaGchi(Kbar,Lbar,Mbar)*devMeKLM(Kbar,Lbar,Mbar);
-			}
-		}
-	}
+    dInvddevMKLMdDelgammaGchi=0.0;
+    for(int Kbar=0;Kbar<3;Kbar++)
+    {
+        for(int Lbar=0;Lbar<3;Lbar++)
+        {
+            for(int Mbar=0;Mbar<3;Mbar++)
+            {
+                dInvddevMKLMdDelgammaGchi+=(1/invdevMeKLM)*ddevMKLMdDelgammaGchi(Kbar,Lbar,Mbar)*devMeKLM(Kbar,Lbar,Mbar);
+            }
+        }
+    }
 
 }
 

@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.208 2011-08-30 15:45:07 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.209 2011-08-31 13:36:18 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1897,6 +1897,44 @@ private:
     dMatrixT fKMphiphi_II7p_16;
 
 
+    dMatrixT II8e_1;
+    dMatrixT fKMphiu_II8e_1;
+
+    dMatrixT II8p_1;
+    dMatrixT fKMphiu_II8p_1;
+    dMatrixT II8p_2;
+    dMatrixT fKMphiu_II8p_2;
+    dMatrixT II8p_3;
+    dMatrixT fKMphiu_II8p_3;
+    dMatrixT II8p_4;
+    dMatrixT fKMphiu_II8p_4;
+    dMatrixT II8p_5;
+    dMatrixT fKMphiu_II8p_5;
+    dMatrixT II8p_6;
+    dMatrixT fKMphiphi_II8p_6;
+    dMatrixT II8p_7;
+    dMatrixT fKMphiphi_II8p_7;
+    dMatrixT II8p_8;
+    dMatrixT fKMphiphi_II8p_8;
+    dMatrixT II8p_9;
+    dMatrixT fKMphiu_II8p_9;
+    dMatrixT II8p_10;
+    dMatrixT fKMphiu_II8p_10;
+    dMatrixT II8p_11;
+    dMatrixT fKMphiu_II8p_11;
+    dMatrixT II8p_12;
+    dMatrixT fKMphiphi_II8p_12;
+    dMatrixT II8p_13;
+    dMatrixT fKMphiu_II8p_13;
+    dMatrixT II8p_14;
+    dMatrixT fKMphiphi_II8p_14;
+    dMatrixT II8p_15;
+    dMatrixT fKMphiu_II8p_15;
+    dMatrixT II8p_16;
+    dMatrixT fKMphiphi_II8p_16;
+
+
+
     dMatrixT dFedDelgamma;
     dMatrixT dFedDelgammachi;
 
@@ -2797,7 +2835,9 @@ private:
     void Form_II5Jp_16(void);
 
     void Form_II6e_1(void);
-    void Form_II6e_2(void);
+    void Form_II7e_1(void);
+
+	void Form_Temp_tensor_for_II7(void);
 
     void Form_II7p_1(void);
     void Form_II7p_2(void);
@@ -2817,7 +2857,26 @@ private:
     void Form_II7p_16(void);
 
 
+    void Form_II8e_1(void);
 
+	void Form_Temp_tensor_for_II8(void);
+
+    void Form_II8p_1(void);
+    void Form_II8p_2(void);
+    void Form_II8p_3(void);
+    void Form_II8p_4(void);
+    void Form_II8p_5(void);
+    void Form_II8p_6(void);
+    void Form_II8p_7(void);
+    void Form_II8p_8(void);
+    void Form_II8p_9(void);
+    void Form_II8p_10(void);
+    void Form_II8p_11(void);
+    void Form_II8p_12(void);
+    void Form_II8p_13(void);
+    void Form_II8p_14(void);
+    void Form_II8p_15(void);
+    void Form_II8p_16(void);
 
 
     /////////////////////////////////////////////////////////
