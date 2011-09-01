@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.209 2011-08-31 13:36:18 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.210 2011-09-01 02:51:08 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1933,6 +1933,86 @@ private:
     dMatrixT II8p_16;
     dMatrixT fKMphiphi_II8p_16;
 
+    dMatrixT II9e_1;
+    dMatrixT fKMphiu_II9e_1;
+
+    dMatrixT II9p_1;
+    dMatrixT fKMphiu_II9p_1;
+    dMatrixT II9p_2;
+    dMatrixT fKMphiu_II9p_2;
+    dMatrixT II9p_3;
+    dMatrixT fKMphiu_II9p_3;
+    dMatrixT II9p_4;
+    dMatrixT fKMphiu_II9p_4;
+    dMatrixT II9p_5;
+    dMatrixT fKMphiu_II9p_5;
+    dMatrixT II9p_6;
+    dMatrixT fKMphiphi_II9p_6;
+    dMatrixT II9p_7;
+    dMatrixT fKMphiphi_II9p_7;
+    dMatrixT II9p_8;
+    dMatrixT fKMphiphi_II9p_8;
+    dMatrixT II9p_9;
+    dMatrixT fKMphiu_II9p_9;
+    dMatrixT II9p_10;
+    dMatrixT fKMphiu_II9p_10;
+    dMatrixT II9p_11;
+    dMatrixT fKMphiu_II9p_11;
+    dMatrixT II9p_12;
+    dMatrixT fKMphiphi_II9p_12;
+    dMatrixT II9p_13;
+    dMatrixT fKMphiu_II9p_13;
+    dMatrixT II9p_14;
+    dMatrixT fKMphiphi_II9p_14;
+    dMatrixT II9p_15;
+    dMatrixT fKMphiu_II9p_15;
+    dMatrixT II9p_16;
+    dMatrixT fKMphiphi_II9p_16;
+
+
+    dMatrixT II10e_1;
+    dMatrixT fKMphiphi_II10e_1;
+
+    dMatrixT II10p_1;
+    dMatrixT fKMphiu_II10p_1;
+    dMatrixT II10p_2;
+    dMatrixT fKMphiu_II10p_2;
+    dMatrixT II10p_3;
+    dMatrixT fKMphiu_II10p_3;
+    dMatrixT II10p_4;
+    dMatrixT fKMphiu_II10p_4;
+    dMatrixT II10p_5;
+    dMatrixT fKMphiu_II10p_5;
+    dMatrixT II10p_6;
+    dMatrixT fKMphiphi_II10p_6;
+    dMatrixT II10p_7;
+    dMatrixT fKMphiphi_II10p_7;
+    dMatrixT II10p_8;
+    dMatrixT fKMphiphi_II10p_8;
+    dMatrixT II10p_9;
+    dMatrixT fKMphiu_II10p_9;
+    dMatrixT II10p_10;
+    dMatrixT fKMphiu_II10p_10;
+    dMatrixT II10p_11;
+    dMatrixT fKMphiu_II10p_11;
+    dMatrixT II10p_12;
+    dMatrixT fKMphiphi_II10p_12;
+    dMatrixT II10p_13;
+    dMatrixT fKMphiu_II10p_13;
+    dMatrixT II10p_14;
+    dMatrixT fKMphiphi_II10p_14;
+    dMatrixT II10p_15;
+    dMatrixT fKMphiu_II10p_15;
+    dMatrixT II10p_16;
+    dMatrixT fKMphiphi_II10p_16;
+
+
+
+
+
+
+
+
 
 
     dMatrixT dFedDelgamma;
@@ -2877,6 +2957,50 @@ private:
     void Form_II8p_14(void);
     void Form_II8p_15(void);
     void Form_II8p_16(void);
+
+
+    void Form_II9e_1(void);
+
+	void Form_Temp_tensor_for_II9(void);
+
+    void Form_II9p_1(void);
+    void Form_II9p_2(void);
+    void Form_II9p_3(void);
+    void Form_II9p_4(void);
+    void Form_II9p_5(void);
+    void Form_II9p_6(void);
+    void Form_II9p_7(void);
+    void Form_II9p_8(void);
+    void Form_II9p_9(void);
+    void Form_II9p_10(void);
+    void Form_II9p_11(void);
+    void Form_II9p_12(void);
+    void Form_II9p_13(void);
+    void Form_II9p_14(void);
+    void Form_II9p_15(void);
+    void Form_II9p_16(void);
+
+
+    void Form_II10e_1(void);
+
+	void Form_Temp_tensor_for_II10(void);
+
+    void Form_II10p_1(void);
+    void Form_II10p_2(void);
+    void Form_II10p_3(void);
+    void Form_II10p_4(void);
+    void Form_II10p_5(void);
+    void Form_II10p_6(void);
+    void Form_II10p_7(void);
+    void Form_II10p_8(void);
+    void Form_II10p_9(void);
+    void Form_II10p_10(void);
+    void Form_II10p_11(void);
+    void Form_II10p_12(void);
+    void Form_II10p_13(void);
+    void Form_II10p_14(void);
+    void Form_II10p_15(void);
+    void Form_II10p_16(void);
 
 
     /////////////////////////////////////////////////////////
