@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.211 2011-09-01 05:31:50 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.212 2011-09-06 06:02:37 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1826,38 +1826,38 @@ private:
     dMatrixT fKphiphi_II4p_17;
 
     /* Matrices from higher order couple stress tensor*/
-    dMatrixT II5p_1;
-    dMatrixT fKMphiu_II5p_1;
-    dMatrixT II5p_2;
-    dMatrixT fKMphiu_II5p_2;
-    dMatrixT II5p_3;
-    dMatrixT fKMphiu_II5p_3;
-    dMatrixT II5p_4;
-    dMatrixT fKMphiu_II5p_4;
-    dMatrixT II5p_5;
-    dMatrixT fKMphiu_II5p_5;
-    dMatrixT II5p_6;
-    dMatrixT fKMphiphi_II5p_6;
-    dMatrixT II5p_7;
-    dMatrixT fKMphiphi_II5p_7;
-    dMatrixT II5p_8;
-    dMatrixT fKMphiphi_II5p_8;
-    dMatrixT II5p_9;
-    dMatrixT fKMphiu_II5p_9;
-    dMatrixT II5p_10;
-    dMatrixT fKMphiu_II5p_10;
-    dMatrixT II5p_11;
-    dMatrixT fKMphiu_II5p_11;
-    dMatrixT II5p_12;
-    dMatrixT fKMphiphi_II5p_12;
-    dMatrixT II5p_13;
-    dMatrixT fKMphiu_II5p_13;
-    dMatrixT II5p_14;
-    dMatrixT fKMphiphi_II5p_14;
-    dMatrixT II5p_15;
-    dMatrixT fKMphiu_II5p_15;
-    dMatrixT II5p_16;
-    dMatrixT fKMphiphi_II5p_16;
+    dMatrixT II5Jp_1;
+    dMatrixT fKMphiu_II5Jp_1;
+    dMatrixT II5Jp_2;
+    dMatrixT fKMphiu_II5Jp_2;
+    dMatrixT II5Jp_3;
+    dMatrixT fKMphiu_II5Jp_3;
+    dMatrixT II5Jp_4;
+    dMatrixT fKMphiu_II5Jp_4;
+    dMatrixT II5Jp_5;
+    dMatrixT fKMphiu_II5Jp_5;
+    dMatrixT II5Jp_6;
+    dMatrixT fKMphiphi_II5Jp_6;
+    dMatrixT II5Jp_7;
+    dMatrixT fKMphiphi_II5Jp_7;
+    dMatrixT II5Jp_8;
+    dMatrixT fKMphiphi_II5Jp_8;
+    dMatrixT II5Jp_9;
+    dMatrixT fKMphiu_II5Jp_9;
+    dMatrixT II5Jp_10;
+    dMatrixT fKMphiu_II5Jp_10;
+    dMatrixT II5Jp_11;
+    dMatrixT fKMphiu_II5Jp_11;
+    dMatrixT II5Jp_12;
+    dMatrixT fKMphiphi_II5Jp_12;
+    dMatrixT II5Jp_13;
+    dMatrixT fKMphiu_II5Jp_13;
+    dMatrixT II5Jp_14;
+    dMatrixT fKMphiphi_II5Jp_14;
+    dMatrixT II5Jp_15;
+    dMatrixT fKMphiu_II5Jp_15;
+    dMatrixT II5Jp_16;
+    dMatrixT fKMphiphi_II5Jp_16;
 
     dMatrixT II6e_1;
     dMatrixT fKMphiu_II6e_1;
@@ -2962,6 +2962,7 @@ private:
     void Form_II4p_17(void);
 
     /*Functions from higher orde couple stress tensor */
+    void Form_Temp_tensor_for_II5Jp(void);
     void Form_II5Jp_1(void);
     void Form_II5Jp_2(void);
     void Form_II5Jp_3(void);
