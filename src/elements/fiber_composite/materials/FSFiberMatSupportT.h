@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatSupportT.h,v 1.2 2010-06-24 13:49:17 thao Exp $ */
+/* $Id: FSFiberMatSupportT.h,v 1.3 2011-09-16 21:00:28 thao Exp $ */
 #ifndef _FD__FIBER_MAT_SUPPORT_T_H_
 #define _FD__FIBER_MAT_SUPPORT_T_H_
 
@@ -27,6 +27,11 @@ public:
 	/** \name retrieve orientation vectors P_vec of of fiber families for current element */
 	/*@{*/
 	const dArray2DT& Fiber_Vec(void) const;
+	
+	/** \name retrieve Dipersion parameter of of fiber families for current element */
+	/*@{*/
+	const dArrayT&  Fiber_Disp(void) const;
+
 
 	/** \name returns the number of fiber families for current element*/
 	const int NumFibers(void) const;
@@ -34,12 +39,19 @@ public:
 	/** \name retrieve orientation vectors P_vec of of fiber families for given element */
 	/*@{*/
 	const dArray2DT& Fiber_Vec(const int elem) const;
+	
+	/** \name retrieve Dispersion parameter of fiber families for given element */
+	/*@{*/
+	const dArrayT&  Fiber_Disp(const int elem) const;
 
 	/** \name returns the number of fiber families for given element*/
 	const int NumFibers(const int elem) const;
 	
 	/** set source for the deformation gradient */
 	void SetFibers(const ArrayT<dArray2DT>* Fiber_list);
+	
+	void SetFibersDispersion(const ArrayT<dArrayT>* FiberDispersion_list);
+
 
 	/** \name host code information */
 	/*@{*/
@@ -55,6 +67,7 @@ public:
   	/** \name sources for deformation gradients */
   	/*@{*/
   	const ArrayT<dArray2DT>* fFiber_list; /**< fiber orientation vectors */
+	const ArrayT<dArrayT>* fFiberDispersion_list; /**< fiber dispersion parameter */
   	/*@}*/
 
 //  	/** pointer to the finite strain element */
@@ -68,12 +81,24 @@ inline const dArray2DT& FSFiberMatSupportT::Fiber_Vec(void) const
 	if (!fFiber_list) throw ExceptionT::kGeneralFail;
 	return (*fFiber_list)[CurrElementNumber()]; 
 }
+inline const dArrayT& FSFiberMatSupportT::Fiber_Disp(void) const
+{
+	if (!fFiberDispersion_list) throw ExceptionT::kGeneralFail;
+	return (*fFiberDispersion_list)[CurrElementNumber()]; 
+}
 
 inline const dArray2DT& FSFiberMatSupportT::Fiber_Vec(const int elem) const
 {
 	if (!fFiber_list) throw ExceptionT::kGeneralFail;
 	return (*fFiber_list)[elem]; 
 }
+
+inline const dArrayT& FSFiberMatSupportT::Fiber_Disp(const int elem) const
+{
+	if (!fFiberDispersion_list) throw ExceptionT::kGeneralFail;
+	return (*fFiberDispersion_list)[elem]; 
+}
+
 
 inline const int FSFiberMatSupportT::NumFibers(void) const
 {

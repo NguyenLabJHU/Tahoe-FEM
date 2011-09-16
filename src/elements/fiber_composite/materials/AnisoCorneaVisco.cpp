@@ -1,4 +1,4 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.19 2010-08-15 15:26:27 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.20 2011-09-16 21:00:27 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
@@ -678,6 +678,8 @@ void AnisoCorneaVisco::ComputeMatrixStress(const dSymMatrixT& Stretch, const dSy
 		Stress[2] += fMu;
 	}
 
+//	if (CurrElementNumber() == 10 && CurrIP()==1)
+//		cout << "\nMatrixStress: "<<Stress;
 }
 
 void AnisoCorneaVisco::ComputeMatrixMod(const dSymMatrixT& Stretch, const dSymMatrixT& Stretch_v, dSymMatrixT& Stress,
@@ -852,6 +854,8 @@ void AnisoCorneaVisco::ComputeMatrixMod(const dSymMatrixT& Stretch, const dSymMa
 		Mod(5,4) += coeff*fInverse[5]*fInverse[4];
 		Mod(5,5) += coeff*fInverse[5]*fInverse[5];
 	}
+//	if (CurrElementNumber() == 10 && CurrIP()==1)
+//		cout << "\nMatrixMod: "<<Mod;
  }
 
 /*computes integrated fiber stress in local frame*/
@@ -872,7 +876,7 @@ void AnisoCorneaVisco::ComputeFiberStress (const dSymMatrixT& FiberStretch, cons
 
 	if (pindex == -1) { 
 		CompI4(FiberStretch);
-
+		
 		/* derivatives of the potential */
 		fPotential[pindex+1]->MapDFunction(fI4, fdU);
 
@@ -912,6 +916,8 @@ void AnisoCorneaVisco::ComputeFiberStress (const dSymMatrixT& FiberStretch, cons
 			s3 += factor*(*p3++);
 		}
 	}
+//	if (CurrElementNumber() == 10 && CurrIP()==1)
+//		cout << "\nFiberStress: "<<FiberStress;
 }
 	
 /*computes integrated moduli in local frame*/
@@ -1031,6 +1037,8 @@ void AnisoCorneaVisco::ComputeFiberMod (const dSymMatrixT& FiberStretch, const d
 		FiberMod += fCalg;
 	}
 	
+//	if (CurrElementNumber() == 10 && CurrIP()==1)
+//		cout << "\nFiberMod: "<<FiberMod;
 }
 
 void AnisoCorneaVisco::ComputeCalg(const dSymMatrixT& FiberStretch, const dSymMatrixT& FiberStretch_v,  dMatrixT& Calg, const int pindex)
@@ -1793,7 +1801,7 @@ void AnisoCorneaVisco::Construct(void)
 			
 		//shift not yet implemented//
 			xi -= 0.5*Pi;
-			xi -= fphi;
+//			xi -= fphi;
 				
 			dArrayT& jac = fjacobians[ielm];			
 			jac.Dimension(numbonds);

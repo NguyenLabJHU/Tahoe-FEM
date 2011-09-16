@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatSupportT.cpp,v 1.2 2010-06-24 13:49:16 thao Exp $ */
+/* $Id: FSFiberMatSupportT.cpp,v 1.3 2011-09-16 21:00:28 thao Exp $ */
 #include "FSFiberMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -11,7 +11,8 @@ using namespace Tahoe;
 /* constructor */
 FSFiberMatSupportT::FSFiberMatSupportT(int ndof, int nip):
 	FSMatSupportT(ndof, nip),
-	fFiber_list(NULL)
+	fFiber_list(NULL),
+	fFiberDispersion_list(NULL)
 {
 
 }
@@ -23,6 +24,15 @@ void FSFiberMatSupportT::SetFibers(const ArrayT<dArray2DT>* Fiber_list)
 //      when this is configured 
 	/* keep pointer */
 	fFiber_list = Fiber_list;
+}
+
+/* set source for fiber vector list */
+void FSFiberMatSupportT::SetFibersDispersion(const ArrayT<dArrayT>* FiberDispersion_list)
+{
+//NOTE: cannot do dimension checks because source is not initialized
+//      when this is configured 
+	/* keep pointer */
+	fFiberDispersion_list = FiberDispersion_list;
 }
 
 /* set the element group pointer */

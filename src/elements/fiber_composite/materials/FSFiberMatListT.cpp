@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatListT.cpp,v 1.9 2011-08-10 14:51:58 theresakoys Exp $ */
+/* $Id: FSFiberMatListT.cpp,v 1.10 2011-09-16 21:00:28 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSFiberMatListT.h"
 #include "FSFiberMatSupportT.h"
@@ -19,6 +19,7 @@
 #include "QLV_Nfibers.h"
 #include "NLV_Ortho.h"
 #include "GasserHolzapfel.h"
+#include "GasserHolzapfel2D.h"
 
 //#include "AnisoCorneaVisco2.h"
 
@@ -56,16 +57,15 @@ void FSFiberMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListO
 	{
 		order = ParameterListT::Choice;
 	
-		//		sub_lists.AddSub("aniso_cornea");
 		sub_lists.AddSub("aniso_fiber_3D");
-		sub_lists.AddSub("aniso_cornea");
+//		sub_lists.AddSub("aniso_cornea");
 		sub_lists.AddSub("aniso_viscoelastic_cornea");
 		sub_lists.AddSub("aniso_scalar_visco_cornea");
-/*		sub_lists.AddSub("aniso_viscoelastic2_cornea");*/
 		sub_lists.AddSub("quasilinear_viscoelasticity_Nfibers");
 		sub_lists.AddSub("nonlinear_viscoelasticity_Nfibers");
 		sub_lists.AddSub("nonlinear_viscoelasticity_ortho");
 		sub_lists.AddSub("gasser_holzapfel");
+		sub_lists.AddSub("gasser_holzapfel2D");
 
 	}
 	else /* inherited */
@@ -135,6 +135,8 @@ FSFiberMatT* FSFiberMatListT::NewFSFiberMat(const StringT& name) const
 		mat = new NLV_Nfibers;
 	else if (name == "gasser_holzapfel")
 		mat = new GasserHolzapfel;
+	else if (name == "gasser_holzapfel2D")
+		mat = new GasserHolzapfel2D;
 
 	/* set support */
 	if (mat) mat->SetFSFiberMatSupport(fFSFiberMatSupport);
