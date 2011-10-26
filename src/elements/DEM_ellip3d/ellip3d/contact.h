@@ -4,13 +4,13 @@
 #ifndef CONTACT_H
 #define CONTACT_H
 
+#include "const.h"
+#include "root6.h"
 #include <vector>
-#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "const.h"
-#include "root6.h"
+#include <cmath>
 
 //#define MINDLIN_ASSUMED
 //#define MINDLIN_KNOWN

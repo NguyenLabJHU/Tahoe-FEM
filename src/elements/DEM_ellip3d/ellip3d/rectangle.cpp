@@ -1,7 +1,8 @@
-#include <cmath>
-#include <iostream>
 #include "rectangle.h"
 #include "ran.h"
+#include <cmath>
+#include <iostream>
+#include <cstdio>
 using namespace std;
 
 namespace dem {

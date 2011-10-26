@@ -1,5 +1,6 @@
 #ifndef GRADATION_H
 #define GRADATION_H
+
 #include <vector>
 
 namespace dem {

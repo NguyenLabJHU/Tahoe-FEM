@@ -1,11 +1,7 @@
-# OPTIMIZE is used for optimization
-OPTIMIZE = -O3 -funroll-all-loops -fpeel-loops -DNDEBUG
+# optimization
+OPTIMIZE = -O3 -DNDEBUG
 
-# These options are seldom used
-OPT_1 = -fprofile-arcs
-OPT_2 = -fbranch-probalilities
-
-# DEBUG is used for debugging
+# debugging options
 DEBUG = -Wall -gstabs
 
 # $(DEBUG) or $(OPTIMIZE)

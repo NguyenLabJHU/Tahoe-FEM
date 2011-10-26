@@ -1,11 +1,6 @@
 #ifndef ASSEMBLY_H
 #define ASSEMBLY_H
 
-#include <map>
-#include <list>
-#include <vector>
-#include <fstream>
-
 #include "vec.h"
 #include "gradation.h"
 #include "particle.h"
@@ -13,6 +8,10 @@
 #include "boundary.h"
 #include "rectangle.h"
 #include "cylinder.h"
+#include <map>
+#include <list>
+#include <vector>
+#include <fstream>
 
 namespace dem {
 

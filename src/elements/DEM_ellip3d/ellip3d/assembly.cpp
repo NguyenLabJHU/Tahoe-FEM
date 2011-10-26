@@ -28,12 +28,14 @@
 //    int min[2]={5,6};    // boundary 5 and 6
 //    min/mid/max does not mean actual magnitude of values, just signs
 
+#include "assembly.h"
+#include "const.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <cmath>
-#include "const.h"
-#include "assembly.h"
+#include <cstring>
+
 using namespace std;
 
 //#define TIME_TAG

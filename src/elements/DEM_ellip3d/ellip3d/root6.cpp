@@ -14,13 +14,13 @@
 //      true  - non-overlapped
 //      false - overlapped and vector point returns the deepest point.
 
+#include "const.h"
+#include "root6.h"
+#include "nr.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <cmath>
-#include "const.h"
-#include "root6.h"
-#include "nr.h"
 //#define DEBUG
 using namespace std;
 

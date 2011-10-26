@@ -1,5 +1,6 @@
 #ifndef BOUNDARYTGT_H
 #define BOUNDARYTGT_H
+
 #include "vec.h"
 
 namespace dem {

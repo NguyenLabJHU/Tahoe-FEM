@@ -1,6 +1,7 @@
+#include "nrutil.h"
 #include <cmath>
 #define NRANSI
-#include "nrutil.h"
+
 using namespace std;
 
 namespace dem {

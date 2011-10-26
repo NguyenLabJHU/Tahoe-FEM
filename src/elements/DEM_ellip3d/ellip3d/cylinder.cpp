@@ -1,7 +1,8 @@
-#include <iostream>
-#include <cmath>
 #include "ran.h"
 #include "cylinder.h"
+#include <iostream>
+#include <cmath>
+
 using namespace std;
 
 namespace dem {

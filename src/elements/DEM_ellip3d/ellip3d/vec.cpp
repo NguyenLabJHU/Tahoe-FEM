@@ -1,7 +1,7 @@
-#include <cmath>
-#include <iostream>
 #include "vec.h"
 #include "const.h"
+#include <cmath>
+#include <iostream>
 
 using namespace std;
 

@@ -1,10 +1,10 @@
 #include "nrutil.h"
+#define NRANSI
+#define MAXM 50
+
 using namespace std;
 
 namespace dem {
-
-#define NRANSI
-#define MAXM 50
 
 bool zrhqr(long double a[], int m, long double rtr[], long double rti[])
 {
@@ -43,7 +43,7 @@ bool zrhqr(long double a[], int m, long double rtr[], long double rti[])
 	return true;
 }
 
+} // namespace dem ends
+
 #undef MAXM
 #undef NRANSI
-
-} // namespace dem ends

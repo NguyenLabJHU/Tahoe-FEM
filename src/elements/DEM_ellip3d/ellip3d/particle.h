@@ -1,7 +1,6 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-#include <map>
 #include "vec.h"
 #include "gradation.h"
 #include "contact.h"
@@ -9,6 +8,7 @@
 #include "rectangle.h"
 #include "cylinder.h"
 #include "boundarytgt.h"
+#include <map>
 
 namespace dem {
 

@@ -15,6 +15,9 @@
 #ifndef BOUNDARY_H
 #define BOUNDARY_H
 
+#include "vec.h"
+#include "cylinder.h"
+#include "boundarytgt.h"
 #include <map>
 #include <vector>
 #include <list>
@@ -23,10 +26,6 @@
 #include <iomanip>
 #include <cmath>
 #include <cstdlib>
-
-#include "vec.h"
-#include "cylinder.h"
-#include "boundarytgt.h"
 
 namespace dem {
 
