@@ -1,8 +1,8 @@
-/* $Id: QuadLog2D.cpp,v 1.7 2004-09-10 22:39:12 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.7.36.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (06/28/1997) */
 #include "QuadLog2D.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 using namespace Tahoe;
 

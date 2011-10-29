@@ -1,9 +1,9 @@
-/* $Id: QuadLog3D.cpp,v 1.9 2004-07-15 08:27:35 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.9.38.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (06/27/1997) */
 #include "QuadLog3D.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 using namespace Tahoe;
 

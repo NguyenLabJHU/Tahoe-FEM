@@ -10,7 +10,7 @@
 
 #include "Utils.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 // some constants
 

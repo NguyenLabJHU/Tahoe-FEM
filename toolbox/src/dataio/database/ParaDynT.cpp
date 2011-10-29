@@ -1,7 +1,7 @@
-/* $Id: ParaDynT.cpp,v 1.8 2003-11-04 01:21:10 paklein Exp $ */
+/* $Id: ParaDynT.cpp,v 1.8.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 #include "ParaDynT.h"
 
-#include <ctype.h>
+#include <cctype>
 
 #include "StringT.h"
 #include "iArray2DT.h"

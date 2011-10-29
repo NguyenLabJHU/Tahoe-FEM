@@ -1,8 +1,8 @@
-/* $Id: YoonAllen2DT.cpp,v 1.15 2004-07-15 08:26:03 paklein Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.15.38.1 2011-10-29 06:09:07 bcyansfn Exp $ */
 #include "YoonAllen2DT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ExceptionT.h"
 

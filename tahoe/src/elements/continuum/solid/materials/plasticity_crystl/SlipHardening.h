@@ -5,7 +5,7 @@
 #ifndef _SLIP_HARDENING_H_
 #define _SLIP_HARDENING_H_
 
-#include <iostream.h>
+#include <iostream>
 
 #include "NLCSolverWrapperPtr.h"
 #include "dArrayT.h"

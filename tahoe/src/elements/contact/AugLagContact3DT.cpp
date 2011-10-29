@@ -1,9 +1,9 @@
-/* $Id: AugLagContact3DT.cpp,v 1.7 2005-07-20 16:18:23 paklein Exp $ */
+/* $Id: AugLagContact3DT.cpp,v 1.7.10.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 #include "AugLagContact3DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "eIntegratorT.h"

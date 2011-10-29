@@ -1,7 +1,7 @@
-/* $Id: ParameterListT.cpp,v 1.21 2004-09-14 17:58:17 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.21.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 #include "ParameterListT.h"
 #include "ParameterInterfaceT.h"
-#include <string.h>
+#include <cstring>
 
 using namespace Tahoe;
 

@@ -1,8 +1,8 @@
-/* $Id: ModelManagerT.cpp,v 1.55 2005-07-20 06:48:32 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.55.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
-#include <ctype.h>
-#include <math.h>
+#include <cctype>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "nVariArray2DT.h"

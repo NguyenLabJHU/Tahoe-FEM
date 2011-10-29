@@ -1,10 +1,10 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.16 2005-07-20 16:17:56 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.16.10.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "eIntegratorT.h"

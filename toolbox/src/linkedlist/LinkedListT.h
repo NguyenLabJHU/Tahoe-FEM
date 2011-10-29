@@ -1,10 +1,11 @@
-/* $Id: LinkedListT.h,v 1.9 2005-04-30 21:15:05 paklein Exp $ */
+/* $Id: LinkedListT.h,v 1.9.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: paklein (02/07/1996) */
 #ifndef _LINKEDLIST_T_H_
 #define _LINKEDLIST_T_H_
 
 /* ANSI headers */
-#include <iostream.h>
+//#include <iostream.h>
+#include <iostream>
 
 #include "ExceptionT.h"
 

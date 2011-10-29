@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.30 2010-07-16 20:51:28 regueiro Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.30.2.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -6,7 +6,7 @@
 
 #include "ElementCardT.h"
 #include "StringT.h"
-#include <iostream.h>
+#include <iostream>
 
 using namespace Tahoe;
 

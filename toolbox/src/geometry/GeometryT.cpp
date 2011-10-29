@@ -1,8 +1,8 @@
-/* $Id: GeometryT.cpp,v 1.11 2006-03-28 18:51:51 regueiro Exp $ */
+/* $Id: GeometryT.cpp,v 1.11.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
  /* created: paklein (10/10/1999) */
  #include "GeometryT.h"
 
- #include <iostream.h>
+ #include <iostream>
  #include "ExceptionT.h"
  #include "ArrayT.h"
  

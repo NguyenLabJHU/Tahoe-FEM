@@ -1,11 +1,11 @@
-/* $Id: BondLengthsT.cpp,v 1.4 2003-11-21 22:46:41 paklein Exp $ */
+/* $Id: BondLengthsT.cpp,v 1.4.68.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: paklein (05/20/1997)                                          */
 /* Class to compute/manage all bond lengths and derivatives               */
 /* for the 2 unit cell, diamond cubic, modified Cauchy-Born,              */
 /* constitutive equations.                                                */
 
 #include "BondLengthsT.h"
-#include <math.h>
+#include <cmath>
 #include "dArrayT.h"
 
 /* internal parameters */

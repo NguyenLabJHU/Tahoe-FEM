@@ -1,10 +1,10 @@
-/* $Id: Contact2DT.cpp,v 1.10 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.10.38.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ofstreamT.h"
 #include "eIntegratorT.h"

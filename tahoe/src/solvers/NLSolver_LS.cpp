@@ -1,9 +1,9 @@
-/* $Id: NLSolver_LS.cpp,v 1.15 2004-09-09 23:54:55 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.15.36.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (08/18/1999) */
 #include "NLSolver_LS.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

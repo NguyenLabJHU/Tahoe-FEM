@@ -1,9 +1,9 @@
-/* $Id: PCGSolver_LS.cpp,v 1.25 2004-12-20 02:21:15 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.25.32.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

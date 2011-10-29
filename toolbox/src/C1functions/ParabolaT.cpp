@@ -1,8 +1,8 @@
-/* $Id: ParabolaT.cpp,v 1.9 2007-04-09 21:06:15 tdnguye Exp $ */
+/* $Id: ParabolaT.cpp,v 1.9.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "ParabolaT.h"
-#include <iostream.h>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

@@ -1,8 +1,8 @@
-/* $Id: SWDiamond100.cpp,v 1.8 2004-12-26 21:08:14 d-farrell2 Exp $ */
+/* $Id: SWDiamond100.cpp,v 1.8.30.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (08/25/1996) */
 #include "SWDiamond100.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 using namespace Tahoe;
 

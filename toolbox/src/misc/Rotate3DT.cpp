@@ -1,9 +1,9 @@
-/* $Id: Rotate3DT.cpp,v 1.5 2003-11-10 22:14:34 cjkimme Exp $ */
+/* $Id: Rotate3DT.cpp,v 1.5.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* This class provides the functionality to do 3D coordinate */
 /* transformations.                                          */
 
 #include "Rotate3DT.h"
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 
 #include "dArrayT.h"

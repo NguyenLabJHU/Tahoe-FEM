@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.22 2005-06-08 17:19:01 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.22.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -8,7 +8,7 @@
 #include "toolboxConstants.h"
 
 /* ANSI headers */
-#include <iostream.h>
+#include <iostream>
 #if defined(__JANUS__) && defined(__ROGUE_STL__)
 #include <istream>
 #include <ostream>

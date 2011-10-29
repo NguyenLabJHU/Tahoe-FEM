@@ -1,11 +1,11 @@
-/* $Id: SmallStrainAxiT.cpp,v 1.3 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SmallStrainAxiT.cpp,v 1.3.38.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 #include "SmallStrainAxiT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
 #include "ParameterContainerT.h"
 
-#include <math.h>
+#include <cmath>
 
 const double Pi = acos(-1.0);
 const int kRadialDirection = 0; /* the x direction is radial */

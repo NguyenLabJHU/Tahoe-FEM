@@ -1,10 +1,10 @@
-/* $Id: SpatialGridT.cpp,v 1.2 2004-11-17 23:36:27 paklein Exp $ */
+/* $Id: SpatialGridT.cpp,v 1.2.34.1 2011-10-29 06:09:10 bcyansfn Exp $ */
 #include "SpatialGridT.h"
 #include "dArray2DT.h"
 #include "iArrayT.h"
 #include "CommunicatorT.h"
 
-#include <float.h>
+#include <cfloat>
 
 using namespace Tahoe;
 

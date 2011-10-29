@@ -1,9 +1,9 @@
-/* $Id: iNLSolver_LS.cpp,v 1.17 2004-09-09 23:54:55 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.17.36.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (01/01/2001) */
 #include "iNLSolver_LS.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 
 #include "toolboxConstants.h"

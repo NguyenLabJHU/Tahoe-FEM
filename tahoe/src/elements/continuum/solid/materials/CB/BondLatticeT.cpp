@@ -1,7 +1,7 @@
-/* $Id: BondLatticeT.cpp,v 1.9 2009-06-06 17:28:49 hspark Exp $ */
+/* $Id: BondLatticeT.cpp,v 1.9.2.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (01/07/1997) */
 #include "BondLatticeT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

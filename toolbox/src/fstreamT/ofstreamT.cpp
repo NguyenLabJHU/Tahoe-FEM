@@ -1,11 +1,11 @@
-/* $Id: ofstreamT.cpp,v 1.5 2002-10-20 22:39:00 paklein Exp $ */
+/* $Id: ofstreamT.cpp,v 1.5.12.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: paklein (12/30/2000) */
 
 #include "ofstreamT.h"
 
 /* ANSI */
-#include <iostream.h>
-#include <string.h>
+#include <iostream>
+#include <cstring>
 
 #include "fstreamT.h"
 #include "Environment.h"

@@ -1,13 +1,13 @@
-/* $Id: RGSplitT.cpp,v 1.12 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: RGSplitT.cpp,v 1.12.2.1 2011-10-29 06:09:10 bcyansfn Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
 
 #include "ifstreamT.h"
 #include "ExceptionT.h"
-#include <math.h>
-#include <iostream.h>
-#include <stdlib.h>
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
 
 using namespace Tahoe;
 

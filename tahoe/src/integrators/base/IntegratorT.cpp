@@ -1,8 +1,8 @@
-/* $Id: IntegratorT.cpp,v 1.6 2003-05-20 10:26:13 paklein Exp $ */
+/* $Id: IntegratorT.cpp,v 1.6.84.1 2011-10-29 06:09:10 bcyansfn Exp $ */
 /* created: paklein (10/14/1996) */
 #include "IntegratorT.h"
 #include "dArrayT.h"
-#include <iostream.h>
+#include <iostream>
 
 using namespace Tahoe;
 

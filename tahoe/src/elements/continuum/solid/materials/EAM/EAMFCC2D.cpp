@@ -1,11 +1,11 @@
-/* $Id: EAMFCC2D.cpp,v 1.12 2005-11-08 04:10:44 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.12.6.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
 #include "EAMFCC3DSym.h"
 #include "dMatrixT.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

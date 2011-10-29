@@ -1,9 +1,9 @@
-/* $Id: Traction_CardT.cpp,v 1.9 2004-10-20 21:20:32 paklein Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.9.34.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 
 #include "toolboxConstants.h"
 #include "dArray2DT.h"

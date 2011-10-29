@@ -1,9 +1,9 @@
-/* $Id: VWPotentialT.cpp,v 1.5 2010-06-24 13:26:04 tdnguye Exp $ */
+/* $Id: VWPotentialT.cpp,v 1.5.2.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 #include "VWPotentialT.h"
 #include "ExceptionT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 
 using namespace Tahoe;

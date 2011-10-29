@@ -1,9 +1,9 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.31 2005-07-14 07:10:18 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.31.10.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 #include "SimoFiniteStrainT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "SolidMaterialT.h"

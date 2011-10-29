@@ -1,8 +1,8 @@
-/* $Id: PTHT3BodyT.cpp,v 1.4 2004-07-15 08:28:36 paklein Exp $ */
+/* $Id: PTHT3BodyT.cpp,v 1.4.38.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: paklein (10/11/1997) */
 #include "PTHT3BodyT.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "dMatrixT.h"
 #include "iArray2DT.h"

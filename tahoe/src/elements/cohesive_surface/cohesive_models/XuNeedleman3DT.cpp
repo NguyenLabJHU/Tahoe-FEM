@@ -1,9 +1,9 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.21 2004-07-15 08:26:03 paklein Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.21.38.1 2011-10-29 06:09:07 bcyansfn Exp $ */
 /* created: paklein (06/23/1999)*/
 #include "XuNeedleman3DT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ExceptionT.h"
 using namespace Tahoe;

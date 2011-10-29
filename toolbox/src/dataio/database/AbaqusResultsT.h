@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.12 2002-07-02 19:57:00 cjkimme Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.12.14.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -12,7 +12,7 @@
 #define _ABAQUSRESULTS_T_H_
 
 /* direct members */
-#include <fstream.h>
+#include <fstream>
 #include "ifstreamT.h"
 #include "iArrayT.h"
 #include "dArrayT.h"

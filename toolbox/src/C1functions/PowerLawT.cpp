@@ -1,7 +1,7 @@
-/* $Id: PowerLawT.cpp,v 1.2 2005-03-11 20:26:05 paklein Exp $ */
+/* $Id: PowerLawT.cpp,v 1.2.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 #include "PowerLawT.h"
 #include "dArrayT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

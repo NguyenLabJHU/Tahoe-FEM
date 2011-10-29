@@ -1,11 +1,11 @@
-/* $Id: PressureBCT.cpp,v 1.8 2010-09-29 21:21:01 tdnguye Exp $ */
+/* $Id: PressureBCT.cpp,v 1.8.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 // created : rjones 2006
 #include "PressureBCT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <ctype.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <cctype>
 
 #include "ofstreamT.h"
 #include "GlobalT.h"

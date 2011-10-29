@@ -1,8 +1,8 @@
-/* $Id: dMatrixT.cpp,v 1.21 2006-10-20 19:57:03 tdnguye Exp $ */
+/* $Id: dMatrixT.cpp,v 1.21.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (05/24/1996) */
 #include "dMatrixT.h"
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 #include "toolboxConstants.h"
 #include "dSymMatrixT.h"
 

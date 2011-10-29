@@ -1,8 +1,8 @@
-/* $Id: LatLongPtsT.cpp,v 1.7 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: LatLongPtsT.cpp,v 1.7.2.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: paklein (10/31/1997) */
 #include "LatLongPtsT.h"
 
-#include <math.h>
+#include <cmath>
 #include "ExceptionT.h"
 //#include "C1FunctionT.h"
 using namespace Tahoe;

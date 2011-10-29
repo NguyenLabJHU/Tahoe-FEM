@@ -1,10 +1,10 @@
-/* $Id: BCJHypoIsoDamageYC2D.h,v 1.6 2004-09-10 22:39:48 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC2D.h,v 1.6.36.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 #ifndef _BCJ_HYPO_ISO_DAMAGE_YC_2D_H_
 #define _BCJ_HYPO_ISO_DAMAGE_YC_2D_H_
 
 #include "BCJHypoIsoDamageYC3D.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 

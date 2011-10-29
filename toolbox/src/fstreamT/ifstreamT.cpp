@@ -1,11 +1,11 @@
-/* $Id: ifstreamT.cpp,v 1.28 2005-04-30 21:15:01 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.28.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: paklein (03/03/1999) */
 #include "ifstreamT.h"
 
 /* ANSI */
-#include <iostream.h>
-#include <string.h>
-#include <ctype.h>
+#include <iostream>
+#include <cstring>
+#include <cctype>
 
 #include "fstreamT.h"
 

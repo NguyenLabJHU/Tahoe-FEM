@@ -1,14 +1,14 @@
-/* $Id: SLUMatrix.cpp,v 1.13 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.13.22.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: rbridson (06/30/2000) */
 #include "SLUMatrix.h"
 
 /* library support */
 #ifdef __SUPERLU__
 
-#include <stdlib.h>
-#include <string.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <fstream>
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

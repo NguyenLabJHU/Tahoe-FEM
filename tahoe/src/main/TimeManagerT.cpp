@@ -1,10 +1,10 @@
-/* $Id: TimeManagerT.cpp,v 1.26 2009-04-23 15:01:09 tdnguye Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.26.2.1 2011-10-29 06:09:10 bcyansfn Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

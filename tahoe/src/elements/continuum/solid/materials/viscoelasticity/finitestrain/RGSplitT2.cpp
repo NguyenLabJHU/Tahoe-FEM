@@ -1,4 +1,4 @@
-/* $Id: RGSplitT2.cpp,v 1.7 2010-06-24 15:21:15 tdnguye Exp $ */
+/* $Id: RGSplitT2.cpp,v 1.7.2.1 2011-10-29 06:09:10 bcyansfn Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT2.h"
@@ -6,9 +6,9 @@
 
 #include "ifstreamT.h"
 #include "ExceptionT.h"
-#include <math.h>
-#include <iostream.h>
-#include <stdlib.h>
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
 
 #include "MooneyRivlin.h"
 #include "NeoHookean.h"

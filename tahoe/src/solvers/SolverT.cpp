@@ -1,9 +1,9 @@
-/* $Id: SolverT.cpp,v 1.43 2007-11-09 15:45:31 regueiro Exp $ */
+/* $Id: SolverT.cpp,v 1.43.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
-#include <iostream.h>
-#include <string.h>
+#include <iostream>
+#include <cstring>
 
 #include "ofstreamT.h"
 #include "FEManagerT.h"

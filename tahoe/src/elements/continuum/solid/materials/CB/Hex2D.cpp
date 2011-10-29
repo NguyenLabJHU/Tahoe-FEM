@@ -1,12 +1,12 @@
-/* $Id: Hex2D.cpp,v 1.8 2005-11-08 04:09:37 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.8.6.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
 #include "HexLattice2DT.h"
 #include "MaterialSupportT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 /* pair properties */
 #ifdef PARTICLE_ELEMENT

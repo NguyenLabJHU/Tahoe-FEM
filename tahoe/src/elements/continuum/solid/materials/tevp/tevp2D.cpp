@@ -1,9 +1,9 @@
-/* $Id: tevp2D.cpp,v 1.31 2004-07-15 08:29:25 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.31.38.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: Harold Park (04/04/2001) */
 #include "tevp2D.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "FSMatSupportT.h"

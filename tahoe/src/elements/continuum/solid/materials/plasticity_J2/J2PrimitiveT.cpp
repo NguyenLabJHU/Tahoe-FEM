@@ -1,8 +1,8 @@
-/* $Id: J2PrimitiveT.cpp,v 1.5 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2PrimitiveT.cpp,v 1.5.38.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: paklein (02/17/1997) */
 #include "J2PrimitiveT.h"
 #include "dSymMatrixT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

@@ -1,7 +1,7 @@
-/* $Id: RandomNumberT.cpp,v 1.7 2005-06-01 20:11:35 cjkimme Exp $ */
+/* $Id: RandomNumberT.cpp,v 1.7.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 #include "RandomNumberT.h"
 #include "ifstreamT.h"
-#include <math.h>
+#include <cmath>
 #include "dArrayT.h"
 #include "dArray2DT.h"
 

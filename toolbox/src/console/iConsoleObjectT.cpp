@@ -1,7 +1,7 @@
-/* $Id: iConsoleObjectT.cpp,v 1.9 2003-11-10 22:14:15 cjkimme Exp $ */
+/* $Id: iConsoleObjectT.cpp,v 1.9.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: paklein (12/21/2000) */
 #include "iConsoleObjectT.h"
-#include <ctype.h>
+#include <cctype>
 
 using namespace Tahoe;
 

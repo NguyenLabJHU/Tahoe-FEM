@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.3 2007-08-14 16:22:44 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.3.2.1 2011-10-29 06:09:10 bcyansfn Exp $ */
 
 #include "FEManagerT_THK.h"
 #if defined(BRIDGING_ELEMENT)
@@ -17,9 +17,9 @@
 #include "ParameterUtils.h"
 #include "ParameterContainerT.h"
 
-#include <iostream.h>
-#include <fstream.h>
-#include <math.h>
+#include <iostream>
+#include <fstream>
+#include <cmath>
 
 /* File related to calculation using the Wagner-Karpov-Liu Bridging Scale Method
 * If you make use of this code, please cite the following publications (they are also handy references for the method and implementation):

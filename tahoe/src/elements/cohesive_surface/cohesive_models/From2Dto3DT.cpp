@@ -1,9 +1,9 @@
-/* $Id: From2Dto3DT.cpp,v 1.5 2004-07-15 08:26:02 paklein Exp $ */
+/* $Id: From2Dto3DT.cpp,v 1.5.38.1 2011-10-29 06:09:07 bcyansfn Exp $ */
 /* created: paklein (06/23/1999)*/
 #include "From2Dto3DT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ExceptionT.h"
 

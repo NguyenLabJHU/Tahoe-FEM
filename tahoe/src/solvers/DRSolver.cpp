@@ -1,9 +1,9 @@
-/* $Id: DRSolver.cpp,v 1.9 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.9.66.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 #include "DRSolver.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

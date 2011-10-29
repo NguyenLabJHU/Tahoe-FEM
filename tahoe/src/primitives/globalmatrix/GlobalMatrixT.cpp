@@ -1,9 +1,9 @@
-/* $Id: GlobalMatrixT.cpp,v 1.26 2006-11-25 22:05:17 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.26.4.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 #include "StringT.h"

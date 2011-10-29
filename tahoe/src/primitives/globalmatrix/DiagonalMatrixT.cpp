@@ -1,8 +1,8 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.21 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.21.22.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 #include "toolboxConstants.h"
 #include "iArrayT.h"
 #include "ElementMatrixT.h"

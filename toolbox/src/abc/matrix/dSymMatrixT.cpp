@@ -1,9 +1,9 @@
-/* $Id: dSymMatrixT.cpp,v 1.35 2005-12-23 03:44:33 kyonten Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.35.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "dMatrixT.h"
 

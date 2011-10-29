@@ -1,8 +1,8 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.7 2004-07-15 08:27:22 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.cpp,v 1.7.38.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (02/17/2001) */
 #include "QuadLogOgden3DT.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

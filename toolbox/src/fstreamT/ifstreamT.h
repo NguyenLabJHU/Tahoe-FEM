@@ -1,12 +1,12 @@
-/* $Id: ifstreamT.h,v 1.14 2004-06-17 06:37:52 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.14.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: paklein (03/03/1999) */
 #ifndef _IFSTREAM_T_H_
 #define _IFSTREAM_T_H_
 
 /* base class */
 #include "fstreamT.h"
-#include <fstream.h>
-#include <stddef.h>
+#include <fstream>
+#include <cstddef>
 
 #include "ios_fwd_decl.h"
 

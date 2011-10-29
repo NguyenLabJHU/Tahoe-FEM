@@ -1,8 +1,8 @@
-/* $Id: LAdMatrixT.cpp,v 1.9 2005-07-29 03:09:33 paklein Exp $ */
+/* $Id: LAdMatrixT.cpp,v 1.9.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* Matrix2D with some linear algebra functions                            */
 #include "LAdMatrixT.h"
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 
