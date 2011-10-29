@@ -1,13 +1,13 @@
-/* $Id: PenaltyContactDrag2DT.cpp,v 1.8 2005-07-20 06:54:46 paklein Exp $ */
+/* $Id: PenaltyContactDrag2DT.cpp,v 1.8.10.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag2DT.h"
 
 #include "eIntegratorT.h"
 #include "ModelManagerT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 using namespace Tahoe;
 

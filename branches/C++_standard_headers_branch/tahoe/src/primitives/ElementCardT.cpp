@@ -1,8 +1,8 @@
-/* $Id: ElementCardT.cpp,v 1.16 2008-07-14 18:23:19 lxmota Exp $ */
+/* $Id: ElementCardT.cpp,v 1.16.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementCardT.h"
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 

@@ -12,7 +12,7 @@
 
 #include "AbaqusINPT.h"
 #include "ifstreamT.h"
-#include <ctype.h>
+#include <cctype>
 #include "iAutoArrayT.h"
 #include "iArray2DT.h"
 #include "GeometryT.h"

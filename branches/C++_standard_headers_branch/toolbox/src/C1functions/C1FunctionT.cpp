@@ -1,8 +1,8 @@
-/* $Id: C1FunctionT.cpp,v 1.7 2004-07-20 23:23:33 rdorgan Exp $ */
+/* $Id: C1FunctionT.cpp,v 1.7.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (12/04/1996) */
 #include "C1FunctionT.h"
 #include "dArrayT.h"
-#include <float.h>
+#include <cfloat>
 
 using namespace Tahoe;
 

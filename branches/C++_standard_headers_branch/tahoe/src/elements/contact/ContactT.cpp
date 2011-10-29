@@ -1,10 +1,10 @@
-/* $Id: ContactT.cpp,v 1.25 2008-07-14 17:41:12 lxmota Exp $ */
+/* $Id: ContactT.cpp,v 1.25.2.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ModelManagerT.h"
 #include "ofstreamT.h"

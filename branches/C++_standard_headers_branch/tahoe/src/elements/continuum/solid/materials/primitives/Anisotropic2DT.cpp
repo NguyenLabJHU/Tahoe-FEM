@@ -1,8 +1,8 @@
-/* $Id: Anisotropic2DT.cpp,v 1.6 2004-07-15 08:29:19 paklein Exp $ */
+/* $Id: Anisotropic2DT.cpp,v 1.6.38.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: paklein (06/11/1997) */
 #include "Anisotropic2DT.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "ifstreamT.h"
 #include "Rotate2DT.h"
 

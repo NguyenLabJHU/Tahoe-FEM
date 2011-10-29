@@ -1,8 +1,8 @@
-/* $Id: InvLangevin.cpp,v 1.2 2007-03-10 01:18:50 tdnguye Exp $ */
+/* $Id: InvLangevin.cpp,v 1.2.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 
 #include "InvLangevin.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

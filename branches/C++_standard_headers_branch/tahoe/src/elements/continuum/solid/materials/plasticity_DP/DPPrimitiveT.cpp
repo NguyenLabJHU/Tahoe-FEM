@@ -1,9 +1,9 @@
-/* $Id: DPPrimitiveT.cpp,v 1.10 2004-07-15 08:28:48 paklein Exp $ */
+/* $Id: DPPrimitiveT.cpp,v 1.10.38.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPPrimitiveT.h"
 
 #include "dSymMatrixT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

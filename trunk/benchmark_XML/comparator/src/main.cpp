@@ -1,7 +1,7 @@
-/* $Id: main.cpp,v 1.6 2008-12-12 17:50:43 lxmota Exp $ */
+/* $Id: main.cpp,v 1.7 2011-10-29 06:09:07 bcyansfn Exp $ */
 /* created: paklein (05/22/1996) */
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 
 #include "Environment.h"
 

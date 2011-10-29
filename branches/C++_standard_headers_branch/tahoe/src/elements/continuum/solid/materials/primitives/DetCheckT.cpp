@@ -1,7 +1,7 @@
-/* $Id: DetCheckT.cpp,v 1.57 2008-12-12 16:44:03 regueiro Exp $ */
+/* $Id: DetCheckT.cpp,v 1.57.2.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
-#include <math.h>
+#include <cmath>
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "dMatrixEXT.h"

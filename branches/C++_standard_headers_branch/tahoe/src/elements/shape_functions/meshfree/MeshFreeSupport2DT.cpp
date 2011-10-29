@@ -1,9 +1,9 @@
-/* $Id: MeshFreeSupport2DT.cpp,v 1.11 2004-07-15 08:29:59 paklein Exp $ */
+/* $Id: MeshFreeSupport2DT.cpp,v 1.11.38.1 2011-10-29 06:09:10 bcyansfn Exp $ */
 /* created: paklein (09/10/1998) */
 #include "MeshFreeSupport2DT.h"
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "ExceptionT.h"
 #include "toolboxConstants.h"

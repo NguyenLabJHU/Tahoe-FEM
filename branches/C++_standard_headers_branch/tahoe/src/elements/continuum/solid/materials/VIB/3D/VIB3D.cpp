@@ -1,9 +1,9 @@
-/* $Id: VIB3D.cpp,v 1.12 2005-03-16 10:20:55 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.12.26.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

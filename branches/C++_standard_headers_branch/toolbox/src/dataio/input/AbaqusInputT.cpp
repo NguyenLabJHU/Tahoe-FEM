@@ -1,9 +1,9 @@
-/* $Id: AbaqusInputT.cpp,v 1.14 2002-10-20 22:36:54 paklein Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.14.12.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #include "AbaqusInputT.h"
 #include "ios_fwd_decl.h"
-#include <fstream.h>
+#include <fstream>
 #include "dArray2DT.h"
 #include "dArrayT.h"
 #include "iAutoArrayT.h"

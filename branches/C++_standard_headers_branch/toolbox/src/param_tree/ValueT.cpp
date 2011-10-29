@@ -1,7 +1,7 @@
-/* $Id: ValueT.cpp,v 1.14 2004-07-20 06:12:38 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.14.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 #include "ValueT.h"
-#include <stdlib.h>
-#include <ctype.h>
+#include <cstdlib>
+#include <cctype>
 
 /* exceptions strings */
 static const char* type_names[7] = {

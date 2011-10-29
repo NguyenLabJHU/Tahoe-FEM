@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.28 2005-07-14 00:53:06 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.28.10.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -13,8 +13,8 @@
 #else
 #include <strstream.h>
 #endif
-#include <string.h>
-#include <ctype.h>
+#include <cstring>
+#include <cctype>
 
 using namespace Tahoe;
 

@@ -1,4 +1,4 @@
-/* $Id: TextOutputT.h,v 1.4 2005-06-05 06:22:00 paklein Exp $ */
+/* $Id: TextOutputT.h,v 1.4.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: sawimme (05/20/1999) */
 #ifndef _TEXT_OUTPUT_T_H_
 #define _TEXT_OUTPUT_T_H_
@@ -7,7 +7,7 @@
 #include "OutputBaseT.h"
 
 /* direct members */
-#include <fstream.h>
+#include <fstream>
 
 namespace Tahoe {
 

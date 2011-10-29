@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.83 2007-03-14 18:22:12 regueiro Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.83.4.1 2011-10-29 06:09:07 bcyansfn Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -6,9 +6,9 @@
 #include "DevelopmentElementsConfig.h"
 #endif
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 
 #include "toolboxConstants.h"

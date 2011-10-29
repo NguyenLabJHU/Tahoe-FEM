@@ -1,7 +1,7 @@
-/* $Id: LinearT.cpp,v 1.9 2004-06-09 06:23:51 paklein Exp $ */
+/* $Id: LinearT.cpp,v 1.9.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (03/25/1999) */
 #include "LinearT.h"
-#include <iostream.h>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

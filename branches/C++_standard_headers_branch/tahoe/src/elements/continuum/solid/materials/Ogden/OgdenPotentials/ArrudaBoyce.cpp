@@ -1,11 +1,11 @@
-/* $Id: ArrudaBoyce.cpp,v 1.3 2010-10-20 02:57:12 tdnguye Exp $ */
+/* $Id: ArrudaBoyce.cpp,v 1.3.2.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created:   TDN (7/2007) */
 /* Arruda, E.M and Boyce, M.C., JMPS, v41, pp. 389-412*/
 #include "ArrudaBoyce.h"
 #include "ExceptionT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 
 using namespace Tahoe;

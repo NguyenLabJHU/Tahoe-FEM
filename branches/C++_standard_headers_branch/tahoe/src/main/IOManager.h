@@ -1,11 +1,11 @@
-/* $Id: IOManager.h,v 1.22 2007-01-18 06:24:51 paklein Exp $ */
+/* $Id: IOManager.h,v 1.22.4.1 2011-10-29 06:09:10 bcyansfn Exp $ */
 /* created: sawimme (10/12/1999) */
 #ifndef _IOMANAGER_H_
 #define _IOMANAGER_H_
 
 /* language support */
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 
 /* direct members */
 #include "StringT.h"

@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.13 2004-07-01 16:39:43 paklein Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.13.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "EnSightOutputT.h"
@@ -8,7 +8,7 @@
 #include "iArray2DT.h"
 #include "OutputSetT.h"
 #include "AutoArrayT.h"
-#include <fstream.h>
+#include <fstream>
 
 
 using namespace Tahoe;

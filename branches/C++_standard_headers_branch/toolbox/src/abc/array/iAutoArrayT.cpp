@@ -1,9 +1,9 @@
-/* $Id: iAutoArrayT.cpp,v 1.9 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: iAutoArrayT.cpp,v 1.9.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (02/08/1999) */
 #include "iAutoArrayT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 
 #include "toolboxConstants.h"
 

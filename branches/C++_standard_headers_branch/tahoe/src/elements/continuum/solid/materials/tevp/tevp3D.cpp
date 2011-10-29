@@ -1,8 +1,8 @@
-/* $Id: tevp3D.cpp,v 1.17 2004-07-15 08:29:25 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.17.38.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #include "tevp3D.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "FSMatSupportT.h"

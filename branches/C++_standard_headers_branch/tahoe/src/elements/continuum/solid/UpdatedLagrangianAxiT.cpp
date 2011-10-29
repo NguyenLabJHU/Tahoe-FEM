@@ -1,9 +1,9 @@
-/* $Id: UpdatedLagrangianAxiT.cpp,v 1.3 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: UpdatedLagrangianAxiT.cpp,v 1.3.38.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 #include "UpdatedLagrangianAxiT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"

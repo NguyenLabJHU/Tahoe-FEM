@@ -1,7 +1,7 @@
-/* $Id: HexahedronT.cpp,v 1.17 2008-12-12 17:45:09 lxmota Exp $ */
+/* $Id: HexahedronT.cpp,v 1.17.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
-#include <math.h>
+#include <cmath>
 #include "ExceptionT.h"
 #include "iArrayT.h"
 #include "dArrayT.h"

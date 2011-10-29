@@ -1,7 +1,7 @@
-/* $Id: EAM_particle.cpp,v 1.5 2007-07-05 00:10:54 hspark Exp $ */
+/* $Id: EAM_particle.cpp,v 1.5.4.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
-#include <iostream.h> //TEMP
+#include <iostream> //TEMP
 #include "CBLatticeT.h"
 
 /* EAM property types */

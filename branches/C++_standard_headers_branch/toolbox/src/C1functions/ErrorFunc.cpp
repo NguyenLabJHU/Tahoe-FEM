@@ -1,8 +1,8 @@
-/* $Id: ErrorFunc.cpp,v 1.7 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: ErrorFunc.cpp,v 1.7.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 
 #include "ErrorFunc.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 #include "Gamma.h"

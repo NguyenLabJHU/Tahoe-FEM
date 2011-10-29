@@ -1,9 +1,9 @@
-/* $Id: J2_C0HardeningT.cpp,v 1.3 2005-04-11 19:41:18 thao Exp $ */
+/* $Id: J2_C0HardeningT.cpp,v 1.3.22.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 #include "J2_C0HardeningT.h"
 
 #include "dSymMatrixT.h"
 #include "iArrayT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

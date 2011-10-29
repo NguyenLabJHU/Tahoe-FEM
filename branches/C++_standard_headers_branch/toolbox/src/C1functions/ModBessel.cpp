@@ -1,9 +1,9 @@
-/* $Id: ModBessel.cpp,v 1.10 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: ModBessel.cpp,v 1.10.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: dzeigle (4/18/2002) */
 
 #include "ModBessel.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

@@ -1,8 +1,8 @@
-/* $Id: LinearDecreaseT.cpp,v 1.5 2004-03-16 05:37:12 paklein Exp $ */
+/* $Id: LinearDecreaseT.cpp,v 1.5.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "LinearDecreaseT.h"
-#include <iostream.h>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

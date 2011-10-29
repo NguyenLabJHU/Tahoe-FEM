@@ -1,7 +1,7 @@
-/* $Id: FCCPtsT.cpp,v 1.5 2004-07-15 08:28:09 paklein Exp $ */
+/* $Id: FCCPtsT.cpp,v 1.5.38.1 2011-10-29 06:09:09 bcyansfn Exp $ */
 /* created: paklein (03/26/1999) */
 #include "FCCPtsT.h"
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 

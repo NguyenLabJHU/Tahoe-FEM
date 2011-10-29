@@ -1,8 +1,8 @@
-/* $Id: LinearExponentialT.cpp,v 1.6 2004-07-20 23:23:33 rdorgan Exp $ */
+/* $Id: LinearExponentialT.cpp,v 1.6.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (10/30/1997) */
 #include "LinearExponentialT.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

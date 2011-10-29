@@ -1,10 +1,10 @@
-/* $Id: PriorityQueueT.cpp,v 1.4 2002-10-20 22:39:01 paklein Exp $ */
+/* $Id: PriorityQueueT.cpp,v 1.4.10.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: paklein (8/06/1996) */
 
 #include "PriorityQueueT.h"
-#include <math.h>
-#include <string.h>
-#include <limits.h>
+#include <cmath>
+#include <cstring>
+#include <climits>
 #include "iArrayT.h"
 
 /* priority modes */

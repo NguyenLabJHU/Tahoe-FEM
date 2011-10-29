@@ -1,8 +1,8 @@
-/* $Id: IsoVIB2D.cpp,v 1.10 2004-07-15 08:27:45 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.10.38.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"

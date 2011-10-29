@@ -1,10 +1,10 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.17 2005-07-20 16:17:56 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.17.10.1 2011-10-29 06:09:08 bcyansfn Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContact2DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "eIntegratorT.h"

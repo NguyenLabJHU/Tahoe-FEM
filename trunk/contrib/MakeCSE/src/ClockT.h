@@ -3,9 +3,9 @@
 #ifndef _SAWCLOCK_H_
 #define _SAWCLOCK_H_
 
-#include <time.h>
+#include <ctime>
 #include "ios_fwd_decl.h"
-#include <iomanip.h>
+#include <iomanip>
 #include "ArrayT.h"
 #include "StringT.h"
 

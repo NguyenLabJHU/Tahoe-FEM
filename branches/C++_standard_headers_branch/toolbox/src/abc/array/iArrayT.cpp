@@ -1,8 +1,8 @@
-/* $Id: iArrayT.cpp,v 1.18 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.18.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 /* created: paklein (08/10/1996) */
 #include "iArrayT.h"
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 #include "toolboxConstants.h"
 
 using namespace Tahoe;

@@ -5,7 +5,7 @@
 #ifndef _SLIP_GEOMETRY_H_
 #define _SLIP_GEOMETRY_H_
 
-#include <iostream.h>
+#include <iostream>
 
 #include "ArrayT.h"
 #include "dArrayT.h"

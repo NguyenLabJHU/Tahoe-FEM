@@ -1,10 +1,10 @@
-/* $Id: TensorT.h,v 1.4 2005-04-30 21:14:36 paklein Exp $ */
+/* $Id: TensorT.h,v 1.4.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created paklein (05/19/97) */
 #ifndef _TENSORBASET_H_
 #define _TENSORBASET_H_
 
 /* ANSI headers */
-#include <iostream.h>
+#include <iostream>
 
 /* base class */
 #include "nArrayT.h"

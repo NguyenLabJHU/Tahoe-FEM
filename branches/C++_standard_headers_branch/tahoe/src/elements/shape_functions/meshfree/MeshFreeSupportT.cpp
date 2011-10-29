@@ -1,9 +1,9 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.35 2005-07-08 23:35:43 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.35.10.1 2011-10-29 06:09:10 bcyansfn Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "dArray2DT.h"

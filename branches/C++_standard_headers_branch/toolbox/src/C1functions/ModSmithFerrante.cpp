@@ -1,10 +1,10 @@
-/* $Id: ModSmithFerrante.cpp,v 1.6 2004-04-27 07:22:19 paklein Exp $ */
+/* $Id: ModSmithFerrante.cpp,v 1.6.2.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 
 /* Smith Ferrante modified to have a linear branch */
 
 #include "ModSmithFerrante.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

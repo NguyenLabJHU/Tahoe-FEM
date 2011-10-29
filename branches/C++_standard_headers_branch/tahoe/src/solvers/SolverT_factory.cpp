@@ -1,6 +1,6 @@
-/* $Id: SolverT_factory.cpp,v 1.2 2004-07-15 08:31:51 paklein Exp $ */
+/* $Id: SolverT_factory.cpp,v 1.2.38.1 2011-10-29 06:09:11 bcyansfn Exp $ */
 #include "SolverT.h"
-#include <string.h>
+#include <cstring>
 
 /* subclasses supporting the factory method */
 #include "LinearSolver.h"

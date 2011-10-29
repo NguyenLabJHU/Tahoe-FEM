@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.19 2005-04-30 21:14:51 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.19.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
 /* created: paklein (12/21/2000) */
 #include "iConsoleBaseT.h"
 #include "CommandSpecT.h"
@@ -11,8 +11,8 @@
 #else
 #include <strstream.h>
 #endif
-#include <iomanip.h>
-#include <ctype.h>
+#include <iomanip>
+#include <cctype>
 
 using namespace Tahoe;
 
