@@ -1,9 +1,9 @@
-/* $Id: ComparatorT.cpp,v 1.27 2005-07-01 07:14:37 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.28 2011-10-29 06:09:07 bcyansfn Exp $ */
 #include "ComparatorT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <time.h>
+#include <iostream>
+#include <iomanip>
+#include <ctime>
 #if defined (__GCC_3__) || defined (__GCC_4__)
 #include <strstream>
 #else
