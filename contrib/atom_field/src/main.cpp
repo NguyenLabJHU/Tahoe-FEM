@@ -1,5 +1,5 @@
-/* $Id: main.cpp,v 1.2 2002-11-15 01:59:45 paklein Exp $ */
-#include <iostream.h>
+/* $Id: main.cpp,v 1.3 2011-10-30 06:26:09 bcyansfn Exp $ */
+#include <iostream>
 #include "fstreamT.h"
 
 /* files needed for MLS */

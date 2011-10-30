@@ -1,11 +1,11 @@
-/* $Id: VTKConsoleT.cpp,v 1.67 2004-11-03 16:46:27 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.68 2011-10-30 06:26:10 bcyansfn Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
 //#include <iostream.h>
 //#include <iomanip.h>
 //#include <cstdio>
-#include <time.h>
+#include <ctime>
 
 /* tahoe toolbox headers */
 #include "ExceptionCodes.h"

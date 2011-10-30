@@ -1,4 +1,4 @@
-#include <iostream.h>
+#include <iostream>
 
 #include "fstreamT.h"
 #include "StringT.h"

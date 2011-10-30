@@ -1,11 +1,11 @@
-/* $Id: VTKBodyDataT.cpp,v 1.34 2003-11-25 19:54:45 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.35 2011-10-30 06:26:10 bcyansfn Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <float.h>
+#include <iostream>
+#include <iomanip>
+#include <cfloat>
 
 #include "vtkIdTypeArray.h"
 #include "vtkPoints.h"
