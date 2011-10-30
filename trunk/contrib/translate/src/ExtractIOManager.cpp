@@ -1,9 +1,9 @@
-/* $Id: ExtractIOManager.cpp,v 1.17 2004-12-13 23:47:08 paklein Exp $ */
+/* $Id: ExtractIOManager.cpp,v 1.18 2011-10-30 06:26:10 bcyansfn Exp $ */
 #include "ExtractIOManager.h"
 
 #include "ExceptionT.h"
 #include "TecPlotT.h"
-#include <stdio.h>
+#include <cstdio>
 
 using namespace Tahoe;
 

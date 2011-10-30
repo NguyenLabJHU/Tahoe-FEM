@@ -1,10 +1,10 @@
-/* $Id: D3MeshFreeSupportT.cpp,v 1.8 2005-12-23 03:26:24 kyonten Exp $ */
+/* $Id: D3MeshFreeSupportT.cpp,v 1.8.6.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D3MeshFreeSupportT.h"
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "ExceptionT.h"
 #include "toolboxConstants.h"

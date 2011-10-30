@@ -1,8 +1,8 @@
-/* $Id: FrontNodeT.cpp,v 1.9 2003-11-21 22:41:51 paklein Exp $ */
+/* $Id: FrontNodeT.cpp,v 1.9.2.1 2011-10-30 06:26:12 bcyansfn Exp $ */
 /* created: paklein (03/19/1999) */
 #include "FrontNodeT.h"
 
-#include <math.h>
+#include <cmath>
 #include "dMatrixT.h"
 
 using namespace Tahoe;

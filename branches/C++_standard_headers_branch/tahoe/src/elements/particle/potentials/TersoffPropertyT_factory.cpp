@@ -1,6 +1,6 @@
-/* $Id: TersoffPropertyT_factory.cpp,v 1.2 2006-07-25 16:29:47 d-farrell2 Exp $ */
+/* $Id: TersoffPropertyT_factory.cpp,v 1.2.4.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 #include "TersoffPropertyT.h"
-#include <string.h>
+#include <cstring>
 
 /* subclasses supporting the factory method */
 #include "TersoffPairT.h"

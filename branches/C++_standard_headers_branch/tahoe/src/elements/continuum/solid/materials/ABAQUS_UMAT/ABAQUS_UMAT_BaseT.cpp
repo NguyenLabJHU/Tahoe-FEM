@@ -1,11 +1,11 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.21 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.21.2.1 2011-10-30 06:26:10 bcyansfn Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
 #ifdef __F2C__
 
-#include <ctype.h>
-#include <float.h>
+#include <cctype>
+#include <cfloat>
 
 #include "ContinuumElementT.h" //needed for ip coordinates
 #include "SpectralDecompT.h"

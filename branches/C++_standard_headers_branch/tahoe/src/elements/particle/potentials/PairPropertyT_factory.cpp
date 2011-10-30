@@ -1,6 +1,6 @@
-/* $Id: PairPropertyT_factory.cpp,v 1.2 2004-07-15 08:29:49 paklein Exp $ */
+/* $Id: PairPropertyT_factory.cpp,v 1.2.38.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 #include "PairPropertyT.h"
-#include <string.h>
+#include <cstring>
 
 /* subclasses supporting the factory method */
 #include "HarmonicPairT.h"

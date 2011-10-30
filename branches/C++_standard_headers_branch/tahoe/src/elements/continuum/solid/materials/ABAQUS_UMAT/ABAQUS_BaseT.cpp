@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.cpp,v 1.8 2005-08-04 07:04:46 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.cpp,v 1.8.6.1 2011-10-30 06:26:10 bcyansfn Exp $ */
 #include "ABAQUS_BaseT.h"
 
 #ifdef __F2C__
@@ -8,7 +8,7 @@
 #include "dSymMatrixT.h"
 #include "ifstreamT.h"
 
-#include <ctype.h>
+#include <cctype>
 
 using namespace Tahoe;
 

@@ -1,6 +1,6 @@
-/* $Id: NoseHooverT.cpp,v 1.9 2005-04-12 17:10:11 cjkimme Exp $ */
+/* $Id: NoseHooverT.cpp,v 1.9.22.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 #include "NoseHooverT.h"
-#include <math.h>
+#include <cmath>
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "RaggedArray2DT.h"

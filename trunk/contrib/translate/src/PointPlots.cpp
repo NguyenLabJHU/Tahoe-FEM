@@ -1,9 +1,9 @@
-/* $Id: PointPlots.cpp,v 1.14 2004-11-19 22:59:12 paklein Exp $ */
+/* $Id: PointPlots.cpp,v 1.15 2011-10-30 06:26:10 bcyansfn Exp $ */
 #include "PointPlots.h"
 #include "ExceptionT.h"
 #include "TecPlotT.h"
 #include "AVST.h"
-#include <stdio.h>
+#include <cstdio>
 
 using namespace Tahoe;
 

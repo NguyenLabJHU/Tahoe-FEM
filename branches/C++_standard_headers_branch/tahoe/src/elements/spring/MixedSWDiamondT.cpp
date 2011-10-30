@@ -1,10 +1,10 @@
-/* $Id: MixedSWDiamondT.cpp,v 1.6 2004-07-15 08:30:17 paklein Exp $ */
+/* $Id: MixedSWDiamondT.cpp,v 1.6.38.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 /* created: paklein (03/22/1997) */
 #include "MixedSWDiamondT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "FindNeighbor23T.h"

@@ -1,7 +1,7 @@
-/* $Id: main_cpp.cpp,v 1.6 2005-01-16 19:50:35 paklein Exp $ */
-#include <iostream.h>
-#include <math.h>
-#include <iomanip.h>
+/* $Id: main_cpp.cpp,v 1.7 2011-10-30 06:26:10 bcyansfn Exp $ */
+#include <iostream>
+#include <cmath>
+#include <iomanip>
 #include "fortran_names.h"
 
 extern "C" {

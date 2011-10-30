@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.cpp,v 1.9 2005-04-13 21:50:27 paklein Exp $ */
+/* $Id: AztecBaseT.cpp,v 1.9.22.1 2011-10-30 06:26:12 bcyansfn Exp $ */
 /* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
@@ -6,11 +6,11 @@
 /* library support options */
 #ifdef __AZTEC__
 
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
+#include <iostream>
+#include <iomanip>
 
 #include "ExceptionT.h"
 #include "toolboxConstants.h"

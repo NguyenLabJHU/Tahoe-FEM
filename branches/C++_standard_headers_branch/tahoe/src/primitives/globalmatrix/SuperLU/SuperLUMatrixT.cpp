@@ -1,13 +1,13 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.11 2005-08-01 03:26:30 paklein Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.11.8.1 2011-10-30 06:26:12 bcyansfn Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
 #ifdef __SUPERLU__
 
-#include <stdlib.h>
-#include <string.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <fstream>
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

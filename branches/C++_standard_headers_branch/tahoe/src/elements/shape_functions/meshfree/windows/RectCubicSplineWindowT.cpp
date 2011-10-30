@@ -1,7 +1,7 @@
-/* $Id: RectCubicSplineWindowT.cpp,v 1.15 2005-12-23 03:20:17 kyonten Exp $ */
+/* $Id: RectCubicSplineWindowT.cpp,v 1.15.6.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 #include "RectCubicSplineWindowT.h"
 #include "ExceptionT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

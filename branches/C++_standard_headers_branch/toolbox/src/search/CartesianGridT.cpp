@@ -1,7 +1,7 @@
-/* $Id: CartesianGridT.cpp,v 1.8 2003-11-04 01:21:27 paklein Exp $ */
+/* $Id: CartesianGridT.cpp,v 1.8.2.1 2011-10-30 06:26:12 bcyansfn Exp $ */
 /* created: paklein (11/10/2000) */
 #include "CartesianGridT.h"
-#include <math.h>
+#include <cmath>
 #include "GraphT.h"
 
 using namespace Tahoe;

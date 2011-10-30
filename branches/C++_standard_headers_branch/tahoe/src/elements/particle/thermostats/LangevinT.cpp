@@ -1,7 +1,7 @@
-/* $Id: LangevinT.cpp,v 1.7 2004-07-15 08:29:54 paklein Exp $ */
+/* $Id: LangevinT.cpp,v 1.7.38.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 #include "LangevinT.h"
 
-#include <math.h>
+#include <cmath>
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "ParticlePropertyT.h"
