@@ -1,6 +1,6 @@
 #include "CubicSplineWindowT.h"
 #include "ExceptionT.h"
-#include <math.h>
+#include <cmath>
 #include "dMatrixT.h"
 
 using namespace Tahoe;

@@ -1,7 +1,7 @@
-/* $Id: GraphT.cpp,v 1.17 2006-11-14 03:27:38 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.17.2.1 2011-10-30 06:26:12 bcyansfn Exp $ */
 #include "GraphT.h"
 
-#include <time.h>
+#include <ctime>
 
 #include "iArrayT.h"
 #include "iArray2DT.h"

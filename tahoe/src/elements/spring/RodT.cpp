@@ -1,8 +1,8 @@
-/* $Id: RodT.cpp,v 1.35 2005-11-06 00:37:58 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.35.6.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
-#include <math.h>
+#include <cmath>
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "eIntegratorT.h"

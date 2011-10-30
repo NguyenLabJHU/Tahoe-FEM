@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.45 2006-07-27 02:30:58 hspark Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.45.4.1 2011-10-30 06:26:10 bcyansfn Exp $ */
 
 #include "ParticlePairT.h"
 
@@ -13,9 +13,9 @@
 #include "iGridManagerT.h"
 #include "ParameterContainerT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
 
 /* pair property types */
 #include "LennardJonesPairT.h"

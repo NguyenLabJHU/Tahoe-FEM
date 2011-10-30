@@ -1,8 +1,8 @@
-/* $Id: FrontSegmentT.cpp,v 1.7 2003-11-04 01:21:14 paklein Exp $ */
+/* $Id: FrontSegmentT.cpp,v 1.7.2.1 2011-10-30 06:26:12 bcyansfn Exp $ */
 /* created: paklein (03/19/1999) */
 #include "FrontSegmentT.h"
 #include "ArrayT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

@@ -1,4 +1,4 @@
-/* $Id: ParticleThreeBodyT.cpp,v 1.6 2005-03-11 20:42:10 paklein Exp $ */
+/* $Id: ParticleThreeBodyT.cpp,v 1.6.26.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 #include "ParticleThreeBodyT.h"
 
 #include "ThreeBodyPropertyT.h"
@@ -12,9 +12,9 @@
 #include "iGridManagerT.h"
 #include "ParameterContainerT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
 
 /* pair property types */
 #include "StillingerWeberT.h"

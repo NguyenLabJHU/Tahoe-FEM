@@ -1,4 +1,4 @@
-/* $Id: ParticleTersoffT.cpp,v 1.4 2006-08-28 13:39:20 d-farrell2 Exp $ */
+/* $Id: ParticleTersoffT.cpp,v 1.4.4.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 #include "ParticleTersoffT.h"
 
 #include "TersoffPropertyT.h"
@@ -12,9 +12,9 @@
 #include "iGridManagerT.h"
 #include "ParameterContainerT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
 
 /* pair property types */
 #include "TersoffPairT.h"

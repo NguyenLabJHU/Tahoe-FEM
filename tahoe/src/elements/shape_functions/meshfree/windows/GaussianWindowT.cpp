@@ -1,7 +1,7 @@
-/* $Id: GaussianWindowT.cpp,v 1.17 2006-01-06 15:47:20 kyonten Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.17.6.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 #include "GaussianWindowT.h"
 #include "ExceptionT.h"
-#include <math.h>
+#include <cmath>
 #include "dMatrixT.h"
 
 using namespace Tahoe;

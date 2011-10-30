@@ -1,9 +1,9 @@
-/* $Id: MatsuiPairT.cpp,v 1.3 2004-07-15 08:29:49 paklein Exp $ */
+/* $Id: MatsuiPairT.cpp,v 1.3.38.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 
 #include "MatsuiPairT.h"
 #include "toolboxConstants.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 using namespace Tahoe;
 

@@ -1,10 +1,10 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.8 2005-08-04 07:06:02 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.8.6.1 2011-10-30 06:26:10 bcyansfn Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
 
-#include <ctype.h>
-#include <float.h>
+#include <cctype>
+#include <cfloat>
 
 #include "ContinuumElementT.h" //needed for ip coordinates
 #include "SSMatSupportT.h"

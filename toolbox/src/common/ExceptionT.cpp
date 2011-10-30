@@ -1,9 +1,6 @@
-/* $Id: ExceptionT.cpp,v 1.14.2.1 2011-10-29 06:09:12 bcyansfn Exp $ */
+/* $Id: ExceptionT.cpp,v 1.14.2.2 2011-10-30 06:26:12 bcyansfn Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
-//#include <iostream.h>
-//#include <iomanip.h>
-//#include <time.h>
 #include <iostream>
 #include <iomanip>
 #include <ctime>

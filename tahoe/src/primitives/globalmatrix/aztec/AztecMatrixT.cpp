@@ -1,13 +1,13 @@
-/* $Id: AztecMatrixT.cpp,v 1.24 2005-04-13 21:50:27 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.24.22.1 2011-10-30 06:26:12 bcyansfn Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
 /* library support options */
 #ifdef __AZTEC__
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

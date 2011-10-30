@@ -1,7 +1,7 @@
-/* $Id: ErcolessiAdamsAl.cpp,v 1.5 2007-07-05 00:03:19 paklein Exp $ */
+/* $Id: ErcolessiAdamsAl.cpp,v 1.5.4.1 2011-10-30 06:26:10 bcyansfn Exp $ */
 /* created: paklein (12/02/1996) */
 #include "ErcolessiAdamsAl.h"
-#include <iostream.h> //TEMP
+#include <iostream> //TEMP
 #include "CubicSplineT.h"
 
 using namespace Tahoe;

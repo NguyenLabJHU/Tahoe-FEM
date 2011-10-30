@@ -1,10 +1,10 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.15 2005-07-20 17:02:36 kyonten Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.15.10.1 2011-10-30 06:26:11 bcyansfn Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "ExceptionT.h"
 #include "toolboxConstants.h"
