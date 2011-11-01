@@ -1,7 +1,7 @@
 #ifndef CYLINDER_H
 #define CYLINDER_H
 
-#include "const.h"
+#include "parameter.h"
 #include "vec.h"
 #include "shape.h"
 

@@ -8,7 +8,6 @@
 // header files
 #include "parameter.h"
 #include "gradation.h"
-#include "cylinder.h"
 #include "rectangle.h"
 #include "assembly.h"
 #include <vector>
@@ -18,7 +17,7 @@
 int main(int argc, char* argv[])
 {
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Part 1: setup parameters (override parameter.h)
+    // Part 1: setup parameters (override parameter.cpp)
 
     // 1. time integration method
     // --- dynamic
@@ -463,4 +462,54 @@ int main(int argc, char* argv[])
 		 "unc_contact",      // output file, resulted contacts, including snapshots 
 		 "unc_progress",     // output file, progress statistic information
 		 "unc_exception");   // output file, progress float exceptions
+*/
+
+
+/*
+Development notes
+
+assembly.cpp:
+01. create, use (dimension - len), a smaller space for generating particles. 
+02. deposit/isocompress, use reach of ambient pressure or displacement condition to stop iterations.
+03. output information as progress, particles and contacts.
+04. createContact() 1. remove PossContact. 2. include only true contacts.
+05. createsample(), can optionally set up initail velocity/angular velocity and constant force/moment.
+06. gravity can be considered or not, depending on GRVT_SCL.
+07. checkinPreShearForce() and checkoutShearForce() in createContact() and internforce(), respectively.
+08. OpenMP implementation in createContact().
+
+contact.h:
+01. in ContactForce(), addMoment use global coordinate system.
+02. correct code errors in Hertz-Mindlin formula between particles
+03. delete innermostPoint(), then isOverlapped() and ContactForce() use root6() directly.
+04. delete update(), which is completely unnecessary.
+05. define a variable val for calculating shear force, assure it is less than 1.
+06. define class cnttangt to store PreShearForce, working for both particle-to-particle (and particle-wall) contacts.
+
+particle.cpp:
+01. update(), change itegration algorithm, considering damping.
+02. update(), don't set force/moment as zero at the end; instead, setForceZero() at the beginning of each iteration.
+03. intersectionWithLine() rewrote.
+04. getRadius() rewrote, and osculating circle radius r= 2*r1*r2/(r1+r2).
+05. planeRBForce() and cylinderRBFroce() use global coordinate system.
+06. update() converts between global and local coordinate system.
+07. constructor particle() is revised to satisfy QQ'=I.
+08. ensure a/b/c corresond to x/y/z
+09. constructor and update(): acos() and normalize
+10. correct errors in Hertz-Mindlin formulation between particles and walls.
+11. setZero() can specify force or moment; add private members const_force and const_moment.
+12. contact.h-06, store PreShearForce for particle-wall contacts.
+
+others:
+vec.cpp:      acos() and normalize()
+root6.cpp:    return bool instead of vector, algorithm revised to skip case of zero determinant.
+
+numerical recipes in C: 
+zrhqr.cpp (6 files) and ran.cpp:
+01. rename .c to .cpp
+02. #include <cmath>
+03. using namespace std;
+04. return bool
+05. replace float with long double
+
 */

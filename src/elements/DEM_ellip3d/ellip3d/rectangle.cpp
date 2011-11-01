@@ -1,13 +1,12 @@
 #include "rectangle.h"
+#include "parameter.h"
 #include "ran.h"
-#include <cmath>
 #include <iostream>
+#include <cmath>
 #include <cstdio>
 using namespace std;
 
 namespace dem {
-
-extern long idum;
 
 void rectangle::print() const{
     printf("%15.6Lf%15.6Lf%15.6Lf\n",width,length,height);

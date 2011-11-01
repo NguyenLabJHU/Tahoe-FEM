@@ -3,6 +3,8 @@
      just rename it to ran() for convenience.
 */
 
+#include "ran.h"
+
 namespace dem {
 
 #define IM1 2147483563

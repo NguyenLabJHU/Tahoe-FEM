@@ -1,13 +1,11 @@
-#include "ran.h"
 #include "cylinder.h"
+#include "ran.h"
 #include <iostream>
 #include <cmath>
 
 using namespace std;
 
 namespace dem {
-
-extern long idum;
 
 void cylinder::print() const{
     cout<<"radius="<<radius<<endl;

@@ -1,5 +1,5 @@
 //     1.This is a template class, for which we have to include the implementation in the header file.
-//       As we can't put using statement in a header file, we have to use std::xxx wherever we need to
+//       As we cannot put using statement in a header file, we have to use std::xxx wherever we need to
 //       refer anything from standard namespace.
 //
 //     2.A base class needs a virtual destructor, otherwise it may cause undetermined errors.
@@ -315,8 +315,8 @@ void plnrgd_bdry<T>::createPBL(std::list<T*>& ptcls){
 	    for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){ // CoefOfLimits[1,2,...]
 		ndirc=normalize((*bt).dirc);
 		r=vfabsl((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
-		if((*bt).order==1 && (posi-(*bt).apt)%(*bt).dirc >= 0 ||
-		   (*bt).order==2 && (r-(*bt).rad)*(*bt).side<0){
+		if( ( (*bt).order==1 && (posi-(*bt).apt)%(*bt).dirc >= 0 ) ||
+		    ( (*bt).order==2 && (r-(*bt).rad)*(*bt).side<0 ) ){
 		    next=false; // the particle is out of boundary, process next particle
 		    break;
 		}
@@ -444,8 +444,8 @@ void cylrgd_bdry<T>::createPBL(std::list<T*> &ptcls){
 		for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){
 			ndirc=normalize((*bt).dirc);
 			r=vfabsl((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
-			if((*bt).order==1&&(posi-(*bt).apt)%(*bt).dirc>(*it)->getA()||
-				(*bt).order==2&&(r-(*bt).rad)*(*bt).side<0){
+			if( ( (*bt).order==1&&(posi-(*bt).apt)%(*bt).dirc>(*it)->getA() )||
+				( (*bt).order==2&&(r-(*bt).rad)*(*bt).side<0 ) ){
 				next=true;//the particle is outof boundary, process next particle
 				break;
 			}
@@ -528,8 +528,9 @@ void plnflb_bdry<T>::disp() const{
 	printf("\nparticles of the net\n");
 	for(iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
-			if(i++<10)
+			if(i++<10) {
 				if(RelatedP[iz][ip]!=NULL)printf("%5d",RelatedP[iz][ip]->getID());
+			}
 			else{
 				i=0;
 				if(RelatedP[iz][ip]!=NULL)printf("%5d\n",RelatedP[iz][ip]->getID());
@@ -817,8 +818,9 @@ void cylflb_bdry<T>::disp() const{
 	printf("\nparticles of the net\n");
 	for(iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
-			if(i++<10)
+			if(i++<10) {
 				if(RelatedP[iz][ip]!=NULL)printf("%5d",RelatedP[iz][ip]->getID());
+			}
 			else{
 				i=0;
 				if(RelatedP[iz][ip]!=NULL)printf("%5d\n",RelatedP[iz][ip]->getID());

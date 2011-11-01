@@ -14,8 +14,8 @@
 //      true  - non-overlapped
 //      false - overlapped and vector point returns the deepest point.
 
-#include "const.h"
 #include "root6.h"
+#include "parameter.h"
 #include "nr.h"
 #include <iostream>
 #include <fstream>
@@ -25,9 +25,6 @@
 using namespace std;
 
 namespace dem {
-
-extern ofstream g_exceptioninf;
-extern int g_iteration;
 
 bool root6(long double coef1[],long double coef2[],vec& point){
 	if((coef1[0]==1.0&&coef1[1]==1.0&&coef1[2]==1.0&&

@@ -1,33 +1,22 @@
-#include "const.h"
+#include "particle.h"
+#include "parameter.h"
 #include "ran.h"
 #include "root6.h"
-#include "particle.h"
-#include <cmath>
 #include <iostream>
+#include <cmath>
 
 //#define MOMENT
 #ifdef MOMENT
 const int START = 10000;  // at which time step to apply moment? for moment rotation test only.
 #define SLIP  // if defined, stick and slip; otherwise slide.
 #endif
-//ellip3d.cxx: dem::TIMESTEP = 5.0e-07; A.deposit(12000,... 
+//main.cpp: dem::TIMESTEP = 5.0e-07; A.deposit(12000,... 
 
 //#define MINDLIN_ASSUMED
 
 using namespace std;
 
 namespace dem {
-
-extern ofstream g_exceptioninf;
-extern int g_iteration;
-extern long idum;
-extern long double GRVT_SCL;
-extern long double DMP_F;
-extern long double DMP_M;
-extern long double MASS_SCL;
-extern long double MNT_SCL;
-extern long double PILE_RATE;
-extern long double BDRYFRIC;
 
 particle::particle(int n, int tp, vec center, long double r){
     type=tp;
@@ -463,7 +452,7 @@ bool particle::intersectWithLine(vec v, vec dirc, vec rt[]) const{
     long double delta=B*B-4*A*C;
     if (delta < 0){
 	g_exceptioninf<<"g_iteration="<<setw(10)<<g_iteration
-		    <<", delta < 0 in intersectWithLine() of particle.cxx."<<endl;
+		    <<", delta < 0 in intersectWithLine() of particle.cpp."<<endl;
 	return false;
     }
     else{
@@ -550,7 +539,7 @@ long double particle::getRadius(vec v) const{
 /*
     if (B*B-4*A*C<0){
 	g_exceptioninf<<"g_iteration="<<setw(10)<<g_iteration
-		      <<", delta < 0 in getRadius() of particle.cxx."
+		      <<", delta < 0 in getRadius() of particle.cpp."
 		      <<setw(16)<<B*B-4*A*C
 		      <<setw(16)<<-C/B
 		      <<endl;

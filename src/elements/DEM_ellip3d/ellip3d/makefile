@@ -1,50 +1,60 @@
-# optimization
+# C++ compiler
+CC = g++
+
+# optimization (NDEBUG is only related to cassert)
 OPTIMIZE = -O3 -DNDEBUG
 
-# debugging options
-DEBUG = -Wall -gstabs
+# debugging options (macro DEBUG is defined in root6.cpp)
+DEBUG = -Wall -g -DDEBUG
 
-# $(DEBUG) or $(OPTIMIZE)
+# OPENMP (macro OPENMP is defined in assembly.cpp )
+OPENMP = -DOPENMP -fopenmp
+
+# $(DEBUG) or $(OPTIMIZE), $(OPENMP) or not
 OPTION = $(OPTIMIZE)
+#OPTION = $(OPTIMIZE) $(OPENMP)
 
-ellip3d: ellip3d.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o
-	g++ $(OPTION) -o ellip3d ellip3d.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o
+ellip3d: main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o
+	$(CC) $(OPTION) -o ellip3d main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o
 
-ellip3d.o: vec.h gradation.h rectangle.h cylinder.h assembly.h main.cpp
-	g++ -c $(OPTION) -o ellip3d.o main.cpp
+main.o: parameter.h gradation.h rectangle.h assembly.h main.cpp
+	$(CC) -c $(OPTION) -o main.o main.cpp
 
-assembly.o: const.h vec.h gradation.h boundarytgt.h particle.h contact.h boundary.h rectangle.h cylinder.h assembly.h assembly.cpp
-	g++ -c $(OPTION) assembly.cpp
+assembly.o: assembly.h parameter.h vec.h gradation.h particle.h contact.h boundary.h rectangle.h cylinder.h assembly.cpp
+	$(CC) -c $(OPTION) assembly.cpp
 
-particle.o: const.h vec.h gradation.h boundarytgt.h contact.h boundary.h rectangle.h cylinder.h ran.h root6.h particle.h particle.cpp
-	g++ -c $(OPTION) particle.cpp
+particle.o: particle.h parameter.h ran.h root6.h vec.h gradation.h contact.h boundary.h rectangle.h cylinder.h boundarytgt.h particle.cpp
+	$(CC) -c $(OPTION) particle.cpp
 
-cylinder.o: vec.h shape.h const.h ran.h cylinder.h cylinder.cpp
-	g++ -c $(OPTION) cylinder.cpp
+cylinder.o: cylinder.h parameter.h ran.h vec.h shape.h cylinder.cpp
+	$(CC) -c $(OPTION) cylinder.cpp
 
-rectangle.o: vec.h shape.h ran.h rectangle.h rectangle.cpp
-	g++ -c $(OPTION) rectangle.cpp
+rectangle.o: rectangle.h parameter.h ran.h vec.h shape.h rectangle.cpp
+	$(CC) -c $(OPTION) rectangle.cpp
 
-ran.o: ran.cpp
-	g++ -c $(OPTION) ran.cpp
+ran.o: ran.h ran.cpp
+	$(CC) -c $(OPTION) ran.cpp
 
-root6.o: const.h vec.h root6.h nr.h root6.cpp
-	g++ -c $(OPTION) root6.cpp
+root6.o: root6.h parameter.h nr.h vec.h root6.cpp
+	$(CC) -c $(OPTION) root6.cpp
 
 zrhqr.o: nrutil.h zrhqr.cpp
-	g++ -c $(OPTION) zrhqr.cpp 
+	$(CC) -c $(OPTION) zrhqr.cpp 
 
 hqr.o: nrutil.h hqr.cpp
-	g++ -c $(OPTION) hqr.cpp
+	$(CC) -c $(OPTION) hqr.cpp
 
 balanc.o: balanc.cpp
-	g++ -c $(OPTION) balanc.cpp
+	$(CC) -c $(OPTION) balanc.cpp
 
 nrutil.o: nrutil.cpp
-	g++ -c $(OPTION) nrutil.cpp
+	$(CC) -c $(OPTION) nrutil.cpp
 
-vec.o: const.h vec.h vec.cpp
-	g++ -c $(OPTION) vec.cpp
+vec.o:  vec.h parameter.h vec.cpp
+	$(CC) -c $(OPTION) vec.cpp
+
+parameter.o: parameter.h parameter.cpp
+	$(CC) -c $(OPTION) parameter.cpp
 
 clean:
 	rm -f *.o

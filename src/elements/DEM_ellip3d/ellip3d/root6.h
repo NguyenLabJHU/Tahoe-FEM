@@ -1,5 +1,6 @@
 #ifndef ROOT6_H
 #define ROOT6_H
+
 #include "vec.h"
 
 namespace dem {

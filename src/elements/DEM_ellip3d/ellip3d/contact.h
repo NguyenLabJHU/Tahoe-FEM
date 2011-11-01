@@ -1,10 +1,11 @@
 //  This is a template class, for which we have to include the implementation in the header file.
-//  As we can't put using statement in a header file, we have to use std::something wherever we
+//  As we cannot put using statement in a header file, we have to use std::something wherever we
 //  need to refer anything from standard namespace.
+
 #ifndef CONTACT_H
 #define CONTACT_H
 
-#include "const.h"
+#include "parameter.h"
 #include "root6.h"
 #include <vector>
 #include <iostream>
@@ -16,13 +17,6 @@
 //#define MINDLIN_KNOWN
 
 namespace dem {
-
-extern std::ofstream g_exceptioninf;
-extern int g_iteration;
-extern long double DMP_CNT;
-extern long double TIMESTEP;
-extern long double FRICTION;
-extern long double COHESION;
 
 class cnttgt{
 public:

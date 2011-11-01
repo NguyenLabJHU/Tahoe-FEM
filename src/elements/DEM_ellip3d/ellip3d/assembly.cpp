@@ -29,7 +29,7 @@
 //    min/mid/max does not mean actual magnitude of values, just signs
 
 #include "assembly.h"
-#include "const.h"
+#include "parameter.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -60,13 +60,6 @@ static long int gettimediff(){
 #endif
 
 namespace dem {
-
-extern ofstream g_exceptioninf;
-extern int      g_iteration;
-extern long double PILE_RATE;
-extern long double COMPRESS_RATE;
-extern long double RELEASE_RATE;
-extern long double STRESS_ERROR;
 
 ofstream        progressinf;
 bool            toprintstep;
