@@ -29,8 +29,8 @@ namespace Tahoe {
   //
   void FSDEMatT::DefineParameters(ParameterListT& list) const
   {
-    NL_E_MatT::DefineParameters(list);
-
+	FSSolidMatT::DefineParameters(list);
+	
 	list.AddParameter(fMu, "mu");
 	list.AddParameter(fElectricPermittivity, "epsilon");
  	list.AddParameter(fNrig, "Nrig");
@@ -42,8 +42,7 @@ namespace Tahoe {
   //
   void FSDEMatT::TakeParameterList(const ParameterListT& list)
   {
-    NL_E_MatT::TakeParameterList(list);
-
+	FSSolidMatT::TakeParameterList(list);
 	fMu = list.GetParameter("mu");
 	fElectricPermittivity = list.GetParameter("epsilon");
  	fNrig = list.GetParameter("Nrig");
@@ -71,7 +70,7 @@ namespace Tahoe {
   //
   void FSDEMatT::DefineSubs(SubListT& sub_list) const
   {
-    NL_E_MatT::DefineSubs(sub_list);
+	FSSolidMatT::DefineSubs(sub_list);
     return;
   }
 

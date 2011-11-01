@@ -7,12 +7,12 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
-#include "NL_E_MatT.h"
+#include "FSSolidMatT.h"
 #include "FSDEMatSupportT.h"
 
 namespace Tahoe {
 
-  class FSDEMatT: public NL_E_MatT
+  class FSDEMatT: public FSSolidMatT
   {
 
     //
@@ -109,15 +109,6 @@ namespace Tahoe {
     void SetFSDEMatSupport(const FSDEMatSupportT* support);
 
   protected:
-
-	/* compute the symetric Cij reduced index matrix */
-	virtual void ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli);	
-	
-	/* compute the symetric 2nd Piola-Kirchhoff reduced index vector */
-	virtual void ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2);
-
-	/* returns the strain energy density for the specified strain */
-	virtual double ComputeEnergyDensity(const dSymMatrixT& E);
 
     const FSDEMatSupportT* fFSDEMatSupport;
 

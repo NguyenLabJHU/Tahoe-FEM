@@ -172,12 +172,11 @@ namespace Tahoe {
   	
   	double J = C.Det();
   	J = sqrt(J);
-  	
-  	dMatrixT Cinv(3);
-  	Cinv.Inverse(C);
-	Cinv.Multx(E,fElectricDisplacement);	
-  	fElectricDisplacement *= J;
-  	
+  
+	/* call C function for electric stress (i.e. electric displacement D_{I}) */
+ 	elec_pk2(fParams.Pointer(), E.Pointer(),  
+ 		C.Pointer(), J, fElectricDisplacement.Pointer()); 
+ 		
   	return fElectricDisplacement;
   }
 
@@ -230,33 +229,6 @@ namespace Tahoe {
   {
 
     return 0.0;
-
-  }
-
-  //
-  // compute symmetric Cij reduced index matrix */
-  //
-  inline void FSDEMatT::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli) 
-  {
-
-
-  }
-
-  //
-  // compute symmetric 2nd PK2 reduced index vector */
-  //
-  inline void FSDEMatT::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2) 
-  {
-
-
-  }
-
-  //
-  // compute strain energy density for the specified strain */
-  //
-  inline double FSDEMatT::ComputeEnergyDensity(const dSymMatrixT& E) 
-  {
-	 return 0.0;
 
   }
 

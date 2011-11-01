@@ -23,8 +23,8 @@ void me_mixedmodulus_ab(const double* params, const double *Xsi, const double* C
 void mech_tanmod_ab(const double* params, const double* Xsi, const double* Cmat, double J, double I1, double* ddCmech);
 void me_tanmod_ab(const double* params, const double* Xsi, const double* Cmat, double J, double* ddCmechelec);
 
-/* function to get the bulk strain energy density - not implemented yet */
-//double get_energy(const double* params, const double *Xsi, const double* Cmat); 
+/* function to get electric displacement */
+void elec_pk2(const double* params, const double *Xsi, const double* Cmat, double J, double* dUdCelec); 
 
 #ifdef __cplusplus
 }

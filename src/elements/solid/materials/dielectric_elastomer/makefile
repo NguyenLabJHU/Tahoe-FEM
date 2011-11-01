@@ -25,7 +25,8 @@ OBJ = \
 	Mech_TanMod_AB.o \
 	ME_MixedModulus_AB.o \
 	ME_PK2_AB.o \
-	ME_TanMod_AB.o
+	ME_TanMod_AB.o \
+	Elec_PK2.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -51,7 +52,8 @@ SRC = \
 	Mech_TanMod_AB.cpp \
 	ME_MixedModulus_AB.cpp \
 	ME_PK2_AB.cpp \
-	ME_TanMod_AB.cpp
+	ME_TanMod_AB.cpp \
+	Elec_PK2.cpp
 
 ##################### (3) headers
 #
