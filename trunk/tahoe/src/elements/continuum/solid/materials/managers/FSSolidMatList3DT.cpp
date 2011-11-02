@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.38 2010-12-06 20:19:18 tdnguye Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.39 2011-11-02 00:30:38 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -109,6 +109,10 @@
 #include "CB_ZBT.h"
 #endif
 
+#ifdef ARRUDA_BOYCE
+#include "Arruda_Boyce3D.h"
+#endif
+
 #ifdef PIEZOELECTRIC
 #include "FSNeoHookePZLinT.h"
 #include "FSPZMatSupportT.h"
@@ -120,7 +124,12 @@
 
 #ifdef DIELECTRIC_ELASTOMER
 #include "FSDielectricElastomerT.h"
-#include "FSPZMatSupportT.h"
+#include "FSDEMatSupportT.h"
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_VISCO
+#include "FSDielectricElastomerViscoT.h"
+#include "FSDEMatSupportViscoT.h"
 #endif
 
 /* development module materials require solid element development to be enabled */
@@ -279,6 +288,10 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #endif
 #ifdef SURFACE_CB_ZB_DEV
 		sub_lists.AddSub("ZB_CB");
+#endif
+
+#ifdef ARRUDA_BOYCE
+		sub_lists.AddSub("Arruda_Boyce_3D");
 #endif
 
 #ifdef DIELECTRIC_ELASTOMER
@@ -483,6 +496,11 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	  mat= new CB_ZBT;
 #endif
 
+#ifdef ARRUDA_BOYCE
+	else if (name == "Arruda_Boyce_3D")
+	  mat= new Arruda_Boyce3D;
+#endif
+
 #ifdef DIELECTRIC_ELASTOMER
 	else if (name == FSDEMatT::Name) {
 	  FSDEMatT* demat = new FSDEMatT;
@@ -491,6 +509,18 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	    const FSDEMatSupportT* ddems = dynamic_cast<FSDEMatSupportT*>(dems);
 	    demat->SetFSDEMatSupport(ddems);
 	    mat = demat;
+	  }
+	}
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_VISCO
+	else if (name == FSDEMatViscoT::Name) {
+	  FSDEMatViscoT* dematvisco = new FSDEMatViscoT;
+	  if (dematvisco != 0) {
+	    FSMatSupportT* demsvisco = const_cast<FSMatSupportT*>(fFSMatSupport);
+	    const FSDEMatSupportViscoT* ddemsvisco = dynamic_cast<FSDEMatSupportViscoT*>(demsvisco);
+	    dematvisco->SetFSDEMatSupportVisco(ddemsvisco);
+	    mat = dematvisco;
 	  }
 	}
 #endif
