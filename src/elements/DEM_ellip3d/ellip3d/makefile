@@ -11,8 +11,8 @@ DEBUG = -Wall -g -DDEBUG
 OPENMP = -DOPENMP -fopenmp
 
 # $(DEBUG) or $(OPTIMIZE), $(OPENMP) or not
-OPTION = $(OPTIMIZE)
-#OPTION = $(OPTIMIZE) $(OPENMP)
+#OPTION = $(OPTIMIZE)
+OPTION = $(OPTIMIZE) $(OPENMP)
 
 ellip3d: main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o
 	$(CC) $(OPTION) -o ellip3d main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o

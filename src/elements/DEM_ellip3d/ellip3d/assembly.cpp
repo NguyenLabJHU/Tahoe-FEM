@@ -39,7 +39,6 @@
 using namespace std;
 
 //#define TIME_TAG
-//#define OPENMP
 
 #ifdef OPENMP
 #include <omp.h>
@@ -397,7 +396,7 @@ void assembly::createContact(){ // OpenMP version
 #ifdef TIME_TAG
     gettimeofday(&time1,NULL); 
 #endif
-    int iam, nt, i, j, ipoints, npoints;
+    int iam, nt, i, j, ipoints, npoints, rpoints;
     list<particle*>::iterator ot, it, pt;
     vec u,v;
     npoints = ParticleList.size();
@@ -408,13 +407,29 @@ void assembly::createContact(){ // OpenMP version
 	iam = omp_get_thread_num();
 	nt  = omp_get_num_threads();
 	ipoints = npoints/nt;  // divide into nt partitions
+	rpoints = npoints%nt;  // remainder of the division
 	it = ot;
-	for (i=0;i<iam*ipoints;++i)
-	    ++it;              // starting point of each partition
 
-	if (iam == nt-1)
-	    ipoints = npoints - iam*ipoints;
-	for (j=0;j<ipoints;++j,++it) { // explore each partition
+	// determine starting point and extend of each partition
+	if (rpoints == 0) {
+	  for (i = 0; i < iam * ipoints; ++i)
+	    ++it;              // starting point of each partition
+	}
+	else {
+	  if (iam < rpoints) {
+	    ipoints += 1;      // ipoints changed
+	    for (i = 0; i < iam * ipoints ; ++i)
+	      ++it;
+	  }
+	  else {
+	    for (i = 0; i < rpoints * (ipoints + 1) + (iam - rpoints) * ipoints; ++ i)
+	      ++it;
+	  }
+
+	}
+
+	// explore each partition
+	for (j=0;j<ipoints;++j,++it) { 
 	    u=(*it)->getCurrPosition();
 	    for (pt=it,++pt;pt!=ParticleList.end();++pt){
 		v=(*pt)->getCurrPosition();
@@ -427,7 +442,6 @@ void assembly::createContact(){ // OpenMP version
 		    if(tmpct.isOverlapped())
 #pragma omp critical
 			ContactList.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
-		    // ContactList.push_back( contact<particle>(*it,*it) ); //this is a better expresssion replacing above two statements
 		}
 	    }
 	}
@@ -463,7 +477,6 @@ void assembly::createContact(){ // serial version
 		++PossCntctNum;
 		if(tmpct.isOverlapped())
 		  ContactList.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
-		// ContactList.push_back( contact<particle>(*it,*it) ); //this is a better expresssion replacing above two statements
 	    }
 	}
     }	
@@ -984,21 +997,21 @@ void assembly::fbForce(){
 }
 
 
-vec assembly::getNormal(int bdry) const{
+vec assembly::getNormalForce(int bdry) const{
     list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==bdry)
-	    return (*it)->getNormal();
+	    return (*it)->getNormalForce();
     }
     return 0;
 }
 
 
-vec assembly::getTangt(int bdry) const{
+vec assembly::getShearForce(int bdry) const{
     list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==bdry)
-	    return (*it)->getTangt();
+	    return (*it)->getShearForce();
     }
     return 0;
 }
@@ -1057,7 +1070,7 @@ long double assembly::avgRgdPres() const{
     list<RGDBDRY*>::const_iterator rt;
     long double avgpres=0;
     for(rt=RBList.begin();rt!=RBList.end();++rt)
-	avgpres+=vfabsl((*rt)->getNormal())/(*rt)->getArea();
+	avgpres+=vfabsl((*rt)->getNormalForce())/(*rt)->getArea();
     return avgpres/=RgdBdryNum;
 }
 
@@ -1280,9 +1293,7 @@ void assembly::init(gradation&  grad,
 
 
 // create a specimen from discreate particles through floating and then gravitation,
-// but the boundaries are composed of fixed particles.
-// file cre_particle contains the final particle information,
-// file cre_boundary contains the final boundary information.
+// boundaries are composed of fixed particles.
 void assembly::deposit_PtclBdry(gradation& grad,
 				int   freetype,
 				long double rsize,
@@ -3023,9 +3034,9 @@ void assembly::isotropic(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormal(2))/max_area; sigma1_2=vfabsl(getNormal(4))/max_area;
-	sigma2_1=vfabsl(getNormal(1))/mid_area; sigma2_2=vfabsl(getNormal(3))/mid_area;
-	sigma3_1=vfabsl(getNormal(5))/min_area; sigma3_2=vfabsl(getNormal(6))/min_area;
+	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
+	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
+	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
 	void_ratio=Volume/ptclVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -3202,8 +3213,8 @@ void assembly::isotropic(int   total_steps,
 
 
 // The specimen has been isotropically compressed to confining pressure sigma_a. This function
-// increases confining pressure step by step to sigma_b, thus making it possible to find out
-// balanced status where particle pressure equals confining pressure. Force boundaries are used.
+// increases confining pressure step by step to sigma_b, making it possible to find equilibrium 
+// state where particle pressure equals confining pressure. Force boundaries are used
 void assembly::isotropic(int   total_steps,
 			 int   snapshots, 
 			 long double sigma_a,
@@ -3329,9 +3340,9 @@ void assembly::isotropic(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormal(2))/max_area; sigma1_2=vfabsl(getNormal(4))/max_area;
-	sigma2_1=vfabsl(getNormal(1))/mid_area; sigma2_2=vfabsl(getNormal(3))/mid_area;
-	sigma3_1=vfabsl(getNormal(5))/min_area; sigma3_2=vfabsl(getNormal(6))/min_area;
+	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
+	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
+	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
 	void_ratio=Volume/ptclVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -3643,9 +3654,9 @@ void assembly::isotropic(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormal(2))/max_area; sigma1_2=vfabsl(getNormal(4))/max_area;
-	sigma2_1=vfabsl(getNormal(1))/mid_area; sigma2_2=vfabsl(getNormal(3))/mid_area;
-	sigma3_1=vfabsl(getNormal(5))/min_area; sigma3_2=vfabsl(getNormal(6))/min_area;
+	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
+	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
+	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
 	void_ratio=Volume/ptclVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -3959,9 +3970,9 @@ void assembly::odometer(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormal(2))/max_area; sigma1_2=vfabsl(getNormal(4))/max_area;
-	sigma2_1=vfabsl(getNormal(1))/mid_area; sigma2_2=vfabsl(getNormal(3))/mid_area;
-	sigma3_1=vfabsl(getNormal(5))/min_area; sigma3_2=vfabsl(getNormal(6))/min_area;
+	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
+	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
+	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
 	void_ratio=Volume/ptclVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -4232,9 +4243,9 @@ void assembly::odometer(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormal(2))/max_area; sigma1_2=vfabsl(getNormal(4))/max_area;
-	sigma2_1=vfabsl(getNormal(1))/mid_area; sigma2_2=vfabsl(getNormal(3))/mid_area;
-	sigma3_1=vfabsl(getNormal(5))/min_area; sigma3_2=vfabsl(getNormal(6))/min_area;
+	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
+	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
+	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
 	void_ratio=Volume/ptclVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -4456,7 +4467,7 @@ void assembly::unconfined(int   total_steps,
 	particleUpdate();
 	
 	// 6. update boundaries' position and orientation
-	sigma3_1=vfabsl(getNormal(5))/getArea(5); sigma3_2=vfabsl(getNormal(6))/getArea(6);
+	sigma3_1=vfabsl(getNormalForce(5))/getArea(5); sigma3_2=vfabsl(getNormalForce(6))/getArea(6);
 	minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
 	minctl[1].tran=vec(0,0, TIMESTEP*COMPRESS_RATE);
 	updateRB(min,minctl,2);
@@ -4605,7 +4616,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	particleUpdate();
 	
 	// 6. update boundaries' position and orientation
-	sigma3_1=vfabsl(getNormal(5))/2.5e-3; sigma3_2=vfabsl(getNormal(6))/2.5e-3;
+	sigma3_1=vfabsl(getNormalForce(5))/2.5e-3; sigma3_2=vfabsl(getNormalForce(6))/2.5e-3;
 
 	// force control
 	if (sigma3_1 < sigma)
@@ -4789,7 +4800,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	particleUpdate();
 	
 	// 6. update boundaries' position and orientation
-	sigma3_1=vfabsl(getNormal(5))/2.5e-3; sigma3_2=vfabsl(getNormal(6))/2.5e-3;
+	sigma3_1=vfabsl(getNormalForce(5))/2.5e-3; sigma3_2=vfabsl(getNormalForce(6))/2.5e-3;
 
 	// displacement control
 	if(g_iteration < 100001) {
@@ -5013,9 +5024,9 @@ void assembly::triaxial(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormal(2))/max_area; sigma1_2=vfabsl(getNormal(4))/max_area;
-	sigma2_1=vfabsl(getNormal(1))/mid_area; sigma2_2=vfabsl(getNormal(3))/mid_area;
-	sigma3_1=vfabsl(getNormal(5))/min_area; sigma3_2=vfabsl(getNormal(6))/min_area;
+	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
+	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
+	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
 	void_ratio=Volume/ptclVolume()-1;
 
 	// displacement control
@@ -5285,9 +5296,9 @@ void assembly::triaxial(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormal(2))/max_area; sigma1_2=vfabsl(getNormal(4))/max_area;
-	sigma2_1=vfabsl(getNormal(1))/mid_area; sigma2_2=vfabsl(getNormal(3))/mid_area;
-	sigma3_1=vfabsl(getNormal(5))/min_area; sigma3_2=vfabsl(getNormal(6))/min_area;
+	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
+	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
+	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
 	void_ratio=Volume/ptclVolume()-1;
 
 	// displacement control
@@ -5534,11 +5545,11 @@ void assembly::rectPile_Disp(int   total_steps,
 	updateRB(pile, pilectl, 2); 
 	updateRectPile();
 	if (toprintstep) {
-	    long double  f7=getTangt( 7).getz();
-	    long double  f8=getTangt( 8).getz();
-	    long double  f9=getTangt( 9).getz();
-	    long double f10=getTangt(10).getz();
-	    long double  fn=getNormal(12).getz();
+	    long double  f7=getShearForce( 7).getz();
+	    long double  f8=getShearForce( 8).getz();
+	    long double  f9=getShearForce( 9).getz();
+	    long double f10=getShearForce(10).getz();
+	    long double  fn=getNormalForce(12).getz();
 	    g_exceptioninf<<setw(10)<<g_iteration
 			  <<setw(16)<<fn
 			  <<setw(16)<<(f7+f8+f9+f10)
@@ -6357,9 +6368,9 @@ void assembly::truetriaxial(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormal(2))/max_area; sigma1_2=vfabsl(getNormal(4))/max_area;
-	sigma2_1=vfabsl(getNormal(1))/mid_area; sigma2_2=vfabsl(getNormal(3))/mid_area;
-	sigma3_1=vfabsl(getNormal(5))/min_area; sigma3_2=vfabsl(getNormal(6))/min_area;
+	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
+	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
+	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
 	void_ratio=Volume/ptclVolume()-1;
 
 	if (sigma3_1<sigma_h1)
@@ -6640,12 +6651,12 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 		setArea(4,max_area);
 		avgsigma=avgRgdPres();
 		printf("avgsigma=%15.3lf\n",avgsigma);
-		sigma1_1=fabsl(getNormal(2))/max_area;
-		sigma1_2=fabsl(getNormal(4))/max_area;
-		sigma2_1=fabsl(getNormal(1))/mid_area;
-		sigma2_2=fabsl(getNormal(3))/mid_area;
-		sigma3_1=fabsl(getNormal(5))/min_area;
-		sigma3_2=fabsl(getNormal(6))/min_area;
+		sigma1_1=fabsl(getNormalForce(2))/max_area;
+		sigma1_2=fabsl(getNormalForce(4))/max_area;
+		sigma2_1=fabsl(getNormalForce(1))/mid_area;
+		sigma2_2=fabsl(getNormalForce(3))/mid_area;
+		sigma3_1=fabsl(getNormalForce(5))/min_area;
+		sigma3_2=fabsl(getNormalForce(6))/min_area;
 		if(sigma3_1<stress)
 			updownctl[0].tran=vec(0,0,-rate*TIMESTEP);
 		else
@@ -6659,8 +6670,8 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 			updateRB(load,loadctl,2);
 			fprintf(fprslt,"%15.6lf",lead);
 			for(rt=RBList.begin();rt!=RBList.end();++rt){
-				tmpnorm=(*rt)->getNormal()/(*rt)->getArea()/1000;
-				tmpshar=(*rt)->getTangt()/(*rt)->getArea()/1000;
+				tmpnorm=(*rt)->getNormalForce()/(*rt)->getArea()/1000;
+				tmpshar=(*rt)->getShearForce()/(*rt)->getArea()/1000;
 				fprintf(fprslt,"%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf",
 					tmpnorm.x,tmpnorm.y,tmpnorm.z,
 					tmpshar.x,tmpshar.y,tmpshar.z);
@@ -6754,7 +6765,7 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 			fprintf(fprslt,"%10d%6d%10.3lf%15.6lf%15.6lf%15.6lf%15.6lf",g_iteration,ActualCntctNum,adr,af,am,av,ao);
 			for(rt=RBList.begin();rt!=RBList.end();++rt){
 				disp=(*rt)->getApt();
-				tmp=(*rt)->getNormal()/1000/(*rt)->getArea();
+				tmp=(*rt)->getNormalForce()/1000/(*rt)->getArea();
 				fprintf(fprslt,"%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf",
 					disp.getx(),disp.gety(),disp.getz(),tmp.getx(),tmp.gety(),tmp.getz());
 			}
@@ -6860,7 +6871,7 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 			fprintf(fprslt,"%10d%6d%10.3lf%15.6lf%15.6lf%15.6lf%15.6lf",g_iteration,ActualCntctNum,adr,af,am,av,ao);
 			for(rt=RBList.begin();rt!=RBList.end();++rt,++nbdry){
 				disp=(*rt)->getApt();
-				tmp=(*rt)->getNormal()/1000;
+				tmp=(*rt)->getNormalForce()/1000;
 				tmp/=getArea(nbdry);
 				fprintf(fprslt,"%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf",
 					disp.getx(),disp.gety(),disp.getz(),tmp.getx(),tmp.gety(),tmp.getz());
@@ -6956,18 +6967,18 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 		contactUpdate();
 		
 		avgsigma=avgRgdPres();
-		sigma1_1=fabsl(getNormal(5))/getArea(5);
-		ita1_1=fabsl(getTangt(5))/getArea(5);
-		sigma1_2=fabsl(getNormal(6))/getArea(6);
-		ita1_2=fabsl(getTangt(6))/getArea(6);
-		sigma2_1=fabsl(getNormal(2))/getArea(2);
-		ita2_1=fabsl(getTangt(2))/getArea(2);
-		sigma2_2=fabsl(getNormal(4))/getArea(4);
-		ita2_2=fabsl(getTangt(4))/getArea(4);
-		sigma3_1=fabsl(getNormal(1))/getArea(1);
-		ita3_1=fabsl(getTangt(1))/getArea(1);
-		sigma3_2=fabsl(getNormal(3))/getArea(3);
-		ita3_2=fabsl(getTangt(3))/getArea(1);
+		sigma1_1=fabsl(getNormalForce(5))/getArea(5);
+		ita1_1=fabsl(getShearForce(5))/getArea(5);
+		sigma1_2=fabsl(getNormalForce(6))/getArea(6);
+		ita1_2=fabsl(getShearForce(6))/getArea(6);
+		sigma2_1=fabsl(getNormalForce(2))/getArea(2);
+		ita2_1=fabsl(getShearForce(2))/getArea(2);
+		sigma2_2=fabsl(getNormalForce(4))/getArea(4);
+		ita2_2=fabsl(getShearForce(4))/getArea(4);
+		sigma3_1=fabsl(getNormalForce(1))/getArea(1);
+		ita3_1=fabsl(getShearForce(1))/getArea(1);
+		sigma3_2=fabsl(getNormalForce(3))/getArea(3);
+		ita3_2=fabsl(getShearForce(3))/getArea(1);
 		if(sigma3_1<_sigma3)
 			xbdry_velocity_0=-increment_velocity_x;
 		else
@@ -7053,8 +7064,8 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 				ar=(*rt)->getArea();
 				disp=(*rt)->getApt();
 				angl=(*rt)->getDirc();
-				nm=(*rt)->getNormal()/1000/ar;
-				sh=(*rt)->getTangt()/1000/ar;
+				nm=(*rt)->getNormalForce()/1000/ar;
+				sh=(*rt)->getShearForce()/1000/ar;
 				fprintf(fprslt,"%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf", 
 disp.x,disp.y,disp.z,angl.x,angl.y,angl.z,nm.x,nm.y,nm.z,sh.x,sh.y,sh.z);
 			}
@@ -7165,7 +7176,7 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 					disp=(*rt)->getDirc();
 				else
 					disp=(*rt)->getApt();
-				tmp=(*rt)->getNormal()/1000/getArea(nbdry);
+				tmp=(*rt)->getNormalForce()/1000/getArea(nbdry);
 				fprintf(fprslt,"%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf",
 					disp.getx(),disp.gety(),disp.getz(),tmp.getx(),tmp.gety(),tmp.getz());
 			}

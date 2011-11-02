@@ -162,7 +162,8 @@ bool contact<T>::isOverlapped(){
     p1->getGlobCoef(coef1); // v[0] is the point on p2, v[1] is the point on p1
     p2->getGlobCoef(coef2);    
     vec v[2];
-    if (root6(coef1,coef2,v[0]) && root6(coef2,coef1,v[1])) // a strict detection method
+    //if (root6(coef1,coef2,v[0]) ) && root6(coef2,coef1,v[1])) // a strict detection method
+    if (root6(coef1,coef2,v[0]) ) // assume no inclusion between two particles
 	return true;
     else
 	return false;

@@ -23,6 +23,10 @@ const long double Gs      = 2.65;    // quartz sand Gs= 2.65
 // step interval to update contacts between particles
 const int UPDATE_CNT      = 1;       // or 50? 
 
+// other global variables
+std::ofstream g_exceptioninf;        // record debugging information
+int g_iteration;                     // iteration number
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // Part B: These parameters may change frequently and can be easily edited in main.cpp
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -46,9 +50,5 @@ long double COMPRESS_RATE = 7.0e-03; // 7.0e-03 for triaxial; 1.0e-03 for isotro
 long double RELEASE_RATE  = 7.0e-03; // the same as above
 long double PILE_RATE     = 2.5e-01; // pile penetration velocity
 long double STRESS_ERROR  = 2.0e-02; // tolerance of stress equilibrium on rigid walls
-
-// 4. other global variables
-std::ofstream g_exceptioninf;        // record debugging information
-int g_iteration;                     // iteration number 
 
 } // namespace dem ends

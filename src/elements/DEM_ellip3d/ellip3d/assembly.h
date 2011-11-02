@@ -107,8 +107,8 @@ public:
 	long double kinEnergy() const;
 	long double potEnergy(long double ref) const;
 
-	vec  getNormal(int bdry) const;          // get the pressure acting on the bdry_th rigid boundary
-	vec  getTangt(int bdry) const;           // get the shear friction of the rigid boundary
+	vec  getNormalForce(int bdry) const;          // get normal force acting on the bdry_th rigid boundary
+	vec  getShearForce(int bdry) const;           // get shear force acting on the bdry_th rigid boundary
 	long double getAvgNormal(int bdry) const;
 	vec  getApt(int bdry) const;             // get a point on bdry_th rigid boundary
 	vec  getDirc(int bdry) const;            // get the dirc of bdry_th rigid boundry
@@ -141,9 +141,7 @@ public:
 			     const char* exceptionfile);
 
 	// create a specimen from discreate particles through floating and then gravitation,
-	// but the boundaries are composed of fixed particles.
-	// file cre_particle contains the final particle information,
-	// file cre_boundary contains the final boundary information.
+	// boundaries are composed of fixed particles.
 	void deposit_PtclBdry(gradation& grad,
 			      int   freetype,
 			      long double rsize,
@@ -155,7 +153,7 @@ public:
 			      const char* progressfile, 
 			      const char* exceptionfile);
 	
-	// scaling the whole assembly from deposited state, until it reaches steady state
+	// scale the whole assembly from deposited state, until it reaches steady state
 	void scale_PtclBdry(int   total_steps  =50000,             // total_steps
 			    int   snapshots    =100,               // number of snapshots   
 			    long double dimn   =0.05,              // dimension of particle-composed-boundary
@@ -253,8 +251,8 @@ public:
 		       const char*  exceptionfile="iso_exception");
 
         // The specimen has been isotropically compressed to confining pressure sigma_a. This function
-        // increases confining pressure step by step to sigma_b, thus making it possible to find out
-        // balanced status where particle pressure equals confining pressure. Force boundaries are used.
+        // increases confining pressure step by step to sigma_b, making it possible to find equilibrium 
+	// state where particle pressure equals confining pressure. Force boundaries are used.
 	void isotropic(int    total_steps   =100000,
 		       int    snapshots     =100,
 		       long double sigma_a  =1.0e+4,

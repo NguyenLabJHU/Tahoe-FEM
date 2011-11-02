@@ -2,7 +2,7 @@ How to use ellip3d
 
 1. compile
 
-1.1 single process mode
+1.1 serial mode
    step 1) edit main.cpp for your specific simulation type and parameters
    step 2) edit makefile to exclude OPENMP from OPTION.
    step 3) make
@@ -16,7 +16,7 @@ How to use ellip3d
 
 2. run
 
-2.1 single process mode
+2.1 serial mode
 ./ellip3d or ./ellip3d > tmp &
 
 2.2 openmp mode

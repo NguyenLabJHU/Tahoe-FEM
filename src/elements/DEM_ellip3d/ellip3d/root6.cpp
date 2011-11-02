@@ -11,8 +11,8 @@
 //    separated (not-in-touch), the algorithm could still find a point!
 //
 //    return values:
-//      true  - non-overlapped
-//      false - overlapped and vector point returns the deepest point.
+//      false - non-overlapped
+//      true  - overlapped and vector point returns the deepest point.
 
 #include "root6.h"
 #include "parameter.h"

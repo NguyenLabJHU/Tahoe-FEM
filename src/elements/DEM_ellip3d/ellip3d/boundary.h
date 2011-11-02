@@ -142,11 +142,11 @@ public:
 	virtual void createPBL(std::list<T*>& ptcls){};
 	virtual void rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap)
 	    {std::cout<<"parent"<<std::endl;} // calculate for each boundary particles the rigid boundary force
-	virtual vec getNormal() const{return 0;}
+	virtual vec getNormalForce() const{return 0;}
 	virtual long double getAvgNormal() const{return 0;}
 	virtual long double getAvgPenetr() const{return 0;}
 	virtual int         getCntnum() const{return 0;}
-	virtual vec getTangt() const{return 0;}
+	virtual vec getShearForce() const{return 0;}
 	virtual vec getApt() const{return 0;}
 	virtual vec getDirc() const{return 0;}
 	virtual void setArea(long double a){area=a;}
@@ -253,12 +253,12 @@ public:
 		return this;
 	}
 	void rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap);
-	vec getNormal() const{return normal;}
+	vec getNormalForce() const{return normal;}
 	long double getAvgNormal() const{return this->avg_normal;}
 	long double getAvgPenetr() const{return this->avg_penetr;}
 	int         getCntnum() const{return this->cntnum;}
 
-	vec getTangt() const{return tangt;}
+	vec getShearForce() const{return tangt;}
 };
 
 template<class T>
@@ -399,7 +399,7 @@ public:
 	long double distToBdry(vec posi) const;
 	void createPBL(std::list<T*>& ptcls);
 	void rigidBF();
-	vec getNormal() const{return normal;};
+	vec getNormalForce() const{return normal;};
 };
 
 template<class T>
