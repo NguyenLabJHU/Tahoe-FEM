@@ -147,7 +147,7 @@ namespace Tahoe {
 
    	  	/* material support */
       	if (0 == fFSDEMatSupportVisco) {
-        	fFSDEMatSupport = dynamic_cast<FSDEMatSupportViscoT*> (NewMaterialSupport());
+        	fFSDEMatSupportVisco = dynamic_cast<FSDEMatSupportViscoT*> (NewMaterialSupport());
 
         if (0 == fFSDEMatSupportVisco) {
           ExceptionT::GeneralFail("FSDielectricElastomerViscoT::NewMaterialList");
@@ -336,7 +336,7 @@ void FSDielectricElastomerViscoT::AddNodalForce(const FieldT& field, int node, d
 	if (fMassType != kNoMass &&
 	   (fBodySchedule && fBody.Magnitude() > kSmall))
 	{
-		cout << "\nWarning: Body forces not yet implemented in DielectricElastomerT";
+		cout << "\nWarning: Body forces not yet implemented in FSDielectricElastomerViscoT";
 		if (!formMa) constMa = 1.0; /* override */
 	}
 
@@ -700,7 +700,6 @@ void FSDielectricElastomerViscoT::MassMatrix()
     fShapes->TopIP();
     while (fShapes->NextIP() != 0) 
     {
-
 	  /* integration weight */
       const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
       const double w1 = fShapes->IPDet() * fShapes->IPWeight();
@@ -708,7 +707,7 @@ void FSDielectricElastomerViscoT::MassMatrix()
       
       /* Now convert DNaX to a matrix instead of dArray2DT */
 	  fShapes->GradNa(DNaX, GradShape);	
-	  
+
 	  /* Mechanical stress */
 	  dSymMatrixT SIJ = fCurrMaterial->S_IJ();
 	  SIJ *= (0.5*w);

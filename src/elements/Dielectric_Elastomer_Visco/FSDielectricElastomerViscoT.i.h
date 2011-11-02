@@ -6,10 +6,10 @@ namespace Tahoe {
   //
   inline FSDielectricElastomerViscoT::FSDielectricElastomerViscoT(
       const ElementSupportT& support) :
-    FiniteStrainT(support), fFSDEMatSupport(0), fCurrMaterial(0),
+    FiniteStrainT(support), fFSDEMatSupportVisco(0), fCurrMaterial(0),
     fLocScalarPotential(LocalArrayT::kESP), fElectricScalarPotentialField(0)
   {
-    SetName("dielectric_elastomer");
+    SetName("dielectric_elastomer_visco");
   }
 
   //
