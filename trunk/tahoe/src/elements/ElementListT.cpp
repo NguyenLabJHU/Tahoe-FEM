@@ -1,5 +1,8 @@
-/* $Id: ElementListT.cpp,v 1.145 2010-11-08 15:33:56 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.146 2011-11-02 01:05:43 hspark Exp $ */
 /* $Log: not supported by cvs2svn $
+/* Revision 1.145  2010/11/08 15:33:56  hspark
+/* Fixes for FSDielectricElastomerT
+/*
 /* Revision 1.144  2009/05/21 23:24:45  tdnguye
 /* added optimization class
 /*
@@ -93,6 +96,14 @@
 
 #ifdef DIELECTRIC_ELASTOMER
 #include "FSDielectricElastomerT.h"
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_2D
+#include "FSDielectricElastomer2DT.h"
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_VISCO
+#include "FSDielectricElastomerViscoT.h"
 #endif
 
 #ifdef HUWASHIZU
@@ -397,6 +408,14 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
     sub_lists.AddSub("dielectric_elastomer");
 #endif
 
+#ifdef DIELECTRIC_ELASTOMER_2D
+    sub_lists.AddSub("dielectric_elastomer_2D");
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_VISCO
+    sub_lists.AddSub("dielectric_elastomer_visco");
+#endif
+
 #ifdef HUWASHIZU
     sub_lists.AddSub("Hu_Washizu_USC");
 #endif
@@ -675,6 +694,16 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef DIELECTRIC_ELASTOMER
   else if (name == "dielectric_elastomer")
     return new FSDielectricElastomerT(fSupport);
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_2D
+  else if (name == "dielectric_elastomer_2D")
+    return new FSDielectricElastomer2DT(fSupport);
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_VISCO
+  else if (name == "dielectric_elastomer_visco")
+    return new FSDielectricElastomerViscoT(fSupport);
 #endif
 
 #ifdef HUWASHIZU
