@@ -80,7 +80,7 @@ public:
     long double G0;
     long double R0;
 
-    bool IsInContact;
+    bool isInContact;
 
     bool TgtLoading;           // tangential loading or unloading
     vec  NormalForce;          // positive when pointing to paticle 1
@@ -108,7 +108,7 @@ template <class T>
 contact<T>::contact(){
     p1=NULL;
     p2=NULL;
-    IsInContact=false;
+    isInContact=false;
     TgtLoading=PreTgtLoading=true;
     TgtPeak=0;
     penetration=0;
@@ -128,7 +128,7 @@ template <class T>
 contact<T>::contact(T* t1, T* t2){
     p1=t1;
     p2=t2;
-    IsInContact=false;
+    isInContact=false;
     TgtLoading=PreTgtLoading=true;
     TgtPeak=0;
     penetration=0;
@@ -162,11 +162,16 @@ bool contact<T>::isOverlapped(){
     p1->getGlobCoef(coef1); // v[0] is the point on p2, v[1] is the point on p1
     p2->getGlobCoef(coef2);    
     vec v[2];
-    //if (root6(coef1,coef2,v[0]) ) && root6(coef2,coef1,v[1])) // a strict detection method
-    if (root6(coef1,coef2,v[0]) ) // assume no inclusion between two particles
-	return true;
-    else
+    if ( root6(coef1,coef2,v[0])  && root6(coef2,coef1,v[1]) ) { // a strict detection method
+        point1 = v[1];
+        point2 = v[0];
+        isInContact = true;
+        return true;
+    }
+    else {
+        isInContact = false;
 	return false;
+    }
 }
 
 
@@ -202,23 +207,10 @@ void contact<T>::checkoutTgt(std::vector<cnttgt>& CntTgtVec) {
 
 template<class T>
 void contact<T>::ContactForce(){
-    long double coef1[10];
-    long double coef2[10];
-    p1->getGlobCoef(coef1); // v[0] is the point on p2, v[1] is the point on p1
-    p2->getGlobCoef(coef2); 
-    vec v[2];    
-    if (root6(coef1,coef2,v[0]) && root6(coef2,coef1,v[1])) // a strict detection method
-	IsInContact=true;
-    else
-	IsInContact=false;
-    point1=v[1];
-    point2=v[0]; 
+    // isOverlapped() has been called in createContact() in assembly.cpp and information recorded, 
+    // now this function is called by internalForce() in assembly.cpp.
 
-    // As UPDATE_CNT may not be 1, the two particles may not overlap each other when this
-    // member function is called or when ContactList is referenced, so we need to judge based
-    // on IsInContact. If not overlapped, then the forces are zero, which is reasonable for
-    // an "existing" contact. UPDATE_CNT is essential to finding new contacts.
-    if (IsInContact) {
+    if (isInContact) {
 	// obtain normal force, using absolute equation instead of stiffness method
 	p1->cntnum++;
 	p2->cntnum++;
@@ -415,7 +407,7 @@ void contact<T>::ContactForce(){
 	
     }
     else {
-	IsInContact=false;
+	isInContact=false;
 	TgtLoading=false;
 	TgtPeak=0;
 	NormalForce=0;

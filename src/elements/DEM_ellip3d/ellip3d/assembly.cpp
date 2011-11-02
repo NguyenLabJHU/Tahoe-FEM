@@ -520,7 +520,6 @@ void assembly::createContact(){
 	  if(tmpct.isOverlapped())
 #pragma omp critical
 	      ContactList.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
-	      // ContactList.push_back( contact<particle>(*it,*it) ); //this is a better expresssion replacing above two statements
 	}
       }
     }

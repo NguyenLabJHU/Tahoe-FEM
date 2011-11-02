@@ -2,17 +2,11 @@ How to use ellip3d
 
 1. compile
 
-1.1 serial mode
    step 1) edit main.cpp for your specific simulation type and parameters
-   step 2) edit makefile to exclude OPENMP from OPTION.
-   step 3) make
-   step 4) copy ellip3d, main.cpp, parameter.cpp to your simulation directory
-
-1.2 openmp mode
-   step 1) edit main.cpp for your specific simulation type and parameters
-   step 2) edit makefile to include OPENMP for OPTION
-   step 3) make
-   step 4) copy ellip3d, main.cpp, parameter.cpp to your simulation directory
+   step 2) edit parameter.cpp to change more parameters if necessary
+   step 3) edit makefile to include or exclude OPENMP from OPTION
+   step 4) make
+   step 5) copy ellip3d, main.cpp, parameter.cpp to your simulation directory
 
 2. run
 
