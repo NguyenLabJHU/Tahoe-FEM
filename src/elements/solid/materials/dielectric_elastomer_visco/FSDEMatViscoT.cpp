@@ -42,6 +42,7 @@ namespace Tahoe {
   //
   void FSDEMatViscoT::TakeParameterList(const ParameterListT& list)
   {
+  	/* inherited */
 	FSSolidMatT::TakeParameterList(list);
 	fMu = list.GetParameter("mu");
 	fElectricPermittivity = list.GetParameter("epsilon");
@@ -63,6 +64,9 @@ namespace Tahoe {
 	fTangentElectromechanical.Dimension(kStressDim, kNumDOF);
 	fElectricDisplacement.Dimension(kNumDOF);
 	fElectricField.Dimension(kNumDOF);
+	
+	/* Default Dimension state variable arrays*/
+	if (fNumProcess > 0) SetStateVariablesDE(fNumProcess);	
   }
 
   //
@@ -73,7 +77,6 @@ namespace Tahoe {
 	FSSolidMatT::DefineSubs(sub_list);
     return;
   }
-
 
 
 } //namespace Tahoe
