@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.17 2010-12-06 20:19:18 tdnguye Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.18 2011-11-02 02:36:54 hspark Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -77,6 +77,11 @@
 #include "SMP_multi.h"
 #include "ModBoyceVisco.h"
 #include "BergstromBoyce.h"
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_2D
+#include "FSDielectricElastomer2DT.h"
+#include "FSDEMatSupport2DT.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -187,6 +192,10 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("SMP_multi");
 		sub_lists.AddSub("ModBoyceVisco");
 		sub_lists.AddSub("BergstromBoyce");
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_2D
+		sub_lists.AddSub(FSDEMat2DT::Name);
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -323,6 +332,18 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 #ifdef FINITE_ANISOTROPY
 	else if (name == "Bischoff-Arruda_WLC")
 		mat= new WLC;
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_2D
+	else if (name == FSDEMat2DT::Name) {
+	  FSDEMat2DT* demat = new FSDEMat2DT;
+	  if (demat != 0) {
+	    FSMatSupportT* dems = const_cast<FSMatSupportT*>(fFSMatSupport);
+	    const FSDEMatSupport2DT* ddems = dynamic_cast<FSDEMatSupport2DT*>(dems);
+	    demat->SetFSDEMatSupport2D(ddems);
+	    mat = demat;
+	  }
+	}
 #endif
 
 #ifdef ABAQUS_MATERIAL
