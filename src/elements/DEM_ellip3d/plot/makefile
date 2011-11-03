@@ -30,6 +30,5 @@ $(FILE9): $(FILE9).cpp
 	g++ -Wall -gstabs -o $(FILE9) $(FILE9).cpp
 $(FILE10): $(FILE10).cpp
 	g++ -Wall -gstabs -o $(FILE10) $(FILE10).cpp
-	g++ -Wall -gstabs -o $(FILE9) $(FILE9).cpp
 $(FILE11): $(FILE11).cpp
 	g++ -Wall -gstabs -o $(FILE11) $(FILE11).cpp
