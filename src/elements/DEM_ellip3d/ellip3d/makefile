@@ -1,14 +1,10 @@
-########################################################################
-# This is the makefile for ellip3d. There are 4 modes to select from:  #
-#                                                                      #
-# 1. optimization                                                      #
-# 2. optimization + openmp                                             #
-# 3. debug                                                             #
-# 4. debug + openmp                                                    #
-#                                                                      #
-# As a user you are recommended to select mode 1 or 2. What you need   #
-# to do is uncommenting one of the 4 lines enclosed by # lines below.  #
-########################################################################
+# This is the makefile for ellip3d. There are 4 modes to select from:
+# 1. optimization                                                    
+# 2. optimization + openmp                                           
+# 3. debug                                                           
+# 4. debug + openmp                                                  
+# What you need to do is uncommenting one of the 4 lines enclosed by # 
+# lines below, and you are recommended to select mode 1 or 2 as a user.
 
 # C++ compiler
 CC = g++
@@ -22,12 +18,12 @@ DEBUG = -Wall -g -DDEBUG
 # OPENMP (macro OPENMP is defined in assembly.cpp )
 OPENMP = -DOPENMP -fopenmp
 
-########################################################################
+######################################################################
 #OPTION = $(OPTIMIZE)
  OPTION = $(OPTIMIZE) $(OPENMP)
 #OPTION = $(DEBUG)
 #OPTION = $(DEBUG) $(OPENMP)
-########################################################################
+######################################################################
 
 ellip3d: main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o
 	$(CC) $(OPTION) -o ellip3d main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o
