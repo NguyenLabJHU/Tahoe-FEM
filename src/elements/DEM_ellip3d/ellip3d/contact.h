@@ -55,7 +55,7 @@ public:
     long double getE0() const {return E0;}
     
     bool isOverlapped();
-    void ContactForce();         // calculate normal and tangential force of contact
+    void contactForce();         // calculate normal and tangential force of contact
     long double getNormalForce() const {return vfabsl(NormalForce);}
     long double getTgtForce()  const {return vfabsl(TgtForce);}
     long double getPenetration() const {return penetration;}
@@ -206,8 +206,8 @@ void contact<T>::checkoutTgt(std::vector<cnttgt>& CntTgtVec) {
 
 
 template<class T>
-void contact<T>::ContactForce(){
-    // isOverlapped() has been called in createContact() in assembly.cpp and information recorded, 
+void contact<T>::contactForce(){
+    // isOverlapped() has been called in findContact() in assembly.cpp and information recorded, 
     // now this function is called by internalForce() in assembly.cpp.
 
     if (isInContact) {

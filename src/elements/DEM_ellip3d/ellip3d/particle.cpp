@@ -271,7 +271,7 @@ long double particle::getTransEnergy() const{
 }
 
 
-long double particle::getRotaEnergy() const{
+long double particle::getRotatEnergy() const{
     vec curr_local_omga, tmp;
 
     tmp=vcosl(curr_direction_a); curr_local_omga.setx(tmp%curr_omga);
@@ -284,13 +284,13 @@ long double particle::getRotaEnergy() const{
 }
 
 
-long double particle::getKinEnergy() const{
-    return getTransEnergy() + getRotaEnergy();
+long double particle::getKinetEnergy() const{
+    return getTransEnergy() + getRotatEnergy();
 }
 
 
-long double particle::getPotEnergy(long double ref) const{
-    return 9.8*mass*(curr_position.getz() - ref);
+long double particle::getPotenEnergy(long double ref) const{
+    return G*mass*(curr_position.getz() - ref);
 }
 
 
@@ -475,7 +475,7 @@ bool particle::intersectWithLine(vec v, vec dirc, vec rt[]) const{
 //       seeking appropriate osculating circle among an infinite number of
 //       osculating circles passing through the contact point.
 //    2. r = r1*r2/(r1+r2)
-//    3. It is essential to eliminate float exceptions in computations, that is, 
+//    3. It is important to eliminate float exceptions in computations, that is, 
 //       when dz/dx == infinite, coordinate x & z are switched to use dx/dz == 0.
 //    4. When a point is close to the equator, for example, fabsl(z)==0,
 //       float exception is prone to occurring, then a switch is needed
@@ -549,13 +549,13 @@ long double particle::getRadius(vec v) const{
 }
 
 
-void particle::setZero(){
+void particle::clearForce(){
     force=const_force;
     moment=const_moment;
 
-    force += vec(0,0,-9.8*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
+    force += vec(0,0,-G*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
     if (getType()==3) // pile
-	force -= vec(0,0,-9.8*mass*GRVT_SCL); 
+	force -= vec(0,0,-G*mass*GRVT_SCL); 
 
 #ifdef MOMENT
 	long double m[20]={ 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
@@ -582,7 +582,7 @@ void particle::setZero(){
 void particle::update() {
 
     if (getType()==0 || getType()==5) { // 0-free, 1-fixed, 5-free bounary particle
-	// It is essential to distinguish global frame from local frame!
+	// It is important to distinguish global frame from local frame!
 	vec prev_local_omga;
 	vec curr_local_omga;
 	vec local_moment;

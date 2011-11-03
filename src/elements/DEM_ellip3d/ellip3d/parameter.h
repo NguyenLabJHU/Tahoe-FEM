@@ -12,6 +12,9 @@ namespace dem {
 // PI value
 extern const long double PI;
 
+// Gravitational acceleration
+extern const long double G;
+
 // absolute numerical precision
 extern const long double PREC;
 
@@ -28,7 +31,6 @@ extern const long double Gs;
 
 // step interval to update contacts between particles
 extern const int UPDATE_CNT;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Part B: These parameters may change frequently and can be easily edited in main.cpp

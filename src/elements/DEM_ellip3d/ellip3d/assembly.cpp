@@ -63,11 +63,11 @@ namespace dem {
 ofstream        progressinf;
 bool            toprintstep;
 
-void assembly::printPtcl(const char* str) const
+void assembly::printParticle(const char* str) const
 {
     ofstream ofs(str);
     if(!ofs) {
-	cout<<"stream error in printPtcl!"<<endl; exit(-1);
+	cout<<"stream error in printParticle!"<<endl; exit(-1);
     }
     ofs.setf(ios::scientific, ios::floatfield);
     ofs<<setw(10)<<TotalNum<<setw(10)<<RORC<<endl;
@@ -216,11 +216,11 @@ void assembly::printRectPile(const char* str)
 //  4. a const_iterator such as it also guarantees that (*it) will NOT
 //     change any data. if (*it) call a modification function, the 
 //     compiler will give errors.
-void assembly::printCntct(const char* str) const
+void assembly::printContact(const char* str) const
 {
     ofstream ofs(str);
     if(!ofs) {
-	cout<<"stream error in printCntct!"<<endl; exit(-1);
+	cout<<"stream error in printContact!"<<endl; exit(-1);
     }
     ofs.setf(ios::scientific, ios::floatfield);
     ofs<<setw(10)<<ActualCntctNum<<endl;
@@ -389,7 +389,7 @@ void assembly::createSample(const char* str){
 
 
 #ifdef OPENMP	
-void assembly::createContact(){ // OpenMP version
+void assembly::findContact(){ // OpenMP version
     ContactList.clear();
     PossCntctNum = 0;
 
@@ -456,7 +456,7 @@ void assembly::createContact(){ // OpenMP version
 }
 
 #else
-void assembly::createContact(){ // serial version
+void assembly::findContact(){ // serial version
     ContactList.clear();
     PossCntctNum = 0;
 
@@ -493,7 +493,7 @@ void assembly::createContact(){ // serial version
 /* another OpenMP version, simpler but slower
 
 #ifdef OPENMP	
-void assembly::createContact(){
+void assembly::findContact(){
     ContactList.clear();
     PossCntctNum = 0;
 
@@ -535,7 +535,7 @@ void assembly::createContact(){
 
 */
 
-long double assembly::density() const{
+long double assembly::getDensity() const{
     long double dens=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
@@ -544,7 +544,7 @@ long double assembly::density() const{
 }
 
 
-long double assembly::avgPenetration() const{
+long double assembly::getAveragePenetration() const{
     int totalcntct = ContactList.size();
     if (totalcntct==0)
 	return 0;
@@ -557,7 +557,7 @@ long double assembly::avgPenetration() const{
 }
 
 
-long double assembly::avgVelocity() const{
+long double assembly::getAverageVelocity() const{
     long double avgv=0;
     int count=0;
     list<particle*>::const_iterator it;
@@ -570,7 +570,7 @@ long double assembly::avgVelocity() const{
 }
 
 
-long double assembly::avgOmga() const{
+long double assembly::getAverageOmga() const{
     long double avgv=0;
     int count=0;
     list<particle*>::const_iterator it;
@@ -583,7 +583,7 @@ long double assembly::avgOmga() const{
 }
 
 
-long double assembly::avgForce() const{
+long double assembly::getAverageForce() const{
     long double avgv=0;
     int count=0;
     list<particle*>::const_iterator it;
@@ -596,7 +596,7 @@ long double assembly::avgForce() const{
 }
 
 
-long double assembly::avgMoment() const{
+long double assembly::getAverageMoment() const{
     long double avgv=0;
     int count=0;
     list<particle*>::const_iterator it;
@@ -609,7 +609,7 @@ long double assembly::avgMoment() const{
 }
 
 
-long double assembly::ptclVolume() const{
+long double assembly::getParticleVolume() const{
     long double avgv=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
@@ -619,7 +619,7 @@ long double assembly::ptclVolume() const{
 }
 
 
-vec assembly::topFreePtclPos() const{
+vec assembly::getTopFreeParticlePosition() const{
     list<particle*>::const_iterator it,jt,kt;
     it=ParticleList.begin();
     while (it!=ParticleList.end() && (*it)->getType()!=0)   // find the 1st free particle
@@ -687,11 +687,11 @@ long double assembly::ellipPileTipZ() {
 
 long double assembly::ellipPilePeneVol() {
     long double val=0;
-    if (topFreePtclPos().getz()-ellipPileTipZ()<=0)
+    if (getTopFreeParticlePosition().getz()-ellipPileTipZ()<=0)
 	val=0;
     else{
 	// low: a signed number as lower limit for volumetric integration
-	long double low=ellipPileTipZ() + ellipPileDimn().getx() - topFreePtclPos().getz(); 
+	long double low=ellipPileTipZ() + ellipPileDimn().getx() - getTopFreeParticlePosition().getz(); 
 	long double lowint=low-powl(low,3)/3.0/powl(ellipPileDimn().getx(),2);
 	val = PI * ellipPileDimn().gety() * ellipPileDimn().getz()
 	      *(2.0/3*ellipPileDimn().getx()-lowint);
@@ -712,7 +712,7 @@ void assembly::ellipPileUpdate(){
 }
 
 
-long double assembly::transEnergy() const{
+long double assembly::getTransEnergy() const{
     long double engy=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
@@ -723,47 +723,47 @@ long double assembly::transEnergy() const{
 }
 
 
-long double assembly::rotaEnergy() const{
+long double assembly::getRotatEnergy() const{
     long double engy=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
-	    engy+=(*it)->getRotaEnergy();
+	    engy+=(*it)->getRotatEnergy();
     }
     return engy;
 }
 
 
-long double assembly::kinEnergy() const{
+long double assembly::getKinetEnergy() const{
     long double engy=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
-	    engy+=(*it)->getKinEnergy();
+	    engy+=(*it)->getKinetEnergy();
     }
     return engy;
 }
 
 
-long double assembly::potEnergy(long double ref) const{
+long double assembly::getPotenEnergy(long double ref) const{
     long double engy=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
-	    engy+=(*it)->getPotEnergy(ref);
+	    engy+=(*it)->getPotenEnergy(ref);
     }
     return engy;
 }
 
 
-void assembly::setForceZero(){
+void assembly::clearForce(){
     for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
-	(*it)->setZero();
+	(*it)->clearForce();
     }
 }
 
 
-void assembly::fbForceZero(){
+void assembly::flexiBoundaryForceZero(){
     for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
 	(*it)->flb_force=0;
 	(*it)->flb_moment=0;
@@ -779,7 +779,7 @@ void assembly::initFBForce(){
 }
 
 
-void assembly::internForce(long double& avgnm, long double& avgsh){
+void assembly::internalForce(long double& avgnm, long double& avgsh){
     avgnm=0;
     avgsh=0;
 
@@ -800,7 +800,7 @@ void assembly::internForce(long double& avgnm, long double& avgsh){
 	gettimeofday(&time1,NULL); 
 #endif 
 	for (it=ContactList.begin();it!=ContactList.end();++it){
-	    it->ContactForce();           // cannot be parallelized as it may change a particle's force simultaneously.
+	    it->contactForce();           // cannot be parallelized as it may change a particle's force simultaneously.
 	    it->checkoutTgt(CntTgtVec);   // checkout current tangential force and displacment
 	    avgnm += it->getNormalForce();
 	    avgsh += it->getTgtForce();
@@ -819,14 +819,14 @@ void assembly::internForce(long double& avgnm, long double& avgsh){
 }
 
 
-void assembly::particleUpdate(){
+void assembly::updateParticle(){
     for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
 	(*it)->update();
     }
 }
 
 
-void assembly::createRB(ifstream &ifs){
+void assembly::createRigidBoundary(ifstream &ifs){
     rgd_bdry<particle>* rbptr;
     int type;
     RBList.clear();
@@ -843,7 +843,7 @@ void assembly::createRB(ifstream &ifs){
 }
 
 
-void assembly::createFB(ifstream &ifs){
+void assembly::createFlexiBoundary(ifstream &ifs){
     flb_bdry<particle>* fbptr;
     int type;
     FBList.clear();
@@ -860,23 +860,23 @@ void assembly::createFB(ifstream &ifs){
 }
 
 	
-void assembly::createBdry(const char* str){
+void assembly::createBoundary(const char* str){
     ifstream ifs(str);
     if(!ifs) {
-	cout<<"stream error in createBdry!"<<endl; exit(-1);
+	cout<<"stream error in createBoundary!"<<endl; exit(-1);
     }
     ifs >> BdryType;
     if(BdryType==0){      // rigid boundaries
-	createRB(ifs);
+	createRigidBoundary(ifs);
     }
     else if(BdryType==1){ // flexible boundaries
-	createFB(ifs);
+	createFlexiBoundary(ifs);
     }
     ifs.close();
 }
 
 
-void assembly::dispBdry() const{
+void assembly::displayBoundary() const{
     printf("rgd boundary number%5d\n",RgdBdryNum);
     list<RGDBDRY*>::const_iterator rt;
     list<FLBBDRY*>::const_iterator ft;
@@ -887,11 +887,11 @@ void assembly::dispBdry() const{
 }
 
 
-void assembly::printBdry(const char* str) const
+void assembly::printBoundary(const char* str) const
 {
     ofstream ofs(str);
     if(!ofs) {
-	cout<<"stream error in printBdry!"<<endl; exit(-1);
+	cout<<"stream error in printBoundary!"<<endl; exit(-1);
     }
     ofs.setf(ios::scientific, ios::floatfield);
 
@@ -907,20 +907,20 @@ void assembly::printBdry(const char* str) const
 }
 
 
-void assembly::createPBL(){
+void assembly::findParticleOnBoundary(){
     list<RGDBDRY*>::iterator rt;
     list<FLBBDRY*>::iterator ft;
     for(rt=RBList.begin();rt!=RBList.end();++rt)
-	(*rt)->createPBL(ParticleList);
+	(*rt)->findParticleOnBoundary(ParticleList);
     for(ft=FBList.begin();ft!=FBList.end();++ft)
-	(*ft)->createPBL(ParticleList);
+	(*ft)->findParticleOnBoundary(ParticleList);
 }
 
 
-void assembly::createPLL(){
+void assembly::findParticleOnLine(){
     list<FLBBDRY*>::iterator ft;
     for(ft=FBList.begin();ft!=FBList.end();++ft)
-	(*ft)->createPLL();
+	(*ft)->findParticleOnLine();
 }
 
 
@@ -931,7 +931,7 @@ void assembly::createFlbNet(){
 }
 
 
-void assembly::rbForce(){
+void assembly::rigidBoundaryForce(){
   list<RGDBDRY*>::iterator rt;
   for(rt=RBList.begin();rt!=RBList.end();++rt)
     (*rt)->rigidBF(BdryTgtMap);
@@ -957,7 +957,7 @@ void assembly::rbForce(){
 }
 
 
-void assembly::rbForce(long double penetr[],int cntnum[]){
+void assembly::rigidBoundaryForce(long double penetr[],int cntnum[]){
   list<RGDBDRY*>::iterator rt;
   for(rt=RBList.begin();rt!=RBList.end();++rt){	
     (*rt)->rigidBF(BdryTgtMap);
@@ -989,7 +989,7 @@ void assembly::rbForce(long double penetr[],int cntnum[]){
 }
 
 
-void assembly::fbForce(){
+void assembly::flexiBoundaryForce(){
     list<FLBBDRY*>::iterator ft;
     for(ft=FBList.begin();ft!=FBList.end();++ft)
 	(*ft)->flxbBF();
@@ -1065,7 +1065,7 @@ void assembly::setArea(int n, long double a){
 }
 
 
-long double assembly::avgRgdPres() const{
+long double assembly::getAverageRigidPressure() const{
     list<RGDBDRY*>::const_iterator rt;
     long double avgpres=0;
     for(rt=RBList.begin();rt!=RBList.end();++rt)
@@ -1205,11 +1205,11 @@ void assembly::deposit_RgdBdry(gradation& grad,
 	R.set_length(grad.dimn);
 	R.set_height(grad.dimn);
 	
-	init(grad, iniptclfile, freetype, height); 
+	generate(grad, iniptclfile, freetype, height); 
         // 3.0 for uniform size of (2.5e-3,*0.8,*0.6); if not uniform, it may be larger, say, 4.5
         // 3.0 for uniform spheres of 2.5e-3
 
-	setbdry(grad.rorc, 5, grad.dimn, inibdryfile);
+	setBoundary(grad.rorc, 5, grad.dimn, inibdryfile);
 
 	deposit(total_steps,        // total_steps
 		snapshots,          // number of snapshots
@@ -1220,7 +1220,7 @@ void assembly::deposit_RgdBdry(gradation& grad,
 		progressfile,       // output file, progress statistic information
 		exceptionfile);     // output file, progress float exception
 
-	setbdry(grad.rorc,          // rectangular--1 or cylindrical--0?
+	setBoundary(grad.rorc,          // rectangular--1 or cylindrical--0?
 		6,                  
 		grad.dimn,          // specimen dimension
 		"trm_boundary");    // output file, containing boundaries info
@@ -1240,10 +1240,10 @@ void assembly::deposit_RgdBdry(gradation& grad,
 // 1 - a horizontal layer of free particles
 // 2 - multiple layers of free particles
 // ht- how many times of size would be the floating height
-void assembly::init(gradation&  grad,
-		    const char*       particlefile,
-		    int         freetype,
-		    long double ht)
+void assembly::generate(gradation&  grad,
+			const char* particlefile,
+			int freetype,
+			long double ht)
 {
     long double x,y,z;
     particle* newptcl;
@@ -1286,7 +1286,7 @@ void assembly::init(gradation&  grad,
 	}
     }
 
-    printPtcl(particlefile);
+    printParticle(particlefile);
 
 }
 
@@ -1311,7 +1311,7 @@ void assembly::deposit_PtclBdry(gradation& grad,
 	R.set_length(grad.dimn);
 	R.set_height(grad.dimn);
 	
-	init_p(grad, iniptclfile, freetype, rsize, 4.0);
+	generate_p(grad, iniptclfile, freetype, rsize, 4.0);
 	deposit_p(total_steps,        // total_steps
 		  snapshots,          // number of snapshots
 		  grad.dimn,          // dimension of particle-composed-boundary
@@ -1330,11 +1330,11 @@ void assembly::deposit_PtclBdry(gradation& grad,
 // 1 - a horizontal layer of free particles
 // 2 - multiple layers of free particles
 // ht- how many times of size would be the floating height
-void assembly::init_p(gradation&  grad,
-		      const char*       particlefile,
-		      int         freetype,
-		      long double rsize,
-		      long double ht)
+void assembly::generate_p(gradation&  grad,
+			 const char* particlefile,
+			 int freetype,
+			 long double rsize,
+			 long double ht)
 {
     long double x,y,z;
     particle* newptcl;
@@ -1418,7 +1418,7 @@ void assembly::init_p(gradation&  grad,
 		}	
     }
     
-    printPtcl(particlefile);
+    printParticle(particlefile);
     
 }
 
@@ -1456,7 +1456,7 @@ void assembly::collapse(int   rors,
 			const char* progressfile,
 			const char* exceptionfile)
 {
-    setbdry(rors,               // rectangular--1 or cylindrical--0?
+    setBoundary(rors,               // rectangular--1 or cylindrical--0?
 	    1,                  // 1-only bottom boundary;5-no top boundary;6-boxed 6 boundaries
 	    0.05,               // specimen dimension
 	    initboundary);      // output file, containing boundaries info
@@ -1472,7 +1472,7 @@ void assembly::collapse(int   rors,
 }
 
   
-void assembly::setbdry(int   rors,
+void assembly::setBoundary(int   rors,
 		       int   bdrynum,
 		       long double dimn,
 		       const char* boundaryfile)
@@ -2319,7 +2319,7 @@ void assembly::trim(int   rors,
 		    const char* boundaryfile)
 {
     createSample(iniptclfile);
-    createBdry(inibdryfile);
+    createBoundary(inibdryfile);
 
     list<particle*>::iterator itr,itp;
     vec center;
@@ -2405,8 +2405,8 @@ void assembly::trim(int   rors,
     else {
     }
     
-    printPtcl(particlefile);
-    printBdry(boundaryfile);
+    printParticle(particlefile);
+    printBoundary(boundaryfile);
 }
 
 
@@ -2434,7 +2434,7 @@ void assembly::TrimPtclBdryByHeight(double height,
 
     TotalNum = ParticleList.size();
     
-    printPtcl(particlefile);
+    printParticle(particlefile);
 }
 
 
@@ -2475,7 +2475,7 @@ void assembly::deposit(int   total_steps,
 
     // pre_2. create particles and boundaries from existing files.
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries.
+    createBoundary(inibdryfile);   // create boundaries.
 
     // pre_3: define variables used in iterations.
     long double l13, l24, l56;
@@ -2504,55 +2504,55 @@ void assembly::deposit(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles.
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 
 	// 4. calculate boundary forces/moments and apply them to particles.
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 	
 	// 5. update particles' velocity/omga/position/orientation based on force/moment.
-	particleUpdate();
+	updateParticle();
 
 	// 6. calculate specimen void ratio.
-	l56=topFreePtclPos().getz() - getApt(6).getz();
+	l56=getTopFreeParticlePosition().getz() - getApt(6).getz();
 	l24=getApt(2).gety()-getApt(4).gety();
 	l13=getApt(1).getx()-getApt(3).getx(); Volume=l13*l24*l56;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	// 7. (1) output particles and contacts information as snapshots.
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
 	// 7. (2) output stress and strain info.
 	if (toprintstep) {
-	    long double t1=transEnergy();
-	    long double t2=rotaEnergy();
-	    long double t3=potEnergy(-0.025);
+	    long double t1=getTransEnergy();
+	    long double t2=getRotatEnergy();
+	    long double t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
 		       <<setw(16)<<t1
 		       <<setw(16)<<t2
 		       <<setw(16)<<(t1+t2)
@@ -2588,10 +2588,10 @@ void assembly::deposit(int   total_steps,
     
     // post_1. store the final snapshot of particles & contacts.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     // post_2. close streams
     progressinf.close();
@@ -2659,51 +2659,51 @@ void assembly::deposit_p(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles.
 	if (g_iteration%UPDATE_CNT==0)
-	    createContact();
+	    findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 
 	// 4. update particles' velocity/omga/position/orientation based on force/moment.
-	particleUpdate();
+	updateParticle();
 
 	// 5. calculate specimen void ratio.
-	l56=topFreePtclPos().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
 	l24=dimn*rsize;
 	l13=dimn*rsize;
 	Volume=l13*l24*l56;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	// 6. (1) output particles and contacts information as snapshots.
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
 	// 6. (2) output statistics info.
 	if (toprintstep) {
-	    long double t1=transEnergy();
-	    long double t2=rotaEnergy();
-	    long double t3=potEnergy(-0.025);
+	    long double t1=getTransEnergy();
+	    long double t2=getRotatEnergy();
+	    long double t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
 		       <<setw(16)<<t1
 		       <<setw(16)<<t2
 		       <<setw(16)<<(t1+t2)
@@ -2722,10 +2722,10 @@ void assembly::deposit_p(int   total_steps,
     
     // post_1. store the final snapshot of particles & contacts.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     // post_2. close streams
     progressinf.close();
@@ -2773,7 +2773,7 @@ void assembly::squeeze(int   total_steps,
 
     // pre_2. create particles and boundaries from existing files.
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries.
+    createBoundary(inibdryfile);   // create boundaries.
 
     // pre_3: define variables used in iterations.
     long double l13, l24, l56;
@@ -2805,27 +2805,27 @@ void assembly::squeeze(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles.
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 
 	// 4. calculate boundary forces/moments and apply them to particles.
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 	
 	// 5. update particles' velocity/omga/position/orientation based on force/moment.
-	particleUpdate();
+	updateParticle();
 
 	// 6. calculate sample void ratio.
-	l56=topFreePtclPos().getz() -getApt(6).getz();
+	l56=getTopFreeParticlePosition().getz() -getApt(6).getz();
 	l24=getApt(2).gety()-getApt(4).gety();
 	l13=getApt(1).getx()-getApt(3).getx(); Volume=l13*l24*l56;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	// displacement control
 	if (g_iteration > init_steps) {
@@ -2840,29 +2840,29 @@ void assembly::squeeze(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
 	// 7. (2) output stress and strain info.
 	if (toprintstep) {
-	    long double t1=transEnergy();
-	    long double t2=rotaEnergy();
-	    long double t3=potEnergy(-0.025);
+	    long double t1=getTransEnergy();
+	    long double t2=getRotatEnergy();
+	    long double t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
 		       <<setw(16)<<t1
 		       <<setw(16)<<t2
 		       <<setw(16)<<(t1+t2)
@@ -2896,13 +2896,13 @@ void assembly::squeeze(int   total_steps,
     
     // post_1. store the final snapshot of particles & contacts.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
 
     // post_2. close streams
     progressinf.close();
@@ -2969,7 +2969,7 @@ void assembly::isotropic(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
 
     // pre_3: define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
@@ -3010,21 +3010,21 @@ void assembly::isotropic(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces/moments and apply them to particles
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 	
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	l56=getApt(5).getz()-getApt(6).getz();
@@ -3036,7 +3036,7 @@ void assembly::isotropic(int   total_steps,
 	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
 	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
 	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
 	    minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
@@ -3077,11 +3077,11 @@ void assembly::isotropic(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -3091,18 +3091,18 @@ void assembly::isotropic(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -3138,18 +3138,18 @@ void assembly::isotropic(int   total_steps,
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -3165,18 +3165,18 @@ void assembly::isotropic(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -3196,13 +3196,13 @@ void assembly::isotropic(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile);  strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -3272,7 +3272,7 @@ void assembly::isotropic(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
 
     // pre_3: define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
@@ -3316,21 +3316,21 @@ void assembly::isotropic(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces/moments and apply them to particles
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	l56=getApt(5).getz()-getApt(6).getz();
@@ -3342,7 +3342,7 @@ void assembly::isotropic(int   total_steps,
 	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
 	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
 	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
 	    minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
@@ -3383,11 +3383,11 @@ void assembly::isotropic(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -3397,18 +3397,18 @@ void assembly::isotropic(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -3444,18 +3444,18 @@ void assembly::isotropic(int   total_steps,
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -3478,18 +3478,18 @@ void assembly::isotropic(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -3509,13 +3509,13 @@ void assembly::isotropic(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -3584,7 +3584,7 @@ void assembly::isotropic(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
 
     // pre_3: define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
@@ -3630,21 +3630,21 @@ void assembly::isotropic(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces/moments and apply them to particles
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	l56=getApt(5).getz()-getApt(6).getz();
@@ -3656,7 +3656,7 @@ void assembly::isotropic(int   total_steps,
 	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
 	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
 	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
 	    minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
@@ -3697,11 +3697,11 @@ void assembly::isotropic(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -3711,18 +3711,18 @@ void assembly::isotropic(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -3758,18 +3758,18 @@ void assembly::isotropic(int   total_steps,
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -3798,18 +3798,18 @@ void assembly::isotropic(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -3829,13 +3829,13 @@ void assembly::isotropic(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -3906,7 +3906,7 @@ void assembly::odometer(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
  
     // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
@@ -3946,21 +3946,21 @@ void assembly::odometer(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces and moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces and moments
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 	
 	// 5. update particles' velocity/omga/displacement based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	l56=getApt(5).getz()-getApt(6).getz();
@@ -3972,7 +3972,7 @@ void assembly::odometer(int   total_steps,
 	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
 	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
 	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
 	    minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
@@ -3991,11 +3991,11 @@ void assembly::odometer(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -4005,18 +4005,18 @@ void assembly::odometer(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -4036,18 +4036,18 @@ void assembly::odometer(int   total_steps,
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -4068,18 +4068,18 @@ void assembly::odometer(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -4098,13 +4098,13 @@ void assembly::odometer(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -4176,7 +4176,7 @@ void assembly::odometer(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
  
     // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
@@ -4219,21 +4219,21 @@ void assembly::odometer(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces and moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces and moments
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 	
 	// 5. update particles' velocity/omga/displacement based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	l56=getApt(5).getz()-getApt(6).getz();
@@ -4245,7 +4245,7 @@ void assembly::odometer(int   total_steps,
 	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
 	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
 	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
 	    minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
@@ -4264,11 +4264,11 @@ void assembly::odometer(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -4278,18 +4278,18 @@ void assembly::odometer(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -4309,18 +4309,18 @@ void assembly::odometer(int   total_steps,
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -4346,18 +4346,18 @@ void assembly::odometer(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -4376,13 +4376,13 @@ void assembly::odometer(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -4424,7 +4424,7 @@ void assembly::unconfined(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
  
     // pre_3. define variables used in iterations
     long double sigma3_1, sigma3_2;
@@ -4449,21 +4449,21 @@ void assembly::unconfined(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces and moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces and moments
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces
-	rbForce();
+	rigidBoundaryForce();
 
 	// 5. update particles' velocity/omga/displacement based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	sigma3_1=vfabsl(getNormalForce(5))/getArea(5); sigma3_2=vfabsl(getNormalForce(6))/getArea(6);
@@ -4475,11 +4475,11 @@ void assembly::unconfined(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -4488,13 +4488,13 @@ void assembly::unconfined(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
 		       <<setw(16)<<0
 		       <<setw(16)<<0<<setw(16)<<0
 		       <<setw(16)<<0<<setw(16)<<0
@@ -4502,17 +4502,17 @@ void assembly::unconfined(int   total_steps,
 		       <<endl;
 /*
 	// 8. loop break condition
-	if (avgForce() < 1.0) {
+	if (getAverageForce() < 1.0) {
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()<<endl;
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()<<endl;
 	    break;
 	}
 */
@@ -4520,10 +4520,10 @@ void assembly::unconfined(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -4569,7 +4569,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -4598,21 +4598,21 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces/moments and apply them to particles
-	rbForce();
+	rigidBoundaryForce();
 
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	sigma3_1=vfabsl(getNormalForce(5))/2.5e-3; sigma3_2=vfabsl(getNormalForce(6))/2.5e-3;
@@ -4634,11 +4634,11 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -4649,18 +4649,18 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<0<<setw(16)<<0
 		       <<setw(16)<<0<<setw(16)<<0
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<0<<setw(16)<<0<<setw(16)<<l56
 		       <<setw(16)<<0
 		       <<setw(16)<<0
@@ -4682,13 +4682,13 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -4753,7 +4753,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
     long double H0 = getApt(5).getz()-getApt(6).getz();
@@ -4782,21 +4782,21 @@ void assembly::triaxialPtclBdry(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces/moments and apply them to particles
-	rbForce();
+	rigidBoundaryForce();
 
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	sigma3_1=vfabsl(getNormalForce(5))/2.5e-3; sigma3_2=vfabsl(getNormalForce(6))/2.5e-3;
@@ -4812,11 +4812,11 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -4827,18 +4827,18 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<0<<setw(16)<<0
 		       <<setw(16)<<0<<setw(16)<<0
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<0<<setw(16)<<0<<setw(16)<<l56
 		       <<setw(16)<<0
 		       <<setw(16)<<0
@@ -4860,18 +4860,18 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -4886,13 +4886,13 @@ void assembly::triaxialPtclBdry(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -4959,7 +4959,7 @@ void assembly::triaxial(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
@@ -5000,21 +5000,21 @@ void assembly::triaxial(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces/moments and apply them to particles
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	l56=getApt(5).getz()-getApt(6).getz();
@@ -5026,7 +5026,7 @@ void assembly::triaxial(int   total_steps,
 	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
 	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
 	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	// displacement control
 	minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
@@ -5062,11 +5062,11 @@ void assembly::triaxial(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -5076,18 +5076,18 @@ void assembly::triaxial(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -5102,8 +5102,8 @@ void assembly::triaxial(int   total_steps,
 		       <<endl;
 
 	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<transEnergy()
-			  <<setw(16)<<rotaEnergy()
+			  <<setw(16)<<getTransEnergy()
+			  <<setw(16)<<getRotatEnergy()
 			  <<setw(16)<<bdry_penetr[1]
 			  <<setw(16)<<bdry_penetr[2]
 			  <<setw(16)<<bdry_penetr[3]
@@ -5128,18 +5128,18 @@ void assembly::triaxial(int   total_steps,
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -5155,13 +5155,13 @@ void assembly::triaxial(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -5230,7 +5230,7 @@ void assembly::triaxial(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
@@ -5272,21 +5272,21 @@ void assembly::triaxial(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces/moments and apply them to particles
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	l56=getApt(5).getz()-getApt(6).getz();
@@ -5298,7 +5298,7 @@ void assembly::triaxial(int   total_steps,
 	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
 	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
 	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	// displacement control
 	if (g_iteration <= unload_step){ //loading
@@ -5351,11 +5351,11 @@ void assembly::triaxial(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -5365,18 +5365,18 @@ void assembly::triaxial(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -5414,18 +5414,18 @@ void assembly::triaxial(int   total_steps,
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -5440,13 +5440,13 @@ void assembly::triaxial(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -5494,7 +5494,7 @@ void assembly::rectPile_Disp(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
     int    stepsnum=0;
@@ -5519,21 +5519,21 @@ void assembly::rectPile_Disp(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces/moments and apply them to particles
-	rbForce();
+	rigidBoundaryForce();
 
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 
@@ -5560,30 +5560,30 @@ void assembly::rectPile_Disp(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    printRectPile(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
 	// 7. (2) output statistics info.
 	if (toprintstep) {
-	    long double t1=transEnergy();
-	    long double t2=rotaEnergy();
-	    long double t3=potEnergy(-0.025);
+	    long double t1=getTransEnergy();
+	    long double t2=getRotatEnergy();
+	    long double t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
 		       <<setw(16)<<t1
 		       <<setw(16)<<t2
 		       <<setw(16)<<(t1+t2)
@@ -5597,14 +5597,14 @@ void assembly::rectPile_Disp(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
     printRectPile(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -5673,51 +5673,51 @@ void assembly::ellipPile_Disp(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0)
-	    createContact();
+	    findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 5. calculate specimen void ratio.
-	l56=topFreePtclPos().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
 	l24=dimn*rsize;
 	l13=dimn*rsize;
 	Volume=l13*l24*l56-ellipPilePeneVol();
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	// 6. (1) output particles and contacts information
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
 	// 6. (2) output statistics info.
 	if (toprintstep) {
-	    long double t1=transEnergy();
-	    long double t2=rotaEnergy();
-	    long double t3=potEnergy(-0.025);
+	    long double t1=getTransEnergy();
+	    long double t2=getRotatEnergy();
+	    long double t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
 		       <<setw(16)<<t1
 		       <<setw(16)<<t2
 		       <<setw(16)<<(t1+t2)
@@ -5728,9 +5728,9 @@ void assembly::ellipPile_Disp(int   total_steps,
 		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
 	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<topFreePtclPos().getz()
+			  <<setw(16)<<getTopFreeParticlePosition().getz()
 			  <<setw(16)<<ellipPileTipZ()
-			  <<setw(16)<<topFreePtclPos().getz()-ellipPileTipZ()
+			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
 			  <<setw(16)<<l13*l24*l56
 			  <<setw(16)<<ellipPilePeneVol()
 			  <<setw(16)<<Volume
@@ -5743,10 +5743,10 @@ void assembly::ellipPile_Disp(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -5792,7 +5792,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles
-    createBdry(inibdryfile);   // create boundaries.
+    createBoundary(inibdryfile);   // create boundaries.
 
     // pre_3. define variables used in iterations
     long double l13, l24, l56;
@@ -5821,54 +5821,54 @@ void assembly::ellipPile_Impact(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0)
-	    createContact();
+	    findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 
 	// 4. calculate boundary forces/moments and apply them to particles.
-	rbForce(bdry_penetr, bdry_cntnum);
+	rigidBoundaryForce(bdry_penetr, bdry_cntnum);
 	
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. calculate specimen void ratio.
-	l56=topFreePtclPos().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
 	l24=dimn;
 	l13=dimn;
 	Volume=l13*l24*l56-ellipPilePeneVol();
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	// 7. (1) output particles and contacts information
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
 	// 7. (2) output statistics info.
 	if (toprintstep) {
-	    long double t1=transEnergy();
-	    long double t2=rotaEnergy();
-	    long double t3=potEnergy(-0.025);
+	    long double t1=getTransEnergy();
+	    long double t2=getRotatEnergy();
+	    long double t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
 		       <<setw(16)<<t1
 		       <<setw(16)<<t2
 		       <<setw(16)<<(t1+t2)
@@ -5894,9 +5894,9 @@ void assembly::ellipPile_Impact(int   total_steps,
 			  <<endl;
 /*
 	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<topFreePtclPos().getz()
+			  <<setw(16)<<getTopFreeParticlePosition().getz()
 			  <<setw(16)<<ellipPileTipZ()
-			  <<setw(16)<<topFreePtclPos().getz()-ellipPileTipZ()
+			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
 			  <<setw(16)<<l13*l24*l56
 			  <<setw(16)<<ellipPilePeneVol()
 			  <<setw(16)<<Volume
@@ -5910,10 +5910,10 @@ void assembly::ellipPile_Impact(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -5981,51 +5981,51 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0)
-	    createContact();
+	    findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 5. calculate specimen void ratio.
-	l56=topFreePtclPos().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
 	l24=dimn;
 	l13=dimn;
 	Volume=l13*l24*l56-ellipPilePeneVol();
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	// 6. (1) output particles and contacts information
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
 	// 6. (2) output statistics info.
 	if (toprintstep) {
-	    long double t1=transEnergy();
-	    long double t2=rotaEnergy();
-	    long double t3=potEnergy(-0.025);
+	    long double t1=getTransEnergy();
+	    long double t2=getRotatEnergy();
+	    long double t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
 		       <<setw(16)<<t1
 		       <<setw(16)<<t2
 		       <<setw(16)<<(t1+t2)
@@ -6037,9 +6037,9 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 		       <<endl;
 
 	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<topFreePtclPos().getz()
+			  <<setw(16)<<getTopFreeParticlePosition().getz()
 			  <<setw(16)<<ellipPileTipZ()
-			  <<setw(16)<<topFreePtclPos().getz()-ellipPileTipZ()
+			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
 			  <<setw(16)<<l13*l24*l56
 			  <<setw(16)<<ellipPilePeneVol()
 			  <<setw(16)<<Volume
@@ -6052,10 +6052,10 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -6137,23 +6137,23 @@ void assembly::ellipPile_Force(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0)
-	    createContact();
+	    findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 
 	// 5. calculate specimen void ratio.
-	l56=topFreePtclPos().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
 	l24=dimn;
 	l13=dimn;
 	Volume=l13*l24*l56-ellipPilePeneVol();
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 	
 	// 6. update pile external force and position
 	if(zforce>ellipPileForce())
@@ -6162,7 +6162,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	if(fabsl(ellipPileForce()-zforce)/zforce < STRESS_ERROR ){
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(16)<<zforce
-		       <<setw(16)<<topFreePtclPos().getz()-ellipPileTipZ()
+		       <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
 		       <<setw(16)<<ellipPileForce()
 		       <<endl;
 	    zforce += zforce_inc;
@@ -6171,7 +6171,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	if(toprintstep){
 	    g_exceptioninf<<setw(10)<<g_iteration
 			  <<setw(16)<<zforce
-			  <<setw(16)<<topFreePtclPos().getz()-ellipPileTipZ()
+			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
 			  <<setw(16)<<ellipPileForce()
 			  <<endl;
 	}
@@ -6180,29 +6180,29 @@ void assembly::ellipPile_Force(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
 	// 7. (2) output statistics info.
 	if (toprintstep) {
-	    long double t1=transEnergy();
-	    long double t2=rotaEnergy();
-	    long double t3=potEnergy(-0.025);
+	    long double t1=getTransEnergy();
+	    long double t2=getRotatEnergy();
+	    long double t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
 		       <<setw(16)<<t1
 		       <<setw(16)<<t2
 		       <<setw(16)<<(t1+t2)
@@ -6222,10 +6222,10 @@ void assembly::ellipPile_Force(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -6296,7 +6296,7 @@ void assembly::truetriaxial(int   total_steps,
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
-    createBdry(inibdryfile);   // create boundaries
+    createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
     long double W0 = getApt(2).gety()-getApt(4).gety();
@@ -6344,21 +6344,21 @@ void assembly::truetriaxial(int   total_steps,
 
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
-	    createContact();
-	    createPBL();
+	    findContact();
+	    findParticleOnBoundary();
 	}
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	setForceZero();	
+	clearForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
-	internForce(avgNormal, avgTangt);
+	internalForce(avgNormal, avgTangt);
 	
 	// 4. calculate boundary forces/moments and apply them to particles
-	rbForce();
+	rigidBoundaryForce();
 	
 	// 5. update particles' velocity/omga/position/orientation based on force/moment
-	particleUpdate();
+	updateParticle();
 	
 	// 6. update boundaries' position and orientation
 	l56=getApt(5).getz()-getApt(6).getz();
@@ -6370,7 +6370,7 @@ void assembly::truetriaxial(int   total_steps,
 	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
 	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
 	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
-	void_ratio=Volume/ptclVolume()-1;
+	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma_h1)
 	    minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
@@ -6411,11 +6411,11 @@ void assembly::truetriaxial(int   total_steps,
 	if (g_iteration % (total_steps/snapshots) == 0){
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printPtcl(stepsfp);
+	    printParticle(stepsfp);
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
-	    printCntct(stepsfp);
+	    printContact(stepsfp);
 	    ++stepsnum;
 	}
 
@@ -6425,18 +6425,18 @@ void assembly::truetriaxial(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()   
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()   
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()
+		       <<setw(16)<<getAverageRigidPressure()
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -6472,18 +6472,18 @@ void assembly::truetriaxial(int   total_steps,
 	    balancedinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -6508,18 +6508,18 @@ void assembly::truetriaxial(int   total_steps,
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<avgPenetration()
+		       <<setw(16)<<getAveragePenetration()
 		       <<setw(16)<<avgNormal
 		       <<setw(16)<<avgTangt
-		       <<setw(16)<<avgVelocity() 
-		       <<setw(16)<<avgOmga()
-		       <<setw(16)<<avgForce()    
-		       <<setw(16)<<avgMoment()
-		       <<setw(16)<<density()
+		       <<setw(16)<<getAverageVelocity() 
+		       <<setw(16)<<getAverageOmga()
+		       <<setw(16)<<getAverageForce()    
+		       <<setw(16)<<getAverageMoment()
+		       <<setw(16)<<getDensity()
 		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
 		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
 		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<avgRgdPres()  // just the mean stress p
+		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
 		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
 		       <<setw(16)<<Volume
 		       <<setw(16)<<epsilon_w
@@ -6539,13 +6539,13 @@ void assembly::truetriaxial(int   total_steps,
 
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
-    printPtcl(stepsfp);
+    printParticle(stepsfp);
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
-    printCntct(stepsfp);
+    printContact(stepsfp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
-    printBdry(stepsfp);
+    printBoundary(stepsfp);
     
     // post_2. close streams
     progressinf.close();
@@ -6560,14 +6560,14 @@ void assembly::dircShear(long double rate, long double roterate,long double stre
 						 const char* boundaryfile, const char* responsefile, const char* resultfile,
 						 const char* trackfile){
 	createSample(iniptclfile);//create particles 
-	createBdry(boundaryfile);//create rigid boundaries
+	createBoundary(boundaryfile);//create rigid boundaries
 
 	FILE* fprslt=fopen(responsefile,"w");
 
 	FILE* fp;
 	fp=fopen(trackfile,"w");
 
-	setForceZero();
+	clearForce();
 
 	int upanddown[2]={5,6};
 	UPDATECTL updownctl[2];
@@ -6621,19 +6621,19 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 		progressinf<<setw(10)<<g_iteration;
 
 		if (g_iteration%UPDATE_CNT==0){
-			createPBL();
-			createContact();
+			findParticleOnBoundary();
+			findContact();
 		}
 
-		internForce(avgNormal, avgTangt);
-		rbForce();
+		internalForce(avgNormal, avgTangt);
+		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(16)<<avgVelocity()
-		         <<setw(16)<<avgOmga()
-		         <<setw(16)<<avgForce()
-			 <<setw(16)<<avgMoment()<<endl;
+		progressinf<<setw(16)<<getAverageVelocity()
+		         <<setw(16)<<getAverageOmga()
+		         <<setw(16)<<getAverageForce()
+			 <<setw(16)<<getAverageMoment()<<endl;
 		contactUpdate();
-		particleUpdate();
+		updateParticle();
 
 		l56=getApt(5).getz()-getApt(6).getz();
 		l24=getApt(2).gety()-getApt(4).gety();
@@ -6648,7 +6648,7 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 		setArea(3,mid_area);
 		setArea(2,max_area);
 		setArea(4,max_area);
-		avgsigma=avgRgdPres();
+		avgsigma=getAverageRigidPressure();
 		printf("avgsigma=%15.3lf\n",avgsigma);
 		sigma1_1=fabsl(getNormalForce(2))/max_area;
 		sigma1_2=fabsl(getNormalForce(4))/max_area;
@@ -6678,10 +6678,10 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 			fprintf(fprslt,"\n");
 		}
 	}while(++g_iteration<10000);
-//	dispBdry();
+//	displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
-	printPtcl(resultfile);
+	printParticle(resultfile);
 }
 */
 
@@ -6690,12 +6690,12 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 						   const char* boundaryfile,const char* responsefile,
 						   const char* resultfile,const char* trackfile){
 	createSample(iniptclfile); //create particles 
-	createBdry(boundaryfile);
+	createBoundary(boundaryfile);
 
 	FILE* fprslt=fopen(responsefile,"w");
 	FILE* fp=fopen(trackfile,"w");
 	
-	setForceZero();
+	clearForce();
 
 	int pre_it=0;
 	int pre_snap=0;
@@ -6730,25 +6730,25 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 		progressinf<<setw(10)<<g_iteration;
 
 		if (g_iteration%UPDATE_CNT==0){
-			createPBL();
-			createPLL();
+			findParticleOnBoundary();
+			findParticleOnLine();
 			createFlbNet();
-			fbForceZero();
-			fbForce();
-			createContact();
+			flexiBoundaryForceZero();
+			flexiBoundaryForce();
+			findContact();
 		}
 		initFBForce();
-		internForce();
-		rbForce();
+		internalForce();
+		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(16)<<(av=avgVelocity())
-		         <<setw(16)<<(ao=avgOmga())
-		         <<setw(16)<<(af=avgForce())
-		         <<setw(16)<<(am=avgMoment())
+		progressinf<<setw(16)<<(av=getAverageVelocity())
+		         <<setw(16)<<(ao=getAverageOmga())
+		         <<setw(16)<<(af=getAverageForce())
+		         <<setw(16)<<(am=getAverageMoment())
 			 <<setw(16)<<(adr=avgDgrFric());
 		contactUpdate();
 		
-		avgsigma=avgRgdPres();
+		avgsigma=getAverageRigidPressure();
 		maxctl[0].tran=TIMESTEP*vec(0,0,-loading_rate);
 		maxctl[1].tran=TIMESTEP*vec(0,0,loading_rate);
 		if(af<0.03&&g_iteration-pre_it>=20||g_iteration-pre_it>=500){
@@ -6770,13 +6770,13 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 			}
 			fprintf(fprslt,"\n");
 		}
-	particleUpdate();
+	updateParticle();
 	pre_af=af;
 	}while(++g_iteration<1000000);
-//	dispBdry();
+//	displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
-	printPtcl(resultfile);
+	printParticle(resultfile);
 }//end of soft_tric
 */
 
@@ -6785,7 +6785,7 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 	const char* resultfile, const char* trackfile)
 {
 	createSample(iniptclfile);//create particles 
-	createBdry(boundaryfile);
+	createBoundary(boundaryfile);
 
 	FILE* fprslt=fopen(responsefile,"w");
 
@@ -6797,7 +6797,7 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 	int snapnum=0;
 	char snapfile[80];
 
-	setForceZero();
+	clearForce();
 
 	list<RGDBDRY*>::iterator rt;
 
@@ -6831,27 +6831,27 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 		progressinf<<setw(10)<<g_iteration;
 
 		if (g_iteration%UPDATE_CNT==0){
-			createPBL();
-			createPLL();
+			findParticleOnBoundary();
+			findParticleOnLine();
 			createFlbNet();
-			fbForceZero();
-			fbForce();
-			createContact();
+			flexiBoundaryForceZero();
+			flexiBoundaryForce();
+			findContact();
 		}
 		initFBForce();
 
-		internForce();
-		rbForce();
+		internalForce();
+		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(16)<<(av=avgVelocity())
-		         <<setw(16)<<(ao=avgOmga())
-		         <<setw(16)<<(af=avgForce())
-		         <<setw(16)<<(am=avgMoment())
+		progressinf<<setw(16)<<(av=getAverageVelocity())
+		         <<setw(16)<<(ao=getAverageOmga())
+		         <<setw(16)<<(af=getAverageForce())
+		         <<setw(16)<<(am=getAverageMoment())
 			 <<setw(16)<<(adr=avgDgrFric());
 
 		contactUpdate();
 		
-		avgsigma=avgRgdPres();
+		avgsigma=getAverageRigidPressure();
 		zbdry_velocity_0=vec(0,0,-loading_rate);
 		maxctl[0].tran=TIMESTEP*zbdry_velocity_0;
 		if(1){
@@ -6878,13 +6878,13 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 			fprintf(fprslt,"\n");
 			}
 		}
-		particleUpdate();
+		updateParticle();
 		pre_af=af;
 	}while(++g_iteration<1000000);
-//	dispBdry();
+//	displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
-	printPtcl(resultfile);
+	printParticle(resultfile);
 }
 */
 
@@ -6894,13 +6894,13 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 			const char* responsefile,const char* resultfile, const char* trackfile)
 {
 	createSample(iniptclfile);//create particles 
-	createBdry(boundaryfile);
+	createBoundary(boundaryfile);
 	FILE* fprslt=fopen(responsefile,"w");
 
 	FILE* fp;
 	fp=fopen(trackfile,"w");
 
-	setForceZero();
+	clearForce();
 
 	int pre_it=0;
 	int pre_snap=0;
@@ -6951,21 +6951,21 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 		progressinf<<setw(10)<<g_iteration;
 
 		if (g_iteration%UPDATE_CNT==0){
-			createPBL();
-			createContact();
+			findParticleOnBoundary();
+			findContact();
 		}
-		internForce();
-		rbForce();
-		fbForce();
+		internalForce();
+		rigidBoundaryForce();
+		flexiBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(16)<<(av=avgVelocity())
-		         <<setw(16)<<(ao=avgOmga())
-		         <<setw(16)<<(af=avgForce())
-		         <<setw(16)<<(am=avgMoment())
+		progressinf<<setw(16)<<(av=getAverageVelocity())
+		         <<setw(16)<<(ao=getAverageOmga())
+		         <<setw(16)<<(af=getAverageForce())
+		         <<setw(16)<<(am=getAverageMoment())
 			 <<setw(16)<<(adr=avgDgrFric());
 		contactUpdate();
 		
-		avgsigma=avgRgdPres();
+		avgsigma=getAverageRigidPressure();
 		sigma1_1=fabsl(getNormalForce(5))/getArea(5);
 		ita1_1=fabsl(getShearForce(5))/getArea(5);
 		sigma1_2=fabsl(getNormalForce(6))/getArea(6);
@@ -7071,13 +7071,13 @@ disp.x,disp.y,disp.z,angl.x,angl.y,angl.z,nm.x,nm.y,nm.z,sh.x,sh.y,sh.z);
 			fprintf(fprslt,"\n");
 			}
 		}
-	particleUpdate();
+	updateParticle();
 	pre_af=af;
 	}while(++g_iteration<300000);
-//	dispBdry();
+//	displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
-	printPtcl(resultfile);
+	printParticle(resultfile);
 }
 */
 
@@ -7088,7 +7088,7 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 				const char* trackfile)
 {
 	createSample(iniptclfile);//create particles 
-	createBdry(boundaryfile);
+	createBoundary(boundaryfile);
 
 	FILE* fprslt=fopen(responsefile,"w");
 
@@ -7099,7 +7099,7 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 	int pre_snap=0;
 	int snapnum=0;
 	char snapfile[80];
-	setForceZero();
+	clearForce();
 
 	list<RGDBDRY*>::iterator rt;
 
@@ -7130,26 +7130,26 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 		progressinf<<setw(10)<<g_iteration;
 
 		if (g_iteration%UPDATE_CNT==0){
-			createPBL();
-			createPLL();
+			findParticleOnBoundary();
+			findParticleOnLine();
 			createFlbNet();
-			fbForceZero();
-			fbForce();
-			createContact();
+			flexiBoundaryForceZero();
+			flexiBoundaryForce();
+			findContact();
 		}
                 initFBForce();
-		internForce();
-		rbForce();
+		internalForce();
+		rigidBoundaryForce();
 		//track(fp,5);
 
-		progressinf<<setw(16)<<(av=avgVelocity())
-		         <<setw(16)<<(ao=avgOmga())
-		         <<setw(16)<<(af=avgForce())
-		         <<setw(16)<<(am=avgMoment())
+		progressinf<<setw(16)<<(av=getAverageVelocity())
+		         <<setw(16)<<(ao=getAverageOmga())
+		         <<setw(16)<<(af=getAverageForce())
+		         <<setw(16)<<(am=getAverageMoment())
 			 <<setw(16)<<(adr=avgDgrFric());
 		contactUpdate();
 		
-		avgsigma=avgRgdPres();
+		avgsigma=getAverageRigidPressure();
 		wallctl[0].tran=0;
 		wallctl[0].fixpt=getApt(1);
 		if(IsPassive)
@@ -7182,12 +7182,12 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 			fprintf(fprslt,"\n");
 			}
 		}
-	particleUpdate();
+	updateParticle();
 	pre_af=af;
 	}while(++g_iteration<1000000);
-	//dispBdry();
+	//displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
-	printPtcl(resultfile);
+	printParticle(resultfile);
 }
 */

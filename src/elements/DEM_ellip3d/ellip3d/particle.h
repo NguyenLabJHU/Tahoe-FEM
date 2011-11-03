@@ -53,9 +53,9 @@ public:
 	vec    getConstForce() const;
 	vec    getConstMoment() const;
 	long double getTransEnergy() const;
-	long double getRotaEnergy() const;
-	long double getKinEnergy() const;
-	long double getPotEnergy(long double ref) const;
+	long double getRotatEnergy() const;
+	long double getKinetEnergy() const;
+	long double getPotenEnergy(long double ref) const;
 
 	void   setID(int n);
 	void   setType(int n);
@@ -88,7 +88,7 @@ public:
 	void   setConstForce(vec vv);
 	void   setConstMoment(vec vv);
 
-	void   setZero();
+	void   clearForce();
 	void   addForce(vec vv) {force+=vv;}
 	void   addMoment(vec vv) {moment+=vv;}
 	void   update();
@@ -157,7 +157,7 @@ private:
 	long double volume;
 	vec  J;              // moment of inertia in local body-fixed frame
 	long double coef[10];// records particle's coefficients in global coordinates
-	long double kinEnergy; //kinetic energy
+	long double kinetEnergy; // kinetic energy
 	int  cntnum;
 
 public:

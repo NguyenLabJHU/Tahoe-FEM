@@ -21,15 +21,15 @@ int main(int argc, char* argv[])
 
     // 1. time integration method
     // --- dynamic
-    
+    /*
     dem::TIMESTEP      = 5.0e-07; // time step
     dem::MASS_SCL      = 1;       // mass scaling
     dem::MNT_SCL       = 1;       // moment of inertial scaling
     dem::GRVT_SCL      = 1;       // gravity scaling
     dem::DMP_F         = 0;       // background viscous damping on mass
     dem::DMP_M         = 0;       // background viscous damping on moment of inertial
-    
-    /*
+    */
+
     // --- dynamic relaxation and scaling
     dem::TIMESTEP      = 5.0e-06;
     dem::MASS_SCL      = 1.0e+01;
@@ -37,7 +37,6 @@ int main(int argc, char* argv[])
     dem::GRVT_SCL      = 0;       // 1.0e+03;
     dem::DMP_F         = 2.0/dem::TIMESTEP;
     dem::DMP_M         = 2.0/dem::TIMESTEP;
-    */
 
     // 2. normal damping and tangential friciton
     dem::DMP_CNT       = 0.05;    // normal contact damping ratio
@@ -46,8 +45,8 @@ int main(int argc, char* argv[])
     dem::COHESION      = 0;//5.0e+8;  // cohesion between particles
 
     // 3. boundary displacement rate
-    dem::COMPRESS_RATE = 1.0e-03; // 7.0e-03 for triaxial; 1.0e-03 for isotropic and odometer.
-    dem::RELEASE_RATE  = 1.0e-03; // the same as above
+    dem::COMPRESS_RATE = 7.0e-03; // 7.0e-03 for triaxial; 1.0e-03 for isotropic and odometer.
+    dem::RELEASE_RATE  = 7.0e-03; // the same as above
     dem::PILE_RATE     = 2.5e-01; // pile penetration velocity
     dem::STRESS_ERROR  = 2.0e-02; // tolerance of stress equilibrium on rigid walls
 
@@ -57,31 +56,17 @@ int main(int argc, char* argv[])
     // Part 2: select a member function to run ... 
 
     // size, shape, and gradation of particles
-    int rorc             = 1;     // rectangular = 1 or cylindrical = 0
-    long double dimn     = 0.05;  // specimen dimension
-    long double ratio_ba = 0.8;   // ratio of radius b to radius a
-    long double ratio_ca = 0.6;   // ratio of radius c to radius a
-    std::vector<long double> percent;  // mass percentage of particles smaller than a certain size
-    std::vector<long double> ptclsize; // particle size
-    percent.push_back(1.00); ptclsize.push_back(2.5e-3);
-    percent.push_back(0.80); ptclsize.push_back(2.3e-3);
-    percent.push_back(0.60); ptclsize.push_back(2.0e-3);
-    percent.push_back(0.30); ptclsize.push_back(1.5e-3);
-    percent.push_back(0.10); ptclsize.push_back(1.0e-3);
-    dem::gradation grad(rorc, dimn, ratio_ba, ratio_ca, percent.size(), percent, ptclsize);
-    A.deposit_RgdBdry(grad,
-		      2,                  // freetype, setting of free particles 
-		      100000,             // total_steps
-		      100,                // number of snapshots
-		      3.0,                // height of floating particles relative to dimn
-		      "flo_particle_end", // output file, initial particles
-		      "dep_boundary_ini", // output file, initial boundaries
-		      "dep_particle",     // output file, resulted particles, including snapshots 
-		      "dep_contact",      // output file, resulted contacts, including snapshots 
-		      "dep_progress",     // output file, progress statistic information
-		      "cre_particle",     // output file, resulted particles after trmming
-		      "cre_boundary",     // output file, resulted boundaries after trmming
-		      "dep_exception");   // output file, progress float exception
+    A.triaxial(100000,             // total_steps
+	       100,                // number of snapshots
+	       5.0e+5,             // pre-existing ambient pressure from initial isotropic compression
+	       "iso_particle_500k",// input file, initial particles
+	       "iso_boundary_500k",// input file, initial boundaries
+	       "tri_particle",     // output file, resulted particles, including snapshots 
+	       "tri_boundary",     // output file, resulted boundaries
+	       "tri_contact",      // output file, resulted contacts, including snapshots 
+	       "tri_progress",     // output file, progress statistic information
+	       "tri_balanced",     // output file, progress isotropically balanced status
+	       "tri_exception");   // output file, progress float exceptions
 
     return 0;
 }
@@ -472,37 +457,33 @@ assembly.cpp:
 01. create, use (dimension - len), a smaller space for generating particles. 
 02. deposit/isocompress, use reach of ambient pressure or displacement condition to stop iterations.
 03. output information as progress, particles and contacts.
-04. createContact() 1. remove PossContact. 2. include only true contacts.
-05. createsample(), can optionally set up initail velocity/angular velocity and constant force/moment.
-06. gravity can be considered or not, depending on GRVT_SCL.
-07. checkinPreShearForce() and checkoutShearForce() in createContact() and internforce(), respectively.
-08. OpenMP implementation in createContact().
+04. createSample(), can optionally set up initail velocity/angular velocity and constant force/moment.
+05. gravity can be considered or not, depending on GRVT_SCL.
+06. checkinPreShearForce() and checkoutShearForce() in findContact() and internalForce(), respectively.
+07. OpenMP implementation in findContact().
 
 contact.h:
-01. in ContactForce(), addMoment use global coordinate system.
-02. correct code errors in Hertz-Mindlin formula between particles
-03. delete innermostPoint(), then isOverlapped() and ContactForce() use root6() directly.
-04. delete update(), which is completely unnecessary.
-05. define a variable val for calculating shear force, assure it is less than 1.
-06. define class cnttangt to store PreShearForce, working for both particle-to-particle (and particle-wall) contacts.
+01. in contactForce(), addMoment use global coordinate system.
+02. define a variable val for calculating shear force, assure it is less than 1.
+03. define class cnttangt to store PreShearForce, working for both particle-to-particle and particle-boundary contacts.
+06. remove redundant call to root6().
 
 particle.cpp:
-01. update(), change itegration algorithm, considering damping.
-02. update(), don't set force/moment as zero at the end; instead, setForceZero() at the beginning of each iteration.
-03. intersectionWithLine() rewrote.
-04. getRadius() rewrote, and osculating circle radius r= 2*r1*r2/(r1+r2).
-05. planeRBForce() and cylinderRBFroce() use global coordinate system.
-06. update() converts between global and local coordinate system.
+01. update(), apply time integration algorithm, considering damping.
+02. update(), converts between global and local coordinate system.
+03. update(), clearForce() at the beginning of each iteration.
+04. intersectionWithLine() rewrote.
+05. getRadius() rewrote, and osculating circle radius r= 2*r1*r2/(r1+r2).
+06. planeRBForce() and cylinderRBFroce() use global coordinate system.
 07. constructor particle() is revised to satisfy QQ'=I.
 08. ensure a/b/c corresond to x/y/z
 09. constructor and update(): acos() and normalize
-10. correct errors in Hertz-Mindlin formulation between particles and walls.
-11. setZero() can specify force or moment; add private members const_force and const_moment.
-12. contact.h-06, store PreShearForce for particle-wall contacts.
+10. clearForce() can specify force or moment; add private members const_force and const_moment.
+11. contact.h, store PreShearForce for particle-wall contacts.
 
 others:
-vec.cpp:      acos() and normalize()
-root6.cpp:    return bool instead of vector, algorithm revised to skip case of zero determinant.
+vec.cpp: acos() and normalize()
+root6.cpp: return bool instead of vector, algorithm revised to skip case of zero determinant.
 
 numerical recipes in C: 
 zrhqr.cpp (6 files) and ran.cpp:

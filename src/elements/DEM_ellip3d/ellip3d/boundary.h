@@ -31,7 +31,7 @@ namespace dem {
 
 // BdryCoef is used for rigid boundary conditions
 typedef struct bdryfunc{
-	int order;  // 1-linear; 2-quadratic
+	int order;  // x1-linear; 2-quadratic
 	vec dirc;   // normal vector if plane, mother line vector if cylinder,it points out of the particles		
 	vec apt;    // a point on the plane or a point on the axis of the cylinder
 	long double rad; //zero if plane
@@ -139,7 +139,7 @@ public:
 		for(it=CoefOfLimits.begin();it!=CoefOfLimits.end();++it)
 			(*it).disp(ofs);
 	}
-	virtual void createPBL(std::list<T*>& ptcls){};
+	virtual void findParticleOnBoundary(std::list<T*>& ptcls){};
 	virtual void rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap)
 	    {std::cout<<"parent"<<std::endl;} // calculate for each boundary particles the rigid boundary force
 	virtual vec getNormalForce() const{return 0;}
@@ -188,9 +188,9 @@ template<class T> class flb_bdry{
 public:
 	int bdry_id;
 	virtual void disp() const{};
-	virtual void createPBL(std::list<T*>& ptcls){};
+	virtual void findParticleOnBoundary(std::list<T*>& ptcls){};
 	virtual void update(UPDATECTL ctl[], unsigned int len){};
-	virtual void createPLL(){}; // create possible particles per line
+	virtual void findParticleOnLine(){}; // create possible particles per line
 	virtual void createFlbNet(){};
 	virtual void flxbBF(){};
 	virtual vec triangleDstr(long double pressure,vec norm, vec p[], T* e[]); //norm is the direction of pressure
@@ -246,7 +246,7 @@ public:
 	int getBdryID() {return this->bdry_id;}
 	void disp() const;
 	long double distToBdry(vec posi) const;
-	void createPBL(std::list<T*>& ptcls);
+	void findParticleOnBoundary(std::list<T*>& ptcls);
 	vec getApt() const;
 	vec getDirc() const;
 	plnrgd_bdry<T>* getBdry(int bdryid) const{
@@ -297,7 +297,7 @@ long double plnrgd_bdry<T>::distToBdry(vec posi) const{
 };
 
 template<class T>
-void plnrgd_bdry<T>::createPBL(std::list<T*>& ptcls){
+void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
     typename std::list<T*>::iterator it;
     std::vector<BdryCoef>::iterator bt;
     bool next;
@@ -330,7 +330,7 @@ void plnrgd_bdry<T>::createPBL(std::list<T*>& ptcls){
 
 /*
 template<class T>
-void plnrgd_bdry<T>::createPBL(std::list<T*>& ptcls){
+void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 	typename std::list<T*>::iterator it;
 	std::vector<BdryCoef>::iterator bt;
 	bool next;
@@ -397,7 +397,7 @@ public:
 	cylrgd_bdry(std::ifstream &ifs):rgd_bdry<T>(ifs){normal=0;}
 	void disp() const;
 	long double distToBdry(vec posi) const;
-	void createPBL(std::list<T*>& ptcls);
+	void findParticleOnBoundary(std::list<T*>& ptcls);
 	void rigidBF();
 	vec getNormalForce() const{return normal;};
 };
@@ -428,7 +428,7 @@ long double cylrgd_bdry<T>::distToBdry(vec posi) const{
 };
 
 template<class T>
-void cylrgd_bdry<T>::createPBL(std::list<T*> &ptcls){
+void cylrgd_bdry<T>::findParticleOnBoundary(std::list<T*> &ptcls){
 	typename std::list<T*>::iterator it;
 	std::vector<BdryCoef>::iterator bt;
 	bool next;
@@ -486,8 +486,8 @@ public:
 	plnflb_bdry(std::ifstream &ifs);
 	virtual ~plnflb_bdry() {}; // base class needs a virtual destructor.
 	void disp() const;
-	void createPBL(std::list<T*>& ptcls);
-	void createPLL(); // create possible particles per line
+	void findParticleOnBoundary(std::list<T*>& ptcls);
+	void findParticleOnLine(); // create possible particles per line
 	void createFlbNet();
 	void flxbBF();    // FlxbNet[nz][np], RelatedP[nz][np]; if side=1, particle is in the side of >0, side=-1, <0
 	void update(UPDATECTL ctl[], unsigned int len);
@@ -576,7 +576,7 @@ plnflb_bdry<T>::plnflb_bdry(std::ifstream &ifs){
 };
 
 template<class T>
-void plnflb_bdry<T>::createPBL(std::list<T*>& ptcls){
+void plnflb_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 	/*
 		1----2
 		|    |
@@ -627,7 +627,7 @@ void plnflb_bdry<T>::update(UPDATECTL ctl[], unsigned int len){
 };
 
 template<class T>
-void plnflb_bdry<T>::createPLL(){
+void plnflb_bdry<T>::findParticleOnLine(){
 	//in z dircetion, the net is nz-1 grid and nz node
 	vec pt1=(*framelist.begin()).pt1;
 	vec pt2=(*framelist.begin()).pt2;
@@ -778,9 +778,9 @@ public:
 	cylflb_bdry(std::ifstream &ifs);
 	virtual ~cylflb_bdry() {}; // base class needs a virtual destructor.
 	void disp() const;
-	void createPBL(std::list<T*>& ptcls);
+	void findParticleOnBoundary(std::list<T*>& ptcls);
 	void delNull();
-	void createPLL();          // create possible particles per line
+	void findParticleOnLine();          // create possible particles per line
 	void createFlbNet();
 	void flxbBF();
 	void update(UPDATECTL ctl[], unsigned int len);
@@ -870,7 +870,7 @@ cylflb_bdry<T>::cylflb_bdry(std::ifstream &ifs){
 };
 
 template<class T>
-void cylflb_bdry<T>::createPBL(std::list<T*>&ptcls){
+void cylflb_bdry<T>::findParticleOnBoundary(std::list<T*>&ptcls){
 	typename std::list<T*>::iterator it;
 	vec ct1=framelist.begin()->center;
 	vec ct2=(++framelist.begin())->center;
@@ -885,12 +885,12 @@ void cylflb_bdry<T>::createPBL(std::list<T*>&ptcls){
 	int turn=framelist.begin()->turn;
 	
 	if (vfabsl(ml1*ml2)>1.0e-5*vfabsl(ml1)||fabsl(r1-r2)>1.0e-5*r1){
-		perror("in cylflb_bdry::createPBL: the two CIRC do not build a cylinder");
+		perror("in cylflb_bdry::findParticleOnBoundary: the two CIRC do not build a cylinder");
 		exit(-1);
 	}
 	if (vfabsl((pt1-pt3)*ml1)>1.0e-8||
 		vfabsl((pt2-pt4)*ml1)>1.0e-8){
-		perror("in cylflb_bdry::createPBL: the end points are not good");
+		perror("in cylflb_bdry::findParticleOnBoundary: the end points are not good");
 		exit(-1);
 	}
 
@@ -916,7 +916,7 @@ void cylflb_bdry<T>::createPBL(std::list<T*>&ptcls){
 };
 
 template<class T>
-void cylflb_bdry<T>::createPLL(){
+void cylflb_bdry<T>::findParticleOnLine(){
 	//in z dircetion, the net is nz-1 grid and nz node
 	vec pt1=(*framelist.begin()).pt1;
 	vec ct1=framelist.begin()->center;

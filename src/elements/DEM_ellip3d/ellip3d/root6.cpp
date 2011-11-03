@@ -1918,7 +1918,7 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 			2*c2*powl(d2,2) - 2*a2*powl(e2,2) - 2*b2*powl(f2,2))*
 	                powl(lamda[k],3);
 	    if(det!=0){ // if determinant is zero, there are infinite solutions
-		        // it is essential to skip this case, otherwise computatation will fail.
+		        // it is necessary to skip this case, otherwise computatation will fail.
 		x=
 			((-4*b1*c1*g1 + 2*c1*d1*h1 - e1*f1*h1 - d1*e1*i1 + 
 			2*b1*f1*i1 + g1*powl(e1,2) + 

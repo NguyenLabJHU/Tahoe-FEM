@@ -9,6 +9,9 @@ namespace dem {
 // PI value
 const long double PI      = 3.141592653589793;
 
+// Gravitational acceleration
+const long double G       = 9.8;
+
 // absolute numerical precision
 const long double PREC    = 1.0e-12;
 
