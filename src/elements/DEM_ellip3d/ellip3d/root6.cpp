@@ -10,9 +10,11 @@
 //    the point found is inside particle 1, which means, even if the two particles are completely 
 //    separated (not-in-touch), the algorithm could still find a point!
 //
-//    return values:
+//    Input: coef1[0] and coef2[0] are always 1.0, which has been guaranteed by the caller. 
+//
+//    Return values:
 //      false - non-overlapped
-//      true  - overlapped and vector point returns the deepest point.
+//      true  - overlapped and vector point returns the deepest penetrated point.
 
 #include "root6.h"
 #include "parameter.h"
@@ -21,7 +23,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
-//#define DEBUG
+
 using namespace std;
 
 namespace dem {

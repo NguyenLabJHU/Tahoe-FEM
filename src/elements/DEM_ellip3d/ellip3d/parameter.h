@@ -15,7 +15,7 @@ extern const long double PI;
 // Gravitational acceleration
 extern const long double G;
 
-// absolute numerical precision
+// absolute numeric precision
 extern const long double PREC;
 
 // random number seed

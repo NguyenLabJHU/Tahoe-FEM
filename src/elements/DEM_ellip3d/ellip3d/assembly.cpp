@@ -6215,7 +6215,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	}
 
 	// 8. loop break condition
-	if (fabsl(zforce-force)<PREC)
+	if (fabsl((zforce-force)/force)<0.001)
 	    break;
 	
     } while (++g_iteration < total_steps);

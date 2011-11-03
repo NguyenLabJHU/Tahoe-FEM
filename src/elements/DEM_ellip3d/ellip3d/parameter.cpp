@@ -12,8 +12,8 @@ const long double PI      = 3.141592653589793;
 // Gravitational acceleration
 const long double G       = 9.8;
 
-// absolute numerical precision
-const long double PREC    = 1.0e-12;
+// absolute numeric precision
+const long double PREC    = 1.0e-18;
 
 // random number seed
 long idum                 = -1;      // not a constant
