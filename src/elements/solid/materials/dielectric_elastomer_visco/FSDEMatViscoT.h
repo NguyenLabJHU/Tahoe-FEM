@@ -9,7 +9,9 @@
 #include "dSymMatrixT.h"
 #include "FSSolidMatT.h"
 #include "FSDEMatSupportViscoT.h"
-#include "SpectralDecompT.h"
+#include "SpectralDecompT.h"	// From RGViscoelasticityT.h
+#include "PotentialT.h"	// These from RGSplitT2.h
+#include "C1FunctionT.h"
 
 namespace Tahoe {
 
@@ -64,7 +66,7 @@ namespace Tahoe {
 
     void SetFSDEMatSupportVisco(const FSDEMatSupportViscoT* support);
 
-	// FUNCTIONS BELOW COPIED FROM RGViscoelasticityT.h
+	/* FUNCTIONS BELOW COPIED FROM RGViscoelasticityT.h */
 	/** return true if the material has history variables */
 	virtual bool HasHistory(void) const { return true; };
 	
@@ -79,29 +81,39 @@ namespace Tahoe {
 	virtual void InitStep(void){ FSSolidMatT::InitStep(); };
 	
 	/* form of tangent matrix (symmetric by default) */
-//	virtual GlobalT::SystemTypeT TangentTypeDE(void) const;
+	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/*Returns eigenvalues of viscous deformation gradient
-	Assumes that current values of Cv and Cvn have been loaded using Load(ElementCardT& element, int ip)*/
-	const dArrayT& Compute_Eigs_vDE(const int process_id);
-	const dArrayT& Compute_Eigs_vnDE(const int process_id);
+	/* Returns eigenvalues of viscous deformation gradient
+	Assumes that current values of Cv and Cvn have been loaded using Load(ElementCardT& element, int ip) */
+	const dArrayT& Compute_Eigs_v(const int process_id);
+	const dArrayT& Compute_Eigs_vn(const int process_id);
 	
-	void LoadDE(ElementCardT& element, int ip);
-	void StoreDE(ElementCardT& element, int ip);
+	void Load(ElementCardT& element, int ip);
+	void Store(ElementCardT& element, int ip);
 
 	/* Dimension internal state variables*/
-	/*derived class must call RGViscoelaticity::SetStateVariables(fNumProcess)
-	  to dimension internal state variable arrays if fNumProcess > 1 (default value)*/
-	void SetStateVariablesDE (const int numprocess);
+	/* derived class must call RGViscoelaticity::SetStateVariables(fNumProcess)
+	  to dimension internal state variable arrays if fNumProcess > 1 (default value) */
+	void SetStateVariables (const int numprocess);
+
+	/* FUNCTIONS BELOW COPIED FROM RGSplitT2.h */
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** compute mechanical strains */
+	virtual const dMatrixT& MechanicalDeformation(void);
+
+	/** compute thermal strains */
+	virtual const dMatrixT& ThermalDeformation_Inverse(void);
 
   protected:
 
     const FSDEMatSupportViscoT* fFSDEMatSupportVisco;
 
-	// FUNCTIONS BELOW COPIED FROM RGViscoelasticityT.h
+	/* FUNCTIONS BELOW COPIED FROM RGViscoelasticityT.h */
 	/* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
-  	void MixedRank4_2DDE(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
-  	void MixedRank4_3DDE(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
+  	void MixedRank4_2D(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
+  	void MixedRank4_3D(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
 
   private:
 
@@ -111,6 +123,12 @@ namespace Tahoe {
     const dArrayT ElectricField();
     const dArrayT ElectricField(int ip);
 
+	/* FUNCTIONS BELOW COPIED FROM RGSplitT2.h */
+	virtual void Compute_Calg(const dArrayT& tau_dev, const dSymMatrixT& dtau_dev, const double& tau_m, 
+						const double& dtau_m, dMatrixT& Calg, const int type);
+	virtual void ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
+	                   dArrayT& eigenstress, dSymMatrixT& eigenmodulus, const int process_num);  
+
     // data
 
   public:
@@ -119,21 +137,6 @@ namespace Tahoe {
 
   protected:
 
-	// FUNCTIONS BELOW COPIED FROM RGViscoelasticityT.h
-	/*internal state variables. Dimension numprocess<nsd x nsd>*/
-	ArrayT<dSymMatrixT> fC_v;
-	ArrayT<dSymMatrixT> fC_vn;
-	
-	/* number of nonequilibrium processes*/
-	/* must be set in derived classes before TakeParameterList is called*/
-	/* default value is 1*/
-	int fNumProcess;
-	
-	/*number of state variables*/
-	int fnstatev;
-	
-	/* internal state variables array*/
-	dArrayT fstatev;
 
   private:
 
@@ -154,14 +157,76 @@ namespace Tahoe {
     dMatrixT fTangentElectromechanical;
     dMatrixT fTangentElectrical;
 
-	// FUNCTIONS BELOW COPIED FROM RGViscoelasticityT.h
+	/* FUNCTIONS BELOW COPIED FROM RGViscoelasticityT.h */
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompRef;
+
+	/* FUNCTIONS BELOW COPIED FROM RGViscoelasticityT.h */
+	/*internal state variables. Dimension numprocess<nsd x nsd>*/
+	ArrayT<dSymMatrixT> fC_v;
+	ArrayT<dSymMatrixT> fC_vn;
+	
+	/* number of nonequilibrium processes*/
+	/* must be set in derived classes before TakeParameterList is called*/
+	/* default value is 1*/
+	int fNumProcess;
+	
+	/*number of state variables*/
+	int fnstatev;
+	
+	/* internal state variables array*/
+	dArrayT fstatev;
+
+	/* FUNCTIONS BELOW COPIED FROM RGSplitT2.h */
+	/* return values */
+	dMatrixT fModulus;
+	
+	/* spectral operations */
+	SpectralDecompT fSpectralDecompSpat;
+
+	/*mechanical strains*/
+	dMatrixT fF_M;
+	
+	/*thermal strains*/
+	dMatrixT fF_T_inv;
+	
+	/*work space*/
+	dSymMatrixT fb;
+	dSymMatrixT fbe;
+	dSymMatrixT fb_tr;
+	dMatrixT fF3D;
+	dSymMatrixT fInverse;
+	
+	dArrayT     fEigs;
+	dArrayT     fEigs_e;
+	dArrayT     fEigs_tr;
+	dArrayT     fEigs_dev;
+
+	dArrayT	    ftau_EQ;
+	dArrayT     ftau_NEQ;
+
+	dSymMatrixT fStress3D;
+	dSymMatrixT fDtauDe_EQ;
+	dSymMatrixT fDtauDe_NEQ;
+	dMatrixT fCalg;
+
+	dMatrixT    fModulus3D;
+	dMatrixT    fModMat;
+  	dMatrixT    fiKAB;
+	
+	/*potential*/
+	ArrayT<PotentialT*> fPot;
+  	/*viscosities*/
+	ArrayT<C1FunctionT*> fVisc_s;
+	ArrayT<C1FunctionT*> fVisc_b;	
+	double fietaS;
+	double fietaB;
+
 
   };
 
 } // namespace Tahoe
 
-#include "FSDEMatViscoT.i.h"
+//#include "FSDEMatViscoT.i.h"
 
 #endif // _FSDEMatViscoT_

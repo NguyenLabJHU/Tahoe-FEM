@@ -1,20 +1,52 @@
+// ISSUES: (1) Where call Initialize() -> in constructor!
+// (2) 
 
 #include "ExceptionT.h"
 #include "FSDEMatViscoT.h"
 #include "FSDEVisco_inc.h"
+// BELOW HEADERS FROM RGSplitT2.cpp
+#include "ParameterContainerT.h"
+#include "ifstreamT.h"
+#include "ExceptionT.h"
+#include <math.h>
+#include <iostream.h>
+#include <stdlib.h>
+
+#include "MooneyRivlin.h"
+#include "NeoHookean.h"
+#include "VWPotentialT.h"
+#include "FungPotentialT.h"
+#include "ArrudaBoyce.h"
+
+#include "LinearExponentialT.h"
+#ifdef __DEVELOPMENT__
+#include "ScaledCsch.h"
+#endif
 
 namespace Tahoe {
 
-  //
-  //
+  FSDEMatViscoT::FSDEMatViscoT():
+    ParameterInterfaceT("Finite Strain Dielectric Elastomer Viscoelastic"),
+	fFSDEMatSupportVisco(0), 
+    fSpectralDecompRef(3),
+    fSpectralDecompSpat(3)
+  {
+    SetName(FSDEMatViscoT::Name);
+    Initialize();	// MAY CALL LATER IN TAKEPARAMETERLIST?
+	/*set default value*/ 
+	/*overide in derived element classes before calling *
+	 *RGViscoelasticity::TakeParameterLis               */
+	fNumProcess = 0;    
+  }
+
   //
   static const char DE[] = "Dielectric_Elastomer_Viscoelastic";
   const char* FSDEMatViscoT::Name = DE;
   const int kNSD       = 3;
   const int kNumDOF    = 3;
   const int kStressDim =dSymMatrixT::NumValues(kNSD);
-  //
-  //
+  const double third = 1.0/3.0;   
+
   //
   void FSDEMatViscoT::Initialize()
   {
@@ -22,10 +54,41 @@ namespace Tahoe {
     fElectricPermittivity = 0.0;
     fNrig = 0.0;
     fLambda = 0.0;
+    
+ 	/* dimension work space - from RGSplitT2.cpp */
+  
+ 	fF_M.Dimension(NumSD());
+  	fF_T_inv.Dimension(NumSD());
+
+  	fF3D.Dimension(3);
+  	fInverse.Dimension(3);
+
+  	fb.Dimension(3);
+  	fbe.Dimension(3);
+  	fb_tr.Dimension(3);
+
+  	fEigs_dev.Dimension(3);
+  	fEigs.Dimension(3);
+  	fEigs_e.Dimension(3);
+  	fEigs_tr.Dimension(3);
+
+  	ftau_EQ.Dimension(3);
+  	ftau_NEQ.Dimension(3);
+
+  	fStress.Dimension(NumSD());
+  	fStress3D.Dimension(3);
+
+  	fDtauDe_EQ.Dimension(3);
+  	fDtauDe_NEQ.Dimension(3);
+
+  	fiKAB.Dimension(3);
+  	fCalg.Dimension(3);
+
+  	fModulus3D.Dimension(6);
+  	fModMat.Dimension(6);
+  	fModulus.Dimension(dSymMatrixT::NumValues(NumSD()));    
   }
 
-  //
-  //
   //
   void FSDEMatViscoT::DefineParameters(ParameterListT& list) const
   {
@@ -37,8 +100,6 @@ namespace Tahoe {
  	list.AddParameter(fLambda, "lambda");
   }
 
-  //
-  //
   //
   void FSDEMatViscoT::TakeParameterList(const ParameterListT& list)
   {
@@ -64,19 +125,938 @@ namespace Tahoe {
 	fTangentElectromechanical.Dimension(kStressDim, kNumDOF);
 	fElectricDisplacement.Dimension(kNumDOF);
 	fElectricField.Dimension(kNumDOF);
+		
+	/* Code from RGSplitT2.cpp */
+	StringT caller = "FSDEMatViscoT::TakeParameterList";
+	int num_neq =  list.NumLists("rg_neq_potential");
+	int num_shear_visc = list.NumLists("rg_shear_viscosity");
+	int num_bulk_visc = list.NumLists("rg_bulk_viscosity");
+	if (num_neq != num_shear_visc || num_neq != num_bulk_visc)
+		ExceptionT::GeneralFail("FSDEMatViscoT::TakeParameterList", 
+			"number of matrix viscosity functions does not match number of matrix nonequilibrium potentials");
+	fNumProcess = list.NumLists("rg_shear_viscosity");
+
+	/* inherited from RGViscoelasticityT.cpp */
+	/* Default Dimension state variable arrays - from RGViscoelasticityT.cpp */
+	if (fNumProcess > 0) SetStateVariables(fNumProcess);	
+
+	fPot.Dimension(fNumProcess+1);
+	fVisc_s.Dimension(fNumProcess);
+	fVisc_b.Dimension(fNumProcess);
+		
+	const ParameterListT& eq_pot = list.GetListChoice(*this, "rg_eq_potential");
+	if(eq_pot.Name() == "neo-hookean")
+		fPot[0] = new NeoHookean;
+	else if(eq_pot.Name() == "mooney-rivlin")
+		fPot[0] = new MooneyRivlin;
+	else if(eq_pot.Name() == "veronda-westmann")
+		fPot[0] = new VWPotentialT;
+	else if(eq_pot.Name() == "fung-potential")
+		fPot[0] = new FungPotentialT;
+	else if(eq_pot.Name() == "arruda-boyce")
+		fPot[0] = new ArrudaBoyce;
+	else 
+		ExceptionT::GeneralFail(caller, "no such potential");
+	if (!fPot[0]) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", eq_pot.Name().Pointer());			
+	fPot[0]->TakeParameterList(eq_pot);
 	
-	/* Default Dimension state variable arrays*/
-	if (fNumProcess > 0) SetStateVariablesDE(fNumProcess);	
+
+	for (int i = 0; i < fNumProcess; i++)
+	{
+		const ParameterListT& pot_neq = list.GetListChoice(*this, "rg_neq_potential",i);
+		if(pot_neq.Name() == "mooney-rivlin")
+			fPot[i+1] = new MooneyRivlin;
+		else if(pot_neq.Name() == "neo-hookean")
+			fPot[i+1] = new NeoHookean;
+		else if(pot_neq.Name() == "veronda-westmann")
+			fPot[i+1] = new VWPotentialT;
+		else if(pot_neq.Name() == "fung-potential")
+			fPot[i+1] = new FungPotentialT;
+		else if(pot_neq.Name() == "arruda-boyce")
+			fPot[i+1] = new ArrudaBoyce;
+		else 
+			ExceptionT::GeneralFail(caller, "no such potential");
+		if (!fPot[i+1]) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pot_neq.Name().Pointer());			
+		fPot[i+1]->TakeParameterList(pot_neq);
+
+		const ParameterListT& shear_visc = list.GetListChoice(*this, "rg_shear_viscosity", i);
+		if (shear_visc.Name() == "linear_exponential")
+			fVisc_s[i] = new LinearExponentialT;
+
+#ifdef __DEVELOPMENT__
+		else if (shear_visc.Name() == "scaled-csch")
+			fVisc_s[i] = new ScaledCsch;
+#endif
+
+		else 
+			ExceptionT::GeneralFail(caller, "no such potential");
+		if (!fVisc_s[i]) throw ExceptionT::kOutOfMemory;
+		fVisc_s[i]->TakeParameterList(shear_visc);
+
+		const ParameterListT& bulk_visc = list.GetListChoice(*this, "rg_bulk_viscosity", i);
+		if (bulk_visc.Name() == "linear_exponential")
+			fVisc_b[i] = new LinearExponentialT;
+
+#ifdef __DEVELOPMENT__
+		else if (bulk_visc.Name() == "scaled-csch")
+			fVisc_b[i] = new ScaledCsch;
+#endif
+
+		else 
+			ExceptionT::GeneralFail(caller, "no such potential");
+		if (!fVisc_b[i]) throw ExceptionT::kOutOfMemory;
+		fVisc_b[i]->TakeParameterList(bulk_visc);
+	}
+	
+	/* set dimension of workspaces */
+//	Initialize();	
   }
 
-  //
   // information about subordinate parameter lists
-  //
   void FSDEMatViscoT::DefineSubs(SubListT& sub_list) const
   {
+	/* inherited */
 	FSSolidMatT::DefineSubs(sub_list);
+
+	/*material parameters for matrix*/
+	sub_list.AddSub("rg_eq_potential", ParameterListT::Once);
+	sub_list.AddSub("rg_neq_potential", ParameterListT::Any);
+
+	/* choice of viscosity */
+	sub_list.AddSub("rg_shear_viscosity", ParameterListT::Any);
+	sub_list.AddSub("rg_bulk_viscosity", ParameterListT::Any);  
+  
     return;
   }
 
+  // Set electrical permittivity
+  void FSDEMatViscoT::SetElectricPermittivity(double epsilon)
+  {	
+    fElectricPermittivity = epsilon;
+  }
+
+  // Get electrical permittivity
+  double FSDEMatViscoT::GetElectricPermittivity() const
+  {
+    return fElectricPermittivity;
+  }
+
+  //
+  void FSDEMatViscoT::SetFSDEMatSupportVisco(
+      const FSDEMatSupportViscoT* support)
+  {
+    fFSDEMatSupportVisco = support;
+  }
+
+  //
+  const dArrayT FSDEMatViscoT::ElectricField()
+  {
+    fElectricField = fFSDEMatSupportVisco->ElectricField();
+    return fElectricField;
+  }
+
+  //
+  const dArrayT FSDEMatViscoT::ElectricField(int ip)
+  {
+    fElectricField = fFSDEMatSupportVisco->ElectricField(ip);
+    return fElectricField;
+  }
+
+  //
+  const dMatrixT FSDEMatViscoT::RightCauchyGreenDeformation()
+  {
+    const dMatrixT& F = F_mechanical();
+    dMatrixT FTF(3);
+    FTF.MultATB(F, F);
+
+    return FTF;
+  }
+
+  // material energy density
+  double FSDEMatViscoT::StrainEnergyDensity()
+  {
+
+//    fEnergyDensity = EnergyDensity(C, D);
+	  return 0.0;
+//    return fEnergyDensity;
+  }
+
+  // material mechanical tangent modulus
+  const dMatrixT& FSDEMatViscoT::C_IJKL()
+  {
+    const dMatrixT& C = RightCauchyGreenDeformation();
+    const dArrayT& E = ElectricField();
+
+	double I1 = C(0,0)+C(1,1)+C(2,2);
+	double J = C.Det();
+	J = sqrt(J);
+	
+	/* call C function for mechanical part of tangent modulus */
+ 	mech_tanmod_ab_visco(fParams.Pointer(), E.Pointer(), C.Pointer(), J, I1, fTangentMechanical.Pointer()); 
+ 	me_tanmod_ab_visco(fParams.Pointer(), E.Pointer(), C.Pointer(), J, fTangentMechanicalElec.Pointer());
+ 	fTangentMechanical+=fTangentMechanicalElec;
+    return fTangentMechanical;
+  }
+
+  // Second Piola-Kirchhoff stress (mechanical)
+  const dSymMatrixT& FSDEMatViscoT::S_IJ()
+  {
+    const dMatrixT& C = RightCauchyGreenDeformation();
+	const dArrayT& E = ElectricField();
+	
+	dMatrixT stress_temp(3);
+	dMatrixT stress_temp2(3);
+	double I1 = C(0,0)+C(1,1)+C(2,2);
+	double J = C.Det();
+	J = sqrt(J);
+	
+	/* call C function for mechanical part of PK2 stress */
+ 	mech_pk2_ab_visco(fParams.Pointer(), E.Pointer(), C.Pointer(), J, I1, stress_temp.Pointer()); 
+	me_pk2_ab_visco(fParams.Pointer(), E.Pointer(), C.Pointer(), J, stress_temp2.Pointer());
+	stress_temp+=stress_temp2;
+	
+	fStress.FromMatrix(stress_temp);
+    return fStress;
+  }
+
+  // material electromechanical tangent modulus
+  const dMatrixT& FSDEMatViscoT::E_IJK()
+  {
+    const dMatrixT& C = RightCauchyGreenDeformation();
+	const dArrayT& E = ElectricField();
+	double J = C.Det();
+	J = sqrt(J);
+
+	/* call C function for electromechanical tangent modulus */
+ 	me_mixedmodulus_ab_visco(fParams.Pointer(), E.Pointer(),  
+ 		C.Pointer(), J, fTangentElectromechanical.Pointer()); 
+ 
+    return fTangentElectromechanical;
+  }
+
+  // material electric tangent modulus
+  const dMatrixT& FSDEMatViscoT::B_IJ()
+  {
+    const dMatrixT& C = RightCauchyGreenDeformation();
+	double J = C.Det();
+	J = sqrt(J);
+
+	dMatrixT Cinv(3);
+	Cinv.Inverse(C);
+	fTangentElectrical = Cinv;
+	fTangentElectrical *= fElectricPermittivity;
+	fTangentElectrical *= J;
+    return fTangentElectrical;
+  }
+
+  // Electric displacement 
+  const dArrayT& FSDEMatViscoT::D_I()
+  {
+  	const dMatrixT& C = RightCauchyGreenDeformation();
+  	const dArrayT& E = ElectricField();
+  	
+  	double J = C.Det();
+  	J = sqrt(J);
+  
+	/* call C function for electric stress (i.e. electric displacement D_{I}) */
+ 	elec_pk2_visco(fParams.Pointer(), E.Pointer(),  
+ 		C.Pointer(), J, fElectricDisplacement.Pointer()); 
+ 		
+  	return fElectricDisplacement;
+  }
+
+  // Electric field
+  const dArrayT& FSDEMatViscoT::E_I()
+  {
+    return fElectricField;
+  }
+
+  // spatial tangent modulus
+  const dMatrixT& FSDEMatViscoT::c_ijkl()
+  {
+    const dMatrixT F = F_mechanical();
+    const double J = F.Det();
+
+    // prevent aliasing
+    const dMatrixT CIJKL = C_IJKL();
+    fTangentMechanical.SetToScaled(1.0 / J, PushForward(F, CIJKL));
+
+    return fTangentMechanical;
+  }
+
+  // Cauchy stress
+  const dSymMatrixT& FSDEMatViscoT::s_ij()
+  {
+    const dMatrixT F = F_mechanical();
+    const double J = F.Det();
+	
+    // prevent aliasing
+    const dSymMatrixT S = S_IJ();
+    fStress.SetToScaled(1.0 / J, PushForward(F, S));
+    return fStress;
+  }
+
+  // pressure associated with the last computed stress
+  double FSDEMatViscoT::Pressure() const
+  {
+    return 0.0;
+  }
+
+	/* BELOW ARE FUNCTIONS COPIED FROM RGViscoelasticityT.cpp */
+	/*initializes history variable */
+void  FSDEMatViscoT::PointInitialize(void)
+{
+	/* allocate element storage */
+	ElementCardT& element = CurrentElement();	
+	if (CurrIP() == 0 && fNumProcess > 0)
+	{
+		ElementCardT& element = CurrentElement();
+		element.Dimension(0, fnstatev*NumIP());
+	
+		/* initialize internal variables to identity*/
+		for (int ip = 0; ip < NumIP(); ip++)
+		{
+		      /* load state variables */
+		      Load(element, ip);
+		      
+			  for (int i = 0; i < fNumProcess; i++)
+			  {
+				fC_vn[i].Identity();
+				fC_v[i].Identity();
+			  }
+
+		      /* write to storage */
+		      Store(element, ip);
+		}
+	}
+}
+ 
+void FSDEMatViscoT::UpdateHistory(void)
+{
+	/* current element */
+	ElementCardT& element = CurrentElement();	
+	for (int ip = 0; ip < NumIP() && fNumProcess > 0; ip++)
+	{
+		/* load state variables */
+		Load(element, ip);
+	
+		/* assign "current" to "last" */	
+		for (int i = 0; i < fNumProcess; i++)
+			fC_vn[i] = fC_v[i];
+
+		/* write to storage */
+		Store(element, ip);
+	}
+}
+
+void FSDEMatViscoT::ResetHistory(void)
+{
+	/* current element */
+	ElementCardT& element = CurrentElement();	
+	for (int ip = 0; ip < NumIP() && fNumProcess > 0; ip++)
+	{
+		/* load state variables*/
+		Load(element, ip);
+	
+		/* assign "last" to "current" */
+		for (int i = 0; i < fNumProcess; i++)
+			fC_v[i] = fC_vn[i];
+		
+		/* write to storage */
+		Store(element, ip);
+	}
+}
+
+/* form of tangent matrix */
+GlobalT::SystemTypeT FSDEMatViscoT::TangentType(void) const
+{
+	/* symmetric by default */
+	return GlobalT::kNonSymmetric;
+}
+
+const dArrayT& FSDEMatViscoT::Compute_Eigs_v(const int process_id)
+{
+	fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v[process_id], false);
+	return(fSpectralDecompRef.Eigenvalues());
+} 
+
+const dArrayT& FSDEMatViscoT::Compute_Eigs_vn(const int process_id)
+{
+	fSpectralDecompRef.SpectralDecomp_Jacobi(fC_vn[process_id], false);
+	return(fSpectralDecompRef.Eigenvalues());
+} 
+
+void FSDEMatViscoT::Load(ElementCardT& element, int ip)
+{
+	/* fetch internal variable array */
+	dArrayT& d_array = element.DoubleData();
+
+	/* copy/convert */
+	double* pd = d_array.Pointer(fnstatev*ip);
+	double* pdr = fstatev.Pointer();
+	for (int i = 0; i < fnstatev; i++)
+		*pdr++ = *pd++;
+}
+
+void FSDEMatViscoT::Store(ElementCardT& element, int ip)
+{
+	/* fetch internal variable array */
+	dArrayT& d_array = element.DoubleData();
+
+	/* copy/convert */
+	double* pdr = fstatev.Pointer();
+	double* pd = d_array.Pointer(fnstatev*ip);
+	for (int i = 0; i < fnstatev; i++)
+		*pd++ = *pdr++;
+}
+
+/* BELOW ARE FUNCTIONS COPIED FROM RGSplitT2.cpp */
+const dMatrixT& FSDEMatViscoT::MechanicalDeformation(void)
+{
+	const dMatrixT& F_T_inv = ThermalDeformation_Inverse();
+	const dMatrixT& F = F_total();
+	fF_M.MultAB(F, F_T_inv);
+	return(fF_M);
+}
+
+const dMatrixT& FSDEMatViscoT::ThermalDeformation_Inverse(void)
+{
+	/*calculates mechanical and thermal strains in FSSolidMat*/
+	const dMatrixT& F_mech = F_mechanical();
+
+	/*retrieves thermal strains*/
+	fF_T_inv = F_thermal_inverse();
+	return(fF_T_inv);
+}
+
+
+
+/*************************************************************************
+ * Private
+ *************************************************************************/
+/* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
+void FSDEMatViscoT::MixedRank4_2D(const dArrayT& a, const dArrayT& b, 
+	dMatrixT& rank4_ab) const
+{
+#if __option(extended_errorcheck)
+	if (a.Length() != 2 ||
+	    b.Length() != 2 ||
+	    rank4_ab.Rows() != 3 ||
+	    rank4_ab.Cols() != 3) throw ExceptionT::kSizeMismatch;
+#endif
+
+	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
+
+	z1 = a[0];
+	z2 = a[1];
+	z3 = b[0];
+	z4 = b[1];
+
+	z5 = z1*z1;
+	z6 = z2*z2;
+	z7 = z3*z3;
+	z8 = 2.*z1*z2*z3*z4;
+	z9 = z4*z4;
+	z3 = 2.*z3*z4;
+	z4 = z3*z5;
+	z3 = z3*z6;
+	z10 = 2.*z1*z2*z7;
+	z11 = 2.*z5*z7;
+	z7 = z6*z7;
+	z1 = 2.*z1*z2*z9;
+	z2 = z5*z9;
+	z5 = 2.*z6*z9;
+	z4 = z10 + z4;
+	z1 = z1 + z3;
+	z2 = z2 + z7 + z8;
+	z3 = 0.5*z4;
+	z1 = 0.5*z1;
+	z2 = 0.5*z2;
+
+	//{{z11, z8, z3}, 
+	// {z8, z5, z1}, 
+	// {z3, z1, z2}}
+
+	double* p = rank4_ab.Pointer();
+	*p++ = z11;
+    *p++ = z8;
+    *p++ = z3;
+    *p++ = z8;
+    *p++ = z5;
+    *p++ = z1;
+    *p++ = z3;
+    *p++ = z1;
+    *p   = z2;
+}
+
+void FSDEMatViscoT::MixedRank4_3D(const dArrayT& a, const dArrayT& b, 
+	dMatrixT& rank4_ab) const
+{
+#if __option(extended_errorcheck)
+	if (a.Length() != 3 ||
+	    b.Length() != 3 ||
+	    rank4_ab.Rows() != 6 ||
+	    rank4_ab.Cols() != 6) throw ExceptionT::kSizeMismatch;
+#endif
+
+	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
+	double z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24;
+	double z25, z26, z27, z28, z29, z30, z31, z32, z33, z34, z35, z36;
+	double z37, z38, z39, z40, z41;
+
+	z1 = a[0];	
+	z2 = a[1];
+	z3 = a[2];
+	z4 = b[0];
+	z5 = b[1];
+	z6 = b[2];
+	z7 = z1*z1;
+	z8 = z2*z2;
+	z9 = z3*z3;
+	z10 = 2.*z1*z4;
+	z11 = z10*z2;
+	z12 = z2*z4;
+	z13 = z1*z12;
+	z14 = z4*z4;
+	z15 = z10*z5;
+	z15 = z15*z3;
+	z16 = z11*z5;
+	z17 = z12*z5;
+	z18 = 2.*z17;
+	z17 = z17*z3;
+	z18 = z18*z3;
+	z19 = z1*z4*z5;
+	z19 = z19*z3;
+	z20 = z5*z5;
+	z11 = z11*z6;
+	z13 = z13*z6;
+	z10 = z10*z3*z6;
+	z12 = z12*z3*z6;
+	z21 = 2.*z12;
+	z22 = z1*z2*z5*z6;
+	z23 = 2.*z22;
+	z24 = z1*z3*z5*z6;
+	z25 = 2.*z24;
+	z26 = 2.*z2*z3*z5*z6;
+	z27 = z6*z6;
+	z28 = 2.*z1*z14;
+	z29 = 2.*z1*z2;
+	z30 = z14*z2;
+	z11 = z11 + z15;
+	z15 = z1*z20*z3;
+	z31 = 2.*z2*z20*z3;
+	z18 = z18 + z23;
+	z21 = z21 + z25;
+	z23 = z1*z2*z27;
+	z1 = 2.*z1*z27*z3;
+	z25 = 2.*z2*z27*z3;
+	z2 = z2*z28;
+	z28 = z28*z3;
+	z29 = z20*z29;
+	z3 = z3*z30;
+	z30 = 2.*z14*z7;
+	z32 = z20*z7;
+	z33 = z27*z7;
+	z34 = 2.*z4*z5*z7;
+	z35 = 2.*z4*z6*z7;
+	z7 = z5*z6*z7;
+	z36 = z14*z8;
+	z37 = 2.*z20*z8;
+	z38 = z27*z8;
+	z39 = 2.*z4*z5*z8;
+	z40 = z4*z6*z8;
+	z8 = 2.*z5*z6*z8;
+	z14 = z14*z9;
+	z20 = z20*z9;
+	z27 = 2.*z27*z9;
+	z41 = z4*z5*z9;
+	z4 = 2.*z4*z6*z9;
+	z5 = 2.*z5*z6*z9;
+	z6 = 0.5*z11;
+	z9 = 0.5*z18;
+	z11 = 0.5*z21;
+	z2 = z2 + z34;
+	z18 = z28 + z35;
+	z3 = z13 + z19 + z3 + z7;
+	z7 = z16 + z32 + z36;
+	z13 = z29 + z39;
+	z15 = z15 + z17 + z22 + z40;
+	z8 = z31 + z8;
+	z14 = z10 + z14 + z33;
+	z17 = z20 + z26 + z38;
+	z12 = z12 + z23 + z24 + z41;
+	z1 = z1 + z4;
+	z4 = z25 + z5;
+	z2 = 0.5*z2;
+	z5 = 0.5*z18;
+	z3 = 0.5*z3;
+	z7 = 0.5*z7;
+	z13 = 0.5*z13;
+	z15 = 0.5*z15;
+	z8 = 0.5*z8;
+	z14 = 0.5*z14;
+	z17 = 0.5*z17;
+	z12 = 0.5*z12;
+	z1 = 0.5*z1;
+	z4 = 0.5*z4;
+	
+	//{{z30, z16, z10,  z6,  z5,  z2}, 
+	// {z16, z37, z26,  z8,  z9, z13}, 
+	// {z10, z26, z27,  z4,  z1, z11}, 
+	// { z6,  z8,  z4, z17, z12, z15}, 
+	// { z5,  z9,  z1, z12, z14,  z3},
+	// { z2, z13, z11, z15,  z3,  z7}}
+	
+	double* p = rank4_ab.Pointer();
+    *p++ = z30;
+    *p++ = z16;
+    *p++ = z10;
+    *p++ = z6;
+    *p++ = z5;
+    *p++ = z2;
+    *p++ = z16;
+    *p++ = z37;
+    *p++ = z26;
+    *p++ = z8;
+    *p++ = z9;
+    *p++ = z13;
+    *p++ = z10;
+    *p++ = z26;
+    *p++ = z27;
+    *p++ = z4;
+    *p++ = z1;
+    *p++ = z11;
+    *p++ = z6;
+    *p++ = z8;
+    *p++ = z4;
+    *p++ = z17;
+    *p++ = z12;
+    *p++ = z15;
+    *p++ = z5;
+    *p++ = z9;
+    *p++ = z1;
+    *p++ = z12;
+    *p++ = z14;
+    *p++ = z3;
+    *p++ = z2;
+    *p++ = z13;
+    *p++ = z11;
+    *p++ = z15;
+    *p++ = z3;
+    *p  = z7;
+}
+
+/* accept parameter list */
+void FSDEMatViscoT::SetStateVariables(const int numprocess)
+{
+	fC_v.Dimension(numprocess);
+	fC_vn.Dimension(numprocess);
+
+	int ndof = 3;
+	int numstress = dSymMatrixT::NumValues(ndof);
+
+	fnstatev = 0;
+	fnstatev += numstress;   /*current C_v*/
+	fnstatev += numstress;   /*last C_vn*/
+
+	fnstatev *= numprocess;
+	
+	fstatev.Dimension(fnstatev);
+	double* pstatev = fstatev.Pointer();
+		
+	/* assign pointers to current and last blocks of state variable array */
+	for (int i = 0; i < numprocess; i++)
+	{
+		fC_v[i].Set(ndof, pstatev);
+		pstatev += numstress;
+		fC_vn[i].Set(ndof, pstatev);
+		pstatev += numstress;
+	}
+}
+
+/* BELOW ARE FUNCTIONS FROM RGSplitT2.cpp */
+
+ void FSDEMatViscoT::Compute_Calg(const dArrayT& tau_dev, const dSymMatrixT& dtau_dev, const double& tau_m, 
+	const double& dtau_m, dMatrixT& Calg, const int type)
+ {
+		double s0 = tau_dev[0];
+		double s1 = tau_dev[1];
+		double s2 = tau_dev[2];
+		
+		double sm = tau_m;
+		
+		double c0 = dtau_dev(0,0);
+		double c1 = dtau_dev(1,1);
+		double c2 = dtau_dev(2,2);
+
+		double c12 = dtau_dev(1,2);
+		double c02 = dtau_dev(0,2);
+		double c01 = dtau_dev(0,1);
+	    
+		double cm = dtau_m;
+		
+		/*calculates  KAB = 1+dt*D(dWdE_Idev/nD+isostress/nV)/Dep_e*/
+		double dt = fFSMatSupport->TimeStep();
+		
+		double stress_mag = sqrt(s0*s0 + s1*s1 + s2*s2);
+		fietaS = 1.0/fVisc_s[type]->Function(stress_mag);
+		fietaB = 1.0/fVisc_b[type]->Function(tau_m);
+
+		fiKAB(0,0) = 1+0.5*fietaS*dt*c0+third*fietaB*dt*cm;
+		fiKAB(1,1) = 1+0.5*fietaS*dt*c1+third*fietaB*dt*cm;
+		fiKAB(2,2) = 1+0.5*fietaS*dt*c2+third*fietaB*dt*cm;
+
+		fiKAB(1,2) = 0.5*fietaS*dt*c12+third*fietaB*dt*cm;
+		fiKAB(0,2) = 0.5*fietaS*dt*c02+third*fietaB*dt*cm;
+		fiKAB(0,1) = 0.5*fietaS*dt*c01+third*fietaB*dt*cm;
+       
+		fiKAB(2,1) = fiKAB(1,2);
+		fiKAB(2,0) = fiKAB(0,2);
+		fiKAB(1,0) = fiKAB(0,1);
+		
+		if (stress_mag > kSmall)
+		{
+			double coeffs = fietaS*fVisc_s[type]->DFunction(stress_mag);
+			double coeffb = fietaB*fVisc_b[type]->DFunction(sm);
+			
+			fiKAB(0,0) -= 0.5*fietaS*dt*coeffs*(s0*c0+s1*c01+s2*c02)/stress_mag*s0 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(1,1) -= 0.5*fietaS*dt*coeffs*(s0*c01+s1*c1+s2*c12)/stress_mag*s1 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(2,2) -= 0.5*fietaS*dt*coeffs*(s0*c02+s1*c12+s2*c2)/stress_mag*s2 
+						- third*fietaB*dt*coeffb*(cm*sm);
+
+			fiKAB(1,2) -= 0.5*fietaS*dt*coeffs*(s0*c02+s1*c12+s2*c2)/stress_mag*s1 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(0,2) -= 0.5*fietaS*dt*coeffs*(s0*c02+s1*c12+s2*c2)/stress_mag*s0 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(0,1) -= 0.5*fietaS*dt*coeffs*(s0*c01+s1*c1+s2*c12)/stress_mag*s0 
+						- third*fietaB*dt*coeffb*(cm*sm);
+						
+			fiKAB(2,1) -= 0.5*fietaS*dt*coeffs*(s0*c01+s1*c1+s2*c12)/stress_mag*s2 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(2,0) -= 0.5*fietaS*dt*coeffs*(s0*c0+s1*c01+s2*c02)/stress_mag*s2 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(1,0) -= 0.5*fietaS*dt*coeffs*(s0*c0+s1*c01+s2*c02)/stress_mag*s1 
+						- third*fietaB*dt*coeffb*(cm*sm);
+		}
+	
+		/*inverts KAB*/
+		fiKAB.Inverse();
+
+//		dSymMatrixT& DAB = fDtauDe_NEQ;
+//		DAB += cm; 
+	
+		Calg(0,0) = (c0+cm)*fiKAB(0,0) + (c01+cm)*fiKAB(1,0) + (c02+cm)*fiKAB(2,0) - 2.0*(tau_dev[0]+tau_m);
+		Calg(1,0) = (c01+cm)*fiKAB(0,0) + (c1+cm)*fiKAB(1,0) + (c12+cm)*fiKAB(2,0);
+		Calg(2,0) = (c02+cm)*fiKAB(0,0) + (c12+cm)*fiKAB(1,0) + (c2+cm)*fiKAB(2,0);
+		Calg(0,1) = (c0+cm)*fiKAB(0,1) + (c01+cm)*fiKAB(1,1) + (c02+cm)*fiKAB(2,1);
+		Calg(1,1) = (c01+cm)*fiKAB(0,1) + (c1+cm)*fiKAB(1,1) + (c12+cm)*fiKAB(2,1) - 2.0*(tau_dev[1]+tau_m);
+		Calg(2,1) = (c02+cm)*fiKAB(0,1) + (c12+cm)*fiKAB(1,1) + (c2+cm)*fiKAB(2,1);
+		Calg(0,2) = (c0+cm)*fiKAB(0,2) + (c01+cm)*fiKAB(1,2) + (c02+cm)*fiKAB(2,2);
+		Calg(1,2) = (c01+cm)*fiKAB(0,2) + (c1+cm)*fiKAB(1,2) + (c12+cm)*fiKAB(2,2);
+		Calg(2,2) = (c02+cm)*fiKAB(0,2) + (c12+cm)*fiKAB(1,2) + (c2+cm)*fiKAB(2,2) - 2.0*(tau_dev[2]+tau_m);
+}
+
+void FSDEMatViscoT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
+			     dArrayT& eigenstress, dSymMatrixT& eigenmodulus, const int type) 
+{		
+	const double ctol = 1.00e-14;
+		
+	/*set references to principle stretches*/
+     
+	double& le0 = eigenstretch_e[0];
+	double& le1 = eigenstretch_e[1];
+	double& le2 = eigenstretch_e[2];
+  
+	double tol;
+
+	/*initialize principle elastic and trial elastic log strains */
+	double ep_tr0 = 0.5*log(le0);
+	double ep_tr1 = 0.5*log(le1);
+	double ep_tr2 = 0.5*log(le2);
+
+	double ep_e0 = ep_tr0;		
+	double ep_e1 = ep_tr1;	
+	double ep_e2 = ep_tr2;
+	
+	/*initializes principle viscous stretch*/
+	int iteration  = 0;	
+	do 
+	{
+		iteration ++;
+	    double Je=sqrt(le0*le1*le2);
+	    fEigs_dev = eigenstretch_e;
+	    fEigs_dev *= pow(Je,-2.0*third);
+		
+	    /*calculate stresses and moduli*/
+	    fPot[type+1]->DevStress(fEigs_dev, eigenstress);
+	    
+	    double& s0 = eigenstress[0];
+	    double& s1 = eigenstress[1];
+	    double& s2 = eigenstress[2];
+		
+		double stress_mag = sqrt(s0*s0 + s1*s1 + s2*s2);
+		fietaS = 1.0/fVisc_s[type]->Function(stress_mag);
+		
+	    fPot[type+1]->DevMod(fEigs_dev,eigenmodulus);
+		/*deviatoric values*/
+		double& c0 = eigenmodulus(0,0);
+		double& c1 = eigenmodulus(1,1);
+		double& c2 = eigenmodulus(2,2);
+
+		double& c12 = eigenmodulus(1,2);
+		double& c02 = eigenmodulus(0,2);
+		double& c01 = eigenmodulus(0,1);
+	    
+	    /*caculate means*/
+	    double sm = fPot[type+1]->MeanStress(Je);
+		fietaB = 1.0/fVisc_b[type]->Function(sm);
+
+	    double cm = fPot[type+1]->MeanMod(Je);
+	    
+		double dt = fFSMatSupport->TimeStep();
+		fiKAB(0,0) = 1+0.5*fietaS*dt*c0+third*fietaB*dt*cm;
+		fiKAB(1,1) = 1+0.5*fietaS*dt*c1+third*fietaB*dt*cm;
+		fiKAB(2,2) = 1+0.5*fietaS*dt*c2+third*fietaB*dt*cm;
+
+		fiKAB(1,2) = 0.5*fietaS*dt*c12+third*fietaB*dt*cm;
+		fiKAB(0,2) = 0.5*fietaS*dt*c02+third*fietaB*dt*cm;
+		fiKAB(0,1) = 0.5*fietaS*dt*c01+third*fietaB*dt*cm;
+       
+		fiKAB(2,1) = fiKAB(1,2);
+		fiKAB(2,0) = fiKAB(0,2);
+		fiKAB(1,0) = fiKAB(0,1);
+	
+		if (stress_mag > kSmall)
+		{
+			double coeffs = fietaS*fVisc_s[type]->DFunction(stress_mag);
+			double coeffb = fietaB*fVisc_b[type]->DFunction(sm);
+			
+			fiKAB(0,0) -= 0.5*fietaS*dt*coeffs*(s0*c0+s1*c01+s2*c02)/stress_mag*s0 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(1,1) -= 0.5*fietaS*dt*coeffs*(s0*c01+s1*c1+s2*c12)/stress_mag*s1 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(2,2) -= 0.5*fietaS*dt*coeffs*(s0*c02+s1*c12+s2*c2)/stress_mag*s2 
+						- third*fietaB*dt*coeffb*(cm*sm);
+
+			fiKAB(1,2) -= 0.5*fietaS*dt*coeffs*(s0*c02+s1*c12+s2*c2)/stress_mag*s1 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(0,2) -= 0.5*fietaS*dt*coeffs*(s0*c02+s1*c12+s2*c2)/stress_mag*s0 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(0,1) -= 0.5*fietaS*dt*coeffs*(s0*c01+s1*c1+s2*c12)/stress_mag*s0 
+						- third*fietaB*dt*coeffb*(cm*sm);
+						
+			fiKAB(2,1) -= 0.5*fietaS*dt*coeffs*(s0*c01+s1*c1+s2*c12)/stress_mag*s2 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(2,0) -= 0.5*fietaS*dt*coeffs*(s0*c0+s1*c01+s2*c02)/stress_mag*s2 
+						- third*fietaB*dt*coeffb*(cm*sm);
+			fiKAB(1,0) -= 0.5*fietaS*dt*coeffs*(s0*c0+s1*c01+s2*c02)/stress_mag*s1 
+						- third*fietaB*dt*coeffb*(cm*sm);
+		}
+	
+		/*inverts KAB*/
+		fiKAB.Inverse();
+	    
+	    /*calculate the residual*/
+	    double res0 = ep_e0 + dt*(0.5*fietaS*s0 +
+			  third*fietaB*sm) - ep_tr0;
+	    double res1 = ep_e1 + dt*(0.5*fietaS*s1 +
+			  third*fietaB*sm) - ep_tr1;
+	    double res2 = ep_e2 + dt*(0.5*fietaS*s2 +
+			  third*fietaB*sm) - ep_tr2;
+		
+	    /*solve for the principal strain increments*/
+	    double dep_e0=-fiKAB(0,0)*res0-fiKAB(0,1)*res1-fiKAB(0,2)*res2;
+	    double dep_e1=-fiKAB(1,0)*res0-fiKAB(1,1)*res1-fiKAB(1,2)*res2;
+	    double dep_e2=-fiKAB(2,0)*res0-fiKAB(2,1)*res1-fiKAB(2,2)*res2;
+	    
+	    /*updates principal elastic stretches*/ 
+	    ep_e0 += dep_e0;
+	    ep_e1 += dep_e1;
+	    ep_e2 += dep_e2;
+	    
+	    le0 = exp(2.0*ep_e0);
+	    le1 = exp(2.0*ep_e1);
+	    le2 = exp(2.0*ep_e2);
+	    
+	    /*Check that the L2 norm of the residual is less than tolerance*/
+	    tol = sqrt(res0*res0 + res1*res1+res2*res2);
+	}while (tol>ctol && iteration < 10); 
+	if (iteration >= 10) 
+		ExceptionT::GeneralFail("RGSplitT2::ComputeEigs_e", 
+			"number of iteration exceeds maximum of 10");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* FSDEMatViscoT::NewSub(const StringT& name) const
+{
+	PotentialT* pot = NULL;
+	if (name == "neo-hookean")
+		pot = new NeoHookean;
+	else if (name == "mooney-rivlin")
+		pot = new MooneyRivlin;
+	else if (name == "veronda-westmann")
+		pot = new  VWPotentialT;
+	else if (name == "fung-potential")
+		pot = new  FungPotentialT;
+	else if (name == "arruda-boyce")
+		pot = new ArrudaBoyce;
+	if (pot)
+		return pot;
+
+	C1FunctionT* func = NULL;
+	if (name == "linear_exponential")
+		func = new LinearExponentialT;
+#ifdef __DEVELOPMENT__
+	else if (name == "scaled-csch")
+		func = new ScaledCsch;
+#endif
+
+	if (func)
+		return func;
+
+	if (name == "rg_eq_potential" || name == "rg_neq_potential")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetListOrder(ParameterListT::Choice);
+		choice->SetSubSource(this);
+	
+		/* choice of parameters */
+		choice->AddSub("neo-hookean");
+		choice->AddSub("mooney-rivlin");
+		choice->AddSub("veronda-westmann");
+		choice->AddSub("fung-potential");
+		choice->AddSub("arruda-boyce");
+		return(choice);
+	}
+	else if (name == "rg_shear_viscosity")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetDescription("eta_S(|sig_dev|)");	
+		choice->SetListOrder(ParameterListT::Choice);
+		choice->SetSubSource(this);
+		
+#ifdef __DEVELOPMENT__
+		choice->AddSub("scaled-csch");
+#endif
+		choice->AddSub("linear_exponential");
+		return(choice);
+	}
+	else if (name == "rg_bulk_viscosity")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetDescription("eta_B(sig_m)");	
+		choice->SetListOrder(ParameterListT::Choice);
+		choice->SetSubSource(this);
+		
+#ifdef __DEVELOPMENT__
+		choice->AddSub("scaled-csch");
+#endif
+		choice->AddSub("linear_exponential");
+		return(choice);
+	}
+	else return(FSDEMatViscoT::NewSub(name));
+}
 
 } //namespace Tahoe
