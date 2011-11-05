@@ -23,7 +23,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
-
+#define NUMBER 50000
 using namespace std;
 
 namespace dem {
@@ -1874,16 +1874,19 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	    return false; 
 
         #ifdef DEBUG  // tested: order==6 whether or not in contact
-	g_exceptioninf<<endl<<"g_iteration= "<<setw(16)<<g_iteration<<endl
-		    <<"order="<<setw(10)<<order<<endl;
+	if (g_iteration == NUMBER)
+	g_exceptioninf<<endl
+		      <<"root6: g_iteration="<<setw(10)<<g_iteration
+		      <<" order="<<setw(10)<<order<<endl;
 	#endif
 
 	if (!zrhqr(rtc, order, rtr, rti)) // find roots for a polynomial using eigenvalues method
 	    return false;
 
 	#ifdef DEBUG
+	if (g_iteration == NUMBER)
 	for (int k=1;k<=order;k++){
-	    g_exceptioninf<<setw(16)<<rtr[k]<<setw(16)<<rti[k]<<endl;
+	  g_exceptioninf<<"root6: rtr rti"<<setw(16)<<rtr[k]<<setw(16)<<rti[k]<<endl;
 	}
 	#endif
 
@@ -1895,7 +1898,8 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	}
 
 	#ifdef DEBUG
-	g_exceptioninf<<"jj="<<setw(10)<<jj<<endl;
+	if (g_iteration == NUMBER)
+	g_exceptioninf<<"root6: jj="<<setw(10)<<jj<<endl;
 	#endif
 
 	long double x, y, z, det, within;
@@ -1970,9 +1974,12 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 		within = a1*x*x+b1*y*y+c1*z*z+d1*x*y+e1*y*z+f1*z*x+g1*x+h1*y+i1*z+j1;
 		
                 #ifdef DEBUG
-		g_exceptioninf<<setw(10)<<k<<setw(10)<<" det= "<<setw(16)<<det
-			    <<" x y z= "<<setw(16)<<x<<setw(16)<<y<<setw(16)<<z
-			    <<" within= "<<setw(16)<<within<<endl;
+	if (g_iteration == NUMBER)
+		g_exceptioninf<<"root6: k="
+			      <<setw(10)<<k
+			      <<" det="<<setw(16)<<det
+			      <<" x y z="<<setw(16)<<x<<setw(16)<<y<<setw(16)<<z
+			      <<" within="<<setw(16)<<within<<endl;
                 #endif
 		
 		// in theory we need to seek the smallest within (when it < 0), 
@@ -1985,8 +1992,11 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	    }
 	    else {
 		#ifdef DEBUG
-		g_exceptioninf<<setw(10)<<k<<setw(10)<<" det= "<<setw(16)<<det
-			      <<" determinant is 0 in root6 !!!" <<endl;
+	if (g_iteration == NUMBER)
+		g_exceptioninf<<"root6: k="
+			      <<setw(10)<<k
+			      <<" det="<<setw(16)<<det
+			      <<" determinant is 0!" <<endl;
                 #endif
 	    }
 	}

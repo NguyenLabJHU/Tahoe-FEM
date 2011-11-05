@@ -12,7 +12,7 @@ CC = g++
 # optimization (NDEBUG is only related to cassert)
 OPTIMIZE = -O3 -DNDEBUG
 
-# debugging options (macro DEBUG is defined in root6.cpp)
+# debugging options (macro DEBUG is defined in root6.cpp and vec.cpp)
 DEBUG = -Wall -g -DDEBUG
 
 # OPENMP (macro OPENMP is defined in assembly.cpp )
@@ -20,7 +20,7 @@ OPENMP = -DOPENMP -fopenmp
 
 ######################################################################
 #OPTION = $(OPTIMIZE)
- OPTION = $(OPTIMIZE) $(OPENMP)
+OPTION = $(OPTIMIZE) $(OPENMP)
 #OPTION = $(DEBUG)
 #OPTION = $(DEBUG) $(OPENMP)
 ######################################################################

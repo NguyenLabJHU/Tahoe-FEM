@@ -1,6 +1,7 @@
 #include "vec.h"
 #include "parameter.h"
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 
 using namespace std;
@@ -161,6 +162,12 @@ vec rotateVec(vec v, vec ang){
     vec vv=v-vp;
 
     long double theta=atanl(vfabsl(vv)/vfabsl(vp));
+#ifdef DEBUG
+	if (g_iteration == 50000)
+    g_exceptioninf<<"vec: g_iteration="<<setw(10)<<g_iteration 
+		  <<" alf="<<setw(16)<<alf
+		  <<" theta="<<setw(16)<<theta<<endl;
+#endif
     if (theta<PREC) 
 	return v;    
 

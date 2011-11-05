@@ -11,8 +11,8 @@ How to use ellip3d
 2. run
 
 2.1 serial mode
-./ellip3d or ./ellip3d > tmp &
+./ellip3d&
 
 2.2 openmp mode
 export OMP_NUM_THREADS=6
-./ellip3d or ./ellip3d > tmp &
+./ellip3d&

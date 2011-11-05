@@ -61,7 +61,6 @@ static long int gettimediff(){
 namespace dem {
 
 ofstream        progressinf;
-bool            toprintstep;
 
 void assembly::printParticle(const char* str) const
 {
@@ -2495,13 +2494,6 @@ void assembly::deposit(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"deposit... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles.
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -2539,7 +2531,7 @@ void assembly::deposit(int   total_steps,
 	}
 
 	// 7. (2) output stress and strain info.
-	if (toprintstep) {
+	if (g_iteration % 10 == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -2650,13 +2642,6 @@ void assembly::deposit_p(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"deposit... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles.
 	if (g_iteration%UPDATE_CNT==0)
 	    findContact();
@@ -2690,7 +2675,7 @@ void assembly::deposit_p(int   total_steps,
 	}
 
 	// 6. (2) output statistics info.
-	if (toprintstep) {
+	if (g_iteration % 10 == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -2796,13 +2781,6 @@ void assembly::squeeze(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"deposit... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles.
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -2849,7 +2827,7 @@ void assembly::squeeze(int   total_steps,
 	}
 
 	// 7. (2) output stress and strain info.
-	if (toprintstep) {
+	if (g_iteration % 10 == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -3001,13 +2979,6 @@ void assembly::isotropic(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"isotropic... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -3087,7 +3058,7 @@ void assembly::isotropic(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (toprintstep ){
+	if (g_iteration % 10 == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -3307,13 +3278,6 @@ void assembly::isotropic(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"isotropic... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -3393,7 +3357,7 @@ void assembly::isotropic(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (toprintstep ){
+	if (g_iteration % 10 == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -3621,13 +3585,6 @@ void assembly::isotropic(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"isotropic... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -3707,7 +3664,7 @@ void assembly::isotropic(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (toprintstep ){
+	if (g_iteration % 10 == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -3937,13 +3894,6 @@ void assembly::odometer(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"odometer... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -4001,7 +3951,7 @@ void assembly::odometer(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (toprintstep){
+	if (g_iteration % 10 == 0){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4210,13 +4160,6 @@ void assembly::odometer(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"odometer... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -4274,7 +4217,7 @@ void assembly::odometer(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (toprintstep){
+	if (g_iteration % 10 == 0){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4440,13 +4383,6 @@ void assembly::unconfined(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"unconfined... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -4484,7 +4420,7 @@ void assembly::unconfined(int   total_steps,
 	}
 
 	// 7. (2) output progress info.
-	if (toprintstep)
+	if (g_iteration % 10 == 0)
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4589,13 +4525,6 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"triaxial... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -4645,7 +4574,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	// 7. (2) output stress and strain info
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
-	if (toprintstep ){
+	if (g_iteration % 10 == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4773,13 +4702,6 @@ void assembly::triaxialPtclBdry(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"triaxial... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -4823,7 +4745,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	// 7. (2) output stress and strain info
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
-	if (toprintstep ){
+	if (g_iteration % 10 == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4991,13 +4913,6 @@ void assembly::triaxial(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"triaxial... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -5072,7 +4987,7 @@ void assembly::triaxial(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (toprintstep ){
+	if (g_iteration % 10 == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -5263,13 +5178,6 @@ void assembly::triaxial(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"triaxial... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -5361,7 +5269,7 @@ void assembly::triaxial(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (toprintstep ){
+	if (g_iteration % 10 == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -5510,14 +5418,7 @@ void assembly::rectPile_Disp(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"pile penetrate... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
-	// 1. create possible boundary particles and contacts between particles
+      // 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
 	    findParticleOnBoundary();
@@ -5543,7 +5444,7 @@ void assembly::rectPile_Disp(int   total_steps,
 
 	updateRB(pile, pilectl, 2); 
 	updateRectPile();
-	if (toprintstep) {
+	if (g_iteration % 10 == 0) {
 	    long double  f7=getShearForce( 7).getz();
 	    long double  f8=getShearForce( 8).getz();
 	    long double  f9=getShearForce( 9).getz();
@@ -5570,7 +5471,7 @@ void assembly::rectPile_Disp(int   total_steps,
 	}
 
 	// 7. (2) output statistics info.
-	if (toprintstep) {
+	if (g_iteration % 10 == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -5664,13 +5565,6 @@ void assembly::ellipPile_Disp(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"pile penetrate... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0)
 	    findContact();
@@ -5704,7 +5598,7 @@ void assembly::ellipPile_Disp(int   total_steps,
 	}
 
 	// 6. (2) output statistics info.
-	if (toprintstep) {
+	if (g_iteration % 10 == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -5812,13 +5706,6 @@ void assembly::ellipPile_Impact(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"penetrator impact... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0)
 	    findContact();
@@ -5855,7 +5742,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 	}
 
 	// 7. (2) output statistics info.
-	if (toprintstep) {
+	if (g_iteration % 10 == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -5972,13 +5859,6 @@ void assembly::ellipPile_Impact_p(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"penetrator impact... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0)
 	    findContact();
@@ -6012,7 +5892,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 	}
 
 	// 6. (2) output statistics info.
-	if (toprintstep) {
+	if (g_iteration % 10 == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -6128,13 +6008,6 @@ void assembly::ellipPile_Force(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"pile penetrate... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0)
 	    findContact();
@@ -6168,7 +6041,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	    zforce += zforce_inc;
 	}
 
-	if(toprintstep){
+	if(g_iteration % 10 == 0){
 	    g_exceptioninf<<setw(10)<<g_iteration
 			  <<setw(16)<<zforce
 			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
@@ -6189,7 +6062,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	}
 
 	// 7. (2) output statistics info.
-	if (toprintstep) {
+	if (g_iteration % 10 == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -6335,13 +6208,6 @@ void assembly::truetriaxial(int   total_steps,
     g_iteration=0;
     do
     {
-	if (g_iteration % 10 == 0){
-	    toprintstep = true;
-	    cout<<"true triaxial... "<<g_iteration<<endl;
-	}
-	else
-	    toprintstep = false;
-
 	// 1. create possible boundary particles and contacts between particles
 	if (g_iteration%UPDATE_CNT==0){
 	    findContact();
@@ -6421,7 +6287,7 @@ void assembly::truetriaxial(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (toprintstep ){
+	if (g_iteration % 10 == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
