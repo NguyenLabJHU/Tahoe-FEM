@@ -29,12 +29,15 @@ extern const long double YOUNG;
 extern const long double POISSON;      
 extern const long double Gs;     
 
-// step interval to update contacts between particles
+// step interval to update contacts
 extern const int UPDATE_CNT;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Part B: These parameters may change frequently and can be easily edited in main.cpp
 ///////////////////////////////////////////////////////////////////////////////////////
+
+// number of OpenMP threads
+extern int         NUM_THREADS;
 
 // 1. time integration method 
 extern long double TIMESTEP;
@@ -56,7 +59,7 @@ extern long double RELEASE_RATE;
 extern long double PILE_RATE;
 extern long double STRESS_ERROR;
 
-// 4. other global variables
+// other global variables
 extern std::ofstream g_exceptioninf;
 extern int g_iteration;
 

@@ -11,8 +11,9 @@ How to use ellip3d
 2. run
 
 2.1 serial mode
-./ellip3d&
+./ellip3d &
 
 2.2 openmp mode
-export OMP_NUM_THREADS=6
-./ellip3d&
+./ellip3d -j n & 
+where n is the number of threads for parallel computing. This command line 
+argument bypasses the need to export OMP_NUM_THREADS=n.

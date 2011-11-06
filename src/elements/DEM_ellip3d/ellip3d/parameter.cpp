@@ -34,6 +34,9 @@ int g_iteration;                     // iteration number
 // Part B: These parameters may change frequently and can be easily edited in main.cpp
 ///////////////////////////////////////////////////////////////////////////////////////
 
+// number of OpenMP threads
+int         NUM_THREADS   = 1;
+
 // 1. time integration method 
 long double TIMESTEP      = 5.0e-07; // time step
 long double MASS_SCL      = 1;       // mass scaling

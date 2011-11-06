@@ -4,7 +4,9 @@
 # 3. debug                                                           
 # 4. debug + openmp                                                  
 # What you need to do is uncommenting one of the 4 lines enclosed by # 
-# lines below, and you are recommended to select mode 1 or 2 as a user.
+# lines below, and you are only recommended to select mode 1 or 2. 
+# Mode 3 and 4 write massive debug information on disk so they are 
+# only applicable to cases of a few particles or a few time steps. 
 
 # C++ compiler
 CC = g++
@@ -20,7 +22,7 @@ OPENMP = -DOPENMP -fopenmp
 
 ######################################################################
 #OPTION = $(OPTIMIZE)
-OPTION = $(OPTIMIZE) $(OPENMP)
+ OPTION = $(OPTIMIZE) $(OPENMP)
 #OPTION = $(DEBUG)
 #OPTION = $(DEBUG) $(OPENMP)
 ######################################################################

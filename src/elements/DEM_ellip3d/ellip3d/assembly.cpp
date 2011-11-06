@@ -401,7 +401,7 @@ void assembly::findContact(){ // OpenMP version
     npoints = ParticleList.size();
     ot = ParticleList.begin();
 
-#pragma omp parallel private(iam, nt, i, j, ipoints, it, pt, u, v)    
+#pragma omp parallel num_threads(NUM_THREADS), private(iam, nt, i, j, ipoints, it, pt, u, v)
     {
 	iam = omp_get_thread_num();
 	nt  = omp_get_num_threads();
