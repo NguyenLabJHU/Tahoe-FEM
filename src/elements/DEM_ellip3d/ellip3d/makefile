@@ -27,13 +27,13 @@ OPENMP = -DOPENMP -fopenmp
 #OPTION = $(DEBUG) $(OPENMP)
 ######################################################################
 
-ellip3d: main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o
-	$(CC) $(OPTION) -o ellip3d main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o
+ellip3d: main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o timefunc.o
+	$(CC) $(OPTION) -o ellip3d main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o timefunc.o
 
 main.o: parameter.h gradation.h rectangle.h assembly.h main.cpp
 	$(CC) -c $(OPTION) -o main.o main.cpp
 
-assembly.o: assembly.h parameter.h vec.h gradation.h particle.h contact.h boundary.h rectangle.h cylinder.h assembly.cpp
+assembly.o: assembly.h parameter.h timefunc.h vec.h gradation.h particle.h contact.h boundary.h rectangle.h cylinder.h assembly.cpp
 	$(CC) -c $(OPTION) assembly.cpp
 
 particle.o: particle.h parameter.h ran.h root6.h vec.h gradation.h contact.h boundary.h rectangle.h cylinder.h boundarytgt.h particle.cpp
@@ -62,6 +62,9 @@ balanc.o: balanc.cpp
 
 nrutil.o: nrutil.cpp
 	$(CC) -c $(OPTION) nrutil.cpp
+
+timefunc.o: timefunc.cpp
+	$(CC) -c $(OPTION) timefunc.cpp
 
 vec.o:  vec.h parameter.h vec.cpp
 	$(CC) -c $(OPTION) vec.cpp
