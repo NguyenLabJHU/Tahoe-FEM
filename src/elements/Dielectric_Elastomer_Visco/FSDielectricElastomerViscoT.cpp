@@ -527,11 +527,19 @@ void FSDielectricElastomerViscoT::AddNodalForce(const FieldT& field, int node, d
 		const double w = fShapes->IPDet() * fShapes->IPWeight();
 		const double w1 = constK * w;
 
-	  	/* LHS tangent stiffnesses */  
+	  	/* LHS tangent EQ stiffnesses */  
 		dMatrixT CIJKL = fCurrMaterial->C_IJKL();
       	dSymMatrixT SIJ = fCurrMaterial->S_IJ();
       	dMatrixT BIJ = fCurrMaterial->B_IJ();
       	dMatrixT EIJK = fCurrMaterial->E_IJK();
+      	
+      	/* LHS tangent NEQ stiffnesses */
+//      	dMatrixT CIJKL_NEQ = fCurrMaterial->C_IJKL_NEQ();
+//      	dSymMatrixT SIJ_NEQ = fCurrMaterial->S_IJ_NEQ();
+      	
+//      	CIJKL += CIJKL_NEQ;
+//      	SIJ += SIJ_NEQ;
+      	
       	CIJKL *= (0.25*w1);
         EIJK *= (0.5*w1);
 	  	BIJ *= w;
@@ -708,8 +716,14 @@ void FSDielectricElastomerViscoT::MassMatrix()
       /* Now convert DNaX to a matrix instead of dArray2DT */
 	  fShapes->GradNa(DNaX, GradShape);	
 
-	  /* Mechanical stress */
+	  /* Mechanical EQ stress */
 	  dSymMatrixT SIJ = fCurrMaterial->S_IJ();
+	
+	  /* Viscoelastic NEQ Stress */
+	  dSymMatrixT SIJ_NEQ = fCurrMaterial->S_IJ_NEQ();
+//	  cout << "SIJ_NEQ = " << SIJ_NEQ << endl;
+	  
+//	  SIJ += SIJ_NEQ;
 	  SIJ *= (0.5*w);
 	  dMatrixT B_C;
 	  Set_B_C(DNaX, B_C);
