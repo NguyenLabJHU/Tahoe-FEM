@@ -23,9 +23,6 @@ const long double YOUNG   = 2.90e+10;// quartz sand E=29GPa
 const long double POISSON = 0.25;    // quartz sand v= 0.25     
 const long double Gs      = 2.65;    // quartz sand Gs= 2.65    
 
-// step interval to update contacts between particles
-const int UPDATE_CNT      = 1;       // or 50? 
-
 // other global variables
 std::ofstream g_exceptioninf;        // record debugging information
 int g_iteration;                     // iteration number
