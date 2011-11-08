@@ -127,6 +127,7 @@ public:
 			     int   freetype,
 			     int   total_steps,  
 			     int   snapshots,
+			     int   interval,
 			     long double height,
 			     const char* iniptclfile,   
 			     const char* inibdryfile,
@@ -143,6 +144,7 @@ public:
 			      long double rsize,
 			      int   total_steps,  
 			      int   snapshots,
+			      int   interval,
 			      const char* iniptclfile,   
 			      const char* particlefile, 
 			      const char* contactfile,
@@ -152,8 +154,9 @@ public:
 	// scale the assembly with particle boundaries from deposited state until it reaches steady state
 	void scale_PtclBdry(int         total_steps  =50000,             // total_steps
 			    int         snapshots    =100,               // number of snapshots   
-			    long double dimn   =0.05,                    // dimension of particle-composed-boundary
-			    long double rsize  =1.0,                     // relative container size
+			    int         interval     =10,                // record interval
+			    long double dimn         =0.05,              // dimension of particle-composed-boundary
+			    long double rsize        =1.0,               // relative container size
 			    const char* iniptclfile  ="dep_particle_end",// input file, initial particles
 			    const char* particlefile ="scl_particle",    // output file, resulted particles, including snapshots 
 			    const char* contactfile  ="scl_contact",     // output file, resulted contacts, including snapshots
@@ -176,6 +179,7 @@ public:
         // actual deposit function for rigid boundaries
 	void deposit(int         total_steps  =100000,              // total_steps
 		     int         snapshots    =100,                 // number of snapshots   
+		     int         interval     =10,                  // record interval 
 		     const char* iniptclfile  ="flo_particle_end",  // input file, initial particles
 		     const char* inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries
 		     const char* particlefile ="dep_particle",      // output file, resulted particles, including snapshots 
@@ -186,6 +190,7 @@ public:
 	// actual deposit function for particle boundaries
 	void deposit_p(int         total_steps  =50000,             // total_steps
 		       int         snapshots    =100,               // number of snapshots   
+		       int         interval     =10,                // record interval 
 		       long double dimn   =0.05,                    // dimension of particle-composed-boundary
 		       long double rsize  =1.0,                     // relative container size
 		       const char* iniptclfile  ="flo_particle_end",// input file, initial particles
@@ -198,6 +203,7 @@ public:
 	void squeeze(int         total_steps  =20000,               // total_steps
 		     int         init_steps   =5000,                // initial_steps to reach equilibrium
 		     int         snapshots    =100,                 // number of snapshots   
+		     int         interval     =10,                  // record interval 
 		     int         flag         =-1,                  // -1 squeeze; +1 loosen
 		     const char* iniptclfile  ="flo_particle_end",  // input file, initial particles
 		     const char* inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries
@@ -210,6 +216,7 @@ public:
 	void collapse(int   rors, 
 		      int   total_steps,  
 		      int   snapshots,
+		      int   interval,
 		      const char* iniptclfile,
 		      const char* initboundary,
 		      const char* particlefile,
@@ -237,6 +244,7 @@ public:
         // physically true.
 	void isotropic(int          total_steps  =100000,
 		       int          snapshots    =100,
+		       int          interval     =10,
 		       long double  sigma        =1.0e+4,
 		       const char*  iniptclfile  ="flo_particle_end",
 		       const char*  inibdryfile  ="iso_inbdry",
@@ -252,6 +260,7 @@ public:
 	// state where particle pressure equals confining pressure. Force boundaries are used.
 	void isotropic(int          total_steps   =100000,
 		       int          snapshots     =100,
+		       int          interval      =10, 
 		       long double  sigma_a       =1.0e+4,
 		       long double  sigma_b       =1.0e+5,	
 		       int    sigma_division      =100,	  
@@ -268,6 +277,7 @@ public:
 	// follows an unloading-reloading stress path. Force boundaries are used.
 	void isotropic(int          total_steps,
 		       int          snapshots,
+		       int          interval,
 		       int          sigma_points,			  
 		       long double  sigma_values[],
 		       int          sigma_division=100,
@@ -286,6 +296,7 @@ public:
         // Side boundaries are fixed, top and bottom plates are force-controlled.
 	void odometer(int          total_steps    =100000,
 		      int          snapshots      =100,
+                      int          interval       =10,
 		      long double  sigma_3        =1.0e+4,
 		      long double  sigma_1        =1.0e+5,
 		      int          sigma_division =100,		  
@@ -304,6 +315,7 @@ public:
         // Side boundaries are fixed, top and bottom plates are force-controlled. Unloading is applied.
 	void odometer(int          total_steps,
 		      int          snapshots,
+                      int          interval,
 		      int          sigma_points,			  
 		      long double  sigma_values[],
 		      int          sigma_division=100,		  
@@ -319,6 +331,7 @@ public:
         // The confining pressure is 500kPa. This function initializes triaxial compression test.
 	void triaxialPtclBdryIni(int          total_steps  =10000,
 				 int          snapshots    =100,
+                                 int          interval     =10,
 				 double       sigma        =5.0e+5,
 				 const char*  iniptclfile  ="ini_particle_ini",
 				 const char*  inibdryfile  ="ini_boundary_ini",
@@ -332,6 +345,7 @@ public:
         // Displacement boundaries are used in axial direction.
 	void triaxialPtclBdry(int          total_steps  =100000,
 			      int          snapshots    =100,
+			      int          interval     =10,
 			      const char*  iniptclfile  ="iso_particle_100k",
 			      const char*  inibdryfile  ="iso_boundary_100k",
 			      const char*  particlefile ="tri_particle", 
@@ -345,6 +359,7 @@ public:
         // performs triaxial compression test. Displacement boundaries are used in axial direction.
 	void triaxial(int          total_steps  =100000,
 		      int          snapshots    =100,
+		      int          interval     =10,
 		      long double  sigma_a      =1.0e+5,
 		      const char*  iniptclfile  ="iso_particle_100k",
 		      const char*  inibdryfile  ="iso_boundary_100k",
@@ -361,7 +376,8 @@ public:
 	void triaxial(int          total_steps  =200000,
 		      int          unload_step  =100000,
 		      int          snapshots    =100,
-		      long double       sigma_a =3.0e+5,
+		      int          interval     =10,
+		      long double  sigma_a      =3.0e+5,
 		      const char*  iniptclfile  ="iso_particle_300k",
 		      const char*  inibdryfile  ="iso_boundary_300k",
 		      const char*  particlefile ="tri_particle", 
@@ -375,6 +391,7 @@ public:
         // A rectangular pile is then drived into the particles using displacement control.
 	void rectPile_Disp(int          total_steps  =50000,
 			   int          snapshots    =100,
+                           int          interval     =10,
 			   const char*  iniptclfile  ="pile_particle_ini",
 			   const char*  inibdryfile  ="pile_boundary_ini",
 			   const char*  particlefile ="pile_particle", 
@@ -387,6 +404,7 @@ public:
         // An ellipsoidal pile is then drived into the particles using displacement control.
 	void ellipPile_Disp(int         total_steps  =50000,  
 			    int         snapshots    =100, 
+			    int          interval     =10,
 			    long double dimn         =0.05,
 			    long double rsize        =1.0,
 			    const char* iniptclfile  ="pile_particle_ini",
@@ -399,6 +417,7 @@ public:
         // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
 	void ellipPile_Impact(int         total_steps  =50000,  
 			      int         snapshots    =100, 
+			      int         interval     =10,
 			      long double dimn         =0.05,
 			      const char* iniptclfile  ="ipt_particle_ini",
 			      const char* inibdryfile  ="dep_boundary_ini",
@@ -411,6 +430,7 @@ public:
         // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
 	void ellipPile_Impact_p(int         total_steps  =50000,  
 				int         snapshots    =100, 
+			        int         interval     =10,
 				long double dimn         =0.05,
 				const char* iniptclfile  ="ipt_particle_ini",
 				const char* particlefile ="ipt_particle", 
@@ -422,6 +442,7 @@ public:
         // An ellipsoidal pile is then drived into the particles using force control.
 	void ellipPile_Force(int         total_steps  =50000,  
 			     int         snapshots    =100, 
+			     int         interval     =10,
 			     long double dimn         =0.05,
 			     long double force        =1.0e+4,
 			     int   division           =100,
@@ -432,8 +453,9 @@ public:
 			     const char* balancedfile ="pile_balanced",
 			     const char* exceptionfile="pile_exception" );
 
-	void truetriaxial(int           total_steps  =1000000,
-			  int           snapshots    =100,
+	void truetriaxial(int          total_steps   =1000000,
+			  int          snapshots     =100,
+			  int          interval      =10,
 			  long double  sigma_a       =1.0e+4,
 			  long double  sigma_w       =1.0e+5,
 			  long double  sigma_l       =1.0e+5,	
@@ -450,6 +472,7 @@ public:
 
 	void unconfined(int          total_steps  =100000,
 			int          snapshots    =100,
+                        int          interval     =10,                // record interval 
 			const char*  iniptclfile  ="flo_particle_end",
 			const char*  inibdryfile  ="unc_inbdry",
 		 	const char*  particlefile ="unc_particle", 

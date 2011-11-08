@@ -30,33 +30,24 @@
 
 #include "assembly.h"
 #include "parameter.h"
+#include "timefunc.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <cmath>
 #include <cstring>
 
-using namespace std;
-
-//#define TIME_TAG
-
 #ifdef OPENMP
 #include <omp.h>
 #endif
 
-#ifdef TIME_TAG
-#include <sys/time.h>
-static struct timeval time1, time2, diff; 
+//#define TIME_PROFILE
 
-static long int gettimediff(){
-    if( ( diff.tv_usec = time2.tv_usec - time1.tv_usec) < 0) {
-	diff.tv_usec += 1000000;
-	time2.tv_sec --;
-    }
-    diff.tv_sec = time2.tv_sec - time1.tv_sec; 
-    return(diff.tv_sec * 1000000 + diff.tv_usec); 
-}
-#endif
+using namespace std;
+
+static time_t timeStamp; // for file timestamping
+static struct timeval timew1, timew2; // for wall-clock time record
+static struct timeval timep1, timep2; // for internal wall-clock time profiling
 
 namespace dem {
 
@@ -392,8 +383,8 @@ void assembly::findContact(){ // OpenMP version
     ContactList.clear();
     PossCntctNum = 0;
 
-#ifdef TIME_TAG
-    gettimeofday(&time1,NULL); 
+#ifdef TIME_PROFILE
+    gettimeofday(&timep1,NULL); 
 #endif
     int iam, nt, i, j, ipoints, npoints, rpoints;
     list<particle*>::iterator ot, it, pt;
@@ -446,9 +437,9 @@ void assembly::findContact(){ // OpenMP version
 	}
     }
     
-#ifdef TIME_TAG
-    gettimeofday(&time2,NULL);
-    g_exceptioninf<<setw(10)<<gettimediff(); 
+#ifdef TIME_PROFILE
+    gettimeofday(&timep2,NULL);
+    g_exceptioninf<<setw(10)<<seconds(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -459,8 +450,8 @@ void assembly::findContact(){ // serial version
     ContactList.clear();
     PossCntctNum = 0;
 
-#ifdef TIME_TAG
-    gettimeofday(&time1,NULL); 
+#ifdef TIME_PROFILE
+    gettimeofday(&timep1,NULL); 
 #endif
     list<particle*>::iterator it, pt;
     vec u,v;
@@ -480,9 +471,9 @@ void assembly::findContact(){ // serial version
 	}
     }	
 
-#ifdef TIME_TAG
-    gettimeofday(&time2,NULL);
-    g_exceptioninf<<setw(10)<<gettimediff(); 
+#ifdef TIME_PROFILE
+    gettimeofday(&timep2,NULL);
+    g_exceptioninf<<setw(10)<<seconds(); 
 #endif
  
     ActualCntctNum = ContactList.size();
@@ -496,8 +487,8 @@ void assembly::findContact(){
     ContactList.clear();
     PossCntctNum = 0;
 
-#ifdef TIME_TAG
-    gettimeofday(&time1,NULL); 
+#ifdef TIME_PROFILE
+    gettimeofday(&timep1,NULL); 
 #endif
     list<particle*>::iterator ot, it, pt;
     vec u,v;
@@ -522,9 +513,9 @@ void assembly::findContact(){
 	}
       }
     }
-#ifdef TIME_TAG
-    gettimeofday(&time2,NULL);
-    g_exceptioninf<<setw(10)<<gettimediff(); 
+#ifdef TIME_PROFILE
+    gettimeofday(&timep2,NULL);
+    g_exceptioninf<<setw(10)<<seconds(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -794,9 +785,8 @@ void assembly::internalForce(long double& avgnm, long double& avgsh){
 	
 	CntTgtVec.clear(); // CntTgtVec must be cleared before filling in new values.
 
-#ifdef TIME_TAG
-      if (g_iteration%UPDATE_CNT==0)
-	gettimeofday(&time1,NULL); 
+#ifdef TIME_PROFILE
+	gettimeofday(&timep1,NULL); 
 #endif 
 	for (it=ContactList.begin();it!=ContactList.end();++it){
 	    it->contactForce();           // cannot be parallelized as it may change a particle's force simultaneously.
@@ -807,11 +797,9 @@ void assembly::internalForce(long double& avgnm, long double& avgsh){
 	avgnm /= totalcntct;
 	avgsh /= totalcntct;
 
-#ifdef TIME_TAG
-      if (g_iteration%UPDATE_CNT==0) {
-	gettimeofday(&time2,NULL);
-	g_exceptioninf<<setw(10)<<gettimediff()<<endl; 
-      }
+#ifdef TIME_PROFILE
+	gettimeofday(&timep2,NULL);
+	g_exceptioninf<<setw(10)<<seconds()<<endl; 
 #endif
 
     }
@@ -1187,6 +1175,7 @@ void assembly::deposit_RgdBdry(gradation& grad,
 			       int   freetype,
 			       int   total_steps,  
 			       int   snapshots,
+			       int   interval,
 			       long double height,
 			       const char* iniptclfile,   
 			       const char* inibdryfile,
@@ -1212,6 +1201,7 @@ void assembly::deposit_RgdBdry(gradation& grad,
 
 	deposit(total_steps,        // total_steps
 		snapshots,          // number of snapshots
+		interval,           // record interval
 		iniptclfile,        // input file, initial particles
 		inibdryfile,        // input file, initial boundaries
 		particlefile,       // output file, resulted particles, including snapshots 
@@ -1297,6 +1287,7 @@ void assembly::deposit_PtclBdry(gradation& grad,
 				long double rsize,
 				int   total_steps,  
 				int   snapshots,
+				int   interval,
 				const char* iniptclfile,   
 				const char* particlefile, 
 				const char* contactfile,
@@ -1313,6 +1304,7 @@ void assembly::deposit_PtclBdry(gradation& grad,
 	generate_p(grad, iniptclfile, freetype, rsize, 4.0);
 	deposit_p(total_steps,        // total_steps
 		  snapshots,          // number of snapshots
+		  interval,           // record interval
 		  grad.dimn,          // dimension of particle-composed-boundary
 		  rsize,              // relative container size
 		  iniptclfile,        // input file, initial particles
@@ -1424,6 +1416,7 @@ void assembly::generate_p(gradation&  grad,
 
 void assembly::scale_PtclBdry(int   total_steps,  
 			      int   snapshots,
+			      int   interval,
 			      long double dimn,
 			      long double rsize,
 			      const char* iniptclfile,   
@@ -1434,6 +1427,7 @@ void assembly::scale_PtclBdry(int   total_steps,
 {
     deposit_p(total_steps,        // total_steps
 	      snapshots,          // number of snapshots
+	      interval,           // record interval
 	      dimn,               // dimension of particle-composed-boundary
 	      rsize,              // relative container size
 	      iniptclfile,        // input file, initial particles
@@ -1448,6 +1442,7 @@ void assembly::scale_PtclBdry(int   total_steps,
 void assembly::collapse(int   rors, 
 			int   total_steps,  
 			int   snapshots,
+			int   interval,
 			const char* iniptclfile,
 			const char* initboundary,
 			const char* particlefile,
@@ -1455,13 +1450,14 @@ void assembly::collapse(int   rors,
 			const char* progressfile,
 			const char* exceptionfile)
 {
-    setBoundary(rors,               // rectangular--1 or cylindrical--0?
+    setBoundary(rors,           // rectangular--1 or cylindrical--0?
 	    1,                  // 1-only bottom boundary;5-no top boundary;6-boxed 6 boundaries
 	    0.05,               // specimen dimension
 	    initboundary);      // output file, containing boundaries info
     
     deposit(total_steps,        // number of iterations
 	    snapshots,          // number of snapshots
+	    interval,           // record interval
 	    iniptclfile,        // input file, initial particles
 	    initboundary,       // input file, boundaries
 	    particlefile,       // output file, resulted particles, including snapshots 
@@ -2441,6 +2437,7 @@ void assembly::TrimPtclBdryByHeight(double height,
 // the container can be as simple as a bottom plate
 void assembly::deposit(int   total_steps,  
 		       int   snapshots,
+		       int   interval,
 		       const char* iniptclfile,   
 		       const char* inibdryfile,
 		       const char* particlefile, 
@@ -2453,20 +2450,19 @@ void assembly::deposit(int   total_steps,
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
     progressinf.setf(ios::scientific, ios::floatfield);
-    progressinf<<"deposit..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
+    progressinf<<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average       translational    rotational       "
 	       <<"kinetic        potential         total           void            sample       coordination"
 	       <<"       sample           sample          sample          sample          sample          sample"
 	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample          sample          sample          sample          sample"<<endl
+	       <<" sample          sample          sample          sample          sample"<<"      wall-clock" << endl
 	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"         omga            force           moment         energy           energy          "
-	       <<"energy         energy            energy          ratio          porosity         number       "
+	       <<"          omga            force           moment         energy           energy          "
+	       <<"energy         energy           energy          ratio          porosity         number       "
 	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<endl;
+	       <<"epsilon-v"<<"          time" << endl;
 
     g_exceptioninf.open(exceptionfile);
     if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1); }
@@ -2491,14 +2487,13 @@ void assembly::deposit(int   total_steps,
     }
 
     // iterations starting ...
-    g_iteration=0;
+    g_iteration=0; 
+    gettimeofday(&timew1,NULL);
     do
     {
 	// 1. create possible boundary particles and contacts between particles.
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+        findContact();
+        findParticleOnBoundary();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
 	clearForce();	
@@ -2523,15 +2518,19 @@ void assembly::deposit(int   total_steps,
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
 	    printParticle(stepsfp);
-	    
+     	    cout << stepsfp;
+
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
 	    printContact(stepsfp);
 	    ++stepsnum;
+	    time(&timeStamp);
+	    cout << "  " << stepsfp << "  " << ctime(&timeStamp);
 	}
 
 	// 7. (2) output stress and strain info.
-	if (g_iteration % 10 == 0) {
+	if (g_iteration % interval == 0) {
+	    gettimeofday(&timew2,NULL);
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -2555,6 +2554,7 @@ void assembly::deposit(int   total_steps,
 		       <<setw(16)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
+		       <<setw(16)<<seconds(timew1,timew2)
 		       <<endl;
 
 /*
@@ -2581,9 +2581,11 @@ void assembly::deposit(int   total_steps,
     // post_1. store the final snapshot of particles & contacts.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
     printParticle(stepsfp);
+    cout << stepsfp;
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
     printContact(stepsfp);
+    cout << "  " << stepsfp << "  " << ctime(&timeStamp);
 
     // post_2. close streams
     progressinf.close();
@@ -2594,6 +2596,7 @@ void assembly::deposit(int   total_steps,
 // actual deposit function for the case of fixed particle boundaries
 void assembly::deposit_p(int   total_steps,  
 			 int   snapshots,
+			 int   interval,
 			 long double dimn,
 			 long double rsize,
 			 const char* iniptclfile,   
@@ -2643,8 +2646,7 @@ void assembly::deposit_p(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles.
-	if (g_iteration%UPDATE_CNT==0)
-	    findContact();
+	findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
 	clearForce();	
@@ -2675,7 +2677,7 @@ void assembly::deposit_p(int   total_steps,
 	}
 
 	// 6. (2) output statistics info.
-	if (g_iteration % 10 == 0) {
+	if (g_iteration % interval == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -2723,6 +2725,7 @@ void assembly::deposit_p(int   total_steps,
 void assembly::squeeze(int   total_steps,  
 		       int   init_steps,
 		       int   snapshots,
+		       int   interval,
 		       int   flag,
 		       const char* iniptclfile,   
 		       const char* inibdryfile,
@@ -2782,10 +2785,8 @@ void assembly::squeeze(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles.
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+	findContact();
+	findParticleOnBoundary();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
 	clearForce();	
@@ -2827,7 +2828,7 @@ void assembly::squeeze(int   total_steps,
 	}
 
 	// 7. (2) output stress and strain info.
-	if (g_iteration % 10 == 0) {
+	if (g_iteration % interval == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -2893,6 +2894,7 @@ void assembly::squeeze(int   total_steps,
 // physically true.
 void assembly::isotropic(int   total_steps,
 			 int   snapshots, 
+			 int   interval,
 			 long double sigma,			  
 			 const char* iniptclfile,   
 			 const char* inibdryfile,
@@ -2980,10 +2982,8 @@ void assembly::isotropic(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+	findContact();
+	findParticleOnBoundary();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -3058,7 +3058,7 @@ void assembly::isotropic(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0 ){
+	if (g_iteration % interval == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -3187,6 +3187,7 @@ void assembly::isotropic(int   total_steps,
 // state where particle pressure equals confining pressure. Force boundaries are used
 void assembly::isotropic(int   total_steps,
 			 int   snapshots, 
+			 int   interval,
 			 long double sigma_a,
 			 long double sigma_b,
 			 int   sigma_division,
@@ -3279,10 +3280,8 @@ void assembly::isotropic(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+	findContact();
+	findParticleOnBoundary();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -3357,7 +3356,7 @@ void assembly::isotropic(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0 ){
+	if (g_iteration % interval == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -3492,6 +3491,7 @@ void assembly::isotropic(int   total_steps,
 // the stress path is defined by sigma_points and sigma_values[]
 void assembly::isotropic(int   total_steps,  
 			 int   snapshots, 
+			 int   interval,
 			 int   sigma_points,  
 			 long double sigma_values[],  
 			 int   sigma_division,	  
@@ -3586,11 +3586,9 @@ void assembly::isotropic(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
-
+	findContact();
+	findParticleOnBoundary();
+	
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
 
@@ -3664,7 +3662,7 @@ void assembly::isotropic(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0 ){
+	if (g_iteration % interval == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -3807,6 +3805,7 @@ void assembly::isotropic(int   total_steps,
 // Side boundaries are fixed, top and bottom plates are force-controlled.
 void assembly::odometer(int   total_steps,  
 			int   snapshots, 
+			int   interval,
 			long double sigma_3,     
 			long double sigma_1,    
 			int   sigma_division,			  
@@ -3895,11 +3894,9 @@ void assembly::odometer(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
-
+	findContact();
+	findParticleOnBoundary();
+	
 	// 2. set particles' forces and moments as zero before each re-calculation
 	clearForce();	
 
@@ -3951,7 +3948,7 @@ void assembly::odometer(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0){
+	if (g_iteration % interval == 0){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4070,6 +4067,7 @@ void assembly::odometer(int   total_steps,
 // applied.
 void assembly::odometer(int   total_steps,  
 			int   snapshots, 
+			int   interval,
 			int   sigma_points,  
 			long double sigma_values[],  
 			int   sigma_division,			  
@@ -4161,10 +4159,8 @@ void assembly::odometer(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+	findContact();
+	findParticleOnBoundary();
 
 	// 2. set particles' forces and moments as zero before each re-calculation
 	clearForce();	
@@ -4217,7 +4213,7 @@ void assembly::odometer(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0){
+	if (g_iteration % interval == 0){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4335,7 +4331,8 @@ void assembly::odometer(int   total_steps,
 
 
 void assembly::unconfined(int   total_steps,  
-			  int   snapshots,			  
+			  int   snapshots,	
+			  int   interval,
 			  const char* iniptclfile,  
 			  const char* inibdryfile,
 			  const char* particlefile,
@@ -4384,10 +4381,8 @@ void assembly::unconfined(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+	findContact();
+	findParticleOnBoundary();
 
 	// 2. set particles' forces and moments as zero before each re-calculation
 	clearForce();	
@@ -4420,7 +4415,7 @@ void assembly::unconfined(int   total_steps,
 	}
 
 	// 7. (2) output progress info.
-	if (g_iteration % 10 == 0)
+	if (g_iteration % interval == 0)
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4470,6 +4465,7 @@ void assembly::unconfined(int   total_steps,
 // This function initializes triaxial sample to a certain confining pressure.
 void assembly::triaxialPtclBdryIni(int   total_steps,  
 				   int   snapshots, 
+				   int   interval,
 				   double sigma,
 				   const char* iniptclfile, 
 				   const char* inibdryfile,
@@ -4526,10 +4522,8 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+	findContact();
+	findParticleOnBoundary();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -4574,7 +4568,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	// 7. (2) output stress and strain info
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0 ){
+	if (g_iteration % interval == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4629,6 +4623,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 // Displacement boundaries are used in axial direction.
 void assembly::triaxialPtclBdry(int   total_steps,  
 				int   snapshots, 
+				int   interval,
 				const char* iniptclfile, 
 				const char* inibdryfile,
 				const char* particlefile,
@@ -4703,10 +4698,8 @@ void assembly::triaxialPtclBdry(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+	findContact();
+	findParticleOnBoundary();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -4745,7 +4738,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	// 7. (2) output stress and strain info
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0 ){
+	if (g_iteration % interval == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -4827,6 +4820,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 // performs triaxial compression test. Displacement boundaries are used in axial direction.
 void assembly::triaxial(int   total_steps,  
 			int   snapshots, 
+			int   interval,
 			long double sigma_a,	  
 			const char* iniptclfile, 
 			const char* inibdryfile,
@@ -4842,38 +4836,36 @@ void assembly::triaxial(int   total_steps,
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
     progressinf.setf(ios::scientific, ios::floatfield);
-    progressinf<<"triaxial..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
+    progressinf<<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
 	       <<"     sample          sample          sample          sample          sample          "
 	       <<"sample          sample         sample           sample          sample          sample     "
 	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
+	       <<"      wall-clock" << endl
 	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
 	       <<"        ratio          porosity         number"
-	       <<endl;
+	       <<"          time" << endl;
 
     ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
     balancedinf.setf(ios::scientific, ios::floatfield);
-    balancedinf<<"triaxial..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
+    balancedinf<<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
 	       <<"     sample          sample          sample          sample          sample          "
 	       <<"sample          sample         sample           sample          sample          sample     "
 	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
+	       <<"      wall-clock"<< endl
 	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
 	       <<"        ratio          porosity         number"
-	       <<endl;
+	       <<"          time" << endl;
 
     g_exceptioninf.open(exceptionfile);
     if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -4911,13 +4903,12 @@ void assembly::triaxial(int   total_steps,
 
     // iterations start here...
     g_iteration=0;
+    gettimeofday(&timew1,NULL);
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+	findContact();
+	findParticleOnBoundary();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -4978,16 +4969,20 @@ void assembly::triaxial(int   total_steps,
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
 	    printParticle(stepsfp);
+	    cout << stepsfp;
 	    
 	    sprintf(stepsstr, "%03d", stepsnum); 
 	    strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
 	    printContact(stepsfp);
 	    ++stepsnum;
+	    time(&timeStamp);
+	    cout << "  " << stepsfp << "  " << ctime(&timeStamp);
 	}
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0 ){
+	if (g_iteration % interval == 0 ){
+	    gettimeofday(&timew2,NULL);
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -5014,6 +5009,7 @@ void assembly::triaxial(int   total_steps,
 		       <<setw(16)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
+		       <<setw(16)<<seconds(timew1,timew2)
 		       <<endl;
 
 	    g_exceptioninf<<setw(10)<<g_iteration
@@ -5071,9 +5067,11 @@ void assembly::triaxial(int   total_steps,
     // post_1. store the final snapshot of particles, contacts and boundaries.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
     printParticle(stepsfp);
+    cout << stepsfp;
 
     strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
     printContact(stepsfp);
+    cout << "  " << stepsfp << "  " << ctime(&timeStamp);
 
     strcpy(stepsfp, boundaryfile); strcat(stepsfp, "_end");
     printBoundary(stepsfp);
@@ -5091,6 +5089,7 @@ void assembly::triaxial(int   total_steps,
 void assembly::triaxial(int   total_steps,  
 			int   unload_step,
 			int   snapshots, 
+			int   interval,
 			long double sigma_a,	  
 			const char* iniptclfile,  
 			const char* inibdryfile,
@@ -5179,11 +5178,9 @@ void assembly::triaxial(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
-
+	findContact();
+	findParticleOnBoundary();
+	
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
 
@@ -5269,7 +5266,7 @@ void assembly::triaxial(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0 ){
+	if (g_iteration % interval == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -5367,6 +5364,7 @@ void assembly::triaxial(int   total_steps,
 // A rectangular pile is then drived into the particles using displacement control.
 void assembly::rectPile_Disp(int   total_steps,  
 			     int   snapshots, 
+			     int   interval,
 			     const char* iniptclfile,  
 			     const char* inibdryfile,
 			     const char* particlefile, 
@@ -5419,11 +5417,9 @@ void assembly::rectPile_Disp(int   total_steps,
     do
     {
       // 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
-
+	findContact();
+	findParticleOnBoundary();
+	
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
 
@@ -5444,7 +5440,7 @@ void assembly::rectPile_Disp(int   total_steps,
 
 	updateRB(pile, pilectl, 2); 
 	updateRectPile();
-	if (g_iteration % 10 == 0) {
+	if (g_iteration % interval == 0) {
 	    long double  f7=getShearForce( 7).getz();
 	    long double  f8=getShearForce( 8).getz();
 	    long double  f9=getShearForce( 9).getz();
@@ -5471,7 +5467,7 @@ void assembly::rectPile_Disp(int   total_steps,
 	}
 
 	// 7. (2) output statistics info.
-	if (g_iteration % 10 == 0) {
+	if (g_iteration % interval == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -5517,6 +5513,7 @@ void assembly::rectPile_Disp(int   total_steps,
 // An ellipsoidal pile is then drived into the particles using displacement control.
 void assembly::ellipPile_Disp(int   total_steps,  
 			      int   snapshots, 
+			      int   interval,
 			      long double dimn,
 			      long double rsize,
 			      const char* iniptclfile,
@@ -5566,8 +5563,7 @@ void assembly::ellipPile_Disp(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0)
-	    findContact();
+	findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -5598,7 +5594,7 @@ void assembly::ellipPile_Disp(int   total_steps,
 	}
 
 	// 6. (2) output statistics info.
-	if (g_iteration % 10 == 0) {
+	if (g_iteration % interval == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -5652,6 +5648,7 @@ void assembly::ellipPile_Disp(int   total_steps,
 // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
 void assembly::ellipPile_Impact(int   total_steps,  
 				int   snapshots, 
+				int   interval,
 				long double dimn,
 				const char* iniptclfile,
 				const char* inibdryfile,
@@ -5707,8 +5704,7 @@ void assembly::ellipPile_Impact(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0)
-	    findContact();
+	findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -5742,7 +5738,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 	}
 
 	// 7. (2) output statistics info.
-	if (g_iteration % 10 == 0) {
+	if (g_iteration % interval == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -5812,6 +5808,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
 void assembly::ellipPile_Impact_p(int   total_steps,  
 				  int   snapshots, 
+				  int   interval,
 				  long double dimn,
 				  const char* iniptclfile,
 				  const char* particlefile, 
@@ -5860,8 +5857,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0)
-	    findContact();
+	findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -5892,7 +5888,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 	}
 
 	// 6. (2) output statistics info.
-	if (g_iteration % 10 == 0) {
+	if (g_iteration % interval == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -5948,7 +5944,8 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 // An ellipsoidal pile is then drived into the particles using force control.
 // Not recommended.
 void assembly::ellipPile_Force(int   total_steps,  
-			       int   snapshots, 
+			       int   snapshots,
+			       int   interval,
 			       long double dimn,
 			       long double force,
 			       int   division,
@@ -6009,8 +6006,7 @@ void assembly::ellipPile_Force(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0)
-	    findContact();
+	findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -6041,7 +6037,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	    zforce += zforce_inc;
 	}
 
-	if(g_iteration % 10 == 0){
+	if( g_iteration % interval == 0){
 	    g_exceptioninf<<setw(10)<<g_iteration
 			  <<setw(16)<<zforce
 			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
@@ -6062,7 +6058,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	}
 
 	// 7. (2) output statistics info.
-	if (g_iteration % 10 == 0) {
+	if (g_iteration % interval == 0) {
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
@@ -6111,6 +6107,7 @@ void assembly::ellipPile_Force(int   total_steps,
 // performs true triaxial test. Force boundaries are used.
 void assembly::truetriaxial(int   total_steps,  
 			    int   snapshots, 
+			    int   interval,
 			    long double sigma_a,     
 			    long double sigma_w,
 			    long double sigma_l,     
@@ -6209,10 +6206,8 @@ void assembly::truetriaxial(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	if (g_iteration%UPDATE_CNT==0){
-	    findContact();
-	    findParticleOnBoundary();
-	}
+	findContact();
+	findParticleOnBoundary();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	
@@ -6287,7 +6282,7 @@ void assembly::truetriaxial(int   total_steps,
 
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
-	if (g_iteration % 10 == 0 ){
+	if (g_iteration % interval == 0 ){
 	    progressinf<<setw(10)<<g_iteration
 		       <<setw(10)<<getPossCntctNum()
 		       <<setw(10)<<getActualCntctNum()
@@ -6486,10 +6481,8 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
                 cout<<"DircShearing..."<<g_iteration<<endl;
 		progressinf<<setw(10)<<g_iteration;
 
-		if (g_iteration%UPDATE_CNT==0){
-			findParticleOnBoundary();
-			findContact();
-		}
+		findParticleOnBoundary();
+		findContact();
 
 		internalForce(avgNormal, avgTangt);
 		rigidBoundaryForce();
@@ -6595,14 +6588,13 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
                 cout<<"Soft_tric..."<<g_iteration<<endl;
 		progressinf<<setw(10)<<g_iteration;
 
-		if (g_iteration%UPDATE_CNT==0){
-			findParticleOnBoundary();
-			findParticleOnLine();
-			createFlbNet();
-			flexiBoundaryForceZero();
-			flexiBoundaryForce();
-			findContact();
-		}
+		findParticleOnBoundary();
+		findParticleOnLine();
+		createFlbNet();
+		flexiBoundaryForceZero();
+		flexiBoundaryForce();
+		findContact();
+
 		initFBForce();
 		internalForce();
 		rigidBoundaryForce();
@@ -6696,14 +6688,13 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
                 cout<<"Shallow Foundation..."<<g_iteration<<endl;
 		progressinf<<setw(10)<<g_iteration;
 
-		if (g_iteration%UPDATE_CNT==0){
-			findParticleOnBoundary();
-			findParticleOnLine();
-			createFlbNet();
-			flexiBoundaryForceZero();
-			flexiBoundaryForce();
-			findContact();
-		}
+		findParticleOnBoundary();
+		findParticleOnLine();
+		createFlbNet();
+		flexiBoundaryForceZero();
+		flexiBoundaryForce();
+		findContact();
+		
 		initFBForce();
 
 		internalForce();
@@ -6816,10 +6807,9 @@ void assembly::simpleShear(long double _sigma3,long double _b,
                 cout<<"SimpleShearinging..."<<g_iteration<<endl;
 		progressinf<<setw(10)<<g_iteration;
 
-		if (g_iteration%UPDATE_CNT==0){
-			findParticleOnBoundary();
-			findContact();
-		}
+		findParticleOnBoundary();
+		findContact();
+
 		internalForce();
 		rigidBoundaryForce();
 		flexiBoundaryForce();
@@ -6995,14 +6985,13 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 	        cout<<"EarthPressure..."<<g_iteration<<endl;
 		progressinf<<setw(10)<<g_iteration;
 
-		if (g_iteration%UPDATE_CNT==0){
-			findParticleOnBoundary();
-			findParticleOnLine();
-			createFlbNet();
-			flexiBoundaryForceZero();
-			flexiBoundaryForce();
-			findContact();
-		}
+		findParticleOnBoundary();
+		findParticleOnLine();
+		createFlbNet();
+		flexiBoundaryForceZero();
+		flexiBoundaryForce();
+		findContact();
+		
                 initFBForce();
 		internalForce();
 		rigidBoundaryForce();
