@@ -4,15 +4,18 @@ How to use ellip3d
 
    1) edit main.cpp for your specific simulation type and parameters
    2) edit parameter.cpp to change more parameters if necessary
-   3) edit makefile to toggle on/off OPENMP from OPTION
+   3) edit makefile to toggle on/off OPENMP from OPTION (default on)
    4) make
    5) copy ellip3d, main.cpp, parameter.cpp to your simulation directory
 
 2. run
 
-   serial mode: ./ellip3d &
+   serial mode: ./ellip3d > timelog &
 
-   openmp mode: ./ellip3d -j n &, where n is the number of threads for 
-   parallel computing, it is recommended n=4 or n=6 for the best 
-   combination of speedup/efficiency. This command line argument bypasses 
-   the need to export OMP_NUM_THREADS=n for environment variable.
+   openmp mode: ./ellip3d n > timelog &
+
+                where n is the number of threads for parallel computing, 
+                it is recommended that n=4 or n=6 for the best balance 
+                between speedup and efficiency. This command line argument 
+                bypasses the need of environment variable OMP_NUM_THREADS,
+                which is set by export OMP_NUM_THREADS=n.

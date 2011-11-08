@@ -10,6 +10,8 @@
 #include "gradation.h"
 #include "rectangle.h"
 #include "assembly.h"
+#include <time.h>
+#include <iostream>
 #include <vector>
 #include <cstdlib>
 
@@ -18,12 +20,13 @@
 int main(int argc, char* argv[])
 {
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Part 0: read arguments
-    if (argc == 3) dem::NUM_THREADS = atoi(argv[2]);
+    // Part 0: command line arguments and timestamps
+    time_t time1, time2;
+    time(&time1);
+    if (argc == 2) dem::NUM_THREADS = atoi(argv[1]);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 1: setup parameters (override parameter.cpp)
-
     // 1. time integration method
     // --- dynamic
     /*
@@ -58,11 +61,10 @@ int main(int argc, char* argv[])
     dem::assembly A;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Part 2: set up a member function to run
-
-    // size, shape, and gradation of particles
+    // Part 2: set up a simulation to run
     A.triaxial(100000,             // total_steps
 	       100,                // number of snapshots
+	       10,                 // record interval
 	       5.0e+5,             // pre-existing ambient pressure from initial isotropic compression
 	       "iso_particle_500k",// input file, initial particles
 	       "iso_boundary_500k",// input file, initial boundaries
@@ -73,6 +75,12 @@ int main(int argc, char* argv[])
 	       "tri_balanced",     // output file, progress isotropically balanced status
 	       "tri_exception");   // output file, progress float exceptions
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Part 3: record run time
+    time(&time2);
+    std::cout << std::endl 
+	      << "simulation start time: "<<ctime(&time1);
+    std::cout << "simulation  end  time: "<<ctime(&time2);
     return 0;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +103,7 @@ int main(int argc, char* argv[])
 // 10 - ghost particle
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Various types of simulation, copy them into part 2 of main() to run, only one block at at time.
+// Various types of simulation, copy them into part 2 of main() to run, only one block a time.
 /*
 
     // for triaxalPtclBdry
@@ -110,6 +118,7 @@ int main(int argc, char* argv[])
 
     A.triaxialPtclBdryIni(100000,             // total_steps
 			  100,                // number of snapshots
+                          10,                 // record interval
 			  2.5e+6,             // confining pressure to achieve
 			  "ini_particle_500k",// input file, initial particles
 			  "ini_boundary_500k",// input file, initial boundaries
@@ -121,6 +130,7 @@ int main(int argc, char* argv[])
 
     A.triaxialPtclBdryIni(100000,             // total_steps
 			  100,                // number of snapshots
+                          10,                 // record interval
 			  5.0e+5,             // confining pressure to achieve
 			  "ini_particle_ini", // input file, initial particles
 			  "ini_boundary_ini", // input file, initial boundaries
@@ -133,6 +143,7 @@ int main(int argc, char* argv[])
 
     A.triaxialPtclBdry(100000,             // total_steps
 		       100,                // number of snapshots
+                       10,                 // record interval
 		       "tri_particle_ini", // input file, initial particles
 		       "tri_boundary_ini", // input file, initial boundaries
 		       "tri_particle",     // output file, resulted particles, including snapshots 
@@ -160,6 +171,7 @@ int main(int argc, char* argv[])
 		      2,                  // freetype, setting of free particles 
 		      100000,             // total_steps
 		      100,                // number of snapshots
+                      10,                 // record interval
 		      3.0,                // height of floating particles relative to dimn
 		      "flo_particle_end", // output file, initial particles
 		      "dep_boundary_ini", // output file, initial boundaries
@@ -189,6 +201,7 @@ int main(int argc, char* argv[])
 		       1.0,                // relative container size, 0.8/1.0/1.2---small/medium/large
 		       100000,             // total_steps
 		       100,                // number of snapshots
+                       10,                 // record interval
 		       "flo_particle_end", // output file, initial particles
 		       "dep_particle",     // output file, resulted particles, including snapshots 
 		       "dep_contact",      // output file, resulted contacts, including snapshots 
@@ -198,6 +211,7 @@ int main(int argc, char* argv[])
    
     A.scale_PtclBdry(20000,             // total_steps
 		     100,               // number of snapshots  
+                     10,                // record interval
 		     0.05,              // dimension of particle-composed-boundary
 		     1.0,               // relative container size, 0.8/1.0/1.2---small/medium/large
 		     "dep_particle_end",// input file, initial particles
@@ -209,6 +223,7 @@ int main(int argc, char* argv[])
 
     A.ellipPile_Disp(50000,              // total_steps
 		     100,                // number of snapshots
+                     10,                 // record interval
 		     0.05,               // dimension of particle-composed-boundary
 		     1.0,                // relative container size, 0.8/1.0/1.2---small/medium/large
 		     "pile_particle_ini",// input file, initial particles, an ellipsoidal pile info added
@@ -220,6 +235,7 @@ int main(int argc, char* argv[])
 
     A.rectPile_Disp(50000,              // total_steps
 		    100,                // number of snapshots
+                    10,                 // record interval
 		    "pile_particle_ini",// input file, initial particles
 		    "pile_boundary_ini",// input file, initial boundaries, rectangular pile boundary info added
 		    "pile_particle",    // output file, resulted particles, including snapshots 
@@ -231,6 +247,7 @@ int main(int argc, char* argv[])
 
     A.ellipPile_Impact(50000,              // total_steps
 		       100,                // number of snapshots
+                       10,                 // record interval
 		       0.05,               // size of particle-composed-boundary
 		       "ipt_particle_ini", // input file, initial particles, an ellipsoidal pile info added
 		       "dep_boundary_ini", // input file, initial boundaries
@@ -242,6 +259,7 @@ int main(int argc, char* argv[])
 
     A.ellipPile_Impact_p(50000,              // total_steps
 			 100,                // number of snapshots
+                         10,                 // record interval
 			 0.05,               // size of particle-composed-boundary
 			 "ipt_particle_ini", // input file, initial particles, an ellipsoidal pile info added
 			 "ipt_particle",     // output file, resulted particles, including snapshots 
@@ -252,6 +270,7 @@ int main(int argc, char* argv[])
     
     A.deposit(5000,               // total_steps
 	      100,                // number of snapshots
+              10,                 // record interval
 	      "flo_particle_end", // input file, initial particles
 	      "dep_boundary_ini", // input file, initial boundaries
 	      "dep_particle",     // output file, resulted particles, including snapshots 
@@ -263,6 +282,7 @@ int main(int argc, char* argv[])
     A.squeeze(300000,             // total_steps
 	      100000,             // initial_steps to reach equilibrium
               100,                // number of snapshots
+              10,                 // record interval
 	      +1,                 // -1 squeeze; +1 loosen
 	      "flo_particle_end", // input file, initial particles
 	      "dep_boundary_ini", // input file, initial boundaries
@@ -276,6 +296,7 @@ int main(int argc, char* argv[])
     A.collapse(rorc,
 	       100000,
 	       100,
+               10,                // record interval
 	       "cre_particle",    // input file, initial particles
 	       "clp_boundary",    // output file, initial boundaries
 	       "clp_particle",    // output file, resulted particles, including snapshots
@@ -286,6 +307,7 @@ int main(int argc, char* argv[])
 
     A.isotropic(100000,             // total_steps
 		100,                // number of snapshots
+                10,                 // record interval
 		1.0e+3,             // a low confining pressure to achieve for initialization
 		"cre_particle",     // input file, initial particles
 		"cre_boundary",     // input file, initial boundaries
@@ -314,6 +336,7 @@ int main(int argc, char* argv[])
     
     A.isotropic(100000,             // total_steps
 		100,                // number of snapshots
+                10,                 // record interval
 		1.0e+5,             // pre-existing confining pressure from initial isotropic compression
 		1.5e+6,             // confining pressure for final isotropic compression
 		100,                // fine steps for applying pressure
@@ -330,6 +353,7 @@ int main(int argc, char* argv[])
     long double sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 7.0e+5}; // last one must be a larger value	
     A.isotropic(100000,             // total_steps
 		100,                // number of snapshots
+                10,                 // record interval
 		4,                  // number of points indicating pressure applying process
 		sigma_values,       // loading, unloading and reloading stress path
 		100,                // fine steps for applying pressure between two adjacent values
@@ -345,6 +369,7 @@ int main(int argc, char* argv[])
     
     A.odometer(100000,             // total_steps
 	       100,                // number of snapshots
+               10,                 // record interval
 	       1.0e+5,             // pre-existing confining pressure from initial isotropic compression
 	       1.5e+6,             // major principle stress for final odometer compression
 	       100,                // fine steps for applying pressure
@@ -361,6 +386,7 @@ int main(int argc, char* argv[])
     long double sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 1.0e+6}; // last one must be a larger value	
     A.odometer(100000,             // total_steps
 	       100,                // number of snapshots
+               10,                 // record interval
 	       4,                  // number of points indicating pressure applying process
 	       sigma_values,       // loading, unloading and reloading stress path
 	       100,                // fine steps for applying pressure
@@ -389,6 +415,7 @@ int main(int argc, char* argv[])
     
     A.triaxial(100000,             // total_steps
 	       100,                // number of snapshots
+               10,                 // record interval
 	       3.0e+5,             // pre-existing confining pressure from initial isotropic compression
 	       "iso_particle_300k",// input file, initial particles
 	       "iso_boundary_300k",// input file, initial boundaries
@@ -402,6 +429,7 @@ int main(int argc, char* argv[])
     
     A.triaxial(100000,             // total_steps
 	       100,                // number of snapshots
+               10,                 // record interval
 	       5.0e+5,             // pre-existing confining pressure from initial isotropic compression
 	       "iso_particle_500k",// input file, initial particles
 	       "iso_boundary_500k",// input file, initial boundaries
@@ -416,6 +444,7 @@ int main(int argc, char* argv[])
     A.triaxial(120000,             // total_steps
 	       30000,              // at which step to unload
 	       100,                // number of snapshots
+               10,                 // record interval
 	       3.0e+5,             // pre-existing confining pressure from initial isotropic compression
 	       "iso_particle_300k",// input file, initial particles
 	       "iso_boundary_300k",// input file, initial boundaries
@@ -429,6 +458,7 @@ int main(int argc, char* argv[])
     
     A.truetriaxial(100000,             // total_steps
 		   100,                // number of snapshots
+                   10,                 // record interval
 		   1.0e+4,             // pre-existing confining pressure from initial isotropic compression
 		   1.0e+5,             // sigma_w
 		   3.0e+5,             // sigma_l
@@ -446,6 +476,7 @@ int main(int argc, char* argv[])
 
     A.unconfined(100000,             // total_steps
 		 100,                // number of snapshots
+                 10,                 // record interval
 		 "flo_particle_end", // input file, initial particles
 		 "unc_boundary",     // input file, initial boundaries
 		 "unc_particle",     // output file, resulted particles, including snapshots 
