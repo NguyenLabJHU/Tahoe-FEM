@@ -54,8 +54,16 @@ namespace Tahoe {
     // spatial mechanical tangent modulus
     virtual const dMatrixT& c_ijkl();
 
+	// NEW:  non-equilibrium spatial tangent modulus, conversion to material neq modulus
+	const dMatrixT& c_ijkl_neq();
+	const dMatrixT& C_IJKL_NEQ();
+
     // Cauchy stress
     virtual const dSymMatrixT& s_ij();
+
+	// NEW:  non-equilibrium spatial stress, conversion to material neq stress
+	const dSymMatrixT& s_ij_neq();
+	const dSymMatrixT& S_IJ_NEQ();
 
     // pressure associated with the last computed stress
     double Pressure() const;
@@ -101,10 +109,12 @@ namespace Tahoe {
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** compute mechanical strains */
-	virtual const dMatrixT& MechanicalDeformation(void);
-
+//	virtual const dMatrixT& MechanicalDeformation(void);
+	const dMatrixT& MechanicalDeformation(void);
+	
 	/** compute thermal strains */
-	virtual const dMatrixT& ThermalDeformation_Inverse(void);
+//	virtual const dMatrixT& ThermalDeformation_Inverse(void);
+	const dMatrixT& ThermalDeformation_Inverse(void);
 
   protected:
 
@@ -179,7 +189,8 @@ namespace Tahoe {
 
 	/* FUNCTIONS BELOW COPIED FROM RGSplitT2.h */
 	/* return values */
-	dMatrixT fModulus;
+	dMatrixT fModulusNEQ;
+	dSymMatrixT fStressNEQ;
 	
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
