@@ -53,6 +53,7 @@ public:
     long double getRadius2() const {return radius2;}
     long double getR0() const {return R0;}
     long double getE0() const {return E0;}
+    long double getTimeStep() const {return timeStep;}
     
     bool isOverlapped();
     void contactForce();         // calculate normal and tangential force of contact
@@ -79,6 +80,7 @@ public:
     long double E0;              
     long double G0;
     long double R0;
+    long double timeStep;
 
     bool isInContact;
 
@@ -235,14 +237,16 @@ void contact<T>::contactForce(){
 	p2->addForce(-NormalForce);
 	p1->addMoment( ((point1+point2)/2-p1->getCurrPosition())*NormalForce);
 	p2->addMoment(-((point1+point2)/2-p2->getCurrPosition())*NormalForce);	
-/*
-	g_exceptioninf<<std::setw(10)<<g_iteration
-		      <<std::setw(16)<<penetration
-		      <<std::setw(16)<<vfabsl(CohesionForce)
-		      <<std::setw(16)<<vfabsl(NormalForce)
-		      <<std::setw(16)<<g_iteration*TIMESTEP
-		      <<std::endl;
-*/
+	
+	/*
+	g_debuginf<<std::setw(10)<<g_iteration
+		  <<std::setw(16)<<penetration
+		  <<std::setw(16)<<vfabsl(CohesionForce)
+		  <<std::setw(16)<<vfabsl(NormalForce)
+		  <<std::setw(16)<<g_iteration*TIMESTEP
+		  <<std::endl;
+	*/
+
 	// obtain normal damping force
 	vec cp = (point1+point2)/2;        
 	vec veloc1 = p1->getCurrVelocity() + p1->getCurrOmga()*(cp-p1->getCurrPosition());
@@ -252,6 +256,7 @@ void contact<T>::contactForce(){
 	long double kn = powl(6*vfabsl(NormalForce)*R0*powl(E0,2),1.0/3.0);
 	long double DMP_CRTC = 2*sqrtl(m1*m2/(m1+m2)*kn); // critical damping
 	vec CntDampingForce  = DMP_CNT * DMP_CRTC * ((veloc1-veloc2)%NormDirc)*NormDirc;
+	timeStep = 2.0*sqrtl( m1*m2 / (m1+m2) /kn );
 
 	// apply normal damping force
 	p1->addForce(-CntDampingForce);
@@ -383,15 +388,15 @@ void contact<T>::contactForce(){
 		}
 	    }
 	    /*
-	    g_exceptioninf<<std::setw(10)<<g_iteration
-			  <<std::setw(05)<<PreTgtSlide
-			  <<std::setw(05)<<TgtSlide
-			  <<std::setw(16)<<val
-			  <<std::setw(16)<<ks
-			  <<std::setw(16)<<TgtDispInc.getx()
-			  <<std::setw(16)<<vfabsl(PreTgtForce)
-			  <<std::setw(16)<<vfabsl(TgtForce)
-			  <<std::endl;
+	    g_debuginf<<std::setw(10)<<g_iteration
+		      <<std::setw(05)<<PreTgtSlide
+		      <<std::setw(05)<<TgtSlide
+		      <<std::setw(16)<<val
+		      <<std::setw(16)<<ks
+		      <<std::setw(16)<<TgtDispInc.getx()
+		      <<std::setw(16)<<vfabsl(PreTgtForce)
+		      <<std::setw(16)<<vfabsl(TgtForce)
+		      <<std::endl;
 	    */
 	    if (vfabsl(TgtForce) > fP)
 		TgtForce = fP*TgtDirc;

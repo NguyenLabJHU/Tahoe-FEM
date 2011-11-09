@@ -164,9 +164,9 @@ vec rotateVec(vec v, vec ang){
     long double theta=atanl(vfabsl(vv)/vfabsl(vp));
 #ifdef DEBUG
 	if (g_iteration == 50000)
-    g_exceptioninf<<"vec: g_iteration="<<setw(10)<<g_iteration 
-		  <<" alf="<<setw(16)<<alf
-		  <<" theta="<<setw(16)<<theta<<endl;
+    g_debuginf<<"vec: g_iteration="<<setw(10)<<g_iteration 
+	      <<" alf="<<setw(16)<<alf
+	      <<" theta="<<setw(16)<<theta<<endl;
 #endif
     if (theta<PREC) 
 	return v;    

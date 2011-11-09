@@ -311,7 +311,7 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 	    if(dist>=0 || fabsl(dist) > (*it)->getA()) // outside to CoefOfLimits[0] or inside too much
 		continue;
 	    next=true;
-	    //g_exceptioninf<<std::setw(10)<<g_iteration <<std::setw(10)<<getBdryID()<<std::setw(10)<<(*it)->getID();
+	    //g_debuginf<<std::setw(10)<<g_iteration <<std::setw(10)<<getBdryID()<<std::setw(10)<<(*it)->getID();
 	    for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){ // CoefOfLimits[1,2,...]
 		ndirc=normalize((*bt).dirc);
 		r=vfabsl((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);

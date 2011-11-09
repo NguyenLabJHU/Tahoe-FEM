@@ -30,7 +30,7 @@ extern const long double POISSON;
 extern const long double Gs;     
 
 // other global variables
-extern std::ofstream g_exceptioninf;
+extern std::ofstream g_debuginf;
 extern int g_iteration;
 
 ///////////////////////////////////////////////////////////////////////////////////////

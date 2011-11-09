@@ -24,7 +24,7 @@ const long double POISSON = 0.25;    // quartz sand v= 0.25
 const long double Gs      = 2.65;    // quartz sand Gs= 2.65    
 
 // other global variables
-std::ofstream g_exceptioninf;        // record debugging information
+std::ofstream g_debuginf;            // record debugging information
 int g_iteration;                     // iteration number
 
 ///////////////////////////////////////////////////////////////////////////////////////

@@ -71,9 +71,9 @@ int main(int argc, char* argv[])
 	       "tri_particle",     // output file, resulted particles, including snapshots 
 	       "tri_boundary",     // output file, resulted boundaries
 	       "tri_contact",      // output file, resulted contacts, including snapshots 
-	       "tri_progress",     // output file, progress statistic information
-	       "tri_balanced",     // output file, progress isotropically balanced status
-	       "tri_exception");   // output file, progress float exceptions
+	       "tri_progress",     // output file, statistical info
+	       "tri_balanced",     // output file, balanced status
+	       "tri_debug");       // output file, debug info
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 3: record run time
@@ -125,8 +125,8 @@ int main(int argc, char* argv[])
 			  "ini_particle",     // output file, resulted particles, including snapshots 
 			  "ini_boundary",     // output file, resulted boundaries
 			  "ini_contact",      // output file, resulted contacts, including snapshots 
-			  "ini_progress",     // output file, progress statistic information
-			  "ini_exception");   // output file, progress float exceptions
+			  "ini_progress",     // output file, statistical info
+			  "ini_debug");       // output file, debug info
 
     A.triaxialPtclBdryIni(100000,             // total_steps
 			  100,                // number of snapshots
@@ -137,8 +137,8 @@ int main(int argc, char* argv[])
 			  "ini_particle",     // output file, resulted particles, including snapshots 
 			  "ini_boundary",     // output file, resulted boundaries
 			  "ini_contact",      // output file, resulted contacts, including snapshots 
-			  "ini_progress",     // output file, progress statistic information
-			  "ini_exception");   // output file, progress float exceptions
+			  "ini_progress",     // output file, statistical info
+			  "ini_debug");       // output file, debug info
 
 
     A.triaxialPtclBdry(100000,             // total_steps
@@ -149,9 +149,9 @@ int main(int argc, char* argv[])
 		       "tri_particle",     // output file, resulted particles, including snapshots 
 		       "tri_boundary",     // output file, resulted boundaries
 		       "tri_contact",      // output file, resulted contacts, including snapshots 
-		       "tri_progress",     // output file, progress statistic information
-		       "tri_balanced",     // output file, progress isotropically balanced status
-		       "tri_exception");   // output file, progress float exceptions
+		       "tri_progress",     // output file, statistical info
+		       "tri_balanced",     // output file, balanced status
+		       "tri_debug");       // output file, debug info
 
 
     // size, shape, and gradation of particles
@@ -177,10 +177,10 @@ int main(int argc, char* argv[])
 		      "dep_boundary_ini", // output file, initial boundaries
 		      "dep_particle",     // output file, resulted particles, including snapshots 
 		      "dep_contact",      // output file, resulted contacts, including snapshots 
-		      "dep_progress",     // output file, progress statistic information
+		      "dep_progress",     // output file, statistical info
 		      "cre_particle",     // output file, resulted particles after trmming
 		      "cre_boundary",     // output file, resulted boundaries after trmming
-		      "dep_exception");   // output file, progress float exception
+		      "dep_debug");       // output file, debug info
 
 
     // size, shape, and gradation of particles
@@ -205,8 +205,8 @@ int main(int argc, char* argv[])
 		       "flo_particle_end", // output file, initial particles
 		       "dep_particle",     // output file, resulted particles, including snapshots 
 		       "dep_contact",      // output file, resulted contacts, including snapshots 
-		       "dep_progress",     // output file, progress statistic information
-		       "dep_exception");   // output file, progress float exception
+		       "dep_progress",     // output file, statistical info
+		       "dep_debug");       // output file, debug info
  
    
     A.scale_PtclBdry(20000,             // total_steps
@@ -217,8 +217,8 @@ int main(int argc, char* argv[])
 		     "dep_particle_end",// input file, initial particles
 		     "scl_particle",    // output file, resulted particles, including snapshots 
 		     "scl_contact",     // output file, resulted contacts, including snapshots
-		     "scl_progress",    // output file, progress statistic information
-		     "scl_exception");  // output file, progress float exceptions
+		     "scl_progress",    // output file, statistical info
+		     "scl_debug");      // output file, debug info
 
 
     A.ellipPile_Disp(50000,              // total_steps
@@ -229,8 +229,8 @@ int main(int argc, char* argv[])
 		     "pile_particle_ini",// input file, initial particles, an ellipsoidal pile info added
 		     "pile_particle",    // output file, resulted particles, including snapshots 
 		     "pile_contact",     // output file, resulted contacts, including snapshots 
-		     "pile_progress",    // output file, progress statistic information
-		     "pile_exception");  // output file, progress float exceptions
+		     "pile_progress",    // output file, statistical info
+		     "pile_debug");      // output file, debug info
 
 
     A.rectPile_Disp(50000,              // total_steps
@@ -241,8 +241,8 @@ int main(int argc, char* argv[])
 		    "pile_particle",    // output file, resulted particles, including snapshots 
 		    "pile_boundary",    // output file, resulted boundaries
 		    "pile_contact",     // output file, resulted contacts, including snapshots 
-		    "pile_progress",    // output file, progress statistic information
-		    "pile_exception");  // output file, progress float exceptions
+		    "pile_progress",    // output file, statistical info
+		    "pile_debug");      // output file, debug info
 
 
     A.ellipPile_Impact(50000,              // total_steps
@@ -253,8 +253,8 @@ int main(int argc, char* argv[])
 		       "dep_boundary_ini", // input file, initial boundaries
 		       "ipt_particle",     // output file, resulted particles, including snapshots 
 		       "ipt_contact",      // output file, resulted contacts, including snapshots 
-		       "ipt_progress",     // output file, progress statistic information
-		       "ipt_exception");   // output file, progress float exceptions
+		       "ipt_progress",     // output file, statistical info
+		       "ipt_debug");       // output file, debug info
 
 
     A.ellipPile_Impact_p(50000,              // total_steps
@@ -264,8 +264,8 @@ int main(int argc, char* argv[])
 			 "ipt_particle_ini", // input file, initial particles, an ellipsoidal pile info added
 			 "ipt_particle",     // output file, resulted particles, including snapshots 
 			 "ipt_contact",      // output file, resulted contacts, including snapshots 
-			 "ipt_progress",     // output file, progress statistic information
-			 "ipt_exception");   // output file, progress float exceptions
+			 "ipt_progress",     // output file, statistical info
+			 "ipt_debug");       // output file, debug info
 
     
     A.deposit(5000,               // total_steps
@@ -275,8 +275,8 @@ int main(int argc, char* argv[])
 	      "dep_boundary_ini", // input file, initial boundaries
 	      "dep_particle",     // output file, resulted particles, including snapshots 
 	      "dep_contact",      // output file, resulted contacts, including snapshots 
-	      "dep_progress",     // output file, progress statistic information
-	      "dep_exception");   // output file, progress float exception
+	      "dep_progress",     // output file, statistical info
+	      "dep_debug");       // output file, debug info
 
 
     A.squeeze(300000,             // total_steps
@@ -289,8 +289,8 @@ int main(int argc, char* argv[])
 	      "dep_particle",     // output file, resulted particles, including snapshots 
 	      "dep_boundary",     // output file, resulted boundaries
 	      "dep_contact",      // output file, resulted contacts, including snapshots 
-	      "dep_progress",     // output file, progress statistic information
-	      "dep_exception");   // output file, progress float exception
+	      "dep_progress",     // output file, statistical info
+	      "dep_debug");       // output file, debug info
 
 
     A.collapse(rorc,
@@ -301,8 +301,8 @@ int main(int argc, char* argv[])
 	       "clp_boundary",    // output file, initial boundaries
 	       "clp_particle",    // output file, resulted particles, including snapshots
 	       "clp_contact",     // output file, resulted contacts, including snapshots 
-	       "clp_progress",    // output file, progress statistic information
-	       "clp_exception");  // output file, progress float exceptions
+	       "clp_progress",    // output file, statistical info
+	       "clp_debug");      // output file, debug info
 
 
     A.isotropic(100000,             // total_steps
@@ -314,9 +314,9 @@ int main(int argc, char* argv[])
 		"iso_particle",     // output file, resulted particles, including snapshots 
 		"iso_boundary",     // output file, resulted boundaries 
 		"iso_contact",      // output file, resulted contacts, including snapshots 
-		"iso_progress",     // output file, progress statistic information
-		"iso_balanced",     // output file, progress isotropically balanced status
-		"iso_exception");   // output file, progress float exceptions
+		"iso_progress",     // output file, statistical info
+		"iso_balanced",     // output file, balanced status
+		"iso_debug");       // output file, debug info
 
     
     A.isotropic(100000,             // total_steps
@@ -329,9 +329,9 @@ int main(int argc, char* argv[])
 		"iso_particle",     // output file, resulted particles, including snapshots 
 		"iso_boundary",     // output file, resulted boundaries
 		"iso_contact",      // output file, resulted contacts, including snapshots 
-		"iso_progress",     // output file, progress statistic information
-		"iso_balanced",     // output file, progress isotropically balanced status
-		"iso_exception");   // output file, progress float exceptions
+		"iso_progress",     // output file, statistical info
+		"iso_balanced",     // output file, balanced status
+		"iso_debug");       // output file, debug info
 
     
     A.isotropic(100000,             // total_steps
@@ -345,9 +345,9 @@ int main(int argc, char* argv[])
 		"iso_particle",     // output file, resulted particles, including snapshots 
 		"iso_boundary",     // output file, resulted boundaries
 		"iso_contact",      // output file, resulted contacts, including snapshots 
-		"iso_progress",     // output file, progress statistic information
-		"iso_balanced",     // output file, progress isotropically balanced status
-		"iso_exception");   // output file, progress float exceptions
+		"iso_progress",     // output file, statistical info
+		"iso_balanced",     // output file, balanced status
+		"iso_debug");       // output file, debug info
 
     
     long double sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 7.0e+5}; // last one must be a larger value	
@@ -362,9 +362,9 @@ int main(int argc, char* argv[])
 		"iso_particle",     // output file, resulted particles, including snapshots 
 		"iso_boundary",     // output file, resulted boundaries
 		"iso_contact",      // output file, resulted contacts, including snapshots 
-		"iso_progress",     // output file, progress statistic information
-		"iso_balanced",     // output file, progress isotropically balanced status
-		"iso_exception");   // output file, progress float exceptions
+		"iso_progress",     // output file, statistical info
+		"iso_balanced",     // output file, balanced status
+		"iso_debug");       // output file, debug info
 
     
     A.odometer(100000,             // total_steps
@@ -378,9 +378,9 @@ int main(int argc, char* argv[])
 	       "odo_particle",     // output file, resulted particles, including snapshots 
 	       "odo_boundary",     // output file, resulted boundaries
 	       "odo_contact",      // output file, resulted contacts, including snapshots 
-	       "odo_progress",     // output file, progress statistic information
+	       "odo_progress",     // output file, statistical info
 	       "odo_balanced",     // output file, progress odometer balanced status
-	       "odo_exception");   // output file, progress float exceptions
+	       "odo_debug");       // output file, debug info
 
     
     long double sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 1.0e+6}; // last one must be a larger value	
@@ -395,9 +395,9 @@ int main(int argc, char* argv[])
 	       "odo_particle",     // output file, resulted particles, including snapshots 
 	       "odo_boundary",     // output file, resulted boundaries
 	       "odo_contact",      // output file, resulted contacts, including snapshots 
-	       "odo_progress",     // output file, progress statistic information
+	       "odo_progress",     // output file, statistical info
 	       "odo_balanced",     // output file, progress odometer balanced status
-	       "odo_exception");   // output file, progress float exceptions
+	       "odo_debug");       // output file, debug info
 
 
     A.triaxial(100000,             // total_steps
@@ -408,9 +408,9 @@ int main(int argc, char* argv[])
 	       "tri_particle",     // output file, resulted particles, including snapshots 
 	       "tri_boundary",     // output file, resulted boundaries
 	       "tri_contact",      // output file, resulted contacts, including snapshots 
-	       "tri_progress",     // output file, progress statistic information
-	       "tri_balanced",     // output file, progress isotropically balanced status
-	       "tri_exception");   // output file, progress float exceptions
+	       "tri_progress",     // output file, statistical info
+	       "tri_balanced",     // output file, balanced status
+	       "tri_debug");       // output file, debug info
 
     
     A.triaxial(100000,             // total_steps
@@ -422,9 +422,9 @@ int main(int argc, char* argv[])
 	       "tri_particle",     // output file, resulted particles, including snapshots 
 	       "tri_boundary"      // output file, resulted boundaries
 	       "tri_contact",      // output file, resulted contacts, including snapshots 
-	       "tri_progress",     // output file, progress statistic information
-	       "tri_balanced",     // output file, progress isotropically balanced status
-	       "tri_exception");   // output file, progress float exceptions
+	       "tri_progress",     // output file, statistical info
+	       "tri_balanced",     // output file, balanced status
+	       "tri_debug");       // output file, debug info
 
     
     A.triaxial(100000,             // total_steps
@@ -436,9 +436,9 @@ int main(int argc, char* argv[])
 	       "tri_particle",     // output file, resulted particles, including snapshots 
 	       "tri_boundary",     // output file, resulted boundaries
 	       "tri_contact",      // output file, resulted contacts, including snapshots 
-	       "tri_progress",     // output file, progress statistic information
-	       "tri_balanced",     // output file, progress isotropically balanced status
-	       "tri_exception");   // output file, progress float exceptions
+	       "tri_progress",     // output file, statistical info
+	       "tri_balanced",     // output file, balanced status
+	       "tri_debug");       // output file, debug info
 
     
     A.triaxial(120000,             // total_steps
@@ -451,9 +451,9 @@ int main(int argc, char* argv[])
 	       "tri_particle",     // output file, resulted particles, including snapshots 
 	       "tri_boundary",     // output file, resulted boundaries
 	       "tri_contact",      // output file, resulted contacts, including snapshots 
-	       "tri_progress",     // output file, progress statistic information
-	       "tri_balanced",     // output file, progress isotropically balanced status
-	       "tri_exception");   // output file, progress float exceptions
+	       "tri_progress",     // output file, statistical info
+	       "tri_balanced",     // output file, balanced status
+	       "tri_debug");       // output file, debug info
 
     
     A.truetriaxial(100000,             // total_steps
@@ -469,9 +469,9 @@ int main(int argc, char* argv[])
 		   "tru_particle",     // output file, resulted particles, including snapshots 
 		   "tru_boundary",     // output file, resulted boundaries
 		   "tru_contact",      // output file, resulted contacts, including snapshots 
-		   "tru_progress",     // output file, progress statistic information
-		   "tru_balanced",     // output file, progress isotropically balanced status
-		   "tru_exception");   // output file, progress float exceptions
+		   "tru_progress",     // output file, statistical info
+		   "tru_balanced",     // output file, balanced status
+		   "tru_debug");       // output file, debug info
 
 
     A.unconfined(100000,             // total_steps
@@ -481,52 +481,6 @@ int main(int argc, char* argv[])
 		 "unc_boundary",     // input file, initial boundaries
 		 "unc_particle",     // output file, resulted particles, including snapshots 
 		 "unc_contact",      // output file, resulted contacts, including snapshots 
-		 "unc_progress",     // output file, progress statistic information
-		 "unc_exception");   // output file, progress float exceptions
-*/
-
-
-/*
-Development notes
-
-assembly.cpp:
-01. create, use (dimension - len), a smaller space for generating particles. 
-02. deposit/isocompress, use reach of ambient pressure or displacement condition to stop iterations.
-03. output information as progress, particles and contacts.
-04. createSample(), can optionally set up initail velocity/angular velocity and constant force/moment.
-05. gravity can be considered or not, depending on GRVT_SCL.
-06. checkinPreShearForce() and checkoutShearForce() in findContact() and internalForce(), respectively.
-07. OpenMP implementation in findContact().
-
-contact.h:
-01. in contactForce(), addMoment use global coordinate system.
-02. define a variable val for calculating shear force, assure it is less than 1.
-03. define class cnttangt to store PreShearForce, working for both particle-to-particle and particle-boundary contacts.
-06. remove redundant call to root6().
-
-particle.cpp:
-01. update(), apply time integration algorithm, considering damping.
-02. update(), converts between global and local coordinate system.
-03. update(), clearForce() at the beginning of each iteration.
-04. intersectionWithLine() rewrote.
-05. getRadius() rewrote, and osculating circle radius r= 2*r1*r2/(r1+r2).
-06. planeRBForce() and cylinderRBFroce() use global coordinate system.
-07. constructor particle() is revised to satisfy QQ'=I.
-08. ensure a/b/c corresond to x/y/z
-09. constructor and update(): acos() and normalize
-10. clearForce() can specify force or moment; add private members const_force and const_moment.
-11. contact.h, store PreShearForce for particle-wall contacts.
-
-others:
-vec.cpp: acos() and normalize()
-root6.cpp: return bool instead of vector, algorithm revised to skip case of zero determinant.
-
-numerical recipes in C: 
-zrhqr.cpp (6 files) and ran.cpp:
-01. rename .c to .cpp
-02. #include <cmath>
-03. using namespace std;
-04. return bool
-05. replace float with long double
-
+		 "unc_progress",     // output file, statistical info
+		 "unc_debug");       // output file, debug info
 */

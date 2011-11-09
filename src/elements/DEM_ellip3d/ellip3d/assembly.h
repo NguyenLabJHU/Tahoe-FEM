@@ -95,6 +95,7 @@ public:
 	int         getPossCntctNum() const {return  PossCntctNum;};
 	int         getActualCntctNum() const {return ActualCntctNum;}
 	long double getAveragePenetration() const;
+	long double getMinTimeStep() const;
 	long double getAverageVelocity() const;
 	long double getAverageForce() const;
 	long double getAverageOmga() const;
@@ -136,7 +137,7 @@ public:
 			     const char* progressfile, 
 			     const char* creparticle,
 			     const char* creboundary,
-			     const char* exceptionfile);
+			     const char* debugfile);
 
 	// create a specimen by depositing particles into particle boundaries
 	void deposit_PtclBdry(gradation& grad,
@@ -149,7 +150,7 @@ public:
 			      const char* particlefile, 
 			      const char* contactfile,
 			      const char* progressfile, 
-			      const char* exceptionfile);
+			      const char* debugfile);
 	
 	// scale the assembly with particle boundaries from deposited state until it reaches steady state
 	void scale_PtclBdry(int         total_steps  =50000,             // total_steps
@@ -160,8 +161,8 @@ public:
 			    const char* iniptclfile  ="dep_particle_end",// input file, initial particles
 			    const char* particlefile ="scl_particle",    // output file, resulted particles, including snapshots 
 			    const char* contactfile  ="scl_contact",     // output file, resulted contacts, including snapshots
-			    const char* progressfile ="scl_progress",    // output file, progress statistic information
-			    const char* exceptionfile="scl_exception");  // output file, progress float exceptions
+			    const char* progressfile ="scl_progress",    // output file, statistical info
+			    const char* debugfile    ="scl_debug");      // output file, debug info
 
 	// generate particles in space for rigid boundaries
 	void generate(gradation& grad, 
@@ -184,8 +185,8 @@ public:
 		     const char* inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries
 		     const char* particlefile ="dep_particle",      // output file, resulted particles, including snapshots 
 		     const char* contactfile  ="dep_contact",       // output file, resulted contacts, including snapshots
-		     const char* progressfile ="dep_progress",      // output file, progress statistic information
-		     const char* exceptionfile="dep_exception");    // output file, progress float exceptions
+		     const char* progressfile ="dep_progress",      // output file, statistical info
+		     const char* debugfile    ="dep_debug");        // output file, debug info
 
 	// actual deposit function for particle boundaries
 	void deposit_p(int         total_steps  =50000,             // total_steps
@@ -196,8 +197,8 @@ public:
 		       const char* iniptclfile  ="flo_particle_end",// input file, initial particles
 		       const char* particlefile ="dep_particle",    // output file, resulted particles, including snapshots 
 		       const char* contactfile  ="dep_contact",     // output file, resulted contacts, including snapshots
-		       const char* progressfile ="dep_progress",    // output file, progress statistic information
-		       const char* exceptionfile="dep_exception");  // output file, progress float exceptions
+		       const char* progressfile ="dep_progress",    // output file, statistical info
+		       const char* debugfile    ="dep_debug");      // output file, debug info
 
         //squeeze paticles inside a container by moving the boundaries
 	void squeeze(int         total_steps  =20000,               // total_steps
@@ -210,8 +211,8 @@ public:
 		     const char* particlefile ="dep_particle",      // output file, resulted particles, including snapshots 
 		     const char* boundaryfile ="dep_boundary",      // output file, resulted boundaries
 		     const char* contactfile  ="dep_contact",       // output file, resulted contacts, including snapshots
-		     const char* progressfile ="dep_progress",      // output file, progress statistic information
-		     const char* exceptionfile="dep_exception");    // output file, progress float exceptions
+		     const char* progressfile ="dep_progress",      // output file, statistical info
+		     const char* debugfile    ="dep_debug");        // output file, debug info
 
 	void collapse(int   rors, 
 		      int   total_steps,  
@@ -222,7 +223,7 @@ public:
 		      const char* particlefile,
 		      const char* contactfile,
 		      const char* progressfile,
-		      const char* exceptionfile);
+		      const char* debugfile);
 	
 	void setBoundary(int rors,
 		     int bdrynum,
@@ -253,7 +254,7 @@ public:
 		       const char*  contactfile  ="iso_contact",
 		       const char*  progressfile ="iso_progress",
 		       const char*  balancedfile ="iso_balanced",
-		       const char*  exceptionfile="iso_exception");
+		       const char*  debugfile    ="iso_debug");
 
         // The specimen has been isotropically compressed to confining pressure sigma_a. This function
         // increases confining pressure step by step to sigma_b, making it possible to find equilibrium 
@@ -271,7 +272,7 @@ public:
 		       const char*  contactfile   ="iso_contact",
 		       const char*  progressfile  ="iso_progress",
 		       const char*  balancedfile  ="iso_balanced", 
-		       const char*  exceptionfile ="iso_exception");
+		       const char*  debugfile     ="iso_debug");
 	
         // The specimen has been isotropically compressed to confining pressure sigma_a. This function
 	// follows an unloading-reloading stress path. Force boundaries are used.
@@ -288,7 +289,7 @@ public:
 		       const char*  contactfile   ="iso_contact",
 		       const char*  progressfile  ="iso_progress",
 		       const char*  balancedfile  ="iso_balanced", 
-		       const char*  exceptionfile ="iso_exception");
+		       const char*  debugfile     ="iso_debug");
 	
         // The specimen has been isotropically compressed to confining pressure sigma_3. This function
         // increases confining pressure step by step to sigma_1, thus making it possible to find out
@@ -307,7 +308,7 @@ public:
 		      const char*  contactfile    ="odo_contact",
 		      const char*  progressfile   ="odo_progress",
 		      const char*  balancedfile   ="odo_balanced", 
-		      const char*  exceptionfile  ="odo_exception");
+		      const char*  debugfile      ="odo_debug");
 
         // The specimen has been isotropically compressed to confining pressure sigma_3. This function
         // increases confining pressure step by step to sigma_1, thus making it possible to find out
@@ -326,7 +327,7 @@ public:
 		      const char*  contactfile   ="odo_contact",
 		      const char*  progressfile  ="odo_progress",
 		      const char*  balancedfile  ="odo_balanced", 
-		      const char*  exceptionfile ="odo_exception");
+		      const char*  debugfile     ="odo_debug");
 
         // The confining pressure is 500kPa. This function initializes triaxial compression test.
 	void triaxialPtclBdryIni(int          total_steps  =10000,
@@ -339,7 +340,7 @@ public:
 				 const char*  boundaryfile ="ini_boundary", 
 				 const char*  contactfile  ="ini_contact",
 				 const char*  progressfile ="ini_progress",
-				 const char*  exceptionfile="ini_exception");
+				 const char*  debugfile    ="ini_debug");
 
         // The confining pressure is 500kPa. This function performs triaxial compression test.
         // Displacement boundaries are used in axial direction.
@@ -353,7 +354,7 @@ public:
 			      const char*  contactfile  ="tri_contact",
 			      const char*  progressfile ="tri_progress",
 			      const char*  balancedfile ="tri_balanced", 
-			      const char*  exceptionfile="tri_exception");
+			      const char*  debugfile    ="tri_debug");
 
         // The specimen has been isotropically compressed to confining pressure sigma_a. This function
         // performs triaxial compression test. Displacement boundaries are used in axial direction.
@@ -368,7 +369,7 @@ public:
 		      const char*  contactfile  ="tri_contact",
 		      const char*  progressfile ="tri_progress",
 		      const char*  balancedfile ="tri_balanced", 
-		      const char*  exceptionfile="tri_exception");
+		      const char*  debugfile    ="tri_debug");
 	
         // The specimen has been isotropically compressed to confining pressure sigma_a. This function
         // performs triaxial compression test with unloading. Displacement boundaries are used in 
@@ -385,7 +386,7 @@ public:
 		      const char*  contactfile  ="tri_contact",
 		      const char*  progressfile ="tri_progress",
 		      const char*  balancedfile ="tri_balanced", 
-		      const char*  exceptionfile="tri_exception");
+		      const char*  debugfile    ="tri_debug");
 	
         // The specimen has been deposited with gravitation within boundaries composed of particles.
         // A rectangular pile is then drived into the particles using displacement control.
@@ -398,7 +399,7 @@ public:
 			   const char*  boundaryfile ="pile_boundary", 
 			   const char*  contactfile  ="pile_contact",
 			   const char*  progressfile ="pile_progress",
-			   const char*  exceptionfile="pile_exception");
+			   const char*  debugfile    ="pile_debug");
 	
         // The specimen has been deposited with gravitation within boundaries composed of particles.
         // An ellipsoidal pile is then drived into the particles using displacement control.
@@ -411,7 +412,7 @@ public:
 			    const char* particlefile ="pile_particle", 
 			    const char* contactfile  ="pile_contact",  
 			    const char* progressfile ="pile_progress",
-			    const char* exceptionfile="pile_exception" );
+			    const char* debugfile    ="pile_debug");
 
         // The specimen has been deposited with gravitation within rigid boundaries.
         // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
@@ -424,7 +425,7 @@ public:
 			      const char* particlefile ="ipt_particle", 
 			      const char* contactfile  ="ipt_contact",  
 			      const char* progressfile ="ipt_progress",
-			      const char* exceptionfile="ipt_exception" );
+			      const char* debugfile    ="ipt_debug");
 
         // The specimen has been deposited with gravitation within particle boundaries.
         // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
@@ -436,7 +437,7 @@ public:
 				const char* particlefile ="ipt_particle", 
 				const char* contactfile  ="ipt_contact",  
 				const char* progressfile ="ipt_progress",
-				const char* exceptionfile="ipt_exception" );
+				const char* debugfile    ="ipt_debug");
 
         // The specimen has been deposited with gravitation within boundaries composed of particles.
         // An ellipsoidal pile is then drived into the particles using force control.
@@ -451,7 +452,7 @@ public:
 			     const char* contactfile  ="pile_contact",  
 			     const char* progressfile ="pile_progress",
 			     const char* balancedfile ="pile_balanced",
-			     const char* exceptionfile="pile_exception" );
+			     const char* debugfile    ="pile_debug");
 
 	void truetriaxial(int          total_steps   =1000000,
 			  int          snapshots     =100,
@@ -468,17 +469,17 @@ public:
 			  const char*  contactfile   ="tru_contact",
 			  const char*  progressfile  ="tru_progress",
 			  const char*  balancedfile  ="tru_balanced", 
-			  const char*  exceptionfile ="tru_exception");
+			  const char*  debugfile     ="tru_debug");
 
 	void unconfined(int          total_steps  =100000,
 			int          snapshots    =100,
-                        int          interval     =10,                // record interval 
+                        int          interval     =10, 
 			const char*  iniptclfile  ="flo_particle_end",
 			const char*  inibdryfile  ="unc_inbdry",
 		 	const char*  particlefile ="unc_particle", 
 			const char*  contactfile  ="unc_contact",
 			const char*  progressfile ="unc_progress",
-			const char*  exceptionfile="unc_exception");
+			const char*  debugfile    ="unc_debug");
 	
 	void soft_tric(long double _sigma3, long double _b,
 		       const char* iniptclfile ="isotropic",

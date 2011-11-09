@@ -451,8 +451,8 @@ bool particle::intersectWithLine(vec v, vec dirc, vec rt[]) const{
     
     long double delta=B*B-4*A*C;
     if (delta < 0){
-	g_exceptioninf<<"g_iteration="<<setw(10)<<g_iteration
-		    <<", delta < 0 in intersectWithLine() of particle.cpp."<<endl;
+	g_debuginf<<"g_iteration="<<setw(10)<<g_iteration
+		  <<", delta < 0 in intersectWithLine() of particle.cpp."<<endl;
 	return false;
     }
     else{
@@ -536,15 +536,15 @@ long double particle::getRadius(vec v) const{
 
 
     // if delta < 0, then it is usually -1.0e-20, caused by computational precision.
-/*
+    /*
     if (B*B-4*A*C<0){
-	g_exceptioninf<<"g_iteration="<<setw(10)<<g_iteration
-		      <<", delta < 0 in getRadius() of particle.cpp."
-		      <<setw(16)<<B*B-4*A*C
-		      <<setw(16)<<-C/B
-		      <<endl;
+	g_debuginf<<"g_iteration="<<setw(10)<<g_iteration
+		  <<", delta < 0 in getRadius() of particle.cpp."
+		  <<setw(16)<<B*B-4*A*C
+		  <<setw(16)<<-C/B
+		  <<endl;
     }
-*/
+    */
     return fabsl(-C/B*2.0); // 2*r1*r2/(r1+r2)
 }
 
@@ -814,24 +814,24 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	vec NormDirc=-dirc; //normalize(pt1-pt2);
 	vec NormalForce=sqrtl(penetration*penetration*penetration)*sqrtl(R0)*4*E0/3*NormDirc; // powl(penetration,1.5), a serious bug
 
-/*
-	g_exceptioninf<<setw(10)<<g_iteration
-		      <<setw(10)<<getID()
-		      <<setw(10)<<plb->bdry_id
-		      <<setw(16)<<pt1.getx()
-		      <<setw(16)<<pt1.gety()
-		      <<setw(16)<<pt1.getz()
-		      <<setw(16)<<rt[0].getx()
-		      <<setw(16)<<rt[0].gety()
-		      <<setw(16)<<rt[0].getz()
-		      <<setw(16)<<rt[1].getx()
-		      <<setw(16)<<rt[1].gety()
-		      <<setw(16)<<rt[1].getz()
-		      <<setw(16)<<vfabsl(rt[0]-pt1)
-		      <<setw(16)<<vfabsl(rt[1]-pt1)
-		      <<setw(16)<<penetration
-		      <<endl;
-*/
+	/*
+	g_debuginf<<setw(10)<<g_iteration
+		  <<setw(10)<<getID()
+		  <<setw(10)<<plb->bdry_id
+		  <<setw(16)<<pt1.getx()
+		  <<setw(16)<<pt1.gety()
+		  <<setw(16)<<pt1.getz()
+		  <<setw(16)<<rt[0].getx()
+		  <<setw(16)<<rt[0].gety()
+		  <<setw(16)<<rt[0].getz()
+		  <<setw(16)<<rt[1].getx()
+		  <<setw(16)<<rt[1].gety()
+		  <<setw(16)<<rt[1].getz()
+		  <<setw(16)<<vfabsl(rt[0]-pt1)
+		  <<setw(16)<<vfabsl(rt[1]-pt1)
+		  <<setw(16)<<penetration
+		  <<endl;
+	*/
 
 	// apply normal force
 	addForce(NormalForce);
@@ -960,14 +960,14 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 
 	    /*
 	    if (g_iteration%100==0)  
-	    g_exceptioninf<<g_iteration
-			  <<"  "<<vfabsl(NormalForce)
-			  <<"  "<<vfabsl(CntDampingForce)
-			  <<"  "<<kn
-			  <<"  "<<vfabsl(TgtForce)
-			  <<"  "<<vfabsl(FricDampingForce)
-			  <<"  "<<ks
-			  <<endl;
+	    g_debuginf<<g_iteration
+		      <<"  "<<vfabsl(NormalForce)
+		      <<"  "<<vfabsl(CntDampingForce)
+		      <<"  "<<kn
+		      <<"  "<<vfabsl(TgtForce)
+		      <<"  "<<vfabsl(FricDampingForce)
+		      <<"  "<<ks
+		      <<endl;
 	    */
 	    /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -439,7 +439,7 @@ void assembly::findContact(){ // OpenMP version
     
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_exceptioninf<<setw(10)<<seconds(); 
+    g_debuginf<<setw(10)<<seconds(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -473,7 +473,7 @@ void assembly::findContact(){ // serial version
 
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_exceptioninf<<setw(10)<<seconds(); 
+    g_debuginf<<setw(10)<<seconds(); 
 #endif
  
     ActualCntctNum = ContactList.size();
@@ -515,7 +515,7 @@ void assembly::findContact(){
     }
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_exceptioninf<<setw(10)<<seconds(); 
+    g_debuginf<<setw(10)<<seconds(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -545,6 +545,22 @@ long double assembly::getAveragePenetration() const{
 	return pene/totalcntct;
     }
 }
+
+
+long double assembly::getMinTimeStep() const {
+    int totalcntct = ContactList.size();
+    if (totalcntct == 0)
+	return 0;
+    else {
+	list<CONTACT>::const_iterator it=ContactList.begin();
+        long double minTimeStep = it->getTimeStep();
+	for (++it; it != ContactList.end(); ++it) {
+	  long double val = it->getTimeStep(); 
+	  minTimeStep =  val < minTimeStep ? val : minTimeStep;
+	}
+	return minTimeStep;
+    }
+ }
 
 
 long double assembly::getAverageVelocity() const{
@@ -799,7 +815,7 @@ void assembly::internalForce(long double& avgnm, long double& avgsh){
 
 #ifdef TIME_PROFILE
 	gettimeofday(&timep2,NULL);
-	g_exceptioninf<<setw(10)<<seconds()<<endl; 
+	g_debuginf<<setw(10)<<seconds()<<endl; 
 #endif
 
     }
@@ -930,13 +946,13 @@ void assembly::rigidBoundaryForce(){
   for(rt=RBList.begin();rt!=RBList.end();++rt){	
     (*rt)->rigidBF(BdryTgtMap);
     for (it=BdryTgtMap[(*rt)->bdry_id].begin();it!=BdryTgtMap[(*rt)->bdry_id].end();++it){
-      g_exceptioninf<<setw(10)<<g_iteration
-		    <<setw(10)<<(*rt)->bdry_id
-		    <<setw(10)<<BdryTgtMap[(*rt)->bdry_id].size()
-		    <<setw(16)<<it->TgtForce.getx()
-		    <<setw(16)<<it->TgtForce.gety()
-		    <<setw(16)<<it->TgtForce.getz()
-		    <<endl;
+      g_debuginf<<setw(10)<<g_iteration
+		<<setw(10)<<(*rt)->bdry_id
+		<<setw(10)<<BdryTgtMap[(*rt)->bdry_id].size()
+		<<setw(16)<<it->TgtForce.getx()
+		<<setw(16)<<it->TgtForce.gety()
+		<<setw(16)<<it->TgtForce.getz()
+		<<endl;
       //<<setw(16)<<it->TgtPeak<<endl;
     }
   }
@@ -1184,7 +1200,7 @@ void assembly::deposit_RgdBdry(gradation& grad,
 			       const char* progressfile, 
 			       const char* creparticle,
 			       const char* creboundary,
-			       const char* exceptionfile)
+			       const char* debugfile)
 {
     if (grad.rorc == 1) {
 	RORC = grad.rorc;
@@ -1206,8 +1222,8 @@ void assembly::deposit_RgdBdry(gradation& grad,
 		inibdryfile,        // input file, initial boundaries
 		particlefile,       // output file, resulted particles, including snapshots 
 		contactfile,        // output file, resulted contacts, including snapshots 
-		progressfile,       // output file, progress statistic information
-		exceptionfile);     // output file, progress float exception
+		progressfile,       // output file, statistical info
+		debugfile);         // output file, debug info
 
 	setBoundary(grad.rorc,          // rectangular--1 or cylindrical--0?
 		6,                  
@@ -1292,7 +1308,7 @@ void assembly::deposit_PtclBdry(gradation& grad,
 				const char* particlefile, 
 				const char* contactfile,
 				const char* progressfile, 
-				const char* exceptionfile)
+				const char* debugfile)
 {
     if (grad.rorc == 1) {
 	RORC = grad.rorc;
@@ -1310,8 +1326,8 @@ void assembly::deposit_PtclBdry(gradation& grad,
 		  iniptclfile,        // input file, initial particles
 		  particlefile,       // output file, resulted particles, including snapshots 
 		  contactfile,        // output file, resulted contacts, including snapshots 
-		  progressfile,       // output file, progress statistic information
-		  exceptionfile);     // output file, progress float exception
+		  progressfile,       // output file, statistical info
+		  debugfile);         // output file, debug info
     }
 }
 
@@ -1423,7 +1439,7 @@ void assembly::scale_PtclBdry(int   total_steps,
 			      const char* particlefile, 
 			      const char* contactfile,
 			      const char* progressfile, 
-			      const char* exceptionfile)
+			      const char* debugfile)
 {
     deposit_p(total_steps,        // total_steps
 	      snapshots,          // number of snapshots
@@ -1433,8 +1449,8 @@ void assembly::scale_PtclBdry(int   total_steps,
 	      iniptclfile,        // input file, initial particles
 	      particlefile,       // output file, resulted particles, including snapshots 
 	      contactfile,        // output file, resulted contacts, including snapshots 
-	      progressfile,       // output file, progress statistic information
-	      exceptionfile);     // output file, progress float exception
+	      progressfile,       // output file, statistical info
+	      debugfile);         // output file, debug info
 }
 
 
@@ -1448,7 +1464,7 @@ void assembly::collapse(int   rors,
 			const char* particlefile,
 			const char* contactfile,
 			const char* progressfile,
-			const char* exceptionfile)
+			const char* debugfile)
 {
     setBoundary(rors,           // rectangular--1 or cylindrical--0?
 	    1,                  // 1-only bottom boundary;5-no top boundary;6-boxed 6 boundaries
@@ -1462,8 +1478,8 @@ void assembly::collapse(int   rors,
 	    initboundary,       // input file, boundaries
 	    particlefile,       // output file, resulted particles, including snapshots 
 	    contactfile,        // output file, resulted contacts, including snapshots 
-	    progressfile,       // output file, progress statistic information
-	    exceptionfile);     // output file, progress float exceptions
+	    progressfile,       // output file, statistical info
+	    debugfile);         // output file, debug info
 }
 
   
@@ -2443,7 +2459,7 @@ void assembly::deposit(int   total_steps,
 		       const char* particlefile, 
 		       const char* contactfile,
 		       const char* progressfile, 
-		       const char* exceptionfile)
+		       const char* debugfile)
 {
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapshots at the end.
@@ -2455,18 +2471,18 @@ void assembly::deposit(int   total_steps,
 	       <<"kinetic        potential         total           void            sample       coordination"
 	       <<"       sample           sample          sample          sample          sample          sample"
 	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample          sample          sample          sample          sample"<<"      wall-clock" << endl
+	       <<" sample          sample          sample          sample          sample"<<"       minimum        wall-clock" << endl
 	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
 	       <<"          omga            force           moment         energy           energy          "
 	       <<"energy         energy           energy          ratio          porosity         number       "
 	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<"          time" << endl;
+	       <<"epsilon-v"<<"        time_step          time" << endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1); }
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from existing files.
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -2554,23 +2570,24 @@ void assembly::deposit(int   total_steps,
 		       <<setw(16)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
+	               <<setw(16)<<getMinTimeStep()
 		       <<setw(16)<<seconds(timew1,timew2)
 		       <<endl;
 
-/*
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<bdry_penetr[1]
-			  <<setw(16)<<bdry_penetr[2]
-			  <<setw(16)<<bdry_penetr[3]
-			  <<setw(16)<<bdry_penetr[4]
-			  <<setw(16)<<bdry_penetr[6]
-			  <<setw(16)<<bdry_cntnum[1]
-			  <<setw(16)<<bdry_cntnum[2]
-			  <<setw(16)<<bdry_cntnum[3]
-			  <<setw(16)<<bdry_cntnum[4]
-			  <<setw(16)<<bdry_cntnum[6]
-			  <<endl;
-*/
+	    /*
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<bdry_penetr[1]
+		      <<setw(16)<<bdry_penetr[2]
+		      <<setw(16)<<bdry_penetr[3]
+		      <<setw(16)<<bdry_penetr[4]
+		      <<setw(16)<<bdry_penetr[6]
+		      <<setw(16)<<bdry_cntnum[1]
+		      <<setw(16)<<bdry_cntnum[2]
+		      <<setw(16)<<bdry_cntnum[3]
+		      <<setw(16)<<bdry_cntnum[4]
+		      <<setw(16)<<bdry_cntnum[6]
+		      <<endl;
+	    */
 
 	}
 
@@ -2589,7 +2606,7 @@ void assembly::deposit(int   total_steps,
 
     // post_2. close streams
     progressinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -2603,7 +2620,7 @@ void assembly::deposit_p(int   total_steps,
 			 const char* particlefile, 
 			 const char* contactfile,
 			 const char* progressfile, 
-			 const char* exceptionfile)
+			 const char* debugfile)
 {
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapshots at the end.
@@ -2625,9 +2642,9 @@ void assembly::deposit_p(int   total_steps,
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
 	       <<"epsilon-v"<<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1); }
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from existing files.
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -2716,8 +2733,7 @@ void assembly::deposit_p(int   total_steps,
 
     // post_2. close streams
     progressinf.close();
-    g_exceptioninf.close();
-
+    g_debuginf.close();
 }
 
 
@@ -2733,7 +2749,7 @@ void assembly::squeeze(int   total_steps,
 		       const char* boundaryfile,
 		       const char* contactfile,
 		       const char* progressfile, 
-		       const char* exceptionfile)
+		       const char* debugfile)
 {
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapshots at the end.
@@ -2755,9 +2771,9 @@ void assembly::squeeze(int   total_steps,
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
 	       <<"epsilon-v"<<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1); }
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from existing files.
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -2853,19 +2869,18 @@ void assembly::squeeze(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<bdry_penetr[1]
-			  <<setw(16)<<bdry_penetr[2]
-			  <<setw(16)<<bdry_penetr[3]
-			  <<setw(16)<<bdry_penetr[4]
-			  <<setw(16)<<bdry_penetr[6]
-			  <<setw(16)<<bdry_cntnum[1]
-			  <<setw(16)<<bdry_cntnum[2]
-			  <<setw(16)<<bdry_cntnum[3]
-			  <<setw(16)<<bdry_cntnum[4]
-			  <<setw(16)<<bdry_cntnum[6]
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<bdry_penetr[1]
+		      <<setw(16)<<bdry_penetr[2]
+		      <<setw(16)<<bdry_penetr[3]
+		      <<setw(16)<<bdry_penetr[4]
+		      <<setw(16)<<bdry_penetr[6]
+		      <<setw(16)<<bdry_cntnum[1]
+		      <<setw(16)<<bdry_cntnum[2]
+		      <<setw(16)<<bdry_cntnum[3]
+		      <<setw(16)<<bdry_cntnum[4]
+		      <<setw(16)<<bdry_cntnum[6]
+		      <<endl;
 
 	}
 
@@ -2885,7 +2900,7 @@ void assembly::squeeze(int   total_steps,
 
     // post_2. close streams
     progressinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -2903,7 +2918,7 @@ void assembly::isotropic(int   total_steps,
 			 const char* contactfile,  
 			 const char* progressfile,
 			 const char* balancedfile, 
-			 const char* exceptionfile) 
+			 const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -2943,9 +2958,9 @@ void assembly::isotropic(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -3086,20 +3101,20 @@ void assembly::isotropic(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<bdry_penetr[1]
-			  <<setw(16)<<bdry_penetr[2]
-			  <<setw(16)<<bdry_penetr[3]
-			  <<setw(16)<<bdry_penetr[4]
-			  <<setw(16)<<bdry_penetr[5]
-			  <<setw(16)<<bdry_penetr[6]
-			  <<setw(16)<<bdry_cntnum[1]
-			  <<setw(16)<<bdry_cntnum[2]
-			  <<setw(16)<<bdry_cntnum[3]
-			  <<setw(16)<<bdry_cntnum[4]
-			  <<setw(16)<<bdry_cntnum[5]
-			  <<setw(16)<<bdry_cntnum[6]
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<bdry_penetr[1]
+		      <<setw(16)<<bdry_penetr[2]
+		      <<setw(16)<<bdry_penetr[3]
+		      <<setw(16)<<bdry_penetr[4]
+		      <<setw(16)<<bdry_penetr[5]
+		      <<setw(16)<<bdry_penetr[6]
+		      <<setw(16)<<bdry_cntnum[1]
+		      <<setw(16)<<bdry_cntnum[2]
+		      <<setw(16)<<bdry_cntnum[3]
+		      <<setw(16)<<bdry_cntnum[4]
+		      <<setw(16)<<bdry_cntnum[5]
+		      <<setw(16)<<bdry_cntnum[6]
+		      <<endl;
 	}
 
 	// 8. loop break condition
@@ -3178,7 +3193,7 @@ void assembly::isotropic(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -3198,7 +3213,7 @@ void assembly::isotropic(int   total_steps,
 			 const char* contactfile,  
 			 const char* progressfile,
 			 const char* balancedfile, 
-			 const char* exceptionfile) 
+			 const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -3238,9 +3253,9 @@ void assembly::isotropic(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -3384,20 +3399,20 @@ void assembly::isotropic(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<bdry_penetr[1]
-			  <<setw(16)<<bdry_penetr[2]
-			  <<setw(16)<<bdry_penetr[3]
-			  <<setw(16)<<bdry_penetr[4]
-			  <<setw(16)<<bdry_penetr[5]
-			  <<setw(16)<<bdry_penetr[6]
-			  <<setw(16)<<bdry_cntnum[1]
-			  <<setw(16)<<bdry_cntnum[2]
-			  <<setw(16)<<bdry_cntnum[3]
-			  <<setw(16)<<bdry_cntnum[4]
-			  <<setw(16)<<bdry_cntnum[5]
-			  <<setw(16)<<bdry_cntnum[6]
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<bdry_penetr[1]
+		      <<setw(16)<<bdry_penetr[2]
+		      <<setw(16)<<bdry_penetr[3]
+		      <<setw(16)<<bdry_penetr[4]
+		      <<setw(16)<<bdry_penetr[5]
+		      <<setw(16)<<bdry_penetr[6]
+		      <<setw(16)<<bdry_cntnum[1]
+		      <<setw(16)<<bdry_cntnum[2]
+		      <<setw(16)<<bdry_cntnum[3]
+		      <<setw(16)<<bdry_cntnum[4]
+		      <<setw(16)<<bdry_cntnum[5]
+		      <<setw(16)<<bdry_cntnum[6]
+		      <<endl;
 	}
 
 	// 8. find the balanced status and increase confining pressure
@@ -3483,7 +3498,7 @@ void assembly::isotropic(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -3502,7 +3517,7 @@ void assembly::isotropic(int   total_steps,
 			 const char* contactfile,  
 			 const char* progressfile,
 			 const char* balancedfile, 
-			 const char* exceptionfile) 
+			 const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -3542,9 +3557,9 @@ void assembly::isotropic(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -3690,20 +3705,20 @@ void assembly::isotropic(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<bdry_penetr[1]
-			  <<setw(16)<<bdry_penetr[2]
-			  <<setw(16)<<bdry_penetr[3]
-			  <<setw(16)<<bdry_penetr[4]
-			  <<setw(16)<<bdry_penetr[5]
-			  <<setw(16)<<bdry_penetr[6]
-			  <<setw(16)<<bdry_cntnum[1]
-			  <<setw(16)<<bdry_cntnum[2]
-			  <<setw(16)<<bdry_cntnum[3]
-			  <<setw(16)<<bdry_cntnum[4]
-			  <<setw(16)<<bdry_cntnum[5]
-			  <<setw(16)<<bdry_cntnum[6]
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<bdry_penetr[1]
+		      <<setw(16)<<bdry_penetr[2]
+		      <<setw(16)<<bdry_penetr[3]
+		      <<setw(16)<<bdry_penetr[4]
+		      <<setw(16)<<bdry_penetr[5]
+		      <<setw(16)<<bdry_penetr[6]
+		      <<setw(16)<<bdry_cntnum[1]
+		      <<setw(16)<<bdry_cntnum[2]
+		      <<setw(16)<<bdry_cntnum[3]
+		      <<setw(16)<<bdry_cntnum[4]
+		      <<setw(16)<<bdry_cntnum[5]
+		      <<setw(16)<<bdry_cntnum[6]
+		      <<endl;
 	}
 
 	// 8. find the balanced status and increase confining pressure
@@ -3795,7 +3810,7 @@ void assembly::isotropic(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -3816,7 +3831,7 @@ void assembly::odometer(int   total_steps,
 			const char* contactfile,  
 			const char* progressfile,
 			const char* balancedfile, 
-			const char* exceptionfile) 
+			const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -3856,9 +3871,9 @@ void assembly::odometer(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -4056,7 +4071,7 @@ void assembly::odometer(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -4078,7 +4093,7 @@ void assembly::odometer(int   total_steps,
 			const char* contactfile,  
 			const char* progressfile,
 			const char* balancedfile, 
-			const char* exceptionfile) 
+			const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -4118,9 +4133,9 @@ void assembly::odometer(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -4326,7 +4341,7 @@ void assembly::odometer(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -4338,7 +4353,7 @@ void assembly::unconfined(int   total_steps,
 			  const char* particlefile,
 			  const char* contactfile,  
 			  const char* progressfile,
-			  const char* exceptionfile) 
+			  const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.  
@@ -4358,9 +4373,9 @@ void assembly::unconfined(int   total_steps,
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
 	       <<"epsilon-v"<<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -4458,7 +4473,7 @@ void assembly::unconfined(int   total_steps,
     
     // post_2. close streams
     progressinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -4473,7 +4488,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 				   const char* boundaryfile,
 				   const char* contactfile, 
 				   const char* progressfile,
-				   const char* exceptionfile) 
+				   const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -4495,9 +4510,9 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -4615,7 +4630,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
     
     // post_2. close streams
     progressinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -4631,7 +4646,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 				const char* contactfile, 
 				const char* progressfile,
 				const char* balancedfile,
-				const char* exceptionfile) 
+				const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -4671,9 +4686,9 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -4812,7 +4827,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -4829,7 +4844,7 @@ void assembly::triaxial(int   total_steps,
 			const char* contactfile, 
 			const char* progressfile,
 			const char* balancedfile,
-			const char* exceptionfile) 
+			const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -4841,14 +4856,14 @@ void assembly::triaxial(int   total_steps,
 	       <<"     sample          sample          sample          sample          sample          "
 	       <<"sample          sample         sample           sample          sample          sample     "
 	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<"      wall-clock" << endl
+	       <<"       minimum        wall-clock" << endl
 	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
 	       <<"        ratio          porosity         number"
-	       <<"          time" << endl;
+	       <<"        time_step          time" << endl;
 
     ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -4858,18 +4873,18 @@ void assembly::triaxial(int   total_steps,
 	       <<"     sample          sample          sample          sample          sample          "
 	       <<"sample          sample         sample           sample          sample          sample     "
 	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<"      wall-clock"<< endl
+	       <<"       minimum        wall-clock"<< endl
 	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
 	       <<"        ratio          porosity         number"
-	       <<"          time" << endl;
+	       <<"        time_step          time" << endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -5009,26 +5024,25 @@ void assembly::triaxial(int   total_steps,
 		       <<setw(16)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
+	               <<setw(16)<<getMinTimeStep()
 		       <<setw(16)<<seconds(timew1,timew2)
 		       <<endl;
-
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<getTransEnergy()
-			  <<setw(16)<<getRotatEnergy()
-			  <<setw(16)<<bdry_penetr[1]
-			  <<setw(16)<<bdry_penetr[2]
-			  <<setw(16)<<bdry_penetr[3]
-			  <<setw(16)<<bdry_penetr[4]
-			  <<setw(16)<<bdry_penetr[5]
-			  <<setw(16)<<bdry_penetr[6]
-			  <<setw(16)<<bdry_cntnum[1]
-			  <<setw(16)<<bdry_cntnum[2]
-			  <<setw(16)<<bdry_cntnum[3]
-			  <<setw(16)<<bdry_cntnum[4]
-			  <<setw(16)<<bdry_cntnum[5]
-			  <<setw(16)<<bdry_cntnum[6]
-			  <<endl;
-
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<getTransEnergy()
+		      <<setw(16)<<getRotatEnergy()
+		      <<setw(16)<<bdry_penetr[1]
+		      <<setw(16)<<bdry_penetr[2]
+		      <<setw(16)<<bdry_penetr[3]
+		      <<setw(16)<<bdry_penetr[4]
+		      <<setw(16)<<bdry_penetr[5]
+		      <<setw(16)<<bdry_penetr[6]
+		      <<setw(16)<<bdry_cntnum[1]
+		      <<setw(16)<<bdry_cntnum[2]
+		      <<setw(16)<<bdry_cntnum[3]
+		      <<setw(16)<<bdry_cntnum[4]
+		      <<setw(16)<<bdry_cntnum[5]
+		      <<setw(16)<<bdry_cntnum[6]
+		      <<endl;
 	}
 
 	// Most time it is balanced, so use progressinf instead.
@@ -5056,8 +5070,15 @@ void assembly::triaxial(int   total_steps,
 		       <<setw(16)<<epsilon_w
 		       <<setw(16)<<epsilon_l
 		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
-
+		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(16)<<void_ratio
+		       <<setw(16)<<void_ratio/(1+void_ratio)
+		       <<setw(16)<<2.0*(getActualCntctNum()
+					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
+					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
+	               <<setw(16)<<getMinTimeStep()
+		       <<setw(16)<<seconds(timew1,timew2)
+		       <<endl;
 	}
 
 	// 9. loop break condition: through displacement control mechanism
@@ -5079,7 +5100,7 @@ void assembly::triaxial(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -5098,7 +5119,7 @@ void assembly::triaxial(int   total_steps,
 			const char* contactfile,
 			const char* progressfile,
 			const char* balancedfile,
-			const char* exceptionfile) 
+			const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5138,9 +5159,9 @@ void assembly::triaxial(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -5294,21 +5315,20 @@ void assembly::triaxial(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<bdry_penetr[1]
-			  <<setw(16)<<bdry_penetr[2]
-			  <<setw(16)<<bdry_penetr[3]
-			  <<setw(16)<<bdry_penetr[4]
-			  <<setw(16)<<bdry_penetr[5]
-			  <<setw(16)<<bdry_penetr[6]
-			  <<setw(16)<<bdry_cntnum[1]
-			  <<setw(16)<<bdry_cntnum[2]
-			  <<setw(16)<<bdry_cntnum[3]
-			  <<setw(16)<<bdry_cntnum[4]
-			  <<setw(16)<<bdry_cntnum[5]
-			  <<setw(16)<<bdry_cntnum[6]
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<bdry_penetr[1]
+		      <<setw(16)<<bdry_penetr[2]
+		      <<setw(16)<<bdry_penetr[3]
+		      <<setw(16)<<bdry_penetr[4]
+		      <<setw(16)<<bdry_penetr[5]
+		      <<setw(16)<<bdry_penetr[6]
+		      <<setw(16)<<bdry_cntnum[1]
+		      <<setw(16)<<bdry_cntnum[2]
+		      <<setw(16)<<bdry_cntnum[3]
+		      <<setw(16)<<bdry_cntnum[4]
+		      <<setw(16)<<bdry_cntnum[5]
+		      <<setw(16)<<bdry_cntnum[6]
+		      <<endl;
 	}
 
 /*
@@ -5356,7 +5376,7 @@ void assembly::triaxial(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -5371,7 +5391,7 @@ void assembly::rectPile_Disp(int   total_steps,
 			     const char* boundaryfile,
 			     const char* contactfile,  
 			     const char* progressfile,
-			     const char* exceptionfile) 
+			     const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5393,10 +5413,10 @@ void assembly::rectPile_Disp(int   total_steps,
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
 	       <<"epsilon-v"<<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
-    g_exceptioninf<<" iteration    end_bearing     side_friction   total_force"<<endl;
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf<<" iteration    end_bearing     side_friction   total_force"<<endl;
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -5446,11 +5466,11 @@ void assembly::rectPile_Disp(int   total_steps,
 	    long double  f9=getShearForce( 9).getz();
 	    long double f10=getShearForce(10).getz();
 	    long double  fn=getNormalForce(12).getz();
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<fn
-			  <<setw(16)<<(f7+f8+f9+f10)
-			  <<setw(16)<<(fn+f7+f8+f9+f10)
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<fn
+		      <<setw(16)<<(f7+f8+f9+f10)
+		      <<setw(16)<<(fn+f7+f8+f9+f10)
+		      <<endl;
 	}
 
 	// 7. (1) output particles and contacts information
@@ -5505,7 +5525,7 @@ void assembly::rectPile_Disp(int   total_steps,
     
     // post_2. close streams
     progressinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -5520,7 +5540,7 @@ void assembly::ellipPile_Disp(int   total_steps,
 			      const char* particlefile, 
 			      const char* contactfile,  
 			      const char* progressfile,
-			      const char* exceptionfile) 
+			      const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5542,9 +5562,9 @@ void assembly::ellipPile_Disp(int   total_steps,
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
 	       <<"epsilon-v"<<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -5617,14 +5637,14 @@ void assembly::ellipPile_Disp(int   total_steps,
 		       <<setw(16)<<void_ratio/(1+void_ratio)
 		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<getTopFreeParticlePosition().getz()
-			  <<setw(16)<<ellipPileTipZ()
-			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-			  <<setw(16)<<l13*l24*l56
-			  <<setw(16)<<ellipPilePeneVol()
-			  <<setw(16)<<Volume
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<getTopFreeParticlePosition().getz()
+		      <<setw(16)<<ellipPileTipZ()
+		      <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(16)<<l13*l24*l56
+		      <<setw(16)<<ellipPilePeneVol()
+		      <<setw(16)<<Volume
+		      <<endl;
 	}
 
 	// 7. loop break condition
@@ -5640,7 +5660,7 @@ void assembly::ellipPile_Disp(int   total_steps,
     
     // post_2. close streams
     progressinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -5655,7 +5675,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 				const char* particlefile, 
 				const char* contactfile,  
 				const char* progressfile,
-				const char* exceptionfile) 
+				const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5677,9 +5697,9 @@ void assembly::ellipPile_Impact(int   total_steps,
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
 	       <<"epsilon-v"<<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles
@@ -5763,28 +5783,28 @@ void assembly::ellipPile_Impact(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<bdry_penetr[1]
-			  <<setw(16)<<bdry_penetr[2]
-			  <<setw(16)<<bdry_penetr[3]
-			  <<setw(16)<<bdry_penetr[4]
-			  <<setw(16)<<bdry_penetr[6]
-			  <<setw(16)<<bdry_cntnum[1]
-			  <<setw(16)<<bdry_cntnum[2]
-			  <<setw(16)<<bdry_cntnum[3]
-			  <<setw(16)<<bdry_cntnum[4]
-			  <<setw(16)<<bdry_cntnum[6]
-			  <<endl;
-/*
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<getTopFreeParticlePosition().getz()
-			  <<setw(16)<<ellipPileTipZ()
-			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-			  <<setw(16)<<l13*l24*l56
-			  <<setw(16)<<ellipPilePeneVol()
-			  <<setw(16)<<Volume
-			  <<endl;
-*/
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<bdry_penetr[1]
+		      <<setw(16)<<bdry_penetr[2]
+		      <<setw(16)<<bdry_penetr[3]
+		      <<setw(16)<<bdry_penetr[4]
+		      <<setw(16)<<bdry_penetr[6]
+		      <<setw(16)<<bdry_cntnum[1]
+		      <<setw(16)<<bdry_cntnum[2]
+		      <<setw(16)<<bdry_cntnum[3]
+		      <<setw(16)<<bdry_cntnum[4]
+		      <<setw(16)<<bdry_cntnum[6]
+		      <<endl;
+	    /*
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<getTopFreeParticlePosition().getz()
+		      <<setw(16)<<ellipPileTipZ()
+		      <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(16)<<l13*l24*l56
+		      <<setw(16)<<ellipPilePeneVol()
+		      <<setw(16)<<Volume
+		      <<endl;
+	    */
 	}
 
 	// 8. loop break condition
@@ -5800,7 +5820,7 @@ void assembly::ellipPile_Impact(int   total_steps,
     
     // post_2. close streams
     progressinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -5814,7 +5834,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 				  const char* particlefile, 
 				  const char* contactfile,  
 				  const char* progressfile,
-				  const char* exceptionfile) 
+				  const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5836,9 +5856,9 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
 	       <<"epsilon-v"<<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles
@@ -5911,15 +5931,14 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 		       <<setw(16)<<void_ratio/(1+void_ratio)
 		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
-
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<getTopFreeParticlePosition().getz()
-			  <<setw(16)<<ellipPileTipZ()
-			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-			  <<setw(16)<<l13*l24*l56
-			  <<setw(16)<<ellipPilePeneVol()
-			  <<setw(16)<<Volume
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<getTopFreeParticlePosition().getz()
+		      <<setw(16)<<ellipPileTipZ()
+		      <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(16)<<l13*l24*l56
+		      <<setw(16)<<ellipPilePeneVol()
+		      <<setw(16)<<Volume
+		      <<endl;
 	}
 
 	// 7. loop break condition
@@ -5935,7 +5954,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
     
     // post_2. close streams
     progressinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -5954,7 +5973,7 @@ void assembly::ellipPile_Force(int   total_steps,
 			       const char* contactfile,  
 			       const char* progressfile,
 			       const char* balancedfile,
-			       const char* exceptionfile) 
+			       const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -5982,9 +6001,9 @@ void assembly::ellipPile_Force(int   total_steps,
     balancedinf<<"pile penetrate..."<<endl
 	       <<"   iteration   apply_force    pile_tip_pos     pile_force"<<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -6038,11 +6057,11 @@ void assembly::ellipPile_Force(int   total_steps,
 	}
 
 	if( g_iteration % interval == 0){
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<zforce
-			  <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-			  <<setw(16)<<ellipPileForce()
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<zforce
+		      <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(16)<<ellipPileForce()
+		      <<endl;
 	}
 
 	// 7. (1) output particles and contacts information
@@ -6099,7 +6118,7 @@ void assembly::ellipPile_Force(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 
@@ -6120,7 +6139,7 @@ void assembly::truetriaxial(int   total_steps,
 			    const char* contactfile,  
 			    const char* progressfile,
 			    const char* balancedfile, 
-			    const char* exceptionfile) 
+			    const char* debugfile) 
 {
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
@@ -6160,9 +6179,9 @@ void assembly::truetriaxial(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    g_exceptioninf.open(exceptionfile);
-    if(!g_exceptioninf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_exceptioninf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.open(debugfile);
+    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    g_debuginf.setf(ios::scientific, ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -6310,20 +6329,20 @@ void assembly::truetriaxial(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_exceptioninf<<setw(10)<<g_iteration
-			  <<setw(16)<<bdry_penetr[1]
-			  <<setw(16)<<bdry_penetr[2]
-			  <<setw(16)<<bdry_penetr[3]
-			  <<setw(16)<<bdry_penetr[4]
-			  <<setw(16)<<bdry_penetr[5]
-			  <<setw(16)<<bdry_penetr[6]
-			  <<setw(16)<<bdry_cntnum[1]
-			  <<setw(16)<<bdry_cntnum[2]
-			  <<setw(16)<<bdry_cntnum[3]
-			  <<setw(16)<<bdry_cntnum[4]
-			  <<setw(16)<<bdry_cntnum[5]
-			  <<setw(16)<<bdry_cntnum[6]
-			  <<endl;
+	    g_debuginf<<setw(10)<<g_iteration
+		      <<setw(16)<<bdry_penetr[1]
+		      <<setw(16)<<bdry_penetr[2]
+		      <<setw(16)<<bdry_penetr[3]
+		      <<setw(16)<<bdry_penetr[4]
+		      <<setw(16)<<bdry_penetr[5]
+		      <<setw(16)<<bdry_penetr[6]
+		      <<setw(16)<<bdry_cntnum[1]
+		      <<setw(16)<<bdry_cntnum[2]
+		      <<setw(16)<<bdry_cntnum[3]
+		      <<setw(16)<<bdry_cntnum[4]
+		      <<setw(16)<<bdry_cntnum[5]
+		      <<setw(16)<<bdry_cntnum[6]
+		      <<endl;
 	}
 
 	// 8. find the balanced status and increase confining pressure
@@ -6411,7 +6430,7 @@ void assembly::truetriaxial(int   total_steps,
     // post_2. close streams
     progressinf.close();
     balancedinf.close();
-    g_exceptioninf.close();
+    g_debuginf.close();
 }
 
 } // namespace dem ends
