@@ -1,6 +1,6 @@
 #include "timefunc.h"
 
-struct timeval gettimediff(const struct timeval &time1, const struct timeval &time2) {
+struct timeval timediff(const struct timeval &time1, const struct timeval &time2) {
     struct timeval diff;
 
     diff.tv_sec = time2.tv_sec - time1.tv_sec; 
@@ -12,13 +12,13 @@ struct timeval gettimediff(const struct timeval &time1, const struct timeval &ti
     return(diff); 
 }
 
-long int microseconds(const struct timeval &time1, const struct timeval &time2) {
-    struct timeval diff = gettimediff(time1, time2);
+long int timediffmsec(const struct timeval &time1, const struct timeval &time2) {
+    struct timeval diff = timediff(time1, time2);
     return(diff.tv_sec * 1000000 + diff.tv_usec); 
 }
 
-double seconds(const struct timeval &time1, const struct timeval &time2) {
-    return((double)microseconds(time1,time2)/1.0e+6);
+double timediffsec(const struct timeval &time1, const struct timeval &time2) {
+    return( (double) timediffmsec(time1,time2) / 1.0e+6);
 }
 
 /*

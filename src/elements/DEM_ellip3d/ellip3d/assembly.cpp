@@ -36,6 +36,7 @@
 #include <iomanip>
 #include <cmath>
 #include <cstring>
+#include <ctime>
 
 #ifdef OPENMP
 #include <omp.h>
@@ -439,7 +440,7 @@ void assembly::findContact(){ // OpenMP version
     
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(10)<<seconds(); 
+    g_debuginf<<setw(10)<<timediffsec(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -473,7 +474,7 @@ void assembly::findContact(){ // serial version
 
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(10)<<seconds(); 
+    g_debuginf<<setw(10)<<timediffsec(); 
 #endif
  
     ActualCntctNum = ContactList.size();
@@ -515,7 +516,7 @@ void assembly::findContact(){
     }
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(10)<<seconds(); 
+    g_debuginf<<setw(10)<<timediffsec(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -815,7 +816,7 @@ void assembly::internalForce(long double& avgnm, long double& avgsh){
 
 #ifdef TIME_PROFILE
 	gettimeofday(&timep2,NULL);
-	g_debuginf<<setw(10)<<seconds()<<endl; 
+	g_debuginf<<setw(10)<<timediffsec()<<endl; 
 #endif
 
     }
@@ -1225,7 +1226,7 @@ void assembly::deposit_RgdBdry(gradation& grad,
 		progressfile,       // output file, statistical info
 		debugfile);         // output file, debug info
 
-	setBoundary(grad.rorc,          // rectangular--1 or cylindrical--0?
+	setBoundary(grad.rorc,      // rectangular--1 or cylindrical--0?
 		6,                  
 		grad.dimn,          // specimen dimension
 		"trm_boundary");    // output file, containing boundaries info
@@ -1280,7 +1281,7 @@ void assembly::generate(gradation&  grad,
 	if (grad.ratio_ba==1.0 && grad.ratio_ca==1.0)
 	    offset = dimn/2/5/5;
 	for (z=dimn/2; z<dimn/2 + dimn*ht; z+=dimn/2/5) {
-//	for (z=-dimn/2*4/5; z<dimn/2 + dimn*ht; z+=dimn/2/10) { // spheres
+	//for (z=-dimn/2*4/5; z<dimn/2 + dimn*ht; z+=dimn/2/10) { // spheres
 	    for (x=-dimn/2*(grid-1)/10+offset; x<dimn/2*(grid-1)/10*est; x+=dimn/2/5)
 		for (y=-dimn/2*(grid-1)/10+offset; y<dimn/2*(grid-1)/10*est; y+=dimn/2/5){
 		    newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
@@ -2471,14 +2472,14 @@ void assembly::deposit(int   total_steps,
 	       <<"kinetic        potential         total           void            sample       coordination"
 	       <<"       sample           sample          sample          sample          sample          sample"
 	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample          sample          sample          sample          sample"<<"       minimum        wall-clock" << endl
+	       <<" sample         sample          sample          sample          sample        minimum        wall-clock" << endl
 	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
 	       <<"          omga            force           moment         energy           energy          "
 	       <<"energy         energy           energy          ratio          porosity         number       "
 	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<"        time_step          time" << endl;
+	       <<"height          volume        epsilon_w       epsilon_l       epsilon_h       "
+	       <<"epsilon-v      time_step          time" << endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
@@ -2571,7 +2572,7 @@ void assembly::deposit(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
 	               <<setw(16)<<getMinTimeStep()
-		       <<setw(16)<<seconds(timew1,timew2)
+		       <<setw(16)<<timediffsec(timew1,timew2)
 		       <<endl;
 
 	    /*
@@ -5025,7 +5026,7 @@ void assembly::triaxial(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 	               <<setw(16)<<getMinTimeStep()
-		       <<setw(16)<<seconds(timew1,timew2)
+		       <<setw(16)<<timediffsec(timew1,timew2)
 		       <<endl;
 	    g_debuginf<<setw(10)<<g_iteration
 		      <<setw(16)<<getTransEnergy()
@@ -5077,7 +5078,7 @@ void assembly::triaxial(int   total_steps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 	               <<setw(16)<<getMinTimeStep()
-		       <<setw(16)<<seconds(timew1,timew2)
+		       <<setw(16)<<timediffsec(timew1,timew2)
 		       <<endl;
 	}
 

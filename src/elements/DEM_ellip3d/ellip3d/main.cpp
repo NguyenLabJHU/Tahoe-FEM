@@ -10,10 +10,9 @@
 #include "gradation.h"
 #include "rectangle.h"
 #include "assembly.h"
-#include <time.h>
 #include <iostream>
 #include <vector>
-#include <cstdlib>
+#include <ctime>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // main Program
