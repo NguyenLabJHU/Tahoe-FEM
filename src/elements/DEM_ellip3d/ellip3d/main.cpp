@@ -29,15 +29,15 @@ int main(int argc, char* argv[])
     // Part 1: setup parameters (override parameter.cpp)
     // 1. time integration method
     // --- dynamic
-    /*
+
     dem::TIMESTEP      = 5.0e-07; // time step
     dem::MASS_SCL      = 1;       // mass scaling
     dem::MNT_SCL       = 1;       // moment of inertial scaling
     dem::GRVT_SCL      = 1;       // gravity scaling
     dem::DMP_F         = 0;       // background viscous damping on mass
     dem::DMP_M         = 0;       // background viscous damping on moment of inertial
-    */
 
+    /*
     // --- dynamic relaxation and scaling
     dem::TIMESTEP      = 5.0e-06;
     dem::MASS_SCL      = 1.0e+01;
@@ -45,12 +45,13 @@ int main(int argc, char* argv[])
     dem::GRVT_SCL      = 0;       // 1.0e+03;
     dem::DMP_F         = 2.0/dem::TIMESTEP;
     dem::DMP_M         = 2.0/dem::TIMESTEP;
+    */
 
     // 2. normal damping and tangential friciton
-    dem::DMP_CNT       = 0.05;    // normal contact damping ratio
+    dem::DMP_CNT       = 0.10;    // normal contact damping ratio
     dem::FRICTION      = 0.5;     // coefficient of friction between particles
     dem::BDRYFRIC      = 0.5;     // coefficient of friction between particle and rigid wall
-    dem::COHESION      = 0;//5.0e+8;  // cohesion between particles
+    dem::COHESION      = 0;       // cohesion between particles, 5.0e+8
 
     // 3. boundary displacement rate
     dem::COMPRESS_RATE = 7.0e-03; // 7.0e-03 for triaxial; 1.0e-03 for isotropic and odometer.
@@ -62,38 +63,53 @@ int main(int argc, char* argv[])
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 2: set up a simulation to run
-    A.triaxial(100000,             // total_steps
-	       100,                // number of snapshots
-	       10,                 // record interval
-	       5.0e+5,             // pre-existing ambient pressure from initial isotropic compression
-	       "iso_particle_500k",// input file, initial particles
-	       "iso_boundary_500k",// input file, initial boundaries
-	       "tri_particle",     // output file, resulted particles, including snapshots 
-	       "tri_boundary",     // output file, resulted boundaries
-	       "tri_contact",      // output file, resulted contacts, including snapshots 
-	       "tri_progress",     // output file, statistical info
-	       "tri_balanced",     // output file, balanced status
-	       "tri_debug");       // output file, debug info
+    // size, shape, and gradation of particles
+    int rorc             = 1;     // rectangular = 1 or cylindrical = 0
+    long double dimn     = 0.05;  // specimen dimension
+    long double ratio_ba = 0.8;   // ratio of radius b to radius a
+    long double ratio_ca = 0.6;   // ratio of radius c to radius a
+    std::vector<long double> percent;  // mass percentage of particles smaller than a certain size
+    std::vector<long double> ptclsize; // particle size
+    percent.push_back(1.00); ptclsize.push_back(2.5e-3);
+    percent.push_back(0.80); ptclsize.push_back(2.3e-3);
+    percent.push_back(0.60); ptclsize.push_back(2.0e-3);
+    percent.push_back(0.30); ptclsize.push_back(1.5e-3);
+    percent.push_back(0.10); ptclsize.push_back(1.0e-3);
+    dem::gradation grad(rorc, dimn, ratio_ba, ratio_ca, percent.size(), percent, ptclsize);
+    A.deposit_RgdBdry(grad,
+		      2,                  // freetype, setting of free particles 
+		      1000000,             // total_steps
+		      100,                // number of snapshots
+                      1,                  // record interval
+		      3.0,                // height of floating particles relative to dimn
+		      "flo_particle_end", // output file, initial particles
+		      "dep_boundary_ini", // output file, initial boundaries
+		      "dep_particle",     // output file, resulted particles, including snapshots 
+		      "dep_contact",      // output file, resulted contacts, including snapshots 
+		      "dep_progress",     // output file, statistical info
+		      "cre_particle",     // output file, resulted particles after trmming
+		      "cre_boundary",     // output file, resulted boundaries after trmming
+		      "dep_debug");       // output file, debug info
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 3: record run time
     time(&time2);
     std::cout << std::endl 
-	      << "simulation start time: "<<ctime(&time1);
-    std::cout << "simulation  end  time: "<<ctime(&time2);
+	      << "simulation start time: " << ctime(&time1);
+    std::cout << "simulation  end  time: " << ctime(&time2);
     return 0;
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notes:
-// freetype (setting of free particles):
-// 0 - a single free particle
-// 1 - a layer of free particles
-// 2 - multiple layers of free particles
-
-// particle type (setting for each particle):
+//
+// freetype (settings for free particles):
+//  0 - a single free particle
+//  1 - a layer of free particles
+//  2 - multiple layers of free particles
+//
+// particle type (settings for individual particle):
 //  0 - free particle
 //  1 - fixed particle
 //  2 - special case 2 (pure moment): translate first, then rotate only, MNT_START needs to be defined
@@ -103,7 +119,7 @@ int main(int argc, char* argv[])
 // 10 - ghost particle
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Various types of simulation, copy them into part 2 of main() to run, only one block a time.
+// Various types of simulation, copy into part 2 of main() function to run, only ONE block a time.
 /*
 
     // for triaxalPtclBdry
@@ -111,10 +127,12 @@ int main(int argc, char* argv[])
 			   "dep_particle_end",
 			   "dep_particle_trimmed");
 
+
     // for de-fe coupling			   
     A.TrimPtclBdryByHeight(0.061,
 			   "pile_particle_ini",
 			   "pile_particle_trimmed");
+
 
     A.triaxialPtclBdryIni(100000,             // total_steps
 			  100,                // number of snapshots
@@ -127,6 +145,7 @@ int main(int argc, char* argv[])
 			  "ini_contact",      // output file, resulted contacts, including snapshots 
 			  "ini_progress",     // output file, statistical info
 			  "ini_debug");       // output file, debug info
+
 
     A.triaxialPtclBdryIni(100000,             // total_steps
 			  100,                // number of snapshots
