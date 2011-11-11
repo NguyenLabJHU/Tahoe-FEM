@@ -116,12 +116,10 @@ public:
 	long double getAverageRigidPressure() const;
 	void        setArea(int bdry,long double a);      // set the area of the bdry-th rigid boundary be a
 
-	void        snapshot(const char* str) const;      // print particles dynamic info into a disk file
 	void        printParticle(const char* str) const; // print particles info into a disk file
 	void        printContact(const char* str) const;  // print contacts information
 	void        printBoundary(const char* str) const; // print rigid boundaries info to a disk file
 	void        printRectPile(const char* str);       // append rectangular pile info into a disk file
-	void        displayBoundary() const;                     // display both rigid and flexible boundaries information
 
 	// create a specimen by depositing particles into rigid boundaries
 	void deposit_RgdBdry(gradation& grad,
@@ -155,7 +153,7 @@ public:
 	// scale the assembly with particle boundaries from deposited state until it reaches steady state
 	void scale_PtclBdry(int         total_steps  =50000,             // total_steps
 			    int         snapshots    =100,               // number of snapshots   
-			    int         interval     =10,                // record interval
+			    int         interval     =10,                // print interval
 			    long double dimn         =0.05,              // dimension of particle-composed-boundary
 			    long double rsize        =1.0,               // relative container size
 			    const char* iniptclfile  ="dep_particle_end",// input file, initial particles
@@ -180,7 +178,7 @@ public:
         // actual deposit function for rigid boundaries
 	void deposit(int         total_steps  =100000,              // total_steps
 		     int         snapshots    =100,                 // number of snapshots   
-		     int         interval     =10,                  // record interval 
+		     int         interval     =10,                  // print interval 
 		     const char* iniptclfile  ="flo_particle_end",  // input file, initial particles
 		     const char* inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries
 		     const char* particlefile ="dep_particle",      // output file, resulted particles, including snapshots 
@@ -191,7 +189,7 @@ public:
 	// actual deposit function for particle boundaries
 	void deposit_p(int         total_steps  =50000,             // total_steps
 		       int         snapshots    =100,               // number of snapshots   
-		       int         interval     =10,                // record interval 
+		       int         interval     =10,                // print interval 
 		       long double dimn   =0.05,                    // dimension of particle-composed-boundary
 		       long double rsize  =1.0,                     // relative container size
 		       const char* iniptclfile  ="flo_particle_end",// input file, initial particles
@@ -204,7 +202,7 @@ public:
 	void squeeze(int         total_steps  =20000,               // total_steps
 		     int         init_steps   =5000,                // initial_steps to reach equilibrium
 		     int         snapshots    =100,                 // number of snapshots   
-		     int         interval     =10,                  // record interval 
+		     int         interval     =10,                  // print interval 
 		     int         flag         =-1,                  // -1 squeeze; +1 loosen
 		     const char* iniptclfile  ="flo_particle_end",  // input file, initial particles
 		     const char* inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries

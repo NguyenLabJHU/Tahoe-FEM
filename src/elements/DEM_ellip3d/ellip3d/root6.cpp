@@ -1876,8 +1876,8 @@ bool root6(long double coef1[],long double coef2[],vec& point){
         #ifdef DEBUG  // tested: order==6 whether or not in contact
 	if (g_iteration == NUMBER)
 	g_debuginf<<endl
-		  <<"root6: g_iteration="<<setw(10)<<g_iteration
-		  <<" order="<<setw(10)<<order<<endl;
+		  <<"root6: g_iteration="<<setw(WIDTH)<<g_iteration
+		  <<" order="<<setw(WIDTH)<<order<<endl;
 	#endif
 
 	if (!zrhqr(rtc, order, rtr, rti)) // find roots for a polynomial using eigenvalues method
@@ -1886,20 +1886,20 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	#ifdef DEBUG
 	if (g_iteration == NUMBER)
 	for (int k=1;k<=order;k++){
-	  g_debuginf<<"root6: rtr rti"<<setw(16)<<rtr[k]<<setw(16)<<rti[k]<<endl;
+	  g_debuginf<<"root6: rtr rti"<<setw(WIDTH)<<rtr[k]<<setw(WIDTH)<<rti[k]<<endl;
 	}
 	#endif
 
 	long double lamda[6];
 	int jj=0;
 	for (int k=1;k<=order;k++){
-	    if(fabsl(rti[k])<PREC)
+	    if(fabsl(rti[k])<PRECISION)
 		lamda[jj++]=rtr[k];
 	}
 
 	#ifdef DEBUG
 	if (g_iteration == NUMBER)
-	g_debuginf<<"root6: jj="<<setw(10)<<jj<<endl;
+	g_debuginf<<"root6: jj="<<setw(WIDTH)<<jj<<endl;
 	#endif
 
 	long double x, y, z, det, within;
@@ -1976,10 +1976,10 @@ bool root6(long double coef1[],long double coef2[],vec& point){
                 #ifdef DEBUG
 	if (g_iteration == NUMBER)
 		g_debuginf<<"root6: k="
-			  <<setw(10)<<k
-			  <<" det="<<setw(16)<<det
-			  <<" x y z="<<setw(16)<<x<<setw(16)<<y<<setw(16)<<z
-			  <<" within="<<setw(16)<<within<<endl;
+			  <<setw(WIDTH)<<k
+			  <<" det="<<setw(WIDTH)<<det
+			  <<" x y z="<<setw(WIDTH)<<x<<setw(WIDTH)<<y<<setw(WIDTH)<<z
+			  <<" within="<<setw(WIDTH)<<within<<endl;
                 #endif
 		
 		// in theory we need to seek the smallest within (when it < 0), 
@@ -1994,8 +1994,8 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 		#ifdef DEBUG
 	if (g_iteration == NUMBER)
 		g_debuginf<<"root6: k="
-			  <<setw(10)<<k
-			  <<" det="<<setw(16)<<det
+			  <<setw(WIDTH)<<k
+			  <<" det="<<setw(WIDTH)<<det
 			  <<" determinant is 0!" <<endl;
                 #endif
 	    }

@@ -16,6 +16,7 @@
 #define BOUNDARY_H
 
 #include "vec.h"
+#include "parameter.h"
 #include "cylinder.h"
 #include "boundarytgt.h"
 #include <map>
@@ -44,15 +45,15 @@ typedef struct bdryfunc{
 		printf("radius %10.6Lf and side %5d:\n",rad,side);
 	}
 	void disp(std::ofstream &ofs) const{
-	    ofs<<std::setw(10)<<order
-	       <<std::setw(16)<<dirc.getx()
-	       <<std::setw(16)<<dirc.gety()
-	       <<std::setw(16)<<dirc.getz()
-	       <<std::setw(16)<<apt.getx()
-	       <<std::setw(16)<<apt.gety()
-	       <<std::setw(16)<<apt.getz()
-	       <<std::setw(16)<<rad
-	       <<std::setw(10)<<side<<std::endl;
+	    ofs<<std::setw(WIDTH)<<order
+	       <<std::setw(WIDTH)<<dirc.getx()
+	       <<std::setw(WIDTH)<<dirc.gety()
+	       <<std::setw(WIDTH)<<dirc.getz()
+	       <<std::setw(WIDTH)<<apt.getx()
+	       <<std::setw(WIDTH)<<apt.gety()
+	       <<std::setw(WIDTH)<<apt.getz()
+	       <<std::setw(WIDTH)<<rad
+	       <<std::setw(WIDTH)<<side<<std::endl;
 	}
 } BdryCoef;
 
@@ -132,10 +133,10 @@ public:
 	virtual void disp(std::ofstream &ofs) const{
 		std::vector<BdryCoef>::const_iterator it;
 		ofs <<std::endl
-		    <<std::setw(10)<<(*CoefOfLimits.begin()).order<<std::endl;
-		ofs <<std::setw(10)<<bdry_id
-		    <<std::setw(10)<<limitnum
-		    <<std::setw(16)<<area <<std::endl;
+		    <<std::setw(WIDTH)<<(*CoefOfLimits.begin()).order<<std::endl;
+		ofs <<std::setw(WIDTH)<<bdry_id
+		    <<std::setw(WIDTH)<<limitnum
+		    <<std::setw(WIDTH)<<area <<std::endl;
 		for(it=CoefOfLimits.begin();it!=CoefOfLimits.end();++it)
 			(*it).disp(ofs);
 	}
@@ -311,7 +312,7 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 	    if(dist>=0 || fabsl(dist) > (*it)->getA()) // outside to CoefOfLimits[0] or inside too much
 		continue;
 	    next=true;
-	    //g_debuginf<<std::setw(10)<<g_iteration <<std::setw(10)<<getBdryID()<<std::setw(10)<<(*it)->getID();
+	    //g_debuginf<<std::setw(WIDTH)<<g_iteration <<std::setw(WIDTH)<<getBdryID()<<std::setw(WIDTH)<<(*it)->getID();
 	    for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){ // CoefOfLimits[1,2,...]
 		ndirc=normalize((*bt).dirc);
 		r=vfabsl((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);

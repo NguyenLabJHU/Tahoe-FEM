@@ -61,82 +61,102 @@ void assembly::printParticle(const char* str) const
 	cout<<"stream error in printParticle!"<<endl; exit(-1);
     }
     ofs.setf(ios::scientific, ios::floatfield);
-    ofs<<setw(10)<<TotalNum<<setw(10)<<RORC<<endl;
+    ofs.precision(PREC);
+    ofs<<setw(WIDTH)<<TotalNum<<setw(WIDTH)<<RORC<<endl;
     if(RORC==0)
-	ofs<<setw(16)<<S.get_center().getx()
-	   <<setw(16)<<S.get_center().gety()
-	   <<setw(16)<<S.get_center().getz()
-	   <<setw(16)<<S.get_radius()
-	   <<setw(16)<<S.get_height()<<endl;
+	ofs<<setw(WIDTH)<<S.get_center().getx()
+	   <<setw(WIDTH)<<S.get_center().gety()
+	   <<setw(WIDTH)<<S.get_center().getz()
+	   <<setw(WIDTH)<<S.get_radius()
+	   <<setw(WIDTH)<<S.get_height()<<endl;
     else
-	ofs<<setw(16)<<R.get_center().getx()
-	   <<setw(16)<<R.get_center().gety()
-	   <<setw(16)<<R.get_center().getz()
-	   <<setw(16)<<R.get_width()
-	   <<setw(16)<<R.get_length()
-	   <<setw(16)<<R.get_height()<<endl;
-    ofs<<"     ID          type      radius_a        radius_b        radius_c   "
-       <<"    position_x            position_y            position_z        "
-       <<"    axle_a_x              axle_a_y              axle_a_z          "
-       <<"    axle_b_x              axle_b_y              axle_b_z          "
-       <<"    axle_c_x              axle_c_y              axle_c_z          "
-       <<"   velocity_x      velocity_y      velocity_z   "
-       <<"     omga_x          omga_y          omga_z     "
-       <<"    force_x         force_y         force_z     "
-       <<"    moment_x        moment_y        moment_z    "
+	ofs<<setw(WIDTH)<<R.get_center().getx()
+	   <<setw(WIDTH)<<R.get_center().gety()
+	   <<setw(WIDTH)<<R.get_center().getz()
+	   <<setw(WIDTH)<<R.get_width()
+	   <<setw(WIDTH)<<R.get_length()
+	   <<setw(WIDTH)<<R.get_height()<<endl;
+
+    ofs<<setw(WIDTH)<<"ID"
+       <<setw(WIDTH)<<"type"
+       <<setw(WIDTH)<<"radius_a"
+       <<setw(WIDTH)<<"radius_b"
+       <<setw(WIDTH)<<"radius_c"
+       <<setw(WIDTH)<<"position_x"
+       <<setw(WIDTH)<<"position_y"
+       <<setw(WIDTH)<<"position_z"
+       <<setw(WIDTH)<<"axle_a_x"
+       <<setw(WIDTH)<<"axle_a_y"
+       <<setw(WIDTH)<<"axle_a_z"
+       <<setw(WIDTH)<<"axle_b_x"
+       <<setw(WIDTH)<<"axle_b_y"
+       <<setw(WIDTH)<<"axle_b_z"
+       <<setw(WIDTH)<<"axle_c_x"
+       <<setw(WIDTH)<<"axle_c_y"
+       <<setw(WIDTH)<<"axle_c_z"
+       <<setw(WIDTH)<<"velocity_x"
+       <<setw(WIDTH)<<"velocity_y"
+       <<setw(WIDTH)<<"velocity_z"
+       <<setw(WIDTH)<<"omga_x"
+       <<setw(WIDTH)<<"omga_y"
+       <<setw(WIDTH)<<"omga_z"
+       <<setw(WIDTH)<<"force_x"
+       <<setw(WIDTH)<<"force_y"
+       <<setw(WIDTH)<<"force_z"
+       <<setw(WIDTH)<<"moment_x"
+       <<setw(WIDTH)<<"moment_y"
+       <<setw(WIDTH)<<"moment_z"
        <<endl;
 
     vec tmp;
     list<particle*>::const_iterator  it;
     for (it=ParticleList.begin();it!=ParticleList.end();++it)
     {
-	ofs<<setw(10)<<(*it)->getID()
-	   <<setw(10)<<(*it)->getType()
-	   <<setw(16)<<(*it)->getA()
-	   <<setw(16)<<(*it)->getB()
-	   <<setw(16)<<(*it)->getC();
+	ofs<<setw(WIDTH)<<(*it)->getID()
+	   <<setw(WIDTH)<<(*it)->getType()
+	   <<setw(WIDTH)<<(*it)->getA()
+	   <<setw(WIDTH)<<(*it)->getB()
+	   <<setw(WIDTH)<<(*it)->getC();
 	
-	ofs.precision(12);
 	tmp=(*it)->getCurrPosition();
-	ofs<<setw(22)<<tmp.getx()
-	   <<setw(22)<<tmp.gety()
-	   <<setw(22)<<tmp.getz();
+	ofs<<setw(WIDTH)<<tmp.getx()
+	   <<setw(WIDTH)<<tmp.gety()
+	   <<setw(WIDTH)<<tmp.getz();
 	
 	tmp=(*it)->getCurrDirecA();
-	ofs<<setw(22)<<tmp.getx()
-	   <<setw(22)<<tmp.gety()
-	   <<setw(22)<<tmp.getz();
+	ofs<<setw(WIDTH)<<tmp.getx()
+	   <<setw(WIDTH)<<tmp.gety()
+	   <<setw(WIDTH)<<tmp.getz();
 	
 	tmp=(*it)->getCurrDirecB();
-	ofs<<setw(22)<<tmp.getx()
-	   <<setw(22)<<tmp.gety()
-	   <<setw(22)<<tmp.getz();
+	ofs<<setw(WIDTH)<<tmp.getx()
+	   <<setw(WIDTH)<<tmp.gety()
+	   <<setw(WIDTH)<<tmp.getz();
 	
 	tmp=(*it)->getCurrDirecC();
-	ofs<<setw(22)<<tmp.getx()
-	   <<setw(22)<<tmp.gety()
-	   <<setw(22)<<tmp.getz();
-	ofs.precision(6);
+	ofs<<setw(WIDTH)<<tmp.getx()
+	   <<setw(WIDTH)<<tmp.gety()
+	   <<setw(WIDTH)<<tmp.getz();
 	
 	tmp=(*it)->getCurrVelocity();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
+	ofs<<setw(WIDTH)<<tmp.getx()
+	   <<setw(WIDTH)<<tmp.gety()
+	   <<setw(WIDTH)<<tmp.getz();
 	
 	tmp=(*it)->getCurrOmga();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
+	ofs<<setw(WIDTH)<<tmp.getx()
+	   <<setw(WIDTH)<<tmp.gety()
+	   <<setw(WIDTH)<<tmp.getz();
 	
 	tmp=(*it)->getForce();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
+	ofs<<setw(WIDTH)<<tmp.getx()
+	   <<setw(WIDTH)<<tmp.gety()
+	   <<setw(WIDTH)<<tmp.getz();
 	
 	tmp=(*it)->getMoment();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz()<<endl;
+	ofs<<setw(WIDTH)<<tmp.getx()
+	   <<setw(WIDTH)<<tmp.gety()
+	   <<setw(WIDTH)<<tmp.getz()<<endl;
     }
 
     ofs.close();
@@ -150,8 +170,9 @@ void assembly::printRectPile(const char* str)
 	cout<<"stream error in printRectPile!"<<endl; exit(-1);
     }
     ofs.setf(ios::scientific, ios::floatfield);
+    ofs.precision(PREC);
 
-    ofs<<setw(10)<<8<<setw(10)<<6<<endl;
+    ofs<<setw(WIDTH)<<8<<setw(WIDTH)<<6<<endl;
     vec pos[8];
     for(list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
 	if((*rt)->getBdryID()==7){
@@ -185,14 +206,14 @@ void assembly::printRectPile(const char* str)
     }
 
     for (int i=0;i<8;i++)
-	ofs<<setw(16)<<pos[i].getx()<<setw(16)<<pos[i].gety()<<setw(16)<<pos[i].getz()<<endl;
+	ofs<<setw(WIDTH)<<pos[i].getx()<<setw(WIDTH)<<pos[i].gety()<<setw(WIDTH)<<pos[i].getz()<<endl;
 
-    ofs<<setw(10)<<1<<setw(10)<<2<<setw(10)<<6<<setw(10)<<5<<endl
-       <<setw(10)<<2<<setw(10)<<3<<setw(10)<<7<<setw(10)<<6<<endl
-       <<setw(10)<<3<<setw(10)<<4<<setw(10)<<8<<setw(10)<<7<<endl
-       <<setw(10)<<4<<setw(10)<<1<<setw(10)<<5<<setw(10)<<8<<endl
-       <<setw(10)<<1<<setw(10)<<4<<setw(10)<<3<<setw(10)<<2<<endl
-       <<setw(10)<<5<<setw(10)<<6<<setw(10)<<7<<setw(10)<<8<<endl;
+    ofs<<setw(WIDTH)<<1<<setw(WIDTH)<<2<<setw(WIDTH)<<6<<setw(WIDTH)<<5<<endl
+       <<setw(WIDTH)<<2<<setw(WIDTH)<<3<<setw(WIDTH)<<7<<setw(WIDTH)<<6<<endl
+       <<setw(WIDTH)<<3<<setw(WIDTH)<<4<<setw(WIDTH)<<8<<setw(WIDTH)<<7<<endl
+       <<setw(WIDTH)<<4<<setw(WIDTH)<<1<<setw(WIDTH)<<5<<setw(WIDTH)<<8<<endl
+       <<setw(WIDTH)<<1<<setw(WIDTH)<<4<<setw(WIDTH)<<3<<setw(WIDTH)<<2<<endl
+       <<setw(WIDTH)<<5<<setw(WIDTH)<<6<<setw(WIDTH)<<7<<setw(WIDTH)<<8<<endl;
 
     ofs.close();
 }
@@ -214,116 +235,66 @@ void assembly::printContact(const char* str) const
 	cout<<"stream error in printContact!"<<endl; exit(-1);
     }
     ofs.setf(ios::scientific, ios::floatfield);
-    ofs<<setw(10)<<ActualCntctNum<<endl;
-    ofs<<"    ptcl_1     ptcl_2     point1_x        point1_y        point1_z        "
-       <<"point2_x       point2_y        point2_z         radius_1        radius_2      "
-       <<"penetration    tangt_dispmt     contact_radius       R0              E0         "
-       <<"normal_force     tangt_force"
-       <<"         x0              y0              z0     "
-       <<"         n1              n2              n3     "
-       <<"         t1              t2              t3"
+    ofs.precision(PREC);
+    ofs<<setw(WIDTH)<<ActualCntctNum<<endl;
+    ofs<<setw(WIDTH)<<"ptcl_1"
+       <<setw(WIDTH)<<"ptcl_2"
+       <<setw(WIDTH)<<"point1_x"
+       <<setw(WIDTH)<<"point1_y"
+       <<setw(WIDTH)<<"point1_z"
+       <<setw(WIDTH)<<"point2_x"
+       <<setw(WIDTH)<<"point2_y"
+       <<setw(WIDTH)<<"point2_z"
+       <<setw(WIDTH)<<"radius_1"
+       <<setw(WIDTH)<<"radius_2"
+       <<setw(WIDTH)<<"penetration"
+       <<setw(WIDTH)<<"tangt_dispmt"
+       <<setw(WIDTH)<<"contact_radius"
+       <<setw(WIDTH)<<"R0"
+       <<setw(WIDTH)<<"E0"
+       <<setw(WIDTH)<<"normal_force"
+       <<setw(WIDTH)<<"tangt_force"
+       <<setw(WIDTH)<<"midpoint_x"
+       <<setw(WIDTH)<<"midpoint_y"
+       <<setw(WIDTH)<<"midpoint_z"
+       <<setw(WIDTH)<<"normal_x"
+       <<setw(WIDTH)<<"normal_y"
+       <<setw(WIDTH)<<"normal_z"
+       <<setw(WIDTH)<<"tangt_x"
+       <<setw(WIDTH)<<"tangt_y"
+       <<setw(WIDTH)<<"tangt_z"
+       <<setw(WIDTH)<<"critical_time"
        <<endl;
     list<CONTACT>::const_iterator it;
     for (it=ContactList.begin();it!=ContactList.end();++it)
-	ofs<<setw(10)<<(*it).getP1()->getID()
-	   <<setw(10)<<(*it).getP2()->getID()
-	   <<setw(16)<<(*it).getPoint1().getx()
-	   <<setw(16)<<(*it).getPoint1().gety()
-	   <<setw(16)<<(*it).getPoint1().getz()
-	   <<setw(16)<<(*it).getPoint2().getx()
-	   <<setw(16)<<(*it).getPoint2().gety()
-	   <<setw(16)<<(*it).getPoint2().getz()
-	   <<setw(16)<<(*it).getRadius1()
-	   <<setw(16)<<(*it).getRadius2()
-	   <<setw(16)<<(*it).getPenetration()
-	   <<setw(16)<<(*it).getTgtDisp()
-	   <<setw(16)<<(*it).getContactRadius()
-	   <<setw(16)<<(*it).getR0()
-	   <<setw(16)<<(*it).getE0()
-	   <<setw(16)<<(*it).getNormalForce()
-	   <<setw(16)<<(*it).getTgtForce()
-	   <<setw(16)<<( (*it).getPoint1().getx()+(*it).getPoint2().getx() )/2
-	   <<setw(16)<<( (*it).getPoint1().gety()+(*it).getPoint2().gety() )/2
-	   <<setw(16)<<( (*it).getPoint1().getz()+(*it).getPoint2().getz() )/2
-	   <<setw(16)<<(*it).NormalForceVec().getx()
-	   <<setw(16)<<(*it).NormalForceVec().gety()
-	   <<setw(16)<<(*it).NormalForceVec().getz()
-	   <<setw(16)<<(*it).TgtForceVec().getx()
-	   <<setw(16)<<(*it).TgtForceVec().gety()
-	   <<setw(16)<<(*it).TgtForceVec().getz()
+	ofs<<setw(WIDTH)<<it->getP1()->getID()
+	   <<setw(WIDTH)<<it->getP2()->getID()
+	   <<setw(WIDTH)<<it->getPoint1().getx()
+	   <<setw(WIDTH)<<it->getPoint1().gety()
+	   <<setw(WIDTH)<<it->getPoint1().getz()
+	   <<setw(WIDTH)<<it->getPoint2().getx()
+	   <<setw(WIDTH)<<it->getPoint2().gety()
+	   <<setw(WIDTH)<<it->getPoint2().getz()
+	   <<setw(WIDTH)<<it->getRadius1()
+	   <<setw(WIDTH)<<it->getRadius2()
+	   <<setw(WIDTH)<<it->getPenetration()
+	   <<setw(WIDTH)<<it->getTgtDisp()
+	   <<setw(WIDTH)<<it->getContactRadius()
+	   <<setw(WIDTH)<<it->getR0()
+	   <<setw(WIDTH)<<it->getE0()
+	   <<setw(WIDTH)<<it->getNormalForce()
+	   <<setw(WIDTH)<<it->getTgtForce()
+	   <<setw(WIDTH)<<( it->getPoint1().getx()+it->getPoint2().getx() )/2
+	   <<setw(WIDTH)<<( it->getPoint1().gety()+it->getPoint2().gety() )/2
+	   <<setw(WIDTH)<<( it->getPoint1().getz()+it->getPoint2().getz() )/2
+	   <<setw(WIDTH)<<it->NormalForceVec().getx()
+	   <<setw(WIDTH)<<it->NormalForceVec().gety()
+	   <<setw(WIDTH)<<it->NormalForceVec().getz()
+	   <<setw(WIDTH)<<it->TgtForceVec().getx()
+	   <<setw(WIDTH)<<it->TgtForceVec().gety()
+	   <<setw(WIDTH)<<it->TgtForceVec().getz()
+	   <<setw(WIDTH)<<it->getTimeStep()
 	   <<endl;
-    ofs.close();
-}
-
-
-void assembly::snapshot(const char* str) const{
-    ofstream ofs(str);
-    if(!ofs) {
-	cout<<"stream error in snapshot!"<<endl; exit(-1);
-    }
-    ofs.setf(ios::scientific, ios::floatfield);
-    ofs<<"TotalNum="<<setw(10)<<TotalNum<<endl;
-    vec tmp;
-    ofs<<"     ID         radius_a        radius_b        radius_c   "
-       <<"   position_x     position_y     position_z    "
-       <<"      a_cosx          a_cosy          a_cosz     "
-       <<"      b_cosx         b_cosy          b_cosz     "
-       <<"      c_cosx         c_cosy          c_cosz     "
-       <<"   velocity_x      velocity_y      velocity_z   "
-       <<"     omga_x          omga_y          omga_z     "
-       <<"    force_x         force_y         force_z     "
-       <<"    moment_x        moment_y        moment_z    "
-       <<"     ID"<<endl;    
-    list<particle*>::const_iterator it;
-    for (it=ParticleList.begin();it!=ParticleList.end();++it)
-    {
-	ofs<<setw(10)<<(*it)->getID()
-	   <<setw(16)<<(*it)->getA()
-	   <<setw(16)<<(*it)->getB()
-	   <<setw(16)<<(*it)->getC();
-
-	tmp=(*it)->getCurrPosition();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
-	
-	tmp=(*it)->getCurrDirecA();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
-
-	tmp=(*it)->getCurrDirecB();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
-
-	tmp=(*it)->getCurrDirecC();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
-
-	tmp=(*it)->getCurrVelocity();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
-
-	tmp=(*it)->getCurrOmga();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
-
-	tmp=(*it)->getForce();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
-
-	tmp=(*it)->getMoment();
-	ofs<<setw(16)<<tmp.getx()
-	   <<setw(16)<<tmp.gety()
-	   <<setw(16)<<tmp.getz();
-
-	ofs<<setw(10)<<(*it)->getID()<<endl;
-    }
     ofs.close();
 }
 
@@ -440,7 +411,7 @@ void assembly::findContact(){ // OpenMP version
     
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(10)<<timediffsec(); 
+    g_debuginf<<setw(WIDTH)<<timediffsec(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -474,7 +445,7 @@ void assembly::findContact(){ // serial version
 
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(10)<<timediffsec(); 
+    g_debuginf<<setw(WIDTH)<<timediffsec(); 
 #endif
  
     ActualCntctNum = ContactList.size();
@@ -516,7 +487,7 @@ void assembly::findContact(){
     }
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(10)<<timediffsec(); 
+    g_debuginf<<setw(WIDTH)<<timediffsec(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -816,7 +787,7 @@ void assembly::internalForce(long double& avgnm, long double& avgsh){
 
 #ifdef TIME_PROFILE
 	gettimeofday(&timep2,NULL);
-	g_debuginf<<setw(10)<<timediffsec()<<endl; 
+	g_debuginf<<setw(WIDTH)<<timediffsec()<<endl; 
 #endif
 
     }
@@ -880,17 +851,6 @@ void assembly::createBoundary(const char* str){
 }
 
 
-void assembly::displayBoundary() const{
-    printf("rgd boundary number%5d\n",RgdBdryNum);
-    list<RGDBDRY*>::const_iterator rt;
-    list<FLBBDRY*>::const_iterator ft;
-    for(rt=RBList.begin();rt!=RBList.end();++rt)
-	(*rt)->disp();
-    for(ft=FBList.begin();ft!=FBList.end();++ft)
-	(*ft)->disp();
-}
-
-
 void assembly::printBoundary(const char* str) const
 {
     ofstream ofs(str);
@@ -899,8 +859,8 @@ void assembly::printBoundary(const char* str) const
     }
     ofs.setf(ios::scientific, ios::floatfield);
 
-    ofs<<setw(10)<<BdryType
-       <<setw(10)<<RgdBdryNum<<endl;
+    ofs<<setw(WIDTH)<<BdryType
+       <<setw(WIDTH)<<RgdBdryNum<<endl;
     
     list<RGDBDRY*>::const_iterator rt;
     for(rt=RBList.begin();rt!=RBList.end();++rt)
@@ -947,14 +907,14 @@ void assembly::rigidBoundaryForce(){
   for(rt=RBList.begin();rt!=RBList.end();++rt){	
     (*rt)->rigidBF(BdryTgtMap);
     for (it=BdryTgtMap[(*rt)->bdry_id].begin();it!=BdryTgtMap[(*rt)->bdry_id].end();++it){
-      g_debuginf<<setw(10)<<g_iteration
-		<<setw(10)<<(*rt)->bdry_id
-		<<setw(10)<<BdryTgtMap[(*rt)->bdry_id].size()
-		<<setw(16)<<it->TgtForce.getx()
-		<<setw(16)<<it->TgtForce.gety()
-		<<setw(16)<<it->TgtForce.getz()
+      g_debuginf<<setw(WIDTH)<<g_iteration
+		<<setw(WIDTH)<<(*rt)->bdry_id
+		<<setw(WIDTH)<<BdryTgtMap[(*rt)->bdry_id].size()
+		<<setw(WIDTH)<<it->TgtForce.getx()
+		<<setw(WIDTH)<<it->TgtForce.gety()
+		<<setw(WIDTH)<<it->TgtForce.getz()
 		<<endl;
-      //<<setw(16)<<it->TgtPeak<<endl;
+      //<<setw(WIDTH)<<it->TgtPeak<<endl;
     }
   }
   */
@@ -1218,7 +1178,7 @@ void assembly::deposit_RgdBdry(gradation& grad,
 
 	deposit(total_steps,        // total_steps
 		snapshots,          // number of snapshots
-		interval,           // record interval
+		interval,           // print interval
 		iniptclfile,        // input file, initial particles
 		inibdryfile,        // input file, initial boundaries
 		particlefile,       // output file, resulted particles, including snapshots 
@@ -1321,7 +1281,7 @@ void assembly::deposit_PtclBdry(gradation& grad,
 	generate_p(grad, iniptclfile, freetype, rsize, 4.0);
 	deposit_p(total_steps,        // total_steps
 		  snapshots,          // number of snapshots
-		  interval,           // record interval
+		  interval,           // print interval
 		  grad.dimn,          // dimension of particle-composed-boundary
 		  rsize,              // relative container size
 		  iniptclfile,        // input file, initial particles
@@ -1444,7 +1404,7 @@ void assembly::scale_PtclBdry(int   total_steps,
 {
     deposit_p(total_steps,        // total_steps
 	      snapshots,          // number of snapshots
-	      interval,           // record interval
+	      interval,           // print interval
 	      dimn,               // dimension of particle-composed-boundary
 	      rsize,              // relative container size
 	      iniptclfile,        // input file, initial particles
@@ -1474,7 +1434,7 @@ void assembly::collapse(int   rors,
     
     deposit(total_steps,        // number of iterations
 	    snapshots,          // number of snapshots
-	    interval,           // record interval
+	    interval,           // print interval
 	    iniptclfile,        // input file, initial particles
 	    initboundary,       // input file, boundaries
 	    particlefile,       // output file, resulted particles, including snapshots 
@@ -1492,828 +1452,828 @@ void assembly::setBoundary(int   rors,
     ofstream ofs(boundaryfile);
     if(!ofs) { cout<<"stream error!"<<endl; exit(-1);}
     ofs.setf(ios::scientific, ios::floatfield);
-    ofs<<setw(10)<<0
-       <<setw(10)<<bdrynum<<endl<<endl;
+    ofs<<setw(WIDTH)<<0
+       <<setw(WIDTH)<<bdrynum<<endl<<endl;
 
     if (rors == 1){
 	if (bdrynum == 1){   // only a bottom boundary
-	    ofs<<setw(10)<<1<<endl
-	       <<setw(10)<<6
-	       <<setw(10)<<5
-	       <<setw(16)<<dimn*dimn<<endl
+	    ofs<<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<6
+	       <<setw(WIDTH)<<5
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<dimn/2*50
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<dimn/2*50
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2*50
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2*50
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<dimn/2*50
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<dimn/2*50
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2*50
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl;
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2*50
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl;
 	}
 	else if (bdrynum == 4){ // no top/bottom boundary
 	    // boundary 1
-	    ofs<<setw(10)<<1<<endl
-	       <<setw(10)<<1
-	       <<setw(10)<<4
-	       <<setw(16)<<dimn*dimn<<endl
+	    ofs<<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0     
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 2
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<2
-	       <<setw(10)<<4
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<2
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0     
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0 
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0     
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 3
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<3
-	       <<setw(10)<<4
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<3
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0      
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 4
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<4
-	       <<setw(10)<<4
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<-1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0 
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl;
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl;
 	}
 	else if (bdrynum == 5){ // no top boundary
 	    // boundary 1
-	    ofs<<setw(10)<<1<<endl
-	       <<setw(10)<<1
-	       <<setw(10)<<4
-	       <<setw(16)<<dimn*dimn<<endl
+	    ofs<<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0     
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 2
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<2
-	       <<setw(10)<<4
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<2
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0     
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0 
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0     
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 3
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<3
-	       <<setw(10)<<4
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<3
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0      
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 4
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<4
-	       <<setw(10)<<4
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<-1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0 
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 		
 	       // boundary 6
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<6
-	       <<setw(10)<<5
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<6
+	       <<setw(WIDTH)<<5
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2 
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl;
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl;
 	}
 	else if (bdrynum == 6){ // all 6 boundaries
 	       // boundary 1
-	    ofs<<setw(10)<<1<<endl
-	       <<setw(10)<<1
-	       <<setw(10)<<5
-	       <<setw(16)<<dimn*dimn<<endl
+	    ofs<<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<5
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0     
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0       
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0       
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<dimn/2 
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 2
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<2
-	       <<setw(10)<<5
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<2
+	       <<setw(WIDTH)<<5
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0     
-	       <<setw(16)<<0     
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2 
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<dimn/2 
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 3
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<3
-	       <<setw(10)<<5
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<3
+	       <<setw(WIDTH)<<5
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0     
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0  
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0       
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0  
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0       
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<dimn/2 
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 4
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<4
-	       <<setw(10)<<5
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<4
+	       <<setw(WIDTH)<<5
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<-1
-	       <<setw(16)<<0     
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1 
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2 
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0     
-	       <<setw(16)<<dimn/2 
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0     
+	       <<setw(WIDTH)<<dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0 
-	       <<setw(16)<<-1
-	       <<setw(16)<<0      
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 5
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<5
-	       <<setw(10)<<5
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<5
+	       <<setw(WIDTH)<<5
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<1     
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(16)<<dimn/2 
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1     
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1 
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2 
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl
 
 	       // boundary 6
-	       <<setw(10)<<1<<endl
-	       <<setw(10)<<6
-	       <<setw(10)<<5
-	       <<setw(16)<<dimn*dimn<<endl
+	       <<setw(WIDTH)<<1<<endl
+	       <<setw(WIDTH)<<6
+	       <<setw(WIDTH)<<5
+	       <<setw(WIDTH)<<dimn*dimn<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<-1    
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1    
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<-1 
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(16)<<-dimn/2 
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<-1 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-dimn/2 
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<0      
-	       <<setw(16)<<dimn/2
-	       <<setw(16)<<0      
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<dimn/2
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl
 
-	       <<setw(10)<<1
-	       <<setw(16)<<0
-	       <<setw(16)<<-1
-	       <<setw(16)<<0 
-	       <<setw(16)<<0      
-	       <<setw(16)<<-dimn/2
-	       <<setw(16)<<0
-	       <<setw(16)<<0
-	       <<setw(10)<<0<<endl<<endl;
+	       <<setw(WIDTH)<<1
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<-1
+	       <<setw(WIDTH)<<0 
+	       <<setw(WIDTH)<<0      
+	       <<setw(WIDTH)<<-dimn/2
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0
+	       <<setw(WIDTH)<<0<<endl<<endl;
 	}
 
     }
@@ -2467,19 +2427,79 @@ void assembly::deposit(int   total_steps,
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
     progressinf.setf(ios::scientific, ios::floatfield);
-    progressinf<<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average       translational    rotational       "
-	       <<"kinetic        potential         total           void            sample       coordination"
-	       <<"       sample           sample          sample          sample          sample          sample"
-	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample         sample          sample          sample          sample        minimum        wall-clock" << endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment         energy           energy          "
-	       <<"energy         energy           energy          ratio          porosity         number       "
-	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume        epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v      time_step          time" << endl;
+    progressinf.precision(PREC);
+    progressinf<<setw(WIDTH)<<"iteration"
+	       <<setw(WIDTH)<<"possible"
+	       <<setw(WIDTH)<<"actual"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"translational"
+	       <<setw(WIDTH)<<"rotational"
+	       <<setw(WIDTH)<<"kinetic"
+	       <<setw(WIDTH)<<"potential"
+	       <<setw(WIDTH)<<"total"
+	       <<setw(WIDTH)<<"void"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"coordination"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"critical"
+	       <<setw(WIDTH)<<"wall-clock" << endl
+	       <<setw(WIDTH)<<"number"
+	       <<setw(WIDTH)<<"contacts"
+	       <<setw(WIDTH)<<"contacts"
+	       <<setw(WIDTH)<<"penetration"
+	       <<setw(WIDTH)<<"contact_normal"
+	       <<setw(WIDTH)<<"contact_tangt"
+	       <<setw(WIDTH)<<"velocity"
+	       <<setw(WIDTH)<<"omga"
+	       <<setw(WIDTH)<<"force"
+	       <<setw(WIDTH)<<"moment"
+	       <<setw(WIDTH)<<"energy"
+	       <<setw(WIDTH)<<"energy"
+	       <<setw(WIDTH)<<"energy"
+	       <<setw(WIDTH)<<"energy"
+	       <<setw(WIDTH)<<"energy"
+	       <<setw(WIDTH)<<"ratio"
+	       <<setw(WIDTH)<<"porosity"
+	       <<setw(WIDTH)<<"number"
+	       <<setw(WIDTH)<<"density"
+	       <<setw(WIDTH)<<"sigma1_1"
+	       <<setw(WIDTH)<<"sigma1_2"
+	       <<setw(WIDTH)<<"sigma2_1"
+	       <<setw(WIDTH)<<"sigma2_2"
+	       <<setw(WIDTH)<<"sigma3_1"
+	       <<setw(WIDTH)<<"sigma3_2"
+	       <<setw(WIDTH)<<"mean_stress"
+	       <<setw(WIDTH)<<"width"
+	       <<setw(WIDTH)<<"length"
+	       <<setw(WIDTH)<<"height"
+	       <<setw(WIDTH)<<"volume"
+	       <<setw(WIDTH)<<"epsilon_w"
+	       <<setw(WIDTH)<<"epsilon_l"
+	       <<setw(WIDTH)<<"epsilon_h"
+	       <<setw(WIDTH)<<"epsilon-v"
+	       <<setw(WIDTH)<<"time_step"
+	       <<setw(WIDTH)<<"time" << endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
@@ -2551,42 +2571,58 @@ void assembly::deposit(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<t1
-		       <<setw(16)<<t2
-		       <<setw(16)<<(t1+t2)
-		       <<setw(16)<<t3
-		       <<setw(16)<<(t1+t2+t3)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<t1
+		       <<setw(WIDTH)<<t2
+		       <<setw(WIDTH)<<(t1+t2)
+		       <<setw(WIDTH)<<t3
+		       <<setw(WIDTH)<<(t1+t2+t3)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
-	               <<setw(16)<<getMinTimeStep()
-		       <<setw(16)<<timediffsec(timew1,timew2)
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+		       <<setw(WIDTH)<<"0"
+	               <<setw(WIDTH)<<getMinTimeStep()
+		       <<setw(WIDTH)<<timediffsec(timew1,timew2)
 		       <<endl;
 
 	    /*
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<bdry_penetr[1]
-		      <<setw(16)<<bdry_penetr[2]
-		      <<setw(16)<<bdry_penetr[3]
-		      <<setw(16)<<bdry_penetr[4]
-		      <<setw(16)<<bdry_penetr[6]
-		      <<setw(16)<<bdry_cntnum[1]
-		      <<setw(16)<<bdry_cntnum[2]
-		      <<setw(16)<<bdry_cntnum[3]
-		      <<setw(16)<<bdry_cntnum[4]
-		      <<setw(16)<<bdry_cntnum[6]
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<bdry_penetr[1]
+		      <<setw(WIDTH)<<bdry_penetr[2]
+		      <<setw(WIDTH)<<bdry_penetr[3]
+		      <<setw(WIDTH)<<bdry_penetr[4]
+		      <<setw(WIDTH)<<bdry_penetr[6]
+		      <<setw(WIDTH)<<bdry_cntnum[1]
+		      <<setw(WIDTH)<<bdry_cntnum[2]
+		      <<setw(WIDTH)<<bdry_cntnum[3]
+		      <<setw(WIDTH)<<bdry_cntnum[4]
+		      <<setw(WIDTH)<<bdry_cntnum[6]
 		      <<endl;
 	    */
 
@@ -2699,24 +2735,24 @@ void assembly::deposit_p(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<t1
-		       <<setw(16)<<t2
-		       <<setw(16)<<(t1+t2)
-		       <<setw(16)<<t3
-		       <<setw(16)<<(t1+t2+t3)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<t1
+		       <<setw(WIDTH)<<t2
+		       <<setw(WIDTH)<<(t1+t2)
+		       <<setw(WIDTH)<<t3
+		       <<setw(WIDTH)<<(t1+t2+t3)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
 	}
 
@@ -2849,38 +2885,38 @@ void assembly::squeeze(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<t1
-		       <<setw(16)<<t2
-		       <<setw(16)<<(t1+t2)
-		       <<setw(16)<<t3
-		       <<setw(16)<<(t1+t2+t3)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<t1
+		       <<setw(WIDTH)<<t2
+		       <<setw(WIDTH)<<(t1+t2)
+		       <<setw(WIDTH)<<t3
+		       <<setw(WIDTH)<<(t1+t2+t3)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<bdry_penetr[1]
-		      <<setw(16)<<bdry_penetr[2]
-		      <<setw(16)<<bdry_penetr[3]
-		      <<setw(16)<<bdry_penetr[4]
-		      <<setw(16)<<bdry_penetr[6]
-		      <<setw(16)<<bdry_cntnum[1]
-		      <<setw(16)<<bdry_cntnum[2]
-		      <<setw(16)<<bdry_cntnum[3]
-		      <<setw(16)<<bdry_cntnum[4]
-		      <<setw(16)<<bdry_cntnum[6]
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<bdry_penetr[1]
+		      <<setw(WIDTH)<<bdry_penetr[2]
+		      <<setw(WIDTH)<<bdry_penetr[3]
+		      <<setw(WIDTH)<<bdry_penetr[4]
+		      <<setw(WIDTH)<<bdry_penetr[6]
+		      <<setw(WIDTH)<<bdry_cntnum[1]
+		      <<setw(WIDTH)<<bdry_cntnum[2]
+		      <<setw(WIDTH)<<bdry_cntnum[3]
+		      <<setw(WIDTH)<<bdry_cntnum[4]
+		      <<setw(WIDTH)<<bdry_cntnum[6]
 		      <<endl;
 
 	}
@@ -3075,46 +3111,46 @@ void assembly::isotropic(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<bdry_penetr[1]
-		      <<setw(16)<<bdry_penetr[2]
-		      <<setw(16)<<bdry_penetr[3]
-		      <<setw(16)<<bdry_penetr[4]
-		      <<setw(16)<<bdry_penetr[5]
-		      <<setw(16)<<bdry_penetr[6]
-		      <<setw(16)<<bdry_cntnum[1]
-		      <<setw(16)<<bdry_cntnum[2]
-		      <<setw(16)<<bdry_cntnum[3]
-		      <<setw(16)<<bdry_cntnum[4]
-		      <<setw(16)<<bdry_cntnum[5]
-		      <<setw(16)<<bdry_cntnum[6]
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<bdry_penetr[1]
+		      <<setw(WIDTH)<<bdry_penetr[2]
+		      <<setw(WIDTH)<<bdry_penetr[3]
+		      <<setw(WIDTH)<<bdry_penetr[4]
+		      <<setw(WIDTH)<<bdry_penetr[5]
+		      <<setw(WIDTH)<<bdry_penetr[6]
+		      <<setw(WIDTH)<<bdry_cntnum[1]
+		      <<setw(WIDTH)<<bdry_cntnum[2]
+		      <<setw(WIDTH)<<bdry_cntnum[3]
+		      <<setw(WIDTH)<<bdry_cntnum[4]
+		      <<setw(WIDTH)<<bdry_cntnum[5]
+		      <<setw(WIDTH)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -3122,57 +3158,57 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3373,46 +3409,46 @@ void assembly::isotropic(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<bdry_penetr[1]
-		      <<setw(16)<<bdry_penetr[2]
-		      <<setw(16)<<bdry_penetr[3]
-		      <<setw(16)<<bdry_penetr[4]
-		      <<setw(16)<<bdry_penetr[5]
-		      <<setw(16)<<bdry_penetr[6]
-		      <<setw(16)<<bdry_cntnum[1]
-		      <<setw(16)<<bdry_cntnum[2]
-		      <<setw(16)<<bdry_cntnum[3]
-		      <<setw(16)<<bdry_cntnum[4]
-		      <<setw(16)<<bdry_cntnum[5]
-		      <<setw(16)<<bdry_cntnum[6]
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<bdry_penetr[1]
+		      <<setw(WIDTH)<<bdry_penetr[2]
+		      <<setw(WIDTH)<<bdry_penetr[3]
+		      <<setw(WIDTH)<<bdry_penetr[4]
+		      <<setw(WIDTH)<<bdry_penetr[5]
+		      <<setw(WIDTH)<<bdry_penetr[6]
+		      <<setw(WIDTH)<<bdry_cntnum[1]
+		      <<setw(WIDTH)<<bdry_cntnum[2]
+		      <<setw(WIDTH)<<bdry_cntnum[3]
+		      <<setw(WIDTH)<<bdry_cntnum[4]
+		      <<setw(WIDTH)<<bdry_cntnum[5]
+		      <<setw(WIDTH)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -3420,30 +3456,30 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3454,30 +3490,30 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3679,46 +3715,46 @@ void assembly::isotropic(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<bdry_penetr[1]
-		      <<setw(16)<<bdry_penetr[2]
-		      <<setw(16)<<bdry_penetr[3]
-		      <<setw(16)<<bdry_penetr[4]
-		      <<setw(16)<<bdry_penetr[5]
-		      <<setw(16)<<bdry_penetr[6]
-		      <<setw(16)<<bdry_cntnum[1]
-		      <<setw(16)<<bdry_cntnum[2]
-		      <<setw(16)<<bdry_cntnum[3]
-		      <<setw(16)<<bdry_cntnum[4]
-		      <<setw(16)<<bdry_cntnum[5]
-		      <<setw(16)<<bdry_cntnum[6]
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<bdry_penetr[1]
+		      <<setw(WIDTH)<<bdry_penetr[2]
+		      <<setw(WIDTH)<<bdry_penetr[3]
+		      <<setw(WIDTH)<<bdry_penetr[4]
+		      <<setw(WIDTH)<<bdry_penetr[5]
+		      <<setw(WIDTH)<<bdry_penetr[6]
+		      <<setw(WIDTH)<<bdry_cntnum[1]
+		      <<setw(WIDTH)<<bdry_cntnum[2]
+		      <<setw(WIDTH)<<bdry_cntnum[3]
+		      <<setw(WIDTH)<<bdry_cntnum[4]
+		      <<setw(WIDTH)<<bdry_cntnum[5]
+		      <<setw(WIDTH)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -3726,30 +3762,30 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3766,30 +3802,30 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3965,30 +4001,30 @@ void assembly::odometer(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0){
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3996,30 +4032,30 @@ void assembly::odometer(int   total_steps,
 
 	// 8. find balanced status of odometer compression
 	if (fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4028,30 +4064,30 @@ void assembly::odometer(int   total_steps,
 
 	// 9. loop break condition
 	if (fabsl(sigma3_1-sigma_1)/sigma_1 < STRESS_ERROR && fabsl(sigma3_2-sigma_1)/sigma_1 < STRESS_ERROR) {
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4230,30 +4266,30 @@ void assembly::odometer(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0){
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4261,30 +4297,30 @@ void assembly::odometer(int   total_steps,
 
 	// 8. find balanced status of odometer compression
 	if (fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4298,30 +4334,30 @@ void assembly::odometer(int   total_steps,
 
 	// 9. loop break condition
 	if (fabsl(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR) {
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4432,34 +4468,34 @@ void assembly::unconfined(int   total_steps,
 
 	// 7. (2) output progress info.
 	if (g_iteration % interval == 0)
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<0
-		       <<setw(16)<<0<<setw(16)<<0
-		       <<setw(16)<<0<<setw(16)<<0
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
 		       <<endl;
 /*
 	// 8. loop break condition
 	if (getAverageForce() < 1.0) {
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()<<endl;
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()<<endl;
 	    break;
 	}
 */
@@ -4585,30 +4621,30 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<0<<setw(16)<<0
-		       <<setw(16)<<0<<setw(16)<<0
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<0<<setw(16)<<0<<setw(16)<<l56
-		       <<setw(16)<<0
-		       <<setw(16)<<0
-		       <<setw(16)<<0
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<0
-		       <<setw(16)<<0
-		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
 
 	}
@@ -4755,30 +4791,30 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<0<<setw(16)<<0
-		       <<setw(16)<<0<<setw(16)<<0
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<0<<setw(16)<<0<<setw(16)<<l56
-		       <<setw(16)<<0
-		       <<setw(16)<<0
-		       <<setw(16)<<0
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<0
-		       <<setw(16)<<0
-		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<0
+		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
 
 	}
@@ -4788,27 +4824,27 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
 	}
 */
 	// 9. loop break condition: through displacement control mechanism
@@ -4852,36 +4888,136 @@ void assembly::triaxial(int   total_steps,
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
     progressinf.setf(ios::scientific, ios::floatfield);
-    progressinf<<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<"       minimum        wall-clock" << endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
-	       <<"        ratio          porosity         number"
-	       <<"        time_step          time" << endl;
+    progressinf.precision(PREC);
+    progressinf<<setw(WIDTH)<<"iteration"
+	       <<setw(WIDTH)<<"possible"
+	       <<setw(WIDTH)<<"actual"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"void"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"coordinate"
+	       <<setw(WIDTH)<<"critical"
+	       <<setw(WIDTH)<<"wall-clock" << endl
+	       <<setw(WIDTH)<<"number"
+	       <<setw(WIDTH)<<"contacts"
+	       <<setw(WIDTH)<<"contacts"
+	       <<setw(WIDTH)<<"penetration"
+	       <<setw(WIDTH)<<"contact_normal"
+	       <<setw(WIDTH)<<"contact_tangt"
+	       <<setw(WIDTH)<<"velocity"
+	       <<setw(WIDTH)<<"omga"
+	       <<setw(WIDTH)<<"force"
+	       <<setw(WIDTH)<<"moment"
+	       <<setw(WIDTH)<<"density"
+	       <<setw(WIDTH)<<"sigma1_1"
+	       <<setw(WIDTH)<<"sigma1_2"
+	       <<setw(WIDTH)<<"sigma2_1"
+	       <<setw(WIDTH)<<"sigma2_2"
+	       <<setw(WIDTH)<<"sigma3_1"
+	       <<setw(WIDTH)<<"sigma3_2"
+	       <<setw(WIDTH)<<"mean_stress"
+	       <<setw(WIDTH)<<"width"
+	       <<setw(WIDTH)<<"length"
+	       <<setw(WIDTH)<<"height"
+	       <<setw(WIDTH)<<"volume"
+	       <<setw(WIDTH)<<"epsilon_w"
+	       <<setw(WIDTH)<<"epsilon_l"
+	       <<setw(WIDTH)<<"epsilon_h"
+	       <<setw(WIDTH)<<"epsilon-v"
+	       <<setw(WIDTH)<<"ratio"
+	       <<setw(WIDTH)<<"porosity"
+	       <<setw(WIDTH)<<"number"
+	       <<setw(WIDTH)<<"time_step"
+	       <<setw(WIDTH)<<"time" << endl;
 
     ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
     balancedinf.setf(ios::scientific, ios::floatfield);
-    balancedinf<<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<"       minimum        wall-clock"<< endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
-	       <<"        ratio          porosity         number"
-	       <<"        time_step          time" << endl;
+    balancedinf.precision(PREC);
+    balancedinf<<setw(WIDTH)<<"iteration"
+	       <<setw(WIDTH)<<"possible"
+	       <<setw(WIDTH)<<"actual"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"average"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"void"
+	       <<setw(WIDTH)<<"sample"
+	       <<setw(WIDTH)<<"coordinate"
+	       <<setw(WIDTH)<<"critical"
+	       <<setw(WIDTH)<<"wall-clock" << endl
+	       <<setw(WIDTH)<<"number"
+	       <<setw(WIDTH)<<"contacts"
+	       <<setw(WIDTH)<<"contacts"
+	       <<setw(WIDTH)<<"penetration"
+	       <<setw(WIDTH)<<"contact_normal"
+	       <<setw(WIDTH)<<"contact_tangt"
+	       <<setw(WIDTH)<<"velocity"
+	       <<setw(WIDTH)<<"omga"
+	       <<setw(WIDTH)<<"force"
+	       <<setw(WIDTH)<<"moment"
+	       <<setw(WIDTH)<<"density"
+	       <<setw(WIDTH)<<"sigma1_1"
+	       <<setw(WIDTH)<<"sigma1_2"
+	       <<setw(WIDTH)<<"sigma2_1"
+	       <<setw(WIDTH)<<"sigma2_2"
+	       <<setw(WIDTH)<<"sigma3_1"
+	       <<setw(WIDTH)<<"sigma3_2"
+	       <<setw(WIDTH)<<"mean_stress"
+	       <<setw(WIDTH)<<"width"
+	       <<setw(WIDTH)<<"length"
+	       <<setw(WIDTH)<<"height"
+	       <<setw(WIDTH)<<"volume"
+	       <<setw(WIDTH)<<"epsilon_w"
+	       <<setw(WIDTH)<<"epsilon_l"
+	       <<setw(WIDTH)<<"epsilon_h"
+	       <<setw(WIDTH)<<"epsilon-v"
+	       <<setw(WIDTH)<<"ratio"
+	       <<setw(WIDTH)<<"porosity"
+	       <<setw(WIDTH)<<"number"
+	       <<setw(WIDTH)<<"time_step"
+	       <<setw(WIDTH)<<"time" << endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -4999,50 +5135,50 @@ void assembly::triaxial(int   total_steps,
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
 	    gettimeofday(&timew2,NULL);
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-	               <<setw(16)<<getMinTimeStep()
-		       <<setw(16)<<timediffsec(timew1,timew2)
+	               <<setw(WIDTH)<<getMinTimeStep()
+		       <<setw(WIDTH)<<timediffsec(timew1,timew2)
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<getTransEnergy()
-		      <<setw(16)<<getRotatEnergy()
-		      <<setw(16)<<bdry_penetr[1]
-		      <<setw(16)<<bdry_penetr[2]
-		      <<setw(16)<<bdry_penetr[3]
-		      <<setw(16)<<bdry_penetr[4]
-		      <<setw(16)<<bdry_penetr[5]
-		      <<setw(16)<<bdry_penetr[6]
-		      <<setw(16)<<bdry_cntnum[1]
-		      <<setw(16)<<bdry_cntnum[2]
-		      <<setw(16)<<bdry_cntnum[3]
-		      <<setw(16)<<bdry_cntnum[4]
-		      <<setw(16)<<bdry_cntnum[5]
-		      <<setw(16)<<bdry_cntnum[6]
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<getTransEnergy()
+		      <<setw(WIDTH)<<getRotatEnergy()
+		      <<setw(WIDTH)<<bdry_penetr[1]
+		      <<setw(WIDTH)<<bdry_penetr[2]
+		      <<setw(WIDTH)<<bdry_penetr[3]
+		      <<setw(WIDTH)<<bdry_penetr[4]
+		      <<setw(WIDTH)<<bdry_penetr[5]
+		      <<setw(WIDTH)<<bdry_penetr[6]
+		      <<setw(WIDTH)<<bdry_cntnum[1]
+		      <<setw(WIDTH)<<bdry_cntnum[2]
+		      <<setw(WIDTH)<<bdry_cntnum[3]
+		      <<setw(WIDTH)<<bdry_cntnum[4]
+		      <<setw(WIDTH)<<bdry_cntnum[5]
+		      <<setw(WIDTH)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -5051,34 +5187,34 @@ void assembly::triaxial(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-	               <<setw(16)<<getMinTimeStep()
-		       <<setw(16)<<timediffsec(timew1,timew2)
+	               <<setw(WIDTH)<<getMinTimeStep()
+		       <<setw(WIDTH)<<timediffsec(timew1,timew2)
 		       <<endl;
 	}
 
@@ -5289,46 +5425,46 @@ void assembly::triaxial(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<bdry_penetr[1]
-		      <<setw(16)<<bdry_penetr[2]
-		      <<setw(16)<<bdry_penetr[3]
-		      <<setw(16)<<bdry_penetr[4]
-		      <<setw(16)<<bdry_penetr[5]
-		      <<setw(16)<<bdry_penetr[6]
-		      <<setw(16)<<bdry_cntnum[1]
-		      <<setw(16)<<bdry_cntnum[2]
-		      <<setw(16)<<bdry_cntnum[3]
-		      <<setw(16)<<bdry_cntnum[4]
-		      <<setw(16)<<bdry_cntnum[5]
-		      <<setw(16)<<bdry_cntnum[6]
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<bdry_penetr[1]
+		      <<setw(WIDTH)<<bdry_penetr[2]
+		      <<setw(WIDTH)<<bdry_penetr[3]
+		      <<setw(WIDTH)<<bdry_penetr[4]
+		      <<setw(WIDTH)<<bdry_penetr[5]
+		      <<setw(WIDTH)<<bdry_penetr[6]
+		      <<setw(WIDTH)<<bdry_cntnum[1]
+		      <<setw(WIDTH)<<bdry_cntnum[2]
+		      <<setw(WIDTH)<<bdry_cntnum[3]
+		      <<setw(WIDTH)<<bdry_cntnum[4]
+		      <<setw(WIDTH)<<bdry_cntnum[5]
+		      <<setw(WIDTH)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -5337,27 +5473,27 @@ void assembly::triaxial(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
 	}
 */
 	// 9. loop break condition: through displacement control mechanism
@@ -5467,10 +5603,10 @@ void assembly::rectPile_Disp(int   total_steps,
 	    long double  f9=getShearForce( 9).getz();
 	    long double f10=getShearForce(10).getz();
 	    long double  fn=getNormalForce(12).getz();
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<fn
-		      <<setw(16)<<(f7+f8+f9+f10)
-		      <<setw(16)<<(fn+f7+f8+f9+f10)
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<fn
+		      <<setw(WIDTH)<<(f7+f8+f9+f10)
+		      <<setw(WIDTH)<<(fn+f7+f8+f9+f10)
 		      <<endl;
 	}
 
@@ -5492,21 +5628,21 @@ void assembly::rectPile_Disp(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<t1
-		       <<setw(16)<<t2
-		       <<setw(16)<<(t1+t2)
-		       <<setw(16)<<t3
-		       <<setw(16)<<(t1+t2+t3)<<endl;
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<t1
+		       <<setw(WIDTH)<<t2
+		       <<setw(WIDTH)<<(t1+t2)
+		       <<setw(WIDTH)<<t3
+		       <<setw(WIDTH)<<(t1+t2+t3)<<endl;
 	}
 
 	// 8. loop break condition
@@ -5619,32 +5755,32 @@ void assembly::ellipPile_Disp(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<t1
-		       <<setw(16)<<t2
-		       <<setw(16)<<(t1+t2)
-		       <<setw(16)<<t3
-		       <<setw(16)<<(t1+t2+t3)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<t1
+		       <<setw(WIDTH)<<t2
+		       <<setw(WIDTH)<<(t1+t2)
+		       <<setw(WIDTH)<<t3
+		       <<setw(WIDTH)<<(t1+t2+t3)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<getTopFreeParticlePosition().getz()
-		      <<setw(16)<<ellipPileTipZ()
-		      <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(16)<<l13*l24*l56
-		      <<setw(16)<<ellipPilePeneVol()
-		      <<setw(16)<<Volume
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()
+		      <<setw(WIDTH)<<ellipPileTipZ()
+		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(WIDTH)<<l13*l24*l56
+		      <<setw(WIDTH)<<ellipPilePeneVol()
+		      <<setw(WIDTH)<<Volume
 		      <<endl;
 	}
 
@@ -5763,47 +5899,47 @@ void assembly::ellipPile_Impact(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<t1
-		       <<setw(16)<<t2
-		       <<setw(16)<<(t1+t2)
-		       <<setw(16)<<t3
-		       <<setw(16)<<(t1+t2+t3)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<t1
+		       <<setw(WIDTH)<<t2
+		       <<setw(WIDTH)<<(t1+t2)
+		       <<setw(WIDTH)<<t3
+		       <<setw(WIDTH)<<(t1+t2+t3)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<bdry_penetr[1]
-		      <<setw(16)<<bdry_penetr[2]
-		      <<setw(16)<<bdry_penetr[3]
-		      <<setw(16)<<bdry_penetr[4]
-		      <<setw(16)<<bdry_penetr[6]
-		      <<setw(16)<<bdry_cntnum[1]
-		      <<setw(16)<<bdry_cntnum[2]
-		      <<setw(16)<<bdry_cntnum[3]
-		      <<setw(16)<<bdry_cntnum[4]
-		      <<setw(16)<<bdry_cntnum[6]
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<bdry_penetr[1]
+		      <<setw(WIDTH)<<bdry_penetr[2]
+		      <<setw(WIDTH)<<bdry_penetr[3]
+		      <<setw(WIDTH)<<bdry_penetr[4]
+		      <<setw(WIDTH)<<bdry_penetr[6]
+		      <<setw(WIDTH)<<bdry_cntnum[1]
+		      <<setw(WIDTH)<<bdry_cntnum[2]
+		      <<setw(WIDTH)<<bdry_cntnum[3]
+		      <<setw(WIDTH)<<bdry_cntnum[4]
+		      <<setw(WIDTH)<<bdry_cntnum[6]
 		      <<endl;
 	    /*
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<getTopFreeParticlePosition().getz()
-		      <<setw(16)<<ellipPileTipZ()
-		      <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(16)<<l13*l24*l56
-		      <<setw(16)<<ellipPilePeneVol()
-		      <<setw(16)<<Volume
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()
+		      <<setw(WIDTH)<<ellipPileTipZ()
+		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(WIDTH)<<l13*l24*l56
+		      <<setw(WIDTH)<<ellipPilePeneVol()
+		      <<setw(WIDTH)<<Volume
 		      <<endl;
 	    */
 	}
@@ -5913,32 +6049,32 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<t1
-		       <<setw(16)<<t2
-		       <<setw(16)<<(t1+t2)
-		       <<setw(16)<<t3
-		       <<setw(16)<<(t1+t2+t3)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<t1
+		       <<setw(WIDTH)<<t2
+		       <<setw(WIDTH)<<(t1+t2)
+		       <<setw(WIDTH)<<t3
+		       <<setw(WIDTH)<<(t1+t2+t3)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<getTopFreeParticlePosition().getz()
-		      <<setw(16)<<ellipPileTipZ()
-		      <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(16)<<l13*l24*l56
-		      <<setw(16)<<ellipPilePeneVol()
-		      <<setw(16)<<Volume
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()
+		      <<setw(WIDTH)<<ellipPileTipZ()
+		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(WIDTH)<<l13*l24*l56
+		      <<setw(WIDTH)<<ellipPilePeneVol()
+		      <<setw(WIDTH)<<Volume
 		      <<endl;
 	}
 
@@ -6049,19 +6185,19 @@ void assembly::ellipPile_Force(int   total_steps,
 	    ellipPileUpdate();
 
 	if(fabsl(ellipPileForce()-zforce)/zforce < STRESS_ERROR ){
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(16)<<zforce
-		       <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		       <<setw(16)<<ellipPileForce()
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<zforce
+		       <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		       <<setw(WIDTH)<<ellipPileForce()
 		       <<endl;
 	    zforce += zforce_inc;
 	}
 
 	if( g_iteration % interval == 0){
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<zforce
-		      <<setw(16)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(16)<<ellipPileForce()
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<zforce
+		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(WIDTH)<<ellipPileForce()
 		      <<endl;
 	}
 
@@ -6082,24 +6218,24 @@ void assembly::ellipPile_Force(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<t1
-		       <<setw(16)<<t2
-		       <<setw(16)<<(t1+t2)
-		       <<setw(16)<<t3
-		       <<setw(16)<<(t1+t2+t3)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<t1
+		       <<setw(WIDTH)<<t2
+		       <<setw(WIDTH)<<(t1+t2)
+		       <<setw(WIDTH)<<t3
+		       <<setw(WIDTH)<<(t1+t2+t3)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
 	}
 
@@ -6303,46 +6439,46 @@ void assembly::truetriaxial(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()   
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()   
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(10)<<g_iteration
-		      <<setw(16)<<bdry_penetr[1]
-		      <<setw(16)<<bdry_penetr[2]
-		      <<setw(16)<<bdry_penetr[3]
-		      <<setw(16)<<bdry_penetr[4]
-		      <<setw(16)<<bdry_penetr[5]
-		      <<setw(16)<<bdry_penetr[6]
-		      <<setw(16)<<bdry_cntnum[1]
-		      <<setw(16)<<bdry_cntnum[2]
-		      <<setw(16)<<bdry_cntnum[3]
-		      <<setw(16)<<bdry_cntnum[4]
-		      <<setw(16)<<bdry_cntnum[5]
-		      <<setw(16)<<bdry_cntnum[6]
+	    g_debuginf<<setw(WIDTH)<<g_iteration
+		      <<setw(WIDTH)<<bdry_penetr[1]
+		      <<setw(WIDTH)<<bdry_penetr[2]
+		      <<setw(WIDTH)<<bdry_penetr[3]
+		      <<setw(WIDTH)<<bdry_penetr[4]
+		      <<setw(WIDTH)<<bdry_penetr[5]
+		      <<setw(WIDTH)<<bdry_penetr[6]
+		      <<setw(WIDTH)<<bdry_cntnum[1]
+		      <<setw(WIDTH)<<bdry_cntnum[2]
+		      <<setw(WIDTH)<<bdry_cntnum[3]
+		      <<setw(WIDTH)<<bdry_cntnum[4]
+		      <<setw(WIDTH)<<bdry_cntnum[5]
+		      <<setw(WIDTH)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -6350,30 +6486,30 @@ void assembly::truetriaxial(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_w1)/sigma_w1 < STRESS_ERROR && fabsl(sigma1_2-sigma_w1)/sigma_w1 < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_l1)/sigma_l1 < STRESS_ERROR && fabsl(sigma2_2-sigma_l1)/sigma_l1 < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma_h1)/sigma_h1 < STRESS_ERROR && fabsl(sigma3_2-sigma_h1)/sigma_h1 < STRESS_ERROR ) {
-	    balancedinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -6386,30 +6522,30 @@ void assembly::truetriaxial(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_w)/sigma_w < STRESS_ERROR && fabsl(sigma1_2-sigma_w)/sigma_w < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_l)/sigma_l < STRESS_ERROR && fabsl(sigma2_2-sigma_l)/sigma_l < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma_h)/sigma_h < STRESS_ERROR && fabsl(sigma3_2-sigma_h)/sigma_h < STRESS_ERROR ) {
-	    progressinf<<setw(10)<<g_iteration
-		       <<setw(10)<<getPossCntctNum()
-		       <<setw(10)<<getActualCntctNum()
-		       <<setw(16)<<getAveragePenetration()
-		       <<setw(16)<<avgNormal
-		       <<setw(16)<<avgTangt
-		       <<setw(16)<<getAverageVelocity() 
-		       <<setw(16)<<getAverageOmga()
-		       <<setw(16)<<getAverageForce()    
-		       <<setw(16)<<getAverageMoment()
-		       <<setw(16)<<getDensity()
-		       <<setw(16)<<sigma1_1<<setw(16)<<sigma1_2
-		       <<setw(16)<<sigma2_1<<setw(16)<<sigma2_2
-		       <<setw(16)<<sigma3_1<<setw(16)<<sigma3_2
-		       <<setw(16)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(16)<<l24<<setw(16)<<l13<<setw(16)<<l56
-		       <<setw(16)<<Volume
-		       <<setw(16)<<epsilon_w
-		       <<setw(16)<<epsilon_l
-		       <<setw(16)<<epsilon_h
-		       <<setw(16)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(16)<<void_ratio
-		       <<setw(16)<<void_ratio/(1+void_ratio)
-		       <<setw(16)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(WIDTH)<<g_iteration
+		       <<setw(WIDTH)<<getPossCntctNum()
+		       <<setw(WIDTH)<<getActualCntctNum()
+		       <<setw(WIDTH)<<getAveragePenetration()
+		       <<setw(WIDTH)<<avgNormal
+		       <<setw(WIDTH)<<avgTangt
+		       <<setw(WIDTH)<<getAverageVelocity() 
+		       <<setw(WIDTH)<<getAverageOmga()
+		       <<setw(WIDTH)<<getAverageForce()    
+		       <<setw(WIDTH)<<getAverageMoment()
+		       <<setw(WIDTH)<<getDensity()
+		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
+		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
+		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
+		       <<setw(WIDTH)<<Volume
+		       <<setw(WIDTH)<<epsilon_w
+		       <<setw(WIDTH)<<epsilon_l
+		       <<setw(WIDTH)<<epsilon_h
+		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(WIDTH)<<void_ratio
+		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
+		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -6499,7 +6635,7 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 	g_iteration=0;
 	do{
                 cout<<"DircShearing..."<<g_iteration<<endl;
-		progressinf<<setw(10)<<g_iteration;
+		progressinf<<setw(WIDTH)<<g_iteration;
 
 		findParticleOnBoundary();
 		findContact();
@@ -6507,10 +6643,10 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 		internalForce(avgNormal, avgTangt);
 		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(16)<<getAverageVelocity()
-		         <<setw(16)<<getAverageOmga()
-		         <<setw(16)<<getAverageForce()
-			 <<setw(16)<<getAverageMoment()<<endl;
+		progressinf<<setw(WIDTH)<<getAverageVelocity()
+		         <<setw(WIDTH)<<getAverageOmga()
+		         <<setw(WIDTH)<<getAverageForce()
+			 <<setw(WIDTH)<<getAverageMoment()<<endl;
 		contactUpdate();
 		updateParticle();
 
@@ -6557,7 +6693,6 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 			fprintf(fprslt,"\n");
 		}
 	}while(++g_iteration<10000);
-//	displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
 	printParticle(resultfile);
@@ -6606,7 +6741,7 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 	g_iteration=0;
 	do{
                 cout<<"Soft_tric..."<<g_iteration<<endl;
-		progressinf<<setw(10)<<g_iteration;
+		progressinf<<setw(WIDTH)<<g_iteration;
 
 		findParticleOnBoundary();
 		findParticleOnLine();
@@ -6619,11 +6754,11 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 		internalForce();
 		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(16)<<(av=getAverageVelocity())
-		         <<setw(16)<<(ao=getAverageOmga())
-		         <<setw(16)<<(af=getAverageForce())
-		         <<setw(16)<<(am=getAverageMoment())
-			 <<setw(16)<<(adr=avgDgrFric());
+		progressinf<<setw(WIDTH)<<(av=getAverageVelocity())
+		         <<setw(WIDTH)<<(ao=getAverageOmga())
+		         <<setw(WIDTH)<<(af=getAverageForce())
+		         <<setw(WIDTH)<<(am=getAverageMoment())
+			 <<setw(WIDTH)<<(adr=avgDgrFric());
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();
@@ -6651,7 +6786,6 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 	updateParticle();
 	pre_af=af;
 	}while(++g_iteration<1000000);
-//	displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
 	printParticle(resultfile);
@@ -6706,7 +6840,7 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 	g_iteration=0;
 	do{
                 cout<<"Shallow Foundation..."<<g_iteration<<endl;
-		progressinf<<setw(10)<<g_iteration;
+		progressinf<<setw(WIDTH)<<g_iteration;
 
 		findParticleOnBoundary();
 		findParticleOnLine();
@@ -6720,11 +6854,11 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 		internalForce();
 		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(16)<<(av=getAverageVelocity())
-		         <<setw(16)<<(ao=getAverageOmga())
-		         <<setw(16)<<(af=getAverageForce())
-		         <<setw(16)<<(am=getAverageMoment())
-			 <<setw(16)<<(adr=avgDgrFric());
+		progressinf<<setw(WIDTH)<<(av=getAverageVelocity())
+		         <<setw(WIDTH)<<(ao=getAverageOmga())
+		         <<setw(WIDTH)<<(af=getAverageForce())
+		         <<setw(WIDTH)<<(am=getAverageMoment())
+			 <<setw(WIDTH)<<(adr=avgDgrFric());
 
 		contactUpdate();
 		
@@ -6758,7 +6892,6 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 		updateParticle();
 		pre_af=af;
 	}while(++g_iteration<1000000);
-//	displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
 	printParticle(resultfile);
@@ -6825,7 +6958,7 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 	g_iteration=0;
 	do{
                 cout<<"SimpleShearinging..."<<g_iteration<<endl;
-		progressinf<<setw(10)<<g_iteration;
+		progressinf<<setw(WIDTH)<<g_iteration;
 
 		findParticleOnBoundary();
 		findContact();
@@ -6834,11 +6967,11 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 		rigidBoundaryForce();
 		flexiBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(16)<<(av=getAverageVelocity())
-		         <<setw(16)<<(ao=getAverageOmga())
-		         <<setw(16)<<(af=getAverageForce())
-		         <<setw(16)<<(am=getAverageMoment())
-			 <<setw(16)<<(adr=avgDgrFric());
+		progressinf<<setw(WIDTH)<<(av=getAverageVelocity())
+		         <<setw(WIDTH)<<(ao=getAverageOmga())
+		         <<setw(WIDTH)<<(af=getAverageForce())
+		         <<setw(WIDTH)<<(am=getAverageMoment())
+			 <<setw(WIDTH)<<(adr=avgDgrFric());
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();
@@ -6950,7 +7083,6 @@ disp.x,disp.y,disp.z,angl.x,angl.y,angl.z,nm.x,nm.y,nm.z,sh.x,sh.y,sh.z);
 	updateParticle();
 	pre_af=af;
 	}while(++g_iteration<300000);
-//	displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
 	printParticle(resultfile);
@@ -7003,7 +7135,7 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 	g_iteration=0;
 	do{
 	        cout<<"EarthPressure..."<<g_iteration<<endl;
-		progressinf<<setw(10)<<g_iteration;
+		progressinf<<setw(WIDTH)<<g_iteration;
 
 		findParticleOnBoundary();
 		findParticleOnLine();
@@ -7017,11 +7149,11 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 		rigidBoundaryForce();
 		//track(fp,5);
 
-		progressinf<<setw(16)<<(av=getAverageVelocity())
-		         <<setw(16)<<(ao=getAverageOmga())
-		         <<setw(16)<<(af=getAverageForce())
-		         <<setw(16)<<(am=getAverageMoment())
-			 <<setw(16)<<(adr=avgDgrFric());
+		progressinf<<setw(WIDTH)<<(av=getAverageVelocity())
+		         <<setw(WIDTH)<<(ao=getAverageOmga())
+		         <<setw(WIDTH)<<(af=getAverageForce())
+		         <<setw(WIDTH)<<(am=getAverageMoment())
+			 <<setw(WIDTH)<<(adr=avgDgrFric());
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();
@@ -7060,7 +7192,6 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 	updateParticle();
 	pre_af=af;
 	}while(++g_iteration<1000000);
-	//displayBoundary();
 	fclose(fp);
 	fclose(fprslt);
 	printParticle(resultfile);

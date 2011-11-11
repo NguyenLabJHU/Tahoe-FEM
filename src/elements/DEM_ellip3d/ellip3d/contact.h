@@ -239,11 +239,11 @@ void contact<T>::contactForce(){
 	p2->addMoment(-((point1+point2)/2-p2->getCurrPosition())*NormalForce);	
 	
 	/*
-	g_debuginf<<std::setw(10)<<g_iteration
-		  <<std::setw(16)<<penetration
-		  <<std::setw(16)<<vfabsl(CohesionForce)
-		  <<std::setw(16)<<vfabsl(NormalForce)
-		  <<std::setw(16)<<g_iteration*TIMESTEP
+	g_debuginf<<std::setw(WIDTH)<<g_iteration
+		  <<std::setw(WIDTH)<<penetration
+		  <<std::setw(WIDTH)<<vfabsl(CohesionForce)
+		  <<std::setw(WIDTH)<<vfabsl(NormalForce)
+		  <<std::setw(WIDTH)<<g_iteration*TIMESTEP
 		  <<std::endl;
 	*/
 
@@ -388,14 +388,14 @@ void contact<T>::contactForce(){
 		}
 	    }
 	    /*
-	    g_debuginf<<std::setw(10)<<g_iteration
-		      <<std::setw(05)<<PreTgtSlide
-		      <<std::setw(05)<<TgtSlide
-		      <<std::setw(16)<<val
-		      <<std::setw(16)<<ks
-		      <<std::setw(16)<<TgtDispInc.getx()
-		      <<std::setw(16)<<vfabsl(PreTgtForce)
-		      <<std::setw(16)<<vfabsl(TgtForce)
+	    g_debuginf<<std::setw(WIDTH)<<g_iteration
+		      <<std::setw(WIDTH)<<PreTgtSlide
+		      <<std::setw(WIDTH)<<TgtSlide
+		      <<std::setw(WIDTH)<<val
+		      <<std::setw(WIDTH)<<ks
+		      <<std::setw(WIDTH)<<TgtDispInc.getx()
+		      <<std::setw(WIDTH)<<vfabsl(PreTgtForce)
+		      <<std::setw(WIDTH)<<vfabsl(TgtForce)
 		      <<std::endl;
 	    */
 	    if (vfabsl(TgtForce) > fP)

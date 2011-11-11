@@ -16,7 +16,7 @@ extern const long double PI;
 extern const long double G;
 
 // absolute numeric precision
-extern const long double PREC;
+extern const long double PRECISION;
 
 // random number seed
 extern long idum;
@@ -28,6 +28,10 @@ extern long idum;
 extern const long double YOUNG;  
 extern const long double POISSON;      
 extern const long double Gs;     
+
+// output field width and precision
+extern const int WIDTH;
+extern const int PREC;
 
 // other global variables
 extern std::ofstream g_debuginf;

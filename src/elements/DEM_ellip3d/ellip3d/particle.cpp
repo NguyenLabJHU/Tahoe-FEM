@@ -451,7 +451,7 @@ bool particle::intersectWithLine(vec v, vec dirc, vec rt[]) const{
     
     long double delta=B*B-4*A*C;
     if (delta < 0){
-	g_debuginf<<"g_iteration="<<setw(10)<<g_iteration
+	g_debuginf<<"g_iteration="<<setw(WIDTH)<<g_iteration
 		  <<", delta < 0 in intersectWithLine() of particle.cpp."<<endl;
 	return false;
     }
@@ -538,10 +538,10 @@ long double particle::getRadius(vec v) const{
     // if delta < 0, then it is usually -1.0e-20, caused by computational precision.
     /*
     if (B*B-4*A*C<0){
-	g_debuginf<<"g_iteration="<<setw(10)<<g_iteration
+	g_debuginf<<"g_iteration="<<setw(WIDTH)<<g_iteration
 		  <<", delta < 0 in getRadius() of particle.cpp."
-		  <<setw(16)<<B*B-4*A*C
-		  <<setw(16)<<-C/B
+		  <<setw(WIDTH)<<B*B-4*A*C
+		  <<setw(WIDTH)<<-C/B
 		  <<endl;
     }
     */
@@ -815,21 +815,21 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	vec NormalForce=sqrtl(penetration*penetration*penetration)*sqrtl(R0)*4*E0/3*NormDirc; // powl(penetration,1.5), a serious bug
 
 	/*
-	g_debuginf<<setw(10)<<g_iteration
-		  <<setw(10)<<getID()
-		  <<setw(10)<<plb->bdry_id
-		  <<setw(16)<<pt1.getx()
-		  <<setw(16)<<pt1.gety()
-		  <<setw(16)<<pt1.getz()
-		  <<setw(16)<<rt[0].getx()
-		  <<setw(16)<<rt[0].gety()
-		  <<setw(16)<<rt[0].getz()
-		  <<setw(16)<<rt[1].getx()
-		  <<setw(16)<<rt[1].gety()
-		  <<setw(16)<<rt[1].getz()
-		  <<setw(16)<<vfabsl(rt[0]-pt1)
-		  <<setw(16)<<vfabsl(rt[1]-pt1)
-		  <<setw(16)<<penetration
+	g_debuginf<<setw(WIDTH)<<g_iteration
+		  <<setw(WIDTH)<<getID()
+		  <<setw(WIDTH)<<plb->bdry_id
+		  <<setw(WIDTH)<<pt1.getx()
+		  <<setw(WIDTH)<<pt1.gety()
+		  <<setw(WIDTH)<<pt1.getz()
+		  <<setw(WIDTH)<<rt[0].getx()
+		  <<setw(WIDTH)<<rt[0].gety()
+		  <<setw(WIDTH)<<rt[0].getz()
+		  <<setw(WIDTH)<<rt[1].getx()
+		  <<setw(WIDTH)<<rt[1].gety()
+		  <<setw(WIDTH)<<rt[1].getz()
+		  <<setw(WIDTH)<<vfabsl(rt[0]-pt1)
+		  <<setw(WIDTH)<<vfabsl(rt[1]-pt1)
+		  <<setw(WIDTH)<<penetration
 		  <<endl;
 	*/
 

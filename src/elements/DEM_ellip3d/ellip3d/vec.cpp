@@ -154,7 +154,7 @@ vec normalize(vec v){
 
 vec rotateVec(vec v, vec ang){
     long double alf=vfabsl(ang);
-    if (alf<PREC) 
+    if (alf<PRECISION) 
 	return v;
 
     vec nx=ang/alf;
@@ -164,11 +164,11 @@ vec rotateVec(vec v, vec ang){
     long double theta=atanl(vfabsl(vv)/vfabsl(vp));
 #ifdef DEBUG
 	if (g_iteration == 50000)
-    g_debuginf<<"vec: g_iteration="<<setw(10)<<g_iteration 
-	      <<" alf="<<setw(16)<<alf
-	      <<" theta="<<setw(16)<<theta<<endl;
+    g_debuginf<<"vec: g_iteration="<<setw(WIDTH)<<g_iteration 
+	      <<" alf="<<setw(WIDTH)<<alf
+	      <<" theta="<<setw(WIDTH)<<theta<<endl;
 #endif
-    if (theta<PREC) 
+    if (theta<PRECISION) 
 	return v;    
 
     vec ny=normalize(vv);

@@ -156,7 +156,7 @@ private:
 	long double mass;
 	long double volume;
 	vec  J;              // moment of inertia in local body-fixed frame
-	long double coef[10];// records particle's coefficients in global coordinates
+	long double coef[10];// record particle's coefficients in global coordinates
 	long double kinetEnergy; // kinetic energy
 	int  cntnum;
 
