@@ -474,7 +474,7 @@ bool particle::intersectWithLine(vec v, vec dirc, vec rt[]) const{
 //       in local frame, x^2/a^2 + y^2/b^2 + z^2/c^2 =1, in
 //       seeking appropriate osculating circle among an infinite number of
 //       osculating circles passing through the contact point.
-//    2. r = r1*r2/(r1+r2)
+//    2. r = 2*r1*r2/(r1+r2)
 //    3. It is important to eliminate float exceptions in computations, that is, 
 //       when dz/dx == infinite, coordinate x & z are switched to use dx/dz == 0.
 //    4. When a point is close to the equator, for example, fabsl(z)==0,
