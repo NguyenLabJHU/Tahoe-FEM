@@ -248,8 +248,8 @@ void contact<T>::contactForce(){
 	// apply normal force
 	p1->addForce(NormalForce);
 	p2->addForce(-NormalForce);
-	p1->addMoment( ((point1+point2)/2-p1->getCurrPosition())*NormalForce);
-	p2->addMoment(-((point1+point2)/2-p2->getCurrPosition())*NormalForce);	
+	p1->addMoment( ( (point1+point2)/2-p1->getCurrPosition() ) *   NormalForce );
+	p2->addMoment( ( (point1+point2)/2-p2->getCurrPosition() ) * (-NormalForce) );	
 	
 	/*
 	g_debuginf<<std::setw(OWID)<<g_iteration
@@ -274,6 +274,8 @@ void contact<T>::contactForce(){
 	// apply normal damping force
 	p1->addForce(-CntDampingForce);
 	p2->addForce(CntDampingForce);
+	p1->addMoment( ( (point1+point2)/2-p1->getCurrPosition() ) * (-CntDampingForce) );
+	p2->addMoment( ( (point1+point2)/2-p2->getCurrPosition() ) * CntDampingForce );
 
 	if (FRICTION != 0) {
 	    // obtain tangential force

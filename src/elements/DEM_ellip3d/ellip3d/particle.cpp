@@ -854,6 +854,7 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 
 	// apply normal damping force
 	addForce(CntDampingForce);
+	addMoment(((pt1+pt2)/2-curr_position)*CntDampingForce);
 
 	vec TgtForce = 0;
 	if (BDRYFRIC != 0){
