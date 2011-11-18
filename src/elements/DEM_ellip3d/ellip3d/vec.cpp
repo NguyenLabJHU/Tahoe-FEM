@@ -163,10 +163,9 @@ vec rotateVec(vec v, vec ang){
 
     long double theta=atanl(vfabsl(vv)/vfabsl(vp));
 #ifdef DEBUG
-	if (g_iteration == 50000)
-    g_debuginf<<"vec: g_iteration="<<setw(OWID)<<g_iteration 
-	      <<" alf="<<setw(OWID)<<alf
-	      <<" theta="<<setw(OWID)<<theta<<endl;
+    g_debuginf<<"vec.cpp: g_iteration="<<g_iteration 
+	      <<" alf="<<alf
+	      <<" theta="<<theta<<endl;
 #endif
     if (theta<NUMZERO) // important, otherwise my cause numerical instability
 	return v;    

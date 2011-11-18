@@ -451,8 +451,8 @@ bool particle::intersectWithLine(vec v, vec dirc, vec rt[]) const{
     
     long double delta=B*B-4*A*C;
     if (delta < 0){
-	g_debuginf<<"g_iteration="<<setw(OWID)<<g_iteration
-		  <<", delta < 0 in intersectWithLine() of particle.cpp."<<endl;
+	g_debuginf<<"particle.cpp: g_iteration="<<g_iteration
+		  <<" delta < 0 in intersectWithLine()"<<endl;
 	return false;
     }
     else{
@@ -538,10 +538,10 @@ long double particle::getRadius(vec v) const{
     // if delta < 0, then it is usually -1.0e-20, caused by computational precision.
     /*
     if (B*B-4*A*C<0){
-	g_debuginf<<"g_iteration="<<setw(OWID)<<g_iteration
-		  <<", delta < 0 in getRadius() of particle.cpp."
-		  <<setw(OWID)<<B*B-4*A*C
-		  <<setw(OWID)<<-C/B
+	g_debuginf<<"particle.cpp: g_iteration="<<g_iteration
+		  <<" delta < 0 in getRadius()"
+		  <<" delta="<<B*B-4*A*C
+		  <<" -C/B="<<-C/B
 		  <<endl;
     }
     */
@@ -813,32 +813,32 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	long double E0=YOUNG/(1-POISSON*POISSON); // rigid wall has infinite YOUNG's modulus
 	long double allowedOverlap = 2.0 * R0 * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
-	  g_debuginf << "in particle.cpp: g_iteration=" << g_iteration 
-		     << " ,particle=" << getID()
-		     << " ,boundary pentration=" << penetration 
-		     << " ,exceeding allowable value=" << allowedOverlap 
-		     << " ,use smaller time step!" << std::endl;
+	  g_debuginf << "particle.cpp: g_iteration=" << g_iteration 
+		     << " particle=" << getID()
+		     << " boundary pentration=" << penetration 
+		     << " exceeding allowable value=" << allowedOverlap 
+		     << " use smaller time step!" << std::endl;
 	  penetration = allowedOverlap;
 	}
 	vec NormDirc=-dirc; //normalize(pt1-pt2);
 	vec NormalForce=sqrtl(penetration*penetration*penetration)*sqrtl(R0)*4*E0/3*NormDirc; // powl(penetration,1.5), a serious bug
 
 	/*
-	g_debuginf<<setw(OWID)<<g_iteration
-		  <<setw(OWID)<<getID()
-		  <<setw(OWID)<<plb->bdry_id
-		  <<setw(OWID)<<pt1.getx()
-		  <<setw(OWID)<<pt1.gety()
-		  <<setw(OWID)<<pt1.getz()
-		  <<setw(OWID)<<rt[0].getx()
-		  <<setw(OWID)<<rt[0].gety()
-		  <<setw(OWID)<<rt[0].getz()
-		  <<setw(OWID)<<rt[1].getx()
-		  <<setw(OWID)<<rt[1].gety()
-		  <<setw(OWID)<<rt[1].getz()
-		  <<setw(OWID)<<vfabsl(rt[0]-pt1)
-		  <<setw(OWID)<<vfabsl(rt[1]-pt1)
-		  <<setw(OWID)<<penetration
+	g_debuginf<<" "<<g_iteration
+		  <<" "<<getID()
+		  <<" "<<plb->bdry_id
+		  <<" "<<pt1.getx()
+		  <<" "<<pt1.gety()
+		  <<" "<<pt1.getz()
+		  <<" "<<rt[0].getx()
+		  <<" "<<rt[0].gety()
+		  <<" "<<rt[0].getz()
+		  <<" "<<rt[1].getx()
+		  <<" "<<rt[1].gety()
+		  <<" "<<rt[1].getz()
+		  <<" "<<vfabsl(rt[0]-pt1)
+		  <<" "<<vfabsl(rt[1]-pt1)
+		  <<" "<<penetration
 		  <<endl;
 	*/
 
@@ -970,13 +970,13 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 
 	    /*
 	    if (g_iteration%100==0)  
-	    g_debuginf<<g_iteration
-		      <<"  "<<vfabsl(NormalForce)
-		      <<"  "<<vfabsl(CntDampingForce)
-		      <<"  "<<kn
-		      <<"  "<<vfabsl(TgtForce)
-		      <<"  "<<vfabsl(FricDampingForce)
-		      <<"  "<<ks
+	    g_debuginf<<"particle.cpp, g_iteraion="<<g_iteration
+		      <<" NormalForce="<<vfabsl(NormalForce)
+		      <<" CntDampingForce= "<<vfabsl(CntDampingForce)
+		      <<" kn="<<kn
+		      <<" TgtForce="<<vfabsl(TgtForce)
+		      <<" FricDampingForce="<<vfabsl(FricDampingForce)
+		      <<" ks="<<ks
 		      <<endl;
 	    */
 	    /////////////////////////////////////////////////////////////////////////////////////////////////////////

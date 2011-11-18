@@ -230,12 +230,12 @@ void contact<T>::contactForce(){
 	E0=0.5*YOUNG/(1-POISSON*POISSON);
 	long double allowedOverlap = 2.0 * std::min(radius1,radius2) * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
-	  g_debuginf << "in contact.h: g_iteration=" << g_iteration 
-		     << " ,particle1=" << getP1()->getID()
-		     << " ,particle2=" << getP2()->getID()
-		     << " ,pentration=" << penetration 
-		     << " ,exceeding allowable value=" << allowedOverlap 
-		     << " ,use smaller time step!" << std::endl;
+	  g_debuginf << "contact.h: g_iteration=" << g_iteration 
+		     << " particle1=" << getP1()->getID()
+		     << " particle2=" << getP2()->getID()
+		     << " pentration=" << penetration 
+		     << " exceeding allowable value=" << allowedOverlap 
+		     << " use smaller time step!" << std::endl;
 	  penetration = allowedOverlap;
 	}
 	NormDirc=normalize(point1-point2);         // NormDirc points out of particle 1
@@ -254,11 +254,11 @@ void contact<T>::contactForce(){
 	p2->addMoment( ( (point1+point2)/2-p2->getCurrPosition() ) * (-NormalForce) );	
 	
 	/*
-	g_debuginf<<std::setw(OWID)<<g_iteration
-		  <<std::setw(OWID)<<penetration
-		  <<std::setw(OWID)<<vfabsl(CohesionForce)
-		  <<std::setw(OWID)<<vfabsl(NormalForce)
-		  <<std::setw(OWID)<<g_iteration*TIMESTEP
+	g_debuginf<<"contact.h: g_iteration="<<g_iteration
+		  <<" penetration="<<penetration
+		  <<" CohesionForce="<<vfabsl(CohesionForce)
+		  <<" NormalForce="<<vfabsl(NormalForce)
+		  <<" accumulated time="<<g_iteration*TIMESTEP
 		  <<std::endl;
 	*/
 
@@ -405,17 +405,19 @@ void contact<T>::contactForce(){
 		    }
 		}
 	    }
+	    
 	    /*
-	    g_debuginf<<std::setw(OWID)<<g_iteration
-		      <<std::setw(OWID)<<PreTgtSlide
-		      <<std::setw(OWID)<<TgtSlide
-		      <<std::setw(OWID)<<val
-		      <<std::setw(OWID)<<ks
-		      <<std::setw(OWID)<<TgtDispInc.getx()
-		      <<std::setw(OWID)<<vfabsl(PreTgtForce)
-		      <<std::setw(OWID)<<vfabsl(TgtForce)
+	    g_debuginf<<"contact.h: g_iteration="<g_iteration
+		      <<" PreTgtSlide="<<PreTgtSlide
+		      <<" TgtSlide="<<TgtSlide
+		      <<" val="<<val
+		      <<" ks="<<ks
+		      <<" TgtDispInc.x="<<TgtDispInc.getx()
+		      <<" PreTgtForce="<<vfabsl(PreTgtForce)
+		      <<" TgtForce"<<vfabsl(TgtForce)
 		      <<std::endl;
 	    */
+
 	    if (vfabsl(TgtForce) > fP)
 		TgtForce = fP*TgtDirc;
 #endif	    

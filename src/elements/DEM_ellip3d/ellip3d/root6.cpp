@@ -23,7 +23,6 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
-#define NUMBER 50000
 using namespace std;
 
 namespace dem {
@@ -1875,22 +1874,19 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	for (int k=0;k<=order;k++)
 	    rtc[k]/=rtc[order];
 
-        #ifdef DEBUG  // tested: order==6 whether or not in contact
-	if (g_iteration == NUMBER)
-	g_debuginf<<endl
-		  <<"root6: g_iteration="<<setw(OWID)<<g_iteration
-		  <<" order="<<setw(OWID)<<order<<endl;
-	#endif
+#ifdef DEBUG  // tested: order==6 whether or not in contact
+	g_debuginf<<"root6.cpp: g_iteration="<<g_iteration
+		  <<" order="<<order<<endl;
+#endif
 
 	if (!zrhqr(rtc, order, rtr, rti)) // find roots for a polynomial using eigenvalues method
 	    return false;
 
-	#ifdef DEBUG
-	if (g_iteration == NUMBER)
+#ifdef DEBUG
 	for (int k=1;k<=order;k++){
-	  g_debuginf<<"root6: rtr rti"<<setw(OWID)<<rtr[k]<<setw(OWID)<<rti[k]<<endl;
+	  g_debuginf<<"root6.cpp: rtr="<<rtr[k]<<" rti="<<rti[k]<<endl;
 	}
-	#endif
+#endif
 
 	long double lamda[6];
 	int jj=0;
@@ -1899,10 +1895,9 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 		lamda[jj++]=rtr[k];
 	}
 
-	#ifdef DEBUG
-	if (g_iteration == NUMBER)
-	g_debuginf<<"root6: jj="<<setw(OWID)<<jj<<endl;
-	#endif
+#ifdef DEBUG
+	g_debuginf<<"root6.cpp: jj="<<jj<<endl;
+#endif
 
 	long double x, y, z, det, within;
 	bool found=false;
@@ -1975,14 +1970,12 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	    
 		within = a1*x*x+b1*y*y+c1*z*z+d1*x*y+e1*y*z+f1*z*x+g1*x+h1*y+i1*z+j1;
 		
-                #ifdef DEBUG
-	if (g_iteration == NUMBER)
-		g_debuginf<<"root6: k="
-			  <<setw(OWID)<<k
-			  <<" det="<<setw(OWID)<<det
-			  <<" x y z="<<setw(OWID)<<x<<setw(OWID)<<y<<setw(OWID)<<z
-			  <<" within="<<setw(OWID)<<within<<endl;
-                #endif
+#ifdef DEBUG
+		g_debuginf<<"root6.cpp: k="<<k
+			  <<" det="<<det
+			  <<" x="<< x <<" y="<< y <<" z="<< z
+			  <<" within="<<within<<endl;
+#endif
 		
 		// in theory we need to seek the smallest within (when it < 0), 
 		// but tests show there is only one < 0  in the loop no matter what jj is.
@@ -1993,13 +1986,11 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 		}
 	    }
 	    else {
-		#ifdef DEBUG
-	if (g_iteration == NUMBER)
-		g_debuginf<<"root6: k="
-			  <<setw(OWID)<<k
-			  <<" det="<<setw(OWID)<<det
-			  <<" determinant is 0!" <<endl;
-                #endif
+#ifdef DEBUG
+	      g_debuginf<<"root6: k="<<k
+			<<" det="<<det
+			<<" determinant is 0!" <<endl;
+#endif
 	    }
 	}
 	return found;
