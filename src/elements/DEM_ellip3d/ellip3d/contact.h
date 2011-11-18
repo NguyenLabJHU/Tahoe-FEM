@@ -226,6 +226,16 @@ void contact<T>::contactForce(){
 	R0=radius1*radius2/(radius1+radius2);
 	contact_radius=sqrtl(penetration*R0);
 	E0=0.5*YOUNG/(1-POISSON*POISSON);
+	long double allowedOverlap = 2.0 * std::min(radius1,radius2) * MAXOVERLAP;
+	if (penetration > allowedOverlap) {
+	  g_debuginf << "in contact.h: g_iteration=" << g_iteration 
+		     << " ,particle1=" << getP1()
+		     << " ,particle2=" << getP2()
+		     << " ,pentration=" << penetration 
+		     << " ,exceeding allowable value=" << allowedOverlap 
+		     << " ,use smaller time step!" << std::endl;
+	  penetration = allowedOverlap;
+	}
 	NormDirc=normalize(point1-point2);         // NormDirc points out of particle 1
 	NormalForce= -sqrtl(penetration*penetration*penetration)*sqrtl(R0)*4*E0/3* NormDirc; // NormalForce pointing to particle 1
 	// powl(penetration, 1.5)

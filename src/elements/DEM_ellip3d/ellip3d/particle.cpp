@@ -811,6 +811,15 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	long double R0=getRadius(pt2);
 	long double contact_radius=sqrtl(penetration*R0);
 	long double E0=YOUNG/(1-POISSON*POISSON); // rigid wall has infinite YOUNG's modulus
+	long double allowedOverlap = 2.0 * R0 * MAXOVERLAP;
+	if (penetration > allowedOverlap) {
+	  g_debuginf << "in particle.cpp: g_iteration=" << g_iteration 
+		     << " ,particle=" << getID()
+		     << " ,boundary pentration=" << penetration 
+		     << " ,exceeding allowable value=" << allowedOverlap 
+		     << " ,use smaller time step!" << std::endl;
+	  penetration = allowedOverlap;
+	}
 	vec NormDirc=-dirc; //normalize(pt1-pt2);
 	vec NormalForce=sqrtl(penetration*penetration*penetration)*sqrtl(R0)*4*E0/3*NormDirc; // powl(penetration,1.5), a serious bug
 
