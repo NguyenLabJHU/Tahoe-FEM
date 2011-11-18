@@ -45,15 +45,15 @@ typedef struct bdryfunc{
 		printf("radius %10.6Lf and side %5d:\n",rad,side);
 	}
 	void disp(std::ofstream &ofs) const{
-	    ofs<<std::setw(WIDTH)<<order
-	       <<std::setw(WIDTH)<<dirc.getx()
-	       <<std::setw(WIDTH)<<dirc.gety()
-	       <<std::setw(WIDTH)<<dirc.getz()
-	       <<std::setw(WIDTH)<<apt.getx()
-	       <<std::setw(WIDTH)<<apt.gety()
-	       <<std::setw(WIDTH)<<apt.getz()
-	       <<std::setw(WIDTH)<<rad
-	       <<std::setw(WIDTH)<<side<<std::endl;
+	    ofs<<std::setw(OWID)<<order
+	       <<std::setw(OWID)<<dirc.getx()
+	       <<std::setw(OWID)<<dirc.gety()
+	       <<std::setw(OWID)<<dirc.getz()
+	       <<std::setw(OWID)<<apt.getx()
+	       <<std::setw(OWID)<<apt.gety()
+	       <<std::setw(OWID)<<apt.getz()
+	       <<std::setw(OWID)<<rad
+	       <<std::setw(OWID)<<side<<std::endl;
 	}
 } BdryCoef;
 
@@ -133,10 +133,10 @@ public:
 	virtual void disp(std::ofstream &ofs) const{
 		std::vector<BdryCoef>::const_iterator it;
 		ofs <<std::endl
-		    <<std::setw(WIDTH)<<(*CoefOfLimits.begin()).order<<std::endl;
-		ofs <<std::setw(WIDTH)<<bdry_id
-		    <<std::setw(WIDTH)<<limitnum
-		    <<std::setw(WIDTH)<<area <<std::endl;
+		    <<std::setw(OWID)<<(*CoefOfLimits.begin()).order<<std::endl;
+		ofs <<std::setw(OWID)<<bdry_id
+		    <<std::setw(OWID)<<limitnum
+		    <<std::setw(OWID)<<area <<std::endl;
 		for(it=CoefOfLimits.begin();it!=CoefOfLimits.end();++it)
 			(*it).disp(ofs);
 	}
@@ -312,7 +312,7 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 	    if(dist>=0 || fabsl(dist) > (*it)->getA()) // outside to CoefOfLimits[0] or inside too much
 		continue;
 	    next=true;
-	    //g_debuginf<<std::setw(WIDTH)<<g_iteration <<std::setw(WIDTH)<<getBdryID()<<std::setw(WIDTH)<<(*it)->getID();
+	    //g_debuginf<<std::setw(OWID)<<g_iteration <<std::setw(OWID)<<getBdryID()<<std::setw(OWID)<<(*it)->getID();
 	    for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){ // CoefOfLimits[1,2,...]
 		ndirc=normalize((*bt).dirc);
 		r=vfabsl((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);

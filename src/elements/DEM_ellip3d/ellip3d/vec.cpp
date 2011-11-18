@@ -154,7 +154,7 @@ vec normalize(vec v){
 
 vec rotateVec(vec v, vec ang){
     long double alf=vfabsl(ang);
-    if (alf<PRECISION) 
+    if (alf<NUMZERO) // important, otherwise my cause numerical instability
 	return v;
 
     vec nx=ang/alf;
@@ -164,15 +164,15 @@ vec rotateVec(vec v, vec ang){
     long double theta=atanl(vfabsl(vv)/vfabsl(vp));
 #ifdef DEBUG
 	if (g_iteration == 50000)
-    g_debuginf<<"vec: g_iteration="<<setw(WIDTH)<<g_iteration 
-	      <<" alf="<<setw(WIDTH)<<alf
-	      <<" theta="<<setw(WIDTH)<<theta<<endl;
+    g_debuginf<<"vec: g_iteration="<<setw(OWID)<<g_iteration 
+	      <<" alf="<<setw(OWID)<<alf
+	      <<" theta="<<setw(OWID)<<theta<<endl;
 #endif
-    if (theta<PRECISION) 
+    if (theta<NUMZERO) // important, otherwise my cause numerical instability
 	return v;    
 
     vec ny=normalize(vv);
-    vec nz=normalize(nx*ny); // normalize, for better precision
+    vec nz=normalize(nx*ny); // normalize, for higher precision
     long double l=vfabsl(vv);
     return l*sinl(alf)*nz + l*cosl(alf)*ny + vp;
 }

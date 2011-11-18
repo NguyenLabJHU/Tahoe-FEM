@@ -15,8 +15,13 @@ extern const long double PI;
 // Gravitational acceleration
 extern const long double G;
 
-// absolute numeric precision
-extern const long double PRECISION;
+
+// numeric zero (NOT float point relative precision), problem domain dependent
+extern const long double NUMZERO;
+
+// relative overlap between particles
+extern const long double MINOVERLAP;
+extern const long double MAXOVERLAP;
 
 // random number seed
 extern long idum;
@@ -29,13 +34,13 @@ extern const long double YOUNG;
 extern const long double POISSON;      
 extern const long double Gs;     
 
-// output field width and precision
-extern const int WIDTH;
-extern const int PREC;
-
 // other global variables
 extern std::ofstream g_debuginf;
 extern int g_iteration;
+
+// output field width and precision
+extern const int OWID;
+extern const int OPREC;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Part B: These parameters may change frequently and can be easily edited in main.cpp

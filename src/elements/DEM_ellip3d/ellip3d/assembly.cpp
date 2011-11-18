@@ -61,102 +61,102 @@ void assembly::printParticle(const char* str) const
 	cout<<"stream error in printParticle!"<<endl; exit(-1);
     }
     ofs.setf(ios::scientific, ios::floatfield);
-    ofs.precision(PREC);
-    ofs<<setw(WIDTH)<<TotalNum<<setw(WIDTH)<<RORC<<endl;
+    ofs.precision(OPREC);
+    ofs<<setw(OWID)<<TotalNum<<setw(OWID)<<RORC<<endl;
     if(RORC==0)
-	ofs<<setw(WIDTH)<<S.get_center().getx()
-	   <<setw(WIDTH)<<S.get_center().gety()
-	   <<setw(WIDTH)<<S.get_center().getz()
-	   <<setw(WIDTH)<<S.get_radius()
-	   <<setw(WIDTH)<<S.get_height()<<endl;
+	ofs<<setw(OWID)<<S.get_center().getx()
+	   <<setw(OWID)<<S.get_center().gety()
+	   <<setw(OWID)<<S.get_center().getz()
+	   <<setw(OWID)<<S.get_radius()
+	   <<setw(OWID)<<S.get_height()<<endl;
     else
-	ofs<<setw(WIDTH)<<R.get_center().getx()
-	   <<setw(WIDTH)<<R.get_center().gety()
-	   <<setw(WIDTH)<<R.get_center().getz()
-	   <<setw(WIDTH)<<R.get_width()
-	   <<setw(WIDTH)<<R.get_length()
-	   <<setw(WIDTH)<<R.get_height()<<endl;
+	ofs<<setw(OWID)<<R.get_center().getx()
+	   <<setw(OWID)<<R.get_center().gety()
+	   <<setw(OWID)<<R.get_center().getz()
+	   <<setw(OWID)<<R.get_width()
+	   <<setw(OWID)<<R.get_length()
+	   <<setw(OWID)<<R.get_height()<<endl;
 
-    ofs<<setw(WIDTH)<<"ID"
-       <<setw(WIDTH)<<"type"
-       <<setw(WIDTH)<<"radius_a"
-       <<setw(WIDTH)<<"radius_b"
-       <<setw(WIDTH)<<"radius_c"
-       <<setw(WIDTH)<<"position_x"
-       <<setw(WIDTH)<<"position_y"
-       <<setw(WIDTH)<<"position_z"
-       <<setw(WIDTH)<<"axle_a_x"
-       <<setw(WIDTH)<<"axle_a_y"
-       <<setw(WIDTH)<<"axle_a_z"
-       <<setw(WIDTH)<<"axle_b_x"
-       <<setw(WIDTH)<<"axle_b_y"
-       <<setw(WIDTH)<<"axle_b_z"
-       <<setw(WIDTH)<<"axle_c_x"
-       <<setw(WIDTH)<<"axle_c_y"
-       <<setw(WIDTH)<<"axle_c_z"
-       <<setw(WIDTH)<<"velocity_x"
-       <<setw(WIDTH)<<"velocity_y"
-       <<setw(WIDTH)<<"velocity_z"
-       <<setw(WIDTH)<<"omga_x"
-       <<setw(WIDTH)<<"omga_y"
-       <<setw(WIDTH)<<"omga_z"
-       <<setw(WIDTH)<<"force_x"
-       <<setw(WIDTH)<<"force_y"
-       <<setw(WIDTH)<<"force_z"
-       <<setw(WIDTH)<<"moment_x"
-       <<setw(WIDTH)<<"moment_y"
-       <<setw(WIDTH)<<"moment_z"
+    ofs<<setw(OWID)<<"ID"
+       <<setw(OWID)<<"type"
+       <<setw(OWID)<<"radius_a"
+       <<setw(OWID)<<"radius_b"
+       <<setw(OWID)<<"radius_c"
+       <<setw(OWID)<<"position_x"
+       <<setw(OWID)<<"position_y"
+       <<setw(OWID)<<"position_z"
+       <<setw(OWID)<<"axle_a_x"
+       <<setw(OWID)<<"axle_a_y"
+       <<setw(OWID)<<"axle_a_z"
+       <<setw(OWID)<<"axle_b_x"
+       <<setw(OWID)<<"axle_b_y"
+       <<setw(OWID)<<"axle_b_z"
+       <<setw(OWID)<<"axle_c_x"
+       <<setw(OWID)<<"axle_c_y"
+       <<setw(OWID)<<"axle_c_z"
+       <<setw(OWID)<<"velocity_x"
+       <<setw(OWID)<<"velocity_y"
+       <<setw(OWID)<<"velocity_z"
+       <<setw(OWID)<<"omga_x"
+       <<setw(OWID)<<"omga_y"
+       <<setw(OWID)<<"omga_z"
+       <<setw(OWID)<<"force_x"
+       <<setw(OWID)<<"force_y"
+       <<setw(OWID)<<"force_z"
+       <<setw(OWID)<<"moment_x"
+       <<setw(OWID)<<"moment_y"
+       <<setw(OWID)<<"moment_z"
        <<endl;
 
     vec tmp;
     list<particle*>::const_iterator  it;
     for (it=ParticleList.begin();it!=ParticleList.end();++it)
     {
-	ofs<<setw(WIDTH)<<(*it)->getID()
-	   <<setw(WIDTH)<<(*it)->getType()
-	   <<setw(WIDTH)<<(*it)->getA()
-	   <<setw(WIDTH)<<(*it)->getB()
-	   <<setw(WIDTH)<<(*it)->getC();
+	ofs<<setw(OWID)<<(*it)->getID()
+	   <<setw(OWID)<<(*it)->getType()
+	   <<setw(OWID)<<(*it)->getA()
+	   <<setw(OWID)<<(*it)->getB()
+	   <<setw(OWID)<<(*it)->getC();
 	
 	tmp=(*it)->getCurrPosition();
-	ofs<<setw(WIDTH)<<tmp.getx()
-	   <<setw(WIDTH)<<tmp.gety()
-	   <<setw(WIDTH)<<tmp.getz();
+	ofs<<setw(OWID)<<tmp.getx()
+	   <<setw(OWID)<<tmp.gety()
+	   <<setw(OWID)<<tmp.getz();
 	
 	tmp=(*it)->getCurrDirecA();
-	ofs<<setw(WIDTH)<<tmp.getx()
-	   <<setw(WIDTH)<<tmp.gety()
-	   <<setw(WIDTH)<<tmp.getz();
+	ofs<<setw(OWID)<<tmp.getx()
+	   <<setw(OWID)<<tmp.gety()
+	   <<setw(OWID)<<tmp.getz();
 	
 	tmp=(*it)->getCurrDirecB();
-	ofs<<setw(WIDTH)<<tmp.getx()
-	   <<setw(WIDTH)<<tmp.gety()
-	   <<setw(WIDTH)<<tmp.getz();
+	ofs<<setw(OWID)<<tmp.getx()
+	   <<setw(OWID)<<tmp.gety()
+	   <<setw(OWID)<<tmp.getz();
 	
 	tmp=(*it)->getCurrDirecC();
-	ofs<<setw(WIDTH)<<tmp.getx()
-	   <<setw(WIDTH)<<tmp.gety()
-	   <<setw(WIDTH)<<tmp.getz();
+	ofs<<setw(OWID)<<tmp.getx()
+	   <<setw(OWID)<<tmp.gety()
+	   <<setw(OWID)<<tmp.getz();
 	
 	tmp=(*it)->getCurrVelocity();
-	ofs<<setw(WIDTH)<<tmp.getx()
-	   <<setw(WIDTH)<<tmp.gety()
-	   <<setw(WIDTH)<<tmp.getz();
+	ofs<<setw(OWID)<<tmp.getx()
+	   <<setw(OWID)<<tmp.gety()
+	   <<setw(OWID)<<tmp.getz();
 	
 	tmp=(*it)->getCurrOmga();
-	ofs<<setw(WIDTH)<<tmp.getx()
-	   <<setw(WIDTH)<<tmp.gety()
-	   <<setw(WIDTH)<<tmp.getz();
+	ofs<<setw(OWID)<<tmp.getx()
+	   <<setw(OWID)<<tmp.gety()
+	   <<setw(OWID)<<tmp.getz();
 	
 	tmp=(*it)->getForce();
-	ofs<<setw(WIDTH)<<tmp.getx()
-	   <<setw(WIDTH)<<tmp.gety()
-	   <<setw(WIDTH)<<tmp.getz();
+	ofs<<setw(OWID)<<tmp.getx()
+	   <<setw(OWID)<<tmp.gety()
+	   <<setw(OWID)<<tmp.getz();
 	
 	tmp=(*it)->getMoment();
-	ofs<<setw(WIDTH)<<tmp.getx()
-	   <<setw(WIDTH)<<tmp.gety()
-	   <<setw(WIDTH)<<tmp.getz()<<endl;
+	ofs<<setw(OWID)<<tmp.getx()
+	   <<setw(OWID)<<tmp.gety()
+	   <<setw(OWID)<<tmp.getz()<<endl;
     }
 
     ofs.close();
@@ -170,9 +170,9 @@ void assembly::printRectPile(const char* str)
 	cout<<"stream error in printRectPile!"<<endl; exit(-1);
     }
     ofs.setf(ios::scientific, ios::floatfield);
-    ofs.precision(PREC);
+    ofs.precision(OPREC);
 
-    ofs<<setw(WIDTH)<<8<<setw(WIDTH)<<6<<endl;
+    ofs<<setw(OWID)<<8<<setw(OWID)<<6<<endl;
     vec pos[8];
     for(list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
 	if((*rt)->getBdryID()==7){
@@ -206,14 +206,14 @@ void assembly::printRectPile(const char* str)
     }
 
     for (int i=0;i<8;i++)
-	ofs<<setw(WIDTH)<<pos[i].getx()<<setw(WIDTH)<<pos[i].gety()<<setw(WIDTH)<<pos[i].getz()<<endl;
+	ofs<<setw(OWID)<<pos[i].getx()<<setw(OWID)<<pos[i].gety()<<setw(OWID)<<pos[i].getz()<<endl;
 
-    ofs<<setw(WIDTH)<<1<<setw(WIDTH)<<2<<setw(WIDTH)<<6<<setw(WIDTH)<<5<<endl
-       <<setw(WIDTH)<<2<<setw(WIDTH)<<3<<setw(WIDTH)<<7<<setw(WIDTH)<<6<<endl
-       <<setw(WIDTH)<<3<<setw(WIDTH)<<4<<setw(WIDTH)<<8<<setw(WIDTH)<<7<<endl
-       <<setw(WIDTH)<<4<<setw(WIDTH)<<1<<setw(WIDTH)<<5<<setw(WIDTH)<<8<<endl
-       <<setw(WIDTH)<<1<<setw(WIDTH)<<4<<setw(WIDTH)<<3<<setw(WIDTH)<<2<<endl
-       <<setw(WIDTH)<<5<<setw(WIDTH)<<6<<setw(WIDTH)<<7<<setw(WIDTH)<<8<<endl;
+    ofs<<setw(OWID)<<1<<setw(OWID)<<2<<setw(OWID)<<6<<setw(OWID)<<5<<endl
+       <<setw(OWID)<<2<<setw(OWID)<<3<<setw(OWID)<<7<<setw(OWID)<<6<<endl
+       <<setw(OWID)<<3<<setw(OWID)<<4<<setw(OWID)<<8<<setw(OWID)<<7<<endl
+       <<setw(OWID)<<4<<setw(OWID)<<1<<setw(OWID)<<5<<setw(OWID)<<8<<endl
+       <<setw(OWID)<<1<<setw(OWID)<<4<<setw(OWID)<<3<<setw(OWID)<<2<<endl
+       <<setw(OWID)<<5<<setw(OWID)<<6<<setw(OWID)<<7<<setw(OWID)<<8<<endl;
 
     ofs.close();
 }
@@ -235,65 +235,65 @@ void assembly::printContact(const char* str) const
 	cout<<"stream error in printContact!"<<endl; exit(-1);
     }
     ofs.setf(ios::scientific, ios::floatfield);
-    ofs.precision(PREC);
-    ofs<<setw(WIDTH)<<ActualCntctNum<<endl;
-    ofs<<setw(WIDTH)<<"ptcl_1"
-       <<setw(WIDTH)<<"ptcl_2"
-       <<setw(WIDTH)<<"point1_x"
-       <<setw(WIDTH)<<"point1_y"
-       <<setw(WIDTH)<<"point1_z"
-       <<setw(WIDTH)<<"point2_x"
-       <<setw(WIDTH)<<"point2_y"
-       <<setw(WIDTH)<<"point2_z"
-       <<setw(WIDTH)<<"radius_1"
-       <<setw(WIDTH)<<"radius_2"
-       <<setw(WIDTH)<<"penetration"
-       <<setw(WIDTH)<<"tangt_dispmt"
-       <<setw(WIDTH)<<"contact_radius"
-       <<setw(WIDTH)<<"R0"
-       <<setw(WIDTH)<<"E0"
-       <<setw(WIDTH)<<"normal_force"
-       <<setw(WIDTH)<<"tangt_force"
-       <<setw(WIDTH)<<"midpoint_x"
-       <<setw(WIDTH)<<"midpoint_y"
-       <<setw(WIDTH)<<"midpoint_z"
-       <<setw(WIDTH)<<"normal_x"
-       <<setw(WIDTH)<<"normal_y"
-       <<setw(WIDTH)<<"normal_z"
-       <<setw(WIDTH)<<"tangt_x"
-       <<setw(WIDTH)<<"tangt_y"
-       <<setw(WIDTH)<<"tangt_z"
-       <<setw(WIDTH)<<"critical_time"
+    ofs.precision(OPREC);
+    ofs<<setw(OWID)<<ActualCntctNum<<endl;
+    ofs<<setw(OWID)<<"ptcl_1"
+       <<setw(OWID)<<"ptcl_2"
+       <<setw(OWID)<<"point1_x"
+       <<setw(OWID)<<"point1_y"
+       <<setw(OWID)<<"point1_z"
+       <<setw(OWID)<<"point2_x"
+       <<setw(OWID)<<"point2_y"
+       <<setw(OWID)<<"point2_z"
+       <<setw(OWID)<<"radius_1"
+       <<setw(OWID)<<"radius_2"
+       <<setw(OWID)<<"penetration"
+       <<setw(OWID)<<"tangt_dispmt"
+       <<setw(OWID)<<"contact_radius"
+       <<setw(OWID)<<"R0"
+       <<setw(OWID)<<"E0"
+       <<setw(OWID)<<"normal_force"
+       <<setw(OWID)<<"tangt_force"
+       <<setw(OWID)<<"midpoint_x"
+       <<setw(OWID)<<"midpoint_y"
+       <<setw(OWID)<<"midpoint_z"
+       <<setw(OWID)<<"normal_x"
+       <<setw(OWID)<<"normal_y"
+       <<setw(OWID)<<"normal_z"
+       <<setw(OWID)<<"tangt_x"
+       <<setw(OWID)<<"tangt_y"
+       <<setw(OWID)<<"tangt_z"
+       <<setw(OWID)<<"critical_time"
        <<endl;
     list<CONTACT>::const_iterator it;
     for (it=ContactList.begin();it!=ContactList.end();++it)
-	ofs<<setw(WIDTH)<<it->getP1()->getID()
-	   <<setw(WIDTH)<<it->getP2()->getID()
-	   <<setw(WIDTH)<<it->getPoint1().getx()
-	   <<setw(WIDTH)<<it->getPoint1().gety()
-	   <<setw(WIDTH)<<it->getPoint1().getz()
-	   <<setw(WIDTH)<<it->getPoint2().getx()
-	   <<setw(WIDTH)<<it->getPoint2().gety()
-	   <<setw(WIDTH)<<it->getPoint2().getz()
-	   <<setw(WIDTH)<<it->getRadius1()
-	   <<setw(WIDTH)<<it->getRadius2()
-	   <<setw(WIDTH)<<it->getPenetration()
-	   <<setw(WIDTH)<<it->getTgtDisp()
-	   <<setw(WIDTH)<<it->getContactRadius()
-	   <<setw(WIDTH)<<it->getR0()
-	   <<setw(WIDTH)<<it->getE0()
-	   <<setw(WIDTH)<<it->getNormalForce()
-	   <<setw(WIDTH)<<it->getTgtForce()
-	   <<setw(WIDTH)<<( it->getPoint1().getx()+it->getPoint2().getx() )/2
-	   <<setw(WIDTH)<<( it->getPoint1().gety()+it->getPoint2().gety() )/2
-	   <<setw(WIDTH)<<( it->getPoint1().getz()+it->getPoint2().getz() )/2
-	   <<setw(WIDTH)<<it->NormalForceVec().getx()
-	   <<setw(WIDTH)<<it->NormalForceVec().gety()
-	   <<setw(WIDTH)<<it->NormalForceVec().getz()
-	   <<setw(WIDTH)<<it->TgtForceVec().getx()
-	   <<setw(WIDTH)<<it->TgtForceVec().gety()
-	   <<setw(WIDTH)<<it->TgtForceVec().getz()
-	   <<setw(WIDTH)<<it->getTimeStep()
+	ofs<<setw(OWID)<<it->getP1()->getID()
+	   <<setw(OWID)<<it->getP2()->getID()
+	   <<setw(OWID)<<it->getPoint1().getx()
+	   <<setw(OWID)<<it->getPoint1().gety()
+	   <<setw(OWID)<<it->getPoint1().getz()
+	   <<setw(OWID)<<it->getPoint2().getx()
+	   <<setw(OWID)<<it->getPoint2().gety()
+	   <<setw(OWID)<<it->getPoint2().getz()
+	   <<setw(OWID)<<it->getRadius1()
+	   <<setw(OWID)<<it->getRadius2()
+	   <<setw(OWID)<<it->getPenetration()
+	   <<setw(OWID)<<it->getTgtDisp()
+	   <<setw(OWID)<<it->getContactRadius()
+	   <<setw(OWID)<<it->getR0()
+	   <<setw(OWID)<<it->getE0()
+	   <<setw(OWID)<<it->getNormalForce()
+	   <<setw(OWID)<<it->getTgtForce()
+	   <<setw(OWID)<<( it->getPoint1().getx()+it->getPoint2().getx() )/2
+	   <<setw(OWID)<<( it->getPoint1().gety()+it->getPoint2().gety() )/2
+	   <<setw(OWID)<<( it->getPoint1().getz()+it->getPoint2().getz() )/2
+	   <<setw(OWID)<<it->NormalForceVec().getx()
+	   <<setw(OWID)<<it->NormalForceVec().gety()
+	   <<setw(OWID)<<it->NormalForceVec().getz()
+	   <<setw(OWID)<<it->TgtForceVec().getx()
+	   <<setw(OWID)<<it->TgtForceVec().gety()
+	   <<setw(OWID)<<it->TgtForceVec().getz()
+	   <<setw(OWID)<<it->getTimeStep()
 	   <<endl;
     ofs.close();
 }
@@ -411,7 +411,7 @@ void assembly::findContact(){ // OpenMP version
     
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(WIDTH)<<timediffsec(); 
+    g_debuginf<<setw(OWID)<<timediffsec(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -445,7 +445,7 @@ void assembly::findContact(){ // serial version
 
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(WIDTH)<<timediffsec(); 
+    g_debuginf<<setw(OWID)<<timediffsec(); 
 #endif
  
     ActualCntctNum = ContactList.size();
@@ -487,7 +487,7 @@ void assembly::findContact(){
     }
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(WIDTH)<<timediffsec(); 
+    g_debuginf<<setw(OWID)<<timediffsec(); 
 #endif
 	
     ActualCntctNum = ContactList.size();
@@ -787,7 +787,7 @@ void assembly::internalForce(long double& avgnm, long double& avgsh){
 
 #ifdef TIME_PROFILE
 	gettimeofday(&timep2,NULL);
-	g_debuginf<<setw(WIDTH)<<timediffsec()<<endl; 
+	g_debuginf<<setw(OWID)<<timediffsec()<<endl; 
 #endif
 
     }
@@ -859,8 +859,8 @@ void assembly::printBoundary(const char* str) const
     }
     ofs.setf(ios::scientific, ios::floatfield);
 
-    ofs<<setw(WIDTH)<<BdryType
-       <<setw(WIDTH)<<RgdBdryNum<<endl;
+    ofs<<setw(OWID)<<BdryType
+       <<setw(OWID)<<RgdBdryNum<<endl;
     
     list<RGDBDRY*>::const_iterator rt;
     for(rt=RBList.begin();rt!=RBList.end();++rt)
@@ -907,14 +907,14 @@ void assembly::rigidBoundaryForce(){
   for(rt=RBList.begin();rt!=RBList.end();++rt){	
     (*rt)->rigidBF(BdryTgtMap);
     for (it=BdryTgtMap[(*rt)->bdry_id].begin();it!=BdryTgtMap[(*rt)->bdry_id].end();++it){
-      g_debuginf<<setw(WIDTH)<<g_iteration
-		<<setw(WIDTH)<<(*rt)->bdry_id
-		<<setw(WIDTH)<<BdryTgtMap[(*rt)->bdry_id].size()
-		<<setw(WIDTH)<<it->TgtForce.getx()
-		<<setw(WIDTH)<<it->TgtForce.gety()
-		<<setw(WIDTH)<<it->TgtForce.getz()
+      g_debuginf<<setw(OWID)<<g_iteration
+		<<setw(OWID)<<(*rt)->bdry_id
+		<<setw(OWID)<<BdryTgtMap[(*rt)->bdry_id].size()
+		<<setw(OWID)<<it->TgtForce.getx()
+		<<setw(OWID)<<it->TgtForce.gety()
+		<<setw(OWID)<<it->TgtForce.getz()
 		<<endl;
-      //<<setw(WIDTH)<<it->TgtPeak<<endl;
+      //<<setw(OWID)<<it->TgtPeak<<endl;
     }
   }
   */
@@ -1452,828 +1452,828 @@ void assembly::setBoundary(int   rors,
     ofstream ofs(boundaryfile);
     if(!ofs) { cout<<"stream error!"<<endl; exit(-1);}
     ofs.setf(ios::scientific, ios::floatfield);
-    ofs<<setw(WIDTH)<<0
-       <<setw(WIDTH)<<bdrynum<<endl<<endl;
+    ofs<<setw(OWID)<<0
+       <<setw(OWID)<<bdrynum<<endl<<endl;
 
     if (rors == 1){
 	if (bdrynum == 1){   // only a bottom boundary
-	    ofs<<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<6
-	       <<setw(WIDTH)<<5
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	    ofs<<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<6
+	       <<setw(OWID)<<5
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<dimn/2*50
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<dimn/2*50
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2*50
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2*50
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<dimn/2*50
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<dimn/2*50
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2*50
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl;
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2*50
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl;
 	}
 	else if (bdrynum == 4){ // no top/bottom boundary
 	    // boundary 1
-	    ofs<<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	    ofs<<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 2
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<2
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<2
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 3
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<3
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<3
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 4
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl;
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl;
 	}
 	else if (bdrynum == 5){ // no top boundary
 	    // boundary 1
-	    ofs<<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	    ofs<<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 2
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<2
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<2
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 3
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<3
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<3
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 4
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 		
 	       // boundary 6
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<6
-	       <<setw(WIDTH)<<5
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<6
+	       <<setw(OWID)<<5
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl;
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl;
 	}
 	else if (bdrynum == 6){ // all 6 boundaries
 	       // boundary 1
-	    ofs<<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<5
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	    ofs<<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<5
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0       
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0       
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 2
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<2
-	       <<setw(WIDTH)<<5
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<2
+	       <<setw(OWID)<<5
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 3
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<3
-	       <<setw(WIDTH)<<5
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<3
+	       <<setw(OWID)<<5
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0  
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0       
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0  
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0       
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 4
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<4
-	       <<setw(WIDTH)<<5
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<4
+	       <<setw(OWID)<<5
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0     
-	       <<setw(WIDTH)<<dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0     
+	       <<setw(OWID)<<dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 5
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<5
-	       <<setw(WIDTH)<<5
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<5
+	       <<setw(OWID)<<5
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1     
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1     
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl
 
 	       // boundary 6
-	       <<setw(WIDTH)<<1<<endl
-	       <<setw(WIDTH)<<6
-	       <<setw(WIDTH)<<5
-	       <<setw(WIDTH)<<dimn*dimn<<endl
+	       <<setw(OWID)<<1<<endl
+	       <<setw(OWID)<<6
+	       <<setw(OWID)<<5
+	       <<setw(OWID)<<dimn*dimn<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1    
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1    
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<-1 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-dimn/2 
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<-1 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-dimn/2 
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<dimn/2
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<dimn/2
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl
 
-	       <<setw(WIDTH)<<1
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<-1
-	       <<setw(WIDTH)<<0 
-	       <<setw(WIDTH)<<0      
-	       <<setw(WIDTH)<<-dimn/2
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0
-	       <<setw(WIDTH)<<0<<endl<<endl;
+	       <<setw(OWID)<<1
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<-1
+	       <<setw(OWID)<<0 
+	       <<setw(OWID)<<0      
+	       <<setw(OWID)<<-dimn/2
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0
+	       <<setw(OWID)<<0<<endl<<endl;
 	}
 
     }
@@ -2427,79 +2427,79 @@ void assembly::deposit(int   total_steps,
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
     progressinf.setf(ios::scientific, ios::floatfield);
-    progressinf.precision(PREC);
-    progressinf<<setw(WIDTH)<<"iteration"
-	       <<setw(WIDTH)<<"possible"
-	       <<setw(WIDTH)<<"actual"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"translational"
-	       <<setw(WIDTH)<<"rotational"
-	       <<setw(WIDTH)<<"kinetic"
-	       <<setw(WIDTH)<<"potential"
-	       <<setw(WIDTH)<<"total"
-	       <<setw(WIDTH)<<"void"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"coordination"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"critical"
-	       <<setw(WIDTH)<<"wall-clock" << endl
-	       <<setw(WIDTH)<<"number"
-	       <<setw(WIDTH)<<"contacts"
-	       <<setw(WIDTH)<<"contacts"
-	       <<setw(WIDTH)<<"penetration"
-	       <<setw(WIDTH)<<"contact_normal"
-	       <<setw(WIDTH)<<"contact_tangt"
-	       <<setw(WIDTH)<<"velocity"
-	       <<setw(WIDTH)<<"omga"
-	       <<setw(WIDTH)<<"force"
-	       <<setw(WIDTH)<<"moment"
-	       <<setw(WIDTH)<<"energy"
-	       <<setw(WIDTH)<<"energy"
-	       <<setw(WIDTH)<<"energy"
-	       <<setw(WIDTH)<<"energy"
-	       <<setw(WIDTH)<<"energy"
-	       <<setw(WIDTH)<<"ratio"
-	       <<setw(WIDTH)<<"porosity"
-	       <<setw(WIDTH)<<"number"
-	       <<setw(WIDTH)<<"density"
-	       <<setw(WIDTH)<<"sigma1_1"
-	       <<setw(WIDTH)<<"sigma1_2"
-	       <<setw(WIDTH)<<"sigma2_1"
-	       <<setw(WIDTH)<<"sigma2_2"
-	       <<setw(WIDTH)<<"sigma3_1"
-	       <<setw(WIDTH)<<"sigma3_2"
-	       <<setw(WIDTH)<<"mean_stress"
-	       <<setw(WIDTH)<<"width"
-	       <<setw(WIDTH)<<"length"
-	       <<setw(WIDTH)<<"height"
-	       <<setw(WIDTH)<<"volume"
-	       <<setw(WIDTH)<<"epsilon_w"
-	       <<setw(WIDTH)<<"epsilon_l"
-	       <<setw(WIDTH)<<"epsilon_h"
-	       <<setw(WIDTH)<<"epsilon-v"
-	       <<setw(WIDTH)<<"time_step"
-	       <<setw(WIDTH)<<"time" << endl;
+    progressinf.precision(OPREC);
+    progressinf<<setw(OWID)<<"iteration"
+	       <<setw(OWID)<<"possible"
+	       <<setw(OWID)<<"actual"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"translational"
+	       <<setw(OWID)<<"rotational"
+	       <<setw(OWID)<<"kinetic"
+	       <<setw(OWID)<<"potential"
+	       <<setw(OWID)<<"total"
+	       <<setw(OWID)<<"void"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"coordination"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"critical"
+	       <<setw(OWID)<<"wall-clock" << endl
+	       <<setw(OWID)<<"number"
+	       <<setw(OWID)<<"contacts"
+	       <<setw(OWID)<<"contacts"
+	       <<setw(OWID)<<"penetration"
+	       <<setw(OWID)<<"contact_normal"
+	       <<setw(OWID)<<"contact_tangt"
+	       <<setw(OWID)<<"velocity"
+	       <<setw(OWID)<<"omga"
+	       <<setw(OWID)<<"force"
+	       <<setw(OWID)<<"moment"
+	       <<setw(OWID)<<"energy"
+	       <<setw(OWID)<<"energy"
+	       <<setw(OWID)<<"energy"
+	       <<setw(OWID)<<"energy"
+	       <<setw(OWID)<<"energy"
+	       <<setw(OWID)<<"ratio"
+	       <<setw(OWID)<<"porosity"
+	       <<setw(OWID)<<"number"
+	       <<setw(OWID)<<"density"
+	       <<setw(OWID)<<"sigma1_1"
+	       <<setw(OWID)<<"sigma1_2"
+	       <<setw(OWID)<<"sigma2_1"
+	       <<setw(OWID)<<"sigma2_2"
+	       <<setw(OWID)<<"sigma3_1"
+	       <<setw(OWID)<<"sigma3_2"
+	       <<setw(OWID)<<"mean_stress"
+	       <<setw(OWID)<<"width"
+	       <<setw(OWID)<<"length"
+	       <<setw(OWID)<<"height"
+	       <<setw(OWID)<<"volume"
+	       <<setw(OWID)<<"epsilon_w"
+	       <<setw(OWID)<<"epsilon_l"
+	       <<setw(OWID)<<"epsilon_h"
+	       <<setw(OWID)<<"epsilon-v"
+	       <<setw(OWID)<<"time_step"
+	       <<setw(OWID)<<"time" << endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
@@ -2571,58 +2571,58 @@ void assembly::deposit(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<t1
-		       <<setw(WIDTH)<<t2
-		       <<setw(WIDTH)<<(t1+t2)
-		       <<setw(WIDTH)<<t3
-		       <<setw(WIDTH)<<(t1+t2+t3)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<t1
+		       <<setw(OWID)<<t2
+		       <<setw(OWID)<<(t1+t2)
+		       <<setw(OWID)<<t3
+		       <<setw(OWID)<<(t1+t2+t3)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-		       <<setw(WIDTH)<<"0"
-	               <<setw(WIDTH)<<getMinTimeStep()
-		       <<setw(WIDTH)<<timediffsec(timew1,timew2)
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+		       <<setw(OWID)<<"0"
+	               <<setw(OWID)<<getMinTimeStep()
+		       <<setw(OWID)<<timediffsec(timew1,timew2)
 		       <<endl;
 
 	    /*
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<bdry_penetr[1]
-		      <<setw(WIDTH)<<bdry_penetr[2]
-		      <<setw(WIDTH)<<bdry_penetr[3]
-		      <<setw(WIDTH)<<bdry_penetr[4]
-		      <<setw(WIDTH)<<bdry_penetr[6]
-		      <<setw(WIDTH)<<bdry_cntnum[1]
-		      <<setw(WIDTH)<<bdry_cntnum[2]
-		      <<setw(WIDTH)<<bdry_cntnum[3]
-		      <<setw(WIDTH)<<bdry_cntnum[4]
-		      <<setw(WIDTH)<<bdry_cntnum[6]
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<bdry_penetr[1]
+		      <<setw(OWID)<<bdry_penetr[2]
+		      <<setw(OWID)<<bdry_penetr[3]
+		      <<setw(OWID)<<bdry_penetr[4]
+		      <<setw(OWID)<<bdry_penetr[6]
+		      <<setw(OWID)<<bdry_cntnum[1]
+		      <<setw(OWID)<<bdry_cntnum[2]
+		      <<setw(OWID)<<bdry_cntnum[3]
+		      <<setw(OWID)<<bdry_cntnum[4]
+		      <<setw(OWID)<<bdry_cntnum[6]
 		      <<endl;
 	    */
 
@@ -2735,24 +2735,24 @@ void assembly::deposit_p(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<t1
-		       <<setw(WIDTH)<<t2
-		       <<setw(WIDTH)<<(t1+t2)
-		       <<setw(WIDTH)<<t3
-		       <<setw(WIDTH)<<(t1+t2+t3)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<t1
+		       <<setw(OWID)<<t2
+		       <<setw(OWID)<<(t1+t2)
+		       <<setw(OWID)<<t3
+		       <<setw(OWID)<<(t1+t2+t3)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
 	}
 
@@ -2885,38 +2885,38 @@ void assembly::squeeze(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<t1
-		       <<setw(WIDTH)<<t2
-		       <<setw(WIDTH)<<(t1+t2)
-		       <<setw(WIDTH)<<t3
-		       <<setw(WIDTH)<<(t1+t2+t3)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<t1
+		       <<setw(OWID)<<t2
+		       <<setw(OWID)<<(t1+t2)
+		       <<setw(OWID)<<t3
+		       <<setw(OWID)<<(t1+t2+t3)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<bdry_penetr[1]
-		      <<setw(WIDTH)<<bdry_penetr[2]
-		      <<setw(WIDTH)<<bdry_penetr[3]
-		      <<setw(WIDTH)<<bdry_penetr[4]
-		      <<setw(WIDTH)<<bdry_penetr[6]
-		      <<setw(WIDTH)<<bdry_cntnum[1]
-		      <<setw(WIDTH)<<bdry_cntnum[2]
-		      <<setw(WIDTH)<<bdry_cntnum[3]
-		      <<setw(WIDTH)<<bdry_cntnum[4]
-		      <<setw(WIDTH)<<bdry_cntnum[6]
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<bdry_penetr[1]
+		      <<setw(OWID)<<bdry_penetr[2]
+		      <<setw(OWID)<<bdry_penetr[3]
+		      <<setw(OWID)<<bdry_penetr[4]
+		      <<setw(OWID)<<bdry_penetr[6]
+		      <<setw(OWID)<<bdry_cntnum[1]
+		      <<setw(OWID)<<bdry_cntnum[2]
+		      <<setw(OWID)<<bdry_cntnum[3]
+		      <<setw(OWID)<<bdry_cntnum[4]
+		      <<setw(OWID)<<bdry_cntnum[6]
 		      <<endl;
 
 	}
@@ -3111,46 +3111,46 @@ void assembly::isotropic(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<bdry_penetr[1]
-		      <<setw(WIDTH)<<bdry_penetr[2]
-		      <<setw(WIDTH)<<bdry_penetr[3]
-		      <<setw(WIDTH)<<bdry_penetr[4]
-		      <<setw(WIDTH)<<bdry_penetr[5]
-		      <<setw(WIDTH)<<bdry_penetr[6]
-		      <<setw(WIDTH)<<bdry_cntnum[1]
-		      <<setw(WIDTH)<<bdry_cntnum[2]
-		      <<setw(WIDTH)<<bdry_cntnum[3]
-		      <<setw(WIDTH)<<bdry_cntnum[4]
-		      <<setw(WIDTH)<<bdry_cntnum[5]
-		      <<setw(WIDTH)<<bdry_cntnum[6]
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<bdry_penetr[1]
+		      <<setw(OWID)<<bdry_penetr[2]
+		      <<setw(OWID)<<bdry_penetr[3]
+		      <<setw(OWID)<<bdry_penetr[4]
+		      <<setw(OWID)<<bdry_penetr[5]
+		      <<setw(OWID)<<bdry_penetr[6]
+		      <<setw(OWID)<<bdry_cntnum[1]
+		      <<setw(OWID)<<bdry_cntnum[2]
+		      <<setw(OWID)<<bdry_cntnum[3]
+		      <<setw(OWID)<<bdry_cntnum[4]
+		      <<setw(OWID)<<bdry_cntnum[5]
+		      <<setw(OWID)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -3158,57 +3158,57 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3409,46 +3409,46 @@ void assembly::isotropic(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<bdry_penetr[1]
-		      <<setw(WIDTH)<<bdry_penetr[2]
-		      <<setw(WIDTH)<<bdry_penetr[3]
-		      <<setw(WIDTH)<<bdry_penetr[4]
-		      <<setw(WIDTH)<<bdry_penetr[5]
-		      <<setw(WIDTH)<<bdry_penetr[6]
-		      <<setw(WIDTH)<<bdry_cntnum[1]
-		      <<setw(WIDTH)<<bdry_cntnum[2]
-		      <<setw(WIDTH)<<bdry_cntnum[3]
-		      <<setw(WIDTH)<<bdry_cntnum[4]
-		      <<setw(WIDTH)<<bdry_cntnum[5]
-		      <<setw(WIDTH)<<bdry_cntnum[6]
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<bdry_penetr[1]
+		      <<setw(OWID)<<bdry_penetr[2]
+		      <<setw(OWID)<<bdry_penetr[3]
+		      <<setw(OWID)<<bdry_penetr[4]
+		      <<setw(OWID)<<bdry_penetr[5]
+		      <<setw(OWID)<<bdry_penetr[6]
+		      <<setw(OWID)<<bdry_cntnum[1]
+		      <<setw(OWID)<<bdry_cntnum[2]
+		      <<setw(OWID)<<bdry_cntnum[3]
+		      <<setw(OWID)<<bdry_cntnum[4]
+		      <<setw(OWID)<<bdry_cntnum[5]
+		      <<setw(OWID)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -3456,30 +3456,30 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3490,30 +3490,30 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3715,46 +3715,46 @@ void assembly::isotropic(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<bdry_penetr[1]
-		      <<setw(WIDTH)<<bdry_penetr[2]
-		      <<setw(WIDTH)<<bdry_penetr[3]
-		      <<setw(WIDTH)<<bdry_penetr[4]
-		      <<setw(WIDTH)<<bdry_penetr[5]
-		      <<setw(WIDTH)<<bdry_penetr[6]
-		      <<setw(WIDTH)<<bdry_cntnum[1]
-		      <<setw(WIDTH)<<bdry_cntnum[2]
-		      <<setw(WIDTH)<<bdry_cntnum[3]
-		      <<setw(WIDTH)<<bdry_cntnum[4]
-		      <<setw(WIDTH)<<bdry_cntnum[5]
-		      <<setw(WIDTH)<<bdry_cntnum[6]
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<bdry_penetr[1]
+		      <<setw(OWID)<<bdry_penetr[2]
+		      <<setw(OWID)<<bdry_penetr[3]
+		      <<setw(OWID)<<bdry_penetr[4]
+		      <<setw(OWID)<<bdry_penetr[5]
+		      <<setw(OWID)<<bdry_penetr[6]
+		      <<setw(OWID)<<bdry_cntnum[1]
+		      <<setw(OWID)<<bdry_cntnum[2]
+		      <<setw(OWID)<<bdry_cntnum[3]
+		      <<setw(OWID)<<bdry_cntnum[4]
+		      <<setw(OWID)<<bdry_cntnum[5]
+		      <<setw(OWID)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -3762,30 +3762,30 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -3802,30 +3802,30 @@ void assembly::isotropic(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4001,30 +4001,30 @@ void assembly::odometer(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0){
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4032,30 +4032,30 @@ void assembly::odometer(int   total_steps,
 
 	// 8. find balanced status of odometer compression
 	if (fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4064,30 +4064,30 @@ void assembly::odometer(int   total_steps,
 
 	// 9. loop break condition
 	if (fabsl(sigma3_1-sigma_1)/sigma_1 < STRESS_ERROR && fabsl(sigma3_2-sigma_1)/sigma_1 < STRESS_ERROR) {
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4266,30 +4266,30 @@ void assembly::odometer(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0){
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4297,30 +4297,30 @@ void assembly::odometer(int   total_steps,
 
 	// 8. find balanced status of odometer compression
 	if (fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4334,30 +4334,30 @@ void assembly::odometer(int   total_steps,
 
 	// 9. loop break condition
 	if (fabsl(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR) {
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -4468,34 +4468,34 @@ void assembly::unconfined(int   total_steps,
 
 	// 7. (2) output progress info.
 	if (g_iteration % interval == 0)
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<0<<setw(OWID)<<0
+		       <<setw(OWID)<<0<<setw(OWID)<<0
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
 		       <<endl;
 /*
 	// 8. loop break condition
 	if (getAverageForce() < 1.0) {
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()<<endl;
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()<<endl;
 	    break;
 	}
 */
@@ -4621,30 +4621,30 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<0<<setw(OWID)<<0
+		       <<setw(OWID)<<0<<setw(OWID)<<0
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<l56
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
 
 	}
@@ -4791,30 +4791,30 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<0<<setw(WIDTH)<<0<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<0
-		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<0<<setw(OWID)<<0
+		       <<setw(OWID)<<0<<setw(OWID)<<0
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<l56
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<0
+		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
 
 	}
@@ -4824,27 +4824,27 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
 	}
 */
 	// 9. loop break condition: through displacement control mechanism
@@ -4888,136 +4888,136 @@ void assembly::triaxial(int   total_steps,
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
     progressinf.setf(ios::scientific, ios::floatfield);
-    progressinf.precision(PREC);
-    progressinf<<setw(WIDTH)<<"iteration"
-	       <<setw(WIDTH)<<"possible"
-	       <<setw(WIDTH)<<"actual"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"void"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"coordinate"
-	       <<setw(WIDTH)<<"critical"
-	       <<setw(WIDTH)<<"wall-clock" << endl
-	       <<setw(WIDTH)<<"number"
-	       <<setw(WIDTH)<<"contacts"
-	       <<setw(WIDTH)<<"contacts"
-	       <<setw(WIDTH)<<"penetration"
-	       <<setw(WIDTH)<<"contact_normal"
-	       <<setw(WIDTH)<<"contact_tangt"
-	       <<setw(WIDTH)<<"velocity"
-	       <<setw(WIDTH)<<"omga"
-	       <<setw(WIDTH)<<"force"
-	       <<setw(WIDTH)<<"moment"
-	       <<setw(WIDTH)<<"density"
-	       <<setw(WIDTH)<<"sigma1_1"
-	       <<setw(WIDTH)<<"sigma1_2"
-	       <<setw(WIDTH)<<"sigma2_1"
-	       <<setw(WIDTH)<<"sigma2_2"
-	       <<setw(WIDTH)<<"sigma3_1"
-	       <<setw(WIDTH)<<"sigma3_2"
-	       <<setw(WIDTH)<<"mean_stress"
-	       <<setw(WIDTH)<<"width"
-	       <<setw(WIDTH)<<"length"
-	       <<setw(WIDTH)<<"height"
-	       <<setw(WIDTH)<<"volume"
-	       <<setw(WIDTH)<<"epsilon_w"
-	       <<setw(WIDTH)<<"epsilon_l"
-	       <<setw(WIDTH)<<"epsilon_h"
-	       <<setw(WIDTH)<<"epsilon-v"
-	       <<setw(WIDTH)<<"ratio"
-	       <<setw(WIDTH)<<"porosity"
-	       <<setw(WIDTH)<<"number"
-	       <<setw(WIDTH)<<"time_step"
-	       <<setw(WIDTH)<<"time" << endl;
+    progressinf.precision(OPREC);
+    progressinf<<setw(OWID)<<"iteration"
+	       <<setw(OWID)<<"possible"
+	       <<setw(OWID)<<"actual"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"void"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"coordinate"
+	       <<setw(OWID)<<"critical"
+	       <<setw(OWID)<<"wall-clock" << endl
+	       <<setw(OWID)<<"number"
+	       <<setw(OWID)<<"contacts"
+	       <<setw(OWID)<<"contacts"
+	       <<setw(OWID)<<"penetration"
+	       <<setw(OWID)<<"contact_normal"
+	       <<setw(OWID)<<"contact_tangt"
+	       <<setw(OWID)<<"velocity"
+	       <<setw(OWID)<<"omga"
+	       <<setw(OWID)<<"force"
+	       <<setw(OWID)<<"moment"
+	       <<setw(OWID)<<"density"
+	       <<setw(OWID)<<"sigma1_1"
+	       <<setw(OWID)<<"sigma1_2"
+	       <<setw(OWID)<<"sigma2_1"
+	       <<setw(OWID)<<"sigma2_2"
+	       <<setw(OWID)<<"sigma3_1"
+	       <<setw(OWID)<<"sigma3_2"
+	       <<setw(OWID)<<"mean_stress"
+	       <<setw(OWID)<<"width"
+	       <<setw(OWID)<<"length"
+	       <<setw(OWID)<<"height"
+	       <<setw(OWID)<<"volume"
+	       <<setw(OWID)<<"epsilon_w"
+	       <<setw(OWID)<<"epsilon_l"
+	       <<setw(OWID)<<"epsilon_h"
+	       <<setw(OWID)<<"epsilon-v"
+	       <<setw(OWID)<<"ratio"
+	       <<setw(OWID)<<"porosity"
+	       <<setw(OWID)<<"number"
+	       <<setw(OWID)<<"time_step"
+	       <<setw(OWID)<<"time" << endl;
 
     ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
     balancedinf.setf(ios::scientific, ios::floatfield);
-    balancedinf.precision(PREC);
-    balancedinf<<setw(WIDTH)<<"iteration"
-	       <<setw(WIDTH)<<"possible"
-	       <<setw(WIDTH)<<"actual"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"average"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"void"
-	       <<setw(WIDTH)<<"sample"
-	       <<setw(WIDTH)<<"coordinate"
-	       <<setw(WIDTH)<<"critical"
-	       <<setw(WIDTH)<<"wall-clock" << endl
-	       <<setw(WIDTH)<<"number"
-	       <<setw(WIDTH)<<"contacts"
-	       <<setw(WIDTH)<<"contacts"
-	       <<setw(WIDTH)<<"penetration"
-	       <<setw(WIDTH)<<"contact_normal"
-	       <<setw(WIDTH)<<"contact_tangt"
-	       <<setw(WIDTH)<<"velocity"
-	       <<setw(WIDTH)<<"omga"
-	       <<setw(WIDTH)<<"force"
-	       <<setw(WIDTH)<<"moment"
-	       <<setw(WIDTH)<<"density"
-	       <<setw(WIDTH)<<"sigma1_1"
-	       <<setw(WIDTH)<<"sigma1_2"
-	       <<setw(WIDTH)<<"sigma2_1"
-	       <<setw(WIDTH)<<"sigma2_2"
-	       <<setw(WIDTH)<<"sigma3_1"
-	       <<setw(WIDTH)<<"sigma3_2"
-	       <<setw(WIDTH)<<"mean_stress"
-	       <<setw(WIDTH)<<"width"
-	       <<setw(WIDTH)<<"length"
-	       <<setw(WIDTH)<<"height"
-	       <<setw(WIDTH)<<"volume"
-	       <<setw(WIDTH)<<"epsilon_w"
-	       <<setw(WIDTH)<<"epsilon_l"
-	       <<setw(WIDTH)<<"epsilon_h"
-	       <<setw(WIDTH)<<"epsilon-v"
-	       <<setw(WIDTH)<<"ratio"
-	       <<setw(WIDTH)<<"porosity"
-	       <<setw(WIDTH)<<"number"
-	       <<setw(WIDTH)<<"time_step"
-	       <<setw(WIDTH)<<"time" << endl;
+    balancedinf.precision(OPREC);
+    balancedinf<<setw(OWID)<<"iteration"
+	       <<setw(OWID)<<"possible"
+	       <<setw(OWID)<<"actual"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"average"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"void"
+	       <<setw(OWID)<<"sample"
+	       <<setw(OWID)<<"coordinate"
+	       <<setw(OWID)<<"critical"
+	       <<setw(OWID)<<"wall-clock" << endl
+	       <<setw(OWID)<<"number"
+	       <<setw(OWID)<<"contacts"
+	       <<setw(OWID)<<"contacts"
+	       <<setw(OWID)<<"penetration"
+	       <<setw(OWID)<<"contact_normal"
+	       <<setw(OWID)<<"contact_tangt"
+	       <<setw(OWID)<<"velocity"
+	       <<setw(OWID)<<"omga"
+	       <<setw(OWID)<<"force"
+	       <<setw(OWID)<<"moment"
+	       <<setw(OWID)<<"density"
+	       <<setw(OWID)<<"sigma1_1"
+	       <<setw(OWID)<<"sigma1_2"
+	       <<setw(OWID)<<"sigma2_1"
+	       <<setw(OWID)<<"sigma2_2"
+	       <<setw(OWID)<<"sigma3_1"
+	       <<setw(OWID)<<"sigma3_2"
+	       <<setw(OWID)<<"mean_stress"
+	       <<setw(OWID)<<"width"
+	       <<setw(OWID)<<"length"
+	       <<setw(OWID)<<"height"
+	       <<setw(OWID)<<"volume"
+	       <<setw(OWID)<<"epsilon_w"
+	       <<setw(OWID)<<"epsilon_l"
+	       <<setw(OWID)<<"epsilon_h"
+	       <<setw(OWID)<<"epsilon-v"
+	       <<setw(OWID)<<"ratio"
+	       <<setw(OWID)<<"porosity"
+	       <<setw(OWID)<<"number"
+	       <<setw(OWID)<<"time_step"
+	       <<setw(OWID)<<"time" << endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -5135,50 +5135,50 @@ void assembly::triaxial(int   total_steps,
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
 	    gettimeofday(&timew2,NULL);
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-	               <<setw(WIDTH)<<getMinTimeStep()
-		       <<setw(WIDTH)<<timediffsec(timew1,timew2)
+	               <<setw(OWID)<<getMinTimeStep()
+		       <<setw(OWID)<<timediffsec(timew1,timew2)
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<getTransEnergy()
-		      <<setw(WIDTH)<<getRotatEnergy()
-		      <<setw(WIDTH)<<bdry_penetr[1]
-		      <<setw(WIDTH)<<bdry_penetr[2]
-		      <<setw(WIDTH)<<bdry_penetr[3]
-		      <<setw(WIDTH)<<bdry_penetr[4]
-		      <<setw(WIDTH)<<bdry_penetr[5]
-		      <<setw(WIDTH)<<bdry_penetr[6]
-		      <<setw(WIDTH)<<bdry_cntnum[1]
-		      <<setw(WIDTH)<<bdry_cntnum[2]
-		      <<setw(WIDTH)<<bdry_cntnum[3]
-		      <<setw(WIDTH)<<bdry_cntnum[4]
-		      <<setw(WIDTH)<<bdry_cntnum[5]
-		      <<setw(WIDTH)<<bdry_cntnum[6]
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<getTransEnergy()
+		      <<setw(OWID)<<getRotatEnergy()
+		      <<setw(OWID)<<bdry_penetr[1]
+		      <<setw(OWID)<<bdry_penetr[2]
+		      <<setw(OWID)<<bdry_penetr[3]
+		      <<setw(OWID)<<bdry_penetr[4]
+		      <<setw(OWID)<<bdry_penetr[5]
+		      <<setw(OWID)<<bdry_penetr[6]
+		      <<setw(OWID)<<bdry_cntnum[1]
+		      <<setw(OWID)<<bdry_cntnum[2]
+		      <<setw(OWID)<<bdry_cntnum[3]
+		      <<setw(OWID)<<bdry_cntnum[4]
+		      <<setw(OWID)<<bdry_cntnum[5]
+		      <<setw(OWID)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -5187,34 +5187,34 @@ void assembly::triaxial(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-	               <<setw(WIDTH)<<getMinTimeStep()
-		       <<setw(WIDTH)<<timediffsec(timew1,timew2)
+	               <<setw(OWID)<<getMinTimeStep()
+		       <<setw(OWID)<<timediffsec(timew1,timew2)
 		       <<endl;
 	}
 
@@ -5425,46 +5425,46 @@ void assembly::triaxial(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<bdry_penetr[1]
-		      <<setw(WIDTH)<<bdry_penetr[2]
-		      <<setw(WIDTH)<<bdry_penetr[3]
-		      <<setw(WIDTH)<<bdry_penetr[4]
-		      <<setw(WIDTH)<<bdry_penetr[5]
-		      <<setw(WIDTH)<<bdry_penetr[6]
-		      <<setw(WIDTH)<<bdry_cntnum[1]
-		      <<setw(WIDTH)<<bdry_cntnum[2]
-		      <<setw(WIDTH)<<bdry_cntnum[3]
-		      <<setw(WIDTH)<<bdry_cntnum[4]
-		      <<setw(WIDTH)<<bdry_cntnum[5]
-		      <<setw(WIDTH)<<bdry_cntnum[6]
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<bdry_penetr[1]
+		      <<setw(OWID)<<bdry_penetr[2]
+		      <<setw(OWID)<<bdry_penetr[3]
+		      <<setw(OWID)<<bdry_penetr[4]
+		      <<setw(OWID)<<bdry_penetr[5]
+		      <<setw(OWID)<<bdry_penetr[6]
+		      <<setw(OWID)<<bdry_cntnum[1]
+		      <<setw(OWID)<<bdry_cntnum[2]
+		      <<setw(OWID)<<bdry_cntnum[3]
+		      <<setw(OWID)<<bdry_cntnum[4]
+		      <<setw(OWID)<<bdry_cntnum[5]
+		      <<setw(OWID)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -5473,27 +5473,27 @@ void assembly::triaxial(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
 	}
 */
 	// 9. loop break condition: through displacement control mechanism
@@ -5603,10 +5603,10 @@ void assembly::rectPile_Disp(int   total_steps,
 	    long double  f9=getShearForce( 9).getz();
 	    long double f10=getShearForce(10).getz();
 	    long double  fn=getNormalForce(12).getz();
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<fn
-		      <<setw(WIDTH)<<(f7+f8+f9+f10)
-		      <<setw(WIDTH)<<(fn+f7+f8+f9+f10)
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<fn
+		      <<setw(OWID)<<(f7+f8+f9+f10)
+		      <<setw(OWID)<<(fn+f7+f8+f9+f10)
 		      <<endl;
 	}
 
@@ -5628,21 +5628,21 @@ void assembly::rectPile_Disp(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<t1
-		       <<setw(WIDTH)<<t2
-		       <<setw(WIDTH)<<(t1+t2)
-		       <<setw(WIDTH)<<t3
-		       <<setw(WIDTH)<<(t1+t2+t3)<<endl;
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<t1
+		       <<setw(OWID)<<t2
+		       <<setw(OWID)<<(t1+t2)
+		       <<setw(OWID)<<t3
+		       <<setw(OWID)<<(t1+t2+t3)<<endl;
 	}
 
 	// 8. loop break condition
@@ -5755,32 +5755,32 @@ void assembly::ellipPile_Disp(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<t1
-		       <<setw(WIDTH)<<t2
-		       <<setw(WIDTH)<<(t1+t2)
-		       <<setw(WIDTH)<<t3
-		       <<setw(WIDTH)<<(t1+t2+t3)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<t1
+		       <<setw(OWID)<<t2
+		       <<setw(OWID)<<(t1+t2)
+		       <<setw(OWID)<<t3
+		       <<setw(OWID)<<(t1+t2+t3)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()
-		      <<setw(WIDTH)<<ellipPileTipZ()
-		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(WIDTH)<<l13*l24*l56
-		      <<setw(WIDTH)<<ellipPilePeneVol()
-		      <<setw(WIDTH)<<Volume
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<getTopFreeParticlePosition().getz()
+		      <<setw(OWID)<<ellipPileTipZ()
+		      <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(OWID)<<l13*l24*l56
+		      <<setw(OWID)<<ellipPilePeneVol()
+		      <<setw(OWID)<<Volume
 		      <<endl;
 	}
 
@@ -5899,47 +5899,47 @@ void assembly::ellipPile_Impact(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<t1
-		       <<setw(WIDTH)<<t2
-		       <<setw(WIDTH)<<(t1+t2)
-		       <<setw(WIDTH)<<t3
-		       <<setw(WIDTH)<<(t1+t2+t3)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<t1
+		       <<setw(OWID)<<t2
+		       <<setw(OWID)<<(t1+t2)
+		       <<setw(OWID)<<t3
+		       <<setw(OWID)<<(t1+t2+t3)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<bdry_penetr[1]
-		      <<setw(WIDTH)<<bdry_penetr[2]
-		      <<setw(WIDTH)<<bdry_penetr[3]
-		      <<setw(WIDTH)<<bdry_penetr[4]
-		      <<setw(WIDTH)<<bdry_penetr[6]
-		      <<setw(WIDTH)<<bdry_cntnum[1]
-		      <<setw(WIDTH)<<bdry_cntnum[2]
-		      <<setw(WIDTH)<<bdry_cntnum[3]
-		      <<setw(WIDTH)<<bdry_cntnum[4]
-		      <<setw(WIDTH)<<bdry_cntnum[6]
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<bdry_penetr[1]
+		      <<setw(OWID)<<bdry_penetr[2]
+		      <<setw(OWID)<<bdry_penetr[3]
+		      <<setw(OWID)<<bdry_penetr[4]
+		      <<setw(OWID)<<bdry_penetr[6]
+		      <<setw(OWID)<<bdry_cntnum[1]
+		      <<setw(OWID)<<bdry_cntnum[2]
+		      <<setw(OWID)<<bdry_cntnum[3]
+		      <<setw(OWID)<<bdry_cntnum[4]
+		      <<setw(OWID)<<bdry_cntnum[6]
 		      <<endl;
 	    /*
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()
-		      <<setw(WIDTH)<<ellipPileTipZ()
-		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(WIDTH)<<l13*l24*l56
-		      <<setw(WIDTH)<<ellipPilePeneVol()
-		      <<setw(WIDTH)<<Volume
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<getTopFreeParticlePosition().getz()
+		      <<setw(OWID)<<ellipPileTipZ()
+		      <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(OWID)<<l13*l24*l56
+		      <<setw(OWID)<<ellipPilePeneVol()
+		      <<setw(OWID)<<Volume
 		      <<endl;
 	    */
 	}
@@ -6049,32 +6049,32 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<t1
-		       <<setw(WIDTH)<<t2
-		       <<setw(WIDTH)<<(t1+t2)
-		       <<setw(WIDTH)<<t3
-		       <<setw(WIDTH)<<(t1+t2+t3)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<t1
+		       <<setw(OWID)<<t2
+		       <<setw(OWID)<<(t1+t2)
+		       <<setw(OWID)<<t3
+		       <<setw(OWID)<<(t1+t2+t3)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()
-		      <<setw(WIDTH)<<ellipPileTipZ()
-		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(WIDTH)<<l13*l24*l56
-		      <<setw(WIDTH)<<ellipPilePeneVol()
-		      <<setw(WIDTH)<<Volume
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<getTopFreeParticlePosition().getz()
+		      <<setw(OWID)<<ellipPileTipZ()
+		      <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(OWID)<<l13*l24*l56
+		      <<setw(OWID)<<ellipPilePeneVol()
+		      <<setw(OWID)<<Volume
 		      <<endl;
 	}
 
@@ -6185,19 +6185,19 @@ void assembly::ellipPile_Force(int   total_steps,
 	    ellipPileUpdate();
 
 	if(fabsl(ellipPileForce()-zforce)/zforce < STRESS_ERROR ){
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<zforce
-		       <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		       <<setw(WIDTH)<<ellipPileForce()
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<zforce
+		       <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		       <<setw(OWID)<<ellipPileForce()
 		       <<endl;
 	    zforce += zforce_inc;
 	}
 
 	if( g_iteration % interval == 0){
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<zforce
-		      <<setw(WIDTH)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(WIDTH)<<ellipPileForce()
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<zforce
+		      <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		      <<setw(OWID)<<ellipPileForce()
 		      <<endl;
 	}
 
@@ -6218,24 +6218,24 @@ void assembly::ellipPile_Force(int   total_steps,
 	    long double t1=getTransEnergy();
 	    long double t2=getRotatEnergy();
 	    long double t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<t1
-		       <<setw(WIDTH)<<t2
-		       <<setw(WIDTH)<<(t1+t2)
-		       <<setw(WIDTH)<<t3
-		       <<setw(WIDTH)<<(t1+t2+t3)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*getActualCntctNum()/TotalNum
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<t1
+		       <<setw(OWID)<<t2
+		       <<setw(OWID)<<(t1+t2)
+		       <<setw(OWID)<<t3
+		       <<setw(OWID)<<(t1+t2+t3)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
 		       <<endl;
 	}
 
@@ -6439,46 +6439,46 @@ void assembly::truetriaxial(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()   
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()   
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
-	    g_debuginf<<setw(WIDTH)<<g_iteration
-		      <<setw(WIDTH)<<bdry_penetr[1]
-		      <<setw(WIDTH)<<bdry_penetr[2]
-		      <<setw(WIDTH)<<bdry_penetr[3]
-		      <<setw(WIDTH)<<bdry_penetr[4]
-		      <<setw(WIDTH)<<bdry_penetr[5]
-		      <<setw(WIDTH)<<bdry_penetr[6]
-		      <<setw(WIDTH)<<bdry_cntnum[1]
-		      <<setw(WIDTH)<<bdry_cntnum[2]
-		      <<setw(WIDTH)<<bdry_cntnum[3]
-		      <<setw(WIDTH)<<bdry_cntnum[4]
-		      <<setw(WIDTH)<<bdry_cntnum[5]
-		      <<setw(WIDTH)<<bdry_cntnum[6]
+	    g_debuginf<<setw(OWID)<<g_iteration
+		      <<setw(OWID)<<bdry_penetr[1]
+		      <<setw(OWID)<<bdry_penetr[2]
+		      <<setw(OWID)<<bdry_penetr[3]
+		      <<setw(OWID)<<bdry_penetr[4]
+		      <<setw(OWID)<<bdry_penetr[5]
+		      <<setw(OWID)<<bdry_penetr[6]
+		      <<setw(OWID)<<bdry_cntnum[1]
+		      <<setw(OWID)<<bdry_cntnum[2]
+		      <<setw(OWID)<<bdry_cntnum[3]
+		      <<setw(OWID)<<bdry_cntnum[4]
+		      <<setw(OWID)<<bdry_cntnum[5]
+		      <<setw(OWID)<<bdry_cntnum[6]
 		      <<endl;
 	}
 
@@ -6486,30 +6486,30 @@ void assembly::truetriaxial(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_w1)/sigma_w1 < STRESS_ERROR && fabsl(sigma1_2-sigma_w1)/sigma_w1 < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_l1)/sigma_l1 < STRESS_ERROR && fabsl(sigma2_2-sigma_l1)/sigma_l1 < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma_h1)/sigma_h1 < STRESS_ERROR && fabsl(sigma3_2-sigma_h1)/sigma_h1 < STRESS_ERROR ) {
-	    balancedinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    balancedinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -6522,30 +6522,30 @@ void assembly::truetriaxial(int   total_steps,
 	if (   fabsl(sigma1_1-sigma_w)/sigma_w < STRESS_ERROR && fabsl(sigma1_2-sigma_w)/sigma_w < STRESS_ERROR
 	    && fabsl(sigma2_1-sigma_l)/sigma_l < STRESS_ERROR && fabsl(sigma2_2-sigma_l)/sigma_l < STRESS_ERROR
 	    && fabsl(sigma3_1-sigma_h)/sigma_h < STRESS_ERROR && fabsl(sigma3_2-sigma_h)/sigma_h < STRESS_ERROR ) {
-	    progressinf<<setw(WIDTH)<<g_iteration
-		       <<setw(WIDTH)<<getPossCntctNum()
-		       <<setw(WIDTH)<<getActualCntctNum()
-		       <<setw(WIDTH)<<getAveragePenetration()
-		       <<setw(WIDTH)<<avgNormal
-		       <<setw(WIDTH)<<avgTangt
-		       <<setw(WIDTH)<<getAverageVelocity() 
-		       <<setw(WIDTH)<<getAverageOmga()
-		       <<setw(WIDTH)<<getAverageForce()    
-		       <<setw(WIDTH)<<getAverageMoment()
-		       <<setw(WIDTH)<<getDensity()
-		       <<setw(WIDTH)<<sigma1_1<<setw(WIDTH)<<sigma1_2
-		       <<setw(WIDTH)<<sigma2_1<<setw(WIDTH)<<sigma2_2
-		       <<setw(WIDTH)<<sigma3_1<<setw(WIDTH)<<sigma3_2
-		       <<setw(WIDTH)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(WIDTH)<<l24<<setw(WIDTH)<<l13<<setw(WIDTH)<<l56
-		       <<setw(WIDTH)<<Volume
-		       <<setw(WIDTH)<<epsilon_w
-		       <<setw(WIDTH)<<epsilon_l
-		       <<setw(WIDTH)<<epsilon_h
-		       <<setw(WIDTH)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(WIDTH)<<void_ratio
-		       <<setw(WIDTH)<<void_ratio/(1+void_ratio)
-		       <<setw(WIDTH)<<2.0*(getActualCntctNum()
+	    progressinf<<setw(OWID)<<g_iteration
+		       <<setw(OWID)<<getPossCntctNum()
+		       <<setw(OWID)<<getActualCntctNum()
+		       <<setw(OWID)<<getAveragePenetration()
+		       <<setw(OWID)<<avgNormal
+		       <<setw(OWID)<<avgTangt
+		       <<setw(OWID)<<getAverageVelocity() 
+		       <<setw(OWID)<<getAverageOmga()
+		       <<setw(OWID)<<getAverageForce()    
+		       <<setw(OWID)<<getAverageMoment()
+		       <<setw(OWID)<<getDensity()
+		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
+		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
+		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
+		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
+		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
+		       <<setw(OWID)<<Volume
+		       <<setw(OWID)<<epsilon_w
+		       <<setw(OWID)<<epsilon_l
+		       <<setw(OWID)<<epsilon_h
+		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
+		       <<setw(OWID)<<void_ratio
+		       <<setw(OWID)<<void_ratio/(1+void_ratio)
+		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 		       <<endl;
@@ -6635,7 +6635,7 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 	g_iteration=0;
 	do{
                 cout<<"DircShearing..."<<g_iteration<<endl;
-		progressinf<<setw(WIDTH)<<g_iteration;
+		progressinf<<setw(OWID)<<g_iteration;
 
 		findParticleOnBoundary();
 		findContact();
@@ -6643,10 +6643,10 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 		internalForce(avgNormal, avgTangt);
 		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(WIDTH)<<getAverageVelocity()
-		         <<setw(WIDTH)<<getAverageOmga()
-		         <<setw(WIDTH)<<getAverageForce()
-			 <<setw(WIDTH)<<getAverageMoment()<<endl;
+		progressinf<<setw(OWID)<<getAverageVelocity()
+		         <<setw(OWID)<<getAverageOmga()
+		         <<setw(OWID)<<getAverageForce()
+			 <<setw(OWID)<<getAverageMoment()<<endl;
 		contactUpdate();
 		updateParticle();
 
@@ -6741,7 +6741,7 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 	g_iteration=0;
 	do{
                 cout<<"Soft_tric..."<<g_iteration<<endl;
-		progressinf<<setw(WIDTH)<<g_iteration;
+		progressinf<<setw(OWID)<<g_iteration;
 
 		findParticleOnBoundary();
 		findParticleOnLine();
@@ -6754,11 +6754,11 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 		internalForce();
 		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(WIDTH)<<(av=getAverageVelocity())
-		         <<setw(WIDTH)<<(ao=getAverageOmga())
-		         <<setw(WIDTH)<<(af=getAverageForce())
-		         <<setw(WIDTH)<<(am=getAverageMoment())
-			 <<setw(WIDTH)<<(adr=avgDgrFric());
+		progressinf<<setw(OWID)<<(av=getAverageVelocity())
+		         <<setw(OWID)<<(ao=getAverageOmga())
+		         <<setw(OWID)<<(af=getAverageForce())
+		         <<setw(OWID)<<(am=getAverageMoment())
+			 <<setw(OWID)<<(adr=avgDgrFric());
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();
@@ -6840,7 +6840,7 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 	g_iteration=0;
 	do{
                 cout<<"Shallow Foundation..."<<g_iteration<<endl;
-		progressinf<<setw(WIDTH)<<g_iteration;
+		progressinf<<setw(OWID)<<g_iteration;
 
 		findParticleOnBoundary();
 		findParticleOnLine();
@@ -6854,11 +6854,11 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 		internalForce();
 		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(WIDTH)<<(av=getAverageVelocity())
-		         <<setw(WIDTH)<<(ao=getAverageOmga())
-		         <<setw(WIDTH)<<(af=getAverageForce())
-		         <<setw(WIDTH)<<(am=getAverageMoment())
-			 <<setw(WIDTH)<<(adr=avgDgrFric());
+		progressinf<<setw(OWID)<<(av=getAverageVelocity())
+		         <<setw(OWID)<<(ao=getAverageOmga())
+		         <<setw(OWID)<<(af=getAverageForce())
+		         <<setw(OWID)<<(am=getAverageMoment())
+			 <<setw(OWID)<<(adr=avgDgrFric());
 
 		contactUpdate();
 		
@@ -6958,7 +6958,7 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 	g_iteration=0;
 	do{
                 cout<<"SimpleShearinging..."<<g_iteration<<endl;
-		progressinf<<setw(WIDTH)<<g_iteration;
+		progressinf<<setw(OWID)<<g_iteration;
 
 		findParticleOnBoundary();
 		findContact();
@@ -6967,11 +6967,11 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 		rigidBoundaryForce();
 		flexiBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(WIDTH)<<(av=getAverageVelocity())
-		         <<setw(WIDTH)<<(ao=getAverageOmga())
-		         <<setw(WIDTH)<<(af=getAverageForce())
-		         <<setw(WIDTH)<<(am=getAverageMoment())
-			 <<setw(WIDTH)<<(adr=avgDgrFric());
+		progressinf<<setw(OWID)<<(av=getAverageVelocity())
+		         <<setw(OWID)<<(ao=getAverageOmga())
+		         <<setw(OWID)<<(af=getAverageForce())
+		         <<setw(OWID)<<(am=getAverageMoment())
+			 <<setw(OWID)<<(adr=avgDgrFric());
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();
@@ -7135,7 +7135,7 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 	g_iteration=0;
 	do{
 	        cout<<"EarthPressure..."<<g_iteration<<endl;
-		progressinf<<setw(WIDTH)<<g_iteration;
+		progressinf<<setw(OWID)<<g_iteration;
 
 		findParticleOnBoundary();
 		findParticleOnLine();
@@ -7149,11 +7149,11 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 		rigidBoundaryForce();
 		//track(fp,5);
 
-		progressinf<<setw(WIDTH)<<(av=getAverageVelocity())
-		         <<setw(WIDTH)<<(ao=getAverageOmga())
-		         <<setw(WIDTH)<<(af=getAverageForce())
-		         <<setw(WIDTH)<<(am=getAverageMoment())
-			 <<setw(WIDTH)<<(adr=avgDgrFric());
+		progressinf<<setw(OWID)<<(av=getAverageVelocity())
+		         <<setw(OWID)<<(ao=getAverageOmga())
+		         <<setw(OWID)<<(af=getAverageForce())
+		         <<setw(OWID)<<(am=getAverageMoment())
+			 <<setw(OWID)<<(adr=avgDgrFric());
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();

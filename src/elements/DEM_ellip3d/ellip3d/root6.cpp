@@ -1864,20 +1864,21 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 
 	int order=0;
 	for (int k=0;k<=6;k++){
-	    if (rtc[k]!=0){
+	  if (fabsl(rtc[k])>NUMZERO){
 		order=k;
 	    }
 	}
+	if (order==0)
+	    return false;
+
 	for (int k=0;k<=order;k++)
 	    rtc[k]/=rtc[order];
-	if (order==0)
-	    return false; 
 
         #ifdef DEBUG  // tested: order==6 whether or not in contact
 	if (g_iteration == NUMBER)
 	g_debuginf<<endl
-		  <<"root6: g_iteration="<<setw(WIDTH)<<g_iteration
-		  <<" order="<<setw(WIDTH)<<order<<endl;
+		  <<"root6: g_iteration="<<setw(OWID)<<g_iteration
+		  <<" order="<<setw(OWID)<<order<<endl;
 	#endif
 
 	if (!zrhqr(rtc, order, rtr, rti)) // find roots for a polynomial using eigenvalues method
@@ -1886,20 +1887,20 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	#ifdef DEBUG
 	if (g_iteration == NUMBER)
 	for (int k=1;k<=order;k++){
-	  g_debuginf<<"root6: rtr rti"<<setw(WIDTH)<<rtr[k]<<setw(WIDTH)<<rti[k]<<endl;
+	  g_debuginf<<"root6: rtr rti"<<setw(OWID)<<rtr[k]<<setw(OWID)<<rti[k]<<endl;
 	}
 	#endif
 
 	long double lamda[6];
 	int jj=0;
 	for (int k=1;k<=order;k++){
-	    if(fabsl(rti[k])<PRECISION)
+	    if(fabsl(rti[k])<NUMZERO)
 		lamda[jj++]=rtr[k];
 	}
 
 	#ifdef DEBUG
 	if (g_iteration == NUMBER)
-	g_debuginf<<"root6: jj="<<setw(WIDTH)<<jj<<endl;
+	g_debuginf<<"root6: jj="<<setw(OWID)<<jj<<endl;
 	#endif
 
 	long double x, y, z, det, within;
@@ -1923,8 +1924,8 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 			powl(lamda[k],2) + (8*a2*b2*c2 + 2*d2*e2*f2 - 
 			2*c2*powl(d2,2) - 2*a2*powl(e2,2) - 2*b2*powl(f2,2))*
 	                powl(lamda[k],3);
-	    if(det!=0){ // if determinant is zero, there are infinite solutions
-		        // it is necessary to skip this case, otherwise computatation will fail.
+	    if(fabsl(det)>NUMZERO){ // if determinant is zero, there are infinite solutions
+		                    // it is necessary to skip this case, otherwise computatation will fail.
 		x=
 			((-4*b1*c1*g1 + 2*c1*d1*h1 - e1*f1*h1 - d1*e1*i1 + 
 			2*b1*f1*i1 + g1*powl(e1,2) + 
@@ -1976,10 +1977,10 @@ bool root6(long double coef1[],long double coef2[],vec& point){
                 #ifdef DEBUG
 	if (g_iteration == NUMBER)
 		g_debuginf<<"root6: k="
-			  <<setw(WIDTH)<<k
-			  <<" det="<<setw(WIDTH)<<det
-			  <<" x y z="<<setw(WIDTH)<<x<<setw(WIDTH)<<y<<setw(WIDTH)<<z
-			  <<" within="<<setw(WIDTH)<<within<<endl;
+			  <<setw(OWID)<<k
+			  <<" det="<<setw(OWID)<<det
+			  <<" x y z="<<setw(OWID)<<x<<setw(OWID)<<y<<setw(OWID)<<z
+			  <<" within="<<setw(OWID)<<within<<endl;
                 #endif
 		
 		// in theory we need to seek the smallest within (when it < 0), 
@@ -1994,8 +1995,8 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 		#ifdef DEBUG
 	if (g_iteration == NUMBER)
 		g_debuginf<<"root6: k="
-			  <<setw(WIDTH)<<k
-			  <<" det="<<setw(WIDTH)<<det
+			  <<setw(OWID)<<k
+			  <<" det="<<setw(OWID)<<det
 			  <<" determinant is 0!" <<endl;
                 #endif
 	    }
