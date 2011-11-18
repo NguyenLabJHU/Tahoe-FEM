@@ -95,7 +95,8 @@ public:
 	int         getPossCntctNum() const {return  PossCntctNum;};
 	int         getActualCntctNum() const {return ActualCntctNum;}
 	long double getAveragePenetration() const;
-	long double getMinTimeStep() const;
+	long double getVibraTimeStep() const;
+	long double getImpactTimeStep() const;
 	long double getAverageVelocity() const;
 	long double getAverageForce() const;
 	long double getAverageOmga() const;

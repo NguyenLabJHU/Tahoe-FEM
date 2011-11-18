@@ -254,16 +254,17 @@ void assembly::printContact(const char* str) const
        <<setw(OWID)<<"E0"
        <<setw(OWID)<<"normal_force"
        <<setw(OWID)<<"tangt_force"
-       <<setw(OWID)<<"midpoint_x"
-       <<setw(OWID)<<"midpoint_y"
-       <<setw(OWID)<<"midpoint_z"
+       <<setw(OWID)<<"contact_x"
+       <<setw(OWID)<<"contact_y"
+       <<setw(OWID)<<"contact_z"
        <<setw(OWID)<<"normal_x"
        <<setw(OWID)<<"normal_y"
        <<setw(OWID)<<"normal_z"
        <<setw(OWID)<<"tangt_x"
        <<setw(OWID)<<"tangt_y"
        <<setw(OWID)<<"tangt_z"
-       <<setw(OWID)<<"critical_time"
+       <<setw(OWID)<<"vibra_time_step"
+       <<setw(OWID)<<"impact_time_step"
        <<endl;
     list<CONTACT>::const_iterator it;
     for (it=ContactList.begin();it!=ContactList.end();++it)
@@ -293,7 +294,8 @@ void assembly::printContact(const char* str) const
 	   <<setw(OWID)<<it->TgtForceVec().getx()
 	   <<setw(OWID)<<it->TgtForceVec().gety()
 	   <<setw(OWID)<<it->TgtForceVec().getz()
-	   <<setw(OWID)<<it->getTimeStep()
+	   <<setw(OWID)<<it->getVibraTimeStep()
+	   <<setw(OWID)<<it->getImpactTimeStep()
 	   <<endl;
     ofs.close();
 }
@@ -519,21 +521,37 @@ long double assembly::getAveragePenetration() const{
 }
 
 
-long double assembly::getMinTimeStep() const {
+long double assembly::getVibraTimeStep() const {
     int totalcntct = ContactList.size();
     if (totalcntct == 0)
 	return 0;
     else {
 	list<CONTACT>::const_iterator it=ContactList.begin();
-        long double minTimeStep = it->getTimeStep();
+        long double minTimeStep = it->getVibraTimeStep();
 	for (++it; it != ContactList.end(); ++it) {
-	  long double val = it->getTimeStep(); 
+	  long double val = it->getVibraTimeStep(); 
 	  minTimeStep =  val < minTimeStep ? val : minTimeStep;
 	}
 	return minTimeStep;
     }
- }
+}
 
+
+long double assembly::getImpactTimeStep() const {
+    int totalcntct = ContactList.size();
+    if (totalcntct == 0)
+	return 0;
+    else {
+	list<CONTACT>::const_iterator it=ContactList.begin();
+        long double minTimeStep = it->getImpactTimeStep();
+	for (++it; it != ContactList.end(); ++it) {
+	  long double val = it->getImpactTimeStep(); 
+	  minTimeStep =  val < minTimeStep ? val : minTimeStep;
+	}
+	return minTimeStep;
+    }
+}
+ 
 
 long double assembly::getAverageVelocity() const{
     long double avgv=0;
@@ -2462,7 +2480,8 @@ void assembly::deposit(int   total_steps,
 	       <<setw(OWID)<<"sample"
 	       <<setw(OWID)<<"sample"
 	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"critical"
+	       <<setw(OWID)<<"vibra"
+	       <<setw(OWID)<<"impact"
 	       <<setw(OWID)<<"wall-clock" << endl
 	       <<setw(OWID)<<"number"
 	       <<setw(OWID)<<"contacts"
@@ -2497,7 +2516,8 @@ void assembly::deposit(int   total_steps,
 	       <<setw(OWID)<<"epsilon_w"
 	       <<setw(OWID)<<"epsilon_l"
 	       <<setw(OWID)<<"epsilon_h"
-	       <<setw(OWID)<<"epsilon-v"
+	       <<setw(OWID)<<"epsilon_v"
+	       <<setw(OWID)<<"time_step"
 	       <<setw(OWID)<<"time_step"
 	       <<setw(OWID)<<"time" << endl;
 
@@ -2607,7 +2627,8 @@ void assembly::deposit(int   total_steps,
 		       <<setw(OWID)<<"0"
 		       <<setw(OWID)<<"0"
 		       <<setw(OWID)<<"0"
-	               <<setw(OWID)<<getMinTimeStep()
+	               <<setw(OWID)<<getVibraTimeStep()
+	               <<setw(OWID)<<getImpactTimeStep()
 		       <<setw(OWID)<<timediffsec(timew1,timew2)
 		       <<endl;
 
@@ -2677,7 +2698,7 @@ void assembly::deposit_p(int   total_steps,
 	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<endl;
+	       <<"epsilon_v"<<endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
@@ -2806,7 +2827,7 @@ void assembly::squeeze(int   total_steps,
 	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<endl;
+	       <<"epsilon_v"<<endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
@@ -2973,7 +2994,7 @@ void assembly::isotropic(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -2991,7 +3012,7 @@ void assembly::isotropic(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -3268,7 +3289,7 @@ void assembly::isotropic(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -3286,7 +3307,7 @@ void assembly::isotropic(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -3572,7 +3593,7 @@ void assembly::isotropic(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -3590,7 +3611,7 @@ void assembly::isotropic(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -3886,7 +3907,7 @@ void assembly::odometer(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -3904,7 +3925,7 @@ void assembly::odometer(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -4148,7 +4169,7 @@ void assembly::odometer(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -4166,7 +4187,7 @@ void assembly::odometer(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -4408,7 +4429,7 @@ void assembly::unconfined(int   total_steps,
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<endl;
+	       <<"epsilon_v"<<endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -4543,7 +4564,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -4701,7 +4722,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -4719,7 +4740,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -4918,7 +4939,8 @@ void assembly::triaxial(int   total_steps,
 	       <<setw(OWID)<<"void"
 	       <<setw(OWID)<<"sample"
 	       <<setw(OWID)<<"coordinate"
-	       <<setw(OWID)<<"critical"
+	       <<setw(OWID)<<"vibra"
+	       <<setw(OWID)<<"impact"
 	       <<setw(OWID)<<"wall-clock" << endl
 	       <<setw(OWID)<<"number"
 	       <<setw(OWID)<<"contacts"
@@ -4945,10 +4967,11 @@ void assembly::triaxial(int   total_steps,
 	       <<setw(OWID)<<"epsilon_w"
 	       <<setw(OWID)<<"epsilon_l"
 	       <<setw(OWID)<<"epsilon_h"
-	       <<setw(OWID)<<"epsilon-v"
+	       <<setw(OWID)<<"epsilon_v"
 	       <<setw(OWID)<<"ratio"
 	       <<setw(OWID)<<"porosity"
 	       <<setw(OWID)<<"number"
+	       <<setw(OWID)<<"time_step"
 	       <<setw(OWID)<<"time_step"
 	       <<setw(OWID)<<"time" << endl;
 
@@ -4985,7 +5008,8 @@ void assembly::triaxial(int   total_steps,
 	       <<setw(OWID)<<"void"
 	       <<setw(OWID)<<"sample"
 	       <<setw(OWID)<<"coordinate"
-	       <<setw(OWID)<<"critical"
+	       <<setw(OWID)<<"vibra"
+	       <<setw(OWID)<<"impact"
 	       <<setw(OWID)<<"wall-clock" << endl
 	       <<setw(OWID)<<"number"
 	       <<setw(OWID)<<"contacts"
@@ -5012,10 +5036,11 @@ void assembly::triaxial(int   total_steps,
 	       <<setw(OWID)<<"epsilon_w"
 	       <<setw(OWID)<<"epsilon_l"
 	       <<setw(OWID)<<"epsilon_h"
-	       <<setw(OWID)<<"epsilon-v"
+	       <<setw(OWID)<<"epsilon_v"
 	       <<setw(OWID)<<"ratio"
 	       <<setw(OWID)<<"porosity"
 	       <<setw(OWID)<<"number"
+	       <<setw(OWID)<<"time_step"
 	       <<setw(OWID)<<"time_step"
 	       <<setw(OWID)<<"time" << endl;
 
@@ -5161,7 +5186,8 @@ void assembly::triaxial(int   total_steps,
 		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-	               <<setw(OWID)<<getMinTimeStep()
+	               <<setw(OWID)<<getVibraTimeStep()
+	               <<setw(OWID)<<getImpactTimeStep()
 		       <<setw(OWID)<<timediffsec(timew1,timew2)
 		       <<endl;
 	    g_debuginf<<setw(OWID)<<g_iteration
@@ -5213,7 +5239,8 @@ void assembly::triaxial(int   total_steps,
 		       <<setw(OWID)<<2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-	               <<setw(OWID)<<getMinTimeStep()
+	               <<setw(OWID)<<getVibraTimeStep()
+	               <<setw(OWID)<<getImpactTimeStep()
 		       <<setw(OWID)<<timediffsec(timew1,timew2)
 		       <<endl;
 	}
@@ -5274,7 +5301,7 @@ void assembly::triaxial(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -5292,7 +5319,7 @@ void assembly::triaxial(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -5548,7 +5575,7 @@ void assembly::rectPile_Disp(int   total_steps,
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<endl;
+	       <<"epsilon_v"<<endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -5697,7 +5724,7 @@ void assembly::ellipPile_Disp(int   total_steps,
 	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<endl;
+	       <<"epsilon_v"<<endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -5832,7 +5859,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<endl;
+	       <<"epsilon_v"<<endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -5991,7 +6018,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<endl;
+	       <<"epsilon_v"<<endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -6130,7 +6157,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon-v"<<endl;
+	       <<"epsilon_v"<<endl;
 
     ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
@@ -6294,7 +6321,7 @@ void assembly::truetriaxial(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
@@ -6312,7 +6339,7 @@ void assembly::truetriaxial(int   total_steps,
 	       <<"          omga            force           moment        density          "
 	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
 	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon-v"
+	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
 	       <<"        ratio          porosity         number"
 	       <<endl;
 

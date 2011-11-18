@@ -53,7 +53,8 @@ public:
     long double getRadius2() const {return radius2;}
     long double getR0() const {return R0;}
     long double getE0() const {return E0;}
-    long double getTimeStep() const {return timeStep;}
+    long double getVibraTimeStep() const {return vibraTimeStep;}
+    long double getImpactTimeStep() const {return impactTimeStep;}
     
     bool isOverlapped();
     void contactForce();         // calculate normal and tangential force of contact
@@ -80,7 +81,8 @@ public:
     long double E0;              
     long double G0;
     long double R0;
-    long double timeStep;
+    long double vibraTimeStep;
+    long double impactTimeStep;
 
     bool isInContact;
 
@@ -269,7 +271,8 @@ void contact<T>::contactForce(){
 	long double kn = powl(6*vfabsl(NormalForce)*R0*powl(E0,2),1.0/3.0);
 	long double DMP_CRTC = 2*sqrtl(m1*m2/(m1+m2)*kn); // critical damping
 	vec CntDampingForce  = DMP_CNT * DMP_CRTC * ((veloc1-veloc2)%NormDirc)*NormDirc;
-	timeStep = 2.0*sqrtl( m1*m2 / (m1+m2) /kn );
+	vibraTimeStep = 2.0*sqrtl( m1*m2 / (m1+m2) /kn );
+	impactTimeStep = allowedOverlap / fabsl((veloc1-veloc2) % NormDirc);
 
 	// apply normal damping force
 	p1->addForce(-CntDampingForce);
