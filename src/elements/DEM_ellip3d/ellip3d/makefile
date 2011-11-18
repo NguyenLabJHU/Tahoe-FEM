@@ -3,76 +3,51 @@
 # 2. optimization + openmp                                           
 # 3. debug                                                           
 # 4. debug + openmp                                                  
-# What you need to do is uncommenting one of the 4 lines enclosed by # 
-# lines below, and you are only recommended to select mode 1 or 2. 
+# What you need to do is uncommenting one of the 4 lines enclosed 
+# below, and you are only recommended to select mode 1 or 2. 
 # Mode 3 and 4 write massive debug information on disk so they are 
 # only applicable to cases of a few particles or a few time steps. 
 
 # C++ compiler
-CC = g++
+CXX = g++
 
-# optimization (NDEBUG is only related to cassert)
-OPTIMIZE = -O3 -DNDEBUG
+# optimization
+OPTIMIZE = -O3
 
-# debugging options (macro DEBUG is defined in root6.cpp and vec.cpp)
+# debugging options (macro DEBUG is defined in source code)
 DEBUG = -Wall -g -DDEBUG
 
-# OPENMP (macro OPENMP is defined in assembly.cpp )
+# OPENMP (macro OPENMP is defined in source code)
 OPENMP = -DOPENMP -fopenmp
 
 ######################################################################
-#OPTION = $(OPTIMIZE)
- OPTION = $(OPTIMIZE) $(OPENMP)
-#OPTION = $(DEBUG)
-#OPTION = $(DEBUG) $(OPENMP)
+#CXXFLAGS = $(OPTIMIZE)
+ CXXFLAGS = $(OPTIMIZE) $(OPENMP)
+#CXXFLAGS = $(DEBUG)
+#CXXFLAGS = $(DEBUG) $(OPENMP)
 ######################################################################
 
-ellip3d: main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o timefunc.o
-	$(CC) $(OPTION) -o ellip3d main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o timefunc.o
+SOURCES = $(wildcard *.cpp)
+OBJECTS = $(SOURCES:.cpp=.o)
+#OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
+EXECUTABLE = ellip3d
 
-main.o: parameter.h gradation.h rectangle.h assembly.h main.cpp
-	$(CC) -c $(OPTION) -o main.o main.cpp
+.PHONY: all clean
 
-assembly.o: assembly.h parameter.h timefunc.h vec.h gradation.h particle.h contact.h boundary.h rectangle.h cylinder.h assembly.cpp
-	$(CC) -c $(OPTION) assembly.cpp
+all: $(SOURCES) $(EXECUTABLE)
 
-particle.o: particle.h parameter.h ran.h root6.h vec.h gradation.h contact.h boundary.h rectangle.h cylinder.h boundarytgt.h particle.cpp
-	$(CC) -c $(OPTION) particle.cpp
+sinclude $(SOURCES:.cpp=.d)
 
-cylinder.o: cylinder.h parameter.h ran.h vec.h shape.h cylinder.cpp
-	$(CC) -c $(OPTION) cylinder.cpp
+$(EXECUTABLE): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@
 
-rectangle.o: rectangle.h parameter.h ran.h vec.h shape.h rectangle.cpp
-	$(CC) -c $(OPTION) rectangle.cpp
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $< -o $@
 
-ran.o: ran.h ran.cpp
-	$(CC) -c $(OPTION) ran.cpp
-
-root6.o: root6.h parameter.h nr.h vec.h root6.cpp
-	$(CC) -c $(OPTION) root6.cpp
-
-zrhqr.o: nrutil.h zrhqr.cpp
-	$(CC) -c $(OPTION) zrhqr.cpp 
-
-hqr.o: nrutil.h hqr.cpp
-	$(CC) -c $(OPTION) hqr.cpp
-
-balanc.o: balanc.cpp
-	$(CC) -c $(OPTION) balanc.cpp
-
-nrutil.o: nrutil.cpp
-	$(CC) -c $(OPTION) nrutil.cpp
-
-timefunc.o: timefunc.cpp
-	$(CC) -c $(OPTION) timefunc.cpp
-
-vec.o:  vec.h parameter.h vec.cpp
-	$(CC) -c $(OPTION) vec.cpp
-
-parameter.o: parameter.h parameter.cpp
-	$(CC) -c $(OPTION) parameter.cpp
+%.d: %.cpp
+	$(CXX) -MM $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
 
 clean:
-	rm -f *.o
-	rm -f *~
-	rm -f ellip3d
+	-rm -f *.o *.d *~ ellip3d
