@@ -231,8 +231,8 @@ void contact<T>::contactForce(){
 	long double allowedOverlap = 2.0 * std::min(radius1,radius2) * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
 	  g_debuginf << "in contact.h: g_iteration=" << g_iteration 
-		     << " ,particle1=" << getP1()
-		     << " ,particle2=" << getP2()
+		     << " ,particle1=" << getP1()->getID()
+		     << " ,particle2=" << getP2()->getID()
 		     << " ,pentration=" << penetration 
 		     << " ,exceeding allowable value=" << allowedOverlap 
 		     << " ,use smaller time step!" << std::endl;
