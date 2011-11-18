@@ -164,9 +164,16 @@ bool contact<T>::isOverlapped(){
     p1->getGlobCoef(coef1); // v[0] is the point on p2, v[1] is the point on p1
     p2->getGlobCoef(coef2);    
     vec v[2];
-    if ( root6(coef1,coef2,v[0])  && root6(coef2,coef1,v[1]) ) { // a strict detection method
-        point1 = v[1];
-        point2 = v[0];
+    bool b1 = root6(coef1,coef2,v[0]);
+    bool b2 = root6(coef2,coef1,v[1]);
+    point1 = v[1];
+    point2 = v[0];
+    radius1=p1->getRadius(point1);
+    radius2=p2->getRadius(point2);
+    penetration=vfabsl(point1-point2);
+    long double minRelOverlap = penetration/(2.0*std::max(radius1,radius2));
+
+    if (b1 && b2 && minRelOverlap > MINOVERLAP) { // a strict detection method
         isInContact = true;
         return true;
     }
@@ -216,14 +223,10 @@ void contact<T>::contactForce(){
 	// obtain normal force, using absolute equation instead of stiffness method
 	p1->cntnum++;
 	p2->cntnum++;
-	radius1=p1->getRadius(point1);
-	radius2=p2->getRadius(point2);
 	R0=radius1*radius2/(radius1+radius2);
-	vec dist=point1-point2;
-	penetration=vfabsl(dist);
 	contact_radius=sqrtl(penetration*R0);
 	E0=0.5*YOUNG/(1-POISSON*POISSON);
-	NormDirc=normalize(dist);         // NormDirc points out of particle 1
+	NormDirc=normalize(point1-point2);         // NormDirc points out of particle 1
 	NormalForce= -sqrtl(penetration*penetration*penetration)*sqrtl(R0)*4*E0/3* NormDirc; // NormalForce pointing to particle 1
 	// powl(penetration, 1.5)
 

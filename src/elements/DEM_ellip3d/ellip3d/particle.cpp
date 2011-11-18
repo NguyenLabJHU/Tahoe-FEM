@@ -714,9 +714,9 @@ bool particle::nearestPTOnPlane(long double p, long double q, long double r, lon
       // signed distance from particle center to plane
       long double l_nm=(curr_position.getx()*p+curr_position.gety()*q+curr_position.getz()*r+s)/sqrtl(p*p+q*q+r*r); 
       ptnp=curr_position-l_nm*tnm;
-      if(fabsl(l_nm)<a) // intersect
+      if( (a-fabsl(l_nm)) / (2.0*a) > MINOVERLAP) // intersect
 	return true;
-      else              // no intersect, including tangent
+      else              // no intersect,
 	return false;
     }
 
@@ -792,12 +792,12 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	    return;
 
 	vec pt2;
-/*
+	/*
 	if (p*rt[0].getx()+q*rt[0].gety()+r*rt[0].getz()+s > 0)
 		pt2=rt[0];
 	else
 		pt2=rt[1];
-*/
+	*/
 	if (vfabsl(rt[0]-pt1) < vfabsl(rt[1]-pt1) )
 	    pt2 = rt[0];
 	else
@@ -805,7 +805,7 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 
 	// obtain normal force
 	long double penetration=vfabsl(pt1-pt2);
-	if (penetration==0)  // plane is tangent to ellipsoid (this case can not be detected by nearestPTOnPlane because of computational precision)
+	if (penetration / (2.0*getRadius(pt2) ) <= MINOVERLAP)
 	    return;
 	penetr = penetration;
 	long double R0=getRadius(pt2);

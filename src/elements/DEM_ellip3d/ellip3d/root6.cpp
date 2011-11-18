@@ -45,10 +45,11 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 		dirc=normalize(dirc);
 		point=vec(x2,y2,z2)+R2*dirc;
 		vec judge=point-vec(x1,y1,z1);
-		if(vfabsl(judge)<R1 && judge%dirc<0) // ptcl_1 is outside ptcl_2 and is in touch with ptcl_2.
-		    return true;  // overlapped!    // if fabsl(judge)>R1 and judge%dirc>0, then ptcl_1 is inside ptcl_2.
+		if(judge % dirc  < 0  && // ptcl_1 is outside ptcl_2
+		   (R1-vfabsl(judge)) / (2.0*max(R1,R2)) > MINOVERLAP ) // overlapped and satisfy minimum relative overlap
+		    return true;  // overlapped
 		else
-		    return false; // non-overlapped!
+		    return false; // non-overlapped
 	}
 
 	long double a1=coef1[0];
