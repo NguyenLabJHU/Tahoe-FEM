@@ -1,6 +1,7 @@
 #ifndef BOUNDARYTGT_H
 #define BOUNDARYTGT_H
 
+#include "realtypes.h"
 #include "vec.h"
 
 namespace dem {
@@ -12,10 +13,10 @@ public:
     vec  TgtDisp;
     bool TgtLoading;
     vec  TgtDispStart;
-    long double TgtPeak;
+    REAL TgtPeak;
 
     boundarytgt();
-    boundarytgt(int _ptcl, vec _v1, vec _v2, bool _b, vec _v3, long double _tp)
+    boundarytgt(int _ptcl, vec _v1, vec _v2, bool _b, vec _v3, REAL _tp)
 	:ptcl(_ptcl), 
 	 TgtForce(_v1), 
 	 TgtDisp(_v2), 

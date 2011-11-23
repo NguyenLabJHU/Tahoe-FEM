@@ -1,6 +1,7 @@
 #ifndef CYLINDER_H
 #define CYLINDER_H
 
+#include "realtypes.h"
 #include "parameter.h"
 #include "vec.h"
 #include "shape.h"
@@ -13,7 +14,7 @@ class cylinder:public shape{
 	:radius(0),height(0),center(0)
 	{}
 
-    cylinder(long double r, long double h, vec c)
+    cylinder(REAL r, REAL h, vec c)
 	:radius(r),height(h),center(c)
 	{}
 
@@ -23,21 +24,21 @@ class cylinder:public shape{
 	center=cy.center;
     }
     
-    long double get_radius() const {return radius;}
-    long double get_height() const {return height;}
-    long double get_volume() const {return PI*radius*radius*height;}
+    REAL get_radius() const {return radius;}
+    REAL get_height() const {return height;}
+    REAL get_volume() const {return PI*radius*radius*height;}
     vec  get_center() const {return center;}
 
-    void set_radius(long double r) {radius = r;}
-    void set_height(long double h) {height = h;}
+    void set_radius(REAL r) {radius = r;}
+    void set_height(REAL h) {height = h;}
     void set_center(vec v) {center=v;}
 
     vec  randomPoint() const;
     void print() const;
     
  private:
-    long double radius;
-    long double height;
+    REAL radius;
+    REAL height;
     vec  center;
 };
 

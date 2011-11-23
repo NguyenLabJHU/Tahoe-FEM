@@ -1,6 +1,7 @@
 #ifndef ASSEMBLY_H
 #define ASSEMBLY_H
 
+#include "realtypes.h"
 #include "vec.h"
 #include "gradation.h"
 #include "particle.h"
@@ -67,18 +68,18 @@ public:
 	void        clearForce();                            // clear forces and moments for all particles
 	void        flexiBoundaryForceZero();
 	void        initFBForce();
-	void        internalForce(long double& avgnm, long double& avgsh); // calculate inter-particle forces
+	void        internalForce(REAL& avgnm, REAL& avgsh); // calculate inter-particle forces
 	void        rigidBoundaryForce();                    // calcualte forces between rigid boundaries and particles
-	void        rigidBoundaryForce(long double penetr[],int cntnum[]);
+	void        rigidBoundaryForce(REAL penetr[],int cntnum[]);
 	void        flexiBoundaryForce();
 	void        updateParticle();                        // update motion of particles
 
-	long double ellipPileForce();                        // for force pile only
+	REAL ellipPileForce();                        // for force pile only
 	void        ellipPileUpdate();                       // for force pile only
 
 	vec         ellipPileDimn();
-	long double ellipPileTipZ();
-	long double ellipPilePeneVol();
+	REAL ellipPileTipZ();
+	REAL ellipPilePeneVol();
 
 
 	// if bn[i]=2, the 2nd rigid boundary should be updated according to rbctl[i],
@@ -91,31 +92,31 @@ public:
 	// totally num flxible boundaries must be updated, the size of fbctl is 2 times large as size of bn
 	void        updateFB(int bn[], UPDATECTL fbctl[], int num);
 
-	long double getDensity() const; 
+	REAL getDensity() const; 
 	int         getPossCntctNum() const {return  PossCntctNum;};
 	int         getActualCntctNum() const {return ActualCntctNum;}
-	long double getAveragePenetration() const;
-	long double getVibraTimeStep() const;
-	long double getImpactTimeStep() const;
-	long double getAverageVelocity() const;
-	long double getAverageForce() const;
-	long double getAverageOmga() const;
-	long double getAverageMoment() const;
-	long double getParticleVolume() const;
+	REAL getAveragePenetration() const;
+	REAL getVibraTimeStep() const;
+	REAL getImpactTimeStep() const;
+	REAL getAverageVelocity() const;
+	REAL getAverageForce() const;
+	REAL getAverageOmga() const;
+	REAL getAverageMoment() const;
+	REAL getParticleVolume() const;
 	vec         getTopFreeParticlePosition() const;
-	long double getTransEnergy() const;
-	long double getRotatEnergy() const;
-	long double getKinetEnergy() const;
-	long double getPotenEnergy(long double ref) const;
+	REAL getTransEnergy() const;
+	REAL getRotatEnergy() const;
+	REAL getKinetEnergy() const;
+	REAL getPotenEnergy(REAL ref) const;
 
 	vec         getNormalForce(int bdry) const;       // get normal force acting on the bdry_th rigid boundary
 	vec         getShearForce(int bdry) const;        // get shear force acting on the bdry_th rigid boundary
-	long double getAvgNormal(int bdry) const;
+	REAL getAvgNormal(int bdry) const;
 	vec         getApt(int bdry) const;               // get a point on bdry_th rigid boundary
 	vec         getDirc(int bdry) const;              // get the dirc of bdry_th rigid boundry
-	long double getArea(int bdry) const;
-	long double getAverageRigidPressure() const;
-	void        setArea(int bdry,long double a);      // set the area of the bdry-th rigid boundary be a
+	REAL getArea(int bdry) const;
+	REAL getAverageRigidPressure() const;
+	void        setArea(int bdry,REAL a);      // set the area of the bdry-th rigid boundary be a
 
 	void        printParticle(const char* str) const; // print particles info into a disk file
 	void        printContact(const char* str) const;  // print contacts information
@@ -128,7 +129,7 @@ public:
 			     int   total_steps,  
 			     int   snapshots,
 			     int   interval,
-			     long double height,
+			     REAL height,
 			     const char* iniptclfile,   
 			     const char* inibdryfile,
 			     const char* particlefile, 
@@ -141,7 +142,7 @@ public:
 	// create a specimen by depositing particles into particle boundaries
 	void deposit_PtclBdry(gradation& grad,
 			      int   freetype,
-			      long double rsize,
+			      REAL rsize,
 			      int   total_steps,  
 			      int   snapshots,
 			      int   interval,
@@ -155,8 +156,8 @@ public:
 	void scale_PtclBdry(int         total_steps  =50000,             // total_steps
 			    int         snapshots    =100,               // number of snapshots   
 			    int         interval     =10,                // print interval
-			    long double dimn         =0.05,              // dimension of particle-composed-boundary
-			    long double rsize        =1.0,               // relative container size
+			    REAL dimn         =0.05,              // dimension of particle-composed-boundary
+			    REAL rsize        =1.0,               // relative container size
 			    const char* iniptclfile  ="dep_particle_end",// input file, initial particles
 			    const char* particlefile ="scl_particle",    // output file, resulted particles, including snapshots 
 			    const char* contactfile  ="scl_contact",     // output file, resulted contacts, including snapshots
@@ -167,14 +168,14 @@ public:
 	void generate(gradation& grad, 
 		      const char* str,
 		      int freetype,
-		      long double ht);
+		      REAL ht);
 
 	// generate particles in space for particle boundaries
 	void generate_p(gradation& grad,
 			const char* str,
 			int freetype,
-			long double rsize,
-			long double ht);
+			REAL rsize,
+			REAL ht);
 
         // actual deposit function for rigid boundaries
 	void deposit(int         total_steps  =100000,              // total_steps
@@ -191,8 +192,8 @@ public:
 	void deposit_p(int         total_steps  =50000,             // total_steps
 		       int         snapshots    =100,               // number of snapshots   
 		       int         interval     =10,                // print interval 
-		       long double dimn   =0.05,                    // dimension of particle-composed-boundary
-		       long double rsize  =1.0,                     // relative container size
+		       REAL dimn   =0.05,                    // dimension of particle-composed-boundary
+		       REAL rsize  =1.0,                     // relative container size
 		       const char* iniptclfile  ="flo_particle_end",// input file, initial particles
 		       const char* particlefile ="dep_particle",    // output file, resulted particles, including snapshots 
 		       const char* contactfile  ="dep_contact",     // output file, resulted contacts, including snapshots
@@ -226,7 +227,7 @@ public:
 	
 	void setBoundary(int rors,
 		     int bdrynum,
-		     long double dimn,
+		     REAL dimn,
 		     const char* boundaryfile);
 
 	void trim(int rors,
@@ -235,7 +236,7 @@ public:
 		  const char* particlefile,
 		  const char* boundaryfile);
 
-	void TrimPtclBdryByHeight(double height,
+	void TrimPtclBdryByHeight(REAL height,
 				  const char* iniptclfile,
 				  const char* particlefile);
 
@@ -245,7 +246,7 @@ public:
 	void isotropic(int          total_steps  =100000,
 		       int          snapshots    =100,
 		       int          interval     =10,
-		       long double  sigma        =1.0e+4,
+		       REAL  sigma        =1.0e+4,
 		       const char*  iniptclfile  ="flo_particle_end",
 		       const char*  inibdryfile  ="iso_inbdry",
 		       const char*  particlefile ="iso_particle",
@@ -261,8 +262,8 @@ public:
 	void isotropic(int          total_steps   =100000,
 		       int          snapshots     =100,
 		       int          interval      =10, 
-		       long double  sigma_a       =1.0e+4,
-		       long double  sigma_b       =1.0e+5,	
+		       REAL  sigma_a       =1.0e+4,
+		       REAL  sigma_b       =1.0e+5,	
 		       int    sigma_division      =100,	  
 		       const char*  iniptclfile   ="iso_particle_10k",
 		       const char*  inibdryfile   ="iso_boundary_10k",
@@ -279,7 +280,7 @@ public:
 		       int          snapshots,
 		       int          interval,
 		       int          sigma_points,			  
-		       long double  sigma_values[],
+		       REAL  sigma_values[],
 		       int          sigma_division=100,
 		       const char*  iniptclfile   ="iso_particle_10k",
 		       const char*  inibdryfile   ="iso_boundary_10k",
@@ -297,8 +298,8 @@ public:
 	void odometer(int          total_steps    =100000,
 		      int          snapshots      =100,
                       int          interval       =10,
-		      long double  sigma_3        =1.0e+4,
-		      long double  sigma_1        =1.0e+5,
+		      REAL  sigma_3        =1.0e+4,
+		      REAL  sigma_1        =1.0e+5,
 		      int          sigma_division =100,		  
 		      const char*  iniptclfile    ="iso_particle_10k",
 		      const char*  inibdryfile    ="iso_boundary_10k",
@@ -317,7 +318,7 @@ public:
 		      int          snapshots,
                       int          interval,
 		      int          sigma_points,			  
-		      long double  sigma_values[],
+		      REAL  sigma_values[],
 		      int          sigma_division=100,		  
 		      const char*  iniptclfile   ="iso_particle_10k",
 		      const char*  inibdryfile   ="iso_boundary_10k",
@@ -332,7 +333,7 @@ public:
 	void triaxialPtclBdryIni(int          total_steps  =10000,
 				 int          snapshots    =100,
                                  int          interval     =10,
-				 double       sigma        =5.0e+5,
+				 REAL         sigma        =5.0e+5,
 				 const char*  iniptclfile  ="ini_particle_ini",
 				 const char*  inibdryfile  ="ini_boundary_ini",
 				 const char*  particlefile ="ini_particle", 
@@ -360,7 +361,7 @@ public:
 	void triaxial(int          total_steps  =100000,
 		      int          snapshots    =100,
 		      int          interval     =10,
-		      long double  sigma_a      =1.0e+5,
+		      REAL  sigma_a      =1.0e+5,
 		      const char*  iniptclfile  ="iso_particle_100k",
 		      const char*  inibdryfile  ="iso_boundary_100k",
 		      const char*  particlefile ="tri_particle", 
@@ -377,7 +378,7 @@ public:
 		      int          unload_step  =100000,
 		      int          snapshots    =100,
 		      int          interval     =10,
-		      long double  sigma_a      =3.0e+5,
+		      REAL  sigma_a      =3.0e+5,
 		      const char*  iniptclfile  ="iso_particle_300k",
 		      const char*  inibdryfile  ="iso_boundary_300k",
 		      const char*  particlefile ="tri_particle", 
@@ -405,8 +406,8 @@ public:
 	void ellipPile_Disp(int         total_steps  =50000,  
 			    int         snapshots    =100, 
 			    int          interval     =10,
-			    long double dimn         =0.05,
-			    long double rsize        =1.0,
+			    REAL dimn         =0.05,
+			    REAL rsize        =1.0,
 			    const char* iniptclfile  ="pile_particle_ini",
 			    const char* particlefile ="pile_particle", 
 			    const char* contactfile  ="pile_contact",  
@@ -418,7 +419,7 @@ public:
 	void ellipPile_Impact(int         total_steps  =50000,  
 			      int         snapshots    =100, 
 			      int         interval     =10,
-			      long double dimn         =0.05,
+			      REAL dimn         =0.05,
 			      const char* iniptclfile  ="ipt_particle_ini",
 			      const char* inibdryfile  ="dep_boundary_ini",
 			      const char* particlefile ="ipt_particle", 
@@ -431,7 +432,7 @@ public:
 	void ellipPile_Impact_p(int         total_steps  =50000,  
 				int         snapshots    =100, 
 			        int         interval     =10,
-				long double dimn         =0.05,
+				REAL dimn         =0.05,
 				const char* iniptclfile  ="ipt_particle_ini",
 				const char* particlefile ="ipt_particle", 
 				const char* contactfile  ="ipt_contact",  
@@ -443,8 +444,8 @@ public:
 	void ellipPile_Force(int         total_steps  =50000,  
 			     int         snapshots    =100, 
 			     int         interval     =10,
-			     long double dimn         =0.05,
-			     long double force        =1.0e+4,
+			     REAL dimn         =0.05,
+			     REAL force        =1.0e+4,
 			     int   division           =100,
 			     const char* iniptclfile  ="pile_particle_ini",
 			     const char* particlefile ="pile_particle", 
@@ -456,10 +457,10 @@ public:
 	void truetriaxial(int          total_steps   =1000000,
 			  int          snapshots     =100,
 			  int          interval      =10,
-			  long double  sigma_a       =1.0e+4,
-			  long double  sigma_w       =1.0e+5,
-			  long double  sigma_l       =1.0e+5,	
-			  long double  sigma_h       =1.0e+5,	
+			  REAL  sigma_a       =1.0e+4,
+			  REAL  sigma_w       =1.0e+5,
+			  REAL  sigma_l       =1.0e+5,	
+			  REAL  sigma_h       =1.0e+5,	
 			  int          sigma_division=100,			  
 			  const char*  iniptclfile   ="iso_particle_10k",
 			  const char*  inibdryfile   ="iso_boundary_10k",
@@ -480,14 +481,14 @@ public:
 			const char*  progressfile ="unc_progress",
 			const char*  debugfile    ="unc_debug");
 	
-	void soft_tric(long double _sigma3, long double _b,
+	void soft_tric(REAL _sigma3, REAL _b,
 		       const char* iniptclfile ="isotropic",
 		       const char* boundaryfile="isobdry",
 		       const char* responsefile="sftc",
 		       const char* resultfile  ="sftcompressed",
 		       const char* trackfile   ="tracksft");
 
-	void earthPressure(long double pressure, bool IsPassive,
+	void earthPressure(REAL pressure, bool IsPassive,
 			   const char* iniptclfile ="isotropic",
 			   const char* boundaryfile="isobdry",
 			   const char* responsefile="ssvpp",
@@ -500,14 +501,14 @@ public:
 			       const char* resultfile  ="shallowcompressed",
 			       const char* trackfile   ="shallowtrack");
 
-	void simpleShear(long double normal_pressure,long double _b,
+	void simpleShear(REAL normal_pressure,REAL _b,
                          const char* iniptclfile ="isotropic",
                          const char* boundaryfile="isobdry",
                          const char* responsefile="simpleshear",
                          const char* resultfile  ="simplesheared",
                          const char* trackfile   ="tracksimple");
 
-	void dircShear(long double rate, long double roterate, long double stress,
+	void dircShear(REAL rate, REAL roterate, REAL stress,
 		       const char* iniptclfile ="deposit",
 		       const char* boundaryfile="rgdcube.data",
 		       const char* responsefile="ssvds",
@@ -531,8 +532,8 @@ private:
 	int  RORC;               // rectangular--1 or cylindrical--0
 	cylinder S;              // S - cylinder specimen
 	rectangle R;             // R - rectangle specimen
-	long double Volume;      // volume of the specimen
-	long double BulkDensity; // bulk density of specimen
+	REAL Volume;      // volume of the specimen
+	REAL BulkDensity; // bulk density of specimen
 
 	// boundary property
 	int  BdryType;              // 0 - rigid boundaries; 1 - flxible boundaries

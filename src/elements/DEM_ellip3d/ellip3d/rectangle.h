@@ -1,6 +1,7 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
+#include "realtypes.h"
 #include "vec.h"
 #include "shape.h"
 
@@ -12,7 +13,7 @@ class rectangle:public shape{
 	:width(0),length(0),height(0),center(0)
 	{}
 
-    rectangle(long double w, long double l, long double h, vec c)
+    rectangle(REAL w, REAL l, REAL h, vec c)
 	:width(w),length(l),height(h),center(c)
 	{}
 
@@ -23,24 +24,24 @@ class rectangle:public shape{
 	center=rec.center;
     }
     
-    long double get_width() const {return width;}
-    long double get_length() const {return length;}
-    long double get_height() const {return height;}
-    long double get_volume() const {return width*length*height;}
+    REAL get_width() const {return width;}
+    REAL get_length() const {return length;}
+    REAL get_height() const {return height;}
+    REAL get_volume() const {return width*length*height;}
     vec  get_center() const {return center;}
 
-    void set_width(long double w) {width=w;}
-    void set_length(long double l) {length=l;}
-    void set_height(long double h) {height=h;}
+    void set_width(REAL w) {width=w;}
+    void set_length(REAL l) {length=l;}
+    void set_height(REAL h) {height=h;}
     void set_center(vec v) {center=v;}
 
     vec  randomPoint() const;
     void print() const;
     
  private:
-    long double width;
-    long double length;
-    long double height;
+    REAL width;
+    REAL length;
+    REAL height;
     vec  center;
 };
 

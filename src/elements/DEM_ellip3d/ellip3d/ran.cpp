@@ -22,14 +22,14 @@ namespace dem {
 #define EPS 1.2e-7
 #define RNMX (1.0-EPS)
 
-long double ran(long *idum)
+REAL ran(long *idum)
 {
 	int j;
 	long k;
 	static long idum2=123456789;
 	static long iy=0;
 	static long iv[NTAB];
-	long double temp;
+	REAL temp;
 
 	if (*idum <= 0) {
 		if (-(*idum) < 1) *idum=1;

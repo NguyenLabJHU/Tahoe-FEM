@@ -1,6 +1,7 @@
 #ifndef GRADATION_H
 #define GRADATION_H
 
+#include "realtypes.h"
 #include <vector>
 
 namespace dem {
@@ -8,19 +9,19 @@ namespace dem {
 class gradation{
 public:
     int rorc;
-    long double dimn;
-    long double ratio_ba;
-    long double ratio_ca;
+    REAL dimn;
+    REAL ratio_ba;
+    REAL ratio_ca;
     int seivenum;
-    std::vector<long double> percent;
-    std::vector<long double> ptclsize;
+    std::vector<REAL> percent;
+    std::vector<REAL> ptclsize;
 
     gradation()
 	:rorc(),dimn(),ratio_ba(),ratio_ca(),seivenum(),percent(),ptclsize()
 	{};
 
-    gradation(int _rc, long double _di, long double _ba, long double _ca,
-	      int _sn, std::vector<long double>& _v1, std::vector<long double>& _v2)
+    gradation(int _rc, REAL _di, REAL _ba, REAL _ca,
+	      int _sn, std::vector<REAL>& _v1, std::vector<REAL>& _v2)
 	:rorc(_rc), dimn(_di), ratio_ba(_ba), ratio_ca(_ca),
 	seivenum(_sn), percent(_v1), ptclsize(_v2)
 	{};

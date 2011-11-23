@@ -1,5 +1,7 @@
 #include "timefunc.h"
 
+namespace dem {
+
 struct timeval timediff(const struct timeval &time1, const struct timeval &time2) {
     struct timeval diff;
 
@@ -17,8 +19,10 @@ long int timediffmsec(const struct timeval &time1, const struct timeval &time2) 
     return(diff.tv_sec * 1000000 + diff.tv_usec); 
 }
 
-double timediffsec(const struct timeval &time1, const struct timeval &time2) {
-    return( (double) timediffmsec(time1,time2) / 1.0e+6);
+REAL timediffsec(const struct timeval &time1, const struct timeval &time2) {
+    return( (REAL) timediffmsec(time1,time2) / 1.0e+6);
+}
+
 }
 
 /*
