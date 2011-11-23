@@ -27,19 +27,19 @@ using namespace std;
 
 namespace dem {
 
-bool root6(long double coef1[],long double coef2[],vec& point){
+bool root6(REAL coef1[],REAL coef2[],vec& point){
 	if((coef1[0]==1.0&&coef1[1]==1.0&&coef1[2]==1.0&&
 		coef1[3]==0.0&&coef1[4]==0.0&&coef1[5]==0.0)&&
 		(coef2[0]==1.0&&coef2[1]==1.0&&coef2[2]==1.0&&
 		coef2[3]==0.0&&coef2[4]==0.0&&coef2[5]==0.0)){
-		long double x1=-coef1[6]/2;
-		long double y1=-coef1[7]/2;
-		long double z1=-coef1[8]/2;
-		long double R1=sqrtl(x1*x1+y1*y1+z1*z1-coef1[9]);
-		long double x2=-coef2[6]/2;
-		long double y2=-coef2[7]/2;
-		long double z2=-coef2[8]/2;
-		long double R2=sqrtl(x2*x2+y2*y2+z2*z2-coef2[9]);
+		REAL x1=-coef1[6]/2;
+		REAL y1=-coef1[7]/2;
+		REAL z1=-coef1[8]/2;
+		REAL R1=sqrtl(x1*x1+y1*y1+z1*z1-coef1[9]);
+		REAL x2=-coef2[6]/2;
+		REAL y2=-coef2[7]/2;
+		REAL z2=-coef2[8]/2;
+		REAL R2=sqrtl(x2*x2+y2*y2+z2*z2-coef2[9]);
 		vec dirc=vec(x1-x2,y1-y2,z1-z2);
 		dirc=normalize(dirc);
 		point=vec(x2,y2,z2)+R2*dirc;
@@ -51,28 +51,28 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 		    return false; // non-overlapped
 	}
 
-	long double a1=coef1[0];
-	long double b1=coef1[1];
-	long double c1=coef1[2];
-	long double d1=coef1[3];
-	long double e1=coef1[4];
-	long double f1=coef1[5];
-	long double g1=coef1[6];
-	long double h1=coef1[7];
-	long double i1=coef1[8];
-	long double j1=coef1[9];
+	REAL a1=coef1[0];
+	REAL b1=coef1[1];
+	REAL c1=coef1[2];
+	REAL d1=coef1[3];
+	REAL e1=coef1[4];
+	REAL f1=coef1[5];
+	REAL g1=coef1[6];
+	REAL h1=coef1[7];
+	REAL i1=coef1[8];
+	REAL j1=coef1[9];
 
-	long double a2=coef2[0];
-	long double b2=coef2[1];
-	long double c2=coef2[2];
-	long double d2=coef2[3];
-	long double e2=coef2[4];
-	long double f2=coef2[5];
-	long double g2=coef2[6];
-	long double h2=coef2[7];
-	long double i2=coef2[8];
-	long double j2=coef2[9];
-	long double rtc[7], rti[7], rtr[7];
+	REAL a2=coef2[0];
+	REAL b2=coef2[1];
+	REAL c2=coef2[2];
+	REAL d2=coef2[3];
+	REAL e2=coef2[4];
+	REAL f2=coef2[5];
+	REAL g2=coef2[6];
+	REAL h2=coef2[7];
+	REAL i2=coef2[8];
+	REAL j2=coef2[9];
+	REAL rtc[7], rti[7], rtr[7];
 	rtc[0]=
 		-8*b1*c1*d1*e1*f1*g1*g2 + 8*a1*c1*d1*e1*e2*g1*h1 + 
 	   8*a2*b1*c1*e1*f1*g1*h1 + 8*a1*b2*c1*e1*f1*g1*h1 + 
@@ -1888,7 +1888,7 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	}
 #endif
 
-	long double lamda[6];
+	REAL lamda[6];
 	int jj=0;
 	for (int k=1;k<=order;k++){
 	    if(fabsl(rti[k])<NUMZERO)
@@ -1899,7 +1899,7 @@ bool root6(long double coef1[],long double coef2[],vec& point){
 	g_debuginf<<"root6.cpp: jj="<<jj<<endl;
 #endif
 
-	long double x, y, z, det, within;
+	REAL x, y, z, det, within;
 	bool found=false;
 	for (int k=0;k<jj;k++){
 	    x=0;

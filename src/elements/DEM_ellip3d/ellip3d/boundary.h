@@ -15,6 +15,7 @@
 #ifndef BOUNDARY_H
 #define BOUNDARY_H
 
+#include "realtypes.h"
 #include "vec.h"
 #include "parameter.h"
 #include "cylinder.h"
@@ -35,7 +36,7 @@ typedef struct bdryfunc{
 	int order;  // x1-linear; 2-quadratic
 	vec dirc;   // normal vector if plane, mother line vector if cylinder,it points out of the particles		
 	vec apt;    // a point on the plane or a point on the axis of the cylinder
-	long double rad; //zero if plane
+	REAL rad; //zero if plane
 	int side;   //zero if plane; side=1, particles are outside the cylinder; =-1, inside the cylinder
         void disp() const{
 		printf("the elements of a boundary are\n");
@@ -62,7 +63,7 @@ typedef struct updatectl{
 	vec tran;    // tranlation second
 	vec rote;    // rotate first
 	vec fixpt;   // before any update is made
-	long double expnd;// expand last
+	REAL expnd;// expand last
 	updatectl(){tran=0;rote=0;fixpt=0;expnd=1;}
 	void disp() const{
 		printf("tran: %10.6Lf%10.6Lf%10.6Lf\n",tran.getx(),tran.gety(),tran.getz());
@@ -93,7 +94,7 @@ typedef struct circ{
 	vec norm;   // normal dirction of the circular plane, pointing out of the assembly
 	int turn;   // turn=1, right-hand rule from pt1 to pt2 same direction as norm
 		    // turn=-1, right-hand rule from pt1 to pt2 opposite direction as norm
-	long double radius; //the radius of the circle
+	REAL radius; //the radius of the circle
 	vec pt1;    // the begining point of a part circle
 	vec pt2;    // the end point of a part circle;it pt1==pt2, a closure circle
 	void disp() const {
@@ -115,10 +116,10 @@ template<class T> class rgd_bdry{
 public:
 	int         bdry_id;    // the first record defines the bdry itself, the other 
 	std::vector<BdryCoef> CoefOfLimits; // limitnum records define the other lines on the bdry 
-	long double avg_normal;             // that give limits to the first boundary.
-	long double avg_penetr; // average penetration by particles onto this boundary
+	REAL avg_normal;             // that give limits to the first boundary.
+	REAL avg_penetr; // average penetration by particles onto this boundary
 	int         cntnum;     // contact numbers by particles onto this boundary
-	long double area;       // the bounary's area
+	REAL area;       // the bounary's area
 	int         limitnum;   // how many lines the boundary have
 public:
 	rgd_bdry(std::ifstream &ifs);
@@ -144,21 +145,21 @@ public:
 	virtual void rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap)
 	    {std::cout<<"parent"<<std::endl;} // calculate for each boundary particles the rigid boundary force
 	virtual vec getNormalForce() const{return 0;}
-	virtual long double getAvgNormal() const{return 0;}
-	virtual long double getAvgPenetr() const{return 0;}
+	virtual REAL getAvgNormal() const{return 0;}
+	virtual REAL getAvgPenetr() const{return 0;}
 	virtual int         getCntnum() const{return 0;}
 	virtual vec getShearForce() const{return 0;}
 	virtual vec getApt() const{return 0;}
 	virtual vec getDirc() const{return 0;}
-	virtual void setArea(long double a){area=a;}
-	virtual long double getArea(){return area;}
+	virtual void setArea(REAL a){area=a;}
+	virtual REAL getArea(){return area;}
 	virtual void update(UPDATECTL& ctl); //the boundary is translating with tran and rotating with rote around axis
 };
 
 template <class T>
 rgd_bdry<T>::rgd_bdry(std::ifstream &ifs){
 	BdryCoef tmp;
-	long double x,y,z;
+	REAL x,y,z;
 	CoefOfLimits.clear();
 	ifs >> bdry_id >> limitnum >> area;
 	for (int k=0;k<limitnum;k++){
@@ -194,19 +195,19 @@ public:
 	virtual void findParticleOnLine(){}; // create possible particles per line
 	virtual void createFlbNet(){};
 	virtual void flxbBF(){};
-	virtual vec triangleDstr(long double pressure,vec norm, vec p[], T* e[]); //norm is the direction of pressure
+	virtual vec triangleDstr(REAL pressure,vec norm, vec p[], T* e[]); //norm is the direction of pressure
 	virtual ~flb_bdry() {};     // base class needs a virtual destructor.
 };
 
 template<class T>
-vec flb_bdry<T>::triangleDstr(long double pressure, vec norm, vec p[], T* e[]){
+vec flb_bdry<T>::triangleDstr(REAL pressure, vec norm, vec p[], T* e[]){
         //norm indicates the pressure dirction
 	vec cent=(p[0]+p[1]+p[2])/3;
-	long double l1=vfabsl(p[1]-p[0]);
-	long double l2=vfabsl(p[2]-p[1]);
-	long double l3=vfabsl(p[0]-p[2]);
-	long double hp=(l1+l2+l3)/2;
-	long double area=sqrtl(hp)*sqrtl(hp-l1)*sqrtl(hp-l2)*sqrtl(hp-l3);
+	REAL l1=vfabsl(p[1]-p[0]);
+	REAL l2=vfabsl(p[2]-p[1]);
+	REAL l3=vfabsl(p[0]-p[2]);
+	REAL hp=(l1+l2+l3)/2;
+	REAL area=sqrtl(hp)*sqrtl(hp-l1)*sqrtl(hp-l2)*sqrtl(hp-l3);
 	vec nm=normalize((p[0]-p[1])*(p[2]-p[1]));
 	if(nm%norm<0)
 		nm*=-1;
@@ -246,7 +247,7 @@ public:
 	};
 	int getBdryID() {return this->bdry_id;}
 	void disp() const;
-	long double distToBdry(vec posi) const;
+	REAL distToBdry(vec posi) const;
 	void findParticleOnBoundary(std::list<T*>& ptcls);
 	vec getApt() const;
 	vec getDirc() const;
@@ -255,8 +256,8 @@ public:
 	}
 	void rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap);
 	vec getNormalForce() const{return normal;}
-	long double getAvgNormal() const{return this->avg_normal;}
-	long double getAvgPenetr() const{return this->avg_penetr;}
+	REAL getAvgNormal() const{return this->avg_normal;}
+	REAL getAvgPenetr() const{return this->avg_penetr;}
 	int         getCntnum() const{return this->cntnum;}
 
 	vec getShearForce() const{return tangt;}
@@ -290,7 +291,7 @@ void plnrgd_bdry<T>::disp() const{
 };
 
 template<class T>
-long double plnrgd_bdry<T>::distToBdry(vec posi) const{
+REAL plnrgd_bdry<T>::distToBdry(vec posi) const{
 	vec dv=(*this->CoefOfLimits.begin()).dirc;
 	vec pt=(*this->CoefOfLimits.begin()).apt;
 	vec ndv=normalize(dv);
@@ -303,7 +304,7 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
     std::vector<BdryCoef>::iterator bt;
     bool next;
     PBList.clear();
-    long double dist, r;
+    REAL dist, r;
     vec posi, ndirc;
     for (it=ptcls.begin();it!=ptcls.end();++it){
 	if ( (*it)->getType() == 0 ) { // only process free particles, excluding type 5
@@ -342,14 +343,14 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 	PBList.clear();
  	for (it=ptcls.begin();it!=ptcls.end();++it){
 		vec posi=(*it)->getCurrPosition();
-		long double dist=distToBdry(posi);
+		REAL dist=distToBdry(posi);
 		//if (fabsl(dist)>ROOM*(*it)->getA()&&dist<0)
 		if(fabsl(dist)>ROOM*(*it)->getA()||dist>0)
 			continue;
 		next=false;
 		for (bt=++CoefOfLimits.begin();bt!=CoefOfLimits.end();++bt){
 			vec ndirc=normalize((*bt).dirc);
-			long double r=abs((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
+			REAL r=abs((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
 			if((*bt).order==1&&(posi-(*bt).apt)%(*bt).dirc>0||
 				(*bt).order==2&&(r-(*bt).rad)*(*bt).side<0){
 				next=true;//the particle is outof boundary, process next particle
@@ -379,7 +380,7 @@ void plnrgd_bdry<T>::rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap
     std::vector<boundarytgt> vtmp;
 
     // for each possible boundary particle
-    long double penetr=0;
+    REAL penetr=0;
     int count=0;
     for (it=PBList.begin();it!=PBList.end();++it){
 	penetr=0;
@@ -401,7 +402,7 @@ public:
 public:
 	cylrgd_bdry(std::ifstream &ifs):rgd_bdry<T>(ifs){normal=0;}
 	void disp() const;
-	long double distToBdry(vec posi) const;
+	REAL distToBdry(vec posi) const;
 	void findParticleOnBoundary(std::list<T*>& ptcls);
 	void rigidBF();
 	vec getNormalForce() const{return normal;};
@@ -424,10 +425,10 @@ void cylrgd_bdry<T>::disp() const{
 };
 
 template<class T>
-long double cylrgd_bdry<T>::distToBdry(vec posi) const{
+REAL cylrgd_bdry<T>::distToBdry(vec posi) const{
 	vec ndc=(*this->CoefOfLimits.begin()).dirc;
 	vec napt=(*this->CoefOfLimits.begin()).apt;
-	long double r=(*this->CoefOfLimits.begin()).rad;
+	REAL r=(*this->CoefOfLimits.begin()).rad;
 	vec norm=normalize(ndc);
 	return fabsl(r-vfabsl((posi-napt)-(posi-napt)%norm*norm));
 };
@@ -438,7 +439,7 @@ void cylrgd_bdry<T>::findParticleOnBoundary(std::list<T*> &ptcls){
 	std::vector<BdryCoef>::iterator bt;
 	bool next;
 	PBList.clear();
-	long double dist,r;
+	REAL dist,r;
 	vec posi, ndirc;
  	for (it=ptcls.begin();it!=ptcls.end();++it){
 		posi=(*it)->getCurrPosition();
@@ -478,7 +479,7 @@ void cylrgd_bdry<T>::rigidBF(){
 template<class T> class plnflb_bdry:public flb_bdry<T>{
 public:
 	vec sumpressure; // sum of total water pressure on particles
-	long double confining;// confining pressure by surrounding liquid
+	REAL confining;// confining pressure by surrounding liquid
 	std::list<LINE> framelist;//store rigid lines it
 	vec norm;        // normal direction pointing outward the assembly
 	int framenum;    // how many rigid lines there are, can only be 2
@@ -555,7 +556,7 @@ void plnflb_bdry<T>::disp() const{
 template<class T>
 plnflb_bdry<T>::plnflb_bdry(std::ifstream &ifs){
 	vec tmp;
-	long double x,y,z;
+	REAL x,y,z;
 	int i,j;
 
 	framelist.clear();
@@ -598,7 +599,7 @@ void plnflb_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 		vec posi=(*it)->getCurrPosition();
 		vec vdt=(posi-pt1)%normalize(norm)*normalize(norm);
 		vec proj=posi-vdt;
-		long double dist=vfabsl(vdt);
+		REAL dist=vfabsl(vdt);
 		if (dist>(*it)->getA()&&vdt%norm<0)
 			continue;
 		vec v1=pt1-proj;
@@ -648,7 +649,7 @@ void plnflb_bdry<T>::findParticleOnLine(){
 			vec thept=ip_bot+(ip_top-ip_bot)/(nz-1)*iz;
 			for (it=PBList.begin();it!=PBList.end();++it){
 				vec v0=(*it)->getCurrPosition();
-				long double dist=vfabsl((v0-thept)-(v0-thept)%normalize(norm)*normalize(norm));
+				REAL dist=vfabsl((v0-thept)-(v0-thept)%normalize(norm)*normalize(norm));
 				if(dist<(*it)->getA())
 					PCFB[iz][ip].push_back(*it);
 			}
@@ -709,7 +710,7 @@ void plnflb_bdry<T>::createFlbNet(){
 			vec outmost=thept;
 			T *op=NULL;
 			T *bp=NULL;
-			long double otmst=-1.0e16;
+			REAL otmst=-1.0e16;
 			for (it=PCFB[iz][ip].begin();it!=PCFB[iz][ip].end();++it){
 				if(norm%((*it)->getCurrPosition()-thept)>otmst){
 					otmst=norm%((*it)->getCurrPosition()-thept);
@@ -769,9 +770,9 @@ void plnflb_bdry<T>::flxbBF(){
 template <class T> class cylflb_bdry:public flb_bdry<T>{
 public:
 	vec sumpressure;
-	long double confining;
+	REAL confining;
 	std::list<CIRC> framelist;// top and bottom frame, can only have two elements
-	long double alf;               // the expand from pt1 ro pt2; for a complete cylinder alf=2Pi
+	REAL alf;               // the expand from pt1 ro pt2; for a complete cylinder alf=2Pi
 	int framenum;             // =2
 	int side;                 // 1, the particles are outside cylinder; -1, inside
 	std::list<T*> PBList;
@@ -845,7 +846,7 @@ void cylflb_bdry<T>::disp() const{
 template<class T>
 cylflb_bdry<T>::cylflb_bdry(std::ifstream &ifs){
 	CIRC tmp;
-	long double x,y,z;
+	REAL x,y,z;
 	int i,j;
 
 	framelist.clear();
@@ -881,8 +882,8 @@ void cylflb_bdry<T>::findParticleOnBoundary(std::list<T*>&ptcls){
 	vec ct2=(++framelist.begin())->center;
 	vec ml1=framelist.begin()->norm;
 	vec ml2=(++framelist.begin())->norm;
-	long double r1=framelist.begin()->radius;
-	long double r2=(++framelist.begin())->radius;
+	REAL r1=framelist.begin()->radius;
+	REAL r2=(++framelist.begin())->radius;
 	vec pt1=framelist.begin()->pt1;
 	vec pt2=framelist.begin()->pt2;
 	vec pt3=(++framelist.begin())->pt1;
@@ -904,15 +905,15 @@ void cylflb_bdry<T>::findParticleOnBoundary(std::list<T*>&ptcls){
 	PBList.clear();
 	vec ct=(ct1+ct2)/2;
 	vec norm=ml1;
-	long double rad=r1;
+	REAL rad=r1;
 	for (it=ptcls.begin();it!=ptcls.end();++it){
 		vec posi=(*it)->getCurrPosition();
 		vec proj=posi-ct-(posi-ct)%normalize(norm)*normalize(norm);
-		long double dist=vfabsl(proj);
+		REAL dist=vfabsl(proj);
 		if ((dist<0.8*rad&&side==-1)||(dist>1.2*rad&&side==1))
 			continue;
 		if(vfabsl(pt1-pt2)>1.0e-8){// a uncomplete circle
-			long double bta=angle(pt1-ct1,proj,turn*ml1);
+			REAL bta=angle(pt1-ct1,proj,turn*ml1);
 			if (bta>alf)
 				continue;
 		}
@@ -941,7 +942,7 @@ void cylflb_bdry<T>::findParticleOnLine(){
 			vec thept=ip_bot+iz*(ip_top-ip_bot)/(nz-1);
 			for (it=PBList.begin();it!=PBList.end();++it){
 				vec v0=(*it)->getCurrPosition();
-				long double dist=vfabsl((v0-thept)-(v0-thept)%normalize(ll)*normalize(ll));
+				REAL dist=vfabsl((v0-thept)-(v0-thept)%normalize(ll)*normalize(ll));
 				if(dist<(*it)->getA())
 					PCFB[iz][ip].push_back(*it);
 			}

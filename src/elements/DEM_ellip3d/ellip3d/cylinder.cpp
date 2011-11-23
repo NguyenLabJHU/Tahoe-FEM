@@ -15,14 +15,14 @@ void cylinder::print() const{
 }
 
 vec cylinder::randomPoint() const{
-    long double temp1=ran(&idum);
-    long double temp2=ran(&idum);
-    long double temp3=ran(&idum);
-    long double z=(center.getz()+height/2)*temp1+(center.getz()-height/2)*(1-temp1);
-    long double theta=2*PI*temp2;
-    long double r=radius*temp3;
-    long double x=center.getx()+r*cosl(theta);
-    long double y=center.gety()+r*sinl(theta);
+    REAL temp1=ran(&idum);
+    REAL temp2=ran(&idum);
+    REAL temp3=ran(&idum);
+    REAL z=(center.getz()+height/2)*temp1+(center.getz()-height/2)*(1-temp1);
+    REAL theta=2*PI*temp2;
+    REAL r=radius*temp3;
+    REAL x=center.getx()+r*cosl(theta);
+    REAL y=center.gety()+r*sinl(theta);
     return vec(x,y,z); 
 }
 

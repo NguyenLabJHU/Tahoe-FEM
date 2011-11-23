@@ -1,4 +1,5 @@
 #include <cmath>
+#include "realtypes.h"
 
 using namespace std;
 
@@ -6,10 +7,10 @@ namespace dem {
 
 #define RADIX 2.0
 
-void balanc(long double **a, int n)
+void balanc(REAL **a, int n)
 {
 	int last,j,i;
-	long double s,r,g,f,c,sqrdx;
+	REAL s,r,g,f,c,sqrdx;
 
 	sqrdx=RADIX*RADIX;
 	last=0;

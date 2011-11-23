@@ -14,12 +14,12 @@ void rectangle::print() const{
 }
 
 vec rectangle::randomPoint() const{
-    long double temp1=ran(&idum);
-    long double temp2=ran(&idum);
-    long double temp3=ran(&idum);
-    long double x=temp1*(center.getx()-width/2)+(1-temp1)*(center.getx()+width/2);
-    long double y=temp2*(center.gety()-length/2)+(1-temp2)*(center.gety()+length/2);
-    long double z=temp3*(center.getz()-height/2)+(1-temp3)*(center.getz()+height/2);
+    REAL temp1=ran(&idum);
+    REAL temp2=ran(&idum);
+    REAL temp3=ran(&idum);
+    REAL x=temp1*(center.getx()-width/2)+(1-temp1)*(center.getx()+width/2);
+    REAL y=temp2*(center.gety()-length/2)+(1-temp2)*(center.gety()+length/2);
+    REAL z=temp3*(center.getz()-height/2)+(1-temp3)*(center.getz()+height/2);
     return vec(x,y,z);
 }
 

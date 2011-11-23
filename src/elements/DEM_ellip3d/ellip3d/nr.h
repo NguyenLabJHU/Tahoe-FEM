@@ -8,13 +8,14 @@
 #ifndef _NR_H_
 #define _NR_H_
 
+#include "realtypes.h"
 #include <cstdio>
 using namespace std;
 
 namespace dem {
 
 #ifndef _FCOMPLEX_DECLARE_T_
-typedef struct FCOMPLEX {long double r,i;} fcomplex;
+typedef struct FCOMPLEX {REAL r,i;} fcomplex;
 #define _FCOMPLEX_DECLARE_T_
 #endif /* _FCOMPLEX_DECLARE_T_ */
 
@@ -32,195 +33,195 @@ typedef struct {
 #define _HUFFCODE_DECLARE_T_
 #endif /* _HUFFCODE_DECLARE_T_ */
 
-void addint(long double **uf, long double **uc, long double **res, int nf);
-void airy(long double x, long double *ai, long double *bi, long double *aip, long double *bip);
-void amebsa(long double **p, long double y[], int ndim, long double pb[],	long double *yb,
-	long double ftol, long double (*funk)(long double []), int *iter, long double temptr);
-void amoeba(long double **p, long double y[], int ndim, long double ftol,
-	long double (*funk)(long double []), int *iter);
-long double amotry(long double **p, long double y[], long double psum[], int ndim,
-	long double (*funk)(long double []), int ihi, long double fac);
-long double amotsa(long double **p, long double y[], long double psum[], int ndim, long double pb[],
-	long double *yb, long double (*funk)(long double []), int ihi, long double *yhi, long double fac);
-void anneal(long double x[], long double y[], int iorder[], int ncity);
-long double anorm2(long double **a, int n);
+void addint(REAL **uf, REAL **uc, REAL **res, int nf);
+void airy(REAL x, REAL *ai, REAL *bi, REAL *aip, REAL *bip);
+void amebsa(REAL **p, REAL y[], int ndim, REAL pb[],	REAL *yb,
+	REAL ftol, REAL (*funk)(REAL []), int *iter, REAL temptr);
+void amoeba(REAL **p, REAL y[], int ndim, REAL ftol,
+	REAL (*funk)(REAL []), int *iter);
+REAL amotry(REAL **p, REAL y[], REAL psum[], int ndim,
+	REAL (*funk)(REAL []), int ihi, REAL fac);
+REAL amotsa(REAL **p, REAL y[], REAL psum[], int ndim, REAL pb[],
+	REAL *yb, REAL (*funk)(REAL []), int ihi, REAL *yhi, REAL fac);
+void anneal(REAL x[], REAL y[], int iorder[], int ncity);
+REAL anorm2(REAL **a, int n);
 void arcmak(unsigned long nfreq[], unsigned long nchh, unsigned long nradd,
 	arithcode *acode);
 void arcode(unsigned long *ich, unsigned char **codep, unsigned long *lcode,
 	unsigned long *lcd, int isign, arithcode *acode);
 void arcsum(unsigned long iin[], unsigned long iout[], unsigned long ja,
 	int nwk, unsigned long nrad, unsigned long nc);
-void asolve(unsigned long n, long double b[], long double x[], int itrnsp);
-void atimes(unsigned long n, long double x[], long double r[], int itrnsp);
-void avevar(long double data[], unsigned long n, long double *ave, long double *var);
-void balanc(long double **a, int n);
-void banbks(long double **a, unsigned long n, int m1, int m2, long double **al,
-	unsigned long indx[], long double b[]);
-void bandec(long double **a, unsigned long n, int m1, int m2, long double **al,
-	unsigned long indx[], long double *d);
-void banmul(long double **a, unsigned long n, int m1, int m2, long double x[], long double b[]);
-void bcucof(long double y[], long double y1[], long double y2[], long double y12[], long double d1,
-	long double d2, long double **c);
-void bcuint(long double y[], long double y1[], long double y2[], long double y12[],
-	long double x1l, long double x1u, long double x2l, long double x2u, long double x1,
-	long double x2, long double *ansy, long double *ansy1, long double *ansy2);
-void beschb(long double x, long double *gam1, long double *gam2, long double *gampl,
-	long double *gammi);
-long double bessi(int n, long double x);
-long double bessi0(long double x);
-long double bessi1(long double x);
-void bessik(long double x, long double xnu, long double *ri, long double *rk, long double *rip,
-	long double *rkp);
-long double bessj(int n, long double x);
-long double bessj0(long double x);
-long double bessj1(long double x);
-void bessjy(long double x, long double xnu, long double *rj, long double *ry, long double *rjp,
-	long double *ryp);
-long double bessk(int n, long double x);
-long double bessk0(long double x);
-long double bessk1(long double x);
-long double bessy(int n, long double x);
-long double bessy0(long double x);
-long double bessy1(long double x);
-long double beta(long double z, long double w);
-long double betacf(long double a, long double b, long double x);
-long double betai(long double a, long double b, long double x);
-long double bico(int n, int k);
-void bksub(int ne, int nb, int jf, int k1, int k2, long double ***c);
-long double bnldev(long double pp, int n, long *idum);
-long double brent(long double ax, long double bx, long double cx,
-	long double (*f)(long double), long double tol, long double *xmin);
-void broydn(long double x[], int n, int *check,
-	void (*vecfunc)(int, long double [], long double []));
-void bsstep(long double y[], long double dydx[], int nv, long double *xx, long double htry,
-	long double eps, long double yscal[], long double *hdid, long double *hnext,
-	void (*derivs)(long double, long double [], long double []));
+void asolve(unsigned long n, REAL b[], REAL x[], int itrnsp);
+void atimes(unsigned long n, REAL x[], REAL r[], int itrnsp);
+void avevar(REAL data[], unsigned long n, REAL *ave, REAL *var);
+void balanc(REAL **a, int n);
+void banbks(REAL **a, unsigned long n, int m1, int m2, REAL **al,
+	unsigned long indx[], REAL b[]);
+void bandec(REAL **a, unsigned long n, int m1, int m2, REAL **al,
+	unsigned long indx[], REAL *d);
+void banmul(REAL **a, unsigned long n, int m1, int m2, REAL x[], REAL b[]);
+void bcucof(REAL y[], REAL y1[], REAL y2[], REAL y12[], REAL d1,
+	REAL d2, REAL **c);
+void bcuint(REAL y[], REAL y1[], REAL y2[], REAL y12[],
+	REAL x1l, REAL x1u, REAL x2l, REAL x2u, REAL x1,
+	REAL x2, REAL *ansy, REAL *ansy1, REAL *ansy2);
+void beschb(REAL x, REAL *gam1, REAL *gam2, REAL *gampl,
+	REAL *gammi);
+REAL bessi(int n, REAL x);
+REAL bessi0(REAL x);
+REAL bessi1(REAL x);
+void bessik(REAL x, REAL xnu, REAL *ri, REAL *rk, REAL *rip,
+	REAL *rkp);
+REAL bessj(int n, REAL x);
+REAL bessj0(REAL x);
+REAL bessj1(REAL x);
+void bessjy(REAL x, REAL xnu, REAL *rj, REAL *ry, REAL *rjp,
+	REAL *ryp);
+REAL bessk(int n, REAL x);
+REAL bessk0(REAL x);
+REAL bessk1(REAL x);
+REAL bessy(int n, REAL x);
+REAL bessy0(REAL x);
+REAL bessy1(REAL x);
+REAL beta(REAL z, REAL w);
+REAL betacf(REAL a, REAL b, REAL x);
+REAL betai(REAL a, REAL b, REAL x);
+REAL bico(int n, int k);
+void bksub(int ne, int nb, int jf, int k1, int k2, REAL ***c);
+REAL bnldev(REAL pp, int n, long *idum);
+REAL brent(REAL ax, REAL bx, REAL cx,
+	REAL (*f)(REAL), REAL tol, REAL *xmin);
+void broydn(REAL x[], int n, int *check,
+	void (*vecfunc)(int, REAL [], REAL []));
+void bsstep(REAL y[], REAL dydx[], int nv, REAL *xx, REAL htry,
+	REAL eps, REAL yscal[], REAL *hdid, REAL *hnext,
+	void (*derivs)(REAL, REAL [], REAL []));
 void caldat(long julian, int *mm, int *id, int *iyyy);
-void chder(long double a, long double b, long double c[], long double cder[], int n);
-long double chebev(long double a, long double b, long double c[], int m, long double x);
-void chebft(long double a, long double b, long double c[], int n, long double (*func)(long double));
-void chebpc(long double c[], long double d[], int n);
-void chint(long double a, long double b, long double c[], long double cint[], int n);
-long double chixy(long double bang);
-void choldc(long double **a, int n, long double p[]);
-void cholsl(long double **a, int n, long double p[], long double b[], long double x[]);
-void chsone(long double bins[], long double ebins[], int nbins, int knstrn,
-	long double *df, long double *chsq, long double *prob);
-void chstwo(long double bins1[], long double bins2[], int nbins, int knstrn,
-	long double *df, long double *chsq, long double *prob);
-void cisi(long double x, long double *ci, long double *si);
-void cntab1(int **nn, int ni, int nj, long double *chisq,
-	long double *df, long double *prob, long double *cramrv, long double *ccc);
-void cntab2(int **nn, int ni, int nj, long double *h, long double *hx, long double *hy,
-	long double *hygx, long double *hxgy, long double *uygx, long double *uxgy, long double *uxy);
-void convlv(long double data[], unsigned long n, long double respns[], unsigned long m,
-	int isign, long double ans[]);
-void copy(long double **aout, long double **ain, int n);
-void correl(long double data1[], long double data2[], unsigned long n, long double ans[]);
-void cosft(long double y[], int n, int isign);
-void cosft1(long double y[], int n);
-void cosft2(long double y[], int n, int isign);
-void covsrt(long double **covar, int ma, int ia[], int mfit);
-void crank(unsigned long n, long double w[], long double *s);
-void cyclic(long double a[], long double b[], long double c[], long double alpha, long double beta,
-	long double r[], long double x[], unsigned long n);
-void daub4(long double a[], unsigned long n, int isign);
-long double dawson(long double x);
-long double dbrent(long double ax, long double bx, long double cx,
-	long double (*f)(long double), long double (*df)(long double), long double tol, long double *xmin);
-void ddpoly(long double c[], int nc, long double x, long double pd[], int nd);
+void chder(REAL a, REAL b, REAL c[], REAL cder[], int n);
+REAL chebev(REAL a, REAL b, REAL c[], int m, REAL x);
+void chebft(REAL a, REAL b, REAL c[], int n, REAL (*func)(REAL));
+void chebpc(REAL c[], REAL d[], int n);
+void chint(REAL a, REAL b, REAL c[], REAL cint[], int n);
+REAL chixy(REAL bang);
+void choldc(REAL **a, int n, REAL p[]);
+void cholsl(REAL **a, int n, REAL p[], REAL b[], REAL x[]);
+void chsone(REAL bins[], REAL ebins[], int nbins, int knstrn,
+	REAL *df, REAL *chsq, REAL *prob);
+void chstwo(REAL bins1[], REAL bins2[], int nbins, int knstrn,
+	REAL *df, REAL *chsq, REAL *prob);
+void cisi(REAL x, REAL *ci, REAL *si);
+void cntab1(int **nn, int ni, int nj, REAL *chisq,
+	REAL *df, REAL *prob, REAL *cramrv, REAL *ccc);
+void cntab2(int **nn, int ni, int nj, REAL *h, REAL *hx, REAL *hy,
+	REAL *hygx, REAL *hxgy, REAL *uygx, REAL *uxgy, REAL *uxy);
+void convlv(REAL data[], unsigned long n, REAL respns[], unsigned long m,
+	int isign, REAL ans[]);
+void copy(REAL **aout, REAL **ain, int n);
+void correl(REAL data1[], REAL data2[], unsigned long n, REAL ans[]);
+void cosft(REAL y[], int n, int isign);
+void cosft1(REAL y[], int n);
+void cosft2(REAL y[], int n, int isign);
+void covsrt(REAL **covar, int ma, int ia[], int mfit);
+void crank(unsigned long n, REAL w[], REAL *s);
+void cyclic(REAL a[], REAL b[], REAL c[], REAL alpha, REAL beta,
+	REAL r[], REAL x[], unsigned long n);
+void daub4(REAL a[], unsigned long n, int isign);
+REAL dawson(REAL x);
+REAL dbrent(REAL ax, REAL bx, REAL cx,
+	REAL (*f)(REAL), REAL (*df)(REAL), REAL tol, REAL *xmin);
+void ddpoly(REAL c[], int nc, REAL x, REAL pd[], int nd);
 int decchk(char string[], int n, char *ch);
-void derivs(long double x, long double y[], long double dydx[]);
-long double df1dim(long double x);
-void dfour1(long double data[], unsigned long nn, int isign);
-void dfpmin(long double p[], int n, long double gtol, int *iter, long double *fret,
-	long double (*func)(long double []), void (*dfunc)(long double [], long double []));
-long double dfridr(long double (*func)(long double), long double x, long double h, long double *err);
-void dftcor(long double w, long double delta, long double a, long double b, long double endpts[],
-	long double *corre, long double *corim, long double *corfac);
-void dftint(long double (*func)(long double), long double a, long double b, long double w,
-	long double *cosint, long double *sinint);
+void derivs(REAL x, REAL y[], REAL dydx[]);
+REAL df1dim(REAL x);
+void dfour1(REAL data[], unsigned long nn, int isign);
+void dfpmin(REAL p[], int n, REAL gtol, int *iter, REAL *fret,
+	REAL (*func)(REAL []), void (*dfunc)(REAL [], REAL []));
+REAL dfridr(REAL (*func)(REAL), REAL x, REAL h, REAL *err);
+void dftcor(REAL w, REAL delta, REAL a, REAL b, REAL endpts[],
+	REAL *corre, REAL *corim, REAL *corfac);
+void dftint(REAL (*func)(REAL), REAL a, REAL b, REAL w,
+	REAL *cosint, REAL *sinint);
 void difeq(int k, int k1, int k2, int jsf, int is1, int isf,
-	int indexv[], int ne, long double **s, long double **y);
-void dlinmin(long double p[], long double xi[], int n, long double *fret,
-	long double (*func)(long double []), void (*dfunc)(long double [], long double[]));
-long double dpythag(long double a, long double b);
-void drealft(long double data[], unsigned long n, int isign);
-void dsprsax(long double sa[], unsigned long ija[], long double x[], long double b[],
+	int indexv[], int ne, REAL **s, REAL **y);
+void dlinmin(REAL p[], REAL xi[], int n, REAL *fret,
+	REAL (*func)(REAL []), void (*dfunc)(REAL [], REAL[]));
+REAL dpythag(REAL a, REAL b);
+void drealft(REAL data[], unsigned long n, int isign);
+void dsprsax(REAL sa[], unsigned long ija[], REAL x[], REAL b[],
 	unsigned long n);
-void dsprstx(long double sa[], unsigned long ija[], long double x[], long double b[],
+void dsprstx(REAL sa[], unsigned long ija[], REAL x[], REAL b[],
 	unsigned long n);
-void dsvbksb(long double **u, long double w[], long double **v, int m, int n, long double b[],
-	long double x[]);
-void dsvdcmp(long double **a, int m, int n, long double w[], long double **v);
+void dsvbksb(REAL **u, REAL w[], REAL **v, int m, int n, REAL b[],
+	REAL x[]);
+void dsvdcmp(REAL **a, int m, int n, REAL w[], REAL **v);
 void eclass(int nf[], int n, int lista[], int listb[], int m);
 void eclazz(int nf[], int n, int (*equiv)(int, int));
-long double ei(long double x);
-void eigsrt(long double d[], long double **v, int n);
-long double elle(long double phi, long double ak);
-long double ellf(long double phi, long double ak);
-long double ellpi(long double phi, long double en, long double ak);
-void elmhes(long double **a, int n);
-long double erfcc(long double x);
-long double erff(long double x);
-long double erffc(long double x);
-void eulsum(long double *sum, long double term, int jterm, long double wksp[]);
-long double evlmem(long double fdt, long double d[], int m, long double xms);
-long double expdev(long *idum);
-long double expint(int n, long double x);
-long double f1(long double x);
-long double f1dim(long double x);
-long double f2(long double y);
-long double f3(long double z);
-long double factln(int n);
-long double factrl(int n);
-void fasper(long double x[], long double y[], unsigned long n, long double ofac, long double hifac,
-	long double wk1[], long double wk2[], unsigned long nwk, unsigned long *nout,
-	unsigned long *jmax, long double *prob);
-void fdjac(int n, long double x[], long double fvec[], long double **df,
-	void (*vecfunc)(int, long double [], long double []));
-void fgauss(long double x, long double a[], long double *y, long double dyda[], int na);
-void fill0(long double **u, int n);
-void fit(long double x[], long double y[], int ndata, long double sig[], int mwt,
-	long double *a, long double *b, long double *siga, long double *sigb, long double *chi2, long double *q);
-void fitexy(long double x[], long double y[], int ndat, long double sigx[], long double sigy[],
-	long double *a, long double *b, long double *siga, long double *sigb, long double *chi2, long double *q);
-void fixrts(long double d[], int m);
-void fleg(long double x, long double pl[], int nl);
-void flmoon(int n, int nph, long *jd, long double *frac);
-long double fmin(long double x[]);
-void four1(long double data[], unsigned long nn, int isign);
+REAL ei(REAL x);
+void eigsrt(REAL d[], REAL **v, int n);
+REAL elle(REAL phi, REAL ak);
+REAL ellf(REAL phi, REAL ak);
+REAL ellpi(REAL phi, REAL en, REAL ak);
+void elmhes(REAL **a, int n);
+REAL erfcc(REAL x);
+REAL erff(REAL x);
+REAL erffc(REAL x);
+void eulsum(REAL *sum, REAL term, int jterm, REAL wksp[]);
+REAL evlmem(REAL fdt, REAL d[], int m, REAL xms);
+REAL expdev(long *idum);
+REAL expint(int n, REAL x);
+REAL f1(REAL x);
+REAL f1dim(REAL x);
+REAL f2(REAL y);
+REAL f3(REAL z);
+REAL factln(int n);
+REAL factrl(int n);
+void fasper(REAL x[], REAL y[], unsigned long n, REAL ofac, REAL hifac,
+	REAL wk1[], REAL wk2[], unsigned long nwk, unsigned long *nout,
+	unsigned long *jmax, REAL *prob);
+void fdjac(int n, REAL x[], REAL fvec[], REAL **df,
+	void (*vecfunc)(int, REAL [], REAL []));
+void fgauss(REAL x, REAL a[], REAL *y, REAL dyda[], int na);
+void fill0(REAL **u, int n);
+void fit(REAL x[], REAL y[], int ndata, REAL sig[], int mwt,
+	REAL *a, REAL *b, REAL *siga, REAL *sigb, REAL *chi2, REAL *q);
+void fitexy(REAL x[], REAL y[], int ndat, REAL sigx[], REAL sigy[],
+	REAL *a, REAL *b, REAL *siga, REAL *sigb, REAL *chi2, REAL *q);
+void fixrts(REAL d[], int m);
+void fleg(REAL x, REAL pl[], int nl);
+void flmoon(int n, int nph, long *jd, REAL *frac);
+REAL fmin(REAL x[]);
+void four1(REAL data[], unsigned long nn, int isign);
 void fourew(FILE *file[5], int *na, int *nb, int *nc, int *nd);
 void fourfs(FILE *file[5], unsigned long nn[], int ndim, int isign);
-void fourn(long double data[], unsigned long nn[], int ndim, int isign);
-void fpoly(long double x, long double p[], int np);
-void fred2(int n, long double a, long double b, long double t[], long double f[], long double w[],
-	long double (*g)(long double), long double (*ak)(long double, long double));
-long double fredin(long double x, int n, long double a, long double b, long double t[], long double f[], long double w[],
-	long double (*g)(long double), long double (*ak)(long double, long double));
-void frenel(long double x, long double *s, long double *c);
-void frprmn(long double p[], int n, long double ftol, int *iter, long double *fret,
-	long double (*func)(long double []), void (*dfunc)(long double [], long double []));
-void ftest(long double data1[], unsigned long n1, long double data2[], unsigned long n2,
-	long double *f, long double *prob);
-long double gamdev(int ia, long *idum);
-long double gammln(long double xx);
-long double gammp(long double a, long double x);
-long double gammq(long double a, long double x);
-long double gasdev(long *idum);
-void gaucof(int n, long double a[], long double b[], long double amu0, long double x[], long double w[]);
-void gauher(long double x[], long double w[], int n);
-void gaujac(long double x[], long double w[], int n, long double alf, long double bet);
-void gaulag(long double x[], long double w[], int n, long double alf);
-void gauleg(long double x1, long double x2, long double x[], long double w[], int n);
-void gaussj(long double **a, int n, long double **b, int m);
-void gcf(long double *gammcf, long double a, long double x, long double *gln);
-long double golden(long double ax, long double bx, long double cx, long double (*f)(long double), long double tol,
-	long double *xmin);
-void gser(long double *gamser, long double a, long double x, long double *gln);
-void hpsel(unsigned long m, unsigned long n, long double arr[], long double heap[]);
-void hpsort(unsigned long n, long double ra[]);
-bool hqr(long double **a, int n, long double wr[], long double wi[]);
+void fourn(REAL data[], unsigned long nn[], int ndim, int isign);
+void fpoly(REAL x, REAL p[], int np);
+void fred2(int n, REAL a, REAL b, REAL t[], REAL f[], REAL w[],
+	REAL (*g)(REAL), REAL (*ak)(REAL, REAL));
+REAL fredin(REAL x, int n, REAL a, REAL b, REAL t[], REAL f[], REAL w[],
+	REAL (*g)(REAL), REAL (*ak)(REAL, REAL));
+void frenel(REAL x, REAL *s, REAL *c);
+void frprmn(REAL p[], int n, REAL ftol, int *iter, REAL *fret,
+	REAL (*func)(REAL []), void (*dfunc)(REAL [], REAL []));
+void ftest(REAL data1[], unsigned long n1, REAL data2[], unsigned long n2,
+	REAL *f, REAL *prob);
+REAL gamdev(int ia, long *idum);
+REAL gammln(REAL xx);
+REAL gammp(REAL a, REAL x);
+REAL gammq(REAL a, REAL x);
+REAL gasdev(long *idum);
+void gaucof(int n, REAL a[], REAL b[], REAL amu0, REAL x[], REAL w[]);
+void gauher(REAL x[], REAL w[], int n);
+void gaujac(REAL x[], REAL w[], int n, REAL alf, REAL bet);
+void gaulag(REAL x[], REAL w[], int n, REAL alf);
+void gauleg(REAL x1, REAL x2, REAL x[], REAL w[], int n);
+void gaussj(REAL **a, int n, REAL **b, int m);
+void gcf(REAL *gammcf, REAL a, REAL x, REAL *gln);
+REAL golden(REAL ax, REAL bx, REAL cx, REAL (*f)(REAL), REAL tol,
+	REAL *xmin);
+void gser(REAL *gamser, REAL a, REAL x, REAL *gln);
+void hpsel(unsigned long m, unsigned long n, REAL arr[], REAL heap[]);
+void hpsort(unsigned long n, REAL ra[]);
+bool hqr(REAL **a, int n, REAL wr[], REAL wi[]);
 void hufapp(unsigned long index[], unsigned long nprob[], unsigned long n,
 	unsigned long i);
 void hufdec(unsigned long *ich, unsigned char *code, unsigned long lcode,
@@ -229,8 +230,8 @@ void hufenc(unsigned long ich, unsigned char **codep, unsigned long *lcode,
 	unsigned long *nb, huffcode *hcode);
 void hufmak(unsigned long nfreq[], unsigned long nchin, unsigned long *ilong,
 	unsigned long *nlong, huffcode *hcode);
-void hunt(long double xx[], unsigned long n, long double x, unsigned long *jlo);
-void hypdrv(long double s, long double yy[], long double dyyds[]);
+void hunt(REAL xx[], unsigned long n, REAL x, unsigned long *jlo);
+void hypdrv(REAL s, REAL yy[], REAL dyyds[]);
 fcomplex hypgeo(fcomplex a, fcomplex b, fcomplex c, fcomplex z);
 void hypser(fcomplex a, fcomplex b, fcomplex c, fcomplex z,
 	fcomplex *series, fcomplex *deriv);
@@ -239,66 +240,66 @@ unsigned short icrc(unsigned short crc, unsigned char *bufptr,
 unsigned short icrc1(unsigned short crc, unsigned char onech);
 unsigned long igray(unsigned long n, int is);
 void iindexx(unsigned long n, long arr[], unsigned long indx[]);
-void indexx(unsigned long n, long double arr[], unsigned long indx[]);
-void interp(long double **uf, long double **uc, int nf);
+void indexx(unsigned long n, REAL arr[], unsigned long indx[]);
+void interp(REAL **uf, REAL **uc, int nf);
 int irbit1(unsigned long *iseed);
 int irbit2(unsigned long *iseed);
-void jacobi(long double **a, int n, long double d[], long double **v, int *nrot);
-void jacobn(long double x, long double y[], long double dfdx[], long double **dfdy, int n);
+void jacobi(REAL **a, int n, REAL d[], REAL **v, int *nrot);
+void jacobn(REAL x, REAL y[], REAL dfdx[], REAL **dfdy, int n);
 long julday(int mm, int id, int iyyy);
-void kendl1(long double data1[], long double data2[], unsigned long n, long double *tau, long double *z,
-	long double *prob);
-void kendl2(long double **tab, int i, int j, long double *tau, long double *z, long double *prob);
-void kermom(long double w[], long double y, int m);
-void ks2d1s(long double x1[], long double y1[], unsigned long n1,
-	void (*quadvl)(long double, long double, long double *, long double *, long double *, long double *),
-	long double *d1, long double *prob);
-void ks2d2s(long double x1[], long double y1[], unsigned long n1, long double x2[], long double y2[],
-	unsigned long n2, long double *d, long double *prob);
-void ksone(long double data[], unsigned long n, long double (*func)(long double), long double *d,
-	long double *prob);
-void kstwo(long double data1[], unsigned long n1, long double data2[], unsigned long n2,
-	long double *d, long double *prob);
+void kendl1(REAL data1[], REAL data2[], unsigned long n, REAL *tau, REAL *z,
+	REAL *prob);
+void kendl2(REAL **tab, int i, int j, REAL *tau, REAL *z, REAL *prob);
+void kermom(REAL w[], REAL y, int m);
+void ks2d1s(REAL x1[], REAL y1[], unsigned long n1,
+	void (*quadvl)(REAL, REAL, REAL *, REAL *, REAL *, REAL *),
+	REAL *d1, REAL *prob);
+void ks2d2s(REAL x1[], REAL y1[], unsigned long n1, REAL x2[], REAL y2[],
+	unsigned long n2, REAL *d, REAL *prob);
+void ksone(REAL data[], unsigned long n, REAL (*func)(REAL), REAL *d,
+	REAL *prob);
+void kstwo(REAL data1[], unsigned long n1, REAL data2[], unsigned long n2,
+	REAL *d, REAL *prob);
 void laguer(fcomplex a[], int m, fcomplex *x, int *its);
-void lfit(long double x[], long double y[], long double sig[], int ndat, long double a[], int ia[],
-	int ma, long double **covar, long double *chisq, void (*funcs)(long double, long double [], int));
-void linbcg(unsigned long n, long double b[], long double x[], int itol, long double tol,
-	 int itmax, int *iter, long double *err);
-void linmin(long double p[], long double xi[], int n, long double *fret,
-	long double (*func)(long double []));
-void lnsrch(int n, long double xold[], long double fold, long double g[], long double p[], long double x[],
-	 long double *f, long double stpmax, int *check, long double (*func)(long double []));
-void load(long double x1, long double v[], long double y[]);
-void load1(long double x1, long double v1[], long double y[]);
-void load2(long double x2, long double v2[], long double y[]);
-void locate(long double xx[], unsigned long n, long double x, unsigned long *j);
-void lop(long double **out, long double **u, int n);
-void lubksb(long double **a, int n, int *indx, long double b[]);
-void ludcmp(long double **a, int n, int *indx, long double *d);
+void lfit(REAL x[], REAL y[], REAL sig[], int ndat, REAL a[], int ia[],
+	int ma, REAL **covar, REAL *chisq, void (*funcs)(REAL, REAL [], int));
+void linbcg(unsigned long n, REAL b[], REAL x[], int itol, REAL tol,
+	 int itmax, int *iter, REAL *err);
+void linmin(REAL p[], REAL xi[], int n, REAL *fret,
+	REAL (*func)(REAL []));
+void lnsrch(int n, REAL xold[], REAL fold, REAL g[], REAL p[], REAL x[],
+	 REAL *f, REAL stpmax, int *check, REAL (*func)(REAL []));
+void load(REAL x1, REAL v[], REAL y[]);
+void load1(REAL x1, REAL v1[], REAL y[]);
+void load2(REAL x2, REAL v2[], REAL y[]);
+void locate(REAL xx[], unsigned long n, REAL x, unsigned long *j);
+void lop(REAL **out, REAL **u, int n);
+void lubksb(REAL **a, int n, int *indx, REAL b[]);
+void ludcmp(REAL **a, int n, int *indx, REAL *d);
 void machar(int *ibeta, int *it, int *irnd, int *ngrd,
 	int *machep, int *negep, int *iexp, int *minexp, int *maxexp,
-	long double *eps, long double *epsneg, long double *xmin, long double *xmax);
-void matadd(long double **a, long double **b, long double **c, int n);
-void matsub(long double **a, long double **b, long double **c, int n);
-void medfit(long double x[], long double y[], int ndata, long double *a, long double *b, long double *abdev);
-void memcof(long double data[], int n, int m, long double *xms, long double d[]);
-int metrop(long double de, long double t);
-void mgfas(long double **u, int n, int maxcyc);
-void mglin(long double **u, int n, int ncycle);
-long double midexp(long double (*funk)(long double), long double aa, long double bb, int n);
-long double midinf(long double (*funk)(long double), long double aa, long double bb, int n);
-long double midpnt(long double (*func)(long double), long double a, long double b, int n);
-long double midsql(long double (*funk)(long double), long double aa, long double bb, int n);
-long double midsqu(long double (*funk)(long double), long double aa, long double bb, int n);
-void miser(long double (*func)(long double []), long double regn[], int ndim, unsigned long npts,
-	long double dith, long double *ave, long double *var);
-void mmid(long double y[], long double dydx[], int nvar, long double xs, long double htot,
-	int nstep, long double yout[], void (*derivs)(long double, long double[], long double[]));
-void mnbrak(long double *ax, long double *bx, long double *cx, long double *fa, long double *fb,
-	long double *fc, long double (*func)(long double));
-void mnewt(int ntrial, long double x[], int n, long double tolx, long double tolf);
-void moment(long double data[], int n, long double *ave, long double *adev, long double *sdev,
-	long double *var, long double *skew, long double *curt);
+	REAL *eps, REAL *epsneg, REAL *xmin, REAL *xmax);
+void matadd(REAL **a, REAL **b, REAL **c, int n);
+void matsub(REAL **a, REAL **b, REAL **c, int n);
+void medfit(REAL x[], REAL y[], int ndata, REAL *a, REAL *b, REAL *abdev);
+void memcof(REAL data[], int n, int m, REAL *xms, REAL d[]);
+int metrop(REAL de, REAL t);
+void mgfas(REAL **u, int n, int maxcyc);
+void mglin(REAL **u, int n, int ncycle);
+REAL midexp(REAL (*funk)(REAL), REAL aa, REAL bb, int n);
+REAL midinf(REAL (*funk)(REAL), REAL aa, REAL bb, int n);
+REAL midpnt(REAL (*func)(REAL), REAL a, REAL b, int n);
+REAL midsql(REAL (*funk)(REAL), REAL aa, REAL bb, int n);
+REAL midsqu(REAL (*funk)(REAL), REAL aa, REAL bb, int n);
+void miser(REAL (*func)(REAL []), REAL regn[], int ndim, unsigned long npts,
+	REAL dith, REAL *ave, REAL *var);
+void mmid(REAL y[], REAL dydx[], int nvar, REAL xs, REAL htot,
+	int nstep, REAL yout[], void (*derivs)(REAL, REAL[], REAL[]));
+void mnbrak(REAL *ax, REAL *bx, REAL *cx, REAL *fa, REAL *fb,
+	REAL *fc, REAL (*func)(REAL));
+void mnewt(int ntrial, REAL x[], int n, REAL tolx, REAL tolf);
+void moment(REAL data[], int n, REAL *ave, REAL *adev, REAL *sdev,
+	REAL *var, REAL *skew, REAL *curt);
 void mp2dfr(unsigned char a[], unsigned char s[], int n, int *m);
 void mpadd(unsigned char w[], unsigned char u[], unsigned char v[], int n);
 void mpdiv(unsigned char q[], unsigned char r[], unsigned char u[],
@@ -310,8 +311,8 @@ void mpmul(unsigned char w[], unsigned char u[], unsigned char v[], int n,
 	int m);
 void mpneg(unsigned char u[], int n);
 void mppi(int n);
-void mprove(long double **a, long double **alud, int n, int indx[], long double b[],
-	long double x[]);
+void mprove(REAL **a, REAL **alud, int n, int indx[], REAL b[],
+	REAL x[]);
 void mpsad(unsigned char w[], unsigned char u[], int n, int iv);
 void mpsdv(unsigned char w[], unsigned char u[], int n, int iv, int *ir);
 void mpsmu(unsigned char w[], unsigned char u[], int n, int iv);
@@ -319,212 +320,212 @@ void mpsqrt(unsigned char w[], unsigned char u[], unsigned char v[], int n,
 	int m);
 void mpsub(int *is, unsigned char w[], unsigned char u[], unsigned char v[],
 	int n);
-void mrqcof(long double x[], long double y[], long double sig[], int ndata, long double a[],
-	int ia[], int ma, long double **alpha, long double beta[], long double *chisq,
-	void (*funcs)(long double, long double [], long double *, long double [], int));
-void mrqmin(long double x[], long double y[], long double sig[], int ndata, long double a[],
-	int ia[], int ma, long double **covar, long double **alpha, long double *chisq,
-	void (*funcs)(long double, long double [], long double *, long double [], int), long double *alamda);
-void newt(long double x[], int n, int *check,
-	void (*vecfunc)(int, long double [], long double []));
-void odeint(long double ystart[], int nvar, long double x1, long double x2,
-	long double eps, long double h1, long double hmin, int *nok, int *nbad,
-	void (*derivs)(long double, long double [], long double []),
-	void (*rkqs)(long double [], long double [], int, long double *, long double, long double,
-	long double [], long double *, long double *, void (*)(long double, long double [], long double [])));
-void orthog(int n, long double anu[], long double alpha[], long double beta[], long double a[],
-	long double b[]);
-void pade(long double cof[], int n, long double *resid);
-void pccheb(long double d[], long double c[], int n);
-void pcshft(long double a, long double b, long double d[], int n);
-void pearsn(long double x[], long double y[], unsigned long n, long double *r, long double *prob,
-	long double *z);
-void period(long double x[], long double y[], int n, long double ofac, long double hifac,
-	long double px[], long double py[], int np, int *nout, int *jmax, long double *prob);
-void piksr2(int n, long double arr[], long double brr[]);
-void piksrt(int n, long double arr[]);
+void mrqcof(REAL x[], REAL y[], REAL sig[], int ndata, REAL a[],
+	int ia[], int ma, REAL **alpha, REAL beta[], REAL *chisq,
+	void (*funcs)(REAL, REAL [], REAL *, REAL [], int));
+void mrqmin(REAL x[], REAL y[], REAL sig[], int ndata, REAL a[],
+	int ia[], int ma, REAL **covar, REAL **alpha, REAL *chisq,
+	void (*funcs)(REAL, REAL [], REAL *, REAL [], int), REAL *alamda);
+void newt(REAL x[], int n, int *check,
+	void (*vecfunc)(int, REAL [], REAL []));
+void odeint(REAL ystart[], int nvar, REAL x1, REAL x2,
+	REAL eps, REAL h1, REAL hmin, int *nok, int *nbad,
+	void (*derivs)(REAL, REAL [], REAL []),
+	void (*rkqs)(REAL [], REAL [], int, REAL *, REAL, REAL,
+	REAL [], REAL *, REAL *, void (*)(REAL, REAL [], REAL [])));
+void orthog(int n, REAL anu[], REAL alpha[], REAL beta[], REAL a[],
+	REAL b[]);
+void pade(REAL cof[], int n, REAL *resid);
+void pccheb(REAL d[], REAL c[], int n);
+void pcshft(REAL a, REAL b, REAL d[], int n);
+void pearsn(REAL x[], REAL y[], unsigned long n, REAL *r, REAL *prob,
+	REAL *z);
+void period(REAL x[], REAL y[], int n, REAL ofac, REAL hifac,
+	REAL px[], REAL py[], int np, int *nout, int *jmax, REAL *prob);
+void piksr2(int n, REAL arr[], REAL brr[]);
+void piksrt(int n, REAL arr[]);
 void pinvs(int ie1, int ie2, int je1, int jsf, int jc1, int k,
-	long double ***c, long double **s);
-long double plgndr(int l, int m, long double x);
-long double poidev(long double xm, long *idum);
-void polcoe(long double x[], long double y[], int n, long double cof[]);
-void polcof(long double xa[], long double ya[], int n, long double cof[]);
-void poldiv(long double u[], int n, long double v[], int nv, long double q[], long double r[]);
-void polin2(long double x1a[], long double x2a[], long double **ya, int m, int n,
-	long double x1, long double x2, long double *y, long double *dy);
-void polint(long double xa[], long double ya[], int n, long double x, long double *y, long double *dy);
-void powell(long double p[], long double **xi, int n, long double ftol, int *iter, long double *fret,
-	long double (*func)(long double []));
-void predic(long double data[], int ndata, long double d[], int m, long double future[], int nfut);
-long double probks(long double alam);
+	REAL ***c, REAL **s);
+REAL plgndr(int l, int m, REAL x);
+REAL poidev(REAL xm, long *idum);
+void polcoe(REAL x[], REAL y[], int n, REAL cof[]);
+void polcof(REAL xa[], REAL ya[], int n, REAL cof[]);
+void poldiv(REAL u[], int n, REAL v[], int nv, REAL q[], REAL r[]);
+void polin2(REAL x1a[], REAL x2a[], REAL **ya, int m, int n,
+	REAL x1, REAL x2, REAL *y, REAL *dy);
+void polint(REAL xa[], REAL ya[], int n, REAL x, REAL *y, REAL *dy);
+void powell(REAL p[], REAL **xi, int n, REAL ftol, int *iter, REAL *fret,
+	REAL (*func)(REAL []));
+void predic(REAL data[], int ndata, REAL d[], int m, REAL future[], int nfut);
+REAL probks(REAL alam);
 void psdes(unsigned long *lword, unsigned long *irword);
-void pwt(long double a[], unsigned long n, int isign);
+void pwt(REAL a[], unsigned long n, int isign);
 void pwtset(int n);
-long double pythag(long double a, long double b);
-void pzextr(int iest, long double xest, long double yest[], long double yz[], long double dy[],
+REAL pythag(REAL a, REAL b);
+void pzextr(int iest, REAL xest, REAL yest[], REAL yz[], REAL dy[],
 	int nv);
-long double qgaus(long double (*func)(long double), long double a, long double b);
-void qrdcmp(long double **a, int n, long double *c, long double *d, int *sing);
-long double qromb(long double (*func)(long double), long double a, long double b);
-long double qromo(long double (*func)(long double), long double a, long double b,
-	long double (*choose)(long double (*)(long double), long double, long double, int));
-void qroot(long double p[], int n, long double *b, long double *c, long double eps);
-void qrsolv(long double **a, int n, long double c[], long double d[], long double b[]);
-void qrupdt(long double **r, long double **qt, int n, long double u[], long double v[]);
-long double qsimp(long double (*func)(long double), long double a, long double b);
-long double qtrap(long double (*func)(long double), long double a, long double b);
-long double quad3d(long double (*func)(long double, long double, long double), long double x1, long double x2);
-void quadct(long double x, long double y, long double xx[], long double yy[], unsigned long nn,
-	long double *fa, long double *fb, long double *fc, long double *fd);
-void quadmx(long double **a, int n);
-void quadvl(long double x, long double y, long double *fa, long double *fb, long double *fc, long double *fd);
-long double ran0(long *idum);
-long double ran1(long *idum);
-long double ran2(long *idum);
-long double ran3(long *idum);
-long double ran4(long *idum);
+REAL qgaus(REAL (*func)(REAL), REAL a, REAL b);
+void qrdcmp(REAL **a, int n, REAL *c, REAL *d, int *sing);
+REAL qromb(REAL (*func)(REAL), REAL a, REAL b);
+REAL qromo(REAL (*func)(REAL), REAL a, REAL b,
+	REAL (*choose)(REAL (*)(REAL), REAL, REAL, int));
+void qroot(REAL p[], int n, REAL *b, REAL *c, REAL eps);
+void qrsolv(REAL **a, int n, REAL c[], REAL d[], REAL b[]);
+void qrupdt(REAL **r, REAL **qt, int n, REAL u[], REAL v[]);
+REAL qsimp(REAL (*func)(REAL), REAL a, REAL b);
+REAL qtrap(REAL (*func)(REAL), REAL a, REAL b);
+REAL quad3d(REAL (*func)(REAL, REAL, REAL), REAL x1, REAL x2);
+void quadct(REAL x, REAL y, REAL xx[], REAL yy[], unsigned long nn,
+	REAL *fa, REAL *fb, REAL *fc, REAL *fd);
+void quadmx(REAL **a, int n);
+void quadvl(REAL x, REAL y, REAL *fa, REAL *fb, REAL *fc, REAL *fd);
+REAL ran0(long *idum);
+REAL ran1(long *idum);
+REAL ran2(long *idum);
+REAL ran3(long *idum);
+REAL ran4(long *idum);
 void rank(unsigned long n, unsigned long indx[], unsigned long irank[]);
-void ranpt(long double pt[], long double regn[], int n);
-void ratint(long double xa[], long double ya[], int n, long double x, long double *y, long double *dy);
-void ratlsq(long double (*fn)(long double), long double a, long double b, int mm, int kk,
-	long double cof[], long double *dev);
-long double ratval(long double x, long double cof[], int mm, int kk);
-long double rc(long double x, long double y);
-long double rd(long double x, long double y, long double z);
-void realft(long double data[], unsigned long n, int isign);
-void rebin(long double rc, int nd, long double r[], long double xin[], long double xi[]);
+void ranpt(REAL pt[], REAL regn[], int n);
+void ratint(REAL xa[], REAL ya[], int n, REAL x, REAL *y, REAL *dy);
+void ratlsq(REAL (*fn)(REAL), REAL a, REAL b, int mm, int kk,
+	REAL cof[], REAL *dev);
+REAL ratval(REAL x, REAL cof[], int mm, int kk);
+REAL rc(REAL x, REAL y);
+REAL rd(REAL x, REAL y, REAL z);
+void realft(REAL data[], unsigned long n, int isign);
+void rebin(REAL rc, int nd, REAL r[], REAL xin[], REAL xi[]);
 void red(int iz1, int iz2, int jz1, int jz2, int jm1, int jm2, int jmf,
-	int ic1, int jc1, int jcf, int kc, long double ***c, long double **s);
-void relax(long double **u, long double **rhs, int n);
-void relax2(long double **u, long double **rhs, int n);
-void resid(long double **res, long double **u, long double **rhs, int n);
-long double revcst(long double x[], long double y[], int iorder[], int ncity, int n[]);
+	int ic1, int jc1, int jcf, int kc, REAL ***c, REAL **s);
+void relax(REAL **u, REAL **rhs, int n);
+void relax2(REAL **u, REAL **rhs, int n);
+void resid(REAL **res, REAL **u, REAL **rhs, int n);
+REAL revcst(REAL x[], REAL y[], int iorder[], int ncity, int n[]);
 void reverse(int iorder[], int ncity, int n[]);
-long double rf(long double x, long double y, long double z);
-long double rj(long double x, long double y, long double z, long double p);
-void rk4(long double y[], long double dydx[], int n, long double x, long double h, long double yout[],
-	void (*derivs)(long double, long double [], long double []));
-void rkck(long double y[], long double dydx[], int n, long double x, long double h,
-	long double yout[], long double yerr[], void (*derivs)(long double, long double [], long double []));
-void rkdumb(long double vstart[], int nvar, long double x1, long double x2, int nstep,
-	void (*derivs)(long double, long double [], long double []));
-void rkqs(long double y[], long double dydx[], int n, long double *x,
-	long double htry, long double eps, long double yscal[], long double *hdid, long double *hnext,
-	void (*derivs)(long double, long double [], long double []));
-void rlft3(long double ***data, long double **speq, unsigned long nn1,
+REAL rf(REAL x, REAL y, REAL z);
+REAL rj(REAL x, REAL y, REAL z, REAL p);
+void rk4(REAL y[], REAL dydx[], int n, REAL x, REAL h, REAL yout[],
+	void (*derivs)(REAL, REAL [], REAL []));
+void rkck(REAL y[], REAL dydx[], int n, REAL x, REAL h,
+	REAL yout[], REAL yerr[], void (*derivs)(REAL, REAL [], REAL []));
+void rkdumb(REAL vstart[], int nvar, REAL x1, REAL x2, int nstep,
+	void (*derivs)(REAL, REAL [], REAL []));
+void rkqs(REAL y[], REAL dydx[], int n, REAL *x,
+	REAL htry, REAL eps, REAL yscal[], REAL *hdid, REAL *hnext,
+	void (*derivs)(REAL, REAL [], REAL []));
+void rlft3(REAL ***data, REAL **speq, unsigned long nn1,
 	unsigned long nn2, unsigned long nn3, int isign);
-long double rofunc(long double b);
-void rotate(long double **r, long double **qt, int n, int i, long double a, long double b);
-void rsolv(long double **a, int n, long double d[], long double b[]);
-void rstrct(long double **uc, long double **uf, int nc);
-long double rtbis(long double (*func)(long double), long double x1, long double x2, long double xacc);
-long double rtflsp(long double (*func)(long double), long double x1, long double x2, long double xacc);
-long double rtnewt(void (*funcd)(long double, long double *, long double *), long double x1, long double x2,
-	long double xacc);
-long double rtsafe(void (*funcd)(long double, long double *, long double *), long double x1, long double x2,
-	long double xacc);
-long double rtsec(long double (*func)(long double), long double x1, long double x2, long double xacc);
-void rzextr(int iest, long double xest, long double yest[], long double yz[], long double dy[], int nv);
-void savgol(long double c[], int np, int nl, int nr, int ld, int m);
-void score(long double xf, long double y[], long double f[]);
-void scrsho(long double (*fx)(long double));
-long double select(unsigned long k, unsigned long n, long double arr[]);
-long double selip(unsigned long k, unsigned long n, long double arr[]);
-void shell(unsigned long n, long double a[]);
-void shoot(int n, long double v[], long double f[]);
-void shootf(int n, long double v[], long double f[]);
-void simp1(long double **a, int mm, int ll[], int nll, int iabf, int *kp,
-	long double *bmax);
-void simp2(long double **a, int m, int n, int *ip, int kp);
-void simp3(long double **a, int i1, int k1, int ip, int kp);
-void simplx(long double **a, int m, int n, int m1, int m2, int m3, int *icase,
+REAL rofunc(REAL b);
+void rotate(REAL **r, REAL **qt, int n, int i, REAL a, REAL b);
+void rsolv(REAL **a, int n, REAL d[], REAL b[]);
+void rstrct(REAL **uc, REAL **uf, int nc);
+REAL rtbis(REAL (*func)(REAL), REAL x1, REAL x2, REAL xacc);
+REAL rtflsp(REAL (*func)(REAL), REAL x1, REAL x2, REAL xacc);
+REAL rtnewt(void (*funcd)(REAL, REAL *, REAL *), REAL x1, REAL x2,
+	REAL xacc);
+REAL rtsafe(void (*funcd)(REAL, REAL *, REAL *), REAL x1, REAL x2,
+	REAL xacc);
+REAL rtsec(REAL (*func)(REAL), REAL x1, REAL x2, REAL xacc);
+void rzextr(int iest, REAL xest, REAL yest[], REAL yz[], REAL dy[], int nv);
+void savgol(REAL c[], int np, int nl, int nr, int ld, int m);
+void score(REAL xf, REAL y[], REAL f[]);
+void scrsho(REAL (*fx)(REAL));
+REAL select(unsigned long k, unsigned long n, REAL arr[]);
+REAL selip(unsigned long k, unsigned long n, REAL arr[]);
+void shell(unsigned long n, REAL a[]);
+void shoot(int n, REAL v[], REAL f[]);
+void shootf(int n, REAL v[], REAL f[]);
+void simp1(REAL **a, int mm, int ll[], int nll, int iabf, int *kp,
+	REAL *bmax);
+void simp2(REAL **a, int m, int n, int *ip, int kp);
+void simp3(REAL **a, int i1, int k1, int ip, int kp);
+void simplx(REAL **a, int m, int n, int m1, int m2, int m3, int *icase,
 	int izrov[], int iposv[]);
-void simpr(long double y[], long double dydx[], long double dfdx[], long double **dfdy,
-	int n, long double xs, long double htot, int nstep, long double yout[],
-	void (*derivs)(long double, long double [], long double []));
-void sinft(long double y[], int n);
-void slvsm2(long double **u, long double **rhs);
-void slvsml(long double **u, long double **rhs);
-void sncndn(long double uu, long double emmc, long double *sn, long double *cn, long double *dn);
-long double snrm(unsigned long n, long double sx[], int itol);
-void sobseq(int *n, long double x[]);
-void solvde(int itmax, long double conv, long double slowc, long double scalv[],
-	int indexv[], int ne, int nb, int m, long double **y, long double ***c, long double **s);
-void sor(long double **a, long double **b, long double **c, long double **d, long double **e,
-	long double **f, long double **u, int jmax, long double rjac);
-void sort(unsigned long n, long double arr[]);
-void sort2(unsigned long n, long double arr[], long double brr[]);
-void sort3(unsigned long n, long double ra[], long double rb[], long double rc[]);
-void spctrm(FILE *fp, long double p[], int m, int k, int ovrlap);
-void spear(long double data1[], long double data2[], unsigned long n, long double *d, long double *zd,
-	long double *probd, long double *rs, long double *probrs);
-void sphbes(int n, long double x, long double *sj, long double *sy, long double *sjp, long double *syp);
-void splie2(long double x1a[], long double x2a[], long double **ya, int m, int n, long double **y2a);
-void splin2(long double x1a[], long double x2a[], long double **ya, long double **y2a, int m, int n,
-	long double x1, long double x2, long double *y);
-void spline(long double x[], long double y[], int n, long double yp1, long double ypn, long double y2[]);
-void splint(long double xa[], long double ya[], long double y2a[], int n, long double x, long double *y);
-void spread(long double y, long double yy[], unsigned long n, long double x, int m);
-void sprsax(long double sa[], unsigned long ija[], long double x[], long double b[],
+void simpr(REAL y[], REAL dydx[], REAL dfdx[], REAL **dfdy,
+	int n, REAL xs, REAL htot, int nstep, REAL yout[],
+	void (*derivs)(REAL, REAL [], REAL []));
+void sinft(REAL y[], int n);
+void slvsm2(REAL **u, REAL **rhs);
+void slvsml(REAL **u, REAL **rhs);
+void sncndn(REAL uu, REAL emmc, REAL *sn, REAL *cn, REAL *dn);
+REAL snrm(unsigned long n, REAL sx[], int itol);
+void sobseq(int *n, REAL x[]);
+void solvde(int itmax, REAL conv, REAL slowc, REAL scalv[],
+	int indexv[], int ne, int nb, int m, REAL **y, REAL ***c, REAL **s);
+void sor(REAL **a, REAL **b, REAL **c, REAL **d, REAL **e,
+	REAL **f, REAL **u, int jmax, REAL rjac);
+void sort(unsigned long n, REAL arr[]);
+void sort2(unsigned long n, REAL arr[], REAL brr[]);
+void sort3(unsigned long n, REAL ra[], REAL rb[], REAL rc[]);
+void spctrm(FILE *fp, REAL p[], int m, int k, int ovrlap);
+void spear(REAL data1[], REAL data2[], unsigned long n, REAL *d, REAL *zd,
+	REAL *probd, REAL *rs, REAL *probrs);
+void sphbes(int n, REAL x, REAL *sj, REAL *sy, REAL *sjp, REAL *syp);
+void splie2(REAL x1a[], REAL x2a[], REAL **ya, int m, int n, REAL **y2a);
+void splin2(REAL x1a[], REAL x2a[], REAL **ya, REAL **y2a, int m, int n,
+	REAL x1, REAL x2, REAL *y);
+void spline(REAL x[], REAL y[], int n, REAL yp1, REAL ypn, REAL y2[]);
+void splint(REAL xa[], REAL ya[], REAL y2a[], int n, REAL x, REAL *y);
+void spread(REAL y, REAL yy[], unsigned long n, REAL x, int m);
+void sprsax(REAL sa[], unsigned long ija[], REAL x[], REAL b[],
 	unsigned long n);
-void sprsin(long double **a, int n, long double thresh, unsigned long nmax, long double sa[],
+void sprsin(REAL **a, int n, REAL thresh, unsigned long nmax, REAL sa[],
 	unsigned long ija[]);
-void sprspm(long double sa[], unsigned long ija[], long double sb[], unsigned long ijb[],
-	long double sc[], unsigned long ijc[]);
-void sprstm(long double sa[], unsigned long ija[], long double sb[], unsigned long ijb[],
-	long double thresh, unsigned long nmax, long double sc[], unsigned long ijc[]);
-void sprstp(long double sa[], unsigned long ija[], long double sb[], unsigned long ijb[]);
-void sprstx(long double sa[], unsigned long ija[], long double x[], long double b[],
+void sprspm(REAL sa[], unsigned long ija[], REAL sb[], unsigned long ijb[],
+	REAL sc[], unsigned long ijc[]);
+void sprstm(REAL sa[], unsigned long ija[], REAL sb[], unsigned long ijb[],
+	REAL thresh, unsigned long nmax, REAL sc[], unsigned long ijc[]);
+void sprstp(REAL sa[], unsigned long ija[], REAL sb[], unsigned long ijb[]);
+void sprstx(REAL sa[], unsigned long ija[], REAL x[], REAL b[],
 	unsigned long n);
-void stifbs(long double y[], long double dydx[], int nv, long double *xx,
-	long double htry, long double eps, long double yscal[], long double *hdid, long double *hnext,
-	void (*derivs)(long double, long double [], long double []));
-void stiff(long double y[], long double dydx[], int n, long double *x,
-	long double htry, long double eps, long double yscal[], long double *hdid, long double *hnext,
-	void (*derivs)(long double, long double [], long double []));
-void stoerm(long double y[], long double d2y[], int nv, long double xs,
-	long double htot, int nstep, long double yout[],
-	void (*derivs)(long double, long double [], long double []));
-void svbksb(long double **u, long double w[], long double **v, int m, int n, long double b[],
-	long double x[]);
-void svdcmp(long double **a, int m, int n, long double w[], long double **v);
-void svdfit(long double x[], long double y[], long double sig[], int ndata, long double a[],
-	int ma, long double **u, long double **v, long double w[], long double *chisq,
-	void (*funcs)(long double, long double [], int));
-void svdvar(long double **v, int ma, long double w[], long double **cvm);
-void toeplz(long double r[], long double x[], long double y[], int n);
-void tptest(long double data1[], long double data2[], unsigned long n, long double *t, long double *prob);
-void tqli(long double d[], long double e[], int n, long double **z);
-long double trapzd(long double (*func)(long double), long double a, long double b, int n);
-void tred2(long double **a, int n, long double d[], long double e[]);
-void tridag(long double a[], long double b[], long double c[], long double r[], long double u[],
+void stifbs(REAL y[], REAL dydx[], int nv, REAL *xx,
+	REAL htry, REAL eps, REAL yscal[], REAL *hdid, REAL *hnext,
+	void (*derivs)(REAL, REAL [], REAL []));
+void stiff(REAL y[], REAL dydx[], int n, REAL *x,
+	REAL htry, REAL eps, REAL yscal[], REAL *hdid, REAL *hnext,
+	void (*derivs)(REAL, REAL [], REAL []));
+void stoerm(REAL y[], REAL d2y[], int nv, REAL xs,
+	REAL htot, int nstep, REAL yout[],
+	void (*derivs)(REAL, REAL [], REAL []));
+void svbksb(REAL **u, REAL w[], REAL **v, int m, int n, REAL b[],
+	REAL x[]);
+void svdcmp(REAL **a, int m, int n, REAL w[], REAL **v);
+void svdfit(REAL x[], REAL y[], REAL sig[], int ndata, REAL a[],
+	int ma, REAL **u, REAL **v, REAL w[], REAL *chisq,
+	void (*funcs)(REAL, REAL [], int));
+void svdvar(REAL **v, int ma, REAL w[], REAL **cvm);
+void toeplz(REAL r[], REAL x[], REAL y[], int n);
+void tptest(REAL data1[], REAL data2[], unsigned long n, REAL *t, REAL *prob);
+void tqli(REAL d[], REAL e[], int n, REAL **z);
+REAL trapzd(REAL (*func)(REAL), REAL a, REAL b, int n);
+void tred2(REAL **a, int n, REAL d[], REAL e[]);
+void tridag(REAL a[], REAL b[], REAL c[], REAL r[], REAL u[],
 	unsigned long n);
-long double trncst(long double x[], long double y[], int iorder[], int ncity, int n[]);
+REAL trncst(REAL x[], REAL y[], int iorder[], int ncity, int n[]);
 void trnspt(int iorder[], int ncity, int n[]);
-void ttest(long double data1[], unsigned long n1, long double data2[], unsigned long n2,
-	long double *t, long double *prob);
-void tutest(long double data1[], unsigned long n1, long double data2[], unsigned long n2,
-	long double *t, long double *prob);
-void twofft(long double data1[], long double data2[], long double fft1[], long double fft2[],
+void ttest(REAL data1[], unsigned long n1, REAL data2[], unsigned long n2,
+	REAL *t, REAL *prob);
+void tutest(REAL data1[], unsigned long n1, REAL data2[], unsigned long n2,
+	REAL *t, REAL *prob);
+void twofft(REAL data1[], REAL data2[], REAL fft1[], REAL fft2[],
 	unsigned long n);
-void vander(long double x[], long double w[], long double q[], int n);
-void vegas(long double regn[], int ndim, long double (*fxn)(long double [], long double), int init,
-	unsigned long ncall, int itmx, int nprn, long double *tgral, long double *sd,
-	long double *chi2a);
-void voltra(int n, int m, long double t0, long double h, long double *t, long double **f,
-	long double (*g)(int, long double), long double (*ak)(int, int, long double, long double));
-void wt1(long double a[], unsigned long n, int isign,
-	void (*wtstep)(long double [], unsigned long, int));
-void wtn(long double a[], unsigned long nn[], int ndim, int isign,
-	void (*wtstep)(long double [], unsigned long, int));
-void wwghts(long double wghts[], int n, long double h,
-	void (*kermom)(long double [], long double ,int));
-int zbrac(long double (*func)(long double), long double *x1, long double *x2);
-void zbrak(long double (*fx)(long double), long double x1, long double x2, int n, long double xb1[],
-	long double xb2[], int *nb);
-long double zbrent(long double (*func)(long double), long double x1, long double x2, long double tol);
-bool zrhqr(long double a[], int m, long double rtr[], long double rti[]);
-long double zriddr(long double (*func)(long double), long double x1, long double x2, long double xacc);
+void vander(REAL x[], REAL w[], REAL q[], int n);
+void vegas(REAL regn[], int ndim, REAL (*fxn)(REAL [], REAL), int init,
+	unsigned long ncall, int itmx, int nprn, REAL *tgral, REAL *sd,
+	REAL *chi2a);
+void voltra(int n, int m, REAL t0, REAL h, REAL *t, REAL **f,
+	REAL (*g)(int, REAL), REAL (*ak)(int, int, REAL, REAL));
+void wt1(REAL a[], unsigned long n, int isign,
+	void (*wtstep)(REAL [], unsigned long, int));
+void wtn(REAL a[], unsigned long nn[], int ndim, int isign,
+	void (*wtstep)(REAL [], unsigned long, int));
+void wwghts(REAL wghts[], int n, REAL h,
+	void (*kermom)(REAL [], REAL ,int));
+int zbrac(REAL (*func)(REAL), REAL *x1, REAL *x2);
+void zbrak(REAL (*fx)(REAL), REAL x1, REAL x2, int n, REAL xb1[],
+	REAL xb2[], int *nb);
+REAL zbrent(REAL (*func)(REAL), REAL x1, REAL x2, REAL tol);
+bool zrhqr(REAL a[], int m, REAL rtr[], REAL rti[]);
+REAL zriddr(REAL (*func)(REAL), REAL x1, REAL x2, REAL xacc);
 void zroots(fcomplex a[], int m, fcomplex roots[], int polish);
 
 } // namespace dem ends

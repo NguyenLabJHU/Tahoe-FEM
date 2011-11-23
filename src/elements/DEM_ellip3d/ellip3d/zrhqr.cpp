@@ -6,12 +6,12 @@ using namespace std;
 
 namespace dem {
 
-bool zrhqr(long double a[], int m, long double rtr[], long double rti[])
+bool zrhqr(REAL a[], int m, REAL rtr[], REAL rti[])
 {
-	void balanc(long double **a, int n);
-	bool hqr(long double **a, int n, long double wr[], long double wi[]);
+	void balanc(REAL **a, int n);
+	bool hqr(REAL **a, int n, REAL wr[], REAL wi[]);
 	int j,k;
-	long double **hess,xr,xi;
+	REAL **hess,xr,xi;
 
 	if (m > MAXM || a[m] == 0.0) // nrerror("bad args in zrhqr");
 	    return false;

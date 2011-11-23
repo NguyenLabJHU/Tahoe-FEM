@@ -5,6 +5,7 @@
 #ifndef CONTACT_H
 #define CONTACT_H
 
+#include "realtypes.h"
 #include "parameter.h"
 #include "root6.h"
 #include <vector>
@@ -26,11 +27,11 @@ public:
     vec  TgtDisp;
     bool TgtLoading;
     vec  TgtDispStart;
-    long double TgtPeak;
+    REAL TgtPeak;
     bool TgtSlide;
 
     cnttgt();
-    cnttgt(int _ptcl1, int _ptcl2, vec _tf, vec _td, bool _tl, vec _tds, long double _tp, bool _ts)
+    cnttgt(int _ptcl1, int _ptcl2, vec _tf, vec _td, bool _tl, vec _tds, REAL _tp, bool _ts)
       :ptcl1(_ptcl1), ptcl2(_ptcl2), TgtForce(_tf), TgtDisp(_td), 
        TgtLoading(_tl),
        TgtDispStart(_tds),
@@ -49,20 +50,20 @@ public:
     T*   getP2() const;
     vec  getPoint1() const {return point1;}
     vec  getPoint2() const {return point2;}
-    long double getRadius1() const {return radius1;}
-    long double getRadius2() const {return radius2;}
-    long double getR0() const {return R0;}
-    long double getE0() const {return E0;}
-    long double getVibraTimeStep() const {return vibraTimeStep;}
-    long double getImpactTimeStep() const {return impactTimeStep;}
+    REAL getRadius1() const {return radius1;}
+    REAL getRadius2() const {return radius2;}
+    REAL getR0() const {return R0;}
+    REAL getE0() const {return E0;}
+    REAL getVibraTimeStep() const {return vibraTimeStep;}
+    REAL getImpactTimeStep() const {return impactTimeStep;}
     
     bool isOverlapped();
     void contactForce();         // calculate normal and tangential force of contact
-    long double getNormalForce() const {return vfabsl(NormalForce);}
-    long double getTgtForce()  const {return vfabsl(TgtForce);}
-    long double getPenetration() const {return penetration;}
-    long double getContactRadius() const {return contact_radius;}
-    long double getTgtDisp() const {return vfabsl(TgtDisp);} // total value during a process of contact
+    REAL getNormalForce() const {return vfabsl(NormalForce);}
+    REAL getTgtForce()  const {return vfabsl(TgtForce);}
+    REAL getPenetration() const {return penetration;}
+    REAL getContactRadius() const {return contact_radius;}
+    REAL getTgtDisp() const {return vfabsl(TgtDisp);} // total value during a process of contact
     void checkoutTgt(std::vector<cnttgt>& CntTgtVec);
     void checkinPreTgt(std::vector<cnttgt>& CntTgtVec);
     void print() const;
@@ -72,17 +73,17 @@ public:
  private:
     T*   p1;                     // particle 1
     T*   p2;                     // particle 2
-    long double penetration;     // penetration
-    long double contact_radius;  // radius of contact surface
+    REAL penetration;     // penetration
+    REAL contact_radius;  // radius of contact surface
     vec  point1;                 // point1 on particle 1, innermost to particle 2
     vec  point2;                 // point2 on particle 2, innermost to particle 1
-    long double radius1;         // radius of osculating circles at point1
-    long double radius2;         // radius of osculating circles at point2
-    long double E0;              
-    long double G0;
-    long double R0;
-    long double vibraTimeStep;
-    long double impactTimeStep;
+    REAL radius1;         // radius of osculating circles at point1
+    REAL radius2;         // radius of osculating circles at point2
+    REAL E0;              
+    REAL G0;
+    REAL R0;
+    REAL vibraTimeStep;
+    REAL impactTimeStep;
 
     bool isInContact;
 
@@ -102,7 +103,7 @@ public:
     vec  PreTgtDisp;           // previous tangential relative displacment total vector
     bool PreTgtSlide;
 
-    long double TgtPeak;       
+    REAL TgtPeak;       
 
     vec  spin_res;
 };
@@ -162,7 +163,7 @@ T* contact<T>::getP2() const {
 
 template<class T>
 bool contact<T>::isOverlapped(){
-    long double coef1[10],coef2[10];
+    REAL coef1[10],coef2[10];
     p1->getGlobCoef(coef1); // v[0] is the point on p2, v[1] is the point on p1
     p2->getGlobCoef(coef2);    
     vec v[2];
@@ -173,7 +174,7 @@ bool contact<T>::isOverlapped(){
     radius1=p1->getRadius(point1);
     radius2=p2->getRadius(point2);
     penetration=vfabsl(point1-point2);
-    long double minRelOverlap = penetration/(2.0*std::max(radius1,radius2));
+    REAL minRelOverlap = penetration/(2.0*std::max(radius1,radius2));
 
     if (b1 && b2 && minRelOverlap > MINOVERLAP) { // a strict detection method
         isInContact = true;
@@ -228,7 +229,7 @@ void contact<T>::contactForce(){
 	R0=radius1*radius2/(radius1+radius2);
 	contact_radius=sqrtl(penetration*R0);
 	E0=0.5*YOUNG/(1-POISSON*POISSON);
-	long double allowedOverlap = 2.0 * std::min(radius1,radius2) * MAXOVERLAP;
+	REAL allowedOverlap = 2.0 * std::min(radius1,radius2) * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
 	  g_debuginf << "contact.h: g_iteration=" << g_iteration 
 		     << " particle1=" << getP1()->getID()
@@ -266,10 +267,10 @@ void contact<T>::contactForce(){
 	vec cp = (point1+point2)/2;        
 	vec veloc1 = p1->getCurrVelocity() + p1->getCurrOmga()*(cp-p1->getCurrPosition());
 	vec veloc2 = p2->getCurrVelocity() + p2->getCurrOmga()*(cp-p2->getCurrPosition());
-	long double m1 = getP1()->getMass();
-	long double m2 = getP2()->getMass();
-	long double kn = powl(6*vfabsl(NormalForce)*R0*powl(E0,2),1.0/3.0);
-	long double DMP_CRTC = 2*sqrtl(m1*m2/(m1+m2)*kn); // critical damping
+	REAL m1 = getP1()->getMass();
+	REAL m2 = getP2()->getMass();
+	REAL kn = powl(6*vfabsl(NormalForce)*R0*powl(E0,2),1.0/3.0);
+	REAL DMP_CRTC = 2*sqrtl(m1*m2/(m1+m2)*kn); // critical damping
 	vec CntDampingForce  = DMP_CNT * DMP_CRTC * ((veloc1-veloc2)%NormDirc)*NormDirc;
 	vibraTimeStep = 2.0*sqrtl( m1*m2 / (m1+m2) /kn );
 	impactTimeStep = allowedOverlap / fabsl((veloc1-veloc2) % NormDirc);
@@ -291,8 +292,8 @@ void contact<T>::contactForce(){
 	    else
 		TgtDirc = normalize(-TgtDisp); // TgtDirc points along Tgtential forces exerted on particle 1
 
-	    long double fP = 0;
-	    long double ks = 0;
+	    REAL fP = 0;
+	    REAL ks = 0;
 
 	    /////////////////////////////////////////////////////////////////////////////////////////////////////////
 	    // linear friction model
@@ -308,7 +309,7 @@ void contact<T>::contactForce(){
 	    // This model is not recommended as it is impossible to strictly determine loading/unloading condition
             // unless load is known (the case of pure moment rotation).
 #ifdef MINDLIN_ASSUMED
-	    long double val = 0;
+	    REAL val = 0;
 	    fP = FRICTION*vfabsl(NormalForce);
 	    TgtLoading = (PreTgtDisp%TgtDispInc >= 0); 
 	    
@@ -357,7 +358,7 @@ void contact<T>::contactForce(){
 	    // As loading/unloading condition is known, both incremental and total value method work well.
             // Herein sliding history is incorporated.
 #ifdef MINDLIN_KNOWN
-	    long double val = 0;
+	    REAL val = 0;
 	    fP = FRICTION*vfabsl(NormalForce);
 	    if (PreTgtSlide)
 		val = 8*G0*contact_radius*vfabsl(TgtDispInc)/(3*(2-POISSON)*fP);

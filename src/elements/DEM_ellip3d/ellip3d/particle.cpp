@@ -18,24 +18,24 @@ using namespace std;
 
 namespace dem {
 
-particle::particle(int n, int tp, vec center, long double r){
+particle::particle(int n, int tp, vec center, REAL r){
     type=tp;
     ID=n;
-    long double tmp0=ran(&idum);
-    long double tmp1=ran(&idum);
-    long double tmp2=ran(&idum);
-    long double tmp3=ran(&idum);
-    long double tmp4=ran(&idum);
-    long double tmp5=ran(&idum);
-    long double tmp6=ran(&idum);
-    long double tmp7=ran(&idum);  // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
+    REAL tmp0=ran(&idum);
+    REAL tmp1=ran(&idum);
+    REAL tmp2=ran(&idum);
+    REAL tmp3=ran(&idum);
+    REAL tmp4=ran(&idum);
+    REAL tmp5=ran(&idum);
+    REAL tmp6=ran(&idum);
+    REAL tmp7=ran(&idum);  // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
 
     a=r;
     b=r;
     c=r;
 
     // generate orientation of axle a/b/c
-    long double l1,m1,n1,l2,m2,n2,x,y,z;
+    REAL l1,m1,n1,l2,m2,n2,x,y,z;
     n1 = 2*tmp1-1;                  // (-1,1)
     z  = acosl(n1);                 
     m1 = (2*tmp2-1)*sqrtl(1-n1*n1); // (-1,1)
@@ -48,7 +48,7 @@ particle::particle(int n, int tp, vec center, long double r){
     n2 = 2*tmp4 - 1;                // (-1,1)
     m2 = 2*tmp5 - 1;                // (-1,1)
     l2 = -(m1*m2+n1*n2)/l1;         // ensure a/b/c perpendicular
-    long double mod2 = sqrtl(l2*l2+m2*m2+n2*n2);
+    REAL mod2 = sqrtl(l2*l2+m2*m2+n2*n2);
     n2 /= mod2;
     m2 /= mod2;
     l2 /= mod2;
@@ -77,24 +77,24 @@ particle::particle(int n, int tp, vec center, long double r){
 }
 
 
-particle::particle(int n, int tp, vec center, long double _a, long double _b, long double _c){
+particle::particle(int n, int tp, vec center, REAL _a, REAL _b, REAL _c){
     type=tp;
     ID=n;
-    long double tmp0=ran(&idum);
-    long double tmp1=ran(&idum);
-    long double tmp2=ran(&idum);
-    long double tmp3=ran(&idum);
-    long double tmp4=ran(&idum);
-    long double tmp5=ran(&idum);
-    long double tmp6=ran(&idum);
-    long double tmp7=ran(&idum);  // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
+    REAL tmp0=ran(&idum);
+    REAL tmp1=ran(&idum);
+    REAL tmp2=ran(&idum);
+    REAL tmp3=ran(&idum);
+    REAL tmp4=ran(&idum);
+    REAL tmp5=ran(&idum);
+    REAL tmp6=ran(&idum);
+    REAL tmp7=ran(&idum);  // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
 
     a=_a;
     b=_b;
     c=_c;
 
     // generate orientation of axle a/b/c
-    long double l1,m1,n1,l2,m2,n2,x,y,z;
+    REAL l1,m1,n1,l2,m2,n2,x,y,z;
     n1 = 2*tmp1-1;                  // (-1,1)
     z  = acosl(n1);                 
     m1 = (2*tmp2-1)*sqrtl(1-n1*n1); // (-1,1)
@@ -107,7 +107,7 @@ particle::particle(int n, int tp, vec center, long double _a, long double _b, lo
     n2 = 2*tmp4 - 1;                // (-1,1)
     m2 = 2*tmp5 - 1;                // (-1,1)
     l2 = -(m1*m2+n1*n2)/l1;         // ensure a/b/c perpendicular
-    long double mod2 = sqrtl(l2*l2+m2*m2+n2*n2);
+    REAL mod2 = sqrtl(l2*l2+m2*m2+n2*n2);
     n2 /= mod2;
     m2 /= mod2;
     l2 /= mod2;
@@ -139,14 +139,14 @@ particle::particle(int n, int tp, vec center, long double _a, long double _b, lo
 particle::particle(int n, int tp, vec center, gradation& grad){
     type=tp;
     ID=n;
-    long double tmp0=ran(&idum);
-    long double tmp1=ran(&idum);
-    long double tmp2=ran(&idum);
-    long double tmp3=ran(&idum);
-    long double tmp4=ran(&idum);
-    long double tmp5=ran(&idum);
-    long double tmp6=ran(&idum);
-    long double tmp7=ran(&idum);
+    REAL tmp0=ran(&idum);
+    REAL tmp1=ran(&idum);
+    REAL tmp2=ran(&idum);
+    REAL tmp3=ran(&idum);
+    REAL tmp4=ran(&idum);
+    REAL tmp5=ran(&idum);
+    REAL tmp6=ran(&idum);
+    REAL tmp7=ran(&idum);
     // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
 
     // generate a particle based on gradation distribution
@@ -166,7 +166,7 @@ particle::particle(int n, int tp, vec center, gradation& grad){
     c=a*grad.ratio_ca;
 
     // generate orientation of axle a/b/c
-    long double l1,m1,n1,l2,m2,n2,x,y,z;
+    REAL l1,m1,n1,l2,m2,n2,x,y,z;
     n1 = 2*tmp1-1;                  // (-1,1)
     z  = acosl(n1);                 
     m1 = (2*tmp2-1)*sqrtl(1-n1*n1); // (-1,1)
@@ -179,7 +179,7 @@ particle::particle(int n, int tp, vec center, gradation& grad){
     n2 = 2*tmp4 - 1;                // (-1,1)
     m2 = 2*tmp5 - 1;                // (-1,1)
     l2 = -(m1*m2+n1*n2)/l1;         // ensure a/b/c perpendicular
-    long double mod2 = sqrtl(l2*l2+m2*m2+n2*n2);
+    REAL mod2 = sqrtl(l2*l2+m2*m2+n2*n2);
     n2 /= mod2;
     m2 /= mod2;
     l2 /= mod2;
@@ -235,12 +235,12 @@ particle::particle(int id, int tp, vec dim, vec position, vec dirca, vec dircb, 
 
 int    particle::getID() const {return ID;}
 int    particle::getType() const {return type;}
-long double particle::getA() const {return a;}
-long double particle::getB() const {return b;}
-long double particle::getC() const {return c;}
-long double particle::getVolume() const {return volume;}
-long double particle::getMass() const {return mass;}
-long double particle::getDensity() const {return density;}
+REAL particle::getA() const {return a;}
+REAL particle::getB() const {return b;}
+REAL particle::getC() const {return c;}
+REAL particle::getVolume() const {return volume;}
+REAL particle::getMass() const {return mass;}
+REAL particle::getDensity() const {return density;}
 vec    particle::getCurrPosition() const {return curr_position;}
 vec    particle::getPrevPosition() const {return prev_position;}
 vec    particle::getCurrDirecA() const {return curr_direction_a;}
@@ -266,12 +266,12 @@ vec    particle::getJ() const {return J;}
 //    is expressed in local frame.
 // 2. angular velocities in global frame needs to be converted to those
 //    in local frame.
-long double particle::getTransEnergy() const{
+REAL particle::getTransEnergy() const{
     return mass*powl(vfabsl(curr_velocity),2)/2;
 }
 
 
-long double particle::getRotatEnergy() const{
+REAL particle::getRotatEnergy() const{
     vec curr_local_omga, tmp;
 
     tmp=vcosl(curr_direction_a); curr_local_omga.setx(tmp%curr_omga);
@@ -284,21 +284,21 @@ long double particle::getRotatEnergy() const{
 }
 
 
-long double particle::getKinetEnergy() const{
+REAL particle::getKinetEnergy() const{
     return getTransEnergy() + getRotatEnergy();
 }
 
 
-long double particle::getPotenEnergy(long double ref) const{
+REAL particle::getPotenEnergy(REAL ref) const{
     return G*mass*(curr_position.getz() - ref);
 }
 
 
 void   particle::setID(int n){ID=n;}
 void   particle::setType(int n) {type=n;}
-void   particle::setA(long double dd){a=dd;}
-void   particle::setB(long double dd){b=dd;}
-void   particle::setC(long double dd){c=dd;}
+void   particle::setA(REAL dd){a=dd;}
+void   particle::setB(REAL dd){b=dd;}
+void   particle::setC(REAL dd){c=dd;}
 void   particle::setCurrPosition(vec vv){curr_position=vv;}
 void   particle::setPrevPosition(vec vv){prev_position=vv;}
 void   particle::setCurrDirecA(vec vv){curr_direction_a=vv;}
@@ -318,8 +318,8 @@ void   particle::setMoment(vec vv){moment=vv;}
 void   particle::setConstForce(vec vv){const_force=vv;}
 void   particle::setConstMoment(vec vv){const_moment=vv;}
 void   particle::setJ(vec v){J=v;}
-void   particle::setMass(long double d){mass=d;}
-void   particle::getGlobCoef(long double coef[]) const{
+void   particle::setMass(REAL d){mass=d;}
+void   particle::getGlobCoef(REAL coef[]) const{
     for (int i=0;i<10;i++)
 	coef[i]=this->coef[i];
 }
@@ -338,10 +338,10 @@ void particle::print() const{
 }
 
 
-long double particle::surfaceError(vec pt) const{
-    long double x=pt.getx();
-    long double y=pt.gety();
-    long double z=pt.getz();
+REAL particle::surfaceError(vec pt) const{
+    REAL x=pt.getx();
+    REAL y=pt.gety();
+    REAL z=pt.getz();
     return coef[0]*x*x+coef[1]*y*y+coef[2]*z*z+coef[3]*x*y+coef[4]*y*z+coef[5]*z*x+
 	coef[6]*x+coef[7]*y+coef[8]*z+coef[9];
 }
@@ -366,18 +366,18 @@ void particle::GlobCoef(){
     vec v1=vcosl(curr_direction_a);
     vec v2=vcosl(curr_direction_b);
     vec v3=vcosl(curr_direction_c);
-    long double X0=curr_position.getx();
-    long double Y0=curr_position.gety();
-    long double Z0=curr_position.getz();
-    long double l1=v1.getx();
-    long double m1=v1.gety();
-    long double n1=v1.getz();
-    long double l2=v2.getx();
-    long double m2=v2.gety();
-    long double n2=v2.getz();
-    long double l3=v3.getx();
-    long double m3=v3.gety();
-    long double n3=v3.getz();
+    REAL X0=curr_position.getx();
+    REAL Y0=curr_position.gety();
+    REAL Z0=curr_position.getz();
+    REAL l1=v1.getx();
+    REAL m1=v1.gety();
+    REAL n1=v1.getz();
+    REAL l2=v2.getx();
+    REAL m2=v2.gety();
+    REAL n2=v2.getz();
+    REAL l3=v3.getx();
+    REAL m3=v3.gety();
+    REAL n3=v3.getz();
     coef[0]=l1*l1/a/a+l2*l2/b/b+l3*l3/c/c;
     coef[1]=m1*m1/a/a+m2*m2/b/b+m3*m3/c/c;
     coef[2]=n1*n1/a/a+n2*n2/b/b+n3*n3/c/c;
@@ -417,7 +417,7 @@ void particle::GlobCoef(){
 	powl(a,-2)*powl(n1,2)*powl(Z0,2) + 
 	powl(b,-2)*powl(n2,2)*powl(Z0,2) + 
 	powl(c,-2)*powl(n3,2)*powl(Z0,2);
-    long double divd=coef[0];
+    REAL divd=coef[0];
     for (int kk=0;kk<10;kk++){  // when a particle is initialized or updated, coef[0] is set as 1.0.
 	coef[kk]/=divd;
     }
@@ -425,39 +425,39 @@ void particle::GlobCoef(){
 
 
 bool particle::intersectWithLine(vec v, vec dirc, vec rt[]) const{
-    long double x0=v.getx();
-    long double y0=v.gety();
-    long double z0=v.getz();
-    long double p=dirc.getx();
-    long double q=dirc.gety();
-    long double r=dirc.getz();
-    long double a=coef[0];
-    long double b=coef[1];
-    long double c=coef[2];
-    long double d=coef[3];
-    long double e=coef[4];
-    long double f=coef[5];
-    long double g=coef[6];
-    long double h=coef[7];
-    long double i=coef[8];
-    long double j=coef[9];
+    REAL x0=v.getx();
+    REAL y0=v.gety();
+    REAL z0=v.getz();
+    REAL p=dirc.getx();
+    REAL q=dirc.gety();
+    REAL r=dirc.getz();
+    REAL a=coef[0];
+    REAL b=coef[1];
+    REAL c=coef[2];
+    REAL d=coef[3];
+    REAL e=coef[4];
+    REAL f=coef[5];
+    REAL g=coef[6];
+    REAL h=coef[7];
+    REAL i=coef[8];
+    REAL j=coef[9];
 
-    long double A = a*p*p + b*q*q + c*r*r + d*p*q + e*q*r + f*r*p;
-    long double B = 2*a*p*x0 + 2*b*q*y0 + 2*c*r*z0
+    REAL A = a*p*p + b*q*q + c*r*r + d*p*q + e*q*r + f*r*p;
+    REAL B = 2*a*p*x0 + 2*b*q*y0 + 2*c*r*z0
 	            + d*p*y0 + d*q*x0 + e*q*z0 + e*r*y0 + f*p*z0 + f*r*x0
 	            + g*p + h*q + i*r;
-    long double C = a*x0*x0 + b*y0*y0 + c*z0*z0 + d*x0*y0 + e*y0*z0 +f*z0*x0
+    REAL C = a*x0*x0 + b*y0*y0 + c*z0*z0 + d*x0*y0 + e*y0*z0 +f*z0*x0
 	            + g*x0 + h*y0 + i*z0 + j;
     
-    long double delta=B*B-4*A*C;
+    REAL delta=B*B-4*A*C;
     if (delta < 0){
 	g_debuginf<<"particle.cpp: g_iteration="<<g_iteration
 		  <<" delta < 0 in intersectWithLine()"<<endl;
 	return false;
     }
     else{
-	long double t1=(-B+sqrtl(delta))/(2*A);
-	long double t2=(-B-sqrtl(delta))/(2*A);
+	REAL t1=(-B+sqrtl(delta))/(2*A);
+	REAL t2=(-B-sqrtl(delta))/(2*A);
 	
 	rt[0].setx(t1*p + x0);
 	rt[0].sety(t1*q + y0);
@@ -480,39 +480,39 @@ bool particle::intersectWithLine(vec v, vec dirc, vec rt[]) const{
 //    4. When a point is close to the equator, for example, fabsl(z)==0,
 //       float exception is prone to occurring, then a switch is needed
 //       as above.
-long double particle::getRadius(vec v) const{
+REAL particle::getRadius(vec v) const{
     if(a==b&&b==c)
 	return a;
 
-    long double per=1.0e-4; // define when a point is close to equator
-    long double ra=a;       // semi-axles of ellipsoid
-    long double rb=b;
-    long double rc=c;
+    REAL per=1.0e-4; // define when a point is close to equator
+    REAL ra=a;       // semi-axles of ellipsoid
+    REAL rb=b;
+    REAL rc=c;
 
     // get the local coodinates of vector v, the point on the particle's surface
     vec v1=vcosl(curr_direction_a);
     vec v2=vcosl(curr_direction_b);
     vec v3=vcosl(curr_direction_c);
-    long double X0=curr_position.getx();
-    long double Y0=curr_position.gety();
-    long double Z0=curr_position.getz();
-    long double x1=v.getx()-X0;
-    long double y1=v.gety()-Y0;
-    long double z1=v.getz()-Z0;
-    long double l1=v1.getx();
-    long double m1=v1.gety();
-    long double n1=v1.getz();
-    long double l2=v2.getx();
-    long double m2=v2.gety();
-    long double n2=v2.getz();
-    long double l3=v3.getx();
-    long double m3=v3.gety();
-    long double n3=v3.getz();
-    long double x=l1*x1 + m1*y1 + n1*z1;
-    long double y=l2*x1 + m2*y1 + n2*z1;
-    long double z=l3*x1 + m3*y1 + n3*z1;
+    REAL X0=curr_position.getx();
+    REAL Y0=curr_position.gety();
+    REAL Z0=curr_position.getz();
+    REAL x1=v.getx()-X0;
+    REAL y1=v.gety()-Y0;
+    REAL z1=v.getz()-Z0;
+    REAL l1=v1.getx();
+    REAL m1=v1.gety();
+    REAL n1=v1.getz();
+    REAL l2=v2.getx();
+    REAL m2=v2.gety();
+    REAL n2=v2.getz();
+    REAL l3=v3.getx();
+    REAL m3=v3.gety();
+    REAL n3=v3.getz();
+    REAL x=l1*x1 + m1*y1 + n1*z1;
+    REAL y=l2*x1 + m2*y1 + n2*z1;
+    REAL z=l3*x1 + m3*y1 + n3*z1;
 
-    long double tmp;
+    REAL tmp;
     if (fabsl(z)<=c*per) {     // switch x & z, use 0 instead of infinity
 	tmp=ra; ra=rc; rc=tmp;
 	tmp=x; x=z; z=tmp; 
@@ -522,14 +522,14 @@ long double particle::getRadius(vec v) const{
 	}     
     }
 
-    long double p=-rc*rc/ra/ra*x/z;
-    long double q=-rc*rc/rb/rb*y/z;
-    long double r=-rc*rc/ra/ra*(1/z+rc*rc/ra/ra*x*x/powl(z,3));
-    long double t=-rc*rc/rb/rb*(1/z+rc*rc/rb/rb*y*y/powl(z,3));
-    long double s=-powl(rc,4)/ra/ra/rb/rb*x*y/powl(z,3);
-    long double n  = sqrtl(1+p*p+q*q);
+    REAL p=-rc*rc/ra/ra*x/z;
+    REAL q=-rc*rc/rb/rb*y/z;
+    REAL r=-rc*rc/ra/ra*(1/z+rc*rc/ra/ra*x*x/powl(z,3));
+    REAL t=-rc*rc/rb/rb*(1/z+rc*rc/rb/rb*y*y/powl(z,3));
+    REAL s=-powl(rc,4)/ra/ra/rb/rb*x*y/powl(z,3);
+    REAL n  = sqrtl(1+p*p+q*q);
 
-    long double A,B,C;
+    REAL A,B,C;
     A=r*t-s*s;
     B=n*(2*p*q*s-(1+p*p)*t-(1+q*q)*r);
     C=n*n*n*n;
@@ -558,7 +558,7 @@ void particle::clearForce(){
 	force -= vec(0,0,-G*mass*GRVT_SCL); 
 
 #ifdef MOMENT
-	long double m[20]={ 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+	REAL m[20]={ 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
 		       80, 70, 60, 50, 40, 30, 20, 10, 0};
 #ifdef SLIP
 	for (int i=0;i<20;++i) m[i] *= 1.0e-8;
@@ -587,8 +587,8 @@ void particle::update() {
 	vec curr_local_omga;
 	vec local_moment;
 	vec tmp;
-	long double atf=DMP_F*TIMESTEP; 
-	long double atm=DMP_M*TIMESTEP; 
+	REAL atf=DMP_F*TIMESTEP; 
+	REAL atm=DMP_M*TIMESTEP; 
 	
 	// force: translational kinetics equations are in global frame
 	curr_velocity=prev_velocity*(2-atf)/(2+atf)+force/(mass*MASS_SCL)*TIMESTEP*2/(2+atf);
@@ -624,8 +624,8 @@ void particle::update() {
 	vec curr_local_omga;
 	vec local_moment;
 	vec tmp;
-	long double atf=DMP_F*TIMESTEP; 
-	long double atm=DMP_M*TIMESTEP; 
+	REAL atf=DMP_F*TIMESTEP; 
+	REAL atm=DMP_M*TIMESTEP; 
 	curr_velocity=prev_velocity*(2-atf)/(2+atf)+force/(mass*MASS_SCL)*TIMESTEP*2/(2+atf);
 	if (g_iteration < START)
 	    curr_position = prev_position + curr_velocity*TIMESTEP;	
@@ -661,7 +661,7 @@ void particle::update() {
 	curr_position = prev_position + curr_velocity*TIMESTEP;
     }
     else if (getType()==4) { //special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only 
-	long double atf=DMP_F*TIMESTEP; 
+	REAL atf=DMP_F*TIMESTEP; 
 	curr_velocity=prev_velocity*(2-atf)/(2+atf)+force/(mass*MASS_SCL)*TIMESTEP*2/(2+atf);
 	curr_velocity.setx(0);	
 	curr_velocity.sety(0);
@@ -708,11 +708,11 @@ vec particle::globalVec(vec v) const{
 }
 
 
-bool particle::nearestPTOnPlane(long double p, long double q, long double r, long double s, vec& ptnp) const {
+bool particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, vec& ptnp) const {
     if(a==b&&b==c){
       vec tnm=vec(p,q,r)/sqrtl(p*p+q*q+r*r);
       // signed distance from particle center to plane
-      long double l_nm=(curr_position.getx()*p+curr_position.gety()*q+curr_position.getz()*r+s)/sqrtl(p*p+q*q+r*r); 
+      REAL l_nm=(curr_position.getx()*p+curr_position.gety()*q+curr_position.getz()*r+s)/sqrtl(p*p+q*q+r*r); 
       ptnp=curr_position-l_nm*tnm;
       if( (a-fabsl(l_nm)) / (2.0*a) > MINOVERLAP) // intersect
 	return true;
@@ -720,35 +720,35 @@ bool particle::nearestPTOnPlane(long double p, long double q, long double r, lon
 	return false;
     }
 
-    long double a=coef[0];
-    long double b=coef[1];
-    long double c=coef[2];
-    long double d=coef[3];
-    long double e=coef[4];
-    long double f=coef[5];
-    long double g=coef[6];
-    long double h=coef[7];
-    long double i=coef[8];
-    long double j=coef[9];
-    long double domi=
+    REAL a=coef[0];
+    REAL b=coef[1];
+    REAL c=coef[2];
+    REAL d=coef[3];
+    REAL e=coef[4];
+    REAL f=coef[5];
+    REAL g=coef[6];
+    REAL h=coef[7];
+    REAL i=coef[8];
+    REAL j=coef[9];
+    REAL domi=
 	 e*e*p*p + 4*c*d*p*q - 4*a*c*q*q + 
 	 f*f*q*q - 2*d*f*q*r + 
 	 d*d*r*r - 
 	 2*e*(f*p*q + d*p*r - 2*a*q*r) - 
 	 4*b*(c*p*p + r*(-f*p + a*r));
-    long double x=
+    REAL x=
 	(-(f*i*q*q) - 2*b*i*p*r + f*h*q*r + d*i*q*r + 
 	 2*b*g*r*r - d*h*r*r - e*e*p*s - 
 	 2*b*f*r*s - 2*c*(h*p*q - g*q*q - 2*b*p*s + 
 	 d*q*s) + e*(i*p*q + h*p*r - 2*g*q*r + f*q*s + 
 	 d*r*s))/domi;
-    long double y=
+    REAL y=
 	(f*i*p*q - 2*f*h*p*r + d*i*p*r + f*g*q*r - 
 	 2*a*i*q*r - d*g*r*r + 2*a*h*r*r - 
 	 f*f*q*s + d*f*r*s + 
 	 2*c*(h*p*p - g*p*q - d*p*s + 2*a*q*s) + 
 	 e*(-i*p*p + g*p*r + f*p*s - 2*a*r*s))/domi;
-    long double z=
+    REAL z=
 	(f*h*p*q - 2*d*i*p*q - f*g*q*q + 
 	 2*a*i*q*q + d*h*p*r + d*g*q*r - 2*a*h*q*r + 
 	 d*f*q*s - d*d*r*s + 
@@ -756,7 +756,7 @@ bool particle::nearestPTOnPlane(long double p, long double q, long double r, lon
 	 2*b*(i*p*p - g*p*r - f*p*s + 2*a*r*s))/domi;
     ptnp=vec(x,y,z);
 
-    long double val=a*x*x+b*y*y+c*z*z+d*x*y+e*y*z+f*x*z+g*x+h*y+i*z+j;
+    REAL val=a*x*x+b*y*y+c*z*z+d*x*y+e*y*z+f*x*z+g*x+h*y+i*z+j;
 
     if (val >= 0) // not intersect
 	return false;
@@ -768,10 +768,10 @@ bool particle::nearestPTOnPlane(long double p, long double q, long double r, lon
 void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 			    map<int,vector<boundarytgt> >& BdryTgtMap,
 			    vector<boundarytgt>& vtmp,
-			    long double &penetr){
+			    REAL &penetr){
 	// (p,q,r) are in the same direction as the outward normal vector,
 	// hence it is not necessary to provide information about which side the particle is about the plane.
-	long double p,q,r,s;
+	REAL p,q,r,s;
 	int  bdry_id;
 	BdryCoef tmp1=*((plb->CoefOfLimits).begin());
 	p=tmp1.dirc.getx();
@@ -804,14 +804,14 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	    pt2 = rt[1];
 
 	// obtain normal force
-	long double penetration=vfabsl(pt1-pt2);
+	REAL penetration=vfabsl(pt1-pt2);
 	if (penetration / (2.0*getRadius(pt2) ) <= MINOVERLAP)
 	    return;
 	penetr = penetration;
-	long double R0=getRadius(pt2);
-	long double contact_radius=sqrtl(penetration*R0);
-	long double E0=YOUNG/(1-POISSON*POISSON); // rigid wall has infinite YOUNG's modulus
-	long double allowedOverlap = 2.0 * R0 * MAXOVERLAP;
+	REAL R0=getRadius(pt2);
+	REAL contact_radius=sqrtl(penetration*R0);
+	REAL E0=YOUNG/(1-POISSON*POISSON); // rigid wall has infinite YOUNG's modulus
+	REAL allowedOverlap = 2.0 * R0 * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
 	  g_debuginf << "particle.cpp: g_iteration=" << g_iteration 
 		     << " particle=" << getID()
@@ -848,8 +848,8 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	
 	// obtain normal damping force
 	vec veloc2 = getCurrVelocity() + getCurrOmga()*((pt1+pt2)/2-getCurrPosition());
-	long double kn = powl(6*vfabsl(NormalForce)*R0*powl(E0,2),1.0/3.0);
-	long double DMP_CRTC = 2*sqrtl(getMass()*kn); // critical damping
+	REAL kn = powl(6*vfabsl(NormalForce)*R0*powl(E0,2),1.0/3.0);
+	REAL DMP_CRTC = 2*sqrtl(getMass()*kn); // critical damping
 	vec CntDampingForce  = DMP_CNT * DMP_CRTC * ((-veloc2)%NormDirc)*NormDirc;
 
 	// apply normal damping force
@@ -863,7 +863,7 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	    vec PreTgtDisp;
 	    bool PreTgtLoading=true;
 	    vec  TgtDispStart;
-	    long double TgtPeak=0;
+	    REAL TgtPeak=0;
 
 	    bool TgtLoading=true;
 	    vector<boundarytgt>::iterator it;
@@ -879,7 +879,7 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	    }
 		
 	    // obtain tangtential force
-	    long double G0 = YOUNG/2/(1+POISSON);
+	    REAL G0 = YOUNG/2/(1+POISSON);
 	    // Vr = Vb + w (crossdot) r, each item needs to be in either global or local frame; 
 	    //      here global frame is used for better convenience.
 	    vec RelaDispInc = (curr_velocity+curr_omga*((pt1+pt2)/2-curr_position))*TIMESTEP;  
@@ -894,8 +894,8 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 
 	    /////////////////////////////////////////////////////////////////////////////////////////////////////////
 	    // linear friction model
-	    long double fP  = BDRYFRIC*vfabsl(NormalForce);
-	    long double ks  = 4*G0*contact_radius/(2-POISSON);
+	    REAL fP  = BDRYFRIC*vfabsl(NormalForce);
+	    REAL ks  = 4*G0*contact_radius/(2-POISSON);
 	    TgtForce = PreTgtForce + ks*(-TgtDispInc); // PreTgtForce read by checkin
 
 	    vec FricDampingForce = 0;
@@ -906,7 +906,7 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 		// obtain tangential damping force
 		vec RelaVel = curr_velocity + curr_omga*((pt1+pt2)/2-curr_position);  
 		vec TgtVel  = RelaVel - (RelaVel%NormDirc)*NormDirc;
-		long double DMP_CRTC = 2*sqrtl(getMass()*ks); // critical damping
+		REAL DMP_CRTC = 2*sqrtl(getMass()*ks); // critical damping
 		FricDampingForce = 1.0 * DMP_CRTC * (-TgtVel);
 	    }
 
@@ -915,7 +915,7 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	    // This model is not recommended as it is impossible to strictly determine loading/unloading condition
             // unless load is known (the case of pure moment rotation).
 #ifdef MINDLIN_ASSUMED
-	    long double val = 0;
+	    REAL val = 0;
 	    fP = FRICTION*vfabsl(NormalForce);
 	    TgtLoading = (PreTgtDisp%TgtDispInc >= 0); 
 	    
@@ -961,7 +961,7 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 		// obtain tangential damping force
 		vec RelaVel = curr_velocity + curr_omga*((pt1+pt2)/2-curr_position);  
 		vec TgtVel  = RelaVel - (RelaVel%NormDirc)*NormDirc;
-		long double DMP_CRTC = 2*sqrtl(getMass()*ks); // critical damping
+		REAL DMP_CRTC = 2*sqrtl(getMass()*ks); // critical damping
 		FricDampingForce = 1.0 * DMP_CRTC * (-TgtVel);
 	    }
 
@@ -1005,10 +1005,10 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 vec particle::cylinderRBForce(int bdry_id, const cylinder& S, int side){
 	//side=-1, the particles are inside the cylinder
 	//side=+1, the particles are outside the cylinder
-	long double x0=S.get_center().getx();
-	long double y0=S.get_center().gety();
-	long double r=S.get_radius();
-	long double coef2[10]={1,1,0,0,0,0,-2*x0,-2*y0,0,x0*x0+y0*y0-r*r};
+	REAL x0=S.get_center().getx();
+	REAL y0=S.get_center().gety();
+	REAL r=S.get_radius();
+	REAL coef2[10]={1,1,0,0,0,0,-2*x0,-2*y0,0,x0*x0+y0*y0-r*r};
 	vec pt1;
 	if (!root6(coef,coef2,pt1))  //on the cylinder and within the particle
 	    return 0; //no contact
@@ -1024,12 +1024,12 @@ vec particle::cylinderRBForce(int bdry_id, const cylinder& S, int side){
 	else
 		pt2=rt[1];
 	//vec pt2=vfabsl(rt[0]-cz)>vfabsl(rt[1]-cz)?rt[0]:rt[1];
-	long double radius=getRadius(pt2);//pt2.print();cout<<radius;getchar();
-	long double E0=0.5*YOUNG/(1-POISSON*POISSON);
-	long double R0=(r*radius)/(r+radius);
-	long double rou=vfabsl(pt1-pt2);
+	REAL radius=getRadius(pt2);//pt2.print();cout<<radius;getchar();
+	REAL E0=0.5*YOUNG/(1-POISSON*POISSON);
+	REAL R0=(r*radius)/(r+radius);
+	REAL rou=vfabsl(pt1-pt2);
 	vec NormDirc=normalize(pt1-pt2);
-	long double nfc=sqrtl(rou*rou*rou)*sqrtl(R0)*4*E0/3; // powl(rou,1.5), a serious bug
+	REAL nfc=sqrtl(rou*rou*rou)*sqrtl(R0)*4*E0/3; // powl(rou,1.5), a serious bug
 	vec NormalForce=nfc*NormDirc;
 
 	addForce(NormalForce);

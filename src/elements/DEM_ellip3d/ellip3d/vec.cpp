@@ -15,46 +15,46 @@ vec::vec(){
 }
 
 
-vec::vec(long double d){
+vec::vec(REAL d){
     x=d;
     y=d;
     z=d;
 }
 
 
-vec::vec(long double _x, long double _y, long double _z){
+vec::vec(REAL _x, REAL _y, REAL _z){
     x=_x;
     y=_y;
     z=_z;
 }
 
 
-long double vec::getx() const{
+REAL vec::getx() const{
     return x;
 }
 
 
-long double vec::gety() const{
+REAL vec::gety() const{
     return y;
 }
 
 
-long double vec::getz() const{
+REAL vec::getz() const{
     return z;
 }
 
 
-void vec::setx(long double _x){
+void vec::setx(REAL _x){
     x=_x;
 }
 
 
-void vec::sety(long double _y){
+void vec::sety(REAL _y){
     y=_y;
 }
 
 
-void vec::setz(long double _z){
+void vec::setz(REAL _z){
     z=_z;
 }
 
@@ -73,14 +73,14 @@ void vec::operator-=(vec v){
 }
 
 
-void vec::operator*=(long double d){
+void vec::operator*=(REAL d){
     x *= d;
     y *= d;
     z *= d;
 }
 
 
-void vec::operator/=(long double d){
+void vec::operator/=(REAL d){
     x /= d;
     y /= d;
     z /= d;
@@ -102,12 +102,12 @@ vec vec::operator*(vec p) const{
 }
 
 
-vec vec::operator*(long double d) const{
+vec vec::operator*(REAL d) const{
     return vec(x*d, y*d, z*d);
 }
 
 
-long double vec::operator%(vec p) const{
+REAL vec::operator%(vec p) const{
     return (x*p.x + y*p.y + z*p.z);
 }
 
@@ -117,17 +117,17 @@ void vec::print() const{
 }
 
 
-vec operator*(long double d, vec v){
+vec operator*(REAL d, vec v){
     return vec(v.getx()*d, v.gety()*d, v.getz()*d);
 }
 
 
-vec operator/(vec v, long double d){
+vec operator/(vec v, REAL d){
     return vec(v.getx()/d, v.gety()/d, v.getz()/d);
 }
 
 
-long double vfabsl(vec v){
+REAL vfabsl(vec v){
     return sqrtl(v.getx()*v.getx()+v.gety()*v.gety()+v.getz()*v.getz());
 }
 
@@ -153,7 +153,7 @@ vec normalize(vec v){
 
 
 vec rotateVec(vec v, vec ang){
-    long double alf=vfabsl(ang);
+    REAL alf=vfabsl(ang);
     if (alf<NUMZERO) // important, otherwise my cause numerical instability
 	return v;
 
@@ -161,7 +161,7 @@ vec rotateVec(vec v, vec ang){
     vec vp=(v%nx)*nx;
     vec vv=v-vp;
 
-    long double theta=atanl(vfabsl(vv)/vfabsl(vp));
+    REAL theta=atanl(vfabsl(vv)/vfabsl(vp));
 #ifdef DEBUG
     g_debuginf<<"vec.cpp: g_iteration="<<g_iteration 
 	      <<" alf="<<alf
@@ -172,17 +172,17 @@ vec rotateVec(vec v, vec ang){
 
     vec ny=normalize(vv);
     vec nz=normalize(nx*ny); // normalize, for higher precision
-    long double l=vfabsl(vv);
+    REAL l=vfabsl(vv);
     return l*sinl(alf)*nz + l*cosl(alf)*ny + vp;
 }
 
 
-long double angle(vec v1, vec v2, vec norm){
+REAL angle(vec v1, vec v2, vec norm){
     //calculate the angle between v1 and v2 if rotating v1 in the plane
     //composed of v1 and v2 from itself to v2, the angle could be 0<alf<360
     //norm specify that the rotation must be around norm according to right hand rule,
     //even if the 180<alf<360
-    long double alf;
+    REAL alf;
     vec crs=v1*v2;
     alf=asinl(vfabsl(crs)/vfabsl(v1)/vfabsl(v2));//0<alf<90;
     if(crs%norm>0){//0<=alf<=180

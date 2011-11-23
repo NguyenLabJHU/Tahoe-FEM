@@ -5,6 +5,7 @@
    traditional K&R versions, along with #ifdef macros to select the
    correct version.  *This* file contains only ANSI C.               */
 
+#include "nrutil.h"
 #include <cstdio>
 #include <cstddef>
 #include <cstdlib>
@@ -24,12 +25,12 @@ void nrerror(const char error_text[])
 	exit(1);
 }
 
-long double *vector(long nl, long nh)
-/* allocate a long double vector with subscript range v[nl..nh] */
+REAL *vector(long nl, long nh)
+/* allocate a REAL vector with subscript range v[nl..nh] */
 {
-	long double *v;
+	REAL *v;
 
-	v=(long double *)malloc((size_t) ((nh-nl+1+NR_END)*sizeof(long double)));
+	v=(REAL *)malloc((size_t) ((nh-nl+1+NR_END)*sizeof(REAL)));
 	if (!v) nrerror("allocation failure in vector()");
 	return v-nl+NR_END;
 }
@@ -64,30 +65,30 @@ unsigned long *lvector(long nl, long nh)
 	return v-nl+NR_END;
 }
 
-long double *dvector(long nl, long nh)
-/* allocate a long double vector with subscript range v[nl..nh] */
+REAL *dvector(long nl, long nh)
+/* allocate a REAL vector with subscript range v[nl..nh] */
 {
-	long double *v;
+	REAL *v;
 
-	v=(long double *)malloc((size_t) ((nh-nl+1+NR_END)*sizeof(long double)));
+	v=(REAL *)malloc((size_t) ((nh-nl+1+NR_END)*sizeof(REAL)));
 	if (!v) nrerror("allocation failure in dvector()");
 	return v-nl+NR_END;
 }
 
-long double **matrix(long nrl, long nrh, long ncl, long nch)
-/* allocate a long double matrix with subscript range m[nrl..nrh][ncl..nch] */
+REAL **matrix(long nrl, long nrh, long ncl, long nch)
+/* allocate a REAL matrix with subscript range m[nrl..nrh][ncl..nch] */
 {
 	long i, nrow=nrh-nrl+1,ncol=nch-ncl+1;
-	long double **m;
+	REAL **m;
 
 	/* allocate pointers to rows */
-	m=(long double **) malloc((size_t)((nrow+NR_END)*sizeof(long double*)));
+	m=(REAL **) malloc((size_t)((nrow+NR_END)*sizeof(REAL*)));
 	if (!m) nrerror("allocation failure 1 in matrix()");
 	m += NR_END;
 	m -= nrl;
 
 	/* allocate rows and set pointers to them */
-	m[nrl]=(long double *) malloc((size_t)((nrow*ncol+NR_END)*sizeof(long double)));
+	m[nrl]=(REAL *) malloc((size_t)((nrow*ncol+NR_END)*sizeof(REAL)));
 	if (!m[nrl]) nrerror("allocation failure 2 in matrix()");
 	m[nrl] += NR_END;
 	m[nrl] -= ncl;
@@ -98,20 +99,20 @@ long double **matrix(long nrl, long nrh, long ncl, long nch)
 	return m;
 }
 
-long double **dmatrix(long nrl, long nrh, long ncl, long nch)
-/* allocate a long double matrix with subscript range m[nrl..nrh][ncl..nch] */
+REAL **dmatrix(long nrl, long nrh, long ncl, long nch)
+/* allocate a REAL matrix with subscript range m[nrl..nrh][ncl..nch] */
 {
 	long i, nrow=nrh-nrl+1,ncol=nch-ncl+1;
-	long double **m;
+	REAL **m;
 
 	/* allocate pointers to rows */
-	m=(long double **) malloc((size_t)((nrow+NR_END)*sizeof(long double*)));
+	m=(REAL **) malloc((size_t)((nrow+NR_END)*sizeof(REAL*)));
 	if (!m) nrerror("allocation failure 1 in matrix()");
 	m += NR_END;
 	m -= nrl;
 
 	/* allocate rows and set pointers to them */
-	m[nrl]=(long double *) malloc((size_t)((nrow*ncol+NR_END)*sizeof(long double)));
+	m[nrl]=(REAL *) malloc((size_t)((nrow*ncol+NR_END)*sizeof(REAL)));
 	if (!m[nrl]) nrerror("allocation failure 2 in matrix()");
 	m[nrl] += NR_END;
 	m[nrl] -= ncl;
@@ -147,15 +148,15 @@ int **imatrix(long nrl, long nrh, long ncl, long nch)
 	return m;
 }
 
-long double **submatrix(long double **a, long oldrl, long oldrh, long oldcl, long oldch,
+REAL **submatrix(REAL **a, long oldrl, long oldrh, long oldcl, long oldch,
 	long newrl, long newcl)
 /* point a submatrix [newrl..][newcl..] to a[oldrl..oldrh][oldcl..oldch] */
 {
 	long i,j,nrow=oldrh-oldrl+1,ncol=oldcl-newcl;
-	long double **m;
+	REAL **m;
 
 	/* allocate array of pointers to rows */
-	m=(long double **) malloc((size_t) ((nrow+NR_END)*sizeof(long double*)));
+	m=(REAL **) malloc((size_t) ((nrow+NR_END)*sizeof(REAL*)));
 	if (!m) nrerror("allocation failure in submatrix()");
 	m += NR_END;
 	m -= newrl;
@@ -167,17 +168,17 @@ long double **submatrix(long double **a, long oldrl, long oldrh, long oldcl, lon
 	return m;
 }
 
-long double **convert_matrix(long double *a, long nrl, long nrh, long ncl, long nch)
-/* allocate a long double matrix m[nrl..nrh][ncl..nch] that points to the matrix
+REAL **convert_matrix(REAL *a, long nrl, long nrh, long ncl, long nch)
+/* allocate a REAL matrix m[nrl..nrh][ncl..nch] that points to the matrix
 declared in the standard C manner as a[nrow][ncol], where nrow=nrh-nrl+1
 and ncol=nch-ncl+1. The routine should be called with the address
 &a[0][0] as the first argument. */
 {
 	long i,j,nrow=nrh-nrl+1,ncol=nch-ncl+1;
-	long double **m;
+	REAL **m;
 
 	/* allocate pointers to rows */
-	m=(long double **) malloc((size_t) ((nrow+NR_END)*sizeof(long double*)));
+	m=(REAL **) malloc((size_t) ((nrow+NR_END)*sizeof(REAL*)));
 	if (!m) nrerror("allocation failure in convert_matrix()");
 	m += NR_END;
 	m -= nrl;
@@ -189,26 +190,26 @@ and ncol=nch-ncl+1. The routine should be called with the address
 	return m;
 }
 
-long double ***f3tensor(long nrl, long nrh, long ncl, long nch, long ndl, long ndh)
-/* allocate a long double 3tensor with range t[nrl..nrh][ncl..nch][ndl..ndh] */
+REAL ***f3tensor(long nrl, long nrh, long ncl, long nch, long ndl, long ndh)
+/* allocate a REAL 3tensor with range t[nrl..nrh][ncl..nch][ndl..ndh] */
 {
 	long i,j,nrow=nrh-nrl+1,ncol=nch-ncl+1,ndep=ndh-ndl+1;
-	long double ***t;
+	REAL ***t;
 
 	/* allocate pointers to pointers to rows */
-	t=(long double ***) malloc((size_t)((nrow+NR_END)*sizeof(long double**)));
+	t=(REAL ***) malloc((size_t)((nrow+NR_END)*sizeof(REAL**)));
 	if (!t) nrerror("allocation failure 1 in f3tensor()");
 	t += NR_END;
 	t -= nrl;
 
 	/* allocate pointers to rows and set pointers to them */
-	t[nrl]=(long double **) malloc((size_t)((nrow*ncol+NR_END)*sizeof(long double*)));
+	t[nrl]=(REAL **) malloc((size_t)((nrow*ncol+NR_END)*sizeof(REAL*)));
 	if (!t[nrl]) nrerror("allocation failure 2 in f3tensor()");
 	t[nrl] += NR_END;
 	t[nrl] -= ncl;
 
 	/* allocate rows and set pointers to them */
-	t[nrl][ncl]=(long double *) malloc((size_t)((nrow*ncol*ndep+NR_END)*sizeof(long double)));
+	t[nrl][ncl]=(REAL *) malloc((size_t)((nrow*ncol*ndep+NR_END)*sizeof(REAL)));
 	if (!t[nrl][ncl]) nrerror("allocation failure 3 in f3tensor()");
 	t[nrl][ncl] += NR_END;
 	t[nrl][ncl] -= ndl;
@@ -224,8 +225,8 @@ long double ***f3tensor(long nrl, long nrh, long ncl, long nch, long ndl, long n
 	return t;
 }
 
-void free_vector(long double *v, long nl, long nh)
-/* free a long double vector allocated with vector() */
+void free_vector(REAL *v, long nl, long nh)
+/* free a REAL vector allocated with vector() */
 {
 	free((FREE_ARG) (v+nl-NR_END));
 }
@@ -248,21 +249,21 @@ void free_lvector(unsigned long *v, long nl, long nh)
 	free((FREE_ARG) (v+nl-NR_END));
 }
 
-void free_dvector(long double *v, long nl, long nh)
-/* free a long double vector allocated with dvector() */
+void free_dvector(REAL *v, long nl, long nh)
+/* free a REAL vector allocated with dvector() */
 {
 	free((FREE_ARG) (v+nl-NR_END));
 }
 
-void free_matrix(long double **m, long nrl, long nrh, long ncl, long nch)
-/* free a long double matrix allocated by matrix() */
+void free_matrix(REAL **m, long nrl, long nrh, long ncl, long nch)
+/* free a REAL matrix allocated by matrix() */
 {
 	free((FREE_ARG) (m[nrl]+ncl-NR_END));
 	free((FREE_ARG) (m+nrl-NR_END));
 }
 
-void free_dmatrix(long double **m, long nrl, long nrh, long ncl, long nch)
-/* free a long double matrix allocated by dmatrix() */
+void free_dmatrix(REAL **m, long nrl, long nrh, long ncl, long nch)
+/* free a REAL matrix allocated by dmatrix() */
 {
 	free((FREE_ARG) (m[nrl]+ncl-NR_END));
 	free((FREE_ARG) (m+nrl-NR_END));
@@ -275,21 +276,21 @@ void free_imatrix(int **m, long nrl, long nrh, long ncl, long nch)
 	free((FREE_ARG) (m+nrl-NR_END));
 }
 
-void free_submatrix(long double **b, long nrl, long nrh, long ncl, long nch)
+void free_submatrix(REAL **b, long nrl, long nrh, long ncl, long nch)
 /* free a submatrix allocated by submatrix() */
 {
 	free((FREE_ARG) (b+nrl-NR_END));
 }
 
-void free_convert_matrix(long double **b, long nrl, long nrh, long ncl, long nch)
+void free_convert_matrix(REAL **b, long nrl, long nrh, long ncl, long nch)
 /* free a matrix allocated by convert_matrix() */
 {
 	free((FREE_ARG) (b+nrl-NR_END));
 }
 
-void free_f3tensor(long double ***t, long nrl, long nrh, long ncl, long nch,
+void free_f3tensor(REAL ***t, long nrl, long nrh, long ncl, long nch,
 	long ndl, long ndh)
-/* free a long double f3tensor allocated by f3tensor() */
+/* free a REAL f3tensor allocated by f3tensor() */
 {
 	free((FREE_ARG) (t[nrl][ncl]+ndl-NR_END));
 	free((FREE_ARG) (t[nrl]+ncl-NR_END));

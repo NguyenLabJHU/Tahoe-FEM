@@ -308,7 +308,7 @@ void assembly::createSample(const char* str){
     }
     ifs >> TotalNum >> RORC;
 
-    long double cx,cy,cz,rd,wd,lt,ht;
+    REAL cx,cy,cz,rd,wd,lt,ht;
     if(RORC==0){
 	ifs >> cx >> cy >> cz >> rd >> ht;
 	S.set_center(vec(cx,cy,cz));
@@ -331,8 +331,8 @@ void assembly::createSample(const char* str){
 
     ParticleList.clear();
     int ID, type;
-    long double a, b, c, px,py,pz,dax,day,daz,dbx,dby,dbz,dcx,dcy,dcz;
-    long double vx,vy,vz,omx,omy,omz,fx,fy,fz,mx,my,mz;
+    REAL a, b, c, px,py,pz,dax,day,daz,dbx,dby,dbz,dcx,dcy,dcz;
+    REAL vx,vy,vz,omx,omy,omz,fx,fy,fz,mx,my,mz;
     for (int i=0;i<TotalNum;i++){
 	ifs>>ID>>type>>a>>b>>c>>px>>py>>pz>>dax>>day>>daz>>dbx>>dby>>dbz>>dcx>>dcy>>dcz
 	   >>vx>>vy>>vz>>omx>>omy>>omz>>fx>>fy>>fz>>mx>>my>>mz;
@@ -499,8 +499,8 @@ void assembly::findContact(){
 
 */
 
-long double assembly::getDensity() const{
-    long double dens=0;
+REAL assembly::getDensity() const{
+    REAL dens=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
 	dens+=(*it)->getMass();
@@ -508,12 +508,12 @@ long double assembly::getDensity() const{
 }
 
 
-long double assembly::getAveragePenetration() const{
+REAL assembly::getAveragePenetration() const{
     int totalcntct = ContactList.size();
     if (totalcntct==0)
 	return 0;
     else {
-	long double pene=0;
+	REAL pene=0;
 	for (list<CONTACT>::const_iterator it=ContactList.begin();it!=ContactList.end();++it)
 	    pene += it->getPenetration(); 
 	return pene/totalcntct;
@@ -521,15 +521,15 @@ long double assembly::getAveragePenetration() const{
 }
 
 
-long double assembly::getVibraTimeStep() const {
+REAL assembly::getVibraTimeStep() const {
     int totalcntct = ContactList.size();
     if (totalcntct == 0)
 	return 0;
     else {
 	list<CONTACT>::const_iterator it=ContactList.begin();
-        long double minTimeStep = it->getVibraTimeStep();
+        REAL minTimeStep = it->getVibraTimeStep();
 	for (++it; it != ContactList.end(); ++it) {
-	  long double val = it->getVibraTimeStep(); 
+	  REAL val = it->getVibraTimeStep(); 
 	  minTimeStep =  val < minTimeStep ? val : minTimeStep;
 	}
 	return minTimeStep;
@@ -537,15 +537,15 @@ long double assembly::getVibraTimeStep() const {
 }
 
 
-long double assembly::getImpactTimeStep() const {
+REAL assembly::getImpactTimeStep() const {
     int totalcntct = ContactList.size();
     if (totalcntct == 0)
 	return 0;
     else {
 	list<CONTACT>::const_iterator it=ContactList.begin();
-        long double minTimeStep = it->getImpactTimeStep();
+        REAL minTimeStep = it->getImpactTimeStep();
 	for (++it; it != ContactList.end(); ++it) {
-	  long double val = it->getImpactTimeStep(); 
+	  REAL val = it->getImpactTimeStep(); 
 	  minTimeStep =  val < minTimeStep ? val : minTimeStep;
 	}
 	return minTimeStep;
@@ -553,8 +553,8 @@ long double assembly::getImpactTimeStep() const {
 }
  
 
-long double assembly::getAverageVelocity() const{
-    long double avgv=0;
+REAL assembly::getAverageVelocity() const{
+    REAL avgv=0;
     int count=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
@@ -566,8 +566,8 @@ long double assembly::getAverageVelocity() const{
 }
 
 
-long double assembly::getAverageOmga() const{
-    long double avgv=0;
+REAL assembly::getAverageOmga() const{
+    REAL avgv=0;
     int count=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
@@ -579,8 +579,8 @@ long double assembly::getAverageOmga() const{
 }
 
 
-long double assembly::getAverageForce() const{
-    long double avgv=0;
+REAL assembly::getAverageForce() const{
+    REAL avgv=0;
     int count=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
@@ -592,8 +592,8 @@ long double assembly::getAverageForce() const{
 }
 
 
-long double assembly::getAverageMoment() const{
-    long double avgv=0;
+REAL assembly::getAverageMoment() const{
+    REAL avgv=0;
     int count=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
@@ -605,8 +605,8 @@ long double assembly::getAverageMoment() const{
 }
 
 
-long double assembly::getParticleVolume() const{
-    long double avgv=0;
+REAL assembly::getParticleVolume() const{
+    REAL avgv=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==0)
@@ -648,8 +648,8 @@ vec assembly::getTopFreeParticlePosition() const{
 }
 
 
-long double assembly::ellipPileForce() {
-    long double val=0;
+REAL assembly::ellipPileForce() {
+    REAL val=0;
     for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==3) {
 	    val = (*it)->getForce().getz();
@@ -670,8 +670,8 @@ vec assembly::ellipPileDimn() {
 }
 
 
-long double assembly::ellipPileTipZ() {
-    long double val=0;
+REAL assembly::ellipPileTipZ() {
+    REAL val=0;
     for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==3) {
 	    val = (*it)->getCurrPosition().getz()-(*it)->getA();
@@ -681,14 +681,14 @@ long double assembly::ellipPileTipZ() {
 }
 
 
-long double assembly::ellipPilePeneVol() {
-    long double val=0;
+REAL assembly::ellipPilePeneVol() {
+    REAL val=0;
     if (getTopFreeParticlePosition().getz()-ellipPileTipZ()<=0)
 	val=0;
     else{
 	// low: a signed number as lower limit for volumetric integration
-	long double low=ellipPileTipZ() + ellipPileDimn().getx() - getTopFreeParticlePosition().getz(); 
-	long double lowint=low-powl(low,3)/3.0/powl(ellipPileDimn().getx(),2);
+	REAL low=ellipPileTipZ() + ellipPileDimn().getx() - getTopFreeParticlePosition().getz(); 
+	REAL lowint=low-powl(low,3)/3.0/powl(ellipPileDimn().getx(),2);
 	val = PI * ellipPileDimn().gety() * ellipPileDimn().getz()
 	      *(2.0/3*ellipPileDimn().getx()-lowint);
     }
@@ -708,8 +708,8 @@ void assembly::ellipPileUpdate(){
 }
 
 
-long double assembly::getTransEnergy() const{
-    long double engy=0;
+REAL assembly::getTransEnergy() const{
+    REAL engy=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
@@ -719,8 +719,8 @@ long double assembly::getTransEnergy() const{
 }
 
 
-long double assembly::getRotatEnergy() const{
-    long double engy=0;
+REAL assembly::getRotatEnergy() const{
+    REAL engy=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
@@ -730,8 +730,8 @@ long double assembly::getRotatEnergy() const{
 }
 
 
-long double assembly::getKinetEnergy() const{
-    long double engy=0;
+REAL assembly::getKinetEnergy() const{
+    REAL engy=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
@@ -741,8 +741,8 @@ long double assembly::getKinetEnergy() const{
 }
 
 
-long double assembly::getPotenEnergy(long double ref) const{
-    long double engy=0;
+REAL assembly::getPotenEnergy(REAL ref) const{
+    REAL engy=0;
     list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
@@ -775,7 +775,7 @@ void assembly::initFBForce(){
 }
 
 
-void assembly::internalForce(long double& avgnm, long double& avgsh){
+void assembly::internalForce(REAL& avgnm, REAL& avgsh){
     avgnm=0;
     avgsh=0;
 
@@ -939,7 +939,7 @@ void assembly::rigidBoundaryForce(){
 }
 
 
-void assembly::rigidBoundaryForce(long double penetr[],int cntnum[]){
+void assembly::rigidBoundaryForce(REAL penetr[],int cntnum[]){
   list<RGDBDRY*>::iterator rt;
   for(rt=RBList.begin();rt!=RBList.end();++rt){	
     (*rt)->rigidBF(BdryTgtMap);
@@ -998,7 +998,7 @@ vec assembly::getShearForce(int bdry) const{
 }
 
 
-long double assembly::getAvgNormal(int bdry) const{
+REAL assembly::getAvgNormal(int bdry) const{
     list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==bdry)
@@ -1028,7 +1028,7 @@ vec assembly::getDirc(int bdry) const{
 }
 
 
-long double assembly::getArea(int n) const{
+REAL assembly::getArea(int n) const{
     list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==n)
@@ -1038,7 +1038,7 @@ long double assembly::getArea(int n) const{
 }
 
 
-void assembly::setArea(int n, long double a){
+void assembly::setArea(int n, REAL a){
     list<RGDBDRY*>::iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==n)
@@ -1047,9 +1047,9 @@ void assembly::setArea(int n, long double a){
 }
 
 
-long double assembly::getAverageRigidPressure() const{
+REAL assembly::getAverageRigidPressure() const{
     list<RGDBDRY*>::const_iterator rt;
-    long double avgpres=0;
+    REAL avgpres=0;
     for(rt=RBList.begin();rt!=RBList.end();++rt)
 	avgpres+=vfabsl((*rt)->getNormalForce())/(*rt)->getArea();
     return avgpres/=RgdBdryNum;
@@ -1171,7 +1171,7 @@ void assembly::deposit_RgdBdry(gradation& grad,
 			       int   total_steps,  
 			       int   snapshots,
 			       int   interval,
-			       long double height,
+			       REAL height,
 			       const char* iniptclfile,   
 			       const char* inibdryfile,
 			       const char* particlefile, 
@@ -1227,19 +1227,19 @@ void assembly::deposit_RgdBdry(gradation& grad,
 void assembly::generate(gradation&  grad,
 			const char* particlefile,
 			int freetype,
-			long double ht)
+			REAL ht)
 {
-    long double x,y,z;
+    REAL x,y,z;
     particle* newptcl;
     TotalNum = 0;
-    long double est =1.02;
+    REAL est =1.02;
     int grid=9;  
     // grid: dimension of free particle array.
     // 7 - small dimn container
     // 9 - medium dimn container 
     // 11- large dimn container 
 
-    long double dimn=grad.dimn;
+    REAL dimn=grad.dimn;
     if (freetype == 0) {      // just one free particle
 	newptcl = new particle(TotalNum+1, 0, vec(dimn/2/40,dimn/2/20,dimn/2), grad);
 	ParticleList.push_back(newptcl);
@@ -1255,10 +1255,11 @@ void assembly::generate(gradation&  grad,
 	    }
     }
     else if (freetype == 2) { // multiple layers of free particles
-	long double offset=0; // 0 for ellipsoids; dimn/2/5/5 for spheres
+	REAL offset=0; // 0 for ellipsoids; dimn/2/5/5 for spheres
 	if (grad.ratio_ba==1.0 && grad.ratio_ca==1.0)
 	    offset = dimn/2/5/5;
-	for (z=dimn/2; z<dimn/2 + dimn*ht; z+=dimn/2/5) {
+	REAL z0 = -dimn/2*9/10 ;// dimn/2;
+	for (z=z0; z<z0 + dimn*ht; z+=dimn/2/5) {
 	//for (z=-dimn/2*4/5; z<dimn/2 + dimn*ht; z+=dimn/2/10) { // spheres
 	    for (x=-dimn/2*(grid-1)/10+offset; x<dimn/2*(grid-1)/10*est; x+=dimn/2/5)
 		for (y=-dimn/2*(grid-1)/10+offset; y<dimn/2*(grid-1)/10*est; y+=dimn/2/5){
@@ -1279,7 +1280,7 @@ void assembly::generate(gradation&  grad,
 // boundaries are composed of fixed particles.
 void assembly::deposit_PtclBdry(gradation& grad,
 				int   freetype,
-				long double rsize,
+				REAL rsize,
 				int   total_steps,  
 				int   snapshots,
 				int   interval,
@@ -1319,14 +1320,14 @@ void assembly::deposit_PtclBdry(gradation& grad,
 void assembly::generate_p(gradation&  grad,
 			 const char* particlefile,
 			 int freetype,
-			 long double rsize,
-			 long double ht)
+			 REAL rsize,
+			 REAL ht)
 {
-    long double x,y,z;
+    REAL x,y,z;
     particle* newptcl;
     TotalNum = 0;
-    long double wall=2.2; // wall - wall height; ht - free particle height
-    long double est =1.02;
+    REAL wall=2.2; // wall - wall height; ht - free particle height
+    REAL est =1.02;
     int grid=static_cast<int> (nearbyint(rsize*10)-1);  
 
     // grid: dimension of free particle array.
@@ -1334,7 +1335,7 @@ void assembly::generate_p(gradation&  grad,
     // 9 - medium dimn container 
     // 11- large dimn container 
 
-    long double dimn=grad.dimn;
+    REAL dimn=grad.dimn;
     // particle boundary 1
     x=dimn/2*(grid+1)/10;
     for (y=-dimn/2*grid/10; y<dimn/2*grid/10*est; y+=dimn/2/5)
@@ -1412,8 +1413,8 @@ void assembly::generate_p(gradation&  grad,
 void assembly::scale_PtclBdry(int   total_steps,  
 			      int   snapshots,
 			      int   interval,
-			      long double dimn,
-			      long double rsize,
+			      REAL dimn,
+			      REAL rsize,
 			      const char* iniptclfile,   
 			      const char* particlefile, 
 			      const char* contactfile,
@@ -1464,7 +1465,7 @@ void assembly::collapse(int   rors,
   
 void assembly::setBoundary(int   rors,
 		       int   bdrynum,
-		       long double dimn,
+		       REAL dimn,
 		       const char* boundaryfile)
 {
     ofstream ofs(boundaryfile);
@@ -2313,14 +2314,14 @@ void assembly::trim(int   rors,
 
     list<particle*>::iterator itr,itp;
     vec center;
-    long double mass = 0;
+    REAL mass = 0;
 
     if(rors == 1) {
 	if (RgdBdryNum == 1) {
 	}
 	else if (RgdBdryNum == 4) {
-	    long double W0 = getApt(2).gety()-getApt(4).gety();
-	    long double L0 = getApt(1).getx()-getApt(3).getx();
+	    REAL W0 = getApt(2).gety()-getApt(4).gety();
+	    REAL L0 = getApt(1).getx()-getApt(3).getx();
 	    R.set_width(W0); 
 	    R.set_length(L0); 
 	    
@@ -2338,9 +2339,9 @@ void assembly::trim(int   rors,
 
 	}
 	else if (RgdBdryNum == 5) {
-	    long double W0 = getApt(2).gety()-getApt(4).gety();
-	    long double L0 = getApt(1).getx()-getApt(3).getx();
-	    long double H0 = -getApt(6).getz()*4;
+	    REAL W0 = getApt(2).gety()-getApt(4).gety();
+	    REAL L0 = getApt(1).getx()-getApt(3).getx();
+	    REAL H0 = -getApt(6).getz()*4;
 	    R.set_width(W0); 
 	    R.set_length(L0); 
 	    R.set_height(H0);
@@ -2362,9 +2363,9 @@ void assembly::trim(int   rors,
 
 	}
 	else if (RgdBdryNum == 6) {
-	    long double W0 = getApt(2).gety()-getApt(4).gety();
-	    long double L0 = getApt(1).getx()-getApt(3).getx();
-	    long double H0 = getApt(5).getz()-getApt(6).getz();
+	    REAL W0 = getApt(2).gety()-getApt(4).gety();
+	    REAL L0 = getApt(1).getx()-getApt(3).getx();
+	    REAL H0 = getApt(5).getz()-getApt(6).getz();
 	    R.set_width(W0); 
 	    R.set_length(L0); 
 	    R.set_height(H0);
@@ -2400,7 +2401,7 @@ void assembly::trim(int   rors,
 }
 
 
-void assembly::TrimPtclBdryByHeight(double height,
+void assembly::TrimPtclBdryByHeight(REAL height,
 			    const char* iniptclfile,
 			    const char* particlefile)
 {
@@ -2530,14 +2531,14 @@ void assembly::deposit(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries.
 
     // pre_3: define variables used in iterations.
-    long double l13, l24, l56;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL l13, l24, l56;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
@@ -2588,9 +2589,9 @@ void assembly::deposit(int   total_steps,
 	// 7. (2) output stress and strain info.
 	if (g_iteration % interval == 0) {
 	    gettimeofday(&timew2,NULL);
-	    long double t1=getTransEnergy();
-	    long double t2=getRotatEnergy();
-	    long double t3=getPotenEnergy(-0.025);
+	    REAL t1=getTransEnergy();
+	    REAL t2=getRotatEnergy();
+	    REAL t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -2672,8 +2673,8 @@ void assembly::deposit(int   total_steps,
 void assembly::deposit_p(int   total_steps,  
 			 int   snapshots,
 			 int   interval,
-			 long double dimn,
-			 long double rsize,
+			 REAL dimn,
+			 REAL rsize,
 			 const char* iniptclfile,   
 			 const char* particlefile, 
 			 const char* contactfile,
@@ -2708,13 +2709,13 @@ void assembly::deposit_p(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
 
     // pre_3: define variables used in iterations.
-    long double l13, l24, l56;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL l13, l24, l56;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
-    long double void_ratio=0;
+    REAL void_ratio=0;
 
     // iterations starting ...
     g_iteration=0;
@@ -2753,9 +2754,9 @@ void assembly::deposit_p(int   total_steps,
 
 	// 6. (2) output statistics info.
 	if (g_iteration % interval == 0) {
-	    long double t1=getTransEnergy();
-	    long double t2=getRotatEnergy();
-	    long double t3=getPotenEnergy(-0.025);
+	    REAL t1=getTransEnergy();
+	    REAL t2=getRotatEnergy();
+	    REAL t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -2838,17 +2839,17 @@ void assembly::squeeze(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries.
 
     // pre_3: define variables used in iterations.
-    long double l13, l24, l56;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL l13, l24, l56;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
 
     int         mid[2]={1,3};    // boundary 1 and 3
     UPDATECTL   midctl[2];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
@@ -2903,9 +2904,9 @@ void assembly::squeeze(int   total_steps,
 
 	// 7. (2) output stress and strain info.
 	if (g_iteration % interval == 0) {
-	    long double t1=getTransEnergy();
-	    long double t2=getRotatEnergy();
-	    long double t3=getPotenEnergy(-0.025);
+	    REAL t1=getTransEnergy();
+	    REAL t2=getRotatEnergy();
+	    REAL t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -2968,7 +2969,7 @@ void assembly::squeeze(int   total_steps,
 void assembly::isotropic(int   total_steps,
 			 int   snapshots, 
 			 int   interval,
-			 long double sigma,			  
+			 REAL sigma,			  
 			 const char* iniptclfile,   
 			 const char* inibdryfile,
 			 const char* particlefile, 
@@ -3025,14 +3026,14 @@ void assembly::isotropic(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
 
     // pre_3: define variables used in iterations
-    long double W0 = getApt(2).gety()-getApt(4).gety();
-    long double L0 = getApt(1).getx()-getApt(3).getx();
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l13, l24, l56, min_area, mid_area, max_area;
-    long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
-    long double epsilon_w, epsilon_l, epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL W0 = getApt(2).gety()-getApt(4).gety();
+    REAL L0 = getApt(1).getx()-getApt(3).getx();
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l13, l24, l56, min_area, mid_area, max_area;
+    REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
+    REAL epsilon_w, epsilon_l, epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
@@ -3043,8 +3044,8 @@ void assembly::isotropic(int   total_steps,
     UPDATECTL   midctl[2];
     UPDATECTL   maxctl[2];
     UPDATECTL   minctl[2];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
@@ -3261,8 +3262,8 @@ void assembly::isotropic(int   total_steps,
 void assembly::isotropic(int   total_steps,
 			 int   snapshots, 
 			 int   interval,
-			 long double sigma_a,
-			 long double sigma_b,
+			 REAL sigma_a,
+			 REAL sigma_b,
 			 int   sigma_division,
 			 const char* iniptclfile,   
 			 const char* inibdryfile,
@@ -3320,14 +3321,14 @@ void assembly::isotropic(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
 
     // pre_3: define variables used in iterations
-    long double W0 = getApt(2).gety()-getApt(4).gety();
-    long double L0 = getApt(1).getx()-getApt(3).getx();
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l13, l24, l56, min_area, mid_area, max_area;
-    long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
-    long double epsilon_w, epsilon_l, epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL W0 = getApt(2).gety()-getApt(4).gety();
+    REAL L0 = getApt(1).getx()-getApt(3).getx();
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l13, l24, l56, min_area, mid_area, max_area;
+    REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
+    REAL epsilon_w, epsilon_l, epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
@@ -3338,15 +3339,15 @@ void assembly::isotropic(int   total_steps,
     UPDATECTL   midctl[2];
     UPDATECTL   maxctl[2];
     UPDATECTL   minctl[2];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
     }
 
-    long double sigma=sigma_a;
-    long double sigma_inc=(sigma_b-sigma_a)/sigma_division;
+    REAL sigma=sigma_a;
+    REAL sigma_inc=(sigma_b-sigma_a)/sigma_division;
 
     // iterations start here...
     g_iteration=0;
@@ -3566,7 +3567,7 @@ void assembly::isotropic(int   total_steps,
 			 int   snapshots, 
 			 int   interval,
 			 int   sigma_points,  
-			 long double sigma_values[],  
+			 REAL sigma_values[],  
 			 int   sigma_division,	  
 			 const char* iniptclfile,  
 			 const char* inibdryfile,
@@ -3624,14 +3625,14 @@ void assembly::isotropic(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
 
     // pre_3: define variables used in iterations
-    long double W0 = getApt(2).gety()-getApt(4).gety();
-    long double L0 = getApt(1).getx()-getApt(3).getx();
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l13, l24, l56, min_area, mid_area, max_area;
-    long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
-    long double epsilon_w, epsilon_l, epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL W0 = getApt(2).gety()-getApt(4).gety();
+    REAL L0 = getApt(1).getx()-getApt(3).getx();
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l13, l24, l56, min_area, mid_area, max_area;
+    REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
+    REAL epsilon_w, epsilon_l, epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
@@ -3642,17 +3643,17 @@ void assembly::isotropic(int   total_steps,
     UPDATECTL   midctl[2];
     UPDATECTL   maxctl[2];
     UPDATECTL   minctl[2];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
     }
 
     int  i=0;
-    long double sigma=sigma_values[i];
-    long double sigma_inc=(sigma_values[i+1]-sigma_values[i])/sigma_division;
-    long double sigma_b=sigma_values[sigma_points-1];
+    REAL sigma=sigma_values[i];
+    REAL sigma_inc=(sigma_values[i+1]-sigma_values[i])/sigma_division;
+    REAL sigma_b=sigma_values[sigma_points-1];
 
     // iterations start here...
     g_iteration=0;
@@ -3879,8 +3880,8 @@ void assembly::isotropic(int   total_steps,
 void assembly::odometer(int   total_steps,  
 			int   snapshots, 
 			int   interval,
-			long double sigma_3,     
-			long double sigma_1,    
+			REAL sigma_3,     
+			REAL sigma_1,    
 			int   sigma_division,			  
 			const char* iniptclfile,  
 			const char* inibdryfile,
@@ -3938,29 +3939,29 @@ void assembly::odometer(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
  
     // pre_3. define variables used in iterations
-    long double W0 = getApt(2).gety()-getApt(4).gety();
-    long double L0 = getApt(1).getx()-getApt(3).getx();
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l13, l24, l56, min_area, mid_area, max_area;
-    long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
-    long double epsilon_w, epsilon_l, epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL W0 = getApt(2).gety()-getApt(4).gety();
+    REAL L0 = getApt(1).getx()-getApt(3).getx();
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l13, l24, l56, min_area, mid_area, max_area;
+    REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
+    REAL epsilon_w, epsilon_l, epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
 
     int min[2]={5,6};    // minimum stress acting on boundary 5 and 6
     UPDATECTL minctl[2];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
     }
 
-    long double sigma=sigma_3;
-    long double sigma_inc=(sigma_1-sigma_3)/sigma_division;
+    REAL sigma=sigma_3;
+    REAL sigma_inc=(sigma_1-sigma_3)/sigma_division;
 
     // iterations start here...
     g_iteration=0;
@@ -4142,7 +4143,7 @@ void assembly::odometer(int   total_steps,
 			int   snapshots, 
 			int   interval,
 			int   sigma_points,  
-			long double sigma_values[],  
+			REAL sigma_values[],  
 			int   sigma_division,			  
 			const char* iniptclfile,  
 			const char* inibdryfile,
@@ -4200,22 +4201,22 @@ void assembly::odometer(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
  
     // pre_3. define variables used in iterations
-    long double W0 = getApt(2).gety()-getApt(4).gety();
-    long double L0 = getApt(1).getx()-getApt(3).getx();
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l13, l24, l56, min_area, mid_area, max_area;
-    long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
-    long double epsilon_w, epsilon_l, epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL W0 = getApt(2).gety()-getApt(4).gety();
+    REAL L0 = getApt(1).getx()-getApt(3).getx();
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l13, l24, l56, min_area, mid_area, max_area;
+    REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
+    REAL epsilon_w, epsilon_l, epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
 
     int min[2]={5,6};    // minimum stress acting on boundary 5 and 6
     UPDATECTL minctl[2];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
@@ -4223,9 +4224,9 @@ void assembly::odometer(int   total_steps,
 
 
     int  i=0;
-    long double sigma=sigma_values[i];
-    long double sigma_inc=(sigma_values[i+1]-sigma_values[i])/sigma_division;
-    long double sigma_b=sigma_values[sigma_points-1];
+    REAL sigma=sigma_values[i];
+    REAL sigma_inc=(sigma_values[i+1]-sigma_values[i])/sigma_division;
+    REAL sigma_b=sigma_values[sigma_points-1];
 
     // iterations start here...
     g_iteration=0;
@@ -4440,12 +4441,12 @@ void assembly::unconfined(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
  
     // pre_3. define variables used in iterations
-    long double sigma3_1, sigma3_2;
+    REAL sigma3_1, sigma3_2;
     int    stepsnum=0;
     char   stepsstr[4];
     char   stepsfp[50];
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int    min[2]={5,6};    //  boundary 5 and 6
     UPDATECTL minctl[2];
 
@@ -4539,7 +4540,7 @@ void assembly::unconfined(int   total_steps,
 void assembly::triaxialPtclBdryIni(int   total_steps,  
 				   int   snapshots, 
 				   int   interval,
-				   double sigma,
+				   REAL  sigma,
 				   const char* iniptclfile, 
 				   const char* inibdryfile,
 				   const char* particlefile,
@@ -4577,12 +4578,12 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l56= 0;
-    long double sigma3_1, sigma3_2;
-    long double epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l56= 0;
+    REAL sigma3_1, sigma3_2;
+    REAL epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
@@ -4753,12 +4754,12 @@ void assembly::triaxialPtclBdry(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l56= 0;
-    long double sigma3_1, sigma3_2;
-    long double epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l56= 0;
+    REAL sigma3_1, sigma3_2;
+    REAL epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
@@ -4894,7 +4895,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 void assembly::triaxial(int   total_steps,  
 			int   snapshots, 
 			int   interval,
-			long double sigma_a,	  
+			REAL sigma_a,	  
 			const char* iniptclfile, 
 			const char* inibdryfile,
 			const char* particlefile,
@@ -5053,14 +5054,14 @@ void assembly::triaxial(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    long double W0 = getApt(2).gety()-getApt(4).gety();
-    long double L0 = getApt(1).getx()-getApt(3).getx();
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l13, l24, l56, min_area, mid_area, max_area;
-    long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
-    long double epsilon_w, epsilon_l, epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL W0 = getApt(2).gety()-getApt(4).gety();
+    REAL L0 = getApt(1).getx()-getApt(3).getx();
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l13, l24, l56, min_area, mid_area, max_area;
+    REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
+    REAL epsilon_w, epsilon_l, epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
@@ -5071,8 +5072,8 @@ void assembly::triaxial(int   total_steps,
     UPDATECTL   midctl[2];
     UPDATECTL   maxctl[2];
     UPDATECTL   minctl[2];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
@@ -5275,7 +5276,7 @@ void assembly::triaxial(int   total_steps,
 			int   unload_step,
 			int   snapshots, 
 			int   interval,
-			long double sigma_a,	  
+			REAL sigma_a,	  
 			const char* iniptclfile,  
 			const char* inibdryfile,
 			const char* particlefile,
@@ -5332,14 +5333,14 @@ void assembly::triaxial(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    long double W0 = getApt(2).gety()-getApt(4).gety();
-    long double L0 = getApt(1).getx()-getApt(3).getx();
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l13, l24, l56, min_area, mid_area, max_area;
-    long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
-    long double epsilon_w, epsilon_l, epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL W0 = getApt(2).gety()-getApt(4).gety();
+    REAL L0 = getApt(1).getx()-getApt(3).getx();
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l13, l24, l56, min_area, mid_area, max_area;
+    REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
+    REAL epsilon_w, epsilon_l, epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
@@ -5350,8 +5351,8 @@ void assembly::triaxial(int   total_steps,
     UPDATECTL   midctl[2];
     UPDATECTL   maxctl[2];
     UPDATECTL   minctl[2];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
@@ -5590,8 +5591,8 @@ void assembly::rectPile_Disp(int   total_steps,
     int    stepsnum=0;
     char   stepsstr[4];
     char   stepsfp[50];
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     
     int pile[2]={11,12}; // top and down boundaries
     UPDATECTL pilectl[2];
@@ -5625,11 +5626,11 @@ void assembly::rectPile_Disp(int   total_steps,
 	updateRB(pile, pilectl, 2); 
 	updateRectPile();
 	if (g_iteration % interval == 0) {
-	    long double  f7=getShearForce( 7).getz();
-	    long double  f8=getShearForce( 8).getz();
-	    long double  f9=getShearForce( 9).getz();
-	    long double f10=getShearForce(10).getz();
-	    long double  fn=getNormalForce(12).getz();
+	    REAL  f7=getShearForce( 7).getz();
+	    REAL  f8=getShearForce( 8).getz();
+	    REAL  f9=getShearForce( 9).getz();
+	    REAL f10=getShearForce(10).getz();
+	    REAL  fn=getNormalForce(12).getz();
 	    g_debuginf<<setw(OWID)<<g_iteration
 		      <<setw(OWID)<<fn
 		      <<setw(OWID)<<(f7+f8+f9+f10)
@@ -5652,9 +5653,9 @@ void assembly::rectPile_Disp(int   total_steps,
 
 	// 7. (2) output statistics info.
 	if (g_iteration % interval == 0) {
-	    long double t1=getTransEnergy();
-	    long double t2=getRotatEnergy();
-	    long double t3=getPotenEnergy(-0.025);
+	    REAL t1=getTransEnergy();
+	    REAL t2=getRotatEnergy();
+	    REAL t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -5698,8 +5699,8 @@ void assembly::rectPile_Disp(int   total_steps,
 void assembly::ellipPile_Disp(int   total_steps,  
 			      int   snapshots, 
 			      int   interval,
-			      long double dimn,
-			      long double rsize,
+			      REAL dimn,
+			      REAL rsize,
 			      const char* iniptclfile,
 			      const char* particlefile, 
 			      const char* contactfile,  
@@ -5734,13 +5735,13 @@ void assembly::ellipPile_Disp(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
 
     // pre_3. define variables used in iterations
-    long double l13, l24, l56;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL l13, l24, l56;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
-    long double void_ratio=0;
+    REAL void_ratio=0;
     
     // iterations start here...
     g_iteration=0;
@@ -5779,9 +5780,9 @@ void assembly::ellipPile_Disp(int   total_steps,
 
 	// 6. (2) output statistics info.
 	if (g_iteration % interval == 0) {
-	    long double t1=getTransEnergy();
-	    long double t2=getRotatEnergy();
-	    long double t3=getPotenEnergy(-0.025);
+	    REAL t1=getTransEnergy();
+	    REAL t2=getRotatEnergy();
+	    REAL t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -5833,7 +5834,7 @@ void assembly::ellipPile_Disp(int   total_steps,
 void assembly::ellipPile_Impact(int   total_steps,  
 				int   snapshots, 
 				int   interval,
-				long double dimn,
+				REAL dimn,
 				const char* iniptclfile,
 				const char* inibdryfile,
 				const char* particlefile, 
@@ -5870,14 +5871,14 @@ void assembly::ellipPile_Impact(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries.
 
     // pre_3. define variables used in iterations
-    long double l13, l24, l56;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL l13, l24, l56;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
@@ -5923,9 +5924,9 @@ void assembly::ellipPile_Impact(int   total_steps,
 
 	// 7. (2) output statistics info.
 	if (g_iteration % interval == 0) {
-	    long double t1=getTransEnergy();
-	    long double t2=getRotatEnergy();
-	    long double t3=getPotenEnergy(-0.025);
+	    REAL t1=getTransEnergy();
+	    REAL t2=getRotatEnergy();
+	    REAL t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -5993,7 +5994,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 void assembly::ellipPile_Impact_p(int   total_steps,  
 				  int   snapshots, 
 				  int   interval,
-				  long double dimn,
+				  REAL dimn,
 				  const char* iniptclfile,
 				  const char* particlefile, 
 				  const char* contactfile,  
@@ -6028,13 +6029,13 @@ void assembly::ellipPile_Impact_p(int   total_steps,
     createSample(iniptclfile); // create container and particles
 
     // pre_3. define variables used in iterations
-    long double l13, l24, l56;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL l13, l24, l56;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
-    long double void_ratio=0;
+    REAL void_ratio=0;
     
     // iterations start here...
     g_iteration=0;
@@ -6073,9 +6074,9 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 
 	// 6. (2) output statistics info.
 	if (g_iteration % interval == 0) {
-	    long double t1=getTransEnergy();
-	    long double t2=getRotatEnergy();
-	    long double t3=getPotenEnergy(-0.025);
+	    REAL t1=getTransEnergy();
+	    REAL t2=getRotatEnergy();
+	    REAL t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -6129,8 +6130,8 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 void assembly::ellipPile_Force(int   total_steps,  
 			       int   snapshots,
 			       int   interval,
-			       long double dimn,
-			       long double force,
+			       REAL dimn,
+			       REAL force,
 			       int   division,
 			       const char* iniptclfile,
 			       const char* particlefile, 
@@ -6173,16 +6174,16 @@ void assembly::ellipPile_Force(int   total_steps,
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
 
     // pre_3. define variables used in iterations
-    long double l13, l24, l56;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL l13, l24, l56;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
-    long double void_ratio=0;
+    REAL void_ratio=0;
 
-    long double zforce_inc=force/division;
-    long double zforce=zforce_inc;
+    REAL zforce_inc=force/division;
+    REAL zforce=zforce_inc;
 
     // iterations start here...
     g_iteration=0;
@@ -6242,9 +6243,9 @@ void assembly::ellipPile_Force(int   total_steps,
 
 	// 7. (2) output statistics info.
 	if (g_iteration % interval == 0) {
-	    long double t1=getTransEnergy();
-	    long double t2=getRotatEnergy();
-	    long double t3=getPotenEnergy(-0.025);
+	    REAL t1=getTransEnergy();
+	    REAL t2=getRotatEnergy();
+	    REAL t3=getPotenEnergy(-0.025);
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -6291,10 +6292,10 @@ void assembly::ellipPile_Force(int   total_steps,
 void assembly::truetriaxial(int   total_steps,  
 			    int   snapshots, 
 			    int   interval,
-			    long double sigma_a,     
-			    long double sigma_w,
-			    long double sigma_l,     
-			    long double sigma_h,   
+			    REAL sigma_a,     
+			    REAL sigma_w,
+			    REAL sigma_l,     
+			    REAL sigma_h,   
 			    int   sigma_division,
 			    const char* iniptclfile,  
 			    const char* inibdryfile,
@@ -6352,14 +6353,14 @@ void assembly::truetriaxial(int   total_steps,
     createBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    long double W0 = getApt(2).gety()-getApt(4).gety();
-    long double L0 = getApt(1).getx()-getApt(3).getx();
-    long double H0 = getApt(5).getz()-getApt(6).getz();
-    long double l13, l24, l56, min_area, mid_area, max_area;
-    long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
-    long double epsilon_w, epsilon_l, epsilon_h;
-    long double avgNormal=0;
-    long double avgTangt=0;
+    REAL W0 = getApt(2).gety()-getApt(4).gety();
+    REAL L0 = getApt(1).getx()-getApt(3).getx();
+    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL l13, l24, l56, min_area, mid_area, max_area;
+    REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
+    REAL epsilon_w, epsilon_l, epsilon_h;
+    REAL avgNormal=0;
+    REAL avgTangt=0;
     int         stepsnum=0;
     char        stepsstr[4];
     char        stepsfp[50];
@@ -6370,19 +6371,19 @@ void assembly::truetriaxial(int   total_steps,
     UPDATECTL midctl[2];
     UPDATECTL maxctl[2];
     UPDATECTL minctl[2];
-    long double void_ratio=0;
-    long double bdry_penetr[7];
+    REAL void_ratio=0;
+    REAL bdry_penetr[7];
     int         bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
     }
 
-    long double sigma_w1=sigma_a;
-    long double sigma_l1=sigma_a;
-    long double sigma_h1=sigma_a;
-    long double sigma_w_inc=(sigma_w-sigma_a)/sigma_division;
-    long double sigma_l_inc=(sigma_l-sigma_a)/sigma_division;
-    long double sigma_h_inc=(sigma_h-sigma_a)/sigma_division;
+    REAL sigma_w1=sigma_a;
+    REAL sigma_l1=sigma_a;
+    REAL sigma_h1=sigma_a;
+    REAL sigma_w_inc=(sigma_w-sigma_a)/sigma_division;
+    REAL sigma_l_inc=(sigma_l-sigma_a)/sigma_division;
+    REAL sigma_h_inc=(sigma_h-sigma_a)/sigma_division;
 
     // iterations start here...
     g_iteration=0;
@@ -6600,7 +6601,7 @@ void assembly::truetriaxial(int   total_steps,
 } // namespace dem ends
 
 /* 
-void assembly::dircShear(long double rate, long double roterate,long double stress,const char* iniptclfile,
+void assembly::dircShear(REAL rate, REAL roterate,REAL stress,const char* iniptclfile,
 						 const char* boundaryfile, const char* responsefile, const char* resultfile,
 						 const char* trackfile){
 	createSample(iniptclfile);//create particles 
@@ -6638,16 +6639,16 @@ bdry_4_norm_x  bdry_4_norm_y  bdry_4_norm_z  bdry_4_shar_x  bdry_4_shar_y  bdry_
 bdry_5_norm_x  bdry_5_norm_y  bdry_5_norm_z  bdry_5_shar_x  bdry_5_shar_y  bdry_5_shar_z  \
 bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_6_shar_z\n");
 
-	long double avgsigma;
-	long double l13, l24, l56, min_area, mid_area, max_area, lead;
-	long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
+	REAL avgsigma;
+	REAL l13, l24, l56, min_area, mid_area, max_area, lead;
+	REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
 	vec tmpnorm, tmpshar;
-	long double av=0;
-	long double ao=0;
-	long double af=0;
-	long double am=0;
-	long double avgNormal=0;
-	long double avgTangt=0;
+	REAL av=0;
+	REAL ao=0;
+	REAL af=0;
+	REAL am=0;
+	REAL avgNormal=0;
+	REAL avgTangt=0;
 
 	progressinf<<"DircShearing..."<<endl
 	         <<"iter_num   "
@@ -6727,7 +6728,7 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 */
 
 /* 
-void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclfile,
+void assembly::soft_tric(REAL _sigma3,REAL _b,const char* iniptclfile,
 						   const char* boundaryfile,const char* responsefile,
 						   const char* resultfile,const char* trackfile){
 	createSample(iniptclfile); //create particles 
@@ -6747,10 +6748,10 @@ void assembly::soft_tric(long double _sigma3,long double _b,const char* iniptclf
 
 	int max[2]={1,2};//maximum stress acting on boundary 5 and 6
 	UPDATECTL maxctl[2];
-	long double loading_rate=0.01;
+	REAL loading_rate=0.01;
 
-	long double avgsigma;
-	long double af, av, am, ao, adr, pre_af;
+	REAL avgsigma;
+	REAL af, av, am, ao, adr, pre_af;
 	vec disp, tmp;
 	av=ao=af=am=adr=pre_af=0;
 
@@ -6846,10 +6847,10 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 	UPDATECTL maxctl[2];
 //	int min[2]={1,3};//minimum stress acting on boundary 1 and 3
 //	UPDATECTL minctl[2];
-	long double loading_rate=0.01;
+	REAL loading_rate=0.01;
 
-	long double avgsigma;
-	long double af, av, am, ao, adr, pre_af;
+	REAL avgsigma;
+	REAL af, av, am, ao, adr, pre_af;
 	int nbdry;
 	vec disp, tmp, zbdry_velocity_0;
 	av=ao=af=am=adr=pre_af=0;
@@ -6926,7 +6927,7 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 */
 
 /* 
-void assembly::simpleShear(long double _sigma3,long double _b,
+void assembly::simpleShear(REAL _sigma3,REAL _b,
 			const char* iniptclfile,const char* boundaryfile,
 			const char* responsefile,const char* resultfile, const char* trackfile)
 {
@@ -6952,9 +6953,9 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 	UPDATECTL maxctl[2];
 	int min[2]={1,3};//minimum stress acting on boundary 1 and 3
 	UPDATECTL minctl[2];
-//	long double loading_rate=0.01;
-	long double increment=0.0001;
-	long double angular_velocity=0.1;
+//	REAL loading_rate=0.01;
+	REAL increment=0.0001;
+	REAL angular_velocity=0.1;
 	vec increment_velocity_x(increment,0,0);
 	vec increment_velocity_y(0,increment,0);
 	vec increment_velocity_z(0,0,increment);
@@ -6962,11 +6963,11 @@ void assembly::simpleShear(long double _sigma3,long double _b,
 	vec ybdry_velocity_0,ybdry_velocity_1;
 	vec zbdry_velocity_0,zbdry_velocity_1;
 
-	long double avgsigma;
-	long double af, av, am, ao, adr, pre_af;
-	long double sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2, sigma2;
-	long double ita1_1, ita1_2, ita2_1, ita2_2, ita3_1, ita3_2;
-	long double ar;
+	REAL avgsigma;
+	REAL af, av, am, ao, adr, pre_af;
+	REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2, sigma2;
+	REAL ita1_1, ita1_2, ita2_1, ita2_2, ita3_1, ita3_2;
+	REAL ar;
 	int nbdry;
 	vec disp, angl, nm, sh;
 	av=ao=af=am=adr=pre_af=0;
@@ -7117,7 +7118,7 @@ disp.x,disp.y,disp.z,angl.x,angl.y,angl.z,nm.x,nm.y,nm.z,sh.x,sh.y,sh.z);
 */
 
 /* 
-void assembly::earthPressure(long double pressure,bool IsPassive, 
+void assembly::earthPressure(REAL pressure,bool IsPassive, 
 				const char* iniptclfile, const char* boundaryfile,
 				const char* responsefile, const char* resultfile,
 				const char* trackfile)
@@ -7140,10 +7141,10 @@ void assembly::earthPressure(long double pressure,bool IsPassive,
 
 	int wall[1]={1};
 	UPDATECTL wallctl[1];
-//	long double loading_rate=0.001;
+//	REAL loading_rate=0.001;
 
-	long double avgsigma;
-	long double af, av, am, ao, adr, pre_af;
+	REAL avgsigma;
+	REAL af, av, am, ao, adr, pre_af;
 	int nbdry;
 	vec disp, tmp;
 	av=ao=af=am=adr=pre_af=0;

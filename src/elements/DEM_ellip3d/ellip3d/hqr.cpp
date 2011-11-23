@@ -6,10 +6,10 @@ using namespace std;
 
 namespace dem {
 
-bool hqr(long double **a, int n, long double wr[], long double wi[])
+bool hqr(REAL **a, int n, REAL wr[], REAL wi[])
 {
 	int nn,m,l,k,j,its,i,mmin;
-	long double z,y,x,w,v,u,t,s,r,q,p,anorm;
+	REAL z,y,x,w,v,u,t,s,r,q,p,anorm;
 
 	anorm=0.0;
 	for (i=1;i<=n;i++)
@@ -23,7 +23,7 @@ bool hqr(long double **a, int n, long double wr[], long double wi[])
 			for (l=nn;l>=2;l--) {
 				s=fabsl(a[l-1][l-1])+fabsl(a[l][l]);
 				if (s == 0.0) s=anorm;
-				if ((long double)(fabsl(a[l][l-1]) + s) == s) {
+				if ((REAL)(fabsl(a[l][l-1]) + s) == s) {
 					a[l][l-1]=0.0;
 					break;
 				}
@@ -75,7 +75,7 @@ bool hqr(long double **a, int n, long double wr[], long double wi[])
 						if (m == l) break;
 						u=fabsl(a[m][m-1])*(fabsl(q)+fabsl(r));
 						v=fabsl(p)*(fabsl(a[m-1][m-1])+fabsl(z)+fabsl(a[m+1][m+1]));
-						if ((long double)(u+v) == v) break;
+						if ((REAL)(u+v) == v) break;
 					}
 					for (i=m+2;i<=nn;i++) {
 						a[i][i-2]=0.0;

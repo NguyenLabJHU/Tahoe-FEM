@@ -1,26 +1,28 @@
 #ifndef VEC_H
 #define VEC_H
 
+#include "realtypes.h"
+
 namespace dem {
 
 class vec{
  public:
     vec();
-    vec(long double d);
-    vec(long double _x, long double _y, long double _z);
+    vec(REAL d);
+    vec(REAL _x, REAL _y, REAL _z);
     
-    long double getx() const;
-    long double gety() const;
-    long double getz() const;
-    void setx(long double _x);
-    void sety(long double _y);
-    void setz(long double _z);
+    REAL getx() const;
+    REAL gety() const;
+    REAL getz() const;
+    void setx(REAL _x);
+    void sety(REAL _y);
+    void setz(REAL _z);
     
     bool operator==(const vec v){
 	return x==v.x && y==v.y && z==v.z;
     }
     
-    bool operator==(const long double d){
+    bool operator==(const REAL d){
 	return x==d && y==d && z==d;
     }
     
@@ -30,26 +32,26 @@ class vec{
     
     void operator+=(const vec v);
     void operator-=(const vec v);
-    void operator*=(long double d);
-    void operator/=(long double d);
+    void operator*=(REAL d);
+    void operator/=(REAL d);
     vec operator+(vec v) const;
     vec operator-(vec v) const;
     vec operator*(vec p) const;   // find the cross product of this vector and p
-    vec operator*(long double d) const;
-    long double operator%(vec p) const;// find the dot product of this and p
+    vec operator*(REAL d) const;
+    REAL operator%(vec p) const;// find the dot product of this and p
     void print() const;
     
  private:
-    long double x;
-    long double y;
-    long double z;
+    REAL x;
+    REAL y;
+    REAL z;
 };
 
 // Non-member functions
-vec operator*(long double d, vec v);
-vec operator/(vec v, long double d);
+vec operator*(REAL d, vec v);
+vec operator/(vec v, REAL d);
 vec operator-(vec v);
-long double vfabsl(vec v);
+REAL vfabsl(vec v);
 vec vcosl(vec v);
 vec vacosl(vec v);
 vec rotateVec(vec v, vec alf);    // find the exact vector after v is rotated alf in space
@@ -59,7 +61,7 @@ composed of v1 and v2 from itself to v2, the angle could be 0<alf<360
 norm specify that the rotation must be around norm according to right hand rule,
 even if 180<alf<360
 */
-long double angle(vec v1, vec v2, vec norm); 
+REAL angle(vec v1, vec v2, vec norm); 
 
 } // namespace dem ends
 

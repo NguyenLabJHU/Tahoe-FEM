@@ -8,27 +8,29 @@
 #ifndef _NR_UTILS_H_
 #define _NR_UTILS_H_
 
+#include "realtypes.h"
+
 namespace dem {
 
-static long double sqrarg;
+static REAL sqrarg;
 #define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
 
-static long double dsqrarg;
+static REAL dsqrarg;
 #define DSQR(a) ((dsqrarg=(a)) == 0.0 ? 0.0 : dsqrarg*dsqrarg)
 
-static long double dmaxarg1,dmaxarg2;
+static REAL dmaxarg1,dmaxarg2;
 #define DMAX(a,b) (dmaxarg1=(a),dmaxarg2=(b),(dmaxarg1) > (dmaxarg2) ?\
         (dmaxarg1) : (dmaxarg2))
 
-static long double dminarg1,dminarg2;
+static REAL dminarg1,dminarg2;
 #define DMIN(a,b) (dminarg1=(a),dminarg2=(b),(dminarg1) < (dminarg2) ?\
         (dminarg1) : (dminarg2))
 
-static long double maxarg1,maxarg2;
+static REAL maxarg1,maxarg2;
 #define FMAX(a,b) (maxarg1=(a),maxarg2=(b),(maxarg1) > (maxarg2) ?\
         (maxarg1) : (maxarg2))
 
-static long double minarg1,minarg2;
+static REAL minarg1,minarg2;
 #define FMIN(a,b) (minarg1=(a),minarg2=(b),(minarg1) < (minarg2) ?\
         (minarg1) : (minarg2))
 
@@ -51,29 +53,29 @@ static int iminarg1,iminarg2;
 #define SIGN(a,b) ((b) >= 0.0 ? fabsl(a) : -fabsl(a))
 
 void nrerror(char error_text[]);
-long double *vector(long nl, long nh);
+REAL *vector(long nl, long nh);
 int *ivector(long nl, long nh);
 unsigned char *cvector(long nl, long nh);
 unsigned long *lvector(long nl, long nh);
-long double *dvector(long nl, long nh);
-long double **matrix(long nrl, long nrh, long ncl, long nch);
-long double **dmatrix(long nrl, long nrh, long ncl, long nch);
+REAL *dvector(long nl, long nh);
+REAL **matrix(long nrl, long nrh, long ncl, long nch);
+REAL **dmatrix(long nrl, long nrh, long ncl, long nch);
 int **imatrix(long nrl, long nrh, long ncl, long nch);
-long double **submatrix(long double **a, long oldrl, long oldrh, long oldcl, long oldch,
+REAL **submatrix(REAL **a, long oldrl, long oldrh, long oldcl, long oldch,
 	long newrl, long newcl);
-long double **convert_matrix(long double *a, long nrl, long nrh, long ncl, long nch);
-long double ***f3tensor(long nrl, long nrh, long ncl, long nch, long ndl, long ndh);
-void free_vector(long double *v, long nl, long nh);
+REAL **convert_matrix(REAL *a, long nrl, long nrh, long ncl, long nch);
+REAL ***f3tensor(long nrl, long nrh, long ncl, long nch, long ndl, long ndh);
+void free_vector(REAL *v, long nl, long nh);
 void free_ivector(int *v, long nl, long nh);
 void free_cvector(unsigned char *v, long nl, long nh);
 void free_lvector(unsigned long *v, long nl, long nh);
-void free_dvector(long double *v, long nl, long nh);
-void free_matrix(long double **m, long nrl, long nrh, long ncl, long nch);
-void free_dmatrix(long double **m, long nrl, long nrh, long ncl, long nch);
+void free_dvector(REAL *v, long nl, long nh);
+void free_matrix(REAL **m, long nrl, long nrh, long ncl, long nch);
+void free_dmatrix(REAL **m, long nrl, long nrh, long ncl, long nch);
 void free_imatrix(int **m, long nrl, long nrh, long ncl, long nch);
-void free_submatrix(long double **b, long nrl, long nrh, long ncl, long nch);
-void free_convert_matrix(long double **b, long nrl, long nrh, long ncl, long nch);
-void free_f3tensor(long double ***t, long nrl, long nrh, long ncl, long nch,
+void free_submatrix(REAL **b, long nrl, long nrh, long ncl, long nch);
+void free_convert_matrix(REAL **b, long nrl, long nrh, long ncl, long nch);
+void free_f3tensor(REAL ***t, long nrl, long nrh, long ncl, long nch,
 	long ndl, long ndh);
 
 } // namespace dem ends

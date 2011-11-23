@@ -1,6 +1,6 @@
 #ifndef PARAMETER_H
 #define PARAMETER_H
-
+#include "realtypes.h"
 #include <fstream>
 
 namespace dem { 
@@ -10,18 +10,18 @@ namespace dem {
 ///////////////////////////////////////////////////////////////////////////////////////
 
 // PI value
-extern const long double PI;
+extern const REAL PI;
 
 // Gravitational acceleration
-extern const long double G;
+extern const REAL G;
 
 
 // numeric zero (NOT float point relative precision), problem domain dependent
-extern const long double NUMZERO;
+extern const REAL NUMZERO;
 
 // relative overlap between particles
-extern const long double MINOVERLAP;
-extern const long double MAXOVERLAP;
+extern const REAL MINOVERLAP;
+extern const REAL MAXOVERLAP;
 
 // random number seed
 extern long idum;
@@ -30,9 +30,9 @@ extern long idum;
 //#define RANDOM_SHAPE
 
 // particle material property
-extern const long double YOUNG;  
-extern const long double POISSON;      
-extern const long double Gs;     
+extern const REAL YOUNG;  
+extern const REAL POISSON;      
+extern const REAL Gs;     
 
 // other global variables
 extern std::ofstream g_debuginf;
@@ -50,24 +50,24 @@ extern const int OPREC;
 extern int         NUM_THREADS;
 
 // 1. time integration method 
-extern long double TIMESTEP;
-extern long double MASS_SCL;
-extern long double MNT_SCL;
-extern long double GRVT_SCL;
-extern long double DMP_F;
-extern long double DMP_M;
+extern REAL TIMESTEP;
+extern REAL MASS_SCL;
+extern REAL MNT_SCL;
+extern REAL GRVT_SCL;
+extern REAL DMP_F;
+extern REAL DMP_M;
 
 // 2. normal damping and tangential friction
-extern long double DMP_CNT;
-extern long double FRICTION;
-extern long double BDRYFRIC;
-extern long double COHESION;
+extern REAL DMP_CNT;
+extern REAL FRICTION;
+extern REAL BDRYFRIC;
+extern REAL COHESION;
 
 // 3. boundary displacement rate
-extern long double COMPRESS_RATE;
-extern long double RELEASE_RATE;
-extern long double PILE_RATE;
-extern long double STRESS_ERROR;
+extern REAL COMPRESS_RATE;
+extern REAL RELEASE_RATE;
+extern REAL PILE_RATE;
+extern REAL STRESS_ERROR;
 
 } // namespace dem ends
 

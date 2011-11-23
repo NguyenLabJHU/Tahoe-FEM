@@ -6,6 +6,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // header files
+#include "realtypes.h"
 #include "parameter.h"
 #include "gradation.h"
 #include "rectangle.h"
@@ -33,8 +34,8 @@ int main(int argc, char* argv[])
     dem::MASS_SCL      = 1;       // mass scaling
     dem::MNT_SCL       = 1;       // moment of inertial scaling
     dem::GRVT_SCL      = 1;       // gravity scaling
-    dem::DMP_F         = 0;       // background viscous damping on mass
-    dem::DMP_M         = 0;       // background viscous damping on moment of inertial
+    dem::DMP_F         = 0; // 2.0/dem::TIMESTEP*2.0e-2;       // background viscous damping on mass
+    dem::DMP_M         = 0; // 2.0/dem::TIMESTEP*2.0e-2;       // background viscous damping on moment of inertial
 
     /*
     // --- dynamic relaxation and scaling
@@ -62,13 +63,24 @@ int main(int argc, char* argv[])
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 2: set up a simulation to run
+    /*
+    A.deposit(100000,               // total_steps
+	      1,                // number of snapshots
+              10000,                 // print interval
+	      "flo_particle_end", // input file, initial particles
+	      "dep_boundary_ini", // input file, initial boundaries
+	      "dep_particle",     // output file, resulted particles, including snapshots 
+	      "dep_contact",      // output file, resulted contacts, including snapshots 
+	      "dep_progress",     // output file, statistical info
+	      "dep_debug");       // output file, debug info
+    */
     // size, shape, and gradation of particles
-    int rorc             = 1;     // rectangular = 1 or cylindrical = 0
-    long double dimn     = 0.05;  // specimen dimension
-    long double ratio_ba = 0.8;   // ratio of radius b to radius a
-    long double ratio_ca = 0.6;   // ratio of radius c to radius a
-    std::vector<long double> percent;  // mass percentage of particles smaller than a certain size
-    std::vector<long double> ptclsize; // particle size
+    int rorc      = 1;     // rectangular = 1 or cylindrical = 0
+    dem::REAL dimn     = 0.05;  // specimen dimension
+    dem::REAL ratio_ba = 0.8;   // ratio of radius b to radius a
+    dem::REAL ratio_ca = 0.6;   // ratio of radius c to radius a
+    std::vector<dem::REAL> percent;  // mass percentage of particles smaller than a certain size
+    std::vector<dem::REAL> ptclsize; // particle size
     percent.push_back(1.00); ptclsize.push_back(2.5e-3);
     percent.push_back(0.80); ptclsize.push_back(2.3e-3);
     percent.push_back(0.60); ptclsize.push_back(2.0e-3);
@@ -77,10 +89,10 @@ int main(int argc, char* argv[])
     dem::gradation grad(rorc, dimn, ratio_ba, ratio_ca, percent.size(), percent, ptclsize);
     A.deposit_RgdBdry(grad,
 		      2,                  // freetype, setting of free particles 
-		      1000000,             // total_steps
+		      500000,             // total_steps
 		      100,                // number of snapshots
-                      1,                  // print interval
-		      3.0,                // height of floating particles relative to dimn
+                      10,                 // print interval
+		      5.0,                // height of floating particles relative to dimn
 		      "flo_particle_end", // output file, initial particles
 		      "dep_boundary_ini", // output file, initial boundaries
 		      "dep_particle",     // output file, resulted particles, including snapshots 
@@ -89,7 +101,7 @@ int main(int argc, char* argv[])
 		      "cre_particle",     // output file, resulted particles after trmming
 		      "cre_boundary",     // output file, resulted boundaries after trmming
 		      "dep_debug");       // output file, debug info
-
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 3: record run time
     time(&time2);
@@ -174,11 +186,11 @@ int main(int argc, char* argv[])
 
     // size, shape, and gradation of particles
     int rorc             = 1;     // rectangular = 1 or cylindrical = 0
-    long double dimn     = 0.05;  // specimen dimension
-    long double ratio_ba = 0.8;   // ratio of radius b to radius a
-    long double ratio_ca = 0.6;   // ratio of radius c to radius a
-    std::vector<long double> percent;  // mass percentage of particles smaller than a certain size
-    std::vector<long double> ptclsize; // particle size
+    dem::REAL dimn     = 0.05;  // specimen dimension
+    dem::REAL ratio_ba = 0.8;   // ratio of radius b to radius a
+    dem::REAL ratio_ca = 0.6;   // ratio of radius c to radius a
+    std::vector<dem::REAL> percent;  // mass percentage of particles smaller than a certain size
+    std::vector<dem::REAL> ptclsize; // particle size
     percent.push_back(1.00); ptclsize.push_back(2.5e-3);
     //percent.push_back(0.80); ptclsize.push_back(2.3e-3);
     //percent.push_back(0.60); ptclsize.push_back(2.0e-3);
@@ -203,11 +215,11 @@ int main(int argc, char* argv[])
 
     // size, shape, and gradation of particles
     int rorc             = 1;     // rectangular = 1 or cylindrical = 0
-    long double dimn     = 0.05;  // specimen dimension
-    long double ratio_ba = 0.8;   // ratio of radius b to radius a
-    long double ratio_ca = 0.6;   // ratio of radius c to radius a
-    std::vector<long double> percent;  // mass percentage of particles smaller than a certain size
-    std::vector<long double> ptclsize; // particle size
+    dem::REAL dimn     = 0.05;  // specimen dimension
+    dem::REAL ratio_ba = 0.8;   // ratio of radius b to radius a
+    dem::REAL ratio_ca = 0.6;   // ratio of radius c to radius a
+    std::vector<dem::REAL> percent;  // mass percentage of particles smaller than a certain size
+    std::vector<dem::REAL> ptclsize; // particle size
     percent.push_back(1.00); ptclsize.push_back(2.5e-3);
     //percent.push_back(0.80); ptclsize.push_back(2.0e-3);
     //percent.push_back(0.60); ptclsize.push_back(1.6e-3);
@@ -368,7 +380,7 @@ int main(int argc, char* argv[])
 		"iso_debug");       // output file, debug info
 
     
-    long double sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 7.0e+5}; // last one must be a larger value	
+    dem::REAL sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 7.0e+5}; // last one must be a larger value	
     A.isotropic(100000,             // total_steps
 		100,                // number of snapshots
                 10,                 // print interval
@@ -401,7 +413,7 @@ int main(int argc, char* argv[])
 	       "odo_debug");       // output file, debug info
 
     
-    long double sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 1.0e+6}; // last one must be a larger value	
+    dem::REAL sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 1.0e+6}; // last one must be a larger value	
     A.odometer(100000,             // total_steps
 	       100,                // number of snapshots
                10,                 // print interval
