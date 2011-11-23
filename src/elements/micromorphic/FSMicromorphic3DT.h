@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.213 2011-11-16 17:08:52 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.214 2011-11-23 22:55:22 isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -983,6 +983,7 @@ private:
 
 
     int PlasticityCheck,MicroScaleGradient_check;
+    double fF_tr_fact;
     double fCombinedYield_function,fCombinedYield_function_tr,Stress_Norm,Stress_Norm_tr,dFCYdDelGamma;
     double fMicroScaleGradientYield_function,fMicroScaleGradientYield_function_tr,invGc,invGc_n,invPGchivar,invPGchivar_tr;
     double invdevMeKLM,invdevMeKLM_tr,AGphi_chi,BGphi_chi,AGpsi_chi,BGpsi_chi;
