@@ -3,7 +3,7 @@
 
 namespace dem { 
 
-  typedef long double REAL;
+  typedef double REAL;
 
 }
 
