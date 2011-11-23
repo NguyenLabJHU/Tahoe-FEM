@@ -1471,8 +1471,8 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				{
 					/* trial values */
 					
-	    			/* retrieve Fp_n at integration point */
-	    			fFp_n_IPs.RowCopy(IP,fFp_n);
+					/* retrieve Fp_n at integration point */
+					fFp_n_IPs.RowCopy(IP,fFp_n);
 					/* [fFp_n_Inverse] will be formed */
 					fFp_n_Inverse.Inverse(fFp_n);
 					
@@ -1488,7 +1488,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 					
 					/* [fTrial_Right_Cauchy_Green_tensor_Inverse] will be formed */
 					if (fTrial_Elastic_Right_Cauchy_Green_tensor.Det()==0)
-					    fTrial_Elastic_Right_Cauchy_Green_tensor = fIdentity_matrix;
+					fTrial_Elastic_Right_Cauchy_Green_tensor = fIdentity_matrix;
 					fTrial_Elastic_Right_Cauchy_Green_tensor_Inverse.Inverse(fTrial_Elastic_Right_Cauchy_Green_tensor);
 					
 					/* [fTrial_Effective_Second_Piola_tensor] will be formed */
@@ -1589,11 +1589,19 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			    			
 			    			/* solve for fdelDelgamma */
 			    			//if (dfFdDelgamma != 0.0) fdelDelgamma = -fF/dfFdDelgamma;
-			    			if (fabs(dfFdDelgamma) >= dYieldTrialTol) fdelDelgamma = -fF/dfFdDelgamma;
+			    			//if (fabs(dfFdDelgamma) >= dYieldTrialTol) fdelDelgamma = -fF/dfFdDelgamma;
+			    			if (fabs(dfFdDelgamma) >= 1e-14) fdelDelgamma = -fF/dfFdDelgamma;
 			    			else fdelDelgamma = 0.0;
 			    			/* update fDelgamma */
 			    			fDelgamma += fdelDelgamma;
-			    			if (fDelgamma < 0.0) fDelgamma = 0.0;
+						/*
+			    			if (fDelgamma < 0.0) 
+						{
+							cout << "Delgamma = " << fDelgamma << endl; 	
+							fDelgamma = 0.0;
+							cout << "Delgamma = " << fDelgamma << endl; 	
+						}
+						*/
 			    			fState_variables_IPs(IP,kDelgamma) = fDelgamma;
 			    			
 			    			double scalar_res = fabs(fF/fF_tr);
@@ -1611,81 +1619,146 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 			    			
 			    			/* update fFp */
 			    			fTemp_matrix_nsd_x_nsd.SetToScaled(fDelgamma,fdGdS_n); 
-							fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
-							fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
+						fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
+						fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
 			    			Jp = fFp.Det();
 			    			/* calculate fFp_Inverse  */
-							fFp_Inverse.Inverse(fFp);
+						fFp_Inverse.Inverse(fFp);
 					
 			    			/* calculate Fe */
-							fFe.MultAB(fDeformation_Gradient,fFp_Inverse);
-							/* calculate elastic Jacobian */
-							Je = fFe.Det();
+						fFe.MultAB(fDeformation_Gradient,fFp_Inverse);
+						/* calculate elastic Jacobian */
+						Je = fFe.Det();
 
-							/* calculate Fe_Transpose and Inverse */
-							fFe_Transpose.Transpose(fFe);
-							fFe_Inverse.Inverse(fFe);
-							fFe_Transpose_Inverse.Inverse(fFe_Transpose);
-							/* [fElastic_Right_Cauchy_Green_tensor] will be formed */
-							fElastic_Right_Cauchy_Green_tensor.MultATB(fFe, fFe);
-							fElastic_Left_Cauchy_Green_tensor.MultABT(fFe, fFe);
+						/* calculate Fe_Transpose and Inverse */
+						fFe_Transpose.Transpose(fFe);
+						fFe_Inverse.Inverse(fFe);
+						fFe_Transpose_Inverse.Inverse(fFe_Transpose);
+						/* [fElastic_Right_Cauchy_Green_tensor] will be formed */
+						fElastic_Right_Cauchy_Green_tensor.MultATB(fFe, fFe);
+						fElastic_Left_Cauchy_Green_tensor.MultABT(fFe, fFe);
 							
-							/* calculate [fTrial_Right_Cauchy_Green_tensor_Inverse] */
-							if (fElastic_Right_Cauchy_Green_tensor.Det()==0)
-							    fElastic_Right_Cauchy_Green_tensor = fIdentity_matrix;
-							fElastic_Right_Cauchy_Green_tensor_Inverse.Inverse(fElastic_Right_Cauchy_Green_tensor);
+						/* calculate [fTrial_Right_Cauchy_Green_tensor_Inverse] */
+						if (fElastic_Right_Cauchy_Green_tensor.Det()==0)
+						    fElastic_Right_Cauchy_Green_tensor = fIdentity_matrix;
+						fElastic_Right_Cauchy_Green_tensor_Inverse.Inverse(fElastic_Right_Cauchy_Green_tensor);
 							
 			    			/* update S stress */
 			    			fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(Je)
 			    				-fMaterial_Params[kMu],fElastic_Right_Cauchy_Green_tensor_Inverse); 
-							fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
-							fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
+						fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
+						fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
 					
 			    			/* calculate deviatoric S stress */
-							meanstress = fEffective_Second_Piola_tensor.Trace()/3;
-							fState_variables_IPs(IP,kMeanS) = meanstress;
-							fDev_Effective_Second_Piola_tensor = fEffective_Second_Piola_tensor;
-							fTemp_matrix_nsd_x_nsd.SetToScaled(meanstress,fIdentity_matrix);
-							fDev_Effective_Second_Piola_tensor -= fTemp_matrix_nsd_x_nsd;
-							devstress_inprod = fDev_Effective_Second_Piola_tensor.ScalarProduct();
-							fState_variables_IPs(IP,kDevSS) = devstress_inprod;
+						meanstress = fEffective_Second_Piola_tensor.Trace()/3;
+						fState_variables_IPs(IP,kMeanS) = meanstress;
+						fDev_Effective_Second_Piola_tensor = fEffective_Second_Piola_tensor;
+						fTemp_matrix_nsd_x_nsd.SetToScaled(meanstress,fIdentity_matrix);
+						fDev_Effective_Second_Piola_tensor -= fTemp_matrix_nsd_x_nsd;
+						devstress_inprod = fDev_Effective_Second_Piola_tensor.ScalarProduct();
+						fState_variables_IPs(IP,kDevSS) = devstress_inprod;
 					
 			    			/* check yielding */
-							fXphi = fState_variables_IPs(IP,kkappa)-fMaterial_Params[kR]
-								*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)
-								-fMaterial_Params[kBphi]*fState_variables_IPs(IP,kkappa));
-							fXphi_m_kappa = fXphi - fState_variables_IPs(IP,kkappa);
-							fMacFunc = (fabs(fState_variables_IPs(IP,kkappa)-3*meanstress)+fState_variables_IPs(IP,kkappa)-3*meanstress)/2;
-							fFphicap = 1.0 - fMacFunc*(fState_variables_IPs(IP,kkappa)-3*meanstress)/(fXphi_m_kappa*fXphi_m_kappa);
-							fF = devstress_inprod - fFphicap
-								*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress)
-								*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress);
+						fXphi = fState_variables_IPs(IP,kkappa)-fMaterial_Params[kR]
+							*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)
+							-fMaterial_Params[kBphi]*fState_variables_IPs(IP,kkappa));
+						fXphi_m_kappa = fXphi - fState_variables_IPs(IP,kkappa);
+						fMacFunc = (fabs(fState_variables_IPs(IP,kkappa)-3*meanstress)+fState_variables_IPs(IP,kkappa)-3*meanstress)/2;
+						fFphicap = 1.0 - fMacFunc*(fState_variables_IPs(IP,kkappa)-3*meanstress)/(fXphi_m_kappa*fXphi_m_kappa);
+						fF = devstress_inprod - fFphicap
+							*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress)
+							*(fMaterial_Params[kAphi]*fState_variables_IPs(IP,kc)-fMaterial_Params[kBphi]*meanstress);
 						
-							if (fMacFunc > 0.0) signMacFunc = 1.0;
-							else signMacFunc = 0.0;
-			    		}
+						if (fMacFunc > 0.0) signMacFunc = 1.0;
+						else signMacFunc = 0.0;
+			    		}/* end iteration loop to solve for fDelgamma */
+			    		if (fDelgamma < 0.0) 
+					{
+						/*
+						cout << "Delgamma = " << fDelgamma << endl; 	
+						cout << "fF_tr = " << fF_tr << endl; 	
+						cout << "fF_tr_fact = " << fF_tr_fact << endl; 	
+						*/
+
+						fDelgamma = 0.0;
+			    			fState_variables_IPs(IP,kDelgamma) = fDelgamma;
+			    			
+			    			double scalar_res = fabs(fF/fF_tr);
+			    			
+			    			/* update kappa and c ISVs */
+			    			fState_variables_IPs(IP,kZkappa) = fState_variables_n_IPs(IP,kZkappa) 
+			    				+ fDelgamma*fState_variables_n_IPs(IP,khkappa);
+				    		fState_variables_IPs(IP,kZc) = fState_variables_n_IPs(IP,kZc) 
+				    			+ fDelgamma*fState_variables_n_IPs(IP,khc);
+				    		fState_variables_IPs(IP,kkappa) = fState_variables_n_IPs(IP,kkappa) 
+			    				+ fDelgamma*fState_variables_n_IPs(IP,khkappa)*fMaterial_Params[kHk];
+				    		fState_variables_IPs(IP,kc) = fState_variables_n_IPs(IP,kc) 
+				    			+ fDelgamma*fState_variables_n_IPs(IP,khc)*fMaterial_Params[kHc];
+							if (fState_variables_IPs(IP,kc) < 0.0) fState_variables_IPs(IP,kc) = 0.0;
+			    			
+			    			/* update fFp */
+			    			fTemp_matrix_nsd_x_nsd.SetToScaled(fDelgamma,fdGdS_n); 
+						fTemp_matrix_nsd_x_nsd += fIdentity_matrix;
+						fFp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_n);
+			    			Jp = fFp.Det();
+			    			/* calculate fFp_Inverse  */
+						fFp_Inverse.Inverse(fFp);
+					
+			    			/* calculate Fe */
+						fFe.MultAB(fDeformation_Gradient,fFp_Inverse);
+						/* calculate elastic Jacobian */
+						Je = fFe.Det();
+
+						/* calculate Fe_Transpose and Inverse */
+						fFe_Transpose.Transpose(fFe);
+						fFe_Inverse.Inverse(fFe);
+						fFe_Transpose_Inverse.Inverse(fFe_Transpose);
+						/* [fElastic_Right_Cauchy_Green_tensor] will be formed */
+						fElastic_Right_Cauchy_Green_tensor.MultATB(fFe, fFe);
+						fElastic_Left_Cauchy_Green_tensor.MultABT(fFe, fFe);
+							
+						/* calculate [fTrial_Right_Cauchy_Green_tensor_Inverse] */
+						if (fElastic_Right_Cauchy_Green_tensor.Det()==0)
+						    fElastic_Right_Cauchy_Green_tensor = fIdentity_matrix;
+						fElastic_Right_Cauchy_Green_tensor_Inverse.Inverse(fElastic_Right_Cauchy_Green_tensor);
+							
+			    			/* update S stress */
+			    			fEffective_Second_Piola_tensor.SetToScaled(fMaterial_Params[kLambda]*log(Je)
+			    				-fMaterial_Params[kMu],fElastic_Right_Cauchy_Green_tensor_Inverse); 
+						fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kMu],fIdentity_matrix);
+						fEffective_Second_Piola_tensor += fTemp_matrix_nsd_x_nsd;
+					
+			    			/* calculate deviatoric S stress */
+						meanstress = fEffective_Second_Piola_tensor.Trace()/3;
+						fState_variables_IPs(IP,kMeanS) = meanstress;
+						fDev_Effective_Second_Piola_tensor = fEffective_Second_Piola_tensor;
+						fTemp_matrix_nsd_x_nsd.SetToScaled(meanstress,fIdentity_matrix);
+						fDev_Effective_Second_Piola_tensor -= fTemp_matrix_nsd_x_nsd;
+						devstress_inprod = fDev_Effective_Second_Piola_tensor.ScalarProduct();
+						fState_variables_IPs(IP,kDevSS) = devstress_inprod;
+					}
 			    		/* throw Exception if reach iIterationMax */
 			    		if (iter_count == iIterationMax)
 			    		{
 			    			//ExceptionT::GeneralFail(caller, "Local iteration counter %d reached maximum number allowed %d.",
-							//	iter_count, iIterationMax);
-							cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl; 
-							cout << "Current relative residual = " << fabs(fF/fF_tr) << endl; 	
-							cout << "Current residual = " << fF << endl; 	
-							cout << "Trial yield function = " << fF_tr << endl; 	
-							cout << "Delgamma = " << fDelgamma << endl; 	
-							cout << "dfFdDelgamma = " << dfFdDelgamma << endl; 	
+						//	iter_count, iIterationMax);
+						cout << "Local iteration counter reached maximum number allowed: iter_count = " << iIterationMax << endl; 
+						cout << "Current relative residual = " << fabs(fF/fF_tr) << endl; 	
+						cout << "Current residual = " << fF << endl; 	
+						cout << "Trial yield function = " << fF_tr << endl; 	
+						cout << "Delgamma = " << fDelgamma << endl; 	
+						cout << "dfFdDelgamma = " << dfFdDelgamma << endl; 	
 			    		}
 			    		
-			    		/* saving Fp for each IP of the current element */
+					/* saving Fp for each IP of the current element */
 			    		fFp_IPs.SetRow(IP,fFp);
 			    
-						/* Plastic Jacobian for the current IP will be saved */
-						fState_variables_IPs(IP,kJp)=Jp;
+					/* Plastic Jacobian for the current IP will be saved */
+					fState_variables_IPs(IP,kJp)=Jp;
 			    		
-			    		/* update Kirchhoff stress */
-						fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fEffective_Second_Piola_tensor,fFe);
-						fEffective_Kirchhoff_tensor.SetToScaled(Jp,fTemp_matrix_nsd_x_nsd);
+					/* update Kirchhoff stress */
+					fTemp_matrix_nsd_x_nsd.MultABCT(fFe,fEffective_Second_Piola_tensor,fFe);
+					fEffective_Kirchhoff_tensor.SetToScaled(Jp,fTemp_matrix_nsd_x_nsd);
 						
 						/* save continuum tangents for localization analysis at end of time step */
 						/* elasto-plastic tangent moduli */ 
@@ -1918,13 +1991,13 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 					fTemp_matrix_nsd_x_nsd.SetToScaled(fCpsi,fIdentity_matrix);
 					fdGdS += fTemp_matrix_nsd_x_nsd;
 					/* saving dGdS for each IP of the current element */
-		    		fdGdS_IPs.SetRow(IP,fdGdS);
+					fdGdS_IPs.SetRow(IP,fdGdS);
 		    		
-		    		/* calculate plastic hardening functions for next step */
+					/* calculate plastic hardening functions for next step */
 					fState_variables_IPs(IP,kEpsVolp) = fState_variables_n_IPs(IP,kEpsVolp) + fDelgamma*3*fCpsi;
-		    		fState_variables_IPs(IP,khkappa) = 3*signMacFunc*exp(-fMaterial_Params[kalphak]
-		    			*fState_variables_IPs(IP,kEpsVolp))*fCpsi;
-			    	fState_variables_IPs(IP,khc) = 2*sqrt(devstress_inprod);	
+					fState_variables_IPs(IP,khkappa) = 3*signMacFunc*exp(-fMaterial_Params[kalphak]
+						*fState_variables_IPs(IP,kEpsVolp))*fCpsi;
+					fState_variables_IPs(IP,khc) = 2*sqrt(devstress_inprod);	
 				}
 				
 				/* {fEffective_Kirchhoff_vector} will be formed */
@@ -1954,7 +2027,7 @@ void FSSolidFluidMixT::RHSDriver_monolithic(void)
 				fk_hydraulic_conductivity_matrix.SetToScaled(coef_porosity,fK_hydraulic_conductivity_matrix);
 				/* important note: in the second darcy's law implementation, k is not 
 				 * hydraulic conductivity. It's a coefficient which relates to intrinsic 
-				 * permeability and dynamic viscosity with [m2/(pa.s)] dimension 
+				 * permeability and dynamic viscosity with [(m^2)/(Pa.s)] dimension 
 				 */
 				//fk_hydraulic_conductivity_matrix = fK_hydraulic_conductivity_matrix; 
 
