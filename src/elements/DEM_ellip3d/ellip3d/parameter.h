@@ -47,7 +47,7 @@ extern const int OPREC;
 ///////////////////////////////////////////////////////////////////////////////////////
 
 // number of OpenMP threads
-extern int         NUM_THREADS;
+extern int  NUM_THREADS;
 
 // 1. time integration method 
 extern REAL TIMESTEP;
