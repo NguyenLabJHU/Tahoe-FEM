@@ -1,4 +1,4 @@
-# 1. You can turn off/off openmp
+# 1. You can turn on/off openmp
 
 # C++ compiler
 CXX = g++
